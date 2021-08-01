@@ -37,6 +37,9 @@ namespace VisualPinball.Unity
 		/// </summary>
 		public virtual bool IsCollidable => true;
 
+		public abstract void SetData(TData data, Dictionary<string, IItemMainAuthoring> itemMainAuthorings);
+		public abstract void GetData(TData data);
+
 		#region Data
 
 		/// <summary>
@@ -49,11 +52,6 @@ namespace VisualPinball.Unity
 		/// for the next access.
 		/// </summary>
 		public override TItem Item => _item ??= InstantiateItem(_data);
-
-		/// <summary>
-		/// Applies the GameObject data to the item data. typically name and visibility.
-		/// </summary>
-		public abstract void Restore();
 
 		/// <summary>
 		/// Instantiates a new item based on the item data.

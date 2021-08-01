@@ -54,8 +54,6 @@ namespace VisualPinball.Unity
 
 		public bool HitEvent = true;
 
-		public bool IsCollidable = true;
-
 		#endregion
 		protected override Bumper InstantiateItem(BumperData data) => new Bumper(data);
 
@@ -75,9 +73,9 @@ namespace VisualPinball.Unity
 		{
 			Convert(entity, dstManager);
 			dstManager.AddComponentData(entity, new BumperStaticData {
-				Force = Data.Force,
-				HitEvent = Data.HitEvent,
-				Threshold = Data.Threshold
+				Force = Force,
+				HitEvent = HitEvent,
+				Threshold = Threshold
 			});
 
 			var table = Table;
@@ -94,9 +92,9 @@ namespace VisualPinball.Unity
 					DoAnimate = false,
 
 					// static
-					DropOffset = bumper.Data.RingDropOffset,
-					HeightScale = bumper.Data.HeightScale,
-					Speed = bumper.Data.RingSpeed,
+					DropOffset = RingDropOffset,
+					HeightScale = transform.localScale.z,
+					Speed = RingSpeed,
 					ScaleZ = table.GetScaleZ()
 				});
 			}
@@ -118,40 +116,64 @@ namespace VisualPinball.Unity
 			transform.GetComponentInParent<Player>().RegisterBumper(Item, entity, ParentEntity, gameObject);
 		}
 
-		public override void Restore()
+		public override void SetData(BumperData data, Dictionary<string, IItemMainAuthoring> itemMainAuthorings)
+		{
+			Radius = data.Radius;
+			Threshold = data.Threshold;
+			Force = data.Force;
+			Scatter = data.Scatter;
+			RingSpeed = data.RingSpeed;
+			RingDropOffset = data.RingDropOffset;
+			Surface = GetAuthoring<SurfaceAuthoring>(itemMainAuthorings, data.Surface);
+			HitEvent = data.HitEvent;
+			transform.localScale = new Vector3(1f, 1f, data.HeightScale);
+		}
+
+		public override void GetData(BumperData data)
 		{
 			// update the name
-			Item.Name = name;
+			data.Name = name;
 
 			// update visibility
-			Data.IsBaseVisible = false;
-			Data.IsCapVisible = false;
-			Data.IsRingVisible = false;
-			Data.IsSocketVisible = false;
+			data.IsBaseVisible = false;
+			data.IsCapVisible = false;
+			data.IsRingVisible = false;
+			data.IsSocketVisible = false;
 			foreach (var meshComponent in MeshComponents) {
 				switch (meshComponent) {
 					case BumperBaseMeshAuthoring baseMeshAuthoring:
-						Data.IsCapVisible = baseMeshAuthoring.gameObject.activeInHierarchy;
+						data.IsCapVisible = baseMeshAuthoring.gameObject.activeInHierarchy;
 						break;
 					case BumperCapMeshAuthoring capMeshAuthoring:
-						Data.IsCapVisible = capMeshAuthoring.gameObject.activeInHierarchy;
+						data.IsCapVisible = capMeshAuthoring.gameObject.activeInHierarchy;
 						break;
 					case BumperRingMeshAuthoring ringMeshAuthoring:
-						Data.IsRingVisible = ringMeshAuthoring.gameObject.activeInHierarchy;
+						data.IsRingVisible = ringMeshAuthoring.gameObject.activeInHierarchy;
 						break;
 					case BumperSkirtMeshAuthoring skirtMeshAuthoring:
-						Data.IsSocketVisible = skirtMeshAuthoring.gameObject.activeInHierarchy;
+						data.IsSocketVisible = skirtMeshAuthoring.gameObject.activeInHierarchy;
 						break;
 				}
 			}
 
 			// update collision
-			Data.IsCollidable = false;
+			data.IsCollidable = false;
 			foreach (var colliderComponent in ColliderComponents) {
 				if (colliderComponent is BumperColliderAuthoring colliderAuthoring) {
-					Data.IsCollidable = colliderAuthoring.gameObject.activeInHierarchy;
+					data.IsCollidable = colliderAuthoring.gameObject.activeInHierarchy;
 				}
 			}
+
+			// other props
+			data.Radius = Radius;
+			data.Threshold = Threshold;
+			data.Force = Force;
+			data.Scatter = Scatter;
+			data.RingSpeed = RingSpeed;
+			data.RingDropOffset = RingDropOffset;
+			data.Surface = Surface ? Surface.name : string.Empty;
+			data.HitEvent = HitEvent;
+			data.HeightScale = transform.localScale.z;
 		}
 
 		public override ItemDataTransformType EditorPositionType => ItemDataTransformType.TwoD;

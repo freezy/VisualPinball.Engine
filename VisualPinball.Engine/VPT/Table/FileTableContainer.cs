@@ -82,7 +82,7 @@ namespace VisualPinball.Engine.VPT.Table
 				item.StorageIndex = ItemDatas.Count();
 				Table.Data.NumGameItems = item.StorageIndex + 1;
 			}
-			d[name] = item;
+			d[name.ToLower()] = item;
 		}
 
 		private void AddItem<TItem>(TItem item, ICollection<TItem> d, bool updateStorageIndices) where TItem : IItem
@@ -91,27 +91,6 @@ namespace VisualPinball.Engine.VPT.Table
 				item.StorageIndex = ItemDatas.Count();
 			}
 			d.Add(item);
-		}
-
-		/// <summary>
-		/// Replaces all game items of a list with new game items.
-		/// </summary>
-		///
-		/// <remarks>
-		/// This only applied to Decals, because they are the only game items
-		/// that don't have a name.
-		/// </remarks>
-		/// <param name="items">New list of game items</param>
-		/// <typeparam name="T">Game item type (only Decals)</typeparam>
-		/// <exception cref="ArgumentException">If not decals</exception>
-		public void ReplaceAll<T>(IEnumerable<T> items) where T : IItem
-		{
-			var list = GetItemList<T>();
-			if (list == null) {
-				throw new ArgumentException("Cannot set all " + typeof(T) + "s (only Decals so far).");
-			}
-			list.Clear();
-			list.AddRange(items);
 		}
 
 		/// <summary>
@@ -124,7 +103,6 @@ namespace VisualPinball.Engine.VPT.Table
 		{
 			return TableLoader.Load(filename, loadGameItems);
 		}
-
 
 		public override Material GetMaterial(string name)
 		{

@@ -102,28 +102,62 @@ namespace VisualPinball.Unity
 			transform.GetComponentInParent<Player>().RegisterHitTarget(hitTarget, entity, ParentEntity, gameObject);
 		}
 
-		public override void Restore()
+		public override void SetData(HitTargetData data, Dictionary<string, IItemMainAuthoring> itemMainAuthorings)
+		{
+			DepthBias = data.DepthBias;
+			DropSpeed = data.DropSpeed;
+			RaiseDelay = data.RaiseDelay;
+			Elasticity = data.Elasticity;
+			ElasticityFalloff = data.ElasticityFalloff;
+			Friction = data.Friction;
+			IsCollidable = data.IsCollidable;
+			IsDropped = data.IsDropped;
+			IsLegacy = data.IsLegacy;
+			OverwritePhysics = data.OverwritePhysics;
+			Scatter = data.Scatter;
+			PhysicsMaterial = data.PhysicsMaterial;
+			Threshold = data.Threshold;
+			UseHitEvent = data.UseHitEvent;
+		}
+
+		public override void GetData(HitTargetData data)
 		{
 			// update the name
-			Item.Name = name;
+			data.Name = name;
 
 			// update visibility
-			Data.IsVisible = false;
+			data.IsVisible = false;
 			foreach (var meshComponent in MeshComponents) {
 				switch (meshComponent) {
 					case HitTargetMeshAuthoring meshAuthoring:
-						Data.IsVisible = meshAuthoring.gameObject.activeInHierarchy;
+						data.IsVisible = meshAuthoring.gameObject.activeInHierarchy;
 						break;
 				}
 			}
 
 			// update collision
-			Data.IsCollidable = false;
+			data.IsCollidable = false;
 			foreach (var colliderComponent in ColliderComponents) {
 				if (colliderComponent is HitTargetColliderAuthoring colliderAuthoring) {
-					Data.IsCollidable = colliderAuthoring.gameObject.activeInHierarchy;
+					data.IsCollidable = colliderAuthoring.gameObject.activeInHierarchy;
 				}
 			}
+
+			// other props
+			data.DepthBias = DepthBias;
+			data.DropSpeed = DropSpeed;
+			data.RaiseDelay = RaiseDelay;
+			data.Elasticity = Elasticity;
+			data.ElasticityFalloff = ElasticityFalloff;
+			data.Friction = Friction;
+			data.IsCollidable = IsCollidable;
+			data.IsDropped = IsDropped;
+			data.IsLegacy = IsLegacy;
+			data.OverwritePhysics = OverwritePhysics;
+			data.Scatter = Scatter;
+			data.PhysicsMaterial = PhysicsMaterial;
+			data.Threshold = Threshold;
+			data.UseHitEvent = UseHitEvent;
 		}
 
 		public override ItemDataTransformType EditorPositionType => ItemDataTransformType.ThreeD;

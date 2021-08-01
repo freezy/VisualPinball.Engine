@@ -38,8 +38,6 @@ namespace VisualPinball.Unity
 	{
 		#region Data
 
-		public float DepthBias = 0f;
-
 		public DragPointData[] DragPoints;
 
 		public float Elasticity;
@@ -86,8 +84,6 @@ namespace VisualPinball.Unity
 
 		public float WireDistanceY = 88f;
 
-		public bool Points;
-
 		#endregion
 
 		protected override Ramp InstantiateItem(RampData data) => new Ramp(data);
@@ -109,34 +105,86 @@ namespace VisualPinball.Unity
 			transform.GetComponentInParent<Player>().RegisterRamp(Item, entity, ParentEntity, gameObject);
 		}
 
-		public override void Restore()
+		public override void SetData(RampData data, Dictionary<string, IItemMainAuthoring> itemMainAuthorings)
+		{
+			DragPoints = data.DragPoints;
+			Elasticity = data.Elasticity;
+			Friction = data.Friction;
+			HitEvent = data.HitEvent;
+			HeightBottom = data.HeightBottom;
+			HeightTop = data.HeightTop;
+			ImageAlignment = data.ImageAlignment;
+			ImageWalls = data.ImageWalls;
+			IsCollidable = data.IsCollidable;
+			LeftWallHeight = data.LeftWallHeight;
+			LeftWallHeightVisible = data.LeftWallHeightVisible;
+			OverwritePhysics = data.OverwritePhysics;
+			Type = data.RampType;
+			RightWallHeight = data.RightWallHeight;
+			RightWallHeightVisible = data.RightWallHeightVisible;
+			Scatter = data.Scatter;
+			PhysicsMaterial = data.PhysicsMaterial;
+			Threshold = data.Threshold;
+			WidthBottom = data.WidthBottom;
+			WidthTop = data.WidthTop;
+			WireDiameter = data.WireDiameter;
+			WireDistanceX = data.WireDistanceX;
+			WireDistanceY = data.WireDistanceY;
+		}
+
+		public override void GetData(RampData data)
 		{
 			// update the name
-			Item.Name = name;
+			data.Name = name;
 
 			// update visibility
-			Data.IsVisible = false;
+			data.IsVisible = false;
 			foreach (var meshComponent in MeshComponents) {
 				switch (meshComponent) {
 					case RampFloorMeshAuthoring meshAuthoring:
-						Data.IsVisible = Data.IsVisible || meshAuthoring.gameObject.activeInHierarchy;
+						data.IsVisible = data.IsVisible || meshAuthoring.gameObject.activeInHierarchy;
 						break;
 					case RampWallMeshAuthoring meshAuthoring:
-						Data.IsVisible = Data.IsVisible || meshAuthoring.gameObject.activeInHierarchy;
+						data.IsVisible = data.IsVisible || meshAuthoring.gameObject.activeInHierarchy;
 						break;
 					case RampWireMeshAuthoring meshAuthoring:
-						Data.IsVisible = meshAuthoring.gameObject.activeInHierarchy;
+						data.IsVisible = meshAuthoring.gameObject.activeInHierarchy;
 						break;
 				}
 			}
 
 			// update collision
-			Data.IsCollidable = false;
+			data.IsCollidable = false;
 			foreach (var colliderComponent in ColliderComponents) {
 				if (colliderComponent is RampColliderAuthoring colliderAuthoring) {
-					Data.IsCollidable = colliderAuthoring.gameObject.activeInHierarchy;
+					data.IsCollidable = colliderAuthoring.gameObject.activeInHierarchy;
 				}
 			}
+
+			// other props
+			data.DragPoints = DragPoints;
+			data.Elasticity = Elasticity;
+			data.Friction = Friction;
+			data.HitEvent = HitEvent;
+			data.HeightBottom = HeightBottom;
+			data.HeightTop = HeightTop;
+			data.ImageAlignment = ImageAlignment;
+			data.ImageWalls = ImageWalls;
+			data.IsCollidable = IsCollidable;
+			data.LeftWallHeight = LeftWallHeight;
+			data.LeftWallHeightVisible = LeftWallHeightVisible;
+			data.OverwritePhysics = OverwritePhysics;
+			data.RampType = Type;
+			data.RightWallHeight = RightWallHeight;
+			data.RightWallHeightVisible = RightWallHeightVisible;
+			data.Scatter = Scatter;
+			data.PhysicsMaterial = PhysicsMaterial;
+			data.Threshold = Threshold;
+			data.WidthBottom = WidthBottom;
+			data.WidthTop = WidthTop;
+			data.WireDiameter = WireDiameter;
+			data.WireDistanceX = WireDistanceX;
+			data.WireDistanceY = WireDistanceY;
 		}
 
 		public void UpdateMeshComponents(int rampTypeBefore, int rampTypeAfter)

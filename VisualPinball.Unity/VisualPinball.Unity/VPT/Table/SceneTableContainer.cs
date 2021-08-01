@@ -352,10 +352,10 @@ namespace VisualPinball.Unity
 		private void Add<T>(string name, T item) where T : IItem
 		{
 			var dict = GetItemDictionary<T>();
-			if (dict.ContainsKey(name)) {
+			if (dict.ContainsKey(name.ToLower())) {
 				Logger.Warn($"{item.GetType()} {name} already added.");
 			} else {
-				dict.Add(name, item);
+				dict.Add(name.ToLower(), item);
 			}
 		}
 	}

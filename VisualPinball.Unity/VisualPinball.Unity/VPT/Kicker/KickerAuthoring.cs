@@ -25,7 +25,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Unity.Entities;
-using Unity.Mathematics;
 using UnityEngine;
 using VisualPinball.Engine.Game;
 using VisualPinball.Engine.VPT.Kicker;
@@ -112,13 +111,36 @@ namespace VisualPinball.Unity
 			transform.GetComponentInParent<Player>().RegisterKicker(Item, entity, ParentEntity, gameObject);
 		}
 
-		public override void Restore()
+		public override void SetData(KickerData data, Dictionary<string, IItemMainAuthoring> itemMainAuthorings)
+		{
+			Radius = data.Radius;
+			Scatter = data.Scatter;
+			HitAccuracy = data.HitAccuracy;
+			HitHeight = data.HitHeight;
+			Surface = GetAuthoring<SurfaceAuthoring>(itemMainAuthorings, data.Surface);
+			FallThrough = data.FallThrough;
+			LegacyMode = data.LegacyMode;
+			Angle = data.Angle;
+			Speed = data.Speed;
+		}
+
+		public override void GetData(KickerData data)
 		{
 			// update the name
-			Item.Name = name;
+			data.Name = name;
 
-			// visibility is set by the type
-			// and it's always collidable
+			// todo visibility is set by the type
+
+			// other props
+			data.Radius = Radius;
+			data.Scatter = Scatter;
+			data.HitAccuracy = HitAccuracy;
+			data.HitHeight = HitHeight;
+			data.Surface = Surface ? Surface.name : string.Empty;
+			data.FallThrough = FallThrough;
+			data.LegacyMode = LegacyMode;
+			data.Angle = Angle;
+			data.Speed = Speed;
 		}
 
 		public override ItemDataTransformType EditorPositionType => ItemDataTransformType.TwoD;

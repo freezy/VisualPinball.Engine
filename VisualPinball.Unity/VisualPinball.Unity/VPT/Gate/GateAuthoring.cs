@@ -102,35 +102,63 @@ namespace VisualPinball.Unity
 			transform.GetComponentInParent<Player>().RegisterGate(Item, entity, ParentEntity, gameObject);
 		}
 
-		public override void Restore()
+		public override void SetData(GateData data, Dictionary<string, IItemMainAuthoring> itemMainAuthorings)
+		{
+			AngleMax = data.AngleMax;
+			AngleMin = data.AngleMin;
+			Damping = data.Damping;
+			Elasticity = data.Elasticity;
+			Friction = data.Friction;
+			GravityFactor = data.GravityFactor;
+			Height = data.Height;
+			IsCollidable = data.IsCollidable;
+			Length = data.Length;
+			Surface = GetAuthoring<SurfaceAuthoring>(itemMainAuthorings, data.Surface);
+			TwoWay = data.TwoWay;
+		}
+
+		public override void GetData(GateData data)
 		{
 			// update the name
-			Item.Name = name;
+			data.Name = name;
 
 			// update visibility
-			Data.IsVisible = false;
-			Data.ShowBracket = false;
+			data.IsVisible = false;
+			data.ShowBracket = false;
 			foreach (var meshComponent in MeshComponents) {
 				switch (meshComponent) {
 					case GateBracketMeshAuthoring bracketMeshAuthoring:
 						var bracketMeshAuthoringEnabled = bracketMeshAuthoring.gameObject.activeInHierarchy;
-						Data.IsVisible = Data.IsVisible || bracketMeshAuthoringEnabled;
-						Data.ShowBracket = bracketMeshAuthoringEnabled;
+						data.IsVisible = data.IsVisible || bracketMeshAuthoringEnabled;
+						data.ShowBracket = bracketMeshAuthoringEnabled;
 						break;
 
 					case GateWireMeshAuthoring wireMeshAuthoring:
-						Data.IsVisible = wireMeshAuthoring.gameObject.activeInHierarchy;
+						data.IsVisible = wireMeshAuthoring.gameObject.activeInHierarchy;
 						break;
 				}
 			}
 
 			// update collision
-			Data.IsCollidable = false;
+			data.IsCollidable = false;
 			foreach (var colliderComponent in ColliderComponents) {
 				if (colliderComponent is GateColliderAuthoring colliderAuthoring) {
-					Data.IsCollidable = colliderAuthoring.gameObject.activeInHierarchy;
+					data.IsCollidable = colliderAuthoring.gameObject.activeInHierarchy;
 				}
 			}
+
+			// other props
+			data.AngleMax = AngleMax;
+			data.AngleMin = AngleMin;
+			data.Damping = Damping;
+			data.Elasticity = Elasticity;
+			data.Friction = Friction;
+			data.GravityFactor = GravityFactor;
+			data.Height = Height;
+			data.IsCollidable = IsCollidable;
+			data.Length = Length;
+			data.Surface = Surface ? Surface.name : string.Empty;
+			data.TwoWay = TwoWay;
 		}
 
 		public override ItemDataTransformType EditorPositionType => ItemDataTransformType.ThreeD;

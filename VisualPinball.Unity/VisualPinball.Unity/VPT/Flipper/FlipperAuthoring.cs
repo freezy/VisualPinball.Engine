@@ -18,6 +18,7 @@
 // ReSharper disable CompareOfFloatsByEqualityOperator
 // ReSharper disable ClassNeverInstantiated.Global
 // ReSharper disable MemberCanBePrivate.Global
+// ReSharper disable InconsistentNaming
 #endregion
 
 using System;
@@ -92,6 +93,7 @@ namespace VisualPinball.Unity
 		public bool IsDualWound;
 
 		#endregion
+
 		protected override Flipper InstantiateItem(FlipperData data) => new Flipper(data);
 
 		protected override Type MeshAuthoringType { get; } = typeof(ItemMeshAuthoring<Flipper, FlipperData, FlipperAuthoring>);
@@ -103,7 +105,7 @@ namespace VisualPinball.Unity
 
 		public ISwitchable Switchable => Item;
 
-		private bool IsLeft => Data.EndAngle < Data.StartAngle;
+		private bool IsLeft => EndAngle < StartAngle;
 
 		public void Convert(Entity entity, EntityManager dstManager, GameObjectConversionSystem conversionSystem)
 		{
@@ -190,23 +192,79 @@ namespace VisualPinball.Unity
 			player.RegisterFlipper(Item, entity, ParentEntity, gameObject);
 		}
 
-		public override void Restore()
+		public override void SetData(FlipperData data, Dictionary<string, IItemMainAuthoring> itemMainAuthorings)
+		{
+			BaseRadius = data.BaseRadius;
+			EndRadius = data.EndRadius;
+			FlipperRadiusMin = data.FlipperRadiusMin;
+			FlipperRadiusMax = data.FlipperRadiusMax;
+			FlipperRadius = data.FlipperRadius;
+			StartAngle = data.StartAngle;
+			EndAngle = data.EndAngle;
+			Height = data.Height;
+			Surface = GetAuthoring<SurfaceAuthoring>(itemMainAuthorings, data.Surface);
+			RubberThickness = data.RubberThickness;
+			RubberHeight = data.RubberHeight;
+			RubberWidth = data.RubberWidth;
+			Mass = data.Mass;
+			Strength = data.Strength;
+			Elasticity = data.Elasticity;
+			ElasticityFalloff = data.ElasticityFalloff;
+			Friction = data.Friction;
+			Return = data.Return;
+			RampUp = data.RampUp;
+			TorqueDamping = data.TorqueDamping;
+			TorqueDampingAngle = data.TorqueDampingAngle;
+			Scatter = data.Scatter;
+			OverridePhysics = data.OverridePhysics;
+			IsEnabled = data.IsEnabled;
+			IsDualWound = data.IsDualWound;
+		}
+
+		public override void GetData(FlipperData data)
 		{
 			// update the name
-			Item.Name = name;
+			data.Name = name;
 
 			// update visibility
-			Data.IsVisible = false;
+			data.IsVisible = false;
 			foreach (var meshComponent in MeshComponents) {
 				switch (meshComponent) {
 					case FlipperBaseMeshAuthoring baseMeshAuthoring:
-						Data.IsVisible = Data.IsVisible || baseMeshAuthoring.gameObject.activeInHierarchy;
+						data.IsVisible = data.IsVisible || baseMeshAuthoring.gameObject.activeInHierarchy;
 						break;
 					case FlipperRubberMeshAuthoring rubberMeshAuthoring:
-						Data.IsVisible = Data.IsVisible || rubberMeshAuthoring.gameObject.activeInHierarchy;
+						data.IsVisible = data.IsVisible || rubberMeshAuthoring.gameObject.activeInHierarchy;
 						break;
 				}
 			}
+
+			// other props
+			data.BaseRadius = BaseRadius;
+			data.EndRadius = EndRadius;
+			data.FlipperRadiusMin = FlipperRadiusMin;
+			data.FlipperRadiusMax = FlipperRadiusMax;
+			data.FlipperRadius = FlipperRadius;
+			data.StartAngle = StartAngle;
+			data.EndAngle = EndAngle;
+			data.Height = Height;
+			data.Surface = Surface ? Surface.name : string.Empty;
+			data.RubberThickness = RubberThickness;
+			data.RubberHeight = RubberHeight;
+			data.RubberWidth = RubberWidth;
+			data.Mass = Mass;
+			data.Strength = Strength;
+			data.Elasticity = Elasticity;
+			data.ElasticityFalloff = ElasticityFalloff;
+			data.Friction = Friction;
+			data.Return = Return;
+			data.RampUp = RampUp;
+			data.TorqueDamping = TorqueDamping;
+			data.TorqueDampingAngle = TorqueDampingAngle;
+			data.Scatter = Scatter;
+			data.OverridePhysics = OverridePhysics;
+			data.IsEnabled = IsEnabled;
+			data.IsDualWound = IsDualWound;
 
 			// collision: flipper is always collidable
 		}
@@ -285,18 +343,17 @@ namespace VisualPinball.Unity
 			}
 		}
 
-		//return (Data.StartAngle / Mathf.Abs(Data.StartAngle)) > 0;
 		public List<Vector3> GetEnclosingPolygon(float margin = 0.0F, float stepSize = 5F)
 		{
-			var swing = Data.EndAngle - Data.StartAngle;
+			var swing = EndAngle - StartAngle;
 			swing = Mathf.Abs(swing);
 
 			List<Vector3> ret = new List<Vector3>(); // TODO: caching
 
-			float baseRadius = Data.BaseRadius + margin;
-			float tipRadius = Data.EndRadius + margin;
+			float baseRadius = BaseRadius + margin;
+			float tipRadius = EndRadius + margin;
 			Vector3 baseLocalPos = Vector3.zero;
-			float length = Data.FlipperRadius;
+			float length = FlipperRadius;
 			Vector3 tipLocalPos = Vector3.up * -length;
 
 			if (swing < 180F) {
@@ -342,20 +399,20 @@ namespace VisualPinball.Unity
 			// Draw arc arrow
 			List<Vector3> arrow = new List<Vector3>();
 			float start = -90F;
-			float end = -90F + Data.EndAngle - Data.StartAngle;
+			float end = -90F + EndAngle - StartAngle;
 			if (IsLeft) {
 				var tmp = start;
 				start = end;
 				end = tmp;
 			}
-			AddPolyArc(arrow, Vector3.zero, Data.FlipperRadius - 20F, start, end );
+			AddPolyArc(arrow, Vector3.zero, FlipperRadius - 20F, start, end );
 			for (int i = 1, j = 0; i < arrow.Count; j = i++) {
 				Gizmos.DrawLine(transform.TransformPoint(arrow[j]), transform.TransformPoint(arrow[i]));
 			}
 			var last = IsLeft ? arrow[0] : arrow[arrow.Count-1];
 			var tmpA = IsLeft ? start + 90F + 3F : end +90F - 3F;
-			var a = Quaternion.Euler(0, 0, tmpA) * new Vector3(0, -Data.FlipperRadius + 15F, 0F);
-			var b = Quaternion.Euler(0, 0, tmpA) * new Vector3(0F, -Data.FlipperRadius + 25F, 0F);
+			var a = Quaternion.Euler(0, 0, tmpA) * new Vector3(0, -FlipperRadius + 15F, 0F);
+			var b = Quaternion.Euler(0, 0, tmpA) * new Vector3(0F, -FlipperRadius + 25F, 0F);
 			Gizmos.DrawLine(transform.TransformPoint(last) , transform.TransformPoint(a));
 			Gizmos.DrawLine(transform.TransformPoint(last), transform.TransformPoint(b));
 			Gizmos.color = Color.white;
@@ -366,40 +423,38 @@ namespace VisualPinball.Unity
 		private FlipperStaticData GetMaterialData()
 		{
 			float flipperRadius;
-			if (Data.FlipperRadiusMin > 0 && Data.FlipperRadiusMax > Data.FlipperRadiusMin) {
-				flipperRadius = Data.FlipperRadiusMax - (Data.FlipperRadiusMax - Data.FlipperRadiusMin) /* m_ptable->m_globalDifficulty*/;
-				flipperRadius = math.max(flipperRadius, Data.BaseRadius - Data.EndRadius + 0.05f);
+			if (FlipperRadiusMin > 0 && FlipperRadiusMax > FlipperRadiusMin) {
+				flipperRadius = FlipperRadiusMax - (FlipperRadiusMax - FlipperRadiusMin) /* m_ptable->m_globalDifficulty*/;
+				flipperRadius = math.max(flipperRadius, BaseRadius - EndRadius + 0.05f);
 
 			} else {
-				flipperRadius = Data.FlipperRadiusMax;
+				flipperRadius = FlipperRadiusMax;
 			}
 
-			var endRadius = math.max(Data.EndRadius, 0.01f); // radius of flipper end
+			var endRadius = math.max(EndRadius, 0.01f); // radius of flipper end
 			flipperRadius = math.max(flipperRadius, 0.01f); // radius of flipper arc, center-to-center radius
-			var angleStart = math.radians(Data.StartAngle);
-			var angleEnd = math.radians(Data.EndAngle);
+			var angleStart = math.radians(StartAngle);
+			var angleEnd = math.radians(EndAngle);
 
 			if (angleEnd == angleStart) {
 				// otherwise hangs forever in collisions/updates
 				angleEnd += 0.0001f;
 			}
 
-			var tableData = Table.Data;
-
 			// model inertia of flipper as that of rod of length flipper around its end
-			var mass = Data.GetFlipperMass(tableData);
-			var inertia = (float) (1.0 / 3.0) * mass * (flipperRadius * flipperRadius);
+			var inertia = (float) (1.0 / 3.0) * Mass * (flipperRadius * flipperRadius);
+			var localPos = transform.localPosition;
 
 			return new FlipperStaticData {
-				Position = new float3(Data.Center.X, Data.Center.Y, 0F), // TODO: surface height?
+				Position = new float3(localPos.x, localPos.y, 0F), // TODO: surface height?
 				Inertia = inertia,
 				AngleStart = angleStart,
 				AngleEnd = angleEnd,
-				Strength = Data.GetStrength(tableData),
-				ReturnRatio = Data.GetReturnRatio(tableData),
-				TorqueDamping = Data.GetTorqueDamping(tableData),
-				TorqueDampingAngle = Data.GetTorqueDampingAngle(tableData),
-				RampUpSpeed = Data.GetRampUpSpeed(tableData),
+				Strength = Strength,
+				ReturnRatio = Return,
+				TorqueDamping = TorqueDamping,
+				TorqueDampingAngle = TorqueDampingAngle,
+				RampUpSpeed = RampUp,
 
 				EndRadius = endRadius,
 				FlipperRadius = flipperRadius
@@ -434,7 +489,7 @@ namespace VisualPinball.Unity
 
 		private FlipperHitData GetHitData()
 		{
-			var ratio = (math.max(Data.BaseRadius, 0.01f) - math.max(Data.EndRadius, 0.01f)) / math.max(Data.FlipperRadius, 0.01f);
+			var ratio = (math.max(BaseRadius, 0.01f) - math.max(EndRadius, 0.01f)) / math.max(FlipperRadius, 0.01f);
 			var zeroAngNorm = new float2(
 				math.sqrt(1.0f - ratio * ratio), // F2 Norm, used in Green's transform, in FPM time search  // =  sinf(faceNormOffset)
 				-ratio                              // F1 norm, change sign of x component, i.e -zeroAngNorm.x // = -cosf(faceNormOffset)
@@ -454,7 +509,8 @@ namespace VisualPinball.Unity
 			var ta = GetComponentInParent<TableAuthoring>();
 			if (ta != null) {
 
-				var data = new TriggerData(name + "_nFozzy", Data.Center.X, Data.Center.Y);
+				var localPos = transform.localPosition;
+				var data = new TriggerData(name + "_nFozzy", localPos.x, localPos.y);
 				var poly = GetEnclosingPolygon(23, 12);
 				data.DragPoints = new Engine.Math.DragPointData[poly.Count];
 				data.IsLocked = true;

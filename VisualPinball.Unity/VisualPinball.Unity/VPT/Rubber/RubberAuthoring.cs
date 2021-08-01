@@ -84,29 +84,62 @@ namespace VisualPinball.Unity
 			transform.GetComponentInParent<Player>().RegisterRubber(Item, entity, ParentEntity, gameObject);
 		}
 
-		public override void Restore()
+		public override void SetData(RubberData data, Dictionary<string, IItemMainAuthoring> itemMainAuthorings)
+		{
+			Height = data.Height;
+			HitHeight = data.HitHeight;
+			Thickness = data.Thickness;
+			HitEvent = data.HitEvent;
+			Elasticity = data.Elasticity;
+			ElasticityFalloff = data.ElasticityFalloff;
+			Friction = data.Friction;
+			Scatter = data.Scatter;
+			IsCollidable = data.IsCollidable;
+			RotX = data.RotX;
+			RotY = data.RotY;
+			RotZ = data.RotZ;
+			OverwritePhysics = data.OverwritePhysics;
+			DragPoints = data.DragPoints;
+		}
+
+		public override void GetData(RubberData data)
 		{
 			// update the name
-			Item.Name = name;
+			data.Name = name;
 
 			// update visibility
-			Data.IsVisible = false;
+			data.IsVisible = false;
 			foreach (var meshComponent in MeshComponents) {
 				switch (meshComponent) {
 					case RubberMeshAuthoring meshAuthoring:
-						Data.IsVisible = meshAuthoring.gameObject.activeInHierarchy;
+						data.IsVisible = meshAuthoring.gameObject.activeInHierarchy;
 						break;
 				}
 			}
 
 			// update collision
-			Data.IsCollidable = false;
+			data.IsCollidable = false;
 			foreach (var colliderComponent in ColliderComponents) {
 				if (colliderComponent is RubberColliderAuthoring colliderAuthoring) {
-					Data.IsCollidable = colliderAuthoring.gameObject.activeInHierarchy;
+					data.IsCollidable = colliderAuthoring.gameObject.activeInHierarchy;
 				}
 			}
 
+			// other props
+			data.Height = Height;
+			data.HitHeight = HitHeight;
+			data.Thickness = Thickness;
+			data.HitEvent = HitEvent;
+			data.Elasticity = Elasticity;
+			data.ElasticityFalloff = ElasticityFalloff;
+			data.Friction = Friction;
+			data.Scatter = Scatter;
+			data.IsCollidable = IsCollidable;
+			data.RotX = RotX;
+			data.RotY = RotY;
+			data.RotZ = RotZ;
+			data.OverwritePhysics = OverwritePhysics;
+			data.DragPoints = DragPoints;
 		}
 
 		public override ItemDataTransformType EditorPositionType => ItemDataTransformType.ThreeD;

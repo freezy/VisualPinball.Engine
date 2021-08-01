@@ -28,7 +28,6 @@ using UnityEngine.InputSystem;
 using VisualPinball.Engine.Game.Engines;
 using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Plunger;
-using Mesh = VisualPinball.Engine.VPT.Mesh;
 
 namespace VisualPinball.Unity
 {
@@ -177,26 +176,78 @@ namespace VisualPinball.Unity
 			});
 		}
 
-		public override void Restore()
+		public override void SetData(PlungerData data, Dictionary<string, IItemMainAuthoring> itemMainAuthorings)
+		{
+			Type = data.Type;
+			Width = data.Width;
+			Height = data.Height;
+			ZAdjust = data.ZAdjust;
+			Stroke = data.Stroke;
+			SpeedPull = data.SpeedPull;
+			SpeedFire = data.SpeedFire;
+			MechStrength = data.MechStrength;
+			ParkPosition = data.ParkPosition;
+			ScatterVelocity = data.ScatterVelocity;
+			MomentumXfer = data.MomentumXfer;
+			IsMechPlunger = data.IsMechPlunger;
+			AutoPlunger = data.AutoPlunger;
+			Surface = GetAuthoring<SurfaceAuthoring>(itemMainAuthorings, data.Surface);
+			TipShape = data.TipShape;
+			RodDiam = data.RodDiam;
+			RingGap = data.RingGap;
+			RingDiam = data.RingDiam;
+			RingWidth = data.RingWidth;
+			SpringDiam = data.SpringDiam;
+			SpringGauge = data.SpringGauge;
+			SpringLoops = data.SpringLoops;
+			SpringEndLoops = data.SpringEndLoops;
+		}
+
+		public override void GetData(PlungerData data)
 		{
 			// update the name
-			Item.Name = name;
+			data.Name = name;
 
 			// update visibility
-			Data.IsVisible = false;
+			data.IsVisible = false;
 			foreach (var meshComponent in MeshComponents) {
 				switch (meshComponent) {
 					case PlungerFlatMeshAuthoring flatMeshAuthoring:
-						Data.IsVisible = flatMeshAuthoring.gameObject.activeInHierarchy;
+						data.IsVisible = flatMeshAuthoring.gameObject.activeInHierarchy;
 						break;
 					case PlungerRodMeshAuthoring rodMeshAuthoring:
-						Data.IsVisible = Data.IsVisible || rodMeshAuthoring.gameObject.activeInHierarchy;
+						data.IsVisible = data.IsVisible || rodMeshAuthoring.gameObject.activeInHierarchy;
 						break;
 					case PlungerSpringMeshAuthoring springMeshAuthoring:
-						Data.IsVisible = Data.IsVisible || springMeshAuthoring.gameObject.activeInHierarchy;
+						data.IsVisible = data.IsVisible || springMeshAuthoring.gameObject.activeInHierarchy;
 						break;
 				}
 			}
+
+			// other props
+			data.Type = Type;
+			data.Width = Width;
+			data.Height = Height;
+			data.ZAdjust = ZAdjust;
+			data.Stroke = Stroke;
+			data.SpeedPull = SpeedPull;
+			data.SpeedFire = SpeedFire;
+			data.MechStrength = MechStrength;
+			data.ParkPosition = ParkPosition;
+			data.ScatterVelocity = ScatterVelocity;
+			data.MomentumXfer = MomentumXfer;
+			data.IsMechPlunger = IsMechPlunger;
+			data.AutoPlunger = AutoPlunger;
+			data.Surface = Surface ? Surface.name : string.Empty;
+			data.TipShape = TipShape;
+			data.RodDiam = RodDiam;
+			data.RingGap = RingGap;
+			data.RingDiam = RingDiam;
+			data.RingWidth = RingWidth;
+			data.SpringDiam = SpringDiam;
+			data.SpringGauge = SpringGauge;
+			data.SpringLoops = SpringLoops;
+			data.SpringEndLoops = SpringEndLoops;
 		}
 
 		public void OnTypeChanged(int plungerTypeBefore, int plungerTypeAfter)

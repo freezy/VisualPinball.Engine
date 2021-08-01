@@ -60,6 +60,7 @@ namespace VisualPinball.Unity
 		#endregion
 
 		public override bool IsCollidable => !Data.IsToy;
+
 		protected override Primitive InstantiateItem(PrimitiveData data) => new Primitive(data);
 
 		protected override Type MeshAuthoringType { get; } = typeof(ItemMeshAuthoring<Primitive, PrimitiveData, PrimitiveAuthoring>);
@@ -78,17 +79,32 @@ namespace VisualPinball.Unity
 			transform.GetComponentInParent<Player>().RegisterPrimitive(primitive, entity, ParentEntity, gameObject);
 		}
 
-		public override void Restore()
+		public override void SetData(PrimitiveData data, Dictionary<string, IItemMainAuthoring> itemMainAuthorings)
+		{
+			HitEvent = data.HitEvent;
+			Threshold = data.Threshold;
+			Elasticity = data.Elasticity;
+			ElasticityFalloff = data.ElasticityFalloff;
+			Friction = data.Friction;
+			Scatter = data.Scatter;
+			EdgeFactorUi = data.EdgeFactorUi;
+			CollisionReductionFactor = data.CollisionReductionFactor;
+			IsToy = data.IsToy;
+			OverwritePhysics = data.OverwritePhysics;
+			StaticRendering = data.StaticRendering;
+		}
+
+		public override void GetData(PrimitiveData data)
 		{
 			// update the name
-			Item.Name = name;
+			data.Name = name;
 
 			// update visibility
-			Data.IsVisible = false;
+			data.IsVisible = false;
 			foreach (var meshComponent in MeshComponents) {
 				switch (meshComponent) {
 					case PrimitiveMeshAuthoring meshAuthoring:
-						Data.IsVisible = meshAuthoring.gameObject.activeInHierarchy;
+						data.IsVisible = meshAuthoring.gameObject.activeInHierarchy;
 						break;
 				}
 			}
@@ -96,15 +112,28 @@ namespace VisualPinball.Unity
 			// update collision
 			// todo at some point we need to be able to toggle collidable during gameplay,
 			// todo but for now let's keep things static.
-			Data.IsToy = true;
-			Data.IsCollidable = false;
+			data.IsToy = true;
+			data.IsCollidable = false;
 			foreach (var colliderComponent in ColliderComponents) {
 				if (colliderComponent is PrimitiveColliderAuthoring colliderAuthoring) {
 					var active = colliderAuthoring.gameObject.activeInHierarchy;
-					Data.IsCollidable = active;
-					Data.IsToy = !active;
+					data.IsCollidable = active;
+					data.IsToy = !active;
 				}
 			}
+
+			// other props
+			data.HitEvent = HitEvent;
+			data.Threshold = Threshold;
+			data.Elasticity = Elasticity;
+			data.ElasticityFalloff = ElasticityFalloff;
+			data.Friction = Friction;
+			data.Scatter = Scatter;
+			data.EdgeFactorUi = EdgeFactorUi;
+			data.CollisionReductionFactor = CollisionReductionFactor;
+			data.IsToy = IsToy;
+			data.OverwritePhysics = OverwritePhysics;
+			data.StaticRendering = StaticRendering;
 		}
 
 		public override void FillBinaryData()

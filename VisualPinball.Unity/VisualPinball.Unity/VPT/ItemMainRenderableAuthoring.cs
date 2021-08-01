@@ -109,6 +109,13 @@ namespace VisualPinball.Unity
 			}
 		}
 
+		protected T GetAuthoring<T>(Dictionary<string, IItemMainAuthoring> itemMainAuthorings, string surfaceName) where T : class, IItemMainAuthoring
+		{
+			return (itemMainAuthorings.ContainsKey(surfaceName.ToLower())
+				? itemMainAuthorings[surfaceName.ToLower()]
+				: null) as T;
+		}
+
 		#region Tools
 
 		public virtual ItemDataTransformType EditorPositionType => ItemDataTransformType.None;

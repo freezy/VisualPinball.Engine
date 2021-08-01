@@ -91,29 +91,49 @@ namespace VisualPinball.Unity
 			transform.GetComponentInParent<Player>().RegisterSpinner(Item, entity, ParentEntity, gameObject);
 		}
 
-		public override void Restore()
+		public override void SetData(SpinnerData data, Dictionary<string, IItemMainAuthoring> itemMainAuthorings)
+		{
+			Height = data.Height;
+			Length = data.Length;
+			Damping = data.Damping;
+			AngleMax = data.AngleMax;
+			AngleMin = data.AngleMin;
+			Elasticity = data.Elasticity;
+			Surface = GetAuthoring<SurfaceAuthoring>(itemMainAuthorings, data.Surface);
+		}
+
+		public override void GetData(SpinnerData data)
 		{
 			// update the name
-			Item.Name = name;
+			data.Name = name;
 
 			// update visibility
-			Data.IsVisible = false;
-			Data.ShowBracket = false;
+			data.IsVisible = false;
+			data.ShowBracket = false;
 			foreach (var meshComponent in MeshComponents) {
 				switch (meshComponent) {
 					case SpinnerBracketMeshAuthoring bracketMeshAuthoring:
 						var bracketMeshAuthoringEnabled = bracketMeshAuthoring.gameObject.activeInHierarchy;
-						Data.IsVisible = Data.IsVisible || bracketMeshAuthoringEnabled;
-						Data.ShowBracket = bracketMeshAuthoringEnabled;
+						data.IsVisible = data.IsVisible || bracketMeshAuthoringEnabled;
+						data.ShowBracket = bracketMeshAuthoringEnabled;
 						break;
 
 					case SpinnerPlateMeshAuthoring plateMeshAuthoring:
-						Data.IsVisible = plateMeshAuthoring.gameObject.activeInHierarchy;
+						data.IsVisible = plateMeshAuthoring.gameObject.activeInHierarchy;
 						break;
 				}
 			}
 
 			// collision: spinners are always collidable
+
+			// other props
+			data.Height = Height;
+			data.Length = Length;
+			data.Damping = Damping;
+			data.AngleMax = AngleMax;
+			data.AngleMin = AngleMin;
+			data.Elasticity = Elasticity;
+			data.Surface = Surface ? Surface.name : string.Empty;
 		}
 
 		public override ItemDataTransformType EditorPositionType => ItemDataTransformType.ThreeD;
