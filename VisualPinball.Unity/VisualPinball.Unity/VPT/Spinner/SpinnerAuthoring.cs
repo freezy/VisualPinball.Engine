@@ -147,11 +147,11 @@ namespace VisualPinball.Unity
 		}
 
 		public override ItemDataTransformType EditorRotationType => ItemDataTransformType.OneD;
-		public override Vector3 GetEditorRotation() => new Vector3(Data.Rotation, 0f, 0f);
-		public override void SetEditorRotation(Vector3 rot) => Data.Rotation = rot.x;
+		public override Vector3 GetEditorRotation() => new Vector3(transform.localEulerAngles.x, 0f, 0f);
+		public override void SetEditorRotation(Vector3 rot) => transform.rotation = Quaternion.Euler(rot);
 
 		public override ItemDataTransformType EditorScaleType => ItemDataTransformType.OneD;
-		public override Vector3 GetEditorScale() => new Vector3(Data.Length, 0f, 0f);
-		public override void SetEditorScale(Vector3 scale) => Data.Length = scale.x;
+		public override Vector3 GetEditorScale() => new Vector3(Length, 0f, 0f);
+		public override void SetEditorScale(Vector3 scale) => Length = scale.x;
 	}
 }

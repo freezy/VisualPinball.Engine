@@ -39,9 +39,11 @@ namespace VisualPinball.Unity
 	{
 		#region Data
 
+		public float Rotation;
+
 		public float AngleMax = math.PI / 2.0f;
 
-		public float AngleMin = 0f;
+		public float AngleMin;
 
 		public float Damping = 0.985f;
 
@@ -104,6 +106,7 @@ namespace VisualPinball.Unity
 
 		public override void SetData(GateData data, Dictionary<string, IItemMainAuthoring> itemMainAuthorings)
 		{
+			Rotation = data.Rotation;
 			AngleMax = data.AngleMax;
 			AngleMin = data.AngleMin;
 			Damping = data.Damping;
@@ -151,6 +154,7 @@ namespace VisualPinball.Unity
 			}
 
 			// other props
+			data.Rotation = Rotation;
 			data.AngleMax = AngleMax;
 			data.AngleMin = AngleMin;
 			data.Damping = Damping;
@@ -172,11 +176,11 @@ namespace VisualPinball.Unity
 		}
 
 		public override ItemDataTransformType EditorRotationType => ItemDataTransformType.OneD;
-		public override Vector3 GetEditorRotation() => new Vector3(Data.Rotation, 0f, 0f);
-		public override void SetEditorRotation(Vector3 rot) => Data.Rotation = rot.x;
+		public override Vector3 GetEditorRotation() => new Vector3(Rotation, 0f, 0f);
+		public override void SetEditorRotation(Vector3 rot) => Rotation = rot.x;
 
 		public override ItemDataTransformType EditorScaleType => ItemDataTransformType.OneD;
-		public override Vector3 GetEditorScale() => new Vector3(Data.Length, 0f, 0f);
-		public override void SetEditorScale(Vector3 scale) => Data.Length = scale.x;
+		public override Vector3 GetEditorScale() => new Vector3(Length, 0f, 0f);
+		public override void SetEditorScale(Vector3 scale) => Length = scale.x;
 	}
 }

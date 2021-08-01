@@ -138,14 +138,18 @@ namespace VisualPinball.Unity
 		}
 
 		public override ItemDataTransformType EditorRotationType => ItemDataTransformType.OneD;
-		public override Vector3 GetEditorRotation() => new Vector3(Data.Rotation, 0f, 0f);
-		public override void SetEditorRotation(Vector3 rot) => Data.Rotation = rot.x;
+		public override Vector3 GetEditorRotation() => transform.localEulerAngles;
+		public override void SetEditorRotation(Vector3 rot) => transform.localEulerAngles = rot;
 
 		//IDragPointsEditable
 		public bool DragPointEditEnabled { get; set; }
-		public DragPointData[] GetDragPoints() => Data.DragPoints;
-		public void SetDragPoints(DragPointData[] dragPoints) { Data.DragPoints = dragPoints; }
-		public Vector3 GetEditableOffset() => new Vector3(-Data.Center.X, -Data.Center.Y, 0.0f);
+		public DragPointData[] GetDragPoints() => DragPoints;
+		public void SetDragPoints(DragPointData[] dragPoints) { DragPoints = dragPoints; }
+		public Vector3 GetEditableOffset()
+		{
+			var localPos = transform.localPosition;
+			return new Vector3(-localPos.x, -localPos.y, 0.0f);
+		}
 		public Vector3 GetDragPointOffset(float ratio) => Vector3.zero;
 		public bool PointsAreLooping() => true;
 		public IEnumerable<DragPointExposure> GetDragPointExposition() => new[] { DragPointExposure.Smooth, DragPointExposure.SlingShot };

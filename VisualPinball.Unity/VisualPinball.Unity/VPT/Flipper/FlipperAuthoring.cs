@@ -291,30 +291,29 @@ namespace VisualPinball.Unity
 		}
 
 		public override ItemDataTransformType EditorPositionType => ItemDataTransformType.TwoD;
-		public override void SetEditorPosition(Vector3 pos) => Data.Center = pos.ToVertex2Dxy();
 
 		public override ItemDataTransformType EditorRotationType => ItemDataTransformType.OneD;
-		public override Vector3 GetEditorRotation() => new Vector3(Data.StartAngle, 0f, 0f);
-		public override void SetEditorRotation(Vector3 rot) => Data.StartAngle = rot.x;
+		public override Vector3 GetEditorRotation() => new Vector3(StartAngle, 0f, 0f);
+		public override void SetEditorRotation(Vector3 rot) => StartAngle = rot.x;
 
 		public override ItemDataTransformType EditorScaleType => ItemDataTransformType.ThreeD;
 
-		public override Vector3 GetEditorScale() => new Vector3(Data.BaseRadius, Data.FlipperRadius, Data.Height);
+		public override Vector3 GetEditorScale() => new Vector3(BaseRadius, Height);
 		public override void SetEditorScale(Vector3 scale)
 		{
-			if (Data.BaseRadius > 0) {
-				float endRadiusRatio = Data.EndRadius / Data.BaseRadius;
-				Data.EndRadius = scale.x * endRadiusRatio;
+			if (BaseRadius > 0) {
+				float endRadiusRatio = EndRadius / BaseRadius;
+				EndRadius = scale.x * endRadiusRatio;
 			}
-			Data.BaseRadius = scale.x;
-			Data.FlipperRadius = scale.y;
-			if (Data.Height > 0) {
-				float rubberHeightRatio = Data.RubberHeight / Data.Height;
-				Data.RubberHeight = scale.z * rubberHeightRatio;
-				float rubberWidthRatio = Data.RubberWidth / Data.Height;
-				Data.RubberWidth = scale.z * rubberWidthRatio;
+			BaseRadius = scale.x;
+			FlipperRadius = scale.y;
+			if (Height > 0) {
+				float rubberHeightRatio = RubberHeight / Height;
+				RubberHeight = scale.z * rubberHeightRatio;
+				float rubberWidthRatio = RubberWidth / Height;
+				RubberWidth = scale.z * rubberWidthRatio;
 			}
-			Data.Height = scale.z;
+			Height = scale.z;
 		}
 
 		//! Add a circle arc on a given polygon (used for enclosing poygon)
@@ -517,7 +516,7 @@ namespace VisualPinball.Unity
 				var localPos = transform.localPosition;
 				var data = new TriggerData(name + "_nFozzy", localPos.x, localPos.y);
 				var poly = GetEnclosingPolygon(23, 12);
-				data.DragPoints = new Engine.Math.DragPointData[poly.Count];
+				data.DragPoints = new DragPointData[poly.Count];
 				data.IsLocked = true;
 				data.HitHeight = 150F; // nFozzy's recommandation, but I think 50 should be ok
 
@@ -525,7 +524,7 @@ namespace VisualPinball.Unity
 
 					// Poly points are expressed in flipper's frame: transpose to Table's frame as this is the basis uses for drag points
 					var p = ta.transform.InverseTransformPoint(transform.TransformPoint(poly[i]));
-					data.DragPoints[poly.Count - i - 1] = new Engine.Math.DragPointData(p.x, p.y);
+					data.DragPoints[poly.Count - i - 1] = new DragPointData(p.x, p.y);
 				}
 
 				return new Trigger(data);

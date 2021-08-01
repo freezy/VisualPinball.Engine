@@ -27,7 +27,6 @@ using Unity.Entities;
 using Unity.Mathematics;
 using UnityEngine;
 using VisualPinball.Engine.Game;
-using VisualPinball.Engine.Math;
 using VisualPinball.Engine.VPT.Bumper;
 
 namespace VisualPinball.Unity
@@ -40,6 +39,8 @@ namespace VisualPinball.Unity
 		#region Data
 
 		public float Radius = 45f;
+
+		public float Orientation;
 
 		public float Threshold = 1.0f;
 
@@ -120,6 +121,7 @@ namespace VisualPinball.Unity
 		public override void SetData(BumperData data, Dictionary<string, IItemMainAuthoring> itemMainAuthorings)
 		{
 			Radius = data.Radius;
+			Orientation = data.Orientation;
 			Threshold = data.Threshold;
 			Force = data.Force;
 			Scatter = data.Scatter;
@@ -170,6 +172,7 @@ namespace VisualPinball.Unity
 
 			// other props
 			data.Radius = Radius;
+			data.Orientation = Orientation;
 			data.Threshold = Threshold;
 			data.Force = Force;
 			data.Scatter = Scatter;
@@ -184,8 +187,8 @@ namespace VisualPinball.Unity
 		public override void SetEditorPosition(Vector3 pos) => Data.Center = pos.ToVertex2Dxy();
 
 		public override ItemDataTransformType EditorRotationType => ItemDataTransformType.OneD;
-		public override Vector3 GetEditorRotation() => new Vector3(Data.Orientation, 0, 0);
-		public override void SetEditorRotation(Vector3 rot) => Data.Orientation = rot.x;
+		public override Vector3 GetEditorRotation() => new Vector3(Orientation, 0, 0);
+		public override void SetEditorRotation(Vector3 rot) => Orientation = rot.x;
 
 		public override ItemDataTransformType EditorScaleType => ItemDataTransformType.OneD;
 		public override Vector3 GetEditorScale() => new Vector3(Data.Radius, 0f, 0f);
