@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using UnityEngine;
+using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Light;
 using Light = VisualPinball.Engine.VPT.Light.Light;
 
@@ -22,8 +23,9 @@ namespace VisualPinball.Unity
 {
 	public static class LightExtensions
 	{
-		public static IConvertedItem SetupGameObject(this Light light, GameObject obj)
+		public static IConvertedItem InstantiateGameObject(this Light light, IItem item)
 		{
+			var obj = new GameObject(item.Name);
 			var convertedItem = new ConvertedItem<Light, LightData, LightAuthoring>(obj, light);
 
 			if (!light.Data.ShowBulbMesh) {

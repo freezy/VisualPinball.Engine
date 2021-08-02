@@ -23,8 +23,9 @@ namespace VisualPinball.Unity
 {
 	public static class SurfaceExtensions
 	{
-		public static IConvertedItem SetupGameObject(this Surface surface, GameObject obj, IMaterialProvider materialProvider)
+		public static IConvertedItem InstantiateGameObject(this Surface surface, IItem item, IMaterialProvider materialProvider)
 		{
+			var obj = new GameObject(item.Name);
 			var convertedItem = new ConvertedItem<Surface, SurfaceData, SurfaceAuthoring>(obj, surface);
 			switch (surface.SubComponent) {
 				case ItemSubComponent.None:

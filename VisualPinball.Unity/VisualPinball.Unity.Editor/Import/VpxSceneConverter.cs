@@ -298,20 +298,20 @@ namespace VisualPinball.Unity.Editor
 
 		public IConvertedItem CreateGameObjects(IItem item)
 		{
+			var convertedItem = SetupGameObjects(item);
+
 			var parentGo = GetGroupParent(item);
-			var itemGo = new GameObject(item.Name);
 
-			itemGo!.transform.SetParent(parentGo.transform, false);
+			convertedItem.GameObject.transform.SetParent(parentGo.transform, false);
 
-			var convertedItem = SetupGameObjects(item, itemGo);
 			foreach (var meshAuthoring in convertedItem.MeshAuthoring) {
-				meshAuthoring.CreateMesh(itemGo.name, this, this, this);
+				meshAuthoring.CreateMesh(convertedItem.GameObject.name, this, this, this);
 			}
 			item.FreeBinaryData();
 
 			// apply transformation
 			if (item is IRenderable renderable) {
-				itemGo.transform.SetFromMatrix(renderable.TransformationMatrix(_table, Origin.Original).ToUnityMatrix());
+				convertedItem.GameObject.transform.SetFromMatrix(renderable.TransformationMatrix(_table, Origin.Original).ToUnityMatrix());
 			}
 			return convertedItem;
 		}
@@ -347,24 +347,24 @@ namespace VisualPinball.Unity.Editor
 			PrefabUtility.SaveAsPrefabAssetAndConnect(go, prefabPath, InteractionMode.AutomatedAction);
 		}
 
-		private IConvertedItem SetupGameObjects(IItem item, GameObject obj)
+		private IConvertedItem SetupGameObjects(IItem item)
 		{
 			switch (item) {
-				case Bumper bumper:       return bumper.SetupGameObject(obj, this);
-				case Flipper flipper:     return flipper.SetupGameObject(obj, this);
-				case Gate gate:           return gate.SetupGameObject(obj, this);
-				case HitTarget hitTarget: return hitTarget.SetupGameObject(obj, this);
-				case Kicker kicker:       return kicker.SetupGameObject(obj, this);
-				case Light lt:            return lt.SetupGameObject(obj);
-				case Plunger plunger:     return plunger.SetupGameObject(obj, this);
-				case Primitive primitive: return primitive.SetupGameObject(obj, this);
-				case Ramp ramp:           return ramp.SetupGameObject(obj, this);
-				case Rubber rubber:       return rubber.SetupGameObject(obj, this);
-				case Spinner spinner:     return spinner.SetupGameObject(obj, this);
-				case Surface surface:     return surface.SetupGameObject(obj, this);
-				case Table table:         return table.SetupGameObject(obj, this);
-				case Trigger trigger:     return trigger.SetupGameObject(obj, this);
-				case Trough trough:       return trough.SetupGameObject(obj);
+				case Bumper bumper:       return bumper.InstantiateGameObject(item, this);
+				case Flipper flipper:     return flipper.InstantiateGameObject(item, this);
+				case Gate gate:           return gate.InstantiateGameObject(item, this);
+				case HitTarget hitTarget: return hitTarget.InstantiateGameObject(item, this);
+				case Kicker kicker:       return kicker.InstantiateGameObject(item, this);
+				case Light lt:            return lt.InstantiateGameObject(item);
+				case Plunger plunger:     return plunger.InstantiateGameObject(item, this);
+				case Primitive primitive: return primitive.InstantiateGameObject(item, this);
+				case Ramp ramp:           return ramp.InstantiateGameObject(item, this);
+				case Rubber rubber:       return rubber.InstantiateGameObject(item, this);
+				case Spinner spinner:     return spinner.InstantiateGameObject(item, this);
+				case Surface surface:     return surface.InstantiateGameObject(item, this);
+				case Table table:         return table.InstantiateGameObject(item, this);
+				case Trigger trigger:     return trigger.InstantiateGameObject(item, this);
+				case Trough trough:       return trough.InstantiateGameObject(item);
 			}
 
 			throw new InvalidOperationException("Unknown item " + item + " to setup!");

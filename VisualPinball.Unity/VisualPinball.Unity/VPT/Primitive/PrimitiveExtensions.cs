@@ -23,8 +23,9 @@ namespace VisualPinball.Unity
 {
 	public static class PrimitiveExtensions
 	{
-		public static IConvertedItem SetupGameObject(this Primitive primitive, GameObject obj, IMaterialProvider materialProvider)
+		public static IConvertedItem InstantiateGameObject(this Primitive primitive, IItem item, IMaterialProvider materialProvider)
 		{
+			var obj = new GameObject(item.Name);
 			var convertedItem = new ConvertedItem<Primitive, PrimitiveData, PrimitiveAuthoring>(obj, primitive) {
 				IsProceduralMesh = false
 			};

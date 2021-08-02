@@ -27,8 +27,9 @@ namespace VisualPinball.Unity
 	{
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
-		public static IConvertedItem SetupGameObject(this Trigger trigger, GameObject obj, IMaterialProvider materialProvider)
+		public static IConvertedItem InstantiateGameObject(this Trigger trigger, IItem item, IMaterialProvider materialProvider)
 		{
+			var obj = new GameObject(item.Name);
 			var convertedItem = new ConvertedItem<Trigger, TriggerData, TriggerAuthoring>(obj, trigger);
 			switch (trigger.SubComponent) {
 				case ItemSubComponent.None:
