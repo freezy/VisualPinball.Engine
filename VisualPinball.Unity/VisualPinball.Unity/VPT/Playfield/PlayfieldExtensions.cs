@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using UnityEngine;
+using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Table;
 using VisualPinball.Unity.Playfield;
 
@@ -22,8 +23,9 @@ namespace VisualPinball.Unity
 {
 	public static class PlayfieldExtensions
 	{
-		public static IConvertedItem SetupGameObject(this Table table, GameObject obj, IMaterialProvider materialProvider)
+		public static IConvertedItem InstantiateGameObject(this Table table, IItem item, IMaterialProvider materialProvider)
 		{
+			var obj = new GameObject(item.Name);
 			var convertedItem = new ConvertedItem<Table, TableData, PlayfieldAuthoring>(obj, table) {
 				IsProceduralMesh = false
 			};

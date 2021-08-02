@@ -23,8 +23,9 @@ namespace VisualPinball.Unity
 {
 	public static class RubberExtensions
 	{
-		public static IConvertedItem SetupGameObject(this Rubber rubber, GameObject obj, IMaterialProvider materialProvider)
+		public static IConvertedItem InstantiateGameObject(this Rubber rubber, IItem item, IMaterialProvider materialProvider)
 		{
+			var obj = new GameObject(item.Name);
 			var convertedItem = new ConvertedItem<Rubber, RubberData, RubberAuthoring>(obj, rubber);
 			switch (rubber.SubComponent) {
 				case ItemSubComponent.None:
