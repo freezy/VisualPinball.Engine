@@ -24,6 +24,21 @@ namespace VisualPinball.Unity.Editor
 	[CustomEditor(typeof(BumperColliderAuthoring))]
 	public class BumperColliderInspector : ItemColliderInspector<Bumper, BumperData, BumperAuthoring, BumperColliderAuthoring>
 	{
+		private SerializedProperty _hitEventProperty;
+		private SerializedProperty _thresholdProperty;
+		private SerializedProperty _forceProperty;
+		private SerializedProperty _scatterProperty;
+
+
+		protected override void OnEnable()
+		{
+			base.OnEnable();
+
+			_thresholdProperty = serializedObject.FindProperty(nameof(BumperColliderAuthoring.Threshold));
+			_forceProperty = serializedObject.FindProperty(nameof(BumperColliderAuthoring.Force));
+			_scatterProperty = serializedObject.FindProperty(nameof(BumperColliderAuthoring.Scatter));
+			_hitEventProperty = serializedObject.FindProperty(nameof(BumperColliderAuthoring.HitEvent));
+		}
 
 		public override void OnInspectorGUI()
 		{
@@ -31,10 +46,10 @@ namespace VisualPinball.Unity.Editor
 				return;
 			}
 
-			ItemDataField("Has Hit Event", ref Data.HitEvent, false);
-			ItemDataField("Force", ref Data.Force, false);
-			ItemDataField("Hit Threshold", ref Data.Threshold, false);
-			ItemDataField("Scatter Angle", ref Data.Scatter, false);
+			PropertyField(_hitEventProperty, "Has Hit Event");
+			PropertyField(_forceProperty);
+			PropertyField(_thresholdProperty, "Hit Threshold");
+			PropertyField(_scatterProperty, "Scatter Angle");
 
 			base.OnInspectorGUI();
 		}

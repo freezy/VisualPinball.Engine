@@ -36,7 +36,6 @@ namespace VisualPinball.Unity
 		/// </summary>
 		RenderPipelineType Type { get; }
 
-
 		/// <summary>
 		/// Converts a material from Visual Pinball to the active renderer.
 		/// </summary>
@@ -57,6 +56,11 @@ namespace VisualPinball.Unity
 		/// Creates a new ball.
 		/// </summary>
 		IBallConverter BallConverter { get; }
+
+		/// <summary>
+		/// Provides access to VPE's game item prefabs.
+		/// </summary>
+		IPrefabProvider PrefabProvider { get; }
 	}
 
 	public enum RenderPipelineType

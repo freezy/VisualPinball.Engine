@@ -25,7 +25,19 @@ namespace VisualPinball.Unity.Editor
 	public class BumperInspector : ItemMainInspector<Bumper, BumperData, BumperAuthoring>
 	{
 		private bool _foldoutGeometry = true;
-		private bool _foldoutMisc;
+
+		private SerializedProperty _surfaceProperty;
+		private SerializedProperty _radiusProperty;
+		private SerializedProperty _orientationProperty;
+
+		protected override void OnEnable()
+		{
+			base.OnEnable();
+
+			_radiusProperty = serializedObject.FindProperty(nameof(BumperAuthoring.Radius));
+			_orientationProperty = serializedObject.FindProperty(nameof(BumperAuthoring.Orientation));
+			_surfaceProperty = serializedObject.FindProperty(nameof(BumperAuthoring.Surface));
+		}
 
 		public override void OnInspectorGUI()
 		{
@@ -33,21 +45,12 @@ namespace VisualPinball.Unity.Editor
 				return;
 			}
 
-			ItemDataField("Position", ref Data.Center);
-			SurfaceField("Surface", ref Data.Surface);
-
 			OnPreInspectorGUI();
 
 			if (_foldoutGeometry = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutGeometry, "Geometry")) {
-				ItemDataField("Radius", ref Data.Radius);
-				ItemDataField("Height Scale", ref Data.HeightScale);
-				ItemDataField("Orientation", ref Data.Orientation);
-			}
-			EditorGUILayout.EndFoldoutHeaderGroup();
-
-			if (_foldoutMisc = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutMisc, "Misc")) {
-				ItemDataField("Timer Enabled", ref Data.IsTimerEnabled, false);
-				ItemDataField("Timer Interval", ref Data.TimerInterval, false);
+				PropertyField(_surfaceProperty);
+				PropertyField(_radiusProperty);
+				PropertyField(_orientationProperty);
 			}
 			EditorGUILayout.EndFoldoutHeaderGroup();
 

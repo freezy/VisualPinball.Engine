@@ -42,19 +42,7 @@ namespace VisualPinball.Unity
 
 		public float Orientation;
 
-		public float Threshold = 1.0f;
-
-		public float Force = 15f;
-
-		public float Scatter;
-
-		public float RingSpeed = 0.5f;
-
-		public float RingDropOffset = 0.0f;
-
 		public SurfaceAuthoring Surface;
-
-		public bool HitEvent = true;
 
 		#endregion
 		protected override Bumper InstantiateItem(BumperData data) => new Bumper(data);
@@ -62,29 +50,29 @@ namespace VisualPinball.Unity
 		protected override Type MeshAuthoringType { get; } = typeof(ItemMeshAuthoring<Bumper, BumperData, BumperAuthoring>);
 		protected override Type ColliderAuthoringType { get; } = typeof(ItemColliderAuthoring<Bumper, BumperData, BumperAuthoring>);
 
-		public override IEnumerable<Type> ValidParents => BumperBaseMeshAuthoring.ValidParentTypes
-			.Concat(BumperCapMeshAuthoring.ValidParentTypes)
-			.Concat(BumperRingMeshAuthoring.ValidParentTypes)
-			.Concat(BumperSkirtMeshAuthoring.ValidParentTypes)
-			.Concat(BumperColliderAuthoring.ValidParentTypes)
-			.Distinct();
+		public override IEnumerable<Type> ValidParents => BumperColliderAuthoring.ValidParentTypes;
 
 		public ISwitchable Switchable => Item;
 
 		public void Convert(Entity entity, EntityManager dstManager, GameObjectConversionSystem conversionSystem)
 		{
 			Convert(entity, dstManager);
-			dstManager.AddComponentData(entity, new BumperStaticData {
-				Force = Force,
-				HitEvent = HitEvent,
-				Threshold = Threshold
-			});
+
+			var collComponent = GetComponentInChildren<BumperColliderAuthoring>();
+			if (collComponent) {
+				dstManager.AddComponentData(entity, new BumperStaticData {
+					Force = collComponent.Force,
+					HitEvent = collComponent.HitEvent,
+					Threshold = collComponent.Threshold
+				});
+			}
 
 			var table = Table;
 			var bumper = Item;
 
 			// add ring data
-			if (GetComponentInChildren<BumperRingAnimationAuthoring>()) {
+			var ringAnimComponent = GetComponentInChildren<BumperRingAnimationAuthoring>();
+			if (ringAnimComponent) {
 				dstManager.AddComponentData(entity, new BumperRingAnimationData {
 
 					// dynamic
@@ -94,9 +82,9 @@ namespace VisualPinball.Unity
 					DoAnimate = false,
 
 					// static
-					DropOffset = RingDropOffset,
+					DropOffset = ringAnimComponent.RingDropOffset,
 					HeightScale = transform.localScale.z,
-					Speed = RingSpeed,
+					Speed = ringAnimComponent.RingSpeed,
 					ScaleZ = table.GetScaleZ()
 				});
 			}
@@ -120,16 +108,26 @@ namespace VisualPinball.Unity
 
 		public override void SetData(BumperData data, Dictionary<string, IItemMainAuthoring> itemMainAuthorings)
 		{
+			transform.localScale = new Vector3(1f, 1f, data.HeightScale);
+
 			Radius = data.Radius;
 			Orientation = data.Orientation;
-			Threshold = data.Threshold;
-			Force = data.Force;
-			Scatter = data.Scatter;
-			RingSpeed = data.RingSpeed;
-			RingDropOffset = data.RingDropOffset;
+
 			Surface = GetAuthoring<SurfaceAuthoring>(itemMainAuthorings, data.Surface);
-			HitEvent = data.HitEvent;
-			transform.localScale = new Vector3(1f, 1f, data.HeightScale);
+
+			var collComponent = GetComponentInChildren<BumperColliderAuthoring>();
+			if (collComponent) {
+				collComponent.Threshold = data.Threshold;
+				collComponent.Force = data.Force;
+				collComponent.Scatter = data.Scatter;
+				collComponent.HitEvent = data.HitEvent;
+			}
+
+			var ringAnimComponent = GetComponentInChildren<BumperRingAnimationAuthoring>();
+			if (ringAnimComponent) {
+				ringAnimComponent.RingSpeed = data.RingSpeed;
+				ringAnimComponent.RingDropOffset = data.RingDropOffset;
+			}
 		}
 
 		public override void CopyDataTo(BumperData data)
@@ -145,19 +143,19 @@ namespace VisualPinball.Unity
 			data.IsCapVisible = false;
 			data.IsRingVisible = false;
 			data.IsSocketVisible = false;
-			foreach (var meshComponent in MeshComponents) {
-				switch (meshComponent) {
-					case BumperBaseMeshAuthoring baseMeshAuthoring:
-						data.IsCapVisible = baseMeshAuthoring.gameObject.activeInHierarchy;
+			foreach (var mf in GetComponentsInChildren<MeshFilter>()) {
+				switch (mf.sharedMesh.name) {
+					case "Bumper Skirt":
+						data.IsSocketVisible = mf.gameObject.activeInHierarchy;
 						break;
-					case BumperCapMeshAuthoring capMeshAuthoring:
-						data.IsCapVisible = capMeshAuthoring.gameObject.activeInHierarchy;
+					case "Bumper Base":
+						data.IsCapVisible = mf.gameObject.activeInHierarchy;
 						break;
-					case BumperRingMeshAuthoring ringMeshAuthoring:
-						data.IsRingVisible = ringMeshAuthoring.gameObject.activeInHierarchy;
+					case "Bumper Cap":
+						data.IsCapVisible = mf.gameObject.activeInHierarchy;
 						break;
-					case BumperSkirtMeshAuthoring skirtMeshAuthoring:
-						data.IsSocketVisible = skirtMeshAuthoring.gameObject.activeInHierarchy;
+					case "Bumper Ring":
+						data.IsRingVisible = mf.gameObject.activeInHierarchy;
 						break;
 				}
 			}
@@ -173,14 +171,23 @@ namespace VisualPinball.Unity
 			// other props
 			data.Radius = Radius;
 			data.Orientation = Orientation;
-			data.Threshold = Threshold;
-			data.Force = Force;
-			data.Scatter = Scatter;
-			data.RingSpeed = RingSpeed;
-			data.RingDropOffset = RingDropOffset;
+
 			data.Surface = Surface ? Surface.name : string.Empty;
-			data.HitEvent = HitEvent;
 			data.HeightScale = transform.localScale.z;
+
+			var collComponent = GetComponentInChildren<BumperColliderAuthoring>();
+			if (collComponent) {
+				data.Threshold = collComponent.Threshold;
+				data.Force = collComponent.Force;
+				data.Scatter = collComponent.Scatter;
+				data.HitEvent = collComponent.HitEvent;
+			}
+
+			var ringAnimComponent = GetComponentInChildren<BumperRingAnimationAuthoring>();
+			if (ringAnimComponent) {
+				data.RingSpeed = ringAnimComponent.RingSpeed;
+				data.RingDropOffset = ringAnimComponent.RingDropOffset;
+			}
 		}
 
 		public override ItemDataTransformType EditorPositionType => ItemDataTransformType.TwoD;

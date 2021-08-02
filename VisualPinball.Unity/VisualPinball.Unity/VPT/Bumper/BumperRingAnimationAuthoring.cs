@@ -26,5 +26,13 @@ namespace VisualPinball.Unity
 	public class BumperRingAnimationAuthoring : ItemAnimationAuthoring<Bumper, BumperData, BumperAuthoring>
 	{
 		public override IEnumerable<Type> ValidParents { get; } = new Type[0]; // animation components only apply to their own
+
+		#region Data
+
+		public float RingSpeed = 0.5f;
+
+		public float RingDropOffset = 0.0f;
+
+		#endregion
 	}
 }
