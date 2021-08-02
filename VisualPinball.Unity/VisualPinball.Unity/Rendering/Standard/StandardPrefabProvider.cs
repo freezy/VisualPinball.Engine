@@ -14,25 +14,15 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-using System;
-using System.Collections.Generic;
 using UnityEngine;
-using VisualPinball.Engine.VPT.Bumper;
 
 namespace VisualPinball.Unity
 {
-	[ExecuteInEditMode]
-	[AddComponentMenu("Visual Pinball/Mesh/Bumper Cap Mesh")]
-	public class BumperCapMeshAuthoring : ItemMeshAuthoring<Bumper, BumperData, BumperAuthoring>
+	public class StandardPrefabProvider : IPrefabProvider
 	{
-		public static readonly Type[] ValidParentTypes = new Type[0];
-
-		public override IEnumerable<Type> ValidParents => ValidParentTypes;
-
-		protected override string MeshId => BumperMeshGenerator.Cap;
-		protected override bool IsVisible {
-			get => Data.IsCapVisible;
-			set => Data.IsCollidable = value;
+		public GameObject CreateBumper()
+		{
+			throw new System.NotImplementedException();
 		}
 	}
 }

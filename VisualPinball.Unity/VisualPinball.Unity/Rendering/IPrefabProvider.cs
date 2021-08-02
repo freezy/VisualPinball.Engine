@@ -14,26 +14,18 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-// ReSharper disable AssignmentInConditionalExpression
+using UnityEngine;
 
-using UnityEditor;
-using VisualPinball.Engine.VPT.Bumper;
-
-namespace VisualPinball.Unity.Editor
+namespace VisualPinball.Unity
 {
-	[CustomEditor(typeof(BumperCapMeshAuthoring))]
-	public class BumperCapMeshInspector : ItemMeshInspector<Bumper, BumperData, BumperAuthoring, BumperCapMeshAuthoring>
+	/// <summary>
+	/// Common interface creating VPE's game item prefabs.
+	/// </summary>
+	public interface IPrefabProvider
 	{
-
-		public override void OnInspectorGUI()
-		{
-			if (HasErrors()) {
-				return;
-			}
-
-			MaterialFieldLegacy("Cap Material", ref Data.CapMaterial);
-
-			base.OnInspectorGUI();
-		}
+		/// <summary>
+		/// Creates a bumper prefab.
+		/// </summary>
+		GameObject CreateBumper();
 	}
 }

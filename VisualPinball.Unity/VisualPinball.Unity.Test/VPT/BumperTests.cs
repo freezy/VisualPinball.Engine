@@ -84,10 +84,10 @@ namespace VisualPinball.Unity.Test
 			var socketGo = go.transform.Find("Playfield/Bumpers/Bumper/Skirt");
 			var ringGo = go.transform.Find("Playfield/Bumpers/Bumper/Ring");
 
-			Assert.IsFalse(baseGo.GetComponent<BumperBaseMeshAuthoring>().enabled);
-			Assert.IsFalse(capGo.GetComponent<BumperCapMeshAuthoring>().enabled);
-			Assert.IsFalse(socketGo.GetComponent<BumperSkirtMeshAuthoring>().enabled);
-			Assert.IsTrue(ringGo.GetComponent<BumperRingMeshAuthoring>().enabled);
+			Assert.IsFalse(baseGo.gameObject.activeInHierarchy);
+			Assert.IsFalse(capGo.gameObject.activeInHierarchy);
+			Assert.IsFalse(socketGo.gameObject.activeInHierarchy);
+			Assert.IsTrue(ringGo.gameObject.activeInHierarchy);
 
 			Object.DestroyImmediate(go);
 		}

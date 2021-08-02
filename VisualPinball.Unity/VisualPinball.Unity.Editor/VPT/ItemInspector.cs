@@ -152,27 +152,12 @@ namespace VisualPinball.Unity.Editor
 			}
 
 			EditorGUI.BeginChangeCheck();
-			var val = EditorGUILayout.TextField("Name", item.ItemData.GetName());
-			if (EditorGUI.EndChangeCheck()) {
-				FinishEdit("Name", false);
-				item.ItemData.SetName(val);
-			}
-
-			EditorGUI.BeginChangeCheck();
 			var newLock = EditorGUILayout.Toggle("IsLocked", item.IsLocked);
 			if (EditorGUI.EndChangeCheck())
 			{
 				FinishEdit("IsLocked");
 				item.IsLocked = newLock;
 				SceneView.RepaintAll();
-			}
-
-			if (target is IIdentifiableItemAuthoring identity && target is MonoBehaviour bh) {
-				if (identity.Name != bh.gameObject.name) {
-					var oldName = identity.Name;
-					identity.Name = bh.gameObject.name;
-					ItemRenamed?.Invoke(identity, oldName, bh.gameObject.name);
-				}
 			}
 		}
 

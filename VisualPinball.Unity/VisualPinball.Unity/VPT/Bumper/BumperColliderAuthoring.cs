@@ -27,6 +27,18 @@ namespace VisualPinball.Unity
 	{
 		public static readonly Type[] ValidParentTypes = new Type[0];
 
+		#region Data
+
+		public float Threshold = 1.0f;
+
+		public float Force = 15f;
+
+		public float Scatter;
+
+		public bool HitEvent = true;
+
+		#endregion
+
 		public override IEnumerable<Type> ValidParents => ValidParentTypes;
 		protected override IApiColliderGenerator InstantiateColliderApi(Player player, Entity entity, Entity parentEntity)
 			=> new BumperApi(Item, entity, parentEntity, player);

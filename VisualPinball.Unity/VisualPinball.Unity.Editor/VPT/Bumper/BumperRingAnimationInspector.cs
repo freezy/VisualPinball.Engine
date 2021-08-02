@@ -24,14 +24,24 @@ namespace VisualPinball.Unity.Editor
 	[CustomEditor(typeof(BumperRingAnimationAuthoring))]
 	public class BumperRingAnimationInspector : ItemAnimationInspector<Bumper, BumperData, BumperAuthoring, BumperRingAnimationAuthoring>
 	{
+		private SerializedProperty _ringSpeedProperty;
+		private SerializedProperty _ringDropOffsetProperty;
+
+		protected override void OnEnable()
+		{
+			base.OnEnable();
+			_ringSpeedProperty = serializedObject.FindProperty(nameof(BumperRingAnimationAuthoring.RingSpeed));
+			_ringDropOffsetProperty = serializedObject.FindProperty(nameof(BumperRingAnimationAuthoring.RingDropOffset));
+		}
+
 		public override void OnInspectorGUI()
 		{
 			if (HasErrors()) {
 				return;
 			}
 
-			ItemDataField("Ring Speed", ref Data.RingSpeed, false);
-			ItemDataField("Ring Drop Offset", ref Data.RingDropOffset, false);
+			PropertyField(_ringSpeedProperty, "Ring Speed");
+			PropertyField(_ringDropOffsetProperty, "Ring Speed");
 
 			base.OnInspectorGUI();
 		}

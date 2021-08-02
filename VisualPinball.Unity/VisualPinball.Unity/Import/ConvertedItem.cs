@@ -57,6 +57,8 @@ namespace VisualPinball.Unity
 		/// </summary>
 		bool IsProceduralMesh { get; set; }
 
+		public bool IsPrefab { get; set; }
+
 		/// <summary>
 		/// Checks whether this item is correctly attached to a given parent.
 		/// </summary>
@@ -107,6 +109,7 @@ namespace VisualPinball.Unity
 		public IEnumerable<IItemMeshAuthoring> MeshAuthoring => _meshAuthoring;
 		public IItemColliderAuthoring ColliderAuthoring => _colliderAuthoring;
 		public bool IsProceduralMesh { get; set; } = true;
+		public bool IsPrefab { get; set; }
 
 		private readonly TMainAuthoring _mainAuthoring;
 		private ItemColliderAuthoring<TItem, TData, TMainAuthoring> _colliderAuthoring;
@@ -145,10 +148,13 @@ namespace VisualPinball.Unity
 		/// Used when just creating a new item with the toolbox.
 		/// </remarks>
 		/// <param name="gameObject">Existing game object which already has the main component set.</param>
-		public ConvertedItem(GameObject gameObject)
+		public ConvertedItem(GameObject gameObject, bool isPrefab = false)
 		{
 			GameObject = gameObject;
 			_itemData = GameObject.GetComponent<TMainAuthoring>().Data;
+			_mainAuthoring = GameObject.GetComponentInChildren<TMainAuthoring>();
+			_colliderAuthoring = GameObject.GetComponentInChildren<ItemColliderAuthoring<TItem,TData,TMainAuthoring>>();
+			IsPrefab = isPrefab;
 		}
 
 		public void AddMeshAuthoring<T>(string name) where T : Component, IItemMeshAuthoring

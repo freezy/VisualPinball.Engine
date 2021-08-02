@@ -304,8 +304,10 @@ namespace VisualPinball.Unity.Editor
 
 			convertedItem.GameObject.transform.SetParent(parentGo.transform, false);
 
-			foreach (var meshAuthoring in convertedItem.MeshAuthoring) {
-				meshAuthoring.CreateMesh(convertedItem.GameObject.name, this, this, this);
+			if (!convertedItem.IsPrefab) {
+				foreach (var meshAuthoring in convertedItem.MeshAuthoring) {
+					meshAuthoring.CreateMesh(convertedItem.GameObject.name, this, this, this);
+				}
 			}
 			item.FreeBinaryData();
 
@@ -318,6 +320,9 @@ namespace VisualPinball.Unity.Editor
 
 		public void CreateAssetFromGameObject(IConvertedItem convertedItem)
 		{
+			if (convertedItem.IsPrefab) {
+				return;
+			}
 			var go = convertedItem.GameObject;
 			var extractMesh = !convertedItem.IsProceduralMesh;
 			var name = go.name;

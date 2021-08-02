@@ -27,5 +27,6 @@ namespace VisualPinball.Unity
 		public IMaterialAdapter MaterialAdapter { get; } = new StandardMaterialAdapter();
 		public ILightConverter LightConverter { get; } = new StandardLightConverter();
 		public IBallConverter BallConverter { get; } = new StandardBallConverter();
+		public IPrefabProvider PrefabProvider { get; } = new StandardPrefabProvider();
 	}
 }

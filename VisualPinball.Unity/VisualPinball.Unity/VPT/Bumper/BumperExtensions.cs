@@ -14,50 +14,21 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-using System;
-using NLog;
+using UnityEditor;
 using UnityEngine;
 using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Bumper;
-using Logger = NLog.Logger;
 
 namespace VisualPinball.Unity
 {
 	public static class BumperExtensions
 	{
-		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
-
 		public static IConvertedItem InstantiateGameObject(this Bumper bumper, IItem item, IMaterialProvider materialProvider)
 		{
-			var obj = new GameObject(item.Name);
-			var convertedItem = new ConvertedItem<Bumper, BumperData, BumperAuthoring>(obj, bumper);
-			switch (bumper.SubComponent) {
-				case ItemSubComponent.None:
-					convertedItem.SetColliderAuthoring<BumperColliderAuthoring>(materialProvider);
-					convertedItem.AddMeshAuthoring<BumperBaseMeshAuthoring>(BumperMeshGenerator.Base);
-					convertedItem.AddMeshAuthoring<BumperCapMeshAuthoring>(BumperMeshGenerator.Cap);
-					convertedItem.AddMeshAuthoring<BumperRingMeshAuthoring>(BumperMeshGenerator.Ring);
-					convertedItem.AddMeshAuthoring<BumperSkirtMeshAuthoring>(BumperMeshGenerator.Skirt);
-
-					convertedItem.SetAnimationAuthoring<BumperRingAnimationAuthoring>(BumperMeshGenerator.Ring);
-					convertedItem.SetAnimationAuthoring<BumperSkirtAnimationAuthoring>(BumperMeshGenerator.Skirt);
-					break;
-
-				case ItemSubComponent.Collider: {
-					Logger.Warn("Bumper collider cannot be parented to anything else than bumpers.");
-					break;
-				}
-
-				case ItemSubComponent.Mesh: {
-					Logger.Warn("Bumper mesh cannot be parented to anything else than bumpers.");
-					break;
-				}
-
-				default:
-					throw new ArgumentOutOfRangeException();
-			}
-
-			return convertedItem.AddConvertToEntity();
+			var prefab = RenderPipeline.Current.PrefabProvider.CreateBumper();
+			var obj = PrefabUtility.InstantiatePrefab(prefab) as GameObject;
+			obj.name = item.Name;
+			return new ConvertedItem<Bumper, BumperData, BumperAuthoring>(obj, true);
 		}
 	}
 }
