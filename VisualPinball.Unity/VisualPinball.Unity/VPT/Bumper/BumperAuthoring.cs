@@ -108,7 +108,7 @@ namespace VisualPinball.Unity
 
 		public override void SetData(BumperData data, Dictionary<string, IItemMainAuthoring> itemMainAuthorings)
 		{
-			transform.localScale = new Vector3(1f, 1f, data.HeightScale);
+			transform.localScale = new Vector3(data.Radius, data.Radius, data.HeightScale) / 100f;
 
 			Radius = data.Radius;
 			Orientation = data.Orientation;
