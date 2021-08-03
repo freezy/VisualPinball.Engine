@@ -19,16 +19,10 @@ using VisualPinball.Engine.VPT;
 namespace VisualPinball.Unity
 {
 	/// <summary>
-	/// The non-typed version of ItemAuthoring.
+	/// The interface for placing stuff on top of it.
 	/// </summary>
-	public interface IItemAuthoring
+	public interface ISurfaceAuthoring : IItemMainAuthoring
 	{
-		string Name { get; }
-
-		IItem IItem { get; }
-
-		ItemData ItemData { get; }
-
-		void ItemDataChanged();
+		string name { get; }
 	}
 }
