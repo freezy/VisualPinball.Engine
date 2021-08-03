@@ -17,6 +17,7 @@
 // ReSharper disable AssignmentInConditionalExpression
 
 using UnityEditor;
+using UnityEngine;
 using VisualPinball.Engine.VPT.Bumper;
 
 namespace VisualPinball.Unity.Editor
@@ -43,6 +44,8 @@ namespace VisualPinball.Unity.Editor
 				return;
 			}
 
+			serializedObject.Update();
+
 			OnPreInspectorGUI();
 
 			PropertyField(_surfaceProperty, updateTransforms: true);
@@ -50,6 +53,8 @@ namespace VisualPinball.Unity.Editor
 			PropertyField(_orientationProperty, updateTransforms: true);
 
 			base.OnInspectorGUI();
+
+			serializedObject.ApplyModifiedProperties();
 		}
 	}
 }

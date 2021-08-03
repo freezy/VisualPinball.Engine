@@ -42,11 +42,15 @@ namespace VisualPinball.Unity
 
 		#region Data
 
+		[Range(10f, 100f)]
+		[Tooltip("Radius of the bumper. Updates xy scaling.")]
 		public float Radius = 45f;
 
 		[Range(-360f, 360f)]
+		[Tooltip("Orientation angle. Updates z rotation.")]
 		public float Orientation;
 
+		[Tooltip("On which surface this bumper is attached to. Updates z translation.")]
 		public SurfaceAuthoring Surface;
 
 		#endregion

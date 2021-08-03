@@ -16,7 +16,6 @@
 
 using System;
 using System.Collections.Generic;
-using Unity.Entities;
 using UnityEngine;
 using VisualPinball.Engine.VPT.Bumper;
 
@@ -29,9 +28,11 @@ namespace VisualPinball.Unity
 
 		#region Data
 
+		[Tooltip("How quick the ring moves down when the ball is hit.")]
 		public float RingSpeed = 0.5f;
 
-		public float RingDropOffset = 0.0f;
+		[Tooltip("How low the ring drops. 0 = bottom")]
+		public float RingDropOffset;
 
 		#endregion
 	}
