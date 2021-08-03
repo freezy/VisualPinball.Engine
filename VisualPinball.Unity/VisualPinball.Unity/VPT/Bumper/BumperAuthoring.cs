@@ -23,6 +23,7 @@
 
 using System;
 using System.Collections.Generic;
+using Unity.Burst.Intrinsics;
 using Unity.Entities;
 using Unity.Mathematics;
 using UnityEngine;
@@ -34,7 +35,7 @@ namespace VisualPinball.Unity
 	[ExecuteAlways]
 	[AddComponentMenu("Visual Pinball/Game Item/Bumper")]
 	public class BumperAuthoring : ItemMainRenderableAuthoring<Bumper, BumperData>,
-		ISwitchAuthoring, ICoilAuthoring, IConvertGameObjectToEntity
+		ISwitchAuthoring, ICoilAuthoring, ISurfaceAuthoring, IConvertGameObjectToEntity
 	{
 		public override IEnumerable<Type> ValidParents => BumperColliderAuthoring.ValidParentTypes;
 
@@ -115,9 +116,22 @@ namespace VisualPinball.Unity
 			transform.GetComponentInParent<Player>().RegisterBumper(Item, entity, ParentEntity, gameObject);
 		}
 
+		public override void UpdateTransforms()
+		{
+			var t = transform;
+			t.localScale = new Vector3(Radius * 2f, Radius * 2f, t.localScale.z * 100f) / 100f;
+
+			var localPos = t.localPosition;
+			t.localPosition = Surface != null
+				? new Vector3(localPos.x, localPos.y, Surface.HeightTop)
+				: new Vector3(localPos.x, localPos.y, 0);
+
+			t.localEulerAngles = new Vector3(0, 0, Orientation);
+		}
+
 		public override void SetData(BumperData data, Dictionary<string, IItemMainAuthoring> itemMainAuthorings)
 		{
-			transform.localScale = new Vector3(data.Radius, data.Radius, data.HeightScale) / 100f;
+			transform.localScale = new Vector3(data.Radius * 2f, data.Radius * 2f, data.HeightScale) / 100f;
 
 			Radius = data.Radius;
 			Orientation = data.Orientation;
@@ -204,24 +218,32 @@ namespace VisualPinball.Unity
 
 			// other props
 			data.Radius = Radius;
+			data.HeightScale = transform.localScale.z * 100;
 			data.Orientation = Orientation;
-			data.Surface = Surface ? Surface.name : string.Empty;
-			data.HeightScale = transform.localScale.z;
+			data.Surface = Surface != null ? Surface.name : string.Empty;
 
 		}
 
 		#region Editor Tooling
 
 		public override ItemDataTransformType EditorPositionType => ItemDataTransformType.TwoD;
-		public override void SetEditorPosition(Vector3 pos) => Data.Center = pos.ToVertex2Dxy();
 
 		public override ItemDataTransformType EditorRotationType => ItemDataTransformType.OneD;
 		public override Vector3 GetEditorRotation() => new Vector3(Orientation, 0, 0);
-		public override void SetEditorRotation(Vector3 rot) => Orientation = rot.x;
+		public override void SetEditorRotation(Vector3 rot)
+		{
+			transform.localEulerAngles = new Vector3(0, 0, rot.x);
+			Orientation = rot.x;
+		}
 
 		public override ItemDataTransformType EditorScaleType => ItemDataTransformType.OneD;
-		public override Vector3 GetEditorScale() => new Vector3(Data.Radius, 0f, 0f);
-		public override void SetEditorScale(Vector3 scale) => Data.Radius = scale.x;
+		public override Vector3 GetEditorScale() => new Vector3(Radius * 2f, 0f, 0f);
+		public override void SetEditorScale(Vector3 scale)
+		{
+			var t = transform;
+			t.localScale = new Vector3(scale.x, scale.x, t.localScale.z * 100) / 100f;
+			Radius = scale.x / 2f;
+		}
 
 		#endregion
 	}

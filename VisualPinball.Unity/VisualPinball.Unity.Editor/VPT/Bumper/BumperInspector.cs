@@ -17,7 +17,6 @@
 // ReSharper disable AssignmentInConditionalExpression
 
 using UnityEditor;
-using UnityEngine;
 using VisualPinball.Engine.VPT.Bumper;
 
 namespace VisualPinball.Unity.Editor
