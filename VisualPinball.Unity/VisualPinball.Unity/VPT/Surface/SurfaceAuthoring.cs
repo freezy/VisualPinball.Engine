@@ -98,7 +98,7 @@ namespace VisualPinball.Unity
 			transform.GetComponentInParent<Player>().RegisterSurface(Item, entity, ParentEntity, gameObject);
 		}
 
-		public override void SetData(SurfaceData data, Dictionary<string, IItemMainAuthoring> itemMainAuthorings)
+		public override void SetData(SurfaceData data, Dictionary<string, IItemMainAuthoring> components)
 		{
 			HitEvent = data.HitEvent;
 			IsDroppable = data.IsDroppable;

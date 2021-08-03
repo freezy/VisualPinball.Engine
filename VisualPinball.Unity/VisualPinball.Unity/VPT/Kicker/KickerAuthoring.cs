@@ -113,14 +113,14 @@ namespace VisualPinball.Unity
 			transform.GetComponentInParent<Player>().RegisterKicker(Item, entity, ParentEntity, gameObject);
 		}
 
-		public override void SetData(KickerData data, Dictionary<string, IItemMainAuthoring> itemMainAuthorings)
+		public override void SetData(KickerData data, Dictionary<string, IItemMainAuthoring> components)
 		{
 			Orientation = data.Orientation;
 			Radius = data.Radius;
 			Scatter = data.Scatter;
 			HitAccuracy = data.HitAccuracy;
 			HitHeight = data.HitHeight;
-			Surface = GetAuthoring<SurfaceAuthoring>(itemMainAuthorings, data.Surface);
+			Surface = GetAuthoring<SurfaceAuthoring>(components, data.Surface);
 			FallThrough = data.FallThrough;
 			LegacyMode = data.LegacyMode;
 			Angle = data.Angle;

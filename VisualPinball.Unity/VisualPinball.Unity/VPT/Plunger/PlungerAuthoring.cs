@@ -176,7 +176,7 @@ namespace VisualPinball.Unity
 			});
 		}
 
-		public override void SetData(PlungerData data, Dictionary<string, IItemMainAuthoring> itemMainAuthorings)
+		public override void SetData(PlungerData data, Dictionary<string, IItemMainAuthoring> components)
 		{
 			Type = data.Type;
 			Width = data.Width;
@@ -191,7 +191,7 @@ namespace VisualPinball.Unity
 			MomentumXfer = data.MomentumXfer;
 			IsMechPlunger = data.IsMechPlunger;
 			AutoPlunger = data.AutoPlunger;
-			Surface = GetAuthoring<SurfaceAuthoring>(itemMainAuthorings, data.Surface);
+			Surface = GetAuthoring<SurfaceAuthoring>(components, data.Surface);
 			TipShape = data.TipShape;
 			RodDiam = data.RodDiam;
 			RingGap = data.RingGap;

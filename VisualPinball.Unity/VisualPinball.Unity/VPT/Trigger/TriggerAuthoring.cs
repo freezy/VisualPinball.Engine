@@ -83,7 +83,7 @@ namespace VisualPinball.Unity
 			transform.GetComponentInParent<Player>().RegisterTrigger(trigger, entity, ParentEntity, gameObject);
 		}
 
-		public override void SetData(TriggerData data, Dictionary<string, IItemMainAuthoring> itemMainAuthorings)
+		public override void SetData(TriggerData data, Dictionary<string, IItemMainAuthoring> components)
 		{
 			DragPoints = data.DragPoints;
 			Radius = data.Radius;

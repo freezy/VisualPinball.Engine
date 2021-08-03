@@ -91,7 +91,7 @@ namespace VisualPinball.Unity
 			transform.GetComponentInParent<Player>().RegisterSpinner(Item, entity, ParentEntity, gameObject);
 		}
 
-		public override void SetData(SpinnerData data, Dictionary<string, IItemMainAuthoring> itemMainAuthorings)
+		public override void SetData(SpinnerData data, Dictionary<string, IItemMainAuthoring> components)
 		{
 			Height = data.Height;
 			Length = data.Length;
@@ -99,7 +99,7 @@ namespace VisualPinball.Unity
 			AngleMax = data.AngleMax;
 			AngleMin = data.AngleMin;
 			Elasticity = data.Elasticity;
-			Surface = GetAuthoring<SurfaceAuthoring>(itemMainAuthorings, data.Surface);
+			Surface = GetAuthoring<SurfaceAuthoring>(components, data.Surface);
 		}
 
 		public override void CopyDataTo(SpinnerData data)

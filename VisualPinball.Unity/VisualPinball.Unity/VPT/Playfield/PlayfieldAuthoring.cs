@@ -44,7 +44,7 @@ namespace VisualPinball.Unity
 			table.Version = entity.Version;
 		}
 
-		public override void SetData(TableData data, Dictionary<string, IItemMainAuthoring> itemMainAuthorings)
+		public override void SetData(TableData data, Dictionary<string, IItemMainAuthoring> components)
 		{
 		}
 

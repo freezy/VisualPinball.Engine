@@ -105,7 +105,7 @@ namespace VisualPinball.Unity
 			transform.GetComponentInParent<Player>().RegisterRamp(Item, entity, ParentEntity, gameObject);
 		}
 
-		public override void SetData(RampData data, Dictionary<string, IItemMainAuthoring> itemMainAuthorings)
+		public override void SetData(RampData data, Dictionary<string, IItemMainAuthoring> components)
 		{
 			DragPoints = data.DragPoints;
 			Elasticity = data.Elasticity;

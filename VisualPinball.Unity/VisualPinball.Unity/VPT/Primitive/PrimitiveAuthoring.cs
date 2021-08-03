@@ -85,7 +85,7 @@ namespace VisualPinball.Unity
 			transform.GetComponentInParent<Player>().RegisterPrimitive(primitive, entity, ParentEntity, gameObject);
 		}
 
-		public override void SetData(PrimitiveData data, Dictionary<string, IItemMainAuthoring> itemMainAuthorings)
+		public override void SetData(PrimitiveData data, Dictionary<string, IItemMainAuthoring> components)
 		{
 			Translation = new Vector3(data.RotAndTra[3], data.RotAndTra[4], data.RotAndTra[5]);
 			ObjectRotation = new Vector3(data.RotAndTra[6], data.RotAndTra[7], data.RotAndTra[8]);

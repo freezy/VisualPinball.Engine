@@ -23,7 +23,9 @@ namespace VisualPinball.Unity
 {
 	public interface IItemMeshAuthoring : IItemAuthoring
 	{
+		[Obsolete("Remove")]
 		List<MemberInfo> MaterialRefs { get; }
+		[Obsolete("Remove")]
 		List<MemberInfo> TextureRefs { get; }
 
 		IItemMainRenderableAuthoring IMainAuthoring { get; }
