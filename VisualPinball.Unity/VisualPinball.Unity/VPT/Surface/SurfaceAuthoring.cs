@@ -25,6 +25,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Unity.Entities;
+using Unity.Mathematics;
 using UnityEngine;
 using VisualPinball.Engine.Math;
 using VisualPinball.Engine.VPT.Surface;
@@ -34,7 +35,7 @@ namespace VisualPinball.Unity
 	[ExecuteAlways]
 	[AddComponentMenu("Visual Pinball/Game Item/Surface")]
 	public class SurfaceAuthoring : ItemMainRenderableAuthoring<Surface, SurfaceData>,
-		IConvertGameObjectToEntity, IDragPointsEditable
+		IConvertGameObjectToEntity, ISurfaceAuthoring, IDragPointsEditable
 	{
 		#region Data
 
@@ -87,6 +88,8 @@ namespace VisualPinball.Unity
 			.Concat(SurfaceSideMeshAuthoring.ValidParentTypes)
 			.Concat(SurfaceTopMeshAuthoring.ValidParentTypes)
 			.Distinct();
+
+		public float Height(Vector2 _) => HeightTop;
 
 		public void Convert(Entity entity, EntityManager dstManager, GameObjectConversionSystem conversionSystem)
 		{

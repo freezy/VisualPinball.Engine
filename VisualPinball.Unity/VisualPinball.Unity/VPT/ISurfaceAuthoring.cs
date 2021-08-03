@@ -14,15 +14,17 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-using VisualPinball.Engine.VPT;
+using UnityEngine;
 
 namespace VisualPinball.Unity
 {
 	/// <summary>
 	/// The interface for placing stuff on top of it.
 	/// </summary>
-	public interface ISurfaceAuthoring : IItemMainAuthoring
+	public interface ISurfaceAuthoring : IIdentifiableItemAuthoring
 	{
 		string name { get; }
+
+		float Height(Vector2 pos);
 	}
 }
