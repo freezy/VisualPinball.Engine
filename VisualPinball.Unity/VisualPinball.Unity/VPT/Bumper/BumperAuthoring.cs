@@ -18,11 +18,11 @@
 // ReSharper disable CompareOfFloatsByEqualityOperator
 // ReSharper disable ClassNeverInstantiated.Global
 // ReSharper disable MemberCanBePrivate.Global
+// ReSharper disable InconsistentNaming
 #endregion
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using Unity.Entities;
 using Unity.Mathematics;
 using UnityEngine;
@@ -36,28 +36,35 @@ namespace VisualPinball.Unity
 	public class BumperAuthoring : ItemMainRenderableAuthoring<Bumper, BumperData>,
 		ISwitchAuthoring, ICoilAuthoring, IConvertGameObjectToEntity
 	{
+		public override IEnumerable<Type> ValidParents => BumperColliderAuthoring.ValidParentTypes;
+
+		public ISwitchable Switchable => Item;
+
 		#region Data
 
 		public float Radius = 45f;
 
+		[Range(-360f, 360f)]
 		public float Orientation;
 
 		public SurfaceAuthoring Surface;
 
 		#endregion
-		protected override Bumper InstantiateItem(BumperData data) => new Bumper(data);
 
+		protected override Bumper InstantiateItem(BumperData data) => new Bumper(data);
 		protected override Type MeshAuthoringType { get; } = typeof(ItemMeshAuthoring<Bumper, BumperData, BumperAuthoring>);
 		protected override Type ColliderAuthoringType { get; } = typeof(ItemColliderAuthoring<Bumper, BumperData, BumperAuthoring>);
 
-		public override IEnumerable<Type> ValidParents => BumperColliderAuthoring.ValidParentTypes;
-
-		public ISwitchable Switchable => Item;
+		private const string SkirtMeshName = "Bumper (Skirt)";
+		private const string BaseMeshName = "Bumper (Base)";
+		private const string CapMeshName = "Bumper (Cap)";
+		private const string RingMeshName = "Bumper (Ring)";
 
 		public void Convert(Entity entity, EntityManager dstManager, GameObjectConversionSystem conversionSystem)
 		{
 			Convert(entity, dstManager);
 
+			// physics collision data
 			var collComponent = GetComponentInChildren<BumperColliderAuthoring>();
 			if (collComponent) {
 				dstManager.AddComponentData(entity, new BumperStaticData {
@@ -65,12 +72,23 @@ namespace VisualPinball.Unity
 					HitEvent = collComponent.HitEvent,
 					Threshold = collComponent.Threshold
 				});
+
+				// skirt animation data
+				if (GetComponentInChildren<BumperSkirtAnimationAuthoring>()) {
+					dstManager.AddComponentData(entity, new BumperSkirtAnimationData {
+						BallPosition = default,
+						AnimationCounter = 0f,
+						DoAnimate = false,
+						DoUpdate = false,
+						EnableAnimation = true,
+						Rotation = new float2(0, 0),
+						HitEvent = collComponent.HitEvent,
+						Center = ((float3)transform.localPosition).xy
+					});
+				}
 			}
 
-			var table = Table;
-			var bumper = Item;
-
-			// add ring data
+			// ring animation data
 			var ringAnimComponent = GetComponentInChildren<BumperRingAnimationAuthoring>();
 			if (ringAnimComponent) {
 				dstManager.AddComponentData(entity, new BumperRingAnimationData {
@@ -85,24 +103,11 @@ namespace VisualPinball.Unity
 					DropOffset = ringAnimComponent.RingDropOffset,
 					HeightScale = transform.localScale.z,
 					Speed = ringAnimComponent.RingSpeed,
-					ScaleZ = table.GetScaleZ()
+					ScaleZ = Table.GetScaleZ()
 				});
 			}
 
-			// add ring data
-			if (GetComponentInChildren<BumperSkirtAnimationAuthoring>()) {
-				dstManager.AddComponentData(entity, new BumperSkirtAnimationData {
-					BallPosition = default,
-					AnimationCounter = 0f,
-					DoAnimate = false,
-					DoUpdate = false,
-					EnableAnimation = true,
-					Rotation = new float2(0, 0),
-					HitEvent = bumper.Data.HitEvent,
-					Center = bumper.Data.Center.ToUnityFloat2()
-				});
-			}
-
+			// register at player
 			transform.GetComponentInParent<Player>().RegisterBumper(Item, entity, ParentEntity, gameObject);
 		}
 
@@ -114,6 +119,23 @@ namespace VisualPinball.Unity
 			Orientation = data.Orientation;
 
 			Surface = GetAuthoring<SurfaceAuthoring>(itemMainAuthorings, data.Surface);
+
+			foreach (var mf in GetComponentsInChildren<MeshFilter>()) {
+				switch (mf.sharedMesh.name) {
+					case SkirtMeshName:
+						mf.gameObject.SetActive(data.IsSocketVisible);
+						break;
+					case BaseMeshName:
+						mf.gameObject.SetActive(data.IsBaseVisible);
+						break;
+					case CapMeshName:
+						mf.gameObject.SetActive(data.IsCapVisible);
+						break;
+					case RingMeshName:
+						mf.gameObject.SetActive(data.IsRingVisible);
+						break;
+				}
+			}
 
 			var collComponent = GetComponentInChildren<BumperColliderAuthoring>();
 			if (collComponent) {
@@ -145,36 +167,22 @@ namespace VisualPinball.Unity
 			data.IsSocketVisible = false;
 			foreach (var mf in GetComponentsInChildren<MeshFilter>()) {
 				switch (mf.sharedMesh.name) {
-					case "Bumper Skirt":
+					case SkirtMeshName:
 						data.IsSocketVisible = mf.gameObject.activeInHierarchy;
 						break;
-					case "Bumper Base":
+					case BaseMeshName:
 						data.IsCapVisible = mf.gameObject.activeInHierarchy;
 						break;
-					case "Bumper Cap":
+					case CapMeshName:
 						data.IsCapVisible = mf.gameObject.activeInHierarchy;
 						break;
-					case "Bumper Ring":
+					case RingMeshName:
 						data.IsRingVisible = mf.gameObject.activeInHierarchy;
 						break;
 				}
 			}
 
-			// update collision
-			data.IsCollidable = false;
-			foreach (var colliderComponent in ColliderComponents) {
-				if (colliderComponent is BumperColliderAuthoring colliderAuthoring) {
-					data.IsCollidable = colliderAuthoring.gameObject.activeInHierarchy;
-				}
-			}
-
-			// other props
-			data.Radius = Radius;
-			data.Orientation = Orientation;
-
-			data.Surface = Surface ? Surface.name : string.Empty;
-			data.HeightScale = transform.localScale.z;
-
+			// collider
 			var collComponent = GetComponentInChildren<BumperColliderAuthoring>();
 			if (collComponent) {
 				data.Threshold = collComponent.Threshold;
@@ -183,12 +191,22 @@ namespace VisualPinball.Unity
 				data.HitEvent = collComponent.HitEvent;
 			}
 
+			// ring animation
 			var ringAnimComponent = GetComponentInChildren<BumperRingAnimationAuthoring>();
 			if (ringAnimComponent) {
 				data.RingSpeed = ringAnimComponent.RingSpeed;
 				data.RingDropOffset = ringAnimComponent.RingDropOffset;
 			}
+
+			// other props
+			data.Radius = Radius;
+			data.Orientation = Orientation;
+			data.Surface = Surface ? Surface.name : string.Empty;
+			data.HeightScale = transform.localScale.z;
+
 		}
+
+		#region Editor Tooling
 
 		public override ItemDataTransformType EditorPositionType => ItemDataTransformType.TwoD;
 		public override void SetEditorPosition(Vector3 pos) => Data.Center = pos.ToVertex2Dxy();
@@ -200,5 +218,7 @@ namespace VisualPinball.Unity
 		public override ItemDataTransformType EditorScaleType => ItemDataTransformType.OneD;
 		public override Vector3 GetEditorScale() => new Vector3(Data.Radius, 0f, 0f);
 		public override void SetEditorScale(Vector3 scale) => Data.Radius = scale.x;
+
+		#endregion
 	}
 }

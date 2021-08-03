@@ -58,7 +58,10 @@ namespace VisualPinball.Unity
 			foreach (var meshComponent in MeshComponents) {
 				meshComponent.RebuildMeshes();
 			}
+		}
 
+		public void UpdateTransforms()
+		{
 			var ta = GetComponentInParent<TableAuthoring>();
 			if (ta != this && Item != null) {
 				transform.SetFromMatrix(Item.TransformationMatrix(Table, Origin.Original).ToUnityMatrix());

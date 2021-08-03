@@ -24,8 +24,6 @@ namespace VisualPinball.Unity.Editor
 	[CustomEditor(typeof(BumperAuthoring))]
 	public class BumperInspector : ItemMainInspector<Bumper, BumperData, BumperAuthoring>
 	{
-		private bool _foldoutGeometry = true;
-
 		private SerializedProperty _surfaceProperty;
 		private SerializedProperty _radiusProperty;
 		private SerializedProperty _orientationProperty;
@@ -34,9 +32,9 @@ namespace VisualPinball.Unity.Editor
 		{
 			base.OnEnable();
 
+			_surfaceProperty = serializedObject.FindProperty(nameof(BumperAuthoring.Surface));
 			_radiusProperty = serializedObject.FindProperty(nameof(BumperAuthoring.Radius));
 			_orientationProperty = serializedObject.FindProperty(nameof(BumperAuthoring.Orientation));
-			_surfaceProperty = serializedObject.FindProperty(nameof(BumperAuthoring.Surface));
 		}
 
 		public override void OnInspectorGUI()
@@ -47,12 +45,9 @@ namespace VisualPinball.Unity.Editor
 
 			OnPreInspectorGUI();
 
-			if (_foldoutGeometry = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutGeometry, "Geometry")) {
-				PropertyField(_surfaceProperty);
-				PropertyField(_radiusProperty);
-				PropertyField(_orientationProperty);
-			}
-			EditorGUILayout.EndFoldoutHeaderGroup();
+			PropertyField(_surfaceProperty, updateTransforms: true);
+			PropertyField(_radiusProperty, updateTransforms: true);
+			PropertyField(_orientationProperty, updateTransforms: true);
 
 			base.OnInspectorGUI();
 		}
