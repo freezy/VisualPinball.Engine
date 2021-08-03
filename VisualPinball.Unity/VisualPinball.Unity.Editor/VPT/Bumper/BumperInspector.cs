@@ -17,7 +17,6 @@
 // ReSharper disable AssignmentInConditionalExpression
 
 using UnityEditor;
-using UnityEngine;
 using VisualPinball.Engine.VPT.Bumper;
 
 namespace VisualPinball.Unity.Editor
@@ -56,8 +55,7 @@ namespace VisualPinball.Unity.Editor
 			PropertyField(_radiusProperty, updateTransforms: true);
 			PropertyField(_heightScaleProperty, updateTransforms: true);
 			PropertyField(_orientationProperty, updateTransforms: true);
-
-			PropertyReference<ISurfaceAuthoring>(_surfaceProperty, "Surface", "Surfaces & Ramps", "None", "surface");
+			PropertyField(_surfaceProperty);
 
 			base.OnInspectorGUI();
 
