@@ -97,6 +97,8 @@ namespace VisualPinball.Unity
 			.Concat(RampWireMeshAuthoring.ValidParentTypes)
 			.Distinct();
 
+		public float Height(Vector2 pos) => 0f; // todo
+
 		public void Convert(Entity entity, EntityManager dstManager, GameObjectConversionSystem conversionSystem)
 		{
 			Convert(entity, dstManager);

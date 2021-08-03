@@ -34,7 +34,7 @@ namespace VisualPinball.Unity
 	[ExecuteAlways]
 	[AddComponentMenu("Visual Pinball/Game Item/Bumper")]
 	public class BumperAuthoring : ItemMainRenderableAuthoring<Bumper, BumperData>,
-		ISwitchAuthoring, ICoilAuthoring, ISurfaceAuthoring, IConvertGameObjectToEntity
+		ISwitchAuthoring, ICoilAuthoring, IConvertGameObjectToEntity
 	{
 		public override IEnumerable<Type> ValidParents => BumperColliderAuthoring.ValidParentTypes;
 
@@ -58,7 +58,7 @@ namespace VisualPinball.Unity
 		public float Orientation;
 
 		[Tooltip("On which surface this bumper is attached to. Updates z translation.")]
-		public SurfaceAuthoring Surface;
+		public ISurfaceAuthoring Surface;
 
 		#endregion
 
@@ -129,7 +129,7 @@ namespace VisualPinball.Unity
 
 			// position
 			t.localPosition = Surface != null
-				? new Vector3(Position.x, Position.y, Surface.HeightTop)
+				? new Vector3(Position.x, Position.y, Surface.Height(float2.zero))
 				: new Vector3(Position.x, Position.y, 0);
 
 			// scale
@@ -242,7 +242,7 @@ namespace VisualPinball.Unity
 
 		public override ItemDataTransformType EditorPositionType => ItemDataTransformType.TwoD;
 		public override Vector3 GetEditorPosition() => Surface != null
-			? new Vector3(Position.x, Position.y, Surface.HeightTop)
+			? new Vector3(Position.x, Position.y, Surface.Height(Position))
 			: new Vector3(Position.x, Position.y, 0);
 		public override void SetEditorPosition(Vector3 pos)
 		{
@@ -268,5 +268,6 @@ namespace VisualPinball.Unity
 		}
 
 		#endregion
+
 	}
 }
