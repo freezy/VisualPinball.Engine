@@ -60,12 +60,12 @@ namespace VisualPinball.Unity
 			}
 		}
 
-		public void UpdateTransforms()
+		public virtual void UpdateTransforms()
 		{
-			var ta = GetComponentInParent<TableAuthoring>();
-			if (ta != this && Item != null) {
-				transform.SetFromMatrix(Item.TransformationMatrix(Table, Origin.Original).ToUnityMatrix());
-			}
+			// var ta = GetComponentInParent<TableAuthoring>();
+			// if (ta != this && Item != null) {
+			// 	transform.SetFromMatrix(Item.TransformationMatrix(Table, Origin.Original).ToUnityMatrix());
+			// }
 		}
 
 		public void DestroyMeshComponent()

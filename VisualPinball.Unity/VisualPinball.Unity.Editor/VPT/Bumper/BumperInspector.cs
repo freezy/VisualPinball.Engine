@@ -18,6 +18,7 @@
 
 using UnityEditor;
 using UnityEditor.SceneManagement;
+using UnityEngine;
 using VisualPinball.Engine.VPT.Bumper;
 
 namespace VisualPinball.Unity.Editor
@@ -29,6 +30,7 @@ namespace VisualPinball.Unity.Editor
 		private SerializedProperty _radiusProperty;
 		private SerializedProperty _heightScaleProperty;
 		private SerializedProperty _orientationProperty;
+		private SerializedProperty _surfaceProperty;
 
 		protected override void OnEnable()
 		{
@@ -38,6 +40,7 @@ namespace VisualPinball.Unity.Editor
 			_radiusProperty = serializedObject.FindProperty(nameof(BumperAuthoring.Radius));
 			_heightScaleProperty = serializedObject.FindProperty(nameof(BumperAuthoring.HeightScale));
 			_orientationProperty = serializedObject.FindProperty(nameof(BumperAuthoring.Orientation));
+			_surfaceProperty = serializedObject.FindProperty(nameof(BumperAuthoring._surface));
 		}
 
 		public override void OnInspectorGUI()
@@ -57,10 +60,8 @@ namespace VisualPinball.Unity.Editor
 
 			ComponentReferenceField("Surface", "Surfaces & Ramps", "None", "surface",
 				ItemAuthoring.Surface, surface => {
-					Undo.RecordObject(ItemAuthoring.gameObject, "Update Bumper Surface");
-					ItemAuthoring.Surface = surface;
-					PrefabUtility.RecordPrefabInstancePropertyModifications(ItemAuthoring.gameObject);
-					EditorSceneManager.MarkSceneDirty(ItemAuthoring.gameObject.scene);
+					_surfaceProperty.objectReferenceValue = surface as MonoBehaviour;
+					serializedObject.ApplyModifiedProperties();
 				});
 
 			base.OnInspectorGUI();

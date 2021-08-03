@@ -57,8 +57,16 @@ namespace VisualPinball.Unity
 		[Tooltip("Orientation angle. Updates z rotation.")]
 		public float Orientation;
 
+		public ISurfaceAuthoring Surface
+		{
+			get => _surface as ISurfaceAuthoring;
+			set => _surface = value as MonoBehaviour;
+		}
+
+		[SerializeField]
+		[HideInInspector]
 		[Tooltip("On which surface this bumper is attached to. Updates z translation.")]
-		public ISurfaceAuthoring Surface;
+		public MonoBehaviour _surface;
 
 		#endregion
 
