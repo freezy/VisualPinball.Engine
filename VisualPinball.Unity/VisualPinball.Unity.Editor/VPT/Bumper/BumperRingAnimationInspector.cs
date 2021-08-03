@@ -40,10 +40,14 @@ namespace VisualPinball.Unity.Editor
 				return;
 			}
 
+			serializedObject.Update();
+
 			PropertyField(_ringSpeedProperty, "Ring Speed");
 			PropertyField(_ringDropOffsetProperty, "Ring Speed");
 
 			base.OnInspectorGUI();
+
+			serializedObject.ApplyModifiedProperties();
 		}
 	}
 }

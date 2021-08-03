@@ -14,6 +14,8 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+// ReSharper disable InconsistentNaming
+
 using System;
 using System.Collections.Generic;
 using Unity.Entities;
@@ -29,12 +31,19 @@ namespace VisualPinball.Unity
 
 		#region Data
 
+		[Min(0f)]
+		[Tooltip("Minimal impact force of the ball for the bumper to trigger.")]
 		public float Threshold = 1.0f;
 
+		[Min(0f)]
+		[Tooltip("How much the ball is thrown back.")]
 		public float Force = 15f;
 
+		[Range(-90f, 90f)]
+		[Tooltip("A random angle added to the collision trajectory.")]
 		public float Scatter;
 
+		[Tooltip("If set, a hit event is triggered.")]
 		public bool HitEvent = true;
 
 		#endregion

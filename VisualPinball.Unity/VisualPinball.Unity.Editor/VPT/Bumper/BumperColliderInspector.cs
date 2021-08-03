@@ -29,7 +29,6 @@ namespace VisualPinball.Unity.Editor
 		private SerializedProperty _forceProperty;
 		private SerializedProperty _scatterProperty;
 
-
 		protected override void OnEnable()
 		{
 			base.OnEnable();
@@ -46,12 +45,16 @@ namespace VisualPinball.Unity.Editor
 				return;
 			}
 
+			serializedObject.Update();
+
 			PropertyField(_hitEventProperty, "Has Hit Event");
 			PropertyField(_forceProperty);
 			PropertyField(_thresholdProperty, "Hit Threshold");
 			PropertyField(_scatterProperty, "Scatter Angle");
 
 			base.OnInspectorGUI();
+
+			serializedObject.ApplyModifiedProperties();
 		}
 	}
 }
