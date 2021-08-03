@@ -14,35 +14,26 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+using System;
 using UnityEngine;
-using UnityEditor;
 
-namespace VisualPinball.Unity.Editor
+namespace VisualPinball.Unity
 {
 	/// <summary>
-	/// This class is a helper to Frame the scene view using objects boundaries
+	/// Shows an object picker based on an interface.
 	/// </summary>
-	public class SceneViewFramer
+	/// <a href="https://forum.unity.com/threads/creating-assignable-c-interface-fields-in-the-inspector.170195/#post-3521067">Forum Post</a>
+	public class TypeRestrictionAttribute : PropertyAttribute
 	{
-		public static void FrameObjects(Object[] objects, bool includeChildren = true, bool instant = false)
+		public readonly Type Type;
+		public string PickerLabel = "Pick Item";
+		public string NoneLabel = "None";
+		public bool UpdateTransforms;
+		public bool RebuildMeshes;
+
+		public TypeRestrictionAttribute(Type type)
 		{
-			if (SceneView.lastActiveSceneView == null) {
-				return;
-			}
-
-			Bounds bounds = new Bounds();
-			foreach (var obj in objects) {
-				if (obj is UnityEngine.GameObject gameObj) {
-					var renders = includeChildren ? gameObj.GetComponentsInChildren<Renderer>() : gameObj.GetComponents<Renderer>();
-					foreach (var render in renders) {
-						bounds.Encapsulate(render.bounds);
-					}
-				}
-			}
-
-			if (bounds.extents != Vector3.zero) {
-				SceneView.lastActiveSceneView.Frame(bounds, instant);
-			}
+			Type = type ?? throw new ArgumentNullException(nameof(type), "Type must be given!");
 		}
 	}
 }

@@ -439,68 +439,6 @@ namespace VisualPinball.Unity.Editor
 			}
 		}
 
-		protected void PropertyReference<T>(SerializedProperty prop, string label, string pickerLabel, string noneLabel, string cacheKey)
-			where T: class, IIdentifiableItemAuthoring
-		{
-			var field = prop.objectReferenceValue as T;
-			var pos = EditorGUILayout.GetControlRect(true, 18f);
-			pos = EditorGUI.PrefixLabel(pos, new GUIContent(label));
-
-			MonoBehaviour obj = null;
-			if (!_compItems.ContainsKey(cacheKey)) {
-				if (field != null) {
-					obj = _ta.GetComponentsInChildren<T>(true)
-						.FirstOrDefault(s => s == field) as MonoBehaviour;
-					_compItems[cacheKey] = obj;
-				}
-			} else {
-				obj = _compItems[cacheKey];
-			}
-
-			var content = obj == null
-				? new GUIContent(noneLabel)
-				: new GUIContent(obj.name, Icons.ByComponent(obj, IconSize.Small, IconColor.Orange));
-
-			var id = GUIUtility.GetControlID(FocusType.Keyboard, pos);
-			var objectFieldButton = GUI.skin.GetStyle("ObjectFieldButton");
-			var suffixButtonPos = new Rect(pos.xMax - 19f, pos.y + 1, 19f, pos.height - 2);
-
-			EditorGUIUtility.SetIconSize(new Vector2(12f, 12f));
-			if (Event.current.type == EventType.MouseDown && pos.Contains(Event.current.mousePosition)) {
-
-				if (obj != null && !suffixButtonPos.Contains(Event.current.mousePosition)) {
-					EditorGUIUtility.PingObject(obj.gameObject);
-
-				} else {
-					_itemPickDropdownState ??= new AdvancedDropdownState();
-
-					var dropdown = new ItemSearchableDropdown<T>(
-						_itemPickDropdownState,
-						_ta,
-						pickerLabel,
-						item => {
-							switch (item) {
-								case null:
-									_compItems[cacheKey] = null;
-									prop.objectReferenceValue = null;
-									break;
-								case MonoBehaviour mb:
-									_compItems[cacheKey] = mb;
-									prop.objectReferenceValue = mb;
-									break;
-							}
-							serializedObject.ApplyModifiedProperties();
-						}
-					);
-					dropdown.Show(pos);
-				}
-			}
-			if (Event.current.type == EventType.Repaint) {
-				EditorStyles.objectField.Draw(pos, content, id, DragAndDrop.activeControlID == id, pos.Contains(Event.current.mousePosition));
-				objectFieldButton.Draw(suffixButtonPos, GUIContent.none, id, DragAndDrop.activeControlID == id, suffixButtonPos.Contains(Event.current.mousePosition));
-			}
-		}
-
 		#endregion
 
 		protected virtual void FinishEdit(string label, bool dirtyMesh = true)

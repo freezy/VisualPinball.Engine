@@ -64,6 +64,7 @@ namespace VisualPinball.Unity
 		}
 
 		[SerializeField]
+		[TypeRestriction(typeof(ISurfaceAuthoring), PickerLabel = "Walls & Surfaces", UpdateTransforms = true)]
 		[Tooltip("On which surface this bumper is attached to. Updates z translation.")]
 		public MonoBehaviour _surface;
 
