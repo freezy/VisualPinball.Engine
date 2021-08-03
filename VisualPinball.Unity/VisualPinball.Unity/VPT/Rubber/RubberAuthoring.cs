@@ -84,7 +84,7 @@ namespace VisualPinball.Unity
 			transform.GetComponentInParent<Player>().RegisterRubber(Item, entity, ParentEntity, gameObject);
 		}
 
-		public override void SetData(RubberData data, Dictionary<string, IItemMainAuthoring> itemMainAuthorings)
+		public override void SetData(RubberData data, Dictionary<string, IItemMainAuthoring> components)
 		{
 			Height = data.Height;
 			HitHeight = data.HitHeight;

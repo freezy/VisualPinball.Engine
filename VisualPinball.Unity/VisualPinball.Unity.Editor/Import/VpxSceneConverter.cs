@@ -298,8 +298,7 @@ namespace VisualPinball.Unity.Editor
 
 		public IConvertedItem CreateGameObjects(IItem item)
 		{
-			var convertedItem = SetupGameObjects(item);
-
+			var convertedItem = InstantiateGameObject(item);
 			var parentGo = GetGroupParent(item);
 
 			convertedItem.GameObject.transform.SetParent(parentGo.transform, false);
@@ -313,6 +312,7 @@ namespace VisualPinball.Unity.Editor
 
 			// apply transformation
 			if (item is IRenderable renderable) {
+				//convertedItem.MainAuthoring
 				convertedItem.GameObject.transform.SetFromMatrix(renderable.TransformationMatrix(_table, Origin.Original).ToUnityMatrix());
 			}
 			return convertedItem;
@@ -352,7 +352,7 @@ namespace VisualPinball.Unity.Editor
 			PrefabUtility.SaveAsPrefabAssetAndConnect(go, prefabPath, InteractionMode.AutomatedAction);
 		}
 
-		private IConvertedItem SetupGameObjects(IItem item)
+		private IConvertedItem InstantiateGameObject(IItem item)
 		{
 			switch (item) {
 				case Bumper bumper:       return bumper.InstantiateGameObject(item, this);

@@ -104,7 +104,7 @@ namespace VisualPinball.Unity
 			transform.GetComponentInParent<Player>().RegisterGate(Item, entity, ParentEntity, gameObject);
 		}
 
-		public override void SetData(GateData data, Dictionary<string, IItemMainAuthoring> itemMainAuthorings)
+		public override void SetData(GateData data, Dictionary<string, IItemMainAuthoring> components)
 		{
 			Rotation = data.Rotation;
 			AngleMax = data.AngleMax;
@@ -116,7 +116,7 @@ namespace VisualPinball.Unity
 			Height = data.Height;
 			IsCollidable = data.IsCollidable;
 			Length = data.Length;
-			Surface = GetAuthoring<SurfaceAuthoring>(itemMainAuthorings, data.Surface);
+			Surface = GetAuthoring<SurfaceAuthoring>(components, data.Surface);
 			TwoWay = data.TwoWay;
 		}
 

@@ -140,7 +140,7 @@ namespace VisualPinball.Unity
 			return false;
 		}
 
-		public override void SetData(TableData data, Dictionary<string, IItemMainAuthoring> itemMainAuthorings)
+		public override void SetData(TableData data, Dictionary<string, IItemMainAuthoring> components)
 		{
 		}
 

@@ -23,7 +23,6 @@
 
 using System;
 using System.Collections.Generic;
-using Unity.Burst.Intrinsics;
 using Unity.Entities;
 using Unity.Mathematics;
 using UnityEngine;
@@ -43,11 +42,18 @@ namespace VisualPinball.Unity
 
 		#region Data
 
-		[Range(10f, 100f)]
-		[Tooltip("Radius of the bumper. Updates xy scaling.")]
+		[Tooltip("Position of the bumper on the playfield.")]
+		public Vector2 Position;
+
+		[Range(20f, 250f)]
+		[Tooltip("Radius of the bumper. Updates xy scaling. 50 = Original size.")]
 		public float Radius = 45f;
 
-		[Range(-360f, 360f)]
+		[Range(50f, 300f)]
+		[Tooltip("Height of the bumper. Updates z scaling. 100 = Original size.")]
+		public float HeightScale = 45f;
+
+		[Range(0f, 360f)]
 		[Tooltip("Orientation angle. Updates z rotation.")]
 		public float Orientation;
 
@@ -64,6 +70,7 @@ namespace VisualPinball.Unity
 		private const string BaseMeshName = "Bumper (Base)";
 		private const string CapMeshName = "Bumper (Cap)";
 		private const string RingMeshName = "Bumper (Ring)";
+		private const float PrefabMeshScale = 100f;
 
 		public void Convert(Entity entity, EntityManager dstManager, GameObjectConversionSystem conversionSystem)
 		{
@@ -119,25 +126,33 @@ namespace VisualPinball.Unity
 		public override void UpdateTransforms()
 		{
 			var t = transform;
-			t.localScale = new Vector3(Radius * 2f, Radius * 2f, t.localScale.z * 100f) / 100f;
 
-			var localPos = t.localPosition;
+			// position
 			t.localPosition = Surface != null
-				? new Vector3(localPos.x, localPos.y, Surface.HeightTop)
-				: new Vector3(localPos.x, localPos.y, 0);
+				? new Vector3(Position.x, Position.y, Surface.HeightTop)
+				: new Vector3(Position.x, Position.y, 0);
 
+			// scale
+			t.localScale = new Vector3(Radius * 2f, Radius * 2f, HeightScale) / PrefabMeshScale;
+
+			// rotation
 			t.localEulerAngles = new Vector3(0, 0, Orientation);
 		}
 
-		public override void SetData(BumperData data, Dictionary<string, IItemMainAuthoring> itemMainAuthorings)
+		public override void SetData(BumperData data, Dictionary<string, IItemMainAuthoring> components)
 		{
-			transform.localScale = new Vector3(data.Radius * 2f, data.Radius * 2f, data.HeightScale) / 100f;
-
+			// transforms
+			Position = data.Center.ToUnityFloat2();
 			Radius = data.Radius;
+			HeightScale = data.HeightScale;
 			Orientation = data.Orientation;
 
-			Surface = GetAuthoring<SurfaceAuthoring>(itemMainAuthorings, data.Surface);
+			// surface
+			Surface = GetAuthoring<SurfaceAuthoring>(components, data.Surface);
 
+			UpdateTransforms();
+
+			// children visibility
 			foreach (var mf in GetComponentsInChildren<MeshFilter>()) {
 				switch (mf.sharedMesh.name) {
 					case SkirtMeshName:
@@ -155,6 +170,7 @@ namespace VisualPinball.Unity
 				}
 			}
 
+			// collider
 			var collComponent = GetComponentInChildren<BumperColliderAuthoring>();
 			if (collComponent) {
 				collComponent.Threshold = data.Threshold;
@@ -163,6 +179,7 @@ namespace VisualPinball.Unity
 				collComponent.HitEvent = data.HitEvent;
 			}
 
+			// ring animation
 			var ringAnimComponent = GetComponentInChildren<BumperRingAnimationAuthoring>();
 			if (ringAnimComponent) {
 				ringAnimComponent.RingSpeed = data.RingSpeed;
@@ -172,13 +189,17 @@ namespace VisualPinball.Unity
 
 		public override void CopyDataTo(BumperData data)
 		{
-			var localPos = transform.localPosition;
-
-			// name and position
+			// name and transforms
 			data.Name = name;
-			data.Center = localPos.ToVertex2Dxy();
+			data.Center = Position.ToVertex2D();
+			data.Radius = Radius;
+			data.HeightScale = HeightScale;
+			data.Orientation = Orientation;
 
-			// update visibility
+			// surface
+			data.Surface = Surface != null ? Surface.name : string.Empty;
+
+			// children visibility
 			data.IsBaseVisible = false;
 			data.IsCapVisible = false;
 			data.IsRingVisible = false;
@@ -215,18 +236,19 @@ namespace VisualPinball.Unity
 				data.RingSpeed = ringAnimComponent.RingSpeed;
 				data.RingDropOffset = ringAnimComponent.RingDropOffset;
 			}
-
-			// other props
-			data.Radius = Radius;
-			data.HeightScale = transform.localScale.z * 100;
-			data.Orientation = Orientation;
-			data.Surface = Surface != null ? Surface.name : string.Empty;
-
 		}
 
 		#region Editor Tooling
 
 		public override ItemDataTransformType EditorPositionType => ItemDataTransformType.TwoD;
+		public override Vector3 GetEditorPosition() => Surface != null
+			? new Vector3(Position.x, Position.y, Surface.HeightTop)
+			: new Vector3(Position.x, Position.y, 0);
+		public override void SetEditorPosition(Vector3 pos)
+		{
+			base.SetEditorPosition(pos);
+			Position = ((float3)pos).xy;
+		}
 
 		public override ItemDataTransformType EditorRotationType => ItemDataTransformType.OneD;
 		public override Vector3 GetEditorRotation() => new Vector3(Orientation, 0, 0);
@@ -241,7 +263,7 @@ namespace VisualPinball.Unity
 		public override void SetEditorScale(Vector3 scale)
 		{
 			var t = transform;
-			t.localScale = new Vector3(scale.x, scale.x, t.localScale.z * 100) / 100f;
+			t.localScale = new Vector3(scale.x, scale.x, t.localScale.z * PrefabMeshScale) / PrefabMeshScale;
 			Radius = scale.x / 2f;
 		}
 

@@ -126,7 +126,7 @@ namespace VisualPinball.Unity
 			}
 		}
 
-		public override void SetData(LightData data, Dictionary<string, IItemMainAuthoring> itemMainAuthorings)
+		public override void SetData(LightData data, Dictionary<string, IItemMainAuthoring> components)
 		{
 		}
 

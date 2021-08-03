@@ -24,17 +24,21 @@ namespace VisualPinball.Unity.Editor
 	[CustomEditor(typeof(BumperAuthoring))]
 	public class BumperInspector : ItemMainInspector<Bumper, BumperData, BumperAuthoring>
 	{
-		private SerializedProperty _surfaceProperty;
+		private SerializedProperty _positionProperty;
 		private SerializedProperty _radiusProperty;
+		private SerializedProperty _heightScaleProperty;
 		private SerializedProperty _orientationProperty;
+		private SerializedProperty _surfaceProperty;
 
 		protected override void OnEnable()
 		{
 			base.OnEnable();
 
-			_surfaceProperty = serializedObject.FindProperty(nameof(BumperAuthoring.Surface));
+			_positionProperty = serializedObject.FindProperty(nameof(BumperAuthoring.Position));
 			_radiusProperty = serializedObject.FindProperty(nameof(BumperAuthoring.Radius));
+			_heightScaleProperty = serializedObject.FindProperty(nameof(BumperAuthoring.HeightScale));
 			_orientationProperty = serializedObject.FindProperty(nameof(BumperAuthoring.Orientation));
+			_surfaceProperty = serializedObject.FindProperty(nameof(BumperAuthoring.Surface));
 		}
 
 		public override void OnInspectorGUI()
@@ -47,9 +51,11 @@ namespace VisualPinball.Unity.Editor
 
 			OnPreInspectorGUI();
 
-			PropertyField(_surfaceProperty, updateTransforms: true);
+			PropertyField(_positionProperty, updateTransforms: true);
 			PropertyField(_radiusProperty, updateTransforms: true);
+			PropertyField(_heightScaleProperty, updateTransforms: true);
 			PropertyField(_orientationProperty, updateTransforms: true);
+			PropertyField(_surfaceProperty, updateTransforms: true);
 
 			base.OnInspectorGUI();
 

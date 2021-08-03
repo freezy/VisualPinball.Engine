@@ -194,7 +194,7 @@ namespace VisualPinball.Unity
 			player.RegisterFlipper(Item, entity, ParentEntity, gameObject);
 		}
 
-		public override void SetData(FlipperData data, Dictionary<string, IItemMainAuthoring> itemMainAuthorings)
+		public override void SetData(FlipperData data, Dictionary<string, IItemMainAuthoring> components)
 		{
 			BaseRadius = data.BaseRadius;
 			EndRadius = data.EndRadius;
@@ -204,7 +204,7 @@ namespace VisualPinball.Unity
 			StartAngle = data.StartAngle;
 			EndAngle = data.EndAngle;
 			Height = data.Height;
-			Surface = GetAuthoring<SurfaceAuthoring>(itemMainAuthorings, data.Surface);
+			Surface = GetAuthoring<SurfaceAuthoring>(components, data.Surface);
 			RubberThickness = data.RubberThickness;
 			RubberHeight = data.RubberHeight;
 			RubberWidth = data.RubberWidth;
