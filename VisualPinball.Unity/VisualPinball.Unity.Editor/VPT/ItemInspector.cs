@@ -439,9 +439,10 @@ namespace VisualPinball.Unity.Editor
 			}
 		}
 
-		protected void ComponentReferenceField<T>(string label, string pickerLabel, string noneLabel, string cacheKey, T field, Action<T> onSelected)
+		protected void PropertyReference<T>(SerializedProperty prop, string label, string pickerLabel, string noneLabel, string cacheKey)
 			where T: class, IIdentifiableItemAuthoring
 		{
+			var field = prop.objectReferenceValue as T;
 			var pos = EditorGUILayout.GetControlRect(true, 18f);
 			pos = EditorGUI.PrefixLabel(pos, new GUIContent(label));
 
@@ -481,13 +482,14 @@ namespace VisualPinball.Unity.Editor
 							switch (item) {
 								case null:
 									_compItems[cacheKey] = null;
-									onSelected(null);
+									prop.objectReferenceValue = null;
 									break;
 								case MonoBehaviour mb:
 									_compItems[cacheKey] = mb;
-									onSelected(item);
+									prop.objectReferenceValue = mb;
 									break;
 							}
+							serializedObject.ApplyModifiedProperties();
 						}
 					);
 					dropdown.Show(pos);
