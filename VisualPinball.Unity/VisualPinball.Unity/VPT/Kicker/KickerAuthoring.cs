@@ -113,7 +113,7 @@ namespace VisualPinball.Unity
 			transform.GetComponentInParent<Player>().RegisterKicker(Item, entity, ParentEntity, gameObject);
 		}
 
-		public override void SetData(KickerData data, Dictionary<string, IItemMainAuthoring> components)
+		public override void SetData(KickerData data, IMaterialProvider materialProvider, Dictionary<string, IItemMainAuthoring> components)
 		{
 			Orientation = data.Orientation;
 			Radius = data.Radius;

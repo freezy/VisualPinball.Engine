@@ -31,7 +31,6 @@ using VisualPinball.Engine.VPT.Bumper;
 
 namespace VisualPinball.Unity
 {
-	[ExecuteAlways]
 	[AddComponentMenu("Visual Pinball/Game Item/Bumper")]
 	public class BumperAuthoring : ItemMainRenderableAuthoring<Bumper, BumperData>,
 		ISwitchAuthoring, ICoilAuthoring, IConvertGameObjectToEntity
@@ -103,7 +102,7 @@ namespace VisualPinball.Unity
 						EnableAnimation = true,
 						Rotation = new float2(0, 0),
 						HitEvent = collComponent.HitEvent,
-						Center = ((float3)transform.localPosition).xy
+						Center = Position
 					});
 				}
 			}
@@ -121,14 +120,14 @@ namespace VisualPinball.Unity
 
 					// static
 					DropOffset = ringAnimComponent.RingDropOffset,
-					HeightScale = transform.localScale.z,
+					HeightScale = HeightScale,
 					Speed = ringAnimComponent.RingSpeed,
 					ScaleZ = Table.GetScaleZ()
 				});
 			}
 
 			// register at player
-			transform.GetComponentInParent<Player>().RegisterBumper(Item, entity, ParentEntity, gameObject);
+			GetComponentInParent<Player>().RegisterBumper(Item, entity, ParentEntity, gameObject);
 		}
 
 		public override void UpdateTransforms()
@@ -147,7 +146,7 @@ namespace VisualPinball.Unity
 			t.localEulerAngles = new Vector3(0, 0, Orientation);
 		}
 
-		public override void SetData(BumperData data, Dictionary<string, IItemMainAuthoring> components)
+		public override void SetData(BumperData data, IMaterialProvider materialProvider, Dictionary<string, IItemMainAuthoring> components)
 		{
 			// transforms
 			Position = data.Center.ToUnityFloat2();
@@ -162,18 +161,31 @@ namespace VisualPinball.Unity
 
 			// children visibility
 			foreach (var mf in GetComponentsInChildren<MeshFilter>()) {
+				var mr = mf.GetComponent<MeshRenderer>();
 				switch (mf.sharedMesh.name) {
 					case SkirtMeshName:
 						mf.gameObject.SetActive(data.IsSocketVisible);
+						if (!string.IsNullOrEmpty(data.SocketMaterial)) {
+							mr.sharedMaterial = materialProvider.MergeMaterials(data.SocketMaterial, mr.sharedMaterial);
+						}
 						break;
 					case BaseMeshName:
 						mf.gameObject.SetActive(data.IsBaseVisible);
+						if (!string.IsNullOrEmpty(data.BaseMaterial)) {
+							mr.sharedMaterial = materialProvider.MergeMaterials(data.BaseMaterial, mr.sharedMaterial);
+						}
 						break;
 					case CapMeshName:
 						mf.gameObject.SetActive(data.IsCapVisible);
+						if (!string.IsNullOrEmpty(data.CapMaterial)) {
+							mr.sharedMaterial = materialProvider.MergeMaterials(data.CapMaterial, mr.sharedMaterial);
+						}
 						break;
 					case RingMeshName:
 						mf.gameObject.SetActive(data.IsRingVisible);
+						if (!string.IsNullOrEmpty(data.RingMaterial)) {
+							mr.sharedMaterial = materialProvider.MergeMaterials(data.RingMaterial, mr.sharedMaterial);
+						}
 						break;
 				}
 			}
@@ -252,28 +264,15 @@ namespace VisualPinball.Unity
 		public override Vector3 GetEditorPosition() => Surface != null
 			? new Vector3(Position.x, Position.y, Surface.Height(Position))
 			: new Vector3(Position.x, Position.y, 0);
-		public override void SetEditorPosition(Vector3 pos)
-		{
-			base.SetEditorPosition(pos);
-			Position = ((float3)pos).xy;
-		}
+		public override void SetEditorPosition(Vector3 pos) => Position = ((float3)pos).xy;
 
 		public override ItemDataTransformType EditorRotationType => ItemDataTransformType.OneD;
 		public override Vector3 GetEditorRotation() => new Vector3(Orientation, 0, 0);
-		public override void SetEditorRotation(Vector3 rot)
-		{
-			transform.localEulerAngles = new Vector3(0, 0, rot.x);
-			Orientation = rot.x;
-		}
+		public override void SetEditorRotation(Vector3 rot) => Orientation = rot.x;
 
 		public override ItemDataTransformType EditorScaleType => ItemDataTransformType.OneD;
 		public override Vector3 GetEditorScale() => new Vector3(Radius * 2f, 0f, 0f);
-		public override void SetEditorScale(Vector3 scale)
-		{
-			var t = transform;
-			t.localScale = new Vector3(scale.x, scale.x, t.localScale.z * PrefabMeshScale) / PrefabMeshScale;
-			Radius = scale.x / 2f;
-		}
+		public override void SetEditorScale(Vector3 scale) => Radius = scale.x / 2f;
 
 		#endregion
 

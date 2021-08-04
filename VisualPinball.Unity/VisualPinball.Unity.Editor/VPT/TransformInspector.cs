@@ -326,10 +326,10 @@ namespace VisualPinball.Unity.Editor
 				finalPos = _transform.parent.InverseTransformPoint(newPosition);
 			}
 			_primaryItem.SetEditorPosition(finalPos);
-			_primaryItem.RebuildMeshes();
+			_primaryItem.UpdateTransforms();
 
 			foreach (var secondary in _secondaryItems) {
-				secondary.Item.RebuildMeshes();
+				secondary.Item.UpdateTransforms();
 				Undo.RecordObjects(new[]{ secondary.Item as UnityEngine.Object, secondary.Transform }, undoLabel);
 				secondary.Item.SetEditorPosition(finalPos + secondary.Offset);
 			}
@@ -340,7 +340,7 @@ namespace VisualPinball.Unity.Editor
 			var undoLabel = "Rotate " + _transform.gameObject.name;
 			Undo.RecordObjects(new [] {_primaryItem as UnityEngine.Object, _transform }, undoLabel);
 			_primaryItem.SetEditorRotation(newEuler);
-			_primaryItem.RebuildMeshes();
+			_primaryItem.UpdateTransforms();
 		}
 
 		private void FinishScale(Vector3 newScale)
@@ -348,7 +348,7 @@ namespace VisualPinball.Unity.Editor
 			var undoLabel = "Scale " + _transform.gameObject.name;
 			Undo.RecordObjects(new [] {_primaryItem as UnityEngine.Object, _transform }, undoLabel);
 			_primaryItem.SetEditorScale(newScale);
-			_primaryItem.RebuildMeshes();
+			_primaryItem.UpdateTransforms();
 		}
 
 		private class SecondaryItem
