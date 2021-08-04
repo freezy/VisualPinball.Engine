@@ -123,7 +123,7 @@ namespace VisualPinball.Unity
 
 		public virtual ItemDataTransformType EditorPositionType => ItemDataTransformType.None;
 		public virtual Vector3 GetEditorPosition() => transform.localPosition;
-		public virtual void SetEditorPosition(Vector3 pos) => transform.localPosition = pos;
+		public virtual void SetEditorPosition(Vector3 pos) { }
 
 		public virtual ItemDataTransformType EditorRotationType => ItemDataTransformType.None;
 		public virtual Vector3 GetEditorRotation() => Vector3.zero;

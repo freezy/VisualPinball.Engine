@@ -106,7 +106,7 @@ namespace VisualPinball.Unity
 			transform.GetComponentInParent<Player>().RegisterHitTarget(hitTarget, entity, ParentEntity, gameObject);
 		}
 
-		public override void SetData(HitTargetData data, Dictionary<string, IItemMainAuthoring> components)
+		public override void SetData(HitTargetData data, IMaterialProvider materialProvider, Dictionary<string, IItemMainAuthoring> components)
 		{
 			Size = data.Size.ToUnityFloat3();
 			RotZ = data.RotZ;

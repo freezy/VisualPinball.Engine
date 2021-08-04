@@ -20,8 +20,8 @@ using System.IO;
 using System.Linq;
 using NLog;
 using UnityEditor;
+using UnityEditor.SceneManagement;
 using UnityEngine;
-using UnityEngine.SceneManagement;
 using VisualPinball.Engine.Common;
 using VisualPinball.Engine.Game;
 using VisualPinball.Engine.VPT;
@@ -273,7 +273,7 @@ namespace VisualPinball.Unity.Editor
 
 				// set data
 				if (datas.ContainsKey(lookupName)) {
-					convertedItem.SetData(datas[lookupName], components);
+					convertedItem.SetData(datas[lookupName], this, components);
 				}
 
 				// patch
@@ -282,10 +282,6 @@ namespace VisualPinball.Unity.Editor
 						_patcher?.ApplyPatches(renderableLookup[lookupName], meshMb.gameObject, _tableGo);
 					}
 				}
-
-				EditorUtility.SetDirty(convertedItem.GameObject);
-				PrefabUtility.RecordPrefabInstancePropertyModifications(convertedItem.MainAuthoring as MonoBehaviour);
-				UnityEditor.SceneManagement.EditorSceneManager.MarkSceneDirty(convertedItem.GameObject.scene);
 			}
 
 			// finally, convert non-renderables
@@ -703,6 +699,12 @@ namespace VisualPinball.Unity.Editor
 			}
 
 			return null;
+		}
+
+		public Material MergeMaterials(string vpxMaterial, Material textureMaterial)
+		{
+			var pbrMaterial = new PbrMaterial(_table.GetMaterial(vpxMaterial), id: $"{vpxMaterial.ToNormalizedName()}__textured");
+			return pbrMaterial.ToUnityMaterial(this, textureMaterial);
 		}
 
 		public void SaveMaterial(PbrMaterial vpxMaterial, Material material)

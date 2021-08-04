@@ -47,6 +47,19 @@ namespace VisualPinball.Unity
 		/// <returns></returns>
 		Material CreateMaterial(PbrMaterial vpxMaterial, ITextureProvider textureProvider, Type objectType, StringBuilder debug = null);
 
+		/// <summary>
+		/// Takes a Unity material and applies the VPX properties minus textures on it.
+		/// </summary>
+		///
+		/// <remarks>
+		/// This is used for materials with built-in textures, such as bumpers. We basically
+		/// take the prefab and override the non-texture props from the import.
+		/// </remarks>
+		/// <param name="vpxMaterial">VPX material</param>
+		/// <param name="unityTextureMaterial">Unity material</param>
+		/// <returns>Merged material</returns>
+		Material MergeMaterials(PbrMaterial vpxMaterial, Material unityTextureMaterial);
+
 		int NormalMapProperty { get; }
 	}
 }

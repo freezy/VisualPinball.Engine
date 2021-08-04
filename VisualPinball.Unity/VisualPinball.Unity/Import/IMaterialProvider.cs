@@ -25,5 +25,6 @@ namespace VisualPinball.Unity
 		void SaveMaterial(PbrMaterial vpxMaterial, Material material);
 		Material GetMaterial(PbrMaterial material);
 		PhysicsMaterial GetPhysicsMaterial(string name);
+		Material MergeMaterials(string vpxMaterial, Material textureMaterial);
 	}
 }
