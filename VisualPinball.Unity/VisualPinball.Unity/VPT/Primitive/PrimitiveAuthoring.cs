@@ -104,7 +104,7 @@ namespace VisualPinball.Unity
 			StaticRendering = data.StaticRendering;
 		}
 
-		public override void CopyDataTo(PrimitiveData data)
+		public override PrimitiveData CopyDataTo(PrimitiveData data)
 		{
 			var t = transform;
 			var localPos = t.localPosition;
@@ -155,6 +155,8 @@ namespace VisualPinball.Unity
 			data.IsToy = IsToy;
 			data.OverwritePhysics = OverwritePhysics;
 			data.StaticRendering = StaticRendering;
+
+			return data;
 		}
 
 		public override void FillBinaryData()

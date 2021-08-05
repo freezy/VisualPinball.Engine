@@ -126,7 +126,7 @@ namespace VisualPinball.Unity
 			UseHitEvent = data.UseHitEvent;
 		}
 
-		public override void CopyDataTo(HitTargetData data)
+		public override HitTargetData CopyDataTo(HitTargetData data)
 		{
 			var localPos = transform.localPosition;
 
@@ -169,6 +169,8 @@ namespace VisualPinball.Unity
 			data.PhysicsMaterial = PhysicsMaterial;
 			data.Threshold = Threshold;
 			data.UseHitEvent = UseHitEvent;
+
+			return data;
 		}
 
 		public override ItemDataTransformType EditorPositionType => ItemDataTransformType.ThreeD;

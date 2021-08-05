@@ -102,7 +102,7 @@ namespace VisualPinball.Unity
 			Surface = GetAuthoring<SurfaceAuthoring>(components, data.Surface);
 		}
 
-		public override void CopyDataTo(SpinnerData data)
+		public override SpinnerData CopyDataTo(SpinnerData data)
 		{
 			var localPos = transform.localPosition;
 
@@ -137,6 +137,8 @@ namespace VisualPinball.Unity
 			data.AngleMin = AngleMin;
 			data.Elasticity = Elasticity;
 			data.Surface = Surface ? Surface.name : string.Empty;
+
+			return data;
 		}
 
 		public override ItemDataTransformType EditorPositionType => ItemDataTransformType.ThreeD;

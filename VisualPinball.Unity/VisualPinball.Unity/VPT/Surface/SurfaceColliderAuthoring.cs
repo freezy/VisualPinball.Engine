@@ -29,18 +29,25 @@ namespace VisualPinball.Unity
 	{
 		#region Data
 
+		[Tooltip("If set, a hit event is triggered.")]
 		public bool HitEvent;
 
+		[Range(0, 100f)]
+		[Tooltip("Minimal impact needed in order to trigger a hit event.")]
 		public float Threshold = 2.0f;
 
-		public PhysicsMaterial SlingShotMaterial;
+		[Tooltip("Whether the bottom of the surface should collide (the top of the wall always collides).")]
+		public bool IsBottomSolid;
 
-		public float SlingshotForce = 80f;
-
+		[Range(0, 100f)]
+		[Tooltip("Minimal impact needed in order to trigger the slingshot segment.")]
 		public float SlingshotThreshold;
 
-		public bool SlingshotAnimation = true;
+		[Range(0, 500f)]
+		[Tooltip("The force applied to the ball when hitting the slingshot segment.")]
+		public float SlingshotForce = 80f;
 
+		[Tooltip("Ignore the assigned physics material above and use the value below.")]
 		public bool OverwritePhysics = true;
 
 		public float Elasticity;
@@ -49,6 +56,8 @@ namespace VisualPinball.Unity
 
 		public float Friction;
 
+		[Range(-90f, 90f)]
+		[Tooltip("When hit, add a random angle between 0 and this value to the trajectory.")]
 		public float Scatter;
 
 		#endregion

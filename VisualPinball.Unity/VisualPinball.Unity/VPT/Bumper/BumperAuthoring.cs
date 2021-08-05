@@ -207,7 +207,7 @@ namespace VisualPinball.Unity
 			}
 		}
 
-		public override void CopyDataTo(BumperData data)
+		public override BumperData CopyDataTo(BumperData data)
 		{
 			// name and transforms
 			data.Name = name;
@@ -256,6 +256,8 @@ namespace VisualPinball.Unity
 				data.RingSpeed = ringAnimComponent.RingSpeed;
 				data.RingDropOffset = ringAnimComponent.RingDropOffset;
 			}
+
+			return data;
 		}
 
 		#region Editor Tooling

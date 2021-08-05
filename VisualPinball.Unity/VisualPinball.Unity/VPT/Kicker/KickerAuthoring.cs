@@ -127,7 +127,7 @@ namespace VisualPinball.Unity
 			Speed = data.Speed;
 		}
 
-		public override void CopyDataTo(KickerData data)
+		public override KickerData CopyDataTo(KickerData data)
 		{
 			var localPos = transform.localPosition;
 
@@ -147,6 +147,8 @@ namespace VisualPinball.Unity
 			data.LegacyMode = LegacyMode;
 			data.Angle = Angle;
 			data.Speed = Speed;
+
+			return data;
 		}
 
 		public override ItemDataTransformType EditorPositionType => ItemDataTransformType.TwoD;

@@ -25,7 +25,36 @@ namespace VisualPinball.Unity.Editor
 	public class SurfaceColliderInspector : ItemColliderInspector<Surface, SurfaceData, SurfaceAuthoring, SurfaceColliderAuthoring>
 	{
 		private bool _foldoutMaterial = true;
-		private bool _foldoutSlingshot = true;
+		private bool _foldoutSlingshot;
+
+		private SerializedProperty _hitEventProperty;
+		private SerializedProperty _thresholdProperty;
+		private SerializedProperty _isBottomSolidProperty;
+		private SerializedProperty _slingshotForceProperty;
+		private SerializedProperty _slingshotThresholdProperty;
+		private SerializedProperty _physicsMaterialProperty;
+		private SerializedProperty _overwritePhysicsProperty;
+		private SerializedProperty _elasticityProperty;
+		private SerializedProperty _elasticityFalloffProperty;
+		private SerializedProperty _frictionProperty;
+		private SerializedProperty _scatterProperty;
+
+		protected override void OnEnable()
+		{
+			base.OnEnable();
+
+			_hitEventProperty = serializedObject.FindProperty(nameof(SurfaceColliderAuthoring.HitEvent));
+			_thresholdProperty = serializedObject.FindProperty(nameof(SurfaceColliderAuthoring.Threshold));
+			_isBottomSolidProperty = serializedObject.FindProperty(nameof(SurfaceColliderAuthoring.IsBottomSolid));
+			_slingshotForceProperty = serializedObject.FindProperty(nameof(SurfaceColliderAuthoring.SlingshotForce));
+			_slingshotThresholdProperty = serializedObject.FindProperty(nameof(SurfaceColliderAuthoring.SlingshotThreshold));
+			_physicsMaterialProperty = serializedObject.FindProperty(nameof(ItemColliderAuthoring<Surface, SurfaceData, SurfaceAuthoring>.PhysicsMaterial));
+			_overwritePhysicsProperty = serializedObject.FindProperty(nameof(SurfaceColliderAuthoring.OverwritePhysics));
+			_elasticityProperty = serializedObject.FindProperty(nameof(SurfaceColliderAuthoring.Elasticity));
+			_elasticityFalloffProperty = serializedObject.FindProperty(nameof(SurfaceColliderAuthoring.ElasticityFalloff));
+			_frictionProperty = serializedObject.FindProperty(nameof(SurfaceColliderAuthoring.Friction));
+			_scatterProperty = serializedObject.FindProperty(nameof(SurfaceColliderAuthoring.Scatter));
+		}
 
 		public override void OnInspectorGUI()
 		{
@@ -33,36 +62,41 @@ namespace VisualPinball.Unity.Editor
 				return;
 			}
 
-			ItemDataField("Has Hit Event", ref Data.HitEvent, false);
-			EditorGUI.BeginDisabledGroup(!Data.HitEvent);
-			ItemDataField("Hit Threshold", ref Data.Threshold, false);
-			EditorGUI.EndDisabledGroup();
+			serializedObject.Update();
 
-			ItemDataField("Can Drop", ref Data.IsDroppable, false);
-			ItemDataField("Is Bottom Collidable", ref Data.IsBottomSolid, false);
+			OnPreInspectorGUI();
 
-			if (_foldoutSlingshot = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutSlingshot, "Slingshot")) {
-				ItemDataField("Slingshot Force", ref Data.SlingshotForce, false);
-				ItemDataField("Slingshot Threshold", ref Data.SlingshotThreshold, false);
+			PropertyField(_hitEventProperty, "Has Hit Event");
+			PropertyField(_thresholdProperty, "Hit Threshold");
+			PropertyField(_isBottomSolidProperty, "Is Bottom Collidable");
+
+			// physics material
+			if (_foldoutMaterial = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutMaterial, "Physics Material")) {
+				EditorGUI.BeginDisabledGroup(_overwritePhysicsProperty.boolValue);
+				PropertyField(_physicsMaterialProperty, "Preset");
+				EditorGUI.EndDisabledGroup();
+
+				PropertyField(_overwritePhysicsProperty);
+
+				EditorGUI.BeginDisabledGroup(!_overwritePhysicsProperty.boolValue);
+				PropertyField(_elasticityProperty);
+				PropertyField(_elasticityFalloffProperty);
+				PropertyField(_frictionProperty);
+				PropertyField(_scatterProperty, "Scatter Angle");
+				EditorGUI.EndDisabledGroup();
 			}
 			EditorGUILayout.EndFoldoutHeaderGroup();
 
-			if (_foldoutMaterial = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutMaterial, "Physics Material")) {
-				EditorGUI.BeginDisabledGroup(Data.OverwritePhysics);
-				PhysicsMaterialField("Preset", ref ColliderAuthoring.PhysicsMaterial);
-				EditorGUI.EndDisabledGroup();
-
-				ItemDataField("Overwrite Preset", ref Data.OverwritePhysics, false);
-
-				EditorGUI.BeginDisabledGroup(!Data.OverwritePhysics);
-				ItemDataField("Elasticity", ref Data.Elasticity, false);
-				ItemDataField("Friction", ref Data.Friction, false);
-				ItemDataField("Scatter Angle", ref Data.Scatter, false);
-				EditorGUI.EndDisabledGroup();
+			// slingshot props
+			if (_foldoutSlingshot = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutSlingshot, "Slingshot")) {
+				PropertyField(_slingshotForceProperty);
+				PropertyField(_slingshotThresholdProperty);
 			}
 			EditorGUILayout.EndFoldoutHeaderGroup();
 
 			base.OnInspectorGUI();
+
+			serializedObject.ApplyModifiedProperties();
 		}
 	}
 }

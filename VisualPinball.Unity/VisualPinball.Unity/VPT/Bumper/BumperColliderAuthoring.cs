@@ -27,7 +27,7 @@ namespace VisualPinball.Unity
 	[AddComponentMenu("Visual Pinball/Collision/Bumper Collider")]
 	public class BumperColliderAuthoring : ItemColliderAuthoring<Bumper, BumperData, BumperAuthoring>
 	{
-		public static readonly Type[] ValidParentTypes = new Type[0];
+		public static readonly Type[] ValidParentTypes = Type.EmptyTypes;
 
 		#region Data
 
@@ -36,11 +36,11 @@ namespace VisualPinball.Unity
 		public float Threshold = 1.0f;
 
 		[Min(0f)]
-		[Tooltip("How much the ball is thrown back.")]
+		[Tooltip("How much the ball is thrown back when colliding with the bumper.")]
 		public float Force = 15f;
 
 		[Range(-90f, 90f)]
-		[Tooltip("A random angle added to the collision trajectory.")]
+		[Tooltip("When hit, add a random angle between 0 and this value to the trajectory.")]
 		public float Scatter;
 
 		[Tooltip("If set, a hit event is triggered.")]

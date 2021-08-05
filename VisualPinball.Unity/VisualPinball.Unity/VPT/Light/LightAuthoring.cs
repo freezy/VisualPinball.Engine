@@ -130,7 +130,7 @@ namespace VisualPinball.Unity
 		{
 		}
 
-		public override void CopyDataTo(LightData data)
+		public override LightData CopyDataTo(LightData data)
 		{
 			var localPos = transform.localPosition;
 
@@ -150,6 +150,8 @@ namespace VisualPinball.Unity
 						break;
 				}
 			}
+
+			return data;
 		}
 
 		public void OnBulbEnabled(bool bulbEnabledBefore, bool bulbEnabledAfter)

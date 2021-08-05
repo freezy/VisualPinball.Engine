@@ -38,18 +38,15 @@ namespace VisualPinball.Unity
 	{
 		#region Data
 
-		public bool IsDroppable;
-
-		public bool IsFlipbook;
-
-		public bool IsBottomSolid;
-
-		public float HeightBottom;
-
+		[Tooltip("Top height of the wall, i.e. how high the wall goes.")]
 		public float HeightTop = 50f;
 
-		public bool Inner = true;
+		[Tooltip("Bottom height of the wall, i.e. at which height the wall starts.")]
+		public float HeightBottom;
 
+		public bool IsDroppable;
+
+		[HideInInspector]
 		public DragPointData[] DragPoints;
 
 		#endregion
@@ -84,15 +81,10 @@ namespace VisualPinball.Unity
 
 		public override void SetData(SurfaceData data, IMaterialProvider materialProvider, ITextureProvider textureProvider, Dictionary<string, IItemMainAuthoring> components)
 		{
-			// data props
-			IsDroppable = data.IsDroppable;
-			IsFlipbook = data.IsFlipbook;
-			IsBottomSolid = data.IsBottomSolid;
-
+			// main props
 			HeightBottom = data.HeightBottom;
 			HeightTop = data.HeightTop;
-			Inner = data.Inner;
-
+			IsDroppable = data.IsDroppable;
 			DragPoints = data.DragPoints;
 
 			// children mesh creation and visibility
@@ -103,19 +95,18 @@ namespace VisualPinball.Unity
 			sideMesh.CreateMesh(data, textureProvider, materialProvider);
 			sideMesh.gameObject.SetActive(data.IsSideVisible);
 
-			// collider
+			// collider data
 			var collComponent = GetComponentInChildren<SurfaceColliderAuthoring>();
 			if (collComponent) {
 
 				collComponent.HitEvent = data.HitEvent;
 				collComponent.Threshold = data.Threshold;
+				collComponent.IsBottomSolid = data.IsBottomSolid;
 
 				collComponent.PhysicsMaterial = materialProvider.GetPhysicsMaterial(data.PhysicsMaterial);
 
-				collComponent.SlingShotMaterial = materialProvider.GetPhysicsMaterial(data.SlingShotMaterial);
 				collComponent.SlingshotForce = data.SlingshotForce;
 				collComponent.SlingshotThreshold = data.SlingshotThreshold;
-				collComponent.SlingshotAnimation = data.SlingshotAnimation;
 
 				collComponent.OverwritePhysics = data.OverwritePhysics;
 				collComponent.Elasticity = data.Elasticity;
@@ -125,10 +116,16 @@ namespace VisualPinball.Unity
 			}
 		}
 
-		public override void CopyDataTo(SurfaceData data)
+		public override SurfaceData CopyDataTo(SurfaceData data)
 		{
 			// update the name
 			data.Name = name;
+
+			// main props
+			data.IsDroppable = IsDroppable;
+			data.HeightBottom = HeightBottom;
+			data.HeightTop = HeightTop;
+			data.DragPoints = DragPoints;
 
 			// children visibility
 			var topMesh = GetComponentInChildren<SurfaceTopMeshAuthoring>();
@@ -136,19 +133,18 @@ namespace VisualPinball.Unity
 			var sideMesh = GetComponentInChildren<SurfaceSideMeshAuthoring>();
 			data.IsSideVisible = sideMesh.gameObject.activeInHierarchy;
 
-			// update collision
+			// collider data
 			var collComponent = GetComponentInChildren<SurfaceColliderAuthoring>();
 			if (collComponent) {
 				data.IsCollidable = true;
 
 				data.HitEvent = collComponent.HitEvent;
 				data.Threshold = collComponent.Threshold;
+				data.IsBottomSolid = collComponent.IsBottomSolid;
 
-				data.PhysicsMaterial = collComponent.PhysicsMaterial.name;
-				data.SlingShotMaterial = collComponent.SlingShotMaterial.name;
+				data.PhysicsMaterial = collComponent.PhysicsMaterial ? collComponent.PhysicsMaterial.name : string.Empty;
 				data.SlingshotForce = collComponent.SlingshotForce;
 				data.SlingshotThreshold = collComponent.SlingshotThreshold;
-				data.SlingshotAnimation = collComponent.SlingshotAnimation;
 
 				data.OverwritePhysics = collComponent.OverwritePhysics;
 				data.Elasticity = collComponent.Elasticity;
@@ -160,14 +156,7 @@ namespace VisualPinball.Unity
 				data.IsCollidable = false;
 			}
 
-			// other props
-			data.IsDroppable = IsDroppable;
-			data.IsFlipbook = IsFlipbook;
-			data.IsBottomSolid = IsBottomSolid;
-			data.HeightBottom = HeightBottom;
-			data.HeightTop = HeightTop;
-			data.Inner = Inner;
-			data.DragPoints = DragPoints;
+			return data;
 		}
 
 		public override ItemDataTransformType EditorPositionType => ItemDataTransformType.TwoD;

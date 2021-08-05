@@ -203,7 +203,7 @@ namespace VisualPinball.Unity
 			SpringEndLoops = data.SpringEndLoops;
 		}
 
-		public override void CopyDataTo(PlungerData data)
+		public override PlungerData CopyDataTo(PlungerData data)
 		{
 			var localPos = transform.localPosition;
 
@@ -251,6 +251,8 @@ namespace VisualPinball.Unity
 			data.SpringGauge = SpringGauge;
 			data.SpringLoops = SpringLoops;
 			data.SpringEndLoops = SpringEndLoops;
+
+			return data;
 		}
 
 		public void OnTypeChanged(int plungerTypeBefore, int plungerTypeAfter)

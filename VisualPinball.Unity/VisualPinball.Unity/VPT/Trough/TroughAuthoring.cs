@@ -90,7 +90,7 @@ namespace VisualPinball.Unity
 			GetComponentInParent<Player>().RegisterTrough(Item, gameObject);
 		}
 
-		public override void SetData(TroughData data, Dictionary<string, IItemMainAuthoring> itemMainAuthorings)
+		public override void SetData(TroughData data, IMaterialProvider materialProvider, ITextureProvider textureProvider, Dictionary<string, IItemMainAuthoring> components)
 		{
 			Type = data.Type;
 			PlayfieldEntrySwitch = data.PlayfieldEntrySwitch;
@@ -103,7 +103,7 @@ namespace VisualPinball.Unity
 			KickTime = data.KickTime;
 		}
 
-		public override void CopyDataTo(TroughData data)
+		public override TroughData CopyDataTo(TroughData data)
 		{
 			data.Name = name;
 
@@ -116,6 +116,8 @@ namespace VisualPinball.Unity
 			data.RollTime = RollTime;
 			data.TransitionTime = TransitionTime;
 			data.KickTime = KickTime;
+
+			return data;
 		}
 
 		private void OnDrawGizmosSelected()

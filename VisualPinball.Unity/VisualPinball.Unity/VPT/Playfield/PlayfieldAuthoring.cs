@@ -48,8 +48,9 @@ namespace VisualPinball.Unity
 		{
 		}
 
-		public override void CopyDataTo(TableData data)
+		public override TableData CopyDataTo(TableData data)
 		{
+			return data;
 		}
 	}
 }
