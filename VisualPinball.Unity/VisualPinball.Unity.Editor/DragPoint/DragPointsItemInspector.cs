@@ -17,6 +17,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using UnityEditor;
+using UnityEditor.SceneManagement;
 using UnityEngine;
 using VisualPinball.Engine.Game;
 using VisualPinball.Engine.Math;
@@ -24,7 +25,9 @@ using VisualPinball.Engine.VPT;
 
 namespace VisualPinball.Unity.Editor
 {
-	public abstract class DragPointsItemInspector<TItem, TData, TMainAuthoring> : ItemMainInspector<TItem, TData, TMainAuthoring>, IDragPointsItemInspector
+	public abstract class DragPointsItemInspector<TItem, TData, TMainAuthoring>
+		: ItemMainInspector<TItem, TData, TMainAuthoring>,
+			IDragPointsItemInspector, IDragPointsEditable
 		where TData : ItemData
 		where TItem : Item<TData>, IRenderable
 		where TMainAuthoring : ItemMainRenderableAuthoring<TItem, TData>
@@ -51,14 +54,16 @@ namespace VisualPinball.Unity.Editor
 		private static Vector3 _storedControlPoint = Vector3.zero;
 
 		private IItemMainRenderableAuthoring _renderable;
+		private IDragPointsAuthoring _dragPointsAuthoring;
 
 		public void RebuildMeshes() => _renderable.RebuildMeshes();
 
 		protected override void OnEnable()
 		{
 			base.OnEnable();
+			_dragPointsAuthoring = ItemAuthoring as IDragPointsAuthoring;
 			_renderable = target as IItemMainRenderableAuthoring;
-			DragPointsHandler = new DragPointsHandler(target);
+			DragPointsHandler = new DragPointsHandler(target, this);
 			Undo.undoRedoPerformed += OnUndoRedoPerformed;
 		}
 
@@ -256,10 +261,9 @@ namespace VisualPinball.Unity.Editor
 		protected virtual void OnSceneGUI()
 		{
 			var editable = target as IItemMainRenderableAuthoring;
-			var dragPointEditable = target as IDragPointsEditable;
 			var bh = target as Behaviour;
 
-			if (editable == null || bh == null || dragPointEditable == null || !EditingEnabled) {
+			if (editable == null || bh == null || !EditingEnabled) {
 				return;
 			}
 
@@ -283,5 +287,20 @@ namespace VisualPinball.Unity.Editor
 				}
 			}
 		}
+
+		public DragPointData[] DragPoints {
+			get => _dragPointsAuthoring.DragPoints;
+			set {
+				_dragPointsAuthoring.DragPoints = value;
+				EditorUtility.SetDirty(ItemAuthoring.gameObject);
+				PrefabUtility.RecordPrefabInstancePropertyModifications(ItemAuthoring);
+				EditorSceneManager.MarkSceneDirty(ItemAuthoring.gameObject.scene);
+			}
+		}
+		public abstract Vector3 EditableOffset { get; }
+		public abstract Vector3 GetDragPointOffset(float ratio);
+		public abstract bool PointsAreLooping { get; }
+		public abstract IEnumerable<DragPointExposure> DragPointExposition { get; }
+		public abstract ItemDataTransformType HandleType { get; }
 	}
 }

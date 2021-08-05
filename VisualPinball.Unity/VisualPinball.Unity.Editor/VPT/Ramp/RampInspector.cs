@@ -16,7 +16,10 @@
 
 // ReSharper disable AssignmentInConditionalExpression
 
+using System.Collections.Generic;
 using UnityEditor;
+using UnityEngine;
+using VisualPinball.Engine.Math;
 using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Ramp;
 
@@ -103,5 +106,15 @@ namespace VisualPinball.Unity.Editor
 
 			base.OnInspectorGUI();
 		}
+
+		#region Dragpoint Tooling
+
+		public override Vector3 EditableOffset => new Vector3(0.0f, 0.0f, Data.HeightBottom);
+		public override Vector3 GetDragPointOffset(float ratio) => new Vector3(0.0f, 0.0f, (Data.HeightTop - Data.HeightBottom) * ratio);
+		public override bool PointsAreLooping => false;
+		public override IEnumerable<DragPointExposure> DragPointExposition => new DragPointExposure[] { DragPointExposure.Smooth, DragPointExposure.SlingShot };
+		public override ItemDataTransformType HandleType => ItemDataTransformType.ThreeD;
+
+		#endregion
 	}
 }

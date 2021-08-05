@@ -45,6 +45,11 @@ namespace VisualPinball.Unity
 		Texture
 	}
 
+	public interface IDragPointsAuthoring
+	{
+		DragPointData[] DragPoints { get; set; }
+	}
+
 	/// <summary>
 	/// Abstraction for authoring components that support drag points.
 	/// </summary>

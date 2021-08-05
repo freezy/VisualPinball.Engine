@@ -34,7 +34,7 @@ namespace VisualPinball.Unity
 	[ExecuteAlways]
 	[AddComponentMenu("Visual Pinball/Game Item/Surface")]
 	public class SurfaceAuthoring : ItemMainRenderableAuthoring<Surface, SurfaceData>,
-		IConvertGameObjectToEntity, ISurfaceAuthoring, IDragPointsEditable
+		IConvertGameObjectToEntity, ISurfaceAuthoring, IDragPointsAuthoring
 	{
 		#region Data
 
@@ -48,6 +48,7 @@ namespace VisualPinball.Unity
 
 		[SerializeField]
 		private DragPointData[] _dragPoints;
+		public DragPointData[] DragPoints { get => _dragPoints; set => _dragPoints = value; }
 
 		#endregion
 
@@ -161,32 +162,30 @@ namespace VisualPinball.Unity
 
 		#region Editor Tooling
 
-		public override ItemDataTransformType EditorPositionType => ItemDataTransformType.TwoD;
-		public override Vector3 GetEditorPosition() => DragPoints.Length == 0 ? Vector3.zero : DragPoints[0].Center.ToUnityVector3();
-		public override void SetEditorPosition(Vector3 pos) {
-			if (Data == null || Data.DragPoints.Length == 0) {
-				return;
-			}
-
-			var diff = pos.ToVertex3D() - Data.DragPoints[0].Center;
-			diff.Z = 0f;
-			Data.DragPoints[0].Center = pos.ToVertex3D();
-			for (var i = 1; i < Data.DragPoints.Length; i++) {
-				var pt = Data.DragPoints[i];
-				pt.Center += diff;
+		private Vector3 DragPointCenter {
+			get {
+				var sum = Vertex3D.Zero;
+				foreach (var t in DragPoints) {
+					sum += t.Center;
+				}
+				var center = sum / DragPoints.Length;
+				return new Vector3(center.X, center.Y, HeightTop);
 			}
 		}
 
-		#endregion
-
-		#region Dragpoint Tooling
-
-		public DragPointData[] DragPoints { get => _dragPoints; set => _dragPoints = value; }
-		public Vector3 EditableOffset => new Vector3(0.0f, 0.0f, HeightBottom);
-		public Vector3 GetDragPointOffset(float ratio) => Vector3.zero;
-		public bool PointsAreLooping => true;
-		public IEnumerable<DragPointExposure> DragPointExposition => new[] { DragPointExposure.Smooth , DragPointExposure.SlingShot , DragPointExposure.Texture };
-		public ItemDataTransformType HandleType => ItemDataTransformType.TwoD;
+		public override ItemDataTransformType EditorPositionType => ItemDataTransformType.TwoD;
+		public override Vector3 GetEditorPosition() => DragPoints.Length == 0 ? Vector3.zero : DragPointCenter;
+		public override void SetEditorPosition(Vector3 pos) {
+			if (DragPoints.Length == 0) {
+				return;
+			}
+			var diff = (pos - DragPointCenter).ToVertex3D();
+			diff.Z = 0f;
+			foreach (var pt in DragPoints) {
+				pt.Center += diff;
+			}
+			RebuildMeshes();
+		}
 
 		#endregion
 	}

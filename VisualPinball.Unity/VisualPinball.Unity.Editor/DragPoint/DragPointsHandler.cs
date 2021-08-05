@@ -85,13 +85,12 @@ namespace VisualPinball.Unity.Editor
 		/// </summary>
 		/// <param name="target"></param>
 		/// <exception cref="ArgumentException"></exception>
-		public DragPointsHandler(Object target)
+		public DragPointsHandler(Object target, IDragPointsEditable dragPointsEditable)
 		{
 			Editable = target as IItemMainRenderableAuthoring
 			    ?? throw new ArgumentException("Target must extend `IEditableItemAuthoring`.");
 
-			DragPointEditable = target as IDragPointsEditable
-			    ?? throw new ArgumentException("Target must extend `IDragPointsEditable`.");
+			DragPointEditable = dragPointsEditable;
 
 			if (!(target is Behaviour)) {
 				throw new ArgumentException("Target must extend `Behavior`.");
@@ -336,7 +335,7 @@ namespace VisualPinball.Unity.Editor
 				controlPoint.WorldPos += DragPointEditable.GetDragPointOffset(controlPoint.IndexRatio);
 				controlPoint.WorldPos = Transform.localToWorldMatrix.MultiplyPoint(controlPoint.WorldPos);
 				_flipAxis += controlPoint.WorldPos;
-				controlPoint.ScrPos = Handles.matrix.MultiplyPoint(controlPoint.WorldPos);
+				controlPoint.LocalPos = Handles.matrix.MultiplyPoint(controlPoint.WorldPos);
 				if (controlPoint.IsSelected) {
 					if (!controlPoint.DragPoint.IsLocked) {
 						SelectedControlPoints.Add(controlPoint);
@@ -344,7 +343,7 @@ namespace VisualPinball.Unity.Editor
 				}
 
 				HandleUtility.AddControl(controlPoint.ControlId,
-					HandleUtility.DistanceToCircle(controlPoint.ScrPos,
+					HandleUtility.DistanceToCircle(controlPoint.LocalPos,
 						HandleUtility.GetHandleSize(controlPoint.WorldPos) * ControlPoint.ScreenRadius *
 						_sceneViewHandler.ControlPointsSizeRatio));
 			}

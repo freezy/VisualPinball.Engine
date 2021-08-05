@@ -34,7 +34,7 @@ namespace VisualPinball.Unity
 	[ExecuteAlways]
 	[AddComponentMenu("Visual Pinball/Game Item/Rubber")]
 	public class RubberAuthoring : ItemMainRenderableAuthoring<Rubber, RubberData>,
-		IDragPointsEditable, IConvertGameObjectToEntity
+		IDragPointsAuthoring, IConvertGameObjectToEntity
 	{
 		#region Data
 
@@ -65,7 +65,8 @@ namespace VisualPinball.Unity
 		public bool OverwritePhysics;
 
 		[SerializeField]
-		public DragPointData[] _dragPoints;
+		private DragPointData[] _dragPoints;
+		public DragPointData[] DragPoints { get => _dragPoints; set => _dragPoints = value; }
 
 		#endregion
 
@@ -172,17 +173,5 @@ namespace VisualPinball.Unity
 		public override ItemDataTransformType EditorRotationType => ItemDataTransformType.ThreeD;
 		public override Vector3 GetEditorRotation() => transform.rotation.eulerAngles;
 		public override void SetEditorRotation(Vector3 rot) => transform.rotation = Quaternion.Euler(rot);
-
-		#region Dragpoint Tooling
-
-		public DragPointData[] DragPoints { get => _dragPoints; set => _dragPoints = value; }
-		public Vector3 EditableOffset => new Vector3(0.0f, 0.0f, HitHeight);
-		public Vector3 GetDragPointOffset(float ratio) => Vector3.zero;
-		public bool PointsAreLooping => true;
-		public IEnumerable<DragPointExposure> DragPointExposition => new[] { DragPointExposure.Smooth };
-		public ItemDataTransformType HandleType => ItemDataTransformType.TwoD;
-
-		#endregion
-
 	}
 }
