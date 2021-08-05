@@ -51,30 +51,14 @@ namespace VisualPinball.Unity
 	public interface IDragPointsEditable
 	{
 		/// <summary>
-		/// Toggled by the inspector while enabling/disabling edition.
+		/// Access to the drag point data
 		/// </summary>
-		///
-		/// <remarks>
-		/// The goal of this sitting on the authoring component is because like
-		/// that it's individually retained, whereas keeping it in the inspector
-		/// would reset it every time the inspector gets destroyed.
-		/// </remarks>
-		bool DragPointEditEnabled { get; set; }
-
-		/// <summary>
-		/// Returns the game item's drag point data.
-		/// </summary>
-		DragPointData[] GetDragPoints();
-
-		/// <summary>
-		/// Updates the game item's drag points (used while adding/removing drag points).
-		/// </summary>
-		void SetDragPoints(DragPointData[] dragPoints);
+		DragPointData[] DragPoints { get; set; }
 
 		/// <summary>
 		/// Returns the global offset applied on all drag points.
 		/// </summary>
-		Vector3 GetEditableOffset();
+		Vector3 EditableOffset { get; }
 
 		/// <summary>
 		/// Returns the height offset regarding a given position along the curve.
@@ -86,17 +70,17 @@ namespace VisualPinball.Unity
 		/// <summary>
 		/// Returns whether the drag points are looping or not.
 		/// </summary>
-		bool PointsAreLooping();
+		bool PointsAreLooping { get; }
 
 		/// <summary>
 		/// Returns exposed drag points features
 		/// </summary>
-		IEnumerable<DragPointExposure> GetDragPointExposition();
+		IEnumerable<DragPointExposure> DragPointExposition { get; }
 
 		/// <summary>
 		/// Returns the applied constrains to drag points position edition.
 		/// </summary>
 		/// <returns></returns>
-		ItemDataTransformType GetHandleType();
+		ItemDataTransformType HandleType { get; }
 	}
 }

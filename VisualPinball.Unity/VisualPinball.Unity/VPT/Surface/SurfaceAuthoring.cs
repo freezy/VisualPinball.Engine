@@ -46,8 +46,8 @@ namespace VisualPinball.Unity
 
 		public bool IsDroppable;
 
-		[HideInInspector]
-		public DragPointData[] DragPoints;
+		[SerializeField]
+		private DragPointData[] _dragPoints;
 
 		#endregion
 
@@ -159,6 +159,8 @@ namespace VisualPinball.Unity
 			return data;
 		}
 
+		#region Editor Tooling
+
 		public override ItemDataTransformType EditorPositionType => ItemDataTransformType.TwoD;
 		public override Vector3 GetEditorPosition() => DragPoints.Length == 0 ? Vector3.zero : DragPoints[0].Center.ToUnityVector3();
 		public override void SetEditorPosition(Vector3 pos) {
@@ -175,14 +177,17 @@ namespace VisualPinball.Unity
 			}
 		}
 
-		//IDragPointsEditable
-		public bool DragPointEditEnabled { get; set; }
-		public DragPointData[] GetDragPoints() => Data.DragPoints;
-		public void SetDragPoints(DragPointData[] dragPoints) { Data.DragPoints = dragPoints; }
-		public Vector3 GetEditableOffset() => new Vector3(0.0f, 0.0f, Data.HeightBottom);
+		#endregion
+
+		#region Dragpoint Tooling
+
+		public DragPointData[] DragPoints { get => _dragPoints; set => _dragPoints = value; }
+		public Vector3 EditableOffset => new Vector3(0.0f, 0.0f, HeightBottom);
 		public Vector3 GetDragPointOffset(float ratio) => Vector3.zero;
-		public bool PointsAreLooping() => true;
-		public IEnumerable<DragPointExposure> GetDragPointExposition() => new[] { DragPointExposure.Smooth , DragPointExposure.SlingShot , DragPointExposure.Texture };
-		public ItemDataTransformType GetHandleType() => ItemDataTransformType.TwoD;
+		public bool PointsAreLooping => true;
+		public IEnumerable<DragPointExposure> DragPointExposition => new[] { DragPointExposure.Smooth , DragPointExposure.SlingShot , DragPointExposure.Texture };
+		public ItemDataTransformType HandleType => ItemDataTransformType.TwoD;
+
+		#endregion
 	}
 }

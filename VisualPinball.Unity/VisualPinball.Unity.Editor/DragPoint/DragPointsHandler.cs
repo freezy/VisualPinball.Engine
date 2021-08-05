@@ -114,13 +114,13 @@ namespace VisualPinball.Unity.Editor
 		public bool RemapControlPoints()
 		{
 			// if count differs, rebuild
-			if (ControlPoints.Count != DragPointEditable.GetDragPoints().Length) {
+			if (ControlPoints.Count != DragPointEditable.DragPoints.Length) {
 				RebuildControlPoints();
 				return true;
 			}
 
-			for (var i = 0; i < DragPointEditable.GetDragPoints().Length; ++i) {
-				ControlPoints[i].DragPoint = DragPointEditable.GetDragPoints()[i];
+			for (var i = 0; i < DragPointEditable.DragPoints.Length; ++i) {
+				ControlPoints[i].DragPoint = DragPointEditable.DragPoints[i];
 			}
 
 			return false;
@@ -140,23 +140,23 @@ namespace VisualPinball.Unity.Editor
 				return;
 			}
 
-			var dragPoint = new DragPointData(DragPointEditable.GetDragPoints()[CurveTravellerControlPointIdx]) {
+			var dragPoint = new DragPointData(DragPointEditable.DragPoints[CurveTravellerControlPointIdx]) {
 				IsLocked = false
 			};
 
 			var newIdx = CurveTravellerControlPointIdx + 1;
-			float ratio = (float)newIdx / DragPointEditable.GetDragPoints().Length;
+			float ratio = (float)newIdx / DragPointEditable.DragPoints.Length;
 			var dragPointPosition = Transform.worldToLocalMatrix.MultiplyPoint(CurveTravellerPosition);
-			dragPointPosition -= DragPointEditable.GetEditableOffset();
+			dragPointPosition -= DragPointEditable.EditableOffset;
 			dragPointPosition -= DragPointEditable.GetDragPointOffset(ratio);
 			dragPoint.Center = dragPointPosition.ToVertex3D();
-			var dragPoints = DragPointEditable.GetDragPoints().ToList();
+			var dragPoints = DragPointEditable.DragPoints.ToList();
 			dragPoints.Insert(newIdx, dragPoint);
-			DragPointEditable.SetDragPoints(dragPoints.ToArray());
+			DragPointEditable.DragPoints = dragPoints.ToArray();
 
 			ControlPoints.Insert(newIdx,
 			new ControlPoint(
-					DragPointEditable.GetDragPoints()[newIdx],
+					DragPointEditable.DragPoints[newIdx],
 					GUIUtility.GetControlID(FocusType.Passive),
 					newIdx,
 					ratio
@@ -181,9 +181,9 @@ namespace VisualPinball.Unity.Editor
 			if (!removalOk) {
 				return;
 			}
-			var dragPoints = DragPointEditable.GetDragPoints().ToList();
+			var dragPoints = DragPointEditable.DragPoints.ToList();
 			dragPoints.RemoveAt(idx);
-			DragPointEditable.SetDragPoints(dragPoints.ToArray());
+			DragPointEditable.DragPoints = dragPoints.ToArray();
 
 			RebuildControlPoints();
 		}
@@ -198,7 +198,7 @@ namespace VisualPinball.Unity.Editor
 				? _flipAxis.x
 				: flipAxis == FlipAxis.Y ? _flipAxis.y : _flipAxis.z;
 
-			var offset = DragPointEditable.GetEditableOffset();
+			var offset = DragPointEditable.EditableOffset;
 			var wlMat = Transform.worldToLocalMatrix;
 
 			foreach (var controlPoint in ControlPoints) {
@@ -250,7 +250,7 @@ namespace VisualPinball.Unity.Editor
 		private void RebuildControlPoints()
 		{
 			ControlPoints.Clear();
-			var dragPoints = DragPointEditable.GetDragPoints();
+			var dragPoints = DragPointEditable.DragPoints;
 			for (var i = 0; i < dragPoints.Length; ++i) {
 				var cp = new ControlPoint(
 					dragPoints[i],
@@ -309,7 +309,7 @@ namespace VisualPinball.Unity.Editor
 					parentRot = Transform.parent.transform.rotation;
 				}
 				EditorGUI.BeginChangeCheck();
-				var newHandlePos = HandlesUtils.HandlePosition(_positionHandlePosition, DragPointEditable.GetHandleType(), parentRot);
+				var newHandlePos = HandlesUtils.HandlePosition(_positionHandlePosition, DragPointEditable.HandleType, parentRot);
 				if (EditorGUI.EndChangeCheck()) {
 					onChange?.Invoke(newHandlePos);
 					var deltaPosition = newHandlePos - _positionHandlePosition;
@@ -332,7 +332,7 @@ namespace VisualPinball.Unity.Editor
 			//Setup Screen positions & controlID for control points (in case of modification of drag points coordinates outside)
 			foreach (var controlPoint in ControlPoints) {
 				controlPoint.WorldPos = controlPoint.DragPoint.Center.ToUnityVector3();
-				controlPoint.WorldPos += DragPointEditable.GetEditableOffset();
+				controlPoint.WorldPos += DragPointEditable.EditableOffset;
 				controlPoint.WorldPos += DragPointEditable.GetDragPointOffset(controlPoint.IndexRatio);
 				controlPoint.WorldPos = Transform.localToWorldMatrix.MultiplyPoint(controlPoint.WorldPos);
 				_flipAxis += controlPoint.WorldPos;

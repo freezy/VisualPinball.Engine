@@ -64,7 +64,8 @@ namespace VisualPinball.Unity
 
 		public bool OverwritePhysics;
 
-		public DragPointData[] DragPoints;
+		[SerializeField]
+		public DragPointData[] _dragPoints;
 
 		#endregion
 
@@ -172,15 +173,16 @@ namespace VisualPinball.Unity
 		public override Vector3 GetEditorRotation() => transform.rotation.eulerAngles;
 		public override void SetEditorRotation(Vector3 rot) => transform.rotation = Quaternion.Euler(rot);
 
-		//IDragPointsEditable
-		public bool DragPointEditEnabled { get; set; }
-		public DragPointData[] GetDragPoints() => DragPoints;
-		public void SetDragPoints(DragPointData[] dragPoints) { DragPoints = dragPoints; }
-		public Vector3 GetEditableOffset() => new Vector3(0.0f, 0.0f, HitHeight);
+		#region Dragpoint Tooling
+
+		public DragPointData[] DragPoints { get => _dragPoints; set => _dragPoints = value; }
+		public Vector3 EditableOffset => new Vector3(0.0f, 0.0f, HitHeight);
 		public Vector3 GetDragPointOffset(float ratio) => Vector3.zero;
-		public bool PointsAreLooping() => true;
-		public IEnumerable<DragPointExposure> GetDragPointExposition() => new[] { DragPointExposure.Smooth };
-		public ItemDataTransformType GetHandleType() => ItemDataTransformType.TwoD;
+		public bool PointsAreLooping => true;
+		public IEnumerable<DragPointExposure> DragPointExposition => new[] { DragPointExposure.Smooth };
+		public ItemDataTransformType HandleType => ItemDataTransformType.TwoD;
+
+		#endregion
 
 	}
 }
