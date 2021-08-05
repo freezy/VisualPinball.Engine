@@ -45,7 +45,7 @@ namespace VisualPinball.Unity.Editor
 		/// <summary>
 		/// Position in local space
 		/// </summary>
-		public Vector3 ScrPos = Vector3.zero;
+		public Vector3 LocalPos = Vector3.zero;
 
 		/// <summary>
 		/// Currently selected or not?

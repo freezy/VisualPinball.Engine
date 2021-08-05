@@ -35,7 +35,7 @@ namespace VisualPinball.Unity
 	[ExecuteAlways]
 	[AddComponentMenu("Visual Pinball/Game Item/Trigger")]
 	public class TriggerAuthoring : ItemMainRenderableAuthoring<Trigger, TriggerData>,
-		ISwitchAuthoring, IDragPointsEditable, IConvertGameObjectToEntity
+		ISwitchAuthoring, IDragPointsAuthoring, IConvertGameObjectToEntity
 	{
 		#region Data
 
@@ -51,6 +51,7 @@ namespace VisualPinball.Unity
 
 		[SerializeField]
 		private DragPointData[] _dragPoints;
+		public DragPointData[] DragPoints { get => _dragPoints; set => _dragPoints = value; }
 
 		#endregion
 
@@ -144,20 +145,5 @@ namespace VisualPinball.Unity
 		public override Vector3 GetEditorRotation() => transform.localEulerAngles;
 		public override void SetEditorRotation(Vector3 rot) => transform.localEulerAngles = rot;
 
-		#region Dragpoint Tooling
-
-		public DragPointData[] DragPoints { get => _dragPoints; set => _dragPoints = value; }
-		public Vector3 EditableOffset {
-			get {
-				var localPos = transform.localPosition;
-				return new Vector3(-localPos.x, -localPos.y, 0.0f);
-			}
-		}
-		public Vector3 GetDragPointOffset(float ratio) => Vector3.zero;
-		public bool PointsAreLooping => true;
-		public IEnumerable<DragPointExposure> DragPointExposition => new[] { DragPointExposure.Smooth, DragPointExposure.SlingShot };
-		public ItemDataTransformType HandleType => ItemDataTransformType.TwoD;
-
-		#endregion
 	}
 }

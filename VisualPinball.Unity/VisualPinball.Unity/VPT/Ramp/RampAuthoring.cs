@@ -34,7 +34,7 @@ namespace VisualPinball.Unity
 {
 	[ExecuteAlways]
 	[AddComponentMenu("Visual Pinball/Game Item/Ramp")]
-	public class RampAuthoring : ItemMainRenderableAuthoring<Ramp, RampData>, IDragPointsEditable, ISurfaceAuthoring, IConvertGameObjectToEntity
+	public class RampAuthoring : ItemMainRenderableAuthoring<Ramp, RampData>, ISurfaceAuthoring, IDragPointsAuthoring, IConvertGameObjectToEntity
 	{
 		#region Data
 
@@ -82,7 +82,9 @@ namespace VisualPinball.Unity
 
 		public float WireDistanceY = 88f;
 
+		[SerializeField]
 		private DragPointData[] _dragPoints;
+		public DragPointData[] DragPoints { get => _dragPoints; set => _dragPoints = value; }
 
 		#endregion
 
@@ -229,16 +231,5 @@ namespace VisualPinball.Unity
 				pt.Center += diff;
 			}
 		}
-
-		#region Dragpoint Tooling
-
-		public DragPointData[] DragPoints { get => _dragPoints; set => _dragPoints = value; }
-		public Vector3 EditableOffset => new Vector3(0.0f, 0.0f, Data.HeightBottom);
-		public Vector3 GetDragPointOffset(float ratio) => new Vector3(0.0f, 0.0f, (Data.HeightTop - Data.HeightBottom) * ratio);
-		public bool PointsAreLooping => false;
-		public IEnumerable<DragPointExposure> DragPointExposition => new DragPointExposure[] { DragPointExposure.Smooth, DragPointExposure.SlingShot };
-		public ItemDataTransformType HandleType => ItemDataTransformType.ThreeD;
-
-		#endregion
 	}
 }

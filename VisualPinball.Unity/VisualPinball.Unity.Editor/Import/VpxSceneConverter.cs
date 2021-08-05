@@ -20,7 +20,9 @@ using System.IO;
 using System.Linq;
 using NLog;
 using UnityEditor;
+using UnityEditor.SceneManagement;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using VisualPinball.Engine.Common;
 using VisualPinball.Engine.Game;
 using VisualPinball.Engine.VPT;
@@ -281,6 +283,10 @@ namespace VisualPinball.Unity.Editor
 						_patcher?.ApplyPatches(renderableLookup[lookupName], meshMb.gameObject, _tableGo);
 					}
 				}
+
+				// persist changes
+				EditorUtility.SetDirty(convertedItem.GameObject);
+				PrefabUtility.RecordPrefabInstancePropertyModifications(convertedItem.MainAuthoring as MonoBehaviour);
 			}
 
 			// finally, convert non-renderables
@@ -289,6 +295,9 @@ namespace VisualPinball.Unity.Editor
 				// create object(s)
 				CreateGameObjects(item);
 			}
+
+			// yes, really persist changes..
+			EditorSceneManager.MarkSceneDirty(SceneManager.GetActiveScene());
 		}
 
 		public IConvertedItem CreateGameObjects(IItem item)
