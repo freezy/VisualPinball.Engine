@@ -38,8 +38,6 @@ namespace VisualPinball.Unity
 	{
 		#region Data
 
-		public DragPointData[] DragPoints;
-
 		public float Elasticity;
 
 		public float Friction;
@@ -83,6 +81,8 @@ namespace VisualPinball.Unity
 		public float WireDistanceX = 38f;
 
 		public float WireDistanceY = 88f;
+
+		private DragPointData[] _dragPoints;
 
 		#endregion
 
@@ -230,15 +230,15 @@ namespace VisualPinball.Unity
 			}
 		}
 
-		//IDragPointsEditable
-		public bool DragPointEditEnabled { get; set; }
+		#region Dragpoint Tooling
 
-		public DragPointData[] GetDragPoints() => Data.DragPoints;
-		public void SetDragPoints(DragPointData[] dragPoints) { Data.DragPoints = dragPoints; }
-		public Vector3 GetEditableOffset() => new Vector3(0.0f, 0.0f, Data.HeightBottom);
+		public DragPointData[] DragPoints { get => _dragPoints; set => _dragPoints = value; }
+		public Vector3 EditableOffset => new Vector3(0.0f, 0.0f, Data.HeightBottom);
 		public Vector3 GetDragPointOffset(float ratio) => new Vector3(0.0f, 0.0f, (Data.HeightTop - Data.HeightBottom) * ratio);
-		public bool PointsAreLooping() => false;
-		public IEnumerable<DragPointExposure> GetDragPointExposition() => new DragPointExposure[] { DragPointExposure.Smooth, DragPointExposure.SlingShot };
-		public ItemDataTransformType GetHandleType() => ItemDataTransformType.ThreeD;
+		public bool PointsAreLooping => false;
+		public IEnumerable<DragPointExposure> DragPointExposition => new DragPointExposure[] { DragPointExposure.Smooth, DragPointExposure.SlingShot };
+		public ItemDataTransformType HandleType => ItemDataTransformType.ThreeD;
+
+		#endregion
 	}
 }

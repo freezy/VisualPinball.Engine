@@ -34,6 +34,8 @@ namespace VisualPinball.Unity.Editor
 		/// </summary>
 		public DragPointsHandler DragPointsHandler { get; private set; }
 
+		private bool EditingEnabled => Selection.count == 1 && target is MonoBehaviour mb && Selection.activeGameObject == mb.gameObject;
+
 		/// <summary>
 		/// If true, a list of the drag points is displayed in the inspector.
 		/// </summary>
@@ -121,7 +123,7 @@ namespace VisualPinball.Unity.Editor
 			if (!(target is IDragPointsEditable editable)) {
 				return false;
 			}
-			return editable.GetDragPointExposition().Contains(exposure);
+			return editable.DragPointExposition.Contains(exposure);
 		}
 
 		/// <summary>
@@ -134,7 +136,7 @@ namespace VisualPinball.Unity.Editor
 				return;
 			}
 
-			if (editable.GetHandleType() != ItemDataTransformType.ThreeD && flipAxis == FlipAxis.Z) {
+			if (editable.HandleType != ItemDataTransformType.ThreeD && flipAxis == FlipAxis.Z) {
 				return;
 			}
 
@@ -187,53 +189,49 @@ namespace VisualPinball.Unity.Editor
 		{
 			base.OnInspectorGUI();
 
-			var editable = target as IItemMainRenderableAuthoring;
-			var dragPointEditable = target as IDragPointsEditable;
-			if (editable == null || dragPointEditable == null) {
+			if (!(target is IItemMainRenderableAuthoring editable) || !(target is IDragPointsEditable dragPointEditable)) {
 				return;
 			}
 
-			var editButtonText = dragPointEditable.DragPointEditEnabled ? "Stop Editing Drag Points" : "Edit Drag Points";
-			if (GUILayout.Button(editButtonText)) {
-				dragPointEditable.DragPointEditEnabled = !dragPointEditable.DragPointEditEnabled;
-				SceneView.RepaintAll();
-			}
+			// var editButtonText = dragPointEditable.DragPointEditEnabled ? "Stop Editing Drag Points" : "Edit Drag Points";
+			// if (GUILayout.Button(editButtonText)) {
+			// 	dragPointEditable.DragPointEditEnabled = !dragPointEditable.DragPointEditEnabled;
+			// 	SceneView.RepaintAll();
+			// }
 
-			if (dragPointEditable.DragPointEditEnabled) {
-				if (editable.IsLocked) {
-					EditorGUILayout.LabelField("Drag Points are Locked");
-				} else {
-					_foldoutControlPoints = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutControlPoints, "Drag Points");
-					if (_foldoutControlPoints) {
+			if (editable.IsLocked) {
+				EditorGUILayout.LabelField("Drag Points are Locked");
+			} else {
+				_foldoutControlPoints = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutControlPoints, "Drag Points");
+				if (_foldoutControlPoints) {
+					EditorGUI.indentLevel++;
+					for (var i = 0; i < DragPointsHandler.ControlPoints.Count; ++i) {
+						var controlPoint = DragPointsHandler.ControlPoints[i];
+						EditorGUILayout.BeginHorizontal();
+						EditorGUILayout.LabelField($"#{i} ({controlPoint.DragPoint.Center.X},{controlPoint.DragPoint.Center.Y},{controlPoint.DragPoint.Center.Z})");
+						if (GUILayout.Button("Copy")) {
+							CopyDragPoint(controlPoint.ControlId);
+						}
+						else if (GUILayout.Button("Paste")) {
+							PasteDragPoint(controlPoint.ControlId);
+						}
+						EditorGUILayout.EndHorizontal();
 						EditorGUI.indentLevel++;
-						for (var i = 0; i < DragPointsHandler.ControlPoints.Count; ++i) {
-							var controlPoint = DragPointsHandler.ControlPoints[i];
-							EditorGUILayout.BeginHorizontal();
-							EditorGUILayout.LabelField($"#{i} ({controlPoint.DragPoint.Center.X},{controlPoint.DragPoint.Center.Y},{controlPoint.DragPoint.Center.Z})");
-							if (GUILayout.Button("Copy")) {
-								CopyDragPoint(controlPoint.ControlId);
-							}
-							else if (GUILayout.Button("Paste")) {
-								PasteDragPoint(controlPoint.ControlId);
-							}
-							EditorGUILayout.EndHorizontal();
-							EditorGUI.indentLevel++;
-							if (HasDragPointExposure(DragPointExposure.SlingShot)) {
-								ItemDataField("Slingshot", ref controlPoint.DragPoint.IsSlingshot);
-							}
-							if (HasDragPointExposure(DragPointExposure.Smooth)) {
-								ItemDataField("Smooth", ref controlPoint.DragPoint.IsSmooth);
-							}
-							if (HasDragPointExposure(DragPointExposure.Texture)) {
-								ItemDataField("Has AutoTexture", ref controlPoint.DragPoint.HasAutoTexture);
-								ItemDataSlider("Texture Coord", ref controlPoint.DragPoint.TextureCoord, 0.0f, 1.0f);
-							}
-							EditorGUI.indentLevel--;
+						if (HasDragPointExposure(DragPointExposure.SlingShot)) {
+							ItemDataField("Slingshot", ref controlPoint.DragPoint.IsSlingshot);
+						}
+						if (HasDragPointExposure(DragPointExposure.Smooth)) {
+							ItemDataField("Smooth", ref controlPoint.DragPoint.IsSmooth);
+						}
+						if (HasDragPointExposure(DragPointExposure.Texture)) {
+							ItemDataField("Has AutoTexture", ref controlPoint.DragPoint.HasAutoTexture);
+							ItemDataSlider("Texture Coord", ref controlPoint.DragPoint.TextureCoord, 0.0f, 1.0f);
 						}
 						EditorGUI.indentLevel--;
 					}
-					EditorGUILayout.EndFoldoutHeaderGroup();
+					EditorGUI.indentLevel--;
 				}
+				EditorGUILayout.EndFoldoutHeaderGroup();
 			}
 		}
 
@@ -261,7 +259,7 @@ namespace VisualPinball.Unity.Editor
 			var dragPointEditable = target as IDragPointsEditable;
 			var bh = target as Behaviour;
 
-			if (editable == null || bh == null || dragPointEditable == null || !dragPointEditable.DragPointEditEnabled) {
+			if (editable == null || bh == null || dragPointEditable == null || !EditingEnabled) {
 				return;
 			}
 
