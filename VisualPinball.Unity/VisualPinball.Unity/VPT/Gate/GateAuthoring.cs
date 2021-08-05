@@ -104,7 +104,7 @@ namespace VisualPinball.Unity
 			transform.GetComponentInParent<Player>().RegisterGate(Item, entity, ParentEntity, gameObject);
 		}
 
-		public override void SetData(GateData data, IMaterialProvider materialProvider, Dictionary<string, IItemMainAuthoring> components)
+		public override void SetData(GateData data, IMaterialProvider materialProvider, ITextureProvider textureProvider, Dictionary<string, IItemMainAuthoring> components)
 		{
 			Rotation = data.Rotation;
 			AngleMax = data.AngleMax;

@@ -194,7 +194,7 @@ namespace VisualPinball.Unity
 			player.RegisterFlipper(Item, entity, ParentEntity, gameObject);
 		}
 
-		public override void SetData(FlipperData data, IMaterialProvider materialProvider, Dictionary<string, IItemMainAuthoring> components)
+		public override void SetData(FlipperData data, IMaterialProvider materialProvider, ITextureProvider textureProvider, Dictionary<string, IItemMainAuthoring> components)
 		{
 			BaseRadius = data.BaseRadius;
 			EndRadius = data.EndRadius;

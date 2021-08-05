@@ -146,7 +146,7 @@ namespace VisualPinball.Unity
 			t.localEulerAngles = new Vector3(0, 0, Orientation);
 		}
 
-		public override void SetData(BumperData data, IMaterialProvider materialProvider, Dictionary<string, IItemMainAuthoring> components)
+		public override void SetData(BumperData data, IMaterialProvider materialProvider, ITextureProvider textureProvider, Dictionary<string, IItemMainAuthoring> components)
 		{
 			// transforms
 			Position = data.Center.ToUnityFloat2();

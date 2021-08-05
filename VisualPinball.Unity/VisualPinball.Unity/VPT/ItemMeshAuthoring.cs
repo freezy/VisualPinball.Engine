@@ -21,6 +21,7 @@ using System.Reflection;
 using UnityEngine;
 using VisualPinball.Engine.Game;
 using VisualPinball.Engine.VPT;
+using VisualPinball.Engine.VPT.Table;
 
 namespace VisualPinball.Unity
 {
@@ -79,6 +80,36 @@ namespace VisualPinball.Unity
 			ItemDataChanged();
 		}
 
+		protected virtual RenderObject GetRenderObject(TData data, Table table)
+		{
+			return null;
+		}
+
+		public void CreateMesh(TData data, ITextureProvider texProvider, IMaterialProvider matProvider)
+		{
+			var ta = GetComponentInParent<TableAuthoring>();
+			var ro = GetRenderObject(data, ta.Table);
+			if (ro?.Mesh == null) {
+				return;
+			}
+			var mesh = ro.Mesh.ToUnityMesh(gameObject.name);
+
+			// apply mesh to game object
+			var mf = gameObject.GetComponent<MeshFilter>();
+			mf.sharedMesh = mesh;
+
+			// apply renderer and material
+			if (ro.Mesh.AnimationFrames.Count > 0) { // if number of animations frames are 1, the blend vertices are in the uvs are handle by the lerp shader.
+				var smr = gameObject.AddComponent<SkinnedMeshRenderer>();
+				smr.sharedMaterial = ro.Material.ToUnityMaterial(matProvider, texProvider, MainAuthoring.Item.GetType());
+				smr.sharedMesh = mesh;
+				smr.SetBlendShapeWeight(0, ro.Mesh.AnimationDefaultPosition);
+			} else {
+				var mr = gameObject.AddComponent<MeshRenderer>();
+				mr.sharedMaterial = ro.Material.ToUnityMaterial(matProvider, texProvider, MainAuthoring.Item.GetType());
+			}
+		}
+
 		public void CreateMesh(string parentName, ITextureProvider texProvider, IMaterialProvider matProvider, IMeshProvider meshProvider)
 		{
 			var ta = GetComponentInParent<TableAuthoring>();
@@ -94,8 +125,8 @@ namespace VisualPinball.Unity
 
 			// apply mesh to game object
 			var mf = gameObject.AddComponent<MeshFilter>();
-			mf.sharedMesh = mesh;
 
+			mf.sharedMesh = mesh;
 			// apply material
 			if (ro.Mesh.AnimationFrames.Count > 0) { // if number of animations frames are 1, the blend vertices are in the uvs are handle by the lerp shader.
 				var smr = gameObject.AddComponent<SkinnedMeshRenderer>();

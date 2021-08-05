@@ -20,7 +20,6 @@ using System.IO;
 using System.Linq;
 using NLog;
 using UnityEditor;
-using UnityEditor.SceneManagement;
 using UnityEngine;
 using VisualPinball.Engine.Common;
 using VisualPinball.Engine.Game;
@@ -273,7 +272,7 @@ namespace VisualPinball.Unity.Editor
 
 				// set data
 				if (datas.ContainsKey(lookupName)) {
-					convertedItem.SetData(datas[lookupName], this, components);
+					convertedItem.SetData(datas[lookupName], this, this, components);
 				}
 
 				// patch

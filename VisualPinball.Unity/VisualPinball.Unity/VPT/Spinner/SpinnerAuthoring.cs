@@ -91,7 +91,7 @@ namespace VisualPinball.Unity
 			transform.GetComponentInParent<Player>().RegisterSpinner(Item, entity, ParentEntity, gameObject);
 		}
 
-		public override void SetData(SpinnerData data, IMaterialProvider materialProvider, Dictionary<string, IItemMainAuthoring> components)
+		public override void SetData(SpinnerData data, IMaterialProvider materialProvider, ITextureProvider textureProvider, Dictionary<string, IItemMainAuthoring> components)
 		{
 			Height = data.Height;
 			Length = data.Length;

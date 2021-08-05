@@ -126,7 +126,7 @@ namespace VisualPinball.Unity
 			}
 		}
 
-		public override void SetData(LightData data, IMaterialProvider materialProvider, Dictionary<string, IItemMainAuthoring> components)
+		public override void SetData(LightData data, IMaterialProvider materialProvider, ITextureProvider textureProvider, Dictionary<string, IItemMainAuthoring> components)
 		{
 		}
 

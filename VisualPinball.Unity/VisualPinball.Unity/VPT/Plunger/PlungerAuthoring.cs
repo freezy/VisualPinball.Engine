@@ -176,7 +176,7 @@ namespace VisualPinball.Unity
 			});
 		}
 
-		public override void SetData(PlungerData data, IMaterialProvider materialProvider, Dictionary<string, IItemMainAuthoring> components)
+		public override void SetData(PlungerData data, IMaterialProvider materialProvider, ITextureProvider textureProvider, Dictionary<string, IItemMainAuthoring> components)
 		{
 			Type = data.Type;
 			Width = data.Width;
