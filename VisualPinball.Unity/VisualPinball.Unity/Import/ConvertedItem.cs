@@ -85,7 +85,7 @@ namespace VisualPinball.Unity
 		/// </summary>
 		void DestroyColliderComponent();
 
-		void SetData(ItemData data, IMaterialProvider materialProvider, Dictionary<string, IItemMainAuthoring> itemMainAuthorings);
+		void SetData(ItemData data, IMaterialProvider materialProvider, ITextureProvider textureProvider, Dictionary<string, IItemMainAuthoring> itemMainAuthorings);
 	}
 
 	/// <summary>
@@ -224,10 +224,10 @@ namespace VisualPinball.Unity
 				_colliderAuthoring = null;
 			}
 		}
-		public void SetData(ItemData data, IMaterialProvider materialProvider, Dictionary<string, IItemMainAuthoring> itemMainAuthorings)
+		public void SetData(ItemData data, IMaterialProvider materialProvider, ITextureProvider textureProvider, Dictionary<string, IItemMainAuthoring> itemMainAuthorings)
 		{
 			if (data is TData itemData) {
-				_mainAuthoring.SetData(itemData, materialProvider, itemMainAuthorings);
+				_mainAuthoring.SetData(itemData, materialProvider, textureProvider, itemMainAuthorings);
 
 			} else {
 				throw new InvalidCastException($"Cannot set data of type {data.GetType()} to {_mainAuthoring.GetType()}");

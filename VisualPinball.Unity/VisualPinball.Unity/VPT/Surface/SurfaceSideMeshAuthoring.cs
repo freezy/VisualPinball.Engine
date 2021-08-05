@@ -17,7 +17,9 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using VisualPinball.Engine.Game;
 using VisualPinball.Engine.VPT.Surface;
+using VisualPinball.Engine.VPT.Table;
 
 namespace VisualPinball.Unity
 {
@@ -25,11 +27,17 @@ namespace VisualPinball.Unity
 	[AddComponentMenu("Visual Pinball/Mesh/Surface Side Mesh")]
 	public class SurfaceSideMeshAuthoring : ItemMeshAuthoring<Surface, SurfaceData, SurfaceAuthoring>
 	{
-		public static readonly Type[] ValidParentTypes = new Type[0];
+		public static readonly Type[] ValidParentTypes = Type.EmptyTypes;
 
 		public override IEnumerable<Type> ValidParents => ValidParentTypes;
 
 		protected override string MeshId => SurfaceMeshGenerator.Side;
+
+		protected override RenderObject GetRenderObject(SurfaceData data, Table table)
+		{
+			return new SurfaceMeshGenerator(data).GetRenderObject(table, SurfaceMeshGenerator.Side, false);
+		}
+
 		protected override bool IsVisible {
 			get => Data.IsSideVisible;
 			set => Data.IsSideVisible = value;

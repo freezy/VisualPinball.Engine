@@ -25,7 +25,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Unity.Entities;
-using Unity.Mathematics;
 using UnityEngine;
 using VisualPinball.Engine.Math;
 using VisualPinball.Engine.VPT.Surface;
@@ -39,41 +38,17 @@ namespace VisualPinball.Unity
 	{
 		#region Data
 
-		public bool HitEvent;
-
 		public bool IsDroppable;
 
 		public bool IsFlipbook;
 
 		public bool IsBottomSolid;
 
-		public float Threshold = 2.0f;
-
-		public string PhysicsMaterial = string.Empty;
-
-		public string SlingShotMaterial = string.Empty;
-
 		public float HeightBottom;
 
 		public float HeightTop = 50f;
 
 		public bool Inner = true;
-
-		public float SlingshotForce = 80f;
-
-		public float SlingshotThreshold;
-
-		public bool SlingshotAnimation = true;
-
-		public float Elasticity;
-
-		public float ElasticityFalloff;
-
-		public float Friction;
-
-		public float Scatter;
-
-		public bool OverwritePhysics = true;
 
 		public DragPointData[] DragPoints;
 
@@ -94,34 +69,60 @@ namespace VisualPinball.Unity
 		public void Convert(Entity entity, EntityManager dstManager, GameObjectConversionSystem conversionSystem)
 		{
 			Convert(entity, dstManager);
-			dstManager.AddComponentData(entity, new LineSlingshotData {
-				IsDisabled = false,
-				Threshold = Data.SlingshotThreshold,
-			});
+
+			// physics collision data
+			var collComponent = GetComponentInChildren<SurfaceColliderAuthoring>();
+			if (collComponent) {
+				dstManager.AddComponentData(entity, new LineSlingshotData {
+					IsDisabled = false,
+					Threshold = collComponent.SlingshotThreshold,
+				});
+			}
+
 			transform.GetComponentInParent<Player>().RegisterSurface(Item, entity, ParentEntity, gameObject);
 		}
 
-		public override void SetData(SurfaceData data, IMaterialProvider materialProvider, Dictionary<string, IItemMainAuthoring> components)
+		public override void SetData(SurfaceData data, IMaterialProvider materialProvider, ITextureProvider textureProvider, Dictionary<string, IItemMainAuthoring> components)
 		{
-			HitEvent = data.HitEvent;
+			// data props
 			IsDroppable = data.IsDroppable;
 			IsFlipbook = data.IsFlipbook;
 			IsBottomSolid = data.IsBottomSolid;
-			Threshold = data.Threshold;
-			PhysicsMaterial = data.PhysicsMaterial;
-			SlingShotMaterial = data.SlingShotMaterial;
+
 			HeightBottom = data.HeightBottom;
 			HeightTop = data.HeightTop;
 			Inner = data.Inner;
-			SlingshotForce = data.SlingshotForce;
-			SlingshotThreshold = data.SlingshotThreshold;
-			SlingshotAnimation = data.SlingshotAnimation;
-			Elasticity = data.Elasticity;
-			ElasticityFalloff = data.ElasticityFalloff;
-			Friction = data.Friction;
-			Scatter = data.Scatter;
-			OverwritePhysics = data.OverwritePhysics;
+
 			DragPoints = data.DragPoints;
+
+			// children mesh creation and visibility
+			var topMesh = GetComponentInChildren<SurfaceTopMeshAuthoring>();
+			topMesh.CreateMesh(data, textureProvider, materialProvider);
+			topMesh.gameObject.SetActive(data.IsTopBottomVisible);
+			var sideMesh = GetComponentInChildren<SurfaceSideMeshAuthoring>();
+			sideMesh.CreateMesh(data, textureProvider, materialProvider);
+			sideMesh.gameObject.SetActive(data.IsSideVisible);
+
+			// collider
+			var collComponent = GetComponentInChildren<SurfaceColliderAuthoring>();
+			if (collComponent) {
+
+				collComponent.HitEvent = data.HitEvent;
+				collComponent.Threshold = data.Threshold;
+
+				collComponent.PhysicsMaterial = materialProvider.GetPhysicsMaterial(data.PhysicsMaterial);
+
+				collComponent.SlingShotMaterial = materialProvider.GetPhysicsMaterial(data.SlingShotMaterial);
+				collComponent.SlingshotForce = data.SlingshotForce;
+				collComponent.SlingshotThreshold = data.SlingshotThreshold;
+				collComponent.SlingshotAnimation = data.SlingshotAnimation;
+
+				collComponent.OverwritePhysics = data.OverwritePhysics;
+				collComponent.Elasticity = data.Elasticity;
+				collComponent.ElasticityFalloff = data.ElasticityFalloff;
+				collComponent.Scatter = data.Scatter;
+				collComponent.Friction = data.Friction;
+			}
 		}
 
 		public override void CopyDataTo(SurfaceData data)
@@ -129,47 +130,43 @@ namespace VisualPinball.Unity
 			// update the name
 			data.Name = name;
 
-			// update visibility
-			data.IsSideVisible = false;
-			data.IsTopBottomVisible = false;
-			foreach (var meshComponent in MeshComponents) {
-				switch (meshComponent) {
-					case SurfaceSideMeshAuthoring meshAuthoring:
-						data.IsSideVisible = meshAuthoring.gameObject.activeInHierarchy;
-						break;
-					case SurfaceTopMeshAuthoring meshAuthoring:
-						data.IsTopBottomVisible = meshAuthoring.gameObject.activeInHierarchy;
-						break;
-				}
-			}
+			// children visibility
+			var topMesh = GetComponentInChildren<SurfaceTopMeshAuthoring>();
+			data.IsTopBottomVisible = topMesh.gameObject.activeInHierarchy;
+			var sideMesh = GetComponentInChildren<SurfaceSideMeshAuthoring>();
+			data.IsSideVisible = sideMesh.gameObject.activeInHierarchy;
 
 			// update collision
-			data.IsCollidable = false;
-			foreach (var colliderComponent in ColliderComponents) {
-				if (colliderComponent is SurfaceColliderAuthoring colliderAuthoring) {
-					data.IsCollidable = colliderAuthoring.gameObject.activeInHierarchy;
-				}
+			var collComponent = GetComponentInChildren<SurfaceColliderAuthoring>();
+			if (collComponent) {
+				data.IsCollidable = true;
+
+				data.HitEvent = collComponent.HitEvent;
+				data.Threshold = collComponent.Threshold;
+
+				data.PhysicsMaterial = collComponent.PhysicsMaterial.name;
+				data.SlingShotMaterial = collComponent.SlingShotMaterial.name;
+				data.SlingshotForce = collComponent.SlingshotForce;
+				data.SlingshotThreshold = collComponent.SlingshotThreshold;
+				data.SlingshotAnimation = collComponent.SlingshotAnimation;
+
+				data.OverwritePhysics = collComponent.OverwritePhysics;
+				data.Elasticity = collComponent.Elasticity;
+				data.ElasticityFalloff = collComponent.ElasticityFalloff;
+				data.Scatter = collComponent.Scatter;
+				data.Friction = collComponent.Friction;
+
+			} else {
+				data.IsCollidable = false;
 			}
 
 			// other props
-			data.HitEvent = HitEvent;
 			data.IsDroppable = IsDroppable;
 			data.IsFlipbook = IsFlipbook;
 			data.IsBottomSolid = IsBottomSolid;
-			data.Threshold = Threshold;
-			data.PhysicsMaterial = PhysicsMaterial;
-			data.SlingShotMaterial = SlingShotMaterial;
 			data.HeightBottom = HeightBottom;
 			data.HeightTop = HeightTop;
 			data.Inner = Inner;
-			data.SlingshotForce = SlingshotForce;
-			data.SlingshotThreshold = SlingshotThreshold;
-			data.SlingshotAnimation = SlingshotAnimation;
-			data.Elasticity = Elasticity;
-			data.ElasticityFalloff = ElasticityFalloff;
-			data.Friction = Friction;
-			data.Scatter = Scatter;
-			data.OverwritePhysics = OverwritePhysics;
 			data.DragPoints = DragPoints;
 		}
 

@@ -14,6 +14,8 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+// ReSharper disable InconsistentNaming
+
 using System;
 using System.Collections.Generic;
 using Unity.Entities;
@@ -25,6 +27,32 @@ namespace VisualPinball.Unity
 	[AddComponentMenu("Visual Pinball/Collision/Surface Collider")]
 	public class SurfaceColliderAuthoring : ItemColliderAuthoring<Surface, SurfaceData, SurfaceAuthoring>
 	{
+		#region Data
+
+		public bool HitEvent;
+
+		public float Threshold = 2.0f;
+
+		public PhysicsMaterial SlingShotMaterial;
+
+		public float SlingshotForce = 80f;
+
+		public float SlingshotThreshold;
+
+		public bool SlingshotAnimation = true;
+
+		public bool OverwritePhysics = true;
+
+		public float Elasticity;
+
+		public float ElasticityFalloff;
+
+		public float Friction;
+
+		public float Scatter;
+
+		#endregion
+
 		public static readonly Type[] ValidParentTypes = {
 			typeof(RubberAuthoring),
 			typeof(PrimitiveAuthoring)

@@ -17,7 +17,9 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using VisualPinball.Engine.Game;
 using VisualPinball.Engine.VPT.Surface;
+using VisualPinball.Engine.VPT.Table;
 
 namespace VisualPinball.Unity
 {
@@ -25,11 +27,17 @@ namespace VisualPinball.Unity
 	[AddComponentMenu("Visual Pinball/Mesh/Surface Top Mesh")]
 	public class SurfaceTopMeshAuthoring : ItemMeshAuthoring<Surface, SurfaceData, SurfaceAuthoring>
 	{
-		public static readonly Type[] ValidParentTypes = new Type[0];
+		public static readonly Type[] ValidParentTypes = Type.EmptyTypes;
 
 		public override IEnumerable<Type> ValidParents => ValidParentTypes;
 
 		protected override string MeshId => SurfaceMeshGenerator.Top;
+
+		protected override RenderObject GetRenderObject(SurfaceData data, Table table)
+		{
+			return new SurfaceMeshGenerator(data).GetRenderObject(table, SurfaceMeshGenerator.Top, false);
+		}
+
 		protected override bool IsVisible {
 			get => Data.IsTopBottomVisible;
 			set => Data.IsTopBottomVisible = value;
