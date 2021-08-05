@@ -144,10 +144,12 @@ namespace VisualPinball.Unity
 		{
 		}
 
-		public override void CopyDataTo(TableData data)
+		public override TableData CopyDataTo(TableData data)
 		{
 			// update the name
 			data.Name = name;
+
+			return data;
 		}
 
 		public Texture2D GetTexture(string name)

@@ -24,9 +24,18 @@ namespace VisualPinball.Unity.Editor
 	[CustomEditor(typeof(SurfaceAuthoring))]
 	public class SurfaceInspector : DragPointsItemInspector<Surface, SurfaceData, SurfaceAuthoring>
 	{
-		private bool _foldoutColorsAndFormatting = true;
-		private bool _foldoutPosition = true;
-		private bool _foldoutMisc;
+		private SerializedProperty _heightTopProperty;
+		private SerializedProperty _heightBottomProperty;
+		private SerializedProperty _isDroppableProperty;
+
+		protected override void OnEnable()
+		{
+			base.OnEnable();
+
+			_heightTopProperty = serializedObject.FindProperty(nameof(SurfaceAuthoring.HeightTop));
+			_heightBottomProperty = serializedObject.FindProperty(nameof(SurfaceAuthoring.HeightBottom));
+			_isDroppableProperty = serializedObject.FindProperty(nameof(SurfaceAuthoring.IsDroppable));
+		}
 
 		public override void OnInspectorGUI()
 		{
@@ -34,28 +43,17 @@ namespace VisualPinball.Unity.Editor
 				return;
 			}
 
+			serializedObject.Update();
+
 			OnPreInspectorGUI();
 
-			if (_foldoutPosition = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutPosition, "Position")) {
-				ItemDataField("Top Height", ref Data.HeightTop);
-				ItemDataField("Bottom Height", ref Data.HeightBottom);
-			}
-			EditorGUILayout.EndFoldoutHeaderGroup();
-
-			if (_foldoutColorsAndFormatting = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutColorsAndFormatting, "Colors & Formatting")) {
-				MaterialFieldLegacy("Slingshot Material", ref Data.SlingShotMaterial);
-				ItemDataField("Animate Slingshot", ref Data.SlingshotAnimation, false);
-				ItemDataField("Flipbook", ref Data.IsFlipbook, false);
-			}
-			EditorGUILayout.EndFoldoutHeaderGroup();
-
-			if (_foldoutMisc = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutMisc, "Misc")) {
-				ItemDataField("Timer Enabled", ref Data.IsTimerEnabled, false);
-				ItemDataField("Timer Interval", ref Data.TimerInterval, false);
-			}
-			EditorGUILayout.EndFoldoutHeaderGroup();
+			PropertyField(_heightTopProperty, "Top Height", true);
+			PropertyField(_heightBottomProperty, "Bottom Height", true);
+			PropertyField(_isDroppableProperty);
 
 			base.OnInspectorGUI();
+
+			serializedObject.ApplyModifiedProperties();
 		}
 	}
 }

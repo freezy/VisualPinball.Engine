@@ -134,7 +134,7 @@ namespace VisualPinball.Unity
 			WireDistanceY = data.WireDistanceY;
 		}
 
-		public override void CopyDataTo(RampData data)
+		public override RampData CopyDataTo(RampData data)
 		{
 			// update the name
 			data.Name = name;
@@ -187,6 +187,8 @@ namespace VisualPinball.Unity
 			data.WireDiameter = WireDiameter;
 			data.WireDistanceX = WireDistanceX;
 			data.WireDistanceY = WireDistanceY;
+
+			return data;
 		}
 
 		public void UpdateMeshComponents(int rampTypeBefore, int rampTypeAfter)

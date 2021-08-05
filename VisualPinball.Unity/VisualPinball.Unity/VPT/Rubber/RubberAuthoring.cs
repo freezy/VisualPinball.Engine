@@ -102,7 +102,7 @@ namespace VisualPinball.Unity
 			DragPoints = data.DragPoints;
 		}
 
-		public override void CopyDataTo(RubberData data)
+		public override RubberData CopyDataTo(RubberData data)
 		{
 			var localRot = transform.localEulerAngles;
 
@@ -145,6 +145,8 @@ namespace VisualPinball.Unity
 			data.RotZ = RotZ;
 			data.OverwritePhysics = OverwritePhysics;
 			data.DragPoints = DragPoints;
+
+			return data;
 		}
 
 		public override ItemDataTransformType EditorPositionType => ItemDataTransformType.ThreeD;

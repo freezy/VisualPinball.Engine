@@ -93,7 +93,7 @@ namespace VisualPinball.Unity
 			WireThickness = data.WireThickness;
 		}
 
-		public override void CopyDataTo(TriggerData data)
+		public override TriggerData CopyDataTo(TriggerData data)
 		{
 			var localPos = transform.localPosition;
 
@@ -121,6 +121,8 @@ namespace VisualPinball.Unity
 			data.HitHeight = HitHeight;
 			data.AnimSpeed = AnimSpeed;
 			data.WireThickness = WireThickness;
+
+			return data;
 		}
 
 		public override ItemDataTransformType EditorPositionType => ItemDataTransformType.TwoD;

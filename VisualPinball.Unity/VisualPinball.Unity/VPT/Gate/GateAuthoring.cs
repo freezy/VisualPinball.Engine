@@ -120,7 +120,7 @@ namespace VisualPinball.Unity
 			TwoWay = data.TwoWay;
 		}
 
-		public override void CopyDataTo(GateData data)
+		public override GateData CopyDataTo(GateData data)
 		{
 			var localPos = transform.localPosition;
 
@@ -166,6 +166,8 @@ namespace VisualPinball.Unity
 			data.Length = Length;
 			data.Surface = Surface ? Surface.name : string.Empty;
 			data.TwoWay = TwoWay;
+
+			return data;
 		}
 
 		public override ItemDataTransformType EditorPositionType => ItemDataTransformType.ThreeD;

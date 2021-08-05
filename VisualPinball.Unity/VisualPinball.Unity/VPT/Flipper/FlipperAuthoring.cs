@@ -223,7 +223,7 @@ namespace VisualPinball.Unity
 			IsDualWound = data.IsDualWound;
 		}
 
-		public override void CopyDataTo(FlipperData data)
+		public override FlipperData CopyDataTo(FlipperData data)
 		{
 			var localPos = transform.localPosition;
 
@@ -272,6 +272,8 @@ namespace VisualPinball.Unity
 			data.IsDualWound = IsDualWound;
 
 			// collision: flipper is always collidable
+
+			return data;
 		}
 
 		public void OnRubberWidthUpdated(float before, float after)

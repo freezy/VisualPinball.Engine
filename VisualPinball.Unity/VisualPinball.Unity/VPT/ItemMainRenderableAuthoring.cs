@@ -38,7 +38,6 @@ namespace VisualPinball.Unity
 
 		protected abstract Type ColliderAuthoringType { get; }
 
-
 		/// <summary>
 		/// Returns all child mesh components linked to this data.
 		/// </summary>
