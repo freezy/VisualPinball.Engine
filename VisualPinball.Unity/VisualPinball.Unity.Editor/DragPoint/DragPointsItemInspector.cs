@@ -192,9 +192,8 @@ namespace VisualPinball.Unity.Editor
 
 		public override void OnInspectorGUI()
 		{
-			base.OnInspectorGUI();
-
-			if (!(target is IItemMainRenderableAuthoring editable) || !(target is IDragPointsEditable dragPointEditable)) {
+			if (!(target is IItemMainRenderableAuthoring editable)) {
+				base.OnInspectorGUI();
 				return;
 			}
 
@@ -238,6 +237,7 @@ namespace VisualPinball.Unity.Editor
 				}
 				EditorGUILayout.EndFoldoutHeaderGroup();
 			}
+			base.OnInspectorGUI();
 		}
 
 		private void UpdateDragPointsLock()
