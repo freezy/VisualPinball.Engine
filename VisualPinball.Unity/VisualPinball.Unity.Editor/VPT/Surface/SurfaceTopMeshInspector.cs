@@ -38,10 +38,7 @@ namespace VisualPinball.Unity.Editor
 				return;
 			}
 
-			TextureFieldLegacy("Top Material", ref _data.Image);
-			MaterialFieldLegacy("Top Material", ref _data.TopMaterial);
-
-			base.OnInspectorGUI();
+			EditorGUILayout.HelpBox($"This component computes the top mesh of the wall. It's parameterized by its parent.\n\nIf your wall serves as collider only, you can remove or deactivate this game object.", MessageType.Info);
 		}
 	}
 }

@@ -38,10 +38,7 @@ namespace VisualPinball.Unity.Editor
 				return;
 			}
 
-			TextureFieldLegacy("Side Texture", ref _data.SideImage);
-			MaterialFieldLegacy("Side Material", ref _data.SideMaterial);
-
-			base.OnInspectorGUI();
+			EditorGUILayout.HelpBox("This component computes the side meshes of the wall. It's parameterized by its parent.\n\nIf your wall serves as collider only, you can remove or deactivate this game object.", MessageType.Info);
 		}
 	}
 }
