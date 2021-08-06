@@ -92,7 +92,7 @@ namespace VisualPinball.Unity
 			if (ro?.Mesh == null) {
 				return;
 			}
-			var mesh = ro.Mesh.ToUnityMesh(gameObject.name);
+			var mesh = ro.Mesh.ToUnityMesh($"{data.GetName()} Mesh ({gameObject.name})");
 
 			// apply mesh to game object
 			var mf = gameObject.GetComponent<MeshFilter>();
