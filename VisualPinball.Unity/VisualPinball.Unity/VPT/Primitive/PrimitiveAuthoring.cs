@@ -85,8 +85,10 @@ namespace VisualPinball.Unity
 			transform.GetComponentInParent<Player>().RegisterPrimitive(primitive, entity, ParentEntity, gameObject);
 		}
 
-		public override void SetData(PrimitiveData data, IMaterialProvider materialProvider, ITextureProvider textureProvider, Dictionary<string, IItemMainAuthoring> components)
+		public override IEnumerable<MonoBehaviour> SetData(PrimitiveData data, IMaterialProvider materialProvider, ITextureProvider textureProvider, Dictionary<string, IItemMainAuthoring> components)
 		{
+			var updatedComponents = new List<MonoBehaviour> { this };
+
 			Translation = new Vector3(data.RotAndTra[3], data.RotAndTra[4], data.RotAndTra[5]);
 			ObjectRotation = new Vector3(data.RotAndTra[6], data.RotAndTra[7], data.RotAndTra[8]);
 			Size = data.Size.ToUnityFloat3();
@@ -102,6 +104,8 @@ namespace VisualPinball.Unity
 			IsToy = data.IsToy;
 			OverwritePhysics = data.OverwritePhysics;
 			StaticRendering = data.StaticRendering;
+
+			return updatedComponents;
 		}
 
 		public override PrimitiveData CopyDataTo(PrimitiveData data)

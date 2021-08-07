@@ -113,8 +113,10 @@ namespace VisualPinball.Unity
 			transform.GetComponentInParent<Player>().RegisterKicker(Item, entity, ParentEntity, gameObject);
 		}
 
-		public override void SetData(KickerData data, IMaterialProvider materialProvider, ITextureProvider textureProvider, Dictionary<string, IItemMainAuthoring> components)
+		public override IEnumerable<MonoBehaviour> SetData(KickerData data, IMaterialProvider materialProvider, ITextureProvider textureProvider, Dictionary<string, IItemMainAuthoring> components)
 		{
+			var updatedComponents = new List<MonoBehaviour> { this };
+
 			Orientation = data.Orientation;
 			Radius = data.Radius;
 			Scatter = data.Scatter;
@@ -125,6 +127,8 @@ namespace VisualPinball.Unity
 			LegacyMode = data.LegacyMode;
 			Angle = data.Angle;
 			Speed = data.Speed;
+
+			return updatedComponents;
 		}
 
 		public override KickerData CopyDataTo(KickerData data)

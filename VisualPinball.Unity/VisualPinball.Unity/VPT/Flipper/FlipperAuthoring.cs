@@ -28,7 +28,6 @@ using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
 using UnityEngine;
-using UnityEngine.Profiling;
 using VisualPinball.Engine.Game;
 using VisualPinball.Engine.Math;
 using VisualPinball.Engine.VPT.Flipper;
@@ -55,12 +54,7 @@ namespace VisualPinball.Unity
 		[Tooltip("Angle of the flipper in end position (flipped)")]
 		public float EndAngle = 70.0f;
 
-		public ISurfaceAuthoring Surface
-		{
-			get => _surface as ISurfaceAuthoring;
-			set => _surface = value as MonoBehaviour;
-		}
-
+		public ISurfaceAuthoring Surface { get => _surface as ISurfaceAuthoring; set => _surface = value as MonoBehaviour; }
 		[SerializeField]
 		[TypeRestriction(typeof(ISurfaceAuthoring), PickerLabel = "Walls & Ramps", UpdateTransforms = true)]
 		[Tooltip("On which surface this flipper is attached to. Updates z translation.")]
@@ -157,8 +151,10 @@ namespace VisualPinball.Unity
 			t.localEulerAngles = new Vector3(0, 0, StartAngle);
 		}
 
-		public override void SetData(FlipperData data, IMaterialProvider materialProvider, ITextureProvider textureProvider, Dictionary<string, IItemMainAuthoring> components)
+		public override IEnumerable<MonoBehaviour> SetData(FlipperData data, IMaterialProvider materialProvider, ITextureProvider textureProvider, Dictionary<string, IItemMainAuthoring> components)
 		{
+			var updatedComponents = new List<MonoBehaviour> { this };
+
 			// transforms
 			Position = data.Center.ToUnityVector2();
 			StartAngle = data.StartAngle > 180f ? data.StartAngle - 360f : data.StartAngle;
@@ -202,7 +198,10 @@ namespace VisualPinball.Unity
 				colliderAuthoring.TorqueDamping = data.TorqueDamping;
 				colliderAuthoring.TorqueDampingAngle = data.TorqueDampingAngle;
 				colliderAuthoring.Scatter = data.Scatter;
+				updatedComponents.Add(colliderAuthoring);
 			}
+
+			return updatedComponents;
 		}
 
 		public override FlipperData CopyDataTo(FlipperData data)

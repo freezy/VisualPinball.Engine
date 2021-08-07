@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using UnityEngine;
+using VisualPinball.Engine.VPT;
 
 namespace VisualPinball.Unity
 {
@@ -27,5 +28,13 @@ namespace VisualPinball.Unity
 		/// Creates a bumper prefab.
 		/// </summary>
 		GameObject CreateBumper();
+
+		/// <summary>
+		/// Creates a gate prefab.
+		/// </summary>
+		/// <param name="type">Type of the game</param>
+		/// <returns></returns>
+		/// <see cref="GateType"/>
+		GameObject CreateGate(int type);
 	}
 }

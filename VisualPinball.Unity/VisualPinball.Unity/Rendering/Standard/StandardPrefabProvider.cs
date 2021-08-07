@@ -24,5 +24,9 @@ namespace VisualPinball.Unity
 		{
 			throw new System.NotImplementedException();
 		}
+		public GameObject CreateGate(int type)
+		{
+			throw new System.NotImplementedException();
+		}
 	}
 }

@@ -146,8 +146,10 @@ namespace VisualPinball.Unity
 			t.localEulerAngles = new Vector3(0, 0, Orientation);
 		}
 
-		public override void SetData(BumperData data, IMaterialProvider materialProvider, ITextureProvider textureProvider, Dictionary<string, IItemMainAuthoring> components)
+		public override IEnumerable<MonoBehaviour> SetData(BumperData data, IMaterialProvider materialProvider, ITextureProvider textureProvider, Dictionary<string, IItemMainAuthoring> components)
 		{
+			var updatedComponents = new List<MonoBehaviour> { this };
+
 			// transforms
 			Position = data.Center.ToUnityFloat2();
 			Radius = data.Radius;
@@ -202,6 +204,8 @@ namespace VisualPinball.Unity
 				ringAnimComponent.RingSpeed = data.RingSpeed;
 				ringAnimComponent.RingDropOffset = data.RingDropOffset;
 			}
+
+			return updatedComponents;
 		}
 
 		public override BumperData CopyDataTo(BumperData data)

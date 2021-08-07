@@ -80,8 +80,10 @@ namespace VisualPinball.Unity
 			transform.GetComponentInParent<Player>().RegisterSurface(Item, entity, ParentEntity, gameObject);
 		}
 
-		public override void SetData(SurfaceData data, IMaterialProvider materialProvider, ITextureProvider textureProvider, Dictionary<string, IItemMainAuthoring> components)
+		public override IEnumerable<MonoBehaviour> SetData(SurfaceData data, IMaterialProvider materialProvider, ITextureProvider textureProvider, Dictionary<string, IItemMainAuthoring> components)
 		{
+			var updatedComponents = new List<MonoBehaviour> { this };
+
 			// main props
 			HeightBottom = data.HeightBottom;
 			HeightTop = data.HeightTop;
@@ -114,7 +116,11 @@ namespace VisualPinball.Unity
 				collComponent.ElasticityFalloff = data.ElasticityFalloff;
 				collComponent.Scatter = data.Scatter;
 				collComponent.Friction = data.Friction;
+
+				updatedComponents.Add(collComponent);
 			}
+
+			return updatedComponents;
 		}
 
 		public override SurfaceData CopyDataTo(SurfaceData data)

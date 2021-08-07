@@ -176,8 +176,10 @@ namespace VisualPinball.Unity
 			});
 		}
 
-		public override void SetData(PlungerData data, IMaterialProvider materialProvider, ITextureProvider textureProvider, Dictionary<string, IItemMainAuthoring> components)
+		public override IEnumerable<MonoBehaviour> SetData(PlungerData data, IMaterialProvider materialProvider, ITextureProvider textureProvider, Dictionary<string, IItemMainAuthoring> components)
 		{
+			var updatedComponents = new List<MonoBehaviour> { this };
+
 			Type = data.Type;
 			Width = data.Width;
 			Height = data.Height;
@@ -201,6 +203,8 @@ namespace VisualPinball.Unity
 			SpringGauge = data.SpringGauge;
 			SpringLoops = data.SpringLoops;
 			SpringEndLoops = data.SpringEndLoops;
+
+			return updatedComponents;
 		}
 
 		public override PlungerData CopyDataTo(PlungerData data)

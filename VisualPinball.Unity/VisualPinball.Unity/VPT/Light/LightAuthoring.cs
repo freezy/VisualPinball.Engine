@@ -126,8 +126,9 @@ namespace VisualPinball.Unity
 			}
 		}
 
-		public override void SetData(LightData data, IMaterialProvider materialProvider, ITextureProvider textureProvider, Dictionary<string, IItemMainAuthoring> components)
+		public override IEnumerable<MonoBehaviour> SetData(LightData data, IMaterialProvider materialProvider, ITextureProvider textureProvider, Dictionary<string, IItemMainAuthoring> components)
 		{
+			return new List<MonoBehaviour> { this };
 		}
 
 		public override LightData CopyDataTo(LightData data)

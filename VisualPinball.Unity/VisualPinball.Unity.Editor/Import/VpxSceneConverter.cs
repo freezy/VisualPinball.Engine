@@ -264,6 +264,7 @@ namespace VisualPinball.Unity.Editor
 			// now we have all renderables imported, set data and patch
 			var datas = _tableContainer.Datas;
 			var components = convertedItems.ToDictionary(x => x.Key, x => x.Value.MainAuthoring);
+			IEnumerable<MonoBehaviour> updatedComponents = null;
 			foreach (var renderable in renderables) {
 
 				var lookupName = renderable.Name.ToLower();
@@ -274,7 +275,7 @@ namespace VisualPinball.Unity.Editor
 
 				// set data
 				if (datas.ContainsKey(lookupName)) {
-					convertedItem.SetData(datas[lookupName], this, this, components);
+					updatedComponents = convertedItem.SetData(datas[lookupName], this, this, components);
 				}
 
 				// patch
@@ -286,7 +287,12 @@ namespace VisualPinball.Unity.Editor
 
 				// persist changes
 				EditorUtility.SetDirty(convertedItem.GameObject);
-				PrefabUtility.RecordPrefabInstancePropertyModifications(convertedItem.MainAuthoring as MonoBehaviour);
+				if (updatedComponents != null) {
+					PrefabUtility.RecordPrefabInstancePropertyModifications(convertedItem.GameObject.transform);
+					foreach (var updatedComponent in updatedComponents) {
+						PrefabUtility.RecordPrefabInstancePropertyModifications(updatedComponent);
+					}
+				}
 			}
 
 			// finally, convert non-renderables

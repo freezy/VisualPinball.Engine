@@ -90,8 +90,10 @@ namespace VisualPinball.Unity
 			GetComponentInParent<Player>().RegisterTrough(Item, gameObject);
 		}
 
-		public override void SetData(TroughData data, IMaterialProvider materialProvider, ITextureProvider textureProvider, Dictionary<string, IItemMainAuthoring> components)
+		public override IEnumerable<MonoBehaviour> SetData(TroughData data, IMaterialProvider materialProvider, ITextureProvider textureProvider, Dictionary<string, IItemMainAuthoring> components)
 		{
+			var updatedComponents = new List<MonoBehaviour> { this };
+
 			Type = data.Type;
 			PlayfieldEntrySwitch = data.PlayfieldEntrySwitch;
 			PlayfieldExitKicker = data.PlayfieldExitKicker;
@@ -101,6 +103,8 @@ namespace VisualPinball.Unity
 			RollTime = data.RollTime;
 			TransitionTime = data.TransitionTime;
 			KickTime = data.KickTime;
+
+			return updatedComponents;
 		}
 
 		public override TroughData CopyDataTo(TroughData data)
