@@ -91,8 +91,10 @@ namespace VisualPinball.Unity
 			transform.GetComponentInParent<Player>().RegisterSpinner(Item, entity, ParentEntity, gameObject);
 		}
 
-		public override void SetData(SpinnerData data, IMaterialProvider materialProvider, ITextureProvider textureProvider, Dictionary<string, IItemMainAuthoring> components)
+		public override IEnumerable<MonoBehaviour> SetData(SpinnerData data, IMaterialProvider materialProvider, ITextureProvider textureProvider, Dictionary<string, IItemMainAuthoring> components)
 		{
+			var updatedComponents = new List<MonoBehaviour> { this };
+
 			Height = data.Height;
 			Length = data.Length;
 			Damping = data.Damping;
@@ -100,6 +102,8 @@ namespace VisualPinball.Unity
 			AngleMin = data.AngleMin;
 			Elasticity = data.Elasticity;
 			Surface = GetAuthoring<SurfaceAuthoring>(components, data.Surface);
+
+			return updatedComponents;
 		}
 
 		public override SpinnerData CopyDataTo(SpinnerData data)

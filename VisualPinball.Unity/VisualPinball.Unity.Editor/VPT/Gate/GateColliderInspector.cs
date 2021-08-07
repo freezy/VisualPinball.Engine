@@ -24,19 +24,46 @@ namespace VisualPinball.Unity.Editor
 	[CustomEditor(typeof(GateColliderAuthoring))]
 	public class GateColliderInspector : ItemColliderInspector<Gate, GateData, GateAuthoring, GateColliderAuthoring>
 	{
+		private SerializedProperty _angleMinProperty;
+		private SerializedProperty _angleMaxProperty;
+		private SerializedProperty _elasticityProperty;
+		private SerializedProperty _frictionProperty;
+		private SerializedProperty _dampingProperty;
+		private SerializedProperty _gravityFactorProperty;
+		private SerializedProperty _twoWayProperty;
+
+		protected override void OnEnable()
+		{
+			base.OnEnable();
+
+			_angleMinProperty = serializedObject.FindProperty(nameof(GateColliderAuthoring.AngleMin));
+			_angleMaxProperty = serializedObject.FindProperty(nameof(GateColliderAuthoring.AngleMax));
+			_elasticityProperty = serializedObject.FindProperty(nameof(GateColliderAuthoring.Elasticity));
+			_frictionProperty = serializedObject.FindProperty(nameof(GateColliderAuthoring.Friction));
+			_dampingProperty = serializedObject.FindProperty(nameof(GateColliderAuthoring.Damping));
+			_gravityFactorProperty = serializedObject.FindProperty(nameof(GateColliderAuthoring.GravityFactor));
+			_twoWayProperty = serializedObject.FindProperty(nameof(GateColliderAuthoring.TwoWay));
+		}
+
 		public override void OnInspectorGUI()
 		{
 			if (HasErrors()) {
 				return;
 			}
 
-			ItemDataField("Elasticity", ref Data.Elasticity, false);
-			ItemDataField("Friction", ref Data.Friction, false);
-			ItemDataField("Damping", ref Data.Damping, false);
-			ItemDataField("Gravity Factor", ref Data.GravityFactor, false);
-			ItemDataField(GateInspector.TwoWayLabel, ref Data.TwoWay, false);
+			serializedObject.Update();
+
+			PropertyField(_angleMinProperty, "Close Angle");
+			PropertyField(_angleMaxProperty, "Open Angle");
+			PropertyField(_elasticityProperty);
+			PropertyField(_frictionProperty);
+			PropertyField(_dampingProperty);
+			PropertyField(_gravityFactorProperty);
+			PropertyField(_twoWayProperty, "Is Two-Way Gate");
 
 			base.OnInspectorGUI();
+
+			serializedObject.ApplyModifiedProperties();
 		}
 	}
 }

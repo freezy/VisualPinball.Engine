@@ -86,8 +86,10 @@ namespace VisualPinball.Unity
 			transform.GetComponentInParent<Player>().RegisterRubber(Item, entity, ParentEntity, gameObject);
 		}
 
-		public override void SetData(RubberData data, IMaterialProvider materialProvider, ITextureProvider textureProvider, Dictionary<string, IItemMainAuthoring> components)
+		public override IEnumerable<MonoBehaviour> SetData(RubberData data, IMaterialProvider materialProvider, ITextureProvider textureProvider, Dictionary<string, IItemMainAuthoring> components)
 		{
+			var updatedComponents = new List<MonoBehaviour> { this };
+
 			Height = data.Height;
 			HitHeight = data.HitHeight;
 			Thickness = data.Thickness;
@@ -102,6 +104,8 @@ namespace VisualPinball.Unity
 			RotZ = data.RotZ;
 			OverwritePhysics = data.OverwritePhysics;
 			DragPoints = data.DragPoints;
+
+			return updatedComponents;
 		}
 
 		public override RubberData CopyDataTo(RubberData data)

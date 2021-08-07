@@ -106,8 +106,10 @@ namespace VisualPinball.Unity
 			transform.GetComponentInParent<Player>().RegisterHitTarget(hitTarget, entity, ParentEntity, gameObject);
 		}
 
-		public override void SetData(HitTargetData data, IMaterialProvider materialProvider, ITextureProvider textureProvider, Dictionary<string, IItemMainAuthoring> components)
+		public override IEnumerable<MonoBehaviour> SetData(HitTargetData data, IMaterialProvider materialProvider, ITextureProvider textureProvider, Dictionary<string, IItemMainAuthoring> components)
 		{
+			var updatedComponents = new List<MonoBehaviour> { this };
+
 			Size = data.Size.ToUnityFloat3();
 			RotZ = data.RotZ;
 			DepthBias = data.DepthBias;
@@ -124,6 +126,8 @@ namespace VisualPinball.Unity
 			PhysicsMaterial = data.PhysicsMaterial;
 			Threshold = data.Threshold;
 			UseHitEvent = data.UseHitEvent;
+
+			return updatedComponents;
 		}
 
 		public override HitTargetData CopyDataTo(HitTargetData data)

@@ -109,8 +109,10 @@ namespace VisualPinball.Unity
 			transform.GetComponentInParent<Player>().RegisterRamp(Item, entity, ParentEntity, gameObject);
 		}
 
-		public override void SetData(RampData data, IMaterialProvider materialProvider, ITextureProvider textureProvider, Dictionary<string, IItemMainAuthoring> components)
+		public override IEnumerable<MonoBehaviour> SetData(RampData data, IMaterialProvider materialProvider, ITextureProvider textureProvider, Dictionary<string, IItemMainAuthoring> components)
 		{
+			var updatedComponents = new List<MonoBehaviour> { this };
+
 			DragPoints = data.DragPoints;
 			Elasticity = data.Elasticity;
 			Friction = data.Friction;
@@ -134,10 +136,14 @@ namespace VisualPinball.Unity
 			WireDiameter = data.WireDiameter;
 			WireDistanceX = data.WireDistanceX;
 			WireDistanceY = data.WireDistanceY;
+
+			return updatedComponents;
 		}
 
 		public override RampData CopyDataTo(RampData data)
 		{
+			var updatedComponents = new List<MonoBehaviour> { this };
+
 			// update the name
 			data.Name = name;
 

@@ -19,7 +19,7 @@ using UnityEngine;
 using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Bumper;
 
-namespace VisualPinball.Unity
+namespace VisualPinball.Unity.Editor
 {
 	public static class BumperExtensions
 	{

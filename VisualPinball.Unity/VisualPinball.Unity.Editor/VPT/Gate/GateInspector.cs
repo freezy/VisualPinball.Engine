@@ -26,15 +26,54 @@ namespace VisualPinball.Unity.Editor
 	[CustomEditor(typeof(GateAuthoring))]
 	public class GateInspector : ItemMainInspector<Gate, GateData, GateAuthoring>
 	{
-		private bool _foldoutColorsAndFormatting = true;
-		private bool _foldoutPosition = true;
-		private bool _foldoutPhysics;
-		private bool _foldoutMisc;
-
 		private static readonly string[] GateTypeLabels = { "Wire: 'W'", "Wire: Rectangle", "Plate", "Long Plate" };
 		private static readonly int[] GateTypeValues = { GateType.GateWireW, GateType.GateWireRectangle, GateType.GatePlate, GateType.GateLongPlate };
 
+		private SerializedProperty _positionProperty;
+		private SerializedProperty _rotationProperty;
+		private SerializedProperty _lengthProperty;
+		private SerializedProperty _surfaceProperty;
+
 		public const string TwoWayLabel = "Two Way";
+
+		protected override void OnEnable()
+		{
+			base.OnEnable();
+
+			_positionProperty = serializedObject.FindProperty(nameof(GateAuthoring.Position));
+			_rotationProperty = serializedObject.FindProperty(nameof(GateAuthoring.Rotation));
+			_lengthProperty = serializedObject.FindProperty(nameof(GateAuthoring.Length));
+			_surfaceProperty = serializedObject.FindProperty(nameof(GateAuthoring._surface));
+		}
+
+		public override void OnInspectorGUI()
+		{
+			if (HasErrors()) {
+				return;
+			}
+
+			serializedObject.Update();
+
+			OnPreInspectorGUI();
+
+			PropertyField(_positionProperty, updateTransforms: true);
+			PropertyField(_rotationProperty, updateTransforms: true);
+			PropertyField(_lengthProperty, updateTransforms: true);
+			PropertyField(_surfaceProperty);
+
+			base.OnInspectorGUI();
+
+			serializedObject.ApplyModifiedProperties();
+		}
+
+		protected override void FinishEdit(string label, bool dirtyMesh = true)
+		{
+			if (label == TwoWayLabel) {
+				SceneView.RepaintAll();
+			}
+			base.FinishEdit(label, dirtyMesh);
+		}
+
 
 		protected void OnSceneGUI()
 		{
@@ -61,62 +100,6 @@ namespace VisualPinball.Unity.Editor
 					}
 				}
 			}
-		}
-
-		public override void OnInspectorGUI()
-		{
-			if (HasErrors()) {
-				return;
-			}
-
-			ItemDataField("Position", ref Data.Center);
-			SurfaceField("Surface", ref Data.Surface);
-
-			OnPreInspectorGUI();
-
-			if (_foldoutColorsAndFormatting = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutColorsAndFormatting, "Colors & Formatting")) {
-				DropDownField("Type", ref Data.GateType, GateTypeLabels, GateTypeValues);
-				ItemDataField("Show Bracket", ref Data.ShowBracket);
-				MaterialFieldLegacy("Material", ref Data.Material);
-			}
-			EditorGUILayout.EndFoldoutHeaderGroup();
-
-			if (_foldoutPosition = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutPosition, "Geometry")) {
-
-				ItemDataField("Length", ref Data.Length);
-				ItemDataField("Height", ref Data.Height);
-				ItemDataField("Rotation", ref Data.Rotation);
-				ItemDataField("Open Angle", ref Data.AngleMax, false);
-				ItemDataField("Close Angle", ref Data.AngleMin, false);
-
-			}
-			EditorGUILayout.EndFoldoutHeaderGroup();
-
-			if (_foldoutPhysics = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutPhysics, "Physics")) {
-				ItemDataField("Elasticity", ref Data.Elasticity, false);
-				ItemDataField("Friction", ref Data.Friction, false);
-				ItemDataField("Damping", ref Data.Damping, false);
-				ItemDataField("Gravity Factor", ref Data.GravityFactor, false);
-				ItemDataField("Collidable", ref Data.IsCollidable, false);
-				ItemDataField(TwoWayLabel, ref Data.TwoWay, false);
-			}
-			EditorGUILayout.EndFoldoutHeaderGroup();
-
-			if (_foldoutMisc = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutMisc, "Misc")) {
-				ItemDataField("Timer Enabled", ref Data.IsTimerEnabled, false);
-				ItemDataField("Timer Interval", ref Data.TimerInterval, false);
-			}
-			EditorGUILayout.EndFoldoutHeaderGroup();
-
-			base.OnInspectorGUI();
-		}
-
-		protected override void FinishEdit(string label, bool dirtyMesh = true)
-		{
-			if (label == TwoWayLabel) {
-				SceneView.RepaintAll();
-			}
-			base.FinishEdit(label, dirtyMesh);
 		}
 	}
 }

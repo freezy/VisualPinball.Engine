@@ -14,52 +14,49 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-using System;
 using NLog;
 using UnityEditor;
 using UnityEngine;
 using VisualPinball.Engine.VPT;
-using VisualPinball.Engine.VPT.Flipper;
-using VisualPinball.Engine.VPT.Surface;
+using VisualPinball.Engine.VPT.Gate;
 using Logger = NLog.Logger;
 
 namespace VisualPinball.Unity.Editor
 {
-	public static class FlipperExtensions
+	public static class GateExtensions
 	{
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
-		public static IConvertedItem InstantiateGameObject(this Flipper flipper, IItem item, IMaterialProvider materialProvider)
+		public static IConvertedItem InstantiateGameObject(this Gate gate, IItem item, IMaterialProvider materialProvider)
 		{
-			var prefab = UnityEngine.Resources.Load<GameObject>("Prefabs/Flipper");
+			var prefab = RenderPipeline.Current.PrefabProvider.CreateGate(gate.Data.GateType);
 			var obj = PrefabUtility.InstantiatePrefab(prefab) as GameObject;
 			obj!.name = item.Name;
-
-			return new ConvertedItem<Flipper, FlipperData, FlipperAuthoring>(obj, true);
+			return new ConvertedItem<Gate, GateData, GateAuthoring>(obj, true);
 
 			// var obj = new GameObject(item.Name);
-			// var convertedItem = new ConvertedItem<Flipper, FlipperData, FlipperAuthoring>(obj, flipper);
-			// switch (flipper.SubComponent) {
+			// var convertedItem = new ConvertedItem<Gate, GateData, GateAuthoring>(obj, gate);
+			// switch (gate.SubComponent) {
 			// 	case ItemSubComponent.None:
-			// 		convertedItem.SetColliderAuthoring<FlipperColliderAuthoring>(materialProvider);
-			// 		convertedItem.AddMeshAuthoring<FlipperBaseMeshAuthoring>(FlipperMeshGenerator.Base);
-			// 		convertedItem.AddMeshAuthoring<FlipperRubberMeshAuthoring>(FlipperMeshGenerator.Rubber);
+			// 		convertedItem.SetColliderAuthoring<GateColliderAuthoring>(materialProvider);
+			// 		convertedItem.AddMeshAuthoring<GateBracketMeshAuthoring>(GateMeshGenerator.Bracket);
+			// 		convertedItem.AddMeshAuthoring<GateWireMeshAuthoring>(GateMeshGenerator.Wire);
+			// 		convertedItem.SetAnimationAuthoring<GateWireAnimationAuthoring>(GateMeshGenerator.Wire);
 			// 		break;
 			//
 			// 	case ItemSubComponent.Collider: {
-			// 		Logger.Warn("Cannot parent a flipper collider to a different object than a flipper!");
+			// 		Logger.Warn("Cannot parent a gate collider to a different object than a gate!");
 			// 		break;
 			// 	}
 			//
 			// 	case ItemSubComponent.Mesh: {
-			// 		Logger.Warn("Cannot parent a flipper mesh to a different object than a flipper!");
+			// 		Logger.Warn("Cannot parent a gate mesh to a different object than a gate!");
 			// 		break;
 			// 	}
 			//
 			// 	default:
 			// 		throw new ArgumentOutOfRangeException();
 			// }
-			//
 			// return convertedItem.AddConvertToEntity();
 		}
 	}

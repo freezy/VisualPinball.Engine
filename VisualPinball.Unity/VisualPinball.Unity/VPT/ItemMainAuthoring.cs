@@ -37,7 +37,7 @@ namespace VisualPinball.Unity
 		/// </summary>
 		public virtual bool IsCollidable => true;
 
-		public abstract void SetData(TData data, IMaterialProvider materialProvider, ITextureProvider textureProvider, Dictionary<string, IItemMainAuthoring> components);
+		public abstract IEnumerable<MonoBehaviour> SetData(TData data, IMaterialProvider materialProvider, ITextureProvider textureProvider, Dictionary<string, IItemMainAuthoring> components);
 		public abstract TData CopyDataTo(TData data);
 
 		#region Data

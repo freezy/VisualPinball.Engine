@@ -85,14 +85,18 @@ namespace VisualPinball.Unity
 			transform.GetComponentInParent<Player>().RegisterTrigger(trigger, entity, ParentEntity, gameObject);
 		}
 
-		public override void SetData(TriggerData data, IMaterialProvider materialProvider, ITextureProvider textureProvider, Dictionary<string, IItemMainAuthoring> components)
+		public override IEnumerable<MonoBehaviour> SetData(TriggerData data, IMaterialProvider materialProvider, ITextureProvider textureProvider, Dictionary<string, IItemMainAuthoring> components)
 		{
+			var updatedComponents = new List<MonoBehaviour> { this };
+
 			DragPoints = data.DragPoints;
 			Radius = data.Radius;
 			IsEnabled = data.IsEnabled;
 			HitHeight = data.HitHeight;
 			AnimSpeed = data.AnimSpeed;
 			WireThickness = data.WireThickness;
+
+			return updatedComponents;
 		}
 
 		public override TriggerData CopyDataTo(TriggerData data)
