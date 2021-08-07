@@ -30,12 +30,7 @@ namespace VisualPinball.Unity.Editor
 				return;
 			}
 
-			MaterialFieldLegacy("Rubber Material", ref Data.RubberMaterial);
-			ItemDataField("Rubber Thickness", ref Data.RubberThickness);
-			ItemDataField("Rubber Offset Height", ref Data.RubberHeight);
-			ItemDataField("Rubber Width", ref Data.RubberWidth);
-
-			base.OnInspectorGUI();
+			EditorGUILayout.HelpBox("This component computes the rubber mesh of the flipper. It's parameterized by its parent.", MessageType.Info);
 		}
 	}
 }

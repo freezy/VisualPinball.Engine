@@ -66,13 +66,14 @@ namespace VisualPinball.Unity
 		[Tooltip("How many degrees from the end position the EOS torque force is applied.")]
 		public float TorqueDampingAngle = 6f;
 
-		[Min(0f)]
+		[Range(-90f, 90f)]
 		[Tooltip("How many degrees of randomness is added to the ball trajectory.")]
 		public float Scatter;
 
 		/// <summary>
 		/// If set, apply flipper correction (aka nFozzy)
 		/// </summary>
+		[Tooltip("The infamous nFozzy flipper correction. Choose a preset or create your own.")]
 		public FlipperCorrectionAsset FlipperCorrection;
 
 		#endregion

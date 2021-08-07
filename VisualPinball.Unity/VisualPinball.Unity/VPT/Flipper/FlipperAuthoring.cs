@@ -251,28 +251,10 @@ namespace VisualPinball.Unity
 			return data;
 		}
 
-		public void OnRubberWidthUpdated(float before, float after)
-		{
-			if (before != 0 && after != 0f) {
-				return;
-			}
-
-			var convertedItem = new ConvertedItem<Flipper, FlipperData, FlipperAuthoring>(gameObject);
-			if (before == 0) {
-				convertedItem.AddMeshAuthoring<FlipperRubberMeshAuthoring>(FlipperMeshGenerator.Rubber);
-			}
-
-			if (after == 0) {
-				convertedItem.Destroy<FlipperRubberMeshAuthoring>();
-			}
-		}
-
 		protected void OnDrawGizmosSelected()
 		{
-			Profiler.BeginSample("FlipperAuthoring.OnDrawGizmosSelected");
 			var poly = GetEnclosingPolygon();
 			if (poly == null) {
-				Profiler.EndSample();
 				return;
 			}
 
@@ -303,39 +285,21 @@ namespace VisualPinball.Unity
 			Gizmos.DrawLine(transform.TransformPoint(last) , transform.TransformPoint(a));
 			Gizmos.DrawLine(transform.TransformPoint(last), transform.TransformPoint(b));
 			Gizmos.color = Color.white;
-
-			Profiler.EndSample();
 		}
 
 		#region Editor Tooling
 
 		public override ItemDataTransformType EditorPositionType => ItemDataTransformType.TwoD;
+		public override Vector3 GetEditorPosition() => Surface != null
+			? new Vector3(Position.x, Position.y, Surface.Height(Position))
+			: new Vector3(Position.x, Position.y, 0);
+		public override void SetEditorPosition(Vector3 pos) => Position = ((float3)pos).xy;
 
 		public override ItemDataTransformType EditorRotationType => ItemDataTransformType.OneD;
 		public override Vector3 GetEditorRotation() => new Vector3(StartAngle, 0f, 0f);
 		public override void SetEditorRotation(Vector3 rot) => StartAngle = rot.x;
 
-		public override ItemDataTransformType EditorScaleType => ItemDataTransformType.ThreeD;
-
-		public override Vector3 GetEditorScale() => new Vector3(BaseRadius, Height);
-		public override void SetEditorScale(Vector3 scale)
-		{
-			if (BaseRadius > 0) {
-				float endRadiusRatio = EndRadius / BaseRadius;
-				EndRadius = scale.x * endRadiusRatio;
-			}
-			BaseRadius = scale.x;
-			FlipperRadius = scale.y;
-			if (Height > 0) {
-				float rubberHeightRatio = RubberHeight / Height;
-				RubberHeight = scale.z * rubberHeightRatio;
-				float rubberWidthRatio = RubberWidth / Height;
-				RubberWidth = scale.z * rubberWidthRatio;
-			}
-			Height = scale.z;
-
-			RebuildMeshes();
-		}
+		public override ItemDataTransformType EditorScaleType => ItemDataTransformType.None;
 
 		#endregion
 
