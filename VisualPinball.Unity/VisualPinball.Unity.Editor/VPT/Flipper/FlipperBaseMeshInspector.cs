@@ -30,10 +30,7 @@ namespace VisualPinball.Unity.Editor
 				return;
 			}
 
-			TextureFieldLegacy( "VPX Image", ref Data.Image);
-			MaterialFieldLegacy("Material", ref Data.Material);
-
-			base.OnInspectorGUI();
+			EditorGUILayout.HelpBox("This component computes the base mesh of the flipper. It's parameterized by its parent.", MessageType.Info);
 		}
 	}
 }

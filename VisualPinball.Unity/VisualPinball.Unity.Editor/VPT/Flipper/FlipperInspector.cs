@@ -86,15 +86,22 @@ namespace VisualPinball.Unity.Editor
 			EditorGUILayout.EndFoldoutHeaderGroup();
 
 			if (_foldoutRubberGeometry = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutRubberGeometry, "Rubber Geometry")) {
-				PropertyField(_rubberThicknessProperty, rebuildMesh: true);
+				PropertyField(_rubberThicknessProperty, rebuildMesh: true, onChanged: OnRubberSizeUpdated);
 				PropertyField(_rubberHeightProperty, rebuildMesh: true);
-				PropertyField(_rubberWidthProperty, rebuildMesh: true);
+				PropertyField(_rubberWidthProperty, rebuildMesh: true, onChanged: OnRubberSizeUpdated);
 			}
 			EditorGUILayout.EndFoldoutHeaderGroup();
 
 			base.OnInspectorGUI();
 
 			serializedObject.ApplyModifiedProperties();
+		}
+
+
+		private void OnRubberSizeUpdated()
+		{
+			var rubberMesh = ItemAuthoring.GetComponentInChildren<FlipperRubberMeshAuthoring>(true);
+			rubberMesh.gameObject.SetActive(_rubberWidthProperty.floatValue > 0f && _rubberThicknessProperty.floatValue > 0f);
 		}
 	}
 }

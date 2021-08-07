@@ -101,9 +101,10 @@ namespace VisualPinball.Unity.Editor
 
 		#endregion
 
-		protected void PropertyField(SerializedProperty serializedProperty, string label = null, bool rebuildMesh = false, bool updateTransforms = false)
+		protected void PropertyField(SerializedProperty serializedProperty, string label = null, bool rebuildMesh = false, bool updateTransforms = false, Action onChanged = null)
 		{
-			if (rebuildMesh || updateTransforms) {
+			var checkForChanges = rebuildMesh || updateTransforms || onChanged != null;
+			if (checkForChanges) {
 				EditorGUI.BeginChangeCheck();
 			}
 
@@ -113,7 +114,7 @@ namespace VisualPinball.Unity.Editor
 				EditorGUILayout.PropertyField(serializedProperty, new GUIContent(label));
 			}
 
-			if ((rebuildMesh || updateTransforms) && EditorGUI.EndChangeCheck()) {
+			if (checkForChanges && EditorGUI.EndChangeCheck()) {
 				switch (target) {
 					case IItemMeshAuthoring meshItem:
 						if (rebuildMesh) {
@@ -133,6 +134,7 @@ namespace VisualPinball.Unity.Editor
 						}
 						break;
 				}
+				onChanged?.Invoke();
 			}
 		}
 
