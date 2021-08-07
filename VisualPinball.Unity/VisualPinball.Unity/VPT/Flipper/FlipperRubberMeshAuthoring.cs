@@ -17,7 +17,9 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using VisualPinball.Engine.Game;
 using VisualPinball.Engine.VPT.Flipper;
+using VisualPinball.Engine.VPT.Table;
 
 namespace VisualPinball.Unity
 {
@@ -33,6 +35,11 @@ namespace VisualPinball.Unity
 		protected override bool IsVisible {
 			get => Data.IsVisible;
 			set => Data.IsVisible = value;
+		}
+
+		protected override RenderObject GetRenderObject(FlipperData data, Table table)
+		{
+			return new FlipperMeshGenerator(data).GetRenderObject(table, FlipperMeshGenerator.Rubber, Origin.Original, false);
 		}
 	}
 }

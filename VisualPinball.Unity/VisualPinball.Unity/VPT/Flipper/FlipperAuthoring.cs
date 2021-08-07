@@ -37,62 +37,69 @@ using Color = UnityEngine.Color;
 
 namespace VisualPinball.Unity
 {
-	[ExecuteAlways]
 	[AddComponentMenu("Visual Pinball/Game Item/Flipper")]
+	[HelpURL("https://docs.visualpinball.org/creators-guide/manual/mechanisms/flippers.html")]
 	public class FlipperAuthoring : ItemMainRenderableAuthoring<Flipper, FlipperData>,
 		ISwitchAuthoring, ICoilAuthoring, IConvertGameObjectToEntity
 	{
 		#region Data
 
-		public float BaseRadius = 21.5f;
+		[Tooltip("Position of the flipper on the playfield.")]
+		public Vector2 Position;
 
-		public float EndRadius = 13.0f;
-
-		public float FlipperRadiusMin;
-
-		public float FlipperRadiusMax = 130.0f;
-
-		public float FlipperRadius = 130.0f;
-
+		[Range(-180f, 180f)]
+		[Tooltip("Angle of the flipper in start position (not flipped)")]
 		public float StartAngle = 121.0f;
 
+		[Range(-180f, 180f)]
+		[Tooltip("Angle of the flipper in end position (flipped)")]
 		public float EndAngle = 70.0f;
 
-		public float Height = 50.0f;
+		public ISurfaceAuthoring Surface
+		{
+			get => _surface as ISurfaceAuthoring;
+			set => _surface = value as MonoBehaviour;
+		}
 
-		public SurfaceAuthoring Surface;
-
-		public float RubberThickness = 7.0f;
-
-		public float RubberHeight = 19.0f;
-
-		public float RubberWidth = 24.0f;
-
-		public float Mass = 1f;
-
-		public float Strength = 2200f;
-
-		public float Elasticity = 0.8f;
-
-		public float ElasticityFalloff = 0.43f;
-
-		public float Friction = 0.6f;
-
-		public float Return = 0.058f;
-
-		public float RampUp = 3f;
-
-		public float TorqueDamping = 0.75f;
-
-		public float TorqueDampingAngle = 6f;
-
-		public float Scatter;
-
-		public int OverridePhysics;
+		[SerializeField]
+		[TypeRestriction(typeof(ISurfaceAuthoring), PickerLabel = "Walls & Ramps", UpdateTransforms = true)]
+		[Tooltip("On which surface this flipper is attached to. Updates z translation.")]
+		public MonoBehaviour _surface;
 
 		public bool IsEnabled = true;
 
 		public bool IsDualWound;
+
+		[Range(0, 100f)]
+		[Tooltip("Height of the flipper plastic.")]
+		public float Height = 50.0f;
+
+		[Range(0, 50f)]
+		[Tooltip("Radius of the flipper's larger end.")]
+		public float BaseRadius = 21.5f;
+
+		[Range(0, 50f)]
+		[Tooltip("Radius of the flipper's smaller end.")]
+		public float EndRadius = 13.0f;
+
+		public float FlipperRadiusMin;
+		public float FlipperRadiusMax = 130.0f;
+
+		[Range(10f, 250f)]
+		[Tooltip("Length of the flipper")]
+		public float FlipperRadius = 130.0f;
+
+		[Range(0f, 50f)]
+		[Tooltip("Thickness of the rubber")]
+		public float RubberThickness = 7.0f;
+
+		[Range(0f, 50f)]
+		[Tooltip("Vertical position of the rubber")]
+		public float RubberHeight = 19.0f;
+
+		[Range(0, 100f)]
+		[Tooltip("Vertical size of the rubber")]
+		public float RubberWidth = 24.0f;
 
 		#endregion
 
@@ -112,19 +119,231 @@ namespace VisualPinball.Unity
 		public void Convert(Entity entity, EntityManager dstManager, GameObjectConversionSystem conversionSystem)
 		{
 			Convert(entity, dstManager);
-			var d = GetMaterialData();
-			dstManager.AddComponentData(entity, d);
-			dstManager.AddComponentData(entity, GetMovementData(d));
-			dstManager.AddComponentData(entity, GetVelocityData(d));
-			dstManager.AddComponentData(entity, GetHitData());
-			dstManager.AddComponentData(entity, new SolenoidStateData { Value = false });
 
 			var player = transform.GetComponentInParent<Player>();
-
 			var colliderAuthoring = gameObject.GetComponent<FlipperColliderAuthoring>();
-			if (colliderAuthoring && colliderAuthoring.FlipperCorrection) {
 
-				var fc = colliderAuthoring.FlipperCorrection;
+			// collision
+			if (colliderAuthoring) {
+
+				// vpx physics
+				var d = GetMaterialData(colliderAuthoring);
+				dstManager.AddComponentData(entity, d);
+				dstManager.AddComponentData(entity, GetMovementData(d));
+				dstManager.AddComponentData(entity, GetVelocityData(d));
+				dstManager.AddComponentData(entity, GetHitData());
+				dstManager.AddComponentData(entity, new SolenoidStateData { Value = false });
+
+				// flipper correction (nFozzy)
+				if (colliderAuthoring.FlipperCorrection) {
+					SetupFlipperCorrection(entity, dstManager, player, colliderAuthoring);
+				}
+			}
+
+			// register
+			player.RegisterFlipper(Item, entity, ParentEntity, gameObject);
+		}
+
+		public override void UpdateTransforms()
+		{
+			var t = transform;
+
+			// position
+			t.localPosition = Surface != null
+				? new Vector3(Position.x, Position.y, Surface.Height(Position))
+				: new Vector3(Position.x, Position.y, 0);
+
+			// rotation
+			t.localEulerAngles = new Vector3(0, 0, StartAngle);
+		}
+
+		public override void SetData(FlipperData data, IMaterialProvider materialProvider, ITextureProvider textureProvider, Dictionary<string, IItemMainAuthoring> components)
+		{
+			// transforms
+			Position = data.Center.ToUnityVector2();
+			StartAngle = data.StartAngle > 180f ? data.StartAngle - 360f : data.StartAngle;
+			Surface = GetAuthoring<SurfaceAuthoring>(components, data.Surface);
+			UpdateTransforms();
+
+			// geometry
+			Height = data.Height;
+			BaseRadius = data.BaseRadius;
+			EndRadius = data.EndRadius;
+			EndAngle = data.EndAngle > 180f ? data.EndAngle - 360f : data.EndAngle;
+			FlipperRadiusMin = data.FlipperRadiusMin;
+			FlipperRadiusMax = data.FlipperRadiusMax;
+			FlipperRadius = data.FlipperRadius;
+			RubberThickness = data.RubberThickness;
+			RubberHeight = data.RubberHeight;
+			RubberWidth = data.RubberWidth;
+
+			// states
+			IsEnabled = data.IsEnabled;
+			IsDualWound = data.IsDualWound;
+
+			// children mesh creation and visibility
+			var baseMesh = GetComponentInChildren<FlipperBaseMeshAuthoring>();
+			baseMesh.CreateMesh(data, textureProvider, materialProvider);
+			baseMesh.gameObject.SetActive(data.IsVisible);
+			var rubberMesh = GetComponentInChildren<FlipperRubberMeshAuthoring>();
+			rubberMesh.CreateMesh(data, textureProvider, materialProvider);
+			rubberMesh.gameObject.SetActive(data.IsVisible);
+
+			// collider data
+			var colliderAuthoring = gameObject.GetComponent<FlipperColliderAuthoring>();
+			if (colliderAuthoring) {
+				colliderAuthoring.Mass = data.Mass;
+				colliderAuthoring.Strength = data.Strength;
+				colliderAuthoring.Elasticity = data.Elasticity;
+				colliderAuthoring.ElasticityFalloff = data.ElasticityFalloff;
+				colliderAuthoring.Friction = data.Friction;
+				colliderAuthoring.Return = data.Return;
+				colliderAuthoring.RampUp = data.RampUp;
+				colliderAuthoring.TorqueDamping = data.TorqueDamping;
+				colliderAuthoring.TorqueDampingAngle = data.TorqueDampingAngle;
+				colliderAuthoring.Scatter = data.Scatter;
+			}
+		}
+
+		public override FlipperData CopyDataTo(FlipperData data)
+		{
+			// name and transforms
+			data.Name = name;
+			data.Center = Position.ToVertex2D();
+			data.StartAngle = StartAngle;
+			data.Surface = Surface != null ? Surface.name : string.Empty;
+
+			// geometry
+			data.Height = Height;
+			data.BaseRadius = BaseRadius;
+			data.EndRadius = EndRadius;
+			data.EndAngle = EndAngle;
+			data.FlipperRadiusMin = FlipperRadiusMin;
+			data.FlipperRadiusMax = FlipperRadiusMax;
+			data.FlipperRadius = FlipperRadius;
+			data.RubberThickness = RubberThickness;
+			data.RubberHeight = RubberHeight;
+			data.RubberWidth = RubberWidth;
+
+			// states
+			data.IsEnabled = IsEnabled;
+			data.IsDualWound = IsDualWound;
+
+			// children visibility
+			var baseMesh = GetComponentInChildren<FlipperBaseMeshAuthoring>();
+			data.IsVisible = baseMesh.gameObject.activeInHierarchy;
+
+			// collider data
+			var colliderAuthoring = gameObject.GetComponent<FlipperColliderAuthoring>();
+			if (colliderAuthoring) {
+				data.Mass = colliderAuthoring.Mass;
+				data.Strength = colliderAuthoring.Strength;
+				data.Elasticity = colliderAuthoring.Elasticity;
+				data.ElasticityFalloff = colliderAuthoring.ElasticityFalloff;
+				data.Friction = colliderAuthoring.Friction;
+				data.Return = colliderAuthoring.Return;
+				data.RampUp = colliderAuthoring.RampUp;
+				data.TorqueDamping = colliderAuthoring.TorqueDamping;
+				data.TorqueDampingAngle = colliderAuthoring.TorqueDampingAngle;
+				data.Scatter = colliderAuthoring.Scatter;
+			}
+
+			return data;
+		}
+
+		public void OnRubberWidthUpdated(float before, float after)
+		{
+			if (before != 0 && after != 0f) {
+				return;
+			}
+
+			var convertedItem = new ConvertedItem<Flipper, FlipperData, FlipperAuthoring>(gameObject);
+			if (before == 0) {
+				convertedItem.AddMeshAuthoring<FlipperRubberMeshAuthoring>(FlipperMeshGenerator.Rubber);
+			}
+
+			if (after == 0) {
+				convertedItem.Destroy<FlipperRubberMeshAuthoring>();
+			}
+		}
+
+		protected void OnDrawGizmosSelected()
+		{
+			Profiler.BeginSample("FlipperAuthoring.OnDrawGizmosSelected");
+			var poly = GetEnclosingPolygon();
+			if (poly == null) {
+				Profiler.EndSample();
+				return;
+			}
+
+			// Draw enclosing polygon
+			Gizmos.color = Color.cyan;
+			if (IsLeft) {
+				Gizmos.color = new Color(Gizmos.color.g, Gizmos.color.b, Gizmos.color.r, Gizmos.color.a);
+			}
+			for (int i = 0, j = poly.Count - 1; i < poly.Count; j = i++) {
+				Gizmos.DrawLine(transform.TransformPoint(poly[j]), transform.TransformPoint(poly[i]));
+			}
+
+			// Draw arc arrow
+			List<Vector3> arrow = new List<Vector3>();
+			float start = -90F;
+			float end = -90F + EndAngle - StartAngle;
+			if (IsLeft) {
+				(start, end) = (end, start);
+			}
+			AddPolyArc(arrow, Vector3.zero, FlipperRadius - 20F, start, end );
+			for (int i = 1, j = 0; i < arrow.Count; j = i++) {
+				Gizmos.DrawLine(transform.TransformPoint(arrow[j]), transform.TransformPoint(arrow[i]));
+			}
+			var last = IsLeft ? arrow[0] : arrow[arrow.Count-1];
+			var tmpA = IsLeft ? start + 90F + 3F : end +90F - 3F;
+			var a = Quaternion.Euler(0, 0, tmpA) * new Vector3(0, -FlipperRadius + 15F, 0F);
+			var b = Quaternion.Euler(0, 0, tmpA) * new Vector3(0F, -FlipperRadius + 25F, 0F);
+			Gizmos.DrawLine(transform.TransformPoint(last) , transform.TransformPoint(a));
+			Gizmos.DrawLine(transform.TransformPoint(last), transform.TransformPoint(b));
+			Gizmos.color = Color.white;
+
+			Profiler.EndSample();
+		}
+
+		#region Editor Tooling
+
+		public override ItemDataTransformType EditorPositionType => ItemDataTransformType.TwoD;
+
+		public override ItemDataTransformType EditorRotationType => ItemDataTransformType.OneD;
+		public override Vector3 GetEditorRotation() => new Vector3(StartAngle, 0f, 0f);
+		public override void SetEditorRotation(Vector3 rot) => StartAngle = rot.x;
+
+		public override ItemDataTransformType EditorScaleType => ItemDataTransformType.ThreeD;
+
+		public override Vector3 GetEditorScale() => new Vector3(BaseRadius, Height);
+		public override void SetEditorScale(Vector3 scale)
+		{
+			if (BaseRadius > 0) {
+				float endRadiusRatio = EndRadius / BaseRadius;
+				EndRadius = scale.x * endRadiusRatio;
+			}
+			BaseRadius = scale.x;
+			FlipperRadius = scale.y;
+			if (Height > 0) {
+				float rubberHeightRatio = RubberHeight / Height;
+				RubberHeight = scale.z * rubberHeightRatio;
+				float rubberWidthRatio = RubberWidth / Height;
+				RubberWidth = scale.z * rubberWidthRatio;
+			}
+			Height = scale.z;
+
+			RebuildMeshes();
+		}
+
+		#endregion
+
+		#region Flipper Correction
+
+		private void SetupFlipperCorrection(Entity entity, EntityManager dstManager, Player player, FlipperColliderAuthoring colliderAuthoring)
+		{
+			var fc = colliderAuthoring.FlipperCorrection;
 
 				// create trigger
 				var trigger = CreateCorrectionTrigger();
@@ -188,134 +407,6 @@ namespace VisualPinball.Unity
 						Value = blobAssetRef
 					});
 				}
-			}
-
-			// register
-			player.RegisterFlipper(Item, entity, ParentEntity, gameObject);
-		}
-
-		public override void SetData(FlipperData data, IMaterialProvider materialProvider, ITextureProvider textureProvider, Dictionary<string, IItemMainAuthoring> components)
-		{
-			BaseRadius = data.BaseRadius;
-			EndRadius = data.EndRadius;
-			FlipperRadiusMin = data.FlipperRadiusMin;
-			FlipperRadiusMax = data.FlipperRadiusMax;
-			FlipperRadius = data.FlipperRadius;
-			StartAngle = data.StartAngle;
-			EndAngle = data.EndAngle;
-			Height = data.Height;
-			Surface = GetAuthoring<SurfaceAuthoring>(components, data.Surface);
-			RubberThickness = data.RubberThickness;
-			RubberHeight = data.RubberHeight;
-			RubberWidth = data.RubberWidth;
-			Mass = data.Mass;
-			Strength = data.Strength;
-			Elasticity = data.Elasticity;
-			ElasticityFalloff = data.ElasticityFalloff;
-			Friction = data.Friction;
-			Return = data.Return;
-			RampUp = data.RampUp;
-			TorqueDamping = data.TorqueDamping;
-			TorqueDampingAngle = data.TorqueDampingAngle;
-			Scatter = data.Scatter;
-			OverridePhysics = data.OverridePhysics;
-			IsEnabled = data.IsEnabled;
-			IsDualWound = data.IsDualWound;
-		}
-
-		public override FlipperData CopyDataTo(FlipperData data)
-		{
-			var localPos = transform.localPosition;
-
-			// name and position
-			data.Name = name;
-			data.Center = localPos.ToVertex2Dxy();
-
-			// update visibility
-			data.IsVisible = false;
-			foreach (var meshComponent in MeshComponents) {
-				switch (meshComponent) {
-					case FlipperBaseMeshAuthoring baseMeshAuthoring:
-						data.IsVisible = data.IsVisible || baseMeshAuthoring.gameObject.activeInHierarchy;
-						break;
-					case FlipperRubberMeshAuthoring rubberMeshAuthoring:
-						data.IsVisible = data.IsVisible || rubberMeshAuthoring.gameObject.activeInHierarchy;
-						break;
-				}
-			}
-
-			// other props
-			data.BaseRadius = BaseRadius;
-			data.EndRadius = EndRadius;
-			data.FlipperRadiusMin = FlipperRadiusMin;
-			data.FlipperRadiusMax = FlipperRadiusMax;
-			data.FlipperRadius = FlipperRadius;
-			data.StartAngle = StartAngle;
-			data.EndAngle = EndAngle;
-			data.Height = Height;
-			data.Surface = Surface ? Surface.name : string.Empty;
-			data.RubberThickness = RubberThickness;
-			data.RubberHeight = RubberHeight;
-			data.RubberWidth = RubberWidth;
-			data.Mass = Mass;
-			data.Strength = Strength;
-			data.Elasticity = Elasticity;
-			data.ElasticityFalloff = ElasticityFalloff;
-			data.Friction = Friction;
-			data.Return = Return;
-			data.RampUp = RampUp;
-			data.TorqueDamping = TorqueDamping;
-			data.TorqueDampingAngle = TorqueDampingAngle;
-			data.Scatter = Scatter;
-			data.OverridePhysics = OverridePhysics;
-			data.IsEnabled = IsEnabled;
-			data.IsDualWound = IsDualWound;
-
-			// collision: flipper is always collidable
-
-			return data;
-		}
-
-		public void OnRubberWidthUpdated(float before, float after)
-		{
-			if (before != 0 && after != 0f) {
-				return;
-			}
-
-			var convertedItem = new ConvertedItem<Flipper, FlipperData, FlipperAuthoring>(gameObject);
-			if (before == 0) {
-				convertedItem.AddMeshAuthoring<FlipperRubberMeshAuthoring>(FlipperMeshGenerator.Rubber);
-			}
-
-			if (after == 0) {
-				convertedItem.Destroy<FlipperRubberMeshAuthoring>();
-			}
-		}
-
-		public override ItemDataTransformType EditorPositionType => ItemDataTransformType.TwoD;
-
-		public override ItemDataTransformType EditorRotationType => ItemDataTransformType.OneD;
-		public override Vector3 GetEditorRotation() => new Vector3(StartAngle, 0f, 0f);
-		public override void SetEditorRotation(Vector3 rot) => StartAngle = rot.x;
-
-		public override ItemDataTransformType EditorScaleType => ItemDataTransformType.ThreeD;
-
-		public override Vector3 GetEditorScale() => new Vector3(BaseRadius, Height);
-		public override void SetEditorScale(Vector3 scale)
-		{
-			if (BaseRadius > 0) {
-				float endRadiusRatio = EndRadius / BaseRadius;
-				EndRadius = scale.x * endRadiusRatio;
-			}
-			BaseRadius = scale.x;
-			FlipperRadius = scale.y;
-			if (Height > 0) {
-				float rubberHeightRatio = RubberHeight / Height;
-				RubberHeight = scale.z * rubberHeightRatio;
-				float rubberWidthRatio = RubberWidth / Height;
-				RubberWidth = scale.z * rubberWidthRatio;
-			}
-			Height = scale.z;
 		}
 
 		//! Add a circle arc on a given polygon (used for enclosing poygon)
@@ -386,47 +477,36 @@ namespace VisualPinball.Unity
 			return ret;
 		}
 
-		protected void OnDrawGizmosSelected()
+		public Trigger CreateCorrectionTrigger()
 		{
-			Profiler.BeginSample("FlipperAuthoring.OnDrawGizmosSelected");
-			var poly = GetEnclosingPolygon();
-			if (poly == null) {
-				Profiler.EndSample();
-				return;
-			}
+			// Get table reference
+			var ta = GetComponentInParent<TableAuthoring>();
+			if (ta != null) {
 
-			// Draw enclosing polygon
-			Gizmos.color = Color.cyan;
-			if (IsLeft)
-				Gizmos.color = new Color(Gizmos.color.g, Gizmos.color.b, Gizmos.color.r, Gizmos.color.a);
-			for (int i = 0, j = poly.Count - 1; i < poly.Count; j = i++)
-				Gizmos.DrawLine(transform.TransformPoint(poly[j]), transform.TransformPoint(poly[i]));
+				var localPos = transform.localPosition;
+				var data = new TriggerData(name + "_nFozzy", localPos.x, localPos.y);
+				var poly = GetEnclosingPolygon(23, 12);
+				data.DragPoints = new DragPointData[poly.Count];
+				data.IsLocked = true;
+				data.HitHeight = 150F; // nFozzy's recommendation, but I think 50 should be ok
 
-			// Draw arc arrow
-			List<Vector3> arrow = new List<Vector3>();
-			float start = -90F;
-			float end = -90F + EndAngle - StartAngle;
-			if (IsLeft) {
-				var tmp = start;
-				start = end;
-				end = tmp;
-			}
-			AddPolyArc(arrow, Vector3.zero, FlipperRadius - 20F, start, end );
-			for (int i = 1, j = 0; i < arrow.Count; j = i++) {
-				Gizmos.DrawLine(transform.TransformPoint(arrow[j]), transform.TransformPoint(arrow[i]));
-			}
-			var last = IsLeft ? arrow[0] : arrow[arrow.Count-1];
-			var tmpA = IsLeft ? start + 90F + 3F : end +90F - 3F;
-			var a = Quaternion.Euler(0, 0, tmpA) * new Vector3(0, -FlipperRadius + 15F, 0F);
-			var b = Quaternion.Euler(0, 0, tmpA) * new Vector3(0F, -FlipperRadius + 25F, 0F);
-			Gizmos.DrawLine(transform.TransformPoint(last) , transform.TransformPoint(a));
-			Gizmos.DrawLine(transform.TransformPoint(last), transform.TransformPoint(b));
-			Gizmos.color = Color.white;
+				for (var i = 0; i < poly.Count; i++) {
 
-			Profiler.EndSample();
+					// Poly points are expressed in flipper's frame: transpose to Table's frame as this is the basis uses for drag points
+					var p = ta.transform.InverseTransformPoint(transform.TransformPoint(poly[i]));
+					data.DragPoints[poly.Count - i - 1] = new DragPointData(p.x, p.y);
+				}
+
+				return new Trigger(data);
+			}
+			throw new InvalidOperationException("Cannot create correction trigger for flipper outside of the table hierarchy.");
 		}
 
-		private FlipperStaticData GetMaterialData()
+		#endregion
+
+		#region DOTS Data
+
+		private FlipperStaticData GetMaterialData(FlipperColliderAuthoring colliderAuthoring)
 		{
 			float flipperRadius;
 			if (FlipperRadiusMin > 0 && FlipperRadiusMax > FlipperRadiusMin) {
@@ -448,7 +528,7 @@ namespace VisualPinball.Unity
 			}
 
 			// model inertia of flipper as that of rod of length flipper around its end
-			var inertia = (float) (1.0 / 3.0) * Mass * (flipperRadius * flipperRadius);
+			var inertia = (float) (1.0 / 3.0) * colliderAuthoring.Mass * (flipperRadius * flipperRadius);
 			var localPos = transform.localPosition;
 
 			return new FlipperStaticData {
@@ -456,11 +536,11 @@ namespace VisualPinball.Unity
 				Inertia = inertia,
 				AngleStart = angleStart,
 				AngleEnd = angleEnd,
-				Strength = Strength,
-				ReturnRatio = Return,
-				TorqueDamping = TorqueDamping,
-				TorqueDampingAngle = TorqueDampingAngle,
-				RampUpSpeed = RampUp,
+				Strength = colliderAuthoring.Strength,
+				ReturnRatio = colliderAuthoring.Return,
+				TorqueDamping = colliderAuthoring.TorqueDamping,
+				TorqueDampingAngle = colliderAuthoring.TorqueDampingAngle,
+				RampUpSpeed = colliderAuthoring.RampUp,
 
 				EndRadius = endRadius,
 				FlipperRadius = flipperRadius
@@ -509,29 +589,6 @@ namespace VisualPinball.Unity
 			};
 		}
 
-		public Trigger CreateCorrectionTrigger()
-		{
-			// Get table reference
-			var ta = GetComponentInParent<TableAuthoring>();
-			if (ta != null) {
-
-				var localPos = transform.localPosition;
-				var data = new TriggerData(name + "_nFozzy", localPos.x, localPos.y);
-				var poly = GetEnclosingPolygon(23, 12);
-				data.DragPoints = new DragPointData[poly.Count];
-				data.IsLocked = true;
-				data.HitHeight = 150F; // nFozzy's recommandation, but I think 50 should be ok
-
-				for (var i = 0; i < poly.Count; i++) {
-
-					// Poly points are expressed in flipper's frame: transpose to Table's frame as this is the basis uses for drag points
-					var p = ta.transform.InverseTransformPoint(transform.TransformPoint(poly[i]));
-					data.DragPoints[poly.Count - i - 1] = new DragPointData(p.x, p.y);
-				}
-
-				return new Trigger(data);
-			}
-			throw new InvalidOperationException("Cannot create correction trigger for flipper outside of the table hierarchy.");
-		}
+		#endregion
 	}
 }

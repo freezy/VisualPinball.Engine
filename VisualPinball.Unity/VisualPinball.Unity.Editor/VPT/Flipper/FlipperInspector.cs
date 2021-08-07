@@ -24,11 +24,41 @@ namespace VisualPinball.Unity.Editor
 	[CustomEditor(typeof(FlipperAuthoring))]
 	public class FlipperInspector : ItemMainInspector<Flipper, FlipperData, FlipperAuthoring>
 	{
-		private bool _foldoutPosition = true;
-		private bool _foldoutBaseMesh;
-		private bool _foldoutRubberMesh;
-		private bool _foldoutPhysics;
-		private bool _foldoutMisc;
+		private bool _foldoutBaseGeometry = true;
+		private bool _foldoutRubberGeometry = true;
+
+		private SerializedProperty _positionProperty;
+		private SerializedProperty _startAngleProperty;
+		private SerializedProperty _endAngleProperty;
+		private SerializedProperty _surfaceProperty;
+		private SerializedProperty _isEnabledProperty;
+		private SerializedProperty _isDualWoundProperty;
+		private SerializedProperty _heightProperty;
+		private SerializedProperty _baseRadiusProperty;
+		private SerializedProperty _endRadiusProperty;
+		private SerializedProperty _flipperRadiusProperty;
+		private SerializedProperty _rubberThicknessProperty;
+		private SerializedProperty _rubberHeightProperty;
+		private SerializedProperty _rubberWidthProperty;
+
+		protected override void OnEnable()
+		{
+			base.OnEnable();
+
+			_positionProperty = serializedObject.FindProperty(nameof(FlipperAuthoring.Position));
+			_startAngleProperty = serializedObject.FindProperty(nameof(FlipperAuthoring.StartAngle));
+			_endAngleProperty = serializedObject.FindProperty(nameof(FlipperAuthoring.EndAngle));
+			_surfaceProperty = serializedObject.FindProperty(nameof(FlipperAuthoring._surface));
+			_isEnabledProperty = serializedObject.FindProperty(nameof(FlipperAuthoring.IsEnabled));
+			_isDualWoundProperty = serializedObject.FindProperty(nameof(FlipperAuthoring.IsDualWound));
+			_heightProperty = serializedObject.FindProperty(nameof(FlipperAuthoring.Height));
+			_baseRadiusProperty = serializedObject.FindProperty(nameof(FlipperAuthoring.BaseRadius));
+			_endRadiusProperty = serializedObject.FindProperty(nameof(FlipperAuthoring.EndRadius));
+			_flipperRadiusProperty = serializedObject.FindProperty(nameof(FlipperAuthoring.FlipperRadius));
+			_rubberThicknessProperty = serializedObject.FindProperty(nameof(FlipperAuthoring.RubberThickness));
+			_rubberHeightProperty = serializedObject.FindProperty(nameof(FlipperAuthoring.RubberHeight));
+			_rubberWidthProperty = serializedObject.FindProperty(nameof(FlipperAuthoring.RubberWidth));
+		}
 
 		public override void OnInspectorGUI()
 		{
@@ -36,59 +66,35 @@ namespace VisualPinball.Unity.Editor
 				return;
 			}
 
-			ItemDataField("Position", ref Data.Center);
-			SurfaceField("Surface", ref Data.Surface);
+			serializedObject.Update();
 
 			OnPreInspectorGUI();
 
-			ItemDataField("Enabled", ref Data.IsEnabled);
+			PropertyField(_positionProperty, updateTransforms: true);
+			PropertyField(_startAngleProperty, updateTransforms: true);
+			PropertyField(_endAngleProperty);
+			PropertyField(_surfaceProperty);
+			PropertyField(_isEnabledProperty);
+			PropertyField(_isDualWoundProperty);
 
-			if (_foldoutPosition = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutPosition, "Geometry")) {
-				ItemDataField("Base Radius", ref Data.BaseRadius);
-				ItemDataField("End Radius", ref Data.EndRadius);
-				ItemDataField("Length", ref Data.FlipperRadius);
-				ItemDataField("Start Angle", ref Data.StartAngle);
-				ItemDataField("End Angle", ref Data.EndAngle);
-				ItemDataField("Height", ref Data.Height);
-				ItemDataField("Max. Difficulty Length", ref Data.FlipperRadiusMax);
+			if (_foldoutBaseGeometry = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutBaseGeometry, "Base Geometry")) {
+				PropertyField(_heightProperty, rebuildMesh: true);
+				PropertyField(_baseRadiusProperty, rebuildMesh: true);
+				PropertyField(_endRadiusProperty, rebuildMesh: true);
+				PropertyField(_flipperRadiusProperty, "Flipper Length", true);
 			}
 			EditorGUILayout.EndFoldoutHeaderGroup();
 
-			if (_foldoutBaseMesh = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutBaseMesh, "Base Mesh")) {
-				TextureFieldLegacy("Texture", ref Data.Image);
-				MaterialFieldLegacy("Material", ref Data.Material);
-			}
-			EditorGUILayout.EndFoldoutHeaderGroup();
-
-			if (_foldoutRubberMesh = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutRubberMesh, "Rubber Mesh")) {
-				MaterialFieldLegacy("Rubber Material", ref Data.RubberMaterial);
-				ItemDataField("Rubber Thickness", ref Data.RubberThickness, onChanged: ItemAuthoring.OnRubberWidthUpdated);
-				ItemDataField("Rubber Offset Height", ref Data.RubberHeight);
-				ItemDataField("Rubber Width", ref Data.RubberWidth);
-			}
-			EditorGUILayout.EndFoldoutHeaderGroup();
-
-			if (_foldoutPhysics = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutPhysics, "Physics")) {
-				ItemDataField("Mass", ref Data.Mass, false);
-				ItemDataField("Strength", ref Data.Strength, false);
-				ItemDataField("Elasticity", ref Data.Elasticity, false);
-				ItemDataField("Elasticity Falloff", ref Data.ElasticityFalloff, false);
-				ItemDataField("Friction", ref Data.Friction, false);
-				ItemDataField("Return Strength", ref Data.Return, false);
-				ItemDataField("Coil Ramp Up", ref Data.RampUp, false);
-				ItemDataField("Scatter Angle", ref Data.Scatter, false);
-				ItemDataField("EOS Torque", ref Data.TorqueDamping, false);
-				ItemDataField("EOS Torque Angle", ref Data.TorqueDampingAngle, false);
-			}
-			EditorGUILayout.EndFoldoutHeaderGroup();
-
-			if (_foldoutMisc = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutMisc, "Misc")) {
-				ItemDataField("Timer Enabled", ref Data.IsTimerEnabled, false);
-				ItemDataField("Timer Interval", ref Data.TimerInterval, false);
+			if (_foldoutRubberGeometry = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutRubberGeometry, "Rubber Geometry")) {
+				PropertyField(_rubberThicknessProperty, rebuildMesh: true);
+				PropertyField(_rubberHeightProperty, rebuildMesh: true);
+				PropertyField(_rubberWidthProperty, rebuildMesh: true);
 			}
 			EditorGUILayout.EndFoldoutHeaderGroup();
 
 			base.OnInspectorGUI();
+
+			serializedObject.ApplyModifiedProperties();
 		}
 	}
 }

@@ -1,0 +1,261 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1 &204147209793461234
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 6818887475746504221}
+  - component: {fileID: 6048673509915073221}
+  - component: {fileID: 4778019510121147183}
+  m_Layer: 0
+  m_Name: Rubber
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &6818887475746504221
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 204147209793461234}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_Children: []
+  m_Father: {fileID: 4440381279647306322}
+  m_RootOrder: 1
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &6048673509915073221
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 204147209793461234}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8e6fc321830c03547890119a04997404, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _meshCreated: 1
+--- !u!33 &4778019510121147183
+MeshFilter:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 204147209793461234}
+  m_Mesh: {fileID: 0}
+--- !u!1 &3134944213418037488
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 5879026712924827105}
+  - component: {fileID: 555621075297325882}
+  - component: {fileID: 8383588224779965405}
+  m_Layer: 0
+  m_Name: Base
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &5879026712924827105
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3134944213418037488}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_Children: []
+  m_Father: {fileID: 4440381279647306322}
+  m_RootOrder: 0
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &555621075297325882
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3134944213418037488}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 89e3c1c147bb7a049b0510709f1ad9f2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _meshCreated: 1
+--- !u!33 &8383588224779965405
+MeshFilter:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3134944213418037488}
+  m_Mesh: {fileID: 0}
+--- !u!1 &8904124417643437867
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 4440381279647306322}
+  - component: {fileID: 2330311059251221068}
+  - component: {fileID: 8750544366699972018}
+  - component: {fileID: 3449526034131864867}
+  m_Layer: 0
+  m_Name: Flipper
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &4440381279647306322
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8904124417643437867}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_Children:
+  - {fileID: 5879026712924827105}
+  - {fileID: 6818887475746504221}
+  m_Father: {fileID: 0}
+  m_RootOrder: 0
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &2330311059251221068
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8904124417643437867}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 545ad741f74d2444faf5d2882fba6b69, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _data:
+    StoragePrefix: 0
+    StorageIndex: 0
+    IsLocked: 0
+    EditorLayerName: 
+    EditorLayerVisibility: 0
+    Name: 
+    BaseRadius: 0
+    EndRadius: 0
+    FlipperRadiusMin: 0
+    FlipperRadiusMax: 0
+    FlipperRadius: 0
+    StartAngle: 0
+    EndAngle: 0
+    Height: 0
+    Center:
+      X: 0
+      Y: 0
+    Image: 
+    Surface: 
+    Material: 
+    RubberMaterial: 
+    RubberThickness: 0
+    RubberHeight: 0
+    RubberWidth: 0
+    Mass: 0
+    Strength: 0
+    Elasticity: 0
+    ElasticityFalloff: 0
+    Friction: 0
+    Return: 0
+    RampUp: 0
+    TorqueDamping: 0
+    TorqueDampingAngle: 0
+    Scatter: 0
+    OverridePhysics: 0
+    IsVisible: 0
+    IsEnabled: 0
+    IsReflectionEnabled: 0
+    IsTimerEnabled: 0
+    TimerInterval: 0
+    IsDualWound: 0
+    OverrideMass: 0
+    OverrideStrength: 0
+    OverrideElasticity: 0
+    OverrideElasticityFalloff: 0
+    OverrideFriction: 0
+    OverrideReturnStrength: 0
+    OverrideCoilRampUp: 0
+    OverrideTorqueDamping: 0
+    OverrideTorqueDampingAngle: 0
+    OverrideScatterAngle: 0
+  Position: {x: 0, y: 0}
+  StartAngle: 121
+  EndAngle: 70
+  _surface: {fileID: 0}
+  IsEnabled: 1
+  IsDualWound: 0
+  Height: 50
+  BaseRadius: 21.5
+  EndRadius: 13
+  FlipperRadiusMin: 0
+  FlipperRadiusMax: 130
+  FlipperRadius: 130
+  RubberThickness: 7
+  RubberHeight: 19
+  RubberWidth: 24
+--- !u!114 &8750544366699972018
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8904124417643437867}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1a6867661ef306b40958372e88a16b2a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  PhysicsMaterial: {fileID: 0}
+  ShowColliderMesh: 0
+  ShowAabbs: 0
+  Mass: 1
+  Strength: 2200
+  Elasticity: 0.8
+  ElasticityFalloff: 0.43
+  Friction: 0.6
+  Return: 0.058
+  RampUp: 3
+  TorqueDamping: 0.75
+  TorqueDampingAngle: 6
+  Scatter: 0
+  FlipperCorrection: {fileID: 11400000, guid: f8799be363ab20a459dd185669ece8aa, type: 2}
+--- !u!114 &3449526034131864867
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8904124417643437867}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ea7d7495833204790ba1d3a8755397f8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  ConversionMode: 1
