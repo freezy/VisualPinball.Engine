@@ -63,7 +63,7 @@ namespace VisualPinball.Unity
 		}
 
 		[SerializeField]
-		[TypeRestriction(typeof(ISurfaceAuthoring), PickerLabel = "Walls & Surfaces", UpdateTransforms = true)]
+		[TypeRestriction(typeof(ISurfaceAuthoring), PickerLabel = "Walls & Ramps", UpdateTransforms = true)]
 		[Tooltip("On which surface this bumper is attached to. Updates z translation.")]
 		public MonoBehaviour _surface;
 
@@ -136,7 +136,7 @@ namespace VisualPinball.Unity
 
 			// position
 			t.localPosition = Surface != null
-				? new Vector3(Position.x, Position.y, Surface.Height(float2.zero))
+				? new Vector3(Position.x, Position.y, Surface.Height(Position))
 				: new Vector3(Position.x, Position.y, 0);
 
 			// scale
@@ -153,10 +153,7 @@ namespace VisualPinball.Unity
 			Radius = data.Radius;
 			HeightScale = data.HeightScale;
 			Orientation = data.Orientation;
-
-			// surface
 			Surface = GetAuthoring<SurfaceAuthoring>(components, data.Surface);
-
 			UpdateTransforms();
 
 			// children visibility
