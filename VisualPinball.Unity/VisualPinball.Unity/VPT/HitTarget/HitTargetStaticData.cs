@@ -21,8 +21,6 @@ namespace VisualPinball.Unity
 	internal struct HitTargetStaticData : IComponentData
 	{
 		public float Speed;
-
-		// table data
-		public float TableScaleZ;
+		public float MaxAngle;
 	}
 }

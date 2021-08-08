@@ -25,12 +25,14 @@ namespace VisualPinball.Unity.Editor
 	public class HitTargetAnimationInspector : ItemAnimationInspector<HitTarget, HitTargetData, HitTargetAuthoring, DropTargetAnimationAuthoring>
 	{
 		private SerializedProperty _speedProperty;
+		private SerializedProperty _maxAngleProperty;
 
 		protected override void OnEnable()
 		{
 			base.OnEnable();
 
 			_speedProperty = serializedObject.FindProperty(nameof(HitTargetAnimationAuthoring.Speed));
+			_maxAngleProperty = serializedObject.FindProperty(nameof(HitTargetAnimationAuthoring.MaxAngle));
 		}
 
 		public override void OnInspectorGUI()
@@ -44,6 +46,7 @@ namespace VisualPinball.Unity.Editor
 			OnPreInspectorGUI();
 
 			PropertyField(_speedProperty, updateTransforms: true);
+			PropertyField(_maxAngleProperty, updateTransforms: true);
 
 			base.OnInspectorGUI();
 

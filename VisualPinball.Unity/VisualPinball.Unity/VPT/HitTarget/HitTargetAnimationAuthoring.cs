@@ -14,6 +14,8 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+// ReSharper disable InconsistentNaming
+
 using System;
 using System.Collections.Generic;
 using UnityEngine;
@@ -28,7 +30,13 @@ namespace VisualPinball.Unity
 
 		#region Data
 
+		[Min(0)]
+		[Tooltip("How fast the hit target moves back when hit.")]
 		public float Speed =  0.5f;
+
+		[Range(-180f, 180f)]
+		[Tooltip("Angle of how much the hit target rotates back when hit.")]
+		public float MaxAngle = 13.0f;
 
 		#endregion
 	}
