@@ -21,7 +21,7 @@ using VisualPinball.Engine.VPT.HitTarget;
 
 namespace VisualPinball.Unity.Editor
 {
-	[CustomEditor(typeof(DropTargetAnimationAuthoring))]
+	[CustomEditor(typeof(DropTargetAnimationAuthoring)), CanEditMultipleObjects]
 	public class DropTargetAnimationInspector : ItemAnimationInspector<HitTarget, HitTargetData, HitTargetAuthoring, DropTargetAnimationAuthoring>
 	{
 		private SerializedProperty _isDroppedProperty;

@@ -21,35 +21,70 @@ using VisualPinball.Engine.VPT.HitTarget;
 
 namespace VisualPinball.Unity.Editor
 {
-	[CustomEditor(typeof(HitTargetColliderAuthoring))]
+	[CustomEditor(typeof(HitTargetColliderAuthoring)), CanEditMultipleObjects]
 	public class HitTargetColliderInspector : ItemColliderInspector<HitTarget, HitTargetData, HitTargetAuthoring, HitTargetColliderAuthoring>
 	{
+		private bool _foldoutMaterial = true;
+
+		private SerializedProperty _hitEventProperty;
+		private SerializedProperty _isLegacyProperty;
+		private SerializedProperty _thresholdProperty;
+		private SerializedProperty _physicsMaterialProperty;
+		private SerializedProperty _overwritePhysicsProperty;
+		private SerializedProperty _elasticityProperty;
+		private SerializedProperty _elasticityFalloffProperty;
+		private SerializedProperty _frictionProperty;
+		private SerializedProperty _scatterProperty;
+
+		protected override void OnEnable()
+		{
+			base.OnEnable();
+
+			_hitEventProperty = serializedObject.FindProperty(nameof(HitTargetColliderAuthoring.UseHitEvent));
+			_isLegacyProperty = serializedObject.FindProperty(nameof(HitTargetColliderAuthoring.IsLegacy));
+			_thresholdProperty = serializedObject.FindProperty(nameof(HitTargetColliderAuthoring.Threshold));
+			_physicsMaterialProperty = serializedObject.FindProperty(nameof(ItemColliderAuthoring<HitTarget, HitTargetData, HitTargetAuthoring>.PhysicsMaterial));
+			_overwritePhysicsProperty = serializedObject.FindProperty(nameof(HitTargetColliderAuthoring.OverwritePhysics));
+			_elasticityProperty = serializedObject.FindProperty(nameof(HitTargetColliderAuthoring.Elasticity));
+			_elasticityFalloffProperty = serializedObject.FindProperty(nameof(HitTargetColliderAuthoring.ElasticityFalloff));
+			_frictionProperty = serializedObject.FindProperty(nameof(HitTargetColliderAuthoring.Friction));
+			_scatterProperty = serializedObject.FindProperty(nameof(HitTargetColliderAuthoring.Scatter));
+		}
+
 		public override void OnInspectorGUI()
 		{
 			if (HasErrors()) {
 				return;
 			}
 
-			ItemDataField("Has Hit Event", ref Data.UseHitEvent, false);
-			ItemDataField("Hit Threshold", ref Data.Threshold, false);
+			serializedObject.Update();
 
-			EditorGUI.BeginDisabledGroup(Data.OverwritePhysics);
-			PhysicsMaterialField("Physics Material", ref ColliderAuthoring.PhysicsMaterial);
-			EditorGUI.EndDisabledGroup();
+			OnPreInspectorGUI();
 
-			ItemDataField("Overwrite Material Settings", ref Data.OverwritePhysics, false);
+			PropertyField(_hitEventProperty, "Has Hit Event");
+			PropertyField(_thresholdProperty, "Hit Threshold");
+			PropertyField(_isLegacyProperty, "Legacy Collider");
 
-			EditorGUI.BeginDisabledGroup(!Data.OverwritePhysics);
-			ItemDataField("Elasticity", ref Data.Elasticity, false);
-			ItemDataField("Elasticity Falloff", ref Data.ElasticityFalloff, false);
-			ItemDataField("Friction", ref Data.Friction, false);
-			ItemDataField("Scatter Angle", ref Data.Scatter, false);
-			EditorGUI.EndDisabledGroup();
+			// physics material
+			if (_foldoutMaterial = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutMaterial, "Physics Material")) {
+				EditorGUI.BeginDisabledGroup(_overwritePhysicsProperty.boolValue);
+				PropertyField(_physicsMaterialProperty, "Preset");
+				EditorGUI.EndDisabledGroup();
 
-			ItemDataField("Legacy Mode", ref Data.IsLegacy, false);
-			ItemDataField("Is Dropped", ref Data.IsDropped, false);
+				PropertyField(_overwritePhysicsProperty);
+
+				EditorGUI.BeginDisabledGroup(!_overwritePhysicsProperty.boolValue);
+				PropertyField(_elasticityProperty);
+				PropertyField(_elasticityFalloffProperty);
+				PropertyField(_frictionProperty);
+				PropertyField(_scatterProperty, "Scatter Angle");
+				EditorGUI.EndDisabledGroup();
+			}
+			EditorGUILayout.EndFoldoutHeaderGroup();
 
 			base.OnInspectorGUI();
+
+			serializedObject.ApplyModifiedProperties();
 		}
 	}
 }

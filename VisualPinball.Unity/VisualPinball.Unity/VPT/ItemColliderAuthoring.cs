@@ -38,8 +38,6 @@ namespace VisualPinball.Unity
 		[SerializeReference]
 		public PhysicsMaterial PhysicsMaterial;
 
-
-
 		[NonSerialized]
 		public bool ShowGizmos;
 

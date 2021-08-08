@@ -31,18 +31,21 @@ using VisualPinball.Engine.VPT.HitTarget;
 
 namespace VisualPinball.Unity
 {
-	[ExecuteAlways]
 	[AddComponentMenu("Visual Pinball/Game Item/Hit Target")]
 	public class HitTargetAuthoring : ItemMainRenderableAuthoring<HitTarget, HitTargetData>,
 		ISwitchAuthoring, IConvertGameObjectToEntity
 	{
 		#region Data
 
+		[Tooltip("Position of the target on the playfield.")]
 		public Vector3 Position;
 
+		[Range(-180f, 180f)]
+		[Tooltip("Z-Axis rotation of the target.")]
 		public float Rotation;
 
-		public Vector3 Size;
+		[Tooltip("Overall scaling of the target.")]
+		public Vector3 Size = new Vector3(32f, 32f, 32f);
 
 		#endregion
 
