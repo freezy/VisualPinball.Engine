@@ -18,6 +18,7 @@
 // ReSharper disable CompareOfFloatsByEqualityOperator
 // ReSharper disable ClassNeverInstantiated.Global
 // ReSharper disable MemberCanBePrivate.Global
+// ReSharper disable InconsistentNaming
 #endregion
 
 using System;
@@ -188,6 +189,7 @@ namespace VisualPinball.Unity
 				}
 			}
 
+			// collision data
 			var colliderAuthoring = gameObject.GetComponent<GateColliderAuthoring>();
 			if (colliderAuthoring) {
 				data.IsCollidable = true;

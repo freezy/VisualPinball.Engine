@@ -21,20 +21,20 @@ using VisualPinball.Engine.VPT.HitTarget;
 
 namespace VisualPinball.Unity.Editor
 {
-	[CustomEditor(typeof(HitTargetAuthoring))]
-	public class HitTargetInspector : ItemMainInspector<HitTarget, HitTargetData, HitTargetAuthoring>
+	[CustomEditor(typeof(DropTargetAnimationAuthoring))]
+	public class HitAnimationInspector : ItemAnimationInspector<HitTarget, HitTargetData, HitTargetAuthoring, DropTargetAnimationAuthoring>
 	{
-		private SerializedProperty _positionProperty;
-		private SerializedProperty _rotationProperty;
-		private SerializedProperty _sizeProperty;
+		private SerializedProperty _isDroppedProperty;
+		private SerializedProperty _dropSpeedProperty;
+		private SerializedProperty _raiseDelayProperty;
 
 		protected override void OnEnable()
 		{
 			base.OnEnable();
 
-			_positionProperty = serializedObject.FindProperty(nameof(HitTargetAuthoring.Position));
-			_rotationProperty = serializedObject.FindProperty(nameof(HitTargetAuthoring.Rotation));
-			_sizeProperty = serializedObject.FindProperty(nameof(HitTargetAuthoring.Size));
+			_isDroppedProperty = serializedObject.FindProperty(nameof(DropTargetAnimationAuthoring.IsDropped));
+			_dropSpeedProperty = serializedObject.FindProperty(nameof(DropTargetAnimationAuthoring.DropSpeed));
+			_raiseDelayProperty = serializedObject.FindProperty(nameof(DropTargetAnimationAuthoring.RaiseDelay));
 		}
 
 		public override void OnInspectorGUI()
@@ -47,11 +47,9 @@ namespace VisualPinball.Unity.Editor
 
 			OnPreInspectorGUI();
 
-			PropertyField(_positionProperty, updateTransforms: true);
-			PropertyField(_rotationProperty, updateTransforms: true);
-			PropertyField(_sizeProperty, updateTransforms: true);
-
-			// todo type (mesh + drop/hit target distinction)
+			PropertyField(_isDroppedProperty, updateTransforms: true);
+			PropertyField(_dropSpeedProperty, updateTransforms: true);
+			PropertyField(_raiseDelayProperty, updateTransforms: true);
 
 			base.OnInspectorGUI();
 

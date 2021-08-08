@@ -1,4 +1,4 @@
-// Visual Pinball Engine
+﻿// Visual Pinball Engine
 // Copyright (C) 2021 freezy and VPE Team
 //
 // This program is free software: you can redistribute it and/or modify
@@ -14,17 +14,23 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-using Unity.Entities;
+// ReSharper disable AssignmentInConditionalExpression
 
-namespace VisualPinball.Unity
+using UnityEditor;
+using VisualPinball.Engine.VPT.HitTarget;
+
+namespace VisualPinball.Unity.Editor
 {
-	internal struct HitTargetAnimationData : IComponentData
+	[CustomEditor(typeof(HitTargetAnimationAuthoring))]
+	public class HitMovementInspector : ItemAnimationInspector<HitTarget, HitTargetData, HitTargetAuthoring, DropTargetAnimationAuthoring>
 	{
-		public float XRotation;
-		public bool HitEvent;
-		public uint TimeMsec;
+		public override void OnInspectorGUI()
+		{
+			if (HasErrors()) {
+				return;
+			}
 
-		public bool MoveDown;
-		public bool MoveAnimation;
+			EditorGUILayout.HelpBox("This component enables movement on ball impact.", MessageType.Info);
+		}
 	}
 }

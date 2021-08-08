@@ -77,6 +77,8 @@ namespace VisualPinball.Unity
 		internal readonly Dictionary<Entity, Transform> BumperSkirtTransforms = new Dictionary<Entity, Transform>();
 		internal readonly Dictionary<Entity, Transform> BumperRingTransforms = new Dictionary<Entity, Transform>();
 		internal readonly Dictionary<Entity, Transform> GateWireTransforms = new Dictionary<Entity, Transform>();
+		internal readonly Dictionary<Entity, Transform> HitTargetTransforms = new Dictionary<Entity, Transform>();
+		internal readonly Dictionary<Entity, Transform> DropTargetTransforms = new Dictionary<Entity, Transform>();
 		internal readonly Dictionary<Entity, Transform> SpinnerPlateTransforms = new Dictionary<Entity, Transform>();
 		internal readonly Dictionary<Entity, Transform> TriggerTransforms = new Dictionary<Entity, Transform>();
 		internal readonly Dictionary<Entity, SkinnedMeshRenderer[]> PlungerSkinnedMeshRenderers = new Dictionary<Entity, SkinnedMeshRenderer[]>();
@@ -271,6 +273,16 @@ namespace VisualPinball.Unity
 			if (colliderAuth) {
 				_colliderGenerators.Add(hitTargetApi);
 				_hittables[entity] = hitTargetApi;
+			}
+
+			var hitTargetMovementAuth = go.GetComponentInChildren<HitTargetAnimationAuthoring>();
+			if (hitTargetMovementAuth) {
+				HitTargetTransforms[entity] = hitTargetMovementAuth.gameObject.transform;
+			}
+
+			var dropMovementAuth = go.GetComponentInChildren<DropTargetAnimationAuthoring>();
+			if (dropMovementAuth) {
+				DropTargetTransforms[entity] = dropMovementAuth.gameObject.transform;
 			}
 			_switchPlayer.RegisterSwitch(hitTarget, hitTargetApi);
 		}

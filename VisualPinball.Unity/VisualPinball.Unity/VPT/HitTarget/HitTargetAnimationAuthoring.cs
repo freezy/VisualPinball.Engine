@@ -21,17 +21,9 @@ using VisualPinball.Engine.VPT.HitTarget;
 
 namespace VisualPinball.Unity
 {
-	[ExecuteInEditMode]
-	[AddComponentMenu("Visual Pinball/Mesh/Hit Target Mesh")]
-	public class HitTargetMeshAuthoring : ItemMeshAuthoring<HitTarget, HitTargetData, HitTargetAuthoring>
+	[RequireComponent(typeof(HitTargetColliderAuthoring))]
+	public class HitTargetAnimationAuthoring : ItemAnimationAuthoring<HitTarget, HitTargetData, HitTargetAuthoring>
 	{
-		public static readonly Type[] ValidParentTypes = new Type[0];
-
-		public override IEnumerable<Type> ValidParents => ValidParentTypes;
-
-		protected override bool IsVisible {
-			get => Data.IsVisible;
-			set => Data.IsVisible = value;
-		}
+		public override IEnumerable<Type> ValidParents { get; } = new Type[0];
 	}
 }

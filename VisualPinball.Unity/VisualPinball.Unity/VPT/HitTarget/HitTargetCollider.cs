@@ -23,7 +23,7 @@ namespace VisualPinball.Unity
 	internal static class HitTargetCollider
 	{
 		public static void Collide(ref BallData ball, ref NativeQueue<EventData>.ParallelWriter hitEvents,
-			ref HitTargetAnimationData animationData, in float3 normal, in Entity ballEntity, in CollisionEventData collEvent,
+			ref DropTargetAnimationData animationData, in float3 normal, in Entity ballEntity, in CollisionEventData collEvent,
 			in Collider coll, ref Random random)
 		{
 			var dot = -math.dot(collEvent.HitNormal, ball.Velocity);
