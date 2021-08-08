@@ -61,16 +61,15 @@ namespace VisualPinball.Unity
 				}
 
 				if (data.MoveAnimation) {
-					var step = staticData.Speed * staticData.TableScaleZ;
-					var limit = 13.0f * staticData.TableScaleZ;
+					var step = staticData.Speed;
 					if (!data.MoveDirection) {
 						step = -step;
 					}
 
 					data.XRotation += step * diffTimeMsec;
 					if (data.MoveDirection) {
-						if (data.XRotation >= limit) {
-							data.XRotation = limit;
+						if (data.XRotation >= staticData.MaxAngle) {
+							data.XRotation = staticData.MaxAngle;
 							data.MoveDirection = false;
 						}
 

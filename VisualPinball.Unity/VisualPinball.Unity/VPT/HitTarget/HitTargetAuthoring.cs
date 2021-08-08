@@ -47,7 +47,6 @@ namespace VisualPinball.Unity
 		#endregion
 
 		protected override HitTarget InstantiateItem(HitTargetData data) => new HitTarget(data);
-
 		protected override Type MeshAuthoringType { get; } = typeof(ItemMeshAuthoring<HitTarget, HitTargetData, HitTargetAuthoring>);
 		protected override Type ColliderAuthoringType { get; } = typeof(ItemColliderAuthoring<HitTarget, HitTargetData, HitTargetAuthoring>);
 
@@ -59,7 +58,6 @@ namespace VisualPinball.Unity
 		public void Convert(Entity entity, EntityManager dstManager, GameObjectConversionSystem conversionSystem)
 		{
 			Convert(entity, dstManager);
-			var table = gameObject.GetComponentInParent<TableAuthoring>().Item;
 
 			var colliderAuthoring = GetComponent<HitTargetColliderAuthoring>();
 			if (colliderAuthoring) {
@@ -70,8 +68,8 @@ namespace VisualPinball.Unity
 
 					if (hitTargetAnimationAuthoring) {
 						dstManager.AddComponentData(entity, new HitTargetStaticData {
-							Speed = dropTargetAnimationAuthoring.Speed,
-							TableScaleZ = table.GetScaleZ()
+							Speed = hitTargetAnimationAuthoring.Speed,
+							MaxAngle = hitTargetAnimationAuthoring.MaxAngle,
 						});
 						dstManager.AddComponentData(entity, new HitTargetAnimationData());
 					}
@@ -130,12 +128,20 @@ namespace VisualPinball.Unity
 				updatedComponents.Add(colliderAuthoring);
 
 				// animation data
-				var animationAuthoring = GetComponent<DropTargetAnimationAuthoring>();
-				if (animationAuthoring) {
-					animationAuthoring.Speed = data.DropSpeed;
-					animationAuthoring.RaiseDelay = data.RaiseDelay;
-					animationAuthoring.IsDropped = data.IsDropped;
-					updatedComponents.Add(animationAuthoring);
+				var dropTargetAnimationAuthoring = GetComponent<DropTargetAnimationAuthoring>();
+				if (dropTargetAnimationAuthoring) {
+					dropTargetAnimationAuthoring.enabled = data.IsDropTarget;
+					dropTargetAnimationAuthoring.Speed = data.DropSpeed;
+					dropTargetAnimationAuthoring.RaiseDelay = data.RaiseDelay;
+					dropTargetAnimationAuthoring.IsDropped = data.IsDropped;
+					updatedComponents.Add(dropTargetAnimationAuthoring);
+				}
+
+				var hitTargetAnimationAuthoring = GetComponent<HitTargetAnimationAuthoring>();
+				if (hitTargetAnimationAuthoring) {
+					dropTargetAnimationAuthoring.enabled = !data.IsDropTarget;
+					hitTargetAnimationAuthoring.Speed = data.DropSpeed;
+					updatedComponents.Add(hitTargetAnimationAuthoring);
 				}
 			}
 
@@ -167,11 +173,11 @@ namespace VisualPinball.Unity
 				data.IsCollidable = true;
 
 				// animation data
-				var animationAuthoring = GetComponent<DropTargetAnimationAuthoring>();
-				if (animationAuthoring) {
-					data.DropSpeed = animationAuthoring.Speed;
-					data.RaiseDelay = animationAuthoring.RaiseDelay;
-					data.IsDropped = animationAuthoring.IsDropped;
+				var dropTargetAnimationAuthoring = GetComponent<DropTargetAnimationAuthoring>();
+				if (dropTargetAnimationAuthoring) {
+					data.DropSpeed = dropTargetAnimationAuthoring.Speed;
+					data.RaiseDelay = dropTargetAnimationAuthoring.RaiseDelay;
+					data.IsDropped = dropTargetAnimationAuthoring.IsDropped;
 				}
 
 			} else {
