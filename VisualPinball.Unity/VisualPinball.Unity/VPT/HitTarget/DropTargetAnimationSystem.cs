@@ -17,16 +17,17 @@
 using Unity.Collections;
 using Unity.Entities;
 using Unity.Profiling;
+using VisualPinball.Engine.Game;
 
 namespace VisualPinball.Unity
 {
 	[UpdateInGroup(typeof(UpdateAnimationsSystemGroup))]
-	internal class HitTargetAnimationSystem : SystemBase
+	internal class DropTargetAnimationSystem : SystemBase
 	{
 		private VisualPinballSimulationSystemGroup _visualPinballSimulationSystemGroup;
 		private NativeQueue<EventData> _eventQueue;
 
-		private static readonly ProfilerMarker PerfMarker = new ProfilerMarker(nameof(HitTargetAnimationSystem));
+		private static readonly ProfilerMarker PerfMarker = new ProfilerMarker("HitTargetAnimationSystem");
 
 		protected override void OnCreate()
 		{
@@ -47,7 +48,7 @@ namespace VisualPinball.Unity
 
 			Entities
 				.WithName("HitTargetAnimationJob")
-				.ForEach((Entity entity, ref HitTargetAnimationData data, in HitTargetStaticData staticData) =>
+				.ForEach((Entity entity, ref DropTargetAnimationData data, in HitTargetStaticData staticData) =>
 			{
 				marker.Begin();
 
@@ -56,28 +57,46 @@ namespace VisualPinball.Unity
 				var diffTimeMsec = (float)(timeMsec - oldTimeMsec);
 
 				if (data.HitEvent) {
+					if (!data.IsDropped) {
+						data.MoveDown = true;
+					}
+
 					data.MoveAnimation = true;
 					data.HitEvent = false;
 				}
 
 				if (data.MoveAnimation) {
 					var step = staticData.DropSpeed * staticData.TableScaleZ;
-					var limit = 13.0f * staticData.TableScaleZ;
-					if (!data.MoveDown) {
+					var limit = DropTargetAnimationData.DropTargetLimit * staticData.TableScaleZ;
+
+					if (data.MoveDown) {
 						step = -step;
+
+					} else if (data.TimeMsec - data.TimeStamp < (uint) staticData.RaiseDelay) {
+						step = 0.0f;
 					}
 
-					data.XRotation += step * diffTimeMsec;
+					data.ZOffset += step * diffTimeMsec;
 					if (data.MoveDown) {
-						if (data.XRotation >= limit) {
-							data.XRotation = limit;
+						if (data.ZOffset <= -limit) {
+							data.ZOffset = -limit;
 							data.MoveDown = false;
+							data.IsDropped = true;
+							data.MoveAnimation = false;
+							data.TimeStamp = 0;
+							if (staticData.UseHitEvent) {
+								events.Enqueue(new EventData(EventId.TargetEventsDropped, entity));
+							}
 						}
 
 					} else {
-						if (data.XRotation <= 0.0f) {
-							data.XRotation = 0.0f;
+						if (data.ZOffset >= 0.0f) {
+							data.ZOffset = 0.0f;
 							data.MoveAnimation = false;
+							data.IsDropped = false;
+							if (staticData.UseHitEvent) {
+								events.Enqueue(new EventData(EventId.TargetEventsRaised, entity));
+							}
 						}
 					}
 				}

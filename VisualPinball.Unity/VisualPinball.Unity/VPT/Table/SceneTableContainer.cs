@@ -169,10 +169,10 @@ namespace VisualPinball.Unity
 					flipperBase.MainAuthoring.Data.Image = GetTextureName(mr);
 					break;
 				}
-				case HitTargetMeshAuthoring hitTarget: {
-					hitTarget.MainAuthoring.Data.Image = GetTextureName(mr);
-					break;
-				}
+				// case HitTargetMeshAuthoring hitTarget: {
+				// 	hitTarget.MainAuthoring.Data.Image = GetTextureName(mr);
+				// 	break;
+				// }
 				case PlungerMeshAuthoring plunger: {
 					plunger.MainAuthoring.Data.Image = GetTextureName(mr);
 					break;

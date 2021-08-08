@@ -18,13 +18,17 @@ using Unity.Entities;
 
 namespace VisualPinball.Unity
 {
-	internal struct HitTargetAnimationData : IComponentData
+	internal struct DropTargetAnimationData : IComponentData
 	{
-		public float XRotation;
+		public const float DropTargetLimit = 52.0f;
+
+		public float ZOffset;
 		public bool HitEvent;
 		public uint TimeMsec;
+		public uint TimeStamp;
 
 		public bool MoveDown;
+		public bool IsDropped;
 		public bool MoveAnimation;
 	}
 }

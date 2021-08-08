@@ -1,4 +1,4 @@
-// Visual Pinball Engine
+﻿// Visual Pinball Engine
 // Copyright (C) 2021 freezy and VPE Team
 //
 // This program is free software: you can redistribute it and/or modify
@@ -14,15 +14,26 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-using Unity.Entities;
+using System;
+using System.Collections.Generic;
+using UnityEngine;
+using VisualPinball.Engine.VPT.HitTarget;
 
 namespace VisualPinball.Unity
 {
-	internal struct HitTargetMovementData : IComponentData
+	[RequireComponent(typeof(HitTargetColliderAuthoring))]
+	public class DropTargetAnimationAuthoring : ItemAnimationAuthoring<HitTarget, HitTargetData, HitTargetAuthoring>
 	{
-		public const float DropTargetLimit = 52.0f;
+		public override IEnumerable<Type> ValidParents { get; } = new Type[0];
 
-		public float ZOffset;
-		public float XRotation;
+		#region Data
+
+		public float DropSpeed =  0.5f;
+
+		public int RaiseDelay = 100;
+
+		public bool IsDropped;
+
+		#endregion
 	}
 }

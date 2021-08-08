@@ -38,37 +38,11 @@ namespace VisualPinball.Unity
 	{
 		#region Data
 
-		public float RotZ;
+		public Vector3 Position;
+
+		public float Rotation;
 
 		public Vector3 Size;
-
-		public float DepthBias;
-
-		public float DropSpeed =  0.5f;
-
-		public int RaiseDelay = 100;
-
-		public float Elasticity;
-
-		public float ElasticityFalloff;
-
-		public float Friction;
-
-		public bool IsCollidable = true;
-
-		public bool IsDropped;
-
-		public bool IsLegacy;
-
-		public bool OverwritePhysics;
-
-		public float Scatter;
-
-		public string PhysicsMaterial = string.Empty;
-
-		public float Threshold = 2.0f;
-
-		public bool UseHitEvent = true;
 
 		#endregion
 
@@ -78,7 +52,6 @@ namespace VisualPinball.Unity
 		protected override Type ColliderAuthoringType { get; } = typeof(ItemColliderAuthoring<HitTarget, HitTargetData, HitTargetAuthoring>);
 
 		public override IEnumerable<Type> ValidParents => HitTargetColliderAuthoring.ValidParentTypes
-			.Concat(HitTargetMeshAuthoring.ValidParentTypes)
 			.Distinct();
 
 		public ISwitchable Switchable => Item;
@@ -88,103 +61,135 @@ namespace VisualPinball.Unity
 			Convert(entity, dstManager);
 			var table = gameObject.GetComponentInParent<TableAuthoring>().Item;
 
-			dstManager.AddComponentData(entity, new HitTargetStaticData {
-				TargetType = Data.TargetType,
-				DropSpeed = Data.DropSpeed,
-				RaiseDelay = Data.RaiseDelay,
-				UseHitEvent = Data.UseHitEvent,
-				RotZ = Data.RotZ,
-				TableScaleZ = table.GetScaleZ()
-			});
-			dstManager.AddComponentData(entity, new HitTargetAnimationData {
-				IsDropped = Data.IsDropped
-			});
-			dstManager.AddComponentData(entity, new HitTargetMovementData());
+			var colliderAuthoring = GetComponent<HitTargetColliderAuthoring>();
+			if (colliderAuthoring) {
+
+				var hitTargetAnimationAuthoring = GetComponent<HitTargetAnimationAuthoring>();
+				var dropTargetAnimationAuthoring = GetComponent<DropTargetAnimationAuthoring>();
+				if (dropTargetAnimationAuthoring || hitTargetAnimationAuthoring) {
+					dstManager.AddComponentData(entity, new HitTargetStaticData {
+						DropSpeed = dropTargetAnimationAuthoring.DropSpeed,
+						RaiseDelay = dropTargetAnimationAuthoring.RaiseDelay,
+						UseHitEvent = colliderAuthoring.UseHitEvent,
+						TableScaleZ = table.GetScaleZ()
+					});
+
+					if (hitTargetAnimationAuthoring) {
+						dstManager.AddComponentData(entity, new HitTargetAnimationData());
+					}
+
+					if (dropTargetAnimationAuthoring) {
+						dstManager.AddComponentData(entity, new DropTargetAnimationData {
+							IsDropped = dropTargetAnimationAuthoring.IsDropped
+						});
+					}
+				}
+			}
 
 			// register
-			var hitTarget = transform.GetComponent<HitTargetAuthoring>().Item;
-			transform.GetComponentInParent<Player>().RegisterHitTarget(hitTarget, entity, ParentEntity, gameObject);
+			transform.GetComponentInParent<Player>().RegisterHitTarget(Item, entity, ParentEntity, gameObject);
+		}
+
+		public override void UpdateTransforms()
+		{
+			var t = transform;
+			t.localPosition = Position;
+			t.localScale = Size;
+			t.localEulerAngles = new Vector3(0, 0, Rotation);
 		}
 
 		public override IEnumerable<MonoBehaviour> SetData(HitTargetData data, IMaterialProvider materialProvider, ITextureProvider textureProvider, Dictionary<string, IItemMainAuthoring> components)
 		{
 			var updatedComponents = new List<MonoBehaviour> { this };
 
-			Size = data.Size.ToUnityFloat3();
-			RotZ = data.RotZ;
-			DepthBias = data.DepthBias;
-			DropSpeed = data.DropSpeed;
-			RaiseDelay = data.RaiseDelay;
-			Elasticity = data.Elasticity;
-			ElasticityFalloff = data.ElasticityFalloff;
-			Friction = data.Friction;
-			IsCollidable = data.IsCollidable;
-			IsDropped = data.IsDropped;
-			IsLegacy = data.IsLegacy;
-			OverwritePhysics = data.OverwritePhysics;
-			Scatter = data.Scatter;
-			PhysicsMaterial = data.PhysicsMaterial;
-			Threshold = data.Threshold;
-			UseHitEvent = data.UseHitEvent;
+			// transforms
+			Position = data.Position.ToUnityVector3();
+			Rotation = data.RotZ > 180f ? data.RotZ - 360f : data.RotZ;
+			Size = data.Size.ToUnityVector3();
+			UpdateTransforms();
+
+			// collider data
+			var colliderAuthoring = GetComponent<HitTargetColliderAuthoring>();
+			if (colliderAuthoring) {
+
+				colliderAuthoring.UseHitEvent = data.UseHitEvent;
+				colliderAuthoring.Threshold = data.Threshold;
+				colliderAuthoring.PhysicsMaterial = materialProvider.GetPhysicsMaterial(data.PhysicsMaterial);
+				colliderAuthoring.IsLegacy = data.IsLegacy;
+
+				colliderAuthoring.OverwritePhysics = data.OverwritePhysics;
+				colliderAuthoring.Elasticity = data.Elasticity;
+				colliderAuthoring.ElasticityFalloff = data.ElasticityFalloff;
+				colliderAuthoring.Friction = data.Friction;
+				colliderAuthoring.Scatter = data.Scatter;
+
+				colliderAuthoring.enabled = data.IsCollidable;
+				updatedComponents.Add(colliderAuthoring);
+
+				// animation data
+				var animationAuthoring = GetComponent<DropTargetAnimationAuthoring>();
+				if (animationAuthoring) {
+					animationAuthoring.DropSpeed = data.DropSpeed;
+					animationAuthoring.RaiseDelay = data.RaiseDelay;
+					animationAuthoring.IsDropped = data.IsDropped;
+					updatedComponents.Add(animationAuthoring);
+				}
+			}
 
 			return updatedComponents;
 		}
 
 		public override HitTargetData CopyDataTo(HitTargetData data)
 		{
-			var localPos = transform.localPosition;
-
-			// name and position
+			// name and transforms
 			data.Name = name;
-			data.Position = localPos.ToVertex3D();
-
-			// update visibility
-			data.IsVisible = false;
-			foreach (var meshComponent in MeshComponents) {
-				switch (meshComponent) {
-					case HitTargetMeshAuthoring meshAuthoring:
-						data.IsVisible = meshAuthoring.gameObject.activeInHierarchy;
-						break;
-				}
-			}
-
-			// update collision
-			data.IsCollidable = false;
-			foreach (var colliderComponent in ColliderComponents) {
-				if (colliderComponent is HitTargetColliderAuthoring colliderAuthoring) {
-					data.IsCollidable = colliderAuthoring.gameObject.activeInHierarchy;
-				}
-			}
-
-			// other props
+			data.Position = Position.ToVertex3D();
+			data.RotZ = Rotation;
 			data.Size = Size.ToVertex3D();
-			data.RotZ = RotZ;
-			data.DepthBias = DepthBias;
-			data.DropSpeed = DropSpeed;
-			data.RaiseDelay = RaiseDelay;
-			data.Elasticity = Elasticity;
-			data.ElasticityFalloff = ElasticityFalloff;
-			data.Friction = Friction;
-			data.IsCollidable = IsCollidable;
-			data.IsDropped = IsDropped;
-			data.IsLegacy = IsLegacy;
-			data.OverwritePhysics = OverwritePhysics;
-			data.Scatter = Scatter;
-			data.PhysicsMaterial = PhysicsMaterial;
-			data.Threshold = Threshold;
-			data.UseHitEvent = UseHitEvent;
+
+			// collision data
+			var colliderAuthoring = GetComponent<HitTargetColliderAuthoring>();
+			if (colliderAuthoring) {
+				data.Threshold = colliderAuthoring.Threshold;
+				data.UseHitEvent = colliderAuthoring.UseHitEvent;
+				data.PhysicsMaterial = colliderAuthoring.PhysicsMaterial.name;
+				data.IsLegacy = colliderAuthoring.IsLegacy;
+
+				data.OverwritePhysics = colliderAuthoring.OverwritePhysics;
+				data.Elasticity = colliderAuthoring.Elasticity;
+				data.ElasticityFalloff = colliderAuthoring.ElasticityFalloff;
+				data.Friction = colliderAuthoring.Friction;
+				data.Scatter = colliderAuthoring.Scatter;
+
+				data.IsCollidable = true;
+
+				// animation data
+				var animationAuthoring = GetComponent<DropTargetAnimationAuthoring>();
+				if (animationAuthoring) {
+					data.DropSpeed = animationAuthoring.DropSpeed;
+					data.RaiseDelay = animationAuthoring.RaiseDelay;
+					data.IsDropped = animationAuthoring.IsDropped;
+				}
+
+			} else {
+				data.IsCollidable = false;
+			}
 
 			return data;
 		}
 
+		#region Editor Tooling
+
 		public override ItemDataTransformType EditorPositionType => ItemDataTransformType.ThreeD;
 
 		public override ItemDataTransformType EditorRotationType => ItemDataTransformType.OneD;
-		public override Vector3 GetEditorRotation() => new Vector3(RotZ, 0f, 0f);
-		public override void SetEditorRotation(Vector3 rot) => RotZ = rot.x;
+		public override Vector3 GetEditorRotation() => new Vector3(Rotation, 0f, 0f);
+		public override void SetEditorRotation(Vector3 rot) => Rotation = rot.x;
 
 		public override ItemDataTransformType EditorScaleType => ItemDataTransformType.ThreeD;
 		public override Vector3 GetEditorScale() => Size;
 		public override void SetEditorScale(Vector3 scale) => Size = scale;
+
+		#endregion
 	}
 }

@@ -34,7 +34,7 @@ namespace VisualPinball.Unity
 			switch (hitTarget.SubComponent) {
 				case ItemSubComponent.None:
 					convertedItem.SetColliderAuthoring<HitTargetColliderAuthoring>(materialProvider);
-					convertedItem.SetMeshAuthoring<HitTargetMeshAuthoring>();
+					//convertedItem.SetMeshAuthoring<HitTargetMeshAuthoring>();
 					break;
 
 				case ItemSubComponent.Collider: {

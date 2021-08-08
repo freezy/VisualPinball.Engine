@@ -50,7 +50,7 @@ namespace VisualPinball.Unity
 		///
 		/// <exception cref="InvalidOperationException">Thrown if target is not a drop target (but a hit target, which can't be dropped)</exception>
 		public bool IsDropped {
-			get => EntityManager.GetComponentData<HitTargetAnimationData>(Entity).IsDropped;
+			get => EntityManager.GetComponentData<DropTargetAnimationData>(Entity).IsDropped;
 			set => SetIsDropped(value);
 		}
 
@@ -71,7 +71,7 @@ namespace VisualPinball.Unity
 				throw new InvalidOperationException($"You tried to drop hit target {Item.Name}, but only drop targets are droppable!");
 			}
 
-			var data = EntityManager.GetComponentData<HitTargetAnimationData>(Entity);
+			var data = EntityManager.GetComponentData<DropTargetAnimationData>(Entity);
 			if (data.IsDropped != isDropped) {
 				data.MoveAnimation = true;
 				if (isDropped) {

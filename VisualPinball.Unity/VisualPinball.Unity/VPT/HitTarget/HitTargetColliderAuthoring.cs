@@ -14,6 +14,8 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+// ReSharper disable InconsistentNaming
+
 using System;
 using System.Collections.Generic;
 using Unity.Entities;
@@ -25,6 +27,26 @@ namespace VisualPinball.Unity
 	[AddComponentMenu("Visual Pinball/Collision/Hit Target Collider")]
 	public class HitTargetColliderAuthoring : ItemColliderAuthoring<HitTarget, HitTargetData, HitTargetAuthoring>
 	{
+		#region Data
+
+		public float Elasticity;
+
+		public float ElasticityFalloff;
+
+		public float Friction;
+
+		public bool IsLegacy;
+
+		public bool OverwritePhysics;
+
+		public float Scatter;
+
+		public float Threshold = 2.0f;
+
+		public bool UseHitEvent = true;
+
+		#endregion
+
 		public static readonly Type[] ValidParentTypes = new Type[0];
 
 		public override IEnumerable<Type> ValidParents => ValidParentTypes;
