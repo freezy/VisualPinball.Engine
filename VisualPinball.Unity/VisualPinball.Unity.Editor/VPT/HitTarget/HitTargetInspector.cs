@@ -21,7 +21,7 @@ using VisualPinball.Engine.VPT.HitTarget;
 
 namespace VisualPinball.Unity.Editor
 {
-	[CustomEditor(typeof(HitTargetAuthoring))]
+	[CustomEditor(typeof(HitTargetAuthoring)), CanEditMultipleObjects]
 	public class HitTargetInspector : ItemMainInspector<HitTarget, HitTargetData, HitTargetAuthoring>
 	{
 		private SerializedProperty _positionProperty;

@@ -14,6 +14,8 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+// ReSharper disable InconsistentNaming
+
 using System;
 using System.Collections.Generic;
 using UnityEngine;
@@ -21,6 +23,7 @@ using VisualPinball.Engine.VPT.HitTarget;
 
 namespace VisualPinball.Unity
 {
+	[AddComponentMenu("Visual Pinball/Animation/Drop Target Animation")]
 	[RequireComponent(typeof(HitTargetColliderAuthoring))]
 	public class DropTargetAnimationAuthoring : ItemAnimationAuthoring<HitTarget, HitTargetData, HitTargetAuthoring>
 	{

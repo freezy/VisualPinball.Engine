@@ -19,6 +19,7 @@
 using System;
 using System.Collections.Generic;
 using Unity.Entities;
+using UnityEditor;
 using UnityEngine;
 using VisualPinball.Engine.VPT.HitTarget;
 
@@ -29,17 +30,17 @@ namespace VisualPinball.Unity
 	{
 		#region Data
 
-		public float Elasticity;
+		public float Elasticity = 0.35f;
 
-		public float ElasticityFalloff;
+		public float ElasticityFalloff = 0.5f;
 
-		public float Friction;
+		public float Friction = 0.2f;
+
+		public float Scatter = 5f;
 
 		public bool IsLegacy;
 
-		public bool OverwritePhysics;
-
-		public float Scatter;
+		public bool OverwritePhysics = true;
 
 		public float Threshold = 2.0f;
 
@@ -47,7 +48,7 @@ namespace VisualPinball.Unity
 
 		#endregion
 
-		public static readonly Type[] ValidParentTypes = new Type[0];
+		public static readonly Type[] ValidParentTypes = Type.EmptyTypes;
 
 		public override IEnumerable<Type> ValidParents => ValidParentTypes;
 		protected override IApiColliderGenerator InstantiateColliderApi(Player player, Entity entity, Entity parentEntity)

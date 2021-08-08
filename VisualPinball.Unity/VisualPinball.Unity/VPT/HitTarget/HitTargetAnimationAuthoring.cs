@@ -23,6 +23,7 @@ using VisualPinball.Engine.VPT.HitTarget;
 
 namespace VisualPinball.Unity
 {
+	[AddComponentMenu("Visual Pinball/Animation/Hit Target Animation")]
 	[RequireComponent(typeof(HitTargetColliderAuthoring))]
 	public class HitTargetAnimationAuthoring : ItemAnimationAuthoring<HitTarget, HitTargetData, HitTargetAuthoring>
 	{
