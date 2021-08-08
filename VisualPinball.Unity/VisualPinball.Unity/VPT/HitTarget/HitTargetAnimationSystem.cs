@@ -61,17 +61,17 @@ namespace VisualPinball.Unity
 				}
 
 				if (data.MoveAnimation) {
-					var step = staticData.DropSpeed * staticData.TableScaleZ;
+					var step = staticData.Speed * staticData.TableScaleZ;
 					var limit = 13.0f * staticData.TableScaleZ;
-					if (!data.MoveDown) {
+					if (!data.MoveDirection) {
 						step = -step;
 					}
 
 					data.XRotation += step * diffTimeMsec;
-					if (data.MoveDown) {
+					if (data.MoveDirection) {
 						if (data.XRotation >= limit) {
 							data.XRotation = limit;
-							data.MoveDown = false;
+							data.MoveDirection = false;
 						}
 
 					} else {

@@ -22,15 +22,32 @@ using VisualPinball.Engine.VPT.HitTarget;
 namespace VisualPinball.Unity.Editor
 {
 	[CustomEditor(typeof(HitTargetAnimationAuthoring))]
-	public class HitMovementInspector : ItemAnimationInspector<HitTarget, HitTargetData, HitTargetAuthoring, DropTargetAnimationAuthoring>
+	public class HitTargetAnimationInspector : ItemAnimationInspector<HitTarget, HitTargetData, HitTargetAuthoring, DropTargetAnimationAuthoring>
 	{
+		private SerializedProperty _speedProperty;
+
+		protected override void OnEnable()
+		{
+			base.OnEnable();
+
+			_speedProperty = serializedObject.FindProperty(nameof(HitTargetAnimationAuthoring.Speed));
+		}
+
 		public override void OnInspectorGUI()
 		{
 			if (HasErrors()) {
 				return;
 			}
 
-			EditorGUILayout.HelpBox("This component enables movement on ball impact.", MessageType.Info);
+			serializedObject.Update();
+
+			OnPreInspectorGUI();
+
+			PropertyField(_speedProperty, updateTransforms: true);
+
+			base.OnInspectorGUI();
+
+			serializedObject.ApplyModifiedProperties();
 		}
 	}
 }

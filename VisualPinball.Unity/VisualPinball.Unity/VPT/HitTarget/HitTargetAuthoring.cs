@@ -67,18 +67,21 @@ namespace VisualPinball.Unity
 				var hitTargetAnimationAuthoring = GetComponent<HitTargetAnimationAuthoring>();
 				var dropTargetAnimationAuthoring = GetComponent<DropTargetAnimationAuthoring>();
 				if (dropTargetAnimationAuthoring || hitTargetAnimationAuthoring) {
-					dstManager.AddComponentData(entity, new HitTargetStaticData {
-						DropSpeed = dropTargetAnimationAuthoring.DropSpeed,
-						RaiseDelay = dropTargetAnimationAuthoring.RaiseDelay,
-						UseHitEvent = colliderAuthoring.UseHitEvent,
-						TableScaleZ = table.GetScaleZ()
-					});
 
 					if (hitTargetAnimationAuthoring) {
+						dstManager.AddComponentData(entity, new HitTargetStaticData {
+							Speed = dropTargetAnimationAuthoring.Speed,
+							TableScaleZ = table.GetScaleZ()
+						});
 						dstManager.AddComponentData(entity, new HitTargetAnimationData());
 					}
 
 					if (dropTargetAnimationAuthoring) {
+						dstManager.AddComponentData(entity, new DropTargetStaticData {
+							Speed = dropTargetAnimationAuthoring.Speed,
+							RaiseDelay = dropTargetAnimationAuthoring.RaiseDelay,
+							UseHitEvent = colliderAuthoring.UseHitEvent,
+						});
 						dstManager.AddComponentData(entity, new DropTargetAnimationData {
 							IsDropped = dropTargetAnimationAuthoring.IsDropped
 						});
@@ -129,7 +132,7 @@ namespace VisualPinball.Unity
 				// animation data
 				var animationAuthoring = GetComponent<DropTargetAnimationAuthoring>();
 				if (animationAuthoring) {
-					animationAuthoring.DropSpeed = data.DropSpeed;
+					animationAuthoring.Speed = data.DropSpeed;
 					animationAuthoring.RaiseDelay = data.RaiseDelay;
 					animationAuthoring.IsDropped = data.IsDropped;
 					updatedComponents.Add(animationAuthoring);
@@ -166,7 +169,7 @@ namespace VisualPinball.Unity
 				// animation data
 				var animationAuthoring = GetComponent<DropTargetAnimationAuthoring>();
 				if (animationAuthoring) {
-					data.DropSpeed = animationAuthoring.DropSpeed;
+					data.DropSpeed = animationAuthoring.Speed;
 					data.RaiseDelay = animationAuthoring.RaiseDelay;
 					data.IsDropped = animationAuthoring.IsDropped;
 				}
