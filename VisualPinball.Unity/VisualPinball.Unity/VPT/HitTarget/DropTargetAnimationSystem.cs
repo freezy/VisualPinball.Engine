@@ -48,7 +48,7 @@ namespace VisualPinball.Unity
 
 			Entities
 				.WithName("HitTargetAnimationJob")
-				.ForEach((Entity entity, ref DropTargetAnimationData data, in HitTargetStaticData staticData) =>
+				.ForEach((Entity entity, ref DropTargetAnimationData data, in DropTargetStaticData staticData) =>
 			{
 				marker.Begin();
 
@@ -66,8 +66,7 @@ namespace VisualPinball.Unity
 				}
 
 				if (data.MoveAnimation) {
-					var step = staticData.DropSpeed * staticData.TableScaleZ;
-					var limit = DropTargetAnimationData.DropTargetLimit * staticData.TableScaleZ;
+					var step = staticData.Speed;
 
 					if (data.MoveDown) {
 						step = -step;
@@ -78,8 +77,8 @@ namespace VisualPinball.Unity
 
 					data.ZOffset += step * diffTimeMsec;
 					if (data.MoveDown) {
-						if (data.ZOffset <= -limit) {
-							data.ZOffset = -limit;
+						if (data.ZOffset <= -DropTargetAnimationData.DropTargetLimit) {
+							data.ZOffset = -DropTargetAnimationData.DropTargetLimit;
 							data.MoveDown = false;
 							data.IsDropped = true;
 							data.MoveAnimation = false;

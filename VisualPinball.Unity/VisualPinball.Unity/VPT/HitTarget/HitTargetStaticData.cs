@@ -20,9 +20,7 @@ namespace VisualPinball.Unity
 {
 	internal struct HitTargetStaticData : IComponentData
 	{
-		public float DropSpeed;
-		public float RaiseDelay;
-		public bool UseHitEvent;
+		public float Speed;
 
 		// table data
 		public float TableScaleZ;

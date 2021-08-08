@@ -24,7 +24,7 @@ namespace VisualPinball.Unity
 		public bool HitEvent;
 		public uint TimeMsec;
 
-		public bool MoveDown;
+		public bool MoveDirection;
 		public bool MoveAnimation;
 	}
 }

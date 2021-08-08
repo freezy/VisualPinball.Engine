@@ -28,7 +28,7 @@ namespace VisualPinball.Unity
 
 		#region Data
 
-		public float DropSpeed =  0.5f;
+		public float Speed =  0.5f;
 
 		public int RaiseDelay = 100;
 
