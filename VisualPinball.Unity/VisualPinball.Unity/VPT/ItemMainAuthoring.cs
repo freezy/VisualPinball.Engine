@@ -40,6 +40,14 @@ namespace VisualPinball.Unity
 		public abstract IEnumerable<MonoBehaviour> SetData(TData data, IMaterialProvider materialProvider, ITextureProvider textureProvider, Dictionary<string, IItemMainAuthoring> components);
 		public abstract TData CopyDataTo(TData data);
 
+		protected T GetAuthoring<T>(Dictionary<string, IItemMainAuthoring> itemMainAuthorings, string surfaceName) where T : class, IItemMainAuthoring
+		{
+			return (itemMainAuthorings.ContainsKey(surfaceName.ToLower())
+					? itemMainAuthorings[surfaceName.ToLower()]
+					: null)
+				as T;
+		}
+
 		#region Data
 
 		/// <summary>

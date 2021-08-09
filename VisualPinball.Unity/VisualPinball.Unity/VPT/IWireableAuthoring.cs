@@ -18,6 +18,6 @@ namespace VisualPinball.Unity
 {
 	public interface IWireableAuthoring : IIdentifiableItemAuthoring
 	{
-
+		string name { get; }
 	}
 }

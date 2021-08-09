@@ -41,9 +41,9 @@ namespace VisualPinball.Unity
 
 		public int Type = TroughType.ModernOpto;
 
-		public string PlayfieldEntrySwitch = string.Empty;
+		public TriggerAuthoring PlayfieldEntrySwitch;
 
-		public string PlayfieldExitKicker = string.Empty;
+		public KickerAuthoring PlayfieldExitKicker;
 
 		public int BallCount = 6;
 
@@ -81,9 +81,9 @@ namespace VisualPinball.Unity
 
 		private Vector3 ExitPos(float height) => string.IsNullOrEmpty(Data.PlayfieldExitKicker)
 			? Vector3.zero
-			: !TableContainer.Has<Kicker>(Data.PlayfieldExitKicker)
+			: PlayfieldExitKicker == null
 				? Vector3.zero
-				: TableContainer.Get<Kicker>(Data.PlayfieldExitKicker).Data.Center.ToUnityVector3(height);
+				: new Vector3(PlayfieldExitKicker.Position.x, PlayfieldExitKicker.Position.y, height);
 
 		private void Awake()
 		{
@@ -95,8 +95,8 @@ namespace VisualPinball.Unity
 			var updatedComponents = new List<MonoBehaviour> { this };
 
 			Type = data.Type;
-			PlayfieldEntrySwitch = data.PlayfieldEntrySwitch;
-			PlayfieldExitKicker = data.PlayfieldExitKicker;
+			PlayfieldEntrySwitch = GetAuthoring<TriggerAuthoring>(components, data.PlayfieldEntrySwitch);
+			PlayfieldExitKicker = GetAuthoring<KickerAuthoring>(components, data.PlayfieldExitKicker);
 			BallCount = data.BallCount;
 			SwitchCount = data.SwitchCount;
 			JamSwitch = data.JamSwitch;
@@ -112,8 +112,8 @@ namespace VisualPinball.Unity
 			data.Name = name;
 
 			data.Type = Type;
-			data.PlayfieldEntrySwitch = PlayfieldEntrySwitch;
-			data.PlayfieldExitKicker = PlayfieldExitKicker;
+			data.PlayfieldEntrySwitch = PlayfieldEntrySwitch == null ? string.Empty : PlayfieldEntrySwitch.name;
+			data.PlayfieldExitKicker = PlayfieldExitKicker == null ? string.Empty : PlayfieldExitKicker.name;
 			data.BallCount = BallCount;
 			data.SwitchCount = SwitchCount;
 			data.JamSwitch = JamSwitch;

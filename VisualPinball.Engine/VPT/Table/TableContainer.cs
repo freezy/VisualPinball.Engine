@@ -104,26 +104,26 @@ namespace VisualPinball.Engine.VPT.Table
 			_troughs.Clear();
 		}
 
-		public Bumper.Bumper Bumper(string name) => _bumpers[name];
+		public Bumper.Bumper Bumper(string name) => _bumpers[name.ToLower()];
 		public Decal.Decal Decal(int i) => _decals[i];
-		public DispReel.DispReel DispReel(string name) => _dispReels[name];
-		public Flipper.Flipper Flipper(string name) => _flippers[name];
-		public Gate.Gate Gate(string name) => _gates[name];
-		public HitTarget.HitTarget HitTarget(string name) => _hitTargets[name];
-		public Kicker.Kicker Kicker(string name) => _kickers[name];
-		public Light.Light Light(string name) => _lights[name];
-		public LightSeq.LightSeq LightSeq(string name) => _lightSeqs[name];
-		public Plunger.Plunger Plunger(string name = null) => name == null ? _plungers.Values.FirstOrDefault() : _plungers[name];
-		public Flasher.Flasher Flasher(string name) => _flashers[name];
-		public Primitive.Primitive Primitive(string name) => _primitives[name];
-		public Ramp.Ramp Ramp(string name) => _ramps[name];
-		public Rubber.Rubber Rubber(string name) => _rubbers[name];
-		public Spinner.Spinner Spinner(string name) => _spinners[name];
-		public Surface.Surface Surface(string name) => _surfaces[name];
-		public TextBox.TextBox TextBox(string name) => _textBoxes[name];
-		public Timer.Timer Timer(string name) => _timers[name];
-		public Trigger.Trigger Trigger(string name) => _triggers[name];
-		public Trough.Trough Trough(string name) => _troughs[name];
+		public DispReel.DispReel DispReel(string name) => _dispReels[name.ToLower()];
+		public Flipper.Flipper Flipper(string name) => _flippers[name.ToLower()];
+		public Gate.Gate Gate(string name) => _gates[name.ToLower()];
+		public HitTarget.HitTarget HitTarget(string name) => _hitTargets[name.ToLower()];
+		public Kicker.Kicker Kicker(string name) => _kickers[name.ToLower()];
+		public Light.Light Light(string name) => _lights[name.ToLower()];
+		public LightSeq.LightSeq LightSeq(string name) => _lightSeqs[name.ToLower()];
+		public Plunger.Plunger Plunger(string name = null) => name == null ? _plungers.Values.FirstOrDefault() : _plungers[name.ToLower()];
+		public Flasher.Flasher Flasher(string name) => _flashers[name.ToLower()];
+		public Primitive.Primitive Primitive(string name) => _primitives[name.ToLower()];
+		public Ramp.Ramp Ramp(string name) => _ramps[name.ToLower()];
+		public Rubber.Rubber Rubber(string name) => _rubbers[name.ToLower()];
+		public Spinner.Spinner Spinner(string name) => _spinners[name.ToLower()];
+		public Surface.Surface Surface(string name) => _surfaces[name.ToLower()];
+		public TextBox.TextBox TextBox(string name) => _textBoxes[name.ToLower()];
+		public Timer.Timer Timer(string name) => _timers[name.ToLower()];
+		public Trigger.Trigger Trigger(string name) => _triggers[name.ToLower()];
+		public Trough.Trough Trough(string name) => _troughs[name.ToLower()];
 
 		public IEnumerable<IRenderable> Renderables => new IRenderable[] { Table }
 			.Concat(_bumpers.Values)
