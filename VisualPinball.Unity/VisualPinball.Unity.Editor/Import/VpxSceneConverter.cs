@@ -347,7 +347,7 @@ namespace VisualPinball.Unity.Editor
 						continue;
 					}
 					if (File.Exists(meshPath)) {
-						AssetDatabase.DeleteAsset(meshPath);
+						File.Delete(meshPath);
 					}
 					AssetDatabase.CreateAsset(mf.sharedMesh, meshPath);
 				}
@@ -717,7 +717,7 @@ namespace VisualPinball.Unity.Editor
 
 		public Material MergeMaterials(string vpxMaterial, Material textureMaterial)
 		{
-			var pbrMaterial = new PbrMaterial(_table.GetMaterial(vpxMaterial), id: $"{vpxMaterial.ToNormalizedName()}__textured");
+			var pbrMaterial = new PbrMaterial(_table.GetMaterial(vpxMaterial), id: $"{vpxMaterial.ToNormalizedName()} __textured");
 			return pbrMaterial.ToUnityMaterial(this, textureMaterial);
 		}
 

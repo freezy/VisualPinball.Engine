@@ -51,8 +51,8 @@ namespace VisualPinball.Unity.Test
 			var bumper = go.transform.GetComponentsInChildren<BumperAuthoring>().First(c => c.gameObject.name == "Bumper2");
 			var bumperAuth = bumper.GetComponent<BumperAuthoring>();
 
-			bumperAuth.Data.Center.X = 128f;
-			bumperAuth.Data.Center.Y = 255f;
+			bumperAuth.Position.x = 128f;
+			bumperAuth.Position.y = 255f;
 
 			go.GetComponent<TableAuthoring>().TableContainer.Save(tmpFileName);
 

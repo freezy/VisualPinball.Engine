@@ -123,7 +123,7 @@ namespace VisualPinball.Unity
 			return updatedComponents;
 		}
 
-		public override SurfaceData CopyDataTo(SurfaceData data)
+		public override SurfaceData CopyDataTo(SurfaceData data, string[] materialNames, string[] textureNames)
 		{
 			// update the name
 			data.Name = name;

@@ -106,7 +106,7 @@ namespace VisualPinball.Unity
 			return updatedComponents;
 		}
 
-		public override SpinnerData CopyDataTo(SpinnerData data)
+		public override SpinnerData CopyDataTo(SpinnerData data, string[] materialNames, string[] textureNames)
 		{
 			var localPos = transform.localPosition;
 

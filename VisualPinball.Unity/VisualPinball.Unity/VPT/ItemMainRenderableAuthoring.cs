@@ -17,6 +17,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using JetBrains.Annotations;
 using Unity.Entities;
 using UnityEngine;
 using VisualPinball.Engine.Game;
@@ -108,6 +109,36 @@ namespace VisualPinball.Unity
 			if (parentAuthoring != null && !(parentAuthoring is TableAuthoring)) {
 				Item.ParentIndex = parentAuthoring.IItem.Index;
 				Item.ParentVersion = parentAuthoring.IItem.Version;
+			}
+		}
+
+		protected static void CopyMaterialName(MeshRenderer mr, string[] materialNames, string[] textureNames,
+			ref string materialName)
+		{
+			string _ = null;
+			CopyMaterialName(mr, materialNames, textureNames, ref materialName, ref _, ref _, ref _);
+		}
+
+
+		protected static void CopyMaterialName(MeshRenderer mr, string[] materialNames, string[] textureNames,
+			ref string materialName, ref string mapName, ref string normalMapName,
+			ref string envMapName)
+		{
+			if (!mr || materialNames == null || textureNames == null) {
+				return;
+			}
+			var result = PbrMaterial.ParseId(mr.sharedMaterial.name, materialNames, textureNames);
+			if (materialName != null && !string.IsNullOrEmpty(result[0])) {
+				materialName = result[0];
+			}
+			if (mapName != null && !string.IsNullOrEmpty(result[1])) {
+				mapName = result[1];
+			}
+			if (normalMapName != null && !string.IsNullOrEmpty(result[2])) {
+				normalMapName = result[2];
+			}
+			if (envMapName != null && !string.IsNullOrEmpty(result[3])) {
+				envMapName = result[3];
 			}
 		}
 

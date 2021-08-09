@@ -107,7 +107,7 @@ namespace VisualPinball.Unity
 			return updatedComponents;
 		}
 
-		public override TroughData CopyDataTo(TroughData data)
+		public override TroughData CopyDataTo(TroughData data, string[] materialNames, string[] textureNames)
 		{
 			data.Name = name;
 

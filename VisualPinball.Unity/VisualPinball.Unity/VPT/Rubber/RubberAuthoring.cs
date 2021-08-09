@@ -108,7 +108,7 @@ namespace VisualPinball.Unity
 			return updatedComponents;
 		}
 
-		public override RubberData CopyDataTo(RubberData data)
+		public override RubberData CopyDataTo(RubberData data, string[] materialNames, string[] textureNames)
 		{
 			var localRot = transform.localEulerAngles;
 

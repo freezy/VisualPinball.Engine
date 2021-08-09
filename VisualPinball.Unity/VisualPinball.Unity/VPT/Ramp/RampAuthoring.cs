@@ -140,7 +140,7 @@ namespace VisualPinball.Unity
 			return updatedComponents;
 		}
 
-		public override RampData CopyDataTo(RampData data)
+		public override RampData CopyDataTo(RampData data, string[] materialNames, string[] textureNames)
 		{
 			var updatedComponents = new List<MonoBehaviour> { this };
 
