@@ -38,7 +38,7 @@ namespace VisualPinball.Unity
 	/// but still available to export.
 	/// </summary>
 	[Serializable]
-	public class LegacyContainer
+	public class LegacyContainer : ScriptableObject
 	{
 		public DecalData[] Decals;
 		public DispReelData[] DispReels;

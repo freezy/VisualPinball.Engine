@@ -40,10 +40,10 @@ namespace VisualPinball.Unity
 	{
 		#region Table Data
 
+		[SerializeReference] public LegacyContainer LegacyContainer;
 		[SerializeField] public MappingsData Mappings;
 		[SerializeField] public SerializableDictionary<string, string> TableInfo = new SerializableDictionary<string, string>();
 		[SerializeField] public CustomInfoTags CustomInfoTags = new CustomInfoTags();
-		[SerializeField] public LegacyContainer LegacyContainer = new LegacyContainer();
 		[SerializeField] public List<CollectionData> Collections = new List<CollectionData>();
 
 		#endregion
