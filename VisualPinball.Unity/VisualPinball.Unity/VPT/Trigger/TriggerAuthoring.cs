@@ -99,7 +99,7 @@ namespace VisualPinball.Unity
 			return updatedComponents;
 		}
 
-		public override TriggerData CopyDataTo(TriggerData data)
+		public override TriggerData CopyDataTo(TriggerData data, string[] materialNames, string[] textureNames)
 		{
 			var localPos = transform.localPosition;
 

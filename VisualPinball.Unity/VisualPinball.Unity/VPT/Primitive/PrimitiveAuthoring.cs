@@ -108,7 +108,7 @@ namespace VisualPinball.Unity
 			return updatedComponents;
 		}
 
-		public override PrimitiveData CopyDataTo(PrimitiveData data)
+		public override PrimitiveData CopyDataTo(PrimitiveData data, string[] materialNames, string[] textureNames)
 		{
 			var t = transform;
 			var localPos = t.localPosition;

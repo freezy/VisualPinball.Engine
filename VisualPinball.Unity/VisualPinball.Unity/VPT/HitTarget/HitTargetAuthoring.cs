@@ -115,7 +115,7 @@ namespace VisualPinball.Unity
 			// collider data
 			var colliderAuthoring = GetComponent<HitTargetColliderAuthoring>();
 			if (colliderAuthoring) {
-
+				colliderAuthoring.enabled = data.IsCollidable;
 				colliderAuthoring.UseHitEvent = data.UseHitEvent;
 				colliderAuthoring.Threshold = data.Threshold;
 				colliderAuthoring.PhysicsMaterial = materialProvider.GetPhysicsMaterial(data.PhysicsMaterial);
@@ -127,7 +127,6 @@ namespace VisualPinball.Unity
 				colliderAuthoring.Friction = data.Friction;
 				colliderAuthoring.Scatter = data.Scatter;
 
-				colliderAuthoring.enabled = data.IsCollidable;
 				updatedComponents.Add(colliderAuthoring);
 
 				// animation data
@@ -151,7 +150,7 @@ namespace VisualPinball.Unity
 			return updatedComponents;
 		}
 
-		public override HitTargetData CopyDataTo(HitTargetData data)
+		public override HitTargetData CopyDataTo(HitTargetData data, string[] materialNames, string[] textureNames)
 		{
 			// name and transforms
 			data.Name = name;
@@ -162,6 +161,7 @@ namespace VisualPinball.Unity
 			// collision data
 			var colliderAuthoring = GetComponent<HitTargetColliderAuthoring>();
 			if (colliderAuthoring) {
+				data.IsCollidable = colliderAuthoring.enabled;
 				data.Threshold = colliderAuthoring.Threshold;
 				data.UseHitEvent = colliderAuthoring.UseHitEvent;
 				data.PhysicsMaterial = colliderAuthoring.PhysicsMaterial.name;
@@ -172,8 +172,6 @@ namespace VisualPinball.Unity
 				data.ElasticityFalloff = colliderAuthoring.ElasticityFalloff;
 				data.Friction = colliderAuthoring.Friction;
 				data.Scatter = colliderAuthoring.Scatter;
-
-				data.IsCollidable = true;
 
 				// animation data
 				var dropTargetAnimationAuthoring = GetComponent<DropTargetAnimationAuthoring>();

@@ -145,7 +145,7 @@ namespace VisualPinball.Unity
 			return new List<MonoBehaviour> { this };
 		}
 
-		public override TableData CopyDataTo(TableData data)
+		public override TableData CopyDataTo(TableData data, string[] materialNames, string[] textureNames)
 		{
 			// update the name
 			data.Name = name;

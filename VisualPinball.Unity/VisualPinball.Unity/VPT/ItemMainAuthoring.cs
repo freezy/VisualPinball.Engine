@@ -38,7 +38,7 @@ namespace VisualPinball.Unity
 		public virtual bool IsCollidable => true;
 
 		public abstract IEnumerable<MonoBehaviour> SetData(TData data, IMaterialProvider materialProvider, ITextureProvider textureProvider, Dictionary<string, IItemMainAuthoring> components);
-		public abstract TData CopyDataTo(TData data);
+		public abstract TData CopyDataTo(TData data, string[] materialNames, string[] textureNames);
 
 		protected T GetAuthoring<T>(Dictionary<string, IItemMainAuthoring> itemMainAuthorings, string surfaceName) where T : class, IItemMainAuthoring
 		{
@@ -47,6 +47,8 @@ namespace VisualPinball.Unity
 					: null)
 				as T;
 		}
+
+		public TItem CreateItem(string[] materialNames, string[] textureNames) => InstantiateItem(CopyDataTo(_data, materialNames, textureNames));
 
 		#region Data
 

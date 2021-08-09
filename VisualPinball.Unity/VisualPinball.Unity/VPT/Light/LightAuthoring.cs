@@ -131,7 +131,7 @@ namespace VisualPinball.Unity
 			return new List<MonoBehaviour> { this };
 		}
 
-		public override LightData CopyDataTo(LightData data)
+		public override LightData CopyDataTo(LightData data, string[] materialNames, string[] textureNames)
 		{
 			var localPos = transform.localPosition;
 

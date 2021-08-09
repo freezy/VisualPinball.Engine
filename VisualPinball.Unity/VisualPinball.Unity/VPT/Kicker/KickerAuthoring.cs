@@ -163,7 +163,7 @@ namespace VisualPinball.Unity
 			return updatedComponents;
 		}
 
-		public override KickerData CopyDataTo(KickerData data)
+		public override KickerData CopyDataTo(KickerData data, string[] materialNames, string[] textureNames)
 		{
 			// name and transforms
 			data.Name = name;

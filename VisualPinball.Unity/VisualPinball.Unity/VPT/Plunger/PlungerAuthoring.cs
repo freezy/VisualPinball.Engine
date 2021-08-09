@@ -207,7 +207,7 @@ namespace VisualPinball.Unity
 			return updatedComponents;
 		}
 
-		public override PlungerData CopyDataTo(PlungerData data)
+		public override PlungerData CopyDataTo(PlungerData data, string[] materialNames, string[] textureNames)
 		{
 			var localPos = transform.localPosition;
 

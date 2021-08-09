@@ -167,7 +167,7 @@ namespace VisualPinball.Unity
 			return updatedComponents;
 		}
 
-		public override GateData CopyDataTo(GateData data)
+		public override GateData CopyDataTo(GateData data, string[] materialNames, string[] textureNames)
 		{
 			// name and transforms
 			data.Name = name;
@@ -192,7 +192,7 @@ namespace VisualPinball.Unity
 			// collision data
 			var colliderAuthoring = gameObject.GetComponent<GateColliderAuthoring>();
 			if (colliderAuthoring) {
-				data.IsCollidable = true;
+				data.IsCollidable = colliderAuthoring.enabled;
 
 				data.AngleMin = math.radians(colliderAuthoring.AngleMin);
 				data.AngleMax = math.radians(colliderAuthoring.AngleMax);

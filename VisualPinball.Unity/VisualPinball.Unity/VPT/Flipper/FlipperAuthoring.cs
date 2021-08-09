@@ -204,7 +204,7 @@ namespace VisualPinball.Unity
 			return updatedComponents;
 		}
 
-		public override FlipperData CopyDataTo(FlipperData data)
+		public override FlipperData CopyDataTo(FlipperData data, string[] materialNames, string[] textureNames)
 		{
 			// name and transforms
 			data.Name = name;

@@ -192,6 +192,7 @@ namespace VisualPinball.Unity
 			// collider
 			var collComponent = GetComponentInChildren<BumperColliderAuthoring>();
 			if (collComponent) {
+				collComponent.enabled = data.IsCollidable;
 				collComponent.Threshold = data.Threshold;
 				collComponent.Force = data.Force;
 				collComponent.Scatter = data.Scatter;
@@ -208,7 +209,7 @@ namespace VisualPinball.Unity
 			return updatedComponents;
 		}
 
-		public override BumperData CopyDataTo(BumperData data)
+		public override BumperData CopyDataTo(BumperData data, string[] materialNames, string[] textureNames)
 		{
 			// name and transforms
 			data.Name = name;
@@ -225,19 +226,24 @@ namespace VisualPinball.Unity
 			data.IsCapVisible = false;
 			data.IsRingVisible = false;
 			data.IsSocketVisible = false;
-			foreach (var mf in GetComponentsInChildren<MeshFilter>()) {
+			foreach (var mf in GetComponentsInChildren<MeshFilter>(true)) {
+				var mr = mf.gameObject.GetComponent<MeshRenderer>();
 				switch (mf.sharedMesh.name) {
 					case SkirtMeshName:
 						data.IsSocketVisible = mf.gameObject.activeInHierarchy;
+						CopyMaterialName(mr, materialNames, textureNames, ref data.SocketMaterial);
 						break;
 					case BaseMeshName:
-						data.IsCapVisible = mf.gameObject.activeInHierarchy;
+						data.IsBaseVisible = mf.gameObject.activeInHierarchy;
+						CopyMaterialName(mr, materialNames, textureNames, ref data.BaseMaterial);
 						break;
 					case CapMeshName:
 						data.IsCapVisible = mf.gameObject.activeInHierarchy;
+						CopyMaterialName(mr, materialNames, textureNames, ref data.CapMaterial);
 						break;
 					case RingMeshName:
 						data.IsRingVisible = mf.gameObject.activeInHierarchy;
+						CopyMaterialName(mr, materialNames, textureNames, ref data.RingMaterial);
 						break;
 				}
 			}
@@ -245,10 +251,13 @@ namespace VisualPinball.Unity
 			// collider
 			var collComponent = GetComponentInChildren<BumperColliderAuthoring>();
 			if (collComponent) {
+				data.IsCollidable = collComponent.enabled;
 				data.Threshold = collComponent.Threshold;
 				data.Force = collComponent.Force;
 				data.Scatter = collComponent.Scatter;
 				data.HitEvent = collComponent.HitEvent;
+			} else {
+				data.IsCollidable = false;
 			}
 
 			// ring animation

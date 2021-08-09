@@ -14,8 +14,10 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+using System;
 using System.Linq;
 using System.Text;
+using UnityEditor;
 using VisualPinball.Engine.Common;
 using VisualPinball.Engine.Math;
 
@@ -44,7 +46,6 @@ namespace VisualPinball.Engine.VPT
 		private const string NameNoMap = "__no_map";
 		private const string NameNoNormalMap = "__no_normal_map";
 		private const string NameNoEnvMap = "__no_env_map";
-		private const string NameNoLerp = "__no_lerp";
 
 		/// <summary>
 		/// A unique ID based on the material and its maps.
@@ -59,7 +60,7 @@ namespace VisualPinball.Engine.VPT
 			Map = map;
 			NormalMap = normalMap;
 			EnvMap = envMap;
-			Id = id ?? string.Join("-", new[] {
+			Id = id ?? string.Join(" ", new[] {
 					_material?.Name.ToNormalizedName() ?? NameNoMaterial,
 					Map?.Name.ToNormalizedName() ?? NameNoMap,
 					NormalMap?.Name.ToNormalizedName() ?? NameNoNormalMap,
@@ -72,6 +73,27 @@ namespace VisualPinball.Engine.VPT
 			if (NormalMap != null) {
 				NormalMap.UsageNormalMap = true;
 			}
+		}
+
+		public static string[] ParseId(string id, string[] materials, string[] maps)
+		{
+			var result = Enumerable.Repeat(string.Empty, 4).ToArray();
+			var parts = id.Split(' ');
+			for (var i = 0; i < 4; i++) {
+				if (parts.Length - 1 < i) {
+					break;
+				}
+
+				if (parts[i].StartsWith("__no_") || parts[i] == "__std") {
+					continue;
+				}
+
+				result[i] = i == 0
+					? materials.FirstOrDefault(m => m.ToNormalizedName() == parts[i]) ?? string.Empty
+					: maps.FirstOrDefault(m => m.ToNormalizedName() == parts[i]) ?? string.Empty;
+			}
+
+			return result;
 		}
 
 		public void AnalyzeMap()
