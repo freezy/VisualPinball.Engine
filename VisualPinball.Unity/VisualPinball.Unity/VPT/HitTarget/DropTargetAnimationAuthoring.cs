@@ -31,6 +31,7 @@ namespace VisualPinball.Unity
 
 		#region Data
 
+		[Tooltip("How fast the drop target moves down.")]
 		public float Speed =  0.5f;
 
 		public int RaiseDelay = 100;

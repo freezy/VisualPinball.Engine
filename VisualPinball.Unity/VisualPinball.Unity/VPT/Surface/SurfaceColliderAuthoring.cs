@@ -50,10 +50,16 @@ namespace VisualPinball.Unity
 		[Tooltip("Ignore the assigned physics material above and use the value below.")]
 		public bool OverwritePhysics = true;
 
-		public float Elasticity;
+		[Min(0f)]
+		[Tooltip("Bounciness, also known as coefficient of restitution. Higher is more bouncy.")]
+		public float Elasticity = 0.8f;
 
+		[Min(0f)]
+		[Tooltip("How much to decrease elasticity for fast impacts.")]
 		public float ElasticityFalloff;
 
+		[Min(0)]
+		[Tooltip("Friction of the material.")]
 		public float Friction;
 
 		[Range(-90f, 90f)]

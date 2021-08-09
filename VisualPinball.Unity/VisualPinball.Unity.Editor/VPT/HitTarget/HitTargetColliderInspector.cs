@@ -61,7 +61,7 @@ namespace VisualPinball.Unity.Editor
 
 			OnPreInspectorGUI();
 
-			PropertyField(_hitEventProperty, "Has Hit Event");
+			PropertyField(_hitEventProperty, "Send Events");
 			PropertyField(_thresholdProperty, "Hit Threshold");
 			PropertyField(_isLegacyProperty, "Legacy Collider");
 

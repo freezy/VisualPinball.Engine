@@ -33,8 +33,16 @@ namespace VisualPinball.Unity
 		/// Creates a gate prefab.
 		/// </summary>
 		/// <param name="type">Type of the game</param>
-		/// <returns></returns>
+		/// <returns>Prefab of the gate (still needs to be instantiated)</returns>
 		/// <see cref="GateType"/>
 		GameObject CreateGate(int type);
+
+		/// <summary>
+		/// Creates a target prefab.
+		/// </summary>
+		/// <param name="type">Target type</param>
+		/// <returns>Prefab of the gate (still needs to be instantiated)</returns>
+		/// <see cref="TargetType"/>
+		GameObject CreateTarget(int type);
 	}
 }
