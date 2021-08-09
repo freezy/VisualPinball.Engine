@@ -209,12 +209,12 @@ namespace VisualPinball.Unity.Editor
 
 				foreach (var item in _tableAuthoring.GetComponentsInChildren<ICoilAuthoring>())
 				{
-					_coils.Add(item.Name.ToLower(), item);
+					_coils.Add(item.name.ToLower(), item);
 				}
 
 				foreach (var item in _tableAuthoring.GetComponentsInChildren<ICoilDeviceAuthoring>())
 				{
-					_coilDevices.Add(item.Name.ToLower(), item);
+					_coilDevices.Add(item.name.ToLower(), item);
 				}
 			}
 		}
@@ -224,7 +224,7 @@ namespace VisualPinball.Unity.Editor
 			_lamps.Clear();
 			if (_tableAuthoring != null) {
 				foreach (var item in _tableAuthoring.GetComponentsInChildren<ILampAuthoring>()) {
-					_lamps.Add(item.Name.ToLower(), item);
+					_lamps.Add(item.name.ToLower(), item);
 				}
 			}
 		}
