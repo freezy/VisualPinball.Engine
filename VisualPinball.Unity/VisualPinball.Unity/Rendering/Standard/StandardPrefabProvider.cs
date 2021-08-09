@@ -28,5 +28,10 @@ namespace VisualPinball.Unity
 		{
 			throw new System.NotImplementedException();
 		}
+
+		public GameObject CreateTarget(int type)
+		{
+			throw new System.NotImplementedException();
+		}
 	}
 }
