@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-using System;
 using NLog;
+using UnityEditor;
 using UnityEngine;
 using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Kicker;
@@ -29,29 +29,34 @@ namespace VisualPinball.Unity
 
 		public static IConvertedItem InstantiateGameObject(this Kicker kicker, IItem item, IMaterialProvider materialProvider)
 		{
-			var obj = new GameObject(item.Name);
-			var convertedItem = new ConvertedItem<Kicker, KickerData, KickerAuthoring>(obj, kicker);
-			switch (kicker.SubComponent) {
-				case ItemSubComponent.None:
-					convertedItem.SetColliderAuthoring<KickerColliderAuthoring>(materialProvider);
-					convertedItem.SetMeshAuthoring<KickerMeshAuthoring>();
-					break;
+			var prefab = RenderPipeline.Current.PrefabProvider.CreateKicker(kicker.Data.KickerType);
+			var obj = PrefabUtility.InstantiatePrefab(prefab) as GameObject;
+			obj!.name = item.Name;
+			return new ConvertedItem<Kicker, KickerData, KickerAuthoring>(obj, true);
 
-				case ItemSubComponent.Collider: {
-					Logger.Warn("Cannot parent a kicker collider to a different object than a kicker!");
-					break;
-				}
-
-				case ItemSubComponent.Mesh: {
-					Logger.Warn("Cannot parent a kicker collider to a different object than a kicker!");
-					break;
-				}
-
-				default:
-					throw new ArgumentOutOfRangeException();
-			}
-
-			return convertedItem.AddConvertToEntity();
+			// var obj = new GameObject(item.Name);
+			// var convertedItem = new ConvertedItem<Kicker, KickerData, KickerAuthoring>(obj, kicker);
+			// switch (kicker.SubComponent) {
+			// 	case ItemSubComponent.None:
+			// 		convertedItem.SetColliderAuthoring<KickerColliderAuthoring>(materialProvider);
+			// 		convertedItem.SetMeshAuthoring<KickerMeshAuthoring>();
+			// 		break;
+			//
+			// 	case ItemSubComponent.Collider: {
+			// 		Logger.Warn("Cannot parent a kicker collider to a different object than a kicker!");
+			// 		break;
+			// 	}
+			//
+			// 	case ItemSubComponent.Mesh: {
+			// 		Logger.Warn("Cannot parent a kicker collider to a different object than a kicker!");
+			// 		break;
+			// 	}
+			//
+			// 	default:
+			// 		throw new ArgumentOutOfRangeException();
+			// }
+			//
+			// return convertedItem.AddConvertToEntity();
 		}
 	}
 }
