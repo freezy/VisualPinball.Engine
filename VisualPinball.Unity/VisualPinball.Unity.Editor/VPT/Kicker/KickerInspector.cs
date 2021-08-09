@@ -16,27 +16,28 @@
 
 // ReSharper disable AssignmentInConditionalExpression
 
-using System;
 using UnityEditor;
-using UnityEngine;
+using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Kicker;
 
 namespace VisualPinball.Unity.Editor
 {
-	[CustomEditor(typeof(KickerAuthoring))]
+	[CustomEditor(typeof(KickerAuthoring)), CanEditMultipleObjects]
 	public class KickerInspector : ItemMainInspector<Kicker, KickerData, KickerAuthoring>
 	{
-		private bool _foldoutMesh;
-		private bool _foldoutPhysics;
-		private bool _foldoutMisc;
-		private SerializedProperty _speedProperty;
+		private SerializedProperty _positionProperty;
+		private SerializedProperty _radiusProperty;
+		private SerializedProperty _orientationProperty;
 		private SerializedProperty _surfaceProperty;
 
 		protected override void OnEnable()
 		{
 			base.OnEnable();
-			_surfaceProperty = serializedObject.FindProperty(nameof(KickerAuthoring.Surface));
-			_speedProperty = serializedObject.FindProperty(nameof(KickerAuthoring.Speed));
+
+			_positionProperty = serializedObject.FindProperty(nameof(KickerAuthoring.Position));
+			_radiusProperty = serializedObject.FindProperty(nameof(KickerAuthoring.Radius));
+			_orientationProperty = serializedObject.FindProperty(nameof(KickerAuthoring.Orientation));
+			_surfaceProperty = serializedObject.FindProperty(nameof(KickerAuthoring._surface));
 		}
 
 		public override void OnInspectorGUI()
@@ -47,45 +48,20 @@ namespace VisualPinball.Unity.Editor
 
 			serializedObject.Update();
 
-			ItemDataField("Position", ref Data.Center);
-			PropertyField(_surfaceProperty, rebuildMesh: true);
-			//SurfaceField("Surface", ref Data.Surface);
-
 			OnPreInspectorGUI();
 
-			if (_foldoutMesh = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutMesh, "Mesh")) {
-				MaterialFieldLegacy("Material", ref Data.Material);
-				DropDownField("Display", ref Data.KickerType, KickerMeshInspector.KickerTypeLabels, KickerMeshInspector.KickerTypeValues);
-				ItemDataField("Radius", ref Data.Radius);
-				ItemDataField("Orientation", ref Data.Orientation);
+			PropertyField(_positionProperty, updateTransforms: true);
+			PropertyField(_radiusProperty, updateTransforms: true);
+
+			if (ItemAuthoring.KickerType == KickerType.KickerCup ||
+			    ItemAuthoring.KickerType == KickerType.KickerWilliams) {
+				PropertyField(_orientationProperty, updateTransforms: true);
 			}
-			EditorGUILayout.EndFoldoutHeaderGroup();
+			PropertyField(_surfaceProperty, updateTransforms: true);
 
-			if (_foldoutPhysics = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutPhysics, "State & Physics")) {
-				ItemDataField("Enabled", ref Data.IsEnabled, false);
-				ItemDataField("Fall Through", ref Data.FallThrough, false);
-				ItemDataField("Legacy", ref Data.LegacyMode, false);
-				ItemDataField("Scatter Angle", ref Data.Scatter, false);
-				ItemDataField("Hit Accuracy", ref Data.HitAccuracy, false);
-				ItemDataField("Hit Height", ref Data.HitHeight, false);
-
-				ItemDataField("Default Angle", ref Data.Angle, false);
-
-				EditorGUILayout.PropertyField(_speedProperty, new GUIContent("Default Speed"));
-
-
-				//ItemDataField("Default Speed", ref Data.Speed, false);
-			}
-			EditorGUILayout.EndFoldoutHeaderGroup();
-
-			if (_foldoutMisc = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutMisc, "Misc")) {
-				ItemDataField("Timer Enabled", ref Data.IsTimerEnabled, false);
-				ItemDataField("Timer Interval", ref Data.TimerInterval, false);
-			}
-			EditorGUILayout.EndFoldoutHeaderGroup();
+			base.OnInspectorGUI();
 
 			serializedObject.ApplyModifiedProperties();
-			base.OnInspectorGUI();
 		}
 	}
 }

@@ -21,7 +21,7 @@ using VisualPinball.Engine.VPT.Bumper;
 
 namespace VisualPinball.Unity.Editor
 {
-	[CustomEditor(typeof(BumperAuthoring))]
+	[CustomEditor(typeof(BumperAuthoring)), CanEditMultipleObjects]
 	public class BumperInspector : ItemMainInspector<Bumper, BumperData, BumperAuthoring>
 	{
 		private SerializedProperty _positionProperty;
@@ -55,7 +55,7 @@ namespace VisualPinball.Unity.Editor
 			PropertyField(_radiusProperty, updateTransforms: true);
 			PropertyField(_heightScaleProperty, updateTransforms: true);
 			PropertyField(_orientationProperty, updateTransforms: true);
-			PropertyField(_surfaceProperty);
+			PropertyField(_surfaceProperty, updateTransforms: true);
 
 			base.OnInspectorGUI();
 

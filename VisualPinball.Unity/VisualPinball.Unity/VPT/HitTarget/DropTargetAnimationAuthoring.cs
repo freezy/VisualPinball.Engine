@@ -36,6 +36,7 @@ namespace VisualPinball.Unity
 
 		public int RaiseDelay = 100;
 
+		[Tooltip("Initial state of the drop target.")]
 		public bool IsDropped;
 
 		#endregion

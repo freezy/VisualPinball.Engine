@@ -21,26 +21,52 @@ using VisualPinball.Engine.VPT.Kicker;
 
 namespace VisualPinball.Unity.Editor
 {
-	[CustomEditor(typeof(KickerColliderAuthoring))]
+	[CustomEditor(typeof(KickerColliderAuthoring)), CanEditMultipleObjects]
 	public class KickerColliderInspector : ItemColliderInspector<Kicker, KickerData, KickerAuthoring, KickerColliderAuthoring>
 	{
+		private SerializedProperty _hitAccuracyProperty;
+		private SerializedProperty _hitHeightProperty;
+		private SerializedProperty _scatterProperty;
+		private SerializedProperty _fallThroughProperty;
+		private SerializedProperty _legacyModeProperty;
+		private SerializedProperty _ejectAngleProperty;
+		private SerializedProperty _ejectSpeedProperty;
+
+		protected override void OnEnable()
+		{
+			base.OnEnable();
+
+			_hitAccuracyProperty = serializedObject.FindProperty(nameof(KickerColliderAuthoring.HitAccuracy));
+			_hitHeightProperty = serializedObject.FindProperty(nameof(KickerColliderAuthoring.HitHeight));
+			_scatterProperty = serializedObject.FindProperty(nameof(KickerColliderAuthoring.Scatter));
+			_fallThroughProperty = serializedObject.FindProperty(nameof(KickerColliderAuthoring.FallThrough));
+			_legacyModeProperty = serializedObject.FindProperty(nameof(KickerColliderAuthoring.LegacyMode));
+			_ejectAngleProperty = serializedObject.FindProperty(nameof(KickerColliderAuthoring.EjectAngle));
+			_ejectSpeedProperty = serializedObject.FindProperty(nameof(KickerColliderAuthoring.EjectSpeed));
+		}
+
 		public override void OnInspectorGUI()
 		{
 			if (HasErrors()) {
 				return;
 			}
 
-			ItemDataField("Enabled", ref Data.IsEnabled, false);
-			ItemDataField("Fall Through", ref Data.FallThrough, false);
-			ItemDataField("Legacy", ref Data.LegacyMode, false);
-			ItemDataField("Scatter Angle", ref Data.Scatter, false);
-			ItemDataField("Hit Accuracy", ref Data.HitAccuracy, false);
-			ItemDataField("Hit Height", ref Data.HitHeight, false);
+			serializedObject.Update();
 
-			ItemDataField("Default Angle", ref Data.Angle, false);
-			ItemDataField("Default Speed", ref Data.Speed, false);
+			PropertyField(_hitAccuracyProperty);
+			PropertyField(_hitHeightProperty);
+			PropertyField(_scatterProperty, "Scatter Angle");
+			PropertyField(_fallThroughProperty, "Falltrough");
+			PropertyField(_legacyModeProperty, "Legacy Mode");
+
+			EditorGUILayout.Space(20f);
+			PropertyField(_ejectSpeedProperty);
+			PropertyField(_ejectAngleProperty);
 
 			base.OnInspectorGUI();
+
+			serializedObject.ApplyModifiedProperties();
 		}
 	}
 }
+

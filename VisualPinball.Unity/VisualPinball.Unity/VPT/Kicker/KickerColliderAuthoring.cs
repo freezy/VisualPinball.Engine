@@ -25,6 +25,30 @@ namespace VisualPinball.Unity
 	[AddComponentMenu("Visual Pinball/Collision/Kicker Collider")]
 	public class KickerColliderAuthoring : ItemColliderAuthoring<Kicker, KickerData, KickerAuthoring>
 	{
+		#region Data
+
+		[Range(-90f, 90f)]
+		[Tooltip("How many degrees of randomness is added to the ball trajectory when ejecting.")]
+		public float Scatter;
+
+		public float HitAccuracy = 0.7f;
+
+		public float HitHeight = 40.0f;
+
+		public bool FallThrough;
+
+		public bool LegacyMode = true;
+
+		[Range(-180f, 180f)]
+		[Tooltip("Angle of the ball when kicked out.")]
+		public float EjectAngle = 90f;
+
+		[Range(0f, 100f)]
+		[Tooltip("Speed the kicker hits the ball when ejecting.")]
+		public float EjectSpeed = 3f;
+
+		#endregion
+
 		public static readonly Type[] ValidParentTypes = new Type[0];
 
 		public override IEnumerable<Type> ValidParents => ValidParentTypes;
