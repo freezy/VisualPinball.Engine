@@ -202,11 +202,11 @@ namespace VisualPinball.Unity.Editor
 			if (_tableAuthoring != null) {
 
 				foreach (var item in _tableAuthoring.GetComponentsInChildren<ICoilAuthoring>()) {
-					_coils.Add(item.Name.ToLower(), item);
+					_coils.Add(item.name.ToLower(), item);
 				}
 
 				foreach (var item in _tableAuthoring.GetComponentsInChildren<ICoilDeviceAuthoring>()) {
-					_coilDevices.Add(item.Name.ToLower(), item);
+					_coilDevices.Add(item.name.ToLower(), item);
 				}
 			}
 		}

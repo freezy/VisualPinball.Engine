@@ -142,7 +142,7 @@ namespace VisualPinball.Unity
 
 				var hitTargetAnimationAuthoring = GetComponent<HitTargetAnimationAuthoring>();
 				if (hitTargetAnimationAuthoring) {
-					dropTargetAnimationAuthoring.enabled = !data.IsDropTarget;
+					hitTargetAnimationAuthoring.enabled = !data.IsDropTarget;
 					hitTargetAnimationAuthoring.Speed = data.DropSpeed;
 					updatedComponents.Add(hitTargetAnimationAuthoring);
 				}

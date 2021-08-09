@@ -25,11 +25,13 @@ namespace VisualPinball.Unity
 	/// </summary>
 	public interface ISwitchDeviceAuthoring : IIdentifiableItemAuthoring
 	{
+		string name { get; }
+
 		/// <summary>
 		/// A list of available switches supported by the switch device
 		/// </summary>
 		IEnumerable<GamelogicEngineSwitch> AvailableSwitches { get; }
-		
+
 		SwitchDefault SwitchDefault { get; }
 	}
 }

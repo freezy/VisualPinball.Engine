@@ -25,6 +25,8 @@ namespace VisualPinball.Unity
 	/// </summary>
 	public interface ICoilDeviceAuthoring : IIdentifiableItemAuthoring
 	{
+		string name { get; }
+
 		/// <summary>
 		/// A list of available coils supported by the coil device
 		/// </summary>

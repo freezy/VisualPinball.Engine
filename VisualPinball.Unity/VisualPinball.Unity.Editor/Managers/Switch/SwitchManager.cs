@@ -200,10 +200,10 @@ namespace VisualPinball.Unity.Editor
 
 			if (_tableAuthoring != null) {
 				foreach (var item in _tableAuthoring.GetComponentsInChildren<ISwitchAuthoring>()) {
-					_switches.Add(item.Name.ToLower(), item);
+					_switches.Add(item.name.ToLower(), item);
 				}
 				foreach (var item in _tableAuthoring.GetComponentsInChildren<ISwitchDeviceAuthoring>()) {
-					_switchDevices.Add(item.Name.ToLower(), item);
+					_switchDevices.Add(item.name.ToLower(), item);
 				}
 			}
 		}

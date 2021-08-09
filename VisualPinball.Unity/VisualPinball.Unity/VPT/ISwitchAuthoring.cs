@@ -20,6 +20,8 @@ namespace VisualPinball.Unity
 {
 	public interface ISwitchAuthoring : IIdentifiableItemAuthoring
 	{
+		string name { get; }
+
 		ISwitchable Switchable { get; }
 	}
 }
