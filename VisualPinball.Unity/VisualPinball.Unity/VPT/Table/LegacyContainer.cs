@@ -22,13 +22,27 @@ using System.IO;
 using System.Linq;
 using UnityEngine;
 using VisualPinball.Engine.VPT;
+using VisualPinball.Engine.VPT.Bumper;
 using VisualPinball.Engine.VPT.Decal;
 using VisualPinball.Engine.VPT.DispReel;
 using VisualPinball.Engine.VPT.Flasher;
+using VisualPinball.Engine.VPT.Flipper;
+using VisualPinball.Engine.VPT.Gate;
+using VisualPinball.Engine.VPT.HitTarget;
+using VisualPinball.Engine.VPT.Kicker;
+using VisualPinball.Engine.VPT.Light;
 using VisualPinball.Engine.VPT.LightSeq;
+using VisualPinball.Engine.VPT.Plunger;
+using VisualPinball.Engine.VPT.Primitive;
+using VisualPinball.Engine.VPT.Ramp;
+using VisualPinball.Engine.VPT.Rubber;
 using VisualPinball.Engine.VPT.Sound;
+using VisualPinball.Engine.VPT.Spinner;
+using VisualPinball.Engine.VPT.Surface;
 using VisualPinball.Engine.VPT.TextBox;
 using VisualPinball.Engine.VPT.Timer;
+using VisualPinball.Engine.VPT.Trigger;
+using VisualPinball.Engine.VPT.Trough;
 using Texture = UnityEngine.Texture;
 
 namespace VisualPinball.Unity
@@ -40,6 +54,21 @@ namespace VisualPinball.Unity
 	[Serializable]
 	public class LegacyContainer : ScriptableObject
 	{
+		public BumperData[] Bumpers;
+		public FlipperData[] Flippers;
+		public GateData[] Gates;
+		public HitTargetData[] HitTargets;
+		public KickerData[] Kickers;
+		public LightData[] Lights;
+		public PlungerData[] Plungers;
+		public PrimitiveData[] Primitives;
+		public RampData[] Ramps;
+		public RubberData[] Rubbers;
+		public SpinnerData[] Spinners;
+		public SurfaceData[] Surfaces;
+		public TriggerData[] Triggers;
+		public TroughData[] Troughs;
+
 		public DecalData[] Decals;
 		public DispReelData[] DispReels;
 		public FlasherData[] Flashers;
