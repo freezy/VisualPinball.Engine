@@ -24,34 +24,69 @@ namespace VisualPinball.Unity.Editor
 	[CustomEditor(typeof(RampColliderAuthoring))]
 	public class RampColliderInspector : ItemColliderInspector<Ramp, RampData, RampAuthoring, RampColliderAuthoring>
 	{
+		private bool _foldoutMaterial = true;
+
+		private SerializedProperty _hitEventProperty;
+		private SerializedProperty _thresholdProperty;
+		private SerializedProperty _leftWallHeightProperty;
+		private SerializedProperty _rightWallHeightProperty;
+
+		private SerializedProperty _physicsMaterialProperty;
+		private SerializedProperty _overwritePhysicsProperty;
+		private SerializedProperty _elasticityProperty;
+		private SerializedProperty _frictionProperty;
+		private SerializedProperty _scatterProperty;
+
+		protected override void OnEnable()
+		{
+			base.OnEnable();
+
+			_hitEventProperty = serializedObject.FindProperty(nameof(SurfaceColliderAuthoring.HitEvent));
+			_thresholdProperty = serializedObject.FindProperty(nameof(RampColliderAuthoring.Threshold));
+			_leftWallHeightProperty = serializedObject.FindProperty(nameof(RampColliderAuthoring.LeftWallHeight));
+			_rightWallHeightProperty = serializedObject.FindProperty(nameof(RampColliderAuthoring.RightWallHeight));
+
+			_physicsMaterialProperty = serializedObject.FindProperty(nameof(ItemColliderAuthoring<Ramp, RampData, RampAuthoring>.PhysicsMaterial));
+			_overwritePhysicsProperty = serializedObject.FindProperty(nameof(RampColliderAuthoring.OverwritePhysics));
+			_elasticityProperty = serializedObject.FindProperty(nameof(RampColliderAuthoring.Elasticity));
+			_frictionProperty = serializedObject.FindProperty(nameof(RampColliderAuthoring.Friction));
+			_scatterProperty = serializedObject.FindProperty(nameof(RampColliderAuthoring.Scatter));
+		}
+
 		public override void OnInspectorGUI()
 		{
 			if (HasErrors()) {
 				return;
 			}
 
-			ItemDataField("Has Hit Event", ref Data.HitEvent, false);
-			ItemDataField("Hit Threshold", ref Data.Threshold, false);
+			serializedObject.Update();
 
-			EditorGUILayout.LabelField("Physical Wall");
-			EditorGUI.indentLevel++;
-			ItemDataField("Left Wall", ref Data.LeftWallHeight);
-			ItemDataField("Right Wall", ref Data.RightWallHeight);
-			EditorGUI.indentLevel--;
+			OnPreInspectorGUI();
 
-			EditorGUI.BeginDisabledGroup(Data.OverwritePhysics);
-			PhysicsMaterialField("Physics Material", ref ColliderAuthoring.PhysicsMaterial);
-			EditorGUI.EndDisabledGroup();
+			PropertyField(_hitEventProperty, "Has Hit Event");
+			PropertyField(_thresholdProperty, "Hit Threshold");
+			PropertyField(_leftWallHeightProperty, "Left Colliding Wall Height");
+			PropertyField(_rightWallHeightProperty, "Right Colliding Wall Height");
 
-			ItemDataField("Overwrite Material Settings", ref Data.OverwritePhysics, false);
+			// physics material
+			if (_foldoutMaterial = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutMaterial, "Physics Material")) {
+				EditorGUI.BeginDisabledGroup(_overwritePhysicsProperty.boolValue);
+				PropertyField(_physicsMaterialProperty, "Preset");
+				EditorGUI.EndDisabledGroup();
 
-			EditorGUI.BeginDisabledGroup(!Data.OverwritePhysics);
-			ItemDataField("Elasticity", ref Data.Elasticity, false);
-			ItemDataField("Friction", ref Data.Friction, false);
-			ItemDataField("Scatter Angle", ref Data.Scatter, false);
-			EditorGUI.EndDisabledGroup();
+				PropertyField(_overwritePhysicsProperty);
+
+				EditorGUI.BeginDisabledGroup(!_overwritePhysicsProperty.boolValue);
+				PropertyField(_elasticityProperty);
+				PropertyField(_frictionProperty);
+				PropertyField(_scatterProperty, "Scatter Angle");
+				EditorGUI.EndDisabledGroup();
+			}
+			EditorGUILayout.EndFoldoutHeaderGroup();
 
 			base.OnInspectorGUI();
+
+			serializedObject.ApplyModifiedProperties();
 		}
 	}
 }

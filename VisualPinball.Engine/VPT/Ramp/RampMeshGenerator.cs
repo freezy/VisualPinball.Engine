@@ -40,7 +40,7 @@ namespace VisualPinball.Engine.VPT.Ramp
 			_data = data;
 		}
 
-		public RenderObject GetRenderObject(Table.Table table, string id, Origin origin, bool asRightHanded)
+		public RenderObject GetRenderObject(Table.Table table, string id, bool asRightHanded)
 		{
 			var mesh = new Mesh();
 			if (id == Wires) {
@@ -80,7 +80,7 @@ namespace VisualPinball.Engine.VPT.Ramp
 			return new RenderObject(
 				id,
 				asRightHanded ? mesh.Transform(Matrix3D.RightHanded) : mesh,
-				new PbrMaterial(table.GetMaterial(_data.Material), table.GetTexture(_data.Image)),
+				new PbrMaterial(table.GetMaterial(_data.Material), id == Wall && !_data.ImageWalls ? null : table.GetTexture(_data.Image)),
 				_data.IsVisible
 			);
 		}
@@ -277,25 +277,17 @@ namespace VisualPinball.Engine.VPT.Ramp
 				rgv3d2.Y = rgv3d1.Y;
 				rgv3d2.Z = (rv.PointHeights[i] + _data.LeftWallHeightVisible) * table.GetScaleZ();
 
-				if (_data.Image != null && _data.ImageWalls) {
-					if (_data.ImageAlignment == RampImageAlignment.ImageModeWorld) {
-						rgv3d1.Tu = rgv3d1.X * invTableWidth;
-						rgv3d1.Tv = rgv3d1.Y * invTableHeight;
-
-					} else {
-						rgv3d1.Tu = 0;
-						rgv3d1.Tv = rv.PointRatios[i];
-					}
-
-					rgv3d2.Tu = rgv3d1.Tu;
-					rgv3d2.Tv = rgv3d1.Tv;
+				if (_data.ImageAlignment == RampImageAlignment.ImageModeWorld) {
+					rgv3d1.Tu = rgv3d1.X * invTableWidth;
+					rgv3d1.Tv = rgv3d1.Y * invTableHeight;
 
 				} else {
-					rgv3d1.Tu = 0.0f;
-					rgv3d1.Tv = 0.0f;
-					rgv3d2.Tu = 0.0f;
-					rgv3d2.Tv = 0.0f;
+					rgv3d1.Tu = 0;
+					rgv3d1.Tv = rv.PointRatios[i];
 				}
+
+				rgv3d2.Tu = rgv3d1.Tu;
+				rgv3d2.Tv = rgv3d1.Tv;
 
 				mesh.Vertices[i * 2] = rgv3d1;
 				mesh.Vertices[i * 2 + 1] = rgv3d2;
@@ -339,24 +331,17 @@ namespace VisualPinball.Engine.VPT.Ramp
 				rgv3d2.Y = rv.RgvLocal[i].Y;
 				rgv3d2.Z = (rv.PointHeights[i] + _data.RightWallHeightVisible) * table.GetScaleZ();
 
-				if (_data.Image != null && _data.ImageWalls) {
-					if (_data.ImageAlignment == RampImageAlignment.ImageModeWorld) {
-						rgv3d1.Tu = rgv3d1.X * invTableWidth;
-						rgv3d1.Tv = rgv3d1.Y * invTableHeight;
-
-					} else {
-						rgv3d1.Tu = 0;
-						rgv3d1.Tv = rv.PointRatios[i];
-					}
-					rgv3d2.Tu = rgv3d1.Tu;
-					rgv3d2.Tv = rgv3d1.Tv;
+				if (_data.ImageAlignment == RampImageAlignment.ImageModeWorld) {
+					rgv3d1.Tu = rgv3d1.X * invTableWidth;
+					rgv3d1.Tv = rgv3d1.Y * invTableHeight;
 
 				} else {
-					rgv3d1.Tu = 0.0f;
-					rgv3d1.Tv = 0.0f;
-					rgv3d2.Tu = 0.0f;
-					rgv3d2.Tv = 0.0f;
+					rgv3d1.Tu = 0;
+					rgv3d1.Tv = rv.PointRatios[i];
 				}
+				rgv3d2.Tu = rgv3d1.Tu;
+				rgv3d2.Tv = rgv3d1.Tv;
+
 
 				mesh.Vertices[i * 2] = rgv3d1;
 				mesh.Vertices[i * 2 + 1] = rgv3d2;

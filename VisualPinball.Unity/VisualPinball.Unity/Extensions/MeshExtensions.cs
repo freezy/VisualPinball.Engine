@@ -84,6 +84,15 @@ namespace VisualPinball.Unity
 
 		public static void ApplyToUnityMesh(this Mesh vpMesh, UnityEngine.Mesh mesh)
 		{
+			// sometime we get empty meshes, e.g. when generating wire meshes for a non-wire ramp, so handle accordingly.
+			if (vpMesh.Indices == null || vpMesh.Vertices == null) {
+				mesh.triangles = null;
+				mesh.vertices = new Vector3[0];
+				mesh.normals = new Vector3[0];
+				mesh.uv = new Vector2[0];
+				return;
+			}
+
 			if (vpMesh.Indices.Length > 65535) {
 				mesh.indexFormat = IndexFormat.UInt32;
 			}

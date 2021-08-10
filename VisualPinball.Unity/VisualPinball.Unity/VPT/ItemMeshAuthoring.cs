@@ -80,6 +80,18 @@ namespace VisualPinball.Unity
 			ItemDataChanged();
 		}
 
+		public void ClearMeshVertices()
+		{
+			var mf = GetComponent<MeshFilter>();
+			if (mf && mf.sharedMesh) {
+				var mesh = mf.sharedMesh;
+				mesh.triangles = null;
+				mesh.vertices = new Vector3[0];
+				mesh.normals = new Vector3[0];
+				mesh.uv = new Vector2[0];
+			}
+		}
+
 		protected virtual RenderObject GetRenderObject(TData data, Table table)
 		{
 			return null;

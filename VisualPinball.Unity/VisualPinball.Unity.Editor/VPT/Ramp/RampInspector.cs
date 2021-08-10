@@ -19,7 +19,6 @@
 using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
-using VisualPinball.Engine.Math;
 using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Ramp;
 
@@ -28,9 +27,7 @@ namespace VisualPinball.Unity.Editor
 	[CustomEditor(typeof(RampAuthoring))]
 	public class RampInspector : DragPointsItemInspector<Ramp, RampData, RampAuthoring>
 	{
-		private bool _foldoutColorsAndFormatting = true;
 		private bool _foldoutGeometry = true;
-		private bool _foldoutMisc;
 
 		private static readonly string[] RampTypeLabels = {
 			"Flat",
@@ -57,54 +54,79 @@ namespace VisualPinball.Unity.Editor
 			RampImageAlignment.ImageModeWrap,
 		};
 
+		private SerializedProperty _typeProperty;
+		private SerializedProperty _heightTopProperty;
+		private SerializedProperty _heightBottomProperty;
+		private SerializedProperty _imageAlignmentProperty;
+		private SerializedProperty _leftWallHeightVisibleProperty;
+		private SerializedProperty _rightWallHeightVisibleProperty;
+		private SerializedProperty _widthBottomProperty;
+		private SerializedProperty _widthTopProperty;
+		private SerializedProperty _wireDiameterProperty;
+		private SerializedProperty _wireDistanceXProperty;
+		private SerializedProperty _wireDistanceYProperty;
+
+		protected override void OnEnable()
+		{
+			base.OnEnable();
+
+			_heightBottomProperty = serializedObject.FindProperty(nameof(RampAuthoring.HeightBottom));
+			_heightTopProperty = serializedObject.FindProperty(nameof(RampAuthoring.HeightTop));
+			_imageAlignmentProperty = serializedObject.FindProperty(nameof(RampAuthoring.ImageAlignment));
+			_leftWallHeightVisibleProperty = serializedObject.FindProperty(nameof(RampAuthoring.LeftWallHeightVisible));
+			_typeProperty = serializedObject.FindProperty(nameof(RampAuthoring.Type));
+			_rightWallHeightVisibleProperty = serializedObject.FindProperty(nameof(RampAuthoring.RightWallHeightVisible));
+			_widthBottomProperty = serializedObject.FindProperty(nameof(RampAuthoring.WidthBottom));
+			_widthTopProperty = serializedObject.FindProperty(nameof(RampAuthoring.WidthTop));
+			_wireDiameterProperty = serializedObject.FindProperty(nameof(RampAuthoring.WireDiameter));
+			_wireDistanceXProperty = serializedObject.FindProperty(nameof(RampAuthoring.WireDistanceX));
+			_wireDistanceYProperty = serializedObject.FindProperty(nameof(RampAuthoring.WireDistanceY));
+		}
+
 		public override void OnInspectorGUI()
 		{
 			if (HasErrors()) {
 				return;
 			}
 
+			serializedObject.Update();
+
 			OnPreInspectorGUI();
 
-			if (_foldoutColorsAndFormatting = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutColorsAndFormatting, "Colors & Formatting")) {
-				DropDownField("Type", ref Data.RampType, RampTypeLabels, RampTypeValues, onChanged: ItemAuthoring.UpdateMeshComponents);
-				TextureFieldLegacy("Texture", ref Data.Image);
-				MaterialFieldLegacy("Material", ref Data.Material);
-				DropDownField("Image Mode", ref Data.ImageAlignment, RampImageAlignmentLabels, RampImageAlignmentValues);
-				ItemDataField("Apply Image To Wall", ref Data.ImageWalls);
-				ItemDataField("Depth Bias", ref Data.DepthBias);
-			}
-			EditorGUILayout.EndFoldoutHeaderGroup();
+			DropDownProperty("Type", _typeProperty, RampTypeLabels, RampTypeValues, true, true);
+			DropDownProperty("Image Mode", _imageAlignmentProperty, RampImageAlignmentLabels, RampImageAlignmentValues, true);
 
 			if (_foldoutGeometry = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutGeometry, "Geometry")) {
-				ItemDataField("Top Height", ref Data.HeightTop);
-				ItemDataField("Bottom Height", ref Data.HeightBottom);
+				PropertyField(_heightTopProperty, "Top Height", true);
+				PropertyField(_heightBottomProperty, "Bottom Height", true);
 
 				EditorGUILayout.Space(10);
-				ItemDataField("Top Width", ref Data.WidthTop);
-				ItemDataField("Bottom Width", ref Data.WidthBottom);
+				PropertyField(_widthTopProperty, "Top Width", true);
+				PropertyField(_widthBottomProperty, "Bottom Width", true);
 
 				EditorGUILayout.Space(10);
-				EditorGUILayout.LabelField("Visible Wall");
-				EditorGUI.indentLevel++;
-				ItemDataField("Left Wall", ref Data.LeftWallHeightVisible);
-				ItemDataField("Right Wall", ref Data.RightWallHeightVisible);
-				EditorGUI.indentLevel--;
-				EditorGUILayout.LabelField("Wire Ramp");
-				EditorGUI.indentLevel++;
-				ItemDataField("Diameter", ref Data.WireDiameter);
-				ItemDataField("Distance X", ref Data.WireDistanceX);
-				ItemDataField("Distance Y", ref Data.WireDistanceY);
-				EditorGUI.indentLevel--;
-			}
-			EditorGUILayout.EndFoldoutHeaderGroup();
 
-			if (_foldoutMisc = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutMisc, "Misc")) {
-				ItemDataField("Timer Enabled", ref Data.IsTimerEnabled, false);
-				ItemDataField("Timer Interval", ref Data.TimerInterval, false);
+				if (ItemAuthoring.IsWireRamp) {
+					EditorGUILayout.LabelField("Wire Ramp");
+					EditorGUI.indentLevel++;
+					PropertyField(_wireDiameterProperty, "Diameter", true);
+					PropertyField(_wireDistanceXProperty, "Distance X", true);
+					PropertyField(_wireDistanceYProperty, "Distance Y", true);
+					EditorGUI.indentLevel--;
+
+				} else {
+					EditorGUILayout.LabelField("Wall Mesh");
+					EditorGUI.indentLevel++;
+					PropertyField(_leftWallHeightVisibleProperty, "Left Wall", true, updateVisibility: true);
+					PropertyField(_rightWallHeightVisibleProperty, "Right Wall", true, updateVisibility: true);
+					EditorGUI.indentLevel--;
+				}
 			}
 			EditorGUILayout.EndFoldoutHeaderGroup();
 
 			base.OnInspectorGUI();
+
+			serializedObject.ApplyModifiedProperties();
 		}
 
 		#region Dragpoint Tooling

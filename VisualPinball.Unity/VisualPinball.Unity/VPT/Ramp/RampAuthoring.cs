@@ -38,48 +38,44 @@ namespace VisualPinball.Unity
 	{
 		#region Data
 
-		public float Elasticity;
-
-		public float Friction;
-
-		public bool HitEvent = false;
-
-		public float HeightBottom = 0f;
-
-		public float HeightTop = 50f;
-
-		public int ImageAlignment = RampImageAlignment.ImageModeWorld;
-
-		public bool ImageWalls = true;
-
-		public bool IsCollidable = true;
-
-		public float LeftWallHeight = 62f;
-
-		public float LeftWallHeightVisible = 30f;
-
-		public bool OverwritePhysics = true;
-
+		[Tooltip("Choose between a flat ramp or various wire ramps.")]
 		public int Type = RampType.RampTypeFlat;
 
-		public float RightWallHeight = 62f;
+		[Tooltip("The bottom height of the ramp.")]
+		public float HeightBottom;
 
+		[Tooltip("The top height of the ramp.")]
+		public float HeightTop = 50f;
+
+		[Tooltip("Defines how the UVs are generated. Setting it to world means the UVs are aligned with those of the playfield.")]
+		public int ImageAlignment = RampImageAlignment.ImageModeWorld;
+
+		[Min(0)]
+		[Tooltip("Rendered height of the left wall.")]
+		public float LeftWallHeightVisible = 30f;
+
+		[Min(0)]
+		[Tooltip("Rendered height of the right wall.")]
 		public float RightWallHeightVisible = 30f;
 
-		public float Scatter;
-
-		public string PhysicsMaterial = string.Empty;
-
-		public float Threshold;
-
+		[Min(0)]
+		[Tooltip("Width at the bottom of the ramp.")]
 		public float WidthBottom = 75f;
 
+		[Min(0)]
+		[Tooltip("Width at the top of the ramp.")]
 		public float WidthTop = 60f;
 
+		[Min(0)]
+		[Tooltip("Diameter of the wires.")]
 		public float WireDiameter = 8f;
 
+		[Min(0)]
+		[Tooltip("Horizontal distance between the wires.")]
 		public float WireDistanceX = 38f;
 
+		[Min(0)]
+		[Tooltip("Vertical distance between the wires.")]
 		public float WireDistanceY = 88f;
 
 		[SerializeField]
@@ -102,6 +98,8 @@ namespace VisualPinball.Unity
 
 		public float Height(Vector2 pos) => 0f; // todo
 
+		public bool IsWireRamp => Type != RampType.RampTypeFlat;
+
 		public void Convert(Entity entity, EntityManager dstManager, GameObjectConversionSystem conversionSystem)
 		{
 			Convert(entity, dstManager);
@@ -110,133 +108,194 @@ namespace VisualPinball.Unity
 			transform.GetComponentInParent<Player>().RegisterRamp(Item, entity, ParentEntity, gameObject);
 		}
 
+		public override void UpdateVisibility()
+		{
+			// visibility
+			var wallComponent = GetComponentInChildren<RampWallMeshAuthoring>(true);
+			var floorComponent = GetComponentInChildren<RampFloorMeshAuthoring>(true);
+			var wireComponent = GetComponentInChildren<RampWireMeshAuthoring>(true);
+			var isVisible = wireComponent && wireComponent.gameObject.activeInHierarchy ||
+			                floorComponent && floorComponent.gameObject.activeInHierarchy;
+			if (IsWireRamp) {
+				if (wireComponent) wireComponent.gameObject.SetActive(isVisible);
+				if (floorComponent) {
+					floorComponent.gameObject.SetActive(false);
+					floorComponent.ClearMeshVertices();
+				}
+				if (wallComponent) {
+					wallComponent.gameObject.SetActive(false);
+					wallComponent.ClearMeshVertices();
+				}
+			} else {
+				if (wireComponent) {
+					wireComponent.gameObject.SetActive(false);
+					wireComponent.ClearMeshVertices();
+				}
+				if (floorComponent) floorComponent.gameObject.SetActive(isVisible);
+				if (wallComponent) wallComponent.gameObject.SetActive(isVisible && (LeftWallHeightVisible > 0 || RightWallHeightVisible > 0));
+			}
+		}
+
 		public override IEnumerable<MonoBehaviour> SetData(RampData data, IMaterialProvider materialProvider, ITextureProvider textureProvider, Dictionary<string, IItemMainAuthoring> components)
 		{
 			var updatedComponents = new List<MonoBehaviour> { this };
 
+			// geometry
 			DragPoints = data.DragPoints;
-			Elasticity = data.Elasticity;
-			Friction = data.Friction;
-			HitEvent = data.HitEvent;
-			HeightBottom = data.HeightBottom;
 			HeightTop = data.HeightTop;
-			ImageAlignment = data.ImageAlignment;
-			ImageWalls = data.ImageWalls;
-			IsCollidable = data.IsCollidable;
-			LeftWallHeight = data.LeftWallHeight;
-			LeftWallHeightVisible = data.LeftWallHeightVisible;
-			OverwritePhysics = data.OverwritePhysics;
-			Type = data.RampType;
-			RightWallHeight = data.RightWallHeight;
-			RightWallHeightVisible = data.RightWallHeightVisible;
-			Scatter = data.Scatter;
-			PhysicsMaterial = data.PhysicsMaterial;
-			Threshold = data.Threshold;
-			WidthBottom = data.WidthBottom;
+			HeightBottom = data.HeightBottom;
 			WidthTop = data.WidthTop;
+			WidthBottom = data.WidthBottom;
+			LeftWallHeightVisible = data.LeftWallHeightVisible;
+			RightWallHeightVisible = data.RightWallHeightVisible;
+
+			// type and uvs
+			Type = data.RampType;
+			ImageAlignment = data.ImageAlignment;
+
+			// wire data
 			WireDiameter = data.WireDiameter;
 			WireDistanceX = data.WireDistanceX;
 			WireDistanceY = data.WireDistanceY;
+
+			// visibility and mesh creation
+			var wallComponent = GetComponentInChildren<RampWallMeshAuthoring>(true);
+			var floorComponent = GetComponentInChildren<RampFloorMeshAuthoring>(true);
+			var wireComponent = GetComponentInChildren<RampWireMeshAuthoring>(true);
+			if (IsWireRamp) {
+				if (wireComponent) {
+					wireComponent.gameObject.SetActive(data.IsVisible);
+					wireComponent.CreateMesh(data, textureProvider, materialProvider);
+				}
+				if (floorComponent) {
+					floorComponent.gameObject.SetActive(false);
+					floorComponent.CreateMesh(data, textureProvider, materialProvider);
+				}
+				if (wallComponent) {
+					wallComponent.gameObject.SetActive(false);
+					wallComponent.CreateMesh(data, textureProvider, materialProvider);
+				}
+			} else {
+				if (wireComponent) {
+					wireComponent.gameObject.SetActive(false);
+					wireComponent.CreateMesh(data, textureProvider, materialProvider);
+				}
+				if (floorComponent) {
+					floorComponent.gameObject.SetActive(data.IsVisible);
+					floorComponent.CreateMesh(data, textureProvider, materialProvider);
+				}
+				if (wallComponent) {
+					wallComponent.gameObject.SetActive(data.IsVisible && (LeftWallHeightVisible > 0 || RightWallHeightVisible > 0));
+					wallComponent.CreateMesh(data, textureProvider, materialProvider);
+				}
+			}
+
+			// collider data
+			var collComponent = GetComponentInChildren<RampColliderAuthoring>();
+			if (collComponent) {
+				collComponent.enabled = data.IsCollidable;
+				collComponent.Elasticity = data.Elasticity;
+				collComponent.Friction = data.Friction;
+				collComponent.HitEvent = data.HitEvent;
+				collComponent.OverwritePhysics = data.OverwritePhysics;
+				collComponent.Scatter = data.Scatter;
+				collComponent.PhysicsMaterial = materialProvider.GetPhysicsMaterial(data.PhysicsMaterial);
+				collComponent.Threshold = data.Threshold;
+
+				collComponent.LeftWallHeight = data.LeftWallHeight;
+				collComponent.RightWallHeight = data.RightWallHeight;
+
+				updatedComponents.Add(collComponent);
+			}
 
 			return updatedComponents;
 		}
 
 		public override RampData CopyDataTo(RampData data, string[] materialNames, string[] textureNames)
 		{
-			var updatedComponents = new List<MonoBehaviour> { this };
-
 			// update the name
 			data.Name = name;
 
-			// update visibility
-			data.IsVisible = false;
-			foreach (var meshComponent in MeshComponents) {
-				switch (meshComponent) {
-					case RampFloorMeshAuthoring meshAuthoring:
-						data.IsVisible = data.IsVisible || meshAuthoring.gameObject.activeInHierarchy;
-						break;
-					case RampWallMeshAuthoring meshAuthoring:
-						data.IsVisible = data.IsVisible || meshAuthoring.gameObject.activeInHierarchy;
-						break;
-					case RampWireMeshAuthoring meshAuthoring:
-						data.IsVisible = meshAuthoring.gameObject.activeInHierarchy;
-						break;
-				}
-			}
-
-			// update collision
-			data.IsCollidable = false;
-			foreach (var colliderComponent in ColliderComponents) {
-				if (colliderComponent is RampColliderAuthoring colliderAuthoring) {
-					data.IsCollidable = colliderAuthoring.gameObject.activeInHierarchy;
-				}
-			}
-
-			// other props
+			// geometry
 			data.DragPoints = DragPoints;
-			data.Elasticity = Elasticity;
-			data.Friction = Friction;
-			data.HitEvent = HitEvent;
-			data.HeightBottom = HeightBottom;
 			data.HeightTop = HeightTop;
-			data.ImageAlignment = ImageAlignment;
-			data.ImageWalls = ImageWalls;
-			data.IsCollidable = IsCollidable;
-			data.LeftWallHeight = LeftWallHeight;
-			data.LeftWallHeightVisible = LeftWallHeightVisible;
-			data.OverwritePhysics = OverwritePhysics;
-			data.RampType = Type;
-			data.RightWallHeight = RightWallHeight;
-			data.RightWallHeightVisible = RightWallHeightVisible;
-			data.Scatter = Scatter;
-			data.PhysicsMaterial = PhysicsMaterial;
-			data.Threshold = Threshold;
-			data.WidthBottom = WidthBottom;
+			data.HeightBottom = HeightBottom;
 			data.WidthTop = WidthTop;
+			data.WidthBottom = WidthBottom;
+			data.LeftWallHeightVisible = LeftWallHeightVisible;
+			data.RightWallHeightVisible = RightWallHeightVisible;
+
+			// type and uvs
+			data.RampType = Type;
+			data.ImageAlignment = ImageAlignment;
+
+			// wire data
 			data.WireDiameter = WireDiameter;
 			data.WireDistanceX = WireDistanceX;
 			data.WireDistanceY = WireDistanceY;
 
+			// visibility
+			var floorComponent = GetComponentInChildren<RampFloorMeshAuthoring>();
+			var wireComponent = GetComponentInChildren<RampWireMeshAuthoring>();
+			if (IsWireRamp) {
+				data.IsVisible = wireComponent && wireComponent.gameObject.activeInHierarchy;
+			} else {
+				data.IsVisible = floorComponent && floorComponent.gameObject.activeInHierarchy;
+			}
+
+			// collider data
+			var collComponent = GetComponentInChildren<RampColliderAuthoring>();
+			if (collComponent) {
+				data.IsCollidable = collComponent.enabled;
+
+				data.LeftWallHeight = collComponent.LeftWallHeight;
+				data.RightWallHeight = collComponent.RightWallHeight;
+
+				data.HitEvent = collComponent.HitEvent;
+				data.Threshold = collComponent.Threshold;
+				data.PhysicsMaterial = collComponent.PhysicsMaterial ? collComponent.PhysicsMaterial.name : string.Empty;
+
+				data.OverwritePhysics = collComponent.OverwritePhysics;
+				data.Elasticity = collComponent.Elasticity;
+				data.Friction = collComponent.Friction;
+				data.Scatter = collComponent.Scatter;
+
+			} else {
+				data.IsCollidable = false;
+			}
+
 			return data;
 		}
 
-		public void UpdateMeshComponents(int rampTypeBefore, int rampTypeAfter)
-		{
-			var rampFlatBefore = rampTypeBefore == RampType.RampTypeFlat;
-			var rampFlatAfter = rampTypeAfter == RampType.RampTypeFlat;
-			if (rampFlatBefore == rampFlatAfter) {
-				return;
-			}
+		#region Editor Tooling
 
-			var convertedItem = new ConvertedItem<Ramp, RampData, RampAuthoring>(gameObject);
-			if (rampFlatAfter) {
-				convertedItem.Destroy<RampWireMeshAuthoring>();
-				convertedItem.AddMeshAuthoring<RampFloorMeshAuthoring>(RampMeshGenerator.Floor);
-				convertedItem.AddMeshAuthoring<RampWallMeshAuthoring>(RampMeshGenerator.Wall);
-
-			} else {
-				convertedItem.Destroy<RampFloorMeshAuthoring>();
-				convertedItem.Destroy<RampWallMeshAuthoring>();
-				convertedItem.AddMeshAuthoring<RampWireMeshAuthoring>(RampMeshGenerator.Wires);
+		private Vector3 DragPointCenter {
+			get {
+				var sum = Vertex3D.Zero;
+				foreach (var t in DragPoints) {
+					sum += t.Center;
+				}
+				var center = sum / DragPoints.Length;
+				return new Vector3(center.X, center.Y, HeightTop);
 			}
 		}
 
 		public override ItemDataTransformType EditorPositionType => ItemDataTransformType.TwoD;
-		public override Vector3 GetEditorPosition() => DragPoints.Length == 0 ? Vector3.zero : DragPoints[0].Center.ToUnityVector3();
+		public override Vector3 GetEditorPosition() => DragPoints.Length == 0 ? Vector3.zero : DragPointCenter;
 
 		public override void SetEditorPosition(Vector3 pos)
 		{
-			if (Data == null || Data.DragPoints.Length == 0) {
+			if (DragPoints.Length == 0) {
 				return;
 			}
-
-			var diff = pos.ToVertex3D() - Data.DragPoints[0].Center;
+			var diff = (pos - DragPointCenter).ToVertex3D();
 			diff.Z = 0f;
-			Data.DragPoints[0].Center = pos.ToVertex3D();
-			for (int i = 1; i < Data.DragPoints.Length; i++) {
-				var pt = Data.DragPoints[i];
+			foreach (var pt in DragPoints) {
 				pt.Center += diff;
 			}
+			RebuildMeshes();
 		}
+
+		#endregion
 	}
 }
