@@ -144,7 +144,7 @@ namespace VisualPinball.Unity
 			// collider data
 			var collComponent = GetComponentInChildren<SurfaceColliderAuthoring>();
 			if (collComponent) {
-				data.IsCollidable = true;
+				data.IsCollidable = collComponent.enabled;
 
 				data.HitEvent = collComponent.HitEvent;
 				data.Threshold = collComponent.Threshold;

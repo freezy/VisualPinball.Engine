@@ -119,6 +119,13 @@ namespace VisualPinball.Unity
 			CopyMaterialName(mr, materialNames, textureNames, ref materialName, ref _, ref _, ref _);
 		}
 
+		protected static void CopyMaterialName(MeshRenderer mr, string[] materialNames, string[] textureNames,
+			ref string materialName, ref string mapName, ref string normalMapName)
+		{
+			string _ = null;
+			CopyMaterialName(mr, materialNames, textureNames, ref materialName, ref mapName, ref normalMapName, ref _);
+		}
+
 
 		protected static void CopyMaterialName(MeshRenderer mr, string[] materialNames, string[] textureNames,
 			ref string materialName, ref string mapName, ref string normalMapName,

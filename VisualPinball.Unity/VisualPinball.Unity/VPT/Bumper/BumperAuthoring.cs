@@ -27,7 +27,6 @@ using Unity.Entities;
 using Unity.Mathematics;
 using UnityEngine;
 using VisualPinball.Engine.Game;
-using VisualPinball.Engine.IO;
 using VisualPinball.Engine.VPT.Bumper;
 
 namespace VisualPinball.Unity

@@ -24,43 +24,68 @@ namespace VisualPinball.Unity.Editor
 	[CustomEditor(typeof(PrimitiveColliderAuthoring))]
 	public class PrimitiveColliderInspector : ItemColliderInspector<Primitive, PrimitiveData, PrimitiveAuthoring, PrimitiveColliderAuthoring>
 	{
+		private bool _foldoutMaterial = true;
+
+		private SerializedProperty _hitEventProperty;
+		private SerializedProperty _thresholdProperty;
+		private SerializedProperty _elasticityProperty;
+		private SerializedProperty _elasticityFalloffProperty;
+		private SerializedProperty _frictionProperty;
+		private SerializedProperty _scatterProperty;
+		private SerializedProperty _collisionReductionFactorProperty;
+		private SerializedProperty _overwritePhysicsProperty;
+		private SerializedProperty _physicsMaterialProperty;
+
+		protected override void OnEnable()
+		{
+			base.OnEnable();
+
+			_hitEventProperty = serializedObject.FindProperty(nameof(PrimitiveColliderAuthoring.HitEvent));
+			_thresholdProperty = serializedObject.FindProperty(nameof(PrimitiveColliderAuthoring.Threshold));
+			_collisionReductionFactorProperty = serializedObject.FindProperty(nameof(PrimitiveColliderAuthoring.CollisionReductionFactor));
+
+			_physicsMaterialProperty = serializedObject.FindProperty(nameof(ItemColliderAuthoring<Primitive, PrimitiveData, PrimitiveAuthoring>.PhysicsMaterial));
+			_overwritePhysicsProperty = serializedObject.FindProperty(nameof(PrimitiveColliderAuthoring.OverwritePhysics));
+			_elasticityProperty = serializedObject.FindProperty(nameof(PrimitiveColliderAuthoring.Elasticity));
+			_elasticityFalloffProperty = serializedObject.FindProperty(nameof(PrimitiveColliderAuthoring.ElasticityFalloff));
+			_frictionProperty = serializedObject.FindProperty(nameof(PrimitiveColliderAuthoring.Friction));
+			_scatterProperty = serializedObject.FindProperty(nameof(PrimitiveColliderAuthoring.Scatter));
+		}
+
 		public override void OnInspectorGUI()
 		{
 			if (HasErrors()) {
 				return;
 			}
 
-			EditorGUI.BeginDisabledGroup(Data.IsToy || !Data.IsCollidable);
+			serializedObject.Update();
 
-			ItemDataField("Has Hit Event", ref Data.HitEvent, false);
-			EditorGUI.BeginDisabledGroup(!Data.HitEvent);
-			ItemDataField("Hit Threshold", ref Data.Threshold, false);
-			EditorGUI.EndDisabledGroup();
+			OnPreInspectorGUI();
 
-			EditorGUI.BeginDisabledGroup(Data.OverwritePhysics);
-			PhysicsMaterialField("Physics Material", ref ColliderAuthoring.PhysicsMaterial);
-			EditorGUI.EndDisabledGroup();
-			ItemDataField("Overwrite Material Settings", ref Data.OverwritePhysics, false);
-			EditorGUI.BeginDisabledGroup(!Data.OverwritePhysics);
-			ItemDataField("Elasticity", ref Data.Elasticity, false);
-			ItemDataField("Elasticity Falloff", ref Data.ElasticityFalloff, false);
-			ItemDataField("Friction", ref Data.Friction, false);
-			ItemDataField("Scatter Angle", ref Data.Scatter, false);
-			EditorGUI.EndDisabledGroup();
+			PropertyField(_hitEventProperty, "Has Hit Event");
+			PropertyField(_thresholdProperty, "Hit Threshold");
+			PropertyField(_collisionReductionFactorProperty, "Reduce Polygons By");
 
-			EditorGUI.EndDisabledGroup();
+			// physics material
+			if (_foldoutMaterial = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutMaterial, "Physics Material")) {
+				EditorGUI.BeginDisabledGroup(_overwritePhysicsProperty.boolValue);
+				PropertyField(_physicsMaterialProperty, "Preset");
+				EditorGUI.EndDisabledGroup();
 
-			EditorGUI.BeginDisabledGroup(Data.IsToy);
-			ItemDataField("Collidable", ref Data.IsCollidable, false);
-			EditorGUI.EndDisabledGroup();
+				PropertyField(_overwritePhysicsProperty);
 
-			ItemDataField("Toy", ref Data.IsToy, false);
-
-			EditorGUI.BeginDisabledGroup(Data.IsToy);
-			ItemDataSlider("Reduce Polygons By", ref Data.CollisionReductionFactor, 0f, 1f, false);
-			EditorGUI.EndDisabledGroup();
+				EditorGUI.BeginDisabledGroup(!_overwritePhysicsProperty.boolValue);
+				PropertyField(_elasticityProperty);
+				PropertyField(_elasticityFalloffProperty);
+				PropertyField(_frictionProperty);
+				PropertyField(_scatterProperty, "Scatter Angle");
+				EditorGUI.EndDisabledGroup();
+			}
+			EditorGUILayout.EndFoldoutHeaderGroup();
 
 			base.OnInspectorGUI();
+
+			serializedObject.ApplyModifiedProperties();
 		}
 	}
 }
