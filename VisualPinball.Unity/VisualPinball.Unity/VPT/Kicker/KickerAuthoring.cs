@@ -25,6 +25,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Unity.Entities;
+using Unity.Mathematics;
 using UnityEngine;
 using VisualPinball.Engine.Game;
 using VisualPinball.Engine.VPT.Kicker;
@@ -191,6 +192,10 @@ namespace VisualPinball.Unity
 		#region Editor Tooling
 
 		public override ItemDataTransformType EditorPositionType => ItemDataTransformType.TwoD;
+
+		public override Vector3 GetEditorPosition() => Position;
+
+		public override void SetEditorPosition(Vector3 pos) => Position = ((float3)pos).xy;
 
 		public override ItemDataTransformType EditorRotationType =>
 			KickerType == Engine.VPT.KickerType.KickerCup || KickerType == Engine.VPT.KickerType.KickerWilliams
