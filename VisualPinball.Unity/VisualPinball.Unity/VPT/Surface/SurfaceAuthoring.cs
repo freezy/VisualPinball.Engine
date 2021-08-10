@@ -137,9 +137,9 @@ namespace VisualPinball.Unity
 
 			// children visibility
 			var topMesh = GetComponentInChildren<SurfaceTopMeshAuthoring>();
-			data.IsTopBottomVisible = topMesh.gameObject.activeInHierarchy;
+			data.IsTopBottomVisible = topMesh && topMesh.gameObject.activeInHierarchy;
 			var sideMesh = GetComponentInChildren<SurfaceSideMeshAuthoring>();
-			data.IsSideVisible = sideMesh.gameObject.activeInHierarchy;
+			data.IsSideVisible = sideMesh && sideMesh.gameObject.activeInHierarchy;
 
 			// collider data
 			var collComponent = GetComponentInChildren<SurfaceColliderAuthoring>();

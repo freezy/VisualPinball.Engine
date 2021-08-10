@@ -35,9 +35,11 @@ namespace VisualPinball.Unity
 	[ExecuteAlways]
 	[AddComponentMenu("Visual Pinball/Game Item/Trigger")]
 	public class TriggerAuthoring : ItemMainRenderableAuthoring<Trigger, TriggerData>,
-		ISwitchAuthoring, IDragPointsAuthoring, IConvertGameObjectToEntity
+		ISwitchAuthoring, ITriggerAuthoring, IDragPointsAuthoring, IConvertGameObjectToEntity
 	{
 		#region Data
+
+		public Vector2 Position;
 
 		public float Radius = 25f;
 
@@ -57,6 +59,8 @@ namespace VisualPinball.Unity
 
 		protected override Trigger InstantiateItem(TriggerData data) => new Trigger(data);
 		protected override TriggerData InstantiateData() => new TriggerData();
+
+		public Vector2 Center => Position;
 
 		protected override Type MeshAuthoringType { get; } = typeof(ItemMeshAuthoring<Trigger, TriggerData, TriggerAuthoring>);
 		protected override Type ColliderAuthoringType { get; } = typeof(ItemColliderAuthoring<Trigger, TriggerData, TriggerAuthoring>);
@@ -149,6 +153,5 @@ namespace VisualPinball.Unity
 		public override ItemDataTransformType EditorRotationType => ItemDataTransformType.OneD;
 		public override Vector3 GetEditorRotation() => transform.localEulerAngles;
 		public override void SetEditorRotation(Vector3 rot) => transform.localEulerAngles = rot;
-
 	}
 }

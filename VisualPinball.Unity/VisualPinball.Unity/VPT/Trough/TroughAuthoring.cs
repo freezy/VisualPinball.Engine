@@ -23,12 +23,11 @@
 
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using UnityEngine;
 using UnityEngine.Profiling;
 using VisualPinball.Engine.Game.Engines;
 using VisualPinball.Engine.VPT;
-using VisualPinball.Engine.VPT.Kicker;
-using VisualPinball.Engine.VPT.Trigger;
 using VisualPinball.Engine.VPT.Trough;
 
 namespace VisualPinball.Unity
@@ -39,22 +38,45 @@ namespace VisualPinball.Unity
 	{
 		#region Data
 
+		[ToolboxItem("The type of the opto. See documentation of a description of each type.")]
 		public int Type = TroughType.ModernOpto;
 
-		public TriggerAuthoring PlayfieldEntrySwitch;
+		public ITriggerAuthoring PlayfieldEntrySwitch
+		{
+			get => _playfieldEntrySwitch as ITriggerAuthoring;
+			set => _playfieldEntrySwitch = value as MonoBehaviour;
+		}
 
+		[SerializeField]
+		[TypeRestriction(typeof(ITriggerAuthoring), PickerLabel = "Triggers & Kickers")]
+		[Tooltip("The trigger or kicker that eats the ball and puts it into the trough.")]
+		public MonoBehaviour _playfieldEntrySwitch;
+
+		[Tooltip("The kicker that creates and ejects the ball to the playfield.")]
+		[TypeRestriction(typeof(KickerAuthoring), PickerLabel = "Kickers")]
 		public KickerAuthoring PlayfieldExitKicker;
 
+		[Range(1, 10)]
+		[Tooltip("How many balls the trough holds when the game starts.")]
 		public int BallCount = 6;
 
+		[Range(1, 10)]
+		[Tooltip("How many ball switches are available.")]
 		public int SwitchCount = 6;
 
+		[Tooltip("Defines if the trough has a jam switch.")]
 		public bool JamSwitch;
 
+		[Min(0)]
+		[Tooltip("Sets how long it takes the ball to roll from one switch to the next.")]
 		public int RollTime = 300;
 
+		[Min(0)]
+		[Tooltip("Defines how long the opto switch closes between balls.")]
 		public int TransitionTime = 50;
 
+		[Min(0)]
+		[Tooltip("Defines how long it takes the ball to get kicked from the drain into the trough.")]
 		public int KickTime = 100;
 
 		#endregion
@@ -66,19 +88,13 @@ namespace VisualPinball.Unity
 		protected override Trough InstantiateItem(TroughData data) => new Trough(data);
 		protected override TroughData InstantiateData() => new TroughData();
 
-		public override IEnumerable<Type> ValidParents { get; } = new Type[0];
+		public override IEnumerable<Type> ValidParents { get; } = System.Type.EmptyTypes;
 
 		private Vector3 EntryPos(float height)
 		{
-			if (string.IsNullOrEmpty(Data.PlayfieldEntrySwitch)) {
-				return Vector3.zero;
-			}
-			if (TableContainer.Has<Trigger>(Data.PlayfieldEntrySwitch)) {
-				return TableContainer.Get<Trigger>(Data.PlayfieldEntrySwitch).Data.Center.ToUnityVector3(height);
-			}
-			return TableContainer.Has<Kicker>(Data.PlayfieldEntrySwitch)
-				? TableContainer.Get<Kicker>(Data.PlayfieldEntrySwitch).Data.Center.ToUnityVector3(height)
-				: Vector3.zero;
+			return PlayfieldEntrySwitch == null
+				? Vector3.zero
+				: new Vector3(PlayfieldEntrySwitch.Center.x, PlayfieldEntrySwitch.Center.y, height);
 		}
 
 		private Vector3 ExitPos(float height) => string.IsNullOrEmpty(Data.PlayfieldExitKicker)
