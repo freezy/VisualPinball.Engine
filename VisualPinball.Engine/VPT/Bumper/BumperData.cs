@@ -118,6 +118,10 @@ namespace VisualPinball.Engine.VPT.Bumper
 		[BiffInt("TMIN", Pos = 4)]
 		public int TimerInterval;
 
+		public BumperData() : base(StoragePrefix.GameItem)
+		{
+		}
+
 		public BumperData(string name, float x, float y) : base(StoragePrefix.GameItem)
 		{
 			Name = name;

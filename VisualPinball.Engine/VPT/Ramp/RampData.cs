@@ -135,6 +135,10 @@ namespace VisualPinball.Engine.VPT.Ramp
 		[BiffTag("PNTS", Pos = 1999)]
 		public bool Points;
 
+		public RampData() : base(StoragePrefix.GameItem)
+		{
+		}
+
 		public RampData(string name, DragPointData[] dragPoints) : base(StoragePrefix.GameItem)
 		{
 			Name = name;

@@ -89,6 +89,7 @@ namespace VisualPinball.Unity
 		#endregion
 
 		protected override Ramp InstantiateItem(RampData data) => new Ramp(data);
+		protected override RampData InstantiateData() => new RampData();
 
 		protected override Type MeshAuthoringType { get; } = typeof(ItemMeshAuthoring<Ramp, RampData, RampAuthoring>);
 		protected override Type ColliderAuthoringType { get; } = typeof(ItemColliderAuthoring<Ramp, RampData, RampAuthoring>);

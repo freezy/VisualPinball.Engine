@@ -57,6 +57,7 @@ namespace VisualPinball.Unity
 		#endregion
 
 		protected override Spinner InstantiateItem(SpinnerData data) => new Spinner(data);
+		protected override SpinnerData InstantiateData() => new SpinnerData();
 
 		protected override Type MeshAuthoringType { get; } = typeof(ItemMeshAuthoring<Spinner, SpinnerData, SpinnerAuthoring>);
 		protected override Type ColliderAuthoringType { get; } = typeof(ItemColliderAuthoring<Spinner, SpinnerData, SpinnerAuthoring>);

@@ -71,6 +71,7 @@ namespace VisualPinball.Unity
 		#endregion
 
 		protected override Rubber InstantiateItem(RubberData data) => new Rubber(data);
+		protected override RubberData InstantiateData() => new RubberData();
 		protected override Type MeshAuthoringType { get; } = typeof(ItemMeshAuthoring<Rubber, RubberData, RubberAuthoring>);
 		protected override Type ColliderAuthoringType { get; } = typeof(ItemColliderAuthoring<Rubber, RubberData, RubberAuthoring>);
 

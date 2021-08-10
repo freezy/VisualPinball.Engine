@@ -156,6 +156,10 @@ namespace VisualPinball.Engine.VPT.Surface
 		// non-persisted
 		public bool IsDisabled;
 
+		public SurfaceData() : base(StoragePrefix.GameItem)
+		{
+		}
+
 		public SurfaceData(string name, DragPointData[] dragPoints) : base(StoragePrefix.GameItem)
 		{
 			Name = name;

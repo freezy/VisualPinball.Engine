@@ -26,9 +26,7 @@ namespace VisualPinball.Unity
 		public static IConvertedItem InstantiateGameObject(this Table table, IItem item, IMaterialProvider materialProvider)
 		{
 			var obj = new GameObject(item.Name);
-			var convertedItem = new ConvertedItem<Table, TableData, PlayfieldAuthoring>(obj, table) {
-				IsProceduralMesh = false
-			};
+			var convertedItem = new ConvertedItem<Table, TableData, PlayfieldAuthoring>(obj, table);
 			convertedItem.SetMeshAuthoring<PlayfieldMeshAuthoring>();
 			convertedItem.SetColliderAuthoring<PlayfieldColliderAuthoring>(materialProvider);
 			return convertedItem.AddConvertToEntity();

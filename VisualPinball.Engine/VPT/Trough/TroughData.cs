@@ -65,6 +65,10 @@ namespace VisualPinball.Engine.VPT.Trough
 		[BiffInt("KTIM", Pos = 10)]
 		public int KickTime = 100;
 
+		public TroughData() : base(StoragePrefix.VpeGameItem)
+		{
+		}
+
 		public TroughData(string name) : base(StoragePrefix.VpeGameItem)
 		{
 			Name = name;

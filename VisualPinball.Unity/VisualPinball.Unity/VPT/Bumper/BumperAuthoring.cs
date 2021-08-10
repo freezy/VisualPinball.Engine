@@ -27,6 +27,7 @@ using Unity.Entities;
 using Unity.Mathematics;
 using UnityEngine;
 using VisualPinball.Engine.Game;
+using VisualPinball.Engine.IO;
 using VisualPinball.Engine.VPT.Bumper;
 
 namespace VisualPinball.Unity
@@ -70,6 +71,7 @@ namespace VisualPinball.Unity
 		#endregion
 
 		protected override Bumper InstantiateItem(BumperData data) => new Bumper(data);
+		protected override BumperData InstantiateData() => new BumperData();
 		protected override Type MeshAuthoringType { get; } = typeof(ItemMeshAuthoring<Bumper, BumperData, BumperAuthoring>);
 		protected override Type ColliderAuthoringType { get; } = typeof(ItemColliderAuthoring<Bumper, BumperData, BumperAuthoring>);
 

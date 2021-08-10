@@ -98,6 +98,7 @@ namespace VisualPinball.Unity
 		#endregion
 
 		protected override Flipper InstantiateItem(FlipperData data) => new Flipper(data);
+		protected override FlipperData InstantiateData() => new FlipperData();
 
 		protected override Type MeshAuthoringType { get; } = typeof(ItemMeshAuthoring<Flipper, FlipperData, FlipperAuthoring>);
 		protected override Type ColliderAuthoringType { get; } = typeof(ItemColliderAuthoring<Flipper, FlipperData, FlipperAuthoring>);
@@ -230,7 +231,7 @@ namespace VisualPinball.Unity
 
 			// children visibility
 			var baseMesh = GetComponentInChildren<FlipperBaseMeshAuthoring>();
-			data.IsVisible = baseMesh.gameObject.activeInHierarchy;
+			data.IsVisible = baseMesh && baseMesh.gameObject.activeInHierarchy;
 
 			// collider data
 			var colliderAuthoring = gameObject.GetComponent<FlipperColliderAuthoring>();

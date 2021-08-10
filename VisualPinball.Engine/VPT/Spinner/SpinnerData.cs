@@ -86,6 +86,10 @@ namespace VisualPinball.Engine.VPT.Spinner
 		[BiffInt("TMIN", Pos = 4)]
 		public int TimerInterval;
 
+		public SpinnerData() : base(StoragePrefix.GameItem)
+		{
+		}
+
 		public SpinnerData(string name, float x, float y) : base(StoragePrefix.GameItem)
 		{
 			Name = name;

@@ -68,6 +68,7 @@ namespace VisualPinball.Unity
 		public override bool IsCollidable => !Data.IsToy;
 
 		protected override Primitive InstantiateItem(PrimitiveData data) => new Primitive(data);
+		protected override PrimitiveData InstantiateData() => new PrimitiveData();
 
 		protected override Type MeshAuthoringType { get; } = typeof(ItemMeshAuthoring<Primitive, PrimitiveData, PrimitiveAuthoring>);
 		protected override Type ColliderAuthoringType { get; } = typeof(ItemColliderAuthoring<Primitive, PrimitiveData, PrimitiveAuthoring>);

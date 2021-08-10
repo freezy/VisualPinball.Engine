@@ -54,20 +54,19 @@ namespace VisualPinball.Unity
 	[Serializable]
 	public class LegacyContainer : ScriptableObject
 	{
-		public BumperData[] Bumpers;
-		public FlipperData[] Flippers;
-		public GateData[] Gates;
-		public HitTargetData[] HitTargets;
-		public KickerData[] Kickers;
-		public LightData[] Lights;
-		public PlungerData[] Plungers;
-		public PrimitiveData[] Primitives;
-		public RampData[] Ramps;
-		public RubberData[] Rubbers;
-		public SpinnerData[] Spinners;
-		public SurfaceData[] Surfaces;
-		public TriggerData[] Triggers;
-		public TroughData[] Troughs;
+		public SerializableDictionary<string, BumperData> Bumpers = new SerializableDictionary<string, BumperData>();
+		public SerializableDictionary<string, FlipperData> Flippers = new SerializableDictionary<string, FlipperData>();
+		public SerializableDictionary<string, GateData> Gates = new SerializableDictionary<string, GateData>();
+		public SerializableDictionary<string, HitTargetData> HitTargets = new SerializableDictionary<string, HitTargetData>();
+		public SerializableDictionary<string, KickerData> Kickers = new SerializableDictionary<string, KickerData>();
+		public SerializableDictionary<string, LightData> Lights = new SerializableDictionary<string, LightData>();
+		public SerializableDictionary<string, PlungerData> Plungers = new SerializableDictionary<string, PlungerData>();
+		public SerializableDictionary<string, PrimitiveData> Primitives = new SerializableDictionary<string, PrimitiveData>();
+		public SerializableDictionary<string, RampData> Ramps = new SerializableDictionary<string, RampData>();
+		public SerializableDictionary<string, RubberData> Rubbers = new SerializableDictionary<string, RubberData>();
+		public SerializableDictionary<string, SpinnerData> Spinners = new SerializableDictionary<string, SpinnerData>();
+		public SerializableDictionary<string, SurfaceData> Surfaces = new SerializableDictionary<string, SurfaceData>();
+		public SerializableDictionary<string, TriggerData> Triggers = new SerializableDictionary<string, TriggerData>();
 
 		public DecalData[] Decals;
 		public DispReelData[] DispReels;

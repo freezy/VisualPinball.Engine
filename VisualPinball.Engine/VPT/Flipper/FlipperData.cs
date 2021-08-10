@@ -227,6 +227,10 @@ namespace VisualPinball.Engine.VPT.Flipper
 			}
 		}
 
+		public FlipperData() : base(StoragePrefix.GameItem)
+		{
+		}
+
 		public FlipperData(string name, float x, float y) : base(StoragePrefix.GameItem)
 		{
 			Name = name;

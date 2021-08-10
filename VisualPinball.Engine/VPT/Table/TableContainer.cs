@@ -168,28 +168,32 @@ namespace VisualPinball.Engine.VPT.Table
 			.Concat(_triggers.Values)
 			.Concat(_troughs.Values);
 
-		public IEnumerable<ItemData> ItemDatas => new ItemData[] { }
+		public IEnumerable<ItemData> ItemDatas => ItemSupportedDatas.Concat(ItemLegacyDatas);
+
+		public IEnumerable<ItemData> ItemSupportedDatas => new ItemData[] { }
 			.Concat(_bumpers.Values.Select(i => i.Data))
-			.Concat(_decals.Select(i => i.Data))
-			.Concat(_dispReels.Values.Select(i => i.Data))
 			.Concat(_flippers.Values.Select(i => i.Data))
 			.Concat(_flashers.Values.Select(i => i.Data))
 			.Concat(_gates.Values.Select(i => i.Data))
 			.Concat(_hitTargets.Values.Select(i => i.Data))
 			.Concat(_kickers.Values.Select(i => i.Data))
 			.Concat(_lights.Values.Select(i => i.Data))
-			.Concat(_lightSeqs.Values.Select(i => i.Data))
 			.Concat(_plungers.Values.Select(i => i.Data))
 			.Concat(_primitives.Values.Select(i => i.Data))
 			.Concat(_ramps.Values.Select(i => i.Data))
 			.Concat(_rubbers.Values.Select(i => i.Data))
 			.Concat(_spinners.Values.Select(i => i.Data))
 			.Concat(_surfaces.Values.Select(i => i.Data))
-			.Concat(_textBoxes.Values.Select(i => i.Data))
-			.Concat(_timers.Values.Select(i => i.Data))
 			.Concat(_triggers.Values.Select(i => i.Data));
 
-		public Dictionary<string, ItemData> Datas => ItemDatas
+		public IEnumerable<ItemData> ItemLegacyDatas => new ItemData[] { }
+			.Concat(_decals.Select(i => i.Data))
+			.Concat(_dispReels.Values.Select(i => i.Data))
+			.Concat(_lightSeqs.Values.Select(i => i.Data))
+			.Concat(_textBoxes.Values.Select(i => i.Data))
+			.Concat(_timers.Values.Select(i => i.Data));
+
+		public Dictionary<string, ItemData> SupportedDatas => ItemSupportedDatas
 			.Concat(VpeItemDatas)
 			.ToDictionary(x => x.GetName().ToLower(), x => x);
 
@@ -336,6 +340,18 @@ namespace VisualPinball.Engine.VPT.Table
 				return list.Select(d => d.Data).ToArray();
 			}
 			throw new ArgumentException("Unknown item type " + typeof(TItem) + ".");
+		}
+
+		public void WriteDataToDict<TItem, TData>(Dictionary<string, TData> dest) where TItem : Item<TData> where TData : ItemData
+		{
+			var src = GetItemDictionary<TItem>();
+			if (src != null) {
+				foreach (var item in src.Values) {
+					dest[item.Name] = item.Data;
+				}
+			} else {
+				throw new ArgumentException("Unknown item type " + typeof(TItem) + ".");
+			}
 		}
 
 		/// <summary>

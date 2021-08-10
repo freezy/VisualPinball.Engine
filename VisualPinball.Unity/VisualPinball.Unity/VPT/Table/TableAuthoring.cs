@@ -49,6 +49,7 @@ namespace VisualPinball.Unity
 		#endregion
 
 		protected override Table InstantiateItem(TableData data) => new Table(TableContainer, data);
+		protected override TableData InstantiateData() => new TableData();
 
 		protected override Type MeshAuthoringType { get; } = null;
 		protected override Type ColliderAuthoringType { get; } = null;

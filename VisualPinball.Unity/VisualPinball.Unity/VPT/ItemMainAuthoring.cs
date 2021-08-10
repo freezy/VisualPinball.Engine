@@ -48,7 +48,11 @@ namespace VisualPinball.Unity
 				as T;
 		}
 
-		public TItem CreateItem(string[] materialNames, string[] textureNames) => InstantiateItem(CopyDataTo(_data, materialNames, textureNames));
+		public TItem CreateItem(Dictionary<string, TData> datas, string[] materialNames, string[] textureNames)
+			=> InstantiateItem(CopyDataTo(datas.ContainsKey(name) ? datas[name] : InstantiateData(), materialNames, textureNames));
+
+		public TItem CreateItem(string[] materialNames, string[] textureNames)
+			=> InstantiateItem(CopyDataTo(InstantiateData(), materialNames, textureNames));
 
 		#region Data
 
@@ -69,6 +73,12 @@ namespace VisualPinball.Unity
 		/// <param name="data">Item data</param>
 		/// <returns>New item instance</returns>
 		protected abstract TItem InstantiateItem(TData data);
+
+		/// <summary>
+		/// Instantiates a new data object with default values.
+		/// </summary>
+		/// <returns></returns>
+		protected abstract TData InstantiateData();
 
 		/// <summary>
 		/// The serialized data, as written to the .vpx file.
