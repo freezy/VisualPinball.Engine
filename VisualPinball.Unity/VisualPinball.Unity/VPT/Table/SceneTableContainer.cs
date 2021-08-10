@@ -315,47 +315,46 @@ namespace VisualPinball.Unity
 			if (comp == null) {
 				return;
 			}
-			var x = GetLegacyData(_tableAuthoring.LegacyContainer.Bumpers, comp);
 			switch (comp)
 			{
 				case BumperAuthoring bumperAuthoring:
-					Add(comp.gameObject.name, bumperAuthoring.CreateItem(MaterialNames, TextureNames));
+					Add(comp.gameObject.name, bumperAuthoring.CreateItem(_tableAuthoring.LegacyContainer.Bumpers, MaterialNames, TextureNames));
 					break;
 				case FlipperAuthoring flipperAuthoring:
-					Add(comp.gameObject.name, flipperAuthoring.CreateItem(MaterialNames, TextureNames));
+					Add(comp.gameObject.name, flipperAuthoring.CreateItem(_tableAuthoring.LegacyContainer.Flippers, MaterialNames, TextureNames));
 					break;
 				case GateAuthoring gateAuthoring:
-					Add(comp.gameObject.name, gateAuthoring.CreateItem(MaterialNames, TextureNames));
+					Add(comp.gameObject.name, gateAuthoring.CreateItem(_tableAuthoring.LegacyContainer.Gates, MaterialNames, TextureNames));
 					break;
 				case HitTargetAuthoring hitTargetAuthoring:
-					Add(comp.gameObject.name, hitTargetAuthoring.CreateItem(MaterialNames, TextureNames));
+					Add(comp.gameObject.name, hitTargetAuthoring.CreateItem(_tableAuthoring.LegacyContainer.HitTargets, MaterialNames, TextureNames));
 					break;
 				case KickerAuthoring kickerAuthoring:
-					Add(comp.gameObject.name, kickerAuthoring.CreateItem(MaterialNames, TextureNames));
+					Add(comp.gameObject.name, kickerAuthoring.CreateItem(_tableAuthoring.LegacyContainer.Kickers, MaterialNames, TextureNames));
 					break;
 				case LightAuthoring lightAuthoring:
-					Add(comp.gameObject.name, lightAuthoring.CreateItem(MaterialNames, TextureNames));
+					Add(comp.gameObject.name, lightAuthoring.CreateItem(_tableAuthoring.LegacyContainer.Lights, MaterialNames, TextureNames));
 					break;
 				case PlungerAuthoring plungerAuthoring:
-					Add(comp.gameObject.name, plungerAuthoring.CreateItem(MaterialNames, TextureNames));
+					Add(comp.gameObject.name, plungerAuthoring.CreateItem(_tableAuthoring.LegacyContainer.Plungers, MaterialNames, TextureNames));
 					break;
 				case PrimitiveAuthoring primitiveAuthoring:
-					Add(comp.gameObject.name, primitiveAuthoring.CreateItem(MaterialNames, TextureNames));
+					Add(comp.gameObject.name, primitiveAuthoring.CreateItem(_tableAuthoring.LegacyContainer.Primitives, MaterialNames, TextureNames));
 					break;
 				case RampAuthoring rampAuthoring:
-					Add(comp.gameObject.name, rampAuthoring.CreateItem(MaterialNames, TextureNames));
+					Add(comp.gameObject.name, rampAuthoring.CreateItem(_tableAuthoring.LegacyContainer.Ramps, MaterialNames, TextureNames));
 					break;
 				case RubberAuthoring rubberAuthoring:
-					Add(comp.gameObject.name, rubberAuthoring.CreateItem(MaterialNames, TextureNames));
+					Add(comp.gameObject.name, rubberAuthoring.CreateItem(_tableAuthoring.LegacyContainer.Rubbers, MaterialNames, TextureNames));
 					break;
 				case SpinnerAuthoring spinnerAuthoring:
-					Add(comp.gameObject.name, spinnerAuthoring.CreateItem(MaterialNames, TextureNames));
+					Add(comp.gameObject.name, spinnerAuthoring.CreateItem(_tableAuthoring.LegacyContainer.Spinners, MaterialNames, TextureNames));
 					break;
 				case SurfaceAuthoring surfaceAuthoring:
-					Add(comp.gameObject.name, surfaceAuthoring.CreateItem(MaterialNames, TextureNames));
+					Add(comp.gameObject.name, surfaceAuthoring.CreateItem(_tableAuthoring.LegacyContainer.Surfaces, MaterialNames, TextureNames));
 					break;
 				case TriggerAuthoring triggerAuthoring:
-					Add(comp.gameObject.name, triggerAuthoring.CreateItem(MaterialNames, TextureNames));
+					Add(comp.gameObject.name, triggerAuthoring.CreateItem(_tableAuthoring.LegacyContainer.Triggers, MaterialNames, TextureNames));
 					break;
 				case TroughAuthoring troughAuthoring:
 					Add(comp.gameObject.name, troughAuthoring.CreateItem(MaterialNames, TextureNames));

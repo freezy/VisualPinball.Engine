@@ -56,6 +56,7 @@ namespace VisualPinball.Unity
 		#endregion
 
 		protected override Trigger InstantiateItem(TriggerData data) => new Trigger(data);
+		protected override TriggerData InstantiateData() => new TriggerData();
 
 		protected override Type MeshAuthoringType { get; } = typeof(ItemMeshAuthoring<Trigger, TriggerData, TriggerAuthoring>);
 		protected override Type ColliderAuthoringType { get; } = typeof(ItemColliderAuthoring<Trigger, TriggerData, TriggerAuthoring>);

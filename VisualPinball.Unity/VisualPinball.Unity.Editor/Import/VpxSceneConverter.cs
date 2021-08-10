@@ -184,21 +184,20 @@ namespace VisualPinball.Unity.Editor
 
 		private void SaveLegacyData()
 		{
-			_tableAuthoring.LegacyContainer.Bumpers = _tableContainer.GetAllData<Bumper, BumperData>();
-			_tableAuthoring.LegacyContainer.Flippers = _tableContainer.GetAllData<Flipper, FlipperData>();
-			_tableAuthoring.LegacyContainer.Gates = _tableContainer.GetAllData<Gate, GateData>();
-			_tableAuthoring.LegacyContainer.HitTargets = _tableContainer.GetAllData<HitTarget, HitTargetData>();
-			_tableAuthoring.LegacyContainer.Kickers = _tableContainer.GetAllData<Kicker, KickerData>();
-			_tableAuthoring.LegacyContainer.Lights = _tableContainer.GetAllData<Light, LightData>();
-			_tableAuthoring.LegacyContainer.Plungers = _tableContainer.GetAllData<Plunger, PlungerData>();
-			_tableAuthoring.LegacyContainer.Primitives = _tableContainer.GetAllData<Primitive, PrimitiveData>();
-			_tableAuthoring.LegacyContainer.Ramps = _tableContainer.GetAllData<Ramp, RampData>();
-			_tableAuthoring.LegacyContainer.Rubbers = _tableContainer.GetAllData<Rubber, RubberData>();
-			_tableAuthoring.LegacyContainer.Spinners = _tableContainer.GetAllData<Spinner, SpinnerData>();
-			_tableAuthoring.LegacyContainer.Surfaces = _tableContainer.GetAllData<Surface, SurfaceData>();
-			_tableAuthoring.LegacyContainer.Triggers = _tableContainer.GetAllData<Trigger, TriggerData>();
-			_tableAuthoring.LegacyContainer.Troughs = _tableContainer.GetAllData<Trough, TroughData>();
-			_tableAuthoring.LegacyContainer.Bumpers = _tableContainer.GetAllData<Bumper, BumperData>();
+			_tableContainer.WriteDataToDict<Bumper, BumperData>(_tableAuthoring.LegacyContainer.Bumpers);
+			_tableContainer.WriteDataToDict<Flipper, FlipperData>(_tableAuthoring.LegacyContainer.Flippers);
+			_tableContainer.WriteDataToDict<Gate, GateData>(_tableAuthoring.LegacyContainer.Gates);
+			_tableContainer.WriteDataToDict<HitTarget, HitTargetData>(_tableAuthoring.LegacyContainer.HitTargets);
+			_tableContainer.WriteDataToDict<Kicker, KickerData>(_tableAuthoring.LegacyContainer.Kickers);
+			_tableContainer.WriteDataToDict<Light, LightData>(_tableAuthoring.LegacyContainer.Lights);
+			_tableContainer.WriteDataToDict<Plunger, PlungerData>(_tableAuthoring.LegacyContainer.Plungers);
+			_tableContainer.WriteDataToDict<Primitive, PrimitiveData>(_tableAuthoring.LegacyContainer.Primitives);
+			_tableContainer.WriteDataToDict<Ramp, RampData>(_tableAuthoring.LegacyContainer.Ramps);
+			_tableContainer.WriteDataToDict<Rubber, RubberData>(_tableAuthoring.LegacyContainer.Rubbers);
+			_tableContainer.WriteDataToDict<Spinner, SpinnerData>(_tableAuthoring.LegacyContainer.Spinners);
+			_tableContainer.WriteDataToDict<Surface, SurfaceData>(_tableAuthoring.LegacyContainer.Surfaces);
+			_tableContainer.WriteDataToDict<Trigger, TriggerData>(_tableAuthoring.LegacyContainer.Triggers);
+			_tableContainer.WriteDataToDict<Bumper, BumperData>(_tableAuthoring.LegacyContainer.Bumpers);
 
 			_tableAuthoring.LegacyContainer.Decals = _tableContainer.GetAllData<Decal, DecalData>();
 			_tableAuthoring.LegacyContainer.DispReels = _tableContainer.GetAllData<DispReel, DispReelData>();
@@ -289,7 +288,7 @@ namespace VisualPinball.Unity.Editor
 			}
 
 			// now we have all renderables imported, set data and patch
-			var datas = _tableContainer.Datas;
+			var datas = _tableContainer.SupportedDatas;
 			var components = convertedItems.ToDictionary(x => x.Key, x => x.Value.MainAuthoring);
 			IEnumerable<MonoBehaviour> updatedComponents = null;
 			foreach (var renderable in renderables) {
@@ -374,7 +373,9 @@ namespace VisualPinball.Unity.Editor
 						continue;
 					}
 					if (File.Exists(meshPath)) {
-						File.Delete(meshPath);
+						AssetDatabase.StopAssetEditing();
+						AssetDatabase.DeleteAsset(meshPath);
+						AssetDatabase.StartAssetEditing();
 					}
 					AssetDatabase.CreateAsset(mf.sharedMesh, meshPath);
 				}
@@ -576,6 +577,7 @@ namespace VisualPinball.Unity.Editor
 			var item = new Trough(troughData) {
 				StorageIndex = _tableContainer.ItemDatas.Count()
 			};
+
 			CreateAssetFromGameObject(CreateGameObjects(item));
 		}
 

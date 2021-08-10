@@ -100,6 +100,10 @@ namespace VisualPinball.Engine.VPT.Gate
 		[BiffInt("TMIN", Pos = 9)]
 		public int TimerInterval;
 
+		public GateData() : base(StoragePrefix.GameItem)
+		{
+		}
+
 		#region IPhysicalData
 
 		public float GetElasticity() => Elasticity;

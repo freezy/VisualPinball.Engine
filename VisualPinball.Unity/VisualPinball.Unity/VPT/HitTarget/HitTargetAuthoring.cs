@@ -27,6 +27,7 @@ using System.Linq;
 using Unity.Entities;
 using UnityEngine;
 using VisualPinball.Engine.Game;
+using VisualPinball.Engine.IO;
 using VisualPinball.Engine.VPT.HitTarget;
 
 namespace VisualPinball.Unity
@@ -50,6 +51,7 @@ namespace VisualPinball.Unity
 		#endregion
 
 		protected override HitTarget InstantiateItem(HitTargetData data) => new HitTarget(data);
+		protected override HitTargetData InstantiateData() => new HitTargetData();
 		protected override Type MeshAuthoringType { get; } = typeof(ItemMeshAuthoring<HitTarget, HitTargetData, HitTargetAuthoring>);
 		protected override Type ColliderAuthoringType { get; } = typeof(ItemColliderAuthoring<HitTarget, HitTargetData, HitTargetAuthoring>);
 
@@ -164,7 +166,7 @@ namespace VisualPinball.Unity
 				data.IsCollidable = colliderAuthoring.enabled;
 				data.Threshold = colliderAuthoring.Threshold;
 				data.UseHitEvent = colliderAuthoring.UseHitEvent;
-				data.PhysicsMaterial = colliderAuthoring.PhysicsMaterial.name;
+				data.PhysicsMaterial = colliderAuthoring.PhysicsMaterial == null ? string.Empty : colliderAuthoring.PhysicsMaterial.name;
 				data.IsLegacy = colliderAuthoring.IsLegacy;
 
 				data.OverwritePhysics = colliderAuthoring.OverwritePhysics;

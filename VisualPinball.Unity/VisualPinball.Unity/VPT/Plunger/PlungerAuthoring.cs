@@ -87,6 +87,7 @@ namespace VisualPinball.Unity
 		#endregion
 
 		protected override Plunger InstantiateItem(PlungerData data) => new Plunger(data);
+		protected override PlungerData InstantiateData() => new PlungerData();
 
 		public IEnumerable<GamelogicEngineCoil> AvailableCoils => Item.AvailableCoils;
 

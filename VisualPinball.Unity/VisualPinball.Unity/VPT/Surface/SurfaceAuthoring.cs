@@ -53,6 +53,7 @@ namespace VisualPinball.Unity
 		#endregion
 
 		protected override Surface InstantiateItem(SurfaceData data) => new Surface(data);
+		protected override SurfaceData InstantiateData() => new SurfaceData();
 
 		protected override Type MeshAuthoringType { get; } = typeof(ItemMeshAuthoring<Surface, SurfaceData, SurfaceAuthoring>);
 		protected override Type ColliderAuthoringType { get; } = typeof(ItemColliderAuthoring<Surface, SurfaceData, SurfaceAuthoring>);

@@ -91,6 +91,10 @@ namespace VisualPinball.Engine.VPT.Trigger
 		[BiffInt("TMIN", Pos = 8)]
 		public int TimerInterval;
 
+		public TriggerData() : base(StoragePrefix.GameItem)
+		{
+		}
+
 		public TriggerData(string name, float x, float y) : base(StoragePrefix.GameItem)
 		{
 			Name = name;

@@ -125,6 +125,10 @@ namespace VisualPinball.Engine.VPT.HitTarget
 			|| TargetType == VisualPinball.Engine.VPT.TargetType.DropTargetFlatSimple
 			|| TargetType == VisualPinball.Engine.VPT.TargetType.DropTargetSimple;
 
+		public HitTargetData() : base(StoragePrefix.GameItem)
+		{
+		}
+
 		public HitTargetData(string name, float x, float y) : base(StoragePrefix.GameItem)
 		{
 			Name = name;

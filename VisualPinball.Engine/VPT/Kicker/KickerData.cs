@@ -93,6 +93,10 @@ namespace VisualPinball.Engine.VPT.Kicker
 		[BiffFloat("SPED", Pos = 17, SkipHash = true, IsVpeEnhancement = true)]
 		public float Speed = 3f;
 
+		public KickerData() : base(StoragePrefix.GameItem)
+		{
+		}
+
 		public KickerData(string name, float x, float y) : base(StoragePrefix.GameItem)
 		{
 			Name = name;

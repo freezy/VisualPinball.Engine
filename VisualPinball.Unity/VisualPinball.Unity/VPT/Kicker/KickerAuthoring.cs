@@ -28,6 +28,7 @@ using Unity.Entities;
 using Unity.Mathematics;
 using UnityEngine;
 using VisualPinball.Engine.Game;
+using VisualPinball.Engine.IO;
 using VisualPinball.Engine.VPT.Kicker;
 
 namespace VisualPinball.Unity
@@ -59,6 +60,7 @@ namespace VisualPinball.Unity
 		#endregion
 
 		protected override Kicker InstantiateItem(KickerData data) => new Kicker(data);
+		protected override KickerData InstantiateData() => new KickerData();
 
 		protected override Type MeshAuthoringType { get; } = typeof(ItemMeshAuthoring<Kicker, KickerData, KickerAuthoring>);
 		protected override Type ColliderAuthoringType { get; } = typeof(ItemColliderAuthoring<Kicker, KickerData, KickerAuthoring>);

@@ -135,6 +135,10 @@ namespace VisualPinball.Engine.VPT.Plunger
 
 		public Color Color = new Color(0x4c4c4cf, ColorFormat.Bgr);
 
+		public PlungerData() : base(StoragePrefix.GameItem)
+		{
+		}
+
 		public PlungerData(string name, float x, float y) : base(StoragePrefix.GameItem)
 		{
 			Name = name;

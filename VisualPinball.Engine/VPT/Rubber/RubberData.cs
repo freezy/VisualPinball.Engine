@@ -117,6 +117,10 @@ namespace VisualPinball.Engine.VPT.Rubber
 		// Not saved in .vpx but still serialized so we don't need to re-calculate.
 		public Vertex3D MiddlePoint = new Vertex3D();
 
+		public RubberData() : base(StoragePrefix.GameItem)
+		{
+		}
+
 		// IPhysicalData
 		public float GetElasticity() => Elasticity;
 		public float GetElasticityFalloff() => 0;

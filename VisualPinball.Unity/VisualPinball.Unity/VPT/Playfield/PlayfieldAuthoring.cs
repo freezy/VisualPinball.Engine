@@ -30,6 +30,7 @@ namespace VisualPinball.Unity
 		public override bool CanBeTransformed => false;
 
 		protected override Table InstantiateItem(TableData data) => GetComponentInParent<TableAuthoring>()?.Table;
+		protected override TableData InstantiateData() => new TableData();
 
 		protected override Type MeshAuthoringType { get; } = null;
 		protected override Type ColliderAuthoringType { get; } = null;

@@ -27,6 +27,7 @@ using System.Linq;
 using NLog;
 using UnityEngine;
 using VisualPinball.Engine.Game;
+using VisualPinball.Engine.IO;
 using VisualPinball.Engine.VPT.Light;
 using Light = VisualPinball.Engine.VPT.Light.Light;
 using Logger = NLog.Logger;
@@ -54,6 +55,7 @@ namespace VisualPinball.Unity
 		private float _fullIntensity;
 
 		protected override Light InstantiateItem(LightData data) => new Light(data);
+		protected override LightData InstantiateData() => new LightData();
 
 		protected override Type MeshAuthoringType { get; } = typeof(ItemMeshAuthoring<Light, LightData, LightAuthoring>);
 		protected override Type ColliderAuthoringType { get; } = null;

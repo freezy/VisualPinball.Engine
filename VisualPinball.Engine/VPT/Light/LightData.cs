@@ -124,6 +124,10 @@ namespace VisualPinball.Engine.VPT.Light
 		[BiffInt("TMIN", Pos = 8)]
 		public int TimerInterval;
 
+		public LightData() : base(StoragePrefix.GameItem)
+		{
+		}
+
 		#region BIFF
 
 		static LightData()

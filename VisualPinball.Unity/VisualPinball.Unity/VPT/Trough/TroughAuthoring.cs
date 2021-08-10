@@ -64,6 +64,8 @@ namespace VisualPinball.Unity
 		public SwitchDefault SwitchDefault => Item.Data.Type == TroughType.ModernOpto ? SwitchDefault.NormallyClosed : SwitchDefault.NormallyOpen;
 
 		protected override Trough InstantiateItem(TroughData data) => new Trough(data);
+		protected override TroughData InstantiateData() => new TroughData();
+
 		public override IEnumerable<Type> ValidParents { get; } = new Type[0];
 
 		private Vector3 EntryPos(float height)

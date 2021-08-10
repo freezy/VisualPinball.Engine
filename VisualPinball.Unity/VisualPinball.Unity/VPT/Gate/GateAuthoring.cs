@@ -29,6 +29,7 @@ using Unity.Mathematics;
 using UnityEngine;
 using VisualPinball.Engine.Common;
 using VisualPinball.Engine.Game;
+using VisualPinball.Engine.IO;
 using VisualPinball.Engine.VPT.Gate;
 
 namespace VisualPinball.Unity
@@ -60,6 +61,7 @@ namespace VisualPinball.Unity
 		#endregion
 
 		protected override Gate InstantiateItem(GateData data) => new Gate(data);
+		protected override GateData InstantiateData() => new GateData();
 
 		protected override Type MeshAuthoringType { get; } = typeof(ItemMeshAuthoring<Gate, GateData, GateAuthoring>);
 		protected override Type ColliderAuthoringType { get; } = typeof(ItemColliderAuthoring<Gate, GateData, GateAuthoring>);

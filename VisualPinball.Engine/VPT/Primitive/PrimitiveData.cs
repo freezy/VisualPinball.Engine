@@ -204,6 +204,10 @@ namespace VisualPinball.Engine.VPT.Primitive
 			return false;
 		}
 
+		public PrimitiveData() : base(StoragePrefix.GameItem)
+		{
+		}
+
 		#region BIFF
 
 		static PrimitiveData()
