@@ -305,12 +305,19 @@ namespace VisualPinball.Unity
 			Add(node.GetComponent<IItemMainAuthoring>());
 		}
 
+		private static TData GetLegacyData<TData>(IEnumerable<TData> d, IItemAuthoring comp) where TData : ItemData
+		{
+			return d.FirstOrDefault(b => b.GetName() == comp.Name);
+		}
+
 		private void Add(IItemMainAuthoring comp)
 		{
 			if (comp == null) {
 				return;
 			}
-			switch (comp) {
+			var x = GetLegacyData(_tableAuthoring.LegacyContainer.Bumpers, comp);
+			switch (comp)
+			{
 				case BumperAuthoring bumperAuthoring:
 					Add(comp.gameObject.name, bumperAuthoring.CreateItem(MaterialNames, TextureNames));
 					break;
