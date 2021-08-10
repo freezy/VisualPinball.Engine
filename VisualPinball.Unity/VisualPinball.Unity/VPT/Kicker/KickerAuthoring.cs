@@ -35,7 +35,7 @@ namespace VisualPinball.Unity
 {
 	[AddComponentMenu("Visual Pinball/Game Item/Kicker")]
 	public class KickerAuthoring : ItemMainRenderableAuthoring<Kicker, KickerData>,
-		ISwitchAuthoring, ICoilAuthoring, IConvertGameObjectToEntity
+		ISwitchAuthoring, ICoilAuthoring, ITriggerAuthoring, IConvertGameObjectToEntity
 	{
 		#region Data
 
@@ -69,6 +69,8 @@ namespace VisualPinball.Unity
 			.Distinct();
 
 		public ISwitchable Switchable => Item;
+
+		public Vector2 Center => Position;
 
 		public void Convert(Entity entity, EntityManager dstManager, GameObjectConversionSystem conversionSystem)
 		{

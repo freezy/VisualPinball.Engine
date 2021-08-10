@@ -138,6 +138,26 @@ namespace VisualPinball.Unity.Editor
 			}
 		}
 
+		protected void DropDownProperty(string label, SerializedProperty prop, string[] optionStrings, int[] optionValues)
+		{
+			if (optionStrings == null || optionValues == null || optionStrings.Length != optionValues.Length) {
+				return;
+			}
+
+			var selectedIndex = 0;
+			for (var i = 0; i < optionValues.Length; i++) {
+				if (optionValues[i].Equals(prop.intValue)) {
+					selectedIndex = i;
+					break;
+				}
+			}
+			EditorGUI.BeginChangeCheck();
+			selectedIndex = EditorGUILayout.Popup(label, selectedIndex, optionStrings);
+			if (EditorGUI.EndChangeCheck() && selectedIndex >= 0 && selectedIndex < optionValues.Length) {
+				prop.intValue = optionValues[selectedIndex];
+			}
+		}
+
 
 		private void PopulateDropDownOptions()
 		{

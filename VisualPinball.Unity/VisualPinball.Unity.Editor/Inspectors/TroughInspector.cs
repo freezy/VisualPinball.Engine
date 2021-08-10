@@ -43,50 +43,81 @@ namespace VisualPinball.Unity.Editor
 		};
 
 		private bool _togglePlayfield = true;
+		private SerializedProperty _typeProperty;
+		private SerializedProperty _playfieldEntrySwitchProperty;
+		private SerializedProperty _playfieldExitKickerProperty;
+		private SerializedProperty _ballCountProperty;
+		private SerializedProperty _switchCountProperty;
+		private SerializedProperty _jamSwitchProperty;
+		private SerializedProperty _rollTimeProperty;
+		private SerializedProperty _transitionTimeProperty;
+		private SerializedProperty _kickTimeProperty;
+
+		protected override void OnEnable()
+		{
+			base.OnEnable();
+
+			_typeProperty = serializedObject.FindProperty(nameof(TroughAuthoring.Type));
+			_playfieldEntrySwitchProperty = serializedObject.FindProperty(nameof(TroughAuthoring._playfieldEntrySwitch));
+			_playfieldExitKickerProperty = serializedObject.FindProperty(nameof(TroughAuthoring.PlayfieldExitKicker));
+			_ballCountProperty = serializedObject.FindProperty(nameof(TroughAuthoring.BallCount));
+			_switchCountProperty = serializedObject.FindProperty(nameof(TroughAuthoring.SwitchCount));
+			_jamSwitchProperty = serializedObject.FindProperty(nameof(TroughAuthoring.JamSwitch));
+			_rollTimeProperty = serializedObject.FindProperty(nameof(TroughAuthoring.RollTime));
+			_transitionTimeProperty = serializedObject.FindProperty(nameof(TroughAuthoring.TransitionTime));
+			_kickTimeProperty = serializedObject.FindProperty(nameof(TroughAuthoring.KickTime));
+		}
 
 		public override void OnInspectorGUI()
 		{
-			DropDownField("Type", ref Data.Type, TypeLabels, TypeValues);
-
-			if (Data.Type != TroughType.ClassicSingleBall) {
-				ItemDataSlider("Ball Count", ref Data.BallCount, 1, 10, false);
+			if (HasErrors()) {
+				return;
 			}
 
-			switch (Data.Type) {
+			serializedObject.Update();
+
+			DropDownProperty("Type", _typeProperty, TypeLabels, TypeValues);
+
+			if (ItemAuthoring.Type != TroughType.ClassicSingleBall) {
+				PropertyField(_ballCountProperty);
+			}
+
+			switch (ItemAuthoring.Type) {
 				case TroughType.ModernOpto:
 				case TroughType.ModernMech:
 				case TroughType.TwoCoilsNSwitches:
-					ItemDataSlider("Switch Count", ref Data.SwitchCount, 1, 10, false);
-					ItemDataField("Has Jam Switch", ref Data.JamSwitch, false);
+					PropertyField(_switchCountProperty);
+					PropertyField(_jamSwitchProperty, "Has Jam Switch");
 					break;
 				case TroughType.TwoCoilsOneSwitch:
-					ItemDataSlider("Switch Position", ref Data.SwitchCount, 1, 10, false);
-					ItemDataField("Has Jam Switch", ref Data.JamSwitch, false);
+					PropertyField(_switchCountProperty, "Switch Position");
+					PropertyField(_jamSwitchProperty, "Has Jam Switch");
 					break;
 			}
 
-			if (Data.JamSwitch || Data.Type != TroughType.ModernOpto && Data.Type != TroughType.ModernMech && Data.Type != TroughType.TwoCoilsNSwitches) {
-				ItemDataField("Kick Time (ms)", ref Data.KickTime, false);
+			if (ItemAuthoring.JamSwitch || ItemAuthoring.Type != TroughType.ModernOpto && ItemAuthoring.Type != TroughType.ModernMech && ItemAuthoring.Type != TroughType.TwoCoilsNSwitches) {
+				PropertyField(_kickTimeProperty, "Kick Time (ms)");
 			}
 
-			ItemDataField("Roll Time (ms)", ref Data.RollTime, false);
-			if (Data.Type == TroughType.ModernOpto) {
-				ItemDataField("Transition Time (ms)", ref Data.TransitionTime, false);
+			PropertyField(_rollTimeProperty, "Roll Time (ms)");
+			if (ItemAuthoring.Type == TroughType.ModernOpto) {
+				PropertyField(_transitionTimeProperty, "Transition Time (ms)");
 			}
 
 			if (!Application.isPlaying) {
 				if (_togglePlayfield = EditorGUILayout.BeginFoldoutHeaderGroup(_togglePlayfield, "Playfield Links")) {
 					EditorGUI.indentLevel++;
-					ObjectReferenceField<ISwitchAuthoring>("Input Switch", "Switches", "None (Switch)", "inputSwitch", Data.PlayfieldEntrySwitch, n => Data.PlayfieldEntrySwitch = n);
-					ObjectReferenceField<KickerAuthoring>("Exit Kicker", "Kickers", "None (Kicker)", "exitKicker", Data.PlayfieldExitKicker, n => Data.PlayfieldExitKicker = n);
+					PropertyField(_playfieldEntrySwitchProperty, "Input Switch");
+					PropertyField(_playfieldExitKickerProperty, "Exit Kicker");
 					EditorGUI.indentLevel--;
 				}
 				EditorGUILayout.EndFoldoutHeaderGroup();
 			}
 
+			serializedObject.ApplyModifiedProperties();
+
 			if (Application.isPlaying) {
 				EditorGUILayout.Separator();
-
 
 				GUILayout.BeginHorizontal();
 				GUILayout.BeginVertical();
@@ -94,20 +125,20 @@ namespace VisualPinball.Unity.Editor
 				EditorGUILayout.LabelField("Switch status:", new GUIStyle(GUI.skin.label) { fontStyle = FontStyle.Bold });
 				var troughApi = _ta.GetComponent<Player>().TableApi.Trough(Item.Name);
 
-				if (Data.Type != TroughType.ModernOpto && Data.Type != TroughType.ModernMech) {
+				if (ItemAuthoring.Type != TroughType.ModernOpto && ItemAuthoring.Type != TroughType.ModernMech) {
 					DrawSwitch("Drain Switch", troughApi.EntrySwitch);
 				}
 
-				if (Data.Type == TroughType.TwoCoilsOneSwitch) {
+				if (ItemAuthoring.Type == TroughType.TwoCoilsOneSwitch) {
 					DrawSwitch("Stack Switch", troughApi.StackSwitch());
 
-				} else if (Data.Type != TroughType.ClassicSingleBall) {
+				} else if (ItemAuthoring.Type != TroughType.ClassicSingleBall) {
 					for (var i = troughApi.NumStackSwitches - 1; i >= 0; i--) {
 						DrawSwitch(SwitchDescription(i), troughApi.StackSwitch(i));
 					}
 				}
 
-				if (Data.JamSwitch) {
+				if (ItemAuthoring.JamSwitch) {
 					DrawSwitch("Jam Switch", troughApi.JamSwitch);
 				}
 
@@ -123,7 +154,7 @@ namespace VisualPinball.Unity.Editor
 
 				EditorGUILayout.LabelField("Coil status:", new GUIStyle(GUI.skin.label) { fontStyle = FontStyle.Bold });
 
-				if (Data.Type != TroughType.ModernOpto && Data.Type != TroughType.ModernMech && Data.Type != TroughType.ClassicSingleBall) {
+				if (ItemAuthoring.Type != TroughType.ModernOpto && ItemAuthoring.Type != TroughType.ModernMech && ItemAuthoring.Type != TroughType.ClassicSingleBall) {
 					DrawCoil("Entry Coil", troughApi.EntryCoil);
 				}
 
@@ -142,7 +173,6 @@ namespace VisualPinball.Unity.Editor
 			GUI.Label(labelPos, label);
 			GUI.DrawTexture(switchPos, Icons.Switch(sw.IsSwitchClosed, IconSize.Small, sw.IsSwitchClosed ? IconColor.Orange : IconColor.Gray));
 		}
-
 
 		private static void DrawCoil(string label, DeviceCoil coil)
 		{

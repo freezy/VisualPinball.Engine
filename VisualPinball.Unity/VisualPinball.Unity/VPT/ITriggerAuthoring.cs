@@ -1,4 +1,4 @@
-﻿// Visual Pinball Engine
+// Visual Pinball Engine
 // Copyright (C) 2021 freezy and VPE Team
 //
 // This program is free software: you can redistribute it and/or modify
@@ -15,19 +15,16 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using UnityEngine;
-using VisualPinball.Engine.VPT;
-using VisualPinball.Engine.VPT.Trough;
 
 namespace VisualPinball.Unity
 {
-	public static class TroughExtensions
+	/// <summary>
+	/// The interface for triggering stuff
+	/// </summary>
+	public interface ITriggerAuthoring : IIdentifiableItemAuthoring
 	{
-		public static IConvertedItem InstantiateGameObject(this Trough trough, IItem item)
-		{
-			var obj = new GameObject(item.Name);
-			var convertedItem = new ConvertedItem<Trough, TroughData, TroughAuthoring>(obj, trough);
-			convertedItem.Authoring.UpdatePosition();
-			return convertedItem;
-		}
+		string name { get; }
+
+		Vector2 Center { get; }
 	}
 }
