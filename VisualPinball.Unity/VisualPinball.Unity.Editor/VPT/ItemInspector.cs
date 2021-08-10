@@ -101,7 +101,8 @@ namespace VisualPinball.Unity.Editor
 
 		#endregion
 
-		protected void PropertyField(SerializedProperty serializedProperty, string label = null, bool rebuildMesh = false, bool updateTransforms = false, Action onChanged = null)
+		protected void PropertyField(SerializedProperty serializedProperty, string label = null,
+			bool rebuildMesh = false, bool updateTransforms = false, bool updateVisibility = false, Action onChanged = null)
 		{
 			var checkForChanges = rebuildMesh || updateTransforms || onChanged != null;
 			if (checkForChanges) {
@@ -123,6 +124,9 @@ namespace VisualPinball.Unity.Editor
 						if (updateTransforms) {
 							meshItem.IMainAuthoring.UpdateTransforms();
 						}
+						if (updateVisibility) {
+							meshItem.IMainAuthoring.UpdateVisibility();
+						}
 						break;
 
 					case IItemMainRenderableAuthoring mainItem:
@@ -132,13 +136,17 @@ namespace VisualPinball.Unity.Editor
 						if (updateTransforms) {
 							mainItem.UpdateTransforms();
 						}
+						if (updateVisibility) {
+							mainItem.UpdateVisibility();
+						}
 						break;
 				}
 				onChanged?.Invoke();
 			}
 		}
 
-		protected void DropDownProperty(string label, SerializedProperty prop, string[] optionStrings, int[] optionValues)
+		protected void DropDownProperty(string label, SerializedProperty prop, string[] optionStrings, int[] optionValues,
+			bool rebuildMesh = false, bool updateVisibility = false)
 		{
 			if (optionStrings == null || optionValues == null || optionStrings.Length != optionValues.Length) {
 				return;
@@ -151,13 +159,33 @@ namespace VisualPinball.Unity.Editor
 					break;
 				}
 			}
+
 			EditorGUI.BeginChangeCheck();
 			selectedIndex = EditorGUILayout.Popup(label, selectedIndex, optionStrings);
 			if (EditorGUI.EndChangeCheck() && selectedIndex >= 0 && selectedIndex < optionValues.Length) {
 				prop.intValue = optionValues[selectedIndex];
+				prop.serializedObject.ApplyModifiedProperties();
+				switch (target) {
+					case IItemMeshAuthoring meshItem:
+						if (rebuildMesh) {
+							meshItem.IMainAuthoring.RebuildMeshes();
+						}
+						if (updateVisibility) {
+							meshItem.IMainAuthoring.UpdateVisibility();
+						}
+						break;
+
+					case IItemMainRenderableAuthoring mainItem:
+						if (rebuildMesh) {
+							mainItem.RebuildMeshes();
+						}
+						if (updateVisibility) {
+							mainItem.UpdateVisibility();
+						}
+						break;
+				}
 			}
 		}
-
 
 		private void PopulateDropDownOptions()
 		{

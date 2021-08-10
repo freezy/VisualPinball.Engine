@@ -25,6 +25,40 @@ namespace VisualPinball.Unity
 	[AddComponentMenu("Visual Pinball/Collision/Ramp Collider")]
 	public class RampColliderAuthoring : ItemColliderAuthoring<Ramp, RampData, RampAuthoring>
 	{
+		#region Data
+
+		[Tooltip("If set, a hit event is triggered.")]
+		public bool HitEvent;
+
+		[Range(0, 100f)]
+		[Tooltip("Minimal impact needed in order to trigger a hit event.")]
+		public float Threshold;
+
+		[Min(0)]
+		[Tooltip("Collider height of the left wall.")]
+		public float LeftWallHeight = 62f;
+
+		[Min(0)]
+		[Tooltip("Collider height of the right wall.")]
+		public float RightWallHeight = 62f;
+
+		[Tooltip("Ignore the assigned physics material above and use the value below.")]
+		public bool OverwritePhysics = true;
+
+		[Min(0f)]
+		[Tooltip("Bounciness, also known as coefficient of restitution. Higher is more bouncy.")]
+		public float Elasticity;
+
+		[Min(0)]
+		[Tooltip("Friction of the material.")]
+		public float Friction;
+
+		[Range(-90f, 90f)]
+		[Tooltip("When hit, add a random angle between 0 and this value to the trajectory.")]
+		public float Scatter;
+
+		#endregion
+
 		public static readonly Type[] ValidParentTypes = {
 			typeof(PrimitiveAuthoring)
 		};

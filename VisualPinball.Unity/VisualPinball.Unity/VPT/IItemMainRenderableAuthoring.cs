@@ -29,6 +29,7 @@ namespace VisualPinball.Unity
 		/// </summary>
 		void RebuildMeshes();
 		void UpdateTransforms();
+		void UpdateVisibility();
 
 		void DestroyMeshComponent();
 		void DestroyColliderComponent();

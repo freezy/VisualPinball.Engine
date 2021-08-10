@@ -17,7 +17,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using JetBrains.Annotations;
 using Unity.Entities;
 using UnityEngine;
 using VisualPinball.Engine.Game;
@@ -62,10 +61,10 @@ namespace VisualPinball.Unity
 
 		public virtual void UpdateTransforms()
 		{
-			// var ta = GetComponentInParent<TableAuthoring>();
-			// if (ta != this && Item != null) {
-			// 	transform.SetFromMatrix(Item.TransformationMatrix(Table, Origin.Original).ToUnityMatrix());
-			// }
+		}
+
+		public virtual void UpdateVisibility()
+		{
 		}
 
 		public void DestroyMeshComponent()
@@ -127,9 +126,8 @@ namespace VisualPinball.Unity
 		}
 
 
-		protected static void CopyMaterialName(MeshRenderer mr, string[] materialNames, string[] textureNames,
-			ref string materialName, ref string mapName, ref string normalMapName,
-			ref string envMapName)
+		private static void CopyMaterialName(MeshRenderer mr, string[] materialNames, string[] textureNames,
+			ref string materialName, ref string mapName, ref string normalMapName, ref string envMapName)
 		{
 			if (!mr || materialNames == null || textureNames == null) {
 				return;
@@ -138,11 +136,23 @@ namespace VisualPinball.Unity
 			if (materialName != null && !string.IsNullOrEmpty(result[0])) {
 				materialName = result[0];
 			}
-			if (mapName != null && !string.IsNullOrEmpty(result[1])) {
-				mapName = result[1];
+			if (mapName != null) {
+				var tex = mr.sharedMaterial.mainTexture;
+				if (tex != null) {
+					mapName = tex.name;
+
+				} else if (!string.IsNullOrEmpty(result[1])) {
+					mapName = result[1];
+				}
 			}
-			if (normalMapName != null && !string.IsNullOrEmpty(result[2])) {
-				normalMapName = result[2];
+			if (normalMapName != null) {
+				var tex = mr.sharedMaterial.GetTexture(RenderPipeline.Current.MaterialConverter.NormalMapProperty);
+				if (tex != null) {
+					normalMapName = tex.name;
+
+				} else if (!string.IsNullOrEmpty(result[2])) {
+					normalMapName = result[2];
+				}
 			}
 			if (envMapName != null && !string.IsNullOrEmpty(result[3])) {
 				envMapName = result[3];
@@ -164,6 +174,5 @@ namespace VisualPinball.Unity
 		public virtual void SetEditorScale(Vector3 rot) { }
 
 		#endregion
-
 	}
 }

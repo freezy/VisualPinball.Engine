@@ -17,7 +17,9 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using VisualPinball.Engine.Game;
 using VisualPinball.Engine.VPT.Ramp;
+using VisualPinball.Engine.VPT.Table;
 
 namespace VisualPinball.Unity
 {
@@ -30,6 +32,12 @@ namespace VisualPinball.Unity
 		public override IEnumerable<Type> ValidParents => ValidParentTypes;
 
 		protected override string MeshId => RampMeshGenerator.Wall;
+
+		protected override RenderObject GetRenderObject(RampData data, Table table)
+		{
+			return new RampMeshGenerator(data).GetRenderObject(table, RampMeshGenerator.Wall, false);
+		}
+
 		protected override bool IsVisible {
 			get => true;
 			set { }
