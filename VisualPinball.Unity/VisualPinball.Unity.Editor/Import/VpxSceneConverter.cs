@@ -34,6 +34,7 @@ using VisualPinball.Engine.VPT.Flipper;
 using VisualPinball.Engine.VPT.Gate;
 using VisualPinball.Engine.VPT.HitTarget;
 using VisualPinball.Engine.VPT.Kicker;
+using VisualPinball.Engine.VPT.Light;
 using VisualPinball.Engine.VPT.LightSeq;
 using VisualPinball.Engine.VPT.Mappings;
 using VisualPinball.Engine.VPT.Plunger;
@@ -153,7 +154,6 @@ namespace VisualPinball.Unity.Editor
 				AssetDatabase.StartAssetEditing();
 
 				SaveData();
-				SaveLegacyData();
 
 			} finally {
 
@@ -165,9 +165,9 @@ namespace VisualPinball.Unity.Editor
 			ConvertGameItems();
 
 			FreeTextures();
-			ConfigurePlayer();
+			SaveLegacyData();
 
-			AssetDatabase.CreateAsset(_tableAuthoring.LegacyContainer, Path.Combine(_assetsTableRoot, "LegacyData.asset"));
+			ConfigurePlayer();
 
 			return _tableGo;
 		}
@@ -184,12 +184,34 @@ namespace VisualPinball.Unity.Editor
 
 		private void SaveLegacyData()
 		{
+			_tableAuthoring.LegacyContainer.Bumpers = _tableContainer.GetAllData<Bumper, BumperData>();
+			_tableAuthoring.LegacyContainer.Flippers = _tableContainer.GetAllData<Flipper, FlipperData>();
+			_tableAuthoring.LegacyContainer.Gates = _tableContainer.GetAllData<Gate, GateData>();
+			_tableAuthoring.LegacyContainer.HitTargets = _tableContainer.GetAllData<HitTarget, HitTargetData>();
+			_tableAuthoring.LegacyContainer.Kickers = _tableContainer.GetAllData<Kicker, KickerData>();
+			_tableAuthoring.LegacyContainer.Lights = _tableContainer.GetAllData<Light, LightData>();
+			_tableAuthoring.LegacyContainer.Plungers = _tableContainer.GetAllData<Plunger, PlungerData>();
+			_tableAuthoring.LegacyContainer.Primitives = _tableContainer.GetAllData<Primitive, PrimitiveData>();
+			_tableAuthoring.LegacyContainer.Ramps = _tableContainer.GetAllData<Ramp, RampData>();
+			_tableAuthoring.LegacyContainer.Rubbers = _tableContainer.GetAllData<Rubber, RubberData>();
+			_tableAuthoring.LegacyContainer.Spinners = _tableContainer.GetAllData<Spinner, SpinnerData>();
+			_tableAuthoring.LegacyContainer.Surfaces = _tableContainer.GetAllData<Surface, SurfaceData>();
+			_tableAuthoring.LegacyContainer.Triggers = _tableContainer.GetAllData<Trigger, TriggerData>();
+			_tableAuthoring.LegacyContainer.Troughs = _tableContainer.GetAllData<Trough, TroughData>();
+			_tableAuthoring.LegacyContainer.Bumpers = _tableContainer.GetAllData<Bumper, BumperData>();
+
 			_tableAuthoring.LegacyContainer.Decals = _tableContainer.GetAllData<Decal, DecalData>();
 			_tableAuthoring.LegacyContainer.DispReels = _tableContainer.GetAllData<DispReel, DispReelData>();
 			_tableAuthoring.LegacyContainer.Flashers = _tableContainer.GetAllData<Flasher, FlasherData>();
 			_tableAuthoring.LegacyContainer.LightSeqs = _tableContainer.GetAllData<LightSeq, LightSeqData>();
 			_tableAuthoring.LegacyContainer.TextBoxes = _tableContainer.GetAllData<TextBox, TextBoxData>();
 			_tableAuthoring.LegacyContainer.Timers = _tableContainer.GetAllData<Timer, TimerData>();
+
+			var path = Path.Combine(_assetsTableRoot, "Legacy Data.asset");
+			if (File.Exists(path)) {
+				File.Delete(path);
+			}
+			AssetDatabase.CreateAsset(_tableAuthoring.LegacyContainer, path);
 		}
 
 		private void ConvertGameItems()
