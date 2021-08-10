@@ -48,6 +48,12 @@ namespace VisualPinball.Unity
 
 		#endregion
 
+		#region Data
+
+		public float TableHeight;
+
+		#endregion
+
 		protected override Table InstantiateItem(TableData data) => new Table(TableContainer, data);
 		protected override TableData InstantiateData() => new TableData();
 
@@ -143,6 +149,7 @@ namespace VisualPinball.Unity
 
 		public override IEnumerable<MonoBehaviour> SetData(TableData data, IMaterialProvider materialProvider, ITextureProvider textureProvider, Dictionary<string, IItemMainAuthoring> components)
 		{
+			TableHeight = data.TableHeight;
 			return new List<MonoBehaviour> { this };
 		}
 

@@ -25,6 +25,26 @@ namespace VisualPinball.Unity
 	[AddComponentMenu("Visual Pinball/Collision/Primitive Collider")]
 	public class PrimitiveColliderAuthoring : ItemColliderAuthoring<Primitive, PrimitiveData, PrimitiveAuthoring>
 	{
+		#region Data
+
+		public bool HitEvent = true;
+
+		public float Threshold = 2f;
+
+		public float Elasticity = 0.3f;
+
+		public float ElasticityFalloff = 0.5f;
+
+		public float Friction = 0.3f;
+
+		public float Scatter;
+
+		public float CollisionReductionFactor = 0;
+
+		public bool OverwritePhysics = true;
+
+		#endregion
+
 		public static readonly Type[] ValidParentTypes = {
 			typeof(PrimitiveAuthoring),
 			typeof(RubberAuthoring),
