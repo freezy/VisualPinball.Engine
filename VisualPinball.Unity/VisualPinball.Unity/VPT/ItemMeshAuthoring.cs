@@ -131,7 +131,7 @@ namespace VisualPinball.Unity
 			}
 			var mesh = meshProvider.HasMesh(parentName, gameObject.name)
 				? meshProvider.GetMesh(parentName, gameObject.name)
-				: ro.Mesh.ToUnityMesh($"{gameObject.name}_Mesh");
+				: ro.Mesh.ToUnityMesh($"{gameObject.name} - Generated Mesh");
 
 			enabled = ro.IsVisible;
 
