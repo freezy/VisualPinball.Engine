@@ -18,6 +18,7 @@ using System;
 using System.Collections.Generic;
 using Unity.Entities;
 using Unity.Entities.CodeGeneratedJobForEach;
+using UnityEngine;
 using VisualPinball.Engine.VPT.Table;
 
 namespace VisualPinball.Unity
@@ -40,7 +41,8 @@ namespace VisualPinball.Unity
 		/// </summary>
 		public event EventHandler Slingshot;
 
-		internal SurfaceApi(Engine.VPT.Surface.Surface item, Entity entity, Entity parentEntity, PhysicsMaterial physicsMaterial, Player player) : base(item, entity, parentEntity, player)
+		internal SurfaceApi(Engine.VPT.Surface.Surface item, GameObject go, Entity entity, Entity parentEntity, PhysicsMaterial physicsMaterial, Player player)
+			: base(item, go, entity, parentEntity, player)
 		{
 			_physicsMaterial = physicsMaterial;
 		}

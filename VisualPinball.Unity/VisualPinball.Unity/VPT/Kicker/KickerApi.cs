@@ -18,6 +18,7 @@ using System;
 using System.Collections.Generic;
 using Unity.Entities;
 using Unity.Mathematics;
+using UnityEngine;
 using VisualPinball.Engine.VPT.Kicker;
 using VisualPinball.Engine.VPT.Table;
 using Random = Unity.Mathematics.Random;
@@ -47,7 +48,8 @@ namespace VisualPinball.Unity
 		/// </summary>
 		public event EventHandler<SwitchEventArgs> Switch;
 
-		public KickerApi(Kicker item, Entity entity, Entity parentEntity, Player player) : base(item, entity, parentEntity, player)
+		public KickerApi(Kicker item, GameObject go, Entity entity, Entity parentEntity, Player player)
+			: base(item, go, entity, parentEntity, player)
 		{
 		}
 

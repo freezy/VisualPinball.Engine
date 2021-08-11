@@ -41,6 +41,8 @@ namespace VisualPinball.Unity
 		[Tooltip("Height of the rubber (z-axis).")]
 		public float Height = 25f;
 
+		public float HitHeight = 25f;
+
 		[Tooltip("How thick the rubber band is rendered.")]
 		public int Thickness = 8;
 
@@ -73,7 +75,29 @@ namespace VisualPinball.Unity
 
 		public override void UpdateTransforms()
 		{
-			transform.localEulerAngles = Rotation;
+			var tableAuthoring = GetComponentInParent<TableAuthoring>();
+			var position = DragPointCenter;
+
+			if (!tableAuthoring) {
+				return;
+			}
+
+			var fullMatrix = new Matrix3D();
+			var tempMat = new Matrix3D();
+			fullMatrix.RotateZMatrix(Rotation.z);
+			tempMat.RotateYMatrix(MathF.DegToRad(Rotation.y));
+			fullMatrix.Multiply(tempMat);
+			tempMat.RotateXMatrix(MathF.DegToRad(Rotation.x));
+			fullMatrix.Multiply(tempMat);
+
+			var vertMatrix = new Matrix3D();
+			tempMat.SetTranslation(-position.x, -position.y, -position.z);
+			vertMatrix.Multiply(tempMat, fullMatrix);
+			tempMat.SetTranslation(position.x, position.y, _data.Height + tableAuthoring.TableHeight);
+
+			vertMatrix.Multiply(tempMat);
+
+			transform.SetFromMatrix(vertMatrix.ToUnityMatrix());
 		}
 
 		public override IEnumerable<MonoBehaviour> SetData(RubberData data, IMaterialProvider materialProvider, ITextureProvider textureProvider, Dictionary<string, IItemMainAuthoring> components)
@@ -85,6 +109,7 @@ namespace VisualPinball.Unity
 
 			// geometry
 			Height = data.Height;
+			HitHeight = data.HitHeight;
 			Thickness = data.Thickness;
 			DragPoints = data.DragPoints;
 
@@ -100,7 +125,6 @@ namespace VisualPinball.Unity
 				collComponent.enabled = data.IsCollidable;
 
 				collComponent.HitEvent = data.HitEvent;
-				collComponent.HitHeight = data.HitHeight;
 				collComponent.PhysicsMaterial = materialProvider.GetPhysicsMaterial(data.PhysicsMaterial);
 				collComponent.OverwritePhysics = data.OverwritePhysics;
 				collComponent.Elasticity = data.Elasticity;
@@ -116,8 +140,6 @@ namespace VisualPinball.Unity
 
 		public override RubberData CopyDataTo(RubberData data, string[] materialNames, string[] textureNames)
 		{
-			var localRot = transform.localEulerAngles;
-
 			// update the name
 			data.Name = name;
 
@@ -128,6 +150,7 @@ namespace VisualPinball.Unity
 
 			// geometry
 			data.Height = Height;
+			data.HitHeight = HitHeight;
 			data.Thickness = Thickness;
 			data.DragPoints = DragPoints;
 
@@ -140,7 +163,6 @@ namespace VisualPinball.Unity
 			if (collComponent) {
 				data.IsCollidable = collComponent.enabled;
 
-				data.HitHeight = collComponent.HitHeight;
 				data.HitEvent = collComponent.HitEvent;
 
 				data.PhysicsMaterial = collComponent.PhysicsMaterial ? collComponent.PhysicsMaterial.name : string.Empty;
@@ -157,27 +179,45 @@ namespace VisualPinball.Unity
 			return data;
 		}
 
-		public override ItemDataTransformType EditorPositionType => ItemDataTransformType.ThreeD;
-		public override Vector3 GetEditorPosition() => DragPoints.Length == 0 ? Vector3.zero : DragPoints[0].Center.ToUnityVector3(Data.Height);
-		public override void SetEditorPosition(Vector3 pos)
-		{
-			if (Data == null || Data.DragPoints.Length == 0) {
-				return;
-			}
+		#region Editor Tooling
 
-			Data.Height = pos.z;
-			pos.z = 0f;
-			var diff = pos.ToVertex3D() - Data.DragPoints[0].Center;
-			diff.Z = 0f;
-			Data.DragPoints[0].Center = pos.ToVertex3D();
-			for (var i = 1; i < Data.DragPoints.Length; i++) {
-				var pt = Data.DragPoints[i];
-				pt.Center += diff;
+		private Vector3 DragPointCenter {
+			get {
+				var sum = Vertex3D.Zero;
+				foreach (var t in DragPoints) {
+					sum += t.Center;
+				}
+				var center = sum / DragPoints.Length;
+				return center.ToUnityVector3();
 			}
 		}
 
+		public override ItemDataTransformType EditorPositionType => ItemDataTransformType.ThreeD;
+		public override Vector3 GetEditorPosition()
+		{
+			var pos = DragPoints.Length == 0 ? Vector3.zero : DragPointCenter;
+			return new Vector3(pos.x, pos.y, HitHeight);
+		}
+		public override void SetEditorPosition(Vector3 pos) {
+			if (DragPoints.Length == 0) {
+				return;
+			}
+			var diff = (pos - DragPointCenter).ToVertex3D();
+			diff.Z = 0f;
+			foreach (var pt in DragPoints) {
+				pt.Center += diff;
+			}
+			HitHeight = pos.z;
+			RebuildMeshes();
+		}
+
 		public override ItemDataTransformType EditorRotationType => ItemDataTransformType.ThreeD;
-		public override Vector3 GetEditorRotation() => transform.rotation.eulerAngles;
-		public override void SetEditorRotation(Vector3 rot) => transform.rotation = Quaternion.Euler(rot);
+		public override Vector3 GetEditorRotation() => Rotation;
+		public override void SetEditorRotation(Vector3 rot) {
+			Rotation = rot;
+			RebuildMeshes();
+		}
+
+		#endregion
 	}
 }

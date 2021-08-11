@@ -70,9 +70,8 @@ namespace VisualPinball.Unity
 
 		private Table _table;
 		private TableAuthoring _tableAuthoring;
-		private TableContainer _tableContainer;
 
-		protected Table Table => _table ??= _tableAuthoring?.Item;
+		protected Table Table => _table ??= TableAuthoring == null ? null : TableAuthoring.Item;
 		protected TableAuthoring TableAuthoring => _tableAuthoring ??= GetComponentInParent<TableAuthoring>();
 
 		public virtual void ItemDataChanged()

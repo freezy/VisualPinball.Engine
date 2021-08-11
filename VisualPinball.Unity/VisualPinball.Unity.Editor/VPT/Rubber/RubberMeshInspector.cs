@@ -30,11 +30,7 @@ namespace VisualPinball.Unity.Editor
 				return;
 			}
 
-			TextureFieldLegacy("Texture", ref Data.Image);
-			MaterialFieldLegacy("Material", ref Data.Material);
-			ItemDataField("Static", ref Data.StaticRendering);
-
-			base.OnInspectorGUI();
+			EditorGUILayout.HelpBox("This component computes the rubber meshes.", MessageType.Info);
 		}
 	}
 }
