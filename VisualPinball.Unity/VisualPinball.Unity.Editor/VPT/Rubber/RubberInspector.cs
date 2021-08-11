@@ -26,9 +26,20 @@ namespace VisualPinball.Unity.Editor
 	[CustomEditor(typeof(RubberAuthoring))]
 	public class RubberInspector : DragPointsItemInspector<Rubber, RubberData, RubberAuthoring>
 	{
-		private bool _foldoutGeometry = true;
-		private bool _foldoutMesh;
-		private bool _foldoutMisc;
+		private SerializedProperty _heightProperty;
+		private SerializedProperty _hitHeightProperty;
+		private SerializedProperty _thicknessProperty;
+		private SerializedProperty _rotationProperty;
+
+		protected override void OnEnable()
+		{
+			base.OnEnable();
+
+			_heightProperty = serializedObject.FindProperty(nameof(RubberAuthoring.Height));
+			_hitHeightProperty = serializedObject.FindProperty(nameof(RubberAuthoring.HitHeight));
+			_thicknessProperty = serializedObject.FindProperty(nameof(RubberAuthoring.Thickness));
+			_rotationProperty = serializedObject.FindProperty(nameof(RubberAuthoring.Rotation));
+		}
 
 		public override void OnInspectorGUI()
 		{
@@ -36,39 +47,23 @@ namespace VisualPinball.Unity.Editor
 				return;
 			}
 
+			serializedObject.Update();
+
 			OnPreInspectorGUI();
 
-			if (_foldoutGeometry = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutGeometry, "Geometry")) {
-				ItemDataField("Height", ref Data.Height);
-				ItemDataField("Thickness", ref Data.Thickness);
-				EditorGUILayout.LabelField("Orientation");
-				EditorGUI.indentLevel++;
-				ItemDataField("RotX", ref Data.RotX);
-				ItemDataField("RotY", ref Data.RotY);
-				ItemDataField("RotZ", ref Data.RotZ);
-				EditorGUI.indentLevel--;
-			}
-			EditorGUILayout.EndFoldoutHeaderGroup();
-
-			if (_foldoutMesh = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutMesh, "Mesh")) {
-				TextureFieldLegacy("Texture", ref Data.Image);
-				MaterialFieldLegacy("Material", ref Data.Material);
-				ItemDataField("Static", ref Data.StaticRendering);
-			}
-			EditorGUILayout.EndFoldoutHeaderGroup();
-
-			if (_foldoutMisc = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutMisc, "Misc")) {
-				ItemDataField("Timer Enabled", ref Data.IsTimerEnabled, false);
-				ItemDataField("Timer Interval", ref Data.TimerInterval, false);
-			}
-			EditorGUILayout.EndFoldoutHeaderGroup();
+			PropertyField(_rotationProperty, updateTransforms: true);
+			PropertyField(_heightProperty, rebuildMesh: true);
+			PropertyField(_hitHeightProperty, rebuildMesh: true);
+			PropertyField(_thicknessProperty, rebuildMesh: true);
 
 			base.OnInspectorGUI();
+
+			serializedObject.ApplyModifiedProperties();
 		}
 
 		#region Dragpoint Tooling
 
-		public override Vector3 EditableOffset => new Vector3(0.0f, 0.0f, ItemAuthoring.Height);
+		public override Vector3 EditableOffset => new Vector3(0.0f, 0.0f, ItemAuthoring.HitHeight);
 		public override Vector3 GetDragPointOffset(float ratio) => Vector3.zero;
 		public override bool PointsAreLooping => true;
 		public override IEnumerable<DragPointExposure> DragPointExposition => new[] { DragPointExposure.Smooth };
