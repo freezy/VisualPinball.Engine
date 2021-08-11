@@ -38,31 +38,14 @@ namespace VisualPinball.Unity
 	{
 		#region Data
 
+		[Tooltip("Height of the rubber (z-axis).")]
 		public float Height = 25f;
 
-		public float HitHeight = 25f;
-
+		[Tooltip("How thick the rubber band is rendered.")]
 		public int Thickness = 8;
 
-		public bool HitEvent;
-
-		public float Elasticity;
-
-		public float ElasticityFalloff;
-
-		public float Friction;
-
-		public float Scatter;
-
-		public bool IsCollidable = true;
-
-		public float RotX;
-
-		public float RotY;
-
-		public float RotZ;
-
-		public bool OverwritePhysics;
+		[Tooltip("Rotation on the playfield")]
+		public Vector3 Rotation;
 
 		[SerializeField]
 		private DragPointData[] _dragPoints;
@@ -87,24 +70,46 @@ namespace VisualPinball.Unity
 			transform.GetComponentInParent<Player>().RegisterRubber(Item, entity, ParentEntity, gameObject);
 		}
 
+
+		public override void UpdateTransforms()
+		{
+			transform.localEulerAngles = Rotation;
+		}
+
 		public override IEnumerable<MonoBehaviour> SetData(RubberData data, IMaterialProvider materialProvider, ITextureProvider textureProvider, Dictionary<string, IItemMainAuthoring> components)
 		{
 			var updatedComponents = new List<MonoBehaviour> { this };
 
+			// transforms
+			Rotation = new Vector3(data.RotX, data.RotY, data.RotZ);
+
+			// geometry
 			Height = data.Height;
-			HitHeight = data.HitHeight;
 			Thickness = data.Thickness;
-			HitEvent = data.HitEvent;
-			Elasticity = data.Elasticity;
-			ElasticityFalloff = data.ElasticityFalloff;
-			Friction = data.Friction;
-			Scatter = data.Scatter;
-			IsCollidable = data.IsCollidable;
-			RotX = data.RotX;
-			RotY = data.RotY;
-			RotZ = data.RotZ;
-			OverwritePhysics = data.OverwritePhysics;
 			DragPoints = data.DragPoints;
+
+			// visibility
+			var mr = GetComponent<MeshRenderer>();
+			if (mr) {
+				mr.enabled = data.IsVisible;
+			}
+
+			// collider data
+			var collComponent = GetComponentInChildren<RubberColliderAuthoring>();
+			if (collComponent) {
+				collComponent.enabled = data.IsCollidable;
+
+				collComponent.HitEvent = data.HitEvent;
+				collComponent.HitHeight = data.HitHeight;
+				collComponent.PhysicsMaterial = materialProvider.GetPhysicsMaterial(data.PhysicsMaterial);
+				collComponent.OverwritePhysics = data.OverwritePhysics;
+				collComponent.Elasticity = data.Elasticity;
+				collComponent.ElasticityFalloff = data.ElasticityFalloff;
+				collComponent.Friction = data.Friction;
+				collComponent.Scatter = data.Scatter;
+
+				updatedComponents.Add(collComponent);
+			}
 
 			return updatedComponents;
 		}
@@ -115,43 +120,39 @@ namespace VisualPinball.Unity
 
 			// update the name
 			data.Name = name;
-			data.RotX = localRot.x;
-			data.RotY = localRot.y;
-			data.RotZ = localRot.z;
 
-			// update visibility
-			data.IsVisible = false;
-			foreach (var meshComponent in MeshComponents) {
-				switch (meshComponent) {
-					case RubberMeshAuthoring meshAuthoring:
-						data.IsVisible = meshAuthoring.gameObject.activeInHierarchy;
-						break;
-				}
-			}
+			// translation
+			data.RotX = Rotation.x;
+			data.RotY = Rotation.y;
+			data.RotZ = Rotation.z;
 
-			// update collision
-			data.IsCollidable = false;
-			foreach (var colliderComponent in ColliderComponents) {
-				if (colliderComponent is RubberColliderAuthoring colliderAuthoring) {
-					data.IsCollidable = colliderAuthoring.gameObject.activeInHierarchy;
-				}
-			}
-
-			// other props
+			// geometry
 			data.Height = Height;
-			data.HitHeight = HitHeight;
 			data.Thickness = Thickness;
-			data.HitEvent = HitEvent;
-			data.Elasticity = Elasticity;
-			data.ElasticityFalloff = ElasticityFalloff;
-			data.Friction = Friction;
-			data.Scatter = Scatter;
-			data.IsCollidable = IsCollidable;
-			data.RotX = RotX;
-			data.RotY = RotY;
-			data.RotZ = RotZ;
-			data.OverwritePhysics = OverwritePhysics;
 			data.DragPoints = DragPoints;
+
+			// visibility
+			var mr = GetComponent<MeshRenderer>();
+			data.IsVisible = mr && mr.enabled;
+
+			// collision
+			var collComponent = GetComponentInChildren<RubberColliderAuthoring>();
+			if (collComponent) {
+				data.IsCollidable = collComponent.enabled;
+
+				data.HitHeight = collComponent.HitHeight;
+				data.HitEvent = collComponent.HitEvent;
+
+				data.PhysicsMaterial = collComponent.PhysicsMaterial ? collComponent.PhysicsMaterial.name : string.Empty;
+				data.OverwritePhysics = collComponent.OverwritePhysics;
+				data.Elasticity = collComponent.Elasticity;
+				data.ElasticityFalloff = collComponent.ElasticityFalloff;
+				data.Friction = collComponent.Friction;
+				data.Scatter = collComponent.Scatter;
+
+			} else {
+				data.IsCollidable = false;
+			}
 
 			return data;
 		}
