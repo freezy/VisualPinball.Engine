@@ -17,6 +17,7 @@
 using System;
 using System.Collections.Generic;
 using Unity.Entities;
+using UnityEngine;
 using VisualPinball.Engine.VPT.Table;
 
 namespace VisualPinball.Unity
@@ -44,7 +45,8 @@ namespace VisualPinball.Unity
 		/// </summary>
 		public event EventHandler<SwitchEventArgs> Switch;
 
-		internal TriggerApi(Engine.VPT.Trigger.Trigger item, Entity entity, Entity parentEntity, Player player) : base(item, entity, parentEntity, player)
+		internal TriggerApi(Engine.VPT.Trigger.Trigger item, GameObject go, Entity entity, Entity parentEntity, Player player)
+			: base(item, go, entity, parentEntity, player)
 		{
 		}
 

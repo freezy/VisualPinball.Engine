@@ -80,7 +80,7 @@ namespace VisualPinball.Unity
 			_lightAuthoring.Color = color;
 		}
 
-		internal LightApi(Light item, GameObject go, Player player) : base(item, player)
+		internal LightApi(Light item, GameObject go, Player player) : base(item, go, player)
 		{
 			_lightAuthoring = go.GetComponentInChildren<LightAuthoring>();
 			_state = item.Data.State;

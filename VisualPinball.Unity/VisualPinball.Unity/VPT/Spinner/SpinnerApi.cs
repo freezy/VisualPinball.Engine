@@ -17,6 +17,7 @@
 using System;
 using System.Collections.Generic;
 using Unity.Entities;
+using UnityEngine;
 using VisualPinball.Engine.VPT.Table;
 
 namespace VisualPinball.Unity
@@ -67,7 +68,8 @@ namespace VisualPinball.Unity
 		// todo
 		public event EventHandler Timer;
 
-		public SpinnerApi(Engine.VPT.Spinner.Spinner item, Entity entity, Entity parentEntity, Player player) : base(item, entity, parentEntity, player)
+		public SpinnerApi(Engine.VPT.Spinner.Spinner item, GameObject go, Entity entity, Entity parentEntity, Player player)
+			: base(item, go, entity, parentEntity, player)
 		{
 		}
 

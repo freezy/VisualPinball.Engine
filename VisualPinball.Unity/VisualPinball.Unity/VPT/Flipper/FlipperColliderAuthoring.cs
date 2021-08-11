@@ -81,7 +81,7 @@ namespace VisualPinball.Unity
 		public static readonly Type[] ValidParentTypes = new Type[0];
 		public override IEnumerable<Type> ValidParents => ValidParentTypes;
 		protected override IApiColliderGenerator InstantiateColliderApi(Player player, Entity entity, Entity parentEntity)
-			=> new FlipperApi(Item, entity, parentEntity, player);
+			=> new FlipperApi(Item, gameObject, entity, parentEntity, player);
 
 	}
 }

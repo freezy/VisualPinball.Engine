@@ -16,6 +16,7 @@
 
 using Unity.Entities;
 using Unity.Mathematics;
+using UnityEngine;
 using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Table;
 
@@ -35,6 +36,7 @@ namespace VisualPinball.Unity
 		public string Name => Item.Name;
 
 		internal TItem Item;
+		internal GameObject GameObject;
 		internal readonly Entity Entity;
 		internal readonly Entity ParentEntity;
 
@@ -50,18 +52,20 @@ namespace VisualPinball.Unity
 		private readonly SwitchHandler _switchHandler;
 		private protected BallManager BallManager;
 
-		protected ItemApi(TItem item, Player player)
+		protected ItemApi(TItem item, GameObject go, Player player)
 		{
 			Item = item;
+			GameObject = go;
 			Entity = Entity.Null;
 			ParentEntity = Entity.Null;
 			_player = player;
 		}
 
-		protected ItemApi(TItem item, Entity entity, Entity parentEntity, Player player)
+		protected ItemApi(TItem item, GameObject go, Entity entity, Entity parentEntity, Player player)
 		{
 			EntityManager = World.DefaultGameObjectInjectionWorld != null ? World.DefaultGameObjectInjectionWorld.EntityManager : default;
 			Item = item;
+			GameObject = go;
 			Entity = entity;
 			ParentEntity = parentEntity;
 			_player = player;

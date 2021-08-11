@@ -17,7 +17,9 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using VisualPinball.Engine.Game;
 using VisualPinball.Engine.VPT.Rubber;
+using VisualPinball.Engine.VPT.Table;
 
 namespace VisualPinball.Unity
 {
@@ -25,9 +27,14 @@ namespace VisualPinball.Unity
 	[AddComponentMenu("Visual Pinball/Mesh/Rubber Mesh")]
 	public class RubberMeshAuthoring : ItemMeshAuthoring<Rubber, RubberData, RubberAuthoring>
 	{
-		public static readonly Type[] ValidParentTypes = new Type[0];
+		public static readonly Type[] ValidParentTypes = Type.EmptyTypes;
 
 		public override IEnumerable<Type> ValidParents => ValidParentTypes;
+
+		protected override RenderObject GetRenderObject(RubberData data, Table table)
+		{
+			return new RubberMeshGenerator(data).GetRenderObject(table, Origin.Original,  false);
+		}
 
 		protected override bool IsVisible {
 			get => Data.IsVisible;

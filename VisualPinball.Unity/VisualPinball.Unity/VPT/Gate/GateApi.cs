@@ -17,6 +17,7 @@
 using System;
 using System.Collections.Generic;
 using Unity.Entities;
+using UnityEngine;
 using VisualPinball.Engine.VPT.Table;
 
 namespace VisualPinball.Unity
@@ -72,7 +73,8 @@ namespace VisualPinball.Unity
 		// todo
 		public event EventHandler Timer;
 
-		public GateApi(Engine.VPT.Gate.Gate item, Entity entity, Entity parentEntity, Player player) : base(item, entity, parentEntity, player)
+		public GateApi(Engine.VPT.Gate.Gate item, GameObject go, Entity entity, Entity parentEntity, Player player)
+			: base(item, go, entity, parentEntity, player)
 		{
 		}
 

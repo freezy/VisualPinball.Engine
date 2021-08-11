@@ -48,6 +48,8 @@ namespace VisualPinball.Unity
 				as T;
 		}
 
+		public TData CreateData() => CopyDataTo(InstantiateData(), null, null);
+
 		public TItem CreateItem(Dictionary<string, TData> datas, string[] materialNames, string[] textureNames)
 			=> InstantiateItem(CopyDataTo(datas.ContainsKey(name) ? datas[name] : InstantiateData(), materialNames, textureNames));
 

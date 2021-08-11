@@ -21,6 +21,7 @@ using System;
 using System.Collections.Generic;
 using Unity.Entities;
 using Unity.Mathematics;
+using UnityEngine;
 using VisualPinball.Engine.Common;
 using VisualPinball.Engine.VPT.Flipper;
 using VisualPinball.Engine.VPT.Table;
@@ -71,7 +72,8 @@ namespace VisualPinball.Unity
 
 		private bool _isEos;
 
-		internal FlipperApi(Flipper flipper, Entity entity, Entity parentEntity, Player player) : base(flipper, entity, parentEntity, player)
+		internal FlipperApi(Flipper flipper, GameObject go, Entity entity, Entity parentEntity, Player player)
+			: base(flipper, go, entity, parentEntity, player)
 		{
 		}
 

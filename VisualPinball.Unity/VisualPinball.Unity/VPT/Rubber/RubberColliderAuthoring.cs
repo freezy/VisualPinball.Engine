@@ -14,6 +14,8 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+// ReSharper disable InconsistentNaming
+
 using System;
 using System.Collections.Generic;
 using Unity.Entities;
@@ -26,8 +28,6 @@ namespace VisualPinball.Unity
 	public class RubberColliderAuthoring : ItemColliderAuthoring<Rubber, RubberData, RubberAuthoring>
 	{
 		#region Data
-
-		public float HitHeight = 25f;
 
 		public bool HitEvent;
 
@@ -43,10 +43,10 @@ namespace VisualPinball.Unity
 
 		#endregion
 
-		public static readonly Type[] ValidParentTypes = new Type[0];
+		public static readonly Type[] ValidParentTypes = Type.EmptyTypes;
 
 		public override IEnumerable<Type> ValidParents => ValidParentTypes;
 		protected override IApiColliderGenerator InstantiateColliderApi(Player player, Entity entity, Entity parentEntity)
-			=> new RubberApi(Item, entity, parentEntity, PhysicsMaterial, player);
+			=> new RubberApi(Item, gameObject, entity, parentEntity, PhysicsMaterial, player);
 	}
 }

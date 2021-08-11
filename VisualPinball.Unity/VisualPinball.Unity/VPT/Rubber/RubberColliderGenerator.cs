@@ -26,10 +26,10 @@ namespace VisualPinball.Unity
 		private readonly IApiColliderGenerator _api;
 		private readonly RubberMeshGenerator _meshGenerator;
 
-		public RubberColliderGenerator(RubberApi rubberApi)
+		public RubberColliderGenerator(RubberApi rubberApi, RubberMeshGenerator meshGenerator)
 		{
 			_api = rubberApi;
-			_meshGenerator = rubberApi.Item.MeshGenerator;
+			_meshGenerator = meshGenerator;
 		}
 
 		internal void GenerateColliders(Table table, List<ICollider> colliders)

@@ -17,6 +17,7 @@
 using System;
 using System.Collections.Generic;
 using Unity.Entities;
+using UnityEngine;
 using VisualPinball.Engine.VPT.HitTarget;
 using VisualPinball.Engine.VPT.Table;
 
@@ -55,7 +56,8 @@ namespace VisualPinball.Unity
 		}
 
 
-		internal HitTargetApi(HitTarget item, Entity entity, Entity parentEntity, PhysicsMaterial physicsMaterial, Player player) : base(item, entity, parentEntity, player)
+		internal HitTargetApi(HitTarget item, GameObject go, Entity entity, Entity parentEntity, PhysicsMaterial physicsMaterial, Player player)
+			: base(item, go, entity, parentEntity, player)
 		{
 			_physicsMaterial = physicsMaterial;
 		}

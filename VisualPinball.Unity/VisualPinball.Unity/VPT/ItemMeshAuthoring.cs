@@ -86,9 +86,9 @@ namespace VisualPinball.Unity
 			if (mf && mf.sharedMesh) {
 				var mesh = mf.sharedMesh;
 				mesh.triangles = null;
-				mesh.vertices = new Vector3[0];
-				mesh.normals = new Vector3[0];
-				mesh.uv = new Vector2[0];
+				mesh.vertices = Array.Empty<Vector3>();
+				mesh.normals = Array.Empty<Vector3>();
+				mesh.uv = Array.Empty<Vector2>();
 			}
 		}
 

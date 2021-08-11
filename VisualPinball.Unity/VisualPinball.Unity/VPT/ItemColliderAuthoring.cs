@@ -75,7 +75,6 @@ namespace VisualPinball.Unity
 			Colliders = new List<ICollider>();
 			api.CreateColliders(Table, Colliders);
 
-
 			var ltw = transform.GetComponentInParent<TableAuthoring>().gameObject.transform.localToWorldMatrix;
 
 			// draw aabbs and colliders

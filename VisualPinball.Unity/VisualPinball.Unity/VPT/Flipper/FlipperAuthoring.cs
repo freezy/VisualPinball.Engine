@@ -312,7 +312,7 @@ namespace VisualPinball.Unity
 				var trigger = CreateCorrectionTrigger();
 				var triggerEntity = dstManager.CreateEntity(typeof(TriggerStaticData));
 				dstManager.AddComponentData(triggerEntity, new TriggerStaticData());
-				player.RegisterTrigger(trigger, triggerEntity);
+				player.RegisterTrigger(trigger, triggerEntity, gameObject, true);
 
 				using (var builder = new BlobBuilder(Allocator.Temp)) {
 
@@ -447,19 +447,17 @@ namespace VisualPinball.Unity
 			if (ta != null) {
 
 				var localPos = transform.localPosition;
-				var data = new TriggerData(name + "_nFozzy", localPos.x, localPos.y);
+				var data = new TriggerData(name + " (Correction Trigger)", localPos.x, localPos.y);
 				var poly = GetEnclosingPolygon(23, 12);
 				data.DragPoints = new DragPointData[poly.Count];
 				data.IsLocked = true;
 				data.HitHeight = 150F; // nFozzy's recommendation, but I think 50 should be ok
 
 				for (var i = 0; i < poly.Count; i++) {
-
 					// Poly points are expressed in flipper's frame: transpose to Table's frame as this is the basis uses for drag points
 					var p = ta.transform.InverseTransformPoint(transform.TransformPoint(poly[i]));
 					data.DragPoints[poly.Count - i - 1] = new DragPointData(p.x, p.y);
 				}
-
 				return new Trigger(data);
 			}
 			throw new InvalidOperationException("Cannot create correction trigger for flipper outside of the table hierarchy.");
