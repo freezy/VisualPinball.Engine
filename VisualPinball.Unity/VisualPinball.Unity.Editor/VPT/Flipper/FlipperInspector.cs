@@ -36,10 +36,11 @@ namespace VisualPinball.Unity.Editor
 		private SerializedProperty _heightProperty;
 		private SerializedProperty _baseRadiusProperty;
 		private SerializedProperty _endRadiusProperty;
-		private SerializedProperty _flipperRadiusProperty;
 		private SerializedProperty _rubberThicknessProperty;
 		private SerializedProperty _rubberHeightProperty;
 		private SerializedProperty _rubberWidthProperty;
+		private SerializedProperty _flipperRadiusMinProperty;
+		private SerializedProperty _flipperRadiusMaxProperty;
 
 		protected override void OnEnable()
 		{
@@ -54,10 +55,11 @@ namespace VisualPinball.Unity.Editor
 			_heightProperty = serializedObject.FindProperty(nameof(FlipperAuthoring.Height));
 			_baseRadiusProperty = serializedObject.FindProperty(nameof(FlipperAuthoring.BaseRadius));
 			_endRadiusProperty = serializedObject.FindProperty(nameof(FlipperAuthoring.EndRadius));
-			_flipperRadiusProperty = serializedObject.FindProperty(nameof(FlipperAuthoring.FlipperRadius));
 			_rubberThicknessProperty = serializedObject.FindProperty(nameof(FlipperAuthoring.RubberThickness));
 			_rubberHeightProperty = serializedObject.FindProperty(nameof(FlipperAuthoring.RubberHeight));
 			_rubberWidthProperty = serializedObject.FindProperty(nameof(FlipperAuthoring.RubberWidth));
+			_flipperRadiusMinProperty = serializedObject.FindProperty(nameof(FlipperAuthoring.FlipperRadiusMin));
+			_flipperRadiusMaxProperty = serializedObject.FindProperty(nameof(FlipperAuthoring.FlipperRadiusMax));
 		}
 
 		public override void OnInspectorGUI()
@@ -81,7 +83,8 @@ namespace VisualPinball.Unity.Editor
 				PropertyField(_heightProperty, rebuildMesh: true);
 				PropertyField(_baseRadiusProperty, rebuildMesh: true);
 				PropertyField(_endRadiusProperty, rebuildMesh: true);
-				PropertyField(_flipperRadiusProperty, "Flipper Length", true);
+				PropertyField(_flipperRadiusMaxProperty, "Flipper Length", true);
+				PropertyField(_flipperRadiusMinProperty, "Max. Difficulty Length", true);
 			}
 			EditorGUILayout.EndFoldoutHeaderGroup();
 
