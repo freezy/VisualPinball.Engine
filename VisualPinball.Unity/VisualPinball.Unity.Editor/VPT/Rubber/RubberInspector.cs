@@ -68,7 +68,7 @@ namespace VisualPinball.Unity.Editor
 
 		#region Dragpoint Tooling
 
-		public override Vector3 EditableOffset => new Vector3(0.0f, 0.0f, ItemAuthoring.HitHeight);
+		public override Vector3 EditableOffset => new Vector3(0.0f, 0.0f, ItemAuthoring.Height);
 		public override Vector3 GetDragPointOffset(float ratio) => Vector3.zero;
 		public override bool PointsAreLooping => true;
 		public override IEnumerable<DragPointExposure> DragPointExposition => new[] { DragPointExposure.Smooth };

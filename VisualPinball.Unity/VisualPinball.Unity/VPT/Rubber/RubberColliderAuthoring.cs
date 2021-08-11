@@ -25,6 +25,24 @@ namespace VisualPinball.Unity
 	[AddComponentMenu("Visual Pinball/Collision/Rubber Collider")]
 	public class RubberColliderAuthoring : ItemColliderAuthoring<Rubber, RubberData, RubberAuthoring>
 	{
+		#region Data
+
+		public float HitHeight = 25f;
+
+		public bool HitEvent;
+
+		public bool OverwritePhysics;
+
+		public float Elasticity;
+
+		public float ElasticityFalloff;
+
+		public float Friction;
+
+		public float Scatter;
+
+		#endregion
+
 		public static readonly Type[] ValidParentTypes = new Type[0];
 
 		public override IEnumerable<Type> ValidParents => ValidParentTypes;
