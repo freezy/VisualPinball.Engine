@@ -16,11 +16,10 @@
 
 using System;
 using System.Collections.Generic;
-using Unity.Entities;
-using Unity.Mathematics;
 using UnityEngine;
-using VisualPinball.Engine.Math;
+using VisualPinball.Engine.Game;
 using VisualPinball.Engine.VPT.Plunger;
+using VisualPinball.Engine.VPT.Table;
 
 namespace VisualPinball.Unity
 {
@@ -33,5 +32,8 @@ namespace VisualPinball.Unity
 		public override IEnumerable<Type> ValidParents => ValidParentTypes;
 
 		protected override string MeshId => PlungerMeshGenerator.Flat;
+
+		protected override RenderObject GetRenderObject(PlungerData data, Table table)
+			=> new PlungerMeshGenerator(data).GetRenderObject(table, PlungerMeshGenerator.Flat, Origin.Original, false);
 	}
 }

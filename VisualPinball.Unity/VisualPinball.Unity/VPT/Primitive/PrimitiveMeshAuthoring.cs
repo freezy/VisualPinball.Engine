@@ -17,7 +17,9 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using VisualPinball.Engine.Game;
 using VisualPinball.Engine.VPT.Primitive;
+using VisualPinball.Engine.VPT.Table;
 
 namespace VisualPinball.Unity
 {
@@ -40,6 +42,9 @@ namespace VisualPinball.Unity
 		};
 
 		public override IEnumerable<Type> ValidParents => ValidParentTypes;
+		
+		protected override RenderObject GetRenderObject(PrimitiveData data, Table table)
+			=> new PrimitiveMeshGenerator(data).GetRenderObject(table, Origin.Original, false);
 
 		protected override bool IsVisible {
 			get => Data.IsVisible;

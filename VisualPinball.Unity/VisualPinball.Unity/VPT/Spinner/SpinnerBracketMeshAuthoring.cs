@@ -17,7 +17,9 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using VisualPinball.Engine.Game;
 using VisualPinball.Engine.VPT.Spinner;
+using VisualPinball.Engine.VPT.Table;
 
 namespace VisualPinball.Unity
 {
@@ -30,6 +32,10 @@ namespace VisualPinball.Unity
 		public override IEnumerable<Type> ValidParents => ValidParentTypes;
 
 		protected override string MeshId => SpinnerMeshGenerator.Bracket;
+
+		protected override RenderObject GetRenderObject(SpinnerData data, Table table)
+			=> new SpinnerMeshGenerator(data).GetRenderObject(table, SpinnerMeshGenerator.Bracket, Origin.Original, false);
+
 		protected override bool IsVisible {
 			get => Data.ShowBracket;
 			set => Data.ShowBracket = value;

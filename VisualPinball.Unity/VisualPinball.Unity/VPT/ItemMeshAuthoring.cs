@@ -92,10 +92,7 @@ namespace VisualPinball.Unity
 			}
 		}
 
-		protected virtual RenderObject GetRenderObject(TData data, Table table)
-		{
-			return null;
-		}
+		protected abstract RenderObject GetRenderObject(TData data, Table table);
 
 		public void CreateMesh(TData data, ITextureProvider texProvider, IMaterialProvider matProvider)
 		{

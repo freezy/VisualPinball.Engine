@@ -32,9 +32,7 @@ namespace VisualPinball.Unity
 		public override IEnumerable<Type> ValidParents => ValidParentTypes;
 
 		protected override RenderObject GetRenderObject(RubberData data, Table table)
-		{
-			return new RubberMeshGenerator(data).GetRenderObject(table, Origin.Original,  false);
-		}
+			=> new RubberMeshGenerator(data).GetRenderObject(table, Origin.Original,  false);
 
 		protected override bool IsVisible {
 			get => Data.IsVisible;
