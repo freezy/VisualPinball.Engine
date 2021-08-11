@@ -35,10 +35,5 @@ namespace VisualPinball.Unity
 
 		protected override RenderObject GetRenderObject(SpinnerData data, Table table)
 			=> new SpinnerMeshGenerator(data).GetRenderObject(table, SpinnerMeshGenerator.Bracket, Origin.Original, false);
-
-		protected override bool IsVisible {
-			get => Data.ShowBracket;
-			set => Data.ShowBracket = value;
-		}
 	}
 }

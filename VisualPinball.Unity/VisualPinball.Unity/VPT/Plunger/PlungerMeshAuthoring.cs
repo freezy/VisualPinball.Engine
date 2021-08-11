@@ -23,9 +23,5 @@ namespace VisualPinball.Unity
 {
 	public abstract class PlungerMeshAuthoring : ItemMeshAuthoring<Plunger, PlungerData, PlungerAuthoring>
 	{
-		protected override bool IsVisible {
-			get => Data.IsVisible;
-			set => Data.IsVisible = value;
-		}
 	}
 }

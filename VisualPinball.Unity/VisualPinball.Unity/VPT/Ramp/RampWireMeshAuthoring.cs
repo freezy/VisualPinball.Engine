@@ -37,10 +37,5 @@ namespace VisualPinball.Unity
 		{
 			return new RampMeshGenerator(data).GetRenderObject(table, RampMeshGenerator.Wires, false);
 		}
-
-		protected override bool IsVisible {
-			get => true;
-			set { }
-		}
 	}
 }

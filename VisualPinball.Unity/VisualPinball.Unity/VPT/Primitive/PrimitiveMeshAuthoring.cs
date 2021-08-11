@@ -45,10 +45,5 @@ namespace VisualPinball.Unity
 		
 		protected override RenderObject GetRenderObject(PrimitiveData data, Table table)
 			=> new PrimitiveMeshGenerator(data).GetRenderObject(table, Origin.Original, false);
-
-		protected override bool IsVisible {
-			get => Data.IsVisible;
-			set => Data.IsVisible = value;
-		}
 	}
 }

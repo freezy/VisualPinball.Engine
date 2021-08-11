@@ -36,9 +36,5 @@ namespace VisualPinball.Unity
 			=> new LightMeshGenerator(data).GetRenderObject(table, LightMeshGenerator.Bulb, Origin.Original,  false);
 
 		protected override string MeshId => LightMeshGenerator.Bulb;
-		protected override bool IsVisible {
-			get => Data.ShowBulbMesh;
-			set => Data.ShowBulbMesh = value;
-		}
 	}
 }
