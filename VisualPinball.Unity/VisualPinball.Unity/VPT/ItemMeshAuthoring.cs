@@ -32,12 +32,10 @@ namespace VisualPinball.Unity
 		where TAuthoring : ItemMainRenderableAuthoring<TItem, TData>
 	{
 		public List<MemberInfo> MaterialRefs => _materialRefs ??= GetMembersWithAttribute<MaterialReferenceAttribute>();
-		public List<MemberInfo> TextureRefs => _textureRefs ??= GetMembersWithAttribute<TextureReferenceAttribute>();
 
 		public IItemMainRenderableAuthoring IMainAuthoring => MainAuthoring;
 
 		protected virtual string MeshId => null;
-		protected abstract bool IsVisible { get; set; }
 
 		private List<MemberInfo> _materialRefs;
 		private List<MemberInfo> _textureRefs;
@@ -119,6 +117,7 @@ namespace VisualPinball.Unity
 			}
 		}
 
+		[Obsolete("Use CreateMesh(TData, ITextureProvider, IMaterialProvider) instead.")]
 		public void CreateMesh(string parentName, ITextureProvider texProvider, IMaterialProvider matProvider, IMeshProvider meshProvider)
 		{
 			var ta = GetComponentInParent<TableAuthoring>();

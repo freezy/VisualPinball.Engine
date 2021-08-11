@@ -37,10 +37,5 @@ namespace VisualPinball.Unity
 		{
 			return new SurfaceMeshGenerator(data).GetRenderObject(table, SurfaceMeshGenerator.Side, false);
 		}
-
-		protected override bool IsVisible {
-			get => Data.IsSideVisible;
-			set => Data.IsSideVisible = value;
-		}
 	}
 }

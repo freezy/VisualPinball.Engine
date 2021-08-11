@@ -32,10 +32,6 @@ namespace VisualPinball.Unity
 		public override IEnumerable<Type> ValidParents => ValidParentTypes;
 
 		protected override string MeshId => FlipperMeshGenerator.Rubber;
-		protected override bool IsVisible {
-			get => Data.IsVisible;
-			set => Data.IsVisible = value;
-		}
 
 		protected override RenderObject GetRenderObject(FlipperData data, Table table)
 		{

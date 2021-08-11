@@ -17,10 +17,5 @@ namespace VisualPinball.Unity.Playfield
 
 		protected override RenderObject GetRenderObject(TableData data, Table table)
 			=> new TableMeshGenerator(data).GetRenderObject(table, false);
-
-		protected override bool IsVisible {
-			get => true;
-			set { }
-		}
 	}
 }

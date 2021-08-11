@@ -33,10 +33,5 @@ namespace VisualPinball.Unity
 
 		protected override RenderObject GetRenderObject(RubberData data, Table table)
 			=> new RubberMeshGenerator(data).GetRenderObject(table, Origin.Original,  false);
-
-		protected override bool IsVisible {
-			get => Data.IsVisible;
-			set => Data.IsVisible = value;
-		}
 	}
 }

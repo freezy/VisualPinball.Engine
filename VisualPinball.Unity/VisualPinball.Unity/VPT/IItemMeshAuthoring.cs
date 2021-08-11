@@ -25,13 +25,16 @@ namespace VisualPinball.Unity
 	{
 		[Obsolete("Remove")]
 		List<MemberInfo> MaterialRefs { get; }
-		[Obsolete("Remove")]
-		List<MemberInfo> TextureRefs { get; }
 
 		IItemMainRenderableAuthoring IMainAuthoring { get; }
 
+		// ReSharper disable once InconsistentNaming
+		/// <summary>
+		/// Reference to the MonoBehavior's GameObject
+		/// </summary>
 		GameObject gameObject { get; }
 
+		[Obsolete("Use CreateMesh(TData, ITextureProvider, IMaterialProvider) instead.")]
 		void CreateMesh(string parentName, ITextureProvider texProvider, IMaterialProvider matProvider, IMeshProvider meshProvider);
 
 		void RebuildMeshes();
