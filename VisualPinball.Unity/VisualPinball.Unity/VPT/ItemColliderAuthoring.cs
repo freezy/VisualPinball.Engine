@@ -14,6 +14,8 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+// ReSharper disable InconsistentNaming
+
 using System;
 using System.Collections.Generic;
 using Unity.Entities;
@@ -75,7 +77,7 @@ namespace VisualPinball.Unity
 			Colliders = new List<ICollider>();
 			api.CreateColliders(Table, Colliders);
 
-			var ltw = transform.GetComponentInParent<TableAuthoring>().gameObject.transform.localToWorldMatrix;
+			var ltw = GetComponentInParent<TablePlayfieldAuthoring>().transform.localToWorldMatrix;
 
 			// draw aabbs and colliders
 			for (var i = 0; i < Colliders.Count; i++) {

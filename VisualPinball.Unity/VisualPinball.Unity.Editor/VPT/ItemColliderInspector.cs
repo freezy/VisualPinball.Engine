@@ -31,7 +31,7 @@ namespace VisualPinball.Unity.Editor
 		where TItem : Item<TData>, IRenderable
 		where TMainAuthoring : ItemMainRenderableAuthoring<TItem, TData>
 	{
-		protected TColliderAuthoring ColliderAuthoring;
+		private TColliderAuthoring ColliderAuthoring;
 
 		protected TData Data => ColliderAuthoring == null ? null : ColliderAuthoring.Data;
 
