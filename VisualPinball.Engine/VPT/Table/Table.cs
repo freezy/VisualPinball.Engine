@@ -50,7 +50,7 @@ namespace VisualPinball.Engine.VPT.Table
 		public Table(TableContainer tableContainer, TableData data) : base(data)
 		{
 			_tableContainer = tableContainer;
-			_meshGenerator = new TableMeshGenerator(_tableContainer);
+			_meshGenerator = new TableMeshGenerator(data);
 		}
 
 		public float GetScaleZ()
@@ -100,7 +100,7 @@ namespace VisualPinball.Engine.VPT.Table
 
 		public RenderObject GetRenderObject(Table table, string id = null, Origin origin = Origin.Global, bool asRightHanded = true)
 		{
-			return _meshGenerator.GetRenderObject(asRightHanded);
+			return _meshGenerator.GetRenderObject(table, asRightHanded);
 		}
 
 		public RenderObjectGroup GetRenderObjects(Table table, Origin origin = Origin.Global, bool asRightHanded = true)

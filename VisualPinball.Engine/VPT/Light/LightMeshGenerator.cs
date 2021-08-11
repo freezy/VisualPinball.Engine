@@ -31,7 +31,7 @@ namespace VisualPinball.Engine.VPT.Light
 
 		private readonly LightData _data;
 
-		internal LightMeshGenerator(LightData data)
+		public LightMeshGenerator(LightData data)
 		{
 			_data = data;
 		}

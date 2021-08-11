@@ -17,7 +17,9 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using VisualPinball.Engine.Game;
 using VisualPinball.Engine.VPT.Light;
+using VisualPinball.Engine.VPT.Table;
 using Light = VisualPinball.Engine.VPT.Light.Light;
 
 namespace VisualPinball.Unity
@@ -29,6 +31,9 @@ namespace VisualPinball.Unity
 		public static readonly Type[] ValidParentTypes = new Type[0];
 
 		public override IEnumerable<Type> ValidParents => ValidParentTypes;
+
+		protected override RenderObject GetRenderObject(LightData data, Table table)
+			=> new LightMeshGenerator(data).GetRenderObject(table, LightMeshGenerator.Bulb, Origin.Original,  false);
 
 		protected override string MeshId => LightMeshGenerator.Bulb;
 		protected override bool IsVisible {

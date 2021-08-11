@@ -143,9 +143,9 @@ namespace VisualPinball.Unity.Editor
 				return;
 			}
 
-			var dragPointEditEnabled = (_primaryItem as IDragPointsEditable)?.DragPointEditEnabled ?? false;
+			//var dragPointEditEnabled = (_primaryItem as IDragPointsEditable)?.DragPointEditEnabled ?? false;
 
-			if (!dragPointEditEnabled) {
+			//if (!dragPointEditEnabled) {
 				if (_primaryItem.IsLocked) {
 					HandleLockedTool();
 
@@ -164,7 +164,7 @@ namespace VisualPinball.Unity.Editor
 							break;
 					}
 				}
-			}
+			//}
 		}
 
 		private void HandleLockedTool()
