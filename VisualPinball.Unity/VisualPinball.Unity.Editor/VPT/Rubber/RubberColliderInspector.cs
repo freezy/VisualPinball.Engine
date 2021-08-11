@@ -25,33 +25,61 @@ namespace VisualPinball.Unity.Editor
 	public class RubberColliderInspector : ItemColliderInspector<Rubber, RubberData, RubberAuthoring, RubberColliderAuthoring>
 	{
 		private bool _foldoutMaterial = true;
+		private SerializedProperty _hitEventProperty;
+		private SerializedProperty _overwritePhysicsProperty;
+		private SerializedProperty _physicsMaterialProperty;
+		private SerializedProperty _elasticityProperty;
+		private SerializedProperty _elasticityFalloffProperty;
+		private SerializedProperty _frictionProperty;
+		private SerializedProperty _scatterProperty;
+
+		protected override void OnEnable()
+		{
+			base.OnEnable();
+
+			_hitEventProperty = serializedObject.FindProperty(nameof(RubberColliderAuthoring.HitEvent));
+
+			_overwritePhysicsProperty = serializedObject.FindProperty(nameof(RubberColliderAuthoring.OverwritePhysics));
+			_physicsMaterialProperty = serializedObject.FindProperty(nameof(ItemColliderAuthoring<Rubber, RubberData, RubberAuthoring>.PhysicsMaterial));
+			_elasticityProperty = serializedObject.FindProperty(nameof(RubberColliderAuthoring.Elasticity));
+			_elasticityFalloffProperty = serializedObject.FindProperty(nameof(RubberColliderAuthoring.ElasticityFalloff));
+			_frictionProperty = serializedObject.FindProperty(nameof(RubberColliderAuthoring.Friction));
+			_scatterProperty = serializedObject.FindProperty(nameof(RubberColliderAuthoring.Scatter));
+		}
 
 		public override void OnInspectorGUI()
 		{
+
 			if (HasErrors()) {
 				return;
 			}
 
-			ItemDataField("Has Hit Event", ref Data.HitEvent, false);
-			ItemDataField("Hit Height", ref Data.HitHeight, false);
+			serializedObject.Update();
 
+			OnPreInspectorGUI();
+
+			PropertyField(_hitEventProperty, "Has Hit Event");
+
+			// physics material
 			if (_foldoutMaterial = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutMaterial, "Physics Material")) {
-				EditorGUI.BeginDisabledGroup(Data.OverwritePhysics);
-				PhysicsMaterialField("Preset", ref ColliderAuthoring.PhysicsMaterial);
+				EditorGUI.BeginDisabledGroup(_overwritePhysicsProperty.boolValue);
+				PropertyField(_physicsMaterialProperty, "Preset");
 				EditorGUI.EndDisabledGroup();
 
-				ItemDataField("Overwrite Preset", ref Data.OverwritePhysics, false);
+				PropertyField(_overwritePhysicsProperty);
 
-				EditorGUI.BeginDisabledGroup(!Data.OverwritePhysics);
-				ItemDataField("Elasticity", ref Data.Elasticity, false);
-				ItemDataField("Elasticity Falloff", ref Data.ElasticityFalloff, false);
-				ItemDataField("Friction", ref Data.Friction, false);
-				ItemDataField("Scatter Angle", ref Data.Scatter, false);
+				EditorGUI.BeginDisabledGroup(!_overwritePhysicsProperty.boolValue);
+				PropertyField(_elasticityProperty);
+				PropertyField(_elasticityFalloffProperty);
+				PropertyField(_frictionProperty);
+				PropertyField(_scatterProperty, "Scatter Angle");
 				EditorGUI.EndDisabledGroup();
 			}
 			EditorGUILayout.EndFoldoutHeaderGroup();
 
 			base.OnInspectorGUI();
+
+			serializedObject.ApplyModifiedProperties();
 		}
 	}
 }
