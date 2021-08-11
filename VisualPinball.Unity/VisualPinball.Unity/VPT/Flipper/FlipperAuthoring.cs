@@ -76,12 +76,13 @@ namespace VisualPinball.Unity
 		[Tooltip("Radius of the flipper's smaller end.")]
 		public float EndRadius = 13.0f;
 
+		[Min(0)]
+		[Tooltip("It's not clear what TF this does. Relict from VPX.")]
 		public float FlipperRadiusMin;
-		public float FlipperRadiusMax = 130.0f;
 
 		[Range(10f, 250f)]
-		[Tooltip("Length of the flipper")]
-		public float FlipperRadius = 130.0f;
+		[Tooltip("The length of the flipper")]
+		public float FlipperRadiusMax = 130.0f;
 
 		[Range(0f, 50f)]
 		[Tooltip("Thickness of the rubber")]
@@ -169,7 +170,6 @@ namespace VisualPinball.Unity
 			EndAngle = data.EndAngle > 180f ? data.EndAngle - 360f : data.EndAngle;
 			FlipperRadiusMin = data.FlipperRadiusMin;
 			FlipperRadiusMax = data.FlipperRadiusMax;
-			FlipperRadius = data.FlipperRadius;
 			RubberThickness = data.RubberThickness;
 			RubberHeight = data.RubberHeight;
 			RubberWidth = data.RubberWidth;
@@ -220,7 +220,6 @@ namespace VisualPinball.Unity
 			data.EndAngle = EndAngle;
 			data.FlipperRadiusMin = FlipperRadiusMin;
 			data.FlipperRadiusMax = FlipperRadiusMax;
-			data.FlipperRadius = FlipperRadius;
 			data.RubberThickness = RubberThickness;
 			data.RubberHeight = RubberHeight;
 			data.RubberWidth = RubberWidth;
@@ -274,14 +273,14 @@ namespace VisualPinball.Unity
 			if (IsLeft) {
 				(start, end) = (end, start);
 			}
-			AddPolyArc(arrow, Vector3.zero, FlipperRadius - 20F, start, end );
+			AddPolyArc(arrow, Vector3.zero, FlipperRadiusMax - 20F, start, end );
 			for (int i = 1, j = 0; i < arrow.Count; j = i++) {
 				Gizmos.DrawLine(transform.TransformPoint(arrow[j]), transform.TransformPoint(arrow[i]));
 			}
 			var last = IsLeft ? arrow[0] : arrow[arrow.Count-1];
 			var tmpA = IsLeft ? start + 90F + 3F : end +90F - 3F;
-			var a = Quaternion.Euler(0, 0, tmpA) * new Vector3(0, -FlipperRadius + 15F, 0F);
-			var b = Quaternion.Euler(0, 0, tmpA) * new Vector3(0F, -FlipperRadius + 25F, 0F);
+			var a = Quaternion.Euler(0, 0, tmpA) * new Vector3(0, -FlipperRadiusMax + 15F, 0F);
+			var b = Quaternion.Euler(0, 0, tmpA) * new Vector3(0F, -FlipperRadiusMax + 25F, 0F);
 			Gizmos.DrawLine(transform.TransformPoint(last) , transform.TransformPoint(a));
 			Gizmos.DrawLine(transform.TransformPoint(last), transform.TransformPoint(b));
 			Gizmos.color = Color.white;
@@ -414,7 +413,7 @@ namespace VisualPinball.Unity
 			float baseRadius = BaseRadius + margin;
 			float tipRadius = EndRadius + margin;
 			Vector3 baseLocalPos = Vector3.zero;
-			float length = FlipperRadius;
+			float length = FlipperRadiusMax;
 			Vector3 tipLocalPos = Vector3.up * -length;
 
 			if (swing < 180F) {
@@ -539,7 +538,7 @@ namespace VisualPinball.Unity
 
 		private FlipperHitData GetHitData()
 		{
-			var ratio = (math.max(BaseRadius, 0.01f) - math.max(EndRadius, 0.01f)) / math.max(FlipperRadius, 0.01f);
+			var ratio = (math.max(BaseRadius, 0.01f) - math.max(EndRadius, 0.01f)) / math.max(FlipperRadiusMax, 0.01f);
 			var zeroAngNorm = new float2(
 				math.sqrt(1.0f - ratio * ratio), // F2 Norm, used in Green's transform, in FPM time search  // =  sinf(faceNormOffset)
 				-ratio                              // F1 norm, change sign of x component, i.e -zeroAngNorm.x // = -cosf(faceNormOffset)
