@@ -24,16 +24,30 @@ namespace VisualPinball.Unity.Editor
 	[CustomEditor(typeof(TriggerColliderAuthoring))]
 	public class TriggerColliderInspector : ItemColliderInspector<Trigger, TriggerData, TriggerAuthoring, TriggerColliderAuthoring>
 	{
+		private SerializedProperty _hitHeightProperty;
+
+		protected override void OnEnable()
+		{
+			base.OnEnable();
+
+			_hitHeightProperty = serializedObject.FindProperty(nameof(TriggerColliderAuthoring.HitHeight));
+		}
+
 		public override void OnInspectorGUI()
 		{
 			if (HasErrors()) {
 				return;
 			}
 
-			ItemDataField("Enabled", ref Data.IsEnabled, false);
-			ItemDataField("Hit Height", ref Data.HitHeight, false);
+			serializedObject.Update();
+
+			OnPreInspectorGUI();
+
+			PropertyField(_hitHeightProperty, updateTransforms: true);
 
 			base.OnInspectorGUI();
+
+			serializedObject.ApplyModifiedProperties();
 		}
 	}
 }

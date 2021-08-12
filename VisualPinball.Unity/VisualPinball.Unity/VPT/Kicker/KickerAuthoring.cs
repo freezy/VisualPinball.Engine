@@ -154,6 +154,8 @@ namespace VisualPinball.Unity
 			// collider data
 			var colliderAuthoring = gameObject.GetComponent<KickerColliderAuthoring>();
 			if (colliderAuthoring) {
+				colliderAuthoring.enabled = data.IsEnabled;
+
 				colliderAuthoring.Scatter = data.Scatter;
 				colliderAuthoring.HitAccuracy = data.HitAccuracy;
 				colliderAuthoring.HitHeight = data.HitHeight;
@@ -181,6 +183,7 @@ namespace VisualPinball.Unity
 
 			var colliderAuthoring = gameObject.GetComponent<KickerColliderAuthoring>();
 			if (colliderAuthoring) {
+				data.IsEnabled = colliderAuthoring.gameObject.activeInHierarchy;
 				data.Scatter = colliderAuthoring.Scatter;
 				data.HitAccuracy = colliderAuthoring.HitAccuracy;
 				data.HitHeight = colliderAuthoring.HitHeight;
@@ -188,6 +191,9 @@ namespace VisualPinball.Unity
 				data.LegacyMode = colliderAuthoring.LegacyMode;
 				data.Angle = colliderAuthoring.EjectAngle;
 				data.Speed = colliderAuthoring.EjectSpeed;
+
+			} else {
+				data.IsEnabled = false;
 			}
 
 			return data;
