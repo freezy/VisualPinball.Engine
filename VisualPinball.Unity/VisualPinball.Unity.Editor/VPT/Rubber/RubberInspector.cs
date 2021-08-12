@@ -51,7 +51,7 @@ namespace VisualPinball.Unity.Editor
 
 			OnPreInspectorGUI();
 
-			PropertyField(_rotationProperty, updateTransforms: true);
+			PropertyField(_rotationProperty, rebuildMesh: true);
 			PropertyField(_heightProperty, rebuildMesh: true);
 			PropertyField(_hitHeightProperty, rebuildMesh: true);
 			PropertyField(_thicknessProperty, rebuildMesh: true);

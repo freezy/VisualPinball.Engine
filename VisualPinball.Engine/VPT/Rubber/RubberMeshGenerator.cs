@@ -29,11 +29,13 @@ namespace VisualPinball.Engine.VPT.Rubber
 {
 	public class RubberMeshGenerator : MeshGenerator
 	{
-		public Vertex3D MiddlePoint;
 		private readonly RubberData _data;
-		protected override Vertex3D Position => _data.MiddlePoint;
+		protected override Vertex3D Position => _middlePoint;
 		protected override Vertex3D Scale => Vertex3D.One;
-		protected override float RotationZ => MathF.DegToRad(_data.RotZ);
+		protected override float RotationZ => 0;
+
+		private Vertex3D _middlePoint;
+
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
 		public RubberMeshGenerator(RubberData data)
@@ -44,10 +46,10 @@ namespace VisualPinball.Engine.VPT.Rubber
 		public RenderObject GetRenderObject(Table.Table table, Origin origin, bool asRightHanded)
 		{
 			var mesh = GetMesh(table);
-			var (preVertexMatrix, preNormalsMatrix) = GetPreMatrix(table, origin, asRightHanded);
+			var (postVertexMatrix, postNormalsMatrix) = GetPostMatrix(table);
 			return new RenderObject(
 				_data.Name,
-				mesh.Transform(preVertexMatrix, preNormalsMatrix),
+				mesh.Transform(postVertexMatrix, postNormalsMatrix),
 				new PbrMaterial(table.GetMaterial(_data.Material), table.GetTexture(_data.Image)),
 				_data.IsVisible
 			);
@@ -56,7 +58,8 @@ namespace VisualPinball.Engine.VPT.Rubber
 		public RenderObjectGroup GetRenderObjects(Table.Table table, Origin origin, bool asRightHanded = true)
 		{
 			var mesh = GetMesh(table);
-			var (preVertexMatrix, preNormalsMatrix) = GetPreMatrix(table, origin, asRightHanded);
+			//var (preVertexMatrix, preNormalsMatrix) = GetPreMatrix(table, origin, asRightHanded);
+			var (preVertexMatrix, preNormalsMatrix) = GetPostMatrix(table);
 			var postMatrix = GetPostMatrix(table, origin);
 			return new RenderObjectGroup(_data.Name, "Rubbers", postMatrix, new RenderObject(
 				_data.Name,
@@ -68,25 +71,30 @@ namespace VisualPinball.Engine.VPT.Rubber
 
 		protected override Tuple<Matrix3D, Matrix3D?> GetTransformationMatrix(Table.Table? table)
 		{
+			return new Tuple<Matrix3D, Matrix3D?>(Matrix3D.Identity, Matrix3D.Identity);
+		}
+
+		private Tuple<Matrix3D, Matrix3D?> GetPostMatrix(Table.Table? table)
+		{
 			var fullMatrix = new Matrix3D();
 			var tempMat = new Matrix3D();
-			fullMatrix.RotateZMatrix(RotationZ);
+			fullMatrix.RotateZMatrix(MathF.DegToRad(_data.RotZ));
 			tempMat.RotateYMatrix(MathF.DegToRad(_data.RotY));
 			fullMatrix.Multiply(tempMat);
 			tempMat.RotateXMatrix(MathF.DegToRad(_data.RotX));
 			fullMatrix.Multiply(tempMat);
 
 			var vertMatrix = new Matrix3D();
-			tempMat.SetTranslation(-Position.X, -Position.Y, -Position.Z);
+			tempMat.SetTranslation(-_middlePoint.X, -_middlePoint.Y, -_middlePoint.Z);
 			vertMatrix.Multiply(tempMat, fullMatrix);
 			tempMat.SetScaling(Scale.X, Scale.Y, Scale.Z * table?.GetScaleZ() ?? 0f);
 			vertMatrix.Multiply(tempMat);
 			if (_data.Height == _data.HitHeight) {
 				// do not z-scale the hit mesh
-				tempMat.SetTranslation(Position.X, Position.Y, _data.Height + table?.TableHeight ?? 0f);
+				tempMat.SetTranslation(_middlePoint.X, _middlePoint.Y, _data.Height + table?.TableHeight ?? 0f);
 
 			} else {
-				tempMat.SetTranslation(Position.X, Position.Y, _data.Height * (table?.GetScaleZ() ?? 1f) + (table?.TableHeight ?? 0f));
+				tempMat.SetTranslation(_middlePoint.X, _middlePoint.Y, _data.Height * (table?.GetScaleZ() ?? 1f) + (table?.TableHeight ?? 0f));
 			}
 
 			vertMatrix.Multiply(tempMat);
@@ -237,9 +245,15 @@ namespace VisualPinball.Engine.VPT.Rubber
 				}
 			}
 
-			_data.MiddlePoint.X = (maxX + minX) * 0.5f;
-			_data.MiddlePoint.Y = (maxY + minY) * 0.5f;
-			_data.MiddlePoint.Z = (maxZ + minZ) * 0.5f;
+			_middlePoint.X = (maxX + minX) * 0.5f;
+			_middlePoint.Y = (maxY + minY) * 0.5f;
+			_middlePoint.Z = (maxZ + minZ) * 0.5f;
+
+			// we don't explicitly apply transformations for colliders, so apply them here.
+			if (createHitShape) {
+				var (postVertexMatrix, postNormalsMatrix) = GetPostMatrix(table);
+				mesh.Transform(postVertexMatrix, postNormalsMatrix);
+			}
 
 			return mesh;
 		}
