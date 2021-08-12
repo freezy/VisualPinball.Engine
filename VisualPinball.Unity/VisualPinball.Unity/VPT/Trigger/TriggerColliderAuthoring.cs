@@ -14,6 +14,8 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+// ReSharper disable InconsistentNaming
+
 using System;
 using System.Collections.Generic;
 using Unity.Entities;
@@ -25,7 +27,15 @@ namespace VisualPinball.Unity
 	[AddComponentMenu("Visual Pinball/Collision/Trigger Collider")]
 	public class TriggerColliderAuthoring : ItemColliderAuthoring<Trigger, TriggerData, TriggerAuthoring>
 	{
-		public static readonly Type[] ValidParentTypes = new Type[0];
+		#region Data
+
+		[Min(0)]
+		[Tooltip("Height at which the trigger closes.")]
+		public float HitHeight = 50f;
+
+		#endregion
+
+		public static readonly Type[] ValidParentTypes = Type.EmptyTypes;
 
 		public override IEnumerable<Type> ValidParents => ValidParentTypes;
 		protected override IApiColliderGenerator InstantiateColliderApi(Player player, Entity entity, Entity parentEntity)

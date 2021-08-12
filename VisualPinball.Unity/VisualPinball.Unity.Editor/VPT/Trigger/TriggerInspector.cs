@@ -26,9 +26,22 @@ namespace VisualPinball.Unity.Editor
 	[CustomEditor(typeof(TriggerAuthoring))]
 	public class TriggerInspector : DragPointsItemInspector<Trigger, TriggerData, TriggerAuthoring>
 	{
-		private bool _foldoutColorsAndFormatting = true;
-		private bool _foldoutPhysics;
-		private bool _foldoutMisc;
+		private SerializedProperty _positionProperty;
+		private SerializedProperty _rotationProperty;
+		private SerializedProperty _radiusProperty;
+		private SerializedProperty _wireThicknessProperty;
+		private SerializedProperty _surfaceProperty;
+
+		protected override void OnEnable()
+		{
+			base.OnEnable();
+
+			_positionProperty = serializedObject.FindProperty(nameof(TriggerAuthoring.Position));
+			_rotationProperty = serializedObject.FindProperty(nameof(TriggerAuthoring.Rotation));
+			_radiusProperty = serializedObject.FindProperty(nameof(TriggerAuthoring.Radius));
+			_wireThicknessProperty = serializedObject.FindProperty(nameof(TriggerAuthoring.WireThickness));
+			_surfaceProperty = serializedObject.FindProperty(nameof(TriggerAuthoring._surface));
+		}
 
 		public override void OnInspectorGUI()
 		{
@@ -36,44 +49,27 @@ namespace VisualPinball.Unity.Editor
 				return;
 			}
 
-			ItemDataField("Position", ref Data.Center);
-			SurfaceField("Surface", ref Data.Surface);
+			serializedObject.Update();
 
 			OnPreInspectorGUI();
 
-			if (_foldoutColorsAndFormatting = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutColorsAndFormatting, "Colors & Formatting")) {
-				DropDownField("Shape", ref Data.Shape, TriggerMeshInspector.TriggerShapeLabels, TriggerMeshInspector.TriggerShapeValues);
-				ItemDataField("Wire Thickness", ref Data.WireThickness);
-				ItemDataField("Star Radius", ref Data.Radius);
-				ItemDataField("Rotation", ref Data.Rotation);
-				ItemDataField("Animation Speed", ref Data.AnimSpeed, false);
-				MaterialFieldLegacy("Material", ref Data.Material);
-			}
-			EditorGUILayout.EndFoldoutHeaderGroup();
+			PropertyField(_positionProperty, updateTransforms: true);
+			PropertyField(_rotationProperty, updateTransforms: true);
+			PropertyField(_surfaceProperty, updateTransforms: true);
 
-			if (_foldoutPhysics = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutPhysics, "Physics")) {
-				ItemDataField("Enabled", ref Data.IsEnabled, false);
-				ItemDataField("Hit Height", ref Data.HitHeight, false);
+			if (ItemAuthoring.IsCircle) {
+				PropertyField(_radiusProperty, updateTransforms: true);
 			}
-			EditorGUILayout.EndFoldoutHeaderGroup();
-
-			if (_foldoutMisc = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutMisc, "Misc")) {
-				ItemDataField("Timer Enabled", ref Data.IsTimerEnabled, false);
-				ItemDataField("Timer Interval", ref Data.TimerInterval, false);
-			}
-			EditorGUILayout.EndFoldoutHeaderGroup();
+			PropertyField(_wireThicknessProperty, rebuildMesh: true);
 
 			base.OnInspectorGUI();
+
+			serializedObject.ApplyModifiedProperties();
 		}
 
 		#region Dragpoint Tooling
 
-		public override Vector3 EditableOffset {
-			get {
-				var localPos = ItemAuthoring.transform.localPosition;
-				return new Vector3(-localPos.x, -localPos.y, 0.0f);
-			}
-		}
+		public override Vector3 EditableOffset => new Vector3(-ItemAuthoring.Position.x, -ItemAuthoring.Position.y, 0.0f);
 		public override Vector3 GetDragPointOffset(float ratio) => Vector3.zero;
 		public override bool PointsAreLooping => true;
 		public override IEnumerable<DragPointExposure> DragPointExposition => new[] { DragPointExposure.Smooth, DragPointExposure.SlingShot };

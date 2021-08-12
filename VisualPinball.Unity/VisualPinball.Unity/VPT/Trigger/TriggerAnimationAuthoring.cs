@@ -14,24 +14,26 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+// ReSharper disable InconsistentNaming
+
 using System;
 using System.Collections.Generic;
 using UnityEngine;
-using VisualPinball.Engine.Game;
-using VisualPinball.Engine.VPT.Table;
 using VisualPinball.Engine.VPT.Trigger;
 
 namespace VisualPinball.Unity
 {
-	[ExecuteInEditMode]
-	[AddComponentMenu("Visual Pinball/Mesh/Trigger Mesh")]
-	public class TriggerMeshAuthoring : ItemMeshAuthoring<Trigger, TriggerData, TriggerAuthoring>
+	[AddComponentMenu("Visual Pinball/Animation/Trigger Animation")]
+	public class TriggerAnimationAuthoring : ItemAnimationAuthoring<Trigger, TriggerData, TriggerAuthoring>
 	{
-		public static readonly Type[] ValidParentTypes = Type.EmptyTypes;
+		public override IEnumerable<Type> ValidParents { get; } = Type.EmptyTypes; // animation components only apply to their own
 
-		public override IEnumerable<Type> ValidParents => ValidParentTypes;
+		#region Data
 
-		protected override RenderObject GetRenderObject(TriggerData data, Table table)
-			=> new TriggerMeshGenerator(data).GetRenderObject(table, Origin.Original, false);
+		[Min(0)]
+		[Tooltip("How quick the trigger moves down when the ball rolls over it.")]
+		public float AnimSpeed = 1f;
+
+		#endregion
 	}
 }

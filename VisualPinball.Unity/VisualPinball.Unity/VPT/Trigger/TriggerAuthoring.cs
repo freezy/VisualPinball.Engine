@@ -25,9 +25,11 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Unity.Entities;
+using Unity.Mathematics;
 using UnityEngine;
 using VisualPinball.Engine.Game;
 using VisualPinball.Engine.Math;
+using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Trigger;
 
 namespace VisualPinball.Unity
@@ -39,119 +41,192 @@ namespace VisualPinball.Unity
 	{
 		#region Data
 
+		[Tooltip("Position on the playfield.")]
 		public Vector2 Position;
 
+		[Tooltip("Rotation of the trigger.")]
+		[Range(-180f, 180f)]
+		public float Rotation;
+
+		[Min(0)]
+		[Tooltip("Radius of the trigger.")]
 		public float Radius = 25f;
 
-		public bool IsEnabled = true;
-
-		public float HitHeight = 50f;
-
-		public float AnimSpeed = 1f;
-
+		[Min(0)]
+		[Tooltip("Thickness of the trigger wire. Doesn't have any impact on the ball.")]
 		public float WireThickness;
+
+		[SerializeField]
+		[TypeRestriction(typeof(ISurfaceAuthoring), PickerLabel = "Walls & Ramps", UpdateTransforms = true)]
+		[Tooltip("On which surface this surface is attached to. Updates z translation.")]
+		public MonoBehaviour _surface;
+		public ISurfaceAuthoring Surface { get => _surface as ISurfaceAuthoring; set => _surface = value as MonoBehaviour; }
 
 		[SerializeField]
 		private DragPointData[] _dragPoints;
 		public DragPointData[] DragPoints { get => _dragPoints; set => _dragPoints = value; }
 
-		#endregion
+		[SerializeField]
+		[HideInInspector]
+		public int Shape;
 
-		protected override Trigger InstantiateItem(TriggerData data) => new Trigger(data);
-		protected override TriggerData InstantiateData() => new TriggerData();
+		#endregion
 
 		public Vector2 Center => Position;
 
-		protected override Type MeshAuthoringType { get; } = typeof(ItemMeshAuthoring<Trigger, TriggerData, TriggerAuthoring>);
-		protected override Type ColliderAuthoringType { get; } = typeof(ItemColliderAuthoring<Trigger, TriggerData, TriggerAuthoring>);
+		public ISwitchable Switchable => Item;
 
 		public override IEnumerable<Type> ValidParents => TriggerColliderAuthoring.ValidParentTypes
 			.Concat(TriggerMeshAuthoring.ValidParentTypes)
 			.Distinct();
 
-		public ISwitchable Switchable => Item;
+		public bool IsCircle => Shape == TriggerShape.TriggerStar || Shape == TriggerShape.TriggerButton;
+
+		protected override Trigger InstantiateItem(TriggerData data) => new Trigger(data);
+		protected override TriggerData InstantiateData() => new TriggerData();
+
+		protected override Type MeshAuthoringType { get; } = typeof(ItemMeshAuthoring<Trigger, TriggerData, TriggerAuthoring>);
+		protected override Type ColliderAuthoringType { get; } = typeof(ItemColliderAuthoring<Trigger, TriggerData, TriggerAuthoring>);
+
 
 		public void Convert(Entity entity, EntityManager dstManager, GameObjectConversionSystem conversionSystem)
 		{
 			Convert(entity, dstManager);
 
 			var table = gameObject.GetComponentInParent<TableAuthoring>().Item;
-			dstManager.AddComponentData(entity, new TriggerAnimationData());
-			dstManager.AddComponentData(entity, new TriggerMovementData());
-			dstManager.AddComponentData(entity, new TriggerStaticData {
-				AnimSpeed = Data.AnimSpeed,
-				Radius = Data.Radius,
-				Shape = Data.Shape,
-				TableScaleZ = table.GetScaleZ()
-			});
+
+			var collComponent = GetComponentInChildren<TriggerColliderAuthoring>();
+			var animComponent = GetComponentInChildren<TriggerAnimationAuthoring>();
+			if (collComponent && animComponent) {
+				dstManager.AddComponentData(entity, new TriggerAnimationData());
+				dstManager.AddComponentData(entity, new TriggerMovementData());
+				dstManager.AddComponentData(entity, new TriggerStaticData {
+					AnimSpeed = animComponent.AnimSpeed,
+					Radius = Radius,
+					Shape = Data.Shape,
+					TableScaleZ = table.GetScaleZ()
+				});
+			}
 
 			// register
 			var trigger = GetComponent<TriggerAuthoring>().Item;
 			transform.GetComponentInParent<Player>().RegisterTrigger(trigger, entity, ParentEntity, gameObject);
 		}
 
+		public override void UpdateTransforms()
+		{
+			var t = transform;
+
+			// position
+			t.localPosition = Surface != null
+				? new Vector3(Position.x, Position.y, Surface.Height(Position))
+				: new Vector3(Position.x, Position.y, 0);
+
+			// rotation
+			t.localEulerAngles = new Vector3(0, 0, Rotation);
+		}
+
 		public override IEnumerable<MonoBehaviour> SetData(TriggerData data, IMaterialProvider materialProvider, ITextureProvider textureProvider, Dictionary<string, IItemMainAuthoring> components)
 		{
 			var updatedComponents = new List<MonoBehaviour> { this };
 
-			DragPoints = data.DragPoints;
+			// transforms
+			Position = data.Center.ToUnityVector2();
+			Rotation = data.Rotation;
+			Surface = GetAuthoring<SurfaceAuthoring>(components, data.Surface);
+			UpdateTransforms();
+
+			// geometry
 			Radius = data.Radius;
-			IsEnabled = data.IsEnabled;
-			HitHeight = data.HitHeight;
-			AnimSpeed = data.AnimSpeed;
 			WireThickness = data.WireThickness;
+			DragPoints = data.DragPoints;
+
+			// visibility
+			var mr = GetComponent<MeshRenderer>();
+			if (mr) {
+				mr.enabled = data.IsVisible;
+			}
+
+			// collider
+			var collComponent = GetComponentInChildren<TriggerColliderAuthoring>();
+			if (collComponent) {
+				collComponent.enabled = data.IsEnabled;
+				collComponent.HitHeight = data.HitHeight;
+				updatedComponents.Add(collComponent);
+			}
+
+			// animation
+			var animComponent = GetComponentInChildren<TriggerAnimationAuthoring>();
+			if (animComponent) {
+				animComponent.AnimSpeed = data.AnimSpeed;
+				updatedComponents.Add(animComponent);
+			}
 
 			return updatedComponents;
 		}
 
 		public override TriggerData CopyDataTo(TriggerData data, string[] materialNames, string[] textureNames)
 		{
-			var localPos = transform.localPosition;
-
-			// name and position
+			// name and transforms
 			data.Name = name;
-			data.Center = localPos.ToVertex2Dxy();
+			data.Center = Position.ToVertex2D();
+			data.Rotation = Rotation;
+			data.Surface = Surface != null ? Surface.name : string.Empty;
 
-			// update visibility
-			data.IsVisible = false;
-			foreach (var meshComponent in MeshComponents) {
-				switch (meshComponent) {
-					case TriggerMeshAuthoring meshAuthoring:
-						data.IsVisible = meshAuthoring.gameObject.activeInHierarchy;
-						break;
-				}
+			// geometry
+			data.Radius = Radius;
+			data.WireThickness = WireThickness;
+			data.DragPoints = DragPoints;
+
+			// visibility
+			var mr = GetComponent<MeshRenderer>();
+			if (mr) {
+				data.IsVisible = mr.enabled;
 			}
 
-			// triggers are always collidable
-			// todo handle IsEnabled
+			// collider
+			var collComponent = GetComponentInChildren<TriggerColliderAuthoring>();
+			if (collComponent) {
+				data.IsEnabled = collComponent.gameObject.activeInHierarchy;
+				data.HitHeight = collComponent.HitHeight;
+			} else {
+				data.IsEnabled = false;
+			}
 
-			// other props
-			data.DragPoints = DragPoints;
-			data.Radius = Radius;
-			data.IsEnabled = IsEnabled;
-			data.HitHeight = HitHeight;
-			data.AnimSpeed = AnimSpeed;
-			data.WireThickness = WireThickness;
+			// animation
+			var animComponent = GetComponentInChildren<TriggerAnimationAuthoring>();
+			if (animComponent) {
+				animComponent.AnimSpeed = data.AnimSpeed;
+			}
 
 			return data;
 		}
 
+		#region Editor Tooling
+
 		public override ItemDataTransformType EditorPositionType => ItemDataTransformType.TwoD;
+
+		public override Vector3 GetEditorPosition() => Surface != null
+			? new Vector3(Position.x, Position.y, Surface.Height(Position))
+			: new Vector3(Position.x, Position.y, 0);
 
 		public override void SetEditorPosition(Vector3 pos)
 		{
-			if (DragPoints.Length == 0) {
-				return;
+			var newPos = (Vector2)((float3)pos).xy;
+			if (DragPoints.Length > 0) {
+				var diff = newPos - Position;
+				foreach (var pt in DragPoints) {
+					pt.Center += new Vertex3D(diff.x, diff.y, 0f);
+				}
 			}
-			var diff = pos - transform.localPosition;
-			foreach (var pt in DragPoints) {
-				pt.Center += new Vertex3D(diff.x, diff.y, 0f);
-			}
-			transform.localPosition = pos;
+			RebuildMeshes();
+			Position = ((float3)pos).xy;
 		}
 
 		public override ItemDataTransformType EditorRotationType => ItemDataTransformType.OneD;
-		public override Vector3 GetEditorRotation() => transform.localEulerAngles;
-		public override void SetEditorRotation(Vector3 rot) => transform.localEulerAngles = rot;
+		public override Vector3 GetEditorRotation() => new Vector3(Rotation, 0f, 0f);
+		public override void SetEditorRotation(Vector3 rot) => Rotation = rot.x;
+
+		#endregion
 	}
 }
