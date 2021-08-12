@@ -23,6 +23,7 @@ using System.Collections.Generic;
 using VisualPinball.Engine.Game;
 using VisualPinball.Engine.Math;
 using VisualPinball.Engine.Resources.Meshes;
+using MathF = VisualPinball.Engine.Math.MathF;
 
 namespace VisualPinball.Engine.VPT.Flipper
 {

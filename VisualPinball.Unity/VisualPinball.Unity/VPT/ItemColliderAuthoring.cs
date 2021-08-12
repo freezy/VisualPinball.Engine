@@ -26,6 +26,7 @@ using VisualPinball.Engine.Math;
 using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Flipper;
 using Color = UnityEngine.Color;
+using MathF = VisualPinball.Engine.Math.MathF;
 using Mesh = UnityEngine.Mesh;
 
 namespace VisualPinball.Unity

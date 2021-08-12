@@ -27,6 +27,7 @@ using VisualPinball.Engine.Math.Mesh;
 using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Primitive;
 using VisualPinball.Engine.VPT.Table;
+using MathF = VisualPinball.Engine.Math.MathF;
 
 namespace VisualPinball.Unity
 {

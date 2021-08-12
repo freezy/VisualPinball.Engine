@@ -23,6 +23,7 @@ using System.Linq;
 using System.IO;
 using VisualPinball.Engine.Common;
 using VisualPinball.Engine.Math;
+using MathF = VisualPinball.Engine.Math.MathF;
 
 namespace VisualPinball.Engine.VPT
 {

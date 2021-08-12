@@ -23,6 +23,7 @@ using NLog;
 using VisualPinball.Engine.Common;
 using VisualPinball.Engine.Game;
 using VisualPinball.Engine.Math;
+using MathF = VisualPinball.Engine.Math.MathF;
 
 namespace VisualPinball.Engine.VPT.Rubber
 {

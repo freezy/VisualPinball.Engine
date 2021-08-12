@@ -43,6 +43,7 @@ namespace VisualPinball.Unity
 
 		public float HitHeight = 25f;
 
+		[Min(0)]
 		[Tooltip("How thick the rubber band is rendered.")]
 		public int Thickness = 8;
 
@@ -72,44 +73,14 @@ namespace VisualPinball.Unity
 			transform.GetComponentInParent<Player>().RegisterRubber(Item, entity, ParentEntity, gameObject);
 		}
 
-
-		public override void UpdateTransforms()
-		{
-			var tableAuthoring = GetComponentInParent<TableAuthoring>();
-			var position = DragPointCenter;
-
-			if (!tableAuthoring) {
-				return;
-			}
-
-			var fullMatrix = new Matrix3D();
-			var tempMat = new Matrix3D();
-			fullMatrix.RotateZMatrix(Rotation.z);
-			tempMat.RotateYMatrix(MathF.DegToRad(Rotation.y));
-			fullMatrix.Multiply(tempMat);
-			tempMat.RotateXMatrix(MathF.DegToRad(Rotation.x));
-			fullMatrix.Multiply(tempMat);
-
-			var vertMatrix = new Matrix3D();
-			tempMat.SetTranslation(-position.x, -position.y, -position.z);
-			vertMatrix.Multiply(tempMat, fullMatrix);
-			tempMat.SetTranslation(position.x, position.y, _data.Height + tableAuthoring.TableHeight);
-
-			vertMatrix.Multiply(tempMat);
-
-			transform.SetFromMatrix(vertMatrix.ToUnityMatrix());
-		}
-
 		public override IEnumerable<MonoBehaviour> SetData(RubberData data, IMaterialProvider materialProvider, ITextureProvider textureProvider, Dictionary<string, IItemMainAuthoring> components)
 		{
 			var updatedComponents = new List<MonoBehaviour> { this };
 
-			// transforms
-			Rotation = new Vector3(data.RotX, data.RotY, data.RotZ);
-
 			// geometry
 			Height = data.Height;
 			HitHeight = data.HitHeight;
+			Rotation = new Vector3(data.RotX, data.RotY, data.RotZ);
 			Thickness = data.Thickness;
 			DragPoints = data.DragPoints;
 
@@ -143,14 +114,12 @@ namespace VisualPinball.Unity
 			// update the name
 			data.Name = name;
 
-			// translation
-			data.RotX = Rotation.x;
-			data.RotY = Rotation.y;
-			data.RotZ = Rotation.z;
-
 			// geometry
 			data.Height = Height;
 			data.HitHeight = HitHeight;
+			data.RotX = Rotation.x;
+			data.RotY = Rotation.y;
+			data.RotZ = Rotation.z;
 			data.Thickness = Thickness;
 			data.DragPoints = DragPoints;
 

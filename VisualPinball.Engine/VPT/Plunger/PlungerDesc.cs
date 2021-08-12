@@ -17,6 +17,7 @@
 using System;
 using System.Globalization;
 using VisualPinball.Engine.Math;
+using MathF = VisualPinball.Engine.Math.MathF;
 
 namespace VisualPinball.Engine.VPT.Plunger
 {

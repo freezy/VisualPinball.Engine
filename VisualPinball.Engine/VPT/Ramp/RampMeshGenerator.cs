@@ -24,6 +24,7 @@ using System;
 using System.Collections.Generic;
 using VisualPinball.Engine.Game;
 using VisualPinball.Engine.Math;
+using MathF = VisualPinball.Engine.Math.MathF;
 
 namespace VisualPinball.Engine.VPT.Ramp
 {
