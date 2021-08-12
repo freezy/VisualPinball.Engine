@@ -114,9 +114,6 @@ namespace VisualPinball.Engine.VPT.Rubber
 		[BiffTag("PNTS", Pos = 1999)]
 		public bool Points;
 
-		// Not saved in .vpx but still serialized so we don't need to re-calculate.
-		public Vertex3D MiddlePoint = new Vertex3D();
-
 		public RubberData() : base(StoragePrefix.GameItem)
 		{
 		}
