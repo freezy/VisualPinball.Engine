@@ -14,6 +14,8 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+// ReSharper disable InconsistentNaming
+
 using System;
 using System.Collections.Generic;
 using UnityEngine;
@@ -27,6 +29,14 @@ namespace VisualPinball.Unity
 	[AddComponentMenu("Visual Pinball/Mesh/Trigger Mesh")]
 	public class TriggerMeshAuthoring : ItemMeshAuthoring<Trigger, TriggerData, TriggerAuthoring>
 	{
+		#region Data
+
+		[Min(0)]
+		[Tooltip("Thickness of the trigger wire. Doesn't have any impact on the ball.")]
+		public float WireThickness;
+
+		#endregion
+
 		public static readonly Type[] ValidParentTypes = Type.EmptyTypes;
 
 		public override IEnumerable<Type> ValidParents => ValidParentTypes;

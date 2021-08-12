@@ -29,7 +29,6 @@ namespace VisualPinball.Unity.Editor
 		private SerializedProperty _positionProperty;
 		private SerializedProperty _rotationProperty;
 		private SerializedProperty _radiusProperty;
-		private SerializedProperty _wireThicknessProperty;
 		private SerializedProperty _surfaceProperty;
 
 		protected override void OnEnable()
@@ -39,7 +38,6 @@ namespace VisualPinball.Unity.Editor
 			_positionProperty = serializedObject.FindProperty(nameof(TriggerAuthoring.Position));
 			_rotationProperty = serializedObject.FindProperty(nameof(TriggerAuthoring.Rotation));
 			_radiusProperty = serializedObject.FindProperty(nameof(TriggerAuthoring.Radius));
-			_wireThicknessProperty = serializedObject.FindProperty(nameof(TriggerAuthoring.WireThickness));
 			_surfaceProperty = serializedObject.FindProperty(nameof(TriggerAuthoring._surface));
 		}
 
@@ -60,7 +58,6 @@ namespace VisualPinball.Unity.Editor
 			if (ItemAuthoring.IsCircle) {
 				PropertyField(_radiusProperty, updateTransforms: true);
 			}
-			PropertyField(_wireThicknessProperty, rebuildMesh: true);
 
 			base.OnInspectorGUI();
 
