@@ -52,10 +52,6 @@ namespace VisualPinball.Unity
 		[Tooltip("Radius of the trigger.")]
 		public float Radius = 25f;
 
-		[Min(0)]
-		[Tooltip("Thickness of the trigger wire. Doesn't have any impact on the ball.")]
-		public float WireThickness;
-
 		[SerializeField]
 		[TypeRestriction(typeof(ISurfaceAuthoring), PickerLabel = "Walls & Ramps", UpdateTransforms = true)]
 		[Tooltip("On which surface this surface is attached to. Updates z translation.")]
@@ -103,7 +99,7 @@ namespace VisualPinball.Unity
 				dstManager.AddComponentData(entity, new TriggerStaticData {
 					AnimSpeed = animComponent.AnimSpeed,
 					Radius = Radius,
-					Shape = Data.Shape,
+					Shape = Shape,
 					TableScaleZ = table.GetScaleZ()
 				});
 			}
@@ -122,6 +118,9 @@ namespace VisualPinball.Unity
 				? new Vector3(Position.x, Position.y, Surface.Height(Position))
 				: new Vector3(Position.x, Position.y, 0);
 
+			// scale
+			t.localScale = new Vector3(Radius, Radius, Radius);
+
 			// rotation
 			t.localEulerAngles = new Vector3(0, 0, Rotation);
 		}
@@ -138,13 +137,19 @@ namespace VisualPinball.Unity
 
 			// geometry
 			Radius = data.Radius;
-			WireThickness = data.WireThickness;
 			DragPoints = data.DragPoints;
+			Shape = data.Shape;
 
 			// visibility
 			var mr = GetComponent<MeshRenderer>();
 			if (mr) {
 				mr.enabled = data.IsVisible;
+			}
+
+			// mesh
+			var meshComponent = GetComponent<TriggerMeshAuthoring>();
+			if (meshComponent) {
+				meshComponent.WireThickness = data.WireThickness;
 			}
 
 			// collider
@@ -175,13 +180,18 @@ namespace VisualPinball.Unity
 
 			// geometry
 			data.Radius = Radius;
-			data.WireThickness = WireThickness;
 			data.DragPoints = DragPoints;
 
 			// visibility
 			var mr = GetComponent<MeshRenderer>();
 			if (mr) {
 				data.IsVisible = mr.enabled;
+			}
+
+			// mesh
+			var meshComponent = GetComponent<TriggerMeshAuthoring>();
+			if (meshComponent) {
+				data.WireThickness = meshComponent.WireThickness;
 			}
 
 			// collider
@@ -222,6 +232,10 @@ namespace VisualPinball.Unity
 			RebuildMeshes();
 			Position = ((float3)pos).xy;
 		}
+
+		public override ItemDataTransformType EditorScaleType => IsCircle ? ItemDataTransformType.OneD : ItemDataTransformType.None;
+		public override Vector3 GetEditorScale() => new Vector3(Radius, 0, 0);
+		public override void SetEditorScale(Vector3 rot) => Radius = rot.x;
 
 		public override ItemDataTransformType EditorRotationType => ItemDataTransformType.OneD;
 		public override Vector3 GetEditorRotation() => new Vector3(Rotation, 0f, 0f);
