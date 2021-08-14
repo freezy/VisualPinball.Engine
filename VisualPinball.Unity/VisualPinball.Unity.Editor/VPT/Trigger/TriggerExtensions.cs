@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-using System;
 using NLog;
+using UnityEditor;
 using UnityEngine;
 using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Trigger;
@@ -29,28 +29,34 @@ namespace VisualPinball.Unity
 
 		public static IConvertedItem InstantiateGameObject(this Trigger trigger, IItem item, IMaterialProvider materialProvider)
 		{
-			var obj = new GameObject(item.Name);
-			var convertedItem = new ConvertedItem<Trigger, TriggerData, TriggerAuthoring>(obj, trigger);
-			switch (trigger.SubComponent) {
-				case ItemSubComponent.None:
-					convertedItem.SetColliderAuthoring<TriggerColliderAuthoring>(materialProvider);
-					convertedItem.SetMeshAuthoring<TriggerMeshAuthoring>();
-					break;
+			var prefab = UnityEngine.Resources.Load<GameObject>("Prefabs/Trigger");
+			var obj = PrefabUtility.InstantiatePrefab(prefab) as GameObject;
+			obj!.name = item.Name;
 
-				case ItemSubComponent.Collider: {
-					Logger.Warn("Cannot parent a trigger collider to a different object than a trigger!");
-					break;
-				}
+			return new ConvertedItem<Trigger, TriggerData, TriggerAuthoring>(obj, true);
 
-				case ItemSubComponent.Mesh: {
-					Logger.Warn("Cannot parent a trigger mesh to a different object than a trigger!");
-					break;
-				}
-				default:
-					throw new ArgumentOutOfRangeException();
-			}
-
-			return convertedItem.AddConvertToEntity();
+			// var obj = new GameObject(item.Name);
+			// var convertedItem = new ConvertedItem<Trigger, TriggerData, TriggerAuthoring>(obj, trigger);
+			// switch (trigger.SubComponent) {
+			// 	case ItemSubComponent.None:
+			// 		convertedItem.SetColliderAuthoring<TriggerColliderAuthoring>(materialProvider);
+			// 		convertedItem.SetMeshAuthoring<TriggerMeshAuthoring>();
+			// 		break;
+			//
+			// 	case ItemSubComponent.Collider: {
+			// 		Logger.Warn("Cannot parent a trigger collider to a different object than a trigger!");
+			// 		break;
+			// 	}
+			//
+			// 	case ItemSubComponent.Mesh: {
+			// 		Logger.Warn("Cannot parent a trigger mesh to a different object than a trigger!");
+			// 		break;
+			// 	}
+			// 	default:
+			// 		throw new ArgumentOutOfRangeException();
+			// }
+			//
+			// return convertedItem.AddConvertToEntity();
 		}
 	}
 }

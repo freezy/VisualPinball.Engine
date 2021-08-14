@@ -1,0 +1,146 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1 &8116499157636777247
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 529052273840286473}
+  - component: {fileID: 6337435363468084629}
+  - component: {fileID: 7416895219031566499}
+  - component: {fileID: 3195222361417257232}
+  - component: {fileID: -2367600905824176933}
+  - component: {fileID: 1934921143686933034}
+  - component: {fileID: -6194213659880748689}
+  m_Layer: 0
+  m_Name: Trigger
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &529052273840286473
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8116499157636777247}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_RootOrder: 0
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &6337435363468084629
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8116499157636777247}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 064785265e73edf499c963876c56ebac, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _data:
+    StoragePrefix: 0
+    StorageIndex: -1
+    IsLocked: 0
+    EditorLayerName: 
+    EditorLayerVisibility: 1
+    Name: 
+    DragPoints: []
+    Center:
+      X: 0
+      Y: 0
+    Radius: 25
+    Rotation: 0
+    ScaleX: 1
+    ScaleY: 1
+    Material: 
+    Surface: 
+    IsVisible: 1
+    IsEnabled: 1
+    HitHeight: 50
+    Shape: 1
+    AnimSpeed: 1
+    WireThickness: 0
+    IsReflectionEnabled: 1
+    IsTimerEnabled: 0
+    TimerInterval: 0
+  Position: {x: 0, y: 0}
+  Rotation: 0
+  Radius: 25
+  _surface: {fileID: 0}
+  _dragPoints: []
+  Shape: 0
+--- !u!114 &7416895219031566499
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8116499157636777247}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: aa0a7cf5285df584398ad5f9d98e10c0, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  PhysicsMaterial: {fileID: 0}
+  ShowColliderMesh: 0
+  ShowAabbs: 0
+  HitHeight: 50
+--- !u!114 &3195222361417257232
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8116499157636777247}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 441e71fc0b3c61943a21a19f01d24681, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  AnimSpeed: 1
+--- !u!114 &-2367600905824176933
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8116499157636777247}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 12ec3c1d7933a674b867fada1788b0f4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _meshCreated: 1
+  WireThickness: 0
+--- !u!33 &1934921143686933034
+MeshFilter:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8116499157636777247}
+  m_Mesh: {fileID: 0}
+--- !u!114 &-6194213659880748689
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8116499157636777247}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ea7d7495833204790ba1d3a8755397f8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  ConversionMode: 1
