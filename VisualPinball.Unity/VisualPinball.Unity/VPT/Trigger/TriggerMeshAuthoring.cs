@@ -20,6 +20,7 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 using VisualPinball.Engine.Game;
+using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Table;
 using VisualPinball.Engine.VPT.Trigger;
 
@@ -31,11 +32,15 @@ namespace VisualPinball.Unity
 	{
 		#region Data
 
+		public int Shape;
+
 		[Min(0)]
 		[Tooltip("Thickness of the trigger wire. Doesn't have any impact on the ball.")]
 		public float WireThickness;
 
 		#endregion
+
+		public bool IsCircle => Shape == TriggerShape.TriggerStar || Shape == TriggerShape.TriggerButton;
 
 		public static readonly Type[] ValidParentTypes = Type.EmptyTypes;
 

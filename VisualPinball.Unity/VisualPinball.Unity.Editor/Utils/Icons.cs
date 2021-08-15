@@ -194,6 +194,7 @@ namespace VisualPinball.Unity.Editor
 			DisableGizmo<SurfaceTopMeshAuthoring>();
 			DisableGizmo<TableAuthoring>();
 			DisableGizmo<TriggerAuthoring>();
+			DisableGizmo<TriggerAnimationAuthoring>();
 			DisableGizmo<TriggerColliderAuthoring>();
 			DisableGizmo<TriggerMeshAuthoring>();
 		}

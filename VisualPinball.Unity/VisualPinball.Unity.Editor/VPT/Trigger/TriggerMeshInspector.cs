@@ -44,18 +44,35 @@ namespace VisualPinball.Unity.Editor
 			TriggerShape.TriggerWireD,
 		};
 
+		private SerializedProperty _wireThicknessProperty;
+		private SerializedProperty _shapeProperty;
+
+		protected override void OnEnable()
+		{
+			base.OnEnable();
+
+			_shapeProperty = serializedObject.FindProperty(nameof(TriggerMeshAuthoring.Shape));
+			_wireThicknessProperty = serializedObject.FindProperty(nameof(TriggerMeshAuthoring.WireThickness));
+		}
+
 		public override void OnInspectorGUI()
 		{
 			if (HasErrors()) {
 				return;
 			}
 
-			DropDownField("Shape", ref Data.Shape, TriggerShapeLabels, TriggerShapeValues);
-			ItemDataField("Wire Thickness", ref Data.WireThickness);
-			ItemDataField("Star Radius", ref Data.Radius);
-			MaterialFieldLegacy("Material", ref Data.Material);
+			serializedObject.Update();
+
+			OnPreInspectorGUI();
+
+			DropDownProperty("Shape", _shapeProperty, TriggerShapeLabels, TriggerShapeValues, true, true);
+			if (MeshAuthoring.IsCircle) {
+				PropertyField(_wireThicknessProperty, rebuildMesh: true);
+			}
 
 			base.OnInspectorGUI();
+
+			serializedObject.ApplyModifiedProperties();
 		}
 	}
 }
