@@ -28,7 +28,6 @@ namespace VisualPinball.Unity.Editor
 	{
 		private SerializedProperty _positionProperty;
 		private SerializedProperty _rotationProperty;
-		private SerializedProperty _radiusProperty;
 		private SerializedProperty _surfaceProperty;
 
 		protected override void OnEnable()
@@ -37,7 +36,6 @@ namespace VisualPinball.Unity.Editor
 
 			_positionProperty = serializedObject.FindProperty(nameof(TriggerAuthoring.Position));
 			_rotationProperty = serializedObject.FindProperty(nameof(TriggerAuthoring.Rotation));
-			_radiusProperty = serializedObject.FindProperty(nameof(TriggerAuthoring.Radius));
 			_surfaceProperty = serializedObject.FindProperty(nameof(TriggerAuthoring._surface));
 		}
 
@@ -54,10 +52,6 @@ namespace VisualPinball.Unity.Editor
 			PropertyField(_positionProperty, updateTransforms: true);
 			PropertyField(_rotationProperty, updateTransforms: true);
 			PropertyField(_surfaceProperty, updateTransforms: true);
-
-			if (ItemAuthoring.IsCircle) {
-				PropertyField(_radiusProperty, updateTransforms: true);
-			}
 
 			base.OnInspectorGUI();
 

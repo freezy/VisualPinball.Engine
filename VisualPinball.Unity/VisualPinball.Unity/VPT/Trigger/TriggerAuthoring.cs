@@ -48,10 +48,6 @@ namespace VisualPinball.Unity
 		[Range(-180f, 180f)]
 		public float Rotation;
 
-		[Min(0)]
-		[Tooltip("Radius of the trigger.")]
-		public float Radius = 25f;
-
 		[SerializeField]
 		[TypeRestriction(typeof(ISurfaceAuthoring), PickerLabel = "Walls & Ramps", UpdateTransforms = true)]
 		[Tooltip("On which surface this surface is attached to. Updates z translation.")]
@@ -62,10 +58,6 @@ namespace VisualPinball.Unity
 		private DragPointData[] _dragPoints;
 		public DragPointData[] DragPoints { get => _dragPoints; set => _dragPoints = value; }
 
-		[SerializeField]
-		[HideInInspector]
-		public int Shape;
-
 		#endregion
 
 		public Vector2 Center => Position;
@@ -75,8 +67,6 @@ namespace VisualPinball.Unity
 		public override IEnumerable<Type> ValidParents => TriggerColliderAuthoring.ValidParentTypes
 			.Concat(TriggerMeshAuthoring.ValidParentTypes)
 			.Distinct();
-
-		public bool IsCircle => Shape == TriggerShape.TriggerStar || Shape == TriggerShape.TriggerButton;
 
 		protected override Trigger InstantiateItem(TriggerData data) => new Trigger(data);
 		protected override TriggerData InstantiateData() => new TriggerData();
@@ -93,13 +83,14 @@ namespace VisualPinball.Unity
 
 			var collComponent = GetComponentInChildren<TriggerColliderAuthoring>();
 			var animComponent = GetComponentInChildren<TriggerAnimationAuthoring>();
-			if (collComponent && animComponent) {
+			var meshComponent = GetComponentInChildren<TriggerMeshAuthoring>();
+			if (collComponent && animComponent && meshComponent) {
 				dstManager.AddComponentData(entity, new TriggerAnimationData());
 				dstManager.AddComponentData(entity, new TriggerMovementData());
 				dstManager.AddComponentData(entity, new TriggerStaticData {
 					AnimSpeed = animComponent.AnimSpeed,
-					Radius = Radius,
-					Shape = Shape,
+					Radius = collComponent.HitCircleRadius,
+					Shape = meshComponent.Shape,
 					TableScaleZ = table.GetScaleZ()
 				});
 			}
@@ -118,9 +109,6 @@ namespace VisualPinball.Unity
 				? new Vector3(Position.x, Position.y, Surface.Height(Position))
 				: new Vector3(Position.x, Position.y, 0);
 
-			// scale
-			t.localScale = new Vector3(Radius, Radius, Radius);
-
 			// rotation
 			t.localEulerAngles = new Vector3(0, 0, Rotation);
 		}
@@ -136,9 +124,7 @@ namespace VisualPinball.Unity
 			UpdateTransforms();
 
 			// geometry
-			Radius = data.Radius;
 			DragPoints = data.DragPoints;
-			Shape = data.Shape;
 
 			// visibility
 			var mr = GetComponent<MeshRenderer>();
@@ -149,7 +135,9 @@ namespace VisualPinball.Unity
 			// mesh
 			var meshComponent = GetComponent<TriggerMeshAuthoring>();
 			if (meshComponent) {
+				meshComponent.Shape = data.Shape;
 				meshComponent.WireThickness = data.WireThickness;
+				meshComponent.CreateMesh(data, textureProvider, materialProvider);
 			}
 
 			// collider
@@ -157,6 +145,10 @@ namespace VisualPinball.Unity
 			if (collComponent) {
 				collComponent.enabled = data.IsEnabled;
 				collComponent.HitHeight = data.HitHeight;
+				collComponent.HitCircleRadius = data.Radius;
+				collComponent.HitShape = data.Shape == TriggerShape.TriggerStar || data.Shape == TriggerShape.TriggerButton
+					? TriggerCollisionShape.Circle
+					: TriggerCollisionShape.Polygon;
 				updatedComponents.Add(collComponent);
 			}
 
@@ -179,7 +171,6 @@ namespace VisualPinball.Unity
 			data.Surface = Surface != null ? Surface.name : string.Empty;
 
 			// geometry
-			data.Radius = Radius;
 			data.DragPoints = DragPoints;
 
 			// visibility
@@ -192,6 +183,7 @@ namespace VisualPinball.Unity
 			var meshComponent = GetComponent<TriggerMeshAuthoring>();
 			if (meshComponent) {
 				data.WireThickness = meshComponent.WireThickness;
+				data.Shape = meshComponent.Shape;
 			}
 
 			// collider
@@ -199,6 +191,7 @@ namespace VisualPinball.Unity
 			if (collComponent) {
 				data.IsEnabled = collComponent.gameObject.activeInHierarchy;
 				data.HitHeight = collComponent.HitHeight;
+				data.Radius = collComponent.HitCircleRadius;
 			} else {
 				data.IsEnabled = false;
 			}
@@ -232,10 +225,6 @@ namespace VisualPinball.Unity
 			RebuildMeshes();
 			Position = ((float3)pos).xy;
 		}
-
-		public override ItemDataTransformType EditorScaleType => IsCircle ? ItemDataTransformType.OneD : ItemDataTransformType.None;
-		public override Vector3 GetEditorScale() => new Vector3(Radius, 0, 0);
-		public override void SetEditorScale(Vector3 rot) => Radius = rot.x;
 
 		public override ItemDataTransformType EditorRotationType => ItemDataTransformType.OneD;
 		public override Vector3 GetEditorRotation() => new Vector3(Rotation, 0f, 0f);

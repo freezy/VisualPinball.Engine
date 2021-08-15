@@ -33,6 +33,13 @@ namespace VisualPinball.Unity
 		[Tooltip("Height at which the trigger closes.")]
 		public float HitHeight = 50f;
 
+		[Tooltip("Collider shape. A circle is just that, but you can also collide against a polygon.")]
+		public TriggerCollisionShape HitShape;
+
+		[Min(0)]
+		[Tooltip("Radius of the trigger.")]
+		public float HitCircleRadius = 25f;
+
 		#endregion
 
 		public static readonly Type[] ValidParentTypes = Type.EmptyTypes;
@@ -40,5 +47,10 @@ namespace VisualPinball.Unity
 		public override IEnumerable<Type> ValidParents => ValidParentTypes;
 		protected override IApiColliderGenerator InstantiateColliderApi(Player player, Entity entity, Entity parentEntity)
 			=> new TriggerApi(Item, gameObject, entity, parentEntity, player);
+	}
+
+	public enum TriggerCollisionShape
+	{
+		Circle, Polygon
 	}
 }
