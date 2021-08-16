@@ -642,6 +642,7 @@ namespace VisualPinball.Unity.Editor
 
 			_tableAuthoring = _tableGo.AddComponent<TableAuthoring>();
 			_tableAuthoring.SetItem(_table, tableName);
+			_tableAuthoring.SetData(_table.Data, this, this, new Dictionary<string, IItemMainAuthoring>());
 
 			_playfieldGo.transform.SetParent(_tableGo.transform, false);
 			backglassGo.transform.SetParent(_tableGo.transform, false);

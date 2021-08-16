@@ -104,9 +104,10 @@ namespace VisualPinball.Unity
 			var t = transform;
 
 			// position
+			var table = GetComponentInParent<TableAuthoring>();
 			t.localPosition = Surface != null
 				? new Vector3(Position.x, Position.y, Surface.Height(Position))
-				: new Vector3(Position.x, Position.y, 0);
+				: new Vector3(Position.x, Position.y, table ? table.TableHeight : 0);
 
 			// rotation
 			t.localEulerAngles = new Vector3(0, 0, Rotation);
