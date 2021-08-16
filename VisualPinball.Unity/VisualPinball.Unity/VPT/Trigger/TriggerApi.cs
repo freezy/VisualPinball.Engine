@@ -62,14 +62,16 @@ namespace VisualPinball.Unity
 
 		void IApiColliderGenerator.CreateColliders(Table table, List<ICollider> colliders)
 		{
-			var colliderGenerator = new TriggerColliderGenerator(this);
-			colliderGenerator.GenerateColliders(table, colliders);
+			var triggerAuth = GameObject.GetComponent<TriggerAuthoring>();
+			if (triggerAuth) {
+				var colliderGenerator = new TriggerColliderGenerator(this, triggerAuth.CreateData());
+				colliderGenerator.GenerateColliders(table, colliders);
+			}
 		}
 
 		ColliderInfo IApiColliderGenerator.GetColliderInfo() => GetColliderInfo();
 
 		#endregion
-
 
 		#region Events
 
