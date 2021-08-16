@@ -14,8 +14,6 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-// ReSharper disable AssignmentInConditionalExpression
-
 using UnityEditor;
 using VisualPinball.Engine.VPT.Spinner;
 
@@ -24,15 +22,29 @@ namespace VisualPinball.Unity.Editor
 	[CustomEditor(typeof(SpinnerColliderAuthoring))]
 	public class SpinnerColliderInspector : ItemColliderInspector<Spinner, SpinnerData, SpinnerAuthoring, SpinnerColliderAuthoring>
 	{
+		private SerializedProperty _elasticityProperty;
+
+		protected override void OnEnable()
+		{
+			base.OnEnable();
+			_elasticityProperty = serializedObject.FindProperty(nameof(SpinnerColliderAuthoring.Elasticity));
+		}
+
 		public override void OnInspectorGUI()
 		{
 			if (HasErrors()) {
 				return;
 			}
 
-			ItemDataField("Damping", ref Data.Damping, false);
+			serializedObject.Update();
+
+			OnPreInspectorGUI();
+
+			PropertyField(_elasticityProperty, updateTransforms: true);
 
 			base.OnInspectorGUI();
+
+			serializedObject.ApplyModifiedProperties();
 		}
 	}
 }

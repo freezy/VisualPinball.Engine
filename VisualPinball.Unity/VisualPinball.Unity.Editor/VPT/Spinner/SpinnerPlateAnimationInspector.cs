@@ -14,26 +14,21 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-using System;
-using System.Collections.Generic;
-using UnityEngine;
-using VisualPinball.Engine.Game;
+using UnityEditor;
 using VisualPinball.Engine.VPT.Spinner;
-using VisualPinball.Engine.VPT.Table;
 
-namespace VisualPinball.Unity
+namespace VisualPinball.Unity.Editor
 {
-	[ExecuteInEditMode]
-	[AddComponentMenu("Visual Pinball/Mesh/Spinner Bracket Mesh")]
-	public class SpinnerBracketMeshAuthoring : ItemMeshAuthoring<Spinner, SpinnerData, SpinnerAuthoring>
+	[CustomEditor(typeof(SpinnerPlateAnimationAuthoring))]
+	public class SpinnerPlateAnimationInspector : ItemAnimationInspector<Spinner, SpinnerData, SpinnerAuthoring, SpinnerPlateAnimationAuthoring>
 	{
-		public static readonly Type[] ValidParentTypes = new Type[0];
+		public override void OnInspectorGUI()
+		{
+			if (HasErrors()) {
+				return;
+			}
 
-		public override IEnumerable<Type> ValidParents => ValidParentTypes;
-
-		protected override string MeshId => SpinnerMeshGenerator.Bracket;
-
-		protected override RenderObject GetRenderObject(SpinnerData data, Table table)
-			=> new SpinnerMeshGenerator(data).GetRenderObject(table, SpinnerMeshGenerator.Bracket, Origin.Original, false);
+			EditorGUILayout.HelpBox("This component animates the spinner plate. It's parameterized by its parent.", MessageType.Info);
+		}
 	}
 }

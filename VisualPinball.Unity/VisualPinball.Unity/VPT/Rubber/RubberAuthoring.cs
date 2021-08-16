@@ -31,7 +31,6 @@ using VisualPinball.Engine.VPT.Rubber;
 
 namespace VisualPinball.Unity
 {
-	[ExecuteAlways]
 	[AddComponentMenu("Visual Pinball/Game Item/Rubber")]
 	public class RubberAuthoring : ItemMainRenderableAuthoring<Rubber, RubberData>,
 		IDragPointsAuthoring, IConvertGameObjectToEntity

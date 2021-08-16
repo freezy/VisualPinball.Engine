@@ -34,7 +34,6 @@ using VisualPinball.Engine.VPT.Trigger;
 
 namespace VisualPinball.Unity
 {
-	[ExecuteAlways]
 	[AddComponentMenu("Visual Pinball/Game Item/Trigger")]
 	public class TriggerAuthoring : ItemMainRenderableAuthoring<Trigger, TriggerData>,
 		ISwitchAuthoring, ITriggerAuthoring, IDragPointsAuthoring, IConvertGameObjectToEntity
@@ -50,7 +49,7 @@ namespace VisualPinball.Unity
 
 		[SerializeField]
 		[TypeRestriction(typeof(ISurfaceAuthoring), PickerLabel = "Walls & Ramps", UpdateTransforms = true)]
-		[Tooltip("On which surface this surface is attached to. Updates z translation.")]
+		[Tooltip("On which surface this surface is attached to. Updates Z-translation.")]
 		public MonoBehaviour _surface;
 		public ISurfaceAuthoring Surface { get => _surface as ISurfaceAuthoring; set => _surface = value as MonoBehaviour; }
 
