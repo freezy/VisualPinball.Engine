@@ -31,10 +31,10 @@ namespace VisualPinball.Unity
 
 		private bool IsRound => _data.Shape == TriggerShape.TriggerStar || _data.Shape == TriggerShape.TriggerButton;
 
-		public TriggerColliderGenerator(TriggerApi triggerApi)
+		public TriggerColliderGenerator(TriggerApi triggerApi, TriggerData data)
 		{
 			_api = triggerApi;
-			_data = triggerApi.Data;
+			_data = data;
 		}
 
 		internal void GenerateColliders(Table table, List<ICollider> colliders)
