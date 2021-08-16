@@ -17,6 +17,7 @@
 // ReSharper disable AssignmentInConditionalExpression
 
 using UnityEditor;
+using UnityEngine;
 using VisualPinball.Engine.VPT.Trigger;
 
 namespace VisualPinball.Unity.Editor
@@ -25,7 +26,6 @@ namespace VisualPinball.Unity.Editor
 	public class TriggerColliderInspector : ItemColliderInspector<Trigger, TriggerData, TriggerAuthoring, TriggerColliderAuthoring>
 	{
 		private SerializedProperty _hitHeightProperty;
-		private SerializedProperty _hitShapeProperty;
 		private SerializedProperty _hitCircleRadiusProperty;
 
 		protected override void OnEnable()
@@ -33,7 +33,6 @@ namespace VisualPinball.Unity.Editor
 			base.OnEnable();
 
 			_hitHeightProperty = serializedObject.FindProperty(nameof(TriggerColliderAuthoring.HitHeight));
-			_hitShapeProperty = serializedObject.FindProperty(nameof(TriggerColliderAuthoring.HitShape));
 			_hitCircleRadiusProperty = serializedObject.FindProperty(nameof(TriggerColliderAuthoring.HitCircleRadius));
 		}
 
@@ -47,10 +46,10 @@ namespace VisualPinball.Unity.Editor
 
 			OnPreInspectorGUI();
 
-			PropertyField(_hitHeightProperty, updateTransforms: true);
-			PropertyField(_hitShapeProperty, updateTransforms: true);
-			if (_hitShapeProperty.enumValueIndex == (int)TriggerCollisionShape.Circle) {
-				PropertyField(_hitCircleRadiusProperty, updateTransforms: true);
+			PropertyField(_hitHeightProperty);
+			var meshComponent = (target as TriggerColliderAuthoring)!.GetComponent<TriggerMeshAuthoring>();
+			if (meshComponent && meshComponent.IsCircle) {
+				PropertyField(_hitCircleRadiusProperty);
 			}
 
 			base.OnInspectorGUI();
