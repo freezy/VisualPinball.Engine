@@ -24,10 +24,30 @@ namespace VisualPinball.Unity.Editor
 	[CustomEditor(typeof(SpinnerAuthoring))]
 	public class SpinnerInspector : ItemMainInspector<Spinner, SpinnerData, SpinnerAuthoring>
 	{
-		private bool _foldoutGeometry = true;
-		private bool _foldoutMesh;
-		private bool _foldoutPhysics;
-		private bool _foldoutMisc;
+		private bool _foldoutPhysics = true;
+
+		private SerializedProperty _positionProperty;
+		private SerializedProperty _heightProperty;
+		private SerializedProperty _rotationProperty;
+		private SerializedProperty _lengthProperty;
+		private SerializedProperty _dampingProperty;
+		private SerializedProperty _angleMaxProperty;
+		private SerializedProperty _angleMinProperty;
+		private SerializedProperty _surfaceProperty;
+
+		protected override void OnEnable()
+		{
+			base.OnEnable();
+
+			_positionProperty = serializedObject.FindProperty(nameof(SpinnerAuthoring.Position));
+			_heightProperty = serializedObject.FindProperty(nameof(SpinnerAuthoring.Height));
+			_rotationProperty = serializedObject.FindProperty(nameof(SpinnerAuthoring.Rotation));
+			_lengthProperty = serializedObject.FindProperty(nameof(SpinnerAuthoring.Length));
+			_surfaceProperty = serializedObject.FindProperty(nameof(SpinnerAuthoring._surface));
+			_dampingProperty = serializedObject.FindProperty(nameof(SpinnerAuthoring.Damping));
+			_angleMaxProperty = serializedObject.FindProperty(nameof(SpinnerAuthoring.AngleMax));
+			_angleMinProperty = serializedObject.FindProperty(nameof(SpinnerAuthoring.AngleMin));
+		}
 
 		public override void OnInspectorGUI()
 		{
@@ -35,42 +55,26 @@ namespace VisualPinball.Unity.Editor
 				return;
 			}
 
-			ItemDataField("Position", ref Data.Center);
-			SurfaceField("Surface", ref Data.Surface);
+			serializedObject.Update();
 
 			OnPreInspectorGUI();
 
-			if (_foldoutGeometry = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutGeometry, "Geometry")) {
-
-				ItemDataField("Length", ref Data.Length);
-				ItemDataField("Height", ref Data.Height);
-				ItemDataField("Rotation", ref Data.Rotation);
-				ItemDataField("Angle Max", ref Data.AngleMax, false);
-				ItemDataField("Angle Min", ref Data.AngleMin, false);
-				ItemDataField("Elasticity", ref Data.Elasticity, false);
-			}
-			EditorGUILayout.EndFoldoutHeaderGroup();
-
-			if (_foldoutMesh = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutMesh, "Mesh")) {
-				ItemDataField("Visible", ref Data.IsVisible);
-				TextureFieldLegacy("Texture", ref Data.Image);
-				MaterialFieldLegacy("Material", ref Data.Material);
-				ItemDataField("Show Bracket", ref Data.ShowBracket);
-			}
-			EditorGUILayout.EndFoldoutHeaderGroup();
+			PropertyField(_positionProperty, updateTransforms: true);
+			PropertyField(_lengthProperty, updateTransforms: true);
+			PropertyField(_rotationProperty, updateTransforms: true);
+			PropertyField(_heightProperty, updateTransforms: true);
+			PropertyField(_surfaceProperty, updateTransforms: true);
 
 			if (_foldoutPhysics = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutPhysics, "Physics")) {
-				ItemDataField("Damping", ref Data.Damping, false);
-			}
-			EditorGUILayout.EndFoldoutHeaderGroup();
-
-			if (_foldoutMisc = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutMisc, "Misc")) {
-				ItemDataField("Timer Enabled", ref Data.IsTimerEnabled, false);
-				ItemDataField("Timer Interval", ref Data.TimerInterval, false);
+				PropertyField(_dampingProperty);
+				PropertyField(_angleMinProperty);
+				PropertyField(_angleMaxProperty);
 			}
 			EditorGUILayout.EndFoldoutHeaderGroup();
 
 			base.OnInspectorGUI();
+
+			serializedObject.ApplyModifiedProperties();
 		}
 	}
 }

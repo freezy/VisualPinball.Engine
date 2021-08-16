@@ -32,7 +32,6 @@ using VisualPinball.Engine.VPT.Ramp;
 
 namespace VisualPinball.Unity
 {
-	[ExecuteAlways]
 	[AddComponentMenu("Visual Pinball/Game Item/Ramp")]
 	public class RampAuthoring : ItemMainRenderableAuthoring<Ramp, RampData>, ISurfaceAuthoring, IDragPointsAuthoring, IConvertGameObjectToEntity
 	{

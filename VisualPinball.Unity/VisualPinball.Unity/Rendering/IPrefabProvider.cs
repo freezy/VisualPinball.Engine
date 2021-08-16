@@ -52,5 +52,12 @@ namespace VisualPinball.Unity
 		/// <returns>Prefab of the kicker (still needs to be instantiated)</returns>
 		/// <see cref="KickerType"/>
 		GameObject CreateKicker(int type);
+
+		/// <summary>
+		/// Creates a spinner prefab.
+		/// </summary>
+		/// <returns>Prefab of the spinner (still needs to be instantiated)</returns>
+		/// <see cref="KickerType"/>
+		GameObject CreateSpinner();
 	}
 }

@@ -31,7 +31,6 @@ using VisualPinball.Engine.VPT.Plunger;
 
 namespace VisualPinball.Unity
 {
-	[ExecuteAlways]
 	[AddComponentMenu("Visual Pinball/Game Item/Plunger")]
 	public class PlungerAuthoring : ItemMainRenderableAuthoring<Plunger, PlungerData>,
 		ICoilDeviceAuthoring, IConvertGameObjectToEntity
