@@ -157,6 +157,7 @@ namespace VisualPinball.Unity
 		{
 			// update the name
 			data.Name = name;
+			data.TableHeight = TableHeight;
 
 			return data;
 		}
