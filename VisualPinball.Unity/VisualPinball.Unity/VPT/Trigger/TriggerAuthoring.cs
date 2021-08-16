@@ -74,7 +74,6 @@ namespace VisualPinball.Unity
 		protected override Type MeshAuthoringType { get; } = typeof(ItemMeshAuthoring<Trigger, TriggerData, TriggerAuthoring>);
 		protected override Type ColliderAuthoringType { get; } = typeof(ItemColliderAuthoring<Trigger, TriggerData, TriggerAuthoring>);
 
-
 		public void Convert(Entity entity, EntityManager dstManager, GameObjectConversionSystem conversionSystem)
 		{
 			Convert(entity, dstManager);
@@ -146,9 +145,6 @@ namespace VisualPinball.Unity
 				collComponent.enabled = data.IsEnabled;
 				collComponent.HitHeight = data.HitHeight;
 				collComponent.HitCircleRadius = data.Radius;
-				collComponent.HitShape = data.Shape == TriggerShape.TriggerStar || data.Shape == TriggerShape.TriggerButton
-					? TriggerCollisionShape.Circle
-					: TriggerCollisionShape.Polygon;
 				updatedComponents.Add(collComponent);
 			}
 
