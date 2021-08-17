@@ -120,8 +120,8 @@ namespace VisualPinball.Unity
 
 			// position
 			t.localPosition = Surface != null
-				? new Vector3(Position.x, Position.y, Surface.Height(Position))
-				: new Vector3(Position.x, Position.y, 0); // todo + table height
+				? new Vector3(Position.x, Position.y, Height + Surface.Height(Position))
+				: new Vector3(Position.x, Position.y, Height + TableHeight);
 
 			// scale
 			t.localScale = new Vector3(Length, Length, Length);

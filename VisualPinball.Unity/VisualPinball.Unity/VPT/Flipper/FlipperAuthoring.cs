@@ -147,7 +147,7 @@ namespace VisualPinball.Unity
 			// position
 			t.localPosition = Surface != null
 				? new Vector3(Position.x, Position.y, Surface.Height(Position))
-				: new Vector3(Position.x, Position.y, 0); // todo fix 0
+				: new Vector3(Position.x, Position.y, TableHeight);
 
 			// rotation
 			t.localEulerAngles = new Vector3(0, 0, StartAngle);

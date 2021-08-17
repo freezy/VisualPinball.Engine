@@ -31,6 +31,13 @@ namespace VisualPinball.Unity
 	{
 		public virtual bool CanBeTransformed => true;
 
+		protected float TableHeight {
+			get {
+				var tableComponent = GetComponentInParent<TableAuthoring>();
+				return tableComponent ? tableComponent.TableHeight : 0f;
+			}
+		}
+
 		/// <summary>
 		/// Authoring type of the child class.
 		/// </summary>
