@@ -24,7 +24,7 @@ using Light = VisualPinball.Engine.VPT.Light.Light;
 
 namespace VisualPinball.Unity
 {
-	public class LightApi : ItemApi<Light, LightData>, IApiInitializable, IApiLamp
+	public class LightApi : ItemApi<LightAuthoring, Light, LightData>, IApiInitializable, IApiLamp
 	{
 		/// <summary>
 		/// Event emitted when the table is started.

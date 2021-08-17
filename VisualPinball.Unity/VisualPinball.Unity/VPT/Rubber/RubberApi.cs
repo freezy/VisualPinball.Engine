@@ -23,7 +23,7 @@ using VisualPinball.Engine.VPT.Table;
 
 namespace VisualPinball.Unity
 {
-	public class RubberApi : ItemApi<Rubber, RubberData>,
+	public class RubberApi : ItemApi<RubberAuthoring, Rubber, RubberData>,
 		IApiInitializable, IApiHittable, IApiColliderGenerator
 	{
 		/// <summary>
@@ -52,12 +52,12 @@ namespace VisualPinball.Unity
 
 		void IApiColliderGenerator.CreateColliders(Table table, List<ICollider> colliders)
 		{
-			var rubberAuth = GameObject.GetComponent<RubberAuthoring>();
-			if (rubberAuth) {
-				var data = rubberAuth.CreateData();
-				var colliderGenerator = new RubberColliderGenerator(this, new RubberMeshGenerator(data));
-				colliderGenerator.GenerateColliders(table, colliders);
+			if (!MainComponent) {
+				return;
 			}
+			var data = MainComponent.CreateData();
+			var colliderGenerator = new RubberColliderGenerator(this, new RubberMeshGenerator(data));
+			colliderGenerator.GenerateColliders(table, colliders);
 		}
 
 		ColliderInfo IApiColliderGenerator.GetColliderInfo() => GetColliderInfo(_physicsMaterial);

@@ -27,13 +27,19 @@ namespace VisualPinball.Unity
 	/// </summary>
 	/// <typeparam name="TItem">Item type</typeparam>
 	/// <typeparam name="TData">Item data type</typeparam>
+	/// <typeparam name="TItemComponent">Component Type</typeparam>
 	[Api]
-	public abstract class ItemApi<TItem, TData> : IApi where TItem : Item<TData> where TData : ItemData
+	public abstract class ItemApi<TItemComponent, TItem, TData> : IApi
+		where TItemComponent : ItemMainAuthoring<TItem, TData>
+		where TItem : Item<TData>
+		where TData : ItemData
 	{
 		/// <summary>
 		/// Item name
 		/// </summary>
 		public string Name => Item.Name;
+
+		protected readonly TItemComponent MainComponent;
 
 		internal readonly TItem Item;
 		internal readonly GameObject GameObject;
@@ -56,6 +62,7 @@ namespace VisualPinball.Unity
 		{
 			Item = item;
 			GameObject = go;
+			MainComponent = go.GetComponent<TItemComponent>();
 			Entity = Entity.Null;
 			ParentEntity = Entity.Null;
 			_player = player;
@@ -66,6 +73,7 @@ namespace VisualPinball.Unity
 			EntityManager = World.DefaultGameObjectInjectionWorld != null ? World.DefaultGameObjectInjectionWorld.EntityManager : default;
 			Item = item;
 			GameObject = go;
+			MainComponent = go.GetComponent<TItemComponent>();
 			Entity = entity;
 			ParentEntity = parentEntity;
 			_player = player;

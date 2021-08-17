@@ -22,7 +22,7 @@ using VisualPinball.Engine.VPT.Table;
 
 namespace VisualPinball.Unity
 {
-	public class RampApi : ItemApi<Engine.VPT.Ramp.Ramp, Engine.VPT.Ramp.RampData>, IApiInitializable, IApiColliderGenerator
+	public class RampApi : ItemApi<RampAuthoring, Engine.VPT.Ramp.Ramp, Engine.VPT.Ramp.RampData>, IApiInitializable, IApiColliderGenerator
 	{
 		/// <summary>
 		/// Event emitted when the table is started.

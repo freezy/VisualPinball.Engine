@@ -36,7 +36,7 @@ namespace VisualPinball.Unity
 	/// - The **ball stack**, where balls are stored for games that hold more than one ball.
 	/// </remarks>
 	[Api]
-	public class TroughApi : ItemApi<Trough, TroughData>, IApi, IApiInitializable, IApiSwitchDevice, IApiCoilDevice, IApiWireDeviceDest
+	public class TroughApi : ItemApi<TroughAuthoring, Trough, TroughData>, IApi, IApiInitializable, IApiSwitchDevice, IApiCoilDevice, IApiWireDeviceDest
 	{
 		/// <summary>
 		/// How many stack switches there are available.
