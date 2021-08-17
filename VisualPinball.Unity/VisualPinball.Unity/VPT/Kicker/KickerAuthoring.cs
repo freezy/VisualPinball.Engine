@@ -122,7 +122,7 @@ namespace VisualPinball.Unity
 			// position
 			t.localPosition = Surface != null
 				? new Vector3(Position.x, Position.y, Surface.Height(Position))
-				: new Vector3(Position.x, Position.y, 0f);
+				: new Vector3(Position.x, Position.y, 0f); // todo plus table height
 
 			if (KickerType == Engine.VPT.KickerType.KickerCup) {
 				t.localPosition += new Vector3(0, 0, -0.18f * Radius);

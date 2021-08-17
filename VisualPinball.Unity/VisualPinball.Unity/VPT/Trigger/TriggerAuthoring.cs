@@ -207,7 +207,7 @@ namespace VisualPinball.Unity
 
 		public override Vector3 GetEditorPosition() => Surface != null
 			? new Vector3(Position.x, Position.y, Surface.Height(Position))
-			: new Vector3(Position.x, Position.y, 0);
+			: new Vector3(Position.x, Position.y, 0); // todo? plus table height?
 
 		public override void SetEditorPosition(Vector3 pos)
 		{
