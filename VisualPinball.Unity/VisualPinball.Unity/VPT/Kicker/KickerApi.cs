@@ -25,7 +25,7 @@ using Random = Unity.Mathematics.Random;
 
 namespace VisualPinball.Unity
 {
-	public class KickerApi : ItemApi<Kicker, KickerData>, IApiInitializable, IApiHittable,
+	public class KickerApi : ItemApi<KickerAuthoring, Kicker, KickerData>, IApiInitializable, IApiHittable,
 		IApiSwitch, IApiCoil, IApiColliderGenerator
 	{
 		/// <summary>

@@ -22,7 +22,7 @@ using VisualPinball.Engine.VPT.Table;
 
 namespace VisualPinball.Unity
 {
-	public class GateApi : ItemApi<Engine.VPT.Gate.Gate, Engine.VPT.Gate.GateData>, IApiInitializable,
+	public class GateApi : ItemApi<GateAuthoring, Engine.VPT.Gate.Gate, Engine.VPT.Gate.GateData>, IApiInitializable,
 		IApiHittable, IApiRotatable, IApiSwitch, IApiColliderGenerator
 	{
 		/// <summary>

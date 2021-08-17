@@ -23,7 +23,7 @@ using VisualPinball.Engine.VPT.Table;
 
 namespace VisualPinball.Unity
 {
-	public class BumperApi : ItemApi<Bumper, BumperData>, IApiInitializable, IApiHittable, IApiSwitch, IApiCoil, IApiColliderGenerator
+	public class BumperApi : ItemApi<BumperAuthoring, Bumper, BumperData>, IApiInitializable, IApiHittable, IApiSwitch, IApiCoil, IApiColliderGenerator
 	{
 		/// <summary>
 		/// Event emitted when the table is started.
