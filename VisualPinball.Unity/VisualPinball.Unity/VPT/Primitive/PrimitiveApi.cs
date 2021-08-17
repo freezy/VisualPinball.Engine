@@ -36,8 +36,9 @@ namespace VisualPinball.Unity
 		/// </summary>
 		public event EventHandler<HitEventArgs> Hit;
 
-		internal PrimitiveApi(Primitive item, GameObject go, Entity entity, Entity parentEntity, PhysicsMaterial physicsMaterial, Player player)
-			: base(item, go, entity, parentEntity, player)
+		internal PrimitiveApi(GameObject go, Entity entity, Entity parentEntity, PhysicsMaterial physicsMaterial,
+			Player player)
+			: base(go, entity, parentEntity, player)
 		{
 			_physicsMaterial = physicsMaterial;
 		}
@@ -52,7 +53,7 @@ namespace VisualPinball.Unity
 
 		void IApiColliderGenerator.CreateColliders(Table table, List<ICollider> colliders)
 		{
-			var colliderGenerator = new PrimitiveColliderGenerator(this);
+			var colliderGenerator = new PrimitiveColliderGenerator(this, MainComponent.CreateData());
 			colliderGenerator.GenerateColliders(table, colliders);
 		}
 

@@ -28,6 +28,7 @@ using NLog;
 using UnityEngine;
 using VisualPinball.Engine.Game;
 using VisualPinball.Engine.IO;
+using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Light;
 using Light = VisualPinball.Engine.VPT.Light.Light;
 using Logger = NLog.Logger;
@@ -37,6 +38,7 @@ namespace VisualPinball.Unity
 	[AddComponentMenu("Visual Pinball/Game Item/Light")]
 	public class LightAuthoring : ItemMainRenderableAuthoring<Light, LightData>, ILampAuthoring
 	{
+		public override ItemType ItemType => ItemType.Light;
 		public ILightable Lightable => Item;
 
 		public bool Enabled {

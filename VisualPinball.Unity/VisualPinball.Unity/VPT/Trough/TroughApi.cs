@@ -162,7 +162,7 @@ namespace VisualPinball.Unity
 		/// </summary>
 		public event EventHandler Init;
 
-		internal TroughApi(Trough item, GameObject go, Player player) : base(item, go, player)
+		internal TroughApi(GameObject go, Player player) : base(go, player)
 		{
 			Debug.Log("Trough API instantiated.");
 		}
@@ -183,19 +183,19 @@ namespace VisualPinball.Unity
 
 			// setup switches
 			if (Data.Type != TroughType.ModernOpto && Data.Type != TroughType.ModernMech) {
-				EntrySwitch = CreateSwitch(Trough.EntrySwitchId, false, SwitchDefault.NormallyOpen);
-				_switchLookup[Trough.EntrySwitchId] = EntrySwitch;
+				EntrySwitch = CreateSwitch(TroughAuthoring.EntrySwitchId, false, SwitchDefault.NormallyOpen);
+				_switchLookup[TroughAuthoring.EntrySwitchId] = EntrySwitch;
 			}
 
 			if (Data.Type == TroughType.TwoCoilsOneSwitch) {
 				_stackSwitches = new[] {
-					CreateSwitch(Trough.TroughSwitchId, false, SwitchDefault.NormallyOpen)
+					CreateSwitch(TroughAuthoring.TroughSwitchId, false, SwitchDefault.NormallyOpen)
 				};
-				_switchLookup[Trough.TroughSwitchId] = StackSwitch();
+				_switchLookup[TroughAuthoring.TroughSwitchId] = StackSwitch();
 
 			} else {
 				_stackSwitches = new DeviceSwitch[Data.SwitchCount];
-				foreach (var sw in Item.AvailableSwitches) {
+				foreach (var sw in MainComponent.AvailableSwitches) {
 					if (sw.InternalId > 0) {
 						_stackSwitches[sw.InternalId - 1] = CreateSwitch(sw.Id, false, Data.Type == TroughType.ModernOpto ? SwitchDefault.NormallyClosed : SwitchDefault.NormallyOpen);
 						_switchLookup[sw.Id] = _stackSwitches[sw.InternalId - 1];
@@ -209,8 +209,8 @@ namespace VisualPinball.Unity
 			}
 
 			if (Data.JamSwitch) {
-				JamSwitch = CreateSwitch(Trough.JamSwitchId, false, Data.Type == TroughType.ModernOpto ? SwitchDefault.NormallyClosed : SwitchDefault.NormallyOpen);
-				_switchLookup[Trough.JamSwitchId] = JamSwitch;
+				JamSwitch = CreateSwitch(TroughAuthoring.JamSwitchId, false, Data.Type == TroughType.ModernOpto ? SwitchDefault.NormallyClosed : SwitchDefault.NormallyOpen);
+				_switchLookup[TroughAuthoring.JamSwitchId] = JamSwitch;
 			}
 
 			// setup coils
@@ -394,9 +394,9 @@ namespace VisualPinball.Unity
 					for (var i = 0; i < Data.SwitchCount - _countedStackBalls; i++) {
 						_stackSwitches[pos].ScheduleSwitch(true, t);
 
-						t += Item.RollTimeDisabled;
+						t += MainComponent.RollTimeDisabled;
 						_stackSwitches[pos].ScheduleSwitch(false, t);
-						t += Item.RollTimeEnabled;
+						t += MainComponent.RollTimeEnabled;
 						pos--;
 					}
 					// switch nearest to the eject comes last, but doesn't re-open.
@@ -408,7 +408,7 @@ namespace VisualPinball.Unity
 					_countedStackBalls++;
 					if (_countedStackBalls < Data.SwitchCount) {
 						StackSwitch().ScheduleSwitch(true, t);
-						t += Item.RollTimeDisabled;
+						t += MainComponent.RollTimeDisabled;
 						StackSwitch().ScheduleSwitch(false, t);
 
 					} else if (_countedStackBalls == Data.SwitchCount) {
@@ -517,14 +517,14 @@ namespace VisualPinball.Unity
 				case TroughType.TwoCoilsNSwitches:
 
 					// don't re-close the switch nearest to the entry
-					_stackSwitches[pos].ScheduleSwitch(false, Item.RollTimeDisabled);
+					_stackSwitches[pos].ScheduleSwitch(false, MainComponent.RollTimeDisabled);
 
 					// move remaining but last ball (which has been ejected) one position further,
 					// all at the same time
 					for (var i = 0; i < _countedStackBalls - 2; i++) {
 						pos--;
-						if (Item.RollTimeEnabled != 0) {
-							_stackSwitches[pos].ScheduleSwitch(false, Item.RollTimeDisabled);
+						if (MainComponent.RollTimeEnabled != 0) {
+							_stackSwitches[pos].ScheduleSwitch(false, MainComponent.RollTimeDisabled);
 							_stackSwitches[pos].ScheduleSwitch(true, Data.RollTime);
 						}
 					}
@@ -538,7 +538,7 @@ namespace VisualPinball.Unity
 				case TroughType.TwoCoilsOneSwitch:
 					// there is only one switch in the trough, so if it's closed, open it.
 					if (StackSwitch().IsEnabled) {
-						StackSwitch().ScheduleSwitch(false, Item.RollTimeDisabled);
+						StackSwitch().ScheduleSwitch(false, MainComponent.RollTimeDisabled);
 					}
 					break;
 
@@ -619,10 +619,10 @@ namespace VisualPinball.Unity
 		IApiCoil IApiCoilDevice.Coil(string coilId)
 		{
 			switch (coilId) {
-				case Trough.EntryCoilId:
+				case TroughAuthoring.EntryCoilId:
 					return EntryCoil;
 
-				case Trough.EjectCoilId:
+				case TroughAuthoring.EjectCoilId:
 					return ExitCoil;
 
 				default:

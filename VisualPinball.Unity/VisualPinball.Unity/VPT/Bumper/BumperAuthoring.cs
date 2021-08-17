@@ -27,6 +27,7 @@ using Unity.Entities;
 using Unity.Mathematics;
 using UnityEngine;
 using VisualPinball.Engine.Game;
+using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Bumper;
 
 namespace VisualPinball.Unity
@@ -35,9 +36,12 @@ namespace VisualPinball.Unity
 	public class BumperAuthoring : ItemMainRenderableAuthoring<Bumper, BumperData>,
 		ISwitchAuthoring, ICoilAuthoring, IConvertGameObjectToEntity
 	{
+		public override ItemType ItemType { get; } = ItemType.Bumper;
 		public override IEnumerable<Type> ValidParents => BumperColliderAuthoring.ValidParentTypes;
 
 		public ISwitchable Switchable => Item;
+
+		public bool IsPulseSwitch => true;
 
 		#region Data
 

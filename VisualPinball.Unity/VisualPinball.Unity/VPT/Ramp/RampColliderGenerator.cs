@@ -30,11 +30,11 @@ namespace VisualPinball.Unity
 		private readonly RampData _data;
 		private readonly RampMeshGenerator _meshGenerator;
 
-		public RampColliderGenerator(RampApi rampApi)
+		public RampColliderGenerator(RampApi rampApi, RampData data)
 		{
 			_api = rampApi;
-			_data = rampApi.Data;
-			_meshGenerator = rampApi.Item.MeshGenerator;
+			_data = data;
+			_meshGenerator = new RampMeshGenerator(data);
 		}
 
 		internal void GenerateColliders(Table table, List<ICollider> colliders)

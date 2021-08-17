@@ -29,7 +29,6 @@ namespace VisualPinball.Engine.VPT.Table
 	{
 		public override string ItemName { get; } = "Table";
 		public override string ItemGroupName { get; } = "Playfield";
-		public override ItemType ItemType { get; } = ItemType.Table;
 
 		public float Width => Data.Right - Data.Left;
 		public float Height => Data.Bottom - Data.Top;

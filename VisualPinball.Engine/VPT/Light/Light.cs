@@ -24,7 +24,6 @@ namespace VisualPinball.Engine.VPT.Light
 	{
 		public override string ItemName { get; } = "Light";
 		public override string ItemGroupName { get; } = "Lights";
-		public override ItemType ItemType { get; } = ItemType.Light;
 
 		public Vertex3D Position { get => new Vertex3D(Data.Center.X, Data.Center.Y, 0); set => Data.Center = new Vertex2D(value.X, value.Y); }
 		public float RotationY { get => 0; set { } }

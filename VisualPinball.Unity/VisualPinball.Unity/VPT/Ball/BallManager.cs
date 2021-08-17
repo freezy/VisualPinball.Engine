@@ -70,7 +70,6 @@ namespace VisualPinball.Unity
 			);
 			var scale = (scale3.x + scale3.y + scale3.z) / 3.0f; // scale is only scale (without radiusfloat now, not vector.
 
-
 			var ballId = NumBallsCreated++;
 			var ballPrefab = RenderPipeline.Current.BallConverter.CreateDefaultBall();
 			var ballGo = Object.Instantiate(ballPrefab, _playfield.transform);

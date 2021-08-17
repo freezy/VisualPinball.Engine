@@ -38,11 +38,11 @@ namespace VisualPinball.Unity
 		private readonly PrimitiveMeshGenerator _meshGenerator;
 		private bool _useAsPlayfield;
 
-		public PrimitiveColliderGenerator(PrimitiveApi primitiveApi)
+		public PrimitiveColliderGenerator(PrimitiveApi primitiveApi, PrimitiveData data)
 		{
 			_api = primitiveApi;
-			_data = primitiveApi.Data;
-			_meshGenerator = primitiveApi.Item.MeshGenerator;
+			_data = data;
+			_meshGenerator = new PrimitiveMeshGenerator(data);
 		}
 
 		internal void GenerateColliders(Table table, List<ICollider> colliders)

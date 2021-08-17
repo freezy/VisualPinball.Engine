@@ -54,6 +54,8 @@ namespace VisualPinball.Unity
 
 		#endregion
 
+		public override ItemType ItemType => ItemType.Table;
+
 		protected override Table InstantiateItem(TableData data) => new Table(TableContainer, data);
 		protected override TableData InstantiateData() => new TableData();
 

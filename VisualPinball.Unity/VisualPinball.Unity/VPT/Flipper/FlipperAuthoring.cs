@@ -30,6 +30,7 @@ using Unity.Mathematics;
 using UnityEngine;
 using VisualPinball.Engine.Game;
 using VisualPinball.Engine.Math;
+using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Flipper;
 using VisualPinball.Engine.VPT.Trigger;
 using Color = UnityEngine.Color;
@@ -41,6 +42,9 @@ namespace VisualPinball.Unity
 	public class FlipperAuthoring : ItemMainRenderableAuthoring<Flipper, FlipperData>,
 		ISwitchAuthoring, ICoilAuthoring, IConvertGameObjectToEntity
 	{
+		public override ItemType ItemType => ItemType.Flipper;
+		public bool IsPulseSwitch => false;
+
 		#region Data
 
 		[Tooltip("Position of the flipper on the playfield.")]

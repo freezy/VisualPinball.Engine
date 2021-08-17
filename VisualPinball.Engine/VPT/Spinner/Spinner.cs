@@ -24,7 +24,6 @@ namespace VisualPinball.Engine.VPT.Spinner
 	{
 		public override string ItemName { get; } = "Spinner";
 		public override string ItemGroupName { get; } = "Spinners";
-		public override ItemType ItemType { get; } = ItemType.Spinner;
 
 		public Matrix3D TransformationMatrix { get; } = Matrix3D.Identity;
 

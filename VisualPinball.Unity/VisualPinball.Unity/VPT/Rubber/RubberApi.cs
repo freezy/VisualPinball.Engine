@@ -38,8 +38,9 @@ namespace VisualPinball.Unity
 
 		private readonly PhysicsMaterial _physicsMaterial;
 
-		internal RubberApi(Rubber item, GameObject go, Entity entity, Entity parentEntity, PhysicsMaterial physicsMaterial, Player player)
-			: base(item, go, entity, parentEntity, player)
+		internal RubberApi(GameObject go, Entity entity, Entity parentEntity, PhysicsMaterial physicsMaterial,
+			Player player)
+			: base(go, entity, parentEntity, player)
 		{
 			_physicsMaterial = physicsMaterial;
 		}

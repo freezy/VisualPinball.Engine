@@ -85,6 +85,8 @@ namespace VisualPinball.Unity
 
 		#endregion
 
+		public override ItemType ItemType => ItemType.Plunger;
+
 		protected override Plunger InstantiateItem(PlungerData data) => new Plunger(data);
 		protected override PlungerData InstantiateData() => new PlungerData();
 

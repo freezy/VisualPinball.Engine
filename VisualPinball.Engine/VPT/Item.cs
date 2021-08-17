@@ -32,8 +32,6 @@ namespace VisualPinball.Engine.VPT
 		public abstract string ItemName { get; }
 		public abstract string ItemGroupName { get; }
 
-		public abstract ItemType ItemType { get; }
-
 		public readonly TData Data;
 
 		public string Name

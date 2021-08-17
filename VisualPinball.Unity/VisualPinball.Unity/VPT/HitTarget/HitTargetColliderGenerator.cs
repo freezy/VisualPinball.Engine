@@ -30,11 +30,11 @@ namespace VisualPinball.Unity
 		private readonly HitTargetData _data;
 		private readonly HitTargetMeshGenerator _meshGenerator;
 
-		public HitTargetColliderGenerator(HitTargetApi hitTargetApi)
+		public HitTargetColliderGenerator(HitTargetApi hitTargetApi, HitTargetData data)
 		{
 			_api = hitTargetApi;
-			_data = hitTargetApi.Data;
-			_meshGenerator = hitTargetApi.Item.MeshGenerator;
+			_data = data;
+			_meshGenerator = new HitTargetMeshGenerator(data);
 		}
 
 		internal void GenerateColliders(Table table, List<ICollider> colliders)

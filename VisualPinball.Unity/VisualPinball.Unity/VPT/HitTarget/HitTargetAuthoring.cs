@@ -28,6 +28,7 @@ using Unity.Entities;
 using UnityEngine;
 using VisualPinball.Engine.Game;
 using VisualPinball.Engine.IO;
+using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.HitTarget;
 
 namespace VisualPinball.Unity
@@ -36,6 +37,8 @@ namespace VisualPinball.Unity
 	public class HitTargetAuthoring : ItemMainRenderableAuthoring<HitTarget, HitTargetData>,
 		ISwitchAuthoring, IConvertGameObjectToEntity
 	{
+		public override ItemType ItemType => ItemType.HitTarget;
+
 		#region Data
 
 		[Tooltip("Position of the target on the playfield.")]
@@ -49,6 +52,15 @@ namespace VisualPinball.Unity
 		public Vector3 Size = new Vector3(32f, 32f, 32f);
 
 		#endregion
+
+		public bool IsPulseSwitch => true;
+
+		public bool IsDropTarget {
+			get {
+				var comp = GetComponent<DropTargetAnimationAuthoring>();
+				return comp && comp.isActiveAndEnabled;
+			}
+		}
 
 		protected override HitTarget InstantiateItem(HitTargetData data) => new HitTarget(data);
 		protected override HitTargetData InstantiateData() => new HitTargetData();
