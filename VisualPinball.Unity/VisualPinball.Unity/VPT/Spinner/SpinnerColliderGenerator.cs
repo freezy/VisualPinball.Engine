@@ -26,25 +26,23 @@ namespace VisualPinball.Unity
 		private readonly SpinnerApi _api;
 		private readonly SpinnerData _data;
 
-		public SpinnerColliderGenerator(SpinnerApi spinnerApi)
+		public SpinnerColliderGenerator(SpinnerApi spinnerApi, SpinnerData data)
 		{
 			_api = spinnerApi;
-			_data = spinnerApi.Data;
+			_data = data;
 		}
 
-		internal void GenerateColliders(Table table, List<ICollider> colliders)
+		internal void GenerateColliders(float height, List<ICollider> colliders)
 		{
-			var height = table.GetSurfaceHeight(_data.Surface, _data.Center.X, _data.Center.Y);
-			colliders.Add(new SpinnerCollider(_data, height, _api.GetColliderInfo()));
+			colliders.Add(new SpinnerCollider(_data, height - _data.Height, _api.GetColliderInfo()));
 			if (_data.ShowBracket) {
-				GenerateBracketColliders(table, colliders);
+				GenerateBracketColliders(height, colliders);
 			}
 		}
 
-		private void GenerateBracketColliders(Table table, ICollection<ICollider> colliders)
+		private void GenerateBracketColliders(float height, ICollection<ICollider> colliders)
 		{
-			var height = table.GetSurfaceHeight(_data.Surface, _data.Center.X, _data.Center.Y);
-			var h = _data.Height + 30.0f;
+			const float h = 30.0f;
 
 			/*add a hit shape for the bracket if shown, just in case if the bracket spinner height is low enough so the ball can hit it*/
 			var halfLength = _data.Length * 0.5f + _data.Length * 0.1875f;
@@ -55,7 +53,7 @@ namespace VisualPinball.Unity
 			colliders.Add(new CircleCollider(
 				new float2(_data.Center.X + cs * halfLength, _data.Center.Y + sn * halfLength),
 				_data.Length * 0.075f,
-				height + _data.Height,
+				height,
 				height + h,
 				_api.GetColliderInfo()
 			));
@@ -63,7 +61,7 @@ namespace VisualPinball.Unity
 			colliders.Add(new CircleCollider(
 				new float2(_data.Center.X - cs * halfLength, _data.Center.Y - sn * halfLength),
 				_data.Length * 0.075f,
-				height + _data.Height,
+				height,
 				height + h,
 				_api.GetColliderInfo()
 			));

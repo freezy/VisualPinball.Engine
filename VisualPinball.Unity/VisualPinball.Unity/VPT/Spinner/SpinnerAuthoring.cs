@@ -72,6 +72,8 @@ namespace VisualPinball.Unity
 
 		#endregion
 
+		public float HeightOnPlayfield => Height + (Surface?.Height(Position) ?? TableHeight);
+
 		protected override Spinner InstantiateItem(SpinnerData data) => new Spinner(data);
 		protected override SpinnerData InstantiateData() => new SpinnerData();
 
@@ -119,9 +121,7 @@ namespace VisualPinball.Unity
 			var t = transform;
 
 			// position
-			t.localPosition = Surface != null
-				? new Vector3(Position.x, Position.y, Height + Surface.Height(Position))
-				: new Vector3(Position.x, Position.y, Height + TableHeight);
+			t.localPosition = new Vector3(Position.x, Position.y, HeightOnPlayfield);
 
 			// scale
 			t.localScale = new Vector3(Length, Length, Length);

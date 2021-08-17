@@ -60,9 +60,9 @@ namespace VisualPinball.Unity.Editor
 			OnPreInspectorGUI();
 
 			PropertyField(_positionProperty, updateTransforms: true);
+			PropertyField(_heightProperty, updateTransforms: true);
 			PropertyField(_lengthProperty, updateTransforms: true);
 			PropertyField(_rotationProperty, updateTransforms: true);
-			PropertyField(_heightProperty, updateTransforms: true);
 			PropertyField(_surfaceProperty, updateTransforms: true);
 
 			if (_foldoutPhysics = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutPhysics, "Physics")) {

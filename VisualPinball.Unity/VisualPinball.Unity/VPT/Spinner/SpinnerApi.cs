@@ -85,8 +85,11 @@ namespace VisualPinball.Unity
 
 		void IApiColliderGenerator.CreateColliders(Table table, List<ICollider> colliders)
 		{
-			var colliderGenerator = new SpinnerColliderGenerator(this);
-			colliderGenerator.GenerateColliders(table, colliders);
+			var spinnerComp = GameObject.GetComponent<SpinnerAuthoring>();
+			if (spinnerComp) {
+				var colliderGenerator = new SpinnerColliderGenerator(this, spinnerComp.CreateData());
+				colliderGenerator.GenerateColliders(spinnerComp.HeightOnPlayfield, colliders);
+			}
 		}
 
 		ColliderInfo IApiColliderGenerator.GetColliderInfo() => GetColliderInfo();
