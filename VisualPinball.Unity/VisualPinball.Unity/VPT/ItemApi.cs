@@ -35,10 +35,10 @@ namespace VisualPinball.Unity
 		/// </summary>
 		public string Name => Item.Name;
 
-		internal TItem Item;
-		internal GameObject GameObject;
+		internal readonly TItem Item;
+		internal readonly GameObject GameObject;
 		internal readonly Entity Entity;
-		internal readonly Entity ParentEntity;
+		private readonly Entity ParentEntity;
 
 		public TData Data => Item.Data;
 		private protected Table Table => _player.Table;
