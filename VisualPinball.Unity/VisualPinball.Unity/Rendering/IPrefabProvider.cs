@@ -38,14 +38,6 @@ namespace VisualPinball.Unity
 		GameObject CreateGate(int type);
 
 		/// <summary>
-		/// Creates a target prefab.
-		/// </summary>
-		/// <param name="type">Target type</param>
-		/// <returns>Prefab of the gate (still needs to be instantiated)</returns>
-		/// <see cref="TargetType"/>
-		GameObject CreateTarget(int type);
-
-		/// <summary>
 		/// Creates a kicker prefab.
 		/// </summary>
 		/// <param name="type">Kicker type</param>
@@ -59,5 +51,14 @@ namespace VisualPinball.Unity
 		/// <returns>Prefab of the spinner (still needs to be instantiated)</returns>
 		/// <see cref="KickerType"/>
 		GameObject CreateSpinner();
+
+		/// <summary>
+		/// Creates a target prefab.
+		/// </summary>
+		/// <param name="type">Target type</param>
+		/// <returns>Prefab of the gate (still needs to be instantiated)</returns>
+		/// <see cref="TargetType"/>
+		GameObject CreateTarget(int type);
+
 	}
 }
