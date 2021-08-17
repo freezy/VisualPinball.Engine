@@ -62,14 +62,7 @@ namespace VisualPinball.Unity
 			.Concat(SurfaceTopMeshAuthoring.ValidParentTypes)
 			.Distinct();
 
-		public float Height(Vector2 _)
-		{
-			var table = GetComponentInParent<TableAuthoring>();
-			if (table) {
-				return HeightTop + table.TableHeight;
-			}
-			return HeightTop;
-		}
+		public float Height(Vector2 _) => HeightTop + TableHeight;
 
 		public void Convert(Entity entity, EntityManager dstManager, GameObjectConversionSystem conversionSystem)
 		{
