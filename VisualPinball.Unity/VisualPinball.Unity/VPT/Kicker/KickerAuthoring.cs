@@ -29,13 +29,16 @@ using Unity.Mathematics;
 using UnityEngine;
 using VisualPinball.Engine.Game;
 using VisualPinball.Engine.IO;
+using VisualPinball.Engine.Math;
+using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Kicker;
+using VisualPinball.Engine.VPT.Table;
 
 namespace VisualPinball.Unity
 {
 	[AddComponentMenu("Visual Pinball/Game Item/Kicker")]
 	public class KickerAuthoring : ItemMainRenderableAuthoring<Kicker, KickerData>,
-		ISwitchAuthoring, ICoilAuthoring, ITriggerAuthoring, IConvertGameObjectToEntity
+		ISwitchAuthoring, ICoilAuthoring, ITriggerAuthoring, IBallCreationPosition, IConvertGameObjectToEntity
 	{
 		#region Data
 
@@ -58,6 +61,9 @@ namespace VisualPinball.Unity
 		public int KickerType;
 
 		#endregion
+
+		public override ItemType ItemType => ItemType.Kicker;
+		public bool IsPulseSwitch => false;
 
 		protected override Kicker InstantiateItem(KickerData data) => new Kicker(data);
 		protected override KickerData InstantiateData() => new KickerData();
@@ -85,7 +91,7 @@ namespace VisualPinball.Unity
 					HitAccuracy = colliderAuthoring.HitAccuracy,
 					Scatter = colliderAuthoring.Scatter,
 					LegacyMode = true, // todo colliderAuthoring.LegacyMode,
-					ZLow = Surface?.Height(Position) ?? 0f
+					ZLow = Surface?.Height(Position) ?? TableHeight
 				});
 
 				dstManager.AddComponentData(entity, new KickerCollisionData {
@@ -198,6 +204,18 @@ namespace VisualPinball.Unity
 
 			return data;
 		}
+
+		#region IBallCreationPosition
+
+		public Vertex3D GetBallCreationPosition(Table table)
+		{
+			var height = Surface?.Height(Position) ?? TableHeight;
+			return new Vertex3D(Data.Center.X, Data.Center.Y, height);
+		}
+
+		public Vertex3D GetBallCreationVelocity(Table table) => new Vertex3D(0.1f, 0, 0);
+
+		#endregion
 
 		#region Editor Tooling
 

@@ -73,13 +73,13 @@ namespace VisualPinball.Unity
 		// todo
 		public event EventHandler Timer;
 
-		public GateApi(Engine.VPT.Gate.Gate item, GameObject go, Entity entity, Entity parentEntity, Player player)
-			: base(item, go, entity, parentEntity, player)
+		public GateApi(GameObject go, Entity entity, Entity parentEntity, Player player)
+			: base(go, entity, parentEntity, player)
 		{
 		}
 
-		IApiSwitchStatus IApiSwitch.AddSwitchDest(SwitchConfig switchConfig) => AddSwitchDest(switchConfig.WithPulse(Item.IsPulseSwitch));
-		void IApiSwitch.AddWireDest(WireDestConfig wireConfig) => AddWireDest(wireConfig.WithPulse(Item.IsPulseSwitch));
+		IApiSwitchStatus IApiSwitch.AddSwitchDest(SwitchConfig switchConfig) => AddSwitchDest(switchConfig.WithPulse(MainComponent.IsPulseSwitch));
+		void IApiSwitch.AddWireDest(WireDestConfig wireConfig) => AddWireDest(wireConfig.WithPulse(MainComponent.IsPulseSwitch));
 		void IApiSwitch.RemoveWireDest(string destId) => RemoveWireDest(destId);
 		void IApiSwitch.DestroyBall(Entity ballEntity) => DestroyBall(ballEntity);
 

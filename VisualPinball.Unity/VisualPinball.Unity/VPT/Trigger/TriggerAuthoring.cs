@@ -29,6 +29,7 @@ using Unity.Mathematics;
 using UnityEngine;
 using VisualPinball.Engine.Game;
 using VisualPinball.Engine.Math;
+using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Trigger;
 
 namespace VisualPinball.Unity
@@ -57,6 +58,10 @@ namespace VisualPinball.Unity
 		public DragPointData[] DragPoints { get => _dragPoints; set => _dragPoints = value; }
 
 		#endregion
+
+		public override ItemType ItemType => ItemType.Trigger;
+
+		public bool IsPulseSwitch => false;
 
 		public Vector2 Center => Position;
 

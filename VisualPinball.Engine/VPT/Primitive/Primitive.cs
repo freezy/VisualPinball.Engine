@@ -31,7 +31,6 @@ namespace VisualPinball.Engine.VPT.Primitive
 	{
 		public override string ItemName { get; } = "Primitive";
 		public override string ItemGroupName { get; } = "Primitives";
-		public override ItemType ItemType { get; } = ItemType.Primitive;
 
 		public bool UseAsPlayfield;
 

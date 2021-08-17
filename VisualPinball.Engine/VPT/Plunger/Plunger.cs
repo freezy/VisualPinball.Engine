@@ -26,7 +26,6 @@ namespace VisualPinball.Engine.VPT.Plunger
 	{
 		public override string ItemName { get; } = "Plunger";
 		public override string ItemGroupName { get; } = "Plungers";
-		public override ItemType ItemType { get; } = ItemType.Plunger;
 
 		public const string PullCoilId = "c_pull";
 		public const string FireCoilId = "c_autofire";

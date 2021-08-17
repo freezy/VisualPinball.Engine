@@ -83,6 +83,8 @@ namespace VisualPinball.Unity
 
 		#endregion
 
+		public override ItemType ItemType => ItemType.Ramp;
+
 		protected override Ramp InstantiateItem(RampData data) => new Ramp(data);
 		protected override RampData InstantiateData() => new RampData();
 

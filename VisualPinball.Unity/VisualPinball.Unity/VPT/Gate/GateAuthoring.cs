@@ -30,6 +30,7 @@ using UnityEngine;
 using VisualPinball.Engine.Common;
 using VisualPinball.Engine.Game;
 using VisualPinball.Engine.IO;
+using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Gate;
 
 namespace VisualPinball.Unity
@@ -38,6 +39,10 @@ namespace VisualPinball.Unity
 	public class GateAuthoring : ItemMainRenderableAuthoring<Gate, GateData>,
 		ISwitchAuthoring, IConvertGameObjectToEntity
 	{
+		public override ItemType ItemType => ItemType.Gate;
+
+		public bool IsPulseSwitch => true;
+
 		#region Data
 
 		[Tooltip("Position of the gate on the playfield.")]

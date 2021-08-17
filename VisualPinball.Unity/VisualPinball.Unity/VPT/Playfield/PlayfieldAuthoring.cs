@@ -19,6 +19,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Unity.Entities;
 using UnityEngine;
+using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Table;
 using VisualPinball.Unity.Playfield;
 
@@ -27,6 +28,8 @@ namespace VisualPinball.Unity
 	public class PlayfieldAuthoring : ItemMainRenderableAuthoring<Table, TableData>,
 		IConvertGameObjectToEntity
 	{
+		public override ItemType ItemType => ItemType.Playfield;
+
 		public override bool CanBeTransformed => false;
 
 		protected override Table InstantiateItem(TableData data) => GetComponentInParent<TableAuthoring>()?.Table;

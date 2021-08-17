@@ -27,6 +27,7 @@ using System.Linq;
 using Unity.Entities;
 using UnityEngine;
 using VisualPinball.Engine.Math;
+using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Surface;
 
 namespace VisualPinball.Unity
@@ -50,6 +51,8 @@ namespace VisualPinball.Unity
 		public DragPointData[] DragPoints { get => _dragPoints; set => _dragPoints = value; }
 
 		#endregion
+
+		public override ItemType ItemType => ItemType.Surface;
 
 		protected override Surface InstantiateItem(SurfaceData data) => new Surface(data);
 		protected override SurfaceData InstantiateData() => new SurfaceData();

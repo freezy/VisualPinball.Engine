@@ -27,6 +27,7 @@ using System.Linq;
 using Unity.Entities;
 using UnityEngine;
 using VisualPinball.Engine.Math;
+using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Primitive;
 using MathF = VisualPinball.Engine.Math.MathF;
 
@@ -48,6 +49,8 @@ namespace VisualPinball.Unity
 		public bool StaticRendering = true;
 
 		#endregion
+
+		public override ItemType ItemType => ItemType.Primitive;
 
 		public override bool IsCollidable => !Data.IsToy;
 

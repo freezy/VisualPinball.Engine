@@ -143,7 +143,7 @@ namespace VisualPinball.Engine.VPT.Table
 		/// <summary>
 		/// Game items that need to be converted but aren't rendered.
 		/// </summary>
-		public IEnumerable<IItem> NonRenderables => new IItem[0]
+		public IEnumerable<IItem> NonRenderables => Array.Empty<IItem>()
 			.Concat(_troughs.Values);
 
 		public IEnumerable<IItem> GameItems => new IItem[] { }
@@ -200,7 +200,7 @@ namespace VisualPinball.Engine.VPT.Table
 		public IEnumerable<ItemData> VpeItemDatas => new ItemData[] { }
 			.Concat(_troughs.Values.Select(i => i.Data));
 
-		public IEnumerable<ISwitchable> Switchables => new ISwitchable[0]
+		public IEnumerable<ISwitchable> Switchables => Array.Empty<ISwitchable>()
 			.Concat(_bumpers.Values)
 			.Concat(_flippers.Values)
 			.Concat(_gates.Values)
@@ -209,19 +209,19 @@ namespace VisualPinball.Engine.VPT.Table
 			.Concat(_spinners.Values)
 			.Concat(_triggers.Values);
 
-		public IEnumerable<ISwitchableDevice> SwitchableDevices => new ISwitchableDevice[0]
-			.Concat(_troughs.Values);
+		public IEnumerable<ISwitchableDevice> SwitchableDevices => Array.Empty<ISwitchableDevice>()
+			/* todo fix .Concat(_troughs.Values)*/;
 
-		public IEnumerable<ICoilable> Coilables => new ICoilable[0]
+		public IEnumerable<ICoilable> Coilables => Array.Empty<ICoilable>()
 			.Concat(_bumpers.Values)
 			.Concat(_flippers.Values)
 			.Concat(_kickers.Values);
 
-		public IEnumerable<ICoilableDevice> CoilableDevices => new ICoilableDevice[0]
-			.Concat(_troughs.Values)
+		public IEnumerable<ICoilableDevice> CoilableDevices => Array.Empty<ICoilableDevice>()
+			/* todo fix .Concat(_troughs.Values) */
 			.Concat(_plungers.Values);
 
-		public IEnumerable<ILightable> Lightables => new ILightable[0]
+		public IEnumerable<ILightable> Lightables => Array.Empty<ILightable>()
 			.Concat(_lights.Values)
 			.Concat(_flashers.Values);
 

@@ -196,7 +196,7 @@ namespace VisualPinball.Unity
 		public void RegisterBumper(Bumper bumper, Entity entity, Entity parentEntity, GameObject go)
 		{
 			var colliderAuth = go.GetComponent<BumperColliderAuthoring>();
-			var bumperApi = new BumperApi(bumper, go, entity, parentEntity, this);
+			var bumperApi = new BumperApi(go, entity, parentEntity, this);
 			TableApi.Bumpers[bumper.Name] = bumperApi;
 			_apis.Add(bumperApi);
 			_initializables.Add(bumperApi);
@@ -221,7 +221,7 @@ namespace VisualPinball.Unity
 		public void RegisterFlipper(Flipper flipper, Entity entity, Entity parentEntity, GameObject go)
 		{
 			var colliderAuth = go.GetComponent<FlipperColliderAuthoring>();
-			var flipperApi = new FlipperApi(flipper, go, entity, parentEntity, this);
+			var flipperApi = new FlipperApi(go, entity, parentEntity, this);
 			TableApi.Flippers[flipper.Name] = flipperApi;
 			_apis.Add(flipperApi);
 			_initializables.Add(flipperApi);
@@ -246,7 +246,7 @@ namespace VisualPinball.Unity
 		public void RegisterGate(Gate gate, Entity entity, Entity parentEntity, GameObject go)
 		{
 			var colliderAuth = go.GetComponent<GateColliderAuthoring>();
-			var gateApi = new GateApi(gate, go, entity, parentEntity, this);
+			var gateApi = new GateApi(go, entity, parentEntity, this);
 			TableApi.Gates[gate.Name] = gateApi;
 			_apis.Add(gateApi);
 			_initializables.Add(gateApi);
@@ -266,7 +266,7 @@ namespace VisualPinball.Unity
 		public void RegisterHitTarget(HitTarget hitTarget, Entity entity, Entity parentEntity, GameObject go)
 		{
 			var colliderAuth = go.GetComponent<HitTargetColliderAuthoring>();
-			var hitTargetApi = new HitTargetApi(hitTarget, go, entity, parentEntity, colliderAuth == null ? null : colliderAuth.PhysicsMaterial, this);
+			var hitTargetApi = new HitTargetApi(go, entity, parentEntity, colliderAuth == null ? null : colliderAuth.PhysicsMaterial, this);
 			TableApi.HitTargets[hitTarget.Name] = hitTargetApi;
 			_apis.Add(hitTargetApi);
 			_initializables.Add(hitTargetApi);
@@ -290,7 +290,7 @@ namespace VisualPinball.Unity
 		public void RegisterKicker(Kicker kicker, Entity entity, Entity parentEntity, GameObject go)
 		{
 			var colliderAuth = go.GetComponent<KickerColliderAuthoring>();
-			var kickerApi = new KickerApi(kicker, go, entity, parentEntity, this);
+			var kickerApi = new KickerApi(go, entity, parentEntity, this);
 			TableApi.Kickers[kicker.Name] = kickerApi;
 			_apis.Add(kickerApi);
 			_initializables.Add(kickerApi);
@@ -315,7 +315,7 @@ namespace VisualPinball.Unity
 
 		public void RegisterPlunger(Plunger plunger, Entity entity, Entity parentEntity, InputActionReference actionRef, GameObject go)
 		{
-			var plungerApi = new PlungerApi(plunger, go, entity, parentEntity, this);
+			var plungerApi = new PlungerApi(go, entity, parentEntity, this);
 			TableApi.Plungers[plunger.Name] = plungerApi;
 			_apis.Add(plungerApi);
 			_colliderGenerators.Add(plungerApi);
@@ -335,7 +335,7 @@ namespace VisualPinball.Unity
 		public void RegisterPrimitive(Primitive primitive, Entity entity, Entity parentEntity, GameObject go)
 		{
 			var colliderAuth = go.GetComponent<PrimitiveColliderAuthoring>();
-			var primitiveApi = new PrimitiveApi(primitive, go, entity, parentEntity, colliderAuth == null ? null : colliderAuth.PhysicsMaterial, this);
+			var primitiveApi = new PrimitiveApi(go, entity, parentEntity, colliderAuth == null ? null : colliderAuth.PhysicsMaterial, this);
 			TableApi.Primitives[primitive.Name] = primitiveApi;
 			_apis.Add(primitiveApi);
 			if (colliderAuth) {
@@ -348,7 +348,7 @@ namespace VisualPinball.Unity
 		public void RegisterRamp(Ramp ramp, Entity entity, Entity parentEntity, GameObject go)
 		{
 			var colliderAuth = go.GetComponent<RampColliderAuthoring>();
-			var rampApi = new RampApi(ramp, go, entity, parentEntity, colliderAuth == null ? null : colliderAuth.PhysicsMaterial, this);
+			var rampApi = new RampApi(go, entity, parentEntity, colliderAuth == null ? null : colliderAuth.PhysicsMaterial, this);
 			TableApi.Ramps[ramp.Name] = rampApi;
 			_apis.Add(rampApi);
 			_initializables.Add(rampApi);
@@ -360,7 +360,7 @@ namespace VisualPinball.Unity
 		public void RegisterRubber(Rubber rubber, Entity entity, Entity parentEntity, GameObject go)
 		{
 			var colliderAuth = go.GetComponent<RubberColliderAuthoring>();
-			var rubberApi = new RubberApi(rubber, go, entity, parentEntity, colliderAuth == null ? null : colliderAuth.PhysicsMaterial, this);
+			var rubberApi = new RubberApi(go, entity, parentEntity, colliderAuth == null ? null : colliderAuth.PhysicsMaterial, this);
 			TableApi.Rubbers[rubber.Name] = rubberApi;
 			_apis.Add(rubberApi);
 			_initializables.Add(rubberApi);
@@ -373,7 +373,7 @@ namespace VisualPinball.Unity
 		public void RegisterSurface(Surface surface, Entity entity, Entity parentEntity, GameObject go)
 		{
 			var colliderAuth = go.GetComponent<SurfaceColliderAuthoring>();
-			var surfaceApi = new SurfaceApi(surface, go, entity, parentEntity, colliderAuth == null ? null : colliderAuth.PhysicsMaterial, this);
+			var surfaceApi = new SurfaceApi(go, entity, parentEntity, colliderAuth == null ? null : colliderAuth.PhysicsMaterial, this);
 			TableApi.Surfaces[surface.Name] = surfaceApi;
 			_apis.Add(surfaceApi);
 			_initializables.Add(surfaceApi);
@@ -387,7 +387,7 @@ namespace VisualPinball.Unity
 		public void RegisterSpinner(Spinner spinner, Entity entity, Entity parentEntity, GameObject go)
 		{
 			var colliderAuth = go.GetComponent<SpinnerColliderAuthoring>();
-			var spinnerApi = new SpinnerApi(spinner, go, entity, parentEntity, this);
+			var spinnerApi = new SpinnerApi(go, entity, parentEntity, this);
 			TableApi.Spinners[spinner.Name] = spinnerApi;
 			_apis.Add(spinnerApi);
 			_initializables.Add(spinnerApi);
@@ -407,7 +407,7 @@ namespace VisualPinball.Unity
 		public void RegisterTrigger(Trigger trigger, Entity entity, Entity parentEntity, GameObject go)
 		{
 			var colliderAuth = go.GetComponent<TriggerColliderAuthoring>();
-			var triggerApi = new TriggerApi(trigger, go, entity, parentEntity, this);
+			var triggerApi = new TriggerApi(go, entity, parentEntity, this);
 			TableApi.Triggers[trigger.Name] = triggerApi;
 			_apis.Add(triggerApi);
 			_initializables.Add(triggerApi);
@@ -422,7 +422,7 @@ namespace VisualPinball.Unity
 
 		public void RegisterTrigger(Trigger trigger, Entity entity, GameObject go, bool addComponent = false)
 		{
-			var triggerApi = new TriggerApi(trigger, go, entity, Entity.Null, this);
+			var triggerApi = new TriggerApi(go, entity, Entity.Null, this);
 			if (addComponent) {
 				go.AddComponent<TriggerAuthoring>().SetData(trigger.Data, null, null, null);
 			}
@@ -436,7 +436,7 @@ namespace VisualPinball.Unity
 
 		public void RegisterTrough(Trough trough, GameObject go)
 		{
-			var troughApi = new TroughApi(trough, go, this);
+			var troughApi = new TroughApi(go, this);
 			TableApi.Troughs[trough.Name] = troughApi;
 			_apis.Add(troughApi);
 			_initializables.Add(troughApi);

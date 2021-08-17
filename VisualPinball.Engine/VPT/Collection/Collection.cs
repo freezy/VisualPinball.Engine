@@ -22,7 +22,6 @@ namespace VisualPinball.Engine.VPT.Collection
 	{
 		public override string ItemName { get; } = "Collection";
 		public override string ItemGroupName { get; } = "Collections";
-		public override ItemType ItemType { get; } = ItemType.Collection;
 
 		public Collection(CollectionData data) : base(data)
 		{

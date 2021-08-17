@@ -56,8 +56,9 @@ namespace VisualPinball.Unity
 		}
 
 
-		internal HitTargetApi(HitTarget item, GameObject go, Entity entity, Entity parentEntity, PhysicsMaterial physicsMaterial, Player player)
-			: base(item, go, entity, parentEntity, player)
+		internal HitTargetApi(GameObject go, Entity entity, Entity parentEntity, PhysicsMaterial physicsMaterial,
+			Player player)
+			: base(go, entity, parentEntity, player)
 		{
 			_physicsMaterial = physicsMaterial;
 		}
@@ -69,8 +70,8 @@ namespace VisualPinball.Unity
 		/// <exception cref="InvalidOperationException"></exception>
 		private void SetIsDropped(bool isDropped)
 		{
-			if (!Item.Data.IsDropTarget) {
-				throw new InvalidOperationException($"You tried to drop hit target {Item.Name}, but only drop targets are droppable!");
+			if (!MainComponent.IsDropTarget) {
+				throw new InvalidOperationException($"You tried to drop hit target {MainComponent.name}, but only drop targets are droppable!");
 			}
 
 			var data = EntityManager.GetComponentData<DropTargetAnimationData>(Entity);
@@ -89,8 +90,8 @@ namespace VisualPinball.Unity
 			EntityManager.SetComponentData(Entity, data);
 		}
 
-		IApiSwitchStatus IApiSwitch.AddSwitchDest(SwitchConfig switchConfig) => AddSwitchDest(switchConfig.WithPulse(Item.IsPulseSwitch));
-		void IApiSwitch.AddWireDest(WireDestConfig wireConfig) => AddWireDest(wireConfig.WithPulse(Item.IsPulseSwitch));
+		IApiSwitchStatus IApiSwitch.AddSwitchDest(SwitchConfig switchConfig) => AddSwitchDest(switchConfig.WithPulse(MainComponent.IsPulseSwitch));
+		void IApiSwitch.AddWireDest(WireDestConfig wireConfig) => AddWireDest(wireConfig.WithPulse(MainComponent.IsPulseSwitch));
 		void IApiSwitch.RemoveWireDest(string destId) => RemoveWireDest(destId);
 		void IApiSwitch.DestroyBall(Entity ballEntity) => DestroyBall(ballEntity);
 
@@ -104,7 +105,7 @@ namespace VisualPinball.Unity
 
 		void IApiColliderGenerator.CreateColliders(Table table, List<ICollider> colliders)
 		{
-			var colliderGenerator = new HitTargetColliderGenerator(this);
+			var colliderGenerator = new HitTargetColliderGenerator(this, MainComponent.CreateData());
 			colliderGenerator.GenerateColliders(table, colliders);
 		}
 

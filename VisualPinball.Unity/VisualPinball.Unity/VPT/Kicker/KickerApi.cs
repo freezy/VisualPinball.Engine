@@ -48,24 +48,24 @@ namespace VisualPinball.Unity
 		/// </summary>
 		public event EventHandler<SwitchEventArgs> Switch;
 
-		public KickerApi(Kicker item, GameObject go, Entity entity, Entity parentEntity, Player player)
-			: base(item, go, entity, parentEntity, player)
+		public KickerApi(GameObject go, Entity entity, Entity parentEntity, Player player)
+			: base(go, entity, parentEntity, player)
 		{
 		}
 
 		public void CreateBall()
 		{
-			BallManager.CreateBall(Item, 25f, 1f, Entity);
+			BallManager.CreateBall(MainComponent, 25f, 1f, Entity);
 		}
 
 		public void CreateSizedBallWithMass(float radius, float mass)
 		{
-			BallManager.CreateBall(Item, radius, mass, Entity);
+			BallManager.CreateBall(MainComponent, radius, mass, Entity);
 		}
 
 		public void CreateSizedBall(float radius)
 		{
-			BallManager.CreateBall(Item, radius, 1f, Entity);
+			BallManager.CreateBall(MainComponent, radius, 1f, Entity);
 		}
 
 		public void Kick()
@@ -185,8 +185,8 @@ namespace VisualPinball.Unity
 			}
 		}
 
-		IApiSwitchStatus IApiSwitch.AddSwitchDest(SwitchConfig switchConfig) => AddSwitchDest(switchConfig.WithPulse(Item.IsPulseSwitch));
-		void IApiSwitch.AddWireDest(WireDestConfig wireConfig) => AddWireDest(wireConfig.WithPulse(Item.IsPulseSwitch));
+		IApiSwitchStatus IApiSwitch.AddSwitchDest(SwitchConfig switchConfig) => AddSwitchDest(switchConfig.WithPulse(MainComponent.IsPulseSwitch));
+		void IApiSwitch.AddWireDest(WireDestConfig wireConfig) => AddWireDest(wireConfig.WithPulse(MainComponent.IsPulseSwitch));
 		void IApiSwitch.RemoveWireDest(string destId) => RemoveWireDest(destId);
 
 		#region Collider Generation

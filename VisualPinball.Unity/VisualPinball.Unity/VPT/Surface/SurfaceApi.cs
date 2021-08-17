@@ -41,8 +41,9 @@ namespace VisualPinball.Unity
 		/// </summary>
 		public event EventHandler Slingshot;
 
-		internal SurfaceApi(Engine.VPT.Surface.Surface item, GameObject go, Entity entity, Entity parentEntity, PhysicsMaterial physicsMaterial, Player player)
-			: base(item, go, entity, parentEntity, player)
+		internal SurfaceApi(GameObject go, Entity entity, Entity parentEntity, PhysicsMaterial physicsMaterial,
+			Player player)
+			: base(go, entity, parentEntity, player)
 		{
 			_physicsMaterial = physicsMaterial;
 		}

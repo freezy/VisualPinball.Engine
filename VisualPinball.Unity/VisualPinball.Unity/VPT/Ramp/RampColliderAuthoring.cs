@@ -65,6 +65,6 @@ namespace VisualPinball.Unity
 
 		public override IEnumerable<Type> ValidParents => ValidParentTypes;
 		protected override IApiColliderGenerator InstantiateColliderApi(Player player, Entity entity, Entity parentEntity)
-			=> new RampApi(Item, gameObject, entity, parentEntity, PhysicsMaterial, player);
+			=> new RampApi(gameObject, entity, parentEntity, PhysicsMaterial, player);
 	}
 }

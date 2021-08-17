@@ -37,7 +37,7 @@ namespace VisualPinball.Unity
 		/// <summary>
 		/// Item name
 		/// </summary>
-		public string Name => Item.Name;
+		public string Name => MainComponent.name;
 
 		protected readonly TItemComponent MainComponent;
 
@@ -58,9 +58,8 @@ namespace VisualPinball.Unity
 		private readonly SwitchHandler _switchHandler;
 		private protected BallManager BallManager;
 
-		protected ItemApi(TItem item, GameObject go, Player player)
+		protected ItemApi(GameObject go, Player player)
 		{
-			Item = item;
 			GameObject = go;
 			MainComponent = go.GetComponent<TItemComponent>();
 			Entity = Entity.Null;
@@ -68,10 +67,9 @@ namespace VisualPinball.Unity
 			_player = player;
 		}
 
-		protected ItemApi(TItem item, GameObject go, Entity entity, Entity parentEntity, Player player)
+		protected ItemApi(GameObject go, Entity entity, Entity parentEntity, Player player)
 		{
 			EntityManager = World.DefaultGameObjectInjectionWorld != null ? World.DefaultGameObjectInjectionWorld.EntityManager : default;
-			Item = item;
 			GameObject = go;
 			MainComponent = go.GetComponent<TItemComponent>();
 			Entity = entity;
@@ -122,7 +120,7 @@ namespace VisualPinball.Unity
 		/// Use this for colliders that are part of the quad tree.
 		/// </summary>
 		/// <param name="physicsMaterial">physics material read from the collider component</param>
-		internal ColliderInfo GetColliderInfo(PhysicsMaterial physicsMaterial = null) => GetColliderInfo(Item.ItemType, physicsMaterial);
+		internal ColliderInfo GetColliderInfo(PhysicsMaterial physicsMaterial = null) => GetColliderInfo(MainComponent.ItemType, physicsMaterial);
 
 		internal ColliderInfo GetColliderInfo(ItemType itemType, PhysicsMaterial physicsMaterial = null)
 		{

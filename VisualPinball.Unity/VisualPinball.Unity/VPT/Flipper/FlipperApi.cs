@@ -72,8 +72,8 @@ namespace VisualPinball.Unity
 
 		private bool _isEos;
 
-		internal FlipperApi(Flipper flipper, GameObject go, Entity entity, Entity parentEntity, Player player)
-			: base(flipper, go, entity, parentEntity, player)
+		internal FlipperApi(GameObject go, Entity entity, Entity parentEntity, Player player)
+			: base(go, entity, parentEntity, player)
 		{
 		}
 
@@ -95,8 +95,8 @@ namespace VisualPinball.Unity
 			EngineProvider<IPhysicsEngine>.Get().FlipperRotateToStart(Entity);
 		}
 
-		IApiSwitchStatus IApiSwitch.AddSwitchDest(SwitchConfig switchConfig) => AddSwitchDest(switchConfig.WithPulse(Item.IsPulseSwitch));
-		void IApiSwitch.AddWireDest(WireDestConfig wireConfig) => AddWireDest(wireConfig.WithPulse(Item.IsPulseSwitch));
+		IApiSwitchStatus IApiSwitch.AddSwitchDest(SwitchConfig switchConfig) => AddSwitchDest(switchConfig.WithPulse(MainComponent.IsPulseSwitch));
+		void IApiSwitch.AddWireDest(WireDestConfig wireConfig) => AddWireDest(wireConfig.WithPulse(MainComponent.IsPulseSwitch));
 		void IApiSwitch.RemoveWireDest(string destId) => RemoveWireDest(destId);
 		void IApiSwitch.DestroyBall(Entity ballEntity) => DestroyBall(ballEntity);
 

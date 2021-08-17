@@ -29,6 +29,7 @@ using Unity.Mathematics;
 using UnityEngine;
 using VisualPinball.Engine.Common;
 using VisualPinball.Engine.Game;
+using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Spinner;
 
 namespace VisualPinball.Unity
@@ -71,6 +72,10 @@ namespace VisualPinball.Unity
 		public MonoBehaviour _surface;
 
 		#endregion
+
+		public override ItemType ItemType => ItemType.Spinner;
+
+		public bool IsPulseSwitch => true;
 
 		public float HeightOnPlayfield => Height + (Surface?.Height(Position) ?? TableHeight);
 

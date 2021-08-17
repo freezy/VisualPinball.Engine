@@ -61,8 +61,8 @@ namespace VisualPinball.Unity
 
 		public bool DoRetract { get; set; } = true;
 
-		internal PlungerApi(Plunger item, GameObject go, Entity entity, Entity parentEntity, Player player)
-			: base(item, go, entity, parentEntity, player)
+		internal PlungerApi(GameObject go, Entity entity, Entity parentEntity, Player player)
+			: base(go, entity, parentEntity, player)
 		{
 		}
 
@@ -89,10 +89,10 @@ namespace VisualPinball.Unity
 			var velocityData = EntityManager.GetComponentData<PlungerVelocityData>(Entity);
 
 			if (DoRetract) {
-				PlungerCommands.PullBackAndRetract(Item.Data.SpeedPull, ref velocityData, ref movementData);
+				PlungerCommands.PullBackAndRetract(MainComponent.SpeedPull, ref velocityData, ref movementData);
 
 			} else {
-				PlungerCommands.PullBack(Item.Data.SpeedPull, ref velocityData, ref movementData);
+				PlungerCommands.PullBack(MainComponent.SpeedPull, ref velocityData, ref movementData);
 			}
 
 			EntityManager.SetComponentData(Entity, movementData);
@@ -106,7 +106,7 @@ namespace VisualPinball.Unity
 			var staticData = EntityManager.GetComponentData<PlungerStaticData>(Entity);
 
 			// check for an auto plunger
-			if (Item.Data.AutoPlunger) {
+			if (MainComponent.AutoPlunger) {
 				// Auto Plunger - this models a "Launch Ball" button or a
 				// ROM-controlled launcher, rather than a player-operated
 				// spring plunger.  In a physical machine, this would be
