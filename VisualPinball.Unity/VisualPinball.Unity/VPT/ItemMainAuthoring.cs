@@ -37,6 +37,13 @@ namespace VisualPinball.Unity
 		/// </summary>
 		public virtual bool IsCollidable => true;
 
+		public float TableHeight {
+			get {
+				var tableComponent = GetComponentInParent<TableAuthoring>();
+				return tableComponent ? tableComponent.TableHeight : 0f;
+			}
+		}
+
 		public abstract IEnumerable<MonoBehaviour> SetData(TData data, IMaterialProvider materialProvider, ITextureProvider textureProvider, Dictionary<string, IItemMainAuthoring> components);
 		public abstract TData CopyDataTo(TData data, string[] materialNames, string[] textureNames);
 

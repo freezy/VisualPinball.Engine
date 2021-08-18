@@ -19,6 +19,7 @@
 using System;
 using System.Collections.Generic;
 using Unity.Entities;
+using Unity.Mathematics;
 using UnityEngine;
 using UnityEngine.Profiling;
 using VisualPinball.Engine.Game;
@@ -142,9 +143,10 @@ namespace VisualPinball.Unity
 							ltw.MultiplyPoint(lineCol.V1.ToFloat3(lineCol.ZLow + i * d)),
 							ltw.MultiplyPoint(lineCol.V2.ToFloat3(lineCol.ZLow + i * d))
 						);
-						var position = ltw.MultiplyPoint(lineCol.V1.ToFloat3(lineCol.ZLow));
-						DrawArrow(position, position - ltw.MultiplyPoint(lineCol.Normal.ToFloat3(lineCol.ZLow)));
 					}
+					// var normalFrom = ltw.MultiplyPoint(lineCol.V1.ToFloat3(lineCol.ZLow));
+					// var normal = ltw.MultiplyPoint(lineCol.Normal.ToFloat3(lineCol.ZLow));
+					// DrawArrow(normalFrom, -normal * 0.05f);
 					break;
 				}
 
