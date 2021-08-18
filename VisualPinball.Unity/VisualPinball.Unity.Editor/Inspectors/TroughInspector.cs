@@ -23,7 +23,7 @@ using VisualPinball.Engine.VPT.Trough;
 
 namespace VisualPinball.Unity.Editor
 {
-	[CustomEditor(typeof(TroughAuthoring))]
+	[CustomEditor(typeof(TroughAuthoring)), CanEditMultipleObjects]
 	public class TroughInspector : ItemMainInspector<Trough, TroughData, TroughAuthoring>
 	{
 		private static readonly string[] TypeLabels = {

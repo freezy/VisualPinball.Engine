@@ -21,7 +21,7 @@ using VisualPinball.Engine.VPT.Plunger;
 
 namespace VisualPinball.Unity.Editor
 {
-	[CustomEditor(typeof(PlungerColliderAuthoring))]
+	[CustomEditor(typeof(PlungerColliderAuthoring)), CanEditMultipleObjects]
 	public class PlungerColliderInspector : ItemColliderInspector<Plunger, PlungerData, PlungerAuthoring, PlungerColliderAuthoring>
 	{
 		private SerializedProperty _speedPullProperty;

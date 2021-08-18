@@ -21,7 +21,7 @@ using VisualPinball.Engine.VPT.Light;
 
 namespace VisualPinball.Unity.Editor
 {
-	[CustomEditor(typeof(LightBulbMeshAuthoring))]
+	[CustomEditor(typeof(LightBulbMeshAuthoring)), CanEditMultipleObjects]
 	public class LightBulbMeshInspector : ItemMeshInspector<Light, LightData, LightAuthoring, LightBulbMeshAuthoring>
 	{
 		public override void OnInspectorGUI()

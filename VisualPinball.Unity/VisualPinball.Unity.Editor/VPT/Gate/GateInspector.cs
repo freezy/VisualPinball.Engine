@@ -23,7 +23,7 @@ using VisualPinball.Engine.VPT.Gate;
 
 namespace VisualPinball.Unity.Editor
 {
-	[CustomEditor(typeof(GateAuthoring))]
+	[CustomEditor(typeof(GateAuthoring)), CanEditMultipleObjects]
 	public class GateInspector : ItemMainInspector<Gate, GateData, GateAuthoring>
 	{
 		private static readonly string[] GateTypeLabels = { "Wire: 'W'", "Wire: Rectangle", "Plate", "Long Plate" };
