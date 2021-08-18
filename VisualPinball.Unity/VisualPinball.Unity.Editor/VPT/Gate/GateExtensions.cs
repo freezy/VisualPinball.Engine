@@ -32,7 +32,7 @@ namespace VisualPinball.Unity.Editor
 			var prefab = RenderPipeline.Current.PrefabProvider.CreateGate(gate.Data.GateType);
 			var obj = PrefabUtility.InstantiatePrefab(prefab) as GameObject;
 			obj!.name = item.Name;
-			return new ConvertedItem<Gate, GateData, GateAuthoring>(obj, true);
+			return new ConvertedItem<Gate, GateData, GateAuthoring>(obj);
 
 			// var obj = new GameObject(item.Name);
 			// var convertedItem = new ConvertedItem<Gate, GateData, GateAuthoring>(obj, gate);

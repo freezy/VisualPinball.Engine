@@ -30,7 +30,7 @@ namespace VisualPinball.Unity
 			var obj = PrefabUtility.InstantiatePrefab(prefab) as GameObject;
 			obj!.name = item.Name;
 
-			return new ConvertedItem<Surface, SurfaceData, SurfaceAuthoring>(obj, true);
+			return new ConvertedItem<Surface, SurfaceData, SurfaceAuthoring>(obj);
 
 			// var convertedItem = new ConvertedItem<Surface, SurfaceData, SurfaceAuthoring>(obj, surface);
 			// switch (surface.SubComponent) {

@@ -193,7 +193,8 @@ namespace VisualPinball.Engine.VPT.Table
 			.Concat(_textBoxes.Values.Select(i => i.Data))
 			.Concat(_timers.Values.Select(i => i.Data));
 
-		public Dictionary<string, ItemData> SupportedDatas => ItemSupportedDatas
+		public Dictionary<string, ItemData> SupportedDatas => new [] { Table.Data }
+			.Concat(ItemSupportedDatas)
 			.Concat(VpeItemDatas)
 			.ToDictionary(x => x.GetName().ToLower(), x => x);
 

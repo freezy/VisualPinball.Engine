@@ -51,6 +51,11 @@ namespace VisualPinball.Unity
 
 		public override IEnumerable<MonoBehaviour> SetData(TableData data, IMaterialProvider materialProvider, ITextureProvider textureProvider, Dictionary<string, IItemMainAuthoring> components)
 		{
+			var mesh = GetComponentInChildren<PlayfieldMeshAuthoring>();
+			if (mesh) {
+				mesh.CreateMesh(data, textureProvider, materialProvider);
+			}
+
 			return new List<MonoBehaviour> { this };
 		}
 

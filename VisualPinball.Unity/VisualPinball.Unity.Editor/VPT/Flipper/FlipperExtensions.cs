@@ -35,7 +35,7 @@ namespace VisualPinball.Unity.Editor
 			var obj = PrefabUtility.InstantiatePrefab(prefab) as GameObject;
 			obj!.name = item.Name;
 
-			return new ConvertedItem<Flipper, FlipperData, FlipperAuthoring>(obj, true);
+			return new ConvertedItem<Flipper, FlipperData, FlipperAuthoring>(obj);
 
 			// var obj = new GameObject(item.Name);
 			// var convertedItem = new ConvertedItem<Flipper, FlipperData, FlipperAuthoring>(obj, flipper);

@@ -29,7 +29,7 @@ namespace VisualPinball.Unity
 			var obj = PrefabUtility.InstantiatePrefab(prefab) as GameObject;
 			obj!.name = item.Name;
 
-			return new ConvertedItem<Trough, TroughData, TroughAuthoring>(obj, true);
+			return new ConvertedItem<Trough, TroughData, TroughAuthoring>(obj);
 		}
 	}
 }

@@ -32,7 +32,7 @@ namespace VisualPinball.Unity
 			var prefab = RenderPipeline.Current.PrefabProvider.CreateSpinner();
 			var obj = PrefabUtility.InstantiatePrefab(prefab) as GameObject;
 			obj!.name = item.Name;
-			return new ConvertedItem<Spinner, SpinnerData, SpinnerAuthoring>(obj, true);
+			return new ConvertedItem<Spinner, SpinnerData, SpinnerAuthoring>(obj);
 
 			// var obj = new GameObject(item.Name);
 			// var convertedItem = new ConvertedItem<Spinner, SpinnerData, SpinnerAuthoring>(obj, spinner);

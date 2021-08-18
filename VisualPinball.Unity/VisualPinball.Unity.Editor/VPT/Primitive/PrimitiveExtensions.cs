@@ -30,7 +30,7 @@ namespace VisualPinball.Unity
 			var obj = PrefabUtility.InstantiatePrefab(prefab) as GameObject;
 			obj!.name = item.Name;
 
-			return new ConvertedItem<Primitive, PrimitiveData, PrimitiveAuthoring>(obj, true);
+			return new ConvertedItem<Primitive, PrimitiveData, PrimitiveAuthoring>(obj);
 
 			// return new ConvertedItem<Surface, SurfaceData, SurfaceAuthoring>(obj, true);
 			//

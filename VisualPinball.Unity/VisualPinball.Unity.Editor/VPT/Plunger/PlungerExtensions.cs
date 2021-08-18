@@ -33,7 +33,7 @@ namespace VisualPinball.Unity
 			var obj = PrefabUtility.InstantiatePrefab(prefab) as GameObject;
 			obj!.name = item.Name;
 
-			return new ConvertedItem<Plunger, PlungerData, PlungerAuthoring>(obj, true);
+			return new ConvertedItem<Plunger, PlungerData, PlungerAuthoring>(obj);
 
 			// var obj = new GameObject(item.Name);
 			// var convertedItem = new ConvertedItem<Plunger, PlungerData, PlungerAuthoring>(obj, plunger);

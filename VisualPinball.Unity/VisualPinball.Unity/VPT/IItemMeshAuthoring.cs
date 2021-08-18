@@ -34,9 +34,6 @@ namespace VisualPinball.Unity
 		/// </summary>
 		GameObject gameObject { get; }
 
-		[Obsolete("Use CreateMesh(TData, ITextureProvider, IMaterialProvider) instead.")]
-		void CreateMesh(string parentName, ITextureProvider texProvider, IMaterialProvider matProvider, IMeshProvider meshProvider);
-
 		void RebuildMeshes();
 
 		IEnumerable<Type> ValidParents { get; }
