@@ -83,7 +83,6 @@ namespace VisualPinball.Unity
 				return;
 			}
 
-
 			var zHeight = SurfaceHeight(Surface, Position);
 			var x = Position.x - Width;
 			var y = Position.y + Height;
@@ -217,11 +216,9 @@ namespace VisualPinball.Unity
 
 		public override PlungerData CopyDataTo(PlungerData data, string[] materialNames, string[] textureNames)
 		{
-			var localPos = transform.localPosition;
-
 			// name, geometry and position
 			data.Name = name;
-			data.Center = localPos.ToVertex2Dxy();
+			data.Center = Position.ToVertex2D();
 			data.Width = Width;
 			data.Height = Height;
 			data.ZAdjust = ZAdjust;
@@ -279,7 +276,12 @@ namespace VisualPinball.Unity
 		#region Editor Tooling
 
 		public override ItemDataTransformType EditorPositionType => ItemDataTransformType.TwoD;
-		public override void SetEditorPosition(Vector3 pos) => Position = ((float3)pos).xy;
+		public override Vector3 GetEditorPosition() => Position;
+		public override void SetEditorPosition(Vector3 pos)
+		{
+			Position = ((float3)pos).xy;
+			RebuildMeshes();
+		}
 
 		#endregion
 	}

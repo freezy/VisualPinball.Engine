@@ -31,7 +31,6 @@ namespace VisualPinball.Unity
 	{
 		#region Data
 
-
 		public float RodDiam = 0.6f;
 
 		public float RingGap = 2.0f;
