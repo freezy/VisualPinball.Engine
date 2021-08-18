@@ -161,8 +161,6 @@ namespace VisualPinball.Unity.Editor
 			DisableGizmo<KickerAuthoring>();
 			DisableGizmo<KickerColliderAuthoring>();
 			DisableGizmo<LightAuthoring>();
-			DisableGizmo<LightBulbMeshAuthoring>();
-			DisableGizmo<LightSocketMeshAuthoring>();
 			DisableGizmo<PlayfieldAuthoring>();
 			DisableGizmo<PlayfieldColliderAuthoring>();
 			DisableGizmo<PlayfieldMeshAuthoring>();

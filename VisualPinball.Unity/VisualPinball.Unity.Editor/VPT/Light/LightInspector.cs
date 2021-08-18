@@ -55,7 +55,7 @@ namespace VisualPinball.Unity.Editor
 
 				EditorGUILayout.LabelField("Bulb");
 				EditorGUI.indentLevel++;
-				ItemDataField("Enable", ref Data.ShowBulbMesh, false, onChanged: ItemAuthoring.OnBulbEnabled);
+				ItemDataField("Enable", ref Data.ShowBulbMesh, false);
 				ItemDataField("Scale Mesh", ref Data.MeshRadius, false);
 				EditorGUI.indentLevel--;
 			}

@@ -18,6 +18,7 @@
 // ReSharper disable CompareOfFloatsByEqualityOperator
 // ReSharper disable ClassNeverInstantiated.Global
 // ReSharper disable MemberCanBePrivate.Global
+// ReSharper disable InconsistentNaming
 #endregion
 
 using System;
@@ -27,7 +28,6 @@ using System.Linq;
 using NLog;
 using UnityEngine;
 using VisualPinball.Engine.Game;
-using VisualPinball.Engine.IO;
 using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Light;
 using Light = VisualPinball.Engine.VPT.Light.Light;
@@ -38,6 +38,28 @@ namespace VisualPinball.Unity
 	[AddComponentMenu("Visual Pinball/Game Item/Light")]
 	public class LightAuthoring : ItemMainRenderableAuthoring<Light, LightData>, ILampAuthoring
 	{
+		#region Data
+
+		public Vector3 Position;
+
+		public ISurfaceAuthoring Surface { get => _surface as ISurfaceAuthoring; set => _surface = value as MonoBehaviour; }
+		[SerializeField]
+		[TypeRestriction(typeof(ISurfaceAuthoring), PickerLabel = "Walls & Ramps", UpdateTransforms = true)]
+		[Tooltip("On which surface this light is attached to. Updates Z-translation.")]
+		public MonoBehaviour _surface;
+
+		[Min(0)]
+		[Tooltip("The radius of the bulb mesh")]
+		public float BulbSize = 20f;
+
+		public string BlinkPattern;
+		public int BlinkInterval;
+
+		public float FadeSpeedUp;
+		public float FadeSpeedDown;
+
+		#endregion
+
 		public override ItemType ItemType => ItemType.Light;
 		public ILightable Lightable => Item;
 
@@ -62,11 +84,11 @@ namespace VisualPinball.Unity
 		protected override Type MeshAuthoringType { get; } = typeof(ItemMeshAuthoring<Light, LightData, LightAuthoring>);
 		protected override Type ColliderAuthoringType { get; } = null;
 
+		private const string BulbMeshName = "Light (Bulb)";
+		private const string SocketMeshName = "Light (Socket)";
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
-		public override IEnumerable<Type> ValidParents => LightBulbMeshAuthoring.ValidParentTypes
-			.Concat(LightSocketMeshAuthoring.ValidParentTypes)
-			.Distinct();
+		public override IEnumerable<Type> ValidParents => Type.EmptyTypes;
 
 		private void Awake()
 		{
@@ -77,9 +99,11 @@ namespace VisualPinball.Unity
 			}
 
 			player.RegisterLamp(Item, gameObject);
-			_unityLight = GetComponentInChildren<UnityEngine.Light>();
+			_unityLight = GetComponent<UnityEngine.Light>();
 			_fullIntensity = _unityLight.intensity;
 		}
+
+		#region Runtime
 
 		public void FadeTo(float seconds, float value)
 		{
@@ -97,15 +121,15 @@ namespace VisualPinball.Unity
 		private IEnumerator Blink()
 		{
 			// parse blink sequence
-			var sequence = Data.BlinkPattern.ToCharArray().Select(c => c == '1').ToArray();
+			var sequence = BlinkPattern.ToCharArray().Select(c => c == '1').ToArray();
 
 			// step time is stored in ms but we need seconds
-			var stepTime = Data.BlinkInterval / 1000f;
+			var stepTime = BlinkInterval / 1000f;
 
 			while (true) {
 				foreach (var on in sequence) {
 					yield return Fade(on ? 1 : 0);
-					var timeFading = on ? Data.FadeSpeedUp : Data.FadeSpeedDown;
+					var timeFading = on ? FadeSpeedUp : FadeSpeedDown;
 					if (timeFading < stepTime) {
 						yield return new WaitForSeconds(stepTime - timeFading);
 					}
@@ -120,8 +144,8 @@ namespace VisualPinball.Unity
 			var a = _unityLight.intensity;
 			var b = _fullIntensity * value;
 			var duration = a < b
-				? _data.FadeSpeedUp * (_fullIntensity - a) / _fullIntensity
-				: _data.FadeSpeedDown * (1 - (_fullIntensity - a) / _fullIntensity);
+				? FadeSpeedUp * (_fullIntensity - a) / _fullIntensity
+				: FadeSpeedDown * (1 - (_fullIntensity - a) / _fullIntensity);
 
 			while (counter < duration) {
 				counter += Time.deltaTime;
@@ -130,28 +154,84 @@ namespace VisualPinball.Unity
 			}
 		}
 
+		#endregion
+
+		public override void UpdateTransforms()
+		{
+			// position
+			transform.localPosition = Surface != null
+				? new Vector3(Position.x, Position.y, Surface.Height(Position) + Position.z)
+				: new Vector3(Position.x, Position.y, TableHeight + Position.z);
+
+			// bulb size
+			foreach (var mf in GetComponentsInChildren<MeshFilter>(true)) {
+				switch (mf.sharedMesh.name) {
+					case BulbMeshName:
+					case SocketMeshName:
+						mf.gameObject.transform.localScale = new Vector3(BulbSize, BulbSize, BulbSize);
+						break;
+				}
+			}
+		}
+
 		public override IEnumerable<MonoBehaviour> SetData(LightData data, IMaterialProvider materialProvider, ITextureProvider textureProvider, Dictionary<string, IItemMainAuthoring> components)
 		{
-			return new List<MonoBehaviour> { this };
+			var updatedComponents = new List<MonoBehaviour> { this };
+
+			// transforms
+			Position = new Vector3(data.Center.X, data.Center.Y, 0);
+			Surface = GetAuthoring<SurfaceAuthoring>(components, data.Surface);
+			BulbSize = data.MeshRadius;
+			UpdateTransforms();
+
+			// logical params
+			BlinkPattern = data.BlinkPattern;
+			BlinkInterval = data.BlinkInterval;
+			FadeSpeedUp = data.FadeSpeedUp;
+			FadeSpeedDown = data.FadeSpeedDown;
+
+			// physical params
+			var unityLight = GetComponentInChildren<UnityEngine.Light>(true);
+			if (unityLight) {
+				RenderPipeline.Current.LightConverter.UpdateLight(unityLight, data);
+			}
+
+			// visibility
+			if (!data.ShowBulbMesh) {
+				foreach (var mf in GetComponentsInChildren<MeshFilter>()) {
+					switch (mf.sharedMesh.name) {
+						case BulbMeshName:
+						case SocketMeshName:
+							mf.gameObject.SetActive(false);
+							break;
+					}
+				}
+			}
+
+			return updatedComponents;
 		}
 
 		public override LightData CopyDataTo(LightData data, string[] materialNames, string[] textureNames)
 		{
-			var localPos = transform.localPosition;
-
 			// name and position
 			data.Name = name;
-			data.Center = localPos.ToVertex2Dxy();
+			data.Center = Position.ToVertex2Dxy();
+			data.Surface = Surface != null ? Surface.name : string.Empty;
+			data.MeshRadius = BulbSize;
 
-			// update visibility
+			// logical params
+			data.BlinkPattern = BlinkPattern;
+			data.BlinkInterval = BlinkInterval;
+			data.FadeSpeedUp = FadeSpeedUp;
+			data.FadeSpeedDown = FadeSpeedDown;
+
+			// visibility
 			data.ShowBulbMesh = false;
-			foreach (var meshComponent in MeshComponents) {
-				switch (meshComponent) {
-					case LightBulbMeshAuthoring bulbMeshAuthoring:
-						data.ShowBulbMesh = data.ShowBulbMesh || bulbMeshAuthoring.gameObject.activeInHierarchy;
-						break;
-					case LightSocketMeshAuthoring socketMeshAuthoring:
-						data.ShowBulbMesh = data.ShowBulbMesh || socketMeshAuthoring.gameObject.activeInHierarchy;
+			foreach (var mf in GetComponentsInChildren<MeshFilter>(true)) {
+				switch (mf.sharedMesh.name) {
+					case BulbMeshName:
+					case SocketMeshName:
+						data.ShowBulbMesh = data.ShowBulbMesh || mf.gameObject.activeInHierarchy;
 						break;
 				}
 			}
@@ -159,46 +239,16 @@ namespace VisualPinball.Unity
 			return data;
 		}
 
-		public void OnBulbEnabled(bool bulbEnabledBefore, bool bulbEnabledAfter)
-		{
-			if (bulbEnabledBefore == bulbEnabledAfter) {
-				return;
-			}
+		#region Editor Tooling
 
-			var convertedItem = new ConvertedItem<Light, LightData, LightAuthoring>(gameObject);
-			if (bulbEnabledAfter) {
-				convertedItem.AddMeshAuthoring<LightBulbMeshAuthoring>(LightMeshGenerator.Bulb);
-				convertedItem.AddMeshAuthoring<LightSocketMeshAuthoring>(LightMeshGenerator.Socket);
-
-			} else {
-				convertedItem.Destroy<LightBulbMeshAuthoring>();
-				convertedItem.Destroy<LightSocketMeshAuthoring>();
-			}
-		}
-
-		public override void ItemDataChanged()
-		{
-			base.ItemDataChanged();
-
-			if (_unityLight == null) {
-				_unityLight = GetComponentInChildren<UnityEngine.Light>(includeInactive: true);
-				if (_unityLight == null) {
-					var lightObj = new GameObject("Light (Unity)") {
-						layer = SceneTableContainer.ChildObjectsLayer
-					};
-					lightObj.transform.parent = transform;
-					lightObj.transform.localPosition = Vector3.zero;
-					_unityLight = lightObj.AddComponent<UnityEngine.Light>();
-				}
-			}
-			RenderPipeline.Current.LightConverter.UpdateLight(_unityLight, Data);
-		}
-
-		public override ItemDataTransformType EditorPositionType => ItemDataTransformType.TwoD;
-		public override void SetEditorPosition(Vector3 pos) => Data.Center = pos.ToVertex2Dxy();
+		public override ItemDataTransformType EditorPositionType => ItemDataTransformType.ThreeD;
+		public override Vector3 GetEditorPosition() => Position;
+		public override void SetEditorPosition(Vector3 pos) => Position = pos;
 
 		public override ItemDataTransformType EditorScaleType => ItemDataTransformType.OneD;
-		public override Vector3 GetEditorScale() => new Vector3(Data.MeshRadius, Data.MeshRadius, Data.MeshRadius);
-		public override void SetEditorScale(Vector3 scale) => Data.MeshRadius = scale.x;
+		public override Vector3 GetEditorScale() => new Vector3(BulbSize, BulbSize, BulbSize);
+		public override void SetEditorScale(Vector3 scale) => BulbSize = scale.x;
+
+		#endregion
 	}
 }
