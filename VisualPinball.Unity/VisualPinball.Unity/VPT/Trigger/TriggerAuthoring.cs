@@ -140,6 +140,7 @@ namespace VisualPinball.Unity
 				meshComponent.Shape = data.Shape;
 				meshComponent.WireThickness = data.WireThickness;
 				meshComponent.CreateMesh(data, textureProvider, materialProvider);
+				updatedComponents.Add(meshComponent);
 			}
 
 			// collider

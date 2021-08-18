@@ -17,8 +17,6 @@
 // ReSharper disable AssignmentInConditionalExpression
 
 using UnityEditor;
-using UnityEngine.InputSystem;
-using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Plunger;
 
 namespace VisualPinball.Unity.Editor
@@ -26,12 +24,22 @@ namespace VisualPinball.Unity.Editor
 	[CustomEditor(typeof(PlungerAuthoring))]
 	public class PlungerInspector : ItemMainInspector<Plunger, PlungerData, PlungerAuthoring>
 	{
-		private bool _foldoutColorsAndFormatting = true;
-		private bool _foldoutStateAndPhysics;
-		private bool _foldoutMisc;
+		private SerializedProperty _positionProperty;
+		private SerializedProperty _widthProperty;
+		private SerializedProperty _heightProperty;
+		private SerializedProperty _zAdjustProperty;
+		private SerializedProperty _surfaceProperty;
 
-		private static readonly string[] PlungerTypeLabels = { "Modern", "Flat", "Custom" };
-		private static readonly int[] PlungerTypeValues = { PlungerType.PlungerTypeModern, PlungerType.PlungerTypeFlat, PlungerType.PlungerTypeCustom };
+		protected override void OnEnable()
+		{
+			base.OnEnable();
+
+			_positionProperty = serializedObject.FindProperty(nameof(PlungerAuthoring.Position));
+			_widthProperty = serializedObject.FindProperty(nameof(PlungerAuthoring.Width));
+			_heightProperty = serializedObject.FindProperty(nameof(PlungerAuthoring.Height));
+			_zAdjustProperty = serializedObject.FindProperty(nameof(PlungerAuthoring.ZAdjust));
+			_surfaceProperty = serializedObject.FindProperty(nameof(PlungerAuthoring._surface));
+		}
 
 		public override void OnInspectorGUI()
 		{
@@ -39,64 +47,19 @@ namespace VisualPinball.Unity.Editor
 				return;
 			}
 
-			ItemDataField("Position", ref Data.Center);
-			SurfaceField("Surface", ref Data.Surface);
-			DropDownField("Type", ref Data.Type, PlungerTypeLabels, PlungerTypeValues, onChanged: ItemAuthoring.OnTypeChanged);
+			serializedObject.Update();
 
 			OnPreInspectorGUI();
 
-			ItemDataField("Mechanical Plunger", ref Data.IsMechPlunger, false);
-			EditorGUI.BeginDisabledGroup(!Data.IsMechPlunger);
-			ItemAuthoring.analogPlungerAction = (InputActionReference)EditorGUILayout.ObjectField("Analog Key", ItemAuthoring.analogPlungerAction, typeof(InputActionReference), false);
-			EditorGUI.EndDisabledGroup();
-
-			if (_foldoutColorsAndFormatting = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutColorsAndFormatting, "Colors & Formatting")) {
-				MaterialFieldLegacy("Material", ref Data.Material);
-				TextureFieldLegacy("Texture", ref Data.Image);
-				ItemDataField("Flat Frames", ref Data.AnimFrames);
-				ItemDataField("Width", ref Data.Width);
-				ItemDataField("Z Adjustment", ref Data.ZAdjust);
-				ItemDataSlider("Park Position (0..1)", ref Data.ParkPosition, 0, 1, false, (before, after) => {
-					ItemAuthoring.UpdateParkPosition(1 - after);
-					SceneView.RepaintAll();
-				});
-
-				EditorGUILayout.LabelField("Custom Settings");
-				EditorGUI.indentLevel++;
-				EditorGUI.BeginDisabledGroup(Data.Type != PlungerType.PlungerTypeCustom);
-				ItemDataField("Rod Diameter", ref Data.RodDiam);
-				ItemDataField("Tip Shape", ref Data.TipShape); // TODO: break this down and provide individual fields
-				ItemDataField("Ring Gap", ref Data.RingGap);
-				ItemDataField("Ring Diam", ref Data.RingDiam);
-				ItemDataField("Ring Width", ref Data.RingWidth);
-				ItemDataField("Spring Diam", ref Data.SpringDiam);
-				ItemDataField("Spring Gauge", ref Data.SpringGauge);
-				ItemDataField("Spring Loops", ref Data.SpringLoops);
-				ItemDataField("End Loops", ref Data.SpringEndLoops);
-				EditorGUI.indentLevel--;
-				EditorGUI.EndDisabledGroup();
-			}
-			EditorGUILayout.EndFoldoutHeaderGroup();
-
-			if (_foldoutStateAndPhysics = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutStateAndPhysics, "State & Physics")) {
-				ItemDataField("Pull Speed", ref Data.SpeedPull, false);
-				ItemDataField("Release Speed", ref Data.SpeedFire, false);
-				ItemDataField("Stroke Length", ref Data.Stroke, false);
-				ItemDataField("Scatter Velocity", ref Data.ScatterVelocity, false);
-				ItemDataField("Enable Mechanical Plunger", ref Data.IsMechPlunger, false);
-				ItemDataField("Auto Plunger", ref Data.AutoPlunger, false);
-				ItemDataField("Mech Strength", ref Data.MechStrength, false);
-				ItemDataField("Momentum Xfer", ref Data.MomentumXfer, false);
-			}
-			EditorGUILayout.EndFoldoutHeaderGroup();
-
-			if (_foldoutMisc = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutMisc, "Misc")) {
-				ItemDataField("Timer Enabled", ref Data.IsTimerEnabled, false);
-				ItemDataField("Timer Interval", ref Data.TimerInterval, false);
-			}
-			EditorGUILayout.EndFoldoutHeaderGroup();
+			PropertyField(_positionProperty, rebuildMesh: true);
+			PropertyField(_widthProperty, rebuildMesh: true);
+			PropertyField(_heightProperty, rebuildMesh: true);
+			PropertyField(_zAdjustProperty, rebuildMesh: true);
+			PropertyField(_surfaceProperty, rebuildMesh: true);
 
 			base.OnInspectorGUI();
+
+			serializedObject.ApplyModifiedProperties();
 		}
 	}
 }

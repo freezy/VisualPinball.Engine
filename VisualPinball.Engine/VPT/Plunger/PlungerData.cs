@@ -69,16 +69,16 @@ namespace VisualPinball.Engine.VPT.Plunger
 		public float ParkPosition = 0.5f / 3.0f;
 
 		[BiffFloat("PSCV", Pos = 16)]
-		public float ScatterVelocity = 0f;
+		public float ScatterVelocity;
 
 		[BiffFloat("MOMX", Pos = 17)]
 		public float MomentumXfer = 1f;
 
 		[BiffBool("MECH", Pos = 13)]
-		public bool IsMechPlunger = false;
+		public bool IsMechPlunger;
 
 		[BiffBool("APLG", Pos = 14)]
-		public bool AutoPlunger = false;
+		public bool AutoPlunger;
 
 		[BiffInt("ANFR", Pos = 9)]
 		public int AnimFrames = 1;

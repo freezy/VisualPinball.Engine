@@ -111,6 +111,11 @@ namespace VisualPinball.Unity
 			}
 		}
 
+		protected float SurfaceHeight(ISurfaceAuthoring surface, Vector2 position)
+		{
+			return surface?.Height(position) ?? TableHeight;
+		}
+
 		protected static void CopyMaterialName(MeshRenderer mr, string[] materialNames, string[] textureNames,
 			ref string materialName)
 		{

@@ -24,21 +24,57 @@ namespace VisualPinball.Unity.Editor
 	[CustomEditor(typeof(PlungerColliderAuthoring))]
 	public class PlungerColliderInspector : ItemColliderInspector<Plunger, PlungerData, PlungerAuthoring, PlungerColliderAuthoring>
 	{
+		private SerializedProperty _speedPullProperty;
+		private SerializedProperty _speedFireProperty;
+		private SerializedProperty _strokeProperty;
+		private SerializedProperty _scatterVelocityProperty;
+		private SerializedProperty _isMechPlungerProperty;
+		private SerializedProperty _isAutoPlungerProperty;
+		private SerializedProperty _mechStrengthProperty;
+		private SerializedProperty _momentumXferProperty;
+		private SerializedProperty _parkPositionProperty;
+
+		protected override void OnEnable()
+		{
+			base.OnEnable();
+			_speedPullProperty = serializedObject.FindProperty(nameof(PlungerColliderAuthoring.SpeedPull));
+			_speedFireProperty = serializedObject.FindProperty(nameof(PlungerColliderAuthoring.SpeedFire));
+			_strokeProperty = serializedObject.FindProperty(nameof(PlungerColliderAuthoring.Stroke));
+			_scatterVelocityProperty = serializedObject.FindProperty(nameof(PlungerColliderAuthoring.ScatterVelocity));
+			_isMechPlungerProperty = serializedObject.FindProperty(nameof(PlungerColliderAuthoring.IsMechPlunger));
+			_isAutoPlungerProperty = serializedObject.FindProperty(nameof(PlungerColliderAuthoring.IsAutoPlunger));
+			_mechStrengthProperty = serializedObject.FindProperty(nameof(PlungerColliderAuthoring.MechStrength));
+			_momentumXferProperty = serializedObject.FindProperty(nameof(PlungerColliderAuthoring.MomentumXfer));
+			_parkPositionProperty = serializedObject.FindProperty(nameof(PlungerColliderAuthoring.ParkPosition));
+		}
+
 		public override void OnInspectorGUI()
 		{
 			if (HasErrors()) {
 				return;
 			}
 
-			ItemDataField("Pull Speed", ref Data.SpeedPull, false);
-			ItemDataField("Release Speed", ref Data.SpeedFire, false);
-			ItemDataField("Stroke Length", ref Data.Stroke, false);
-			ItemDataField("Scatter Velocity", ref Data.ScatterVelocity, false);
-			ItemDataField("Auto Plunger", ref Data.AutoPlunger, false);
-			ItemDataField("Visible", ref Data.IsVisible);
-			ItemDataField("Mech Strength", ref Data.MechStrength, false);
-			ItemDataField("Momentum Xfer", ref Data.MomentumXfer, false);
+			serializedObject.Update();
+
+			OnPreInspectorGUI();
+
+			PropertyField(_speedPullProperty, "Pull Speed");
+			PropertyField(_speedFireProperty, "Release Speed");
+			PropertyField(_strokeProperty, "Stroke Length");
+			PropertyField(_scatterVelocityProperty, "Scatter Velocity");
+
+			PropertyField(_isMechPlungerProperty, "Mechanical Plunger");
+			PropertyField(_isAutoPlungerProperty, "Auto Plunger");
+
+			PropertyField(_mechStrengthProperty, "Mech Strength");
+			PropertyField(_momentumXferProperty, "Momentum Xfer");
+			PropertyField(_parkPositionProperty, "Park Position", onChanged: () => {
+				ColliderAuthoring.GetComponentInParent<PlungerAuthoring>().UpdateParkPosition(ColliderAuthoring.ParkPosition);
+			});
+
 			base.OnInspectorGUI();
+
+			serializedObject.ApplyModifiedProperties();
 		}
 	}
 }

@@ -1,0 +1,253 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1 &3492958815385962431
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 2688967276888975725}
+  - component: {fileID: 8461769246571476234}
+  - component: {fileID: 4360165373544367127}
+  - component: {fileID: 6380137805125368953}
+  m_Layer: 0
+  m_Name: Plunger
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &2688967276888975725
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3492958815385962431}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_Children:
+  - {fileID: 2983885423002777819}
+  - {fileID: 1501205072833867318}
+  m_Father: {fileID: 0}
+  m_RootOrder: 0
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &8461769246571476234
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3492958815385962431}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c1591b5a0bc15604fb622d417b509185, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _data:
+    StoragePrefix: 0
+    StorageIndex: -1
+    IsLocked: 0
+    EditorLayerName: 
+    EditorLayerVisibility: 1
+    Name: 
+    Type: 1
+    Center:
+      X: 0
+      Y: 0
+    Width: 25
+    Height: 20
+    ZAdjust: 0
+    Stroke: 80
+    SpeedPull: 0.5
+    SpeedFire: 80
+    MechStrength: 85
+    ParkPosition: 0.16666667
+    ScatterVelocity: 0
+    MomentumXfer: 1
+    IsMechPlunger: 0
+    AutoPlunger: 0
+    AnimFrames: 1
+    Material: 
+    Image: 
+    IsVisible: 1
+    IsReflectionEnabled: 1
+    Surface: 
+    TipShape: 0 .34; 2 .6; 3 .64; 5 .7; 7 .84; 8 .88; 9 .9; 11 .92; 14 .92; 39 .84
+    RodDiam: 0.6
+    RingGap: 2
+    RingDiam: 0.94
+    RingWidth: 3
+    SpringDiam: 0.77
+    SpringGauge: 1.38
+    SpringLoops: 8
+    SpringEndLoops: 2.5
+    IsTimerEnabled: 0
+    TimerInterval: 0
+    Color:
+      Red: 207
+      Green: 196
+      Blue: 196
+      Alpha: 4
+  Position: {x: 0, y: 0}
+  Width: 25
+  Height: 20
+  ParkPosition: 0.16666667
+  MomentumXfer: 1
+  ScatterVelocity: 0
+  IsAutoPlunger: 0
+  IsMechPlunger: 0
+  SpeedFire: 80
+  Type: 1
+  ZAdjust: 0
+  Stroke: 80
+  SpeedPull: 0.5
+  MechStrength: 85
+  _surface: {fileID: 0}
+  analogPlungerAction: {fileID: 0}
+--- !u!114 &4360165373544367127
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3492958815385962431}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2b804d1deff43db4482e740209bb910a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  PhysicsMaterial: {fileID: 0}
+  ShowColliderMesh: 0
+  ShowAabbs: 0
+--- !u!114 &6380137805125368953
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3492958815385962431}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ea7d7495833204790ba1d3a8755397f8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  ConversionMode: 1
+--- !u!1 &3501041183407321805
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1501205072833867318}
+  - component: {fileID: 6684065896369603595}
+  - component: {fileID: 6796775350825094537}
+  m_Layer: 0
+  m_Name: Spring
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1501205072833867318
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3501041183407321805}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_Children: []
+  m_Father: {fileID: 2688967276888975725}
+  m_RootOrder: 1
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &6684065896369603595
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3501041183407321805}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8506b0486aacff543b92dd7de914f936, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _meshCreated: 1
+  SpringDiam: 0.77
+  SpringGauge: 1.38
+  SpringLoops: 8
+  SpringEndLoops: 2.5
+--- !u!33 &6796775350825094537
+MeshFilter:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3501041183407321805}
+  m_Mesh: {fileID: 0}
+--- !u!1 &7745742471233074297
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 2983885423002777819}
+  - component: {fileID: 4093808313367734439}
+  - component: {fileID: 8559785420684526687}
+  m_Layer: 0
+  m_Name: Rod
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &2983885423002777819
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7745742471233074297}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_Children: []
+  m_Father: {fileID: 2688967276888975725}
+  m_RootOrder: 0
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &4093808313367734439
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7745742471233074297}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6e7622b4c6837354c8190ee471830c31, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _meshCreated: 1
+  RodDiam: 0.6
+  RingGap: 2
+  RingDiam: 0.94
+  RingWidth: 3
+  TipShape: 0 .34; 2 .6; 3 .64; 5 .7; 7 .84; 8 .88; 9 .9; 11 .92; 14 .92; 39 .84
+--- !u!33 &8559785420684526687
+MeshFilter:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7745742471233074297}
+  m_Mesh: {fileID: 0}

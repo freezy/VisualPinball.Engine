@@ -14,6 +14,8 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+// ReSharper disable InconsistentNaming
+
 using System;
 using System.Collections.Generic;
 using Unity.Entities;
@@ -25,7 +27,37 @@ namespace VisualPinball.Unity
 	[AddComponentMenu("Visual Pinball/Collision/Plunger Collider")]
 	public class PlungerColliderAuthoring : ItemColliderAuthoring<Plunger, PlungerData, PlungerAuthoring>
 	{
-		public static readonly Type[] ValidParentTypes = new Type[0];
+		#region Data
+
+		[Min(0)]
+		[Tooltip("How quick the plunger moves back.")]
+		public float SpeedPull = 0.5f;
+
+		[Min(0)]
+		[Tooltip("How quick the plunger moves back when let go.")]
+		public float SpeedFire = 80f;
+
+		[Min(0)]
+		public float Stroke = 80f;
+		[Min(0)]
+		public float ScatterVelocity;
+
+		public bool IsMechPlunger;
+		public bool IsAutoPlunger;
+
+		[Min(0)]
+		public float MechStrength = 85f;
+
+		[Min(0)]
+		public float MomentumXfer = 1f;
+
+		[Range(0, 1f)]
+		[Tooltip("At which position the plunger rests.")]
+		public float ParkPosition = 0.5f / 3.0f;
+
+		#endregion
+
+		public static readonly Type[] ValidParentTypes = Type.EmptyTypes;
 
 		public override IEnumerable<Type> ValidParents => ValidParentTypes;
 
