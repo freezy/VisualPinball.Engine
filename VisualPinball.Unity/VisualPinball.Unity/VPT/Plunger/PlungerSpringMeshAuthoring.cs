@@ -29,6 +29,19 @@ namespace VisualPinball.Unity
 	[AddComponentMenu("Visual Pinball/Mesh/Plunger Spring Mesh")]
 	public class PlungerSpringMeshAuthoring : PlungerMeshAuthoring
 	{
+
+		#region Data
+
+		public float SpringDiam = 0.77f;
+
+		public float SpringGauge = 1.38f;
+
+		public float SpringLoops = 8.0f;
+
+		public float SpringEndLoops = 2.5f;
+
+		#endregion
+
 		public static readonly Type[] ValidParentTypes = new Type[0];
 
 		public override IEnumerable<Type> ValidParents => ValidParentTypes;

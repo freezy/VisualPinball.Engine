@@ -29,6 +29,21 @@ namespace VisualPinball.Unity
 	[AddComponentMenu("Visual Pinball/Mesh/Plunger Rod Mesh")]
 	public class PlungerRodMeshAuthoring : PlungerMeshAuthoring
 	{
+		#region Data
+
+
+		public float RodDiam = 0.6f;
+
+		public float RingGap = 2.0f;
+
+		public float RingDiam = 0.94f;
+
+		public float RingWidth = 3.0f;
+
+		public string TipShape = "0 .34; 2 .6; 3 .64; 5 .7; 7 .84; 8 .88; 9 .9; 11 .92; 14 .92; 39 .84";
+
+		#endregion
+
 		public static readonly Type[] ValidParentTypes = new Type[0];
 
 		public override IEnumerable<Type> ValidParents => ValidParentTypes;

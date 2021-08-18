@@ -37,7 +37,8 @@ namespace VisualPinball.Unity
 	{
 		#region Data
 
-		public int Type = PlungerType.PlungerTypeModern;
+		[Tooltip("The position of the plunger on the playfield.")]
+		public Vector2 Position;
 
 		public float Width = 25f;
 
@@ -45,43 +46,11 @@ namespace VisualPinball.Unity
 
 		public float ZAdjust;
 
-		public float Stroke = 80f;
-
-		public float SpeedPull = 0.5f;
-
-		public float SpeedFire = 80f;
-
-		public float MechStrength = 85f;
-
-		public float ParkPosition = 0.5f / 3.0f;
-
-		public float ScatterVelocity;
-
-		public float MomentumXfer = 1f;
-
-		public bool IsMechPlunger;
-
-		public bool AutoPlunger;
-
-		public SurfaceAuthoring Surface;
-
-		public string TipShape = "0 .34; 2 .6; 3 .64; 5 .7; 7 .84; 8 .88; 9 .9; 11 .92; 14 .92; 39 .84";
-
-		public float RodDiam = 0.6f;
-
-		public float RingGap = 2.0f;
-
-		public float RingDiam = 0.94f;
-
-		public float RingWidth = 3.0f;
-
-		public float SpringDiam = 0.77f;
-
-		public float SpringGauge = 1.38f;
-
-		public float SpringLoops = 8.0f;
-
-		public float SpringEndLoops = 2.5f;
+		public ISurfaceAuthoring Surface { get => _surface as ISurfaceAuthoring; set => _surface = value as MonoBehaviour; }
+		[SerializeField]
+		[TypeRestriction(typeof(ISurfaceAuthoring), PickerLabel = "Walls & Ramps", UpdateTransforms = true)]
+		[Tooltip("On which surface this plunger is attached to. Updates Z-translation.")]
+		public MonoBehaviour _surface;
 
 		#endregion
 
@@ -107,18 +76,23 @@ namespace VisualPinball.Unity
 		{
 			Convert(entity, dstManager);
 			var go = gameObject;
-			var table = go.GetComponentInParent<TableAuthoring>().Item;
-			transform.GetComponentInParent<Player>().RegisterPlunger(Item, entity, ParentEntity, analogPlungerAction, go);
 
-			var zHeight = table.GetSurfaceHeight(Data.Surface, Data.Center.X, Data.Center.Y);
-			var x = Data.Center.X - Data.Width;
-			var y = Data.Center.Y + Data.Height;
-			var x2 = Data.Center.X + Data.Width;
+			var collComponent = GetComponent<PlungerColliderAuthoring>();
+			if (!collComponent) {
+				// without collider, the plunger is only a dead mesh.
+				return;
+			}
 
-			var frameTop = Data.Center.Y - Data.Stroke;
-			var frameBottom = Data.Center.Y;
+
+			var zHeight = SurfaceHeight(Surface, Position);
+			var x = Position.x - Width;
+			var y = Position.y + Height;
+			var x2 = Position.x + Width;
+
+			var frameTop = Position.y - collComponent.Stroke;
+			var frameBottom = Position.y;
 			var frameLen = frameBottom - frameTop;
-			var restPos = Data.ParkPosition;
+			var restPos = collComponent.ParkPosition;
 			var position = frameTop + restPos * frameLen;
 
 			var info = new ColliderInfo {
@@ -130,15 +104,15 @@ namespace VisualPinball.Unity
 			};
 
 			dstManager.AddComponentData(entity, new PlungerStaticData {
-				MomentumXfer = Data.MomentumXfer,
-				ScatterVelocity = Data.ScatterVelocity,
+				MomentumXfer = collComponent.MomentumXfer,
+				ScatterVelocity = collComponent.ScatterVelocity,
 				FrameStart = frameBottom,
 				FrameEnd = frameTop,
 				FrameLen = frameLen,
 				RestPosition = restPos,
-				IsAutoPlunger = Data.AutoPlunger,
-				IsMechPlunger = Data.IsMechPlunger,
-				SpeedFire = Data.SpeedFire,
+				IsAutoPlunger = collComponent.IsAutoPlunger,
+				IsMechPlunger = collComponent.IsMechPlunger,
+				SpeedFire = collComponent.SpeedFire,
 				NumFrames = Item.MeshGenerator.NumFrames
 			});
 
@@ -170,41 +144,73 @@ namespace VisualPinball.Unity
 				AutoFireTimer = 0,
 				AddRetractMotion = false,
 				RetractWaitLoop = 0,
-				MechStrength = Data.MechStrength
+				MechStrength = collComponent.MechStrength
 			});
 
 			dstManager.AddComponentData(entity, new PlungerAnimationData {
-				Position = _data.ParkPosition
+				Position = collComponent.ParkPosition
 			});
+
+			// register at player
+			GetComponentInParent<Player>().RegisterPlunger(Item, entity, ParentEntity, analogPlungerAction, go);
 		}
 
 		public override IEnumerable<MonoBehaviour> SetData(PlungerData data, IMaterialProvider materialProvider, ITextureProvider textureProvider, Dictionary<string, IItemMainAuthoring> components)
 		{
 			var updatedComponents = new List<MonoBehaviour> { this };
 
-			Type = data.Type;
+			// geometry and position
+			Position = data.Center.ToUnityVector2();
 			Width = data.Width;
 			Height = data.Height;
 			ZAdjust = data.ZAdjust;
-			Stroke = data.Stroke;
-			SpeedPull = data.SpeedPull;
-			SpeedFire = data.SpeedFire;
-			MechStrength = data.MechStrength;
-			ParkPosition = data.ParkPosition;
-			ScatterVelocity = data.ScatterVelocity;
-			MomentumXfer = data.MomentumXfer;
-			IsMechPlunger = data.IsMechPlunger;
-			AutoPlunger = data.AutoPlunger;
 			Surface = GetAuthoring<SurfaceAuthoring>(components, data.Surface);
-			TipShape = data.TipShape;
-			RodDiam = data.RodDiam;
-			RingGap = data.RingGap;
-			RingDiam = data.RingDiam;
-			RingWidth = data.RingWidth;
-			SpringDiam = data.SpringDiam;
-			SpringGauge = data.SpringGauge;
-			SpringLoops = data.SpringLoops;
-			SpringEndLoops = data.SpringEndLoops;
+
+			// collider data
+			var collComponent = GetComponent<PlungerColliderAuthoring>();
+			if (collComponent) {
+				collComponent.Stroke = data.Stroke;
+				collComponent.SpeedPull = data.SpeedPull;
+				collComponent.SpeedFire = data.SpeedFire;
+				collComponent.MechStrength = data.MechStrength;
+				collComponent.ParkPosition = data.ParkPosition;
+				collComponent.ScatterVelocity = data.ScatterVelocity;
+				collComponent.MomentumXfer = data.MomentumXfer;
+				collComponent.IsMechPlunger = data.IsMechPlunger;
+				collComponent.IsAutoPlunger = data.AutoPlunger;
+
+				updatedComponents.Add(collComponent);
+			}
+
+			// rod mesh
+			var rodMesh = GetComponentInChildren<PlungerRodMeshAuthoring>(true);
+			if (rodMesh) {
+				rodMesh.TipShape = data.TipShape;
+				rodMesh.RodDiam = data.RodDiam;
+				rodMesh.RingGap = data.RingGap;
+				rodMesh.RingDiam = data.RingDiam;
+				rodMesh.RingWidth = data.RingWidth;
+
+				rodMesh.CreateMesh(data, textureProvider, materialProvider);
+				updatedComponents.Add(collComponent);
+			}
+
+			// spring mesh
+			var springMesh = GetComponentInChildren<PlungerSpringMeshAuthoring>(true);
+			if (springMesh) {
+				springMesh.SpringDiam = data.SpringDiam;
+				springMesh.SpringGauge = data.SpringGauge;
+				springMesh.SpringLoops = data.SpringLoops;
+				springMesh.SpringEndLoops = data.SpringEndLoops;
+
+				if (data.Type != PlungerType.PlungerTypeCustom) {
+					springMesh.gameObject.SetActive(false);
+				} else {
+					springMesh.CreateMesh(data, textureProvider, materialProvider);
+				}
+
+				updatedComponents.Add(collComponent);
+			}
 
 			return updatedComponents;
 		}
@@ -213,101 +219,54 @@ namespace VisualPinball.Unity
 		{
 			var localPos = transform.localPosition;
 
-			// name and position
+			// name, geometry and position
 			data.Name = name;
 			data.Center = localPos.ToVertex2Dxy();
-
-			// update visibility
-			data.IsVisible = false;
-			foreach (var meshComponent in MeshComponents) {
-				switch (meshComponent) {
-					case PlungerFlatMeshAuthoring flatMeshAuthoring:
-						data.IsVisible = flatMeshAuthoring.gameObject.activeInHierarchy;
-						break;
-					case PlungerRodMeshAuthoring rodMeshAuthoring:
-						data.IsVisible = data.IsVisible || rodMeshAuthoring.gameObject.activeInHierarchy;
-						break;
-					case PlungerSpringMeshAuthoring springMeshAuthoring:
-						data.IsVisible = data.IsVisible || springMeshAuthoring.gameObject.activeInHierarchy;
-						break;
-				}
-			}
-
-			// other props
-			data.Type = Type;
 			data.Width = Width;
 			data.Height = Height;
 			data.ZAdjust = ZAdjust;
-			data.Stroke = Stroke;
-			data.SpeedPull = SpeedPull;
-			data.SpeedFire = SpeedFire;
-			data.MechStrength = MechStrength;
-			data.ParkPosition = ParkPosition;
-			data.ScatterVelocity = ScatterVelocity;
-			data.MomentumXfer = MomentumXfer;
-			data.IsMechPlunger = IsMechPlunger;
-			data.AutoPlunger = AutoPlunger;
-			data.Surface = Surface ? Surface.name : string.Empty;
-			data.TipShape = TipShape;
-			data.RodDiam = RodDiam;
-			data.RingGap = RingGap;
-			data.RingDiam = RingDiam;
-			data.RingWidth = RingWidth;
-			data.SpringDiam = SpringDiam;
-			data.SpringGauge = SpringGauge;
-			data.SpringLoops = SpringLoops;
-			data.SpringEndLoops = SpringEndLoops;
+			data.Surface = Surface != null ? Surface.name : string.Empty;
+
+			// collider data
+			var collComponent = GetComponent<PlungerColliderAuthoring>();
+			if (collComponent) {
+				data.Stroke = collComponent.Stroke;
+				data.SpeedPull = collComponent.SpeedPull;
+				data.SpeedFire = collComponent.SpeedFire;
+				data.MechStrength = collComponent.MechStrength;
+				data.ParkPosition = collComponent.ParkPosition;
+				data.ScatterVelocity = collComponent.ScatterVelocity;
+				data.MomentumXfer = collComponent.MomentumXfer;
+				data.IsMechPlunger = collComponent.IsMechPlunger;
+				data.AutoPlunger = collComponent.IsAutoPlunger;
+			}
+
+			// rod mesh
+			var rodMesh = GetComponentInChildren<PlungerRodMeshAuthoring>(true);
+			if (rodMesh) {
+				data.TipShape = rodMesh.TipShape;
+				data.RodDiam = rodMesh.RodDiam;
+				data.RingGap = rodMesh.RingGap;
+				data.RingDiam = rodMesh.RingDiam;
+				data.RingWidth = rodMesh.RingWidth;
+			}
+
+			// spring mesh
+			var springMesh = GetComponentInChildren<PlungerSpringMeshAuthoring>(true);
+			if (springMesh) {
+				data.SpringDiam = springMesh.SpringDiam;
+				data.SpringGauge = springMesh.SpringGauge;
+				data.SpringLoops = springMesh.SpringLoops;
+				data.SpringEndLoops = springMesh.SpringEndLoops;
+			}
+
+			// type
+			var hasSpringMesh = springMesh && springMesh.isActiveAndEnabled;
+			var hasRodMesh = rodMesh && rodMesh.isActiveAndEnabled;
+			data.IsVisible = hasRodMesh;
+			data.Type = hasSpringMesh && hasRodMesh ? PlungerType.PlungerTypeCustom : PlungerType.PlungerTypeModern;
 
 			return data;
-		}
-
-		public void OnTypeChanged(int plungerTypeBefore, int plungerTypeAfter)
-		{
-			if (plungerTypeBefore == plungerTypeAfter) {
-				return;
-			}
-
-			var convertedItem = new ConvertedItem<Plunger, PlungerData, PlungerAuthoring>(gameObject);
-			switch (plungerTypeBefore) {
-				case PlungerType.PlungerTypeFlat:
-					// remove flat
-					convertedItem.Destroy<PlungerFlatMeshAuthoring>();
-
-					// create rod
-					convertedItem.AddMeshAuthoring<PlungerRodMeshAuthoring>(PlungerMeshGenerator.Rod);
-
-					if (plungerTypeAfter == PlungerType.PlungerTypeCustom) {
-						// create spring
-						convertedItem.AddMeshAuthoring<PlungerSpringMeshAuthoring>(PlungerMeshGenerator.Spring);
-					}
-					break;
-
-				case PlungerType.PlungerTypeModern:
-					if (plungerTypeAfter == PlungerType.PlungerTypeCustom) {
-						// create spring
-						convertedItem.AddMeshAuthoring<PlungerSpringMeshAuthoring>(PlungerMeshGenerator.Spring);
-					}
-
-					if (plungerTypeAfter == PlungerType.PlungerTypeFlat) {
-						// remove rod
-						convertedItem.Destroy<PlungerRodMeshAuthoring>();
-						// create flat
-						convertedItem.AddMeshAuthoring<PlungerFlatMeshAuthoring>(PlungerMeshGenerator.Flat);
-					}
-					break;
-
-				case PlungerType.PlungerTypeCustom:
-					// remove spring
-					convertedItem.Destroy<PlungerSpringMeshAuthoring>();
-
-					if (plungerTypeAfter == PlungerType.PlungerTypeFlat) {
-						// remove rod
-						convertedItem.Destroy<PlungerRodMeshAuthoring>();
-						// create flat
-						convertedItem.AddMeshAuthoring<PlungerFlatMeshAuthoring>(PlungerMeshGenerator.Flat);
-					}
-					break;
-			}
 		}
 
 		public void UpdateParkPosition(float pos)
@@ -317,7 +276,11 @@ namespace VisualPinball.Unity
 			}
 		}
 
+		#region Editor Tooling
+
 		public override ItemDataTransformType EditorPositionType => ItemDataTransformType.TwoD;
-		public override void SetEditorPosition(Vector3 pos) => Data.Center = pos.ToVertex2Dxy();
+		public override void SetEditorPosition(Vector3 pos) => Position = ((float3)pos).xy;
+
+		#endregion
 	}
 }
