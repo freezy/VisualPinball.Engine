@@ -32,7 +32,7 @@ namespace VisualPinball.Unity.Editor
 			var prefab = RenderPipeline.Current.PrefabProvider.CreateTarget(hitTarget.Data.TargetType);
 			var obj = PrefabUtility.InstantiatePrefab(prefab) as GameObject;
 			obj!.name = item.Name;
-			return new ConvertedItem<HitTarget, HitTargetData, HitTargetAuthoring>(obj, true);
+			return new ConvertedItem<HitTarget, HitTargetData, HitTargetAuthoring>(obj);
 
 			// var obj = new GameObject(item.Name);
 			// var convertedItem = new ConvertedItem<HitTarget, HitTargetData, HitTargetAuthoring>(obj, hitTarget);

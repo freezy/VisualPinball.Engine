@@ -32,7 +32,7 @@ namespace VisualPinball.Unity
 			var prefab = RenderPipeline.Current.PrefabProvider.CreateKicker(kicker.Data.KickerType);
 			var obj = PrefabUtility.InstantiatePrefab(prefab) as GameObject;
 			obj!.name = item.Name;
-			return new ConvertedItem<Kicker, KickerData, KickerAuthoring>(obj, true);
+			return new ConvertedItem<Kicker, KickerData, KickerAuthoring>(obj);
 
 			// var obj = new GameObject(item.Name);
 			// var convertedItem = new ConvertedItem<Kicker, KickerData, KickerAuthoring>(obj, kicker);

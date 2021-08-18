@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+using System;
 using UnityEngine;
 using UnityEngine.Rendering;
 using VisualPinball.Engine.Math;
@@ -87,9 +88,9 @@ namespace VisualPinball.Unity
 			// sometime we get empty meshes, e.g. when generating wire meshes for a non-wire ramp, so handle accordingly.
 			if (vpMesh.Indices == null || vpMesh.Vertices == null) {
 				mesh.triangles = null;
-				mesh.vertices = new Vector3[0];
-				mesh.normals = new Vector3[0];
-				mesh.uv = new Vector2[0];
+				mesh.vertices = Array.Empty<Vector3>();
+				mesh.normals = Array.Empty<Vector3>();
+				mesh.uv = Array.Empty<Vector2>();
 				return;
 			}
 

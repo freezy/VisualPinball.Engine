@@ -28,7 +28,7 @@ namespace VisualPinball.Unity.Editor
 			var prefab = RenderPipeline.Current.PrefabProvider.CreateBumper();
 			var obj = PrefabUtility.InstantiatePrefab(prefab) as GameObject;
 			obj!.name = item.Name;
-			return new ConvertedItem<Bumper, BumperData, BumperAuthoring>(obj, true);
+			return new ConvertedItem<Bumper, BumperData, BumperAuthoring>(obj);
 		}
 	}
 }

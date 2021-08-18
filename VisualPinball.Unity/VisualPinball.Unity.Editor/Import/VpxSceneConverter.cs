@@ -148,19 +148,7 @@ namespace VisualPinball.Unity.Editor
 			ExtractPhysicsMaterials();
 			ExtractTextures();
 			ExtractSounds();
-
-			try {
-				// pause asset database refreshing
-				AssetDatabase.StartAssetEditing();
-
-				SaveData();
-
-			} finally {
-
-				// resume asset database refreshing
-				AssetDatabase.StopAssetEditing();
-				AssetDatabase.Refresh();
-			}
+			SaveData();
 
 			ConvertGameItems();
 
@@ -278,8 +266,6 @@ namespace VisualPinball.Unity.Editor
 							Logger.Warn($"Cannot find component \"{parentName}\" that is supposed to be the parent of \"{renderable.Name}\".");
 						}
 					}
-
-					CreateAssetFromGameObject(convertedItems[lookupName]);
 				}
 
 			} finally {
@@ -302,6 +288,9 @@ namespace VisualPinball.Unity.Editor
 				// set data
 				if (datas.ContainsKey(lookupName)) {
 					updatedComponents = convertedItem.SetData(datas[lookupName], this, this, components);
+
+				} else {
+					Debug.LogError($"Could not find data of {lookupName} to apply to game object.");
 				}
 
 				// patch
@@ -339,55 +328,15 @@ namespace VisualPinball.Unity.Editor
 
 			convertedItem.GameObject.transform.SetParent(parentGo.transform, false);
 
-			if (!convertedItem.IsPrefab) {
-				foreach (var meshAuthoring in convertedItem.MeshAuthoring) {
-					meshAuthoring.CreateMesh(convertedItem.GameObject.name, this, this, this);
-				}
-			}
 			item.FreeBinaryData();
 
 			// apply transformation
 			if (item is IRenderable renderable) {
 				//convertedItem.MainAuthoring
+				// todo can probably remove that, it's in setData already..
 				convertedItem.GameObject.transform.SetFromMatrix(renderable.TransformationMatrix(_table, Origin.Original).ToUnityMatrix());
 			}
 			return convertedItem;
-		}
-
-		public void CreateAssetFromGameObject(IConvertedItem convertedItem)
-		{
-			if (convertedItem.IsPrefab) {
-				return;
-			}
-			var go = convertedItem.GameObject;
-			var extractMesh = !convertedItem.IsProceduralMesh;
-			var name = go.name;
-			var mfs = go.GetComponentsInChildren<MeshFilter>();
-
-			if (extractMesh) {
-				foreach (var mf in mfs) {
-					var suffix = mfs.Length == 1 ? "" : $" ({mf.gameObject.name})";
-					var meshFilename = $"{name.ToFilename()}{suffix.ToFilename()}.mesh";
-					var meshPath = Path.Combine(_assetsMeshes, meshFilename);
-					if (_options.SkipExistingMeshes && File.Exists(meshPath)) {
-						continue;
-					}
-					if (File.Exists(meshPath)) {
-						AssetDatabase.StopAssetEditing();
-						AssetDatabase.DeleteAsset(meshPath);
-						AssetDatabase.StartAssetEditing();
-					}
-					AssetDatabase.CreateAsset(mf.sharedMesh, meshPath);
-				}
-			}
-
-			var prefabPath = Path.Combine(_assetsPrefabs, $"{name.ToFilename()}.prefab");
-
-			if (File.Exists(prefabPath)) {
-				AssetDatabase.DeleteAsset(prefabPath);
-			}
-
-			PrefabUtility.SaveAsPrefabAssetAndConnect(go, prefabPath, InteractionMode.AutomatedAction);
 		}
 
 		private IConvertedItem InstantiateGameObject(IItem item)
@@ -578,7 +527,7 @@ namespace VisualPinball.Unity.Editor
 				StorageIndex = _tableContainer.ItemDatas.Count()
 			};
 
-			CreateAssetFromGameObject(CreateGameObjects(item));
+			CreateGameObjects(item);
 		}
 
 		private void CreateFileHierarchy()

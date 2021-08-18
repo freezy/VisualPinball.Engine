@@ -29,7 +29,7 @@ namespace VisualPinball.Unity
 			var prefab = RenderPipeline.Current.PrefabProvider.CreateLight();
 			var obj = PrefabUtility.InstantiatePrefab(prefab) as GameObject;
 			obj!.name = item.Name;
-			return new ConvertedItem<Light, LightData, LightAuthoring>(obj, true);
+			return new ConvertedItem<Light, LightData, LightAuthoring>(obj);
 		}
 	}
 }

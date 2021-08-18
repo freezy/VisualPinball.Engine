@@ -34,7 +34,7 @@ namespace VisualPinball.Unity
 			var obj = PrefabUtility.InstantiatePrefab(prefab) as GameObject;
 			obj!.name = item.Name;
 
-			return new ConvertedItem<Ramp, RampData, RampAuthoring>(obj, true);
+			return new ConvertedItem<Ramp, RampData, RampAuthoring>(obj);
 
 			// var obj = new GameObject(item.Name);
 			// var convertedItem = new ConvertedItem<Ramp, RampData, RampAuthoring>(obj, ramp);

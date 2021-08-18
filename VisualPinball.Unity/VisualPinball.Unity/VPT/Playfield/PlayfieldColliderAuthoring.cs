@@ -25,7 +25,7 @@ namespace VisualPinball.Unity
 	[AddComponentMenu("Visual Pinball/Collision/Playfield Collider")]
 	public class PlayfieldColliderAuthoring : ItemColliderAuthoring<Table, TableData, PlayfieldAuthoring>
 	{
-		public static readonly Type[] ValidParentTypes = new Type[0];
+		public static readonly Type[] ValidParentTypes = Type.EmptyTypes;
 
 		public override IEnumerable<Type> ValidParents => ValidParentTypes;
 		protected override IApiColliderGenerator InstantiateColliderApi(Player player, Entity entity, Entity parentEntity)
