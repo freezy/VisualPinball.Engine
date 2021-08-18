@@ -24,13 +24,41 @@ namespace VisualPinball.Unity.Editor
 	[CustomEditor(typeof(PlungerRodMeshAuthoring))]
 	public class PlungerRodMeshInspector : ItemMeshInspector<Plunger, PlungerData, PlungerAuthoring, PlungerRodMeshAuthoring>
 	{
+		private SerializedProperty _rodDiamPullProperty;
+		private SerializedProperty _tipShapeProperty;
+		private SerializedProperty _ringGapProperty;
+		private SerializedProperty _ringDiamProperty;
+		private SerializedProperty _ringWidthProperty;
+
+		protected override void OnEnable()
+		{
+			base.OnEnable();
+			_rodDiamPullProperty = serializedObject.FindProperty(nameof(PlungerRodMeshAuthoring.RodDiam));
+			_tipShapeProperty = serializedObject.FindProperty(nameof(PlungerRodMeshAuthoring.TipShape));
+			_ringGapProperty = serializedObject.FindProperty(nameof(PlungerRodMeshAuthoring.RingGap));
+			_ringDiamProperty = serializedObject.FindProperty(nameof(PlungerRodMeshAuthoring.RingDiam));
+			_ringWidthProperty = serializedObject.FindProperty(nameof(PlungerRodMeshAuthoring.RingWidth));
+		}
+
 		public override void OnInspectorGUI()
 		{
 			if (HasErrors()) {
 				return;
 			}
 
+			serializedObject.Update();
+
+			OnPreInspectorGUI();
+
+			PropertyField(_rodDiamPullProperty, "Rod Diameter", true);
+			PropertyField(_tipShapeProperty, "Tip Shape", true);
+			PropertyField(_ringGapProperty, "Ring Gap", true);
+			PropertyField(_ringDiamProperty, "Ring Diameter", true);
+			PropertyField(_ringWidthProperty, "Ring Width", true);
+
 			base.OnInspectorGUI();
+
+			serializedObject.ApplyModifiedProperties();
 		}
 	}
 }

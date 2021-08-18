@@ -24,13 +24,38 @@ namespace VisualPinball.Unity.Editor
 	[CustomEditor(typeof(PlungerSpringMeshAuthoring))]
 	public class PlungerSpringMeshInspector : ItemMeshInspector<Plunger, PlungerData, PlungerAuthoring, PlungerSpringMeshAuthoring>
 	{
+		private SerializedProperty _springDiamProperty;
+		private SerializedProperty _springGaugeProperty;
+		private SerializedProperty _springLoopsProperty;
+		private SerializedProperty _springEndLoopsProperty;
+
+		protected override void OnEnable()
+		{
+			base.OnEnable();
+			_springDiamProperty = serializedObject.FindProperty(nameof(PlungerSpringMeshAuthoring.SpringDiam));
+			_springGaugeProperty = serializedObject.FindProperty(nameof(PlungerSpringMeshAuthoring.SpringGauge));
+			_springLoopsProperty = serializedObject.FindProperty(nameof(PlungerSpringMeshAuthoring.SpringLoops));
+			_springEndLoopsProperty = serializedObject.FindProperty(nameof(PlungerSpringMeshAuthoring.SpringEndLoops));
+
+		}
 		public override void OnInspectorGUI()
 		{
 			if (HasErrors()) {
 				return;
 			}
 
+			serializedObject.Update();
+
+			OnPreInspectorGUI();
+
+			PropertyField(_springDiamProperty, "Spring Diameter", true);
+			PropertyField(_springGaugeProperty, "Spring Gauge", true);
+			PropertyField(_springLoopsProperty, "Loops", true);
+			PropertyField(_springEndLoopsProperty, "End Loops", true);
+
 			base.OnInspectorGUI();
+
+			serializedObject.ApplyModifiedProperties();
 		}
 	}
 }
