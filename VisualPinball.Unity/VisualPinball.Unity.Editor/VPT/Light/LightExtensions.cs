@@ -1,4 +1,4 @@
-﻿// Visual Pinball Engine
+// Visual Pinball Engine
 // Copyright (C) 2021 freezy and VPE Team
 //
 // This program is free software: you can redistribute it and/or modify
@@ -14,23 +14,22 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-// ReSharper disable AssignmentInConditionalExpression
-
 using UnityEditor;
+using UnityEngine;
+using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Light;
+using Light = VisualPinball.Engine.VPT.Light.Light;
 
-namespace VisualPinball.Unity.Editor
+namespace VisualPinball.Unity
 {
-	[CustomEditor(typeof(LightBulbMeshAuthoring)), CanEditMultipleObjects]
-	public class LightBulbMeshInspector : ItemMeshInspector<Light, LightData, LightAuthoring, LightBulbMeshAuthoring>
+	public static class LightExtensions
 	{
-		public override void OnInspectorGUI()
+		public static IConvertedItem InstantiateGameObject(this Light light, IItem item)
 		{
-			if (HasErrors()) {
-				return;
-			}
-
-			base.OnInspectorGUI();
+			var prefab = RenderPipeline.Current.PrefabProvider.CreateLight();
+			var obj = PrefabUtility.InstantiatePrefab(prefab) as GameObject;
+			obj!.name = item.Name;
+			return new ConvertedItem<Light, LightData, LightAuthoring>(obj, true);
 		}
 	}
 }

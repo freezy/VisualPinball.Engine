@@ -38,6 +38,10 @@ namespace VisualPinball.Unity
 		{
 			throw new System.NotImplementedException();
 		}
+		public GameObject CreateLight()
+		{
+			throw new System.NotImplementedException();
+		}
 
 		public GameObject CreateSpinner()
 		{
