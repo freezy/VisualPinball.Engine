@@ -21,7 +21,7 @@ using VisualPinball.Engine.VPT.Bumper;
 
 namespace VisualPinball.Unity.Editor
 {
-	[CustomEditor(typeof(BumperRingAnimationAuthoring))]
+	[CustomEditor(typeof(BumperRingAnimationAuthoring)), CanEditMultipleObjects]
 	public class BumperRingAnimationInspector : ItemAnimationInspector<Bumper, BumperData, BumperAuthoring, BumperRingAnimationAuthoring>
 	{
 		private SerializedProperty _ringSpeedProperty;

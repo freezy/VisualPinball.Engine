@@ -23,7 +23,7 @@ using VisualPinball.Engine.VPT.Trigger;
 
 namespace VisualPinball.Unity.Editor
 {
-	[CustomEditor(typeof(TriggerAuthoring))]
+	[CustomEditor(typeof(TriggerAuthoring)), CanEditMultipleObjects]
 	public class TriggerInspector : DragPointsItemInspector<Trigger, TriggerData, TriggerAuthoring>
 	{
 		private SerializedProperty _positionProperty;

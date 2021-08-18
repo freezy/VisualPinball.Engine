@@ -21,7 +21,7 @@ using VisualPinball.Engine.VPT.Rubber;
 
 namespace VisualPinball.Unity.Editor
 {
-	[CustomEditor(typeof(RubberColliderAuthoring))]
+	[CustomEditor(typeof(RubberColliderAuthoring)), CanEditMultipleObjects]
 	public class RubberColliderInspector : ItemColliderInspector<Rubber, RubberData, RubberAuthoring, RubberColliderAuthoring>
 	{
 		private bool _foldoutMaterial = true;

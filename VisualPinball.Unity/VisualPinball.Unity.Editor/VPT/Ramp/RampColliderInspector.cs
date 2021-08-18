@@ -21,7 +21,7 @@ using VisualPinball.Engine.VPT.Ramp;
 
 namespace VisualPinball.Unity.Editor
 {
-	[CustomEditor(typeof(RampColliderAuthoring))]
+	[CustomEditor(typeof(RampColliderAuthoring)), CanEditMultipleObjects]
 	public class RampColliderInspector : ItemColliderInspector<Ramp, RampData, RampAuthoring, RampColliderAuthoring>
 	{
 		private bool _foldoutMaterial = true;

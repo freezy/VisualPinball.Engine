@@ -23,7 +23,7 @@ using VisualPinball.Engine.VPT.Primitive;
 
 namespace VisualPinball.Unity.Editor
 {
-	[CustomEditor(typeof(PrimitiveMeshAuthoring))]
+	[CustomEditor(typeof(PrimitiveMeshAuthoring)), CanEditMultipleObjects]
 	public class PrimitiveMeshInspector : ItemMeshInspector<Primitive, PrimitiveData, PrimitiveAuthoring, PrimitiveMeshAuthoring>
 	{
 		private bool _foldoutColorsAndFormatting = true;

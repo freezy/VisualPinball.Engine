@@ -21,7 +21,7 @@ using VisualPinball.Engine.VPT.Surface;
 
 namespace VisualPinball.Unity.Editor
 {
-	[CustomEditor(typeof(SurfaceTopMeshAuthoring))]
+	[CustomEditor(typeof(SurfaceTopMeshAuthoring)), CanEditMultipleObjects]
 	public class SurfaceTopMeshInspector : ItemMeshInspector<Surface, SurfaceData, SurfaceAuthoring, SurfaceTopMeshAuthoring>
 	{
 		private SurfaceData _data;

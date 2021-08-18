@@ -36,7 +36,7 @@ namespace VisualPinball.Unity
 	public class BumperAuthoring : ItemMainRenderableAuthoring<Bumper, BumperData>,
 		ISwitchAuthoring, ICoilAuthoring, IConvertGameObjectToEntity
 	{
-		public override ItemType ItemType { get; } = ItemType.Bumper;
+		public override ItemType ItemType => ItemType.Bumper;
 		public override IEnumerable<Type> ValidParents => BumperColliderAuthoring.ValidParentTypes;
 
 		public ISwitchable Switchable => Item;

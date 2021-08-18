@@ -23,7 +23,7 @@ using VisualPinball.Engine.VPT.Rubber;
 
 namespace VisualPinball.Unity.Editor
 {
-	[CustomEditor(typeof(RubberAuthoring))]
+	[CustomEditor(typeof(RubberAuthoring)), CanEditMultipleObjects]
 	public class RubberInspector : DragPointsItemInspector<Rubber, RubberData, RubberAuthoring>
 	{
 		private SerializedProperty _heightProperty;

@@ -21,7 +21,7 @@ using VisualPinball.Engine.VPT.Surface;
 
 namespace VisualPinball.Unity.Editor
 {
-	[CustomEditor(typeof(SurfaceColliderAuthoring))]
+	[CustomEditor(typeof(SurfaceColliderAuthoring)), CanEditMultipleObjects]
 	public class SurfaceColliderInspector : ItemColliderInspector<Surface, SurfaceData, SurfaceAuthoring, SurfaceColliderAuthoring>
 	{
 		private bool _foldoutMaterial = true;

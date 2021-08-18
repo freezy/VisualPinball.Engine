@@ -21,7 +21,7 @@ using VisualPinball.Engine.VPT.Primitive;
 
 namespace VisualPinball.Unity.Editor
 {
-	[CustomEditor(typeof(PrimitiveAuthoring))]
+	[CustomEditor(typeof(PrimitiveAuthoring)), CanEditMultipleObjects]
 	public class PrimitiveInspector : ItemMainInspector<Primitive, PrimitiveData, PrimitiveAuthoring>
 	{
 		private SerializedProperty _positionProperty;

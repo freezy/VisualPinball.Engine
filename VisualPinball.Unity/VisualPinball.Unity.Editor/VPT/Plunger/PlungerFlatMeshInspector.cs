@@ -21,7 +21,7 @@ using VisualPinball.Engine.VPT.Plunger;
 
 namespace VisualPinball.Unity.Editor
 {
-	[CustomEditor(typeof(PlungerFlatMeshAuthoring))]
+	[CustomEditor(typeof(PlungerFlatMeshAuthoring)), CanEditMultipleObjects]
 	public class PlungerFlatMeshInspector : ItemMeshInspector<Plunger, PlungerData, PlungerAuthoring, PlungerFlatMeshAuthoring>
 	{
 		public override void OnInspectorGUI()

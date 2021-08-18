@@ -26,8 +26,7 @@ using UnityEngine;
 
 namespace VisualPinball.Unity.Editor
 {
-	[CanEditMultipleObjects]
-	[CustomEditor(typeof(SegmentDisplayAuthoring))]
+	[CustomEditor(typeof(SegmentDisplayAuthoring)), CanEditMultipleObjects]
 	public class SegmentDisplayInspector : DisplayInspector
 	{
 		private static readonly (int, string)[] NumSegmentsTypes = {

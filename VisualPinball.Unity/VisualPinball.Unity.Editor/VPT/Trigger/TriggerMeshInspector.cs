@@ -22,7 +22,7 @@ using VisualPinball.Engine.VPT.Trigger;
 
 namespace VisualPinball.Unity.Editor
 {
-	[CustomEditor(typeof(TriggerMeshAuthoring))]
+	[CustomEditor(typeof(TriggerMeshAuthoring)), CanEditMultipleObjects]
 	public class TriggerMeshInspector : ItemMeshInspector<Trigger, TriggerData, TriggerAuthoring, TriggerMeshAuthoring>
 	{
 		public static readonly string[] TriggerShapeLabels = {

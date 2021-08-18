@@ -21,7 +21,7 @@ using VisualPinball.Engine.VPT.Primitive;
 
 namespace VisualPinball.Unity.Editor
 {
-	[CustomEditor(typeof(PrimitiveColliderAuthoring))]
+	[CustomEditor(typeof(PrimitiveColliderAuthoring)), CanEditMultipleObjects]
 	public class PrimitiveColliderInspector : ItemColliderInspector<Primitive, PrimitiveData, PrimitiveAuthoring, PrimitiveColliderAuthoring>
 	{
 		private bool _foldoutMaterial = true;
