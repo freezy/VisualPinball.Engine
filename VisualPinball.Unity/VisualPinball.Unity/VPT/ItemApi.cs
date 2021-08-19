@@ -40,10 +40,8 @@ namespace VisualPinball.Unity
 
 		protected readonly TItemComponent MainComponent;
 
-		internal readonly TItem Item;
 		internal readonly GameObject GameObject;
 
-		public TData Data => Item.Data;
 		private protected Table Table => _player.Table;
 		private protected TableApi TableApi => _player.TableApi;
 

@@ -90,8 +90,8 @@ namespace VisualPinball.Unity
 		{
 			switch (lightStatus) {
 				case LightStatus.LightStateOff: {
-					if (Data.FadeSpeedDown > 0) {
-						_lightAuthoring.FadeTo(Data.FadeSpeedDown, 0);
+					if (MainComponent.FadeSpeedDown > 0) {
+						_lightAuthoring.FadeTo(MainComponent.FadeSpeedDown, 0);
 
 					} else {
 						_lightAuthoring.Enabled = false;
@@ -100,8 +100,8 @@ namespace VisualPinball.Unity
 				}
 
 				case LightStatus.LightStateOn: {
-					if (Data.FadeSpeedUp > 0) {
-						_lightAuthoring.FadeTo(Data.FadeSpeedUp, value);
+					if (MainComponent.FadeSpeedUp > 0) {
+						_lightAuthoring.FadeTo(MainComponent.FadeSpeedUp, value);
 
 					} else {
 						_lightAuthoring.Enabled = true;

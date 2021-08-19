@@ -63,6 +63,7 @@ namespace VisualPinball.Unity
 
 		public override ItemType ItemType => ItemType.Kicker;
 		public bool IsPulseSwitch => false;
+		public float PositionZ => SurfaceHeight(Surface, Position);
 
 		protected override Kicker InstantiateItem(KickerData data) => new Kicker(data);
 		protected override KickerData InstantiateData() => new KickerData();
@@ -98,22 +99,22 @@ namespace VisualPinball.Unity
 					LastCapturedBallEntity = Entity.Null
 				});
 
-				if (!Data.LegacyMode) {
-					// todo currently we don't allow non-legacy mode
-					// using (var blobBuilder = new BlobBuilder(Allocator.Temp)) {
-					// 	ref var blobAsset = ref blobBuilder.ConstructRoot<KickerMeshVertexBlobAsset>();
-					// 	var vertices = blobBuilder.Allocate(ref blobAsset.Vertices, Item.KickerHit.HitMesh.Length);
-					// 	var normals = blobBuilder.Allocate(ref blobAsset.Normals, Item.KickerHit.HitMesh.Length);
-					// 	for (var i = 0; i < Item.KickerHit.HitMesh.Length; i++) {
-					// 		var v = Item.KickerHit.HitMesh[i];
-					// 		vertices[i] = new KickerMeshVertex { Vertex = v.ToUnityFloat3() };
-					// 		normals[i] = new KickerMeshVertex { Vertex = new float3(KickerHitMesh.Vertices[i].Nx, KickerHitMesh.Vertices[i].Ny, KickerHitMesh.Vertices[i].Nz) };
-					// 	}
-					//
-					// 	var blobAssetReference = blobBuilder.CreateBlobAssetReference<KickerMeshVertexBlobAsset>(Allocator.Persistent);
-					// 	dstManager.AddComponentData(entity, new ColliderMeshData { Value = blobAssetReference });
-					// }
-				}
+				// if (!Data.LegacyMode) {
+				// 	// todo currently we don't allow non-legacy mode
+				// 	using (var blobBuilder = new BlobBuilder(Allocator.Temp)) {
+				// 		ref var blobAsset = ref blobBuilder.ConstructRoot<KickerMeshVertexBlobAsset>();
+				// 		var vertices = blobBuilder.Allocate(ref blobAsset.Vertices, Item.KickerHit.HitMesh.Length);
+				// 		var normals = blobBuilder.Allocate(ref blobAsset.Normals, Item.KickerHit.HitMesh.Length);
+				// 		for (var i = 0; i < Item.KickerHit.HitMesh.Length; i++) {
+				// 			var v = Item.KickerHit.HitMesh[i];
+				// 			vertices[i] = new KickerMeshVertex { Vertex = v.ToUnityFloat3() };
+				// 			normals[i] = new KickerMeshVertex { Vertex = new float3(KickerHitMesh.Vertices[i].Nx, KickerHitMesh.Vertices[i].Ny, KickerHitMesh.Vertices[i].Nz) };
+				// 		}
+				//
+				// 		var blobAssetReference = blobBuilder.CreateBlobAssetReference<KickerMeshVertexBlobAsset>(Allocator.Persistent);
+				// 		dstManager.AddComponentData(entity, new ColliderMeshData { Value = blobAssetReference });
+				// 	}
+				// }
 			}
 
 			// register
@@ -125,9 +126,7 @@ namespace VisualPinball.Unity
 			var t = transform;
 
 			// position
-			t.localPosition = Surface != null
-				? new Vector3(Position.x, Position.y, Surface.Height(Position))
-				: new Vector3(Position.x, Position.y, TableHeight);
+			t.localPosition = new Vector3(Position.x, Position.y, PositionZ);
 
 			if (KickerType == Engine.VPT.KickerType.KickerCup) {
 				t.localPosition += new Vector3(0, 0, -0.18f * Radius);
@@ -213,7 +212,7 @@ namespace VisualPinball.Unity
 		public Vertex3D GetBallCreationPosition(Table table)
 		{
 			var height = Surface?.Height(Position) ?? TableHeight;
-			return new Vertex3D(Data.Center.X, Data.Center.Y, height);
+			return new Vertex3D(Position.x, Position.y, height);
 		}
 
 		public Vertex3D GetBallCreationVelocity(Table table) => new Vertex3D(0.1f, 0, 0);

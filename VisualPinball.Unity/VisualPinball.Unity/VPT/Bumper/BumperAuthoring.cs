@@ -43,7 +43,7 @@ namespace VisualPinball.Unity
 
 		public bool IsPulseSwitch => true;
 
-		public float PositionZ => Surface?.Height(Position) ?? TableHeight;
+		public float PositionZ => SurfaceHeight(Surface, Position);
 
 		#region Data
 

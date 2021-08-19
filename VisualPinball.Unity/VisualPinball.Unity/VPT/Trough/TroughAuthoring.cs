@@ -99,18 +99,18 @@ namespace VisualPinball.Unity
 		/// <exception cref="ArgumentException"></exception>
 		public int RollTimeEnabled {
 			get {
-				switch (Data.Type) {
+				switch (Type) {
 					case TroughType.ModernOpto:
-						return Data.TransitionTime;
+						return TransitionTime;
 
 					case TroughType.ModernMech:
 					case TroughType.TwoCoilsNSwitches:
 					case TroughType.TwoCoilsOneSwitch:
 					case TroughType.ClassicSingleBall:
-						return Data.RollTime / 2;
+						return RollTime / 2;
 
 					default:
-						throw new ArgumentException("Invalid trough type " + Data.Type);
+						throw new ArgumentException("Invalid trough type " + Type);
 				}
 			}
 		}
@@ -121,18 +121,18 @@ namespace VisualPinball.Unity
 		/// <exception cref="ArgumentException"></exception>
 		public int RollTimeDisabled {
 			get {
-				switch (Data.Type) {
+				switch (Type) {
 					case TroughType.ModernOpto:
-						return Data.RollTime - Data.TransitionTime;
+						return RollTime - TransitionTime;
 
 					case TroughType.ModernMech:
 					case TroughType.TwoCoilsNSwitches:
 					case TroughType.TwoCoilsOneSwitch:
 					case TroughType.ClassicSingleBall:
-						return Data.RollTime / 2;
+						return RollTime / 2;
 
 					default:
-						throw new ArgumentException("Invalid trough type " + Data.Type);
+						throw new ArgumentException("Invalid trough type " + Type);
 				}
 			}
 		}
@@ -146,13 +146,13 @@ namespace VisualPinball.Unity
 		public IEnumerable<GamelogicEngineSwitch> AvailableSwitches {
 			get {
 
-				switch (Data.Type) {
+				switch (Type) {
 					case TroughType.ModernOpto:
 					case TroughType.ModernMech:
-						return Enumerable.Repeat(0, Data.SwitchCount)
+						return Enumerable.Repeat(0, SwitchCount)
 							.Select((_, i) => new GamelogicEngineSwitch($"{i + 1}", i + 1)
 								{ Description = SwitchDescription(i) })
-							.Concat(Data.JamSwitch
+							.Concat(JamSwitch
 								? new [] { new GamelogicEngineSwitch(JamSwitchId) { Description = "Jam Switch" }}
 								: Array.Empty<GamelogicEngineSwitch>()
 							);
@@ -160,10 +160,10 @@ namespace VisualPinball.Unity
 					case TroughType.TwoCoilsNSwitches:
 						return new[] {
 							new GamelogicEngineSwitch(EntrySwitchId) { Description = "Entry Switch" }
-						}.Concat(Enumerable.Repeat(0, Data.SwitchCount)
+						}.Concat(Enumerable.Repeat(0, SwitchCount)
 							.Select((_, i) => new GamelogicEngineSwitch($"{i + 1}", i + 1)
 								{ Description = SwitchDescription(i) } )
-						).Concat(Data.JamSwitch
+						).Concat(JamSwitch
 							? new [] { new GamelogicEngineSwitch(JamSwitchId) { Description = "Jam Switch" }}
 							: Array.Empty<GamelogicEngineSwitch>()
 						);
@@ -172,7 +172,7 @@ namespace VisualPinball.Unity
 						return new[] {
 							new GamelogicEngineSwitch(EntrySwitchId) { Description = "Entry Switch" },
 							new GamelogicEngineSwitch(TroughSwitchId) { Description = "Trough Switch" },
-						}.Concat(Data.JamSwitch
+						}.Concat(JamSwitch
 							? new [] { new GamelogicEngineSwitch(JamSwitchId) { Description = "Jam Switch" }}
 							: Array.Empty<GamelogicEngineSwitch>()
 						);
@@ -183,7 +183,7 @@ namespace VisualPinball.Unity
 						};
 
 					default:
-						throw new ArgumentException("Invalid trough type " + Data.Type);
+						throw new ArgumentException("Invalid trough type " + Type);
 				}
 			}
 		}
@@ -194,7 +194,7 @@ namespace VisualPinball.Unity
 				return "Ball 1 (eject)";
 			}
 
-			return i == Data.SwitchCount - 1
+			return i == SwitchCount - 1
 				? $"Ball {i + 1} (entry)"
 				: $"Ball {i + 1}";
 		}
@@ -208,7 +208,7 @@ namespace VisualPinball.Unity
 
 		public IEnumerable<GamelogicEngineCoil> AvailableCoils {
 			get {
-				switch (Data.Type) {
+				switch (Type) {
 					case TroughType.ModernOpto:
 					case TroughType.ModernMech:
 						return new[] {
@@ -225,7 +225,7 @@ namespace VisualPinball.Unity
 							new GamelogicEngineCoil(EjectCoilId) { Description = "Eject" }
 						};
 					default:
-						throw new ArgumentException("Invalid trough type " + Data.Type);
+						throw new ArgumentException("Invalid trough type " + Type);
 				}
 			}
 		}
@@ -239,11 +239,9 @@ namespace VisualPinball.Unity
 				: new Vector3(PlayfieldEntrySwitch.Center.x, PlayfieldEntrySwitch.Center.y, height);
 		}
 
-		private Vector3 ExitPos(float height) => string.IsNullOrEmpty(Data.PlayfieldExitKicker)
+		private Vector3 ExitPos(float height) => PlayfieldExitKicker == null
 			? Vector3.zero
-			: PlayfieldExitKicker == null
-				? Vector3.zero
-				: new Vector3(PlayfieldExitKicker.Position.x, PlayfieldExitKicker.Position.y, height);
+			: new Vector3(PlayfieldExitKicker.Position.x, PlayfieldExitKicker.Position.y, height);
 
 		private void Awake()
 		{
@@ -293,7 +291,7 @@ namespace VisualPinball.Unity
 		private void OnDrawGizmosSelected()
 		{
 			Profiler.BeginSample("TroughAuthoring.OnDrawGizmosSelected");
-			if (!string.IsNullOrEmpty(Data.PlayfieldEntrySwitch) && !string.IsNullOrEmpty(Data.PlayfieldExitKicker)) {
+			if (PlayfieldEntrySwitch != null && PlayfieldExitKicker != null) {
 				var ltw = GetComponentInParent<TableAuthoring>().transform;
 				var entryPos = EntryPos(0f);
 				var exitPos = ExitPos(0f);

@@ -42,6 +42,8 @@ namespace VisualPinball.Unity
 
 		public bool IsPulseSwitch => true;
 
+		public float PositionZ => SurfaceHeight(Surface, Position);
+
 		#region Data
 
 		[Tooltip("Position of the gate on the playfield.")]
@@ -115,9 +117,7 @@ namespace VisualPinball.Unity
 			var t = transform;
 
 			// position
-			t.localPosition = Surface != null
-				? Position + new Vector3(0, 0, Surface.Height(Position))
-				: Position; // todo plus table height
+			t.localPosition = new Vector3(Position.x, Position.y, PositionZ);
 
 			// scale
 			t.localScale = new Vector3(Length, Length, Length);
