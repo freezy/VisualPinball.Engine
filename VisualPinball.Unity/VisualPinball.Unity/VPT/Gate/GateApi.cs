@@ -89,7 +89,7 @@ namespace VisualPinball.Unity
 
 		protected override void CreateColliders(Table table, List<ICollider> colliders)
 		{
-			var colliderGenerator = new GateColliderGenerator(this);
+			var colliderGenerator = new GateColliderGenerator(this, MainComponent.CreateData());
 			colliderGenerator.GenerateColliders(table, colliders);
 		}
 

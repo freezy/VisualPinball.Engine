@@ -77,7 +77,9 @@ namespace VisualPinball.Unity
 
 		public bool IsPulseSwitch => true;
 
-		public float HeightOnPlayfield => Height + (Surface?.Height(Position) ?? TableHeight);
+		public float PositionZ => SurfaceHeight(Surface, Position);
+
+		public float HeightOnPlayfield => Height + PositionZ;
 
 		protected override Spinner InstantiateItem(SpinnerData data) => new Spinner(data);
 		protected override SpinnerData InstantiateData() => new SpinnerData();
@@ -111,7 +113,7 @@ namespace VisualPinball.Unity
 				// enable animation if component available
 				if (GetComponentInChildren<SpinnerPlateAnimationAuthoring>()) {
 					dstManager.AddComponentData(entity, new SpinnerMovementData {
-						Angle = math.radians(math.clamp(0.0f, Data.AngleMin, Data.AngleMax)),
+						Angle = math.radians(math.clamp(0.0f, AngleMin, AngleMax)),
 						AngleSpeed = 0f
 					});
 				}
@@ -220,8 +222,8 @@ namespace VisualPinball.Unity
 		public override ItemDataTransformType EditorPositionType => ItemDataTransformType.ThreeD;
 		public override void SetEditorPosition(Vector3 pos)
 		{
-			Data.Center = pos.ToVertex2Dxy();
-			Data.Height = pos.z;
+			Position = pos;
+			Height = pos.z;
 		}
 
 		public override ItemDataTransformType EditorRotationType => ItemDataTransformType.OneD;

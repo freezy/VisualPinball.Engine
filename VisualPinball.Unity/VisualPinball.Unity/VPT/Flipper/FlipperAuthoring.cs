@@ -45,6 +45,10 @@ namespace VisualPinball.Unity
 		public override ItemType ItemType => ItemType.Flipper;
 		public bool IsPulseSwitch => false;
 
+		public ISwitchable Switchable => Item;
+
+		public float PositionZ => SurfaceHeight(Surface, Position);
+
 		#region Data
 
 		[Tooltip("Position of the flipper on the playfield.")]
@@ -112,7 +116,6 @@ namespace VisualPinball.Unity
 			.Concat(FlipperRubberMeshAuthoring.ValidParentTypes)
 			.Distinct();
 
-		public ISwitchable Switchable => Item;
 
 		private bool IsLeft => EndAngle < StartAngle;
 
@@ -149,9 +152,7 @@ namespace VisualPinball.Unity
 			var t = transform;
 
 			// position
-			t.localPosition = Surface != null
-				? new Vector3(Position.x, Position.y, Surface.Height(Position))
-				: new Vector3(Position.x, Position.y, TableHeight);
+			t.localPosition = new Vector3(Position.x, Position.y, PositionZ);
 
 			// rotation
 			t.localEulerAngles = new Vector3(0, 0, StartAngle);

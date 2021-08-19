@@ -35,6 +35,8 @@ namespace VisualPinball.Unity
 	public class PlungerAuthoring : ItemMainRenderableAuthoring<Plunger, PlungerData>,
 		ICoilDeviceAuthoring, IConvertGameObjectToEntity
 	{
+		public float PositionZ => SurfaceHeight(Surface, Position);
+
 		#region Data
 
 		[Tooltip("The position of the plunger on the playfield.")]
@@ -83,7 +85,7 @@ namespace VisualPinball.Unity
 				return;
 			}
 
-			var zHeight = SurfaceHeight(Surface, Position);
+			var zHeight = PositionZ;
 			var x = Position.x - Width;
 			var y = Position.y + Height;
 			var x2 = Position.x + Width;

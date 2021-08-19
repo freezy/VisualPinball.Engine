@@ -28,10 +28,10 @@ namespace VisualPinball.Unity
 		private readonly GateData _data;
 		private readonly GateApi _api;
 
-		internal GateColliderGenerator(GateApi gateApi)
+		internal GateColliderGenerator(GateApi gateApi, GateData data)
 		{
 			_api = gateApi;
-			_data = gateApi.Data;
+			_data = data;
 		}
 
 		internal void GenerateColliders(Table table, List<ICollider> colliders)

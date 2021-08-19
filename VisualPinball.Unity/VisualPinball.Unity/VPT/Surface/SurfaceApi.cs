@@ -46,14 +46,15 @@ namespace VisualPinball.Unity
 
 		#region Collider Generation
 
-		protected override bool FireHitEvents { get; } = true;
-		protected override float HitThreshold => Data.Threshold;
+		protected override bool FireHitEvents => true;
+		protected override float HitThreshold => ColliderComponent.Threshold;
 		protected override void CreateColliders(Table table, List<ICollider> colliders)
 		{
-			var colliderGenerator = new SurfaceColliderGenerator(this);
-			if (Data.DragPoints.Length == 0) {
+			var data = MainComponent.CreateData();
+			if (data.DragPoints.Length == 0) {
 				return;
 			}
+			var colliderGenerator = new SurfaceColliderGenerator(this, data);
 			colliderGenerator.GenerateColliders(table, colliders);
 		}
 

@@ -29,10 +29,10 @@ namespace VisualPinball.Unity
 		private readonly IApiColliderGenerator _api;
 		private readonly SurfaceData _data;
 
-		public SurfaceColliderGenerator(SurfaceApi surfaceApi)
+		public SurfaceColliderGenerator(SurfaceApi surfaceApi, SurfaceData data)
 		{
 			_api = surfaceApi;
-			_data = surfaceApi.Data;
+			_data = data;
 		}
 
 		internal void GenerateColliders(Table table, List<ICollider> colliders)

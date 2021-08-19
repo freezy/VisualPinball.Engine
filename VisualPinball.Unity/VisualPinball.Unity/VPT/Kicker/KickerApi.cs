@@ -70,7 +70,7 @@ namespace VisualPinball.Unity
 
 		public void Kick()
 		{
-			SimulationSystemGroup.QueueAfterBallCreation(() => KickXYZ(Table, Entity, Data.Angle, Data.Speed, 0, 0, 0, 0));
+			SimulationSystemGroup.QueueAfterBallCreation(() => KickXYZ(Table, Entity, ColliderComponent.EjectAngle, ColliderComponent.EjectSpeed, 0, 0, 0, 0));
 		}
 
 
@@ -193,13 +193,13 @@ namespace VisualPinball.Unity
 
 		protected override void CreateColliders(Table table, List<ICollider> colliders)
 		{
-			var height = table.GetSurfaceHeight(Data.Surface, Data.Center.X, Data.Center.Y) * table.GetScaleZ();
+			var height = MainComponent.PositionZ;
 
 			// reduce the hit circle radius because only the inner circle of the kicker should start a hit event
-			var radius = Data.Radius * (Data.LegacyMode ? Data.FallThrough ? 0.75f : 0.6f : 1f);
+			var radius = MainComponent.Radius * (ColliderComponent.LegacyMode ? ColliderComponent.FallThrough ? 0.75f : 0.6f : 1f);
 
-			colliders.Add(new CircleCollider(Data.Center.ToUnityFloat2(), radius, height,
-				height + Data.HitHeight, GetColliderInfo(), ColliderType.KickerCircle));
+			colliders.Add(new CircleCollider(MainComponent.Position, radius, height,
+				height + ColliderComponent.HitHeight, GetColliderInfo(), ColliderType.KickerCircle));
 		}
 
 		#endregion

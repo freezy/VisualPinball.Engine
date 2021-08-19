@@ -102,7 +102,7 @@ namespace VisualPinball.Unity
 
 		void IApiCoil.OnCoil(bool enabled, bool isHoldCoil)
 		{
-			if (Data.IsDualWound) {
+			if (MainComponent.IsDualWound) {
 				OnDualWoundCoil(enabled, isHoldCoil);
 			} else {
 				OnSingleWoundCoil(enabled);
@@ -177,17 +177,17 @@ namespace VisualPinball.Unity
 
 		protected override void CreateColliders(Table table, List<ICollider> colliders)
 		{
-			var height = table.GetSurfaceHeight(Data.Surface, Data.Center.X, Data.Center.Y);
-			var baseRadius = math.max(Data.BaseRadius, 0.01f);
+			var height = MainComponent.PositionZ;
+			var baseRadius = math.max(MainComponent.BaseRadius, 0.01f);
 			var hitCircleBase = new CircleCollider(
-				Data.Center.ToUnityFloat2(),
+				MainComponent.Position,
 				baseRadius,
 				height,
-				height + Data.Height,
+				height + MainComponent.Height,
 				GetColliderInfo()
 			);
 
-			colliders.Add(new FlipperCollider(hitCircleBase, Data.FlipperRadius, Data.EndRadius, GetColliderInfo()));
+			colliders.Add(new FlipperCollider(hitCircleBase, MainComponent.FlipperRadiusMax, MainComponent.EndRadius, GetColliderInfo()));
 		}
 
 		#endregion

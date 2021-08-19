@@ -67,6 +67,8 @@ namespace VisualPinball.Unity
 
 		public ISwitchable Switchable => Item;
 
+		public float PositionZ => SurfaceHeight(Surface, Position);
+
 		public override IEnumerable<Type> ValidParents => TriggerColliderAuthoring.ValidParentTypes
 			.Concat(TriggerMeshAuthoring.ValidParentTypes)
 			.Distinct();
@@ -107,9 +109,7 @@ namespace VisualPinball.Unity
 			var t = transform;
 
 			// position
-			t.localPosition = Surface != null
-				? new Vector3(Position.x, Position.y, Surface.Height(Position))
-				: new Vector3(Position.x, Position.y, TableHeight);
+			t.localPosition = new Vector3(Position.x, Position.y, PositionZ);
 
 			// rotation
 			t.localEulerAngles = new Vector3(0, 0, Rotation);
