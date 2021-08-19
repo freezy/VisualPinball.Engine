@@ -22,7 +22,7 @@ using VisualPinball.Engine.VPT.Table;
 
 namespace VisualPinball.Unity
 {
-	public class SpinnerApi : ItemApi<SpinnerAuthoring, Engine.VPT.Spinner.Spinner, Engine.VPT.Spinner.SpinnerData>,
+	public class SpinnerApi : ItemCollidableApi<SpinnerAuthoring, SpinnerColliderAuthoring, Engine.VPT.Spinner.Spinner, Engine.VPT.Spinner.SpinnerData>,
 		IApiInitializable, IApiRotatable, IApiSpinnable, IApiSwitch, IApiColliderGenerator
 	{
 		/// <summary>

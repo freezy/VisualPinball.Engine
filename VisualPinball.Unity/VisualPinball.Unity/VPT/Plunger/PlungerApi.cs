@@ -24,7 +24,8 @@ using VisualPinball.Engine.VPT.Table;
 
 namespace VisualPinball.Unity
 {
-	public class PlungerApi : ItemApi<PlungerAuthoring, Plunger, PlungerData>, IApiInitializable, IApiRotatable, IApiCoilDevice, IApiWireDeviceDest, IApiColliderGenerator
+	public class PlungerApi : ItemCollidableApi<PlungerAuthoring, PlungerColliderAuthoring, Plunger, PlungerData>,
+		IApiInitializable, IApiRotatable, IApiCoilDevice, IApiWireDeviceDest, IApiColliderGenerator
 	{
 		/// <summary>
 		/// Event emitted when the table is started.

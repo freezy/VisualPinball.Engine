@@ -23,7 +23,7 @@ using VisualPinball.Engine.VPT.Table;
 
 namespace VisualPinball.Unity
 {
-	public class RubberApi : ItemApi<RubberAuthoring, Rubber, RubberData>,
+	public class RubberApi : ItemCollidableApi<RubberAuthoring, RubberColliderAuthoring, Rubber, RubberData>,
 		IApiInitializable, IApiHittable, IApiColliderGenerator
 	{
 		/// <summary>
