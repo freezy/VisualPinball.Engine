@@ -34,7 +34,5 @@ namespace VisualPinball.Engine.VPT
 		string ComponentName { get; }
 		ItemSubComponent SubComponent { get; }
 		string SubName { get; }
-
-		void FreeBinaryData();
 	}
 }

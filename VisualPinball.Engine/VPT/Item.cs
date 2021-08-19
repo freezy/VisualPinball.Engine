@@ -55,10 +55,6 @@ namespace VisualPinball.Engine.VPT
 		public ItemSubComponent SubComponent { get; private set; }
 		public string SubName { get; private set; }
 
-		public virtual void FreeBinaryData()
-		{
-		}
-
 		protected Item(TData data)
 		{
 			Data = data;

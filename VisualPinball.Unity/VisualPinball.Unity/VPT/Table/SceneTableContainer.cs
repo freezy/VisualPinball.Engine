@@ -195,7 +195,7 @@ namespace VisualPinball.Unity
 		private static void FreeBinaryData(Transform transform)
 		{
 			var comp = transform.GetComponent<IItemMainAuthoring>();
-			comp?.FreeBinaryData();
+			comp?.ItemData.FreeBinaryData();
 		}
 
 		private IEnumerable<Sound> RetrieveSounds()

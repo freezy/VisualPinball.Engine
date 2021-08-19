@@ -88,7 +88,7 @@ namespace VisualPinball.Engine.VPT
 
 		public void FreeBinaryData()
 		{
-			Data = new byte[0];
+			Data = Array.Empty<byte>();
 		}
 
 		public void WriteCompressed(BinaryWriter writer)

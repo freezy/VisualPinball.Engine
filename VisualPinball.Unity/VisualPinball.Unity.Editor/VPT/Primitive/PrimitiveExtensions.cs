@@ -19,7 +19,7 @@ using UnityEngine;
 using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Primitive;
 
-namespace VisualPinball.Unity
+namespace VisualPinball.Unity.Editor
 {
 	public static class PrimitiveExtensions
 	{

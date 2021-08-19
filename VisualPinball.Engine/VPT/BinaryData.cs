@@ -55,7 +55,7 @@ namespace VisualPinball.Engine.VPT
 
 		public BinaryData(string name) : base(name)
 		{
-			Data = new byte[0];
+			Data = Array.Empty<byte>();
 		}
 
 		public BinaryData(Resource res) : base(res.Name)
@@ -69,9 +69,9 @@ namespace VisualPinball.Engine.VPT
 			Data = data;
 		}
 
-		public void FreeBinaryData()
+		public override void FreeBinaryData()
 		{
-			Data = new byte[0];
+			Data = Array.Empty<byte>();
 		}
 
 		protected override bool SkipWrite(BiffAttribute attr)

@@ -274,8 +274,9 @@ namespace VisualPinball.Unity.Editor
 			}
 
 			// now we have all renderables imported, set data and patch
-			var datas = _tableContainer.SupportedDatas;
-			var components = convertedItems.ToDictionary(x => x.Key, x => x.Value.MainAuthoring);
+			var dataDict = _tableContainer.SupportedDatas;
+			var componentDict = convertedItems
+				.ToDictionary(x => x.Key, x => x.Value.MainAuthoring);
 			IEnumerable<MonoBehaviour> updatedComponents = null;
 			foreach (var renderable in renderables) {
 
@@ -286,8 +287,9 @@ namespace VisualPinball.Unity.Editor
 				var convertedItem = convertedItems[lookupName];
 
 				// set data
-				if (datas.ContainsKey(lookupName)) {
-					updatedComponents = convertedItem.SetData(datas[lookupName], this, this, components);
+				if (dataDict.ContainsKey(lookupName)) {
+					updatedComponents = convertedItem.SetData(dataDict[lookupName], this, this, componentDict);
+					dataDict[lookupName].FreeBinaryData();
 
 				} else {
 					Debug.LogError($"Could not find data of {lookupName} to apply to game object.");
@@ -327,8 +329,6 @@ namespace VisualPinball.Unity.Editor
 			var parentGo = GetGroupParent(item);
 
 			convertedItem.GameObject.transform.SetParent(parentGo.transform, false);
-
-			item.FreeBinaryData();
 
 			// apply transformation
 			if (item is IRenderable renderable) {

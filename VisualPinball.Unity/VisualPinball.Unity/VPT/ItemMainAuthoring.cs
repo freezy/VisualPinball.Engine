@@ -134,7 +134,7 @@ namespace VisualPinball.Unity
 
 		public void FreeBinaryData()
 		{
-			Item.FreeBinaryData();
+			Item.Data.FreeBinaryData();
 		}
 
 		/// <summary>
