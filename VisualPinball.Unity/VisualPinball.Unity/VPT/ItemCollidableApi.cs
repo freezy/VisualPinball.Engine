@@ -14,23 +14,25 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+using System.Collections.Generic;
 using Unity.Entities;
-using Unity.Mathematics;
 using UnityEngine;
 using VisualPinball.Engine.VPT;
+using VisualPinball.Engine.VPT.Table;
 
 namespace VisualPinball.Unity
 {
-	public abstract class ItemCollidableApi<TComponent, TCollidableComponent, TItem, TData> : ItemApi<TComponent, TItem, TData>
+	public abstract class ItemCollidableApi<TComponent, TCollidableComponent, TItem, TData> : ItemApi<TComponent, TItem, TData>,
+		IApiColliderGenerator
 		where TComponent : ItemMainAuthoring<TItem, TData>
 		where TCollidableComponent : ItemColliderAuthoring<TItem, TData, TComponent>
 		where TItem : Item<TData>
 		where TData : ItemData
 	{
+		protected readonly Entity Entity;
 		protected readonly TCollidableComponent ColliderComponent;
 
 		private protected EntityManager EntityManager;
-		protected readonly Entity Entity;
 		private readonly Entity _parentEntity;
 
 		protected ItemCollidableApi(GameObject go, Entity entity, Entity parentEntity, Player player) : base(go, player)
@@ -44,39 +46,25 @@ namespace VisualPinball.Unity
 
 		#region Collider
 
-		public virtual bool IsColliderEnabled  => !(Data is IPhysicsMaterialData physicalData) || physicalData.GetIsCollidable();
+		bool IApiColliderGenerator.IsColliderAvailable => ColliderComponent;
+		bool IApiColliderGenerator.IsColliderEnabled => ColliderComponent && ColliderComponent.isActiveAndEnabled;
+		Entity IApiColliderGenerator.ColliderEntity => Entity;
+
 		protected virtual bool FireHitEvents { get; } = false;
 		protected virtual float HitThreshold { get; } = 0;
-		protected virtual PhysicsMaterialData GetPhysicsMaterial(PhysicsMaterial mat)
-		{
-			if (Data is IPhysicsMaterialData physicalData) {
-				var matData = new PhysicsMaterialData();
-				if (mat != null && !physicalData.GetOverwritePhysics()) {
-					matData.Elasticity = mat.Elasticity;
-					matData.ElasticityFalloff = mat.ElasticityFalloff;
-					matData.Friction = mat.Friction;
-					matData.ScatterAngleRad = math.radians(mat.ScatterAngle);
 
-				} else {
-					matData.Elasticity = physicalData.GetElasticity();
-					matData.ElasticityFalloff = physicalData.GetElasticityFalloff();
-					matData.Friction = physicalData.GetFriction();
-					matData.ScatterAngleRad = math.radians(physicalData.GetScatter());
-				}
-				return matData;
-			}
-			return default;
+		protected abstract void CreateColliders(Table table, List<ICollider> colliders);
+
+		void IApiColliderGenerator.CreateColliders(Table table, List<ICollider> colliders)
+		{
+			CreateColliders(table, colliders);
 		}
 
-		/// <summary>
-		/// Returns returns collider info passed when creating the collider.
-		///
-		/// Use this for colliders that are part of the quad tree.
-		/// </summary>
-		/// <param name="physicsMaterial">physics material read from the collider component</param>
-		internal ColliderInfo GetColliderInfo(PhysicsMaterial physicsMaterial = null) => GetColliderInfo(MainComponent.ItemType, physicsMaterial);
+		ColliderInfo IApiColliderGenerator.GetColliderInfo() => GetColliderInfo();
 
-		internal ColliderInfo GetColliderInfo(ItemType itemType, PhysicsMaterial physicsMaterial = null)
+		public ColliderInfo GetColliderInfo() => GetColliderInfo(MainComponent.ItemType);
+
+		public ColliderInfo GetColliderInfo(ItemType itemType)
 		{
 			return new ColliderInfo {
 				Id = -1,
@@ -84,8 +72,8 @@ namespace VisualPinball.Unity
 				Entity = Entity,
 				ParentEntity = _parentEntity,
 				FireEvents = FireHitEvents,
-				IsEnabled = IsColliderEnabled,
-				Material = GetPhysicsMaterial(physicsMaterial),
+				IsEnabled = ColliderComponent && ColliderComponent.isActiveAndEnabled,
+				Material = ColliderComponent.PhysicsMaterialData,
 				HitThreshold = HitThreshold,
 			};
 		}

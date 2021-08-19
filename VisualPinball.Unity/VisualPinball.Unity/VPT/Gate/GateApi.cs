@@ -87,13 +87,13 @@ namespace VisualPinball.Unity
 
 		Entity IApiColliderGenerator.ColliderEntity => Entity;
 
-		void IApiColliderGenerator.CreateColliders(Table table, List<ICollider> colliders)
+		protected override void CreateColliders(Table table, List<ICollider> colliders)
 		{
 			var colliderGenerator = new GateColliderGenerator(this);
 			colliderGenerator.GenerateColliders(table, colliders);
 		}
 
-		ColliderInfo IApiColliderGenerator.GetColliderInfo() => GetColliderInfo();
+		ColliderInfo IApiColliderGenerator.GetColliderInfo() => GetColliderInfo(MainComponent.ItemType);
 
 		#endregion
 

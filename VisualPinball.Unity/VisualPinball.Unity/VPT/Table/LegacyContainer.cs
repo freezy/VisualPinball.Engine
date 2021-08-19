@@ -42,7 +42,6 @@ using VisualPinball.Engine.VPT.Surface;
 using VisualPinball.Engine.VPT.TextBox;
 using VisualPinball.Engine.VPT.Timer;
 using VisualPinball.Engine.VPT.Trigger;
-using VisualPinball.Engine.VPT.Trough;
 using Texture = UnityEngine.Texture;
 
 namespace VisualPinball.Unity

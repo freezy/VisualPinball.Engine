@@ -14,9 +14,6 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-using System.Collections.Generic;
-using Unity.Entities;
-using VisualPinball.Engine.Math;
 using VisualPinball.Engine.VPT.Plunger;
 
 namespace VisualPinball.Unity

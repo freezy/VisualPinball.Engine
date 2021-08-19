@@ -23,7 +23,6 @@ using Unity.Mathematics;
 using UnityEngine;
 using UnityEngine.Profiling;
 using VisualPinball.Engine.Game;
-using VisualPinball.Engine.Math;
 using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Flipper;
 using Color = UnityEngine.Color;
@@ -61,6 +60,26 @@ namespace VisualPinball.Unity
 		private readonly Entity _colliderEntity = new Entity {Index = -2, Version = 0};
 
 		protected abstract IApiColliderGenerator InstantiateColliderApi(Player player, Entity entity, Entity parentEntity);
+
+		public abstract PhysicsMaterialData PhysicsMaterialData { get; }
+
+		protected PhysicsMaterialData GetPhysicsMaterialData(float elasticity = 1f, float elasticityFalloff = 1f,
+			float friction = 0f, float scatterAngleDeg = 0f, bool overwrite = true)
+		{
+			return !overwrite && PhysicsMaterial != null
+				? new PhysicsMaterialData {
+					Elasticity = PhysicsMaterial.Elasticity,
+					ElasticityFalloff = PhysicsMaterial.ElasticityFalloff,
+					Friction = PhysicsMaterial.Friction,
+					ScatterAngleRad = math.radians(PhysicsMaterial.ScatterAngle)
+				}
+				: new PhysicsMaterialData {
+					Elasticity = elasticity,
+					ElasticityFalloff = elasticityFalloff,
+					Friction = friction,
+					ScatterAngleRad = math.radians(scatterAngleDeg)
+				};
+		}
 
 		private void OnDrawGizmosSelected()
 		{

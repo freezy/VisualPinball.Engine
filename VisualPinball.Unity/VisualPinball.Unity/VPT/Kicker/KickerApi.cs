@@ -26,7 +26,7 @@ using Random = Unity.Mathematics.Random;
 namespace VisualPinball.Unity
 {
 	public class KickerApi : ItemCollidableApi<KickerAuthoring, KickerColliderAuthoring, Kicker, KickerData>,
-		IApiInitializable, IApiHittable, IApiSwitch, IApiCoil, IApiColliderGenerator
+		IApiInitializable, IApiHittable, IApiSwitch, IApiCoil
 	{
 		/// <summary>
 		/// Event emitted when the table is started.
@@ -191,10 +191,7 @@ namespace VisualPinball.Unity
 
 		#region Collider Generation
 
-		public override bool IsColliderEnabled => Data.IsEnabled;
-		Entity IApiColliderGenerator.ColliderEntity => Entity;
-
-		void IApiColliderGenerator.CreateColliders(Table table, List<ICollider> colliders)
+		protected override void CreateColliders(Table table, List<ICollider> colliders)
 		{
 			var height = table.GetSurfaceHeight(Data.Surface, Data.Center.X, Data.Center.Y) * table.GetScaleZ();
 
@@ -204,8 +201,6 @@ namespace VisualPinball.Unity
 			colliders.Add(new CircleCollider(Data.Center.ToUnityFloat2(), radius, height,
 				height + Data.HitHeight, GetColliderInfo(), ColliderType.KickerCircle));
 		}
-
-		ColliderInfo IApiColliderGenerator.GetColliderInfo() => GetColliderInfo();
 
 		#endregion
 

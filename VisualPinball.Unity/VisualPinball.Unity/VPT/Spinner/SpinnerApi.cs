@@ -23,7 +23,7 @@ using VisualPinball.Engine.VPT.Table;
 namespace VisualPinball.Unity
 {
 	public class SpinnerApi : ItemCollidableApi<SpinnerAuthoring, SpinnerColliderAuthoring, Engine.VPT.Spinner.Spinner, Engine.VPT.Spinner.SpinnerData>,
-		IApiInitializable, IApiRotatable, IApiSpinnable, IApiSwitch, IApiColliderGenerator
+		IApiInitializable, IApiRotatable, IApiSpinnable, IApiSwitch
 	{
 		/// <summary>
 		/// Event emitted when the table is started.
@@ -65,34 +65,30 @@ namespace VisualPinball.Unity
 		/// </summary>
 		public event EventHandler<SwitchEventArgs> Switch;
 
-		// todo
-		public event EventHandler Timer;
-
 		public SpinnerApi(GameObject go, Entity entity, Entity parentEntity, Player player)
 			: base(go, entity, parentEntity, player)
 		{
 		}
+
+		#region IApiSwitch
 
 		IApiSwitchStatus IApiSwitch.AddSwitchDest(SwitchConfig switchConfig) => AddSwitchDest(switchConfig.WithPulse(MainComponent.IsPulseSwitch));
 		void IApiSwitch.AddWireDest(WireDestConfig wireConfig) => AddWireDest(wireConfig.WithPulse(MainComponent.IsPulseSwitch));
 		void IApiSwitch.RemoveWireDest(string destId) => RemoveWireDest(destId);
 		void IApiSwitch.DestroyBall(Entity ballEntity) => DestroyBall(ballEntity);
 
+
+		#endregion
+
 		#region Collider Generation
 
-		protected override bool FireHitEvents { get; } = true;
-		Entity IApiColliderGenerator.ColliderEntity => Entity;
+		protected override bool FireHitEvents => true;
 
-		void IApiColliderGenerator.CreateColliders(Table table, List<ICollider> colliders)
+		protected override void CreateColliders(Table table, List<ICollider> colliders)
 		{
-			var spinnerComp = GameObject.GetComponent<SpinnerAuthoring>();
-			if (spinnerComp) {
-				var colliderGenerator = new SpinnerColliderGenerator(this, spinnerComp.CreateData());
-				colliderGenerator.GenerateColliders(spinnerComp.HeightOnPlayfield, colliders);
-			}
+				var colliderGenerator = new SpinnerColliderGenerator(this, MainComponent.CreateData());
+				colliderGenerator.GenerateColliders(MainComponent.HeightOnPlayfield, colliders);
 		}
-
-		ColliderInfo IApiColliderGenerator.GetColliderInfo() => GetColliderInfo();
 
 		#endregion
 

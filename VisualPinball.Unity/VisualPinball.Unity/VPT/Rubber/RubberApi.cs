@@ -24,7 +24,7 @@ using VisualPinball.Engine.VPT.Table;
 namespace VisualPinball.Unity
 {
 	public class RubberApi : ItemCollidableApi<RubberAuthoring, RubberColliderAuthoring, Rubber, RubberData>,
-		IApiInitializable, IApiHittable, IApiColliderGenerator
+		IApiInitializable, IApiHittable
 	{
 		/// <summary>
 		/// Event emitted when the table is started.
@@ -36,32 +36,21 @@ namespace VisualPinball.Unity
 		/// </summary>
 		public event EventHandler<HitEventArgs> Hit;
 
-		private readonly PhysicsMaterial _physicsMaterial;
-
-		internal RubberApi(GameObject go, Entity entity, Entity parentEntity, PhysicsMaterial physicsMaterial,
-			Player player)
-			: base(go, entity, parentEntity, player)
+		internal RubberApi(GameObject go, Entity entity, Entity parentEntity, Player player) : base(go, entity, parentEntity, player)
 		{
-			_physicsMaterial = physicsMaterial;
 		}
 
 		#region Collider Generation
 
 		protected override bool FireHitEvents => Data.HitEvent;
-		protected override float HitThreshold { get; } = 2.0f; // hard coded threshold for now
-		Entity IApiColliderGenerator.ColliderEntity => Entity;
+		protected override float HitThreshold => 2.0f; // hard coded threshold for now
 
-		void IApiColliderGenerator.CreateColliders(Table table, List<ICollider> colliders)
+		protected override void CreateColliders(Table table, List<ICollider> colliders)
 		{
-			if (!MainComponent) {
-				return;
-			}
 			var data = MainComponent.CreateData();
 			var colliderGenerator = new RubberColliderGenerator(this, new RubberMeshGenerator(data));
 			colliderGenerator.GenerateColliders(table, colliders);
 		}
-
-		ColliderInfo IApiColliderGenerator.GetColliderInfo() => GetColliderInfo(_physicsMaterial);
 
 		#endregion
 

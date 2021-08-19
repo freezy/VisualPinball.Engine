@@ -24,7 +24,7 @@ using VisualPinball.Engine.VPT.Table;
 namespace VisualPinball.Unity
 {
 	public class BumperApi : ItemCollidableApi<BumperAuthoring, BumperColliderAuthoring, Bumper, BumperData>,
-		IApiInitializable, IApiHittable, IApiSwitch, IApiCoil, IApiColliderGenerator
+		IApiInitializable, IApiHittable, IApiSwitch, IApiCoil
 	{
 		/// <summary>
 		/// Event emitted when the table is started.
@@ -63,19 +63,15 @@ namespace VisualPinball.Unity
 
 		#region Collider Generation
 
-		public override bool IsColliderEnabled => Data.IsCollidable;
-		protected override bool FireHitEvents => Data.HitEvent;
-		protected override float HitThreshold => Data.Threshold;
-		Entity IApiColliderGenerator.ColliderEntity => Entity;
+		protected override bool FireHitEvents => ColliderComponent.HitEvent;
+		protected override float HitThreshold => ColliderComponent.Threshold;
 
-		void IApiColliderGenerator.CreateColliders(Table table, List<ICollider> colliders)
+		protected override void CreateColliders(Table table, List<ICollider> colliders)
 		{
-			var height = table.GetSurfaceHeight(Data.Surface, Data.Center.X, Data.Center.Y);
-			colliders.Add(new CircleCollider(Data.Center.ToUnityFloat2(), Data.Radius, height,
-				height + Data.HeightScale, GetColliderInfo(), ColliderType.Bumper));
+			var height = MainComponent.PositionZ;
+			colliders.Add(new CircleCollider(MainComponent.Position, MainComponent.Radius, height,
+				height + MainComponent.HeightScale, GetColliderInfo(), ColliderType.Bumper));
 		}
-
-		ColliderInfo IApiColliderGenerator.GetColliderInfo() => GetColliderInfo();
 
 		#endregion
 

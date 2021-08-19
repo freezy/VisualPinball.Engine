@@ -32,7 +32,6 @@ using VisualPinball.Engine.VPT.Sound;
 using VisualPinball.Engine.VPT.Table;
 using VisualPinball.Engine.VPT.TextBox;
 using VisualPinball.Engine.VPT.Timer;
-using VisualPinball.Unity.Playfield;
 using Material = VisualPinball.Engine.VPT.Material;
 using Texture = VisualPinball.Engine.VPT.Texture;
 

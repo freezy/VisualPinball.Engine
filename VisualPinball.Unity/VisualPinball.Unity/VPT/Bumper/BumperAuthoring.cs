@@ -43,6 +43,8 @@ namespace VisualPinball.Unity
 
 		public bool IsPulseSwitch => true;
 
+		public float PositionZ => Surface?.Height(Position) ?? TableHeight;
+
 		#region Data
 
 		[Tooltip("Position of the bumper on the playfield.")]
@@ -135,9 +137,7 @@ namespace VisualPinball.Unity
 			var t = transform;
 
 			// position
-			t.localPosition = Surface != null
-				? new Vector3(Position.x, Position.y, Surface.Height(Position))
-				: new Vector3(Position.x, Position.y, TableHeight);
+			t.localPosition = new Vector3(Position.x, Position.y, PositionZ);
 
 			// scale
 			t.localScale = new Vector3(Radius * 2f, Radius * 2f, HeightScale) / PrefabMeshScale;

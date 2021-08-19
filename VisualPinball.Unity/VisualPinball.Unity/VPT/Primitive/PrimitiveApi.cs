@@ -24,7 +24,7 @@ using VisualPinball.Engine.VPT.Table;
 namespace VisualPinball.Unity
 {
 	public class PrimitiveApi : ItemCollidableApi<PrimitiveAuthoring, PrimitiveColliderAuthoring, Primitive, PrimitiveData>,
-		IApiInitializable, IApiHittable, IApiColliderGenerator
+		IApiInitializable, IApiHittable
 	{
 		/// <summary>
 		/// Event emitted when the table is started.
@@ -36,28 +36,20 @@ namespace VisualPinball.Unity
 		/// </summary>
 		public event EventHandler<HitEventArgs> Hit;
 
-		internal PrimitiveApi(GameObject go, Entity entity, Entity parentEntity, PhysicsMaterial physicsMaterial,
-			Player player)
-			: base(go, entity, parentEntity, player)
+		internal PrimitiveApi(GameObject go, Entity entity, Entity parentEntity, Player player) : base(go, entity, parentEntity, player)
 		{
-			_physicsMaterial = physicsMaterial;
 		}
 
 		#region Collider Generation
 
-		private readonly PhysicsMaterial _physicsMaterial;
-
 		protected override bool FireHitEvents => Data.HitEvent;
 		protected override float HitThreshold => Data.Threshold;
-		Entity IApiColliderGenerator.ColliderEntity => Entity;
 
-		void IApiColliderGenerator.CreateColliders(Table table, List<ICollider> colliders)
+		protected override void CreateColliders(Table table, List<ICollider> colliders)
 		{
 			var colliderGenerator = new PrimitiveColliderGenerator(this, MainComponent.CreateData());
 			colliderGenerator.GenerateColliders(table, colliders);
 		}
-
-		ColliderInfo IApiColliderGenerator.GetColliderInfo() => GetColliderInfo(_physicsMaterial);
 
 		#endregion
 
