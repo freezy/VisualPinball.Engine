@@ -25,8 +25,8 @@ using Random = Unity.Mathematics.Random;
 
 namespace VisualPinball.Unity
 {
-	public class KickerApi : ItemApi<KickerAuthoring, Kicker, KickerData>, IApiInitializable, IApiHittable,
-		IApiSwitch, IApiCoil, IApiColliderGenerator
+	public class KickerApi : ItemCollidableApi<KickerAuthoring, KickerColliderAuthoring, Kicker, KickerData>,
+		IApiInitializable, IApiHittable, IApiSwitch, IApiCoil, IApiColliderGenerator
 	{
 		/// <summary>
 		/// Event emitted when the table is started.

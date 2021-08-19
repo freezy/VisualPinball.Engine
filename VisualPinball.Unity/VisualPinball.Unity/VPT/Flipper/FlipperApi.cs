@@ -32,7 +32,7 @@ namespace VisualPinball.Unity
 	/// The scripting API of the flipper.
 	/// </summary>
 	[Api]
-	public class FlipperApi : ItemApi<FlipperAuthoring, Flipper, FlipperData>, IApiInitializable, IApiHittable,
+	public class FlipperApi : ItemCollidableApi<FlipperAuthoring, FlipperColliderAuthoring, Flipper, FlipperData>, IApiInitializable, IApiHittable,
 		IApiRotatable, IApiCollidable, IApiSwitch, IApiCoil, IApiColliderGenerator
 	{
 		/// <summary>

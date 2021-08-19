@@ -23,7 +23,7 @@ using VisualPinball.Engine.VPT.Table;
 
 namespace VisualPinball.Unity
 {
-	public class SurfaceApi : ItemApi<SurfaceAuthoring, Engine.VPT.Surface.Surface, Engine.VPT.Surface.SurfaceData>,
+	public class SurfaceApi : ItemCollidableApi<SurfaceAuthoring, SurfaceColliderAuthoring, Engine.VPT.Surface.Surface, Engine.VPT.Surface.SurfaceData>,
 		IApiInitializable, IApiHittable, IApiSlingshot, IApiColliderGenerator
 	{
 		/// <summary>

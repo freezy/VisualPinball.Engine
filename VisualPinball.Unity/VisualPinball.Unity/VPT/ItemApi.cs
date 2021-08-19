@@ -43,14 +43,10 @@ namespace VisualPinball.Unity
 
 		internal readonly TItem Item;
 		internal readonly GameObject GameObject;
-		internal readonly Entity Entity;
-		private readonly Entity ParentEntity;
 
 		public TData Data => Item.Data;
 		private protected Table Table => _player.Table;
 		private protected TableApi TableApi => _player.TableApi;
-
-		private protected EntityManager EntityManager;
 
 		internal VisualPinballSimulationSystemGroup SimulationSystemGroup => World.DefaultGameObjectInjectionWorld.GetOrCreateSystem<VisualPinballSimulationSystemGroup>();
 
@@ -62,18 +58,6 @@ namespace VisualPinball.Unity
 		{
 			GameObject = go;
 			MainComponent = go.GetComponent<TItemComponent>();
-			Entity = Entity.Null;
-			ParentEntity = Entity.Null;
-			_player = player;
-		}
-
-		protected ItemApi(GameObject go, Entity entity, Entity parentEntity, Player player)
-		{
-			EntityManager = World.DefaultGameObjectInjectionWorld != null ? World.DefaultGameObjectInjectionWorld.EntityManager : default;
-			GameObject = go;
-			MainComponent = go.GetComponent<TItemComponent>();
-			Entity = entity;
-			ParentEntity = parentEntity;
 			_player = player;
 			_switchHandler = new SwitchHandler(Name, player);
 		}
@@ -87,56 +71,6 @@ namespace VisualPinball.Unity
 		{
 			BallManager.DestroyEntity(ballEntity);
 		}
-
-		#region Collider
-
-		public virtual bool IsColliderEnabled  => !(Data is IPhysicsMaterialData physicalData) || physicalData.GetIsCollidable();
-		protected virtual bool FireHitEvents { get; } = false;
-		protected virtual float HitThreshold { get; } = 0;
-		protected virtual PhysicsMaterialData GetPhysicsMaterial(PhysicsMaterial mat)
-		{
-			if (Data is IPhysicsMaterialData physicalData) {
-				var matData = new PhysicsMaterialData();
-				if (mat != null && !physicalData.GetOverwritePhysics()) {
-					matData.Elasticity = mat.Elasticity;
-					matData.ElasticityFalloff = mat.ElasticityFalloff;
-					matData.Friction = mat.Friction;
-					matData.ScatterAngleRad = math.radians(mat.ScatterAngle);
-
-				} else {
-					matData.Elasticity = physicalData.GetElasticity();
-					matData.ElasticityFalloff = physicalData.GetElasticityFalloff();
-					matData.Friction = physicalData.GetFriction();
-					matData.ScatterAngleRad = math.radians(physicalData.GetScatter());
-				}
-				return matData;
-			}
-			return default;
-		}
-
-		/// <summary>
-		/// Returns returns collider info passed when creating the collider.
-		///
-		/// Use this for colliders that are part of the quad tree.
-		/// </summary>
-		/// <param name="physicsMaterial">physics material read from the collider component</param>
-		internal ColliderInfo GetColliderInfo(PhysicsMaterial physicsMaterial = null) => GetColliderInfo(MainComponent.ItemType, physicsMaterial);
-
-		internal ColliderInfo GetColliderInfo(ItemType itemType, PhysicsMaterial physicsMaterial = null)
-		{
-			return new ColliderInfo {
-				Id = -1,
-				ItemType = itemType,
-				Entity = Entity,
-				ParentEntity = ParentEntity,
-				FireEvents = FireHitEvents,
-				IsEnabled = IsColliderEnabled,
-				Material = GetPhysicsMaterial(physicsMaterial),
-				HitThreshold = HitThreshold,
-			};
-		}
-
-		#endregion
 
 		void IApi.OnDestroy()
 		{
