@@ -29,7 +29,6 @@ using UnityEngine;
 using VisualPinball.Engine.Math;
 using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Primitive;
-using MathF = VisualPinball.Engine.Math.MathF;
 
 namespace VisualPinball.Unity
 {
@@ -75,17 +74,6 @@ namespace VisualPinball.Unity
 
 		public override void UpdateTransforms()
 		{
-			// var t = transform;
-			//
-			// // position
-			// t.localPosition = Position;
-			//
-			// // scale
-			// t.localScale = Size;
-			//
-			// // rotation
-			// t.localEulerAngles = Rotation;
-
 			// scale matrix
 			var scaleMatrix = new Matrix3D();
 			scaleMatrix.SetScaling(Size.x, Size.y, Size.z);
@@ -138,6 +126,14 @@ namespace VisualPinball.Unity
 			// static rendering & visibility
 			gameObject.SetActive(data.IsVisible);
 			StaticRendering = data.StaticRendering;
+
+			// mesh
+			var meshComponent = GetComponent<PrimitiveMeshAuthoring>();
+			if (meshComponent) {
+				meshComponent.CreateMesh(data, textureProvider, materialProvider);
+
+				updatedComponents.Add(meshComponent);
+			}
 
 			var collComponent = GetComponentInChildren<PrimitiveColliderAuthoring>();
 			if (collComponent) {

@@ -86,10 +86,15 @@ namespace VisualPinball.Unity
 			Thickness = data.Thickness;
 			DragPoints = data.DragPoints;
 
-			// visibility
-			var mr = GetComponent<MeshRenderer>();
-			if (mr) {
-				mr.enabled = data.IsVisible;
+			// mesh
+			var mesh = GetComponent<RubberMeshAuthoring>();
+			if (mesh) {
+				mesh.CreateMesh(data, textureProvider, materialProvider);
+				var mr = GetComponent<MeshRenderer>();
+				if (mr) {
+					// visibility
+					mr.enabled = data.IsVisible;
+				}
 			}
 
 			// collider data

@@ -73,7 +73,7 @@ namespace VisualPinball.Engine.VPT
 			Binary = new BinaryData(res);
 		}
 
-		public void FreeBinaryData()
+		public override void FreeBinaryData()
 		{
 			Binary?.FreeBinaryData();
 			Bitmap?.FreeBinaryData();

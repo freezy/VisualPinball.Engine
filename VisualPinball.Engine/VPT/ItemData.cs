@@ -15,9 +15,11 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 // ReSharper disable UnassignedField.Global
+// ReSharper disable InconsistentNaming
 
 using System;
 using VisualPinball.Engine.IO;
+
 
 namespace VisualPinball.Engine.VPT
 {
@@ -49,6 +51,10 @@ namespace VisualPinball.Engine.VPT
 
 		[BiffBool("LVIS", Pos = 1003, WasAddedInVp107 = true)]
 		public bool EditorLayerVisibility = true;
+
+		public virtual void FreeBinaryData()
+		{
+		}
 
 		private int _editorLayer;
 

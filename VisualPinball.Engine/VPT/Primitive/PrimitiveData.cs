@@ -181,10 +181,10 @@ namespace VisualPinball.Engine.VPT.Primitive
 		public bool GetIsCollidable() => IsCollidable;
 		public string GetPhysicsMaterial() => PhysicsMaterial;
 
-		public void FreeBinaryData()
+		public override void FreeBinaryData()
 		{
 			Mesh = null;
-			CompressedAnimationVertices = new int[0];
+			CompressedAnimationVertices = Array.Empty<int>();
 		}
 
 		protected override bool SkipWrite(BiffAttribute attr)

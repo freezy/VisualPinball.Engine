@@ -94,12 +94,16 @@ namespace VisualPinball.Unity
 			DragPoints = data.DragPoints;
 
 			// children mesh creation and visibility
-			var topMesh = GetComponentInChildren<SurfaceTopMeshAuthoring>();
-			topMesh.CreateMesh(data, textureProvider, materialProvider);
-			topMesh.gameObject.SetActive(data.IsTopBottomVisible);
-			var sideMesh = GetComponentInChildren<SurfaceSideMeshAuthoring>();
-			sideMesh.CreateMesh(data, textureProvider, materialProvider);
-			sideMesh.gameObject.SetActive(data.IsSideVisible);
+			var topMesh = GetComponentInChildren<SurfaceTopMeshAuthoring>(true);
+			if (topMesh) {
+				topMesh.CreateMesh(data, textureProvider, materialProvider);
+				topMesh.gameObject.SetActive(data.IsTopBottomVisible);
+			}
+			var sideMesh = GetComponentInChildren<SurfaceSideMeshAuthoring>(true);
+			if (sideMesh) {
+				sideMesh.CreateMesh(data, textureProvider, materialProvider);
+				sideMesh.gameObject.SetActive(data.IsSideVisible);
+			}
 
 			// collider data
 			var collComponent = GetComponentInChildren<SurfaceColliderAuthoring>();
