@@ -14,54 +14,17 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-using UnityEditor;
 using UnityEngine;
-using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Primitive;
 
 namespace VisualPinball.Unity.Editor
 {
 	public static class PrimitiveExtensions
 	{
-		public static IConvertedItem InstantiateGameObject(this Primitive primitive, IItem item, IMaterialProvider materialProvider)
+		internal static IVpxPrefab InstantiatePrefab(this Primitive primitive)
 		{
-
 			var prefab = UnityEngine.Resources.Load<GameObject>("Prefabs/Primitive");
-			var obj = PrefabUtility.InstantiatePrefab(prefab) as GameObject;
-			obj!.name = item.Name;
-
-			return new ConvertedItem<Primitive, PrimitiveData, PrimitiveAuthoring>(obj) {
-				IsProceduralMesh = false
-			};
-
-			// return new ConvertedItem<Surface, SurfaceData, SurfaceAuthoring>(obj, true);
-			//
-			// var obj = new GameObject(item.Name);
-			// var convertedItem = new ConvertedItem<Primitive, PrimitiveData, PrimitiveAuthoring>(obj, primitive) {
-			// 	IsProceduralMesh = false
-			// };
-			//
-			// switch (primitive.SubComponent) {
-			// 	case ItemSubComponent.None:
-			// 		convertedItem.SetColliderAuthoring<PrimitiveColliderAuthoring>(materialProvider);
-			// 		convertedItem.SetMeshAuthoring<PrimitiveMeshAuthoring>();
-			// 		break;
-			//
-			// 	case ItemSubComponent.Collider: {
-			// 		convertedItem.SetColliderAuthoring<PrimitiveColliderAuthoring>(materialProvider);
-			// 		break;
-			// 	}
-			//
-			// 	case ItemSubComponent.Mesh: {
-			// 		convertedItem.SetMeshAuthoring<PrimitiveMeshAuthoring>();
-			// 		break;
-			// 	}
-			//
-			// 	default:
-			// 		throw new ArgumentOutOfRangeException();
-			// }
-			//
-			// return convertedItem.AddConvertToEntity();
+			return new VpxPrefab<Primitive, PrimitiveData, PrimitiveAuthoring>(prefab, primitive) { ExtractMesh = true };
 		}
 	}
 }

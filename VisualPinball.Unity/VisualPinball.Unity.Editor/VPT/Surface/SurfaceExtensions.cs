@@ -14,48 +14,17 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-using System;
-using UnityEditor;
 using UnityEngine;
-using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Surface;
 
-namespace VisualPinball.Unity
+namespace VisualPinball.Unity.Editor
 {
 	public static class SurfaceExtensions
 	{
-		public static IConvertedItem InstantiateGameObject(this Surface surface, IItem item, IMaterialProvider materialProvider)
+		internal static IVpxPrefab InstantiatePrefab(this Surface surface)
 		{
 			var prefab = UnityEngine.Resources.Load<GameObject>("Prefabs/Surface");
-			var obj = PrefabUtility.InstantiatePrefab(prefab) as GameObject;
-			obj!.name = item.Name;
-
-			return new ConvertedItem<Surface, SurfaceData, SurfaceAuthoring>(obj);
-
-			// var convertedItem = new ConvertedItem<Surface, SurfaceData, SurfaceAuthoring>(obj, surface);
-			// switch (surface.SubComponent) {
-			// 	case ItemSubComponent.None:
-			// 		convertedItem.SetColliderAuthoring<SurfaceColliderAuthoring>(materialProvider);
-			// 		convertedItem.AddMeshAuthoring<SurfaceSideMeshAuthoring>(SurfaceMeshGenerator.Side);
-			// 		convertedItem.AddMeshAuthoring<SurfaceTopMeshAuthoring>(SurfaceMeshGenerator.Top);
-			// 		break;
-			//
-			// 	case ItemSubComponent.Collider: {
-			// 		convertedItem.SetColliderAuthoring<SurfaceColliderAuthoring>(materialProvider);
-			// 		break;
-			// 	}
-			//
-			// 	case ItemSubComponent.Mesh: {
-			// 		convertedItem.AddMeshAuthoring<SurfaceSideMeshAuthoring>(SurfaceMeshGenerator.Side);
-			// 		convertedItem.AddMeshAuthoring<SurfaceTopMeshAuthoring>(SurfaceMeshGenerator.Top);
-			// 		break;
-			// 	}
-			//
-			// 	default:
-			// 		throw new ArgumentOutOfRangeException();
-			// }
-			//
-			// return convertedItem.AddConvertToEntity();
+			return new VpxPrefab<Surface, SurfaceData, SurfaceAuthoring>(prefab, surface);
 		}
 	}
 }

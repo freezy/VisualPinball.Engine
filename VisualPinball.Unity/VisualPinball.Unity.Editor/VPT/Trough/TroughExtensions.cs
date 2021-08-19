@@ -14,22 +14,17 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-using UnityEditor;
 using UnityEngine;
-using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Trough;
 
-namespace VisualPinball.Unity
+namespace VisualPinball.Unity.Editor
 {
 	public static class TroughExtensions
 	{
-		public static IConvertedItem InstantiateGameObject(this Trough trough, IItem item)
+		internal static IVpxPrefab InstantiatePrefab(this Trough trough)
 		{
 			var prefab = UnityEngine.Resources.Load<GameObject>("Prefabs/Trough");
-			var obj = PrefabUtility.InstantiatePrefab(prefab) as GameObject;
-			obj!.name = item.Name;
-
-			return new ConvertedItem<Trough, TroughData, TroughAuthoring>(obj);
+			return new VpxPrefab<Trough, TroughData, TroughAuthoring>(prefab, trough);
 		}
 	}
 }

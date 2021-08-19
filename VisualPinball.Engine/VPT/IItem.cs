@@ -30,9 +30,5 @@ namespace VisualPinball.Engine.VPT
 
 		string ItemName { get; }
 		string ItemGroupName { get; }
-
-		string ComponentName { get; }
-		ItemSubComponent SubComponent { get; }
-		string SubName { get; }
 	}
 }

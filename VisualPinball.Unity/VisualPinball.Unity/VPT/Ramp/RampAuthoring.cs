@@ -137,7 +137,7 @@ namespace VisualPinball.Unity
 			}
 		}
 
-		public override IEnumerable<MonoBehaviour> SetData(RampData data, IMaterialProvider materialProvider, ITextureProvider textureProvider, Dictionary<string, IItemMainAuthoring> components)
+		public override IEnumerable<MonoBehaviour> SetData(RampData data)
 		{
 			var updatedComponents = new List<MonoBehaviour> { this };
 
@@ -166,28 +166,22 @@ namespace VisualPinball.Unity
 			if (IsWireRamp) {
 				if (wireComponent) {
 					wireComponent.gameObject.SetActive(data.IsVisible);
-					wireComponent.CreateMesh(data, textureProvider, materialProvider);
 				}
 				if (floorComponent) {
 					floorComponent.gameObject.SetActive(false);
-					floorComponent.CreateMesh(data, textureProvider, materialProvider);
 				}
 				if (wallComponent) {
 					wallComponent.gameObject.SetActive(false);
-					wallComponent.CreateMesh(data, textureProvider, materialProvider);
 				}
 			} else {
 				if (wireComponent) {
 					wireComponent.gameObject.SetActive(false);
-					wireComponent.CreateMesh(data, textureProvider, materialProvider);
 				}
 				if (floorComponent) {
 					floorComponent.gameObject.SetActive(data.IsVisible);
-					floorComponent.CreateMesh(data, textureProvider, materialProvider);
 				}
 				if (wallComponent) {
 					wallComponent.gameObject.SetActive(data.IsVisible && (LeftWallHeightVisible > 0 || RightWallHeightVisible > 0));
-					wallComponent.CreateMesh(data, textureProvider, materialProvider);
 				}
 			}
 
@@ -200,7 +194,6 @@ namespace VisualPinball.Unity
 				collComponent.HitEvent = data.HitEvent;
 				collComponent.OverwritePhysics = data.OverwritePhysics;
 				collComponent.Scatter = data.Scatter;
-				collComponent.PhysicsMaterial = materialProvider.GetPhysicsMaterial(data.PhysicsMaterial);
 				collComponent.Threshold = data.Threshold;
 
 				collComponent.LeftWallHeight = data.LeftWallHeight;
@@ -210,6 +203,31 @@ namespace VisualPinball.Unity
 			}
 
 			return updatedComponents;
+		}
+
+		public override IEnumerable<MonoBehaviour> SetReferencedData(RampData data, IMaterialProvider materialProvider, ITextureProvider textureProvider, Dictionary<string, IItemMainAuthoring> components)
+		{
+			// meshes
+			var wallComponent = GetComponentInChildren<RampWallMeshAuthoring>(true);
+			var floorComponent = GetComponentInChildren<RampFloorMeshAuthoring>(true);
+			var wireComponent = GetComponentInChildren<RampWireMeshAuthoring>(true);
+			if (wireComponent) {
+				wireComponent.CreateMesh(data, textureProvider, materialProvider);
+			}
+			if (floorComponent) {
+				floorComponent.CreateMesh(data, textureProvider, materialProvider);
+			}
+			if (wallComponent) {
+				wallComponent.CreateMesh(data, textureProvider, materialProvider);
+			}
+
+			// collider data
+			var collComponent = GetComponentInChildren<RampColliderAuthoring>();
+			if (collComponent) {
+				collComponent.PhysicsMaterial = materialProvider.GetPhysicsMaterial(data.PhysicsMaterial);
+			}
+
+			return Array.Empty<MonoBehaviour>();
 		}
 
 		public override RampData CopyDataTo(RampData data, string[] materialNames, string[] textureNames)

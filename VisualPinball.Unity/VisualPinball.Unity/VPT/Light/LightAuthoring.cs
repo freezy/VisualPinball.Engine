@@ -174,15 +174,13 @@ namespace VisualPinball.Unity
 			}
 		}
 
-		public override IEnumerable<MonoBehaviour> SetData(LightData data, IMaterialProvider materialProvider, ITextureProvider textureProvider, Dictionary<string, IItemMainAuthoring> components)
+		public override IEnumerable<MonoBehaviour> SetData(LightData data)
 		{
 			var updatedComponents = new List<MonoBehaviour> { this };
 
 			// transforms
 			Position = new Vector3(data.Center.X, data.Center.Y, 0);
-			Surface = GetAuthoring<SurfaceAuthoring>(components, data.Surface);
 			BulbSize = data.MeshRadius;
-			UpdateTransforms();
 
 			// logical params
 			BlinkPattern = data.BlinkPattern;
@@ -209,6 +207,13 @@ namespace VisualPinball.Unity
 			}
 
 			return updatedComponents;
+		}
+
+
+		public override IEnumerable<MonoBehaviour> SetReferencedData(LightData data, IMaterialProvider materialProvider, ITextureProvider textureProvider, Dictionary<string, IItemMainAuthoring> components)
+		{
+			Surface = GetAuthoring<SurfaceAuthoring>(components, data.Surface);
+			return Array.Empty<MonoBehaviour>();
 		}
 
 		public override LightData CopyDataTo(LightData data, string[] materialNames, string[] textureNames)

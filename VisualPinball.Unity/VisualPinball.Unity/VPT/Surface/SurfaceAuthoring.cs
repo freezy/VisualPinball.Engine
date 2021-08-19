@@ -83,7 +83,7 @@ namespace VisualPinball.Unity
 			transform.GetComponentInParent<Player>().RegisterSurface(Item, entity, ParentEntity, gameObject);
 		}
 
-		public override IEnumerable<MonoBehaviour> SetData(SurfaceData data, IMaterialProvider materialProvider, ITextureProvider textureProvider, Dictionary<string, IItemMainAuthoring> components)
+		public override IEnumerable<MonoBehaviour> SetData(SurfaceData data)
 		{
 			var updatedComponents = new List<MonoBehaviour> { this };
 
@@ -93,18 +93,6 @@ namespace VisualPinball.Unity
 			IsDroppable = data.IsDroppable;
 			DragPoints = data.DragPoints;
 
-			// children mesh creation and visibility
-			var topMesh = GetComponentInChildren<SurfaceTopMeshAuthoring>(true);
-			if (topMesh) {
-				topMesh.CreateMesh(data, textureProvider, materialProvider);
-				topMesh.gameObject.SetActive(data.IsTopBottomVisible);
-			}
-			var sideMesh = GetComponentInChildren<SurfaceSideMeshAuthoring>(true);
-			if (sideMesh) {
-				sideMesh.CreateMesh(data, textureProvider, materialProvider);
-				sideMesh.gameObject.SetActive(data.IsSideVisible);
-			}
-
 			// collider data
 			var collComponent = GetComponentInChildren<SurfaceColliderAuthoring>();
 			if (collComponent) {
@@ -113,8 +101,6 @@ namespace VisualPinball.Unity
 				collComponent.HitEvent = data.HitEvent;
 				collComponent.Threshold = data.Threshold;
 				collComponent.IsBottomSolid = data.IsBottomSolid;
-
-				collComponent.PhysicsMaterial = materialProvider.GetPhysicsMaterial(data.PhysicsMaterial);
 
 				collComponent.SlingshotForce = data.SlingshotForce;
 				collComponent.SlingshotThreshold = data.SlingshotThreshold;
@@ -129,6 +115,30 @@ namespace VisualPinball.Unity
 			}
 
 			return updatedComponents;
+		}
+
+		public override IEnumerable<MonoBehaviour> SetReferencedData(SurfaceData data, IMaterialProvider materialProvider, ITextureProvider textureProvider, Dictionary<string, IItemMainAuthoring> components)
+		{
+			// children mesh creation and visibility
+			var topMesh = GetComponentInChildren<SurfaceTopMeshAuthoring>(true);
+			if (topMesh) {
+				topMesh.CreateMesh(data, textureProvider, materialProvider);
+				topMesh.gameObject.SetActive(data.IsTopBottomVisible);
+			}
+
+			var sideMesh = GetComponentInChildren<SurfaceSideMeshAuthoring>(true);
+			if (sideMesh) {
+				sideMesh.CreateMesh(data, textureProvider, materialProvider);
+				sideMesh.gameObject.SetActive(data.IsSideVisible);
+			}
+
+			// collider data
+			var collComponent = GetComponentInChildren<SurfaceColliderAuthoring>();
+			if (collComponent) {
+				collComponent.PhysicsMaterial = materialProvider.GetPhysicsMaterial(data.PhysicsMaterial);
+			}
+
+			return Array.Empty<MonoBehaviour>();
 		}
 
 		public override SurfaceData CopyDataTo(SurfaceData data, string[] materialNames, string[] textureNames)

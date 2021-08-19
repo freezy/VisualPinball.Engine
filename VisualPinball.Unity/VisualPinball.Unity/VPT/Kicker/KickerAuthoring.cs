@@ -145,7 +145,7 @@ namespace VisualPinball.Unity
 			};
 		}
 
-		public override IEnumerable<MonoBehaviour> SetData(KickerData data, IMaterialProvider materialProvider, ITextureProvider textureProvider, Dictionary<string, IItemMainAuthoring> components)
+		public override IEnumerable<MonoBehaviour> SetData(KickerData data)
 		{
 			var updatedComponents = new List<MonoBehaviour> { this };
 
@@ -153,9 +153,7 @@ namespace VisualPinball.Unity
 			Position = data.Center.ToUnityVector2();
 			Orientation = data.Orientation > 180f ? data.Orientation - 360f : data.Orientation;
 			Radius = data.Radius;
-			Surface = GetAuthoring<SurfaceAuthoring>(components, data.Surface);
 			KickerType = data.KickerType;
-			UpdateTransforms();
 
 			// collider data
 			var colliderAuthoring = gameObject.GetComponent<KickerColliderAuthoring>();
@@ -174,6 +172,12 @@ namespace VisualPinball.Unity
 			}
 
 			return updatedComponents;
+		}
+
+		public override IEnumerable<MonoBehaviour> SetReferencedData(KickerData data, IMaterialProvider materialProvider, ITextureProvider textureProvider, Dictionary<string, IItemMainAuthoring> components)
+		{
+			Surface = GetAuthoring<SurfaceAuthoring>(components, data.Surface);
+			return Array.Empty<MonoBehaviour>();
 		}
 
 		public override KickerData CopyDataTo(KickerData data, string[] materialNames, string[] textureNames)

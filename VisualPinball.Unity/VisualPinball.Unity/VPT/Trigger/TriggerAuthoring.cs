@@ -115,15 +115,13 @@ namespace VisualPinball.Unity
 			t.localEulerAngles = new Vector3(0, 0, Rotation);
 		}
 
-		public override IEnumerable<MonoBehaviour> SetData(TriggerData data, IMaterialProvider materialProvider, ITextureProvider textureProvider, Dictionary<string, IItemMainAuthoring> components)
+		public override IEnumerable<MonoBehaviour> SetData(TriggerData data)
 		{
 			var updatedComponents = new List<MonoBehaviour> { this };
 
 			// transforms
 			Position = data.Center.ToUnityVector2();
 			Rotation = data.Rotation;
-			Surface = GetAuthoring<SurfaceAuthoring>(components, data.Surface);
-			UpdateTransforms();
 
 			// geometry
 			DragPoints = data.DragPoints;
@@ -139,7 +137,6 @@ namespace VisualPinball.Unity
 			if (meshComponent) {
 				meshComponent.Shape = data.Shape;
 				meshComponent.WireThickness = data.WireThickness;
-				meshComponent.CreateMesh(data, textureProvider, materialProvider);
 				updatedComponents.Add(meshComponent);
 			}
 
@@ -160,6 +157,19 @@ namespace VisualPinball.Unity
 			}
 
 			return updatedComponents;
+		}
+
+		public override IEnumerable<MonoBehaviour> SetReferencedData(TriggerData data, IMaterialProvider materialProvider, ITextureProvider textureProvider, Dictionary<string, IItemMainAuthoring> components)
+		{
+			Surface = GetAuthoring<SurfaceAuthoring>(components, data.Surface);
+
+			// mesh
+			var meshComponent = GetComponent<TriggerMeshAuthoring>();
+			if (meshComponent) {
+				meshComponent.CreateMesh(data, textureProvider, materialProvider);
+			}
+
+			return Array.Empty<MonoBehaviour>();
 		}
 
 		public override TriggerData CopyDataTo(TriggerData data, string[] materialNames, string[] textureNames)

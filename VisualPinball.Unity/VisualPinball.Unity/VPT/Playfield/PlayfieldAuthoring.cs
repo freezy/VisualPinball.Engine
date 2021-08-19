@@ -49,14 +49,18 @@ namespace VisualPinball.Unity
 			table.Version = entity.Version;
 		}
 
-		public override IEnumerable<MonoBehaviour> SetData(TableData data, IMaterialProvider materialProvider, ITextureProvider textureProvider, Dictionary<string, IItemMainAuthoring> components)
+		public override IEnumerable<MonoBehaviour> SetData(TableData data)
+		{
+			return new List<MonoBehaviour> { this };
+		}
+
+		public override IEnumerable<MonoBehaviour> SetReferencedData(TableData data, IMaterialProvider materialProvider, ITextureProvider textureProvider, Dictionary<string, IItemMainAuthoring> components)
 		{
 			var mesh = GetComponentInChildren<PlayfieldMeshAuthoring>();
 			if (mesh) {
 				mesh.CreateMesh(data, textureProvider, materialProvider);
 			}
-
-			return new List<MonoBehaviour> { this };
+			return Array.Empty<MonoBehaviour>();
 		}
 
 		public override TableData CopyDataTo(TableData data, string[] materialNames, string[] textureNames)

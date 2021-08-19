@@ -75,7 +75,7 @@ namespace VisualPinball.Unity
 			transform.GetComponentInParent<Player>().RegisterRubber(Item, entity, ParentEntity, gameObject);
 		}
 
-		public override IEnumerable<MonoBehaviour> SetData(RubberData data, IMaterialProvider materialProvider, ITextureProvider textureProvider, Dictionary<string, IItemMainAuthoring> components)
+		public override IEnumerable<MonoBehaviour> SetData(RubberData data)
 		{
 			var updatedComponents = new List<MonoBehaviour> { this };
 
@@ -86,6 +86,26 @@ namespace VisualPinball.Unity
 			Thickness = data.Thickness;
 			DragPoints = data.DragPoints;
 
+			// collider data
+			var collComponent = GetComponentInChildren<RubberColliderAuthoring>();
+			if (collComponent) {
+				collComponent.enabled = data.IsCollidable;
+
+				collComponent.HitEvent = data.HitEvent;
+				collComponent.OverwritePhysics = data.OverwritePhysics;
+				collComponent.Elasticity = data.Elasticity;
+				collComponent.ElasticityFalloff = data.ElasticityFalloff;
+				collComponent.Friction = data.Friction;
+				collComponent.Scatter = data.Scatter;
+
+				updatedComponents.Add(collComponent);
+			}
+
+			return updatedComponents;
+		}
+
+		public override IEnumerable<MonoBehaviour> SetReferencedData(RubberData data, IMaterialProvider materialProvider, ITextureProvider textureProvider, Dictionary<string, IItemMainAuthoring> components)
+		{
 			// mesh
 			var mesh = GetComponent<RubberMeshAuthoring>();
 			if (mesh) {
@@ -100,20 +120,10 @@ namespace VisualPinball.Unity
 			// collider data
 			var collComponent = GetComponentInChildren<RubberColliderAuthoring>();
 			if (collComponent) {
-				collComponent.enabled = data.IsCollidable;
-
-				collComponent.HitEvent = data.HitEvent;
 				collComponent.PhysicsMaterial = materialProvider.GetPhysicsMaterial(data.PhysicsMaterial);
-				collComponent.OverwritePhysics = data.OverwritePhysics;
-				collComponent.Elasticity = data.Elasticity;
-				collComponent.ElasticityFalloff = data.ElasticityFalloff;
-				collComponent.Friction = data.Friction;
-				collComponent.Scatter = data.Scatter;
-
-				updatedComponents.Add(collComponent);
 			}
 
-			return updatedComponents;
+			return Array.Empty<MonoBehaviour>();
 		}
 
 		public override RubberData CopyDataTo(RubberData data, string[] materialNames, string[] textureNames)

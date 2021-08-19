@@ -149,10 +149,15 @@ namespace VisualPinball.Unity
 			return false;
 		}
 
-		public override IEnumerable<MonoBehaviour> SetData(TableData data, IMaterialProvider materialProvider, ITextureProvider textureProvider, Dictionary<string, IItemMainAuthoring> components)
+		public override IEnumerable<MonoBehaviour> SetData(TableData data)
 		{
 			TableHeight = data.TableHeight;
 			return new List<MonoBehaviour> { this };
+		}
+
+		public override IEnumerable<MonoBehaviour> SetReferencedData(TableData data, IMaterialProvider materialProvider, ITextureProvider textureProvider, Dictionary<string, IItemMainAuthoring> components)
+		{
+			return Array.Empty<MonoBehaviour>();
 		}
 
 		public override TableData CopyDataTo(TableData data, string[] materialNames, string[] textureNames)
