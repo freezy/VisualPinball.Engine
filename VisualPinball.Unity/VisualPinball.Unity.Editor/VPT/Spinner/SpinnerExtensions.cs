@@ -14,51 +14,16 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-using NLog;
-using UnityEditor;
-using UnityEngine;
-using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Spinner;
-using Logger = NLog.Logger;
 
-namespace VisualPinball.Unity
+namespace VisualPinball.Unity.Editor
 {
 	public static class SpinnerExtensions
 	{
-		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
-
-		public static IConvertedItem InstantiateGameObject(this Spinner spinner, IItem item, IMaterialProvider materialProvider)
+		internal static IVpxPrefab InstantiatePrefab(this Spinner spinner)
 		{
 			var prefab = RenderPipeline.Current.PrefabProvider.CreateSpinner();
-			var obj = PrefabUtility.InstantiatePrefab(prefab) as GameObject;
-			obj!.name = item.Name;
-			return new ConvertedItem<Spinner, SpinnerData, SpinnerAuthoring>(obj);
-
-			// var obj = new GameObject(item.Name);
-			// var convertedItem = new ConvertedItem<Spinner, SpinnerData, SpinnerAuthoring>(obj, spinner);
-			// switch (spinner.SubComponent) {
-			// 	case ItemSubComponent.None:
-			// 		convertedItem.SetColliderAuthoring<SpinnerColliderAuthoring>(materialProvider);
-			// 		convertedItem.AddMeshAuthoring<SpinnerBracketMeshAuthoring>(SpinnerMeshGenerator.Bracket);
-			// 		convertedItem.AddMeshAuthoring<SpinnerPlateMeshAuthoring>(SpinnerMeshGenerator.Plate);
-			// 		convertedItem.SetAnimationAuthoring<SpinnerPlateAnimationAuthoring>(SpinnerMeshGenerator.Plate);
-			// 		break;
-			//
-			// 	case ItemSubComponent.Collider: {
-			// 		Logger.Warn("Cannot parent a spinner collider to a different object than a spinner!");
-			// 		break;
-			// 	}
-			//
-			// 	case ItemSubComponent.Mesh: {
-			// 		Logger.Warn("Cannot parent a spinner mesh to a different object than a spinner!");
-			// 		break;
-			// 	}
-			//
-			// 	default:
-			// 		throw new ArgumentOutOfRangeException();
-			// }
-			//
-			// return convertedItem.AddConvertToEntity();
+			return new VpxPrefab<Spinner, SpinnerData, SpinnerAuthoring>(prefab, spinner);
 		}
 	}
 }

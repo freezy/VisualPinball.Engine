@@ -14,28 +14,17 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-using UnityEditor;
 using UnityEngine;
-using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Table;
 
 namespace VisualPinball.Unity.Editor
 {
 	public static class PlayfieldExtensions
 	{
-		public static IConvertedItem InstantiateGameObject(this Table table, IItem item, IMaterialProvider materialProvider)
+		internal static IVpxPrefab InstantiatePrefab(this Table table)
 		{
 			var prefab = UnityEngine.Resources.Load<GameObject>("Prefabs/Playfield");
-			var obj = PrefabUtility.InstantiatePrefab(prefab) as GameObject;
-			obj!.name = item.Name;
-
-			return new ConvertedItem<Table, TableData, PlayfieldAuthoring>(obj);
-
-			// var obj = new GameObject(item.Name);
-			// var convertedItem = new ConvertedItem<Table, TableData, PlayfieldAuthoring>(obj, table);
-			// convertedItem.SetMeshAuthoring<PlayfieldMeshAuthoring>();
-			// convertedItem.SetColliderAuthoring<PlayfieldColliderAuthoring>(materialProvider);
-			// return convertedItem.AddConvertToEntity();
+			return new VpxPrefab<Table, TableData, PlayfieldAuthoring>(prefab, table);
 		}
 	}
 }

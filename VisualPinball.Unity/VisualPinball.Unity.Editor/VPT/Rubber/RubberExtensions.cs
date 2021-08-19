@@ -14,53 +14,17 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-using System;
-using UnityEditor;
 using UnityEngine;
-using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Rubber;
 
-namespace VisualPinball.Unity
+namespace VisualPinball.Unity.Editor
 {
 	public static class RubberExtensions
 	{
-		public static IConvertedItem InstantiateGameObject(this Rubber rubber, IItem item, IMaterialProvider materialProvider)
+		internal static IVpxPrefab InstantiatePrefab(this Rubber rubber)
 		{
-
 			var prefab = UnityEngine.Resources.Load<GameObject>("Prefabs/Rubber");
-			var obj = PrefabUtility.InstantiatePrefab(prefab) as GameObject;
-			obj!.name = item.Name;
-
-			return new ConvertedItem<Rubber, RubberData, RubberAuthoring>(obj);
-			//
-			// var obj = new GameObject(item.Name);
-			// var convertedItem = new ConvertedItem<Rubber, RubberData, RubberAuthoring>(obj, rubber);
-			// switch (rubber.SubComponent) {
-			// 	case ItemSubComponent.None:
-			// 		convertedItem.SetColliderAuthoring<RubberColliderAuthoring>(materialProvider);
-			// 		convertedItem.SetMeshAuthoring<RubberMeshAuthoring>();
-			// 		break;
-			//
-			// 	case ItemSubComponent.Collider: {
-			// 		convertedItem.SetColliderAuthoring<RubberColliderAuthoring>(materialProvider);
-			// 		break;
-			// 	}
-			//
-			// 	case ItemSubComponent.Mesh: {
-			// 		convertedItem.SetMeshAuthoring<RubberMeshAuthoring>();
-			// 		break;
-			// 	}
-			//
-			// 	default:
-			// 		throw new ArgumentOutOfRangeException();
-			// }
-			//
-			// return convertedItem.AddConvertToEntity();
-		}
-
-		private static RubberColliderAuthoring AddColliderComponent(this GameObject obj, Rubber rubber)
-		{
-			return rubber.Data.IsCollidable ? obj.AddComponent<RubberColliderAuthoring>() : null;
+			return new VpxPrefab<Rubber, RubberData, RubberAuthoring>(prefab, rubber);
 		}
 	}
 }

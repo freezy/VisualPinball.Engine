@@ -116,7 +116,7 @@ namespace VisualPinball.Unity
 			t.localEulerAngles = new Vector3(0, 0, Rotation);
 		}
 
-		public override IEnumerable<MonoBehaviour> SetData(HitTargetData data, IMaterialProvider materialProvider, ITextureProvider textureProvider, Dictionary<string, IItemMainAuthoring> components)
+		public override IEnumerable<MonoBehaviour> SetData(HitTargetData data)
 		{
 			var updatedComponents = new List<MonoBehaviour> { this };
 
@@ -124,7 +124,6 @@ namespace VisualPinball.Unity
 			Position = data.Position.ToUnityVector3();
 			Rotation = data.RotZ > 180f ? data.RotZ - 360f : data.RotZ;
 			Size = data.Size.ToUnityVector3();
-			UpdateTransforms();
 
 			// collider data
 			var colliderAuthoring = GetComponent<HitTargetColliderAuthoring>();
@@ -132,7 +131,6 @@ namespace VisualPinball.Unity
 				colliderAuthoring.enabled = data.IsCollidable;
 				colliderAuthoring.UseHitEvent = data.UseHitEvent;
 				colliderAuthoring.Threshold = data.Threshold;
-				colliderAuthoring.PhysicsMaterial = materialProvider.GetPhysicsMaterial(data.PhysicsMaterial);
 				colliderAuthoring.IsLegacy = data.IsLegacy;
 
 				colliderAuthoring.OverwritePhysics = data.OverwritePhysics;
@@ -162,6 +160,15 @@ namespace VisualPinball.Unity
 			}
 
 			return updatedComponents;
+		}
+
+		public override IEnumerable<MonoBehaviour> SetReferencedData(HitTargetData data, IMaterialProvider materialProvider, ITextureProvider textureProvider, Dictionary<string, IItemMainAuthoring> components)
+		{
+			var colliderAuthoring = GetComponent<HitTargetColliderAuthoring>();
+			if (colliderAuthoring) {
+				colliderAuthoring.PhysicsMaterial = materialProvider.GetPhysicsMaterial(data.PhysicsMaterial);
+			}
+			return Array.Empty<MonoBehaviour>();
 		}
 
 		public override HitTargetData CopyDataTo(HitTargetData data, string[] materialNames, string[] textureNames)

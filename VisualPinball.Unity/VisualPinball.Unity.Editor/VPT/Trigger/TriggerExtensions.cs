@@ -14,49 +14,17 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-using NLog;
-using UnityEditor;
 using UnityEngine;
-using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Trigger;
-using Logger = NLog.Logger;
 
-namespace VisualPinball.Unity
+namespace VisualPinball.Unity.Editor
 {
 	public static class TriggerExtensions
 	{
-		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
-
-		public static IConvertedItem InstantiateGameObject(this Trigger trigger, IItem item, IMaterialProvider materialProvider)
+		internal static IVpxPrefab InstantiatePrefab(this Trigger trigger)
 		{
 			var prefab = UnityEngine.Resources.Load<GameObject>("Prefabs/Trigger");
-			var obj = PrefabUtility.InstantiatePrefab(prefab) as GameObject;
-			obj!.name = item.Name;
-
-			return new ConvertedItem<Trigger, TriggerData, TriggerAuthoring>(obj);
-
-			// var obj = new GameObject(item.Name);
-			// var convertedItem = new ConvertedItem<Trigger, TriggerData, TriggerAuthoring>(obj, trigger);
-			// switch (trigger.SubComponent) {
-			// 	case ItemSubComponent.None:
-			// 		convertedItem.SetColliderAuthoring<TriggerColliderAuthoring>(materialProvider);
-			// 		convertedItem.SetMeshAuthoring<TriggerMeshAuthoring>();
-			// 		break;
-			//
-			// 	case ItemSubComponent.Collider: {
-			// 		Logger.Warn("Cannot parent a trigger collider to a different object than a trigger!");
-			// 		break;
-			// 	}
-			//
-			// 	case ItemSubComponent.Mesh: {
-			// 		Logger.Warn("Cannot parent a trigger mesh to a different object than a trigger!");
-			// 		break;
-			// 	}
-			// 	default:
-			// 		throw new ArgumentOutOfRangeException();
-			// }
-			//
-			// return convertedItem.AddConvertToEntity();
+			return new VpxPrefab<Trigger, TriggerData, TriggerAuthoring>(prefab, trigger);
 		}
 	}
 }

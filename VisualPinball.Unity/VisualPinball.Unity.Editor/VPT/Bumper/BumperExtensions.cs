@@ -14,21 +14,16 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-using UnityEditor;
-using UnityEngine;
-using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Bumper;
 
 namespace VisualPinball.Unity.Editor
 {
 	public static class BumperExtensions
 	{
-		public static IConvertedItem InstantiateGameObject(this Bumper bumper, IItem item, IMaterialProvider materialProvider)
+		internal static IVpxPrefab InstantiatePrefab(this Bumper bumper)
 		{
 			var prefab = RenderPipeline.Current.PrefabProvider.CreateBumper();
-			var obj = PrefabUtility.InstantiatePrefab(prefab) as GameObject;
-			obj!.name = item.Name;
-			return new ConvertedItem<Bumper, BumperData, BumperAuthoring>(obj);
+			return new VpxPrefab<Bumper, BumperData, BumperAuthoring>(prefab, bumper);
 		}
 	}
 }

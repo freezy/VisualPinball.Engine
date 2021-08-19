@@ -135,7 +135,7 @@ namespace VisualPinball.Unity
 			t.localEulerAngles = new Vector3(0, 0, Rotation);
 		}
 
-		public override IEnumerable<MonoBehaviour> SetData(SpinnerData data, IMaterialProvider materialProvider, ITextureProvider textureProvider, Dictionary<string, IItemMainAuthoring> components)
+		public override IEnumerable<MonoBehaviour> SetData(SpinnerData data)
 		{
 			var updatedComponents = new List<MonoBehaviour> { this };
 
@@ -144,8 +144,6 @@ namespace VisualPinball.Unity
 			Height = data.Height;
 			Length = data.Length;
 			Rotation = data.Rotation;
-			Surface = GetAuthoring<SurfaceAuthoring>(components, data.Surface);
-			UpdateTransforms();
 
 			// spinner props
 			Damping = data.Damping;
@@ -172,6 +170,12 @@ namespace VisualPinball.Unity
 			}
 
 			return updatedComponents;
+		}
+
+		public override IEnumerable<MonoBehaviour> SetReferencedData(SpinnerData data, IMaterialProvider materialProvider, ITextureProvider textureProvider, Dictionary<string, IItemMainAuthoring> components)
+		{
+			Surface = GetAuthoring<SurfaceAuthoring>(components, data.Surface);
+			return Array.Empty<MonoBehaviour>();
 		}
 
 		public override SpinnerData CopyDataTo(SpinnerData data, string[] materialNames, string[] textureNames)

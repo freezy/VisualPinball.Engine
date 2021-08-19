@@ -14,22 +14,16 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-using UnityEditor;
-using UnityEngine;
-using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Light;
-using Light = VisualPinball.Engine.VPT.Light.Light;
 
-namespace VisualPinball.Unity
+namespace VisualPinball.Unity.Editor
 {
 	public static class LightExtensions
 	{
-		public static IConvertedItem InstantiateGameObject(this Light light, IItem item)
+		internal static IVpxPrefab InstantiatePrefab(this Light light)
 		{
 			var prefab = RenderPipeline.Current.PrefabProvider.CreateLight();
-			var obj = PrefabUtility.InstantiatePrefab(prefab) as GameObject;
-			obj!.name = item.Name;
-			return new ConvertedItem<Light, LightData, LightAuthoring>(obj);
+			return new VpxPrefab<Light, LightData, LightAuthoring>(prefab, light);
 		}
 	}
 }

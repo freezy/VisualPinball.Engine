@@ -157,15 +157,13 @@ namespace VisualPinball.Unity
 			t.localEulerAngles = new Vector3(0, 0, StartAngle);
 		}
 
-		public override IEnumerable<MonoBehaviour> SetData(FlipperData data, IMaterialProvider materialProvider, ITextureProvider textureProvider, Dictionary<string, IItemMainAuthoring> components)
+		public override IEnumerable<MonoBehaviour> SetData(FlipperData data)
 		{
 			var updatedComponents = new List<MonoBehaviour> { this };
 
 			// transforms
 			Position = data.Center.ToUnityVector2();
 			StartAngle = data.StartAngle > 180f ? data.StartAngle - 360f : data.StartAngle;
-			Surface = GetAuthoring<SurfaceAuthoring>(components, data.Surface);
-			UpdateTransforms();
 
 			// geometry
 			Height = data.Height;
@@ -181,14 +179,6 @@ namespace VisualPinball.Unity
 			// states
 			IsEnabled = data.IsEnabled;
 			IsDualWound = data.IsDualWound;
-
-			// children mesh creation and visibility
-			var baseMesh = GetComponentInChildren<FlipperBaseMeshAuthoring>();
-			baseMesh.CreateMesh(data, textureProvider, materialProvider);
-			baseMesh.gameObject.SetActive(data.IsVisible);
-			var rubberMesh = GetComponentInChildren<FlipperRubberMeshAuthoring>();
-			rubberMesh.CreateMesh(data, textureProvider, materialProvider);
-			rubberMesh.gameObject.SetActive(data.IsVisible);
 
 			// collider data
 			var colliderAuthoring = gameObject.GetComponent<FlipperColliderAuthoring>();
@@ -207,6 +197,27 @@ namespace VisualPinball.Unity
 			}
 
 			return updatedComponents;
+		}
+
+		public override IEnumerable<MonoBehaviour> SetReferencedData(FlipperData data, IMaterialProvider materialProvider, ITextureProvider textureProvider, Dictionary<string, IItemMainAuthoring> components)
+		{
+			Surface = GetAuthoring<SurfaceAuthoring>(components, data.Surface);
+			UpdateTransforms();
+
+			// children mesh creation and visibility
+			var baseMesh = GetComponentInChildren<FlipperBaseMeshAuthoring>();
+			if (baseMesh) {
+				baseMesh.CreateMesh(data, textureProvider, materialProvider);
+				baseMesh.gameObject.SetActive(data.IsVisible);
+			}
+
+			var rubberMesh = GetComponentInChildren<FlipperRubberMeshAuthoring>();
+			if (rubberMesh) {
+				rubberMesh.CreateMesh(data, textureProvider, materialProvider);
+				rubberMesh.gameObject.SetActive(data.IsVisible);
+			}
+
+			return Array.Empty<MonoBehaviour>();
 		}
 
 		public override FlipperData CopyDataTo(FlipperData data, string[] materialNames, string[] textureNames)

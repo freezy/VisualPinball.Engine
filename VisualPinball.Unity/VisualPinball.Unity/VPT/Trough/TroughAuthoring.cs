@@ -250,13 +250,11 @@ namespace VisualPinball.Unity
 			GetComponentInParent<Player>().RegisterTrough(Item, gameObject);
 		}
 
-		public override IEnumerable<MonoBehaviour> SetData(TroughData data, IMaterialProvider materialProvider, ITextureProvider textureProvider, Dictionary<string, IItemMainAuthoring> components)
+		public override IEnumerable<MonoBehaviour> SetData(TroughData data)
 		{
 			var updatedComponents = new List<MonoBehaviour> { this };
 
 			Type = data.Type;
-			PlayfieldEntrySwitch = GetAuthoring<TriggerAuthoring>(components, data.PlayfieldEntrySwitch);
-			PlayfieldExitKicker = GetAuthoring<KickerAuthoring>(components, data.PlayfieldExitKicker);
 			BallCount = data.BallCount;
 			SwitchCount = data.SwitchCount;
 			JamSwitch = data.JamSwitch;
@@ -265,6 +263,14 @@ namespace VisualPinball.Unity
 			KickTime = data.KickTime;
 
 			return updatedComponents;
+		}
+
+		public override IEnumerable<MonoBehaviour> SetReferencedData(TroughData data, IMaterialProvider materialProvider, ITextureProvider textureProvider, Dictionary<string, IItemMainAuthoring> components)
+		{
+			PlayfieldEntrySwitch = GetAuthoring<TriggerAuthoring>(components, data.PlayfieldEntrySwitch);
+			PlayfieldExitKicker = GetAuthoring<KickerAuthoring>(components, data.PlayfieldExitKicker);
+
+			return Array.Empty<MonoBehaviour>();
 		}
 
 		public override TroughData CopyDataTo(TroughData data, string[] materialNames, string[] textureNames)

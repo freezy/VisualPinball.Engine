@@ -14,64 +14,17 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-using NLog;
-using UnityEditor;
 using UnityEngine;
-using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Plunger;
-using Logger = NLog.Logger;
 
-namespace VisualPinball.Unity
+namespace VisualPinball.Unity.Editor
 {
 	public static class PlungerExtensions
 	{
-		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
-
-		public static IConvertedItem InstantiateGameObject(this Plunger plunger, IItem item, IMaterialProvider materialProvider)
+		internal static IVpxPrefab InstantiatePrefab(this Plunger plunger)
 		{
 			var prefab = UnityEngine.Resources.Load<GameObject>("Prefabs/Plunger");
-			var obj = PrefabUtility.InstantiatePrefab(prefab) as GameObject;
-			obj!.name = item.Name;
-
-			return new ConvertedItem<Plunger, PlungerData, PlungerAuthoring>(obj);
-
-			// var obj = new GameObject(item.Name);
-			// var convertedItem = new ConvertedItem<Plunger, PlungerData, PlungerAuthoring>(obj, plunger);
-			// switch (plunger.SubComponent) {
-			// 	case ItemSubComponent.None:
-			//
-			// 		convertedItem.SetColliderAuthoring<PlungerColliderAuthoring>(materialProvider);
-			// 		switch (plunger.Data.Type) {
-			// 			case PlungerType.PlungerTypeFlat:
-			// 				convertedItem.AddMeshAuthoring<PlungerFlatMeshAuthoring>(PlungerMeshGenerator.Flat);
-			// 				break;
-			//
-			// 			case PlungerType.PlungerTypeCustom:
-			// 				convertedItem.AddMeshAuthoring<PlungerSpringMeshAuthoring>(PlungerMeshGenerator.Spring);
-			// 				convertedItem.AddMeshAuthoring<PlungerRodMeshAuthoring>(PlungerMeshGenerator.Rod);
-			// 				break;
-			//
-			// 			case PlungerType.PlungerTypeModern:
-			// 				convertedItem.AddMeshAuthoring<PlungerRodMeshAuthoring>(PlungerMeshGenerator.Rod);
-			// 				break;
-			// 		}
-			// 		break;
-			//
-			// 	case ItemSubComponent.Collider: {
-			// 		Logger.Warn("Cannot parent a plunger collider to a different object than a plunger!");
-			// 		break;
-			// 	}
-			//
-			// 	case ItemSubComponent.Mesh: {
-			// 		Logger.Warn("Cannot parent a plunger mesh to a different object than a plunger!");
-			// 		break;
-			// 	}
-			//
-			// 	default:
-			// 		throw new ArgumentOutOfRangeException();
-			// }
-			//
-			// return convertedItem.AddConvertToEntity();
+			return new VpxPrefab<Plunger, PlungerData, PlungerAuthoring>(prefab, plunger);
 		}
 	}
 }

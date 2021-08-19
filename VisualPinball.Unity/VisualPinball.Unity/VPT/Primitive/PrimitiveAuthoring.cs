@@ -51,8 +51,6 @@ namespace VisualPinball.Unity
 
 		public override ItemType ItemType => ItemType.Primitive;
 
-		public override bool IsCollidable => !Data.IsToy;
-
 		protected override Primitive InstantiateItem(PrimitiveData data) => new Primitive(data);
 		protected override PrimitiveData InstantiateData() => new PrimitiveData();
 
@@ -111,7 +109,7 @@ namespace VisualPinball.Unity
 			transform.SetFromMatrix(fullMatrix.ToUnityMatrix());
 		}
 
-		public override IEnumerable<MonoBehaviour> SetData(PrimitiveData data, IMaterialProvider materialProvider, ITextureProvider textureProvider, Dictionary<string, IItemMainAuthoring> components)
+		public override IEnumerable<MonoBehaviour> SetData(PrimitiveData data)
 		{
 			var updatedComponents = new List<MonoBehaviour> { this };
 
@@ -121,19 +119,10 @@ namespace VisualPinball.Unity
 			Rotation = new Vector3(data.RotAndTra[0], data.RotAndTra[1], data.RotAndTra[2]);
 			Translation = new Vector3(data.RotAndTra[3], data.RotAndTra[4], data.RotAndTra[5]);
 			ObjectRotation = new Vector3(data.RotAndTra[6], data.RotAndTra[7], data.RotAndTra[8]);
-			UpdateTransforms();
 
 			// static rendering & visibility
 			gameObject.SetActive(data.IsVisible);
 			StaticRendering = data.StaticRendering;
-
-			// mesh
-			var meshComponent = GetComponent<PrimitiveMeshAuthoring>();
-			if (meshComponent) {
-				meshComponent.CreateMesh(data, textureProvider, materialProvider);
-
-				updatedComponents.Add(meshComponent);
-			}
 
 			var collComponent = GetComponentInChildren<PrimitiveColliderAuthoring>();
 			if (collComponent) {
@@ -149,6 +138,21 @@ namespace VisualPinball.Unity
 				collComponent.OverwritePhysics = data.OverwritePhysics;
 
 				updatedComponents.Add(collComponent);
+			}
+
+			return updatedComponents;
+		}
+
+		public override IEnumerable<MonoBehaviour> SetReferencedData(PrimitiveData data, IMaterialProvider materialProvider, ITextureProvider textureProvider, Dictionary<string, IItemMainAuthoring> components)
+		{
+			var updatedComponents = new List<MonoBehaviour> { this };
+
+			// mesh
+			var meshComponent = GetComponent<PrimitiveMeshAuthoring>();
+			if (meshComponent) {
+				meshComponent.CreateMesh(data, textureProvider, materialProvider);
+
+				updatedComponents.Add(meshComponent);
 			}
 
 			return updatedComponents;

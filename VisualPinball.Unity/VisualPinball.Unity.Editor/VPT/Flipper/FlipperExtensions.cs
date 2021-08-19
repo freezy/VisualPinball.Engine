@@ -14,53 +14,17 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-using System;
-using NLog;
-using UnityEditor;
 using UnityEngine;
-using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Flipper;
-using VisualPinball.Engine.VPT.Surface;
-using Logger = NLog.Logger;
 
 namespace VisualPinball.Unity.Editor
 {
 	public static class FlipperExtensions
 	{
-		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
-
-		public static IConvertedItem InstantiateGameObject(this Flipper flipper, IItem item, IMaterialProvider materialProvider)
+		internal static IVpxPrefab InstantiatePrefab(this Flipper flipper)
 		{
 			var prefab = UnityEngine.Resources.Load<GameObject>("Prefabs/Flipper");
-			var obj = PrefabUtility.InstantiatePrefab(prefab) as GameObject;
-			obj!.name = item.Name;
-
-			return new ConvertedItem<Flipper, FlipperData, FlipperAuthoring>(obj);
-
-			// var obj = new GameObject(item.Name);
-			// var convertedItem = new ConvertedItem<Flipper, FlipperData, FlipperAuthoring>(obj, flipper);
-			// switch (flipper.SubComponent) {
-			// 	case ItemSubComponent.None:
-			// 		convertedItem.SetColliderAuthoring<FlipperColliderAuthoring>(materialProvider);
-			// 		convertedItem.AddMeshAuthoring<FlipperBaseMeshAuthoring>(FlipperMeshGenerator.Base);
-			// 		convertedItem.AddMeshAuthoring<FlipperRubberMeshAuthoring>(FlipperMeshGenerator.Rubber);
-			// 		break;
-			//
-			// 	case ItemSubComponent.Collider: {
-			// 		Logger.Warn("Cannot parent a flipper collider to a different object than a flipper!");
-			// 		break;
-			// 	}
-			//
-			// 	case ItemSubComponent.Mesh: {
-			// 		Logger.Warn("Cannot parent a flipper mesh to a different object than a flipper!");
-			// 		break;
-			// 	}
-			//
-			// 	default:
-			// 		throw new ArgumentOutOfRangeException();
-			// }
-			//
-			// return convertedItem.AddConvertToEntity();
+			return new VpxPrefab<Flipper, FlipperData, FlipperAuthoring>(prefab, flipper);
 		}
 	}
 }

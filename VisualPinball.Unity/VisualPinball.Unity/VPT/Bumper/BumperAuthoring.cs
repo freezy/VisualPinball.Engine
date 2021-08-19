@@ -146,7 +146,7 @@ namespace VisualPinball.Unity
 			t.localEulerAngles = new Vector3(0, 0, Orientation);
 		}
 
-		public override IEnumerable<MonoBehaviour> SetData(BumperData data, IMaterialProvider materialProvider, ITextureProvider textureProvider, Dictionary<string, IItemMainAuthoring> components)
+		public override IEnumerable<MonoBehaviour> SetData(BumperData data)
 		{
 			var updatedComponents = new List<MonoBehaviour> { this };
 
@@ -155,6 +155,29 @@ namespace VisualPinball.Unity
 			Radius = data.Radius;
 			HeightScale = data.HeightScale;
 			Orientation = data.Orientation;
+
+			// collider
+			var collComponent = GetComponentInChildren<BumperColliderAuthoring>();
+			if (collComponent) {
+				collComponent.enabled = data.IsCollidable;
+				collComponent.Threshold = data.Threshold;
+				collComponent.Force = data.Force;
+				collComponent.Scatter = data.Scatter;
+				collComponent.HitEvent = data.HitEvent;
+			}
+
+			// ring animation
+			var ringAnimComponent = GetComponentInChildren<BumperRingAnimationAuthoring>();
+			if (ringAnimComponent) {
+				ringAnimComponent.RingSpeed = data.RingSpeed;
+				ringAnimComponent.RingDropOffset = data.RingDropOffset;
+			}
+
+			return updatedComponents;
+		}
+
+		public override IEnumerable<MonoBehaviour> SetReferencedData(BumperData data, IMaterialProvider materialProvider, ITextureProvider textureProvider, Dictionary<string, IItemMainAuthoring> components)
+		{
 			Surface = GetAuthoring<SurfaceAuthoring>(components, data.Surface);
 			UpdateTransforms();
 
@@ -189,25 +212,9 @@ namespace VisualPinball.Unity
 				}
 			}
 
-			// collider
-			var collComponent = GetComponentInChildren<BumperColliderAuthoring>();
-			if (collComponent) {
-				collComponent.enabled = data.IsCollidable;
-				collComponent.Threshold = data.Threshold;
-				collComponent.Force = data.Force;
-				collComponent.Scatter = data.Scatter;
-				collComponent.HitEvent = data.HitEvent;
-			}
-
-			// ring animation
-			var ringAnimComponent = GetComponentInChildren<BumperRingAnimationAuthoring>();
-			if (ringAnimComponent) {
-				ringAnimComponent.RingSpeed = data.RingSpeed;
-				ringAnimComponent.RingDropOffset = data.RingDropOffset;
-			}
-
-			return updatedComponents;
+			return Array.Empty<MonoBehaviour>();
 		}
+
 
 		public override BumperData CopyDataTo(BumperData data, string[] materialNames, string[] textureNames)
 		{

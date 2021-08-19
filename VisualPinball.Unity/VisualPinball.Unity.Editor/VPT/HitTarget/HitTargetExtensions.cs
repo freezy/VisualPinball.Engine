@@ -14,49 +14,16 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-using NLog;
-using UnityEditor;
-using UnityEngine;
-using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.HitTarget;
-using Logger = NLog.Logger;
 
 namespace VisualPinball.Unity.Editor
 {
 	public static class HitTargetExtensions
 	{
-		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
-
-		public static IConvertedItem InstantiateGameObject(this HitTarget hitTarget, IItem item, IMaterialProvider materialProvider)
+		internal static IVpxPrefab InstantiatePrefab(this HitTarget hitTarget)
 		{
 			var prefab = RenderPipeline.Current.PrefabProvider.CreateTarget(hitTarget.Data.TargetType);
-			var obj = PrefabUtility.InstantiatePrefab(prefab) as GameObject;
-			obj!.name = item.Name;
-			return new ConvertedItem<HitTarget, HitTargetData, HitTargetAuthoring>(obj);
-
-			// var obj = new GameObject(item.Name);
-			// var convertedItem = new ConvertedItem<HitTarget, HitTargetData, HitTargetAuthoring>(obj, hitTarget);
-			// switch (hitTarget.SubComponent) {
-			// 	case ItemSubComponent.None:
-			// 		convertedItem.SetColliderAuthoring<HitTargetColliderAuthoring>(materialProvider);
-			// 		//convertedItem.SetMeshAuthoring<HitTargetMeshAuthoring>();
-			// 		break;
-			//
-			// 	case ItemSubComponent.Collider: {
-			// 		Logger.Warn("Cannot parent a target collider to a different object than a target!");
-			// 		break;
-			// 	}
-			//
-			// 	case ItemSubComponent.Mesh: {
-			// 		Logger.Warn("Cannot parent a target mesh to a different object than a target!");
-			// 		break;
-			// 	}
-			//
-			// 	default:
-			// 		throw new ArgumentOutOfRangeException();
-			// }
-			//
-			// return convertedItem.AddConvertToEntity();
+			return new VpxPrefab<HitTarget, HitTargetData, HitTargetAuthoring>(prefab, hitTarget);
 		}
 	}
 }

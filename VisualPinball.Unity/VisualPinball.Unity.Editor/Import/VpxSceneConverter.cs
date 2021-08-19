@@ -203,11 +203,18 @@ namespace VisualPinball.Unity.Editor
 
 		private void ConvertGameItems()
 		{
-			var convertedItems = new Dictionary<string, IConvertedItem>();
-			var renderableLookup = new Dictionary<string, IRenderable>();
-			var renderables = _tableContainer.Renderables
-				.OrderBy(renderable => renderable.SubComponent)
-				.ToArray();
+			// this instantiates all games items from prefabs into the scene and copies the data into the components
+			var prefabLookup = InstantiateGameItems();
+
+			// now, in a second pass, we update the referenced data. this is so states dependent on other components
+			// is correctly applied.
+			UpdateGameItems(prefabLookup);
+		}
+
+		private Dictionary<string, IVpxPrefab> InstantiateGameItems()
+		{
+			var prefabLookup = new Dictionary<string, IVpxPrefab>();
+			var renderables = _tableContainer.Renderables.ToArray();
 
 			try {
 				// pause asset database refreshing
@@ -219,53 +226,9 @@ namespace VisualPinball.Unity.Editor
 						_patcher?.ApplyPrePatches(renderable);
 					}
 
+					// create object(s)
 					var lookupName = renderable.Name.ToLower();
-					renderableLookup[lookupName] = renderable;
-
-					if (renderable.SubComponent == ItemSubComponent.None) {
-						// create object(s)
-						convertedItems[lookupName] = CreateGameObjects(renderable);
-
-					} else {
-						// if the object's names was parsed to be part of another object, re-link to other object.
-						var parentName = renderable.ComponentName.ToLower();
-						if (convertedItems.ContainsKey(parentName)) {
-							var parent = convertedItems[parentName];
-
-							var convertedItem = CreateGameObjects(renderable);
-							if (convertedItem.IsValidChild(parent)) {
-
-								if (convertedItem.MeshAuthoring.Any()) {
-
-									// move and rotate into parent
-									if (parent.MainAuthoring.IItem is IRenderable parentRenderable) {
-										renderable.Position -= parentRenderable.Position;
-										renderable.RotationY -= parentRenderable.RotationY;
-									}
-
-									parent.DestroyMeshComponents();
-								}
-								if (convertedItem.ColliderAuthoring != null) {
-									parent.DestroyColliderComponent();
-								}
-								convertedItem.MainAuthoring.gameObject.transform.SetParent(parent.MainAuthoring.gameObject.transform, false);
-								convertedItems[lookupName] = convertedItem;
-
-							} else {
-
-								renderable.DisableSubComponent();
-
-								// invalid parenting, re-convert the item, because it returned only the sub component.
-								convertedItems[lookupName] = CreateGameObjects(renderable);
-
-								// ..and destroy the other one
-								convertedItem.Destroy();
-							}
-
-						} else {
-							Logger.Warn($"Cannot find component \"{parentName}\" that is supposed to be the parent of \"{renderable.Name}\".");
-						}
-					}
+					prefabLookup[lookupName] = InstantiateAndParentPrefab(renderable);
 				}
 
 			} finally {
@@ -273,106 +236,85 @@ namespace VisualPinball.Unity.Editor
 				AssetDatabase.Refresh();
 			}
 
-			// now we have all renderables imported, set data and patch
-			var dataDict = _tableContainer.SupportedDatas;
-			var componentDict = convertedItems
-				.ToDictionary(x => x.Key, x => x.Value.MainAuthoring);
-			IEnumerable<MonoBehaviour> updatedComponents = null;
-			foreach (var renderable in renderables) {
+			return prefabLookup;
+		}
 
-				var lookupName = renderable.Name.ToLower();
-				if (!convertedItems.ContainsKey(lookupName) || convertedItems[lookupName] == null) {
-					continue;
-				}
-				var convertedItem = convertedItems[lookupName];
+		private void UpdateGameItems(Dictionary<string, IVpxPrefab> prefabLookup)
+		{
+			var componentLookup = prefabLookup.ToDictionary(x => x.Key, x => x.Value.MainComponent);
+			foreach (var prefab in prefabLookup.Values) {
+				prefab.SetReferencedData(this, this, componentLookup);
+				prefab.FreeBinaryData();
 
-				// set data
-				if (dataDict.ContainsKey(lookupName)) {
-					updatedComponents = convertedItem.SetData(dataDict[lookupName], this, this, componentDict);
-					dataDict[lookupName].FreeBinaryData();
-
-					if (!convertedItem.IsProceduralMesh) {
-						var mfs = convertedItem.GameObject.GetComponentsInChildren<MeshFilter>();
-						foreach (var mf in mfs) {
-							var suffix = mfs.Length == 1 ? "" : $" ({mf.gameObject.name})";
-							var meshFilename = $"{convertedItem.GameObject.name.ToFilename()}{suffix.ToFilename()}.mesh";
-							var meshPath = Path.Combine(_assetsMeshes, meshFilename);
-							if (_options.SkipExistingMeshes && File.Exists(meshPath)) {
-								continue;
-							}
-							if (File.Exists(meshPath)) {
-								AssetDatabase.DeleteAsset(meshPath);
-							}
-							AssetDatabase.CreateAsset(mf.sharedMesh, meshPath);
+				if (prefab.ExtractMesh) {
+					var mfs = prefab.GameObject.GetComponentsInChildren<MeshFilter>();
+					foreach (var mf in mfs) {
+						var suffix = mfs.Length == 1 ? "" : $" ({mf.gameObject.name})";
+						var meshFilename = $"{prefab.GameObject.name.ToFilename()}{suffix.ToFilename()}.mesh";
+						var meshPath = Path.Combine(_assetsMeshes, meshFilename);
+						if (_options.SkipExistingMeshes && File.Exists(meshPath)) {
+							continue;
 						}
+						if (File.Exists(meshPath)) {
+							AssetDatabase.DeleteAsset(meshPath);
+						}
+						AssetDatabase.CreateAsset(mf.sharedMesh, meshPath);
 					}
-
-				} else {
-					Debug.LogError($"Could not find data of {lookupName} to apply to game object.");
 				}
 
 				// patch
 				if (_applyPatch) {
-					foreach (var meshMb in convertedItem.MeshAuthoring) {
-						_patcher?.ApplyPatches(renderableLookup[lookupName], meshMb.gameObject, _tableGo);
+					foreach (var meshGo in prefab.MeshGameObjects) {
+						_patcher?.ApplyPatches(prefab.Renderable, meshGo, _tableGo);
 					}
 				}
 
 				// persist changes
-				EditorUtility.SetDirty(convertedItem.GameObject);
-				if (updatedComponents != null) {
-					PrefabUtility.RecordPrefabInstancePropertyModifications(convertedItem.GameObject.transform);
-					foreach (var updatedComponent in updatedComponents) {
-						PrefabUtility.RecordPrefabInstancePropertyModifications(updatedComponent);
-					}
-				}
+				prefab.PersistData();
 			}
 
 			// finally, convert non-renderables
 			foreach (var item in _tableContainer.NonRenderables) {
-
-				// create object(s)
-				CreateGameObjects(item);
+				InstantiateAndParentPrefab(item);
 			}
 
-			// yes, really persist changes..
+			// yes, really, persist changes..
 			EditorSceneManager.MarkSceneDirty(SceneManager.GetActiveScene());
 		}
 
-		public IConvertedItem CreateGameObjects(IItem item)
+		internal IVpxPrefab InstantiateAndParentPrefab(IItem item)
 		{
-			var convertedItem = InstantiateGameObject(item);
+			var prefab = InstantiatePrefab(item);
 			var parentGo = GetGroupParent(item);
 
-			convertedItem.GameObject.transform.SetParent(parentGo.transform, false);
+			prefab.GameObject.transform.SetParent(parentGo.transform, false);
 
 			// apply transformation
 			if (item is IRenderable renderable) {
-				//convertedItem.MainAuthoring
 				// todo can probably remove that, it's in setData already..
-				convertedItem.GameObject.transform.SetFromMatrix(renderable.TransformationMatrix(_table, Origin.Original).ToUnityMatrix());
+				prefab.GameObject.transform.SetFromMatrix(renderable.TransformationMatrix(_table, Origin.Original).ToUnityMatrix());
 			}
-			return convertedItem;
+			return prefab;
 		}
 
-		private IConvertedItem InstantiateGameObject(IItem item)
+		private static IVpxPrefab InstantiatePrefab(IItem item)
 		{
 			switch (item) {
-				case Bumper bumper:       return bumper.InstantiateGameObject(item, this);
-				case Flipper flipper:     return flipper.InstantiateGameObject(item, this);
-				case Gate gate:           return gate.InstantiateGameObject(item, this);
-				case HitTarget hitTarget: return hitTarget.InstantiateGameObject(item, this);
-				case Kicker kicker:       return kicker.InstantiateGameObject(item, this);
-				case Light lt:            return lt.InstantiateGameObject(item);
-				case Plunger plunger:     return plunger.InstantiateGameObject(item, this);
-				case Primitive primitive: return primitive.InstantiateGameObject(item, this);
-				case Ramp ramp:           return ramp.InstantiateGameObject(item, this);
-				case Rubber rubber:       return rubber.InstantiateGameObject(item, this);
-				case Spinner spinner:     return spinner.InstantiateGameObject(item, this);
-				case Surface surface:     return surface.InstantiateGameObject(item, this);
-				case Table table:         return table.InstantiateGameObject(item, this);
-				case Trigger trigger:     return trigger.InstantiateGameObject(item, this);
-				case Trough trough:       return trough.InstantiateGameObject(item);
+				case Bumper bumper:       return bumper.InstantiatePrefab();
+				case Flipper flipper:     return flipper.InstantiatePrefab();
+				case Gate gate:           return gate.InstantiatePrefab();
+				case HitTarget hitTarget: return hitTarget.InstantiatePrefab();
+				case Kicker kicker:       return kicker.InstantiatePrefab();
+				case Light lt:            return lt.InstantiatePrefab();
+				case Plunger plunger:     return plunger.InstantiatePrefab();
+				case Primitive primitive: return primitive.InstantiatePrefab();
+				case Ramp ramp:           return ramp.InstantiatePrefab();
+				case Rubber rubber:       return rubber.InstantiatePrefab();
+				case Spinner spinner:     return spinner.InstantiatePrefab();
+				case Surface surface:     return surface.InstantiatePrefab();
+				case Table table:         return table.InstantiatePrefab();
+				case Trigger trigger:     return trigger.InstantiatePrefab();
+				case Trough trough:       return trough.InstantiatePrefab();
 			}
 
 			throw new InvalidOperationException("Unknown item " + item + " to setup!");
@@ -543,7 +485,7 @@ namespace VisualPinball.Unity.Editor
 				StorageIndex = _tableContainer.ItemDatas.Count()
 			};
 
-			CreateGameObjects(item);
+			InstantiateAndParentPrefab(item);
 		}
 
 		private void CreateFileHierarchy()
@@ -607,7 +549,7 @@ namespace VisualPinball.Unity.Editor
 
 			_tableAuthoring = _tableGo.AddComponent<TableAuthoring>();
 			_tableAuthoring.SetItem(_table, tableName);
-			_tableAuthoring.SetData(_table.Data, this, this, new Dictionary<string, IItemMainAuthoring>());
+			_tableAuthoring.SetData(_table.Data);
 
 			_playfieldGo.transform.SetParent(_tableGo.transform, false);
 			backglassGo.transform.SetParent(_tableGo.transform, false);

@@ -154,7 +154,7 @@ namespace VisualPinball.Unity
 			GetComponentInParent<Player>().RegisterPlunger(Item, entity, ParentEntity, analogPlungerAction, go);
 		}
 
-		public override IEnumerable<MonoBehaviour> SetData(PlungerData data, IMaterialProvider materialProvider, ITextureProvider textureProvider, Dictionary<string, IItemMainAuthoring> components)
+		public override IEnumerable<MonoBehaviour> SetData(PlungerData data)
 		{
 			var updatedComponents = new List<MonoBehaviour> { this };
 
@@ -163,7 +163,6 @@ namespace VisualPinball.Unity
 			Width = data.Width;
 			Height = data.Height;
 			ZAdjust = data.ZAdjust;
-			Surface = GetAuthoring<SurfaceAuthoring>(components, data.Surface);
 
 			// collider data
 			var collComponent = GetComponent<PlungerColliderAuthoring>();
@@ -190,7 +189,6 @@ namespace VisualPinball.Unity
 				rodMesh.RingDiam = data.RingDiam;
 				rodMesh.RingWidth = data.RingWidth;
 
-				rodMesh.CreateMesh(data, textureProvider, materialProvider);
 				updatedComponents.Add(collComponent);
 			}
 
@@ -204,14 +202,31 @@ namespace VisualPinball.Unity
 
 				if (data.Type != PlungerType.PlungerTypeCustom) {
 					springMesh.gameObject.SetActive(false);
-				} else {
-					springMesh.CreateMesh(data, textureProvider, materialProvider);
 				}
 
 				updatedComponents.Add(collComponent);
 			}
 
 			return updatedComponents;
+		}
+
+		public override IEnumerable<MonoBehaviour> SetReferencedData(PlungerData data, IMaterialProvider materialProvider, ITextureProvider textureProvider, Dictionary<string, IItemMainAuthoring> components)
+		{
+			Surface = GetAuthoring<SurfaceAuthoring>(components, data.Surface);
+
+			// rod mesh
+			var rodMesh = GetComponentInChildren<PlungerRodMeshAuthoring>(true);
+			if (rodMesh) {
+				rodMesh.CreateMesh(data, textureProvider, materialProvider);
+			}
+
+			// spring mesh
+			var springMesh = GetComponentInChildren<PlungerSpringMeshAuthoring>(true);
+			if (springMesh && data.Type == PlungerType.PlungerTypeCustom) {
+				springMesh.CreateMesh(data, textureProvider, materialProvider);
+			}
+
+			return Array.Empty<MonoBehaviour>();
 		}
 
 		public override PlungerData CopyDataTo(PlungerData data, string[] materialNames, string[] textureNames)

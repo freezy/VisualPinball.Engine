@@ -31,12 +31,6 @@ namespace VisualPinball.Unity
 		where TItem : Item<TData>
 		where TData : ItemData
 	{
-		/// <summary>
-		/// If false is returned, no colliders will be created. If your
-		/// component collides, but not per default, set this to true.
-		/// </summary>
-		public virtual bool IsCollidable => true;
-
 		public float TableHeight {
 			get {
 				var tableComponent = GetComponentInParent<TableAuthoring>();
@@ -44,7 +38,8 @@ namespace VisualPinball.Unity
 			}
 		}
 
-		public abstract IEnumerable<MonoBehaviour> SetData(TData data, IMaterialProvider materialProvider, ITextureProvider textureProvider, Dictionary<string, IItemMainAuthoring> components);
+		public abstract IEnumerable<MonoBehaviour> SetData(TData data);
+		public abstract IEnumerable<MonoBehaviour> SetReferencedData(TData data, IMaterialProvider materialProvider, ITextureProvider textureProvider, Dictionary<string, IItemMainAuthoring> components);
 		public abstract TData CopyDataTo(TData data, string[] materialNames, string[] textureNames);
 
 		public abstract ItemType ItemType { get; }

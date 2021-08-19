@@ -424,7 +424,7 @@ namespace VisualPinball.Unity
 		{
 			var triggerApi = new TriggerApi(go, entity, Entity.Null, this);
 			if (addComponent) {
-				go.AddComponent<TriggerAuthoring>().SetData(trigger.Data, null, null, null);
+				go.AddComponent<TriggerAuthoring>().SetData(trigger.Data);
 			}
 			TableApi.Triggers[trigger.Name] = triggerApi;
 			_apis.Add(triggerApi);

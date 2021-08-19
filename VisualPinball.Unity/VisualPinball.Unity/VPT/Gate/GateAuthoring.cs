@@ -127,7 +127,7 @@ namespace VisualPinball.Unity
 			t.localEulerAngles = new Vector3(0, 0, Rotation);
 		}
 
-		public override IEnumerable<MonoBehaviour> SetData(GateData data, IMaterialProvider materialProvider, ITextureProvider textureProvider, Dictionary<string, IItemMainAuthoring> components)
+		public override IEnumerable<MonoBehaviour> SetData(GateData data)
 		{
 			var updatedComponents = new List<MonoBehaviour> { this };
 
@@ -135,8 +135,6 @@ namespace VisualPinball.Unity
 			Position = data.Center.ToUnityVector3(data.Height);
 			Rotation = data.Rotation > 180f ? data.Rotation - 360f : data.Rotation;
 			Length = data.Length;
-			Surface = GetAuthoring<SurfaceAuthoring>(components, data.Surface);
-			UpdateTransforms();
 
 			// visibility
 			foreach (var mf in GetComponentsInChildren<MeshFilter>()) {
@@ -171,6 +169,12 @@ namespace VisualPinball.Unity
 			}
 
 			return updatedComponents;
+		}
+
+		public override IEnumerable<MonoBehaviour> SetReferencedData(GateData data, IMaterialProvider materialProvider, ITextureProvider textureProvider, Dictionary<string, IItemMainAuthoring> components)
+		{
+			Surface = GetAuthoring<SurfaceAuthoring>(components, data.Surface);
+			return Array.Empty<MonoBehaviour>();
 		}
 
 		public override GateData CopyDataTo(GateData data, string[] materialNames, string[] textureNames)
