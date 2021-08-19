@@ -30,7 +30,9 @@ namespace VisualPinball.Unity.Editor
 			var obj = PrefabUtility.InstantiatePrefab(prefab) as GameObject;
 			obj!.name = item.Name;
 
-			return new ConvertedItem<Primitive, PrimitiveData, PrimitiveAuthoring>(obj);
+			return new ConvertedItem<Primitive, PrimitiveData, PrimitiveAuthoring>(obj) {
+				IsProceduralMesh = false
+			};
 
 			// return new ConvertedItem<Surface, SurfaceData, SurfaceAuthoring>(obj, true);
 			//

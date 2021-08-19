@@ -1,0 +1,126 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1 &5446999501863086646
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 657206998972773943}
+  - component: {fileID: -3263017222628316903}
+  - component: {fileID: -4932743686767062960}
+  - component: {fileID: 3941825256112358932}
+  - component: {fileID: 4392546155774236836}
+  m_Layer: 0
+  m_Name: Rubber
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &657206998972773943
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5446999501863086646}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_RootOrder: 0
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &-3263017222628316903
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5446999501863086646}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d86e813f2f969ad4a8b2f9d3cc399a83, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _data:
+    StoragePrefix: 0
+    StorageIndex: -1
+    IsLocked: 0
+    EditorLayerName: 
+    EditorLayerVisibility: 1
+    Name: 
+    Height: 25
+    HitHeight: 25
+    Thickness: 8
+    HitEvent: 0
+    Material: 
+    Image: 
+    Elasticity: 0
+    ElasticityFalloff: 0
+    Friction: 0
+    Scatter: 0
+    IsCollidable: 1
+    IsVisible: 1
+    IsReflectionEnabled: 1
+    StaticRendering: 1
+    ShowInEditor: 1
+    RotX: 0
+    RotY: 0
+    RotZ: 0
+    PhysicsMaterial: 
+    OverwritePhysics: 0
+    DragPoints: []
+    IsTimerEnabled: 0
+    TimerInterval: 0
+    Points: 0
+  Height: 25
+  HitHeight: 25
+  Thickness: 8
+  Rotation: {x: 0, y: 0, z: 0}
+  _dragPoints: []
+--- !u!114 &-4932743686767062960
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5446999501863086646}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8c1025cd8f2b2e441aa98bef9fc14b8e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  PhysicsMaterial: {fileID: 0}
+  ShowColliderMesh: 0
+  ShowAabbs: 0
+  HitEvent: 0
+  OverwritePhysics: 0
+  Elasticity: 0
+  ElasticityFalloff: 0
+  Friction: 0
+  Scatter: 0
+--- !u!114 &3941825256112358932
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5446999501863086646}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bd020e551a441b14da4e1491aa555bac, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _meshCreated: 1
+--- !u!33 &4392546155774236836
+MeshFilter:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5446999501863086646}
+  m_Mesh: {fileID: 0}

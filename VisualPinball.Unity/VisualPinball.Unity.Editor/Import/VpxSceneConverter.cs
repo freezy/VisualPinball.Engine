@@ -291,6 +291,22 @@ namespace VisualPinball.Unity.Editor
 					updatedComponents = convertedItem.SetData(dataDict[lookupName], this, this, componentDict);
 					dataDict[lookupName].FreeBinaryData();
 
+					if (!convertedItem.IsProceduralMesh) {
+						var mfs = convertedItem.GameObject.GetComponentsInChildren<MeshFilter>();
+						foreach (var mf in mfs) {
+							var suffix = mfs.Length == 1 ? "" : $" ({mf.gameObject.name})";
+							var meshFilename = $"{convertedItem.GameObject.name.ToFilename()}{suffix.ToFilename()}.mesh";
+							var meshPath = Path.Combine(_assetsMeshes, meshFilename);
+							if (_options.SkipExistingMeshes && File.Exists(meshPath)) {
+								continue;
+							}
+							if (File.Exists(meshPath)) {
+								AssetDatabase.DeleteAsset(meshPath);
+							}
+							AssetDatabase.CreateAsset(mf.sharedMesh, meshPath);
+						}
+					}
+
 				} else {
 					Debug.LogError($"Could not find data of {lookupName} to apply to game object.");
 				}
