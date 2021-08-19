@@ -23,18 +23,15 @@ using VisualPinball.Engine.VPT.Table;
 namespace VisualPinball.Unity
 {
 	public class RampApi : ItemCollidableApi<RampAuthoring, RampColliderAuthoring, Engine.VPT.Ramp.Ramp, Engine.VPT.Ramp.RampData>,
-		IApiInitializable, IApiColliderGenerator
+		IApiInitializable
 	{
 		/// <summary>
 		/// Event emitted when the table is started.
 		/// </summary>
 		public event EventHandler Init;
 
-		internal RampApi(GameObject go, Entity entity, Entity parentEntity, PhysicsMaterial physicsMaterial,
-			Player player)
-			: base(go, entity, parentEntity, player)
+		internal RampApi(GameObject go, Entity entity, Entity parentEntity, Player player) : base(go, entity, parentEntity, player)
 		{
-			_physicsMaterial = physicsMaterial;
 		}
 
 		#region Events
@@ -49,19 +46,14 @@ namespace VisualPinball.Unity
 
 		#region Collider Generation
 
-		private readonly PhysicsMaterial _physicsMaterial;
-
 		protected override bool FireHitEvents => Data.HitEvent;
 		protected override float HitThreshold => Data.Threshold;
-		Entity IApiColliderGenerator.ColliderEntity => Entity;
 
-		void IApiColliderGenerator.CreateColliders(Table table, List<ICollider> colliders)
+		protected override void CreateColliders(Table table, List<ICollider> colliders)
 		{
 			var colliderGenerator = new RampColliderGenerator(this, MainComponent.CreateData());
 			colliderGenerator.GenerateColliders(table, colliders);
 		}
-
-		ColliderInfo IApiColliderGenerator.GetColliderInfo() => GetColliderInfo(_physicsMaterial);
 
 		#endregion
 

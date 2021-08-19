@@ -29,7 +29,6 @@ using Unity.Mathematics;
 using UnityEngine;
 using VisualPinball.Engine.Common;
 using VisualPinball.Engine.Game;
-using VisualPinball.Engine.IO;
 using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Gate;
 

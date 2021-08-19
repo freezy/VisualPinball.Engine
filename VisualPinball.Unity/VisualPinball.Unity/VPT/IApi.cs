@@ -14,12 +14,12 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+using System;
 using System.Collections.Generic;
 using Unity.Entities;
-using System;
-using UnityEngine;
 using VisualPinball.Engine.VPT.Table;
 using VisualPinball.Engine.Math;
+using Color = UnityEngine.Color;
 
 namespace VisualPinball.Unity
 {
@@ -39,7 +39,16 @@ namespace VisualPinball.Unity
 		void CreateColliders(Table table, List<ICollider> colliders);
 		ColliderInfo GetColliderInfo();
 		Entity ColliderEntity { get; }
+
+		/// <summary>
+		/// If false, this will be included in the quad tree but marked as inactive.
+		/// </summary>
 		bool IsColliderEnabled { get; }
+
+		/// <summary>
+		/// If false, this won't be included in the quad tree.
+		/// </summary>
+		bool IsColliderAvailable { get; }
 	}
 
 	public interface IApiHittable
@@ -128,7 +137,7 @@ namespace VisualPinball.Unity
 		/// <summary>
 		/// Sets the color of the light.
 		/// </summary>
-		UnityEngine.Color Color { get; set; }
+		Color Color { get; set; }
 
 		/// <summary>
 		/// Sets the light intensity to a given value between 0 and 1.
@@ -141,7 +150,7 @@ namespace VisualPinball.Unity
 		/// Sets the light color of the lamp.
 		/// </summary>
 		/// <param name="color">New color to set</param>
-		void OnLampColor(UnityEngine.Color color);
+		void OnLampColor(Color color);
 	}
 
 	internal interface IApiWireDest

@@ -60,7 +60,7 @@ namespace VisualPinball.Unity
 		protected override bool FireHitEvents { get; } = true;
 		Entity IApiColliderGenerator.ColliderEntity => Entity;
 
-		void IApiColliderGenerator.CreateColliders(Table table, List<ICollider> colliders)
+		protected override void CreateColliders(Table table, List<ICollider> colliders)
 		{
 			var triggerAuth = GameObject.GetComponent<TriggerAuthoring>();
 			if (triggerAuth) {

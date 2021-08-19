@@ -14,6 +14,8 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+// ReSharper disable InconsistentNaming
+
 using System;
 using System.Collections.Generic;
 using Unity.Entities;
@@ -64,7 +66,8 @@ namespace VisualPinball.Unity
 		};
 
 		public override IEnumerable<Type> ValidParents => ValidParentTypes;
+		public override PhysicsMaterialData PhysicsMaterialData => GetPhysicsMaterialData(Elasticity, friction: Friction, scatterAngleDeg: Scatter, overwrite: OverwritePhysics);
 		protected override IApiColliderGenerator InstantiateColliderApi(Player player, Entity entity, Entity parentEntity)
-			=> new RampApi(gameObject, entity, parentEntity, PhysicsMaterial, player);
+			=> new RampApi(gameObject, entity, parentEntity, player);
 	}
 }

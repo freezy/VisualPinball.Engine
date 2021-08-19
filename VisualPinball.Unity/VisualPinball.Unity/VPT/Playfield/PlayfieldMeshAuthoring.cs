@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using UnityEngine;
 using VisualPinball.Engine.Game;
-using VisualPinball.Engine.VPT.Light;
 using VisualPinball.Engine.VPT.Table;
 
 namespace VisualPinball.Unity.Playfield

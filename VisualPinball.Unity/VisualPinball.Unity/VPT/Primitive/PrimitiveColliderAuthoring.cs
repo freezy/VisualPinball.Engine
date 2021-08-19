@@ -52,7 +52,8 @@ namespace VisualPinball.Unity
 		};
 
 		public override IEnumerable<Type> ValidParents => ValidParentTypes;
+		public override PhysicsMaterialData PhysicsMaterialData => GetPhysicsMaterialData(Elasticity, ElasticityFalloff, Friction, Scatter, OverwritePhysics);
 		protected override IApiColliderGenerator InstantiateColliderApi(Player player, Entity entity, Entity parentEntity)
-			=> new PrimitiveApi(gameObject, entity, parentEntity, PhysicsMaterial, player);
+			=> new PrimitiveApi(gameObject, entity, parentEntity, player);
 	}
 }
