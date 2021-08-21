@@ -14,6 +14,8 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+// ReSharper disable InconsistentNaming
+
 using System;
 using System.Collections.Generic;
 using UnityEngine;
@@ -27,6 +29,14 @@ namespace VisualPinball.Unity
 	[AddComponentMenu("Visual Pinball/Mesh/Primitive Mesh")]
 	public class PrimitiveMeshAuthoring : ItemMeshAuthoring<Primitive, PrimitiveData, PrimitiveAuthoring>
 	{
+		#region Data
+
+		public bool UseLegacyMesh = false;
+
+		[Range(3, 32)]
+		public int Sides = 4;
+
+		#endregion
 		public static readonly Type[] ValidParentTypes = {
 			typeof(BumperAuthoring),
 			typeof(FlipperAuthoring),
@@ -42,7 +52,7 @@ namespace VisualPinball.Unity
 		};
 
 		public override IEnumerable<Type> ValidParents => ValidParentTypes;
-		
+
 		protected override RenderObject GetRenderObject(PrimitiveData data, Table table)
 			=> new PrimitiveMeshGenerator(data).GetRenderObject(table, Origin.Original, false);
 	}
