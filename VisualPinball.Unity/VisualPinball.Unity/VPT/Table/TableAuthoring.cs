@@ -30,8 +30,6 @@ using VisualPinball.Engine.VPT.Collection;
 using VisualPinball.Engine.VPT.Mappings;
 using VisualPinball.Engine.VPT.Table;
 using Logger = NLog.Logger;
-using Material = UnityEngine.Material;
-using Texture = VisualPinball.Engine.VPT.Texture;
 
 namespace VisualPinball.Unity
 {
@@ -59,10 +57,10 @@ namespace VisualPinball.Unity
 		protected override Table InstantiateItem(TableData data) => new Table(TableContainer, data);
 		protected override TableData InstantiateData() => new TableData();
 
-		protected override Type MeshAuthoringType { get; } = null;
-		protected override Type ColliderAuthoringType { get; } = null;
+		protected override Type MeshAuthoringType => null;
+		protected override Type ColliderAuthoringType => null;
 
-		public override IEnumerable<Type> ValidParents => new Type[0];
+		public override IEnumerable<Type> ValidParents => Type.EmptyTypes;
 
 		public new Table Table => Item;
 		public new SceneTableContainer TableContainer => _tableContainer ??= new SceneTableContainer(this);
@@ -73,10 +71,6 @@ namespace VisualPinball.Unity
 		[HideInInspector] [SerializeField] public string physicsEngineId = "VisualPinball.Unity.DefaultPhysicsEngine";
 		[HideInInspector] [SerializeField] public string debugUiId;
 
-		private readonly Dictionary<string, Texture2D> _unityTextures = new Dictionary<string, Texture2D>();
-		// note: this cache needs to be keyed on the engine material itself so that when its recreated due to property changes the unity material
-		// will cache miss and get recreated as well
-		private readonly Dictionary<string, Material> _unityMaterials = new Dictionary<string, Material>();
 		/// <summary>
 		/// Keeps a list of serializables names that need recreation, serialized and
 		/// lazy so when undo happens they'll be considered dirty again
@@ -122,33 +116,6 @@ namespace VisualPinball.Unity
 			Mappings.Wires = mappings.Wires.ToArray();
 		}
 
-		public void MarkDirty<T>(string name) where T : IItem
-		{
-			if (!_dirtySerializables.ContainsKey(typeof(T))) {
-				_dirtySerializables[typeof(T)] = new List<string>();
-			}
-			_dirtySerializables[typeof(T)].Add(name.ToLower());
-		}
-
-		private bool CheckDirty<T>(string name, Func<bool> action = null) where T : IItem
-		{
-			List<string> lst;
-			if (_dirtySerializables.TryGetValue(typeof(T), out lst)) {
-				if (lst.Contains(name)) {
-					var remove = true;
-					if (action != null) {
-						remove = action.Invoke();
-					}
-					if (remove) {
-						_dirtySerializables[typeof(T)].Remove(name);
-					}
-					return true;
-				}
-			}
-
-			return false;
-		}
-
 		public override IEnumerable<MonoBehaviour> SetData(TableData data)
 		{
 			TableHeight = data.TableHeight;
@@ -167,43 +134,6 @@ namespace VisualPinball.Unity
 			data.TableHeight = TableHeight;
 
 			return data;
-		}
-
-		public Texture2D GetTexture(string name)
-		{
-			var lowerName = name.ToLower();
-			// check to see if the texture we're after has been flagged as dirty and thus needs to be recreated from table data
-			var forceRecreate = CheckDirty<Texture>(lowerName);
-
-			// don't need to recreate it, and we have the texture in cache
-			if (!forceRecreate && _unityTextures.ContainsKey(lowerName)) {
-				return _unityTextures[lowerName];
-			}
-			// create unity texture from vpe data and put in a cache for future retrievals
-			var tableTex = Table.GetTexture(lowerName);
-			if (tableTex != null) {
-				var unityTex = tableTex.ToUnityTexture();
-				_unityTextures[lowerName] = unityTex;
-				return unityTex;
-			}
-			return null;
-		}
-
-		public void AddMaterial(PbrMaterial vpxMat, Material material)
-		{
-			_unityMaterials.TryGetValue(vpxMat.Id, out var oldMaterial);
-			_unityMaterials[vpxMat.Id] = material;
-			if (oldMaterial != null) {
-				Destroy(oldMaterial);
-			}
-		}
-
-		public Material GetMaterial(PbrMaterial vpxMat)
-		{
-			if (_unityMaterials.ContainsKey(vpxMat.Id)) {
-				return _unityMaterials[vpxMat.Id];
-			}
-			return null;
 		}
 
 		public Vector3 GetTableCenter()
