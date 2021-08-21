@@ -23,11 +23,8 @@ namespace VisualPinball.Engine.VPT.Flipper
 {
 	public class Flipper : Item<FlipperData>, IRenderable, ISwitchable, ICoilable
 	{
-		public override string ItemName { get; } = "Flipper";
-		public override string ItemGroupName { get; } = "Flippers";
-
-		public Vertex3D Position { get => new Vertex3D(Data.Center.X, Data.Center.Y, 0); set => Data.Center = new Vertex2D(value.X, value.Y); }
-		public float RotationY { get => Data.StartAngle; set => Data.StartAngle = value; }
+		public override string ItemName => "Flipper";
+		public override string ItemGroupName => "Flippers";
 
 		public bool IsPulseSwitch => false;
 

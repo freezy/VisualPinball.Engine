@@ -27,8 +27,8 @@ namespace VisualPinball.Engine.VPT.Table
 	/// </summary>
 	public class Table : Item<TableData>, IRenderable
 	{
-		public override string ItemName { get; } = "Table";
-		public override string ItemGroupName { get; } = "Playfield";
+		public override string ItemName => "Table";
+		public override string ItemGroupName => "Playfield";
 
 		public float Width => Data.Right - Data.Left;
 		public float Height => Data.Bottom - Data.Top;
@@ -39,9 +39,6 @@ namespace VisualPinball.Engine.VPT.Table
 		public Rect3D BoundingBox => new Rect3D(Data.Left, Data.Right, Data.Top, Data.Bottom, TableHeight, GlassHeight);
 
 		public bool HasMeshAsPlayfield => _meshGenerator.HasMeshAsPlayfield;
-
-		public Vertex3D Position { get => new Vertex3D(0, 0, 0); set { } }
-		public float RotationY { get => 0; set { } }
 
 		private readonly TableContainer _tableContainer;
 		private readonly TableMeshGenerator _meshGenerator;

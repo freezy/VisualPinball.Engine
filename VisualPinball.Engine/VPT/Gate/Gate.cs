@@ -22,11 +22,8 @@ namespace VisualPinball.Engine.VPT.Gate
 {
 	public class Gate : Item<GateData>, IRenderable, ISwitchable
 	{
-		public override string ItemName { get; } = "Gate";
-		public override string ItemGroupName { get; } = "Gates";
-
-		public Vertex3D Position { get => new Vertex3D(Data.Center.X, Data.Center.Y, 0); set => Data.Center = new Vertex2D(value.X, value.Y); }
-		public float RotationY { get => Data.Rotation; set => Data.Rotation = value; }
+		public override string ItemName => "Gate";
+		public override string ItemGroupName => "Gates";
 
 		public bool IsPulseSwitch => true;
 

@@ -29,13 +29,12 @@ namespace VisualPinball.Engine.VPT.Primitive
 	/// <see href="https://github.com/vpinball/vpinball/blob/master/primitive.cpp"/>
 	public class Primitive : Item<PrimitiveData>, IRenderable
 	{
-		public override string ItemName { get; } = "Primitive";
-		public override string ItemGroupName { get; } = "Primitives";
+		public override string ItemName => "Primitive";
+		public override string ItemGroupName => "Primitives";
 
 		public bool UseAsPlayfield;
 
 		public readonly PrimitiveMeshGenerator MeshGenerator;
-		public Vertex3D Position { get => Data.Position; set => Data.Position = value; }
 		public float RotationY { get => Data.RotAndTra[1]; set => Data.RotAndTra[1] = value; }
 
 		public Primitive(PrimitiveData data) : base(data)

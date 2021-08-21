@@ -22,11 +22,8 @@ namespace VisualPinball.Engine.VPT.Kicker
 {
 	public class Kicker : Item<KickerData>, IRenderable, IBallCreationPosition, ISwitchable, ICoilable
 	{
-		public override string ItemName { get; } = "Kicker";
-		public override string ItemGroupName { get; } = "Kickers";
-
-		public Vertex3D Position { get => new Vertex3D(Data.Center.X, Data.Center.Y, 0); set => Data.Center = new Vertex2D(value.X, value.Y); }
-		public float RotationY { get => Data.Angle; set => Data.Angle = value; }
+		public override string ItemName => "Kicker";
+		public override string ItemGroupName => "Kickers";
 
 		public bool IsPulseSwitch => false;
 

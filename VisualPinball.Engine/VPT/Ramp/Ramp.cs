@@ -22,17 +22,8 @@ namespace VisualPinball.Engine.VPT.Ramp
 {
 	public class Ramp : Item<RampData>, IRenderable
 	{
-		public override string ItemName { get; } = "Ramp";
-		public override string ItemGroupName { get; } = "Ramps";
-
-		public Vertex3D Position { get => new Vertex3D(0, 0, 0); set { } }
-		public float RotationY { get => 0; set { } }
-
-		public bool IsHabitrail => Data.RampType == RampType.RampType4Wire
-		|| Data.RampType == RampType.RampType1Wire
-		|| Data.RampType == RampType.RampType2Wire
-		|| Data.RampType == RampType.RampType3WireLeft
-		|| Data.RampType == RampType.RampType3WireRight;
+		public override string ItemName => "Ramp";
+		public override string ItemGroupName => "Ramps";
 
 		public readonly RampMeshGenerator MeshGenerator;
 

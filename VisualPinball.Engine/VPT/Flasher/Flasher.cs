@@ -21,8 +21,8 @@ namespace VisualPinball.Engine.VPT.Flasher
 {
 	public class Flasher : Item<FlasherData>, ILightable
 	{
-		public override string ItemName { get; } = "Flasher";
-		public override string ItemGroupName { get; } = "Flashers";
+		public override string ItemName => "Flasher";
+		public override string ItemGroupName => "Flashers";
 
 		public Flasher(FlasherData data) : base(data)
 		{

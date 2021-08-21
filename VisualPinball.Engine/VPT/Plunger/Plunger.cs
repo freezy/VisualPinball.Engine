@@ -24,8 +24,8 @@ namespace VisualPinball.Engine.VPT.Plunger
 {
 	public class Plunger : Item<PlungerData>, IRenderable, ICoilableDevice
 	{
-		public override string ItemName { get; } = "Plunger";
-		public override string ItemGroupName { get; } = "Plungers";
+		public override string ItemName => "Plunger";
+		public override string ItemGroupName => "Plungers";
 
 		public const string PullCoilId = "c_pull";
 		public const string FireCoilId = "c_autofire";
@@ -34,9 +34,6 @@ namespace VisualPinball.Engine.VPT.Plunger
 			new GamelogicEngineCoil(PullCoilId) {Description = "Pull back"},
 			new GamelogicEngineCoil(FireCoilId) {Description = "Auto-fire"},
 		};
-
-		public Vertex3D Position { get => new Vertex3D(Data.Center.X, Data.Center.Y, 0); set => Data.Center = new Vertex2D(value.X, value.Y); }
-		public float RotationY { get => 0; set { } }
 
 		public const float PlungerHeight = 50.0f;
 		public const float PlungerMass = 30.0f;

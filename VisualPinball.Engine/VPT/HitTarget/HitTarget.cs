@@ -22,11 +22,8 @@ namespace VisualPinball.Engine.VPT.HitTarget
 {
 	public class HitTarget : Item<HitTargetData>, IRenderable, ISwitchable
 	{
-		public override string ItemName { get; } = "Target";
-		public override string ItemGroupName { get; } = "Targets";
-
-		public Vertex3D Position { get => Data.Position; set => Data.Position = value; }
-		public float RotationY { get => Data.RotZ; set => Data.RotZ = value; }
+		public override string ItemName => "Target";
+		public override string ItemGroupName => "Targets";
 
 		public bool IsPulseSwitch => true;
 

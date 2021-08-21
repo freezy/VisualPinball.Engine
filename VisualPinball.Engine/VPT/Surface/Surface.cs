@@ -22,11 +22,8 @@ namespace VisualPinball.Engine.VPT.Surface
 {
 	public class Surface : Item<SurfaceData>, IRenderable
 	{
-		public override string ItemName { get; } = "Wall";
-		public override string ItemGroupName { get; } = "Walls";
-
-		public Vertex3D Position { get => new Vertex3D(0, 0, 0); set { } }
-		public float RotationY { get => 0; set { } }
+		public override string ItemName => "Wall";
+		public override string ItemGroupName => "Walls";
 
 		private readonly SurfaceMeshGenerator _meshGenerator;
 

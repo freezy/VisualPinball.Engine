@@ -24,11 +24,8 @@ namespace VisualPinball.Engine.VPT.Bumper
 {
 	public class Bumper : Item<BumperData>, IRenderable, ISwitchable, ICoilable
 	{
-		public override string ItemName { get; } = "Bumper";
-		public override string ItemGroupName { get; } = "Bumpers";
-
-		public Vertex3D Position { get => new Vertex3D(Data.Center.X, Data.Center.Y, 0); set => Data.Center = new Vertex2D(value.X, value.Y); }
-		public float RotationY { get => Data.Orientation; set => Data.Orientation = value; }
+		public override string ItemName => "Bumper";
+		public override string ItemGroupName => "Bumpers";
 
 		public bool IsPulseSwitch => true;
 

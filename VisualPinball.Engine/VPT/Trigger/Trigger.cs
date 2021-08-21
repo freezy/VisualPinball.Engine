@@ -22,11 +22,8 @@ namespace VisualPinball.Engine.VPT.Trigger
 {
 	public class Trigger : Item<TriggerData>, IRenderable, ISwitchable
 	{
-		public override string ItemName { get; } = "Trigger";
-		public override string ItemGroupName { get; } = "Triggers";
-
-		public Vertex3D Position { get => new Vertex3D(Data.Center.X, Data.Center.Y, 0); set => Data.Center = new Vertex2D(value.X, value.Y); }
-		public float RotationY { get => Data.Rotation; set => Data.Rotation = value; }
+		public override string ItemName => "Trigger";
+		public override string ItemGroupName => "Triggers";
 
 		public bool IsPulseSwitch => false;
 
