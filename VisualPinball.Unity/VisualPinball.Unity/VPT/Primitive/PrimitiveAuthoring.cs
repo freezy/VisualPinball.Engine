@@ -124,7 +124,15 @@ namespace VisualPinball.Unity
 			gameObject.SetActive(data.IsVisible);
 			StaticRendering = data.StaticRendering;
 
-			var collComponent = GetComponentInChildren<PrimitiveColliderAuthoring>();
+			// mesh
+			var meshComponent = GetComponent<PrimitiveMeshAuthoring>();
+			if (meshComponent) {
+				meshComponent.Sides = data.Sides;
+				meshComponent.UseLegacyMesh = !data.Use3DMesh;
+			}
+
+			// collider
+			var collComponent = GetComponent<PrimitiveColliderAuthoring>();
 			if (collComponent) {
 				collComponent.enabled = !data.IsCollidable;
 
@@ -180,10 +188,17 @@ namespace VisualPinball.Unity
 				CopyMaterialName(mr, materialNames, textureNames, ref data.Material, ref data.Image, ref data.NormalMap);
 			}
 
+			// mesh
+			var meshComponent = GetComponent<PrimitiveMeshAuthoring>();
+			if (meshComponent) {
+				data.Sides = meshComponent.Sides;
+				data.Use3DMesh = !meshComponent.UseLegacyMesh;
+			}
+
 			// update collision
 			// todo at some point we need to be able to toggle collidable during gameplay,
 			// todo but for now let's keep things static.
-			var collComponent = GetComponentInChildren<PrimitiveColliderAuthoring>();
+			var collComponent = GetComponent<PrimitiveColliderAuthoring>();
 			if (collComponent) {
 				data.IsCollidable = collComponent.enabled;
 				data.IsToy = false;

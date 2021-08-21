@@ -26,8 +26,17 @@ namespace VisualPinball.Unity.Editor
 	[CustomEditor(typeof(PrimitiveMeshAuthoring)), CanEditMultipleObjects]
 	public class PrimitiveMeshInspector : ItemMeshInspector<Primitive, PrimitiveData, PrimitiveAuthoring, PrimitiveMeshAuthoring>
 	{
-		private bool _foldoutColorsAndFormatting = true;
-		private bool _foldoutPosition = true;
+		private SerializedProperty _sidesProperty;
+		private SerializedProperty _useLegacyMeshProperty;
+
+
+		protected override void OnEnable()
+		{
+			base.OnEnable();
+
+			_sidesProperty = serializedObject.FindProperty(nameof(PrimitiveMeshAuthoring.Sides));
+			_useLegacyMeshProperty = serializedObject.FindProperty(nameof(PrimitiveMeshAuthoring.UseLegacyMesh));
+		}
 
 		public override void OnInspectorGUI()
 		{
@@ -35,62 +44,29 @@ namespace VisualPinball.Unity.Editor
 				return;
 			}
 
-			if (_foldoutColorsAndFormatting = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutColorsAndFormatting, "Colors & Formatting")) {
-				GUILayout.BeginHorizontal();
-				MeshImporterGui();
-				if (GUILayout.Button("Export Mesh")) ExportMesh();
-				GUILayout.EndHorizontal();
+			serializedObject.Update();
 
-				TextureFieldLegacy("Texture", ref Data.Image);
-				TextureFieldLegacy("Normal Map", ref Data.NormalMap);
-				EditorGUI.indentLevel++;
-				ItemDataField("Object Space", ref Data.ObjectSpaceNormalMap);
-				EditorGUI.indentLevel--;
-				MaterialFieldLegacy("Material", ref Data.Material);
+			OnPreInspectorGUI();
+
+			EditorGUI.BeginDisabledGroup(_useLegacyMeshProperty.boolValue);
+			var mf = MeshAuthoring.GetComponent<MeshFilter>();
+			if (mf) {
+				EditorGUI.BeginChangeCheck();
+				var newMesh = (Mesh)EditorGUILayout.ObjectField("Mesh", mf.sharedMesh, typeof(Mesh), true);
+				if (EditorGUI.EndChangeCheck()) {
+					mf.sharedMesh = newMesh;
+				}
 			}
-			EditorGUILayout.EndFoldoutHeaderGroup();
+			EditorGUI.EndDisabledGroup();
 
-			if (_foldoutPosition = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutPosition, "Position & Translation")) {
-				EditorGUILayout.LabelField("Base Position");
-				EditorGUI.indentLevel++;
-				ItemDataField("", ref Data.Position);
-				EditorGUI.indentLevel--;
-
-				EditorGUILayout.LabelField("Base Size");
-				EditorGUI.indentLevel++;
-				ItemDataField("", ref Data.Size);
-				EditorGUI.indentLevel--;
-
-				EditorGUILayout.LabelField("Rotation and Transposition");
-				EditorGUI.indentLevel++;
-				ItemDataField("0: RotX", ref Data.RotAndTra[0]);
-				ItemDataField("1: RotY", ref Data.RotAndTra[1]);
-				ItemDataField("2: RotZ", ref Data.RotAndTra[2]);
-				ItemDataField("3: TransX", ref Data.RotAndTra[3]);
-				ItemDataField("4: TransY", ref Data.RotAndTra[4]);
-				ItemDataField("5: TransZ", ref Data.RotAndTra[5]);
-				ItemDataField("6: ObjRotX", ref Data.RotAndTra[6]);
-				ItemDataField("7: ObjRotY", ref Data.RotAndTra[7]);
-				ItemDataField("8: ObjRotZ", ref Data.RotAndTra[8]);
-				EditorGUI.indentLevel--;
-			}
-			EditorGUILayout.EndFoldoutHeaderGroup();
+			PropertyField(_useLegacyMeshProperty, rebuildMesh: true, reinstantiateMesh: mf, meshName: $"{target.name} (Generated)");
+			EditorGUI.BeginDisabledGroup(!_useLegacyMeshProperty.boolValue);
+			PropertyField(_sidesProperty, rebuildMesh: true);
+			EditorGUI.EndDisabledGroup();
 
 			base.OnInspectorGUI();
-		}
 
-		/// <summary>
-		/// Shows a gui to bring a unity mesh into the table data. This immediately "bakes" right in the VPX data structures
-		/// </summary>
-		private void MeshImporterGui()
-		{
-			EditorGUI.BeginChangeCheck();
-			var mesh = (Mesh)EditorGUILayout.ObjectField("Import Mesh", null, typeof(Mesh), false);
-			if (mesh != null && EditorGUI.EndChangeCheck()) {
-				FinishEdit("Import Mesh", true);
-				Data.Use3DMesh = true;
-				Data.Mesh = mesh.ToVpMesh();
-			}
+			serializedObject.ApplyModifiedProperties();
 		}
 
 		/// <summary>
