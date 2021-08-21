@@ -157,6 +157,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _meshCreated: 1
+  UseLegacyMesh: 0
+  Sides: 4
 --- !u!33 &9164173217974165609
 MeshFilter:
   m_ObjectHideFlags: 0
@@ -177,4 +179,4 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ea7d7495833204790ba1d3a8755397f8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  ConversionMode: 0
+  ConversionMode: 1
