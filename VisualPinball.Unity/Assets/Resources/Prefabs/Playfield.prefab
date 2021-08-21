@@ -13,6 +13,7 @@ GameObject:
   - component: {fileID: -6072527132647841527}
   - component: {fileID: -9131206100941551186}
   - component: {fileID: 3678041155724781840}
+  - component: {fileID: -5495212421435888822}
   m_Layer: 0
   m_Name: Playfield
   m_TagString: Untagged
@@ -297,3 +298,16 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 8944204141443904399}
   m_Mesh: {fileID: 0}
+--- !u!114 &-5495212421435888822
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8944204141443904399}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ea7d7495833204790ba1d3a8755397f8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  ConversionMode: 1
