@@ -22,11 +22,8 @@ namespace VisualPinball.Engine.VPT.Rubber
 {
 	public class Rubber : Item<RubberData>, IRenderable
 	{
-		public override string ItemName { get; } = "Rubber";
-		public override string ItemGroupName { get; } = "Rubbers";
-
-		public Vertex3D Position { get => new Vertex3D(0, 0, 0); set { } }
-		public float RotationY { get => 0; set { } }
+		public override string ItemName => "Rubber";
+		public override string ItemGroupName => "Rubbers";
 
 		public readonly RubberMeshGenerator MeshGenerator;
 

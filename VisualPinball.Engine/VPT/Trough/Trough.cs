@@ -25,8 +25,8 @@ namespace VisualPinball.Engine.VPT.Trough
 {
 	public class Trough : Item<TroughData>
 	{
-		public override string ItemName { get; } = "Trough";
-		public override string ItemGroupName { get; } = null;
+		public override string ItemName => "Trough";
+		public override string ItemGroupName => null;
 
 		public Trough(TroughData data) : base(data)
 		{

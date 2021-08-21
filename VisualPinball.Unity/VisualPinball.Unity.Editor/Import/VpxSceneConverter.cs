@@ -150,7 +150,8 @@ namespace VisualPinball.Unity.Editor
 			ExtractSounds();
 			SaveData();
 
-			ConvertGameItems();
+			var prefabLookup = InstantiateGameItems();
+			UpdateGameItems(prefabLookup);
 
 			FreeTextures();
 			SaveLegacyData();
@@ -201,16 +202,11 @@ namespace VisualPinball.Unity.Editor
 			AssetDatabase.CreateAsset(_tableAuthoring.LegacyContainer, path);
 		}
 
-		private void ConvertGameItems()
-		{
-			// this instantiates all games items from prefabs into the scene and copies the data into the components
-			var prefabLookup = InstantiateGameItems();
-
-			// now, in a second pass, we update the referenced data. this is so states dependent on other components
-			// is correctly applied.
-			UpdateGameItems(prefabLookup);
-		}
-
+		/// <summary>
+		/// This instantiates all games items from prefabs into the scene and copies the data into the
+		/// components.
+		/// </summary>
+		/// <returns>A dictionary with lower-case names as key, and created prefabs as values.</returns>
 		private Dictionary<string, IVpxPrefab> InstantiateGameItems()
 		{
 			var prefabLookup = new Dictionary<string, IVpxPrefab>();
@@ -239,6 +235,11 @@ namespace VisualPinball.Unity.Editor
 			return prefabLookup;
 		}
 
+		/// <summary>
+		/// In a second pass, we update the referenced data. This is so states dependent on other components
+		/// is correctly applied.
+		/// </summary>
+		/// <param name="prefabLookup">A dictionary with lower-case names as key, and created prefabs as values.</param>
 		private void UpdateGameItems(Dictionary<string, IVpxPrefab> prefabLookup)
 		{
 			var componentLookup = prefabLookup.ToDictionary(x => x.Key, x => x.Value.MainComponent);

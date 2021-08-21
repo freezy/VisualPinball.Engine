@@ -22,11 +22,8 @@ namespace VisualPinball.Engine.VPT.Light
 {
 	public class Light : Item<LightData>, IRenderable, ILightable
 	{
-		public override string ItemName { get; } = "Light";
-		public override string ItemGroupName { get; } = "Lights";
-
-		public Vertex3D Position { get => new Vertex3D(Data.Center.X, Data.Center.Y, 0); set => Data.Center = new Vertex2D(value.X, value.Y); }
-		public float RotationY { get => 0; set { } }
+		public override string ItemName => "Light";
+		public override string ItemGroupName => "Lights";
 
 		public const string BulbMaterialName = "__bulbMaterial";
 		public const string SocketMaterialName = "__bulbSocketMaterial";
