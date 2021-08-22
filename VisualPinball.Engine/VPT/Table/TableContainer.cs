@@ -125,7 +125,7 @@ namespace VisualPinball.Engine.VPT.Table
 		public Trigger.Trigger Trigger(string name) => _triggers[name.ToLower()];
 		public Trough.Trough Trough(string name) => _troughs[name.ToLower()];
 
-		public IEnumerable<IRenderable> Renderables => new IRenderable[] { Table }
+		public IEnumerable<IRenderable> Renderables => Array.Empty<IRenderable>()
 			.Concat(_bumpers.Values)
 			.Concat(_flippers.Values)
 			.Concat(_gates.Values)

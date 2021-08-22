@@ -24,13 +24,13 @@ namespace VisualPinball.Unity.Editor
 	[CustomEditor(typeof(PlayfieldMeshAuthoring)), CanEditMultipleObjects]
 	public class PlayfieldMeshInspector : ItemMeshInspector<Table, TableData, PlayfieldAuthoring, PlayfieldMeshAuthoring>
 	{
-		private SerializedProperty _isSimpleProperty;
+		private SerializedProperty _autoGenerateProperty;
 
 		protected override void OnEnable()
 		{
 			base.OnEnable();
 
-			_isSimpleProperty = serializedObject.FindProperty(nameof(PlayfieldMeshAuthoring.IsSimple));
+			_autoGenerateProperty = serializedObject.FindProperty(nameof(PlayfieldMeshAuthoring.AutoGenerate));
 		}
 
 		public override void OnInspectorGUI()
@@ -43,8 +43,17 @@ namespace VisualPinball.Unity.Editor
 
 			OnPreInspectorGUI();
 
-			EditorGUI.BeginDisabledGroup(_isSimpleProperty.boolValue);
 			var mf = MeshAuthoring.GetComponent<MeshFilter>();
+			PropertyField(_autoGenerateProperty, rebuildMesh: true, onChanging: () => {
+				if (mf) {
+					mf.sharedMesh = _autoGenerateProperty.boolValue
+						? new Mesh { name = $"{target.name} (Generated)" } // when switching to legacy mesh, instantiate new mesh
+						: null;                                            // when switching to referenced mesh, reset reference.
+					serializedObject.ApplyModifiedProperties();
+				}
+			});
+
+			EditorGUI.BeginDisabledGroup(_autoGenerateProperty.boolValue);
 			if (mf) {
 				EditorGUI.BeginChangeCheck();
 				var newMesh = (Mesh)EditorGUILayout.ObjectField("Mesh", mf.sharedMesh, typeof(Mesh), true);
@@ -53,15 +62,6 @@ namespace VisualPinball.Unity.Editor
 				}
 			}
 			EditorGUI.EndDisabledGroup();
-
-			PropertyField(_isSimpleProperty, rebuildMesh: true, onChanging: () => {
-				if (mf) {
-					mf.sharedMesh = _isSimpleProperty.boolValue
-						? new Mesh { name = $"{target.name} (Generated)" } // when switching to legacy mesh, instantiate new mesh
-						: null;                                            // when switching to referenced mesh, reset reference.
-					serializedObject.ApplyModifiedProperties();
-				}
-			});
 
 			base.OnInspectorGUI();
 

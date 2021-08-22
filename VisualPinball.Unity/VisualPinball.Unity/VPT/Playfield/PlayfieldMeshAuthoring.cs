@@ -12,7 +12,7 @@ namespace VisualPinball.Unity.Playfield
 	{
 		#region Data
 
-		public bool IsSimple;
+		public bool AutoGenerate = true;
 
 		#endregion
 

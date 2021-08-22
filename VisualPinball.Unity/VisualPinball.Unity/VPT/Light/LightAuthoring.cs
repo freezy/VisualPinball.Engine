@@ -161,7 +161,7 @@ namespace VisualPinball.Unity
 			// position
 			transform.localPosition = Surface != null
 				? new Vector3(Position.x, Position.y, Surface.Height(Position) + Position.z)
-				: new Vector3(Position.x, Position.y, TableHeight + Position.z);
+				: new Vector3(Position.x, Position.y, PlayfieldHeight + Position.z);
 
 			// bulb size
 			foreach (var mf in GetComponentsInChildren<MeshFilter>(true)) {

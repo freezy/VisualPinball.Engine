@@ -14,6 +14,8 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+// ReSharper disable InconsistentNaming
+
 using System;
 using System.Collections.Generic;
 using Unity.Entities;
@@ -27,7 +29,17 @@ namespace VisualPinball.Unity
 	{
 		#region Data
 
+		public float Gravity = 0.97f;
 
+		public float Elasticity = 0.25f;
+
+		public float ElasticityFalloff;
+
+		public float Friction = 0.075f;
+
+		public float Scatter;
+
+		public float DefaultScatter;
 
 		#endregion
 
@@ -36,6 +48,6 @@ namespace VisualPinball.Unity
 		public override IEnumerable<Type> ValidParents => ValidParentTypes;
 		public override PhysicsMaterialData PhysicsMaterialData => GetPhysicsMaterialData();
 		protected override IApiColliderGenerator InstantiateColliderApi(Player player, Entity entity, Entity parentEntity)
-			=> throw new InvalidOperationException("Playfield (plane) colliders are handled separately.");
+			=> new PlayfieldApi(gameObject, player);
 	}
 }

@@ -24,6 +24,7 @@ namespace VisualPinball.Unity
 	[DisableAutoCreation]
 	internal class StaticNarrowPhaseSystem : SystemBase
 	{
+		public bool CollideAgainstPlayfieldPlane;
 		private SimulateCycleSystemGroup _simulateCycleSystemGroup;
 		private EntityQuery _collDataEntityQuery;
 		private static readonly ProfilerMarker PerfMarker = new ProfilerMarker("StaticNarrowPhaseSystem");
@@ -37,7 +38,7 @@ namespace VisualPinball.Unity
 		protected override void OnUpdate()
 		{
 			// retrieve reference to static collider data
-
+			var collideAgainstPlayfieldPlane = CollideAgainstPlayfieldPlane;
 			var collEntity = _collDataEntityQuery.GetSingletonEntity();
 			var collData = EntityManager.GetComponentData<ColliderData>(collEntity);
 			var contacts = _simulateCycleSystemGroup.Contacts;
@@ -61,14 +62,16 @@ namespace VisualPinball.Unity
 
 				// retrieve static data
 				ref var colliders = ref collData.Value.Value.Colliders;
-				ref var playfieldCollider = ref colliders[collData.Value.Value.PlayfieldColliderId].Value;
-				ref var glassCollider = ref colliders[collData.Value.Value.GlassColliderId].Value;
 
 				// init contacts and event
 				collEvent.ClearCollider(hitTime); // search upto current hit time
 
 				// check playfield and glass first
-				HitTest(ref playfieldCollider, ref collEvent, ref contacts, ref insideOfs, in ballEntity, in ballData);
+				if (collideAgainstPlayfieldPlane) {
+					ref var playfieldCollider = ref colliders[collData.Value.Value.PlayfieldColliderId].Value;
+					HitTest(ref playfieldCollider, ref collEvent, ref contacts, ref insideOfs, in ballEntity, in ballData);
+				}
+				ref var glassCollider = ref colliders[collData.Value.Value.GlassColliderId].Value;
 				HitTest(ref glassCollider, ref collEvent, ref contacts, ref insideOfs, in ballEntity, in ballData);
 
 				var traversalOrder = false; //random.NextBool();

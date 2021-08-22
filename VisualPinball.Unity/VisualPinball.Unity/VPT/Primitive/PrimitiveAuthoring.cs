@@ -77,7 +77,7 @@ namespace VisualPinball.Unity
 			scaleMatrix.SetScaling(Size.x, Size.y, Size.z);
 
 			// translation matrix
-			var tableHeight = TableAuthoring ? TableAuthoring.TableHeight : 0f;
+			var tableHeight = TableAuthoring ? TableAuthoring.PlayfieldHeight : 0f;
 			var transMatrix = new Matrix3D();
 			transMatrix.SetTranslation(Position.x, Position.y, Position.z + tableHeight);
 

@@ -38,13 +38,13 @@ namespace VisualPinball.Engine.VPT.Table
 		[BiffString("NAME", IsWideString = true, Pos = 112)]
 		public string Name = string.Empty;
 
-		[BiffFloat("LEFT", Pos = 1)]
+		[BiffFloat("LEFT", Pos = 1)] // "always zero for now"
 		public float Left;
 
 		[BiffFloat("RGHT", Pos = 3)]
 		public float Right = 952f;
 
-		[BiffFloat("TOPX", Pos = 2)]
+		[BiffFloat("TOPX", Pos = 2)] // "always zero for now"
 		public float Top;
 
 		[BiffFloat("BOTM", Pos = 4)]
@@ -343,16 +343,6 @@ namespace VisualPinball.Engine.VPT.Table
 
 		// other stuff
 		public int BgCurrentSet = BackglassIndex.Desktop;
-
-		public const float OverrideContactFriction = 0.075f;
-		public const float OverrideElasticity = 0.25f;
-		public const float OverrideElasticityFalloff = 0f;
-		public const float OverrideScatterAngle = 0f;
-
-		public float GetFriction() => OverridePhysics != 0 ? OverrideContactFriction : Friction;
-		public float GetElasticity() => OverridePhysics != 0 ? OverrideElasticity : Elasticity;
-		public float GetElasticityFalloff() => OverridePhysics != 0 ? OverrideElasticityFalloff : ElasticityFalloff;
-		public float GetScatter() => OverridePhysics != 0 ? OverrideScatterAngle : Scatter;
 
 		protected override bool SkipWrite(BiffAttribute attr)
 		{

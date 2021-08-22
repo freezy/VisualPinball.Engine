@@ -57,7 +57,7 @@ namespace VisualPinball.Unity
 
 		public new IItemMainAuthoring MainAuthoring => base.MainAuthoring;
 
-		private readonly Entity _colliderEntity = new Entity {Index = -2, Version = 0};
+		private readonly Entity _colliderEntity = Player.PlayfieldEntity;
 
 		protected abstract IApiColliderGenerator InstantiateColliderApi(Player player, Entity entity, Entity parentEntity);
 
@@ -98,7 +98,7 @@ namespace VisualPinball.Unity
 			Colliders = new List<ICollider>();
 			api.CreateColliders(Table, Colliders);
 
-			var ltw = GetComponentInParent<TablePlayfieldAuthoring>().transform.localToWorldMatrix;
+			var ltw = GetComponentInParent<PlayfieldAuthoring>().transform.localToWorldMatrix;
 
 			// draw aabbs and colliders
 			for (var i = 0; i < Colliders.Count; i++) {
