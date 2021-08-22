@@ -31,12 +31,13 @@ namespace VisualPinball.Unity
 	{
 		#region Data
 
-		public bool UseLegacyMesh = false;
+		public bool UseLegacyMesh;
 
 		[Range(3, 32)]
 		public int Sides = 4;
 
 		#endregion
+
 		public static readonly Type[] ValidParentTypes = {
 			typeof(BumperAuthoring),
 			typeof(FlipperAuthoring),

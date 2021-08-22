@@ -71,12 +71,6 @@ namespace VisualPinball.Unity
 		[HideInInspector] [SerializeField] public string physicsEngineId = "VisualPinball.Unity.DefaultPhysicsEngine";
 		[HideInInspector] [SerializeField] public string debugUiId;
 
-		/// <summary>
-		/// Keeps a list of serializables names that need recreation, serialized and
-		/// lazy so when undo happens they'll be considered dirty again
-		/// </summary>
-		[HideInInspector] [SerializeField] private readonly Dictionary<Type, List<string>> _dirtySerializables = new Dictionary<Type, List<string>>();
-
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
 		private void Reset()

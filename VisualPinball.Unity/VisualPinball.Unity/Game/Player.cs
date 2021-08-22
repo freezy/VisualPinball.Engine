@@ -314,6 +314,11 @@ namespace VisualPinball.Unity
 			PlungerSkinnedMeshRenderers[entity] = go.GetComponentsInChildren<SkinnedMeshRenderer>();
 		}
 
+		public void RegisterPlayfield(string name, Entity entity, Entity parentEntity, GameObject o)
+		{
+
+		}
+
 		public void RegisterPrimitive(Primitive primitive, Entity entity, Entity parentEntity, GameObject go)
 		{
 			var primitiveApi = new PrimitiveApi(go, entity, parentEntity, this);
