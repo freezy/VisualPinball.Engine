@@ -155,7 +155,6 @@ namespace VisualPinball.Unity
 					}
 				}
 			}
-			tableContainer.Table.SetupPlayfieldMesh();
 			job.Dispose();
 
 			return tableContainer;

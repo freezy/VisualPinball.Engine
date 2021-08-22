@@ -224,8 +224,9 @@ namespace VisualPinball.Unity.Editor
 					}
 
 					// create object(s)
-					var lookupName = renderable.Name.ToLower();
-					prefabLookup[lookupName] = InstantiateAndParentPrefab(renderable);
+					var prefab = InstantiateAndParentPrefab(renderable);
+					prefab.SetData();
+					prefabLookup[renderable.Name.ToLower()] = prefab;
 				}
 
 			} finally {
@@ -249,12 +250,13 @@ namespace VisualPinball.Unity.Editor
 				prefab.FreeBinaryData();
 
 				if (prefab.ExtractMesh) {
-					var mfs = prefab.GameObject.GetComponentsInChildren<MeshFilter>();
+					var mfs = prefab.MeshFilters;
 					foreach (var mf in mfs) {
 						var suffix = mfs.Length == 1 ? "" : $" ({mf.gameObject.name})";
 						var meshFilename = $"{prefab.GameObject.name.ToFilename()}{suffix.ToFilename()}.mesh";
 						var meshPath = Path.Combine(_assetsMeshes, meshFilename);
 						if (_options.SkipExistingMeshes && File.Exists(meshPath)) {
+							mf.sharedMesh = AssetDatabase.LoadAssetAtPath<Mesh>(meshPath);
 							continue;
 						}
 						if (File.Exists(meshPath)) {

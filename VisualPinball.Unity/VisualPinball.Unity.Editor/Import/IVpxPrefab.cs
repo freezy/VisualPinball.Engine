@@ -27,12 +27,15 @@ namespace VisualPinball.Unity.Editor
 		IItemMainAuthoring MainComponent { get; }
 
 		IEnumerable<GameObject> MeshGameObjects { get; }
+		MeshFilter[] MeshFilters { get; }
 
 		IRenderable Renderable { get; }
 
 		bool ExtractMesh { get; }
 
 		bool SkipParenting { get; }
+
+		void SetData();
 
 		public void SetReferencedData(IMaterialProvider materialProvider, ITextureProvider textureProvider,
 			Dictionary<string, IItemMainAuthoring> components);

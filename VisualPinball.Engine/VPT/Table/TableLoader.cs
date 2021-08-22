@@ -54,7 +54,6 @@ namespace VisualPinball.Engine.VPT.Table
 					LoadMappings(tableContainer, gameStorage);
 					LoadTableMeta(tableContainer, gameStorage);
 
-					tableContainer.Table.SetupPlayfieldMesh();
 					return tableContainer;
 				}
 

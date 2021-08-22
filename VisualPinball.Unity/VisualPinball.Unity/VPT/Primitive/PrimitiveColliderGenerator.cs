@@ -36,7 +36,6 @@ namespace VisualPinball.Unity
 		private readonly IApiColliderGenerator _api;
 		private readonly PrimitiveData _data;
 		private readonly PrimitiveMeshGenerator _meshGenerator;
-		private bool _useAsPlayfield;
 
 		public PrimitiveColliderGenerator(PrimitiveApi primitiveApi, PrimitiveData data)
 		{
@@ -47,13 +46,8 @@ namespace VisualPinball.Unity
 
 		internal void GenerateColliders(Table table, Mesh originalMesh, List<ICollider> colliders)
 		{
-			if (_data.Name == "playfield_mesh") {
-				_data.IsVisible = false;
-				_useAsPlayfield = true;
-			}
-
 			// playfield can't be a toy
-			if (_data.IsToy && !_useAsPlayfield) {
+			if (_data.IsToy) {
 				return;
 			}
 
