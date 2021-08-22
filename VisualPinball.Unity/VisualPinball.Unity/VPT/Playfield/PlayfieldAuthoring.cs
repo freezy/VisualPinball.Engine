@@ -26,6 +26,7 @@ using VisualPinball.Unity.Playfield;
 
 namespace VisualPinball.Unity
 {
+	[AddComponentMenu("Visual Pinball/Game Item/Playfield")]
 	public class PlayfieldAuthoring : ItemMainRenderableAuthoring<Table, TableData>
 	{
 		public static readonly Quaternion GlobalRotation = Quaternion.Euler(-90, 0, 0);

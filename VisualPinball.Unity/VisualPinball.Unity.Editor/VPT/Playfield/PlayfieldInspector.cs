@@ -51,10 +51,10 @@ namespace VisualPinball.Unity.Editor
 
 			OnPreInspectorGUI();
 
-			PropertyField(_rightProperty, "Table Width");
-			PropertyField(_bottomProperty, "Table Height/Length");
-			PropertyField(_glassHeightProperty, "Top Glass Height");
-			PropertyField(_tableHeightProperty, "Table Field Height");
+			PropertyField(_rightProperty, "Table Width", true);
+			PropertyField(_bottomProperty, "Table Height/Length", true);
+			PropertyField(_glassHeightProperty, "Top Glass Height", true);
+			PropertyField(_tableHeightProperty, "Table Field Height", true);
 			PropertyField(_angleTiltMinProperty, "Slope for Min. Difficulty");
 			PropertyField(_angleTiltMaxProperty, "Slope for Max. Difficulty");
 
