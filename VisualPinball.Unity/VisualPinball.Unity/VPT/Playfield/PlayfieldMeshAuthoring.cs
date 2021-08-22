@@ -8,9 +8,15 @@ namespace VisualPinball.Unity.Playfield
 {
 	[ExecuteInEditMode]
 	[AddComponentMenu("Visual Pinball/Mesh/Playfield Mesh")]
-	public class PlayfieldMeshAuthoring : ItemMeshAuthoring<Table, TableData, TableAuthoring>
+	public class PlayfieldMeshAuthoring : ItemMeshAuthoring<Table, TableData, PlayfieldAuthoring>
 	{
-		public static readonly Type[] ValidParentTypes = new Type[0];
+		#region Data
+
+		public bool IsSimple;
+
+		#endregion
+
+		public static readonly Type[] ValidParentTypes = Type.EmptyTypes;
 
 		public override IEnumerable<Type> ValidParents => ValidParentTypes;
 

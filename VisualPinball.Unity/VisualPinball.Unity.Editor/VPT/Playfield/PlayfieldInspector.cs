@@ -14,28 +14,21 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-using System;
-using System.Collections.Generic;
-using Unity.Entities;
-using UnityEngine;
+using UnityEditor;
 using VisualPinball.Engine.VPT.Table;
 
-namespace VisualPinball.Unity
+namespace VisualPinball.Unity.Editor
 {
-	[AddComponentMenu("Visual Pinball/Collision/Playfield Collider")]
-	public class PlayfieldColliderAuthoring : ItemColliderAuthoring<Table, TableData, PlayfieldAuthoring>
+	[CustomEditor(typeof(PlayfieldAuthoring)), CanEditMultipleObjects]
+	public class PlayfieldInspector : ItemMainInspector<Table, TableData, PlayfieldAuthoring>
 	{
-		#region Data
+		public override void OnInspectorGUI()
+		{
+			if (HasErrors()) {
+				return;
+			}
 
-
-
-		#endregion
-
-		public static readonly Type[] ValidParentTypes = Type.EmptyTypes;
-
-		public override IEnumerable<Type> ValidParents => ValidParentTypes;
-		public override PhysicsMaterialData PhysicsMaterialData => GetPhysicsMaterialData();
-		protected override IApiColliderGenerator InstantiateColliderApi(Player player, Entity entity, Entity parentEntity)
-			=> throw new InvalidOperationException("Playfield (plane) colliders are handled separately.");
+			EditorGUILayout.HelpBox("This component tells the game object to act as the playfield.", MessageType.Info);
+		}
 	}
 }

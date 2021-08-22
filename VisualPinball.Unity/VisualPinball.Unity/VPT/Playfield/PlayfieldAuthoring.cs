@@ -14,6 +14,8 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+// ReSharper disable InconsistentNaming
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -35,8 +37,8 @@ namespace VisualPinball.Unity
 		protected override Table InstantiateItem(TableData data) => GetComponentInParent<TableAuthoring>()?.Table;
 		protected override TableData InstantiateData() => new TableData();
 
-		protected override Type MeshAuthoringType { get; } = null;
-		protected override Type ColliderAuthoringType { get; } = null;
+		protected override Type MeshAuthoringType => null;
+		protected override Type ColliderAuthoringType => null;
 
 		public override IEnumerable<Type> ValidParents => PlayfieldColliderAuthoring.ValidParentTypes
 			.Concat(PlayfieldMeshAuthoring.ValidParentTypes)
@@ -44,14 +46,23 @@ namespace VisualPinball.Unity
 
 		public void Convert(Entity entity, EntityManager dstManager, GameObjectConversionSystem conversionSystem)
 		{
-			var table = gameObject.GetComponentInParent<TableAuthoring>().Item;
+			var table = GetComponentInParent<TableAuthoring>().Item;
 			table.Index = entity.Index;
 			table.Version = entity.Version;
+
+			transform.GetComponentInParent<Player>().RegisterPlayfield(name, entity, ParentEntity, gameObject);
 		}
 
 		public override IEnumerable<MonoBehaviour> SetData(TableData data)
 		{
-			return new List<MonoBehaviour> { this };
+			var updatedComponents = new List<MonoBehaviour> { this };
+
+			var collComponent = GetComponent<PlayfieldColliderAuthoring>();
+			if (collComponent) {
+
+			}
+
+			return updatedComponents;
 		}
 
 		public override IEnumerable<MonoBehaviour> SetReferencedData(TableData data, IMaterialProvider materialProvider, ITextureProvider textureProvider, Dictionary<string, IItemMainAuthoring> components)
