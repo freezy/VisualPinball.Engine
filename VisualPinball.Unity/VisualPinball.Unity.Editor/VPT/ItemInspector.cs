@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEditor;
@@ -33,6 +34,7 @@ namespace VisualPinball.Unity.Editor
 		public abstract MonoBehaviour UndoTarget { get; }
 
 		protected TableAuthoring _ta;
+		protected PlayfieldAuthoring PlayfieldAuthoring;
 
 		private AdvancedDropdownState _itemPickDropdownState;
 
@@ -51,22 +53,9 @@ namespace VisualPinball.Unity.Editor
 		{
 			Undo.undoRedoPerformed += OnUndoRedoPerformed;
 
-// #if UNITY_EDITOR
-// 			// for convenience move item behavior to the top of the list
-// 			// we're opting to due this here as opposed to at import time since modifying objects
-// 			// in this way caused them to not be part of the created object undo stack
-// 			if (target != null && target is MonoBehaviour mb) {
-// 				var numComp = mb.GetComponents<MonoBehaviour>().Length;
-// 				if (mb is IItemColliderAuthoring || mb is IItemMeshAuthoring || mb is IItemMovementAuthoring) {
-// 					numComp--;
-// 				}
-// 				for (var i = 0; i <= numComp; i++) {
-// 					UnityEditorInternal.ComponentUtility.MoveComponentUp(mb);
-// 				}
-// 			}
-// #endif
-
 			_ta = (target as MonoBehaviour)?.gameObject.GetComponentInParent<TableAuthoring>();
+			PlayfieldAuthoring = (target as MonoBehaviour)?.gameObject.GetComponentInParent<PlayfieldAuthoring>();
+
 			PopulateDropDownOptions();
 		}
 
@@ -518,6 +507,14 @@ namespace VisualPinball.Unity.Editor
 
 			if (target is IItemMainRenderableAuthoring item) {
 				item.ItemDataChanged();
+			}
+		}
+
+		protected static void WalkChildren(IEnumerable node, Action<Transform> action)
+		{
+			foreach (Transform childTransform in node) {
+				action(childTransform);
+				WalkChildren(childTransform, action);
 			}
 		}
 	}

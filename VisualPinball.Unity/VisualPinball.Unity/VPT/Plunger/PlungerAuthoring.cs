@@ -33,8 +33,9 @@ namespace VisualPinball.Unity
 {
 	[AddComponentMenu("Visual Pinball/Game Item/Plunger")]
 	public class PlungerAuthoring : ItemMainRenderableAuthoring<Plunger, PlungerData>,
-		ICoilDeviceAuthoring, IConvertGameObjectToEntity
+		ICoilDeviceAuthoring, IOnSurfaceAuthoring, IConvertGameObjectToEntity
 	{
+		public void OnSurfaceUpdated() => RebuildMeshes();
 		public float PositionZ => SurfaceHeight(Surface, Position);
 
 		#region Data

@@ -40,12 +40,14 @@ namespace VisualPinball.Unity
 	[AddComponentMenu("Visual Pinball/Game Item/Flipper")]
 	[HelpURL("https://docs.visualpinball.org/creators-guide/manual/mechanisms/flippers.html")]
 	public class FlipperAuthoring : ItemMainRenderableAuthoring<Flipper, FlipperData>,
-		ISwitchAuthoring, ICoilAuthoring, IConvertGameObjectToEntity
+		ISwitchAuthoring, ICoilAuthoring, IOnSurfaceAuthoring, IConvertGameObjectToEntity
 	{
 		public override ItemType ItemType => ItemType.Flipper;
 		public bool IsPulseSwitch => false;
 
 		public ISwitchable Switchable => Item;
+
+		public void OnSurfaceUpdated() => UpdateTransforms();
 
 		public float PositionZ => SurfaceHeight(Surface, Position);
 

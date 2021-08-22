@@ -36,7 +36,7 @@ namespace VisualPinball.Unity
 {
 	[AddComponentMenu("Visual Pinball/Game Item/Spinner")]
 	public class SpinnerAuthoring : ItemMainRenderableAuthoring<Spinner, SpinnerData>,
-		ISwitchAuthoring, IConvertGameObjectToEntity
+		ISwitchAuthoring, IOnSurfaceAuthoring, IConvertGameObjectToEntity
 	{
 		#region Data
 
@@ -77,6 +77,7 @@ namespace VisualPinball.Unity
 
 		public bool IsPulseSwitch => true;
 
+		public void OnSurfaceUpdated() => UpdateTransforms();
 		public float PositionZ => SurfaceHeight(Surface, Position);
 
 		public float HeightOnPlayfield => Height + PositionZ;

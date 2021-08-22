@@ -37,9 +37,9 @@ namespace VisualPinball.Unity
 			_meshGenerator = new RampMeshGenerator(data);
 		}
 
-		internal void GenerateColliders(Table table, List<ICollider> colliders)
+		internal void GenerateColliders(Table table, float tableHeight, List<ICollider> colliders)
 		{
-			var rv = _meshGenerator.GetRampVertex(table, PhysicsConstants.HitShapeDetailLevel, true);
+			var rv = _meshGenerator.GetRampVertex(table, tableHeight, PhysicsConstants.HitShapeDetailLevel, true);
 			var rgvLocal = rv.RgvLocal;
 			var rgHeight1 = rv.PointHeights;
 			var vertexCount = rv.VertexCount;

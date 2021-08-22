@@ -117,15 +117,15 @@ namespace VisualPinball.Unity.Editor
 			Tools.hidden = false;
 		}
 
-		// public override void OnInspectorGUI()
-		// {
-		// 	if (_defaultEditor != null) {
-		// 		_defaultEditor.OnInspectorGUI();
-		// 		return;
-		// 	}
-		//
-		// 	GUILayout.Label("VPE item transforms driven by data on the component below.");
-		// }
+		public override void OnInspectorGUI()
+		{
+			if (_defaultEditor != null) {
+				_defaultEditor.OnInspectorGUI();
+				return;
+			}
+
+			GUILayout.Label("VPE item transforms driven by data on the component below.");
+		}
 
 		private void OnSceneGUI()
 		{

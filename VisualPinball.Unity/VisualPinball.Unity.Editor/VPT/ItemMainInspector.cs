@@ -63,5 +63,13 @@ namespace VisualPinball.Unity.Editor
 				Application.OpenURL("https://docs.visualpinball.org/creators-guide/editor/unity-components.html");
 			}
 		}
+
+		protected void UpdateSurfaceReferences(Transform obj)
+		{
+			var surfaceAuthoring = obj.gameObject.GetComponent<IOnSurfaceAuthoring>();
+			if (surfaceAuthoring != null && surfaceAuthoring.Surface == ItemAuthoring) {
+				surfaceAuthoring.OnSurfaceUpdated();
+			}
+		}
 	}
 }

@@ -35,7 +35,7 @@ namespace VisualPinball.Unity
 
 		protected override RenderObject GetRenderObject(RampData data, Table table)
 		{
-			return new RampMeshGenerator(data).GetRenderObject(table, RampMeshGenerator.Wall, false);
+			return new RampMeshGenerator(data).GetRenderObject(table, RampMeshGenerator.Wall, MainAuthoring.PlayfieldHeight, false);
 		}
 	}
 }

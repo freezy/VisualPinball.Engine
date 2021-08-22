@@ -41,11 +41,11 @@ namespace VisualPinball.Engine.VPT.Ramp
 			_data = data;
 		}
 
-		public RenderObject GetRenderObject(Table.Table table, string id, bool asRightHanded)
+		public RenderObject GetRenderObject(Table.Table table, string id, float tableHeight, bool asRightHanded)
 		{
 			var mesh = new Mesh();
 			if (id == Wires) {
-				var meshes = GenerateWireMeshes(table);
+				var meshes = GenerateWireMeshes(table, tableHeight);
 
 				for (var i = 1; i <= 4; i++) {
 					var name = $"Wire{i}";
@@ -55,7 +55,7 @@ namespace VisualPinball.Engine.VPT.Ramp
 				}
 
 			} else {
-				var rv = GetRampVertex(table, -1, true);
+				var rv = GetRampVertex(table, tableHeight, -1, true);
 				switch (id) {
 					case Floor:
 						mesh = GenerateFlatFloorMesh(table, rv);
@@ -73,8 +73,8 @@ namespace VisualPinball.Engine.VPT.Ramp
 				}
 
 				if (mesh.Vertices == null) {
-					mesh.Vertices = new Vertex3DNoTex2[0];
-					mesh.Indices = new int[0];
+					mesh.Vertices = Array.Empty<Vertex3DNoTex2>();
+					mesh.Indices = Array.Empty<int>();
 				}
 			}
 
@@ -88,7 +88,7 @@ namespace VisualPinball.Engine.VPT.Ramp
 
 		public RenderObjectGroup GetRenderObjects(Table.Table table, bool asRightHanded = true)
 		{
-			var meshes = GenerateMeshes(table);
+			var meshes = GenerateMeshes(table, table.TableHeight);
 			var renderObjects = new List<RenderObject>();
 
 			// wires
@@ -120,17 +120,17 @@ namespace VisualPinball.Engine.VPT.Ramp
 		}
 
 
-		private Dictionary<string, Mesh> GenerateMeshes(Table.Table table)
+		private Dictionary<string, Mesh> GenerateMeshes(Table.Table table, float tableHeight)
 		{
 			return !IsHabitrail()
-				? GenerateFlatMesh(table)
-				: GenerateWireMeshes(table);
+				? GenerateFlatMesh(table, tableHeight)
+				: GenerateWireMeshes(table, tableHeight);
 		}
 
-		private Dictionary<string, Mesh> GenerateWireMeshes(Table.Table table)
+		private Dictionary<string, Mesh> GenerateWireMeshes(Table.Table table, float tableHeight)
 		{
 			var meshes = new Dictionary<string, Mesh>();
-			var (wireMeshA, wireMeshB) = GenerateBaseWires(table);
+			var (wireMeshA, wireMeshB) = GenerateBaseWires(table, tableHeight);
 			switch (_data.RampType) {
 				case RampType.RampType1Wire: {
 					wireMeshA.Name = "Wire1";
@@ -175,9 +175,9 @@ namespace VisualPinball.Engine.VPT.Ramp
 			return meshes;
 		}
 
-		private Dictionary<string, Mesh> GenerateFlatMesh(Table.Table table) {
+		private Dictionary<string, Mesh> GenerateFlatMesh(Table.Table table, float tableHeight) {
 			var meshes = new Dictionary<string, Mesh>();
-			var rv = GetRampVertex(table, -1, true);
+			var rv = GetRampVertex(table, tableHeight, -1, true);
 
 			meshes["Floor"] = GenerateFlatFloorMesh(table, rv);
 
@@ -363,7 +363,7 @@ namespace VisualPinball.Engine.VPT.Ramp
 			return mesh;
 		}
 
-		private Tuple<Mesh, Mesh> GenerateBaseWires(Table.Table table)
+		private Tuple<Mesh, Mesh> GenerateBaseWires(Table.Table table, float tableHeight)
 		{
 			int accuracy;
 			if (table.GetDetailLevel() < 5) {
@@ -382,7 +382,7 @@ namespace VisualPinball.Engine.VPT.Ramp
 				accuracy = 12; // see above
 			}
 
-			var rv = GetRampVertex(table, -1, false);
+			var rv = GetRampVertex(table, tableHeight, -1, false);
 			var middlePoints = rv.MiddlePoints;
 
 			var numRings = rv.VertexCount;
@@ -530,7 +530,7 @@ namespace VisualPinball.Engine.VPT.Ramp
 			return vertices;
 		}
 
-		public RampVertex GetRampVertex(Table.Table table, float accuracy, bool incWidth)
+		public RampVertex GetRampVertex(Table.Table table, float tableHeight, float accuracy, bool incWidth)
 		{
 			var result = new RampVertex();
 
@@ -549,8 +549,8 @@ namespace VisualPinball.Engine.VPT.Ramp
 			// Compute an approximation to the length of the central curve
 			// by adding up the lengths of the line segments.
 			var totalLength = 0f;
-			var bottomHeight = _data.HeightBottom + table.TableHeight;
-			var topHeight = _data.HeightTop + table.TableHeight;
+			var bottomHeight = _data.HeightBottom + tableHeight;
+			var topHeight = _data.HeightTop + tableHeight;
 
 			for (var i = 0; i < numVertices - 1; i++) {
 				var v1 = vertex[i];

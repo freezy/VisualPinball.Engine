@@ -52,7 +52,7 @@ namespace VisualPinball.Unity
 		protected override void CreateColliders(Table table, List<ICollider> colliders)
 		{
 			var colliderGenerator = new RampColliderGenerator(this, MainComponent.CreateData());
-			colliderGenerator.GenerateColliders(table, colliders);
+			colliderGenerator.GenerateColliders(table, MainComponent.PlayfieldHeight, colliders);
 		}
 
 		#endregion
