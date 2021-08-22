@@ -33,6 +33,7 @@ namespace VisualPinball.Unity.Editor
 	{
 		public GameObject GameObject { get; }
 		public IItemMainAuthoring MainComponent => _mainComponent;
+		public MeshFilter[] MeshFilters => GameObject.GetComponentsInChildren<MeshFilter>();
 		public IRenderable Renderable => _item as IRenderable;
 		public bool ExtractMesh { get; set; }
 		public bool SkipParenting => false;
@@ -50,10 +51,12 @@ namespace VisualPinball.Unity.Editor
 			_item = item;
 			GameObject = PrefabUtility.InstantiatePrefab(prefab) as GameObject;
 			GameObject!.name = item.Name;
-
 			_mainComponent = GameObject.GetComponent<TMainAuthoring>();
-			var updatedComponents = _mainComponent.SetData(item.Data);
+		}
 
+		public void SetData()
+		{
+			var updatedComponents = _mainComponent.SetData(_item.Data);
 			_updatedComponents.AddRange(updatedComponents);
 		}
 

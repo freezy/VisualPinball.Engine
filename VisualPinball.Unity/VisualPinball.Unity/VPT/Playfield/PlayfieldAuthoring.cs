@@ -52,6 +52,9 @@ namespace VisualPinball.Unity
 
 		public float AngleTiltMin = 6f;
 
+		[SerializeField] private string _playfieldImage;
+		[SerializeField] private string _playfieldMaterial;
+
 		#endregion
 
 		public override ItemType ItemType => ItemType.Playfield;
@@ -89,6 +92,10 @@ namespace VisualPinball.Unity
 			AngleTiltMax = data.AngleTiltMax;
 			AngleTiltMin = data.AngleTiltMin;
 
+			// playfield material
+			_playfieldImage = data.Image;
+			_playfieldMaterial = data.PlayfieldMaterial;
+
 			// collider data
 			var collComponent = GetComponent<PlayfieldColliderAuthoring>();
 			if (collComponent) {
@@ -107,9 +114,9 @@ namespace VisualPinball.Unity
 
 		public override IEnumerable<MonoBehaviour> SetReferencedData(TableData data, IMaterialProvider materialProvider, ITextureProvider textureProvider, Dictionary<string, IItemMainAuthoring> components)
 		{
-			var mesh = GetComponentInChildren<PlayfieldMeshAuthoring>();
-			if (mesh) {
-				mesh.CreateMesh(data, textureProvider, materialProvider);
+			var meshComponent = GetComponentInChildren<PlayfieldMeshAuthoring>();
+			if (meshComponent && meshComponent.AutoGenerate) {
+				meshComponent.CreateMesh(data, textureProvider, materialProvider);
 			}
 			return Array.Empty<MonoBehaviour>();
 		}
@@ -122,7 +129,11 @@ namespace VisualPinball.Unity
 			if (mf && playfieldMeshAuthoring) {
 				var ta = GetComponentInParent<TableAuthoring>();
 				var ro = new PrimitiveMeshGenerator(primitiveData).GetRenderObject(ta.Table, primitiveData.Mesh, Origin.Original, false);
-				ItemMeshAuthoring<Primitive, PrimitiveData, PrimitiveAuthoring>.CreateMesh(gameObject, ro, "Playfield", textureProvider, materialProvider);
+				ro.Material = new PbrMaterial(
+					ta.Table.GetMaterial(_playfieldMaterial),
+					ta.Table.GetTexture(_playfieldImage)
+				);
+				ItemMeshAuthoring<Primitive, PrimitiveData, PrimitiveAuthoring>.CreateMesh(gameObject, ro, "playfield_mesh", textureProvider, materialProvider);
 				playfieldMeshAuthoring.AutoGenerate = false;
 
 				updatedComponents.Add(playfieldMeshAuthoring);
@@ -142,6 +153,10 @@ namespace VisualPinball.Unity
 			data.Bottom = Bottom;
 			data.AngleTiltMax = AngleTiltMax;
 			data.AngleTiltMin = AngleTiltMin;
+
+			// playfield material
+			data.Image = _playfieldImage;
+			data.PlayfieldMaterial = _playfieldMaterial;
 
 			// collider data
 			var collComponent = GetComponent<PlayfieldColliderAuthoring>();

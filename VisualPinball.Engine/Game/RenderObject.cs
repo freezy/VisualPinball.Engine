@@ -23,7 +23,7 @@ namespace VisualPinball.Engine.Game
 		public readonly string Name;
 		public readonly Mesh Mesh;
 
-		public readonly PbrMaterial Material;
+		public PbrMaterial Material;
 		public readonly bool IsVisible;
 
 		public RenderObject(string name, Mesh mesh, PbrMaterial material, bool isVisible)

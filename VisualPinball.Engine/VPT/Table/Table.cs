@@ -75,14 +75,6 @@ namespace VisualPinball.Engine.VPT.Table
 			return TableHeight;
 		}
 
-		public void SetupPlayfieldMesh()
-		{
-			if (_tableContainer.Has<Primitive.Primitive>("playfield_mesh")) {
-				_meshGenerator.SetFromPrimitive(_tableContainer.Get<Primitive.Primitive>("playfield_mesh"));
-				_tableContainer.Remove<Primitive.Primitive>("playfield_mesh");
-			}
-		}
-
 		public int GetDetailLevel()
 		{
 			return 10; // TODO
