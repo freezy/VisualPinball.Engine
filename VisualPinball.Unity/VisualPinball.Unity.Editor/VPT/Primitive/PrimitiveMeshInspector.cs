@@ -59,7 +59,14 @@ namespace VisualPinball.Unity.Editor
 			}
 			EditorGUI.EndDisabledGroup();
 
-			PropertyField(_useLegacyMeshProperty, rebuildMesh: true, reinstantiateMesh: mf, meshName: $"{target.name} (Generated)");
+			PropertyField(_useLegacyMeshProperty, rebuildMesh: true, onChanging: () => {
+				if (mf) {
+					mf.sharedMesh = _useLegacyMeshProperty.boolValue
+						? new Mesh { name = $"{target.name} (Generated)" } // when switching to legacy mesh, instantiate new mesh
+						: null; // when switching to referenced mesh, reset reference.
+					serializedObject.ApplyModifiedProperties();
+				}
+			});
 			EditorGUI.BeginDisabledGroup(!_useLegacyMeshProperty.boolValue);
 			PropertyField(_sidesProperty, rebuildMesh: true);
 			EditorGUI.EndDisabledGroup();

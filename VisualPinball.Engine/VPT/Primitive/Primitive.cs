@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using System.IO;
+using Codice.Client.ChangeTrackerService;
 using VisualPinball.Engine.Game;
 using VisualPinball.Engine.Math;
 using VisualPinball.Engine.VPT.Table;
@@ -56,22 +57,17 @@ namespace VisualPinball.Engine.VPT.Primitive
 
 		Matrix3D IRenderable.TransformationMatrix(Table.Table table, Origin origin) => MeshGenerator.GetPostMatrix(table, origin);
 
-		public RenderObjectGroup GetRenderObjects(Table.Table table, Origin origin, bool asRightHanded, string parent, PbrMaterial material) =>
-			MeshGenerator.GetRenderObjects(table, origin, asRightHanded, parent, material);
-
 		public RenderObject GetRenderObject(Table.Table table, string id = null, Origin origin = Origin.Global, bool asRightHanded = true)
 		{
-			return MeshGenerator.GetRenderObject(table, origin, asRightHanded);
+			return MeshGenerator.GetRenderObject(table, null, origin, asRightHanded);
 		}
 
 		public RenderObjectGroup GetRenderObjects(Table.Table table, Origin origin = Origin.Global, bool asRightHanded = true) =>
-			MeshGenerator.GetRenderObjects(table, origin, asRightHanded);
+			MeshGenerator.GetRenderObjects(table, Data.Mesh, origin, asRightHanded);
 
 		#endregion
 
-		public bool IsCollidable => !Data.IsToy && Data.IsCollidable;
-
-		public Mesh GetMesh() => MeshGenerator.GetMesh();
+		public Mesh GetMesh() => MeshGenerator.GetMesh(Data.Mesh);
 
 	}
 }

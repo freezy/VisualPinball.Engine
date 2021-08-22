@@ -47,8 +47,11 @@ namespace VisualPinball.Unity
 
 		protected override void CreateColliders(Table table, List<ICollider> colliders)
 		{
-			var colliderGenerator = new PrimitiveColliderGenerator(this, MainComponent.CreateData());
-			colliderGenerator.GenerateColliders(table, colliders);
+			var mf = MainComponent.GetComponent<MeshFilter>();
+			if (mf && mf.sharedMesh) {
+				var colliderGenerator = new PrimitiveColliderGenerator(this, MainComponent.CreateData());
+				colliderGenerator.GenerateColliders(table, mf.sharedMesh.ToVpMesh(), colliders);
+			}
 		}
 
 		#endregion

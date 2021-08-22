@@ -41,9 +41,11 @@ namespace VisualPinball.Engine.VPT.Table
 		public RenderObjectGroup GetRenderObjects(Table table, Origin origin, bool asRightHanded = true)
 		{
 			var material = new PbrMaterial(table.GetMaterial(_data.PlayfieldMaterial), table.GetTexture(_data.Image));
-			return HasMeshAsPlayfield
-				? _playfield.GetRenderObjects(table, origin, asRightHanded, "Table", material)
-				: new RenderObjectGroup(_data.Name, "Table", Matrix3D.Identity, GetFromTableDimensions(asRightHanded, material));
+			return new RenderObjectGroup(_data.Name, "Table", Matrix3D.Identity, GetFromTableDimensions(asRightHanded, material));
+			// todo handle custom mesh
+			// return HasMeshAsPlayfield
+			// 	? _playfield.GetRenderObjects(table, origin, asRightHanded, "Table", material)
+			// 	: new RenderObjectGroup(_data.Name, "Table", Matrix3D.Identity, GetFromTableDimensions(asRightHanded, material));
 		}
 
 		public void SetFromPrimitive(Primitive.Primitive primitive)
