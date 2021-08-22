@@ -132,7 +132,9 @@ namespace VisualPinball.Unity
 
 			if (mf != null) {
 				var unityMesh = mf.sharedMesh;
-				ro.Mesh?.ApplyToUnityMesh(unityMesh);
+				if (unityMesh) {
+					ro.Mesh?.ApplyToUnityMesh(unityMesh);
+				}
 			}
 
 			// if (mr != null) {

@@ -113,7 +113,7 @@ namespace VisualPinball.Unity
 
 		protected float SurfaceHeight(ISurfaceAuthoring surface, Vector2 position)
 		{
-			return surface?.Height(position) ?? TableHeight;
+			return surface?.Height(position) ?? PlayfieldHeight;
 		}
 
 		protected static void CopyMaterialName(MeshRenderer mr, string[] materialNames, string[] textureNames,

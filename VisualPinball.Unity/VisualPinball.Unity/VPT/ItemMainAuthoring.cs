@@ -31,10 +31,10 @@ namespace VisualPinball.Unity
 		where TItem : Item<TData>
 		where TData : ItemData
 	{
-		public float TableHeight {
+		public float PlayfieldHeight {
 			get {
-				var tableComponent = GetComponentInParent<TableAuthoring>();
-				return tableComponent ? tableComponent.TableHeight : 0f;
+				var playfieldComponent = GetComponentInParent<PlayfieldAuthoring>();
+				return playfieldComponent ? playfieldComponent.TableHeight : 0f;
 			}
 		}
 

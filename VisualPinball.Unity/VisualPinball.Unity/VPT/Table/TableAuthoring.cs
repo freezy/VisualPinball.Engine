@@ -48,8 +48,6 @@ namespace VisualPinball.Unity
 
 		#region Data
 
-		public float TableHeight;
-
 		#endregion
 
 		public override ItemType ItemType => ItemType.Table;
@@ -112,7 +110,6 @@ namespace VisualPinball.Unity
 
 		public override IEnumerable<MonoBehaviour> SetData(TableData data)
 		{
-			TableHeight = data.TableHeight;
 			return new List<MonoBehaviour> { this };
 		}
 
@@ -125,7 +122,7 @@ namespace VisualPinball.Unity
 		{
 			// update the name
 			data.Name = name;
-			data.TableHeight = TableHeight;
+			data.TableHeight = PlayfieldHeight;
 
 			return data;
 		}

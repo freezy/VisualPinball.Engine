@@ -47,10 +47,11 @@ namespace VisualPinball.Unity
 	public class Player : MonoBehaviour
 	{
 		public Table Table { get; private set; }
-		public TableApi TableApi { get; private set; }
+		public TableApi TableApi { get; }
+		public PlayfieldApi PlayfieldApi { get; private set; }
 
 		// shortcuts
-		public GameObject Playfield => GetComponentInChildren<TablePlayfieldAuthoring>().gameObject;
+		public GameObject Playfield => GetComponentInChildren<PlayfieldAuthoring>().gameObject;
 
 		[NonSerialized]
 		public IGamelogicEngine GamelogicEngine;
@@ -100,7 +101,7 @@ namespace VisualPinball.Unity
 		private const float SlowMotionMax = 0.1f;
 		private const float TimeLapseMax = 2.5f;
 
-		internal static readonly Entity TableEntity = new Entity {Index = -3, Version = 0}; // a fake entity we just use for reference
+		internal static readonly Entity PlayfieldEntity = new Entity {Index = -3, Version = 0}; // a fake entity we just use for reference
 
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
@@ -129,9 +130,7 @@ namespace VisualPinball.Unity
 
 			tableComponent.TableContainer.Refresh();
 
-			TableApi.Data = tableComponent.Data;
 			_initializables.Add(TableApi);
-			_colliderGenerators.Add(TableApi);
 
 			Table = tableComponent.Table; //tableComponent.CreateTable(tableComponent.Data);
 			_tableContainer = tableComponent.TableContainer;
@@ -314,9 +313,10 @@ namespace VisualPinball.Unity
 			PlungerSkinnedMeshRenderers[entity] = go.GetComponentsInChildren<SkinnedMeshRenderer>();
 		}
 
-		public void RegisterPlayfield(string name, Entity entity, Entity parentEntity, GameObject o)
+		public void RegisterPlayfield(GameObject go)
 		{
-
+			PlayfieldApi = new PlayfieldApi(go, this);
+			_colliderGenerators.Add(PlayfieldApi);
 		}
 
 		public void RegisterPrimitive(Primitive primitive, Entity entity, Entity parentEntity, GameObject go)

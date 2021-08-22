@@ -50,8 +50,8 @@ namespace VisualPinball.Unity
 		bool IApiColliderGenerator.IsColliderEnabled => ColliderComponent && ColliderComponent.isActiveAndEnabled;
 		Entity IApiColliderGenerator.ColliderEntity => Entity;
 
-		protected virtual bool FireHitEvents { get; } = false;
-		protected virtual float HitThreshold { get; } = 0;
+		protected virtual bool FireHitEvents => false;
+		protected virtual float HitThreshold => 0;
 
 		protected abstract void CreateColliders(Table table, List<ICollider> colliders);
 

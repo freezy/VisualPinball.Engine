@@ -91,7 +91,7 @@ namespace VisualPinball.Unity
 					HitAccuracy = colliderAuthoring.HitAccuracy,
 					Scatter = colliderAuthoring.Scatter,
 					LegacyMode = true, // todo colliderAuthoring.LegacyMode,
-					ZLow = Surface?.Height(Position) ?? TableHeight
+					ZLow = Surface?.Height(Position) ?? PlayfieldHeight
 				});
 
 				dstManager.AddComponentData(entity, new KickerCollisionData {
@@ -211,7 +211,7 @@ namespace VisualPinball.Unity
 
 		public Vertex3D GetBallCreationPosition(Table table)
 		{
-			var height = Surface?.Height(Position) ?? TableHeight;
+			var height = Surface?.Height(Position) ?? PlayfieldHeight;
 			return new Vertex3D(Position.x, Position.y, height);
 		}
 

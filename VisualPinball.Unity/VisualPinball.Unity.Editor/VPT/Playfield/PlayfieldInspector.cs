@@ -22,13 +22,45 @@ namespace VisualPinball.Unity.Editor
 	[CustomEditor(typeof(PlayfieldAuthoring)), CanEditMultipleObjects]
 	public class PlayfieldInspector : ItemMainInspector<Table, TableData, PlayfieldAuthoring>
 	{
+		private SerializedProperty _rightProperty;
+		private SerializedProperty _bottomProperty;
+		private SerializedProperty _glassHeightProperty;
+		private SerializedProperty _tableHeightProperty;
+		private SerializedProperty _angleTiltMinProperty;
+		private SerializedProperty _angleTiltMaxProperty;
+
+		protected override void OnEnable()
+		{
+			base.OnEnable();
+
+			_rightProperty = serializedObject.FindProperty(nameof(PlayfieldAuthoring.Right));
+			_bottomProperty = serializedObject.FindProperty(nameof(PlayfieldAuthoring.Bottom));
+			_glassHeightProperty = serializedObject.FindProperty(nameof(PlayfieldAuthoring.GlassHeight));
+			_tableHeightProperty = serializedObject.FindProperty(nameof(PlayfieldAuthoring.TableHeight));
+			_angleTiltMinProperty = serializedObject.FindProperty(nameof(PlayfieldAuthoring.AngleTiltMin));
+			_angleTiltMaxProperty = serializedObject.FindProperty(nameof(PlayfieldAuthoring.AngleTiltMax));
+		}
+
 		public override void OnInspectorGUI()
 		{
 			if (HasErrors()) {
 				return;
 			}
 
-			EditorGUILayout.HelpBox("This component tells the game object to act as the playfield.", MessageType.Info);
+			serializedObject.Update();
+
+			OnPreInspectorGUI();
+
+			PropertyField(_rightProperty, "Table Width");
+			PropertyField(_bottomProperty, "Table Height/Length");
+			PropertyField(_glassHeightProperty, "Top Glass Height");
+			PropertyField(_tableHeightProperty, "Table Field Height");
+			PropertyField(_angleTiltMinProperty, "Slope for Min. Difficulty");
+			PropertyField(_angleTiltMaxProperty, "Slope for Max. Difficulty");
+
+			base.OnInspectorGUI();
+
+			serializedObject.ApplyModifiedProperties();
 		}
 	}
 }

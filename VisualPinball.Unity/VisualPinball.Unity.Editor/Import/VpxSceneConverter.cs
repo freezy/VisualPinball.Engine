@@ -48,6 +48,7 @@ using VisualPinball.Engine.VPT.TextBox;
 using VisualPinball.Engine.VPT.Timer;
 using VisualPinball.Engine.VPT.Trigger;
 using VisualPinball.Engine.VPT.Trough;
+using VisualPinball.Unity.Playfield;
 using Light = VisualPinball.Engine.VPT.Light.Light;
 using Logger = NLog.Logger;
 using Material = UnityEngine.Material;
@@ -64,11 +65,11 @@ namespace VisualPinball.Unity.Editor
 
 		private GameObject _tableGo;
 		private TableAuthoring _tableAuthoring;
+		private PlayfieldAuthoring _playfieldComp;
 
 		private GameObject _playfieldGo;
 
 		private string _assetsTableRoot;
-		private string _assetsPrefabs;
 		private string _assetsTextures;
 		private string _assetsMaterials;
 		private string _assetsPhysicsMaterials;
@@ -108,11 +109,11 @@ namespace VisualPinball.Unity.Editor
 		{
 			_options = new ConvertOptions();
 			_tableGo = tableAuthoring.gameObject;
-			var tablePlayfieldAuthoring = _tableGo.GetComponentInChildren<TablePlayfieldAuthoring>();
-			if (!tablePlayfieldAuthoring) {
+			var playfieldAuthoring = _tableGo.GetComponentInChildren<PlayfieldAuthoring>();
+			if (!playfieldAuthoring) {
 				throw new InvalidOperationException("Cannot find playfield hierarchy.");
 			}
-			_playfieldGo = tablePlayfieldAuthoring.gameObject;
+			_playfieldGo = playfieldAuthoring.gameObject;
 			_tableAuthoring = tableAuthoring;
 			_table = tableAuthoring.Table;
 
@@ -279,6 +280,9 @@ namespace VisualPinball.Unity.Editor
 				InstantiateAndParentPrefab(item);
 			}
 
+			// the playfield needs separate treatment
+			_playfieldComp.SetReferencedData(_table.Data, this, this, null);
+
 			// yes, really, persist changes..
 			EditorSceneManager.MarkSceneDirty(SceneManager.GetActiveScene());
 		}
@@ -313,7 +317,6 @@ namespace VisualPinball.Unity.Editor
 				case Rubber rubber:       return rubber.InstantiatePrefab();
 				case Spinner spinner:     return spinner.InstantiatePrefab();
 				case Surface surface:     return surface.InstantiatePrefab();
-				case Table table:         return table.InstantiatePrefab();
 				case Trigger trigger:     return trigger.InstantiatePrefab();
 				case Trough trough:       return trough.InstantiatePrefab();
 			}
@@ -500,11 +503,6 @@ namespace VisualPinball.Unity.Editor
 				Directory.CreateDirectory(_assetsTableRoot);
 			}
 
-			_assetsPrefabs = $"{_assetsTableRoot}Prefabs/";
-			if (!Directory.Exists(_assetsPrefabs)) {
-				Directory.CreateDirectory(_assetsPrefabs);
-			}
-
 			_assetsTextures = $"{_assetsTableRoot}Textures/";
 			if (!Directory.Exists(_assetsTextures)) {
 				Directory.CreateDirectory(_assetsTextures);
@@ -556,10 +554,14 @@ namespace VisualPinball.Unity.Editor
 			backglassGo.transform.SetParent(_tableGo.transform, false);
 			cabinetGo.transform.SetParent(_tableGo.transform, false);
 
-			_playfieldGo.AddComponent<TablePlayfieldAuthoring>();
-			_playfieldGo.transform.localRotation = TablePlayfieldAuthoring.GlobalRotation;
-			_playfieldGo.transform.localPosition = new Vector3(-_table.Width / 2 * TablePlayfieldAuthoring.GlobalScale, 0f, _table.Height / 2 * TablePlayfieldAuthoring.GlobalScale);
-			_playfieldGo.transform.localScale = new Vector3(TablePlayfieldAuthoring.GlobalScale, TablePlayfieldAuthoring.GlobalScale, TablePlayfieldAuthoring.GlobalScale);
+			_playfieldComp = _playfieldGo.AddComponent<PlayfieldAuthoring>();
+			_playfieldGo.AddComponent<PlayfieldColliderAuthoring>();
+			_playfieldGo.AddComponent<PlayfieldMeshAuthoring>();
+			_playfieldGo.AddComponent<MeshFilter>();
+			_playfieldGo.transform.localRotation = PlayfieldAuthoring.GlobalRotation;
+			_playfieldGo.transform.localPosition = new Vector3(-_table.Width / 2 * PlayfieldAuthoring.GlobalScale, 0f, _table.Height / 2 * PlayfieldAuthoring.GlobalScale);
+			_playfieldGo.transform.localScale = new Vector3(PlayfieldAuthoring.GlobalScale, PlayfieldAuthoring.GlobalScale, PlayfieldAuthoring.GlobalScale);
+			_playfieldComp.SetData(_table.Data);
 		}
 
 		private GameObject GetGroupParent(IItem item)

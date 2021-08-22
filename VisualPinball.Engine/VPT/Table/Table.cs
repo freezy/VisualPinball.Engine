@@ -38,8 +38,6 @@ namespace VisualPinball.Engine.VPT.Table
 		public float GlassHeight => Data.GlassHeight;
 		public Rect3D BoundingBox => new Rect3D(Data.Left, Data.Right, Data.Top, Data.Bottom, TableHeight, GlassHeight);
 
-		public bool HasMeshAsPlayfield => _meshGenerator.HasMeshAsPlayfield;
-
 		private readonly TableContainer _tableContainer;
 		private readonly TableMeshGenerator _meshGenerator;
 

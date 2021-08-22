@@ -19,7 +19,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Unity.Entities;
 using UnityEngine;
 using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Table;
@@ -27,9 +26,31 @@ using VisualPinball.Unity.Playfield;
 
 namespace VisualPinball.Unity
 {
-	public class PlayfieldAuthoring : ItemMainRenderableAuthoring<Table, TableData>,
-		IConvertGameObjectToEntity
+	public class PlayfieldAuthoring : ItemMainRenderableAuthoring<Table, TableData>
 	{
+		public static readonly Quaternion GlobalRotation = Quaternion.Euler(-90, 0, 0);
+		public const float GlobalScale = 0.001f;
+
+		#region Data
+
+		public float TableHeight;
+
+		public float GlassHeight;
+
+		public float Left;
+
+		public float Right = 952f;
+
+		public float Top;
+
+		public float Bottom = 2162f;
+
+		public float AngleTiltMax = 6f;
+
+		public float AngleTiltMin = 6f;
+
+		#endregion
+
 		public override ItemType ItemType => ItemType.Playfield;
 
 		public override bool CanBeTransformed => false;
@@ -37,29 +58,45 @@ namespace VisualPinball.Unity
 		protected override Table InstantiateItem(TableData data) => GetComponentInParent<TableAuthoring>()?.Table;
 		protected override TableData InstantiateData() => new TableData();
 
-		protected override Type MeshAuthoringType => null;
-		protected override Type ColliderAuthoringType => null;
+		protected override Type MeshAuthoringType => typeof(PlayfieldMeshAuthoring);
+		protected override Type ColliderAuthoringType => typeof(PlayfieldColliderAuthoring);
 
 		public override IEnumerable<Type> ValidParents => PlayfieldColliderAuthoring.ValidParentTypes
 			.Concat(PlayfieldMeshAuthoring.ValidParentTypes)
 			.Distinct();
 
-		public void Convert(Entity entity, EntityManager dstManager, GameObjectConversionSystem conversionSystem)
+		private void Start()
 		{
-			var table = GetComponentInParent<TableAuthoring>().Item;
-			table.Index = entity.Index;
-			table.Version = entity.Version;
-
-			transform.GetComponentInParent<Player>().RegisterPlayfield(name, entity, ParentEntity, gameObject);
+			transform.GetComponentInParent<Player>().RegisterPlayfield(gameObject);
 		}
 
 		public override IEnumerable<MonoBehaviour> SetData(TableData data)
 		{
 			var updatedComponents = new List<MonoBehaviour> { this };
 
+			// position
+			TableHeight = data.TableHeight;
+			GlassHeight = data.GlassHeight;
+			Left = data.Left;
+			Left = data.Left;
+			Left = data.Left;
+			Right = data.Right;
+			Top = data.Top;
+			Bottom = data.Bottom;
+			AngleTiltMax = data.AngleTiltMax;
+			AngleTiltMin = data.AngleTiltMin;
+
+			// collider data
 			var collComponent = GetComponent<PlayfieldColliderAuthoring>();
 			if (collComponent) {
+				collComponent.Gravity = data.Gravity;
+				collComponent.Elasticity = data.Elasticity;
+				collComponent.ElasticityFalloff = data.ElasticityFalloff;
+				collComponent.Friction = data.Friction;
+				collComponent.Scatter = data.Scatter;
+				collComponent.DefaultScatter = data.DefaultScatter;
 
+				updatedComponents.Add(collComponent);
 			}
 
 			return updatedComponents;
@@ -76,6 +113,27 @@ namespace VisualPinball.Unity
 
 		public override TableData CopyDataTo(TableData data, string[] materialNames, string[] textureNames)
 		{
+			// position
+			data.TableHeight = TableHeight;
+			data.GlassHeight = GlassHeight;
+			data.Left = Left;
+			data.Right = Right;
+			data.Top = Top;
+			data.Bottom = Bottom;
+			data.AngleTiltMax = AngleTiltMax;
+			data.AngleTiltMin = AngleTiltMin;
+
+			// collider data
+			var collComponent = GetComponent<PlayfieldColliderAuthoring>();
+			if (collComponent) {
+				data.Gravity = collComponent.Gravity;
+				data.Elasticity = collComponent.Elasticity;
+				data.ElasticityFalloff = collComponent.ElasticityFalloff;
+				data.Friction = collComponent.Friction;
+				data.Scatter = collComponent.Scatter;
+				data.DefaultScatter = collComponent.DefaultScatter;
+			}
+
 			return data;
 		}
 	}
