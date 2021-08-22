@@ -19,12 +19,22 @@ using UnityEngine;
 namespace VisualPinball.Unity
 {
 	/// <summary>
-	/// The interface for placing stuff on top of it.
+	/// Components implementing this interface can be referenced by <see cref="IOnSurfaceAuthoring"/>
 	/// </summary>
 	public interface ISurfaceAuthoring : IIdentifiableItemAuthoring
 	{
 		string name { get; }
 
 		float Height(Vector2 pos);
+	}
+
+	/// <summary>
+	/// Components implementing this interface can be placed on <see cref="ISurfaceAuthoring"/>.
+	/// </summary>
+	public interface IOnSurfaceAuthoring
+	{
+		ISurfaceAuthoring Surface { get; }
+
+		void OnSurfaceUpdated();
 	}
 }

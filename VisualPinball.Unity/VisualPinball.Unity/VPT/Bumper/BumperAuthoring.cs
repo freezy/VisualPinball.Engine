@@ -34,7 +34,7 @@ namespace VisualPinball.Unity
 {
 	[AddComponentMenu("Visual Pinball/Game Item/Bumper")]
 	public class BumperAuthoring : ItemMainRenderableAuthoring<Bumper, BumperData>,
-		ISwitchAuthoring, ICoilAuthoring, IConvertGameObjectToEntity
+		ISwitchAuthoring, ICoilAuthoring, IOnSurfaceAuthoring, IConvertGameObjectToEntity
 	{
 		public override ItemType ItemType => ItemType.Bumper;
 		public override IEnumerable<Type> ValidParents => BumperColliderAuthoring.ValidParentTypes;
@@ -42,6 +42,8 @@ namespace VisualPinball.Unity
 		public ISwitchable Switchable => Item;
 
 		public bool IsPulseSwitch => true;
+
+		public void OnSurfaceUpdated() => UpdateTransforms();
 
 		public float PositionZ => SurfaceHeight(Surface, Position);
 
@@ -63,6 +65,7 @@ namespace VisualPinball.Unity
 		public float Orientation;
 
 		public ISurfaceAuthoring Surface { get => _surface as ISurfaceAuthoring; set => _surface = value as MonoBehaviour; }
+
 		[SerializeField]
 		[TypeRestriction(typeof(ISurfaceAuthoring), PickerLabel = "Walls & Ramps", UpdateTransforms = true)]
 		[Tooltip("On which surface this bumper is attached to. Updates Z-translation.")]

@@ -22,6 +22,7 @@
 #endregion
 
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using Unity.Entities;
@@ -97,7 +98,40 @@ namespace VisualPinball.Unity
 			.Concat(RampWireMeshAuthoring.ValidParentTypes)
 			.Distinct();
 
-		public float Height(Vector2 pos) => 0f; // todo
+		public float Height(Vector2 pos) {
+
+			var vVertex = new RampMeshGenerator(CreateData()).GetCentralCurve(Table);
+			Engine.VPT.Mesh.ClosestPointOnPolygon(vVertex, new Vertex2D(pos.x, pos.y), false, out var vOut, out var iSeg);
+
+			if (iSeg == -1) {
+				return 0.0f; // Object is not on ramp path
+			}
+
+			// Go through vertices (including iSeg itself) counting control points until iSeg
+			var totalLength = 0.0f;
+			var startLength = 0.0f;
+
+			var cVertex = vVertex.Length;
+			for (var i2 = 1; i2 < cVertex; i2++) {
+				var vDx = vVertex[i2].X - vVertex[i2 - 1].X;
+				var vDy = vVertex[i2].Y - vVertex[i2 - 1].Y;
+				var vLen = MathF.Sqrt(vDx * vDx + vDy * vDy);
+				if (i2 <= iSeg) {
+					startLength += vLen;
+				}
+				totalLength += vLen;
+			}
+
+			var dx = vOut.X - vVertex[iSeg].X;
+			var dy = vOut.Y - vVertex[iSeg].Y;
+			var len = MathF.Sqrt(dx * dx + dy * dy);
+			startLength += len; // Add the distance the object is between the two closest polyline segments.  Matters mostly for straight edges. Z does not respect that yet!
+
+			var topHeight = HeightTop + PlayfieldHeight;
+			var bottomHeight = HeightBottom + PlayfieldHeight;
+
+			return vVertex[iSeg].Z + startLength / totalLength * (topHeight - bottomHeight) + bottomHeight;
+		}
 
 		public bool IsWireRamp => Type != RampType.RampTypeFlat;
 
@@ -300,7 +334,10 @@ namespace VisualPinball.Unity
 		}
 
 		public override ItemDataTransformType EditorPositionType => ItemDataTransformType.TwoD;
-		public override Vector3 GetEditorPosition() => DragPoints.Length == 0 ? Vector3.zero : DragPointCenter;
+		public override Vector3 GetEditorPosition()
+		{
+			return DragPoints.Length == 0 ? Vector3.zero : DragPointCenter;
+		}
 
 		public override void SetEditorPosition(Vector3 pos)
 		{
@@ -313,6 +350,26 @@ namespace VisualPinball.Unity
 				pt.Center += diff;
 			}
 			RebuildMeshes();
+			var playfieldComponent = GetComponentInParent<PlayfieldAuthoring>();
+			if (playfieldComponent) {
+				WalkChildren(playfieldComponent.transform, UpdateSurfaceReferences);
+			}
+		}
+
+		protected static void WalkChildren(IEnumerable node, Action<Transform> action)
+		{
+			foreach (Transform childTransform in node) {
+				action(childTransform);
+				WalkChildren(childTransform, action);
+			}
+		}
+
+		protected void UpdateSurfaceReferences(Transform obj)
+		{
+			var surfaceAuthoring = obj.gameObject.GetComponent<IOnSurfaceAuthoring>();
+			if (surfaceAuthoring != null && surfaceAuthoring.Surface == this) {
+				surfaceAuthoring.OnSurfaceUpdated();
+			}
 		}
 
 		#endregion

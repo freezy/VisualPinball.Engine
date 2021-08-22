@@ -56,7 +56,11 @@ namespace VisualPinball.Unity.Editor
 		private IItemMainRenderableAuthoring _renderable;
 		private IDragPointsAuthoring _dragPointsAuthoring;
 
-		public void RebuildMeshes() => _renderable.RebuildMeshes();
+		public void RebuildMeshes()
+		{
+			_renderable.RebuildMeshes();
+			WalkChildren(PlayfieldAuthoring.transform, UpdateSurfaceReferences);
+		}
 
 		protected override void OnEnable()
 		{
@@ -249,13 +253,14 @@ namespace VisualPinball.Unity.Editor
 
 		private void OnDragPointPositionChange(Vector3 newPos)
 		{
-			_renderable.RebuildMeshes();
+			RebuildMeshes();
 			PrepareUndo("Change Drag Point Position");
 		}
 
 		private void OnUndoRedoPerformed()
 		{
 			RemapControlPoints();
+			WalkChildren(PlayfieldAuthoring.transform, UpdateSurfaceReferences);
 		}
 
 		protected virtual void OnSceneGUI()

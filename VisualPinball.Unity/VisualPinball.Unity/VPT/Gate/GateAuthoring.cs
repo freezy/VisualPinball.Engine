@@ -36,11 +36,13 @@ namespace VisualPinball.Unity
 {
 	[AddComponentMenu("Visual Pinball/Game Item/Gate")]
 	public class GateAuthoring : ItemMainRenderableAuthoring<Gate, GateData>,
-		ISwitchAuthoring, IConvertGameObjectToEntity
+		ISwitchAuthoring, IOnSurfaceAuthoring, IConvertGameObjectToEntity
 	{
 		public override ItemType ItemType => ItemType.Gate;
 
 		public bool IsPulseSwitch => true;
+
+		public void OnSurfaceUpdated() => UpdateTransforms();
 
 		public float PositionZ => SurfaceHeight(Surface, Position);
 

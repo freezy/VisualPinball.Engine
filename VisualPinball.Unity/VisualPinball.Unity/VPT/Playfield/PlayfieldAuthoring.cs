@@ -123,21 +123,23 @@ namespace VisualPinball.Unity
 
 		public IEnumerable<MonoBehaviour> SetReferencedData(PrimitiveData primitiveData, IMaterialProvider materialProvider, ITextureProvider textureProvider)
 		{
-			var updatedComponents = new List<MonoBehaviour> { this };
 			var mf = GetComponent<MeshFilter>();
 			var playfieldMeshAuthoring = GetComponent<PlayfieldMeshAuthoring>();
-			if (mf && playfieldMeshAuthoring) {
-				var ta = GetComponentInParent<TableAuthoring>();
-				var ro = new PrimitiveMeshGenerator(primitiveData).GetRenderObject(ta.Table, primitiveData.Mesh, Origin.Original, false);
-				ro.Material = new PbrMaterial(
-					ta.Table.GetMaterial(_playfieldMaterial),
-					ta.Table.GetTexture(_playfieldImage)
-				);
-				ItemMeshAuthoring<Primitive, PrimitiveData, PrimitiveAuthoring>.CreateMesh(gameObject, ro, "playfield_mesh", textureProvider, materialProvider);
-				playfieldMeshAuthoring.AutoGenerate = false;
-
-				updatedComponents.Add(playfieldMeshAuthoring);
+			if (!mf || !playfieldMeshAuthoring) {
+				return Array.Empty<MonoBehaviour>();
 			}
+
+			var updatedComponents = new List<MonoBehaviour> { this };
+			var ta = GetComponentInParent<TableAuthoring>();
+			var ro = new PrimitiveMeshGenerator(primitiveData).GetRenderObject(ta.Table, primitiveData.Mesh, Origin.Original, false);
+			ro.Material = new PbrMaterial(
+				ta.Table.GetMaterial(_playfieldMaterial),
+				ta.Table.GetTexture(_playfieldImage)
+			);
+			ItemMeshAuthoring<Primitive, PrimitiveData, PrimitiveAuthoring>.CreateMesh(gameObject, ro, "playfield_mesh", textureProvider, materialProvider);
+			playfieldMeshAuthoring.AutoGenerate = false;
+
+			updatedComponents.Add(playfieldMeshAuthoring);
 
 			return updatedComponents;
 		}

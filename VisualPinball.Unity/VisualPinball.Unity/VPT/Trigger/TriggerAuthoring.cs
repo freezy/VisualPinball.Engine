@@ -36,7 +36,7 @@ namespace VisualPinball.Unity
 {
 	[AddComponentMenu("Visual Pinball/Game Item/Trigger")]
 	public class TriggerAuthoring : ItemMainRenderableAuthoring<Trigger, TriggerData>,
-		ISwitchAuthoring, ITriggerAuthoring, IDragPointsAuthoring, IConvertGameObjectToEntity
+		ISwitchAuthoring, ITriggerAuthoring, IDragPointsAuthoring, IOnSurfaceAuthoring, IConvertGameObjectToEntity
 	{
 		#region Data
 
@@ -67,6 +67,7 @@ namespace VisualPinball.Unity
 
 		public ISwitchable Switchable => Item;
 
+		public void OnSurfaceUpdated() => UpdateTransforms();
 		public float PositionZ => SurfaceHeight(Surface, Position);
 
 		public override IEnumerable<Type> ValidParents => TriggerColliderAuthoring.ValidParentTypes

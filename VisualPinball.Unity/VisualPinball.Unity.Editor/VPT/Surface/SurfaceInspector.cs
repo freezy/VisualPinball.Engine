@@ -16,6 +16,8 @@
 
 // ReSharper disable AssignmentInConditionalExpression
 
+using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
@@ -49,7 +51,9 @@ namespace VisualPinball.Unity.Editor
 
 			OnPreInspectorGUI();
 
-			PropertyField(_heightTopProperty, "Top Height", true);
+			PropertyField(_heightTopProperty, "Top Height", true, onChanged: () => {
+				WalkChildren(PlayfieldAuthoring.transform, UpdateSurfaceReferences);
+			});
 			PropertyField(_heightBottomProperty, "Bottom Height", true);
 			PropertyField(_isDroppableProperty);
 

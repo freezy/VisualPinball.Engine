@@ -168,9 +168,10 @@ namespace VisualPinball.Unity
 				ma = go.transform.parent.GetComponent<IItemMainRenderableAuthoring>();
 			}
 
-			if (ma is MonoBehaviour mb && mb.GetComponent<TableAuthoring>() != null) {
+			if (ma is MonoBehaviour mb && (mb.GetComponent<TableAuthoring>() != null || mb.GetComponent<PlayfieldAuthoring>() != null)) {
 				return null;
 			}
+
 			if (ma != null) {
 				return ma;
 			}
@@ -180,7 +181,7 @@ namespace VisualPinball.Unity
 				ma = go.transform.parent.transform.parent.GetComponent<IItemMainRenderableAuthoring>();
 			}
 
-			if (ma is MonoBehaviour mb2 && mb2.GetComponent<TableAuthoring>() != null) {
+			if (ma is MonoBehaviour mb2 && (mb2.GetComponent<TableAuthoring>() != null || mb2.GetComponent<PlayfieldAuthoring>() != null)) {
 				return null;
 			}
 

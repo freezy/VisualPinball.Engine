@@ -293,18 +293,18 @@ namespace VisualPinball.Unity.Editor
 		{
 			var prefab = InstantiatePrefab(item);
 
-			// playfield mesh is the only prefab we don't parent (and it's not a prefab actually)
-			if (!prefab.SkipParenting) {
+			if (prefab.SkipParenting) {
+				return prefab;
+			}
 
-				var parentGo = GetGroupParent(item);
+			// parent to group
+			var parentGo = GetGroupParent(item);
+			prefab.GameObject.transform.SetParent(parentGo.transform, false);
 
-				prefab.GameObject.transform.SetParent(parentGo.transform, false);
-
-				// apply transformation
-				if (item is IRenderable renderable) {
-					// todo can probably remove that, it's in setData already..
-					prefab.GameObject.transform.SetFromMatrix(renderable.TransformationMatrix(_table, Origin.Original).ToUnityMatrix());
-				}
+			// apply transformation
+			if (item is IRenderable renderable) {
+				// todo can probably remove that, it's in setData already..
+				prefab.GameObject.transform.SetFromMatrix(renderable.TransformationMatrix(_table, Origin.Original).ToUnityMatrix());
 			}
 			return prefab;
 		}
