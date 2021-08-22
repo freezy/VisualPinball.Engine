@@ -26,13 +26,13 @@ namespace VisualPinball.Unity
 {
 	public static class MaterialExtensions
 	{
-		public static Material ToUnityMaterial(this PbrMaterial vpMat, IMaterialProvider materialProvider, ITextureProvider textureProvider, Type objectType, StringBuilder debug = null)
+		public static Material ToUnityMaterial(this PbrMaterial vpMat, IMaterialProvider materialProvider, ITextureProvider textureProvider, StringBuilder debug = null)
 		{
 			if (materialProvider.HasMaterial(vpMat)) {
 				return materialProvider.GetMaterial(vpMat);
 			}
 
-			var unityMaterial = RenderPipeline.Current.MaterialConverter.CreateMaterial(vpMat, textureProvider, objectType, debug);
+			var unityMaterial = RenderPipeline.Current.MaterialConverter.CreateMaterial(vpMat, textureProvider, debug);
 
 			materialProvider.SaveMaterial(vpMat, unityMaterial);
 

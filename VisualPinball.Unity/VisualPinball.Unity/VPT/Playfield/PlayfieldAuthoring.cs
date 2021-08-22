@@ -20,7 +20,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using VisualPinball.Engine.Game;
 using VisualPinball.Engine.VPT;
+using VisualPinball.Engine.VPT.Primitive;
 using VisualPinball.Engine.VPT.Table;
 using VisualPinball.Unity.Playfield;
 
@@ -110,6 +112,23 @@ namespace VisualPinball.Unity
 				mesh.CreateMesh(data, textureProvider, materialProvider);
 			}
 			return Array.Empty<MonoBehaviour>();
+		}
+
+		public IEnumerable<MonoBehaviour> SetReferencedData(PrimitiveData primitiveData, IMaterialProvider materialProvider, ITextureProvider textureProvider)
+		{
+			var updatedComponents = new List<MonoBehaviour> { this };
+			var mf = GetComponent<MeshFilter>();
+			var playfieldMeshAuthoring = GetComponent<PlayfieldMeshAuthoring>();
+			if (mf && playfieldMeshAuthoring) {
+				var ta = GetComponentInParent<TableAuthoring>();
+				var ro = new PrimitiveMeshGenerator(primitiveData).GetRenderObject(ta.Table, primitiveData.Mesh, Origin.Original, false);
+				ItemMeshAuthoring<Primitive, PrimitiveData, PrimitiveAuthoring>.CreateMesh(gameObject, ro, "Playfield", textureProvider, materialProvider);
+				playfieldMeshAuthoring.AutoGenerate = false;
+
+				updatedComponents.Add(playfieldMeshAuthoring);
+			}
+
+			return updatedComponents;
 		}
 
 		public override TableData CopyDataTo(TableData data, string[] materialNames, string[] textureNames)

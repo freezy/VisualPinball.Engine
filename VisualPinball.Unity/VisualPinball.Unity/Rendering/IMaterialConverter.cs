@@ -42,10 +42,9 @@ namespace VisualPinball.Unity
 		/// </summary>
 		/// <param name="vpxMaterial"></param>
 		/// <param name="textureProvider"></param>
-		/// <param name="objectType">Type of the item to which the material is applied (e.g. <see cref="Flipper"/>)</param>
 		/// <param name="debug"></param>
 		/// <returns></returns>
-		Material CreateMaterial(PbrMaterial vpxMaterial, ITextureProvider textureProvider, Type objectType, StringBuilder debug = null);
+		Material CreateMaterial(PbrMaterial vpxMaterial, ITextureProvider textureProvider, StringBuilder debug = null);
 
 		/// <summary>
 		/// Takes a Unity material and applies the VPX properties minus textures on it.
