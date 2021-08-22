@@ -14,22 +14,31 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+using System.Collections.Generic;
 using UnityEngine;
-using VisualPinball.Engine.VPT.Primitive;
-using VisualPinball.Unity.Playfield;
+using VisualPinball.Engine.Game;
 
 namespace VisualPinball.Unity.Editor
 {
-	public static class PrimitiveExtensions
+	internal interface IVpxPrefab
 	{
-		internal static IVpxPrefab InstantiatePrefab(this Primitive primitive, GameObject playfieldGo)
-		{
-			if (primitive.UseAsPlayfield) {
-				return new VpxPlayfieldPrefab(playfieldGo, primitive);
-			}
+		GameObject GameObject { get; }
 
-			var prefab = UnityEngine.Resources.Load<GameObject>("Prefabs/Primitive");
-			return new VpxPrefab<Primitive, PrimitiveData, PrimitiveAuthoring>(prefab, primitive) { ExtractMesh = true };
-		}
+		IItemMainAuthoring MainComponent { get; }
+
+		IEnumerable<GameObject> MeshGameObjects { get; }
+
+		IRenderable Renderable { get; }
+
+		bool ExtractMesh { get; }
+
+		bool SkipParenting { get; }
+
+		public void SetReferencedData(IMaterialProvider materialProvider, ITextureProvider textureProvider,
+			Dictionary<string, IItemMainAuthoring> components);
+
+		public void PersistData();
+
+		void FreeBinaryData();
 	}
 }

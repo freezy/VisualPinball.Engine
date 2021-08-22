@@ -290,19 +290,24 @@ namespace VisualPinball.Unity.Editor
 		internal IVpxPrefab InstantiateAndParentPrefab(IItem item)
 		{
 			var prefab = InstantiatePrefab(item);
-			var parentGo = GetGroupParent(item);
 
-			prefab.GameObject.transform.SetParent(parentGo.transform, false);
+			// playfield mesh is the only prefab we don't parent (and it's not a prefab actually)
+			if (!prefab.SkipParenting) {
 
-			// apply transformation
-			if (item is IRenderable renderable) {
-				// todo can probably remove that, it's in setData already..
-				prefab.GameObject.transform.SetFromMatrix(renderable.TransformationMatrix(_table, Origin.Original).ToUnityMatrix());
+				var parentGo = GetGroupParent(item);
+
+				prefab.GameObject.transform.SetParent(parentGo.transform, false);
+
+				// apply transformation
+				if (item is IRenderable renderable) {
+					// todo can probably remove that, it's in setData already..
+					prefab.GameObject.transform.SetFromMatrix(renderable.TransformationMatrix(_table, Origin.Original).ToUnityMatrix());
+				}
 			}
 			return prefab;
 		}
 
-		private static IVpxPrefab InstantiatePrefab(IItem item)
+		private IVpxPrefab InstantiatePrefab(IItem item)
 		{
 			switch (item) {
 				case Bumper bumper:       return bumper.InstantiatePrefab();
@@ -312,7 +317,7 @@ namespace VisualPinball.Unity.Editor
 				case Kicker kicker:       return kicker.InstantiatePrefab();
 				case Light lt:            return lt.InstantiatePrefab();
 				case Plunger plunger:     return plunger.InstantiatePrefab();
-				case Primitive primitive: return primitive.InstantiatePrefab();
+				case Primitive primitive: return primitive.InstantiatePrefab(_playfieldGo);
 				case Ramp ramp:           return ramp.InstantiatePrefab();
 				case Rubber rubber:       return rubber.InstantiatePrefab();
 				case Spinner spinner:     return spinner.InstantiatePrefab();

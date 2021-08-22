@@ -20,49 +20,37 @@ using System.Linq;
 using UnityEditor;
 using UnityEngine;
 using VisualPinball.Engine.Game;
-using VisualPinball.Engine.VPT;
-using Object = UnityEngine.Object;
+using VisualPinball.Engine.VPT.Primitive;
+using VisualPinball.Unity.Playfield;
 
 namespace VisualPinball.Unity.Editor
 {
-
-	internal class VpxPrefab<TItem, TData, TMainAuthoring> : IVpxPrefab
-		where TItem : Item<TData>
-		where TData : ItemData
-		where TMainAuthoring : ItemMainAuthoring<TItem, TData>, IItemMainAuthoring
+	internal class VpxPlayfieldPrefab : IVpxPrefab
 	{
 		public GameObject GameObject { get; }
-		public IItemMainAuthoring MainComponent => _mainComponent;
-		public IRenderable Renderable => _item as IRenderable;
-		public bool ExtractMesh { get; set; }
-		public bool SkipParenting => false;
+		public IItemMainAuthoring MainComponent => _playfieldComponent;
+		public IEnumerable<GameObject> MeshGameObjects => Array.Empty<GameObject>();
+		public IRenderable Renderable => _primitive;
+		public bool ExtractMesh => true;
+		public bool SkipParenting => true;
 
-		public IEnumerable<GameObject> MeshGameObjects => _item is IRenderable
-			? GameObject.GetComponentsInChildren<MeshFilter>().Select(mf => mf.gameObject)
-			: Array.Empty<GameObject>();
-
-		private readonly TItem _item;
-		private readonly ItemMainAuthoring<TItem, TData> _mainComponent;
+		private readonly Primitive _primitive;
+		private readonly PlayfieldAuthoring _playfieldComponent;
 		private readonly List<MonoBehaviour> _updatedComponents = new List<MonoBehaviour>();
 
-		public VpxPrefab(Object prefab, TItem item)
+		public VpxPlayfieldPrefab(GameObject playfieldGo, Primitive item)
 		{
-			_item = item;
-			GameObject = PrefabUtility.InstantiatePrefab(prefab) as GameObject;
-			GameObject!.name = item.Name;
-
-			_mainComponent = GameObject.GetComponent<TMainAuthoring>();
-			var updatedComponents = _mainComponent.SetData(item.Data);
-
-			_updatedComponents.AddRange(updatedComponents);
+			_primitive = item;
+			_playfieldComponent = playfieldGo.GetComponent<PlayfieldAuthoring>();
+			GameObject = playfieldGo;
 		}
 
 		public void SetReferencedData(IMaterialProvider materialProvider, ITextureProvider textureProvider, Dictionary<string, IItemMainAuthoring> components)
 		{
-			var updatedComponents = _mainComponent.SetReferencedData(_item.Data, materialProvider, textureProvider, components);
-			_updatedComponents.AddRange(updatedComponents);
-			if (_mainComponent is IItemMainRenderableAuthoring renderComponent) {
-				renderComponent.UpdateTransforms();
+			var playfieldComp = GameObject.GetComponent<PlayfieldAuthoring>();
+			if (playfieldComp) {
+				var updatedComponents = playfieldComp.SetReferencedData(_primitive.Data, materialProvider, textureProvider);
+				_updatedComponents.AddRange(updatedComponents);
 			}
 		}
 
@@ -75,9 +63,6 @@ namespace VisualPinball.Unity.Editor
 			}
 		}
 
-		public void FreeBinaryData()
-		{
-			_item.Data.FreeBinaryData();
-		}
+		public void FreeBinaryData() => _primitive.Data.FreeBinaryData();
 	}
 }

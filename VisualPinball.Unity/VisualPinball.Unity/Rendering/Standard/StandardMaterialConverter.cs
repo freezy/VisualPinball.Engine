@@ -67,7 +67,7 @@ namespace VisualPinball.Unity
 					throw new ArgumentOutOfRangeException("Undefined blend mode " + blendMode);
 			}
 		}
-		public Material CreateMaterial(PbrMaterial vpxMaterial, ITextureProvider textureProvider, Type objectType, StringBuilder debug = null)
+		public Material CreateMaterial(PbrMaterial vpxMaterial, ITextureProvider textureProvider, StringBuilder debug = null)
 		{
 			Material defaultMaterial = GetDefaultMaterial(vpxMaterial.MapBlendMode);
 

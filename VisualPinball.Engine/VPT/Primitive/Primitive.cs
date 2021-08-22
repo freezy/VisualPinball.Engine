@@ -33,14 +33,15 @@ namespace VisualPinball.Engine.VPT.Primitive
 		public override string ItemName => "Primitive";
 		public override string ItemGroupName => "Primitives";
 
-		public bool UseAsPlayfield;
+		public bool UseAsPlayfield => Name == "playfield_mesh";
 
-		public readonly PrimitiveMeshGenerator MeshGenerator;
 		public float RotationY { get => Data.RotAndTra[1]; set => Data.RotAndTra[1] = value; }
+
+		private readonly PrimitiveMeshGenerator _meshGenerator;
 
 		public Primitive(PrimitiveData data) : base(data)
 		{
-			MeshGenerator = new PrimitiveMeshGenerator(Data);
+			_meshGenerator = new PrimitiveMeshGenerator(Data);
 		}
 
 		public Primitive(BinaryReader reader, string itemName) : this(new PrimitiveData(reader, itemName))
@@ -55,19 +56,19 @@ namespace VisualPinball.Engine.VPT.Primitive
 
 		#region IRenderable
 
-		Matrix3D IRenderable.TransformationMatrix(Table.Table table, Origin origin) => MeshGenerator.GetPostMatrix(table, origin);
+		Matrix3D IRenderable.TransformationMatrix(Table.Table table, Origin origin) => _meshGenerator.GetPostMatrix(table, origin);
 
 		public RenderObject GetRenderObject(Table.Table table, string id = null, Origin origin = Origin.Global, bool asRightHanded = true)
 		{
-			return MeshGenerator.GetRenderObject(table, null, origin, asRightHanded);
+			return _meshGenerator.GetRenderObject(table, null, origin, asRightHanded);
 		}
 
 		public RenderObjectGroup GetRenderObjects(Table.Table table, Origin origin = Origin.Global, bool asRightHanded = true) =>
-			MeshGenerator.GetRenderObjects(table, Data.Mesh, origin, asRightHanded);
+			_meshGenerator.GetRenderObjects(table, Data.Mesh, origin, asRightHanded);
 
 		#endregion
 
-		public Mesh GetMesh() => MeshGenerator.GetMesh(Data.Mesh);
+		public Mesh GetMesh() => _meshGenerator.GetMesh(Data.Mesh);
 
 	}
 }
