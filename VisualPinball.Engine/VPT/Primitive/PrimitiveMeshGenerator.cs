@@ -18,8 +18,6 @@ using System;
 using VisualPinball.Engine.Common;
 using VisualPinball.Engine.Game;
 using VisualPinball.Engine.Math;
-using VisualPinball.Engine.VPT.Table;
-using MathF = VisualPinball.Engine.Math.MathF;
 
 namespace VisualPinball.Engine.VPT.Primitive
 {
@@ -36,11 +34,11 @@ namespace VisualPinball.Engine.VPT.Primitive
 			_data = data;
 		}
 
-		public RenderObject GetRenderObject(Table.Table table, Origin origin, bool asRightHanded)
+		public RenderObject GetRenderObject(Table.Table table, Mesh originalMesh, Origin origin, bool asRightHanded)
 		{
 			return new RenderObject(
 				_data.Name,
-				GetTransformedMesh(table, origin, asRightHanded),
+				GetTransformedMesh(table, originalMesh, origin, asRightHanded),
 				new PbrMaterial(
 					table.GetMaterial(_data.Material),
 					table.GetTexture(_data.Image),
@@ -50,14 +48,14 @@ namespace VisualPinball.Engine.VPT.Primitive
 			);
 		}
 
-		public RenderObjectGroup GetRenderObjects(Table.Table table, Origin origin, bool asRightHanded = true,
+		public RenderObjectGroup GetRenderObjects(Table.Table table, Mesh originalMesh, Origin origin, bool asRightHanded = true,
 			string parent = null, PbrMaterial material = null)
 		{
 
 			var postMatrix = GetPostMatrix(table, origin);
 			return new RenderObjectGroup(_data.Name, parent ?? "Primitives", postMatrix, new RenderObject(
 				_data.Name,
-				GetTransformedMesh(table, origin, asRightHanded),
+				GetTransformedMesh(table, originalMesh, origin, asRightHanded),
 				material ?? new PbrMaterial(
 					table.GetMaterial(_data.Material),
 					table.GetTexture(_data.Image),
@@ -67,15 +65,15 @@ namespace VisualPinball.Engine.VPT.Primitive
 			));
 		}
 
-		public Mesh GetMesh()
+		public Mesh GetMesh(Mesh originalMesh)
 		{
-			return !_data.Use3DMesh ? CalculateBuiltinOriginal() : _data.Mesh.Clone();
+			return !_data.Use3DMesh ? CalculateBuiltinOriginal() : originalMesh;
 		}
 
-		public Mesh GetTransformedMesh(Table.Table table, Origin origin, bool asRightHanded = true)
+		public Mesh GetTransformedMesh(Table.Table table, Mesh originalMesh, Origin origin, bool asRightHanded = true)
 		{
 			var (preVertexMatrix, preNormalsMatrix) = GetPreMatrix(table, origin, asRightHanded);
-			return GetMesh().Transform(preVertexMatrix, preNormalsMatrix);
+			return GetMesh(originalMesh)?.Transform(preVertexMatrix, preNormalsMatrix);
 		}
 
 		protected override float BaseHeight(Table.Table table)

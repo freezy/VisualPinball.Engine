@@ -54,6 +54,6 @@ namespace VisualPinball.Unity
 		public override IEnumerable<Type> ValidParents => ValidParentTypes;
 
 		protected override RenderObject GetRenderObject(PrimitiveData data, Table table)
-			=> new PrimitiveMeshGenerator(data).GetRenderObject(table, Origin.Original, false);
+			=> new PrimitiveMeshGenerator(data).GetRenderObject(table, data.Mesh, Origin.Original, false);
 	}
 }

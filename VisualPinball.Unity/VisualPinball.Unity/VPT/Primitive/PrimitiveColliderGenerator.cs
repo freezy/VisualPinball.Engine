@@ -45,7 +45,7 @@ namespace VisualPinball.Unity
 			_meshGenerator = new PrimitiveMeshGenerator(data);
 		}
 
-		internal void GenerateColliders(Table table, List<ICollider> colliders)
+		internal void GenerateColliders(Table table, Mesh originalMesh, List<ICollider> colliders)
 		{
 			if (_data.Name == "playfield_mesh") {
 				_data.IsVisible = false;
@@ -57,7 +57,7 @@ namespace VisualPinball.Unity
 				return;
 			}
 
-			var mesh = _meshGenerator.GetTransformedMesh(table, Origin.Global, false);
+			var mesh = _meshGenerator.GetTransformedMesh(table, originalMesh, Origin.Global, false);
 
 			var reducedVertices = math.max(
 				(uint) MathF.Pow(mesh.Vertices.Length,

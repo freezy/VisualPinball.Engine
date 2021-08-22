@@ -103,7 +103,7 @@ namespace VisualPinball.Unity.Editor
 
 		protected void PropertyField(SerializedProperty serializedProperty, string label = null,
 			bool rebuildMesh = false, bool updateTransforms = false, bool updateVisibility = false,
-			MeshFilter reinstantiateMesh = null, string meshName = "", Action onChanged = null)
+			Action onChanged = null, Action onChanging = null)
 		{
 			var checkForChanges = rebuildMesh || updateTransforms || onChanged != null;
 			if (checkForChanges) {
@@ -117,12 +117,10 @@ namespace VisualPinball.Unity.Editor
 			}
 
 			if (checkForChanges && EditorGUI.EndChangeCheck()) {
+				onChanging?.Invoke();
 				switch (target) {
 					case IItemMeshAuthoring meshItem:
 						if (rebuildMesh) {
-							if (reinstantiateMesh != null) {
-								reinstantiateMesh.sharedMesh = new UnityEngine.Mesh { name = meshName };
-							}
 							meshItem.IMainAuthoring.RebuildMeshes();
 						}
 						if (updateTransforms) {
@@ -135,9 +133,6 @@ namespace VisualPinball.Unity.Editor
 
 					case IItemMainRenderableAuthoring mainItem:
 						if (rebuildMesh) {
-							if (reinstantiateMesh != null) {
-								reinstantiateMesh.sharedMesh = new UnityEngine.Mesh { name = meshName };
-							}
 							mainItem.RebuildMeshes();
 						}
 						if (updateTransforms) {

@@ -74,8 +74,6 @@ namespace VisualPinball.Engine.VPT.Plunger
 
 		#endregion
 
-		public bool IsCollidable => true;
-
 		public bool IsDualWound { get; set; }
 	}
 }

@@ -39,6 +39,7 @@ namespace VisualPinball.Unity
 
 		public float Scatter;
 
+		[Range(0, 1f)]
 		public float CollisionReductionFactor = 0;
 
 		public bool OverwritePhysics = true;
