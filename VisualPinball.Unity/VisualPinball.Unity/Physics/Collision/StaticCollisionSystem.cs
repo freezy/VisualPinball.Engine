@@ -95,12 +95,18 @@ namespace VisualPinball.Unity
 						switch (coll.Type) {
 							case ColliderType.Bumper: {
 								var bumperStaticData = GetComponent<BumperStaticData>(coll.Entity);
-								var ringData = GetComponent<BumperRingAnimationData>(coll.Entity);
-								var skirtData = GetComponent<BumperSkirtAnimationData>(coll.Entity);
+								var animateRing = HasComponent<BumperRingAnimationData>(coll.Entity);
+								var animateSkirt = HasComponent<BumperSkirtAnimationData>(coll.Entity);
+								var ringData = animateRing ? GetComponent<BumperRingAnimationData>(coll.Entity) : default;
+								var skirtData = animateSkirt ? GetComponent<BumperSkirtAnimationData>(coll.Entity): default;
 								BumperCollider.Collide(ref ballData, ref events, ref collEvent, ref ringData, ref skirtData,
 									in ballEntity, in coll, bumperStaticData, ref random);
-								SetComponent(coll.Entity, ringData);
-								SetComponent(coll.Entity, skirtData);
+								if (animateRing) {
+									SetComponent(coll.Entity, ringData);
+								}
+								if (animateSkirt) {
+									SetComponent(coll.Entity, skirtData);
+								}
 								break;
 							}
 
