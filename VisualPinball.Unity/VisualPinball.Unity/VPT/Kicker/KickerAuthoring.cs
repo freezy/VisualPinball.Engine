@@ -192,7 +192,7 @@ namespace VisualPinball.Unity
 
 			var colliderAuthoring = gameObject.GetComponent<KickerColliderAuthoring>();
 			if (colliderAuthoring) {
-				data.IsEnabled = colliderAuthoring.gameObject.activeInHierarchy;
+				data.IsEnabled = colliderAuthoring.enabled;
 				data.Scatter = colliderAuthoring.Scatter;
 				data.HitAccuracy = colliderAuthoring.HitAccuracy;
 				data.HitHeight = colliderAuthoring.HitHeight;
