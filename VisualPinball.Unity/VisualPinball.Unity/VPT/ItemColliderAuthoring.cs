@@ -63,6 +63,11 @@ namespace VisualPinball.Unity
 
 		public abstract PhysicsMaterialData PhysicsMaterialData { get; }
 
+		private void Start()
+		{
+			// make enable checkbox visible
+		}
+
 		protected PhysicsMaterialData GetPhysicsMaterialData(float elasticity = 1f, float elasticityFalloff = 1f,
 			float friction = 0f, float scatterAngleDeg = 0f, bool overwrite = true)
 		{
