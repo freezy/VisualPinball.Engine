@@ -60,13 +60,10 @@ namespace VisualPinball.Unity.Editor
 			InitGUI();
 			_availableItems.Reload();
 			_collectionItems.Reload();
-
-			ItemInspector.ItemRenamed += OnItemRenamed;
 		}
 
 		public override void OnDisable()
 		{
-			ItemInspector.ItemRenamed -= OnItemRenamed;
 			if (_availableItems != null) {
 				_availableItems.ItemDoubleClicked -= OnAvailableDoubleClick;
 			}

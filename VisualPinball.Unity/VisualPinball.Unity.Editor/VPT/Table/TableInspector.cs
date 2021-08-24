@@ -27,7 +27,7 @@ namespace VisualPinball.Unity.Editor
 	[CanEditMultipleObjects]
 	public class TableInspector : ItemInspector
 	{
-		public override MonoBehaviour UndoTarget => target as MonoBehaviour;
+		protected override MonoBehaviour UndoTarget => target as MonoBehaviour;
 
 		public override void OnInspectorGUI()
 		{

@@ -25,12 +25,34 @@ namespace VisualPinball.Unity.Editor
 	[CustomEditor(typeof(LightAuthoring)), CanEditMultipleObjects]
 	public class LightInspector : ItemMainInspector<Light, LightData, LightAuthoring>
 	{
-		private bool _foldoutColorsAndFormatting = true;
 		private bool _foldoutState = true;
-		private bool _foldoutMisc;
 
 		private static readonly string[] LightStateLabels = { "Off", "On", "Blinking" };
 		private static readonly int[] LightStateValues = { LightStatus.LightStateOff, LightStatus.LightStateOn, LightStatus.LightStateBlinking };
+
+		private SerializedProperty _positionProperty;
+		private SerializedProperty _surfaceProperty;
+		private SerializedProperty _bulbSizeProperty;
+		private SerializedProperty _stateProperty;
+		private SerializedProperty _blinkPatternProperty;
+		private SerializedProperty _blinkIntervalProperty;
+		private SerializedProperty _fadeSpeedUpProperty;
+		private SerializedProperty _fadeSpeedDownProperty;
+
+		protected override void OnEnable()
+		{
+			base.OnEnable();
+
+			_positionProperty = serializedObject.FindProperty(nameof(LightAuthoring.Position));
+			_surfaceProperty = serializedObject.FindProperty(nameof(LightAuthoring.Surface));
+			_bulbSizeProperty = serializedObject.FindProperty(nameof(LightAuthoring.BulbSize));
+
+			_stateProperty = serializedObject.FindProperty(nameof(LightAuthoring.State));
+			_blinkPatternProperty = serializedObject.FindProperty(nameof(LightAuthoring.BlinkPattern));
+			_blinkIntervalProperty = serializedObject.FindProperty(nameof(LightAuthoring.BlinkInterval));
+			_fadeSpeedUpProperty = serializedObject.FindProperty(nameof(LightAuthoring.FadeSpeedUp));
+			_fadeSpeedDownProperty = serializedObject.FindProperty(nameof(LightAuthoring.FadeSpeedDown));
+		}
 
 		public override void OnInspectorGUI()
 		{
@@ -38,44 +60,25 @@ namespace VisualPinball.Unity.Editor
 				return;
 			}
 
-			ItemDataField("Position", ref Data.Center);
-			SurfaceField("Surface", ref Data.Surface);
+			serializedObject.Update();
 
-			if (_foldoutColorsAndFormatting = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutColorsAndFormatting, "Colors & Formatting")) {
-				ItemDataField("Falloff", ref Data.Falloff, false);
-				ItemDataField("Intensity", ref Data.Intensity, false);
+			OnPreInspectorGUI();
 
-				EditorGUILayout.LabelField("Fade Speed");
-				EditorGUI.indentLevel++;
-				ItemDataField("Up", ref Data.FadeSpeedUp, false);
-				ItemDataField("Down", ref Data.FadeSpeedDown, false);
-				EditorGUI.indentLevel--;
-
-				ItemDataField("Color", ref Data.Color2, false); // Note: using color2 since that's the hot/center color in vpx
-
-				EditorGUILayout.LabelField("Bulb");
-				EditorGUI.indentLevel++;
-				ItemDataField("Enable", ref Data.ShowBulbMesh, false);
-				ItemDataField("Scale Mesh", ref Data.MeshRadius, false);
-				EditorGUI.indentLevel--;
-			}
-			EditorGUILayout.EndFoldoutHeaderGroup();
-
+			PropertyField(_positionProperty, updateTransforms: true);
+			PropertyField(_surfaceProperty, updateTransforms: true);
+			PropertyField(_bulbSizeProperty, "Bulb Mesh Size", updateTransforms: true);
 
 			if (_foldoutState = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutState, "State")) {
-				DropDownField("State", ref Data.State, LightStateLabels, LightStateValues);
-				ItemDataField("Blink Pattern", ref Data.BlinkPattern, false);
-				ItemDataField("Blink Interval", ref Data.BlinkInterval, false);
+				DropDownProperty("State", _blinkPatternProperty, LightStateLabels, LightStateValues);
+				PropertyField(_blinkPatternProperty);
+				PropertyField(_blinkIntervalProperty);
+				PropertyField(_fadeSpeedUpProperty);
+				PropertyField(_fadeSpeedDownProperty);
 			}
-			EditorGUILayout.EndFoldoutHeaderGroup();
-
-			if (_foldoutMisc = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutMisc, "Misc")) {
-				ItemDataField("Timer Enabled", ref Data.IsTimerEnabled, false);
-				ItemDataField("Timer Interval", ref Data.TimerInterval, false);
-			}
-			EditorGUILayout.EndFoldoutHeaderGroup();
 
 			base.OnInspectorGUI();
+
+			serializedObject.ApplyModifiedProperties();
 		}
 	}
 }

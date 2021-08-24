@@ -191,11 +191,6 @@ namespace VisualPinball.Unity.Editor
 			}
 		}
 
-		internal void OnItemRenamed(IIdentifiableItemAuthoring item, string oldName, string newName)
-		{
-			Reload();
-		}
-
 		#endregion
 
 		#region Drag and Drop

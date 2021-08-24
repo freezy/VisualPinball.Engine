@@ -52,7 +52,7 @@ namespace VisualPinball.Unity.Editor
 			OnPreInspectorGUI();
 
 			PropertyField(_heightTopProperty, "Top Height", true, onChanged: () => {
-				WalkChildren(PlayfieldAuthoring.transform, UpdateSurfaceReferences);
+				WalkChildren(PlayfieldComponent.transform, UpdateSurfaceReferences);
 			});
 			PropertyField(_heightBottomProperty, "Bottom Height", true);
 			PropertyField(_isDroppableProperty);

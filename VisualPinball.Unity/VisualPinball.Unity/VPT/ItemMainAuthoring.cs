@@ -110,7 +110,6 @@ namespace VisualPinball.Unity
 			_item = item;
 			_data = item.Data;
 			name = gameObjectName ?? _data.GetName();
-			ItemDataChanged();
 			return this;
 		}
 

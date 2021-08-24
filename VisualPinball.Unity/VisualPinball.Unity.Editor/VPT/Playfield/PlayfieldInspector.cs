@@ -33,12 +33,12 @@ namespace VisualPinball.Unity.Editor
 		{
 			base.OnEnable();
 
-			_rightProperty = serializedObject.FindProperty(nameof(PlayfieldAuthoring.Right));
-			_bottomProperty = serializedObject.FindProperty(nameof(PlayfieldAuthoring.Bottom));
-			_glassHeightProperty = serializedObject.FindProperty(nameof(PlayfieldAuthoring.GlassHeight));
-			_tableHeightProperty = serializedObject.FindProperty(nameof(PlayfieldAuthoring.TableHeight));
-			_angleTiltMinProperty = serializedObject.FindProperty(nameof(PlayfieldAuthoring.AngleTiltMin));
-			_angleTiltMaxProperty = serializedObject.FindProperty(nameof(PlayfieldAuthoring.AngleTiltMax));
+			_rightProperty = serializedObject.FindProperty(nameof(PlayfieldComponent.Right));
+			_bottomProperty = serializedObject.FindProperty(nameof(PlayfieldComponent.Bottom));
+			_glassHeightProperty = serializedObject.FindProperty(nameof(PlayfieldComponent.GlassHeight));
+			_tableHeightProperty = serializedObject.FindProperty(nameof(PlayfieldComponent.TableHeight));
+			_angleTiltMinProperty = serializedObject.FindProperty(nameof(PlayfieldComponent.AngleTiltMin));
+			_angleTiltMaxProperty = serializedObject.FindProperty(nameof(PlayfieldComponent.AngleTiltMax));
 		}
 
 		public override void OnInspectorGUI()
@@ -55,7 +55,7 @@ namespace VisualPinball.Unity.Editor
 			PropertyField(_bottomProperty, "Table Height/Length", true);
 			PropertyField(_glassHeightProperty, "Top Glass Height", true);
 			PropertyField(_tableHeightProperty, "Table Field Height", true, onChanged: () => {
-				WalkChildren(PlayfieldAuthoring.transform, UpdateTableHeightReferences);
+				WalkChildren(PlayfieldComponent.transform, UpdateTableHeightReferences);
 			});
 			PropertyField(_angleTiltMinProperty, "Slope for Min. Difficulty");
 			PropertyField(_angleTiltMaxProperty, "Slope for Max. Difficulty");
