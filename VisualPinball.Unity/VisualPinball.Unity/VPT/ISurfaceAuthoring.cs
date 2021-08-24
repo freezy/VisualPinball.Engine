@@ -37,4 +37,9 @@ namespace VisualPinball.Unity
 
 		void OnSurfaceUpdated();
 	}
+
+	public interface IOnPlayfieldAuthoring
+	{
+		void OnPlayfieldHeightUpdated();
+	}
 }
