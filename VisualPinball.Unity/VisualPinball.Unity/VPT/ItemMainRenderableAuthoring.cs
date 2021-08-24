@@ -25,7 +25,7 @@ using VisualPinball.Engine.VPT;
 namespace VisualPinball.Unity
 {
 	public abstract class  ItemMainRenderableAuthoring<TItem, TData> : ItemMainAuthoring<TItem, TData>,
-		IItemMainRenderableAuthoring
+		IItemMainRenderableAuthoring, IOnPlayfieldAuthoring
 		where TItem : Item<TData>, IRenderable
 		where TData : ItemData
 	{
@@ -58,6 +58,8 @@ namespace VisualPinball.Unity
 				meshComponent.RebuildMeshes();
 			}
 		}
+
+		public virtual void OnPlayfieldHeightUpdated() => UpdateTransforms();
 
 		public virtual void UpdateTransforms()
 		{

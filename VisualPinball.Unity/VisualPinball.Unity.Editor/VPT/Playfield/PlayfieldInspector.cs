@@ -54,7 +54,9 @@ namespace VisualPinball.Unity.Editor
 			PropertyField(_rightProperty, "Table Width", true);
 			PropertyField(_bottomProperty, "Table Height/Length", true);
 			PropertyField(_glassHeightProperty, "Top Glass Height", true);
-			PropertyField(_tableHeightProperty, "Table Field Height", true);
+			PropertyField(_tableHeightProperty, "Table Field Height", true, onChanged: () => {
+				WalkChildren(PlayfieldAuthoring.transform, UpdateTableHeightReferences);
+			});
 			PropertyField(_angleTiltMinProperty, "Slope for Min. Difficulty");
 			PropertyField(_angleTiltMaxProperty, "Slope for Max. Difficulty");
 

@@ -67,6 +67,8 @@ namespace VisualPinball.Unity
 
 		public float Height(Vector2 _) => HeightTop + PlayfieldHeight;
 
+		public override void OnPlayfieldHeightUpdated() => RebuildMeshes();
+
 		public void Convert(Entity entity, EntityManager dstManager, GameObjectConversionSystem conversionSystem)
 		{
 			Convert(entity, dstManager);

@@ -71,5 +71,13 @@ namespace VisualPinball.Unity.Editor
 				surfaceAuthoring.OnSurfaceUpdated();
 			}
 		}
+
+		protected void UpdateTableHeightReferences(Transform obj)
+		{
+			var onTableAuthoring = obj.gameObject.GetComponent<IOnPlayfieldAuthoring>();
+			if (onTableAuthoring != null) {
+				onTableAuthoring.OnPlayfieldHeightUpdated();
+			}
+		}
 	}
 }
