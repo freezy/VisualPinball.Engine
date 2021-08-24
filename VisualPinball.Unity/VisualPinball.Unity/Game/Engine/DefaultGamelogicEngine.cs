@@ -135,6 +135,7 @@ namespace VisualPinball.Unity
 		private Player _player;
 		private BallManager _ballManager;
 		private bool _frameSent = false;
+		private PlayfieldAuthoring _playfieldComponent;
 
 		private readonly Dictionary<string, Stopwatch> _switchTime = new Dictionary<string, Stopwatch>();
 
@@ -158,6 +159,8 @@ namespace VisualPinball.Unity
 			// eject ball onto playfield
 			OnCoilChanged?.Invoke(this, new CoilEventArgs(CoilTroughEject, true));
 			_player.ScheduleAction(100, () => OnCoilChanged?.Invoke(this, new CoilEventArgs(CoilTroughEject, false)));
+
+			_playfieldComponent = GetComponentInChildren<PlayfieldAuthoring>();
 		}
 
 		private void Update()
@@ -213,7 +216,7 @@ namespace VisualPinball.Unity
 
 				case SwCreateBall: {
 					if (isClosed) {
-						_ballManager.CreateBall(new DebugBallCreator());
+						_ballManager.CreateBall(new DebugBallCreator(_playfieldComponent.TableHeight));
 					}
 					break;
 				}

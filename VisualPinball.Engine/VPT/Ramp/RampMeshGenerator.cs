@@ -41,11 +41,11 @@ namespace VisualPinball.Engine.VPT.Ramp
 			_data = data;
 		}
 
-		public RenderObject GetRenderObject(Table.Table table, string id, float tableHeight, bool asRightHanded)
+		public RenderObject GetRenderObject(Table.Table table, string id, float playfieldHeight, bool asRightHanded)
 		{
 			var mesh = new Mesh();
 			if (id == Wires) {
-				var meshes = GenerateWireMeshes(table, tableHeight);
+				var meshes = GenerateWireMeshes(table, playfieldHeight);
 
 				for (var i = 1; i <= 4; i++) {
 					var name = $"Wire{i}";
@@ -55,7 +55,7 @@ namespace VisualPinball.Engine.VPT.Ramp
 				}
 
 			} else {
-				var rv = GetRampVertex(table, tableHeight, -1, true);
+				var rv = GetRampVertex(table, playfieldHeight, -1, true);
 				switch (id) {
 					case Floor:
 						mesh = GenerateFlatFloorMesh(table, rv);

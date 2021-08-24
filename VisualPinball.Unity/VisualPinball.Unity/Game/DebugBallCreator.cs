@@ -25,26 +25,30 @@ namespace VisualPinball.Unity
 	{
 		private float _x;
 		private float _y;
+		private float _z;
 
 		private readonly float _kickAngle;
 		private readonly float _kickForce;
 
-		public DebugBallCreator()
+		public DebugBallCreator(float playfieldHeight)
 		{
 			_x = -1;
 			_y = -1;
+			_z = playfieldHeight;
 		}
 
-		public DebugBallCreator(float x, float y)
+		public DebugBallCreator(float x, float y, float playfieldHeight)
 		{
 			_x = x;
 			_y = y;
+			_z = playfieldHeight;
 		}
 
-		public DebugBallCreator(float x, float y, float kickAngle, float kickForce)
+		public DebugBallCreator(float x, float y, float playfieldHeight, float kickAngle, float kickForce)
 		{
 			_x = x;
 			_y = y;
+			_z = playfieldHeight;
 			_kickAngle = math.radians(kickAngle);
 			_kickForce = kickForce;
 		}
@@ -58,7 +62,7 @@ namespace VisualPinball.Unity
 				// _x = Random.Range(table.Width / 6f, table.Width / 6f * 5f);
 				// _y = Random.Range(table.Height / 8f, table.Height / 2f);
 			}
-			return new Vertex3D(_x, _y, 0);
+			return new Vertex3D(_x, _y, _z);
 		}
 
 		public Vertex3D GetBallCreationVelocity(Table table)

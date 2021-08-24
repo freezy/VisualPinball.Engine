@@ -119,7 +119,7 @@ namespace VisualPinball.Unity
 			var t = transform;
 
 			// position
-			t.localPosition = new Vector3(Position.x, Position.y, PositionZ);
+			t.localPosition = new Vector3(Position.x, Position.y, Position.z + PositionZ);
 
 			// scale
 			t.localScale = new Vector3(Length, Length, Length);
