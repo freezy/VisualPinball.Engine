@@ -25,45 +25,46 @@ namespace VisualPinball.Unity
 {
 	internal class GateColliderGenerator
 	{
-		private readonly GateData _data;
+		private readonly IGateData _data;
+		private readonly IGateColliderData _collData;
 		private readonly GateApi _api;
 
-		internal GateColliderGenerator(GateApi gateApi, GateData data)
+		internal GateColliderGenerator(GateApi gateApi, IGateData data, IGateColliderData collData)
 		{
 			_api = gateApi;
 			_data = data;
+			_collData = collData;
 		}
 
-		internal void GenerateColliders(Table table, List<ICollider> colliders)
+		internal void GenerateColliders(float height, List<ICollider> colliders) // var height = table.GetSurfaceHeight(_data.Surface, _data.Center.X, _data.Center.Y);
 		{
-			var angleMin = math.min(_data.AngleMin, _data.AngleMax); // correct angle inversions
-			var angleMax = math.max(_data.AngleMin, _data.AngleMax);
+			var angleMin = math.min(_collData.AngleMin, _collData.AngleMax); // correct angle inversions
+			var angleMax = math.max(_collData.AngleMin, _collData.AngleMax);
 
 			// todo should probably move this to somewhere else
-			_data.AngleMin = angleMin;
-			_data.AngleMax = angleMax;
+			_collData.AngleMin = angleMin;
+			_collData.AngleMax = angleMax;
 
-			var height = table.GetSurfaceHeight(_data.Surface, _data.Center.X, _data.Center.Y);
 			var radAngle = math.radians(_data.Rotation);
 			var tangent = new float2(math.cos(radAngle), math.sin(radAngle));
 
-			GenerateGateCollider(table, colliders, height, radAngle);
-			GenerateLineCollider(table, colliders, height, tangent);
-			GenerateBracketColliders(table, colliders, height, tangent);
+			GenerateGateCollider(colliders, height, radAngle);
+			GenerateLineCollider(colliders, height, tangent);
+			GenerateBracketColliders(colliders, height, tangent);
 		}
 
-		private void GenerateGateCollider(Table table, ICollection<ICollider> colliders, float height, float radAngle)
+		private void GenerateGateCollider(ICollection<ICollider> colliders, float height, float radAngle)
 		{
 			var halfLength = _data.Length * 0.5f;
 			var sn = math.sin(radAngle);
 			var cs = math.cos(radAngle);
 			var v1 = new float2(
-				_data.Center.X - cs * (halfLength + PhysicsConstants.PhysSkin),
-				_data.Center.Y - sn * (halfLength + PhysicsConstants.PhysSkin)
+				_data.PosX - cs * (halfLength + PhysicsConstants.PhysSkin),
+				_data.PosY - sn * (halfLength + PhysicsConstants.PhysSkin)
 			);
 			var v2 = new float2(
-				_data.Center.X + cs * (halfLength + PhysicsConstants.PhysSkin),
-				_data.Center.Y + sn * (halfLength + PhysicsConstants.PhysSkin)
+				_data.PosX + cs * (halfLength + PhysicsConstants.PhysSkin),
+				_data.PosY + sn * (halfLength + PhysicsConstants.PhysSkin)
 			);
 
 			var lineSeg0 = new LineCollider(v1, v2, height, height + 2.0f * PhysicsConstants.PhysSkin, _api.GetColliderInfo());
@@ -72,15 +73,15 @@ namespace VisualPinball.Unity
 			colliders.Add(new GateCollider(in lineSeg0, in lineSeg1, _api.GetColliderInfo()));
 		}
 
-		private void GenerateLineCollider(Table table, ICollection<ICollider> colliders, float height, float2 tangent)
+		private void GenerateLineCollider(ICollection<ICollider> colliders, float height, float2 tangent)
 		{
-			if (_data.TwoWay) {
+			if (_collData.TwoWay) {
 				return;
 			}
 
 			// oversize by the ball's radius to prevent the ball from clipping through
 			var halfLength = _data.Length * 0.5f;
-			var center = _data.Center.ToUnityFloat2();
+			var center = new float2(_data.PosX, _data.PosY);
 			var rgv0 = center + (halfLength + PhysicsConstants.PhysSkin) * tangent;
 			var rgv1 = center - (halfLength + PhysicsConstants.PhysSkin) * tangent;
 
@@ -88,15 +89,16 @@ namespace VisualPinball.Unity
 			colliders.Add(new LineCollider(rgv0, rgv1, height, height + 2.0f * PhysicsConstants.PhysSkin, info)); //!! = ball diameter
 		}
 
-		private void GenerateBracketColliders(Table table, ICollection<ICollider> colliders, float height, float2 tangent)
+		private void GenerateBracketColliders(ICollection<ICollider> colliders, float height, float2 tangent)
 		{
 			if (!_data.ShowBracket) {
 				return;
 			}
 
+			var center = new float2(_data.PosX, _data.PosY);
 			var halfLength = _data.Length * 0.5f;
 			colliders.Add(new CircleCollider(
-				_data.Center.ToUnityFloat2() + tangent * halfLength,
+				center + tangent * halfLength,
 				0.01f,
 				height,
 				height + _data.Height,
@@ -104,7 +106,7 @@ namespace VisualPinball.Unity
 			));
 
 			colliders.Add(new CircleCollider(
-				_data.Center.ToUnityFloat2() - tangent * halfLength,
+				center - tangent * halfLength,
 				0.01f,
 				height,
 				height + _data.Height,

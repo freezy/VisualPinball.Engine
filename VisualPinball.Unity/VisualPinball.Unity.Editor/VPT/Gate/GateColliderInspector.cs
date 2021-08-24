@@ -36,13 +36,13 @@ namespace VisualPinball.Unity.Editor
 		{
 			base.OnEnable();
 
-			_angleMinProperty = serializedObject.FindProperty(nameof(GateColliderAuthoring.AngleMin));
-			_angleMaxProperty = serializedObject.FindProperty(nameof(GateColliderAuthoring.AngleMax));
+			_angleMinProperty = serializedObject.FindProperty(nameof(GateColliderAuthoring._angleMin));
+			_angleMaxProperty = serializedObject.FindProperty(nameof(GateColliderAuthoring._angleMax));
 			_elasticityProperty = serializedObject.FindProperty(nameof(GateColliderAuthoring.Elasticity));
 			_frictionProperty = serializedObject.FindProperty(nameof(GateColliderAuthoring.Friction));
 			_dampingProperty = serializedObject.FindProperty(nameof(GateColliderAuthoring.Damping));
 			_gravityFactorProperty = serializedObject.FindProperty(nameof(GateColliderAuthoring.GravityFactor));
-			_twoWayProperty = serializedObject.FindProperty(nameof(GateColliderAuthoring.TwoWay));
+			_twoWayProperty = serializedObject.FindProperty(nameof(GateColliderAuthoring._twoWay));
 		}
 
 		public override void OnInspectorGUI()
