@@ -32,7 +32,7 @@ namespace VisualPinball.Unity.Editor
 		protected TItem Item;
 		protected TData Data;
 
-		public override MonoBehaviour UndoTarget => ItemAuthoring;
+		protected override MonoBehaviour UndoTarget => ItemAuthoring;
 
 		protected override void OnEnable()
 		{

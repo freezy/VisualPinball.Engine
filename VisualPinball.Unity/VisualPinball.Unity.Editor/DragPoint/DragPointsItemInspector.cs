@@ -59,7 +59,7 @@ namespace VisualPinball.Unity.Editor
 		public void RebuildMeshes()
 		{
 			_renderable.RebuildMeshes();
-			WalkChildren(PlayfieldAuthoring.transform, UpdateSurfaceReferences);
+			WalkChildren(PlayfieldComponent.transform, UpdateSurfaceReferences);
 		}
 
 		protected override void OnEnable()
@@ -260,7 +260,7 @@ namespace VisualPinball.Unity.Editor
 		private void OnUndoRedoPerformed()
 		{
 			RemapControlPoints();
-			WalkChildren(PlayfieldAuthoring.transform, UpdateSurfaceReferences);
+			WalkChildren(PlayfieldComponent.transform, UpdateSurfaceReferences);
 		}
 
 		protected virtual void OnSceneGUI()

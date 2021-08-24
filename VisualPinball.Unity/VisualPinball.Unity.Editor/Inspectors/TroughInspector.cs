@@ -123,7 +123,7 @@ namespace VisualPinball.Unity.Editor
 				GUILayout.BeginVertical();
 
 				EditorGUILayout.LabelField("Switch status:", new GUIStyle(GUI.skin.label) { fontStyle = FontStyle.Bold });
-				var troughApi = _ta.GetComponent<Player>().TableApi.Trough(Item.Name);
+				var troughApi = TableComponent.GetComponent<Player>().TableApi.Trough(Item.Name);
 
 				if (ItemAuthoring.Type != TroughType.ModernOpto && ItemAuthoring.Type != TroughType.ModernMech) {
 					DrawSwitch("Drain Switch", troughApi.EntrySwitch);

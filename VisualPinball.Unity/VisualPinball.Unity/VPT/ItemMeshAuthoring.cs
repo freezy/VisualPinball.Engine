@@ -38,13 +38,8 @@ namespace VisualPinball.Unity
 		protected virtual string MeshId => null;
 
 		private List<MemberInfo> _materialRefs;
-		private List<MemberInfo> _textureRefs;
 
 		#region Creation and destruction
-
-		[HideInInspector]
-		[SerializeField]
-		private bool _meshCreated = true;
 
 		private void OnEnable()
 		{
@@ -64,18 +59,9 @@ namespace VisualPinball.Unity
 
 		#endregion
 
-		public void OnVisibilityChanged(bool before, bool after)
-		{
-			if (before == after) {
-				return;
-			}
-			enabled = after;
-		}
-
 		public void RebuildMeshes()
 		{
 			UpdateMesh();
-			ItemDataChanged();
 		}
 
 		public void ClearMeshVertices()

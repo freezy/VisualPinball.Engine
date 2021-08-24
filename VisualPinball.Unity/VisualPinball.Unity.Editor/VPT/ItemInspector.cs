@@ -16,36 +16,18 @@
 
 using System;
 using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
 using UnityEditor;
-using UnityEditor.IMGUI.Controls;
 using UnityEngine;
-using VisualPinball.Engine.Game;
-using VisualPinball.Engine.Math;
-using VisualPinball.Engine.VPT;
-using VisualPinball.Engine.VPT.Surface;
 using Object = UnityEngine.Object;
 
 namespace VisualPinball.Unity.Editor
 {
 	public abstract class ItemInspector : UnityEditor.Editor
 	{
-		public abstract MonoBehaviour UndoTarget { get; }
+		protected abstract MonoBehaviour UndoTarget { get; }
 
-		protected TableAuthoring _ta;
-		protected PlayfieldAuthoring PlayfieldAuthoring;
-
-		private AdvancedDropdownState _itemPickDropdownState;
-
-		private readonly Dictionary<string, MonoBehaviour> _refItems = new Dictionary<string, MonoBehaviour>();
-		private readonly Dictionary<string, MonoBehaviour> _objItems = new Dictionary<string, MonoBehaviour>();
-		private readonly Dictionary<string, MonoBehaviour> _compItems = new Dictionary<string, MonoBehaviour>();
-
-		private string[] _allMaterials = new string[0];
-		private string[] _allTextures = new string[0];
-
-		public static event Action<IIdentifiableItemAuthoring, string, string> ItemRenamed;
+		protected TableAuthoring TableComponent;
+		protected PlayfieldAuthoring PlayfieldComponent;
 
 		#region Unity Events
 
@@ -53,10 +35,13 @@ namespace VisualPinball.Unity.Editor
 		{
 			Undo.undoRedoPerformed += OnUndoRedoPerformed;
 
-			_ta = (target as MonoBehaviour)?.gameObject.GetComponentInParent<TableAuthoring>();
-			PlayfieldAuthoring = (target as MonoBehaviour)?.gameObject.GetComponentInParent<PlayfieldAuthoring>();
+			TableComponent = (target as MonoBehaviour)?.gameObject.GetComponentInParent<TableAuthoring>();
+			PlayfieldComponent = (target as MonoBehaviour)?.gameObject.GetComponentInParent<PlayfieldAuthoring>();
+		}
 
-			PopulateDropDownOptions();
+		protected virtual void OnDisable()
+		{
+			Undo.undoRedoPerformed -= OnUndoRedoPerformed;
 		}
 
 		private void OnUndoRedoPerformed()
@@ -64,16 +49,15 @@ namespace VisualPinball.Unity.Editor
 			switch (target) {
 				case IItemMeshAuthoring meshItem:
 					meshItem.IMainAuthoring.RebuildMeshes();
+					meshItem.IMainAuthoring.UpdateTransforms();
+					meshItem.IMainAuthoring.UpdateVisibility();
 					break;
 				case IItemMainRenderableAuthoring mainItem:
 					mainItem.RebuildMeshes();
+					mainItem.UpdateTransforms();
+					mainItem.UpdateVisibility();
 					break;
 			}
-		}
-
-		protected virtual void OnDisable()
-		{
-			Undo.undoRedoPerformed -= OnUndoRedoPerformed;
 		}
 
 		public override void OnInspectorGUI()
@@ -178,26 +162,6 @@ namespace VisualPinball.Unity.Editor
 			}
 		}
 
-		private void PopulateDropDownOptions()
-		{
-			if (_ta == null) return;
-
-			if (_ta.Data.Materials != null) {
-				_allMaterials = new string[_ta.Data.Materials.Length + 1];
-				_allMaterials[0] = "- none -";
-				for (var i = 0; i < _ta.Data.Materials.Length; i++) {
-					_allMaterials[i + 1] = _ta.Data.Materials[i].Name;
-				}
-				Array.Sort(_allMaterials, 1, _allMaterials.Length - 1);
-			}
-			// if (_table.Textures != null) {
-			// 	_allTextures = new string[_table.Textures.Count + 1];
-			// 	_allTextures[0] = "- none -";
-			// 	_table.Textures.Select(tex => tex.Name).ToArray().CopyTo(_allTextures, 1);
-			// 	Array.Sort(_allTextures, 1, _allTextures.Length - 1);
-			// }
-		}
-
 		protected void OnPreInspectorGUI()
 		{
 			if (!(target is IItemMainRenderableAuthoring item)) {
@@ -216,18 +180,6 @@ namespace VisualPinball.Unity.Editor
 
 		#region Data Fields
 
-		protected void ItemDataField(string label, ref float field, bool dirtyMesh = true, Action<float, float> onChanged = null)
-		{
-			EditorGUI.BeginChangeCheck();
-			var val = EditorGUILayout.FloatField(label, field);
-			if (EditorGUI.EndChangeCheck()) {
-				FinishEdit(label, dirtyMesh);
-				var fieldBefore = field;
-				field = val;
-				onChanged?.Invoke(fieldBefore, field);
-			}
-		}
-
 		public void ItemDataSlider(string label, ref float field, float leftVal, float rightVal, bool dirtyMesh = true, Action<float, float> onChanged = null)
 		{
 			EditorGUI.BeginChangeCheck();
@@ -240,36 +192,6 @@ namespace VisualPinball.Unity.Editor
 			}
 		}
 
-		protected void ItemDataField(string label, ref int field, bool dirtyMesh = true)
-		{
-			EditorGUI.BeginChangeCheck();
-			var val = EditorGUILayout.IntField(label, field);
-			if (EditorGUI.EndChangeCheck()) {
-				FinishEdit(label, dirtyMesh);
-				field = val;
-			}
-		}
-
-		public void ItemDataSlider(string label, ref int field, int leftVal, int rightVal, bool dirtyMesh = true)
-		{
-			EditorGUI.BeginChangeCheck();
-			var val = EditorGUILayout.IntSlider(label, field, leftVal, rightVal);
-			if (EditorGUI.EndChangeCheck()) {
-				FinishEdit(label, dirtyMesh);
-				field = val;
-			}
-		}
-
-		protected void ItemDataField(string label, ref string field, bool dirtyMesh = true)
-		{
-			EditorGUI.BeginChangeCheck();
-			var val = EditorGUILayout.TextField(label, field);
-			if (EditorGUI.EndChangeCheck()) {
-				FinishEdit(label, dirtyMesh);
-				field = val;
-			}
-		}
-
 		protected void ItemDataField(string label, ref bool field, bool dirtyMesh = true, Action<bool, bool> onChanged = null)
 		{
 			EditorGUI.BeginChangeCheck();
@@ -279,204 +201,6 @@ namespace VisualPinball.Unity.Editor
 				var fieldBefore = field;
 				field = val;
 				onChanged?.Invoke(fieldBefore, field);
-			}
-		}
-
-		protected void ItemDataField(string label, ref Vertex2D field, bool dirtyMesh = true)
-		{
-			EditorGUI.BeginChangeCheck();
-			var val = EditorGUILayout.Vector2Field(label, field.ToUnityVector2()).ToVertex2D();
-			if (EditorGUI.EndChangeCheck()) {
-				FinishEdit(label, dirtyMesh);
-				field = val;
-			}
-		}
-
-		protected void ItemDataField(string label, ref Vertex3D field, bool dirtyMesh = true)
-		{
-			EditorGUI.BeginChangeCheck();
-			var val = EditorGUILayout.Vector3Field(label, field.ToUnityVector3()).ToVertex3D();
-			if (EditorGUI.EndChangeCheck()) {
-				FinishEdit(label, dirtyMesh);
-				field = val;
-			}
-		}
-
-		protected void ItemDataField(string label, ref Engine.Math.Color field, bool dirtyMesh = true)
-		{
-			EditorGUI.BeginChangeCheck();
-			var val = EditorGUILayout.ColorField(label, field.ToUnityColor()).ToEngineColor();
-			if (EditorGUI.EndChangeCheck()) {
-				FinishEdit(label, dirtyMesh);
-				field = val;
-			}
-		}
-
-		protected void ItemDataField<T>(string label, ref T field, bool dirtyMesh = true, string tooltip = "") where T : ScriptableObject
-		{
-			EditorGUI.BeginChangeCheck();
-			var val = EditorGUILayout.ObjectField(new GUIContent(label, tooltip), field, typeof(T), false) as T;
-			if (EditorGUI.EndChangeCheck()) {
-				FinishEdit(label, dirtyMesh);
-				field = val;
-			}
-		}
-
-		protected void ItemReferenceField<TItemAuthoring, TItem, TData>(string label, string cacheKey, ref string field, bool dirtyMesh = true)
-			where TItemAuthoring : ItemAuthoring<TItem, TData>
-			where TData : ItemData where TItem : Item<TData>, IRenderable
-		{
-			if (!_refItems.ContainsKey(cacheKey) && _ta != null) {
-				var currentFieldName = field;
-				if (currentFieldName != null && _ta.TableContainer.Has<TItem>(currentFieldName)) {
-					_refItems[cacheKey] = _ta.gameObject.GetComponentsInChildren<TItemAuthoring>(true)
-						.FirstOrDefault(s => s.name == currentFieldName);
-				}
-			}
-
-			EditorGUI.BeginChangeCheck();
-			_refItems[cacheKey] = (TItemAuthoring)EditorGUILayout.ObjectField(label, _refItems.ContainsKey(cacheKey) ? _refItems[cacheKey] : null, typeof(TItemAuthoring), true);
-			if (EditorGUI.EndChangeCheck()) {
-				FinishEdit(label, dirtyMesh);
-				field = _refItems[cacheKey] != null ? _refItems[cacheKey].name : string.Empty;
-			}
-		}
-
-		protected void SurfaceField(string label, ref string field, bool dirtyMesh = true)
-		{
-			ItemReferenceField<SurfaceAuthoring, Surface, SurfaceData>(label, "surface", ref field, dirtyMesh);
-		}
-
-		protected void DropDownField<T>(string label, ref T field, string[] optionStrings, T[] optionValues, bool dirtyMesh = true, Action<T, T> onChanged = null) where T : IEquatable<T>
-		{
-			if (optionStrings == null || optionValues == null || optionStrings.Length != optionValues.Length) {
-				return;
-			}
-
-			var selectedIndex = 0;
-			for (var i = 0; i < optionValues.Length; i++) {
-				if (optionValues[i].Equals(field)) {
-					selectedIndex = i;
-					break;
-				}
-			}
-			EditorGUI.BeginChangeCheck();
-			selectedIndex = EditorGUILayout.Popup(label, selectedIndex, optionStrings);
-			if (EditorGUI.EndChangeCheck() && selectedIndex >= 0 && selectedIndex < optionValues.Length) {
-				FinishEdit(label, dirtyMesh);
-				var fieldBefore = field;
-				field = optionValues[selectedIndex];
-				onChanged?.Invoke(fieldBefore, field);
-			}
-		}
-
-		protected void TextureFieldLegacy(string label, ref string field, bool dirtyMesh = true)
-		{
-			if (_ta == null) return;
-
-			// if the field is set, but the tex isn't in our list, maybe it was added after this
-			// inspector was instantiated, so re-grab our options from the table data
-			if (!string.IsNullOrEmpty(field) && !_allTextures.Contains(field)) {
-				PopulateDropDownOptions();
-			}
-
-			var selectedIndex = 0;
-			for (var i = 0; i < _allTextures.Length; i++) {
-				if (string.Equals(_allTextures[i], field, StringComparison.CurrentCultureIgnoreCase)) {
-					selectedIndex = i;
-					break;
-				}
-			}
-			EditorGUI.BeginChangeCheck();
-			selectedIndex = EditorGUILayout.Popup("[VPX] " + label, selectedIndex, _allTextures);
-			if (EditorGUI.EndChangeCheck() && selectedIndex >= 0 && selectedIndex < _allTextures.Length) {
-				FinishEdit(label, dirtyMesh);
-				field = selectedIndex == 0 ? string.Empty : _allTextures[selectedIndex];
-			}
-		}
-
-		protected void PhysicsMaterialField(string label, ref PhysicsMaterial prevMat)
-		{
-			EditorGUI.BeginChangeCheck();
-			var newMat = (PhysicsMaterial)EditorGUILayout.ObjectField(label, prevMat, typeof(PhysicsMaterial), false);
-			if (EditorGUI.EndChangeCheck()) {
-				Undo.RecordObject(UndoTarget, "Change physics material of " + UndoTarget.name);
-				prevMat = newMat;
-			}
-		}
-
-		protected void MaterialFieldLegacy(string label, ref string field, bool dirtyMesh = true)
-		{
-			// if the field is set, but the material isn't in our list, maybe it was added after this
-			// inspector was instantiated, so re-grab our mat options from the table data
-			if (!string.IsNullOrEmpty(field) && !_allMaterials.Contains(field)) {
-				PopulateDropDownOptions();
-			}
-
-			DropDownField("[VPX] " + label, ref field, _allMaterials, _allMaterials, dirtyMesh);
-			if (_allMaterials.Length > 0 && field == _allMaterials[0]) {
-				field = string.Empty; // don't store the none value string in our data
-			}
-		}
-
-		protected void ObjectReferenceField<T>(string label, string pickerLabel, string noneLabel, string cacheKey, string field, Action<string> onSelected)
-			where T: class, IIdentifiableItemAuthoring
-		{
-			var pos = EditorGUILayout.GetControlRect(true, 18f);
-			pos = EditorGUI.PrefixLabel(pos, new GUIContent(label));
-
-			MonoBehaviour obj = null;
-			if (!_objItems.ContainsKey(cacheKey)) {
-				if (!string.IsNullOrEmpty(field)) {
-					obj = _ta.gameObject.GetComponentsInChildren<T>(true)
-						.FirstOrDefault(s => s.Name == field) as MonoBehaviour;
-					_objItems[cacheKey] = obj;
-				}
-			} else {
-				obj = _objItems[cacheKey];
-			}
-
-			var content = obj == null
-				? new GUIContent(noneLabel)
-				: new GUIContent(obj.name, Icons.ByComponent(obj, IconSize.Small, IconColor.Orange));
-
-			var id = GUIUtility.GetControlID(FocusType.Keyboard, pos);
-			var objectFieldButton = GUI.skin.GetStyle("ObjectFieldButton");
-			var suffixButtonPos = new Rect(pos.xMax - 19f, pos.y + 1, 19f, pos.height - 2);
-
-			EditorGUIUtility.SetIconSize(new Vector2(12f, 12f));
-			if (Event.current.type == EventType.MouseDown && pos.Contains(Event.current.mousePosition)) {
-
-				if (obj != null && !suffixButtonPos.Contains(Event.current.mousePosition)) {
-					EditorGUIUtility.PingObject(obj.gameObject);
-
-				} else {
-					_itemPickDropdownState ??= new AdvancedDropdownState();
-
-					var dropdown = new ItemSearchableDropdown<T>(
-						_itemPickDropdownState,
-						_ta,
-						pickerLabel,
-						item => {
-							switch (item) {
-								case null:
-									_objItems[cacheKey] = null;
-									onSelected(string.Empty);
-									break;
-								case MonoBehaviour mb:
-									_objItems[cacheKey] = mb;
-									onSelected(item.Name);
-									break;
-							}
-						}
-					);
-					dropdown.Show(pos);
-				}
-
-			}
-			if (Event.current.type == EventType.Repaint) {
-				EditorStyles.objectField.Draw(pos, content, id, DragAndDrop.activeControlID == id, pos.Contains(Event.current.mousePosition));
-				objectFieldButton.Draw(suffixButtonPos, GUIContent.none, id, DragAndDrop.activeControlID == id, suffixButtonPos.Contains(Event.current.mousePosition));
 			}
 		}
 
@@ -494,7 +218,7 @@ namespace VisualPinball.Unity.Editor
 						meshItem.IMainAuthoring.RebuildMeshes();
 						break;
 
-					case IItemColliderAuthoring colliderItem:
+					case IItemColliderAuthoring _:
 						Undo.RecordObject(UndoTarget, undoLabel);
 						break;
 
@@ -503,10 +227,6 @@ namespace VisualPinball.Unity.Editor
 						mainItem.RebuildMeshes();
 						break;
 				}
-			}
-
-			if (target is IItemMainRenderableAuthoring item) {
-				item.ItemDataChanged();
 			}
 		}
 

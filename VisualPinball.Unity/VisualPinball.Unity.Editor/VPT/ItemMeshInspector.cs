@@ -34,7 +34,7 @@ namespace VisualPinball.Unity.Editor
 
 		protected TData Data => MeshAuthoring == null ? null : MeshAuthoring.Data;
 
-		public override MonoBehaviour UndoTarget => MeshAuthoring.MainAuthoring;
+		protected override MonoBehaviour UndoTarget => MeshAuthoring.MainAuthoring;
 
 		protected override void OnEnable()
 		{
