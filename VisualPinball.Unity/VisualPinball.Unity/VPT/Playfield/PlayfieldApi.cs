@@ -20,6 +20,7 @@ using Unity.Mathematics;
 using UnityEngine;
 using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Table;
+using VisualPinball.Unity.Playfield;
 
 namespace VisualPinball.Unity
 {
@@ -35,38 +36,49 @@ namespace VisualPinball.Unity
 		{
 			var info = ((IApiColliderGenerator)this).GetColliderInfo();
 
-			// simple outer borders:
-			colliders.Add(new LineCollider(
-				new float2(MainComponent.Right, MainComponent.Top),
-				new float2(MainComponent.Right, MainComponent.Bottom),
-				MainComponent.TableHeight,
-				MainComponent.GlassHeight,
-				info
-			));
+			var meshComp = GameObject.GetComponent<PlayfieldMeshAuthoring>();
+			if (meshComp && !meshComp.AutoGenerate) {
+				var mf = GameObject.GetComponent<MeshFilter>();
+				if (mf && mf.sharedMesh) {
+					ColliderUtils.GenerateCollidersFromMesh(mf.sharedMesh.ToVpMesh(), info, colliders);
+				}
+			}
 
-			colliders.Add(new LineCollider(
-				new float2(MainComponent.Left, MainComponent.Bottom),
-				new float2(MainComponent.Left, MainComponent.Top),
-				MainComponent.TableHeight,
-				MainComponent.GlassHeight,
-				info
-			));
+			if (ColliderComponent.CollideWithBounds) {
 
-			colliders.Add(new LineCollider(
-				new float2(MainComponent.Right, MainComponent.Bottom),
-				new float2(MainComponent.Left, MainComponent.Bottom),
-				MainComponent.TableHeight,
-				MainComponent.GlassHeight,
-				info
-			));
+				// simple outer borders:
+				colliders.Add(new LineCollider(
+					new float2(MainComponent.Right, MainComponent.Top),
+					new float2(MainComponent.Right, MainComponent.Bottom),
+					MainComponent.TableHeight,
+					MainComponent.GlassHeight,
+					info
+				));
 
-			colliders.Add(new LineCollider(
-				new float2(MainComponent.Left, MainComponent.Top),
-				new float2(MainComponent.Right, MainComponent.Top),
-				MainComponent.TableHeight,
-				MainComponent.GlassHeight,
-				info
-			));
+				colliders.Add(new LineCollider(
+					new float2(MainComponent.Left, MainComponent.Bottom),
+					new float2(MainComponent.Left, MainComponent.Top),
+					MainComponent.TableHeight,
+					MainComponent.GlassHeight,
+					info
+				));
+
+				colliders.Add(new LineCollider(
+					new float2(MainComponent.Right, MainComponent.Bottom),
+					new float2(MainComponent.Left, MainComponent.Bottom),
+					MainComponent.TableHeight,
+					MainComponent.GlassHeight,
+					info
+				));
+
+				colliders.Add(new LineCollider(
+					new float2(MainComponent.Left, MainComponent.Top),
+					new float2(MainComponent.Right, MainComponent.Top),
+					MainComponent.TableHeight,
+					MainComponent.GlassHeight,
+					info
+				));
+			}
 
 			// glass:
 			var rgv3D = new[] {
@@ -75,10 +87,10 @@ namespace VisualPinball.Unity
 				new float3(MainComponent.Right, MainComponent.Bottom, MainComponent.GlassHeight),
 				new float3(MainComponent.Left, MainComponent.Bottom, MainComponent.GlassHeight)
 			};
-			ColliderUtils.Generate3DPolyColliders(rgv3D, table, info, colliders);
+			ColliderUtils.Generate3DPolyColliders(rgv3D, info, colliders);
 		}
 
-		internal (PlaneCollider, PlaneCollider) CreateColliders(Table table)
+		internal (PlaneCollider, PlaneCollider) CreateColliders()
 		{
 			var info = new ColliderInfo {
 				ItemType = ItemType.Table,

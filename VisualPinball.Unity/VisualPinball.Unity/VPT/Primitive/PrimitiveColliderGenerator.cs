@@ -34,28 +34,22 @@ namespace VisualPinball.Unity
 	public class PrimitiveColliderGenerator
 	{
 		private readonly IApiColliderGenerator _api;
-		private readonly PrimitiveData _data;
 		private readonly PrimitiveMeshGenerator _meshGenerator;
 
-		public PrimitiveColliderGenerator(PrimitiveApi primitiveApi, PrimitiveData data)
+		public PrimitiveColliderGenerator(IApiColliderGenerator primitiveApi, PrimitiveData data)
 		{
 			_api = primitiveApi;
-			_data = data;
 			_meshGenerator = new PrimitiveMeshGenerator(data);
 		}
 
-		internal void GenerateColliders(Table table, Mesh originalMesh, List<ICollider> colliders)
+		internal void GenerateColliders(Table table, Mesh originalMesh, float collisionReductionFactor, List<ICollider> colliders)
 		{
-			// playfield can't be a toy
-			if (_data.IsToy) {
-				return;
-			}
 
 			var mesh = _meshGenerator.GetTransformedMesh(table, originalMesh, Origin.Global, false);
 
 			var reducedVertices = math.max(
 				(uint) MathF.Pow(mesh.Vertices.Length,
-					MathF.Clamp(1f - _data.CollisionReductionFactor, 0f, 1f) * 0.25f + 0.75f),
+					MathF.Clamp(1f - collisionReductionFactor, 0f, 1f) * 0.25f + 0.75f),
 				420u //!! 420 = magic
 			);
 
@@ -63,7 +57,7 @@ namespace VisualPinball.Unity
 				mesh = ComputeReducedMesh(mesh, reducedVertices);
 			}
 
-			ColliderUtils.GenerateCollidersFromMesh(table, mesh, _api.GetColliderInfo(), colliders);
+			ColliderUtils.GenerateCollidersFromMesh(mesh, _api.GetColliderInfo(), colliders);
 		}
 
 		private static Mesh ComputeReducedMesh(Mesh mesh, uint reducedVertices)

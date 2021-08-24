@@ -41,6 +41,8 @@ namespace VisualPinball.Unity
 
 		public float DefaultScatter;
 
+		public bool CollideWithBounds = true;
+
 		#endregion
 
 		public static readonly Type[] ValidParentTypes = Type.EmptyTypes;
