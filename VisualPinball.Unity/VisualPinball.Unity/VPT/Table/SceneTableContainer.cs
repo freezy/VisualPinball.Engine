@@ -98,12 +98,9 @@ namespace VisualPinball.Unity
 		public override void Save(string fileName)
 		{
 			Refresh();
-			FillBinaryData();
 			PrepareForExport();
 
 			base.Save(fileName);
-
-			FreeBinaryData();
 		}
 
 		private void PrepareForExport()
@@ -175,31 +172,9 @@ namespace VisualPinball.Unity
 			return orderedItems.Length;
 		}
 
-		private void FillBinaryData()
-		{
-			WalkChildren(_tableAuthoring.transform, FillBinaryData);
-		}
-
-		private void FreeBinaryData()
-		{
-			WalkChildren(_tableAuthoring.transform, FreeBinaryData);
-		}
-
-		private static void FillBinaryData(Transform transform)
-		{
-			var comp = transform.GetComponent<IItemMainAuthoring>();
-			comp?.FillBinaryData();
-		}
-
-		private static void FreeBinaryData(Transform transform)
-		{
-			var comp = transform.GetComponent<IItemMainAuthoring>();
-			comp?.ItemData?.FreeBinaryData();
-		}
-
 		private IEnumerable<Sound> RetrieveSounds()
 		{
-			return new Sound[0];
+			return Array.Empty<Sound>();
 		}
 
 		protected override void Clear()

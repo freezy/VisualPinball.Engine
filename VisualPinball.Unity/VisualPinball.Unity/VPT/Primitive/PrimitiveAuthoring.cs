@@ -220,20 +220,6 @@ namespace VisualPinball.Unity
 			return data;
 		}
 
-		public override void FillBinaryData()
-		{
-			var meshAuth = GetComponent<PrimitiveMeshAuthoring>();
-			if (!meshAuth) {
-				meshAuth = GetComponentInChildren<PrimitiveMeshAuthoring>();
-			}
-
-			var meshGo = meshAuth ? meshAuth.gameObject : gameObject;
-			var mf = meshGo.GetComponent<MeshFilter>();
-			if (mf) {
-				Data.Mesh = mf.sharedMesh.ToVpMesh();
-			}
-		}
-
 		#region Editor Tooling
 
 		public override ItemDataTransformType EditorPositionType => ItemDataTransformType.ThreeD;
