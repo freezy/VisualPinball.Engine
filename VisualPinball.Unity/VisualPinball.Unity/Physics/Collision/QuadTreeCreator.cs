@@ -36,7 +36,7 @@ namespace VisualPinball.Unity
 		private static readonly ProfilerMarker PerfMarkerCreateQuadTree = new ProfilerMarker("QuadTreeCreator (3 - create quad tree)");
 		private static readonly ProfilerMarker PerfMarkerSaveToEntity = new ProfilerMarker("QuadTreeCreator (4 - save to entity)");
 
-		public static void Create(EntityManager entityManager, ref NativeHashMap<Entity, bool> itemsColliding)
+		public static void Create(EntityManager entityManager, out NativeHashMap<Entity, bool> itemsColliding)
 		{
 			PerfMarkerTotal.Begin();
 
@@ -46,7 +46,7 @@ namespace VisualPinball.Unity
 			// 1. generate colliders
 			PerfMarkerGenerateColliders.Begin();
 			var colliderList = new List<ICollider>();
-			var (playfieldCollider, glassCollider) = player.PlayfieldApi.CreateColliders(player.Table);
+			var (playfieldCollider, glassCollider) = player.PlayfieldApi.CreateColliders();
 			itemsColliding = new NativeHashMap<Entity, bool>(itemApis.Length, Allocator.Persistent);
 			foreach (var itemApi in itemApis) {
 				PerfMarkerCreateColliders.Begin();

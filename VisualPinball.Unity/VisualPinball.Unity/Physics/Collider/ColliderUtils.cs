@@ -18,13 +18,12 @@ using System.Collections.Generic;
 using Unity.Mathematics;
 using VisualPinball.Engine.Math;
 using VisualPinball.Engine.VPT;
-using VisualPinball.Engine.VPT.Table;
 
 namespace VisualPinball.Unity
 {
 	public static class ColliderUtils
 	{
-		public static void Generate3DPolyColliders(in float3[] rgv, Table table, ColliderInfo info, ICollection<ICollider> colliders)
+		public static void Generate3DPolyColliders(in float3[] rgv, ColliderInfo info, ICollection<ICollider> colliders)
 		{
 			var inputVerts = new float2[rgv.Length];
 
@@ -42,10 +41,10 @@ namespace VisualPinball.Unity
 			}
 			var mesh = new Mesh(triangulatedVerts, outputIndices);
 
-			GenerateCollidersFromMesh(table, mesh, info, colliders, true);
+			GenerateCollidersFromMesh(mesh, info, colliders, true);
 		}
 
-		public static void GenerateCollidersFromMesh(Table table, Mesh mesh, ColliderInfo info, ICollection<ICollider> colliders, bool onlyTriangles = false)
+		public static void GenerateCollidersFromMesh(Mesh mesh, ColliderInfo info, ICollection<ICollider> colliders, bool onlyTriangles = false)
 		{
 			var addedEdges = EdgeSet.Get();
 			var collCount = colliders.Count;

@@ -50,7 +50,7 @@ namespace VisualPinball.Unity
 			var mf = MainComponent.GetComponent<MeshFilter>();
 			if (mf && mf.sharedMesh) {
 				var colliderGenerator = new PrimitiveColliderGenerator(this, MainComponent.CreateData());
-				colliderGenerator.GenerateColliders(table, mf.sharedMesh.ToVpMesh(), colliders);
+				colliderGenerator.GenerateColliders(table, mf.sharedMesh.ToVpMesh(), ColliderComponent.CollisionReductionFactor, colliders);
 			}
 		}
 

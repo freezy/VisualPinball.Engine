@@ -59,10 +59,10 @@ namespace VisualPinball.Unity
 				GenerateLinePolys(pv2, pv3, table, colliders);
 			}
 
-			ColliderUtils.Generate3DPolyColliders(in rgv3Dt, table, _api.GetColliderInfo(), colliders);
+			ColliderUtils.Generate3DPolyColliders(in rgv3Dt, _api.GetColliderInfo(), colliders);
 
 			if (rgv3Db != null) {
-				ColliderUtils.Generate3DPolyColliders(in rgv3Db, table, _api.GetColliderInfo(), colliders);
+				ColliderUtils.Generate3DPolyColliders(in rgv3Db, _api.GetColliderInfo(), colliders);
 			}
 		}
 

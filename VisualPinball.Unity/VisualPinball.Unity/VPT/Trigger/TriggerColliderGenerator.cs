@@ -74,7 +74,7 @@ namespace VisualPinball.Unity
 				AddLineSeg(pv2.ToUnityFloat2(), pv3.ToUnityFloat2(), height, table, colliders);
 			}
 
-			ColliderUtils.Generate3DPolyColliders(rgv3D, table, _api.GetColliderInfo(), colliders);
+			ColliderUtils.Generate3DPolyColliders(rgv3D, _api.GetColliderInfo(), colliders);
 		}
 
 		private void AddLineSeg(float2 pv1, float2 pv2, float height, Table table, ICollection<ICollider> colliders) {
