@@ -19,6 +19,7 @@
 // ReSharper disable StringLiteralTypo
 // ReSharper disable FieldCanBeMadeReadOnly.Global
 // ReSharper disable ConvertToConstant.Global
+// ReSharper disable InconsistentNaming
 #endregion
 
 using System;
@@ -32,7 +33,7 @@ using MathF = VisualPinball.Engine.Math.MathF;
 namespace VisualPinball.Engine.VPT.Gate
 {
 	[Serializable]
-	public class GateData : ItemData, IPhysicsMaterialData
+	public class GateData : ItemData, IPhysicsMaterialData, IGateData, IGateColliderData
 	{
 		public override string GetName() => Name;
 		public override void SetName(string name) { Name = name; }
@@ -41,10 +42,10 @@ namespace VisualPinball.Engine.VPT.Gate
 		public string Name = string.Empty;
 
 		[BiffFloat("GAMA", Pos = 12)]
-		public float AngleMax = MathF.PI / 2.0f;
+		public float AngleMax { get; set; } = MathF.PI / 2.0f;
 
 		[BiffFloat("GAMI", Pos = 13)]
-		public float AngleMin = 0f;
+		public float AngleMin { get; set; }
 
 		[BiffFloat("AFRC", Pos = 15)]
 		public float Damping = 0.985f;
@@ -62,7 +63,7 @@ namespace VisualPinball.Engine.VPT.Gate
 		public float GravityFactor = 0.25f;
 
 		[BiffFloat("HGTH", Pos = 3)]
-		public float Height = 50f;
+		public float Height  { get; set; } = 50f;
 
 		[BiffBool("GCOL", Pos = 8)]
 		public bool IsCollidable = true;
@@ -74,13 +75,13 @@ namespace VisualPinball.Engine.VPT.Gate
 		public bool IsVisible = true;
 
 		[BiffFloat("LGTH", Pos = 2)]
-		public float Length = 100f;
+		public float Length { get; set; } = 100f;
 
 		[BiffFloat("ROTA", Pos = 4)]
-		public float Rotation = -90f;
+		public float Rotation  { get; set; } = -90f;
 
 		[BiffBool("GSUP", Pos = 7)]
-		public bool ShowBracket = true;
+		public bool ShowBracket  { get; set; } = true;
 
 		[MaterialReference]
 		[BiffString("MATR", Pos = 5)]
@@ -90,7 +91,7 @@ namespace VisualPinball.Engine.VPT.Gate
 		public string Surface;
 
 		[BiffBool("TWWA", Pos = 19)]
-		public bool TwoWay = false;
+		public bool TwoWay  { get; set; } = false;
 
 		[BiffVertex("VCEN", Pos = 1)]
 		public Vertex2D Center;
@@ -100,6 +101,9 @@ namespace VisualPinball.Engine.VPT.Gate
 
 		[BiffInt("TMIN", Pos = 9)]
 		public int TimerInterval;
+
+		public float PosX => Center.X;
+		public float PosY => Center.Y;
 
 		public GateData() : base(StoragePrefix.GameItem)
 		{

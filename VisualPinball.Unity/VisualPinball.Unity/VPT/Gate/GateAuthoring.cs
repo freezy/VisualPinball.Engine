@@ -36,7 +36,7 @@ namespace VisualPinball.Unity
 {
 	[AddComponentMenu("Visual Pinball/Game Item/Gate")]
 	public class GateAuthoring : ItemMainRenderableAuthoring<Gate, GateData>,
-		ISwitchAuthoring, IOnSurfaceAuthoring, IConvertGameObjectToEntity
+		IGateData, ISwitchAuthoring, IOnSurfaceAuthoring, IConvertGameObjectToEntity
 	{
 		public override ItemType ItemType => ItemType.Gate;
 
@@ -53,17 +53,38 @@ namespace VisualPinball.Unity
 
 		[Range(-180f, 180f)]
 		[Tooltip("Angle of the gate on the playfield (z-axis rotation)")]
-		public float Rotation;
+		public float _rotation;
 
 		[Range(10f, 250f)]
 		[Tooltip("How much the gate is scaled, in percent.")]
-		public float Length = 100f;
+		public float _length = 100f;
 
 		public ISurfaceAuthoring Surface { get => _surface as ISurfaceAuthoring; set => _surface = value as MonoBehaviour; }
 		[SerializeField]
 		[TypeRestriction(typeof(ISurfaceAuthoring), PickerLabel = "Walls & Ramps", UpdateTransforms = true)]
 		[Tooltip("On which surface this flipper is attached to. Updates Z-translation.")]
 		public MonoBehaviour _surface;
+
+		#endregion
+
+		#region IGateData
+
+		public float PosX => Position.x;
+		public float PosY => Position.y;
+		public float Height => Position.z;
+
+		public float Rotation => _rotation;
+		public float Length => _length;
+
+		public bool ShowBracket { get {
+			foreach (var mf in GetComponentsInChildren<MeshFilter>()) {
+				switch (mf.gameObject.name) {
+					case BracketPrefabName:
+						return mf.gameObject.activeInHierarchy;
+				}
+			}
+			return false;
+		}}
 
 		#endregion
 
@@ -90,18 +111,18 @@ namespace VisualPinball.Unity
 			if (colliderAuthoring) {
 
 				dstManager.AddComponentData(entity, new GateStaticData {
-					AngleMin = math.radians(colliderAuthoring.AngleMin),
-					AngleMax = math.radians(colliderAuthoring.AngleMax),
+					AngleMin = math.radians(colliderAuthoring._angleMin),
+					AngleMax = math.radians(colliderAuthoring._angleMax),
 					Height = Position.z,
 					Damping = math.pow(colliderAuthoring.Damping, (float)PhysicsConstants.PhysFactor),
 					GravityFactor = colliderAuthoring.GravityFactor,
-					TwoWay = colliderAuthoring.TwoWay
+					TwoWay = colliderAuthoring._twoWay
 				});
 
 				// movement data
 				if (GetComponentInChildren<GateWireAnimationAuthoring>()) {
 					dstManager.AddComponentData(entity, new GateMovementData {
-						Angle = math.radians(colliderAuthoring.AngleMin),
+						Angle = math.radians(colliderAuthoring._angleMin),
 						AngleSpeed = 0,
 						ForcedMove = false,
 						IsOpen = false,
@@ -134,8 +155,8 @@ namespace VisualPinball.Unity
 
 			// transforms
 			Position = data.Center.ToUnityVector3(data.Height);
-			Rotation = data.Rotation > 180f ? data.Rotation - 360f : data.Rotation;
-			Length = data.Length;
+			_rotation = data.Rotation > 180f ? data.Rotation - 360f : data.Rotation;
+			_length = data.Length;
 
 			// visibility
 			foreach (var mf in GetComponentsInChildren<MeshFilter>()) {
@@ -152,19 +173,19 @@ namespace VisualPinball.Unity
 			// collider data
 			var colliderAuthoring = gameObject.GetComponent<GateColliderAuthoring>();
 			if (colliderAuthoring) {
-				colliderAuthoring.AngleMin = math.degrees(data.AngleMin);
-				colliderAuthoring.AngleMax = math.degrees(data.AngleMax);
-				if (colliderAuthoring.AngleMin > 180f) {
-					colliderAuthoring.AngleMin -= 360f;
+				colliderAuthoring._angleMin = math.degrees(data.AngleMin);
+				colliderAuthoring._angleMax = math.degrees(data.AngleMax);
+				if (colliderAuthoring._angleMin > 180f) {
+					colliderAuthoring._angleMin -= 360f;
 				}
-				if (colliderAuthoring.AngleMax > 180f) {
-					colliderAuthoring.AngleMax -= 360f;
+				if (colliderAuthoring._angleMax > 180f) {
+					colliderAuthoring._angleMax -= 360f;
 				}
 				colliderAuthoring.Damping = data.Damping;
 				colliderAuthoring.Elasticity = data.Elasticity;
 				colliderAuthoring.Friction = data.Friction;
 				colliderAuthoring.GravityFactor = data.GravityFactor;
-				colliderAuthoring.TwoWay = data.TwoWay;
+				colliderAuthoring._twoWay = data.TwoWay;
 
 				updatedComponents.Add(colliderAuthoring);
 			}
@@ -205,13 +226,13 @@ namespace VisualPinball.Unity
 			if (colliderAuthoring) {
 				data.IsCollidable = colliderAuthoring.enabled;
 
-				data.AngleMin = math.radians(colliderAuthoring.AngleMin);
-				data.AngleMax = math.radians(colliderAuthoring.AngleMax);
+				data.AngleMin = math.radians(colliderAuthoring._angleMin);
+				data.AngleMax = math.radians(colliderAuthoring._angleMax);
 				data.Damping = colliderAuthoring.Damping;
 				data.Elasticity = colliderAuthoring.Elasticity;
 				data.Friction = colliderAuthoring.Friction;
 				data.GravityFactor = colliderAuthoring.GravityFactor;
-				data.TwoWay = colliderAuthoring.TwoWay;
+				data.TwoWay = colliderAuthoring._twoWay;
 
 			} else {
 				data.IsCollidable = false;
@@ -227,11 +248,11 @@ namespace VisualPinball.Unity
 
 		public override ItemDataTransformType EditorRotationType => ItemDataTransformType.OneD;
 		public override Vector3 GetEditorRotation() => new Vector3(Rotation, 0f, 0f);
-		public override void SetEditorRotation(Vector3 rot) => Rotation = rot.x;
+		public override void SetEditorRotation(Vector3 rot) => _rotation = rot.x;
 
 		public override ItemDataTransformType EditorScaleType => ItemDataTransformType.OneD;
 		public override Vector3 GetEditorScale() => new Vector3(Length, 0f, 0f);
-		public override void SetEditorScale(Vector3 scale) => Length = scale.x;
+		public override void SetEditorScale(Vector3 scale) => _length = scale.x;
 
 		#endregion
 	}

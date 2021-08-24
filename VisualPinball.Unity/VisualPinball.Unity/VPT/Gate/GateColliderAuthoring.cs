@@ -26,17 +26,17 @@ using VisualPinball.Engine.VPT.Gate;
 namespace VisualPinball.Unity
 {
 	[AddComponentMenu("Visual Pinball/Collision/Gate Collider")]
-	public class GateColliderAuthoring : ItemColliderAuthoring<Gate, GateData, GateAuthoring>
+	public class GateColliderAuthoring : ItemColliderAuthoring<Gate, GateData, GateAuthoring>, IGateColliderData
 	{
 		#region Data
 
 		[Range(-180f, 180f)]
 		[ToolboxItem("Angle of bracket/plate when opened")]
-		public float AngleMax = 90f;
+		public float _angleMax = 90f;
 
 		[Range(-180f, 180f)]
 		[ToolboxItem("Angle of bracket/plate when closed")]
-		public float AngleMin;
+		public float _angleMin;
 
 		[Min(0)]
 		[ToolboxItem("How much damping is applied during movement")]
@@ -54,7 +54,16 @@ namespace VisualPinball.Unity
 		public float GravityFactor = 0.25f;
 
 		[ToolboxItem("If set, the ball can pass through both sides of the gate.")]
-		public bool TwoWay;
+		public bool _twoWay;
+
+		#endregion
+
+		#region IGateColliderData
+
+		public float AngleMin { get => _angleMin; set => _angleMin = value; }
+
+		public float AngleMax { get => _angleMax; set => _angleMax = value; }
+		public bool TwoWay => _twoWay;
 
 		#endregion
 

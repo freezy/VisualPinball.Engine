@@ -41,8 +41,8 @@ namespace VisualPinball.Unity.Editor
 			base.OnEnable();
 
 			_positionProperty = serializedObject.FindProperty(nameof(GateAuthoring.Position));
-			_rotationProperty = serializedObject.FindProperty(nameof(GateAuthoring.Rotation));
-			_lengthProperty = serializedObject.FindProperty(nameof(GateAuthoring.Length));
+			_rotationProperty = serializedObject.FindProperty(nameof(GateAuthoring._rotation));
+			_lengthProperty = serializedObject.FindProperty(nameof(GateAuthoring._length));
 			_surfaceProperty = serializedObject.FindProperty(nameof(GateAuthoring._surface));
 		}
 
