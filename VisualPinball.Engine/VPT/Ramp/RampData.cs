@@ -19,6 +19,7 @@
 // ReSharper disable StringLiteralTypo
 // ReSharper disable FieldCanBeMadeReadOnly.Global
 // ReSharper disable ConvertToConstant.Global
+// ReSharper disable InconsistentNaming
 #endregion
 
 using System;
@@ -31,7 +32,7 @@ using VisualPinball.Engine.VPT.Table;
 namespace VisualPinball.Engine.VPT.Ramp
 {
 	[Serializable]
-	public class RampData : ItemData, IPhysicsMaterialData
+	public class RampData : ItemData, IRampData, IPhysicsMaterialData
 	{
 		public override string GetName() => Name;
 		public override void SetName(string name) { Name = name; }
@@ -43,7 +44,7 @@ namespace VisualPinball.Engine.VPT.Ramp
 		public float DepthBias = 0f;
 
 		[BiffDragPoint("DPNT", TagAll = true, Pos = 2000)]
-		public DragPointData[] DragPoints;
+		public DragPointData[] DragPoints { get; set; }
 
 		[BiffFloat("ELAS", Pos = 19)]
 		public float Elasticity;
@@ -55,13 +56,13 @@ namespace VisualPinball.Engine.VPT.Ramp
 		public bool HitEvent = false;
 
 		[BiffFloat("HTBT", Pos = 1)]
-		public float HeightBottom = 0f;
+		public float HeightBottom { get; set; }  = 0f;
 
 		[BiffFloat("HTTP", Pos = 2)]
-		public float HeightTop = 50f;
+		public float HeightTop { get; set; }  = 50f;
 
 		[BiffInt("ALGN", Pos = 11)]
-		public int ImageAlignment = RampImageAlignment.ImageModeWorld;
+		public int ImageAlignment { get; set; } = RampImageAlignment.ImageModeWorld;
 
 		[BiffBool("IMGW", Pos = 12)]
 		public bool ImageWalls = true;
@@ -79,7 +80,7 @@ namespace VisualPinball.Engine.VPT.Ramp
 		public float LeftWallHeight = 62f;
 
 		[BiffFloat("WVHL", Pos = 15)]
-		public float LeftWallHeightVisible = 30f;
+		public float LeftWallHeightVisible { get; set; } = 30f;
 
 		[BiffBool("OVPH", Pos = 30)]
 		public bool OverwritePhysics = true;
@@ -88,10 +89,10 @@ namespace VisualPinball.Engine.VPT.Ramp
 		public int RampType = VisualPinball.Engine.VPT.RampType.RampTypeFlat;
 
 		[BiffFloat("WLHR", Pos = 14)]
-		public float RightWallHeight = 62f;
+		public float RightWallHeight { get; set; } = 62f;
 
 		[BiffFloat("WVHR", Pos = 16)]
-		public float RightWallHeightVisible = 30f;
+		public float RightWallHeightVisible { get; set; } = 30f;
 
 		[BiffFloat("RSCT", Pos = 21)]
 		public float Scatter;
@@ -112,19 +113,19 @@ namespace VisualPinball.Engine.VPT.Ramp
 		public float Threshold;
 
 		[BiffFloat("WDBT", Pos = 3)]
-		public float WidthBottom = 75f;
+		public float WidthBottom { get; set; } = 75f;
 
 		[BiffFloat("WDTP", Pos = 4)]
-		public float WidthTop = 60f;
+		public float WidthTop { get; set; } = 60f;
 
 		[BiffFloat("RADI", Pos = 25)]
-		public float WireDiameter = 8f;
+		public float WireDiameter { get; set; } = 8f;
 
 		[BiffFloat("RADX", Pos = 26)]
-		public float WireDistanceX = 38f;
+		public float WireDistanceX { get; set; } = 38f;
 
 		[BiffFloat("RADY", Pos = 27)]
-		public float WireDistanceY = 88f;
+		public float WireDistanceY { get; set; } = 88f;
 
 		[BiffBool("TMON", Pos = 6)]
 		public bool IsTimerEnabled;
@@ -134,6 +135,8 @@ namespace VisualPinball.Engine.VPT.Ramp
 
 		[BiffTag("PNTS", Pos = 1999)]
 		public bool Points;
+
+		public int Type => RampType;
 
 		public RampData() : base(StoragePrefix.GameItem)
 		{

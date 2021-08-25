@@ -50,7 +50,6 @@ namespace VisualPinball.Unity
 				return;
 			}
 			mesh = mesh.Transform(_meshGenerator.GetTransformationMatrix());
-			//var mesh = _meshGenerator.GetTransformedMesh(table, originalMesh, Origin.Global, false);
 
 			var reducedVertices = math.max(
 				(uint) MathF.Pow(mesh.Vertices.Length,
