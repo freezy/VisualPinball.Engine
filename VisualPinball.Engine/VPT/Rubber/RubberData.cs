@@ -31,7 +31,7 @@ using VisualPinball.Engine.VPT.Table;
 namespace VisualPinball.Engine.VPT.Rubber
 {
 	[Serializable]
-	public class RubberData : ItemData, IPhysicsMaterialData
+	public class RubberData : ItemData, IRubberData, IPhysicsMaterialData
 	{
 		public override string GetName() => Name;
 		public override void SetName(string name) { Name = name; }
@@ -40,13 +40,13 @@ namespace VisualPinball.Engine.VPT.Rubber
 		public string Name = string.Empty;
 
 		[BiffFloat("HTTP", Pos = 1)]
-		public float Height = 25f;
+		public float Height { get; set; } = 25f;
 
 		[BiffFloat("HTHI", Pos = 2)]
-		public float HitHeight = 25f;
+		public float HitHeight { get; set; } = 25f;
 
 		[BiffInt("WDTP", Pos = 3)]
-		public int Thickness = 8;
+		public int Thickness { get; set; } = 8;
 
 		[BiffBool("HTEV", Pos = 4)]
 		public bool HitEvent = false;
@@ -87,13 +87,13 @@ namespace VisualPinball.Engine.VPT.Rubber
 		public bool ShowInEditor = true;
 
 		[BiffFloat("ROTX", Pos = 18)]
-		public float RotX = 0f;
+		public float RotX { get; set; } = 0f;
 
 		[BiffFloat("ROTY", Pos = 19)]
-		public float RotY = 0f;
+		public float RotY { get; set; } = 0f;
 
 		[BiffFloat("ROTZ", Pos = 20)]
-		public float RotZ = 0f;
+		public float RotZ { get; set; } = 0f;
 
 		[MaterialReference]
 		[BiffString("MAPH", Pos = 22)]
@@ -103,7 +103,7 @@ namespace VisualPinball.Engine.VPT.Rubber
 		public bool OverwritePhysics = false;
 
 		[BiffDragPoint("DPNT", TagAll = true, Pos = 2000)]
-		public DragPointData[] DragPoints;
+		public DragPointData[] DragPoints { get; set; }
 
 		[BiffBool("TMON", Pos = 6)]
 		public bool IsTimerEnabled;

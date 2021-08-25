@@ -32,6 +32,6 @@ namespace VisualPinball.Unity
 		public override IEnumerable<Type> ValidParents => ValidParentTypes;
 
 		protected override RenderObject GetRenderObject(RubberData data, Table table)
-			=> new RubberMeshGenerator(data).GetRenderObject(table, Origin.Original,  false);
+			=> new RubberMeshGenerator(MainAuthoring).GetRenderObject(table, data);
 	}
 }

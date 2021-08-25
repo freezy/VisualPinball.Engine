@@ -47,8 +47,7 @@ namespace VisualPinball.Unity
 
 		protected override void CreateColliders(Table table, List<ICollider> colliders)
 		{
-			var data = MainComponent.CreateData();
-			var colliderGenerator = new RubberColliderGenerator(this, new RubberMeshGenerator(data));
+			var colliderGenerator = new RubberColliderGenerator(this, new RubberMeshGenerator(MainComponent));
 			colliderGenerator.GenerateColliders(table, colliders);
 		}
 

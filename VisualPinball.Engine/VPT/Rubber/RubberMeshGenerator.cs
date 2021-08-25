@@ -29,43 +29,41 @@ namespace VisualPinball.Engine.VPT.Rubber
 {
 	public class RubberMeshGenerator : MeshGenerator
 	{
-		private readonly RubberData _data;
+		private readonly IRubberData _data;
 		protected override Vertex3D Position => _middlePoint;
 		protected override Vertex3D Scale => Vertex3D.One;
 		protected override float RotationZ => 0;
 
 		private Vertex3D _middlePoint;
 
-		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
-
-		public RubberMeshGenerator(RubberData data)
+		public RubberMeshGenerator(IRubberData data)
 		{
 			_data = data;
 		}
 
-		public RenderObject GetRenderObject(Table.Table table, Origin origin, bool asRightHanded)
+		public RenderObject GetRenderObject(Table.Table table, RubberData rubberData)
 		{
 			var mesh = GetMesh(table);
 			var (postVertexMatrix, postNormalsMatrix) = GetPostMatrix(table);
 			return new RenderObject(
-				_data.Name,
+				rubberData.Name,
 				mesh.Transform(postVertexMatrix, postNormalsMatrix),
-				new PbrMaterial(table.GetMaterial(_data.Material), table.GetTexture(_data.Image)),
-				_data.IsVisible
+				new PbrMaterial(table.GetMaterial(rubberData.Material), table.GetTexture(rubberData.Image)),
+				rubberData.IsVisible
 			);
 		}
 
-		public RenderObjectGroup GetRenderObjects(Table.Table table, Origin origin, bool asRightHanded = true)
+		public RenderObjectGroup GetRenderObjects(Table.Table table, Origin origin, RubberData rubberData)
 		{
 			var mesh = GetMesh(table);
 			//var (preVertexMatrix, preNormalsMatrix) = GetPreMatrix(table, origin, asRightHanded);
 			var (preVertexMatrix, preNormalsMatrix) = GetPostMatrix(table);
 			var postMatrix = GetPostMatrix(table, origin);
-			return new RenderObjectGroup(_data.Name, "Rubbers", postMatrix, new RenderObject(
-				_data.Name,
+			return new RenderObjectGroup(rubberData.Name, "Rubbers", postMatrix, new RenderObject(
+				rubberData.Name,
 				mesh.Transform(preVertexMatrix, preNormalsMatrix),
-				new PbrMaterial(table.GetMaterial(_data.Material), table.GetTexture(_data.Image)),
-				_data.IsVisible
+				new PbrMaterial(table.GetMaterial(rubberData.Material), table.GetTexture(rubberData.Image)),
+				rubberData.IsVisible
 			));
 		}
 
@@ -104,7 +102,7 @@ namespace VisualPinball.Engine.VPT.Rubber
 
 		public Mesh GetMesh(Table.Table table, int acc = -1, bool createHitShape = false)
 		{
-			var mesh = new Mesh(_data.Name);
+			var mesh = new Mesh();
 			var accuracy = (int)(10.0f * 1.2f);
 			if (acc != -1) { // hit shapes and UI display have the same, static, precision
 				accuracy = acc;

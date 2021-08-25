@@ -34,25 +34,36 @@ namespace VisualPinball.Unity
 {
 	[AddComponentMenu("Visual Pinball/Game Item/Rubber")]
 	public class RubberAuthoring : ItemMainRenderableAuthoring<Rubber, RubberData>,
-		IDragPointsAuthoring, IConvertGameObjectToEntity
+		IRubberData, IDragPointsAuthoring, IConvertGameObjectToEntity
 	{
 		#region Data
 
 		[Tooltip("Height of the rubber (z-axis).")]
-		public float Height = 25f;
+		public float _height = 25f;
 
-		public float HitHeight = 25f;
+		public float _hitHeight = 25f;
 
 		[Min(0)]
 		[Tooltip("How thick the rubber band is rendered.")]
-		public int Thickness = 8;
+		public int _thickness = 8;
 
 		[Tooltip("Rotation on the playfield")]
 		public Vector3 Rotation;
 
 		[SerializeField]
 		private DragPointData[] _dragPoints;
+
+		#endregion
+
+		#region IRubberData
+
 		public DragPointData[] DragPoints { get => _dragPoints; set => _dragPoints = value; }
+		public int Thickness => _thickness;
+		public float Height => _height;
+		public float HitHeight => _hitHeight;
+		public float RotX => Rotation.x;
+		public float RotY => Rotation.y;
+		public float RotZ => Rotation.z;
 
 		#endregion
 
@@ -80,10 +91,10 @@ namespace VisualPinball.Unity
 			var updatedComponents = new List<MonoBehaviour> { this };
 
 			// geometry
-			Height = data.Height;
-			HitHeight = data.HitHeight;
+			_height = data.Height;
+			_hitHeight = data.HitHeight;
 			Rotation = new Vector3(data.RotX, data.RotY, data.RotZ);
-			Thickness = data.Thickness;
+			_thickness = data.Thickness;
 			DragPoints = data.DragPoints;
 
 			// collider data
@@ -132,12 +143,12 @@ namespace VisualPinball.Unity
 			data.Name = name;
 
 			// geometry
-			data.Height = Height;
-			data.HitHeight = HitHeight;
+			data.Height = _height;
+			data.HitHeight = _hitHeight;
 			data.RotX = Rotation.x;
 			data.RotY = Rotation.y;
 			data.RotZ = Rotation.z;
-			data.Thickness = Thickness;
+			data.Thickness = _thickness;
 			data.DragPoints = DragPoints;
 
 			// visibility
@@ -182,7 +193,7 @@ namespace VisualPinball.Unity
 		public override Vector3 GetEditorPosition()
 		{
 			var pos = DragPoints.Length == 0 ? Vector3.zero : DragPointCenter;
-			return new Vector3(pos.x, pos.y, HitHeight);
+			return new Vector3(pos.x, pos.y, _hitHeight);
 		}
 		public override void SetEditorPosition(Vector3 pos) {
 			if (DragPoints.Length == 0) {
@@ -193,7 +204,7 @@ namespace VisualPinball.Unity
 			foreach (var pt in DragPoints) {
 				pt.Center += diff;
 			}
-			HitHeight = pos.z;
+			_hitHeight = pos.z;
 			RebuildMeshes();
 		}
 
