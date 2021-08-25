@@ -157,8 +157,7 @@ namespace VisualPinball.Unity
 
 		protected override void CreateColliders(Table table, List<ICollider> colliders)
 		{
-			var zHeight = MainComponent.PositionZ;
-			colliders.Add(new PlungerCollider(MainComponent.CreateData(), zHeight, GetColliderInfo()));
+			colliders.Add(new PlungerCollider(MainComponent, ColliderComponent, GetColliderInfo()));
 		}
 
 		#endregion
