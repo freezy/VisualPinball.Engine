@@ -87,15 +87,7 @@ namespace VisualPinball.Unity
 
 		#region IMeshGenerator
 
-		public Mesh GetMesh()
-		{
-			var mf = GetComponent<MeshFilter>();
-			if (mf && mf.sharedMesh) {
-				return mf.sharedMesh.ToVpMesh();
-			}
-
-			return null;
-		}
+		public Mesh GetMesh() => GetDefaultMesh();
 
 		public Matrix3D GetTransformationMatrix()
 		{

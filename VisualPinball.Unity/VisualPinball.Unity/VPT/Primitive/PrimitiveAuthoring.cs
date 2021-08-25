@@ -29,11 +29,12 @@ using UnityEngine;
 using VisualPinball.Engine.Math;
 using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Primitive;
+using Mesh = VisualPinball.Engine.VPT.Mesh;
 
 namespace VisualPinball.Unity
 {
 	[AddComponentMenu("Visual Pinball/Game Item/Primitive")]
-	public class PrimitiveAuthoring : ItemMainRenderableAuthoring<Primitive, PrimitiveData>, IConvertGameObjectToEntity
+	public class PrimitiveAuthoring : ItemMainRenderableAuthoring<Primitive, PrimitiveData>, IMeshGenerator, IConvertGameObjectToEntity
 	{
 		#region Data
 
@@ -49,28 +50,11 @@ namespace VisualPinball.Unity
 
 		#endregion
 
-		public override ItemType ItemType => ItemType.Primitive;
+		#region IMeshGenerator
 
-		protected override Primitive InstantiateItem(PrimitiveData data) => new Primitive(data);
-		protected override PrimitiveData InstantiateData() => new PrimitiveData();
+		public Mesh GetMesh() => GetDefaultMesh();
 
-		protected override Type MeshAuthoringType { get; } = typeof(ItemMeshAuthoring<Primitive, PrimitiveData, PrimitiveAuthoring>);
-		protected override Type ColliderAuthoringType { get; } = typeof(ItemColliderAuthoring<Primitive, PrimitiveData, PrimitiveAuthoring>);
-
-		public override IEnumerable<Type> ValidParents => PrimitiveColliderAuthoring.ValidParentTypes
-			.Concat(PrimitiveMeshAuthoring.ValidParentTypes)
-			.Distinct();
-
-		public void Convert(Entity entity, EntityManager dstManager, GameObjectConversionSystem conversionSystem)
-		{
-			Convert(entity, dstManager);
-
-			// register
-			var primitive = GetComponent<PrimitiveAuthoring>().Item;
-			transform.GetComponentInParent<Player>().RegisterPrimitive(primitive, entity, ParentEntity, gameObject);
-		}
-
-		public override void UpdateTransforms()
+		public Matrix3D GetTransformationMatrix()
 		{
 			// scale matrix
 			var scaleMatrix = new Matrix3D();
@@ -106,7 +90,35 @@ namespace VisualPinball.Unity
 			scaleMatrix.SetScaling(1.0f, 1.0f, 1.0f);
 			fullMatrix.Multiply(scaleMatrix);
 
-			transform.SetFromMatrix(fullMatrix.ToUnityMatrix());
+			return fullMatrix;
+		}
+
+		#endregion
+
+		public override ItemType ItemType => ItemType.Primitive;
+
+		protected override Primitive InstantiateItem(PrimitiveData data) => new Primitive(data);
+		protected override PrimitiveData InstantiateData() => new PrimitiveData();
+
+		protected override Type MeshAuthoringType { get; } = typeof(ItemMeshAuthoring<Primitive, PrimitiveData, PrimitiveAuthoring>);
+		protected override Type ColliderAuthoringType { get; } = typeof(ItemColliderAuthoring<Primitive, PrimitiveData, PrimitiveAuthoring>);
+
+		public override IEnumerable<Type> ValidParents => PrimitiveColliderAuthoring.ValidParentTypes
+			.Concat(PrimitiveMeshAuthoring.ValidParentTypes)
+			.Distinct();
+
+		public void Convert(Entity entity, EntityManager dstManager, GameObjectConversionSystem conversionSystem)
+		{
+			Convert(entity, dstManager);
+
+			// register
+			var primitive = GetComponent<PrimitiveAuthoring>().Item;
+			transform.GetComponentInParent<Player>().RegisterPrimitive(primitive, entity, ParentEntity, gameObject);
+		}
+
+		public override void UpdateTransforms()
+		{
+			transform.SetFromMatrix(GetTransformationMatrix().ToUnityMatrix());
 		}
 
 		public override IEnumerable<MonoBehaviour> SetData(PrimitiveData data)

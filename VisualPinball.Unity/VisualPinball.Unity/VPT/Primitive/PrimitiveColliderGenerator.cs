@@ -20,31 +20,37 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Runtime.Remoting.Messaging;
+using NLog;
 using Unity.Mathematics;
-using VisualPinball.Engine.Game;
 using VisualPinball.Engine.Math;
 using VisualPinball.Engine.Math.Mesh;
 using VisualPinball.Engine.VPT;
-using VisualPinball.Engine.VPT.Primitive;
-using VisualPinball.Engine.VPT.Table;
-using MathF = VisualPinball.Engine.Math.MathF;
 
 namespace VisualPinball.Unity
 {
 	public class PrimitiveColliderGenerator
 	{
 		private readonly IApiColliderGenerator _api;
-		private readonly PrimitiveMeshGenerator _meshGenerator;
+		private readonly IMeshGenerator _meshGenerator;
 
-		public PrimitiveColliderGenerator(IApiColliderGenerator primitiveApi, PrimitiveData data)
+		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
+
+		public PrimitiveColliderGenerator(IApiColliderGenerator primitiveApi, IMeshGenerator meshGenerator)
 		{
 			_api = primitiveApi;
-			_meshGenerator = new PrimitiveMeshGenerator(data);
+			_meshGenerator = meshGenerator;
 		}
 
-		internal void GenerateColliders(Table table, Mesh originalMesh, float collisionReductionFactor, List<ICollider> colliders)
+		internal void GenerateColliders(float collisionReductionFactor, List<ICollider> colliders)
 		{
-			var mesh = _meshGenerator.GetTransformedMesh(table, originalMesh, Origin.Global, false);
+			var mesh = _meshGenerator.GetMesh();
+			if (mesh == null) {
+				Logger.Warn($"Primitive {_meshGenerator.name} did not return a mesh for collider generation.");
+				return;
+			}
+			mesh = mesh.Transform(_meshGenerator.GetTransformationMatrix());
+			//var mesh = _meshGenerator.GetTransformedMesh(table, originalMesh, Origin.Global, false);
 
 			var reducedVertices = math.max(
 				(uint) MathF.Pow(mesh.Vertices.Length,

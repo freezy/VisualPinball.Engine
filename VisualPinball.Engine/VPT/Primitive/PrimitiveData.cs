@@ -19,6 +19,7 @@
 // ReSharper disable StringLiteralTypo
 // ReSharper disable FieldCanBeMadeReadOnly.Global
 // ReSharper disable ConvertToConstant.Global
+// ReSharper disable InconsistentNaming
 #endregion
 
 using System;

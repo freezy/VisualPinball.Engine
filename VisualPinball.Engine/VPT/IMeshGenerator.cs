@@ -20,6 +20,8 @@ namespace VisualPinball.Engine.VPT
 {
 	public interface IMeshGenerator
 	{
+		string name { get; }
+
 		Mesh GetMesh(); // assuming: Origin.Original, false
 
 		Matrix3D GetTransformationMatrix();

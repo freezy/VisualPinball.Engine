@@ -21,6 +21,7 @@ using Unity.Entities;
 using UnityEngine;
 using VisualPinball.Engine.Game;
 using VisualPinball.Engine.VPT;
+using Mesh = VisualPinball.Engine.VPT.Mesh;
 
 namespace VisualPinball.Unity
 {
@@ -57,6 +58,16 @@ namespace VisualPinball.Unity
 			foreach (var meshComponent in MeshComponents) {
 				meshComponent.RebuildMeshes();
 			}
+		}
+
+		protected Mesh GetDefaultMesh()
+		{
+			var mf = GetComponent<MeshFilter>();
+			if (mf && mf.sharedMesh) {
+				return mf.sharedMesh.ToVpMesh();
+			}
+
+			return null;
 		}
 
 		public virtual void OnPlayfieldHeightUpdated() => UpdateTransforms();

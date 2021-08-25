@@ -31,6 +31,8 @@ namespace VisualPinball.Engine.VPT.HitTarget
 		protected override Vertex3D Scale => _data.Size;
 		protected override float RotationZ => MathF.DegToRad(_data.RotZ);
 
+		public string name => _data.Name;
+
 		public HitTargetMeshGenerator(HitTargetData data, Table.Table table)
 		{
 			_data = data;
