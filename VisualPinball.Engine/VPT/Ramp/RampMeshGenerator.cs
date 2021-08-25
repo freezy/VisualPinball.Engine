@@ -34,14 +34,14 @@ namespace VisualPinball.Engine.VPT.Ramp
 		public const string Floor = "Floor";
 		public const string Wires = "Wires";
 
-		private readonly RampData _data;
+		private readonly IRampData _data;
 
-		public RampMeshGenerator(RampData data)
+		public RampMeshGenerator(IRampData data)
 		{
 			_data = data;
 		}
 
-		public RenderObject GetRenderObject(Table.Table table, string id, float playfieldHeight, bool asRightHanded)
+		public RenderObject GetRenderObject(Table.Table table, RampData rampData, string id, float playfieldHeight, bool asRightHanded)
 		{
 			var mesh = new Mesh();
 			if (id == Wires) {
@@ -55,7 +55,7 @@ namespace VisualPinball.Engine.VPT.Ramp
 				}
 
 			} else {
-				var rv = GetRampVertex(table, playfieldHeight, -1, true);
+				var rv = GetRampVertex(playfieldHeight, -1, true);
 				switch (id) {
 					case Floor:
 						mesh = GenerateFlatFloorMesh(table, rv);
@@ -81,12 +81,12 @@ namespace VisualPinball.Engine.VPT.Ramp
 			return new RenderObject(
 				id,
 				asRightHanded ? mesh.Transform(Matrix3D.RightHanded) : mesh,
-				new PbrMaterial(table.GetMaterial(_data.Material), id == Wall && !_data.ImageWalls ? null : table.GetTexture(_data.Image)),
-				_data.IsVisible
+				new PbrMaterial(table.GetMaterial(rampData.Material), id == Wall && !rampData.ImageWalls ? null : table.GetTexture(rampData.Image)),
+				rampData.IsVisible
 			);
 		}
 
-		public RenderObjectGroup GetRenderObjects(Table.Table table, bool asRightHanded = true)
+		public RenderObjectGroup GetRenderObjects(Table.Table table, RampData rampData, bool asRightHanded = true)
 		{
 			var meshes = GenerateMeshes(table, table.TableHeight);
 			var renderObjects = new List<RenderObject>();
@@ -95,27 +95,27 @@ namespace VisualPinball.Engine.VPT.Ramp
 			for (var i = 1; i <= 4; i++) {
 				var name = $"Wire{i}";
 				if (meshes.ContainsKey(name)) {
-					renderObjects.Add(GetRenderObject(table, meshes, name, asRightHanded));
+					renderObjects.Add(GetRenderObject(table, rampData, meshes, name, asRightHanded));
 				}
 			}
 
 			// floor and walls
 			foreach (var name in new[] { "Floor", "RightWall", "LeftWall" }) {
 				if (meshes.ContainsKey(name)) {
-					renderObjects.Add(GetRenderObject(table, meshes, name, asRightHanded));
+					renderObjects.Add(GetRenderObject(table, rampData, meshes, name, asRightHanded));
 				}
 			}
 
-			return new RenderObjectGroup(_data.Name, "Ramps", Matrix3D.Identity, renderObjects.ToArray());
+			return new RenderObjectGroup(rampData.Name, "Ramps", Matrix3D.Identity, renderObjects.ToArray());
 		}
 
-		private RenderObject GetRenderObject(Table.Table table, IReadOnlyDictionary<string, Mesh> meshes, string name, bool asRightHanded)
+		private RenderObject GetRenderObject(Table.Table table, RampData rampData, IReadOnlyDictionary<string, Mesh> meshes, string name, bool asRightHanded)
 		{
 			return new RenderObject(
 				name,
 				asRightHanded ? meshes[name].Transform(Matrix3D.RightHanded) : meshes[name],
-				new PbrMaterial(table.GetMaterial(_data.Material), table.GetTexture(_data.Image)),
-				_data.IsVisible
+				new PbrMaterial(table.GetMaterial(rampData.Material), table.GetTexture(rampData.Image)),
+				rampData.IsVisible
 			);
 		}
 
@@ -131,7 +131,7 @@ namespace VisualPinball.Engine.VPT.Ramp
 		{
 			var meshes = new Dictionary<string, Mesh>();
 			var (wireMeshA, wireMeshB) = GenerateBaseWires(table, tableHeight);
-			switch (_data.RampType) {
+			switch (_data.Type) {
 				case RampType.RampType1Wire: {
 					wireMeshA.Name = "Wire1";
 					meshes["Wire1"] = wireMeshA;
@@ -177,7 +177,7 @@ namespace VisualPinball.Engine.VPT.Ramp
 
 		private Dictionary<string, Mesh> GenerateFlatMesh(Table.Table table, float tableHeight) {
 			var meshes = new Dictionary<string, Mesh>();
-			var rv = GetRampVertex(table, tableHeight, -1, true);
+			var rv = GetRampVertex(tableHeight, -1, true);
 
 			meshes["Floor"] = GenerateFlatFloorMesh(table, rv);
 
@@ -215,7 +215,7 @@ namespace VisualPinball.Engine.VPT.Ramp
 				rgv3d2.Y = rv.RgvLocal[rv.VertexCount * 2 - i - 1].Y;
 				rgv3d2.Z = rgv3d1.Z;
 
-				if (_data.Image != null) {
+				//if (_data.Image != null) {
 					if (_data.ImageAlignment == RampImageAlignment.ImageModeWorld) {
 						rgv3d1.Tu = rgv3d1.X * invTableWidth;
 						rgv3d1.Tv = rgv3d1.Y * invTableHeight;
@@ -229,12 +229,12 @@ namespace VisualPinball.Engine.VPT.Ramp
 						rgv3d2.Tv = rv.PointRatios[i];
 					}
 
-				} else {
-					rgv3d1.Tu = 0.0f;
-					rgv3d1.Tv = 0.0f;
-					rgv3d2.Tu = 0.0f;
-					rgv3d2.Tv = 0.0f;
-				}
+				// } else {
+				// 	rgv3d1.Tu = 0.0f;
+				// 	rgv3d1.Tv = 0.0f;
+				// 	rgv3d2.Tu = 0.0f;
+				// 	rgv3d2.Tv = 0.0f;
+				// }
 
 				mesh.Vertices[i * 2] = rgv3d1;
 				mesh.Vertices[i * 2 + 1] = rgv3d2;
@@ -377,12 +377,12 @@ namespace VisualPinball.Engine.VPT.Ramp
 			}
 
 			// as solid ramps are rendered into the static buffer, always use maximum precision
-			var mat = table.GetMaterial(_data.Material);
-			if (mat == null || !mat.IsOpacityActive) {
+			// var mat = table.GetMaterial(_data.Material);
+			// if (mat == null || !mat.IsOpacityActive) {
 				accuracy = 12; // see above
-			}
+			//}
 
-			var rv = GetRampVertex(table, tableHeight, -1, false);
+			var rv = GetRampVertex(tableHeight, -1, false);
 			var middlePoints = rv.MiddlePoints;
 
 			var numRings = rv.VertexCount;
@@ -399,7 +399,7 @@ namespace VisualPinball.Engine.VPT.Ramp
 			Vertex3DNoTex2[] vertBuffer;
 			Vertex3DNoTex2[] vertBuffer2;
 
-			if (_data.RampType != RampType.RampType1Wire) {
+			if (_data.Type != RampType.RampType1Wire) {
 				vertBuffer = CreateWire(numRings, numSegments, rv.RgvLocal, rv.PointHeights);
 				vertBuffer2 = CreateWire(numRings, numSegments, tmpPoints, rv.PointHeights);
 
@@ -450,7 +450,7 @@ namespace VisualPinball.Engine.VPT.Ramp
 				}
 			}
 
-			if (_data.RampType != RampType.RampType1Wire) {
+			if (_data.Type != RampType.RampType1Wire) {
 				return new Tuple<Mesh, Mesh>(
 					new Mesh(vertBuffer, indices),
 					new Mesh(vertBuffer2, indices)
@@ -530,12 +530,12 @@ namespace VisualPinball.Engine.VPT.Ramp
 			return vertices;
 		}
 
-		public RampVertex GetRampVertex(Table.Table table, float tableHeight, float accuracy, bool incWidth)
+		public RampVertex GetRampVertex(float tableHeight, float accuracy, bool incWidth)
 		{
 			var result = new RampVertex();
 
 			// vvertex are the 2D vertices forming the central curve of the ramp as seen from above
-			var vertex = GetCentralCurve(table, accuracy);
+			var vertex = GetCentralCurve(accuracy);
 
 			var numVertices = vertex.Length;
 
@@ -544,7 +544,7 @@ namespace VisualPinball.Engine.VPT.Ramp
 			result.Cross = new bool[numVertices];
 			result.PointRatios = new float[numVertices];
 			result.MiddlePoints = new Vertex2D[numVertices];
-			result.RgvLocal = new Vertex2D[_data.RampType != RampType.RampTypeFlat ? (numVertices + 1) * 2 : numVertices * 2];
+			result.RgvLocal = new Vertex2D[_data.Type != RampType.RampTypeFlat ? (numVertices + 1) * 2 : numVertices * 2];
 
 			// Compute an approximation to the length of the central curve
 			// by adding up the lengths of the line segments.
@@ -641,13 +641,13 @@ namespace VisualPinball.Engine.VPT.Ramp
 
 				// only change the width if we want to create vertices for rendering or for the editor
 				// the collision engine uses flat type ramps
-				if (IsHabitrail() && _data.RampType != RampType.RampType1Wire) {
+				if (IsHabitrail() && _data.Type != RampType.RampType1Wire) {
 					currentWidth = _data.WireDistanceX;
 					if (incWidth) {
 						currentWidth += 20.0f;
 					}
 
-				} else if (_data.RampType == RampType.RampType1Wire) {
+				} else if (_data.Type == RampType.RampType1Wire) {
 					currentWidth = _data.WireDiameter;
 				}
 
@@ -659,7 +659,7 @@ namespace VisualPinball.Engine.VPT.Ramp
 			return result;
 		}
 
-		public RenderVertex3D[] GetCentralCurve(Table.Table table, float acc = -1.0f)
+		public RenderVertex3D[] GetCentralCurve(float acc = -1.0f)
 		{
 			float accuracy;
 
@@ -668,13 +668,13 @@ namespace VisualPinball.Engine.VPT.Ramp
 				accuracy = acc; // used for hit shape calculation, always!
 
 			} else {
-				var mat = table.GetMaterial(_data.Material);
-				if (mat == null || !mat.IsOpacityActive) {
+				// var mat = table.GetMaterial(_data.Material);
+				// if (mat == null || !mat.IsOpacityActive) {
 					accuracy = 10.0f;
 
-				} else {
-					accuracy = table.GetDetailLevel();
-				}
+				// } else {
+				// 	accuracy = table.GetDetailLevel();
+				// }
 			}
 
 			// min = 4 (highest accuracy/detail level), max = 4 * 10^(10/1.5) = ~18.000.000 (lowest accuracy/detail level)
@@ -684,11 +684,11 @@ namespace VisualPinball.Engine.VPT.Ramp
 
 		private bool IsHabitrail()
 		{
-			return _data.RampType == RampType.RampType4Wire
-			    || _data.RampType == RampType.RampType1Wire
-			    || _data.RampType == RampType.RampType2Wire
-			    || _data.RampType == RampType.RampType3WireLeft
-			    || _data.RampType == RampType.RampType3WireRight;
+			return _data.Type == RampType.RampType4Wire
+			    || _data.Type == RampType.RampType1Wire
+			    || _data.Type == RampType.RampType2Wire
+			    || _data.Type == RampType.RampType3WireLeft
+			    || _data.Type == RampType.RampType3WireRight;
 		}
 
 		private void AssignHeightToControlPoint(Vertex2D v, float height)

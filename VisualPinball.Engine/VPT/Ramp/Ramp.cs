@@ -56,19 +56,19 @@ namespace VisualPinball.Engine.VPT.Ramp
 
 		public RenderObject GetRenderObject(Table.Table table, string id = null, Origin origin = Origin.Global, bool asRightHanded = true)
 		{
-			return MeshGenerator.GetRenderObject(table, id, table.TableHeight, asRightHanded);
+			return MeshGenerator.GetRenderObject(table, Data, id, table.TableHeight, asRightHanded);
 		}
 
 		public RenderObjectGroup GetRenderObjects(Table.Table table, Origin origin = Origin.Global, bool asRightHanded = true)
 		{
-			return MeshGenerator.GetRenderObjects(table, asRightHanded);
+			return MeshGenerator.GetRenderObjects(table, Data, asRightHanded);
 		}
 
 		#endregion
 
 		public float GetSurfaceHeight(float x, float y, Table.Table table)
 		{
-			var vVertex = MeshGenerator.GetCentralCurve(table);
+			var vVertex = MeshGenerator.GetCentralCurve();
 			Mesh.ClosestPointOnPolygon(vVertex, new Vertex2D(x, y), false, out var vOut, out var iSeg);
 
 			if (iSeg == -1) {

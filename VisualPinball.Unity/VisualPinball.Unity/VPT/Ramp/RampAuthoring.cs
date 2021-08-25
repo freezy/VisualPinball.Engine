@@ -34,52 +34,69 @@ using VisualPinball.Engine.VPT.Ramp;
 namespace VisualPinball.Unity
 {
 	[AddComponentMenu("Visual Pinball/Game Item/Ramp")]
-	public class RampAuthoring : ItemMainRenderableAuthoring<Ramp, RampData>, ISurfaceAuthoring, IDragPointsAuthoring, IConvertGameObjectToEntity
+	public class RampAuthoring : ItemMainRenderableAuthoring<Ramp, RampData>,
+		IRampData, ISurfaceAuthoring, IDragPointsAuthoring, IConvertGameObjectToEntity
 	{
 		#region Data
 
 		[Tooltip("Choose between a flat ramp or various wire ramps.")]
-		public int Type = RampType.RampTypeFlat;
+		public int _type = RampType.RampTypeFlat;
 
 		[Tooltip("The bottom height of the ramp.")]
-		public float HeightBottom;
+		public float _heightBottom;
 
 		[Tooltip("The top height of the ramp.")]
-		public float HeightTop = 50f;
+		public float _heightTop = 50f;
 
 		[Tooltip("Defines how the UVs are generated. Setting it to world means the UVs are aligned with those of the playfield.")]
-		public int ImageAlignment = RampImageAlignment.ImageModeWorld;
+		public int _imageAlignment = RampImageAlignment.ImageModeWorld;
 
 		[Min(0)]
 		[Tooltip("Rendered height of the left wall.")]
-		public float LeftWallHeightVisible = 30f;
+		public float _leftWallHeightVisible = 30f;
 
 		[Min(0)]
 		[Tooltip("Rendered height of the right wall.")]
-		public float RightWallHeightVisible = 30f;
+		public float _rightWallHeightVisible = 30f;
 
 		[Min(0)]
 		[Tooltip("Width at the bottom of the ramp.")]
-		public float WidthBottom = 75f;
+		public float _widthBottom = 75f;
 
 		[Min(0)]
 		[Tooltip("Width at the top of the ramp.")]
-		public float WidthTop = 60f;
+		public float _widthTop = 60f;
 
 		[Min(0)]
 		[Tooltip("Diameter of the wires.")]
-		public float WireDiameter = 8f;
+		public float _wireDiameter = 8f;
 
 		[Min(0)]
 		[Tooltip("Horizontal distance between the wires.")]
-		public float WireDistanceX = 38f;
+		public float _wireDistanceX = 38f;
 
 		[Min(0)]
 		[Tooltip("Vertical distance between the wires.")]
-		public float WireDistanceY = 88f;
+		public float _wireDistanceY = 88f;
 
 		[SerializeField]
 		private DragPointData[] _dragPoints;
+
+		#endregion
+
+		#region IRampData
+
+		public float HeightBottom => _heightBottom;
+		public float HeightTop => _heightTop;
+		public float RightWallHeightVisible => _rightWallHeightVisible;
+		public float LeftWallHeightVisible => _leftWallHeightVisible;
+		public int Type => _type;
+		public float WireDistanceX => _wireDistanceX;
+		public float WireDistanceY => _wireDistanceY;
+		public int ImageAlignment => _imageAlignment;
+		public float WireDiameter => _wireDiameter;
+		public float WidthTop => _widthTop;
+		public float WidthBottom => _widthBottom;
 		public DragPointData[] DragPoints { get => _dragPoints; set => _dragPoints = value; }
 
 		#endregion
@@ -100,7 +117,7 @@ namespace VisualPinball.Unity
 
 		public float Height(Vector2 pos) {
 
-			var vVertex = new RampMeshGenerator(CreateData()).GetCentralCurve(Table);
+			var vVertex = new RampMeshGenerator(CreateData()).GetCentralCurve();
 			Engine.VPT.Mesh.ClosestPointOnPolygon(vVertex, new Vertex2D(pos.x, pos.y), false, out var vOut, out var iSeg);
 
 			if (iSeg == -1) {
@@ -127,13 +144,13 @@ namespace VisualPinball.Unity
 			var len = MathF.Sqrt(dx * dx + dy * dy);
 			startLength += len; // Add the distance the object is between the two closest polyline segments.  Matters mostly for straight edges. Z does not respect that yet!
 
-			var topHeight = HeightTop + PlayfieldHeight;
-			var bottomHeight = HeightBottom + PlayfieldHeight;
+			var topHeight = _heightTop + PlayfieldHeight;
+			var bottomHeight = _heightBottom + PlayfieldHeight;
 
 			return vVertex[iSeg].Z + startLength / totalLength * (topHeight - bottomHeight) + bottomHeight;
 		}
 
-		public bool IsWireRamp => Type != RampType.RampTypeFlat;
+		public bool IsWireRamp => _type != RampType.RampTypeFlat;
 
 		public void Convert(Entity entity, EntityManager dstManager, GameObjectConversionSystem conversionSystem)
 		{
@@ -167,7 +184,7 @@ namespace VisualPinball.Unity
 					wireComponent.ClearMeshVertices();
 				}
 				if (floorComponent) floorComponent.gameObject.SetActive(isVisible);
-				if (wallComponent) wallComponent.gameObject.SetActive(isVisible && (LeftWallHeightVisible > 0 || RightWallHeightVisible > 0));
+				if (wallComponent) wallComponent.gameObject.SetActive(isVisible && (_leftWallHeightVisible > 0 || _rightWallHeightVisible > 0));
 			}
 		}
 
@@ -177,21 +194,21 @@ namespace VisualPinball.Unity
 
 			// geometry
 			DragPoints = data.DragPoints;
-			HeightTop = data.HeightTop;
-			HeightBottom = data.HeightBottom;
-			WidthTop = data.WidthTop;
-			WidthBottom = data.WidthBottom;
-			LeftWallHeightVisible = data.LeftWallHeightVisible;
-			RightWallHeightVisible = data.RightWallHeightVisible;
+			_heightTop = data.HeightTop;
+			_heightBottom = data.HeightBottom;
+			_widthTop = data.WidthTop;
+			_widthBottom = data.WidthBottom;
+			_leftWallHeightVisible = data.LeftWallHeightVisible;
+			_rightWallHeightVisible = data.RightWallHeightVisible;
 
 			// type and uvs
-			Type = data.RampType;
-			ImageAlignment = data.ImageAlignment;
+			_type = data.Type;
+			_imageAlignment = data.ImageAlignment;
 
 			// wire data
-			WireDiameter = data.WireDiameter;
-			WireDistanceX = data.WireDistanceX;
-			WireDistanceY = data.WireDistanceY;
+			_wireDiameter = data.WireDiameter;
+			_wireDistanceX = data.WireDistanceX;
+			_wireDistanceY = data.WireDistanceY;
 
 			// visibility and mesh creation
 			var wallComponent = GetComponentInChildren<RampWallMeshAuthoring>(true);
@@ -215,7 +232,7 @@ namespace VisualPinball.Unity
 					floorComponent.gameObject.SetActive(data.IsVisible);
 				}
 				if (wallComponent) {
-					wallComponent.gameObject.SetActive(data.IsVisible && (LeftWallHeightVisible > 0 || RightWallHeightVisible > 0));
+					wallComponent.gameObject.SetActive(data.IsVisible && (_leftWallHeightVisible > 0 || _rightWallHeightVisible > 0));
 				}
 			}
 
@@ -271,21 +288,21 @@ namespace VisualPinball.Unity
 
 			// geometry
 			data.DragPoints = DragPoints;
-			data.HeightTop = HeightTop;
-			data.HeightBottom = HeightBottom;
-			data.WidthTop = WidthTop;
-			data.WidthBottom = WidthBottom;
-			data.LeftWallHeightVisible = LeftWallHeightVisible;
-			data.RightWallHeightVisible = RightWallHeightVisible;
+			data.HeightTop = _heightTop;
+			data.HeightBottom = _heightBottom;
+			data.WidthTop = _widthTop;
+			data.WidthBottom = _widthBottom;
+			data.LeftWallHeightVisible = _leftWallHeightVisible;
+			data.RightWallHeightVisible = _rightWallHeightVisible;
 
 			// type and uvs
-			data.RampType = Type;
-			data.ImageAlignment = ImageAlignment;
+			data.RampType = _type;
+			data.ImageAlignment = _imageAlignment;
 
 			// wire data
-			data.WireDiameter = WireDiameter;
-			data.WireDistanceX = WireDistanceX;
-			data.WireDistanceY = WireDistanceY;
+			data.WireDiameter = _wireDiameter;
+			data.WireDistanceX = _wireDistanceX;
+			data.WireDistanceY = _wireDistanceY;
 
 			// visibility
 			var floorComponent = GetComponentInChildren<RampFloorMeshAuthoring>();
@@ -329,7 +346,7 @@ namespace VisualPinball.Unity
 					sum += t.Center;
 				}
 				var center = sum / DragPoints.Length;
-				return new Vector3(center.X, center.Y, HeightTop);
+				return new Vector3(center.X, center.Y, _heightTop);
 			}
 		}
 

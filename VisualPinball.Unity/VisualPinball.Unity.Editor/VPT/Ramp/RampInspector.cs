@@ -70,17 +70,17 @@ namespace VisualPinball.Unity.Editor
 		{
 			base.OnEnable();
 
-			_heightBottomProperty = serializedObject.FindProperty(nameof(RampAuthoring.HeightBottom));
-			_heightTopProperty = serializedObject.FindProperty(nameof(RampAuthoring.HeightTop));
-			_imageAlignmentProperty = serializedObject.FindProperty(nameof(RampAuthoring.ImageAlignment));
-			_leftWallHeightVisibleProperty = serializedObject.FindProperty(nameof(RampAuthoring.LeftWallHeightVisible));
-			_typeProperty = serializedObject.FindProperty(nameof(RampAuthoring.Type));
-			_rightWallHeightVisibleProperty = serializedObject.FindProperty(nameof(RampAuthoring.RightWallHeightVisible));
-			_widthBottomProperty = serializedObject.FindProperty(nameof(RampAuthoring.WidthBottom));
-			_widthTopProperty = serializedObject.FindProperty(nameof(RampAuthoring.WidthTop));
-			_wireDiameterProperty = serializedObject.FindProperty(nameof(RampAuthoring.WireDiameter));
-			_wireDistanceXProperty = serializedObject.FindProperty(nameof(RampAuthoring.WireDistanceX));
-			_wireDistanceYProperty = serializedObject.FindProperty(nameof(RampAuthoring.WireDistanceY));
+			_heightBottomProperty = serializedObject.FindProperty(nameof(RampAuthoring._heightBottom));
+			_heightTopProperty = serializedObject.FindProperty(nameof(RampAuthoring._heightTop));
+			_imageAlignmentProperty = serializedObject.FindProperty(nameof(RampAuthoring._imageAlignment));
+			_leftWallHeightVisibleProperty = serializedObject.FindProperty(nameof(RampAuthoring._leftWallHeightVisible));
+			_typeProperty = serializedObject.FindProperty(nameof(RampAuthoring._type));
+			_rightWallHeightVisibleProperty = serializedObject.FindProperty(nameof(RampAuthoring._rightWallHeightVisible));
+			_widthBottomProperty = serializedObject.FindProperty(nameof(RampAuthoring._widthBottom));
+			_widthTopProperty = serializedObject.FindProperty(nameof(RampAuthoring._widthTop));
+			_wireDiameterProperty = serializedObject.FindProperty(nameof(RampAuthoring._wireDiameter));
+			_wireDistanceXProperty = serializedObject.FindProperty(nameof(RampAuthoring._wireDistanceX));
+			_wireDistanceYProperty = serializedObject.FindProperty(nameof(RampAuthoring._wireDistanceY));
 		}
 
 		public override void OnInspectorGUI()

@@ -27,19 +27,21 @@ namespace VisualPinball.Unity
 	public class RampColliderGenerator
 	{
 		private readonly IApiColliderGenerator _api;
-		private readonly RampData _data;
+		private readonly IRampData _data;
 		private readonly RampMeshGenerator _meshGenerator;
+		private readonly RampColliderAuthoring _colliderComponent;
 
-		public RampColliderGenerator(RampApi rampApi, RampData data)
+		public RampColliderGenerator(RampApi rampApi, IRampData data, RampColliderAuthoring colliderComponent)
 		{
 			_api = rampApi;
 			_data = data;
+			_colliderComponent = colliderComponent;
 			_meshGenerator = new RampMeshGenerator(data);
 		}
 
 		internal void GenerateColliders(Table table, float tableHeight, List<ICollider> colliders)
 		{
-			var rv = _meshGenerator.GetRampVertex(table, tableHeight, PhysicsConstants.HitShapeDetailLevel, true);
+			var rv = _meshGenerator.GetRampVertex(tableHeight, PhysicsConstants.HitShapeDetailLevel, true);
 			var rgvLocal = rv.RgvLocal;
 			var rgHeight1 = rv.PointHeights;
 			var vertexCount = rv.VertexCount;
@@ -197,15 +199,15 @@ namespace VisualPinball.Unity
 
 		private float2 GetWallHeights()
 		{
-			switch (_data.RampType) {
-				case RampType.RampTypeFlat: return new float2(_data.RightWallHeight, _data.LeftWallHeight);
+			switch (_data.Type) {
+				case RampType.RampTypeFlat: return new float2(_colliderComponent.RightWallHeight, _colliderComponent.LeftWallHeight);
 				case RampType.RampType1Wire: return new float2(31.0f, 31.0f);
 				case RampType.RampType2Wire: return new float2(31.0f, 31.0f);
 				case RampType.RampType4Wire: return new float2(62.0f, 62.0f);
 				case RampType.RampType3WireRight: return new float2(62.0f, (float)(6 + 12.5));
 				case RampType.RampType3WireLeft: return new float2((float)(6 + 12.5), 62.0f);
 				default:
-					throw new InvalidOperationException($"Unknown ramp type {_data.RampType}");
+					throw new InvalidOperationException($"Unknown ramp type {_data.Type}");
 			}
 		}
 
