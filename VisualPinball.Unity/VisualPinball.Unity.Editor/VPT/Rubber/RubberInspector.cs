@@ -35,9 +35,9 @@ namespace VisualPinball.Unity.Editor
 		{
 			base.OnEnable();
 
-			_heightProperty = serializedObject.FindProperty(nameof(RubberAuthoring.Height));
-			_hitHeightProperty = serializedObject.FindProperty(nameof(RubberAuthoring.HitHeight));
-			_thicknessProperty = serializedObject.FindProperty(nameof(RubberAuthoring.Thickness));
+			_heightProperty = serializedObject.FindProperty(nameof(RubberAuthoring._height));
+			_hitHeightProperty = serializedObject.FindProperty(nameof(RubberAuthoring._hitHeight));
+			_thicknessProperty = serializedObject.FindProperty(nameof(RubberAuthoring._thickness));
 			_rotationProperty = serializedObject.FindProperty(nameof(RubberAuthoring.Rotation));
 		}
 
@@ -63,7 +63,7 @@ namespace VisualPinball.Unity.Editor
 
 		#region Dragpoint Tooling
 
-		public override Vector3 EditableOffset => new Vector3(0.0f, 0.0f, ItemAuthoring.HitHeight);
+		public override Vector3 EditableOffset => new Vector3(0.0f, 0.0f, ItemAuthoring._hitHeight);
 		public override Vector3 GetDragPointOffset(float ratio) => Vector3.zero;
 		public override bool PointsAreLooping => true;
 		public override IEnumerable<DragPointExposure> DragPointExposition => new[] { DragPointExposure.Smooth };

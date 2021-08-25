@@ -117,7 +117,7 @@ namespace VisualPinball.Unity
 
 		public float Height(Vector2 pos) {
 
-			var vVertex = new RampMeshGenerator(CreateData()).GetCentralCurve();
+			var vVertex = new RampMeshGenerator(this).GetCentralCurve();
 			Engine.VPT.Mesh.ClosestPointOnPolygon(vVertex, new Vertex2D(pos.x, pos.y), false, out var vOut, out var iSeg);
 
 			if (iSeg == -1) {

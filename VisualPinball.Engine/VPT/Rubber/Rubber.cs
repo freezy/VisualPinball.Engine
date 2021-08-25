@@ -61,12 +61,12 @@ namespace VisualPinball.Engine.VPT.Rubber
 
 		public RenderObject GetRenderObject(Table.Table table, string id = null, Origin origin = Origin.Global, bool asRightHanded = true)
 		{
-			return MeshGenerator.GetRenderObject(table, origin, asRightHanded);
+			return MeshGenerator.GetRenderObject(table, Data);
 		}
 
 		public RenderObjectGroup GetRenderObjects(Table.Table table, Origin origin = Origin.Global, bool asRightHanded = true)
 		{
-			return MeshGenerator.GetRenderObjects(table, origin, asRightHanded);
+			return MeshGenerator.GetRenderObjects(table, origin, Data);
 		}
 
 		#endregion
