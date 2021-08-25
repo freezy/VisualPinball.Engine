@@ -27,14 +27,16 @@ using System.Linq;
 using Unity.Entities;
 using UnityEngine;
 using VisualPinball.Engine.Game;
+using VisualPinball.Engine.Math;
 using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.HitTarget;
+using Mesh = VisualPinball.Engine.VPT.Mesh;
 
 namespace VisualPinball.Unity
 {
 	[AddComponentMenu("Visual Pinball/Game Item/Hit Target")]
 	public class HitTargetAuthoring : ItemMainRenderableAuthoring<HitTarget, HitTargetData>,
-		ISwitchAuthoring, IConvertGameObjectToEntity
+		ISwitchAuthoring, IHitTargetData, IMeshGenerator, IConvertGameObjectToEntity
 	{
 		public override ItemType ItemType => ItemType.HitTarget;
 
@@ -50,9 +52,12 @@ namespace VisualPinball.Unity
 		[Tooltip("Overall scaling of the target.")]
 		public Vector3 Size = new Vector3(32f, 32f, 32f);
 
+		[Range(1, 9)]
+		private int _targetType = Engine.VPT.TargetType.DropTargetBeveled;
+
 		#endregion
 
-		public bool IsPulseSwitch => true;
+		#region IHitTargetData
 
 		public bool IsDropTarget {
 			get {
@@ -60,6 +65,47 @@ namespace VisualPinball.Unity
 				return comp && comp.isActiveAndEnabled;
 			}
 		}
+
+		public bool IsLegacy {
+			get {
+				var colliderAuthoring = GetComponent<HitTargetColliderAuthoring>();
+				return colliderAuthoring && colliderAuthoring.IsLegacy;
+			}
+		}
+
+		public int TargetType => _targetType;
+
+		public float RotZ => Rotation;
+		public float ScaleX => Size.x;
+		public float ScaleY => Size.y;
+		public float ScaleZ => Size.z;
+		public float PositionX => Position.x;
+		public float PositionY => Position.y;
+		public float PositionZ => Position.z;
+
+		#endregion
+
+		#region IMeshGenerator
+
+		public Mesh GetMesh()
+		{
+			var mf = GetComponent<MeshFilter>();
+			if (mf && mf.sharedMesh) {
+				return mf.sharedMesh.ToVpMesh();
+			}
+
+			return null;
+		}
+
+		public Matrix3D GetTransformationMatrix()
+		{
+			var t = transform;
+			return Matrix4x4.TRS(t.localPosition, t.localRotation, t.localScale).ToVpMatrix();
+		}
+
+		#endregion
+
+		public bool IsPulseSwitch => true;
 
 		protected override HitTarget InstantiateItem(HitTargetData data) => new HitTarget(data);
 		protected override HitTargetData InstantiateData() => new HitTargetData();
@@ -124,6 +170,8 @@ namespace VisualPinball.Unity
 			Rotation = data.RotZ > 180f ? data.RotZ - 360f : data.RotZ;
 			Size = data.Size.ToUnityVector3();
 
+			_targetType = data.TargetType;
+
 			// collider data
 			var colliderAuthoring = GetComponent<HitTargetColliderAuthoring>();
 			if (colliderAuthoring) {
@@ -177,6 +225,8 @@ namespace VisualPinball.Unity
 			data.Position = Position.ToVertex3D();
 			data.RotZ = Rotation;
 			data.Size = Size.ToVertex3D();
+
+			data.TargetType = _targetType;
 
 			// collision data
 			var colliderAuthoring = GetComponent<HitTargetColliderAuthoring>();

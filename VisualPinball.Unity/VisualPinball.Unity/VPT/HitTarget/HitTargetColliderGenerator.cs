@@ -16,7 +16,6 @@
 
 using System.Collections.Generic;
 using Unity.Mathematics;
-using VisualPinball.Engine.Game;
 using VisualPinball.Engine.Math;
 using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.HitTarget;
@@ -27,14 +26,14 @@ namespace VisualPinball.Unity
 	public class HitTargetColliderGenerator
 	{
 		private readonly HitTargetApi _api;
-		private readonly HitTargetData _data;
-		private readonly HitTargetMeshGenerator _meshGenerator;
+		private readonly IHitTargetData _data;
+		private readonly IMeshGenerator _meshGenerator;
 
-		public HitTargetColliderGenerator(HitTargetApi hitTargetApi, HitTargetData data)
+		public HitTargetColliderGenerator(HitTargetApi hitTargetApi, IHitTargetData data, IMeshGenerator meshProvider)
 		{
 			_api = hitTargetApi;
 			_data = data;
-			_meshGenerator = new HitTargetMeshGenerator(data);
+			_meshGenerator = meshProvider;
 		}
 
 		internal void GenerateColliders(Table table, List<ICollider> colliders)
@@ -43,32 +42,30 @@ namespace VisualPinball.Unity
 				GenerateDropTargetColliders(table, colliders);
 
 			} else {
-				GenerateHitTargetColliders(table, colliders);
+				GenerateHitTargetColliders(colliders);
 			}
 		}
 
-		private void GenerateHitTargetColliders(Table table, ICollection<ICollider> colliders)
+		private void GenerateHitTargetColliders(ICollection<ICollider> colliders)
 		{
-			var rog = _meshGenerator.GetRenderObjects(table, Origin.Original, false);
-			var ro = rog.RenderObjects[0];
-			var hitMesh = ro.Mesh;
+			var localToPlayfield = _meshGenerator.GetTransformationMatrix();
+			var hitMesh = _meshGenerator.GetMesh();
 			for (var i = 0; i < hitMesh.Vertices.Length; i++) {
-				hitMesh.Vertices[i].MultiplyMatrix(rog.TransformationMatrix);
+				hitMesh.Vertices[i].MultiplyMatrix(localToPlayfield);
 			}
 			var addedEdges = EdgeSet.Get();
-			GenerateCollidables(hitMesh, addedEdges, true, table, colliders);
+			GenerateCollidables(hitMesh, addedEdges, true, colliders);
 		}
 
 		private void GenerateDropTargetColliders(Table table, ICollection<ICollider> colliders)
 		{
-			var rog = _meshGenerator.GetRenderObjects(table, Origin.Original, false);
-			var ro = rog.RenderObjects[0];
-			var hitMesh = ro.Mesh;
+			var localToPlayfield = _meshGenerator.GetTransformationMatrix();
+			var hitMesh = _meshGenerator.GetMesh();
 			for (var i = 0; i < hitMesh.Vertices.Length; i++) {
-				hitMesh.Vertices[i].MultiplyMatrix(rog.TransformationMatrix);
+				hitMesh.Vertices[i].MultiplyMatrix(localToPlayfield);
 			}
 			var addedEdges = EdgeSet.Get();
-			GenerateCollidables(hitMesh, addedEdges, _data.IsLegacy, table, colliders);
+			GenerateCollidables(hitMesh, addedEdges, _data.IsLegacy, colliders);
 
 			var tempMatrix = new Matrix3D().RotateZMatrix(MathF.DegToRad(_data.RotZ));
 			var fullMatrix = new Matrix3D().Multiply(tempMatrix);
@@ -93,14 +90,14 @@ namespace VisualPinball.Unity
 						dropTargetHitPlaneVertex.z
 					);
 
-					vert.X *= _data.Size.X;
-					vert.Y *= _data.Size.Y;
-					vert.Z *= _data.Size.Z;
+					vert.X *= _data.ScaleX;
+					vert.Y *= _data.ScaleY;
+					vert.Z *= _data.ScaleZ;
 					vert = vert.MultiplyMatrix(fullMatrix);
 					rgv3D[i] = new Vertex3D(
-						vert.X + _data.Position.X,
-						vert.Y + _data.Position.Y,
-						vert.Z * table.GetScaleZ() + _data.Position.Z + table.TableHeight
+						vert.X + _data.PositionX,
+						vert.Y + _data.PositionY,
+						vert.Z * table.GetScaleZ() + _data.PositionZ + table.TableHeight
 					);
 				}
 
@@ -134,7 +131,7 @@ namespace VisualPinball.Unity
 			}
 		}
 
-		private void GenerateCollidables(Mesh hitMesh, EdgeSet addedEdges, bool setHitObject, Table table, ICollection<ICollider> colliders)  {
+		private void GenerateCollidables(Mesh hitMesh, EdgeSet addedEdges, bool setHitObject, ICollection<ICollider> colliders)  {
 
 			// add the normal drop target as collidable but without hit event
 			for (var i = 0; i < hitMesh.Indices.Length; i += 3) {
@@ -197,7 +194,5 @@ namespace VisualPinball.Unity
 			2, 1, 6, 4, 8, 9, 9, 5, 4, 8, 10, 11, 11, 9, 8,
 			6, 12, 7, 12, 6, 13, 12, 13, 14, 13, 15, 14,
 		};
-
-
 	}
 }

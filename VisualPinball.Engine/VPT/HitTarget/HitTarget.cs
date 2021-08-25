@@ -27,11 +27,8 @@ namespace VisualPinball.Engine.VPT.HitTarget
 
 		public bool IsPulseSwitch => true;
 
-		public readonly HitTargetMeshGenerator MeshGenerator;
-
 		public HitTarget(HitTargetData data) : base(data)
 		{
-			MeshGenerator = new HitTargetMeshGenerator(Data);
 		}
 
 		public HitTarget(BinaryReader reader, string itemName) : this(new HitTargetData(reader, itemName))
@@ -46,16 +43,16 @@ namespace VisualPinball.Engine.VPT.HitTarget
 
 		#region IRenderable
 
-		Matrix3D IRenderable.TransformationMatrix(Table.Table table, Origin origin) => MeshGenerator.GetPostMatrix(table, origin);
+		Matrix3D IRenderable.TransformationMatrix(Table.Table table, Origin origin) => new HitTargetMeshGenerator(Data, table).GetPostMatrix(table, origin);
 
 		public RenderObject GetRenderObject(Table.Table table, string id = null, Origin origin = Origin.Global, bool asRightHanded = true)
 		{
-			return MeshGenerator.GetRenderObject(table, origin, asRightHanded);
+			return new HitTargetMeshGenerator(Data, table).GetRenderObject(origin, asRightHanded);
 		}
 
 		public RenderObjectGroup GetRenderObjects(Table.Table table, Origin origin = Origin.Global, bool asRightHanded = true)
 		{
-			return MeshGenerator.GetRenderObjects(table, origin, asRightHanded);
+			return new HitTargetMeshGenerator(Data, table).GetRenderObjects(origin, asRightHanded);
 		}
 
 		#endregion

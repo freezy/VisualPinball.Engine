@@ -100,7 +100,7 @@ namespace VisualPinball.Unity
 
 		protected override void CreateColliders(Table table, List<ICollider> colliders)
 		{
-			var colliderGenerator = new HitTargetColliderGenerator(this, MainComponent.CreateData());
+			var colliderGenerator = new HitTargetColliderGenerator(this, MainComponent, MainComponent);
 			colliderGenerator.GenerateColliders(table, colliders);
 		}
 

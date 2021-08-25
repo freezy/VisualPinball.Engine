@@ -15,12 +15,13 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using UnityEngine;
+using VisualPinball.Engine.Math;
 
 namespace VisualPinball.Unity
 {
 	public static class Matrix3DExtensions
 	{
-		public static Matrix4x4 ToUnityMatrix(this Engine.Math.Matrix3D vpMatrix)
+		public static Matrix4x4 ToUnityMatrix(this Matrix3D vpMatrix)
 		{
 			var c1 = vpMatrix.Column1;
 			var c2 = vpMatrix.Column2;
@@ -32,6 +33,16 @@ namespace VisualPinball.Unity
 				new Vector4(c3.Item1, c3.Item2, c3.Item3, c3.Item4),
 				new Vector4(c4.Item1, c4.Item2, c4.Item3, c4.Item4)
 			);
+		}
+
+		public static Matrix3D ToVpMatrix(this Matrix4x4 m)
+		{
+			return new Matrix3D().Set(new[] {
+				m[0], m[1], m[2], m[3],
+				m[4], m[5], m[6], m[7],
+				m[8], m[9], m[10], m[11],
+				m[12], m[13], m[14], m[15],
+			});
 		}
 	}
 }

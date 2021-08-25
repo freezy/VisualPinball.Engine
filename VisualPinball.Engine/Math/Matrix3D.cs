@@ -37,6 +37,27 @@ namespace VisualPinball.Engine.Math
 		public Tuple<float, float, float, float> Column3 => new Tuple<float, float, float, float>(_31, _32, _33, _34);
 		public Tuple<float, float, float, float> Column4 => new Tuple<float, float, float, float>(_41, _42, _43, _44);
 
+		public Matrix3D Set(float[] m)
+		{
+			_matrix[0][0] = m[0];
+			_matrix[1][0] = m[1];
+			_matrix[2][0] = m[2];
+			_matrix[3][0] = m[3];
+			_matrix[0][1] = m[4];
+			_matrix[1][1] = m[5];
+			_matrix[2][1] = m[6];
+			_matrix[3][1] = m[7];
+			_matrix[0][2] = m[8];
+			_matrix[1][2] = m[9];
+			_matrix[2][2] = m[10];
+			_matrix[3][2] = m[11];
+			_matrix[0][3] = m[12];
+			_matrix[1][3] = m[13];
+			_matrix[2][3] = m[14];
+			_matrix[3][3] = m[15];
+			return this;
+		}
+
 		public Matrix3D Set(float[][] matrix) {
 			for (var i = 0; i < 4; i++) {
 				for (var j = 0; j < 4; j++) {
