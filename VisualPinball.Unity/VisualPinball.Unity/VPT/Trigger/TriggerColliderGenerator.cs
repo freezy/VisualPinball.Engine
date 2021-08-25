@@ -27,37 +27,41 @@ namespace VisualPinball.Unity
 	public class TriggerColliderGenerator
 	{
 		private readonly TriggerApi _api;
-		private readonly TriggerData _data;
+		private readonly TriggerAuthoring _component;
+		private readonly TriggerMeshAuthoring _meshComponent;
+		private readonly TriggerColliderAuthoring _colliderComponent;
 
-		private bool IsRound => _data.Shape == TriggerShape.TriggerStar || _data.Shape == TriggerShape.TriggerButton;
+		private bool IsRound => _meshComponent.Shape == TriggerShape.TriggerStar || _meshComponent.Shape == TriggerShape.TriggerButton;
 
-		public TriggerColliderGenerator(TriggerApi triggerApi, TriggerData data)
+		public TriggerColliderGenerator(TriggerApi triggerApi, TriggerAuthoring component, TriggerColliderAuthoring colliderComponent, TriggerMeshAuthoring meshComponent)
 		{
 			_api = triggerApi;
-			_data = data;
+			_component = component;
+			_meshComponent = meshComponent;
+			_colliderComponent = colliderComponent;
 		}
 
-		internal void GenerateColliders(Table table, List<ICollider> colliders)
+		internal void GenerateColliders(List<ICollider> colliders)
 		{
 			if (IsRound) {
-				GenerateRoundHitObjects(table, colliders);
+				GenerateRoundHitObjects(colliders);
 
 			} else {
-				GenerateCurvedHitObjects(table, colliders);
+				GenerateCurvedHitObjects(colliders);
 			}
 		}
 
-		private void GenerateRoundHitObjects(Table table, ICollection<ICollider> colliders)
+		private void GenerateRoundHitObjects(ICollection<ICollider> colliders)
 		{
-			var height = table.GetSurfaceHeight(_data.Surface, _data.Center.X, _data.Center.Y);
-			colliders.Add(new CircleCollider(_data.Center.ToUnityFloat2(), _data.Radius, height, height + _data.HitHeight,
+			var height = _component.PositionZ;
+			colliders.Add(new CircleCollider(_component.Center, _colliderComponent.HitCircleRadius, height, height + _colliderComponent.HitHeight,
 				_api.GetColliderInfo(), ColliderType.TriggerCircle));
 		}
 
-		private void GenerateCurvedHitObjects(Table table, List<ICollider> colliders)
+		private void GenerateCurvedHitObjects(ICollection<ICollider> colliders)
 		{
-			var height = table.GetSurfaceHeight(_data.Surface, _data.Center.X, _data.Center.Y);
-			var vVertex = DragPoint.GetRgVertex<RenderVertex2D, CatmullCurve2DCatmullCurveFactory>(_data.DragPoints);
+			var height = _component.PositionZ;
+			var vVertex = DragPoint.GetRgVertex<RenderVertex2D, CatmullCurve2DCatmullCurveFactory>(_component.DragPoints);
 
 			var count = vVertex.Length;
 			var rgv = new RenderVertex2D[count];
@@ -71,14 +75,14 @@ namespace VisualPinball.Unity
 			for (var i = 0; i < count; i++) {
 				var pv2 = rgv[i < count - 1 ? i + 1 : 0];
 				var pv3 = rgv[i < count - 2 ? i + 2 : i + 2 - count];
-				AddLineSeg(pv2.ToUnityFloat2(), pv3.ToUnityFloat2(), height, table, colliders);
+				AddLineSeg(pv2.ToUnityFloat2(), pv3.ToUnityFloat2(), height, colliders);
 			}
 
 			ColliderUtils.Generate3DPolyColliders(rgv3D, _api.GetColliderInfo(), colliders);
 		}
 
-		private void AddLineSeg(float2 pv1, float2 pv2, float height, Table table, ICollection<ICollider> colliders) {
-			colliders.Add(new LineCollider(pv1, pv2, height, height + math.max(_data.HitHeight - 8.0f, 0f),
+		private void AddLineSeg(float2 pv1, float2 pv2, float height, ICollection<ICollider> colliders) {
+			colliders.Add(new LineCollider(pv1, pv2, height, height + math.max(_colliderComponent.HitHeight - 8.0f, 0f),
 				_api.GetColliderInfo(), ColliderType.TriggerLine));
 		}
 	}

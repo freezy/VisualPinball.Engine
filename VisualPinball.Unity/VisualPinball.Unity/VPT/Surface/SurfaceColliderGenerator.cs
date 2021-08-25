@@ -27,24 +27,26 @@ namespace VisualPinball.Unity
 	public class SurfaceColliderGenerator
 	{
 		private readonly IApiColliderGenerator _api;
-		private readonly SurfaceData _data;
+		private readonly SurfaceAuthoring _component;
+		private readonly SurfaceColliderAuthoring _colliderComponent;
 
-		public SurfaceColliderGenerator(SurfaceApi surfaceApi, SurfaceData data)
+		public SurfaceColliderGenerator(SurfaceApi surfaceApi, SurfaceAuthoring component, SurfaceColliderAuthoring colliderComponent)
 		{
 			_api = surfaceApi;
-			_data = data;
+			_component = component;
+			_colliderComponent = colliderComponent;
 		}
 
 		internal void GenerateColliders(Table table, List<ICollider> colliders)
 		{
-			var vVertex =  DragPoint.GetRgVertex<RenderVertex2D, CatmullCurve2DCatmullCurveFactory>(_data.DragPoints);
+			var vVertex =  DragPoint.GetRgVertex<RenderVertex2D, CatmullCurve2DCatmullCurveFactory>(_component.DragPoints);
 
 			var count = vVertex.Length;
 			var rgv3Dt = new float3[count];
-			var rgv3Db = _data.IsBottomSolid ? new float3[count] : null;
+			var rgv3Db = _colliderComponent.IsBottomSolid ? new float3[count] : null;
 
-			var bottom = _data.HeightBottom + table.TableHeight;
-			var top = _data.HeightTop + table.TableHeight;
+			var bottom = _component.HeightBottom + table.TableHeight;
+			var top = _component.HeightTop + table.TableHeight;
 
 			for (var i = 0; i < count; ++i) {
 				var pv1 = vVertex[i];
@@ -71,17 +73,17 @@ namespace VisualPinball.Unity
 		/// </summary>
 		private void GenerateLinePolys(RenderVertex2D pv1, Vertex2D pv2, Table table, ICollection<ICollider> colliders)
 		{
-			var bottom = _data.HeightBottom + table.TableHeight;
-			var top = _data.HeightTop + table.TableHeight;
+			var bottom = _component.HeightBottom + table.TableHeight;
+			var top = _component.HeightTop + table.TableHeight;
 
 			if (!pv1.IsSlingshot) {
 				colliders.Add(new LineCollider(pv1.ToUnityFloat2(), pv2.ToUnityFloat2(), bottom, top, _api.GetColliderInfo()));
 
 			} else {
-				colliders.Add(new LineSlingshotCollider(_data.SlingshotForce, pv1.ToUnityFloat2(), pv2.ToUnityFloat2(), bottom, top, _api.GetColliderInfo()));
+				colliders.Add(new LineSlingshotCollider(_colliderComponent.SlingshotForce, pv1.ToUnityFloat2(), pv2.ToUnityFloat2(), bottom, top, _api.GetColliderInfo()));
 			}
 
-			if (_data.HeightBottom != 0) {
+			if (_component.HeightBottom != 0) {
 				// add lower edge as a line
 				colliders.Add(new Line3DCollider(new float3(pv1.X, pv1.Y, bottom), new float3(pv2.X, pv2.Y, bottom), _api.GetColliderInfo()));
 			}
@@ -93,7 +95,7 @@ namespace VisualPinball.Unity
 			colliders.Add(new LineZCollider(pv1.ToUnityFloat2(), bottom, top, _api.GetColliderInfo()));
 
 			// add upper and lower end points of line
-			if (_data.HeightBottom != 0) {
+			if (_component.HeightBottom != 0) {
 				colliders.Add(new PointCollider(new float3(pv1.X, pv1.Y, bottom), _api.GetColliderInfo()));
 			}
 

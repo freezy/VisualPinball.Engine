@@ -57,15 +57,15 @@ namespace VisualPinball.Unity
 
 		#region Collider Generation
 
-		protected override bool FireHitEvents { get; } = true;
+		protected override bool FireHitEvents => true;
 		Entity IApiColliderGenerator.ColliderEntity => Entity;
 
 		protected override void CreateColliders(Table table, List<ICollider> colliders)
 		{
-			var triggerAuth = GameObject.GetComponent<TriggerAuthoring>();
-			if (triggerAuth) {
-				var colliderGenerator = new TriggerColliderGenerator(this, triggerAuth.CreateData());
-				colliderGenerator.GenerateColliders(table, colliders);
+			var meshComponent = GameObject.GetComponent<TriggerMeshAuthoring>();
+			if (meshComponent) {
+				var colliderGenerator = new TriggerColliderGenerator(this, MainComponent, ColliderComponent, meshComponent);
+				colliderGenerator.GenerateColliders(colliders);
 			}
 		}
 
