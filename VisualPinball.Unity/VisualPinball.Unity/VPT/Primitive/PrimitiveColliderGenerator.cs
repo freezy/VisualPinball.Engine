@@ -44,7 +44,6 @@ namespace VisualPinball.Unity
 
 		internal void GenerateColliders(Table table, Mesh originalMesh, float collisionReductionFactor, List<ICollider> colliders)
 		{
-
 			var mesh = _meshGenerator.GetTransformedMesh(table, originalMesh, Origin.Global, false);
 
 			var reducedVertices = math.max(

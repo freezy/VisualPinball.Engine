@@ -34,20 +34,21 @@ namespace VisualPinball.Unity
 
 		public ColliderBounds Bounds { get; private set; }
 
-		public PlungerCollider(PlungerData data, float zHeight, ColliderInfo info) : this()
+		public PlungerCollider(PlungerAuthoring comp, PlungerColliderAuthoring collComp, ColliderInfo info) : this()
 		{
 			_header.Init(info, ColliderType.Plunger);
 
-			var x = data.Center.X - data.Width;
-			var y = data.Center.Y + data.Height;
-			var x2 = data.Center.X + data.Width;
+			var zHeight = comp.PositionZ;
+			var x = comp.Position.x - comp.Width;
+			var y = comp.Position.y + comp.Height;
+			var x2 = comp.Position.x + comp.Width;
 
 			// static
 			LineSegBase = new LineCollider(new float2(x, y), new float2(x2, y), zHeight, zHeight + Plunger.PlungerHeight, info);
 			JointBase0 = new LineZCollider(new float2(x, y), zHeight, zHeight + Plunger.PlungerHeight, info);
 			JointBase1 = new LineZCollider(new float2(x2, y), zHeight, zHeight + Plunger.PlungerHeight, info);
 
-			var frameEnd = data.Center.Y - data.Stroke;
+			var frameEnd = comp.Position.y - collComp.Stroke;
 			Bounds = new ColliderBounds(_header.Entity, _header.Id, new Aabb(
 				x - 0.1f,
 				x2 + 0.1f,
