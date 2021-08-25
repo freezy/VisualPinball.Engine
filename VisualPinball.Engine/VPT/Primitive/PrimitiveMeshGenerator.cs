@@ -119,7 +119,6 @@ namespace VisualPinball.Engine.VPT.Primitive
 			return new Tuple<Matrix3D, Matrix3D>(fullMatrix, null);
 		}
 
-
 		private Mesh CalculateBuiltinOriginal()
 		{
 			var mesh = new Mesh(_data.Name);
