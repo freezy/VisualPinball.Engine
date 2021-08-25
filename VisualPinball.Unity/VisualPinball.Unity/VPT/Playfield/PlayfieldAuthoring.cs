@@ -19,6 +19,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Unity.Entities;
 using UnityEngine;
 using VisualPinball.Engine.Game;
 using VisualPinball.Engine.VPT;
@@ -73,7 +74,11 @@ namespace VisualPinball.Unity
 
 		private void Start()
 		{
-			transform.GetComponentInParent<Player>().RegisterPlayfield(gameObject);
+			GetComponentInParent<Player>().RegisterPlayfield(gameObject);
+			var meshComp = GetComponentInChildren<PlayfieldMeshAuthoring>();
+			if (meshComp) {
+				World.DefaultGameObjectInjectionWorld.GetOrCreateSystem<StaticNarrowPhaseSystem>().CollideAgainstPlayfieldPlane = meshComp.AutoGenerate;
+			}
 		}
 
 		public override IEnumerable<MonoBehaviour> SetData(TableData data)
