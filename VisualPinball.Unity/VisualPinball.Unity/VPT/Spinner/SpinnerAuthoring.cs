@@ -232,6 +232,19 @@ namespace VisualPinball.Unity
 		public override void SetEditorRotation(Vector3 rot) => transform.rotation = Quaternion.Euler(rot);
 
 		public override ItemDataTransformType EditorScaleType => ItemDataTransformType.OneD;
+
+		public bool ShowBracket {
+			get {
+				foreach (var mf in GetComponentsInChildren<MeshFilter>()) {
+					switch (mf.sharedMesh.name) {
+						case BracketMeshName:
+							return mf.gameObject.activeInHierarchy;
+					}
+				}
+				return false;
+			}
+		}
+
 		public override Vector3 GetEditorScale() => new Vector3(Length, 0f, 0f);
 		public override void SetEditorScale(Vector3 scale) => Length = scale.x;
 	}
