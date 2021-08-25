@@ -50,11 +50,10 @@ namespace VisualPinball.Unity
 		protected override float HitThreshold => ColliderComponent.Threshold;
 		protected override void CreateColliders(Table table, List<ICollider> colliders)
 		{
-			var data = MainComponent.CreateData();
-			if (data.DragPoints.Length == 0) {
+			if (MainComponent.DragPoints.Length == 0) {
 				return;
 			}
-			var colliderGenerator = new SurfaceColliderGenerator(this, data);
+			var colliderGenerator = new SurfaceColliderGenerator(this, MainComponent, ColliderComponent);
 			colliderGenerator.GenerateColliders(table, colliders);
 		}
 
