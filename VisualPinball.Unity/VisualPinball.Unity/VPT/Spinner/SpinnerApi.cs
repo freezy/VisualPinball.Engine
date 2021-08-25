@@ -86,7 +86,7 @@ namespace VisualPinball.Unity
 
 		protected override void CreateColliders(Table table, List<ICollider> colliders)
 		{
-				var colliderGenerator = new SpinnerColliderGenerator(this, MainComponent.CreateData());
+				var colliderGenerator = new SpinnerColliderGenerator(this, MainComponent);
 				colliderGenerator.GenerateColliders(MainComponent.HeightOnPlayfield, colliders);
 		}
 

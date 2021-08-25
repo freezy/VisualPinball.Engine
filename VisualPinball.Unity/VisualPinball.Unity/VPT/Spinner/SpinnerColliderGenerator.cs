@@ -23,18 +23,18 @@ namespace VisualPinball.Unity
 	public class SpinnerColliderGenerator
 	{
 		private readonly SpinnerApi _api;
-		private readonly SpinnerData _data;
+		private readonly SpinnerAuthoring _component;
 
-		public SpinnerColliderGenerator(SpinnerApi spinnerApi, SpinnerData data)
+		public SpinnerColliderGenerator(SpinnerApi spinnerApi, SpinnerAuthoring component)
 		{
 			_api = spinnerApi;
-			_data = data;
+			_component = component;
 		}
 
 		internal void GenerateColliders(float height, List<ICollider> colliders)
 		{
-			colliders.Add(new SpinnerCollider(_data, height - _data.Height, _api.GetColliderInfo()));
-			if (_data.ShowBracket) {
+			colliders.Add(new SpinnerCollider(_component, height - _component.Height, _api.GetColliderInfo()));
+			if (_component.ShowBracket) {
 				GenerateBracketColliders(height, colliders);
 			}
 		}
@@ -44,22 +44,22 @@ namespace VisualPinball.Unity
 			const float h = 30.0f;
 
 			/*add a hit shape for the bracket if shown, just in case if the bracket spinner height is low enough so the ball can hit it*/
-			var halfLength = _data.Length * 0.5f + _data.Length * 0.1875f;
-			var radAngle = math.radians(_data.Rotation);
+			var halfLength = _component.Length * 0.5f + _component.Length * 0.1875f;
+			var radAngle = math.radians(_component.Rotation);
 			var sn = math.sin(radAngle);
 			var cs = math.cos(radAngle);
 
 			colliders.Add(new CircleCollider(
-				new float2(_data.Center.X + cs * halfLength, _data.Center.Y + sn * halfLength),
-				_data.Length * 0.075f,
+				new float2(_component.Position.x + cs * halfLength, _component.Position.y + sn * halfLength),
+				_component.Length * 0.075f,
 				height,
 				height + h,
 				_api.GetColliderInfo()
 			));
 
 			colliders.Add(new CircleCollider(
-				new float2(_data.Center.X - cs * halfLength, _data.Center.Y - sn * halfLength),
-				_data.Length * 0.075f,
+				new float2(_component.Position.x - cs * halfLength, _component.Position.y - sn * halfLength),
+				_component.Length * 0.075f,
 				height,
 				height + h,
 				_api.GetColliderInfo()
