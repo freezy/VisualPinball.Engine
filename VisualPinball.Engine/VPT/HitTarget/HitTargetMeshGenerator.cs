@@ -22,40 +22,49 @@ using MathF = VisualPinball.Engine.Math.MathF;
 
 namespace VisualPinball.Engine.VPT.HitTarget
 {
-	public class HitTargetMeshGenerator : MeshGenerator
+	public class HitTargetMeshGenerator : MeshGenerator, IMeshGenerator
 	{
 		private readonly HitTargetData _data;
+		private readonly Table.Table _table;
 
 		protected override Vertex3D Position => _data.Position;
 		protected override Vertex3D Scale => _data.Size;
 		protected override float RotationZ => MathF.DegToRad(_data.RotZ);
 
-		public HitTargetMeshGenerator(HitTargetData data)
+		public HitTargetMeshGenerator(HitTargetData data, Table.Table table)
 		{
 			_data = data;
+			_table = table;
 		}
 
-		public RenderObject GetRenderObject(Table.Table table, Origin origin, bool asRightHanded)
+		public Mesh GetMesh() => GetBaseMesh();
+
+		public Matrix3D GetTransformationMatrix()
+		{
+			return GetPostMatrix(_table, Origin.Original);
+		}
+
+		public RenderObject GetRenderObject(Origin origin, bool asRightHanded)
 		{
 			var mesh = GetBaseMesh();
-			var (preMatrix, _) = GetPreMatrix(table, origin, asRightHanded);
+			var (preMatrix, _) = GetPreMatrix(_table, origin, asRightHanded);
 			return new RenderObject(
 				_data.Name,
 				mesh.Transform(preMatrix),
-				new PbrMaterial(table.GetMaterial(_data.Material), table.GetTexture(_data.Image)),
+				new PbrMaterial(_table.GetMaterial(_data.Material), _table.GetTexture(_data.Image)),
 				_data.IsVisible
 			);
 		}
 
-		public RenderObjectGroup GetRenderObjects(Table.Table table, Origin origin, bool asRightHanded)
+		public RenderObjectGroup GetRenderObjects(Origin origin, bool asRightHanded)
 		{
 			var mesh = GetBaseMesh();
-			var (preMatrix, _) = GetPreMatrix(table, origin, asRightHanded);
-			var postMatrix = GetPostMatrix(table, origin);
+			var (preMatrix, _) = GetPreMatrix(_table, origin, asRightHanded);
+			var postMatrix = GetPostMatrix(_table, origin);
 			return new RenderObjectGroup(_data.Name, "HitTargets", postMatrix, new RenderObject(
 				_data.Name,
 				mesh.Transform(preMatrix),
-				new PbrMaterial(table.GetMaterial(_data.Material),table.GetTexture(_data.Image)),
+				new PbrMaterial(_table.GetMaterial(_data.Material),_table.GetTexture(_data.Image)),
 				_data.IsVisible
 			));
 		}
@@ -92,6 +101,7 @@ namespace VisualPinball.Engine.VPT.HitTarget
 		private static readonly Mesh HitTargetFatSquareMesh = new Mesh(HitTargetFatSquare.Vertices, HitTargetFatSquare.Indices);
 		private static readonly Mesh HitTargetT1SlimMesh = new Mesh(HitTargetT1Slim.Vertices, HitTargetT1Slim.Indices);
 		private static readonly Mesh HitTargetT2SlimMesh = new Mesh(HitTargetT2Slim.Vertices, HitTargetT2Slim.Indices);
+
 
 		#endregion
 	}
