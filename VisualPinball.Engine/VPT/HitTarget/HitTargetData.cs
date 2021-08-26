@@ -109,7 +109,7 @@ namespace VisualPinball.Engine.VPT.HitTarget
 		public bool UseHitEvent = true;
 
 		[BiffVertex("VPOS", IsPadded = true, Pos = 1)]
-		public Vertex3D Position = new Vertex3D();
+		public Vertex3D Position;
 
 		[BiffVertex("VSIZ", IsPadded = true, Pos = 2)]
 		public Vertex3D Size = new Vertex3D(32, 32, 32);

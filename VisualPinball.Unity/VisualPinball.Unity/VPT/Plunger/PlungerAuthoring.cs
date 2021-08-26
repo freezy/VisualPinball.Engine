@@ -36,6 +36,9 @@ namespace VisualPinball.Unity
 		ICoilDeviceAuthoring, IOnSurfaceAuthoring, IConvertGameObjectToEntity
 	{
 		public void OnSurfaceUpdated() => RebuildMeshes();
+
+		public override void OnPlayfieldHeightUpdated() => RebuildMeshes();
+
 		public float PositionZ => SurfaceHeight(Surface, Position);
 
 		#region Data

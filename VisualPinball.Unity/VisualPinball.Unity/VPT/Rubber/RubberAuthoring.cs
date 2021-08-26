@@ -69,10 +69,13 @@ namespace VisualPinball.Unity
 
 		public override ItemType ItemType => ItemType.Rubber;
 
+		public override void OnPlayfieldHeightUpdated() => RebuildMeshes();
+
 		protected override Rubber InstantiateItem(RubberData data) => new Rubber(data);
 		protected override RubberData InstantiateData() => new RubberData();
 		protected override Type MeshAuthoringType { get; } = typeof(ItemMeshAuthoring<Rubber, RubberData, RubberAuthoring>);
 		protected override Type ColliderAuthoringType { get; } = typeof(ItemColliderAuthoring<Rubber, RubberData, RubberAuthoring>);
+
 
 		public override IEnumerable<Type> ValidParents => RubberColliderAuthoring.ValidParentTypes
 			.Concat(RubberMeshAuthoring.ValidParentTypes)
