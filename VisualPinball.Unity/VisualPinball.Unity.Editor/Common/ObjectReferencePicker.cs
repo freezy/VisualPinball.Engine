@@ -15,11 +15,70 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using System;
+using UnityEditor;
 using UnityEditor.IMGUI.Controls;
 using UnityEngine;
 
 namespace VisualPinball.Unity.Editor
 {
+	public class ObjectReferencePicker<T> where T: class, IIdentifiableItemAuthoring
+	{
+		private AdvancedDropdownState _itemPickDropdownState;
+
+		private readonly string _pickerTitle;
+		private readonly TableAuthoring _tableComp;
+		private readonly IconColor _iconColor;
+
+		public ObjectReferencePicker(string pickerTitle, TableAuthoring tableComp, IconColor iconColor)
+		{
+			_pickerTitle = pickerTitle;
+			_tableComp = tableComp;
+			_iconColor = iconColor;
+		}
+
+		public void Render(Rect pos, T currentObj, Action<T> onUpdated)
+		{
+			// render content
+			var content = currentObj == null
+				? new GUIContent("None")
+				: new GUIContent(currentObj.name, Icons.ByComponent(currentObj, IconSize.Small, _iconColor));
+
+			// render drawer
+			var id = GUIUtility.GetControlID(FocusType.Keyboard, pos);
+			var objectFieldButton = GUI.skin.GetStyle("ObjectFieldButton");
+			var suffixButtonPos = new Rect(pos.xMax - 19f, pos.y + 1, 19f, pos.height - 2);
+			EditorGUIUtility.SetIconSize(new Vector2(12f, 12f));
+
+			// handle click
+			if (Event.current.type == EventType.MouseDown && pos.Contains(Event.current.mousePosition)) {
+
+				if (currentObj != null && !suffixButtonPos.Contains(Event.current.mousePosition)) {
+					// click on ping
+					var mb = currentObj as MonoBehaviour;
+					if (mb) {
+						EditorGUIUtility.PingObject(mb.gameObject);
+					}
+
+				} else {
+					// click on picker
+					_itemPickDropdownState ??= new AdvancedDropdownState();
+					var dropdown = new ItemSearchableDropdown<T>(
+						_itemPickDropdownState,
+						_tableComp,
+						_pickerTitle,
+						onUpdated
+					);
+					dropdown.Show(pos);
+				}
+			}
+
+			if (Event.current.type == EventType.Repaint) {
+				EditorStyles.objectField.Draw(pos, content, id, DragAndDrop.activeControlID == id, pos.Contains(Event.current.mousePosition));
+				objectFieldButton.Draw(suffixButtonPos, GUIContent.none, id, DragAndDrop.activeControlID == id, suffixButtonPos.Contains(Event.current.mousePosition));
+			}
+		}
+	}
+
 	public class ItemSearchableDropdown<T> : AdvancedDropdown where T : class, IIdentifiableItemAuthoring
 	{
 		private readonly string _title;
@@ -57,7 +116,7 @@ namespace VisualPinball.Unity.Editor
 		{
 			public readonly TItem Item;
 
-			public ElementDropdownItem(TItem element) : base(element == null ? "None" : element.Name)
+			public ElementDropdownItem(TItem element) : base(element == null ? "None" : element.name)
 			{
 				if (element != null) {
 					Item = element;

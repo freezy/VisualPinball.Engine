@@ -91,7 +91,7 @@ namespace VisualPinball.Unity
 		protected override Trough InstantiateItem(TroughData data) => new Trough(data);
 		protected override TroughData InstantiateData() => new TroughData();
 
-		public override IEnumerable<Type> ValidParents { get; } = System.Type.EmptyTypes;
+		public override IEnumerable<Type> ValidParents => System.Type.EmptyTypes;
 
 		/// <summary>
 		/// Time in milliseconds it takes the switch to enable when the ball enters.
@@ -150,7 +150,7 @@ namespace VisualPinball.Unity
 					case TroughType.ModernOpto:
 					case TroughType.ModernMech:
 						return Enumerable.Repeat(0, SwitchCount)
-							.Select((_, i) => new GamelogicEngineSwitch($"{i + 1}", i + 1)
+							.Select((_, i) => new GamelogicEngineSwitch($"ball_switch_{i + 1}", i + 1)
 								{ Description = SwitchDescription(i) })
 							.Concat(JamSwitch
 								? new [] { new GamelogicEngineSwitch(JamSwitchId) { Description = "Jam Switch" }}
@@ -161,7 +161,7 @@ namespace VisualPinball.Unity
 						return new[] {
 							new GamelogicEngineSwitch(EntrySwitchId) { Description = "Entry Switch" }
 						}.Concat(Enumerable.Repeat(0, SwitchCount)
-							.Select((_, i) => new GamelogicEngineSwitch($"{i + 1}", i + 1)
+							.Select((_, i) => new GamelogicEngineSwitch($"ball_switch_{i + 1}", i + 1)
 								{ Description = SwitchDescription(i) } )
 						).Concat(JamSwitch
 							? new [] { new GamelogicEngineSwitch(JamSwitchId) { Description = "Jam Switch" }}

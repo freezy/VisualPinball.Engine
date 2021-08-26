@@ -30,7 +30,7 @@ namespace VisualPinball.Unity.Editor
 		public string Description;
 
 		[ManagerListColumn(Order = 3, HeaderName = "Source", Width = 150)]
-		public int Source;
+		public ESwitchSource Source;
 
 		[ManagerListColumn(Order = 4, HeaderName = "Element", Width = 270)]
 		public string Element;
@@ -42,44 +42,42 @@ namespace VisualPinball.Unity.Editor
 		public int InternalId;
 		public string InputActionMap;
 		public string InputAction;
-		public string PlayfieldItem;
+		//public string PlayfieldItem;
 		public int Constant;
-		public string Device;
-		public string DeviceItem;
+		public ISwitchDeviceAuthoring Device;
+		public string DeviceSwitchId;
 
-		public MappingsSwitchData MappingsSwitchData;
+		public readonly SwitchMapping SwitchMapping;
 
-		public SwitchListData(MappingsSwitchData mappingsSwitchData) {
-			Id = mappingsSwitchData.Id;
-			InternalId = mappingsSwitchData.InternalId;
-			NormallyClosed = mappingsSwitchData.IsNormallyClosed;
-			Description = mappingsSwitchData.Description;
-			Source = mappingsSwitchData.Source;
-			InputActionMap = mappingsSwitchData.InputActionMap;
-			InputAction = mappingsSwitchData.InputAction;
-			PlayfieldItem = mappingsSwitchData.PlayfieldItem;
-			Constant = mappingsSwitchData.Constant;
-			Device = mappingsSwitchData.Device;
-			DeviceItem = mappingsSwitchData.DeviceItem;
-			PulseDelay = mappingsSwitchData.PulseDelay;
+		public SwitchListData(SwitchMapping switchMapping) {
+			Id = switchMapping.Id;
+			InternalId = switchMapping.InternalId;
+			NormallyClosed = switchMapping.IsNormallyClosed;
+			Description = switchMapping.Description;
+			Source = switchMapping.Source;
+			InputActionMap = switchMapping.InputActionMap;
+			InputAction = switchMapping.InputAction;
+			Constant = switchMapping.Constant;
+			Device = switchMapping.Device;
+			DeviceSwitchId = switchMapping.DeviceSwitchId;
+			PulseDelay = switchMapping.PulseDelay;
 
-			MappingsSwitchData = mappingsSwitchData;
+			SwitchMapping = switchMapping;
 		}
 
 		public void Update()
 		{
-			MappingsSwitchData.Id = Id;
-			MappingsSwitchData.InternalId = InternalId;
-			MappingsSwitchData.IsNormallyClosed = NormallyClosed;
-			MappingsSwitchData.Description = Description;
-			MappingsSwitchData.Source = Source;
-			MappingsSwitchData.InputActionMap = InputActionMap;
-			MappingsSwitchData.InputAction = InputAction;
-			MappingsSwitchData.PlayfieldItem = PlayfieldItem;
-			MappingsSwitchData.Constant = Constant;
-			MappingsSwitchData.Device = Device;
-			MappingsSwitchData.DeviceItem = DeviceItem;
-			MappingsSwitchData.PulseDelay = PulseDelay;
+			SwitchMapping.Id = Id;
+			SwitchMapping.InternalId = InternalId;
+			SwitchMapping.IsNormallyClosed = NormallyClosed;
+			SwitchMapping.Description = Description;
+			SwitchMapping.Source = Source;
+			SwitchMapping.InputActionMap = InputActionMap;
+			SwitchMapping.InputAction = InputAction;
+			SwitchMapping.Constant = Constant;
+			SwitchMapping.Device = Device;
+			SwitchMapping.DeviceSwitchId = DeviceSwitchId;
+			SwitchMapping.PulseDelay = PulseDelay;
 		}
 	}
 }

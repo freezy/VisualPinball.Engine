@@ -39,6 +39,8 @@ namespace VisualPinball.Unity
 		#region Table Data
 
 		[SerializeReference] public LegacyContainer LegacyContainer;
+		[SerializeReference] public MappingConfig MappingConfig = new MappingConfig();
+
 		[SerializeField] public MappingsData Mappings;
 		[SerializeField] public SerializableDictionary<string, string> TableInfo = new SerializableDictionary<string, string>();
 		[SerializeField] public CustomInfoTags CustomInfoTags = new CustomInfoTags();

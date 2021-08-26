@@ -15,21 +15,24 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 
-using System.Collections.Generic;
-using VisualPinball.Engine.Game.Engines;
-
 namespace VisualPinball.Unity
 {
-	/// <summary>
-	/// A switch device is an item that contains multiple switches.
-	/// </summary>
-	public interface ISwitchDeviceAuthoring : IIdentifiableItemAuthoring
+	public enum ESwitchSource
 	{
-		/// <summary>
-		/// A list of available switches supported by the switch device
-		/// </summary>
-		IEnumerable<GamelogicEngineSwitch> AvailableSwitches { get; }
+		InputSystem = 0,
+		Playfield = 1,
+		Constant = 2,
+	}
 
-		SwitchDefault SwitchDefault { get; }
+	public enum ESwitchConstant
+	{
+		Closed = 0,
+		Open = 1,
+	}
+
+	public enum ESwitchType
+	{
+		OnOff = 0,
+		Pulse = 1,
 	}
 }

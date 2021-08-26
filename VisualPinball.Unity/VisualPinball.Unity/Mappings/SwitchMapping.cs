@@ -14,22 +14,40 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+// ReSharper disable InconsistentNaming
 
-using System.Collections.Generic;
-using VisualPinball.Engine.Game.Engines;
+using System;
+using UnityEngine;
 
 namespace VisualPinball.Unity
 {
-	/// <summary>
-	/// A switch device is an item that contains multiple switches.
-	/// </summary>
-	public interface ISwitchDeviceAuthoring : IIdentifiableItemAuthoring
+	[Serializable]
+	public class SwitchMapping
 	{
-		/// <summary>
-		/// A list of available switches supported by the switch device
-		/// </summary>
-		IEnumerable<GamelogicEngineSwitch> AvailableSwitches { get; }
+		public string Id = string.Empty;
 
-		SwitchDefault SwitchDefault { get; }
+		public int InternalId;
+
+		public bool IsNormallyClosed;
+
+		public string Description = string.Empty;
+
+		public ESwitchSource Source = ESwitchSource.Playfield;
+
+		public string InputActionMap = string.Empty;
+
+		public string InputAction = string.Empty;
+
+		public int Constant;
+
+		[SerializeReference]
+		public MonoBehaviour _device;
+		public ISwitchDeviceAuthoring Device { get => _device as ISwitchDeviceAuthoring; set => _device = value as MonoBehaviour; }
+
+		public string DeviceSwitchId = string.Empty;
+
+		public ESwitchType Type = ESwitchType.OnOff;
+
+		public int PulseDelay = 250;
 	}
 }
