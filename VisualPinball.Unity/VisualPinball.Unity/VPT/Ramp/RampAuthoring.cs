@@ -103,6 +103,8 @@ namespace VisualPinball.Unity
 
 		public override ItemType ItemType => ItemType.Ramp;
 
+		public override void OnPlayfieldHeightUpdated() => RebuildMeshes();
+
 		protected override Ramp InstantiateItem(RampData data) => new Ramp(data);
 		protected override RampData InstantiateData() => new RampData();
 

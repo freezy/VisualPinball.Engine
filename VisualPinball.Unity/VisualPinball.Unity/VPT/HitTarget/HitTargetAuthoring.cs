@@ -148,7 +148,7 @@ namespace VisualPinball.Unity
 		public override void UpdateTransforms()
 		{
 			var t = transform;
-			t.localPosition = Position;
+			t.localPosition = new Vector3(Position.x, Position.y, Position.z + PlayfieldHeight);
 			t.localScale = Size;
 			t.localEulerAngles = new Vector3(0, 0, Rotation);
 		}
@@ -253,6 +253,8 @@ namespace VisualPinball.Unity
 		#region Editor Tooling
 
 		public override ItemDataTransformType EditorPositionType => ItemDataTransformType.ThreeD;
+		public override Vector3 GetEditorPosition() => Position;
+		public override void SetEditorPosition(Vector3 pos) => Position = pos;
 
 		public override ItemDataTransformType EditorRotationType => ItemDataTransformType.OneD;
 		public override Vector3 GetEditorRotation() => new Vector3(Rotation, 0f, 0f);
