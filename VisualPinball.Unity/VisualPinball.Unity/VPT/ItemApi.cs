@@ -36,7 +36,7 @@ namespace VisualPinball.Unity
 		/// <summary>
 		/// Item name
 		/// </summary>
-		public string Name => MainComponent.name;
+		public string Name => MainComponent ? MainComponent.name : "unlinked";
 
 		protected readonly TItemComponent MainComponent;
 
