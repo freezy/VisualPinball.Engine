@@ -14,15 +14,14 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-using UnityEngine;
-using UnityEditor;
 using System;
 using System.Collections.Generic;
-using UnityEditor.IMGUI.Controls;
-using VisualPinball.Engine.VPT;
 using System.Linq;
+using UnityEditor;
+using UnityEngine;
 using VisualPinball.Engine.Game.Engines;
-using Color = UnityEngine.Color;
+using VisualPinball.Engine.VPT;
+using Texture = UnityEngine.Texture;
 
 namespace VisualPinball.Unity.Editor
 {
@@ -48,18 +47,15 @@ namespace VisualPinball.Unity.Editor
 		}
 
 		private readonly List<GamelogicEngineSwitch> _gleSwitches;
-		private readonly Dictionary<string, ISwitchAuthoring> _switches;
-		private readonly Dictionary<string, ISwitchDeviceAuthoring> _switchDevices;
 		private readonly InputManager _inputManager;
 
-		private AdvancedDropdownState _itemPickDropdownState;
+		private readonly ObjectReferencePicker<ISwitchDeviceAuthoring> _devicePicker;
 
-		public SwitchListViewItemRenderer(List<GamelogicEngineSwitch> gleSwitches, Dictionary<string, ISwitchAuthoring> switches, Dictionary<string, ISwitchDeviceAuthoring> switchDevices, InputManager inputManager)
+		public SwitchListViewItemRenderer(List<GamelogicEngineSwitch> gleSwitches, TableAuthoring tableComponent, InputManager inputManager)
 		{
 			_gleSwitches = gleSwitches;
-			_switches = switches;
-			_switchDevices = switchDevices;
 			_inputManager = inputManager;
+			_devicePicker = new ObjectReferencePicker<ISwitchDeviceAuthoring>("Switch Devices", tableComponent, IconColor.Gray);
 		}
 
 		public void Render(TableAuthoring tableAuthoring, SwitchListData data, Rect cellRect, int column, Action<SwitchListData> updateAction)
@@ -83,7 +79,7 @@ namespace VisualPinball.Unity.Editor
 					RenderSource(data, cellRect, updateAction);
 					break;
 				case SwitchListColumn.Element:
-					RenderElement(tableAuthoring, data, cellRect, updateAction);
+					RenderElement(data, cellRect, updateAction);
 					break;
 				case SwitchListColumn.PulseDelay:
 					RenderPulseDelay(data, cellRect, updateAction);
@@ -160,15 +156,13 @@ namespace VisualPinball.Unity.Editor
 		private void RenderNc(SwitchListData switchListData, Rect cellRect, Action<SwitchListData> updateAction)
 		{
 			// don't render for constants
-			if (switchListData.Source == SwitchSource.Constant) {
+			if (switchListData.Source == ESwitchSource.Constant) {
 				return;
 			}
 
 			// check if it's linked to a switch device, and whether the switch device handles no/nc itself
-			var switchDefault = switchListData.Source == SwitchSource.Device
-				? _switchDevices.ContainsKey(switchListData.Device.ToLower())
-					? _switchDevices[switchListData.Device.ToLower()].SwitchDefault
-					: SwitchDefault.Configurable
+			var switchDefault = switchListData.Source == ESwitchSource.Playfield
+				? switchListData.Device?.SwitchDefault ?? SwitchDefault.Configurable
 				: SwitchDefault.Configurable;
 
 			// if it handles it itself, just render the checkbox
@@ -202,23 +196,43 @@ namespace VisualPinball.Unity.Editor
 		private void RenderSource(SwitchListData switchListData, Rect cellRect, Action<SwitchListData> updateAction)
 		{
 			EditorGUI.BeginChangeCheck();
-			var index = EditorGUI.Popup(cellRect, switchListData.Source, OPTIONS_SWITCH_SOURCE);
-			if (EditorGUI.EndChangeCheck())
-			{
-				if (switchListData.Source != index)
-				{
-					switchListData.Source = index;
-					updateAction(switchListData);
-				}
+			var source = (ESwitchSource)EditorGUI.EnumPopup(cellRect, switchListData.Source);
+			if (EditorGUI.EndChangeCheck()) {
+				switchListData.Source = source;
+				updateAction(switchListData);
 			}
 		}
 
-		private void RenderElement(TableAuthoring tableAuthoring, SwitchListData switchListData, Rect cellRect, Action<SwitchListData> updateAction)
+		private void RenderElement(SwitchListData switchListData, Rect cellRect, Action<SwitchListData> updateAction)
+		{
+			switch (switchListData.Source)
+			{
+				case ESwitchSource.InputSystem:
+					cellRect = RenderIcon(switchListData, cellRect);
+					RenderInputSystemElement(switchListData, cellRect, updateAction);
+					break;
+
+				case ESwitchSource.Playfield:
+					cellRect.width = cellRect.width / 2f - 5f;
+					RenderDeviceElement(switchListData, cellRect, updateAction);
+					cellRect.x += cellRect.width + 10f;
+					RenderDeviceItemElement(switchListData, cellRect, updateAction);
+
+					//RenderPlayfieldElement(tableAuthoring, switchListData, cellRect, updateAction);
+					break;
+
+				case ESwitchSource.Constant:
+					cellRect = RenderIcon(switchListData, cellRect);
+					RenderConstantElement(switchListData, cellRect, updateAction);
+					break;
+			}
+		}
+
+		private Rect RenderIcon(SwitchListData switchListData, Rect cellRect)
 		{
 			var icon = GetIcon(switchListData);
 
-			if (icon != null)
-			{
+			if (icon != null) {
 				var iconRect = cellRect;
 				iconRect.width = 20;
 				var guiColor = GUI.color;
@@ -230,27 +244,7 @@ namespace VisualPinball.Unity.Editor
 			cellRect.x += 25;
 			cellRect.width -= 25;
 
-			switch (switchListData.Source)
-			{
-				case SwitchSource.InputSystem:
-					RenderInputSystemElement(switchListData, cellRect, updateAction);
-					break;
-
-				case SwitchSource.Playfield:
-					RenderPlayfieldElement(tableAuthoring, switchListData, cellRect, updateAction);
-					break;
-
-				case SwitchSource.Constant:
-					RenderConstantElement(switchListData, cellRect, updateAction);
-					break;
-
-				case SwitchSource.Device:
-					cellRect.width = cellRect.width / 2f - 5f;
-					RenderDeviceElement(tableAuthoring, switchListData, cellRect, updateAction);
-					cellRect.x += cellRect.width + 10f;
-					RenderDeviceItemElement(switchListData, cellRect, updateAction);
-					break;
-			}
+			return cellRect;
 		}
 
 		private void RenderInputSystemElement(SwitchListData switchListData, Rect cellRect, Action<SwitchListData> updateAction)
@@ -298,27 +292,6 @@ namespace VisualPinball.Unity.Editor
 			}
 		}
 
-		private void RenderPlayfieldElement(TableAuthoring tableAuthoring, SwitchListData switchListData, Rect cellRect, Action<SwitchListData> updateAction)
-		{
-			if (GUI.Button(cellRect, switchListData.PlayfieldItem, EditorStyles.objectField) || GUI.Button(cellRect, "", GUI.skin.GetStyle("IN ObjectField")))
-			{
-				if (_itemPickDropdownState == null) {
-					_itemPickDropdownState = new AdvancedDropdownState();
-				}
-
-				var dropdown = new ItemSearchableDropdown<ISwitchAuthoring>(
-					_itemPickDropdownState,
-					tableAuthoring,
-					"Switch Items",
-					item => {
-						switchListData.PlayfieldItem = item != null ? item.Name : string.Empty;
-						updateAction(switchListData);
-					}
-				);
-				dropdown.Show(cellRect);
-			}
-		}
-
 		private void RenderConstantElement(SwitchListData switchListData, Rect cellRect, Action<SwitchListData> updateAction)
 		{
 			EditorGUI.BeginChangeCheck();
@@ -330,44 +303,31 @@ namespace VisualPinball.Unity.Editor
 			}
 		}
 
-		private void RenderDeviceElement(TableAuthoring tableAuthoring, SwitchListData switchListData, Rect cellRect, Action<SwitchListData> updateAction)
+		private void RenderDeviceElement(SwitchListData switchListData, Rect cellRect, Action<SwitchListData> updateAction)
 		{
-			if (GUI.Button(cellRect, switchListData.Device, EditorStyles.objectField) || GUI.Button(cellRect, "", GUI.skin.GetStyle("IN ObjectField")))
-			{
-				if (_itemPickDropdownState == null) {
-					_itemPickDropdownState = new AdvancedDropdownState();
-				}
-
-				var dropdown = new ItemSearchableDropdown<ISwitchDeviceAuthoring>(
-					_itemPickDropdownState,
-					tableAuthoring,
-					"Switch Devices",
-					item => {
-						switchListData.Device = item != null ? item.Name : string.Empty;
-						updateAction(switchListData);
-					}
-				);
-				dropdown.Show(cellRect);
-			}
+			_devicePicker.Render(cellRect, switchListData.Device, item => {
+				switchListData.Device = item;
+				updateAction(switchListData);
+			});
 		}
 
 		private void RenderDeviceItemElement(SwitchListData switchListData, Rect cellRect, Action<SwitchListData> updateAction)
 		{
-			EditorGUI.BeginDisabledGroup(string.IsNullOrEmpty(switchListData.Device));
+			EditorGUI.BeginDisabledGroup(switchListData.Device == null);
 
 			var currentIndex = 0;
-			var switchLabels = new string[0];
+			var switchLabels = Array.Empty<string>();
 			ISwitchDeviceAuthoring switchDevice = null;
-			if (!string.IsNullOrEmpty(switchListData.Device) && _switchDevices.ContainsKey(switchListData.Device.ToLower())) {
-				switchDevice = _switchDevices[switchListData.Device.ToLower()];
+			if (switchListData.Device != null) {
+				switchDevice = switchListData.Device;
 				switchLabels = switchDevice.AvailableSwitches.Select(s => s.Description).ToArray();
-				currentIndex = switchDevice.AvailableSwitches.TakeWhile(s => s.Id != switchListData.DeviceItem).Count();
+				currentIndex = switchDevice.AvailableSwitches.TakeWhile(s => s.Id != switchListData.DeviceSwitchId).Count();
 			}
 			EditorGUI.BeginChangeCheck();
 			var newIndex = EditorGUI.Popup(cellRect, currentIndex, switchLabels);
 			if (EditorGUI.EndChangeCheck() && switchDevice != null) {
 				if (currentIndex != newIndex) {
-					switchListData.DeviceItem = switchDevice.AvailableSwitches.ElementAt(newIndex).Id;
+					switchListData.DeviceSwitchId = switchDevice.AvailableSwitches.ElementAt(newIndex).Id;
 					updateAction(switchListData);
 				}
 			}
@@ -376,52 +336,47 @@ namespace VisualPinball.Unity.Editor
 
 		private void RenderPulseDelay(SwitchListData switchListData, Rect cellRect, Action<SwitchListData> updateAction)
 		{
-			if (switchListData.Source == SwitchSource.Playfield && _switches.ContainsKey(switchListData.PlayfieldItem.ToLower())) {
-				var switchable = _switches[switchListData.PlayfieldItem.ToLower()];
-				if (switchable.Switchable.IsPulseSwitch) {
-					var labelRect = cellRect;
-					labelRect.x += labelRect.width - 20;
-					labelRect.width = 20;
-
-					var intFieldRect = cellRect;
-					intFieldRect.width -= 25;
-
-					EditorGUI.BeginChangeCheck();
-					var pulse = EditorGUI.IntField(intFieldRect, switchListData.PulseDelay);
-					if (EditorGUI.EndChangeCheck())
-					{
-						switchListData.PulseDelay = pulse;
-						updateAction(switchListData);
-					}
-
-					EditorGUI.LabelField(labelRect, "ms");
-				}
-			}
+			// todo
+			// if (switchListData.Source == ESwitchSource.Playfield && switchListData.Device != null) {
+			// 	var switchable = _switches[switchListData.PlayfieldItem.ToLower()];
+			// 	if (switchable.Switchable.IsPulseSwitch) {
+			// 		var labelRect = cellRect;
+			// 		labelRect.x += labelRect.width - 20;
+			// 		labelRect.width = 20;
+			//
+			// 		var intFieldRect = cellRect;
+			// 		intFieldRect.width -= 25;
+			//
+			// 		EditorGUI.BeginChangeCheck();
+			// 		var pulse = EditorGUI.IntField(intFieldRect, switchListData.PulseDelay);
+			// 		if (EditorGUI.EndChangeCheck())
+			// 		{
+			// 			switchListData.PulseDelay = pulse;
+			// 			updateAction(switchListData);
+			// 		}
+			//
+			// 		EditorGUI.LabelField(labelRect, "ms");
+			// 	}
+			// }
 		}
 
-		private UnityEngine.Texture GetIcon(SwitchListData switchListData)
+		private Texture GetIcon(SwitchListData switchListData)
 		{
 			Texture2D icon = null;
 
 			switch (switchListData.Source) {
-				case SwitchSource.Playfield: {
-					if (_switches.ContainsKey(switchListData.PlayfieldItem.ToLower())) {
-						icon = Icons.ByComponent(_switches[switchListData.PlayfieldItem.ToLower()], IconSize.Small);
+				case ESwitchSource.Playfield: {
+					if (switchListData.Device != null) {
+						icon = Icons.ByComponent(switchListData.Device, IconSize.Small);
 					}
 					break;
 				}
-				case SwitchSource.Constant:
+				case ESwitchSource.Constant:
 					icon = Icons.Switch(switchListData.Constant == SwitchConstant.Closed, IconSize.Small);
 					break;
 
-				case SwitchSource.InputSystem:
+				case ESwitchSource.InputSystem:
 					icon = Icons.Key(IconSize.Small);
-					break;
-
-				case SwitchSource.Device:
-					if (_switchDevices.ContainsKey(switchListData.Device.ToLower())) {
-						icon = Icons.ByComponent(_switchDevices[switchListData.Device.ToLower()], IconSize.Small);
-					}
 					break;
 			}
 

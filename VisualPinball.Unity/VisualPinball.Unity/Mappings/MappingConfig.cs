@@ -14,22 +14,38 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+// ReSharper disable InconsistentNaming
 
+using System;
 using System.Collections.Generic;
-using VisualPinball.Engine.Game.Engines;
+using UnityEngine;
 
 namespace VisualPinball.Unity
 {
-	/// <summary>
-	/// A switch device is an item that contains multiple switches.
-	/// </summary>
-	public interface ISwitchDeviceAuthoring : IIdentifiableItemAuthoring
+	[Serializable]
+	public class MappingConfig
 	{
-		/// <summary>
-		/// A list of available switches supported by the switch device
-		/// </summary>
-		IEnumerable<GamelogicEngineSwitch> AvailableSwitches { get; }
+		[SerializeField]
+		public List<SwitchMapping> Switches = new List<SwitchMapping>();
 
-		SwitchDefault SwitchDefault { get; }
+		public void AddSwitch(SwitchMapping switchMapping)
+		{
+			Switches?.Add(switchMapping);
+		}
+
+		public void RemoveSwitch(SwitchMapping switchMapping)
+		{
+			Switches?.Remove(switchMapping);
+		}
+
+		public void RemoveAllSwitches()
+		{
+			if (Switches == null) {
+				Switches = new List<SwitchMapping>();
+
+			} else {
+				Switches.Clear();
+			}
+		}
 	}
 }

@@ -14,10 +14,14 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+using System;
+
 namespace VisualPinball.Unity
 {
 	public interface IIdentifiableItemAuthoring
 	{
+		[Obsolete("Remove when all authoring devices are migrated")]
 		string Name { get; set; }
+		string name { get; }
 	}
 }

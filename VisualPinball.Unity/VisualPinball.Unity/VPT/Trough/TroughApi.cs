@@ -172,7 +172,7 @@ namespace VisualPinball.Unity
 			base.OnInit(ballManager);
 
 			// reference playfield elements
-			_drainSwitch = TableApi.Switch(MainComponent.PlayfieldEntrySwitch != null ?MainComponent.PlayfieldEntrySwitch.name : string.Empty);
+			_drainSwitch = TableApi.Switch(MainComponent.PlayfieldEntrySwitch != null ? MainComponent.PlayfieldEntrySwitch.name : string.Empty);
 			_ejectKicker = TableApi.Kicker(MainComponent.PlayfieldExitKicker ? MainComponent.PlayfieldExitKicker.name : string.Empty);
 			_isSetup = _drainSwitch != null && _ejectKicker != null;
 

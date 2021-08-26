@@ -73,7 +73,7 @@ namespace VisualPinball.Unity.Editor
 		private void OnFocus()
 		{
 			_inputManager = new InputManager(RESOURCE_PATH);
-			_listViewItemRenderer = new SwitchListViewItemRenderer(_gleSwitches, _switches, _switchDevices, _inputManager);
+			_listViewItemRenderer = new SwitchListViewItemRenderer(_gleSwitches, _tableAuthoring, _inputManager);
 			_needsAssetRefresh = true;
 		}
 
@@ -115,7 +115,7 @@ namespace VisualPinball.Unity.Editor
 			{
 				if (EditorUtility.DisplayDialog("Switch Manager", "Are you sure want to remove all switch mappings?", "Yes", "Cancel")) {
 					RecordUndo("Remove all switch mappings");
-					_tableAuthoring.Mappings.RemoveAllSwitches();
+					_tableAuthoring.MappingConfig.RemoveAllSwitches();
 				}
 				Reload();
 			}
@@ -135,7 +135,7 @@ namespace VisualPinball.Unity.Editor
 		{
 			List<SwitchListData> data = new List<SwitchListData>();
 
-			foreach (var mappingsSwitchData in _tableAuthoring.Mappings.Switches)
+			foreach (var mappingsSwitchData in _tableAuthoring.MappingConfig.Switches)
 			{
 				data.Add(new SwitchListData(mappingsSwitchData));
 			}
@@ -150,22 +150,21 @@ namespace VisualPinball.Unity.Editor
 		{
 			RecordUndo(undoName);
 
-			_tableAuthoring.Mappings.AddSwitch(new MappingsSwitchData());
+			_tableAuthoring.MappingConfig.AddSwitch(new SwitchMapping());
 		}
 
 		protected override void RemoveData(string undoName, SwitchListData data)
 		{
 			RecordUndo(undoName);
 
-			_tableAuthoring.Mappings.RemoveSwitch(data.MappingsSwitchData);
+			_tableAuthoring.MappingConfig.RemoveSwitch(data.SwitchMapping);
 		}
 
 		protected override void CloneData(string undoName, string newName, SwitchListData data)
 		{
 			RecordUndo(undoName);
 
-			_tableAuthoring.Mappings.AddSwitch(new MappingsSwitchData
-			{
+			_tableAuthoring.MappingConfig.AddSwitch(new SwitchMapping {
 				Id = data.Id,
 				InternalId = data.InternalId,
 				IsNormallyClosed = data.NormallyClosed,
@@ -173,7 +172,6 @@ namespace VisualPinball.Unity.Editor
 				Source = data.Source,
 				InputActionMap = data.InputActionMap,
 				InputAction = data.InputAction,
-				PlayfieldItem = data.PlayfieldItem,
 				Constant = data.Constant,
 				PulseDelay = data.PulseDelay
 			});
