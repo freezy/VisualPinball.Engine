@@ -188,6 +188,8 @@ namespace VisualPinball.Unity.Editor
 			var converter = new VpxSceneConverter(_tableAuthoring);
 			_tableAuthoring.TableContainer.Refresh();
 			var prefab = converter.InstantiateAndParentPrefab(item);
+			prefab.SetData();
+			prefab.SetReferencedData(converter, converter, null);
 			return prefab.GameObject;
 		}
 	}
