@@ -390,7 +390,7 @@ namespace VisualPinball.Engine.VPT.Table
 			var dict = GetItemDictionary<T>();
 			do {
 				var elementName = $"{prefix}{++n}";
-				if (!dict.ContainsKey(elementName)) {
+				if (!dict.ContainsKey(elementName.ToLower())) {
 					return elementName;
 				}
 			} while (true);
