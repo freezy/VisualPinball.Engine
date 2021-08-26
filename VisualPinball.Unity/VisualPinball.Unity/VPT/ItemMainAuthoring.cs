@@ -44,10 +44,10 @@ namespace VisualPinball.Unity
 
 		public abstract ItemType ItemType { get; }
 
-		protected T GetAuthoring<T>(Dictionary<string, IItemMainAuthoring> itemMainAuthorings, string surfaceName) where T : class, IItemMainAuthoring
+		protected T GetAuthoring<T>(Dictionary<string, IItemMainAuthoring> components, string surfaceName) where T : class, IItemMainAuthoring
 		{
-			return (itemMainAuthorings.ContainsKey(surfaceName.ToLower())
-					? itemMainAuthorings[surfaceName.ToLower()]
+			return (components != null && components.ContainsKey(surfaceName.ToLower())
+					? components[surfaceName.ToLower()]
 					: null)
 				as T;
 		}
