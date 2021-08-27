@@ -29,6 +29,7 @@ using UnityEngine;
 using VisualPinball.Engine.Math;
 using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Primitive;
+using VisualPinball.Engine.VPT.Table;
 using Mesh = VisualPinball.Engine.VPT.Mesh;
 
 namespace VisualPinball.Unity
@@ -162,14 +163,14 @@ namespace VisualPinball.Unity
 			return updatedComponents;
 		}
 
-		public override IEnumerable<MonoBehaviour> SetReferencedData(PrimitiveData data, IMaterialProvider materialProvider, ITextureProvider textureProvider, Dictionary<string, IItemMainAuthoring> components)
+		public override IEnumerable<MonoBehaviour> SetReferencedData(PrimitiveData data, Table table, IMaterialProvider materialProvider, ITextureProvider textureProvider, Dictionary<string, IItemMainAuthoring> components)
 		{
 			var updatedComponents = new List<MonoBehaviour> { this };
 
 			// mesh
 			var meshComponent = GetComponent<PrimitiveMeshAuthoring>();
 			if (meshComponent) {
-				meshComponent.CreateMesh(data, textureProvider, materialProvider);
+				meshComponent.CreateMesh(data, table, textureProvider, materialProvider);
 
 				updatedComponents.Add(meshComponent);
 			}

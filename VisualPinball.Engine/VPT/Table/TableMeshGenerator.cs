@@ -35,17 +35,31 @@ namespace VisualPinball.Engine.VPT.Table
 		public RenderObject GetRenderObject(Table table, bool asRightHanded = true)
 		{
 			var material = new PbrMaterial(table.GetMaterial(_data.PlayfieldMaterial), table.GetTexture(_data.Image));
-			return GetFromTableDimensions(asRightHanded, material);
+			var mesh = GetFromTableDimensions(asRightHanded);
+			return new RenderObject(
+				_data.Name,
+				asRightHanded ? mesh.Transform(Matrix3D.RightHanded) : mesh,
+				material,
+				true
+			);
 		}
 
-		public RenderObjectGroup GetRenderObjects(Table table, Origin origin, bool asRightHanded = true)
+		public Mesh GetMesh()
+		{
+			return GetFromTableDimensions(false);
+		}
+
+		public RenderObjectGroup GetRenderObjects(Table table, bool asRightHanded = true)
 		{
 			var material = new PbrMaterial(table.GetMaterial(_data.PlayfieldMaterial), table.GetTexture(_data.Image));
-			return new RenderObjectGroup(_data.Name, "Table", Matrix3D.Identity, GetFromTableDimensions(asRightHanded, material));
-			// todo handle custom mesh
-			// return HasMeshAsPlayfield
-			// 	? _playfield.GetRenderObjects(table, origin, asRightHanded, "Table", material)
-			// 	: new RenderObjectGroup(_data.Name, "Table", Matrix3D.Identity, GetFromTableDimensions(asRightHanded, material));
+			var mesh = GetFromTableDimensions(asRightHanded);
+			var ro = new RenderObject(
+				_data.Name,
+				asRightHanded ? mesh.Transform(Matrix3D.RightHanded) : mesh,
+				material,
+				true
+			);
+			return new RenderObjectGroup(_data.Name, "Table", Matrix3D.Identity, ro);
 		}
 
 		public void SetFromPrimitive(Primitive.Primitive primitive)
@@ -53,7 +67,7 @@ namespace VisualPinball.Engine.VPT.Table
 			_playfield = primitive;
 		}
 
-		private RenderObject GetFromTableDimensions(bool asRightHanded, PbrMaterial material)
+		private Mesh GetFromTableDimensions(bool asRightHanded)
 		{
 			var rgv = new[] {
 				new Vertex3DNoTex2(_data.Left, _data.Top, _data.TableHeight),
@@ -92,12 +106,7 @@ namespace VisualPinball.Engine.VPT.Table
 				}
 			}
 
-			return new RenderObject(
-				_data.Name,
-				asRightHanded ? mesh.Transform(Matrix3D.RightHanded) : mesh,
-				material,
-				true
-			);
+			return mesh;
 		}
 	}
 }

@@ -40,7 +40,7 @@ namespace VisualPinball.Engine.VPT.Spinner
 
 		public RenderObject GetRenderObject(Table.Table table, string id, Origin origin, bool asRightHanded)
 		{
-			var (preMatrix, _) = GetPreMatrix(table, origin, asRightHanded);
+			var (preMatrix, _) = GetPreMatrix(BaseHeight(table), origin, asRightHanded);
 			switch (id) {
 				case Plate:
 					return new RenderObject(
@@ -63,7 +63,7 @@ namespace VisualPinball.Engine.VPT.Spinner
 
 		public RenderObjectGroup GetRenderObjects(Table.Table table, Origin origin, bool asRightHanded)
 		{
-			var (preMatrix, _) = GetPreMatrix(table, origin, asRightHanded);
+			var (preMatrix, _) = GetPreMatrix(BaseHeight(table), origin, asRightHanded);
 			var postMatrix = GetPostMatrix(table, origin);
 			return new RenderObjectGroup(_data.Name, "Spinners", postMatrix, new RenderObject(
 					"Plate",

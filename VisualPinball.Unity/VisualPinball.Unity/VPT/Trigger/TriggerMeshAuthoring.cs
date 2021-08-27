@@ -23,6 +23,7 @@ using VisualPinball.Engine.Game;
 using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Table;
 using VisualPinball.Engine.VPT.Trigger;
+using Mesh = VisualPinball.Engine.VPT.Mesh;
 
 namespace VisualPinball.Unity
 {
@@ -46,7 +47,9 @@ namespace VisualPinball.Unity
 
 		public override IEnumerable<Type> ValidParents => ValidParentTypes;
 
-		protected override RenderObject GetRenderObject(TriggerData data)
+		protected override RenderObject GetRenderObject(TriggerData data, Table table)
 			=> new TriggerMeshGenerator(data).GetRenderObject(table, Origin.Original, false);
+		protected override Mesh GetMesh(TriggerData data)
+			=> new TriggerMeshGenerator(data).GetMesh(MainComponent.PlayfieldHeight);
 	}
 }

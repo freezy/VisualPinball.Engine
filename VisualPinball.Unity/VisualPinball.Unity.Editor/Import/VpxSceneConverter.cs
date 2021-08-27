@@ -60,7 +60,7 @@ namespace VisualPinball.Unity.Editor
 	public class VpxSceneConverter : ITextureProvider, IMaterialProvider, IMeshProvider
 	{
 		private readonly FileTableContainer _tableContainer;
-		private readonly Table _table;
+		private readonly Table _sourceTable;
 		private readonly ConvertOptions _options;
 
 		private GameObject _tableGo;
@@ -95,7 +95,7 @@ namespace VisualPinball.Unity.Editor
 		public VpxSceneConverter(FileTableContainer tableContainer, string fileName = "", ConvertOptions options = null)
 		{
 			_tableContainer = tableContainer;
-			_table = tableContainer.Table;
+			_sourceTable = tableContainer.Table;
 			_patcher = PatcherManager.GetPatcher();
 			_patcher?.Set(tableContainer, fileName);
 			_options = options ?? new ConvertOptions();
@@ -115,7 +115,7 @@ namespace VisualPinball.Unity.Editor
 			}
 			_playfieldGo = playfieldAuthoring.gameObject;
 			_tableAuthoring = tableAuthoring;
-			_table = new Table(_tableAuthoring.TableContainer, new TableData());
+			_sourceTable = new Table(_tableAuthoring.TableContainer, new TableData());
 
 			// get materials in scene
 			var guids = AssetDatabase.FindAssets("t:Material");
@@ -246,7 +246,7 @@ namespace VisualPinball.Unity.Editor
 		{
 			var componentLookup = prefabLookup.ToDictionary(x => x.Key, x => x.Value.MainComponent);
 			foreach (var prefab in prefabLookup.Values) {
-				prefab.SetReferencedData(this, this, componentLookup);
+				prefab.SetReferencedData(_sourceTable, this, this, componentLookup);
 				prefab.FreeBinaryData();
 
 				if (prefab.ExtractMesh) {
@@ -283,7 +283,7 @@ namespace VisualPinball.Unity.Editor
 			}
 
 			// the playfield needs separate treatment
-			_playfieldComp.SetReferencedData(_table.Data, this, this, null);
+			_playfieldComp.SetReferencedData(_sourceTable.Data, _sourceTable, this, this, null);
 
 			// yes, really, persist changes..
 			EditorSceneManager.MarkSceneDirty(SceneManager.GetActiveScene());
@@ -304,7 +304,7 @@ namespace VisualPinball.Unity.Editor
 			// apply transformation
 			if (item is IRenderable renderable) {
 				// todo can probably remove that, it's in setData already..
-				prefab.GameObject.transform.SetFromMatrix(renderable.TransformationMatrix(_table, Origin.Original).ToUnityMatrix());
+				prefab.GameObject.transform.SetFromMatrix(renderable.TransformationMatrix(_sourceTable, Origin.Original).ToUnityMatrix());
 			}
 			return prefab;
 		}
@@ -337,7 +337,7 @@ namespace VisualPinball.Unity.Editor
 				// pause asset database refreshing
 				AssetDatabase.StartAssetEditing();
 
-				foreach (var material in _table.Data.Materials) {
+				foreach (var material in _sourceTable.Data.Materials) {
 
 					// skip material if physics aren't set.
 					if (material.Elasticity == 0 && material.ElasticityFalloff == 0 && material.ScatterAngle == 0 && material.Friction == 0) {
@@ -352,7 +352,7 @@ namespace VisualPinball.Unity.Editor
 				AssetDatabase.Refresh();
 			}
 
-			foreach (var material in _table.Data.Materials) {
+			foreach (var material in _sourceTable.Data.Materials) {
 				_physicalMaterials[material.Name] = AssetDatabase.LoadAssetAtPath<PhysicsMaterial>($"{_assetsPhysicsMaterials}/{material.Name}.asset");
 			}
 		}
@@ -540,11 +540,11 @@ namespace VisualPinball.Unity.Editor
 		{
 			// set the GameObject name; this needs to happen after MakeSerializable because the name is set there as well
 			if (string.IsNullOrEmpty(tableName)) {
-				tableName = _table.Name;
+				tableName = _sourceTable.Name;
 
 			} else {
 				tableName = tableName
-					.Replace("%TABLENAME%", _table.Name)
+					.Replace("%TABLENAME%", _sourceTable.Name)
 					.Replace("%INFONAME%", _tableContainer.InfoName);
 			}
 
@@ -554,7 +554,7 @@ namespace VisualPinball.Unity.Editor
 			var cabinetGo = new GameObject("Cabinet");
 
 			_tableAuthoring = _tableGo.AddComponent<TableAuthoring>();
-			_tableAuthoring.SetData(_table.Data);
+			_tableAuthoring.SetData(_sourceTable.Data);
 
 			_playfieldGo.transform.SetParent(_tableGo.transform, false);
 			backglassGo.transform.SetParent(_tableGo.transform, false);
@@ -565,9 +565,9 @@ namespace VisualPinball.Unity.Editor
 			_playfieldGo.AddComponent<PlayfieldMeshAuthoring>();
 			_playfieldGo.AddComponent<MeshFilter>();
 			_playfieldGo.transform.localRotation = PlayfieldAuthoring.GlobalRotation;
-			_playfieldGo.transform.localPosition = new Vector3(-_table.Width / 2 * PlayfieldAuthoring.GlobalScale, 0f, _table.Height / 2 * PlayfieldAuthoring.GlobalScale);
+			_playfieldGo.transform.localPosition = new Vector3(-_sourceTable.Width / 2 * PlayfieldAuthoring.GlobalScale, 0f, _sourceTable.Height / 2 * PlayfieldAuthoring.GlobalScale);
 			_playfieldGo.transform.localScale = new Vector3(PlayfieldAuthoring.GlobalScale, PlayfieldAuthoring.GlobalScale, PlayfieldAuthoring.GlobalScale);
-			_playfieldComp.SetData(_table.Data);
+			_playfieldComp.SetData(_sourceTable.Data);
 		}
 
 		private GameObject GetGroupParent(IItem item)
@@ -663,7 +663,7 @@ namespace VisualPinball.Unity.Editor
 
 		public Material MergeMaterials(string vpxMaterial, Material textureMaterial)
 		{
-			var pbrMaterial = new PbrMaterial(_table.GetMaterial(vpxMaterial), id: $"{vpxMaterial.ToNormalizedName()} __textured");
+			var pbrMaterial = new PbrMaterial(_sourceTable.GetMaterial(vpxMaterial), id: $"{vpxMaterial.ToNormalizedName()} __textured");
 			return pbrMaterial.ToUnityMaterial(this, textureMaterial);
 		}
 

@@ -17,6 +17,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using VisualPinball.Engine.Game;
+using VisualPinball.Engine.VPT.Table;
 
 namespace VisualPinball.Unity.Editor
 {
@@ -37,7 +38,7 @@ namespace VisualPinball.Unity.Editor
 
 		void SetData();
 
-		public void SetReferencedData(IMaterialProvider materialProvider, ITextureProvider textureProvider,
+		public void SetReferencedData(Table table, IMaterialProvider materialProvider, ITextureProvider textureProvider,
 			Dictionary<string, IItemMainAuthoring> components);
 
 		public void PersistData();

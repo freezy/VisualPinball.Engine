@@ -22,6 +22,7 @@ using System.Linq;
 using Unity.Entities;
 using UnityEngine;
 using VisualPinball.Engine.VPT;
+using VisualPinball.Engine.VPT.Table;
 
 namespace VisualPinball.Unity
 {
@@ -46,7 +47,7 @@ namespace VisualPinball.Unity
 	}
 
 	public abstract IEnumerable<MonoBehaviour> SetData(TData data);
-	public abstract IEnumerable<MonoBehaviour> SetReferencedData(TData data, IMaterialProvider materialProvider, ITextureProvider textureProvider, Dictionary<string, IItemMainAuthoring> components);
+	public abstract IEnumerable<MonoBehaviour> SetReferencedData(TData data, Table table, IMaterialProvider materialProvider, ITextureProvider textureProvider, Dictionary<string, IItemMainAuthoring> components);
 	public abstract TData CopyDataTo(TData data, string[] materialNames, string[] textureNames);
 
 	public abstract ItemType ItemType { get; }

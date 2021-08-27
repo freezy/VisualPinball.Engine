@@ -47,8 +47,9 @@ namespace VisualPinball.Engine.VPT.Flipper
 
 		public RenderObject? GetRenderObject(Table.Table table, string id, Origin origin, bool asRightHanded)
 		{
-			var meshes = GenerateMeshes(table);
-			var (preVertexMatrix, preNormalsMatrix) = GetPreMatrix(table, origin, asRightHanded);
+			var height = table.GetSurfaceHeight(_data.Surface, _data.Center.X, _data.Center.Y);
+			var meshes = GenerateMeshes(height);
+			var (preVertexMatrix, preNormalsMatrix) = GetPreMatrix(height, origin, asRightHanded);
 			switch (id) {
 				case Base:
 					return new RenderObject(
@@ -71,10 +72,27 @@ namespace VisualPinball.Engine.VPT.Flipper
 			return null;
 		}
 
+		public Mesh GetMesh(string id, float height)
+		{
+			var meshes = GenerateMeshes(height);
+			var (preVertexMatrix, preNormalsMatrix) = GetPreMatrix(height, Origin.Original, false);
+			switch (id) {
+				case Base:
+					return meshes[Base].Transform(preVertexMatrix, preNormalsMatrix);
+				case Rubber:
+					if (meshes.ContainsKey(Rubber)) {
+						return meshes[Rubber].Transform(preVertexMatrix, preNormalsMatrix);
+					}
+					break;
+			}
+			return null;
+		}
+
 		public RenderObjectGroup GetRenderObjects(Table.Table table, Origin origin, bool asRightHanded = true)
 		{
-			var meshes = GenerateMeshes(table);
-			var (preVertexMatrix, preNormalsMatrix) = GetPreMatrix(table, origin, asRightHanded);
+			var height = table.GetSurfaceHeight(_data.Surface, _data.Center.X, _data.Center.Y);
+			var meshes = GenerateMeshes(table.GetSurfaceHeight(_data.Surface, _data.Center.X, _data.Center.Y));
+			var (preVertexMatrix, preNormalsMatrix) = GetPreMatrix(height, origin, asRightHanded);
 			var postMatrix = GetPostMatrix(table, origin);
 			var renderObjects = new List<RenderObject> {
 				new RenderObject(
@@ -102,13 +120,11 @@ namespace VisualPinball.Engine.VPT.Flipper
 			return 0f; // already in vertices
 		}
 
-		private Dictionary<string, Mesh> GenerateMeshes(Table.Table table)
+		private Dictionary<string, Mesh> GenerateMeshes(float height)
 		{
 			var meshes = new Dictionary<string, Mesh>();
 			var fullMatrix = new Matrix3D();
 			fullMatrix.RotateZMatrix(MathF.DegToRad(180.0f));
-
-			var height = table.GetSurfaceHeight(_data.Surface, _data.Center.X, _data.Center.Y);
 
 			var baseRadius = _data.BaseRadius - _data.RubberThickness;
 			var endRadius = _data.EndRadius - _data.RubberThickness;
@@ -174,7 +190,7 @@ namespace VisualPinball.Engine.VPT.Flipper
 				}
 			}
 
-			baseMesh.Transform(fullMatrix, null, z => z * _data.Height * table.GetScaleZ() + height);
+			baseMesh.Transform(fullMatrix, null, z => z * _data.Height + height);
 			meshes[Base] = baseMesh;
 
 			// rubber
@@ -211,7 +227,7 @@ namespace VisualPinball.Engine.VPT.Flipper
 				}
 
 				rubberMesh.Transform(fullMatrix, null,
-					z => z * _data.RubberWidth * table.GetScaleZ() + (height + _data.RubberHeight));
+					z => z * _data.RubberWidth + (height + _data.RubberHeight));
 				meshes[Rubber] = rubberMesh;
 			}
 

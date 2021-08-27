@@ -91,7 +91,7 @@ namespace VisualPinball.Engine.VPT.Table
 
 		public RenderObjectGroup GetRenderObjects(Table table, Origin origin = Origin.Global, bool asRightHanded = true)
 		{
-			return _meshGenerator.GetRenderObjects(table, origin, asRightHanded);
+			return _meshGenerator.GetRenderObjects(table, asRightHanded);
 		}
 
 		#endregion

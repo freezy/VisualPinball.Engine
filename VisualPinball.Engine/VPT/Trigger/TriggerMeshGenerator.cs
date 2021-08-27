@@ -37,10 +37,9 @@ namespace VisualPinball.Engine.VPT.Trigger
 
 		public RenderObject GetRenderObject(Table.Table table, Origin origin, bool asRightHanded)
 		{
-			var (preMatrix, _) = GetPreMatrix(table, origin, asRightHanded);
 			return new RenderObject(
 				_data.Name,
-				GetMesh().Transform(preMatrix),
+				GetMesh(BaseHeight(table), origin, asRightHanded),
 				new PbrMaterial(table.GetMaterial(_data.Material)),
 				_data.IsVisible && _data.Shape != TriggerShape.TriggerNone
 			);
@@ -48,11 +47,11 @@ namespace VisualPinball.Engine.VPT.Trigger
 
 		public RenderObjectGroup GetRenderObjects(Table.Table table, Origin origin, bool asRightHanded)
 		{
-			var (preMatrix, _) = GetPreMatrix(table, origin, asRightHanded);
+			var (preMatrix, _) = GetPreMatrix(BaseHeight(table), origin, asRightHanded);
 			var postMatrix = GetPostMatrix(table, origin);
 			return new RenderObjectGroup(_data.Name, "Triggers", postMatrix, new RenderObject(
 					_data.Name,
-					GetMesh().Transform(preMatrix),
+					GetMesh(BaseHeight(table), origin, asRightHanded),
 					new PbrMaterial(table.GetMaterial(_data.Material)),
 					_data.IsVisible && _data.Shape != TriggerShape.TriggerNone
 				)
@@ -64,10 +63,11 @@ namespace VisualPinball.Engine.VPT.Trigger
 			return table?.GetSurfaceHeight(_data.Surface, _data.Center.X, _data.Center.Y) ?? 0f;
 		}
 
-		private Mesh GetMesh()
+		public Mesh GetMesh(float zHeight, Origin origin = Origin.Original, bool asRightHanded = false)
 		{
+			var (preMatrix, _) = GetPreMatrix(zHeight, origin, asRightHanded);
 			var vertexMatrix = GetVertexTransformationMatrix();
-			return UpdateWireThickness(GetBaseMesh()).Transform(vertexMatrix);
+			return UpdateWireThickness(GetBaseMesh()).Transform(vertexMatrix).Transform(preMatrix);
 		}
 
 		private Matrix3D GetVertexTransformationMatrix()

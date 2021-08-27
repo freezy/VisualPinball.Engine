@@ -30,6 +30,7 @@ using UnityEngine;
 using VisualPinball.Engine.Math;
 using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Ramp;
+using VisualPinball.Engine.VPT.Table;
 
 namespace VisualPinball.Unity
 {
@@ -258,20 +259,20 @@ namespace VisualPinball.Unity
 			return updatedComponents;
 		}
 
-		public override IEnumerable<MonoBehaviour> SetReferencedData(RampData data, IMaterialProvider materialProvider, ITextureProvider textureProvider, Dictionary<string, IItemMainAuthoring> components)
+		public override IEnumerable<MonoBehaviour> SetReferencedData(RampData data, Table table, IMaterialProvider materialProvider, ITextureProvider textureProvider, Dictionary<string, IItemMainAuthoring> components)
 		{
 			// meshes
 			var wallComponent = GetComponentInChildren<RampWallMeshAuthoring>(true);
 			var floorComponent = GetComponentInChildren<RampFloorMeshAuthoring>(true);
 			var wireComponent = GetComponentInChildren<RampWireMeshAuthoring>(true);
 			if (wireComponent) {
-				wireComponent.CreateMesh(data, textureProvider, materialProvider);
+				wireComponent.CreateMesh(data, table, textureProvider, materialProvider);
 			}
 			if (floorComponent) {
-				floorComponent.CreateMesh(data, textureProvider, materialProvider);
+				floorComponent.CreateMesh(data, table, textureProvider, materialProvider);
 			}
 			if (wallComponent) {
-				wallComponent.CreateMesh(data, textureProvider, materialProvider);
+				wallComponent.CreateMesh(data, table, textureProvider, materialProvider);
 			}
 
 			// collider data

@@ -64,12 +64,13 @@ namespace VisualPinball.Engine.VPT.Plunger
 		public PlungerMeshGenerator(PlungerData data)
 		{
 			_data = data;
-			Init(null);
+			Init(0);
 		}
 
-		public RenderObject GetRenderObject(Table.Table table, string id, Origin origin, bool asRightHanded)
+		public RenderObject GetRenderObject(Table.Table table, string id, bool asRightHanded)
 		{
-			Init(table);
+			var height = table.GetSurfaceHeight(_data.Surface, _data.Center.X, _data.Center.Y);
+			Init(height);
 			var mat = table.GetMaterial(_data.Material);
 			var tex = table.GetTexture(_data.Image);
 			switch (id) {
@@ -104,9 +105,27 @@ namespace VisualPinball.Engine.VPT.Plunger
 			}
 		}
 
+		public Mesh GetMesh(float height, string id)
+		{
+			Init(height);
+			switch (id) {
+				case Flat:
+					return BuildFlatMesh();
+				case Rod:
+					CalculateArraySizes();
+					return BuildRodMesh();
+				case Spring:
+					CalculateArraySizes();
+					return BuildSpringMesh();
+				default:
+					throw new ArgumentException("Unknown plunger mesh \"" + id + "\".");
+			}
+		}
+
 		public RenderObjectGroup GetRenderObjects(int frame, Table.Table table, Origin origin, bool asRightHanded = true)
 		{
-			Init(table);
+			var height = table.GetSurfaceHeight(_data.Surface, _data.Center.X, _data.Center.Y);
+			Init(height);
 
 			// todo
 			var translationMatrix = Matrix3D.Identity;
@@ -159,7 +178,7 @@ namespace VisualPinball.Engine.VPT.Plunger
 			) { ForceChild = true };
 		}
 
-		private void Init(Table.Table table)
+		private void Init(float height)
 		{
 			var stroke = _data.Stroke;
 			_beginY = _data.Center.Y;
@@ -184,10 +203,8 @@ namespace VisualPinball.Engine.VPT.Plunger
 			// figure the width in relative units (0..1) of each cell
 			_cellWid = 1.0f / _srcCells;
 
-			if (table != null) {
-				_zHeight = table.GetSurfaceHeight(_data.Surface, _data.Center.X, _data.Center.Y) + _data.ZAdjust;
-				_zScale = table.GetScaleZ();
-			}
+			_zHeight = height + _data.ZAdjust;
+			_zScale = 1f;
 			_desc = GetPlungerDesc();
 		}
 

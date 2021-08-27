@@ -30,6 +30,7 @@ using UnityEngine.Profiling;
 using VisualPinball.Engine.Game;
 using VisualPinball.Engine.Game.Engines;
 using VisualPinball.Engine.VPT;
+using VisualPinball.Engine.VPT.Table;
 using VisualPinball.Engine.VPT.Trough;
 
 namespace VisualPinball.Unity
@@ -263,7 +264,7 @@ namespace VisualPinball.Unity
 			return updatedComponents;
 		}
 
-		public override IEnumerable<MonoBehaviour> SetReferencedData(TroughData data, IMaterialProvider materialProvider, ITextureProvider textureProvider, Dictionary<string, IItemMainAuthoring> components)
+		public override IEnumerable<MonoBehaviour> SetReferencedData(TroughData data, Table table, IMaterialProvider materialProvider, ITextureProvider textureProvider, Dictionary<string, IItemMainAuthoring> components)
 		{
 			PlayfieldEntrySwitch = GetAuthoring<TriggerAuthoring>(components, data.PlayfieldEntrySwitch);
 			PlayfieldExitKicker = GetAuthoring<KickerAuthoring>(components, data.PlayfieldExitKicker);

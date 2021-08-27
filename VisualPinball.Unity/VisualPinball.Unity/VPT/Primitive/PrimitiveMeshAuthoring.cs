@@ -22,6 +22,7 @@ using UnityEngine;
 using VisualPinball.Engine.Game;
 using VisualPinball.Engine.VPT.Primitive;
 using VisualPinball.Engine.VPT.Table;
+using Mesh = VisualPinball.Engine.VPT.Mesh;
 
 namespace VisualPinball.Unity
 {
@@ -54,7 +55,9 @@ namespace VisualPinball.Unity
 
 		public override IEnumerable<Type> ValidParents => ValidParentTypes;
 
-		protected override RenderObject GetRenderObject(PrimitiveData data)
+		protected override RenderObject GetRenderObject(PrimitiveData data, Table table)
 			=> new PrimitiveMeshGenerator(data).GetRenderObject(table, data.Mesh, Origin.Original, false);
+		protected override Mesh GetMesh(PrimitiveData data)
+			=> new PrimitiveMeshGenerator(data).GetMesh(MainComponent.PlayfieldHeight, data.Mesh, Origin.Original, false);
 	}
 }

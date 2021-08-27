@@ -38,7 +38,7 @@ namespace VisualPinball.Engine.VPT.Primitive
 		{
 			return new RenderObject(
 				_data.Name,
-				GetTransformedMesh(table, originalMesh, origin, asRightHanded),
+				GetTransformedMesh(BaseHeight(table), originalMesh, origin, asRightHanded),
 				new PbrMaterial(
 					table.GetMaterial(_data.Material),
 					table.GetTexture(_data.Image),
@@ -48,6 +48,11 @@ namespace VisualPinball.Engine.VPT.Primitive
 			);
 		}
 
+		public Mesh GetMesh(float height, Mesh originalMesh, Origin origin, bool asRightHanded)
+		{
+			return GetTransformedMesh(height, originalMesh, origin, asRightHanded);
+		}
+
 		public RenderObjectGroup GetRenderObjects(Table.Table table, Mesh originalMesh, Origin origin, bool asRightHanded = true,
 			string parent = null, PbrMaterial material = null)
 		{
@@ -55,7 +60,7 @@ namespace VisualPinball.Engine.VPT.Primitive
 			var postMatrix = GetPostMatrix(table, origin);
 			return new RenderObjectGroup(_data.Name, parent ?? "Primitives", postMatrix, new RenderObject(
 				_data.Name,
-				GetTransformedMesh(table, originalMesh, origin, asRightHanded),
+				GetTransformedMesh(BaseHeight(table), originalMesh, origin, asRightHanded),
 				material ?? new PbrMaterial(
 					table.GetMaterial(_data.Material),
 					table.GetTexture(_data.Image),
@@ -70,9 +75,9 @@ namespace VisualPinball.Engine.VPT.Primitive
 			return !_data.Use3DMesh ? CalculateBuiltinOriginal() : originalMesh;
 		}
 
-		public Mesh GetTransformedMesh(Table.Table table, Mesh originalMesh, Origin origin, bool asRightHanded = true)
+		public Mesh GetTransformedMesh(float height, Mesh originalMesh, Origin origin, bool asRightHanded = true)
 		{
-			var (preVertexMatrix, preNormalsMatrix) = GetPreMatrix(table, origin, asRightHanded);
+			var (preVertexMatrix, preNormalsMatrix) = GetPreMatrix(height, origin, asRightHanded);
 			return GetMesh(originalMesh)?.Transform(preVertexMatrix, preNormalsMatrix);
 		}
 
@@ -81,7 +86,7 @@ namespace VisualPinball.Engine.VPT.Primitive
 			return table?.TableHeight ?? 0f;
 		}
 
-		protected override Tuple<Matrix3D, Matrix3D> GetTransformationMatrix(Table.Table table)
+		protected override Tuple<Matrix3D, Matrix3D> GetTransformationMatrix(float height)
 		{
 			// scale matrix
 			var scaleMatrix = new Matrix3D();
@@ -89,7 +94,7 @@ namespace VisualPinball.Engine.VPT.Primitive
 
 			// translation matrix
 			var transMatrix = new Matrix3D();
-			transMatrix.SetTranslation(Position.X, Position.Y, Position.Z + table?.TableHeight ?? 0f);
+			transMatrix.SetTranslation(Position.X, Position.Y, Position.Z + height);
 
 			// translation + rotation matrix
 			var rotTransMatrix = new Matrix3D();
@@ -113,7 +118,7 @@ namespace VisualPinball.Engine.VPT.Primitive
 			var fullMatrix = scaleMatrix.Clone();
 			fullMatrix.Multiply(rotTransMatrix);
 			fullMatrix.Multiply(transMatrix);  // fullMatrix = Smatrix * RTmatrix * Tmatrix
-			scaleMatrix.SetScaling(1.0f, 1.0f, table?.GetScaleZ() ?? 1f);
+			scaleMatrix.SetScaling(1.0f, 1.0f, 1f);
 			fullMatrix.Multiply(scaleMatrix);
 
 			return new Tuple<Matrix3D, Matrix3D>(fullMatrix, null);

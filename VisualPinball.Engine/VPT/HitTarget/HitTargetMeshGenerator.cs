@@ -49,7 +49,7 @@ namespace VisualPinball.Engine.VPT.HitTarget
 		public RenderObject GetRenderObject(Origin origin, bool asRightHanded)
 		{
 			var mesh = GetBaseMesh();
-			var (preMatrix, _) = GetPreMatrix(_table, origin, asRightHanded);
+			var (preMatrix, _) = GetPreMatrix(BaseHeight(_table), origin, asRightHanded);
 			return new RenderObject(
 				_data.Name,
 				mesh.Transform(preMatrix),
@@ -61,7 +61,7 @@ namespace VisualPinball.Engine.VPT.HitTarget
 		public RenderObjectGroup GetRenderObjects(Origin origin, bool asRightHanded)
 		{
 			var mesh = GetBaseMesh();
-			var (preMatrix, _) = GetPreMatrix(_table, origin, asRightHanded);
+			var (preMatrix, _) = GetPreMatrix(BaseHeight(_table), origin, asRightHanded);
 			var postMatrix = GetPostMatrix(_table, origin);
 			return new RenderObjectGroup(_data.Name, "HitTargets", postMatrix, new RenderObject(
 				_data.Name,

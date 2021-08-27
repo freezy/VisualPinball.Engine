@@ -22,6 +22,7 @@ using UnityEngine;
 using VisualPinball.Engine.Game;
 using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Table;
+using Mesh = VisualPinball.Engine.VPT.Mesh;
 
 namespace VisualPinball.Unity
 {
@@ -75,14 +76,12 @@ namespace VisualPinball.Unity
 			}
 		}
 
-		protected abstract RenderObject GetRenderObject(TData data);
+		protected abstract RenderObject GetRenderObject(TData data, Table table);
+		protected abstract Mesh GetMesh(TData data);
 
-		public void CreateMesh(TData data, ITextureProvider texProvider, IMaterialProvider matProvider)
+		public void CreateMesh(TData data, Table table, ITextureProvider texProvider, IMaterialProvider matProvider)
 		{
-			var ta = GetComponentInParent<TableAuthoring>();
-			var ro = GetRenderObject(data);
-
-			CreateMesh(gameObject, ro, data.GetName(), texProvider, matProvider);
+			CreateMesh(gameObject, GetRenderObject(data, table), data.GetName(), texProvider, matProvider);
 		}
 
 		public static void CreateMesh(GameObject gameObject, RenderObject ro, string name, ITextureProvider texProvider, IMaterialProvider matProvider)
@@ -113,11 +112,11 @@ namespace VisualPinball.Unity
 			var ta = GetComponentInParent<TableAuthoring>();
 			var data = MainComponent.InstantiateData();
 			MainComponent.CopyDataTo(data, null, null);
-			var ro = GetRenderObject(data);
+			var mesh = GetMesh(data);
 
 			// mesh generator can return null - but in this case the main component
 			// will take care of removing the mesh component.
-			if (ro == null) {
+			if (mesh == null) {
 				return;
 			}
 			var mf = GetComponent<MeshFilter>();
@@ -125,16 +124,9 @@ namespace VisualPinball.Unity
 			if (mf != null) {
 				var unityMesh = mf.sharedMesh;
 				if (unityMesh) {
-					ro.Mesh?.ApplyToUnityMesh(unityMesh);
+					mesh.ApplyToUnityMesh(unityMesh);
 				}
 			}
-
-			// if (mr != null) {
-			// 	if (ta != null) {
-			// 		mr.sharedMaterial = ro.Material.ToUnityMaterial(ta, MainAuthoring.Item.GetType());
-			// 	}
-			// 	mr.enabled = true;
-			// }
 		}
 
 		private static List<MemberInfo> GetMembersWithAttribute<TAttr>() where TAttr: Attribute

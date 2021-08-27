@@ -67,7 +67,7 @@ namespace VisualPinball.Engine.VPT.Rubber
 			));
 		}
 
-		protected override Tuple<Matrix3D, Matrix3D?> GetTransformationMatrix(Table.Table? table)
+		protected override Tuple<Matrix3D, Matrix3D?> GetTransformationMatrix(float height)
 		{
 			return new Tuple<Matrix3D, Matrix3D?>(Matrix3D.Identity, Matrix3D.Identity);
 		}

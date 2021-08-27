@@ -63,6 +63,9 @@ namespace VisualPinball.Unity
 
 		#endregion
 
+		public float Width => Right;
+		public float Height => Bottom;
+
 		public override ItemType ItemType => ItemType.Playfield;
 		public override string ItemName => "Playfield";
 
@@ -134,16 +137,16 @@ namespace VisualPinball.Unity
 			return updatedComponents;
 		}
 
-		public override IEnumerable<MonoBehaviour> SetReferencedData(TableData data, IMaterialProvider materialProvider, ITextureProvider textureProvider, Dictionary<string, IItemMainAuthoring> components)
+		public override IEnumerable<MonoBehaviour> SetReferencedData(TableData data, Table table, IMaterialProvider materialProvider, ITextureProvider textureProvider, Dictionary<string, IItemMainAuthoring> components)
 		{
 			var meshComponent = GetComponentInChildren<PlayfieldMeshAuthoring>();
 			if (meshComponent && meshComponent.AutoGenerate) {
-				meshComponent.CreateMesh(data, textureProvider, materialProvider);
+				meshComponent.CreateMesh(data, table, textureProvider, materialProvider);
 			}
 			return Array.Empty<MonoBehaviour>();
 		}
 
-		public IEnumerable<MonoBehaviour> SetReferencedData(PrimitiveData primitiveData, IMaterialProvider materialProvider, ITextureProvider textureProvider)
+		public IEnumerable<MonoBehaviour> SetReferencedData(PrimitiveData primitiveData, Table table, IMaterialProvider materialProvider, ITextureProvider textureProvider)
 		{
 			var mf = GetComponent<MeshFilter>();
 			var playfieldMeshAuthoring = GetComponent<PlayfieldMeshAuthoring>();
@@ -152,11 +155,10 @@ namespace VisualPinball.Unity
 			}
 
 			var updatedComponents = new List<MonoBehaviour> { this };
-			var ta = GetComponentInParent<TableAuthoring>();
-			var ro = new PrimitiveMeshGenerator(primitiveData).GetRenderObject(ta.Table, primitiveData.Mesh, Origin.Original, false);
+			var ro = new PrimitiveMeshGenerator(primitiveData).GetRenderObject(table, primitiveData.Mesh, Origin.Original, false);
 			ro.Material = new PbrMaterial(
-				ta.Table.GetMaterial(_playfieldMaterial),
-				ta.Table.GetTexture(_playfieldImage)
+				table.GetMaterial(_playfieldMaterial),
+				table.GetTexture(_playfieldImage)
 			);
 			ItemMeshAuthoring<PrimitiveData, PrimitiveAuthoring>.CreateMesh(gameObject, ro, "playfield_mesh", textureProvider, materialProvider);
 			playfieldMeshAuthoring.AutoGenerate = false;
