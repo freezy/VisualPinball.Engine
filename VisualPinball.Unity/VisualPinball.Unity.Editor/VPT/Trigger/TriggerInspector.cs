@@ -24,7 +24,7 @@ using VisualPinball.Engine.VPT.Trigger;
 namespace VisualPinball.Unity.Editor
 {
 	[CustomEditor(typeof(TriggerAuthoring)), CanEditMultipleObjects]
-	public class TriggerInspector : DragPointsItemInspector<Trigger, TriggerData, TriggerAuthoring>
+	public class TriggerInspector : DragPointsItemInspector<TriggerData, TriggerAuthoring>
 	{
 		private SerializedProperty _positionProperty;
 		private SerializedProperty _rotationProperty;
@@ -60,7 +60,7 @@ namespace VisualPinball.Unity.Editor
 
 		#region Dragpoint Tooling
 
-		public override Vector3 EditableOffset => new Vector3(-ItemAuthoring.Position.x, -ItemAuthoring.Position.y, 0.0f);
+		public override Vector3 EditableOffset => new Vector3(-MainComponent.Position.x, -MainComponent.Position.y, 0.0f);
 		public override Vector3 GetDragPointOffset(float ratio) => Vector3.zero;
 		public override bool PointsAreLooping => true;
 		public override IEnumerable<DragPointExposure> DragPointExposition => new[] { DragPointExposure.Smooth, DragPointExposure.SlingShot };

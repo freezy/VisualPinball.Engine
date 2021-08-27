@@ -25,7 +25,7 @@ using VisualPinball.Engine.VPT.Primitive;
 namespace VisualPinball.Unity
 {
 	[AddComponentMenu("Visual Pinball/Collision/Primitive Collider")]
-	public class PrimitiveColliderAuthoring : ItemColliderAuthoring<Primitive, PrimitiveData, PrimitiveAuthoring>
+	public class PrimitiveColliderAuthoring : ItemColliderAuthoring<PrimitiveData, PrimitiveAuthoring>
 	{
 		#region Data
 

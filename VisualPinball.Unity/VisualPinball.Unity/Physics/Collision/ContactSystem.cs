@@ -41,7 +41,7 @@ namespace VisualPinball.Unity
 
 		protected override void OnStartRunning()
 		{
-			_gravity = Object.FindObjectOfType<Player>().GetGravity();
+			_gravity = Object.FindObjectOfType<Player>().Gravity;
 		}
 
 		protected override void OnUpdate()

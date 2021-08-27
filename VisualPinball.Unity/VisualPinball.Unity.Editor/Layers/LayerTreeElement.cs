@@ -43,13 +43,13 @@ namespace VisualPinball.Unity.Editor
 		public string LayerName;
 		public ILayerableItemAuthoring Item { get; }
 
-		private readonly Table _table;
+		private readonly TableAuthoring _tableComponent;
 
 		/// <summary>
 		/// Returns the type based on which data is set.
 		/// </summary>
 		public LayerTreeViewElementType Type =>
-			_table != null
+			_tableComponent != null
 				? LayerTreeViewElementType.Table
 				: Item != null
 					? LayerTreeViewElementType.Item
@@ -111,7 +111,7 @@ namespace VisualPinball.Unity.Editor
 			get {
 				switch (Type) {
 					case LayerTreeViewElementType.Table: {
-						return _table?.Name;
+						return _tableComponent?.name;
 					}
 
 					case LayerTreeViewElementType.Layer: {
@@ -120,7 +120,7 @@ namespace VisualPinball.Unity.Editor
 
 					case LayerTreeViewElementType.Item: {
 						if (Item is IIdentifiableItemAuthoring identifiable) {
-							return identifiable.Name;
+							return identifiable.name;
 						}
 						return string.Empty;
 					}
@@ -203,9 +203,9 @@ namespace VisualPinball.Unity.Editor
 		/// Construct as <see cref="LayerTreeViewElementType.Table"/>.
 		/// </summary>
 		/// <param name="table">Table object</param>
-		public LayerTreeElement(Table table)
+		public LayerTreeElement(TableAuthoring ta)
 		{
-			_table = table;
+			_tableComponent = ta;
 		}
 
 		/// <summary>

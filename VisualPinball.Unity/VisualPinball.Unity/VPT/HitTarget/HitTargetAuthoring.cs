@@ -26,7 +26,6 @@ using System.Collections.Generic;
 using System.Linq;
 using Unity.Entities;
 using UnityEngine;
-using VisualPinball.Engine.Game;
 using VisualPinball.Engine.Math;
 using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.HitTarget;
@@ -35,10 +34,11 @@ using Mesh = VisualPinball.Engine.VPT.Mesh;
 namespace VisualPinball.Unity
 {
 	[AddComponentMenu("Visual Pinball/Game Item/Hit Target")]
-	public class HitTargetAuthoring : ItemMainRenderableAuthoring<HitTarget, HitTargetData>,
-		ISwitchAuthoring, IHitTargetData, IMeshGenerator, IConvertGameObjectToEntity
+	public class HitTargetAuthoring : ItemMainRenderableAuthoring<HitTargetData>,
+		/*ISwitchAuthoring, */IHitTargetData, IMeshGenerator, IConvertGameObjectToEntity
 	{
 		public override ItemType ItemType => ItemType.HitTarget;
+		public override string ItemName => "Target";
 
 		#region Data
 
@@ -99,15 +99,14 @@ namespace VisualPinball.Unity
 
 		public bool IsPulseSwitch => true;
 
-		protected override HitTarget InstantiateItem(HitTargetData data) => new HitTarget(data);
-		protected override HitTargetData InstantiateData() => new HitTargetData();
-		protected override Type MeshAuthoringType { get; } = typeof(ItemMeshAuthoring<HitTarget, HitTargetData, HitTargetAuthoring>);
-		protected override Type ColliderAuthoringType { get; } = typeof(ItemColliderAuthoring<HitTarget, HitTargetData, HitTargetAuthoring>);
+		public override HitTargetData InstantiateData() => new HitTargetData();
+		protected override Type MeshAuthoringType { get; } = typeof(ItemMeshAuthoring<HitTargetData, HitTargetAuthoring>);
+		protected override Type ColliderAuthoringType { get; } = typeof(ItemColliderAuthoring<HitTargetData, HitTargetAuthoring>);
 
 		public override IEnumerable<Type> ValidParents => HitTargetColliderAuthoring.ValidParentTypes
 			.Distinct();
 
-		public ISwitchable Switchable => Item;
+		//public ISwitchable Switchable => Item;
 
 		public void Convert(Entity entity, EntityManager dstManager, GameObjectConversionSystem conversionSystem)
 		{
@@ -142,7 +141,7 @@ namespace VisualPinball.Unity
 			}
 
 			// register
-			transform.GetComponentInParent<Player>().RegisterHitTarget(Item, entity, ParentEntity, gameObject);
+			transform.GetComponentInParent<Player>().RegisterHitTarget(this, entity, ParentEntity);
 		}
 
 		public override void UpdateTransforms()

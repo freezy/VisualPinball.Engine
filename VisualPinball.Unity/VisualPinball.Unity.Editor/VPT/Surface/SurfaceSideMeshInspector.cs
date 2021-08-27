@@ -22,7 +22,7 @@ using VisualPinball.Engine.VPT.Surface;
 namespace VisualPinball.Unity.Editor
 {
 	[CustomEditor(typeof(SurfaceSideMeshAuthoring)), CanEditMultipleObjects]
-	public class SurfaceSideMeshInspector : ItemMeshInspector<Surface, SurfaceData, SurfaceAuthoring, SurfaceSideMeshAuthoring>
+	public class SurfaceSideMeshInspector : ItemMeshInspector<SurfaceData, SurfaceAuthoring, SurfaceSideMeshAuthoring>
 	{
 		private SurfaceData _data;
 

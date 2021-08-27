@@ -22,26 +22,24 @@ using VisualPinball.Engine.VPT;
 
 namespace VisualPinball.Unity
 {
-	public abstract class ItemAnimationAuthoring<TItem, TData, TMainAuthoring> : ItemSubAuthoring<TItem, TData, TMainAuthoring>,
+	public abstract class ItemAnimationAuthoring<TData, TMainAuthoring> : ItemSubAuthoring<TData, TMainAuthoring>,
 		IItemAnimationAuthoring
 		where TData : ItemData
-		where TItem : Item<TData>, IRenderable
-		where TMainAuthoring : ItemMainRenderableAuthoring<TItem, TData>
+		where TMainAuthoring : ItemMainRenderableAuthoring<TData>
 	{
-		protected Entity MainEntity {
+		private Entity MainEntity {
 			get {
-				var ma = MainAuthoring;
+				var ma = MainComponent;
 				if (ma == null) {
 					throw new InvalidOperationException("Cannot find main authoring component of " + name + ".");
 				}
-				var item = ma.Item;
-				return new Entity { Index = item.Index, Version = item.Version };
+				return ma.Entity;
 			}
 		}
 
 		protected void LinkToParentEntity(Entity entity, EntityManager dstManager)
 		{
-			dstManager.AddComponentData(entity, new Parent {Value = MainEntity});
+			dstManager.AddComponentData(entity, new Parent { Value = MainEntity });
 			dstManager.AddComponentData(entity, new LocalToParent());
 		}
 	}

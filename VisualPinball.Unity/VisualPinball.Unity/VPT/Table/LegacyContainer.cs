@@ -42,6 +42,7 @@ using VisualPinball.Engine.VPT.Surface;
 using VisualPinball.Engine.VPT.TextBox;
 using VisualPinball.Engine.VPT.Timer;
 using VisualPinball.Engine.VPT.Trigger;
+using Material = VisualPinball.Engine.VPT.Material;
 using Texture = UnityEngine.Texture;
 
 namespace VisualPinball.Unity
@@ -75,6 +76,7 @@ namespace VisualPinball.Unity
 		public TimerData[] Timers;
 		public List<LegacyTexture> Textures = new List<LegacyTexture>();
 		public List<LegacySound> Sounds = new List<LegacySound>();
+		public List<Material> Materials = new List<Material>();
 	}
 
 	[Serializable]

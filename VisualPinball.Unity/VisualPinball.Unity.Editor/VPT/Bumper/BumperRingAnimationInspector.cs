@@ -22,7 +22,7 @@ using VisualPinball.Engine.VPT.Bumper;
 namespace VisualPinball.Unity.Editor
 {
 	[CustomEditor(typeof(BumperRingAnimationAuthoring)), CanEditMultipleObjects]
-	public class BumperRingAnimationInspector : ItemAnimationInspector<Bumper, BumperData, BumperAuthoring, BumperRingAnimationAuthoring>
+	public class BumperRingAnimationInspector : ItemAnimationInspector<BumperData, BumperAuthoring, BumperRingAnimationAuthoring>
 	{
 		private SerializedProperty _ringSpeedProperty;
 		private SerializedProperty _ringDropOffsetProperty;

@@ -39,7 +39,7 @@ namespace VisualPinball.Unity
 			_meshGenerator = new RampMeshGenerator(data);
 		}
 
-		internal void GenerateColliders(Table table, float tableHeight, List<ICollider> colliders)
+		internal void GenerateColliders(float tableHeight, List<ICollider> colliders)
 		{
 			var rv = _meshGenerator.GetRampVertex(tableHeight, PhysicsConstants.HitShapeDetailLevel, true);
 			var rgvLocal = rv.RgvLocal;
@@ -58,10 +58,10 @@ namespace VisualPinball.Unity
 					pv2 = rgvLocal[i].ToUnityFloat2();
 					pv3 = rgvLocal[i + 1].ToUnityFloat2();
 
-					GenerateWallLineSeg(pv2, pv3, i > 0,rgHeight1[i], rgHeight1[i + 1], wallHeightRight,
-						table, colliders);
-					GenerateWallLineSeg(pv3, pv2, i < vertexCount - 2, rgHeight1[i], rgHeight1[i + 1], wallHeightRight,
-						table, colliders);
+					GenerateWallLineSeg(pv2, pv3, i > 0,rgHeight1[i],
+						rgHeight1[i + 1], wallHeightRight, colliders);
+					GenerateWallLineSeg(pv3, pv2, i < vertexCount - 2, rgHeight1[i],
+						rgHeight1[i + 1], wallHeightRight, colliders);
 
 					// add joints at start and end of right wall
 					if (i == 0) {
@@ -83,9 +83,9 @@ namespace VisualPinball.Unity
 					pv3 = rgvLocal[vertexCount + i + 1].ToUnityFloat2();
 
 					GenerateWallLineSeg(pv2, pv3, i > 0, rgHeight1[vertexCount - i - 2],
-						rgHeight1[vertexCount - i - 1], wallHeightLeft, table, colliders);
+						rgHeight1[vertexCount - i - 1], wallHeightLeft, colliders);
 					GenerateWallLineSeg(pv3, pv2, i < vertexCount - 2, rgHeight1[vertexCount - i - 2],
-						rgHeight1[vertexCount - i - 1], wallHeightLeft, table, colliders);
+						rgHeight1[vertexCount - i - 1], wallHeightLeft, colliders);
 
 					// add joints at start and end of left wall
 					if (i == 0) {
@@ -136,7 +136,7 @@ namespace VisualPinball.Unity
 					var ph3dPoly = new TriangleCollider(rg0, rg1, rg2, _api.GetColliderInfo());
 					colliders.Add(ph3dPoly);
 
-					CheckJoint(isOldSet, in ph3dPolyOld, in ph3dPoly, table, colliders);
+					CheckJoint(isOldSet, in ph3dPolyOld, in ph3dPoly, colliders);
 					ph3dPolyOld = ph3dPoly;
 					isOldSet = true;
 				}
@@ -153,7 +153,7 @@ namespace VisualPinball.Unity
 					var ph3dPoly = new TriangleCollider(rg0, rg1, rg2, _api.GetColliderInfo());
 					colliders.Add(ph3dPoly);
 
-					CheckJoint(isOldSet, in ph3dPolyOld, in ph3dPoly, table, colliders);
+					CheckJoint(isOldSet, in ph3dPolyOld, in ph3dPoly, colliders);
 					ph3dPolyOld = ph3dPoly;
 					isOldSet = true;
 				}
@@ -212,16 +212,14 @@ namespace VisualPinball.Unity
 		}
 
 		private void GenerateWallLineSeg(float2 pv1, float2 pv2, bool pv3Exists, float height1, float height2, float wallHeight,
-			Table table, ICollection<ICollider> colliders)
+			ICollection<ICollider> colliders)
 		{
 			//!! Hit-walls are still done via 2D line segments with only a single lower and upper border, so the wall will always reach below and above the actual ramp -between- two points of the ramp
 			// Thus, subdivide until at some point the approximation error is 'subtle' enough so that one will usually not notice (i.e. dependent on ball size)
 			if (height2 - height1 > 2.0 * PhysicsConstants.PhysSkin) { //!! use ballsize
-				GenerateWallLineSeg(pv1, (pv1 + pv2) * 0.5f, pv3Exists, height1, (height1 + height2) * 0.5f, wallHeight,
-					table, colliders);
+				GenerateWallLineSeg(pv1, (pv1 + pv2) * 0.5f, pv3Exists, height1, (height1 + height2) * 0.5f, wallHeight, colliders);
 
-				GenerateWallLineSeg((pv1 + pv2) * 0.5f, pv2, true, (height1 + height2) * 0.5f, height2, wallHeight,
-					table, colliders);
+				GenerateWallLineSeg((pv1 + pv2) * 0.5f, pv2, true, (height1 + height2) * 0.5f, height2, wallHeight, colliders);
 
 			} else {
 				colliders.Add(new LineCollider(pv1, pv2, height1, height2 + wallHeight,
@@ -234,7 +232,7 @@ namespace VisualPinball.Unity
 		}
 
 		private void CheckJoint(bool isOldSet, in TriangleCollider ph3d1, in TriangleCollider ph3d2,
-			Table table, ICollection<ICollider> colliders)
+			ICollection<ICollider> colliders)
 		{
 			if (isOldSet) {   // may be null in case of degenerate triangles
 				var jointNormal = math.cross(ph3d1.Normal(), ph3d2.Normal());

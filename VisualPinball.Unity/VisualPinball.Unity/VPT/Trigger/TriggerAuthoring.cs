@@ -35,8 +35,8 @@ using VisualPinball.Engine.VPT.Trigger;
 namespace VisualPinball.Unity
 {
 	[AddComponentMenu("Visual Pinball/Game Item/Trigger")]
-	public class TriggerAuthoring : ItemMainRenderableAuthoring<Trigger, TriggerData>,
-		ISwitchAuthoring, ITriggerAuthoring, IDragPointsAuthoring, IOnSurfaceAuthoring, IConvertGameObjectToEntity
+	public class TriggerAuthoring : ItemMainRenderableAuthoring<TriggerData>,
+		/*ISwitchAuthoring, */ITriggerAuthoring, IDragPointsAuthoring, IOnSurfaceAuthoring, IConvertGameObjectToEntity
 	{
 		#region Data
 
@@ -60,12 +60,13 @@ namespace VisualPinball.Unity
 		#endregion
 
 		public override ItemType ItemType => ItemType.Trigger;
+		public override string ItemName => "Trigger";
 
 		public bool IsPulseSwitch => false;
 
 		public Vector2 Center => Position;
 
-		public ISwitchable Switchable => Item;
+		//public ISwitchable Switchable => Item;
 
 		public void OnSurfaceUpdated() => UpdateTransforms();
 		public float PositionZ => SurfaceHeight(Surface, Position);
@@ -74,17 +75,14 @@ namespace VisualPinball.Unity
 			.Concat(TriggerMeshAuthoring.ValidParentTypes)
 			.Distinct();
 
-		protected override Trigger InstantiateItem(TriggerData data) => new Trigger(data);
-		protected override TriggerData InstantiateData() => new TriggerData();
+		public override TriggerData InstantiateData() => new TriggerData();
 
-		protected override Type MeshAuthoringType { get; } = typeof(ItemMeshAuthoring<Trigger, TriggerData, TriggerAuthoring>);
-		protected override Type ColliderAuthoringType { get; } = typeof(ItemColliderAuthoring<Trigger, TriggerData, TriggerAuthoring>);
+		protected override Type MeshAuthoringType { get; } = typeof(ItemMeshAuthoring<TriggerData, TriggerAuthoring>);
+		protected override Type ColliderAuthoringType { get; } = typeof(ItemColliderAuthoring<TriggerData, TriggerAuthoring>);
 
 		public void Convert(Entity entity, EntityManager dstManager, GameObjectConversionSystem conversionSystem)
 		{
 			Convert(entity, dstManager);
-
-			var table = gameObject.GetComponentInParent<TableAuthoring>().Item;
 
 			var collComponent = GetComponentInChildren<TriggerColliderAuthoring>();
 			var animComponent = GetComponentInChildren<TriggerAnimationAuthoring>();
@@ -96,13 +94,12 @@ namespace VisualPinball.Unity
 					AnimSpeed = animComponent.AnimSpeed,
 					Radius = collComponent.HitCircleRadius,
 					Shape = meshComponent.Shape,
-					TableScaleZ = table.GetScaleZ()
+					TableScaleZ = 1f
 				});
 			}
 
 			// register
-			var trigger = GetComponent<TriggerAuthoring>().Item;
-			transform.GetComponentInParent<Player>().RegisterTrigger(trigger, entity, ParentEntity, gameObject);
+			transform.GetComponentInParent<Player>().RegisterTrigger(this, entity, ParentEntity);
 		}
 
 		public override void UpdateTransforms()

@@ -23,28 +23,23 @@ using VisualPinball.Engine.VPT;
 
 namespace VisualPinball.Unity.Editor
 {
-	public class ItemMainInspector<TItem, TData, TMainAuthoring> : ItemInspector
+	public class ItemMainInspector<TData, TMainAuthoring> : ItemInspector
 		where TData : ItemData
-		where TItem : Item<TData>
-		where TMainAuthoring : ItemMainAuthoring<TItem, TData>
+		where TMainAuthoring : ItemMainAuthoring<TData>
 	{
-		protected TMainAuthoring ItemAuthoring;
-		protected TItem Item;
-		protected TData Data;
+		protected TMainAuthoring MainComponent;
 
-		protected override MonoBehaviour UndoTarget => ItemAuthoring;
+		protected override MonoBehaviour UndoTarget => MainComponent;
 
 		protected override void OnEnable()
 		{
-			ItemAuthoring = (TMainAuthoring)target;
-			Item = ItemAuthoring.Item;
-			Data = ItemAuthoring.Data;
+			MainComponent = (TMainAuthoring)target;
 			base.OnEnable();
 		}
 
 		protected bool HasErrors()
 		{
-			if (!ItemAuthoring.IsCorrectlyParented) {
+			if (!MainComponent.IsCorrectlyParented) {
 				InvalidParentError();
 				return true;
 			}
@@ -54,11 +49,11 @@ namespace VisualPinball.Unity.Editor
 
 		protected void InvalidParentError()
 		{
-			var validParentTypes = ItemAuthoring.ValidParents.ToArray();
+			var validParentTypes = MainComponent.ValidParents.ToArray();
 			var typeMessage = validParentTypes.Length > 0
 				? $"Supported parents are: [ {string.Join(", ", validParentTypes.Select(t => t.Name))} ]."
-				: $"In this case, {Item.ItemName} doesn't support any parenting at all.";
-			EditorGUILayout.HelpBox($"Invalid parent. This {Item.ItemName} is parented to a {ItemAuthoring.ParentAuthoring.IItem.ItemName}, which VPE doesn't support.\n{typeMessage}", MessageType.Error);
+				: $"In this case, {MainComponent.ItemName} doesn't support any parenting at all.";
+			EditorGUILayout.HelpBox($"Invalid parent. This {MainComponent.ItemName} is parented to a {MainComponent.ParentAuthoring.ItemName}, which VPE doesn't support.\n{typeMessage}", MessageType.Error);
 			if (GUILayout.Button("Open Documentation", EditorStyles.linkLabel)) {
 				Application.OpenURL("https://docs.visualpinball.org/creators-guide/editor/unity-components.html");
 			}
@@ -67,7 +62,7 @@ namespace VisualPinball.Unity.Editor
 		protected void UpdateSurfaceReferences(Transform obj)
 		{
 			var surfaceAuthoring = obj.gameObject.GetComponent<IOnSurfaceAuthoring>();
-			if (surfaceAuthoring != null && surfaceAuthoring.Surface == ItemAuthoring) {
+			if (surfaceAuthoring != null && surfaceAuthoring.Surface == MainComponent) {
 				surfaceAuthoring.OnSurfaceUpdated();
 			}
 		}

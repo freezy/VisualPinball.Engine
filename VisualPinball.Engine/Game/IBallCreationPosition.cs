@@ -25,8 +25,8 @@ namespace VisualPinball.Engine.Game
 	/// </summary>
 	public interface IBallCreationPosition {
 
-		Vertex3D GetBallCreationPosition(Table table);
+		Vertex3D GetBallCreationPosition();
 
-		Vertex3D GetBallCreationVelocity(Table table);
+		Vertex3D GetBallCreationVelocity();
 	}
 }

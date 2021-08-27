@@ -29,7 +29,7 @@ namespace VisualPinball.Unity.Editor
 	internal class VpxPrefab<TItem, TData, TMainAuthoring> : IVpxPrefab
 		where TItem : Item<TData>
 		where TData : ItemData
-		where TMainAuthoring : ItemMainAuthoring<TItem, TData>, IItemMainAuthoring
+		where TMainAuthoring : ItemMainAuthoring<TData>, IItemMainAuthoring
 	{
 		public GameObject GameObject { get; }
 		public IItemMainAuthoring MainComponent => _mainComponent;
@@ -43,7 +43,7 @@ namespace VisualPinball.Unity.Editor
 			: Array.Empty<GameObject>();
 
 		private readonly TItem _item;
-		private readonly ItemMainAuthoring<TItem, TData> _mainComponent;
+		private readonly ItemMainAuthoring<TData> _mainComponent;
 		private readonly List<MonoBehaviour> _updatedComponents = new List<MonoBehaviour>();
 
 		public VpxPrefab(Object prefab, TItem item)

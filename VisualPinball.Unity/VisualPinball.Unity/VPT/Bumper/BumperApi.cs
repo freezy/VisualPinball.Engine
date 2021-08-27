@@ -23,7 +23,7 @@ using VisualPinball.Engine.VPT.Table;
 
 namespace VisualPinball.Unity
 {
-	public class BumperApi : ItemCollidableApi<BumperAuthoring, BumperColliderAuthoring, Bumper, BumperData>,
+	public class BumperApi : ItemCollidableApi<BumperAuthoring, BumperColliderAuthoring, BumperData>,
 		IApiInitializable, IApiHittable, IApiSwitch, IApiCoil
 	{
 		/// <summary>
@@ -66,7 +66,7 @@ namespace VisualPinball.Unity
 		protected override bool FireHitEvents => ColliderComponent.HitEvent;
 		protected override float HitThreshold => ColliderComponent.Threshold;
 
-		protected override void CreateColliders(Table table, List<ICollider> colliders)
+		protected override void CreateColliders(List<ICollider> colliders)
 		{
 			var height = MainComponent.PositionZ;
 			colliders.Add(new CircleCollider(MainComponent.Position, MainComponent.Radius, height,

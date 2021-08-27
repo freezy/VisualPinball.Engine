@@ -21,12 +21,8 @@ namespace VisualPinball.Unity
 	/// <summary>
 	/// The non-typed version of ItemAuthoring.
 	/// </summary>
-	public interface IItemAuthoring
+	public interface IItemAuthoring : IIdentifiableItemAuthoring
 	{
-		string Name { get; }
-
-		IItem IItem { get; }
-
 		ItemData ItemData { get; }
 	}
 }

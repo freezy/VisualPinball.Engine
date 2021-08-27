@@ -20,8 +20,8 @@ using VisualPinball.Engine.VPT.Spinner;
 
 namespace VisualPinball.Unity
 {
-	public class SpinnerPlateAnimationAuthoring : ItemAnimationAuthoring<Spinner, SpinnerData, SpinnerAuthoring>
+	public class SpinnerPlateAnimationAuthoring : ItemAnimationAuthoring<SpinnerData, SpinnerAuthoring>
 	{
-		public override IEnumerable<Type> ValidParents { get; } = new Type[0]; // animation components only apply to their own
+		public override IEnumerable<Type> ValidParents => Type.EmptyTypes; // animation components only apply to their own
 	}
 }

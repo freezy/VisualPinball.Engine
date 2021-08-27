@@ -25,9 +25,9 @@ namespace VisualPinball.Unity
 {
 	[AddComponentMenu("Visual Pinball/Animation/Drop Target Animation")]
 	[RequireComponent(typeof(HitTargetColliderAuthoring))]
-	public class DropTargetAnimationAuthoring : ItemAnimationAuthoring<HitTarget, HitTargetData, HitTargetAuthoring>
+	public class DropTargetAnimationAuthoring : ItemAnimationAuthoring<HitTargetData, HitTargetAuthoring>
 	{
-		public override IEnumerable<Type> ValidParents { get; } = new Type[0];
+		public override IEnumerable<Type> ValidParents => Type.EmptyTypes;
 
 		#region Data
 

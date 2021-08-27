@@ -25,7 +25,7 @@ using Random = Unity.Mathematics.Random;
 
 namespace VisualPinball.Unity
 {
-	public class KickerApi : ItemCollidableApi<KickerAuthoring, KickerColliderAuthoring, Kicker, KickerData>,
+	public class KickerApi : ItemCollidableApi<KickerAuthoring, KickerColliderAuthoring, KickerData>,
 		IApiInitializable, IApiHittable, IApiSwitch, IApiCoil
 	{
 		/// <summary>
@@ -70,13 +70,13 @@ namespace VisualPinball.Unity
 
 		public void Kick()
 		{
-			SimulationSystemGroup.QueueAfterBallCreation(() => KickXYZ(Table, Entity, ColliderComponent.EjectAngle, ColliderComponent.EjectSpeed, 0, 0, 0, 0));
+			SimulationSystemGroup.QueueAfterBallCreation(() => KickXYZ(Entity, ColliderComponent.EjectAngle, ColliderComponent.EjectSpeed, 0, 0, 0, 0));
 		}
 
 
 		public void Kick(float angle, float speed, float inclination = 0)
 		{
-			SimulationSystemGroup.QueueAfterBallCreation(() => KickXYZ(Table, Entity, angle, speed, inclination, 0, 0, 0));
+			SimulationSystemGroup.QueueAfterBallCreation(() => KickXYZ(Entity, angle, speed, inclination, 0, 0, 0));
 		}
 
 		/// <summary>
@@ -124,7 +124,7 @@ namespace VisualPinball.Unity
 			}
 		}
 
-		private static void KickXYZ(Table table, Entity kickerEntity, float angle, float speed, float inclination, float x, float y, float z)
+		private void KickXYZ(Entity kickerEntity, float angle, float speed, float inclination, float x, float y, float z)
 		{
 			var entityManager = World.DefaultGameObjectInjectionWorld.EntityManager;
 			var kickerCollisionData = entityManager.GetComponentData<KickerCollisionData>(kickerEntity);
@@ -140,7 +140,7 @@ namespace VisualPinball.Unity
 
 				// if < 0 use global value
 				var scatterAngle = kickerStaticData.Scatter < 0.0f ? 0.0f : math.radians(kickerStaticData.Scatter);
-				scatterAngle *= table.Data.GlobalDifficulty; // apply difficulty weighting
+				scatterAngle *= TableComponent.GlobalDifficulty; // apply difficulty weighting
 
 				if (scatterAngle > 1.0e-5f) { // ignore near zero angles
 					var scatter = new Random().NextFloat(-1f, 1f); // -1.0f..1.0f
@@ -191,7 +191,7 @@ namespace VisualPinball.Unity
 
 		#region Collider Generation
 
-		protected override void CreateColliders(Table table, List<ICollider> colliders)
+		protected override void CreateColliders(List<ICollider> colliders)
 		{
 			var height = MainComponent.PositionZ;
 

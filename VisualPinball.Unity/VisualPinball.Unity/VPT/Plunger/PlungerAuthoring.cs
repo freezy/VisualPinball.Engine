@@ -32,8 +32,8 @@ using VisualPinball.Engine.VPT.Plunger;
 namespace VisualPinball.Unity
 {
 	[AddComponentMenu("Visual Pinball/Game Item/Plunger")]
-	public class PlungerAuthoring : ItemMainRenderableAuthoring<Plunger, PlungerData>,
-		ICoilDeviceAuthoring, IOnSurfaceAuthoring, IConvertGameObjectToEntity
+	public class PlungerAuthoring : ItemMainRenderableAuthoring<PlungerData>,
+		/*ICoilDeviceAuthoring, */IOnSurfaceAuthoring, IConvertGameObjectToEntity
 	{
 		public void OnSurfaceUpdated() => RebuildMeshes();
 
@@ -61,16 +61,16 @@ namespace VisualPinball.Unity
 		#endregion
 
 		public override ItemType ItemType => ItemType.Plunger;
+		public override string ItemName => "Plunger";
 
-		protected override Plunger InstantiateItem(PlungerData data) => new Plunger(data);
-		protected override PlungerData InstantiateData() => new PlungerData();
+		public override PlungerData InstantiateData() => new PlungerData();
 
-		public IEnumerable<GamelogicEngineCoil> AvailableCoils => Item.AvailableCoils;
+		//public IEnumerable<GamelogicEngineCoil> AvailableCoils => Item.AvailableCoils;
 
 		public InputActionReference analogPlungerAction;
 
-		protected override Type MeshAuthoringType { get; } = typeof(ItemMeshAuthoring<Plunger, PlungerData, PlungerAuthoring>);
-		protected override Type ColliderAuthoringType { get; } = typeof(ItemColliderAuthoring<Plunger, PlungerData, PlungerAuthoring>);
+		protected override Type MeshAuthoringType { get; } = typeof(ItemMeshAuthoring<PlungerData, PlungerAuthoring>);
+		protected override Type ColliderAuthoringType { get; } = typeof(ItemColliderAuthoring<PlungerData, PlungerAuthoring>);
 
 		public override IEnumerable<Type> ValidParents => PlungerColliderAuthoring.ValidParentTypes
 			.Concat(PlungerFlatMeshAuthoring.ValidParentTypes)
@@ -118,7 +118,7 @@ namespace VisualPinball.Unity
 				IsAutoPlunger = collComponent.IsAutoPlunger,
 				IsMechPlunger = collComponent.IsMechPlunger,
 				SpeedFire = collComponent.SpeedFire,
-				NumFrames = Item.MeshGenerator.NumFrames
+				NumFrames = (int)(collComponent.Stroke * (float)(PlungerMeshGenerator.PlungerFrameCount / 80.0f)) + 1, // 25 frames per 80 units travel
 			});
 
 			dstManager.AddComponentData(entity, new PlungerColliderData {
@@ -157,7 +157,7 @@ namespace VisualPinball.Unity
 			});
 
 			// register at player
-			GetComponentInParent<Player>().RegisterPlunger(Item, entity, ParentEntity, analogPlungerAction, go);
+			GetComponentInParent<Player>().RegisterPlunger(this, entity, ParentEntity, analogPlungerAction);
 		}
 
 		public override IEnumerable<MonoBehaviour> SetData(PlungerData data)

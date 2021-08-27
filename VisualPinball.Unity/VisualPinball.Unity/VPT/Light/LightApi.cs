@@ -24,7 +24,7 @@ using Light = VisualPinball.Engine.VPT.Light.Light;
 
 namespace VisualPinball.Unity
 {
-	public class LightApi : ItemApi<LightAuthoring, Light, LightData>, IApiInitializable, IApiLamp
+	public class LightApi : ItemApi<LightAuthoring, LightData>, IApiInitializable, IApiLamp
 	{
 		/// <summary>
 		/// Event emitted when the table is started.
@@ -80,10 +80,10 @@ namespace VisualPinball.Unity
 			_lightAuthoring.Color = color;
 		}
 
-		internal LightApi(Light item, GameObject go, Player player) : base(go, player)
+		internal LightApi(GameObject go, Player player) : base(go, player)
 		{
 			_lightAuthoring = go.GetComponentInChildren<LightAuthoring>();
-			_state = item.Data.State;
+			_state = _lightAuthoring.State;
 		}
 
 		private void Set(int lightStatus, float value)

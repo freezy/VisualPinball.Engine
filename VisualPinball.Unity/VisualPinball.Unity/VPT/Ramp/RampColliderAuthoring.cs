@@ -25,7 +25,7 @@ using VisualPinball.Engine.VPT.Ramp;
 namespace VisualPinball.Unity
 {
 	[AddComponentMenu("Visual Pinball/Collision/Ramp Collider")]
-	public class RampColliderAuthoring : ItemColliderAuthoring<Ramp, RampData, RampAuthoring>
+	public class RampColliderAuthoring : ItemColliderAuthoring<RampData, RampAuthoring>
 	{
 		#region Data
 

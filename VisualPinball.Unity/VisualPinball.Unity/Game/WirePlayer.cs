@@ -38,8 +38,8 @@ namespace VisualPinball.Unity
 
 		internal IApiWireDest Wire(string n) => _wires.ContainsKey(n) ? _wires[n] : null;
 		internal IApiWireDeviceDest WireDevice(string n) => _wireDevices.ContainsKey(n) ? _wireDevices[n] : null;
-		internal void RegisterWire(IItem item, IApiWireDest wireApi) => _wires[item.Name] = wireApi;
-		internal void RegisterWireDevice(IItem item, IApiWireDeviceDest wireDeviceApi) => _wireDevices[item.Name] = wireDeviceApi;
+		internal void RegisterWire(string name, IApiWireDest wireApi) => _wires[name] = wireApi;
+		internal void RegisterWireDevice(string name, IApiWireDeviceDest wireDeviceApi) => _wireDevices[name] = wireDeviceApi;
 
 		public void Awake(TableContainer tableContainer, InputManager inputManager, SwitchPlayer switchPlayer)
 		{

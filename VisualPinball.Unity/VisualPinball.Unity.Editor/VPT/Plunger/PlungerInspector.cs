@@ -22,7 +22,7 @@ using VisualPinball.Engine.VPT.Plunger;
 namespace VisualPinball.Unity.Editor
 {
 	[CustomEditor(typeof(PlungerAuthoring)), CanEditMultipleObjects]
-	public class PlungerInspector : ItemMainInspector<Plunger, PlungerData, PlungerAuthoring>
+	public class PlungerInspector : ItemMainInspector<PlungerData, PlungerAuthoring>
 	{
 		private SerializedProperty _positionProperty;
 		private SerializedProperty _widthProperty;

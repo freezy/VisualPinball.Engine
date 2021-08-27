@@ -36,7 +36,7 @@ namespace VisualPinball.Unity
 
 	public interface IApiColliderGenerator
 	{
-		void CreateColliders(Table table, List<ICollider> colliders);
+		void CreateColliders(List<ICollider> colliders);
 		ColliderInfo GetColliderInfo();
 		Entity ColliderEntity { get; }
 

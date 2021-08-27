@@ -22,8 +22,8 @@ using VisualPinball.Engine.VPT.Bumper;
 namespace VisualPinball.Unity
 {
 	[AddComponentMenu("Visual Pinball/Animation/Bumper Skirt Animation")]
-	public class BumperSkirtAnimationAuthoring : ItemAnimationAuthoring<Bumper, BumperData, BumperAuthoring>
+	public class BumperSkirtAnimationAuthoring : ItemAnimationAuthoring<BumperData, BumperAuthoring>
 	{
-		public override IEnumerable<Type> ValidParents { get; } = new Type[0]; // animation components only apply to their own
+		public override IEnumerable<Type> ValidParents { get; } = Type.EmptyTypes; // animation components only apply to their own
 	}
 }

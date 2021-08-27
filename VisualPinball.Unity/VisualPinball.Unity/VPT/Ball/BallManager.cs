@@ -34,7 +34,6 @@ namespace VisualPinball.Unity
 		public int NumBallsCreated { get; private set; }
 		public int NumBalls { get; private set; }
 
-		private readonly Table _table;
 		private readonly GameObject _playfield;
 		private readonly Player _player;
 
@@ -42,9 +41,8 @@ namespace VisualPinball.Unity
 
 		private static Mesh _unitySphereMesh; // used to cache ball mesh from GameObject
 
-		public BallManager(Table table, Player player)
+		public BallManager(Player player)
 		{
-			_table = table;
 			_player = player;
 			_playfield = player.Playfield;
 		}
@@ -56,8 +54,8 @@ namespace VisualPinball.Unity
 
 		public void CreateBall(IBallCreationPosition ballCreator, float radius, float mass, in Entity kickerRef)
 		{
-			var localPos = ballCreator.GetBallCreationPosition(_table).ToUnityFloat3();
-			var localVel = ballCreator.GetBallCreationVelocity(_table).ToUnityFloat3();
+			var localPos = ballCreator.GetBallCreationPosition().ToUnityFloat3();
+			var localVel = ballCreator.GetBallCreationVelocity().ToUnityFloat3();
 			localPos.z += radius;
 
 			var ltw = _playfield.transform.localToWorldMatrix;

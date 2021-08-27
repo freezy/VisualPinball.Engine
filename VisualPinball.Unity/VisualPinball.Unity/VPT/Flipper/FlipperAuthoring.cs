@@ -28,7 +28,6 @@ using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
 using UnityEngine;
-using VisualPinball.Engine.Game;
 using VisualPinball.Engine.Math;
 using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Flipper;
@@ -39,13 +38,14 @@ namespace VisualPinball.Unity
 {
 	[AddComponentMenu("Visual Pinball/Game Item/Flipper")]
 	[HelpURL("https://docs.visualpinball.org/creators-guide/manual/mechanisms/flippers.html")]
-	public class FlipperAuthoring : ItemMainRenderableAuthoring<Flipper, FlipperData>,
-		ISwitchAuthoring, ICoilAuthoring, IOnSurfaceAuthoring, IConvertGameObjectToEntity
+	public class FlipperAuthoring : ItemMainRenderableAuthoring<FlipperData>,
+		/*ISwitchAuthoring, ICoilAuthoring, */IOnSurfaceAuthoring, IConvertGameObjectToEntity
 	{
 		public override ItemType ItemType => ItemType.Flipper;
+		public override string ItemName => "Flipper";
 		public bool IsPulseSwitch => false;
 
-		public ISwitchable Switchable => Item;
+		//public ISwitchable Switchable => Item;
 
 		public void OnSurfaceUpdated() => UpdateTransforms();
 
@@ -108,11 +108,10 @@ namespace VisualPinball.Unity
 
 		#endregion
 
-		protected override Flipper InstantiateItem(FlipperData data) => new Flipper(data);
-		protected override FlipperData InstantiateData() => new FlipperData();
+		public override FlipperData InstantiateData() => new FlipperData();
 
-		protected override Type MeshAuthoringType { get; } = typeof(ItemMeshAuthoring<Flipper, FlipperData, FlipperAuthoring>);
-		protected override Type ColliderAuthoringType { get; } = typeof(ItemColliderAuthoring<Flipper, FlipperData, FlipperAuthoring>);
+		protected override Type MeshAuthoringType { get; } = typeof(ItemMeshAuthoring<FlipperData, FlipperAuthoring>);
+		protected override Type ColliderAuthoringType { get; } = typeof(ItemColliderAuthoring<FlipperData, FlipperAuthoring>);
 		public override IEnumerable<Type> ValidParents => FlipperColliderAuthoring.ValidParentTypes
 			.Concat(FlipperBaseMeshAuthoring.ValidParentTypes)
 			.Concat(FlipperRubberMeshAuthoring.ValidParentTypes)
@@ -146,7 +145,7 @@ namespace VisualPinball.Unity
 			}
 
 			// register
-			player.RegisterFlipper(Item, entity, ParentEntity, gameObject);
+			player.RegisterFlipper(this, entity, ParentEntity);
 		}
 
 		public override void UpdateTransforms()
@@ -327,10 +326,10 @@ namespace VisualPinball.Unity
 			var fc = colliderAuthoring.FlipperCorrection;
 
 				// create trigger
-				var trigger = CreateCorrectionTrigger();
+				var triggerData = CreateCorrectionTriggerData();
 				var triggerEntity = dstManager.CreateEntity(typeof(TriggerStaticData));
 				dstManager.AddComponentData(triggerEntity, new TriggerStaticData());
-				player.RegisterTrigger(trigger, triggerEntity, gameObject, true);
+				player.RegisterTrigger(triggerData, triggerEntity, gameObject, true);
 
 				using (var builder = new BlobBuilder(Allocator.Temp)) {
 
@@ -458,7 +457,7 @@ namespace VisualPinball.Unity
 			return ret;
 		}
 
-		public Trigger CreateCorrectionTrigger()
+		public TriggerData CreateCorrectionTriggerData()
 		{
 			// Get table reference
 			var ta = GetComponentInParent<TableAuthoring>();
@@ -476,7 +475,7 @@ namespace VisualPinball.Unity
 					var p = ta.transform.InverseTransformPoint(transform.TransformPoint(poly[i]));
 					data.DragPoints[poly.Count - i - 1] = new DragPointData(p.x, p.y);
 				}
-				return new Trigger(data);
+				return data;
 			}
 			throw new InvalidOperationException("Cannot create correction trigger for flipper outside of the table hierarchy.");
 		}

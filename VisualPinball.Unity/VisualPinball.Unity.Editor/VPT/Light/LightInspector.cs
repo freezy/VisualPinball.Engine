@@ -23,7 +23,7 @@ using VisualPinball.Engine.VPT.Light;
 namespace VisualPinball.Unity.Editor
 {
 	[CustomEditor(typeof(LightAuthoring)), CanEditMultipleObjects]
-	public class LightInspector : ItemMainInspector<Light, LightData, LightAuthoring>
+	public class LightInspector : ItemMainInspector<LightData, LightAuthoring>
 	{
 		private bool _foldoutState = true;
 

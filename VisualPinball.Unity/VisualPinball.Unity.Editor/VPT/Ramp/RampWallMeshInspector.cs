@@ -22,7 +22,7 @@ using VisualPinball.Engine.VPT.Ramp;
 namespace VisualPinball.Unity.Editor
 {
 	[CustomEditor(typeof(RampWallMeshAuthoring)), CanEditMultipleObjects]
-	public class RampWallMeshInspector : ItemMeshInspector<Ramp, RampData, RampAuthoring, RampWallMeshAuthoring>
+	public class RampWallMeshInspector : ItemMeshInspector<RampData, RampAuthoring, RampWallMeshAuthoring>
 	{
 		public override void OnInspectorGUI()
 		{

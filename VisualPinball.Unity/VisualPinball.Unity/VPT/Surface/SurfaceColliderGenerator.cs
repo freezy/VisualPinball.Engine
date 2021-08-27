@@ -37,7 +37,7 @@ namespace VisualPinball.Unity
 			_colliderComponent = colliderComponent;
 		}
 
-		internal void GenerateColliders(Table table, List<ICollider> colliders)
+		internal void GenerateColliders(float playfieldHeight, List<ICollider> colliders)
 		{
 			var vVertex =  DragPoint.GetRgVertex<RenderVertex2D, CatmullCurve2DCatmullCurveFactory>(_component.DragPoints);
 
@@ -45,8 +45,8 @@ namespace VisualPinball.Unity
 			var rgv3Dt = new float3[count];
 			var rgv3Db = _colliderComponent.IsBottomSolid ? new float3[count] : null;
 
-			var bottom = _component.HeightBottom + table.TableHeight;
-			var top = _component.HeightTop + table.TableHeight;
+			var bottom = _component.HeightBottom + playfieldHeight;
+			var top = _component.HeightTop + playfieldHeight;
 
 			for (var i = 0; i < count; ++i) {
 				var pv1 = vVertex[i];
@@ -58,7 +58,7 @@ namespace VisualPinball.Unity
 
 				var pv2 = vVertex[(i + 1) % count];
 				var pv3 = vVertex[(i + 2) % count];
-				GenerateLinePolys(pv2, pv3, table, colliders);
+				GenerateLinePolys(pv2, pv3, playfieldHeight, colliders);
 			}
 
 			ColliderUtils.Generate3DPolyColliders(in rgv3Dt, _api.GetColliderInfo(), colliders);
@@ -71,10 +71,10 @@ namespace VisualPinball.Unity
 		/// <summary>
 		/// Returns the hit line polygons for the surface.
 		/// </summary>
-		private void GenerateLinePolys(RenderVertex2D pv1, Vertex2D pv2, Table table, ICollection<ICollider> colliders)
+		private void GenerateLinePolys(RenderVertex2D pv1, Vertex2D pv2, float playfieldHeight, ICollection<ICollider> colliders)
 		{
-			var bottom = _component.HeightBottom + table.TableHeight;
-			var top = _component.HeightTop + table.TableHeight;
+			var bottom = _component.HeightBottom + playfieldHeight;
+			var top = _component.HeightTop + playfieldHeight;
 
 			if (!pv1.IsSlingshot) {
 				colliders.Add(new LineCollider(pv1.ToUnityFloat2(), pv2.ToUnityFloat2(), bottom, top, _api.GetColliderInfo()));

@@ -36,7 +36,7 @@ using Logger = NLog.Logger;
 namespace VisualPinball.Unity
 {
 	[AddComponentMenu("Visual Pinball/Game Item/Light")]
-	public class LightAuthoring : ItemMainRenderableAuthoring<Light, LightData>, ILampAuthoring
+	public class LightAuthoring : ItemMainRenderableAuthoring<LightData>/*, ILampAuthoring*/
 	{
 		#region Data
 
@@ -62,7 +62,8 @@ namespace VisualPinball.Unity
 		#endregion
 
 		public override ItemType ItemType => ItemType.Light;
-		public ILightable Lightable => Item;
+		public override string ItemName => "Light";
+		//public ILightable Lightable => Item;
 
 		public bool Enabled {
 			set {
@@ -79,10 +80,9 @@ namespace VisualPinball.Unity
 		private UnityEngine.Light _unityLight;
 		private float _fullIntensity;
 
-		protected override Light InstantiateItem(LightData data) => new Light(data);
-		protected override LightData InstantiateData() => new LightData();
+		public override LightData InstantiateData() => new LightData();
 
-		protected override Type MeshAuthoringType { get; } = typeof(ItemMeshAuthoring<Light, LightData, LightAuthoring>);
+		protected override Type MeshAuthoringType { get; } = typeof(ItemMeshAuthoring<LightData, LightAuthoring>);
 		protected override Type ColliderAuthoringType { get; } = null;
 
 		private const string BulbMeshName = "Light (Bulb)";
@@ -95,11 +95,11 @@ namespace VisualPinball.Unity
 		{
 			var player = GetComponentInParent<Player>();
 			if (player == null) {
-				Logger.Error($"Cannot find player for lamp {Name}.");
+				Logger.Error($"Cannot find player for lamp {name}.");
 				return;
 			}
 
-			player.RegisterLamp(Item, gameObject);
+			player.RegisterLamp(this);
 			_unityLight = GetComponent<UnityEngine.Light>();
 			_fullIntensity = _unityLight.intensity;
 		}

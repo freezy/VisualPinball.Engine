@@ -115,7 +115,7 @@ namespace VisualPinball.Unity.Editor
 			}
 			_playfieldGo = playfieldAuthoring.gameObject;
 			_tableAuthoring = tableAuthoring;
-			_table = tableAuthoring.Table;
+			_table = new Table(_tableAuthoring.TableContainer, new TableData());
 
 			// get materials in scene
 			var guids = AssetDatabase.FindAssets("t:Material");
@@ -554,7 +554,6 @@ namespace VisualPinball.Unity.Editor
 			var cabinetGo = new GameObject("Cabinet");
 
 			_tableAuthoring = _tableGo.AddComponent<TableAuthoring>();
-			_tableAuthoring.SetItem(_table, tableName);
 			_tableAuthoring.SetData(_table.Data);
 
 			_playfieldGo.transform.SetParent(_tableGo.transform, false);
@@ -652,7 +651,7 @@ namespace VisualPinball.Unity.Editor
 				return _physicalMaterials[name];
 			}
 
-			var material = _tableAuthoring.Table.Data.Materials.FirstOrDefault(m => string.Equals(m.Name, name, StringComparison.CurrentCultureIgnoreCase));
+			var material = _tableAuthoring.LegacyContainer.Materials.FirstOrDefault(m => string.Equals(m.Name, name, StringComparison.CurrentCultureIgnoreCase));
 			if (material != null) {
 				var path = SavePhysicsMaterial(material);
 				_physicalMaterials[material.Name] = AssetDatabase.LoadAssetAtPath<PhysicsMaterial>(path);

@@ -23,7 +23,7 @@ using VisualPinball.Engine.VPT.Table;
 
 namespace VisualPinball.Unity
 {
-	public class RubberApi : ItemCollidableApi<RubberAuthoring, RubberColliderAuthoring, Rubber, RubberData>,
+	public class RubberApi : ItemCollidableApi<RubberAuthoring, RubberColliderAuthoring, RubberData>,
 		IApiInitializable, IApiHittable
 	{
 		/// <summary>
@@ -45,10 +45,10 @@ namespace VisualPinball.Unity
 		protected override bool FireHitEvents => ColliderComponent.HitEvent;
 		protected override float HitThreshold => 2.0f; // hard coded threshold for now
 
-		protected override void CreateColliders(Table table, List<ICollider> colliders)
+		protected override void CreateColliders(List<ICollider> colliders)
 		{
 			var colliderGenerator = new RubberColliderGenerator(this, new RubberMeshGenerator(MainComponent));
-			colliderGenerator.GenerateColliders(table, colliders);
+			colliderGenerator.GenerateColliders(MainComponent.PlayfieldHeight, MainComponent.PlayfieldDetailLevel, colliders);
 		}
 
 		#endregion

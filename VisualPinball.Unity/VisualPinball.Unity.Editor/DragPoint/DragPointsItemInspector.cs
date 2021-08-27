@@ -25,12 +25,11 @@ using VisualPinball.Engine.VPT;
 
 namespace VisualPinball.Unity.Editor
 {
-	public abstract class DragPointsItemInspector<TItem, TData, TMainAuthoring>
-		: ItemMainInspector<TItem, TData, TMainAuthoring>,
+	public abstract class DragPointsItemInspector<TData, TMainAuthoring>
+		: ItemMainInspector<TData, TMainAuthoring>,
 			IDragPointsItemInspector, IDragPointsEditable
 		where TData : ItemData
-		where TItem : Item<TData>, IRenderable
-		where TMainAuthoring : ItemMainRenderableAuthoring<TItem, TData>
+		where TMainAuthoring : ItemMainRenderableAuthoring<TData>
 	{
 		/// <summary>
 		/// Catmull Curve Handler
@@ -65,7 +64,7 @@ namespace VisualPinball.Unity.Editor
 		protected override void OnEnable()
 		{
 			base.OnEnable();
-			_dragPointsAuthoring = ItemAuthoring as IDragPointsAuthoring;
+			_dragPointsAuthoring = MainComponent as IDragPointsAuthoring;
 			_renderable = target as IItemMainRenderableAuthoring;
 			DragPointsHandler = new DragPointsHandler(target, this);
 			Undo.undoRedoPerformed += OnUndoRedoPerformed;
@@ -297,9 +296,9 @@ namespace VisualPinball.Unity.Editor
 			get => _dragPointsAuthoring.DragPoints;
 			set {
 				_dragPointsAuthoring.DragPoints = value;
-				EditorUtility.SetDirty(ItemAuthoring.gameObject);
-				PrefabUtility.RecordPrefabInstancePropertyModifications(ItemAuthoring);
-				EditorSceneManager.MarkSceneDirty(ItemAuthoring.gameObject.scene);
+				EditorUtility.SetDirty(MainComponent.gameObject);
+				PrefabUtility.RecordPrefabInstancePropertyModifications(MainComponent);
+				EditorSceneManager.MarkSceneDirty(MainComponent.gameObject.scene);
 			}
 		}
 		public abstract Vector3 EditableOffset { get; }

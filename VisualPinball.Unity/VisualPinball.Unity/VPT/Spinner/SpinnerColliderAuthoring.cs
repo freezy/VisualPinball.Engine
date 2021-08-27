@@ -25,7 +25,7 @@ using VisualPinball.Engine.VPT.Spinner;
 namespace VisualPinball.Unity
 {
 	[AddComponentMenu("Visual Pinball/Collision/Spinner Collider")]
-	public class SpinnerColliderAuthoring : ItemColliderAuthoring<Spinner, SpinnerData, SpinnerAuthoring>
+	public class SpinnerColliderAuthoring : ItemColliderAuthoring<SpinnerData, SpinnerAuthoring>
 	{
 		#region Data
 

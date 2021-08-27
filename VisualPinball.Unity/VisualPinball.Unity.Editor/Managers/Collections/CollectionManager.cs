@@ -306,7 +306,6 @@ namespace VisualPinball.Unity.Editor
 			foreach (var collection in _tableAuthoring.Collections) {
 				collection.StorageIndex = idx++;
 			}
-			_tableAuthoring.Item.Data.NumCollections = _tableAuthoring.Collections.Count;
 		}
 
 		protected override void AddNewData(string undoName, string newName)

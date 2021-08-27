@@ -25,7 +25,7 @@ using VisualPinball.Engine.VPT.Table;
 namespace VisualPinball.Unity
 {
 	[AddComponentMenu("Visual Pinball/Collision/Playfield Collider")]
-	public class PlayfieldColliderAuthoring : ItemColliderAuthoring<Table, TableData, PlayfieldAuthoring>
+	public class PlayfieldColliderAuthoring : ItemColliderAuthoring<TableData, PlayfieldAuthoring>
 	{
 		#region Data
 

@@ -27,12 +27,11 @@ namespace VisualPinball.Unity
 	/// </summary>
 	/// <typeparam name="TItem"></typeparam>
 	/// <typeparam name="TData"></typeparam>
-	public abstract class ItemAuthoring<TItem, TData> : MonoBehaviour,
+	public abstract class ItemAuthoring<TData> : MonoBehaviour,
 		IItemAuthoring
 		where TData : ItemData
-		where TItem : Item<TData>
 	{
-		public string Name { get => Item.Name; set => Item.Name = value; }
+		public abstract string ItemName { get; }
 
 		/// <summary>
 		/// Returns the data object relevant for this component. If this
@@ -54,12 +53,12 @@ namespace VisualPinball.Unity
 		/// If this returns `null`, then it's wrongly attached to a game object
 		/// where it can't find its main component.
 		/// </remarks>
-		public abstract TItem Item { get; }
+		//public abstract TItem Item { get; }
 
 		/// <summary>
 		/// A non-typed version of the item.
 		/// </summary>
-		public IItem IItem => Item;
+		//public IItem IItem => Item;
 
 		/// <summary>
 		/// The data-oriented version of the item.
@@ -71,7 +70,7 @@ namespace VisualPinball.Unity
 		private Table _table;
 		private TableAuthoring _tableAuthoring;
 
-		protected Table Table => _table ??= TableAuthoring == null ? null : TableAuthoring.Item;
+		//protected Table Table => _table ??= TableAuthoring == null ? null : TableAuthoring.Item;
 		protected TableAuthoring TableAuthoring => _tableAuthoring ??= GetComponentInParent<TableAuthoring>();
 
 		protected static void DrawArrow(Vector3 pos, Vector3 direction, float arrowHeadLength = 0.025f, float arrowHeadAngle = 20.0f)

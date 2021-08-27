@@ -23,17 +23,16 @@ using VisualPinball.Engine.VPT;
 
 namespace VisualPinball.Unity.Editor
 {
-	public class ItemAnimationInspector<TItem, TData, TMainAuthoring, TMovementAuthoring> : ItemInspector
-		where TMovementAuthoring : ItemAnimationAuthoring<TItem, TData, TMainAuthoring>
+	public class ItemAnimationInspector<TData, TMainAuthoring, TMovementAuthoring> : ItemInspector
+		where TMovementAuthoring : ItemAnimationAuthoring<TData, TMainAuthoring>
 		where TData : ItemData
-		where TItem : Item<TData>, IRenderable
-		where TMainAuthoring : ItemMainRenderableAuthoring<TItem, TData>
+		where TMainAuthoring : ItemMainRenderableAuthoring<TData>
 	{
 		private TMovementAuthoring _movementAuthoring;
 
 		protected TData Data => _movementAuthoring == null ? null : _movementAuthoring.Data;
 
-		protected override MonoBehaviour UndoTarget => _movementAuthoring.MainAuthoring;
+		protected override MonoBehaviour UndoTarget => _movementAuthoring.MainComponent;
 
 		protected override void OnEnable()
 		{

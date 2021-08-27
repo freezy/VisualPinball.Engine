@@ -192,7 +192,7 @@ namespace VisualPinball.Unity.Editor
 
 			if (_tableAuthoring != null) {
 				foreach (var item in _tableAuthoring.GetComponentsInChildren<ILampAuthoring>()) {
-					_lamps.Add(item.Name.ToLower(), item);
+					_lamps.Add(item.name.ToLower(), item);
 				}
 			}
 		}

@@ -34,7 +34,7 @@ using Mesh = VisualPinball.Engine.VPT.Mesh;
 namespace VisualPinball.Unity
 {
 	[AddComponentMenu("Visual Pinball/Game Item/Primitive")]
-	public class PrimitiveAuthoring : ItemMainRenderableAuthoring<Primitive, PrimitiveData>, IMeshGenerator, IConvertGameObjectToEntity
+	public class PrimitiveAuthoring : ItemMainRenderableAuthoring<PrimitiveData>, IMeshGenerator, IConvertGameObjectToEntity
 	{
 		#region Data
 
@@ -96,12 +96,12 @@ namespace VisualPinball.Unity
 		#endregion
 
 		public override ItemType ItemType => ItemType.Primitive;
+		public override string ItemName => "Primitive";
 
-		protected override Primitive InstantiateItem(PrimitiveData data) => new Primitive(data);
-		protected override PrimitiveData InstantiateData() => new PrimitiveData();
+		public override PrimitiveData InstantiateData() => new PrimitiveData();
 
-		protected override Type MeshAuthoringType { get; } = typeof(ItemMeshAuthoring<Primitive, PrimitiveData, PrimitiveAuthoring>);
-		protected override Type ColliderAuthoringType { get; } = typeof(ItemColliderAuthoring<Primitive, PrimitiveData, PrimitiveAuthoring>);
+		protected override Type MeshAuthoringType { get; } = typeof(ItemMeshAuthoring<PrimitiveData, PrimitiveAuthoring>);
+		protected override Type ColliderAuthoringType { get; } = typeof(ItemColliderAuthoring<PrimitiveData, PrimitiveAuthoring>);
 
 		public override IEnumerable<Type> ValidParents => PrimitiveColliderAuthoring.ValidParentTypes
 			.Concat(PrimitiveMeshAuthoring.ValidParentTypes)
@@ -112,8 +112,7 @@ namespace VisualPinball.Unity
 			Convert(entity, dstManager);
 
 			// register
-			var primitive = GetComponent<PrimitiveAuthoring>().Item;
-			transform.GetComponentInParent<Player>().RegisterPrimitive(primitive, entity, ParentEntity, gameObject);
+			transform.GetComponentInParent<Player>().RegisterPrimitive(this, entity, ParentEntity);
 		}
 
 		public override void UpdateTransforms()

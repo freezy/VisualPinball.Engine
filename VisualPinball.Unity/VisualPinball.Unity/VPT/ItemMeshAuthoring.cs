@@ -25,15 +25,14 @@ using VisualPinball.Engine.VPT.Table;
 
 namespace VisualPinball.Unity
 {
-	public abstract class ItemMeshAuthoring<TItem, TData, TAuthoring> : ItemSubAuthoring<TItem, TData, TAuthoring>,
+	public abstract class ItemMeshAuthoring<TData, TAuthoring> : ItemSubAuthoring<TData, TAuthoring>,
 		IItemMeshAuthoring
 		where TData : ItemData
-		where TItem : Item<TData>, IRenderable
-		where TAuthoring : ItemMainRenderableAuthoring<TItem, TData>
+		where TAuthoring : ItemMainRenderableAuthoring<TData>
 	{
 		public List<MemberInfo> MaterialRefs => _materialRefs ??= GetMembersWithAttribute<MaterialReferenceAttribute>();
 
-		public IItemMainRenderableAuthoring IMainAuthoring => MainAuthoring;
+		public IItemMainRenderableAuthoring IMainAuthoring => MainComponent;
 
 		protected virtual string MeshId => null;
 
@@ -76,12 +75,12 @@ namespace VisualPinball.Unity
 			}
 		}
 
-		protected abstract RenderObject GetRenderObject(TData data, Table table);
+		protected abstract RenderObject GetRenderObject(TData data);
 
 		public void CreateMesh(TData data, ITextureProvider texProvider, IMaterialProvider matProvider)
 		{
 			var ta = GetComponentInParent<TableAuthoring>();
-			var ro = GetRenderObject(data, ta.Table);
+			var ro = GetRenderObject(data);
 
 			CreateMesh(gameObject, ro, data.GetName(), texProvider, matProvider);
 		}
@@ -112,8 +111,9 @@ namespace VisualPinball.Unity
 		private void UpdateMesh()
 		{
 			var ta = GetComponentInParent<TableAuthoring>();
-			MainAuthoring.CopyDataTo(Item.Data, null, null);
-			var ro = Item.GetRenderObject(ta.Table, MeshId, Origin.Original, false);
+			var data = MainComponent.InstantiateData();
+			MainComponent.CopyDataTo(data, null, null);
+			var ro = GetRenderObject(data);
 
 			// mesh generator can return null - but in this case the main component
 			// will take care of removing the mesh component.

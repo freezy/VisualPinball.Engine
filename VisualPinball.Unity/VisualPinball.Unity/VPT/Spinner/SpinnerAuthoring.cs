@@ -35,8 +35,8 @@ using VisualPinball.Engine.VPT.Spinner;
 namespace VisualPinball.Unity
 {
 	[AddComponentMenu("Visual Pinball/Game Item/Spinner")]
-	public class SpinnerAuthoring : ItemMainRenderableAuthoring<Spinner, SpinnerData>,
-		ISwitchAuthoring, IOnSurfaceAuthoring, IConvertGameObjectToEntity
+	public class SpinnerAuthoring : ItemMainRenderableAuthoring<SpinnerData>,
+		/*ISwitchAuthoring, */IOnSurfaceAuthoring, IConvertGameObjectToEntity
 	{
 		#region Data
 
@@ -74,6 +74,7 @@ namespace VisualPinball.Unity
 		#endregion
 
 		public override ItemType ItemType => ItemType.Spinner;
+		public override string ItemName => "Spinner";
 
 		public bool IsPulseSwitch => true;
 
@@ -82,18 +83,17 @@ namespace VisualPinball.Unity
 
 		public float HeightOnPlayfield => Height + PositionZ;
 
-		protected override Spinner InstantiateItem(SpinnerData data) => new Spinner(data);
-		protected override SpinnerData InstantiateData() => new SpinnerData();
+		public override SpinnerData InstantiateData() => new SpinnerData();
 
-		protected override Type MeshAuthoringType { get; } = typeof(ItemMeshAuthoring<Spinner, SpinnerData, SpinnerAuthoring>);
-		protected override Type ColliderAuthoringType { get; } = typeof(ItemColliderAuthoring<Spinner, SpinnerData, SpinnerAuthoring>);
+		protected override Type MeshAuthoringType { get; } = typeof(ItemMeshAuthoring<SpinnerData, SpinnerAuthoring>);
+		protected override Type ColliderAuthoringType { get; } = typeof(ItemColliderAuthoring<SpinnerData, SpinnerAuthoring>);
 
 		private const string BracketMeshName = "Spinner (Bracket)";
 
 		public override IEnumerable<Type> ValidParents => SpinnerColliderAuthoring.ValidParentTypes
 			.Distinct();
 
-		public ISwitchable Switchable => Item;
+		//public ISwitchable Switchable => Item;
 
 		public void Convert(Entity entity, EntityManager dstManager, GameObjectConversionSystem conversionSystem)
 		{
@@ -121,7 +121,7 @@ namespace VisualPinball.Unity
 			}
 
 			// register
-			transform.GetComponentInParent<Player>().RegisterSpinner(Item, entity, ParentEntity, gameObject);
+			transform.GetComponentInParent<Player>().RegisterSpinner(this, entity, ParentEntity);
 		}
 
 		public override void UpdateTransforms()

@@ -32,11 +32,10 @@ using Mesh = UnityEngine.Mesh;
 namespace VisualPinball.Unity
 {
 	[DisallowMultipleComponent]
-	public abstract class ItemColliderAuthoring<TItem, TData, TMainAuthoring> : ItemSubAuthoring<TItem, TData, TMainAuthoring>,
+	public abstract class ItemColliderAuthoring<TData, TMainAuthoring> : ItemSubAuthoring<TData, TMainAuthoring>,
 		IItemColliderAuthoring
 		where TData : ItemData
-		where TItem : Item<TData>
-		where TMainAuthoring : ItemMainAuthoring<TItem, TData>
+		where TMainAuthoring : ItemMainAuthoring<TData>
 	{
 		[SerializeReference]
 		public PhysicsMaterial PhysicsMaterial;
@@ -55,7 +54,7 @@ namespace VisualPinball.Unity
 
 		public List<ICollider> Colliders { get; private set; }
 
-		public new IItemMainAuthoring MainAuthoring => base.MainAuthoring;
+		public new IItemMainAuthoring MainAuthoring => base.MainComponent;
 
 		private readonly Entity _colliderEntity = Player.PlayfieldEntity;
 
@@ -101,7 +100,7 @@ namespace VisualPinball.Unity
 			}
 			var api = InstantiateColliderApi(player, _colliderEntity, Entity.Null);
 			Colliders = new List<ICollider>();
-			api.CreateColliders(Table, Colliders);
+			api.CreateColliders(Colliders);
 
 			var ltw = GetComponentInParent<PlayfieldAuthoring>().transform.localToWorldMatrix;
 
@@ -243,10 +242,11 @@ namespace VisualPinball.Unity
 						}
 					}
 
-					if (mesh == null && Item is IRenderable renderableItem) {
-						var ro = renderableItem.GetRenderObject(Table, FlipperMeshGenerator.Rubber, Origin.Original);
-						mesh = ro.Mesh.ToUnityMesh();
-					}
+					// todo fix without item
+					// if (mesh == null && Item is IRenderable renderableItem) {
+					// 	var ro = renderableItem.GetRenderObject(Table, FlipperMeshGenerator.Rubber, Origin.Original);
+					// 	mesh = ro.Mesh.ToUnityMesh();
+					// }
 
 					var t = gameObject.transform;
 					Gizmos.DrawWireMesh(mesh, t.position, t.rotation, t.lossyScale);

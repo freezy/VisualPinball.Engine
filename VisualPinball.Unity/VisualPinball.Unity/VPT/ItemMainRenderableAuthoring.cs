@@ -25,9 +25,8 @@ using Mesh = VisualPinball.Engine.VPT.Mesh;
 
 namespace VisualPinball.Unity
 {
-	public abstract class  ItemMainRenderableAuthoring<TItem, TData> : ItemMainAuthoring<TItem, TData>,
+	public abstract class  ItemMainRenderableAuthoring<TData> : ItemMainAuthoring<TData>,
 		IItemMainRenderableAuthoring, IOnPlayfieldAuthoring
-		where TItem : Item<TData>, IRenderable
 		where TData : ItemData
 	{
 		public virtual bool CanBeTransformed => true;
@@ -38,6 +37,8 @@ namespace VisualPinball.Unity
 		protected abstract Type MeshAuthoringType { get; }
 
 		protected abstract Type ColliderAuthoringType { get; }
+
+		public Entity Entity { get; set; }
 
 		/// <summary>
 		/// Returns all child mesh components linked to this data.
@@ -114,13 +115,10 @@ namespace VisualPinball.Unity
 
 		protected void Convert(Entity entity, EntityManager dstManager)
 		{
-			Item.Index = entity.Index;
-			Item.Version = entity.Version;
-
+			Entity = entity;
 			var parentAuthoring = ParentAuthoring;
 			if (parentAuthoring != null && !(parentAuthoring is TableAuthoring)) {
-				Item.ParentIndex = parentAuthoring.IItem.Index;
-				Item.ParentVersion = parentAuthoring.IItem.Version;
+				ParentEntity = parentAuthoring.Entity;
 			}
 		}
 

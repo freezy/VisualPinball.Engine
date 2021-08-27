@@ -18,13 +18,11 @@ namespace VisualPinball.Unity
 	/// Note we don't cache the data reference in order having to detect when
 	/// the component gets re-parented.
 	/// </remarks>
-	/// <typeparam name="TItem">Type of the item</typeparam>
 	/// <typeparam name="TData">Data type of the item</typeparam>
 	/// <typeparam name="TMainAuthoring">Type of the main component, where the data is.</typeparam>
-	public abstract class ItemSubAuthoring<TItem, TData, TMainAuthoring> : ItemAuthoring<TItem, TData>
-		where TItem : Item<TData>
+	public abstract class ItemSubAuthoring<TData, TMainAuthoring> : ItemAuthoring<TData>
 		where TData : ItemData
-		where TMainAuthoring : ItemMainAuthoring<TItem, TData>
+		where TMainAuthoring : ItemMainAuthoring<TData>
 	{
 		/// <summary>
 		/// We're in a sub component here, so in order to retrieve the data,
@@ -51,14 +49,16 @@ namespace VisualPinball.Unity
 		/// the component is somewhere in the hierarchy where it doesn't make
 		/// sense, and a warning should be printed.
 		/// </remarks>
-		public override TItem Item => FindItem();
+		//public override TItem Item => FindItem();
 
 		/// <summary>
 		/// Finds the main authoring component in the parent.
 		/// </summary>
-		public TMainAuthoring MainAuthoring => FindMainAuthoring();
+		public TMainAuthoring MainComponent => FindMainAuthoring();
 
-		public IItemMainRenderableAuthoring ParentAuthoring => MainAuthoring.ParentAuthoring;
+		public override string ItemName => MainComponent.ItemName;
+
+		public IItemMainRenderableAuthoring ParentAuthoring => MainComponent.ParentAuthoring;
 
 		public abstract IEnumerable<Type> ValidParents { get; }
 
@@ -73,13 +73,6 @@ namespace VisualPinball.Unity
 		{
 			var ac = FindMainAuthoring();
 			return ac != null ? ac.Data : null;
-		}
-
-		private TItem FindItem()
-		{
-			// otherwise retrieve from parent
-			var ac = FindMainAuthoring();
-			return ac != null ? ac.Item : null;
 		}
 
 		private TMainAuthoring FindMainAuthoring()

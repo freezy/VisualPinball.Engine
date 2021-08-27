@@ -33,7 +33,7 @@ using VisualPinball.Engine.VPT.Surface;
 namespace VisualPinball.Unity
 {
 	[AddComponentMenu("Visual Pinball/Game Item/Surface")]
-	public class SurfaceAuthoring : ItemMainRenderableAuthoring<Surface, SurfaceData>,
+	public class SurfaceAuthoring : ItemMainRenderableAuthoring<SurfaceData>,
 		IConvertGameObjectToEntity, ISurfaceAuthoring, IDragPointsAuthoring
 	{
 		#region Data
@@ -53,12 +53,12 @@ namespace VisualPinball.Unity
 		#endregion
 
 		public override ItemType ItemType => ItemType.Surface;
+		public override string ItemName => "Surface";
 
-		protected override Surface InstantiateItem(SurfaceData data) => new Surface(data);
-		protected override SurfaceData InstantiateData() => new SurfaceData();
+		public override SurfaceData InstantiateData() => new SurfaceData();
 
-		protected override Type MeshAuthoringType { get; } = typeof(ItemMeshAuthoring<Surface, SurfaceData, SurfaceAuthoring>);
-		protected override Type ColliderAuthoringType { get; } = typeof(ItemColliderAuthoring<Surface, SurfaceData, SurfaceAuthoring>);
+		protected override Type MeshAuthoringType { get; } = typeof(ItemMeshAuthoring<SurfaceData, SurfaceAuthoring>);
+		protected override Type ColliderAuthoringType { get; } = typeof(ItemColliderAuthoring<SurfaceData, SurfaceAuthoring>);
 
 		public override IEnumerable<Type> ValidParents => SurfaceColliderAuthoring.ValidParentTypes
 			.Concat(SurfaceSideMeshAuthoring.ValidParentTypes)
@@ -82,7 +82,7 @@ namespace VisualPinball.Unity
 				});
 			}
 
-			transform.GetComponentInParent<Player>().RegisterSurface(Item, entity, ParentEntity, gameObject);
+			transform.GetComponentInParent<Player>().RegisterSurface(this, entity, ParentEntity);
 		}
 
 		public override IEnumerable<MonoBehaviour> SetData(SurfaceData data)

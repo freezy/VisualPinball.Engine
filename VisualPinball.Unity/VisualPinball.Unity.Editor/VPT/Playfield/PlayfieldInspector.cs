@@ -20,7 +20,7 @@ using VisualPinball.Engine.VPT.Table;
 namespace VisualPinball.Unity.Editor
 {
 	[CustomEditor(typeof(PlayfieldAuthoring)), CanEditMultipleObjects]
-	public class PlayfieldInspector : ItemMainInspector<Table, TableData, PlayfieldAuthoring>
+	public class PlayfieldInspector : ItemMainInspector<TableData, PlayfieldAuthoring>
 	{
 		private SerializedProperty _rightProperty;
 		private SerializedProperty _bottomProperty;

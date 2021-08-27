@@ -35,10 +35,11 @@ using VisualPinball.Engine.VPT.Gate;
 namespace VisualPinball.Unity
 {
 	[AddComponentMenu("Visual Pinball/Game Item/Gate")]
-	public class GateAuthoring : ItemMainRenderableAuthoring<Gate, GateData>,
-		IGateData, ISwitchAuthoring, IOnSurfaceAuthoring, IConvertGameObjectToEntity
+	public class GateAuthoring : ItemMainRenderableAuthoring<GateData>,
+		IGateData, /*ISwitchAuthoring, */IOnSurfaceAuthoring, IConvertGameObjectToEntity
 	{
 		public override ItemType ItemType => ItemType.Gate;
+		public override string ItemName => "Gate";
 
 		public bool IsPulseSwitch => true;
 
@@ -88,11 +89,10 @@ namespace VisualPinball.Unity
 
 		#endregion
 
-		protected override Gate InstantiateItem(GateData data) => new Gate(data);
-		protected override GateData InstantiateData() => new GateData();
+		public override GateData InstantiateData() => new GateData();
 
-		protected override Type MeshAuthoringType { get; } = typeof(ItemMeshAuthoring<Gate, GateData, GateAuthoring>);
-		protected override Type ColliderAuthoringType { get; } = typeof(ItemColliderAuthoring<Gate, GateData, GateAuthoring>);
+		protected override Type MeshAuthoringType { get; } = typeof(ItemMeshAuthoring<GateData, GateAuthoring>);
+		protected override Type ColliderAuthoringType { get; } = typeof(ItemColliderAuthoring<GateData, GateAuthoring>);
 
 		private const string BracketPrefabName = "Bracket";
 		private const string WirePrefabName = "Wire";
@@ -100,7 +100,7 @@ namespace VisualPinball.Unity
 		public override IEnumerable<Type> ValidParents => GateColliderAuthoring.ValidParentTypes
 			.Distinct();
 
-		public ISwitchable Switchable => Item;
+		//public ISwitchable Switchable => Item;
 
 		public void Convert(Entity entity, EntityManager dstManager, GameObjectConversionSystem conversionSystem)
 		{
@@ -132,7 +132,7 @@ namespace VisualPinball.Unity
 			}
 
 			// register
-			transform.GetComponentInParent<Player>().RegisterGate(Item, entity, ParentEntity, gameObject);
+			transform.GetComponentInParent<Player>().RegisterGate(this, entity, ParentEntity);
 		}
 
 		public override void UpdateTransforms()

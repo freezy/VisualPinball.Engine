@@ -59,8 +59,8 @@ namespace VisualPinball.Engine.Test.Test
 			_vel = new Vertex3D(vx, vy, vz);
 		}
 
-		public Vertex3D GetBallCreationPosition(Table table) => _pos;
+		public Vertex3D GetBallCreationPosition() => _pos;
 
-		public Vertex3D GetBallCreationVelocity(Table table) => _vel;
+		public Vertex3D GetBallCreationVelocity() => _vel;
 	}
 }

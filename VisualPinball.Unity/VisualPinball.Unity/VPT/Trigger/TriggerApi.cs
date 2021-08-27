@@ -18,11 +18,11 @@ using System;
 using System.Collections.Generic;
 using Unity.Entities;
 using UnityEngine;
-using VisualPinball.Engine.VPT.Table;
+using VisualPinball.Engine.VPT.Trigger;
 
 namespace VisualPinball.Unity
 {
-	public class TriggerApi : ItemCollidableApi<TriggerAuthoring, TriggerColliderAuthoring, Engine.VPT.Trigger.Trigger, Engine.VPT.Trigger.TriggerData>,
+	public class TriggerApi : ItemCollidableApi<TriggerAuthoring, TriggerColliderAuthoring, TriggerData>,
 		IApiInitializable, IApiHittable, IApiSwitch, IApiColliderGenerator
 	{
 		/// <summary>
@@ -60,7 +60,7 @@ namespace VisualPinball.Unity
 		protected override bool FireHitEvents => true;
 		Entity IApiColliderGenerator.ColliderEntity => Entity;
 
-		protected override void CreateColliders(Table table, List<ICollider> colliders)
+		protected override void CreateColliders(List<ICollider> colliders)
 		{
 			var meshComponent = GameObject.GetComponent<TriggerMeshAuthoring>();
 			if (meshComponent) {

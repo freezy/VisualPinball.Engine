@@ -22,7 +22,7 @@ using VisualPinball.Engine.VPT.Primitive;
 namespace VisualPinball.Unity.Editor
 {
 	[CustomEditor(typeof(PrimitiveColliderAuthoring)), CanEditMultipleObjects]
-	public class PrimitiveColliderInspector : ItemColliderInspector<Primitive, PrimitiveData, PrimitiveAuthoring, PrimitiveColliderAuthoring>
+	public class PrimitiveColliderInspector : ItemColliderInspector<PrimitiveData, PrimitiveAuthoring, PrimitiveColliderAuthoring>
 	{
 		private bool _foldoutMaterial = true;
 
@@ -44,7 +44,7 @@ namespace VisualPinball.Unity.Editor
 			_thresholdProperty = serializedObject.FindProperty(nameof(PrimitiveColliderAuthoring.Threshold));
 			_collisionReductionFactorProperty = serializedObject.FindProperty(nameof(PrimitiveColliderAuthoring.CollisionReductionFactor));
 
-			_physicsMaterialProperty = serializedObject.FindProperty(nameof(ItemColliderAuthoring<Primitive, PrimitiveData, PrimitiveAuthoring>.PhysicsMaterial));
+			_physicsMaterialProperty = serializedObject.FindProperty(nameof(ItemColliderAuthoring<PrimitiveData, PrimitiveAuthoring>.PhysicsMaterial));
 			_overwritePhysicsProperty = serializedObject.FindProperty(nameof(PrimitiveColliderAuthoring.OverwritePhysics));
 			_elasticityProperty = serializedObject.FindProperty(nameof(PrimitiveColliderAuthoring.Elasticity));
 			_elasticityFalloffProperty = serializedObject.FindProperty(nameof(PrimitiveColliderAuthoring.ElasticityFalloff));

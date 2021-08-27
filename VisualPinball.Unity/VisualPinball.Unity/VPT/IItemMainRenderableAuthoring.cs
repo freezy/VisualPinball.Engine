@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+using Unity.Entities;
 using UnityEngine;
 
 namespace VisualPinball.Unity
@@ -23,6 +24,8 @@ namespace VisualPinball.Unity
 		bool IsLocked { get; set; }
 
 		bool CanBeTransformed { get; }
+
+		string ItemName { get; }
 
 		/// <summary>
 		/// Sets the mesh of all mesh sub components to dirty.
@@ -46,6 +49,7 @@ namespace VisualPinball.Unity
 		void SetEditorRotation(Vector3 pos);
 
 		ItemDataTransformType EditorScaleType { get; }
+		Entity Entity { get; set; }
 		Vector3 GetEditorScale();
 		void SetEditorScale(Vector3 pos);
 	}

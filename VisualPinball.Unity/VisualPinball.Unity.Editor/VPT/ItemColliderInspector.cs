@@ -20,16 +20,14 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEditor;
 using UnityEngine;
-using VisualPinball.Engine.Game;
 using VisualPinball.Engine.VPT;
 
 namespace VisualPinball.Unity.Editor
 {
-	public class ItemColliderInspector<TItem, TData, TMainAuthoring, TColliderAuthoring> : ItemInspector
-		where TColliderAuthoring : ItemColliderAuthoring<TItem, TData, TMainAuthoring>
+	public class ItemColliderInspector<TData, TMainAuthoring, TColliderAuthoring> : ItemInspector
+		where TColliderAuthoring : ItemColliderAuthoring<TData, TMainAuthoring>
 		where TData : ItemData
-		where TItem : Item<TData>, IRenderable
-		where TMainAuthoring : ItemMainRenderableAuthoring<TItem, TData>
+		where TMainAuthoring : ItemMainRenderableAuthoring<TData>
 	{
 		protected TColliderAuthoring ColliderAuthoring;
 
@@ -132,8 +130,8 @@ namespace VisualPinball.Unity.Editor
 			var validParentTypes = ColliderAuthoring.ValidParents.ToArray();
 			var typeMessage = validParentTypes.Length > 0
 				? $"Supported parents are: [ {string.Join(", ", validParentTypes.Select(t => t.Name))} ]."
-				: $"In this case, colliders for {ColliderAuthoring.Item.ItemName} don't support any parenting at all.";
-			EditorGUILayout.HelpBox($"Invalid parent. This {ColliderAuthoring.Item.ItemName} is parented to a {ColliderAuthoring.ParentAuthoring.IItem.ItemName}, which VPE doesn't support.\n{typeMessage}", MessageType.Error);
+				: $"In this case, colliders for {ColliderAuthoring.ItemName} don't support any parenting at all.";
+			EditorGUILayout.HelpBox($"Invalid parent. This {ColliderAuthoring.ItemName} is parented to a {ColliderAuthoring.ParentAuthoring.ItemName}, which VPE doesn't support.\n{typeMessage}", MessageType.Error);
 			if (GUILayout.Button("Open Documentation", EditorStyles.linkLabel)) {
 				Application.OpenURL("https://docs.visualpinball.org/creators-guide/editor/unity-components.html");
 			}

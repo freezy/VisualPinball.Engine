@@ -22,11 +22,10 @@ using VisualPinball.Engine.VPT.Table;
 
 namespace VisualPinball.Unity
 {
-	public abstract class ItemCollidableApi<TComponent, TCollidableComponent, TItem, TData> : ItemApi<TComponent, TItem, TData>,
+	public abstract class ItemCollidableApi<TComponent, TCollidableComponent, TData> : ItemApi<TComponent, TData>,
 		IApiColliderGenerator
-		where TComponent : ItemMainAuthoring<TItem, TData>
-		where TCollidableComponent : ItemColliderAuthoring<TItem, TData, TComponent>
-		where TItem : Item<TData>
+		where TComponent : ItemMainAuthoring<TData>
+		where TCollidableComponent : ItemColliderAuthoring<TData, TComponent>
 		where TData : ItemData
 	{
 		protected readonly Entity Entity;
@@ -53,11 +52,11 @@ namespace VisualPinball.Unity
 		protected virtual bool FireHitEvents => false;
 		protected virtual float HitThreshold => 0;
 
-		protected abstract void CreateColliders(Table table, List<ICollider> colliders);
+		protected abstract void CreateColliders(List<ICollider> colliders);
 
-		void IApiColliderGenerator.CreateColliders(Table table, List<ICollider> colliders)
+		void IApiColliderGenerator.CreateColliders(List<ICollider> colliders)
 		{
-			CreateColliders(table, colliders);
+			CreateColliders(colliders);
 		}
 
 		ColliderInfo IApiColliderGenerator.GetColliderInfo() => GetColliderInfo();

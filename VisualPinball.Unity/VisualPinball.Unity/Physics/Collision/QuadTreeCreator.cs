@@ -41,6 +41,7 @@ namespace VisualPinball.Unity
 			PerfMarkerTotal.Begin();
 
 			var player = Object.FindObjectOfType<Player>();
+			var playfieldComponent = player.GetComponentInChildren<PlayfieldAuthoring>();
 			var itemApis = player.ColliderGenerators.ToArray();
 
 			// 1. generate colliders
@@ -53,7 +54,7 @@ namespace VisualPinball.Unity
 				if (itemApi.ColliderEntity != Entity.Null) {
 					itemsColliding.Add(itemApi.ColliderEntity, itemApi.IsColliderEnabled);
 				}
-				itemApi.CreateColliders(player.Table, colliderList);
+				itemApi.CreateColliders(colliderList);
 				PerfMarkerCreateColliders.End();
 			}
 			PerfMarkerGenerateColliders.End();
@@ -74,7 +75,7 @@ namespace VisualPinball.Unity
 			using (var builder = new BlobBuilder(Allocator.Temp)) {
 				ref var rootQuadTree = ref builder.ConstructRoot<QuadTreeBlob>();
 				QuadTree.Create(builder, ref colliderBlobAssetRef.Value.Colliders, ref rootQuadTree.QuadTree,
-					player.Table.BoundingBox.ToAabb());
+					playfieldComponent.BoundingBox.ToAabb());
 
 				quadTreeBlobAssetRef = builder.CreateBlobAssetReference<QuadTreeBlob>(Allocator.Persistent);
 			}

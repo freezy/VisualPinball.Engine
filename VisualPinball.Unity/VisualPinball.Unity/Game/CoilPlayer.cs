@@ -35,8 +35,8 @@ namespace VisualPinball.Unity
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
 		internal Dictionary<string, bool> CoilStatuses { get; } = new Dictionary<string, bool>();
-		internal void RegisterCoil(IItem item, IApiCoil coilApi) => _coils[item.Name] = coilApi;
-		internal void RegisterCoilDevice(IItem item, IApiCoilDevice coilDeviceApi) => _coilDevices[item.Name] = coilDeviceApi;
+		internal void RegisterCoil(string name, IApiCoil coilApi) => _coils[name] = coilApi;
+		internal void RegisterCoilDevice(string name, IApiCoilDevice coilDeviceApi) => _coilDevices[name] = coilDeviceApi;
 
 		public void Awake(TableContainer tableContainer, IGamelogicEngine gamelogicEngine, LampPlayer lampPlayer)
 		{

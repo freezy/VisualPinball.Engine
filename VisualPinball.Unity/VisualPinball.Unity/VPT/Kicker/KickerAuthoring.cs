@@ -36,8 +36,8 @@ using VisualPinball.Engine.VPT.Table;
 namespace VisualPinball.Unity
 {
 	[AddComponentMenu("Visual Pinball/Game Item/Kicker")]
-	public class KickerAuthoring : ItemMainRenderableAuthoring<Kicker, KickerData>,
-		ISwitchAuthoring, ICoilAuthoring, ITriggerAuthoring, IBallCreationPosition, IOnSurfaceAuthoring, IConvertGameObjectToEntity
+	public class KickerAuthoring : ItemMainRenderableAuthoring<KickerData>,
+		/*ISwitchAuthoring, ICoilAuthoring, */ITriggerAuthoring, IBallCreationPosition, IOnSurfaceAuthoring, IConvertGameObjectToEntity
 	{
 		#region Data
 
@@ -62,20 +62,20 @@ namespace VisualPinball.Unity
 		#endregion
 
 		public override ItemType ItemType => ItemType.Kicker;
+		public override string ItemName => "Kicker";
 		public bool IsPulseSwitch => false;
 		public void OnSurfaceUpdated() => UpdateTransforms();
 		public float PositionZ => SurfaceHeight(Surface, Position);
 
-		protected override Kicker InstantiateItem(KickerData data) => new Kicker(data);
-		protected override KickerData InstantiateData() => new KickerData();
+		public override KickerData InstantiateData() => new KickerData();
 
-		protected override Type MeshAuthoringType { get; } = typeof(ItemMeshAuthoring<Kicker, KickerData, KickerAuthoring>);
-		protected override Type ColliderAuthoringType { get; } = typeof(ItemColliderAuthoring<Kicker, KickerData, KickerAuthoring>);
+		protected override Type MeshAuthoringType { get; } = typeof(ItemMeshAuthoring<KickerData, KickerAuthoring>);
+		protected override Type ColliderAuthoringType { get; } = typeof(ItemColliderAuthoring<KickerData, KickerAuthoring>);
 
 		public override IEnumerable<Type> ValidParents => KickerColliderAuthoring.ValidParentTypes
 			.Distinct();
 
-		public ISwitchable Switchable => Item;
+		//public ISwitchable Switchable => Item;
 
 		public Vector2 Center => Position;
 
@@ -119,7 +119,7 @@ namespace VisualPinball.Unity
 			}
 
 			// register
-			transform.GetComponentInParent<Player>().RegisterKicker(Item, entity, ParentEntity, gameObject);
+			transform.GetComponentInParent<Player>().RegisterKicker(this, entity, ParentEntity);
 		}
 
 		public override void UpdateTransforms()
@@ -210,13 +210,9 @@ namespace VisualPinball.Unity
 
 		#region IBallCreationPosition
 
-		public Vertex3D GetBallCreationPosition(Table table)
-		{
-			var height = Surface?.Height(Position) ?? PlayfieldHeight;
-			return new Vertex3D(Position.x, Position.y, height);
-		}
+		public Vertex3D GetBallCreationPosition() => new Vertex3D(Position.x, Position.y, PositionZ);
 
-		public Vertex3D GetBallCreationVelocity(Table table) => new Vertex3D(0.1f, 0, 0);
+		public Vertex3D GetBallCreationVelocity() => new Vertex3D(0.1f, 0, 0);
 
 		#endregion
 
