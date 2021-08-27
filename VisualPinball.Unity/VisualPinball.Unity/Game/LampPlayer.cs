@@ -38,7 +38,7 @@ namespace VisualPinball.Unity
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
 		internal Dictionary<string, float> LampStatuses { get; } = new Dictionary<string, float>();
-		internal void RegisterLamp(IItem item, IApiLamp lampApi) => _lamps[item.Name] = lampApi;
+		internal void RegisterLamp(string name, IApiLamp lampApi) => _lamps[name] = lampApi;
 
 		public void Awake(TableContainer tableContainer, IGamelogicEngine gamelogicEngine)
 		{

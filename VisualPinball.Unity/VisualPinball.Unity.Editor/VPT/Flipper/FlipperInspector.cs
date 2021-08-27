@@ -22,7 +22,7 @@ using VisualPinball.Engine.VPT.Flipper;
 namespace VisualPinball.Unity.Editor
 {
 	[CustomEditor(typeof(FlipperAuthoring)), CanEditMultipleObjects]
-	public class FlipperInspector : ItemMainInspector<Flipper, FlipperData, FlipperAuthoring>
+	public class FlipperInspector : ItemMainInspector<FlipperData, FlipperAuthoring>
 	{
 		private bool _foldoutBaseGeometry = true;
 		private bool _foldoutRubberGeometry = true;
@@ -103,7 +103,7 @@ namespace VisualPinball.Unity.Editor
 
 		private void OnRubberSizeUpdated()
 		{
-			var rubberMesh = ItemAuthoring.GetComponentInChildren<FlipperRubberMeshAuthoring>(true);
+			var rubberMesh = MainComponent.GetComponentInChildren<FlipperRubberMeshAuthoring>(true);
 			rubberMesh.gameObject.SetActive(_rubberWidthProperty.floatValue > 0f && _rubberThicknessProperty.floatValue > 0f);
 		}
 	}

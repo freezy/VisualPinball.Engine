@@ -7,6 +7,7 @@ namespace VisualPinball.Unity.Editor
 	public abstract class LockingTableEditorWindow : BaseEditorWindow
 	{
 		protected TableAuthoring _tableAuthoring;
+		protected PlayfieldAuthoring _playfieldAuthoring;
 		private GUIStyle _lockButtonStyle;
 		private bool _windowLocked = false;
 
@@ -27,6 +28,7 @@ namespace VisualPinball.Unity.Editor
 		{
 			if (!_windowLocked) {
 				_tableAuthoring = TableSelector.Instance.SelectedTable;
+				_playfieldAuthoring = _tableAuthoring.GetComponentInChildren<PlayfieldAuthoring>();
 				SetTable(_tableAuthoring);
 				Repaint();
 			}

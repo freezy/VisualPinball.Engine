@@ -28,7 +28,7 @@ namespace VisualPinball.Unity
 {
 	[ExecuteInEditMode]
 	[AddComponentMenu("Visual Pinball/Mesh/Trigger Mesh")]
-	public class TriggerMeshAuthoring : ItemMeshAuthoring<Trigger, TriggerData, TriggerAuthoring>
+	public class TriggerMeshAuthoring : ItemMeshAuthoring<TriggerData, TriggerAuthoring>
 	{
 		#region Data
 
@@ -46,7 +46,7 @@ namespace VisualPinball.Unity
 
 		public override IEnumerable<Type> ValidParents => ValidParentTypes;
 
-		protected override RenderObject GetRenderObject(TriggerData data, Table table)
+		protected override RenderObject GetRenderObject(TriggerData data)
 			=> new TriggerMeshGenerator(data).GetRenderObject(table, Origin.Original, false);
 	}
 }

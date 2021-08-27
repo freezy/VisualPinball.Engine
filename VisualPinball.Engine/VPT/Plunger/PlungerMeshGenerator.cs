@@ -56,7 +56,7 @@ namespace VisualPinball.Engine.VPT.Plunger
 		private int _latheIndices;
 		private int _springIndices;
 
-		private const int PlungerFrameCount = 25;
+		public const int PlungerFrameCount = 25;
 		private const float DefaultPosition = 20f / 25f;
 
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();

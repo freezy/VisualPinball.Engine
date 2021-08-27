@@ -217,7 +217,7 @@ namespace VisualPinball.Unity.Editor
 					tableAuthoring,
 					"Lamp Items",
 					item => {
-						lampListData.PlayfieldItem = item?.Name ?? string.Empty;
+						lampListData.PlayfieldItem = item?.name ?? string.Empty;
 						updateAction(lampListData);
 					}
 				);

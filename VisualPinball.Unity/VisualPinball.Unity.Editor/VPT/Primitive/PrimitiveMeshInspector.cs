@@ -24,7 +24,7 @@ using VisualPinball.Engine.VPT.Primitive;
 namespace VisualPinball.Unity.Editor
 {
 	[CustomEditor(typeof(PrimitiveMeshAuthoring)), CanEditMultipleObjects]
-	public class PrimitiveMeshInspector : ItemMeshInspector<Primitive, PrimitiveData, PrimitiveAuthoring, PrimitiveMeshAuthoring>
+	public class PrimitiveMeshInspector : ItemMeshInspector<PrimitiveData, PrimitiveAuthoring, PrimitiveMeshAuthoring>
 	{
 		private SerializedProperty _sidesProperty;
 		private SerializedProperty _useLegacyMeshProperty;
@@ -74,26 +74,6 @@ namespace VisualPinball.Unity.Editor
 			base.OnInspectorGUI();
 
 			serializedObject.ApplyModifiedProperties();
-		}
-
-		/// <summary>
-		/// Pop a dialog to save the primitive's mesh as a unity asset
-		/// </summary>
-		private void ExportMesh()
-		{
-			var table = MeshAuthoring.GetComponentInParent<TableAuthoring>();
-			if (table != null) {
-				var rog = MeshAuthoring.MainAuthoring.Item.GetRenderObjects(table.Table, Origin.Original, false);
-				if (rog != null && rog.RenderObjects.Length > 0) {
-					var unityMesh = rog.RenderObjects[0].Mesh?.ToUnityMesh(MeshAuthoring.IMainAuthoring.Name);
-					if (unityMesh != null) {
-						var savePath = EditorUtility.SaveFilePanelInProject("Export Mesh", MeshAuthoring.IMainAuthoring.Name, "asset", "Export Mesh");
-						if (!string.IsNullOrEmpty(savePath)) {
-							AssetDatabase.CreateAsset(unityMesh, savePath);
-						}
-					}
-				}
-			}
 		}
 	}
 }

@@ -25,15 +25,15 @@ namespace VisualPinball.Unity
 {
 	[ExecuteInEditMode]
 	[AddComponentMenu("Visual Pinball/Mesh/Flipper Rubber Mesh")]
-	public class FlipperRubberMeshAuthoring : ItemMeshAuthoring<Flipper, FlipperData, FlipperAuthoring>
+	public class FlipperRubberMeshAuthoring : ItemMeshAuthoring<FlipperData, FlipperAuthoring>
 	{
-		public static readonly Type[] ValidParentTypes = new Type[0];
+		public static readonly Type[] ValidParentTypes = Type.EmptyTypes;
 
 		public override IEnumerable<Type> ValidParents => ValidParentTypes;
 
 		protected override string MeshId => FlipperMeshGenerator.Rubber;
 
-		protected override RenderObject GetRenderObject(FlipperData data, Table table)
+		protected override RenderObject GetRenderObject(FlipperData data)
 		{
 			return new FlipperMeshGenerator(data).GetRenderObject(table, FlipperMeshGenerator.Rubber, Origin.Original, false);
 		}

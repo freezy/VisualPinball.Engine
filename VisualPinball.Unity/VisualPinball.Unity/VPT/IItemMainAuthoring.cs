@@ -24,6 +24,8 @@ namespace VisualPinball.Unity
 {
 	public interface IItemMainAuthoring : IItemAuthoring
 	{
+		string ItemName { get; }
+
 		IEnumerable<Type> ValidParents { get; }
 
 		GameObject gameObject { get; }

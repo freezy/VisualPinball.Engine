@@ -36,7 +36,8 @@ namespace VisualPinball.Unity
 	/// - The **ball stack**, where balls are stored for games that hold more than one ball.
 	/// </remarks>
 	[Api]
-	public class TroughApi : ItemApi<TroughAuthoring, Trough, TroughData>, IApi, IApiInitializable, IApiSwitchDevice, IApiCoilDevice, IApiWireDeviceDest
+	public class TroughApi : ItemApi<TroughAuthoring, TroughData>,
+		IApi, IApiInitializable, IApiSwitchDevice, IApiCoilDevice, IApiWireDeviceDest
 	{
 		/// <summary>
 		/// How many stack switches there are available.
@@ -434,7 +435,7 @@ namespace VisualPinball.Unity
 		public bool EjectBall()
 		{
 			if (!_isSetup) {
-				Logger.Warn($"Trough {MainComponent.Name} not set up, ignoring.");
+				Logger.Warn($"Trough {MainComponent.name} not set up, ignoring.");
 				return false;
 			}
 			if (_countedStackBalls > 0) {

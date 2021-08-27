@@ -34,7 +34,7 @@ using VisualPinball.Engine.VPT.Ramp;
 namespace VisualPinball.Unity
 {
 	[AddComponentMenu("Visual Pinball/Game Item/Ramp")]
-	public class RampAuthoring : ItemMainRenderableAuthoring<Ramp, RampData>,
+	public class RampAuthoring : ItemMainRenderableAuthoring<RampData>,
 		IRampData, ISurfaceAuthoring, IDragPointsAuthoring, IConvertGameObjectToEntity
 	{
 		#region Data
@@ -102,14 +102,14 @@ namespace VisualPinball.Unity
 		#endregion
 
 		public override ItemType ItemType => ItemType.Ramp;
+		public override string ItemName => "Ramp";
 
 		public override void OnPlayfieldHeightUpdated() => RebuildMeshes();
 
-		protected override Ramp InstantiateItem(RampData data) => new Ramp(data);
-		protected override RampData InstantiateData() => new RampData();
+		public override RampData InstantiateData() => new RampData();
 
-		protected override Type MeshAuthoringType { get; } = typeof(ItemMeshAuthoring<Ramp, RampData, RampAuthoring>);
-		protected override Type ColliderAuthoringType { get; } = typeof(ItemColliderAuthoring<Ramp, RampData, RampAuthoring>);
+		protected override Type MeshAuthoringType { get; } = typeof(ItemMeshAuthoring<RampData, RampAuthoring>);
+		protected override Type ColliderAuthoringType { get; } = typeof(ItemColliderAuthoring<RampData, RampAuthoring>);
 
 		public override IEnumerable<Type> ValidParents => RampColliderAuthoring.ValidParentTypes
 			.Concat(RampFloorMeshAuthoring.ValidParentTypes)
@@ -159,7 +159,7 @@ namespace VisualPinball.Unity
 			Convert(entity, dstManager);
 
 			// register
-			transform.GetComponentInParent<Player>().RegisterRamp(Item, entity, ParentEntity, gameObject);
+			transform.GetComponentInParent<Player>().RegisterRamp(this, entity, ParentEntity);
 		}
 
 		public override void UpdateVisibility()

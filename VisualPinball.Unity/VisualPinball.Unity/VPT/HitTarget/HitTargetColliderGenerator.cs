@@ -36,10 +36,10 @@ namespace VisualPinball.Unity
 			_meshGenerator = meshProvider;
 		}
 
-		internal void GenerateColliders(Table table, List<ICollider> colliders)
+		internal void GenerateColliders(float playfieldHeight, List<ICollider> colliders)
 		{
 			if (_data.IsDropTarget) {
-				GenerateDropTargetColliders(table, colliders);
+				GenerateDropTargetColliders(playfieldHeight, colliders);
 
 			} else {
 				GenerateHitTargetColliders(colliders);
@@ -57,7 +57,7 @@ namespace VisualPinball.Unity
 			GenerateCollidables(hitMesh, addedEdges, true, colliders);
 		}
 
-		private void GenerateDropTargetColliders(Table table, ICollection<ICollider> colliders)
+		private void GenerateDropTargetColliders(float playfieldHeight, ICollection<ICollider> colliders)
 		{
 			var localToPlayfield = _meshGenerator.GetTransformationMatrix();
 			var hitMesh = _meshGenerator.GetMesh();
@@ -97,7 +97,7 @@ namespace VisualPinball.Unity
 					rgv3D[i] = new Vertex3D(
 						vert.X + _data.PositionX,
 						vert.Y + _data.PositionY,
-						vert.Z * table.GetScaleZ() + _data.PositionZ + table.TableHeight
+						vert.Z + _data.PositionZ + playfieldHeight
 					);
 				}
 

@@ -26,7 +26,7 @@ namespace VisualPinball.Unity
 {
 	[AddComponentMenu("Visual Pinball/Collision/Flipper Collider")]
 	[HelpURL("https://docs.visualpinball.org/creators-guide/manual/mechanisms/flippers.html")]
-	public class FlipperColliderAuthoring : ItemColliderAuthoring<Flipper, FlipperData, FlipperAuthoring>
+	public class FlipperColliderAuthoring : ItemColliderAuthoring<FlipperData, FlipperAuthoring>
 	{
 		#region Data
 

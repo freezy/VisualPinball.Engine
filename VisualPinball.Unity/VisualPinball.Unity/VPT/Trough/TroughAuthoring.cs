@@ -36,8 +36,8 @@ namespace VisualPinball.Unity
 {
 	[AddComponentMenu("Visual Pinball/Trough")]
 	[HelpURL("https://docs.visualpinball.org/creators-guide/manual/mechanisms/troughs.html")]
-	public class TroughAuthoring : ItemMainAuthoring<Trough, TroughData>,
-		ISwitchableDevice, ISwitchDeviceAuthoring, ICoilableDevice, ICoilDeviceAuthoring
+	public class TroughAuthoring : ItemMainAuthoring<TroughData> /*,
+		ISwitchableDevice, ISwitchDeviceAuthoring, ICoilableDevice, ICoilDeviceAuthoring*/
 	{
 		#region Data
 
@@ -85,11 +85,11 @@ namespace VisualPinball.Unity
 		#endregion
 
 		public override ItemType ItemType => ItemType.Trough;
+		public override string ItemName => "Trough";
 
-		public SwitchDefault SwitchDefault => Item.Data.Type == TroughType.ModernOpto ? SwitchDefault.NormallyClosed : SwitchDefault.NormallyOpen;
+		public SwitchDefault SwitchDefault => Type == TroughType.ModernOpto ? SwitchDefault.NormallyClosed : SwitchDefault.NormallyOpen;
 
-		protected override Trough InstantiateItem(TroughData data) => new Trough(data);
-		protected override TroughData InstantiateData() => new TroughData();
+		public override TroughData InstantiateData() => new TroughData();
 
 		public override IEnumerable<Type> ValidParents => System.Type.EmptyTypes;
 
@@ -245,7 +245,7 @@ namespace VisualPinball.Unity
 
 		private void Awake()
 		{
-			GetComponentInParent<Player>().RegisterTrough(Item, gameObject);
+			GetComponentInParent<Player>().RegisterTrough(this);
 		}
 
 		public override IEnumerable<MonoBehaviour> SetData(TroughData data)

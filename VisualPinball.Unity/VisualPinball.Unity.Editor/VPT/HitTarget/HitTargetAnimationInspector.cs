@@ -22,7 +22,7 @@ using VisualPinball.Engine.VPT.HitTarget;
 namespace VisualPinball.Unity.Editor
 {
 	[CustomEditor(typeof(HitTargetAnimationAuthoring)), CanEditMultipleObjects]
-	public class HitTargetAnimationInspector : ItemAnimationInspector<HitTarget, HitTargetData, HitTargetAuthoring, HitTargetAnimationAuthoring>
+	public class HitTargetAnimationInspector : ItemAnimationInspector<HitTargetData, HitTargetAuthoring, HitTargetAnimationAuthoring>
 	{
 		private SerializedProperty _speedProperty;
 		private SerializedProperty _maxAngleProperty;

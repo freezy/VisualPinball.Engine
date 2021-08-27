@@ -25,7 +25,7 @@ using VisualPinball.Engine.VPT.Surface;
 namespace VisualPinball.Unity
 {
 	[AddComponentMenu("Visual Pinball/Collision/Surface Collider")]
-	public class SurfaceColliderAuthoring : ItemColliderAuthoring<Surface, SurfaceData, SurfaceAuthoring>
+	public class SurfaceColliderAuthoring : ItemColliderAuthoring<SurfaceData, SurfaceAuthoring>
 	{
 		#region Data
 

@@ -24,7 +24,7 @@ using VisualPinball.Engine.VPT.Gate;
 namespace VisualPinball.Unity.Editor
 {
 	[CustomEditor(typeof(GateAuthoring)), CanEditMultipleObjects]
-	public class GateInspector : ItemMainInspector<Gate, GateData, GateAuthoring>
+	public class GateInspector : ItemMainInspector<GateData, GateAuthoring>
 	{
 		private static readonly string[] GateTypeLabels = { "Wire: 'W'", "Wire: Rectangle", "Plate", "Long Plate" };
 		private static readonly int[] GateTypeValues = { GateType.GateWireW, GateType.GateWireRectangle, GateType.GatePlate, GateType.GateLongPlate };
@@ -84,7 +84,7 @@ namespace VisualPinball.Unity.Editor
 					position = transform.parent.TransformPoint(position);
 					var axis = transform.TransformDirection(-Vector3.up); //Local direction of the gate gameObject is -up
 					var worldScale = 0.5f * PlayfieldAuthoring.GlobalScale;
-					var scale = Data.Length * worldScale;
+					var scale = MainComponent.Length * worldScale;
 					Handles.color = Color.white;
 					Handles.DrawWireDisc(position, axis, scale);
 					Color col = Color.grey;
@@ -95,7 +95,8 @@ namespace VisualPinball.Unity.Editor
 					var arrowScale = worldScale * 100.0f;
 					Handles.color = Color.white;
 					Handles.ArrowHandleCap(-1, position, Quaternion.LookRotation(axis), arrowScale, EventType.Repaint);
-					if (Data.TwoWay) {
+					var colliderComponent = MainComponent.GetComponent<GateColliderAuthoring>();
+					if (colliderComponent && colliderComponent.TwoWay) {
 						Handles.ArrowHandleCap(-1, position, Quaternion.LookRotation(-axis), arrowScale, EventType.Repaint);
 					}
 				}

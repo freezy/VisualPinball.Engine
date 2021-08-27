@@ -24,7 +24,7 @@ using VisualPinball.Unity.Playfield;
 
 namespace VisualPinball.Unity
 {
-	public class PlayfieldApi : ItemCollidableApi<PlayfieldAuthoring, PlayfieldColliderAuthoring, Table, TableData>
+	public class PlayfieldApi : ItemCollidableApi<PlayfieldAuthoring, PlayfieldColliderAuthoring, TableData>
 	{
 		internal PlayfieldApi(GameObject go, Player player) : base(go, Player.PlayfieldEntity, Entity.Null, player)
 		{
@@ -32,7 +32,7 @@ namespace VisualPinball.Unity
 
 		#region Collider Generation
 
-		protected override void CreateColliders(Table table, List<ICollider> colliders)
+		protected override void CreateColliders(List<ICollider> colliders)
 		{
 			var info = ((IApiColliderGenerator)this).GetColliderInfo();
 

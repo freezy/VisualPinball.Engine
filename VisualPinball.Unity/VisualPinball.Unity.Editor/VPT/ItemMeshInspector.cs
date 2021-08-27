@@ -24,17 +24,16 @@ using VisualPinball.Engine.VPT;
 
 namespace VisualPinball.Unity.Editor
 {
-	public class ItemMeshInspector<TItem, TData, TMainAuthoring, TMeshAuthoring> : ItemInspector
-		where TMeshAuthoring : ItemMeshAuthoring<TItem, TData, TMainAuthoring>
+	public class ItemMeshInspector<TData, TMainAuthoring, TMeshAuthoring> : ItemInspector
+		where TMeshAuthoring : ItemMeshAuthoring<TData, TMainAuthoring>
 		where TData : ItemData
-		where TItem : Item<TData>, IRenderable
-		where TMainAuthoring : ItemMainRenderableAuthoring<TItem, TData>
+		where TMainAuthoring : ItemMainRenderableAuthoring<TData>
 	{
 		protected TMeshAuthoring MeshAuthoring;
 
 		protected TData Data => MeshAuthoring == null ? null : MeshAuthoring.Data;
 
-		protected override MonoBehaviour UndoTarget => MeshAuthoring.MainAuthoring;
+		protected override MonoBehaviour UndoTarget => MeshAuthoring.MainComponent;
 
 		protected override void OnEnable()
 		{
@@ -78,8 +77,8 @@ namespace VisualPinball.Unity.Editor
 			var validParentTypes = MeshAuthoring.ValidParents.ToArray();
 			var typeMessage = validParentTypes.Length > 0
 				? $"Supported parents are: [ {string.Join(", ", validParentTypes.Select(t => t.Name))} ]."
-				: $"In this case, meshes for {MeshAuthoring.Item.ItemName} don't support any parenting at all.";
-			EditorGUILayout.HelpBox($"Invalid parent. This {MeshAuthoring.Item.ItemName} is parented to a {MeshAuthoring.ParentAuthoring.IItem.ItemName}, which VPE doesn't support.\n{typeMessage}", MessageType.Error);
+				: $"In this case, meshes for {MeshAuthoring.ItemName} don't support any parenting at all.";
+			EditorGUILayout.HelpBox($"Invalid parent. This {MeshAuthoring.ItemName} is parented to a {MeshAuthoring.ParentAuthoring.ItemName}, which VPE doesn't support.\n{typeMessage}", MessageType.Error);
 			if (GUILayout.Button("Open Documentation", EditorStyles.linkLabel)) {
 				Application.OpenURL("https://docs.visualpinball.org/creators-guide/editor/unity-components.html");
 			}

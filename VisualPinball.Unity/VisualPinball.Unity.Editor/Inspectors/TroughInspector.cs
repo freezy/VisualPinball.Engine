@@ -24,7 +24,7 @@ using VisualPinball.Engine.VPT.Trough;
 namespace VisualPinball.Unity.Editor
 {
 	[CustomEditor(typeof(TroughAuthoring)), CanEditMultipleObjects]
-	public class TroughInspector : ItemMainInspector<Trough, TroughData, TroughAuthoring>
+	public class TroughInspector : ItemMainInspector<TroughData, TroughAuthoring>
 	{
 		private static readonly string[] TypeLabels = {
 			"Modern Opto",
@@ -78,11 +78,11 @@ namespace VisualPinball.Unity.Editor
 
 			DropDownProperty("Type", _typeProperty, TypeLabels, TypeValues);
 
-			if (ItemAuthoring.Type != TroughType.ClassicSingleBall) {
+			if (MainComponent.Type != TroughType.ClassicSingleBall) {
 				PropertyField(_ballCountProperty);
 			}
 
-			switch (ItemAuthoring.Type) {
+			switch (MainComponent.Type) {
 				case TroughType.ModernOpto:
 				case TroughType.ModernMech:
 				case TroughType.TwoCoilsNSwitches:
@@ -95,12 +95,12 @@ namespace VisualPinball.Unity.Editor
 					break;
 			}
 
-			if (ItemAuthoring.JamSwitch || ItemAuthoring.Type != TroughType.ModernOpto && ItemAuthoring.Type != TroughType.ModernMech && ItemAuthoring.Type != TroughType.TwoCoilsNSwitches) {
+			if (MainComponent.JamSwitch || MainComponent.Type != TroughType.ModernOpto && MainComponent.Type != TroughType.ModernMech && MainComponent.Type != TroughType.TwoCoilsNSwitches) {
 				PropertyField(_kickTimeProperty, "Kick Time (ms)");
 			}
 
 			PropertyField(_rollTimeProperty, "Roll Time (ms)");
-			if (ItemAuthoring.Type == TroughType.ModernOpto) {
+			if (MainComponent.Type == TroughType.ModernOpto) {
 				PropertyField(_transitionTimeProperty, "Transition Time (ms)");
 			}
 
@@ -123,22 +123,22 @@ namespace VisualPinball.Unity.Editor
 				GUILayout.BeginVertical();
 
 				EditorGUILayout.LabelField("Switch status:", new GUIStyle(GUI.skin.label) { fontStyle = FontStyle.Bold });
-				var troughApi = TableComponent.GetComponent<Player>().TableApi.Trough(Item.Name);
+				var troughApi = TableComponent.GetComponent<Player>().TableApi.Trough(MainComponent.name);
 
-				if (ItemAuthoring.Type != TroughType.ModernOpto && ItemAuthoring.Type != TroughType.ModernMech) {
+				if (MainComponent.Type != TroughType.ModernOpto && MainComponent.Type != TroughType.ModernMech) {
 					DrawSwitch("Drain Switch", troughApi.EntrySwitch);
 				}
 
-				if (ItemAuthoring.Type == TroughType.TwoCoilsOneSwitch) {
+				if (MainComponent.Type == TroughType.TwoCoilsOneSwitch) {
 					DrawSwitch("Stack Switch", troughApi.StackSwitch());
 
-				} else if (ItemAuthoring.Type != TroughType.ClassicSingleBall) {
+				} else if (MainComponent.Type != TroughType.ClassicSingleBall) {
 					for (var i = troughApi.NumStackSwitches - 1; i >= 0; i--) {
 						DrawSwitch(SwitchDescription(i), troughApi.StackSwitch(i));
 					}
 				}
 
-				if (ItemAuthoring.JamSwitch) {
+				if (MainComponent.JamSwitch) {
 					DrawSwitch("Jam Switch", troughApi.JamSwitch);
 				}
 
@@ -154,7 +154,7 @@ namespace VisualPinball.Unity.Editor
 
 				EditorGUILayout.LabelField("Coil status:", new GUIStyle(GUI.skin.label) { fontStyle = FontStyle.Bold });
 
-				if (ItemAuthoring.Type != TroughType.ModernOpto && ItemAuthoring.Type != TroughType.ModernMech && ItemAuthoring.Type != TroughType.ClassicSingleBall) {
+				if (MainComponent.Type != TroughType.ModernOpto && MainComponent.Type != TroughType.ModernMech && MainComponent.Type != TroughType.ClassicSingleBall) {
 					DrawCoil("Entry Coil", troughApi.EntryCoil);
 				}
 
@@ -186,7 +186,7 @@ namespace VisualPinball.Unity.Editor
 		protected override void FinishEdit(string label, bool dirtyMesh = true)
 		{
 			base.FinishEdit(label, dirtyMesh);
-			ItemAuthoring.UpdatePosition();
+			MainComponent.UpdatePosition();
 		}
 
 		private static string SwitchDescription(int i)

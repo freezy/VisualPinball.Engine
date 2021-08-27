@@ -26,20 +26,20 @@ using System.Collections.Generic;
 using Unity.Entities;
 using Unity.Mathematics;
 using UnityEngine;
-using VisualPinball.Engine.Game;
 using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Bumper;
 
 namespace VisualPinball.Unity
 {
 	[AddComponentMenu("Visual Pinball/Game Item/Bumper")]
-	public class BumperAuthoring : ItemMainRenderableAuthoring<Bumper, BumperData>,
-		ISwitchAuthoring, ICoilAuthoring, IOnSurfaceAuthoring, IConvertGameObjectToEntity
+	public class BumperAuthoring : ItemMainRenderableAuthoring<BumperData>,
+		/*ISwitchAuthoring, ICoilAuthoring, */IOnSurfaceAuthoring, IConvertGameObjectToEntity
 	{
 		public override ItemType ItemType => ItemType.Bumper;
+		public override string ItemName => "Bumper";
 		public override IEnumerable<Type> ValidParents => BumperColliderAuthoring.ValidParentTypes;
 
-		public ISwitchable Switchable => Item;
+		//public ISwitchable Switchable => Item;
 
 		public bool IsPulseSwitch => true;
 
@@ -73,10 +73,9 @@ namespace VisualPinball.Unity
 
 		#endregion
 
-		protected override Bumper InstantiateItem(BumperData data) => new Bumper(data);
-		protected override BumperData InstantiateData() => new BumperData();
-		protected override Type MeshAuthoringType { get; } = typeof(ItemMeshAuthoring<Bumper, BumperData, BumperAuthoring>);
-		protected override Type ColliderAuthoringType { get; } = typeof(ItemColliderAuthoring<Bumper, BumperData, BumperAuthoring>);
+		public override BumperData InstantiateData() => new BumperData();
+		protected override Type MeshAuthoringType { get; } = typeof(ItemMeshAuthoring<BumperData, BumperAuthoring>);
+		protected override Type ColliderAuthoringType { get; } = typeof(ItemColliderAuthoring<BumperData, BumperAuthoring>);
 
 		private const string SkirtMeshName = "Bumper (Skirt)";
 		private const string BaseMeshName = "Bumper (Base)";
@@ -127,12 +126,12 @@ namespace VisualPinball.Unity
 					DropOffset = ringAnimComponent.RingDropOffset,
 					HeightScale = HeightScale,
 					Speed = ringAnimComponent.RingSpeed,
-					ScaleZ = Table.GetScaleZ()
+					ScaleZ = 1f
 				});
 			}
 
 			// register at player
-			GetComponentInParent<Player>().RegisterBumper(Item, entity, ParentEntity, gameObject);
+			GetComponentInParent<Player>().RegisterBumper(this, entity, ParentEntity);
 		}
 
 		public override void UpdateTransforms()

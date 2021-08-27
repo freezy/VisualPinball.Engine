@@ -20,8 +20,11 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Unity.Entities;
+using Unity.Mathematics;
 using UnityEngine;
+using VisualPinball.Engine.Common;
 using VisualPinball.Engine.Game;
+using VisualPinball.Engine.Math;
 using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Primitive;
 using VisualPinball.Engine.VPT.Table;
@@ -30,7 +33,7 @@ using VisualPinball.Unity.Playfield;
 namespace VisualPinball.Unity
 {
 	[AddComponentMenu("Visual Pinball/Game Item/Playfield")]
-	public class PlayfieldAuthoring : ItemMainRenderableAuthoring<Table, TableData>
+	public class PlayfieldAuthoring : ItemMainRenderableAuthoring<TableData>
 	{
 		public static readonly Quaternion GlobalRotation = Quaternion.Euler(-90, 0, 0);
 		public const float GlobalScale = 0.001f;
@@ -53,17 +56,19 @@ namespace VisualPinball.Unity
 
 		public float AngleTiltMin = 6f;
 
+		public int PlayfieldDetailLevel = 10;
+
 		[SerializeField] private string _playfieldImage;
 		[SerializeField] private string _playfieldMaterial;
 
 		#endregion
 
 		public override ItemType ItemType => ItemType.Playfield;
+		public override string ItemName => "Playfield";
 
 		public override bool CanBeTransformed => false;
 
-		protected override Table InstantiateItem(TableData data) => GetComponentInParent<TableAuthoring>()?.Table;
-		protected override TableData InstantiateData() => new TableData();
+		public override TableData InstantiateData() => new TableData();
 
 		protected override Type MeshAuthoringType => typeof(PlayfieldMeshAuthoring);
 		protected override Type ColliderAuthoringType => typeof(PlayfieldColliderAuthoring);
@@ -71,6 +76,18 @@ namespace VisualPinball.Unity
 		public override IEnumerable<Type> ValidParents => PlayfieldColliderAuthoring.ValidParentTypes
 			.Concat(PlayfieldMeshAuthoring.ValidParentTypes)
 			.Distinct();
+
+		public Rect3D BoundingBox => new Rect3D(Left, Right, Top, Bottom, TableHeight, GlassHeight);
+
+		public float3 Gravity {
+			get {
+				var tableComponent = GetComponentInParent<TableAuthoring>();
+				var difficulty = tableComponent ? tableComponent.GlobalDifficulty : 0.2f;
+				var slope = AngleTiltMin + (AngleTiltMax - AngleTiltMin) * difficulty;
+				var strength = PhysicsConstants.DefaultTableGravity;
+				return new float3(0, math.sin(math.radians(slope)) * strength, -math.cos(math.radians(slope)) * strength);
+			}
+		}
 
 		private void Start()
 		{
@@ -141,7 +158,7 @@ namespace VisualPinball.Unity
 				ta.Table.GetMaterial(_playfieldMaterial),
 				ta.Table.GetTexture(_playfieldImage)
 			);
-			ItemMeshAuthoring<Primitive, PrimitiveData, PrimitiveAuthoring>.CreateMesh(gameObject, ro, "playfield_mesh", textureProvider, materialProvider);
+			ItemMeshAuthoring<PrimitiveData, PrimitiveAuthoring>.CreateMesh(gameObject, ro, "playfield_mesh", textureProvider, materialProvider);
 			playfieldMeshAuthoring.AutoGenerate = false;
 
 			updatedComponents.Add(playfieldMeshAuthoring);

@@ -18,11 +18,11 @@ using System;
 using System.Collections.Generic;
 using Unity.Entities;
 using UnityEngine;
-using VisualPinball.Engine.VPT.Table;
+using VisualPinball.Engine.VPT.Gate;
 
 namespace VisualPinball.Unity
 {
-	public class GateApi : ItemCollidableApi<GateAuthoring, GateColliderAuthoring, Engine.VPT.Gate.Gate, Engine.VPT.Gate.GateData>,
+	public class GateApi : ItemCollidableApi<GateAuthoring, GateColliderAuthoring, GateData>,
 		IApiInitializable, IApiHittable, IApiRotatable, IApiSwitch, IApiColliderGenerator
 	{
 		/// <summary>
@@ -87,7 +87,7 @@ namespace VisualPinball.Unity
 
 		Entity IApiColliderGenerator.ColliderEntity => Entity;
 
-		protected override void CreateColliders(Table table, List<ICollider> colliders)
+		protected override void CreateColliders(List<ICollider> colliders)
 		{
 			var colliderGenerator = new GateColliderGenerator(this, MainComponent, ColliderComponent);
 			colliderGenerator.GenerateColliders(MainComponent.PositionZ, colliders);

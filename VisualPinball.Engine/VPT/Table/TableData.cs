@@ -335,7 +335,7 @@ namespace VisualPinball.Engine.VPT.Table
 
 		[BiffMaterials("MATE", Pos = 105)]
 		[BiffMaterials("PHMA", IsPhysics = true, Pos = 106)]
-		public Material[] Materials = new Material[0];
+		public Material[] Materials = Array.Empty<Material>();
 
 		// vpe-specific
 		[BiffInt("SVPE", Pos = 1000, IsVpeEnhancement = true)]

@@ -20,7 +20,7 @@ using VisualPinball.Engine.Math;
 
 namespace VisualPinball.Engine.VPT.Kicker
 {
-	public class Kicker : Item<KickerData>, IRenderable, IBallCreationPosition, ISwitchable, ICoilable
+	public class Kicker : Item<KickerData>, IRenderable, ISwitchable, ICoilable
 	{
 		public override string ItemName => "Kicker";
 		public override string ItemGroupName => "Kickers";
@@ -63,16 +63,5 @@ namespace VisualPinball.Engine.VPT.Kicker
 		#endregion
 
 		public bool IsDualWound { get; set; }
-
-		public Vertex3D GetBallCreationPosition(Table.Table table)
-		{
-			var height = table.GetSurfaceHeight(Data.Surface, Data.Center.X, Data.Center.Y);
-			return new Vertex3D(Data.Center.X, Data.Center.Y, height);
-		}
-
-		public Vertex3D GetBallCreationVelocity(Table.Table table)
-		{
-			return new Vertex3D(0.1f, 0, 0);
-		}
 	}
 }

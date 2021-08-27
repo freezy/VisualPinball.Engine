@@ -22,7 +22,7 @@ using VisualPinball.Engine.VPT.Table;
 namespace VisualPinball.Unity.Editor
 {
 	[CustomEditor(typeof(PlayfieldColliderAuthoring)), CanEditMultipleObjects]
-	public class PlayfieldColliderInspector : ItemColliderInspector<Table, TableData, PlayfieldAuthoring, PlayfieldColliderAuthoring>
+	public class PlayfieldColliderInspector : ItemColliderInspector<TableData, PlayfieldAuthoring, PlayfieldColliderAuthoring>
 	{
 		private SerializedProperty _elasticityProperty;
 		private SerializedProperty _elasticityFalloffProperty;

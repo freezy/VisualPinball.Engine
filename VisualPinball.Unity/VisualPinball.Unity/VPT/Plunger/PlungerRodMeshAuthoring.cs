@@ -41,13 +41,13 @@ namespace VisualPinball.Unity
 
 		#endregion
 
-		public static readonly Type[] ValidParentTypes = new Type[0];
+		public static readonly Type[] ValidParentTypes = Type.EmptyTypes;
 
 		public override IEnumerable<Type> ValidParents => ValidParentTypes;
 
 		protected override string MeshId => PlungerMeshGenerator.Rod;
 
-		protected override RenderObject GetRenderObject(PlungerData data, Table table)
+		protected override RenderObject GetRenderObject(PlungerData data)
 			=> new PlungerMeshGenerator(data).GetRenderObject(table, PlungerMeshGenerator.Rod, Origin.Original, false);
 	}
 }

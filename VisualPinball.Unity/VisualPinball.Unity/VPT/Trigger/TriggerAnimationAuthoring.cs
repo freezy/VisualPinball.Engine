@@ -24,9 +24,9 @@ using VisualPinball.Engine.VPT.Trigger;
 namespace VisualPinball.Unity
 {
 	[AddComponentMenu("Visual Pinball/Animation/Trigger Animation")]
-	public class TriggerAnimationAuthoring : ItemAnimationAuthoring<Trigger, TriggerData, TriggerAuthoring>
+	public class TriggerAnimationAuthoring : ItemAnimationAuthoring<TriggerData, TriggerAuthoring>
 	{
-		public override IEnumerable<Type> ValidParents { get; } = Type.EmptyTypes; // animation components only apply to their own
+		public override IEnumerable<Type> ValidParents => Type.EmptyTypes; // animation components only apply to their own
 
 		#region Data
 

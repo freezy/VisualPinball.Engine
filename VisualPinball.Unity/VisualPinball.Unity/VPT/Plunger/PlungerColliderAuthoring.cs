@@ -25,7 +25,7 @@ using VisualPinball.Engine.VPT.Plunger;
 namespace VisualPinball.Unity
 {
 	[AddComponentMenu("Visual Pinball/Collision/Plunger Collider")]
-	public class PlungerColliderAuthoring : ItemColliderAuthoring<Plunger, PlungerData, PlungerAuthoring>
+	public class PlungerColliderAuthoring : ItemColliderAuthoring<PlungerData, PlungerAuthoring>
 	{
 		#region Data
 

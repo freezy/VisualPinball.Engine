@@ -77,8 +77,8 @@ namespace VisualPinball.Unity.Editor
 			}
 
 			// get row data for each material
-			for (int i = 0; i < _tableAuthoring.Item.Data.Materials.Length; i++) {
-				var mat = _tableAuthoring.Item.Data.Materials[i];
+			for (int i = 0; i < _tableAuthoring.LegacyContainer.Materials.Count; i++) {
+				var mat = _tableAuthoring.LegacyContainer.Materials[i];
 				data.Add(new MaterialListData { Material = mat, InUse = inUseMaterials.Contains(mat.Name) });
 			}
 

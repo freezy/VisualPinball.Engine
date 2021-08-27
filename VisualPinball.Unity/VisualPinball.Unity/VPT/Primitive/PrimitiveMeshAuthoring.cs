@@ -27,7 +27,7 @@ namespace VisualPinball.Unity
 {
 	[ExecuteInEditMode]
 	[AddComponentMenu("Visual Pinball/Mesh/Primitive Mesh")]
-	public class PrimitiveMeshAuthoring : ItemMeshAuthoring<Primitive, PrimitiveData, PrimitiveAuthoring>
+	public class PrimitiveMeshAuthoring : ItemMeshAuthoring<PrimitiveData, PrimitiveAuthoring>
 	{
 		#region Data
 
@@ -54,7 +54,7 @@ namespace VisualPinball.Unity
 
 		public override IEnumerable<Type> ValidParents => ValidParentTypes;
 
-		protected override RenderObject GetRenderObject(PrimitiveData data, Table table)
+		protected override RenderObject GetRenderObject(PrimitiveData data)
 			=> new PrimitiveMeshGenerator(data).GetRenderObject(table, data.Mesh, Origin.Original, false);
 	}
 }

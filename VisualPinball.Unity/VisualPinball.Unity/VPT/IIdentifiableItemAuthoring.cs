@@ -20,8 +20,6 @@ namespace VisualPinball.Unity
 {
 	public interface IIdentifiableItemAuthoring
 	{
-		[Obsolete("Remove when all authoring devices are migrated")]
-		string Name { get; set; }
 		string name { get; }
 	}
 }

@@ -243,7 +243,7 @@ namespace VisualPinball.Unity.Editor
 				return;
 			}
 
-			var bb = _tableAuthoring.Item.BoundingBox;
+			var bb = _playfieldAuthoring.BoundingBox;
 			var sndData = _selectedItem.LegacySound;
 			_tableCenter = new Vector3((bb.Right - bb.Left) * 0.5f, (bb.Bottom - bb.Top) * 0.5f, (bb.ZHigh - bb.ZLow) * 0.5f);
 			_tableCenter = _tableAuthoring.gameObject.transform.TransformPoint(_tableCenter);

@@ -8,7 +8,7 @@ namespace VisualPinball.Unity.Playfield
 {
 	[ExecuteInEditMode]
 	[AddComponentMenu("Visual Pinball/Mesh/Playfield Mesh")]
-	public class PlayfieldMeshAuthoring : ItemMeshAuthoring<Table, TableData, PlayfieldAuthoring>
+	public class PlayfieldMeshAuthoring : ItemMeshAuthoring<TableData, PlayfieldAuthoring>
 	{
 		#region Data
 
@@ -20,7 +20,7 @@ namespace VisualPinball.Unity.Playfield
 
 		public override IEnumerable<Type> ValidParents => ValidParentTypes;
 
-		protected override RenderObject GetRenderObject(TableData data, Table table)
+		protected override RenderObject GetRenderObject(TableData data)
 			=> new TableMeshGenerator(data).GetRenderObject(table, false);
 	}
 }

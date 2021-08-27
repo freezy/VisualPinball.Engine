@@ -43,8 +43,8 @@ namespace VisualPinball.Engine.VPT.Rubber
 
 		public RenderObject GetRenderObject(Table.Table table, RubberData rubberData)
 		{
-			var mesh = GetMesh(table);
-			var (postVertexMatrix, postNormalsMatrix) = GetPostMatrix(table);
+			var mesh = GetMesh(table.TableHeight, table.GetDetailLevel());
+			var (postVertexMatrix, postNormalsMatrix) = GetPostMatrix(table.TableHeight);
 			return new RenderObject(
 				rubberData.Name,
 				mesh.Transform(postVertexMatrix, postNormalsMatrix),
@@ -55,9 +55,9 @@ namespace VisualPinball.Engine.VPT.Rubber
 
 		public RenderObjectGroup GetRenderObjects(Table.Table table, Origin origin, RubberData rubberData)
 		{
-			var mesh = GetMesh(table);
+			var mesh = GetMesh(table.TableHeight, table.GetDetailLevel());
 			//var (preVertexMatrix, preNormalsMatrix) = GetPreMatrix(table, origin, asRightHanded);
-			var (preVertexMatrix, preNormalsMatrix) = GetPostMatrix(table);
+			var (preVertexMatrix, preNormalsMatrix) = GetPostMatrix(table.TableHeight);
 			var postMatrix = GetPostMatrix(table, origin);
 			return new RenderObjectGroup(rubberData.Name, "Rubbers", postMatrix, new RenderObject(
 				rubberData.Name,
@@ -72,7 +72,7 @@ namespace VisualPinball.Engine.VPT.Rubber
 			return new Tuple<Matrix3D, Matrix3D?>(Matrix3D.Identity, Matrix3D.Identity);
 		}
 
-		private Tuple<Matrix3D, Matrix3D?> GetPostMatrix(Table.Table? table)
+		private Tuple<Matrix3D, Matrix3D?> GetPostMatrix(float playfieldHeight)
 		{
 			var fullMatrix = new Matrix3D();
 			var tempMat = new Matrix3D();
@@ -85,22 +85,16 @@ namespace VisualPinball.Engine.VPT.Rubber
 			var vertMatrix = new Matrix3D();
 			tempMat.SetTranslation(-_middlePoint.X, -_middlePoint.Y, -_middlePoint.Z);
 			vertMatrix.Multiply(tempMat, fullMatrix);
-			tempMat.SetScaling(Scale.X, Scale.Y, Scale.Z * table?.GetScaleZ() ?? 0f);
+			tempMat.SetScaling(Scale.X, Scale.Y, Scale.Z);
 			vertMatrix.Multiply(tempMat);
-			if (_data.Height == _data.HitHeight) {
-				// do not z-scale the hit mesh
-				tempMat.SetTranslation(_middlePoint.X, _middlePoint.Y, _data.Height + table?.TableHeight ?? 0f);
-
-			} else {
-				tempMat.SetTranslation(_middlePoint.X, _middlePoint.Y, _data.Height * (table?.GetScaleZ() ?? 1f) + (table?.TableHeight ?? 0f));
-			}
+			tempMat.SetTranslation(_middlePoint.X, _middlePoint.Y, _data.Height + playfieldHeight);
 
 			vertMatrix.Multiply(tempMat);
 
 			return new Tuple<Matrix3D, Matrix3D?>(vertMatrix, fullMatrix);
 		}
 
-		public Mesh GetMesh(Table.Table table, int acc = -1, bool createHitShape = false)
+		public Mesh GetMesh(float playfieldHeight, int detailLevel, int acc = -1, bool createHitShape = false)
 		{
 			var mesh = new Mesh();
 			var accuracy = (int)(10.0f * 1.2f);
@@ -109,14 +103,14 @@ namespace VisualPinball.Engine.VPT.Rubber
 			}
 
 			var splineAccuracy = acc != -1 ? 4.0f * MathF.Pow(10.0f, (10.0f - PhysicsConstants.HitShapeDetailLevel) * (float) (1.0 / 1.5)) : -1.0f;
-			var sv = new SplineVertex(_data.DragPoints, _data.Thickness, table.GetDetailLevel(), splineAccuracy);
+			var sv = new SplineVertex(_data.DragPoints, _data.Thickness, detailLevel, splineAccuracy);
 
 			var numRings = sv.VertexCount - 1;
 			var numSegments = accuracy;
 
 			var numVertices = numRings * numSegments;
 			var numIndices = 6 * numVertices; //m_numVertices*2+2;
-			var height = _data.HitHeight + table.TableHeight;
+			var height = _data.HitHeight + playfieldHeight;
 
 			mesh.Vertices = new Vertex3DNoTex2[numVertices];
 			mesh.Indices = new int[numIndices];
@@ -249,7 +243,7 @@ namespace VisualPinball.Engine.VPT.Rubber
 
 			// we don't explicitly apply transformations for colliders, so apply them here.
 			if (createHitShape) {
-				var (postVertexMatrix, postNormalsMatrix) = GetPostMatrix(table);
+				var (postVertexMatrix, postNormalsMatrix) = GetPostMatrix(playfieldHeight);
 				mesh.Transform(postVertexMatrix, postNormalsMatrix);
 			}
 

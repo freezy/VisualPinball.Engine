@@ -20,7 +20,7 @@ using VisualPinball.Engine.VPT.Spinner;
 namespace VisualPinball.Unity.Editor
 {
 	[CustomEditor(typeof(SpinnerPlateAnimationAuthoring)), CanEditMultipleObjects]
-	public class SpinnerPlateAnimationInspector : ItemAnimationInspector<Spinner, SpinnerData, SpinnerAuthoring, SpinnerPlateAnimationAuthoring>
+	public class SpinnerPlateAnimationInspector : ItemAnimationInspector<SpinnerData, SpinnerAuthoring, SpinnerPlateAnimationAuthoring>
 	{
 		public override void OnInspectorGUI()
 		{

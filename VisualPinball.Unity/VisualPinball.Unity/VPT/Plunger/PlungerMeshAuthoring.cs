@@ -18,7 +18,7 @@ using VisualPinball.Engine.VPT.Plunger;
 
 namespace VisualPinball.Unity
 {
-	public abstract class PlungerMeshAuthoring : ItemMeshAuthoring<Plunger, PlungerData, PlungerAuthoring>
+	public abstract class PlungerMeshAuthoring : ItemMeshAuthoring<PlungerData, PlungerAuthoring>
 	{
 	}
 }

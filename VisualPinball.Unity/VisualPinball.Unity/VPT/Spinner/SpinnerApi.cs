@@ -18,11 +18,11 @@ using System;
 using System.Collections.Generic;
 using Unity.Entities;
 using UnityEngine;
-using VisualPinball.Engine.VPT.Table;
+using VisualPinball.Engine.VPT.Spinner;
 
 namespace VisualPinball.Unity
 {
-	public class SpinnerApi : ItemCollidableApi<SpinnerAuthoring, SpinnerColliderAuthoring, Engine.VPT.Spinner.Spinner, Engine.VPT.Spinner.SpinnerData>,
+	public class SpinnerApi : ItemCollidableApi<SpinnerAuthoring, SpinnerColliderAuthoring, SpinnerData>,
 		IApiInitializable, IApiRotatable, IApiSpinnable, IApiSwitch
 	{
 		/// <summary>
@@ -84,7 +84,7 @@ namespace VisualPinball.Unity
 
 		protected override bool FireHitEvents => true;
 
-		protected override void CreateColliders(Table table, List<ICollider> colliders)
+		protected override void CreateColliders(List<ICollider> colliders)
 		{
 				var colliderGenerator = new SpinnerColliderGenerator(this, MainComponent);
 				colliderGenerator.GenerateColliders(MainComponent.HeightOnPlayfield, colliders);

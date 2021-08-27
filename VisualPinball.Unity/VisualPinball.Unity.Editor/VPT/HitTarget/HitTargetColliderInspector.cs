@@ -22,7 +22,7 @@ using VisualPinball.Engine.VPT.HitTarget;
 namespace VisualPinball.Unity.Editor
 {
 	[CustomEditor(typeof(HitTargetColliderAuthoring)), CanEditMultipleObjects]
-	public class HitTargetColliderInspector : ItemColliderInspector<HitTarget, HitTargetData, HitTargetAuthoring, HitTargetColliderAuthoring>
+	public class HitTargetColliderInspector : ItemColliderInspector<HitTargetData, HitTargetAuthoring, HitTargetColliderAuthoring>
 	{
 		private bool _foldoutMaterial = true;
 
@@ -43,7 +43,7 @@ namespace VisualPinball.Unity.Editor
 			_hitEventProperty = serializedObject.FindProperty(nameof(HitTargetColliderAuthoring.UseHitEvent));
 			_isLegacyProperty = serializedObject.FindProperty(nameof(HitTargetColliderAuthoring.IsLegacy));
 			_thresholdProperty = serializedObject.FindProperty(nameof(HitTargetColliderAuthoring.Threshold));
-			_physicsMaterialProperty = serializedObject.FindProperty(nameof(ItemColliderAuthoring<HitTarget, HitTargetData, HitTargetAuthoring>.PhysicsMaterial));
+			_physicsMaterialProperty = serializedObject.FindProperty(nameof(ItemColliderAuthoring<HitTargetData, HitTargetAuthoring>.PhysicsMaterial));
 			_overwritePhysicsProperty = serializedObject.FindProperty(nameof(HitTargetColliderAuthoring.OverwritePhysics));
 			_elasticityProperty = serializedObject.FindProperty(nameof(HitTargetColliderAuthoring.Elasticity));
 			_elasticityFalloffProperty = serializedObject.FindProperty(nameof(HitTargetColliderAuthoring.ElasticityFalloff));

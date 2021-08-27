@@ -23,7 +23,7 @@ using VisualPinball.Engine.VPT.Kicker;
 namespace VisualPinball.Unity.Editor
 {
 	[CustomEditor(typeof(KickerAuthoring)), CanEditMultipleObjects]
-	public class KickerInspector : ItemMainInspector<Kicker, KickerData, KickerAuthoring>
+	public class KickerInspector : ItemMainInspector<KickerData, KickerAuthoring>
 	{
 		private SerializedProperty _positionProperty;
 		private SerializedProperty _radiusProperty;
@@ -53,8 +53,8 @@ namespace VisualPinball.Unity.Editor
 			PropertyField(_positionProperty, updateTransforms: true);
 			PropertyField(_radiusProperty, updateTransforms: true);
 
-			if (ItemAuthoring.KickerType == KickerType.KickerCup ||
-			    ItemAuthoring.KickerType == KickerType.KickerWilliams) {
+			if (MainComponent.KickerType == KickerType.KickerCup ||
+			    MainComponent.KickerType == KickerType.KickerWilliams) {
 				PropertyField(_orientationProperty, updateTransforms: true);
 			}
 			PropertyField(_surfaceProperty, updateTransforms: true);

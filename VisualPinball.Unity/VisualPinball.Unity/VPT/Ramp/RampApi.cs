@@ -22,7 +22,7 @@ using VisualPinball.Engine.VPT.Table;
 
 namespace VisualPinball.Unity
 {
-	public class RampApi : ItemCollidableApi<RampAuthoring, RampColliderAuthoring, Engine.VPT.Ramp.Ramp, Engine.VPT.Ramp.RampData>,
+	public class RampApi : ItemCollidableApi<RampAuthoring, RampColliderAuthoring, Engine.VPT.Ramp.RampData>,
 		IApiInitializable
 	{
 		/// <summary>
@@ -49,10 +49,10 @@ namespace VisualPinball.Unity
 		protected override bool FireHitEvents => ColliderComponent.HitEvent;
 		protected override float HitThreshold => ColliderComponent.Threshold;
 
-		protected override void CreateColliders(Table table, List<ICollider> colliders)
+		protected override void CreateColliders(List<ICollider> colliders)
 		{
 			var colliderGenerator = new RampColliderGenerator(this, MainComponent, ColliderComponent);
-			colliderGenerator.GenerateColliders(table, MainComponent.PlayfieldHeight, colliders);
+			colliderGenerator.GenerateColliders(MainComponent.PlayfieldHeight, colliders);
 		}
 
 		#endregion

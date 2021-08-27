@@ -22,7 +22,7 @@ using VisualPinball.Engine.VPT.Table;
 
 namespace VisualPinball.Unity
 {
-	public class SurfaceApi : ItemCollidableApi<SurfaceAuthoring, SurfaceColliderAuthoring, Engine.VPT.Surface.Surface, Engine.VPT.Surface.SurfaceData>,
+	public class SurfaceApi : ItemCollidableApi<SurfaceAuthoring, SurfaceColliderAuthoring, Engine.VPT.Surface.SurfaceData>,
 		IApiInitializable, IApiHittable, IApiSlingshot
 	{
 		/// <summary>
@@ -48,13 +48,13 @@ namespace VisualPinball.Unity
 
 		protected override bool FireHitEvents => true;
 		protected override float HitThreshold => ColliderComponent.Threshold;
-		protected override void CreateColliders(Table table, List<ICollider> colliders)
+		protected override void CreateColliders(List<ICollider> colliders)
 		{
 			if (MainComponent.DragPoints.Length == 0) {
 				return;
 			}
 			var colliderGenerator = new SurfaceColliderGenerator(this, MainComponent, ColliderComponent);
-			colliderGenerator.GenerateColliders(table, colliders);
+			colliderGenerator.GenerateColliders(MainComponent.PlayfieldHeight, colliders);
 		}
 
 		#endregion

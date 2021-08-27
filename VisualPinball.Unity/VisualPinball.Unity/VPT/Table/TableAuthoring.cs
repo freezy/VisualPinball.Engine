@@ -34,7 +34,7 @@ using Logger = NLog.Logger;
 namespace VisualPinball.Unity
 {
 	[AddComponentMenu("Visual Pinball/Table")]
-	public class TableAuthoring : ItemMainRenderableAuthoring<Table, TableData>
+	public class TableAuthoring : ItemMainRenderableAuthoring<TableData>
 	{
 		#region Table Data
 
@@ -50,20 +50,21 @@ namespace VisualPinball.Unity
 
 		#region Data
 
+		public float GlobalDifficulty = 0.2f;
+
 		#endregion
 
 		public override ItemType ItemType => ItemType.Table;
+		public override string ItemName => "Table";
 
-		protected override Table InstantiateItem(TableData data) => new Table(TableContainer, data);
-		protected override TableData InstantiateData() => new TableData();
+		public override TableData InstantiateData() => new TableData();
 
 		protected override Type MeshAuthoringType => null;
 		protected override Type ColliderAuthoringType => null;
 
 		public override IEnumerable<Type> ValidParents => Type.EmptyTypes;
 
-		public new Table Table => Item;
-		public new SceneTableContainer TableContainer => _tableContainer ??= new SceneTableContainer(this);
+		public SceneTableContainer TableContainer => _tableContainer ??= new SceneTableContainer(this);
 
 		[NonSerialized]
 		private SceneTableContainer _tableContainer;
@@ -112,6 +113,7 @@ namespace VisualPinball.Unity
 
 		public override IEnumerable<MonoBehaviour> SetData(TableData data)
 		{
+			GlobalDifficulty = data.GlobalDifficulty;
 			return new List<MonoBehaviour> { this };
 		}
 
@@ -125,6 +127,7 @@ namespace VisualPinball.Unity
 			// update the name
 			data.Name = name;
 			data.TableHeight = PlayfieldHeight;
+			data.GlobalDifficulty = GlobalDifficulty;
 
 			return data;
 		}

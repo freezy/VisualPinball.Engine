@@ -26,7 +26,7 @@ using VisualPinball.Engine.VPT.Surface;
 namespace VisualPinball.Unity.Editor
 {
 	[CustomEditor(typeof(SurfaceAuthoring)), CanEditMultipleObjects]
-	public class SurfaceInspector : DragPointsItemInspector<Surface, SurfaceData, SurfaceAuthoring>
+	public class SurfaceInspector : DragPointsItemInspector<SurfaceData, SurfaceAuthoring>
 	{
 		private SerializedProperty _heightTopProperty;
 		private SerializedProperty _heightBottomProperty;
@@ -64,7 +64,7 @@ namespace VisualPinball.Unity.Editor
 
 		#region Dragpoint Tooling
 
-		public override Vector3 EditableOffset => new Vector3(0.0f, 0.0f, ItemAuthoring.HeightTop + ItemAuthoring.PlayfieldHeight);
+		public override Vector3 EditableOffset => new Vector3(0.0f, 0.0f, MainComponent.HeightTop + MainComponent.PlayfieldHeight);
 		public override Vector3 GetDragPointOffset(float ratio) => Vector3.zero;
 		public override bool PointsAreLooping => true;
 		public override IEnumerable<DragPointExposure> DragPointExposition => new[] { DragPointExposure.Smooth , DragPointExposure.SlingShot , DragPointExposure.Texture };

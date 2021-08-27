@@ -28,9 +28,8 @@ namespace VisualPinball.Unity
 	/// <typeparam name="TData">Item data type</typeparam>
 	/// <typeparam name="TItemComponent">Component Type</typeparam>
 	[Api]
-	public abstract class ItemApi<TItemComponent, TItem, TData> : IApi
-		where TItemComponent : ItemMainAuthoring<TItem, TData>
-		where TItem : Item<TData>
+	public abstract class ItemApi<TItemComponent, TData> : IApi
+		where TItemComponent : ItemMainAuthoring<TData>
 		where TData : ItemData
 	{
 		/// <summary>
@@ -42,7 +41,6 @@ namespace VisualPinball.Unity
 
 		internal readonly GameObject GameObject;
 
-		private protected Table Table => _player.Table;
 		private protected TableApi TableApi => _player.TableApi;
 
 		internal VisualPinballSimulationSystemGroup SimulationSystemGroup => World.DefaultGameObjectInjectionWorld.GetOrCreateSystem<VisualPinballSimulationSystemGroup>();
@@ -50,6 +48,7 @@ namespace VisualPinball.Unity
 		private readonly Player _player;
 		private readonly SwitchHandler _switchHandler;
 		private protected BallManager BallManager;
+		private protected TableAuthoring TableComponent;
 
 		protected ItemApi(GameObject go, Player player)
 		{
@@ -62,6 +61,7 @@ namespace VisualPinball.Unity
 		private protected void OnInit(BallManager ballManager)
 		{
 			BallManager = ballManager;
+			TableComponent = GameObject.GetComponentInParent<TableAuthoring>();
 		}
 
 		private protected void DestroyBall(Entity ballEntity)

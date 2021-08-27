@@ -18,6 +18,7 @@
 
 using System;
 using System.Collections.Generic;
+using Codice.Client.BaseCommands;
 using Unity.Entities;
 using UnityEngine;
 using VisualPinball.Engine.VPT.Bumper;
@@ -25,7 +26,7 @@ using VisualPinball.Engine.VPT.Bumper;
 namespace VisualPinball.Unity
 {
 	[AddComponentMenu("Visual Pinball/Collision/Bumper Collider")]
-	public class BumperColliderAuthoring : ItemColliderAuthoring<Bumper, BumperData, BumperAuthoring>
+	public class BumperColliderAuthoring : ItemColliderAuthoring<BumperData, BumperAuthoring>
 	{
 		public static readonly Type[] ValidParentTypes = Type.EmptyTypes;
 

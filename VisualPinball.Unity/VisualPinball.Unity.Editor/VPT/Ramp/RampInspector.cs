@@ -25,7 +25,7 @@ using VisualPinball.Engine.VPT.Ramp;
 namespace VisualPinball.Unity.Editor
 {
 	[CustomEditor(typeof(RampAuthoring)), CanEditMultipleObjects]
-	public class RampInspector : DragPointsItemInspector<Ramp, RampData, RampAuthoring>
+	public class RampInspector : DragPointsItemInspector<RampData, RampAuthoring>
 	{
 		private bool _foldoutGeometry = true;
 
@@ -106,7 +106,7 @@ namespace VisualPinball.Unity.Editor
 
 				EditorGUILayout.Space(10);
 
-				if (ItemAuthoring.IsWireRamp) {
+				if (MainComponent.IsWireRamp) {
 					EditorGUILayout.LabelField("Wire Ramp");
 					EditorGUI.indentLevel++;
 					PropertyField(_wireDiameterProperty, "Diameter", true);
@@ -132,7 +132,7 @@ namespace VisualPinball.Unity.Editor
 		#region Dragpoint Tooling
 
 		public override Vector3 EditableOffset => new Vector3(0.0f, 0.0f, 0f);
-		public override Vector3 GetDragPointOffset(float ratio) => new Vector3(0.0f, 0.0f, (Data.HeightTop - Data.HeightBottom) * ratio);
+		public override Vector3 GetDragPointOffset(float ratio) => new Vector3(0.0f, 0.0f, (MainComponent.HeightTop - MainComponent.HeightBottom) * ratio);
 		public override bool PointsAreLooping => false;
 		public override IEnumerable<DragPointExposure> DragPointExposition => new[] { DragPointExposure.Smooth, DragPointExposure.SlingShot };
 		public override ItemDataTransformType HandleType => ItemDataTransformType.ThreeD;

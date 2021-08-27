@@ -33,7 +33,7 @@ using VisualPinball.Engine.VPT.Rubber;
 namespace VisualPinball.Unity
 {
 	[AddComponentMenu("Visual Pinball/Game Item/Rubber")]
-	public class RubberAuthoring : ItemMainRenderableAuthoring<Rubber, RubberData>,
+	public class RubberAuthoring : ItemMainRenderableAuthoring<RubberData>,
 		IRubberData, IDragPointsAuthoring, IConvertGameObjectToEntity
 	{
 		#region Data
@@ -68,13 +68,13 @@ namespace VisualPinball.Unity
 		#endregion
 
 		public override ItemType ItemType => ItemType.Rubber;
+		public override string ItemName => "Rubber";
 
 		public override void OnPlayfieldHeightUpdated() => RebuildMeshes();
 
-		protected override Rubber InstantiateItem(RubberData data) => new Rubber(data);
-		protected override RubberData InstantiateData() => new RubberData();
-		protected override Type MeshAuthoringType { get; } = typeof(ItemMeshAuthoring<Rubber, RubberData, RubberAuthoring>);
-		protected override Type ColliderAuthoringType { get; } = typeof(ItemColliderAuthoring<Rubber, RubberData, RubberAuthoring>);
+		public override RubberData InstantiateData() => new RubberData();
+		protected override Type MeshAuthoringType { get; } = typeof(ItemMeshAuthoring<RubberData, RubberAuthoring>);
+		protected override Type ColliderAuthoringType { get; } = typeof(ItemColliderAuthoring<RubberData, RubberAuthoring>);
 
 
 		public override IEnumerable<Type> ValidParents => RubberColliderAuthoring.ValidParentTypes
@@ -86,7 +86,7 @@ namespace VisualPinball.Unity
 			Convert(entity, dstManager);
 
 			// register
-			transform.GetComponentInParent<Player>().RegisterRubber(Item, entity, ParentEntity, gameObject);
+			transform.GetComponentInParent<Player>().RegisterRubber(this, entity, ParentEntity);
 		}
 
 		public override IEnumerable<MonoBehaviour> SetData(RubberData data)

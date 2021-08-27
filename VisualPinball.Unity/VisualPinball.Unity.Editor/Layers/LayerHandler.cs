@@ -156,10 +156,10 @@ namespace VisualPinball.Unity.Editor
 			TreeRoot.Children.Clear();
 
 			// init with root element
-			if (_tableAuthoring != null && _tableAuthoring.Table != null) {
+			if (_tableAuthoring != null) {
 
 				// table node
-				var tableItem = new LayerTreeElement(_tableAuthoring.Table) { Id = 0 };
+				var tableItem = new LayerTreeElement(_tableAuthoring) { Id = 0 };
 				TreeRoot.AddChild(tableItem);
 
 				var layerCount = 1;

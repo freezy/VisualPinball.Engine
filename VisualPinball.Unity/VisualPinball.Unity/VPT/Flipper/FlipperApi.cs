@@ -32,7 +32,7 @@ namespace VisualPinball.Unity
 	/// The scripting API of the flipper.
 	/// </summary>
 	[Api]
-	public class FlipperApi : ItemCollidableApi<FlipperAuthoring, FlipperColliderAuthoring, Flipper, FlipperData>, IApiInitializable, IApiHittable,
+	public class FlipperApi : ItemCollidableApi<FlipperAuthoring, FlipperColliderAuthoring, FlipperData>, IApiInitializable, IApiHittable,
 		IApiRotatable, IApiCollidable, IApiSwitch, IApiCoil
 	{
 		/// <summary>
@@ -175,7 +175,7 @@ namespace VisualPinball.Unity
 
 		#region Collider Generation
 
-		protected override void CreateColliders(Table table, List<ICollider> colliders)
+		protected override void CreateColliders(List<ICollider> colliders)
 		{
 			var height = MainComponent.PositionZ;
 			var baseRadius = math.max(MainComponent.BaseRadius, 0.01f);
