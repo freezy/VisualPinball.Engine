@@ -20,6 +20,7 @@ using UnityEngine;
 using VisualPinball.Engine.Game;
 using VisualPinball.Engine.VPT.Flipper;
 using VisualPinball.Engine.VPT.Table;
+using Mesh = VisualPinball.Engine.VPT.Mesh;
 
 namespace VisualPinball.Unity
 {
@@ -33,9 +34,13 @@ namespace VisualPinball.Unity
 
 		protected override string MeshId => FlipperMeshGenerator.Rubber;
 
-		protected override RenderObject GetRenderObject(FlipperData data)
+		protected override RenderObject GetRenderObject(FlipperData data, Table table)
 		{
 			return new FlipperMeshGenerator(data).GetRenderObject(table, FlipperMeshGenerator.Rubber, Origin.Original, false);
+		}
+		protected override Mesh GetMesh(FlipperData data)
+		{
+			return new FlipperMeshGenerator(data).GetMesh(FlipperMeshGenerator.Rubber, MainComponent.PositionZ);
 		}
 	}
 }

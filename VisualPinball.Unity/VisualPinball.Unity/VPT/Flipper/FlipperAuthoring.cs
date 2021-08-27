@@ -31,6 +31,7 @@ using UnityEngine;
 using VisualPinball.Engine.Math;
 using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Flipper;
+using VisualPinball.Engine.VPT.Table;
 using VisualPinball.Engine.VPT.Trigger;
 using Color = UnityEngine.Color;
 
@@ -201,7 +202,7 @@ namespace VisualPinball.Unity
 			return updatedComponents;
 		}
 
-		public override IEnumerable<MonoBehaviour> SetReferencedData(FlipperData data, IMaterialProvider materialProvider, ITextureProvider textureProvider, Dictionary<string, IItemMainAuthoring> components)
+		public override IEnumerable<MonoBehaviour> SetReferencedData(FlipperData data, Table table, IMaterialProvider materialProvider, ITextureProvider textureProvider, Dictionary<string, IItemMainAuthoring> components)
 		{
 			Surface = GetAuthoring<SurfaceAuthoring>(components, data.Surface);
 			UpdateTransforms();
@@ -209,13 +210,13 @@ namespace VisualPinball.Unity
 			// children mesh creation and visibility
 			var baseMesh = GetComponentInChildren<FlipperBaseMeshAuthoring>();
 			if (baseMesh) {
-				baseMesh.CreateMesh(data, textureProvider, materialProvider);
+				baseMesh.CreateMesh(data, table, textureProvider, materialProvider);
 				baseMesh.gameObject.SetActive(data.IsVisible);
 			}
 
 			var rubberMesh = GetComponentInChildren<FlipperRubberMeshAuthoring>();
 			if (rubberMesh) {
-				rubberMesh.CreateMesh(data, textureProvider, materialProvider);
+				rubberMesh.CreateMesh(data, table, textureProvider, materialProvider);
 				rubberMesh.gameObject.SetActive(data.IsVisible);
 			}
 

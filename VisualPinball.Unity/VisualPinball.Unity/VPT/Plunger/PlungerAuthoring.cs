@@ -28,6 +28,7 @@ using UnityEngine.InputSystem;
 using VisualPinball.Engine.Game.Engines;
 using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Plunger;
+using VisualPinball.Engine.VPT.Table;
 
 namespace VisualPinball.Unity
 {
@@ -216,20 +217,20 @@ namespace VisualPinball.Unity
 			return updatedComponents;
 		}
 
-		public override IEnumerable<MonoBehaviour> SetReferencedData(PlungerData data, IMaterialProvider materialProvider, ITextureProvider textureProvider, Dictionary<string, IItemMainAuthoring> components)
+		public override IEnumerable<MonoBehaviour> SetReferencedData(PlungerData data, Table table, IMaterialProvider materialProvider, ITextureProvider textureProvider, Dictionary<string, IItemMainAuthoring> components)
 		{
 			Surface = GetAuthoring<SurfaceAuthoring>(components, data.Surface);
 
 			// rod mesh
 			var rodMesh = GetComponentInChildren<PlungerRodMeshAuthoring>(true);
 			if (rodMesh) {
-				rodMesh.CreateMesh(data, textureProvider, materialProvider);
+				rodMesh.CreateMesh(data, table, textureProvider, materialProvider);
 			}
 
 			// spring mesh
 			var springMesh = GetComponentInChildren<PlungerSpringMeshAuthoring>(true);
 			if (springMesh && data.Type == PlungerType.PlungerTypeCustom) {
-				springMesh.CreateMesh(data, textureProvider, materialProvider);
+				springMesh.CreateMesh(data, table, textureProvider, materialProvider);
 			}
 
 			return Array.Empty<MonoBehaviour>();

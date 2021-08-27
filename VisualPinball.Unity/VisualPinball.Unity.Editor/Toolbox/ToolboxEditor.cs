@@ -189,7 +189,7 @@ namespace VisualPinball.Unity.Editor
 			_tableAuthoring.TableContainer.Refresh();
 			var prefab = converter.InstantiateAndParentPrefab(item);
 			prefab.SetData();
-			prefab.SetReferencedData(converter, converter, null);
+			prefab.SetReferencedData(new Table(_tableAuthoring.TableContainer, new TableData()), converter, converter, null);
 			return prefab.GameObject;
 		}
 	}

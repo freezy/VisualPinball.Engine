@@ -20,6 +20,7 @@ using UnityEngine;
 using VisualPinball.Engine.Game;
 using VisualPinball.Engine.VPT.Ramp;
 using VisualPinball.Engine.VPT.Table;
+using Mesh = VisualPinball.Engine.VPT.Mesh;
 
 namespace VisualPinball.Unity
 {
@@ -33,9 +34,14 @@ namespace VisualPinball.Unity
 
 		protected override string MeshId => RampMeshGenerator.Wires;
 
-		protected override RenderObject GetRenderObject(RampData data)
+		protected override RenderObject GetRenderObject(RampData data, Table table)
 		{
 			return new RampMeshGenerator(data).GetRenderObject(table, data, RampMeshGenerator.Wires, MainComponent.PlayfieldHeight, false);
+		}
+		protected override Mesh GetMesh(RampData data)
+		{
+			var playfieldComponent = GetComponentInParent<PlayfieldAuthoring>();
+			return new RampMeshGenerator(data).GetMesh(playfieldComponent.Width, playfieldComponent.Height, playfieldComponent.PlayfieldHeight, RampMeshGenerator.Wires);
 		}
 	}
 }

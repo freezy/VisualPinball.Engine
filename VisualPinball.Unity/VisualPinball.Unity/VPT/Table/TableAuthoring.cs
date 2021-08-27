@@ -117,7 +117,7 @@ namespace VisualPinball.Unity
 			return new List<MonoBehaviour> { this };
 		}
 
-		public override IEnumerable<MonoBehaviour> SetReferencedData(TableData data, IMaterialProvider materialProvider, ITextureProvider textureProvider, Dictionary<string, IItemMainAuthoring> components)
+		public override IEnumerable<MonoBehaviour> SetReferencedData(TableData data, Table table, IMaterialProvider materialProvider, ITextureProvider textureProvider, Dictionary<string, IItemMainAuthoring> components)
 		{
 			return Array.Empty<MonoBehaviour>();
 		}

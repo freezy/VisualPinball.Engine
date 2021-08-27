@@ -30,6 +30,7 @@ using UnityEngine;
 using VisualPinball.Engine.Game;
 using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Light;
+using VisualPinball.Engine.VPT.Table;
 using Light = VisualPinball.Engine.VPT.Light.Light;
 using Logger = NLog.Logger;
 
@@ -212,7 +213,7 @@ namespace VisualPinball.Unity
 		}
 
 
-		public override IEnumerable<MonoBehaviour> SetReferencedData(LightData data, IMaterialProvider materialProvider, ITextureProvider textureProvider, Dictionary<string, IItemMainAuthoring> components)
+		public override IEnumerable<MonoBehaviour> SetReferencedData(LightData data, Table table, IMaterialProvider materialProvider, ITextureProvider textureProvider, Dictionary<string, IItemMainAuthoring> components)
 		{
 			Surface = GetAuthoring<SurfaceAuthoring>(components, data.Surface);
 			return Array.Empty<MonoBehaviour>();

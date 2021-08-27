@@ -21,6 +21,7 @@ using UnityEditor;
 using UnityEngine;
 using VisualPinball.Engine.Game;
 using VisualPinball.Engine.VPT;
+using VisualPinball.Engine.VPT.Table;
 using Object = UnityEngine.Object;
 
 namespace VisualPinball.Unity.Editor
@@ -60,9 +61,9 @@ namespace VisualPinball.Unity.Editor
 			_updatedComponents.AddRange(updatedComponents);
 		}
 
-		public void SetReferencedData(IMaterialProvider materialProvider, ITextureProvider textureProvider, Dictionary<string, IItemMainAuthoring> components)
+		public void SetReferencedData(Table table, IMaterialProvider materialProvider, ITextureProvider textureProvider, Dictionary<string, IItemMainAuthoring> components)
 		{
-			var updatedComponents = _mainComponent.SetReferencedData(_item.Data, materialProvider, textureProvider, components);
+			var updatedComponents = _mainComponent.SetReferencedData(_item.Data, table, materialProvider, textureProvider, components);
 			_updatedComponents.AddRange(updatedComponents);
 			if (_mainComponent is IItemMainRenderableAuthoring renderComponent) {
 				renderComponent.UpdateTransforms();

@@ -28,6 +28,7 @@ using Unity.Mathematics;
 using UnityEngine;
 using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Bumper;
+using VisualPinball.Engine.VPT.Table;
 
 namespace VisualPinball.Unity
 {
@@ -178,7 +179,7 @@ namespace VisualPinball.Unity
 			return updatedComponents;
 		}
 
-		public override IEnumerable<MonoBehaviour> SetReferencedData(BumperData data, IMaterialProvider materialProvider, ITextureProvider textureProvider, Dictionary<string, IItemMainAuthoring> components)
+		public override IEnumerable<MonoBehaviour> SetReferencedData(BumperData data, Table table, IMaterialProvider materialProvider, ITextureProvider textureProvider, Dictionary<string, IItemMainAuthoring> components)
 		{
 			Surface = GetAuthoring<SurfaceAuthoring>(components, data.Surface);
 			UpdateTransforms();

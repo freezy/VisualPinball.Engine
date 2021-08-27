@@ -20,6 +20,7 @@ using UnityEngine;
 using VisualPinball.Engine.Game;
 using VisualPinball.Engine.VPT.Plunger;
 using VisualPinball.Engine.VPT.Table;
+using Mesh = VisualPinball.Engine.VPT.Mesh;
 
 namespace VisualPinball.Unity
 {
@@ -47,7 +48,9 @@ namespace VisualPinball.Unity
 
 		protected override string MeshId => PlungerMeshGenerator.Rod;
 
-		protected override RenderObject GetRenderObject(PlungerData data)
-			=> new PlungerMeshGenerator(data).GetRenderObject(table, PlungerMeshGenerator.Rod, Origin.Original, false);
+		protected override RenderObject GetRenderObject(PlungerData data, Table table)
+			=> new PlungerMeshGenerator(data).GetRenderObject(table, PlungerMeshGenerator.Rod, false);
+		protected override Mesh GetMesh(PlungerData data)
+			=> new PlungerMeshGenerator(data).GetMesh(MainComponent.PositionZ, PlungerMeshGenerator.Rod);
 	}
 }

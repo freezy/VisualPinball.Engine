@@ -29,6 +29,7 @@ using UnityEngine;
 using VisualPinball.Engine.Math;
 using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Surface;
+using VisualPinball.Engine.VPT.Table;
 
 namespace VisualPinball.Unity
 {
@@ -119,18 +120,18 @@ namespace VisualPinball.Unity
 			return updatedComponents;
 		}
 
-		public override IEnumerable<MonoBehaviour> SetReferencedData(SurfaceData data, IMaterialProvider materialProvider, ITextureProvider textureProvider, Dictionary<string, IItemMainAuthoring> components)
+		public override IEnumerable<MonoBehaviour> SetReferencedData(SurfaceData data, Table table, IMaterialProvider materialProvider, ITextureProvider textureProvider, Dictionary<string, IItemMainAuthoring> components)
 		{
 			// children mesh creation and visibility
 			var topMesh = GetComponentInChildren<SurfaceTopMeshAuthoring>(true);
 			if (topMesh) {
-				topMesh.CreateMesh(data, textureProvider, materialProvider);
+				topMesh.CreateMesh(data, table, textureProvider, materialProvider);
 				topMesh.gameObject.SetActive(data.IsTopBottomVisible);
 			}
 
 			var sideMesh = GetComponentInChildren<SurfaceSideMeshAuthoring>(true);
 			if (sideMesh) {
-				sideMesh.CreateMesh(data, textureProvider, materialProvider);
+				sideMesh.CreateMesh(data, table, textureProvider, materialProvider);
 				sideMesh.gameObject.SetActive(data.IsSideVisible);
 			}
 

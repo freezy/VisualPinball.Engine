@@ -16,6 +16,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Reflection;
 using VisualPinball.Engine.Game;
 using VisualPinball.Engine.Math;
 using MathF = VisualPinball.Engine.Math.MathF;
@@ -36,7 +37,7 @@ namespace VisualPinball.Engine.VPT.Surface
 
 		public RenderObject GetRenderObject(Table.Table table, string id, float playfieldHeight, bool asRightHanded, Mesh preGeneratedMesh = null)
 		{
-			var mesh = preGeneratedMesh ?? GenerateMesh(table, id, playfieldHeight);
+			var mesh = preGeneratedMesh ?? GenerateMesh(table.Width, table.Height, playfieldHeight, id);
 			switch (id) {
 				case Side:
 					return new RenderObject(
@@ -57,11 +58,16 @@ namespace VisualPinball.Engine.VPT.Surface
 			}
 		}
 
+		public Mesh GetMesh(float tableWidth, float tableHeight, float playfieldHeight, string id)
+		{
+			return GenerateMesh(tableWidth, tableHeight, playfieldHeight, id);
+		}
+
 		public RenderObjectGroup GetRenderObjects(Table.Table table, bool asRightHanded = true)
 		{
 			var renderObjects = new List<RenderObject>();
-			var sideMesh = GenerateSideMesh(table, table.TableHeight);
-			var topMesh = GenerateTopMesh(table, table.TableHeight);
+			var sideMesh = GenerateSideMesh(table.TableHeight);
+			var topMesh = GenerateTopMesh(table.Width, table.Height, table.TableHeight);
 			if (sideMesh != null) {
 				renderObjects.Add(GetRenderObject(table, Side, table.TableHeight, asRightHanded, sideMesh));
 			}
@@ -72,17 +78,17 @@ namespace VisualPinball.Engine.VPT.Surface
 			return new RenderObjectGroup(_data.Name, "Surfaces", Matrix3D.Identity, renderObjects.ToArray());
 		}
 
-		private Mesh GenerateMesh(Table.Table table, string id, float playfieldHeight)
+		private Mesh GenerateMesh(float tableWidth, float tableHeight, float zHeight, string id)
 		{
 			switch (id) {
-				case Top: return GenerateTopMesh(table, playfieldHeight);
-				case Side: return GenerateSideMesh(table, playfieldHeight);
+				case Top: return GenerateTopMesh(tableWidth, tableHeight, zHeight);
+				case Side: return GenerateSideMesh(zHeight);
 				default:
 					throw new ArgumentException($"Unknown mesh ID \"{id}\".");
 			}
 		}
 
-		private Mesh GenerateTopMesh(Table.Table table, float playfieldHeight) {
+		private Mesh GenerateTopMesh(float tableWidth, float tableHeight, float zHeight) {
 
 			var topMesh = new Mesh("Top");
 			var vVertex = DragPoint.GetRgVertex<RenderVertex2D, CatmullCurve2DCatmullCurveFactory>(_data.DragPoints);
@@ -118,11 +124,11 @@ namespace VisualPinball.Engine.VPT.Surface
 				return null;
 			}
 
-			var heightNotDropped = _data.HeightTop * table.GetScaleZ();
-			var heightDropped = _data.HeightBottom * table.GetScaleZ() + 0.1;
+			var heightNotDropped = _data.HeightTop;
+			var heightDropped = _data.HeightBottom + 0.1;
 
-			var invTableWidth = 1.0f / table.Width;
-			var invTableHeight = 1.0f / table.Height;
+			var invTableWidth = 1.0f / tableWidth;
+			var invTableHeight = 1.0f / tableHeight;
 
 			Vertex3DNoTex2[][] vertsTop = { new Vertex3DNoTex2[numVertices], new Vertex3DNoTex2[numVertices], new Vertex3DNoTex2[numVertices]};
 			for (var i = 0; i < numVertices; i++) {
@@ -132,7 +138,7 @@ namespace VisualPinball.Engine.VPT.Surface
 				vertsTop[0][i] = new Vertex3DNoTex2 {
 					X = pv0.X,
 					Y = pv0.Y,
-					Z = heightNotDropped + playfieldHeight,
+					Z = heightNotDropped + zHeight,
 					Tu = pv0.X * invTableWidth,
 					Tv = pv0.Y * invTableHeight,
 					Nx = 0,
@@ -167,7 +173,7 @@ namespace VisualPinball.Engine.VPT.Surface
 			return topMesh;
 		}
 
-		private Mesh GenerateSideMesh(Table.Table table, float playfieldHeight) {
+		private Mesh GenerateSideMesh(float playfieldHeight) {
 
 			var sideMesh = new Mesh("Side");
 
@@ -192,8 +198,8 @@ namespace VisualPinball.Engine.VPT.Surface
 				}
 			}
 
-			var bottom = _data.HeightBottom * table.GetScaleZ() + playfieldHeight;
-			var top = _data.HeightTop * table.GetScaleZ() + playfieldHeight;
+			var bottom = _data.HeightBottom + playfieldHeight;
+			var top = _data.HeightTop + playfieldHeight;
 
 			var offset = 0;
 

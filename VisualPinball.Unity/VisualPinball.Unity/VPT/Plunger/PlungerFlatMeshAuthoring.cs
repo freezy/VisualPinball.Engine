@@ -20,6 +20,7 @@ using UnityEngine;
 using VisualPinball.Engine.Game;
 using VisualPinball.Engine.VPT.Plunger;
 using VisualPinball.Engine.VPT.Table;
+using Mesh = VisualPinball.Engine.VPT.Mesh;
 
 namespace VisualPinball.Unity
 {
@@ -27,13 +28,15 @@ namespace VisualPinball.Unity
 	[AddComponentMenu("Visual Pinball/Mesh/Plunger Flat Mesh")]
 	public class PlungerFlatMeshAuthoring : PlungerMeshAuthoring
 	{
-		public static readonly Type[] ValidParentTypes = new Type[0];
+		public static readonly Type[] ValidParentTypes = Type.EmptyTypes;
 
 		public override IEnumerable<Type> ValidParents => ValidParentTypes;
 
 		protected override string MeshId => PlungerMeshGenerator.Flat;
 
-		protected override RenderObject GetRenderObject(PlungerData data)
-			=> new PlungerMeshGenerator(data).GetRenderObject(table, PlungerMeshGenerator.Flat, Origin.Original, false);
+		protected override RenderObject GetRenderObject(PlungerData data, Table table)
+			=> new PlungerMeshGenerator(data).GetRenderObject(table, PlungerMeshGenerator.Flat, false);
+		protected override Mesh GetMesh(PlungerData data)
+			=> new PlungerMeshGenerator(data).GetMesh(MainComponent.PositionZ, PlungerMeshGenerator.Flat);
 	}
 }

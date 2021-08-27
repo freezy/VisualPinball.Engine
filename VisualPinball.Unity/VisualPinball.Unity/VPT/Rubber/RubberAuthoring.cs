@@ -29,6 +29,7 @@ using UnityEngine;
 using VisualPinball.Engine.Math;
 using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Rubber;
+using VisualPinball.Engine.VPT.Table;
 
 namespace VisualPinball.Unity
 {
@@ -118,12 +119,12 @@ namespace VisualPinball.Unity
 			return updatedComponents;
 		}
 
-		public override IEnumerable<MonoBehaviour> SetReferencedData(RubberData data, IMaterialProvider materialProvider, ITextureProvider textureProvider, Dictionary<string, IItemMainAuthoring> components)
+		public override IEnumerable<MonoBehaviour> SetReferencedData(RubberData data, Table table, IMaterialProvider materialProvider, ITextureProvider textureProvider, Dictionary<string, IItemMainAuthoring> components)
 		{
 			// mesh
 			var mesh = GetComponent<RubberMeshAuthoring>();
 			if (mesh) {
-				mesh.CreateMesh(data, textureProvider, materialProvider);
+				mesh.CreateMesh(data, table, textureProvider, materialProvider);
 				var mr = GetComponent<MeshRenderer>();
 				if (mr) {
 					// visibility

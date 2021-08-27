@@ -45,7 +45,7 @@ namespace VisualPinball.Engine.VPT.Gate
 
 		public RenderObject GetRenderObject(Table.Table table, string id, Origin origin, bool asRightHanded)
 		{
-			var (preMatrix, _) = GetPreMatrix(table, origin, asRightHanded);
+			var (preMatrix, _) = GetPreMatrix(BaseHeight(table), origin, asRightHanded);
 			switch (id) {
 				case Wire:
 					return new RenderObject(
