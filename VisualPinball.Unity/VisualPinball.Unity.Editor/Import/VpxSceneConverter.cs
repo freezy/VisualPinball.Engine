@@ -548,7 +548,7 @@ namespace VisualPinball.Unity.Editor
 					.Replace("%INFONAME%", _tableContainer.InfoName);
 			}
 
-			_tableGo = new GameObject();
+			_tableGo = new GameObject(tableName);
 			_playfieldGo = new GameObject("Playfield");
 			var backglassGo = new GameObject("Backglass");
 			var cabinetGo = new GameObject("Cabinet");

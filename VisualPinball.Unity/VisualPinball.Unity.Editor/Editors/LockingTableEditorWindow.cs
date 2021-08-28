@@ -26,7 +26,7 @@ namespace VisualPinball.Unity.Editor
 
 		private void OnTableSelected(object sender, EventArgs e)
 		{
-			if (!_windowLocked) {
+			if (!_windowLocked && TableSelector.Instance.SelectedTable != null) {
 				_tableAuthoring = TableSelector.Instance.SelectedTable;
 				_playfieldAuthoring = _tableAuthoring.GetComponentInChildren<PlayfieldAuthoring>();
 				SetTable(_tableAuthoring);

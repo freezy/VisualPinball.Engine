@@ -54,7 +54,7 @@ namespace VisualPinball.Unity
 {
 	public class SceneTableContainer : TableContainer
 	{
-		public override Table Table => _table;
+		public override Table Table => _table ??= new Table(_tableAuthoring.TableContainer, new TableData());
 		public override Dictionary<string, string> TableInfo => _tableAuthoring.TableInfo;
 		public override List<CollectionData> Collections => _tableAuthoring.Collections;
 		public override Mappings Mappings => new Mappings(_tableAuthoring.Mappings);
@@ -91,12 +91,11 @@ namespace VisualPinball.Unity
 		public override Texture GetTexture(string name) => null;
 
 		private readonly TableAuthoring _tableAuthoring;
-		private readonly Table _table;
+		private Table _table;
 
 		public SceneTableContainer(TableAuthoring ta)
 		{
 			_tableAuthoring = ta;
-			_table = new Table(_tableAuthoring.TableContainer, new TableData());
 		}
 
 		public void Refresh()
