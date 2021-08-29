@@ -64,8 +64,8 @@ namespace VisualPinball.Unity
 		public GamelogicEngineSwitch[] AvailableSwitches { get; } = {
 			new GamelogicEngineSwitch(SwLeftFlipper) { Description = "Left Flipper (button)", InputActionHint = InputConstants.ActionLeftFlipper },
 			new GamelogicEngineSwitch(SwRightFlipper) { Description = "Right Flipper (button)", InputActionHint = InputConstants.ActionRightFlipper },
-			new GamelogicEngineSwitch(SwLeftFlipperEos) { Description = "Left Flipper (EOS)", PlayfieldItemHint = "^(LeftFlipper|LFlipper|FlipperLeft|FlipperL)$"},
-			new GamelogicEngineSwitch(SwRightFlipperEos) { Description = "Right Flipper (EOS)", PlayfieldItemHint = "^(RightFlipper|RFlipper|FlipperRight|FlipperR)$"},
+			new GamelogicEngineSwitch(SwLeftFlipperEos) { Description = "Left Flipper (EOS)", DeviceHint = "^(LeftFlipper|LFlipper|FlipperLeft|FlipperL)$"},
+			new GamelogicEngineSwitch(SwRightFlipperEos) { Description = "Right Flipper (EOS)", DeviceHint = "^(RightFlipper|RFlipper|FlipperRight|FlipperR)$"},
 			new GamelogicEngineSwitch(SwTroughDrain) { Description = "Trough Drain", DeviceHint = "^Trough\\s*\\d?", DeviceItemHint = TroughAuthoring.EntrySwitchId },
 			new GamelogicEngineSwitch(SwTrough1) { Description = "Trough 1 (eject)", DeviceHint = "^Trough\\s*\\d?", DeviceItemHint = "1"},
 			new GamelogicEngineSwitch(SwTrough2) { Description = "Trough 2", DeviceHint = "^Trough\\s*\\d?", DeviceItemHint = "2"},
@@ -73,7 +73,7 @@ namespace VisualPinball.Unity
 			new GamelogicEngineSwitch(SwTrough4) { Description = "Trough 4", DeviceHint = "^Trough\\s*\\d?", DeviceItemHint = "4"},
 			new GamelogicEngineSwitch(SwTrough4) { Description = "Trough 4", DeviceHint = "^Trough\\s*\\d?", DeviceItemHint = "4"},
 			new GamelogicEngineSwitch(SwCreateBall) { Description = "Create Debug Ball", InputActionHint = InputConstants.ActionCreateBall, InputMapHint = InputConstants.MapDebug },
-			new GamelogicEngineSwitch(SwRedBumper) { Description = "Red Bumper", PlayfieldItemHint = "^Bumper1$" }
+			new GamelogicEngineSwitch(SwRedBumper) { Description = "Red Bumper", DeviceHint = "^Bumper1$" }
 		};
 
 		private const string CoilLeftFlipperMain = "c_flipper_left_main";

@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+using System;
 using System.Collections.Generic;
 using NLog;
 using UnityEditor;
@@ -107,7 +108,7 @@ namespace VisualPinball.Unity.Editor
 			if (GUILayout.Button("Populate All", GUILayout.ExpandWidth(false)))
 			{
 				RecordUndo("Populate all switch mappings");
-				_tableAuthoring.TableContainer.Mappings.PopulateSwitches(GetAvailableEngineSwitches(), _tableAuthoring.TableContainer.Switchables, _tableAuthoring.TableContainer.SwitchableDevices);
+				_tableAuthoring.MappingConfig.PopulateSwitches(GetAvailableEngineSwitches(), _tableAuthoring);
 				Reload();
 			}
 
@@ -215,7 +216,7 @@ namespace VisualPinball.Unity.Editor
 		private GamelogicEngineSwitch[] GetAvailableEngineSwitches()
 		{
 			var gle = _tableAuthoring.gameObject.GetComponent<IGamelogicEngine>();
-			return gle == null ? new GamelogicEngineSwitch[0] : gle.AvailableSwitches;
+			return gle == null ? Array.Empty<GamelogicEngineSwitch>() : gle.AvailableSwitches;
 		}
 
 		#endregion

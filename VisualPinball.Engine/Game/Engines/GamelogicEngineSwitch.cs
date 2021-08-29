@@ -61,7 +61,6 @@ namespace VisualPinball.Engine.Game.Engines
 		public string Description;
 		public string InputActionHint;
 		public string InputMapHint;
-		public string PlayfieldItemHint;
 		public string DeviceHint;
 		public string DeviceItemHint;
 		public SwitchConstantHint ConstantHint = SwitchConstantHint.None;

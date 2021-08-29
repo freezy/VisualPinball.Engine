@@ -31,8 +31,8 @@ namespace VisualPinball.Unity
 	/// The scripting API of the flipper.
 	/// </summary>
 	[Api]
-	public class FlipperApi : ItemCollidableApi<FlipperAuthoring, FlipperColliderAuthoring, FlipperData>, IApiInitializable, IApiHittable,
-		IApiRotatable, IApiCollidable, IApiSwitch, IApiCoil
+	public class FlipperApi : ItemCollidableApi<FlipperAuthoring, FlipperColliderAuthoring, FlipperData>,
+		IApiInitializable, IApiHittable, IApiRotatable, IApiCollidable, IApiSwitchDevice, IApiSwitch, IApiCoil
 	{
 		/// <summary>
 		/// Event emitted when the table is started.
@@ -94,8 +94,11 @@ namespace VisualPinball.Unity
 			EngineProvider<IPhysicsEngine>.Get().FlipperRotateToStart(Entity);
 		}
 
-		IApiSwitchStatus IApiSwitch.AddSwitchDest(SwitchConfig switchConfig) => AddSwitchDest(switchConfig.WithPulse(MainComponent.IsPulseSwitch));
-		void IApiSwitch.AddWireDest(WireDestConfig wireConfig) => AddWireDest(wireConfig.WithPulse(MainComponent.IsPulseSwitch));
+		#region Wiring
+
+		IApiSwitch IApiSwitchDevice.Switch(string switchId) => this;
+		IApiSwitchStatus IApiSwitch.AddSwitchDest(SwitchConfig switchConfig) => AddSwitchDest(switchConfig);
+		void IApiSwitch.AddWireDest(WireDestConfig wireConfig) => AddWireDest(wireConfig);
 		void IApiSwitch.RemoveWireDest(string destId) => RemoveWireDest(destId);
 		void IApiSwitch.DestroyBall(Entity ballEntity) => DestroyBall(ballEntity);
 
@@ -108,6 +111,9 @@ namespace VisualPinball.Unity
 			}
 		}
 		void IApiWireDest.OnChange(bool enabled) => (this as IApiCoil).OnCoil(enabled, false);
+
+		#endregion
+
 
 		private void OnSingleWoundCoil(bool enabled)
 		{
@@ -190,7 +196,6 @@ namespace VisualPinball.Unity
 		}
 
 		#endregion
-
 	}
 
 
