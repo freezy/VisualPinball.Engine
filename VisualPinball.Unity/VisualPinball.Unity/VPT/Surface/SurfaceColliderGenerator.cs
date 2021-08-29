@@ -19,8 +19,6 @@
 using System.Collections.Generic;
 using Unity.Mathematics;
 using VisualPinball.Engine.Math;
-using VisualPinball.Engine.VPT.Surface;
-using VisualPinball.Engine.VPT.Table;
 
 namespace VisualPinball.Unity
 {

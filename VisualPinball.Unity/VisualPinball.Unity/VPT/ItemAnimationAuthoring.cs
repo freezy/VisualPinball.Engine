@@ -17,7 +17,6 @@
 using System;
 using Unity.Entities;
 using Unity.Transforms;
-using VisualPinball.Engine.Game;
 using VisualPinball.Engine.VPT;
 
 namespace VisualPinball.Unity

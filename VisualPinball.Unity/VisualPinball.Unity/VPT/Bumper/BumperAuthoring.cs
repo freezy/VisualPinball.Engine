@@ -26,6 +26,7 @@ using System.Collections.Generic;
 using Unity.Entities;
 using Unity.Mathematics;
 using UnityEngine;
+using VisualPinball.Engine.Game.Engines;
 using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Bumper;
 using VisualPinball.Engine.VPT.Table;
@@ -34,15 +35,20 @@ namespace VisualPinball.Unity
 {
 	[AddComponentMenu("Visual Pinball/Game Item/Bumper")]
 	public class BumperAuthoring : ItemMainRenderableAuthoring<BumperData>,
-		/*ISwitchAuthoring, ICoilAuthoring, */IOnSurfaceAuthoring, IConvertGameObjectToEntity
+		ISwitchDeviceAuthoring, /* ICoilAuthoring, */IOnSurfaceAuthoring, IConvertGameObjectToEntity
 	{
 		public override ItemType ItemType => ItemType.Bumper;
 		public override string ItemName => "Bumper";
 		public override IEnumerable<Type> ValidParents => BumperColliderAuthoring.ValidParentTypes;
 
-		//public ISwitchable Switchable => Item;
+		public IEnumerable<GamelogicEngineSwitch> AvailableSwitches => new[] {
+			new GamelogicEngineSwitch(name) {
+				Description = "Socket Switch",
+				IsPulseSwitch = true,
+			}
+		};
 
-		public bool IsPulseSwitch => true;
+		public SwitchDefault SwitchDefault => SwitchDefault.Configurable;
 
 		public void OnSurfaceUpdated() => UpdateTransforms();
 

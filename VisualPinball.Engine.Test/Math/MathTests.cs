@@ -16,7 +16,6 @@
 
 using FluentAssertions;
 using NUnit.Framework;
-using VisualPinball.Engine.Common;
 using VisualPinball.Engine.Math;
 
 namespace VisualPinball.Engine.Test.Common

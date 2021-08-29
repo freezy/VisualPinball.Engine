@@ -20,7 +20,6 @@ using Unity.Mathematics;
 using VisualPinball.Engine.Common;
 using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Ramp;
-using VisualPinball.Engine.VPT.Table;
 
 namespace VisualPinball.Unity
 {

@@ -17,7 +17,6 @@
 using System.Collections.Generic;
 using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Rubber;
-using VisualPinball.Engine.VPT.Table;
 
 namespace VisualPinball.Unity
 {

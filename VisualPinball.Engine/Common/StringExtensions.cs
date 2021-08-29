@@ -18,7 +18,6 @@
 // ReSharper disable ForeachCanBePartlyConvertedToQueryUsingAnotherGetEnumerator
 
 using System.Collections.Generic;
-using System.IO;
 using System.Text.RegularExpressions;
 
 namespace VisualPinball.Engine.Common

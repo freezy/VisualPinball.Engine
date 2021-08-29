@@ -307,6 +307,9 @@ namespace VisualPinball.Unity.Editor
 		{
 			_devicePicker.Render(cellRect, switchListData.Device, item => {
 				switchListData.Device = item;
+				if (switchListData.Device != null && switchListData.Device.AvailableSwitches.Count() == 1) {
+					switchListData.DeviceSwitchId = switchListData.Device.AvailableSwitches.First().Id;
+				}
 				updateAction(switchListData);
 			});
 		}
@@ -336,28 +339,27 @@ namespace VisualPinball.Unity.Editor
 
 		private void RenderPulseDelay(SwitchListData switchListData, Rect cellRect, Action<SwitchListData> updateAction)
 		{
-			// todo
-			// if (switchListData.Source == ESwitchSource.Playfield && switchListData.Device != null) {
-			// 	var switchable = _switches[switchListData.PlayfieldItem.ToLower()];
-			// 	if (switchable.Switchable.IsPulseSwitch) {
-			// 		var labelRect = cellRect;
-			// 		labelRect.x += labelRect.width - 20;
-			// 		labelRect.width = 20;
-			//
-			// 		var intFieldRect = cellRect;
-			// 		intFieldRect.width -= 25;
-			//
-			// 		EditorGUI.BeginChangeCheck();
-			// 		var pulse = EditorGUI.IntField(intFieldRect, switchListData.PulseDelay);
-			// 		if (EditorGUI.EndChangeCheck())
-			// 		{
-			// 			switchListData.PulseDelay = pulse;
-			// 			updateAction(switchListData);
-			// 		}
-			//
-			// 		EditorGUI.LabelField(labelRect, "ms");
-			// 	}
-			// }
+			if (switchListData.Source == ESwitchSource.Playfield && switchListData.Device != null) {
+				var switchable = switchListData.Device.AvailableSwitches.First(sw => sw.Id == switchListData.DeviceSwitchId);
+				if (switchable.IsPulseSwitch) {
+					var labelRect = cellRect;
+					labelRect.x += labelRect.width - 20;
+					labelRect.width = 20;
+
+					var intFieldRect = cellRect;
+					intFieldRect.width -= 25;
+
+					EditorGUI.BeginChangeCheck();
+					var pulse = EditorGUI.IntField(intFieldRect, switchListData.PulseDelay);
+					if (EditorGUI.EndChangeCheck())
+					{
+						switchListData.PulseDelay = pulse;
+						updateAction(switchListData);
+					}
+
+					EditorGUI.LabelField(labelRect, "ms");
+				}
+			}
 		}
 
 		private Texture GetIcon(SwitchListData switchListData)

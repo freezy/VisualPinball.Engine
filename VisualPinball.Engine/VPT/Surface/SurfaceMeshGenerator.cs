@@ -16,7 +16,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Reflection;
 using VisualPinball.Engine.Game;
 using VisualPinball.Engine.Math;
 using MathF = VisualPinball.Engine.Math.MathF;

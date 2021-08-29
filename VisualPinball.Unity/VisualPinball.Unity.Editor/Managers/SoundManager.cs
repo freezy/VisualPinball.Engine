@@ -18,7 +18,6 @@ using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
 using VisualPinball.Engine.VPT;
-using VisualPinball.Unity.Editor.Utils;
 
 namespace VisualPinball.Unity.Editor
 {

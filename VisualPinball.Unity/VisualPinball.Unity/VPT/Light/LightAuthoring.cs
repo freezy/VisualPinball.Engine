@@ -27,11 +27,9 @@ using System.Collections.Generic;
 using System.Linq;
 using NLog;
 using UnityEngine;
-using VisualPinball.Engine.Game;
 using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Light;
 using VisualPinball.Engine.VPT.Table;
-using Light = VisualPinball.Engine.VPT.Light.Light;
 using Logger = NLog.Logger;
 
 namespace VisualPinball.Unity

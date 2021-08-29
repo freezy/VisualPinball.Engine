@@ -52,6 +52,12 @@ namespace VisualPinball.Engine.Game.Engines
 		/// </summary>
 		public bool NormallyClosed;
 
+		/// <summary>
+		/// If true, only the "enabled" event is emitted by the element, and the engine
+		/// handles disabling the switch after a configurable delay.
+		/// </summary>
+		public bool IsPulseSwitch;
+
 		public string Description;
 		public string InputActionHint;
 		public string InputMapHint;

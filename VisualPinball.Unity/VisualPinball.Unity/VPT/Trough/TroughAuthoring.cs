@@ -27,7 +27,6 @@ using System.ComponentModel;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.Profiling;
-using VisualPinball.Engine.Game;
 using VisualPinball.Engine.Game.Engines;
 using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Table;
