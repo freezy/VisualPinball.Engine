@@ -20,7 +20,6 @@ using Unity.Entities;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using VisualPinball.Engine.VPT.Plunger;
-using VisualPinball.Engine.VPT.Table;
 
 namespace VisualPinball.Unity
 {

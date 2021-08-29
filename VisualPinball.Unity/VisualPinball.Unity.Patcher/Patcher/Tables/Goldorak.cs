@@ -17,7 +17,6 @@
 // ReSharper disable StringLiteralTypo
 
 using UnityEngine;
-using UnityEngine.Rendering;
 using VisualPinball.Engine.VPT.Primitive;
 
 namespace VisualPinball.Unity.Patcher

@@ -16,7 +16,6 @@
 
 using System.Collections.Generic;
 using Unity.Mathematics;
-using VisualPinball.Engine.VPT.Spinner;
 
 namespace VisualPinball.Unity
 {

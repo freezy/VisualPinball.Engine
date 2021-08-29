@@ -19,12 +19,11 @@ using System.Collections.Generic;
 using Unity.Entities;
 using UnityEngine;
 using VisualPinball.Engine.VPT.Bumper;
-using VisualPinball.Engine.VPT.Table;
 
 namespace VisualPinball.Unity
 {
 	public class BumperApi : ItemCollidableApi<BumperAuthoring, BumperColliderAuthoring, BumperData>,
-		IApiInitializable, IApiHittable, IApiSwitch, IApiCoil
+		IApiInitializable, IApiHittable, IApiSwitchDevice, IApiSwitch, IApiCoil
 	{
 		/// <summary>
 		/// Event emitted when the table is started.
@@ -46,8 +45,11 @@ namespace VisualPinball.Unity
 		{
 		}
 
-		IApiSwitchStatus IApiSwitch.AddSwitchDest(SwitchConfig switchConfig) => AddSwitchDest(switchConfig.WithPulse(MainComponent.IsPulseSwitch));
-		void IApiSwitch.AddWireDest(WireDestConfig wireConfig) => AddWireDest(wireConfig.WithPulse(MainComponent.IsPulseSwitch));
+		#region Wiring
+
+		IApiSwitch IApiSwitchDevice.Switch(string switchId) => this;
+		IApiSwitchStatus IApiSwitch.AddSwitchDest(SwitchConfig switchConfig) => AddSwitchDest(switchConfig.WithPulse(true));
+		void IApiSwitch.AddWireDest(WireDestConfig wireConfig) => AddWireDest(wireConfig.WithPulse(true));
 		void IApiSwitch.RemoveWireDest(string destId) => RemoveWireDest(destId);
 		void IApiSwitch.DestroyBall(Entity ballEntity) => DestroyBall(ballEntity);
 		void IApiCoil.OnCoil(bool enabled, bool _)
@@ -60,6 +62,8 @@ namespace VisualPinball.Unity
 		}
 
 		void IApiWireDest.OnChange(bool enabled) => (this as IApiCoil).OnCoil(enabled, false);
+
+		#endregion
 
 		#region Collider Generation
 

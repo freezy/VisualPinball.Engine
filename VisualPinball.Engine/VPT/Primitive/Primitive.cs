@@ -15,10 +15,8 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using System.IO;
-using Codice.Client.ChangeTrackerService;
 using VisualPinball.Engine.Game;
 using VisualPinball.Engine.Math;
-using VisualPinball.Engine.VPT.Table;
 
 namespace VisualPinball.Engine.VPT.Primitive
 {

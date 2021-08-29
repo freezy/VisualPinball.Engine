@@ -14,15 +14,19 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-
 using System.Collections.Generic;
 using VisualPinball.Engine.Game.Engines;
 
 namespace VisualPinball.Unity
 {
 	/// <summary>
-	/// A switch device is an item that contains multiple switches.
+	/// Interface for components that support one or more switches.
 	/// </summary>
+	///
+	/// <remarks>
+	/// Note that this is only used at editor time so the switch manager
+	/// knows which switches to show. For runtime, see <see cref="IApiSwitchDevice"/>.
+	/// </remarks>
 	public interface ISwitchDeviceAuthoring : IIdentifiableItemAuthoring
 	{
 		/// <summary>
@@ -30,6 +34,9 @@ namespace VisualPinball.Unity
 		/// </summary>
 		IEnumerable<GamelogicEngineSwitch> AvailableSwitches { get; }
 
+		/// <summary>
+		/// Whether the switch is always NC, NO, or configurable.
+		/// </summary>
 		SwitchDefault SwitchDefault { get; }
 	}
 }

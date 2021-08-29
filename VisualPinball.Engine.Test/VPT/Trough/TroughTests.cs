@@ -14,10 +14,6 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-using NUnit.Framework;
-using VisualPinball.Engine.VPT;
-using VisualPinball.Engine.VPT.Trough;
-
 namespace VisualPinball.Engine.Test.VPT.Trough
 {
 	public class TroughTests

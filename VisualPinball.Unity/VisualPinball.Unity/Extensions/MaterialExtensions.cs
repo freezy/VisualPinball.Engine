@@ -16,7 +16,6 @@
 
 // ReSharper disable StringLiteralTypo
 
-using System;
 using System.Text;
 using VisualPinball.Engine.Common;
 using VisualPinball.Engine.VPT;

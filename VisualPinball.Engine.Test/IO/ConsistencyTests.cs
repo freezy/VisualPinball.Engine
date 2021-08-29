@@ -16,7 +16,6 @@
 
 using System.IO;
 using FluentAssertions;
-using NUnit.Framework;
 using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Table;
 

@@ -18,7 +18,6 @@ using System.Collections.Generic;
 using Unity.Entities;
 using UnityEngine;
 using VisualPinball.Engine.VPT;
-using VisualPinball.Engine.VPT.Table;
 
 namespace VisualPinball.Unity
 {

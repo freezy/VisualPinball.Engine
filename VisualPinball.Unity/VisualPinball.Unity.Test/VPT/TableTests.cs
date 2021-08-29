@@ -18,7 +18,6 @@ using System.IO;
 using NUnit.Framework;
 using UnityEngine;
 using VisualPinball.Engine.Test.Test;
-using VisualPinball.Engine.Test.VPT.Flipper;
 using VisualPinball.Engine.Test.VPT.Table;
 using VisualPinball.Engine.VPT.Table;
 using VisualPinball.Unity.Editor;

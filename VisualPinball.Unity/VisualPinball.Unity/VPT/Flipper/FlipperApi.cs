@@ -24,7 +24,6 @@ using Unity.Mathematics;
 using UnityEngine;
 using VisualPinball.Engine.Common;
 using VisualPinball.Engine.VPT.Flipper;
-using VisualPinball.Engine.VPT.Table;
 
 namespace VisualPinball.Unity
 {

@@ -181,24 +181,9 @@ namespace VisualPinball.Unity
 
 		public void RegisterBumper(BumperAuthoring component, Entity entity, Entity parentEntity)
 		{
-			var go = component.gameObject;
-			var bumperApi = new BumperApi(go, entity, parentEntity, this);
-			TableApi.Bumpers[go.name] = bumperApi;
-			_apis.Add(bumperApi);
-			_initializables.Add(bumperApi);
-			_switchPlayer.RegisterSwitch(go.name, bumperApi);
-			_coilPlayer.RegisterCoil(go.name, bumperApi);
-			_wirePlayer.RegisterWire(go.name, bumperApi);
-			RegisterCollider(entity, bumperApi);
-
-			var ringAnimationAuth = go.GetComponentInChildren<BumperRingAnimationAuthoring>();
-			if (ringAnimationAuth) {
-				BumperRingTransforms[entity] = ringAnimationAuth.gameObject.transform;
-			}
-			var skirtAnimationAuth = go.GetComponentInChildren<BumperSkirtAnimationAuthoring>();
-			if (skirtAnimationAuth) {
-				BumperSkirtTransforms[entity] = skirtAnimationAuth.gameObject.transform;
-			}
+			Register(TableApi.Bumpers, new BumperApi(component.gameObject, entity, parentEntity, this), entity);
+			RegisterTransform<BumperRingAnimationAuthoring>(BumperRingTransforms, component, entity);
+			RegisterTransform<BumperSkirtAnimationAuthoring>(BumperSkirtTransforms, component, entity);
 		}
 
 		public void RegisterFlipper(FlipperAuthoring component, Entity entity, Entity parentEntity)
@@ -410,6 +395,35 @@ namespace VisualPinball.Unity
 			_initializables.Add(troughApi);
 			_switchPlayer.RegisterSwitchDevice(go.name, troughApi);
 			_coilPlayer.RegisterCoilDevice(go.name, troughApi);
+		}
+
+		private void Register<TApi>(Dictionary<string, TApi> apis, TApi api, Entity entity) where TApi : IApi
+		{
+			apis[api.Name] = api;
+			_apis.Add(api);
+			if (api is IApiInitializable initializable) {
+				_initializables.Add(initializable);
+			}
+			if (api is IApiSwitchDevice switchDevice) {
+				_switchPlayer.RegisterSwitchDevice(api.Name, switchDevice);
+			}
+			if (api is IApiCoilDevice coilDevice) {
+				_coilPlayer.RegisterCoilDevice(api.Name, coilDevice);
+			}
+			if (api is IApiWireDeviceDest wireDevice) {
+				_wirePlayer.RegisterWireDevice(api.Name, wireDevice);
+			}
+			if (api is IApiColliderGenerator colliderGenerator) {
+				RegisterCollider(entity, colliderGenerator);
+			}
+		}
+
+		private void RegisterTransform<T>(Dictionary<Entity, Transform> transforms, MonoBehaviour component, Entity entity) where T : MonoBehaviour
+		{
+			var comp = component.gameObject.GetComponentInChildren<T>();
+			if (comp) {
+				transforms[entity] = comp.gameObject.transform;
+			}
 		}
 
 		private void RegisterCollider(Entity entity, IApiColliderGenerator apiColl)

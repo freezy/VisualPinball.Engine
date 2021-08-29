@@ -19,7 +19,6 @@ using NLog.Targets;
 using NUnit.Framework;
 using VisualPinball.Engine.Game;
 using VisualPinball.Engine.Math;
-using VisualPinball.Engine.VPT.Table;
 
 namespace VisualPinball.Engine.Test.Test
 {

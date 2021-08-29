@@ -14,10 +14,8 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-using System;
 using System.Linq;
 using System.Text;
-using UnityEditor;
 using VisualPinball.Engine.Common;
 using VisualPinball.Engine.Math;
 using MathF = VisualPinball.Engine.Math.MathF;

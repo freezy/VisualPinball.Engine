@@ -19,8 +19,6 @@ using Unity.Mathematics;
 using VisualPinball.Engine.Common;
 using VisualPinball.Engine.Math;
 using VisualPinball.Engine.VPT;
-using VisualPinball.Engine.VPT.Table;
-using VisualPinball.Engine.VPT.Trigger;
 
 namespace VisualPinball.Unity
 {

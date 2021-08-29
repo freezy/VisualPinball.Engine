@@ -18,7 +18,6 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEditor;
 using UnityEngine;
-using VisualPinball.Engine.VPT.Table;
 
 namespace VisualPinball.Unity.Editor
 {

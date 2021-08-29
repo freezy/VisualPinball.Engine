@@ -14,10 +14,8 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-using System;
 using System.Text;
 using VisualPinball.Engine.VPT;
-using VisualPinball.Engine.VPT.Flipper;
 using Material = UnityEngine.Material;
 
 namespace VisualPinball.Unity

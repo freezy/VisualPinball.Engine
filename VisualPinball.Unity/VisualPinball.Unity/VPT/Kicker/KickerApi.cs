@@ -20,7 +20,6 @@ using Unity.Entities;
 using Unity.Mathematics;
 using UnityEngine;
 using VisualPinball.Engine.VPT.Kicker;
-using VisualPinball.Engine.VPT.Table;
 using Random = Unity.Mathematics.Random;
 
 namespace VisualPinball.Unity
