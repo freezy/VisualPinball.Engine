@@ -40,7 +40,6 @@ namespace VisualPinball.Unity.Editor
 		public int InternalId;
 		public string InputActionMap;
 		public string InputAction;
-		//public string PlayfieldItem;
 		public int Constant;
 		public ISwitchDeviceAuthoring Device;
 		public string DeviceSwitchId;

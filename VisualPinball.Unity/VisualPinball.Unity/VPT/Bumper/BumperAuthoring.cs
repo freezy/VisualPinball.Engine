@@ -35,25 +35,8 @@ namespace VisualPinball.Unity
 {
 	[AddComponentMenu("Visual Pinball/Game Item/Bumper")]
 	public class BumperAuthoring : ItemMainRenderableAuthoring<BumperData>,
-		ISwitchDeviceAuthoring, /* ICoilAuthoring, */IOnSurfaceAuthoring, IConvertGameObjectToEntity
+		ISwitchDeviceAuthoring, ICoilDeviceAuthoring, IOnSurfaceAuthoring, IConvertGameObjectToEntity
 	{
-		public override ItemType ItemType => ItemType.Bumper;
-		public override string ItemName => "Bumper";
-		public override IEnumerable<Type> ValidParents => BumperColliderAuthoring.ValidParentTypes;
-
-		public IEnumerable<GamelogicEngineSwitch> AvailableSwitches => new[] {
-			new GamelogicEngineSwitch(name) {
-				Description = "Socket Switch",
-				IsPulseSwitch = true,
-			}
-		};
-
-		public SwitchDefault SwitchDefault => SwitchDefault.Configurable;
-
-		public void OnSurfaceUpdated() => UpdateTransforms();
-
-		public float PositionZ => SurfaceHeight(Surface, Position);
-
 		#region Data
 
 		[Tooltip("Position of the bumper on the playfield.")]
@@ -80,6 +63,12 @@ namespace VisualPinball.Unity
 
 		#endregion
 
+		#region Overrides and Constants
+
+		public override ItemType ItemType => ItemType.Bumper;
+		public override string ItemName => "Bumper";
+		public override IEnumerable<Type> ValidParents => BumperColliderAuthoring.ValidParentTypes;
+
 		public override BumperData InstantiateData() => new BumperData();
 		protected override Type MeshAuthoringType { get; } = typeof(ItemMeshAuthoring<BumperData, BumperAuthoring>);
 		protected override Type ColliderAuthoringType { get; } = typeof(ItemColliderAuthoring<BumperData, BumperAuthoring>);
@@ -90,7 +79,52 @@ namespace VisualPinball.Unity
 		private const string RingMeshName = "Bumper (Ring)";
 		private const float PrefabMeshScale = 100f;
 
-		public void Convert(Entity entity, EntityManager dstManager, GameObjectConversionSystem conversionSystem)
+		#endregion
+
+		#region Wiring
+
+		public IEnumerable<GamelogicEngineSwitch> AvailableSwitches => new[] {
+			new GamelogicEngineSwitch(name) {
+				Description = "Socket Switch",
+				IsPulseSwitch = true,
+			}
+		};
+
+		public SwitchDefault SwitchDefault => SwitchDefault.Configurable;
+
+		public IEnumerable<GamelogicEngineCoil> AvailableCoils =>  new[] {
+			new GamelogicEngineCoil(name) {
+				Description = "Ring Coil"
+			}
+		};
+
+		#endregion
+
+		#region Transformation
+
+		public void OnSurfaceUpdated() => UpdateTransforms();
+
+		public float PositionZ => SurfaceHeight(Surface, Position);
+
+		public override void UpdateTransforms()
+		{
+			var t = transform;
+
+			// position
+			t.localPosition = new Vector3(Position.x, Position.y, PositionZ);
+
+			// scale
+			t.localScale = new Vector3(Radius * 2f, Radius * 2f, HeightScale) / PrefabMeshScale;
+
+			// rotation
+			t.localEulerAngles = new Vector3(0, 0, Orientation);
+		}
+
+		#endregion
+
+		#region Convertion
+
+			public void Convert(Entity entity, EntityManager dstManager, GameObjectConversionSystem conversionSystem)
 		{
 			Convert(entity, dstManager);
 
@@ -139,20 +173,6 @@ namespace VisualPinball.Unity
 
 			// register at player
 			GetComponentInParent<Player>().RegisterBumper(this, entity, ParentEntity);
-		}
-
-		public override void UpdateTransforms()
-		{
-			var t = transform;
-
-			// position
-			t.localPosition = new Vector3(Position.x, Position.y, PositionZ);
-
-			// scale
-			t.localScale = new Vector3(Radius * 2f, Radius * 2f, HeightScale) / PrefabMeshScale;
-
-			// rotation
-			t.localEulerAngles = new Vector3(0, 0, Orientation);
 		}
 
 		public override IEnumerable<MonoBehaviour> SetData(BumperData data)
@@ -286,6 +306,8 @@ namespace VisualPinball.Unity
 			return data;
 		}
 
+		#endregion
+
 		#region Editor Tooling
 
 		public override ItemDataTransformType EditorPositionType => ItemDataTransformType.TwoD;
@@ -303,6 +325,5 @@ namespace VisualPinball.Unity
 		public override void SetEditorScale(Vector3 scale) => Radius = scale.x / 2f;
 
 		#endregion
-
 	}
 }

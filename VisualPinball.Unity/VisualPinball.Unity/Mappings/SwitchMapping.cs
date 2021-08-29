@@ -46,8 +46,6 @@ namespace VisualPinball.Unity
 
 		public string DeviceSwitchId = string.Empty;
 
-		public ESwitchType Type = ESwitchType.OnOff;
-
 		public int PulseDelay = 250;
 	}
 }
