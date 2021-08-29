@@ -28,6 +28,7 @@ using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
 using UnityEngine;
+using VisualPinball.Engine.Game.Engines;
 using VisualPinball.Engine.Math;
 using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Flipper;
@@ -40,18 +41,8 @@ namespace VisualPinball.Unity
 	[AddComponentMenu("Visual Pinball/Game Item/Flipper")]
 	[HelpURL("https://docs.visualpinball.org/creators-guide/manual/mechanisms/flippers.html")]
 	public class FlipperAuthoring : ItemMainRenderableAuthoring<FlipperData>,
-		/*ISwitchAuthoring, ICoilAuthoring, */IOnSurfaceAuthoring, IConvertGameObjectToEntity
+		ISwitchDeviceAuthoring, /*ICoilAuthoring, */IOnSurfaceAuthoring, IConvertGameObjectToEntity
 	{
-		public override ItemType ItemType => ItemType.Flipper;
-		public override string ItemName => "Flipper";
-		public bool IsPulseSwitch => false;
-
-		//public ISwitchable Switchable => Item;
-
-		public void OnSurfaceUpdated() => UpdateTransforms();
-
-		public float PositionZ => SurfaceHeight(Surface, Position);
-
 		#region Data
 
 		[Tooltip("Position of the flipper on the playfield.")]
@@ -109,19 +100,58 @@ namespace VisualPinball.Unity
 
 		#endregion
 
-		public override FlipperData InstantiateData() => new FlipperData();
+		#region Overrides
 
-		protected override Type MeshAuthoringType { get; } = typeof(ItemMeshAuthoring<FlipperData, FlipperAuthoring>);
-		protected override Type ColliderAuthoringType { get; } = typeof(ItemColliderAuthoring<FlipperData, FlipperAuthoring>);
+		public override ItemType ItemType => ItemType.Flipper;
+		public override string ItemName => "Flipper";
+
 		public override IEnumerable<Type> ValidParents => FlipperColliderAuthoring.ValidParentTypes
 			.Concat(FlipperBaseMeshAuthoring.ValidParentTypes)
 			.Concat(FlipperRubberMeshAuthoring.ValidParentTypes)
 			.Distinct();
 
+		public override FlipperData InstantiateData() => new FlipperData();
 
-		private bool IsLeft => EndAngle < StartAngle;
+		protected override Type MeshAuthoringType { get; } = typeof(ItemMeshAuthoring<FlipperData, FlipperAuthoring>);
+		protected override Type ColliderAuthoringType { get; } = typeof(ItemColliderAuthoring<FlipperData, FlipperAuthoring>);
 
-		public void Convert(Entity entity, EntityManager dstManager, GameObjectConversionSystem conversionSystem)
+		#endregion
+
+		#region Wiring
+
+		public IEnumerable<GamelogicEngineSwitch> AvailableSwitches => new[] {
+			new GamelogicEngineSwitch(name) {
+				Description = "Flipper Switch",
+				IsPulseSwitch = false,
+			}
+		};
+
+		public SwitchDefault SwitchDefault => SwitchDefault.Configurable;
+
+		#endregion
+
+		#region Transformation
+
+		public void OnSurfaceUpdated() => UpdateTransforms();
+
+		public float PositionZ => SurfaceHeight(Surface, Position);
+
+		public override void UpdateTransforms()
+		{
+			var t = transform;
+
+			// position
+			t.localPosition = new Vector3(Position.x, Position.y, PositionZ);
+
+			// rotation
+			t.localEulerAngles = new Vector3(0, 0, StartAngle);
+		}
+
+		#endregion
+
+		#region Convertion
+
+			public void Convert(Entity entity, EntityManager dstManager, GameObjectConversionSystem conversionSystem)
 		{
 			Convert(entity, dstManager);
 
@@ -147,17 +177,6 @@ namespace VisualPinball.Unity
 
 			// register
 			player.RegisterFlipper(this, entity, ParentEntity);
-		}
-
-		public override void UpdateTransforms()
-		{
-			var t = transform;
-
-			// position
-			t.localPosition = new Vector3(Position.x, Position.y, PositionZ);
-
-			// rotation
-			t.localEulerAngles = new Vector3(0, 0, StartAngle);
 		}
 
 		public override IEnumerable<MonoBehaviour> SetData(FlipperData data)
@@ -268,6 +287,24 @@ namespace VisualPinball.Unity
 			return data;
 		}
 
+		#endregion
+
+		#region Editor Tooling
+
+		public override ItemDataTransformType EditorPositionType => ItemDataTransformType.TwoD;
+		public override Vector3 GetEditorPosition() => Surface != null
+			? new Vector3(Position.x, Position.y, Surface.Height(Position))
+			: new Vector3(Position.x, Position.y, 0);
+		public override void SetEditorPosition(Vector3 pos) => Position = ((float3)pos).xy;
+
+		public override ItemDataTransformType EditorRotationType => ItemDataTransformType.OneD;
+		public override Vector3 GetEditorRotation() => new Vector3(StartAngle, 0f, 0f);
+		public override void SetEditorRotation(Vector3 rot) => StartAngle = rot.x;
+
+		public override ItemDataTransformType EditorScaleType => ItemDataTransformType.None;
+
+		#if UNITY_EDITOR
+
 		protected void OnDrawGizmosSelected()
 		{
 			var poly = GetEnclosingPolygon();
@@ -304,23 +341,13 @@ namespace VisualPinball.Unity
 			Gizmos.color = Color.white;
 		}
 
-		#region Editor Tooling
-
-		public override ItemDataTransformType EditorPositionType => ItemDataTransformType.TwoD;
-		public override Vector3 GetEditorPosition() => Surface != null
-			? new Vector3(Position.x, Position.y, Surface.Height(Position))
-			: new Vector3(Position.x, Position.y, 0);
-		public override void SetEditorPosition(Vector3 pos) => Position = ((float3)pos).xy;
-
-		public override ItemDataTransformType EditorRotationType => ItemDataTransformType.OneD;
-		public override Vector3 GetEditorRotation() => new Vector3(StartAngle, 0f, 0f);
-		public override void SetEditorRotation(Vector3 rot) => StartAngle = rot.x;
-
-		public override ItemDataTransformType EditorScaleType => ItemDataTransformType.None;
+		#endif
 
 		#endregion
 
 		#region Flipper Correction
+
+		private bool IsLeft => EndAngle < StartAngle;
 
 		private void SetupFlipperCorrection(Entity entity, EntityManager dstManager, Player player, FlipperColliderAuthoring colliderAuthoring)
 		{

@@ -83,25 +83,6 @@ namespace VisualPinball.Engine.Test.VPT.Mappings
 		}
 
 		[Test]
-		public void ShouldMapASwitchByHint()
-		{
-			var table = new TableBuilder()
-				.AddBumper("foobar_bumper")
-				.Build();
-
-			var gameEngineSwitches = new[] {
-				new GamelogicEngineSwitch("23") {PlayfieldItemHint = "foobar_bumper"}
-			};
-
-			table.Mappings.PopulateSwitches(gameEngineSwitches, table.Switchables, table.SwitchableDevices);
-
-			table.Mappings.Data.Switches.Should().HaveCount(1);
-			table.Mappings.Data.Switches[0].Source.Should().Be(SwitchSource.Playfield);
-			table.Mappings.Data.Switches[0].Id.Should().Be("23");
-			table.Mappings.Data.Switches[0].PlayfieldItem.Should().Be("foobar_bumper");
-		}
-
-		[Test]
 		public void ShouldMapADeviceSwitchByHint()
 		{
 			var table = new TableBuilder()

@@ -70,7 +70,6 @@ namespace VisualPinball.Engine.VPT.Mappings
 
 					var description = engineSwitch.Description ?? string.Empty;
 					var source = GuessSwitchSource(engineSwitch);
-					var playfieldItem = source == SwitchSource.Playfield ? GuessPlayfieldSwitch(switches, engineSwitch) : null;
 					var device = source == SwitchSource.Device ? GuessDevice(switchDevices, engineSwitch) : null;
 					var deviceItem = source == SwitchSource.Device && device != null ? GuessDeviceSwitch(engineSwitch, device) : null;
 					var inputActionMap = source == SwitchSource.InputSystem
@@ -86,7 +85,6 @@ namespace VisualPinball.Engine.VPT.Mappings
 						IsNormallyClosed = engineSwitch.NormallyClosed,
 						Description = description,
 						Source = source,
-						PlayfieldItem = playfieldItem != null ? playfieldItem.Name : string.Empty,
 						InputActionMap = inputActionMap,
 						InputAction = inputAction,
 						Device = device != null ? device.Name : string.Empty,
@@ -133,26 +131,6 @@ namespace VisualPinball.Engine.VPT.Mappings
 			}
 
 			return !string.IsNullOrEmpty(engineSwitch.InputActionHint) ? SwitchSource.InputSystem : SwitchSource.Playfield;
-		}
-
-		private static ISwitchable GuessPlayfieldSwitch(Dictionary<string, ISwitchable> switches, GamelogicEngineSwitch engineSwitch)
-		{
-			// first, match by regex if hint provided
-			if (!string.IsNullOrEmpty(engineSwitch.PlayfieldItemHint)) {
-				foreach (var switchName in switches.Keys) {
-					var regex = new Regex(engineSwitch.PlayfieldItemHint.ToLower());
-					if (regex.Match(switchName).Success) {
-						return switches[switchName];
-					}
-				}
-			}
-
-			// second, match by "swXX" or name
-			var matchKey = int.TryParse(engineSwitch.Id, out var numericSwitchId)
-				? $"sw{numericSwitchId}"
-				: engineSwitch.Id;
-
-			return switches.ContainsKey(matchKey) ? switches[matchKey] : null;
 		}
 
 		private static ISwitchableDevice GuessDevice(Dictionary<string, ISwitchableDevice> switchDevices, GamelogicEngineSwitch engineSwitch)
