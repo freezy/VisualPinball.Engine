@@ -14,20 +14,34 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+// ReSharper disable InconsistentNaming
 
-using System.Collections.Generic;
-using VisualPinball.Engine.Game.Engines;
+using System;
+using UnityEngine;
 
 namespace VisualPinball.Unity
 {
-	/// <summary>
-	/// A coil device is an item that contains multiple coil.
-	/// </summary>
-	public interface ICoilDeviceAuthoring : IIdentifiableItemAuthoring
+	[Serializable]
+	public class CoilMapping
 	{
-		/// <summary>
-		/// A list of available coils supported by the coil device
-		/// </summary>
-		IEnumerable<GamelogicEngineCoil> AvailableCoils { get; }
+		public string Id = string.Empty;
+
+		public int InternalId;
+
+		public string Description = string.Empty;
+
+		public ECoilDestination Destination = ECoilDestination.Playfield;
+
+		public string PlayfieldItem = string.Empty;
+
+		[SerializeReference]
+		public MonoBehaviour _device;
+		public ICoilDeviceAuthoring Device { get => _device as ICoilDeviceAuthoring; set => _device = value as MonoBehaviour; }
+
+		public string DeviceCoilId = string.Empty;
+
+		public ECoilType Type = ECoilType.SingleWound;
+
+		public string HoldCoilId = string.Empty;
 	}
 }

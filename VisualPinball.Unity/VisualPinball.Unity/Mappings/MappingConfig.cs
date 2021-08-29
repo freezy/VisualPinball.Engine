@@ -27,6 +27,9 @@ namespace VisualPinball.Unity
 	{
 		[SerializeField]
 		public List<SwitchMapping> Switches = new List<SwitchMapping>();
+		public List<CoilMapping> Coils = new List<CoilMapping>();
+
+		#region Switches
 
 		public void AddSwitch(SwitchMapping switchMapping)
 		{
@@ -47,5 +50,7 @@ namespace VisualPinball.Unity
 				Switches.Clear();
 			}
 		}
+
+		#endregion
 	}
 }

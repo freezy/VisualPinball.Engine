@@ -35,4 +35,16 @@ namespace VisualPinball.Unity
 		OnOff = 0,
 		Pulse = 1,
 	}
+
+	public enum ECoilDestination
+	{
+		Playfield = 0,
+		Lamp = 1,
+	}
+
+	public enum ECoilType
+	{
+		SingleWound = 0,
+		DualWound = 1,
+	}
 }
