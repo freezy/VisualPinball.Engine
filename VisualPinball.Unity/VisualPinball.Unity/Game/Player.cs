@@ -188,23 +188,12 @@ namespace VisualPinball.Unity
 
 		public void RegisterFlipper(FlipperAuthoring component, Entity entity, Entity parentEntity)
 		{
-			var go = component.gameObject;
-			var flipperApi = new FlipperApi(go, entity, parentEntity, this);
-			TableApi.Flippers[go.name] = flipperApi;
-			_apis.Add(flipperApi);
-			_initializables.Add(flipperApi);
-			_rotatables[entity] = flipperApi;
-			_switchPlayer.RegisterSwitch(go.name, flipperApi);
-			_coilPlayer.RegisterCoil(go.name, flipperApi);
-			_wirePlayer.RegisterWire(go.name, flipperApi);
-
-			RegisterCollider(entity, flipperApi);
+			Register(TableApi.Flippers,  new FlipperApi(component.gameObject, entity, parentEntity, this), entity);
+			FlipperTransforms[entity] = component.gameObject.transform;
 
 			if (EngineProvider<IDebugUI>.Exists) {
-				EngineProvider<IDebugUI>.Get().OnRegisterFlipper(entity, go.name);
+				EngineProvider<IDebugUI>.Get().OnRegisterFlipper(entity, component.gameObject.name);
 			}
-
-			FlipperTransforms[entity] = go.transform;
 		}
 
 		public void RegisterGate(GateAuthoring component, Entity entity, Entity parentEntity)
@@ -404,6 +393,9 @@ namespace VisualPinball.Unity
 			if (api is IApiInitializable initializable) {
 				_initializables.Add(initializable);
 			}
+			if (api is IApiRotatable rotatable) {
+				_rotatables[entity] = rotatable;
+			}
 			if (api is IApiSwitchDevice switchDevice) {
 				_switchPlayer.RegisterSwitchDevice(api.Name, switchDevice);
 			}
@@ -413,6 +405,7 @@ namespace VisualPinball.Unity
 			if (api is IApiWireDeviceDest wireDevice) {
 				_wirePlayer.RegisterWireDevice(api.Name, wireDevice);
 			}
+
 			if (api is IApiColliderGenerator colliderGenerator) {
 				RegisterCollider(entity, colliderGenerator);
 			}
