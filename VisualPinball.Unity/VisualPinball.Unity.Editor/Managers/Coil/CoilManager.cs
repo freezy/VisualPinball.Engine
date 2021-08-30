@@ -97,7 +97,7 @@ namespace VisualPinball.Unity.Editor
 			if (GUILayout.Button("Populate All", GUILayout.ExpandWidth(false)))
 			{
 				RecordUndo("Populate all coil mappings");
-				_tableAuthoring.TableContainer.Mappings.PopulateCoils(GetAvailableEngineCoils(), _tableAuthoring.TableContainer.Coilables, _tableAuthoring.TableContainer.CoilableDevices);
+				_tableAuthoring.MappingConfig.PopulateCoils(GetAvailableEngineCoils(), _tableAuthoring);
 				Reload();
 				LampManager.Refresh();
 			}
@@ -106,7 +106,7 @@ namespace VisualPinball.Unity.Editor
 			{
 				if (EditorUtility.DisplayDialog("Coil Manager", "Are you sure want to remove all coil mappings?", "Yes", "Cancel")) {
 					RecordUndo("Remove all coil mappings");
-					_tableAuthoring.Mappings.RemoveAllCoils();
+					_tableAuthoring.MappingConfig.RemoveAllCoils();
 				}
 				Reload();
 				LampManager.Refresh();
