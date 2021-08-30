@@ -146,18 +146,23 @@ namespace VisualPinball.Unity
 			// collider
 			var collComponent = GetComponent<PrimitiveColliderAuthoring>();
 			if (collComponent) {
-				collComponent.enabled = !data.IsCollidable;
 
-				collComponent.HitEvent = data.HitEvent;
-				collComponent.Threshold = data.Threshold;
-				collComponent.Elasticity = data.Elasticity;
-				collComponent.ElasticityFalloff = data.ElasticityFalloff;
-				collComponent.Friction = data.Friction;
-				collComponent.Scatter = data.Scatter;
-				collComponent.CollisionReductionFactor = data.CollisionReductionFactor;
-				collComponent.OverwritePhysics = data.OverwritePhysics;
+				if (data.IsToy) {
+					DestroyImmediate(collComponent);
+				} else {
+					collComponent.enabled = !data.IsCollidable;
 
-				updatedComponents.Add(collComponent);
+					collComponent.HitEvent = data.HitEvent;
+					collComponent.Threshold = data.Threshold;
+					collComponent.Elasticity = data.Elasticity;
+					collComponent.ElasticityFalloff = data.ElasticityFalloff;
+					collComponent.Friction = data.Friction;
+					collComponent.Scatter = data.Scatter;
+					collComponent.CollisionReductionFactor = data.CollisionReductionFactor;
+					collComponent.OverwritePhysics = data.OverwritePhysics;
+
+					updatedComponents.Add(collComponent);
+				}
 			}
 
 			return updatedComponents;
