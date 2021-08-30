@@ -41,7 +41,7 @@ namespace VisualPinball.Unity
 	[AddComponentMenu("Visual Pinball/Game Item/Flipper")]
 	[HelpURL("https://docs.visualpinball.org/creators-guide/manual/mechanisms/flippers.html")]
 	public class FlipperAuthoring : ItemMainRenderableAuthoring<FlipperData>,
-		ISwitchDeviceAuthoring, /*ICoilAuthoring, */IOnSurfaceAuthoring, IConvertGameObjectToEntity
+		ISwitchDeviceAuthoring, ICoilDeviceAuthoring, IOnSurfaceAuthoring, IConvertGameObjectToEntity
 	{
 		#region Data
 
@@ -127,6 +127,12 @@ namespace VisualPinball.Unity
 		};
 
 		public SwitchDefault SwitchDefault => SwitchDefault.Configurable;
+
+		public IEnumerable<GamelogicEngineCoil> AvailableCoils => new[] {
+			new GamelogicEngineCoil(name) {
+				Description = "Flipper Coil",
+			}
+		};
 
 		#endregion
 

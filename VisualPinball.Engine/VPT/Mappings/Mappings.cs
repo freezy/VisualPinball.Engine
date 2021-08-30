@@ -199,7 +199,6 @@ namespace VisualPinball.Engine.VPT.Mappings
 
 					var destination = GuessCoilDestination(engineCoil);
 					var description = string.IsNullOrEmpty(engineCoil.Description) ? string.Empty : engineCoil.Description;
-					var playfieldItem = destination == CoilDestination.Playfield ? GuessPlayfieldCoil(coils, engineCoil) : null;
 					var device = destination == CoilDestination.Device ? GuessDevice(coilDevices, engineCoil) : null;
 					var deviceItem = destination == CoilDestination.Device && device != null ? GuessDeviceCoil(engineCoil, device) : null;
 
@@ -208,7 +207,6 @@ namespace VisualPinball.Engine.VPT.Mappings
 						InternalId = engineCoil.InternalId,
 						Description = description,
 						Destination = destination,
-						PlayfieldItem = playfieldItem != null ? playfieldItem.Name : string.Empty,
 						Device = device != null ? device.Name : string.Empty,
 						DeviceItem = deviceItem != null ? deviceItem.Id : string.Empty,
 						Type = CoilType.SingleWound
@@ -223,16 +221,17 @@ namespace VisualPinball.Engine.VPT.Mappings
 					mainCoil.HoldCoilId = holdCoil.Id;
 
 				} else {
-					var playfieldItem = GuessPlayfieldCoil(coils, holdCoil);
-					Data.AddCoil(new MappingsCoilData {
-						Id = holdCoil.MainCoilIdOfHoldCoil,
-						InternalId = holdCoil.InternalId,
-						Description = string.IsNullOrEmpty(holdCoil.Description) ? string.Empty : holdCoil.Description,
-						Destination = CoilDestination.Playfield,
-						PlayfieldItem = playfieldItem != null ? playfieldItem.Name : string.Empty,
-						Type = CoilType.DualWound,
-						HoldCoilId = holdCoil.Id
-					});
+					// todo re-think hold coils
+					// var playfieldItem = GuessPlayfieldCoil(coils, holdCoil);
+					// Data.AddCoil(new MappingsCoilData {
+					// 	Id = holdCoil.MainCoilIdOfHoldCoil,
+					// 	InternalId = holdCoil.InternalId,
+					// 	Description = string.IsNullOrEmpty(holdCoil.Description) ? string.Empty : holdCoil.Description,
+					// 	Destination = CoilDestination.Playfield,
+					// 	PlayfieldItem = playfieldItem != null ? playfieldItem.Name : string.Empty,
+					// 	Type = CoilType.DualWound,
+					// 	HoldCoilId = holdCoil.Id
+					// });
 				}
 			}
 		}
@@ -307,22 +306,6 @@ namespace VisualPinball.Engine.VPT.Mappings
 
 			coils.Sort((s1, s2) => s1.Id.CompareTo(s2.Id));
 			return coils;
-		}
-
-		private static ICoilable GuessPlayfieldCoil(Dictionary<string, ICoilable> coils, GamelogicEngineCoil coil)
-		{
-			// first, match by regex if hint provided
-			if (!string.IsNullOrEmpty(coil.PlayfieldItemHint)) {
-				foreach (var coilName in coils.Keys) {
-					var regex = new Regex(coil.PlayfieldItemHint.ToLower());
-					if (regex.Match(coilName).Success) {
-						return coils[coilName];
-					}
-				}
-			}
-
-			// second, match by id
-			return coils.ContainsKey(coil.Id) ? coils[coil.Id] : null;
 		}
 
 		#endregion
