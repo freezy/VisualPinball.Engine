@@ -32,8 +32,6 @@ namespace VisualPinball.Unity
 
 		public ECoilDestination Destination = ECoilDestination.Playfield;
 
-		public string PlayfieldItem = string.Empty;
-
 		[SerializeReference]
 		public MonoBehaviour _device;
 		public ICoilDeviceAuthoring Device { get => _device as ICoilDeviceAuthoring; set => _device = value as MonoBehaviour; }
