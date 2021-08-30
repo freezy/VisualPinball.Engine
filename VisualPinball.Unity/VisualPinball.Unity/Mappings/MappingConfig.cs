@@ -167,6 +167,147 @@ namespace VisualPinball.Unity
 		}
 
 		#endregion
+
+		#region Coils
+
+		/// <summary>
+		/// Auto-matches the coils provided by the gamelogic engine with the
+		/// coils on the playfield.
+		/// </summary>
+		/// <param name="engineCoils">List of coils provided by the gamelogic engine</param>
+		/// <param name="tableCoils">List of coils on the playfield</param>
+		/// <param name="tableCoilDevices">List of coil devices in the table</param>
+		public void PopulateCoils(GamelogicEngineCoil[] engineCoils, TableAuthoring tableComponent)
+		{
+			var coilDevices = tableComponent.GetComponentsInChildren<ICoilDeviceAuthoring>();
+			var holdCoils = new List<GamelogicEngineCoil>();
+			foreach (var engineCoil in GetCoils(engineCoils)) {
+
+				var coilMapping = Coils.FirstOrDefault(mappingsCoilData => mappingsCoilData.Id == engineCoil.Id);
+				if (coilMapping == null) {
+
+					if (engineCoil.IsUnused) {
+						continue;
+					}
+
+					// we'll handle those in a second loop when all the main coils are added
+					if (!string.IsNullOrEmpty(engineCoil.MainCoilIdOfHoldCoil)) {
+						holdCoils.Add(engineCoil);
+						continue;
+					}
+
+					var destination = GuessCoilDestination(engineCoil);
+					var description = string.IsNullOrEmpty(engineCoil.Description) ? string.Empty : engineCoil.Description;
+					var device = destination == ECoilDestination.Playfield ? GuessDevice(coilDevices, engineCoil) : null;
+					var deviceItem = destination == ECoilDestination.Playfield && device != null ? GuessDeviceCoil(engineCoil, device) : null;
+
+					AddCoil(new CoilMapping {
+						Id = engineCoil.Id,
+						InternalId = engineCoil.InternalId,
+						Description = description,
+						Destination = destination,
+						Device = device,
+						DeviceCoilId = deviceItem != null ? deviceItem.Id : string.Empty,
+						Type = CoilType.SingleWound
+					});
+				}
+			}
+
+			foreach (var holdCoil in holdCoils) {
+				var mainCoil = Coils.FirstOrDefault(c => c.Id == holdCoil.MainCoilIdOfHoldCoil);
+				if (mainCoil != null) {
+					mainCoil.Type = ECoilType.DualWound;
+					mainCoil.HoldCoilId = holdCoil.Id;
+
+				} else {
+					// todo re-think hold coils
+					// var playfieldItem = GuessPlayfieldCoil(coils, holdCoil);
+					// Data.AddCoil(new MappingsCoilData {
+					// 	Id = holdCoil.MainCoilIdOfHoldCoil,
+					// 	InternalId = holdCoil.InternalId,
+					// 	Description = string.IsNullOrEmpty(holdCoil.Description) ? string.Empty : holdCoil.Description,
+					// 	Destination = CoilDestination.Playfield,
+					// 	PlayfieldItem = playfieldItem != null ? playfieldItem.Name : string.Empty,
+					// 	Type = CoilType.DualWound,
+					// 	HoldCoilId = holdCoil.Id
+					// });
+				}
+			}
+		}
+
+		private ECoilDestination GuessCoilDestination(GamelogicEngineCoil engineCoil)
+		{
+			if (engineCoil.IsLamp) {
+				// todo
+				// AddLamp(new LampMapping {
+				// 	Id = engineCoil.Id,
+				// 	Description = engineCoil.Description,
+				// 	Destination = LampDestination.Playfield,
+				// 	Source = LampSource.Coils
+				// });
+				// return CoilDestination.Lamp;
+			}
+			return ECoilDestination.Playfield;
+		}
+
+		private static ICoilDeviceAuthoring GuessDevice(ICoilDeviceAuthoring[] coilDevices, GamelogicEngineCoil engineCoil)
+		{
+			// match by regex if hint provided
+			if (!string.IsNullOrEmpty(engineCoil.DeviceHint)) {
+				foreach (var device in coilDevices) {
+					var regex = new Regex(engineCoil.DeviceHint, RegexOptions.IgnoreCase);
+					if (regex.Match(device.name).Success) {
+						return device;
+					}
+				}
+			}
+			return null;
+		}
+
+		private static GamelogicEngineCoil GuessDeviceCoil(GamelogicEngineCoil engineCoil, ICoilDeviceAuthoring device)
+		{
+			if (!string.IsNullOrEmpty(engineCoil.DeviceItemHint)) {
+				foreach (var deviceCoil in device.AvailableCoils) {
+					var regex = new Regex(engineCoil.DeviceItemHint, RegexOptions.IgnoreCase);
+					if (regex.Match(deviceCoil.Id).Success) {
+						return deviceCoil;
+					}
+				}
+			}
+			return null;
+		}
+
+		/// <summary>
+		/// Returns a sorted list of coil names from the gamelogic engine,
+		/// appended with the additional names in the coil mapping. In short,
+		/// the list of coil names to choose from.
+		/// </summary>
+		/// <param name="engineCoils">Coil names provided by the gamelogic engine</param>
+		/// <returns>All coil names</returns>
+		public IEnumerable<GamelogicEngineCoil> GetCoils(GamelogicEngineCoil[] engineCoils)
+		{
+			var coils = new List<GamelogicEngineCoil>();
+
+			// first, add coils from the gamelogic engine
+			if (engineCoils != null) {
+				coils.AddRange(engineCoils);
+			}
+
+			// then add coil ids that were added manually
+			foreach (var coilMapping in Coils) {
+				if (!coils.Exists(entry => entry.Id == coilMapping.Id)) {
+					coils.Add(new GamelogicEngineCoil(coilMapping.Id));
+				}
+
+				if (!string.IsNullOrEmpty(coilMapping.HoldCoilId) && !coils.Exists(entry => entry.Id == coilMapping.HoldCoilId)) {
+					coils.Add(new GamelogicEngineCoil(coilMapping.HoldCoilId));
+				}
+			}
+
+			coils.Sort((s1, s2) => string.Compare(s1.Id, s2.Id, StringComparison.Ordinal));
+			return coils;
+		}
+
 		public void AddCoil(CoilMapping coilMapping)
 		{
 			Coils?.Add(coilMapping);
@@ -180,5 +321,13 @@ namespace VisualPinball.Unity
 			// 	Lamps = Lamps.Where(l => l.Id == data.Id && l.Source == LampSource.Coils).ToArray();
 			// }
 		}
+
+		public void RemoveAllCoils()
+		{
+			Coils.Clear();
+			// todo Lamps = Lamps.Where(l => l.Source != LampSource.Coils).ToArray();
+		}
+
+		#endregion
 	}
 }
