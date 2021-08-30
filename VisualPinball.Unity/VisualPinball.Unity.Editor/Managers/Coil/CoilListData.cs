@@ -14,8 +14,6 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-using VisualPinball.Engine.VPT.Mappings;
-
 namespace VisualPinball.Unity.Editor
 {
 	public class CoilListData : IManagerListData
@@ -27,50 +25,47 @@ namespace VisualPinball.Unity.Editor
 		public string Description;
 
 		[ManagerListColumn(Order = 2, HeaderName = "Destination", Width = 150)]
-		public int Destination;
+		public ECoilDestination Destination;
 
 		[ManagerListColumn(Order = 3, HeaderName = "Element", Width = 270)]
 		public string Element;
 
 		[ManagerListColumn(Order = 4, HeaderName = "Type", Width = 110)]
-		public int Type;
+		public ECoilType Type;
 
 		[ManagerListColumn(Order = 5, HeaderName = "Hold Coil", Width = 135)]
 		public string HoldCoilId;
 
 		public string Id;
 		public int InternalId;
-		public string PlayfieldItem;
-		public string Device;
-		public string DeviceItem;
+		public ICoilDeviceAuthoring Device;
+		public string DeviceCoilId;
 
-		public MappingsCoilData MappingsCoilData;
+		public readonly CoilMapping CoilMapping;
 
-		public CoilListData(MappingsCoilData mappingsCoilData) {
-			Id = mappingsCoilData.Id;
-			InternalId = mappingsCoilData.InternalId;
-			Description = mappingsCoilData.Description;
-			Destination = mappingsCoilData.Destination;
-			PlayfieldItem = mappingsCoilData.PlayfieldItem;
-			Device = mappingsCoilData.Device;
-			DeviceItem = mappingsCoilData.DeviceItem;
-			Type = mappingsCoilData.Type;
-			HoldCoilId = mappingsCoilData.HoldCoilId;
+		public CoilListData(CoilMapping coilMapping) {
+			Id = coilMapping.Id;
+			InternalId = coilMapping.InternalId;
+			Description = coilMapping.Description;
+			Destination = coilMapping.Destination;
+			Device = coilMapping.Device;
+			DeviceCoilId = coilMapping.DeviceCoilId;
+			Type = coilMapping.Type;
+			HoldCoilId = coilMapping.HoldCoilId;
 
-			MappingsCoilData = mappingsCoilData;
+			CoilMapping = coilMapping;
 		}
 
 		public void Update()
 		{
-			MappingsCoilData.Id = Id;
-			MappingsCoilData.InternalId = InternalId;
-			MappingsCoilData.Description = Description;
-			MappingsCoilData.Destination = Destination;
-			MappingsCoilData.PlayfieldItem = PlayfieldItem;
-			MappingsCoilData.Device = Device;
-			MappingsCoilData.DeviceItem = DeviceItem;
-			MappingsCoilData.Type = Type;
-			MappingsCoilData.HoldCoilId = HoldCoilId;
+			CoilMapping.Id = Id;
+			CoilMapping.InternalId = InternalId;
+			CoilMapping.Description = Description;
+			CoilMapping.Destination = Destination;
+			CoilMapping.Device = Device;
+			CoilMapping.DeviceCoilId = DeviceCoilId;
+			CoilMapping.Type = Type;
+			CoilMapping.HoldCoilId = HoldCoilId;
 		}
 	}
 }

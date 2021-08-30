@@ -14,23 +14,20 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-using UnityEngine;
-using UnityEditor;
 using System;
 using System.Collections.Generic;
-using UnityEditor.IMGUI.Controls;
-using VisualPinball.Engine.VPT;
 using System.Linq;
+using UnityEditor;
+using UnityEngine;
 using VisualPinball.Engine.Game.Engines;
+using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Mappings;
+using Texture = UnityEngine.Texture;
 
 namespace VisualPinball.Unity.Editor
 {
 	public class CoilListViewItemRenderer
 	{
-		private readonly string[] OPTIONS_COIL_DESTINATION = { "Playfield", "Device", "Lamp" };
-		private readonly string[] OPTIONS_COIL_TYPE = { "Single-Wound", "Dual-Wound" };
-
 		private enum CoilListColumn
 		{
 			Id = 0,
@@ -41,19 +38,16 @@ namespace VisualPinball.Unity.Editor
 			HoldCoilId = 5,
 		}
 
-		private readonly TableAuthoring _tableAuthoring;
+		private readonly TableAuthoring _tableComponent;
 		private readonly List<GamelogicEngineCoil> _gleCoils;
-		private readonly Dictionary<string, ICoilAuthoring> _coils;
-		private readonly Dictionary<string, ICoilDeviceAuthoring> _coilDevices;
 
-		private AdvancedDropdownState _itemPickDropdownState;
+		private readonly ObjectReferencePicker<ICoilDeviceAuthoring> _devicePicker;
 
-		public CoilListViewItemRenderer(TableAuthoring tableAuthoring, List<GamelogicEngineCoil> gleCoils, Dictionary<string, ICoilAuthoring> coils, Dictionary<string, ICoilDeviceAuthoring> coilDevices)
+		public CoilListViewItemRenderer(TableAuthoring tableComponent, List<GamelogicEngineCoil> gleCoils)
 		{
-			_tableAuthoring = tableAuthoring;
+			_tableComponent = tableComponent;
 			_gleCoils = gleCoils;
-			_coils = coils;
-			_coilDevices = coilDevices;
+			_devicePicker = new ObjectReferencePicker<ICoilDeviceAuthoring>("Coil Devices", tableComponent, IconColor.Gray);
 		}
 
 		public void Render(TableAuthoring tableAuthoring, CoilListData data, Rect cellRect, int column, Action<CoilListData> updateAction)
@@ -75,13 +69,13 @@ namespace VisualPinball.Unity.Editor
 					RenderDestination(data, cellRect, updateAction);
 					break;
 				case CoilListColumn.Element:
-					RenderElement(tableAuthoring, data, cellRect, updateAction);
+					RenderElement(data, cellRect, updateAction);
 					break;
 				case CoilListColumn.Type:
 					RenderType(data, cellRect, updateAction);
 					break;
 				case CoilListColumn.HoldCoilId:
-					if (data.Type == CoilType.DualWound) {
+					if (data.Type == ECoilType.DualWound) {
 						RenderId(coilStatuses, ref data.HoldCoilId, id => data.HoldCoilId = id, data, cellRect, updateAction);
 					}
 					break;
@@ -91,8 +85,8 @@ namespace VisualPinball.Unity.Editor
 
 		private void UpdateId(CoilListData data, string id)
 		{
-			if (data.Destination == CoilDestination.Lamp) {
-				var lampEntry = _tableAuthoring.Mappings.Lamps.FirstOrDefault(l => l.Id == data.Id && l.Source == LampSource.Coils);
+			if (data.Destination == ECoilDestination.Lamp) {
+				var lampEntry = _tableComponent.Mappings.Lamps.FirstOrDefault(l => l.Id == data.Id && l.Source == LampSource.Coils);
 				if (lampEntry != null) {
 					lampEntry.Id = id;
 					LampManager.Refresh();
@@ -179,21 +173,21 @@ namespace VisualPinball.Unity.Editor
 		private void RenderDestination(CoilListData coilListData, Rect cellRect, Action<CoilListData> updateAction)
 		{
 			EditorGUI.BeginChangeCheck();
-			var index = EditorGUI.Popup(cellRect, coilListData.Destination, OPTIONS_COIL_DESTINATION);
+			var index = (ECoilDestination)EditorGUI.EnumPopup(cellRect, coilListData.Destination);
 			if (EditorGUI.EndChangeCheck())
 			{
 				if (coilListData.Destination != index)
 				{
-					if (coilListData.Destination == CoilDestination.Lamp) {
+					if (coilListData.Destination == ECoilDestination.Lamp) {
 
-						var lampEntry = _tableAuthoring.Mappings.Lamps.FirstOrDefault(l => l.Id == coilListData.Id && l.Source == LampSource.Coils);
+						var lampEntry = _tableComponent.Mappings.Lamps.FirstOrDefault(l => l.Id == coilListData.Id && l.Source == LampSource.Coils);
 						if (lampEntry != null) {
-							_tableAuthoring.Mappings.RemoveLamp(lampEntry);
+							_tableComponent.Mappings.RemoveLamp(lampEntry);
 							LampManager.Refresh();
 						}
 
-					} else if (index == CoilDestination.Lamp) {
-						_tableAuthoring.Mappings.AddLamp(new MappingsLampData {
+					} else if (index == ECoilDestination.Lamp) {
+						_tableComponent.Mappings.AddLamp(new MappingsLampData {
 							Id = coilListData.Id,
 							Source = LampSource.Coils,
 							Description = coilListData.Description
@@ -206,7 +200,7 @@ namespace VisualPinball.Unity.Editor
 			}
 		}
 
-		private void RenderElement(TableAuthoring tableAuthoring, CoilListData coilListData, Rect cellRect, Action<CoilListData> updateAction)
+		private void RenderElement(CoilListData coilListData, Rect cellRect, Action<CoilListData> updateAction)
 		{
 			var icon = GetIcon(coilListData);
 
@@ -225,18 +219,14 @@ namespace VisualPinball.Unity.Editor
 
 			switch (coilListData.Destination)
 			{
-				case CoilDestination.Playfield:
-					RenderPlayfieldElement(tableAuthoring, coilListData, cellRect, updateAction);
-					break;
-
-				case CoilDestination.Device:
+				case ECoilDestination.Playfield:
 					cellRect.width = cellRect.width / 2f - 5f;
-					RenderDeviceElement(tableAuthoring, coilListData, cellRect, updateAction);
+					RenderDeviceElement(coilListData, cellRect, updateAction);
 					cellRect.x += cellRect.width + 10f;
 					RenderDeviceItemElement(coilListData, cellRect, updateAction);
 					break;
 
-				case CoilDestination.Lamp:
+				case ECoilDestination.Lamp:
 					cellRect.x -= 25;
 					cellRect.width += 25;
 					EditorGUI.LabelField(cellRect, "Configure in Lamp Manager", new GUIStyle(GUI.skin.label) { fontStyle = FontStyle.Italic });
@@ -244,66 +234,34 @@ namespace VisualPinball.Unity.Editor
 			}
 		}
 
-		private void RenderPlayfieldElement(TableAuthoring tableAuthoring, CoilListData coilListData, Rect cellRect, Action<CoilListData> updateAction)
+		private void RenderDeviceElement(CoilListData coilListData, Rect cellRect, Action<CoilListData> updateAction)
 		{
-			if (GUI.Button(cellRect, coilListData.PlayfieldItem, EditorStyles.objectField) || GUI.Button(cellRect, "", GUI.skin.GetStyle("IN ObjectField")))
-			{
-				if (_itemPickDropdownState == null)
-				{
-					_itemPickDropdownState = new AdvancedDropdownState();
+			_devicePicker.Render(cellRect, coilListData.Device, item => {
+				coilListData.Device = item;
+				if (coilListData.Device != null && coilListData.Device.AvailableCoils.Count() == 1) {
+					coilListData.DeviceCoilId = coilListData.Device.AvailableCoils.First().Id;
 				}
-
-				var dropdown = new ItemSearchableDropdown<ICoilAuthoring>(
-					_itemPickDropdownState,
-					tableAuthoring,
-					"Coil Items",
-					item => {
-						coilListData.PlayfieldItem = item != null ? item.name : string.Empty;
-						updateAction(coilListData);
-					}
-				);
-				dropdown.Show(cellRect);
-			}
-		}
-
-		private void RenderDeviceElement(TableAuthoring tableAuthoring, CoilListData coilListData, Rect cellRect, Action<CoilListData> updateAction)
-		{
-			if (GUI.Button(cellRect, coilListData.Device, EditorStyles.objectField) || GUI.Button(cellRect, "", GUI.skin.GetStyle("IN ObjectField")))
-			{
-				if (_itemPickDropdownState == null) {
-					_itemPickDropdownState = new AdvancedDropdownState();
-				}
-
-				var dropdown = new ItemSearchableDropdown<ICoilDeviceAuthoring>(
-					_itemPickDropdownState,
-					tableAuthoring,
-					"Coil Devices",
-					item => {
-						coilListData.Device = item != null ? item.name : string.Empty;
-						updateAction(coilListData);
-					}
-				);
-				dropdown.Show(cellRect);
-			}
+				updateAction(coilListData);
+			});
 		}
 
 		private void RenderDeviceItemElement(CoilListData coilListData, Rect cellRect, Action<CoilListData> updateAction)
 		{
-			EditorGUI.BeginDisabledGroup(string.IsNullOrEmpty(coilListData.Device));
+			EditorGUI.BeginDisabledGroup(coilListData.Device == null);
 
 			var currentIndex = 0;
-			var coilLabels = new string[0];
+			var coilLabels = Array.Empty<string>();
 			ICoilDeviceAuthoring coilDevice = null;
-			if (!string.IsNullOrEmpty(coilListData.Device) && _coilDevices.ContainsKey(coilListData.Device.ToLower())) {
-				coilDevice = _coilDevices[coilListData.Device.ToLower()];
+			if (coilListData.Device != null) {
+				coilDevice = coilListData.Device;
 				coilLabels = coilDevice.AvailableCoils.Select(s => s.Description).ToArray();
-				currentIndex = coilDevice.AvailableCoils.TakeWhile(s => s.Id != coilListData.DeviceItem).Count();
+				currentIndex = coilDevice.AvailableCoils.TakeWhile(s => s.Id != coilListData.DeviceCoilId).Count();
 			}
 			EditorGUI.BeginChangeCheck();
 			var newIndex = EditorGUI.Popup(cellRect, currentIndex, coilLabels);
 			if (EditorGUI.EndChangeCheck() && coilDevice != null) {
 				if (currentIndex != newIndex) {
-					coilListData.DeviceItem = coilDevice.AvailableCoils.ElementAt(newIndex).Id;
+					coilListData.DeviceCoilId = coilDevice.AvailableCoils.ElementAt(newIndex).Id;
 					updateAction(coilListData);
 				}
 			}
@@ -315,30 +273,23 @@ namespace VisualPinball.Unity.Editor
 			if (coilListData.Destination == CoilDestination.Playfield)
 			{
 				EditorGUI.BeginChangeCheck();
-				var index = EditorGUI.Popup(cellRect, (int)coilListData.Type, OPTIONS_COIL_TYPE);
-				if (EditorGUI.EndChangeCheck())
-				{
-					coilListData.Type = index;
+				var type = (ECoilType)EditorGUI.EnumPopup(cellRect, coilListData.Type);
+				if (EditorGUI.EndChangeCheck()) {
+					coilListData.Type = type;
 					updateAction(coilListData);
 				}
 			}
 		}
 
-		private UnityEngine.Texture GetIcon(CoilListData coilListData)
+		private Texture GetIcon(CoilListData coilListData)
 		{
 			Texture2D icon = null;
 
 			switch (coilListData.Destination)
 			{
-				case CoilDestination.Playfield:
-					if (_coils.ContainsKey(coilListData.PlayfieldItem.ToLower())) {
-						icon = Icons.ByComponent(_coils[coilListData.PlayfieldItem.ToLower()], size: IconSize.Small);
-					}
-					break;
-
-				case CoilDestination.Device:
-					if (_coilDevices.ContainsKey(coilListData.Device.ToLower())) {
-						icon = Icons.ByComponent(_coilDevices[coilListData.Device.ToLower()], IconSize.Small);
+				case ECoilDestination.Playfield:
+					if (coilListData.Device != null) {
+						icon = Icons.ByComponent(coilListData.Device, IconSize.Small);
 					}
 					break;
 			}

@@ -57,6 +57,7 @@ namespace VisualPinball.Unity
 		public override Table Table => _table ??= new Table(_tableAuthoring.TableContainer, new TableData());
 		public override Dictionary<string, string> TableInfo => _tableAuthoring.TableInfo;
 		public override List<CollectionData> Collections => _tableAuthoring.Collections;
+		[Obsolete("Use MappingConfig")]
 		public override Mappings Mappings => new Mappings(_tableAuthoring.Mappings);
 		public override CustomInfoTags CustomInfoTags => _tableAuthoring.CustomInfoTags;
 

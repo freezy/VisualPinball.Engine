@@ -42,8 +42,6 @@ namespace VisualPinball.Unity.Editor
 		protected override bool ListViewItemRendererEnabled => true;
 
 		private readonly List<GamelogicEngineSwitch> _gleSwitches = new List<GamelogicEngineSwitch>();
-		private readonly Dictionary<string, ISwitchAuthoring> _switches = new Dictionary<string, ISwitchAuthoring>();
-		private readonly Dictionary<string, ISwitchDeviceAuthoring> _switchDevices = new Dictionary<string, ISwitchDeviceAuthoring>();
 
 		private InputManager _inputManager;
 		private SwitchListViewItemRenderer _listViewItemRenderer;
@@ -64,7 +62,7 @@ namespace VisualPinball.Unity.Editor
 
 		public override void OnEnable()
 		{
-			titleContent = new GUIContent("Switch Manager", Icons.Switch(false, size: IconSize.Small));
+			titleContent = new GUIContent("Switch Manager", Icons.Switch(false, IconSize.Small));
 
 			RowHeight = 22;
 
@@ -141,7 +139,6 @@ namespace VisualPinball.Unity.Editor
 				data.Add(new SwitchListData(mappingsSwitchData));
 			}
 
-			RefreshSwitches();
 			RefreshSwitchIds();
 
 			return data;
@@ -190,21 +187,6 @@ namespace VisualPinball.Unity.Editor
 			GUILayout.FlexibleSpace();
 			GUILayout.EndVertical();
 			GUILayout.EndHorizontal();
-		}
-
-		private void RefreshSwitches()
-		{
-			_switches.Clear();
-			_switchDevices.Clear();
-
-			if (_tableAuthoring != null) {
-				foreach (var item in _tableAuthoring.GetComponentsInChildren<ISwitchAuthoring>()) {
-					_switches.Add(item.name.ToLower(), item);
-				}
-				foreach (var item in _tableAuthoring.GetComponentsInChildren<ISwitchDeviceAuthoring>()) {
-					_switchDevices.Add(item.name.ToLower(), item);
-				}
-			}
 		}
 
 		private void RefreshSwitchIds()
