@@ -113,23 +113,23 @@ namespace VisualPinball.Unity
 
 		public GamelogicEngineLamp[] AvailableLamps { get; } =
 		{
-			new GamelogicEngineLamp(GiSlingshotRightLower) { Description = "Right Slingshot (lower)", PlayfieldItemHint = "gi1$" },
-			new GamelogicEngineLamp(GiSlingshotRightUpper) { Description = "Right Slingshot (upper)", PlayfieldItemHint = "gi2$" },
-			new GamelogicEngineLamp(GiSlingshotLeftLower) { Description = "Left Slingshot (lower)", PlayfieldItemHint = "gi3$" },
-			new GamelogicEngineLamp(GiSlingshotLeftUpper) { Description = "Left Slingshot (upper)", PlayfieldItemHint = "gi4$" },
-			new GamelogicEngineLamp(GiDropTargetsRightLower) { Description = "Right Drop Targets (lower)", PlayfieldItemHint = "gi5$" },
-			new GamelogicEngineLamp(GiDropTargetsRightUpper) { Description = "Right Drop Targets (upper)", PlayfieldItemHint = "gi8$" },
-			new GamelogicEngineLamp(GiDropTargetsLeftLower) { Description = "Left Drop Targets (lower)", PlayfieldItemHint = "gi6$" },
-			new GamelogicEngineLamp(GiDropTargetsLeftUpper) { Description = "Left Drop Targets (upper)", PlayfieldItemHint = "gi7$" },
-			new GamelogicEngineLamp(GiTop1) { Description = "Top 1 (left)", PlayfieldItemHint = "gi13$" },
-			new GamelogicEngineLamp(GiTop2) { Description = "Top 2", PlayfieldItemHint = "gi10$" },
-			new GamelogicEngineLamp(GiTop3) { Description = "Top 3", PlayfieldItemHint = "gi9$" },
-			new GamelogicEngineLamp(GiTop4) { Description = "Top 4", PlayfieldItemHint = "gi11$" },
-			new GamelogicEngineLamp(GiTop5) { Description = "Top 5 (right)", PlayfieldItemHint = "gi12$" },
-			new GamelogicEngineLamp(GiLowerRamp) { Description = "Ramp (lower)", PlayfieldItemHint = "gi14$" },
-			new GamelogicEngineLamp(GiUpperRamp) { Description = "Ramp (upper)", PlayfieldItemHint = "gi15$" },
-			new GamelogicEngineLamp(GiTopLeftPlastic) { Description = "Top Left Plastics", PlayfieldItemHint = "gi16$" },
-			new GamelogicEngineLamp(LampRedBumper) { Description = "Red Bumper", PlayfieldItemHint = "^b1l2$" }
+			new GamelogicEngineLamp(GiSlingshotRightLower) { Description = "Right Slingshot (lower)", DeviceHint = "gi1$" },
+			new GamelogicEngineLamp(GiSlingshotRightUpper) { Description = "Right Slingshot (upper)", DeviceHint = "gi2$" },
+			new GamelogicEngineLamp(GiSlingshotLeftLower) { Description = "Left Slingshot (lower)", DeviceHint = "gi3$" },
+			new GamelogicEngineLamp(GiSlingshotLeftUpper) { Description = "Left Slingshot (upper)", DeviceHint = "gi4$" },
+			new GamelogicEngineLamp(GiDropTargetsRightLower) { Description = "Right Drop Targets (lower)", DeviceHint = "gi5$" },
+			new GamelogicEngineLamp(GiDropTargetsRightUpper) { Description = "Right Drop Targets (upper)", DeviceHint = "gi8$" },
+			new GamelogicEngineLamp(GiDropTargetsLeftLower) { Description = "Left Drop Targets (lower)", DeviceHint = "gi6$" },
+			new GamelogicEngineLamp(GiDropTargetsLeftUpper) { Description = "Left Drop Targets (upper)", DeviceHint = "gi7$" },
+			new GamelogicEngineLamp(GiTop1) { Description = "Top 1 (left)", DeviceHint = "gi13$" },
+			new GamelogicEngineLamp(GiTop2) { Description = "Top 2", DeviceHint = "gi10$" },
+			new GamelogicEngineLamp(GiTop3) { Description = "Top 3", DeviceHint = "gi9$" },
+			new GamelogicEngineLamp(GiTop4) { Description = "Top 4", DeviceHint = "gi11$" },
+			new GamelogicEngineLamp(GiTop5) { Description = "Top 5 (right)", DeviceHint = "gi12$" },
+			new GamelogicEngineLamp(GiLowerRamp) { Description = "Ramp (lower)", DeviceHint = "gi14$" },
+			new GamelogicEngineLamp(GiUpperRamp) { Description = "Ramp (upper)", DeviceHint = "gi15$" },
+			new GamelogicEngineLamp(GiTopLeftPlastic) { Description = "Top Left Plastics", DeviceHint = "gi16$" },
+			new GamelogicEngineLamp(LampRedBumper) { Description = "Red Bumper", DeviceHint = "^b1l2$" }
 		};
 
 		private Player _player;

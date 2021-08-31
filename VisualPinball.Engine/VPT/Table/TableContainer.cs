@@ -222,9 +222,9 @@ namespace VisualPinball.Engine.VPT.Table
 		// 	/* todo fix .Concat(_troughs.Values) */
 		// 	.Concat(_plungers.Values);
 
-		public IEnumerable<ILightable> Lightables => Array.Empty<ILightable>()
-			.Concat(_lights.Values)
-			.Concat(_flashers.Values);
+		// public IEnumerable<ILightable> Lightables => Array.Empty<ILightable>()
+		// 	.Concat(_lights.Values)
+		// 	.Concat(_flashers.Values);
 
 		protected Dictionary<string, T> GetItemDictionary<T>() where T : IItem
 		{

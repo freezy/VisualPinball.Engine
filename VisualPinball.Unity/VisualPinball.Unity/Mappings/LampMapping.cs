@@ -14,10 +14,29 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-namespace VisualPinball.Engine.Game
+// ReSharper disable InconsistentNaming
+
+using System;
+
+namespace VisualPinball.Unity
 {
-	public interface ILightable
+	[Serializable]
+	public class LampMapping
 	{
-		string Name { get; }
+		public string Id = string.Empty;
+
+		public ELampSource Source = ELampSource.Lamps;
+
+		public string Description = string.Empty;
+
+		public ILampAuthoring Device;
+
+		public string DeviceId = string.Empty;
+
+		public ELampType Type = ELampType.SingleOnOff;
+
+		public string Green = string.Empty;
+
+		public string Blue = string.Empty;
 	}
 }

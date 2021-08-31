@@ -34,6 +34,7 @@ namespace VisualPinball.Unity
 		[SerializeField] public List<SwitchMapping> Switches = new List<SwitchMapping>();
 		[SerializeField] public List<CoilMapping> Coils = new List<CoilMapping>();
 		[SerializeField] public List<WireMapping> Wires = new List<WireMapping>();
+		[SerializeField] public List<LampMapping> Lamps = new List<LampMapping>();
 
 		public bool IsEmpty()
 		{
@@ -346,6 +347,124 @@ namespace VisualPinball.Unity
 		public void RemoveWire(WireMapping wireMapping)
 		{
 			Wires.Remove(wireMapping);
+		}
+
+		#endregion
+
+		#region Lamps
+
+				/// <summary>
+		/// Auto-matches the lamps provided by the gamelogic engine with the
+		/// lamps on the playfield.
+		/// </summary>
+		/// <param name="engineLamps">List of lamps provided by the gamelogic engine</param>
+		/// <param name="tableComponent">Table component</param>
+		public void PopulateLamps(GamelogicEngineLamp[] engineLamps, TableAuthoring tableComponent)
+		{
+			var lamps = tableComponent.GetComponentsInChildren<ILampAuthoring>();
+			var gbLamps = new List<GamelogicEngineLamp>();
+			foreach (var engineLamp in GetLamps(engineLamps)) {
+
+				var lampMapping = Lamps.FirstOrDefault(mappingsLampData => mappingsLampData.Id == engineLamp.Id && mappingsLampData.Source != ELampSource.Coils);
+				if (lampMapping != null) {
+					continue;
+				}
+
+				// we'll handle those in a second loop when all the R lamps are added
+				if (!string.IsNullOrEmpty(engineLamp.MainLampIdOfGreen) || !string.IsNullOrEmpty(engineLamp.MainLampIdOfBlue)) {
+					gbLamps.Add(engineLamp);
+					continue;
+				}
+
+				var description = string.IsNullOrEmpty(engineLamp.Description) ? string.Empty : engineLamp.Description;
+				var device = GuessLampDevice(lamps, engineLamp);
+
+				AddLamp(new LampMapping {
+					Id = engineLamp.Id,
+					Description = description,
+					Device = device,
+					// todo device id
+				});
+			}
+
+			foreach (var gbLamp in gbLamps) {
+				var rLampId = !string.IsNullOrEmpty(gbLamp.MainLampIdOfGreen) ? gbLamp.MainLampIdOfGreen : gbLamp.MainLampIdOfBlue;
+				var rLamp = Lamps.FirstOrDefault(c => c.Id == rLampId);
+				if (rLamp == null) {
+					var device = GuessLampDevice(lamps, gbLamp);
+					rLamp = new LampMapping() {
+						Id = rLampId,
+						Device = device,
+						// todo dovice id
+					};
+					AddLamp(rLamp);
+				}
+
+				rLamp.Type = ELampType.RgbMulti;
+				if (!string.IsNullOrEmpty(gbLamp.MainLampIdOfGreen)) {
+					rLamp.Green = gbLamp.Id;
+
+				} else {
+					rLamp.Blue = gbLamp.Id;
+				}
+			}
+		}
+
+		/// <summary>
+		/// Returns a sorted list of lamp names from the gamelogic engine,
+		/// appended with the additional names in the lamp mapping. In short,
+		/// the list of lamp names to choose from.
+		/// </summary>
+		/// <param name="engineLamps">Lamp names provided by the gamelogic engine</param>
+		/// <returns>All lamp names</returns>
+		public IEnumerable<GamelogicEngineLamp> GetLamps(GamelogicEngineLamp[] engineLamps)
+		{
+			var lamps = new List<GamelogicEngineLamp>();
+
+			// first, add lamps from the gamelogic engine
+			if (engineLamps != null) {
+				lamps.AddRange(engineLamps);
+			}
+
+			// then add lamp ids that were added manually
+			foreach (var lampMapping in Lamps) {
+				if (!lamps.Exists(entry => entry.Id == lampMapping.Id)) {
+					lamps.Add(new GamelogicEngineLamp(lampMapping.Id));
+				}
+			}
+
+			lamps.Sort((s1, s2) => s1.Id.CompareTo(s2.Id));
+			return lamps;
+		}
+
+		private static ILampAuthoring GuessLampDevice(ILampAuthoring[] lamps, GamelogicEngineLamp engineLamp)
+		{
+			// first, match by regex if hint provided
+			if (!string.IsNullOrEmpty(engineLamp.DeviceHint)) {
+				foreach (var lamp in lamps) {
+					var regex = new Regex(engineLamp.DeviceHint, RegexOptions.IgnoreCase);
+					if (regex.Match(lamp.name).Success) {
+						return lamp;
+					}
+				}
+			}
+
+			// second, match by "lXX" or name
+			var matchKey = int.TryParse(engineLamp.Id, out var numericLampId)
+				? $"l{numericLampId}"
+				: engineLamp.Id;
+
+			return lamps.FirstOrDefault(l => l.name == matchKey);
+		}
+
+		public void AddLamp(LampMapping lampMapping)
+		{
+			Lamps.Add(lampMapping);
+		}
+
+		public void RemoveLamp(LampMapping lampMapping)
+		{
+			Lamps.Remove(lampMapping);
 		}
 
 		#endregion
