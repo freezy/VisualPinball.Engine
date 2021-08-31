@@ -23,7 +23,7 @@ using VisualPinball.Engine.VPT.Trigger;
 namespace VisualPinball.Unity
 {
 	public class TriggerApi : ItemCollidableApi<TriggerAuthoring, TriggerColliderAuthoring, TriggerData>,
-		IApiInitializable, IApiHittable, IApiSwitch, IApiColliderGenerator
+		IApiInitializable, IApiHittable, IApiSwitch, IApiSwitchDevice, IApiColliderGenerator
 	{
 		/// <summary>
 		/// Event emitted when the table is started.
@@ -50,10 +50,16 @@ namespace VisualPinball.Unity
 		{
 		}
 
-		IApiSwitchStatus IApiSwitch.AddSwitchDest(SwitchConfig switchConfig) => AddSwitchDest(switchConfig.WithPulse(MainComponent.IsPulseSwitch));
-		void IApiSwitch.AddWireDest(WireDestConfig wireConfig) => AddWireDest(wireConfig.WithPulse(MainComponent.IsPulseSwitch));
+		#region Wiring
+
+		IApiSwitch IApiSwitchDevice.Switch(string deviceSwitchId) => this;
+
+		IApiSwitchStatus IApiSwitch.AddSwitchDest(SwitchConfig switchConfig) => AddSwitchDest(switchConfig);
+		void IApiSwitch.AddWireDest(WireDestConfig wireConfig) => AddWireDest(wireConfig);
 		void IApiSwitch.RemoveWireDest(string destId) => RemoveWireDest(destId);
 		void IApiSwitch.DestroyBall(Entity ballEntity) => DestroyBall(ballEntity);
+
+		#endregion
 
 		#region Collider Generation
 
@@ -96,5 +102,6 @@ namespace VisualPinball.Unity
 		}
 
 		#endregion
+
 	}
 }

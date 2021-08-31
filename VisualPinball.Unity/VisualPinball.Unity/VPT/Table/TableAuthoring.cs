@@ -54,15 +54,20 @@ namespace VisualPinball.Unity
 
 		#endregion
 
+		#region Overrides
+
 		public override ItemType ItemType => ItemType.Table;
 		public override string ItemName => "Table";
 
 		public override TableData InstantiateData() => new TableData();
 
+		public override IEnumerable<Type> ValidParents => Type.EmptyTypes;
+
 		protected override Type MeshAuthoringType => null;
 		protected override Type ColliderAuthoringType => null;
 
-		public override IEnumerable<Type> ValidParents => Type.EmptyTypes;
+		#endregion
+
 
 		public SceneTableContainer TableContainer => _tableContainer ??= new SceneTableContainer(this);
 
@@ -111,6 +116,8 @@ namespace VisualPinball.Unity
 			Mappings.Wires = mappings.Wires.ToArray();
 		}
 
+		#region Conversion
+
 		public override IEnumerable<MonoBehaviour> SetData(TableData data)
 		{
 			GlobalDifficulty = data.GlobalDifficulty;
@@ -131,6 +138,8 @@ namespace VisualPinball.Unity
 
 			return data;
 		}
+
+		#endregion
 
 		public Vector3 GetTableCenter()
 		{
@@ -154,16 +163,16 @@ namespace VisualPinball.Unity
 
 		public void RepopulateHardware(IGamelogicEngine gle)
 		{
-			TableContainer.Refresh();
+			//TableContainer.Refresh(); // todo needed?
 
-			Mappings.RemoveAllSwitches();
-			TableContainer.Mappings.PopulateSwitches(gle.AvailableSwitches, TableContainer.Switchables, TableContainer.SwitchableDevices);
+			MappingConfig.RemoveAllSwitches();
+			MappingConfig.PopulateSwitches(gle.AvailableSwitches, this);
 
-			Mappings.RemoveAllCoils();
-			TableContainer.Mappings.PopulateCoils(gle.AvailableCoils, TableContainer.Coilables, TableContainer.CoilableDevices);
+			MappingConfig.RemoveAllCoils();
+			MappingConfig.PopulateCoils(gle.AvailableCoils, this);
 
-			Mappings.RemoveAllLamps();
-			TableContainer.Mappings.PopulateLamps(gle.AvailableLamps, TableContainer.Lightables);
+			// MappingConfig.RemoveAllLamps();
+			// TableContainer.Mappings.PopulateLamps(gle.AvailableLamps, TableContainer.Lightables);
 		}
 	}
 }

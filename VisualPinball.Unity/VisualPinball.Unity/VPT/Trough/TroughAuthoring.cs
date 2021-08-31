@@ -37,7 +37,7 @@ namespace VisualPinball.Unity
 	[AddComponentMenu("Visual Pinball/Trough")]
 	[HelpURL("https://docs.visualpinball.org/creators-guide/manual/mechanisms/troughs.html")]
 	public class TroughAuthoring : ItemMainAuthoring<TroughData>,
-		ISwitchDeviceAuthoring /*ISwitchableDevice, ISwitchDeviceAuthoring, ICoilableDevice, ICoilDeviceAuthoring*/
+		ISwitchDeviceAuthoring,  ICoilDeviceAuthoring
 	{
 		#region Data
 

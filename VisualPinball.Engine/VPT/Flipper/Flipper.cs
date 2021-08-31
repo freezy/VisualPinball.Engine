@@ -20,12 +20,10 @@ using VisualPinball.Engine.Math;
 
 namespace VisualPinball.Engine.VPT.Flipper
 {
-	public class Flipper : Item<FlipperData>, IRenderable, ISwitchable, ICoilable
+	public class Flipper : Item<FlipperData>, IRenderable
 	{
 		public override string ItemName => "Flipper";
 		public override string ItemGroupName => "Flippers";
-
-		public bool IsPulseSwitch => false;
 
 		private readonly FlipperMeshGenerator _meshGenerator;
 
@@ -60,6 +58,5 @@ namespace VisualPinball.Engine.VPT.Flipper
 
 		#endregion
 
-		public bool IsDualWound { get => Data.IsDualWound; set => Data.IsDualWound = value; }
 	}
 }

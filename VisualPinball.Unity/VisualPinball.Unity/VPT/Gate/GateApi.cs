@@ -23,7 +23,7 @@ using VisualPinball.Engine.VPT.Gate;
 namespace VisualPinball.Unity
 {
 	public class GateApi : ItemCollidableApi<GateAuthoring, GateColliderAuthoring, GateData>,
-		IApiInitializable, IApiHittable, IApiRotatable, IApiSwitch, IApiColliderGenerator
+		IApiInitializable, IApiHittable, IApiRotatable, IApiSwitch, IApiSwitchDevice, IApiColliderGenerator
 	{
 		/// <summary>
 		/// Event emitted when the table is started.
@@ -78,10 +78,16 @@ namespace VisualPinball.Unity
 		{
 		}
 
-		IApiSwitchStatus IApiSwitch.AddSwitchDest(SwitchConfig switchConfig) => AddSwitchDest(switchConfig.WithPulse(MainComponent.IsPulseSwitch));
-		void IApiSwitch.AddWireDest(WireDestConfig wireConfig) => AddWireDest(wireConfig.WithPulse(MainComponent.IsPulseSwitch));
+		#region Wiring
+
+		IApiSwitch IApiSwitchDevice.Switch(string deviceSwitchId) => this;
+
+		IApiSwitchStatus IApiSwitch.AddSwitchDest(SwitchConfig switchConfig) => AddSwitchDest(switchConfig.WithPulse(true));
+		void IApiSwitch.AddWireDest(WireDestConfig wireConfig) => AddWireDest(wireConfig.WithPulse(true));
 		void IApiSwitch.RemoveWireDest(string destId) => RemoveWireDest(destId);
 		void IApiSwitch.DestroyBall(Entity ballEntity) => DestroyBall(ballEntity);
+
+		#endregion
 
 		#region Collider Generation
 

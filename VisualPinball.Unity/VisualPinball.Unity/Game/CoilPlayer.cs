@@ -151,16 +151,6 @@ namespace VisualPinball.Unity
 				_gamelogicEngine.OnCoilChanged -= HandleCoilEvent;
 			}
 		}
-
-		// todo remove below
-		internal void RegisterCoil(string goName, IApiCoil _)
-		{
-		}
-
-		internal void RegisterCoilDevice(string goName, IApiCoilDevice _)
-		{
-		}
-
 	}
 
 	internal class CoilDestConfig

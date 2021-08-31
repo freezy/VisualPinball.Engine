@@ -51,62 +51,32 @@ namespace VisualPinball.Unity
 
 		#endregion
 
-		#region IMeshGenerator
-
-		public Mesh GetMesh() => GetDefaultMesh();
-
-		public Matrix3D GetTransformationMatrix()
-		{
-			// scale matrix
-			var scaleMatrix = new Matrix3D();
-			scaleMatrix.SetScaling(Size.x, Size.y, Size.z);
-
-			// translation matrix
-			var tableHeight = PlayfieldHeight;
-			var transMatrix = new Matrix3D();
-			transMatrix.SetTranslation(Position.x, Position.y, Position.z + tableHeight);
-
-			// translation + rotation matrix
-			var rotTransMatrix = new Matrix3D();
-			rotTransMatrix.SetTranslation(Translation.x, Translation.y, Translation.z);
-
-			var tempMatrix = new Matrix3D();
-			tempMatrix.RotateZMatrix(MathF.DegToRad(Rotation.z));
-			rotTransMatrix.Multiply(tempMatrix);
-			tempMatrix.RotateYMatrix(MathF.DegToRad(Rotation.y));
-			rotTransMatrix.Multiply(tempMatrix);
-			tempMatrix.RotateXMatrix(MathF.DegToRad(Rotation.x));
-			rotTransMatrix.Multiply(tempMatrix);
-
-			tempMatrix.RotateZMatrix(MathF.DegToRad(ObjectRotation.z));
-			rotTransMatrix.Multiply(tempMatrix);
-			tempMatrix.RotateYMatrix(MathF.DegToRad(ObjectRotation.y));
-			rotTransMatrix.Multiply(tempMatrix);
-			tempMatrix.RotateXMatrix(MathF.DegToRad(ObjectRotation.x));
-			rotTransMatrix.Multiply(tempMatrix);
-
-			var fullMatrix = scaleMatrix.Clone();
-			fullMatrix.Multiply(rotTransMatrix);
-			fullMatrix.Multiply(transMatrix); // fullMatrix = Smatrix * RTmatrix * Tmatrix
-			scaleMatrix.SetScaling(1.0f, 1.0f, 1.0f);
-			fullMatrix.Multiply(scaleMatrix);
-
-			return fullMatrix;
-		}
-
-		#endregion
+		#region Overrides
 
 		public override ItemType ItemType => ItemType.Primitive;
 		public override string ItemName => "Primitive";
 
 		public override PrimitiveData InstantiateData() => new PrimitiveData();
 
-		protected override Type MeshAuthoringType { get; } = typeof(ItemMeshAuthoring<PrimitiveData, PrimitiveAuthoring>);
-		protected override Type ColliderAuthoringType { get; } = typeof(ItemColliderAuthoring<PrimitiveData, PrimitiveAuthoring>);
-
 		public override IEnumerable<Type> ValidParents => PrimitiveColliderAuthoring.ValidParentTypes
 			.Concat(PrimitiveMeshAuthoring.ValidParentTypes)
 			.Distinct();
+
+		protected override Type MeshAuthoringType { get; } = typeof(ItemMeshAuthoring<PrimitiveData, PrimitiveAuthoring>);
+		protected override Type ColliderAuthoringType { get; } = typeof(ItemColliderAuthoring<PrimitiveData, PrimitiveAuthoring>);
+
+		#endregion
+
+		#region Transformation
+
+		public override void UpdateTransforms()
+		{
+			transform.SetFromMatrix(GetTransformationMatrix().ToUnityMatrix());
+		}
+
+		#endregion
+
+		#region Conversion
 
 		public void Convert(Entity entity, EntityManager dstManager, GameObjectConversionSystem conversionSystem)
 		{
@@ -116,10 +86,6 @@ namespace VisualPinball.Unity
 			transform.GetComponentInParent<Player>().RegisterPrimitive(this, entity, ParentEntity);
 		}
 
-		public override void UpdateTransforms()
-		{
-			transform.SetFromMatrix(GetTransformationMatrix().ToUnityMatrix());
-		}
 
 		public override IEnumerable<MonoBehaviour> SetData(PrimitiveData data)
 		{
@@ -236,6 +202,53 @@ namespace VisualPinball.Unity
 
 			return data;
 		}
+
+		#endregion
+
+		#region IMeshGenerator
+
+		public Mesh GetMesh() => GetDefaultMesh();
+
+		public Matrix3D GetTransformationMatrix()
+		{
+			// scale matrix
+			var scaleMatrix = new Matrix3D();
+			scaleMatrix.SetScaling(Size.x, Size.y, Size.z);
+
+			// translation matrix
+			var tableHeight = PlayfieldHeight;
+			var transMatrix = new Matrix3D();
+			transMatrix.SetTranslation(Position.x, Position.y, Position.z + tableHeight);
+
+			// translation + rotation matrix
+			var rotTransMatrix = new Matrix3D();
+			rotTransMatrix.SetTranslation(Translation.x, Translation.y, Translation.z);
+
+			var tempMatrix = new Matrix3D();
+			tempMatrix.RotateZMatrix(MathF.DegToRad(Rotation.z));
+			rotTransMatrix.Multiply(tempMatrix);
+			tempMatrix.RotateYMatrix(MathF.DegToRad(Rotation.y));
+			rotTransMatrix.Multiply(tempMatrix);
+			tempMatrix.RotateXMatrix(MathF.DegToRad(Rotation.x));
+			rotTransMatrix.Multiply(tempMatrix);
+
+			tempMatrix.RotateZMatrix(MathF.DegToRad(ObjectRotation.z));
+			rotTransMatrix.Multiply(tempMatrix);
+			tempMatrix.RotateYMatrix(MathF.DegToRad(ObjectRotation.y));
+			rotTransMatrix.Multiply(tempMatrix);
+			tempMatrix.RotateXMatrix(MathF.DegToRad(ObjectRotation.x));
+			rotTransMatrix.Multiply(tempMatrix);
+
+			var fullMatrix = scaleMatrix.Clone();
+			fullMatrix.Multiply(rotTransMatrix);
+			fullMatrix.Multiply(transMatrix); // fullMatrix = Smatrix * RTmatrix * Tmatrix
+			scaleMatrix.SetScaling(1.0f, 1.0f, 1.0f);
+			fullMatrix.Multiply(scaleMatrix);
+
+			return fullMatrix;
+		}
+
+		#endregion
 
 		#region Editor Tooling
 

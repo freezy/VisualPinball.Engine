@@ -192,7 +192,7 @@ namespace VisualPinball.Unity.Editor
 		private void RefreshSwitchIds()
 		{
 			_gleSwitches.Clear();
-			_gleSwitches.AddRange(_tableAuthoring.TableContainer.Mappings.GetSwitchIds(GetAvailableEngineSwitches()));
+			_gleSwitches.AddRange(_tableAuthoring.MappingConfig.GetSwitchIds(GetAvailableEngineSwitches()));
 		}
 
 		private GamelogicEngineSwitch[] GetAvailableEngineSwitches()

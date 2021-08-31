@@ -22,7 +22,7 @@ using VisualPinball.Engine.Math;
 
 namespace VisualPinball.Engine.VPT.Plunger
 {
-	public class Plunger : Item<PlungerData>, IRenderable, ICoilableDevice
+	public class Plunger : Item<PlungerData>, IRenderable
 	{
 		public override string ItemName => "Plunger";
 		public override string ItemGroupName => "Plungers";
@@ -73,7 +73,5 @@ namespace VisualPinball.Engine.VPT.Plunger
 		}
 
 		#endregion
-
-		public bool IsDualWound { get; set; }
 	}
 }

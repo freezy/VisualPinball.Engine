@@ -22,12 +22,10 @@ using MathF = VisualPinball.Engine.Math.MathF;
 
 namespace VisualPinball.Engine.VPT.Bumper
 {
-	public class Bumper : Item<BumperData>, IRenderable, ISwitchable, ICoilable
+	public class Bumper : Item<BumperData>, IRenderable
 	{
 		public override string ItemName => "Bumper";
 		public override string ItemGroupName => "Bumpers";
-
-		public bool IsPulseSwitch => true;
 
 		private readonly BumperMeshGenerator _meshGenerator;
 
@@ -75,7 +73,5 @@ namespace VisualPinball.Engine.VPT.Bumper
 		}
 
 		#endregion
-
-		public bool IsDualWound { get; set; }
 	}
 }

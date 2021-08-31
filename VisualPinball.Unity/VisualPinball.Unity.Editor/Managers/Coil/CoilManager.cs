@@ -191,7 +191,7 @@ namespace VisualPinball.Unity.Editor
 		private void RefreshCoilIds()
 		{
 			_gleCoils.Clear();
-			_gleCoils.AddRange(_tableAuthoring.TableContainer.Mappings.GetCoils(GetAvailableEngineCoils()));
+			_gleCoils.AddRange(_tableAuthoring.MappingConfig.GetCoils(GetAvailableEngineCoils()));
 		}
 
 		private GamelogicEngineCoil[] GetAvailableEngineCoils()

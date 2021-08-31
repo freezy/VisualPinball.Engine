@@ -23,8 +23,6 @@ namespace VisualPinball.Unity
 	/// </summary>
 	public interface ITriggerAuthoring : ISwitchDeviceAuthoring
 	{
-		string name { get; }
-
 		Vector2 Center { get; }
 	}
 }

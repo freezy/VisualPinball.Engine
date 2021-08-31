@@ -179,14 +179,14 @@ namespace VisualPinball.Unity
 
 		public void RegisterBumper(BumperAuthoring component, Entity entity, Entity parentEntity)
 		{
-			Register(TableApi.Bumpers, new BumperApi(component.gameObject, entity, parentEntity, this), entity, component);
+			Register(TableApi.Bumpers, new BumperApi(component.gameObject, entity, parentEntity, this), component, entity);
 			RegisterTransform<BumperRingAnimationAuthoring>(BumperRingTransforms, component, entity);
 			RegisterTransform<BumperSkirtAnimationAuthoring>(BumperSkirtTransforms, component, entity);
 		}
 
 		public void RegisterFlipper(FlipperAuthoring component, Entity entity, Entity parentEntity)
 		{
-			Register(TableApi.Flippers,  new FlipperApi(component.gameObject, entity, parentEntity, this), entity, component);
+			Register(TableApi.Flippers, new FlipperApi(component.gameObject, entity, parentEntity, this), component, entity);
 			FlipperTransforms[entity] = component.gameObject.transform;
 
 			if (EngineProvider<IDebugUI>.Exists) {
@@ -196,86 +196,38 @@ namespace VisualPinball.Unity
 
 		public void RegisterGate(GateAuthoring component, Entity entity, Entity parentEntity)
 		{
-			var go = component.gameObject;
-			var gateApi = new GateApi(go, entity, parentEntity, this);
-			TableApi.Gates[go.name] = gateApi;
-			_apis.Add(gateApi);
-			_initializables.Add(gateApi);
-			_rotatables[entity] = gateApi;
-			_switchPlayer.RegisterSwitch(go.name, gateApi);
-
-			RegisterCollider(entity, gateApi);
-
-			var wireAnimAuthoring = go.GetComponentInChildren<GateWireAnimationAuthoring>();
-			if (wireAnimAuthoring) {
-				GateWireTransforms[entity] = wireAnimAuthoring.gameObject.transform;
-			}
+			Register(TableApi.Gates, new GateApi(component.gameObject, entity, parentEntity, this), component, entity);
+			RegisterTransform<GateWireAnimationAuthoring>(GateWireTransforms, component, entity);
 		}
 
 		public void RegisterHitTarget(HitTargetAuthoring component, Entity entity, Entity parentEntity)
 		{
-			var go = component.gameObject;
-			var hitTargetApi = new HitTargetApi(go, entity, parentEntity, this);
-			TableApi.HitTargets[go.name] = hitTargetApi;
-			_apis.Add(hitTargetApi);
-			_initializables.Add(hitTargetApi);
-			RegisterCollider(entity, hitTargetApi);
-
-			var hitTargetMovementAuth = go.GetComponentInChildren<HitTargetAnimationAuthoring>();
-			if (hitTargetMovementAuth) {
-				HitTargetTransforms[entity] = hitTargetMovementAuth.gameObject.transform;
-			}
-
-			var dropMovementAuth = go.GetComponentInChildren<DropTargetAnimationAuthoring>();
-			if (dropMovementAuth) {
-				DropTargetTransforms[entity] = dropMovementAuth.gameObject.transform;
-			}
-			_switchPlayer.RegisterSwitch(go.name, hitTargetApi);
+			Register(TableApi.HitTargets, new HitTargetApi(component.gameObject, entity, parentEntity, this), component, entity);
+			RegisterTransform<HitTargetAnimationAuthoring>(HitTargetTransforms, component, entity);
+			RegisterTransform<DropTargetAnimationAuthoring>(DropTargetTransforms, component, entity);
 		}
 
 		public void RegisterKicker(KickerAuthoring component, Entity entity, Entity parentEntity)
 		{
-			var go = component.gameObject;
-			var kickerApi = new KickerApi(go, entity, parentEntity, this);
-			TableApi.Kickers[go.name] = kickerApi;
-			_apis.Add(kickerApi);
-			_initializables.Add(kickerApi);
-			_switchPlayer.RegisterSwitch(go.name, kickerApi);
-			_coilPlayer.RegisterCoil(go.name, kickerApi);
-			_wirePlayer.RegisterWire(go.name, kickerApi);
-
-			RegisterCollider(entity, kickerApi);
+			Register(TableApi.Kickers, new KickerApi(component.gameObject, entity, parentEntity, this), component, entity);
 		}
 
 		public void RegisterLamp(LightAuthoring component)
 		{
-			var go = component.gameObject;
-			var lightApi = new LightApi(go, this);
-			TableApi.Lights[go.name] = lightApi;
-			_apis.Add(lightApi);
-			_initializables.Add(lightApi);
-			_lampPlayer.RegisterLamp(go.name, lightApi);
-			_wirePlayer.RegisterWire(go.name, lightApi);
+			Register(TableApi.Lights, new LightApi(component.gameObject, this), component);
 		}
 
 		public void RegisterPlunger(PlungerAuthoring component, Entity entity, Entity parentEntity, InputActionReference actionRef)
 		{
-			var go = component.gameObject;
-			var plungerApi = new PlungerApi(go, entity, parentEntity, this);
-			TableApi.Plungers[go.name] = plungerApi;
-			_apis.Add(plungerApi);
-			_colliderGenerators.Add(plungerApi);
-			_initializables.Add(plungerApi);
-			_rotatables[entity] = plungerApi;
-			_coilPlayer.RegisterCoilDevice(go.name, plungerApi);
-			_wirePlayer.RegisterWireDevice(go.name, plungerApi);
+			var plungerApi = new PlungerApi(component.gameObject, entity, parentEntity, this);
+			Register(TableApi.Plungers, plungerApi, component, entity);
 
 			if (actionRef != null) {
 				actionRef.action.performed += plungerApi.OnAnalogPlunge;
 				_actions.Add((actionRef.action, plungerApi.OnAnalogPlunge));
 			}
 
-			PlungerSkinnedMeshRenderers[entity] = go.GetComponentsInChildren<SkinnedMeshRenderer>();
+			PlungerSkinnedMeshRenderers[entity] = component.gameObject.GetComponentsInChildren<SkinnedMeshRenderer>();
 		}
 
 		public void RegisterPlayfield(GameObject go)
@@ -286,105 +238,49 @@ namespace VisualPinball.Unity
 
 		public void RegisterPrimitive(PrimitiveAuthoring component, Entity entity, Entity parentEntity)
 		{
-			var go = component.gameObject;
-			var primitiveApi = new PrimitiveApi(go, entity, parentEntity, this);
-			TableApi.Primitives[go.name] = primitiveApi;
-			_apis.Add(primitiveApi);
-			_initializables.Add(primitiveApi);
-			RegisterCollider(entity, primitiveApi);
+			Register(TableApi.Primitives, new PrimitiveApi(component.gameObject, entity, parentEntity, this), component, entity);
 		}
 
 		public void RegisterRamp(RampAuthoring component, Entity entity, Entity parentEntity)
 		{
-			var go = component.gameObject;
-			var rampApi = new RampApi(go, entity, parentEntity, this);
-			TableApi.Ramps[go.name] = rampApi;
-			_apis.Add(rampApi);
-			_initializables.Add(rampApi);
-			RegisterCollider(entity, rampApi);
+			Register(TableApi.Ramps, new RampApi(component.gameObject, entity, parentEntity, this), component, entity);
 		}
 
 		public void RegisterRubber(RubberAuthoring component, Entity entity, Entity parentEntity)
 		{
-			var go = component.gameObject;
-			var rubberApi = new RubberApi(go, entity, parentEntity, this);
-			TableApi.Rubbers[go.name] = rubberApi;
-			_apis.Add(rubberApi);
-			_initializables.Add(rubberApi);
-			RegisterCollider(entity, rubberApi);
+			Register(TableApi.Rubbers, new RubberApi(component.gameObject, entity, parentEntity, this), component, entity);
 		}
 
 		public void RegisterSpinner(SpinnerAuthoring component, Entity entity, Entity parentEntity)
 		{
-			var go = component.gameObject;
-			var spinnerApi = new SpinnerApi(go, entity, parentEntity, this);
-			TableApi.Spinners[go.name] = spinnerApi;
-			_apis.Add(spinnerApi);
-			_initializables.Add(spinnerApi);
-			_spinnables[entity] = spinnerApi;
-			_rotatables[entity] = spinnerApi;
-			_switchPlayer.RegisterSwitch(go.name, spinnerApi);
-
-			RegisterCollider(entity, spinnerApi);
-
-			var plateAnimAuthoring = go.GetComponentInChildren<SpinnerPlateAnimationAuthoring>();
-			if (plateAnimAuthoring) {
-				SpinnerPlateTransforms[entity] = plateAnimAuthoring.gameObject.transform;
-			}
+			Register(TableApi.Spinners, new SpinnerApi(component.gameObject, entity, parentEntity, this), component, entity);
+			RegisterTransform<SpinnerPlateAnimationAuthoring>(SpinnerPlateTransforms, component, entity);
 		}
 
 		public void RegisterSurface(SurfaceAuthoring component, Entity entity, Entity parentEntity)
 		{
-			var go = component.gameObject;
-			var surfaceApi = new SurfaceApi(go, entity, parentEntity, this);
-			TableApi.Surfaces[go.name] = surfaceApi;
-			_apis.Add(surfaceApi);
-			_initializables.Add(surfaceApi);
-			_slingshots[entity] = surfaceApi;
-
-			RegisterCollider(entity, surfaceApi);
+			Register(TableApi.Surfaces, new SurfaceApi(component.gameObject, entity, parentEntity, this), component, entity);
 		}
 
 		public void RegisterTrigger(TriggerAuthoring component, Entity entity, Entity parentEntity)
 		{
-			var go = component.gameObject;
-			var triggerApi = new TriggerApi(go, entity, parentEntity, this);
-			TableApi.Triggers[go.name] = triggerApi;
-			_apis.Add(triggerApi);
-			_initializables.Add(triggerApi);
-			_switchPlayer.RegisterSwitch(go.name, triggerApi);
-
-			RegisterCollider(entity, triggerApi);
-
-			TriggerTransforms[entity] = go.transform;
+			Register(TableApi.Triggers, new TriggerApi(component.gameObject, entity, parentEntity, this), component, entity);
+			TriggerTransforms[entity] = component.gameObject.transform;
 		}
 
-		public void RegisterTrigger(TriggerData data, Entity entity, GameObject go, bool addComponent = false)
+		public void RegisterTrigger(TriggerData data, Entity entity, GameObject go)
 		{
-			var triggerApi = new TriggerApi(go, entity, Entity.Null, this);
-			if (addComponent) {
-				go.AddComponent<TriggerAuthoring>().SetData(data);
-			}
-			TableApi.Triggers[go.name] = triggerApi;
-			_apis.Add(triggerApi);
-			_initializables.Add(triggerApi);
-			_colliderGenerators.Add(triggerApi);
-			_hittables[entity] = triggerApi;
-			_switchPlayer.RegisterSwitch(go.name, triggerApi);
+			var component = go.AddComponent<TriggerAuthoring>();
+			component.SetData(data);
+			Register(TableApi.Triggers, new TriggerApi(go, entity, Entity.Null, this), component, entity);
 		}
 
 		public void RegisterTrough(TroughAuthoring component)
 		{
-			var go = component.gameObject;
-			var troughApi = new TroughApi(go, this);
-			TableApi.Troughs[go.name] = troughApi;
-			_apis.Add(troughApi);
-			_initializables.Add(troughApi);
-			_switchPlayer.RegisterSwitchDevice(component, troughApi);
-			_coilPlayer.RegisterCoilDevice(go.name, troughApi);
+			Register(TableApi.Troughs, new TroughApi(component.gameObject, this), component);
 		}
 
-		private void Register<TApi>(Dictionary<string, TApi> apis, TApi api, Entity entity, MonoBehaviour component) where TApi : IApi
+		private void Register<TApi>(Dictionary<string, TApi> apis, TApi api, MonoBehaviour component, Entity entity = default) where TApi : IApi
 		{
 			apis[api.Name] = api;
 			_apis.Add(api);
@@ -394,6 +290,9 @@ namespace VisualPinball.Unity
 			if (api is IApiRotatable rotatable) {
 				_rotatables[entity] = rotatable;
 			}
+			if (api is IApiSlingshot slingshot) {
+				_slingshots[entity] = slingshot;
+			}
 			if (api is IApiSwitchDevice switchDevice) {
 				if (component is ISwitchDeviceAuthoring switchDeviceAuthoring) {
 					_switchPlayer.RegisterSwitchDevice(switchDeviceAuthoring, switchDevice);
@@ -402,10 +301,27 @@ namespace VisualPinball.Unity
 				}
 			}
 			if (api is IApiCoilDevice coilDevice) {
-				_coilPlayer.RegisterCoilDevice(api.Name, coilDevice);
+				if (component is ICoilDeviceAuthoring coilDeviceAuthoring) {
+					_coilPlayer.RegisterCoilDevice(coilDeviceAuthoring, coilDevice);
+				} else {
+					Logger.Warn($"{component.GetType()} is not of type ICoilDeviceAuthoring while ${api.GetType()} is of type IApiCoilDevice.");
+				}
 			}
 			if (api is IApiWireDeviceDest wireDevice) {
-				_wirePlayer.RegisterWireDevice(api.Name, wireDevice);
+				if (component is ICoilDeviceAuthoring coilDeviceAuthoring) {
+					_wirePlayer.RegisterWireDevice(coilDeviceAuthoring, wireDevice);
+				} else {
+					Logger.Warn($"{component.GetType()} is not of type ICoilDeviceAuthoring while ${api.GetType()} is of type IApiWireDeviceDest.");
+				}
+			}
+
+			if (api is IApiLamp lamp) {
+				if (component is ILampAuthoring lampAuthoring) {
+					//_lampPlayer.RegisterLamp(lampAuthoring, lamp);
+					_lampPlayer.RegisterLamp(lampAuthoring.name, lamp);
+				} else {
+					Logger.Warn($"{component.GetType()} is not of type ILampAuthoring while ${api.GetType()} is of type IApiLamp.");
+				}
 			}
 
 			if (api is IApiColliderGenerator colliderGenerator) {

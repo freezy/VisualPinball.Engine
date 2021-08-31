@@ -100,7 +100,7 @@ namespace VisualPinball.Unity
 
 		#endregion
 
-		#region Overrides
+		#region Overrides and Constants
 
 		public override ItemType ItemType => ItemType.Flipper;
 		public override string ItemName => "Flipper";
@@ -115,24 +115,27 @@ namespace VisualPinball.Unity
 		protected override Type MeshAuthoringType { get; } = typeof(ItemMeshAuthoring<FlipperData, FlipperAuthoring>);
 		protected override Type ColliderAuthoringType { get; } = typeof(ItemColliderAuthoring<FlipperData, FlipperAuthoring>);
 
+		public const string MainCoilId = "s_main_coil";
+		public const string HoldCoilId = "s_hold_coil";
 		#endregion
 
 		#region Wiring
 
 		public IEnumerable<GamelogicEngineSwitch> AvailableSwitches => new[] {
 			new GamelogicEngineSwitch(name) {
-				Description = "Flipper Switch",
+				Description = "EOS Switch",
 				IsPulseSwitch = false,
 			}
 		};
 
 		public SwitchDefault SwitchDefault => SwitchDefault.Configurable;
 
-		public IEnumerable<GamelogicEngineCoil> AvailableCoils => new[] {
-			new GamelogicEngineCoil(name) {
-				Description = "Flipper Coil",
+		public IEnumerable<GamelogicEngineCoil> AvailableCoils => IsDualWound
+			? new[] {
+				new GamelogicEngineCoil(MainCoilId) { Description = "Main Coil" },
+				new GamelogicEngineCoil(HoldCoilId) { Description = "Hold Coil" },
 			}
-		};
+			: new[] { new GamelogicEngineCoil(MainCoilId) };
 
 		#endregion
 
@@ -155,7 +158,7 @@ namespace VisualPinball.Unity
 
 		#endregion
 
-		#region Convertion
+		#region Conversion
 
 			public void Convert(Entity entity, EntityManager dstManager, GameObjectConversionSystem conversionSystem)
 		{
@@ -363,7 +366,7 @@ namespace VisualPinball.Unity
 				var triggerData = CreateCorrectionTriggerData();
 				var triggerEntity = dstManager.CreateEntity(typeof(TriggerStaticData));
 				dstManager.AddComponentData(triggerEntity, new TriggerStaticData());
-				player.RegisterTrigger(triggerData, triggerEntity, gameObject, true);
+				player.RegisterTrigger(triggerData, triggerEntity, gameObject);
 
 				using (var builder = new BlobBuilder(Allocator.Temp)) {
 

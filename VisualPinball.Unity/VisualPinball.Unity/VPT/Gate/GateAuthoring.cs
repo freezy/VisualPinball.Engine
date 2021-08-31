@@ -28,6 +28,7 @@ using Unity.Entities;
 using Unity.Mathematics;
 using UnityEngine;
 using VisualPinball.Engine.Common;
+using VisualPinball.Engine.Game.Engines;
 using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Gate;
 using VisualPinball.Engine.VPT.Table;
@@ -36,17 +37,8 @@ namespace VisualPinball.Unity
 {
 	[AddComponentMenu("Visual Pinball/Game Item/Gate")]
 	public class GateAuthoring : ItemMainRenderableAuthoring<GateData>,
-		IGateData, /*ISwitchAuthoring, */IOnSurfaceAuthoring, IConvertGameObjectToEntity
+		IGateData, ISwitchDeviceAuthoring, IOnSurfaceAuthoring, IConvertGameObjectToEntity
 	{
-		public override ItemType ItemType => ItemType.Gate;
-		public override string ItemName => "Gate";
-
-		public bool IsPulseSwitch => true;
-
-		public void OnSurfaceUpdated() => UpdateTransforms();
-
-		public float PositionZ => SurfaceHeight(Surface, Position);
-
 		#region Data
 
 		[Tooltip("Position of the gate on the playfield.")]
@@ -89,6 +81,14 @@ namespace VisualPinball.Unity
 
 		#endregion
 
+		#region Overrides and Constants
+
+		public override ItemType ItemType => ItemType.Gate;
+		public override string ItemName => "Gate";
+
+		public override IEnumerable<Type> ValidParents => GateColliderAuthoring.ValidParentTypes
+			.Distinct();
+
 		public override GateData InstantiateData() => new GateData();
 
 		protected override Type MeshAuthoringType { get; } = typeof(ItemMeshAuthoring<GateData, GateAuthoring>);
@@ -97,10 +97,43 @@ namespace VisualPinball.Unity
 		private const string BracketPrefabName = "Bracket";
 		private const string WirePrefabName = "Wire";
 
-		public override IEnumerable<Type> ValidParents => GateColliderAuthoring.ValidParentTypes
-			.Distinct();
+		#endregion
 
-		//public ISwitchable Switchable => Item;
+		#region Wiring
+
+		public IEnumerable<GamelogicEngineSwitch> AvailableSwitches => new[] {
+			new GamelogicEngineSwitch(name)  {
+				IsPulseSwitch = true
+			}
+		};
+
+		public SwitchDefault SwitchDefault => SwitchDefault.NormallyOpen;
+
+		#endregion
+
+		#region Transformation
+
+		public void OnSurfaceUpdated() => UpdateTransforms();
+
+		public float PositionZ => SurfaceHeight(Surface, Position);
+
+		public override void UpdateTransforms()
+		{
+			var t = transform;
+
+			// position
+			t.localPosition = new Vector3(Position.x, Position.y, Position.z + PositionZ);
+
+			// scale
+			t.localScale = new Vector3(Length, Length, Length);
+
+			// rotation
+			t.localEulerAngles = new Vector3(0, 0, Rotation);
+		}
+
+		#endregion
+
+		#region Conversion
 
 		public void Convert(Entity entity, EntityManager dstManager, GameObjectConversionSystem conversionSystem)
 		{
@@ -133,20 +166,6 @@ namespace VisualPinball.Unity
 
 			// register
 			transform.GetComponentInParent<Player>().RegisterGate(this, entity, ParentEntity);
-		}
-
-		public override void UpdateTransforms()
-		{
-			var t = transform;
-
-			// position
-			t.localPosition = new Vector3(Position.x, Position.y, Position.z + PositionZ);
-
-			// scale
-			t.localScale = new Vector3(Length, Length, Length);
-
-			// rotation
-			t.localEulerAngles = new Vector3(0, 0, Rotation);
 		}
 
 		public override IEnumerable<MonoBehaviour> SetData(GateData data)
@@ -241,6 +260,8 @@ namespace VisualPinball.Unity
 			return data;
 		}
 
+		#endregion
+
 		#region Editor Tooling
 
 		public override ItemDataTransformType EditorPositionType => ItemDataTransformType.ThreeD;
@@ -255,5 +276,6 @@ namespace VisualPinball.Unity
 		public override void SetEditorScale(Vector3 scale) => _length = scale.x;
 
 		#endregion
+
 	}
 }

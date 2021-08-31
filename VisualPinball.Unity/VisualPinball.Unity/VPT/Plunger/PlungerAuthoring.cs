@@ -25,6 +25,7 @@ using Unity.Entities;
 using Unity.Mathematics;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using VisualPinball.Engine.Game.Engines;
 using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Plunger;
 using VisualPinball.Engine.VPT.Table;
@@ -33,14 +34,8 @@ namespace VisualPinball.Unity
 {
 	[AddComponentMenu("Visual Pinball/Game Item/Plunger")]
 	public class PlungerAuthoring : ItemMainRenderableAuthoring<PlungerData>,
-		/*ICoilDeviceAuthoring, */IOnSurfaceAuthoring, IConvertGameObjectToEntity
+		ICoilDeviceAuthoring, IOnSurfaceAuthoring, IConvertGameObjectToEntity
 	{
-		public void OnSurfaceUpdated() => RebuildMeshes();
-
-		public override void OnPlayfieldHeightUpdated() => RebuildMeshes();
-
-		public float PositionZ => SurfaceHeight(Surface, Position);
-
 		#region Data
 
 		[Tooltip("The position of the plunger on the playfield.")]
@@ -60,23 +55,41 @@ namespace VisualPinball.Unity
 
 		#endregion
 
+		public InputActionReference analogPlungerAction;
+
+		#region Overrides
+
 		public override ItemType ItemType => ItemType.Plunger;
 		public override string ItemName => "Plunger";
 
 		public override PlungerData InstantiateData() => new PlungerData();
-
-		//public IEnumerable<GamelogicEngineCoil> AvailableCoils => Item.AvailableCoils;
-
-		public InputActionReference analogPlungerAction;
-
-		protected override Type MeshAuthoringType { get; } = typeof(ItemMeshAuthoring<PlungerData, PlungerAuthoring>);
-		protected override Type ColliderAuthoringType { get; } = typeof(ItemColliderAuthoring<PlungerData, PlungerAuthoring>);
 
 		public override IEnumerable<Type> ValidParents => PlungerColliderAuthoring.ValidParentTypes
 			.Concat(PlungerFlatMeshAuthoring.ValidParentTypes)
 			.Concat(PlungerRodMeshAuthoring.ValidParentTypes)
 			.Concat(PlungerSpringMeshAuthoring.ValidParentTypes)
 			.Distinct();
+
+		protected override Type MeshAuthoringType { get; } = typeof(ItemMeshAuthoring<PlungerData, PlungerAuthoring>);
+		protected override Type ColliderAuthoringType { get; } = typeof(ItemColliderAuthoring<PlungerData, PlungerAuthoring>);
+
+		public IEnumerable<GamelogicEngineCoil> AvailableCoils => new[] {
+			new GamelogicEngineCoil(name)
+		};
+
+		#endregion
+
+		#region Transformation
+
+		public void OnSurfaceUpdated() => RebuildMeshes();
+
+		public override void OnPlayfieldHeightUpdated() => RebuildMeshes();
+
+		public float PositionZ => SurfaceHeight(Surface, Position);
+
+		#endregion
+
+		#region Conversion
 
 		public void Convert(Entity entity, EntityManager dstManager, GameObjectConversionSystem conversionSystem)
 		{
@@ -286,6 +299,8 @@ namespace VisualPinball.Unity
 
 			return data;
 		}
+
+		#endregion
 
 		public void UpdateParkPosition(float pos)
 		{

@@ -37,7 +37,7 @@ namespace VisualPinball.Unity
 {
 	[AddComponentMenu("Visual Pinball/Game Item/Trigger")]
 	public class TriggerAuthoring : ItemMainRenderableAuthoring<TriggerData>,
-		/*ISwitchAuthoring, */ITriggerAuthoring, IDragPointsAuthoring, IOnSurfaceAuthoring, IConvertGameObjectToEntity
+		ITriggerAuthoring, IDragPointsAuthoring, IOnSurfaceAuthoring, IConvertGameObjectToEntity
 	{
 		#region Data
 
@@ -60,18 +60,10 @@ namespace VisualPinball.Unity
 
 		#endregion
 
+		#region Overrides and Constants
+
 		public override ItemType ItemType => ItemType.Trigger;
 		public override string ItemName => "Trigger";
-
-		public bool IsPulseSwitch => false;
-
-		public Vector2 Center => Position;
-
-		public IEnumerable<GamelogicEngineSwitch> AvailableSwitches { get; }
-		public SwitchDefault SwitchDefault { get; }
-
-		public void OnSurfaceUpdated() => UpdateTransforms();
-		public float PositionZ => SurfaceHeight(Surface, Position);
 
 		public override IEnumerable<Type> ValidParents => TriggerColliderAuthoring.ValidParentTypes
 			.Concat(TriggerMeshAuthoring.ValidParentTypes)
@@ -81,6 +73,40 @@ namespace VisualPinball.Unity
 
 		protected override Type MeshAuthoringType { get; } = typeof(ItemMeshAuthoring<TriggerData, TriggerAuthoring>);
 		protected override Type ColliderAuthoringType { get; } = typeof(ItemColliderAuthoring<TriggerData, TriggerAuthoring>);
+
+		#endregion
+
+		#region Wiring
+
+		public IEnumerable<GamelogicEngineSwitch> AvailableSwitches => new[] {
+			new GamelogicEngineSwitch(name)
+		};
+
+		public SwitchDefault SwitchDefault => SwitchDefault.Configurable;
+
+		#endregion
+
+		#region Transformation
+
+		public Vector2 Center => Position;
+
+		public void OnSurfaceUpdated() => UpdateTransforms();
+		public float PositionZ => SurfaceHeight(Surface, Position);
+
+		public override void UpdateTransforms()
+		{
+			var t = transform;
+
+			// position
+			t.localPosition = new Vector3(Position.x, Position.y, PositionZ);
+
+			// rotation
+			t.localEulerAngles = new Vector3(0, 0, Rotation);
+		}
+
+		#endregion
+
+		#region Conversion
 
 		public void Convert(Entity entity, EntityManager dstManager, GameObjectConversionSystem conversionSystem)
 		{
@@ -102,17 +128,6 @@ namespace VisualPinball.Unity
 
 			// register
 			transform.GetComponentInParent<Player>().RegisterTrigger(this, entity, ParentEntity);
-		}
-
-		public override void UpdateTransforms()
-		{
-			var t = transform;
-
-			// position
-			t.localPosition = new Vector3(Position.x, Position.y, PositionZ);
-
-			// rotation
-			t.localEulerAngles = new Vector3(0, 0, Rotation);
 		}
 
 		public override IEnumerable<MonoBehaviour> SetData(TriggerData data)
@@ -214,6 +229,8 @@ namespace VisualPinball.Unity
 
 			return data;
 		}
+
+		#endregion
 
 		#region Editor Tooling
 

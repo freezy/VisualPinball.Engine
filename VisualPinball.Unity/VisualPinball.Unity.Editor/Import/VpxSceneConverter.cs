@@ -459,9 +459,9 @@ namespace VisualPinball.Unity.Editor
 			}
 
 			// populate mappings
-			if (_tableContainer.Mappings.IsEmpty()) {
-				_tableContainer.Mappings.PopulateSwitches(dga.AvailableSwitches, _tableContainer.Switchables, _tableContainer.SwitchableDevices);
-				_tableContainer.Mappings.PopulateCoils(dga.AvailableCoils, _tableContainer.Coilables, _tableContainer.CoilableDevices);
+			if (_tableAuthoring.MappingConfig.IsEmpty()) {
+				_tableAuthoring.MappingConfig.PopulateSwitches(dga.AvailableSwitches, _tableAuthoring);
+				_tableAuthoring.MappingConfig.PopulateCoils(dga.AvailableCoils, _tableAuthoring);
 
 				// wire up plunger
 				var plunger = _tableContainer.Plunger();

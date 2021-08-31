@@ -149,11 +149,6 @@ namespace VisualPinball.Unity
 				_inputManager.Disable(HandleKeyInput);
 			}
 		}
-
-		// remove all below
-		internal void RegisterSwitch(string goName, IApiSwitch _)
-		{
-		}
 	}
 
 	internal class KeyboardSwitch : IApiSwitchStatus

@@ -28,6 +28,7 @@ using Unity.Entities;
 using Unity.Mathematics;
 using UnityEngine;
 using VisualPinball.Engine.Common;
+using VisualPinball.Engine.Game.Engines;
 using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Spinner;
 using VisualPinball.Engine.VPT.Table;
@@ -36,7 +37,7 @@ namespace VisualPinball.Unity
 {
 	[AddComponentMenu("Visual Pinball/Game Item/Spinner")]
 	public class SpinnerAuthoring : ItemMainRenderableAuthoring<SpinnerData>,
-		/*ISwitchAuthoring, */IOnSurfaceAuthoring, IConvertGameObjectToEntity
+		ISwitchDeviceAuthoring, IOnSurfaceAuthoring, IConvertGameObjectToEntity
 	{
 		#region Data
 
@@ -73,15 +74,13 @@ namespace VisualPinball.Unity
 
 		#endregion
 
+		#region Overrides and Constants
+
 		public override ItemType ItemType => ItemType.Spinner;
 		public override string ItemName => "Spinner";
 
-		public bool IsPulseSwitch => true;
-
-		public void OnSurfaceUpdated() => UpdateTransforms();
-		public float PositionZ => SurfaceHeight(Surface, Position);
-
-		public float HeightOnPlayfield => Height + PositionZ;
+		public override IEnumerable<Type> ValidParents => SpinnerColliderAuthoring.ValidParentTypes
+			.Distinct();
 
 		public override SpinnerData InstantiateData() => new SpinnerData();
 
@@ -90,10 +89,42 @@ namespace VisualPinball.Unity
 
 		private const string BracketMeshName = "Spinner (Bracket)";
 
-		public override IEnumerable<Type> ValidParents => SpinnerColliderAuthoring.ValidParentTypes
-			.Distinct();
+		#endregion
 
-		//public ISwitchable Switchable => Item;
+		#region Wiring
+
+		public IEnumerable<GamelogicEngineSwitch> AvailableSwitches => new[] {
+			new GamelogicEngineSwitch(name) { IsPulseSwitch = true }
+		};
+
+		public SwitchDefault SwitchDefault => SwitchDefault.Configurable;
+
+		#endregion
+
+		#region Transformation
+
+		public void OnSurfaceUpdated() => UpdateTransforms();
+		public float PositionZ => SurfaceHeight(Surface, Position);
+
+		public float HeightOnPlayfield => Height + PositionZ;
+
+		public override void UpdateTransforms()
+		{
+			var t = transform;
+
+			// position
+			t.localPosition = new Vector3(Position.x, Position.y, HeightOnPlayfield);
+
+			// scale
+			t.localScale = new Vector3(Length, Length, Length);
+
+			// rotation
+			t.localEulerAngles = new Vector3(0, 0, Rotation);
+		}
+
+		#endregion
+
+		#region Conversion
 
 		public void Convert(Entity entity, EntityManager dstManager, GameObjectConversionSystem conversionSystem)
 		{
@@ -122,20 +153,6 @@ namespace VisualPinball.Unity
 
 			// register
 			transform.GetComponentInParent<Player>().RegisterSpinner(this, entity, ParentEntity);
-		}
-
-		public override void UpdateTransforms()
-		{
-			var t = transform;
-
-			// position
-			t.localPosition = new Vector3(Position.x, Position.y, HeightOnPlayfield);
-
-			// scale
-			t.localScale = new Vector3(Length, Length, Length);
-
-			// rotation
-			t.localEulerAngles = new Vector3(0, 0, Rotation);
 		}
 
 		public override IEnumerable<MonoBehaviour> SetData(SpinnerData data)
@@ -220,6 +237,10 @@ namespace VisualPinball.Unity
 			return data;
 		}
 
+		#endregion
+
+		#region Editor Tooling
+
 		public override ItemDataTransformType EditorPositionType => ItemDataTransformType.ThreeD;
 		public override void SetEditorPosition(Vector3 pos)
 		{
@@ -247,5 +268,7 @@ namespace VisualPinball.Unity
 
 		public override Vector3 GetEditorScale() => new Vector3(Length, 0f, 0f);
 		public override void SetEditorScale(Vector3 scale) => Length = scale.x;
+
+		#endregion
 	}
 }

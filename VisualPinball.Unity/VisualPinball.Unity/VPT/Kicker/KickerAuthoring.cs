@@ -38,7 +38,7 @@ namespace VisualPinball.Unity
 {
 	[AddComponentMenu("Visual Pinball/Game Item/Kicker")]
 	public class KickerAuthoring : ItemMainRenderableAuthoring<KickerData>,
-		ISwitchDeviceAuthoring, /*ICoilAuthoring, */ITriggerAuthoring, IBallCreationPosition, IOnSurfaceAuthoring, IConvertGameObjectToEntity
+		ICoilDeviceAuthoring, ITriggerAuthoring, IBallCreationPosition, IOnSurfaceAuthoring, IConvertGameObjectToEntity
 	{
 		#region Data
 
@@ -62,33 +62,71 @@ namespace VisualPinball.Unity
 
 		#endregion
 
+		#region Overrides
+
 		public override ItemType ItemType => ItemType.Kicker;
 		public override string ItemName => "Kicker";
-		public bool IsPulseSwitch => false;
-		public void OnSurfaceUpdated() => UpdateTransforms();
-		public float PositionZ => SurfaceHeight(Surface, Position);
+
+		public override IEnumerable<Type> ValidParents => KickerColliderAuthoring.ValidParentTypes
+			.Distinct();
 
 		public override KickerData InstantiateData() => new KickerData();
 
 		protected override Type MeshAuthoringType { get; } = typeof(ItemMeshAuthoring<KickerData, KickerAuthoring>);
 		protected override Type ColliderAuthoringType { get; } = typeof(ItemColliderAuthoring<KickerData, KickerAuthoring>);
 
-		public override IEnumerable<Type> ValidParents => KickerColliderAuthoring.ValidParentTypes
-			.Distinct();
-
-		//public ISwitchable Switchable => Item;
-
 		public Vector2 Center => Position;
 
+		#endregion
 
-		public IEnumerable<GamelogicEngineSwitch> AvailableSwitches => new[]
-		{
+		#region Wiring
+
+		public IEnumerable<GamelogicEngineSwitch> AvailableSwitches => new[] {
 			new GamelogicEngineSwitch(name),
 		};
 
 		public SwitchDefault SwitchDefault => SwitchDefault.Configurable;
 
-		public void Convert(Entity entity, EntityManager dstManager, GameObjectConversionSystem conversionSystem)
+		public IEnumerable<GamelogicEngineCoil> AvailableCoils => new[] {
+			// todo support multiple coils, also see plunger which has 2 coil definitions
+			new GamelogicEngineCoil(name)
+		};
+
+		#endregion
+
+		#region Transformation
+
+		public void OnSurfaceUpdated() => UpdateTransforms();
+		public float PositionZ => SurfaceHeight(Surface, Position);
+
+
+		public override void UpdateTransforms()
+		{
+			var t = transform;
+
+			// position
+			t.localPosition = new Vector3(Position.x, Position.y, PositionZ);
+
+			if (KickerType == Engine.VPT.KickerType.KickerCup) {
+				t.localPosition += new Vector3(0, 0, -0.18f * Radius);
+			}
+
+			// scale
+			t.localScale = new Vector3(Radius, Radius, Radius);
+
+			// rotation
+			t.localEulerAngles = KickerType switch {
+				Engine.VPT.KickerType.KickerCup => new Vector3(0, 0, Orientation),
+				Engine.VPT.KickerType.KickerWilliams => new Vector3(0, 0, Orientation + 90f),
+				_ => t.localEulerAngles
+			};
+		}
+
+		#endregion
+
+		#region Conversion
+
+			public void Convert(Entity entity, EntityManager dstManager, GameObjectConversionSystem conversionSystem)
 		{
 			Convert(entity, dstManager);
 
@@ -129,28 +167,6 @@ namespace VisualPinball.Unity
 
 			// register
 			transform.GetComponentInParent<Player>().RegisterKicker(this, entity, ParentEntity);
-		}
-
-		public override void UpdateTransforms()
-		{
-			var t = transform;
-
-			// position
-			t.localPosition = new Vector3(Position.x, Position.y, PositionZ);
-
-			if (KickerType == Engine.VPT.KickerType.KickerCup) {
-				t.localPosition += new Vector3(0, 0, -0.18f * Radius);
-			}
-
-			// scale
-			t.localScale = new Vector3(Radius, Radius, Radius);
-
-			// rotation
-			t.localEulerAngles = KickerType switch {
-				Engine.VPT.KickerType.KickerCup => new Vector3(0, 0, Orientation),
-				Engine.VPT.KickerType.KickerWilliams => new Vector3(0, 0, Orientation + 90f),
-				_ => t.localEulerAngles
-			};
 		}
 
 		public override IEnumerable<MonoBehaviour> SetData(KickerData data)
@@ -216,6 +232,8 @@ namespace VisualPinball.Unity
 
 			return data;
 		}
+
+		#endregion
 
 		#region IBallCreationPosition
 

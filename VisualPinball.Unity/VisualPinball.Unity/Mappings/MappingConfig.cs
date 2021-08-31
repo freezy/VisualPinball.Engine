@@ -35,6 +35,12 @@ namespace VisualPinball.Unity
 		[SerializeField] public List<CoilMapping> Coils = new List<CoilMapping>();
 		[SerializeField] public List<WireMapping> Wires = new List<WireMapping>();
 
+		public bool IsEmpty()
+		{
+			return (Coils == null || Coils.Count == 0)
+		       && (Switches == null || Switches.Count == 0);
+		}
+
 		private static void Retrieve<T>(IEnumerable node, List<T> components, Action<Transform, List<T>> action)
 		{
 			foreach (Transform childTransform in node) {

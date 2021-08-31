@@ -25,7 +25,7 @@ using Random = Unity.Mathematics.Random;
 namespace VisualPinball.Unity
 {
 	public class KickerApi : ItemCollidableApi<KickerAuthoring, KickerColliderAuthoring, KickerData>,
-		IApiInitializable, IApiHittable, IApiSwitch, IApiCoil
+		IApiInitializable, IApiHittable, IApiSwitch, IApiSwitchDevice, IApiCoil, IApiCoilDevice
 	{
 		/// <summary>
 		/// Event emitted when the table is started.
@@ -72,7 +72,6 @@ namespace VisualPinball.Unity
 			SimulationSystemGroup.QueueAfterBallCreation(() => KickXYZ(Entity, ColliderComponent.EjectAngle, ColliderComponent.EjectSpeed, 0, 0, 0, 0));
 		}
 
-
 		public void Kick(float angle, float speed, float inclination = 0)
 		{
 			SimulationSystemGroup.QueueAfterBallCreation(() => KickXYZ(Entity, angle, speed, inclination, 0, 0, 0));
@@ -93,6 +92,11 @@ namespace VisualPinball.Unity
 			(this as IApiSwitch).DestroyBall(ballEntity);
 		}
 
+		#region Wiring
+
+		IApiSwitch IApiSwitchDevice.Switch(string deviceSwitchId) => this;
+
+		IApiCoil IApiCoilDevice.Coil(string deviceCoilId) => this; // todo add support for multi coils
 
 		void IApiSwitch.DestroyBall(Entity ballEntity)
 		{
@@ -122,6 +126,8 @@ namespace VisualPinball.Unity
 				entityManager.SetComponentData(Entity, kickerCollisionData);
 			}
 		}
+
+		#endregion
 
 		private void KickXYZ(Entity kickerEntity, float angle, float speed, float inclination, float x, float y, float z)
 		{
@@ -184,8 +190,8 @@ namespace VisualPinball.Unity
 			}
 		}
 
-		IApiSwitchStatus IApiSwitch.AddSwitchDest(SwitchConfig switchConfig) => AddSwitchDest(switchConfig.WithPulse(MainComponent.IsPulseSwitch));
-		void IApiSwitch.AddWireDest(WireDestConfig wireConfig) => AddWireDest(wireConfig.WithPulse(MainComponent.IsPulseSwitch));
+		IApiSwitchStatus IApiSwitch.AddSwitchDest(SwitchConfig switchConfig) => AddSwitchDest(switchConfig.WithPulse(false));
+		void IApiSwitch.AddWireDest(WireDestConfig wireConfig) => AddWireDest(wireConfig.WithPulse(false));
 		void IApiSwitch.RemoveWireDest(string destId) => RemoveWireDest(destId);
 
 		#region Collider Generation
