@@ -125,7 +125,7 @@ namespace VisualPinball.Unity
 
 			if (engineComponent != null) {
 				GamelogicEngine = engineComponent;
-				_lampPlayer.Awake(_tableContainer, GamelogicEngine);
+				_lampPlayer.Awake(_tableComponent, GamelogicEngine);
 				_coilPlayer.Awake(_tableComponent, GamelogicEngine, _lampPlayer);
 				_switchPlayer.Awake(_tableComponent, GamelogicEngine, _inputManager);
 				_wirePlayer.Awake(_tableComponent, _inputManager, _switchPlayer);
@@ -317,8 +317,7 @@ namespace VisualPinball.Unity
 
 			if (api is IApiLamp lamp) {
 				if (component is ILampAuthoring lampAuthoring) {
-					//_lampPlayer.RegisterLamp(lampAuthoring, lamp);
-					_lampPlayer.RegisterLamp(lampAuthoring.name, lamp);
+					_lampPlayer.RegisterLamp(lampAuthoring, lamp);
 				} else {
 					Logger.Warn($"{component.GetType()} is not of type ILampAuthoring while ${api.GetType()} is of type IApiLamp.");
 				}

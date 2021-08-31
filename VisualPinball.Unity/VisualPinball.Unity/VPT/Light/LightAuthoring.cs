@@ -35,7 +35,7 @@ using Logger = NLog.Logger;
 namespace VisualPinball.Unity
 {
 	[AddComponentMenu("Visual Pinball/Game Item/Light")]
-	public class LightAuthoring : ItemMainRenderableAuthoring<LightData>/*, ILampAuthoring*/
+	public class LightAuthoring : ItemMainRenderableAuthoring<LightData>, ILampAuthoring
 	{
 		#region Data
 

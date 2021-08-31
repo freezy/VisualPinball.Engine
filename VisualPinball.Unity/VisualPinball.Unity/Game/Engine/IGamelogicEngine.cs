@@ -203,7 +203,7 @@ namespace VisualPinball.Unity
 		/// <summary>
 		/// Source which triggered the lamp.
 		/// </summary>
-		public readonly int Source;
+		public readonly ELampSource Source;
 
 		public LampEventArgs(string id, int value)
 		{
@@ -212,7 +212,7 @@ namespace VisualPinball.Unity
 			Source = LampSource.Lamps;
 		}
 
-		public LampEventArgs(string id, int value, int source)
+		public LampEventArgs(string id, int value, ELampSource source)
 		{
 			Id = id;
 			Value = value;
