@@ -153,7 +153,6 @@ namespace VisualPinball.Unity
 		// remove all below
 		internal void RegisterSwitch(string goName, IApiSwitch _)
 		{
-			throw new System.NotImplementedException();
 		}
 	}
 

@@ -31,10 +31,9 @@ namespace VisualPinball.Unity
 	[Serializable]
 	public class MappingConfig
 	{
-		[SerializeField]
-		public List<SwitchMapping> Switches = new List<SwitchMapping>();
-		public List<CoilMapping> Coils = new List<CoilMapping>();
-		public List<WireMapping> Wires = new List<WireMapping>();
+		[SerializeField] public List<SwitchMapping> Switches = new List<SwitchMapping>();
+		[SerializeField] public List<CoilMapping> Coils = new List<CoilMapping>();
+		[SerializeField] public List<WireMapping> Wires = new List<WireMapping>();
 
 		private static void Retrieve<T>(IEnumerable node, List<T> components, Action<Transform, List<T>> action)
 		{

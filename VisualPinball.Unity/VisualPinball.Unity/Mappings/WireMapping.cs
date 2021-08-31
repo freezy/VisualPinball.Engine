@@ -16,11 +16,13 @@
 
 // ReSharper disable InconsistentNaming
 
+using System;
 using System.Diagnostics.CodeAnalysis;
 using UnityEngine;
 
 namespace VisualPinball.Unity
 {
+	[Serializable]
 	public class WireMapping
 	{
 		public string Description = string.Empty;

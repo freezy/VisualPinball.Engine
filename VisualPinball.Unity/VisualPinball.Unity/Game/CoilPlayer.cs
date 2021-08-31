@@ -155,12 +155,10 @@ namespace VisualPinball.Unity
 		// todo remove below
 		internal void RegisterCoil(string goName, IApiCoil _)
 		{
-			throw new System.NotImplementedException();
 		}
 
 		internal void RegisterCoilDevice(string goName, IApiCoilDevice _)
 		{
-			throw new System.NotImplementedException();
 		}
 
 	}
