@@ -26,10 +26,7 @@ namespace VisualPinball.Unity.Editor
 {
 	public class WireListViewItemRenderer
 	{
-		private readonly string[] OPTIONS_SOURCE = { "Input System", "Playfield", "Constant", "Device" };
 		private readonly string[] OPTIONS_SOURCE_CONSTANT = { "On", "Off" };
-
-		private readonly string[] OPTIONS_DESTINATION = { "Playfield", "Device" };
 
 		private struct InputSystemEntry
 		{
@@ -42,37 +39,21 @@ namespace VisualPinball.Unity.Editor
 			Description = 0,
 			Source = 1,
 			SourceElement = 2,
-			Destination = 3,
-			DestinationElement = 4,
-			PulseDelay = 5,
+			DestinationElement = 3,
+			PulseDelay = 4,
 		}
 
-		private readonly Dictionary<string, ISwitchAuthoring> _switches;
-		private readonly Dictionary<string, ISwitchDeviceAuthoring> _switchDevices;
 		private readonly InputManager _inputManager;
-		private AdvancedDropdownState _sourceElementDeviceDropdownState;
 
-		private readonly Dictionary<string, ICoilAuthoring> _coils;
-		private readonly Dictionary<string, ICoilDeviceAuthoring> _coilDevices;
+		private readonly ObjectReferencePicker<ISwitchDeviceAuthoring> _sourceDevicePicker;
+		private readonly ObjectReferencePicker<ICoilDeviceAuthoring> _destDevicePicker;
 
-		private readonly Dictionary<string, ILampAuthoring> _lamps;
-		private AdvancedDropdownState _destinationElementDeviceDropdownState;
-
-		public WireListViewItemRenderer(Dictionary<string, ISwitchAuthoring> switches,
-			Dictionary<string, ISwitchDeviceAuthoring> switchDevices,
-			Dictionary<string, ICoilAuthoring> coils,
-			Dictionary<string, ICoilDeviceAuthoring> coilDevices,
-			Dictionary<string, ILampAuthoring> lamps,
-			InputManager inputManager)
+		public WireListViewItemRenderer(TableAuthoring tableComponent, InputManager inputManager)
 		{
-			_switches = switches;
-			_switchDevices = switchDevices;
 			_inputManager = inputManager;
 
-			_coils = coils;
-			_coilDevices = coilDevices;
-
-			_lamps = lamps;
+			_sourceDevicePicker = new ObjectReferencePicker<ISwitchDeviceAuthoring>("Wire Source", tableComponent, IconColor.Gray);
+			_destDevicePicker = new ObjectReferencePicker<ICoilDeviceAuthoring>("Wire Destination", tableComponent, IconColor.Gray);
 		}
 
 		public void Render(TableAuthoring tableAuthoring, WireListData data, Rect cellRect, int column, Action<WireListData> updateAction)
@@ -87,9 +68,6 @@ namespace VisualPinball.Unity.Editor
 					break;
 				case WireListColumn.SourceElement:
 					RenderSourceElement(tableAuthoring, data, cellRect, updateAction);
-					break;
-				case WireListColumn.Destination:
-					RenderDestination(data, cellRect, updateAction);
 					break;
 				case WireListColumn.DestinationElement:
 					RenderDestinationElement(tableAuthoring, data, cellRect, updateAction);
@@ -114,14 +92,10 @@ namespace VisualPinball.Unity.Editor
 		private void RenderSource(WireListData wireListData, Rect cellRect, Action<WireListData> updateAction)
 		{
 			EditorGUI.BeginChangeCheck();
-			var index = EditorGUI.Popup(cellRect, wireListData.Source, OPTIONS_SOURCE);
-			if (EditorGUI.EndChangeCheck())
-			{
-				if (wireListData.Source != index)
-				{
-					wireListData.Source = index;
-					updateAction(wireListData);
-				}
+			var source = (ESwitchSource)EditorGUI.EnumPopup(cellRect, wireListData.Source);
+			if (EditorGUI.EndChangeCheck()) {
+				wireListData.Source = source;
+				updateAction(wireListData);
 			}
 		}
 
@@ -144,23 +118,19 @@ namespace VisualPinball.Unity.Editor
 
 			switch (wireListData.Source)
 			{
-				case SwitchSource.InputSystem:
+				case ESwitchSource.InputSystem:
 					RenderSourceElementInputSystem(wireListData, cellRect, updateAction);
 					break;
 
-				case SwitchSource.Playfield:
-					RenderSourceElementPlayfield(tableAuthoring, wireListData, cellRect, updateAction);
-					break;
-
-				case SwitchSource.Constant:
-					RenderSourceElementConstant(wireListData, cellRect, updateAction);
-					break;
-
-				case SwitchSource.Device:
+				case ESwitchSource.Playfield:
 					cellRect.width = cellRect.width / 2f - 5f;
-					RenderSourceElementDevice(tableAuthoring, wireListData, cellRect, updateAction);
+					RenderSourceElementDevice(wireListData, cellRect, updateAction);
 					cellRect.x += cellRect.width + 10f;
 					RenderSourceElementDeviceItem(wireListData, cellRect, updateAction);
+					break;
+
+				case ESwitchSource.Constant:
+					RenderSourceElementConstant(wireListData, cellRect, updateAction);
 					break;
 			}
 		}
@@ -210,28 +180,6 @@ namespace VisualPinball.Unity.Editor
 			}
 		}
 
-		private void RenderSourceElementPlayfield(TableAuthoring tableAuthoring, WireListData wireListData, Rect cellRect, Action<WireListData> updateAction)
-		{
-			if (GUI.Button(cellRect, wireListData.SourcePlayfieldItem, EditorStyles.objectField) || GUI.Button(cellRect, "", GUI.skin.GetStyle("IN ObjectField")))
-			{
-				if (_sourceElementDeviceDropdownState == null)
-				{
-					_sourceElementDeviceDropdownState = new AdvancedDropdownState();
-				}
-
-				var dropdown = new ItemSearchableDropdown<ISwitchAuthoring>(
-					_sourceElementDeviceDropdownState,
-					tableAuthoring,
-					"Switch Items",
-					item => {
-						wireListData.SourcePlayfieldItem = item != null ? item.name : string.Empty;
-						updateAction(wireListData);
-					}
-				);
-				dropdown.Show(cellRect);
-			}
-		}
-
 		private void RenderSourceElementConstant(WireListData wireListData, Rect cellRect, Action<WireListData> updateAction)
 		{
 			EditorGUI.BeginChangeCheck();
@@ -243,66 +191,39 @@ namespace VisualPinball.Unity.Editor
 			}
 		}
 
-		private void RenderSourceElementDevice(TableAuthoring tableAuthoring, WireListData wireListData, Rect cellRect, Action<WireListData> updateAction)
+		private void RenderSourceElementDevice(WireListData wireListData, Rect cellRect, Action<WireListData> updateAction)
 		{
-			if (GUI.Button(cellRect, wireListData.SourceDevice, EditorStyles.objectField) || GUI.Button(cellRect, "", GUI.skin.GetStyle("IN ObjectField")))
-			{
-				if (_sourceElementDeviceDropdownState == null)
-				{
-					_sourceElementDeviceDropdownState = new AdvancedDropdownState();
+			_sourceDevicePicker.Render(cellRect, wireListData.SourceDevice, item => {
+				wireListData.SourceDevice = item;
+				if (wireListData.SourceDevice != null && wireListData.SourceDevice.AvailableSwitches.Count() == 1) {
+					wireListData.SourceDeviceId = wireListData.SourceDevice.AvailableSwitches.First().Id;
 				}
-
-				var dropdown = new ItemSearchableDropdown<ISwitchDeviceAuthoring>(
-					_sourceElementDeviceDropdownState,
-					tableAuthoring,
-					"Switch Devices",
-					item => {
-						wireListData.SourceDevice = item != null ? item.name : string.Empty;
-						updateAction(wireListData);
-					}
-				);
-				dropdown.Show(cellRect);
-			}
+				updateAction(wireListData);
+			});
 		}
 
 		private void RenderSourceElementDeviceItem(WireListData wireListData, Rect cellRect, Action<WireListData> updateAction)
 		{
-			EditorGUI.BeginDisabledGroup(string.IsNullOrEmpty(wireListData.SourceDevice));
+			EditorGUI.BeginDisabledGroup(wireListData.SourceDevice == null);
 
 			var currentIndex = 0;
-			var switchLabels = new string[0];
-			ISwitchDeviceAuthoring switchDevice = null;
-			if (!string.IsNullOrEmpty(wireListData.SourceDevice) && _switchDevices.ContainsKey(wireListData.SourceDevice.ToLower()))
+			var switchLabels = Array.Empty<string>();
+			if (wireListData.SourceDevice != null)
 			{
-				switchDevice = _switchDevices[wireListData.SourceDevice.ToLower()];
-				switchLabels = switchDevice.AvailableSwitches.Select(s => s.Description).ToArray();
-				currentIndex = switchDevice.AvailableSwitches.TakeWhile(s => s.Id != wireListData.SourceDeviceItem).Count();
+				switchLabels = wireListData.SourceDevice.AvailableSwitches.Select(s => s.Description).ToArray();
+				currentIndex = wireListData.SourceDevice.AvailableSwitches.TakeWhile(s => s.Id != wireListData.SourceDeviceId).Count();
 			}
 			EditorGUI.BeginChangeCheck();
 			var newIndex = EditorGUI.Popup(cellRect, currentIndex, switchLabels);
-			if (EditorGUI.EndChangeCheck() && switchDevice != null)
+			if (EditorGUI.EndChangeCheck() && wireListData.SourceDevice != null)
 			{
 				if (currentIndex != newIndex)
 				{
-					wireListData.SourceDeviceItem = switchDevice.AvailableSwitches.ElementAt(newIndex).Id;
+					wireListData.SourceDeviceId = wireListData.SourceDevice.AvailableSwitches.ElementAt(newIndex).Id;
 					updateAction(wireListData);
 				}
 			}
 			EditorGUI.EndDisabledGroup();
-		}
-
-		private void RenderDestination(WireListData wireListData, Rect cellRect, Action<WireListData> updateAction)
-		{
-			EditorGUI.BeginChangeCheck();
-			var index = EditorGUI.Popup(cellRect, wireListData.Destination, OPTIONS_DESTINATION);
-			if (EditorGUI.EndChangeCheck())
-			{
-				if (wireListData.Destination != index)
-				{
-					wireListData.Destination = index;
-					updateAction(wireListData);
-				}
-			}
 		}
 
 		private void RenderDestinationElement(TableAuthoring tableAuthoring, WireListData wireListData, Rect cellRect, Action<WireListData> updateAction)
@@ -322,85 +243,40 @@ namespace VisualPinball.Unity.Editor
 			cellRect.x += 25;
 			cellRect.width -= 25;
 
-			switch (wireListData.Destination)
-			{
-				case CoilDestination.Playfield:
-					RenderDestinationElementPlayfield(tableAuthoring, wireListData, cellRect, updateAction);
-					break;
-
-				case CoilDestination.Device:
-					cellRect.width = cellRect.width / 2f - 5f;
-					RenderDestinationElementDevice(tableAuthoring, wireListData, cellRect, updateAction);
-					cellRect.x += cellRect.width + 10f;
-					RenderDestinationElementDeviceItem(wireListData, cellRect, updateAction);
-					break;
-			}
-		}
-
-		private void RenderDestinationElementPlayfield(TableAuthoring tableAuthoring, WireListData wireListData, Rect cellRect, Action<WireListData> updateAction)
-		{
-			if (GUI.Button(cellRect, wireListData.DestinationPlayfieldItem, EditorStyles.objectField) || GUI.Button(cellRect, "", GUI.skin.GetStyle("IN ObjectField")))
-			{
-				if (_destinationElementDeviceDropdownState == null)
-				{
-					_destinationElementDeviceDropdownState = new AdvancedDropdownState();
-				}
-
-				var dropdown = new ItemSearchableDropdown<IWireableAuthoring>(
-					_destinationElementDeviceDropdownState,
-					tableAuthoring,
-					"Wireable Items",
-					item => {
-						wireListData.DestinationPlayfieldItem = item != null ? item.name : string.Empty;
-						updateAction(wireListData);
-					}
-				);
-				dropdown.Show(cellRect);
-			}
+			cellRect.width = cellRect.width / 2f - 5f;
+			RenderDestinationElementDevice(tableAuthoring, wireListData, cellRect, updateAction);
+			cellRect.x += cellRect.width + 10f;
+			RenderDestinationElementDeviceItem(wireListData, cellRect, updateAction);
 		}
 
 		private void RenderDestinationElementDevice(TableAuthoring tableAuthoring, WireListData wireListData, Rect cellRect, Action<WireListData> updateAction)
 		{
-			if (GUI.Button(cellRect, wireListData.DestinationDevice, EditorStyles.objectField) || GUI.Button(cellRect, "", GUI.skin.GetStyle("IN ObjectField")))
-			{
-				if (_destinationElementDeviceDropdownState == null)
-				{
-					_destinationElementDeviceDropdownState = new AdvancedDropdownState();
+			_destDevicePicker.Render(cellRect, wireListData.DestinationDevice, item => {
+				wireListData.DestinationDevice = item;
+				if (wireListData.DestinationDevice != null && wireListData.DestinationDevice.AvailableCoils.Count() == 1) {
+					wireListData.DestinationDeviceId = wireListData.DestinationDevice.AvailableCoils.First().Id;
 				}
-
-				var dropdown = new ItemSearchableDropdown<ICoilDeviceAuthoring>(
-					_destinationElementDeviceDropdownState,
-					tableAuthoring,
-					"Coil Devices",
-					item => {
-						wireListData.DestinationDevice = item != null ? item.name : string.Empty;
-						updateAction(wireListData);
-					}
-				);
-				dropdown.Show(cellRect);
-			}
+				updateAction(wireListData);
+			});
 		}
 
 		private void RenderDestinationElementDeviceItem(WireListData wireListData, Rect cellRect, Action<WireListData> updateAction)
 		{
-			EditorGUI.BeginDisabledGroup(string.IsNullOrEmpty(wireListData.DestinationDevice));
+			EditorGUI.BeginDisabledGroup(wireListData.DestinationDevice == null);
 
 			var currentIndex = 0;
-			var coilLabels = new string[0];
-			ICoilDeviceAuthoring coilDevice = null;
-			if (!string.IsNullOrEmpty(wireListData.DestinationDevice) && _coilDevices.ContainsKey(wireListData.DestinationDevice.ToLower()))
-			{
-				coilDevice = _coilDevices[wireListData.DestinationDevice.ToLower()];
-				coilLabels = coilDevice.AvailableCoils.Select(s => s.Description).ToArray();
-				currentIndex = coilDevice.AvailableCoils.TakeWhile(s => s.Id != wireListData.DestinationDeviceItem).Count();
+			var coilLabels = Array.Empty<string>();
+			if (wireListData.DestinationDevice != null) {
+				coilLabels = wireListData.DestinationDevice.AvailableCoils.Select(s => s.Description).ToArray();
+				currentIndex = wireListData.DestinationDevice.AvailableCoils.TakeWhile(s => s.Id != wireListData.DestinationDeviceId).Count();
 			}
 			EditorGUI.BeginChangeCheck();
 			var newIndex = EditorGUI.Popup(cellRect, currentIndex, coilLabels);
-			if (EditorGUI.EndChangeCheck() && coilDevice != null)
+			if (EditorGUI.EndChangeCheck() && wireListData.DestinationDevice != null)
 			{
 				if (currentIndex != newIndex)
 				{
-					wireListData.DestinationDeviceItem = coilDevice.AvailableCoils.ElementAt(newIndex).Id;
+					wireListData.DestinationDeviceId = wireListData.DestinationDevice.AvailableCoils.ElementAt(newIndex).Id;
 					updateAction(wireListData);
 				}
 			}
@@ -409,10 +285,9 @@ namespace VisualPinball.Unity.Editor
 
 		private void RenderPulseDelay(WireListData wireListData, Rect cellRect, Action<WireListData> updateAction)
 		{
-			if (wireListData.Source == SwitchSource.Playfield && _switches.ContainsKey(wireListData.SourcePlayfieldItem.ToLower()))
-			{
-				var switchable = _switches[wireListData.SourcePlayfieldItem.ToLower()];
-				if (switchable.Switchable.IsPulseSwitch)
+			if (wireListData.SourceDevice != null && !string.IsNullOrEmpty(wireListData.SourceDeviceId)) {
+				var switchable = wireListData.SourceDevice.AvailableSwitches.First(s => s.Id == wireListData.SourceDeviceId);
+				if (switchable.IsPulseSwitch)
 				{
 					var labelRect = cellRect;
 					labelRect.x += labelRect.width - 20;
@@ -440,27 +315,18 @@ namespace VisualPinball.Unity.Editor
 
 			switch (wireListData.Source)
 			{
-				case SwitchSource.Playfield:
-					{
-						if (_switches.ContainsKey(wireListData.SourcePlayfieldItem.ToLower()))
-						{
-							icon = Icons.ByComponent(_switches[wireListData.SourcePlayfieldItem.ToLower()], IconSize.Small);
-						}
-						break;
+				case ESwitchSource.Playfield:
+					if (wireListData.SourceDevice != null) {
+						icon = Icons.ByComponent(wireListData.SourceDevice, IconSize.Small);
 					}
-				case SwitchSource.Constant:
+					break;
+
+				case ESwitchSource.Constant:
 					icon = Icons.Switch(wireListData.SourceConstant == SwitchConstant.Closed, IconSize.Small);
 					break;
 
 				case SwitchSource.InputSystem:
 					icon = Icons.Key(IconSize.Small);
-					break;
-
-				case SwitchSource.Device:
-					if (_switchDevices.ContainsKey(wireListData.SourceDevice.ToLower()))
-					{
-						icon = Icons.ByComponent(_switchDevices[wireListData.SourceDevice.ToLower()], IconSize.Small);
-					}
 					break;
 			}
 
@@ -471,23 +337,8 @@ namespace VisualPinball.Unity.Editor
 		{
 			Texture2D icon = null;
 
-			switch (wireListData.Destination)
-			{
-				case CoilDestination.Playfield:
-					if (_coils.ContainsKey(wireListData.DestinationPlayfieldItem.ToLower())) {
-						icon = Icons.ByComponent(_coils[wireListData.DestinationPlayfieldItem.ToLower()], IconSize.Small);
-					}
-
-					if (_lamps.ContainsKey(wireListData.DestinationPlayfieldItem.ToLower())) {
-						icon = Icons.ByComponent(_lamps[wireListData.DestinationPlayfieldItem.ToLower()], IconSize.Small);
-					}
-					break;
-
-				case CoilDestination.Device:
-					if (_coilDevices.ContainsKey(wireListData.DestinationDevice.ToLower())) {
-						icon = Icons.ByComponent(_coilDevices[wireListData.DestinationDevice.ToLower()], IconSize.Small);
-					}
-					break;
+			if (wireListData.DestinationDevice != null) {
+				icon = Icons.ByComponent(wireListData.DestinationDevice, IconSize.Small);
 			}
 
 			return icon;

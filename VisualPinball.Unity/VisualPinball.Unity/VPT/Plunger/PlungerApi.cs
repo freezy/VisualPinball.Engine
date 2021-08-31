@@ -136,9 +136,9 @@ namespace VisualPinball.Unity
 			EntityManager.SetComponentData(Entity, velocityData);
 		}
 
-		IApiCoil IApiCoilDevice.Coil(string coilId)
+		IApiCoil IApiCoilDevice.Coil(string deviceCoilId)
 		{
-			switch (coilId) {
+			switch (deviceCoilId) {
 				case Plunger.FireCoilId:
 					return FireCoil;
 

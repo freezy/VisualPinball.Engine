@@ -24,7 +24,7 @@ using Logger = NLog.Logger;
 namespace VisualPinball.Unity.Editor
 {
 	/// <summary>
-	/// Editor UI for VPE wirees
+	/// Editor UI for VPE wires
 	/// </summary>
 	///
 
@@ -38,14 +38,6 @@ namespace VisualPinball.Unity.Editor
 
 		protected override bool DetailsEnabled => false;
 		protected override bool ListViewItemRendererEnabled => true;
-
-		private readonly Dictionary<string, ISwitchAuthoring> _switches = new Dictionary<string, ISwitchAuthoring>();
-		private readonly Dictionary<string, ISwitchDeviceAuthoring> _switchDevices = new Dictionary<string, ISwitchDeviceAuthoring>();
-
-		private readonly Dictionary<string, ICoilAuthoring> _coils = new Dictionary<string, ICoilAuthoring>();
-		private readonly Dictionary<string, ICoilDeviceAuthoring> _coilDevices = new Dictionary<string, ICoilDeviceAuthoring>();
-
-		private readonly Dictionary<string, ILampAuthoring> _lamps = new Dictionary<string, ILampAuthoring>();
 
 		private InputManager _inputManager;
 		private bool _needsAssetRefresh;
@@ -77,7 +69,7 @@ namespace VisualPinball.Unity.Editor
 		private void OnFocus()
 		{
 			_inputManager = new InputManager(RESOURCE_PATH);
-			_listViewItemRenderer = new WireListViewItemRenderer(_switches, _switchDevices, _coils, _coilDevices, _lamps, _inputManager);
+			_listViewItemRenderer = new WireListViewItemRenderer(_tableAuthoring, _inputManager);
 			_needsAssetRefresh = true;
 		}
 
@@ -130,17 +122,10 @@ namespace VisualPinball.Unity.Editor
 		#region Data management
 		protected override List<WireListData> CollectData()
 		{
-			List<WireListData> data = new List<WireListData>();
-
-			foreach (var mappingsWireData in _tableAuthoring.Mappings.Wires)
-			{
+			var data = new List<WireListData>();
+			foreach (var mappingsWireData in _tableAuthoring.MappingConfig.Wires) {
 				data.Add(new WireListData(mappingsWireData));
 			}
-
-			RefreshSwitches();
-			RefreshCoils();
-			RefreshLamps();
-
 			return data;
 		}
 
@@ -148,24 +133,23 @@ namespace VisualPinball.Unity.Editor
 		{
 			RecordUndo(undoName);
 
-			_tableAuthoring.Mappings.AddWire(new MappingsWireData());
+			_tableAuthoring.MappingConfig.AddWire(new WireMapping());
 		}
 
 		protected override void RemoveData(string undoName, WireListData data)
 		{
 			RecordUndo(undoName);
 
-			_tableAuthoring.Mappings.RemoveWire(data.MappingsWireData);
+			_tableAuthoring.MappingConfig.RemoveWire(data.WireMapping);
 		}
 
 		protected override void CloneData(string undoName, string newName, WireListData data)
 		{
 			RecordUndo(undoName);
 
-			_tableAuthoring.Mappings.AddWire(new MappingsWireData
-			{
-			});
+			_tableAuthoring.MappingConfig.AddWire(new WireMapping());
 		}
+
 		#endregion
 
 		#region Helper methods
@@ -181,53 +165,6 @@ namespace VisualPinball.Unity.Editor
 			GUILayout.EndHorizontal();
 		}
 
-		private void RefreshSwitches()
-		{
-			_switches.Clear();
-			_switchDevices.Clear();
-
-			if (_tableAuthoring != null)
-			{
-				foreach (var item in _tableAuthoring.GetComponentsInChildren<ISwitchAuthoring>())
-				{
-					_switches.Add(item.name.ToLower(), item);
-				}
-				foreach (var item in _tableAuthoring.GetComponentsInChildren<ISwitchDeviceAuthoring>())
-				{
-					_switchDevices.Add(item.name.ToLower(), item);
-				}
-			}
-		}
-
-		private void RefreshCoils()
-		{
-			_coils.Clear();
-			_coilDevices.Clear();
-
-			if (_tableAuthoring != null)
-			{
-
-				foreach (var item in _tableAuthoring.GetComponentsInChildren<ICoilAuthoring>())
-				{
-					_coils.Add(item.name.ToLower(), item);
-				}
-
-				foreach (var item in _tableAuthoring.GetComponentsInChildren<ICoilDeviceAuthoring>())
-				{
-					_coilDevices.Add(item.name.ToLower(), item);
-				}
-			}
-		}
-
-		private void RefreshLamps()
-		{
-			_lamps.Clear();
-			if (_tableAuthoring != null) {
-				foreach (var item in _tableAuthoring.GetComponentsInChildren<ILampAuthoring>()) {
-					_lamps.Add(item.name.ToLower(), item);
-				}
-			}
-		}
 		#endregion
 
 		#region Undo Redo

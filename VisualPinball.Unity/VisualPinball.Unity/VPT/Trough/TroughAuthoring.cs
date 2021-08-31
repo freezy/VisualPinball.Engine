@@ -50,6 +50,8 @@ namespace VisualPinball.Unity
 			set => _playfieldEntrySwitch = value as MonoBehaviour;
 		}
 
+		public string PlayfieldEntrySwitchId;
+
 		[SerializeField]
 		[TypeRestriction(typeof(ITriggerAuthoring), PickerLabel = "Triggers & Kickers")]
 		[Tooltip("The trigger or kicker that eats the ball and puts it into the trough.")]

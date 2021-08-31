@@ -173,7 +173,7 @@ namespace VisualPinball.Unity
 			base.OnInit(ballManager);
 
 			// reference playfield elements
-			_drainSwitch = TableApi.Switch(MainComponent.PlayfieldEntrySwitch != null ? MainComponent.PlayfieldEntrySwitch.name : string.Empty);
+			_drainSwitch = TableApi.Switch(MainComponent.PlayfieldEntrySwitch, MainComponent.PlayfieldEntrySwitchId);
 			_ejectKicker = TableApi.Kicker(MainComponent.PlayfieldExitKicker ? MainComponent.PlayfieldExitKicker.name : string.Empty);
 			_isSetup = _drainSwitch != null && _ejectKicker != null;
 
@@ -602,24 +602,24 @@ namespace VisualPinball.Unity
 		/// This is called when the player starts. It tells the trough
 		/// "please give me switch XXX so I can hook it up to the gamelogic engine".
 		/// </summary>
-		/// <param name="switchId"></param>
+		/// <param name="deviceSwitchId"></param>
 		/// <returns></returns>
-		IApiSwitch IApiSwitchDevice.Switch(string switchId)
+		IApiSwitch IApiSwitchDevice.Switch(string deviceSwitchId)
 		{
-			if (switchId == null) {
+			if (deviceSwitchId == null) {
 				throw new ArgumentException("Must provide a non-null switch ID!");
 			}
-			return _switchLookup.ContainsKey(switchId) ? _switchLookup[switchId] : null;
+			return _switchLookup.ContainsKey(deviceSwitchId) ? _switchLookup[deviceSwitchId] : null;
 		}
 
 		/// <summary>
 		/// Returns a coil by ID. Same principle as <see cref="IApiSwitchDevice.Switch"/>
 		/// </summary>
-		/// <param name="coilId"></param>
+		/// <param name="deviceCoilId"></param>
 		/// <returns></returns>
-		IApiCoil IApiCoilDevice.Coil(string coilId)
+		IApiCoil IApiCoilDevice.Coil(string deviceCoilId)
 		{
-			switch (coilId) {
+			switch (deviceCoilId) {
 				case TroughAuthoring.EntryCoilId:
 					return EntryCoil;
 

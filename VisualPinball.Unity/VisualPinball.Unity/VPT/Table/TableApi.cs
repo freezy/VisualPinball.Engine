@@ -43,7 +43,7 @@ namespace VisualPinball.Unity
 			_player = player;
 		}
 
-		internal IApiSwitch Switch(string name) => _player.Switch(name);
+		internal IApiSwitch Switch(ISwitchDeviceAuthoring component, string switchId) => _player.Switch(component, switchId);
 
 		/// <summary>
 		/// Event emitted before the game starts.

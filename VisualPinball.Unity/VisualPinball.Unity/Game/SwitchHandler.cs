@@ -81,11 +81,11 @@ namespace VisualPinball.Unity
 		/// <summary>
 		/// Removes a previously added wire.
 		/// </summary>
-		/// <param name="destId">ID of the destination</param>
+		/// <param name="destId">Device ID of the destination</param>
 		public void RemoveWireDest(string destId)
 		{
 			foreach (var wire in _wires) {
-				if (wire.IsDynamic && wire.DestinationId == destId) {
+				if (wire.IsDynamic && wire.DeviceId == destId) {
 					_wires.Remove(wire);
 					return;
 				}
@@ -124,31 +124,22 @@ namespace VisualPinball.Unity
 			// handle switch -> wire
 			if (_wires != null) {
 				foreach (var wireConfig in _wires) {
-					IApiWireDest dest = null;
-					switch (wireConfig.Destination) {
-						case WireDestination.Playfield:
-							dest = _player.Wire(wireConfig.PlayfieldItem);
-							break;
-
-						case WireDestination.Device:
-							var device = _player.WireDevice(wireConfig.Device);
-							if (device != null) {
-								device.Wire(wireConfig.DeviceItem)?.OnChange(enabled);
-
-							} else {
-								Logger.Warn($"Cannot find wire device \"{wireConfig.Device}\".");
-							}
-							break;
-					}
-
-					// close the switch now
-					dest?.OnChange(enabled);
-
-					// if it's pulse, schedule to re-open
-					if (enabled && wireConfig.IsPulseSource) {
+					var device = _player.WireDevice(wireConfig.Device);
+					if (device != null) {
+						var dest = device.Wire(wireConfig.DeviceId);
 						if (dest != null) {
-							SimulationSystemGroup.ScheduleAction(wireConfig.PulseDelay, () => dest.OnChange(false));
+
+							// close the switch now
+							dest.OnChange(enabled);
+
+							// if it's pulse, schedule to re-open
+							if (enabled && wireConfig.IsPulseSource) {
+								SimulationSystemGroup.ScheduleAction(wireConfig.PulseDelay, () => dest.OnChange(false));
+							}
 						}
+
+					} else {
+						Logger.Warn($"Cannot find wire device \"{wireConfig.Device}\".");
 					}
 				}
 			}
@@ -176,25 +167,13 @@ namespace VisualPinball.Unity
 			// handle switch -> wire
 			if (_wires != null) {
 				foreach (var wireConfig in _wires) {
-					IApiWireDest dest = null;
-					switch (wireConfig.Destination) {
-						case WireDestination.Playfield:
-							dest = _player.Wire(wireConfig.PlayfieldItem);
-							break;
-
-						case WireDestination.Device:
-							var device = _player.WireDevice(wireConfig.Device);
-							if (device != null) {
-								dest = device.Wire(wireConfig.DeviceItem);
-
-							} else {
-								Logger.Warn($"Cannot find wire device \"{wireConfig.Device}\".");
-							}
-							break;
-					}
-
-					if (dest != null) {
+					var device = _player.WireDevice(wireConfig.Device);
+					if (device != null) {
+						var dest = device.Wire(wireConfig.DeviceId);
 						SimulationSystemGroup.ScheduleAction(delay, () => dest.OnChange(enabled));
+
+					} else {
+						Logger.Warn($"Cannot find wire device \"{wireConfig.Device}\".");
 					}
 				}
 			}

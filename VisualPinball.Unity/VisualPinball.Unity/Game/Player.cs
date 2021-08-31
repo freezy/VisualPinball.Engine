@@ -24,7 +24,6 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 using VisualPinball.Engine.Common;
 using VisualPinball.Engine.Game;
-using VisualPinball.Engine.VPT.Mappings;
 using VisualPinball.Engine.VPT.Table;
 using VisualPinball.Engine.VPT.Trigger;
 using Logger = NLog.Logger;
@@ -93,9 +92,8 @@ namespace VisualPinball.Unity
 
 		#region Access
 
-		internal IApiSwitch Switch(string n) => _switchPlayer.Switch(n);
-		internal IApiWireDest Wire(string n) => _wirePlayer.Wire(n);
-		internal IApiWireDeviceDest WireDevice(string n) => _wirePlayer.WireDevice(n);
+		internal IApiSwitch Switch(ISwitchDeviceAuthoring component, string switchId) => _switchPlayer.Switch(component, switchId);
+		internal IApiWireDeviceDest WireDevice(ICoilDeviceAuthoring c) => _wirePlayer.WireDevice(c);
 		public Dictionary<string, bool> SwitchStatusesClosed => _switchPlayer.SwitchStatusesClosed;
 		public Dictionary<string, bool> CoilStatuses => _coilPlayer.CoilStatuses;
 		public Dictionary<string, float> LampStatuses => _lampPlayer.LampStatuses;
@@ -128,9 +126,9 @@ namespace VisualPinball.Unity
 			if (engineComponent != null) {
 				GamelogicEngine = engineComponent;
 				_lampPlayer.Awake(_tableContainer, GamelogicEngine);
-				_coilPlayer.Awake(_tableContainer, GamelogicEngine, _lampPlayer);
-				_switchPlayer.Awake(_tableContainer, GamelogicEngine, _inputManager);
-				_wirePlayer.Awake(_tableContainer, _inputManager, _switchPlayer);
+				_coilPlayer.Awake(_tableComponent, GamelogicEngine, _lampPlayer);
+				_switchPlayer.Awake(_tableComponent, GamelogicEngine, _inputManager);
+				_wirePlayer.Awake(_tableComponent, _inputManager, _switchPlayer);
 				_displayPlayer.Awake(GamelogicEngine);
 			}
 
@@ -181,14 +179,14 @@ namespace VisualPinball.Unity
 
 		public void RegisterBumper(BumperAuthoring component, Entity entity, Entity parentEntity)
 		{
-			Register(TableApi.Bumpers, new BumperApi(component.gameObject, entity, parentEntity, this), entity);
+			Register(TableApi.Bumpers, new BumperApi(component.gameObject, entity, parentEntity, this), entity, component);
 			RegisterTransform<BumperRingAnimationAuthoring>(BumperRingTransforms, component, entity);
 			RegisterTransform<BumperSkirtAnimationAuthoring>(BumperSkirtTransforms, component, entity);
 		}
 
 		public void RegisterFlipper(FlipperAuthoring component, Entity entity, Entity parentEntity)
 		{
-			Register(TableApi.Flippers,  new FlipperApi(component.gameObject, entity, parentEntity, this), entity);
+			Register(TableApi.Flippers,  new FlipperApi(component.gameObject, entity, parentEntity, this), entity, component);
 			FlipperTransforms[entity] = component.gameObject.transform;
 
 			if (EngineProvider<IDebugUI>.Exists) {
@@ -382,11 +380,11 @@ namespace VisualPinball.Unity
 			TableApi.Troughs[go.name] = troughApi;
 			_apis.Add(troughApi);
 			_initializables.Add(troughApi);
-			_switchPlayer.RegisterSwitchDevice(go.name, troughApi);
+			_switchPlayer.RegisterSwitchDevice(component, troughApi);
 			_coilPlayer.RegisterCoilDevice(go.name, troughApi);
 		}
 
-		private void Register<TApi>(Dictionary<string, TApi> apis, TApi api, Entity entity) where TApi : IApi
+		private void Register<TApi>(Dictionary<string, TApi> apis, TApi api, Entity entity, MonoBehaviour component) where TApi : IApi
 		{
 			apis[api.Name] = api;
 			_apis.Add(api);
@@ -397,7 +395,11 @@ namespace VisualPinball.Unity
 				_rotatables[entity] = rotatable;
 			}
 			if (api is IApiSwitchDevice switchDevice) {
-				_switchPlayer.RegisterSwitchDevice(api.Name, switchDevice);
+				if (component is ISwitchDeviceAuthoring switchDeviceAuthoring) {
+					_switchPlayer.RegisterSwitchDevice(switchDeviceAuthoring, switchDevice);
+				} else  {
+					Logger.Warn($"{component.GetType()} is not of type ISwitchDeviceAuthoring while ${api.GetType()} is of type IApiSwitchDevice.");
+				}
 			}
 			if (api is IApiCoilDevice coilDevice) {
 				_coilPlayer.RegisterCoilDevice(api.Name, coilDevice);
@@ -487,8 +489,8 @@ namespace VisualPinball.Unity
 
 		public void AddDynamicWire(string switchId, string coilId)
 		{
-			var switchMapping = _tableContainer.Mappings.Data.Switches.FirstOrDefault(c => c.Id == switchId);
-			var coilMapping = _tableContainer.Mappings.Data.Coils.FirstOrDefault(c => c.Id == coilId);
+			var switchMapping = _tableComponent.MappingConfig.Switches.FirstOrDefault(c => c.Id == switchId);
+			var coilMapping = _tableComponent.MappingConfig.Coils.FirstOrDefault(c => c.Id == coilId);
 			if (switchMapping == null) {
 				Logger.Warn($"Cannot add new hardware rule for unknown switch \"{switchId}\".");
 				return;
@@ -498,17 +500,17 @@ namespace VisualPinball.Unity
 				return;
 			}
 
-			var wireMapping = new MappingsWireData($"Hardware rule: {switchId} -> {coilId}", switchMapping, coilMapping);
+			var wireMapping = new WireMapping($"Hardware rule: {switchId} -> {coilId}", switchMapping, coilMapping);
 			_wirePlayer.AddWire(wireMapping);
 
 			// this is for showing it in the editor during runtime only
-			_tableContainer.Mappings.Data.AddWire(wireMapping);
+			_tableComponent.MappingConfig.AddWire(wireMapping);
 		}
 
 		public void RemoveDynamicWire(string switchId, string coilId)
 		{
-			var switchMapping = _tableContainer.Mappings.Data.Switches.FirstOrDefault(c => c.Id == switchId);
-			var coilMapping = _tableContainer.Mappings.Data.Coils.FirstOrDefault(c => c.Id == coilId);
+			var switchMapping = _tableComponent.MappingConfig.Switches.FirstOrDefault(c => c.Id == switchId);
+			var coilMapping = _tableComponent.MappingConfig.Coils.FirstOrDefault(c => c.Id == coilId);
 			if (switchMapping == null) {
 				Logger.Warn($"Cannot remove hardware rule for unknown switch \"{switchId}\".");
 				return;
@@ -518,23 +520,20 @@ namespace VisualPinball.Unity
 				return;
 			}
 
-			var wireMapping = new MappingsWireData($"Hardware rule: {switchId} -> {coilId}", switchMapping, coilMapping);
+			var wireMapping = new WireMapping($"Hardware rule: {switchId} -> {coilId}", switchMapping, coilMapping);
 			_wirePlayer.RemoveWire(wireMapping);
 
 			// this is for the editor during runtime only
-			var wire = _tableContainer.Mappings.Data.Wires.FirstOrDefault(w =>
+			var wire = _tableComponent.MappingConfig.Wires.FirstOrDefault(w =>
 				w.Description == wireMapping.Description &&
 				w.SourceDevice == wireMapping.SourceDevice &&
-				w.SourceDeviceItem == wireMapping.SourceDeviceItem &&
+				w.SourceDeviceId == wireMapping.SourceDeviceId &&
 				w.SourceInputAction == wireMapping.SourceInputAction &&
 				w.SourceInputActionMap == wireMapping.SourceInputActionMap &&
-				w.SourcePlayfieldItem == wireMapping.SourcePlayfieldItem &&
-				w.Destination == wireMapping.Destination &&
 				w.DestinationDevice == wireMapping.DestinationDevice &&
-				w.DestinationDeviceItem == wireMapping.DestinationDeviceItem &&
-				w.DestinationPlayfieldItem == wireMapping.DestinationPlayfieldItem
+				w.DestinationDeviceId == wireMapping.DestinationDeviceId
 			);
-			_tableContainer.Mappings.Data.RemoveWire(wire);
+			_tableComponent.MappingConfig.RemoveWire(wire);
 		}
 
 		#endregion

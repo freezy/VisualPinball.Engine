@@ -28,6 +28,7 @@ using Unity.Entities;
 using Unity.Mathematics;
 using UnityEngine;
 using VisualPinball.Engine.Game;
+using VisualPinball.Engine.Game.Engines;
 using VisualPinball.Engine.Math;
 using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Kicker;
@@ -37,7 +38,7 @@ namespace VisualPinball.Unity
 {
 	[AddComponentMenu("Visual Pinball/Game Item/Kicker")]
 	public class KickerAuthoring : ItemMainRenderableAuthoring<KickerData>,
-		/*ISwitchAuthoring, ICoilAuthoring, */ITriggerAuthoring, IBallCreationPosition, IOnSurfaceAuthoring, IConvertGameObjectToEntity
+		ISwitchDeviceAuthoring, /*ICoilAuthoring, */ITriggerAuthoring, IBallCreationPosition, IOnSurfaceAuthoring, IConvertGameObjectToEntity
 	{
 		#region Data
 
@@ -78,6 +79,14 @@ namespace VisualPinball.Unity
 		//public ISwitchable Switchable => Item;
 
 		public Vector2 Center => Position;
+
+
+		public IEnumerable<GamelogicEngineSwitch> AvailableSwitches => new[]
+		{
+			new GamelogicEngineSwitch(name),
+		};
+
+		public SwitchDefault SwitchDefault => SwitchDefault.Configurable;
 
 		public void Convert(Entity entity, EntityManager dstManager, GameObjectConversionSystem conversionSystem)
 		{

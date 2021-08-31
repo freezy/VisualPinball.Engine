@@ -16,31 +16,35 @@
 
 using System.Collections.Generic;
 using NLog;
+using UnityEditorInternal;
 using VisualPinball.Engine.VPT;
-using VisualPinball.Engine.VPT.Table;
-using Logger = NLog.Logger;
 
 namespace VisualPinball.Unity
 {
 	public class CoilPlayer
 	{
-		private readonly Dictionary<string, IApiCoil> _coils = new Dictionary<string, IApiCoil>();
-		private readonly Dictionary<string, IApiCoilDevice> _coilDevices = new Dictionary<string, IApiCoilDevice>();
+		/// <summary>
+		/// Maps the coil component to the API class.
+		/// </summary>
+		private readonly Dictionary<ICoilDeviceAuthoring, IApiCoilDevice> _coilDevices = new Dictionary<ICoilDeviceAuthoring, IApiCoilDevice>();
+
+		/// <summary>
+		/// Maps the coil configuration ID to a destination.
+		/// </summary>
 		private readonly Dictionary<string, List<CoilDestConfig>> _coilAssignments = new Dictionary<string, List<CoilDestConfig>>();
 
-		private TableContainer _tableContainer;
+		private TableAuthoring _tableComponent;
 		private IGamelogicEngine _gamelogicEngine;
 		private LampPlayer _lampPlayer;
 
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
 		internal Dictionary<string, bool> CoilStatuses { get; } = new Dictionary<string, bool>();
-		internal void RegisterCoil(string name, IApiCoil coilApi) => _coils[name] = coilApi;
-		internal void RegisterCoilDevice(string name, IApiCoilDevice coilDeviceApi) => _coilDevices[name] = coilDeviceApi;
+		internal void RegisterCoilDevice(ICoilDeviceAuthoring component, IApiCoilDevice coilDeviceApi) => _coilDevices[component] = coilDeviceApi;
 
-		public void Awake(TableContainer tableContainer, IGamelogicEngine gamelogicEngine, LampPlayer lampPlayer)
+		public void Awake(TableAuthoring tableComponent, IGamelogicEngine gamelogicEngine, LampPlayer lampPlayer)
 		{
-			_tableContainer = tableContainer;
+			_tableComponent = tableComponent;
 			_gamelogicEngine = gamelogicEngine;
 			_lampPlayer = lampPlayer;
 		}
@@ -48,49 +52,36 @@ namespace VisualPinball.Unity
 		public void OnStart()
 		{
 			if (_gamelogicEngine != null) {
-				var config = _tableContainer.Mappings;
+				var config = _tableComponent.MappingConfig;
 				_coilAssignments.Clear();
-				foreach (var coilData in config.Data.Coils) {
-					switch (coilData.Destination) {
-						case CoilDestination.Playfield:
-
-							if (string.IsNullOrEmpty(coilData.PlayfieldItem)) {
-								Logger.Warn($"Ignoring unassigned coil {coilData}");
-								break;
-							}
-
-							AssignCoilMapping(coilData.Id, coilData.PlayfieldItem);
-							if (coilData.Type == CoilType.DualWound) {
-								AssignCoilMapping(coilData.HoldCoilId, coilData.PlayfieldItem, true);
-							}
-							break;
-
-						case CoilDestination.Device:
+				foreach (var coilMapping in config.Coils) {
+					switch (coilMapping.Destination) {
+						case ECoilDestination.Playfield:
 
 							// mapping values must be set
-							if (string.IsNullOrEmpty(coilData.Device) || string.IsNullOrEmpty(coilData.DeviceItem)) {
-								Logger.Warn($"Ignoring unassigned device coil {coilData}");
+							if (coilMapping.Device == null || string.IsNullOrEmpty(coilMapping.DeviceCoilId)) {
+								Logger.Warn($"Ignoring unassigned device coil {coilMapping}");
 								break;
 							}
 
 							// check if device exists
-							if (!_coilDevices.ContainsKey(coilData.Device)) {
-								Logger.Error($"Unknown coil device \"{coilData.Device}\".");
+							if (!_coilDevices.ContainsKey(coilMapping.Device)) {
+								Logger.Error($"Unknown coil device \"{coilMapping.Device.name}\".");
 								break;
 							}
 
-							var device = _coilDevices[coilData.Device];
-							var coil = device.Coil(coilData.DeviceItem);
+							var device = _coilDevices[coilMapping.Device];
+							var coil = device.Coil(coilMapping.DeviceCoilId);
 							if (coil != null) {
-								AssignCoilMapping(coilData.Id, coilData.DeviceItem, deviceName: coilData.Device);
+								AssignCoilMapping(coilMapping.Id, coilMapping.Device, coilMapping.DeviceCoilId);
 
 							} else {
-								Logger.Error($"Unknown coil \"{coilData.DeviceItem}\" in coil device \"{coilData.Device}\".");
+								Logger.Error($"Unknown coil \"{coilMapping.DeviceCoilId}\" in coil device \"{coilMapping.Device}\".");
 							}
 							break;
 
-						case CoilDestination.Lamp:
-							AssignCoilMapping(coilData.Id, coilData.PlayfieldItem, isLampCoil: true);
+						case ECoilDestination.Lamp:
+							AssignCoilMapping(coilMapping.Id, coilMapping.Device, coilMapping.DeviceCoilId, isLampCoil: true);
 							break;
 					}
 				}
@@ -101,12 +92,12 @@ namespace VisualPinball.Unity
 			}
 		}
 
-		private void AssignCoilMapping(string id, string playfieldItem, bool isHoldCoil = false, bool isLampCoil = false, string deviceName = null)
+		private void AssignCoilMapping(string id, ICoilDeviceAuthoring device, string deviceCoilId, bool isHoldCoil = false, bool isLampCoil = false)
 		{
 			if (!_coilAssignments.ContainsKey(id)) {
 				_coilAssignments[id] = new List<CoilDestConfig>();
 			}
-			_coilAssignments[id].Add(new CoilDestConfig(playfieldItem, isHoldCoil, isLampCoil, deviceName));
+			_coilAssignments[id].Add(new CoilDestConfig(device, deviceCoilId, isHoldCoil, isLampCoil));
 			CoilStatuses[id] = false;
 		}
 
@@ -123,33 +114,30 @@ namespace VisualPinball.Unity
 					}
 
 					// device coil?
-					if (destConfig.DeviceName != null) {
+					if (destConfig.Device != null) {
 
 						// check device
-						if (!_coilDevices.ContainsKey(destConfig.DeviceName)) {
-							Logger.Error($"Cannot trigger coil on non-existing device \"{destConfig.DeviceName}\" for {coilEvent.Id}.");
+						if (!_coilDevices.ContainsKey(destConfig.Device)) {
+							Logger.Error($"Cannot trigger coil on non-existing device \"{destConfig.Device}\" for {coilEvent.Id}.");
 							continue;
 						}
 
 						// check coil in device
-						var coil = _coilDevices[destConfig.DeviceName].Coil(destConfig.ItemName);
+						var coil = _coilDevices[destConfig.Device].Coil(destConfig.DeviceCoilId);
 						if (coil == null) {
-							Logger.Error($"Cannot trigger non-existing coil \"{destConfig.ItemName}\" in coil device \"{destConfig.DeviceName}\" for {coilEvent.Id}.");
+							Logger.Error($"Cannot trigger non-existing coil \"{destConfig.DeviceCoilId}\" in coil device \"{destConfig.Device.name}\" for {coilEvent.Id}.");
 							continue;
 						}
 
 						coil.OnCoil(coilEvent.IsEnabled, destConfig.IsHoldCoil);
 
-					} else if (_coils.ContainsKey(destConfig.ItemName)) {
-						_coils[destConfig.ItemName].OnCoil(coilEvent.IsEnabled, destConfig.IsHoldCoil);
-
 					} else {
-						Logger.Error($"Cannot trigger unknown coil item \"{destConfig.ItemName}\" for {coilEvent.Id}.");
+						Logger.Error($"Cannot trigger unknown coil item \"{destConfig}\" for {coilEvent.Id}.");
 					}
 				}
 
 #if UNITY_EDITOR
-				UnityEditorInternal.InternalEditorUtility.RepaintAllViews();
+				InternalEditorUtility.RepaintAllViews();
 #endif
 
 			} else {
@@ -163,24 +151,38 @@ namespace VisualPinball.Unity
 				_gamelogicEngine.OnCoilChanged -= HandleCoilEvent;
 			}
 		}
+
+		// todo remove below
+		internal void RegisterCoil(string goName, IApiCoil _)
+		{
+			throw new System.NotImplementedException();
+		}
+
+		internal void RegisterCoilDevice(string goName, IApiCoilDevice _)
+		{
+			throw new System.NotImplementedException();
+		}
+
 	}
 
-	internal readonly struct CoilDestConfig
+	internal class CoilDestConfig
 	{
-		/// <summary>
-		/// Playfield item if <see cref="DeviceName"/> is null or device item otherwise.
-		/// </summary>
-		public readonly string ItemName;
+		public readonly ICoilDeviceAuthoring Device;
+		public readonly string DeviceCoilId;
 		public readonly bool IsHoldCoil;
 		public readonly bool IsLampCoil;
-		public readonly string DeviceName;
 
-		public CoilDestConfig(string itemName, bool isHoldCoil, bool isLampCoil, string deviceName)
+		public CoilDestConfig(ICoilDeviceAuthoring device, string deviceCoilId, bool isHoldCoil, bool isLampCoil)
 		{
-			ItemName = itemName;
+			Device = device;
+			DeviceCoilId = deviceCoilId;
 			IsHoldCoil = isHoldCoil;
 			IsLampCoil = isLampCoil;
-			DeviceName = deviceName;
+		}
+
+		public override string ToString()
+		{
+			return $"coil destination (device = {Device}, coild id = {DeviceCoilId}, hold/lamp = {IsHoldCoil}/{IsLampCoil})";
 		}
 	}
 }
