@@ -178,17 +178,14 @@ namespace VisualPinball.Unity
 		// todo remove
 		internal void RegisterWire(string goName, IApiCoil _)
 		{
-			throw new System.NotImplementedException();
 		}
 
 		internal void RegisterWire(string goName, IApiLamp _)
 		{
-			throw new System.NotImplementedException();
 		}
 
 		internal void RegisterWireDevice(string goName, IApiWireDeviceDest _)
 		{
-			throw new System.NotImplementedException();
 		}
 	}
 
