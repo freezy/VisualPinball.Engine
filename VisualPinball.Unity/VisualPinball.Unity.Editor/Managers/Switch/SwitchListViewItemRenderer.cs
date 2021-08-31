@@ -27,7 +27,6 @@ namespace VisualPinball.Unity.Editor
 {
 	public class SwitchListViewItemRenderer
 	{
-		private readonly string[] OPTIONS_SWITCH_SOURCE = { "Input System", "Playfield", "Constant", "Device" };
 		private readonly string[] OPTIONS_SWITCH_CONSTANT = { "Closed", "Open" };
 
 		private struct InputSystemEntry
@@ -55,7 +54,7 @@ namespace VisualPinball.Unity.Editor
 		{
 			_gleSwitches = gleSwitches;
 			_inputManager = inputManager;
-			_devicePicker = new ObjectReferencePicker<ISwitchDeviceAuthoring>("Switch Devices", tableComponent, IconColor.Gray);
+			_devicePicker = new ObjectReferencePicker<ISwitchDeviceAuthoring>("Switch Devices", tableComponent, false);
 		}
 
 		public void Render(TableAuthoring tableAuthoring, SwitchListData data, Rect cellRect, int column, Action<SwitchListData> updateAction)
@@ -213,6 +212,19 @@ namespace VisualPinball.Unity.Editor
 					break;
 
 				case ESwitchSource.Playfield:
+					var icon = GetIcon(switchListData);
+					if (icon != null) {
+						var iconRect = cellRect;
+						iconRect.width = 20;
+						var guiColor = GUI.color;
+						GUI.color = Color.clear;
+						EditorGUI.DrawTextureTransparent(iconRect, icon, ScaleMode.ScaleToFit);
+						GUI.color = guiColor;
+					}
+
+					cellRect.x += 25;
+					cellRect.width -= 25;
+
 					cellRect.width = cellRect.width / 2f - 5f;
 					RenderDeviceElement(switchListData, cellRect, updateAction);
 					cellRect.x += cellRect.width + 10f;

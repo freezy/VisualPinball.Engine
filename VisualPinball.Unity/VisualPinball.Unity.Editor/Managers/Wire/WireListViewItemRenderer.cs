@@ -52,8 +52,8 @@ namespace VisualPinball.Unity.Editor
 		{
 			_inputManager = inputManager;
 
-			_sourceDevicePicker = new ObjectReferencePicker<ISwitchDeviceAuthoring>("Wire Source", tableComponent, IconColor.Gray);
-			_destDevicePicker = new ObjectReferencePicker<ICoilDeviceAuthoring>("Wire Destination", tableComponent, IconColor.Gray);
+			_sourceDevicePicker = new ObjectReferencePicker<ISwitchDeviceAuthoring>("Wire Source", tableComponent, false);
+			_destDevicePicker = new ObjectReferencePicker<ICoilDeviceAuthoring>("Wire Destination", tableComponent, false);
 		}
 
 		public void Render(TableAuthoring tableAuthoring, WireListData data, Rect cellRect, int column, Action<WireListData> updateAction)

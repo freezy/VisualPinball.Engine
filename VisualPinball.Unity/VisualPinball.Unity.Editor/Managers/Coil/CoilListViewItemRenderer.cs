@@ -47,7 +47,7 @@ namespace VisualPinball.Unity.Editor
 		{
 			_tableComponent = tableComponent;
 			_gleCoils = gleCoils;
-			_devicePicker = new ObjectReferencePicker<ICoilDeviceAuthoring>("Coil Devices", tableComponent, IconColor.Gray);
+			_devicePicker = new ObjectReferencePicker<ICoilDeviceAuthoring>("Coil Devices", tableComponent, false);
 		}
 
 		public void Render(TableAuthoring tableAuthoring, CoilListData data, Rect cellRect, int column, Action<CoilListData> updateAction)
