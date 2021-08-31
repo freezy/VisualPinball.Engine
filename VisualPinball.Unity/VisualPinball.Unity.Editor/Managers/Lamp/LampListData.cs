@@ -14,8 +14,6 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-using VisualPinball.Engine.VPT.Mappings;
-
 namespace VisualPinball.Unity.Editor
 {
 	public class LampListData : IManagerListData
@@ -26,53 +24,48 @@ namespace VisualPinball.Unity.Editor
 		[ManagerListColumn(Order = 1, HeaderName = "Description", Width = 150)]
 		public string Description;
 
-		[ManagerListColumn(Order = 2, HeaderName = "Destination", Width = 150)]
-		public int Destination;
-
-		[ManagerListColumn(Order = 3, HeaderName = "Element", Width = 200)]
+		[ManagerListColumn(Order = 2, HeaderName = "Element", Width = 200)]
 		public string Element;
 
-		[ManagerListColumn(Order = 4, HeaderName = "Type", Width = 110)]
-		public int Type;
+		[ManagerListColumn(Order = 3, HeaderName = "Type", Width = 110)]
+		public ELampType Type;
 
-		[ManagerListColumn(Order = 5, HeaderName = "R G B", Width = 300)]
+		[ManagerListColumn(Order = 4, HeaderName = "R G B", Width = 300)]
 		public string Green;
 		public string Blue;
 
 		public string Id;
 		public string PlayfieldItem;
-		public string Device;
-		public string DeviceItem;
-		public int Source;
+		public ILampAuthoring Device;
+		public string DeviceId;
+		public ELampSource Source;
 
-		public MappingsLampData MappingsLampData;
+		public LampMapping LampMapping;
 
-		public LampListData(MappingsLampData mappingsLampData)
+		public LampListData(LampMapping lampMapping)
 		{
-			Id = mappingsLampData.Id;
-			Source = mappingsLampData.Source;
-			Description = mappingsLampData.Description;
-			PlayfieldItem = mappingsLampData.PlayfieldItem;
-			Device = mappingsLampData.Device;
-			DeviceItem = mappingsLampData.DeviceItem;
-			Type = mappingsLampData.Type;
-			Green = mappingsLampData.Green;
-			Blue = mappingsLampData.Blue;
+			Id = lampMapping.Id;
+			Source = lampMapping.Source;
+			Description = lampMapping.Description;
+			Device = lampMapping.Device;
+			DeviceId = lampMapping.DeviceId;
+			Type = lampMapping.Type;
+			Green = lampMapping.Green;
+			Blue = lampMapping.Blue;
 
-			MappingsLampData = mappingsLampData;
+			LampMapping = lampMapping;
 		}
 
 		public void Update()
 		{
-			MappingsLampData.Id = Id;
-			MappingsLampData.Source = Source;
-			MappingsLampData.Description = Description;
-			MappingsLampData.PlayfieldItem = PlayfieldItem;
-			MappingsLampData.Device = Device;
-			MappingsLampData.DeviceItem = DeviceItem;
-			MappingsLampData.Type = Type;
-			MappingsLampData.Green = Green;
-			MappingsLampData.Blue = Blue;
+			LampMapping.Id = Id;
+			LampMapping.Source = Source;
+			LampMapping.Description = Description;
+			LampMapping.Device = Device;
+			LampMapping.DeviceId = DeviceId;
+			LampMapping.Type = Type;
+			LampMapping.Green = Green;
+			LampMapping.Blue = Blue;
 		}
 	}
 }

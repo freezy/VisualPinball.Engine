@@ -53,4 +53,18 @@ namespace VisualPinball.Unity
 		OnOff = 0,
 		Pulse = 1,
 	}
+
+	public enum ELampSource
+	{
+		Lamps = 0,
+		Coils = 1,
+	}
+
+	public enum ELampType
+	{
+		SingleOnOff = 0,
+		SingleFading = 1,
+		RgbMulti = 2,
+		Rgb = 3,
+	}
 }

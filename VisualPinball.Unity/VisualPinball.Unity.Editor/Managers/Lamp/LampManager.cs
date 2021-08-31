@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using NLog;
@@ -22,6 +23,7 @@ using UnityEngine;
 using VisualPinball.Engine.Game.Engines;
 using VisualPinball.Engine.VPT.Mappings;
 using Logger = NLog.Logger;
+using Object = UnityEngine.Object;
 
 namespace VisualPinball.Unity.Editor
 {
@@ -39,7 +41,6 @@ namespace VisualPinball.Unity.Editor
 		protected override bool ListViewItemRendererEnabled => true;
 
 		private readonly List<GamelogicEngineLamp> _gleLamps = new List<GamelogicEngineLamp>();
-		private readonly Dictionary<string, ILampAuthoring> _lamps = new Dictionary<string, ILampAuthoring>();
 
 		private LampListViewItemRenderer _listViewItemRenderer;
 
@@ -75,7 +76,7 @@ namespace VisualPinball.Unity.Editor
 
 		private void OnFocus()
 		{
-			_listViewItemRenderer = new LampListViewItemRenderer(_gleLamps, _lamps);
+			_listViewItemRenderer = new LampListViewItemRenderer(_gleLamps, _tableAuthoring);
 		}
 
 		protected override bool SetupCompleted()
@@ -100,7 +101,7 @@ namespace VisualPinball.Unity.Editor
 			if (GUILayout.Button("Populate All", GUILayout.ExpandWidth(false))) {
 				if (_tableAuthoring != null) {
 					RecordUndo("Populate all lamp mappings");
-					_tableAuthoring.TableContainer.Mappings.PopulateLamps(GetAvailableEngineLamps(), _tableAuthoring.TableContainer.Lightables);
+					_tableAuthoring.MappingConfig.PopulateLamps(GetAvailableEngineLamps(), _tableAuthoring);
 					Reload();
 				}
 			}
@@ -122,8 +123,6 @@ namespace VisualPinball.Unity.Editor
 				RecordUndo(DataTypeName + " Data Change");
 
 				lampListData.Update();
-
-				var lamp = _tableAuthoring.TableContainer.Lightables.FirstOrDefault(c => c.Name == lampListData.PlayfieldItem);
 			});
 		}
 
@@ -132,11 +131,10 @@ namespace VisualPinball.Unity.Editor
 		{
 			List<LampListData> data = new List<LampListData>();
 
-			foreach (var mappingsLampData in _tableAuthoring.Mappings.Lamps) {
+			foreach (var mappingsLampData in _tableAuthoring.MappingConfig.Lamps) {
 				data.Add(new LampListData(mappingsLampData));
 			}
 
-			RefreshLamps();
 			RefreshLampIds();
 
 			return data;
@@ -145,27 +143,24 @@ namespace VisualPinball.Unity.Editor
 		protected override void AddNewData(string undoName, string newName)
 		{
 			RecordUndo(undoName);
-			_tableAuthoring.Mappings.AddLamp(new MappingsLampData());
+			_tableAuthoring.MappingConfig.AddLamp(new LampMapping());
 		}
 
 		protected override void RemoveData(string undoName, LampListData data)
 		{
 			RecordUndo(undoName);
-			_tableAuthoring.Mappings.RemoveLamp(data.MappingsLampData);
+			_tableAuthoring.MappingConfig.RemoveLamp(data.LampMapping);
 		}
 
 		protected override void CloneData(string undoName, string newName, LampListData data)
 		{
 			RecordUndo(undoName);
 
-			_tableAuthoring.Mappings.AddLamp(new MappingsLampData
-			{
+			_tableAuthoring.MappingConfig.AddLamp(new LampMapping {
 				Id = data.Id,
 				Description = data.Description,
-				Destination = data.Destination,
-				PlayfieldItem = data.PlayfieldItem,
 				Device = data.Device,
-				DeviceItem = data.DeviceItem,
+				DeviceId = data.DeviceId,
 				Type = data.Type,
 				Blue = data.Blue,
 				Green = data.Green,
@@ -186,27 +181,16 @@ namespace VisualPinball.Unity.Editor
 			GUILayout.EndHorizontal();
 		}
 
-		private void RefreshLamps()
-		{
-			_lamps.Clear();
-
-			if (_tableAuthoring != null) {
-				foreach (var item in _tableAuthoring.GetComponentsInChildren<ILampAuthoring>()) {
-					_lamps.Add(item.name.ToLower(), item);
-				}
-			}
-		}
-
 		private void RefreshLampIds()
 		{
 			_gleLamps.Clear();
-			_gleLamps.AddRange(_tableAuthoring.TableContainer.Mappings.GetLamps(GetAvailableEngineLamps()));
+			_gleLamps.AddRange(_tableAuthoring.MappingConfig.GetLamps(GetAvailableEngineLamps()));
 		}
 
 		private GamelogicEngineLamp[] GetAvailableEngineLamps()
 		{
 			var gle = _tableAuthoring.gameObject.GetComponent<IGamelogicEngine>();
-			return gle == null ? new GamelogicEngineLamp[0] : gle.AvailableLamps;
+			return gle == null ? Array.Empty<GamelogicEngineLamp>() : gle.AvailableLamps;
 		}
 
 		#endregion

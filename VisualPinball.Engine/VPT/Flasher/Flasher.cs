@@ -19,7 +19,7 @@ using VisualPinball.Engine.Game;
 
 namespace VisualPinball.Engine.VPT.Flasher
 {
-	public class Flasher : Item<FlasherData>, ILightable
+	public class Flasher : Item<FlasherData>
 	{
 		public override string ItemName => "Flasher";
 		public override string ItemGroupName => "Flashers";

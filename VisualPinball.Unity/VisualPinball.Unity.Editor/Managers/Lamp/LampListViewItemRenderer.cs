@@ -14,41 +14,36 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-using UnityEngine;
-using UnityEditor;
 using System;
 using System.Collections.Generic;
-using UnityEditor.IMGUI.Controls;
-using VisualPinball.Engine.VPT;
 using System.Linq;
+using UnityEditor;
+using UnityEngine;
 using VisualPinball.Engine.Game.Engines;
 
 namespace VisualPinball.Unity.Editor
 {
 	public class LampListViewItemRenderer
 	{
-		private readonly string[] OPTIONS_LAMP_DESTINATION = { "Playfield" };
 		private readonly string[] OPTIONS_LAMP_TYPE = { "Single On|Off", "Single Fading", "RGB Multi", "RGB" };
 
 		private enum LampListColumn
 		{
 			Id = 0,
 			Description = 1,
-			Destination = 2,
-			Element = 3,
-			Type = 4,
-			Color = 5,
+			Element = 2,
+			Type = 3,
+			Color = 4,
 		}
 
 		private readonly List<GamelogicEngineLamp> _gleLamps;
-		private readonly Dictionary<string, ILampAuthoring> _lamps;
 
-		private AdvancedDropdownState _itemPickDropdownState;
+		private readonly ObjectReferencePicker<ILampAuthoring> _devicePicker;
 
-		public LampListViewItemRenderer(List<GamelogicEngineLamp> gleLamps, Dictionary<string, ILampAuthoring> lamps)
+		public LampListViewItemRenderer(List<GamelogicEngineLamp> gleLamps, TableAuthoring tableComponent)
 		{
 			_gleLamps = gleLamps;
-			_lamps = lamps;
+			_devicePicker = new ObjectReferencePicker<ILampAuthoring>("Lamps", tableComponent, false);
 		}
 
 		public void Render(TableAuthoring tableAuthoring, LampListData data, Rect cellRect, int column, Action<LampListData> updateAction)
@@ -60,7 +55,7 @@ namespace VisualPinball.Unity.Editor
 
 			switch ((LampListColumn)column) {
 				case LampListColumn.Id:
-					if (data.Source == LampSource.Coils) {
+					if (data.Source == ELampSource.Coils) {
 						RenderCoilId(lampStatuses, data, cellRect);
 					} else {
 						RenderId(lampStatuses, ref data.Id, id => data.Id = id, data, cellRect, updateAction);
@@ -68,9 +63,6 @@ namespace VisualPinball.Unity.Editor
 					break;
 				case LampListColumn.Description:
 					RenderDescription(data, cellRect, updateAction);
-					break;
-				case LampListColumn.Destination:
-					RenderDestination(data, cellRect, updateAction);
 					break;
 				case LampListColumn.Element:
 					RenderElement(tableAuthoring, data, cellRect, updateAction);
@@ -80,7 +72,7 @@ namespace VisualPinball.Unity.Editor
 					break;
 				case LampListColumn.Color:
 					switch (data.Type) {
-						case LampType.RgbMulti:
+						case ELampType.RgbMulti:
 							RenderRgb(lampStatuses, data, cellRect, updateAction);
 							break;
 					}
@@ -171,18 +163,6 @@ namespace VisualPinball.Unity.Editor
 			}
 		}
 
-		private void RenderDestination(LampListData lampListData, Rect cellRect, Action<LampListData> updateAction)
-		{
-			EditorGUI.BeginChangeCheck();
-			var index = EditorGUI.Popup(cellRect, lampListData.Destination, OPTIONS_LAMP_DESTINATION);
-			if (EditorGUI.EndChangeCheck()) {
-				if (lampListData.Destination != index) {
-					lampListData.Destination = index;
-					updateAction(lampListData);
-				}
-			}
-		}
-
 		private void RenderElement(TableAuthoring tableAuthoring, LampListData lampListData, Rect cellRect, Action<LampListData> updateAction)
 		{
 			var icon = GetIcon(lampListData);
@@ -198,39 +178,23 @@ namespace VisualPinball.Unity.Editor
 			cellRect.x += 25;
 			cellRect.width -= 25;
 
-			switch (lampListData.Destination) {
-				case LampDestination.Playfield:
-					RenderPlayfieldElement(tableAuthoring, lampListData, cellRect, updateAction);
-					break;
-			}
+			RenderPlayfieldElement(tableAuthoring, lampListData, cellRect, updateAction);
 		}
 
 		private void RenderPlayfieldElement(TableAuthoring tableAuthoring, LampListData lampListData, Rect cellRect, Action<LampListData> updateAction)
 		{
-			if (GUI.Button(cellRect, lampListData.PlayfieldItem, EditorStyles.objectField) || GUI.Button(cellRect, "", GUI.skin.GetStyle("IN ObjectField"))) {
-				if (_itemPickDropdownState == null) {
-					_itemPickDropdownState = new AdvancedDropdownState();
-				}
-
-				var dropdown = new ItemSearchableDropdown<ILampAuthoring>(
-					_itemPickDropdownState,
-					tableAuthoring,
-					"Lamp Items",
-					item => {
-						lampListData.PlayfieldItem = item?.name ?? string.Empty;
-						updateAction(lampListData);
-					}
-				);
-				dropdown.Show(cellRect);
-			}
+			_devicePicker.Render(cellRect, lampListData.Device, item => {
+				lampListData.Device = item;
+				updateAction(lampListData);
+			});
 		}
 
 		private void RenderType(LampListData lampListData, Rect cellRect, Action<LampListData> updateAction)
 		{
 			EditorGUI.BeginChangeCheck();
-			var index = EditorGUI.Popup(cellRect, (int)lampListData.Type, OPTIONS_LAMP_TYPE);
+			var type = (ELampType)EditorGUI.EnumPopup(cellRect, lampListData.Type);
 			if (EditorGUI.EndChangeCheck()) {
-				lampListData.Type = index;
+				lampListData.Type = type;
 				updateAction(lampListData);
 			}
 		}
@@ -248,17 +212,12 @@ namespace VisualPinball.Unity.Editor
 			RenderId(lampStatuses, ref data.Blue, id => data.Blue = id, data, c, updateAction);
 		}
 
-		private UnityEngine.Texture GetIcon(LampListData lampListData)
+		private Texture GetIcon(LampListData lampListData)
 		{
 			Texture2D icon = null;
 
-			switch (lampListData.Destination) {
-				case LampDestination.Playfield: {
-						if (_lamps.ContainsKey(lampListData.PlayfieldItem.ToLower())) {
-							icon = Icons.ByComponent(_lamps[lampListData.PlayfieldItem.ToLower()], size: IconSize.Small);
-						}
-						break;
-					}
+			if (lampListData.Device != null) {
+				icon = Icons.ByComponent(lampListData.Device, size: IconSize.Small);
 			}
 
 			return icon;

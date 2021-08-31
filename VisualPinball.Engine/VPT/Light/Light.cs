@@ -20,7 +20,7 @@ using VisualPinball.Engine.Math;
 
 namespace VisualPinball.Engine.VPT.Light
 {
-	public class Light : Item<LightData>, IRenderable, ILightable
+	public class Light : Item<LightData>, IRenderable
 	{
 		public override string ItemName => "Light";
 		public override string ItemGroupName => "Lights";

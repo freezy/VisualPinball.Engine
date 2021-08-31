@@ -36,8 +36,6 @@ namespace VisualPinball.Unity
 	[AddComponentMenu("Visual Pinball/Table")]
 	public class TableAuthoring : ItemMainRenderableAuthoring<TableData>
 	{
-		#region Table Data
-
 		[SerializeReference] public LegacyContainer LegacyContainer;
 		[SerializeReference] public MappingConfig MappingConfig = new MappingConfig();
 
@@ -45,8 +43,6 @@ namespace VisualPinball.Unity
 		[SerializeField] public SerializableDictionary<string, string> TableInfo = new SerializableDictionary<string, string>();
 		[SerializeField] public CustomInfoTags CustomInfoTags = new CustomInfoTags();
 		[SerializeField] public List<CollectionData> Collections = new List<CollectionData>();
-
-		#endregion
 
 		#region Data
 
@@ -67,7 +63,6 @@ namespace VisualPinball.Unity
 		protected override Type ColliderAuthoringType => null;
 
 		#endregion
-
 
 		public SceneTableContainer TableContainer => _tableContainer ??= new SceneTableContainer(this);
 
