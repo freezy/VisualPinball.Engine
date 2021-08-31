@@ -17,10 +17,8 @@
 using System;
 using System.Collections.Generic;
 using NLog;
+using UnityEditorInternal;
 using VisualPinball.Engine.Math;
-using VisualPinball.Engine.VPT;
-using VisualPinball.Engine.VPT.Mappings;
-using VisualPinball.Engine.VPT.Table;
 using Color = UnityEngine.Color;
 using Logger = NLog.Logger;
 
@@ -28,52 +26,48 @@ namespace VisualPinball.Unity
 {
 	public class LampPlayer
 	{
-		private readonly Dictionary<string, IApiLamp> _lamps = new Dictionary<string, IApiLamp>();
-		private readonly Dictionary<string, List<string>> _lampAssignments = new Dictionary<string, List<string>>();
-		private readonly Dictionary<string, Dictionary<string, MappingsLampData>> _lampMappings = new Dictionary<string, Dictionary<string, MappingsLampData>>();
+		private readonly Dictionary<ILampAuthoring, IApiLamp> _lamps = new Dictionary<ILampAuthoring, IApiLamp>();
+		private readonly Dictionary<string, List<ILampAuthoring>> _lampAssignments = new Dictionary<string, List<ILampAuthoring>>();
+		private readonly Dictionary<string, Dictionary<ILampAuthoring, LampMapping>> _lampMappings = new Dictionary<string, Dictionary<ILampAuthoring, LampMapping>>();
 
-		private TableContainer _tableContainer;
+		private TableAuthoring _tableComponent;
 		private IGamelogicEngine _gamelogicEngine;
 
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
 		internal Dictionary<string, float> LampStatuses { get; } = new Dictionary<string, float>();
-		internal void RegisterLamp(string name, IApiLamp lampApi) => _lamps[name] = lampApi;
+		internal void RegisterLamp(ILampAuthoring component, IApiLamp lampApi) => _lamps[component] = lampApi;
 
-		public void Awake(TableContainer tableContainer, IGamelogicEngine gamelogicEngine)
+		public void Awake(TableAuthoring tableComponent, IGamelogicEngine gamelogicEngine)
 		{
-			_tableContainer = tableContainer;
+			_tableComponent = tableComponent;
 			_gamelogicEngine = gamelogicEngine;
 		}
 
 		public void OnStart()
 		{
 			if (_gamelogicEngine != null) {
-				var config = _tableContainer.Mappings;
+				var config = _tableComponent.MappingConfig;
 				_lampAssignments.Clear();
 				_lampMappings.Clear();
-				foreach (var lampData in config.Data.Lamps) {
-					switch (lampData.Destination) {
-						case LampDestination.Playfield:
+				foreach (var lampMapping in config.Lamps) {
 
-							if (string.IsNullOrEmpty(lampData.PlayfieldItem)) {
-								Logger.Warn($"Ignoring unassigned lamp \"{lampData.Id}\".");
-								break;
-							}
-
-							AssignLampMapping(lampData.Id, lampData);
-
-							if (lampData.Type == LampType.RgbMulti) {
-								if (!string.IsNullOrEmpty(lampData.Green)) {
-									AssignLampMapping(lampData.Green, lampData);
-								}
-								if (!string.IsNullOrEmpty(lampData.Blue)) {
-									AssignLampMapping(lampData.Blue, lampData);
-								}
-							}
-
-							break;
+					if (lampMapping.Device == null) {
+						Logger.Warn($"Ignoring unassigned lamp \"{lampMapping.Id}\".");
+						break;
 					}
+
+					AssignLampMapping(lampMapping.Id, lampMapping);
+
+					if (lampMapping.Type == ELampType.RgbMulti) {
+						if (!string.IsNullOrEmpty(lampMapping.Green)) {
+							AssignLampMapping(lampMapping.Green, lampMapping);
+						}
+						if (!string.IsNullOrEmpty(lampMapping.Blue)) {
+							AssignLampMapping(lampMapping.Blue, lampMapping);
+						}
+					}
+
 				}
 
 				if (_lampAssignments.Count > 0) {
@@ -89,36 +83,38 @@ namespace VisualPinball.Unity
 			HandleLampEvent(null, lampEvent);
 		}
 
-		private void AssignLampMapping(string id, MappingsLampData lampData)
+		private void AssignLampMapping(string id, LampMapping lampMapping)
 		{
 			if (!_lampAssignments.ContainsKey(id)) {
-				_lampAssignments[id] = new List<string>();
-				_lampMappings[id] = new Dictionary<string, MappingsLampData>();
+				_lampAssignments[id] = new List<ILampAuthoring>();
 			}
-			_lampAssignments[id].Add(lampData.PlayfieldItem);
-			_lampMappings[id][lampData.PlayfieldItem] = lampData;
+			if (!_lampMappings.ContainsKey(id)) {
+				_lampMappings[id] = new Dictionary<ILampAuthoring, LampMapping>();
+			}
+			_lampAssignments[id].Add(lampMapping.Device);
+			_lampMappings[id][lampMapping.Device] = lampMapping;
 			LampStatuses[id] = 0f;
 		}
 
 		private void HandleLampColorEvent(object sender, LampColorEventArgs lampEvent)
 		{
 			if (_lampAssignments.ContainsKey(lampEvent.Id)) {
-				foreach (var itemName in _lampAssignments[lampEvent.Id]) {
-					var mapping = _lampMappings[lampEvent.Id][itemName];
-					if (_lamps.ContainsKey(itemName)) {
-						var lamp = _lamps[itemName];
+				foreach (var component in _lampAssignments[lampEvent.Id]) {
+					var mapping = _lampMappings[lampEvent.Id][component];
+					if (_lamps.ContainsKey(component)) {
+						var lamp = _lamps[component];
 						switch (mapping.Type) {
-							case LampType.Rgb:
+							case ELampType.Rgb:
 								lamp.OnLampColor(lampEvent.Color);
 								break;
 
 							default:
-								Logger.Error($"Received an RGB event for lamp {itemName} but lamp mapping type is {mapping.Type} ({mapping.Id})");
+								Logger.Error($"Received an RGB event for lamp {component} but lamp mapping type is {mapping.Type} ({mapping.Id})");
 								break;
 						}
 
 					} else {
-						Logger.Error($"Cannot trigger unknown lamp {itemName}.");
+						Logger.Error($"Cannot trigger unknown lamp {component}.");
 					}
 				}
 
@@ -176,49 +172,49 @@ namespace VisualPinball.Unity
 			});
 		}
 
-		private void HandleLampEvent(LampEventArgs lampEvent, Action<IApiLamp, MappingsLampData, string> handleRgb)
+		private void HandleLampEvent(LampEventArgs lampEvent, Action<IApiLamp, LampMapping, ILampAuthoring> handleRgb)
 		{
 			if (_lampAssignments.ContainsKey(lampEvent.Id)) {
-				foreach (var itemName in _lampAssignments[lampEvent.Id]) {
-					var mapping = _lampMappings[lampEvent.Id][itemName];
+				foreach (var component in _lampAssignments[lampEvent.Id]) {
+					var mapping = _lampMappings[lampEvent.Id][component];
 					if (mapping.Source != lampEvent.Source) {
 						// so, if we have a coil here that happens to have the same name as a lamp,
 						// skip if the source isn't the same.
 						continue;
 					}
-					if (_lamps.ContainsKey(itemName)) {
-						var lamp = _lamps[itemName];
+					if (_lamps.ContainsKey(component)) {
+						var lamp = _lamps[component];
 						switch (mapping.Type) {
-							case LampType.SingleOnOff: {
+							case ELampType.SingleOnOff: {
 								var value = lampEvent.Value > 0 ? 1f : 0f;
 								lamp.OnLamp(value, ColorChannel.Alpha);
 								LampStatuses[lampEvent.Id] = value;
 								break;
 							}
 
-							case LampType.Rgb:
-							case LampType.SingleFading: {
+							case ELampType.Rgb:
+							case ELampType.SingleFading: {
 								var value = lampEvent.Value / 255f;
 								lamp.OnLamp(value, ColorChannel.Alpha);
 								LampStatuses[lampEvent.Id] = value;
 								break;
 							}
 
-							case LampType.RgbMulti:
-								handleRgb(lamp, mapping, itemName);
+							case ELampType.RgbMulti:
+								handleRgb(lamp, mapping, component);
 								break;
 
 							default:
-								Logger.Error($"Unknown mapping type \"{mapping.Type}\" of lamp ID {lampEvent.Id} for light {itemName}.");
+								Logger.Error($"Unknown mapping type \"{mapping.Type}\" of lamp ID {lampEvent.Id} for light {component}.");
 								break;
 						}
 
 					} else {
-						Logger.Error($"Cannot trigger unknown lamp {itemName}.");
+						Logger.Error($"Cannot trigger unknown lamp {component}.");
 					}
 				}
 #if UNITY_EDITOR
-				UnityEditorInternal.InternalEditorUtility.RepaintAllViews();
+				InternalEditorUtility.RepaintAllViews();
 #endif
 			}
 		}

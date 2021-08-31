@@ -109,7 +109,7 @@ namespace VisualPinball.Unity
 				foreach (var destConfig in _coilAssignments[coilEvent.Id]) {
 
 					if (destConfig.IsLampCoil) {
-						_lampPlayer.HandleLampEvent(new LampEventArgs(coilEvent.Id, coilEvent.IsEnabled ? 1 : 0, LampSource.Coils));
+						_lampPlayer.HandleLampEvent(new LampEventArgs(coilEvent.Id, coilEvent.IsEnabled ? 1 : 0, ELampSource.Coils));
 						continue;
 					}
 
