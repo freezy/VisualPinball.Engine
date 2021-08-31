@@ -19,37 +19,44 @@ using System.Linq;
 using NLog;
 using UnityEngine.InputSystem;
 using VisualPinball.Engine.VPT;
-using VisualPinball.Engine.VPT.Mappings;
-using VisualPinball.Engine.VPT.Table;
 
 namespace VisualPinball.Unity
 {
 	public class SwitchPlayer
 	{
-		private readonly Dictionary<string, IApiSwitch> _switches = new Dictionary<string, IApiSwitch>();
+		/// <summary>
+		/// Maps the switch component to the API class.
+		/// </summary>
+		private readonly Dictionary<ISwitchDeviceAuthoring, IApiSwitchDevice> _switchDevices = new Dictionary<ISwitchDeviceAuthoring, IApiSwitchDevice>();
+
+		/// <summary>
+		/// Maps the switch configuration ID to a switch status.
+		/// </summary>
 		private readonly Dictionary<string, IApiSwitchStatus> _switchStatuses = new Dictionary<string, IApiSwitchStatus>();
-		private readonly Dictionary<string, IApiSwitchDevice> _switchDevices = new Dictionary<string, IApiSwitchDevice>();
+
+		/// <summary>
+		/// Maps the input action to a list of switch statuses
+		/// </summary>
 		private readonly Dictionary<string, List<KeyboardSwitch>> _keySwitchAssignments = new Dictionary<string, List<KeyboardSwitch>>();
 
-		private TableContainer _tableContainer;
+		private TableAuthoring _tableComponent;
 		private IGamelogicEngine _gamelogicEngine;
 		private InputManager _inputManager;
 
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
-		internal Dictionary<string, bool> SwitchStatusesClosed => _switchStatuses.ToDictionary(s => s.Key, s => s.Value.IsSwitchClosed);
 
-		internal IApiSwitch Switch(string itemName) => _switches.ContainsKey(itemName) ? _switches[itemName] : null;
-		internal IApiSwitch Switch(string device, string itemName) => _switchDevices.ContainsKey(device) ? _switchDevices[device].Switch(itemName) : null;
-		internal void RegisterSwitch(string name, IApiSwitch switchApi) => _switches[name] = switchApi;
-		internal void RegisterSwitchDevice(string name, IApiSwitchDevice switchDeviceApi) => _switchDevices[name] = switchDeviceApi;
-		public void RegisterWire(MappingsWireData wireData, bool isDynamic = false) => _switches[wireData.SourcePlayfieldItem].AddWireDest(new WireDestConfig(wireData) {IsDynamic = isDynamic});
-		public void UnregisterWire(MappingsWireData wireData) => _switches[wireData.SourcePlayfieldItem].RemoveWireDest(wireData.DestinationId);
-		public bool SwitchExists(string name) => _switches.ContainsKey(name);
-		public bool SwitchDeviceExists(string name) => _switchDevices.ContainsKey(name);
+		internal Dictionary<string, bool> SwitchStatusesClosed
+			=> _switchStatuses.ToDictionary(s => s.Key, s => s.Value.IsSwitchClosed);
+		internal IApiSwitch Switch(ISwitchDeviceAuthoring component, string deviceSwitchId)
+			=> _switchDevices.ContainsKey(component) ? _switchDevices[component].Switch(deviceSwitchId) : null;
+		internal void RegisterSwitchDevice(ISwitchDeviceAuthoring component, IApiSwitchDevice switchDeviceApi)
+			=> _switchDevices[component] = switchDeviceApi;
+		public bool SwitchDeviceExists(ISwitchDeviceAuthoring component)
+			=> _switchDevices.ContainsKey(component);
 
-		public void Awake(TableContainer tableContainer, IGamelogicEngine gamelogicEngine, InputManager inputManager)
+		public void Awake(TableAuthoring tableComponent, IGamelogicEngine gamelogicEngine, InputManager inputManager)
 		{
-			_tableContainer = tableContainer;
+			_tableComponent = tableComponent;
 			_gamelogicEngine = gamelogicEngine;
 			_inputManager = inputManager;
 		}
@@ -59,71 +66,53 @@ namespace VisualPinball.Unity
 			// hook-up game switches
 			if (_gamelogicEngine != null) {
 
-				var config = _tableContainer.Mappings;
+				var config = _tableComponent.MappingConfig;
 				_keySwitchAssignments.Clear();
-				foreach (var switchData in config.Data.Switches) {
-					switch (switchData.Source) {
+				foreach (var switchMapping in config.Switches) {
+					switch (switchMapping.Source) {
 
-						case SwitchSource.Playfield: {
-
-							if (string.IsNullOrEmpty(switchData.PlayfieldItem)) {
-								Logger.Warn($"Ignoring unassigned switch \"{switchData.Id}\".");
-								break;
-							}
-
-							if (!_switches.ContainsKey(switchData.PlayfieldItem)) {
-								Logger.Error($"Cannot find item \"{switchData.PlayfieldItem}\" for switch \"{switchData.Id}\".");
-								break;
-							}
-
-							var element = _switches[switchData.PlayfieldItem];
-							var switchStatus = element.AddSwitchDest(new SwitchConfig(switchData));
-							_switchStatuses[switchData.Id] = switchStatus;
-							break;
-						}
-
-						case SwitchSource.InputSystem:
-							if (!_keySwitchAssignments.ContainsKey(switchData.InputAction)) {
-								_keySwitchAssignments[switchData.InputAction] = new List<KeyboardSwitch>();
-							}
-							var keyboardSwitch = new KeyboardSwitch(switchData.Id, switchData.IsNormallyClosed);
-							_keySwitchAssignments[switchData.InputAction].Add(keyboardSwitch);
-							_switchStatuses[switchData.Id] = keyboardSwitch;
-							break;
-
-						case SwitchSource.Device: {
+						case ESwitchSource.Playfield: {
 
 							// mapping values must be set
-							if (string.IsNullOrEmpty(switchData.Device) || string.IsNullOrEmpty(switchData.DeviceItem)) {
-								Logger.Warn($"Ignoring unassigned device switch \"{switchData.Id}\".");
+							if (switchMapping.Device == null || string.IsNullOrEmpty(switchMapping.DeviceSwitchId)) {
+								Logger.Warn($"Ignoring unassigned device switch \"{switchMapping.Id}\".");
 								break;
 							}
 
 							// check if device exists
-							if (!_switchDevices.ContainsKey(switchData.Device)) {
-								Logger.Error($"Unknown switch device \"{switchData.Device}\".");
+							if (!_switchDevices.ContainsKey(switchMapping.Device)) {
+								Logger.Error($"Unknown switch device \"{switchMapping.Device}\".");
 								break;
 							}
 
-							var device = _switchDevices[switchData.Device];
-							var deviceSwitch = device.Switch(switchData.DeviceItem);
+							var device = _switchDevices[switchMapping.Device];
+							var deviceSwitch = device.Switch(switchMapping.DeviceSwitchId);
 							if (deviceSwitch != null) {
-								var switchStatus = deviceSwitch.AddSwitchDest(new SwitchConfig(switchData));
-								_switchStatuses[switchData.Id] = switchStatus;
+								var switchStatus = deviceSwitch.AddSwitchDest(new SwitchConfig(switchMapping));
+								_switchStatuses[switchMapping.Id] = switchStatus;
 
 							} else {
-								Logger.Error($"Unknown switch \"{switchData.DeviceItem}\" in switch device \"{switchData.Device}\".");
+								Logger.Error($"Unknown switch \"{switchMapping.DeviceSwitchId}\" in switch device \"{switchMapping.Device}\".");
 							}
 
 							break;
 						}
 
-						case SwitchSource.Constant:
-							_switchStatuses[switchData.Id] = new ConstantSwitch(switchData.Constant == SwitchConstant.Closed);
+						case ESwitchSource.InputSystem:
+							if (!_keySwitchAssignments.ContainsKey(switchMapping.InputAction)) {
+								_keySwitchAssignments[switchMapping.InputAction] = new List<KeyboardSwitch>();
+							}
+							var keyboardSwitch = new KeyboardSwitch(switchMapping.Id, switchMapping.IsNormallyClosed);
+							_keySwitchAssignments[switchMapping.InputAction].Add(keyboardSwitch);
+							_switchStatuses[switchMapping.Id] = keyboardSwitch;
+							break;
+
+						case ESwitchSource.Constant:
+							_switchStatuses[switchMapping.Id] = new ConstantSwitch(switchMapping.Constant == SwitchConstant.Closed);
 							break;
 
 						default:
-							Logger.Error($"Unknown switch source \"{switchData.Source}\".");
+							Logger.Error($"Unknown switch source \"{switchMapping.Source}\".");
 							break;
 					}
 				}
@@ -160,20 +149,26 @@ namespace VisualPinball.Unity
 				_inputManager.Disable(HandleKeyInput);
 			}
 		}
+
+		// remove all below
+		internal void RegisterSwitch(string goName, IApiSwitch _)
+		{
+			throw new System.NotImplementedException();
+		}
 	}
 
 	internal class KeyboardSwitch : IApiSwitchStatus
 	{
 		public readonly string SwitchId;
-		public readonly bool IsNormallyClosed;
+		private readonly bool _isNormallyClosed;
 
 		public bool IsSwitchEnabled { get; set; }
-		public bool IsSwitchClosed => IsNormallyClosed ? !IsSwitchEnabled : IsSwitchEnabled;
+		public bool IsSwitchClosed => _isNormallyClosed ? !IsSwitchEnabled : IsSwitchEnabled;
 
 		public KeyboardSwitch(string switchId, bool normallyClosed)
 		{
 			SwitchId = switchId;
-			IsNormallyClosed = normallyClosed;
+			_isNormallyClosed = normallyClosed;
 		}
 	}
 

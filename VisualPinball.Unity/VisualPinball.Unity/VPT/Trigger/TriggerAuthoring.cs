@@ -27,6 +27,7 @@ using System.Linq;
 using Unity.Entities;
 using Unity.Mathematics;
 using UnityEngine;
+using VisualPinball.Engine.Game.Engines;
 using VisualPinball.Engine.Math;
 using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Table;
@@ -66,7 +67,8 @@ namespace VisualPinball.Unity
 
 		public Vector2 Center => Position;
 
-		//public ISwitchable Switchable => Item;
+		public IEnumerable<GamelogicEngineSwitch> AvailableSwitches { get; }
+		public SwitchDefault SwitchDefault { get; }
 
 		public void OnSurfaceUpdated() => UpdateTransforms();
 		public float PositionZ => SurfaceHeight(Surface, Position);

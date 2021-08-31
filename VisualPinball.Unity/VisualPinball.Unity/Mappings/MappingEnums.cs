@@ -47,4 +47,10 @@ namespace VisualPinball.Unity
 		SingleWound = 0,
 		DualWound = 1,
 	}
+
+	public enum EWireType
+	{
+		OnOff = 0,
+		Pulse = 1,
+	}
 }

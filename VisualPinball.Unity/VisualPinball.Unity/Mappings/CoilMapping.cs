@@ -41,5 +41,10 @@ namespace VisualPinball.Unity
 		public ECoilType Type = ECoilType.SingleWound;
 
 		public string HoldCoilId = string.Empty;
+
+		public override string ToString()
+		{
+			return $"coil {Id} ({InternalId}) {Description}";
+		}
 	}
 }

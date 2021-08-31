@@ -14,8 +14,6 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-using VisualPinball.Engine.VPT.Mappings;
-
 namespace VisualPinball.Unity
 {
 	public struct SwitchConfig
@@ -25,12 +23,12 @@ namespace VisualPinball.Unity
 		public bool IsPulseSwitch;
 		public bool IsNormallyClosed;
 
-		public SwitchConfig(MappingsSwitchData switchData)
+		public SwitchConfig(SwitchMapping switchMapping)
 		{
-			SwitchId = switchData.Id;
+			SwitchId = switchMapping.Id;
 			IsPulseSwitch = false;
-			IsNormallyClosed = switchData.IsNormallyClosed;
-			PulseDelay = switchData.PulseDelay;
+			IsNormallyClosed = switchMapping.IsNormallyClosed;
+			PulseDelay = switchMapping.PulseDelay;
 		}
 
 		public SwitchConfig WithPulse(bool isPulseSwitch)
@@ -38,7 +36,7 @@ namespace VisualPinball.Unity
 			IsPulseSwitch = isPulseSwitch;
 			return this;
 		}
-		
+
 		public SwitchConfig WithDefault(SwitchDefault switchDefault)
 		{
 			if (switchDefault == SwitchDefault.Configurable) {

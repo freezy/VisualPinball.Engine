@@ -24,74 +24,63 @@ namespace VisualPinball.Unity.Editor
 		public string Name => Description;
 
 		[ManagerListColumn(Order = 1, HeaderName = "Source", Width = 150)]
-		public int Source;
+		public ESwitchSource Source;
 
 		[ManagerListColumn(Order = 2, HeaderName = "Source Element", Width = 270)]
 		public string SourceElement;
 
-		[ManagerListColumn(Order = 3, HeaderName = "Destination", Width = 150)]
-		public int Destination;
-
-		[ManagerListColumn(Order = 4, HeaderName = "Destination Element", Width = 270)]
+		[ManagerListColumn(Order = 3, HeaderName = "Destination Element", Width = 270)]
 		public string DestinationElement;
 
-		[ManagerListColumn(Order = 5, HeaderName = "Pulse Delay", Width = 100)]
+		[ManagerListColumn(Order = 4, HeaderName = "Pulse Delay", Width = 100)]
 		public int PulseDelay;
 
 		public string Description;
 
 		public string SourceInputActionMap;
 		public string SourceInputAction;
-		public string SourcePlayfieldItem;
 		public int SourceConstant;
-		public string SourceDevice;
-		public string SourceDeviceItem;
+		public ISwitchDeviceAuthoring SourceDevice;
+		public string SourceDeviceId;
 
-		public string DestinationPlayfieldItem;
-		public string DestinationDevice;
-		public string DestinationDeviceItem;
+		public ICoilDeviceAuthoring DestinationDevice;
+		public string DestinationDeviceId;
 
-		public MappingsWireData MappingsWireData;
+		public readonly WireMapping WireMapping;
 
-		public WireListData(MappingsWireData mappingsWireData) {
-			Description = mappingsWireData.Description;
+		public WireListData(WireMapping wireMapping) {
+			Description = wireMapping.Description;
 
-			Source = mappingsWireData.Source;
-			SourceInputActionMap = mappingsWireData.SourceInputActionMap;
-			SourceInputAction = mappingsWireData.SourceInputAction;
-			SourcePlayfieldItem = mappingsWireData.SourcePlayfieldItem;
-			SourceConstant = mappingsWireData.SourceConstant;
-			SourceDevice = mappingsWireData.SourceDevice;
-			SourceDeviceItem = mappingsWireData.SourceDeviceItem;
+			Source = wireMapping.Source;
+			SourceInputActionMap = wireMapping.SourceInputActionMap;
+			SourceInputAction = wireMapping.SourceInputAction;
+			SourceConstant = wireMapping.SourceConstant;
+			SourceDevice = wireMapping.SourceDevice;
+			SourceDeviceId = wireMapping.SourceDeviceId;
 
-			Destination = mappingsWireData.Destination;
-			DestinationPlayfieldItem = mappingsWireData.DestinationPlayfieldItem;
-			DestinationDevice = mappingsWireData.DestinationDevice;
-			DestinationDeviceItem = mappingsWireData.DestinationDeviceItem;
+			DestinationDevice = wireMapping.DestinationDevice;
+			DestinationDeviceId = wireMapping.DestinationDeviceId;
 
-			PulseDelay = mappingsWireData.PulseDelay;
+			PulseDelay = wireMapping.PulseDelay;
 
-			MappingsWireData = mappingsWireData;
+			WireMapping = wireMapping;
 		}
 
 		public void Update()
 		{
-			MappingsWireData.Description = Description;
+			WireMapping.Description = Description;
 
-			MappingsWireData.Source = Source;
-			MappingsWireData.SourceInputActionMap = SourceInputActionMap;
-			MappingsWireData.SourceInputAction = SourceInputAction;
-			MappingsWireData.SourcePlayfieldItem = SourcePlayfieldItem;
-			MappingsWireData.SourceConstant = SourceConstant;
-			MappingsWireData.SourceDevice = SourceDevice;
-			MappingsWireData.SourceDeviceItem = SourceDeviceItem;
+			WireMapping.Source = Source;
+			WireMapping.SourceInputActionMap = SourceInputActionMap;
+			WireMapping.SourceInputAction = SourceInputAction;
+			WireMapping.SourceConstant = SourceConstant;
+			WireMapping.SourceDevice = SourceDevice;
+			WireMapping.SourceDeviceId = SourceDeviceId;
 
-			MappingsWireData.Destination = Destination;
-			MappingsWireData.DestinationPlayfieldItem = DestinationPlayfieldItem;
-			MappingsWireData.DestinationDevice = DestinationDevice;
-			MappingsWireData.DestinationDeviceItem = DestinationDeviceItem;
+			WireMapping.DestinationDevice = DestinationDevice;
+			WireMapping.DestinationDeviceId = DestinationDeviceId;
 
-			MappingsWireData.PulseDelay = PulseDelay;
+			WireMapping.PulseDelay = PulseDelay;
 		}
 	}
 }

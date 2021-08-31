@@ -96,7 +96,7 @@ namespace VisualPinball.Unity
 
 		#region Wiring
 
-		IApiSwitch IApiSwitchDevice.Switch(string switchId) => this;
+		IApiSwitch IApiSwitchDevice.Switch(string deviceSwitchId) => this;
 		IApiSwitchStatus IApiSwitch.AddSwitchDest(SwitchConfig switchConfig) => AddSwitchDest(switchConfig);
 		void IApiSwitch.AddWireDest(WireDestConfig wireConfig) => AddWireDest(wireConfig);
 		void IApiSwitch.RemoveWireDest(string destId) => RemoveWireDest(destId);
@@ -112,7 +112,7 @@ namespace VisualPinball.Unity
 		}
 		void IApiWireDest.OnChange(bool enabled) => (this as IApiCoil).OnCoil(enabled, false);
 
-		IApiCoil IApiCoilDevice.Coil(string coilId) => this;
+		IApiCoil IApiCoilDevice.Coil(string deviceCoilId) => this;
 
 		#endregion
 

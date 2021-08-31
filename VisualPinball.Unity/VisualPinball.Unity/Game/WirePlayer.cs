@@ -18,159 +18,129 @@ using System.Collections.Generic;
 using System.Linq;
 using NLog;
 using UnityEngine.InputSystem;
-using VisualPinball.Engine.VPT;
-using VisualPinball.Engine.VPT.Mappings;
-using VisualPinball.Engine.VPT.Table;
 
 namespace VisualPinball.Unity
 {
 	public class WirePlayer
 	{
-		private readonly Dictionary<string, IApiWireDest> _wires = new Dictionary<string, IApiWireDest>();
-		private readonly Dictionary<string, IApiWireDeviceDest> _wireDevices = new Dictionary<string, IApiWireDeviceDest>();
+		/// <summary>
+		/// Maps the wire destination component to the wire destination API.
+		/// </summary>
+		private readonly Dictionary<ICoilDeviceAuthoring, IApiWireDeviceDest> _wireDevices = new Dictionary<ICoilDeviceAuthoring, IApiWireDeviceDest>();
 		private readonly Dictionary<string, List<WireDestConfig>> _keyWireAssignments = new Dictionary<string, List<WireDestConfig>>();
 
-		private TableContainer _tableContainer;
+		private TableAuthoring _tableComponent;
 		private InputManager _inputManager;
 		private SwitchPlayer _switchPlayer;
 
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
-		internal IApiWireDest Wire(string n) => _wires.ContainsKey(n) ? _wires[n] : null;
-		internal IApiWireDeviceDest WireDevice(string n) => _wireDevices.ContainsKey(n) ? _wireDevices[n] : null;
-		internal void RegisterWire(string name, IApiWireDest wireApi) => _wires[name] = wireApi;
-		internal void RegisterWireDevice(string name, IApiWireDeviceDest wireDeviceApi) => _wireDevices[name] = wireDeviceApi;
+		internal IApiWireDeviceDest WireDevice(ICoilDeviceAuthoring c) => _wireDevices.ContainsKey(c) ? _wireDevices[c] : null;
+		internal void RegisterWireDevice(ICoilDeviceAuthoring component, IApiWireDeviceDest wireDeviceApi) => _wireDevices[component] = wireDeviceApi;
 
-		public void Awake(TableContainer tableContainer, InputManager inputManager, SwitchPlayer switchPlayer)
+		public void Awake(TableAuthoring tableComponent, InputManager inputManager, SwitchPlayer switchPlayer)
 		{
-			_tableContainer = tableContainer;
+			_tableComponent = tableComponent;
 			_inputManager = inputManager;
 			_switchPlayer = switchPlayer;
 		}
 
 		public void OnStart()
 		{
-			var config = _tableContainer.Mappings;
+			var config = _tableComponent.MappingConfig;
 			_keyWireAssignments.Clear();
-			foreach (var wireData in config.Data.Wires) {
+			foreach (var wireData in config.Wires) {
 				AddWire(wireData);
 			}
 
 			_inputManager.Enable(HandleKeyInput);
 		}
 
-		internal void AddWire(MappingsWireData wireData, bool isDynamic = false)
+		internal void AddWire(WireMapping wireMapping, bool isDynamic = false)
 		{
-			switch (wireData.Source) {
+			switch (wireMapping.Source) {
 
-				case SwitchSource.Playfield: {
-					if (string.IsNullOrEmpty(wireData.SourcePlayfieldItem)) {
-						break;
-					}
-
-					if (!_switchPlayer.SwitchExists(wireData.SourcePlayfieldItem)) {
-						Logger.Error($"Cannot find item \"{wireData.SourcePlayfieldItem}\" for wire source.");
-						break;
-					}
-
-					_switchPlayer.RegisterWire(wireData, isDynamic);
-					break;
-				}
-
-				case SwitchSource.InputSystem: {
-					if (!_keyWireAssignments.ContainsKey(wireData.SourceInputAction)) {
-						_keyWireAssignments[wireData.SourceInputAction] = new List<WireDestConfig>();
-					}
-					_keyWireAssignments[wireData.SourceInputAction].Add(new WireDestConfig(wireData) { IsDynamic = isDynamic });
-					break;
-				}
-
-				case SwitchSource.Device: {
+				case ESwitchSource.Playfield: {
 					// mapping values must be set
-					if (string.IsNullOrEmpty(wireData.SourceDevice) || string.IsNullOrEmpty(wireData.SourceDeviceItem)) {
+					if (wireMapping.SourceDevice == null || string.IsNullOrEmpty(wireMapping.SourceDeviceId)) {
 						break;
 					}
 
 					// check if device exists
-					if (!_switchPlayer.SwitchDeviceExists(wireData.SourceDevice)) {
-						Logger.Error($"Unknown wire switch device \"{wireData.SourceDevice}\".");
+					if (!_switchPlayer.SwitchDeviceExists(wireMapping.SourceDevice)) {
+						Logger.Error($"Unknown wire switch device \"{wireMapping.SourceDevice}\".");
 						break;
 					}
 
-					var deviceSwitch = _switchPlayer.Switch(wireData.SourceDevice, wireData.SourceDeviceItem);
+					var deviceSwitch = _switchPlayer.Switch(wireMapping.SourceDevice, wireMapping.SourceDeviceId);
 					if (deviceSwitch != null) {
-						deviceSwitch.AddWireDest(new WireDestConfig(wireData) { IsDynamic = isDynamic });
-						Logger.Info($"Wiring device switch \"{wireData.Src}\" to \"{wireData.Dst}\"");
+						deviceSwitch.AddWireDest(new WireDestConfig(wireMapping) { IsDynamic = isDynamic });
+						Logger.Info($"Wiring device switch \"{wireMapping.Src}\" to \"{wireMapping.Dst}\"");
 
 					} else {
-						Logger.Warn($"Unknown switch \"{wireData.Src}\" to wire to \"{wireData.Dst}\".");
+						Logger.Warn($"Unknown switch \"{wireMapping.Src}\" to wire to \"{wireMapping.Dst}\".");
 					}
 					break;
 				}
 
-				case SwitchSource.Constant:
+				case ESwitchSource.InputSystem: {
+					if (!_keyWireAssignments.ContainsKey(wireMapping.SourceInputAction)) {
+						_keyWireAssignments[wireMapping.SourceInputAction] = new List<WireDestConfig>();
+					}
+					_keyWireAssignments[wireMapping.SourceInputAction].Add(new WireDestConfig(wireMapping) { IsDynamic = isDynamic });
+					break;
+				}
+
+				case ESwitchSource.Constant:
 					break;
 
 				default:
-					Logger.Warn($"Unknown wire switch source \"{wireData.Source}\".");
+					Logger.Warn($"Unknown wire switch source \"{wireMapping.Source}\".");
 					break;
 			}
 		}
 
-		internal void RemoveWire(MappingsWireData wireData)
+		internal void RemoveWire(WireMapping wireMapping)
 		{
-			switch (wireData.Source) {
+			switch (wireMapping.Source) {
 
-				case SwitchSource.Playfield: {
-					if (string.IsNullOrEmpty(wireData.SourcePlayfieldItem)) {
-						break;
-					}
-
-					if (!_switchPlayer.SwitchExists(wireData.SourcePlayfieldItem)) {
-						Logger.Error($"Cannot find item \"{wireData.SourcePlayfieldItem}\" for wire source.");
-						break;
-					}
-
-					_switchPlayer.UnregisterWire(wireData);
-					break;
-				}
-
-				case SwitchSource.InputSystem: {
-					if (!_keyWireAssignments.ContainsKey(wireData.SourceInputAction)) {
-						_keyWireAssignments[wireData.SourceInputAction] = new List<WireDestConfig>();
-					}
-					var assignment = _keyWireAssignments[wireData.SourceInputAction].FirstOrDefault(a => a.IsDynamic && a.DestinationId == wireData.DestinationId);
-					_keyWireAssignments[wireData.SourceInputAction].Remove(assignment);
-					break;
-				}
-
-				case SwitchSource.Device: {
+				case ESwitchSource.Playfield: {
 					// mapping values must be set
-					if (string.IsNullOrEmpty(wireData.SourceDevice) || string.IsNullOrEmpty(wireData.SourceDeviceItem)) {
+					if (wireMapping.SourceDevice == null || string.IsNullOrEmpty(wireMapping.SourceDeviceId)) {
 						break;
 					}
 
 					// check if device exists
-					if (!_switchPlayer.SwitchDeviceExists(wireData.SourceDevice)) {
-						Logger.Error($"Unknown wire switch device \"{wireData.SourceDevice}\".");
+					if (!_switchPlayer.SwitchDeviceExists(wireMapping.SourceDevice)) {
+						Logger.Error($"Unknown wire switch device \"{wireMapping.SourceDevice}\".");
 						break;
 					}
 
-					var deviceSwitch = _switchPlayer.Switch(wireData.SourceDevice, wireData.SourceDeviceItem);
+					var deviceSwitch = _switchPlayer.Switch(wireMapping.SourceDevice, wireMapping.SourceDeviceId);
 					if (deviceSwitch != null) {
-						deviceSwitch.RemoveWireDest(wireData.DestinationId);
+						deviceSwitch.RemoveWireDest(wireMapping.DestinationDeviceId);
 
 					} else {
-						Logger.Warn($"Unknown switch \"{wireData.Src}\" to wire to \"{wireData.Dst}\".");
+						Logger.Warn($"Unknown switch \"{wireMapping.Src}\" to wire to \"{wireMapping.Dst}\".");
 					}
 					break;
 				}
 
-				case SwitchSource.Constant:
+				case ESwitchSource.InputSystem: {
+					if (!_keyWireAssignments.ContainsKey(wireMapping.SourceInputAction)) {
+						_keyWireAssignments[wireMapping.SourceInputAction] = new List<WireDestConfig>();
+					}
+					var assignment = _keyWireAssignments[wireMapping.SourceInputAction]
+						.FirstOrDefault(a => a.IsDynamic && a.Device == wireMapping.DestinationDevice && a.DeviceId == wireMapping.DestinationDeviceId);
+					_keyWireAssignments[wireMapping.SourceInputAction].Remove(assignment);
+					break;
+				}
+
+				case ESwitchSource.Constant:
 					break;
 
 				default:
-					Logger.Warn($"Unknown wire switch source \"{wireData.Source}\".");
+					Logger.Warn($"Unknown wire switch source \"{wireMapping.Source}\".");
 					break;
 			}
 		}
@@ -183,24 +153,16 @@ namespace VisualPinball.Unity
 					var action = (InputAction)obj;
 					if (_keyWireAssignments != null && _keyWireAssignments.ContainsKey(action.name)) {
 						foreach (var wireConfig in _keyWireAssignments[action.name]) {
-							switch (wireConfig.Destination) {
-								case WireDestination.Playfield:
-									Wire(wireConfig.PlayfieldItem)?.OnChange(change == InputActionChange.ActionStarted);
-									break;
-
-								case WireDestination.Device:
-									if (_wireDevices.ContainsKey(wireConfig.Device)) {
-										var device = _wireDevices[wireConfig.Device];
-										var wire = device.Wire(wireConfig.DeviceItem);
-										if (wire != null) {
-											wire.OnChange(change == InputActionChange.ActionStarted);
-										} else {
-											Logger.Warn($"Unknown wire \"{wireConfig.DeviceItem}\" in wire device \"{wireConfig.Device}\".");
-										}
-									}
-									break;
+							if (_wireDevices.ContainsKey(wireConfig.Device)) {
+								var device = _wireDevices[wireConfig.Device];
+								var wire = device.Wire(wireConfig.DeviceId);
+								if (wire != null) {
+									wire.OnChange(change == InputActionChange.ActionStarted);
+								} else {
+									Logger.Warn($"Unknown wire \"{wireConfig.DeviceId}\" in wire device \"{wireConfig.Device}\".");
+								}
 							}
-						}
+				}
 					}
 					break;
 			}
@@ -212,14 +174,28 @@ namespace VisualPinball.Unity
 				_inputManager.Disable(HandleKeyInput);
 			}
 		}
+
+		// todo remove
+		internal void RegisterWire(string goName, IApiCoil _)
+		{
+			throw new System.NotImplementedException();
+		}
+
+		internal void RegisterWire(string goName, IApiLamp _)
+		{
+			throw new System.NotImplementedException();
+		}
+
+		internal void RegisterWireDevice(string goName, IApiWireDeviceDest _)
+		{
+			throw new System.NotImplementedException();
+		}
 	}
 
-	public struct WireDestConfig
+	public class WireDestConfig
 	{
-		public readonly int Destination;
-		public readonly string PlayfieldItem;
-		public readonly string Device;
-		public readonly string DeviceItem;
+		public readonly ICoilDeviceAuthoring Device;
+		public readonly string DeviceId;
 		public readonly int PulseDelay;
 		public bool IsPulseSource;
 
@@ -230,15 +206,11 @@ namespace VisualPinball.Unity
 		/// </summary>
 		public bool IsDynamic;
 
-		public string DestinationId => Destination == WireDestination.Device ? DeviceItem : PlayfieldItem;
-
-		public WireDestConfig(MappingsWireData data)
+		public WireDestConfig(WireMapping wireMapping)
 		{
-			Destination = data.Destination;
-			PlayfieldItem = data.DestinationPlayfieldItem;
-			Device = data.DestinationDevice;
-			DeviceItem = data.DestinationDeviceItem;
-			PulseDelay = data.PulseDelay;
+			Device = wireMapping.DestinationDevice;
+			DeviceId = wireMapping.DestinationDeviceId;
+			PulseDelay = wireMapping.PulseDelay;
 			IsPulseSource = false;
 			IsDynamic = false;
 		}

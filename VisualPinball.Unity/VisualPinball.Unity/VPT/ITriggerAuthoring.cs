@@ -21,7 +21,7 @@ namespace VisualPinball.Unity
 	/// <summary>
 	/// The interface for triggering stuff
 	/// </summary>
-	public interface ITriggerAuthoring : IIdentifiableItemAuthoring
+	public interface ITriggerAuthoring : ISwitchDeviceAuthoring
 	{
 		string name { get; }
 
