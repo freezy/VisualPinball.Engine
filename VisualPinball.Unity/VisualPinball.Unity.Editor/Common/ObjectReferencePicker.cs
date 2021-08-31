@@ -25,15 +25,17 @@ namespace VisualPinball.Unity.Editor
 	{
 		private AdvancedDropdownState _itemPickDropdownState;
 
+		public IconColor IconColor = IconColor.Gray;
+
 		private readonly string _pickerTitle;
 		private readonly TableAuthoring _tableComp;
-		private readonly IconColor _iconColor;
+		private readonly bool _showIcon;
 
-		public ObjectReferencePicker(string pickerTitle, TableAuthoring tableComp, IconColor iconColor)
+		public ObjectReferencePicker(string pickerTitle, TableAuthoring tableComp, bool showIcon)
 		{
 			_pickerTitle = pickerTitle;
 			_tableComp = tableComp;
-			_iconColor = iconColor;
+			_showIcon = showIcon;
 		}
 
 		public void Render(Rect pos, T currentObj, Action<T> onUpdated)
@@ -41,7 +43,9 @@ namespace VisualPinball.Unity.Editor
 			// render content
 			var content = currentObj == null
 				? new GUIContent("None")
-				: new GUIContent(currentObj.name, Icons.ByComponent(currentObj, IconSize.Small, _iconColor));
+				: _showIcon
+					? new GUIContent(currentObj.name, Icons.ByComponent(currentObj, IconSize.Small, IconColor))
+					: new GUIContent(currentObj.name);
 
 			// render drawer
 			var id = GUIUtility.GetControlID(FocusType.Keyboard, pos);
