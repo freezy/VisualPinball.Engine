@@ -68,19 +68,29 @@ namespace VisualPinball.Unity
 
 		#endregion
 
+		#region Overrides
+
 		public override ItemType ItemType => ItemType.Rubber;
 		public override string ItemName => "Rubber";
 
-		public override void OnPlayfieldHeightUpdated() => RebuildMeshes();
-
 		public override RubberData InstantiateData() => new RubberData();
-		protected override Type MeshAuthoringType { get; } = typeof(ItemMeshAuthoring<RubberData, RubberAuthoring>);
-		protected override Type ColliderAuthoringType { get; } = typeof(ItemColliderAuthoring<RubberData, RubberAuthoring>);
-
 
 		public override IEnumerable<Type> ValidParents => RubberColliderAuthoring.ValidParentTypes
 			.Concat(RubberMeshAuthoring.ValidParentTypes)
 			.Distinct();
+
+		protected override Type MeshAuthoringType { get; } = typeof(ItemMeshAuthoring<RubberData, RubberAuthoring>);
+		protected override Type ColliderAuthoringType { get; } = typeof(ItemColliderAuthoring<RubberData, RubberAuthoring>);
+
+		#endregion
+
+		#region Transformation
+
+		public override void OnPlayfieldHeightUpdated() => RebuildMeshes();
+
+		#endregion
+
+		#region Conversion
 
 		public void Convert(Entity entity, EntityManager dstManager, GameObjectConversionSystem conversionSystem)
 		{
@@ -179,6 +189,8 @@ namespace VisualPinball.Unity
 
 			return data;
 		}
+
+		#endregion
 
 		#region Editor Tooling
 

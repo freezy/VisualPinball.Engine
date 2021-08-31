@@ -20,12 +20,10 @@ using VisualPinball.Engine.Math;
 
 namespace VisualPinball.Engine.VPT.HitTarget
 {
-	public class HitTarget : Item<HitTargetData>, IRenderable, ISwitchable
+	public class HitTarget : Item<HitTargetData>, IRenderable
 	{
 		public override string ItemName => "Target";
 		public override string ItemGroupName => "Targets";
-
-		public bool IsPulseSwitch => true;
 
 		public HitTarget(HitTargetData data) : base(data)
 		{

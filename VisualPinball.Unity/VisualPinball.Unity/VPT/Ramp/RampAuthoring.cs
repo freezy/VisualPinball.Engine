@@ -102,21 +102,29 @@ namespace VisualPinball.Unity
 
 		#endregion
 
+		public bool IsWireRamp => _type != RampType.RampTypeFlat;
+
+		#region Overrides
+
 		public override ItemType ItemType => ItemType.Ramp;
 		public override string ItemName => "Ramp";
 
-		public override void OnPlayfieldHeightUpdated() => RebuildMeshes();
-
 		public override RampData InstantiateData() => new RampData();
-
-		protected override Type MeshAuthoringType { get; } = typeof(ItemMeshAuthoring<RampData, RampAuthoring>);
-		protected override Type ColliderAuthoringType { get; } = typeof(ItemColliderAuthoring<RampData, RampAuthoring>);
-
 		public override IEnumerable<Type> ValidParents => RampColliderAuthoring.ValidParentTypes
 			.Concat(RampFloorMeshAuthoring.ValidParentTypes)
 			.Concat(RampWallMeshAuthoring.ValidParentTypes)
 			.Concat(RampWireMeshAuthoring.ValidParentTypes)
 			.Distinct();
+
+		protected override Type MeshAuthoringType { get; } = typeof(ItemMeshAuthoring<RampData, RampAuthoring>);
+		protected override Type ColliderAuthoringType { get; } = typeof(ItemColliderAuthoring<RampData, RampAuthoring>);
+
+		public override void OnPlayfieldHeightUpdated() => RebuildMeshes();
+
+		#endregion
+
+		#region Transformation
+
 
 		public float Height(Vector2 pos) {
 
@@ -153,16 +161,6 @@ namespace VisualPinball.Unity
 			return vVertex[iSeg].Z + startLength / totalLength * (topHeight - bottomHeight) + bottomHeight;
 		}
 
-		public bool IsWireRamp => _type != RampType.RampTypeFlat;
-
-		public void Convert(Entity entity, EntityManager dstManager, GameObjectConversionSystem conversionSystem)
-		{
-			Convert(entity, dstManager);
-
-			// register
-			transform.GetComponentInParent<Player>().RegisterRamp(this, entity, ParentEntity);
-		}
-
 		public override void UpdateVisibility()
 		{
 			// visibility
@@ -189,6 +187,18 @@ namespace VisualPinball.Unity
 				if (floorComponent) floorComponent.gameObject.SetActive(isVisible);
 				if (wallComponent) wallComponent.gameObject.SetActive(isVisible && (_leftWallHeightVisible > 0 || _rightWallHeightVisible > 0));
 			}
+		}
+
+		#endregion
+
+		#region Conversion
+
+		public void Convert(Entity entity, EntityManager dstManager, GameObjectConversionSystem conversionSystem)
+		{
+			Convert(entity, dstManager);
+
+			// register
+			transform.GetComponentInParent<Player>().RegisterRamp(this, entity, ParentEntity);
 		}
 
 		public override IEnumerable<MonoBehaviour> SetData(RampData data)
@@ -339,6 +349,8 @@ namespace VisualPinball.Unity
 
 			return data;
 		}
+
+		#endregion
 
 		#region Editor Tooling
 

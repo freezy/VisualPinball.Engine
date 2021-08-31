@@ -20,12 +20,10 @@ using VisualPinball.Engine.Math;
 
 namespace VisualPinball.Engine.VPT.Kicker
 {
-	public class Kicker : Item<KickerData>, IRenderable, ISwitchable, ICoilable
+	public class Kicker : Item<KickerData>, IRenderable
 	{
 		public override string ItemName => "Kicker";
 		public override string ItemGroupName => "Kickers";
-
-		public bool IsPulseSwitch => false;
 
 		public string[] UsedMaterials => new[] { Data.Material };
 
@@ -61,7 +59,5 @@ namespace VisualPinball.Engine.VPT.Kicker
 		}
 
 		#endregion
-
-		public bool IsDualWound { get; set; }
 	}
 }

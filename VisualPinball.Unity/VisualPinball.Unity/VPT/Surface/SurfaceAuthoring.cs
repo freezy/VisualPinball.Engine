@@ -53,22 +53,33 @@ namespace VisualPinball.Unity
 
 		#endregion
 
+		#region Overrides
+
 		public override ItemType ItemType => ItemType.Surface;
 		public override string ItemName => "Surface";
 
 		public override SurfaceData InstantiateData() => new SurfaceData();
 
-		protected override Type MeshAuthoringType { get; } = typeof(ItemMeshAuthoring<SurfaceData, SurfaceAuthoring>);
-		protected override Type ColliderAuthoringType { get; } = typeof(ItemColliderAuthoring<SurfaceData, SurfaceAuthoring>);
 
 		public override IEnumerable<Type> ValidParents => SurfaceColliderAuthoring.ValidParentTypes
 			.Concat(SurfaceSideMeshAuthoring.ValidParentTypes)
 			.Concat(SurfaceTopMeshAuthoring.ValidParentTypes)
 			.Distinct();
 
+		protected override Type MeshAuthoringType { get; } = typeof(ItemMeshAuthoring<SurfaceData, SurfaceAuthoring>);
+		protected override Type ColliderAuthoringType { get; } = typeof(ItemColliderAuthoring<SurfaceData, SurfaceAuthoring>);
+
+		#endregion
+
+		#region Transformation
+
 		public float Height(Vector2 _) => HeightTop + PlayfieldHeight;
 
 		public override void OnPlayfieldHeightUpdated() => RebuildMeshes();
+
+		#endregion
+
+		#region Conversion
 
 		public void Convert(Entity entity, EntityManager dstManager, GameObjectConversionSystem conversionSystem)
 		{
@@ -186,6 +197,8 @@ namespace VisualPinball.Unity
 
 			return data;
 		}
+
+		#endregion
 
 		#region Editor Tooling
 

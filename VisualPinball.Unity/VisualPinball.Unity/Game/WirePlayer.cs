@@ -174,19 +174,6 @@ namespace VisualPinball.Unity
 				_inputManager.Disable(HandleKeyInput);
 			}
 		}
-
-		// todo remove
-		internal void RegisterWire(string goName, IApiCoil _)
-		{
-		}
-
-		internal void RegisterWire(string goName, IApiLamp _)
-		{
-		}
-
-		internal void RegisterWireDevice(string goName, IApiWireDeviceDest _)
-		{
-		}
 	}
 
 	public class WireDestConfig

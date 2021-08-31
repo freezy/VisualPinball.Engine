@@ -20,12 +20,10 @@ using VisualPinball.Engine.Math;
 
 namespace VisualPinball.Engine.VPT.Gate
 {
-	public class Gate : Item<GateData>, IRenderable, ISwitchable
+	public class Gate : Item<GateData>, IRenderable
 	{
 		public override string ItemName => "Gate";
 		public override string ItemGroupName => "Gates";
-
-		public bool IsPulseSwitch => true;
 
 		private readonly GateMeshGenerator _meshGenerator;
 

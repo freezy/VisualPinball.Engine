@@ -26,95 +26,96 @@ namespace VisualPinball.Engine.Test.VPT.Mappings
 {
 	public class SwitchPopulationTests
 	{
-		[Test]
-		public void ShouldMapASwitchWithTheSameName()
-		{
-			var table = new TableBuilder()
-				.AddBumper("bumper_1")
-				.Build();
-
-			var gameEngineSwitches = new[] {
-				new GamelogicEngineSwitch("bumper_1")
-			};
-
-			table.Mappings.PopulateSwitches(gameEngineSwitches, table.Switchables, table.SwitchableDevices);
-
-			table.Mappings.Data.Switches.Should().HaveCount(1);
-			table.Mappings.Data.Switches[0].Source.Should().Be(SwitchSource.Playfield);
-			table.Mappings.Data.Switches[0].Id.Should().Be("bumper_1");
-			table.Mappings.Data.Switches[0].PlayfieldItem.Should().Be("bumper_1");
-		}
-
-		[Test]
-		public void ShouldMapASwitchWithASwPrefix()
-		{
-			var table = new TableBuilder()
-				.AddBumper("sw23")
-				.Build();
-
-			var gameEngineSwitches = new[] {
-				new GamelogicEngineSwitch("23")
-			};
-
-			table.Mappings.PopulateSwitches(gameEngineSwitches, table.Switchables, table.SwitchableDevices);
-
-			table.Mappings.Data.Switches.Should().HaveCount(1);
-			table.Mappings.Data.Switches[0].Source.Should().Be(SwitchSource.Playfield);
-			table.Mappings.Data.Switches[0].Id.Should().Be("23");
-			table.Mappings.Data.Switches[0].PlayfieldItem.Should().Be("sw23");
-		}
-
-		[Test]
-		public void ShouldNotMapASwitchWithADifferentSameName()
-		{
-			var table = new TableBuilder()
-				.AddBumper("bumper_1")
-				.Build();
-
-			var gameEngineSwitches = new[] {
-				new GamelogicEngineSwitch("bumper_")
-			};
-
-			table.Mappings.PopulateSwitches(gameEngineSwitches, table.Switchables, table.SwitchableDevices);
-
-			table.Mappings.Data.Switches.Should().HaveCount(1);
-			table.Mappings.Data.Switches[0].Id.Should().Be("bumper_");
-			table.Mappings.Data.Switches[0].PlayfieldItem.Should().BeEmpty();
-		}
-
-		[Test]
-		public void ShouldMapADeviceSwitchByHint()
-		{
-			var table = new TableBuilder()
-				.AddTrough("some_trough")
-				.Build();
-
-			var gameEngineSwitches = new[] {
-				new GamelogicEngineSwitch("88") { DeviceHint = "some_trough", DeviceItemHint = "1"}
-			};
-
-			table.Mappings.PopulateSwitches(gameEngineSwitches, table.Switchables, table.SwitchableDevices);
-
-			table.Mappings.Data.Switches.Should().HaveCount(1);
-			table.Mappings.Data.Switches[0].Source.Should().Be(SwitchSource.Device);
-			table.Mappings.Data.Switches[0].Id.Should().Be("88");
-			table.Mappings.Data.Switches[0].Device.Should().Be("some_trough");
-			table.Mappings.Data.Switches[0].DeviceItem.Should().Be("1");
-		}
-
-		[Test]
-		public void ShouldReturnCustomSwitchesSorted()
-		{
-			var table = new TableBuilder().Build();
-			table.Mappings.Data.AddSwitch(new MappingsSwitchData {Id = "bbb"});
-
-			var gameEngineSwitches = new[] {
-				new GamelogicEngineSwitch("aaa") {DeviceHint = "some_trough", DeviceItemHint = "1"}
-			};
-			var switches = table.Mappings.GetSwitchIds(gameEngineSwitches).ToArray();
-
-			switches[0].Id.Should().Be("aaa");
-			switches[1].Id.Should().Be("bbb");
-		}
+		// todo move to unity and use scene
+		// [Test]
+		// public void ShouldMapASwitchWithTheSameName()
+		// {
+		// 	var table = new TableBuilder()
+		// 		.AddBumper("bumper_1")
+		// 		.Build();
+		//
+		// 	var gameEngineSwitches = new[] {
+		// 		new GamelogicEngineSwitch("bumper_1")
+		// 	};
+		//
+		// 	table.Mappings.PopulateSwitches(gameEngineSwitches, table.Switchables, table.SwitchableDevices);
+		//
+		// 	table.Mappings.Data.Switches.Should().HaveCount(1);
+		// 	table.Mappings.Data.Switches[0].Source.Should().Be(SwitchSource.Playfield);
+		// 	table.Mappings.Data.Switches[0].Id.Should().Be("bumper_1");
+		// 	table.Mappings.Data.Switches[0].PlayfieldItem.Should().Be("bumper_1");
+		// }
+		//
+		// [Test]
+		// public void ShouldMapASwitchWithASwPrefix()
+		// {
+		// 	var table = new TableBuilder()
+		// 		.AddBumper("sw23")
+		// 		.Build();
+		//
+		// 	var gameEngineSwitches = new[] {
+		// 		new GamelogicEngineSwitch("23")
+		// 	};
+		//
+		// 	table.Mappings.PopulateSwitches(gameEngineSwitches, table.Switchables, table.SwitchableDevices);
+		//
+		// 	table.Mappings.Data.Switches.Should().HaveCount(1);
+		// 	table.Mappings.Data.Switches[0].Source.Should().Be(SwitchSource.Playfield);
+		// 	table.Mappings.Data.Switches[0].Id.Should().Be("23");
+		// 	table.Mappings.Data.Switches[0].PlayfieldItem.Should().Be("sw23");
+		// }
+		//
+		// [Test]
+		// public void ShouldNotMapASwitchWithADifferentSameName()
+		// {
+		// 	var table = new TableBuilder()
+		// 		.AddBumper("bumper_1")
+		// 		.Build();
+		//
+		// 	var gameEngineSwitches = new[] {
+		// 		new GamelogicEngineSwitch("bumper_")
+		// 	};
+		//
+		// 	table.Mappings.PopulateSwitches(gameEngineSwitches, table.Switchables, table.SwitchableDevices);
+		//
+		// 	table.Mappings.Data.Switches.Should().HaveCount(1);
+		// 	table.Mappings.Data.Switches[0].Id.Should().Be("bumper_");
+		// 	table.Mappings.Data.Switches[0].PlayfieldItem.Should().BeEmpty();
+		// }
+		//
+		// [Test]
+		// public void ShouldMapADeviceSwitchByHint()
+		// {
+		// 	var table = new TableBuilder()
+		// 		.AddTrough("some_trough")
+		// 		.Build();
+		//
+		// 	var gameEngineSwitches = new[] {
+		// 		new GamelogicEngineSwitch("88") { DeviceHint = "some_trough", DeviceItemHint = "1"}
+		// 	};
+		//
+		// 	table.Mappings.PopulateSwitches(gameEngineSwitches, table.Switchables, table.SwitchableDevices);
+		//
+		// 	table.Mappings.Data.Switches.Should().HaveCount(1);
+		// 	table.Mappings.Data.Switches[0].Source.Should().Be(SwitchSource.Device);
+		// 	table.Mappings.Data.Switches[0].Id.Should().Be("88");
+		// 	table.Mappings.Data.Switches[0].Device.Should().Be("some_trough");
+		// 	table.Mappings.Data.Switches[0].DeviceItem.Should().Be("1");
+		// }
+		//
+		// [Test]
+		// public void ShouldReturnCustomSwitchesSorted()
+		// {
+		// 	var table = new TableBuilder().Build();
+		// 	table.Mappings.Data.AddSwitch(new MappingsSwitchData {Id = "bbb"});
+		//
+		// 	var gameEngineSwitches = new[] {
+		// 		new GamelogicEngineSwitch("aaa") {DeviceHint = "some_trough", DeviceItemHint = "1"}
+		// 	};
+		// 	var switches = table.Mappings.GetSwitchIds(gameEngineSwitches).ToArray();
+		//
+		// 	switches[0].Id.Should().Be("aaa");
+		// 	switches[1].Id.Should().Be("bbb");
+		// }
 	}
 }
