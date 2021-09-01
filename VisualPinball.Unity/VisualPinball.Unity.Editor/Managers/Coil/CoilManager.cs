@@ -22,6 +22,7 @@ using UnityEditor;
 using UnityEngine;
 using VisualPinball.Engine.Game.Engines;
 using Logger = NLog.Logger;
+using Object = UnityEngine.Object;
 
 namespace VisualPinball.Unity.Editor
 {
@@ -107,7 +108,6 @@ namespace VisualPinball.Unity.Editor
 		{
 			_listViewItemRenderer.Render(_tableAuthoring, data, cellRect, column, coilListData => {
 				RecordUndo(DataTypeName + " Data Change");
-
 				coilListData.Update();
 			});
 		}
@@ -128,14 +128,12 @@ namespace VisualPinball.Unity.Editor
 		protected override void AddNewData(string undoName, string newName)
 		{
 			RecordUndo(undoName);
-
 			_tableAuthoring.MappingConfig.AddCoil(new CoilMapping());
 		}
 
 		protected override void RemoveData(string undoName, CoilListData data)
 		{
 			RecordUndo(undoName);
-
 			_tableAuthoring.MappingConfig.RemoveCoil(data.CoilMapping);
 
 			// todo if it's a lamp, also delete the lamp entry.
@@ -151,7 +149,6 @@ namespace VisualPinball.Unity.Editor
 		protected override void CloneData(string undoName, string newName, CoilListData data)
 		{
 			RecordUndo(undoName);
-
 			_tableAuthoring.MappingConfig.AddCoil(new CoilMapping {
 				Id = data.Id,
 				InternalId = data.InternalId,
@@ -193,34 +190,12 @@ namespace VisualPinball.Unity.Editor
 		#endregion
 
 		#region Undo Redo
-		private void RestoreMappings()
-		{
-			// if (_recordMappings == null) { return; }
-			// if (_tableAuthoring == null) { return; }
-			// if (_recordMappings.Table == _tableAuthoring)
-			// {
-			// 	_tableAuthoring.RestoreMappings(_recordMappings.Mappings);
-			// }
-		}
-
-		protected override void UndoPerformed()
-		{
-			RestoreMappings();
-			base.UndoPerformed();
-		}
 
 		private void RecordUndo(string undoName)
 		{
-			// if (_tableAuthoring == null) { return; }
-			// if (_recordMappings == null)
-			// {
-			// 	_recordMappings = CreateInstance<SerializedMappings>();
-			// }
-			// _recordMappings.Table = _tableAuthoring;
-			// _recordMappings.Mappings = _tableAuthoring.Mappings;
-			//
-			// Undo.RecordObjects(new Object[] { this, _recordMappings }, undoName);
+			Undo.RecordObjects(new Object[] { this, _tableAuthoring }, undoName);
 		}
+
 		#endregion
 	}
 }

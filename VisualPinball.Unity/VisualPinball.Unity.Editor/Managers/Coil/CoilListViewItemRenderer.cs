@@ -20,14 +20,12 @@ using System.Linq;
 using UnityEditor;
 using UnityEngine;
 using VisualPinball.Engine.Game.Engines;
-using VisualPinball.Engine.VPT;
-using Texture = UnityEngine.Texture;
 
 namespace VisualPinball.Unity.Editor
 {
 	public class CoilListViewItemRenderer : ListViewItemRenderer<CoilListData, GamelogicEngineCoil>
 	{
-		protected override List<GamelogicEngineCoil> GleItems => _gleCoils;
+		protected override List<GamelogicEngineCoil> GleItems { get; }
 		protected override GamelogicEngineCoil InstantiateGleItem(string id) => new GamelogicEngineCoil(id);
 		protected override Texture2D StatusIcon(bool status) => Icons.Bolt(IconSize.Small, status ? IconColor.Orange : IconColor.Gray);
 
@@ -42,14 +40,13 @@ namespace VisualPinball.Unity.Editor
 		}
 
 		private readonly TableAuthoring _tableComponent;
-		private readonly List<GamelogicEngineCoil> _gleCoils;
 
 		private readonly ObjectReferencePicker<ICoilDeviceAuthoring> _devicePicker;
 
 		public CoilListViewItemRenderer(TableAuthoring tableComponent, List<GamelogicEngineCoil> gleCoils)
 		{
 			_tableComponent = tableComponent;
-			_gleCoils = gleCoils;
+			GleItems = gleCoils;
 			_devicePicker = new ObjectReferencePicker<ICoilDeviceAuthoring>("Coil Devices", tableComponent, false);
 		}
 
