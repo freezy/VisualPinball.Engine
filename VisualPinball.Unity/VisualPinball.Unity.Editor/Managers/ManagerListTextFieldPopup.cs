@@ -22,9 +22,9 @@ namespace VisualPinball.Unity.Editor
 {
 	public class ManagerListTextFieldPopup : PopupWindowContent
 	{
-		private string _label = "";
-		private string _value = "";
-		private Action<string> _saveAction;
+		private readonly string _label;
+		private readonly Action<string> _saveAction;
+		private string _value;
 
 		public ManagerListTextFieldPopup(string label, string value, Action<string> saveAction)
 		{
@@ -40,17 +40,30 @@ namespace VisualPinball.Unity.Editor
 
 		public override void OnGUI(Rect rect)
 		{
-			EditorGUILayout.LabelField("Add " + _label); 
+			EditorGUILayout.LabelField("Add " + _label);
 
+			// if enter hit, save and return
+			if (Event.current.keyCode == KeyCode.Return) {
+				Save();
+				return;
+			}
+
+			// otherwise, auto-focus the field
+			GUI.SetNextControlName("valueField");
 			_value = EditorGUILayout.TextField(_value);
+			GUI.FocusControl("valueField");
 
-			if (GUILayout.Button("Save"))
+			if (GUILayout.Button("Save")) {
+				Save();
+			}
+		}
+
+		private void Save()
+		{
+			if (_value.Trim().Length > 0)
 			{
-				if (_value.Trim().Length > 0)
-				{
-					_saveAction(_value.Trim());
-					editorWindow.Close();
-				}
+				_saveAction(_value.Trim());
+				editorWindow.Close();
 			}
 		}
 	}
