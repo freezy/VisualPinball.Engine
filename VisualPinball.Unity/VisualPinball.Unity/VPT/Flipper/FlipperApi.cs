@@ -32,7 +32,7 @@ namespace VisualPinball.Unity
 	/// </summary>
 	[Api]
 	public class FlipperApi : ItemCollidableApi<FlipperAuthoring, FlipperColliderAuthoring, FlipperData>,
-		IApiInitializable, IApiHittable, IApiRotatable, IApiCollidable, IApiSwitchDevice, IApiSwitch, IApiCoilDevice, IApiCoil
+		IApiInitializable, IApiHittable, IApiRotatable, IApiCollidable, IApiSwitchDevice, IApiSwitch, IApiCoilDevice
 	{
 		/// <summary>
 		/// Event emitted when the table is started.
@@ -76,6 +76,15 @@ namespace VisualPinball.Unity
 		{
 		}
 
+		void IApiInitializable.OnInit(BallManager ballManager)
+		{
+			base.OnInit(ballManager);
+			Init?.Invoke(this, EventArgs.Empty);
+
+			_mainCoil = new DeviceCoil(OnMainCoilEnabled, OnMainCoilDisabled);
+			_holdCoil = new DeviceCoil(OnHoldCoilEnabled, OnHoldCoilDisabled);
+		}
+
 		/// <summary>
 		/// Enables the flipper's solenoid, making the flipper to start moving
 		/// to its end position.
@@ -94,15 +103,25 @@ namespace VisualPinball.Unity
 			EngineProvider<IPhysicsEngine>.Get().FlipperRotateToStart(Entity);
 		}
 
-		#region Wiring
+		#region Coil Handling
 
-		IApiSwitch IApiSwitchDevice.Switch(string deviceSwitchId) => this;
-		IApiSwitchStatus IApiSwitch.AddSwitchDest(SwitchConfig switchConfig) => AddSwitchDest(switchConfig);
-		void IApiSwitch.AddWireDest(WireDestConfig wireConfig) => AddWireDest(wireConfig);
-		void IApiSwitch.RemoveWireDest(string destId) => RemoveWireDest(destId);
-		void IApiSwitch.DestroyBall(Entity ballEntity) => DestroyBall(ballEntity);
+		private DeviceCoil _mainCoil;
+		private DeviceCoil _holdCoil;
 
-		void IApiCoil.OnCoil(bool enabled, bool isHoldCoil)
+		IApiCoil IApiCoilDevice.Coil(string deviceCoilId) {
+			return deviceCoilId switch {
+				FlipperAuthoring.MainCoilItem => _mainCoil,
+				FlipperAuthoring.HoldCoilItem => _holdCoil,
+				_ => throw new ArgumentException($"Unknown flipper coil \"{deviceCoilId}\". Valid names are: [ \"{FlipperAuthoring.MainCoilItem}\", \"{FlipperAuthoring.HoldCoilItem}\" ].")
+			};
+		}
+
+		private void OnMainCoilEnabled() => OnCoil(true, false);
+		private void OnMainCoilDisabled() => OnCoil(false, false);
+		private void OnHoldCoilEnabled() => OnCoil(true, true);
+		private void OnHoldCoilDisabled() => OnCoil(false, true);
+
+		private void OnCoil(bool enabled, bool isHoldCoil)
 		{
 			if (MainComponent.IsDualWound) {
 				OnDualWoundCoil(enabled, isHoldCoil);
@@ -110,12 +129,6 @@ namespace VisualPinball.Unity
 				OnSingleWoundCoil(enabled);
 			}
 		}
-		void IApiWireDest.OnChange(bool enabled) => (this as IApiCoil).OnCoil(enabled, false);
-
-		IApiCoil IApiCoilDevice.Coil(string deviceCoilId) => this;
-
-		#endregion
-
 
 		private void OnSingleWoundCoil(bool enabled)
 		{
@@ -147,13 +160,19 @@ namespace VisualPinball.Unity
 			}
 		}
 
-		#region Events
+		#endregion
 
-		void IApiInitializable.OnInit(BallManager ballManager)
-		{
-			base.OnInit(ballManager);
-			Init?.Invoke(this, EventArgs.Empty);
-		}
+		#region Wiring
+
+		IApiSwitch IApiSwitchDevice.Switch(string deviceSwitchId) => this;
+		IApiSwitchStatus IApiSwitch.AddSwitchDest(SwitchConfig switchConfig) => AddSwitchDest(switchConfig);
+		void IApiSwitch.AddWireDest(WireDestConfig wireConfig) => AddWireDest(wireConfig);
+		void IApiSwitch.RemoveWireDest(string destId) => RemoveWireDest(destId);
+		void IApiSwitch.DestroyBall(Entity ballEntity) => DestroyBall(ballEntity);
+
+		#endregion
+
+		#region Events
 
 		void IApiHittable.OnHit(Entity ballEntity, bool _)
 		{
