@@ -74,7 +74,7 @@ namespace VisualPinball.Unity
 			.Select(t => t.Name)
 			.ToArray();
 
-		private string[] MaterialNames => _tableAuthoring.Data.Materials
+		private string[] MaterialNames => _tableAuthoring.LegacyContainer.Materials
 			.Select(m => m.Name)
 			.ToArray();
 
@@ -104,7 +104,7 @@ namespace VisualPinball.Unity
 			Clear();
 			WalkChildren(_tableAuthoring.transform, RefreshChild);
 
-			foreach (var material in _tableAuthoring.Data.Materials) {
+			foreach (var material in _tableAuthoring.LegacyContainer.Materials) {
 				_materials[material.Name.ToLower()] = material;
 			}
 
