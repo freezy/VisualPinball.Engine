@@ -16,8 +16,11 @@
 
 namespace VisualPinball.Unity.Editor
 {
-	public interface IManagerListData
+	public interface IDeviceListData<T>
 	{
-		string Name { get; }
+		IDeviceAuthoring<T> DeviceComponent { get; }
+		string DeviceItem { get; set; }
+		int InternalId { get; set; }
+		string Description { get; set; }
 	}
 }

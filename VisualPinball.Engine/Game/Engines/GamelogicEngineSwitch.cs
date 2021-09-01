@@ -33,12 +33,12 @@ namespace VisualPinball.Engine.Game.Engines
 	/// that will then used in the mapping.
 	/// </remarks>
 	[Serializable]
-	public class GamelogicEngineSwitch
+	public class GamelogicEngineSwitch : IGamelogicEngineDeviceItem
 	{
 		/// <summary>
 		/// A unique identifier. This is what VPE uses to identify a switch.
 		/// </summary>
-		public string Id;
+		public string Id { get => _id; set => _id = value; }
 
 		/// <summary>
 		/// A numerical identifier that can be used in gamelogic engines that
@@ -58,12 +58,15 @@ namespace VisualPinball.Engine.Game.Engines
 		/// </summary>
 		public bool IsPulseSwitch;
 
-		public string Description;
+		public string Description { get => _description; set => _description = value; }
 		public string InputActionHint;
 		public string InputMapHint;
 		public string DeviceHint;
 		public string DeviceItemHint;
 		public SwitchConstantHint ConstantHint = SwitchConstantHint.None;
+
+		private string _description;
+		private string _id;
 
 		public GamelogicEngineSwitch(string id)
 		{

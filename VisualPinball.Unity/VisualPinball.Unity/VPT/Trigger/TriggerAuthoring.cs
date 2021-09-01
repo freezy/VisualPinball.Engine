@@ -86,6 +86,8 @@ namespace VisualPinball.Unity
 
 		public SwitchDefault SwitchDefault => SwitchDefault.Configurable;
 
+		IEnumerable<GamelogicEngineSwitch> IDeviceAuthoring<GamelogicEngineSwitch>.AvailableDeviceItems => AvailableSwitches;
+
 		#endregion
 
 		#region Transformation

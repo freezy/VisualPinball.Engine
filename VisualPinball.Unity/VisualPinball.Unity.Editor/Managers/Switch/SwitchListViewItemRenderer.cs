@@ -25,8 +25,12 @@ using Texture = UnityEngine.Texture;
 
 namespace VisualPinball.Unity.Editor
 {
-	public class SwitchListViewItemRenderer
+	public class SwitchListViewItemRenderer : ListViewItemRenderer<SwitchListData, GamelogicEngineSwitch>
 	{
+		protected override List<GamelogicEngineSwitch> GleItems => _gleSwitches;
+		protected override GamelogicEngineSwitch InstantiateGleItem(string id) => new GamelogicEngineSwitch(id);
+		protected override Texture2D StatusIcon(bool status) => Icons.Switch(status, IconSize.Small, status ? IconColor.Orange : IconColor.Gray);
+
 		private readonly string[] OPTIONS_SWITCH_CONSTANT = { "Closed", "Open" };
 
 		private struct InputSystemEntry
@@ -66,7 +70,7 @@ namespace VisualPinball.Unity.Editor
 			switch ((SwitchListColumn)column)
 			{
 				case SwitchListColumn.Id:
-					RenderId(switchStatuses, data, cellRect, updateAction);
+					RenderId(switchStatuses, ref data.Id, id => data.Id = id, data, cellRect, updateAction);
 					break;
 				case SwitchListColumn.Nc:
 					RenderNc(data, cellRect, updateAction);
@@ -85,71 +89,6 @@ namespace VisualPinball.Unity.Editor
 					break;
 			}
 			EditorGUI.EndDisabledGroup();
-		}
-
-		private void RenderId(Dictionary<string, bool> switchStatuses, SwitchListData switchListData, Rect cellRect, Action<SwitchListData> updateAction)
-		{
-			const float idWidth = 25f;
-			const float padding = 2f;
-
-			// add some padding
-			cellRect.x += padding;
-			cellRect.width -= 2 * padding;
-
-			var dropdownRect = cellRect;
-			dropdownRect.width -= idWidth + 2 * padding;
-
-			var idRect = cellRect;
-			idRect.width = idWidth;
-			idRect.x += cellRect.width - idWidth;
-
-			var options = new List<string>(_gleSwitches.Select(entry => entry.Id).ToArray());
-			if (options.Count > 0) {
-				options.Add("");
-			}
-			options.Add("Add...");
-
-			if (Application.isPlaying && switchStatuses != null) {
-				var iconRect = cellRect;
-				iconRect.width = 20;
-				dropdownRect.x += 25;
-				dropdownRect.width -= 25;
-				if (switchStatuses.ContainsKey(switchListData.Id)) {
-					var switchStatus = switchStatuses[switchListData.Id];
-					var icon = Icons.Switch(switchStatus, IconSize.Small, switchStatus ? IconColor.Orange : IconColor.Gray);
-					var guiColor = GUI.color;
-					GUI.color = Color.clear;
-					EditorGUI.DrawTextureTransparent(iconRect, icon, ScaleMode.ScaleToFit);
-					GUI.color = guiColor;
-				}
-			}
-
-			EditorGUI.BeginChangeCheck();
-			var index = EditorGUI.Popup(dropdownRect, options.IndexOf(switchListData.Id), options.ToArray());
-			if (EditorGUI.EndChangeCheck()) {
-				if (index == options.Count - 1) {
-					// "Add..." pressed
-					PopupWindow.Show(dropdownRect, new ManagerListTextFieldPopup("ID", "", (newId) => {
-						// "Save" pressed
-						if (!_gleSwitches.Exists(entry => entry.Id == newId)) {
-							_gleSwitches.Add(new GamelogicEngineSwitch(newId));
-						}
-						switchListData.Id = newId;
-						updateAction(switchListData);
-					}));
-
-				} else {
-					switchListData.Id = _gleSwitches[index].Id;
-					updateAction(switchListData);
-				}
-			}
-
-			EditorGUI.BeginChangeCheck();
-			var value = EditorGUI.IntField(idRect, switchListData.InternalId);
-			if (EditorGUI.EndChangeCheck()) {
-				switchListData.InternalId = value;
-				updateAction(switchListData);
-			}
 		}
 
 		private void RenderNc(SwitchListData switchListData, Rect cellRect, Action<SwitchListData> updateAction)
@@ -177,17 +116,6 @@ namespace VisualPinball.Unity.Editor
 			var value = EditorGUI.Toggle(cellRect, switchListData.NormallyClosed);
 			if (EditorGUI.EndChangeCheck()) {
 				switchListData.NormallyClosed = value;
-				updateAction(switchListData);
-			}
-		}
-
-		private void RenderDescription(SwitchListData switchListData, Rect cellRect, Action<SwitchListData> updateAction)
-		{
-			EditorGUI.BeginChangeCheck();
-			var value = EditorGUI.TextField(cellRect, switchListData.Description);
-			if (EditorGUI.EndChangeCheck())
-			{
-				switchListData.Description = value;
 				updateAction(switchListData);
 			}
 		}
@@ -318,34 +246,9 @@ namespace VisualPinball.Unity.Editor
 		{
 			_devicePicker.Render(cellRect, switchListData.Device, component => {
 				switchListData.Device = component;
-				if (switchListData.Device != null && switchListData.Device.AvailableSwitches.Count() == 1) {
-					switchListData.DeviceItem = switchListData.Device.AvailableSwitches.First().Id;
-				}
+				UpdateDeviceItem(switchListData);
 				updateAction(switchListData);
 			});
-		}
-
-		private void RenderDeviceItemElement(SwitchListData switchListData, Rect cellRect, Action<SwitchListData> updateAction)
-		{
-			EditorGUI.BeginDisabledGroup(switchListData.Device == null || switchListData.Device.AvailableSwitches.Count() == 1);
-
-			var currentIndex = 0;
-			var switchLabels = Array.Empty<string>();
-			ISwitchDeviceAuthoring switchDevice = null;
-			if (switchListData.Device != null) {
-				switchDevice = switchListData.Device;
-				switchLabels = switchDevice.AvailableSwitches.Select(s => s.Description).ToArray();
-				currentIndex = switchDevice.AvailableSwitches.TakeWhile(s => s.Id != switchListData.DeviceItem).Count();
-			}
-			EditorGUI.BeginChangeCheck();
-			var newIndex = EditorGUI.Popup(cellRect, currentIndex, switchLabels);
-			if (EditorGUI.EndChangeCheck() && switchDevice != null) {
-				if (currentIndex != newIndex) {
-					switchListData.DeviceItem = switchDevice.AvailableSwitches.ElementAt(newIndex).Id;
-					updateAction(switchListData);
-				}
-			}
-			EditorGUI.EndDisabledGroup();
 		}
 
 		private void RenderPulseDelay(SwitchListData switchListData, Rect cellRect, Action<SwitchListData> updateAction)

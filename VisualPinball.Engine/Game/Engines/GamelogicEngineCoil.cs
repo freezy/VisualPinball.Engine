@@ -21,16 +21,20 @@ using System;
 namespace VisualPinball.Engine.Game.Engines
 {
 	[Serializable]
-	public class GamelogicEngineCoil
+	public class GamelogicEngineCoil : IGamelogicEngineDeviceItem
 	{
-		public string Id;
+		public string Id { get => _id; set => _id = value; }
+		public string Description { get => _description; set => _description = value; }
+
 		public int InternalId;
-		public string Description;
 		public string MainCoilIdOfHoldCoil;
 		public string DeviceHint;
 		public string DeviceItemHint;
 		public bool IsLamp;
 		public bool IsUnused;
+
+		private string _description;
+		private string _id;
 
 		public GamelogicEngineCoil(string id)
 		{

@@ -73,9 +73,15 @@ namespace VisualPinball.Unity
 		protected override Type MeshAuthoringType { get; } = typeof(ItemMeshAuthoring<PlungerData, PlungerAuthoring>);
 		protected override Type ColliderAuthoringType { get; } = typeof(ItemColliderAuthoring<PlungerData, PlungerAuthoring>);
 
+		#endregion
+
+		#region Wiring
+
 		public IEnumerable<GamelogicEngineCoil> AvailableCoils => new[] {
 			new GamelogicEngineCoil(name)
 		};
+
+		IEnumerable<GamelogicEngineCoil> IDeviceAuthoring<GamelogicEngineCoil>.AvailableDeviceItems => AvailableCoils;
 
 		#endregion
 

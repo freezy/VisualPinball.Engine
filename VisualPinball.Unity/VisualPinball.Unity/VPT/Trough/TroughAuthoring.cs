@@ -37,7 +37,7 @@ namespace VisualPinball.Unity
 	[AddComponentMenu("Visual Pinball/Trough")]
 	[HelpURL("https://docs.visualpinball.org/creators-guide/manual/mechanisms/troughs.html")]
 	public class TroughAuthoring : ItemMainAuthoring<TroughData>,
-		ISwitchDeviceAuthoring,  ICoilDeviceAuthoring
+		ISwitchDeviceAuthoring, ICoilDeviceAuthoring
 	{
 		#region Data
 
@@ -98,6 +98,9 @@ namespace VisualPinball.Unity
 		#endregion
 
 		public SwitchDefault SwitchDefault => Type == TroughType.ModernOpto ? SwitchDefault.NormallyClosed : SwitchDefault.NormallyOpen;
+
+		IEnumerable<GamelogicEngineCoil> IDeviceAuthoring<GamelogicEngineCoil>.AvailableDeviceItems => AvailableCoils;
+		IEnumerable<GamelogicEngineSwitch> IDeviceAuthoring<GamelogicEngineSwitch>.AvailableDeviceItems => AvailableSwitches;
 
 		/// <summary>
 		/// Time in milliseconds it takes the switch to enable when the ball enters.
