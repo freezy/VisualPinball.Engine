@@ -27,7 +27,6 @@ namespace VisualPinball.Engine.Game.Engines
 		public string Description { get => _description; set => _description = value; }
 
 		public int InternalId;
-		public string MainCoilIdOfHoldCoil;
 		public string DeviceHint;
 		public string DeviceItemHint;
 		public bool IsLamp;

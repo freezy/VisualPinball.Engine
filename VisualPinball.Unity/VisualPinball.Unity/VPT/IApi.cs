@@ -128,7 +128,7 @@ namespace VisualPinball.Unity
 
 	internal interface IApiCoil : IApiWireDest
 	{
-		void OnCoil(bool enabled, bool isHoldCoil);
+		void OnCoil(bool enabled);
 	}
 
 	internal interface IApiLamp : IApiWireDest

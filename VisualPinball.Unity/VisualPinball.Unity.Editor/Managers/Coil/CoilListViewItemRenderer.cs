@@ -34,9 +34,7 @@ namespace VisualPinball.Unity.Editor
 			Id = 0,
 			Description = 1,
 			Destination = 2,
-			Element = 3,
-			Type = 4,
-			HoldCoilId = 5,
+			Element = 3
 		}
 
 		private readonly TableAuthoring _tableComponent;
@@ -70,14 +68,6 @@ namespace VisualPinball.Unity.Editor
 					break;
 				case CoilListColumn.Element:
 					RenderElement(data, cellRect, updateAction);
-					break;
-				case CoilListColumn.Type:
-					RenderType(data, cellRect, updateAction);
-					break;
-				case CoilListColumn.HoldCoilId:
-					if (data.Type == CoilType.DualWound) {
-						RenderId(coilStatuses, ref data.HoldCoilId, id => data.HoldCoilId = id, data, cellRect, updateAction);
-					}
 					break;
 			}
 			EditorGUI.EndDisabledGroup();
@@ -151,19 +141,6 @@ namespace VisualPinball.Unity.Editor
 				UpdateDeviceItem(coilListData);
 				updateAction(coilListData);
 			});
-		}
-
-		private void RenderType(CoilListData coilListData, Rect cellRect, Action<CoilListData> updateAction)
-		{
-			if (coilListData.Destination == CoilDestination.Playfield)
-			{
-				EditorGUI.BeginChangeCheck();
-				var type = (CoilType)EditorGUI.EnumPopup(cellRect, coilListData.Type);
-				if (EditorGUI.EndChangeCheck()) {
-					coilListData.Type = type;
-					updateAction(coilListData);
-				}
-			}
 		}
 
 		protected override Texture GetIcon(CoilListData coilListData)
