@@ -31,6 +31,10 @@ namespace VisualPinball.Unity.Editor
 
 		protected abstract Texture2D StatusIcon(bool status);
 
+		protected abstract Texture GetIcon(TListData listData);
+
+		protected abstract void RenderDeviceElement(TListData listData, Rect cellRect, Action<TListData> updateAction);
+
 		protected void RenderId(Dictionary<string, bool> statuses, ref string id, Action<string> setId, TListData listData, Rect cellRect, Action<TListData> updateAction)
 		{
 			const float idWidth = 25f;
@@ -105,6 +109,15 @@ namespace VisualPinball.Unity.Editor
 			}
 		}
 
+		protected void RenderDevice(TListData listData, Rect cellRect, Action<TListData> updateAction)
+		{
+			cellRect = RenderIcon(listData, cellRect);
+			cellRect.width = cellRect.width / 2f - 3f;
+			RenderDeviceElement(listData, cellRect, updateAction);
+			cellRect.x += cellRect.width + 6f;
+			RenderDeviceItemElement(listData, cellRect, updateAction);
+		}
+
 		protected void RenderDeviceItemElement(TListData listData, Rect cellRect, Action<TListData> updateAction)
 		{
 			UpdateDeviceItem(listData);
@@ -139,6 +152,24 @@ namespace VisualPinball.Unity.Editor
 			if (listData.DeviceComponent != null && listData.DeviceComponent.AvailableDeviceItems.Count() == 1) {
 				listData.DeviceItem = listData.DeviceComponent.AvailableDeviceItems.First().Id;
 			}
+		}
+
+		protected Rect RenderIcon(TListData listData, Rect cellRect)
+		{
+			var icon = GetIcon(listData);
+			if (icon != null) {
+				var iconRect = cellRect;
+				iconRect.width = 20;
+				var guiColor = GUI.color;
+				GUI.color = Color.clear;
+				EditorGUI.DrawTextureTransparent(iconRect, icon, ScaleMode.ScaleToFit);
+				GUI.color = guiColor;
+			}
+
+			cellRect.x += 25;
+			cellRect.width -= 25;
+
+			return cellRect;
 		}
 	}
 }

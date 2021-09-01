@@ -20,8 +20,6 @@ using System.Linq;
 using UnityEditor;
 using UnityEngine;
 using VisualPinball.Engine.Game.Engines;
-using VisualPinball.Engine.VPT;
-using Texture = UnityEngine.Texture;
 
 namespace VisualPinball.Unity.Editor
 {
@@ -140,23 +138,7 @@ namespace VisualPinball.Unity.Editor
 					break;
 
 				case ESwitchSource.Playfield:
-					var icon = GetIcon(switchListData);
-					if (icon != null) {
-						var iconRect = cellRect;
-						iconRect.width = 20;
-						var guiColor = GUI.color;
-						GUI.color = Color.clear;
-						EditorGUI.DrawTextureTransparent(iconRect, icon, ScaleMode.ScaleToFit);
-						GUI.color = guiColor;
-					}
-
-					cellRect.x += 25;
-					cellRect.width -= 25;
-
-					cellRect.width = cellRect.width / 2f - 5f;
-					RenderDeviceElement(switchListData, cellRect, updateAction);
-					cellRect.x += cellRect.width + 10f;
-					RenderDeviceItemElement(switchListData, cellRect, updateAction);
+					RenderDevice(switchListData, cellRect, updateAction);
 
 					break;
 
@@ -165,25 +147,6 @@ namespace VisualPinball.Unity.Editor
 					RenderConstantElement(switchListData, cellRect, updateAction);
 					break;
 			}
-		}
-
-		private Rect RenderIcon(SwitchListData switchListData, Rect cellRect)
-		{
-			var icon = GetIcon(switchListData);
-
-			if (icon != null) {
-				var iconRect = cellRect;
-				iconRect.width = 20;
-				var guiColor = GUI.color;
-				GUI.color = Color.clear;
-				EditorGUI.DrawTextureTransparent(iconRect, icon, ScaleMode.ScaleToFit);
-				GUI.color = guiColor;
-			}
-
-			cellRect.x += 25;
-			cellRect.width -= 25;
-
-			return cellRect;
 		}
 
 		private void RenderInputSystemElement(SwitchListData switchListData, Rect cellRect, Action<SwitchListData> updateAction)
@@ -242,7 +205,7 @@ namespace VisualPinball.Unity.Editor
 			}
 		}
 
-		private void RenderDeviceElement(SwitchListData switchListData, Rect cellRect, Action<SwitchListData> updateAction)
+		protected override void RenderDeviceElement(SwitchListData switchListData, Rect cellRect, Action<SwitchListData> updateAction)
 		{
 			_devicePicker.Render(cellRect, switchListData.Device, component => {
 				switchListData.Device = component;
@@ -276,7 +239,7 @@ namespace VisualPinball.Unity.Editor
 			}
 		}
 
-		private Texture GetIcon(SwitchListData switchListData)
+		protected override Texture GetIcon(SwitchListData switchListData)
 		{
 			Texture2D icon = null;
 
