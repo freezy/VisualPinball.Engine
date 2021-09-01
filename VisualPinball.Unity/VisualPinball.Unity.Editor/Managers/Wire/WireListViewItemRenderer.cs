@@ -26,8 +26,6 @@ namespace VisualPinball.Unity.Editor
 {
 	public class WireListViewItemRenderer
 	{
-		private readonly string[] OPTIONS_SOURCE_CONSTANT = { "On", "Off" };
-
 		private struct InputSystemEntry
 		{
 			public string ActionMapName;
@@ -92,7 +90,7 @@ namespace VisualPinball.Unity.Editor
 		private void RenderSource(WireListData wireListData, Rect cellRect, Action<WireListData> updateAction)
 		{
 			EditorGUI.BeginChangeCheck();
-			var source = (ESwitchSource)EditorGUI.EnumPopup(cellRect, wireListData.Source);
+			var source = (SwitchSource)EditorGUI.EnumPopup(cellRect, wireListData.Source);
 			if (EditorGUI.EndChangeCheck()) {
 				wireListData.Source = source;
 				updateAction(wireListData);
@@ -118,18 +116,18 @@ namespace VisualPinball.Unity.Editor
 
 			switch (wireListData.Source)
 			{
-				case ESwitchSource.InputSystem:
+				case SwitchSource.InputSystem:
 					RenderSourceElementInputSystem(wireListData, cellRect, updateAction);
 					break;
 
-				case ESwitchSource.Playfield:
+				case SwitchSource.Playfield:
 					cellRect.width = cellRect.width / 2f - 5f;
 					RenderSourceElementDevice(wireListData, cellRect, updateAction);
 					cellRect.x += cellRect.width + 10f;
 					RenderSourceElementDeviceItem(wireListData, cellRect, updateAction);
 					break;
 
-				case ESwitchSource.Constant:
+				case SwitchSource.Constant:
 					RenderSourceElementConstant(wireListData, cellRect, updateAction);
 					break;
 			}
@@ -183,10 +181,9 @@ namespace VisualPinball.Unity.Editor
 		private void RenderSourceElementConstant(WireListData wireListData, Rect cellRect, Action<WireListData> updateAction)
 		{
 			EditorGUI.BeginChangeCheck();
-			var index = EditorGUI.Popup(cellRect, (int)wireListData.SourceConstant, OPTIONS_SOURCE_CONSTANT);
-			if (EditorGUI.EndChangeCheck())
-			{
-				wireListData.SourceConstant = index;
+			var constVal = (SwitchConstant)EditorGUI.EnumPopup(cellRect, wireListData.SourceConstant);
+			if (EditorGUI.EndChangeCheck()) {
+				wireListData.SourceConstant = constVal;
 				updateAction(wireListData);
 			}
 		}
@@ -315,14 +312,14 @@ namespace VisualPinball.Unity.Editor
 
 			switch (wireListData.Source)
 			{
-				case ESwitchSource.Playfield:
+				case SwitchSource.Playfield:
 					if (wireListData.SourceDevice != null) {
 						icon = Icons.ByComponent(wireListData.SourceDevice, IconSize.Small);
 					}
 					break;
 
-				case ESwitchSource.Constant:
-					icon = Icons.Switch(wireListData.SourceConstant == Engine.VPT.SwitchConstant.Closed, IconSize.Small);
+				case SwitchSource.Constant:
+					icon = Icons.Switch(wireListData.SourceConstant == SwitchConstant.Closed, IconSize.Small);
 					break;
 
 				case SwitchSource.InputSystem:

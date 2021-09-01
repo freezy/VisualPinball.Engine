@@ -138,26 +138,6 @@ namespace VisualPinball.Engine.VPT
 		public const int Backglass = 1;
 	}
 
-	public static class SwitchSource
-	{
-		public const int InputSystem = 0;
-		public const int Playfield = 1;
-		public const int Constant = 2;
-		public const int Device = 3;
-	}
-
-	public static class SwitchConstant
-	{
-		public const int Closed = 0;
-		public const int Open = 1;
-	}
-
-	public static class SwitchType
-	{
-		public const int OnOff = 0;
-		public const int Pulse = 1;
-	}
-
 	public static class TroughType
 	{
 		public const int ModernOpto = 0;

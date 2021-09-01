@@ -27,7 +27,7 @@ namespace VisualPinball.Engine.Game.Engines
 		public int InternalId;
 		public string Description;
 		public string DeviceHint;
-		public int TypeHint;
+		public string DeviceItemHint;
 		public string MainLampIdOfGreen;
 		public string MainLampIdOfBlue;
 

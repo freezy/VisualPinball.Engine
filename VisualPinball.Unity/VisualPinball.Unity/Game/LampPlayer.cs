@@ -25,9 +25,9 @@ namespace VisualPinball.Unity
 {
 	public class LampPlayer
 	{
-		private readonly Dictionary<ILampAuthoring, IApiLamp> _lamps = new Dictionary<ILampAuthoring, IApiLamp>();
-		private readonly Dictionary<string, List<ILampAuthoring>> _lampAssignments = new Dictionary<string, List<ILampAuthoring>>();
-		private readonly Dictionary<string, Dictionary<ILampAuthoring, LampMapping>> _lampMappings = new Dictionary<string, Dictionary<ILampAuthoring, LampMapping>>();
+		private readonly Dictionary<ILampDeviceAuthoring, IApiLamp> _lamps = new Dictionary<ILampDeviceAuthoring, IApiLamp>();
+		private readonly Dictionary<string, List<ILampDeviceAuthoring>> _lampAssignments = new Dictionary<string, List<ILampDeviceAuthoring>>();
+		private readonly Dictionary<string, Dictionary<ILampDeviceAuthoring, LampMapping>> _lampMappings = new Dictionary<string, Dictionary<ILampDeviceAuthoring, LampMapping>>();
 
 		private TableAuthoring _tableComponent;
 		private IGamelogicEngine _gamelogicEngine;
@@ -35,7 +35,7 @@ namespace VisualPinball.Unity
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
 		internal Dictionary<string, float> LampStatuses { get; } = new Dictionary<string, float>();
-		internal void RegisterLamp(ILampAuthoring component, IApiLamp lampApi) => _lamps[component] = lampApi;
+		internal void RegisterLamp(ILampDeviceAuthoring component, IApiLamp lampApi) => _lamps[component] = lampApi;
 
 		public void Awake(TableAuthoring tableComponent, IGamelogicEngine gamelogicEngine)
 		{
@@ -85,10 +85,10 @@ namespace VisualPinball.Unity
 		private void AssignLampMapping(string id, LampMapping lampMapping)
 		{
 			if (!_lampAssignments.ContainsKey(id)) {
-				_lampAssignments[id] = new List<ILampAuthoring>();
+				_lampAssignments[id] = new List<ILampDeviceAuthoring>();
 			}
 			if (!_lampMappings.ContainsKey(id)) {
-				_lampMappings[id] = new Dictionary<ILampAuthoring, LampMapping>();
+				_lampMappings[id] = new Dictionary<ILampDeviceAuthoring, LampMapping>();
 			}
 			_lampAssignments[id].Add(lampMapping.Device);
 			_lampMappings[id][lampMapping.Device] = lampMapping;
@@ -171,7 +171,7 @@ namespace VisualPinball.Unity
 			});
 		}
 
-		private void HandleLampEvent(LampEventArgs lampEvent, Action<IApiLamp, LampMapping, ILampAuthoring> handleRgb)
+		private void HandleLampEvent(LampEventArgs lampEvent, Action<IApiLamp, LampMapping, ILampDeviceAuthoring> handleRgb)
 		{
 			if (_lampAssignments.ContainsKey(lampEvent.Id)) {
 				foreach (var component in _lampAssignments[lampEvent.Id]) {

@@ -29,8 +29,6 @@ namespace VisualPinball.Unity.Editor
 		protected override GamelogicEngineSwitch InstantiateGleItem(string id) => new GamelogicEngineSwitch(id);
 		protected override Texture2D StatusIcon(bool status) => Icons.Switch(status, IconSize.Small, status ? IconColor.Orange : IconColor.Gray);
 
-		private readonly string[] OPTIONS_SWITCH_CONSTANT = { "Closed", "Open" };
-
 		private struct InputSystemEntry
 		{
 			public string ActionMapName;
@@ -92,12 +90,12 @@ namespace VisualPinball.Unity.Editor
 		private void RenderNc(SwitchListData switchListData, Rect cellRect, Action<SwitchListData> updateAction)
 		{
 			// don't render for constants
-			if (switchListData.Source == ESwitchSource.Constant) {
+			if (switchListData.Source == SwitchSource.Constant) {
 				return;
 			}
 
 			// check if it's linked to a switch device, and whether the switch device handles no/nc itself
-			var switchDefault = switchListData.Source == ESwitchSource.Playfield
+			var switchDefault = switchListData.Source == SwitchSource.Playfield
 				? switchListData.Device?.SwitchDefault ?? SwitchDefault.Configurable
 				: SwitchDefault.Configurable;
 
@@ -121,7 +119,7 @@ namespace VisualPinball.Unity.Editor
 		private void RenderSource(SwitchListData switchListData, Rect cellRect, Action<SwitchListData> updateAction)
 		{
 			EditorGUI.BeginChangeCheck();
-			var source = (ESwitchSource)EditorGUI.EnumPopup(cellRect, switchListData.Source);
+			var source = (SwitchSource)EditorGUI.EnumPopup(cellRect, switchListData.Source);
 			if (EditorGUI.EndChangeCheck()) {
 				switchListData.Source = source;
 				updateAction(switchListData);
@@ -132,17 +130,17 @@ namespace VisualPinball.Unity.Editor
 		{
 			switch (switchListData.Source)
 			{
-				case ESwitchSource.InputSystem:
+				case SwitchSource.InputSystem:
 					cellRect = RenderIcon(switchListData, cellRect);
 					RenderInputSystemElement(switchListData, cellRect, updateAction);
 					break;
 
-				case ESwitchSource.Playfield:
+				case SwitchSource.Playfield:
 					RenderDevice(switchListData, cellRect, updateAction);
 
 					break;
 
-				case ESwitchSource.Constant:
+				case SwitchSource.Constant:
 					cellRect = RenderIcon(switchListData, cellRect);
 					RenderConstantElement(switchListData, cellRect, updateAction);
 					break;
@@ -197,10 +195,9 @@ namespace VisualPinball.Unity.Editor
 		private void RenderConstantElement(SwitchListData switchListData, Rect cellRect, Action<SwitchListData> updateAction)
 		{
 			EditorGUI.BeginChangeCheck();
-			var index = EditorGUI.Popup(cellRect, (int)switchListData.Constant, OPTIONS_SWITCH_CONSTANT);
-			if (EditorGUI.EndChangeCheck())
-			{
-				switchListData.Constant = index;
+			var constVal = (SwitchConstant)EditorGUI.EnumPopup(cellRect, switchListData.Constant);
+			if (EditorGUI.EndChangeCheck()) {
+				switchListData.Constant = constVal;
 				updateAction(switchListData);
 			}
 		}
@@ -216,7 +213,7 @@ namespace VisualPinball.Unity.Editor
 
 		private void RenderPulseDelay(SwitchListData switchListData, Rect cellRect, Action<SwitchListData> updateAction)
 		{
-			if (switchListData.Source == ESwitchSource.Playfield && switchListData.Device != null) {
+			if (switchListData.Source == SwitchSource.Playfield && switchListData.Device != null) {
 				var switchable = switchListData.Device.AvailableSwitches.FirstOrDefault(sw => sw.Id == switchListData.DeviceItem);
 				if (switchable != null && switchable.IsPulseSwitch) {
 					var labelRect = cellRect;
@@ -244,17 +241,17 @@ namespace VisualPinball.Unity.Editor
 			Texture2D icon = null;
 
 			switch (switchListData.Source) {
-				case ESwitchSource.Playfield: {
+				case SwitchSource.Playfield: {
 					if (switchListData.Device != null) {
 						icon = Icons.ByComponent(switchListData.Device, IconSize.Small);
 					}
 					break;
 				}
-				case ESwitchSource.Constant:
-					icon = Icons.Switch(switchListData.Constant == Engine.VPT.SwitchConstant.Closed, IconSize.Small);
+				case SwitchSource.Constant:
+					icon = Icons.Switch(switchListData.Constant == SwitchConstant.Closed, IconSize.Small);
 					break;
 
-				case ESwitchSource.InputSystem:
+				case SwitchSource.InputSystem:
 					icon = Icons.Key(IconSize.Small);
 					break;
 			}

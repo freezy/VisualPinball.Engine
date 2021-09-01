@@ -316,7 +316,7 @@ namespace VisualPinball.Unity
 			}
 
 			if (api is IApiLamp lamp) {
-				if (component is ILampAuthoring lampAuthoring) {
+				if (component is ILampDeviceAuthoring lampAuthoring) {
 					_lampPlayer.RegisterLamp(lampAuthoring, lamp);
 				} else {
 					Logger.Warn($"{component.GetType()} is not of type ILampAuthoring while ${api.GetType()} is of type IApiLamp.");

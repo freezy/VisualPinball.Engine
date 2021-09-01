@@ -38,12 +38,12 @@ namespace VisualPinball.Unity.Editor
 
 		private readonly List<GamelogicEngineLamp> _gleLamps;
 
-		private readonly ObjectReferencePicker<ILampAuthoring> _devicePicker;
+		private readonly ObjectReferencePicker<ILampDeviceAuthoring> _devicePicker;
 
 		public LampListViewItemRenderer(List<GamelogicEngineLamp> gleLamps, TableAuthoring tableComponent)
 		{
 			_gleLamps = gleLamps;
-			_devicePicker = new ObjectReferencePicker<ILampAuthoring>("Lamps", tableComponent, false);
+			_devicePicker = new ObjectReferencePicker<ILampDeviceAuthoring>("Lamps", tableComponent, false);
 		}
 
 		public void Render(TableAuthoring tableAuthoring, LampListData data, Rect cellRect, int column, Action<LampListData> updateAction)

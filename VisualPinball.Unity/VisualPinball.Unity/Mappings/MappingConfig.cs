@@ -17,14 +17,12 @@
 // ReSharper disable InconsistentNaming
 
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
 using UnityEngine;
 using VisualPinball.Engine.Common;
 using VisualPinball.Engine.Game.Engines;
-using VisualPinball.Engine.VPT;
 
 namespace VisualPinball.Unity
 {
@@ -36,19 +34,7 @@ namespace VisualPinball.Unity
 		[SerializeField] public List<WireMapping> Wires = new List<WireMapping>();
 		[SerializeField] public List<LampMapping> Lamps = new List<LampMapping>();
 
-		public bool IsEmpty()
-		{
-			return (Coils == null || Coils.Count == 0)
-		       && (Switches == null || Switches.Count == 0);
-		}
-
-		private static void Retrieve<T>(IEnumerable node, List<T> components, Action<Transform, List<T>> action)
-		{
-			foreach (Transform childTransform in node) {
-				action(childTransform, components);
-				Retrieve(childTransform, components, action);
-			}
-		}
+		public bool IsEmpty() => (Coils == null || Coils.Count == 0) && (Switches == null || Switches.Count == 0) && (Lamps == null || Lamps.Count == 0);
 
 		#region Switches
 
@@ -58,32 +44,33 @@ namespace VisualPinball.Unity
 
 			foreach (var engineSwitch in GetSwitchIds(engineSwitches)) {
 				var switchMapping = Switches.FirstOrDefault(mappingsSwitchData => mappingsSwitchData.Id == engineSwitch.Id);
-				if (switchMapping == null) {
-
-					var description = engineSwitch.Description ?? string.Empty;
-					var source = GuessSwitchSource(engineSwitch);
-					var device = source == ESwitchSource.Playfield ? GuessDevice(switchDevices, engineSwitch) : null;
-					var deviceItem = source == ESwitchSource.Playfield && device != null ? GuessDeviceItem(engineSwitch, device) : null;
-					var inputActionMap = source == SwitchSource.InputSystem
-						? string.IsNullOrEmpty(engineSwitch.InputMapHint) ? InputConstants.MapCabinetSwitches : engineSwitch.InputMapHint
-						: string.Empty;
-					var inputAction = source == SwitchSource.InputSystem
-						? string.IsNullOrEmpty(engineSwitch.InputActionHint) ? string.Empty : engineSwitch.InputActionHint
-						: string.Empty;
-
-					AddSwitch(new SwitchMapping {
-						Id = engineSwitch.Id,
-						InternalId = engineSwitch.InternalId,
-						IsNormallyClosed = engineSwitch.NormallyClosed,
-						Description = description,
-						Source = source,
-						InputActionMap = inputActionMap,
-						InputAction = inputAction,
-						Device = device,
-						DeviceItem = deviceItem != null ? deviceItem.Id : string.Empty,
-						Constant = engineSwitch.ConstantHint == SwitchConstantHint.AlwaysOpen ? Engine.VPT.SwitchConstant.Open : Engine.VPT.SwitchConstant.Closed
-					});
+				if (switchMapping != null) {
+					continue;
 				}
+
+				var description = engineSwitch.Description ?? string.Empty;
+				var source = GuessSwitchSource(engineSwitch);
+				var device = source == SwitchSource.Playfield ? GuessSwitchDevice(switchDevices, engineSwitch) : null;
+				var deviceItem = source == SwitchSource.Playfield && device != null ? GuessSwitchDeviceItem(engineSwitch, device) : null;
+				var inputActionMap = source == SwitchSource.InputSystem
+					? string.IsNullOrEmpty(engineSwitch.InputMapHint) ? InputConstants.MapCabinetSwitches : engineSwitch.InputMapHint
+					: string.Empty;
+				var inputAction = source == SwitchSource.InputSystem
+					? string.IsNullOrEmpty(engineSwitch.InputActionHint) ? string.Empty : engineSwitch.InputActionHint
+					: string.Empty;
+
+				AddSwitch(new SwitchMapping {
+					Id = engineSwitch.Id,
+					InternalId = engineSwitch.InternalId,
+					IsNormallyClosed = engineSwitch.NormallyClosed,
+					Description = description,
+					Source = source,
+					InputActionMap = inputActionMap,
+					InputAction = inputAction,
+					Device = device,
+					DeviceItem = deviceItem != null ? deviceItem.Id : string.Empty,
+					Constant = engineSwitch.ConstantHint == SwitchConstantHint.AlwaysOpen ? SwitchConstant.Open : SwitchConstant.Closed
+				});
 			}
 		}
 
@@ -102,68 +89,74 @@ namespace VisualPinball.Unity
 				ids.AddRange(engineSwitches);
 			}
 
-			foreach (var mappingsSwitchData in Switches) {
-				if (!ids.Exists(entry => entry.Id == mappingsSwitchData.Id))
-				{
-					ids.Add(new GamelogicEngineSwitch(mappingsSwitchData.Id));
-				}
+			foreach (var switchMapping in Switches.Where(mappingsSwitchData => !ids.Exists(sw => sw.Id == mappingsSwitchData.Id))) {
+				ids.Add(new GamelogicEngineSwitch(switchMapping.Id));
 			}
 
-			ids.Sort((s1, s2) => string.Compare(s1.Id, s2.Id, StringComparison.Ordinal));
+			ids.Sort((sw1, sw2) => string.Compare(sw1.Id, sw2.Id, StringComparison.Ordinal));
 			return ids;
 		}
 
-		private static ESwitchSource GuessSwitchSource(GamelogicEngineSwitch engineSwitch)
+		private static SwitchSource GuessSwitchSource(GamelogicEngineSwitch engineSwitch)
 		{
 			if (!string.IsNullOrEmpty(engineSwitch.DeviceHint)) {
-				return ESwitchSource.Playfield;
+				return SwitchSource.Playfield;
 			}
 
 			if (engineSwitch.ConstantHint != SwitchConstantHint.None) {
-				return ESwitchSource.Constant;
+				return SwitchSource.Constant;
 			}
 
-			return !string.IsNullOrEmpty(engineSwitch.InputActionHint) ? ESwitchSource.InputSystem : ESwitchSource.Playfield;
+			return !string.IsNullOrEmpty(engineSwitch.InputActionHint) ? SwitchSource.InputSystem : SwitchSource.Playfield;
 		}
 
-		private static ISwitchDeviceAuthoring GuessDevice(ISwitchDeviceAuthoring[] switchDevices, GamelogicEngineSwitch engineSwitch)
+		private static ISwitchDeviceAuthoring GuessSwitchDevice(IEnumerable<ISwitchDeviceAuthoring> switchDevices, GamelogicEngineSwitch engineSwitch)
 		{
-			// match by regex if hint provided
-			if (!string.IsNullOrEmpty(engineSwitch.DeviceHint)) {
-				foreach (var device in switchDevices) {
-					var regex = new Regex(engineSwitch.DeviceHint, RegexOptions.IgnoreCase);
-					if (regex.Match(device.name).Success) {
-						return device;
-					}
+			// no hint, no match
+			if (string.IsNullOrEmpty(engineSwitch.DeviceHint)) {
+				return null;
+			}
+
+			// match by regex
+			foreach (var device in switchDevices) {
+				var regex = new Regex(engineSwitch.DeviceHint, RegexOptions.IgnoreCase);
+				if (regex.Match(device.name).Success) {
+					return device;
 				}
 			}
 			return null;
 		}
 
-		private static GamelogicEngineSwitch GuessDeviceItem(GamelogicEngineSwitch engineSwitch, ISwitchDeviceAuthoring device)
+		private static GamelogicEngineSwitch GuessSwitchDeviceItem(GamelogicEngineSwitch engineSwitch, ISwitchDeviceAuthoring device)
 		{
+			// if there's only one switch, it's the one.
 			if (device.AvailableSwitches.Count() == 1) {
 				return device.AvailableSwitches.First();
 			}
-			if (!string.IsNullOrEmpty(engineSwitch.DeviceItemHint)) {
-				foreach (var deviceSwitch in device.AvailableSwitches) {
-					var regex = new Regex(engineSwitch.DeviceItemHint, RegexOptions.IgnoreCase);
-					if (regex.Match(deviceSwitch.Id).Success) {
-						return deviceSwitch;
-					}
+
+			// otherwise, if not hint, we can't know.
+			if (string.IsNullOrEmpty(engineSwitch.DeviceItemHint)) {
+				return null;
+			}
+
+			// match by regex
+			foreach (var deviceSwitch in device.AvailableSwitches) {
+				var regex = new Regex(engineSwitch.DeviceItemHint, RegexOptions.IgnoreCase);
+				if (regex.Match(deviceSwitch.Id).Success) {
+					return deviceSwitch;
 				}
 			}
 			return null;
 		}
 
-		public void AddSwitch(SwitchMapping switchMapping)
+		public void AddSwitch(SwitchMapping switchMapping = null)
 		{
-			Switches?.Add(switchMapping);
+			Switches.Add(switchMapping ?? new SwitchMapping());
 		}
 
 		public void RemoveSwitch(SwitchMapping switchMapping)
 		{
-			Switches?.Remove(switchMapping);
+			Switches.Remove(switchMapping);
 		}
 
 		public void RemoveAllSwitches()
@@ -192,69 +185,75 @@ namespace VisualPinball.Unity
 			foreach (var engineCoil in GetCoils(engineCoils)) {
 
 				var coilMapping = Coils.FirstOrDefault(mappingsCoilData => mappingsCoilData.Id == engineCoil.Id);
-				if (coilMapping == null) {
-
-					if (engineCoil.IsUnused) {
-						continue;
-					}
-
-					var destination = GuessCoilDestination(engineCoil);
-					var description = string.IsNullOrEmpty(engineCoil.Description) ? string.Empty : engineCoil.Description;
-					var device = destination == CoilDestination.Playfield ? GuessDevice(coilDevices, engineCoil) : null;
-					var deviceItem = destination == CoilDestination.Playfield && device != null ? GuessDeviceItem(engineCoil, device) : null;
-
-					AddCoil(new CoilMapping {
-						Id = engineCoil.Id,
-						InternalId = engineCoil.InternalId,
-						Description = description,
-						Destination = destination,
-						Device = device,
-						DeviceItem = deviceItem != null ? deviceItem.Id : string.Empty,
-					});
+				if (coilMapping != null || engineCoil.IsUnused) {
+					continue;
 				}
+
+				var destination = GuessCoilDestination(engineCoil);
+				var description = string.IsNullOrEmpty(engineCoil.Description) ? string.Empty : engineCoil.Description;
+				var device = destination == CoilDestination.Playfield ? GuessCoilDevice(coilDevices, engineCoil) : null;
+				var deviceItem = destination == CoilDestination.Playfield && device != null ? GuessCoilDeviceItem(engineCoil, device) : null;
+
+				AddCoil(new CoilMapping {
+					Id = engineCoil.Id,
+					InternalId = engineCoil.InternalId,
+					Description = description,
+					Destination = destination,
+					Device = device,
+					DeviceItem = deviceItem != null ? deviceItem.Id : string.Empty,
+				});
 			}
 		}
 
 		private CoilDestination GuessCoilDestination(GamelogicEngineCoil engineCoil)
 		{
-			if (engineCoil.IsLamp) {
-				// todo
-				// AddLamp(new LampMapping {
-				// 	Id = engineCoil.Id,
-				// 	Description = engineCoil.Description,
-				// 	Destination = LampDestination.Playfield,
-				// 	Source = LampSource.Coils
-				// });
-				// return CoilDestination.Lamp;
+			if (!engineCoil.IsLamp) {
+				return CoilDestination.Playfield;
 			}
-			return CoilDestination.Playfield;
+
+			// if it's a lamp, add a new entry to the lamps.
+			AddLamp(new LampMapping {
+				Id = engineCoil.Id,
+				Description = engineCoil.Description,
+				Source = LampSource.Coils
+			});
+			return CoilDestination.Lamp;
 		}
 
-		private static ICoilDeviceAuthoring GuessDevice(ICoilDeviceAuthoring[] coilDevices, GamelogicEngineCoil engineCoil)
+		private static ICoilDeviceAuthoring GuessCoilDevice(ICoilDeviceAuthoring[] coilDevices, GamelogicEngineCoil engineCoil)
 		{
+			// no hint, no guess..
+			if (string.IsNullOrEmpty(engineCoil.DeviceHint)) {
+				return null;
+			}
+
 			// match by regex if hint provided
-			if (!string.IsNullOrEmpty(engineCoil.DeviceHint)) {
-				foreach (var device in coilDevices) {
-					var regex = new Regex(engineCoil.DeviceHint, RegexOptions.IgnoreCase);
-					if (regex.Match(device.name).Success) {
-						return device;
-					}
+			foreach (var device in coilDevices) {
+				var regex = new Regex(engineCoil.DeviceHint, RegexOptions.IgnoreCase);
+				if (regex.Match(device.name).Success) {
+					return device;
 				}
 			}
 			return null;
 		}
 
-		private static GamelogicEngineCoil GuessDeviceItem(GamelogicEngineCoil engineCoil, ICoilDeviceAuthoring device)
+		private static GamelogicEngineCoil GuessCoilDeviceItem(GamelogicEngineCoil engineCoil, ICoilDeviceAuthoring device)
 		{
+			// if only one device item available, it's the one.
 			if (device.AvailableCoils.Count() == 1) {
 				return device.AvailableCoils.First();
 			}
-			if (!string.IsNullOrEmpty(engineCoil.DeviceItemHint)) {
-				foreach (var deviceCoil in device.AvailableCoils) {
-					var regex = new Regex(engineCoil.DeviceItemHint, RegexOptions.IgnoreCase);
-					if (regex.Match(deviceCoil.Id).Success) {
-						return deviceCoil;
-					}
+
+			// no hint, no guess..
+			if (string.IsNullOrEmpty(engineCoil.DeviceItemHint)) {
+				return null;
+			}
+
+			// match by regex if hint provided
+			foreach (var deviceCoil in device.AvailableCoils) {
+				var regex = new Regex(engineCoil.DeviceItemHint, RegexOptions.IgnoreCase);
+				if (regex.Match(deviceCoil.Id).Success) {
+					return deviceCoil;
 				}
 			}
 			return null;
@@ -287,16 +286,18 @@ namespace VisualPinball.Unity
 
 		public void AddCoil(CoilMapping coilMapping)
 		{
-			Coils?.Add(coilMapping);
+			Coils.Add(coilMapping);
 		}
 
 		public void RemoveCoil(CoilMapping coilMapping)
 		{
 			Coils.Remove(coilMapping);
-			// todo
-			// if (data.Destination == CoilDestination.Lamp) {
-			// 	Lamps = Lamps.Where(l => l.Id == data.Id && l.Source == LampSource.Coils).ToArray();
-			// }
+			if (coilMapping.Destination == CoilDestination.Lamp) {
+				var lamp = Lamps.FirstOrDefault(l => l.Id == coilMapping.Id && l.Source == LampSource.Coils);
+				if (lamp != null) {
+					Lamps.Remove(lamp);
+				}
+			}
 		}
 
 		public void RemoveAllCoils()
@@ -336,7 +337,7 @@ namespace VisualPinball.Unity
 		/// <param name="tableComponent">Table component</param>
 		public void PopulateLamps(GamelogicEngineLamp[] engineLamps, TableAuthoring tableComponent)
 		{
-			var lamps = tableComponent.GetComponentsInChildren<ILampAuthoring>();
+			var lamps = tableComponent.GetComponentsInChildren<ILampDeviceAuthoring>();
 			var gbLamps = new List<GamelogicEngineLamp>();
 			foreach (var engineLamp in GetLamps(engineLamps)) {
 
@@ -353,12 +354,13 @@ namespace VisualPinball.Unity
 
 				var description = string.IsNullOrEmpty(engineLamp.Description) ? string.Empty : engineLamp.Description;
 				var device = GuessLampDevice(lamps, engineLamp);
+				var deviceItem = GuessLampDeviceItem(engineLamp, device);
 
 				AddLamp(new LampMapping {
 					Id = engineLamp.Id,
 					Description = description,
 					Device = device,
-					// todo device id
+					DeviceItem = deviceItem != null ? deviceItem.Id : string.Empty,
 				});
 			}
 
@@ -367,10 +369,11 @@ namespace VisualPinball.Unity
 				var rLamp = Lamps.FirstOrDefault(c => c.Id == rLampId);
 				if (rLamp == null) {
 					var device = GuessLampDevice(lamps, gbLamp);
-					rLamp = new LampMapping() {
+					var deviceItem = GuessLampDeviceItem(gbLamp, device);
+					rLamp = new LampMapping {
 						Id = rLampId,
 						Device = device,
-						// todo dovice id
+						DeviceItem = deviceItem != null ? deviceItem.Id : string.Empty,
 					};
 					AddLamp(rLamp);
 				}
@@ -402,17 +405,15 @@ namespace VisualPinball.Unity
 			}
 
 			// then add lamp ids that were added manually
-			foreach (var lampMapping in Lamps) {
-				if (!lamps.Exists(entry => entry.Id == lampMapping.Id)) {
-					lamps.Add(new GamelogicEngineLamp(lampMapping.Id));
-				}
+			foreach (var lampMapping in Lamps.Where(lampMapping => !lamps.Exists(entry => entry.Id == lampMapping.Id))) {
+				lamps.Add(new GamelogicEngineLamp(lampMapping.Id));
 			}
 
-			lamps.Sort((s1, s2) => s1.Id.CompareTo(s2.Id));
+			lamps.Sort((s1, s2) => string.Compare(s1.Id, s2.Id, StringComparison.Ordinal));
 			return lamps;
 		}
 
-		private static ILampAuthoring GuessLampDevice(ILampAuthoring[] lamps, GamelogicEngineLamp engineLamp)
+		private static ILampDeviceAuthoring GuessLampDevice(ILampDeviceAuthoring[] lamps, GamelogicEngineLamp engineLamp)
 		{
 			// first, match by regex if hint provided
 			if (!string.IsNullOrEmpty(engineLamp.DeviceHint)) {
@@ -432,6 +433,28 @@ namespace VisualPinball.Unity
 			return lamps.FirstOrDefault(l => l.name == matchKey);
 		}
 
+		private static GamelogicEngineLamp GuessLampDeviceItem(GamelogicEngineLamp engineLamp, ILampDeviceAuthoring device)
+		{
+			// if only one device item available, it's the one.
+			if (device.AvailableLamps.Count() == 1) {
+				return device.AvailableLamps.First();
+			}
+
+			// no hint, no guess..
+			if (string.IsNullOrEmpty(engineLamp.DeviceItemHint)) {
+				return null;
+			}
+
+			// match by regex if hint provided
+			foreach (var deviceLamp in device.AvailableLamps) {
+				var regex = new Regex(engineLamp.DeviceItemHint, RegexOptions.IgnoreCase);
+				if (regex.Match(deviceLamp.Id).Success) {
+					return deviceLamp;
+				}
+			}
+			return null;
+		}
+
 		public void AddLamp(LampMapping lampMapping)
 		{
 			Lamps.Add(lampMapping);
@@ -448,5 +471,6 @@ namespace VisualPinball.Unity
 		}
 
 		#endregion
+
 	}
 }

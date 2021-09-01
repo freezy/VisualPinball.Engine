@@ -31,7 +31,7 @@ namespace VisualPinball.Unity.Editor
 		public string Description { get; set; }
 
 		[ManagerListColumn(Order = 3, HeaderName = "Source", Width = 150)]
-		public ESwitchSource Source;
+		public SwitchSource Source;
 
 		[ManagerListColumn(Order = 4, HeaderName = "Element", Width = 270)]
 		public string Element;
@@ -43,7 +43,7 @@ namespace VisualPinball.Unity.Editor
 		public int InternalId { get; set; }
 		public string InputActionMap;
 		public string InputAction;
-		public int Constant;
+		public SwitchConstant Constant;
 		public ISwitchDeviceAuthoring Device;
 		public string DeviceItem { get; set; }
 

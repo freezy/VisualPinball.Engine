@@ -32,13 +32,13 @@ namespace VisualPinball.Unity
 
 		public string Description = string.Empty;
 
-		public ESwitchSource Source = ESwitchSource.Playfield;
+		public SwitchSource Source = SwitchSource.Playfield;
 
 		public string InputActionMap = string.Empty;
 
 		public string InputAction = string.Empty;
 
-		public int Constant;
+		public SwitchConstant Constant;
 
 		[SerializeReference]
 		public MonoBehaviour _device;

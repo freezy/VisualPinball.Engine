@@ -22,7 +22,7 @@ namespace VisualPinball.Unity.Editor
 		public string Name => Description;
 
 		[ManagerListColumn(Order = 1, HeaderName = "Source", Width = 150)]
-		public ESwitchSource Source;
+		public SwitchSource Source;
 
 		[ManagerListColumn(Order = 2, HeaderName = "Source Element", Width = 270)]
 		public string SourceElement;
@@ -37,7 +37,7 @@ namespace VisualPinball.Unity.Editor
 
 		public string SourceInputActionMap;
 		public string SourceInputAction;
-		public int SourceConstant;
+		public SwitchConstant SourceConstant;
 		public ISwitchDeviceAuthoring SourceDevice;
 		public string SourceDeviceItem;
 

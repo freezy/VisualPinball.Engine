@@ -140,7 +140,7 @@ namespace VisualPinball.Unity.Editor
 		{
 			RecordUndo(undoName);
 
-			_tableAuthoring.MappingConfig.AddSwitch(new SwitchMapping());
+			_tableAuthoring.MappingConfig.AddSwitch();
 		}
 
 		protected override void RemoveData(string undoName, SwitchListData data)
