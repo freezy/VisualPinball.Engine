@@ -15,10 +15,11 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using System.Linq;
+using VisualPinball.Engine.Game.Engines;
 
 namespace VisualPinball.Unity.Editor
 {
-	public class SwitchListData : IManagerListData
+	public class SwitchListData : IManagerListData, IDeviceListData<GamelogicEngineSwitch>
 	{
 		[ManagerListColumn(Order = 0, HeaderName = "ID", Width = 150)]
 		public string Name => Id;
@@ -27,7 +28,7 @@ namespace VisualPinball.Unity.Editor
 		public bool NormallyClosed;
 
 		[ManagerListColumn(Order = 2, HeaderName = "Description", Width = 150)]
-		public string Description;
+		public string Description { get; set; }
 
 		[ManagerListColumn(Order = 3, HeaderName = "Source", Width = 150)]
 		public ESwitchSource Source;
@@ -39,14 +40,16 @@ namespace VisualPinball.Unity.Editor
 		public int PulseDelay;
 
 		public string Id;
-		public int InternalId;
+		public int InternalId { get; set; }
 		public string InputActionMap;
 		public string InputAction;
 		public int Constant;
 		public ISwitchDeviceAuthoring Device;
-		public string DeviceItem;
+		public string DeviceItem { get; set; }
 
 		public readonly SwitchMapping SwitchMapping;
+
+		public IDeviceAuthoring<GamelogicEngineSwitch> DeviceComponent => Device;
 
 		public SwitchListData(SwitchMapping switchMapping) {
 			Id = switchMapping.Id;

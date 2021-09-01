@@ -26,8 +26,12 @@ using Texture = UnityEngine.Texture;
 
 namespace VisualPinball.Unity.Editor
 {
-	public class CoilListViewItemRenderer
+	public class CoilListViewItemRenderer : ListViewItemRenderer<CoilListData, GamelogicEngineCoil>
 	{
+		protected override List<GamelogicEngineCoil> GleItems => _gleCoils;
+		protected override GamelogicEngineCoil InstantiateGleItem(string id) => new GamelogicEngineCoil(id);
+		protected override Texture2D StatusIcon(bool status) => Icons.Bolt(IconSize.Small, status ? IconColor.Orange : IconColor.Gray);
+
 		private enum CoilListColumn
 		{
 			Id = 0,
@@ -93,81 +97,6 @@ namespace VisualPinball.Unity.Editor
 				}
 			}
 			data.Id = id;
-		}
-
-		private void RenderId(Dictionary<string, bool> coilStatuses, ref string id, Action<string> setId, CoilListData coilListData, Rect cellRect, Action<CoilListData> updateAction)
-		{
-			const float idWidth = 25f;
-			const float padding = 2f;
-
-			// add some padding
-			cellRect.x += padding;
-			cellRect.width -= 2 * padding;
-
-			var dropdownRect = cellRect;
-			dropdownRect.width -= idWidth + 2 * padding;
-
-			var idRect = cellRect;
-			idRect.width = idWidth;
-			idRect.x += cellRect.width - idWidth;
-
-			var options = new List<string>(_gleCoils.Select(entry => entry.Id).ToArray());
-			if (options.Count > 0) {
-				options.Add("");
-			}
-			options.Add("Add...");
-
-			if (Application.isPlaying && coilStatuses != null) {
-				var iconRect = cellRect;
-				iconRect.width = 20;
-				dropdownRect.x += 25;
-				dropdownRect.width -= 25;
-				if (coilStatuses.ContainsKey(id)) {
-					var coilStatus = coilStatuses[id];
-					var icon = Icons.Bolt(IconSize.Small, coilStatus ? IconColor.Orange : IconColor.Gray);
-					var guiColor = GUI.color;
-					GUI.color = Color.clear;
-					EditorGUI.DrawTextureTransparent(iconRect, icon, ScaleMode.ScaleToFit);
-					GUI.color = guiColor;
-				}
-			}
-
-			EditorGUI.BeginChangeCheck();
-			var index = EditorGUI.Popup(dropdownRect, options.IndexOf(id), options.ToArray());
-			if (EditorGUI.EndChangeCheck()) {
-				if (index == options.Count - 1) {
-					PopupWindow.Show(dropdownRect, new ManagerListTextFieldPopup("ID", "", newId => {
-						if (!_gleCoils.Exists(entry => entry.Id == newId)) {
-							_gleCoils.Add(new GamelogicEngineCoil(newId));
-						}
-
-						setId(newId);
-						updateAction(coilListData);
-					}));
-
-				} else {
-					setId(_gleCoils[index].Id);
-					updateAction(coilListData);
-				}
-			}
-
-			EditorGUI.BeginChangeCheck();
-			var value = EditorGUI.IntField(idRect, coilListData.InternalId);
-			if (EditorGUI.EndChangeCheck()) {
-				coilListData.InternalId = value;
-				updateAction(coilListData);
-			}
-		}
-
-		private void RenderDescription(CoilListData coilListData, Rect cellRect, Action<CoilListData> updateAction)
-		{
-			EditorGUI.BeginChangeCheck();
-			var value = EditorGUI.TextField(cellRect, coilListData.Description);
-			if (EditorGUI.EndChangeCheck())
-			{
-				coilListData.Description = value;
-				updateAction(coilListData);
-			}
 		}
 
 		private void RenderDestination(CoilListData coilListData, Rect cellRect, Action<CoilListData> updateAction)
@@ -243,34 +172,6 @@ namespace VisualPinball.Unity.Editor
 			});
 		}
 
-		private void RenderDeviceItemElement(CoilListData coilListData, Rect cellRect, Action<CoilListData> updateAction)
-		{
-			UpdateDeviceItem(coilListData);
-			var onlyOneDeviceItem = coilListData.Device != null && coilListData.Device.AvailableCoils.Count() == 1;
-			if (onlyOneDeviceItem && string.IsNullOrEmpty(coilListData.Device.AvailableCoils.First().Description)) {
-				return;
-			}
-			EditorGUI.BeginDisabledGroup(coilListData.Device == null || onlyOneDeviceItem);
-
-			var currentIndex = 0;
-			var coilLabels = Array.Empty<string>();
-			ICoilDeviceAuthoring coilDevice = null;
-			if (coilListData.Device != null) {
-				coilDevice = coilListData.Device;
-				coilLabels = coilDevice.AvailableCoils.Select(s => s.Description).ToArray();
-				currentIndex = coilDevice.AvailableCoils.TakeWhile(s => s.Id != coilListData.DeviceItem).Count();
-			}
-			EditorGUI.BeginChangeCheck();
-			var newIndex = EditorGUI.Popup(cellRect, currentIndex, coilLabels);
-			if (EditorGUI.EndChangeCheck() && coilDevice != null) {
-				if (currentIndex != newIndex) {
-					coilListData.DeviceItem = coilDevice.AvailableCoils.ElementAt(newIndex).Id;
-					updateAction(coilListData);
-				}
-			}
-			EditorGUI.EndDisabledGroup();
-		}
-
 		private void RenderType(CoilListData coilListData, Rect cellRect, Action<CoilListData> updateAction)
 		{
 			if (coilListData.Destination == CoilDestination.Playfield)
@@ -281,13 +182,6 @@ namespace VisualPinball.Unity.Editor
 					coilListData.Type = type;
 					updateAction(coilListData);
 				}
-			}
-		}
-
-		private void UpdateDeviceItem(CoilListData coilListData)
-		{
-			if (coilListData.Device != null && coilListData.Device.AvailableCoils.Count() == 1) {
-				coilListData.DeviceItem = coilListData.Device.AvailableCoils.First().Id;
 			}
 		}
 

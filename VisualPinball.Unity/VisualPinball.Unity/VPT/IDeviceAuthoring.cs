@@ -1,4 +1,4 @@
-// Visual Pinball Engine
+﻿// Visual Pinball Engine
 // Copyright (C) 2021 freezy and VPE Team
 //
 // This program is free software: you can redistribute it and/or modify
@@ -14,10 +14,12 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-namespace VisualPinball.Unity.Editor
+using System.Collections.Generic;
+
+namespace VisualPinball.Unity
 {
-	public interface IManagerListData
+	public interface IDeviceAuthoring<T>
 	{
-		string Name { get; }
+		IEnumerable<T> AvailableDeviceItems { get; }
 	}
 }

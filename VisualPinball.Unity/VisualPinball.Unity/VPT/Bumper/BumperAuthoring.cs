@@ -60,6 +60,7 @@ namespace VisualPinball.Unity
 		[TypeRestriction(typeof(ISurfaceAuthoring), PickerLabel = "Walls & Ramps", UpdateTransforms = true)]
 		[Tooltip("On which surface this bumper is attached to. Updates Z-translation.")]
 		public MonoBehaviour _surface;
+		private IEnumerable<GamelogicEngineCoil> _availableDeviceItems;
 
 		#endregion
 
@@ -99,6 +100,9 @@ namespace VisualPinball.Unity
 				Description = "Ring Coil"
 			}
 		};
+
+		IEnumerable<GamelogicEngineCoil> IDeviceAuthoring<GamelogicEngineCoil>.AvailableDeviceItems => AvailableCoils;
+		IEnumerable<GamelogicEngineSwitch> IDeviceAuthoring<GamelogicEngineSwitch>.AvailableDeviceItems => AvailableSwitches;
 
 		#endregion
 

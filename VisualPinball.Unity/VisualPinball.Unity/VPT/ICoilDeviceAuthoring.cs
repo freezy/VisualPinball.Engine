@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-
 using System.Collections.Generic;
 using VisualPinball.Engine.Game.Engines;
 
@@ -23,11 +22,12 @@ namespace VisualPinball.Unity
 	/// <summary>
 	/// A coil device is an item that contains multiple coil.
 	/// </summary>
-	public interface ICoilDeviceAuthoring : IIdentifiableItemAuthoring
+	public interface ICoilDeviceAuthoring : IIdentifiableItemAuthoring, IDeviceAuthoring<GamelogicEngineCoil>
 	{
 		/// <summary>
 		/// A list of available coils supported by the coil device
 		/// </summary>
 		IEnumerable<GamelogicEngineCoil> AvailableCoils { get; }
 	}
+
 }

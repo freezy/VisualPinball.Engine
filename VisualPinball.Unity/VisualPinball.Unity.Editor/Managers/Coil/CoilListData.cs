@@ -15,16 +15,17 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using System.Linq;
+using VisualPinball.Engine.Game.Engines;
 
 namespace VisualPinball.Unity.Editor
 {
-	public class CoilListData : IManagerListData
+	public class CoilListData : IManagerListData, IDeviceListData<GamelogicEngineCoil>
 	{
 		[ManagerListColumn(Order = 0, HeaderName = "ID", Width = 135)]
 		public string Name => Id;
 
 		[ManagerListColumn(Order = 1, HeaderName = "Description", Width = 150)]
-		public string Description;
+		public string Description { get; set; }
 
 		[ManagerListColumn(Order = 2, HeaderName = "Destination", Width = 150)]
 		public ECoilDestination Destination;
@@ -39,11 +40,13 @@ namespace VisualPinball.Unity.Editor
 		public string HoldCoilId;
 
 		public string Id;
-		public int InternalId;
+		public int InternalId { get; set; }
 		public ICoilDeviceAuthoring Device;
-		public string DeviceItem;
+		public string DeviceItem { get; set; }
 
 		public readonly CoilMapping CoilMapping;
+
+		public IDeviceAuthoring<GamelogicEngineCoil> DeviceComponent => Device;
 
 		public CoilListData(CoilMapping coilMapping) {
 			Id = coilMapping.Id;
