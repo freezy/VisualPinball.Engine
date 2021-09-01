@@ -80,7 +80,7 @@ namespace VisualPinball.Unity
 		private const string RingMeshName = "Bumper (Ring)";
 		private const float PrefabMeshScale = 100f;
 
-		private const string SocketSwitchItem = "socket_switch";
+		public const string SocketSwitchItem = "socket_switch";
 
 		#endregion
 
