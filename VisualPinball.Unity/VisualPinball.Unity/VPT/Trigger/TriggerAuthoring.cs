@@ -74,12 +74,14 @@ namespace VisualPinball.Unity
 		protected override Type MeshAuthoringType { get; } = typeof(ItemMeshAuthoring<TriggerData, TriggerAuthoring>);
 		protected override Type ColliderAuthoringType { get; } = typeof(ItemColliderAuthoring<TriggerData, TriggerAuthoring>);
 
+		public const string SwitchItem = "trigger_switch";
+
 		#endregion
 
 		#region Wiring
 
 		public IEnumerable<GamelogicEngineSwitch> AvailableSwitches => new[] {
-			new GamelogicEngineSwitch(name)
+			new GamelogicEngineSwitch(SwitchItem)
 		};
 
 		public SwitchDefault SwitchDefault => SwitchDefault.Configurable;

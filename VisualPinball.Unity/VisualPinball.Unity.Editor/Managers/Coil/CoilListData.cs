@@ -14,6 +14,8 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+using System.Linq;
+
 namespace VisualPinball.Unity.Editor
 {
 	public class CoilListData : IManagerListData
@@ -49,7 +51,12 @@ namespace VisualPinball.Unity.Editor
 			Description = coilMapping.Description;
 			Destination = coilMapping.Destination;
 			Device = coilMapping.Device;
-			DeviceItem = coilMapping.DeviceItem;
+			if (string.IsNullOrEmpty(coilMapping.DeviceItem) && Device != null && Device.AvailableCoils.Count() == 1) {
+				DeviceItem = Device.AvailableCoils.First().Id;
+
+			} else {
+				DeviceItem = coilMapping.DeviceItem;
+			}
 			Type = coilMapping.Type;
 			HoldCoilId = coilMapping.HoldCoilId;
 

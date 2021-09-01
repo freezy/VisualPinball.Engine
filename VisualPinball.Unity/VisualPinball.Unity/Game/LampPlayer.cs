@@ -17,7 +17,6 @@
 using System;
 using System.Collections.Generic;
 using NLog;
-using UnityEditorInternal;
 using VisualPinball.Engine.Math;
 using Color = UnityEngine.Color;
 using Logger = NLog.Logger;
@@ -214,7 +213,7 @@ namespace VisualPinball.Unity
 					}
 				}
 #if UNITY_EDITOR
-				InternalEditorUtility.RepaintAllViews();
+				UnityEditorInternal.InternalEditorUtility.RepaintAllViews();
 #endif
 			}
 		}

@@ -96,16 +96,7 @@ namespace VisualPinball.Unity
 
 		#endregion
 
-		#region Wiring
-
-		public IEnumerable<GamelogicEngineSwitch> AvailableSwitches => new[] {
-			new GamelogicEngineSwitch(name) { IsPulseSwitch = true }
-		};
-		public SwitchDefault SwitchDefault => SwitchDefault.Configurable;
-
-		#endregion
-
-		#region Overrides
+		#region Overrides and Constants
 
 		public override ItemType ItemType => ItemType.HitTarget;
 		public override string ItemName => "Target";
@@ -116,6 +107,17 @@ namespace VisualPinball.Unity
 		public override HitTargetData InstantiateData() => new HitTargetData();
 		protected override Type MeshAuthoringType { get; } = typeof(ItemMeshAuthoring<HitTargetData, HitTargetAuthoring>);
 		protected override Type ColliderAuthoringType { get; } = typeof(ItemColliderAuthoring<HitTargetData, HitTargetAuthoring>);
+
+		public const string SwitchItem = "target_switch";
+
+		#endregion
+
+		#region Wiring
+
+		public IEnumerable<GamelogicEngineSwitch> AvailableSwitches => new[] {
+			new GamelogicEngineSwitch(SwitchItem) { IsPulseSwitch = true }
+		};
+		public SwitchDefault SwitchDefault => SwitchDefault.Configurable;
 
 		#endregion
 

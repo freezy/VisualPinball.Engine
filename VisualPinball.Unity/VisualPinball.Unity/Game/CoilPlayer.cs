@@ -16,8 +16,6 @@
 
 using System.Collections.Generic;
 using NLog;
-using UnityEditorInternal;
-using VisualPinball.Engine.VPT;
 
 namespace VisualPinball.Unity
 {
@@ -137,7 +135,7 @@ namespace VisualPinball.Unity
 				}
 
 #if UNITY_EDITOR
-				InternalEditorUtility.RepaintAllViews();
+				UnityEditorInternal.InternalEditorUtility.RepaintAllViews();
 #endif
 
 			} else {

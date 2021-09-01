@@ -63,7 +63,7 @@ namespace VisualPinball.Unity
 					var description = engineSwitch.Description ?? string.Empty;
 					var source = GuessSwitchSource(engineSwitch);
 					var device = source == ESwitchSource.Playfield ? GuessDevice(switchDevices, engineSwitch) : null;
-					var deviceItem = source == ESwitchSource.Playfield && device != null ? GuessDeviceSwitch(engineSwitch, device) : null;
+					var deviceItem = source == ESwitchSource.Playfield && device != null ? GuessDeviceItem(engineSwitch, device) : null;
 					var inputActionMap = source == SwitchSource.InputSystem
 						? string.IsNullOrEmpty(engineSwitch.InputMapHint) ? InputConstants.MapCabinetSwitches : engineSwitch.InputMapHint
 						: string.Empty;
@@ -140,8 +140,11 @@ namespace VisualPinball.Unity
 			return null;
 		}
 
-		private static GamelogicEngineSwitch GuessDeviceSwitch(GamelogicEngineSwitch engineSwitch, ISwitchDeviceAuthoring device)
+		private static GamelogicEngineSwitch GuessDeviceItem(GamelogicEngineSwitch engineSwitch, ISwitchDeviceAuthoring device)
 		{
+			if (device.AvailableSwitches.Count() == 1) {
+				return device.AvailableSwitches.First();
+			}
 			if (!string.IsNullOrEmpty(engineSwitch.DeviceItemHint)) {
 				foreach (var deviceSwitch in device.AvailableSwitches) {
 					var regex = new Regex(engineSwitch.DeviceItemHint, RegexOptions.IgnoreCase);
@@ -182,8 +185,7 @@ namespace VisualPinball.Unity
 		/// coils on the playfield.
 		/// </summary>
 		/// <param name="engineCoils">List of coils provided by the gamelogic engine</param>
-		/// <param name="tableCoils">List of coils on the playfield</param>
-		/// <param name="tableCoilDevices">List of coil devices in the table</param>
+		/// <param name="tableComponent">Table component</param>
 		public void PopulateCoils(GamelogicEngineCoil[] engineCoils, TableAuthoring tableComponent)
 		{
 			var coilDevices = tableComponent.GetComponentsInChildren<ICoilDeviceAuthoring>();
@@ -206,7 +208,7 @@ namespace VisualPinball.Unity
 					var destination = GuessCoilDestination(engineCoil);
 					var description = string.IsNullOrEmpty(engineCoil.Description) ? string.Empty : engineCoil.Description;
 					var device = destination == ECoilDestination.Playfield ? GuessDevice(coilDevices, engineCoil) : null;
-					var deviceItem = destination == ECoilDestination.Playfield && device != null ? GuessDeviceCoil(engineCoil, device) : null;
+					var deviceItem = destination == ECoilDestination.Playfield && device != null ? GuessDeviceItem(engineCoil, device) : null;
 
 					AddCoil(new CoilMapping {
 						Id = engineCoil.Id,
@@ -271,8 +273,11 @@ namespace VisualPinball.Unity
 			return null;
 		}
 
-		private static GamelogicEngineCoil GuessDeviceCoil(GamelogicEngineCoil engineCoil, ICoilDeviceAuthoring device)
+		private static GamelogicEngineCoil GuessDeviceItem(GamelogicEngineCoil engineCoil, ICoilDeviceAuthoring device)
 		{
+			if (device.AvailableCoils.Count() == 1) {
+				return device.AvailableCoils.First();
+			}
 			if (!string.IsNullOrEmpty(engineCoil.DeviceItemHint)) {
 				foreach (var deviceCoil in device.AvailableCoils) {
 					var regex = new Regex(engineCoil.DeviceItemHint, RegexOptions.IgnoreCase);

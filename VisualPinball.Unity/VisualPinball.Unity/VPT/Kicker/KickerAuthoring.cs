@@ -62,7 +62,7 @@ namespace VisualPinball.Unity
 
 		#endregion
 
-		#region Overrides
+		#region Overrides and Constants
 
 		public override ItemType ItemType => ItemType.Kicker;
 		public override string ItemName => "Kicker";
@@ -77,19 +77,21 @@ namespace VisualPinball.Unity
 
 		public Vector2 Center => Position;
 
+		public const string SwitchItem = "kicker_switch";
+
 		#endregion
 
 		#region Wiring
 
 		public IEnumerable<GamelogicEngineSwitch> AvailableSwitches => new[] {
-			new GamelogicEngineSwitch(name),
+			new GamelogicEngineSwitch(SwitchItem),
 		};
 
 		public SwitchDefault SwitchDefault => SwitchDefault.Configurable;
 
 		public IEnumerable<GamelogicEngineCoil> AvailableCoils => new[] {
 			// todo support multiple coils, also see plunger which has 2 coil definitions
-			new GamelogicEngineCoil(name)
+			new GamelogicEngineCoil("c_1")
 		};
 
 		#endregion
