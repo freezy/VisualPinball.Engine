@@ -68,10 +68,11 @@ namespace VisualPinball.Engine.VPT.Table
 			return this;
 		}
 
-		public TableBuilder AddFlipper(string name)
+		public TableBuilder AddFlipper(string name, bool isDualWound = false)
 		{
 			var data = new FlipperData($"GameItem{_gameItem++}") {
-				Name = name, Center = new Vertex2D(500, 500)
+				Name = name, Center = new Vertex2D(500, 500),
+				IsDualWound = isDualWound,
 			};
 
 			_tableContainer.Add(new Flipper.Flipper(data));

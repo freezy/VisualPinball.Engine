@@ -110,9 +110,21 @@ namespace VisualPinball.Unity
 			return !string.IsNullOrEmpty(engineSwitch.InputActionHint) ? SwitchSource.InputSystem : SwitchSource.Playfield;
 		}
 
-		private static ISwitchDeviceAuthoring GuessSwitchDevice(IEnumerable<ISwitchDeviceAuthoring> switchDevices, GamelogicEngineSwitch engineSwitch)
+		private static ISwitchDeviceAuthoring GuessSwitchDevice(ISwitchDeviceAuthoring[] switchDevices, GamelogicEngineSwitch engineSwitch)
 		{
-			// no hint, no match
+			// if no hint, match by name
+			if (string.IsNullOrEmpty(engineSwitch.DeviceHint)) {
+				var matchKey = int.TryParse(engineSwitch.Id, out var numericSwitchId)
+					? $"sw{numericSwitchId}"
+					: engineSwitch.Id;
+
+				var swMatch = switchDevices.FirstOrDefault(sw => sw.name == matchKey);
+				if (swMatch != null) {
+					return swMatch;
+				}
+			}
+
+			// if no match and no hint, return.
 			if (string.IsNullOrEmpty(engineSwitch.DeviceHint)) {
 				return null;
 			}
@@ -222,13 +234,13 @@ namespace VisualPinball.Unity
 
 		private static ICoilDeviceAuthoring GuessCoilDevice(ICoilDeviceAuthoring[] coilDevices, GamelogicEngineCoil engineCoil)
 		{
-			// no hint, no guess..
-			if (string.IsNullOrEmpty(engineCoil.DeviceHint)) {
-				return null;
-			}
-
-			// match by regex if hint provided
 			foreach (var device in coilDevices) {
+				if (string.Equals(device.name, engineCoil.Id, StringComparison.OrdinalIgnoreCase)) {
+					return device;
+				}
+				if (string.IsNullOrEmpty(engineCoil.DeviceHint)) {
+					continue;
+				}
 				var regex = new Regex(engineCoil.DeviceHint, RegexOptions.IgnoreCase);
 				if (regex.Match(device.name).Success) {
 					return device;
@@ -303,7 +315,7 @@ namespace VisualPinball.Unity
 		public void RemoveAllCoils()
 		{
 			Coils.Clear();
-			// todo Lamps = Lamps.Where(l => l.Source != LampSource.Coils).ToArray();
+			Lamps = Lamps.Where(l => l.Source != LampSource.Coils).ToList();
 		}
 
 		#endregion
@@ -435,6 +447,10 @@ namespace VisualPinball.Unity
 
 		private static GamelogicEngineLamp GuessLampDeviceItem(GamelogicEngineLamp engineLamp, ILampDeviceAuthoring device)
 		{
+			if (device == null) {
+				return null;
+			}
+
 			// if only one device item available, it's the one.
 			if (device.AvailableLamps.Count() == 1) {
 				return device.AvailableLamps.First();
@@ -467,7 +483,7 @@ namespace VisualPinball.Unity
 
 		public void RemoveAllLamps()
 		{
-			Lamps.Clear();
+			Lamps = Lamps.Where(l => l.Source == LampSource.Coils).ToList();
 		}
 
 		#endregion
