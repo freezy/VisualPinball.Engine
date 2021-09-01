@@ -21,10 +21,7 @@ using NLog;
 using UnityEditor;
 using UnityEngine;
 using VisualPinball.Engine.Game.Engines;
-using VisualPinball.Engine.VPT;
-using VisualPinball.Engine.VPT.Mappings;
 using Logger = NLog.Logger;
-using Object = UnityEngine.Object;
 
 namespace VisualPinball.Unity.Editor
 {
@@ -45,13 +42,6 @@ namespace VisualPinball.Unity.Editor
 		private readonly List<GamelogicEngineCoil> _gleCoils = new List<GamelogicEngineCoil>();
 
 		private CoilListViewItemRenderer _listViewItemRenderer;
-
-		private class SerializedMappings : ScriptableObject
-		{
-			public TableAuthoring Table;
-			public MappingsData Mappings;
-		}
-		private SerializedMappings _recordMappings;
 
 		[MenuItem("Visual Pinball/Coil Manager", false, 302)]
 		public static void ShowWindow()
@@ -149,10 +139,10 @@ namespace VisualPinball.Unity.Editor
 			_tableAuthoring.MappingConfig.RemoveCoil(data.CoilMapping);
 
 			// todo if it's a lamp, also delete the lamp entry.
-			if (data.CoilMapping.Destination == ECoilDestination.Lamp) {
-				var lampEntry = _tableAuthoring.Mappings.Lamps.FirstOrDefault(l => l.Id == data.Id && l.Source == LampSource.Coils);
+			if (data.CoilMapping.Destination == CoilDestination.Lamp) {
+				var lampEntry = _tableAuthoring.MappingConfig.Lamps.FirstOrDefault(l => l.Id == data.Id && l.Source == LampSource.Coils);
 				if (lampEntry != null) {
-					_tableAuthoring.Mappings.RemoveLamp(lampEntry);
+					_tableAuthoring.MappingConfig.RemoveLamp(lampEntry);
 					LampManager.Refresh();
 				}
 			}
@@ -205,12 +195,12 @@ namespace VisualPinball.Unity.Editor
 		#region Undo Redo
 		private void RestoreMappings()
 		{
-			if (_recordMappings == null) { return; }
-			if (_tableAuthoring == null) { return; }
-			if (_recordMappings.Table == _tableAuthoring)
-			{
-				_tableAuthoring.RestoreMappings(_recordMappings.Mappings);
-			}
+			// if (_recordMappings == null) { return; }
+			// if (_tableAuthoring == null) { return; }
+			// if (_recordMappings.Table == _tableAuthoring)
+			// {
+			// 	_tableAuthoring.RestoreMappings(_recordMappings.Mappings);
+			// }
 		}
 
 		protected override void UndoPerformed()
@@ -221,15 +211,15 @@ namespace VisualPinball.Unity.Editor
 
 		private void RecordUndo(string undoName)
 		{
-			if (_tableAuthoring == null) { return; }
-			if (_recordMappings == null)
-			{
-				_recordMappings = CreateInstance<SerializedMappings>();
-			}
-			_recordMappings.Table = _tableAuthoring;
-			_recordMappings.Mappings = _tableAuthoring.Mappings;
-
-			Undo.RecordObjects(new Object[] { this, _recordMappings }, undoName);
+			// if (_tableAuthoring == null) { return; }
+			// if (_recordMappings == null)
+			// {
+			// 	_recordMappings = CreateInstance<SerializedMappings>();
+			// }
+			// _recordMappings.Table = _tableAuthoring;
+			// _recordMappings.Mappings = _tableAuthoring.Mappings;
+			//
+			// Undo.RecordObjects(new Object[] { this, _recordMappings }, undoName);
 		}
 		#endregion
 	}

@@ -21,13 +21,11 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using NLog;
 using UnityEngine;
 using VisualPinball.Engine.Common;
 using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Collection;
-using VisualPinball.Engine.VPT.Mappings;
 using VisualPinball.Engine.VPT.Table;
 using Logger = NLog.Logger;
 
@@ -39,7 +37,6 @@ namespace VisualPinball.Unity
 		[SerializeReference] public LegacyContainer LegacyContainer;
 		[SerializeReference] public MappingConfig MappingConfig = new MappingConfig();
 
-		[SerializeField] public MappingsData Mappings;
 		[SerializeField] public SerializableDictionary<string, string> TableInfo = new SerializableDictionary<string, string>();
 		[SerializeField] public CustomInfoTags CustomInfoTags = new CustomInfoTags();
 		[SerializeField] public List<CollectionData> Collections = new List<CollectionData>();
@@ -102,13 +99,6 @@ namespace VisualPinball.Unity
 		{
 			Collections.Clear();
 			Collections.AddRange(collections);
-		}
-
-		public void RestoreMappings(MappingsData mappings)
-		{
-			Mappings.Coils = mappings.Coils.ToArray();
-			Mappings.Switches = mappings.Switches.ToArray();
-			Mappings.Wires = mappings.Wires.ToArray();
 		}
 
 		#region Conversion

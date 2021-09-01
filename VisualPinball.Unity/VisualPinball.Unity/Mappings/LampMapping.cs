@@ -25,7 +25,7 @@ namespace VisualPinball.Unity
 	{
 		public string Id = string.Empty;
 
-		public ELampSource Source = ELampSource.Lamps;
+		public LampSource Source = LampSource.Lamps;
 
 		public string Description = string.Empty;
 
@@ -33,7 +33,7 @@ namespace VisualPinball.Unity
 
 		public string DeviceItem = string.Empty;
 
-		public ELampType Type = ELampType.SingleOnOff;
+		public LampType Type = LampType.SingleOnOff;
 
 		public string Green = string.Empty;
 

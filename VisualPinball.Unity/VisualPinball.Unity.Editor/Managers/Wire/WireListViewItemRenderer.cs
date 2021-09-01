@@ -322,7 +322,7 @@ namespace VisualPinball.Unity.Editor
 					break;
 
 				case ESwitchSource.Constant:
-					icon = Icons.Switch(wireListData.SourceConstant == SwitchConstant.Closed, IconSize.Small);
+					icon = Icons.Switch(wireListData.SourceConstant == Engine.VPT.SwitchConstant.Closed, IconSize.Small);
 					break;
 
 				case SwitchSource.InputSystem:

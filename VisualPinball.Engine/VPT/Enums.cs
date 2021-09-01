@@ -166,49 +166,4 @@ namespace VisualPinball.Engine.VPT
 		public const int TwoCoilsOneSwitch = 3;
 		public const int ClassicSingleBall = 4;
 	}
-
-	public static class CoilDestination
-	{
-		public const int Playfield = 0;
-		public const int Device = 1;
-		public const int Lamp = 2;
-	}
-
-	public static class CoilType
-	{
-		public const int SingleWound = 0;
-		public const int DualWound = 1;
-	}
-
-	public static class WireDestination
-	{
-		public const int Playfield = 0;
-		public const int Device = 1;
-	}
-
-	public static class WireType
-	{
-		public const int OnOff = 0;
-		public const int Pulse = 1;
-	}
-
-	public static class LampDestination
-	{
-		public const int Playfield = 0;
-		public const int Device = 1;
-	}
-
-	public static class LampSource
-	{
-		public const int Lamps = 0;
-		public const int Coils = 1;
-	}
-
-	public static class LampType
-	{
-		public const int SingleOnOff = 0;
-		public const int SingleFading = 1;
-		public const int RgbMulti = 2;
-		public const int Rgb = 3;
-	}
 }

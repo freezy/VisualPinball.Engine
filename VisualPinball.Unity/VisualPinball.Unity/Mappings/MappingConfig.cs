@@ -81,7 +81,7 @@ namespace VisualPinball.Unity
 						InputAction = inputAction,
 						Device = device,
 						DeviceItem = deviceItem != null ? deviceItem.Id : string.Empty,
-						Constant = engineSwitch.ConstantHint == SwitchConstantHint.AlwaysOpen ? SwitchConstant.Open : SwitchConstant.Closed
+						Constant = engineSwitch.ConstantHint == SwitchConstantHint.AlwaysOpen ? Engine.VPT.SwitchConstant.Open : Engine.VPT.SwitchConstant.Closed
 					});
 				}
 			}
@@ -207,8 +207,8 @@ namespace VisualPinball.Unity
 
 					var destination = GuessCoilDestination(engineCoil);
 					var description = string.IsNullOrEmpty(engineCoil.Description) ? string.Empty : engineCoil.Description;
-					var device = destination == ECoilDestination.Playfield ? GuessDevice(coilDevices, engineCoil) : null;
-					var deviceItem = destination == ECoilDestination.Playfield && device != null ? GuessDeviceItem(engineCoil, device) : null;
+					var device = destination == CoilDestination.Playfield ? GuessDevice(coilDevices, engineCoil) : null;
+					var deviceItem = destination == CoilDestination.Playfield && device != null ? GuessDeviceItem(engineCoil, device) : null;
 
 					AddCoil(new CoilMapping {
 						Id = engineCoil.Id,
@@ -225,7 +225,7 @@ namespace VisualPinball.Unity
 			foreach (var holdCoil in holdCoils) {
 				var mainCoil = Coils.FirstOrDefault(c => c.Id == holdCoil.MainCoilIdOfHoldCoil);
 				if (mainCoil != null) {
-					mainCoil.Type = ECoilType.DualWound;
+					mainCoil.Type = CoilType.DualWound;
 					mainCoil.HoldCoilId = holdCoil.Id;
 
 				} else {
@@ -244,7 +244,7 @@ namespace VisualPinball.Unity
 			}
 		}
 
-		private ECoilDestination GuessCoilDestination(GamelogicEngineCoil engineCoil)
+		private CoilDestination GuessCoilDestination(GamelogicEngineCoil engineCoil)
 		{
 			if (engineCoil.IsLamp) {
 				// todo
@@ -256,7 +256,7 @@ namespace VisualPinball.Unity
 				// });
 				// return CoilDestination.Lamp;
 			}
-			return ECoilDestination.Playfield;
+			return CoilDestination.Playfield;
 		}
 
 		private static ICoilDeviceAuthoring GuessDevice(ICoilDeviceAuthoring[] coilDevices, GamelogicEngineCoil engineCoil)
@@ -354,6 +354,11 @@ namespace VisualPinball.Unity
 			Wires.Remove(wireMapping);
 		}
 
+		public void RemoveAllWires()
+		{
+			Wires.Clear();
+		}
+
 		#endregion
 
 		#region Lamps
@@ -370,7 +375,7 @@ namespace VisualPinball.Unity
 			var gbLamps = new List<GamelogicEngineLamp>();
 			foreach (var engineLamp in GetLamps(engineLamps)) {
 
-				var lampMapping = Lamps.FirstOrDefault(mappingsLampData => mappingsLampData.Id == engineLamp.Id && mappingsLampData.Source != ELampSource.Coils);
+				var lampMapping = Lamps.FirstOrDefault(mappingsLampData => mappingsLampData.Id == engineLamp.Id && mappingsLampData.Source != LampSource.Coils);
 				if (lampMapping != null) {
 					continue;
 				}
@@ -405,7 +410,7 @@ namespace VisualPinball.Unity
 					AddLamp(rLamp);
 				}
 
-				rLamp.Type = ELampType.RgbMulti;
+				rLamp.Type = LampType.RgbMulti;
 				if (!string.IsNullOrEmpty(gbLamp.MainLampIdOfGreen)) {
 					rLamp.Green = gbLamp.Id;
 
@@ -470,6 +475,11 @@ namespace VisualPinball.Unity
 		public void RemoveLamp(LampMapping lampMapping)
 		{
 			Lamps.Remove(lampMapping);
+		}
+
+		public void RemoveAllLamps()
+		{
+			Lamps.Clear();
 		}
 
 		#endregion

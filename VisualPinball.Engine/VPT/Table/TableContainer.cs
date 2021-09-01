@@ -28,7 +28,6 @@ namespace VisualPinball.Engine.VPT.Table
 		public abstract Table Table { get; }
 		public abstract Dictionary<string, string> TableInfo { get; }
 		public abstract List<CollectionData> Collections { get; }
-		public abstract Mappings.Mappings Mappings { get; }
 		public abstract CustomInfoTags CustomInfoTags { get; }
 		public abstract IEnumerable<Texture> Textures { get; }
 		public abstract IEnumerable<Sound.Sound> Sounds { get; }

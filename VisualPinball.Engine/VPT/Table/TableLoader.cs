@@ -51,7 +51,6 @@ namespace VisualPinball.Engine.VPT.Table
 					LoadTextures(tableContainer, gameStorage);
 					LoadSounds(tableContainer, gameStorage, fileVersion);
 					LoadCollections(tableContainer, gameStorage);
-					LoadMappings(tableContainer, gameStorage);
 					LoadTableMeta(tableContainer, gameStorage);
 
 					return tableContainer;
@@ -285,19 +284,6 @@ namespace VisualPinball.Engine.VPT.Table
 				using (var stream = new MemoryStream(collectionStream.GetData()))
 				using (var reader = new BinaryReader(stream)) {
 					tableContainer.Collections.Add(new CollectionData(reader, collectionName));
-				}
-			}
-		}
-
-		private static void LoadMappings(FileTableContainer tableContainer, CFStorage gameStorage)
-		{
-			var name = "Mappings0";
-			gameStorage.TryGetStream(name, out var citStream);
-			if (citStream != null)
-			{
-				using (var stream = new MemoryStream(citStream.GetData()))
-				using (var reader = new BinaryReader(stream)) {
-					tableContainer.SetMappings(new Mappings.Mappings(reader, name));
 				}
 			}
 		}

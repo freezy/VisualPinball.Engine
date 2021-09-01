@@ -21,7 +21,6 @@ using UnityEditor;
 using UnityEngine;
 using VisualPinball.Engine.Game.Engines;
 using VisualPinball.Engine.VPT;
-using VisualPinball.Engine.VPT.Mappings;
 using Texture = UnityEngine.Texture;
 
 namespace VisualPinball.Unity.Editor
@@ -79,7 +78,7 @@ namespace VisualPinball.Unity.Editor
 					RenderType(data, cellRect, updateAction);
 					break;
 				case CoilListColumn.HoldCoilId:
-					if (data.Type == ECoilType.DualWound) {
+					if (data.Type == CoilType.DualWound) {
 						RenderId(coilStatuses, ref data.HoldCoilId, id => data.HoldCoilId = id, data, cellRect, updateAction);
 					}
 					break;
@@ -89,8 +88,8 @@ namespace VisualPinball.Unity.Editor
 
 		private void UpdateId(CoilListData data, string id)
 		{
-			if (data.Destination == ECoilDestination.Lamp) {
-				var lampEntry = _tableComponent.Mappings.Lamps.FirstOrDefault(l => l.Id == data.Id && l.Source == LampSource.Coils);
+			if (data.Destination == CoilDestination.Lamp) {
+				var lampEntry = _tableComponent.MappingConfig.Lamps.FirstOrDefault(l => l.Id == data.Id && l.Source == LampSource.Coils);
 				if (lampEntry != null) {
 					lampEntry.Id = id;
 					LampManager.Refresh();
@@ -102,21 +101,21 @@ namespace VisualPinball.Unity.Editor
 		private void RenderDestination(CoilListData coilListData, Rect cellRect, Action<CoilListData> updateAction)
 		{
 			EditorGUI.BeginChangeCheck();
-			var index = (ECoilDestination)EditorGUI.EnumPopup(cellRect, coilListData.Destination);
+			var index = (CoilDestination)EditorGUI.EnumPopup(cellRect, coilListData.Destination);
 			if (EditorGUI.EndChangeCheck())
 			{
 				if (coilListData.Destination != index)
 				{
-					if (coilListData.Destination == ECoilDestination.Lamp) {
+					if (coilListData.Destination == CoilDestination.Lamp) {
 
-						var lampEntry = _tableComponent.Mappings.Lamps.FirstOrDefault(l => l.Id == coilListData.Id && l.Source == LampSource.Coils);
+						var lampEntry = _tableComponent.MappingConfig.Lamps.FirstOrDefault(l => l.Id == coilListData.Id && l.Source == LampSource.Coils);
 						if (lampEntry != null) {
-							_tableComponent.Mappings.RemoveLamp(lampEntry);
+							_tableComponent.MappingConfig.RemoveLamp(lampEntry);
 							LampManager.Refresh();
 						}
 
-					} else if (index == ECoilDestination.Lamp) {
-						_tableComponent.Mappings.AddLamp(new MappingsLampData {
+					} else if (index == CoilDestination.Lamp) {
+						_tableComponent.MappingConfig.AddLamp(new LampMapping {
 							Id = coilListData.Id,
 							Source = LampSource.Coils,
 							Description = coilListData.Description
@@ -148,14 +147,14 @@ namespace VisualPinball.Unity.Editor
 
 			switch (coilListData.Destination)
 			{
-				case ECoilDestination.Playfield:
+				case CoilDestination.Playfield:
 					cellRect.width = cellRect.width / 2f - 5f;
 					RenderDeviceElement(coilListData, cellRect, updateAction);
 					cellRect.x += cellRect.width + 10f;
 					RenderDeviceItemElement(coilListData, cellRect, updateAction);
 					break;
 
-				case ECoilDestination.Lamp:
+				case CoilDestination.Lamp:
 					cellRect.x -= 25;
 					cellRect.width += 25;
 					EditorGUI.LabelField(cellRect, "Configure in Lamp Manager", new GUIStyle(GUI.skin.label) { fontStyle = FontStyle.Italic });
@@ -177,7 +176,7 @@ namespace VisualPinball.Unity.Editor
 			if (coilListData.Destination == CoilDestination.Playfield)
 			{
 				EditorGUI.BeginChangeCheck();
-				var type = (ECoilType)EditorGUI.EnumPopup(cellRect, coilListData.Type);
+				var type = (CoilType)EditorGUI.EnumPopup(cellRect, coilListData.Type);
 				if (EditorGUI.EndChangeCheck()) {
 					coilListData.Type = type;
 					updateAction(coilListData);
@@ -191,7 +190,7 @@ namespace VisualPinball.Unity.Editor
 
 			switch (coilListData.Destination)
 			{
-				case ECoilDestination.Playfield:
+				case CoilDestination.Playfield:
 					if (coilListData.Device != null) {
 						icon = Icons.ByComponent(coilListData.Device, IconSize.Small);
 					}

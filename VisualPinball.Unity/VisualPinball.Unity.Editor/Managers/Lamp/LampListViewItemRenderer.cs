@@ -55,7 +55,7 @@ namespace VisualPinball.Unity.Editor
 
 			switch ((LampListColumn)column) {
 				case LampListColumn.Id:
-					if (data.Source == ELampSource.Coils) {
+					if (data.Source == LampSource.Coils) {
 						RenderCoilId(lampStatuses, data, cellRect);
 					} else {
 						RenderId(lampStatuses, ref data.Id, id => data.Id = id, data, cellRect, updateAction);
@@ -72,7 +72,7 @@ namespace VisualPinball.Unity.Editor
 					break;
 				case LampListColumn.Color:
 					switch (data.Type) {
-						case ELampType.RgbMulti:
+						case LampType.RgbMulti:
 							RenderRgb(lampStatuses, data, cellRect, updateAction);
 							break;
 					}
@@ -192,7 +192,7 @@ namespace VisualPinball.Unity.Editor
 		private void RenderType(LampListData lampListData, Rect cellRect, Action<LampListData> updateAction)
 		{
 			EditorGUI.BeginChangeCheck();
-			var type = (ELampType)EditorGUI.EnumPopup(cellRect, lampListData.Type);
+			var type = (LampType)EditorGUI.EnumPopup(cellRect, lampListData.Type);
 			if (EditorGUI.EndChangeCheck()) {
 				lampListData.Type = type;
 				updateAction(lampListData);

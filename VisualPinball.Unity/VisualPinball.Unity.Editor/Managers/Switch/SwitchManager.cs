@@ -20,9 +20,7 @@ using NLog;
 using UnityEditor;
 using UnityEngine;
 using VisualPinball.Engine.Game.Engines;
-using VisualPinball.Engine.VPT.Mappings;
 using Logger = NLog.Logger;
-using Object = UnityEngine.Object;
 
 namespace VisualPinball.Unity.Editor
 {
@@ -46,13 +44,6 @@ namespace VisualPinball.Unity.Editor
 		private InputManager _inputManager;
 		private SwitchListViewItemRenderer _listViewItemRenderer;
 		private bool _needsAssetRefresh;
-
-		private class SerializedMappings : ScriptableObject
-		{
-			public TableAuthoring Table;
-			public MappingsData Mappings;
-		}
-		private SerializedMappings _recordMappings;
 
 		[MenuItem("Visual Pinball/Switch Manager", false, 301)]
 		public static void ShowWindow()
@@ -206,12 +197,12 @@ namespace VisualPinball.Unity.Editor
 		#region Undo Redo
 		private void RestoreMappings()
 		{
-			if (_recordMappings == null) { return; }
-			if (_tableAuthoring == null) { return; }
-			if (_recordMappings.Table == _tableAuthoring)
-			{
-				_tableAuthoring.RestoreMappings(_recordMappings.Mappings);
-			}
+			// if (_recordMappings == null) { return; }
+			// if (_tableAuthoring == null) { return; }
+			// if (_recordMappings.Table == _tableAuthoring)
+			// {
+			// 	_tableAuthoring.RestoreMappings(_recordMappings.Mappings);
+			// }
 		}
 
 		protected override void UndoPerformed()
@@ -222,15 +213,15 @@ namespace VisualPinball.Unity.Editor
 
 		private void RecordUndo(string undoName)
 		{
-			if (_tableAuthoring == null) { return; }
-			if (_recordMappings == null)
-			{
-				_recordMappings = CreateInstance<SerializedMappings>();
-			}
-			_recordMappings.Table = _tableAuthoring;
-			_recordMappings.Mappings = _tableAuthoring.Mappings;
-
-			Undo.RecordObjects(new Object[] { this, _recordMappings }, undoName);
+			// if (_tableAuthoring == null) { return; }
+			// if (_recordMappings == null)
+			// {
+			// 	_recordMappings = CreateInstance<SerializedMappings>();
+			// }
+			// _recordMappings.Table = _tableAuthoring;
+			// _recordMappings.Mappings = _tableAuthoring.Mappings;
+			//
+			// Undo.RecordObjects(new Object[] { this, _recordMappings }, undoName);
 		}
 		#endregion
 	}

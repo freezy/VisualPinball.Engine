@@ -288,7 +288,7 @@ namespace VisualPinball.Unity.Editor
 					break;
 				}
 				case ESwitchSource.Constant:
-					icon = Icons.Switch(switchListData.Constant == SwitchConstant.Closed, IconSize.Small);
+					icon = Icons.Switch(switchListData.Constant == Engine.VPT.SwitchConstant.Closed, IconSize.Small);
 					break;
 
 				case ESwitchSource.InputSystem:

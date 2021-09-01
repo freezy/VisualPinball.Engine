@@ -28,7 +28,7 @@ namespace VisualPinball.Unity.Editor
 		public string Element;
 
 		[ManagerListColumn(Order = 3, HeaderName = "Type", Width = 110)]
-		public ELampType Type;
+		public LampType Type;
 
 		[ManagerListColumn(Order = 4, HeaderName = "R G B", Width = 300)]
 		public string Green;
@@ -38,7 +38,7 @@ namespace VisualPinball.Unity.Editor
 		public string PlayfieldItem;
 		public ILampAuthoring Device;
 		public string DeviceItem;
-		public ELampSource Source;
+		public LampSource Source;
 
 		public LampMapping LampMapping;
 

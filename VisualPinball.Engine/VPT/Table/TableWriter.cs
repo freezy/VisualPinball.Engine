@@ -119,11 +119,6 @@ namespace VisualPinball.Engine.VPT.Table
 			foreach (var collection in collections.OrderBy(c => c.StorageIndex)) {
 				collection.WriteData(_gameStorage, hashWriter);
 			}
-
-			// 5. Mappings
-			#if !WRITE_VP106 && !WRITE_VP107
-			_tableContainer.Mappings.Data.WriteData(_gameStorage);
-			#endif
 		}
 
 		private void WriteTextures()
