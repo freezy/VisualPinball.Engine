@@ -21,6 +21,7 @@ using UnityEditor;
 using UnityEngine;
 using VisualPinball.Engine.Game.Engines;
 using Logger = NLog.Logger;
+using Object = UnityEngine.Object;
 
 namespace VisualPinball.Unity.Editor
 {
@@ -186,32 +187,12 @@ namespace VisualPinball.Unity.Editor
 		#endregion
 
 		#region Undo Redo
-		private void RestoreMappings()
-		{
-			// if (_recordMappings == null) { return; }
-			// if (_tableAuthoring == null) { return; }
-			// if (_recordMappings.Table == _tableAuthoring) {
-			// 	_tableAuthoring.RestoreMappings(_recordMappings.Mappings);
-			// }
-		}
-
-		protected override void UndoPerformed()
-		{
-			RestoreMappings();
-			base.UndoPerformed();
-		}
 
 		private void RecordUndo(string undoName)
 		{
-			// if (_tableAuthoring == null) { return; }
-			// if (_recordMappings == null) {
-			// 	_recordMappings = CreateInstance<SerializedMappings>();
-			// }
-			// _recordMappings.Table = _tableAuthoring;
-			// _recordMappings.Mappings = _tableAuthoring.Mappings;
-			//
-			// Undo.RecordObjects(new Object[] { this, _recordMappings }, undoName);
+			Undo.RecordObjects(new Object[] { this, _tableAuthoring }, undoName);
 		}
+
 		#endregion
 	}
 }
