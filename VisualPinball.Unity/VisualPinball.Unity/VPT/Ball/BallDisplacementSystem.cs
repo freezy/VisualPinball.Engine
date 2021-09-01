@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-using NLog;
 using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Profiling;
@@ -26,7 +25,6 @@ namespace VisualPinball.Unity
 	{
 		private SimulateCycleSystemGroup _simulateCycleSystemGroup;
 
-		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 		private static readonly ProfilerMarker PerfMarker = new ProfilerMarker("BallDisplacementSystem");
 
 		protected override void OnCreate()

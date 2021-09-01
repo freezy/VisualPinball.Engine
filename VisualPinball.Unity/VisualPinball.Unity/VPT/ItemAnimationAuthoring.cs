@@ -16,7 +16,6 @@
 
 using System;
 using Unity.Entities;
-using Unity.Transforms;
 using VisualPinball.Engine.VPT;
 
 namespace VisualPinball.Unity
@@ -34,12 +33,6 @@ namespace VisualPinball.Unity
 				}
 				return ma.Entity;
 			}
-		}
-
-		protected void LinkToParentEntity(Entity entity, EntityManager dstManager)
-		{
-			dstManager.AddComponentData(entity, new Parent { Value = MainEntity });
-			dstManager.AddComponentData(entity, new LocalToParent());
 		}
 	}
 }

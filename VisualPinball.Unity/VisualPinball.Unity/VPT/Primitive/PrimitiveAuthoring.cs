@@ -116,7 +116,7 @@ namespace VisualPinball.Unity
 				if (data.IsToy) {
 					DestroyImmediate(collComponent);
 				} else {
-					collComponent.enabled = !data.IsCollidable;
+					collComponent.enabled = data.IsCollidable;
 
 					collComponent.HitEvent = data.HitEvent;
 					collComponent.Threshold = data.Threshold;
@@ -149,7 +149,8 @@ namespace VisualPinball.Unity
 			return updatedComponents;
 		}
 
-		public override PrimitiveData CopyDataTo(PrimitiveData data, string[] materialNames, string[] textureNames)
+		public override PrimitiveData CopyDataTo(PrimitiveData data, string[] materialNames, string[] textureNames,
+			bool forExport)
 		{
 			// name and transforms
 			data.Name = name;
@@ -176,6 +177,14 @@ namespace VisualPinball.Unity
 			if (meshComponent) {
 				data.Sides = meshComponent.Sides;
 				data.Use3DMesh = !meshComponent.UseLegacyMesh;
+
+				if (forExport && !meshComponent.UseLegacyMesh)
+				{
+					var mf = GetComponent<MeshFilter>();
+					if (mf) {
+						data.Mesh = mf.sharedMesh.ToVpMesh();
+					}
+				}
 			}
 
 			// update collision

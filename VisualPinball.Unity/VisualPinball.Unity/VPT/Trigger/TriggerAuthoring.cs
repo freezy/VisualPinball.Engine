@@ -191,7 +191,8 @@ namespace VisualPinball.Unity
 			return Array.Empty<MonoBehaviour>();
 		}
 
-		public override TriggerData CopyDataTo(TriggerData data, string[] materialNames, string[] textureNames)
+		public override TriggerData CopyDataTo(TriggerData data, string[] materialNames, string[] textureNames,
+			bool forExport)
 		{
 			// name and transforms
 			data.Name = name;

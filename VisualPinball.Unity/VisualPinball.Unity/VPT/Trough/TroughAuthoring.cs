@@ -280,7 +280,8 @@ namespace VisualPinball.Unity
 			return Array.Empty<MonoBehaviour>();
 		}
 
-		public override TroughData CopyDataTo(TroughData data, string[] materialNames, string[] textureNames)
+		public override TroughData CopyDataTo(TroughData data, string[] materialNames, string[] textureNames,
+			bool forExport)
 		{
 			data.Name = name;
 

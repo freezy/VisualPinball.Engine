@@ -18,7 +18,6 @@ using System.Collections.Generic;
 using System.Linq;
 using NLog;
 using UnityEngine.InputSystem;
-using VisualPinball.Engine.VPT;
 
 namespace VisualPinball.Unity
 {

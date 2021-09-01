@@ -14,10 +14,8 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-using NLog;
 using Unity.Entities;
 using Unity.Profiling;
-using Logger = NLog.Logger;
 
 namespace VisualPinball.Unity
 {
@@ -28,7 +26,6 @@ namespace VisualPinball.Unity
 		private SimulateCycleSystemGroup _simulateCycleSystemGroup;
 
 		private static readonly ProfilerMarker PerfMarker = new ProfilerMarker("StaticBroadPhaseSystem");
-		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
 		protected override void OnCreate()
 		{

@@ -34,9 +34,6 @@ namespace VisualPinball.Unity
 		void UpdateTransforms();
 		void UpdateVisibility();
 
-		void DestroyMeshComponent();
-		void DestroyColliderComponent();
-
 		// the following interfaces allow each item behavior to define which axes should
 		// be shown on the scene view gizmo, the gizmo itself will use the associated
 		// get and set methods, which are expected to update item data directly

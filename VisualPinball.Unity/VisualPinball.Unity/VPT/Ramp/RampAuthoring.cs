@@ -294,7 +294,8 @@ namespace VisualPinball.Unity
 			return Array.Empty<MonoBehaviour>();
 		}
 
-		public override RampData CopyDataTo(RampData data, string[] materialNames, string[] textureNames)
+		public override RampData CopyDataTo(RampData data, string[] materialNames, string[] textureNames,
+			bool forExport)
 		{
 			// update the name
 			data.Name = name;

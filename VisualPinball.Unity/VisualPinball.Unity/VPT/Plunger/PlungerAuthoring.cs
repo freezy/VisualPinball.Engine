@@ -213,6 +213,7 @@ namespace VisualPinball.Unity
 				rodMesh.RingGap = data.RingGap;
 				rodMesh.RingDiam = data.RingDiam;
 				rodMesh.RingWidth = data.RingWidth;
+				rodMesh.gameObject.SetActive(data.IsVisible);
 
 				updatedComponents.Add(collComponent);
 			}
@@ -224,6 +225,7 @@ namespace VisualPinball.Unity
 				springMesh.SpringGauge = data.SpringGauge;
 				springMesh.SpringLoops = data.SpringLoops;
 				springMesh.SpringEndLoops = data.SpringEndLoops;
+				springMesh.gameObject.SetActive(data.IsVisible);
 
 				if (data.Type != PlungerType.PlungerTypeCustom) {
 					springMesh.gameObject.SetActive(false);
@@ -254,7 +256,8 @@ namespace VisualPinball.Unity
 			return Array.Empty<MonoBehaviour>();
 		}
 
-		public override PlungerData CopyDataTo(PlungerData data, string[] materialNames, string[] textureNames)
+		public override PlungerData CopyDataTo(PlungerData data, string[] materialNames, string[] textureNames,
+			bool forExport)
 		{
 			// name, geometry and position
 			data.Name = name;

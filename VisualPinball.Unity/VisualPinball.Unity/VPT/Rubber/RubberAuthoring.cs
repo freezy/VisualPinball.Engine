@@ -151,7 +151,8 @@ namespace VisualPinball.Unity
 			return Array.Empty<MonoBehaviour>();
 		}
 
-		public override RubberData CopyDataTo(RubberData data, string[] materialNames, string[] textureNames)
+		public override RubberData CopyDataTo(RubberData data, string[] materialNames, string[] textureNames,
+			bool forExport)
 		{
 			// update the name
 			data.Name = name;

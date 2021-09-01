@@ -17,15 +17,12 @@
 // ReSharper disable InconsistentNaming
 
 using UnityEngine;
-using VisualPinball.Engine.VPT;
-using VisualPinball.Engine.VPT.Table;
 
 namespace VisualPinball.Unity
 {
 	/// <summary>
 	/// The base class for all authoring components on the playfield.<p/>
 	/// </summary>
-	/// <typeparam name="TItem"></typeparam>
 	public abstract class ItemAuthoring : MonoBehaviour
 	{
 		public abstract string ItemName { get; }

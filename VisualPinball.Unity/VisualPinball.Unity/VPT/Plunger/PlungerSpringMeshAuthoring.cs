@@ -45,8 +45,6 @@ namespace VisualPinball.Unity
 
 		public override IEnumerable<Type> ValidParents => ValidParentTypes;
 
-		protected override string MeshId => PlungerMeshGenerator.Spring;
-
 		protected override RenderObject GetRenderObject(PlungerData data, Table table)
 			=> new PlungerMeshGenerator(data).GetRenderObject(table, PlungerMeshGenerator.Spring, false);
 		protected override Mesh GetMesh(PlungerData data)

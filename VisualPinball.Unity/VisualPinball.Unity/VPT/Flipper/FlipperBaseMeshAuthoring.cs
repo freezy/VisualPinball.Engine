@@ -32,8 +32,6 @@ namespace VisualPinball.Unity
 
 		public override IEnumerable<Type> ValidParents => ValidParentTypes;
 
-		protected override string MeshId => FlipperMeshGenerator.Base;
-
 		protected override RenderObject GetRenderObject(FlipperData data, Table table)
 		{
 			return new FlipperMeshGenerator(data).GetRenderObject(table, FlipperMeshGenerator.Base, Origin.Original, false);

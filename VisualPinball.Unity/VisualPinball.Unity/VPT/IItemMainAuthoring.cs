@@ -16,8 +16,6 @@
 
 // ReSharper disable InconsistentNaming
 
-using System;
-using System.Collections.Generic;
 using UnityEngine;
 
 namespace VisualPinball.Unity
@@ -25,10 +23,6 @@ namespace VisualPinball.Unity
 	public interface IItemMainAuthoring
 	{
 		string name { get; }
-		string ItemName { get; }
-
-		IEnumerable<Type> ValidParents { get; }
-
 		GameObject gameObject { get; }
 
 	}

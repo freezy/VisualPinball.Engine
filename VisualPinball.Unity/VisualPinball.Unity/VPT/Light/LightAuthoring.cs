@@ -238,7 +238,8 @@ namespace VisualPinball.Unity
 			return Array.Empty<MonoBehaviour>();
 		}
 
-		public override LightData CopyDataTo(LightData data, string[] materialNames, string[] textureNames)
+		public override LightData CopyDataTo(LightData data, string[] materialNames, string[] textureNames,
+			bool forExport)
 		{
 			// name and position
 			data.Name = name;
