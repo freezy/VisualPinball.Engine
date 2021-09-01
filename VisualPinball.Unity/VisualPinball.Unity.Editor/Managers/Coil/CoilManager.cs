@@ -168,7 +168,7 @@ namespace VisualPinball.Unity.Editor
 				Description = data.Description,
 				Destination = data.Destination,
 				Device = data.Device,
-				DeviceCoilId = data.DeviceCoilId,
+				DeviceItem = data.DeviceItem,
 				Type = data.Type,
 				HoldCoilId = data.HoldCoilId
 			});

@@ -40,14 +40,14 @@ namespace VisualPinball.Unity
 		public MonoBehaviour _sourceDevice;
 		public ISwitchDeviceAuthoring SourceDevice { get => _sourceDevice as ISwitchDeviceAuthoring; set => _sourceDevice = value as MonoBehaviour; }
 
-		public string SourceDeviceId = string.Empty;
+		public string SourceDeviceItem = string.Empty;
 
 		/* Destination */
 		[SerializeReference]
 		public MonoBehaviour _destinationDevice;
 		public ICoilDeviceAuthoring DestinationDevice { get => _destinationDevice as ICoilDeviceAuthoring; set => _destinationDevice = value as MonoBehaviour; }
 
-		public string DestinationDeviceId = string.Empty;
+		public string DestinationDeviceItem = string.Empty;
 
 		public int PulseDelay = 250;
 
@@ -61,17 +61,17 @@ namespace VisualPinball.Unity
 			Description = description;
 			Source = switchMapping.Source;
 			SourceDevice = switchMapping.Device;
-			SourceDeviceId = switchMapping.DeviceSwitchId;
+			SourceDeviceItem = switchMapping.DeviceItem;
 			SourceInputAction = switchMapping.InputAction;
 			SourceInputActionMap = switchMapping.InputActionMap;
 			DestinationDevice = coilMapping.Device;
-			DestinationDeviceId = coilMapping.DeviceCoilId;
+			DestinationDeviceItem = coilMapping.DeviceItem;
 		}
 
 		[ExcludeFromCodeCoverage]
 		public string Src { get {
 			switch (Source) {
-				case ESwitchSource.Playfield: return $"{SourceDevice?.name}:{SourceDeviceId}";
+				case ESwitchSource.Playfield: return $"{SourceDevice?.name}:{SourceDeviceItem}";
 				case ESwitchSource.InputSystem: return $"{SourceInputActionMap}:{SourceInputAction}";
 				case ESwitchSource.Constant: return "<constant value>";
 				default: return "<unknown source>";
@@ -79,7 +79,7 @@ namespace VisualPinball.Unity
 		}}
 
 		[ExcludeFromCodeCoverage]
-		public string Dst => $"{DestinationDevice?.name}:{DestinationDeviceId}";
+		public string Dst => $"{DestinationDevice?.name}:{DestinationDeviceItem}";
 
 	}
 }

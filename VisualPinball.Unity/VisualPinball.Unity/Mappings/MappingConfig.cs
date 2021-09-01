@@ -80,7 +80,7 @@ namespace VisualPinball.Unity
 						InputActionMap = inputActionMap,
 						InputAction = inputAction,
 						Device = device,
-						DeviceSwitchId = deviceItem != null ? deviceItem.Id : string.Empty,
+						DeviceItem = deviceItem != null ? deviceItem.Id : string.Empty,
 						Constant = engineSwitch.ConstantHint == SwitchConstantHint.AlwaysOpen ? SwitchConstant.Open : SwitchConstant.Closed
 					});
 				}
@@ -214,7 +214,7 @@ namespace VisualPinball.Unity
 						Description = description,
 						Destination = destination,
 						Device = device,
-						DeviceCoilId = deviceItem != null ? deviceItem.Id : string.Empty,
+						DeviceItem = deviceItem != null ? deviceItem.Id : string.Empty,
 						Type = CoilType.SingleWound
 					});
 				}

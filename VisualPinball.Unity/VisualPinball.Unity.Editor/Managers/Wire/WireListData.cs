@@ -41,10 +41,10 @@ namespace VisualPinball.Unity.Editor
 		public string SourceInputAction;
 		public int SourceConstant;
 		public ISwitchDeviceAuthoring SourceDevice;
-		public string SourceDeviceId;
+		public string SourceDeviceItem;
 
 		public ICoilDeviceAuthoring DestinationDevice;
-		public string DestinationDeviceId;
+		public string DestinationDeviceItem;
 
 		public readonly WireMapping WireMapping;
 
@@ -56,10 +56,10 @@ namespace VisualPinball.Unity.Editor
 			SourceInputAction = wireMapping.SourceInputAction;
 			SourceConstant = wireMapping.SourceConstant;
 			SourceDevice = wireMapping.SourceDevice;
-			SourceDeviceId = wireMapping.SourceDeviceId;
+			SourceDeviceItem = wireMapping.SourceDeviceItem;
 
 			DestinationDevice = wireMapping.DestinationDevice;
-			DestinationDeviceId = wireMapping.DestinationDeviceId;
+			DestinationDeviceItem = wireMapping.DestinationDeviceItem;
 
 			PulseDelay = wireMapping.PulseDelay;
 
@@ -75,10 +75,10 @@ namespace VisualPinball.Unity.Editor
 			WireMapping.SourceInputAction = SourceInputAction;
 			WireMapping.SourceConstant = SourceConstant;
 			WireMapping.SourceDevice = SourceDevice;
-			WireMapping.SourceDeviceId = SourceDeviceId;
+			WireMapping.SourceDeviceItem = SourceDeviceItem;
 
 			WireMapping.DestinationDevice = DestinationDevice;
-			WireMapping.DestinationDeviceId = DestinationDeviceId;
+			WireMapping.DestinationDeviceItem = DestinationDeviceItem;
 
 			WireMapping.PulseDelay = PulseDelay;
 		}
