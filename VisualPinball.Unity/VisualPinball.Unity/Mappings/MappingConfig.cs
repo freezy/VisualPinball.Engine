@@ -189,19 +189,12 @@ namespace VisualPinball.Unity
 		public void PopulateCoils(GamelogicEngineCoil[] engineCoils, TableAuthoring tableComponent)
 		{
 			var coilDevices = tableComponent.GetComponentsInChildren<ICoilDeviceAuthoring>();
-			var holdCoils = new List<GamelogicEngineCoil>();
 			foreach (var engineCoil in GetCoils(engineCoils)) {
 
 				var coilMapping = Coils.FirstOrDefault(mappingsCoilData => mappingsCoilData.Id == engineCoil.Id);
 				if (coilMapping == null) {
 
 					if (engineCoil.IsUnused) {
-						continue;
-					}
-
-					// we'll handle those in a second loop when all the main coils are added
-					if (!string.IsNullOrEmpty(engineCoil.MainCoilIdOfHoldCoil)) {
-						holdCoils.Add(engineCoil);
 						continue;
 					}
 
@@ -217,29 +210,7 @@ namespace VisualPinball.Unity
 						Destination = destination,
 						Device = device,
 						DeviceItem = deviceItem != null ? deviceItem.Id : string.Empty,
-						Type = CoilType.SingleWound
 					});
-				}
-			}
-
-			foreach (var holdCoil in holdCoils) {
-				var mainCoil = Coils.FirstOrDefault(c => c.Id == holdCoil.MainCoilIdOfHoldCoil);
-				if (mainCoil != null) {
-					mainCoil.Type = CoilType.DualWound;
-					mainCoil.HoldCoilId = holdCoil.Id;
-
-				} else {
-					// todo re-think hold coils
-					// var playfieldItem = GuessPlayfieldCoil(coils, holdCoil);
-					// Data.AddCoil(new MappingsCoilData {
-					// 	Id = holdCoil.MainCoilIdOfHoldCoil,
-					// 	InternalId = holdCoil.InternalId,
-					// 	Description = string.IsNullOrEmpty(holdCoil.Description) ? string.Empty : holdCoil.Description,
-					// 	Destination = CoilDestination.Playfield,
-					// 	PlayfieldItem = playfieldItem != null ? playfieldItem.Name : string.Empty,
-					// 	Type = CoilType.DualWound,
-					// 	HoldCoilId = holdCoil.Id
-					// });
 				}
 			}
 		}
@@ -306,14 +277,8 @@ namespace VisualPinball.Unity
 			}
 
 			// then add coil ids that were added manually
-			foreach (var coilMapping in Coils) {
-				if (!coils.Exists(entry => entry.Id == coilMapping.Id)) {
-					coils.Add(new GamelogicEngineCoil(coilMapping.Id));
-				}
-
-				if (!string.IsNullOrEmpty(coilMapping.HoldCoilId) && !coils.Exists(entry => entry.Id == coilMapping.HoldCoilId)) {
-					coils.Add(new GamelogicEngineCoil(coilMapping.HoldCoilId));
-				}
+			foreach (var coilMapping in Coils.Where(coilMapping => !coils.Exists(entry => entry.Id == coilMapping.Id))) {
+				coils.Add(new GamelogicEngineCoil(coilMapping.Id));
 			}
 
 			coils.Sort((s1, s2) => string.Compare(s1.Id, s2.Id, StringComparison.Ordinal));

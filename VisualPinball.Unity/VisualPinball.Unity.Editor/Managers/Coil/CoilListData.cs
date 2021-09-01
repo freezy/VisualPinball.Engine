@@ -33,12 +33,6 @@ namespace VisualPinball.Unity.Editor
 		[ManagerListColumn(Order = 3, HeaderName = "Element", Width = 270)]
 		public string Element;
 
-		[ManagerListColumn(Order = 4, HeaderName = "Type", Width = 110)]
-		public CoilType Type;
-
-		[ManagerListColumn(Order = 5, HeaderName = "Hold Coil", Width = 135)]
-		public string HoldCoilId;
-
 		public string Id;
 		public int InternalId { get; set; }
 		public ICoilDeviceAuthoring Device;
@@ -60,8 +54,6 @@ namespace VisualPinball.Unity.Editor
 			} else {
 				DeviceItem = coilMapping.DeviceItem;
 			}
-			Type = coilMapping.Type;
-			HoldCoilId = coilMapping.HoldCoilId;
 
 			CoilMapping = coilMapping;
 		}
@@ -74,8 +66,6 @@ namespace VisualPinball.Unity.Editor
 			CoilMapping.Destination = Destination;
 			CoilMapping.Device = Device;
 			CoilMapping.DeviceItem = DeviceItem;
-			CoilMapping.Type = Type;
-			CoilMapping.HoldCoilId = HoldCoilId;
 		}
 	}
 }

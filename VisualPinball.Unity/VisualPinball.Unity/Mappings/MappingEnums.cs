@@ -42,12 +42,6 @@ namespace VisualPinball.Unity
 		Lamp = 1,
 	}
 
-	public enum CoilType
-	{
-		SingleWound = 0,
-		DualWound = 1,
-	}
-
 	public enum WireType
 	{
 		OnOff = 0,

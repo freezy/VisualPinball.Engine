@@ -106,13 +106,13 @@ namespace VisualPinball.Unity
 			}
 		}
 
-		void IApiCoil.OnCoil(bool enabled, bool _)
+		void IApiCoil.OnCoil(bool enabled)
 		{
 			if (enabled) {
 				Kick();
 			}
 		}
-		void IApiWireDest.OnChange(bool enabled) => (this as IApiCoil).OnCoil(enabled, false);
+		void IApiWireDest.OnChange(bool enabled) => (this as IApiCoil).OnCoil(enabled);
 
 		private void OnBallDestroyed()
 		{

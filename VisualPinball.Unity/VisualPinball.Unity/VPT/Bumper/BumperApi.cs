@@ -52,7 +52,7 @@ namespace VisualPinball.Unity
 		void IApiSwitch.AddWireDest(WireDestConfig wireConfig) => AddWireDest(wireConfig.WithPulse(true));
 		void IApiSwitch.RemoveWireDest(string destId) => RemoveWireDest(destId);
 		void IApiSwitch.DestroyBall(Entity ballEntity) => DestroyBall(ballEntity);
-		void IApiCoil.OnCoil(bool enabled, bool _)
+		void IApiCoil.OnCoil(bool enabled)
 		{
 			if (enabled) {
 				var ringAnimation = EntityManager.GetComponentData<BumperRingAnimationData>(Entity);
@@ -61,7 +61,7 @@ namespace VisualPinball.Unity
 			}
 		}
 
-		void IApiWireDest.OnChange(bool enabled) => (this as IApiCoil).OnCoil(enabled, false);
+		void IApiWireDest.OnChange(bool enabled) => (this as IApiCoil).OnCoil(enabled);
 
 		#endregion
 

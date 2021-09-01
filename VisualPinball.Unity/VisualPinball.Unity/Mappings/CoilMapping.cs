@@ -38,10 +38,6 @@ namespace VisualPinball.Unity
 
 		public string DeviceItem = string.Empty;
 
-		public CoilType Type = CoilType.SingleWound;
-
-		public string HoldCoilId = string.Empty;
-
 		public override string ToString()
 		{
 			return $"coil {Id} ({InternalId}) {Description}";

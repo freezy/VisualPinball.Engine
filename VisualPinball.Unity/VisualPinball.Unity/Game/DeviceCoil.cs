@@ -31,7 +31,7 @@ namespace VisualPinball.Unity
 			_onDisable = onDisable;
 		}
 
-		public void OnCoil(bool enabled, bool isHoldCoil)
+		public void OnCoil(bool enabled)
 		{
 			IsEnabled = enabled;
 			if (enabled) {
@@ -44,6 +44,6 @@ namespace VisualPinball.Unity
 #endif
 		}
 
-		public void OnChange(bool enabled) => OnCoil(enabled, false);
+		public void OnChange(bool enabled) => OnCoil(enabled);
 	}
 }

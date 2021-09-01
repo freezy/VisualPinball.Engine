@@ -90,12 +90,12 @@ namespace VisualPinball.Unity
 			}
 		}
 
-		private void AssignCoilMapping(string id, ICoilDeviceAuthoring device, string deviceCoilId, bool isHoldCoil = false, bool isLampCoil = false)
+		private void AssignCoilMapping(string id, ICoilDeviceAuthoring device, string deviceCoilId, bool isLampCoil = false)
 		{
 			if (!_coilAssignments.ContainsKey(id)) {
 				_coilAssignments[id] = new List<CoilDestConfig>();
 			}
-			_coilAssignments[id].Add(new CoilDestConfig(device, deviceCoilId, isHoldCoil, isLampCoil));
+			_coilAssignments[id].Add(new CoilDestConfig(device, deviceCoilId, isLampCoil));
 			CoilStatuses[id] = false;
 		}
 
@@ -127,7 +127,7 @@ namespace VisualPinball.Unity
 							continue;
 						}
 
-						coil.OnCoil(coilEvent.IsEnabled, destConfig.IsHoldCoil);
+						coil.OnCoil(coilEvent.IsEnabled);
 
 					} else {
 						Logger.Error($"Cannot trigger unknown coil item \"{destConfig}\" for {coilEvent.Id}.");
@@ -155,20 +155,18 @@ namespace VisualPinball.Unity
 	{
 		public readonly ICoilDeviceAuthoring Device;
 		public readonly string DeviceItem;
-		public readonly bool IsHoldCoil;
 		public readonly bool IsLampCoil;
 
-		public CoilDestConfig(ICoilDeviceAuthoring device, string deviceItem, bool isHoldCoil, bool isLampCoil)
+		public CoilDestConfig(ICoilDeviceAuthoring device, string deviceItem, bool isLampCoil)
 		{
 			Device = device;
 			DeviceItem = deviceItem;
-			IsHoldCoil = isHoldCoil;
 			IsLampCoil = isLampCoil;
 		}
 
 		public override string ToString()
 		{
-			return $"coil destination (device = {Device}, coild id = {DeviceItem}, hold/lamp = {IsHoldCoil}/{IsLampCoil})";
+			return $"coil destination (device = {Device}, coild id = {DeviceItem}, lamp = {IsLampCoil})";
 		}
 	}
 }

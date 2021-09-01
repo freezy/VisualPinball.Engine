@@ -84,10 +84,10 @@ namespace VisualPinball.Unity
 		private const string CoilTroughEject = "c_trough_eject";
 
 		public GamelogicEngineCoil[] AvailableCoils { get; } = {
-			new GamelogicEngineCoil(CoilLeftFlipperMain) { Description = "Left Flipper", DeviceHint = "^(LeftFlipper|LFlipper|FlipperLeft|FlipperL)$" },
-			new GamelogicEngineCoil(CoilLeftFlipperHold) { MainCoilIdOfHoldCoil = CoilLeftFlipperMain },
-			new GamelogicEngineCoil(CoilRightFlipperMain) { Description = "Right Flipper", DeviceHint = "^(RightFlipper|RFlipper|FlipperRight|FlipperR)$" },
-			new GamelogicEngineCoil(CoilRightFlipperHold) { MainCoilIdOfHoldCoil = CoilRightFlipperMain },
+			new GamelogicEngineCoil(CoilLeftFlipperMain) { Description = "Left Flipper (Main)", DeviceHint = "^(LeftFlipper|LFlipper|FlipperLeft|FlipperL)$", DeviceItemHint = FlipperAuthoring.MainCoilItem },
+			new GamelogicEngineCoil(CoilLeftFlipperHold) { Description = "Left Flipper (Hold)", DeviceHint = "^(LeftFlipper|LFlipper|FlipperLeft|FlipperL)$", DeviceItemHint = FlipperAuthoring.HoldCoilItem },
+			new GamelogicEngineCoil(CoilRightFlipperMain) { Description = "Right Flipper (Main)", DeviceHint = "^(RightFlipper|RFlipper|FlipperRight|FlipperR)$", DeviceItemHint = FlipperAuthoring.MainCoilItem },
+			new GamelogicEngineCoil(CoilRightFlipperHold) { Description = "Right Flipper (Hold)", DeviceHint = "^(RightFlipper|RFlipper|FlipperRight|FlipperR)$", DeviceItemHint = FlipperAuthoring.HoldCoilItem },
 			new GamelogicEngineCoil(CoilTroughEject) { Description = "Trough Eject", DeviceHint = "^Trough\\s*\\d?", DeviceItemHint = TroughAuthoring.EjectCoilId},
 			new GamelogicEngineCoil(CoilTroughEntry) { Description = "Trough Entry", DeviceHint = "^Trough\\s*\\d?", DeviceItemHint = TroughAuthoring.EntryCoilId},
 		};
