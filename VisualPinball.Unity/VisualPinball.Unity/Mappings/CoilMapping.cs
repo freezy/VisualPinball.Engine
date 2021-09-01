@@ -36,7 +36,7 @@ namespace VisualPinball.Unity
 		public MonoBehaviour _device;
 		public ICoilDeviceAuthoring Device { get => _device as ICoilDeviceAuthoring; set => _device = value as MonoBehaviour; }
 
-		public string DeviceCoilId = string.Empty;
+		public string DeviceItem = string.Empty;
 
 		public ECoilType Type = ECoilType.SingleWound;
 

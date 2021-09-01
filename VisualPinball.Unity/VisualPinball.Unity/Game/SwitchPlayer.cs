@@ -74,7 +74,7 @@ namespace VisualPinball.Unity
 						case ESwitchSource.Playfield: {
 
 							// mapping values must be set
-							if (switchMapping.Device == null || string.IsNullOrEmpty(switchMapping.DeviceSwitchId)) {
+							if (switchMapping.Device == null || string.IsNullOrEmpty(switchMapping.DeviceItem)) {
 								Logger.Warn($"Ignoring unassigned device switch \"{switchMapping.Id}\".");
 								break;
 							}
@@ -86,13 +86,13 @@ namespace VisualPinball.Unity
 							}
 
 							var device = _switchDevices[switchMapping.Device];
-							var deviceSwitch = device.Switch(switchMapping.DeviceSwitchId);
+							var deviceSwitch = device.Switch(switchMapping.DeviceItem);
 							if (deviceSwitch != null) {
 								var switchStatus = deviceSwitch.AddSwitchDest(new SwitchConfig(switchMapping));
 								_switchStatuses[switchMapping.Id] = switchStatus;
 
 							} else {
-								Logger.Error($"Unknown switch \"{switchMapping.DeviceSwitchId}\" in switch device \"{switchMapping.Device}\".");
+								Logger.Error($"Unknown switch \"{switchMapping.DeviceItem}\" in switch device \"{switchMapping.Device}\".");
 							}
 
 							break;

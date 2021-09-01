@@ -442,11 +442,11 @@ namespace VisualPinball.Unity
 			var wire = _tableComponent.MappingConfig.Wires.FirstOrDefault(w =>
 				w.Description == wireMapping.Description &&
 				w.SourceDevice == wireMapping.SourceDevice &&
-				w.SourceDeviceId == wireMapping.SourceDeviceId &&
+				w.SourceDeviceItem == wireMapping.SourceDeviceItem &&
 				w.SourceInputAction == wireMapping.SourceInputAction &&
 				w.SourceInputActionMap == wireMapping.SourceInputActionMap &&
 				w.DestinationDevice == wireMapping.DestinationDevice &&
-				w.DestinationDeviceId == wireMapping.DestinationDeviceId
+				w.DestinationDeviceItem == wireMapping.DestinationDeviceItem
 			);
 			_tableComponent.MappingConfig.RemoveWire(wire);
 		}

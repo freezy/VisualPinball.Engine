@@ -44,7 +44,7 @@ namespace VisualPinball.Unity
 		public MonoBehaviour _device;
 		public ISwitchDeviceAuthoring Device { get => _device as ISwitchDeviceAuthoring; set => _device = value as MonoBehaviour; }
 
-		public string DeviceSwitchId = string.Empty;
+		public string DeviceItem = string.Empty;
 
 		public int PulseDelay = 250;
 	}

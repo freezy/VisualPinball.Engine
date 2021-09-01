@@ -85,7 +85,7 @@ namespace VisualPinball.Unity
 		public void RemoveWireDest(string destId)
 		{
 			foreach (var wire in _wires) {
-				if (wire.IsDynamic && wire.DeviceId == destId) {
+				if (wire.IsDynamic && wire.DeviceItem == destId) {
 					_wires.Remove(wire);
 					return;
 				}
@@ -126,7 +126,7 @@ namespace VisualPinball.Unity
 				foreach (var wireConfig in _wires) {
 					var device = _player.WireDevice(wireConfig.Device);
 					if (device != null) {
-						var dest = device.Wire(wireConfig.DeviceId);
+						var dest = device.Wire(wireConfig.DeviceItem);
 						if (dest != null) {
 
 							// close the switch now
@@ -169,7 +169,7 @@ namespace VisualPinball.Unity
 				foreach (var wireConfig in _wires) {
 					var device = _player.WireDevice(wireConfig.Device);
 					if (device != null) {
-						var dest = device.Wire(wireConfig.DeviceId);
+						var dest = device.Wire(wireConfig.DeviceItem);
 						SimulationSystemGroup.ScheduleAction(delay, () => dest.OnChange(enabled));
 
 					} else {

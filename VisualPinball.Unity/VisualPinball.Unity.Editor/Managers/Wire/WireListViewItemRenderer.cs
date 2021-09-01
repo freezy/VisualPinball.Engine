@@ -196,7 +196,7 @@ namespace VisualPinball.Unity.Editor
 			_sourceDevicePicker.Render(cellRect, wireListData.SourceDevice, item => {
 				wireListData.SourceDevice = item;
 				if (wireListData.SourceDevice != null && wireListData.SourceDevice.AvailableSwitches.Count() == 1) {
-					wireListData.SourceDeviceId = wireListData.SourceDevice.AvailableSwitches.First().Id;
+					wireListData.SourceDeviceItem = wireListData.SourceDevice.AvailableSwitches.First().Id;
 				}
 				updateAction(wireListData);
 			});
@@ -211,7 +211,7 @@ namespace VisualPinball.Unity.Editor
 			if (wireListData.SourceDevice != null)
 			{
 				switchLabels = wireListData.SourceDevice.AvailableSwitches.Select(s => s.Description).ToArray();
-				currentIndex = wireListData.SourceDevice.AvailableSwitches.TakeWhile(s => s.Id != wireListData.SourceDeviceId).Count();
+				currentIndex = wireListData.SourceDevice.AvailableSwitches.TakeWhile(s => s.Id != wireListData.SourceDeviceItem).Count();
 			}
 			EditorGUI.BeginChangeCheck();
 			var newIndex = EditorGUI.Popup(cellRect, currentIndex, switchLabels);
@@ -219,7 +219,7 @@ namespace VisualPinball.Unity.Editor
 			{
 				if (currentIndex != newIndex)
 				{
-					wireListData.SourceDeviceId = wireListData.SourceDevice.AvailableSwitches.ElementAt(newIndex).Id;
+					wireListData.SourceDeviceItem = wireListData.SourceDevice.AvailableSwitches.ElementAt(newIndex).Id;
 					updateAction(wireListData);
 				}
 			}
@@ -254,7 +254,7 @@ namespace VisualPinball.Unity.Editor
 			_destDevicePicker.Render(cellRect, wireListData.DestinationDevice, item => {
 				wireListData.DestinationDevice = item;
 				if (wireListData.DestinationDevice != null && wireListData.DestinationDevice.AvailableCoils.Count() == 1) {
-					wireListData.DestinationDeviceId = wireListData.DestinationDevice.AvailableCoils.First().Id;
+					wireListData.DestinationDeviceItem = wireListData.DestinationDevice.AvailableCoils.First().Id;
 				}
 				updateAction(wireListData);
 			});
@@ -268,7 +268,7 @@ namespace VisualPinball.Unity.Editor
 			var coilLabels = Array.Empty<string>();
 			if (wireListData.DestinationDevice != null) {
 				coilLabels = wireListData.DestinationDevice.AvailableCoils.Select(s => s.Description).ToArray();
-				currentIndex = wireListData.DestinationDevice.AvailableCoils.TakeWhile(s => s.Id != wireListData.DestinationDeviceId).Count();
+				currentIndex = wireListData.DestinationDevice.AvailableCoils.TakeWhile(s => s.Id != wireListData.DestinationDeviceItem).Count();
 			}
 			EditorGUI.BeginChangeCheck();
 			var newIndex = EditorGUI.Popup(cellRect, currentIndex, coilLabels);
@@ -276,7 +276,7 @@ namespace VisualPinball.Unity.Editor
 			{
 				if (currentIndex != newIndex)
 				{
-					wireListData.DestinationDeviceId = wireListData.DestinationDevice.AvailableCoils.ElementAt(newIndex).Id;
+					wireListData.DestinationDeviceItem = wireListData.DestinationDevice.AvailableCoils.ElementAt(newIndex).Id;
 					updateAction(wireListData);
 				}
 			}
@@ -285,8 +285,8 @@ namespace VisualPinball.Unity.Editor
 
 		private void RenderPulseDelay(WireListData wireListData, Rect cellRect, Action<WireListData> updateAction)
 		{
-			if (wireListData.SourceDevice != null && !string.IsNullOrEmpty(wireListData.SourceDeviceId)) {
-				var switchable = wireListData.SourceDevice.AvailableSwitches.First(s => s.Id == wireListData.SourceDeviceId);
+			if (wireListData.SourceDevice != null && !string.IsNullOrEmpty(wireListData.SourceDeviceItem)) {
+				var switchable = wireListData.SourceDevice.AvailableSwitches.First(s => s.Id == wireListData.SourceDeviceItem);
 				if (switchable.IsPulseSwitch)
 				{
 					var labelRect = cellRect;

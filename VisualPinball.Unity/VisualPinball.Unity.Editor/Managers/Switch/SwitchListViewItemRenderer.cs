@@ -317,10 +317,10 @@ namespace VisualPinball.Unity.Editor
 
 		private void RenderDeviceElement(SwitchListData switchListData, Rect cellRect, Action<SwitchListData> updateAction)
 		{
-			_devicePicker.Render(cellRect, switchListData.Device, item => {
-				switchListData.Device = item;
+			_devicePicker.Render(cellRect, switchListData.Device, component => {
+				switchListData.Device = component;
 				if (switchListData.Device != null && switchListData.Device.AvailableSwitches.Count() == 1) {
-					switchListData.DeviceSwitchId = switchListData.Device.AvailableSwitches.First().Id;
+					switchListData.DeviceItem = switchListData.Device.AvailableSwitches.First().Id;
 				}
 				updateAction(switchListData);
 			});
@@ -336,13 +336,13 @@ namespace VisualPinball.Unity.Editor
 			if (switchListData.Device != null) {
 				switchDevice = switchListData.Device;
 				switchLabels = switchDevice.AvailableSwitches.Select(s => s.Description).ToArray();
-				currentIndex = switchDevice.AvailableSwitches.TakeWhile(s => s.Id != switchListData.DeviceSwitchId).Count();
+				currentIndex = switchDevice.AvailableSwitches.TakeWhile(s => s.Id != switchListData.DeviceItem).Count();
 			}
 			EditorGUI.BeginChangeCheck();
 			var newIndex = EditorGUI.Popup(cellRect, currentIndex, switchLabels);
 			if (EditorGUI.EndChangeCheck() && switchDevice != null) {
 				if (currentIndex != newIndex) {
-					switchListData.DeviceSwitchId = switchDevice.AvailableSwitches.ElementAt(newIndex).Id;
+					switchListData.DeviceItem = switchDevice.AvailableSwitches.ElementAt(newIndex).Id;
 					updateAction(switchListData);
 				}
 			}
@@ -352,7 +352,7 @@ namespace VisualPinball.Unity.Editor
 		private void RenderPulseDelay(SwitchListData switchListData, Rect cellRect, Action<SwitchListData> updateAction)
 		{
 			if (switchListData.Source == ESwitchSource.Playfield && switchListData.Device != null) {
-				var switchable = switchListData.Device.AvailableSwitches.FirstOrDefault(sw => sw.Id == switchListData.DeviceSwitchId);
+				var switchable = switchListData.Device.AvailableSwitches.FirstOrDefault(sw => sw.Id == switchListData.DeviceItem);
 				if (switchable != null && switchable.IsPulseSwitch) {
 					var labelRect = cellRect;
 					labelRect.x += labelRect.width - 20;

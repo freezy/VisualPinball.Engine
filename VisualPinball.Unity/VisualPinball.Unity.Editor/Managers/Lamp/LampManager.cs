@@ -160,7 +160,7 @@ namespace VisualPinball.Unity.Editor
 				Id = data.Id,
 				Description = data.Description,
 				Device = data.Device,
-				DeviceId = data.DeviceId,
+				DeviceItem = data.DeviceItem,
 				Type = data.Type,
 				Blue = data.Blue,
 				Green = data.Green,

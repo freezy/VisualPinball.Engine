@@ -31,7 +31,7 @@ namespace VisualPinball.Unity
 
 		public ILampAuthoring Device;
 
-		public string DeviceId = string.Empty;
+		public string DeviceItem = string.Empty;
 
 		public ELampType Type = ELampType.SingleOnOff;
 

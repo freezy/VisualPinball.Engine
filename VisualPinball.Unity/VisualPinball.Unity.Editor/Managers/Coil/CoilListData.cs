@@ -39,7 +39,7 @@ namespace VisualPinball.Unity.Editor
 		public string Id;
 		public int InternalId;
 		public ICoilDeviceAuthoring Device;
-		public string DeviceCoilId;
+		public string DeviceItem;
 
 		public readonly CoilMapping CoilMapping;
 
@@ -49,7 +49,7 @@ namespace VisualPinball.Unity.Editor
 			Description = coilMapping.Description;
 			Destination = coilMapping.Destination;
 			Device = coilMapping.Device;
-			DeviceCoilId = coilMapping.DeviceCoilId;
+			DeviceItem = coilMapping.DeviceItem;
 			Type = coilMapping.Type;
 			HoldCoilId = coilMapping.HoldCoilId;
 
@@ -63,7 +63,7 @@ namespace VisualPinball.Unity.Editor
 			CoilMapping.Description = Description;
 			CoilMapping.Destination = Destination;
 			CoilMapping.Device = Device;
-			CoilMapping.DeviceCoilId = DeviceCoilId;
+			CoilMapping.DeviceItem = DeviceItem;
 			CoilMapping.Type = Type;
 			CoilMapping.HoldCoilId = HoldCoilId;
 		}

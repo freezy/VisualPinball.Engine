@@ -62,7 +62,7 @@ namespace VisualPinball.Unity
 
 				case ESwitchSource.Playfield: {
 					// mapping values must be set
-					if (wireMapping.SourceDevice == null || string.IsNullOrEmpty(wireMapping.SourceDeviceId)) {
+					if (wireMapping.SourceDevice == null || string.IsNullOrEmpty(wireMapping.SourceDeviceItem)) {
 						break;
 					}
 
@@ -72,7 +72,7 @@ namespace VisualPinball.Unity
 						break;
 					}
 
-					var deviceSwitch = _switchPlayer.Switch(wireMapping.SourceDevice, wireMapping.SourceDeviceId);
+					var deviceSwitch = _switchPlayer.Switch(wireMapping.SourceDevice, wireMapping.SourceDeviceItem);
 					if (deviceSwitch != null) {
 						deviceSwitch.AddWireDest(new WireDestConfig(wireMapping) { IsDynamic = isDynamic });
 						Logger.Info($"Wiring device switch \"{wireMapping.Src}\" to \"{wireMapping.Dst}\"");
@@ -106,7 +106,7 @@ namespace VisualPinball.Unity
 
 				case ESwitchSource.Playfield: {
 					// mapping values must be set
-					if (wireMapping.SourceDevice == null || string.IsNullOrEmpty(wireMapping.SourceDeviceId)) {
+					if (wireMapping.SourceDevice == null || string.IsNullOrEmpty(wireMapping.SourceDeviceItem)) {
 						break;
 					}
 
@@ -116,9 +116,9 @@ namespace VisualPinball.Unity
 						break;
 					}
 
-					var deviceSwitch = _switchPlayer.Switch(wireMapping.SourceDevice, wireMapping.SourceDeviceId);
+					var deviceSwitch = _switchPlayer.Switch(wireMapping.SourceDevice, wireMapping.SourceDeviceItem);
 					if (deviceSwitch != null) {
-						deviceSwitch.RemoveWireDest(wireMapping.DestinationDeviceId);
+						deviceSwitch.RemoveWireDest(wireMapping.DestinationDeviceItem);
 
 					} else {
 						Logger.Warn($"Unknown switch \"{wireMapping.Src}\" to wire to \"{wireMapping.Dst}\".");
@@ -131,7 +131,7 @@ namespace VisualPinball.Unity
 						_keyWireAssignments[wireMapping.SourceInputAction] = new List<WireDestConfig>();
 					}
 					var assignment = _keyWireAssignments[wireMapping.SourceInputAction]
-						.FirstOrDefault(a => a.IsDynamic && a.Device == wireMapping.DestinationDevice && a.DeviceId == wireMapping.DestinationDeviceId);
+						.FirstOrDefault(a => a.IsDynamic && a.Device == wireMapping.DestinationDevice && a.DeviceItem == wireMapping.DestinationDeviceItem);
 					_keyWireAssignments[wireMapping.SourceInputAction].Remove(assignment);
 					break;
 				}
@@ -155,14 +155,14 @@ namespace VisualPinball.Unity
 						foreach (var wireConfig in _keyWireAssignments[action.name]) {
 							if (_wireDevices.ContainsKey(wireConfig.Device)) {
 								var device = _wireDevices[wireConfig.Device];
-								var wire = device.Wire(wireConfig.DeviceId);
+								var wire = device.Wire(wireConfig.DeviceItem);
 								if (wire != null) {
 									wire.OnChange(change == InputActionChange.ActionStarted);
 								} else {
-									Logger.Warn($"Unknown wire \"{wireConfig.DeviceId}\" in wire device \"{wireConfig.Device}\".");
+									Logger.Warn($"Unknown wire \"{wireConfig.DeviceItem}\" in wire device \"{wireConfig.Device}\".");
 								}
 							}
-				}
+						}
 					}
 					break;
 			}
@@ -179,7 +179,7 @@ namespace VisualPinball.Unity
 	public class WireDestConfig
 	{
 		public readonly ICoilDeviceAuthoring Device;
-		public readonly string DeviceId;
+		public readonly string DeviceItem;
 		public readonly int PulseDelay;
 		public bool IsPulseSource;
 
@@ -193,7 +193,7 @@ namespace VisualPinball.Unity
 		public WireDestConfig(WireMapping wireMapping)
 		{
 			Device = wireMapping.DestinationDevice;
-			DeviceId = wireMapping.DestinationDeviceId;
+			DeviceItem = wireMapping.DestinationDeviceItem;
 			PulseDelay = wireMapping.PulseDelay;
 			IsPulseSource = false;
 			IsDynamic = false;

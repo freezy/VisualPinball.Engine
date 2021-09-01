@@ -14,6 +14,8 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+using System.Linq;
+
 namespace VisualPinball.Unity.Editor
 {
 	public class SwitchListData : IManagerListData
@@ -42,7 +44,7 @@ namespace VisualPinball.Unity.Editor
 		public string InputAction;
 		public int Constant;
 		public ISwitchDeviceAuthoring Device;
-		public string DeviceSwitchId;
+		public string DeviceItem;
 
 		public readonly SwitchMapping SwitchMapping;
 
@@ -56,7 +58,13 @@ namespace VisualPinball.Unity.Editor
 			InputAction = switchMapping.InputAction;
 			Constant = switchMapping.Constant;
 			Device = switchMapping.Device;
-			DeviceSwitchId = switchMapping.DeviceSwitchId;
+			if (string.IsNullOrEmpty(switchMapping.DeviceItem) && Device != null && Device.AvailableSwitches.Count() == 1) {
+				DeviceItem = Device.AvailableSwitches.First().Id;
+
+			} else {
+				DeviceItem = switchMapping.DeviceItem;
+			}
+
 			PulseDelay = switchMapping.PulseDelay;
 
 			SwitchMapping = switchMapping;
@@ -73,7 +81,7 @@ namespace VisualPinball.Unity.Editor
 			SwitchMapping.InputAction = InputAction;
 			SwitchMapping.Constant = Constant;
 			SwitchMapping.Device = Device;
-			SwitchMapping.DeviceSwitchId = DeviceSwitchId;
+			SwitchMapping.DeviceItem = DeviceItem;
 			SwitchMapping.PulseDelay = PulseDelay;
 		}
 	}

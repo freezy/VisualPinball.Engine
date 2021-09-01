@@ -59,7 +59,7 @@ namespace VisualPinball.Unity
 						case ECoilDestination.Playfield:
 
 							// mapping values must be set
-							if (coilMapping.Device == null || string.IsNullOrEmpty(coilMapping.DeviceCoilId)) {
+							if (coilMapping.Device == null || string.IsNullOrEmpty(coilMapping.DeviceItem)) {
 								Logger.Warn($"Ignoring unassigned device coil {coilMapping}");
 								break;
 							}
@@ -71,17 +71,17 @@ namespace VisualPinball.Unity
 							}
 
 							var device = _coilDevices[coilMapping.Device];
-							var coil = device.Coil(coilMapping.DeviceCoilId);
+							var coil = device.Coil(coilMapping.DeviceItem);
 							if (coil != null) {
-								AssignCoilMapping(coilMapping.Id, coilMapping.Device, coilMapping.DeviceCoilId);
+								AssignCoilMapping(coilMapping.Id, coilMapping.Device, coilMapping.DeviceItem);
 
 							} else {
-								Logger.Error($"Unknown coil \"{coilMapping.DeviceCoilId}\" in coil device \"{coilMapping.Device}\".");
+								Logger.Error($"Unknown coil \"{coilMapping.DeviceItem}\" in coil device \"{coilMapping.Device}\".");
 							}
 							break;
 
 						case ECoilDestination.Lamp:
-							AssignCoilMapping(coilMapping.Id, coilMapping.Device, coilMapping.DeviceCoilId, isLampCoil: true);
+							AssignCoilMapping(coilMapping.Id, coilMapping.Device, coilMapping.DeviceItem, isLampCoil: true);
 							break;
 					}
 				}
@@ -123,9 +123,9 @@ namespace VisualPinball.Unity
 						}
 
 						// check coil in device
-						var coil = _coilDevices[destConfig.Device].Coil(destConfig.DeviceCoilId);
+						var coil = _coilDevices[destConfig.Device].Coil(destConfig.DeviceItem);
 						if (coil == null) {
-							Logger.Error($"Cannot trigger non-existing coil \"{destConfig.DeviceCoilId}\" in coil device \"{destConfig.Device.name}\" for {coilEvent.Id}.");
+							Logger.Error($"Cannot trigger non-existing coil \"{destConfig.DeviceItem}\" in coil device \"{destConfig.Device.name}\" for {coilEvent.Id}.");
 							continue;
 						}
 
@@ -156,21 +156,21 @@ namespace VisualPinball.Unity
 	internal class CoilDestConfig
 	{
 		public readonly ICoilDeviceAuthoring Device;
-		public readonly string DeviceCoilId;
+		public readonly string DeviceItem;
 		public readonly bool IsHoldCoil;
 		public readonly bool IsLampCoil;
 
-		public CoilDestConfig(ICoilDeviceAuthoring device, string deviceCoilId, bool isHoldCoil, bool isLampCoil)
+		public CoilDestConfig(ICoilDeviceAuthoring device, string deviceItem, bool isHoldCoil, bool isLampCoil)
 		{
 			Device = device;
-			DeviceCoilId = deviceCoilId;
+			DeviceItem = deviceItem;
 			IsHoldCoil = isHoldCoil;
 			IsLampCoil = isLampCoil;
 		}
 
 		public override string ToString()
 		{
-			return $"coil destination (device = {Device}, coild id = {DeviceCoilId}, hold/lamp = {IsHoldCoil}/{IsLampCoil})";
+			return $"coil destination (device = {Device}, coild id = {DeviceItem}, hold/lamp = {IsHoldCoil}/{IsLampCoil})";
 		}
 	}
 }

@@ -37,7 +37,7 @@ namespace VisualPinball.Unity.Editor
 		public string Id;
 		public string PlayfieldItem;
 		public ILampAuthoring Device;
-		public string DeviceId;
+		public string DeviceItem;
 		public ELampSource Source;
 
 		public LampMapping LampMapping;
@@ -48,7 +48,7 @@ namespace VisualPinball.Unity.Editor
 			Source = lampMapping.Source;
 			Description = lampMapping.Description;
 			Device = lampMapping.Device;
-			DeviceId = lampMapping.DeviceId;
+			DeviceItem = lampMapping.DeviceItem;
 			Type = lampMapping.Type;
 			Green = lampMapping.Green;
 			Blue = lampMapping.Blue;
@@ -62,7 +62,7 @@ namespace VisualPinball.Unity.Editor
 			LampMapping.Source = Source;
 			LampMapping.Description = Description;
 			LampMapping.Device = Device;
-			LampMapping.DeviceId = DeviceId;
+			LampMapping.DeviceItem = DeviceItem;
 			LampMapping.Type = Type;
 			LampMapping.Green = Green;
 			LampMapping.Blue = Blue;
