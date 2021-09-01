@@ -383,20 +383,6 @@ namespace VisualPinball.Unity.Editor
 			return false;
 		}
 
-		protected void RenameReflectedFields(string undoName, IItemMeshAuthoring item, List<MemberInfo> mis, string oldName, string newName)
-		{
-			foreach (var mi in mis) {
-				string fieldVal = GetMemberValue(mi, item.ItemData);
-				if (fieldVal == oldName) {
-					Undo.RecordObject(item as Object, undoName);
-					switch (mi) {
-						case FieldInfo fi: fi.SetValue(item.ItemData, newName); break;
-						case PropertyInfo pi: pi.SetValue(item.ItemData, newName); break;
-					}
-				}
-			}
-		}
-
 		protected virtual void UndoPerformed()
 		{
 			Reload();

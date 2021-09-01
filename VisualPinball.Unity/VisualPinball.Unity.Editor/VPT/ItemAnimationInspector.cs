@@ -29,7 +29,7 @@ namespace VisualPinball.Unity.Editor
 	{
 		private TMovementAuthoring _movementAuthoring;
 
-		protected TData Data => _movementAuthoring == null ? null : _movementAuthoring.Data;
+		private bool HasMainComponent => _movementAuthoring == null || !_movementAuthoring.HasMainComponent;
 
 		protected override MonoBehaviour UndoTarget => _movementAuthoring.MainComponent;
 
@@ -41,7 +41,7 @@ namespace VisualPinball.Unity.Editor
 
 		protected bool HasErrors()
 		{
-			if (Data == null) {
+			if (!HasMainComponent) {
 				NoDataError();
 				return true;
 			}

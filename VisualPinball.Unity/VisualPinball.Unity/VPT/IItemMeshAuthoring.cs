@@ -21,11 +21,8 @@ using UnityEngine;
 
 namespace VisualPinball.Unity
 {
-	public interface IItemMeshAuthoring : IItemAuthoring
+	public interface IItemMeshAuthoring
 	{
-		[Obsolete("Remove")]
-		List<MemberInfo> MaterialRefs { get; }
-
 		IItemMainRenderableAuthoring IMainAuthoring { get; }
 
 		// ReSharper disable once InconsistentNaming

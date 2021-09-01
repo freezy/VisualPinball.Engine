@@ -45,12 +45,12 @@ namespace VisualPinball.Unity
 		private IEnumerable<IItemMeshAuthoring> MeshComponents => MeshAuthoringType != null ?
 			GetComponentsInChildren(MeshAuthoringType, true)
 				.Select(c => (IItemMeshAuthoring) c)
-				.Where(ma => ma.ItemData == _data) : Array.Empty<IItemMeshAuthoring>();
+				/*.Where(ma => ma.ItemData == _data)*/ : Array.Empty<IItemMeshAuthoring>();
 
 		private IEnumerable<IItemColliderAuthoring> ColliderComponents => ColliderAuthoringType != null ?
 			GetComponentsInChildren(ColliderAuthoringType, true)
 				.Select(c => (IItemColliderAuthoring) c)
-				.Where(ca => ca.ItemData == _data) : Array.Empty<IItemColliderAuthoring>();
+				/*.Where(ca => ca.ItemData == _data)*/ : Array.Empty<IItemColliderAuthoring>();
 
 		public void RebuildMeshes()
 		{

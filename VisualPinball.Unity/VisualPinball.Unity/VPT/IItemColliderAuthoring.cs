@@ -19,7 +19,7 @@ using System.Collections.Generic;
 
 namespace VisualPinball.Unity
 {
-	public interface IItemColliderAuthoring : IItemAuthoring
+	public interface IItemColliderAuthoring
 	{
 		IItemMainAuthoring MainAuthoring { get; }
 

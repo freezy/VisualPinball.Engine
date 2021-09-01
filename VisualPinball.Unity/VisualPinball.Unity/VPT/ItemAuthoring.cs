@@ -26,31 +26,9 @@ namespace VisualPinball.Unity
 	/// The base class for all authoring components on the playfield.<p/>
 	/// </summary>
 	/// <typeparam name="TItem"></typeparam>
-	/// <typeparam name="TData"></typeparam>
-	public abstract class ItemAuthoring<TData> : MonoBehaviour,
-		IItemAuthoring
-		where TData : ItemData
+	public abstract class ItemAuthoring : MonoBehaviour
 	{
 		public abstract string ItemName { get; }
-
-		/// <summary>
-		/// Returns the data object relevant for this component. If this
-		/// returns `null`, then it's wrongly attached to a game object
-		/// where it can't find its main component.
-		/// </summary>
-		///
-		/// <remarks>
-		/// The default implementation here represents the one of a main
-		/// component. It's overridden for the sub components (<see cref="ItemColliderAuthoring{TItem,TData,TAuthoring}"/>, etc)
-		/// </remarks>
-		public abstract TData Data { get; }
-
-		/// <summary>
-		/// The data-oriented version of the item.
-		/// </summary>
-		public ItemData ItemData => Data;
-
-		private TableAuthoring _tableAuthoring;
 
 		protected static void DrawArrow(Vector3 pos, Vector3 direction, float arrowHeadLength = 0.025f, float arrowHeadAngle = 20.0f)
 		{
