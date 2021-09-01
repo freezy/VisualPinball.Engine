@@ -127,39 +127,24 @@ namespace VisualPinball.Unity.Editor
 
 		private void RenderElement(CoilListData coilListData, Rect cellRect, Action<CoilListData> updateAction)
 		{
-			var icon = GetIcon(coilListData);
-
-			if (icon != null)
-			{
-				var iconRect = cellRect;
-				iconRect.width = 20;
-				var guiColor = GUI.color;
-				GUI.color = Color.clear;
-				EditorGUI.DrawTextureTransparent(iconRect, icon, ScaleMode.ScaleToFit);
-				GUI.color = guiColor;
-			}
-
-			cellRect.x += 25;
-			cellRect.width -= 25;
-
-			switch (coilListData.Destination)
-			{
+			switch (coilListData.Destination) {
 				case CoilDestination.Playfield:
-					cellRect.width = cellRect.width / 2f - 5f;
-					RenderDeviceElement(coilListData, cellRect, updateAction);
-					cellRect.x += cellRect.width + 10f;
-					RenderDeviceItemElement(coilListData, cellRect, updateAction);
+					RenderDevice(coilListData, cellRect, updateAction);
 					break;
 
 				case CoilDestination.Lamp:
+					cellRect = RenderIcon(coilListData, cellRect);
 					cellRect.x -= 25;
 					cellRect.width += 25;
 					EditorGUI.LabelField(cellRect, "Configure in Lamp Manager", new GUIStyle(GUI.skin.label) { fontStyle = FontStyle.Italic });
 					break;
+
+				default:
+					throw new ArgumentOutOfRangeException();
 			}
 		}
 
-		private void RenderDeviceElement(CoilListData coilListData, Rect cellRect, Action<CoilListData> updateAction)
+		protected override void RenderDeviceElement(CoilListData coilListData, Rect cellRect, Action<CoilListData> updateAction)
 		{
 			_devicePicker.Render(cellRect, coilListData.Device, item => {
 				coilListData.Device = item;
@@ -181,17 +166,23 @@ namespace VisualPinball.Unity.Editor
 			}
 		}
 
-		private Texture GetIcon(CoilListData coilListData)
+		protected override Texture GetIcon(CoilListData coilListData)
 		{
 			Texture2D icon = null;
 
-			switch (coilListData.Destination)
-			{
+			switch (coilListData.Destination) {
 				case CoilDestination.Playfield:
 					if (coilListData.Device != null) {
 						icon = Icons.ByComponent(coilListData.Device, IconSize.Small);
 					}
 					break;
+
+				case CoilDestination.Lamp:
+					icon = Icons.Light(IconSize.Small);
+					break;
+
+				default:
+					throw new ArgumentOutOfRangeException();
 			}
 
 			return icon;
