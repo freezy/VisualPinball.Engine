@@ -36,7 +36,7 @@ namespace VisualPinball.Unity.Editor
 
 		public string Id;
 		public string PlayfieldItem;
-		public ILampAuthoring Device;
+		public ILampDeviceAuthoring Device;
 		public string DeviceItem;
 		public LampSource Source;
 

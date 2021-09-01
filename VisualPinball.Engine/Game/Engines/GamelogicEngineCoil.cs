@@ -30,6 +30,10 @@ namespace VisualPinball.Engine.Game.Engines
 		public string DeviceHint;
 		public string DeviceItemHint;
 		public bool IsLamp;
+
+		/// <summary>
+		/// Sometimes we want to add all coils that are in the manual, so this allows adding unused coils as such.
+		/// </summary>
 		public bool IsUnused;
 
 		private string _description;

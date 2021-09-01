@@ -27,6 +27,7 @@ using System.Collections.Generic;
 using System.Linq;
 using NLog;
 using UnityEngine;
+using VisualPinball.Engine.Game.Engines;
 using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Light;
 using VisualPinball.Engine.VPT.Table;
@@ -35,7 +36,7 @@ using Logger = NLog.Logger;
 namespace VisualPinball.Unity
 {
 	[AddComponentMenu("Visual Pinball/Game Item/Light")]
-	public class LightAuthoring : ItemMainRenderableAuthoring<LightData>, ILampAuthoring
+	public class LightAuthoring : ItemMainRenderableAuthoring<LightData>, ILampDeviceAuthoring
 	{
 		#region Data
 
@@ -60,9 +61,60 @@ namespace VisualPinball.Unity
 
 		#endregion
 
+		#region Overrides and Constants
+
 		public override ItemType ItemType => ItemType.Light;
 		public override string ItemName => "Light";
-		//public ILightable Lightable => Item;
+
+		public override IEnumerable<Type> ValidParents => Type.EmptyTypes;
+
+		public override LightData InstantiateData() => new LightData();
+
+		protected override Type MeshAuthoringType { get; } = typeof(ItemMeshAuthoring<LightData, LightAuthoring>);
+		protected override Type ColliderAuthoringType { get; } = null;
+
+		public const string LampIdDefault = "default_lamp";
+		private const string BulbMeshName = "Light (Bulb)";
+		private const string SocketMeshName = "Light (Socket)";
+
+		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
+
+		#endregion
+
+		#region Wiring
+
+		public IEnumerable<GamelogicEngineLamp> AvailableLamps => new[] {
+			new GamelogicEngineLamp(LampIdDefault),
+		};
+
+		#endregion
+
+		#region Transformation
+
+		public override void UpdateTransforms()
+		{
+			// position
+			transform.localPosition = Surface != null
+				? new Vector3(Position.x, Position.y, Surface.Height(Position) + Position.z)
+				: new Vector3(Position.x, Position.y, PlayfieldHeight + Position.z);
+
+			// bulb size
+			foreach (var mf in GetComponentsInChildren<MeshFilter>(true)) {
+				switch (mf.sharedMesh.name) {
+					case BulbMeshName:
+					case SocketMeshName:
+						mf.gameObject.transform.localScale = new Vector3(BulbSize, BulbSize, BulbSize);
+						break;
+				}
+			}
+		}
+
+		#endregion
+
+		#region Runtime
+
+		private UnityEngine.Light _unityLight;
+		private float _fullIntensity;
 
 		public bool Enabled {
 			set {
@@ -75,20 +127,6 @@ namespace VisualPinball.Unity
 			get => _unityLight.color;
 			set => _unityLight.color = value;
 		}
-
-		private UnityEngine.Light _unityLight;
-		private float _fullIntensity;
-
-		public override LightData InstantiateData() => new LightData();
-
-		protected override Type MeshAuthoringType { get; } = typeof(ItemMeshAuthoring<LightData, LightAuthoring>);
-		protected override Type ColliderAuthoringType { get; } = null;
-
-		private const string BulbMeshName = "Light (Bulb)";
-		private const string SocketMeshName = "Light (Socket)";
-		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
-
-		public override IEnumerable<Type> ValidParents => Type.EmptyTypes;
 
 		private void Awake()
 		{
@@ -103,14 +141,11 @@ namespace VisualPinball.Unity
 			_fullIntensity = _unityLight.intensity;
 		}
 
-		#region Runtime
-
 		public void FadeTo(float seconds, float value)
 		{
 			StopAllCoroutines();
 			StartCoroutine(nameof(Fade), value);
 		}
-
 
 		public void StartBlinking()
 		{
@@ -156,23 +191,7 @@ namespace VisualPinball.Unity
 
 		#endregion
 
-		public override void UpdateTransforms()
-		{
-			// position
-			transform.localPosition = Surface != null
-				? new Vector3(Position.x, Position.y, Surface.Height(Position) + Position.z)
-				: new Vector3(Position.x, Position.y, PlayfieldHeight + Position.z);
-
-			// bulb size
-			foreach (var mf in GetComponentsInChildren<MeshFilter>(true)) {
-				switch (mf.sharedMesh.name) {
-					case BulbMeshName:
-					case SocketMeshName:
-						mf.gameObject.transform.localScale = new Vector3(BulbSize, BulbSize, BulbSize);
-						break;
-				}
-			}
-		}
+		#region Conversion
 
 		public override IEnumerable<MonoBehaviour> SetData(LightData data)
 		{
@@ -245,6 +264,8 @@ namespace VisualPinball.Unity
 
 			return data;
 		}
+
+		#endregion
 
 		#region Editor Tooling
 

@@ -71,7 +71,7 @@ namespace VisualPinball.Unity
 				foreach (var switchMapping in config.Switches) {
 					switch (switchMapping.Source) {
 
-						case ESwitchSource.Playfield: {
+						case SwitchSource.Playfield: {
 
 							// mapping values must be set
 							if (switchMapping.Device == null || string.IsNullOrEmpty(switchMapping.DeviceItem)) {
@@ -98,7 +98,7 @@ namespace VisualPinball.Unity
 							break;
 						}
 
-						case ESwitchSource.InputSystem:
+						case SwitchSource.InputSystem:
 							if (!_keySwitchAssignments.ContainsKey(switchMapping.InputAction)) {
 								_keySwitchAssignments[switchMapping.InputAction] = new List<KeyboardSwitch>();
 							}
@@ -107,8 +107,8 @@ namespace VisualPinball.Unity
 							_switchStatuses[switchMapping.Id] = keyboardSwitch;
 							break;
 
-						case ESwitchSource.Constant:
-							_switchStatuses[switchMapping.Id] = new ConstantSwitch(switchMapping.Constant == Engine.VPT.SwitchConstant.Closed);
+						case SwitchSource.Constant:
+							_switchStatuses[switchMapping.Id] = new ConstantSwitch(switchMapping.Constant == SwitchConstant.Closed);
 							break;
 
 						default:

@@ -17,7 +17,7 @@
 
 namespace VisualPinball.Unity
 {
-	public enum ESwitchSource
+	public enum SwitchSource
 	{
 		InputSystem = 0,
 		Playfield = 1,

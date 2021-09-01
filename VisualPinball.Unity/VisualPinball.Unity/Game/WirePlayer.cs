@@ -60,7 +60,7 @@ namespace VisualPinball.Unity
 		{
 			switch (wireMapping.Source) {
 
-				case ESwitchSource.Playfield: {
+				case SwitchSource.Playfield: {
 					// mapping values must be set
 					if (wireMapping.SourceDevice == null || string.IsNullOrEmpty(wireMapping.SourceDeviceItem)) {
 						break;
@@ -83,7 +83,7 @@ namespace VisualPinball.Unity
 					break;
 				}
 
-				case ESwitchSource.InputSystem: {
+				case SwitchSource.InputSystem: {
 					if (!_keyWireAssignments.ContainsKey(wireMapping.SourceInputAction)) {
 						_keyWireAssignments[wireMapping.SourceInputAction] = new List<WireDestConfig>();
 					}
@@ -91,7 +91,7 @@ namespace VisualPinball.Unity
 					break;
 				}
 
-				case ESwitchSource.Constant:
+				case SwitchSource.Constant:
 					break;
 
 				default:
@@ -104,7 +104,7 @@ namespace VisualPinball.Unity
 		{
 			switch (wireMapping.Source) {
 
-				case ESwitchSource.Playfield: {
+				case SwitchSource.Playfield: {
 					// mapping values must be set
 					if (wireMapping.SourceDevice == null || string.IsNullOrEmpty(wireMapping.SourceDeviceItem)) {
 						break;
@@ -126,7 +126,7 @@ namespace VisualPinball.Unity
 					break;
 				}
 
-				case ESwitchSource.InputSystem: {
+				case SwitchSource.InputSystem: {
 					if (!_keyWireAssignments.ContainsKey(wireMapping.SourceInputAction)) {
 						_keyWireAssignments[wireMapping.SourceInputAction] = new List<WireDestConfig>();
 					}
@@ -136,7 +136,7 @@ namespace VisualPinball.Unity
 					break;
 				}
 
-				case ESwitchSource.Constant:
+				case SwitchSource.Constant:
 					break;
 
 				default:

@@ -28,13 +28,13 @@ namespace VisualPinball.Unity
 		public string Description = string.Empty;
 
 		/* Source */
-		public ESwitchSource Source = ESwitchSource.Playfield;
+		public SwitchSource Source = SwitchSource.Playfield;
 
 		public string SourceInputActionMap = string.Empty;
 
 		public string SourceInputAction = string.Empty;
 
-		public int SourceConstant;
+		public SwitchConstant SourceConstant;
 
 		[SerializeReference]
 		public MonoBehaviour _sourceDevice;
@@ -71,9 +71,9 @@ namespace VisualPinball.Unity
 		[ExcludeFromCodeCoverage]
 		public string Src { get {
 			switch (Source) {
-				case ESwitchSource.Playfield: return $"{SourceDevice?.name}:{SourceDeviceItem}";
-				case ESwitchSource.InputSystem: return $"{SourceInputActionMap}:{SourceInputAction}";
-				case ESwitchSource.Constant: return "<constant value>";
+				case SwitchSource.Playfield: return $"{SourceDevice?.name}:{SourceDeviceItem}";
+				case SwitchSource.InputSystem: return $"{SourceInputActionMap}:{SourceInputAction}";
+				case SwitchSource.Constant: return "<constant value>";
 				default: return "<unknown source>";
 			}
 		}}
