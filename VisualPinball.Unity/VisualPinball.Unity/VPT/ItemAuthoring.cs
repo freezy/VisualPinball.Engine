@@ -46,32 +46,11 @@ namespace VisualPinball.Unity
 		public abstract TData Data { get; }
 
 		/// <summary>
-		/// Returns the item object for this component.
-		/// </summary>
-		///
-		/// <remarks>
-		/// If this returns `null`, then it's wrongly attached to a game object
-		/// where it can't find its main component.
-		/// </remarks>
-		//public abstract TItem Item { get; }
-
-		/// <summary>
-		/// A non-typed version of the item.
-		/// </summary>
-		//public IItem IItem => Item;
-
-		/// <summary>
 		/// The data-oriented version of the item.
 		/// </summary>
 		public ItemData ItemData => Data;
 
-		public bool IsLocked { get => Data.IsLocked; set => Data.IsLocked = value; }
-
-		private Table _table;
 		private TableAuthoring _tableAuthoring;
-
-		//protected Table Table => _table ??= TableAuthoring == null ? null : TableAuthoring.Item;
-		protected TableAuthoring TableAuthoring => _tableAuthoring ??= GetComponentInParent<TableAuthoring>();
 
 		protected static void DrawArrow(Vector3 pos, Vector3 direction, float arrowHeadLength = 0.025f, float arrowHeadAngle = 20.0f)
 		{

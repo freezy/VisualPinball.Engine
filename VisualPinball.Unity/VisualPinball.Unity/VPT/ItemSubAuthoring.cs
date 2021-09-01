@@ -39,19 +39,6 @@ namespace VisualPinball.Unity
 		public override TData Data => FindData();
 
 		/// <summary>
-		/// Since we're in a sub component, we don't instantiate the item, but
-		/// look for the main component and retrieve the item from there (which
-		/// will instantiate it itself if necessary).
-		/// </summary>
-		///
-		/// <remarks>
-		/// If no main component found, this yields to `null`, and in this case
-		/// the component is somewhere in the hierarchy where it doesn't make
-		/// sense, and a warning should be printed.
-		/// </remarks>
-		//public override TItem Item => FindItem();
-
-		/// <summary>
 		/// Finds the main authoring component in the parent.
 		/// </summary>
 		public TMainAuthoring MainComponent => FindMainAuthoring();

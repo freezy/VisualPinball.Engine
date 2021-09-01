@@ -131,20 +131,18 @@ namespace VisualPinball.Unity.Editor
 		protected override void AddNewData(string undoName, string newName)
 		{
 			var newMat = new Engine.VPT.Material(newName);
-			_tableAuthoring.Data.Materials = _tableAuthoring.Data.Materials.Append(newMat).ToArray();
-			_tableAuthoring.Data.NumMaterials = _tableAuthoring.Data.Materials.Length;
+			_tableAuthoring.LegacyContainer.Materials.Add(newMat);
 		}
 
-		protected override void RemoveData(string undoName, MaterialListData data) {
-			_tableAuthoring.Data.Materials = _tableAuthoring.Data.Materials.Where(m => m != data.Material).ToArray();
-			_tableAuthoring.Data.NumMaterials = _tableAuthoring.Data.Materials.Length;
+		protected override void RemoveData(string undoName, MaterialListData data)
+		{
+			_tableAuthoring.LegacyContainer.Materials.Remove(data.Material);
 		}
 
 		protected override void CloneData(string undoName, string newName, MaterialListData data)
 		{
 			var newMat = data.Material.Clone(newName);
-			_tableAuthoring.Data.Materials = _tableAuthoring.Data.Materials.Append(newMat).ToArray();
-			_tableAuthoring.Data.NumMaterials = _tableAuthoring.Data.Materials.Length;
+			_tableAuthoring.LegacyContainer.Materials.Add(newMat);
 		}
 	}
 }
