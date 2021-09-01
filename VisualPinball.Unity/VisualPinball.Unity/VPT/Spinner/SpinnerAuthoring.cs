@@ -88,13 +88,14 @@ namespace VisualPinball.Unity
 		protected override Type ColliderAuthoringType { get; } = typeof(ItemColliderAuthoring<SpinnerData, SpinnerAuthoring>);
 
 		private const string BracketMeshName = "Spinner (Bracket)";
+		public const string SwitchItem = "spinner_switch";
 
 		#endregion
 
 		#region Wiring
 
 		public IEnumerable<GamelogicEngineSwitch> AvailableSwitches => new[] {
-			new GamelogicEngineSwitch(name) { IsPulseSwitch = true }
+			new GamelogicEngineSwitch(SwitchItem) { IsPulseSwitch = true }
 		};
 
 		public SwitchDefault SwitchDefault => SwitchDefault.Configurable;

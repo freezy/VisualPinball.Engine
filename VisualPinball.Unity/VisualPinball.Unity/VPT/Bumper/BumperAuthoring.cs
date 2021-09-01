@@ -79,12 +79,14 @@ namespace VisualPinball.Unity
 		private const string RingMeshName = "Bumper (Ring)";
 		private const float PrefabMeshScale = 100f;
 
+		private const string SocketSwitchItem = "socket_switch";
+
 		#endregion
 
 		#region Wiring
 
 		public IEnumerable<GamelogicEngineSwitch> AvailableSwitches => new[] {
-			new GamelogicEngineSwitch(name) {
+			new GamelogicEngineSwitch(SocketSwitchItem) {
 				Description = "Socket Switch",
 				IsPulseSwitch = true,
 			}

@@ -97,12 +97,14 @@ namespace VisualPinball.Unity
 		private const string BracketPrefabName = "Bracket";
 		private const string WirePrefabName = "Wire";
 
+		public const string MainSwitchItem = "gate_switch";
+
 		#endregion
 
 		#region Wiring
 
 		public IEnumerable<GamelogicEngineSwitch> AvailableSwitches => new[] {
-			new GamelogicEngineSwitch(name)  {
+			new GamelogicEngineSwitch(MainSwitchItem)  {
 				IsPulseSwitch = true
 			}
 		};

@@ -115,14 +115,16 @@ namespace VisualPinball.Unity
 		protected override Type MeshAuthoringType { get; } = typeof(ItemMeshAuthoring<FlipperData, FlipperAuthoring>);
 		protected override Type ColliderAuthoringType { get; } = typeof(ItemColliderAuthoring<FlipperData, FlipperAuthoring>);
 
-		public const string MainCoilId = "s_main_coil";
-		public const string HoldCoilId = "s_hold_coil";
+		public const string MainCoilItem = "main_coil";
+		public const string HoldCoilItem = "hold_coil";
+		public const string EosSwitchItem = "eos_switch";
+
 		#endregion
 
 		#region Wiring
 
 		public IEnumerable<GamelogicEngineSwitch> AvailableSwitches => new[] {
-			new GamelogicEngineSwitch(name) {
+			new GamelogicEngineSwitch(EosSwitchItem) {
 				Description = "EOS Switch",
 				IsPulseSwitch = false,
 			}
@@ -132,10 +134,10 @@ namespace VisualPinball.Unity
 
 		public IEnumerable<GamelogicEngineCoil> AvailableCoils => IsDualWound
 			? new[] {
-				new GamelogicEngineCoil(MainCoilId) { Description = "Main Coil" },
-				new GamelogicEngineCoil(HoldCoilId) { Description = "Hold Coil" },
+				new GamelogicEngineCoil(MainCoilItem) { Description = "Main Coil" },
+				new GamelogicEngineCoil(HoldCoilItem) { Description = "Hold Coil" },
 			}
-			: new[] { new GamelogicEngineCoil(MainCoilId) };
+			: new[] { new GamelogicEngineCoil(MainCoilItem) };
 
 		#endregion
 

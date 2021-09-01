@@ -238,16 +238,19 @@ namespace VisualPinball.Unity.Editor
 		{
 			_devicePicker.Render(cellRect, coilListData.Device, item => {
 				coilListData.Device = item;
-				if (coilListData.Device != null && coilListData.Device.AvailableCoils.Count() == 1) {
-					coilListData.DeviceItem = coilListData.Device.AvailableCoils.First().Id;
-				}
+				UpdateDeviceItem(coilListData);
 				updateAction(coilListData);
 			});
 		}
 
 		private void RenderDeviceItemElement(CoilListData coilListData, Rect cellRect, Action<CoilListData> updateAction)
 		{
-			EditorGUI.BeginDisabledGroup(coilListData.Device == null);
+			UpdateDeviceItem(coilListData);
+			var onlyOneDeviceItem = coilListData.Device != null && coilListData.Device.AvailableCoils.Count() == 1;
+			if (onlyOneDeviceItem && string.IsNullOrEmpty(coilListData.Device.AvailableCoils.First().Description)) {
+				return;
+			}
+			EditorGUI.BeginDisabledGroup(coilListData.Device == null || onlyOneDeviceItem);
 
 			var currentIndex = 0;
 			var coilLabels = Array.Empty<string>();
@@ -278,6 +281,13 @@ namespace VisualPinball.Unity.Editor
 					coilListData.Type = type;
 					updateAction(coilListData);
 				}
+			}
+		}
+
+		private void UpdateDeviceItem(CoilListData coilListData)
+		{
+			if (coilListData.Device != null && coilListData.Device.AvailableCoils.Count() == 1) {
+				coilListData.DeviceItem = coilListData.Device.AvailableCoils.First().Id;
 			}
 		}
 

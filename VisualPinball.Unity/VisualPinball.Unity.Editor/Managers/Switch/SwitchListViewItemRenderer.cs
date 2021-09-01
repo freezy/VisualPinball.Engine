@@ -230,7 +230,6 @@ namespace VisualPinball.Unity.Editor
 					cellRect.x += cellRect.width + 10f;
 					RenderDeviceItemElement(switchListData, cellRect, updateAction);
 
-					//RenderPlayfieldElement(tableAuthoring, switchListData, cellRect, updateAction);
 					break;
 
 				case ESwitchSource.Constant:
@@ -328,7 +327,7 @@ namespace VisualPinball.Unity.Editor
 
 		private void RenderDeviceItemElement(SwitchListData switchListData, Rect cellRect, Action<SwitchListData> updateAction)
 		{
-			EditorGUI.BeginDisabledGroup(switchListData.Device == null);
+			EditorGUI.BeginDisabledGroup(switchListData.Device == null || switchListData.Device.AvailableSwitches.Count() == 1);
 
 			var currentIndex = 0;
 			var switchLabels = Array.Empty<string>();
