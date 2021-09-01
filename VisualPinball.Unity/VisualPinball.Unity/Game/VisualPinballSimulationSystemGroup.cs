@@ -17,7 +17,6 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using NLog;
 using Unity.Entities;
 using Unity.Transforms;
 using VisualPinball.Engine.Common;
@@ -40,8 +39,6 @@ namespace VisualPinball.Unity
 		private ulong _currentPhysicsTime;
 		private ulong _currentPhysicsFrameTime;
 		private ulong _nextPhysicsFrameTime;
-
-		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
 		private readonly List<ComponentSystemBase> _systemsToUpdate = new List<ComponentSystemBase>();
 		private CreateBallEntityCommandBufferSystem _createBallEntityCommandBufferSystem;

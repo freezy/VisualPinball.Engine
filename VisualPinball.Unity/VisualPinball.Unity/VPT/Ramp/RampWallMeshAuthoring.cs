@@ -32,8 +32,6 @@ namespace VisualPinball.Unity
 
 		public override IEnumerable<Type> ValidParents => ValidParentTypes;
 
-		protected override string MeshId => RampMeshGenerator.Wall;
-
 		protected override RenderObject GetRenderObject(RampData data, Table table)
 		{
 			return new RampMeshGenerator(data).GetRenderObject(table, data, RampMeshGenerator.Wall, MainComponent.PlayfieldHeight, false);

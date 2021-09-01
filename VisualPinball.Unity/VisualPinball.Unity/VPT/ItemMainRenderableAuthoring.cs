@@ -80,38 +80,6 @@ namespace VisualPinball.Unity
 		{
 		}
 
-		public void DestroyMeshComponent()
-		{
-			foreach (var component in MeshComponents) {
-				var mb = component as MonoBehaviour;
-
-				// if game object is the same, remove component
-				if (mb.gameObject == gameObject) {
-					DestroyImmediate(mb);
-
-				} else {
-					// otherwise, destroy entire game object
-					DestroyImmediate(mb.gameObject);
-				}
-			}
-		}
-
-		public void DestroyColliderComponent()
-		{
-			foreach (var component in ColliderComponents) {
-				var mb = component as MonoBehaviour;
-
-				// if game object is the same, remove component
-				if (mb.gameObject == gameObject) {
-					DestroyImmediate(mb);
-
-				} else {
-					// otherwise, destroy entire game object
-					DestroyImmediate(mb.gameObject);
-				}
-			}
-		}
-
 		protected void Convert(Entity entity, EntityManager dstManager)
 		{
 			Entity = entity;

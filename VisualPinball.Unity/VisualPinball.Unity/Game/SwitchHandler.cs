@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using NLog;
 using Unity.Entities;
 using UnityEngine;
-using VisualPinball.Engine.VPT;
 using Logger = NLog.Logger;
 
 namespace VisualPinball.Unity

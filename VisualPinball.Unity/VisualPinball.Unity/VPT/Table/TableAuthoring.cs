@@ -21,13 +21,11 @@
 
 using System;
 using System.Collections.Generic;
-using NLog;
 using UnityEngine;
 using VisualPinball.Engine.Common;
 using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Collection;
 using VisualPinball.Engine.VPT.Table;
-using Logger = NLog.Logger;
 
 namespace VisualPinball.Unity
 {
@@ -68,8 +66,6 @@ namespace VisualPinball.Unity
 
 		[HideInInspector] [SerializeField] public string physicsEngineId = "VisualPinball.Unity.DefaultPhysicsEngine";
 		[HideInInspector] [SerializeField] public string debugUiId;
-
-		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
 		private void Reset()
 		{
@@ -114,7 +110,8 @@ namespace VisualPinball.Unity
 			return Array.Empty<MonoBehaviour>();
 		}
 
-		public override TableData CopyDataTo(TableData data, string[] materialNames, string[] textureNames)
+		public override TableData CopyDataTo(TableData data, string[] materialNames, string[] textureNames,
+			bool forExport)
 		{
 			// update the name
 			data.Name = name;

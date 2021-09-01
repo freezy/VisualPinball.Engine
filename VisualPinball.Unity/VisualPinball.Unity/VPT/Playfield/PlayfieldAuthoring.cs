@@ -168,7 +168,8 @@ namespace VisualPinball.Unity
 			return updatedComponents;
 		}
 
-		public override TableData CopyDataTo(TableData data, string[] materialNames, string[] textureNames)
+		public override TableData CopyDataTo(TableData data, string[] materialNames, string[] textureNames,
+			bool forExport)
 		{
 			// position
 			data.TableHeight = TableHeight;

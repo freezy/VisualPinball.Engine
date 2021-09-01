@@ -33,7 +33,7 @@ namespace VisualPinball.Unity
 	{
 		public bool IsLocked { get => _isLocked; set => _isLocked = value; }
 
-		[SerializeField] private bool _isLocked = false;
+		[SerializeField] private bool _isLocked;
 
 		public float PlayfieldHeight {
 			get {
@@ -51,7 +51,7 @@ namespace VisualPinball.Unity
 
 		public abstract IEnumerable<MonoBehaviour> SetData(TData data);
 		public abstract IEnumerable<MonoBehaviour> SetReferencedData(TData data, Table table, IMaterialProvider materialProvider, ITextureProvider textureProvider, Dictionary<string, IItemMainAuthoring> components);
-		public abstract TData CopyDataTo(TData data, string[] materialNames, string[] textureNames);
+		public abstract TData CopyDataTo(TData data, string[] materialNames, string[] textureNames, bool forExport);
 
 		public abstract ItemType ItemType { get; }
 

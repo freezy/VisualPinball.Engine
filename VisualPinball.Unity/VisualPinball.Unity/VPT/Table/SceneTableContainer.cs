@@ -98,11 +98,11 @@ namespace VisualPinball.Unity
 			_tableAuthoring = ta;
 		}
 
-		public void Refresh()
+		public void Refresh(bool forExport = false)
 		{
 			var stopWatch = Stopwatch.StartNew();
 			Clear();
-			WalkChildren(_tableAuthoring.transform, RefreshChild);
+			WalkChildren(_tableAuthoring.transform, node => RefreshChild(node, forExport));
 
 			foreach (var material in _tableAuthoring.LegacyContainer.Materials) {
 				_materials[material.Name.ToLower()] = material;
@@ -113,7 +113,7 @@ namespace VisualPinball.Unity
 
 		public override void Save(string fileName)
 		{
-			Refresh();
+			Refresh(true);
 			PrepareForExport();
 
 			base.Save(fileName);
@@ -207,12 +207,12 @@ namespace VisualPinball.Unity
 			}
 		}
 
-		private void RefreshChild(Component node)
+		private void RefreshChild(Component node, bool forExport)
 		{
-			Add(node.GetComponent<IItemMainAuthoring>());
+			Add(node.GetComponent<IItemMainAuthoring>(), forExport);
 		}
 
-		private void Add(IItemMainAuthoring comp)
+		private void Add(IItemMainAuthoring comp, bool forExport)
 		{
 			if (comp == null) {
 				return;
@@ -220,59 +220,59 @@ namespace VisualPinball.Unity
 			var name = comp.name;
 			switch (comp) {
 				case BumperAuthoring bumperAuthoring:
-					var bumperData = bumperAuthoring.CopyDataTo(_tableAuthoring.LegacyContainer.Bumpers.ContainsKey(name) ? _tableAuthoring.LegacyContainer.Bumpers[name] : new BumperData(), MaterialNames, TextureNames);
+					var bumperData = bumperAuthoring.CopyDataTo(_tableAuthoring.LegacyContainer.Bumpers.ContainsKey(name) ? _tableAuthoring.LegacyContainer.Bumpers[name] : new BumperData(), MaterialNames, TextureNames, forExport);
 					Add(comp.gameObject.name, new Bumper(bumperData));
 					break;
 				case FlipperAuthoring flipperAuthoring:
-					var flipperData = flipperAuthoring.CopyDataTo(_tableAuthoring.LegacyContainer.Flippers.ContainsKey(name) ? _tableAuthoring.LegacyContainer.Flippers[name] : new FlipperData(), MaterialNames, TextureNames);
+					var flipperData = flipperAuthoring.CopyDataTo(_tableAuthoring.LegacyContainer.Flippers.ContainsKey(name) ? _tableAuthoring.LegacyContainer.Flippers[name] : new FlipperData(), MaterialNames, TextureNames, forExport);
 					Add(comp.gameObject.name, new Flipper(flipperData));
 					break;
 				case GateAuthoring gateAuthoring:
-					var gatData = gateAuthoring.CopyDataTo(_tableAuthoring.LegacyContainer.Gates.ContainsKey(name) ? _tableAuthoring.LegacyContainer.Gates[name] : new GateData(), MaterialNames, TextureNames);
+					var gatData = gateAuthoring.CopyDataTo(_tableAuthoring.LegacyContainer.Gates.ContainsKey(name) ? _tableAuthoring.LegacyContainer.Gates[name] : new GateData(), MaterialNames, TextureNames, forExport);
 					Add(comp.gameObject.name, new Gate(gatData));
 					break;
 				case HitTargetAuthoring hitTargetAuthoring:
-					var hitTargetData = hitTargetAuthoring.CopyDataTo(_tableAuthoring.LegacyContainer.HitTargets.ContainsKey(name) ? _tableAuthoring.LegacyContainer.HitTargets[name] : new HitTargetData(), MaterialNames, TextureNames);
+					var hitTargetData = hitTargetAuthoring.CopyDataTo(_tableAuthoring.LegacyContainer.HitTargets.ContainsKey(name) ? _tableAuthoring.LegacyContainer.HitTargets[name] : new HitTargetData(), MaterialNames, TextureNames, forExport);
 					Add(comp.gameObject.name, new HitTarget(hitTargetData));
 					break;
 				case KickerAuthoring kickerAuthoring:
-					var kickerData = kickerAuthoring.CopyDataTo(_tableAuthoring.LegacyContainer.Kickers.ContainsKey(name) ? _tableAuthoring.LegacyContainer.Kickers[name] : new KickerData(), MaterialNames, TextureNames);
+					var kickerData = kickerAuthoring.CopyDataTo(_tableAuthoring.LegacyContainer.Kickers.ContainsKey(name) ? _tableAuthoring.LegacyContainer.Kickers[name] : new KickerData(), MaterialNames, TextureNames, forExport);
 					Add(comp.gameObject.name, new Kicker(kickerData));
 					break;
 				case LightAuthoring lightAuthoring:
-					var lightData = lightAuthoring.CopyDataTo(_tableAuthoring.LegacyContainer.Lights.ContainsKey(name) ? _tableAuthoring.LegacyContainer.Lights[name] : new LightData(), MaterialNames, TextureNames);
+					var lightData = lightAuthoring.CopyDataTo(_tableAuthoring.LegacyContainer.Lights.ContainsKey(name) ? _tableAuthoring.LegacyContainer.Lights[name] : new LightData(), MaterialNames, TextureNames, forExport);
 					Add(comp.gameObject.name, new Light(lightData));
 					break;
 				case PlungerAuthoring plungerAuthoring:
-					var plungerData = plungerAuthoring.CopyDataTo(_tableAuthoring.LegacyContainer.Plungers.ContainsKey(name) ? _tableAuthoring.LegacyContainer.Plungers[name] : new PlungerData(), MaterialNames, TextureNames);
+					var plungerData = plungerAuthoring.CopyDataTo(_tableAuthoring.LegacyContainer.Plungers.ContainsKey(name) ? _tableAuthoring.LegacyContainer.Plungers[name] : new PlungerData(), MaterialNames, TextureNames, forExport);
 					Add(comp.gameObject.name, new Plunger(plungerData));
 					break;
 				case PrimitiveAuthoring primitiveAuthoring:
-					var primitiveData = primitiveAuthoring.CopyDataTo(_tableAuthoring.LegacyContainer.Primitives.ContainsKey(name) ? _tableAuthoring.LegacyContainer.Primitives[name] : new PrimitiveData(), MaterialNames, TextureNames);
+					var primitiveData = primitiveAuthoring.CopyDataTo(_tableAuthoring.LegacyContainer.Primitives.ContainsKey(name) ? _tableAuthoring.LegacyContainer.Primitives[name] : new PrimitiveData(), MaterialNames, TextureNames, forExport);
 					Add(comp.gameObject.name, new Primitive(primitiveData));
 					break;
 				case RampAuthoring rampAuthoring:
-					var rampData = rampAuthoring.CopyDataTo(_tableAuthoring.LegacyContainer.Ramps.ContainsKey(name) ? _tableAuthoring.LegacyContainer.Ramps[name] : new RampData(), MaterialNames, TextureNames);
+					var rampData = rampAuthoring.CopyDataTo(_tableAuthoring.LegacyContainer.Ramps.ContainsKey(name) ? _tableAuthoring.LegacyContainer.Ramps[name] : new RampData(), MaterialNames, TextureNames, forExport);
 					Add(comp.gameObject.name, new Ramp(rampData));
 					break;
 				case RubberAuthoring rubberAuthoring:
-					var rubberData = rubberAuthoring.CopyDataTo(_tableAuthoring.LegacyContainer.Rubbers.ContainsKey(name) ? _tableAuthoring.LegacyContainer.Rubbers[name] : new RubberData(), MaterialNames, TextureNames);
+					var rubberData = rubberAuthoring.CopyDataTo(_tableAuthoring.LegacyContainer.Rubbers.ContainsKey(name) ? _tableAuthoring.LegacyContainer.Rubbers[name] : new RubberData(), MaterialNames, TextureNames, forExport);
 					Add(comp.gameObject.name, new Rubber(rubberData));
 					break;
 				case SpinnerAuthoring spinnerAuthoring:
-					var spinnerData = spinnerAuthoring.CopyDataTo(_tableAuthoring.LegacyContainer.Spinners.ContainsKey(name) ? _tableAuthoring.LegacyContainer.Spinners[name] : new SpinnerData(), MaterialNames, TextureNames);
+					var spinnerData = spinnerAuthoring.CopyDataTo(_tableAuthoring.LegacyContainer.Spinners.ContainsKey(name) ? _tableAuthoring.LegacyContainer.Spinners[name] : new SpinnerData(), MaterialNames, TextureNames, forExport);
 					Add(comp.gameObject.name, new Spinner(spinnerData));
 					break;
 				case SurfaceAuthoring surfaceAuthoring:
-					var surfaceData = surfaceAuthoring.CopyDataTo(_tableAuthoring.LegacyContainer.Surfaces.ContainsKey(name) ? _tableAuthoring.LegacyContainer.Surfaces[name] : new SurfaceData(), MaterialNames, TextureNames);
+					var surfaceData = surfaceAuthoring.CopyDataTo(_tableAuthoring.LegacyContainer.Surfaces.ContainsKey(name) ? _tableAuthoring.LegacyContainer.Surfaces[name] : new SurfaceData(), MaterialNames, TextureNames, forExport);
 					Add(comp.gameObject.name, new Surface(surfaceData));
 					break;
 				case TriggerAuthoring triggerAuthoring:
-					var triggerData = triggerAuthoring.CopyDataTo(_tableAuthoring.LegacyContainer.Triggers.ContainsKey(name) ? _tableAuthoring.LegacyContainer.Triggers[name] : new TriggerData(), MaterialNames, TextureNames);
+					var triggerData = triggerAuthoring.CopyDataTo(_tableAuthoring.LegacyContainer.Triggers.ContainsKey(name) ? _tableAuthoring.LegacyContainer.Triggers[name] : new TriggerData(), MaterialNames, TextureNames, forExport);
 					Add(comp.gameObject.name, new Trigger(triggerData));
 					break;
 				case TroughAuthoring troughAuthoring:
-					var troughData = troughAuthoring.CopyDataTo(new TroughData(), MaterialNames, TextureNames);
+					var troughData = troughAuthoring.CopyDataTo(new TroughData(), MaterialNames, TextureNames, forExport);
 					Add(comp.gameObject.name, new Trough(troughData));
 					break;
 			}

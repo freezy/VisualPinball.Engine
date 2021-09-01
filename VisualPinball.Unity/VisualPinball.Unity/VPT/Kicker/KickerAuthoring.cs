@@ -209,7 +209,8 @@ namespace VisualPinball.Unity
 			return Array.Empty<MonoBehaviour>();
 		}
 
-		public override KickerData CopyDataTo(KickerData data, string[] materialNames, string[] textureNames)
+		public override KickerData CopyDataTo(KickerData data, string[] materialNames, string[] textureNames,
+			bool forExport)
 		{
 			// name and transforms
 			data.Name = name;

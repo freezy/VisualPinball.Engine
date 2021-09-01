@@ -15,7 +15,6 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using System;
-using NLog;
 using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
@@ -45,8 +44,6 @@ namespace VisualPinball.Unity
 		public static Collider None => new Collider {
 			Header = { Type = ColliderType.None }
 		};
-
-		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
 		public unsafe ColliderBounds Bounds() {
 			fixed (Collider* collider = &this) {

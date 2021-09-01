@@ -31,11 +31,7 @@ namespace VisualPinball.Unity
 		where TData : ItemData
 		where TAuthoring : ItemMainRenderableAuthoring<TData>
 	{
-		public List<MemberInfo> MaterialRefs => _materialRefs ??= GetMembersWithAttribute<MaterialReferenceAttribute>();
-
 		public IItemMainRenderableAuthoring IMainAuthoring => MainComponent;
-
-		protected virtual string MeshId => null;
 
 		private List<MemberInfo> _materialRefs;
 
@@ -109,9 +105,8 @@ namespace VisualPinball.Unity
 
 		private void UpdateMesh()
 		{
-			var ta = GetComponentInParent<TableAuthoring>();
 			var data = MainComponent.InstantiateData();
-			MainComponent.CopyDataTo(data, null, null);
+			MainComponent.CopyDataTo(data, null, null, false);
 			var mesh = GetMesh(data);
 
 			// mesh generator can return null - but in this case the main component
