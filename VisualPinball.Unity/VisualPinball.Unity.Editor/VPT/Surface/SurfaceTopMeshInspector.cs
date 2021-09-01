@@ -24,14 +24,6 @@ namespace VisualPinball.Unity.Editor
 	[CustomEditor(typeof(SurfaceTopMeshAuthoring)), CanEditMultipleObjects]
 	public class SurfaceTopMeshInspector : ItemMeshInspector<SurfaceData, SurfaceAuthoring, SurfaceTopMeshAuthoring>
 	{
-		private SurfaceData _data;
-
-		protected override void OnEnable()
-		{
-			base.OnEnable();
-			_data = Data;
-		}
-
 		public override void OnInspectorGUI()
 		{
 			if (HasErrors()) {

@@ -20,28 +20,16 @@ namespace VisualPinball.Unity
 	/// </remarks>
 	/// <typeparam name="TData">Data type of the item</typeparam>
 	/// <typeparam name="TMainAuthoring">Type of the main component, where the data is.</typeparam>
-	public abstract class ItemSubAuthoring<TData, TMainAuthoring> : ItemAuthoring<TData>
+	public abstract class ItemSubAuthoring<TData, TMainAuthoring> : ItemAuthoring
 		where TData : ItemData
 		where TMainAuthoring : ItemMainAuthoring<TData>
 	{
 		/// <summary>
-		/// We're in a sub component here, so in order to retrieve the data,
-		/// this will:
-		/// 1. Check if <see cref="ItemAuthoring{TItem,TData}._data"/> is set (e.g. it's a serialized item)
-		/// 2. Find the main component in the hierarchy and return its data.
-		/// </summary>
-		///
-		/// <remarks>
-		/// We deliberately don't cache this, because if we do we need to find
-		/// a way to invalidate the cache in case the game object gets
-		/// re-attached to another parent.
-		/// </remarks>
-		public override TData Data => FindData();
-
-		/// <summary>
 		/// Finds the main authoring component in the parent.
 		/// </summary>
 		public TMainAuthoring MainComponent => FindMainAuthoring();
+
+		public bool HasMainComponent => FindMainAuthoring() == null;
 
 		public override string ItemName => MainComponent.ItemName;
 
@@ -54,12 +42,6 @@ namespace VisualPinball.Unity
 				var parentAuthoring = ParentAuthoring;
 				return parentAuthoring == null || ValidParents.Any(validParent => parentAuthoring.GetType() == validParent);
 			}
-		}
-
-		private TData FindData()
-		{
-			var ac = FindMainAuthoring();
-			return ac != null ? ac.Data : null;
 		}
 
 		private TMainAuthoring FindMainAuthoring()

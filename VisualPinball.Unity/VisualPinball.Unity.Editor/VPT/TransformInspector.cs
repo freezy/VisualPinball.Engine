@@ -70,7 +70,7 @@ namespace VisualPinball.Unity.Editor
 
 
 				var item = itemTransform.GetComponent<IItemMainRenderableAuthoring>();
-				useDefault = useDefault && itemTransform.GetComponent<IItemAuthoring>() == null;
+				useDefault = useDefault && itemTransform.GetComponent<IItemMainAuthoring>() == null;
 
 				// must be main but not the table itself
 				if (item != null && !(item is TableAuthoring)) {

@@ -30,9 +30,9 @@ namespace VisualPinball.Unity.Editor
 	{
 		protected TMeshAuthoring MeshAuthoring;
 
-		protected TData Data => MeshAuthoring == null ? null : MeshAuthoring.Data;
-
 		protected override MonoBehaviour UndoTarget => MeshAuthoring.MainComponent;
+
+		private bool HasMainComponent => MeshAuthoring == null || !MeshAuthoring.HasMainComponent;
 
 		protected override void OnEnable()
 		{
@@ -53,7 +53,7 @@ namespace VisualPinball.Unity.Editor
 
 		protected bool HasErrors()
 		{
-			if (Data == null) {
+			if (!HasMainComponent) {
 				NoDataError();
 				return true;
 			}

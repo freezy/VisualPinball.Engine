@@ -31,14 +31,15 @@ namespace VisualPinball.Unity.Editor
 	{
 		protected TColliderAuthoring ColliderAuthoring;
 
-		protected TData Data => ColliderAuthoring == null ? null : ColliderAuthoring.Data;
-
 		private bool _foldoutDebug;
 		private bool _foldoutColliders;
 		private string[] _currentColliders;
 		private Vector2 _scrollPos;
 
 		protected override MonoBehaviour UndoTarget => ColliderAuthoring.MainAuthoring as MonoBehaviour;
+
+		private bool HasMainComponent => ColliderAuthoring == null || !ColliderAuthoring.HasMainComponent;
+
 
 		protected override void OnEnable()
 		{
@@ -107,7 +108,7 @@ namespace VisualPinball.Unity.Editor
 
 		protected bool HasErrors()
 		{
-			if (Data == null) {
+			if (!HasMainComponent) {
 				NoDataError();
 				return true;
 			}
@@ -120,7 +121,7 @@ namespace VisualPinball.Unity.Editor
 			return false;
 		}
 
-		private void NoDataError()
+		private static void NoDataError()
 		{
 			EditorGUILayout.HelpBox($"Cannot find main component!\n\nYou must have a {typeof(TMainAuthoring).Name} component on this GameObject.", MessageType.Error);
 		}

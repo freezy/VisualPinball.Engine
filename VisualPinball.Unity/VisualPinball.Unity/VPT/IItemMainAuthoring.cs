@@ -22,14 +22,14 @@ using UnityEngine;
 
 namespace VisualPinball.Unity
 {
-	public interface IItemMainAuthoring : IItemAuthoring
+	public interface IItemMainAuthoring
 	{
+		string name { get; }
 		string ItemName { get; }
 
 		IEnumerable<Type> ValidParents { get; }
 
 		GameObject gameObject { get; }
 
-		void Destroy();
 	}
 }

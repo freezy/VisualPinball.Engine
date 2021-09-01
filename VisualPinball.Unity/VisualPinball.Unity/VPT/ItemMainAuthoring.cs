@@ -27,7 +27,7 @@ using VisualPinball.Engine.VPT.Table;
 namespace VisualPinball.Unity
 {
 	[DisallowMultipleComponent]
-	public abstract class ItemMainAuthoring<TData> : ItemAuthoring<TData>,
+	public abstract class ItemMainAuthoring<TData> : ItemAuthoring,
 		IItemMainAuthoring, ILayerableItemAuthoring
 		where TData : ItemData
 	{
@@ -66,54 +66,10 @@ namespace VisualPinball.Unity
 		#region Data
 
 		/// <summary>
-		/// Returns the serialized data.
-		/// </summary>
-		public override TData Data => _data;
-
-		/// <summary>
-		/// Instantiates a new item based on the item data.
-		/// </summary>
-		/// <param name="data">Item data</param>
-		/// <returns>New item instance</returns>
-		//protected abstract TItem InstantiateItem(TData data);
-
-		/// <summary>
-		/// Instantiates a new data object with default values.
+		/// Instantiates a new data object with default values. Used for exporting back to .vpx.
 		/// </summary>
 		/// <returns></returns>
 		public abstract TData InstantiateData();
-
-		/// <summary>
-		/// The serialized data, as written to the .vpx file.
-		/// </summary>
-		///
-		/// <remarks>
-		/// This might be "empty" (since Unity can't serialize it as `null`), so
-		/// the component authoring classes keep a flag whether to read the data
-		/// from this field or retrieve it from the parent in the hierarchy.
-		/// </remarks>
-		[SerializeField]
-		protected TData _data;
-
-		/// <summary>
-		/// The game item object. This is not serialized and gets re-instantiated
-		/// and cached here.
-		/// </summary>
-		// [NonSerialized]
-		// private TItem _item;
-
-		// public IItemMainAuthoring SetItem(TItem item, string gameObjectName = null)
-		// {
-		// 	_item = item;
-		// 	_data = item.Data;
-		// 	name = gameObjectName ?? _data.GetName();
-		// 	return this;
-		// }
-
-		public void Destroy()
-		{
-			DestroyImmediate(gameObject);
-		}
 
 		#endregion
 

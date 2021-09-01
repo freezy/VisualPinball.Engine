@@ -45,53 +45,17 @@ namespace VisualPinball.Unity.Editor
 			VisualOptions();
 		}
 
-		protected override void RenameExistingItem(MaterialListData data, string newName)
-		{
-			string oldName = data.Material.Name;
-
-			// give each editable item a chance to update its fields
-			string undoName = "Rename Material";
-			foreach (var item in _tableAuthoring.GetComponentsInChildren<IItemMeshAuthoring>()) {
-				RenameReflectedFields(undoName, item, item.MaterialRefs, oldName, newName);
-			}
-			Undo.RecordObject(_tableAuthoring, undoName);
-
-			data.Material.Name = newName;
-		}
-
 		protected override List<MaterialListData> CollectData()
 		{
 			List<MaterialListData> data = new List<MaterialListData>();
 
-			// collect list of in use materials
-			List<string> inUseMaterials = new List<string>();
-			foreach (var item in _tableAuthoring.GetComponentsInChildren<IItemMeshAuthoring>()) {
-				var matRefs = item.MaterialRefs;
-				if (matRefs == null) { continue; }
-				foreach (var matRef in matRefs) {
-					var matName = GetMemberValue(matRef, item.ItemData);
-					if (!string.IsNullOrEmpty(matName)) {
-						inUseMaterials.Add(matName);
-					}
-				}
-			}
-
 			// get row data for each material
 			for (int i = 0; i < _tableAuthoring.LegacyContainer.Materials.Count; i++) {
 				var mat = _tableAuthoring.LegacyContainer.Materials[i];
-				data.Add(new MaterialListData { Material = mat, InUse = inUseMaterials.Contains(mat.Name) });
+				data.Add(new MaterialListData { Material = mat, InUse = false }); // todo fix inUse
 			}
 
 			return data;
-		}
-
-		protected override void OnDataChanged(string undoName, MaterialListData data)
-		{
-			foreach (var item in _tableAuthoring.GetComponentsInChildren<IItemMeshAuthoring>()) {
-				if (IsReferenced(item.MaterialRefs, item.ItemData, data.Material.Name)) {
-					Undo.RecordObject(item as Object, undoName);
-				}
-			}
 		}
 
 		private void VisualOptions()

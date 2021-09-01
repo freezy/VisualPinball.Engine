@@ -212,11 +212,6 @@ namespace VisualPinball.Unity
 			Add(node.GetComponent<IItemMainAuthoring>());
 		}
 
-		private static TData GetLegacyData<TData>(IEnumerable<TData> d, IItemAuthoring comp) where TData : ItemData
-		{
-			return d.FirstOrDefault(b => b.GetName() == comp.name);
-		}
-
 		private void Add(IItemMainAuthoring comp)
 		{
 			if (comp == null) {
