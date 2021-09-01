@@ -28,13 +28,13 @@ namespace VisualPinball.Unity.Editor
 		public string Description { get; set; }
 
 		[ManagerListColumn(Order = 2, HeaderName = "Destination", Width = 150)]
-		public ECoilDestination Destination;
+		public CoilDestination Destination;
 
 		[ManagerListColumn(Order = 3, HeaderName = "Element", Width = 270)]
 		public string Element;
 
 		[ManagerListColumn(Order = 4, HeaderName = "Type", Width = 110)]
-		public ECoilType Type;
+		public CoilType Type;
 
 		[ManagerListColumn(Order = 5, HeaderName = "Hold Coil", Width = 135)]
 		public string HoldCoilId;

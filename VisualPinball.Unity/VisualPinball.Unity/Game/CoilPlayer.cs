@@ -54,7 +54,7 @@ namespace VisualPinball.Unity
 				_coilAssignments.Clear();
 				foreach (var coilMapping in config.Coils) {
 					switch (coilMapping.Destination) {
-						case ECoilDestination.Playfield:
+						case CoilDestination.Playfield:
 
 							// mapping values must be set
 							if (coilMapping.Device == null || string.IsNullOrEmpty(coilMapping.DeviceItem)) {
@@ -78,7 +78,7 @@ namespace VisualPinball.Unity
 							}
 							break;
 
-						case ECoilDestination.Lamp:
+						case CoilDestination.Lamp:
 							AssignCoilMapping(coilMapping.Id, coilMapping.Device, coilMapping.DeviceItem, isLampCoil: true);
 							break;
 					}
@@ -107,7 +107,7 @@ namespace VisualPinball.Unity
 				foreach (var destConfig in _coilAssignments[coilEvent.Id]) {
 
 					if (destConfig.IsLampCoil) {
-						_lampPlayer.HandleLampEvent(new LampEventArgs(coilEvent.Id, coilEvent.IsEnabled ? 1 : 0, ELampSource.Coils));
+						_lampPlayer.HandleLampEvent(new LampEventArgs(coilEvent.Id, coilEvent.IsEnabled ? 1 : 0, LampSource.Coils));
 						continue;
 					}
 

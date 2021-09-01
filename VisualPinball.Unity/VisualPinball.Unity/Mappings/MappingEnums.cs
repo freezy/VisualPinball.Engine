@@ -24,43 +24,43 @@ namespace VisualPinball.Unity
 		Constant = 2,
 	}
 
-	public enum ESwitchConstant
+	public enum SwitchConstant
 	{
 		Closed = 0,
 		Open = 1,
 	}
 
-	public enum ESwitchType
+	public enum SwitchType
 	{
 		OnOff = 0,
 		Pulse = 1,
 	}
 
-	public enum ECoilDestination
+	public enum CoilDestination
 	{
 		Playfield = 0,
 		Lamp = 1,
 	}
 
-	public enum ECoilType
+	public enum CoilType
 	{
 		SingleWound = 0,
 		DualWound = 1,
 	}
 
-	public enum EWireType
+	public enum WireType
 	{
 		OnOff = 0,
 		Pulse = 1,
 	}
 
-	public enum ELampSource
+	public enum LampSource
 	{
 		Lamps = 0,
 		Coils = 1,
 	}
 
-	public enum ELampType
+	public enum LampType
 	{
 		SingleOnOff = 0,
 		SingleFading = 1,

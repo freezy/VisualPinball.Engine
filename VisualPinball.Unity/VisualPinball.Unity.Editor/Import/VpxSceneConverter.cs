@@ -36,7 +36,6 @@ using VisualPinball.Engine.VPT.HitTarget;
 using VisualPinball.Engine.VPT.Kicker;
 using VisualPinball.Engine.VPT.Light;
 using VisualPinball.Engine.VPT.LightSeq;
-using VisualPinball.Engine.VPT.Mappings;
 using VisualPinball.Engine.VPT.Plunger;
 using VisualPinball.Engine.VPT.Primitive;
 using VisualPinball.Engine.VPT.Ramp;
@@ -164,7 +163,6 @@ namespace VisualPinball.Unity.Editor
 
 		private void SaveData()
 		{
-			_tableAuthoring.Mappings = _tableContainer.Mappings.Data;
 			foreach (var key in _tableContainer.TableInfo.Keys) {
 				_tableAuthoring.TableInfo[key] = _tableContainer.TableInfo[key];
 			}
@@ -456,26 +454,6 @@ namespace VisualPinball.Unity.Editor
 			// add trough if none available
 			if (!_tableContainer.HasTrough) {
 				CreateTrough();
-			}
-
-			// populate mappings
-			if (_tableAuthoring.MappingConfig.IsEmpty()) {
-				_tableAuthoring.MappingConfig.PopulateSwitches(dga.AvailableSwitches, _tableAuthoring);
-				_tableAuthoring.MappingConfig.PopulateCoils(dga.AvailableCoils, _tableAuthoring);
-
-				// wire up plunger
-				var plunger = _tableContainer.Plunger();
-				if (plunger != null) {
-					_tableContainer.Mappings.Data.AddWire(new MappingsWireData {
-						Description = "Plunger",
-						Source = SwitchSource.InputSystem,
-						SourceInputActionMap = InputConstants.MapCabinetSwitches,
-						SourceInputAction = InputConstants.ActionPlunger,
-						Destination = WireDestination.Device,
-						DestinationDevice = plunger.Name,
-						DestinationDeviceItem = Plunger.PullCoilId
-					});
-				}
 			}
 		}
 

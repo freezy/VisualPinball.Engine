@@ -14,14 +14,6 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-using System.Linq;
-using FluentAssertions;
-using NUnit.Framework;
-using VisualPinball.Engine.Game.Engines;
-using VisualPinball.Engine.VPT;
-using VisualPinball.Engine.VPT.Mappings;
-using VisualPinball.Engine.VPT.Table;
-
 namespace VisualPinball.Engine.Test.VPT.Mappings
 {
 	public class CoilPopulationTests

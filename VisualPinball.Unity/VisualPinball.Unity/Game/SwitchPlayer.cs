@@ -108,7 +108,7 @@ namespace VisualPinball.Unity
 							break;
 
 						case ESwitchSource.Constant:
-							_switchStatuses[switchMapping.Id] = new ConstantSwitch(switchMapping.Constant == SwitchConstant.Closed);
+							_switchStatuses[switchMapping.Id] = new ConstantSwitch(switchMapping.Constant == Engine.VPT.SwitchConstant.Closed);
 							break;
 
 						default:

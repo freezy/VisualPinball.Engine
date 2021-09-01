@@ -30,7 +30,7 @@ namespace VisualPinball.Unity
 
 		public string Description = string.Empty;
 
-		public ECoilDestination Destination = ECoilDestination.Playfield;
+		public CoilDestination Destination = CoilDestination.Playfield;
 
 		[SerializeReference]
 		public MonoBehaviour _device;
@@ -38,7 +38,7 @@ namespace VisualPinball.Unity
 
 		public string DeviceItem = string.Empty;
 
-		public ECoilType Type = ECoilType.SingleWound;
+		public CoilType Type = CoilType.SingleWound;
 
 		public string HoldCoilId = string.Empty;
 

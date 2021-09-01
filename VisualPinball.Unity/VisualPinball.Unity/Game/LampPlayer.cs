@@ -58,7 +58,7 @@ namespace VisualPinball.Unity
 
 					AssignLampMapping(lampMapping.Id, lampMapping);
 
-					if (lampMapping.Type == ELampType.RgbMulti) {
+					if (lampMapping.Type == LampType.RgbMulti) {
 						if (!string.IsNullOrEmpty(lampMapping.Green)) {
 							AssignLampMapping(lampMapping.Green, lampMapping);
 						}
@@ -103,7 +103,7 @@ namespace VisualPinball.Unity
 					if (_lamps.ContainsKey(component)) {
 						var lamp = _lamps[component];
 						switch (mapping.Type) {
-							case ELampType.Rgb:
+							case LampType.Rgb:
 								lamp.OnLampColor(lampEvent.Color);
 								break;
 
@@ -184,22 +184,22 @@ namespace VisualPinball.Unity
 					if (_lamps.ContainsKey(component)) {
 						var lamp = _lamps[component];
 						switch (mapping.Type) {
-							case ELampType.SingleOnOff: {
+							case LampType.SingleOnOff: {
 								var value = lampEvent.Value > 0 ? 1f : 0f;
 								lamp.OnLamp(value, ColorChannel.Alpha);
 								LampStatuses[lampEvent.Id] = value;
 								break;
 							}
 
-							case ELampType.Rgb:
-							case ELampType.SingleFading: {
+							case LampType.Rgb:
+							case LampType.SingleFading: {
 								var value = lampEvent.Value / 255f;
 								lamp.OnLamp(value, ColorChannel.Alpha);
 								LampStatuses[lampEvent.Id] = value;
 								break;
 							}
 
-							case ELampType.RgbMulti:
+							case LampType.RgbMulti:
 								handleRgb(lamp, mapping, component);
 								break;
 

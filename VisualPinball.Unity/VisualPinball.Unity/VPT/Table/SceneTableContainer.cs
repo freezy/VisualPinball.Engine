@@ -20,6 +20,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using UnityEditor;
 using UnityEngine;
 using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Bumper;
@@ -33,7 +34,6 @@ using VisualPinball.Engine.VPT.HitTarget;
 using VisualPinball.Engine.VPT.Kicker;
 using VisualPinball.Engine.VPT.Light;
 using VisualPinball.Engine.VPT.LightSeq;
-using VisualPinball.Engine.VPT.Mappings;
 using VisualPinball.Engine.VPT.Plunger;
 using VisualPinball.Engine.VPT.Primitive;
 using VisualPinball.Engine.VPT.Ramp;
@@ -58,7 +58,6 @@ namespace VisualPinball.Unity
 		public override Dictionary<string, string> TableInfo => _tableAuthoring.TableInfo;
 		public override List<CollectionData> Collections => _tableAuthoring.Collections;
 		[Obsolete("Use MappingConfig")]
-		public override Mappings Mappings => new Mappings(_tableAuthoring.Mappings);
 		public override CustomInfoTags CustomInfoTags => _tableAuthoring.CustomInfoTags;
 
 		public const int ChildObjectsLayer = 16;
@@ -152,10 +151,10 @@ namespace VisualPinball.Unity
 
 			// add/merge physical materials from asset folder
 			#if UNITY_EDITOR
-			var guids = UnityEditor.AssetDatabase.FindAssets("t:PhysicsMaterial", null);
+			var guids = AssetDatabase.FindAssets("t:PhysicsMaterial", null);
 			foreach (var guid in guids) {
-				var assetPath = UnityEditor.AssetDatabase.GUIDToAssetPath(guid);
-				var matAsset = UnityEditor.AssetDatabase.LoadAssetAtPath<PhysicsMaterial>(assetPath);
+				var assetPath = AssetDatabase.GUIDToAssetPath(guid);
+				var matAsset = AssetDatabase.LoadAssetAtPath<PhysicsMaterial>(assetPath);
 				var name = Path.GetFileNameWithoutExtension(assetPath);
 				if (!_materials.ContainsKey(name.ToLower())) {
 					continue;

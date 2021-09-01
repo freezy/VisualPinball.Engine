@@ -27,7 +27,6 @@ namespace VisualPinball.Engine.VPT.Table
 		public override Table Table { get; }
 		public override Dictionary<string, string> TableInfo { get; } = new Dictionary<string, string>();
 		public override List<CollectionData> Collections { get; } = new List<CollectionData>();
-		public override Mappings.Mappings Mappings => _mappings;
 		public override CustomInfoTags CustomInfoTags { get; } = new CustomInfoTags();
 		public override IEnumerable<Texture> Textures => _textures.Values;
 		public override IEnumerable<Sound.Sound> Sounds => _sounds.Values;
@@ -35,7 +34,6 @@ namespace VisualPinball.Engine.VPT.Table
 		private readonly Dictionary<string, Texture> _textures = new Dictionary<string, Texture>();
 		private readonly Dictionary<string, Sound.Sound> _sounds = new Dictionary<string, Sound.Sound>();
 
-		private Mappings.Mappings _mappings = new Mappings.Mappings();
 
 		public FileTableContainer(string name = "Table1")
 		{
@@ -45,11 +43,6 @@ namespace VisualPinball.Engine.VPT.Table
 		public FileTableContainer(BinaryReader reader)
 		{
 			Table = new Table(this, new TableData(reader));
-		}
-
-		public void SetMappings(Mappings.Mappings mappings)
-		{
-			_mappings = mappings;
 		}
 
 		/// <summary>
