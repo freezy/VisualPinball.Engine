@@ -19,7 +19,7 @@ using VisualPinball.Engine.Game.Engines;
 
 namespace VisualPinball.Unity
 {
-	public interface ILampDeviceAuthoring : IWireableAuthoring
+	public interface ILampDeviceAuthoring : IWireableAuthoring, IDeviceAuthoring<GamelogicEngineLamp>
 	{
 		/// <summary>
 		/// A list of available lamps supported by the lamp device

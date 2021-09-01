@@ -23,7 +23,7 @@ using VisualPinball.Engine.Game.Engines;
 
 namespace VisualPinball.Unity.Editor
 {
-	public class CoilListViewItemRenderer : ListViewItemRenderer<CoilListData, GamelogicEngineCoil>
+	public class CoilListViewItemRenderer : ListViewItemRenderer<CoilListData, GamelogicEngineCoil, bool>
 	{
 		protected override List<GamelogicEngineCoil> GleItems { get; }
 		protected override GamelogicEngineCoil InstantiateGleItem(string id) => new GamelogicEngineCoil(id);
@@ -124,8 +124,6 @@ namespace VisualPinball.Unity.Editor
 
 				case CoilDestination.Lamp:
 					cellRect = RenderIcon(coilListData, cellRect);
-					cellRect.x -= 25;
-					cellRect.width += 25;
 					EditorGUI.LabelField(cellRect, "Configure in Lamp Manager", new GUIStyle(GUI.skin.label) { fontStyle = FontStyle.Italic });
 					break;
 

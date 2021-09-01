@@ -21,26 +21,26 @@ using System;
 namespace VisualPinball.Engine.Game.Engines
 {
 	[Serializable]
-	public class GamelogicEngineLamp
+	public class GamelogicEngineLamp : IGamelogicEngineDeviceItem
 	{
-		public string Id;
-		public int InternalId;
-		public string Description;
-		public string DeviceHint;
-		public string DeviceItemHint;
-		public string MainLampIdOfGreen;
-		public string MainLampIdOfBlue;
+	public string Id { get; set; }
+	public int InternalId;
+	public string Description { get; set; }
+	public string DeviceHint;
+	public string DeviceItemHint;
+	public string MainLampIdOfGreen;
+	public string MainLampIdOfBlue;
 
-		public GamelogicEngineLamp(string id)
-		{
-			Id = id;
-			InternalId = int.TryParse(id, out var internalId) ? internalId : 0;
-		}
+	public GamelogicEngineLamp(string id)
+	{
+		Id = id;
+		InternalId = int.TryParse(id, out var internalId) ? internalId : 0;
+	}
 
-		public GamelogicEngineLamp(string id, int internalId)
-		{
-			Id = id;
-			InternalId = internalId;
-		}
+	public GamelogicEngineLamp(string id, int internalId)
+	{
+		Id = id;
+		InternalId = internalId;
+	}
 	}
 }

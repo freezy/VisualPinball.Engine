@@ -16,16 +16,17 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using UnityEditor;
 using UnityEngine;
 using VisualPinball.Engine.Game.Engines;
 
 namespace VisualPinball.Unity.Editor
 {
-	public class LampListViewItemRenderer
+	public class LampListViewItemRenderer : ListViewItemRenderer<LampListData, GamelogicEngineLamp, float>
 	{
-		private readonly string[] OPTIONS_LAMP_TYPE = { "Single On|Off", "Single Fading", "RGB Multi", "RGB" };
+		protected override List<GamelogicEngineLamp> GleItems => _gleLamps;
+		protected override GamelogicEngineLamp InstantiateGleItem(string id) => new GamelogicEngineLamp(id);
+		protected override Texture2D StatusIcon(float status) => Icons.Light(IconSize.Small, status > 0 ? IconColor.Orange : IconColor.Gray);
 
 		private enum LampListColumn
 		{
@@ -65,7 +66,7 @@ namespace VisualPinball.Unity.Editor
 					RenderDescription(data, cellRect, updateAction);
 					break;
 				case LampListColumn.Element:
-					RenderElement(tableAuthoring, data, cellRect, updateAction);
+					RenderDevice(data, cellRect, updateAction);
 					break;
 				case LampListColumn.Type:
 					RenderType(data, cellRect, updateAction);
@@ -104,88 +105,11 @@ namespace VisualPinball.Unity.Editor
 			EditorGUI.LabelField(cellRect, lampListData.Id);
 		}
 
-		private void RenderId(IReadOnlyDictionary<string, float> lampStatuses, ref string id, Action<string> setId, LampListData lampListData, Rect cellRect, Action<LampListData> updateAction)
+		protected override void RenderDeviceElement(LampListData listData, Rect cellRect, Action<LampListData> updateAction)
 		{
-			// add some padding
-			cellRect.x += 2;
-			cellRect.width -= 4;
-
-			var options = new List<string>(_gleLamps.Select(entry => entry.Id).ToArray());
-
-			if (options.Count > 0) {
-				options.Add("");
-			}
-			options.Add("Add...");
-
-			if (Application.isPlaying && lampStatuses != null) {
-				var iconRect = cellRect;
-				iconRect.width = 20;
-				cellRect.x += 25;
-				cellRect.width -= 25;
-				if (lampStatuses.ContainsKey(id)) {
-					var lampStatus = lampStatuses[id];
-					var icon = Icons.Light(IconSize.Small, lampStatus > 0 ? IconColor.Orange : IconColor.Gray);
-					var guiColor = GUI.color;
-					GUI.color = Color.clear;
-					EditorGUI.DrawTextureTransparent(iconRect, icon, ScaleMode.ScaleToFit);
-					GUI.color = guiColor;
-				}
-			}
-
-			EditorGUI.BeginChangeCheck();
-			var index = EditorGUI.Popup(cellRect, options.IndexOf(id), options.ToArray());
-			if (EditorGUI.EndChangeCheck()) {
-				if (index == options.Count - 1) {
-					PopupWindow.Show(cellRect, new ManagerListTextFieldPopup("ID", "", newId => {
-						if (!_gleLamps.Exists(entry => entry.Id == newId)) {
-							_gleLamps.Add(new GamelogicEngineLamp(newId));
-						}
-
-						setId(newId);
-						updateAction(lampListData);
-					}));
-
-				}
-				else {
-					setId(_gleLamps[index].Id);
-					updateAction(lampListData);
-				}
-			}
-		}
-
-		private void RenderDescription(LampListData lampListData, Rect cellRect, Action<LampListData> updateAction)
-		{
-			EditorGUI.BeginChangeCheck();
-			var value = EditorGUI.TextField(cellRect, lampListData.Description);
-			if (EditorGUI.EndChangeCheck()) {
-				lampListData.Description = value;
-				updateAction(lampListData);
-			}
-		}
-
-		private void RenderElement(TableAuthoring tableAuthoring, LampListData lampListData, Rect cellRect, Action<LampListData> updateAction)
-		{
-			var icon = GetIcon(lampListData);
-			if (icon != null) {
-				var iconRect = cellRect;
-				iconRect.width = 20;
-				var guiColor = GUI.color;
-				GUI.color = Color.clear;
-				EditorGUI.DrawTextureTransparent(iconRect, icon, ScaleMode.ScaleToFit);
-				GUI.color = guiColor;
-			}
-
-			cellRect.x += 25;
-			cellRect.width -= 25;
-
-			RenderPlayfieldElement(tableAuthoring, lampListData, cellRect, updateAction);
-		}
-
-		private void RenderPlayfieldElement(TableAuthoring tableAuthoring, LampListData lampListData, Rect cellRect, Action<LampListData> updateAction)
-		{
-			_devicePicker.Render(cellRect, lampListData.Device, item => {
-				lampListData.Device = item;
-				updateAction(lampListData);
+			_devicePicker.Render(cellRect, listData.Device, item => {
+				listData.Device = item;
+				updateAction(listData);
 			});
 		}
 
@@ -199,7 +123,7 @@ namespace VisualPinball.Unity.Editor
 			}
 		}
 
-		private void RenderRgb(IReadOnlyDictionary<string, float> lampStatuses, LampListData data, Rect cellRect, Action<LampListData> updateAction)
+		private void RenderRgb(Dictionary<string, float> lampStatuses, LampListData data, Rect cellRect, Action<LampListData> updateAction)
 		{
 			var pad = 2;
 			var width = cellRect.width / 3;
@@ -212,15 +136,11 @@ namespace VisualPinball.Unity.Editor
 			RenderId(lampStatuses, ref data.Blue, id => data.Blue = id, data, c, updateAction);
 		}
 
-		private Texture GetIcon(LampListData lampListData)
+		protected override Texture GetIcon(LampListData lampListData)
 		{
-			Texture2D icon = null;
-
-			if (lampListData.Device != null) {
-				icon = Icons.ByComponent(lampListData.Device, size: IconSize.Small);
-			}
-
-			return icon;
+			return lampListData.Device != null
+				? Icons.ByComponent(lampListData.Device, IconSize.Small)
+				: null;
 		}
 	}
 }

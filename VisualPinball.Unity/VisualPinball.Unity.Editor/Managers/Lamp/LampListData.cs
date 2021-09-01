@@ -14,15 +14,19 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+using VisualPinball.Engine.Game.Engines;
+
 namespace VisualPinball.Unity.Editor
 {
-	public class LampListData : IManagerListData
+	public class LampListData : IManagerListData, IDeviceListData<GamelogicEngineLamp>
 	{
 		[ManagerListColumn(Order = 0, HeaderName = "ID", Width = 135)]
 		public string Name => Id;
 
+		public int InternalId { get; set; }
+
 		[ManagerListColumn(Order = 1, HeaderName = "Description", Width = 150)]
-		public string Description;
+		public string Description { get; set; }
 
 		[ManagerListColumn(Order = 2, HeaderName = "Element", Width = 200)]
 		public string Element;
@@ -37,10 +41,12 @@ namespace VisualPinball.Unity.Editor
 		public string Id;
 		public string PlayfieldItem;
 		public ILampDeviceAuthoring Device;
-		public string DeviceItem;
+		public string DeviceItem { get; set; }
 		public LampSource Source;
 
 		public LampMapping LampMapping;
+		
+		public IDeviceAuthoring<GamelogicEngineLamp> DeviceComponent => Device;
 
 		public LampListData(LampMapping lampMapping)
 		{
