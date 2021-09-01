@@ -23,19 +23,19 @@ using VisualPinball.Engine.Game.Engines;
 
 namespace VisualPinball.Unity.Editor
 {
-	public abstract class ListViewItemRenderer<TListData, T> where TListData : IDeviceListData<T> where T : IGamelogicEngineDeviceItem
+	public abstract class ListViewItemRenderer<TListData, TDeviceITem, TStatus> where TListData : IDeviceListData<TDeviceITem> where TDeviceITem : IGamelogicEngineDeviceItem
 	{
-		protected abstract List<T> GleItems { get; }
+		protected abstract List<TDeviceITem> GleItems { get; }
 
-		protected abstract T InstantiateGleItem(string id);
+		protected abstract TDeviceITem InstantiateGleItem(string id);
 
-		protected abstract Texture2D StatusIcon(bool status);
+		protected abstract Texture2D StatusIcon(TStatus status);
 
 		protected abstract Texture GetIcon(TListData listData);
 
 		protected abstract void RenderDeviceElement(TListData listData, Rect cellRect, Action<TListData> updateAction);
 
-		protected void RenderId(Dictionary<string, bool> statuses, ref string id, Action<string> setId, TListData listData, Rect cellRect, Action<TListData> updateAction)
+		protected void RenderId(Dictionary<string, TStatus> statuses, ref string id, Action<string> setId, TListData listData, Rect cellRect, Action<TListData> updateAction)
 		{
 			const float idWidth = 25f;
 			const float padding = 2f;
@@ -130,7 +130,7 @@ namespace VisualPinball.Unity.Editor
 
 			var currentIndex = 0;
 			var labels = Array.Empty<string>();
-			IDeviceAuthoring<T> device = null;
+			IDeviceAuthoring<TDeviceITem> device = null;
 			if (listData.DeviceComponent != null) {
 				device = listData.DeviceComponent;
 				labels = device.AvailableDeviceItems.Select(s => s.Description).ToArray();

@@ -23,7 +23,7 @@ using VisualPinball.Engine.Game.Engines;
 
 namespace VisualPinball.Unity.Editor
 {
-	public class SwitchListViewItemRenderer : ListViewItemRenderer<SwitchListData, GamelogicEngineSwitch>
+	public class SwitchListViewItemRenderer : ListViewItemRenderer<SwitchListData, GamelogicEngineSwitch, bool>
 	{
 		protected override List<GamelogicEngineSwitch> GleItems => _gleSwitches;
 		protected override GamelogicEngineSwitch InstantiateGleItem(string id) => new GamelogicEngineSwitch(id);

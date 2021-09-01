@@ -14,6 +14,8 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+// ReSharper disable ConditionIsAlwaysTrueOrFalse
+
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -61,13 +63,12 @@ namespace VisualPinball.Unity
 		private const string SwCreateBall = "s_create_ball";
 		private const string SwRedBumper = "s_red_bumper";
 
-		public GamelogicEngineSwitch[] AvailableSwitches { get; } = {
-			new GamelogicEngineSwitch(SwLeftFlipper) { Description = "Left Flipper (button)", InputActionHint = InputConstants.ActionLeftFlipper },
-			new GamelogicEngineSwitch(SwRightFlipper) { Description = "Right Flipper (button)", InputActionHint = InputConstants.ActionRightFlipper },
-			new GamelogicEngineSwitch(SwLeftFlipperEos) { Description = "Left Flipper (EOS)", DeviceHint = "^(LeftFlipper|LFlipper|FlipperLeft|FlipperL)$"},
-			new GamelogicEngineSwitch(SwRightFlipperEos) { Description = "Right Flipper (EOS)", DeviceHint = "^(RightFlipper|RFlipper|FlipperRight|FlipperR)$"},
+		public GamelogicEngineSwitch[] AvailableSwitches => _availableSwitches.ToArray();
+		private readonly List<GamelogicEngineSwitch> _availableSwitches = new List<GamelogicEngineSwitch> {
+			new GamelogicEngineSwitch(SwLeftFlipper) { Description = "Left Flipper (Button)", InputActionHint = InputConstants.ActionLeftFlipper },
+			new GamelogicEngineSwitch(SwRightFlipper) { Description = "Right Flipper (Button)", InputActionHint = InputConstants.ActionRightFlipper },
 			new GamelogicEngineSwitch(SwTroughDrain) { Description = "Trough Drain", DeviceHint = "^Trough\\s*\\d?", DeviceItemHint = TroughAuthoring.EntrySwitchId },
-			new GamelogicEngineSwitch(SwTrough1) { Description = "Trough 1 (eject)", DeviceHint = "^Trough\\s*\\d?", DeviceItemHint = "1"},
+			new GamelogicEngineSwitch(SwTrough1) { Description = "Trough 1 (Eject)", DeviceHint = "^Trough\\s*\\d?", DeviceItemHint = "1"},
 			new GamelogicEngineSwitch(SwTrough2) { Description = "Trough 2", DeviceHint = "^Trough\\s*\\d?", DeviceItemHint = "2"},
 			new GamelogicEngineSwitch(SwTrough3) { Description = "Trough 3", DeviceHint = "^Trough\\s*\\d?", DeviceItemHint = "3"},
 			new GamelogicEngineSwitch(SwTrough4) { Description = "Trough 4", DeviceHint = "^Trough\\s*\\d?", DeviceItemHint = "4"},
@@ -83,7 +84,8 @@ namespace VisualPinball.Unity
 		private const string CoilTroughEntry = "c_trough_entry";
 		private const string CoilTroughEject = "c_trough_eject";
 
-		public GamelogicEngineCoil[] AvailableCoils { get; } = {
+		public GamelogicEngineCoil[] AvailableCoils => _availableCoils.ToArray();
+		private readonly List<GamelogicEngineCoil> _availableCoils = new List<GamelogicEngineCoil> {
 			new GamelogicEngineCoil(CoilLeftFlipperMain) { Description = "Left Flipper (Main)", DeviceHint = "^(LeftFlipper|LFlipper|FlipperLeft|FlipperL)$", DeviceItemHint = FlipperAuthoring.MainCoilItem },
 			new GamelogicEngineCoil(CoilLeftFlipperHold) { Description = "Left Flipper (Hold)", DeviceHint = "^(LeftFlipper|LFlipper|FlipperLeft|FlipperL)$", DeviceItemHint = FlipperAuthoring.HoldCoilItem },
 			new GamelogicEngineCoil(CoilRightFlipperMain) { Description = "Right Flipper (Main)", DeviceHint = "^(RightFlipper|RFlipper|FlipperRight|FlipperR)$", DeviceItemHint = FlipperAuthoring.MainCoilItem },
@@ -111,8 +113,7 @@ namespace VisualPinball.Unity
 
 		private const string LampRedBumper = "l_bumper";
 
-		public GamelogicEngineLamp[] AvailableLamps { get; } =
-		{
+		public GamelogicEngineLamp[] AvailableLamps { get; } = {
 			new GamelogicEngineLamp(GiSlingshotRightLower) { Description = "Right Slingshot (lower)", DeviceHint = "gi1$" },
 			new GamelogicEngineLamp(GiSlingshotRightUpper) { Description = "Right Slingshot (upper)", DeviceHint = "gi2$" },
 			new GamelogicEngineLamp(GiSlingshotLeftLower) { Description = "Left Slingshot (lower)", DeviceHint = "gi3$" },
@@ -144,6 +145,18 @@ namespace VisualPinball.Unity
 		public DefaultGamelogicEngine()
 		{
 			Logger.Info("New Gamelogic engine instantiated.");
+
+			if (DualWoundFlippers) {
+				_availableCoils.AddRange(new [] {
+					new GamelogicEngineCoil(CoilLeftFlipperHold) { Description = "Left Flipper (Hold)", DeviceHint = "^(LeftFlipper|LFlipper|FlipperLeft|FlipperL)$", DeviceItemHint = FlipperAuthoring.HoldCoilItem },
+					new GamelogicEngineCoil(CoilRightFlipperHold) { Description = "Right Flipper (Hold)", DeviceHint = "^(RightFlipper|RFlipper|FlipperRight|FlipperR)$", DeviceItemHint = FlipperAuthoring.HoldCoilItem },
+				});
+
+				_availableSwitches.AddRange(new [] {
+					new GamelogicEngineSwitch(SwLeftFlipperEos) { Description = "Left Flipper (EOS)", DeviceHint = "^(LeftFlipper|LFlipper|FlipperLeft|FlipperL)$"},
+					new GamelogicEngineSwitch(SwRightFlipperEos) { Description = "Right Flipper (EOS)", DeviceHint = "^(RightFlipper|RFlipper|FlipperRight|FlipperR)$"},
+				});
+			}
 		}
 
 		public void OnInit(Player player, TableApi tableApi, BallManager ballManager)

@@ -354,7 +354,7 @@ namespace VisualPinball.Unity
 
 				var description = string.IsNullOrEmpty(engineLamp.Description) ? string.Empty : engineLamp.Description;
 				var device = GuessLampDevice(lamps, engineLamp);
-				var deviceItem = GuessLampDeviceItem(engineLamp, device);
+				var deviceItem = device != null ? GuessLampDeviceItem(engineLamp, device) : null;
 
 				AddLamp(new LampMapping {
 					Id = engineLamp.Id,

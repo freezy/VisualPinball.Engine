@@ -87,6 +87,8 @@ namespace VisualPinball.Unity
 			new GamelogicEngineLamp(LampIdDefault),
 		};
 
+		public IEnumerable<GamelogicEngineLamp> AvailableDeviceItems => AvailableLamps;
+
 		#endregion
 
 		#region Transformation
