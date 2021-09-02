@@ -84,7 +84,7 @@ namespace VisualPinball.Engine.Test.Test
 			name = name ?? mesh.Name;
 			var objGroup = objFile.Groups.FirstOrDefault(g => g.Name == name);
 			if (objGroup == null) {
-				throw new Exception($"Cannot find group {name} in exported obj.");
+				throw new Exception($"Cannot find group \"{name}\" in exported obj.");
 			}
 			var i = 0;
 			foreach (var face in objGroup.Faces) {
