@@ -226,8 +226,7 @@ namespace VisualPinball.Engine.VPT.Flipper
 					}
 				}
 
-				rubberMesh.Transform(fullMatrix, null,
-					z => z * _data.RubberWidth + (height + _data.RubberHeight));
+				rubberMesh.Transform(fullMatrix, null, z => z * _data.RubberWidth + (height + _data.RubberHeight));
 				meshes[Rubber] = rubberMesh;
 			}
 

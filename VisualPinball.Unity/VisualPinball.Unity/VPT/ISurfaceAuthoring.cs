@@ -23,8 +23,6 @@ namespace VisualPinball.Unity
 	/// </summary>
 	public interface ISurfaceAuthoring : IIdentifiableItemAuthoring
 	{
-		string name { get; }
-
 		float Height(Vector2 pos);
 	}
 

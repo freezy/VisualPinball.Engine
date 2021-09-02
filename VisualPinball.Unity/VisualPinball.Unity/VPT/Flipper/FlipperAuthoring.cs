@@ -146,7 +146,9 @@ namespace VisualPinball.Unity
 
 		#region Transformation
 
-		public void OnSurfaceUpdated() => UpdateTransforms();
+		public override void OnPlayfieldHeightUpdated() => RebuildMeshes();
+
+		public void OnSurfaceUpdated() => RebuildMeshes();
 
 		public float PositionZ => SurfaceHeight(Surface, Position);
 
@@ -155,7 +157,7 @@ namespace VisualPinball.Unity
 			var t = transform;
 
 			// position
-			t.localPosition = new Vector3(Position.x, Position.y, PositionZ);
+			t.localPosition = new Vector3(Position.x, Position.y, 0);
 
 			// rotation
 			t.localEulerAngles = new Vector3(0, 0, StartAngle);
@@ -321,7 +323,8 @@ namespace VisualPinball.Unity
 
 		protected void OnDrawGizmosSelected()
 		{
-			var poly = GetEnclosingPolygon();
+			var height = PositionZ;
+			var poly = GetEnclosingPolygon(height: height);
 			if (poly == null) {
 				return;
 			}
@@ -342,14 +345,14 @@ namespace VisualPinball.Unity
 			if (IsLeft) {
 				(start, end) = (end, start);
 			}
-			AddPolyArc(arrow, Vector3.zero, FlipperRadiusMax - 20F, start, end );
+			AddPolyArc(arrow, Vector3.zero, FlipperRadiusMax - 20F, start, end, height: height);
 			for (int i = 1, j = 0; i < arrow.Count; j = i++) {
 				Gizmos.DrawLine(transform.TransformPoint(arrow[j]), transform.TransformPoint(arrow[i]));
 			}
 			var last = IsLeft ? arrow[0] : arrow[arrow.Count-1];
 			var tmpA = IsLeft ? start + 90F + 3F : end +90F - 3F;
-			var a = Quaternion.Euler(0, 0, tmpA) * new Vector3(0, -FlipperRadiusMax + 15F, 0F);
-			var b = Quaternion.Euler(0, 0, tmpA) * new Vector3(0F, -FlipperRadiusMax + 25F, 0F);
+			var a = Quaternion.Euler(0, 0, tmpA) * new Vector3(0, -FlipperRadiusMax + 15F, height);
+			var b = Quaternion.Euler(0, 0, tmpA) * new Vector3(0F, -FlipperRadiusMax + 25F, height);
 			Gizmos.DrawLine(transform.TransformPoint(last) , transform.TransformPoint(a));
 			Gizmos.DrawLine(transform.TransformPoint(last), transform.TransformPoint(b));
 			Gizmos.color = Color.white;
@@ -432,7 +435,7 @@ namespace VisualPinball.Unity
 		}
 
 		//! Add a circle arc on a given polygon (used for enclosing poygon)
-		public static void AddPolyArc(List<Vector3> poly, Vector3 center, float radius, float angleFrom, float angleTo, float stepSize = 1F)
+		public static void AddPolyArc(List<Vector3> poly, Vector3 center, float radius, float angleFrom, float angleTo, float stepSize = 1F, float height = 0f)
 		{
 			angleFrom %= 360;
 			angleTo %= 360;
@@ -457,12 +460,12 @@ namespace VisualPinball.Unity
 
 			float a = angleFrom;
 			for (int i = 0; i <= num; i++) {
-				poly.Add(new Vector3(center.x + Mathf.Cos(a) * radius, center.y + Mathf.Sin(a) * radius, 0F));
+				poly.Add(new Vector3(center.x + Mathf.Cos(a) * radius, center.y + Mathf.Sin(a) * radius, height));
 				a += stepA;
 			}
 		}
 
-		public List<Vector3> GetEnclosingPolygon(float margin = 0.0F, float stepSize = 5F)
+		public List<Vector3> GetEnclosingPolygon(float margin = 0.0F, float stepSize = 5F, float height = 0f)
 		{
 			var swing = EndAngle - StartAngle;
 			swing = Mathf.Abs(swing);
@@ -476,7 +479,7 @@ namespace VisualPinball.Unity
 			Vector3 tipLocalPos = Vector3.up * -length;
 
 			if (swing < 180F) {
-				AddPolyArc(ret, baseLocalPos, baseRadius, swing, 180F, stepSize);
+				AddPolyArc(ret, baseLocalPos, baseRadius, swing, 180F, stepSize, height);
 			} else {
 				if (IsLeft) {
 					ret.Add(Quaternion.Euler(0, 0, swing) * new Vector3(baseRadius, 0F, 0F));
@@ -484,10 +487,10 @@ namespace VisualPinball.Unity
 					ret.Add(new Vector3(-baseRadius, 0F, 0F));
 				}
 			}
-			AddPolyArc(ret, tipLocalPos, tipRadius, 180F, 270F, stepSize);
-			AddPolyArc(ret, baseLocalPos, length + tipRadius, 270F, 270F + swing, stepSize);
+			AddPolyArc(ret, tipLocalPos, tipRadius, 180F, 270F, stepSize, height);
+			AddPolyArc(ret, baseLocalPos, length + tipRadius, 270F, 270F + swing, stepSize, height);
 			Vector3 swingTipLocalPos = baseLocalPos + Quaternion.Euler(0, 0, swing) * new Vector3(0, -length, 0);
-			AddPolyArc(ret, swingTipLocalPos, tipRadius, 270F + swing, swing, stepSize);
+			AddPolyArc(ret, swingTipLocalPos, tipRadius, 270F + swing, swing, stepSize, height);
 
 			if (IsLeft) { // left
 				var rot = Quaternion.Euler(0, 0, -swing);
