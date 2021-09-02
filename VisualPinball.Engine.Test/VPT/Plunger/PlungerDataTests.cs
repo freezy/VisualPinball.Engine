@@ -81,7 +81,7 @@ namespace VisualPinball.Engine.Test.VPT.Plunger
 			data.Surface.Should().Be("Wall001");
 			data.TimerInterval.Should().Be(1332);
 			data.TipShape.Should().Be("0 .34; 2 .6; 3 .64; 5 .7; 7 .84; 8 .88; 9 .9; 11 .92; 12 .91; 35 .84");
-			data.Type.Should().Be(PlungerType.PlungerTypeModern); // flat plungers are converted to modern in vpe
+			data.Type.Should().Be(PlungerType.PlungerTypeCustom); // flat plungers are converted to modern in vpe
 			data.Width.Should().Be(22.3378f);
 			data.ZAdjust.Should().Be(1.223f);
 		}

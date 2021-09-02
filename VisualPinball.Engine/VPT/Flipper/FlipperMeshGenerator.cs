@@ -47,7 +47,7 @@ namespace VisualPinball.Engine.VPT.Flipper
 
 		public RenderObject? GetRenderObject(Table.Table table, string id, Origin origin, bool asRightHanded)
 		{
-			var height = table.GetSurfaceHeight(_data.Surface, _data.Center.X, _data.Center.Y);
+			var height = 0; //table.GetSurfaceHeight(_data.Surface, _data.Center.X, _data.Center.Y);
 			var meshes = GenerateMeshes(height);
 			var (preVertexMatrix, preNormalsMatrix) = GetPreMatrix(height, origin, asRightHanded);
 			switch (id) {
@@ -84,6 +84,8 @@ namespace VisualPinball.Engine.VPT.Flipper
 						return meshes[Rubber].Transform(preVertexMatrix, preNormalsMatrix);
 					}
 					break;
+				default:
+					throw new ArgumentException($"Unknown flipper mesh ID \"{id}\".", nameof(id));
 			}
 			return null;
 		}
@@ -91,8 +93,8 @@ namespace VisualPinball.Engine.VPT.Flipper
 		public RenderObjectGroup GetRenderObjects(Table.Table table, Origin origin, bool asRightHanded = true)
 		{
 			var height = table.GetSurfaceHeight(_data.Surface, _data.Center.X, _data.Center.Y);
-			var meshes = GenerateMeshes(table.GetSurfaceHeight(_data.Surface, _data.Center.X, _data.Center.Y));
-			var (preVertexMatrix, preNormalsMatrix) = GetPreMatrix(height, origin, asRightHanded);
+			var meshes = GenerateMeshes(height);
+			var (preVertexMatrix, preNormalsMatrix) = GetPreMatrix(0f, origin, asRightHanded);
 			var postMatrix = GetPostMatrix(table, origin);
 			var renderObjects = new List<RenderObject> {
 				new RenderObject(
