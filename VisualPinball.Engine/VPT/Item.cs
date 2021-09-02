@@ -35,8 +35,6 @@ namespace VisualPinball.Engine.VPT
 
 		public int Index { get; set; }
 		public int Version { get; set; }
-		public int ParentIndex { get; set; }
-		public int ParentVersion { get; set; }
 
 		public int StorageIndex { get => Data.StorageIndex; set => Data.StorageIndex = value; }
 

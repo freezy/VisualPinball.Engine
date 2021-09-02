@@ -18,6 +18,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEditor;
 using UnityEngine;
+using Material = VisualPinball.Engine.VPT.Material;
 
 namespace VisualPinball.Unity.Editor
 {
@@ -50,8 +51,7 @@ namespace VisualPinball.Unity.Editor
 			List<MaterialListData> data = new List<MaterialListData>();
 
 			// get row data for each material
-			for (int i = 0; i < _tableAuthoring.LegacyContainer.Materials.Count; i++) {
-				var mat = _tableAuthoring.LegacyContainer.Materials[i];
+			foreach (var mat in _tableAuthoring.LegacyContainer.TableData.Materials) {
 				data.Add(new MaterialListData { Material = mat, InUse = false }); // todo fix inUse
 			}
 
@@ -94,19 +94,21 @@ namespace VisualPinball.Unity.Editor
 
 		protected override void AddNewData(string undoName, string newName)
 		{
-			var newMat = new Engine.VPT.Material(newName);
-			_tableAuthoring.LegacyContainer.Materials.Add(newMat);
+			var newMat = new Material(newName);
+			_tableAuthoring.LegacyContainer.TableData.Materials = _tableAuthoring.LegacyContainer.TableData.Materials.Append(newMat).ToArray();
 		}
 
 		protected override void RemoveData(string undoName, MaterialListData data)
 		{
-			_tableAuthoring.LegacyContainer.Materials.Remove(data.Material);
+			var matList = _tableAuthoring.LegacyContainer.TableData.Materials.ToList();
+			matList.Remove(data.Material);
+			_tableAuthoring.LegacyContainer.TableData.Materials = matList.ToArray();
 		}
 
 		protected override void CloneData(string undoName, string newName, MaterialListData data)
 		{
 			var newMat = data.Material.Clone(newName);
-			_tableAuthoring.LegacyContainer.Materials.Add(newMat);
+			_tableAuthoring.LegacyContainer.TableData.Materials = _tableAuthoring.LegacyContainer.TableData.Materials.Append(newMat).ToArray();
 		}
 	}
 }

@@ -34,7 +34,6 @@ namespace VisualPinball.Engine.VPT.Table
 		private readonly Dictionary<string, Texture> _textures = new Dictionary<string, Texture>();
 		private readonly Dictionary<string, Sound.Sound> _sounds = new Dictionary<string, Sound.Sound>();
 
-
 		public FileTableContainer(string name = "Table1")
 		{
 			Table = new Table(this, new TableData { Name = name });
