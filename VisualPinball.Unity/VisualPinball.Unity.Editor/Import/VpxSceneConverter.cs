@@ -151,7 +151,8 @@ namespace VisualPinball.Unity.Editor
 			SaveData();
 
 			var prefabLookup = InstantiateGameItems();
-			UpdateGameItems(prefabLookup);
+			var componentLookup = UpdateGameItems(prefabLookup);
+			FinalizeGameItems(componentLookup);
 
 			FreeTextures();
 			SaveLegacyData();
@@ -240,7 +241,7 @@ namespace VisualPinball.Unity.Editor
 		/// is correctly applied.
 		/// </summary>
 		/// <param name="prefabLookup">A dictionary with lower-case names as key, and created prefabs as values.</param>
-		private void UpdateGameItems(Dictionary<string, IVpxPrefab> prefabLookup)
+		private Dictionary<string, IItemMainAuthoring> UpdateGameItems(Dictionary<string, IVpxPrefab> prefabLookup)
 		{
 			var componentLookup = prefabLookup.ToDictionary(x => x.Key, x => x.Value.MainComponent);
 			foreach (var prefab in prefabLookup.Values) {
@@ -275,9 +276,17 @@ namespace VisualPinball.Unity.Editor
 				prefab.PersistData();
 			}
 
-			// finally, convert non-renderables
+			return componentLookup;
+		}
+
+		private void FinalizeGameItems(Dictionary<string, IItemMainAuthoring> componentLookup)
+		{
+			// convert non-renderables
 			foreach (var item in _tableContainer.NonRenderables) {
-				InstantiateAndParentPrefab(item);
+				var prefab = InstantiateAndParentPrefab(item);
+				prefab.SetData();
+				prefab.SetReferencedData(_sourceTable, this, this, componentLookup);
+				prefab.FreeBinaryData();
 			}
 
 			// the playfield needs separate treatment

@@ -27,7 +27,7 @@ namespace VisualPinball.Unity
 	/// Note that this is only used at editor time so the switch manager
 	/// knows which switches to show. For runtime, see <see cref="IApiSwitchDevice"/>.
 	/// </remarks>
-	public interface ISwitchDeviceAuthoring : IIdentifiableItemAuthoring, IDeviceAuthoring<GamelogicEngineSwitch>
+	public interface ISwitchDeviceAuthoring : IItemMainAuthoring, IDeviceAuthoring<GamelogicEngineSwitch>
 	{
 		/// <summary>
 		/// A list of available switches supported by the switch device

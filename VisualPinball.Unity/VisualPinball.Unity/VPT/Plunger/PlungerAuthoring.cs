@@ -256,8 +256,7 @@ namespace VisualPinball.Unity
 			return Array.Empty<MonoBehaviour>();
 		}
 
-		public override PlungerData CopyDataTo(PlungerData data, string[] materialNames, string[] textureNames,
-			bool forExport)
+		public override PlungerData CopyDataTo(PlungerData data, string[] materialNames, string[] textureNames, bool forExport)
 		{
 			// name, geometry and position
 			data.Name = name;

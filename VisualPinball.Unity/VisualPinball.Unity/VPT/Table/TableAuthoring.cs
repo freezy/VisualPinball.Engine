@@ -110,8 +110,7 @@ namespace VisualPinball.Unity
 			return Array.Empty<MonoBehaviour>();
 		}
 
-		public override TableData CopyDataTo(TableData data, string[] materialNames, string[] textureNames,
-			bool forExport)
+		public override TableData CopyDataTo(TableData data, string[] materialNames, string[] textureNames, bool forExport)
 		{
 			// update the name
 			data.Name = name;

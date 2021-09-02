@@ -97,10 +97,14 @@ namespace VisualPinball.Unity
 
 		#endregion
 
+		#region Wiring
+
 		public SwitchDefault SwitchDefault => Type == TroughType.ModernOpto ? SwitchDefault.NormallyClosed : SwitchDefault.NormallyOpen;
 
 		IEnumerable<GamelogicEngineCoil> IDeviceAuthoring<GamelogicEngineCoil>.AvailableDeviceItems => AvailableCoils;
 		IEnumerable<GamelogicEngineSwitch> IDeviceAuthoring<GamelogicEngineSwitch>.AvailableDeviceItems => AvailableSwitches;
+
+		#endregion
 
 		/// <summary>
 		/// Time in milliseconds it takes the switch to enable when the ball enters.
@@ -145,6 +149,50 @@ namespace VisualPinball.Unity
 				}
 			}
 		}
+
+		#region Conversion
+
+		public override IEnumerable<MonoBehaviour> SetData(TroughData data)
+		{
+			var updatedComponents = new List<MonoBehaviour> { this };
+
+			Type = data.Type;
+			BallCount = data.BallCount;
+			SwitchCount = data.SwitchCount;
+			JamSwitch = data.JamSwitch;
+			RollTime = data.RollTime;
+			TransitionTime = data.TransitionTime;
+			KickTime = data.KickTime;
+
+			return updatedComponents;
+		}
+
+		public override IEnumerable<MonoBehaviour> SetReferencedData(TroughData data, Table table, IMaterialProvider materialProvider, ITextureProvider textureProvider, Dictionary<string, IItemMainAuthoring> components)
+		{
+			PlayfieldEntrySwitch = GetAuthoring<ITriggerAuthoring>(components, data.PlayfieldEntrySwitch);
+			PlayfieldExitKicker = GetAuthoring<KickerAuthoring>(components, data.PlayfieldExitKicker);
+
+			return Array.Empty<MonoBehaviour>();
+		}
+
+		public override TroughData CopyDataTo(TroughData data, string[] materialNames, string[] textureNames, bool forExport)
+		{
+			data.Name = name;
+
+			data.Type = Type;
+			data.PlayfieldEntrySwitch = PlayfieldEntrySwitch == null ? string.Empty : PlayfieldEntrySwitch.name;
+			data.PlayfieldExitKicker = PlayfieldExitKicker == null ? string.Empty : PlayfieldExitKicker.name;
+			data.BallCount = BallCount;
+			data.SwitchCount = SwitchCount;
+			data.JamSwitch = JamSwitch;
+			data.RollTime = RollTime;
+			data.TransitionTime = TransitionTime;
+			data.KickTime = KickTime;
+
+			return data;
+		}
+
+		#endregion
 
 		#region ISwitchableDevice
 
@@ -241,6 +289,17 @@ namespace VisualPinball.Unity
 
 		#endregion
 
+		#region Runtime
+
+		private void Awake()
+		{
+			GetComponentInParent<Player>().RegisterTrough(this);
+		}
+
+		#endregion
+
+		#region Editor Tools
+
 		private Vector3 EntryPos(float height)
 		{
 			return PlayfieldEntrySwitch == null
@@ -252,51 +311,6 @@ namespace VisualPinball.Unity
 			? Vector3.zero
 			: new Vector3(PlayfieldExitKicker.Position.x, PlayfieldExitKicker.Position.y, height);
 
-		private void Awake()
-		{
-			GetComponentInParent<Player>().RegisterTrough(this);
-		}
-
-		public override IEnumerable<MonoBehaviour> SetData(TroughData data)
-		{
-			var updatedComponents = new List<MonoBehaviour> { this };
-
-			Type = data.Type;
-			BallCount = data.BallCount;
-			SwitchCount = data.SwitchCount;
-			JamSwitch = data.JamSwitch;
-			RollTime = data.RollTime;
-			TransitionTime = data.TransitionTime;
-			KickTime = data.KickTime;
-
-			return updatedComponents;
-		}
-
-		public override IEnumerable<MonoBehaviour> SetReferencedData(TroughData data, Table table, IMaterialProvider materialProvider, ITextureProvider textureProvider, Dictionary<string, IItemMainAuthoring> components)
-		{
-			PlayfieldEntrySwitch = GetAuthoring<TriggerAuthoring>(components, data.PlayfieldEntrySwitch);
-			PlayfieldExitKicker = GetAuthoring<KickerAuthoring>(components, data.PlayfieldExitKicker);
-
-			return Array.Empty<MonoBehaviour>();
-		}
-
-		public override TroughData CopyDataTo(TroughData data, string[] materialNames, string[] textureNames,
-			bool forExport)
-		{
-			data.Name = name;
-
-			data.Type = Type;
-			data.PlayfieldEntrySwitch = PlayfieldEntrySwitch == null ? string.Empty : PlayfieldEntrySwitch.name;
-			data.PlayfieldExitKicker = PlayfieldExitKicker == null ? string.Empty : PlayfieldExitKicker.name;
-			data.BallCount = BallCount;
-			data.SwitchCount = SwitchCount;
-			data.JamSwitch = JamSwitch;
-			data.RollTime = RollTime;
-			data.TransitionTime = TransitionTime;
-			data.KickTime = KickTime;
-
-			return data;
-		}
 
 		private void OnDrawGizmosSelected()
 		{
@@ -322,5 +336,7 @@ namespace VisualPinball.Unity
 			var pos = (EntryPos(75f) + ExitPos(75f)) / 2;
 			transform.localPosition = pos;
 		}
+
+		#endregion
 	}
 }
