@@ -58,13 +58,13 @@ namespace VisualPinball.Unity.Editor
 {
 	public class VpxSceneConverter : ITextureProvider, IMaterialProvider, IMeshProvider
 	{
-		private readonly FileTableContainer _tableContainer;
+		private readonly FileTableContainer _sourceContainer;
 		private readonly Table _sourceTable;
 		private readonly ConvertOptions _options;
 
 		private GameObject _tableGo;
-		private TableAuthoring _tableAuthoring;
-		private PlayfieldAuthoring _playfieldComp;
+		private TableAuthoring _tableComponent;
+		private PlayfieldAuthoring _playfieldComponent;
 
 		private GameObject _playfieldGo;
 
@@ -83,38 +83,36 @@ namespace VisualPinball.Unity.Editor
 		private readonly IPatcher _patcher;
 		private bool _applyPatch = true;
 
-		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
-
 		/// <summary>
 		/// Creates a new converter for a new table
 		/// </summary>
-		/// <param name="tableContainer">Source table container</param>
+		/// <param name="sourceContainer">Source table container</param>
 		/// <param name="fileName">File name of the file being imported</param>
 		/// <param name="options">Optional convert options</param>
-		public VpxSceneConverter(FileTableContainer tableContainer, string fileName = "", ConvertOptions options = null)
+		public VpxSceneConverter(FileTableContainer sourceContainer, string fileName = "", ConvertOptions options = null)
 		{
-			_tableContainer = tableContainer;
-			_sourceTable = tableContainer.Table;
+			_sourceContainer = sourceContainer;
+			_sourceTable = sourceContainer.Table;
 			_patcher = PatcherManager.GetPatcher();
-			_patcher?.Set(tableContainer, fileName);
+			_patcher?.Set(sourceContainer, fileName);
 			_options = options ?? new ConvertOptions();
 		}
 
 		/// <summary>
 		/// Creates a converter based on an existing table in the scene.
 		/// </summary>
-		/// <param name="tableAuthoring">Existing component</param>
-		public VpxSceneConverter(TableAuthoring tableAuthoring)
+		/// <param name="tableComponent">Existing component</param>
+		public VpxSceneConverter(TableAuthoring tableComponent)
 		{
 			_options = new ConvertOptions();
-			_tableGo = tableAuthoring.gameObject;
+			_tableGo = tableComponent.gameObject;
 			var playfieldAuthoring = _tableGo.GetComponentInChildren<PlayfieldAuthoring>();
 			if (!playfieldAuthoring) {
 				throw new InvalidOperationException("Cannot find playfield hierarchy.");
 			}
 			_playfieldGo = playfieldAuthoring.gameObject;
-			_tableAuthoring = tableAuthoring;
-			_sourceTable = new Table(_tableAuthoring.TableContainer, new TableData());
+			_tableComponent = tableComponent;
+			_sourceTable = new Table(_tableComponent.TableContainer, new TableData());
 
 			// get materials in scene
 			var guids = AssetDatabase.FindAssets("t:Material");
@@ -143,7 +141,7 @@ namespace VisualPinball.Unity.Editor
 			CreateRootHierarchy(tableName);
 			CreateFileHierarchy();
 
-			_tableAuthoring.LegacyContainer = ScriptableObject.CreateInstance<LegacyContainer>();
+			_tableComponent.LegacyContainer = ScriptableObject.CreateInstance<LegacyContainer>();
 
 			ExtractPhysicsMaterials();
 			ExtractTextures();
@@ -164,42 +162,43 @@ namespace VisualPinball.Unity.Editor
 
 		private void SaveData()
 		{
-			foreach (var key in _tableContainer.TableInfo.Keys) {
-				_tableAuthoring.TableInfo[key] = _tableContainer.TableInfo[key];
+			foreach (var key in _sourceContainer.TableInfo.Keys) {
+				_tableComponent.TableInfo[key] = _sourceContainer.TableInfo[key];
 			}
-			_tableAuthoring.CustomInfoTags = _tableContainer.CustomInfoTags;
-			_tableAuthoring.Collections = _tableContainer.Collections;
+			_tableComponent.CustomInfoTags = _sourceContainer.CustomInfoTags;
+			_tableComponent.Collections = _sourceContainer.Collections;
 		}
 
 		private void SaveLegacyData()
 		{
-			_tableContainer.WriteDataToDict<Bumper, BumperData>(_tableAuthoring.LegacyContainer.Bumpers);
-			_tableContainer.WriteDataToDict<Flipper, FlipperData>(_tableAuthoring.LegacyContainer.Flippers);
-			_tableContainer.WriteDataToDict<Gate, GateData>(_tableAuthoring.LegacyContainer.Gates);
-			_tableContainer.WriteDataToDict<HitTarget, HitTargetData>(_tableAuthoring.LegacyContainer.HitTargets);
-			_tableContainer.WriteDataToDict<Kicker, KickerData>(_tableAuthoring.LegacyContainer.Kickers);
-			_tableContainer.WriteDataToDict<Light, LightData>(_tableAuthoring.LegacyContainer.Lights);
-			_tableContainer.WriteDataToDict<Plunger, PlungerData>(_tableAuthoring.LegacyContainer.Plungers);
-			_tableContainer.WriteDataToDict<Primitive, PrimitiveData>(_tableAuthoring.LegacyContainer.Primitives);
-			_tableContainer.WriteDataToDict<Ramp, RampData>(_tableAuthoring.LegacyContainer.Ramps);
-			_tableContainer.WriteDataToDict<Rubber, RubberData>(_tableAuthoring.LegacyContainer.Rubbers);
-			_tableContainer.WriteDataToDict<Spinner, SpinnerData>(_tableAuthoring.LegacyContainer.Spinners);
-			_tableContainer.WriteDataToDict<Surface, SurfaceData>(_tableAuthoring.LegacyContainer.Surfaces);
-			_tableContainer.WriteDataToDict<Trigger, TriggerData>(_tableAuthoring.LegacyContainer.Triggers);
-			_tableContainer.WriteDataToDict<Bumper, BumperData>(_tableAuthoring.LegacyContainer.Bumpers);
+			_tableComponent.LegacyContainer.TableData = _sourceContainer.Table.Data;
+			_sourceContainer.WriteDataToDict<Bumper, BumperData>(_tableComponent.LegacyContainer.Bumpers);
+			_sourceContainer.WriteDataToDict<Flipper, FlipperData>(_tableComponent.LegacyContainer.Flippers);
+			_sourceContainer.WriteDataToDict<Gate, GateData>(_tableComponent.LegacyContainer.Gates);
+			_sourceContainer.WriteDataToDict<HitTarget, HitTargetData>(_tableComponent.LegacyContainer.HitTargets);
+			_sourceContainer.WriteDataToDict<Kicker, KickerData>(_tableComponent.LegacyContainer.Kickers);
+			_sourceContainer.WriteDataToDict<Light, LightData>(_tableComponent.LegacyContainer.Lights);
+			_sourceContainer.WriteDataToDict<Plunger, PlungerData>(_tableComponent.LegacyContainer.Plungers);
+			_sourceContainer.WriteDataToDict<Primitive, PrimitiveData>(_tableComponent.LegacyContainer.Primitives);
+			_sourceContainer.WriteDataToDict<Ramp, RampData>(_tableComponent.LegacyContainer.Ramps);
+			_sourceContainer.WriteDataToDict<Rubber, RubberData>(_tableComponent.LegacyContainer.Rubbers);
+			_sourceContainer.WriteDataToDict<Spinner, SpinnerData>(_tableComponent.LegacyContainer.Spinners);
+			_sourceContainer.WriteDataToDict<Surface, SurfaceData>(_tableComponent.LegacyContainer.Surfaces);
+			_sourceContainer.WriteDataToDict<Trigger, TriggerData>(_tableComponent.LegacyContainer.Triggers);
+			_sourceContainer.WriteDataToDict<Bumper, BumperData>(_tableComponent.LegacyContainer.Bumpers);
 
-			_tableAuthoring.LegacyContainer.Decals = _tableContainer.GetAllData<Decal, DecalData>();
-			_tableAuthoring.LegacyContainer.DispReels = _tableContainer.GetAllData<DispReel, DispReelData>();
-			_tableAuthoring.LegacyContainer.Flashers = _tableContainer.GetAllData<Flasher, FlasherData>();
-			_tableAuthoring.LegacyContainer.LightSeqs = _tableContainer.GetAllData<LightSeq, LightSeqData>();
-			_tableAuthoring.LegacyContainer.TextBoxes = _tableContainer.GetAllData<TextBox, TextBoxData>();
-			_tableAuthoring.LegacyContainer.Timers = _tableContainer.GetAllData<Timer, TimerData>();
+			_tableComponent.LegacyContainer.Decals = _sourceContainer.GetAllData<Decal, DecalData>();
+			_tableComponent.LegacyContainer.DispReels = _sourceContainer.GetAllData<DispReel, DispReelData>();
+			_tableComponent.LegacyContainer.Flashers = _sourceContainer.GetAllData<Flasher, FlasherData>();
+			_tableComponent.LegacyContainer.LightSeqs = _sourceContainer.GetAllData<LightSeq, LightSeqData>();
+			_tableComponent.LegacyContainer.TextBoxes = _sourceContainer.GetAllData<TextBox, TextBoxData>();
+			_tableComponent.LegacyContainer.Timers = _sourceContainer.GetAllData<Timer, TimerData>();
 
 			var path = Path.Combine(_assetsTableRoot, "Legacy Data.asset");
 			if (File.Exists(path)) {
 				File.Delete(path);
 			}
-			AssetDatabase.CreateAsset(_tableAuthoring.LegacyContainer, path);
+			AssetDatabase.CreateAsset(_tableComponent.LegacyContainer, path);
 		}
 
 		/// <summary>
@@ -210,7 +209,7 @@ namespace VisualPinball.Unity.Editor
 		private Dictionary<string, IVpxPrefab> InstantiateGameItems()
 		{
 			var prefabLookup = new Dictionary<string, IVpxPrefab>();
-			var renderables = _tableContainer.Renderables.ToArray();
+			var renderables = _sourceContainer.Renderables.ToArray();
 
 			try {
 				// pause asset database refreshing
@@ -282,7 +281,7 @@ namespace VisualPinball.Unity.Editor
 		private void FinalizeGameItems(Dictionary<string, IItemMainAuthoring> componentLookup)
 		{
 			// convert non-renderables
-			foreach (var item in _tableContainer.NonRenderables) {
+			foreach (var item in _sourceContainer.NonRenderables) {
 				var prefab = InstantiateAndParentPrefab(item);
 				prefab.SetData();
 				prefab.SetReferencedData(_sourceTable, this, this, componentLookup);
@@ -290,7 +289,7 @@ namespace VisualPinball.Unity.Editor
 			}
 
 			// the playfield needs separate treatment
-			_playfieldComp.SetReferencedData(_sourceTable.Data, _sourceTable, this, this, null);
+			_playfieldComponent.SetReferencedData(_sourceTable.Data, _sourceTable, this, this, null);
 
 			// yes, really, persist changes..
 			EditorSceneManager.MarkSceneDirty(SceneManager.GetActiveScene());
@@ -387,7 +386,7 @@ namespace VisualPinball.Unity.Editor
 				// pause asset database refreshing
 				AssetDatabase.StartAssetEditing();
 
-				foreach (var texture in _tableContainer.Textures) {
+				foreach (var texture in _sourceContainer.Textures) {
 					texture.WriteAsAsset(_assetsTextures, _options.SkipExistingTextures);
 				}
 
@@ -398,7 +397,7 @@ namespace VisualPinball.Unity.Editor
 			}
 
 			// now they are in the asset database, we can load them.
-			foreach (var texture in _tableContainer.Textures) {
+			foreach (var texture in _sourceContainer.Textures) {
 				var path = texture.GetUnityFilename(_assetsTextures, texture.IsWebp ? ".png" : null);
 				var unityTexture = texture.IsHdr
 					? (Texture)AssetDatabase.LoadAssetAtPath<Cubemap>(path) ?? AssetDatabase.LoadAssetAtPath<Texture2D>(path)
@@ -408,7 +407,7 @@ namespace VisualPinball.Unity.Editor
 				if (texture.IsWebp) {
 					legacyTexture.OriginalPath = texture.GetUnityFilename(_assetsTextures);
 				}
-				_tableAuthoring.LegacyContainer.Textures.Add(legacyTexture);
+				_tableComponent.LegacyContainer.Textures.Add(legacyTexture);
 			}
 
 			// todo lazy load and don't import local textures once they are in the prefabs
@@ -421,7 +420,7 @@ namespace VisualPinball.Unity.Editor
 
 		private void FreeTextures()
 		{
-			foreach (var texture in _tableContainer.Textures) {
+			foreach (var texture in _sourceContainer.Textures) {
 				texture.Data.FreeBinaryData();
 			}
 		}
@@ -432,7 +431,7 @@ namespace VisualPinball.Unity.Editor
 				// pause asset database refreshing
 				AssetDatabase.StartAssetEditing();
 
-				foreach (var sound in _tableContainer.Sounds) {
+				foreach (var sound in _sourceContainer.Sounds) {
 					var path = sound.GetUnityFilename(_assetsSounds);
 					if (_options.SkipExistingSounds && File.Exists(path)) {
 						continue;
@@ -448,9 +447,9 @@ namespace VisualPinball.Unity.Editor
 			}
 
 			// now they are in the asset database, we can load them.
-			foreach (var sound in _tableContainer.Sounds) {
+			foreach (var sound in _sourceContainer.Sounds) {
 				var unitySound = AssetDatabase.LoadAssetAtPath<AudioClip>(sound.GetUnityFilename(_assetsSounds));
-				_tableAuthoring.LegacyContainer.Sounds.Add(new LegacySound(sound.Data, unitySound));
+				_tableComponent.LegacyContainer.Sounds.Add(new LegacySound(sound.Data, unitySound));
 			}
 		}
 
@@ -461,7 +460,7 @@ namespace VisualPinball.Unity.Editor
 			var dga = _tableGo.AddComponent<DefaultGamelogicEngine>();
 
 			// add trough if none available
-			if (!_tableContainer.HasTrough) {
+			if (!_sourceContainer.HasTrough) {
 				CreateTrough();
 			}
 		}
@@ -473,14 +472,14 @@ namespace VisualPinball.Unity.Editor
 				SwitchCount = 4,
 				Type = TroughType.ModernMech
 			};
-			if (_tableContainer.Has<Kicker>("BallRelease")) {
+			if (_sourceContainer.Has<Kicker>("BallRelease")) {
 				troughData.PlayfieldExitKicker = "BallRelease";
 			}
-			if (_tableContainer.Has<Kicker>("Drain")) {
+			if (_sourceContainer.Has<Kicker>("Drain")) {
 				troughData.PlayfieldEntrySwitch = "Drain";
 			}
 			var item = new Trough(troughData) {
-				StorageIndex = _tableContainer.ItemDatas.Count()
+				StorageIndex = _sourceContainer.ItemDatas.Count()
 			};
 
 			InstantiateAndParentPrefab(item);
@@ -532,7 +531,7 @@ namespace VisualPinball.Unity.Editor
 			} else {
 				tableName = tableName
 					.Replace("%TABLENAME%", _sourceTable.Name)
-					.Replace("%INFONAME%", _tableContainer.InfoName);
+					.Replace("%INFONAME%", _sourceContainer.InfoName);
 			}
 
 			_tableGo = new GameObject(tableName);
@@ -540,21 +539,21 @@ namespace VisualPinball.Unity.Editor
 			var backglassGo = new GameObject("Backglass");
 			var cabinetGo = new GameObject("Cabinet");
 
-			_tableAuthoring = _tableGo.AddComponent<TableAuthoring>();
-			_tableAuthoring.SetData(_sourceTable.Data);
+			_tableComponent = _tableGo.AddComponent<TableAuthoring>();
+			_tableComponent.SetData(_sourceTable.Data);
 
 			_playfieldGo.transform.SetParent(_tableGo.transform, false);
 			backglassGo.transform.SetParent(_tableGo.transform, false);
 			cabinetGo.transform.SetParent(_tableGo.transform, false);
 
-			_playfieldComp = _playfieldGo.AddComponent<PlayfieldAuthoring>();
+			_playfieldComponent = _playfieldGo.AddComponent<PlayfieldAuthoring>();
 			_playfieldGo.AddComponent<PlayfieldColliderAuthoring>();
 			_playfieldGo.AddComponent<PlayfieldMeshAuthoring>();
 			_playfieldGo.AddComponent<MeshFilter>();
 			_playfieldGo.transform.localRotation = PlayfieldAuthoring.GlobalRotation;
 			_playfieldGo.transform.localPosition = new Vector3(-_sourceTable.Width / 2 * PlayfieldAuthoring.GlobalScale, 0f, _sourceTable.Height / 2 * PlayfieldAuthoring.GlobalScale);
 			_playfieldGo.transform.localScale = new Vector3(PlayfieldAuthoring.GlobalScale, PlayfieldAuthoring.GlobalScale, PlayfieldAuthoring.GlobalScale);
-			_playfieldComp.SetData(_sourceTable.Data);
+			_playfieldComponent.SetData(_sourceTable.Data);
 		}
 
 		private GameObject GetGroupParent(IItem item)
@@ -638,7 +637,7 @@ namespace VisualPinball.Unity.Editor
 				return _physicalMaterials[name];
 			}
 
-			var material = _tableAuthoring.LegacyContainer.Materials.FirstOrDefault(m => string.Equals(m.Name, name, StringComparison.CurrentCultureIgnoreCase));
+			var material = _tableComponent.LegacyContainer.TableData.Materials.FirstOrDefault(m => string.Equals(m.Name, name, StringComparison.CurrentCultureIgnoreCase));
 			if (material != null) {
 				var path = SavePhysicsMaterial(material);
 				_physicalMaterials[material.Name] = AssetDatabase.LoadAssetAtPath<PhysicsMaterial>(path);

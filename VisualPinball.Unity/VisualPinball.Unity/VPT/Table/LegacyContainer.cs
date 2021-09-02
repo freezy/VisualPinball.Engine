@@ -39,6 +39,7 @@ using VisualPinball.Engine.VPT.Rubber;
 using VisualPinball.Engine.VPT.Sound;
 using VisualPinball.Engine.VPT.Spinner;
 using VisualPinball.Engine.VPT.Surface;
+using VisualPinball.Engine.VPT.Table;
 using VisualPinball.Engine.VPT.TextBox;
 using VisualPinball.Engine.VPT.Timer;
 using VisualPinball.Engine.VPT.Trigger;
@@ -54,6 +55,7 @@ namespace VisualPinball.Unity
 	[Serializable]
 	public class LegacyContainer : ScriptableObject
 	{
+		public TableData TableData;
 		public SerializableDictionary<string, BumperData> Bumpers = new SerializableDictionary<string, BumperData>();
 		public SerializableDictionary<string, FlipperData> Flippers = new SerializableDictionary<string, FlipperData>();
 		public SerializableDictionary<string, GateData> Gates = new SerializableDictionary<string, GateData>();
@@ -76,7 +78,6 @@ namespace VisualPinball.Unity
 		public TimerData[] Timers;
 		public List<LegacyTexture> Textures = new List<LegacyTexture>();
 		public List<LegacySound> Sounds = new List<LegacySound>();
-		public List<Material> Materials = new List<Material>();
 	}
 
 	[Serializable]

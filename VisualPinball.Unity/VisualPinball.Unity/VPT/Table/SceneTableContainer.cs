@@ -54,7 +54,7 @@ namespace VisualPinball.Unity
 {
 	public class SceneTableContainer : TableContainer
 	{
-		public override Table Table => _table ??= new Table(_tableAuthoring.TableContainer, new TableData());
+		public override Table Table => _table ??= new Table(_tableAuthoring.TableContainer, _tableAuthoring.LegacyContainer.TableData);
 		public override Dictionary<string, string> TableInfo => _tableAuthoring.TableInfo;
 		public override List<CollectionData> Collections => _tableAuthoring.Collections;
 		[Obsolete("Use MappingConfig")]
@@ -74,7 +74,7 @@ namespace VisualPinball.Unity
 			.Select(t => t.Name)
 			.ToArray();
 
-		private string[] MaterialNames => _tableAuthoring.LegacyContainer.Materials
+		private string[] MaterialNames => _tableAuthoring.LegacyContainer.TableData.Materials
 			.Select(m => m.Name)
 			.ToArray();
 
@@ -96,6 +96,7 @@ namespace VisualPinball.Unity
 		public SceneTableContainer(TableAuthoring ta)
 		{
 			_tableAuthoring = ta;
+
 		}
 
 		public void Refresh(bool forExport = false)
@@ -104,7 +105,11 @@ namespace VisualPinball.Unity
 			Clear();
 			WalkChildren(_tableAuthoring.transform, node => RefreshChild(node, forExport));
 
-			foreach (var material in _tableAuthoring.LegacyContainer.Materials) {
+			_tableAuthoring.CopyDataTo(_tableAuthoring.LegacyContainer.TableData, MaterialNames, TextureNames, forExport);
+			var playfieldAuthoring = _tableAuthoring.GetComponentInChildren<PlayfieldAuthoring>();
+			playfieldAuthoring.CopyDataTo(_tableAuthoring.LegacyContainer.TableData, MaterialNames, TextureNames, forExport);
+
+			foreach (var material in _tableAuthoring.LegacyContainer.TableData.Materials) {
 				_materials[material.Name.ToLower()] = material;
 			}
 
@@ -142,12 +147,13 @@ namespace VisualPinball.Unity
 			}
 
 			// count stuff and update table data
-			Table.Data.NumCollections = Collections.Count;
-			Table.Data.NumFonts = 0;                     // todo handle fonts
-			Table.Data.NumGameItems = RecomputeGameItemStorageIDs(ItemDatas);
-			Table.Data.NumVpeGameItems = RecomputeGameItemStorageIDs(VpeItemDatas);
-			Table.Data.NumTextures = _tableAuthoring.LegacyContainer.Textures.Count(t => t.IsSet);
-			Table.Data.NumSounds = _tableAuthoring.LegacyContainer.Sounds.Count(t => t.IsSet);
+			_tableAuthoring.LegacyContainer.TableData.NumCollections = Collections.Count;
+			_tableAuthoring.LegacyContainer.TableData.NumFonts = 0;                     // todo handle fonts
+			_tableAuthoring.LegacyContainer.TableData.NumGameItems = RecomputeGameItemStorageIDs(ItemDatas);
+			_tableAuthoring.LegacyContainer.TableData.NumVpeGameItems = RecomputeGameItemStorageIDs(VpeItemDatas);
+			_tableAuthoring.LegacyContainer.TableData.NumTextures = _tableAuthoring.LegacyContainer.Textures.Count(t => t.IsSet);
+			_tableAuthoring.LegacyContainer.TableData.NumSounds = _tableAuthoring.LegacyContainer.Sounds.Count(t => t.IsSet);
+			_tableAuthoring.LegacyContainer.TableData.NumMaterials = _tableAuthoring.LegacyContainer.TableData.Materials.Length;
 
 			// add/merge physical materials from asset folder
 			#if UNITY_EDITOR
@@ -165,9 +171,9 @@ namespace VisualPinball.Unity
 				matTable.Friction = matAsset.Friction;
 				matTable.ScatterAngle = matAsset.ScatterAngle;
 			}
+			_tableAuthoring.LegacyContainer.TableData.Materials = _materials.Values.ToArray();
+			_tableAuthoring.LegacyContainer.TableData.NumMaterials = _materials.Count;
 			#endif
-
-			Table.Data.NumMaterials = _materials.Count;
 		}
 
 		private static int RecomputeGameItemStorageIDs(IEnumerable<ItemData> datas)
