@@ -42,11 +42,11 @@ namespace VisualPinball.Engine.VPT.Rubber
 
 		public RenderObject GetRenderObject(Table.Table table, RubberData rubberData)
 		{
-			var mesh = GetMesh(table.TableHeight, table.GetDetailLevel());
-			var (postVertexMatrix, postNormalsMatrix) = GetPostMatrix(table.TableHeight);
+			var mesh = GetTransformedMesh(table.TableHeight, table.GetDetailLevel());
+			mesh.Name = rubberData.Name;
 			return new RenderObject(
 				rubberData.Name,
-				mesh.Transform(postVertexMatrix, postNormalsMatrix),
+				mesh,
 				new PbrMaterial(table.GetMaterial(rubberData.Material), table.GetTexture(rubberData.Image)),
 				rubberData.IsVisible
 			);
@@ -54,22 +54,17 @@ namespace VisualPinball.Engine.VPT.Rubber
 
 		public RenderObjectGroup GetRenderObjects(Table.Table table, Origin origin, RubberData rubberData)
 		{
-			var mesh = GetMesh(table.TableHeight, table.GetDetailLevel());
-			//var (preVertexMatrix, preNormalsMatrix) = GetPreMatrix(table, origin, asRightHanded);
-			var (preVertexMatrix, preNormalsMatrix) = GetPostMatrix(table.TableHeight);
+			var mesh = GetTransformedMesh(table.TableHeight, table.GetDetailLevel());
+			mesh.Name = rubberData.Name;
 			var postMatrix = GetPostMatrix(table, origin);
 			return new RenderObjectGroup(rubberData.Name, "Rubbers", postMatrix, new RenderObject(
 				rubberData.Name,
-				mesh.Transform(preVertexMatrix, preNormalsMatrix),
+				mesh,
 				new PbrMaterial(table.GetMaterial(rubberData.Material), table.GetTexture(rubberData.Image)),
 				rubberData.IsVisible
 			));
 		}
-
-		protected override Tuple<Matrix3D, Matrix3D?> GetTransformationMatrix(float height)
-		{
-			return new Tuple<Matrix3D, Matrix3D?>(Matrix3D.Identity, Matrix3D.Identity);
-		}
+		protected override Tuple<Matrix3D, Matrix3D?> GetTransformationMatrix(float height) =>  new Tuple<Matrix3D, Matrix3D?>(Matrix3D.Identity, Matrix3D.Identity);
 
 		private Tuple<Matrix3D, Matrix3D?> GetPostMatrix(float playfieldHeight)
 		{
@@ -91,6 +86,13 @@ namespace VisualPinball.Engine.VPT.Rubber
 			vertMatrix.Multiply(tempMat);
 
 			return new Tuple<Matrix3D, Matrix3D?>(vertMatrix, fullMatrix);
+		}
+
+		public Mesh GetTransformedMesh(float playfieldHeight, int detailLevel)
+		{
+			var mesh = GetMesh(playfieldHeight, detailLevel);
+			var (postVertexMatrix, postNormalsMatrix) = GetPostMatrix(playfieldHeight);
+			return mesh.Transform(postVertexMatrix, postNormalsMatrix);
 		}
 
 		public Mesh GetMesh(float playfieldHeight, int detailLevel, int acc = -1, bool createHitShape = false)
