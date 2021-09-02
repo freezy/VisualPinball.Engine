@@ -251,8 +251,7 @@ namespace VisualPinball.Unity
 		}
 
 
-		public override BumperData CopyDataTo(BumperData data, string[] materialNames, string[] textureNames,
-			bool forExport)
+		public override BumperData CopyDataTo(BumperData data, string[] materialNames, string[] textureNames, bool forExport)
 		{
 			// name and transforms
 			data.Name = name;

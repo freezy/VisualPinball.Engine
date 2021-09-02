@@ -89,6 +89,12 @@ namespace VisualPinball.Engine.VPT.Table
 			return this;
 		}
 
+		public TableBuilder AddTrough(TroughData data)
+		{
+			_tableContainer.Add(new Trough.Trough(data));
+			return this;
+		}
+
 		public TableBuilder AddLight(string name)
 		{
 			_tableContainer.Add(new Light.Light(new LightData(name, 500, 500)));

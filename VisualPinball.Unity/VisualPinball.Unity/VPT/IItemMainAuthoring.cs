@@ -20,9 +20,8 @@ using UnityEngine;
 
 namespace VisualPinball.Unity
 {
-	public interface IItemMainAuthoring
+	public interface IItemMainAuthoring : IIdentifiableItemAuthoring
 	{
-		string name { get; }
 		GameObject gameObject { get; }
 
 	}

@@ -149,8 +149,7 @@ namespace VisualPinball.Unity
 			return updatedComponents;
 		}
 
-		public override PrimitiveData CopyDataTo(PrimitiveData data, string[] materialNames, string[] textureNames,
-			bool forExport)
+		public override PrimitiveData CopyDataTo(PrimitiveData data, string[] materialNames, string[] textureNames, bool forExport)
 		{
 			// name and transforms
 			data.Name = name;
