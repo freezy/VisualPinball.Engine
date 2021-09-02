@@ -146,9 +146,7 @@ namespace VisualPinball.Unity
 
 		#region Transformation
 
-		public override void OnPlayfieldHeightUpdated() => RebuildMeshes();
-
-		public void OnSurfaceUpdated() => RebuildMeshes();
+		public void OnSurfaceUpdated() => UpdateTransforms();
 
 		public float PositionZ => SurfaceHeight(Surface, Position);
 
@@ -157,7 +155,7 @@ namespace VisualPinball.Unity
 			var t = transform;
 
 			// position
-			t.localPosition = new Vector3(Position.x, Position.y, 0);
+			t.localPosition = new Vector3(Position.x, Position.y, PositionZ);
 
 			// rotation
 			t.localEulerAngles = new Vector3(0, 0, StartAngle);
@@ -323,7 +321,7 @@ namespace VisualPinball.Unity
 
 		protected void OnDrawGizmosSelected()
 		{
-			var height = PositionZ;
+			const int height = 0;
 			var poly = GetEnclosingPolygon(height: height);
 			if (poly == null) {
 				return;

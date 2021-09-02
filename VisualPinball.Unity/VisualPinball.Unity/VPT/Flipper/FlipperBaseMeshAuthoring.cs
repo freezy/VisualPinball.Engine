@@ -38,7 +38,7 @@ namespace VisualPinball.Unity
 		}
 		protected override Mesh GetMesh(FlipperData data)
 		{
-			return new FlipperMeshGenerator(data).GetMesh(FlipperMeshGenerator.Base, MainComponent.PositionZ);
+			return new FlipperMeshGenerator(data).GetMesh(FlipperMeshGenerator.Base, 0);
 		}
 	}
 }
