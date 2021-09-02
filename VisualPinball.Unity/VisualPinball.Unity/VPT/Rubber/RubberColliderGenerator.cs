@@ -33,7 +33,7 @@ namespace VisualPinball.Unity
 
 		internal void GenerateColliders(float playfieldHeight, int detailLevel, List<ICollider> colliders)
 		{
-			var mesh = _meshGenerator.GetMesh(playfieldHeight, detailLevel, 6, true); //!! adapt hacky code in the function if changing the "6" here
+			var mesh = _meshGenerator.GetTransformedMesh(playfieldHeight, detailLevel, 6, true); //!! adapt hacky code in the function if changing the "6" here
 			var addedEdges = EdgeSet.Get();
 
 			// add collision triangles and edges
