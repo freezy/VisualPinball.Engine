@@ -57,16 +57,11 @@ namespace VisualPinball.Engine.VPT.Rubber
 
 		#region IRenderable
 
-		Matrix3D IRenderable.TransformationMatrix(Table.Table table, Origin origin) => MeshGenerator.GetPostMatrix(table, origin);
-
-		public RenderObject GetRenderObject(Table.Table table, string id = null, Origin origin = Origin.Global, bool asRightHanded = true)
-		{
-			return MeshGenerator.GetRenderObject(table, Data);
-		}
+		Matrix3D IRenderable.TransformationMatrix(Table.Table table, Origin origin) => Matrix3D.Identity;
 
 		public RenderObjectGroup GetRenderObjects(Table.Table table, Origin origin = Origin.Global, bool asRightHanded = true)
 		{
-			return MeshGenerator.GetRenderObjects(table, origin, Data);
+			return MeshGenerator.GetRenderObjects(table, origin, asRightHanded, Data);
 		}
 
 		#endregion

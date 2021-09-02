@@ -29,14 +29,13 @@ namespace VisualPinball.Unity
 	public class RubberMeshAuthoring : ItemMeshAuthoring<RubberData, RubberAuthoring>
 	{
 		public static readonly Type[] ValidParentTypes = Type.EmptyTypes;
-
 		public override IEnumerable<Type> ValidParents => ValidParentTypes;
 
 		protected override RenderObject GetRenderObject(RubberData data, Table table)
 			=> new RubberMeshGenerator(MainComponent).GetRenderObject(table, data);
 		protected override Mesh GetMesh(RubberData data)
 		{
-			return new RubberMeshGenerator(data).GetTransformedMesh(MainComponent.PlayfieldHeight, MainComponent.PlayfieldDetailLevel);
+			return new RubberMeshGenerator(MainComponent).GetTransformedMesh(MainComponent.PlayfieldHeight, MainComponent.PlayfieldDetailLevel);
 		}
 	}
 }

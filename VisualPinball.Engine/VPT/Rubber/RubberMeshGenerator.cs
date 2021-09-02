@@ -52,21 +52,28 @@ namespace VisualPinball.Engine.VPT.Rubber
 			);
 		}
 
-		public RenderObjectGroup GetRenderObjects(Table.Table table, Origin origin, RubberData rubberData)
+		public Mesh GetTransformedMesh(float playfieldHeight, int detailLevel, int acc = -1, bool createHitShape = false)
 		{
-			var mesh = GetTransformedMesh(table.TableHeight, table.GetDetailLevel());
+			var mesh = GetMesh(playfieldHeight, detailLevel, acc, createHitShape);
+			var (preVertexMatrix, preNormalsMatrix) = GetTransformationMatrix(playfieldHeight);
+			return mesh.Transform(preVertexMatrix, preNormalsMatrix);
+		}
+
+		public RenderObjectGroup GetRenderObjects(Table.Table table, Origin origin, bool asRightHanded, RubberData rubberData)
+		{
+			var mesh = GetMesh(table.TableHeight, table.GetDetailLevel());
+			var (preVertexMatrix, preNormalsMatrix) = GetPreMatrix(table.TableHeight, origin, asRightHanded);
 			mesh.Name = rubberData.Name;
 			var postMatrix = GetPostMatrix(table, origin);
 			return new RenderObjectGroup(rubberData.Name, "Rubbers", postMatrix, new RenderObject(
 				rubberData.Name,
-				mesh,
+				mesh.Transform(preVertexMatrix, preNormalsMatrix),
 				new PbrMaterial(table.GetMaterial(rubberData.Material), table.GetTexture(rubberData.Image)),
 				rubberData.IsVisible
 			));
 		}
-		protected override Tuple<Matrix3D, Matrix3D?> GetTransformationMatrix(float height) =>  new Tuple<Matrix3D, Matrix3D?>(Matrix3D.Identity, Matrix3D.Identity);
 
-		private Tuple<Matrix3D, Matrix3D?> GetPostMatrix(float playfieldHeight)
+		protected override Tuple<Matrix3D, Matrix3D?> GetTransformationMatrix(float height)
 		{
 			var fullMatrix = new Matrix3D();
 			var tempMat = new Matrix3D();
@@ -81,18 +88,12 @@ namespace VisualPinball.Engine.VPT.Rubber
 			vertMatrix.Multiply(tempMat, fullMatrix);
 			tempMat.SetScaling(Scale.X, Scale.Y, Scale.Z);
 			vertMatrix.Multiply(tempMat);
-			tempMat.SetTranslation(_middlePoint.X, _middlePoint.Y, _data.Height + playfieldHeight);
+
+			tempMat.SetTranslation(_middlePoint.X, _middlePoint.Y, _data.Height + height);
 
 			vertMatrix.Multiply(tempMat);
 
 			return new Tuple<Matrix3D, Matrix3D?>(vertMatrix, fullMatrix);
-		}
-
-		public Mesh GetTransformedMesh(float playfieldHeight, int detailLevel)
-		{
-			var mesh = GetMesh(playfieldHeight, detailLevel);
-			var (postVertexMatrix, postNormalsMatrix) = GetPostMatrix(playfieldHeight);
-			return mesh.Transform(postVertexMatrix, postNormalsMatrix);
 		}
 
 		public Mesh GetMesh(float playfieldHeight, int detailLevel, int acc = -1, bool createHitShape = false)
@@ -241,12 +242,6 @@ namespace VisualPinball.Engine.VPT.Rubber
 			_middlePoint.X = (maxX + minX) * 0.5f;
 			_middlePoint.Y = (maxY + minY) * 0.5f;
 			_middlePoint.Z = (maxZ + minZ) * 0.5f;
-
-			// we don't explicitly apply transformations for colliders, so apply them here.
-			if (createHitShape) {
-				var (postVertexMatrix, postNormalsMatrix) = GetPostMatrix(playfieldHeight);
-				mesh.Transform(postVertexMatrix, postNormalsMatrix);
-			}
 
 			return mesh;
 		}
