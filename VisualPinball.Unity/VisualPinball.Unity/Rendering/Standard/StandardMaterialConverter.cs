@@ -24,8 +24,8 @@ namespace VisualPinball.Unity
 {
 	public class StandardMaterialConverter : IMaterialConverter
 	{
-		public Material DotMatrixDisplay => UnityEngine.Resources.Load<Material>("Materials/DotMatrixDisplayBuiltin");
-		public Material SegmentDisplay => UnityEngine.Resources.Load<Material>("Materials/SegmentDisplayBuiltin");
+		public Material DotMatrixDisplay => UnityEngine.Resources.Load<Material>("Materials/Dot Matrix Display (Builtin)");
+		public Material SegmentDisplay => UnityEngine.Resources.Load<Material>("Materials/Segment Display (Builtin)");
 
 		public int NormalMapProperty => NormalMap;
 
@@ -58,11 +58,11 @@ namespace VisualPinball.Unity
 			switch (blendMode)
 			{
 				case BlendMode.Opaque:
-					return UnityEngine.Resources.Load<Material>("Materials/TableOpaque");
+					return UnityEngine.Resources.Load<Material>("Materials/Table Opaque (Builtin)");
 				case BlendMode.Cutout:
-					return UnityEngine.Resources.Load<Material>("Materials/TableCutout");
+					return UnityEngine.Resources.Load<Material>("Materials/Table Cutout (Builtin)");
 				case BlendMode.Translucent:
-					return UnityEngine.Resources.Load<Material>("Materials/TableTranslucent");
+					return UnityEngine.Resources.Load<Material>("Materials/Table Translucent (Builtin)");
 				default:
 					throw new ArgumentOutOfRangeException("Undefined blend mode " + blendMode);
 			}

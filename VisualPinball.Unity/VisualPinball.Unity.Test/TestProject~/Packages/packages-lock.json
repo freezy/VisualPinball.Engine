@@ -118,15 +118,6 @@
       },
       "url": "https://packages.unity.com"
     },
-    "com.unity.rendering.hybrid": {
-      "version": "0.11.0-preview.42",
-      "depth": 1,
-      "source": "registry",
-      "dependencies": {
-        "com.unity.entities": "0.17.0-preview.41"
-      },
-      "url": "https://packages.unity.com"
-    },
     "com.unity.scriptablebuildpipeline": {
       "version": "1.9.0",
       "depth": 2,
@@ -200,12 +191,18 @@
         "com.unity.burst": "1.4.4",
         "com.unity.collections": "0.15.0-preview.21",
         "com.unity.entities": "0.17.0-preview.41",
-        "com.unity.rendering.hybrid": "0.11.0-preview.42",
         "com.unity.jobs": "0.8.0-preview.23",
         "com.unity.mathematics": "1.2.1",
         "com.unity.inputsystem": "1.0.2",
         "com.unity.test-framework": "1.1.22"
       }
+    },
+    "org.visualpinball.unity.assetlibrary": {
+      "version": "0.0.1-preview.17",
+      "depth": 0,
+      "source": "registry",
+      "dependencies": {},
+      "url": "https://registry.visualpinball.org"
     },
     "com.unity.modules.ai": {
       "version": "1.0.0",

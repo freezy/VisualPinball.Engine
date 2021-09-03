@@ -3,6 +3,7 @@
     "com.unity.test-framework": "1.1.27",
     "com.unity.testtools.codecoverage": "1.1.0",
     "org.visualpinball.engine.unity": "file:../../../..",
+    "org.visualpinball.unity.assetlibrary": "0.0.1-preview.17",
     "com.unity.modules.ai": "1.0.0",
     "com.unity.modules.androidjni": "1.0.0",
     "com.unity.modules.animation": "1.0.0",
@@ -34,5 +35,14 @@
     "com.unity.modules.vr": "1.0.0",
     "com.unity.modules.wind": "1.0.0",
     "com.unity.modules.xr": "1.0.0"
-  }
+  },
+  "scopedRegistries": [
+    {
+      "name": "Visual Pinball Engine",
+      "url": "https://registry.visualpinball.org/",
+      "scopes": [
+        "org.visualpinball"
+      ]
+    }
+  ]
 }
