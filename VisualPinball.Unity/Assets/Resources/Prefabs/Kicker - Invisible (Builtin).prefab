@@ -1,0 +1,112 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1 &2420819360404407618
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 5877270596738996132}
+  - component: {fileID: -9013886439761726827}
+  - component: {fileID: -2035473210646026864}
+  - component: {fileID: 5688332318531931923}
+  m_Layer: 0
+  m_Name: Kicker - Invisible (Builtin)
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &5877270596738996132
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2420819360404407618}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_RootOrder: 0
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &-9013886439761726827
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2420819360404407618}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a226873d073ee074d9091d357ea35254, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _data:
+    StoragePrefix: 0
+    StorageIndex: 0
+    IsLocked: 0
+    EditorLayerName: 
+    EditorLayerVisibility: 0
+    Name: 
+    KickerType: 0
+    Center:
+      X: 0
+      Y: 0
+    Radius: 0
+    Scatter: 0
+    HitAccuracy: 0
+    HitHeight: 0
+    Orientation: 0
+    Material: 
+    Surface: 
+    FallThrough: 0
+    IsEnabled: 0
+    LegacyMode: 0
+    IsTimerEnabled: 0
+    TimerInterval: 0
+    Angle: 0
+    Speed: 0
+  Position: {x: 0, y: 0}
+  Radius: 25
+  Orientation: 0
+  _surface: {fileID: 0}
+  KickerType: 0
+--- !u!114 &-2035473210646026864
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2420819360404407618}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5693908cb88108f45a2fe3f59adeeabb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  PhysicsMaterial: {fileID: 0}
+  ShowColliderMesh: 0
+  ShowAabbs: 0
+  Scatter: 0
+  HitAccuracy: 0.7
+  HitHeight: 40
+  FallThrough: 0
+  LegacyMode: 1
+  EjectAngle: 90
+  EjectSpeed: 3
+--- !u!114 &5688332318531931923
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2420819360404407618}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ea7d7495833204790ba1d3a8755397f8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  ConversionMode: 1
