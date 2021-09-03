@@ -23,7 +23,7 @@ using VisualPinball.Engine.VPT.Bumper;
 namespace VisualPinball.Unity
 {
 	public class BumperApi : ItemCollidableApi<BumperAuthoring, BumperColliderAuthoring, BumperData>,
-		IApiInitializable, IApiHittable, IApiSwitchDevice, IApiSwitch, IApiCoil
+		IApiInitializable, IApiHittable, IApiSwitchDevice, IApiSwitch, IApiCoil, IApiCoilDevice, IApiWireDeviceDest
 	{
 		/// <summary>
 		/// Event emitted when the table is started.
@@ -47,7 +47,10 @@ namespace VisualPinball.Unity
 
 		#region Wiring
 
-		IApiSwitch IApiSwitchDevice.Switch(string deviceSwitchId) => this;
+		IApiSwitch IApiSwitchDevice.Switch(string deviceItem) => this;
+		IApiCoil IApiCoilDevice.Coil(string deviceItem) => this;
+		IApiWireDest IApiWireDeviceDest.Wire(string deviceItem) => this;
+
 		IApiSwitchStatus IApiSwitch.AddSwitchDest(SwitchConfig switchConfig) => AddSwitchDest(switchConfig.WithPulse(true));
 		void IApiSwitch.AddWireDest(WireDestConfig wireConfig) => AddWireDest(wireConfig.WithPulse(true));
 		void IApiSwitch.RemoveWireDest(string destId) => RemoveWireDest(destId);

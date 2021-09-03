@@ -25,7 +25,7 @@ using Random = Unity.Mathematics.Random;
 namespace VisualPinball.Unity
 {
 	public class KickerApi : ItemCollidableApi<KickerAuthoring, KickerColliderAuthoring, KickerData>,
-		IApiInitializable, IApiHittable, IApiSwitch, IApiSwitchDevice, IApiCoil, IApiCoilDevice
+		IApiInitializable, IApiHittable, IApiSwitch, IApiSwitchDevice, IApiCoil, IApiCoilDevice, IApiWireDeviceDest
 	{
 		/// <summary>
 		/// Event emitted when the table is started.
@@ -94,9 +94,13 @@ namespace VisualPinball.Unity
 
 		#region Wiring
 
-		IApiSwitch IApiSwitchDevice.Switch(string deviceSwitchId) => this;
+		IApiSwitch IApiSwitchDevice.Switch(string deviceItem) => this;
 
-		IApiCoil IApiCoilDevice.Coil(string deviceCoilId) => this; // todo add support for multi coils
+		IApiCoil IApiCoilDevice.Coil(string deviceItem) => Coil(deviceItem);
+
+		IApiWireDest IApiWireDeviceDest.Wire(string deviceItem) => Coil(deviceItem);
+
+		private IApiCoil Coil(string deviceItem) => this; // todo add support for multi coils
 
 		void IApiSwitch.DestroyBall(Entity ballEntity)
 		{

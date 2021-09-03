@@ -602,24 +602,24 @@ namespace VisualPinball.Unity
 		/// This is called when the player starts. It tells the trough
 		/// "please give me switch XXX so I can hook it up to the gamelogic engine".
 		/// </summary>
-		/// <param name="deviceSwitchId"></param>
+		/// <param name="deviceItem"></param>
 		/// <returns></returns>
-		IApiSwitch IApiSwitchDevice.Switch(string deviceSwitchId)
+		IApiSwitch IApiSwitchDevice.Switch(string deviceItem)
 		{
-			if (deviceSwitchId == null) {
+			if (deviceItem == null) {
 				throw new ArgumentException("Must provide a non-null switch ID!");
 			}
-			return _switchLookup.ContainsKey(deviceSwitchId) ? _switchLookup[deviceSwitchId] : null;
+			return _switchLookup.ContainsKey(deviceItem) ? _switchLookup[deviceItem] : null;
 		}
 
 		/// <summary>
 		/// Returns a coil by ID. Same principle as <see cref="IApiSwitchDevice.Switch"/>
 		/// </summary>
-		/// <param name="deviceCoilId"></param>
+		/// <param name="deviceItem"></param>
 		/// <returns></returns>
-		IApiCoil IApiCoilDevice.Coil(string deviceCoilId)
+		private IApiCoil Coil(string deviceItem)
 		{
-			switch (deviceCoilId) {
+			switch (deviceItem) {
 				case TroughAuthoring.EntryCoilId:
 					return EntryCoil;
 
@@ -631,7 +631,9 @@ namespace VisualPinball.Unity
 			}
 		}
 
-		IApiWireDest IApiWireDeviceDest.Wire(string coilId) => (this as IApiCoilDevice).Coil(coilId);
+		IApiCoil IApiCoilDevice.Coil(string deviceItem) => Coil(deviceItem);
+
+		IApiWireDest IApiWireDeviceDest.Wire(string deviceItem) => Coil(deviceItem);
 
 		void IApi.OnDestroy()
 		{

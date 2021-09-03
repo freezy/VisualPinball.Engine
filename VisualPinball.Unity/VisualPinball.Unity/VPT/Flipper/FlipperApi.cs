@@ -32,7 +32,7 @@ namespace VisualPinball.Unity
 	/// </summary>
 	[Api]
 	public class FlipperApi : ItemCollidableApi<FlipperAuthoring, FlipperColliderAuthoring, FlipperData>,
-		IApiInitializable, IApiHittable, IApiRotatable, IApiCollidable, IApiSwitchDevice, IApiSwitch, IApiCoilDevice
+		IApiInitializable, IApiHittable, IApiRotatable, IApiCollidable, IApiSwitchDevice, IApiSwitch, IApiCoilDevice, IApiWireDeviceDest
 	{
 		/// <summary>
 		/// Event emitted when the table is started.
@@ -108,11 +108,14 @@ namespace VisualPinball.Unity
 		private DeviceCoil _mainCoil;
 		private DeviceCoil _holdCoil;
 
-		IApiCoil IApiCoilDevice.Coil(string deviceCoilId) {
-			return deviceCoilId switch {
+		IApiCoil IApiCoilDevice.Coil(string deviceItem) => Coil(deviceItem);
+		IApiWireDest IApiWireDeviceDest.Wire(string deviceItem) => Coil(deviceItem);
+
+		private IApiCoil Coil(string deviceItem) {
+			return deviceItem switch {
 				FlipperAuthoring.MainCoilItem => _mainCoil,
 				FlipperAuthoring.HoldCoilItem => _holdCoil,
-				_ => throw new ArgumentException($"Unknown flipper coil \"{deviceCoilId}\". Valid names are: [ \"{FlipperAuthoring.MainCoilItem}\", \"{FlipperAuthoring.HoldCoilItem}\" ].")
+				_ => throw new ArgumentException($"Unknown flipper coil \"{deviceItem}\". Valid names are: [ \"{FlipperAuthoring.MainCoilItem}\", \"{FlipperAuthoring.HoldCoilItem}\" ].")
 			};
 		}
 
@@ -164,7 +167,7 @@ namespace VisualPinball.Unity
 
 		#region Wiring
 
-		IApiSwitch IApiSwitchDevice.Switch(string deviceSwitchId) => this;
+		IApiSwitch IApiSwitchDevice.Switch(string deviceItem) => this;
 		IApiSwitchStatus IApiSwitch.AddSwitchDest(SwitchConfig switchConfig) => AddSwitchDest(switchConfig);
 		void IApiSwitch.AddWireDest(WireDestConfig wireConfig) => AddWireDest(wireConfig);
 		void IApiSwitch.RemoveWireDest(string destId) => RemoveWireDest(destId);

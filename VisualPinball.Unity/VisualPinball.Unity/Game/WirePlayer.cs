@@ -63,6 +63,7 @@ namespace VisualPinball.Unity
 				case SwitchSource.Playfield: {
 					// mapping values must be set
 					if (wireMapping.SourceDevice == null || string.IsNullOrEmpty(wireMapping.SourceDeviceItem)) {
+						Logger.Warn($"Ignore wire \"{wireMapping.Description}\" with unset source.");
 						break;
 					}
 
