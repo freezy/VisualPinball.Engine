@@ -15,10 +15,11 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using System.Collections.Generic;
+using VisualPinball.Engine.Game.Engines;
 
 namespace VisualPinball.Unity
 {
-	public interface IDeviceAuthoring<T>
+	public interface IDeviceAuthoring<out T> where T : IGamelogicEngineDeviceItem
 	{
 		IEnumerable<T> AvailableDeviceItems { get; }
 	}

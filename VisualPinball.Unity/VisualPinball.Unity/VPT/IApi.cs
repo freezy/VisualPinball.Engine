@@ -118,12 +118,12 @@ namespace VisualPinball.Unity
 
 	internal interface IApiSwitchDevice
 	{
-		IApiSwitch Switch(string deviceSwitchId);
+		IApiSwitch Switch(string deviceItem);
 	}
 
 	internal interface IApiCoilDevice
 	{
-		IApiCoil Coil(string deviceCoilId);
+		IApiCoil Coil(string deviceItem);
 	}
 
 	internal interface IApiCoil : IApiWireDest
@@ -159,6 +159,6 @@ namespace VisualPinball.Unity
 
 	internal interface IApiWireDeviceDest
 	{
-		IApiWireDest Wire(string coilId);
+		IApiWireDest Wire(string deviceItem);
 	}
 }

@@ -136,9 +136,10 @@ namespace VisualPinball.Unity
 			EntityManager.SetComponentData(Entity, velocityData);
 		}
 
-		IApiCoil IApiCoilDevice.Coil(string deviceCoilId)
+
+		private IApiCoil Coil(string deviceItem)
 		{
-			switch (deviceCoilId) {
+			switch (deviceItem) {
 				case Plunger.FireCoilId:
 					return FireCoil;
 
@@ -150,7 +151,9 @@ namespace VisualPinball.Unity
 			}
 		}
 
-		IApiWireDest IApiWireDeviceDest.Wire(string coilId) => (this as IApiCoilDevice).Coil(coilId);
+		IApiCoil IApiCoilDevice.Coil(string deviceItem) => Coil(deviceItem);
+
+		IApiWireDest IApiWireDeviceDest.Wire(string deviceItem) => Coil(deviceItem);
 
 		#region Collider Generation
 

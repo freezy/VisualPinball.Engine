@@ -14,9 +14,11 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+using VisualPinball.Engine.Game.Engines;
+
 namespace VisualPinball.Unity.Editor
 {
-	public interface IDeviceListData<T>
+	public interface IDeviceListData<out T> where T : IGamelogicEngineDeviceItem
 	{
 		IDeviceAuthoring<T> DeviceComponent { get; }
 		string DeviceItem { get; set; }
