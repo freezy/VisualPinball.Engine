@@ -22,7 +22,7 @@ namespace VisualPinball.Unity
 	/// <summary>
 	/// A coil device is an item that contains multiple coil.
 	/// </summary>
-	public interface ICoilDeviceAuthoring : IIdentifiableItemAuthoring, IDeviceAuthoring<GamelogicEngineCoil>
+	public interface ICoilDeviceAuthoring : IWireableAuthoring, IDeviceAuthoring<GamelogicEngineCoil>
 	{
 		/// <summary>
 		/// A list of available coils supported by the coil device

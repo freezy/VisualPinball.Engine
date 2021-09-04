@@ -23,7 +23,7 @@ using Color = UnityEngine.Color;
 
 namespace VisualPinball.Unity
 {
-	public class LightApi : ItemApi<LightAuthoring, LightData>, IApiInitializable, IApiLamp
+	public class LightApi : ItemApi<LightAuthoring, LightData>, IApiInitializable, IApiLamp, IApiWireDeviceDest
 	{
 		/// <summary>
 		/// Event emitted when the table is started.
@@ -43,6 +43,8 @@ namespace VisualPinball.Unity
 			enabled ? 1.0f : 0f);
 
 		public Color Color { get => _lightAuthoring.Color; set => _lightAuthoring.Color = value; }
+
+		IApiWireDest IApiWireDeviceDest.Wire(string deviceItem) => this;
 
 		void IApiLamp.OnLamp(float value, ColorChannel channel)
 		{
