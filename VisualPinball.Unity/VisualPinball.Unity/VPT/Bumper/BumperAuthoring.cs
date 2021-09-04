@@ -103,6 +103,7 @@ namespace VisualPinball.Unity
 
 		IEnumerable<GamelogicEngineCoil> IDeviceAuthoring<GamelogicEngineCoil>.AvailableDeviceItems => AvailableCoils;
 		IEnumerable<GamelogicEngineSwitch> IDeviceAuthoring<GamelogicEngineSwitch>.AvailableDeviceItems => AvailableSwitches;
+		IEnumerable<IGamelogicEngineDeviceItem> IWireableAuthoring.AvailableWireDestinations => AvailableCoils;
 
 		#endregion
 
@@ -331,5 +332,6 @@ namespace VisualPinball.Unity
 		public override void SetEditorScale(Vector3 scale) => Radius = scale.x / 2f;
 
 		#endregion
+
 	}
 }

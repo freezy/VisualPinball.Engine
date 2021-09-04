@@ -44,14 +44,14 @@ namespace VisualPinball.Unity.Editor
 		private readonly InputManager _inputManager;
 
 		private readonly ObjectReferencePicker<ISwitchDeviceAuthoring> _sourceDevicePicker;
-		private readonly ObjectReferencePicker<ICoilDeviceAuthoring> _destDevicePicker;
+		private readonly ObjectReferencePicker<IWireableAuthoring> _destDevicePicker;
 
 		public WireListViewItemRenderer(TableAuthoring tableComponent, InputManager inputManager)
 		{
 			_inputManager = inputManager;
 
 			_sourceDevicePicker = new ObjectReferencePicker<ISwitchDeviceAuthoring>("Wire Source", tableComponent, false);
-			_destDevicePicker = new ObjectReferencePicker<ICoilDeviceAuthoring>("Wire Destination", tableComponent, false);
+			_destDevicePicker = new ObjectReferencePicker<IWireableAuthoring>("Wire Destination", tableComponent, false);
 		}
 
 		public void Render(TableAuthoring tableAuthoring, WireListData data, Rect cellRect, int column, Action<WireListData> updateAction)
@@ -250,8 +250,8 @@ namespace VisualPinball.Unity.Editor
 		{
 			_destDevicePicker.Render(cellRect, wireListData.DestinationDevice, item => {
 				wireListData.DestinationDevice = item;
-				if (wireListData.DestinationDevice != null && wireListData.DestinationDevice.AvailableCoils.Count() == 1) {
-					wireListData.DestinationDeviceItem = wireListData.DestinationDevice.AvailableCoils.First().Id;
+				if (wireListData.DestinationDevice != null && wireListData.DestinationDevice.AvailableWireDestinations.Count() == 1) {
+					wireListData.DestinationDeviceItem = wireListData.DestinationDevice.AvailableWireDestinations.First().Id;
 				}
 				updateAction(wireListData);
 			});
@@ -264,8 +264,8 @@ namespace VisualPinball.Unity.Editor
 			var currentIndex = 0;
 			var coilLabels = Array.Empty<string>();
 			if (wireListData.DestinationDevice != null) {
-				coilLabels = wireListData.DestinationDevice.AvailableCoils.Select(s => s.Description).ToArray();
-				currentIndex = wireListData.DestinationDevice.AvailableCoils.TakeWhile(s => s.Id != wireListData.DestinationDeviceItem).Count();
+				coilLabels = wireListData.DestinationDevice.AvailableWireDestinations.Select(s => s.Description).ToArray();
+				currentIndex = wireListData.DestinationDevice.AvailableWireDestinations.TakeWhile(s => s.Id != wireListData.DestinationDeviceItem).Count();
 			}
 			EditorGUI.BeginChangeCheck();
 			var newIndex = EditorGUI.Popup(cellRect, currentIndex, coilLabels);
@@ -273,7 +273,7 @@ namespace VisualPinball.Unity.Editor
 			{
 				if (currentIndex != newIndex)
 				{
-					wireListData.DestinationDeviceItem = wireListData.DestinationDevice.AvailableCoils.ElementAt(newIndex).Id;
+					wireListData.DestinationDeviceItem = wireListData.DestinationDevice.AvailableWireDestinations.ElementAt(newIndex).Id;
 					updateAction(wireListData);
 				}
 			}

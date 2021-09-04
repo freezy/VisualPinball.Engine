@@ -45,7 +45,7 @@ namespace VisualPinball.Unity
 		/* Destination */
 		[SerializeReference]
 		public MonoBehaviour _destinationDevice;
-		public ICoilDeviceAuthoring DestinationDevice { get => _destinationDevice as ICoilDeviceAuthoring; set => _destinationDevice = value as MonoBehaviour; }
+		public IWireableAuthoring DestinationDevice { get => _destinationDevice as IWireableAuthoring; set => _destinationDevice = value as MonoBehaviour; }
 
 		public string DestinationDeviceItem = string.Empty;
 

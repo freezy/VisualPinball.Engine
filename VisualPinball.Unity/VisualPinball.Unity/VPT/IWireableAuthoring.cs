@@ -14,10 +14,16 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+using System.Collections.Generic;
+using VisualPinball.Engine.Game.Engines;
+
 namespace VisualPinball.Unity
 {
+	/// <summary>
+	/// Components that can serve as "wire destination", which are coils and lamps.
+	/// </summary>
 	public interface IWireableAuthoring : IIdentifiableItemAuthoring
 	{
-		string name { get; }
+		IEnumerable<IGamelogicEngineDeviceItem> AvailableWireDestinations { get; }
 	}
 }

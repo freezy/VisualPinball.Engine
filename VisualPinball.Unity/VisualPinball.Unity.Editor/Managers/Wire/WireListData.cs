@@ -41,7 +41,7 @@ namespace VisualPinball.Unity.Editor
 		public ISwitchDeviceAuthoring SourceDevice;
 		public string SourceDeviceItem;
 
-		public ICoilDeviceAuthoring DestinationDevice;
+		public IWireableAuthoring DestinationDevice;
 		public string DestinationDeviceItem;
 
 		public readonly WireMapping WireMapping;

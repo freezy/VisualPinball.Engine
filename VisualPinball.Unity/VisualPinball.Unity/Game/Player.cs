@@ -93,7 +93,7 @@ namespace VisualPinball.Unity
 		#region Access
 
 		internal IApiSwitch Switch(ISwitchDeviceAuthoring component, string switchId) => component != null ? _switchPlayer.Switch(component, switchId) : null;
-		internal IApiWireDeviceDest WireDevice(ICoilDeviceAuthoring c) => _wirePlayer.WireDevice(c);
+		internal IApiWireDeviceDest WireDevice(IWireableAuthoring c) => _wirePlayer.WireDevice(c);
 		public Dictionary<string, bool> SwitchStatusesClosed => _switchPlayer.SwitchStatusesClosed;
 		public Dictionary<string, bool> CoilStatuses => _coilPlayer.CoilStatuses;
 		public Dictionary<string, float> LampStatuses => _lampPlayer.LampStatuses;
@@ -308,8 +308,8 @@ namespace VisualPinball.Unity
 				}
 			}
 			if (api is IApiWireDeviceDest wireDevice) {
-				if (component is ICoilDeviceAuthoring coilDeviceAuthoring) {
-					_wirePlayer.RegisterWireDevice(coilDeviceAuthoring, wireDevice);
+				if (component is IWireableAuthoring wireableDeviceAuthoring) {
+					_wirePlayer.RegisterWireDevice(wireableDeviceAuthoring, wireDevice);
 				} else {
 					Logger.Warn($"{component.GetType()} is not of type ICoilDeviceAuthoring while ${api.GetType()} is of type IApiWireDeviceDest.");
 				}

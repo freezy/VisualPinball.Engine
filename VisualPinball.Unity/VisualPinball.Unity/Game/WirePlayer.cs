@@ -26,7 +26,7 @@ namespace VisualPinball.Unity
 		/// <summary>
 		/// Maps the wire destination component to the wire destination API.
 		/// </summary>
-		private readonly Dictionary<ICoilDeviceAuthoring, IApiWireDeviceDest> _wireDevices = new Dictionary<ICoilDeviceAuthoring, IApiWireDeviceDest>();
+		private readonly Dictionary<IWireableAuthoring, IApiWireDeviceDest> _wireDevices = new Dictionary<IWireableAuthoring, IApiWireDeviceDest>();
 		private readonly Dictionary<string, List<WireDestConfig>> _keyWireAssignments = new Dictionary<string, List<WireDestConfig>>();
 
 		private TableAuthoring _tableComponent;
@@ -35,8 +35,8 @@ namespace VisualPinball.Unity
 
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
-		internal IApiWireDeviceDest WireDevice(ICoilDeviceAuthoring c) => _wireDevices.ContainsKey(c) ? _wireDevices[c] : null;
-		internal void RegisterWireDevice(ICoilDeviceAuthoring component, IApiWireDeviceDest wireDeviceApi) => _wireDevices[component] = wireDeviceApi;
+		internal IApiWireDeviceDest WireDevice(IWireableAuthoring c) => _wireDevices.ContainsKey(c) ? _wireDevices[c] : null;
+		internal void RegisterWireDevice(IWireableAuthoring component, IApiWireDeviceDest wireDeviceApi) => _wireDevices[component] = wireDeviceApi;
 
 		public void Awake(TableAuthoring tableComponent, InputManager inputManager, SwitchPlayer switchPlayer)
 		{
@@ -179,7 +179,7 @@ namespace VisualPinball.Unity
 
 	public class WireDestConfig
 	{
-		public readonly ICoilDeviceAuthoring Device;
+		public readonly IWireableAuthoring Device;
 		public readonly string DeviceItem;
 		public readonly int PulseDelay;
 		public bool IsPulseSource;
