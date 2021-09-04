@@ -18,6 +18,17 @@ using VisualPinball.Engine.Math;
 
 namespace VisualPinball.Engine.VPT
 {
+	/// <summary>
+	/// Provide a mesh and transformation matrix without knowing the source.
+	/// </summary>
+	///
+	/// <remarks>
+	/// The main goal of this interface is a way to abstract mesh generation in
+	/// cases where the same mesh is provided by different sources. One case
+	/// are primitives, where the original mesh is provided by the core mesh
+	/// generator, but collision later needs the same mesh, which is then provided
+	/// through the MeshFilter of the gameObject.
+	/// </remarks>
 	public interface IMeshGenerator
 	{
 		string name { get; }

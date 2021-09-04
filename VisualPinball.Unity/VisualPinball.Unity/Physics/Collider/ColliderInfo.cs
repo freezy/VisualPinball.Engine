@@ -19,6 +19,13 @@ using VisualPinball.Engine.VPT;
 
 namespace VisualPinball.Unity
 {
+	/// <summary>
+	/// Every collider has this in the header, so it knows: <ul>
+	///		<li>If event firing is needed </li>
+	///		<li>To which entity events need to be sent </li>
+	///		<li>How to collide based on the physical material </li>
+	/// </ul>
+	/// </summary>
 	public struct ColliderInfo
 	{
 		public int Id;

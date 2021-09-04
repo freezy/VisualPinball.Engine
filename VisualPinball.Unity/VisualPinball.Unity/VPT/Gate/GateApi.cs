@@ -23,7 +23,7 @@ using VisualPinball.Engine.VPT.Gate;
 namespace VisualPinball.Unity
 {
 	public class GateApi : ItemCollidableApi<GateAuthoring, GateColliderAuthoring, GateData>,
-		IApiInitializable, IApiHittable, IApiRotatable, IApiSwitch, IApiSwitchDevice, IApiColliderGenerator
+		IApiInitializable, IApiHittable, IApiRotatable, IApiSwitch, IApiSwitchDevice
 	{
 		/// <summary>
 		/// Event emitted when the table is started.
@@ -91,15 +91,11 @@ namespace VisualPinball.Unity
 
 		#region Collider Generation
 
-		Entity IApiColliderGenerator.ColliderEntity => Entity;
-
 		protected override void CreateColliders(List<ICollider> colliders)
 		{
 			var colliderGenerator = new GateColliderGenerator(this, MainComponent, ColliderComponent);
 			colliderGenerator.GenerateColliders(MainComponent.PositionZ, colliders);
 		}
-
-		ColliderInfo IApiColliderGenerator.GetColliderInfo() => GetColliderInfo(MainComponent.ItemType);
 
 		#endregion
 
