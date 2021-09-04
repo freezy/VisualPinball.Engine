@@ -58,7 +58,7 @@ namespace VisualPinball.Unity
 			CreateColliders(colliders);
 		}
 
-		ColliderInfo IApiColliderGenerator.GetColliderInfo() => GetColliderInfo();
+		ColliderInfo IApiColliderGenerator.GetColliderInfo() => GetColliderInfo(MainComponent.ItemType);
 
 		public ColliderInfo GetColliderInfo() => GetColliderInfo(MainComponent.ItemType);
 

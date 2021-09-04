@@ -22,21 +22,43 @@ using Color = UnityEngine.Color;
 
 namespace VisualPinball.Unity
 {
+	/// <summary>
+	/// The common base interface of all API implementations. <see cref="ItemApi{TItemComponent,TData}"/> implements this.
+	/// </summary>
 	public interface IApi
 	{
 		string Name { get; }
 		void OnDestroy();
 	}
 
+	/// <summary>
+	/// APIs implementing this will get initialized during player start-up.
+	/// </summary>
 	internal interface IApiInitializable
 	{
 		void OnInit(BallManager ballManager);
 	}
 
+	/// <summary>
+	/// APIs with this interface represent collidable objects and can generate colliders. <see cref="ItemCollidableApi{TComponent,TCollidableComponent,TData}"/> implements this.
+	/// </summary>
 	public interface IApiColliderGenerator
 	{
+		/// <summary>
+		/// Create colliders and add them to the provided list.
+		/// </summary>
+		/// <param name="colliders">List to add colliders to.</param>
 		void CreateColliders(List<ICollider> colliders);
+
+		/// <summary>
+		/// Computes collider info based on the component data.
+		/// </summary>
+		/// <returns></returns>
 		ColliderInfo GetColliderInfo();
+
+		/// <summary>
+		/// The entity of the game item
+		/// </summary>
 		Entity ColliderEntity { get; }
 
 		/// <summary>
@@ -50,32 +72,74 @@ namespace VisualPinball.Unity
 		bool IsColliderAvailable { get; }
 	}
 
+	/// <summary>
+	/// Hittable APIs send events when the ball hits the game item.
+	/// </summary>
 	public interface IApiHittable
 	{
+		/// <summary>
+		/// Internally called when the game item was hit.
+		/// </summary>
+		/// <param name="ballEntity">Which ball</param>
+		/// <param name="isUnHit">Whether it exited the hittable area</param>
 		void OnHit(Entity ballEntity, bool isUnHit = false);
+
+		/// <summary>
+		/// Public event to subscribe to for hits.
+		/// </summary>
 		event EventHandler<HitEventArgs> Hit;
 	}
 
+	/// <summary>
+	/// Internal interface to group rotatable items (EOS / BOS).
+	/// </summary>
 	internal interface IApiRotatable
 	{
+		/// <summary>
+		/// Internally called when the rotation event occurred.
+		/// </summary>
+		/// <param name="speed">Rotation speed</param>
+		/// <param name="direction">Rotation direction</param>
 		void OnRotate(float speed, bool direction);
 	}
 
+	/// <summary>
+	/// Internal interface for collidable APIs (currently only the flipper)
+	/// </summary>
 	internal interface IApiCollidable
 	{
 		void OnCollide(Entity ballEntity, float hit);
 	}
 
+	/// <summary>
+	/// Internal interface to group spinnable items (currently on the spinner)
+	/// </summary>
 	internal interface IApiSpinnable
 	{
 		void OnSpin();
 	}
 
+	/// <summary>
+	/// Internal interface for slingshots.
+	/// </summary>
 	internal interface IApiSlingshot
 	{
 		void OnSlingshot(Entity ballEntity);
 	}
 
+	/// <summary>
+	/// This interface makes the implementation act as a switch that can emit switch events to
+	/// one or many destinations.
+	/// </summary>
+	///
+	/// <remarks>
+	/// Note that the actual switch implementation is done at <see cref="SwitchHandler"/> for all
+	/// game items. The items just instantiate and forward data to it. <p/>
+	///
+	/// Also note that this interface only handles a single switch. Since all switchable game items
+	/// implement <see cref="IApiSwitchDevice"/>, and the ones that only support one switch also
+	/// implement <see cref="IApiSwitch"/> and return themself at <see cref="IApiSwitchDevice.Switch"/>.
+	/// </remarks>
 	internal interface IApiSwitch
 	{
 		/// <summary>
@@ -110,27 +174,73 @@ namespace VisualPinball.Unity
 		event EventHandler<SwitchEventArgs> Switch;
 	}
 
+	/// <summary>
+	/// This interface abstracts objects that can represent a switch status (keyboard, constant, items).
+	/// </summary>
 	internal interface IApiSwitchStatus
 	{
+		/// <summary>
+		/// True if switch is enabled, false otherwise. Note that enabled != closed.
+		/// </summary>
 		bool IsSwitchEnabled { get; }
+
+		/// <summary>
+		/// True if switch is closed, false otherwise.
+		/// </summary>
 		bool IsSwitchClosed { get; }
 	}
 
+	/// <summary>
+	/// This interface makes the implementation act as a device with one or more switches that can
+	/// each emit switch events to one or many destinations.
+	/// </summary>
+	///
+	/// <remarks>
+	/// Game items used to support both switches and switch devices, and in the Switch Manager, the
+	/// user needed to select between "Playfield" (game items with one switch) and "Device" (game
+	/// items with two or more switches). <br />
+	/// This has been changed. Now all game items are devices and the Switch Manager's UI adapts
+	/// accordingly.
+	/// </remarks>
 	internal interface IApiSwitchDevice
 	{
+		/// <summary>
+		/// Which switch to return.
+		/// </summary>
+		/// <param name="deviceItem">Name of the actual switch</param>
+		/// <returns>Switch or <c>null</c> if not found.</returns>
 		IApiSwitch Switch(string deviceItem);
 	}
 
-	internal interface IApiCoilDevice
-	{
-		IApiCoil Coil(string deviceItem);
-	}
-
+	/// <summary>
+	/// This interface makes the implementation act as a coil that consumes coil events.
+	/// </summary>
 	internal interface IApiCoil : IApiWireDest
 	{
+		/// <summary>
+		/// The coil status changed.
+		/// </summary>
+		/// <param name="enabled">Whether the coil was enabled (power) or disabled (no power).</param>
 		void OnCoil(bool enabled);
 	}
 
+	/// <summary>
+	/// This interface makes the implementation act as a device with one or more coils that can
+	/// each consume coil events.
+	/// </summary>
+	internal interface IApiCoilDevice
+	{
+		/// <summary>
+		/// Which coil to return.
+		/// </summary>
+		/// <param name="deviceItem">Name of the actual coil</param>
+		/// <returns></returns>
+		IApiCoil Coil(string deviceItem);
+	}
+
+	/// <summary>
+	/// A game item that acts a lamp that can either receive a float value or a color.
+	/// </summary>
 	internal interface IApiLamp : IApiWireDest
 	{
 		/// <summary>
@@ -152,13 +262,28 @@ namespace VisualPinball.Unity
 		void OnLampColor(Color color);
 	}
 
+	/// <summary>
+	/// This interface groups devices that can receive binary data, currently coils and lamps.
+	/// </summary>
 	internal interface IApiWireDest
 	{
+		/// <summary>
+		/// Changes the status at the destination.
+		/// </summary>
+		/// <param name="enabled"></param>
 		void OnChange(bool enabled);
 	}
 
+	/// <summary>
+	/// A game item that can act as one or more wire destinations.
+	/// </summary>
 	internal interface IApiWireDeviceDest
 	{
+		/// <summary>
+		/// Which wire destination to return.
+		/// </summary>
+		/// <param name="deviceItem"></param>
+		/// <returns></returns>
 		IApiWireDest Wire(string deviceItem);
 	}
 }

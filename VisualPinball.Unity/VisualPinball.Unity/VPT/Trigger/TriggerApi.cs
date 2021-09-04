@@ -23,7 +23,7 @@ using VisualPinball.Engine.VPT.Trigger;
 namespace VisualPinball.Unity
 {
 	public class TriggerApi : ItemCollidableApi<TriggerAuthoring, TriggerColliderAuthoring, TriggerData>,
-		IApiInitializable, IApiHittable, IApiSwitch, IApiSwitchDevice, IApiColliderGenerator
+		IApiInitializable, IApiHittable, IApiSwitch, IApiSwitchDevice
 	{
 		/// <summary>
 		/// Event emitted when the table is started.
@@ -64,7 +64,6 @@ namespace VisualPinball.Unity
 		#region Collider Generation
 
 		protected override bool FireHitEvents => true;
-		Entity IApiColliderGenerator.ColliderEntity => Entity;
 
 		protected override void CreateColliders(List<ICollider> colliders)
 		{
@@ -74,8 +73,6 @@ namespace VisualPinball.Unity
 				colliderGenerator.GenerateColliders(colliders);
 			}
 		}
-
-		ColliderInfo IApiColliderGenerator.GetColliderInfo() => GetColliderInfo();
 
 		#endregion
 
