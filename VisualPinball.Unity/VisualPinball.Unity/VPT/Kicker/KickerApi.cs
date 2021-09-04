@@ -25,7 +25,7 @@ using Random = Unity.Mathematics.Random;
 namespace VisualPinball.Unity
 {
 	public class KickerApi : ItemCollidableApi<KickerAuthoring, KickerColliderAuthoring, KickerData>,
-		IApiInitializable, IApiHittable, IApiSwitch, IApiSwitchDevice, IApiCoil, IApiCoilDevice, IApiWireDeviceDest
+		IApiInitializable, IApiHittable, IApiSwitch, IApiSwitchDevice, IApiCoilDevice, IApiWireDeviceDest
 	{
 		/// <summary>
 		/// Event emitted when the table is started.
@@ -47,10 +47,24 @@ namespace VisualPinball.Unity
 		/// </summary>
 		public event EventHandler<SwitchEventArgs> Switch;
 
+		private readonly Dictionary<string, DeviceCoil> _coils = new Dictionary<string, DeviceCoil>();
+
 		public KickerApi(GameObject go, Entity entity, Entity parentEntity, Player player)
 			: base(go, entity, parentEntity, player)
 		{
 		}
+
+		void IApiInitializable.OnInit(BallManager ballManager)
+		{
+			base.OnInit(ballManager);
+
+			foreach (var coil in MainComponent.Coils) {
+				_coils[coil.Id] = new DeviceCoil(() => Kick(coil.Angle, coil.Speed, coil.Inclination));
+			}
+
+			Init?.Invoke(this, EventArgs.Empty);
+		}
+
 
 		public void CreateBall()
 		{
@@ -100,7 +114,7 @@ namespace VisualPinball.Unity
 
 		IApiWireDest IApiWireDeviceDest.Wire(string deviceItem) => Coil(deviceItem);
 
-		private IApiCoil Coil(string deviceItem) => this; // todo add support for multi coils
+		private IApiCoil Coil(string deviceItem) => _coils.ContainsKey(deviceItem) ? _coils[deviceItem] : null;
 
 		void IApiSwitch.DestroyBall(Entity ballEntity)
 		{
@@ -109,14 +123,6 @@ namespace VisualPinball.Unity
 				SimulationSystemGroup.QueueAfterBallCreation(OnBallDestroyed);
 			}
 		}
-
-		void IApiCoil.OnCoil(bool enabled)
-		{
-			if (enabled) {
-				Kick();
-			}
-		}
-		void IApiWireDest.OnChange(bool enabled) => (this as IApiCoil).OnCoil(enabled);
 
 		private void OnBallDestroyed()
 		{
@@ -214,12 +220,6 @@ namespace VisualPinball.Unity
 		#endregion
 
 		#region Events
-
-		void IApiInitializable.OnInit(BallManager ballManager)
-		{
-			base.OnInit(ballManager);
-			Init?.Invoke(this, EventArgs.Empty);
-		}
 
 		void IApiHittable.OnHit(Entity ballEntity, bool isUnHit)
 		{

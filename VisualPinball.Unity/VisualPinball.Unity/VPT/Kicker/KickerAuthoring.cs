@@ -38,7 +38,7 @@ namespace VisualPinball.Unity
 {
 	[AddComponentMenu("Visual Pinball/Game Item/Kicker")]
 	public class KickerAuthoring : ItemMainRenderableAuthoring<KickerData>,
-		ICoilDeviceAuthoring, ITriggerAuthoring, IBallCreationPosition, IOnSurfaceAuthoring, IConvertGameObjectToEntity
+		ICoilDeviceAuthoring, ITriggerAuthoring, IBallCreationPosition, IOnSurfaceAuthoring, IConvertGameObjectToEntity, ISerializationCallbackReceiver
 	{
 		#region Data
 
@@ -56,6 +56,10 @@ namespace VisualPinball.Unity
 		[TypeRestriction(typeof(ISurfaceAuthoring), PickerLabel = "Walls & Ramps", UpdateTransforms = true)]
 		[Tooltip("On which surface the kicker is attached to. Updates Z-translation.")]
 		public MonoBehaviour _surface;
+
+		public List<KickerCoil> Coils = new List<KickerCoil> {
+			new KickerCoil { Name = "Default" }
+		};
 
 		[HideInInspector]
 		public int KickerType;
@@ -89,10 +93,7 @@ namespace VisualPinball.Unity
 
 		public SwitchDefault SwitchDefault => SwitchDefault.Configurable;
 
-		public IEnumerable<GamelogicEngineCoil> AvailableCoils => new[] {
-			// todo support multiple coils, also see plunger which has 2 coil definitions
-			new GamelogicEngineCoil("c_1")
-		};
+		public IEnumerable<GamelogicEngineCoil> AvailableCoils => Coils.Select(c => new GamelogicEngineCoil(c.Id) { Description = c.Name });
 
 		IEnumerable<GamelogicEngineCoil> IDeviceAuthoring<GamelogicEngineCoil>.AvailableDeviceItems => AvailableCoils;
 		IEnumerable<GamelogicEngineSwitch> IDeviceAuthoring<GamelogicEngineSwitch>.AvailableDeviceItems => AvailableSwitches;
@@ -243,6 +244,32 @@ namespace VisualPinball.Unity
 
 		#endregion
 
+		#region Serialization
+
+		public void OnBeforeSerialize()
+		{
+			#if UNITY_EDITOR
+
+			// don't generate ids for prefabs, otherwise they'll show up in the instances.
+			if (UnityEditor.PrefabUtility.GetPrefabInstanceStatus(this) != UnityEditor.PrefabInstanceStatus.Connected) {
+				return;
+			}
+			var coilIds = new HashSet<string>();
+			foreach (var coil in Coils) {
+				if (!coil.HasId || coilIds.Contains(coil.Id)) {
+					coil.GenerateId();
+				}
+				coilIds.Add(coil.Id);
+			}
+			#endif
+		}
+
+		public void OnAfterDeserialize()
+		{
+		}
+
+		#endregion
+
 		#region IBallCreationPosition
 
 		public Vertex3D GetBallCreationPosition() => new Vertex3D(Position.x, Position.y, PositionZ);
@@ -271,5 +298,19 @@ namespace VisualPinball.Unity
 		public override Vector3 GetEditorScale() => new Vector3(Radius, 0f, 0f);
 
 		#endregion
+	}
+
+	[Serializable]
+	public class KickerCoil
+	{
+		public string Name;
+		[SerializeField, HideInInspector]
+		public string Id;
+		public float Speed = 3f;
+		public float Angle = 90f;
+		public float Inclination;
+
+		internal bool HasId => !string.IsNullOrEmpty(Id);
+		internal void GenerateId() => Id = $"coil_{Guid.NewGuid().ToString().Substring(0, 8)}";
 	}
 }

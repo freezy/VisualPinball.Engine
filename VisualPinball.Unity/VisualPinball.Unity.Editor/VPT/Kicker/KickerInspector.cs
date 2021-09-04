@@ -29,6 +29,7 @@ namespace VisualPinball.Unity.Editor
 		private SerializedProperty _radiusProperty;
 		private SerializedProperty _orientationProperty;
 		private SerializedProperty _surfaceProperty;
+		private SerializedProperty _coilsProperty;
 
 		protected override void OnEnable()
 		{
@@ -38,6 +39,7 @@ namespace VisualPinball.Unity.Editor
 			_radiusProperty = serializedObject.FindProperty(nameof(KickerAuthoring.Radius));
 			_orientationProperty = serializedObject.FindProperty(nameof(KickerAuthoring.Orientation));
 			_surfaceProperty = serializedObject.FindProperty(nameof(KickerAuthoring._surface));
+			_coilsProperty = serializedObject.FindProperty(nameof(KickerAuthoring.Coils));
 		}
 
 		public override void OnInspectorGUI()
@@ -58,6 +60,8 @@ namespace VisualPinball.Unity.Editor
 				PropertyField(_orientationProperty, updateTransforms: true);
 			}
 			PropertyField(_surfaceProperty, updateTransforms: true);
+
+			PropertyField(_coilsProperty);
 
 			base.OnInspectorGUI();
 
