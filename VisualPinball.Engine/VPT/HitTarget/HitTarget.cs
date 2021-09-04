@@ -33,9 +33,20 @@ namespace VisualPinball.Engine.VPT.HitTarget
 		{
 		}
 
-		public static HitTarget GetDefault(Table.Table table)
+		public static HitTarget GetHitTarget(Table.Table table)
 		{
-			var hitTargetData = new HitTargetData(table.GetNewName<HitTarget>("Target"), table.Width / 2f, table.Height / 2f);
+			var hitTargetData = new HitTargetData(table.GetNewName<HitTarget>("HitTarget"), table.Width / 2f, table.Height / 2f) {
+				TargetType = TargetType.HitFatTargetRectangle
+			};
+			return new HitTarget(hitTargetData);
+		}
+
+
+		public static HitTarget GetDropTarget(Table.Table table)
+		{
+			var hitTargetData = new HitTargetData(table.GetNewName<HitTarget>("DropTarget"), table.Width / 2f, table.Height / 2f) {
+				TargetType = TargetType.DropTargetBeveled
+			};
 			return new HitTarget(hitTargetData);
 		}
 

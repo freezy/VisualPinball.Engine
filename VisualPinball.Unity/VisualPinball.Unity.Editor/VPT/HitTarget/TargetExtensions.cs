@@ -14,12 +14,19 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-using UnityEditor;
+using VisualPinball.Engine.VPT.HitTarget;
 
 namespace VisualPinball.Unity.Editor
 {
-	[CustomEditor(typeof(HitTargetColliderAuthoring)), CanEditMultipleObjects]
-	public class HitTargetColliderInspector : TargetColliderInspector<HitTargetColliderAuthoring>
+	public static class TargetExtensions
 	{
+		internal static IVpxPrefab InstantiatePrefab(this HitTarget hitTarget)
+		{
+			var prefab = hitTarget.Data.IsDropTarget
+				? RenderPipeline.Current.PrefabProvider.CreateDropTarget(hitTarget.Data.TargetType)
+				: RenderPipeline.Current.PrefabProvider.CreateHitTarget(hitTarget.Data.TargetType);
+
+			return new VpxPrefab<HitTarget, HitTargetData, TargetAuthoring>(prefab, hitTarget);
+		}
 	}
 }

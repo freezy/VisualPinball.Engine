@@ -24,8 +24,8 @@ using VisualPinball.Engine.VPT.HitTarget;
 namespace VisualPinball.Unity
 {
 	[AddComponentMenu("Visual Pinball/Animation/Drop Target Animation")]
-	[RequireComponent(typeof(HitTargetColliderAuthoring))]
-	public class DropTargetAnimationAuthoring : ItemAnimationAuthoring<HitTargetData, HitTargetAuthoring>
+	[RequireComponent(typeof(DropTargetColliderAuthoring))]
+	public class DropTargetAnimationAuthoring : ItemAnimationAuthoring<HitTargetData, DropTargetAuthoring>
 	{
 		public override IEnumerable<Type> ValidParents => Type.EmptyTypes;
 

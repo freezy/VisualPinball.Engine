@@ -39,8 +39,10 @@ namespace VisualPinball.Unity.Editor
 		private const string BumperName = "bumper";
 		private const string BoltName = "bolt";
 		private const string CoilName = "coil";
+		private const string DropTargetName = "drop_target";
 		private const string FlipperName = "flipper";
 		private const string GateName = "gate";
+		private const string HitTargetName = "hit_target";
 		private const string KeyName = "keyboard";
 		private const string KickerName = "kicker";
 		private const string LightName = "light";
@@ -53,16 +55,15 @@ namespace VisualPinball.Unity.Editor
 		private const string SpinnerName = "spinner";
 		private const string SurfaceName = "surface";
 		private const string TableName = "table";
-		private const string HitTargetName = "target";
 		private const string TriggerName = "trigger";
 		private const string TroughName = "trough";
 		private const string SwitchNcName = "switch_nc";
 		private const string SwitchNoName = "switch_no";
 
 		private static readonly string[] Names = {
-			BumperName, BoltName, CoilName, FlipperName, GateName, KeyName, KickerName, LightName, PlayfieldName,
-			PlungerName, PlugName, PrimitiveName, RampName, RubberName, SpinnerName, SurfaceName, HitTargetName,
-			TableName, TriggerName, TroughName, SwitchNcName, SwitchNoName
+			BumperName, BoltName, CoilName, DropTargetName, FlipperName, HitTargetName, GateName, KeyName, KickerName, LightName, PlayfieldName,
+			PlungerName, PlugName, PrimitiveName, RampName, RubberName, SpinnerName, SurfaceName, TableName, TriggerName, TroughName,
+			SwitchNcName, SwitchNoName
 		};
 
 		private readonly Dictionary<IconVariant, Texture2D> _icons = new Dictionary<IconVariant,Texture2D>();
@@ -94,8 +95,10 @@ namespace VisualPinball.Unity.Editor
 		}
 
 		public static Texture2D Bumper(IconSize size = IconSize.Large, IconColor color = IconColor.Gray) => Instance.GetItem(BumperName, size, color);
+		public static Texture2D DropTarget(IconSize size = IconSize.Large, IconColor color = IconColor.Gray) => Instance.GetItem(DropTargetName, size, color);
 		public static Texture2D Flipper(IconSize size = IconSize.Large, IconColor color = IconColor.Gray) => Instance.GetItem(FlipperName, size, color);
 		public static Texture2D Gate(IconSize size = IconSize.Large, IconColor color = IconColor.Gray) => Instance.GetItem(GateName, size, color);
+		public static Texture2D HitTarget(IconSize size = IconSize.Large, IconColor color = IconColor.Gray) => Instance.GetItem(HitTargetName, size, color);
 		public static Texture2D Kicker(IconSize size = IconSize.Large, IconColor color = IconColor.Gray) => Instance.GetItem(KickerName, size, color);
 		public static Texture2D Light(IconSize size = IconSize.Large, IconColor color = IconColor.Gray) => Instance.GetItem(LightName, size, color);
 		public static Texture2D Playfield(IconSize size = IconSize.Large, IconColor color = IconColor.Gray) => Instance.GetItem(PlayfieldName, size, color);
@@ -107,7 +110,6 @@ namespace VisualPinball.Unity.Editor
 		public static Texture2D Spinner(IconSize size = IconSize.Large, IconColor color = IconColor.Gray) => Instance.GetItem(SpinnerName, size, color);
 		public static Texture2D Surface(IconSize size = IconSize.Large, IconColor color = IconColor.Gray) => Instance.GetItem(SurfaceName, size, color);
 		public static Texture2D Table(IconSize size = IconSize.Large, IconColor color = IconColor.Gray) => Instance.GetItem(TableName, size, color);
-		public static Texture2D Target(IconSize size = IconSize.Large, IconColor color = IconColor.Gray) => Instance.GetItem(HitTargetName, size, color);
 		public static Texture2D Trigger(IconSize size = IconSize.Large, IconColor color = IconColor.Gray) => Instance.GetItem(TriggerName, size, color);
 		public static Texture2D Trough(IconSize size = IconSize.Large, IconColor color = IconColor.Gray) => Instance.GetItem(TroughName, size, color);
 		public static Texture2D Switch(bool isClosed, IconSize size = IconSize.Large, IconColor color = IconColor.Gray) => Instance.GetItem(isClosed ? SwitchNcName : SwitchNoName, size, color);
@@ -120,8 +122,10 @@ namespace VisualPinball.Unity.Editor
 		{
 			switch (mb) {
 				case BumperAuthoring _: return Bumper(size, color);
+				case DropTargetAuthoring _: return DropTarget(size, color);
 				case FlipperAuthoring _: return Flipper(size, color);
 				case GateAuthoring _: return Gate(size, color);
+				case HitTargetAuthoring _: return HitTarget(size, color);
 				case KickerAuthoring _: return Kicker(size, color);
 				case LightAuthoring _: return Light(size, color);
 				case PlungerAuthoring _: return Plunger(size, color);
@@ -131,7 +135,6 @@ namespace VisualPinball.Unity.Editor
 				case RubberAuthoring _: return Rubber(size, color);
 				case SpinnerAuthoring _: return Spinner(size, color);
 				case SurfaceAuthoring _: return Surface(size, color);
-				case HitTargetAuthoring _: return Target(size, color);
 				case TriggerAuthoring _: return Trigger(size, color);
 				case TroughAuthoring _: return Trough(size, color);
 				default: return null;
@@ -147,6 +150,8 @@ namespace VisualPinball.Unity.Editor
 			DisableGizmo<BumperSkirtAnimationAuthoring>();
 			DisableGizmo<DefaultGamelogicEngine>();
 			DisableGizmo<DotMatrixDisplayAuthoring>();
+			DisableGizmo<DropTargetAuthoring>();
+			DisableGizmo<DropTargetColliderAuthoring>();
 			DisableGizmo<DropTargetAnimationAuthoring>();
 			DisableGizmo<FlipperAuthoring>();
 			DisableGizmo<FlipperColliderAuthoring>();

@@ -43,7 +43,7 @@ namespace VisualPinball.Unity
 			typeof(BumperAuthoring),
 			typeof(FlipperAuthoring),
 			typeof(GateAuthoring),
-			typeof(HitTargetAuthoring),
+			typeof(TargetAuthoring),
 			typeof(KickerAuthoring),
 			typeof(LightAuthoring),
 			typeof(RampAuthoring),

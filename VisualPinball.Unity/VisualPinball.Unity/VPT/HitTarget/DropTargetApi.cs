@@ -22,7 +22,7 @@ using VisualPinball.Engine.VPT.HitTarget;
 
 namespace VisualPinball.Unity
 {
-	public class HitTargetApi : ItemCollidableApi<TargetAuthoring, HitTargetColliderAuthoring, HitTargetData>,
+	public class DropTargetApi : ItemCollidableApi<TargetAuthoring, HitTargetColliderAuthoring, HitTargetData>,
 		IApiInitializable, IApiHittable, IApiSwitch, IApiSwitchDevice
 	{
 		/// <summary>
@@ -40,9 +40,47 @@ namespace VisualPinball.Unity
 		/// </summary>
 		public event EventHandler<SwitchEventArgs> Switch;
 
-		internal HitTargetApi(GameObject go, Entity entity, Entity parentEntity, Player player)
+		/// <summary>
+		/// Sets the status of a drop target.
+		/// </summary>
+		///
+		/// <remarks>
+		/// Setting this will animate the drop target to the desired position.
+		/// </remarks>
+		///
+		/// <exception cref="InvalidOperationException">Thrown if target is not a drop target (but a hit target, which can't be dropped)</exception>
+		public bool IsDropped {
+			get => EntityManager.GetComponentData<DropTargetAnimationData>(Entity).IsDropped;
+			set => SetIsDropped(value);
+		}
+
+
+		internal DropTargetApi(GameObject go, Entity entity, Entity parentEntity, Player player)
 			: base(go, entity, parentEntity, player)
 		{
+		}
+
+		/// <summary>
+		///
+		/// </summary>
+		/// <param name="isDropped"></param>
+		/// <exception cref="InvalidOperationException"></exception>
+		private void SetIsDropped(bool isDropped)
+		{
+			var data = EntityManager.GetComponentData<DropTargetAnimationData>(Entity);
+			if (data.IsDropped != isDropped) {
+				data.MoveAnimation = true;
+				if (isDropped) {
+					data.MoveDown = true;
+
+				} else {
+					data.MoveDown = false;
+					data.TimeStamp = World.DefaultGameObjectInjectionWorld.GetOrCreateSystem<VisualPinballSimulationSystemGroup>().TimeMsec;
+				}
+			} else {
+				data.IsDropped = isDropped;
+			}
+			EntityManager.SetComponentData(Entity, data);
 		}
 
 		#region Wiring
@@ -63,8 +101,8 @@ namespace VisualPinball.Unity
 
 		protected override void CreateColliders(List<ICollider> colliders)
 		{
-			var colliderGenerator = new HitTargetColliderGenerator(this, MainComponent, MainComponent);
-			colliderGenerator.GenerateColliders(colliders);
+			var colliderGenerator = new DropTargetColliderGenerator(this, MainComponent, MainComponent);
+			colliderGenerator.GenerateColliders(MainComponent.PlayfieldHeight, colliders);
 		}
 
 		#endregion
