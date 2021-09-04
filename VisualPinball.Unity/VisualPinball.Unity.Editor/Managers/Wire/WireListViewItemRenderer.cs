@@ -14,18 +14,21 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-using UnityEngine;
-using UnityEditor;
 using System;
 using System.Collections.Generic;
-using UnityEditor.IMGUI.Controls;
-using VisualPinball.Engine.VPT;
 using System.Linq;
+using UnityEditor;
+using UnityEngine;
+using VisualPinball.Engine.Game.Engines;
 
 namespace VisualPinball.Unity.Editor
 {
-	public class WireListViewItemRenderer
+	public class WireListViewItemRenderer: ListViewItemRenderer<WireListData, IGamelogicEngineDeviceItem, bool>
 	{
+		protected override List<IGamelogicEngineDeviceItem> GleItems => new List<IGamelogicEngineDeviceItem>();
+		protected override IGamelogicEngineDeviceItem InstantiateGleItem(string id) => null;
+		protected override Texture2D StatusIcon(bool status) => null;
+
 		private struct InputSystemEntry
 		{
 			public string ActionMapName;
@@ -65,25 +68,14 @@ namespace VisualPinball.Unity.Editor
 					RenderSource(data, cellRect, updateAction);
 					break;
 				case WireListColumn.SourceElement:
-					RenderSourceElement(tableAuthoring, data, cellRect, updateAction);
+					RenderSourceElement(data, cellRect, updateAction);
 					break;
 				case WireListColumn.DestinationElement:
-					RenderDestinationElement(tableAuthoring, data, cellRect, updateAction);
+					RenderDestinationElement(data, cellRect, updateAction);
 					break;
 				case WireListColumn.PulseDelay:
 					RenderPulseDelay(data, cellRect, updateAction);
 					break;
-			}
-		}
-
-		private void RenderDescription(WireListData wireListData, Rect cellRect, Action<WireListData> updateAction)
-		{
-			EditorGUI.BeginChangeCheck();
-			var value = EditorGUI.TextField(cellRect, wireListData.Description);
-			if (EditorGUI.EndChangeCheck())
-			{
-				wireListData.Description = value;
-				updateAction(wireListData);
 			}
 		}
 
@@ -97,7 +89,7 @@ namespace VisualPinball.Unity.Editor
 			}
 		}
 
-		private void RenderSourceElement(TableAuthoring tableAuthoring, WireListData wireListData, Rect cellRect, Action<WireListData> updateAction)
+		private void RenderSourceElement(WireListData wireListData, Rect cellRect, Action<WireListData> updateAction)
 		{
 			var icon = GetSourceIcon(wireListData);
 
@@ -223,61 +215,20 @@ namespace VisualPinball.Unity.Editor
 			EditorGUI.EndDisabledGroup();
 		}
 
-		private void RenderDestinationElement(TableAuthoring tableAuthoring, WireListData wireListData, Rect cellRect, Action<WireListData> updateAction)
+		private void RenderDestinationElement(WireListData wireListData, Rect cellRect, Action<WireListData> updateAction)
 		{
-			var icon = GetDestinationIcon(wireListData);
-
-			if (icon != null)
-			{
-				var iconRect = cellRect;
-				iconRect.width = 20;
-				var guiColor = GUI.color;
-				GUI.color = Color.clear;
-				EditorGUI.DrawTextureTransparent(iconRect, icon, ScaleMode.ScaleToFit);
-				GUI.color = guiColor;
-			}
-
-			cellRect.x += 25;
-			cellRect.width -= 25;
-
-			cellRect.width = cellRect.width / 2f - 5f;
-			RenderDestinationElementDevice(tableAuthoring, wireListData, cellRect, updateAction);
-			cellRect.x += cellRect.width + 10f;
-			RenderDestinationElementDeviceItem(wireListData, cellRect, updateAction);
+			RenderDevice(wireListData, cellRect, updateAction);
 		}
 
-		private void RenderDestinationElementDevice(TableAuthoring tableAuthoring, WireListData wireListData, Rect cellRect, Action<WireListData> updateAction)
+		protected override void RenderDeviceElement(WireListData listData, Rect cellRect, Action<WireListData> updateAction)
 		{
-			_destDevicePicker.Render(cellRect, wireListData.DestinationDevice, item => {
-				wireListData.DestinationDevice = item;
-				if (wireListData.DestinationDevice != null && wireListData.DestinationDevice.AvailableWireDestinations.Count() == 1) {
-					wireListData.DestinationDeviceItem = wireListData.DestinationDevice.AvailableWireDestinations.First().Id;
+			_destDevicePicker.Render(cellRect, listData.DestinationDevice, item => {
+				listData.DestinationDevice = item;
+				if (listData.DestinationDevice != null && listData.DestinationDevice.AvailableWireDestinations.Count() == 1) {
+					listData.DestinationDeviceItem = listData.DestinationDevice.AvailableWireDestinations.First().Id;
 				}
-				updateAction(wireListData);
+				updateAction(listData);
 			});
-		}
-
-		private void RenderDestinationElementDeviceItem(WireListData wireListData, Rect cellRect, Action<WireListData> updateAction)
-		{
-			EditorGUI.BeginDisabledGroup(wireListData.DestinationDevice == null);
-
-			var currentIndex = 0;
-			var coilLabels = Array.Empty<string>();
-			if (wireListData.DestinationDevice != null) {
-				coilLabels = wireListData.DestinationDevice.AvailableWireDestinations.Select(s => s.Description).ToArray();
-				currentIndex = wireListData.DestinationDevice.AvailableWireDestinations.TakeWhile(s => s.Id != wireListData.DestinationDeviceItem).Count();
-			}
-			EditorGUI.BeginChangeCheck();
-			var newIndex = EditorGUI.Popup(cellRect, currentIndex, coilLabels);
-			if (EditorGUI.EndChangeCheck() && wireListData.DestinationDevice != null)
-			{
-				if (currentIndex != newIndex)
-				{
-					wireListData.DestinationDeviceItem = wireListData.DestinationDevice.AvailableWireDestinations.ElementAt(newIndex).Id;
-					updateAction(wireListData);
-				}
-			}
-			EditorGUI.EndDisabledGroup();
 		}
 
 		private void RenderPulseDelay(WireListData wireListData, Rect cellRect, Action<WireListData> updateAction)
@@ -306,7 +257,7 @@ namespace VisualPinball.Unity.Editor
 			}
 		}
 
-		private UnityEngine.Texture GetSourceIcon(WireListData wireListData)
+		private Texture GetSourceIcon(WireListData wireListData)
 		{
 			Texture2D icon = null;
 
@@ -330,15 +281,10 @@ namespace VisualPinball.Unity.Editor
 			return icon;
 		}
 
-		private UnityEngine.Texture GetDestinationIcon(WireListData wireListData)
+		protected override Texture GetIcon(WireListData listData)
 		{
-			Texture2D icon = null;
-
-			if (wireListData.DestinationDevice != null) {
-				icon = Icons.ByComponent(wireListData.DestinationDevice, IconSize.Small);
-			}
-
-			return icon;
+			return listData.DestinationDevice != null ? Icons.ByComponent(listData.DestinationDevice, IconSize.Small) : null;
 		}
+
 	}
 }

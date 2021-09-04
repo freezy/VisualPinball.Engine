@@ -14,12 +14,14 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+using VisualPinball.Engine.Game.Engines;
+
 namespace VisualPinball.Unity.Editor
 {
-	public class WireListData : IManagerListData
+	public class WireListData : IManagerListData, IDeviceListData<IGamelogicEngineDeviceItem>
 	{
 		[ManagerListColumn(Order = 0, HeaderName = "Description", Width = 150)]
-		public string Name => Description;
+		public string Name { get; private set; }
 
 		[ManagerListColumn(Order = 1, HeaderName = "Source", Width = 150)]
 		public SwitchSource Source;
@@ -33,7 +35,7 @@ namespace VisualPinball.Unity.Editor
 		[ManagerListColumn(Order = 4, HeaderName = "Pulse Delay", Width = 100)]
 		public int PulseDelay;
 
-		public string Description;
+		public string Description { get => Name; set => Name = value; }
 
 		public string SourceInputActionMap;
 		public string SourceInputAction;
@@ -45,6 +47,10 @@ namespace VisualPinball.Unity.Editor
 		public string DestinationDeviceItem;
 
 		public readonly WireMapping WireMapping;
+
+		public IDeviceAuthoring<IGamelogicEngineDeviceItem> DeviceComponent => DestinationDevice;
+		public string DeviceItem { get => DestinationDeviceItem; set => DestinationDeviceItem = value; }
+		public int InternalId { get; set; }
 
 		public WireListData(WireMapping wireMapping) {
 			Description = wireMapping.Description;
