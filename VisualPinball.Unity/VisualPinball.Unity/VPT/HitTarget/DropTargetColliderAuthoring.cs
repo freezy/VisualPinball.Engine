@@ -24,9 +24,9 @@ using VisualPinball.Engine.VPT.HitTarget;
 
 namespace VisualPinball.Unity
 {
-	[AddComponentMenu("Visual Pinball/Collision/Hit Target Collider")]
-	[RequireComponent(typeof(HitTargetAuthoring))]
-	public class HitTargetColliderAuthoring : ItemColliderAuthoring<HitTargetData, TargetAuthoring>
+	[AddComponentMenu("Visual Pinball/Collision/Drop Target Collider")]
+	[RequireComponent(typeof(DropTargetAuthoring))]
+	public class DropTargetColliderAuthoring : ItemColliderAuthoring<HitTargetData, TargetAuthoring>
 	{
 		#region Data
 
@@ -68,6 +68,6 @@ namespace VisualPinball.Unity
 		public override PhysicsMaterialData PhysicsMaterialData => GetPhysicsMaterialData(Elasticity, ElasticityFalloff, Friction, Scatter, OverwritePhysics);
 
 		protected override IApiColliderGenerator InstantiateColliderApi(Player player, Entity entity, Entity parentEntity)
-			=> new HitTargetApi(gameObject, entity, parentEntity, player);
+			=> new DropTargetApi(gameObject, entity, parentEntity, player);
 	}
 }

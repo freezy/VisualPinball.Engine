@@ -141,20 +141,27 @@ namespace VisualPinball.Unity.Editor
 			GUILayout.EndHorizontal();
 			GUILayout.BeginHorizontal();
 
-			if (CreateButton("Target", Icons.Target(color: iconColor), iconSize, buttonStyle)) {
-				CreateItem(HitTarget.GetDefault, "New Target");
+			if (CreateButton("Hit Target", Icons.HitTarget(color: iconColor), iconSize, buttonStyle)) {
+				CreateItem(HitTarget.GetHitTarget, "New Hit Target");
 			}
 
-			if (CreateButton("Rubber", Icons.Rubber(color: iconColor), iconSize, buttonStyle)) {
-				CreateItem(Rubber.GetDefault, "New Rubber");
+			if (CreateButton("Drop Target", Icons.DropTarget(color: iconColor), iconSize, buttonStyle)) {
+				CreateItem(HitTarget.GetDropTarget, "New Target");
 			}
 
 			GUILayout.EndHorizontal();
 			GUILayout.BeginHorizontal();
 
+			if (CreateButton("Rubber", Icons.Rubber(color: iconColor), iconSize, buttonStyle)) {
+				CreateItem(Rubber.GetDefault, "New Rubber");
+			}
+
 			if (CreateButton("Primitive", Icons.Primitive(color: iconColor), iconSize, buttonStyle)) {
 				CreateItem(Primitive.GetDefault, "New Primitive");
 			}
+
+			GUILayout.EndHorizontal();
+			GUILayout.BeginHorizontal();
 
 			if (CreateButton("Trough", Icons.Trough(color: iconColor), iconSize, buttonStyle)) {
 				CreateItem(Trough.GetDefault, "New Trough");

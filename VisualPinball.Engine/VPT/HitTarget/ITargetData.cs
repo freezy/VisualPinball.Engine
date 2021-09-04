@@ -14,16 +14,18 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-using VisualPinball.Engine.VPT.HitTarget;
-
-namespace VisualPinball.Unity.Editor
+namespace VisualPinball.Engine.VPT.HitTarget
 {
-	public static class HitTargetExtensions
+	public interface ITargetData
 	{
-		internal static IVpxPrefab InstantiatePrefab(this HitTarget hitTarget)
-		{
-			var prefab = RenderPipeline.Current.PrefabProvider.CreateTarget(hitTarget.Data.TargetType);
-			return new VpxPrefab<HitTarget, HitTargetData, HitTargetAuthoring>(prefab, hitTarget);
-		}
+		bool IsLegacy { get; }
+		float RotZ { get; }
+		int TargetType { get; }
+		float ScaleX { get; }
+		float ScaleY { get; }
+		float ScaleZ { get; }
+		float PositionX { get; }
+		float PositionY { get; }
+		float PositionZ { get; }
 	}
 }

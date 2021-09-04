@@ -14,12 +14,13 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-using UnityEditor;
+using UnityEngine;
 
-namespace VisualPinball.Unity.Editor
+namespace VisualPinball.Unity
 {
-	[CustomEditor(typeof(HitTargetColliderAuthoring)), CanEditMultipleObjects]
-	public class HitTargetColliderInspector : TargetColliderInspector<HitTargetColliderAuthoring>
+	[AddComponentMenu("Visual Pinball/Game Item/Drop Target")]
+	public class DropTargetAuthoring : TargetAuthoring
 	{
+
 	}
 }

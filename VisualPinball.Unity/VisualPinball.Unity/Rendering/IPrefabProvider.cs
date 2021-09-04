@@ -58,12 +58,20 @@ namespace VisualPinball.Unity
 		GameObject CreateSpinner();
 
 		/// <summary>
-		/// Creates a target prefab.
+		/// Creates a hit target prefab.
 		/// </summary>
 		/// <param name="type">Target type</param>
 		/// <returns>Prefab of the gate (still needs to be instantiated)</returns>
 		/// <see cref="TargetType"/>
-		GameObject CreateTarget(int type);
+		GameObject CreateHitTarget(int type);
+
+		/// <summary>
+		/// Creates a drop target prefab.
+		/// </summary>
+		/// <param name="type">Target type</param>
+		/// <returns>Prefab of the gate (still needs to be instantiated)</returns>
+		/// <see cref="TargetType"/>
+		GameObject CreateDropTarget(int type);
 
 	}
 }

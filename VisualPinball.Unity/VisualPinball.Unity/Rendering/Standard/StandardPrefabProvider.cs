@@ -73,15 +73,9 @@ namespace VisualPinball.Unity
 			return UnityEngine.Resources.Load<GameObject>("Prefabs/Spinner (Builtin)");
 		}
 
-		public GameObject CreateTarget(int type)
+		public GameObject CreateHitTarget(int type)
 		{
 			switch (type) {
-				case TargetType.DropTargetBeveled:
-					return UnityEngine.Resources.Load<GameObject>("Prefabs/Drop Target - Beveled (Builtin)");
-				case TargetType.DropTargetFlatSimple:
-					return UnityEngine.Resources.Load<GameObject>("Prefabs/Drop Target - Simple Flat (Builtin)");
-				case TargetType.DropTargetSimple:
-					return UnityEngine.Resources.Load<GameObject>("Prefabs/Drop Target - Simple (Builtin)");
 				case TargetType.HitFatTargetRectangle:
 					return UnityEngine.Resources.Load<GameObject>("Prefabs/Hit Target - Rectangle Fat (Builtin)");
 				case TargetType.HitFatTargetSlim:
@@ -95,7 +89,21 @@ namespace VisualPinball.Unity
 				case TargetType.HitTargetSlim:
 					return UnityEngine.Resources.Load<GameObject>("Prefabs/Hit Target - Narrow (Builtin)");
 				default:
-					throw new ArgumentException(nameof(type), $"Unknown target type {type}.");
+					throw new ArgumentException(nameof(type), $"Unknown hit target type {type}.");
+			}
+		}
+
+		public GameObject CreateDropTarget(int type)
+		{
+			switch (type) {
+				case TargetType.DropTargetBeveled:
+					return UnityEngine.Resources.Load<GameObject>("Prefabs/Drop Target - Beveled (Builtin)");
+				case TargetType.DropTargetFlatSimple:
+					return UnityEngine.Resources.Load<GameObject>("Prefabs/Drop Target - Simple Flat (Builtin)");
+				case TargetType.DropTargetSimple:
+					return UnityEngine.Resources.Load<GameObject>("Prefabs/Drop Target - Simple (Builtin)");
+				default:
+					throw new ArgumentException(nameof(type), $"Unknown drop target type {type}.");
 			}
 		}
 	}

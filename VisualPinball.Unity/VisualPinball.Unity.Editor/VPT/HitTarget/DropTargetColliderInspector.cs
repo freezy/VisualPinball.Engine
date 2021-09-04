@@ -14,19 +14,12 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-namespace VisualPinball.Engine.VPT.HitTarget
+using UnityEditor;
+
+namespace VisualPinball.Unity.Editor
 {
-	public interface IHitTargetData
+	[CustomEditor(typeof(DropTargetColliderAuthoring)), CanEditMultipleObjects]
+	public class DropTargetColliderInspector : TargetColliderInspector<DropTargetColliderAuthoring>
 	{
-		bool IsDropTarget { get; }
-		bool IsLegacy { get; }
-		float RotZ { get; }
-		int TargetType { get; }
-		float ScaleX { get; }
-		float ScaleY { get; }
-		float ScaleZ { get; }
-		float PositionX { get; }
-		float PositionY { get; }
-		float PositionZ { get; }
 	}
 }

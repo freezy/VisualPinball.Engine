@@ -237,7 +237,7 @@ namespace VisualPinball.Unity
 					var gatData = gateAuthoring.CopyDataTo(_tableAuthoring.LegacyContainer.Gates.ContainsKey(name) ? _tableAuthoring.LegacyContainer.Gates[name] : new GateData(), MaterialNames, TextureNames, forExport);
 					Add(comp.gameObject.name, new Gate(gatData));
 					break;
-				case HitTargetAuthoring hitTargetAuthoring:
+				case TargetAuthoring hitTargetAuthoring:
 					var hitTargetData = hitTargetAuthoring.CopyDataTo(_tableAuthoring.LegacyContainer.HitTargets.ContainsKey(name) ? _tableAuthoring.LegacyContainer.HitTargets[name] : new HitTargetData(), MaterialNames, TextureNames, forExport);
 					Add(comp.gameObject.name, new HitTarget(hitTargetData));
 					break;

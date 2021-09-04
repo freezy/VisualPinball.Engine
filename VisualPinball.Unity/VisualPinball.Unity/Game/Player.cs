@@ -200,7 +200,7 @@ namespace VisualPinball.Unity
 			RegisterTransform<GateWireAnimationAuthoring>(GateWireTransforms, component, entity);
 		}
 
-		public void RegisterHitTarget(HitTargetAuthoring component, Entity entity, Entity parentEntity)
+		public void RegisterHitTarget(TargetAuthoring component, Entity entity, Entity parentEntity)
 		{
 			Register(TableApi.HitTargets, new HitTargetApi(component.gameObject, entity, parentEntity, this), component, entity);
 			RegisterTransform<HitTargetAnimationAuthoring>(HitTargetTransforms, component, entity);

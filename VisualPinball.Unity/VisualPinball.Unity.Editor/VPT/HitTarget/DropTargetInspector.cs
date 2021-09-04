@@ -18,8 +18,8 @@ using UnityEditor;
 
 namespace VisualPinball.Unity.Editor
 {
-	[CustomEditor(typeof(HitTargetColliderAuthoring)), CanEditMultipleObjects]
-	public class HitTargetColliderInspector : TargetColliderInspector<HitTargetColliderAuthoring>
+	[CustomEditor(typeof(DropTargetAuthoring)), CanEditMultipleObjects]
+	public class DropTargetInspector : TargetInspector
 	{
 	}
 }
