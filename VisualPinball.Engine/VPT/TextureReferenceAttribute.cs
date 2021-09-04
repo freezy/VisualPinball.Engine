@@ -21,6 +21,7 @@ namespace VisualPinball.Engine.VPT
 	/// <summary>
 	/// Attribute for item data fields that reference vpx textures
 	/// </summary>
+	[Obsolete]
 	[AttributeUsage(AttributeTargets.Field | AttributeTargets.Property, AllowMultiple = false)]
 	public class TextureReferenceAttribute : Attribute
 	{
