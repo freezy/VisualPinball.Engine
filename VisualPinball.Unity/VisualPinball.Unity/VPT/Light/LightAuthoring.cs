@@ -89,6 +89,7 @@ namespace VisualPinball.Unity
 
 		public IEnumerable<GamelogicEngineLamp> AvailableDeviceItems => AvailableLamps;
 		IEnumerable<IGamelogicEngineDeviceItem> IWireableAuthoring.AvailableWireDestinations => AvailableLamps;
+		IEnumerable<IGamelogicEngineDeviceItem> IDeviceAuthoring<IGamelogicEngineDeviceItem>.AvailableDeviceItems => AvailableLamps;
 
 		#endregion
 

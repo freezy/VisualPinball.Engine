@@ -288,6 +288,7 @@ namespace VisualPinball.Unity
 		}
 
 		IEnumerable<IGamelogicEngineDeviceItem> IWireableAuthoring.AvailableWireDestinations => AvailableCoils;
+		IEnumerable<IGamelogicEngineDeviceItem> IDeviceAuthoring<IGamelogicEngineDeviceItem>.AvailableDeviceItems => AvailableCoils;
 
 		#endregion
 

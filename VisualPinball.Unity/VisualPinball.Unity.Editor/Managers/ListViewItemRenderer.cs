@@ -118,7 +118,7 @@ namespace VisualPinball.Unity.Editor
 			RenderDeviceItemElement(listData, cellRect, updateAction);
 		}
 
-		protected void RenderDeviceItemElement(TListData listData, Rect cellRect, Action<TListData> updateAction)
+		private void RenderDeviceItemElement(TListData listData, Rect cellRect, Action<TListData> updateAction)
 		{
 			UpdateDeviceItem(listData);
 
