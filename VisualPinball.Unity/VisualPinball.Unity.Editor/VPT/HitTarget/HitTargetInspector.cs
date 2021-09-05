@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+using System.Collections.Generic;
 using UnityEditor;
 
 namespace VisualPinball.Unity.Editor
@@ -23,5 +24,13 @@ namespace VisualPinball.Unity.Editor
 	{
 		protected override string MeshAssetFolder
 			=> "Packages/org.visualpinball.engine.unity/VisualPinball.Unity/Assets/Art/Meshes/Hit Target";
+		protected override Dictionary<string, int> MeshTypeMapping => new Dictionary<string, int> {
+			{ "Narrow", Engine.VPT.TargetType.HitFatTargetSlim },
+			{ "Rectangle Fat Narrow", Engine.VPT.TargetType.HitFatTargetSlim },
+			{ "Rectangle Fat", Engine.VPT.TargetType.HitFatTargetRectangle },
+			{ "Rectangle", Engine.VPT.TargetType.HitTargetRectangle },
+			{ "Round", Engine.VPT.TargetType.HitTargetRound },
+			{ "Square Fat", Engine.VPT.TargetType.HitFatTargetSquare },
+		};
 	}
 }
