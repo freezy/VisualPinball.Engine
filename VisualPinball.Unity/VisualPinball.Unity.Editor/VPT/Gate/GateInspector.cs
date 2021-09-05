@@ -16,6 +16,7 @@
 
 // ReSharper disable AssignmentInConditionalExpression
 
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor;
 using VisualPinball.Engine.VPT;
@@ -26,13 +27,21 @@ namespace VisualPinball.Unity.Editor
 	[CustomEditor(typeof(GateAuthoring)), CanEditMultipleObjects]
 	public class GateInspector : ItemMainInspector<GateData, GateAuthoring>
 	{
-		private static readonly string[] GateTypeLabels = { "Wire: 'W'", "Wire: Rectangle", "Plate", "Long Plate" };
-		private static readonly int[] GateTypeValues = { GateType.GateWireW, GateType.GateWireRectangle, GateType.GatePlate, GateType.GateLongPlate };
+		private const string MeshFolder = "Packages/org.visualpinball.engine.unity/VisualPinball.Unity/Assets/Art/Meshes/Gate/Wire";
+
+		private static readonly Dictionary<string, int> TypeMap = new Dictionary<string, int> {
+			{ "Long Plate", GateType.GateLongPlate },
+			{ "Plate", GateType.GatePlate },
+			{ "Wire Rectangle", GateType.GateWireRectangle },
+			{ "Wire W", GateType.GateWireW },
+		};
 
 		private SerializedProperty _positionProperty;
 		private SerializedProperty _rotationProperty;
 		private SerializedProperty _lengthProperty;
 		private SerializedProperty _surfaceProperty;
+		private SerializedProperty _meshProperty;
+		private SerializedProperty _typeProperty;
 
 		public const string TwoWayLabel = "Two Way";
 
@@ -44,6 +53,8 @@ namespace VisualPinball.Unity.Editor
 			_rotationProperty = serializedObject.FindProperty(nameof(GateAuthoring._rotation));
 			_lengthProperty = serializedObject.FindProperty(nameof(GateAuthoring._length));
 			_surfaceProperty = serializedObject.FindProperty(nameof(GateAuthoring._surface));
+			_meshProperty = serializedObject.FindProperty(nameof(GateAuthoring._meshName));
+			_typeProperty = serializedObject.FindProperty(nameof(GateAuthoring._type));
 		}
 
 		public override void OnInspectorGUI()
@@ -61,7 +72,10 @@ namespace VisualPinball.Unity.Editor
 			PropertyField(_lengthProperty, updateTransforms: true);
 			PropertyField(_surfaceProperty);
 
-			base.OnInspectorGUI();
+			var wire = MainComponent.transform.Find(GateAuthoring.WireObjectName);
+			if (wire != null) {
+				MeshDropdownProperty("Mesh", _meshProperty, MeshFolder, wire.gameObject, _typeProperty, TypeMap);
+			}
 
 			serializedObject.ApplyModifiedProperties();
 		}

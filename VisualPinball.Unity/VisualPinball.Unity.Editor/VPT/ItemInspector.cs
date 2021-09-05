@@ -165,7 +165,7 @@ namespace VisualPinball.Unity.Editor
 			}
 		}
 
-		protected void MeshDropdownProperty(string label, SerializedProperty meshProp, string meshFolder, MonoBehaviour component,
+		protected void MeshDropdownProperty(string label, SerializedProperty meshProp, string meshFolder, GameObject go,
 			SerializedProperty typeProp, Dictionary<string, int> meshTypeMap)
 		{
 			var files = Directory.GetFiles(meshFolder, "*.mesh")
@@ -175,8 +175,8 @@ namespace VisualPinball.Unity.Editor
 			var selectedIndex = files.ToList().IndexOf(meshProp.stringValue);
 			EditorGUI.BeginChangeCheck();
 			var newIndex = EditorGUILayout.Popup(label, selectedIndex, files);
-			if (EditorGUI.EndChangeCheck() && newIndex >= 0 && newIndex < files.Length && component != null) {
-				var mf = component.GetComponent<MeshFilter>();
+			if (EditorGUI.EndChangeCheck() && newIndex >= 0 && newIndex < files.Length && go != null) {
+				var mf = go.GetComponent<MeshFilter>();
 				if (mf) {
 					var mesh = (Mesh)AssetDatabase.LoadAssetAtPath(Path.Combine(meshFolder, $"{files[newIndex]}.mesh"), typeof(Mesh));
 					mf.sharedMesh = mesh;
