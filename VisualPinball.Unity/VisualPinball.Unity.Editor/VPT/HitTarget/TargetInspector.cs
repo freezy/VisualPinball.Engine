@@ -59,7 +59,7 @@ namespace VisualPinball.Unity.Editor
 			PropertyField(_rotationProperty, updateTransforms: true);
 			PropertyField(_sizeProperty, updateTransforms: true);
 
-			MeshDropdownProperty("Mesh", _meshNameProperty, MeshAssetFolder, target as MonoBehaviour, _typeNameProperty, MeshTypeMapping);
+			MeshDropdownProperty("Mesh", _meshNameProperty, MeshAssetFolder, MainComponent.gameObject, _typeNameProperty, MeshTypeMapping);
 
 			serializedObject.ApplyModifiedProperties();
 		}

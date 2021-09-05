@@ -58,6 +58,9 @@ namespace VisualPinball.Unity
 		[Tooltip("On which surface this flipper is attached to. Updates Z-translation.")]
 		public MonoBehaviour _surface;
 
+		public int _type;
+		public string _meshName;
+
 		#endregion
 
 		#region IGateData
@@ -72,7 +75,7 @@ namespace VisualPinball.Unity
 		public bool ShowBracket { get {
 			foreach (var mf in GetComponentsInChildren<MeshFilter>()) {
 				switch (mf.gameObject.name) {
-					case BracketPrefabName:
+					case BracketObjectName:
 						return mf.gameObject.activeInHierarchy;
 				}
 			}
@@ -94,8 +97,8 @@ namespace VisualPinball.Unity
 		protected override Type MeshAuthoringType { get; } = typeof(ItemMeshAuthoring<GateData, GateAuthoring>);
 		protected override Type ColliderAuthoringType { get; } = typeof(ItemColliderAuthoring<GateData, GateAuthoring>);
 
-		private const string BracketPrefabName = "Bracket";
-		private const string WirePrefabName = "Wire";
+		public const string BracketObjectName = "Bracket";
+		public const string WireObjectName = "Wire";
 
 		public const string MainSwitchItem = "gate_switch";
 
@@ -180,12 +183,18 @@ namespace VisualPinball.Unity
 			Position = data.Center.ToUnityVector3(data.Height);
 			_rotation = data.Rotation > 180f ? data.Rotation - 360f : data.Rotation;
 			_length = data.Length;
+			_type = data.GateType;
 
 			// visibility
 			foreach (var mf in GetComponentsInChildren<MeshFilter>()) {
 				switch (mf.gameObject.name) {
-					case BracketPrefabName:
+					case BracketObjectName:
 						mf.gameObject.SetActive(data.IsVisible && data.ShowBracket);
+						break;
+					case WireObjectName:
+						#if UNITY_EDITOR
+							_meshName = System.IO.Path.GetFileNameWithoutExtension(UnityEditor.AssetDatabase.GetAssetPath(mf.sharedMesh));
+						#endif
 						break;
 					default:
 						mf.gameObject.SetActive(data.IsVisible);
@@ -235,10 +244,10 @@ namespace VisualPinball.Unity
 			// visibility
 			foreach (var mf in GetComponentsInChildren<MeshFilter>()) {
 				switch (mf.gameObject.name) {
-					case BracketPrefabName:
+					case BracketObjectName:
 						data.ShowBracket = mf.gameObject.activeInHierarchy;
 						break;
-					case WirePrefabName:
+					case WireObjectName:
 						data.IsVisible = mf.gameObject.activeInHierarchy;
 						break;
 				}
