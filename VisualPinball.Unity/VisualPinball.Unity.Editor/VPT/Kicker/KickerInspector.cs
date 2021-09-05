@@ -16,6 +16,7 @@
 
 // ReSharper disable AssignmentInConditionalExpression
 
+using System.Collections.Generic;
 using UnityEditor;
 using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Kicker;
@@ -25,10 +26,24 @@ namespace VisualPinball.Unity.Editor
 	[CustomEditor(typeof(KickerAuthoring)), CanEditMultipleObjects]
 	public class KickerInspector : ItemMainInspector<KickerData, KickerAuthoring>
 	{
+
+		private const string MeshFolder = "Packages/org.visualpinball.engine.unity/VisualPinball.Unity/Assets/Art/Meshes/Kicker";
+
+		private static readonly Dictionary<string, int> TypeMap = new Dictionary<string, int> {
+			{ "Cup 1", KickerType.KickerCup },
+			{ "Cup 2", KickerType.KickerCup2 },
+			{ "Gottlieb", KickerType.KickerGottlieb },
+			{ "Hole", KickerType.KickerHole },
+			{ "Simple Hole", KickerType.KickerHoleSimple },
+			{ "Williams", KickerType.KickerWilliams },
+		};
+
 		private SerializedProperty _positionProperty;
 		private SerializedProperty _radiusProperty;
 		private SerializedProperty _orientationProperty;
 		private SerializedProperty _surfaceProperty;
+		private SerializedProperty _kickerTypeProperty;
+		private SerializedProperty _meshNameProperty;
 		private SerializedProperty _coilsProperty;
 
 		protected override void OnEnable()
@@ -39,6 +54,8 @@ namespace VisualPinball.Unity.Editor
 			_radiusProperty = serializedObject.FindProperty(nameof(KickerAuthoring.Radius));
 			_orientationProperty = serializedObject.FindProperty(nameof(KickerAuthoring.Orientation));
 			_surfaceProperty = serializedObject.FindProperty(nameof(KickerAuthoring._surface));
+			_kickerTypeProperty = serializedObject.FindProperty(nameof(KickerAuthoring.KickerType));
+			_meshNameProperty = serializedObject.FindProperty(nameof(KickerAuthoring.MeshName));
 			_coilsProperty = serializedObject.FindProperty(nameof(KickerAuthoring.Coils));
 		}
 
@@ -60,6 +77,8 @@ namespace VisualPinball.Unity.Editor
 				PropertyField(_orientationProperty, updateTransforms: true);
 			}
 			PropertyField(_surfaceProperty, updateTransforms: true);
+
+			MeshDropdownProperty("Mesh", _meshNameProperty, MeshFolder, MainComponent.gameObject, _kickerTypeProperty, TypeMap);
 
 			PropertyField(_coilsProperty);
 

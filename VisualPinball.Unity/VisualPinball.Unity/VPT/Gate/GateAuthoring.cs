@@ -241,6 +241,8 @@ namespace VisualPinball.Unity
 			data.Length = Length;
 			data.Surface = Surface != null ? Surface.name : string.Empty;
 
+			data.GateType = _type;
+
 			// visibility
 			foreach (var mf in GetComponentsInChildren<MeshFilter>()) {
 				switch (mf.gameObject.name) {
