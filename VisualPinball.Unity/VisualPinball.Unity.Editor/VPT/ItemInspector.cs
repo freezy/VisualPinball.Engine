@@ -16,6 +16,7 @@
 
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using UnityEditor;
@@ -164,7 +165,8 @@ namespace VisualPinball.Unity.Editor
 			}
 		}
 
-		protected void MeshDropdownProperty(string label, SerializedProperty meshProp, string meshFolder, MonoBehaviour component)
+		protected void MeshDropdownProperty(string label, SerializedProperty meshProp, string meshFolder, MonoBehaviour component,
+			SerializedProperty typeProp, Dictionary<string, int> meshTypeMap)
 		{
 			var files = Directory.GetFiles(meshFolder, "*.mesh")
 				.Select(Path.GetFileNameWithoutExtension)
@@ -179,6 +181,9 @@ namespace VisualPinball.Unity.Editor
 					var mesh = (Mesh)AssetDatabase.LoadAssetAtPath(Path.Combine(meshFolder, $"{files[newIndex]}.mesh"), typeof(Mesh));
 					mf.sharedMesh = mesh;
 					meshProp.stringValue = files[newIndex];
+					if (meshTypeMap.ContainsKey(files[newIndex])) {
+						typeProp.intValue = meshTypeMap[files[newIndex]];
+					}
 					meshProp.serializedObject.ApplyModifiedProperties();
 				}
 			}

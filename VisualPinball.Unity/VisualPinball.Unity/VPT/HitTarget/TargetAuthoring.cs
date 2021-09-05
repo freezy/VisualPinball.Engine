@@ -52,8 +52,7 @@ namespace VisualPinball.Unity
 		public Vector3 Size = new Vector3(32f, 32f, 32f);
 
 		[Range(1, 9)]
-		private int _targetType = Engine.VPT.TargetType.DropTargetBeveled;
-
+		public int _targetType = Engine.VPT.TargetType.DropTargetBeveled;
 
 		public string MeshName;
 

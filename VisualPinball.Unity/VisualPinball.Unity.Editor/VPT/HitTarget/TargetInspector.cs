@@ -16,6 +16,7 @@
 
 // ReSharper disable AssignmentInConditionalExpression
 
+using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
 using VisualPinball.Engine.VPT.HitTarget;
@@ -28,8 +29,10 @@ namespace VisualPinball.Unity.Editor
 		private SerializedProperty _rotationProperty;
 		private SerializedProperty _sizeProperty;
 		private SerializedProperty _meshNameProperty;
+		private SerializedProperty _typeNameProperty;
 
 		protected abstract string MeshAssetFolder { get; }
+		protected abstract Dictionary<string, int> MeshTypeMapping { get; }
 
 		protected override void OnEnable()
 		{
@@ -39,6 +42,7 @@ namespace VisualPinball.Unity.Editor
 			_rotationProperty = serializedObject.FindProperty(nameof(TargetAuthoring.Rotation));
 			_sizeProperty = serializedObject.FindProperty(nameof(TargetAuthoring.Size));
 			_meshNameProperty = serializedObject.FindProperty(nameof(TargetAuthoring.MeshName));
+			_typeNameProperty = serializedObject.FindProperty(nameof(TargetAuthoring._targetType));
 		}
 
 		public override void OnInspectorGUI()
@@ -55,7 +59,7 @@ namespace VisualPinball.Unity.Editor
 			PropertyField(_rotationProperty, updateTransforms: true);
 			PropertyField(_sizeProperty, updateTransforms: true);
 
-			MeshDropdownProperty("Mesh", _meshNameProperty, MeshAssetFolder, target as MonoBehaviour);
+			MeshDropdownProperty("Mesh", _meshNameProperty, MeshAssetFolder, target as MonoBehaviour, _typeNameProperty, MeshTypeMapping);
 
 			serializedObject.ApplyModifiedProperties();
 		}
