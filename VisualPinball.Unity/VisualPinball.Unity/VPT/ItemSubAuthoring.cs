@@ -67,7 +67,7 @@ namespace VisualPinball.Unity
 			}
 
 			// search on grand parent
-			if (go.transform.parent.transform.parent != null) {
+			if (go.transform.parent != null && go.transform.parent.transform.parent != null) {
 				ac = go.transform.parent.transform.parent.GetComponent<TMainAuthoring>();
 			}
 			if (ac != null) {
@@ -75,7 +75,7 @@ namespace VisualPinball.Unity
 			}
 
 			// search on great grand parent
-			if (go.transform.parent.transform.parent.transform.parent != null) {
+			if (go.transform.parent != null && go.transform.parent.transform.parent != null && go.transform.parent.transform.parent.transform.parent != null) {
 				ac = go.transform.parent.transform.parent.transform.parent.GetComponent<TMainAuthoring>();
 			}
 
