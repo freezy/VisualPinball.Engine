@@ -61,8 +61,8 @@ namespace VisualPinball.Unity
 			new KickerCoil { Name = "Default" }
 		};
 
-		[HideInInspector]
-		public int KickerType;
+		[HideInInspector] public int KickerType;
+		[HideInInspector] public string MeshName;
 
 		#endregion
 
@@ -187,6 +187,13 @@ namespace VisualPinball.Unity
 			Radius = data.Radius;
 			KickerType = data.KickerType;
 
+			#if UNITY_EDITOR
+			var mf = GetComponent<MeshFilter>();
+			if (mf) {
+				MeshName = System.IO.Path.GetFileNameWithoutExtension(UnityEditor.AssetDatabase.GetAssetPath(mf.sharedMesh));
+			}
+			#endif
+
 			// collider data
 			var colliderAuthoring = gameObject.GetComponent<KickerColliderAuthoring>();
 			if (colliderAuthoring) {
@@ -221,6 +228,8 @@ namespace VisualPinball.Unity
 			data.Orientation = Orientation;
 			data.Radius = Radius;
 			data.Surface = Surface != null ? Surface.name : string.Empty;
+
+			data.KickerType = KickerType;
 
 			// todo visibility is set by the type
 
