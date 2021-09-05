@@ -21,6 +21,7 @@ namespace VisualPinball.Unity.Editor
 	[CustomEditor(typeof(HitTargetAuthoring)), CanEditMultipleObjects]
 	public class HitTargetInspector : TargetInspector
 	{
-
+		protected override string MeshAssetFolder
+			=> "Packages/org.visualpinball.engine.unity/VisualPinball.Unity/Assets/Art/Meshes/Hit Target";
 	}
 }
