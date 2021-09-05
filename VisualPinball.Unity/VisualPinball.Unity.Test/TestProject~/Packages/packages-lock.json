@@ -197,13 +197,6 @@
         "com.unity.test-framework": "1.1.22"
       }
     },
-    "org.visualpinball.unity.assetlibrary": {
-      "version": "0.0.1-preview.17",
-      "depth": 0,
-      "source": "registry",
-      "dependencies": {},
-      "url": "https://registry.visualpinball.org"
-    },
     "com.unity.modules.ai": {
       "version": "1.0.0",
       "depth": 0,

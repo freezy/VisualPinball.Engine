@@ -24,28 +24,20 @@ MonoBehaviour:
     m_Scopes: []
     m_IsDefault: 1
     m_Capabilities: 7
-  - m_Id: scoped:Visual Pinball Engine
-    m_Name: Visual Pinball Engine
-    m_Url: https://registry.visualpinball.org
-    m_Scopes:
-    - org.visualpinball
-    m_IsDefault: 0
-    m_Capabilities: 0
-  m_UserSelectedRegistryName: Visual Pinball Engine
+  m_UserSelectedRegistryName: 
   m_UserAddingNewScopedRegistry: 0
   m_RegistryInfoDraft:
     m_ErrorMessage: 
     m_Original:
-      m_Id: scoped:Visual Pinball Engine
-      m_Name: Visual Pinball Engine
-      m_Url: https://registry.visualpinball.org
-      m_Scopes:
-      - org.visualpinball
+      m_Id: 
+      m_Name: 
+      m_Url: 
+      m_Scopes: []
       m_IsDefault: 0
       m_Capabilities: 0
     m_Modified: 0
-    m_Name: Visual Pinball Engine
-    m_Url: https://registry.visualpinball.org
+    m_Name: 
+    m_Url: 
     m_Scopes:
-    - org.visualpinball
+    - 
     m_SelectedScopeIndex: 0
