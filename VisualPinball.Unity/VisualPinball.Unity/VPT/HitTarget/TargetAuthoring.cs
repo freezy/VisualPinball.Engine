@@ -23,6 +23,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using Unity.Entities;
 using UnityEngine;
@@ -52,6 +53,9 @@ namespace VisualPinball.Unity
 
 		[Range(1, 9)]
 		private int _targetType = Engine.VPT.TargetType.DropTargetBeveled;
+
+
+		public string MeshName;
 
 		#endregion
 
@@ -130,7 +134,7 @@ namespace VisualPinball.Unity
 
 		#region Conversion
 
-			public void Convert(Entity entity, EntityManager dstManager, GameObjectConversionSystem conversionSystem)
+		public void Convert(Entity entity, EntityManager dstManager, GameObjectConversionSystem conversionSystem)
 		{
 			Convert(entity, dstManager);
 
@@ -177,6 +181,12 @@ namespace VisualPinball.Unity
 			Size = data.Size.ToUnityVector3();
 
 			_targetType = data.TargetType;
+			#if UNITY_EDITOR
+			var mf = GetComponent<MeshFilter>();
+			if (mf) {
+				MeshName = Path.GetFileNameWithoutExtension(UnityEditor.AssetDatabase.GetAssetPath(mf.sharedMesh));
+			}
+			#endif
 
 			// collider data
 			var colliderAuthoring = GetComponent<HitTargetColliderAuthoring>();

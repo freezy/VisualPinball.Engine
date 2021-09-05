@@ -16,6 +16,8 @@
 
 using System;
 using System.Collections;
+using System.IO;
+using System.Linq;
 using UnityEditor;
 using UnityEngine;
 using Object = UnityEngine.Object;
@@ -158,6 +160,26 @@ namespace VisualPinball.Unity.Editor
 							mainItem.UpdateVisibility();
 						}
 						break;
+				}
+			}
+		}
+
+		protected void MeshDropdownProperty(string label, SerializedProperty meshProp, string meshFolder, MonoBehaviour component)
+		{
+			var files = Directory.GetFiles(meshFolder, "*.mesh")
+				.Select(Path.GetFileNameWithoutExtension)
+				.ToArray();
+
+			var selectedIndex = files.ToList().IndexOf(meshProp.stringValue);
+			EditorGUI.BeginChangeCheck();
+			var newIndex = EditorGUILayout.Popup(label, selectedIndex, files);
+			if (EditorGUI.EndChangeCheck() && newIndex >= 0 && newIndex < files.Length && component != null) {
+				var mf = component.GetComponent<MeshFilter>();
+				if (mf) {
+					var mesh = (Mesh)AssetDatabase.LoadAssetAtPath(Path.Combine(meshFolder, $"{files[newIndex]}.mesh"), typeof(Mesh));
+					mf.sharedMesh = mesh;
+					meshProp.stringValue = files[newIndex];
+					meshProp.serializedObject.ApplyModifiedProperties();
 				}
 			}
 		}

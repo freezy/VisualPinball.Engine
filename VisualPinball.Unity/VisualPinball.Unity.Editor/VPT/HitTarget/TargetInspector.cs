@@ -17,6 +17,7 @@
 // ReSharper disable AssignmentInConditionalExpression
 
 using UnityEditor;
+using UnityEngine;
 using VisualPinball.Engine.VPT.HitTarget;
 
 namespace VisualPinball.Unity.Editor
@@ -26,6 +27,9 @@ namespace VisualPinball.Unity.Editor
 		private SerializedProperty _positionProperty;
 		private SerializedProperty _rotationProperty;
 		private SerializedProperty _sizeProperty;
+		private SerializedProperty _meshNameProperty;
+
+		protected abstract string MeshAssetFolder { get; }
 
 		protected override void OnEnable()
 		{
@@ -34,6 +38,7 @@ namespace VisualPinball.Unity.Editor
 			_positionProperty = serializedObject.FindProperty(nameof(TargetAuthoring.Position));
 			_rotationProperty = serializedObject.FindProperty(nameof(TargetAuthoring.Rotation));
 			_sizeProperty = serializedObject.FindProperty(nameof(TargetAuthoring.Size));
+			_meshNameProperty = serializedObject.FindProperty(nameof(TargetAuthoring.MeshName));
 		}
 
 		public override void OnInspectorGUI()
@@ -50,9 +55,7 @@ namespace VisualPinball.Unity.Editor
 			PropertyField(_rotationProperty, updateTransforms: true);
 			PropertyField(_sizeProperty, updateTransforms: true);
 
-			// todo type (mesh + drop/hit target distinction)
-
-			base.OnInspectorGUI();
+			MeshDropdownProperty("Mesh", _meshNameProperty, MeshAssetFolder, target as MonoBehaviour);
 
 			serializedObject.ApplyModifiedProperties();
 		}

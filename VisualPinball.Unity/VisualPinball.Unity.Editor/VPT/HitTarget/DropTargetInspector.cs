@@ -21,5 +21,7 @@ namespace VisualPinball.Unity.Editor
 	[CustomEditor(typeof(DropTargetAuthoring)), CanEditMultipleObjects]
 	public class DropTargetInspector : TargetInspector
 	{
+		protected override string MeshAssetFolder
+			=> "Packages/org.visualpinball.engine.unity/VisualPinball.Unity/Assets/Art/Meshes/Drop Target";
 	}
 }
