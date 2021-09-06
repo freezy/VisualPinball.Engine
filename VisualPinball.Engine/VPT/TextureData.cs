@@ -25,7 +25,7 @@ using System.Collections.Generic;
 using System.IO;
 using VisualPinball.Engine.IO;
 using VisualPinball.Engine.VPT.Table;
-using VisualPinball.Resources;
+using VisualPinball.Engine.Resources;
 
 namespace VisualPinball.Engine.VPT
 {

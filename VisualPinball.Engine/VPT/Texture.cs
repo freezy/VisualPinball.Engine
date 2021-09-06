@@ -19,7 +19,7 @@ using System.IO;
 using System.Text;
 using NetVips;
 using NLog;
-using VisualPinball.Resources;
+using VisualPinball.Engine.Resources;
 
 namespace VisualPinball.Engine.VPT
 {

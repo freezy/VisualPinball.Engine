@@ -409,13 +409,6 @@ namespace VisualPinball.Unity.Editor
 				}
 				_tableComponent.LegacyContainer.Textures.Add(legacyTexture);
 			}
-
-			// todo lazy load and don't import local textures once they are in the prefabs
-			foreach (var texture in Engine.VPT.Texture.LocalTextures) {
-				var path = texture.GetUnityFilename(_assetsTextures);
-				var unityTexture = AssetDatabase.LoadAssetAtPath<Texture2D>(path);
-				_textures[texture.Name.ToLower()] = unityTexture;
-			}
 		}
 
 		private void FreeTextures()

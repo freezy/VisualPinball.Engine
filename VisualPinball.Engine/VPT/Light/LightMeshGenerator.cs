@@ -26,7 +26,7 @@ namespace VisualPinball.Engine.VPT.Light
 		public const string Bulb = "Bulb";
 		public const string Socket = "Socket";
 
-		private static readonly Mesh BulbMesh = new Mesh("Bulb", Resources.Meshes.BulbMesh.Vertices, Resources.Meshes.BulbMesh.Indices);
+		private static readonly Mesh BulbMesh = new Mesh("Bulb", Resources.Meshes.Bulb.Vertices, Resources.Meshes.Bulb.Indices);
 		private static readonly Mesh SocketMesh = new Mesh("Socket", BulbSocket.Vertices, BulbSocket.Indices);
 
 		private readonly LightData _data;

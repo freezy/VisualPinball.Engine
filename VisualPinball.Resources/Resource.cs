@@ -16,7 +16,7 @@
 
 using System.Reflection;
 
-namespace VisualPinball.Resources
+namespace VisualPinball.Engine.Resources
 {
 	public class Resource
 	{
