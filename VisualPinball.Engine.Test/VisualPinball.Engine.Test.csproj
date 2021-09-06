@@ -36,6 +36,7 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\VisualPinball.Engine\VisualPinball.Engine.csproj" />
+    <ProjectReference Include="..\VisualPinball.Resources\VisualPinball.Resources.csproj" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="FluentAssertions">

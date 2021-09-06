@@ -18,7 +18,7 @@ using FluentAssertions;
 using NUnit.Framework;
 using VisualPinball.Engine.Test.Test;
 using VisualPinball.Engine.VPT.Table;
-using VisualPinball.Resources;
+using VisualPinball.Engine.Resources;
 
 namespace VisualPinball.Engine.Test.VPT
 {

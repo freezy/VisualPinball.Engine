@@ -145,12 +145,6 @@ namespace VisualPinball.Unity
 			// geometry
 			DragPoints = data.DragPoints;
 
-			// visibility
-			var mr = GetComponent<MeshRenderer>();
-			if (mr) {
-				mr.enabled = data.IsVisible;
-			}
-
 			// mesh
 			var meshComponent = GetComponent<TriggerMeshAuthoring>();
 			if (meshComponent) {
@@ -186,6 +180,12 @@ namespace VisualPinball.Unity
 			var meshComponent = GetComponent<TriggerMeshAuthoring>();
 			if (meshComponent) {
 				meshComponent.CreateMesh(data, table, textureProvider, materialProvider);
+			}
+
+			// visibility
+			var mr = GetComponent<MeshRenderer>();
+			if (mr) {
+				mr.enabled = data.IsVisible;
 			}
 
 			return Array.Empty<MonoBehaviour>();
