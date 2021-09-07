@@ -155,11 +155,13 @@ namespace VisualPinball.Unity
 			}
 
 			var updatedComponents = new List<MonoBehaviour> { this };
-			var ro = new PrimitiveMeshGenerator(primitiveData).GetRenderObject(table, primitiveData.Mesh, Origin.Original, false);
+			var mg = new PrimitiveMeshGenerator(primitiveData);
+			var ro = mg.GetRenderObject(table, primitiveData.Mesh, Origin.Original, false);
 			ro.Material = new PbrMaterial(
 				table.GetMaterial(_playfieldMaterial),
 				table.GetTexture(_playfieldImage)
 			);
+			ro.Mesh.Transform(mg.TransformationMatrix(PlayfieldHeight)); // apply transformation to mesh, because this is the playfield
 			ItemMeshAuthoring<PrimitiveData, PrimitiveAuthoring>.CreateMesh(gameObject, ro, "playfield_mesh", textureProvider, materialProvider);
 			playfieldMeshAuthoring.AutoGenerate = false;
 

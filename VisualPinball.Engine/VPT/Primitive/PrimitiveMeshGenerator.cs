@@ -86,6 +86,11 @@ namespace VisualPinball.Engine.VPT.Primitive
 			return table?.TableHeight ?? 0f;
 		}
 
+		public Matrix3D TransformationMatrix(float height)
+		{
+			return GetTransformationMatrix(height).Item1;
+		}
+
 		protected override Tuple<Matrix3D, Matrix3D> GetTransformationMatrix(float height)
 		{
 			// scale matrix
