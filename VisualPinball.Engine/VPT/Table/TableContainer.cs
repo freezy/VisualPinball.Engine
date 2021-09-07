@@ -200,31 +200,6 @@ namespace VisualPinball.Engine.VPT.Table
 		public IEnumerable<ItemData> VpeItemDatas => new ItemData[] { }
 			.Concat(_troughs.Values.Select(i => i.Data));
 
-		// public IEnumerable<ISwitchable> Switchables => Array.Empty<ISwitchable>()
-		// 	.Concat(_bumpers.Values)
-		// 	.Concat(_flippers.Values)
-		// 	.Concat(_gates.Values)
-		// 	.Concat(_hitTargets.Values)
-		// 	.Concat(_kickers.Values)
-		// 	.Concat(_spinners.Values)
-		// 	.Concat(_triggers.Values);
-		//
-		// public IEnumerable<ISwitchableDevice> SwitchableDevices => Array.Empty<ISwitchableDevice>()
-		// 	/* todo fix .Concat(_troughs.Values)*/;
-		//
-		// public IEnumerable<ICoilable> Coilables => Array.Empty<ICoilable>()
-		// 	.Concat(_bumpers.Values)
-		// 	.Concat(_flippers.Values)
-		// 	.Concat(_kickers.Values);
-		//
-		// public IEnumerable<ICoilableDevice> CoilableDevices => Array.Empty<ICoilableDevice>()
-		// 	/* todo fix .Concat(_troughs.Values) */
-		// 	.Concat(_plungers.Values);
-
-		// public IEnumerable<ILightable> Lightables => Array.Empty<ILightable>()
-		// 	.Concat(_lights.Values)
-		// 	.Concat(_flashers.Values);
-
 		protected Dictionary<string, T> GetItemDictionary<T>() where T : IItem
 		{
 			return GetItemDictionary<T>(typeof(T));

@@ -153,7 +153,7 @@ namespace VisualPinball.Unity.Editor
 
 			FreeTextures();
 
-			ConfigurePlayer();
+			ConfigurePlayer(componentLookup);
 
 			return _tableGo;
 		}
@@ -288,7 +288,18 @@ namespace VisualPinball.Unity.Editor
 			EditorSceneManager.MarkSceneDirty(SceneManager.GetActiveScene());
 		}
 
-		internal IVpxPrefab InstantiateAndParentPrefab(IItem item)
+		internal IVpxPrefab InstantiateAndPersistPrefab(IItem item, Dictionary<string, IItemMainAuthoring> components = null)
+		{
+			var prefab = InstantiateAndParentPrefab(item);
+			prefab.SetData();
+			prefab.SetReferencedData(_sourceTable, this, this, components);
+			prefab.PersistData();
+			EditorSceneManager.MarkSceneDirty(SceneManager.GetActiveScene());
+
+			return prefab;
+		}
+
+		private IVpxPrefab InstantiateAndParentPrefab(IItem item)
 		{
 			var prefab = InstantiatePrefab(item);
 
@@ -439,7 +450,7 @@ namespace VisualPinball.Unity.Editor
 			}
 		}
 
-		private void ConfigurePlayer()
+		private void ConfigurePlayer(Dictionary<string, IItemMainAuthoring> components)
 		{
 			// add the player script and default game engine
 			_tableGo.AddComponent<Player>();
@@ -447,11 +458,14 @@ namespace VisualPinball.Unity.Editor
 
 			// add trough if none available
 			if (!_sourceContainer.HasTrough) {
-				CreateTrough();
+				CreateTrough(components);
 			}
+
+			// populate hardware
+			_tableComponent.RepopulateHardware(dga);
 		}
 
-		private void CreateTrough()
+		private void CreateTrough(Dictionary<string, IItemMainAuthoring> components)
 		{
 			var troughData = new TroughData("Trough") {
 				BallCount = 4,
@@ -468,7 +482,7 @@ namespace VisualPinball.Unity.Editor
 				StorageIndex = _sourceContainer.ItemDatas.Count()
 			};
 
-			InstantiateAndParentPrefab(item);
+			InstantiateAndPersistPrefab(item, components);
 		}
 
 		private void CreateFileHierarchy()
