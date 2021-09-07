@@ -59,6 +59,11 @@ namespace VisualPinball.Unity
 					? string.IsNullOrEmpty(engineSwitch.InputActionHint) ? string.Empty : engineSwitch.InputActionHint
 					: string.Empty;
 
+				// if there was a device match, device has only one item and there was a hint that didn't match, clear the device.
+				if (device != null && deviceItem == null && !string.IsNullOrEmpty(engineSwitch.DeviceItemHint) && device.AvailableSwitches.Count() == 1) {
+					device = null;
+				}
+
 				AddSwitch(new SwitchMapping {
 					Id = engineSwitch.Id,
 					InternalId = engineSwitch.InternalId,
@@ -142,7 +147,7 @@ namespace VisualPinball.Unity
 		private static GamelogicEngineSwitch GuessSwitchDeviceItem(GamelogicEngineSwitch engineSwitch, ISwitchDeviceAuthoring device)
 		{
 			// if there's only one switch, it's the one.
-			if (device.AvailableSwitches.Count() == 1) {
+			if (device.AvailableSwitches.Count() == 1 && string.IsNullOrEmpty(engineSwitch.DeviceItemHint)) {
 				return device.AvailableSwitches.First();
 			}
 
@@ -206,6 +211,11 @@ namespace VisualPinball.Unity
 				var device = destination == CoilDestination.Playfield ? GuessCoilDevice(coilDevices, engineCoil) : null;
 				var deviceItem = destination == CoilDestination.Playfield && device != null ? GuessCoilDeviceItem(engineCoil, device) : null;
 
+				// if there was a device match, device has only one item and there was a hint that didn't match, clear the device.
+				if (device != null && deviceItem == null && !string.IsNullOrEmpty(engineCoil.DeviceItemHint) && device.AvailableCoils.Count() == 1) {
+					device = null;
+				}
+
 				AddCoil(new CoilMapping {
 					Id = engineCoil.Id,
 					InternalId = engineCoil.InternalId,
@@ -252,7 +262,7 @@ namespace VisualPinball.Unity
 		private static GamelogicEngineCoil GuessCoilDeviceItem(GamelogicEngineCoil engineCoil, ICoilDeviceAuthoring device)
 		{
 			// if only one device item available, it's the one.
-			if (device.AvailableCoils.Count() == 1) {
+			if (device.AvailableCoils.Count() == 1 && string.IsNullOrEmpty(engineCoil.DeviceItemHint)) {
 				return device.AvailableCoils.First();
 			}
 
@@ -452,7 +462,7 @@ namespace VisualPinball.Unity
 			}
 
 			// if only one device item available, it's the one.
-			if (device.AvailableLamps.Count() == 1) {
+			if (device.AvailableLamps.Count() == 1 && string.IsNullOrEmpty(engineLamp.DeviceItemHint)) {
 				return device.AvailableLamps.First();
 			}
 
