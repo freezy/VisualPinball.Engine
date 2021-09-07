@@ -28,10 +28,9 @@ namespace VisualPinball.Unity
 		{
 			Logger.Info("Not implemented for {0}: {1}", gameObject.name, "SetOpaque");
 		}
-
 		public void SetDoubleSided(GameObject gameObject)
 		{
-			Logger.Info("Not implemented for {0}: {1}", gameObject.name, "SetDoubleSided");
+			throw new System.NotImplementedException();
 		}
 
 		public void SetTransparentDepthPrepassEnabled(GameObject gameObject)

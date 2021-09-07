@@ -55,11 +55,7 @@ namespace VisualPinball.Unity.Patcher
 			Logger.Info("Table will be patched using the following patchers: [ {0} ]", string.Join(", ", _patchers.Select(o => o.GetType().Name)));
 		}
 
-		/// <summary>
-		/// Pre-patches are match methods that purely contain the item as parameter
-		/// </summary>
-		/// <param name="item"></param>
-		public void ApplyPrePatches(IRenderable item)
+		public void ApplyPatches(GameObject gameObject, GameObject tableGameObject)
 		{
 			foreach (var patcher in _patchers) {
 				var methods = patcher.GetType().GetMembers().Where(member => member.MemberType == MemberTypes.Method);
@@ -72,65 +68,27 @@ namespace VisualPinball.Unity.Patcher
 					var methodInfo = method as MethodInfo;
 					if (methodInfo != null) {
 						foreach (var methodMatcher in methodMatchers) {
-							var validArgs = true;
-							if (methodMatcher.Matches(_tableContainer, item, null)) {
+							if (methodMatcher.Matches(_tableContainer, gameObject)) {
+								var validArgs = true;
 								var patcherParamInfos = methodInfo.GetParameters();
 								var patcherParams = new object[patcherParamInfos.Length];
 
 								foreach (var pi in patcherParamInfos) {
-									if (pi.ParameterType.GetInterfaces().Contains(typeof(IItem)) && item.GetType() == pi.ParameterType) {
-										patcherParams[pi.Position] = item;
 
-									} else if (pi.ParameterType == typeof(IRenderable) && item.GetType().GetInterfaces().Contains(typeof(IRenderable))) {
-										patcherParams[pi.Position] = item;
-
-									} else {
-										validArgs = false;
-									}
-								}
-
-								if (validArgs) {
-									Logger.Info($"Patching element {item.Name} based on match by {patcher.GetType().Name}.{method.Name}");
-									methodInfo.Invoke(patcher, patcherParams);
-								}
-							}
-						}
-					}
-				}
-			}
-		}
-
-		public void ApplyPatches(IRenderable item, GameObject gameObject, GameObject tableGameObject)
-		{
-			foreach (var patcher in _patchers) {
-				var methods = patcher.GetType().GetMembers().Where(member => member.MemberType == MemberTypes.Method);
-				foreach (var method in methods) {
-					var methodMatchers = Attribute
-						.GetCustomAttributes(method, typeof(ItemMatchAttribute))
-						.Select(a => a as ItemMatchAttribute)
-						.Where(a => a != null);
-
-					var methodInfo = method as MethodInfo;
-					if (methodInfo != null) {
-						foreach (var methodMatcher in methodMatchers) {
-							var validArgs = true;
-							if (methodMatcher.Matches(_tableContainer, item, gameObject)) {
-								var patcherParamInfos = methodInfo.GetParameters();
-								var patcherParams = new object[patcherParamInfos.Length];
-
-								foreach (var pi in patcherParamInfos) {
+									// principal game object
 									if (pi.ParameterType == typeof(GameObject)) {
 										patcherParams[pi.Position] = gameObject;
 
+									// game object reference
 									} else if (pi.ParameterType == typeof(GameObject).MakeByRefType()) {
 										if (methodMatcher.Ref == null) {
-											Logger.Warn($"No Ref provided in {pi.ParameterType} {pi.Name} in patch method {patcher.GetType()}.{methodInfo.Name}(), skipping (item is of type {item.GetType().Name}).");
+											Logger.Warn($"No Ref provided in {pi.ParameterType} {pi.Name} in patch method {patcher.GetType()}.{methodInfo.Name}(), skipping.");
 											validArgs = false;
 
 										} else {
 											var goRef = tableGameObject.transform.Find(methodMatcher.Ref);
 											if (goRef == null) {
-												Logger.Warn($"No GameObject named {methodMatcher.Ref} found in {pi.ParameterType} {pi.Name} in patch method {patcher.GetType()}.{methodInfo.Name}(), skipping (item is of type {item.GetType().Name}).");
+												Logger.Warn($"No GameObject named {methodMatcher.Ref} found in {pi.ParameterType} {pi.Name} in patch method {patcher.GetType()}.{methodInfo.Name}(), skipping.");
 												validArgs = false;
 
 											} else {
@@ -138,28 +96,39 @@ namespace VisualPinball.Unity.Patcher
 											}
 										}
 
+									// component
+									} else if (typeof(MonoBehaviour).IsAssignableFrom(pi.ParameterType)) {
+										var comp = gameObject.GetComponent(pi.ParameterType);
+										if (comp != null) {
+											patcherParams[pi.Position] = comp;
+
+										} else {
+											Logger.Warn($"Component {pi.ParameterType} not found on element \"{gameObject.name}\".");
+											validArgs = false;
+										}
+
+									// table object
 									} else if (pi.ParameterType == typeof(Table)) {
 										patcherParams[pi.Position] = _tableContainer.Table;
 
+									// source table container
 									} else if (pi.ParameterType == typeof(FileTableContainer)) {
 										patcherParams[pi.Position] = _tableContainer;
 
-									} else if (pi.ParameterType.GetInterfaces().Contains(typeof(IItem)) && item.GetType() == pi.ParameterType) {
-										patcherParams[pi.Position] = item;
-
-									} else if (pi.ParameterType == typeof(IRenderable) && item.GetType().GetInterfaces().Contains(typeof(IRenderable))) {
-										patcherParams[pi.Position] = item;
-
 									} else {
-										Logger.Warn($"Unknown parameter {pi.ParameterType} {pi.Name} in patch method {patcher.GetType()}.{methodInfo.Name}(), skipping (item is of type {item.GetType().Name}).");
+										Logger.Warn($"Unknown parameter {pi.ParameterType} {pi.Name} in patch method {patcher.GetType()}.{methodInfo.Name}(), skipping.");
 										validArgs = false;
 									}
 								}
 
 								if (validArgs) {
-									Logger.Info($"Patching element {item.Name} based on match by {patcher.GetType().Name}.{method.Name}");
+									Logger.Info($"Patching element \"{gameObject.name}\" based on match by {patcher.GetType().Name}.{method.Name}");
 									methodInfo.Invoke(patcher, patcherParams);
+
+								} else {
+									Logger.Error($"NOT patching element \"{gameObject.name}\" based on match by {patcher.GetType().Name}.{method.Name}");
 								}
+
 							}
 						}
 					}

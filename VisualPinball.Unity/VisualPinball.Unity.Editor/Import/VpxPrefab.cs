@@ -14,12 +14,10 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEditor;
 using UnityEngine;
-using VisualPinball.Engine.Game;
 using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Table;
 using Object = UnityEngine.Object;
@@ -35,13 +33,8 @@ namespace VisualPinball.Unity.Editor
 		public GameObject GameObject { get; }
 		public IItemMainAuthoring MainComponent => _mainComponent;
 		public MeshFilter[] MeshFilters => GameObject.GetComponentsInChildren<MeshFilter>();
-		public IRenderable Renderable => _item as IRenderable;
 		public bool ExtractMesh { get; set; }
 		public bool SkipParenting => false;
-
-		public IEnumerable<GameObject> MeshGameObjects => _item is IRenderable
-			? GameObject.GetComponentsInChildren<MeshFilter>().Select(mf => mf.gameObject)
-			: Array.Empty<GameObject>();
 
 		private readonly TItem _item;
 		private readonly ItemMainAuthoring<TData> _mainComponent;
@@ -65,6 +58,11 @@ namespace VisualPinball.Unity.Editor
 		{
 			var updatedComponents = _mainComponent.SetReferencedData(_item.Data, table, materialProvider, textureProvider, components);
 			_updatedComponents.AddRange(updatedComponents);
+			UpdateTransforms();
+		}
+
+		public void UpdateTransforms()
+		{
 			if (_mainComponent is IItemMainRenderableAuthoring renderComponent) {
 				renderComponent.UpdateTransforms();
 			}

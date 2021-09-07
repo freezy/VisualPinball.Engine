@@ -25,8 +25,8 @@ namespace VisualPinball.Unity.Patcher
 	[MetaMatch(TableName = "Mississipi", AuthorName = "jpsalas, akiles50000, Loserman")]
 	public class Mississippi
 	{
-		[NameMatch("lrail1", Ref = "Ramps/lrail1/LeftWall")] // left outside wall to the left
-		[NameMatch("rrail1", Ref = "Ramps/rrail1/LeftWall")] // left inside wall to the right
+		[NameMatch("lrail1", Ref = "Playfield/Ramps/lrail1/LeftWall")] // left outside wall to the left
+		[NameMatch("rrail1", Ref = "Playfield/Ramps/rrail1/LeftWall")] // left inside wall to the right
 		public void SetDoubleSided(GameObject gameObject, ref GameObject child)
 		{
 			if (gameObject == child)
@@ -38,15 +38,15 @@ namespace VisualPinball.Unity.Patcher
 		/// </summary>
 		/// <param name="gameObject"></param>
 		/// <param name="child"></param>
-		[NameMatch("wall13", Ref = "Surfaces/wall13/Top")]
-		[NameMatch("wall14", Ref = "Surfaces/wall14/Top")]
-		[NameMatch("wall15", Ref = "Surfaces/wall15/Top")]
-		[NameMatch("wall18", Ref = "Surfaces/wall18/Top")]
-		[NameMatch("wall19", Ref = "Surfaces/wall19/Top")]
-		[NameMatch("wall22", Ref = "Surfaces/wall22/Top")]
-		[NameMatch("wall23", Ref = "Surfaces/wall23/Top")]
-		[NameMatch("wall359", Ref = "Surfaces/wall359/Top")]
-		[NameMatch("apron", Ref = "Surfaces/apron/Top")]
+		[NameMatch("wall13", Ref = "Playfield/Walls/wall13/Top")]
+		[NameMatch("wall14", Ref = "Playfield/Walls/wall14/Top")]
+		[NameMatch("wall15", Ref = "Playfield/Walls/wall15/Top")]
+		[NameMatch("wall18", Ref = "Playfield/Walls/wall18/Top")]
+		[NameMatch("wall19", Ref = "Playfield/Walls/wall19/Top")]
+		[NameMatch("wall22", Ref = "Playfield/Walls/wall22/Top")]
+		[NameMatch("wall23", Ref = "Playfield/Walls/wall23/Top")]
+		[NameMatch("wall359", Ref = "Playfield/Walls/wall359/Top")]
+		[NameMatch("apron", Ref = "Playfield/Walls/apron/Top")]
 		public void SetTransparentDepthPrepassEnabled(GameObject gameObject, ref GameObject child)
 		{
 			if (gameObject == child)

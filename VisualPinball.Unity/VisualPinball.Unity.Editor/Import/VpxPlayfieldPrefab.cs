@@ -14,12 +14,10 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEditor;
 using UnityEngine;
-using VisualPinball.Engine.Game;
 using VisualPinball.Engine.VPT.Primitive;
 using VisualPinball.Engine.VPT.Table;
 
@@ -29,9 +27,7 @@ namespace VisualPinball.Unity.Editor
 	{
 		public GameObject GameObject { get; }
 		public IItemMainAuthoring MainComponent => _playfieldComponent;
-		public IEnumerable<GameObject> MeshGameObjects => Array.Empty<GameObject>();
 		public MeshFilter[] MeshFilters => GameObject.GetComponents<MeshFilter>();
-		public IRenderable Renderable => _primitive;
 		public bool ExtractMesh => true;
 		public bool SkipParenting => true;
 
@@ -67,6 +63,9 @@ namespace VisualPinball.Unity.Editor
 			foreach (var comp in _updatedComponents.Distinct()) {
 				PrefabUtility.RecordPrefabInstancePropertyModifications(comp);
 			}
+		}
+		public void UpdateTransforms()
+		{
 		}
 
 		public void FreeBinaryData() => _primitive.Data.FreeBinaryData();

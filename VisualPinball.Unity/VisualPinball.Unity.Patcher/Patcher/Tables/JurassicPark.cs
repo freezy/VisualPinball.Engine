@@ -59,12 +59,14 @@ namespace VisualPinball.Unity.Patcher
 			RenderPipeline.Current.MaterialAdapter.SetNormalMapDisabled(gameObject);
 		}
 
-		[NameMatch("LFLogo", Ref="Flippers/LeftFlipper")]
-		[NameMatch("RFLogo", Ref="Flippers/RightFlipper")]
-		[NameMatch("RFLogo1", Ref="Flippers/UpperRightFlipper")]
-		public void ReparentFlippers(GameObject gameObject, ref GameObject parent)
+		[NameMatch("LFLogo", Ref="Playfield/Flippers/LeftFlipper")]
+		[NameMatch("RFLogo", Ref="Playfield/Flippers/RightFlipper")]
+		[NameMatch("RFLogo1", Ref="Playfield/Flippers/UpperRightFlipper")]
+		public void ReparentFlippers(PrimitiveAuthoring primitive, GameObject gameObject, ref GameObject parent)
 		{
 			PatcherUtil.Reparent(gameObject, parent);
+			primitive.Position = Vector3.zero;
+			primitive.ObjectRotation.z = 0;
 		}
 
 		[NameMatch("PLeftFlipper")]

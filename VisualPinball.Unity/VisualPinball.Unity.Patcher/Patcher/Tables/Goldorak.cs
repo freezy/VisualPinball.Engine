@@ -24,20 +24,17 @@ namespace VisualPinball.Unity.Patcher
 	[MetaMatch(TableName = "Goldorak", AuthorName = "Rom (Future PinBall) Javier VPX")]
 	public class Goldorak
 	{
-		[NameMatch("LFLogo", Ref = "Flippers/LeftFlipper")]
-		[NameMatch("RFLogo", Ref = "Flippers/RightFlipper")]
-		public void ReparentFlippers(Primitive flipper, GameObject gameObject, ref GameObject parent)
+		[NameMatch("LFLogo", Ref = "Playfield/Flippers/LeftFlipper")]
+		[NameMatch("RFLogo", Ref = "Playfield/Flippers/RightFlipper")]
+		public void ReparentFlippers(PrimitiveAuthoring flipper, GameObject gameObject, ref GameObject parent)
 		{
 			PatcherUtil.Reparent(gameObject, parent);
 
-			gameObject.transform.localPosition = new Vector3(0, 0, 0);
-			gameObject.transform.localRotation = Quaternion.identity;
+			flipper.Position.x = 0;
+			flipper.Position.y = 0;
 
-			flipper.Data.Position.X = 0;
-			flipper.Data.Position.Y = 0;
-
-			// rotation is set in the original data, reparenting caused the flippers to be rotated wrong => fixing the rotation
-			flipper.RotationY = 0;
+			// // rotation is set in the original data, reparenting caused the flippers to be rotated wrong => fixing the rotation
+			flipper.Rotation.y = 0;
 
 		}
 	}

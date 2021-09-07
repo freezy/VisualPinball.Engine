@@ -16,9 +16,6 @@
 
 // ReSharper disable StringLiteralTypo
 
-using VisualPinball.Engine.VPT.Primitive;
-using VisualPinball.Engine.VPT.Kicker;
-
 namespace VisualPinball.Unity.Patcher
 {
 	[MetaMatch(TableName = "Terminator 2 (Williams 1991)", AuthorName = "NFOZZY")]
@@ -31,23 +28,25 @@ namespace VisualPinball.Unity.Patcher
 		[NameMatch("Plastics_LVL2")]
 		[NameMatch("BumperCaps")]
 		[NameMatch("RightRamp")]
-		public void FixZPosition(Primitive primitive)
+		public void FixZPosition(PrimitiveAuthoring primitive)
 		{
-			primitive.Data.Position.Z = 0;
+			primitive.Position.z = 0;
 		}
 
 		[NameMatch("Drain")]
-		public void FixDrain(Kicker kicker)
+		public void FixDrain(KickerAuthoring kickerComponent)
 		{
-			kicker.Data.Angle = 60;
-			kicker.Data.Speed = 15;
+			kickerComponent.Coils[0].Name = "Drain";
+			kickerComponent.Coils[0].Speed = 15;
+			kickerComponent.Coils[0].Angle = 60;
 		}
 
 		[NameMatch("sw17")]
-		public void FixSw17(Kicker kicker)
+		public void FixSw17(KickerAuthoring kickerComponent)
 		{
-			kicker.Data.Angle = 60;
-			kicker.Data.Speed = 5;
+			kickerComponent.Coils[0].Name = "Eject";
+			kickerComponent.Coils[0].Speed = 5;
+			kickerComponent.Coils[0].Angle = 60;
 		}
 	}
 }

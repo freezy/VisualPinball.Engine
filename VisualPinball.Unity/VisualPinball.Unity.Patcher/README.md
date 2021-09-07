@@ -1,4 +1,4 @@
-# Unity Patching System
+# Patching System
 
 While we handle most of VPX's quirks in a generic way, there are things that 
 are impossible to deal with because they are implemented in the table via 
@@ -55,7 +55,7 @@ public class MyTablePatcher
 ```
 
 This isn't very DRY though. If matching by file name is something you're doing
-a lot, you would abstract this:
+a lot, you pass the file name as parameter:
 
 ```cs
 public class FileNameMatchAttribute : TableMatchAttribute
@@ -83,6 +83,8 @@ public class MyTablePatcher
 }
 ```
 
+We already include a few matcher for you to use, [see below](#built-in-matchers).
+
 ### Identify the Game Item
 
 Now we know how to filter the table, let's look at how to identify the
@@ -96,7 +98,7 @@ with table items, we get a lot more input here, namely:
 - the parsed table (maybe you want to exclude some tables)
 - the table item (this holds the name of the element)
 - the render object (maybe the match is based on the mesh itself)
-- the Unity game item (maybe the match is based on the converted object)
+- the Unity `GameObject` (maybe the match is based on the converted object)
 
 So, here's an example:
 
@@ -112,11 +114,11 @@ public class NameMatchAttribute : ItemMatchAttribute
 		_name = name;
 	}
 
-	public override bool Matches(Engine.VPT.Table.Table table, IRenderable item, RenderObject ro, GameObject obj)
+	public override bool Matches(FileTableContainer tableContainer, GameObject obj)
 	{
 		return IgnoreCase
-			? string.Equals(item.Name, _name, StringComparison.CurrentCultureIgnoreCase)
-			: item.Name == _name;
+			? string.Equals(obj.name, _name, StringComparison.CurrentCultureIgnoreCase)
+			: obj.name == _name;
 	}
 }
 ```
@@ -153,8 +155,7 @@ You can pass different types in any order to the method. Supported types are:
 - Any game item type, e.g. `VisualPinball.Engine.VPT.Flipper.Flipper` that 
   extends `IItem`. If your matched game item is not of the type you've provided
   in the method signature, the patch is skipped and a warning is printed.
-- `VisualPinball.Engine.Game.IRenderable` if you don't care about the item type
-  but still want to access something from the item.
+- Any Unity component, e.g. `FlipperComponent`, or even `MeshFilter`.
 - `ref UnityEngine.GameObject` - Another game object, specified by the `Ref` 
   field of the matcher (see *Advanced Features* below).  
   
