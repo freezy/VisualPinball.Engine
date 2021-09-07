@@ -17,46 +17,43 @@
 // ReSharper disable StringLiteralTypo
 
 using UnityEngine;
-using VisualPinball.Engine.VPT.Primitive;
-using VisualPinball.Engine.VPT.Kicker;
 
 namespace VisualPinball.Unity.Patcher
 {
 	[MetaMatch(TableName = "Creature From The Black Lagoon", AuthorName = "fuzzel, flupper1, rothbauerw")]
 	public class CreatureFromTheBlackLagoon
 	{
-		[NameMatch("batleft", Ref = "Flippers/LeftFlipper")]
-		[NameMatch("batright", Ref = "Flippers/RightFlipper")]
-		public void ReparentFlippers(Primitive flipper, GameObject gameObject, ref GameObject parent)
+		[NameMatch("batleft", Ref = "Playfield/Flippers/LeftFlipper")]
+		[NameMatch("batright", Ref = "Playfield/Flippers/RightFlipper")]
+		public void ReparentFlippers(PrimitiveAuthoring flipper, GameObject gameObject, ref GameObject parent)
 		{
 			PatcherUtil.Reparent(gameObject, parent);
-			gameObject.transform.localPosition = new Vector3(0, 0, 0);
-	
-			flipper.Data.Position.X = 0;
-			flipper.Data.Position.Y = 0;
 
-			flipper.Data.RotAndTra[8] = 0;
+			flipper.Position.x = 0;
+			flipper.Position.y = 0;
+
+			flipper.ObjectRotation.z = 0;
 		}
 
 		[NameMatch("batleftshadow")]
 		[NameMatch("batrightshadow")]
-		public void RemoveFlipperShadow(Primitive primitive)
+		public void RemoveFlipperShadow(GameObject gameObject)
 		{
-			primitive.Data.IsVisible = false;
+			gameObject.SetActive(false);
 		}
 
 		[NameMatch("sw55")]
-		public void FixSw55(Kicker kicker)
+		public void FixSw55(KickerAuthoring kickerComponent)
 		{
-			kicker.Data.Angle = 60;
-			kicker.Data.Speed = 20;
+			kickerComponent.Coils[0].Speed = 20;
+			kickerComponent.Coils[0].Angle = 60;
 		}
 
 		[NameMatch("sw56")]
-		public void FixSw56(Kicker kicker)
+		public void FixSw56(KickerAuthoring kickerComponent)
 		{
-			kicker.Data.Angle = 60;
-			kicker.Data.Speed = 12;
+			kickerComponent.Coils[0].Speed = 12;
+			kickerComponent.Coils[0].Angle = 60;
 		}
 	}
 }

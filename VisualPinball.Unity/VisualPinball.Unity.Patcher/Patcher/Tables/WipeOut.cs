@@ -26,15 +26,12 @@ namespace VisualPinball.Unity.Patcher
 	[MetaMatch(TableName = "Wipe Out Premier 1993", AuthorName = "Edizzle & Kiwi")]
 	public class WipeOut
 	{
-		[NameMatch("Prim_RightFlipper", Ref="Flippers/RightFlipper")]
-		[NameMatch("Prim_LeftFlipper", Ref="Flippers/LeftFlipper")]
-		public void ReparentFlippers(Primitive flipper, GameObject gameObject, ref GameObject parent)
+		[NameMatch("Prim_RightFlipper", Ref="Playfield/Flippers/RightFlipper")]
+		[NameMatch("Prim_LeftFlipper", Ref="Playfield/Flippers/LeftFlipper")]
+		public void ReparentFlippers(PrimitiveAuthoring primitive, GameObject gameObject, ref GameObject parent)
 		{
 			PatcherUtil.Reparent(gameObject, parent);
-			gameObject.transform.localPosition = new Vector3(0, 0, 0);
-			gameObject.transform.localRotation = Quaternion.identity;
-			flipper.Data.Position.X = 0;
-			flipper.Data.Position.Y = 0;
+			primitive.Position = Vector3.zero;
 		}
 	}
 }

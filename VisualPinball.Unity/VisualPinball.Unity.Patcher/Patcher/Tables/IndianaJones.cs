@@ -27,9 +27,9 @@ namespace VisualPinball.Unity.Patcher
 	{
 		[NameMatch("LeftFlipperSh", IgnoreCase = false)]
 		[NameMatch("RightFlipperSh")]
-		public void RemoveFlipperShadow(Primitive primitive)
+		public void RemoveFlipperShadow(GameObject go)
 		{
-			primitive.Data.IsVisible = false;
+			go.SetActive(false);
 		}
 
 		[NameMatch("Primitive21")]

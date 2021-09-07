@@ -35,11 +35,11 @@ namespace VisualPinball.Unity.Patcher
 			_name = name;
 		}
 
-		public override bool Matches(FileTableContainer tableContainer, IRenderable item, GameObject obj)
+		public override bool Matches(FileTableContainer tableContainer, GameObject obj)
 		{
 			return IgnoreCase
-				? string.Equals(item.Name, _name, StringComparison.CurrentCultureIgnoreCase)
-				: item.Name == _name;
+				? string.Equals(obj.name, _name, StringComparison.CurrentCultureIgnoreCase)
+				: obj.name == _name;
 		}
 	}
 }

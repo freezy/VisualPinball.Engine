@@ -94,13 +94,16 @@ namespace VisualPinball.Unity.Patcher
 			RenderPipeline.Current.MaterialAdapter.SetMetallic(gameObject, 1.0f);
 		}
 
-		[NameMatch("Lflip", Ref = "Flippers/LeftFlipper")]
-		[NameMatch("Rflip", Ref = "Flippers/RightFlipper")]
-		[NameMatch("LFlip1", Ref = "Flippers/LeftFlipper1")]
-		[NameMatch("Rflip1", Ref = "Flippers/RightFlipper1")]
-		public void ReparentFlippers(GameObject gameObject, ref GameObject parent)
+		[NameMatch("Lflip", Ref = "Playfield/Flippers/LeftFlipper")]
+		[NameMatch("Rflip", Ref = "Playfield/Flippers/RightFlipper")]
+		[NameMatch("LFlip1", Ref = "Playfield/Flippers/LeftFlipper1")]
+		[NameMatch("Rflip1", Ref = "Playfield/Flippers/RightFlipper1")]
+		public void ReparentFlippers(PrimitiveAuthoring primitive, GameObject gameObject, ref GameObject parent)
 		{
 			PatcherUtil.Reparent(gameObject, parent);
+
+			primitive.Position = Vector3.zero;
+			primitive.Rotation.y = 0;
 		}
 	}
 }

@@ -111,7 +111,7 @@ namespace VisualPinball.Unity
 
 			// mesh generator can return null - but in this case the main component
 			// will take care of removing the mesh component.
-			if (mesh == null) {
+			if (mesh == null || !mesh.IsSet) {
 				return;
 			}
 			var mf = GetComponent<MeshFilter>();

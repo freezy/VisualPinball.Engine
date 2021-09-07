@@ -18,7 +18,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using NLog;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
@@ -49,7 +48,6 @@ using VisualPinball.Engine.VPT.Trigger;
 using VisualPinball.Engine.VPT.Trough;
 using VisualPinball.Unity.Playfield;
 using Light = VisualPinball.Engine.VPT.Light.Light;
-using Logger = NLog.Logger;
 using Material = UnityEngine.Material;
 using Mesh = UnityEngine.Mesh;
 using Texture = UnityEngine.Texture;
@@ -147,13 +145,13 @@ namespace VisualPinball.Unity.Editor
 			ExtractTextures();
 			ExtractSounds();
 			SaveData();
+			SaveLegacyData();
 
 			var prefabLookup = InstantiateGameItems();
 			var componentLookup = UpdateGameItems(prefabLookup);
 			FinalizeGameItems(componentLookup);
 
 			FreeTextures();
-			SaveLegacyData();
 
 			ConfigurePlayer();
 
@@ -217,10 +215,6 @@ namespace VisualPinball.Unity.Editor
 
 				foreach (var renderable in renderables) {
 
-					if (_applyPatch) {
-						_patcher?.ApplyPrePatches(renderable);
-					}
-
 					// create object(s)
 					var prefab = InstantiateAndParentPrefab(renderable);
 					prefab.SetData();
@@ -266,9 +260,8 @@ namespace VisualPinball.Unity.Editor
 
 				// patch
 				if (_applyPatch) {
-					foreach (var meshGo in prefab.MeshGameObjects) {
-						_patcher?.ApplyPatches(prefab.Renderable, meshGo, _tableGo);
-					}
+					_patcher?.ApplyPatches(prefab.GameObject, _tableGo);
+					prefab.UpdateTransforms();
 				}
 
 				// persist changes

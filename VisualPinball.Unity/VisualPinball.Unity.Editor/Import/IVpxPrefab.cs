@@ -27,10 +27,7 @@ namespace VisualPinball.Unity.Editor
 
 		IItemMainAuthoring MainComponent { get; }
 
-		IEnumerable<GameObject> MeshGameObjects { get; }
 		MeshFilter[] MeshFilters { get; }
-
-		IRenderable Renderable { get; }
 
 		bool ExtractMesh { get; }
 
@@ -42,6 +39,8 @@ namespace VisualPinball.Unity.Editor
 			Dictionary<string, IItemMainAuthoring> components);
 
 		public void PersistData();
+
+		public void UpdateTransforms();
 
 		void FreeBinaryData();
 	}
