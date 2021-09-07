@@ -142,16 +142,14 @@ namespace VisualPinball.Unity
 
 		public void RepopulateHardware(IGamelogicEngine gle)
 		{
-			//TableContainer.Refresh(); // todo needed?
-
 			MappingConfig.RemoveAllSwitches();
 			MappingConfig.PopulateSwitches(gle.AvailableSwitches, this);
 
 			MappingConfig.RemoveAllCoils();
 			MappingConfig.PopulateCoils(gle.AvailableCoils, this);
 
-			// MappingConfig.RemoveAllLamps();
-			// TableContainer.Mappings.PopulateLamps(gle.AvailableLamps, TableContainer.Lightables);
+			MappingConfig.RemoveAllLamps();
+			MappingConfig.PopulateLamps(gle.AvailableLamps, this);
 		}
 	}
 }
