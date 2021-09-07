@@ -57,7 +57,7 @@ namespace VisualPinball.Unity
 
 		public InputActionReference analogPlungerAction;
 
-		#region Overrides
+		#region Overrides and Constants
 
 		public override ItemType ItemType => ItemType.Plunger;
 		public override string ItemName => "Plunger";
@@ -73,12 +73,16 @@ namespace VisualPinball.Unity
 		protected override Type MeshAuthoringType { get; } = typeof(ItemMeshAuthoring<PlungerData, PlungerAuthoring>);
 		protected override Type ColliderAuthoringType { get; } = typeof(ItemColliderAuthoring<PlungerData, PlungerAuthoring>);
 
+		public const string PullCoilId = "c_pull";
+		public const string FireCoilId = "c_autofire";
+
 		#endregion
 
 		#region Wiring
 
 		public IEnumerable<GamelogicEngineCoil> AvailableCoils => new[] {
-			new GamelogicEngineCoil(name)
+			new GamelogicEngineCoil(PullCoilId) { Description = "Pull back" },
+			new GamelogicEngineCoil(FireCoilId) { Description = "Auto-fire" },
 		};
 
 		IEnumerable<GamelogicEngineCoil> IDeviceAuthoring<GamelogicEngineCoil>.AvailableDeviceItems => AvailableCoils;

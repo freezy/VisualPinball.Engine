@@ -150,6 +150,19 @@ namespace VisualPinball.Unity
 
 			MappingConfig.RemoveAllLamps();
 			MappingConfig.PopulateLamps(gle.AvailableLamps, this);
+
+			// hook up plunger
+			var plunger = GetComponentInChildren<PlungerAuthoring>();
+			if (plunger) {
+				MappingConfig.AddWire(new WireMapping {
+					Description = "Manual Plunger",
+					Source = SwitchSource.InputSystem,
+					SourceInputActionMap = InputConstants.MapCabinetSwitches,
+					SourceInputAction = InputConstants.ActionPlunger,
+					DestinationDevice = plunger,
+					DestinationDeviceItem = PlungerAuthoring.PullCoilId
+				});
+			}
 		}
 	}
 }

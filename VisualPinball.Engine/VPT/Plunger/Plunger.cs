@@ -27,14 +27,6 @@ namespace VisualPinball.Engine.VPT.Plunger
 		public override string ItemName => "Plunger";
 		public override string ItemGroupName => "Plungers";
 
-		public const string PullCoilId = "c_pull";
-		public const string FireCoilId = "c_autofire";
-
-		public IEnumerable<GamelogicEngineCoil> AvailableCoils { get; } = new[] {
-			new GamelogicEngineCoil(PullCoilId) {Description = "Pull back"},
-			new GamelogicEngineCoil(FireCoilId) {Description = "Auto-fire"},
-		};
-
 		public const float PlungerHeight = 50.0f;
 		public const float PlungerMass = 30.0f;
 		public const int PlungerNormalize = 100;
