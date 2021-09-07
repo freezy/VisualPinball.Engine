@@ -22,7 +22,6 @@ namespace VisualPinball.Engine.VPT.Light
 {
 	public class Light : Item<LightData>, IRenderable
 	{
-		public override string ItemName => "Light";
 		public override string ItemGroupName => "Lights";
 
 		public const string BulbMaterialName = "__bulbMaterial";

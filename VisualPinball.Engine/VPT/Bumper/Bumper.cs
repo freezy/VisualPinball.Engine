@@ -24,7 +24,6 @@ namespace VisualPinball.Engine.VPT.Bumper
 {
 	public class Bumper : Item<BumperData>, IRenderable
 	{
-		public override string ItemName => "Bumper";
 		public override string ItemGroupName => "Bumpers";
 
 		private readonly BumperMeshGenerator _meshGenerator;

@@ -22,7 +22,6 @@ namespace VisualPinball.Engine.VPT.Spinner
 {
 	public class Spinner : Item<SpinnerData>, IRenderable
 	{
-		public override string ItemName => "Spinner";
 		public override string ItemGroupName => "Spinners";
 
 		public const string BracketMaterialName = "__spinnerBracketMaterial";

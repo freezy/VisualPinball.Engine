@@ -28,7 +28,6 @@ namespace VisualPinball.Engine.VPT.Primitive
 	/// <see href="https://github.com/vpinball/vpinball/blob/master/primitive.cpp"/>
 	public class Primitive : Item<PrimitiveData>, IRenderable
 	{
-		public override string ItemName => "Primitive";
 		public override string ItemGroupName => "Primitives";
 
 		public bool UseAsPlayfield => Name == "playfield_mesh";

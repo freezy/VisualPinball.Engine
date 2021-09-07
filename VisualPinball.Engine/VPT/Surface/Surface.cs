@@ -22,7 +22,6 @@ namespace VisualPinball.Engine.VPT.Surface
 {
 	public class Surface : Item<SurfaceData>, IRenderable
 	{
-		public override string ItemName => "Wall";
 		public override string ItemGroupName => "Walls";
 
 		private readonly SurfaceMeshGenerator _meshGenerator;

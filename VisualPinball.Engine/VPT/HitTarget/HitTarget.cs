@@ -22,7 +22,6 @@ namespace VisualPinball.Engine.VPT.HitTarget
 {
 	public class HitTarget : Item<HitTargetData>, IRenderable
 	{
-		public override string ItemName => "Target";
 		public override string ItemGroupName => "Targets";
 
 		public HitTarget(HitTargetData data) : base(data)

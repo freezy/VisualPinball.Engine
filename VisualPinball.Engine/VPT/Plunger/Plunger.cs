@@ -24,7 +24,6 @@ namespace VisualPinball.Engine.VPT.Plunger
 {
 	public class Plunger : Item<PlungerData>, IRenderable
 	{
-		public override string ItemName => "Plunger";
 		public override string ItemGroupName => "Plungers";
 
 		public const float PlungerHeight = 50.0f;

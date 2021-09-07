@@ -22,7 +22,6 @@ namespace VisualPinball.Engine.VPT.Gate
 {
 	public class Gate : Item<GateData>, IRenderable
 	{
-		public override string ItemName => "Gate";
 		public override string ItemGroupName => "Gates";
 
 		private readonly GateMeshGenerator _meshGenerator;

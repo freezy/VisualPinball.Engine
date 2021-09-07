@@ -22,7 +22,6 @@ namespace VisualPinball.Engine.VPT.Trigger
 {
 	public class Trigger : Item<TriggerData>, IRenderable
 	{
-		public override string ItemName => "Trigger";
 		public override string ItemGroupName => "Triggers";
 
 		private readonly TriggerMeshGenerator _meshGenerator;

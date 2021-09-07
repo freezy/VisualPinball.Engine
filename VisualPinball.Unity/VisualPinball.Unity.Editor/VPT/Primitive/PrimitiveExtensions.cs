@@ -16,6 +16,7 @@
 
 using UnityEngine;
 using VisualPinball.Engine.VPT.Primitive;
+using VisualPinball.Engine.Resources;
 
 namespace VisualPinball.Unity.Editor
 {
