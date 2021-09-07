@@ -156,7 +156,7 @@ namespace VisualPinball.Unity
 					Height = Position.z,
 					Damping = math.pow(colliderAuthoring.Damping, (float)PhysicsConstants.PhysFactor),
 					GravityFactor = colliderAuthoring.GravityFactor,
-					TwoWay = colliderAuthoring._twoWay
+					TwoWay = colliderAuthoring.TwoWay,
 				});
 
 				// movement data

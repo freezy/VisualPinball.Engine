@@ -101,7 +101,6 @@ namespace VisualPinball.Unity
 			ecb.AddBuffer<OverlappingStaticColliderBufferElement>(entity);
 			ecb.AddBuffer<OverlappingDynamicBufferElement>(entity);
 			ecb.AddBuffer<BallInsideOfBufferElement>(entity);
-			ecb.AddBuffer<BallLastPositionsBufferElement>(entity);
 
 			ecb.AddComponent(entity, new BallData {
 				Id = id,

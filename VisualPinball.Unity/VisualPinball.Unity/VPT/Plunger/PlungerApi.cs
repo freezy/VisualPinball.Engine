@@ -140,10 +140,10 @@ namespace VisualPinball.Unity
 		private IApiCoil Coil(string deviceItem)
 		{
 			switch (deviceItem) {
-				case Plunger.FireCoilId:
+				case PlungerAuthoring.FireCoilId:
 					return FireCoil;
 
-				case Plunger.PullCoilId:
+				case PlungerAuthoring.PullCoilId:
 					return PullCoil;
 
 				default:
