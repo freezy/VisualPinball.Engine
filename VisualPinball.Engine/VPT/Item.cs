@@ -22,7 +22,6 @@ namespace VisualPinball.Engine.VPT
 	/// <typeparam name="TData">Data class type this item is using</typeparam>
 	public abstract class Item<TData> : IItem where TData : ItemData
 	{
-		public abstract string ItemName { get; }
 		public abstract string ItemGroupName { get; }
 
 		public readonly TData Data;
@@ -32,9 +31,6 @@ namespace VisualPinball.Engine.VPT
 			get => Data.GetName() ?? string.Empty;
 			set => Data.SetName(value);
 		}
-
-		public int Index { get; set; }
-		public int Version { get; set; }
 
 		public int StorageIndex { get => Data.StorageIndex; set => Data.StorageIndex = value; }
 

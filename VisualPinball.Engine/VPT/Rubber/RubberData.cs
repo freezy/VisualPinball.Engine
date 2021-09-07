@@ -31,7 +31,7 @@ using VisualPinball.Engine.VPT.Table;
 namespace VisualPinball.Engine.VPT.Rubber
 {
 	[Serializable]
-	public class RubberData : ItemData, IRubberData, IPhysicsMaterialData
+	public class RubberData : ItemData, IRubberData
 	{
 		public override string GetName() => Name;
 		public override void SetName(string name) { Name = name; }
@@ -117,15 +117,6 @@ namespace VisualPinball.Engine.VPT.Rubber
 		public RubberData() : base(StoragePrefix.GameItem)
 		{
 		}
-
-		// IPhysicalData
-		public float GetElasticity() => Elasticity;
-		public float GetElasticityFalloff() => 0;
-		public float GetFriction() => Friction;
-		public float GetScatter() => Scatter;
-		public bool GetOverwritePhysics() => OverwritePhysics;
-		public bool GetIsCollidable() => IsCollidable;
-		public string GetPhysicsMaterial() => PhysicsMaterial;
 
 		public RubberData(string name) : base(StoragePrefix.GameItem)
 		{

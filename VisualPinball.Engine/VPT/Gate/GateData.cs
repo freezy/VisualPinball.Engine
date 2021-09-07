@@ -33,7 +33,7 @@ using MathF = VisualPinball.Engine.Math.MathF;
 namespace VisualPinball.Engine.VPT.Gate
 {
 	[Serializable]
-	public class GateData : ItemData, IPhysicsMaterialData, IGateData, IGateColliderData
+	public class GateData : ItemData, IGateData, IGateColliderData
 	{
 		public override string GetName() => Name;
 		public override void SetName(string name) { Name = name; }
@@ -108,18 +108,6 @@ namespace VisualPinball.Engine.VPT.Gate
 		public GateData() : base(StoragePrefix.GameItem)
 		{
 		}
-
-		#region IPhysicalData
-
-		public float GetElasticity() => Elasticity;
-		public float GetElasticityFalloff() => 1f;
-		public float GetFriction() => Friction;
-		public float GetScatter() => 0;
-		public bool GetOverwritePhysics() => true;
-		public bool GetIsCollidable() => IsCollidable;
-		public string GetPhysicsMaterial() => null;
-
-		#endregion
 
 		public GateData(string name, float x, float y) : base(StoragePrefix.GameItem)
 		{

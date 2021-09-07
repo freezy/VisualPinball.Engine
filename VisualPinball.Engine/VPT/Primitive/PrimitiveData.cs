@@ -32,7 +32,7 @@ using VisualPinball.Engine.VPT.Table;
 namespace VisualPinball.Engine.VPT.Primitive
 {
 	[Serializable]
-	public class PrimitiveData : ItemData, IPhysicsMaterialData
+	public class PrimitiveData : ItemData
 	{
 		public override string GetName() => Name;
 		public override void SetName(string name) { Name = name; }
@@ -172,15 +172,6 @@ namespace VisualPinball.Engine.VPT.Primitive
 
 		[BiffFloat("PIDB", Pos = 48)]
 		public float DepthBias = 0;
-
-		// IPhysicalData
-		public float GetElasticity() => Elasticity;
-		public float GetElasticityFalloff() => 0;
-		public float GetFriction() => Friction;
-		public float GetScatter() => Scatter;
-		public bool GetOverwritePhysics() => OverwritePhysics;
-		public bool GetIsCollidable() => IsCollidable;
-		public string GetPhysicsMaterial() => PhysicsMaterial;
 
 		public override void FreeBinaryData()
 		{

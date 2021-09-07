@@ -20,7 +20,6 @@ namespace VisualPinball.Engine.VPT.Sound
 {
 	public class Sound : Item<SoundData>
 	{
-		public override string ItemName => "Sound";
 		public override string ItemGroupName => "Sounds";
 
 		public string FileExtension => Data.Path == null ? ".wav" : Path.GetExtension(Data.Path).ToLower();

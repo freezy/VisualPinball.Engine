@@ -27,7 +27,6 @@ namespace VisualPinball.Engine.VPT.Table
 	/// </summary>
 	public class Table : Item<TableData>, IRenderable
 	{
-		public override string ItemName => "Table";
 		public override string ItemGroupName => "Playfield";
 
 		public float Width => Data.Right - Data.Left;

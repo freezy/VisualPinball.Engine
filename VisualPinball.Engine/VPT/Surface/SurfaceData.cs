@@ -31,7 +31,7 @@ using VisualPinball.Engine.VPT.Table;
 namespace VisualPinball.Engine.VPT.Surface
 {
 	[Serializable]
-	public class SurfaceData : ItemData, IPhysicsMaterialData
+	public class SurfaceData : ItemData
 	{
 		public override string GetName() => Name;
 		public override void SetName(string name) { Name = name; }
@@ -143,15 +143,6 @@ namespace VisualPinball.Engine.VPT.Surface
 
 		[BiffTag("PNTS", Pos = 1999)]
 		public bool Points;
-
-		// IPhysicalData
-		public float GetElasticity() => Elasticity;
-		public float GetElasticityFalloff() => ElasticityFalloff;
-		public float GetFriction() => Friction;
-		public float GetScatter() => Scatter;
-		public bool GetOverwritePhysics() => OverwritePhysics;
-		public bool GetIsCollidable() => IsCollidable;
-		public string GetPhysicsMaterial() => PhysicsMaterial;
 
 		// non-persisted
 		public bool IsDisabled;

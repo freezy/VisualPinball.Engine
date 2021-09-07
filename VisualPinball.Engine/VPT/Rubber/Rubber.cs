@@ -22,7 +22,6 @@ namespace VisualPinball.Engine.VPT.Rubber
 {
 	public class Rubber : Item<RubberData>, IRenderable
 	{
-		public override string ItemName => "Rubber";
 		public override string ItemGroupName => "Rubbers";
 
 		public readonly RubberMeshGenerator MeshGenerator;

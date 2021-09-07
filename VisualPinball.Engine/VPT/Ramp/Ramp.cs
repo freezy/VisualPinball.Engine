@@ -22,7 +22,6 @@ namespace VisualPinball.Engine.VPT.Ramp
 {
 	public class Ramp : Item<RampData>, IRenderable
 	{
-		public override string ItemName => "Ramp";
 		public override string ItemGroupName => "Ramps";
 
 		public readonly RampMeshGenerator MeshGenerator;

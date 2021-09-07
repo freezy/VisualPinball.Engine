@@ -25,10 +25,6 @@ namespace VisualPinball.Engine.VPT
 
 		int StorageIndex { get; set; }
 
-		int Index { get; }
-		int Version { get; }
-
-		string ItemName { get; }
 		string ItemGroupName { get; }
 	}
 }

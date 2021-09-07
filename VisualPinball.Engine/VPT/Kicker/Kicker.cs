@@ -22,7 +22,6 @@ namespace VisualPinball.Engine.VPT.Kicker
 {
 	public class Kicker : Item<KickerData>, IRenderable
 	{
-		public override string ItemName => "Kicker";
 		public override string ItemGroupName => "Kickers";
 
 		public string[] UsedMaterials => new[] { Data.Material };

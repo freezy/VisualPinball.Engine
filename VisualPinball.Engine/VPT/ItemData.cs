@@ -69,49 +69,4 @@ namespace VisualPinball.Engine.VPT
 		{
 		}
 	}
-
-	public interface IPhysicsMaterialData
-	{
-		/// <summary>
-		/// If <see cref="GetOverwritePhysics"/>, use this elasticity instead of the material's.
-		/// </summary>
-		/// <returns></returns>
-		float GetElasticity();
-
-		/// <summary>
-		/// If <see cref="GetOverwritePhysics"/>, use this elasticity fall-of instead of the material's.
-		/// </summary>
-		/// <returns></returns>
-		float GetElasticityFalloff();
-
-		/// <summary>
-		/// If <see cref="GetOverwritePhysics"/>, use this friction instead of the material's.
-		/// </summary>
-		/// <returns></returns>
-		float GetFriction();
-
-		/// <summary>
-		///  If <see cref="GetOverwritePhysics"/>, use this scatter angle instead of the material's.
-		/// </summary>
-		/// <returns></returns>
-		float GetScatter();
-
-		/// <summary>
-		/// If true, use the item data's physical attributes instead of the assigned material's.
-		/// </summary>
-		/// <returns></returns>
-		bool GetOverwritePhysics();
-
-		/// <summary>
-		/// If true, make this item part of the collision tree. If false, it'll ignored in the simulation.
-		/// </summary>
-		/// <returns></returns>
-		bool GetIsCollidable();
-
-		/// <summary>
-		/// Returns the name of the physics material.
-		/// </summary>
-		/// <returns></returns>
-		string GetPhysicsMaterial();
-	}
 }
