@@ -33,8 +33,6 @@ namespace VisualPinball.Unity
 	{
 		public IItemMainRenderableAuthoring IMainAuthoring => MainComponent;
 
-		private List<MemberInfo> _materialRefs;
-
 		#region Creation and destruction
 
 		private void OnEnable()

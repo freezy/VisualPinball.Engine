@@ -135,11 +135,7 @@ namespace VisualPinball.Unity
 			var mesh = GetComponent<RubberMeshAuthoring>();
 			if (mesh) {
 				mesh.CreateMesh(data, table, textureProvider, materialProvider);
-				var mr = GetComponent<MeshRenderer>();
-				if (mr) {
-					// visibility
-					mr.enabled = data.IsVisible;
-				}
+				mesh.enabled = data.IsVisible;
 			}
 
 			// collider data
