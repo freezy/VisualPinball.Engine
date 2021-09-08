@@ -168,7 +168,6 @@ namespace VisualPinball.Unity
 				animComponent.AnimSpeed = data.AnimSpeed;
 				updatedComponents.Add(animComponent);
 			}
-
 			return updatedComponents;
 		}
 
@@ -180,12 +179,7 @@ namespace VisualPinball.Unity
 			var meshComponent = GetComponent<TriggerMeshAuthoring>();
 			if (meshComponent) {
 				meshComponent.CreateMesh(data, table, textureProvider, materialProvider);
-			}
-
-			// visibility
-			var mr = GetComponent<MeshRenderer>();
-			if (mr) {
-				mr.enabled = data.IsVisible;
+				meshComponent.enabled = data.IsVisible;
 			}
 
 			return Array.Empty<MonoBehaviour>();

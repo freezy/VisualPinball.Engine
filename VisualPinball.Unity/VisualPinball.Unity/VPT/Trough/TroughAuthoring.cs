@@ -251,6 +251,7 @@ namespace VisualPinball.Unity
 				return "Ball 1 (eject)";
 			}
 
+
 			return i == SwitchCount - 1
 				? $"Ball {i + 1} (entry)"
 				: $"Ball {i + 1}";

@@ -44,7 +44,7 @@ namespace VisualPinball.Unity.Editor
 			base.OnEnable();
 
 			_positionProperty = serializedObject.FindProperty(nameof(LightAuthoring.Position));
-			_surfaceProperty = serializedObject.FindProperty(nameof(LightAuthoring.Surface));
+			_surfaceProperty = serializedObject.FindProperty(nameof(LightAuthoring._surface));
 			_bulbSizeProperty = serializedObject.FindProperty(nameof(LightAuthoring.BulbSize));
 
 			_stateProperty = serializedObject.FindProperty(nameof(LightAuthoring.State));
@@ -69,7 +69,7 @@ namespace VisualPinball.Unity.Editor
 			PropertyField(_bulbSizeProperty, "Bulb Mesh Size", updateTransforms: true);
 
 			if (_foldoutState = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutState, "State")) {
-				DropDownProperty("State", _blinkPatternProperty, LightStateLabels, LightStateValues);
+				DropDownProperty("State", _stateProperty, LightStateLabels, LightStateValues);
 				PropertyField(_blinkPatternProperty);
 				PropertyField(_blinkIntervalProperty);
 				PropertyField(_fadeSpeedUpProperty);

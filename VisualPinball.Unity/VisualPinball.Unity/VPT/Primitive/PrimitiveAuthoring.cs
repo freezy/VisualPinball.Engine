@@ -99,7 +99,6 @@ namespace VisualPinball.Unity
 			ObjectRotation = new Vector3(data.RotAndTra[6], data.RotAndTra[7], data.RotAndTra[8]);
 
 			// static rendering & visibility
-			gameObject.SetActive(data.IsVisible);
 			StaticRendering = data.StaticRendering;
 
 			// mesh
@@ -107,6 +106,7 @@ namespace VisualPinball.Unity
 			if (meshComponent) {
 				meshComponent.Sides = data.Sides;
 				meshComponent.UseLegacyMesh = !data.Use3DMesh;
+				meshComponent.enabled = data.IsVisible;
 			}
 
 			// collider
@@ -162,7 +162,6 @@ namespace VisualPinball.Unity
 			};
 
 			// static rendering & visibility
-			data.IsVisible = gameObject.activeInHierarchy;
 			data.StaticRendering = StaticRendering;
 
 			// materials
@@ -174,6 +173,7 @@ namespace VisualPinball.Unity
 			// mesh
 			var meshComponent = GetComponent<PrimitiveMeshAuthoring>();
 			if (meshComponent) {
+				data.IsVisible = meshComponent.enabled;
 				data.Sides = meshComponent.Sides;
 				data.Use3DMesh = !meshComponent.UseLegacyMesh;
 
