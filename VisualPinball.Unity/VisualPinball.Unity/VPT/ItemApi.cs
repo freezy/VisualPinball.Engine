@@ -23,7 +23,6 @@ namespace VisualPinball.Unity
 	/// <summary>
 	/// Base class for all item APIs.
 	/// </summary>
-	/// <typeparam name="TItem">Item type</typeparam>
 	/// <typeparam name="TData">Item data type</typeparam>
 	/// <typeparam name="TItemComponent">Component Type</typeparam>
 	[Api]

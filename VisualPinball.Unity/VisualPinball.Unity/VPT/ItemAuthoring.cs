@@ -37,6 +37,32 @@ namespace VisualPinball.Unity
 			Debug.DrawRay(pos + direction, left * arrowHeadLength);
 		}
 
+		protected void SetEnabled<T>(bool value) where T : Object
+		{
+			var comp = GetComponent<T>();
+			switch (comp) {
+				case Behaviour behaviourComp:
+					behaviourComp.enabled = value;
+					break;
+				case Renderer rendererComp:
+					rendererComp.enabled = value;
+					break;
+			}
+		}
+
+		protected bool GetEnabled<T>() where T : Object
+		{
+			var comp = GetComponent<T>();
+			switch (comp) {
+				case Behaviour behaviourComp:
+					return behaviourComp.enabled;
+				case Renderer rendererComp:
+					return rendererComp.enabled;
+			}
+
+			return false;
+		}
+
 		protected void SetMaterialProperty<T>(int prop, float value) where T : MonoBehaviour {
 			var child = GetComponentInChildren<T>();
 			var mr = child != null ? child.GetComponent<MeshRenderer>() : null;
