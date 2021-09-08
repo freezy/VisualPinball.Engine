@@ -46,11 +46,6 @@ namespace VisualPinball.Engine.VPT.Table
 			_meshGenerator = new TableMeshGenerator(data);
 		}
 
-		public float GetScaleZ()
-		{
-			return Data.BgScaleZ?[Data.BgCurrentSet] ?? 1.0f;
-		}
-
 		public float GetSurfaceHeight(string surfaceName, float x, float y)
 		{
 			if (string.IsNullOrEmpty(surfaceName)) {

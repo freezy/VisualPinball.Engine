@@ -93,7 +93,7 @@ namespace VisualPinball.Engine.VPT.Light
 					return new Matrix3D().SetTranslation(
 						_data.Center.X,
 						_data.Center.Y,
-						(table?.GetSurfaceHeight(_data.Surface, _data.Center.X, _data.Center.Y) ?? 0f) * table?.GetScaleZ() ?? 1.0f
+						table?.GetSurfaceHeight(_data.Surface, _data.Center.X, _data.Center.Y) ?? 0f
 					);
 
 				case Origin.Global:
@@ -143,14 +143,14 @@ namespace VisualPinball.Engine.VPT.Light
 		private Mesh GetBulbMesh(Table.Table table, Origin origin)
 		{
 			var bulbMesh = BulbMesh.Clone();
-			var height = table.GetSurfaceHeight(_data.Surface, _data.Center.X, _data.Center.Y) * table.GetScaleZ();
+			var height = table.GetSurfaceHeight(_data.Surface, _data.Center.X, _data.Center.Y);
 			var transX = origin == Origin.Global ? _data.Center.X : 0f;
 			var transY = origin == Origin.Global ? _data.Center.Y : 0f;
 			var transZ = origin == Origin.Global ? height : 0f;
 			for (var i = 0; i < bulbMesh.Vertices.Length; i++) {
 				bulbMesh.Vertices[i].X = bulbMesh.Vertices[i].X * _data.MeshRadius + transX;
 				bulbMesh.Vertices[i].Y = bulbMesh.Vertices[i].Y * _data.MeshRadius + transY;
-				bulbMesh.Vertices[i].Z = bulbMesh.Vertices[i].Z * _data.MeshRadius * table.GetScaleZ() + transZ;
+				bulbMesh.Vertices[i].Z = bulbMesh.Vertices[i].Z * _data.MeshRadius + transZ;
 			}
 
 			return bulbMesh;
@@ -159,7 +159,7 @@ namespace VisualPinball.Engine.VPT.Light
 		private Mesh GetSocketMesh(Table.Table table, Origin origin)
 		{
 			var socketMesh = SocketMesh.Clone();
-			var height = table.GetSurfaceHeight(_data.Surface, _data.Center.X, _data.Center.Y) * table.GetScaleZ();
+			var height = table.GetSurfaceHeight(_data.Surface, _data.Center.X, _data.Center.Y);
 			var transX = origin == Origin.Global ? _data.Center.X : 0f;
 			var transY = origin == Origin.Global ? _data.Center.Y : 0f;
 			var transZ = origin == Origin.Global ? height : 0f;
@@ -167,7 +167,7 @@ namespace VisualPinball.Engine.VPT.Light
 			for (var i = 0; i < socketMesh.Vertices.Length; i++) {
 				socketMesh.Vertices[i].X = socketMesh.Vertices[i].X * _data.MeshRadius + transX;
 				socketMesh.Vertices[i].Y = socketMesh.Vertices[i].Y * _data.MeshRadius + transY;
-				socketMesh.Vertices[i].Z = socketMesh.Vertices[i].Z * _data.MeshRadius * table.GetScaleZ() + transZ;
+				socketMesh.Vertices[i].Z = socketMesh.Vertices[i].Z * _data.MeshRadius + transZ;
 			}
 
 			return socketMesh;

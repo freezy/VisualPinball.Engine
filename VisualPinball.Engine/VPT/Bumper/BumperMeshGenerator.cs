@@ -91,23 +91,23 @@ namespace VisualPinball.Engine.VPT.Bumper
 
 		private Mesh GetMesh(string id, Table.Table table, Origin origin) {
 
-			var height = table.GetSurfaceHeight(_data.Surface, _data.Center.X, _data.Center.Y) * table.GetScaleZ();
+			var height = table.GetSurfaceHeight(_data.Surface, _data.Center.X, _data.Center.Y);
 			switch (id) {
 				case Base: {
 					var mesh = BaseMesh.Clone().MakeScale(_data.Radius, _data.Radius, _data.HeightScale);
-					return TranslateMesh(mesh, z => z * table.GetScaleZ() + height, origin);
+					return TranslateMesh(mesh, z => z + height, origin);
 				}
 				case Cap: {
 					var mesh = CapMesh.Clone().MakeScale(_data.Radius * 2, _data.Radius * 2, _data.HeightScale);
-					return TranslateMesh(mesh, z => (z + _data.HeightScale) * table.GetScaleZ() + height, origin);
+					return TranslateMesh(mesh, z => z + _data.HeightScale + height, origin);
 				}
 				case Ring: {
 					var mesh = RingMesh.Clone().MakeScale(_data.Radius, _data.Radius, _data.HeightScale);
-					return TranslateMesh(mesh, z => z * table.GetScaleZ() + height, origin);
+					return TranslateMesh(mesh, z => z + height, origin);
 				}
 				case Skirt: {
 					var mesh = SocketMesh.Clone().MakeScale(_data.Radius, _data.Radius, _data.HeightScale);
-					return TranslateMesh(mesh, z => z * table.GetScaleZ() + (height + 5.0f), origin);
+					return TranslateMesh(mesh, z => z + (height + 5.0f), origin);
 				}
 			}
 			throw new ArgumentException("Unknown bumper mesh \"" + id + "\".");
