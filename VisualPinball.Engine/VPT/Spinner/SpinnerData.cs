@@ -45,7 +45,6 @@ namespace VisualPinball.Engine.VPT.Spinner
 		[BiffFloat("ROTA", Pos = 2)]
 		public float Rotation = 0f;
 
-		[MaterialReference]
 		[BiffString("MATR", Pos = 13)]
 		public string Material = string.Empty;
 
@@ -73,7 +72,6 @@ namespace VisualPinball.Engine.VPT.Spinner
 		[BiffBool("SVIS", Pos = 11)]
 		public bool IsVisible = true;
 
-		[TextureReference]
 		[BiffString("IMGF", Pos = 14)]
 		public string Image = string.Empty;
 

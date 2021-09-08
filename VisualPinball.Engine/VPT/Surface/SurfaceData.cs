@@ -57,27 +57,21 @@ namespace VisualPinball.Engine.VPT.Surface
 		[BiffFloat("THRS", Pos = 8)]
 		public float Threshold = 2.0f;
 
-		[TextureReference]
 		[BiffString("IMAG", Pos = 9)]
 		public string Image = string.Empty;
 
-		[TextureReference]
 		[BiffString("SIMG", Pos = 10)]
 		public string SideImage = string.Empty;
 
-		[MaterialReference]
 		[BiffString("SIMA", Pos = 11)]
 		public string SideMaterial = string.Empty;
 
-		[MaterialReference]
 		[BiffString("TOMA", Pos = 12)]
 		public string TopMaterial = string.Empty;
 
-		[MaterialReference]
 		[BiffString("MAPH", Pos = 30)]
 		public string PhysicsMaterial = string.Empty;
 
-		[MaterialReference]
 		[BiffString("SLMA", Pos = 13)]
 		public string SlingShotMaterial = string.Empty;
 

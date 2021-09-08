@@ -82,18 +82,15 @@ namespace VisualPinball.Engine.VPT.Primitive
 		[BiffFloat("RTV8", Index = 8, Pos = 11)]
 		public float[] RotAndTra = new float[9];
 
-		[TextureReference]
 		[BiffString("IMAG", Pos = 12)]
 		public string Image = string.Empty;
 
-		[TextureReference]
 		[BiffString("NRMA", Pos = 13)]
 		public string NormalMap = string.Empty;
 
 		[BiffInt("SIDS", Pos = 14)]
 		public int Sides = 4;
 
-		[MaterialReference]
 		[BiffString("MATR", Pos = 16)]
 		public string Material = string.Empty;
 
@@ -139,7 +136,6 @@ namespace VisualPinball.Engine.VPT.Primitive
 		[BiffBool("ISTO", Pos = 29)]
 		public bool IsToy;
 
-		[MaterialReference]
 		[BiffString("MAPH", Pos = 36)]
 		public string PhysicsMaterial = string.Empty;
 

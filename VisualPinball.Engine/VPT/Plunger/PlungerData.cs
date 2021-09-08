@@ -83,11 +83,9 @@ namespace VisualPinball.Engine.VPT.Plunger
 		[BiffInt("ANFR", Pos = 9)]
 		public int AnimFrames = 1;
 
-		[MaterialReference]
 		[BiffString("MATR", Pos = 10)]
 		public string Material = string.Empty;
 
-		[TextureReference]
 		[BiffString("IMAG", Pos = 11)]
 		public string Image = string.Empty;
 
