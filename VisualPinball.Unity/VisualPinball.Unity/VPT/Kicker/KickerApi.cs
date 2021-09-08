@@ -52,15 +52,16 @@ namespace VisualPinball.Unity
 		public KickerApi(GameObject go, Entity entity, Entity parentEntity, Player player)
 			: base(go, entity, parentEntity, player)
 		{
+			foreach (var coil in MainComponent.Coils) {
+				_coils[coil.Id] = new DeviceCoil(() => Kick(coil.Angle, coil.Speed, coil.Inclination));
+			}
 		}
 
 		void IApiInitializable.OnInit(BallManager ballManager)
 		{
 			base.OnInit(ballManager);
 
-			foreach (var coil in MainComponent.Coils) {
-				_coils[coil.Id] = new DeviceCoil(() => Kick(coil.Angle, coil.Speed, coil.Inclination));
-			}
+
 
 			Init?.Invoke(this, EventArgs.Empty);
 		}
