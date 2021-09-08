@@ -168,7 +168,6 @@ namespace VisualPinball.Engine.VPT.Table
 		[BiffString("EIMG", Pos = 67)]
 		public string EnvImage;
 
-		[MaterialReference]
 		[BiffString("PLMA", Pos = 72)]
 		public string PlayfieldMaterial;
 

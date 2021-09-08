@@ -59,11 +59,9 @@ namespace VisualPinball.Engine.VPT.Flasher
 		[BiffColor("COLR", Pos = 7)]
 		public Color Color = new Color(0xfffffff, ColorFormat.Bgr);
 
-		[TextureReference]
 		[BiffString("IMAG", Pos = 11)]
 		public string ImageA;
 
-		[TextureReference]
 		[BiffString("IMAB", Pos = 12)]
 		public string ImageB;
 

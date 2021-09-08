@@ -97,15 +97,12 @@ namespace VisualPinball.Engine.VPT.Ramp
 		[BiffFloat("RSCT", Pos = 21)]
 		public float Scatter;
 
-		[TextureReference]
 		[BiffString("IMAG", Pos = 10)]
 		public string Image = string.Empty;
 
-		[MaterialReference]
 		[BiffString("MATR", Pos = 5)]
 		public string Material = string.Empty;
 
-		[MaterialReference]
 		[BiffString("MAPH", Pos = 29)]
 		public string PhysicsMaterial = string.Empty;
 

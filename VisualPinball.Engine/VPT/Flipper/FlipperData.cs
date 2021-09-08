@@ -70,18 +70,15 @@ namespace VisualPinball.Engine.VPT.Flipper
 		[BiffVertex("VCEN", Pos = 1)]
 		public Vertex2D Center;
 
-		[TextureReference]
 		[BiffString("IMAG", Pos = 31)]
 		public string Image = string.Empty;
 
 		[BiffString("SURF", Pos = 12)]
 		public string Surface = string.Empty;
 
-		[MaterialReference]
 		[BiffString("MATR", Pos = 13)]
 		public string Material = string.Empty;
 
-		[MaterialReference]
 		[BiffString("RUMA", Pos = 15)]
 		public string RubberMaterial = string.Empty;
 
