@@ -39,6 +39,7 @@ namespace VisualPinball.Unity.Test
 				new GamelogicEngineSwitch("bumper_1")
 			};
 
+			tableComponent.MappingConfig.Clear();
 			tableComponent.MappingConfig.PopulateSwitches(gameEngineSwitches, tableComponent);
 
 			tableComponent.MappingConfig.Switches.Should().HaveCount(1);
@@ -62,6 +63,7 @@ namespace VisualPinball.Unity.Test
 				new GamelogicEngineSwitch("23")
 			};
 
+			tableComponent.MappingConfig.Clear();
 			tableComponent.MappingConfig.PopulateSwitches(gameEngineSwitches, tableComponent);
 
 			tableComponent.MappingConfig.Switches.Should().HaveCount(1);
@@ -85,6 +87,7 @@ namespace VisualPinball.Unity.Test
 				new GamelogicEngineSwitch("bumper_")
 			};
 
+			tableComponent.MappingConfig.Clear();
 			tableComponent.MappingConfig.PopulateSwitches(gameEngineSwitches, tableComponent);
 
 			tableComponent.MappingConfig.Switches.Should().HaveCount(1);
@@ -107,6 +110,7 @@ namespace VisualPinball.Unity.Test
 				new GamelogicEngineSwitch("88") { DeviceHint = "some_trough", DeviceItemHint = "1"}
 			};
 
+			tableComponent.MappingConfig.Clear();
 			tableComponent.MappingConfig.PopulateSwitches(gameEngineSwitches, tableComponent);
 
 			tableComponent.MappingConfig.Switches.Should().HaveCount(1);
@@ -123,6 +127,7 @@ namespace VisualPinball.Unity.Test
 			var go = VpxImportEngine.ImportIntoScene(table, options: ConvertOptions.SkipNone);
 			var tableComponent = go.GetComponent<TableAuthoring>();
 
+			tableComponent.MappingConfig.Clear();
 			tableComponent.MappingConfig.AddSwitch(new SwitchMapping {Id = "bbb"});
 
 			var gameEngineSwitches = new[] {

@@ -64,11 +64,5 @@ namespace VisualPinball.Engine.Test.VPT
 			stats.Translucent.Should().Be(0.0102373762f);
 			stats.Transparent.Should().Be(0.33247757f);
 		}
-
-		[Test]
-		public void ShouldShipWithBallResource()
-		{
-			Resource.BallDebug.Data.Length.Should().BeGreaterThan(0);
-		}
 	}
 }
