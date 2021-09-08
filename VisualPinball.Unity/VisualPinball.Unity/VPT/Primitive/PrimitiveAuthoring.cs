@@ -106,7 +106,6 @@ namespace VisualPinball.Unity
 			if (meshComponent) {
 				meshComponent.Sides = data.Sides;
 				meshComponent.UseLegacyMesh = !data.Use3DMesh;
-				meshComponent.enabled = data.IsVisible;
 			}
 
 			// collider
@@ -142,6 +141,8 @@ namespace VisualPinball.Unity
 			var meshComponent = GetComponent<PrimitiveMeshAuthoring>();
 			if (meshComponent) {
 				meshComponent.CreateMesh(data, table, textureProvider, materialProvider);
+				meshComponent.enabled = data.IsVisible;
+				SetEnabled<Renderer>(data.IsVisible);
 
 				updatedComponents.Add(meshComponent);
 			}
@@ -173,12 +174,11 @@ namespace VisualPinball.Unity
 			// mesh
 			var meshComponent = GetComponent<PrimitiveMeshAuthoring>();
 			if (meshComponent) {
-				data.IsVisible = meshComponent.enabled;
+				data.IsVisible = GetEnabled<Renderer>();
 				data.Sides = meshComponent.Sides;
 				data.Use3DMesh = !meshComponent.UseLegacyMesh;
 
-				if (forExport && !meshComponent.UseLegacyMesh)
-				{
+				if (forExport && !meshComponent.UseLegacyMesh) {
 					var mf = GetComponent<MeshFilter>();
 					if (mf) {
 						data.Mesh = mf.sharedMesh.ToVpMesh();

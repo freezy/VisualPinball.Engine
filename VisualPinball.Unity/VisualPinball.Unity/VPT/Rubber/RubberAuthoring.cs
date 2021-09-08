@@ -136,6 +136,7 @@ namespace VisualPinball.Unity
 			if (mesh) {
 				mesh.CreateMesh(data, table, textureProvider, materialProvider);
 				mesh.enabled = data.IsVisible;
+				SetEnabled<Renderer>(data.IsVisible);
 			}
 
 			// collider data
@@ -162,8 +163,7 @@ namespace VisualPinball.Unity
 			data.DragPoints = DragPoints;
 
 			// visibility
-			var mr = GetComponent<MeshRenderer>();
-			data.IsVisible = mr && mr.enabled;
+			data.IsVisible = GetEnabled<Renderer>();
 
 			// collision
 			var collComponent = GetComponentInChildren<RubberColliderAuthoring>();
