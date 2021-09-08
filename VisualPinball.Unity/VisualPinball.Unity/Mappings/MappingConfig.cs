@@ -36,6 +36,14 @@ namespace VisualPinball.Unity
 
 		public bool IsEmpty() => (Coils == null || Coils.Count == 0) && (Switches == null || Switches.Count == 0) && (Lamps == null || Lamps.Count == 0);
 
+		public void Clear()
+		{
+			Switches.Clear();
+			Coils.Clear();
+			Wires.Clear();
+			Lamps.Clear();
+		}
+
 		#region Switches
 
 		public void PopulateSwitches(GamelogicEngineSwitch[] engineSwitches, TableAuthoring tableComponent)

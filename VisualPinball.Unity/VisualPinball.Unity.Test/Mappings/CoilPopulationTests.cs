@@ -39,6 +39,7 @@ namespace VisualPinball.Unity.Test
 				new GamelogicEngineCoil("left_flipper") { Description = "Left Flipper"}
 			};
 
+			tableComponent.MappingConfig.Clear();
 			tableComponent.MappingConfig.PopulateCoils(gameEngineCoils, tableComponent);
 
 			tableComponent.MappingConfig.Coils.Should().HaveCount(1);
@@ -74,6 +75,7 @@ namespace VisualPinball.Unity.Test
 				new GamelogicEngineCoil("left_flipper_")
 			};
 
+			tableComponent.MappingConfig.Clear();
 			tableComponent.MappingConfig.PopulateCoils(gameEngineCoils, tableComponent);
 			tableComponent.MappingConfig.Coils.Should().HaveCount(1);
 			tableComponent.MappingConfig.Coils[0].Id.Should().Be("left_flipper_");
@@ -94,6 +96,7 @@ namespace VisualPinball.Unity.Test
 				new GamelogicEngineCoil("foobar") { DeviceHint = "left_flipper"}
 			};
 
+			tableComponent.MappingConfig.Clear();
 			tableComponent.MappingConfig.PopulateCoils(gameEngineCoils, tableComponent);
 
 			tableComponent.MappingConfig.Coils.Should().HaveCount(1);
@@ -118,6 +121,7 @@ namespace VisualPinball.Unity.Test
 				new GamelogicEngineCoil("left_flipper_hold") { DeviceHint = "left_flipper", DeviceItemHint = FlipperAuthoring.HoldCoilItem },
 			};
 
+			tableComponent.MappingConfig.Clear();
 			tableComponent.MappingConfig.PopulateCoils(gameEngineCoils, tableComponent);
 
 			tableComponent.MappingConfig.Coils.Should().HaveCount(2);
@@ -138,6 +142,7 @@ namespace VisualPinball.Unity.Test
 			var go = VpxImportEngine.ImportIntoScene(table, options: ConvertOptions.SkipNone);
 			var tableComponent = go.GetComponent<TableAuthoring>();
 
+			tableComponent.MappingConfig.Clear();
 			tableComponent.MappingConfig.AddCoil(new CoilMapping {Id = "zzz"});
 			var gameEngineCoils = new[] {
 				new GamelogicEngineCoil("yyy")
@@ -158,6 +163,7 @@ namespace VisualPinball.Unity.Test
 			var gameEngineCoils = new[] {
 				new GamelogicEngineCoil("yyy") { IsLamp = true }
 			};
+			tableComponent.MappingConfig.Clear();
 			tableComponent.MappingConfig.PopulateCoils(gameEngineCoils, tableComponent);
 
 			tableComponent.MappingConfig.Coils.Count.Should().Be(1);
@@ -177,6 +183,7 @@ namespace VisualPinball.Unity.Test
 			var gameEngineCoils = new[] {
 				new GamelogicEngineCoil("yyy") { IsLamp = true }
 			};
+			tableComponent.MappingConfig.Clear();
 			tableComponent.MappingConfig.AddLamp(new LampMapping { Id = "yyy" });
 			tableComponent.MappingConfig.PopulateCoils(gameEngineCoils, tableComponent);
 			tableComponent.MappingConfig.RemoveCoil(tableComponent.MappingConfig.Coils[0]);
@@ -196,6 +203,7 @@ namespace VisualPinball.Unity.Test
 				new GamelogicEngineCoil("yyy") { IsLamp = true },
 				new GamelogicEngineCoil("zzz") { IsLamp = true }
 			};
+			tableComponent.MappingConfig.Clear();
 			tableComponent.MappingConfig.AddLamp(new LampMapping { Id = "yyy" });
 			tableComponent.MappingConfig.PopulateCoils(gameEngineCoils, tableComponent);
 			tableComponent.MappingConfig.RemoveAllCoils();
@@ -215,6 +223,7 @@ namespace VisualPinball.Unity.Test
 				new GamelogicEngineCoil("yyy") { IsLamp = true },
 				new GamelogicEngineCoil("zzz") { IsLamp = true }
 			};
+			tableComponent.MappingConfig.Clear();
 			tableComponent.MappingConfig.AddLamp(new LampMapping { Id = "yyy" });
 			tableComponent.MappingConfig.PopulateCoils(gameEngineCoils, tableComponent);
 			tableComponent.MappingConfig.RemoveAllLamps();

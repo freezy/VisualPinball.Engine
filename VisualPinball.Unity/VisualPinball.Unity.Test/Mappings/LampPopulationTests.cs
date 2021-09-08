@@ -39,6 +39,7 @@ namespace VisualPinball.Unity.Test
 				new GamelogicEngineLamp("some_light") { Description = "Some Light"}
 			};
 
+			tableComponent.MappingConfig.Clear();
 			tableComponent.MappingConfig.PopulateLamps(gameEngineLamps, tableComponent);
 
 			tableComponent.MappingConfig.Lamps.Should().HaveCount(1);
@@ -62,6 +63,7 @@ namespace VisualPinball.Unity.Test
 				new GamelogicEngineLamp("42") { Description = "Light 42"}
 			};
 
+			tableComponent.MappingConfig.Clear();
 			tableComponent.MappingConfig.PopulateLamps(gameEngineLamps, tableComponent);
 
 			tableComponent.MappingConfig.Lamps.Should().HaveCount(1);
@@ -85,6 +87,7 @@ namespace VisualPinball.Unity.Test
 				new GamelogicEngineLamp("11") { Description = "Foobar", DeviceHint = "_foobar_"}
 			};
 
+			tableComponent.MappingConfig.Clear();
 			tableComponent.MappingConfig.PopulateLamps(gameEngineLamps, tableComponent);
 
 			tableComponent.MappingConfig.Lamps.Should().HaveCount(1);
@@ -108,6 +111,7 @@ namespace VisualPinball.Unity.Test
 				new GamelogicEngineLamp("12") { Description = "Foobar", DeviceHint = "^_foobar_$"}
 			};
 
+			tableComponent.MappingConfig.Clear();
 			tableComponent.MappingConfig.PopulateLamps(gameEngineLamps, tableComponent);
 
 			tableComponent.MappingConfig.Lamps.Should().HaveCount(1);
@@ -133,6 +137,7 @@ namespace VisualPinball.Unity.Test
 				new GamelogicEngineLamp("b") { MainLampIdOfBlue = "rgb"}
 			};
 
+			tableComponent.MappingConfig.Clear();
 			tableComponent.MappingConfig.PopulateLamps(gameEngineLamps, tableComponent);
 
 			tableComponent.MappingConfig.Lamps.Should().HaveCount(1);
@@ -159,6 +164,7 @@ namespace VisualPinball.Unity.Test
 				new GamelogicEngineLamp("b") { MainLampIdOfBlue = "rgb"}
 			};
 
+			tableComponent.MappingConfig.Clear();
 			tableComponent.MappingConfig.PopulateLamps(gameEngineLamps, tableComponent);
 
 			tableComponent.MappingConfig.Lamps.Should().HaveCount(1);
@@ -185,6 +191,7 @@ namespace VisualPinball.Unity.Test
 				new GamelogicEngineLamp("11")
 			};
 
+			tableComponent.MappingConfig.Clear();
 			tableComponent.MappingConfig.PopulateLamps(gameEngineLamps, tableComponent);
 			tableComponent.MappingConfig.AddLamp(new LampMapping {
 				Id = "12",
