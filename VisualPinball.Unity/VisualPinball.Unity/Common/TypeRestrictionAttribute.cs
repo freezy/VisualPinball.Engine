@@ -30,10 +30,13 @@ namespace VisualPinball.Unity
 		public string NoneLabel = "None";
 		public bool UpdateTransforms;
 		public bool RebuildMeshes;
+		public string DeviceItem;
+		public Type DeviceType;
 
 		public TypeRestrictionAttribute(Type type)
 		{
 			Type = type ?? throw new ArgumentNullException(nameof(type), "Type must be given!");
 		}
+
 	}
 }

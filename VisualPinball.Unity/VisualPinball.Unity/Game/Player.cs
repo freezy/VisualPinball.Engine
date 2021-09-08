@@ -92,7 +92,8 @@ namespace VisualPinball.Unity
 
 		#region Access
 
-		internal IApiSwitch Switch(ISwitchDeviceAuthoring component, string switchId) => component != null ? _switchPlayer.Switch(component, switchId) : null;
+		internal IApiSwitch Switch(ISwitchDeviceAuthoring component, string switchItem) => component != null ? _switchPlayer.Switch(component, switchItem) : null;
+		internal IApiCoil Coil(ICoilDeviceAuthoring component, string coilItem) => component != null ? _coilPlayer.Coil(component, coilItem) : null;
 		internal IApiWireDeviceDest WireDevice(IWireableAuthoring c) => _wirePlayer.WireDevice(c);
 		public Dictionary<string, bool> SwitchStatusesClosed => _switchPlayer.SwitchStatusesClosed;
 		public Dictionary<string, bool> CoilStatuses => _coilPlayer.CoilStatuses;

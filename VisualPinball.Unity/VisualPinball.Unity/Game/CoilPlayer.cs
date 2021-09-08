@@ -40,6 +40,9 @@ namespace VisualPinball.Unity
 		internal Dictionary<string, bool> CoilStatuses { get; } = new Dictionary<string, bool>();
 		internal void RegisterCoilDevice(ICoilDeviceAuthoring component, IApiCoilDevice coilDeviceApi) => _coilDevices[component] = coilDeviceApi;
 
+		internal IApiCoil Coil(ICoilDeviceAuthoring component, string coilItem)
+			=> _coilDevices.ContainsKey(component) ? _coilDevices[component].Coil(coilItem) : null;
+
 		public void Awake(TableAuthoring tableComponent, IGamelogicEngine gamelogicEngine, LampPlayer lampPlayer)
 		{
 			_tableComponent = tableComponent;

@@ -127,6 +127,7 @@ namespace VisualPinball.Unity
 		/// <summary>
 		/// A reference to the exit kicker on the playfield needed to create and kick new balls into the plunger lane.
 		/// </summary>
+		private IApiCoil _ejectCoil;
 		private KickerApi _ejectKicker;
 
 		/// <summary>
@@ -173,9 +174,10 @@ namespace VisualPinball.Unity
 			base.OnInit(ballManager);
 
 			// reference playfield elements
-			_drainSwitch = TableApi.Switch(MainComponent.PlayfieldEntrySwitch, MainComponent.PlayfieldEntrySwitchId);
+			_drainSwitch = TableApi.Switch(MainComponent.PlayfieldEntrySwitch, MainComponent.PlayfieldEntrySwitchItem);
+			_ejectCoil = TableApi.Coil(MainComponent.PlayfieldExitKicker, MainComponent.PlayfieldExitKickerItem);
 			_ejectKicker = TableApi.Kicker(MainComponent.PlayfieldExitKicker ? MainComponent.PlayfieldExitKicker.name : string.Empty);
-			_isSetup = _drainSwitch != null && _ejectKicker != null;
+			_isSetup = _drainSwitch != null && _ejectCoil != null;
 
 			// setup entry handler
 			if (_drainSwitch != null) {
@@ -469,7 +471,7 @@ namespace VisualPinball.Unity
 				Logger.Info("Trough: Spawning new ball.");
 
 				_ejectKicker.CreateBall();
-				_ejectKicker.Kick();
+				_ejectCoil.OnCoil(true);
 
 				// open the switch of the ejected ball immediately
 				switch (MainComponent.Type) {

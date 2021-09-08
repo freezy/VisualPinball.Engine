@@ -19,6 +19,7 @@ using System.Linq;
 using UnityEditor;
 using UnityEditor.IMGUI.Controls;
 using UnityEngine;
+using Object = UnityEngine.Object;
 
 namespace VisualPinball.Unity.Editor
 {
@@ -48,7 +49,6 @@ namespace VisualPinball.Unity.Editor
 				return;
 			}
 
-
 			#endregion
 
 			// find components
@@ -58,6 +58,21 @@ namespace VisualPinball.Unity.Editor
 			var field = property.objectReferenceValue;
 			pos = EditorGUI.PrefixLabel(pos, label);
 
+			if (!string.IsNullOrEmpty(attrib.DeviceItem) && attrib.DeviceType != null) {
+				pos.width = pos.width / 2f + 10f;
+				DevicePicker(pos, property, attrib, comp, field, ta);
+
+				pos.width -= 10f;
+				pos.x += pos.width;
+				DeviceItemDropdown(pos, property, attrib, field);
+
+			} else {
+				DevicePicker(pos, property, attrib, comp, field, ta);
+			}
+		}
+
+		private void DevicePicker(Rect pos, SerializedProperty property, TypeRestrictionAttribute attrib, Component comp, Object field, TableAuthoring ta)
+		{
 			// retrieve selected reference
 			MonoBehaviour obj = null;
 			if (_component == null) {
@@ -127,6 +142,56 @@ namespace VisualPinball.Unity.Editor
 				objectFieldButton.Draw(suffixButtonPos, GUIContent.none, id, DragAndDrop.activeControlID == id, suffixButtonPos.Contains(Event.current.mousePosition));
 			}
 		}
+
+		private void DeviceItemDropdown(Rect pos, SerializedProperty property, TypeRestrictionAttribute attrib, Object field)
+		{
+			var deviceItemPropField = property.serializedObject.FindProperty(attrib.DeviceItem);
+
+			var count = 0;
+			var firstItemDescription = string.Empty;
+			var labels = Array.Empty<string>();
+			var ids = Array.Empty<string>();
+			var currentIndex = 0;
+
+			if (attrib.DeviceType == typeof(ICoilDeviceAuthoring) && field is ICoilDeviceAuthoring coilDeviceAuthoring) {
+				count = coilDeviceAuthoring.AvailableCoils.Count();
+				firstItemDescription = coilDeviceAuthoring.AvailableCoils.First().Description;
+				labels = coilDeviceAuthoring.AvailableCoils.Select(s => s.Description).ToArray();
+				ids = coilDeviceAuthoring.AvailableCoils.Select(s => s.Id).ToArray();
+				currentIndex = coilDeviceAuthoring.AvailableCoils.TakeWhile(s => s.Id != deviceItemPropField.stringValue).Count();
+			}
+			if (attrib.DeviceType == typeof(ISwitchDeviceAuthoring) && field is ISwitchDeviceAuthoring switchDeviceAuthoring) {
+				count = switchDeviceAuthoring.AvailableSwitches.Count();
+				firstItemDescription = switchDeviceAuthoring.AvailableSwitches.First().Description;
+				labels = switchDeviceAuthoring.AvailableSwitches.Select(s => s.Description).ToArray();
+				ids = switchDeviceAuthoring.AvailableSwitches.Select(s => s.Id).ToArray();
+				currentIndex = switchDeviceAuthoring.AvailableSwitches.TakeWhile(s => s.Id != deviceItemPropField.stringValue).Count();
+			}
+			if (attrib.DeviceType == typeof(ILampDeviceAuthoring) && field is ILampDeviceAuthoring lampDeviceAuthoring) {
+				count = lampDeviceAuthoring.AvailableLamps.Count();
+				firstItemDescription = lampDeviceAuthoring.AvailableLamps.First().Description;
+				labels = lampDeviceAuthoring.AvailableLamps.Select(s => s.Description).ToArray();
+				ids = lampDeviceAuthoring.AvailableLamps.Select(s => s.Id).ToArray();
+				currentIndex = lampDeviceAuthoring.AvailableLamps.TakeWhile(s => s.Id != deviceItemPropField.stringValue).Count();
+			}
+
+			if (field != null && count == 1) {
+					deviceItemPropField.stringValue = ids[0];
+					deviceItemPropField.serializedObject.ApplyModifiedProperties();
+				if (string.IsNullOrEmpty(firstItemDescription)) {
+					return;
+				}
+			}
+			EditorGUI.BeginChangeCheck();
+			var newIndex = EditorGUI.Popup(pos, currentIndex, labels);
+			if (EditorGUI.EndChangeCheck() && field != null) {
+				if (currentIndex != newIndex) {
+					deviceItemPropField.stringValue = ids[newIndex];
+					deviceItemPropField.serializedObject.ApplyModifiedProperties();
+				}
+			}
+		}
+
 
 		private class ItemSearchableDropdownUntyped : AdvancedDropdown
 		{
