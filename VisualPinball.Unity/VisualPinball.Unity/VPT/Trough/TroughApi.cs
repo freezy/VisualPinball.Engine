@@ -25,14 +25,14 @@ using Logger = NLog.Logger;
 namespace VisualPinball.Unity
 {
 	/// <summary>
-	/// A trough implements all known trough behaviors that exist in the real world. <p/>
+	/// A trough that implements all known trough behaviors that exist in the real world. <p/>
 	/// </summary>
 	///
 	/// <remarks>
 	/// A trough consists of two parts:
 	///
-	/// - The **drain** where the ball lands after it exists the playfield. In [modern troughs](#) this part does not
-	///   exist, since the balls go directly into the trough.
+	/// - The **drain** (often also called "out hole" where the ball lands after it exists the playfield. In
+	///   modern troughs this part does not exist, since the balls go directly into the trough.
 	/// - The **ball stack**, where balls are stored for games that hold more than one ball.
 	/// </remarks>
 	[Api]
@@ -49,9 +49,7 @@ namespace VisualPinball.Unity
 		public int NumStackSwitches => MainComponent.SwitchCount;
 
 		/// <summary>
-		/// The entry switch. <p/>
-		///
-		/// This is the switch that is closed when the ball lands in the drain.
+		/// The virtual switch that is enabled when the ball lands in the drain.
 		/// </summary>
 		///
 		/// <remarks>
@@ -74,16 +72,15 @@ namespace VisualPinball.Unity
 		///
 		/// <param name="pos">Position, where 0 is the switch of the ball being ejected next.</param>
 		/// <returns>Switch in the ball stack</returns>
-
 		public DeviceSwitch StackSwitch(int pos) => _stackSwitches[pos];
 
 		/// <summary>
-		/// The jam switch sits right above ball 1 and shortly enables and disables after eject.
+		/// The virtual switch that sits right above ball 1 and shortly enables and disables after eject.
 		/// </summary>
 		public DeviceSwitch JamSwitch;
 
 		/// <summary>
-		/// Entry coil shoots the ball from the drain into the trough.
+		/// The virtual coil that shoots the ball from the drain into the trough.
 		/// </summary>
 		///
 		/// <remarks>
@@ -92,7 +89,7 @@ namespace VisualPinball.Unity
 		public DeviceCoil EntryCoil;
 
 		/// <summary>
-		/// Triggers the kicker that ejects the ball.
+		/// The virtual coil that ejects the ball.
 		/// </summary>
 		public DeviceCoil ExitCoil;
 
@@ -127,8 +124,13 @@ namespace VisualPinball.Unity
 		/// <summary>
 		/// A reference to the exit kicker on the playfield needed to create and kick new balls into the plunger lane.
 		/// </summary>
-		private IApiCoil _ejectCoil;
 		private KickerApi _ejectKicker;
+
+		/// <summary>
+		/// A reference to the exit kicker's coil. It's separate from <see cref="_ejectKicker"/>, because a kicker
+		/// can have multiple coils.
+		/// </summary>
+		private IApiCoil _ejectCoil;
 
 		/// <summary>
 		/// The stack switches. These are virtual switches that don't exist on the playfield, but changing their values
@@ -176,6 +178,7 @@ namespace VisualPinball.Unity
 			// reference playfield elements
 			_drainSwitch = TableApi.Switch(MainComponent.PlayfieldEntrySwitch, MainComponent.PlayfieldEntrySwitchItem);
 			_ejectCoil = TableApi.Coil(MainComponent.PlayfieldExitKicker, MainComponent.PlayfieldExitKickerItem);
+			// todo check if we can use component references for playfield items in general
 			_ejectKicker = TableApi.Kicker(MainComponent.PlayfieldExitKicker ? MainComponent.PlayfieldExitKicker.name : string.Empty);
 			_isSetup = _drainSwitch != null && _ejectCoil != null;
 
