@@ -50,16 +50,16 @@ namespace VisualPinball.Unity
 			set => _playfieldEntrySwitch = value as MonoBehaviour;
 		}
 
-		public string PlayfieldEntrySwitchId;
-
 		[SerializeField]
-		[TypeRestriction(typeof(ITriggerAuthoring), PickerLabel = "Triggers & Kickers")]
+		[TypeRestriction(typeof(ITriggerAuthoring), PickerLabel = "Triggers & Kickers", DeviceItem = nameof(PlayfieldEntrySwitchItem), DeviceType = typeof(ISwitchDeviceAuthoring))]
 		[Tooltip("The trigger or kicker that eats the ball and puts it into the trough.")]
 		public MonoBehaviour _playfieldEntrySwitch;
+		public string PlayfieldEntrySwitchItem = string.Empty;
 
 		[Tooltip("The kicker that creates and ejects the ball to the playfield.")]
-		[TypeRestriction(typeof(KickerAuthoring), PickerLabel = "Kickers")]
+		[TypeRestriction(typeof(KickerAuthoring), PickerLabel = "Kickers", DeviceItem = nameof(PlayfieldExitKickerItem), DeviceType = typeof(ICoilDeviceAuthoring))]
 		public KickerAuthoring PlayfieldExitKicker;
+		public string PlayfieldExitKickerItem = string.Empty;
 
 		[Range(1, 10)]
 		[Tooltip("How many balls the trough holds when the game starts.")]
