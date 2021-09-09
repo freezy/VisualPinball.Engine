@@ -52,7 +52,7 @@ namespace VisualPinball.Unity
 
 		public List<ICollider> Colliders { get; private set; }
 
-		public new IItemMainComponent MainAuthoring => base.MainComponent;
+		public IItemMainComponent MainAuthoring => MainComponent;
 
 		private readonly Entity _colliderEntity = Player.PlayfieldEntity;
 

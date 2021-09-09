@@ -83,14 +83,6 @@ namespace VisualPinball.Unity
 			_tableCenter = GetTableCenter();
 		}
 
-		protected virtual void Start()
-		{
-
-			if (EngineProvider<IDebugUI>.Exists) {
-				EngineProvider<IDebugUI>.Get().Init(this);
-			}
-		}
-
 		public void RestoreCollections(List<CollectionData> collections)
 		{
 			Collections.Clear();

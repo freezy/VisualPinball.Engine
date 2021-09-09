@@ -92,7 +92,7 @@ namespace VisualPinball.Unity
 			}
 		}
 
-		private void Start()
+		private void Awake()
 		{
 			GetComponentInParent<Player>().RegisterPlayfield(gameObject);
 			var meshComp = GetComponentInChildren<PlayfieldMeshComponent>();
