@@ -24,7 +24,7 @@ using VisualPinball.Engine.VPT.Plunger;
 namespace VisualPinball.Unity
 {
 	public class PlungerApi : ItemCollidableApi<PlungerComponent, PlungerColliderComponent, PlungerData>,
-		IApiInitializable, IApiRotatable, IApiCoilDevice, IApiWireDeviceDest
+		IApi, IApiRotatable, IApiCoilDevice, IApiWireDeviceDest
 	{
 		/// <summary>
 		/// Event emitted when the table is started.
@@ -74,13 +74,17 @@ namespace VisualPinball.Unity
 			EntityManager.SetComponentData(Entity, movementData);
 		}
 
-		void IApiInitializable.OnInit(BallManager ballManager)
+		void IApi.OnInit(BallManager ballManager)
 		{
 			base.OnInit(ballManager);
 			Init?.Invoke(this, EventArgs.Empty);
 
 			PullCoil = new DeviceCoil(PullBack, Fire);
 			FireCoil = new DeviceCoil(Fire);
+		}
+
+		void IApi.OnDestroy()
+		{
 		}
 
 		public void PullBack()

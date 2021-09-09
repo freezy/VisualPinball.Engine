@@ -22,7 +22,7 @@ using UnityEngine;
 namespace VisualPinball.Unity
 {
 	public class SurfaceApi : ItemCollidableApi<SurfaceComponent, SurfaceColliderComponent, Engine.VPT.Surface.SurfaceData>,
-		IApiInitializable, IApiHittable, IApiSlingshot
+		IApi, IApiHittable, IApiSlingshot
 	{
 		/// <summary>
 		/// Event emitted when the table is started.
@@ -60,10 +60,14 @@ namespace VisualPinball.Unity
 
 		#region Events
 
-		void IApiInitializable.OnInit(BallManager ballManager)
+		void IApi.OnInit(BallManager ballManager)
 		{
 			base.OnInit(ballManager);
 			Init?.Invoke(this, EventArgs.Empty);
+		}
+
+		void IApi.OnDestroy()
+		{
 		}
 
 		void IApiHittable.OnHit(Entity ballEntity, bool _)

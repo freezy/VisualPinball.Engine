@@ -25,7 +25,7 @@ using Random = Unity.Mathematics.Random;
 namespace VisualPinball.Unity
 {
 	public class KickerApi : ItemCollidableApi<KickerComponent, KickerColliderComponent, KickerData>,
-		IApiInitializable, IApiHittable, IApiSwitch, IApiSwitchDevice, IApiCoilDevice, IApiWireDeviceDest
+		IApi, IApiHittable, IApiSwitch, IApiSwitchDevice, IApiCoilDevice, IApiWireDeviceDest
 	{
 		/// <summary>
 		/// Event emitted when the table is started.
@@ -57,15 +57,15 @@ namespace VisualPinball.Unity
 			}
 		}
 
-		void IApiInitializable.OnInit(BallManager ballManager)
+		void IApi.OnInit(BallManager ballManager)
 		{
 			base.OnInit(ballManager);
-
-
-
 			Init?.Invoke(this, EventArgs.Empty);
 		}
 
+		void IApi.OnDestroy()
+		{
+		}
 
 		public void CreateBall()
 		{

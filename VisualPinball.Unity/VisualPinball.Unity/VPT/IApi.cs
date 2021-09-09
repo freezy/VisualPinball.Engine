@@ -27,15 +27,8 @@ namespace VisualPinball.Unity
 	/// </summary>
 	public interface IApi
 	{
-		string Name { get; }
 		void OnDestroy();
-	}
 
-	/// <summary>
-	/// APIs implementing this will get initialized during player start-up.
-	/// </summary>
-	internal interface IApiInitializable
-	{
 		void OnInit(BallManager ballManager);
 	}
 

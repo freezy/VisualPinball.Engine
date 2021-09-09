@@ -24,7 +24,6 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 using VisualPinball.Engine.Common;
 using VisualPinball.Engine.Game;
-using VisualPinball.Engine.VPT.Table;
 using VisualPinball.Engine.VPT.Trigger;
 using Logger = NLog.Logger;
 
@@ -49,7 +48,6 @@ namespace VisualPinball.Unity
 
 		// table related
 		private readonly List<IApi> _apis = new List<IApi>();
-		private readonly List<IApiInitializable> _initializables = new List<IApiInitializable>();
 		private readonly List<IApiColliderGenerator> _colliderGenerators = new List<IApiColliderGenerator>();
 		private readonly Dictionary<Entity, IApiHittable> _hittables = new Dictionary<Entity, IApiHittable>();
 		private readonly Dictionary<Entity, IApiRotatable> _rotatables = new Dictionary<Entity, IApiRotatable>();
@@ -71,29 +69,32 @@ namespace VisualPinball.Unity
 		internal IEnumerable<IApiColliderGenerator> ColliderGenerators => _colliderGenerators;
 
 		// input related
-		private InputManager _inputManager;
-		private VisualPinballSimulationSystemGroup _simulationSystemGroup;
+		[NonSerialized] private InputManager _inputManager;
+		[NonSerialized] private VisualPinballSimulationSystemGroup _simulationSystemGroup;
+		[NonSerialized] private readonly List<(InputAction, Action<InputAction.CallbackContext>)> _actions = new List<(InputAction, Action<InputAction.CallbackContext>)>();
+
+		// players
 		[NonSerialized] private readonly LampPlayer _lampPlayer = new LampPlayer();
 		[NonSerialized] private readonly CoilPlayer _coilPlayer = new CoilPlayer();
 		[NonSerialized] private readonly SwitchPlayer _switchPlayer = new SwitchPlayer();
 		[NonSerialized] private readonly WirePlayer _wirePlayer = new WirePlayer();
 		[NonSerialized] private readonly DisplayPlayer _displayPlayer = new DisplayPlayer();
-		[NonSerialized] private readonly List<(InputAction, Action<InputAction.CallbackContext>)> _actions = new List<(InputAction, Action<InputAction.CallbackContext>)>();
 
 		private const float SlowMotionMax = 0.1f;
 		private const float TimeLapseMax = 2.5f;
 
-		internal static readonly Entity PlayfieldEntity = new Entity {Index = -3, Version = 0}; // a fake entity we just use for reference
-
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 		private TableComponent _tableComponent;
 		private PlayfieldComponent _playfieldComponent;
+
+		internal static readonly Entity PlayfieldEntity = new Entity {Index = -3, Version = 0}; // a fake entity we just use for reference
 
 		#region Access
 
 		internal IApiSwitch Switch(ISwitchDeviceComponent component, string switchItem) => component != null ? _switchPlayer.Switch(component, switchItem) : null;
 		internal IApiCoil Coil(ICoilDeviceComponent component, string coilItem) => component != null ? _coilPlayer.Coil(component, coilItem) : null;
 		internal IApiWireDeviceDest WireDevice(IWireableComponent c) => _wirePlayer.WireDevice(c);
+
 		public Dictionary<string, bool> SwitchStatusesClosed => _switchPlayer.SwitchStatusesClosed;
 		public Dictionary<string, bool> CoilStatuses => _coilPlayer.CoilStatuses;
 		public Dictionary<string, float> LampStatuses => _lampPlayer.LampStatuses;
@@ -116,7 +117,7 @@ namespace VisualPinball.Unity
 
 			_tableComponent.TableContainer.Refresh();
 
-			_initializables.Add(TableApi);
+			_apis.Add(TableApi);
 
 			BallManager = new BallManager(this);
 			_inputManager = new InputManager();
@@ -142,7 +143,7 @@ namespace VisualPinball.Unity
 		private void Start()
 		{
 			// trigger init events now
-			foreach (var i in _initializables) {
+			foreach (var i in _apis) {
 				i.OnInit(BallManager);
 			}
 
@@ -287,9 +288,6 @@ namespace VisualPinball.Unity
 		{
 			TableApi.Register(component, api);
 			_apis.Add(api);
-			if (api is IApiInitializable initializable) {
-				_initializables.Add(initializable);
-			}
 			if (api is IApiRotatable rotatable) {
 				_rotatables[entity] = rotatable;
 			}
