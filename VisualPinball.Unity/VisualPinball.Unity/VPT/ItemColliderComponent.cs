@@ -18,10 +18,13 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Unity.Entities;
 using Unity.Mathematics;
+using UnityEditor;
 using UnityEngine;
 using UnityEngine.Profiling;
+using VisualPinball.Engine.Math;
 using VisualPinball.Engine.VPT;
 using Color = UnityEngine.Color;
 using MathF = VisualPinball.Engine.Math.MathF;
@@ -102,6 +105,9 @@ namespace VisualPinball.Unity
 
 			var ltw = GetComponentInParent<PlayfieldComponent>().transform.localToWorldMatrix;
 
+			DrawColliderMesh(ltw);
+			return;
+
 			// draw aabbs and colliders
 			for (var i = 0; i < Colliders.Count; i++) {
 				var col = Colliders[i];
@@ -116,6 +122,172 @@ namespace VisualPinball.Unity
 		}
 
 		#region Collider Gizmos
+
+		private void DrawColliderMesh(Matrix4x4 ltw)
+		{
+			var mesh = new Mesh { name = $"{name} (debug collider)" };
+			var color = Color.green;
+			Handles.color = color;
+			color.a = 0.3f;
+			Gizmos.color = color;
+			Gizmos.matrix = ltw;
+			Handles.matrix = ltw;
+			var vertices = new List<Vector3>();
+			var normals = new List<Vector3>();
+			var indices = new List<int>();
+			foreach (var col in Colliders) {
+				switch (col) {
+					case LineCollider lineCol: {
+						AddCollider(lineCol, vertices, normals, indices);
+						break;
+					}
+
+					case LineZCollider lineZCol: {
+						var aabb = lineZCol.Bounds.Aabb;
+						DrawLine(lineZCol.XY.ToFloat3(aabb.ZLow), lineZCol.XY.ToFloat3(aabb.ZHigh));
+						//AddCollider(lineZColl, vertices, normals, indices);
+						break;
+					}
+
+					case Line3DCollider line3DCol: {
+						// todo
+						break;
+					}
+
+					case CircleCollider circleCol: {
+						// todo
+						break;
+					}
+
+					case TriangleCollider triangleCol: {
+						AddCollider(triangleCol, vertices, normals, indices);
+						break;
+					}
+
+					case GateCollider gateCol: {
+						AddCollider(gateCol.LineSeg0, vertices, normals, indices);
+						AddCollider(gateCol.LineSeg1, vertices, normals, indices);
+						break;
+					}
+
+					case SpinnerCollider spinnerCol: {
+						AddCollider(spinnerCol.LineSeg0, vertices, normals, indices);
+						AddCollider(spinnerCol.LineSeg1, vertices, normals, indices);
+						break;
+					}
+
+					case FlipperCollider _: {
+						AddFlipperCollider(vertices, normals, indices);
+						break;
+					}
+
+					case PlungerCollider plungerCol: {
+						AddCollider(plungerCol.LineSegBase, vertices, normals, indices);
+						AddCollider(plungerCol.JointBase0, vertices, normals, indices);
+						AddCollider(plungerCol.JointBase1, vertices, normals, indices);
+						break;
+					}
+				}
+			}
+			mesh.vertices = vertices.ToArray();
+			mesh.triangles = indices.ToArray();
+			mesh.normals = normals.ToArray();
+
+			Gizmos.DrawMesh(mesh);
+		}
+
+		private static void DrawLine(Vector3 p1, Vector3 p2)
+		{
+			const int thickness = 10;
+			//Handles.DrawBezier(p1, p2, p1, p2, color,null, thickness);
+			Handles.DrawAAPolyLine(thickness, p1, p2);
+		}
+
+		private static void AddCollider(LineZCollider lineZCol, ICollection<Vector3> vertices, ICollection<Vector3> normals, ICollection<int> indices)
+		{
+			var aabb = lineZCol.Bounds.Aabb;
+			const float width = 10f;
+
+			var bottom = lineZCol.XY.ToFloat3(aabb.ZLow);
+			var top = lineZCol.XY.ToFloat3(aabb.ZHigh);
+
+			var i = vertices.Count;
+			vertices.Add(bottom + new float3(width, 0, 0));
+			vertices.Add(top + new float3(width, 0, 0));
+			vertices.Add(top + new float3(-width, 0, 0));
+			vertices.Add(bottom + new float3(-width, 0, 0));
+
+			var normal = new Vector3(0, 1, 0);
+			normals.Add(normal);
+			normals.Add(normal);
+			normals.Add(normal);
+			normals.Add(normal);
+
+			indices.Add(i+0);
+			indices.Add(i+2);
+			indices.Add(i+1);
+			indices.Add(i+3);
+			indices.Add(i+2);
+			indices.Add(i);
+		}
+
+		private static void AddCollider(LineCollider lineCol, ICollection<Vector3> vertices, ICollection<Vector3> normals, ICollection<int> indices)
+		{
+			var h = lineCol.ZHigh - lineCol.ZLow;
+			var i = vertices.Count;
+			vertices.Add(lineCol.V1.ToFloat3(lineCol.ZLow));
+			vertices.Add(lineCol.V1.ToFloat3(lineCol.ZLow + h));
+			vertices.Add(lineCol.V2.ToFloat3(lineCol.ZLow));
+			vertices.Add(lineCol.V2.ToFloat3(lineCol.ZLow + h));
+
+			var normal = lineCol.Normal.ToFloat3(0);
+			normals.Add(normal);
+			normals.Add(normal);
+			normals.Add(normal);
+			normals.Add(normal);
+
+			indices.Add(i);
+			indices.Add(i+2);
+			indices.Add(i+1);
+			indices.Add(i+2);
+			indices.Add(i+3);
+			indices.Add(i+1);
+		}
+
+		private static void AddCollider(TriangleCollider triangleCol, ICollection<Vector3> vertices, ICollection<Vector3> normals, ICollection<int> indices)
+		{
+			var i = vertices.Count;
+
+			vertices.Add(triangleCol.Rgv0);
+			vertices.Add(triangleCol.Rgv1);
+			vertices.Add(triangleCol.Rgv2);
+
+			normals.Add(triangleCol.Normal());
+			normals.Add(triangleCol.Normal());
+			normals.Add(triangleCol.Normal());
+
+			indices.Add(i);
+			indices.Add(i+2);
+			indices.Add(i+1);
+		}
+
+		private void AddFlipperCollider(List<Vector3> vertices, List<Vector3> normals, List<int> indices)
+		{
+			// first see if we already have a mesh
+			var meshAuthoring = GetComponentInChildren<FlipperRubberMeshComponent>();
+			if (meshAuthoring == null) {
+				return;
+			}
+			var meshComponent = meshAuthoring.gameObject.GetComponent<MeshFilter>();
+			if (meshComponent == null) {
+				return;
+			}
+			var i = vertices.Count;
+			var mesh = meshComponent.sharedMesh;
+			vertices.AddRange(mesh.vertices);
+			normals.AddRange(mesh.normals);
+			indices.AddRange(mesh.triangles.Select(n => i + n));
+		}
 
 		private static void DrawAabb(Matrix4x4 ltw, Aabb aabb, bool isSelected)
 		{
