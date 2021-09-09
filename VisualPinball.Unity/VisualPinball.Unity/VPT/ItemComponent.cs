@@ -62,13 +62,5 @@ namespace VisualPinball.Unity
 
 			return false;
 		}
-
-		protected void SetMaterialProperty<T>(int prop, float value) where T : MonoBehaviour {
-			var child = GetComponentInChildren<T>();
-			var mr = child != null ? child.GetComponent<MeshRenderer>() : null;
-			if (mr != null) {
-				mr.sharedMaterial.SetFloat(prop, value);
-			}
-		}
 	}
 }

@@ -48,7 +48,6 @@ namespace VisualPinball.Unity
 		[HideInInspector] [SerializeField] public string physicsEngineId;
 
 		// table related
-		private TableContainer _tableContainer;
 		private readonly List<IApi> _apis = new List<IApi>();
 		private readonly List<IApiInitializable> _initializables = new List<IApiInitializable>();
 		private readonly List<IApiColliderGenerator> _colliderGenerators = new List<IApiColliderGenerator>();
@@ -119,7 +118,6 @@ namespace VisualPinball.Unity
 
 			_initializables.Add(TableApi);
 
-			_tableContainer = _tableComponent.TableContainer;
 			BallManager = new BallManager(this);
 			_inputManager = new InputManager();
 			_inputManager.Enable(HandleInput);
@@ -154,6 +152,10 @@ namespace VisualPinball.Unity
 			_wirePlayer.OnStart();
 
 			GamelogicEngine?.OnInit(this, TableApi, BallManager);
+
+			if (EngineProvider<IDebugUI>.Exists) {
+				EngineProvider<IDebugUI>.Get().Init(_tableComponent);
+			}
 		}
 
 		private void OnDestroy()
@@ -293,6 +295,9 @@ namespace VisualPinball.Unity
 			}
 			if (api is IApiSlingshot slingshot) {
 				_slingshots[entity] = slingshot;
+			}
+			if (api is IApiSpinnable spinnable) {
+				_spinnables[entity] = spinnable;
 			}
 			if (api is IApiSwitchDevice switchDevice) {
 				if (component is ISwitchDeviceComponent switchDeviceAuthoring) {
