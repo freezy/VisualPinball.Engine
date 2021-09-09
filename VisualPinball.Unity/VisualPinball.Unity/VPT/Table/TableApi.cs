@@ -20,7 +20,7 @@ using UnityEngine;
 
 namespace VisualPinball.Unity
 {
-	public class TableApi : IApiInitializable
+	public class TableApi : IApi
 	{
 		private readonly Player _player;
 
@@ -248,9 +248,14 @@ namespace VisualPinball.Unity
 
 		#region Events
 
-		void IApiInitializable.OnInit(BallManager ballManager)
+
+		void IApi.OnInit(BallManager ballManager)
 		{
 			Init?.Invoke(this, EventArgs.Empty);
+		}
+
+		void IApi.OnDestroy()
+		{
 		}
 
 		#endregion

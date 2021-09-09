@@ -23,7 +23,7 @@ using VisualPinball.Engine.VPT.Bumper;
 namespace VisualPinball.Unity
 {
 	public class BumperApi : ItemCollidableApi<BumperComponent, BumperColliderComponent, BumperData>,
-		IApiInitializable, IApiHittable, IApiSwitchDevice, IApiSwitch, IApiCoil, IApiCoilDevice, IApiWireDeviceDest
+		IApi, IApiHittable, IApiSwitchDevice, IApiSwitch, IApiCoil, IApiCoilDevice, IApiWireDeviceDest
 	{
 		/// <summary>
 		/// Event emitted when the table is started.
@@ -84,10 +84,14 @@ namespace VisualPinball.Unity
 
 		#region Events
 
-		void IApiInitializable.OnInit(BallManager ballManager)
+		void IApi.OnInit(BallManager ballManager)
 		{
 			base.OnInit(ballManager);
 			Init?.Invoke(this, EventArgs.Empty);
+		}
+
+		void IApi.OnDestroy()
+		{
 		}
 
 		void IApiHittable.OnHit(Entity ballEntity, bool isUnHit)

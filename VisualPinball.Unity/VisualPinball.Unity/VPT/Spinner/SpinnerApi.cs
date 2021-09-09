@@ -23,7 +23,7 @@ using VisualPinball.Engine.VPT.Spinner;
 namespace VisualPinball.Unity
 {
 	public class SpinnerApi : ItemCollidableApi<SpinnerComponent, SpinnerColliderComponent, SpinnerData>,
-		IApiInitializable, IApiRotatable, IApiSpinnable, IApiSwitch, IApiSwitchDevice
+		IApi, IApiRotatable, IApiSpinnable, IApiSwitch, IApiSwitchDevice
 	{
 		/// <summary>
 		/// Event emitted when the table is started.
@@ -94,10 +94,14 @@ namespace VisualPinball.Unity
 
 		#region Events
 
-		void IApiInitializable.OnInit(BallManager ballManager)
+		void IApi.OnInit(BallManager ballManager)
 		{
 			base.OnInit(ballManager);
 			Init?.Invoke(this, EventArgs.Empty);
+		}
+
+		void IApi.OnDestroy()
+		{
 		}
 
 		void IApiSpinnable.OnSpin()

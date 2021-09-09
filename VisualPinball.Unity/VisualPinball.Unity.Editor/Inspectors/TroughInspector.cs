@@ -109,8 +109,6 @@ namespace VisualPinball.Unity.Editor
 					EditorGUI.indentLevel++;
 					PropertyField(_playfieldEntrySwitchProperty, "Input Switch");
 					PropertyField(_playfieldExitKickerProperty, "Exit Kicker");
-					EditorGUILayout.LabelField("switch item", MainComponent.PlayfieldEntrySwitchItem);
-					EditorGUILayout.LabelField("kicker item", MainComponent.PlayfieldExitKickerItem);
 					EditorGUI.indentLevel--;
 				}
 				EditorGUILayout.EndFoldoutHeaderGroup();

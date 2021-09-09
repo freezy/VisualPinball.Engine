@@ -32,7 +32,7 @@ namespace VisualPinball.Unity
 	/// </summary>
 	[Api]
 	public class FlipperApi : ItemCollidableApi<FlipperComponent, FlipperColliderComponent, FlipperData>,
-		IApiInitializable, IApiHittable, IApiRotatable, IApiCollidable, IApiSwitchDevice, IApiSwitch, IApiCoilDevice, IApiWireDeviceDest
+		IApi, IApiHittable, IApiRotatable, IApiCollidable, IApiSwitchDevice, IApiSwitch, IApiCoilDevice, IApiWireDeviceDest
 	{
 		/// <summary>
 		/// Event emitted when the table is started.
@@ -76,13 +76,17 @@ namespace VisualPinball.Unity
 		{
 		}
 
-		void IApiInitializable.OnInit(BallManager ballManager)
+		void IApi.OnInit(BallManager ballManager)
 		{
 			base.OnInit(ballManager);
 			Init?.Invoke(this, EventArgs.Empty);
 
 			_mainCoil = new DeviceCoil(OnMainCoilEnabled, OnMainCoilDisabled);
 			_holdCoil = new DeviceCoil(OnHoldCoilEnabled, OnHoldCoilDisabled);
+		}
+
+		void IApi.OnDestroy()
+		{
 		}
 
 		/// <summary>

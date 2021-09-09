@@ -37,7 +37,7 @@ namespace VisualPinball.Unity
 	/// </remarks>
 	[Api]
 	public class TroughApi : ItemApi<TroughComponent, TroughData>,
-		IApi, IApiInitializable, IApiSwitchDevice, IApiCoilDevice, IApiWireDeviceDest
+		IApi, IApiSwitchDevice, IApiCoilDevice, IApiWireDeviceDest
 	{
 		/// <summary>
 		/// How many stack switches there are available.
@@ -168,10 +168,9 @@ namespace VisualPinball.Unity
 
 		internal TroughApi(GameObject go, Player player) : base(go, player)
 		{
-			Debug.Log("Trough API instantiated.");
 		}
 
-		void IApiInitializable.OnInit(BallManager ballManager)
+		void IApi.OnInit(BallManager ballManager)
 		{
 			base.OnInit(ballManager);
 

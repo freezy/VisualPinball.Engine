@@ -23,7 +23,7 @@ using VisualPinball.Engine.VPT.Rubber;
 namespace VisualPinball.Unity
 {
 	public class RubberApi : ItemCollidableApi<RubberComponent, RubberColliderComponent, RubberData>,
-		IApiInitializable, IApiHittable
+		IApi, IApiHittable
 	{
 		/// <summary>
 		/// Event emitted when the table is started.
@@ -54,10 +54,14 @@ namespace VisualPinball.Unity
 
 		#region Events
 
-		void IApiInitializable.OnInit(BallManager ballManager)
+		void IApi.OnInit(BallManager ballManager)
 		{
 			base.OnInit(ballManager);
 			Init?.Invoke(this, EventArgs.Empty);
+		}
+
+		void IApi.OnDestroy()
+		{
 		}
 
 		void IApiHittable.OnHit(Entity ballEntity, bool _)

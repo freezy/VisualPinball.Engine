@@ -26,7 +26,7 @@ namespace VisualPinball.Unity
 	/// <typeparam name="TData">Item data type</typeparam>
 	/// <typeparam name="TItemComponent">Component Type</typeparam>
 	[Api]
-	public abstract class ItemApi<TItemComponent, TData> : IApi
+	public abstract class ItemApi<TItemComponent, TData>
 		where TItemComponent : ItemMainComponent<TData>
 		where TData : ItemData
 	{
@@ -56,7 +56,7 @@ namespace VisualPinball.Unity
 			_switchHandler = new SwitchHandler(Name, player);
 		}
 
-		private protected void OnInit(BallManager ballManager)
+		protected void OnInit(BallManager ballManager)
 		{
 			BallManager = ballManager;
 			TableComponent = GameObject.GetComponentInParent<TableComponent>();
@@ -65,10 +65,6 @@ namespace VisualPinball.Unity
 		private protected void DestroyBall(Entity ballEntity)
 		{
 			BallManager.DestroyEntity(ballEntity);
-		}
-
-		void IApi.OnDestroy()
-		{
 		}
 
 		#region IApiSwitchable

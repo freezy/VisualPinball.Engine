@@ -23,7 +23,8 @@ using Color = UnityEngine.Color;
 
 namespace VisualPinball.Unity
 {
-	public class LightApi : ItemApi<LightComponent, LightData>, IApiInitializable, IApiLamp, IApiWireDeviceDest
+	public class LightApi : ItemApi<LightComponent, LightData>,
+		IApi, IApiLamp, IApiWireDeviceDest
 	{
 		/// <summary>
 		/// Event emitted when the table is started.
@@ -123,10 +124,14 @@ namespace VisualPinball.Unity
 
 		#region Events
 
-		void IApiInitializable.OnInit(BallManager ballManager)
+		void IApi.OnInit(BallManager ballManager)
 		{
 			base.OnInit(ballManager);
 			Init?.Invoke(this, EventArgs.Empty);
+		}
+
+		void IApi.OnDestroy()
+		{
 		}
 
 		#endregion

@@ -21,8 +21,7 @@ using UnityEngine;
 
 namespace VisualPinball.Unity
 {
-	public class RampApi : ItemCollidableApi<RampComponent, RampColliderComponent, Engine.VPT.Ramp.RampData>,
-		IApiInitializable
+	public class RampApi : ItemCollidableApi<RampComponent, RampColliderComponent, Engine.VPT.Ramp.RampData>, IApi
 	{
 		/// <summary>
 		/// Event emitted when the table is started.
@@ -35,10 +34,14 @@ namespace VisualPinball.Unity
 
 		#region Events
 
-		void IApiInitializable.OnInit(BallManager ballManager)
+		void IApi.OnInit(BallManager ballManager)
 		{
 			base.OnInit(ballManager);
 			Init?.Invoke(this, EventArgs.Empty);
+		}
+
+		void IApi.OnDestroy()
+		{
 		}
 
 		#endregion

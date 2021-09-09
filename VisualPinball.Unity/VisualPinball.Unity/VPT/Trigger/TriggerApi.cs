@@ -23,7 +23,7 @@ using VisualPinball.Engine.VPT.Trigger;
 namespace VisualPinball.Unity
 {
 	public class TriggerApi : ItemCollidableApi<TriggerComponent, TriggerColliderComponent, TriggerData>,
-		IApiInitializable, IApiHittable, IApiSwitch, IApiSwitchDevice
+		IApi, IApiHittable, IApiSwitch, IApiSwitchDevice
 	{
 		/// <summary>
 		/// Event emitted when the table is started.
@@ -78,10 +78,14 @@ namespace VisualPinball.Unity
 
 		#region Events
 
-		void IApiInitializable.OnInit(BallManager ballManager)
+		void IApi.OnInit(BallManager ballManager)
 		{
 			base.OnInit(ballManager);
 			Init?.Invoke(this, EventArgs.Empty);
+		}
+
+		void IApi.OnDestroy()
+		{
 		}
 
 		void IApiHittable.OnHit(Entity ballEntity, bool isUnHit)
