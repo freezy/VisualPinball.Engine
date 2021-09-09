@@ -178,8 +178,7 @@ namespace VisualPinball.Unity
 			// reference playfield elements
 			_drainSwitch = TableApi.Switch(MainComponent.PlayfieldEntrySwitch, MainComponent.PlayfieldEntrySwitchItem);
 			_ejectCoil = TableApi.Coil(MainComponent.PlayfieldExitKicker, MainComponent.PlayfieldExitKickerItem);
-			// todo check if we can use component references for playfield items in general
-			_ejectKicker = TableApi.Kicker(MainComponent.PlayfieldExitKicker ? MainComponent.PlayfieldExitKicker.name : string.Empty);
+			_ejectKicker = TableApi.Kicker(MainComponent.PlayfieldExitKicker);
 			_isSetup = _drainSwitch != null && _ejectCoil != null;
 
 			// setup entry handler

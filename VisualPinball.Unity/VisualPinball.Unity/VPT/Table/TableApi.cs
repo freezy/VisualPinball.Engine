@@ -24,20 +24,39 @@ namespace VisualPinball.Unity
 	{
 		private readonly Player _player;
 
-		internal readonly Dictionary<string, BumperApi> Bumpers = new Dictionary<string, BumperApi>();
-		internal readonly Dictionary<string, FlipperApi> Flippers = new Dictionary<string, FlipperApi>();
-		internal readonly Dictionary<string, GateApi> Gates = new Dictionary<string, GateApi>();
-		internal readonly Dictionary<string, HitTargetApi> HitTargets = new Dictionary<string, HitTargetApi>();
-		internal readonly Dictionary<string, KickerApi> Kickers = new Dictionary<string, KickerApi>();
-		internal readonly Dictionary<string, LightApi> Lights = new Dictionary<string, LightApi>();
-		internal readonly Dictionary<string, PlungerApi> Plungers = new Dictionary<string, PlungerApi>();
-		internal readonly Dictionary<string, RampApi> Ramps = new Dictionary<string, RampApi>();
-		internal readonly Dictionary<string, RubberApi> Rubbers = new Dictionary<string, RubberApi>();
-		internal readonly Dictionary<string, SpinnerApi> Spinners = new Dictionary<string, SpinnerApi>();
-		internal readonly Dictionary<string, SurfaceApi> Surfaces = new Dictionary<string, SurfaceApi>();
-		internal readonly Dictionary<string, TriggerApi> Triggers = new Dictionary<string, TriggerApi>();
-		internal readonly Dictionary<string, TroughApi> Troughs = new Dictionary<string, TroughApi>();
-		internal readonly Dictionary<string, PrimitiveApi> Primitives = new Dictionary<string, PrimitiveApi>();
+		#region Dictionaries
+
+		private readonly Dictionary<string, BumperApi> _bumpersByName = new Dictionary<string, BumperApi>();
+		private readonly Dictionary<string, FlipperApi> _flippersByName = new Dictionary<string, FlipperApi>();
+		private readonly Dictionary<string, GateApi> _gatesByName = new Dictionary<string, GateApi>();
+		private readonly Dictionary<string, HitTargetApi> _hitTargetsByName = new Dictionary<string, HitTargetApi>();
+		private readonly Dictionary<string, KickerApi> _kickersByName = new Dictionary<string, KickerApi>();
+		private readonly Dictionary<string, LightApi> _lightsByName = new Dictionary<string, LightApi>();
+		private readonly Dictionary<string, PlungerApi> _plungersByName = new Dictionary<string, PlungerApi>();
+		private readonly Dictionary<string, RampApi> _rampsByName = new Dictionary<string, RampApi>();
+		private readonly Dictionary<string, RubberApi> _rubbersByName = new Dictionary<string, RubberApi>();
+		private readonly Dictionary<string, SpinnerApi> _spinnersByName = new Dictionary<string, SpinnerApi>();
+		private readonly Dictionary<string, SurfaceApi> _surfacesByName = new Dictionary<string, SurfaceApi>();
+		private readonly Dictionary<string, TriggerApi> _triggersByName = new Dictionary<string, TriggerApi>();
+		private readonly Dictionary<string, TroughApi> _troughsByName = new Dictionary<string, TroughApi>();
+		private readonly Dictionary<string, PrimitiveApi> _primitivesByName = new Dictionary<string, PrimitiveApi>();
+
+		private readonly Dictionary<MonoBehaviour, BumperApi> _bumpersByComponent = new Dictionary<MonoBehaviour, BumperApi>();
+		private readonly Dictionary<MonoBehaviour, FlipperApi> _flippersByComponent = new Dictionary<MonoBehaviour, FlipperApi>();
+		private readonly Dictionary<MonoBehaviour, GateApi> _gatesByComponent = new Dictionary<MonoBehaviour, GateApi>();
+		private readonly Dictionary<MonoBehaviour, HitTargetApi> _hitTargetsByComponent = new Dictionary<MonoBehaviour, HitTargetApi>();
+		private readonly Dictionary<MonoBehaviour, KickerApi> _kickersByComponent = new Dictionary<MonoBehaviour, KickerApi>();
+		private readonly Dictionary<MonoBehaviour, LightApi> _lightsByComponent = new Dictionary<MonoBehaviour, LightApi>();
+		private readonly Dictionary<MonoBehaviour, PlungerApi> _plungersByComponent = new Dictionary<MonoBehaviour, PlungerApi>();
+		private readonly Dictionary<MonoBehaviour, RampApi> _rampsByComponent = new Dictionary<MonoBehaviour, RampApi>();
+		private readonly Dictionary<MonoBehaviour, RubberApi> _rubbersByComponent = new Dictionary<MonoBehaviour, RubberApi>();
+		private readonly Dictionary<MonoBehaviour, SpinnerApi> _spinnersByComponent = new Dictionary<MonoBehaviour, SpinnerApi>();
+		private readonly Dictionary<MonoBehaviour, SurfaceApi> _surfacesByComponent = new Dictionary<MonoBehaviour, SurfaceApi>();
+		private readonly Dictionary<MonoBehaviour, TriggerApi> _triggersByComponent = new Dictionary<MonoBehaviour, TriggerApi>();
+		private readonly Dictionary<MonoBehaviour, TroughApi> _troughsByComponent = new Dictionary<MonoBehaviour, TroughApi>();
+		private readonly Dictionary<MonoBehaviour, PrimitiveApi> _primitivesByComponent = new Dictionary<MonoBehaviour, PrimitiveApi>();
+
+		#endregion
 
 		public TableApi(Player player)
 		{
@@ -59,98 +78,171 @@ namespace VisualPinball.Unity
 		/// </summary>
 		/// <param name="name">Name of the bumper</param>
 		/// <returns>Bumper or `null` if no bumper with that name exists.</returns>
-		public BumperApi Bumper(string name) => Bumpers.ContainsKey(name) ? Bumpers[name] : null;
+		public BumperApi Bumper(string name) => Get<BumperApi>(name);
+		public BumperApi Bumper(MonoBehaviour component) => Get<BumperApi>(component);
 
 		/// <summary>
 		/// Returns a flipper by name.
 		/// </summary>
 		/// <param name="name">Name of the flipper</param>
 		/// <returns>Flipper or `null` if no flipper with that name exists.</returns>
-		public FlipperApi Flipper(string name) => Flippers.ContainsKey(name) ? Flippers[name] : null;
+		public FlipperApi Flipper(string name) => Get<FlipperApi>(name);
+		public FlipperApi Flipper(MonoBehaviour component) => Get<FlipperApi>(component);
 
 		/// <summary>
 		/// Returns a gate by name.
 		/// </summary>
 		/// <param name="name">Name of the gate</param>
 		/// <returns>Gate or `null` if no gate with that name exists.</returns>
-		public GateApi Gate(string name) => Gates.ContainsKey(name) ? Gates[name] : null;
+		public GateApi Gate(string name) => Get<GateApi>(name);
+		public GateApi Gate(MonoBehaviour component) => Get<GateApi>(component);
 
 		/// <summary>
 		/// Returns a hit target / drop target by name.
 		/// </summary>
 		/// <param name="name">Name of the target</param>
 		/// <returns>Hit/drop target or `null` if no target with that name exists.</returns>
-		public HitTargetApi HitTarget(string name) => HitTargets.ContainsKey(name) ? HitTargets[name] : null;
+		public HitTargetApi HitTarget(string name) => Get<HitTargetApi>(name);
+		public HitTargetApi HitTarget(MonoBehaviour component) => Get<HitTargetApi>(component);
 
 		/// <summary>
 		/// Returns a kicker by name.
 		/// </summary>
 		/// <param name="name">Name of the kicker</param>
 		/// <returns>Kicker or `null` if no kicker with that name exists.</returns>
-		public KickerApi Kicker(string name) => Kickers.ContainsKey(name) ? Kickers[name] : null;
+		public KickerApi Kicker(string name) => Get<KickerApi>(name);
+		public KickerApi Kicker(MonoBehaviour component) => Get<KickerApi>(component);
 
 		/// <summary>
 		/// Returns a light by name.
 		/// </summary>
 		/// <param name="name">Name of the light</param>
 		/// <returns>Light or `null` if no light with that name exists.</returns>
-		public LightApi Light(string name) => Lights.ContainsKey(name) ? Lights[name] : null;
+		public LightApi Light(string name) => Get<LightApi>(name);
+		public LightApi Light(MonoBehaviour component) => Get<LightApi>(component);
 
 		/// <summary>
 		/// Returns a plunger by name.
 		/// </summary>
 		/// <param name="name">Name of the plunger</param>
 		/// <returns>Plunger or `null` if no plunger with that name exists.</returns>
-		public PlungerApi Plunger(string name) => Plungers.ContainsKey(name) ? Plungers[name] : null;
+		public PlungerApi Plunger(string name) => Get<PlungerApi>(name);
+		public PlungerApi Plunger(MonoBehaviour component) => Get<PlungerApi>(component);
 
 		/// <summary>
 		/// Returns a primitive by name.
 		/// </summary>
 		/// <param name="name">Name of the primitive</param>
 		/// <returns>Primitive or `null` if no primitive with that name exists.</returns>
-		public PrimitiveApi Primitive(string name) => Primitives.ContainsKey(name) ? Primitives[name] : null;
+		public PrimitiveApi Primitive(string name) => Get<PrimitiveApi>(name);
+		public PrimitiveApi Primitive(MonoBehaviour component) => Get<PrimitiveApi>(component);
 
 		/// <summary>
 		/// Returns a ramp by name.
 		/// </summary>
 		/// <param name="name">Name of the ramp</param>
 		/// <returns>Ramp or `null` if no ramp with that name exists.</returns>
-		public RampApi Ramp(string name) => Ramps.ContainsKey(name) ? Ramps[name] : null;
+		public RampApi Ramp(string name) => Get<RampApi>(name);
+		public RampApi Ramp(MonoBehaviour component) => Get<RampApi>(component);
 
 		/// <summary>
 		/// Returns a rubber by name.
 		/// </summary>
 		/// <param name="name">Name of the rubber</param>
 		/// <returns>Rubber or `null` if no rubber with that name exists.</returns>
-		public RubberApi Rubber(string name) => Rubbers.ContainsKey(name) ? Rubbers[name] : null;
+		public RubberApi Rubber(string name) => Get<RubberApi>(name);
+		public RubberApi Rubber(MonoBehaviour component) => Get<RubberApi>(component);
 
 		/// <summary>
 		/// Returns a spinner by name.
 		/// </summary>
 		/// <param name="name">Name of the spinner</param>
 		/// <returns>Spinner or `null` if no spinner with that name exists.</returns>
-		public SpinnerApi Spinner(string name) => Spinners.ContainsKey(name) ? Spinners[name] : null;
+		public SpinnerApi Spinner(string name) => Get<SpinnerApi>(name);
+		public SpinnerApi Spinner(MonoBehaviour component) => Get<SpinnerApi>(component);
 
 		/// <summary>
 		/// Returns a surface (wall) by name.
 		/// </summary>
 		/// <param name="name">Name of the surface</param>
 		/// <returns>Surface or `null` if no surface with that name exists.</returns>
-		public SurfaceApi Surface(string name) => Surfaces.ContainsKey(name) ? Surfaces[name] : null;
+		public SurfaceApi Surface(string name) => Get<SurfaceApi>(name);
+		public SurfaceApi Surface(MonoBehaviour component) => Get<SurfaceApi>(component);
 
 		/// <summary>
 		/// Returns a trigger by name.
 		/// </summary>
 		/// <param name="name">Name of the trigger</param>
 		/// <returns>Trigger or `null` if no trigger with that name exists.</returns>
-		public TriggerApi Trigger(string name) => Triggers.ContainsKey(name) ? Triggers[name] : null;
+		public TriggerApi Trigger(string name) => Get<TriggerApi>(name);
+		public TriggerApi Trigger(MonoBehaviour component) => Get<TriggerApi>(component);
 
 		/// <summary>
 		/// Returns a trough by name.
 		/// </summary>
 		/// <param name="name">Name of the trough</param>
 		/// <returns>Trigger or `null` if no trough with that name exists.</returns>
-		public TroughApi Trough(string name) => Troughs.ContainsKey(name) ? Troughs[name] : null;
+		public TroughApi Trough(string name) => Get<TroughApi>(name);
+		public TroughApi Trough(MonoBehaviour component) => Get<TroughApi>(component);
+
+		#endregion
+
+		#region Registration
+
+		internal void Register<T>(MonoBehaviour comp, T api) where T : IApi
+		{
+			var nameDict = GetNameDictionary<T>();
+			var compDict = GetComponentDictionary<T>();
+
+			nameDict[comp.name] = api;
+			compDict[comp] = api;
+		}
+
+		private bool Has<T>(string name) where T : IApi => GetNameDictionary<T>().ContainsKey(name);
+		private bool Has<T>(MonoBehaviour comp) where T : IApi => GetComponentDictionary<T>().ContainsKey(comp);
+		private T Get<T>(string name) where T : class, IApi => Has<T>(name) ? GetNameDictionary<T>()[name] : null;
+		private T Get<T>(MonoBehaviour comp) where T : class, IApi => Has<T>(comp) ? GetComponentDictionary<T>()[comp] : null;
+
+		private Dictionary<string, T> GetNameDictionary<T>() where T : IApi => GetNameDictionary<T>(typeof(T));
+		private Dictionary<MonoBehaviour, T> GetComponentDictionary<T>() where T : IApi => GetComponentDictionary<T>(typeof(T));
+
+		private Dictionary<string, T> GetNameDictionary<T>(Type t) where T : IApi
+		{
+			if (t == typeof(BumperApi)) return _bumpersByName as Dictionary<string, T>;
+			if (t == typeof(FlipperApi)) return _flippersByName as Dictionary<string, T>;
+			if (t == typeof(GateApi)) return _gatesByName as Dictionary<string, T>;
+			if (t == typeof(HitTargetApi)) return _hitTargetsByName as Dictionary<string, T>;
+			if (t == typeof(KickerApi)) return _kickersByName as Dictionary<string, T>;
+			if (t == typeof(LightApi)) return _lightsByName as Dictionary<string, T>;
+			if (t == typeof(PlungerApi)) return _plungersByName as Dictionary<string, T>;
+			if (t == typeof(RampApi)) return _rampsByName as Dictionary<string, T>;
+			if (t == typeof(RubberApi)) return _rubbersByName as Dictionary<string, T>;
+			if (t == typeof(SpinnerApi)) return _spinnersByName as Dictionary<string, T>;
+			if (t == typeof(SurfaceApi)) return _surfacesByName as Dictionary<string, T>;
+			if (t == typeof(TriggerApi)) return _triggersByName as Dictionary<string, T>;
+			if (t == typeof(TroughApi)) return _troughsByName as Dictionary<string, T>;
+			if (t == typeof(PrimitiveApi)) return _primitivesByName as Dictionary<string, T>;
+			return null;
+		}
+
+		private Dictionary<MonoBehaviour, T> GetComponentDictionary<T>(Type t) where T : IApi
+		{
+			if (t == typeof(BumperApi)) return _bumpersByComponent as Dictionary<MonoBehaviour, T>;
+			if (t == typeof(FlipperApi)) return _flippersByComponent as Dictionary<MonoBehaviour, T>;
+			if (t == typeof(GateApi)) return _gatesByComponent as Dictionary<MonoBehaviour, T>;
+			if (t == typeof(HitTargetApi)) return _hitTargetsByComponent as Dictionary<MonoBehaviour, T>;
+			if (t == typeof(KickerApi)) return _kickersByComponent as Dictionary<MonoBehaviour, T>;
+			if (t == typeof(LightApi)) return _lightsByComponent as Dictionary<MonoBehaviour, T>;
+			if (t == typeof(PlungerApi)) return _plungersByComponent as Dictionary<MonoBehaviour, T>;
+			if (t == typeof(RampApi)) return _rampsByComponent as Dictionary<MonoBehaviour, T>;
+			if (t == typeof(RubberApi)) return _rubbersByComponent as Dictionary<MonoBehaviour, T>;
+			if (t == typeof(SpinnerApi)) return _spinnersByComponent as Dictionary<MonoBehaviour, T>;
+			if (t == typeof(SurfaceApi)) return _surfacesByComponent as Dictionary<MonoBehaviour, T>;
+			if (t == typeof(TriggerApi)) return _triggersByComponent as Dictionary<MonoBehaviour, T>;
+			if (t == typeof(TroughApi)) return _troughsByComponent as Dictionary<MonoBehaviour, T>;
+			if (t == typeof(PrimitiveApi)) return _primitivesByComponent as Dictionary<MonoBehaviour, T>;
+			return null;
+		}
 
 		#endregion
 
