@@ -23,8 +23,8 @@ using VisualPinball.Engine.VPT.Surface;
 
 namespace VisualPinball.Unity.Editor
 {
-	[CustomEditor(typeof(SurfaceAuthoring)), CanEditMultipleObjects]
-	public class SurfaceInspector : DragPointsItemInspector<SurfaceData, SurfaceAuthoring>
+	[CustomEditor(typeof(SurfaceComponent)), CanEditMultipleObjects]
+	public class SurfaceInspector : DragPointsItemInspector<SurfaceData, SurfaceComponent>
 	{
 		private SerializedProperty _heightTopProperty;
 		private SerializedProperty _heightBottomProperty;
@@ -34,9 +34,9 @@ namespace VisualPinball.Unity.Editor
 		{
 			base.OnEnable();
 
-			_heightTopProperty = serializedObject.FindProperty(nameof(SurfaceAuthoring.HeightTop));
-			_heightBottomProperty = serializedObject.FindProperty(nameof(SurfaceAuthoring.HeightBottom));
-			_isDroppableProperty = serializedObject.FindProperty(nameof(SurfaceAuthoring.IsDroppable));
+			_heightTopProperty = serializedObject.FindProperty(nameof(SurfaceComponent.HeightTop));
+			_heightBottomProperty = serializedObject.FindProperty(nameof(SurfaceComponent.HeightBottom));
+			_isDroppableProperty = serializedObject.FindProperty(nameof(SurfaceComponent.IsDroppable));
 		}
 
 		public override void OnInspectorGUI()

@@ -28,7 +28,7 @@ namespace VisualPinball.Unity.Patcher
 	{
 		[NameMatch("Prim_RightFlipper", Ref="Playfield/Flippers/RightFlipper")]
 		[NameMatch("Prim_LeftFlipper", Ref="Playfield/Flippers/LeftFlipper")]
-		public void ReparentFlippers(PrimitiveAuthoring primitive, GameObject gameObject, ref GameObject parent)
+		public void ReparentFlippers(PrimitiveComponent primitive, GameObject gameObject, ref GameObject parent)
 		{
 			PatcherUtil.Reparent(gameObject, parent);
 			primitive.Position = Vector3.zero;

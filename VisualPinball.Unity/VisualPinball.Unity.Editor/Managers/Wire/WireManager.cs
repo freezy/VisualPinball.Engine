@@ -60,19 +60,19 @@ namespace VisualPinball.Unity.Editor
 		private void OnFocus()
 		{
 			_inputManager = new InputManager(RESOURCE_PATH);
-			_listViewItemRenderer = new WireListViewItemRenderer(_tableAuthoring, _inputManager);
+			_listViewItemRenderer = new WireListViewItemRenderer(TableComponent, _inputManager);
 			_needsAssetRefresh = true;
 		}
 
 		protected override bool SetupCompleted()
 		{
-			if (_tableAuthoring == null)
+			if (TableComponent == null)
 			{
 				DisplayMessage("No table set.");
 				return false;
 			}
 
-			var gle = _tableAuthoring.gameObject.GetComponent<IGamelogicEngine>();
+			var gle = TableComponent.gameObject.GetComponent<IGamelogicEngine>();
 
 			if (gle == null)
 			{
@@ -95,7 +95,7 @@ namespace VisualPinball.Unity.Editor
 			{
 				if (EditorUtility.DisplayDialog("Wire Manager", "Are you sure want to remove all wire mappings?", "Yes", "Cancel")) {
 					RecordUndo("Remove all wire mappings");
-					_tableAuthoring.MappingConfig.RemoveAllWires();
+					TableComponent.MappingConfig.RemoveAllWires();
 				}
 				Reload();
 			}
@@ -103,7 +103,7 @@ namespace VisualPinball.Unity.Editor
 
 		protected override void OnListViewItemRenderer(WireListData data, Rect cellRect, int column)
 		{
-			_listViewItemRenderer.Render(_tableAuthoring, data, cellRect, column, wireListData => {
+			_listViewItemRenderer.Render(TableComponent, data, cellRect, column, wireListData => {
 				RecordUndo(DataTypeName + " Data Change");
 
 				wireListData.Update();
@@ -114,7 +114,7 @@ namespace VisualPinball.Unity.Editor
 		protected override List<WireListData> CollectData()
 		{
 			var data = new List<WireListData>();
-			foreach (var mappingsWireData in _tableAuthoring.MappingConfig.Wires) {
+			foreach (var mappingsWireData in TableComponent.MappingConfig.Wires) {
 				data.Add(new WireListData(mappingsWireData));
 			}
 			return data;
@@ -124,21 +124,21 @@ namespace VisualPinball.Unity.Editor
 		{
 			RecordUndo(undoName);
 
-			_tableAuthoring.MappingConfig.AddWire(new WireMapping());
+			TableComponent.MappingConfig.AddWire(new WireMapping());
 		}
 
 		protected override void RemoveData(string undoName, WireListData data)
 		{
 			RecordUndo(undoName);
 
-			_tableAuthoring.MappingConfig.RemoveWire(data.WireMapping);
+			TableComponent.MappingConfig.RemoveWire(data.WireMapping);
 		}
 
 		protected override void CloneData(string undoName, string newName, WireListData data)
 		{
 			RecordUndo(undoName);
 
-			_tableAuthoring.MappingConfig.AddWire(new WireMapping());
+			TableComponent.MappingConfig.AddWire(new WireMapping());
 		}
 
 		#endregion
@@ -162,7 +162,7 @@ namespace VisualPinball.Unity.Editor
 
 		private void RecordUndo(string undoName)
 		{
-			Undo.RecordObjects(new Object[] { this, _tableAuthoring }, undoName);
+			Undo.RecordObjects(new Object[] { this, TableComponent }, undoName);
 		}
 
 		#endregion

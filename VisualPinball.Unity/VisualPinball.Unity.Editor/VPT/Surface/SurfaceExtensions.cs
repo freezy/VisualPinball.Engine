@@ -24,7 +24,7 @@ namespace VisualPinball.Unity.Editor
 		internal static IVpxPrefab InstantiatePrefab(this Surface surface)
 		{
 			var prefab = UnityEngine.Resources.Load<GameObject>("Prefabs/Surface");
-			return new VpxPrefab<Surface, SurfaceData, SurfaceAuthoring>(prefab, surface);
+			return new VpxPrefab<Surface, SurfaceData, SurfaceComponent>(prefab, surface);
 		}
 	}
 }

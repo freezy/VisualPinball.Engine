@@ -21,7 +21,7 @@ namespace VisualPinball.Unity
 	/// <summary>
 	/// The interface for triggering stuff
 	/// </summary>
-	public interface ITriggerAuthoring : ISwitchDeviceAuthoring
+	public interface ITriggerComponent : ISwitchDeviceComponent
 	{
 		Vector2 Center { get; }
 	}

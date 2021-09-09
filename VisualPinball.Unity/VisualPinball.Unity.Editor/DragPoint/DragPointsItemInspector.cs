@@ -28,7 +28,7 @@ namespace VisualPinball.Unity.Editor
 		: ItemMainInspector<TData, TMainAuthoring>,
 			IDragPointsItemInspector, IDragPointsEditable
 		where TData : ItemData
-		where TMainAuthoring : ItemMainRenderableAuthoring<TData>
+		where TMainAuthoring : ItemMainRenderableComponent<TData>
 	{
 		/// <summary>
 		/// Catmull Curve Handler
@@ -51,8 +51,8 @@ namespace VisualPinball.Unity.Editor
 		/// </remarks>
 		private static Vector3 _storedControlPoint = Vector3.zero;
 
-		private IItemMainRenderableAuthoring _renderable;
-		private IDragPointsAuthoring _dragPointsAuthoring;
+		private IItemMainRenderableComponent _renderable;
+		private IDragPointsComponent _dragPointsComponent;
 
 		public void RebuildMeshes()
 		{
@@ -63,8 +63,8 @@ namespace VisualPinball.Unity.Editor
 		protected override void OnEnable()
 		{
 			base.OnEnable();
-			_dragPointsAuthoring = MainComponent as IDragPointsAuthoring;
-			_renderable = target as IItemMainRenderableAuthoring;
+			_dragPointsComponent = MainComponent as IDragPointsComponent;
+			_renderable = target as IItemMainRenderableComponent;
 			DragPointsHandler = new DragPointsHandler(target, this);
 			Undo.undoRedoPerformed += OnUndoRedoPerformed;
 		}
@@ -117,7 +117,7 @@ namespace VisualPinball.Unity.Editor
 		/// <returns>True if game item is locked, false otherwise.</returns>
 		public bool IsItemLocked()
 		{
-			return !(target is IItemMainRenderableAuthoring editable) || editable.IsLocked;
+			return !(target is IItemMainRenderableComponent editable) || editable.IsLocked;
 		}
 
 		/// <summary>
@@ -194,7 +194,7 @@ namespace VisualPinball.Unity.Editor
 
 		public override void OnInspectorGUI()
 		{
-			if (!(target is IItemMainRenderableAuthoring editable)) {
+			if (!(target is IItemMainRenderableComponent editable)) {
 				base.OnInspectorGUI();
 				return;
 			}
@@ -244,7 +244,7 @@ namespace VisualPinball.Unity.Editor
 
 		private void UpdateDragPointsLock()
 		{
-			if (target is IItemMainRenderableAuthoring editable && DragPointsHandler.UpdateDragPointsLock(editable.IsLocked)) {
+			if (target is IItemMainRenderableComponent editable && DragPointsHandler.UpdateDragPointsLock(editable.IsLocked)) {
 				HandleUtility.Repaint();
 			}
 		}
@@ -263,7 +263,7 @@ namespace VisualPinball.Unity.Editor
 
 		protected virtual void OnSceneGUI()
 		{
-			var editable = target as IItemMainRenderableAuthoring;
+			var editable = target as IItemMainRenderableComponent;
 			var bh = target as Behaviour;
 
 			if (editable == null || bh == null || !EditingEnabled) {
@@ -292,9 +292,9 @@ namespace VisualPinball.Unity.Editor
 		}
 
 		public DragPointData[] DragPoints {
-			get => _dragPointsAuthoring.DragPoints;
+			get => _dragPointsComponent.DragPoints;
 			set {
-				_dragPointsAuthoring.DragPoints = value;
+				_dragPointsComponent.DragPoints = value;
 				EditorUtility.SetDirty(MainComponent.gameObject);
 				PrefabUtility.RecordPrefabInstancePropertyModifications(MainComponent);
 				EditorSceneManager.MarkSceneDirty(MainComponent.gameObject.scene);

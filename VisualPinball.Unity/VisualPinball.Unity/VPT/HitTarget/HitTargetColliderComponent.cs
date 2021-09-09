@@ -25,8 +25,8 @@ using VisualPinball.Engine.VPT.HitTarget;
 namespace VisualPinball.Unity
 {
 	[AddComponentMenu("Visual Pinball/Collision/Hit Target Collider")]
-	[RequireComponent(typeof(HitTargetAuthoring))]
-	public class HitTargetColliderAuthoring : ItemColliderAuthoring<HitTargetData, TargetAuthoring>
+	[RequireComponent(typeof(HitTargetComponent))]
+	public class HitTargetColliderComponent : ItemColliderComponent<HitTargetData, TargetComponent>
 	{
 		#region Data
 

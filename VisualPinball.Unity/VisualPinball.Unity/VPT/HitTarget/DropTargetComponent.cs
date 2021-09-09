@@ -19,7 +19,7 @@ using UnityEngine;
 namespace VisualPinball.Unity
 {
 	[AddComponentMenu("Visual Pinball/Game Item/Drop Target")]
-	public class DropTargetAuthoring : TargetAuthoring
+	public class DropTargetComponent : TargetComponent
 	{
 
 	}

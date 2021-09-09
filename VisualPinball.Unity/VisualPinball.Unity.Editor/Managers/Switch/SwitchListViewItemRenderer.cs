@@ -48,20 +48,20 @@ namespace VisualPinball.Unity.Editor
 		private readonly List<GamelogicEngineSwitch> _gleSwitches;
 		private readonly InputManager _inputManager;
 
-		private readonly ObjectReferencePicker<ISwitchDeviceAuthoring> _devicePicker;
+		private readonly ObjectReferencePicker<ISwitchDeviceComponent> _devicePicker;
 
-		public SwitchListViewItemRenderer(List<GamelogicEngineSwitch> gleSwitches, TableAuthoring tableComponent, InputManager inputManager)
+		public SwitchListViewItemRenderer(List<GamelogicEngineSwitch> gleSwitches, TableComponent tableComponent, InputManager inputManager)
 		{
 			_gleSwitches = gleSwitches;
 			_inputManager = inputManager;
-			_devicePicker = new ObjectReferencePicker<ISwitchDeviceAuthoring>("Switch Devices", tableComponent, false);
+			_devicePicker = new ObjectReferencePicker<ISwitchDeviceComponent>("Switch Devices", tableComponent, false);
 		}
 
-		public void Render(TableAuthoring tableAuthoring, SwitchListData data, Rect cellRect, int column, Action<SwitchListData> updateAction)
+		public void Render(TableComponent tableComponent, SwitchListData data, Rect cellRect, int column, Action<SwitchListData> updateAction)
 		{
 			EditorGUI.BeginDisabledGroup(Application.isPlaying);
 			var switchStatuses = Application.isPlaying
-				? tableAuthoring.gameObject.GetComponent<Player>()?.SwitchStatusesClosed
+				? tableComponent.gameObject.GetComponent<Player>()?.SwitchStatusesClosed
 				: null;
 			switch ((SwitchListColumn)column)
 			{

@@ -19,8 +19,8 @@ using VisualPinball.Engine.VPT.Table;
 
 namespace VisualPinball.Unity.Editor
 {
-	[CustomEditor(typeof(PlayfieldAuthoring)), CanEditMultipleObjects]
-	public class PlayfieldInspector : ItemMainInspector<TableData, PlayfieldAuthoring>
+	[CustomEditor(typeof(PlayfieldComponent)), CanEditMultipleObjects]
+	public class PlayfieldInspector : ItemMainInspector<TableData, PlayfieldComponent>
 	{
 		private SerializedProperty _rightProperty;
 		private SerializedProperty _bottomProperty;

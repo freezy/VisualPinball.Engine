@@ -19,7 +19,7 @@ using UnityEditor;
 
 namespace VisualPinball.Unity.Editor
 {
-	[CustomEditor(typeof(DropTargetAuthoring)), CanEditMultipleObjects]
+	[CustomEditor(typeof(DropTargetComponent)), CanEditMultipleObjects]
 	public class DropTargetInspector : TargetInspector
 	{
 		protected override string MeshAssetFolder

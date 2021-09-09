@@ -25,7 +25,7 @@ using VisualPinball.Engine.VPT.Surface;
 namespace VisualPinball.Unity
 {
 	[AddComponentMenu("Visual Pinball/Collision/Surface Collider")]
-	public class SurfaceColliderAuthoring : ItemColliderAuthoring<SurfaceData, SurfaceAuthoring>
+	public class SurfaceColliderComponent : ItemColliderComponent<SurfaceData, SurfaceComponent>
 	{
 		#region Data
 
@@ -69,8 +69,8 @@ namespace VisualPinball.Unity
 		#endregion
 
 		public static readonly Type[] ValidParentTypes = {
-			typeof(RubberAuthoring),
-			typeof(PrimitiveAuthoring)
+			typeof(RubberComponent),
+			typeof(PrimitiveComponent)
 		};
 
 		public override IEnumerable<Type> ValidParents => ValidParentTypes;

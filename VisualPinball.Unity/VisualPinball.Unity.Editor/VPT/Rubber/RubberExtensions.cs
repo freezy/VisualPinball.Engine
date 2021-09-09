@@ -24,7 +24,7 @@ namespace VisualPinball.Unity.Editor
 		internal static IVpxPrefab InstantiatePrefab(this Rubber rubber)
 		{
 			var prefab = UnityEngine.Resources.Load<GameObject>("Prefabs/Rubber");
-			return new VpxPrefab<Rubber, RubberData, RubberAuthoring>(prefab, rubber);
+			return new VpxPrefab<Rubber, RubberData, RubberComponent>(prefab, rubber);
 		}
 	}
 }

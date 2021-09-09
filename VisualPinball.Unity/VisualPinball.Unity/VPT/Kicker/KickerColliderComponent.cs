@@ -23,7 +23,7 @@ using VisualPinball.Engine.VPT.Kicker;
 namespace VisualPinball.Unity
 {
 	[AddComponentMenu("Visual Pinball/Collision/Kicker Collider")]
-	public class KickerColliderAuthoring : ItemColliderAuthoring<KickerData, KickerAuthoring>
+	public class KickerColliderComponent : ItemColliderComponent<KickerData, KickerComponent>
 	{
 		#region Data
 

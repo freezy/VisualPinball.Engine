@@ -64,7 +64,7 @@ namespace VisualPinball.Unity.Test
 			var coils = troughComponent.AvailableCoils.ToArray();
 
 			coils.Should().HaveCount(1);
-			coils[0].Id.Should().Be(TroughAuthoring.EjectCoilId);
+			coils[0].Id.Should().Be(TroughComponent.EjectCoilId);
 		}
 
 		[Test]
@@ -98,7 +98,7 @@ namespace VisualPinball.Unity.Test
 			var coils = troughComponent.AvailableCoils.ToArray();
 
 			coils.Should().HaveCount(1);
-			coils[0].Id.Should().Be(TroughAuthoring.EjectCoilId);
+			coils[0].Id.Should().Be(TroughComponent.EjectCoilId);
 		}
 
 		[Test]
@@ -112,7 +112,7 @@ namespace VisualPinball.Unity.Test
 			var switches = troughComponent.AvailableSwitches.ToArray();
 
 			switches.Should().HaveCount(4);
-			switches[0].Id.Should().Be(TroughAuthoring.EntrySwitchId);
+			switches[0].Id.Should().Be(TroughComponent.EntrySwitchId);
 			switches[1].Id.Should().Be("ball_switch_1");
 			switches[2].Id.Should().Be("ball_switch_2");
 			switches[3].Id.Should().Be("ball_switch_3");
@@ -128,8 +128,8 @@ namespace VisualPinball.Unity.Test
 			var coils = troughComponent.AvailableCoils.ToArray();
 
 			coils.Should().HaveCount(2);
-			coils[0].Id.Should().Be(TroughAuthoring.EntryCoilId);
-			coils[1].Id.Should().Be(TroughAuthoring.EjectCoilId);
+			coils[0].Id.Should().Be(TroughComponent.EntryCoilId);
+			coils[1].Id.Should().Be(TroughComponent.EjectCoilId);
 		}
 
 		[Test]
@@ -142,8 +142,8 @@ namespace VisualPinball.Unity.Test
 			var switches = troughComponent.AvailableSwitches.ToArray();
 
 			switches.Should().HaveCount(2);
-			switches[0].Id.Should().Be(TroughAuthoring.EntrySwitchId);
-			switches[1].Id.Should().Be(TroughAuthoring.TroughSwitchId);
+			switches[0].Id.Should().Be(TroughComponent.EntrySwitchId);
+			switches[1].Id.Should().Be(TroughComponent.TroughSwitchId);
 		}
 
 		[Test]
@@ -156,8 +156,8 @@ namespace VisualPinball.Unity.Test
 			var coils = troughComponent.AvailableCoils.ToArray();
 
 			coils.Should().HaveCount(2);
-			coils[0].Id.Should().Be(TroughAuthoring.EntryCoilId);
-			coils[1].Id.Should().Be(TroughAuthoring.EjectCoilId);
+			coils[0].Id.Should().Be(TroughComponent.EntryCoilId);
+			coils[1].Id.Should().Be(TroughComponent.EjectCoilId);
 		}
 
 
@@ -171,7 +171,7 @@ namespace VisualPinball.Unity.Test
 			var switches = troughComponent.AvailableSwitches.ToArray();
 
 			switches.Should().HaveCount(1);
-			switches[0].Id.Should().Be(TroughAuthoring.EntrySwitchId);
+			switches[0].Id.Should().Be(TroughComponent.EntrySwitchId);
 		}
 
 		[Test]
@@ -184,15 +184,15 @@ namespace VisualPinball.Unity.Test
 			var coils = troughComponent.AvailableCoils.ToArray();
 
 			coils.Should().HaveCount(1);
-			coils[0].Id.Should().Be(TroughAuthoring.EjectCoilId);
+			coils[0].Id.Should().Be(TroughComponent.EjectCoilId);
 		}
 
-		private static TroughAuthoring CreateTrough(TroughData data)
+		private static TroughComponent CreateTrough(TroughData data)
 		{
 			var table = new TableBuilder().AddTrough(data).Build();
 			var go = VpxImportEngine.ImportIntoScene(table, options: ConvertOptions.SkipNone);
-			var tableComponent = go.GetComponent<TableAuthoring>();
-			return tableComponent.transform.Find($"Playfield/{data.Name}").GetComponent<TroughAuthoring>();
+			var tableComponent = go.GetComponent<TableComponent>();
+			return tableComponent.transform.Find($"Playfield/{data.Name}").GetComponent<TroughComponent>();
 		}
 
 		#if !WRITE_VP106 && !WRITE_VP107
@@ -202,7 +202,7 @@ namespace VisualPinball.Unity.Test
 		{
 			const string tmpFileName = "ShouldWriteTroughData.vpx";
 			var go = VpxImportEngine.ImportIntoScene(VpxPath.Trough, options: ConvertOptions.SkipNone);
-			var ta = go.GetComponent<TableAuthoring>();
+			var ta = go.GetComponent<TableComponent>();
 			ta.TableContainer.Save(tmpFileName);
 
 			var writtenTable = FileTableContainer.Load(tmpFileName);

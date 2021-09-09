@@ -21,8 +21,8 @@ using VisualPinball.Unity.Playfield;
 
 namespace VisualPinball.Unity.Editor
 {
-	[CustomEditor(typeof(PlayfieldMeshAuthoring)), CanEditMultipleObjects]
-	public class PlayfieldMeshInspector : ItemMeshInspector<TableData, PlayfieldAuthoring, PlayfieldMeshAuthoring>
+	[CustomEditor(typeof(PlayfieldMeshComponent)), CanEditMultipleObjects]
+	public class PlayfieldMeshInspector : ItemMeshInspector<TableData, PlayfieldComponent, PlayfieldMeshComponent>
 	{
 		private SerializedProperty _autoGenerateProperty;
 
@@ -30,7 +30,7 @@ namespace VisualPinball.Unity.Editor
 		{
 			base.OnEnable();
 
-			_autoGenerateProperty = serializedObject.FindProperty(nameof(PlayfieldMeshAuthoring.AutoGenerate));
+			_autoGenerateProperty = serializedObject.FindProperty(nameof(PlayfieldMeshComponent.AutoGenerate));
 		}
 
 		public override void OnInspectorGUI()

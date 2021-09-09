@@ -20,9 +20,9 @@ namespace VisualPinball.Unity
 	/// </remarks>
 	/// <typeparam name="TData">Data type of the item</typeparam>
 	/// <typeparam name="TMainAuthoring">Type of the main component, where the data is.</typeparam>
-	public abstract class ItemSubAuthoring<TData, TMainAuthoring> : ItemAuthoring
+	public abstract class ItemSubComponent<TData, TMainAuthoring> : ItemComponent
 		where TData : ItemData
-		where TMainAuthoring : ItemMainAuthoring<TData>
+		where TMainAuthoring : ItemMainComponent<TData>
 	{
 		/// <summary>
 		/// Finds the main authoring component in the parent.
@@ -33,13 +33,13 @@ namespace VisualPinball.Unity
 
 		public override string ItemName => MainComponent.ItemName;
 
-		public IItemMainRenderableAuthoring ParentAuthoring => MainComponent.ParentAuthoring;
+		public IItemMainRenderableComponent ParentComponent => MainComponent.ParentComponent;
 
 		public abstract IEnumerable<Type> ValidParents { get; }
 
 		public bool IsCorrectlyParented {
 			get {
-				var parentAuthoring = ParentAuthoring;
+				var parentAuthoring = ParentComponent;
 				return parentAuthoring == null || ValidParents.Any(validParent => parentAuthoring.GetType() == validParent);
 			}
 		}

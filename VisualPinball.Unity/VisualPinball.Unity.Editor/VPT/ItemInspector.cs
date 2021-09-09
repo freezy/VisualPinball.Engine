@@ -29,8 +29,8 @@ namespace VisualPinball.Unity.Editor
 	{
 		protected abstract MonoBehaviour UndoTarget { get; }
 
-		protected TableAuthoring TableComponent;
-		protected PlayfieldAuthoring PlayfieldComponent;
+		protected TableComponent TableComponent;
+		protected PlayfieldComponent PlayfieldComponent;
 
 		#region Unity Events
 
@@ -38,8 +38,8 @@ namespace VisualPinball.Unity.Editor
 		{
 			Undo.undoRedoPerformed += OnUndoRedoPerformed;
 
-			TableComponent = (target as MonoBehaviour)?.gameObject.GetComponentInParent<TableAuthoring>();
-			PlayfieldComponent = (target as MonoBehaviour)?.gameObject.GetComponentInParent<PlayfieldAuthoring>();
+			TableComponent = (target as MonoBehaviour)?.gameObject.GetComponentInParent<TableComponent>();
+			PlayfieldComponent = (target as MonoBehaviour)?.gameObject.GetComponentInParent<PlayfieldComponent>();
 		}
 
 		protected virtual void OnDisable()
@@ -50,12 +50,12 @@ namespace VisualPinball.Unity.Editor
 		private void OnUndoRedoPerformed()
 		{
 			switch (target) {
-				case IItemMeshAuthoring meshItem:
+				case IItemMeshComponent meshItem:
 					meshItem.IMainAuthoring.RebuildMeshes();
 					meshItem.IMainAuthoring.UpdateTransforms();
 					meshItem.IMainAuthoring.UpdateVisibility();
 					break;
-				case IItemMainRenderableAuthoring mainItem:
+				case IItemMainRenderableComponent mainItem:
 					mainItem.RebuildMeshes();
 					mainItem.UpdateTransforms();
 					mainItem.UpdateVisibility();
@@ -65,7 +65,7 @@ namespace VisualPinball.Unity.Editor
 
 		public override void OnInspectorGUI()
 		{
-			if (!(target is IItemMainRenderableAuthoring item)) {
+			if (!(target is IItemMainRenderableComponent item)) {
 				return;
 			}
 
@@ -95,7 +95,7 @@ namespace VisualPinball.Unity.Editor
 			if (checkForChanges && EditorGUI.EndChangeCheck()) {
 				onChanging?.Invoke();
 				switch (target) {
-					case IItemMeshAuthoring meshItem:
+					case IItemMeshComponent meshItem:
 						if (rebuildMesh) {
 							meshItem.IMainAuthoring.RebuildMeshes();
 						}
@@ -107,7 +107,7 @@ namespace VisualPinball.Unity.Editor
 						}
 						break;
 
-					case IItemMainRenderableAuthoring mainItem:
+					case IItemMainRenderableComponent mainItem:
 						if (rebuildMesh) {
 							mainItem.RebuildMeshes();
 						}
@@ -144,7 +144,7 @@ namespace VisualPinball.Unity.Editor
 				prop.intValue = optionValues[selectedIndex];
 				prop.serializedObject.ApplyModifiedProperties();
 				switch (target) {
-					case IItemMeshAuthoring meshItem:
+					case IItemMeshComponent meshItem:
 						if (rebuildMesh) {
 							meshItem.IMainAuthoring.RebuildMeshes();
 						}
@@ -153,7 +153,7 @@ namespace VisualPinball.Unity.Editor
 						}
 						break;
 
-					case IItemMainRenderableAuthoring mainItem:
+					case IItemMainRenderableComponent mainItem:
 						if (rebuildMesh) {
 							mainItem.RebuildMeshes();
 						}
@@ -191,7 +191,7 @@ namespace VisualPinball.Unity.Editor
 
 		protected void OnPreInspectorGUI()
 		{
-			if (!(target is IItemMainRenderableAuthoring item)) {
+			if (!(target is IItemMainRenderableComponent item)) {
 				return;
 			}
 
@@ -240,7 +240,7 @@ namespace VisualPinball.Unity.Editor
 				// set dirty flag true before recording object state for the undo so meshes will rebuild after the undo as well
 				switch (target) {
 
-					case IItemMeshAuthoring meshItem:
+					case IItemMeshComponent meshItem:
 						Undo.RecordObjects(new Object[] {UndoTarget, UndoTarget.transform}, undoLabel);
 						meshItem.IMainAuthoring.RebuildMeshes();
 						break;
@@ -249,7 +249,7 @@ namespace VisualPinball.Unity.Editor
 						Undo.RecordObject(UndoTarget, undoLabel);
 						break;
 
-					case IItemMainRenderableAuthoring mainItem:
+					case IItemMainRenderableComponent mainItem:
 						Undo.RecordObjects(new Object[] {UndoTarget, UndoTarget.transform }, undoLabel);
 						mainItem.RebuildMeshes();
 						break;

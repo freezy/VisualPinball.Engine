@@ -18,7 +18,7 @@
 
 namespace VisualPinball.Unity
 {
-	public interface IIdentifiableItemAuthoring
+	public interface IIdentifiableItemComponent
 	{
 		string name { get; }
 	}

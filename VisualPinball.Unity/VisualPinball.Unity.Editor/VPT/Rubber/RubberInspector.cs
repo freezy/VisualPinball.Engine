@@ -23,8 +23,8 @@ using VisualPinball.Engine.VPT.Rubber;
 
 namespace VisualPinball.Unity.Editor
 {
-	[CustomEditor(typeof(RubberAuthoring)), CanEditMultipleObjects]
-	public class RubberInspector : DragPointsItemInspector<RubberData, RubberAuthoring>
+	[CustomEditor(typeof(RubberComponent)), CanEditMultipleObjects]
+	public class RubberInspector : DragPointsItemInspector<RubberData, RubberComponent>
 	{
 		private SerializedProperty _heightProperty;
 		private SerializedProperty _hitHeightProperty;
@@ -35,10 +35,10 @@ namespace VisualPinball.Unity.Editor
 		{
 			base.OnEnable();
 
-			_heightProperty = serializedObject.FindProperty(nameof(RubberAuthoring._height));
-			_hitHeightProperty = serializedObject.FindProperty(nameof(RubberAuthoring._hitHeight));
-			_thicknessProperty = serializedObject.FindProperty(nameof(RubberAuthoring._thickness));
-			_rotationProperty = serializedObject.FindProperty(nameof(RubberAuthoring.Rotation));
+			_heightProperty = serializedObject.FindProperty(nameof(RubberComponent._height));
+			_hitHeightProperty = serializedObject.FindProperty(nameof(RubberComponent._hitHeight));
+			_thicknessProperty = serializedObject.FindProperty(nameof(RubberComponent._thickness));
+			_rotationProperty = serializedObject.FindProperty(nameof(RubberComponent.Rotation));
 		}
 
 		public override void OnInspectorGUI()

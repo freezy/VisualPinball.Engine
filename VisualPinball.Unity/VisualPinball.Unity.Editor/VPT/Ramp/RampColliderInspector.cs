@@ -21,8 +21,8 @@ using VisualPinball.Engine.VPT.Ramp;
 
 namespace VisualPinball.Unity.Editor
 {
-	[CustomEditor(typeof(RampColliderAuthoring)), CanEditMultipleObjects]
-	public class RampColliderInspector : ItemColliderInspector<RampData, RampAuthoring, RampColliderAuthoring>
+	[CustomEditor(typeof(RampColliderComponent)), CanEditMultipleObjects]
+	public class RampColliderInspector : ItemColliderInspector<RampData, RampComponent, RampColliderComponent>
 	{
 		private bool _foldoutMaterial = true;
 
@@ -41,16 +41,16 @@ namespace VisualPinball.Unity.Editor
 		{
 			base.OnEnable();
 
-			_hitEventProperty = serializedObject.FindProperty(nameof(SurfaceColliderAuthoring.HitEvent));
-			_thresholdProperty = serializedObject.FindProperty(nameof(RampColliderAuthoring.Threshold));
-			_leftWallHeightProperty = serializedObject.FindProperty(nameof(RampColliderAuthoring.LeftWallHeight));
-			_rightWallHeightProperty = serializedObject.FindProperty(nameof(RampColliderAuthoring.RightWallHeight));
+			_hitEventProperty = serializedObject.FindProperty(nameof(SurfaceColliderComponent.HitEvent));
+			_thresholdProperty = serializedObject.FindProperty(nameof(RampColliderComponent.Threshold));
+			_leftWallHeightProperty = serializedObject.FindProperty(nameof(RampColliderComponent.LeftWallHeight));
+			_rightWallHeightProperty = serializedObject.FindProperty(nameof(RampColliderComponent.RightWallHeight));
 
-			_physicsMaterialProperty = serializedObject.FindProperty(nameof(ItemColliderAuthoring<RampData, RampAuthoring>.PhysicsMaterial));
-			_overwritePhysicsProperty = serializedObject.FindProperty(nameof(RampColliderAuthoring.OverwritePhysics));
-			_elasticityProperty = serializedObject.FindProperty(nameof(RampColliderAuthoring.Elasticity));
-			_frictionProperty = serializedObject.FindProperty(nameof(RampColliderAuthoring.Friction));
-			_scatterProperty = serializedObject.FindProperty(nameof(RampColliderAuthoring.Scatter));
+			_physicsMaterialProperty = serializedObject.FindProperty(nameof(ItemColliderComponent<RampData, RampComponent>.PhysicsMaterial));
+			_overwritePhysicsProperty = serializedObject.FindProperty(nameof(RampColliderComponent.OverwritePhysics));
+			_elasticityProperty = serializedObject.FindProperty(nameof(RampColliderComponent.Elasticity));
+			_frictionProperty = serializedObject.FindProperty(nameof(RampColliderComponent.Friction));
+			_scatterProperty = serializedObject.FindProperty(nameof(RampColliderComponent.Scatter));
 		}
 
 		public override void OnInspectorGUI()

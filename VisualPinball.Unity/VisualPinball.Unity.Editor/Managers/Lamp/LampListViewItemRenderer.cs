@@ -39,19 +39,19 @@ namespace VisualPinball.Unity.Editor
 
 		private readonly List<GamelogicEngineLamp> _gleLamps;
 
-		private readonly ObjectReferencePicker<ILampDeviceAuthoring> _devicePicker;
+		private readonly ObjectReferencePicker<ILampDeviceComponent> _devicePicker;
 
-		public LampListViewItemRenderer(List<GamelogicEngineLamp> gleLamps, TableAuthoring tableComponent)
+		public LampListViewItemRenderer(List<GamelogicEngineLamp> gleLamps, TableComponent tableComponent)
 		{
 			_gleLamps = gleLamps;
-			_devicePicker = new ObjectReferencePicker<ILampDeviceAuthoring>("Lamps", tableComponent, false);
+			_devicePicker = new ObjectReferencePicker<ILampDeviceComponent>("Lamps", tableComponent, false);
 		}
 
-		public void Render(TableAuthoring tableAuthoring, LampListData data, Rect cellRect, int column, Action<LampListData> updateAction)
+		public void Render(TableComponent tableComponent, LampListData data, Rect cellRect, int column, Action<LampListData> updateAction)
 		{
 			EditorGUI.BeginDisabledGroup(Application.isPlaying);
 			var lampStatuses = Application.isPlaying
-				? tableAuthoring.gameObject.GetComponent<Player>()?.LampStatuses
+				? tableComponent.gameObject.GetComponent<Player>()?.LampStatuses
 				: null;
 
 			switch ((LampListColumn)column) {

@@ -23,8 +23,8 @@ using VisualPinball.Engine.VPT.Trigger;
 
 namespace VisualPinball.Unity.Editor
 {
-	[CustomEditor(typeof(TriggerAuthoring)), CanEditMultipleObjects]
-	public class TriggerInspector : DragPointsItemInspector<TriggerData, TriggerAuthoring>
+	[CustomEditor(typeof(TriggerComponent)), CanEditMultipleObjects]
+	public class TriggerInspector : DragPointsItemInspector<TriggerData, TriggerComponent>
 	{
 		private SerializedProperty _positionProperty;
 		private SerializedProperty _rotationProperty;
@@ -34,9 +34,9 @@ namespace VisualPinball.Unity.Editor
 		{
 			base.OnEnable();
 
-			_positionProperty = serializedObject.FindProperty(nameof(TriggerAuthoring.Position));
-			_rotationProperty = serializedObject.FindProperty(nameof(TriggerAuthoring.Rotation));
-			_surfaceProperty = serializedObject.FindProperty(nameof(TriggerAuthoring._surface));
+			_positionProperty = serializedObject.FindProperty(nameof(TriggerComponent.Position));
+			_rotationProperty = serializedObject.FindProperty(nameof(TriggerComponent.Rotation));
+			_surfaceProperty = serializedObject.FindProperty(nameof(TriggerComponent._surface));
 		}
 
 		public override void OnInspectorGUI()

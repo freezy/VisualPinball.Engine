@@ -24,8 +24,8 @@ using VisualPinball.Engine.VPT.Gate;
 
 namespace VisualPinball.Unity.Editor
 {
-	[CustomEditor(typeof(GateAuthoring)), CanEditMultipleObjects]
-	public class GateInspector : ItemMainInspector<GateData, GateAuthoring>
+	[CustomEditor(typeof(GateComponent)), CanEditMultipleObjects]
+	public class GateInspector : ItemMainInspector<GateData, GateComponent>
 	{
 		private const string MeshFolder = "Packages/org.visualpinball.engine.unity/VisualPinball.Unity/Assets/Art/Meshes/Gate/Wire";
 
@@ -49,12 +49,12 @@ namespace VisualPinball.Unity.Editor
 		{
 			base.OnEnable();
 
-			_positionProperty = serializedObject.FindProperty(nameof(GateAuthoring.Position));
-			_rotationProperty = serializedObject.FindProperty(nameof(GateAuthoring._rotation));
-			_lengthProperty = serializedObject.FindProperty(nameof(GateAuthoring._length));
-			_surfaceProperty = serializedObject.FindProperty(nameof(GateAuthoring._surface));
-			_meshProperty = serializedObject.FindProperty(nameof(GateAuthoring._meshName));
-			_typeProperty = serializedObject.FindProperty(nameof(GateAuthoring._type));
+			_positionProperty = serializedObject.FindProperty(nameof(GateComponent.Position));
+			_rotationProperty = serializedObject.FindProperty(nameof(GateComponent._rotation));
+			_lengthProperty = serializedObject.FindProperty(nameof(GateComponent._length));
+			_surfaceProperty = serializedObject.FindProperty(nameof(GateComponent._surface));
+			_meshProperty = serializedObject.FindProperty(nameof(GateComponent._meshName));
+			_typeProperty = serializedObject.FindProperty(nameof(GateComponent._type));
 		}
 
 		public override void OnInspectorGUI()
@@ -72,7 +72,7 @@ namespace VisualPinball.Unity.Editor
 			PropertyField(_lengthProperty, updateTransforms: true);
 			PropertyField(_surfaceProperty);
 
-			var wire = MainComponent.transform.Find(GateAuthoring.WireObjectName);
+			var wire = MainComponent.transform.Find(GateComponent.WireObjectName);
 			if (wire != null) {
 				MeshDropdownProperty("Mesh", _meshProperty, MeshFolder, wire.gameObject, _typeProperty, TypeMap);
 			}
@@ -91,13 +91,13 @@ namespace VisualPinball.Unity.Editor
 
 		protected void OnSceneGUI()
 		{
-			if (target is IItemMainRenderableAuthoring editable) {
+			if (target is IItemMainRenderableComponent editable) {
 				var position = editable.GetEditorPosition();
 				var transform = (target as MonoBehaviour).transform;
 				if (transform != null && transform.parent != null) {
 					position = transform.parent.TransformPoint(position);
 					var axis = transform.TransformDirection(-Vector3.up); //Local direction of the gate gameObject is -up
-					var worldScale = 0.5f * PlayfieldAuthoring.GlobalScale;
+					var worldScale = 0.5f * Unity.PlayfieldComponent.GlobalScale;
 					var scale = MainComponent.Length * worldScale;
 					Handles.color = Color.white;
 					Handles.DrawWireDisc(position, axis, scale);
@@ -109,7 +109,7 @@ namespace VisualPinball.Unity.Editor
 					var arrowScale = worldScale * 100.0f;
 					Handles.color = Color.white;
 					Handles.ArrowHandleCap(-1, position, Quaternion.LookRotation(axis), arrowScale, EventType.Repaint);
-					var colliderComponent = MainComponent.GetComponent<GateColliderAuthoring>();
+					var colliderComponent = MainComponent.GetComponent<GateColliderComponent>();
 					if (colliderComponent && colliderComponent.TwoWay) {
 						Handles.ArrowHandleCap(-1, position, Quaternion.LookRotation(-axis), arrowScale, EventType.Repaint);
 					}

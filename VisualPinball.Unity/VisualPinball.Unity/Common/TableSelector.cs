@@ -23,7 +23,7 @@ namespace VisualPinball.Unity
 		/// <summary>
 		/// Returns the most recently active table.
 		/// </summary>
-		public TableAuthoring SelectedTable {
+		public TableComponent SelectedTable {
 			get => _selectedTable;
 			set => SetSelectedTable(value);
 		}
@@ -42,7 +42,7 @@ namespace VisualPinball.Unity
 
 		private static TableSelector _instance;
 
-		private TableAuthoring _selectedTable;
+		private TableComponent _selectedTable;
 
 		private TableSelector()
 		{
@@ -50,7 +50,7 @@ namespace VisualPinball.Unity
 
 		public static TableSelector Instance => _instance ?? (_instance = new TableSelector());
 
-		private void SetSelectedTable(TableAuthoring ta)
+		private void SetSelectedTable(TableComponent ta)
 		{
 			_selectedTable = ta;
 			OnTableSelected?.Invoke(this, EventArgs.Empty);

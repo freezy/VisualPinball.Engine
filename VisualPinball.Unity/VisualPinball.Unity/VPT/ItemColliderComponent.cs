@@ -30,10 +30,10 @@ using Mesh = UnityEngine.Mesh;
 namespace VisualPinball.Unity
 {
 	[DisallowMultipleComponent]
-	public abstract class ItemColliderAuthoring<TData, TMainAuthoring> : ItemSubAuthoring<TData, TMainAuthoring>,
+	public abstract class ItemColliderComponent<TData, TMainAuthoring> : ItemSubComponent<TData, TMainAuthoring>,
 		IItemColliderAuthoring
 		where TData : ItemData
-		where TMainAuthoring : ItemMainAuthoring<TData>
+		where TMainAuthoring : ItemMainComponent<TData>
 	{
 		[SerializeReference]
 		public PhysicsMaterial PhysicsMaterial;
@@ -52,7 +52,7 @@ namespace VisualPinball.Unity
 
 		public List<ICollider> Colliders { get; private set; }
 
-		public new IItemMainAuthoring MainAuthoring => base.MainComponent;
+		public new IItemMainComponent MainAuthoring => base.MainComponent;
 
 		private readonly Entity _colliderEntity = Player.PlayfieldEntity;
 
@@ -100,7 +100,7 @@ namespace VisualPinball.Unity
 			Colliders = new List<ICollider>();
 			api.CreateColliders(Colliders);
 
-			var ltw = GetComponentInParent<PlayfieldAuthoring>().transform.localToWorldMatrix;
+			var ltw = GetComponentInParent<PlayfieldComponent>().transform.localToWorldMatrix;
 
 			// draw aabbs and colliders
 			for (var i = 0; i < Colliders.Count; i++) {
@@ -232,7 +232,7 @@ namespace VisualPinball.Unity
 					Mesh mesh = null;
 
 					// first see if we already have a mesh
-					var meshAuthoring = GetComponentInChildren<FlipperRubberMeshAuthoring>();
+					var meshAuthoring = GetComponentInChildren<FlipperRubberMeshComponent>();
 					if (meshAuthoring != null) {
 						var meshComponent = meshAuthoring.gameObject.GetComponent<MeshFilter>();
 						if (meshComponent != null) {

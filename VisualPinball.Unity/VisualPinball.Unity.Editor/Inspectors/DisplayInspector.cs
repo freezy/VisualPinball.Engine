@@ -22,18 +22,18 @@ using UnityEngine;
 namespace VisualPinball.Unity.Editor
 {
 
-	[CustomEditor(typeof(DisplayAuthoring)), CanEditMultipleObjects]
+	[CustomEditor(typeof(DisplayComponent)), CanEditMultipleObjects]
 	public class DisplayInspector : UnityEditor.Editor
 	{
 		public const float GameObjectScale = 0.5f;
 
-		[NonSerialized] private DisplayAuthoring _mb;
-		[NonSerialized] private DisplayAuthoring[] _mbs;
+		[NonSerialized] private DisplayComponent _mb;
+		[NonSerialized] private DisplayComponent[] _mbs;
 
 		protected void OnEnable()
 		{
-			_mb = target as DisplayAuthoring;
-			_mbs = targets.Select(t => t as DisplayAuthoring).ToArray();
+			_mb = target as DisplayComponent;
+			_mbs = targets.Select(t => t as DisplayComponent).ToArray();
 		}
 
 		public override void OnInspectorGUI()

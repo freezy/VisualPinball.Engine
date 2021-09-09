@@ -24,8 +24,8 @@ using VisualPinball.Engine.VPT.HitTarget;
 namespace VisualPinball.Unity
 {
 	[AddComponentMenu("Visual Pinball/Animation/Hit Target Animation")]
-	[RequireComponent(typeof(HitTargetColliderAuthoring))]
-	public class HitTargetAnimationAuthoring : ItemAnimationAuthoring<HitTargetData, HitTargetAuthoring>
+	[RequireComponent(typeof(HitTargetColliderComponent))]
+	public class HitTargetAnimationComponent : ItemAnimationComponent<HitTargetData, HitTargetComponent>
 	{
 		public override IEnumerable<Type> ValidParents => Type.EmptyTypes;
 

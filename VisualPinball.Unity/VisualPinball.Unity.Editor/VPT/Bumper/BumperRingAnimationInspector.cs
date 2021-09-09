@@ -21,8 +21,8 @@ using VisualPinball.Engine.VPT.Bumper;
 
 namespace VisualPinball.Unity.Editor
 {
-	[CustomEditor(typeof(BumperRingAnimationAuthoring)), CanEditMultipleObjects]
-	public class BumperRingAnimationInspector : ItemAnimationInspector<BumperData, BumperAuthoring, BumperRingAnimationAuthoring>
+	[CustomEditor(typeof(BumperRingAnimationComponent)), CanEditMultipleObjects]
+	public class BumperRingAnimationInspector : ItemAnimationInspector<BumperData, BumperComponent, BumperRingAnimationComponent>
 	{
 		private SerializedProperty _ringSpeedProperty;
 		private SerializedProperty _ringDropOffsetProperty;
@@ -30,8 +30,8 @@ namespace VisualPinball.Unity.Editor
 		protected override void OnEnable()
 		{
 			base.OnEnable();
-			_ringSpeedProperty = serializedObject.FindProperty(nameof(BumperRingAnimationAuthoring.RingSpeed));
-			_ringDropOffsetProperty = serializedObject.FindProperty(nameof(BumperRingAnimationAuthoring.RingDropOffset));
+			_ringSpeedProperty = serializedObject.FindProperty(nameof(BumperRingAnimationComponent.RingSpeed));
+			_ringDropOffsetProperty = serializedObject.FindProperty(nameof(BumperRingAnimationComponent.RingDropOffset));
 		}
 
 		public override void OnInspectorGUI()

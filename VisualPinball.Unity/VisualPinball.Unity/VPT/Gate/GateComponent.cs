@@ -36,8 +36,8 @@ using VisualPinball.Engine.VPT.Table;
 namespace VisualPinball.Unity
 {
 	[AddComponentMenu("Visual Pinball/Game Item/Gate")]
-	public class GateAuthoring : ItemMainRenderableAuthoring<GateData>,
-		IGateData, ISwitchDeviceAuthoring, IOnSurfaceAuthoring, IConvertGameObjectToEntity
+	public class GateComponent : ItemMainRenderableComponent<GateData>,
+		IGateData, ISwitchDeviceComponent, IOnSurfaceComponent, IConvertGameObjectToEntity
 	{
 		#region Data
 
@@ -52,9 +52,9 @@ namespace VisualPinball.Unity
 		[Tooltip("How much the gate is scaled, in percent.")]
 		public float _length = 100f;
 
-		public ISurfaceAuthoring Surface { get => _surface as ISurfaceAuthoring; set => _surface = value as MonoBehaviour; }
+		public ISurfaceComponent Surface { get => _surface as ISurfaceComponent; set => _surface = value as MonoBehaviour; }
 		[SerializeField]
-		[TypeRestriction(typeof(ISurfaceAuthoring), PickerLabel = "Walls & Ramps", UpdateTransforms = true)]
+		[TypeRestriction(typeof(ISurfaceComponent), PickerLabel = "Walls & Ramps", UpdateTransforms = true)]
 		[Tooltip("On which surface this flipper is attached to. Updates Z-translation.")]
 		public MonoBehaviour _surface;
 
@@ -89,13 +89,13 @@ namespace VisualPinball.Unity
 		public override ItemType ItemType => ItemType.Gate;
 		public override string ItemName => "Gate";
 
-		public override IEnumerable<Type> ValidParents => GateColliderAuthoring.ValidParentTypes
+		public override IEnumerable<Type> ValidParents => GateColliderComponent.ValidParentTypes
 			.Distinct();
 
 		public override GateData InstantiateData() => new GateData();
 
-		protected override Type MeshAuthoringType { get; } = typeof(ItemMeshAuthoring<GateData, GateAuthoring>);
-		protected override Type ColliderAuthoringType { get; } = typeof(ItemColliderAuthoring<GateData, GateAuthoring>);
+		protected override Type MeshAuthoringType { get; } = typeof(ItemMeshComponent<GateData, GateComponent>);
+		protected override Type ColliderAuthoringType { get; } = typeof(ItemColliderComponent<GateData, GateComponent>);
 
 		public const string BracketObjectName = "Bracket";
 		public const string WireObjectName = "Wire";
@@ -114,7 +114,7 @@ namespace VisualPinball.Unity
 
 		public SwitchDefault SwitchDefault => SwitchDefault.NormallyOpen;
 
-		IEnumerable<GamelogicEngineSwitch> IDeviceAuthoring<GamelogicEngineSwitch>.AvailableDeviceItems => AvailableSwitches;
+		IEnumerable<GamelogicEngineSwitch> IDeviceComponent<GamelogicEngineSwitch>.AvailableDeviceItems => AvailableSwitches;
 
 		#endregion
 
@@ -147,7 +147,7 @@ namespace VisualPinball.Unity
 			Convert(entity, dstManager);
 
 			// collision
-			var colliderAuthoring = gameObject.GetComponent<GateColliderAuthoring>();
+			var colliderAuthoring = gameObject.GetComponent<GateColliderComponent>();
 			if (colliderAuthoring) {
 
 				dstManager.AddComponentData(entity, new GateStaticData {
@@ -160,7 +160,7 @@ namespace VisualPinball.Unity
 				});
 
 				// movement data
-				if (GetComponentInChildren<GateWireAnimationAuthoring>()) {
+				if (GetComponentInChildren<GateWireAnimationComponent>()) {
 					dstManager.AddComponentData(entity, new GateMovementData {
 						Angle = math.radians(colliderAuthoring._angleMin),
 						AngleSpeed = 0,
@@ -203,7 +203,7 @@ namespace VisualPinball.Unity
 			}
 
 			// collider data
-			var colliderAuthoring = gameObject.GetComponent<GateColliderAuthoring>();
+			var colliderAuthoring = gameObject.GetComponent<GateColliderComponent>();
 			if (colliderAuthoring) {
 				colliderAuthoring._angleMin = math.degrees(data.AngleMin);
 				colliderAuthoring._angleMax = math.degrees(data.AngleMax);
@@ -225,9 +225,9 @@ namespace VisualPinball.Unity
 			return updatedComponents;
 		}
 
-		public override IEnumerable<MonoBehaviour> SetReferencedData(GateData data, Table table, IMaterialProvider materialProvider, ITextureProvider textureProvider, Dictionary<string, IItemMainAuthoring> components)
+		public override IEnumerable<MonoBehaviour> SetReferencedData(GateData data, Table table, IMaterialProvider materialProvider, ITextureProvider textureProvider, Dictionary<string, IItemMainComponent> components)
 		{
-			Surface = GetAuthoring<SurfaceAuthoring>(components, data.Surface);
+			Surface = GetAuthoring<SurfaceComponent>(components, data.Surface);
 			return Array.Empty<MonoBehaviour>();
 		}
 
@@ -256,7 +256,7 @@ namespace VisualPinball.Unity
 			}
 
 			// collision data
-			var colliderAuthoring = gameObject.GetComponent<GateColliderAuthoring>();
+			var colliderAuthoring = gameObject.GetComponent<GateColliderComponent>();
 			if (colliderAuthoring) {
 				data.IsCollidable = colliderAuthoring.enabled;
 

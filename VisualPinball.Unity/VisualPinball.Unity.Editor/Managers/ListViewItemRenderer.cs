@@ -130,7 +130,7 @@ namespace VisualPinball.Unity.Editor
 
 			var currentIndex = 0;
 			var labels = Array.Empty<string>();
-			IDeviceAuthoring<TDeviceITem> device = null;
+			IDeviceComponent<TDeviceITem> device = null;
 			if (listData.DeviceComponent != null) {
 				device = listData.DeviceComponent;
 				labels = device.AvailableDeviceItems.Select(s => s.Description).ToArray();

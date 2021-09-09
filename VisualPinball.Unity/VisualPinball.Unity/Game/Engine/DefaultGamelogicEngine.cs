@@ -67,7 +67,7 @@ namespace VisualPinball.Unity
 		private readonly List<GamelogicEngineSwitch> _availableSwitches = new List<GamelogicEngineSwitch> {
 			new GamelogicEngineSwitch(SwLeftFlipper) { Description = "Left Flipper (Button)", InputActionHint = InputConstants.ActionLeftFlipper },
 			new GamelogicEngineSwitch(SwRightFlipper) { Description = "Right Flipper (Button)", InputActionHint = InputConstants.ActionRightFlipper },
-			new GamelogicEngineSwitch(SwTroughDrain) { Description = "Trough Drain", DeviceHint = "^Trough\\s*\\d?", DeviceItemHint = TroughAuthoring.EntrySwitchId },
+			new GamelogicEngineSwitch(SwTroughDrain) { Description = "Trough Drain", DeviceHint = "^Trough\\s*\\d?", DeviceItemHint = TroughComponent.EntrySwitchId },
 			new GamelogicEngineSwitch(SwTrough1) { Description = "Trough 1 (Eject)", DeviceHint = "^Trough\\s*\\d?", DeviceItemHint = "1"},
 			new GamelogicEngineSwitch(SwTrough2) { Description = "Trough 2", DeviceHint = "^Trough\\s*\\d?", DeviceItemHint = "2"},
 			new GamelogicEngineSwitch(SwTrough3) { Description = "Trough 3", DeviceHint = "^Trough\\s*\\d?", DeviceItemHint = "3"},
@@ -86,12 +86,12 @@ namespace VisualPinball.Unity
 
 		public GamelogicEngineCoil[] AvailableCoils => _availableCoils.ToArray();
 		private readonly List<GamelogicEngineCoil> _availableCoils = new List<GamelogicEngineCoil> {
-			new GamelogicEngineCoil(CoilLeftFlipperMain) { Description = "Left Flipper (Main)", DeviceHint = "^(LeftFlipper|LFlipper|FlipperLeft|FlipperL)$", DeviceItemHint = FlipperAuthoring.MainCoilItem },
-			new GamelogicEngineCoil(CoilLeftFlipperHold) { Description = "Left Flipper (Hold)", DeviceHint = "^(LeftFlipper|LFlipper|FlipperLeft|FlipperL)$", DeviceItemHint = FlipperAuthoring.HoldCoilItem },
-			new GamelogicEngineCoil(CoilRightFlipperMain) { Description = "Right Flipper (Main)", DeviceHint = "^(RightFlipper|RFlipper|FlipperRight|FlipperR)$", DeviceItemHint = FlipperAuthoring.MainCoilItem },
-			new GamelogicEngineCoil(CoilRightFlipperHold) { Description = "Right Flipper (Hold)", DeviceHint = "^(RightFlipper|RFlipper|FlipperRight|FlipperR)$", DeviceItemHint = FlipperAuthoring.HoldCoilItem },
-			new GamelogicEngineCoil(CoilTroughEject) { Description = "Trough Eject", DeviceHint = "^Trough\\s*\\d?", DeviceItemHint = TroughAuthoring.EjectCoilId},
-			new GamelogicEngineCoil(CoilTroughEntry) { Description = "Trough Entry", DeviceHint = "^Trough\\s*\\d?", DeviceItemHint = TroughAuthoring.EntryCoilId},
+			new GamelogicEngineCoil(CoilLeftFlipperMain) { Description = "Left Flipper (Main)", DeviceHint = "^(LeftFlipper|LFlipper|FlipperLeft|FlipperL)$", DeviceItemHint = FlipperComponent.MainCoilItem },
+			new GamelogicEngineCoil(CoilLeftFlipperHold) { Description = "Left Flipper (Hold)", DeviceHint = "^(LeftFlipper|LFlipper|FlipperLeft|FlipperL)$", DeviceItemHint = FlipperComponent.HoldCoilItem },
+			new GamelogicEngineCoil(CoilRightFlipperMain) { Description = "Right Flipper (Main)", DeviceHint = "^(RightFlipper|RFlipper|FlipperRight|FlipperR)$", DeviceItemHint = FlipperComponent.MainCoilItem },
+			new GamelogicEngineCoil(CoilRightFlipperHold) { Description = "Right Flipper (Hold)", DeviceHint = "^(RightFlipper|RFlipper|FlipperRight|FlipperR)$", DeviceItemHint = FlipperComponent.HoldCoilItem },
+			new GamelogicEngineCoil(CoilTroughEject) { Description = "Trough Eject", DeviceHint = "^Trough\\s*\\d?", DeviceItemHint = TroughComponent.EjectCoilId},
+			new GamelogicEngineCoil(CoilTroughEntry) { Description = "Trough Entry", DeviceHint = "^Trough\\s*\\d?", DeviceItemHint = TroughComponent.EntryCoilId},
 		};
 
 		private const string GiSlingshotRightLower = "gi_1";
@@ -136,7 +136,7 @@ namespace VisualPinball.Unity
 		private Player _player;
 		private BallManager _ballManager;
 		private bool _frameSent = false;
-		private PlayfieldAuthoring _playfieldComponent;
+		private PlayfieldComponent _playfieldComponent;
 
 		private readonly Dictionary<string, Stopwatch> _switchTime = new Dictionary<string, Stopwatch>();
 
@@ -148,8 +148,8 @@ namespace VisualPinball.Unity
 
 			if (DualWoundFlippers) {
 				_availableCoils.AddRange(new [] {
-					new GamelogicEngineCoil(CoilLeftFlipperHold) { Description = "Left Flipper (Hold)", DeviceHint = "^(LeftFlipper|LFlipper|FlipperLeft|FlipperL)$", DeviceItemHint = FlipperAuthoring.HoldCoilItem },
-					new GamelogicEngineCoil(CoilRightFlipperHold) { Description = "Right Flipper (Hold)", DeviceHint = "^(RightFlipper|RFlipper|FlipperRight|FlipperR)$", DeviceItemHint = FlipperAuthoring.HoldCoilItem },
+					new GamelogicEngineCoil(CoilLeftFlipperHold) { Description = "Left Flipper (Hold)", DeviceHint = "^(LeftFlipper|LFlipper|FlipperLeft|FlipperL)$", DeviceItemHint = FlipperComponent.HoldCoilItem },
+					new GamelogicEngineCoil(CoilRightFlipperHold) { Description = "Right Flipper (Hold)", DeviceHint = "^(RightFlipper|RFlipper|FlipperRight|FlipperR)$", DeviceItemHint = FlipperComponent.HoldCoilItem },
 				});
 
 				_availableSwitches.AddRange(new [] {
@@ -173,7 +173,7 @@ namespace VisualPinball.Unity
 			OnCoilChanged?.Invoke(this, new CoilEventArgs(CoilTroughEject, true));
 			_player.ScheduleAction(100, () => OnCoilChanged?.Invoke(this, new CoilEventArgs(CoilTroughEject, false)));
 
-			_playfieldComponent = GetComponentInChildren<PlayfieldAuthoring>();
+			_playfieldComponent = GetComponentInChildren<PlayfieldComponent>();
 		}
 
 		private void Update()

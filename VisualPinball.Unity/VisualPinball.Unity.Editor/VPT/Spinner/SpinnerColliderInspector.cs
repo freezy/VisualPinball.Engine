@@ -19,15 +19,15 @@ using VisualPinball.Engine.VPT.Spinner;
 
 namespace VisualPinball.Unity.Editor
 {
-	[CustomEditor(typeof(SpinnerColliderAuthoring)), CanEditMultipleObjects]
-	public class SpinnerColliderInspector : ItemColliderInspector<SpinnerData, SpinnerAuthoring, SpinnerColliderAuthoring>
+	[CustomEditor(typeof(SpinnerColliderComponent)), CanEditMultipleObjects]
+	public class SpinnerColliderInspector : ItemColliderInspector<SpinnerData, SpinnerComponent, SpinnerColliderComponent>
 	{
 		private SerializedProperty _elasticityProperty;
 
 		protected override void OnEnable()
 		{
 			base.OnEnable();
-			_elasticityProperty = serializedObject.FindProperty(nameof(SpinnerColliderAuthoring.Elasticity));
+			_elasticityProperty = serializedObject.FindProperty(nameof(SpinnerColliderComponent.Elasticity));
 		}
 
 		public override void OnInspectorGUI()

@@ -21,8 +21,8 @@ using VisualPinball.Engine.VPT.Table;
 
 namespace VisualPinball.Unity.Editor
 {
-	[CustomEditor(typeof(PlayfieldColliderAuthoring)), CanEditMultipleObjects]
-	public class PlayfieldColliderInspector : ItemColliderInspector<TableData, PlayfieldAuthoring, PlayfieldColliderAuthoring>
+	[CustomEditor(typeof(PlayfieldColliderComponent)), CanEditMultipleObjects]
+	public class PlayfieldColliderInspector : ItemColliderInspector<TableData, PlayfieldComponent, PlayfieldColliderComponent>
 	{
 		private SerializedProperty _elasticityProperty;
 		private SerializedProperty _elasticityFalloffProperty;
@@ -36,13 +36,13 @@ namespace VisualPinball.Unity.Editor
 		{
 			base.OnEnable();
 
-			_gravityProperty = serializedObject.FindProperty(nameof(PlayfieldColliderAuthoring.Gravity));
-			_elasticityProperty = serializedObject.FindProperty(nameof(PlayfieldColliderAuthoring.Elasticity));
-			_elasticityFalloffProperty = serializedObject.FindProperty(nameof(PlayfieldColliderAuthoring.ElasticityFalloff));
-			_frictionProperty = serializedObject.FindProperty(nameof(PlayfieldColliderAuthoring.Friction));
-			_scatterProperty = serializedObject.FindProperty(nameof(PlayfieldColliderAuthoring.Scatter));
-			_defaultScatterProperty = serializedObject.FindProperty(nameof(PlayfieldColliderAuthoring.DefaultScatter));
-			_collideWithBoundsProperty = serializedObject.FindProperty(nameof(PlayfieldColliderAuthoring.CollideWithBounds));
+			_gravityProperty = serializedObject.FindProperty(nameof(PlayfieldColliderComponent.Gravity));
+			_elasticityProperty = serializedObject.FindProperty(nameof(PlayfieldColliderComponent.Elasticity));
+			_elasticityFalloffProperty = serializedObject.FindProperty(nameof(PlayfieldColliderComponent.ElasticityFalloff));
+			_frictionProperty = serializedObject.FindProperty(nameof(PlayfieldColliderComponent.Friction));
+			_scatterProperty = serializedObject.FindProperty(nameof(PlayfieldColliderComponent.Scatter));
+			_defaultScatterProperty = serializedObject.FindProperty(nameof(PlayfieldColliderComponent.DefaultScatter));
+			_collideWithBoundsProperty = serializedObject.FindProperty(nameof(PlayfieldColliderComponent.CollideWithBounds));
 		}
 
 		public override void OnInspectorGUI()

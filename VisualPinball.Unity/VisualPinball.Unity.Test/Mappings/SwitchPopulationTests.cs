@@ -33,7 +33,7 @@ namespace VisualPinball.Unity.Test
 				.Build();
 
 			var go = VpxImportEngine.ImportIntoScene(table, options: ConvertOptions.SkipNone);
-			var tableComponent = go.GetComponent<TableAuthoring>();
+			var tableComponent = go.GetComponent<TableComponent>();
 
 			var gameEngineSwitches = new[] {
 				new GamelogicEngineSwitch("bumper_1")
@@ -46,7 +46,7 @@ namespace VisualPinball.Unity.Test
 			tableComponent.MappingConfig.Switches[0].Source.Should().Be(SwitchSource.Playfield);
 			tableComponent.MappingConfig.Switches[0].Id.Should().Be("bumper_1");
 			tableComponent.MappingConfig.Switches[0].Device.name.Should().Be("bumper_1");
-			tableComponent.MappingConfig.Switches[0].DeviceItem.Should().Be(BumperAuthoring.SocketSwitchItem);
+			tableComponent.MappingConfig.Switches[0].DeviceItem.Should().Be(BumperComponent.SocketSwitchItem);
 		}
 
 		[Test]
@@ -57,7 +57,7 @@ namespace VisualPinball.Unity.Test
 				.Build();
 
 			var go = VpxImportEngine.ImportIntoScene(table, options: ConvertOptions.SkipNone);
-			var tableComponent = go.GetComponent<TableAuthoring>();
+			var tableComponent = go.GetComponent<TableComponent>();
 
 			var gameEngineSwitches = new[] {
 				new GamelogicEngineSwitch("23")
@@ -70,7 +70,7 @@ namespace VisualPinball.Unity.Test
 			tableComponent.MappingConfig.Switches[0].Source.Should().Be(SwitchSource.Playfield);
 			tableComponent.MappingConfig.Switches[0].Id.Should().Be("23");
 			tableComponent.MappingConfig.Switches[0].Device.name.Should().Be("sw23");
-			tableComponent.MappingConfig.Switches[0].DeviceItem.Should().Be(BumperAuthoring.SocketSwitchItem);
+			tableComponent.MappingConfig.Switches[0].DeviceItem.Should().Be(BumperComponent.SocketSwitchItem);
 		}
 
 		[Test]
@@ -81,7 +81,7 @@ namespace VisualPinball.Unity.Test
 				.Build();
 
 			var go = VpxImportEngine.ImportIntoScene(table, options: ConvertOptions.SkipNone);
-			var tableComponent = go.GetComponent<TableAuthoring>();
+			var tableComponent = go.GetComponent<TableComponent>();
 
 			var gameEngineSwitches = new[] {
 				new GamelogicEngineSwitch("bumper_")
@@ -104,7 +104,7 @@ namespace VisualPinball.Unity.Test
 				.Build();
 
 			var go = VpxImportEngine.ImportIntoScene(table, options: ConvertOptions.SkipNone);
-			var tableComponent = go.GetComponent<TableAuthoring>();
+			var tableComponent = go.GetComponent<TableComponent>();
 
 			var gameEngineSwitches = new[] {
 				new GamelogicEngineSwitch("88") { DeviceHint = "some_trough", DeviceItemHint = "1"}
@@ -125,7 +125,7 @@ namespace VisualPinball.Unity.Test
 			var table = new TableBuilder().Build();
 
 			var go = VpxImportEngine.ImportIntoScene(table, options: ConvertOptions.SkipNone);
-			var tableComponent = go.GetComponent<TableAuthoring>();
+			var tableComponent = go.GetComponent<TableComponent>();
 
 			tableComponent.MappingConfig.Clear();
 			tableComponent.MappingConfig.AddSwitch(new SwitchMapping {Id = "bbb"});

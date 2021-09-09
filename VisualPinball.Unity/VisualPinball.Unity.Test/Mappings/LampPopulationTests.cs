@@ -33,7 +33,7 @@ namespace VisualPinball.Unity.Test
 				.Build();
 
 			var go = VpxImportEngine.ImportIntoScene(table, options: ConvertOptions.SkipNone);
-			var tableComponent = go.GetComponent<TableAuthoring>();
+			var tableComponent = go.GetComponent<TableComponent>();
 
 			var gameEngineLamps = new[] {
 				new GamelogicEngineLamp("some_light") { Description = "Some Light"}
@@ -46,7 +46,7 @@ namespace VisualPinball.Unity.Test
 			tableComponent.MappingConfig.Lamps[0].Id.Should().Be("some_light");
 			tableComponent.MappingConfig.Lamps[0].Description.Should().Be("Some Light");
 			tableComponent.MappingConfig.Lamps[0].Device.name.Should().Be("some_light");
-			tableComponent.MappingConfig.Lamps[0].DeviceItem.Should().Be(LightAuthoring.LampIdDefault);
+			tableComponent.MappingConfig.Lamps[0].DeviceItem.Should().Be(LightComponent.LampIdDefault);
 		}
 
 		[Test]
@@ -57,7 +57,7 @@ namespace VisualPinball.Unity.Test
 				.Build();
 
 			var go = VpxImportEngine.ImportIntoScene(table, options: ConvertOptions.SkipNone);
-			var tableComponent = go.GetComponent<TableAuthoring>();
+			var tableComponent = go.GetComponent<TableComponent>();
 
 			var gameEngineLamps = new[] {
 				new GamelogicEngineLamp("42") { Description = "Light 42"}
@@ -70,7 +70,7 @@ namespace VisualPinball.Unity.Test
 			tableComponent.MappingConfig.Lamps[0].Id.Should().Be("42");
 			tableComponent.MappingConfig.Lamps[0].Description.Should().Be("Light 42");
 			tableComponent.MappingConfig.Lamps[0].Device.name.Should().Be("l42");
-			tableComponent.MappingConfig.Lamps[0].DeviceItem.Should().Be(LightAuthoring.LampIdDefault);
+			tableComponent.MappingConfig.Lamps[0].DeviceItem.Should().Be(LightComponent.LampIdDefault);
 		}
 
 		[Test]
@@ -81,7 +81,7 @@ namespace VisualPinball.Unity.Test
 				.Build();
 
 			var go = VpxImportEngine.ImportIntoScene(table, options: ConvertOptions.SkipNone);
-			var tableComponent = go.GetComponent<TableAuthoring>();
+			var tableComponent = go.GetComponent<TableComponent>();
 
 			var gameEngineLamps = new[] {
 				new GamelogicEngineLamp("11") { Description = "Foobar", DeviceHint = "_foobar_"}
@@ -94,7 +94,7 @@ namespace VisualPinball.Unity.Test
 			tableComponent.MappingConfig.Lamps[0].Id.Should().Be("11");
 			tableComponent.MappingConfig.Lamps[0].Description.Should().Be("Foobar");
 			tableComponent.MappingConfig.Lamps[0].Device.name.Should().Be("lamp_foobar_name");
-			tableComponent.MappingConfig.Lamps[0].DeviceItem.Should().Be(LightAuthoring.LampIdDefault);
+			tableComponent.MappingConfig.Lamps[0].DeviceItem.Should().Be(LightComponent.LampIdDefault);
 		}
 
 		[Test]
@@ -105,7 +105,7 @@ namespace VisualPinball.Unity.Test
 				.Build();
 
 			var go = VpxImportEngine.ImportIntoScene(table, options: ConvertOptions.SkipNone);
-			var tableComponent = go.GetComponent<TableAuthoring>();
+			var tableComponent = go.GetComponent<TableComponent>();
 
 			var gameEngineLamps = new[] {
 				new GamelogicEngineLamp("12") { Description = "Foobar", DeviceHint = "^_foobar_$"}
@@ -129,7 +129,7 @@ namespace VisualPinball.Unity.Test
 				.Build();
 
 			var go = VpxImportEngine.ImportIntoScene(table, options: ConvertOptions.SkipNone);
-			var tableComponent = go.GetComponent<TableAuthoring>();
+			var tableComponent = go.GetComponent<TableComponent>();
 
 			var gameEngineLamps = new[] {
 				new GamelogicEngineLamp("rgb") { Description = "RGB", DeviceHint = "rgb"},
@@ -146,7 +146,7 @@ namespace VisualPinball.Unity.Test
 			tableComponent.MappingConfig.Lamps[0].Blue.Should().Be("b");
 			tableComponent.MappingConfig.Lamps[0].Description.Should().Be("RGB");
 			tableComponent.MappingConfig.Lamps[0].Device.name.Should().Be("my_rgb_light");
-			tableComponent.MappingConfig.Lamps[0].DeviceItem.Should().Be(LightAuthoring.LampIdDefault);
+			tableComponent.MappingConfig.Lamps[0].DeviceItem.Should().Be(LightComponent.LampIdDefault);
 		}
 
 		[Test]
@@ -157,7 +157,7 @@ namespace VisualPinball.Unity.Test
 				.Build();
 
 			var go = VpxImportEngine.ImportIntoScene(table, options: ConvertOptions.SkipNone);
-			var tableComponent = go.GetComponent<TableAuthoring>();
+			var tableComponent = go.GetComponent<TableComponent>();
 
 			var gameEngineLamps = new[] {
 				new GamelogicEngineLamp("g") { Description = "RGB", MainLampIdOfGreen = "rgb"},
@@ -185,7 +185,7 @@ namespace VisualPinball.Unity.Test
 				.Build();
 
 			var go = VpxImportEngine.ImportIntoScene(table, options: ConvertOptions.SkipNone);
-			var tableComponent = go.GetComponent<TableAuthoring>();
+			var tableComponent = go.GetComponent<TableComponent>();
 
 			var gameEngineLamps = new[] {
 				new GamelogicEngineLamp("11")
@@ -195,8 +195,8 @@ namespace VisualPinball.Unity.Test
 			tableComponent.MappingConfig.PopulateLamps(gameEngineLamps, tableComponent);
 			tableComponent.MappingConfig.AddLamp(new LampMapping {
 				Id = "12",
-				Device = go.transform.Find("Playfield/Lights/l12").GetComponent<LightAuthoring>(),
-				DeviceItem = LightAuthoring.LampIdDefault
+				Device = go.transform.Find("Playfield/Lights/l12").GetComponent<LightComponent>(),
+				DeviceItem = LightComponent.LampIdDefault
 			});
 
 			var lampIds = tableComponent.MappingConfig.GetLamps(gameEngineLamps).ToArray();

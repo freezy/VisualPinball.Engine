@@ -36,8 +36,8 @@ using VisualPinball.Engine.VPT.Trigger;
 namespace VisualPinball.Unity
 {
 	[AddComponentMenu("Visual Pinball/Game Item/Trigger")]
-	public class TriggerAuthoring : ItemMainRenderableAuthoring<TriggerData>,
-		ITriggerAuthoring, IDragPointsAuthoring, IOnSurfaceAuthoring, IConvertGameObjectToEntity
+	public class TriggerComponent : ItemMainRenderableComponent<TriggerData>,
+		ITriggerComponent, IDragPointsComponent, IOnSurfaceComponent, IConvertGameObjectToEntity
 	{
 		#region Data
 
@@ -49,10 +49,10 @@ namespace VisualPinball.Unity
 		public float Rotation;
 
 		[SerializeField]
-		[TypeRestriction(typeof(ISurfaceAuthoring), PickerLabel = "Walls & Ramps", UpdateTransforms = true)]
+		[TypeRestriction(typeof(ISurfaceComponent), PickerLabel = "Walls & Ramps", UpdateTransforms = true)]
 		[Tooltip("On which surface this surface is attached to. Updates Z-translation.")]
 		public MonoBehaviour _surface;
-		public ISurfaceAuthoring Surface { get => _surface as ISurfaceAuthoring; set => _surface = value as MonoBehaviour; }
+		public ISurfaceComponent Surface { get => _surface as ISurfaceComponent; set => _surface = value as MonoBehaviour; }
 
 		[SerializeField]
 		private DragPointData[] _dragPoints;
@@ -65,14 +65,14 @@ namespace VisualPinball.Unity
 		public override ItemType ItemType => ItemType.Trigger;
 		public override string ItemName => "Trigger";
 
-		public override IEnumerable<Type> ValidParents => TriggerColliderAuthoring.ValidParentTypes
-			.Concat(TriggerMeshAuthoring.ValidParentTypes)
+		public override IEnumerable<Type> ValidParents => TriggerColliderComponent.ValidParentTypes
+			.Concat(TriggerMeshComponent.ValidParentTypes)
 			.Distinct();
 
 		public override TriggerData InstantiateData() => new TriggerData();
 
-		protected override Type MeshAuthoringType { get; } = typeof(ItemMeshAuthoring<TriggerData, TriggerAuthoring>);
-		protected override Type ColliderAuthoringType { get; } = typeof(ItemColliderAuthoring<TriggerData, TriggerAuthoring>);
+		protected override Type MeshAuthoringType { get; } = typeof(ItemMeshComponent<TriggerData, TriggerComponent>);
+		protected override Type ColliderAuthoringType { get; } = typeof(ItemColliderComponent<TriggerData, TriggerComponent>);
 
 		public const string SwitchItem = "trigger_switch";
 
@@ -86,7 +86,7 @@ namespace VisualPinball.Unity
 
 		public SwitchDefault SwitchDefault => SwitchDefault.Configurable;
 
-		IEnumerable<GamelogicEngineSwitch> IDeviceAuthoring<GamelogicEngineSwitch>.AvailableDeviceItems => AvailableSwitches;
+		IEnumerable<GamelogicEngineSwitch> IDeviceComponent<GamelogicEngineSwitch>.AvailableDeviceItems => AvailableSwitches;
 
 		#endregion
 
@@ -116,9 +116,9 @@ namespace VisualPinball.Unity
 		{
 			Convert(entity, dstManager);
 
-			var collComponent = GetComponentInChildren<TriggerColliderAuthoring>();
-			var animComponent = GetComponentInChildren<TriggerAnimationAuthoring>();
-			var meshComponent = GetComponentInChildren<TriggerMeshAuthoring>();
+			var collComponent = GetComponentInChildren<TriggerColliderComponent>();
+			var animComponent = GetComponentInChildren<TriggerAnimationComponent>();
+			var meshComponent = GetComponentInChildren<TriggerMeshComponent>();
 			if (collComponent && animComponent && meshComponent) {
 				dstManager.AddComponentData(entity, new TriggerAnimationData());
 				dstManager.AddComponentData(entity, new TriggerMovementData());
@@ -146,7 +146,7 @@ namespace VisualPinball.Unity
 			DragPoints = data.DragPoints;
 
 			// mesh
-			var meshComponent = GetComponent<TriggerMeshAuthoring>();
+			var meshComponent = GetComponent<TriggerMeshComponent>();
 			if (meshComponent) {
 				meshComponent.Shape = data.Shape;
 				meshComponent.WireThickness = data.WireThickness;
@@ -154,7 +154,7 @@ namespace VisualPinball.Unity
 			}
 
 			// collider
-			var collComponent = GetComponentInChildren<TriggerColliderAuthoring>();
+			var collComponent = GetComponentInChildren<TriggerColliderComponent>();
 			if (collComponent) {
 				collComponent.enabled = data.IsEnabled;
 				collComponent.HitHeight = data.HitHeight;
@@ -163,7 +163,7 @@ namespace VisualPinball.Unity
 			}
 
 			// animation
-			var animComponent = GetComponentInChildren<TriggerAnimationAuthoring>();
+			var animComponent = GetComponentInChildren<TriggerAnimationComponent>();
 			if (animComponent) {
 				animComponent.AnimSpeed = data.AnimSpeed;
 				updatedComponents.Add(animComponent);
@@ -171,12 +171,12 @@ namespace VisualPinball.Unity
 			return updatedComponents;
 		}
 
-		public override IEnumerable<MonoBehaviour> SetReferencedData(TriggerData data, Table table, IMaterialProvider materialProvider, ITextureProvider textureProvider, Dictionary<string, IItemMainAuthoring> components)
+		public override IEnumerable<MonoBehaviour> SetReferencedData(TriggerData data, Table table, IMaterialProvider materialProvider, ITextureProvider textureProvider, Dictionary<string, IItemMainComponent> components)
 		{
-			Surface = GetAuthoring<SurfaceAuthoring>(components, data.Surface);
+			Surface = GetAuthoring<SurfaceComponent>(components, data.Surface);
 
 			// mesh
-			var meshComponent = GetComponent<TriggerMeshAuthoring>();
+			var meshComponent = GetComponent<TriggerMeshComponent>();
 			if (meshComponent) {
 				meshComponent.CreateMesh(data, table, textureProvider, materialProvider);
 				meshComponent.enabled = data.IsVisible;
@@ -201,14 +201,14 @@ namespace VisualPinball.Unity
 			data.IsVisible = GetEnabled<Renderer>();
 
 			// mesh
-			var meshComponent = GetComponent<TriggerMeshAuthoring>();
+			var meshComponent = GetComponent<TriggerMeshComponent>();
 			if (meshComponent) {
 				data.WireThickness = meshComponent.WireThickness;
 				data.Shape = meshComponent.Shape;
 			}
 
 			// collider
-			var collComponent = GetComponentInChildren<TriggerColliderAuthoring>();
+			var collComponent = GetComponentInChildren<TriggerColliderComponent>();
 			if (collComponent) {
 				data.IsEnabled = collComponent.gameObject.activeInHierarchy;
 				data.HitHeight = collComponent.HitHeight;
@@ -218,7 +218,7 @@ namespace VisualPinball.Unity
 			}
 
 			// animation
-			var animComponent = GetComponentInChildren<TriggerAnimationAuthoring>();
+			var animComponent = GetComponentInChildren<TriggerAnimationComponent>();
 			if (animComponent) {
 				animComponent.AnimSpeed = data.AnimSpeed;
 			}

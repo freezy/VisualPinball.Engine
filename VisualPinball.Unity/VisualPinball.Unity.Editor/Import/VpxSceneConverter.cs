@@ -61,8 +61,8 @@ namespace VisualPinball.Unity.Editor
 		private readonly ConvertOptions _options;
 
 		private GameObject _tableGo;
-		private TableAuthoring _tableComponent;
-		private PlayfieldAuthoring _playfieldComponent;
+		private TableComponent _tableComponent;
+		private PlayfieldComponent _playfieldComponent;
 
 		private GameObject _playfieldGo;
 
@@ -100,11 +100,11 @@ namespace VisualPinball.Unity.Editor
 		/// Creates a converter based on an existing table in the scene.
 		/// </summary>
 		/// <param name="tableComponent">Existing component</param>
-		public VpxSceneConverter(TableAuthoring tableComponent)
+		public VpxSceneConverter(TableComponent tableComponent)
 		{
 			_options = new ConvertOptions();
 			_tableGo = tableComponent.gameObject;
-			var playfieldAuthoring = _tableGo.GetComponentInChildren<PlayfieldAuthoring>();
+			var playfieldAuthoring = _tableGo.GetComponentInChildren<PlayfieldComponent>();
 			if (!playfieldAuthoring) {
 				throw new InvalidOperationException("Cannot find playfield hierarchy.");
 			}
@@ -234,7 +234,7 @@ namespace VisualPinball.Unity.Editor
 		/// is correctly applied.
 		/// </summary>
 		/// <param name="prefabLookup">A dictionary with lower-case names as key, and created prefabs as values.</param>
-		private Dictionary<string, IItemMainAuthoring> UpdateGameItems(Dictionary<string, IVpxPrefab> prefabLookup)
+		private Dictionary<string, IItemMainComponent> UpdateGameItems(Dictionary<string, IVpxPrefab> prefabLookup)
 		{
 			var componentLookup = prefabLookup.ToDictionary(x => x.Key, x => x.Value.MainComponent);
 			foreach (var prefab in prefabLookup.Values) {
@@ -271,7 +271,7 @@ namespace VisualPinball.Unity.Editor
 			return componentLookup;
 		}
 
-		private void FinalizeGameItems(Dictionary<string, IItemMainAuthoring> componentLookup)
+		private void FinalizeGameItems(Dictionary<string, IItemMainComponent> componentLookup)
 		{
 			// convert non-renderables
 			foreach (var item in _sourceContainer.NonRenderables) {
@@ -288,7 +288,7 @@ namespace VisualPinball.Unity.Editor
 			EditorSceneManager.MarkSceneDirty(SceneManager.GetActiveScene());
 		}
 
-		internal IVpxPrefab InstantiateAndPersistPrefab(IItem item, Dictionary<string, IItemMainAuthoring> components = null)
+		internal IVpxPrefab InstantiateAndPersistPrefab(IItem item, Dictionary<string, IItemMainComponent> components = null)
 		{
 			var prefab = InstantiateAndParentPrefab(item);
 			prefab.SetData();
@@ -450,7 +450,7 @@ namespace VisualPinball.Unity.Editor
 			}
 		}
 
-		private void ConfigurePlayer(Dictionary<string, IItemMainAuthoring> components)
+		private void ConfigurePlayer(Dictionary<string, IItemMainComponent> components)
 		{
 			// add the player script and default game engine
 			_tableGo.AddComponent<Player>();
@@ -465,7 +465,7 @@ namespace VisualPinball.Unity.Editor
 			_tableComponent.RepopulateHardware(dga);
 		}
 
-		private void CreateTrough(Dictionary<string, IItemMainAuthoring> components)
+		private void CreateTrough(Dictionary<string, IItemMainComponent> components)
 		{
 			var troughData = new TroughData("Trough") {
 				BallCount = 4,
@@ -539,20 +539,20 @@ namespace VisualPinball.Unity.Editor
 			var backglassGo = new GameObject("Backglass");
 			var cabinetGo = new GameObject("Cabinet");
 
-			_tableComponent = _tableGo.AddComponent<TableAuthoring>();
+			_tableComponent = _tableGo.AddComponent<TableComponent>();
 			_tableComponent.SetData(_sourceTable.Data);
 
 			_playfieldGo.transform.SetParent(_tableGo.transform, false);
 			backglassGo.transform.SetParent(_tableGo.transform, false);
 			cabinetGo.transform.SetParent(_tableGo.transform, false);
 
-			_playfieldComponent = _playfieldGo.AddComponent<PlayfieldAuthoring>();
-			_playfieldGo.AddComponent<PlayfieldColliderAuthoring>();
-			_playfieldGo.AddComponent<PlayfieldMeshAuthoring>();
+			_playfieldComponent = _playfieldGo.AddComponent<PlayfieldComponent>();
+			_playfieldGo.AddComponent<PlayfieldColliderComponent>();
+			_playfieldGo.AddComponent<PlayfieldMeshComponent>();
 			_playfieldGo.AddComponent<MeshFilter>();
-			_playfieldGo.transform.localRotation = PlayfieldAuthoring.GlobalRotation;
-			_playfieldGo.transform.localPosition = new Vector3(-_sourceTable.Width / 2 * PlayfieldAuthoring.GlobalScale, 0f, _sourceTable.Height / 2 * PlayfieldAuthoring.GlobalScale);
-			_playfieldGo.transform.localScale = new Vector3(PlayfieldAuthoring.GlobalScale, PlayfieldAuthoring.GlobalScale, PlayfieldAuthoring.GlobalScale);
+			_playfieldGo.transform.localRotation = PlayfieldComponent.GlobalRotation;
+			_playfieldGo.transform.localPosition = new Vector3(-_sourceTable.Width / 2 * PlayfieldComponent.GlobalScale, 0f, _sourceTable.Height / 2 * PlayfieldComponent.GlobalScale);
+			_playfieldGo.transform.localScale = new Vector3(PlayfieldComponent.GlobalScale, PlayfieldComponent.GlobalScale, PlayfieldComponent.GlobalScale);
 			_playfieldComponent.SetData(_sourceTable.Data);
 		}
 

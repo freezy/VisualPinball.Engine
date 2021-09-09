@@ -21,8 +21,8 @@ using VisualPinball.Engine.VPT.HitTarget;
 
 namespace VisualPinball.Unity.Editor
 {
-	[CustomEditor(typeof(DropTargetAnimationAuthoring)), CanEditMultipleObjects]
-	public class DropTargetAnimationInspector : ItemAnimationInspector<HitTargetData, DropTargetAuthoring, DropTargetAnimationAuthoring>
+	[CustomEditor(typeof(DropTargetAnimationComponent)), CanEditMultipleObjects]
+	public class DropTargetAnimationInspector : ItemAnimationInspector<HitTargetData, DropTargetComponent, DropTargetAnimationComponent>
 	{
 		private SerializedProperty _isDroppedProperty;
 		private SerializedProperty _speedProperty;
@@ -32,9 +32,9 @@ namespace VisualPinball.Unity.Editor
 		{
 			base.OnEnable();
 
-			_isDroppedProperty = serializedObject.FindProperty(nameof(DropTargetAnimationAuthoring.IsDropped));
-			_speedProperty = serializedObject.FindProperty(nameof(DropTargetAnimationAuthoring.Speed));
-			_raiseDelayProperty = serializedObject.FindProperty(nameof(DropTargetAnimationAuthoring.RaiseDelay));
+			_isDroppedProperty = serializedObject.FindProperty(nameof(DropTargetAnimationComponent.IsDropped));
+			_speedProperty = serializedObject.FindProperty(nameof(DropTargetAnimationComponent.Speed));
+			_raiseDelayProperty = serializedObject.FindProperty(nameof(DropTargetAnimationComponent.RaiseDelay));
 		}
 
 		public override void OnInspectorGUI()

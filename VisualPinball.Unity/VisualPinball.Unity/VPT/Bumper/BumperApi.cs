@@ -22,7 +22,7 @@ using VisualPinball.Engine.VPT.Bumper;
 
 namespace VisualPinball.Unity
 {
-	public class BumperApi : ItemCollidableApi<BumperAuthoring, BumperColliderAuthoring, BumperData>,
+	public class BumperApi : ItemCollidableApi<BumperComponent, BumperColliderComponent, BumperData>,
 		IApiInitializable, IApiHittable, IApiSwitchDevice, IApiSwitch, IApiCoil, IApiCoilDevice, IApiWireDeviceDest
 	{
 		/// <summary>

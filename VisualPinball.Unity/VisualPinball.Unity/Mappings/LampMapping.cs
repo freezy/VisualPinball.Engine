@@ -29,7 +29,7 @@ namespace VisualPinball.Unity
 
 		public string Description = string.Empty;
 
-		public ILampDeviceAuthoring Device;
+		public ILampDeviceComponent Device;
 
 		public string DeviceItem = string.Empty;
 

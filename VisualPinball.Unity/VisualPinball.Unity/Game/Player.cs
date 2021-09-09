@@ -87,14 +87,14 @@ namespace VisualPinball.Unity
 		internal static readonly Entity PlayfieldEntity = new Entity {Index = -3, Version = 0}; // a fake entity we just use for reference
 
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
-		private TableAuthoring _tableComponent;
-		private PlayfieldAuthoring _playfieldComponent;
+		private TableComponent _tableComponent;
+		private PlayfieldComponent _playfieldComponent;
 
 		#region Access
 
-		internal IApiSwitch Switch(ISwitchDeviceAuthoring component, string switchItem) => component != null ? _switchPlayer.Switch(component, switchItem) : null;
-		internal IApiCoil Coil(ICoilDeviceAuthoring component, string coilItem) => component != null ? _coilPlayer.Coil(component, coilItem) : null;
-		internal IApiWireDeviceDest WireDevice(IWireableAuthoring c) => _wirePlayer.WireDevice(c);
+		internal IApiSwitch Switch(ISwitchDeviceComponent component, string switchItem) => component != null ? _switchPlayer.Switch(component, switchItem) : null;
+		internal IApiCoil Coil(ICoilDeviceComponent component, string coilItem) => component != null ? _coilPlayer.Coil(component, coilItem) : null;
+		internal IApiWireDeviceDest WireDevice(IWireableComponent c) => _wirePlayer.WireDevice(c);
 		public Dictionary<string, bool> SwitchStatusesClosed => _switchPlayer.SwitchStatusesClosed;
 		public Dictionary<string, bool> CoilStatuses => _coilPlayer.CoilStatuses;
 		public Dictionary<string, float> LampStatuses => _lampPlayer.LampStatuses;
@@ -111,8 +111,8 @@ namespace VisualPinball.Unity
 
 		private void Awake()
 		{
-			_tableComponent = GetComponent<TableAuthoring>();
-			_playfieldComponent = GetComponentInChildren<PlayfieldAuthoring>();
+			_tableComponent = GetComponent<TableComponent>();
+			_playfieldComponent = GetComponentInChildren<PlayfieldComponent>();
 			var engineComponent = GetComponent<IGamelogicEngine>();
 
 			_tableComponent.TableContainer.Refresh();
@@ -178,14 +178,14 @@ namespace VisualPinball.Unity
 
 		#region Registrations
 
-		public void RegisterBumper(BumperAuthoring component, Entity entity, Entity parentEntity)
+		public void RegisterBumper(BumperComponent component, Entity entity, Entity parentEntity)
 		{
 			Register(TableApi.Bumpers, new BumperApi(component.gameObject, entity, parentEntity, this), component, entity);
-			RegisterTransform<BumperRingAnimationAuthoring>(BumperRingTransforms, component, entity);
-			RegisterTransform<BumperSkirtAnimationAuthoring>(BumperSkirtTransforms, component, entity);
+			RegisterTransform<BumperRingAnimationComponent>(BumperRingTransforms, component, entity);
+			RegisterTransform<BumperSkirtAnimationComponent>(BumperSkirtTransforms, component, entity);
 		}
 
-		public void RegisterFlipper(FlipperAuthoring component, Entity entity, Entity parentEntity)
+		public void RegisterFlipper(FlipperComponent component, Entity entity, Entity parentEntity)
 		{
 			Register(TableApi.Flippers, new FlipperApi(component.gameObject, entity, parentEntity, this), component, entity);
 			FlipperTransforms[entity] = component.gameObject.transform;
@@ -195,30 +195,30 @@ namespace VisualPinball.Unity
 			}
 		}
 
-		public void RegisterGate(GateAuthoring component, Entity entity, Entity parentEntity)
+		public void RegisterGate(GateComponent component, Entity entity, Entity parentEntity)
 		{
 			Register(TableApi.Gates, new GateApi(component.gameObject, entity, parentEntity, this), component, entity);
-			RegisterTransform<GateWireAnimationAuthoring>(GateWireTransforms, component, entity);
+			RegisterTransform<GateWireAnimationComponent>(GateWireTransforms, component, entity);
 		}
 
-		public void RegisterHitTarget(TargetAuthoring component, Entity entity, Entity parentEntity)
+		public void RegisterHitTarget(TargetComponent component, Entity entity, Entity parentEntity)
 		{
 			Register(TableApi.HitTargets, new HitTargetApi(component.gameObject, entity, parentEntity, this), component, entity);
-			RegisterTransform<HitTargetAnimationAuthoring>(HitTargetTransforms, component, entity);
-			RegisterTransform<DropTargetAnimationAuthoring>(DropTargetTransforms, component, entity);
+			RegisterTransform<HitTargetAnimationComponent>(HitTargetTransforms, component, entity);
+			RegisterTransform<DropTargetAnimationComponent>(DropTargetTransforms, component, entity);
 		}
 
-		public void RegisterKicker(KickerAuthoring component, Entity entity, Entity parentEntity)
+		public void RegisterKicker(KickerComponent component, Entity entity, Entity parentEntity)
 		{
 			Register(TableApi.Kickers, new KickerApi(component.gameObject, entity, parentEntity, this), component, entity);
 		}
 
-		public void RegisterLamp(LightAuthoring component)
+		public void RegisterLamp(LightComponent component)
 		{
 			Register(TableApi.Lights, new LightApi(component.gameObject, this), component);
 		}
 
-		public void RegisterPlunger(PlungerAuthoring component, Entity entity, Entity parentEntity, InputActionReference actionRef)
+		public void RegisterPlunger(PlungerComponent component, Entity entity, Entity parentEntity, InputActionReference actionRef)
 		{
 			var plungerApi = new PlungerApi(component.gameObject, entity, parentEntity, this);
 			Register(TableApi.Plungers, plungerApi, component, entity);
@@ -237,33 +237,33 @@ namespace VisualPinball.Unity
 			_colliderGenerators.Add(PlayfieldApi);
 		}
 
-		public void RegisterPrimitive(PrimitiveAuthoring component, Entity entity, Entity parentEntity)
+		public void RegisterPrimitive(PrimitiveComponent component, Entity entity, Entity parentEntity)
 		{
 			Register(TableApi.Primitives, new PrimitiveApi(component.gameObject, entity, parentEntity, this), component, entity);
 		}
 
-		public void RegisterRamp(RampAuthoring component, Entity entity, Entity parentEntity)
+		public void RegisterRamp(RampComponent component, Entity entity, Entity parentEntity)
 		{
 			Register(TableApi.Ramps, new RampApi(component.gameObject, entity, parentEntity, this), component, entity);
 		}
 
-		public void RegisterRubber(RubberAuthoring component, Entity entity, Entity parentEntity)
+		public void RegisterRubber(RubberComponent component, Entity entity, Entity parentEntity)
 		{
 			Register(TableApi.Rubbers, new RubberApi(component.gameObject, entity, parentEntity, this), component, entity);
 		}
 
-		public void RegisterSpinner(SpinnerAuthoring component, Entity entity, Entity parentEntity)
+		public void RegisterSpinner(SpinnerComponent component, Entity entity, Entity parentEntity)
 		{
 			Register(TableApi.Spinners, new SpinnerApi(component.gameObject, entity, parentEntity, this), component, entity);
-			RegisterTransform<SpinnerPlateAnimationAuthoring>(SpinnerPlateTransforms, component, entity);
+			RegisterTransform<SpinnerPlateAnimationComponent>(SpinnerPlateTransforms, component, entity);
 		}
 
-		public void RegisterSurface(SurfaceAuthoring component, Entity entity, Entity parentEntity)
+		public void RegisterSurface(SurfaceComponent component, Entity entity, Entity parentEntity)
 		{
 			Register(TableApi.Surfaces, new SurfaceApi(component.gameObject, entity, parentEntity, this), component, entity);
 		}
 
-		public void RegisterTrigger(TriggerAuthoring component, Entity entity, Entity parentEntity)
+		public void RegisterTrigger(TriggerComponent component, Entity entity, Entity parentEntity)
 		{
 			Register(TableApi.Triggers, new TriggerApi(component.gameObject, entity, parentEntity, this), component, entity);
 			TriggerTransforms[entity] = component.gameObject.transform;
@@ -271,12 +271,12 @@ namespace VisualPinball.Unity
 
 		public void RegisterTrigger(TriggerData data, Entity entity, GameObject go)
 		{
-			var component = go.AddComponent<TriggerAuthoring>();
+			var component = go.AddComponent<TriggerComponent>();
 			component.SetData(data);
 			Register(TableApi.Triggers, new TriggerApi(go, entity, Entity.Null, this), component, entity);
 		}
 
-		public void RegisterTrough(TroughAuthoring component)
+		public void RegisterTrough(TroughComponent component)
 		{
 			Register(TableApi.Troughs, new TroughApi(component.gameObject, this), component);
 		}
@@ -295,21 +295,21 @@ namespace VisualPinball.Unity
 				_slingshots[entity] = slingshot;
 			}
 			if (api is IApiSwitchDevice switchDevice) {
-				if (component is ISwitchDeviceAuthoring switchDeviceAuthoring) {
+				if (component is ISwitchDeviceComponent switchDeviceAuthoring) {
 					_switchPlayer.RegisterSwitchDevice(switchDeviceAuthoring, switchDevice);
 				} else  {
 					Logger.Warn($"{component.GetType()} is not of type ISwitchDeviceAuthoring while ${api.GetType()} is of type IApiSwitchDevice.");
 				}
 			}
 			if (api is IApiCoilDevice coilDevice) {
-				if (component is ICoilDeviceAuthoring coilDeviceAuthoring) {
+				if (component is ICoilDeviceComponent coilDeviceAuthoring) {
 					_coilPlayer.RegisterCoilDevice(coilDeviceAuthoring, coilDevice);
 				} else {
 					Logger.Warn($"{component.GetType()} is not of type ICoilDeviceAuthoring while ${api.GetType()} is of type IApiCoilDevice.");
 				}
 			}
 			if (api is IApiWireDeviceDest wireDevice) {
-				if (component is IWireableAuthoring wireableDeviceAuthoring) {
+				if (component is IWireableComponent wireableDeviceAuthoring) {
 					_wirePlayer.RegisterWireDevice(wireableDeviceAuthoring, wireDevice);
 				} else {
 					Logger.Warn($"{component.GetType()} is not of type ICoilDeviceAuthoring while ${api.GetType()} is of type IApiWireDeviceDest.");
@@ -317,7 +317,7 @@ namespace VisualPinball.Unity
 			}
 
 			if (api is IApiLamp lamp) {
-				if (component is ILampDeviceAuthoring lampAuthoring) {
+				if (component is ILampDeviceComponent lampAuthoring) {
 					_lampPlayer.RegisterLamp(lampAuthoring, lamp);
 				} else {
 					Logger.Warn($"{component.GetType()} is not of type ILampAuthoring while ${api.GetType()} is of type IApiLamp.");

@@ -26,19 +26,19 @@ namespace VisualPinball.Unity
 		/// <summary>
 		/// Maps the wire destination component to the wire destination API.
 		/// </summary>
-		private readonly Dictionary<IWireableAuthoring, IApiWireDeviceDest> _wireDevices = new Dictionary<IWireableAuthoring, IApiWireDeviceDest>();
+		private readonly Dictionary<IWireableComponent, IApiWireDeviceDest> _wireDevices = new Dictionary<IWireableComponent, IApiWireDeviceDest>();
 		private readonly Dictionary<string, List<WireDestConfig>> _keyWireAssignments = new Dictionary<string, List<WireDestConfig>>();
 
-		private TableAuthoring _tableComponent;
+		private TableComponent _tableComponent;
 		private InputManager _inputManager;
 		private SwitchPlayer _switchPlayer;
 
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
-		internal IApiWireDeviceDest WireDevice(IWireableAuthoring c) => _wireDevices.ContainsKey(c) ? _wireDevices[c] : null;
-		internal void RegisterWireDevice(IWireableAuthoring component, IApiWireDeviceDest wireDeviceApi) => _wireDevices[component] = wireDeviceApi;
+		internal IApiWireDeviceDest WireDevice(IWireableComponent c) => _wireDevices.ContainsKey(c) ? _wireDevices[c] : null;
+		internal void RegisterWireDevice(IWireableComponent component, IApiWireDeviceDest wireDeviceApi) => _wireDevices[component] = wireDeviceApi;
 
-		public void Awake(TableAuthoring tableComponent, InputManager inputManager, SwitchPlayer switchPlayer)
+		public void Awake(TableComponent tableComponent, InputManager inputManager, SwitchPlayer switchPlayer)
 		{
 			_tableComponent = tableComponent;
 			_inputManager = inputManager;
@@ -179,7 +179,7 @@ namespace VisualPinball.Unity
 
 	public class WireDestConfig
 	{
-		public readonly IWireableAuthoring Device;
+		public readonly IWireableComponent Device;
 		public readonly string DeviceItem;
 		public readonly int PulseDelay;
 		public bool IsPulseSource;

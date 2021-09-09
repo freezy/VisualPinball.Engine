@@ -25,13 +25,13 @@ namespace VisualPinball.Unity
 	public class TriggerColliderGenerator
 	{
 		private readonly TriggerApi _api;
-		private readonly TriggerAuthoring _component;
-		private readonly TriggerMeshAuthoring _meshComponent;
-		private readonly TriggerColliderAuthoring _colliderComponent;
+		private readonly TriggerComponent _component;
+		private readonly TriggerMeshComponent _meshComponent;
+		private readonly TriggerColliderComponent _colliderComponent;
 
 		private bool IsRound => _meshComponent.Shape == TriggerShape.TriggerStar || _meshComponent.Shape == TriggerShape.TriggerButton;
 
-		public TriggerColliderGenerator(TriggerApi triggerApi, TriggerAuthoring component, TriggerColliderAuthoring colliderComponent, TriggerMeshAuthoring meshComponent)
+		public TriggerColliderGenerator(TriggerApi triggerApi, TriggerComponent component, TriggerColliderComponent colliderComponent, TriggerMeshComponent meshComponent)
 		{
 			_api = triggerApi;
 			_component = component;

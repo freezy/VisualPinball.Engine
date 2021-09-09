@@ -24,8 +24,8 @@ using Mesh = VisualPinball.Engine.VPT.Mesh;
 
 namespace VisualPinball.Unity
 {
-	public abstract class  ItemMainRenderableAuthoring<TData> : ItemMainAuthoring<TData>,
-		IItemMainRenderableAuthoring, IOnPlayfieldAuthoring
+	public abstract class  ItemMainRenderableComponent<TData> : ItemMainComponent<TData>,
+		IItemMainRenderableComponent, IOnPlayfieldComponent
 		where TData : ItemData
 	{
 		public virtual bool CanBeTransformed => true;
@@ -42,10 +42,10 @@ namespace VisualPinball.Unity
 		/// <summary>
 		/// Returns all child mesh components linked to this data.
 		/// </summary>
-		private IEnumerable<IItemMeshAuthoring> MeshComponents => MeshAuthoringType != null ?
+		private IEnumerable<IItemMeshComponent> MeshComponents => MeshAuthoringType != null ?
 			GetComponentsInChildren(MeshAuthoringType, true)
-				.Select(c => (IItemMeshAuthoring) c)
-				/*.Where(ma => ma.ItemData == _data)*/ : Array.Empty<IItemMeshAuthoring>();
+				.Select(c => (IItemMeshComponent) c)
+				/*.Where(ma => ma.ItemData == _data)*/ : Array.Empty<IItemMeshComponent>();
 
 		private IEnumerable<IItemColliderAuthoring> ColliderComponents => ColliderAuthoringType != null ?
 			GetComponentsInChildren(ColliderAuthoringType, true)
@@ -83,13 +83,13 @@ namespace VisualPinball.Unity
 		protected void Convert(Entity entity, EntityManager dstManager)
 		{
 			Entity = entity;
-			var parentAuthoring = ParentAuthoring;
-			if (parentAuthoring != null && !(parentAuthoring is TableAuthoring)) {
+			var parentAuthoring = ParentComponent;
+			if (parentAuthoring != null && !(parentAuthoring is TableComponent)) {
 				ParentEntity = parentAuthoring.Entity;
 			}
 		}
 
-		protected float SurfaceHeight(ISurfaceAuthoring surface, Vector2 position)
+		protected float SurfaceHeight(ISurfaceComponent surface, Vector2 position)
 		{
 			return surface?.Height(position) ?? PlayfieldHeight;
 		}

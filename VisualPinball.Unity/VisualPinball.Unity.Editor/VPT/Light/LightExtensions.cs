@@ -23,7 +23,7 @@ namespace VisualPinball.Unity.Editor
 		internal static IVpxPrefab InstantiatePrefab(this Light light)
 		{
 			var prefab = RenderPipeline.Current.PrefabProvider.CreateLight();
-			return new VpxPrefab<Light, LightData, LightAuthoring>(prefab, light);
+			return new VpxPrefab<Light, LightData, LightComponent>(prefab, light);
 		}
 	}
 }

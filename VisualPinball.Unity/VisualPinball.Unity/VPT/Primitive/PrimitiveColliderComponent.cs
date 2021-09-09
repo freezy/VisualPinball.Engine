@@ -25,7 +25,7 @@ using VisualPinball.Engine.VPT.Primitive;
 namespace VisualPinball.Unity
 {
 	[AddComponentMenu("Visual Pinball/Collision/Primitive Collider")]
-	public class PrimitiveColliderAuthoring : ItemColliderAuthoring<PrimitiveData, PrimitiveAuthoring>
+	public class PrimitiveColliderComponent : ItemColliderComponent<PrimitiveData, PrimitiveComponent>
 	{
 		#region Data
 
@@ -49,9 +49,9 @@ namespace VisualPinball.Unity
 		#endregion
 
 		public static readonly Type[] ValidParentTypes = {
-			typeof(PrimitiveAuthoring),
-			typeof(RubberAuthoring),
-			typeof(SurfaceAuthoring)
+			typeof(PrimitiveComponent),
+			typeof(RubberComponent),
+			typeof(SurfaceComponent)
 		};
 
 		public override IEnumerable<Type> ValidParents => ValidParentTypes;

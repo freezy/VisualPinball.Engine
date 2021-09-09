@@ -33,7 +33,7 @@ using VisualPinball.Unity.Playfield;
 namespace VisualPinball.Unity
 {
 	[AddComponentMenu("Visual Pinball/Game Item/Playfield")]
-	public class PlayfieldAuthoring : ItemMainRenderableAuthoring<TableData>
+	public class PlayfieldComponent : ItemMainRenderableComponent<TableData>
 	{
 		public static readonly Quaternion GlobalRotation = Quaternion.Euler(-90, 0, 0);
 		public const float GlobalScale = 0.001f;
@@ -73,18 +73,18 @@ namespace VisualPinball.Unity
 
 		public override TableData InstantiateData() => new TableData();
 
-		protected override Type MeshAuthoringType => typeof(PlayfieldMeshAuthoring);
-		protected override Type ColliderAuthoringType => typeof(PlayfieldColliderAuthoring);
+		protected override Type MeshAuthoringType => typeof(PlayfieldMeshComponent);
+		protected override Type ColliderAuthoringType => typeof(PlayfieldColliderComponent);
 
-		public override IEnumerable<Type> ValidParents => PlayfieldColliderAuthoring.ValidParentTypes
-			.Concat(PlayfieldMeshAuthoring.ValidParentTypes)
+		public override IEnumerable<Type> ValidParents => PlayfieldColliderComponent.ValidParentTypes
+			.Concat(PlayfieldMeshComponent.ValidParentTypes)
 			.Distinct();
 
 		public Rect3D BoundingBox => new Rect3D(Left, Right, Top, Bottom, TableHeight, GlassHeight);
 
 		public float3 Gravity {
 			get {
-				var tableComponent = GetComponentInParent<TableAuthoring>();
+				var tableComponent = GetComponentInParent<TableComponent>();
 				var difficulty = tableComponent ? tableComponent.GlobalDifficulty : 0.2f;
 				var slope = AngleTiltMin + (AngleTiltMax - AngleTiltMin) * difficulty;
 				var strength = PhysicsConstants.DefaultTableGravity;
@@ -95,7 +95,7 @@ namespace VisualPinball.Unity
 		private void Start()
 		{
 			GetComponentInParent<Player>().RegisterPlayfield(gameObject);
-			var meshComp = GetComponentInChildren<PlayfieldMeshAuthoring>();
+			var meshComp = GetComponentInChildren<PlayfieldMeshComponent>();
 			if (meshComp) {
 				World.DefaultGameObjectInjectionWorld.GetOrCreateSystem<StaticNarrowPhaseSystem>().CollideAgainstPlayfieldPlane = meshComp.AutoGenerate;
 			}
@@ -122,7 +122,7 @@ namespace VisualPinball.Unity
 			_playfieldMaterial = data.PlayfieldMaterial;
 
 			// collider data
-			var collComponent = GetComponent<PlayfieldColliderAuthoring>();
+			var collComponent = GetComponent<PlayfieldColliderComponent>();
 			if (collComponent) {
 				collComponent.Gravity = data.Gravity;
 				collComponent.Elasticity = data.Elasticity;
@@ -137,9 +137,9 @@ namespace VisualPinball.Unity
 			return updatedComponents;
 		}
 
-		public override IEnumerable<MonoBehaviour> SetReferencedData(TableData data, Table table, IMaterialProvider materialProvider, ITextureProvider textureProvider, Dictionary<string, IItemMainAuthoring> components)
+		public override IEnumerable<MonoBehaviour> SetReferencedData(TableData data, Table table, IMaterialProvider materialProvider, ITextureProvider textureProvider, Dictionary<string, IItemMainComponent> components)
 		{
-			var meshComponent = GetComponentInChildren<PlayfieldMeshAuthoring>();
+			var meshComponent = GetComponentInChildren<PlayfieldMeshComponent>();
 			if (meshComponent && meshComponent.AutoGenerate) {
 				meshComponent.CreateMesh(data, table, textureProvider, materialProvider);
 			}
@@ -149,7 +149,7 @@ namespace VisualPinball.Unity
 		public IEnumerable<MonoBehaviour> SetReferencedData(PrimitiveData primitiveData, Table table, IMaterialProvider materialProvider, ITextureProvider textureProvider)
 		{
 			var mf = GetComponent<MeshFilter>();
-			var playfieldMeshAuthoring = GetComponent<PlayfieldMeshAuthoring>();
+			var playfieldMeshAuthoring = GetComponent<PlayfieldMeshComponent>();
 			if (!mf || !playfieldMeshAuthoring) {
 				return Array.Empty<MonoBehaviour>();
 			}
@@ -162,7 +162,7 @@ namespace VisualPinball.Unity
 				table.GetTexture(_playfieldImage)
 			);
 			ro.Mesh.Transform(mg.TransformationMatrix(PlayfieldHeight)); // apply transformation to mesh, because this is the playfield
-			ItemMeshAuthoring<PrimitiveData, PrimitiveAuthoring>.CreateMesh(gameObject, ro, "playfield_mesh", textureProvider, materialProvider);
+			ItemMeshComponent<PrimitiveData, PrimitiveComponent>.CreateMesh(gameObject, ro, "playfield_mesh", textureProvider, materialProvider);
 			playfieldMeshAuthoring.AutoGenerate = false;
 
 			updatedComponents.Add(playfieldMeshAuthoring);
@@ -187,7 +187,7 @@ namespace VisualPinball.Unity
 			data.PlayfieldMaterial = _playfieldMaterial;
 
 			// collider data
-			var collComponent = GetComponent<PlayfieldColliderAuthoring>();
+			var collComponent = GetComponent<PlayfieldColliderComponent>();
 			if (collComponent) {
 				data.Gravity = collComponent.Gravity;
 				data.Elasticity = collComponent.Elasticity;

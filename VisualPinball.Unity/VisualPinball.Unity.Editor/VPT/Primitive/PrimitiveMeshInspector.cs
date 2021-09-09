@@ -22,8 +22,8 @@ using VisualPinball.Engine.VPT.Primitive;
 
 namespace VisualPinball.Unity.Editor
 {
-	[CustomEditor(typeof(PrimitiveMeshAuthoring)), CanEditMultipleObjects]
-	public class PrimitiveMeshInspector : ItemMeshInspector<PrimitiveData, PrimitiveAuthoring, PrimitiveMeshAuthoring>
+	[CustomEditor(typeof(PrimitiveMeshComponent)), CanEditMultipleObjects]
+	public class PrimitiveMeshInspector : ItemMeshInspector<PrimitiveData, PrimitiveComponent, PrimitiveMeshComponent>
 	{
 		private SerializedProperty _sidesProperty;
 		private SerializedProperty _useLegacyMeshProperty;
@@ -33,8 +33,8 @@ namespace VisualPinball.Unity.Editor
 		{
 			base.OnEnable();
 
-			_sidesProperty = serializedObject.FindProperty(nameof(PrimitiveMeshAuthoring.Sides));
-			_useLegacyMeshProperty = serializedObject.FindProperty(nameof(PrimitiveMeshAuthoring.UseLegacyMesh));
+			_sidesProperty = serializedObject.FindProperty(nameof(PrimitiveMeshComponent.Sides));
+			_useLegacyMeshProperty = serializedObject.FindProperty(nameof(PrimitiveMeshComponent.UseLegacyMesh));
 		}
 
 		public override void OnInspectorGUI()

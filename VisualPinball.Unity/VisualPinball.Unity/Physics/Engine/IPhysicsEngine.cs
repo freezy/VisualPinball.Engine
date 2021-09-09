@@ -33,9 +33,9 @@ namespace VisualPinball.Unity
 		/// All engines are instantiated, but they should only activate
 		/// themselves when this method is called.
 		/// </remarks>
-		/// <param name="tableAuthoring"></param>
+		/// <param name="tableComponent"></param>
 		/// <param name="ballManager"></param>
-		void Init(TableAuthoring tableAuthoring, BallManager ballManager);
+		void Init(TableComponent tableComponent, BallManager ballManager);
 
 		/// <summary>
 		/// Create a new ball and returns its entity.

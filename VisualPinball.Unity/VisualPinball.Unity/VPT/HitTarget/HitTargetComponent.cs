@@ -19,7 +19,7 @@ using UnityEngine;
 namespace VisualPinball.Unity
 {
 	[AddComponentMenu("Visual Pinball/Game Item/Hit Target")]
-	public class HitTargetAuthoring : TargetAuthoring
+	public class HitTargetComponent : TargetComponent
 	{
 
 	}

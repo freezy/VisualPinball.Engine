@@ -34,8 +34,8 @@ using VisualPinball.Engine.VPT.Table;
 namespace VisualPinball.Unity
 {
 	[AddComponentMenu("Visual Pinball/Game Item/Rubber")]
-	public class RubberAuthoring : ItemMainRenderableAuthoring<RubberData>,
-		IRubberData, IDragPointsAuthoring, IConvertGameObjectToEntity
+	public class RubberComponent : ItemMainRenderableComponent<RubberData>,
+		IRubberData, IDragPointsComponent, IConvertGameObjectToEntity
 	{
 		#region Data
 
@@ -75,12 +75,12 @@ namespace VisualPinball.Unity
 
 		public override RubberData InstantiateData() => new RubberData();
 
-		public override IEnumerable<Type> ValidParents => RubberColliderAuthoring.ValidParentTypes
-			.Concat(RubberMeshAuthoring.ValidParentTypes)
+		public override IEnumerable<Type> ValidParents => RubberColliderComponent.ValidParentTypes
+			.Concat(RubberMeshComponent.ValidParentTypes)
 			.Distinct();
 
-		protected override Type MeshAuthoringType { get; } = typeof(ItemMeshAuthoring<RubberData, RubberAuthoring>);
-		protected override Type ColliderAuthoringType { get; } = typeof(ItemColliderAuthoring<RubberData, RubberAuthoring>);
+		protected override Type MeshAuthoringType { get; } = typeof(ItemMeshComponent<RubberData, RubberComponent>);
+		protected override Type ColliderAuthoringType { get; } = typeof(ItemColliderComponent<RubberData, RubberComponent>);
 
 		#endregion
 
@@ -112,7 +112,7 @@ namespace VisualPinball.Unity
 			DragPoints = data.DragPoints;
 
 			// collider data
-			var collComponent = GetComponentInChildren<RubberColliderAuthoring>();
+			var collComponent = GetComponentInChildren<RubberColliderComponent>();
 			if (collComponent) {
 				collComponent.enabled = data.IsCollidable;
 
@@ -129,10 +129,10 @@ namespace VisualPinball.Unity
 			return updatedComponents;
 		}
 
-		public override IEnumerable<MonoBehaviour> SetReferencedData(RubberData data, Table table, IMaterialProvider materialProvider, ITextureProvider textureProvider, Dictionary<string, IItemMainAuthoring> components)
+		public override IEnumerable<MonoBehaviour> SetReferencedData(RubberData data, Table table, IMaterialProvider materialProvider, ITextureProvider textureProvider, Dictionary<string, IItemMainComponent> components)
 		{
 			// mesh
-			var mesh = GetComponent<RubberMeshAuthoring>();
+			var mesh = GetComponent<RubberMeshComponent>();
 			if (mesh) {
 				mesh.CreateMesh(data, table, textureProvider, materialProvider);
 				mesh.enabled = data.IsVisible;
@@ -140,7 +140,7 @@ namespace VisualPinball.Unity
 			}
 
 			// collider data
-			var collComponent = GetComponentInChildren<RubberColliderAuthoring>();
+			var collComponent = GetComponentInChildren<RubberColliderComponent>();
 			if (collComponent) {
 				collComponent.PhysicsMaterial = materialProvider.GetPhysicsMaterial(data.PhysicsMaterial);
 			}
@@ -166,7 +166,7 @@ namespace VisualPinball.Unity
 			data.IsVisible = GetEnabled<Renderer>();
 
 			// collision
-			var collComponent = GetComponentInChildren<RubberColliderAuthoring>();
+			var collComponent = GetComponentInChildren<RubberColliderComponent>();
 			if (collComponent) {
 				data.IsCollidable = collComponent.enabled;
 

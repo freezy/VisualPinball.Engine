@@ -35,7 +35,7 @@ using Mesh = VisualPinball.Engine.VPT.Mesh;
 namespace VisualPinball.Unity
 {
 	[AddComponentMenu("Visual Pinball/Game Item/Primitive")]
-	public class PrimitiveAuthoring : ItemMainRenderableAuthoring<PrimitiveData>, IMeshGenerator, IConvertGameObjectToEntity
+	public class PrimitiveComponent : ItemMainRenderableComponent<PrimitiveData>, IMeshGenerator, IConvertGameObjectToEntity
 	{
 		#region Data
 
@@ -58,12 +58,12 @@ namespace VisualPinball.Unity
 
 		public override PrimitiveData InstantiateData() => new PrimitiveData();
 
-		public override IEnumerable<Type> ValidParents => PrimitiveColliderAuthoring.ValidParentTypes
-			.Concat(PrimitiveMeshAuthoring.ValidParentTypes)
+		public override IEnumerable<Type> ValidParents => PrimitiveColliderComponent.ValidParentTypes
+			.Concat(PrimitiveMeshComponent.ValidParentTypes)
 			.Distinct();
 
-		protected override Type MeshAuthoringType { get; } = typeof(ItemMeshAuthoring<PrimitiveData, PrimitiveAuthoring>);
-		protected override Type ColliderAuthoringType { get; } = typeof(ItemColliderAuthoring<PrimitiveData, PrimitiveAuthoring>);
+		protected override Type MeshAuthoringType { get; } = typeof(ItemMeshComponent<PrimitiveData, PrimitiveComponent>);
+		protected override Type ColliderAuthoringType { get; } = typeof(ItemColliderComponent<PrimitiveData, PrimitiveComponent>);
 
 		#endregion
 
@@ -102,14 +102,14 @@ namespace VisualPinball.Unity
 			StaticRendering = data.StaticRendering;
 
 			// mesh
-			var meshComponent = GetComponent<PrimitiveMeshAuthoring>();
+			var meshComponent = GetComponent<PrimitiveMeshComponent>();
 			if (meshComponent) {
 				meshComponent.Sides = data.Sides;
 				meshComponent.UseLegacyMesh = !data.Use3DMesh;
 			}
 
 			// collider
-			var collComponent = GetComponent<PrimitiveColliderAuthoring>();
+			var collComponent = GetComponent<PrimitiveColliderComponent>();
 			if (collComponent) {
 
 				if (data.IsToy) {
@@ -133,12 +133,12 @@ namespace VisualPinball.Unity
 			return updatedComponents;
 		}
 
-		public override IEnumerable<MonoBehaviour> SetReferencedData(PrimitiveData data, Table table, IMaterialProvider materialProvider, ITextureProvider textureProvider, Dictionary<string, IItemMainAuthoring> components)
+		public override IEnumerable<MonoBehaviour> SetReferencedData(PrimitiveData data, Table table, IMaterialProvider materialProvider, ITextureProvider textureProvider, Dictionary<string, IItemMainComponent> components)
 		{
 			var updatedComponents = new List<MonoBehaviour> { this };
 
 			// mesh
-			var meshComponent = GetComponent<PrimitiveMeshAuthoring>();
+			var meshComponent = GetComponent<PrimitiveMeshComponent>();
 			if (meshComponent) {
 				meshComponent.CreateMesh(data, table, textureProvider, materialProvider);
 				meshComponent.enabled = data.IsVisible;
@@ -172,7 +172,7 @@ namespace VisualPinball.Unity
 			}
 
 			// mesh
-			var meshComponent = GetComponent<PrimitiveMeshAuthoring>();
+			var meshComponent = GetComponent<PrimitiveMeshComponent>();
 			if (meshComponent) {
 				data.IsVisible = GetEnabled<Renderer>();
 				data.Sides = meshComponent.Sides;
@@ -189,7 +189,7 @@ namespace VisualPinball.Unity
 			// update collision
 			// todo at some point we need to be able to toggle collidable during gameplay,
 			// todo but for now let's keep things static.
-			var collComponent = GetComponent<PrimitiveColliderAuthoring>();
+			var collComponent = GetComponent<PrimitiveColliderComponent>();
 			if (collComponent) {
 				data.IsCollidable = collComponent.enabled;
 				data.IsToy = false;

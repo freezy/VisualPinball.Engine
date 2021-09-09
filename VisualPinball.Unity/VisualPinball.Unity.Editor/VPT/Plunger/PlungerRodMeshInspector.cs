@@ -21,8 +21,8 @@ using VisualPinball.Engine.VPT.Plunger;
 
 namespace VisualPinball.Unity.Editor
 {
-	[CustomEditor(typeof(PlungerRodMeshAuthoring)), CanEditMultipleObjects]
-	public class PlungerRodMeshInspector : ItemMeshInspector<PlungerData, PlungerAuthoring, PlungerRodMeshAuthoring>
+	[CustomEditor(typeof(PlungerRodMeshComponent)), CanEditMultipleObjects]
+	public class PlungerRodMeshInspector : ItemMeshInspector<PlungerData, PlungerComponent, PlungerRodMeshComponent>
 	{
 		private SerializedProperty _rodDiamPullProperty;
 		private SerializedProperty _tipShapeProperty;
@@ -33,11 +33,11 @@ namespace VisualPinball.Unity.Editor
 		protected override void OnEnable()
 		{
 			base.OnEnable();
-			_rodDiamPullProperty = serializedObject.FindProperty(nameof(PlungerRodMeshAuthoring.RodDiam));
-			_tipShapeProperty = serializedObject.FindProperty(nameof(PlungerRodMeshAuthoring.TipShape));
-			_ringGapProperty = serializedObject.FindProperty(nameof(PlungerRodMeshAuthoring.RingGap));
-			_ringDiamProperty = serializedObject.FindProperty(nameof(PlungerRodMeshAuthoring.RingDiam));
-			_ringWidthProperty = serializedObject.FindProperty(nameof(PlungerRodMeshAuthoring.RingWidth));
+			_rodDiamPullProperty = serializedObject.FindProperty(nameof(PlungerRodMeshComponent.RodDiam));
+			_tipShapeProperty = serializedObject.FindProperty(nameof(PlungerRodMeshComponent.TipShape));
+			_ringGapProperty = serializedObject.FindProperty(nameof(PlungerRodMeshComponent.RingGap));
+			_ringDiamProperty = serializedObject.FindProperty(nameof(PlungerRodMeshComponent.RingDiam));
+			_ringWidthProperty = serializedObject.FindProperty(nameof(PlungerRodMeshComponent.RingWidth));
 		}
 
 		public override void OnInspectorGUI()

@@ -36,7 +36,7 @@ namespace VisualPinball.Unity
 	/// - The **ball stack**, where balls are stored for games that hold more than one ball.
 	/// </remarks>
 	[Api]
-	public class TroughApi : ItemApi<TroughAuthoring, TroughData>,
+	public class TroughApi : ItemApi<TroughComponent, TroughData>,
 		IApi, IApiInitializable, IApiSwitchDevice, IApiCoilDevice, IApiWireDeviceDest
 	{
 		/// <summary>
@@ -189,15 +189,15 @@ namespace VisualPinball.Unity
 
 			// setup switches
 			if (MainComponent.Type != TroughType.ModernOpto && MainComponent.Type != TroughType.ModernMech) {
-				EntrySwitch = CreateSwitch(TroughAuthoring.EntrySwitchId, false, SwitchDefault.NormallyOpen);
-				_switchLookup[TroughAuthoring.EntrySwitchId] = EntrySwitch;
+				EntrySwitch = CreateSwitch(TroughComponent.EntrySwitchId, false, SwitchDefault.NormallyOpen);
+				_switchLookup[TroughComponent.EntrySwitchId] = EntrySwitch;
 			}
 
 			if (MainComponent.Type == TroughType.TwoCoilsOneSwitch) {
 				_stackSwitches = new[] {
-					CreateSwitch(TroughAuthoring.TroughSwitchId, false, SwitchDefault.NormallyOpen)
+					CreateSwitch(TroughComponent.TroughSwitchId, false, SwitchDefault.NormallyOpen)
 				};
-				_switchLookup[TroughAuthoring.TroughSwitchId] = StackSwitch();
+				_switchLookup[TroughComponent.TroughSwitchId] = StackSwitch();
 
 			} else {
 				_stackSwitches = new DeviceSwitch[MainComponent.SwitchCount];
@@ -215,8 +215,8 @@ namespace VisualPinball.Unity
 			}
 
 			if (MainComponent.JamSwitch) {
-				JamSwitch = CreateSwitch(TroughAuthoring.JamSwitchId, false, MainComponent.Type == TroughType.ModernOpto ? SwitchDefault.NormallyClosed : SwitchDefault.NormallyOpen);
-				_switchLookup[TroughAuthoring.JamSwitchId] = JamSwitch;
+				JamSwitch = CreateSwitch(TroughComponent.JamSwitchId, false, MainComponent.Type == TroughType.ModernOpto ? SwitchDefault.NormallyClosed : SwitchDefault.NormallyOpen);
+				_switchLookup[TroughComponent.JamSwitchId] = JamSwitch;
 			}
 
 			// setup coils
@@ -625,10 +625,10 @@ namespace VisualPinball.Unity
 		private IApiCoil Coil(string deviceItem)
 		{
 			switch (deviceItem) {
-				case TroughAuthoring.EntryCoilId:
+				case TroughComponent.EntryCoilId:
 					return EntryCoil;
 
-				case TroughAuthoring.EjectCoilId:
+				case TroughComponent.EjectCoilId:
 					return ExitCoil;
 
 				default:

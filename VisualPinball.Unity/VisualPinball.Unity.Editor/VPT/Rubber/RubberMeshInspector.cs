@@ -21,8 +21,8 @@ using VisualPinball.Engine.VPT.Rubber;
 
 namespace VisualPinball.Unity.Editor
 {
-	[CustomEditor(typeof(RubberMeshAuthoring)), CanEditMultipleObjects]
-	public class RubberMeshInspector : ItemMeshInspector<RubberData, RubberAuthoring, RubberMeshAuthoring>
+	[CustomEditor(typeof(RubberMeshComponent)), CanEditMultipleObjects]
+	public class RubberMeshInspector : ItemMeshInspector<RubberData, RubberComponent, RubberMeshComponent>
 	{
 		public override void OnInspectorGUI()
 		{

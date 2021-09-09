@@ -38,14 +38,14 @@ namespace VisualPinball.Unity
 
 		[SerializeReference]
 		public MonoBehaviour _sourceDevice;
-		public ISwitchDeviceAuthoring SourceDevice { get => _sourceDevice as ISwitchDeviceAuthoring; set => _sourceDevice = value as MonoBehaviour; }
+		public ISwitchDeviceComponent SourceDevice { get => _sourceDevice as ISwitchDeviceComponent; set => _sourceDevice = value as MonoBehaviour; }
 
 		public string SourceDeviceItem = string.Empty;
 
 		/* Destination */
 		[SerializeReference]
 		public MonoBehaviour _destinationDevice;
-		public IWireableAuthoring DestinationDevice { get => _destinationDevice as IWireableAuthoring; set => _destinationDevice = value as MonoBehaviour; }
+		public IWireableComponent DestinationDevice { get => _destinationDevice as IWireableComponent; set => _destinationDevice = value as MonoBehaviour; }
 
 		public string DestinationDeviceItem = string.Empty;
 

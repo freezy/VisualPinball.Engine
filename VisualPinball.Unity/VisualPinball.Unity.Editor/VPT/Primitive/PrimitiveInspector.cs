@@ -21,8 +21,8 @@ using VisualPinball.Engine.VPT.Primitive;
 
 namespace VisualPinball.Unity.Editor
 {
-	[CustomEditor(typeof(PrimitiveAuthoring)), CanEditMultipleObjects]
-	public class PrimitiveInspector : ItemMainInspector<PrimitiveData, PrimitiveAuthoring>
+	[CustomEditor(typeof(PrimitiveComponent)), CanEditMultipleObjects]
+	public class PrimitiveInspector : ItemMainInspector<PrimitiveData, PrimitiveComponent>
 	{
 		private SerializedProperty _positionProperty;
 		private SerializedProperty _rotationProperty;
@@ -34,11 +34,11 @@ namespace VisualPinball.Unity.Editor
 		{
 			base.OnEnable();
 
-			_positionProperty = serializedObject.FindProperty(nameof(PrimitiveAuthoring.Position));
-			_rotationProperty = serializedObject.FindProperty(nameof(PrimitiveAuthoring.Rotation));
-			_sizeProperty = serializedObject.FindProperty(nameof(PrimitiveAuthoring.Size));
-			_translationProperty = serializedObject.FindProperty(nameof(PrimitiveAuthoring.Translation));
-			_objectRotationProperty = serializedObject.FindProperty(nameof(PrimitiveAuthoring.ObjectRotation));
+			_positionProperty = serializedObject.FindProperty(nameof(PrimitiveComponent.Position));
+			_rotationProperty = serializedObject.FindProperty(nameof(PrimitiveComponent.Rotation));
+			_sizeProperty = serializedObject.FindProperty(nameof(PrimitiveComponent.Size));
+			_translationProperty = serializedObject.FindProperty(nameof(PrimitiveComponent.Translation));
+			_objectRotationProperty = serializedObject.FindProperty(nameof(PrimitiveComponent.ObjectRotation));
 		}
 
 		public override void OnInspectorGUI()

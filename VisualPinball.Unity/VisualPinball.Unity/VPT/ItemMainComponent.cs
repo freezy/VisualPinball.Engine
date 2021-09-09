@@ -27,8 +27,8 @@ using VisualPinball.Engine.VPT.Table;
 namespace VisualPinball.Unity
 {
 	[DisallowMultipleComponent]
-	public abstract class ItemMainAuthoring<TData> : ItemAuthoring,
-		IItemMainAuthoring, ILayerableItemAuthoring
+	public abstract class ItemMainComponent<TData> : ItemComponent,
+		IItemMainComponent, ILayerableItemComponent
 		where TData : ItemData
 	{
 		public bool IsLocked { get => _isLocked; set => _isLocked = value; }
@@ -37,25 +37,25 @@ namespace VisualPinball.Unity
 
 		public float PlayfieldHeight {
 			get {
-				var playfieldComponent = GetComponentInParent<PlayfieldAuthoring>();
+				var playfieldComponent = GetComponentInParent<PlayfieldComponent>();
 				return playfieldComponent ? playfieldComponent.TableHeight : 0f;
 			}
 		}
 
 		public int PlayfieldDetailLevel {
 			get {
-				var playfieldComponent = GetComponentInParent<PlayfieldAuthoring>();
+				var playfieldComponent = GetComponentInParent<PlayfieldComponent>();
 				return playfieldComponent ? playfieldComponent.PlayfieldDetailLevel : 10;
 			}
 		}
 
 		public abstract IEnumerable<MonoBehaviour> SetData(TData data);
-		public abstract IEnumerable<MonoBehaviour> SetReferencedData(TData data, Table table, IMaterialProvider materialProvider, ITextureProvider textureProvider, Dictionary<string, IItemMainAuthoring> components);
+		public abstract IEnumerable<MonoBehaviour> SetReferencedData(TData data, Table table, IMaterialProvider materialProvider, ITextureProvider textureProvider, Dictionary<string, IItemMainComponent> components);
 		public abstract TData CopyDataTo(TData data, string[] materialNames, string[] textureNames, bool forExport);
 
 		public abstract ItemType ItemType { get; }
 
-		protected T GetAuthoring<T>(Dictionary<string, IItemMainAuthoring> components, string surfaceName) where T : class, IItemMainAuthoring
+		protected T GetAuthoring<T>(Dictionary<string, IItemMainComponent> components, string surfaceName) where T : class, IItemMainComponent
 		{
 			return (components != null && components.ContainsKey(surfaceName.ToLower())
 					? components[surfaceName.ToLower()]
@@ -82,8 +82,8 @@ namespace VisualPinball.Unity
 
 		protected Entity ParentEntity {
 			get {
-				var parentAuthoring = ParentAuthoring;
-				if (parentAuthoring != null && !(parentAuthoring is TableAuthoring)) {
+				var parentAuthoring = ParentComponent;
+				if (parentAuthoring != null && !(parentAuthoring is TableComponent)) {
 					return parentAuthoring.Entity;
 				}
 				return Entity.Null;
@@ -91,25 +91,25 @@ namespace VisualPinball.Unity
 			set => throw new NotImplementedException();
 		}
 
-		public IItemMainRenderableAuthoring ParentAuthoring => FindParentAuthoring();
+		public IItemMainRenderableComponent ParentComponent => FindParentAuthoring();
 
 		public bool IsCorrectlyParented {
 			get {
-				var parentAuthoring = ParentAuthoring;
+				var parentAuthoring = ParentComponent;
 				return parentAuthoring == null || ValidParents.Any(validParent => parentAuthoring.GetType() == validParent);
 			}
 		}
-		private IItemMainRenderableAuthoring FindParentAuthoring()
+		private IItemMainRenderableComponent FindParentAuthoring()
 		{
-			IItemMainRenderableAuthoring ma = null;
+			IItemMainRenderableComponent ma = null;
 			var go = gameObject;
 
 			// search on parent
 			if (go.transform.parent != null) {
-				ma = go.transform.parent.GetComponent<IItemMainRenderableAuthoring>();
+				ma = go.transform.parent.GetComponent<IItemMainRenderableComponent>();
 			}
 
-			if (ma is MonoBehaviour mb && (mb.GetComponent<TableAuthoring>() != null || mb.GetComponent<PlayfieldAuthoring>() != null)) {
+			if (ma is MonoBehaviour mb && (mb.GetComponent<TableComponent>() != null || mb.GetComponent<PlayfieldComponent>() != null)) {
 				return null;
 			}
 
@@ -119,10 +119,10 @@ namespace VisualPinball.Unity
 
 			// search on grand parent
 			if (go.transform.parent != null && go.transform.parent.transform.parent != null) {
-				ma = go.transform.parent.transform.parent.GetComponent<IItemMainRenderableAuthoring>();
+				ma = go.transform.parent.transform.parent.GetComponent<IItemMainRenderableComponent>();
 			}
 
-			if (ma is MonoBehaviour mb2 && (mb2.GetComponent<TableAuthoring>() != null || mb2.GetComponent<PlayfieldAuthoring>() != null)) {
+			if (ma is MonoBehaviour mb2 && (mb2.GetComponent<TableComponent>() != null || mb2.GetComponent<PlayfieldComponent>() != null)) {
 				return null;
 			}
 

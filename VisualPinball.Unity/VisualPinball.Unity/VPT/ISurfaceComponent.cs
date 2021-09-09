@@ -19,24 +19,24 @@ using UnityEngine;
 namespace VisualPinball.Unity
 {
 	/// <summary>
-	/// Components implementing this interface can be referenced by <see cref="IOnSurfaceAuthoring"/>
+	/// Components implementing this interface can be referenced by <see cref="IOnSurfaceComponent"/>
 	/// </summary>
-	public interface ISurfaceAuthoring : IIdentifiableItemAuthoring
+	public interface ISurfaceComponent : IIdentifiableItemComponent
 	{
 		float Height(Vector2 pos);
 	}
 
 	/// <summary>
-	/// Components implementing this interface can be placed on <see cref="ISurfaceAuthoring"/>.
+	/// Components implementing this interface can be placed on <see cref="ISurfaceComponent"/>.
 	/// </summary>
-	public interface IOnSurfaceAuthoring
+	public interface IOnSurfaceComponent
 	{
-		ISurfaceAuthoring Surface { get; }
+		ISurfaceComponent Surface { get; }
 
 		void OnSurfaceUpdated();
 	}
 
-	public interface IOnPlayfieldAuthoring
+	public interface IOnPlayfieldComponent
 	{
 		void OnPlayfieldHeightUpdated();
 	}

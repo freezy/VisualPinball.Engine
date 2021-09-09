@@ -44,12 +44,12 @@ namespace VisualPinball.Unity.Editor
 		public string InputActionMap;
 		public string InputAction;
 		public SwitchConstant Constant;
-		public ISwitchDeviceAuthoring Device;
+		public ISwitchDeviceComponent Device;
 		public string DeviceItem { get; set; }
 
 		public readonly SwitchMapping SwitchMapping;
 
-		public IDeviceAuthoring<GamelogicEngineSwitch> DeviceComponent => Device;
+		public IDeviceComponent<GamelogicEngineSwitch> DeviceComponent => Device;
 
 		public SwitchListData(SwitchMapping switchMapping) {
 			Id = switchMapping.Id;

@@ -25,9 +25,9 @@ using VisualPinball.Engine.VPT;
 namespace VisualPinball.Unity.Editor
 {
 	public class ItemColliderInspector<TData, TMainAuthoring, TColliderAuthoring> : ItemInspector
-		where TColliderAuthoring : ItemColliderAuthoring<TData, TMainAuthoring>
+		where TColliderAuthoring : ItemColliderComponent<TData, TMainAuthoring>
 		where TData : ItemData
-		where TMainAuthoring : ItemMainRenderableAuthoring<TData>
+		where TMainAuthoring : ItemMainRenderableComponent<TData>
 	{
 		protected TColliderAuthoring ColliderAuthoring;
 
@@ -132,7 +132,7 @@ namespace VisualPinball.Unity.Editor
 			var typeMessage = validParentTypes.Length > 0
 				? $"Supported parents are: [ {string.Join(", ", validParentTypes.Select(t => t.Name))} ]."
 				: $"In this case, colliders for {ColliderAuthoring.ItemName} don't support any parenting at all.";
-			EditorGUILayout.HelpBox($"Invalid parent. This {ColliderAuthoring.ItemName} is parented to a {ColliderAuthoring.ParentAuthoring.ItemName}, which VPE doesn't support.\n{typeMessage}", MessageType.Error);
+			EditorGUILayout.HelpBox($"Invalid parent. This {ColliderAuthoring.ItemName} is parented to a {ColliderAuthoring.ParentComponent.ItemName}, which VPE doesn't support.\n{typeMessage}", MessageType.Error);
 			if (GUILayout.Button("Open Documentation", EditorStyles.linkLabel)) {
 				Application.OpenURL("https://docs.visualpinball.org/creators-guide/editor/unity-components.html");
 			}

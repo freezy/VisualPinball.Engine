@@ -26,7 +26,7 @@ namespace VisualPinball.Unity
 		/// <summary>
 		/// Maps the switch component to the API class.
 		/// </summary>
-		private readonly Dictionary<ISwitchDeviceAuthoring, IApiSwitchDevice> _switchDevices = new Dictionary<ISwitchDeviceAuthoring, IApiSwitchDevice>();
+		private readonly Dictionary<ISwitchDeviceComponent, IApiSwitchDevice> _switchDevices = new Dictionary<ISwitchDeviceComponent, IApiSwitchDevice>();
 
 		/// <summary>
 		/// Maps the switch configuration ID to a switch status.
@@ -38,7 +38,7 @@ namespace VisualPinball.Unity
 		/// </summary>
 		private readonly Dictionary<string, List<KeyboardSwitch>> _keySwitchAssignments = new Dictionary<string, List<KeyboardSwitch>>();
 
-		private TableAuthoring _tableComponent;
+		private TableComponent _tableComponent;
 		private IGamelogicEngine _gamelogicEngine;
 		private InputManager _inputManager;
 
@@ -46,14 +46,14 @@ namespace VisualPinball.Unity
 
 		internal Dictionary<string, bool> SwitchStatusesClosed
 			=> _switchStatuses.ToDictionary(s => s.Key, s => s.Value.IsSwitchClosed);
-		internal IApiSwitch Switch(ISwitchDeviceAuthoring component, string deviceSwitchId)
+		internal IApiSwitch Switch(ISwitchDeviceComponent component, string deviceSwitchId)
 			=> _switchDevices.ContainsKey(component) ? _switchDevices[component].Switch(deviceSwitchId) : null;
-		internal void RegisterSwitchDevice(ISwitchDeviceAuthoring component, IApiSwitchDevice switchDeviceApi)
+		internal void RegisterSwitchDevice(ISwitchDeviceComponent component, IApiSwitchDevice switchDeviceApi)
 			=> _switchDevices[component] = switchDeviceApi;
-		public bool SwitchDeviceExists(ISwitchDeviceAuthoring component)
+		public bool SwitchDeviceExists(ISwitchDeviceComponent component)
 			=> _switchDevices.ContainsKey(component);
 
-		public void Awake(TableAuthoring tableComponent, IGamelogicEngine gamelogicEngine, InputManager inputManager)
+		public void Awake(TableComponent tableComponent, IGamelogicEngine gamelogicEngine, InputManager inputManager)
 		{
 			_tableComponent = tableComponent;
 			_gamelogicEngine = gamelogicEngine;

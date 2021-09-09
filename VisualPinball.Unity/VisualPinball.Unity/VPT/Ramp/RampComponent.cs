@@ -35,8 +35,8 @@ using VisualPinball.Engine.VPT.Table;
 namespace VisualPinball.Unity
 {
 	[AddComponentMenu("Visual Pinball/Game Item/Ramp")]
-	public class RampAuthoring : ItemMainRenderableAuthoring<RampData>,
-		IRampData, ISurfaceAuthoring, IDragPointsAuthoring, IConvertGameObjectToEntity
+	public class RampComponent : ItemMainRenderableComponent<RampData>,
+		IRampData, ISurfaceComponent, IDragPointsComponent, IConvertGameObjectToEntity
 	{
 		#region Data
 
@@ -110,14 +110,14 @@ namespace VisualPinball.Unity
 		public override string ItemName => "Ramp";
 
 		public override RampData InstantiateData() => new RampData();
-		public override IEnumerable<Type> ValidParents => RampColliderAuthoring.ValidParentTypes
-			.Concat(RampFloorMeshAuthoring.ValidParentTypes)
-			.Concat(RampWallMeshAuthoring.ValidParentTypes)
-			.Concat(RampWireMeshAuthoring.ValidParentTypes)
+		public override IEnumerable<Type> ValidParents => RampColliderComponent.ValidParentTypes
+			.Concat(RampFloorMeshComponent.ValidParentTypes)
+			.Concat(RampWallMeshComponent.ValidParentTypes)
+			.Concat(RampWireMeshComponent.ValidParentTypes)
 			.Distinct();
 
-		protected override Type MeshAuthoringType { get; } = typeof(ItemMeshAuthoring<RampData, RampAuthoring>);
-		protected override Type ColliderAuthoringType { get; } = typeof(ItemColliderAuthoring<RampData, RampAuthoring>);
+		protected override Type MeshAuthoringType { get; } = typeof(ItemMeshComponent<RampData, RampComponent>);
+		protected override Type ColliderAuthoringType { get; } = typeof(ItemColliderComponent<RampData, RampComponent>);
 
 		public override void OnPlayfieldHeightUpdated() => RebuildMeshes();
 
@@ -164,9 +164,9 @@ namespace VisualPinball.Unity
 		public override void UpdateVisibility()
 		{
 			// visibility
-			var wallComponent = GetComponentInChildren<RampWallMeshAuthoring>(true);
-			var floorComponent = GetComponentInChildren<RampFloorMeshAuthoring>(true);
-			var wireComponent = GetComponentInChildren<RampWireMeshAuthoring>(true);
+			var wallComponent = GetComponentInChildren<RampWallMeshComponent>(true);
+			var floorComponent = GetComponentInChildren<RampFloorMeshComponent>(true);
+			var wireComponent = GetComponentInChildren<RampWireMeshComponent>(true);
 			var isVisible = wireComponent && wireComponent.gameObject.activeInHierarchy ||
 			                floorComponent && floorComponent.gameObject.activeInHierarchy;
 			if (IsWireRamp) {
@@ -224,9 +224,9 @@ namespace VisualPinball.Unity
 			_wireDistanceY = data.WireDistanceY;
 
 			// visibility and mesh creation
-			var wallComponent = GetComponentInChildren<RampWallMeshAuthoring>(true);
-			var floorComponent = GetComponentInChildren<RampFloorMeshAuthoring>(true);
-			var wireComponent = GetComponentInChildren<RampWireMeshAuthoring>(true);
+			var wallComponent = GetComponentInChildren<RampWallMeshComponent>(true);
+			var floorComponent = GetComponentInChildren<RampFloorMeshComponent>(true);
+			var wireComponent = GetComponentInChildren<RampWireMeshComponent>(true);
 			if (IsWireRamp) {
 				if (wireComponent) {
 					wireComponent.gameObject.SetActive(data.IsVisible);
@@ -250,7 +250,7 @@ namespace VisualPinball.Unity
 			}
 
 			// collider data
-			var collComponent = GetComponentInChildren<RampColliderAuthoring>();
+			var collComponent = GetComponentInChildren<RampColliderComponent>();
 			if (collComponent) {
 				collComponent.enabled = data.IsCollidable;
 				collComponent.Elasticity = data.Elasticity;
@@ -269,12 +269,12 @@ namespace VisualPinball.Unity
 			return updatedComponents;
 		}
 
-		public override IEnumerable<MonoBehaviour> SetReferencedData(RampData data, Table table, IMaterialProvider materialProvider, ITextureProvider textureProvider, Dictionary<string, IItemMainAuthoring> components)
+		public override IEnumerable<MonoBehaviour> SetReferencedData(RampData data, Table table, IMaterialProvider materialProvider, ITextureProvider textureProvider, Dictionary<string, IItemMainComponent> components)
 		{
 			// meshes
-			var wallComponent = GetComponentInChildren<RampWallMeshAuthoring>(true);
-			var floorComponent = GetComponentInChildren<RampFloorMeshAuthoring>(true);
-			var wireComponent = GetComponentInChildren<RampWireMeshAuthoring>(true);
+			var wallComponent = GetComponentInChildren<RampWallMeshComponent>(true);
+			var floorComponent = GetComponentInChildren<RampFloorMeshComponent>(true);
+			var wireComponent = GetComponentInChildren<RampWireMeshComponent>(true);
 			if (wireComponent) {
 				wireComponent.CreateMesh(data, table, textureProvider, materialProvider);
 			}
@@ -286,7 +286,7 @@ namespace VisualPinball.Unity
 			}
 
 			// collider data
-			var collComponent = GetComponentInChildren<RampColliderAuthoring>();
+			var collComponent = GetComponentInChildren<RampColliderComponent>();
 			if (collComponent) {
 				collComponent.PhysicsMaterial = materialProvider.GetPhysicsMaterial(data.PhysicsMaterial);
 			}
@@ -318,8 +318,8 @@ namespace VisualPinball.Unity
 			data.WireDistanceY = _wireDistanceY;
 
 			// visibility
-			var floorComponent = GetComponentInChildren<RampFloorMeshAuthoring>();
-			var wireComponent = GetComponentInChildren<RampWireMeshAuthoring>();
+			var floorComponent = GetComponentInChildren<RampFloorMeshComponent>();
+			var wireComponent = GetComponentInChildren<RampWireMeshComponent>();
 			if (IsWireRamp) {
 				data.IsVisible = wireComponent && wireComponent.gameObject.activeInHierarchy;
 			} else {
@@ -327,7 +327,7 @@ namespace VisualPinball.Unity
 			}
 
 			// collider data
-			var collComponent = GetComponentInChildren<RampColliderAuthoring>();
+			var collComponent = GetComponentInChildren<RampColliderComponent>();
 			if (collComponent) {
 				data.IsCollidable = collComponent.enabled;
 
@@ -382,7 +382,7 @@ namespace VisualPinball.Unity
 				pt.Center += diff;
 			}
 			RebuildMeshes();
-			var playfieldComponent = GetComponentInParent<PlayfieldAuthoring>();
+			var playfieldComponent = GetComponentInParent<PlayfieldComponent>();
 			if (playfieldComponent) {
 				WalkChildren(playfieldComponent.transform, UpdateSurfaceReferences);
 			}
@@ -398,7 +398,7 @@ namespace VisualPinball.Unity
 
 		protected void UpdateSurfaceReferences(Transform obj)
 		{
-			var surfaceAuthoring = obj.gameObject.GetComponent<IOnSurfaceAuthoring>();
+			var surfaceAuthoring = obj.gameObject.GetComponent<IOnSurfaceComponent>();
 			if (surfaceAuthoring != null && surfaceAuthoring.Surface == this) {
 				surfaceAuthoring.OnSurfaceUpdated();
 			}

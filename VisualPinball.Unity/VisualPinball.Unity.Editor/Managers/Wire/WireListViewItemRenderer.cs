@@ -46,18 +46,18 @@ namespace VisualPinball.Unity.Editor
 
 		private readonly InputManager _inputManager;
 
-		private readonly ObjectReferencePicker<ISwitchDeviceAuthoring> _sourceDevicePicker;
-		private readonly ObjectReferencePicker<IWireableAuthoring> _destDevicePicker;
+		private readonly ObjectReferencePicker<ISwitchDeviceComponent> _sourceDevicePicker;
+		private readonly ObjectReferencePicker<IWireableComponent> _destDevicePicker;
 
-		public WireListViewItemRenderer(TableAuthoring tableComponent, InputManager inputManager)
+		public WireListViewItemRenderer(TableComponent tableComponent, InputManager inputManager)
 		{
 			_inputManager = inputManager;
 
-			_sourceDevicePicker = new ObjectReferencePicker<ISwitchDeviceAuthoring>("Wire Source", tableComponent, false);
-			_destDevicePicker = new ObjectReferencePicker<IWireableAuthoring>("Wire Destination", tableComponent, false);
+			_sourceDevicePicker = new ObjectReferencePicker<ISwitchDeviceComponent>("Wire Source", tableComponent, false);
+			_destDevicePicker = new ObjectReferencePicker<IWireableComponent>("Wire Destination", tableComponent, false);
 		}
 
-		public void Render(TableAuthoring tableAuthoring, WireListData data, Rect cellRect, int column, Action<WireListData> updateAction)
+		public void Render(TableComponent tableComponent, WireListData data, Rect cellRect, int column, Action<WireListData> updateAction)
 		{
 			switch ((WireListColumn)column)
 			{

@@ -19,7 +19,7 @@ namespace VisualPinball.Unity
 	/// <summary>
 	/// Exposes layer-related data from all ItemBehaviors
 	/// </summary>
-	public interface ILayerableItemAuthoring
+	public interface ILayerableItemComponent
 	{
 		int EditorLayer { get; }
 		string EditorLayerName { get; set; }

@@ -26,7 +26,7 @@ namespace VisualPinball.Unity.Editor
 				? RenderPipeline.Current.PrefabProvider.CreateDropTarget(hitTarget.Data.TargetType)
 				: RenderPipeline.Current.PrefabProvider.CreateHitTarget(hitTarget.Data.TargetType);
 
-			return new VpxPrefab<HitTarget, HitTargetData, TargetAuthoring>(prefab, hitTarget);
+			return new VpxPrefab<HitTarget, HitTargetData, TargetComponent>(prefab, hitTarget);
 		}
 	}
 }

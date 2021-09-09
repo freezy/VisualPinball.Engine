@@ -41,7 +41,7 @@ namespace VisualPinball.Unity
 			PerfMarkerTotal.Begin();
 
 			var player = Object.FindObjectOfType<Player>();
-			var playfieldComponent = player.GetComponentInChildren<PlayfieldAuthoring>();
+			var playfieldComponent = player.GetComponentInChildren<PlayfieldComponent>();
 			var itemApis = player.ColliderGenerators.ToArray();
 
 			// 1. generate colliders

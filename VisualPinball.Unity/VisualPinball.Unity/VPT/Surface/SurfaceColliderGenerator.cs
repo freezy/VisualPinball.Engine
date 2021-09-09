@@ -25,10 +25,10 @@ namespace VisualPinball.Unity
 	public class SurfaceColliderGenerator
 	{
 		private readonly IApiColliderGenerator _api;
-		private readonly SurfaceAuthoring _component;
-		private readonly SurfaceColliderAuthoring _colliderComponent;
+		private readonly SurfaceComponent _component;
+		private readonly SurfaceColliderComponent _colliderComponent;
 
-		public SurfaceColliderGenerator(SurfaceApi surfaceApi, SurfaceAuthoring component, SurfaceColliderAuthoring colliderComponent)
+		public SurfaceColliderGenerator(SurfaceApi surfaceApi, SurfaceComponent component, SurfaceColliderComponent colliderComponent)
 		{
 			_api = surfaceApi;
 			_component = component;

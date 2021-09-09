@@ -24,26 +24,26 @@ namespace VisualPinball.Unity
 		/// <summary>
 		/// Maps the coil component to the API class.
 		/// </summary>
-		private readonly Dictionary<ICoilDeviceAuthoring, IApiCoilDevice> _coilDevices = new Dictionary<ICoilDeviceAuthoring, IApiCoilDevice>();
+		private readonly Dictionary<ICoilDeviceComponent, IApiCoilDevice> _coilDevices = new Dictionary<ICoilDeviceComponent, IApiCoilDevice>();
 
 		/// <summary>
 		/// Maps the coil configuration ID to a destination.
 		/// </summary>
 		private readonly Dictionary<string, List<CoilDestConfig>> _coilAssignments = new Dictionary<string, List<CoilDestConfig>>();
 
-		private TableAuthoring _tableComponent;
+		private TableComponent _tableComponent;
 		private IGamelogicEngine _gamelogicEngine;
 		private LampPlayer _lampPlayer;
 
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
 		internal Dictionary<string, bool> CoilStatuses { get; } = new Dictionary<string, bool>();
-		internal void RegisterCoilDevice(ICoilDeviceAuthoring component, IApiCoilDevice coilDeviceApi) => _coilDevices[component] = coilDeviceApi;
+		internal void RegisterCoilDevice(ICoilDeviceComponent component, IApiCoilDevice coilDeviceApi) => _coilDevices[component] = coilDeviceApi;
 
-		internal IApiCoil Coil(ICoilDeviceAuthoring component, string coilItem)
+		internal IApiCoil Coil(ICoilDeviceComponent component, string coilItem)
 			=> _coilDevices.ContainsKey(component) ? _coilDevices[component].Coil(coilItem) : null;
 
-		public void Awake(TableAuthoring tableComponent, IGamelogicEngine gamelogicEngine, LampPlayer lampPlayer)
+		public void Awake(TableComponent tableComponent, IGamelogicEngine gamelogicEngine, LampPlayer lampPlayer)
 		{
 			_tableComponent = tableComponent;
 			_gamelogicEngine = gamelogicEngine;
@@ -93,7 +93,7 @@ namespace VisualPinball.Unity
 			}
 		}
 
-		private void AssignCoilMapping(string id, ICoilDeviceAuthoring device, string deviceCoilId, bool isLampCoil = false)
+		private void AssignCoilMapping(string id, ICoilDeviceComponent device, string deviceCoilId, bool isLampCoil = false)
 		{
 			if (!_coilAssignments.ContainsKey(id)) {
 				_coilAssignments[id] = new List<CoilDestConfig>();
@@ -156,11 +156,11 @@ namespace VisualPinball.Unity
 
 	internal class CoilDestConfig
 	{
-		public readonly ICoilDeviceAuthoring Device;
+		public readonly ICoilDeviceComponent Device;
 		public readonly string DeviceItem;
 		public readonly bool IsLampCoil;
 
-		public CoilDestConfig(ICoilDeviceAuthoring device, string deviceItem, bool isLampCoil)
+		public CoilDestConfig(ICoilDeviceComponent device, string deviceItem, bool isLampCoil)
 		{
 			Device = device;
 			DeviceItem = deviceItem;

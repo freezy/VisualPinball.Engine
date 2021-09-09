@@ -28,9 +28,9 @@ namespace VisualPinball.Unity
 		private readonly IApiColliderGenerator _api;
 		private readonly IRampData _data;
 		private readonly RampMeshGenerator _meshGenerator;
-		private readonly RampColliderAuthoring _colliderComponent;
+		private readonly RampColliderComponent _colliderComponent;
 
-		public RampColliderGenerator(RampApi rampApi, IRampData data, RampColliderAuthoring colliderComponent)
+		public RampColliderGenerator(RampApi rampApi, IRampData data, RampColliderComponent colliderComponent)
 		{
 			_api = rampApi;
 			_data = data;

@@ -26,12 +26,12 @@ using Mesh = VisualPinball.Engine.VPT.Mesh;
 
 namespace VisualPinball.Unity
 {
-	public abstract class ItemMeshAuthoring<TData, TAuthoring> : ItemSubAuthoring<TData, TAuthoring>,
-		IItemMeshAuthoring
+	public abstract class ItemMeshComponent<TData, TAuthoring> : ItemSubComponent<TData, TAuthoring>,
+		IItemMeshComponent
 		where TData : ItemData
-		where TAuthoring : ItemMainRenderableAuthoring<TData>
+		where TAuthoring : ItemMainRenderableComponent<TData>
 	{
-		public IItemMainRenderableAuthoring IMainAuthoring => MainComponent;
+		public IItemMainRenderableComponent IMainAuthoring => MainComponent;
 
 		#region Creation and destruction
 

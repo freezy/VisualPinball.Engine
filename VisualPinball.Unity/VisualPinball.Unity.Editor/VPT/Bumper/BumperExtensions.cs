@@ -23,7 +23,7 @@ namespace VisualPinball.Unity.Editor
 		internal static IVpxPrefab InstantiatePrefab(this Bumper bumper)
 		{
 			var prefab = RenderPipeline.Current.PrefabProvider.CreateBumper();
-			return new VpxPrefab<Bumper, BumperData, BumperAuthoring>(prefab, bumper);
+			return new VpxPrefab<Bumper, BumperData, BumperComponent>(prefab, bumper);
 		}
 	}
 }

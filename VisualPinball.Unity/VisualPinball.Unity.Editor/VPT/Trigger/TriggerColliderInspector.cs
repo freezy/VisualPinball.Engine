@@ -21,8 +21,8 @@ using VisualPinball.Engine.VPT.Trigger;
 
 namespace VisualPinball.Unity.Editor
 {
-	[CustomEditor(typeof(TriggerColliderAuthoring)), CanEditMultipleObjects]
-	public class TriggerColliderInspector : ItemColliderInspector<TriggerData, TriggerAuthoring, TriggerColliderAuthoring>
+	[CustomEditor(typeof(TriggerColliderComponent)), CanEditMultipleObjects]
+	public class TriggerColliderInspector : ItemColliderInspector<TriggerData, TriggerComponent, TriggerColliderComponent>
 	{
 		private SerializedProperty _hitHeightProperty;
 		private SerializedProperty _hitCircleRadiusProperty;
@@ -31,8 +31,8 @@ namespace VisualPinball.Unity.Editor
 		{
 			base.OnEnable();
 
-			_hitHeightProperty = serializedObject.FindProperty(nameof(TriggerColliderAuthoring.HitHeight));
-			_hitCircleRadiusProperty = serializedObject.FindProperty(nameof(TriggerColliderAuthoring.HitCircleRadius));
+			_hitHeightProperty = serializedObject.FindProperty(nameof(TriggerColliderComponent.HitHeight));
+			_hitCircleRadiusProperty = serializedObject.FindProperty(nameof(TriggerColliderComponent.HitCircleRadius));
 		}
 
 		public override void OnInspectorGUI()
@@ -46,7 +46,7 @@ namespace VisualPinball.Unity.Editor
 			OnPreInspectorGUI();
 
 			PropertyField(_hitHeightProperty);
-			var meshComponent = (target as TriggerColliderAuthoring)!.GetComponent<TriggerMeshAuthoring>();
+			var meshComponent = (target as TriggerColliderComponent)!.GetComponent<TriggerMeshComponent>();
 			if (meshComponent && meshComponent.IsCircle) {
 				PropertyField(_hitCircleRadiusProperty);
 			}

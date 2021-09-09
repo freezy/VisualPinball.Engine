@@ -20,7 +20,7 @@ using UnityEngine;
 
 namespace VisualPinball.Unity
 {
-	public interface IItemMainAuthoring : IIdentifiableItemAuthoring
+	public interface IItemMainComponent : IIdentifiableItemComponent
 	{
 		GameObject gameObject { get; }
 

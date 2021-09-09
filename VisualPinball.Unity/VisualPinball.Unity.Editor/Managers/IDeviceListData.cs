@@ -20,7 +20,7 @@ namespace VisualPinball.Unity.Editor
 {
 	public interface IDeviceListData<out T> where T : IGamelogicEngineDeviceItem
 	{
-		IDeviceAuthoring<T> DeviceComponent { get; }
+		IDeviceComponent<T> DeviceComponent { get; }
 		string DeviceItem { get; set; }
 		int InternalId { get; set; }
 		string Description { get; set; }

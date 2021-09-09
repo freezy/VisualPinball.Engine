@@ -21,8 +21,8 @@ using VisualPinball.Engine.VPT.HitTarget;
 
 namespace VisualPinball.Unity.Editor
 {
-	[CustomEditor(typeof(HitTargetAnimationAuthoring)), CanEditMultipleObjects]
-	public class HitTargetAnimationInspector : ItemAnimationInspector<HitTargetData, HitTargetAuthoring, HitTargetAnimationAuthoring>
+	[CustomEditor(typeof(HitTargetAnimationComponent)), CanEditMultipleObjects]
+	public class HitTargetAnimationInspector : ItemAnimationInspector<HitTargetData, HitTargetComponent, HitTargetAnimationComponent>
 	{
 		private SerializedProperty _speedProperty;
 		private SerializedProperty _maxAngleProperty;
@@ -31,8 +31,8 @@ namespace VisualPinball.Unity.Editor
 		{
 			base.OnEnable();
 
-			_speedProperty = serializedObject.FindProperty(nameof(HitTargetAnimationAuthoring.Speed));
-			_maxAngleProperty = serializedObject.FindProperty(nameof(HitTargetAnimationAuthoring.MaxAngle));
+			_speedProperty = serializedObject.FindProperty(nameof(HitTargetAnimationComponent.Speed));
+			_maxAngleProperty = serializedObject.FindProperty(nameof(HitTargetAnimationComponent.MaxAngle));
 		}
 
 		public override void OnInspectorGUI()

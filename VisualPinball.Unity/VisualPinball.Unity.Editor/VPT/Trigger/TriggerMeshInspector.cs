@@ -22,8 +22,8 @@ using VisualPinball.Engine.VPT.Trigger;
 
 namespace VisualPinball.Unity.Editor
 {
-	[CustomEditor(typeof(TriggerMeshAuthoring)), CanEditMultipleObjects]
-	public class TriggerMeshInspector : ItemMeshInspector<TriggerData, TriggerAuthoring, TriggerMeshAuthoring>
+	[CustomEditor(typeof(TriggerMeshComponent)), CanEditMultipleObjects]
+	public class TriggerMeshInspector : ItemMeshInspector<TriggerData, TriggerComponent, TriggerMeshComponent>
 	{
 		public static readonly string[] TriggerShapeLabels = {
 			"None",
@@ -51,8 +51,8 @@ namespace VisualPinball.Unity.Editor
 		{
 			base.OnEnable();
 
-			_shapeProperty = serializedObject.FindProperty(nameof(TriggerMeshAuthoring.Shape));
-			_wireThicknessProperty = serializedObject.FindProperty(nameof(TriggerMeshAuthoring.WireThickness));
+			_shapeProperty = serializedObject.FindProperty(nameof(TriggerMeshComponent.Shape));
+			_wireThicknessProperty = serializedObject.FindProperty(nameof(TriggerMeshComponent.WireThickness));
 		}
 
 		public override void OnInspectorGUI()

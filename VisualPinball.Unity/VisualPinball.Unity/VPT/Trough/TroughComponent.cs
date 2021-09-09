@@ -36,29 +36,29 @@ namespace VisualPinball.Unity
 {
 	[AddComponentMenu("Visual Pinball/Trough")]
 	[HelpURL("https://docs.visualpinball.org/creators-guide/manual/mechanisms/troughs.html")]
-	public class TroughAuthoring : ItemMainAuthoring<TroughData>,
-		ISwitchDeviceAuthoring, ICoilDeviceAuthoring
+	public class TroughComponent : ItemMainComponent<TroughData>,
+		ISwitchDeviceComponent, ICoilDeviceComponent
 	{
 		#region Data
 
 		[ToolboxItem("The type of the opto. See documentation of a description of each type.")]
 		public int Type = TroughType.ModernOpto;
 
-		public ITriggerAuthoring PlayfieldEntrySwitch
+		public ITriggerComponent PlayfieldEntrySwitch
 		{
-			get => _playfieldEntrySwitch as ITriggerAuthoring;
+			get => _playfieldEntrySwitch as ITriggerComponent;
 			set => _playfieldEntrySwitch = value as MonoBehaviour;
 		}
 
 		[SerializeField]
-		[TypeRestriction(typeof(ITriggerAuthoring), PickerLabel = "Triggers & Kickers", DeviceItem = nameof(PlayfieldEntrySwitchItem), DeviceType = typeof(ISwitchDeviceAuthoring))]
+		[TypeRestriction(typeof(ITriggerComponent), PickerLabel = "Triggers & Kickers", DeviceItem = nameof(PlayfieldEntrySwitchItem), DeviceType = typeof(ISwitchDeviceComponent))]
 		[Tooltip("The trigger or kicker that eats the ball and puts it into the trough.")]
 		public MonoBehaviour _playfieldEntrySwitch;
 		public string PlayfieldEntrySwitchItem = string.Empty;
 
 		[Tooltip("The kicker that creates and ejects the ball to the playfield.")]
-		[TypeRestriction(typeof(KickerAuthoring), PickerLabel = "Kickers", DeviceItem = nameof(PlayfieldExitKickerItem), DeviceType = typeof(ICoilDeviceAuthoring))]
-		public KickerAuthoring PlayfieldExitKicker;
+		[TypeRestriction(typeof(KickerComponent), PickerLabel = "Kickers", DeviceItem = nameof(PlayfieldExitKickerItem), DeviceType = typeof(ICoilDeviceComponent))]
+		public KickerComponent PlayfieldExitKicker;
 		public string PlayfieldExitKickerItem = string.Empty;
 
 		[Range(1, 10)]
@@ -101,8 +101,8 @@ namespace VisualPinball.Unity
 
 		public SwitchDefault SwitchDefault => Type == TroughType.ModernOpto ? SwitchDefault.NormallyClosed : SwitchDefault.NormallyOpen;
 
-		IEnumerable<GamelogicEngineCoil> IDeviceAuthoring<GamelogicEngineCoil>.AvailableDeviceItems => AvailableCoils;
-		IEnumerable<GamelogicEngineSwitch> IDeviceAuthoring<GamelogicEngineSwitch>.AvailableDeviceItems => AvailableSwitches;
+		IEnumerable<GamelogicEngineCoil> IDeviceComponent<GamelogicEngineCoil>.AvailableDeviceItems => AvailableCoils;
+		IEnumerable<GamelogicEngineSwitch> IDeviceComponent<GamelogicEngineSwitch>.AvailableDeviceItems => AvailableSwitches;
 
 		#endregion
 
@@ -167,10 +167,10 @@ namespace VisualPinball.Unity
 			return updatedComponents;
 		}
 
-		public override IEnumerable<MonoBehaviour> SetReferencedData(TroughData data, Table table, IMaterialProvider materialProvider, ITextureProvider textureProvider, Dictionary<string, IItemMainAuthoring> components)
+		public override IEnumerable<MonoBehaviour> SetReferencedData(TroughData data, Table table, IMaterialProvider materialProvider, ITextureProvider textureProvider, Dictionary<string, IItemMainComponent> components)
 		{
-			PlayfieldEntrySwitch = GetAuthoring<ITriggerAuthoring>(components, data.PlayfieldEntrySwitch);
-			PlayfieldExitKicker = GetAuthoring<KickerAuthoring>(components, data.PlayfieldExitKicker);
+			PlayfieldEntrySwitch = GetAuthoring<ITriggerComponent>(components, data.PlayfieldEntrySwitch);
+			PlayfieldExitKicker = GetAuthoring<KickerComponent>(components, data.PlayfieldExitKicker);
 
 			return Array.Empty<MonoBehaviour>();
 		}
@@ -288,8 +288,8 @@ namespace VisualPinball.Unity
 			}
 		}
 
-		IEnumerable<IGamelogicEngineDeviceItem> IWireableAuthoring.AvailableWireDestinations => AvailableCoils;
-		IEnumerable<IGamelogicEngineDeviceItem> IDeviceAuthoring<IGamelogicEngineDeviceItem>.AvailableDeviceItems => AvailableCoils;
+		IEnumerable<IGamelogicEngineDeviceItem> IWireableComponent.AvailableWireDestinations => AvailableCoils;
+		IEnumerable<IGamelogicEngineDeviceItem> IDeviceComponent<IGamelogicEngineDeviceItem>.AvailableDeviceItems => AvailableCoils;
 
 		#endregion
 
@@ -320,7 +320,7 @@ namespace VisualPinball.Unity
 		{
 			Profiler.BeginSample("TroughAuthoring.OnDrawGizmosSelected");
 			if (PlayfieldEntrySwitch != null && PlayfieldExitKicker != null) {
-				var ltw = GetComponentInParent<TableAuthoring>().transform;
+				var ltw = GetComponentInParent<TableComponent>().transform;
 				var entryPos = EntryPos(0f);
 				var exitPos = ExitPos(0f);
 				var entryWorldPos = ltw.TransformPoint(entryPos);

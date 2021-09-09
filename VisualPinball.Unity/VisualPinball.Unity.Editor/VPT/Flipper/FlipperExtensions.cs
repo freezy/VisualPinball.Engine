@@ -24,7 +24,7 @@ namespace VisualPinball.Unity.Editor
 		internal static IVpxPrefab InstantiatePrefab(this Flipper flipper)
 		{
 			var prefab = UnityEngine.Resources.Load<GameObject>("Prefabs/Flipper");
-			return new VpxPrefab<Flipper, FlipperData, FlipperAuthoring>(prefab, flipper);
+			return new VpxPrefab<Flipper, FlipperData, FlipperComponent>(prefab, flipper);
 		}
 	}
 }

@@ -40,8 +40,8 @@ namespace VisualPinball.Unity
 {
 	[AddComponentMenu("Visual Pinball/Game Item/Flipper")]
 	[HelpURL("https://docs.visualpinball.org/creators-guide/manual/mechanisms/flippers.html")]
-	public class FlipperAuthoring : ItemMainRenderableAuthoring<FlipperData>,
-		ISwitchDeviceAuthoring, ICoilDeviceAuthoring, IOnSurfaceAuthoring, IConvertGameObjectToEntity
+	public class FlipperComponent : ItemMainRenderableComponent<FlipperData>,
+		ISwitchDeviceComponent, ICoilDeviceComponent, IOnSurfaceComponent, IConvertGameObjectToEntity
 	{
 		#region Data
 
@@ -56,9 +56,9 @@ namespace VisualPinball.Unity
 		[Tooltip("Angle of the flipper in end position (flipped)")]
 		public float EndAngle = 70.0f;
 
-		public ISurfaceAuthoring Surface { get => _surface as ISurfaceAuthoring; set => _surface = value as MonoBehaviour; }
+		public ISurfaceComponent Surface { get => _surface as ISurfaceComponent; set => _surface = value as MonoBehaviour; }
 		[SerializeField]
-		[TypeRestriction(typeof(ISurfaceAuthoring), PickerLabel = "Walls & Ramps", UpdateTransforms = true)]
+		[TypeRestriction(typeof(ISurfaceComponent), PickerLabel = "Walls & Ramps", UpdateTransforms = true)]
 		[Tooltip("On which surface this flipper is attached to. Updates Z-translation.")]
 		public MonoBehaviour _surface;
 
@@ -105,15 +105,15 @@ namespace VisualPinball.Unity
 		public override ItemType ItemType => ItemType.Flipper;
 		public override string ItemName => "Flipper";
 
-		public override IEnumerable<Type> ValidParents => FlipperColliderAuthoring.ValidParentTypes
-			.Concat(FlipperBaseMeshAuthoring.ValidParentTypes)
-			.Concat(FlipperRubberMeshAuthoring.ValidParentTypes)
+		public override IEnumerable<Type> ValidParents => FlipperColliderComponent.ValidParentTypes
+			.Concat(FlipperBaseMeshComponent.ValidParentTypes)
+			.Concat(FlipperRubberMeshComponent.ValidParentTypes)
 			.Distinct();
 
 		public override FlipperData InstantiateData() => new FlipperData();
 
-		protected override Type MeshAuthoringType { get; } = typeof(ItemMeshAuthoring<FlipperData, FlipperAuthoring>);
-		protected override Type ColliderAuthoringType { get; } = typeof(ItemColliderAuthoring<FlipperData, FlipperAuthoring>);
+		protected override Type MeshAuthoringType { get; } = typeof(ItemMeshComponent<FlipperData, FlipperComponent>);
+		protected override Type ColliderAuthoringType { get; } = typeof(ItemColliderComponent<FlipperData, FlipperComponent>);
 
 		public const string MainCoilItem = "main_coil";
 		public const string HoldCoilItem = "hold_coil";
@@ -139,10 +139,10 @@ namespace VisualPinball.Unity
 			}
 			: new[] { new GamelogicEngineCoil(MainCoilItem) };
 
-		IEnumerable<GamelogicEngineCoil> IDeviceAuthoring<GamelogicEngineCoil>.AvailableDeviceItems => AvailableCoils;
-		IEnumerable<GamelogicEngineSwitch> IDeviceAuthoring<GamelogicEngineSwitch>.AvailableDeviceItems => AvailableSwitches;
-		IEnumerable<IGamelogicEngineDeviceItem> IWireableAuthoring.AvailableWireDestinations => AvailableCoils;
-		IEnumerable<IGamelogicEngineDeviceItem> IDeviceAuthoring<IGamelogicEngineDeviceItem>.AvailableDeviceItems => AvailableCoils;
+		IEnumerable<GamelogicEngineCoil> IDeviceComponent<GamelogicEngineCoil>.AvailableDeviceItems => AvailableCoils;
+		IEnumerable<GamelogicEngineSwitch> IDeviceComponent<GamelogicEngineSwitch>.AvailableDeviceItems => AvailableSwitches;
+		IEnumerable<IGamelogicEngineDeviceItem> IWireableComponent.AvailableWireDestinations => AvailableCoils;
+		IEnumerable<IGamelogicEngineDeviceItem> IDeviceComponent<IGamelogicEngineDeviceItem>.AvailableDeviceItems => AvailableCoils;
 
 		#endregion
 
@@ -172,7 +172,7 @@ namespace VisualPinball.Unity
 			Convert(entity, dstManager);
 
 			var player = transform.GetComponentInParent<Player>();
-			var colliderAuthoring = gameObject.GetComponent<FlipperColliderAuthoring>();
+			var colliderAuthoring = gameObject.GetComponent<FlipperColliderComponent>();
 
 			// collision
 			if (colliderAuthoring) {
@@ -219,7 +219,7 @@ namespace VisualPinball.Unity
 			IsDualWound = data.IsDualWound;
 
 			// collider data
-			var colliderAuthoring = gameObject.GetComponent<FlipperColliderAuthoring>();
+			var colliderAuthoring = gameObject.GetComponent<FlipperColliderComponent>();
 			if (colliderAuthoring) {
 				colliderAuthoring.Mass = data.Mass;
 				colliderAuthoring.Strength = data.Strength;
@@ -237,19 +237,19 @@ namespace VisualPinball.Unity
 			return updatedComponents;
 		}
 
-		public override IEnumerable<MonoBehaviour> SetReferencedData(FlipperData data, Table table, IMaterialProvider materialProvider, ITextureProvider textureProvider, Dictionary<string, IItemMainAuthoring> components)
+		public override IEnumerable<MonoBehaviour> SetReferencedData(FlipperData data, Table table, IMaterialProvider materialProvider, ITextureProvider textureProvider, Dictionary<string, IItemMainComponent> components)
 		{
-			Surface = GetAuthoring<SurfaceAuthoring>(components, data.Surface);
+			Surface = GetAuthoring<SurfaceComponent>(components, data.Surface);
 			UpdateTransforms();
 
 			// children mesh creation and visibility
-			var baseMesh = GetComponentInChildren<FlipperBaseMeshAuthoring>();
+			var baseMesh = GetComponentInChildren<FlipperBaseMeshComponent>();
 			if (baseMesh) {
 				baseMesh.CreateMesh(data, table, textureProvider, materialProvider);
 				baseMesh.gameObject.SetActive(data.IsVisible);
 			}
 
-			var rubberMesh = GetComponentInChildren<FlipperRubberMeshAuthoring>();
+			var rubberMesh = GetComponentInChildren<FlipperRubberMeshComponent>();
 			if (rubberMesh) {
 				rubberMesh.CreateMesh(data, table, textureProvider, materialProvider);
 				rubberMesh.gameObject.SetActive(data.IsVisible);
@@ -282,11 +282,11 @@ namespace VisualPinball.Unity
 			data.IsDualWound = IsDualWound;
 
 			// children visibility
-			var baseMesh = GetComponentInChildren<FlipperBaseMeshAuthoring>();
+			var baseMesh = GetComponentInChildren<FlipperBaseMeshComponent>();
 			data.IsVisible = baseMesh && baseMesh.gameObject.activeInHierarchy;
 
 			// collider data
-			var colliderAuthoring = gameObject.GetComponent<FlipperColliderAuthoring>();
+			var colliderAuthoring = gameObject.GetComponent<FlipperColliderComponent>();
 			if (colliderAuthoring) {
 				data.Mass = colliderAuthoring.Mass;
 				data.Strength = colliderAuthoring.Strength;
@@ -366,9 +366,9 @@ namespace VisualPinball.Unity
 
 		private bool IsLeft => EndAngle < StartAngle;
 
-		private void SetupFlipperCorrection(Entity entity, EntityManager dstManager, Player player, FlipperColliderAuthoring colliderAuthoring)
+		private void SetupFlipperCorrection(Entity entity, EntityManager dstManager, Player player, FlipperColliderComponent colliderComponent)
 		{
-			var fc = colliderAuthoring.FlipperCorrection;
+			var fc = colliderComponent.FlipperCorrection;
 
 				// create trigger
 				var triggerData = CreateCorrectionTriggerData();
@@ -505,7 +505,7 @@ namespace VisualPinball.Unity
 		public TriggerData CreateCorrectionTriggerData()
 		{
 			// Get table reference
-			var ta = GetComponentInParent<TableAuthoring>();
+			var ta = GetComponentInParent<TableComponent>();
 			if (ta != null) {
 
 				var localPos = transform.localPosition;
@@ -529,7 +529,7 @@ namespace VisualPinball.Unity
 
 		#region DOTS Data
 
-		private FlipperStaticData GetMaterialData(FlipperColliderAuthoring colliderAuthoring)
+		private FlipperStaticData GetMaterialData(FlipperColliderComponent colliderComponent)
 		{
 			float flipperRadius;
 			if (FlipperRadiusMin > 0 && FlipperRadiusMax > FlipperRadiusMin) {
@@ -551,7 +551,7 @@ namespace VisualPinball.Unity
 			}
 
 			// model inertia of flipper as that of rod of length flipper around its end
-			var inertia = (float) (1.0 / 3.0) * colliderAuthoring.Mass * (flipperRadius * flipperRadius);
+			var inertia = (float) (1.0 / 3.0) * colliderComponent.Mass * (flipperRadius * flipperRadius);
 			var localPos = transform.localPosition;
 
 			return new FlipperStaticData {
@@ -559,11 +559,11 @@ namespace VisualPinball.Unity
 				Inertia = inertia,
 				AngleStart = angleStart,
 				AngleEnd = angleEnd,
-				Strength = colliderAuthoring.Strength,
-				ReturnRatio = colliderAuthoring.Return,
-				TorqueDamping = colliderAuthoring.TorqueDamping,
-				TorqueDampingAngle = colliderAuthoring.TorqueDampingAngle,
-				RampUpSpeed = colliderAuthoring.RampUp,
+				Strength = colliderComponent.Strength,
+				ReturnRatio = colliderComponent.Return,
+				TorqueDamping = colliderComponent.TorqueDamping,
+				TorqueDampingAngle = colliderComponent.TorqueDampingAngle,
+				RampUpSpeed = colliderComponent.RampUp,
 
 				EndRadius = endRadius,
 				FlipperRadius = flipperRadius

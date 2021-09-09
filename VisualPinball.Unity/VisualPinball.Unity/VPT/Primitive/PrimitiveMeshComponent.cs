@@ -28,7 +28,7 @@ namespace VisualPinball.Unity
 {
 	[ExecuteInEditMode]
 	[AddComponentMenu("Visual Pinball/Mesh/Primitive Mesh")]
-	public class PrimitiveMeshAuthoring : ItemMeshAuthoring<PrimitiveData, PrimitiveAuthoring>
+	public class PrimitiveMeshComponent : ItemMeshComponent<PrimitiveData, PrimitiveComponent>
 	{
 		#region Data
 
@@ -40,17 +40,17 @@ namespace VisualPinball.Unity
 		#endregion
 
 		public static readonly Type[] ValidParentTypes = {
-			typeof(BumperAuthoring),
-			typeof(FlipperAuthoring),
-			typeof(GateAuthoring),
-			typeof(TargetAuthoring),
-			typeof(KickerAuthoring),
-			typeof(LightAuthoring),
-			typeof(RampAuthoring),
-			typeof(RubberAuthoring),
-			typeof(SpinnerAuthoring),
-			typeof(SurfaceAuthoring),
-			typeof(TriggerAuthoring),
+			typeof(BumperComponent),
+			typeof(FlipperComponent),
+			typeof(GateComponent),
+			typeof(TargetComponent),
+			typeof(KickerComponent),
+			typeof(LightComponent),
+			typeof(RampComponent),
+			typeof(RubberComponent),
+			typeof(SpinnerComponent),
+			typeof(SurfaceComponent),
+			typeof(TriggerComponent),
 		};
 
 		public override IEnumerable<Type> ValidParents => ValidParentTypes;

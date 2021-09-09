@@ -33,7 +33,7 @@ namespace VisualPinball.Unity.Test
 				.Build();
 
 			var go = VpxImportEngine.ImportIntoScene(table, options: ConvertOptions.SkipNone);
-			var tableComponent = go.GetComponent<TableAuthoring>();
+			var tableComponent = go.GetComponent<TableComponent>();
 
 			var gameEngineCoils = new[] {
 				new GamelogicEngineCoil("left_flipper") { Description = "Left Flipper"}
@@ -47,7 +47,7 @@ namespace VisualPinball.Unity.Test
 			tableComponent.MappingConfig.Coils[0].Id.Should().Be("left_flipper");
 			tableComponent.MappingConfig.Coils[0].Description.Should().Be("Left Flipper");
 			tableComponent.MappingConfig.Coils[0].Device.name.Should().Be("left_flipper");
-			tableComponent.MappingConfig.Coils[0].DeviceItem.Should().Be(FlipperAuthoring.MainCoilItem);
+			tableComponent.MappingConfig.Coils[0].DeviceItem.Should().Be(FlipperComponent.MainCoilItem);
 		}
 
 		[Test]
@@ -69,7 +69,7 @@ namespace VisualPinball.Unity.Test
 				.Build();
 
 			var go = VpxImportEngine.ImportIntoScene(table, options: ConvertOptions.SkipNone);
-			var tableComponent = go.GetComponent<TableAuthoring>();
+			var tableComponent = go.GetComponent<TableComponent>();
 
 			var gameEngineCoils = new[] {
 				new GamelogicEngineCoil("left_flipper_")
@@ -90,7 +90,7 @@ namespace VisualPinball.Unity.Test
 				.Build();
 
 			var go = VpxImportEngine.ImportIntoScene(table, options: ConvertOptions.SkipNone);
-			var tableComponent = go.GetComponent<TableAuthoring>();
+			var tableComponent = go.GetComponent<TableComponent>();
 
 			var gameEngineCoils = new[] {
 				new GamelogicEngineCoil("foobar") { DeviceHint = "left_flipper"}
@@ -103,7 +103,7 @@ namespace VisualPinball.Unity.Test
 			tableComponent.MappingConfig.Coils[0].Destination.Should().Be(CoilDestination.Playfield);
 			tableComponent.MappingConfig.Coils[0].Id.Should().Be("foobar");
 			tableComponent.MappingConfig.Coils[0].Device.name.Should().Be("left_flipper");
-			tableComponent.MappingConfig.Coils[0].DeviceItem.Should().Be(FlipperAuthoring.MainCoilItem);
+			tableComponent.MappingConfig.Coils[0].DeviceItem.Should().Be(FlipperComponent.MainCoilItem);
 		}
 
 		[Test]
@@ -114,11 +114,11 @@ namespace VisualPinball.Unity.Test
 				.Build();
 
 			var go = VpxImportEngine.ImportIntoScene(table, options: ConvertOptions.SkipNone);
-			var tableComponent = go.GetComponent<TableAuthoring>();
+			var tableComponent = go.GetComponent<TableComponent>();
 
 			var gameEngineCoils = new[] {
-				new GamelogicEngineCoil("left_flipper_power") { DeviceHint = "left_flipper", DeviceItemHint = FlipperAuthoring.MainCoilItem },
-				new GamelogicEngineCoil("left_flipper_hold") { DeviceHint = "left_flipper", DeviceItemHint = FlipperAuthoring.HoldCoilItem },
+				new GamelogicEngineCoil("left_flipper_power") { DeviceHint = "left_flipper", DeviceItemHint = FlipperComponent.MainCoilItem },
+				new GamelogicEngineCoil("left_flipper_hold") { DeviceHint = "left_flipper", DeviceItemHint = FlipperComponent.HoldCoilItem },
 			};
 
 			tableComponent.MappingConfig.Clear();
@@ -128,10 +128,10 @@ namespace VisualPinball.Unity.Test
 			tableComponent.MappingConfig.Coils[1].Destination.Should().Be(CoilDestination.Playfield);
 			tableComponent.MappingConfig.Coils[1].Id.Should().Be("left_flipper_power");
 			tableComponent.MappingConfig.Coils[1].Device.name.Should().Be("left_flipper");
-			tableComponent.MappingConfig.Coils[1].DeviceItem.Should().Be(FlipperAuthoring.MainCoilItem);
+			tableComponent.MappingConfig.Coils[1].DeviceItem.Should().Be(FlipperComponent.MainCoilItem);
 			tableComponent.MappingConfig.Coils[0].Id.Should().Be("left_flipper_hold");
 			tableComponent.MappingConfig.Coils[0].Device.name.Should().Be("left_flipper");
-			tableComponent.MappingConfig.Coils[0].DeviceItem.Should().Be(FlipperAuthoring.HoldCoilItem);
+			tableComponent.MappingConfig.Coils[0].DeviceItem.Should().Be(FlipperComponent.HoldCoilItem);
 		}
 
 		[Test]
@@ -140,7 +140,7 @@ namespace VisualPinball.Unity.Test
 			var table = new TableBuilder().Build();
 
 			var go = VpxImportEngine.ImportIntoScene(table, options: ConvertOptions.SkipNone);
-			var tableComponent = go.GetComponent<TableAuthoring>();
+			var tableComponent = go.GetComponent<TableComponent>();
 
 			tableComponent.MappingConfig.Clear();
 			tableComponent.MappingConfig.AddCoil(new CoilMapping {Id = "zzz"});
@@ -158,7 +158,7 @@ namespace VisualPinball.Unity.Test
 			var table = new TableBuilder().Build();
 
 			var go = VpxImportEngine.ImportIntoScene(table, options: ConvertOptions.SkipNone);
-			var tableComponent = go.GetComponent<TableAuthoring>();
+			var tableComponent = go.GetComponent<TableComponent>();
 
 			var gameEngineCoils = new[] {
 				new GamelogicEngineCoil("yyy") { IsLamp = true }
@@ -178,7 +178,7 @@ namespace VisualPinball.Unity.Test
 			var table = new TableBuilder().Build();
 
 			var go = VpxImportEngine.ImportIntoScene(table, options: ConvertOptions.SkipNone);
-			var tableComponent = go.GetComponent<TableAuthoring>();
+			var tableComponent = go.GetComponent<TableComponent>();
 
 			var gameEngineCoils = new[] {
 				new GamelogicEngineCoil("yyy") { IsLamp = true }
@@ -197,7 +197,7 @@ namespace VisualPinball.Unity.Test
 			var table = new TableBuilder().Build();
 
 			var go = VpxImportEngine.ImportIntoScene(table, options: ConvertOptions.SkipNone);
-			var tableComponent = go.GetComponent<TableAuthoring>();
+			var tableComponent = go.GetComponent<TableComponent>();
 
 			var gameEngineCoils = new[] {
 				new GamelogicEngineCoil("yyy") { IsLamp = true },
@@ -217,7 +217,7 @@ namespace VisualPinball.Unity.Test
 			var table = new TableBuilder().Build();
 
 			var go = VpxImportEngine.ImportIntoScene(table, options: ConvertOptions.SkipNone);
-			var tableComponent = go.GetComponent<TableAuthoring>();
+			var tableComponent = go.GetComponent<TableComponent>();
 
 			var gameEngineCoils = new[] {
 				new GamelogicEngineCoil("yyy") { IsLamp = true },

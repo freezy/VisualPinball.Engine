@@ -26,7 +26,7 @@ using UnityEngine;
 
 namespace VisualPinball.Unity.Editor
 {
-	[CustomEditor(typeof(SegmentDisplayAuthoring)), CanEditMultipleObjects]
+	[CustomEditor(typeof(SegmentDisplayComponent)), CanEditMultipleObjects]
 	public class SegmentDisplayInspector : DisplayInspector
 	{
 		private static readonly (int, string)[] NumSegmentsTypes = {
@@ -42,8 +42,8 @@ namespace VisualPinball.Unity.Editor
 			(2, "Two-segment comma"),
 		};
 
-		[NonSerialized] private SegmentDisplayAuthoring _mb;
-		[NonSerialized] private SegmentDisplayAuthoring[] _mbs;
+		[NonSerialized] private SegmentDisplayComponent _mb;
+		[NonSerialized] private SegmentDisplayComponent[] _mbs;
 
 		private int _numSegmentsIndex;
 		private int _separatorTypeIndex;
@@ -53,8 +53,8 @@ namespace VisualPinball.Unity.Editor
 
 		private new void OnEnable()
 		{
-			_mb = target as SegmentDisplayAuthoring;
-			_mbs = targets.Select(t => t as SegmentDisplayAuthoring).ToArray();
+			_mb = target as SegmentDisplayComponent;
+			_mbs = targets.Select(t => t as SegmentDisplayComponent).ToArray();
 			_skewAngleDeg = math.degrees(_mb.SkewAngle);
 			_numSegmentsIndex = NumSegmentsTypes
 				.Select((tuple, index) => new {tuple, index})
@@ -195,7 +195,7 @@ namespace VisualPinball.Unity.Editor
 				go.transform.localScale = new Vector3(GameObjectScale, GameObjectScale, GameObjectScale);
 			}
 
-			var display = go.AddComponent<SegmentDisplayAuthoring>();
+			var display = go.AddComponent<SegmentDisplayComponent>();
 			display.UpdateDimensions(6, 1);
 		}
 	}

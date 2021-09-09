@@ -22,9 +22,9 @@ namespace VisualPinball.Unity
 	public class SpinnerColliderGenerator
 	{
 		private readonly SpinnerApi _api;
-		private readonly SpinnerAuthoring _component;
+		private readonly SpinnerComponent _component;
 
-		public SpinnerColliderGenerator(SpinnerApi spinnerApi, SpinnerAuthoring component)
+		public SpinnerColliderGenerator(SpinnerApi spinnerApi, SpinnerComponent component)
 		{
 			_api = spinnerApi;
 			_component = component;

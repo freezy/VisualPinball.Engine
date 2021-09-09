@@ -21,8 +21,8 @@ using VisualPinball.Engine.VPT.Bumper;
 
 namespace VisualPinball.Unity.Editor
 {
-	[CustomEditor(typeof(BumperAuthoring)), CanEditMultipleObjects]
-	public class BumperInspector : ItemMainInspector<BumperData, BumperAuthoring>
+	[CustomEditor(typeof(BumperComponent)), CanEditMultipleObjects]
+	public class BumperInspector : ItemMainInspector<BumperData, BumperComponent>
 	{
 		private SerializedProperty _positionProperty;
 		private SerializedProperty _radiusProperty;
@@ -34,11 +34,11 @@ namespace VisualPinball.Unity.Editor
 		{
 			base.OnEnable();
 
-			_positionProperty = serializedObject.FindProperty(nameof(BumperAuthoring.Position));
-			_radiusProperty = serializedObject.FindProperty(nameof(BumperAuthoring.Radius));
-			_heightScaleProperty = serializedObject.FindProperty(nameof(BumperAuthoring.HeightScale));
-			_orientationProperty = serializedObject.FindProperty(nameof(BumperAuthoring.Orientation));
-			_surfaceProperty = serializedObject.FindProperty(nameof(BumperAuthoring._surface));
+			_positionProperty = serializedObject.FindProperty(nameof(BumperComponent.Position));
+			_radiusProperty = serializedObject.FindProperty(nameof(BumperComponent.Radius));
+			_heightScaleProperty = serializedObject.FindProperty(nameof(BumperComponent.HeightScale));
+			_orientationProperty = serializedObject.FindProperty(nameof(BumperComponent.Orientation));
+			_surfaceProperty = serializedObject.FindProperty(nameof(BumperComponent._surface));
 		}
 
 		public override void OnInspectorGUI()

@@ -23,8 +23,8 @@ namespace VisualPinball.Unity
 {
 	public abstract class ItemCollidableApi<TComponent, TCollidableComponent, TData> : ItemApi<TComponent, TData>,
 		IApiColliderGenerator
-		where TComponent : ItemMainAuthoring<TData>
-		where TCollidableComponent : ItemColliderAuthoring<TData, TComponent>
+		where TComponent : ItemMainComponent<TData>
+		where TCollidableComponent : ItemColliderComponent<TData, TComponent>
 		where TData : ItemData
 	{
 		protected readonly Entity Entity;

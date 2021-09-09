@@ -53,7 +53,7 @@ namespace VisualPinball.Unity.Editor
 
 			// find components
 			var go = comp.gameObject;
-			var ta = go.GetComponentInParent<TableAuthoring>();
+			var ta = go.GetComponentInParent<TableComponent>();
 
 			var field = property.objectReferenceValue;
 			pos = EditorGUI.PrefixLabel(pos, label);
@@ -71,7 +71,7 @@ namespace VisualPinball.Unity.Editor
 			}
 		}
 
-		private void DevicePicker(Rect pos, SerializedProperty property, TypeRestrictionAttribute attrib, Component comp, Object field, TableAuthoring ta)
+		private void DevicePicker(Rect pos, SerializedProperty property, TypeRestrictionAttribute attrib, Component comp, Object field, TableComponent ta)
 		{
 			// retrieve selected reference
 			MonoBehaviour obj = null;
@@ -124,7 +124,7 @@ namespace VisualPinball.Unity.Editor
 									break;
 							}
 							property.serializedObject.ApplyModifiedProperties();
-							if (comp is IItemMainRenderableAuthoring renderable) {
+							if (comp is IItemMainRenderableComponent renderable) {
 								if (attrib.RebuildMeshes) {
 									renderable.RebuildMeshes();
 								}
@@ -153,21 +153,21 @@ namespace VisualPinball.Unity.Editor
 			var ids = Array.Empty<string>();
 			var currentIndex = 0;
 
-			if (attrib.DeviceType == typeof(ICoilDeviceAuthoring) && field is ICoilDeviceAuthoring coilDeviceAuthoring) {
+			if (attrib.DeviceType == typeof(ICoilDeviceComponent) && field is ICoilDeviceComponent coilDeviceAuthoring) {
 				count = coilDeviceAuthoring.AvailableCoils.Count();
 				firstItemDescription = coilDeviceAuthoring.AvailableCoils.First().Description;
 				labels = coilDeviceAuthoring.AvailableCoils.Select(s => s.Description).ToArray();
 				ids = coilDeviceAuthoring.AvailableCoils.Select(s => s.Id).ToArray();
 				currentIndex = coilDeviceAuthoring.AvailableCoils.TakeWhile(s => s.Id != deviceItemPropField.stringValue).Count();
 			}
-			if (attrib.DeviceType == typeof(ISwitchDeviceAuthoring) && field is ISwitchDeviceAuthoring switchDeviceAuthoring) {
+			if (attrib.DeviceType == typeof(ISwitchDeviceComponent) && field is ISwitchDeviceComponent switchDeviceAuthoring) {
 				count = switchDeviceAuthoring.AvailableSwitches.Count();
 				firstItemDescription = switchDeviceAuthoring.AvailableSwitches.First().Description;
 				labels = switchDeviceAuthoring.AvailableSwitches.Select(s => s.Description).ToArray();
 				ids = switchDeviceAuthoring.AvailableSwitches.Select(s => s.Id).ToArray();
 				currentIndex = switchDeviceAuthoring.AvailableSwitches.TakeWhile(s => s.Id != deviceItemPropField.stringValue).Count();
 			}
-			if (attrib.DeviceType == typeof(ILampDeviceAuthoring) && field is ILampDeviceAuthoring lampDeviceAuthoring) {
+			if (attrib.DeviceType == typeof(ILampDeviceComponent) && field is ILampDeviceComponent lampDeviceAuthoring) {
 				count = lampDeviceAuthoring.AvailableLamps.Count();
 				firstItemDescription = lampDeviceAuthoring.AvailableLamps.First().Description;
 				labels = lampDeviceAuthoring.AvailableLamps.Select(s => s.Description).ToArray();
@@ -197,17 +197,17 @@ namespace VisualPinball.Unity.Editor
 		{
 			private readonly string _title;
 
-			private readonly TableAuthoring _tableAuthoring;
+			private readonly TableComponent _tableComponent;
 
 			private readonly Action<UnityEngine.Object> _onElementSelected;
 
 			private readonly Type _type;
 
-			public ItemSearchableDropdownUntyped(Type type, AdvancedDropdownState state, TableAuthoring tableAuthoring, string title, Action<UnityEngine.Object> onElementSelected) : base(state)
+			public ItemSearchableDropdownUntyped(Type type, AdvancedDropdownState state, TableComponent tableComponent, string title, Action<UnityEngine.Object> onElementSelected) : base(state)
 			{
 				_type = type;
 				_onElementSelected = onElementSelected;
-				_tableAuthoring = tableAuthoring;
+				_tableComponent = tableComponent;
 				minimumSize = new Vector2(200, 300);
 				_title = title;
 			}
@@ -215,7 +215,7 @@ namespace VisualPinball.Unity.Editor
 			protected override AdvancedDropdownItem BuildRoot()
 			{
 				var node = new AdvancedDropdownItem(_title);
-				var elements = _tableAuthoring.GetComponentsInChildren(_type);
+				var elements = _tableComponent.GetComponentsInChildren(_type);
 				node.AddChild(new ElementDropdownItem(null));
 				foreach (var element in elements) {
 					node.AddChild(new ElementDropdownItem(element));

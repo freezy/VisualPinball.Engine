@@ -26,7 +26,7 @@ namespace VisualPinball.Unity
 {
 	[ExecuteInEditMode]
 	[AddComponentMenu("Visual Pinball/Mesh/Plunger Flat Mesh")]
-	public class PlungerFlatMeshAuthoring : PlungerMeshAuthoring
+	public class PlungerFlatMeshComponent : PlungerMeshComponent
 	{
 		public static readonly Type[] ValidParentTypes = Type.EmptyTypes;
 

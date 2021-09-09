@@ -23,7 +23,7 @@ using VisualPinball.Engine.VPT.HitTarget;
 
 namespace VisualPinball.Unity.Editor
 {
-	public abstract class TargetInspector : ItemMainInspector<HitTargetData, TargetAuthoring>
+	public abstract class TargetInspector : ItemMainInspector<HitTargetData, TargetComponent>
 	{
 		private SerializedProperty _positionProperty;
 		private SerializedProperty _rotationProperty;
@@ -38,11 +38,11 @@ namespace VisualPinball.Unity.Editor
 		{
 			base.OnEnable();
 
-			_positionProperty = serializedObject.FindProperty(nameof(TargetAuthoring.Position));
-			_rotationProperty = serializedObject.FindProperty(nameof(TargetAuthoring.Rotation));
-			_sizeProperty = serializedObject.FindProperty(nameof(TargetAuthoring.Size));
-			_meshNameProperty = serializedObject.FindProperty(nameof(TargetAuthoring.MeshName));
-			_typeNameProperty = serializedObject.FindProperty(nameof(TargetAuthoring._targetType));
+			_positionProperty = serializedObject.FindProperty(nameof(TargetComponent.Position));
+			_rotationProperty = serializedObject.FindProperty(nameof(TargetComponent.Rotation));
+			_sizeProperty = serializedObject.FindProperty(nameof(TargetComponent.Size));
+			_meshNameProperty = serializedObject.FindProperty(nameof(TargetComponent.MeshName));
+			_typeNameProperty = serializedObject.FindProperty(nameof(TargetComponent._targetType));
 		}
 
 		public override void OnInspectorGUI()

@@ -40,15 +40,15 @@ namespace VisualPinball.Unity.Editor
 		public string SourceInputActionMap;
 		public string SourceInputAction;
 		public SwitchConstant SourceConstant;
-		public ISwitchDeviceAuthoring SourceDevice;
+		public ISwitchDeviceComponent SourceDevice;
 		public string SourceDeviceItem;
 
-		public IWireableAuthoring DestinationDevice;
+		public IWireableComponent DestinationDevice;
 		public string DestinationDeviceItem;
 
 		public readonly WireMapping WireMapping;
 
-		public IDeviceAuthoring<IGamelogicEngineDeviceItem> DeviceComponent => DestinationDevice;
+		public IDeviceComponent<IGamelogicEngineDeviceItem> DeviceComponent => DestinationDevice;
 		public string DeviceItem { get => DestinationDeviceItem; set => DestinationDeviceItem = value; }
 		public int InternalId { get; set; }
 

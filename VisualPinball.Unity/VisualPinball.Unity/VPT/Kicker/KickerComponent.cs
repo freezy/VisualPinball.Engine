@@ -37,8 +37,8 @@ using VisualPinball.Engine.VPT.Table;
 namespace VisualPinball.Unity
 {
 	[AddComponentMenu("Visual Pinball/Game Item/Kicker")]
-	public class KickerAuthoring : ItemMainRenderableAuthoring<KickerData>,
-		ICoilDeviceAuthoring, ITriggerAuthoring, IBallCreationPosition, IOnSurfaceAuthoring, IConvertGameObjectToEntity, ISerializationCallbackReceiver
+	public class KickerComponent : ItemMainRenderableComponent<KickerData>,
+		ICoilDeviceComponent, ITriggerComponent, IBallCreationPosition, IOnSurfaceComponent, IConvertGameObjectToEntity, ISerializationCallbackReceiver
 	{
 		#region Data
 
@@ -51,9 +51,9 @@ namespace VisualPinball.Unity
 		[Tooltip("R-Rotation of the kicker")]
 		public float Orientation;
 
-		public ISurfaceAuthoring Surface { get => _surface as ISurfaceAuthoring; set => _surface = value as MonoBehaviour; }
+		public ISurfaceComponent Surface { get => _surface as ISurfaceComponent; set => _surface = value as MonoBehaviour; }
 		[SerializeField]
-		[TypeRestriction(typeof(ISurfaceAuthoring), PickerLabel = "Walls & Ramps", UpdateTransforms = true)]
+		[TypeRestriction(typeof(ISurfaceComponent), PickerLabel = "Walls & Ramps", UpdateTransforms = true)]
 		[Tooltip("On which surface the kicker is attached to. Updates Z-translation.")]
 		public MonoBehaviour _surface;
 
@@ -71,13 +71,13 @@ namespace VisualPinball.Unity
 		public override ItemType ItemType => ItemType.Kicker;
 		public override string ItemName => "Kicker";
 
-		public override IEnumerable<Type> ValidParents => KickerColliderAuthoring.ValidParentTypes
+		public override IEnumerable<Type> ValidParents => KickerColliderComponent.ValidParentTypes
 			.Distinct();
 
 		public override KickerData InstantiateData() => new KickerData();
 
-		protected override Type MeshAuthoringType { get; } = typeof(ItemMeshAuthoring<KickerData, KickerAuthoring>);
-		protected override Type ColliderAuthoringType { get; } = typeof(ItemColliderAuthoring<KickerData, KickerAuthoring>);
+		protected override Type MeshAuthoringType { get; } = typeof(ItemMeshComponent<KickerData, KickerComponent>);
+		protected override Type ColliderAuthoringType { get; } = typeof(ItemColliderComponent<KickerData, KickerComponent>);
 
 		public Vector2 Center => Position;
 
@@ -95,10 +95,10 @@ namespace VisualPinball.Unity
 
 		public IEnumerable<GamelogicEngineCoil> AvailableCoils => Coils.Select(c => new GamelogicEngineCoil(c.Id) { Description = c.Name });
 
-		IEnumerable<GamelogicEngineCoil> IDeviceAuthoring<GamelogicEngineCoil>.AvailableDeviceItems => AvailableCoils;
-		IEnumerable<GamelogicEngineSwitch> IDeviceAuthoring<GamelogicEngineSwitch>.AvailableDeviceItems => AvailableSwitches;
-		IEnumerable<IGamelogicEngineDeviceItem> IWireableAuthoring.AvailableWireDestinations => AvailableCoils;
-		IEnumerable<IGamelogicEngineDeviceItem> IDeviceAuthoring<IGamelogicEngineDeviceItem>.AvailableDeviceItems => AvailableCoils;
+		IEnumerable<GamelogicEngineCoil> IDeviceComponent<GamelogicEngineCoil>.AvailableDeviceItems => AvailableCoils;
+		IEnumerable<GamelogicEngineSwitch> IDeviceComponent<GamelogicEngineSwitch>.AvailableDeviceItems => AvailableSwitches;
+		IEnumerable<IGamelogicEngineDeviceItem> IWireableComponent.AvailableWireDestinations => AvailableCoils;
+		IEnumerable<IGamelogicEngineDeviceItem> IDeviceComponent<IGamelogicEngineDeviceItem>.AvailableDeviceItems => AvailableCoils;
 
 		#endregion
 
@@ -139,7 +139,7 @@ namespace VisualPinball.Unity
 			Convert(entity, dstManager);
 
 			// collision
-			var colliderAuthoring = gameObject.GetComponent<KickerColliderAuthoring>();
+			var colliderAuthoring = gameObject.GetComponent<KickerColliderComponent>();
 			if (colliderAuthoring) {
 				dstManager.AddComponentData(entity, new KickerStaticData {
 					Center = Position,
@@ -195,7 +195,7 @@ namespace VisualPinball.Unity
 			#endif
 
 			// collider data
-			var colliderAuthoring = gameObject.GetComponent<KickerColliderAuthoring>();
+			var colliderAuthoring = gameObject.GetComponent<KickerColliderComponent>();
 			if (colliderAuthoring) {
 				colliderAuthoring.enabled = data.IsEnabled;
 
@@ -213,9 +213,9 @@ namespace VisualPinball.Unity
 			return updatedComponents;
 		}
 
-		public override IEnumerable<MonoBehaviour> SetReferencedData(KickerData data, Table table, IMaterialProvider materialProvider, ITextureProvider textureProvider, Dictionary<string, IItemMainAuthoring> components)
+		public override IEnumerable<MonoBehaviour> SetReferencedData(KickerData data, Table table, IMaterialProvider materialProvider, ITextureProvider textureProvider, Dictionary<string, IItemMainComponent> components)
 		{
-			Surface = GetAuthoring<SurfaceAuthoring>(components, data.Surface);
+			Surface = GetAuthoring<SurfaceComponent>(components, data.Surface);
 			return Array.Empty<MonoBehaviour>();
 		}
 
@@ -233,7 +233,7 @@ namespace VisualPinball.Unity
 
 			// todo visibility is set by the type
 
-			var colliderAuthoring = gameObject.GetComponent<KickerColliderAuthoring>();
+			var colliderAuthoring = gameObject.GetComponent<KickerColliderComponent>();
 			if (colliderAuthoring) {
 				data.IsEnabled = colliderAuthoring.enabled;
 				data.Scatter = colliderAuthoring.Scatter;

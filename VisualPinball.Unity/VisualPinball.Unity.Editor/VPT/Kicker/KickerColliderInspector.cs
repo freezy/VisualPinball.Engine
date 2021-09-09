@@ -21,8 +21,8 @@ using VisualPinball.Engine.VPT.Kicker;
 
 namespace VisualPinball.Unity.Editor
 {
-	[CustomEditor(typeof(KickerColliderAuthoring)), CanEditMultipleObjects]
-	public class KickerColliderInspector : ItemColliderInspector<KickerData, KickerAuthoring, KickerColliderAuthoring>
+	[CustomEditor(typeof(KickerColliderComponent)), CanEditMultipleObjects]
+	public class KickerColliderInspector : ItemColliderInspector<KickerData, KickerComponent, KickerColliderComponent>
 	{
 		private SerializedProperty _hitAccuracyProperty;
 		private SerializedProperty _hitHeightProperty;
@@ -36,13 +36,13 @@ namespace VisualPinball.Unity.Editor
 		{
 			base.OnEnable();
 
-			_hitAccuracyProperty = serializedObject.FindProperty(nameof(KickerColliderAuthoring.HitAccuracy));
-			_hitHeightProperty = serializedObject.FindProperty(nameof(KickerColliderAuthoring.HitHeight));
-			_scatterProperty = serializedObject.FindProperty(nameof(KickerColliderAuthoring.Scatter));
-			_fallThroughProperty = serializedObject.FindProperty(nameof(KickerColliderAuthoring.FallThrough));
-			_legacyModeProperty = serializedObject.FindProperty(nameof(KickerColliderAuthoring.LegacyMode));
-			_ejectAngleProperty = serializedObject.FindProperty(nameof(KickerColliderAuthoring.EjectAngle));
-			_ejectSpeedProperty = serializedObject.FindProperty(nameof(KickerColliderAuthoring.EjectSpeed));
+			_hitAccuracyProperty = serializedObject.FindProperty(nameof(KickerColliderComponent.HitAccuracy));
+			_hitHeightProperty = serializedObject.FindProperty(nameof(KickerColliderComponent.HitHeight));
+			_scatterProperty = serializedObject.FindProperty(nameof(KickerColliderComponent.Scatter));
+			_fallThroughProperty = serializedObject.FindProperty(nameof(KickerColliderComponent.FallThrough));
+			_legacyModeProperty = serializedObject.FindProperty(nameof(KickerColliderComponent.LegacyMode));
+			_ejectAngleProperty = serializedObject.FindProperty(nameof(KickerColliderComponent.EjectAngle));
+			_ejectSpeedProperty = serializedObject.FindProperty(nameof(KickerColliderComponent.EjectSpeed));
 		}
 
 		public override void OnInspectorGUI()

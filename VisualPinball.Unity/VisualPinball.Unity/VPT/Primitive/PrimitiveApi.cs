@@ -22,7 +22,7 @@ using VisualPinball.Engine.VPT.Primitive;
 
 namespace VisualPinball.Unity
 {
-	public class PrimitiveApi : ItemCollidableApi<PrimitiveAuthoring, PrimitiveColliderAuthoring, PrimitiveData>,
+	public class PrimitiveApi : ItemCollidableApi<PrimitiveComponent, PrimitiveColliderComponent, PrimitiveData>,
 		IApiInitializable, IApiHittable
 	{
 		/// <summary>

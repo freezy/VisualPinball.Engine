@@ -32,7 +32,7 @@ namespace VisualPinball.Unity
 
 		public ColliderBounds Bounds { get; private set; }
 
-		public SpinnerCollider(SpinnerAuthoring component, float height, ColliderInfo info) : this()
+		public SpinnerCollider(SpinnerComponent component, float height, ColliderInfo info) : this()
 		{
 			_header.Init(info, ColliderType.Spinner);
 

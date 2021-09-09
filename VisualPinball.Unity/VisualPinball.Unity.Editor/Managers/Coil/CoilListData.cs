@@ -35,12 +35,12 @@ namespace VisualPinball.Unity.Editor
 
 		public string Id;
 		public int InternalId { get; set; }
-		public ICoilDeviceAuthoring Device;
+		public ICoilDeviceComponent Device;
 		public string DeviceItem { get; set; }
 
 		public readonly CoilMapping CoilMapping;
 
-		public IDeviceAuthoring<GamelogicEngineCoil> DeviceComponent => Device;
+		public IDeviceComponent<GamelogicEngineCoil> DeviceComponent => Device;
 
 		public CoilListData(CoilMapping coilMapping) {
 			Id = coilMapping.Id;
