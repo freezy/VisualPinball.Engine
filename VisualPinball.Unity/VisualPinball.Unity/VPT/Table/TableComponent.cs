@@ -30,7 +30,7 @@ using VisualPinball.Engine.VPT.Table;
 namespace VisualPinball.Unity
 {
 	[AddComponentMenu("Visual Pinball/Table")]
-	public class TableAuthoring : ItemMainRenderableAuthoring<TableData>
+	public class TableComponent : ItemMainRenderableComponent<TableData>
 	{
 		[SerializeReference] public LegacyContainer LegacyContainer;
 		[SerializeReference] public MappingConfig MappingConfig = new MappingConfig();
@@ -105,7 +105,7 @@ namespace VisualPinball.Unity
 			return new List<MonoBehaviour> { this };
 		}
 
-		public override IEnumerable<MonoBehaviour> SetReferencedData(TableData data, Table table, IMaterialProvider materialProvider, ITextureProvider textureProvider, Dictionary<string, IItemMainAuthoring> components)
+		public override IEnumerable<MonoBehaviour> SetReferencedData(TableData data, Table table, IMaterialProvider materialProvider, ITextureProvider textureProvider, Dictionary<string, IItemMainComponent> components)
 		{
 			return Array.Empty<MonoBehaviour>();
 		}
@@ -122,7 +122,7 @@ namespace VisualPinball.Unity
 
 		public Vector3 GetTableCenter()
 		{
-			var playfield = GetComponentInChildren<PlayfieldAuthoring>().gameObject;
+			var playfield = GetComponentInChildren<PlayfieldComponent>().gameObject;
 			return playfield.GetComponent<MeshRenderer>().bounds.center;
 		}
 
@@ -152,7 +152,7 @@ namespace VisualPinball.Unity
 			MappingConfig.PopulateLamps(gle.AvailableLamps, this);
 
 			// hook up plunger
-			var plunger = GetComponentInChildren<PlungerAuthoring>();
+			var plunger = GetComponentInChildren<PlungerComponent>();
 			if (plunger) {
 				MappingConfig.AddWire(new WireMapping {
 					Description = "Manual Plunger",
@@ -160,7 +160,7 @@ namespace VisualPinball.Unity
 					SourceInputActionMap = InputConstants.MapCabinetSwitches,
 					SourceInputAction = InputConstants.ActionPlunger,
 					DestinationDevice = plunger,
-					DestinationDeviceItem = PlungerAuthoring.PullCoilId
+					DestinationDeviceItem = PlungerComponent.PullCoilId
 				});
 			}
 		}

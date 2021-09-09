@@ -21,8 +21,8 @@ using VisualPinball.Engine.VPT.Spinner;
 
 namespace VisualPinball.Unity.Editor
 {
-	[CustomEditor(typeof(SpinnerAuthoring)), CanEditMultipleObjects]
-	public class SpinnerInspector : ItemMainInspector<SpinnerData, SpinnerAuthoring>
+	[CustomEditor(typeof(SpinnerComponent)), CanEditMultipleObjects]
+	public class SpinnerInspector : ItemMainInspector<SpinnerData, SpinnerComponent>
 	{
 		private bool _foldoutPhysics = true;
 
@@ -39,14 +39,14 @@ namespace VisualPinball.Unity.Editor
 		{
 			base.OnEnable();
 
-			_positionProperty = serializedObject.FindProperty(nameof(SpinnerAuthoring.Position));
-			_heightProperty = serializedObject.FindProperty(nameof(SpinnerAuthoring.Height));
-			_rotationProperty = serializedObject.FindProperty(nameof(SpinnerAuthoring.Rotation));
-			_lengthProperty = serializedObject.FindProperty(nameof(SpinnerAuthoring.Length));
-			_surfaceProperty = serializedObject.FindProperty(nameof(SpinnerAuthoring._surface));
-			_dampingProperty = serializedObject.FindProperty(nameof(SpinnerAuthoring.Damping));
-			_angleMaxProperty = serializedObject.FindProperty(nameof(SpinnerAuthoring.AngleMax));
-			_angleMinProperty = serializedObject.FindProperty(nameof(SpinnerAuthoring.AngleMin));
+			_positionProperty = serializedObject.FindProperty(nameof(SpinnerComponent.Position));
+			_heightProperty = serializedObject.FindProperty(nameof(SpinnerComponent.Height));
+			_rotationProperty = serializedObject.FindProperty(nameof(SpinnerComponent.Rotation));
+			_lengthProperty = serializedObject.FindProperty(nameof(SpinnerComponent.Length));
+			_surfaceProperty = serializedObject.FindProperty(nameof(SpinnerComponent._surface));
+			_dampingProperty = serializedObject.FindProperty(nameof(SpinnerComponent.Damping));
+			_angleMaxProperty = serializedObject.FindProperty(nameof(SpinnerComponent.AngleMax));
+			_angleMinProperty = serializedObject.FindProperty(nameof(SpinnerComponent.AngleMin));
 		}
 
 		public override void OnInspectorGUI()

@@ -25,7 +25,7 @@ using VisualPinball.Engine.VPT.Ramp;
 namespace VisualPinball.Unity
 {
 	[AddComponentMenu("Visual Pinball/Collision/Ramp Collider")]
-	public class RampColliderAuthoring : ItemColliderAuthoring<RampData, RampAuthoring>
+	public class RampColliderComponent : ItemColliderComponent<RampData, RampComponent>
 	{
 		#region Data
 
@@ -62,7 +62,7 @@ namespace VisualPinball.Unity
 		#endregion
 
 		public static readonly Type[] ValidParentTypes = {
-			typeof(PrimitiveAuthoring)
+			typeof(PrimitiveComponent)
 		};
 
 		public override IEnumerable<Type> ValidParents => ValidParentTypes;

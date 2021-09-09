@@ -19,7 +19,7 @@ using VisualPinball.Engine.Game.Engines;
 
 namespace VisualPinball.Unity
 {
-	public interface IDeviceAuthoring<out T> where T : IGamelogicEngineDeviceItem
+	public interface IDeviceComponent<out T> where T : IGamelogicEngineDeviceItem
 	{
 		IEnumerable<T> AvailableDeviceItems { get; }
 	}

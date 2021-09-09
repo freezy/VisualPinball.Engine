@@ -23,7 +23,7 @@ using Color = UnityEngine.Color;
 
 namespace VisualPinball.Unity
 {
-	public class LightApi : ItemApi<LightAuthoring, LightData>, IApiInitializable, IApiLamp, IApiWireDeviceDest
+	public class LightApi : ItemApi<LightComponent, LightData>, IApiInitializable, IApiLamp, IApiWireDeviceDest
 	{
 		/// <summary>
 		/// Event emitted when the table is started.
@@ -36,13 +36,13 @@ namespace VisualPinball.Unity
 		}
 
 		private int _state;
-		private readonly LightAuthoring _lightAuthoring;
+		private readonly LightComponent _lightComponent;
 
 		void IApiWireDest.OnChange(bool enabled) => Set(
 			enabled ? LightStatus.LightStateOn : LightStatus.LightStateOff,
 			enabled ? 1.0f : 0f);
 
-		public Color Color { get => _lightAuthoring.Color; set => _lightAuthoring.Color = value; }
+		public Color Color { get => _lightComponent.Color; set => _lightComponent.Color = value; }
 
 		IApiWireDest IApiWireDeviceDest.Wire(string deviceItem) => this;
 
@@ -54,21 +54,21 @@ namespace VisualPinball.Unity
 					break;
 				}
 				case ColorChannel.Red: {
-					var color = _lightAuthoring.Color;
+					var color = _lightComponent.Color;
 					color.r = value;
-					_lightAuthoring.Color = color;
+					_lightComponent.Color = color;
 					break;
 				}
 				case ColorChannel.Green: {
-					var color = _lightAuthoring.Color;
+					var color = _lightComponent.Color;
 					color.g = value;
-					_lightAuthoring.Color = color;
+					_lightComponent.Color = color;
 					break;
 				}
 				case ColorChannel.Blue: {
-					var color = _lightAuthoring.Color;
+					var color = _lightComponent.Color;
 					color.b = value;
-					_lightAuthoring.Color = color;
+					_lightComponent.Color = color;
 					break;
 				}
 				default:
@@ -78,13 +78,13 @@ namespace VisualPinball.Unity
 
 		void IApiLamp.OnLampColor(Color color)
 		{
-			_lightAuthoring.Color = color;
+			_lightComponent.Color = color;
 		}
 
 		internal LightApi(GameObject go, Player player) : base(go, player)
 		{
-			_lightAuthoring = go.GetComponentInChildren<LightAuthoring>();
-			_state = _lightAuthoring.State;
+			_lightComponent = go.GetComponentInChildren<LightComponent>();
+			_state = _lightComponent.State;
 		}
 
 		private void Set(int lightStatus, float value)
@@ -92,26 +92,26 @@ namespace VisualPinball.Unity
 			switch (lightStatus) {
 				case LightStatus.LightStateOff: {
 					if (MainComponent.FadeSpeedDown > 0) {
-						_lightAuthoring.FadeTo(MainComponent.FadeSpeedDown, 0);
+						_lightComponent.FadeTo(MainComponent.FadeSpeedDown, 0);
 
 					} else {
-						_lightAuthoring.Enabled = false;
+						_lightComponent.Enabled = false;
 					}
 					break;
 				}
 
 				case LightStatus.LightStateOn: {
 					if (MainComponent.FadeSpeedUp > 0) {
-						_lightAuthoring.FadeTo(MainComponent.FadeSpeedUp, value);
+						_lightComponent.FadeTo(MainComponent.FadeSpeedUp, value);
 
 					} else {
-						_lightAuthoring.Enabled = true;
+						_lightComponent.Enabled = true;
 					}
 					break;
 				}
 
 				case LightStatus.LightStateBlinking: {
-					_lightAuthoring.StartBlinking();
+					_lightComponent.StartBlinking();
 					break;
 				}
 

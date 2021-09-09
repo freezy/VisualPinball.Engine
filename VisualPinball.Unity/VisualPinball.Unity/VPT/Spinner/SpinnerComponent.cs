@@ -36,8 +36,8 @@ using VisualPinball.Engine.VPT.Table;
 namespace VisualPinball.Unity
 {
 	[AddComponentMenu("Visual Pinball/Game Item/Spinner")]
-	public class SpinnerAuthoring : ItemMainRenderableAuthoring<SpinnerData>,
-		ISwitchDeviceAuthoring, IOnSurfaceAuthoring, IConvertGameObjectToEntity
+	public class SpinnerComponent : ItemMainRenderableComponent<SpinnerData>,
+		ISwitchDeviceComponent, IOnSurfaceComponent, IConvertGameObjectToEntity
 	{
 		#region Data
 
@@ -66,9 +66,9 @@ namespace VisualPinball.Unity
 		[Tooltip("Minimal angle. This allows the spinner to bounce back instead of executing a 360° rotation.")]
 		public float AngleMin;
 
-		public ISurfaceAuthoring Surface { get => _surface as ISurfaceAuthoring; set => _surface = value as MonoBehaviour; }
+		public ISurfaceComponent Surface { get => _surface as ISurfaceComponent; set => _surface = value as MonoBehaviour; }
 		[SerializeField]
-		[TypeRestriction(typeof(ISurfaceAuthoring), PickerLabel = "Walls & Ramps", UpdateTransforms = true)]
+		[TypeRestriction(typeof(ISurfaceComponent), PickerLabel = "Walls & Ramps", UpdateTransforms = true)]
 		[Tooltip("On which surface this spinner is attached to. Updates Z-translation.")]
 		public MonoBehaviour _surface;
 
@@ -79,13 +79,13 @@ namespace VisualPinball.Unity
 		public override ItemType ItemType => ItemType.Spinner;
 		public override string ItemName => "Spinner";
 
-		public override IEnumerable<Type> ValidParents => SpinnerColliderAuthoring.ValidParentTypes
+		public override IEnumerable<Type> ValidParents => SpinnerColliderComponent.ValidParentTypes
 			.Distinct();
 
 		public override SpinnerData InstantiateData() => new SpinnerData();
 
-		protected override Type MeshAuthoringType { get; } = typeof(ItemMeshAuthoring<SpinnerData, SpinnerAuthoring>);
-		protected override Type ColliderAuthoringType { get; } = typeof(ItemColliderAuthoring<SpinnerData, SpinnerAuthoring>);
+		protected override Type MeshAuthoringType { get; } = typeof(ItemMeshComponent<SpinnerData, SpinnerComponent>);
+		protected override Type ColliderAuthoringType { get; } = typeof(ItemColliderComponent<SpinnerData, SpinnerComponent>);
 
 		private const string BracketMeshName = "Spinner (Bracket)";
 		public const string SwitchItem = "spinner_switch";
@@ -100,7 +100,7 @@ namespace VisualPinball.Unity
 
 		public SwitchDefault SwitchDefault => SwitchDefault.Configurable;
 
-		IEnumerable<GamelogicEngineSwitch> IDeviceAuthoring<GamelogicEngineSwitch>.AvailableDeviceItems => AvailableSwitches;
+		IEnumerable<GamelogicEngineSwitch> IDeviceComponent<GamelogicEngineSwitch>.AvailableDeviceItems => AvailableSwitches;
 
 		#endregion
 
@@ -134,7 +134,7 @@ namespace VisualPinball.Unity
 			Convert(entity, dstManager);
 
 			// physics collision data
-			var collComponent = GetComponent<SpinnerColliderAuthoring>();
+			var collComponent = GetComponent<SpinnerColliderComponent>();
 			if (collComponent) {
 
 				dstManager.AddComponentData(entity, new SpinnerStaticData {
@@ -146,7 +146,7 @@ namespace VisualPinball.Unity
 				});
 
 				// enable animation if component available
-				if (GetComponentInChildren<SpinnerPlateAnimationAuthoring>()) {
+				if (GetComponentInChildren<SpinnerPlateAnimationComponent>()) {
 					dstManager.AddComponentData(entity, new SpinnerMovementData {
 						Angle = math.radians(math.clamp(0.0f, AngleMin, AngleMax)),
 						AngleSpeed = 0f
@@ -186,7 +186,7 @@ namespace VisualPinball.Unity
 			}
 
 			// collider data
-			var collComponent = GetComponent<SpinnerColliderAuthoring>();
+			var collComponent = GetComponent<SpinnerColliderComponent>();
 			if (collComponent) {
 				collComponent.Elasticity = data.Elasticity;
 				updatedComponents.Add(collComponent);
@@ -195,9 +195,9 @@ namespace VisualPinball.Unity
 			return updatedComponents;
 		}
 
-		public override IEnumerable<MonoBehaviour> SetReferencedData(SpinnerData data, Table table, IMaterialProvider materialProvider, ITextureProvider textureProvider, Dictionary<string, IItemMainAuthoring> components)
+		public override IEnumerable<MonoBehaviour> SetReferencedData(SpinnerData data, Table table, IMaterialProvider materialProvider, ITextureProvider textureProvider, Dictionary<string, IItemMainComponent> components)
 		{
-			Surface = GetAuthoring<SurfaceAuthoring>(components, data.Surface);
+			Surface = GetAuthoring<SurfaceComponent>(components, data.Surface);
 			return Array.Empty<MonoBehaviour>();
 		}
 
@@ -232,7 +232,7 @@ namespace VisualPinball.Unity
 			data.IsVisible = isAnythingElseActive || isBracketActive;
 			data.ShowBracket = isBracketActive;
 
-			var collComponent = GetComponent<SpinnerColliderAuthoring>();
+			var collComponent = GetComponent<SpinnerColliderComponent>();
 			if (collComponent) {
 				data.Elasticity = collComponent.Elasticity;
 			}

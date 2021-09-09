@@ -49,7 +49,7 @@ namespace VisualPinball.Unity.Editor
 			}
 
 			// find parent in hierarchy
-			var selectedTable = Selection.activeGameObject.GetComponentInParent<TableAuthoring>();
+			var selectedTable = Selection.activeGameObject.GetComponentInParent<TableComponent>();
 			if (selectedTable != null) {
 				TableSelector.Instance.SelectedTable = selectedTable;
 			}
@@ -60,13 +60,13 @@ namespace VisualPinball.Unity.Editor
 			TableSelector.Instance.SelectedTable = FindTableInHierarchy();
 		}
 
-		private static TableAuthoring FindTableInHierarchy()
+		private static TableComponent FindTableInHierarchy()
 		{
 			var rootObjects = SceneManager.GetActiveScene().GetRootGameObjects();
 
 			// try root objects first
 			foreach (var go in rootObjects) {
-				var ta = go.GetComponent<TableAuthoring>();
+				var ta = go.GetComponent<TableComponent>();
 				if (ta != null) {
 					return ta;
 				}
@@ -74,7 +74,7 @@ namespace VisualPinball.Unity.Editor
 
 			// do a deep search
 			return rootObjects
-				.Select(go => go.GetComponentInChildren<TableAuthoring>(true))
+				.Select(go => go.GetComponentInChildren<TableComponent>(true))
 				.FirstOrDefault(ta => ta != null);
 		}
 	}

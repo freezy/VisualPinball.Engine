@@ -29,7 +29,7 @@ namespace VisualPinball.Unity.Editor
 			}
 
 			var prefab = Resources.Load<GameObject>("Prefabs/Primitive");
-			return new VpxPrefab<Primitive, PrimitiveData, PrimitiveAuthoring>(prefab, primitive) { ExtractMesh = true };
+			return new VpxPrefab<Primitive, PrimitiveData, PrimitiveComponent>(prefab, primitive) { ExtractMesh = true };
 		}
 	}
 }

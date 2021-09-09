@@ -26,19 +26,19 @@ namespace VisualPinball.Unity.Editor
 	internal class VpxPlayfieldPrefab : IVpxPrefab
 	{
 		public GameObject GameObject { get; }
-		public IItemMainAuthoring MainComponent => _playfieldComponent;
+		public IItemMainComponent MainComponent => _playfieldComponent;
 		public MeshFilter[] MeshFilters => GameObject.GetComponents<MeshFilter>();
 		public bool ExtractMesh => true;
 		public bool SkipParenting => true;
 
 		private readonly Primitive _primitive;
-		private readonly PlayfieldAuthoring _playfieldComponent;
+		private readonly PlayfieldComponent _playfieldComponent;
 		private readonly List<MonoBehaviour> _updatedComponents = new List<MonoBehaviour>();
 
 		public VpxPlayfieldPrefab(GameObject playfieldGo, Primitive item)
 		{
 			_primitive = item;
-			_playfieldComponent = playfieldGo.GetComponent<PlayfieldAuthoring>();
+			_playfieldComponent = playfieldGo.GetComponent<PlayfieldComponent>();
 			GameObject = playfieldGo;
 		}
 
@@ -47,9 +47,9 @@ namespace VisualPinball.Unity.Editor
 			// nothing to do here
 		}
 
-		public void SetReferencedData(Table table, IMaterialProvider materialProvider, ITextureProvider textureProvider, Dictionary<string, IItemMainAuthoring> components)
+		public void SetReferencedData(Table table, IMaterialProvider materialProvider, ITextureProvider textureProvider, Dictionary<string, IItemMainComponent> components)
 		{
-			var playfieldComp = GameObject.GetComponent<PlayfieldAuthoring>();
+			var playfieldComp = GameObject.GetComponent<PlayfieldComponent>();
 			if (playfieldComp) {
 				var updatedComponents = playfieldComp.SetReferencedData(_primitive.Data, table, materialProvider, textureProvider);
 				_updatedComponents.AddRange(updatedComponents);

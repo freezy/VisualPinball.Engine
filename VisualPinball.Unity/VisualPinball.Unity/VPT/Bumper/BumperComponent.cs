@@ -34,8 +34,8 @@ using VisualPinball.Engine.VPT.Table;
 namespace VisualPinball.Unity
 {
 	[AddComponentMenu("Visual Pinball/Game Item/Bumper")]
-	public class BumperAuthoring : ItemMainRenderableAuthoring<BumperData>,
-		ISwitchDeviceAuthoring, ICoilDeviceAuthoring, IOnSurfaceAuthoring, IConvertGameObjectToEntity
+	public class BumperComponent : ItemMainRenderableComponent<BumperData>,
+		ISwitchDeviceComponent, ICoilDeviceComponent, IOnSurfaceComponent, IConvertGameObjectToEntity
 	{
 		#region Data
 
@@ -54,10 +54,10 @@ namespace VisualPinball.Unity
 		[Tooltip("Orientation angle. Updates z rotation.")]
 		public float Orientation;
 
-		public ISurfaceAuthoring Surface { get => _surface as ISurfaceAuthoring; set => _surface = value as MonoBehaviour; }
+		public ISurfaceComponent Surface { get => _surface as ISurfaceComponent; set => _surface = value as MonoBehaviour; }
 
 		[SerializeField]
-		[TypeRestriction(typeof(ISurfaceAuthoring), PickerLabel = "Walls & Ramps", UpdateTransforms = true)]
+		[TypeRestriction(typeof(ISurfaceComponent), PickerLabel = "Walls & Ramps", UpdateTransforms = true)]
 		[Tooltip("On which surface this bumper is attached to. Updates Z-translation.")]
 		public MonoBehaviour _surface;
 		private IEnumerable<GamelogicEngineCoil> _availableDeviceItems;
@@ -68,11 +68,11 @@ namespace VisualPinball.Unity
 
 		public override ItemType ItemType => ItemType.Bumper;
 		public override string ItemName => "Bumper";
-		public override IEnumerable<Type> ValidParents => BumperColliderAuthoring.ValidParentTypes;
+		public override IEnumerable<Type> ValidParents => BumperColliderComponent.ValidParentTypes;
 
 		public override BumperData InstantiateData() => new BumperData();
-		protected override Type MeshAuthoringType { get; } = typeof(ItemMeshAuthoring<BumperData, BumperAuthoring>);
-		protected override Type ColliderAuthoringType { get; } = typeof(ItemColliderAuthoring<BumperData, BumperAuthoring>);
+		protected override Type MeshAuthoringType { get; } = typeof(ItemMeshComponent<BumperData, BumperComponent>);
+		protected override Type ColliderAuthoringType { get; } = typeof(ItemColliderComponent<BumperData, BumperComponent>);
 
 		private const string SkirtMeshName = "Bumper (Skirt)";
 		private const string BaseMeshName = "Bumper (Base)";
@@ -101,10 +101,10 @@ namespace VisualPinball.Unity
 			}
 		};
 
-		IEnumerable<GamelogicEngineCoil> IDeviceAuthoring<GamelogicEngineCoil>.AvailableDeviceItems => AvailableCoils;
-		IEnumerable<GamelogicEngineSwitch> IDeviceAuthoring<GamelogicEngineSwitch>.AvailableDeviceItems => AvailableSwitches;
-		IEnumerable<IGamelogicEngineDeviceItem> IWireableAuthoring.AvailableWireDestinations => AvailableCoils;
-		IEnumerable<IGamelogicEngineDeviceItem> IDeviceAuthoring<IGamelogicEngineDeviceItem>.AvailableDeviceItems => AvailableCoils;
+		IEnumerable<GamelogicEngineCoil> IDeviceComponent<GamelogicEngineCoil>.AvailableDeviceItems => AvailableCoils;
+		IEnumerable<GamelogicEngineSwitch> IDeviceComponent<GamelogicEngineSwitch>.AvailableDeviceItems => AvailableSwitches;
+		IEnumerable<IGamelogicEngineDeviceItem> IWireableComponent.AvailableWireDestinations => AvailableCoils;
+		IEnumerable<IGamelogicEngineDeviceItem> IDeviceComponent<IGamelogicEngineDeviceItem>.AvailableDeviceItems => AvailableCoils;
 
 		#endregion
 
@@ -137,7 +137,7 @@ namespace VisualPinball.Unity
 			Convert(entity, dstManager);
 
 			// physics collision data
-			var collComponent = GetComponentInChildren<BumperColliderAuthoring>();
+			var collComponent = GetComponentInChildren<BumperColliderComponent>();
 			if (collComponent) {
 				dstManager.AddComponentData(entity, new BumperStaticData {
 					Force = collComponent.Force,
@@ -146,7 +146,7 @@ namespace VisualPinball.Unity
 				});
 
 				// skirt animation data
-				if (GetComponentInChildren<BumperSkirtAnimationAuthoring>()) {
+				if (GetComponentInChildren<BumperSkirtAnimationComponent>()) {
 					dstManager.AddComponentData(entity, new BumperSkirtAnimationData {
 						BallPosition = default,
 						AnimationCounter = 0f,
@@ -161,7 +161,7 @@ namespace VisualPinball.Unity
 			}
 
 			// ring animation data
-			var ringAnimComponent = GetComponentInChildren<BumperRingAnimationAuthoring>();
+			var ringAnimComponent = GetComponentInChildren<BumperRingAnimationComponent>();
 			if (ringAnimComponent) {
 				dstManager.AddComponentData(entity, new BumperRingAnimationData {
 
@@ -194,7 +194,7 @@ namespace VisualPinball.Unity
 			Orientation = data.Orientation;
 
 			// collider
-			var collComponent = GetComponentInChildren<BumperColliderAuthoring>();
+			var collComponent = GetComponentInChildren<BumperColliderComponent>();
 			if (collComponent) {
 				collComponent.enabled = data.IsCollidable;
 				collComponent.Threshold = data.Threshold;
@@ -204,7 +204,7 @@ namespace VisualPinball.Unity
 			}
 
 			// ring animation
-			var ringAnimComponent = GetComponentInChildren<BumperRingAnimationAuthoring>();
+			var ringAnimComponent = GetComponentInChildren<BumperRingAnimationComponent>();
 			if (ringAnimComponent) {
 				ringAnimComponent.RingSpeed = data.RingSpeed;
 				ringAnimComponent.RingDropOffset = data.RingDropOffset;
@@ -213,9 +213,9 @@ namespace VisualPinball.Unity
 			return updatedComponents;
 		}
 
-		public override IEnumerable<MonoBehaviour> SetReferencedData(BumperData data, Table table, IMaterialProvider materialProvider, ITextureProvider textureProvider, Dictionary<string, IItemMainAuthoring> components)
+		public override IEnumerable<MonoBehaviour> SetReferencedData(BumperData data, Table table, IMaterialProvider materialProvider, ITextureProvider textureProvider, Dictionary<string, IItemMainComponent> components)
 		{
-			Surface = GetAuthoring<SurfaceAuthoring>(components, data.Surface);
+			Surface = GetAuthoring<SurfaceComponent>(components, data.Surface);
 			UpdateTransforms();
 
 			// children visibility
@@ -293,7 +293,7 @@ namespace VisualPinball.Unity
 			}
 
 			// collider
-			var collComponent = GetComponentInChildren<BumperColliderAuthoring>();
+			var collComponent = GetComponentInChildren<BumperColliderComponent>();
 			if (collComponent) {
 				data.IsCollidable = collComponent.enabled;
 				data.Threshold = collComponent.Threshold;
@@ -305,7 +305,7 @@ namespace VisualPinball.Unity
 			}
 
 			// ring animation
-			var ringAnimComponent = GetComponentInChildren<BumperRingAnimationAuthoring>();
+			var ringAnimComponent = GetComponentInChildren<BumperRingAnimationComponent>();
 			if (ringAnimComponent) {
 				data.RingSpeed = ringAnimComponent.RingSpeed;
 				data.RingDropOffset = ringAnimComponent.RingDropOffset;

@@ -25,7 +25,7 @@ using VisualPinball.Engine.VPT.Bumper;
 namespace VisualPinball.Unity
 {
 	[AddComponentMenu("Visual Pinball/Collision/Bumper Collider")]
-	public class BumperColliderAuthoring : ItemColliderAuthoring<BumperData, BumperAuthoring>
+	public class BumperColliderComponent : ItemColliderComponent<BumperData, BumperComponent>
 	{
 		public static readonly Type[] ValidParentTypes = Type.EmptyTypes;
 

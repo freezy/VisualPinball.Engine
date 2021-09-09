@@ -168,9 +168,9 @@ namespace VisualPinball.Unity.Editor
 
 		private void OnFocus()
 		{
-			if (_tableAuthoring == null || _tableAuthoring.gameObject == null) return;
+			if (TableComponent == null || TableComponent.gameObject == null) return;
 
-			Selection.activeObject = _tableAuthoring.gameObject;
+			Selection.activeObject = TableComponent.gameObject;
 
 			if (_autoFrame) {
 				_needFraming = true;
@@ -201,8 +201,8 @@ namespace VisualPinball.Unity.Editor
 			}
 		}
 
-		private bool ShouldDisplaySoundPosition => _tableAuthoring != null && Event.current.type == EventType.Repaint
-		     && (focusedWindow == this || focusedWindow == SceneView.lastActiveSceneView && Selection.activeObject == _tableAuthoring.gameObject)
+		private bool ShouldDisplaySoundPosition => TableComponent != null && Event.current.type == EventType.Repaint
+		     && (focusedWindow == this || focusedWindow == SceneView.lastActiveSceneView && Selection.activeObject == TableComponent.gameObject)
 		     && _displaySoundPosition && _selectedItem != null && _selectedItem.LegacySound.OutputTarget == SoundOutTypes.Table;
 
 
@@ -238,20 +238,20 @@ namespace VisualPinball.Unity.Editor
 
 		private void OnSceneGUI(SceneView sceneView)
 		{
-			if (_tableAuthoring == null || _selectedItem == null) {
+			if (TableComponent == null || _selectedItem == null) {
 				return;
 			}
 
-			var bb = _playfieldAuthoring.BoundingBox;
+			var bb = PlayfieldComponent.BoundingBox;
 			var sndData = _selectedItem.LegacySound;
 			_tableCenter = new Vector3((bb.Right - bb.Left) * 0.5f, (bb.Bottom - bb.Top) * 0.5f, (bb.ZHigh - bb.ZLow) * 0.5f);
-			_tableCenter = _tableAuthoring.gameObject.transform.TransformPoint(_tableCenter);
+			_tableCenter = TableComponent.gameObject.transform.TransformPoint(_tableCenter);
 			_tableSize = new Vector3(bb.Width, bb.Height, bb.Depth);
-			_tableSize = _tableAuthoring.gameObject.transform.TransformVector(_tableSize);
+			_tableSize = TableComponent.gameObject.transform.TransformVector(_tableSize);
 
 			if (ShouldDisplaySoundPosition) {
 				if (_displayAllSounds) {
-					foreach (var snd in _tableAuthoring.LegacyContainer.Sounds) {
+					foreach (var snd in TableComponent.LegacyContainer.Sounds) {
 						if (snd != sndData) {
 							RenderSound(snd, false);
 						}
@@ -276,20 +276,20 @@ namespace VisualPinball.Unity.Editor
 
 		protected override void AddNewData(string undoName, string newName)
 		{
-			Undo.RecordObject(_tableAuthoring, undoName);
-			_tableAuthoring.LegacyContainer.Sounds.Add(new LegacySound());
+			Undo.RecordObject(TableComponent, undoName);
+			TableComponent.LegacyContainer.Sounds.Add(new LegacySound());
 		}
 
 		protected override void RemoveData(string undoName, SoundListData data)
 		{
-			Undo.RecordObject(_tableAuthoring, undoName);
-			_tableAuthoring.LegacyContainer.Sounds.Remove(data.LegacySound);
+			Undo.RecordObject(TableComponent, undoName);
+			TableComponent.LegacyContainer.Sounds.Remove(data.LegacySound);
 		}
 
 		protected override List<SoundListData> CollectData()
 		{
 			var data = new List<SoundListData>();
-			foreach (var s in _tableAuthoring.LegacyContainer.Sounds) {
+			foreach (var s in TableComponent.LegacyContainer.Sounds) {
 				data.Add(new SoundListData(s));
 			}
 			return data;

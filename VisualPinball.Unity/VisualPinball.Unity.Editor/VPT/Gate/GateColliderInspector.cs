@@ -21,8 +21,8 @@ using VisualPinball.Engine.VPT.Gate;
 
 namespace VisualPinball.Unity.Editor
 {
-	[CustomEditor(typeof(GateColliderAuthoring)), CanEditMultipleObjects]
-	public class GateColliderInspector : ItemColliderInspector<GateData, GateAuthoring, GateColliderAuthoring>
+	[CustomEditor(typeof(GateColliderComponent)), CanEditMultipleObjects]
+	public class GateColliderInspector : ItemColliderInspector<GateData, GateComponent, GateColliderComponent>
 	{
 		private SerializedProperty _angleMinProperty;
 		private SerializedProperty _angleMaxProperty;
@@ -36,13 +36,13 @@ namespace VisualPinball.Unity.Editor
 		{
 			base.OnEnable();
 
-			_angleMinProperty = serializedObject.FindProperty(nameof(GateColliderAuthoring._angleMin));
-			_angleMaxProperty = serializedObject.FindProperty(nameof(GateColliderAuthoring._angleMax));
-			_elasticityProperty = serializedObject.FindProperty(nameof(GateColliderAuthoring.Elasticity));
-			_frictionProperty = serializedObject.FindProperty(nameof(GateColliderAuthoring.Friction));
-			_dampingProperty = serializedObject.FindProperty(nameof(GateColliderAuthoring.Damping));
-			_gravityFactorProperty = serializedObject.FindProperty(nameof(GateColliderAuthoring.GravityFactor));
-			_twoWayProperty = serializedObject.FindProperty(nameof(GateColliderAuthoring._twoWay));
+			_angleMinProperty = serializedObject.FindProperty(nameof(GateColliderComponent._angleMin));
+			_angleMaxProperty = serializedObject.FindProperty(nameof(GateColliderComponent._angleMax));
+			_elasticityProperty = serializedObject.FindProperty(nameof(GateColliderComponent.Elasticity));
+			_frictionProperty = serializedObject.FindProperty(nameof(GateColliderComponent.Friction));
+			_dampingProperty = serializedObject.FindProperty(nameof(GateColliderComponent.Damping));
+			_gravityFactorProperty = serializedObject.FindProperty(nameof(GateColliderComponent.GravityFactor));
+			_twoWayProperty = serializedObject.FindProperty(nameof(GateColliderComponent._twoWay));
 		}
 
 		public override void OnInspectorGUI()

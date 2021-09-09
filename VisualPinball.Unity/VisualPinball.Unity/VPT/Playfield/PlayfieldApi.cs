@@ -24,7 +24,7 @@ using VisualPinball.Unity.Playfield;
 
 namespace VisualPinball.Unity
 {
-	public class PlayfieldApi : ItemCollidableApi<PlayfieldAuthoring, PlayfieldColliderAuthoring, TableData>
+	public class PlayfieldApi : ItemCollidableApi<PlayfieldComponent, PlayfieldColliderComponent, TableData>
 	{
 		internal PlayfieldApi(GameObject go, Player player) : base(go, Player.PlayfieldEntity, Entity.Null, player)
 		{
@@ -36,7 +36,7 @@ namespace VisualPinball.Unity
 		{
 			var info = ((IApiColliderGenerator)this).GetColliderInfo();
 
-			var meshComp = GameObject.GetComponent<PlayfieldMeshAuthoring>();
+			var meshComp = GameObject.GetComponent<PlayfieldMeshComponent>();
 			if (meshComp && !meshComp.AutoGenerate) {
 				var mf = GameObject.GetComponent<MeshFilter>();
 				if (mf && mf.sharedMesh) {

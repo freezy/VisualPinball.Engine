@@ -61,18 +61,18 @@ namespace VisualPinball.Unity.Editor
 
 		private void OnFocus()
 		{
-			_listViewItemRenderer = new CoilListViewItemRenderer(_tableAuthoring, _gleCoils);
+			_listViewItemRenderer = new CoilListViewItemRenderer(TableComponent, _gleCoils);
 		}
 
 		protected override bool SetupCompleted()
 		{
-			if (_tableAuthoring == null)
+			if (TableComponent == null)
 			{
 				DisplayMessage("No table set.");
 				return false;
 			}
 
-			var gle = _tableAuthoring.gameObject.GetComponent<IGamelogicEngine>();
+			var gle = TableComponent.gameObject.GetComponent<IGamelogicEngine>();
 
 			if (gle == null)
 			{
@@ -88,7 +88,7 @@ namespace VisualPinball.Unity.Editor
 			if (GUILayout.Button("Populate All", GUILayout.ExpandWidth(false)))
 			{
 				RecordUndo("Populate all coil mappings");
-				_tableAuthoring.MappingConfig.PopulateCoils(GetAvailableEngineCoils(), _tableAuthoring);
+				TableComponent.MappingConfig.PopulateCoils(GetAvailableEngineCoils(), TableComponent);
 				Reload();
 				LampManager.Refresh();
 			}
@@ -97,7 +97,7 @@ namespace VisualPinball.Unity.Editor
 			{
 				if (EditorUtility.DisplayDialog("Coil Manager", "Are you sure want to remove all coil mappings?", "Yes", "Cancel")) {
 					RecordUndo("Remove all coil mappings");
-					_tableAuthoring.MappingConfig.RemoveAllCoils();
+					TableComponent.MappingConfig.RemoveAllCoils();
 				}
 				Reload();
 				LampManager.Refresh();
@@ -106,7 +106,7 @@ namespace VisualPinball.Unity.Editor
 
 		protected override void OnListViewItemRenderer(CoilListData data, Rect cellRect, int column)
 		{
-			_listViewItemRenderer.Render(_tableAuthoring, data, cellRect, column, coilListData => {
+			_listViewItemRenderer.Render(TableComponent, data, cellRect, column, coilListData => {
 				RecordUndo(DataTypeName + " Data Change");
 				coilListData.Update();
 			});
@@ -116,7 +116,7 @@ namespace VisualPinball.Unity.Editor
 		protected override List<CoilListData> CollectData()
 		{
 			List<CoilListData> data = new List<CoilListData>();
-			foreach (var coilMapping in _tableAuthoring.MappingConfig.Coils) {
+			foreach (var coilMapping in TableComponent.MappingConfig.Coils) {
 				data.Add(new CoilListData(coilMapping));
 			}
 
@@ -128,19 +128,19 @@ namespace VisualPinball.Unity.Editor
 		protected override void AddNewData(string undoName, string newName)
 		{
 			RecordUndo(undoName);
-			_tableAuthoring.MappingConfig.AddCoil(new CoilMapping());
+			TableComponent.MappingConfig.AddCoil(new CoilMapping());
 		}
 
 		protected override void RemoveData(string undoName, CoilListData data)
 		{
 			RecordUndo(undoName);
-			_tableAuthoring.MappingConfig.RemoveCoil(data.CoilMapping);
+			TableComponent.MappingConfig.RemoveCoil(data.CoilMapping);
 
 			// todo if it's a lamp, also delete the lamp entry.
 			if (data.CoilMapping.Destination == CoilDestination.Lamp) {
-				var lampEntry = _tableAuthoring.MappingConfig.Lamps.FirstOrDefault(l => l.Id == data.Id && l.Source == LampSource.Coils);
+				var lampEntry = TableComponent.MappingConfig.Lamps.FirstOrDefault(l => l.Id == data.Id && l.Source == LampSource.Coils);
 				if (lampEntry != null) {
-					_tableAuthoring.MappingConfig.RemoveLamp(lampEntry);
+					TableComponent.MappingConfig.RemoveLamp(lampEntry);
 					LampManager.Refresh();
 				}
 			}
@@ -149,7 +149,7 @@ namespace VisualPinball.Unity.Editor
 		protected override void CloneData(string undoName, string newName, CoilListData data)
 		{
 			RecordUndo(undoName);
-			_tableAuthoring.MappingConfig.AddCoil(new CoilMapping {
+			TableComponent.MappingConfig.AddCoil(new CoilMapping {
 				Id = data.Id,
 				InternalId = data.InternalId,
 				Description = data.Description,
@@ -176,12 +176,12 @@ namespace VisualPinball.Unity.Editor
 		private void RefreshCoilIds()
 		{
 			_gleCoils.Clear();
-			_gleCoils.AddRange(_tableAuthoring.MappingConfig.GetCoils(GetAvailableEngineCoils()));
+			_gleCoils.AddRange(TableComponent.MappingConfig.GetCoils(GetAvailableEngineCoils()));
 		}
 
 		private GamelogicEngineCoil[] GetAvailableEngineCoils()
 		{
-			var gle = _tableAuthoring.gameObject.GetComponent<IGamelogicEngine>();
+			var gle = TableComponent.gameObject.GetComponent<IGamelogicEngine>();
 			return gle == null ? Array.Empty<GamelogicEngineCoil>() : gle.AvailableCoils;
 		}
 
@@ -191,7 +191,7 @@ namespace VisualPinball.Unity.Editor
 
 		private void RecordUndo(string undoName)
 		{
-			Undo.RecordObjects(new Object[] { this, _tableAuthoring }, undoName);
+			Undo.RecordObjects(new Object[] { this, TableComponent }, undoName);
 		}
 
 		#endregion

@@ -23,7 +23,7 @@ using VisualPinball.Engine.VPT.Plunger;
 
 namespace VisualPinball.Unity
 {
-	public class PlungerApi : ItemCollidableApi<PlungerAuthoring, PlungerColliderAuthoring, PlungerData>,
+	public class PlungerApi : ItemCollidableApi<PlungerComponent, PlungerColliderComponent, PlungerData>,
 		IApiInitializable, IApiRotatable, IApiCoilDevice, IApiWireDeviceDest
 	{
 		/// <summary>
@@ -85,7 +85,7 @@ namespace VisualPinball.Unity
 
 		public void PullBack()
 		{
-			var collComponent = GameObject.GetComponent<PlungerColliderAuthoring>();
+			var collComponent = GameObject.GetComponent<PlungerColliderComponent>();
 			if (!collComponent) {
 				return;
 			}
@@ -105,7 +105,7 @@ namespace VisualPinball.Unity
 
 		public void Fire()
 		{
-			var collComponent = GameObject.GetComponent<PlungerColliderAuthoring>();
+			var collComponent = GameObject.GetComponent<PlungerColliderComponent>();
 			if (!collComponent) {
 				return;
 			}
@@ -140,10 +140,10 @@ namespace VisualPinball.Unity
 		private IApiCoil Coil(string deviceItem)
 		{
 			switch (deviceItem) {
-				case PlungerAuthoring.FireCoilId:
+				case PlungerComponent.FireCoilId:
 					return FireCoil;
 
-				case PlungerAuthoring.PullCoilId:
+				case PlungerComponent.PullCoilId:
 					return PullCoil;
 
 				default:

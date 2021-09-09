@@ -22,7 +22,7 @@ using VisualPinball.Engine.VPT.Trigger;
 
 namespace VisualPinball.Unity
 {
-	public class TriggerApi : ItemCollidableApi<TriggerAuthoring, TriggerColliderAuthoring, TriggerData>,
+	public class TriggerApi : ItemCollidableApi<TriggerComponent, TriggerColliderComponent, TriggerData>,
 		IApiInitializable, IApiHittable, IApiSwitch, IApiSwitchDevice
 	{
 		/// <summary>
@@ -67,7 +67,7 @@ namespace VisualPinball.Unity
 
 		protected override void CreateColliders(List<ICollider> colliders)
 		{
-			var meshComponent = GameObject.GetComponent<TriggerMeshAuthoring>();
+			var meshComponent = GameObject.GetComponent<TriggerMeshComponent>();
 			if (meshComponent) {
 				var colliderGenerator = new TriggerColliderGenerator(this, MainComponent, ColliderComponent, meshComponent);
 				colliderGenerator.GenerateColliders(colliders);

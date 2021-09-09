@@ -21,7 +21,7 @@ using UnityEngine;
 
 namespace VisualPinball.Unity
 {
-	public class RampApi : ItemCollidableApi<RampAuthoring, RampColliderAuthoring, Engine.VPT.Ramp.RampData>,
+	public class RampApi : ItemCollidableApi<RampComponent, RampColliderComponent, Engine.VPT.Ramp.RampData>,
 		IApiInitializable
 	{
 		/// <summary>

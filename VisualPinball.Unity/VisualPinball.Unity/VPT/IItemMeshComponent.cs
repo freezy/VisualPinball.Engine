@@ -20,9 +20,9 @@ using UnityEngine;
 
 namespace VisualPinball.Unity
 {
-	public interface IItemMeshAuthoring
+	public interface IItemMeshComponent
 	{
-		IItemMainRenderableAuthoring IMainAuthoring { get; }
+		IItemMainRenderableComponent IMainAuthoring { get; }
 
 		// ReSharper disable once InconsistentNaming
 		/// <summary>

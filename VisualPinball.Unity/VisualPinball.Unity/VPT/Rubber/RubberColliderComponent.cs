@@ -25,7 +25,7 @@ using VisualPinball.Engine.VPT.Rubber;
 namespace VisualPinball.Unity
 {
 	[AddComponentMenu("Visual Pinball/Collision/Rubber Collider")]
-	public class RubberColliderAuthoring : ItemColliderAuthoring<RubberData, RubberAuthoring>
+	public class RubberColliderComponent : ItemColliderComponent<RubberData, RubberComponent>
 	{
 		#region Data
 

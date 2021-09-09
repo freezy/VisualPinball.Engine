@@ -32,7 +32,7 @@ namespace VisualPinball.Unity
 
 		protected override void OnStartRunning()
 		{
-			var root = Object.FindObjectOfType<PlayfieldAuthoring>();
+			var root = Object.FindObjectOfType<PlayfieldComponent>();
 			var ltw = root.gameObject.transform.localToWorldMatrix;
 			_baseTransform = new float4x4(
 				ltw.m00, ltw.m01, ltw.m02, ltw.m03,

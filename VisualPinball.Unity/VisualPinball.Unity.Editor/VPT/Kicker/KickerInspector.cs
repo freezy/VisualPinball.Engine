@@ -23,8 +23,8 @@ using VisualPinball.Engine.VPT.Kicker;
 
 namespace VisualPinball.Unity.Editor
 {
-	[CustomEditor(typeof(KickerAuthoring)), CanEditMultipleObjects]
-	public class KickerInspector : ItemMainInspector<KickerData, KickerAuthoring>
+	[CustomEditor(typeof(KickerComponent)), CanEditMultipleObjects]
+	public class KickerInspector : ItemMainInspector<KickerData, KickerComponent>
 	{
 
 		private const string MeshFolder = "Packages/org.visualpinball.engine.unity/VisualPinball.Unity/Assets/Art/Meshes/Kicker";
@@ -50,13 +50,13 @@ namespace VisualPinball.Unity.Editor
 		{
 			base.OnEnable();
 
-			_positionProperty = serializedObject.FindProperty(nameof(KickerAuthoring.Position));
-			_radiusProperty = serializedObject.FindProperty(nameof(KickerAuthoring.Radius));
-			_orientationProperty = serializedObject.FindProperty(nameof(KickerAuthoring.Orientation));
-			_surfaceProperty = serializedObject.FindProperty(nameof(KickerAuthoring._surface));
-			_kickerTypeProperty = serializedObject.FindProperty(nameof(KickerAuthoring.KickerType));
-			_meshNameProperty = serializedObject.FindProperty(nameof(KickerAuthoring.MeshName));
-			_coilsProperty = serializedObject.FindProperty(nameof(KickerAuthoring.Coils));
+			_positionProperty = serializedObject.FindProperty(nameof(KickerComponent.Position));
+			_radiusProperty = serializedObject.FindProperty(nameof(KickerComponent.Radius));
+			_orientationProperty = serializedObject.FindProperty(nameof(KickerComponent.Orientation));
+			_surfaceProperty = serializedObject.FindProperty(nameof(KickerComponent._surface));
+			_kickerTypeProperty = serializedObject.FindProperty(nameof(KickerComponent.KickerType));
+			_meshNameProperty = serializedObject.FindProperty(nameof(KickerComponent.MeshName));
+			_coilsProperty = serializedObject.FindProperty(nameof(KickerComponent.Coils));
 		}
 
 		public override void OnInspectorGUI()

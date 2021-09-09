@@ -31,7 +31,7 @@ namespace VisualPinball.Unity
 	/// The scripting API of the flipper.
 	/// </summary>
 	[Api]
-	public class FlipperApi : ItemCollidableApi<FlipperAuthoring, FlipperColliderAuthoring, FlipperData>,
+	public class FlipperApi : ItemCollidableApi<FlipperComponent, FlipperColliderComponent, FlipperData>,
 		IApiInitializable, IApiHittable, IApiRotatable, IApiCollidable, IApiSwitchDevice, IApiSwitch, IApiCoilDevice, IApiWireDeviceDest
 	{
 		/// <summary>
@@ -113,9 +113,9 @@ namespace VisualPinball.Unity
 
 		private IApiCoil Coil(string deviceItem) {
 			return deviceItem switch {
-				FlipperAuthoring.MainCoilItem => _mainCoil,
-				FlipperAuthoring.HoldCoilItem => _holdCoil,
-				_ => throw new ArgumentException($"Unknown flipper coil \"{deviceItem}\". Valid names are: [ \"{FlipperAuthoring.MainCoilItem}\", \"{FlipperAuthoring.HoldCoilItem}\" ].")
+				FlipperComponent.MainCoilItem => _mainCoil,
+				FlipperComponent.HoldCoilItem => _holdCoil,
+				_ => throw new ArgumentException($"Unknown flipper coil \"{deviceItem}\". Valid names are: [ \"{FlipperComponent.MainCoilItem}\", \"{FlipperComponent.HoldCoilItem}\" ].")
 			};
 		}
 

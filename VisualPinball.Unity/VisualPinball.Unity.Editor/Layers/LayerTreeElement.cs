@@ -40,9 +40,9 @@ namespace VisualPinball.Unity.Editor
 	internal class LayerTreeElement : TreeElement
 	{
 		public string LayerName;
-		public ILayerableItemAuthoring Item { get; }
+		public ILayerableItemComponent Item { get; }
 
-		private readonly TableAuthoring _tableComponent;
+		private readonly TableComponent _tableComponent;
 
 		/// <summary>
 		/// Returns the type based on which data is set.
@@ -118,7 +118,7 @@ namespace VisualPinball.Unity.Editor
 					}
 
 					case LayerTreeViewElementType.Item: {
-						if (Item is IIdentifiableItemAuthoring identifiable) {
+						if (Item is IIdentifiableItemComponent identifiable) {
 							return identifiable.name;
 						}
 						return string.Empty;
@@ -202,7 +202,7 @@ namespace VisualPinball.Unity.Editor
 		/// Construct as <see cref="LayerTreeViewElementType.Table"/>.
 		/// </summary>
 		/// <param name="table">Table object</param>
-		public LayerTreeElement(TableAuthoring ta)
+		public LayerTreeElement(TableComponent ta)
 		{
 			_tableComponent = ta;
 		}
@@ -211,7 +211,7 @@ namespace VisualPinball.Unity.Editor
 		/// Construct as <see cref="LayerTreeViewElementType.Item"/>.
 		/// </summary>
 		/// <param name="item">Game item behavior</param>
-		public LayerTreeElement(ILayerableItemAuthoring item)
+		public LayerTreeElement(ILayerableItemComponent item)
 		{
 			Item = item;
 			IsVisible = Item.EditorLayerVisibility;

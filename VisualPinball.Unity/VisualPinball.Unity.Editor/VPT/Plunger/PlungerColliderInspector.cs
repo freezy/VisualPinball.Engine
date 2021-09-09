@@ -21,8 +21,8 @@ using VisualPinball.Engine.VPT.Plunger;
 
 namespace VisualPinball.Unity.Editor
 {
-	[CustomEditor(typeof(PlungerColliderAuthoring)), CanEditMultipleObjects]
-	public class PlungerColliderInspector : ItemColliderInspector<PlungerData, PlungerAuthoring, PlungerColliderAuthoring>
+	[CustomEditor(typeof(PlungerColliderComponent)), CanEditMultipleObjects]
+	public class PlungerColliderInspector : ItemColliderInspector<PlungerData, PlungerComponent, PlungerColliderComponent>
 	{
 		private SerializedProperty _speedPullProperty;
 		private SerializedProperty _speedFireProperty;
@@ -37,15 +37,15 @@ namespace VisualPinball.Unity.Editor
 		protected override void OnEnable()
 		{
 			base.OnEnable();
-			_speedPullProperty = serializedObject.FindProperty(nameof(PlungerColliderAuthoring.SpeedPull));
-			_speedFireProperty = serializedObject.FindProperty(nameof(PlungerColliderAuthoring.SpeedFire));
-			_strokeProperty = serializedObject.FindProperty(nameof(PlungerColliderAuthoring.Stroke));
-			_scatterVelocityProperty = serializedObject.FindProperty(nameof(PlungerColliderAuthoring.ScatterVelocity));
-			_isMechPlungerProperty = serializedObject.FindProperty(nameof(PlungerColliderAuthoring.IsMechPlunger));
-			_isAutoPlungerProperty = serializedObject.FindProperty(nameof(PlungerColliderAuthoring.IsAutoPlunger));
-			_mechStrengthProperty = serializedObject.FindProperty(nameof(PlungerColliderAuthoring.MechStrength));
-			_momentumXferProperty = serializedObject.FindProperty(nameof(PlungerColliderAuthoring.MomentumXfer));
-			_parkPositionProperty = serializedObject.FindProperty(nameof(PlungerColliderAuthoring.ParkPosition));
+			_speedPullProperty = serializedObject.FindProperty(nameof(PlungerColliderComponent.SpeedPull));
+			_speedFireProperty = serializedObject.FindProperty(nameof(PlungerColliderComponent.SpeedFire));
+			_strokeProperty = serializedObject.FindProperty(nameof(PlungerColliderComponent.Stroke));
+			_scatterVelocityProperty = serializedObject.FindProperty(nameof(PlungerColliderComponent.ScatterVelocity));
+			_isMechPlungerProperty = serializedObject.FindProperty(nameof(PlungerColliderComponent.IsMechPlunger));
+			_isAutoPlungerProperty = serializedObject.FindProperty(nameof(PlungerColliderComponent.IsAutoPlunger));
+			_mechStrengthProperty = serializedObject.FindProperty(nameof(PlungerColliderComponent.MechStrength));
+			_momentumXferProperty = serializedObject.FindProperty(nameof(PlungerColliderComponent.MomentumXfer));
+			_parkPositionProperty = serializedObject.FindProperty(nameof(PlungerColliderComponent.ParkPosition));
 		}
 
 		public override void OnInspectorGUI()
@@ -69,7 +69,7 @@ namespace VisualPinball.Unity.Editor
 			PropertyField(_mechStrengthProperty, "Mech Strength");
 			PropertyField(_momentumXferProperty, "Momentum Xfer");
 			PropertyField(_parkPositionProperty, "Park Position", onChanged: () => {
-				ColliderAuthoring.GetComponentInParent<PlungerAuthoring>().UpdateParkPosition(ColliderAuthoring.ParkPosition);
+				ColliderAuthoring.GetComponentInParent<PlungerComponent>().UpdateParkPosition(ColliderAuthoring.ParkPosition);
 			});
 
 			base.OnInspectorGUI();

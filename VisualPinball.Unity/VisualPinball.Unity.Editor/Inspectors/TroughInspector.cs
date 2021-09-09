@@ -23,8 +23,8 @@ using VisualPinball.Engine.VPT.Trough;
 
 namespace VisualPinball.Unity.Editor
 {
-	[CustomEditor(typeof(TroughAuthoring)), CanEditMultipleObjects]
-	public class TroughInspector : ItemMainInspector<TroughData, TroughAuthoring>
+	[CustomEditor(typeof(TroughComponent)), CanEditMultipleObjects]
+	public class TroughInspector : ItemMainInspector<TroughData, TroughComponent>
 	{
 		private static readonly string[] TypeLabels = {
 			"Modern Opto",
@@ -57,15 +57,15 @@ namespace VisualPinball.Unity.Editor
 		{
 			base.OnEnable();
 
-			_typeProperty = serializedObject.FindProperty(nameof(TroughAuthoring.Type));
-			_playfieldEntrySwitchProperty = serializedObject.FindProperty(nameof(TroughAuthoring._playfieldEntrySwitch));
-			_playfieldExitKickerProperty = serializedObject.FindProperty(nameof(TroughAuthoring.PlayfieldExitKicker));
-			_ballCountProperty = serializedObject.FindProperty(nameof(TroughAuthoring.BallCount));
-			_switchCountProperty = serializedObject.FindProperty(nameof(TroughAuthoring.SwitchCount));
-			_jamSwitchProperty = serializedObject.FindProperty(nameof(TroughAuthoring.JamSwitch));
-			_rollTimeProperty = serializedObject.FindProperty(nameof(TroughAuthoring.RollTime));
-			_transitionTimeProperty = serializedObject.FindProperty(nameof(TroughAuthoring.TransitionTime));
-			_kickTimeProperty = serializedObject.FindProperty(nameof(TroughAuthoring.KickTime));
+			_typeProperty = serializedObject.FindProperty(nameof(TroughComponent.Type));
+			_playfieldEntrySwitchProperty = serializedObject.FindProperty(nameof(TroughComponent._playfieldEntrySwitch));
+			_playfieldExitKickerProperty = serializedObject.FindProperty(nameof(TroughComponent.PlayfieldExitKicker));
+			_ballCountProperty = serializedObject.FindProperty(nameof(TroughComponent.BallCount));
+			_switchCountProperty = serializedObject.FindProperty(nameof(TroughComponent.SwitchCount));
+			_jamSwitchProperty = serializedObject.FindProperty(nameof(TroughComponent.JamSwitch));
+			_rollTimeProperty = serializedObject.FindProperty(nameof(TroughComponent.RollTime));
+			_transitionTimeProperty = serializedObject.FindProperty(nameof(TroughComponent.TransitionTime));
+			_kickTimeProperty = serializedObject.FindProperty(nameof(TroughComponent.KickTime));
 		}
 
 		public override void OnInspectorGUI()

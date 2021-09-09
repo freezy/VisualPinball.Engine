@@ -21,8 +21,8 @@ using VisualPinball.Engine.VPT.Plunger;
 
 namespace VisualPinball.Unity.Editor
 {
-	[CustomEditor(typeof(PlungerSpringMeshAuthoring)), CanEditMultipleObjects]
-	public class PlungerSpringMeshInspector : ItemMeshInspector<PlungerData, PlungerAuthoring, PlungerSpringMeshAuthoring>
+	[CustomEditor(typeof(PlungerSpringMeshComponent)), CanEditMultipleObjects]
+	public class PlungerSpringMeshInspector : ItemMeshInspector<PlungerData, PlungerComponent, PlungerSpringMeshComponent>
 	{
 		private SerializedProperty _springDiamProperty;
 		private SerializedProperty _springGaugeProperty;
@@ -32,10 +32,10 @@ namespace VisualPinball.Unity.Editor
 		protected override void OnEnable()
 		{
 			base.OnEnable();
-			_springDiamProperty = serializedObject.FindProperty(nameof(PlungerSpringMeshAuthoring.SpringDiam));
-			_springGaugeProperty = serializedObject.FindProperty(nameof(PlungerSpringMeshAuthoring.SpringGauge));
-			_springLoopsProperty = serializedObject.FindProperty(nameof(PlungerSpringMeshAuthoring.SpringLoops));
-			_springEndLoopsProperty = serializedObject.FindProperty(nameof(PlungerSpringMeshAuthoring.SpringEndLoops));
+			_springDiamProperty = serializedObject.FindProperty(nameof(PlungerSpringMeshComponent.SpringDiam));
+			_springGaugeProperty = serializedObject.FindProperty(nameof(PlungerSpringMeshComponent.SpringGauge));
+			_springLoopsProperty = serializedObject.FindProperty(nameof(PlungerSpringMeshComponent.SpringLoops));
+			_springEndLoopsProperty = serializedObject.FindProperty(nameof(PlungerSpringMeshComponent.SpringEndLoops));
 
 		}
 		public override void OnInspectorGUI()

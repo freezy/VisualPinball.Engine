@@ -26,7 +26,7 @@ namespace VisualPinball.Unity
 {
 	[ExecuteInEditMode]
 	[AddComponentMenu("Visual Pinball/Mesh/Plunger Rod Mesh")]
-	public class PlungerRodMeshAuthoring : PlungerMeshAuthoring
+	public class PlungerRodMeshComponent : PlungerMeshComponent
 	{
 		#region Data
 

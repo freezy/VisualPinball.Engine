@@ -23,7 +23,7 @@ namespace VisualPinball.Unity
 	/// <summary>
 	/// The base class for all authoring components on the playfield.<p/>
 	/// </summary>
-	public abstract class ItemAuthoring : MonoBehaviour
+	public abstract class ItemComponent : MonoBehaviour
 	{
 		public abstract string ItemName { get; }
 

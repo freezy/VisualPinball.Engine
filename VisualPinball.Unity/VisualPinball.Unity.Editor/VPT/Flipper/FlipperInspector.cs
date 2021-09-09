@@ -21,8 +21,8 @@ using VisualPinball.Engine.VPT.Flipper;
 
 namespace VisualPinball.Unity.Editor
 {
-	[CustomEditor(typeof(FlipperAuthoring)), CanEditMultipleObjects]
-	public class FlipperInspector : ItemMainInspector<FlipperData, FlipperAuthoring>
+	[CustomEditor(typeof(FlipperComponent)), CanEditMultipleObjects]
+	public class FlipperInspector : ItemMainInspector<FlipperData, FlipperComponent>
 	{
 		private bool _foldoutBaseGeometry = true;
 		private bool _foldoutRubberGeometry = true;
@@ -46,20 +46,20 @@ namespace VisualPinball.Unity.Editor
 		{
 			base.OnEnable();
 
-			_positionProperty = serializedObject.FindProperty(nameof(FlipperAuthoring.Position));
-			_startAngleProperty = serializedObject.FindProperty(nameof(FlipperAuthoring.StartAngle));
-			_endAngleProperty = serializedObject.FindProperty(nameof(FlipperAuthoring.EndAngle));
-			_surfaceProperty = serializedObject.FindProperty(nameof(FlipperAuthoring._surface));
-			_isEnabledProperty = serializedObject.FindProperty(nameof(FlipperAuthoring.IsEnabled));
-			_isDualWoundProperty = serializedObject.FindProperty(nameof(FlipperAuthoring.IsDualWound));
-			_heightProperty = serializedObject.FindProperty(nameof(FlipperAuthoring.Height));
-			_baseRadiusProperty = serializedObject.FindProperty(nameof(FlipperAuthoring.BaseRadius));
-			_endRadiusProperty = serializedObject.FindProperty(nameof(FlipperAuthoring.EndRadius));
-			_rubberThicknessProperty = serializedObject.FindProperty(nameof(FlipperAuthoring.RubberThickness));
-			_rubberHeightProperty = serializedObject.FindProperty(nameof(FlipperAuthoring.RubberHeight));
-			_rubberWidthProperty = serializedObject.FindProperty(nameof(FlipperAuthoring.RubberWidth));
-			_flipperRadiusMinProperty = serializedObject.FindProperty(nameof(FlipperAuthoring.FlipperRadiusMin));
-			_flipperRadiusMaxProperty = serializedObject.FindProperty(nameof(FlipperAuthoring.FlipperRadiusMax));
+			_positionProperty = serializedObject.FindProperty(nameof(FlipperComponent.Position));
+			_startAngleProperty = serializedObject.FindProperty(nameof(FlipperComponent.StartAngle));
+			_endAngleProperty = serializedObject.FindProperty(nameof(FlipperComponent.EndAngle));
+			_surfaceProperty = serializedObject.FindProperty(nameof(FlipperComponent._surface));
+			_isEnabledProperty = serializedObject.FindProperty(nameof(FlipperComponent.IsEnabled));
+			_isDualWoundProperty = serializedObject.FindProperty(nameof(FlipperComponent.IsDualWound));
+			_heightProperty = serializedObject.FindProperty(nameof(FlipperComponent.Height));
+			_baseRadiusProperty = serializedObject.FindProperty(nameof(FlipperComponent.BaseRadius));
+			_endRadiusProperty = serializedObject.FindProperty(nameof(FlipperComponent.EndRadius));
+			_rubberThicknessProperty = serializedObject.FindProperty(nameof(FlipperComponent.RubberThickness));
+			_rubberHeightProperty = serializedObject.FindProperty(nameof(FlipperComponent.RubberHeight));
+			_rubberWidthProperty = serializedObject.FindProperty(nameof(FlipperComponent.RubberWidth));
+			_flipperRadiusMinProperty = serializedObject.FindProperty(nameof(FlipperComponent.FlipperRadiusMin));
+			_flipperRadiusMaxProperty = serializedObject.FindProperty(nameof(FlipperComponent.FlipperRadiusMax));
 		}
 
 		public override void OnInspectorGUI()
@@ -103,7 +103,7 @@ namespace VisualPinball.Unity.Editor
 
 		private void OnRubberSizeUpdated()
 		{
-			var rubberMesh = MainComponent.GetComponentInChildren<FlipperRubberMeshAuthoring>(true);
+			var rubberMesh = MainComponent.GetComponentInChildren<FlipperRubberMeshComponent>(true);
 			rubberMesh.gameObject.SetActive(_rubberWidthProperty.floatValue > 0f && _rubberThicknessProperty.floatValue > 0f);
 		}
 	}

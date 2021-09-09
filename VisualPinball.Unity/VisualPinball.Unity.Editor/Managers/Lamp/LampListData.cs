@@ -40,13 +40,13 @@ namespace VisualPinball.Unity.Editor
 
 		public string Id;
 		public string PlayfieldItem;
-		public ILampDeviceAuthoring Device;
+		public ILampDeviceComponent Device;
 		public string DeviceItem { get; set; }
 		public LampSource Source;
 
 		public LampMapping LampMapping;
 		
-		public IDeviceAuthoring<GamelogicEngineLamp> DeviceComponent => Device;
+		public IDeviceComponent<GamelogicEngineLamp> DeviceComponent => Device;
 
 		public LampListData(LampMapping lampMapping)
 		{

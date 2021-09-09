@@ -28,13 +28,13 @@ namespace VisualPinball.Unity.Patcher
 		[NameMatch("Plastics_LVL2")]
 		[NameMatch("BumperCaps")]
 		[NameMatch("RightRamp")]
-		public void FixZPosition(PrimitiveAuthoring primitive)
+		public void FixZPosition(PrimitiveComponent primitive)
 		{
 			primitive.Position.z = 0;
 		}
 
 		[NameMatch("Drain")]
-		public void FixDrain(KickerAuthoring kickerComponent)
+		public void FixDrain(KickerComponent kickerComponent)
 		{
 			kickerComponent.Coils[0].Name = "Drain";
 			kickerComponent.Coils[0].Speed = 15;
@@ -42,7 +42,7 @@ namespace VisualPinball.Unity.Patcher
 		}
 
 		[NameMatch("sw17")]
-		public void FixSw17(KickerAuthoring kickerComponent)
+		public void FixSw17(KickerComponent kickerComponent)
 		{
 			kickerComponent.Coils[0].Name = "Eject";
 			kickerComponent.Coils[0].Speed = 5;

@@ -23,7 +23,7 @@ namespace VisualPinball.Unity.Editor
 		internal static IVpxPrefab InstantiatePrefab(this Gate gate)
 		{
 			var prefab = RenderPipeline.Current.PrefabProvider.CreateGate(gate.Data.GateType);
-			return new VpxPrefab<Gate, GateData, GateAuthoring>(prefab, gate);
+			return new VpxPrefab<Gate, GateData, GateComponent>(prefab, gate);
 		}
 	}
 }

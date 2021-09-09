@@ -24,9 +24,9 @@ using VisualPinball.Engine.VPT;
 namespace VisualPinball.Unity.Editor
 {
 	public class ItemMeshInspector<TData, TMainAuthoring, TMeshAuthoring> : ItemInspector
-		where TMeshAuthoring : ItemMeshAuthoring<TData, TMainAuthoring>
+		where TMeshAuthoring : ItemMeshComponent<TData, TMainAuthoring>
 		where TData : ItemData
-		where TMainAuthoring : ItemMainRenderableAuthoring<TData>
+		where TMainAuthoring : ItemMainRenderableComponent<TData>
 	{
 		protected TMeshAuthoring MeshAuthoring;
 
@@ -77,7 +77,7 @@ namespace VisualPinball.Unity.Editor
 			var typeMessage = validParentTypes.Length > 0
 				? $"Supported parents are: [ {string.Join(", ", validParentTypes.Select(t => t.Name))} ]."
 				: $"In this case, meshes for {MeshAuthoring.ItemName} don't support any parenting at all.";
-			EditorGUILayout.HelpBox($"Invalid parent. This {MeshAuthoring.ItemName} is parented to a {MeshAuthoring.ParentAuthoring.ItemName}, which VPE doesn't support.\n{typeMessage}", MessageType.Error);
+			EditorGUILayout.HelpBox($"Invalid parent. This {MeshAuthoring.ItemName} is parented to a {MeshAuthoring.ParentComponent.ItemName}, which VPE doesn't support.\n{typeMessage}", MessageType.Error);
 			if (GUILayout.Button("Open Documentation", EditorStyles.linkLabel)) {
 				Application.OpenURL("https://docs.visualpinball.org/creators-guide/editor/unity-components.html");
 			}

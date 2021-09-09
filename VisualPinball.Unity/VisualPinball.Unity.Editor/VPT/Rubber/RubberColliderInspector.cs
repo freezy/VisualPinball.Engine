@@ -21,8 +21,8 @@ using VisualPinball.Engine.VPT.Rubber;
 
 namespace VisualPinball.Unity.Editor
 {
-	[CustomEditor(typeof(RubberColliderAuthoring)), CanEditMultipleObjects]
-	public class RubberColliderInspector : ItemColliderInspector<RubberData, RubberAuthoring, RubberColliderAuthoring>
+	[CustomEditor(typeof(RubberColliderComponent)), CanEditMultipleObjects]
+	public class RubberColliderInspector : ItemColliderInspector<RubberData, RubberComponent, RubberColliderComponent>
 	{
 		private bool _foldoutMaterial = true;
 		private SerializedProperty _hitEventProperty;
@@ -37,14 +37,14 @@ namespace VisualPinball.Unity.Editor
 		{
 			base.OnEnable();
 
-			_hitEventProperty = serializedObject.FindProperty(nameof(RubberColliderAuthoring.HitEvent));
+			_hitEventProperty = serializedObject.FindProperty(nameof(RubberColliderComponent.HitEvent));
 
-			_overwritePhysicsProperty = serializedObject.FindProperty(nameof(RubberColliderAuthoring.OverwritePhysics));
-			_physicsMaterialProperty = serializedObject.FindProperty(nameof(ItemColliderAuthoring<RubberData, RubberAuthoring>.PhysicsMaterial));
-			_elasticityProperty = serializedObject.FindProperty(nameof(RubberColliderAuthoring.Elasticity));
-			_elasticityFalloffProperty = serializedObject.FindProperty(nameof(RubberColliderAuthoring.ElasticityFalloff));
-			_frictionProperty = serializedObject.FindProperty(nameof(RubberColliderAuthoring.Friction));
-			_scatterProperty = serializedObject.FindProperty(nameof(RubberColliderAuthoring.Scatter));
+			_overwritePhysicsProperty = serializedObject.FindProperty(nameof(RubberColliderComponent.OverwritePhysics));
+			_physicsMaterialProperty = serializedObject.FindProperty(nameof(ItemColliderComponent<RubberData, RubberComponent>.PhysicsMaterial));
+			_elasticityProperty = serializedObject.FindProperty(nameof(RubberColliderComponent.Elasticity));
+			_elasticityFalloffProperty = serializedObject.FindProperty(nameof(RubberColliderComponent.ElasticityFalloff));
+			_frictionProperty = serializedObject.FindProperty(nameof(RubberColliderComponent.Friction));
+			_scatterProperty = serializedObject.FindProperty(nameof(RubberColliderComponent.Scatter));
 		}
 
 		public override void OnInspectorGUI()

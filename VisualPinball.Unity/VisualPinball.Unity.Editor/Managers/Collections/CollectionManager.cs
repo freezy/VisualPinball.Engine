@@ -42,7 +42,7 @@ namespace VisualPinball.Unity.Editor
 
 		private class SerializedCollections : ScriptableObject
 		{
-			public TableAuthoring Table;
+			public TableComponent Table;
 			public List<CollectionData> Collections = new List<CollectionData>();
 		}
 		private SerializedCollections _recordCollections;
@@ -74,10 +74,10 @@ namespace VisualPinball.Unity.Editor
 		}
 
 		#region Events
-		private void OnItemRenamed(IIdentifiableItemAuthoring item, string oldName, string newName)
+		private void OnItemRenamed(IIdentifiableItemComponent item, string oldName, string newName)
 		{
 			//Have to update this name in all Collections
-			foreach (var collection in _tableAuthoring.Collections) {
+			foreach (var collection in TableComponent.Collections) {
 				collection.ItemNames = collection.ItemNames.Select(n => string.Compare(n, oldName, StringComparison.InvariantCultureIgnoreCase) == 0 ? newName : n).ToArray();
 			}
 			RebuildItemLists();
@@ -188,7 +188,7 @@ namespace VisualPinball.Unity.Editor
 			rootCollection.AddChildren(itemNames.Select(n => new CollectionTreeElement(n)).ToArray());
 
 			//Keep the available items
-			var items = _tableAuthoring.TableContainer.GameItems
+			var items = TableComponent.TableContainer.GameItems
 							.Where(i => !string.IsNullOrEmpty(i.Name) && !itemNames.Contains(i.Name))
 							.OrderBy(i => i.Name);
 			rootAvailable.AddChildren(items.Select(i => new CollectionTreeElement(i.Name)).ToArray());
@@ -284,7 +284,7 @@ namespace VisualPinball.Unity.Editor
 		{
 			List<CollectionListData> data = new List<CollectionListData>();
 
-			foreach (var c in _tableAuthoring.Collections) {
+			foreach (var c in TableComponent.Collections) {
 				data.Add(new CollectionListData { CollectionData = c });
 			}
 
@@ -303,7 +303,7 @@ namespace VisualPinball.Unity.Editor
 		{
 			//rebuild storage indexes
 			int idx = 0;
-			foreach (var collection in _tableAuthoring.Collections) {
+			foreach (var collection in TableComponent.Collections) {
 				collection.StorageIndex = idx++;
 			}
 		}
@@ -312,14 +312,14 @@ namespace VisualPinball.Unity.Editor
 		{
 			RecordUndo(undoName);
 			var newCol = new CollectionData(newName);
-			_tableAuthoring.Collections.Add(newCol);
+			TableComponent.Collections.Add(newCol);
 			UpdateTableCollections();
 		}
 
 		protected override void RemoveData(string undoName, CollectionListData data)
 		{
 			RecordUndo(undoName);
-			_tableAuthoring.Collections.Remove(data.CollectionData);
+			TableComponent.Collections.Remove(data.CollectionData);
 			UpdateTableCollections();
 		}
 
@@ -327,19 +327,19 @@ namespace VisualPinball.Unity.Editor
 		{
 			RecordUndo(undoName);
 			var newCol = new CollectionData(newName, data.CollectionData);
-			_tableAuthoring.Collections.Add(newCol);
+			TableComponent.Collections.Add(newCol);
 			UpdateTableCollections();
 		}
 
 		protected override int MoveData(string undoName, CollectionListData data, int increment)
 		{
 			RecordUndo(undoName);
-			var index = _tableAuthoring.Collections.IndexOf(data.CollectionData);
+			var index = TableComponent.Collections.IndexOf(data.CollectionData);
 			if (index >= 0) {
-				var newIdx = math.clamp(index + increment, 0, _tableAuthoring.Collections.Count - 1);
+				var newIdx = math.clamp(index + increment, 0, TableComponent.Collections.Count - 1);
 				if (newIdx != index) {
-					_tableAuthoring.Collections.RemoveAt(index);
-					_tableAuthoring.Collections.Insert(newIdx, data.CollectionData);
+					TableComponent.Collections.RemoveAt(index);
+					TableComponent.Collections.Insert(newIdx, data.CollectionData);
 					UpdateTableCollections();
 				}
 			}
@@ -369,9 +369,9 @@ namespace VisualPinball.Unity.Editor
 		private void RestoreTableCollections()
 		{
 			if (_recordCollections == null) { return; }
-			if (_tableAuthoring == null) { return; }
-			if (_recordCollections.Table == _tableAuthoring) {
-				_tableAuthoring.RestoreCollections(_recordCollections.Collections);
+			if (TableComponent == null) { return; }
+			if (_recordCollections.Table == TableComponent) {
+				TableComponent.RestoreCollections(_recordCollections.Collections);
 			}
 		}
 
@@ -384,13 +384,13 @@ namespace VisualPinball.Unity.Editor
 
 		private void RecordUndo(string undoName)
 		{
-			if (_tableAuthoring == null) { return; }
+			if (TableComponent == null) { return; }
 			if (_recordCollections == null) {
 				_recordCollections = CreateInstance<SerializedCollections>();
 			}
-			_recordCollections.Table = _tableAuthoring;
+			_recordCollections.Table = TableComponent;
 			_recordCollections.Collections.Clear();
-			_recordCollections.Collections.AddRange(_tableAuthoring?.Collections);
+			_recordCollections.Collections.AddRange(TableComponent?.Collections);
 			Undo.RecordObjects( new UnityEngine.Object[] { this, _recordCollections} , undoName);
 		}
 		#endregion

@@ -75,9 +75,9 @@ namespace VisualPinball.Unity.Editor
 		public event Action<LayerTreeElement, LayerTreeElement[]> ItemsAssigned;
 
 		/// <summary>
-		/// Attached <see cref="TableAuthoring"/>, Set by calling OnHierarchyChange
+		/// Attached <see cref="TableComponent"/>, Set by calling OnHierarchyChange
 		/// </summary>
-		private TableAuthoring _tableAuthoring;
+		private TableComponent _tableComponent;
 
 		/// <summary>
 		/// Maps the the game items' <see cref="MonoBehaviour"/> to their respective layers.
@@ -87,11 +87,11 @@ namespace VisualPinball.Unity.Editor
 		/// <summary>
 		/// Populates the layer data from the given table
 		/// </summary>
-		/// <param name="tableAuthoring"></param>
-		public void SetTable(TableAuthoring tableAuthoring)
+		/// <param name="tableComponent"></param>
+		public void SetTable(TableComponent tableComponent)
 		{
-			var tableChanged = _tableAuthoring != tableAuthoring;
-			_tableAuthoring = tableAuthoring;
+			var tableChanged = _tableComponent != tableComponent;
+			_tableComponent = tableComponent;
 			_layers.Clear();
 			Rebuild();
 			if (tableChanged) {
@@ -102,7 +102,7 @@ namespace VisualPinball.Unity.Editor
 		#region Construction
 
 		/// <summary>
-		/// Recursively runs through the <see cref="TableAuthoring"/>'s children and
+		/// Recursively runs through the <see cref="TableComponent"/>'s children and
 		/// adds the game items' <see cref="MonoBehaviour"/> to the layers map. <p/>
 		///
 		/// It also rebuilds the tree model.
@@ -115,8 +115,8 @@ namespace VisualPinball.Unity.Editor
 										pair => pair.Value);
 
 			// add layers from table data
-			if (_tableAuthoring != null) {
-				BuildLayersRecursively(_tableAuthoring.gameObject);
+			if (_tableComponent != null) {
+				BuildLayersRecursively(_tableComponent.gameObject);
 			}
 
 			// create tree from table data
@@ -131,12 +131,12 @@ namespace VisualPinball.Unity.Editor
 		{
 			for (var i = 0; i < gameObj.transform.childCount; ++i) {
 				var child = gameObj.transform.GetChild(i).gameObject;
-				AddToLayer(child.GetComponent<ILayerableItemAuthoring>());
+				AddToLayer(child.GetComponent<ILayerableItemComponent>());
 				BuildLayersRecursively(child);
 			}
 		}
 
-		private void AddToLayer(ILayerableItemAuthoring item)
+		private void AddToLayer(ILayerableItemComponent item)
 		{
 			if (item == null) {
 				return;
@@ -155,10 +155,10 @@ namespace VisualPinball.Unity.Editor
 			TreeRoot.Children.Clear();
 
 			// init with root element
-			if (_tableAuthoring != null) {
+			if (_tableComponent != null) {
 
 				// table node
-				var tableItem = new LayerTreeElement(_tableAuthoring) { Id = 0 };
+				var tableItem = new LayerTreeElement(_tableComponent) { Id = 0 };
 				TreeRoot.AddChild(tableItem);
 
 				var layerCount = 1;
@@ -169,7 +169,7 @@ namespace VisualPinball.Unity.Editor
 					tableItem.AddChild(layerItem);
 
 					foreach (var item in pair.Value.OrderBy(behaviour => behaviour.name)) {
-						if (item is ILayerableItemAuthoring layeredItem) {
+						if (item is ILayerableItemComponent layeredItem) {
 							layerItem.AddChild(new LayerTreeElement(layeredItem) { Id = item.gameObject.GetInstanceID() });
 						}
 					}
@@ -251,7 +251,7 @@ namespace VisualPinball.Unity.Editor
 		/// </summary>
 		/// <param name="item">Tree layer element to update</param>
 		/// <param name="layerName">New layer name</param>
-		private static void ApplyLayerNameToItem(ILayerableItemAuthoring item, string layerName)
+		private static void ApplyLayerNameToItem(ILayerableItemComponent item, string layerName)
 		{
 			if (item.EditorLayerName != layerName) {
 				if (item is MonoBehaviour behaviour) {
@@ -369,7 +369,7 @@ namespace VisualPinball.Unity.Editor
 		/// <param name="layerName">The first selected layer provided by the <see cref="LayerTreeView"/></param>
 		internal void AssignToLayer(GameObject obj, string layerName)
 		{
-			var layerable = obj.GetComponent<ILayerableItemAuthoring>();
+			var layerable = obj.GetComponent<ILayerableItemComponent>();
 			if (layerable != null) {
 				var layer = TreeRoot.Find(e => e.Type == LayerTreeViewElementType.Layer && e.LayerName == layerName);
 				AssignToLayer(new LayerTreeElement[] { new LayerTreeElement(layerable) { Id = obj.GetInstanceID() } }, layer);

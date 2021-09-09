@@ -19,7 +19,7 @@ using UnityEngine;
 
 namespace VisualPinball.Unity
 {
-	public interface IItemMainRenderableAuthoring : IItemMainAuthoring
+	public interface IItemMainRenderableComponent : IItemMainComponent
 	{
 		bool IsLocked { get; set; }
 

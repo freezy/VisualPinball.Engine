@@ -36,15 +36,15 @@ using Logger = NLog.Logger;
 namespace VisualPinball.Unity
 {
 	[AddComponentMenu("Visual Pinball/Game Item/Light")]
-	public class LightAuthoring : ItemMainRenderableAuthoring<LightData>, ILampDeviceAuthoring
+	public class LightComponent : ItemMainRenderableComponent<LightData>, ILampDeviceComponent
 	{
 		#region Data
 
 		public Vector3 Position;
 
-		public ISurfaceAuthoring Surface { get => _surface as ISurfaceAuthoring; set => _surface = value as MonoBehaviour; }
+		public ISurfaceComponent Surface { get => _surface as ISurfaceComponent; set => _surface = value as MonoBehaviour; }
 		[SerializeField]
-		[TypeRestriction(typeof(ISurfaceAuthoring), PickerLabel = "Walls & Ramps", UpdateTransforms = true)]
+		[TypeRestriction(typeof(ISurfaceComponent), PickerLabel = "Walls & Ramps", UpdateTransforms = true)]
 		[Tooltip("On which surface this light is attached to. Updates Z-translation.")]
 		public MonoBehaviour _surface;
 
@@ -70,7 +70,7 @@ namespace VisualPinball.Unity
 
 		public override LightData InstantiateData() => new LightData();
 
-		protected override Type MeshAuthoringType { get; } = typeof(ItemMeshAuthoring<LightData, LightAuthoring>);
+		protected override Type MeshAuthoringType { get; } = typeof(ItemMeshComponent<LightData, LightComponent>);
 		protected override Type ColliderAuthoringType { get; } = null;
 
 		public const string LampIdDefault = "default_lamp";
@@ -88,8 +88,8 @@ namespace VisualPinball.Unity
 		};
 
 		public IEnumerable<GamelogicEngineLamp> AvailableDeviceItems => AvailableLamps;
-		IEnumerable<IGamelogicEngineDeviceItem> IWireableAuthoring.AvailableWireDestinations => AvailableLamps;
-		IEnumerable<IGamelogicEngineDeviceItem> IDeviceAuthoring<IGamelogicEngineDeviceItem>.AvailableDeviceItems => AvailableLamps;
+		IEnumerable<IGamelogicEngineDeviceItem> IWireableComponent.AvailableWireDestinations => AvailableLamps;
+		IEnumerable<IGamelogicEngineDeviceItem> IDeviceComponent<IGamelogicEngineDeviceItem>.AvailableDeviceItems => AvailableLamps;
 
 		#endregion
 
@@ -234,9 +234,9 @@ namespace VisualPinball.Unity
 		}
 
 
-		public override IEnumerable<MonoBehaviour> SetReferencedData(LightData data, Table table, IMaterialProvider materialProvider, ITextureProvider textureProvider, Dictionary<string, IItemMainAuthoring> components)
+		public override IEnumerable<MonoBehaviour> SetReferencedData(LightData data, Table table, IMaterialProvider materialProvider, ITextureProvider textureProvider, Dictionary<string, IItemMainComponent> components)
 		{
-			Surface = GetAuthoring<SurfaceAuthoring>(components, data.Surface);
+			Surface = GetAuthoring<SurfaceComponent>(components, data.Surface);
 			return Array.Empty<MonoBehaviour>();
 		}
 

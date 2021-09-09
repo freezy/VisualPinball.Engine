@@ -67,17 +67,17 @@ namespace VisualPinball.Unity.Editor
 
 		private void OnFocus()
 		{
-			_listViewItemRenderer = new LampListViewItemRenderer(_gleLamps, _tableAuthoring);
+			_listViewItemRenderer = new LampListViewItemRenderer(_gleLamps, TableComponent);
 		}
 
 		protected override bool SetupCompleted()
 		{
-			if (_tableAuthoring == null) {
+			if (TableComponent == null) {
 				DisplayMessage("No table set.");
 				return false;
 			}
 
-			var gle = _tableAuthoring.gameObject.GetComponent<IGamelogicEngine>();
+			var gle = TableComponent.gameObject.GetComponent<IGamelogicEngine>();
 
 			if (gle == null) {
 				DisplayMessage("No gamelogic engine set.");
@@ -90,18 +90,18 @@ namespace VisualPinball.Unity.Editor
 		protected override void OnButtonBarGUI()
 		{
 			if (GUILayout.Button("Populate All", GUILayout.ExpandWidth(false))) {
-				if (_tableAuthoring != null) {
+				if (TableComponent != null) {
 					RecordUndo("Populate all lamp mappings");
-					_tableAuthoring.MappingConfig.PopulateLamps(GetAvailableEngineLamps(), _tableAuthoring);
+					TableComponent.MappingConfig.PopulateLamps(GetAvailableEngineLamps(), TableComponent);
 					Reload();
 				}
 			}
 
 			if (GUILayout.Button("Remove All", GUILayout.ExpandWidth(false))) {
-				if (_tableAuthoring != null) {
+				if (TableComponent != null) {
 					if (EditorUtility.DisplayDialog("Lamp Manager", "Are you sure want to remove all lamp mappings?", "Yes", "Cancel")) {
 						RecordUndo("Remove all lamp mappings");
-						_tableAuthoring.MappingConfig.RemoveAllLamps();
+						TableComponent.MappingConfig.RemoveAllLamps();
 					}
 					Reload();
 				}
@@ -110,7 +110,7 @@ namespace VisualPinball.Unity.Editor
 
 		protected override void OnListViewItemRenderer(LampListData data, Rect cellRect, int column)
 		{
-			_listViewItemRenderer.Render(_tableAuthoring, data, cellRect, column, lampListData => {
+			_listViewItemRenderer.Render(TableComponent, data, cellRect, column, lampListData => {
 				RecordUndo(DataTypeName + " Data Change");
 
 				lampListData.Update();
@@ -122,7 +122,7 @@ namespace VisualPinball.Unity.Editor
 		{
 			List<LampListData> data = new List<LampListData>();
 
-			foreach (var mappingsLampData in _tableAuthoring.MappingConfig.Lamps) {
+			foreach (var mappingsLampData in TableComponent.MappingConfig.Lamps) {
 				data.Add(new LampListData(mappingsLampData));
 			}
 
@@ -134,20 +134,20 @@ namespace VisualPinball.Unity.Editor
 		protected override void AddNewData(string undoName, string newName)
 		{
 			RecordUndo(undoName);
-			_tableAuthoring.MappingConfig.AddLamp(new LampMapping());
+			TableComponent.MappingConfig.AddLamp(new LampMapping());
 		}
 
 		protected override void RemoveData(string undoName, LampListData data)
 		{
 			RecordUndo(undoName);
-			_tableAuthoring.MappingConfig.RemoveLamp(data.LampMapping);
+			TableComponent.MappingConfig.RemoveLamp(data.LampMapping);
 		}
 
 		protected override void CloneData(string undoName, string newName, LampListData data)
 		{
 			RecordUndo(undoName);
 
-			_tableAuthoring.MappingConfig.AddLamp(new LampMapping {
+			TableComponent.MappingConfig.AddLamp(new LampMapping {
 				Id = data.Id,
 				Description = data.Description,
 				Device = data.Device,
@@ -175,12 +175,12 @@ namespace VisualPinball.Unity.Editor
 		private void RefreshLampIds()
 		{
 			_gleLamps.Clear();
-			_gleLamps.AddRange(_tableAuthoring.MappingConfig.GetLamps(GetAvailableEngineLamps()));
+			_gleLamps.AddRange(TableComponent.MappingConfig.GetLamps(GetAvailableEngineLamps()));
 		}
 
 		private GamelogicEngineLamp[] GetAvailableEngineLamps()
 		{
-			var gle = _tableAuthoring.gameObject.GetComponent<IGamelogicEngine>();
+			var gle = TableComponent.gameObject.GetComponent<IGamelogicEngine>();
 			return gle == null ? Array.Empty<GamelogicEngineLamp>() : gle.AvailableLamps;
 		}
 
@@ -190,7 +190,7 @@ namespace VisualPinball.Unity.Editor
 
 		private void RecordUndo(string undoName)
 		{
-			Undo.RecordObjects(new Object[] { this, _tableAuthoring }, undoName);
+			Undo.RecordObjects(new Object[] { this, TableComponent }, undoName);
 		}
 
 		#endregion

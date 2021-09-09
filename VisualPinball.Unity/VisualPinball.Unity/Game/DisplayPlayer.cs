@@ -24,7 +24,7 @@ namespace VisualPinball.Unity
 	public class DisplayPlayer
 	{
 		private IGamelogicEngine _gamelogicEngine;
-		private readonly Dictionary<string, DisplayAuthoring> _displayGameObjects = new Dictionary<string, DisplayAuthoring>();
+		private readonly Dictionary<string, DisplayComponent> _displayGameObjects = new Dictionary<string, DisplayComponent>();
 
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
@@ -34,7 +34,7 @@ namespace VisualPinball.Unity
 			_gamelogicEngine.OnDisplaysAvailable += HandleDisplayAvailable;
 			_gamelogicEngine.OnDisplayFrame += HandleFrameEvent;
 
-			var dmds = Object.FindObjectsOfType<DisplayAuthoring>();
+			var dmds = Object.FindObjectsOfType<DisplayComponent>();
 			foreach (var dmd in dmds) {
 				Logger.Info($"[Player] Display \"{dmd.Id}\" connected.");
 				_displayGameObjects[dmd.Id] = dmd;

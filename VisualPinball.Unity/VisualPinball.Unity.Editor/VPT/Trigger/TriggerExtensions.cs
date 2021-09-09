@@ -24,7 +24,7 @@ namespace VisualPinball.Unity.Editor
 		internal static IVpxPrefab InstantiatePrefab(this Trigger trigger)
 		{
 			var prefab = UnityEngine.Resources.Load<GameObject>("Prefabs/Trigger");
-			return new VpxPrefab<Trigger, TriggerData, TriggerAuthoring>(prefab, trigger);
+			return new VpxPrefab<Trigger, TriggerData, TriggerComponent>(prefab, trigger);
 		}
 	}
 }

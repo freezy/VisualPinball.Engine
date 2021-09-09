@@ -28,7 +28,7 @@ using Logger = NLog.Logger;
 namespace VisualPinball.Unity
 {
 	[AddComponentMenu("Visual Pinball/Display/Dot Matrix Display")]
-	public class DotMatrixDisplayAuthoring : DisplayAuthoring
+	public class DotMatrixDisplayComponent : DisplayComponent
 	{
 		public override string Id { get => _id; set => _id = value; }
 		public override float AspectRatio {

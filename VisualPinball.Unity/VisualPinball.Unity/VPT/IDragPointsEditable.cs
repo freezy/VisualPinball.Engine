@@ -45,7 +45,7 @@ namespace VisualPinball.Unity
 		Texture
 	}
 
-	public interface IDragPointsAuthoring
+	public interface IDragPointsComponent
 	{
 		DragPointData[] DragPoints { get; set; }
 	}

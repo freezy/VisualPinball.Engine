@@ -24,8 +24,8 @@ using VisualPinball.Engine.VPT.Ramp;
 
 namespace VisualPinball.Unity.Editor
 {
-	[CustomEditor(typeof(RampAuthoring)), CanEditMultipleObjects]
-	public class RampInspector : DragPointsItemInspector<RampData, RampAuthoring>
+	[CustomEditor(typeof(RampComponent)), CanEditMultipleObjects]
+	public class RampInspector : DragPointsItemInspector<RampData, RampComponent>
 	{
 		private bool _foldoutGeometry = true;
 
@@ -70,17 +70,17 @@ namespace VisualPinball.Unity.Editor
 		{
 			base.OnEnable();
 
-			_heightBottomProperty = serializedObject.FindProperty(nameof(RampAuthoring._heightBottom));
-			_heightTopProperty = serializedObject.FindProperty(nameof(RampAuthoring._heightTop));
-			_imageAlignmentProperty = serializedObject.FindProperty(nameof(RampAuthoring._imageAlignment));
-			_leftWallHeightVisibleProperty = serializedObject.FindProperty(nameof(RampAuthoring._leftWallHeightVisible));
-			_typeProperty = serializedObject.FindProperty(nameof(RampAuthoring._type));
-			_rightWallHeightVisibleProperty = serializedObject.FindProperty(nameof(RampAuthoring._rightWallHeightVisible));
-			_widthBottomProperty = serializedObject.FindProperty(nameof(RampAuthoring._widthBottom));
-			_widthTopProperty = serializedObject.FindProperty(nameof(RampAuthoring._widthTop));
-			_wireDiameterProperty = serializedObject.FindProperty(nameof(RampAuthoring._wireDiameter));
-			_wireDistanceXProperty = serializedObject.FindProperty(nameof(RampAuthoring._wireDistanceX));
-			_wireDistanceYProperty = serializedObject.FindProperty(nameof(RampAuthoring._wireDistanceY));
+			_heightBottomProperty = serializedObject.FindProperty(nameof(RampComponent._heightBottom));
+			_heightTopProperty = serializedObject.FindProperty(nameof(RampComponent._heightTop));
+			_imageAlignmentProperty = serializedObject.FindProperty(nameof(RampComponent._imageAlignment));
+			_leftWallHeightVisibleProperty = serializedObject.FindProperty(nameof(RampComponent._leftWallHeightVisible));
+			_typeProperty = serializedObject.FindProperty(nameof(RampComponent._type));
+			_rightWallHeightVisibleProperty = serializedObject.FindProperty(nameof(RampComponent._rightWallHeightVisible));
+			_widthBottomProperty = serializedObject.FindProperty(nameof(RampComponent._widthBottom));
+			_widthTopProperty = serializedObject.FindProperty(nameof(RampComponent._widthTop));
+			_wireDiameterProperty = serializedObject.FindProperty(nameof(RampComponent._wireDiameter));
+			_wireDistanceXProperty = serializedObject.FindProperty(nameof(RampComponent._wireDistanceX));
+			_wireDistanceYProperty = serializedObject.FindProperty(nameof(RampComponent._wireDistanceY));
 		}
 
 		public override void OnInspectorGUI()

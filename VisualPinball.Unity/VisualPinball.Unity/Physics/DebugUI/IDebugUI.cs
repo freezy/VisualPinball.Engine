@@ -24,8 +24,8 @@ namespace VisualPinball.Unity
 		/// <summary>
 		/// Initializes the debug UI. This is called in the table's Start() method.
 		/// </summary>
-		/// <param name="tableAuthoring">Table component</param>
-		void Init(TableAuthoring tableAuthoring);
+		/// <param name="tableComponent">Table component</param>
+		void Init(TableComponent tableComponent);
 
 		/// <summary>
 		/// Called when a physics cycle has completed.

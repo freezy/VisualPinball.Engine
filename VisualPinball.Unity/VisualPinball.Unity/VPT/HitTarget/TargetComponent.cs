@@ -36,8 +36,8 @@ using Mesh = VisualPinball.Engine.VPT.Mesh;
 
 namespace VisualPinball.Unity
 {
-	public abstract class TargetAuthoring : ItemMainRenderableAuthoring<HitTargetData>,
-		ISwitchDeviceAuthoring, ITargetData, IMeshGenerator, IConvertGameObjectToEntity
+	public abstract class TargetComponent : ItemMainRenderableComponent<HitTargetData>,
+		ISwitchDeviceComponent, ITargetData, IMeshGenerator, IConvertGameObjectToEntity
 	{
 		#region Data
 
@@ -62,7 +62,7 @@ namespace VisualPinball.Unity
 
 		public bool IsLegacy {
 			get {
-				var colliderAuthoring = GetComponent<HitTargetColliderAuthoring>();
+				var colliderAuthoring = GetComponent<HitTargetColliderComponent>();
 				return colliderAuthoring && colliderAuthoring.IsLegacy;
 			}
 		}
@@ -96,12 +96,12 @@ namespace VisualPinball.Unity
 		public override ItemType ItemType => ItemType.HitTarget;
 		public override string ItemName => "Target";
 
-		public override IEnumerable<Type> ValidParents => HitTargetColliderAuthoring.ValidParentTypes
+		public override IEnumerable<Type> ValidParents => HitTargetColliderComponent.ValidParentTypes
 			.Distinct();
 
 		public override HitTargetData InstantiateData() => new HitTargetData();
-		protected override Type MeshAuthoringType { get; } = typeof(ItemMeshAuthoring<HitTargetData, TargetAuthoring>);
-		protected override Type ColliderAuthoringType { get; } = typeof(ItemColliderAuthoring<HitTargetData, TargetAuthoring>);
+		protected override Type MeshAuthoringType { get; } = typeof(ItemMeshComponent<HitTargetData, TargetComponent>);
+		protected override Type ColliderAuthoringType { get; } = typeof(ItemColliderComponent<HitTargetData, TargetComponent>);
 
 		public const string SwitchItem = "target_switch";
 
@@ -114,7 +114,7 @@ namespace VisualPinball.Unity
 		};
 		public SwitchDefault SwitchDefault => SwitchDefault.Configurable;
 
-		IEnumerable<GamelogicEngineSwitch> IDeviceAuthoring<GamelogicEngineSwitch>.AvailableDeviceItems => AvailableSwitches;
+		IEnumerable<GamelogicEngineSwitch> IDeviceComponent<GamelogicEngineSwitch>.AvailableDeviceItems => AvailableSwitches;
 
 		#endregion
 
@@ -137,11 +137,11 @@ namespace VisualPinball.Unity
 		{
 			Convert(entity, dstManager);
 
-			var colliderAuthoring = GetComponent<HitTargetColliderAuthoring>();
+			var colliderAuthoring = GetComponent<HitTargetColliderComponent>();
 			if (colliderAuthoring) {
 
-				var hitTargetAnimationAuthoring = GetComponent<HitTargetAnimationAuthoring>();
-				var dropTargetAnimationAuthoring = GetComponent<DropTargetAnimationAuthoring>();
+				var hitTargetAnimationAuthoring = GetComponent<HitTargetAnimationComponent>();
+				var dropTargetAnimationAuthoring = GetComponent<DropTargetAnimationComponent>();
 				if (dropTargetAnimationAuthoring || hitTargetAnimationAuthoring) {
 
 					if (hitTargetAnimationAuthoring) {
@@ -188,7 +188,7 @@ namespace VisualPinball.Unity
 			#endif
 
 			// collider data
-			var colliderAuthoring = GetComponent<HitTargetColliderAuthoring>();
+			var colliderAuthoring = GetComponent<HitTargetColliderComponent>();
 			if (colliderAuthoring) {
 				colliderAuthoring.enabled = data.IsCollidable;
 				colliderAuthoring.UseHitEvent = data.UseHitEvent;
@@ -204,7 +204,7 @@ namespace VisualPinball.Unity
 				updatedComponents.Add(colliderAuthoring);
 
 				// animation data
-				var dropTargetAnimationAuthoring = GetComponent<DropTargetAnimationAuthoring>();
+				var dropTargetAnimationAuthoring = GetComponent<DropTargetAnimationComponent>();
 				if (dropTargetAnimationAuthoring) {
 					dropTargetAnimationAuthoring.enabled = data.IsDropTarget;
 					dropTargetAnimationAuthoring.Speed = data.DropSpeed;
@@ -213,7 +213,7 @@ namespace VisualPinball.Unity
 					updatedComponents.Add(dropTargetAnimationAuthoring);
 				}
 
-				var hitTargetAnimationAuthoring = GetComponent<HitTargetAnimationAuthoring>();
+				var hitTargetAnimationAuthoring = GetComponent<HitTargetAnimationComponent>();
 				if (hitTargetAnimationAuthoring) {
 					hitTargetAnimationAuthoring.enabled = !data.IsDropTarget;
 					hitTargetAnimationAuthoring.Speed = data.DropSpeed;
@@ -224,9 +224,9 @@ namespace VisualPinball.Unity
 			return updatedComponents;
 		}
 
-		public override IEnumerable<MonoBehaviour> SetReferencedData(HitTargetData data, Table table, IMaterialProvider materialProvider, ITextureProvider textureProvider, Dictionary<string, IItemMainAuthoring> components)
+		public override IEnumerable<MonoBehaviour> SetReferencedData(HitTargetData data, Table table, IMaterialProvider materialProvider, ITextureProvider textureProvider, Dictionary<string, IItemMainComponent> components)
 		{
-			var colliderAuthoring = GetComponent<HitTargetColliderAuthoring>();
+			var colliderAuthoring = GetComponent<HitTargetColliderComponent>();
 			if (colliderAuthoring) {
 				colliderAuthoring.PhysicsMaterial = materialProvider.GetPhysicsMaterial(data.PhysicsMaterial);
 			}
@@ -244,7 +244,7 @@ namespace VisualPinball.Unity
 			data.TargetType = _targetType;
 
 			// collision data
-			var colliderAuthoring = GetComponent<HitTargetColliderAuthoring>();
+			var colliderAuthoring = GetComponent<HitTargetColliderComponent>();
 			if (colliderAuthoring) {
 				data.IsCollidable = colliderAuthoring.enabled;
 				data.Threshold = colliderAuthoring.Threshold;
@@ -259,7 +259,7 @@ namespace VisualPinball.Unity
 				data.Scatter = colliderAuthoring.Scatter;
 
 				// animation data
-				var dropTargetAnimationAuthoring = GetComponent<DropTargetAnimationAuthoring>();
+				var dropTargetAnimationAuthoring = GetComponent<DropTargetAnimationComponent>();
 				if (dropTargetAnimationAuthoring) {
 					data.DropSpeed = dropTargetAnimationAuthoring.Speed;
 					data.RaiseDelay = dropTargetAnimationAuthoring.RaiseDelay;

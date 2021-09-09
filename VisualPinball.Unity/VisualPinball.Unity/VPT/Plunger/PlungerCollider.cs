@@ -34,7 +34,7 @@ namespace VisualPinball.Unity
 
 		public ColliderBounds Bounds { get; private set; }
 
-		public PlungerCollider(PlungerAuthoring comp, PlungerColliderAuthoring collComp, ColliderInfo info) : this()
+		public PlungerCollider(PlungerComponent comp, PlungerColliderComponent collComp, ColliderInfo info) : this()
 		{
 			_header.Init(info, ColliderType.Plunger);
 

@@ -21,8 +21,8 @@ using VisualPinball.Engine.VPT.Bumper;
 
 namespace VisualPinball.Unity.Editor
 {
-	[CustomEditor(typeof(BumperColliderAuthoring)), CanEditMultipleObjects]
-	public class BumperColliderInspector : ItemColliderInspector<BumperData, BumperAuthoring, BumperColliderAuthoring>
+	[CustomEditor(typeof(BumperColliderComponent)), CanEditMultipleObjects]
+	public class BumperColliderInspector : ItemColliderInspector<BumperData, BumperComponent, BumperColliderComponent>
 	{
 		private SerializedProperty _hitEventProperty;
 		private SerializedProperty _thresholdProperty;
@@ -33,10 +33,10 @@ namespace VisualPinball.Unity.Editor
 		{
 			base.OnEnable();
 
-			_thresholdProperty = serializedObject.FindProperty(nameof(BumperColliderAuthoring.Threshold));
-			_forceProperty = serializedObject.FindProperty(nameof(BumperColliderAuthoring.Force));
-			_scatterProperty = serializedObject.FindProperty(nameof(BumperColliderAuthoring.Scatter));
-			_hitEventProperty = serializedObject.FindProperty(nameof(BumperColliderAuthoring.HitEvent));
+			_thresholdProperty = serializedObject.FindProperty(nameof(BumperColliderComponent.Threshold));
+			_forceProperty = serializedObject.FindProperty(nameof(BumperColliderComponent.Force));
+			_scatterProperty = serializedObject.FindProperty(nameof(BumperColliderComponent.Scatter));
+			_hitEventProperty = serializedObject.FindProperty(nameof(BumperColliderComponent.HitEvent));
 		}
 
 		public override void OnInspectorGUI()

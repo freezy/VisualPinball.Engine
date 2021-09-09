@@ -34,7 +34,7 @@ namespace VisualPinball.Unity
 
 		[SerializeReference]
 		public MonoBehaviour _device;
-		public ICoilDeviceAuthoring Device { get => _device as ICoilDeviceAuthoring; set => _device = value as MonoBehaviour; }
+		public ICoilDeviceComponent Device { get => _device as ICoilDeviceComponent; set => _device = value as MonoBehaviour; }
 
 		public string DeviceItem = string.Empty;
 

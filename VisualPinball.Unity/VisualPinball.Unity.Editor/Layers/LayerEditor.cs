@@ -115,7 +115,7 @@ namespace VisualPinball.Unity.Editor
 
 		private void ToolBoxItemCreated(GameObject obj)
 		{
-			if (obj.GetComponentInParent<TableAuthoring>() != _tableAuthoring) {
+			if (obj.GetComponentInParent<TableComponent>() != TableComponent) {
 				// don't assign to a layer that's not part if this table
 				return;
 			}
@@ -275,7 +275,7 @@ namespace VisualPinball.Unity.Editor
 			return null;
 		}
 
-		protected override void SetTable(TableAuthoring table)
+		protected override void SetTable(TableComponent table)
 		{
 			if (_layerHandler == null) {
 				_layerHandler = new LayerHandler();

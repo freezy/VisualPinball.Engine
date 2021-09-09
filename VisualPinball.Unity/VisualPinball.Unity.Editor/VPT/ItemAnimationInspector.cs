@@ -23,9 +23,9 @@ using VisualPinball.Engine.VPT;
 namespace VisualPinball.Unity.Editor
 {
 	public class ItemAnimationInspector<TData, TMainAuthoring, TMovementAuthoring> : ItemInspector
-		where TMovementAuthoring : ItemAnimationAuthoring<TData, TMainAuthoring>
+		where TMovementAuthoring : ItemAnimationComponent<TData, TMainAuthoring>
 		where TData : ItemData
-		where TMainAuthoring : ItemMainRenderableAuthoring<TData>
+		where TMainAuthoring : ItemMainRenderableComponent<TData>
 	{
 		private TMovementAuthoring _movementAuthoring;
 

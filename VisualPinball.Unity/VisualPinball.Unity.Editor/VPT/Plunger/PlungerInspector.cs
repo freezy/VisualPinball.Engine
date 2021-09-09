@@ -21,8 +21,8 @@ using VisualPinball.Engine.VPT.Plunger;
 
 namespace VisualPinball.Unity.Editor
 {
-	[CustomEditor(typeof(PlungerAuthoring)), CanEditMultipleObjects]
-	public class PlungerInspector : ItemMainInspector<PlungerData, PlungerAuthoring>
+	[CustomEditor(typeof(PlungerComponent)), CanEditMultipleObjects]
+	public class PlungerInspector : ItemMainInspector<PlungerData, PlungerComponent>
 	{
 		private SerializedProperty _positionProperty;
 		private SerializedProperty _widthProperty;
@@ -34,11 +34,11 @@ namespace VisualPinball.Unity.Editor
 		{
 			base.OnEnable();
 
-			_positionProperty = serializedObject.FindProperty(nameof(PlungerAuthoring.Position));
-			_widthProperty = serializedObject.FindProperty(nameof(PlungerAuthoring.Width));
-			_heightProperty = serializedObject.FindProperty(nameof(PlungerAuthoring.Height));
-			_zAdjustProperty = serializedObject.FindProperty(nameof(PlungerAuthoring.ZAdjust));
-			_surfaceProperty = serializedObject.FindProperty(nameof(PlungerAuthoring._surface));
+			_positionProperty = serializedObject.FindProperty(nameof(PlungerComponent.Position));
+			_widthProperty = serializedObject.FindProperty(nameof(PlungerComponent.Width));
+			_heightProperty = serializedObject.FindProperty(nameof(PlungerComponent.Height));
+			_zAdjustProperty = serializedObject.FindProperty(nameof(PlungerComponent.ZAdjust));
+			_surfaceProperty = serializedObject.FindProperty(nameof(PlungerComponent._surface));
 		}
 
 		public override void OnInspectorGUI()

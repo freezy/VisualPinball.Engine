@@ -20,10 +20,10 @@ using VisualPinball.Engine.VPT;
 
 namespace VisualPinball.Unity
 {
-	public abstract class ItemAnimationAuthoring<TData, TMainAuthoring> : ItemSubAuthoring<TData, TMainAuthoring>,
+	public abstract class ItemAnimationComponent<TData, TMainAuthoring> : ItemSubComponent<TData, TMainAuthoring>,
 		IItemAnimationAuthoring
 		where TData : ItemData
-		where TMainAuthoring : ItemMainRenderableAuthoring<TData>
+		where TMainAuthoring : ItemMainRenderableComponent<TData>
 	{
 		private Entity MainEntity {
 			get {

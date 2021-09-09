@@ -24,7 +24,7 @@ namespace VisualPinball.Unity.Editor
 		internal static IVpxPrefab InstantiatePrefab(this Plunger plunger)
 		{
 			var prefab = UnityEngine.Resources.Load<GameObject>("Prefabs/Plunger");
-			return new VpxPrefab<Plunger, PlungerData, PlungerAuthoring>(prefab, plunger);
+			return new VpxPrefab<Plunger, PlungerData, PlungerComponent>(prefab, plunger);
 		}
 	}
 }

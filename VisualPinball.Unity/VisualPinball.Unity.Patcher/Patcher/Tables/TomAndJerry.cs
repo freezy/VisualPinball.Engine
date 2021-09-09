@@ -98,7 +98,7 @@ namespace VisualPinball.Unity.Patcher
 		[NameMatch("Rflip", Ref = "Playfield/Flippers/RightFlipper")]
 		[NameMatch("LFlip1", Ref = "Playfield/Flippers/LeftFlipper1")]
 		[NameMatch("Rflip1", Ref = "Playfield/Flippers/RightFlipper1")]
-		public void ReparentFlippers(PrimitiveAuthoring primitive, GameObject gameObject, ref GameObject parent)
+		public void ReparentFlippers(PrimitiveComponent primitive, GameObject gameObject, ref GameObject parent)
 		{
 			PatcherUtil.Reparent(gameObject, parent);
 

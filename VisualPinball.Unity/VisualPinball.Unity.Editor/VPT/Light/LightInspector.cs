@@ -22,8 +22,8 @@ using VisualPinball.Engine.VPT.Light;
 
 namespace VisualPinball.Unity.Editor
 {
-	[CustomEditor(typeof(LightAuthoring)), CanEditMultipleObjects]
-	public class LightInspector : ItemMainInspector<LightData, LightAuthoring>
+	[CustomEditor(typeof(LightComponent)), CanEditMultipleObjects]
+	public class LightInspector : ItemMainInspector<LightData, LightComponent>
 	{
 		private bool _foldoutState = true;
 
@@ -43,15 +43,15 @@ namespace VisualPinball.Unity.Editor
 		{
 			base.OnEnable();
 
-			_positionProperty = serializedObject.FindProperty(nameof(LightAuthoring.Position));
-			_surfaceProperty = serializedObject.FindProperty(nameof(LightAuthoring._surface));
-			_bulbSizeProperty = serializedObject.FindProperty(nameof(LightAuthoring.BulbSize));
+			_positionProperty = serializedObject.FindProperty(nameof(LightComponent.Position));
+			_surfaceProperty = serializedObject.FindProperty(nameof(LightComponent._surface));
+			_bulbSizeProperty = serializedObject.FindProperty(nameof(LightComponent.BulbSize));
 
-			_stateProperty = serializedObject.FindProperty(nameof(LightAuthoring.State));
-			_blinkPatternProperty = serializedObject.FindProperty(nameof(LightAuthoring.BlinkPattern));
-			_blinkIntervalProperty = serializedObject.FindProperty(nameof(LightAuthoring.BlinkInterval));
-			_fadeSpeedUpProperty = serializedObject.FindProperty(nameof(LightAuthoring.FadeSpeedUp));
-			_fadeSpeedDownProperty = serializedObject.FindProperty(nameof(LightAuthoring.FadeSpeedDown));
+			_stateProperty = serializedObject.FindProperty(nameof(LightComponent.State));
+			_blinkPatternProperty = serializedObject.FindProperty(nameof(LightComponent.BlinkPattern));
+			_blinkIntervalProperty = serializedObject.FindProperty(nameof(LightComponent.BlinkInterval));
+			_fadeSpeedUpProperty = serializedObject.FindProperty(nameof(LightComponent.FadeSpeedUp));
+			_fadeSpeedDownProperty = serializedObject.FindProperty(nameof(LightComponent.FadeSpeedDown));
 		}
 
 		public override void OnInspectorGUI()

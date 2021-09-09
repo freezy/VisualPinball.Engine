@@ -21,17 +21,17 @@ using UnityEngine;
 
 namespace VisualPinball.Unity.Editor
 {
-	public class ObjectReferencePicker<T> where T: class, IIdentifiableItemAuthoring
+	public class ObjectReferencePicker<T> where T: class, IIdentifiableItemComponent
 	{
 		private AdvancedDropdownState _itemPickDropdownState;
 
 		public IconColor IconColor = IconColor.Gray;
 
 		private readonly string _pickerTitle;
-		private readonly TableAuthoring _tableComp;
+		private readonly TableComponent _tableComp;
 		private readonly bool _showIcon;
 
-		public ObjectReferencePicker(string pickerTitle, TableAuthoring tableComp, bool showIcon)
+		public ObjectReferencePicker(string pickerTitle, TableComponent tableComp, bool showIcon)
 		{
 			_pickerTitle = pickerTitle;
 			_tableComp = tableComp;
@@ -83,18 +83,18 @@ namespace VisualPinball.Unity.Editor
 		}
 	}
 
-	public class ItemSearchableDropdown<T> : AdvancedDropdown where T : class, IIdentifiableItemAuthoring
+	public class ItemSearchableDropdown<T> : AdvancedDropdown where T : class, IIdentifiableItemComponent
 	{
 		private readonly string _title;
 
-		private readonly TableAuthoring _tableAuthoring;
+		private readonly TableComponent _tableComponent;
 
 		private readonly Action<T> _onElementSelected;
 
-		public ItemSearchableDropdown(AdvancedDropdownState state, TableAuthoring tableAuthoring, string title, Action<T> onElementSelected) : base(state)
+		public ItemSearchableDropdown(AdvancedDropdownState state, TableComponent tableComponent, string title, Action<T> onElementSelected) : base(state)
 		{
 			_onElementSelected = onElementSelected;
-			_tableAuthoring = tableAuthoring;
+			_tableComponent = tableComponent;
 			minimumSize = new Vector2(200, 300);
 			_title = title;
 		}
@@ -102,7 +102,7 @@ namespace VisualPinball.Unity.Editor
 		protected override AdvancedDropdownItem BuildRoot()
 		{
 			var node = new AdvancedDropdownItem(_title);
-			var elements = _tableAuthoring.GetComponentsInChildren<T>();
+			var elements = _tableComponent.GetComponentsInChildren<T>();
 			node.AddChild(new ElementDropdownItem<T>(null));
 			foreach (var element in elements) {
 				node.AddChild(new ElementDropdownItem<T>(element));
@@ -116,7 +116,7 @@ namespace VisualPinball.Unity.Editor
 			_onElementSelected?.Invoke(elementItem?.Item);
 		}
 
-		private class ElementDropdownItem<TItem> : AdvancedDropdownItem where TItem : class, IIdentifiableItemAuthoring
+		private class ElementDropdownItem<TItem> : AdvancedDropdownItem where TItem : class, IIdentifiableItemComponent
 		{
 			public readonly TItem Item;
 

@@ -46,9 +46,9 @@ namespace VisualPinball.Unity
 
 		#region Switches
 
-		public void PopulateSwitches(GamelogicEngineSwitch[] engineSwitches, TableAuthoring tableComponent)
+		public void PopulateSwitches(GamelogicEngineSwitch[] engineSwitches, TableComponent tableComponent)
 		{
-			var switchDevices = tableComponent.GetComponentsInChildren<ISwitchDeviceAuthoring>();
+			var switchDevices = tableComponent.GetComponentsInChildren<ISwitchDeviceComponent>();
 
 			foreach (var engineSwitch in GetSwitchIds(engineSwitches)) {
 				var switchMapping = Switches.FirstOrDefault(mappingsSwitchData => mappingsSwitchData.Id == engineSwitch.Id);
@@ -123,7 +123,7 @@ namespace VisualPinball.Unity
 			return !string.IsNullOrEmpty(engineSwitch.InputActionHint) ? SwitchSource.InputSystem : SwitchSource.Playfield;
 		}
 
-		private static ISwitchDeviceAuthoring GuessSwitchDevice(ISwitchDeviceAuthoring[] switchDevices, GamelogicEngineSwitch engineSwitch)
+		private static ISwitchDeviceComponent GuessSwitchDevice(ISwitchDeviceComponent[] switchDevices, GamelogicEngineSwitch engineSwitch)
 		{
 			// if no hint, match by name
 			if (string.IsNullOrEmpty(engineSwitch.DeviceHint)) {
@@ -152,7 +152,7 @@ namespace VisualPinball.Unity
 			return null;
 		}
 
-		private static GamelogicEngineSwitch GuessSwitchDeviceItem(GamelogicEngineSwitch engineSwitch, ISwitchDeviceAuthoring device)
+		private static GamelogicEngineSwitch GuessSwitchDeviceItem(GamelogicEngineSwitch engineSwitch, ISwitchDeviceComponent device)
 		{
 			// if there's only one switch, it's the one.
 			if (device.AvailableSwitches.Count() == 1 && string.IsNullOrEmpty(engineSwitch.DeviceItemHint)) {
@@ -204,9 +204,9 @@ namespace VisualPinball.Unity
 		/// </summary>
 		/// <param name="engineCoils">List of coils provided by the gamelogic engine</param>
 		/// <param name="tableComponent">Table component</param>
-		public void PopulateCoils(GamelogicEngineCoil[] engineCoils, TableAuthoring tableComponent)
+		public void PopulateCoils(GamelogicEngineCoil[] engineCoils, TableComponent tableComponent)
 		{
-			var coilDevices = tableComponent.GetComponentsInChildren<ICoilDeviceAuthoring>();
+			var coilDevices = tableComponent.GetComponentsInChildren<ICoilDeviceComponent>();
 			foreach (var engineCoil in GetCoils(engineCoils)) {
 
 				var coilMapping = Coils.FirstOrDefault(mappingsCoilData => mappingsCoilData.Id == engineCoil.Id);
@@ -250,7 +250,7 @@ namespace VisualPinball.Unity
 			return CoilDestination.Lamp;
 		}
 
-		private static ICoilDeviceAuthoring GuessCoilDevice(ICoilDeviceAuthoring[] coilDevices, GamelogicEngineCoil engineCoil)
+		private static ICoilDeviceComponent GuessCoilDevice(ICoilDeviceComponent[] coilDevices, GamelogicEngineCoil engineCoil)
 		{
 			foreach (var device in coilDevices) {
 				if (string.Equals(device.name, engineCoil.Id, StringComparison.OrdinalIgnoreCase)) {
@@ -267,7 +267,7 @@ namespace VisualPinball.Unity
 			return null;
 		}
 
-		private static GamelogicEngineCoil GuessCoilDeviceItem(GamelogicEngineCoil engineCoil, ICoilDeviceAuthoring device)
+		private static GamelogicEngineCoil GuessCoilDeviceItem(GamelogicEngineCoil engineCoil, ICoilDeviceComponent device)
 		{
 			// if only one device item available, it's the one.
 			if (device.AvailableCoils.Count() == 1 && string.IsNullOrEmpty(engineCoil.DeviceItemHint)) {
@@ -365,9 +365,9 @@ namespace VisualPinball.Unity
 		/// </summary>
 		/// <param name="engineLamps">List of lamps provided by the gamelogic engine</param>
 		/// <param name="tableComponent">Table component</param>
-		public void PopulateLamps(GamelogicEngineLamp[] engineLamps, TableAuthoring tableComponent)
+		public void PopulateLamps(GamelogicEngineLamp[] engineLamps, TableComponent tableComponent)
 		{
-			var lamps = tableComponent.GetComponentsInChildren<ILampDeviceAuthoring>();
+			var lamps = tableComponent.GetComponentsInChildren<ILampDeviceComponent>();
 			var gbLamps = new List<GamelogicEngineLamp>();
 			foreach (var engineLamp in GetLamps(engineLamps)) {
 
@@ -443,7 +443,7 @@ namespace VisualPinball.Unity
 			return lamps;
 		}
 
-		private static ILampDeviceAuthoring GuessLampDevice(ILampDeviceAuthoring[] lamps, GamelogicEngineLamp engineLamp)
+		private static ILampDeviceComponent GuessLampDevice(ILampDeviceComponent[] lamps, GamelogicEngineLamp engineLamp)
 		{
 			// first, match by regex if hint provided
 			if (!string.IsNullOrEmpty(engineLamp.DeviceHint)) {
@@ -463,7 +463,7 @@ namespace VisualPinball.Unity
 			return lamps.FirstOrDefault(l => l.name == matchKey);
 		}
 
-		private static GamelogicEngineLamp GuessLampDeviceItem(GamelogicEngineLamp engineLamp, ILampDeviceAuthoring device)
+		private static GamelogicEngineLamp GuessLampDeviceItem(GamelogicEngineLamp engineLamp, ILampDeviceComponent device)
 		{
 			if (device == null) {
 				return null;

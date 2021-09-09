@@ -31,7 +31,7 @@ namespace VisualPinball.Unity.Test
 		{
 			const string tmpFileName = "ShouldWriteTableData.vpx";
 			var go = VpxImportEngine.ImportIntoScene(VpxPath.Table, options: ConvertOptions.SkipNone);
-			var ta = go.GetComponent<TableAuthoring>();
+			var ta = go.GetComponent<TableComponent>();
 			ta.TableContainer.Save(tmpFileName);
 
 			var writtenTable = FileTableContainer.Load(tmpFileName);
@@ -46,7 +46,7 @@ namespace VisualPinball.Unity.Test
 		{
 			const string tmpFileName = "ShouldWriteTableInfo.vpx";
 			var go = VpxImportEngine.ImportIntoScene(VpxPath.Table, options: ConvertOptions.SkipNone);
-			var ta = go.GetComponent<TableAuthoring>();
+			var ta = go.GetComponent<TableComponent>();
 			ta.TableContainer.Save(tmpFileName);
 
 			var writtenTable = FileTableContainer.Load(tmpFileName);

@@ -25,7 +25,7 @@ namespace VisualPinball.Unity.Editor
 {
 	public class ItemMainInspector<TData, TMainAuthoring> : ItemInspector
 		where TData : ItemData
-		where TMainAuthoring : ItemMainAuthoring<TData>
+		where TMainAuthoring : ItemMainComponent<TData>
 	{
 		protected TMainAuthoring MainComponent;
 
@@ -53,7 +53,7 @@ namespace VisualPinball.Unity.Editor
 			var typeMessage = validParentTypes.Length > 0
 				? $"Supported parents are: [ {string.Join(", ", validParentTypes.Select(t => t.Name))} ]."
 				: $"In this case, {MainComponent.ItemName} doesn't support any parenting at all.";
-			EditorGUILayout.HelpBox($"Invalid parent. This {MainComponent.ItemName} is parented to a {MainComponent.ParentAuthoring.ItemName}, which VPE doesn't support.\n{typeMessage}", MessageType.Error);
+			EditorGUILayout.HelpBox($"Invalid parent. This {MainComponent.ItemName} is parented to a {MainComponent.ParentComponent.ItemName}, which VPE doesn't support.\n{typeMessage}", MessageType.Error);
 			if (GUILayout.Button("Open Documentation", EditorStyles.linkLabel)) {
 				Application.OpenURL("https://docs.visualpinball.org/creators-guide/editor/unity-components.html");
 			}
@@ -61,7 +61,7 @@ namespace VisualPinball.Unity.Editor
 
 		protected void UpdateSurfaceReferences(Transform obj)
 		{
-			var surfaceAuthoring = obj.gameObject.GetComponent<IOnSurfaceAuthoring>();
+			var surfaceAuthoring = obj.gameObject.GetComponent<IOnSurfaceComponent>();
 			if (surfaceAuthoring != null && surfaceAuthoring.Surface == MainComponent) {
 				surfaceAuthoring.OnSurfaceUpdated();
 			}
@@ -69,7 +69,7 @@ namespace VisualPinball.Unity.Editor
 
 		protected void UpdateTableHeightReferences(Transform obj)
 		{
-			var onTableAuthoring = obj.gameObject.GetComponent<IOnPlayfieldAuthoring>();
+			var onTableAuthoring = obj.gameObject.GetComponent<IOnPlayfieldComponent>();
 			if (onTableAuthoring != null) {
 				onTableAuthoring.OnPlayfieldHeightUpdated();
 			}

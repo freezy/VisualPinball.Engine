@@ -21,8 +21,8 @@ using VisualPinball.Engine.VPT.Surface;
 
 namespace VisualPinball.Unity.Editor
 {
-	[CustomEditor(typeof(SurfaceColliderAuthoring)), CanEditMultipleObjects]
-	public class SurfaceColliderInspector : ItemColliderInspector<SurfaceData, SurfaceAuthoring, SurfaceColliderAuthoring>
+	[CustomEditor(typeof(SurfaceColliderComponent)), CanEditMultipleObjects]
+	public class SurfaceColliderInspector : ItemColliderInspector<SurfaceData, SurfaceComponent, SurfaceColliderComponent>
 	{
 		private bool _foldoutMaterial = true;
 		private bool _foldoutSlingshot;
@@ -43,17 +43,17 @@ namespace VisualPinball.Unity.Editor
 		{
 			base.OnEnable();
 
-			_hitEventProperty = serializedObject.FindProperty(nameof(SurfaceColliderAuthoring.HitEvent));
-			_thresholdProperty = serializedObject.FindProperty(nameof(SurfaceColliderAuthoring.Threshold));
-			_isBottomSolidProperty = serializedObject.FindProperty(nameof(SurfaceColliderAuthoring.IsBottomSolid));
-			_slingshotForceProperty = serializedObject.FindProperty(nameof(SurfaceColliderAuthoring.SlingshotForce));
-			_slingshotThresholdProperty = serializedObject.FindProperty(nameof(SurfaceColliderAuthoring.SlingshotThreshold));
-			_physicsMaterialProperty = serializedObject.FindProperty(nameof(ItemColliderAuthoring<SurfaceData, SurfaceAuthoring>.PhysicsMaterial));
-			_overwritePhysicsProperty = serializedObject.FindProperty(nameof(SurfaceColliderAuthoring.OverwritePhysics));
-			_elasticityProperty = serializedObject.FindProperty(nameof(SurfaceColliderAuthoring.Elasticity));
-			_elasticityFalloffProperty = serializedObject.FindProperty(nameof(SurfaceColliderAuthoring.ElasticityFalloff));
-			_frictionProperty = serializedObject.FindProperty(nameof(SurfaceColliderAuthoring.Friction));
-			_scatterProperty = serializedObject.FindProperty(nameof(SurfaceColliderAuthoring.Scatter));
+			_hitEventProperty = serializedObject.FindProperty(nameof(SurfaceColliderComponent.HitEvent));
+			_thresholdProperty = serializedObject.FindProperty(nameof(SurfaceColliderComponent.Threshold));
+			_isBottomSolidProperty = serializedObject.FindProperty(nameof(SurfaceColliderComponent.IsBottomSolid));
+			_slingshotForceProperty = serializedObject.FindProperty(nameof(SurfaceColliderComponent.SlingshotForce));
+			_slingshotThresholdProperty = serializedObject.FindProperty(nameof(SurfaceColliderComponent.SlingshotThreshold));
+			_physicsMaterialProperty = serializedObject.FindProperty(nameof(ItemColliderComponent<SurfaceData, SurfaceComponent>.PhysicsMaterial));
+			_overwritePhysicsProperty = serializedObject.FindProperty(nameof(SurfaceColliderComponent.OverwritePhysics));
+			_elasticityProperty = serializedObject.FindProperty(nameof(SurfaceColliderComponent.Elasticity));
+			_elasticityFalloffProperty = serializedObject.FindProperty(nameof(SurfaceColliderComponent.ElasticityFalloff));
+			_frictionProperty = serializedObject.FindProperty(nameof(SurfaceColliderComponent.Friction));
+			_scatterProperty = serializedObject.FindProperty(nameof(SurfaceColliderComponent.Scatter));
 		}
 
 		public override void OnInspectorGUI()

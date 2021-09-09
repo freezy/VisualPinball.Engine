@@ -37,22 +37,22 @@ namespace VisualPinball.Unity.Editor
 			Element = 3
 		}
 
-		private readonly TableAuthoring _tableComponent;
+		private readonly TableComponent _tableComponent;
 
-		private readonly ObjectReferencePicker<ICoilDeviceAuthoring> _devicePicker;
+		private readonly ObjectReferencePicker<ICoilDeviceComponent> _devicePicker;
 
-		public CoilListViewItemRenderer(TableAuthoring tableComponent, List<GamelogicEngineCoil> gleCoils)
+		public CoilListViewItemRenderer(TableComponent tableComponent, List<GamelogicEngineCoil> gleCoils)
 		{
 			_tableComponent = tableComponent;
 			GleItems = gleCoils;
-			_devicePicker = new ObjectReferencePicker<ICoilDeviceAuthoring>("Coil Devices", tableComponent, false);
+			_devicePicker = new ObjectReferencePicker<ICoilDeviceComponent>("Coil Devices", tableComponent, false);
 		}
 
-		public void Render(TableAuthoring tableAuthoring, CoilListData data, Rect cellRect, int column, Action<CoilListData> updateAction)
+		public void Render(TableComponent tableComponent, CoilListData data, Rect cellRect, int column, Action<CoilListData> updateAction)
 		{
 			EditorGUI.BeginDisabledGroup(Application.isPlaying);
 			var coilStatuses = Application.isPlaying
-				? tableAuthoring.gameObject.GetComponent<Player>()?.CoilStatuses
+				? tableComponent.gameObject.GetComponent<Player>()?.CoilStatuses
 				: null;
 
 			switch ((CoilListColumn)column)

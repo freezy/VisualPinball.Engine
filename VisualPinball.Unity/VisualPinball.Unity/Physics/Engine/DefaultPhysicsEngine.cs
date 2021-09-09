@@ -41,7 +41,7 @@ namespace VisualPinball.Unity
 
 		private VisualPinballSimulationSystemGroup _visualPinballSimulationSystemGroup;
 
-		public void Init(TableAuthoring tableAuthoring, BallManager ballManager)
+		public void Init(TableComponent tableComponent, BallManager ballManager)
 		{
 			_ballManager = ballManager;
 			_entityManager = World.DefaultGameObjectInjectionWorld.EntityManager;
@@ -59,7 +59,7 @@ namespace VisualPinball.Unity
 			_visualPinballSimulationSystemGroup.Enabled = true;
 			simulateCycleSystemGroup.PhysicsEngine = this; // needed for flipper status update we don't do in all engines
 
-			var transform = tableAuthoring.gameObject.transform;
+			var transform = tableComponent.gameObject.transform;
 			_worldToLocal = transform.worldToLocalMatrix;
 		}
 

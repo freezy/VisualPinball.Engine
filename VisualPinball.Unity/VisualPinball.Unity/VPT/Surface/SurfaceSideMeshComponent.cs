@@ -26,7 +26,7 @@ namespace VisualPinball.Unity
 {
 	[ExecuteInEditMode]
 	[AddComponentMenu("Visual Pinball/Mesh/Surface Side Mesh")]
-	public class SurfaceSideMeshAuthoring : ItemMeshAuthoring<SurfaceData, SurfaceAuthoring>
+	public class SurfaceSideMeshComponent : ItemMeshComponent<SurfaceData, SurfaceComponent>
 	{
 		public static readonly Type[] ValidParentTypes = Type.EmptyTypes;
 
@@ -38,7 +38,7 @@ namespace VisualPinball.Unity
 		}
 		protected override Mesh GetMesh(SurfaceData data)
 		{
-			var playfieldComponent = GetComponentInParent<PlayfieldAuthoring>();
+			var playfieldComponent = GetComponentInParent<PlayfieldComponent>();
 			return new SurfaceMeshGenerator(data).GetMesh(playfieldComponent.Width, playfieldComponent.Height, playfieldComponent.PlayfieldHeight, SurfaceMeshGenerator.Side);
 		}
 	}

@@ -27,7 +27,7 @@ using Logger = NLog.Logger;
 namespace VisualPinball.Unity
 {
 	[AddComponentMenu("Visual Pinball/Display/Segment Display")]
-	public class SegmentDisplayAuthoring : DisplayAuthoring
+	public class SegmentDisplayComponent : DisplayComponent
 	{
 		public override string Id { get => _id; set => _id = value;}
 

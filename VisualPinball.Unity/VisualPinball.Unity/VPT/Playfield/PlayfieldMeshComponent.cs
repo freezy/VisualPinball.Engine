@@ -9,7 +9,7 @@ namespace VisualPinball.Unity.Playfield
 {
 	[ExecuteInEditMode]
 	[AddComponentMenu("Visual Pinball/Mesh/Playfield Mesh")]
-	public class PlayfieldMeshAuthoring : ItemMeshAuthoring<TableData, PlayfieldAuthoring>
+	public class PlayfieldMeshComponent : ItemMeshComponent<TableData, PlayfieldComponent>
 	{
 		#region Data
 

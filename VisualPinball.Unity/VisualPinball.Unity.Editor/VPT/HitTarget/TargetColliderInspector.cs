@@ -21,8 +21,8 @@ using VisualPinball.Engine.VPT.HitTarget;
 
 namespace VisualPinball.Unity.Editor
 {
-	public abstract class TargetColliderInspector<TColliderAuthoring> : ItemColliderInspector<HitTargetData, TargetAuthoring, TColliderAuthoring>
-		where TColliderAuthoring : ItemColliderAuthoring<HitTargetData, TargetAuthoring>
+	public abstract class TargetColliderInspector<TColliderAuthoring> : ItemColliderInspector<HitTargetData, TargetComponent, TColliderAuthoring>
+		where TColliderAuthoring : ItemColliderComponent<HitTargetData, TargetComponent>
 	{
 		private bool _foldoutMaterial = true;
 
@@ -40,15 +40,15 @@ namespace VisualPinball.Unity.Editor
 		{
 			base.OnEnable();
 
-			_hitEventProperty = serializedObject.FindProperty(nameof(HitTargetColliderAuthoring.UseHitEvent));
-			_isLegacyProperty = serializedObject.FindProperty(nameof(HitTargetColliderAuthoring.IsLegacy));
-			_thresholdProperty = serializedObject.FindProperty(nameof(HitTargetColliderAuthoring.Threshold));
-			_physicsMaterialProperty = serializedObject.FindProperty(nameof(ItemColliderAuthoring<HitTargetData, TargetAuthoring>.PhysicsMaterial));
-			_overwritePhysicsProperty = serializedObject.FindProperty(nameof(HitTargetColliderAuthoring.OverwritePhysics));
-			_elasticityProperty = serializedObject.FindProperty(nameof(HitTargetColliderAuthoring.Elasticity));
-			_elasticityFalloffProperty = serializedObject.FindProperty(nameof(HitTargetColliderAuthoring.ElasticityFalloff));
-			_frictionProperty = serializedObject.FindProperty(nameof(HitTargetColliderAuthoring.Friction));
-			_scatterProperty = serializedObject.FindProperty(nameof(HitTargetColliderAuthoring.Scatter));
+			_hitEventProperty = serializedObject.FindProperty(nameof(HitTargetColliderComponent.UseHitEvent));
+			_isLegacyProperty = serializedObject.FindProperty(nameof(HitTargetColliderComponent.IsLegacy));
+			_thresholdProperty = serializedObject.FindProperty(nameof(HitTargetColliderComponent.Threshold));
+			_physicsMaterialProperty = serializedObject.FindProperty(nameof(ItemColliderComponent<HitTargetData, TargetComponent>.PhysicsMaterial));
+			_overwritePhysicsProperty = serializedObject.FindProperty(nameof(HitTargetColliderComponent.OverwritePhysics));
+			_elasticityProperty = serializedObject.FindProperty(nameof(HitTargetColliderComponent.Elasticity));
+			_elasticityFalloffProperty = serializedObject.FindProperty(nameof(HitTargetColliderComponent.ElasticityFalloff));
+			_frictionProperty = serializedObject.FindProperty(nameof(HitTargetColliderComponent.Friction));
+			_scatterProperty = serializedObject.FindProperty(nameof(HitTargetColliderComponent.Scatter));
 		}
 
 		public override void OnInspectorGUI()

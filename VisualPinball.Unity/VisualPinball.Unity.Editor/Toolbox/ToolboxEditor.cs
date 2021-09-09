@@ -58,7 +58,7 @@ namespace VisualPinball.Unity.Editor
 		/// Called when the selected table changes
 		/// </summary>
 		/// <param name="table"></param>
-		protected override void SetTable(TableAuthoring table) { }
+		protected override void SetTable(TableComponent table) { }
 
 		private void OnGUI()
 		{
@@ -77,12 +77,12 @@ namespace VisualPinball.Unity.Editor
 				Undo.RegisterCreatedObjectUndo(rootGameObj, "New Table");
 			}
 
-			if (_tableAuthoring == null) {
+			if (TableComponent == null) {
 				return;
 			}
 
 			EditorGUILayout.Space();
-			GUILayout.Label(_tableAuthoring.name, new GUIStyle(GUI.skin.label) { fontStyle = FontStyle.Bold });
+			GUILayout.Label(TableComponent.name, new GUIStyle(GUI.skin.label) { fontStyle = FontStyle.Bold });
 
 			GUILayout.BeginHorizontal();
 
@@ -182,7 +182,7 @@ namespace VisualPinball.Unity.Editor
 
 		private void CreateItem<TItem>(Func<Table, TItem> create, string actionName) where TItem : IItem
 		{
-			var tableContainer = _tableAuthoring.TableContainer;
+			var tableContainer = TableComponent.TableContainer;
 			tableContainer.Refresh();
 			var item = create(tableContainer.Table);
 			Selection.activeGameObject = CreateRenderable(item);
@@ -192,8 +192,8 @@ namespace VisualPinball.Unity.Editor
 
 		private GameObject CreateRenderable(IItem item)
 		{
-			var converter = new VpxSceneConverter(_tableAuthoring);
-			_tableAuthoring.TableContainer.Refresh();
+			var converter = new VpxSceneConverter(TableComponent);
+			TableComponent.TableContainer.Refresh();
 			return converter.InstantiateAndPersistPrefab(item).GameObject;
 		}
 	}

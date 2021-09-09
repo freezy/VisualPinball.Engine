@@ -25,7 +25,7 @@ namespace VisualPinball.Unity.Patcher
 	{
 		[NameMatch("batleft", Ref = "Playfield/Flippers/LeftFlipper")]
 		[NameMatch("batright", Ref = "Playfield/Flippers/RightFlipper")]
-		public void ReparentFlippers(PrimitiveAuthoring flipper, GameObject gameObject, ref GameObject parent)
+		public void ReparentFlippers(PrimitiveComponent flipper, GameObject gameObject, ref GameObject parent)
 		{
 			PatcherUtil.Reparent(gameObject, parent);
 
@@ -43,14 +43,14 @@ namespace VisualPinball.Unity.Patcher
 		}
 
 		[NameMatch("sw55")]
-		public void FixSw55(KickerAuthoring kickerComponent)
+		public void FixSw55(KickerComponent kickerComponent)
 		{
 			kickerComponent.Coils[0].Speed = 20;
 			kickerComponent.Coils[0].Angle = 60;
 		}
 
 		[NameMatch("sw56")]
-		public void FixSw56(KickerAuthoring kickerComponent)
+		public void FixSw56(KickerComponent kickerComponent)
 		{
 			kickerComponent.Coils[0].Speed = 12;
 			kickerComponent.Coils[0].Angle = 60;

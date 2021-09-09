@@ -21,8 +21,8 @@ using VisualPinball.Engine.VPT.Flipper;
 
 namespace VisualPinball.Unity.Editor
 {
-	[CustomEditor(typeof(FlipperBaseMeshAuthoring)), CanEditMultipleObjects]
-	public class FlipperBaseMeshInspector : ItemMeshInspector<FlipperData, FlipperAuthoring, FlipperBaseMeshAuthoring>
+	[CustomEditor(typeof(FlipperBaseMeshComponent)), CanEditMultipleObjects]
+	public class FlipperBaseMeshInspector : ItemMeshInspector<FlipperData, FlipperComponent, FlipperBaseMeshComponent>
 	{
 		public override void OnInspectorGUI()
 		{

@@ -23,7 +23,7 @@ using UnityEngine;
 
 namespace VisualPinball.Unity.Editor
 {
-	[CustomEditor(typeof(TableAuthoring))]
+	[CustomEditor(typeof(TableComponent))]
 	[CanEditMultipleObjects]
 	public class TableInspector : ItemInspector
 	{
@@ -33,7 +33,7 @@ namespace VisualPinball.Unity.Editor
 		{
 			OnPreInspectorGUI();
 
-			var tableComponent = (TableAuthoring) target;
+			var tableComponent = (TableComponent) target;
 			if (!EditorApplication.isPlaying) {
 				DrawDefaultInspector();
 				if (GUILayout.Button("Export VPX")) {

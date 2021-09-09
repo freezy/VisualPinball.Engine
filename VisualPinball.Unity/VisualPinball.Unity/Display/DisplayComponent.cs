@@ -23,7 +23,7 @@ using Logger = NLog.Logger;
 
 namespace VisualPinball.Unity
 {
-	public abstract class DisplayAuthoring : MonoBehaviour
+	public abstract class DisplayComponent : MonoBehaviour
 	{
 		public abstract string Id { get; set; }
 		public abstract Color LitColor { get; set; }

@@ -33,8 +33,8 @@ using VisualPinball.Engine.VPT.Table;
 namespace VisualPinball.Unity
 {
 	[AddComponentMenu("Visual Pinball/Game Item/Plunger")]
-	public class PlungerAuthoring : ItemMainRenderableAuthoring<PlungerData>,
-		ICoilDeviceAuthoring, IOnSurfaceAuthoring, IConvertGameObjectToEntity
+	public class PlungerComponent : ItemMainRenderableComponent<PlungerData>,
+		ICoilDeviceComponent, IOnSurfaceComponent, IConvertGameObjectToEntity
 	{
 		#region Data
 
@@ -47,9 +47,9 @@ namespace VisualPinball.Unity
 
 		public float ZAdjust;
 
-		public ISurfaceAuthoring Surface { get => _surface as ISurfaceAuthoring; set => _surface = value as MonoBehaviour; }
+		public ISurfaceComponent Surface { get => _surface as ISurfaceComponent; set => _surface = value as MonoBehaviour; }
 		[SerializeField]
-		[TypeRestriction(typeof(ISurfaceAuthoring), PickerLabel = "Walls & Ramps", UpdateTransforms = true)]
+		[TypeRestriction(typeof(ISurfaceComponent), PickerLabel = "Walls & Ramps", UpdateTransforms = true)]
 		[Tooltip("On which surface this plunger is attached to. Updates Z-translation.")]
 		public MonoBehaviour _surface;
 
@@ -64,14 +64,14 @@ namespace VisualPinball.Unity
 
 		public override PlungerData InstantiateData() => new PlungerData();
 
-		public override IEnumerable<Type> ValidParents => PlungerColliderAuthoring.ValidParentTypes
-			.Concat(PlungerFlatMeshAuthoring.ValidParentTypes)
-			.Concat(PlungerRodMeshAuthoring.ValidParentTypes)
-			.Concat(PlungerSpringMeshAuthoring.ValidParentTypes)
+		public override IEnumerable<Type> ValidParents => PlungerColliderComponent.ValidParentTypes
+			.Concat(PlungerFlatMeshComponent.ValidParentTypes)
+			.Concat(PlungerRodMeshComponent.ValidParentTypes)
+			.Concat(PlungerSpringMeshComponent.ValidParentTypes)
 			.Distinct();
 
-		protected override Type MeshAuthoringType { get; } = typeof(ItemMeshAuthoring<PlungerData, PlungerAuthoring>);
-		protected override Type ColliderAuthoringType { get; } = typeof(ItemColliderAuthoring<PlungerData, PlungerAuthoring>);
+		protected override Type MeshAuthoringType { get; } = typeof(ItemMeshComponent<PlungerData, PlungerComponent>);
+		protected override Type ColliderAuthoringType { get; } = typeof(ItemColliderComponent<PlungerData, PlungerComponent>);
 
 		public const string PullCoilId = "c_pull";
 		public const string FireCoilId = "c_autofire";
@@ -85,9 +85,9 @@ namespace VisualPinball.Unity
 			new GamelogicEngineCoil(FireCoilId) { Description = "Auto-fire" },
 		};
 
-		IEnumerable<GamelogicEngineCoil> IDeviceAuthoring<GamelogicEngineCoil>.AvailableDeviceItems => AvailableCoils;
-		IEnumerable<IGamelogicEngineDeviceItem> IWireableAuthoring.AvailableWireDestinations => AvailableCoils;
-		IEnumerable<IGamelogicEngineDeviceItem> IDeviceAuthoring<IGamelogicEngineDeviceItem>.AvailableDeviceItems => AvailableCoils;
+		IEnumerable<GamelogicEngineCoil> IDeviceComponent<GamelogicEngineCoil>.AvailableDeviceItems => AvailableCoils;
+		IEnumerable<IGamelogicEngineDeviceItem> IWireableComponent.AvailableWireDestinations => AvailableCoils;
+		IEnumerable<IGamelogicEngineDeviceItem> IDeviceComponent<IGamelogicEngineDeviceItem>.AvailableDeviceItems => AvailableCoils;
 
 		#endregion
 
@@ -108,7 +108,7 @@ namespace VisualPinball.Unity
 			Convert(entity, dstManager);
 			var go = gameObject;
 
-			var collComponent = GetComponent<PlungerColliderAuthoring>();
+			var collComponent = GetComponent<PlungerColliderComponent>();
 			if (!collComponent) {
 				// without collider, the plunger is only a dead mesh.
 				return;
@@ -196,7 +196,7 @@ namespace VisualPinball.Unity
 			ZAdjust = data.ZAdjust;
 
 			// collider data
-			var collComponent = GetComponent<PlungerColliderAuthoring>();
+			var collComponent = GetComponent<PlungerColliderComponent>();
 			if (collComponent) {
 				collComponent.Stroke = data.Stroke;
 				collComponent.SpeedPull = data.SpeedPull;
@@ -212,7 +212,7 @@ namespace VisualPinball.Unity
 			}
 
 			// rod mesh
-			var rodMesh = GetComponentInChildren<PlungerRodMeshAuthoring>(true);
+			var rodMesh = GetComponentInChildren<PlungerRodMeshComponent>(true);
 			if (rodMesh) {
 				rodMesh.TipShape = data.TipShape;
 				rodMesh.RodDiam = data.RodDiam;
@@ -225,7 +225,7 @@ namespace VisualPinball.Unity
 			}
 
 			// spring mesh
-			var springMesh = GetComponentInChildren<PlungerSpringMeshAuthoring>(true);
+			var springMesh = GetComponentInChildren<PlungerSpringMeshComponent>(true);
 			if (springMesh) {
 				springMesh.SpringDiam = data.SpringDiam;
 				springMesh.SpringGauge = data.SpringGauge;
@@ -243,18 +243,18 @@ namespace VisualPinball.Unity
 			return updatedComponents;
 		}
 
-		public override IEnumerable<MonoBehaviour> SetReferencedData(PlungerData data, Table table, IMaterialProvider materialProvider, ITextureProvider textureProvider, Dictionary<string, IItemMainAuthoring> components)
+		public override IEnumerable<MonoBehaviour> SetReferencedData(PlungerData data, Table table, IMaterialProvider materialProvider, ITextureProvider textureProvider, Dictionary<string, IItemMainComponent> components)
 		{
-			Surface = GetAuthoring<SurfaceAuthoring>(components, data.Surface);
+			Surface = GetAuthoring<SurfaceComponent>(components, data.Surface);
 
 			// rod mesh
-			var rodMesh = GetComponentInChildren<PlungerRodMeshAuthoring>(true);
+			var rodMesh = GetComponentInChildren<PlungerRodMeshComponent>(true);
 			if (rodMesh) {
 				rodMesh.CreateMesh(data, table, textureProvider, materialProvider);
 			}
 
 			// spring mesh
-			var springMesh = GetComponentInChildren<PlungerSpringMeshAuthoring>(true);
+			var springMesh = GetComponentInChildren<PlungerSpringMeshComponent>(true);
 			if (springMesh && data.Type == PlungerType.PlungerTypeCustom) {
 				springMesh.CreateMesh(data, table, textureProvider, materialProvider);
 			}
@@ -273,7 +273,7 @@ namespace VisualPinball.Unity
 			data.Surface = Surface != null ? Surface.name : string.Empty;
 
 			// collider data
-			var collComponent = GetComponent<PlungerColliderAuthoring>();
+			var collComponent = GetComponent<PlungerColliderComponent>();
 			if (collComponent) {
 				data.Stroke = collComponent.Stroke;
 				data.SpeedPull = collComponent.SpeedPull;
@@ -287,7 +287,7 @@ namespace VisualPinball.Unity
 			}
 
 			// rod mesh
-			var rodMesh = GetComponentInChildren<PlungerRodMeshAuthoring>(true);
+			var rodMesh = GetComponentInChildren<PlungerRodMeshComponent>(true);
 			if (rodMesh) {
 				data.TipShape = rodMesh.TipShape;
 				data.RodDiam = rodMesh.RodDiam;
@@ -297,7 +297,7 @@ namespace VisualPinball.Unity
 			}
 
 			// spring mesh
-			var springMesh = GetComponentInChildren<PlungerSpringMeshAuthoring>(true);
+			var springMesh = GetComponentInChildren<PlungerSpringMeshComponent>(true);
 			if (springMesh) {
 				data.SpringDiam = springMesh.SpringDiam;
 				data.SpringGauge = springMesh.SpringGauge;

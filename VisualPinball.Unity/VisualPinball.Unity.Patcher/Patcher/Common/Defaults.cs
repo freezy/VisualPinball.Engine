@@ -43,7 +43,7 @@ namespace VisualPinball.Unity.Patcher
 		[NameMatch("Ruler_mm")]
 		[NameMatch("Ruler_inches")]
 		[NameMatch("Ruler_inches_and_mm")]
-		public void RemoveColliders(PrimitiveColliderAuthoring collider)
+		public void RemoveColliders(PrimitiveColliderComponent collider)
 		{
 			Object.DestroyImmediate(collider);
 		}

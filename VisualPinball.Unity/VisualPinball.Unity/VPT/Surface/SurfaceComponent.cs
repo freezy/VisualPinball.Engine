@@ -34,8 +34,8 @@ using VisualPinball.Engine.VPT.Table;
 namespace VisualPinball.Unity
 {
 	[AddComponentMenu("Visual Pinball/Game Item/Surface")]
-	public class SurfaceAuthoring : ItemMainRenderableAuthoring<SurfaceData>,
-		IConvertGameObjectToEntity, ISurfaceAuthoring, IDragPointsAuthoring
+	public class SurfaceComponent : ItemMainRenderableComponent<SurfaceData>,
+		IConvertGameObjectToEntity, ISurfaceComponent, IDragPointsComponent
 	{
 		#region Data
 
@@ -61,13 +61,13 @@ namespace VisualPinball.Unity
 		public override SurfaceData InstantiateData() => new SurfaceData();
 
 
-		public override IEnumerable<Type> ValidParents => SurfaceColliderAuthoring.ValidParentTypes
-			.Concat(SurfaceSideMeshAuthoring.ValidParentTypes)
-			.Concat(SurfaceTopMeshAuthoring.ValidParentTypes)
+		public override IEnumerable<Type> ValidParents => SurfaceColliderComponent.ValidParentTypes
+			.Concat(SurfaceSideMeshComponent.ValidParentTypes)
+			.Concat(SurfaceTopMeshComponent.ValidParentTypes)
 			.Distinct();
 
-		protected override Type MeshAuthoringType { get; } = typeof(ItemMeshAuthoring<SurfaceData, SurfaceAuthoring>);
-		protected override Type ColliderAuthoringType { get; } = typeof(ItemColliderAuthoring<SurfaceData, SurfaceAuthoring>);
+		protected override Type MeshAuthoringType { get; } = typeof(ItemMeshComponent<SurfaceData, SurfaceComponent>);
+		protected override Type ColliderAuthoringType { get; } = typeof(ItemColliderComponent<SurfaceData, SurfaceComponent>);
 
 		#endregion
 
@@ -86,7 +86,7 @@ namespace VisualPinball.Unity
 			Convert(entity, dstManager);
 
 			// physics collision data
-			var collComponent = GetComponentInChildren<SurfaceColliderAuthoring>();
+			var collComponent = GetComponentInChildren<SurfaceColliderComponent>();
 			if (collComponent) {
 				dstManager.AddComponentData(entity, new LineSlingshotData {
 					IsDisabled = false,
@@ -108,7 +108,7 @@ namespace VisualPinball.Unity
 			DragPoints = data.DragPoints;
 
 			// collider data
-			var collComponent = GetComponentInChildren<SurfaceColliderAuthoring>();
+			var collComponent = GetComponentInChildren<SurfaceColliderComponent>();
 			if (collComponent) {
 				collComponent.enabled = data.IsCollidable;
 
@@ -131,23 +131,23 @@ namespace VisualPinball.Unity
 			return updatedComponents;
 		}
 
-		public override IEnumerable<MonoBehaviour> SetReferencedData(SurfaceData data, Table table, IMaterialProvider materialProvider, ITextureProvider textureProvider, Dictionary<string, IItemMainAuthoring> components)
+		public override IEnumerable<MonoBehaviour> SetReferencedData(SurfaceData data, Table table, IMaterialProvider materialProvider, ITextureProvider textureProvider, Dictionary<string, IItemMainComponent> components)
 		{
 			// children mesh creation and visibility
-			var topMesh = GetComponentInChildren<SurfaceTopMeshAuthoring>(true);
+			var topMesh = GetComponentInChildren<SurfaceTopMeshComponent>(true);
 			if (topMesh) {
 				topMesh.CreateMesh(data, table, textureProvider, materialProvider);
 				topMesh.gameObject.SetActive(data.IsTopBottomVisible);
 			}
 
-			var sideMesh = GetComponentInChildren<SurfaceSideMeshAuthoring>(true);
+			var sideMesh = GetComponentInChildren<SurfaceSideMeshComponent>(true);
 			if (sideMesh) {
 				sideMesh.CreateMesh(data, table, textureProvider, materialProvider);
 				sideMesh.gameObject.SetActive(data.IsSideVisible);
 			}
 
 			// collider data
-			var collComponent = GetComponentInChildren<SurfaceColliderAuthoring>();
+			var collComponent = GetComponentInChildren<SurfaceColliderComponent>();
 			if (collComponent) {
 				collComponent.PhysicsMaterial = materialProvider.GetPhysicsMaterial(data.PhysicsMaterial);
 			}
@@ -167,13 +167,13 @@ namespace VisualPinball.Unity
 			data.DragPoints = DragPoints;
 
 			// children visibility
-			var topMesh = GetComponentInChildren<SurfaceTopMeshAuthoring>();
+			var topMesh = GetComponentInChildren<SurfaceTopMeshComponent>();
 			data.IsTopBottomVisible = topMesh && topMesh.gameObject.activeInHierarchy;
-			var sideMesh = GetComponentInChildren<SurfaceSideMeshAuthoring>();
+			var sideMesh = GetComponentInChildren<SurfaceSideMeshComponent>();
 			data.IsSideVisible = sideMesh && sideMesh.gameObject.activeInHierarchy;
 
 			// collider data
-			var collComponent = GetComponentInChildren<SurfaceColliderAuthoring>();
+			var collComponent = GetComponentInChildren<SurfaceColliderComponent>();
 			if (collComponent) {
 				data.IsCollidable = collComponent.enabled;
 

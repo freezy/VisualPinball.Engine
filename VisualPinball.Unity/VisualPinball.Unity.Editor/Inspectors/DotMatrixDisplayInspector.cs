@@ -24,22 +24,22 @@ using UnityEngine;
 
 namespace VisualPinball.Unity.Editor
 {
-	[CustomEditor(typeof(DotMatrixDisplayAuthoring)), CanEditMultipleObjects]
+	[CustomEditor(typeof(DotMatrixDisplayComponent)), CanEditMultipleObjects]
 	public class DotMatrixDisplayInspector : DisplayInspector
 	{
-		[NonSerialized] private DotMatrixDisplayAuthoring _mb;
-		[NonSerialized] private DotMatrixDisplayAuthoring[] _mbs;
+		[NonSerialized] private DotMatrixDisplayComponent _mb;
+		[NonSerialized] private DotMatrixDisplayComponent[] _mbs;
 
 		private new void OnEnable()
 		{
-			_mb = target as DotMatrixDisplayAuthoring;
+			_mb = target as DotMatrixDisplayComponent;
 			base.OnEnable();
 		}
 
 		public override void OnInspectorGUI()
 		{
 			_mb.Id = EditorGUILayout.TextField("Id", _mb.Id);
-			_mbs = targets.Select(t => t as DotMatrixDisplayAuthoring).ToArray();
+			_mbs = targets.Select(t => t as DotMatrixDisplayComponent).ToArray();
 
 			base.OnInspectorGUI();
 
@@ -85,7 +85,7 @@ namespace VisualPinball.Unity.Editor
 				go.transform.localScale = new Vector3(GameObjectScale, GameObjectScale, GameObjectScale);
 			}
 
-			var dmd = go.AddComponent<DotMatrixDisplayAuthoring>();
+			var dmd = go.AddComponent<DotMatrixDisplayComponent>();
 			dmd.UpdateDimensions(128, 32);
 
 		}

@@ -21,8 +21,8 @@ using VisualPinball.Engine.VPT.Flipper;
 
 namespace VisualPinball.Unity.Editor
 {
-	[CustomEditor(typeof(FlipperColliderAuthoring)), CanEditMultipleObjects]
-	public class FlipperColliderInspector : ItemColliderInspector<FlipperData, FlipperAuthoring, FlipperColliderAuthoring>
+	[CustomEditor(typeof(FlipperColliderComponent)), CanEditMultipleObjects]
+	public class FlipperColliderInspector : ItemColliderInspector<FlipperData, FlipperComponent, FlipperColliderComponent>
 	{
 		private bool _foldoutMaterial = true;
 
@@ -42,17 +42,17 @@ namespace VisualPinball.Unity.Editor
 		{
 			base.OnEnable();
 
-			_massProperty = serializedObject.FindProperty(nameof(FlipperColliderAuthoring.Mass));
-			_strengthProperty = serializedObject.FindProperty(nameof(FlipperColliderAuthoring.Strength));
-			_returnProperty = serializedObject.FindProperty(nameof(FlipperColliderAuthoring.Return));
-			_rampUpProperty = serializedObject.FindProperty(nameof(FlipperColliderAuthoring.RampUp));
-			_torqueDampingProperty = serializedObject.FindProperty(nameof(FlipperColliderAuthoring.TorqueDamping));
-			_torqueDampingAngleProperty = serializedObject.FindProperty(nameof(FlipperColliderAuthoring.TorqueDampingAngle));
-			_elasticityProperty = serializedObject.FindProperty(nameof(FlipperColliderAuthoring.Elasticity));
-			_elasticityFalloffProperty = serializedObject.FindProperty(nameof(FlipperColliderAuthoring.ElasticityFalloff));
-			_frictionProperty = serializedObject.FindProperty(nameof(FlipperColliderAuthoring.Friction));
-			_scatterProperty = serializedObject.FindProperty(nameof(FlipperColliderAuthoring.Scatter));
-			_flipperCorrectionProperty = serializedObject.FindProperty(nameof(FlipperColliderAuthoring.FlipperCorrection));
+			_massProperty = serializedObject.FindProperty(nameof(FlipperColliderComponent.Mass));
+			_strengthProperty = serializedObject.FindProperty(nameof(FlipperColliderComponent.Strength));
+			_returnProperty = serializedObject.FindProperty(nameof(FlipperColliderComponent.Return));
+			_rampUpProperty = serializedObject.FindProperty(nameof(FlipperColliderComponent.RampUp));
+			_torqueDampingProperty = serializedObject.FindProperty(nameof(FlipperColliderComponent.TorqueDamping));
+			_torqueDampingAngleProperty = serializedObject.FindProperty(nameof(FlipperColliderComponent.TorqueDampingAngle));
+			_elasticityProperty = serializedObject.FindProperty(nameof(FlipperColliderComponent.Elasticity));
+			_elasticityFalloffProperty = serializedObject.FindProperty(nameof(FlipperColliderComponent.ElasticityFalloff));
+			_frictionProperty = serializedObject.FindProperty(nameof(FlipperColliderComponent.Friction));
+			_scatterProperty = serializedObject.FindProperty(nameof(FlipperColliderComponent.Scatter));
+			_flipperCorrectionProperty = serializedObject.FindProperty(nameof(FlipperColliderComponent.FlipperCorrection));
 		}
 
 		public override void OnInspectorGUI()
