@@ -240,12 +240,6 @@ namespace VisualPinball.Unity
 						}
 					}
 
-					// todo fix without item
-					// if (mesh == null && Item is IRenderable renderableItem) {
-					// 	var ro = renderableItem.GetRenderObject(Table, FlipperMeshGenerator.Rubber, Origin.Original);
-					// 	mesh = ro.Mesh.ToUnityMesh();
-					// }
-
 					var t = gameObject.transform;
 					Gizmos.DrawWireMesh(mesh, t.position, t.rotation, t.lossyScale);
 					break;
