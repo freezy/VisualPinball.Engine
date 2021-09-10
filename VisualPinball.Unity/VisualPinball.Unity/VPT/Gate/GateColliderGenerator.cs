@@ -49,7 +49,9 @@ namespace VisualPinball.Unity
 
 			GenerateGateCollider(colliders, height, radAngle);
 			GenerateLineCollider(colliders, height, tangent);
-			GenerateBracketColliders(colliders, height, tangent);
+			if (_data.ShowBracket) {
+				GenerateBracketColliders(colliders, height, tangent);
+			}
 		}
 
 		private void GenerateGateCollider(ICollection<ICollider> colliders, float height, float radAngle)
@@ -90,15 +92,11 @@ namespace VisualPinball.Unity
 
 		private void GenerateBracketColliders(ICollection<ICollider> colliders, float height, float2 tangent)
 		{
-			if (!_data.ShowBracket) {
-				return;
-			}
-
 			var center = new float2(_data.PosX, _data.PosY);
 			var halfLength = _data.Length * 0.5f;
 			colliders.Add(new CircleCollider(
 				center + tangent * halfLength,
-				0.01f,
+				1f,
 				height,
 				height + _data.Height,
 				_api.GetColliderInfo(ItemType.Invalid) // hack to not treat this hit circle as gate
@@ -106,10 +104,10 @@ namespace VisualPinball.Unity
 
 			colliders.Add(new CircleCollider(
 				center - tangent * halfLength,
-				0.01f,
+				1f,
 				height,
 				height + _data.Height,
-				_api.GetColliderInfo( ItemType.Invalid) // hack to not treat this hit circle as gate
+				_api.GetColliderInfo(ItemType.Invalid) // hack to not treat this hit circle as gate
 			));
 		}
 	}
