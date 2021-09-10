@@ -81,7 +81,7 @@ namespace VisualPinball.Unity.Editor
 			bool rebuildMesh = false, bool updateTransforms = false, bool updateVisibility = false, bool updateColliders = false,
 			Action onChanged = null, Action onChanging = null)
 		{
-			var checkForChanges = rebuildMesh || updateTransforms || onChanged != null;
+			var checkForChanges = rebuildMesh || updateTransforms || updateColliders || onChanged != null;
 			if (checkForChanges) {
 				EditorGUI.BeginChangeCheck();
 			}
@@ -116,6 +116,12 @@ namespace VisualPinball.Unity.Editor
 						}
 						if (updateVisibility) {
 							mainItem.UpdateVisibility();
+						}
+						break;
+
+					case IItemColliderAuthoring colliderComponent:
+						if (updateColliders) {
+							colliderComponent.CollidersDirty = true;
 						}
 						break;
 				}
