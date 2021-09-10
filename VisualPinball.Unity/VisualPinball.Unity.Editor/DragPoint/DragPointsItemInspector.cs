@@ -35,7 +35,7 @@ namespace VisualPinball.Unity.Editor
 		/// </summary>
 		public DragPointsHandler DragPointsHandler { get; private set; }
 
-		private bool EditingEnabled => Selection.count == 1 && target is MonoBehaviour mb && Selection.activeGameObject == mb.gameObject;
+		private bool EditingEnabled => _dragPointsComponent.DragPointsActive && Selection.count == 1 && target is MonoBehaviour mb && Selection.activeGameObject == mb.gameObject;
 
 		/// <summary>
 		/// If true, a list of the drag points is displayed in the inspector.
@@ -207,6 +207,7 @@ namespace VisualPinball.Unity.Editor
 
 			if (editable.IsLocked) {
 				EditorGUILayout.LabelField("Drag Points are Locked");
+
 			} else {
 				_foldoutControlPoints = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutControlPoints, "Drag Points");
 				if (_foldoutControlPoints) {
