@@ -45,14 +45,9 @@ namespace VisualPinball.Engine.VPT.Flipper
 
 		Matrix3D IRenderable.TransformationMatrix(Table.Table table, Origin origin) => _meshGenerator.GetPostMatrix(table, origin);
 
-		public RenderObject GetRenderObject(Table.Table table, string id = null, Origin origin = Origin.Global, bool asRightHanded = true)
-		{
-			return _meshGenerator.GetRenderObject(table, id, origin, asRightHanded);
-		}
-
 		public RenderObjectGroup GetRenderObjects(Table.Table table, Origin origin = Origin.Global, bool asRightHanded = true)
 		{
-			return _meshGenerator.GetRenderObjects(table, origin, asRightHanded);
+			return _meshGenerator.GetRenderObjects(Data, table, origin, asRightHanded);
 		}
 
 		#endregion

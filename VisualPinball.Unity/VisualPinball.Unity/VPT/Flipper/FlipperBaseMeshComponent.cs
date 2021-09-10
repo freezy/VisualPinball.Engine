@@ -34,11 +34,12 @@ namespace VisualPinball.Unity
 
 		protected override RenderObject GetRenderObject(FlipperData data, Table table)
 		{
-			return new FlipperMeshGenerator(data).GetRenderObject(table, FlipperMeshGenerator.Base, Origin.Original, false);
+			return new FlipperMeshGenerator(data).GetRenderObject(data, FlipperMeshGenerator.Base, table, Origin.Original, false);
 		}
-		protected override Mesh GetMesh(FlipperData data)
+
+		protected override Mesh GetMesh(FlipperData _)
 		{
-			return new FlipperMeshGenerator(data).GetMesh(FlipperMeshGenerator.Base, 0);
+			return new FlipperMeshGenerator(MainComponent).GetMesh(FlipperMeshGenerator.Base, 0);
 		}
 	}
 }

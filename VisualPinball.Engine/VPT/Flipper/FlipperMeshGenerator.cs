@@ -30,18 +30,18 @@ namespace VisualPinball.Engine.VPT.Flipper
 		public const string Base = "Base";
 		public const string Rubber = "Rubber";
 
-		private readonly FlipperData _data;
+		private readonly IFlipperData _data;
 
-		protected override Vertex3D Position => new Vertex3D(_data.Center.X, _data.Center.Y, 0);
+		protected override Vertex3D Position => new Vertex3D(_data.PosX, _data.PosY, 0);
 		protected override Vertex3D Scale => Vertex3D.One;
 		protected override float RotationZ => MathF.DegToRad(_data.StartAngle);
 
-		public FlipperMeshGenerator(FlipperData data)
+		public FlipperMeshGenerator(IFlipperData data)
 		{
 			_data = data;
 		}
 
-		public RenderObject? GetRenderObject(Table.Table table, string id, Origin origin, bool asRightHanded)
+		public RenderObject? GetRenderObject(FlipperData flipperData, string id, Table.Table table, Origin origin, bool asRightHanded)
 		{
 			var height = 0; //table.GetSurfaceHeight(_data.Surface, _data.Center.X, _data.Center.Y);
 			var meshes = GenerateMeshes(height);
@@ -51,16 +51,16 @@ namespace VisualPinball.Engine.VPT.Flipper
 					return new RenderObject(
 						id,
 						meshes[Base].Transform(preVertexMatrix, preNormalsMatrix),
-						new PbrMaterial(table.GetMaterial(_data.Material), table.GetTexture(_data.Image)),
-						_data.IsVisible
+						new PbrMaterial(table.GetMaterial(flipperData.Material), table.GetTexture(flipperData.Image)),
+						flipperData.IsVisible
 					);
 				case Rubber:
 					if (meshes.ContainsKey(Rubber)) {
 						return new RenderObject(
 							id,
 							meshes[Rubber].Transform(preVertexMatrix, preNormalsMatrix),
-							new PbrMaterial(table.GetMaterial(_data.RubberMaterial)),
-							_data.IsVisible
+							new PbrMaterial(table.GetMaterial(flipperData.RubberMaterial)),
+							flipperData.IsVisible
 						);
 					}
 					break;
@@ -68,9 +68,9 @@ namespace VisualPinball.Engine.VPT.Flipper
 			return null;
 		}
 
-		public Mesh GetMesh(string id, float height)
+		public Mesh GetMesh(string id, float height, float margin = 0)
 		{
-			var meshes = GenerateMeshes(height);
+			var meshes = GenerateMeshes(height, margin);
 			var (preVertexMatrix, preNormalsMatrix) = GetPreMatrix(height, Origin.Original, false);
 			switch (id) {
 				case Base:
@@ -86,9 +86,9 @@ namespace VisualPinball.Engine.VPT.Flipper
 			return null;
 		}
 
-		public RenderObjectGroup GetRenderObjects(Table.Table table, Origin origin, bool asRightHanded = true)
+		public RenderObjectGroup GetRenderObjects(FlipperData flipperData, Table.Table table, Origin origin, bool asRightHanded = true)
 		{
-			var height = table.GetSurfaceHeight(_data.Surface, _data.Center.X, _data.Center.Y);
+			var height = table.GetSurfaceHeight(flipperData.Surface, _data.PosX, _data.PosY);
 			var meshes = GenerateMeshes(height);
 			var (preVertexMatrix, preNormalsMatrix) = GetPreMatrix(0f, origin, asRightHanded);
 			var postMatrix = GetPostMatrix(table, origin);
@@ -96,8 +96,8 @@ namespace VisualPinball.Engine.VPT.Flipper
 				new RenderObject(
 					Base,
 					meshes[Base].Transform(preVertexMatrix, preNormalsMatrix),
-					new PbrMaterial(table.GetMaterial(_data.Material), table.GetTexture(_data.Image)),
-					_data.IsVisible
+					new PbrMaterial(table.GetMaterial(flipperData.Material), table.GetTexture(flipperData.Image)),
+					flipperData.IsVisible
 				)
 			};
 
@@ -105,12 +105,12 @@ namespace VisualPinball.Engine.VPT.Flipper
 				renderObjects.Add(new RenderObject(
 					Rubber,
 					meshes[Rubber].Transform(preVertexMatrix, preNormalsMatrix),
-					new PbrMaterial(table.GetMaterial(_data.RubberMaterial)),
-					_data.IsVisible
+					new PbrMaterial(table.GetMaterial(flipperData.RubberMaterial)),
+					flipperData.IsVisible
 				));
 			}
 
-			return new RenderObjectGroup(_data.Name, "Flippers", postMatrix, renderObjects.ToArray());
+			return new RenderObjectGroup(flipperData.Name, "Flippers", postMatrix, renderObjects.ToArray());
 		}
 
 		protected override float BaseHeight(Table.Table? table)
@@ -118,14 +118,14 @@ namespace VisualPinball.Engine.VPT.Flipper
 			return 0f; // already in vertices
 		}
 
-		private Dictionary<string, Mesh> GenerateMeshes(float height)
+		private Dictionary<string, Mesh> GenerateMeshes(float height, float margin = 0f)
 		{
 			var meshes = new Dictionary<string, Mesh>();
 			var fullMatrix = new Matrix3D();
 			fullMatrix.RotateZMatrix(MathF.DegToRad(180.0f));
 
-			var baseRadius = _data.BaseRadius - _data.RubberThickness;
-			var endRadius = _data.EndRadius - _data.RubberThickness;
+			var baseRadius = _data.BaseRadius - _data.RubberThickness + margin;
+			var endRadius = _data.EndRadius - _data.RubberThickness + margin;
 
 			// calc angle needed to fix P0 location
 			var sinAngle = (baseRadius - endRadius) / _data.FlipperRadius;
@@ -200,31 +200,31 @@ namespace VisualPinball.Engine.VPT.Flipper
 						var v = rubberMesh.Vertices[i];
 						if (v.X == VertsBaseBottom[t].X && v.Y == VertsBaseBottom[t].Y && v.Z == VertsBaseBottom[t].Z) {
 							ApplyFix(ref rubberMesh.Vertices[i], new Vertex2D(VertsBaseBottom[6].X, VertsBaseBottom[0].Y),
-								(float) (-System.Math.PI * 0.5), baseRadius + _data.RubberThickness,
+								(float) (-System.Math.PI * 0.5), baseRadius + _data.RubberThickness + margin,
 								new Vertex2D(0, 0));
 						}
 
 						if (v.X == VertsTipBottom[t].X && v.Y == VertsTipBottom[t].Y && v.Z == VertsTipBottom[t].Z) {
 							ApplyFix(ref rubberMesh.Vertices[i], new Vertex2D(VertsTipBottom[6].X, VertsTipBottom[0].Y),
-								(float) (System.Math.PI * 0.5), endRadius + _data.RubberThickness,
+								(float) (System.Math.PI * 0.5), endRadius + _data.RubberThickness + margin,
 								new Vertex2D(0, _data.FlipperRadius));
 						}
 
 						if (v.X == VertsBaseTop[t].X && v.Y == VertsBaseTop[t].Y && v.Z == VertsBaseTop[t].Z) {
 							ApplyFix(ref rubberMesh.Vertices[i], new Vertex2D(VertsBaseBottom[6].X, VertsBaseBottom[0].Y),
-								(float) (-System.Math.PI * 0.5), baseRadius + _data.RubberThickness,
+								(float) (-System.Math.PI * 0.5), baseRadius + _data.RubberThickness + margin,
 								new Vertex2D(0, 0));
 						}
 
 						if (v.X == VertsTipTop[t].X && v.Y == VertsTipTop[t].Y && v.Z == VertsTipTop[t].Z) {
 							ApplyFix(ref rubberMesh.Vertices[i], new Vertex2D(VertsTipBottom[6].X, VertsTipBottom[0].Y),
-								(float) (System.Math.PI * 0.5), endRadius + _data.RubberThickness,
+								(float) (System.Math.PI * 0.5), endRadius + _data.RubberThickness + margin,
 								new Vertex2D(0, _data.FlipperRadius));
 						}
 					}
 				}
 
-				rubberMesh.Transform(fullMatrix, null, z => z * _data.RubberWidth + (height + _data.RubberHeight));
+				rubberMesh.Transform(fullMatrix, null, z => z * _data.RubberWidth + (height + _data.RubberHeight + margin * 10f));
 				meshes[Rubber] = rubberMesh;
 			}
 
