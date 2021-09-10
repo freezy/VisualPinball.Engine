@@ -82,6 +82,8 @@ namespace VisualPinball.Unity
 		protected override Type MeshAuthoringType { get; } = typeof(ItemMeshComponent<RubberData, RubberComponent>);
 		protected override Type ColliderAuthoringType { get; } = typeof(ItemColliderComponent<RubberData, RubberComponent>);
 
+		public bool DragPointsActive => true;
+
 		#endregion
 
 		#region Transformation

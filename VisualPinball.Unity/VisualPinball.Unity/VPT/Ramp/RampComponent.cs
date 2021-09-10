@@ -121,6 +121,8 @@ namespace VisualPinball.Unity
 
 		public override void OnPlayfieldHeightUpdated() => RebuildMeshes();
 
+		public bool DragPointsActive => true;
+
 		#endregion
 
 		#region Transformation

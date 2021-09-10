@@ -47,6 +47,7 @@ namespace VisualPinball.Unity
 
 	public interface IDragPointsComponent
 	{
+		bool DragPointsActive { get; }
 		DragPointData[] DragPoints { get; set; }
 	}
 

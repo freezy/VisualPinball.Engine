@@ -74,6 +74,13 @@ namespace VisualPinball.Unity
 		protected override Type MeshAuthoringType { get; } = typeof(ItemMeshComponent<TriggerData, TriggerComponent>);
 		protected override Type ColliderAuthoringType { get; } = typeof(ItemColliderComponent<TriggerData, TriggerComponent>);
 
+		public bool DragPointsActive {
+			get {
+				var meshComp = GetComponent<TriggerMeshComponent>();
+				return !meshComp || !meshComp.IsCircle;
+			}
+		}
+
 		public const string SwitchItem = "trigger_switch";
 
 		#endregion
