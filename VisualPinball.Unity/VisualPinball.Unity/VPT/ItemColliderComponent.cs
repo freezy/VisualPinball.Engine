@@ -84,11 +84,15 @@ namespace VisualPinball.Unity
 				};
 		}
 
-		private void OnDrawGizmosSelected()
+		private void OnDrawGizmos()
 		{
 			Profiler.BeginSample("ItemColliderAuthoring.OnDrawGizmosSelected");
 
-			if (!ShowGizmos || !ShowAabbs && !ShowColliderMesh) {
+			var playfieldColliderComponent = GetComponentInParent<PlayfieldColliderComponent>();
+			var overrideColliderMesh = playfieldColliderComponent && playfieldColliderComponent.ShowAllColliderMeshes;
+			var showColliders = ShowColliderMesh || overrideColliderMesh;
+
+			if (!(ShowGizmos || overrideColliderMesh) || !ShowAabbs && !showColliders) {
 				Profiler.EndSample();
 				return;
 			}
@@ -104,7 +108,7 @@ namespace VisualPinball.Unity
 
 			var ltw = GetComponentInParent<PlayfieldComponent>().transform.localToWorldMatrix;
 
-			if (ShowColliderMesh) {
+			if (showColliders) {
 				DrawColliderMesh(ltw);
 			}
 
