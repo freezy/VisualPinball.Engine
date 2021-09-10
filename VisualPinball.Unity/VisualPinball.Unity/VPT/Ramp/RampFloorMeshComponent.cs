@@ -36,10 +36,10 @@ namespace VisualPinball.Unity
 		{
 			return new RampMeshGenerator(data).GetRenderObject(table, data, RampMeshGenerator.Floor, MainComponent.PlayfieldHeight, false);
 		}
-		protected override Mesh GetMesh(RampData data)
+		protected override Mesh GetMesh(RampData _)
 		{
 			var playfieldComponent = GetComponentInParent<PlayfieldComponent>();
-			return new RampMeshGenerator(data).GetMesh(playfieldComponent.Width, playfieldComponent.Height, playfieldComponent.PlayfieldHeight, RampMeshGenerator.Floor);
+			return new RampMeshGenerator(MainComponent).GetMesh(playfieldComponent.Width, playfieldComponent.Height, playfieldComponent.PlayfieldHeight, RampMeshGenerator.Floor);
 		}
 	}
 }
