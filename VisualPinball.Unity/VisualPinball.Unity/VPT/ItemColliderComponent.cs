@@ -155,7 +155,7 @@ namespace VisualPinball.Unity
 					}
 
 					case CircleCollider circleCol: {
-						// todo
+						AddCollider(circleCol, vertices, normals, indices);
 						break;
 					}
 
@@ -194,12 +194,70 @@ namespace VisualPinball.Unity
 			mesh.normals = normals.ToArray();
 
 			Gizmos.DrawMesh(mesh);
+			color = Color.gray;
+			color.a = 0.1f;
+			Gizmos.color = color;
+			Gizmos.DrawWireMesh(mesh);
+		}
+
+		private static void AddCollider(CircleCollider circleCol, IList<Vector3> vertices, IList<Vector3> normals, ICollection<int> indices)
+		{
+			var startIdx = vertices.Count;
+			const int m_Sides = 32;
+			var aabb = circleCol.Bounds.Aabb;
+			const float angleStep = 360.0f / m_Sides;
+			var rotation = Quaternion.Euler(0.0f, 0.0f, angleStep);
+			const int max = m_Sides - 1;
+			var pos = new Vector3(circleCol.Center.x, circleCol.Center.y, 0);
+
+			// Make first side.
+			vertices.Add(rotation * new Vector3(circleCol.Radius, 0f, aabb.ZHigh) + pos); // tr
+			vertices.Add(rotation * new Vector3(circleCol.Radius, 0f, aabb.ZLow) + pos);  // bl
+			vertices.Add(rotation * (vertices[vertices.Count - 1] - pos) + pos);          // br
+			vertices.Add(rotation * (vertices[vertices.Count - 3] - pos) + pos);          // tl
+
+			// Add triangle indices.
+			indices.Add(startIdx + 0);
+			indices.Add(startIdx + 1);
+			indices.Add(startIdx + 2);
+			indices.Add(startIdx + 0);
+			indices.Add(startIdx + 2);
+			indices.Add(startIdx + 3);
+
+			// Making the first two normals:
+			normals.Add(vertices[startIdx].normalized); // Points "out" of the cylinder.
+			normals.Add(normals[startIdx]);
+			normals.Add(normals[startIdx]);
+			normals.Add(normals[startIdx]);
+
+			// The remaining sides.
+			for (var i = 0; i < max; i++) {
+
+				// First vertex.
+				vertices.Add(rotation * (vertices[vertices.Count - 2] - pos) + pos);
+
+				indices.Add(startIdx + vertices.Count - 1); // new vertex
+				indices.Add(startIdx + vertices.Count - 2); // shared
+				indices.Add(startIdx + vertices.Count - 3); // shared
+
+				// Normal: rotate normal from the previous column.
+				normals.Add(rotation * (normals[startIdx + normals.Count - 1] - pos) + pos);
+
+				// Second vertex.
+				vertices.Add(rotation * (vertices[vertices.Count - 2] - pos) + pos);
+
+				indices.Add(startIdx + vertices.Count - 3); // shared
+				indices.Add(startIdx + vertices.Count - 2); // shared
+				indices.Add(startIdx + vertices.Count - 1); // new vertex
+
+				// Normal: copy previous normal.
+				normals.Add(normals[startIdx + normals.Count - 1]);
+			}
 		}
 
 		private static void DrawLine(Vector3 p1, Vector3 p2)
 		{
 			const int thickness = 10;
-			//Handles.DrawBezier(p1, p2, p1, p2, color,null, thickness);
 			Handles.DrawAAPolyLine(thickness, p1, p2);
 		}
 
@@ -282,8 +340,14 @@ namespace VisualPinball.Unity
 			if (meshComponent == null) {
 				return;
 			}
+			var t = transform;
+			var ltp = Matrix4x4.TRS(t.localPosition, t.localRotation, t.localScale);
 			var i = vertices.Count;
 			var mesh = meshComponent.sharedMesh;
+			for (var j = 0; j < mesh.vertices.Length; j++) {
+				vertices.Add(ltp.MultiplyPoint(mesh.vertices[j]));
+				normals.Add(ltp.MultiplyPoint(mesh.normals[j]));
+			}
 			vertices.AddRange(mesh.vertices);
 			normals.AddRange(mesh.normals);
 			indices.AddRange(mesh.triangles.Select(n => i + n));
