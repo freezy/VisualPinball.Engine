@@ -45,6 +45,8 @@ namespace VisualPinball.Unity
 
 		#endregion
 
+		[NonSerialized] public bool ShowAllColliderMeshes = false;
+
 		public static readonly Type[] ValidParentTypes = Type.EmptyTypes;
 
 		public override IEnumerable<Type> ValidParents => ValidParentTypes;

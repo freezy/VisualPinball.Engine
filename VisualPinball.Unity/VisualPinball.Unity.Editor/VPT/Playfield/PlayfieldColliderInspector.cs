@@ -65,6 +65,8 @@ namespace VisualPinball.Unity.Editor
 
 			base.OnInspectorGUI();
 
+			ColliderComponent.ShowAllColliderMeshes = EditorGUILayout.Toggle("Show All Colliders", ColliderComponent.ShowAllColliderMeshes);
+
 			serializedObject.ApplyModifiedProperties();
 		}
 	}
