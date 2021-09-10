@@ -24,5 +24,7 @@ namespace VisualPinball.Unity
 		IItemMainComponent MainAuthoring { get; }
 
 		IEnumerable<Type> ValidParents { get; }
+
+		public bool CollidersDirty { set; }
 	}
 }

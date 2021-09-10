@@ -97,6 +97,8 @@ namespace VisualPinball.Unity
 
 		public override void UpdateTransforms()
 		{
+			base.UpdateTransforms();
+
 			// position
 			transform.localPosition = Surface != null
 				? new Vector3(Position.x, Position.y, Surface.Height(Position) + Position.z)
