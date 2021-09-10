@@ -203,8 +203,8 @@ namespace VisualPinball.Unity
 			mesh.normals = normals.ToArray();
 
 			Gizmos.DrawMesh(mesh);
-			color = Color.gray;
-			color.a = 0.1f;
+			color = Color.white;
+			color.a = 0.01f;
 			Gizmos.color = color;
 			Gizmos.DrawWireMesh(mesh);
 		}
@@ -234,7 +234,7 @@ namespace VisualPinball.Unity
 			indices.Add(startIdx + 3);
 
 			// Making the first two normals:
-			normals.Add(vertices[startIdx].normalized); // Points "out" of the cylinder.
+			normals.Add((vertices[startIdx] - pos).normalized); // Points "out" of the cylinder.
 			normals.Add(normals[startIdx]);
 			normals.Add(normals[startIdx]);
 			normals.Add(normals[startIdx]);
@@ -250,7 +250,7 @@ namespace VisualPinball.Unity
 				indices.Add(vertices.Count - 3); // shared
 
 				// Normal: rotate normal from the previous column.
-				normals.Add(rotation * (normals[normals.Count - 1] - pos) + pos);
+				normals.Add(rotation * normals[normals.Count - 1]);
 
 				// Second vertex.
 				vertices.Add(rotation * (vertices[vertices.Count - 2] - pos) + pos);
