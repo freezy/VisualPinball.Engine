@@ -24,10 +24,7 @@ using Unity.Mathematics;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.Profiling;
-using VisualPinball.Engine.Math;
 using VisualPinball.Engine.VPT;
-using Color = UnityEngine.Color;
-using MathF = VisualPinball.Engine.Math.MathF;
 using Mesh = UnityEngine.Mesh;
 
 namespace VisualPinball.Unity
@@ -89,6 +86,7 @@ namespace VisualPinball.Unity
 		private void OnDrawGizmosSelected()
 		{
 			Profiler.BeginSample("ItemColliderAuthoring.OnDrawGizmosSelected");
+
 			if (!ShowGizmos || !ShowAabbs && !ShowColliderMesh) {
 				Profiler.EndSample();
 				return;
@@ -105,19 +103,17 @@ namespace VisualPinball.Unity
 
 			var ltw = GetComponentInParent<PlayfieldComponent>().transform.localToWorldMatrix;
 
-			DrawColliderMesh(ltw);
-			return;
+			if (ShowColliderMesh) {
+				DrawColliderMesh(ltw);
+			}
 
-			// draw aabbs and colliders
-			for (var i = 0; i < Colliders.Count; i++) {
-				var col = Colliders[i];
-				if (ShowAabbs) {
+			if (ShowAabbs) {
+				for (var i = 0; i < Colliders.Count; i++) {
+					var col = Colliders[i];
 					DrawAabb(ltw, col.Bounds.Aabb, i == SelectedCollider);
 				}
-				if (ShowColliderMesh) {
-					DrawCollider(ltw, col, i == SelectedCollider);
-				}
 			}
+
 			Profiler.EndSample();
 		}
 
@@ -125,7 +121,6 @@ namespace VisualPinball.Unity
 
 		private void DrawColliderMesh(Matrix4x4 ltw)
 		{
-			var mesh = new Mesh { name = $"{name} (debug collider)" };
 			var color = Color.green;
 			Handles.color = color;
 			color.a = 0.3f;
@@ -137,8 +132,35 @@ namespace VisualPinball.Unity
 			var indices = new List<int>();
 			foreach (var col in Colliders) {
 				switch (col) {
+
+					case CircleCollider circleCol: {
+						AddCollider(circleCol, vertices, normals, indices);
+						break;
+					}
+
+					case FlipperCollider _: {
+						AddFlipperCollider(vertices, normals, indices);
+						break;
+					}
+
+					case GateCollider gateCol: {
+						AddCollider(gateCol.LineSeg0, vertices, normals, indices);
+						AddCollider(gateCol.LineSeg1, vertices, normals, indices);
+						break;
+					}
+
+					case Line3DCollider line3DCol: {
+						// todo
+						break;
+					}
+
 					case LineCollider lineCol: {
 						AddCollider(lineCol, vertices, normals, indices);
+						break;
+					}
+
+					case LineSlingshotCollider lineSlingshotCol: {
+						AddCollider(lineSlingshotCol, vertices, normals, indices);
 						break;
 					}
 
@@ -149,24 +171,15 @@ namespace VisualPinball.Unity
 						break;
 					}
 
-					case Line3DCollider line3DCol: {
-						// todo
+					case PlungerCollider plungerCol: {
+						AddCollider(plungerCol.LineSegBase, vertices, normals, indices);
+						AddCollider(plungerCol.JointBase0, vertices, normals, indices);
+						AddCollider(plungerCol.JointBase1, vertices, normals, indices);
 						break;
 					}
 
-					case CircleCollider circleCol: {
-						AddCollider(circleCol, vertices, normals, indices);
-						break;
-					}
-
-					case TriangleCollider triangleCol: {
-						AddCollider(triangleCol, vertices, normals, indices);
-						break;
-					}
-
-					case GateCollider gateCol: {
-						AddCollider(gateCol.LineSeg0, vertices, normals, indices);
-						AddCollider(gateCol.LineSeg1, vertices, normals, indices);
+					case PointCollider pointCol: {
+						// ignoring points for now
 						break;
 					}
 
@@ -176,19 +189,14 @@ namespace VisualPinball.Unity
 						break;
 					}
 
-					case FlipperCollider _: {
-						AddFlipperCollider(vertices, normals, indices);
-						break;
-					}
-
-					case PlungerCollider plungerCol: {
-						AddCollider(plungerCol.LineSegBase, vertices, normals, indices);
-						AddCollider(plungerCol.JointBase0, vertices, normals, indices);
-						AddCollider(plungerCol.JointBase1, vertices, normals, indices);
+					case TriangleCollider triangleCol: {
+						AddCollider(triangleCol, vertices, normals, indices);
 						break;
 					}
 				}
 			}
+
+			var mesh = new Mesh { name = $"{name} (debug collider)" };
 			mesh.vertices = vertices.ToArray();
 			mesh.triangles = indices.ToArray();
 			mesh.normals = normals.ToArray();
@@ -211,10 +219,10 @@ namespace VisualPinball.Unity
 			var pos = new Vector3(circleCol.Center.x, circleCol.Center.y, 0);
 
 			// Make first side.
-			vertices.Add(rotation * new Vector3(circleCol.Radius, 0f, aabb.ZHigh) + pos); // tr
-			vertices.Add(rotation * new Vector3(circleCol.Radius, 0f, aabb.ZLow) + pos);  // bl
-			vertices.Add(rotation * (vertices[vertices.Count - 1] - pos) + pos);          // br
-			vertices.Add(rotation * (vertices[vertices.Count - 3] - pos) + pos);          // tl
+			vertices.Add(rotation * new Vector3(circleCol.Radius, 0f, aabb.ZHigh) + pos);   // tr
+			vertices.Add(rotation * new Vector3(circleCol.Radius, 0f, aabb.ZLow) + pos);    // bl
+			vertices.Add(rotation * (vertices[vertices.Count - 1] - pos) + pos); // br
+			vertices.Add(rotation * (vertices[vertices.Count - 3] - pos) + pos); // tl
 
 			// Add triangle indices.
 			indices.Add(startIdx + 0);
@@ -236,22 +244,22 @@ namespace VisualPinball.Unity
 				// First vertex.
 				vertices.Add(rotation * (vertices[vertices.Count - 2] - pos) + pos);
 
-				indices.Add(startIdx + vertices.Count - 1); // new vertex
-				indices.Add(startIdx + vertices.Count - 2); // shared
-				indices.Add(startIdx + vertices.Count - 3); // shared
+				indices.Add(vertices.Count - 1); // new vertex
+				indices.Add(vertices.Count - 2); // shared
+				indices.Add(vertices.Count - 3); // shared
 
 				// Normal: rotate normal from the previous column.
-				normals.Add(rotation * (normals[startIdx + normals.Count - 1] - pos) + pos);
+				normals.Add(rotation * (normals[normals.Count - 1] - pos) + pos);
 
 				// Second vertex.
 				vertices.Add(rotation * (vertices[vertices.Count - 2] - pos) + pos);
 
-				indices.Add(startIdx + vertices.Count - 3); // shared
-				indices.Add(startIdx + vertices.Count - 2); // shared
-				indices.Add(startIdx + vertices.Count - 1); // new vertex
+				indices.Add(vertices.Count - 3); // shared
+				indices.Add(vertices.Count - 2); // shared
+				indices.Add(vertices.Count - 1); // new vertex
 
 				// Normal: copy previous normal.
-				normals.Add(normals[startIdx + normals.Count - 1]);
+				normals.Add(normals[normals.Count - 1]);
 			}
 		}
 
@@ -291,14 +299,31 @@ namespace VisualPinball.Unity
 
 		private static void AddCollider(LineCollider lineCol, ICollection<Vector3> vertices, ICollection<Vector3> normals, ICollection<int> indices)
 		{
-			var h = lineCol.ZHigh - lineCol.ZLow;
-			var i = vertices.Count;
-			vertices.Add(lineCol.V1.ToFloat3(lineCol.ZLow));
-			vertices.Add(lineCol.V1.ToFloat3(lineCol.ZLow + h));
-			vertices.Add(lineCol.V2.ToFloat3(lineCol.ZLow));
-			vertices.Add(lineCol.V2.ToFloat3(lineCol.ZLow + h));
+			AddCollider(
+				lineCol.V1, lineCol.V2, lineCol.Normal.ToFloat3(0),
+				lineCol.ZLow, lineCol.ZHigh,
+				vertices, normals, indices
+			);
+		}
 
-			var normal = lineCol.Normal.ToFloat3(0);
+		private static void AddCollider(LineSlingshotCollider lineCol, ICollection<Vector3> vertices, ICollection<Vector3> normals, ICollection<int> indices)
+		{
+			AddCollider(
+				lineCol.V1, lineCol.V2, lineCol.Normal.ToFloat3(0),
+				lineCol.ZLow, lineCol.ZHigh,
+				vertices, normals, indices
+			);
+		}
+
+		private static void AddCollider(float2 v1, float2 v2, float3 normal, float zLow, float zHigh, ICollection<Vector3> vertices, ICollection<Vector3> normals, ICollection<int> indices)
+		{
+			var h = zHigh - zLow;
+			var i = vertices.Count;
+			vertices.Add(v1.ToFloat3(zLow));
+			vertices.Add(v1.ToFloat3(zLow + h));
+			vertices.Add(v2.ToFloat3(zLow));
+			vertices.Add(v2.ToFloat3(zLow + h));
+
 			normals.Add(normal);
 			normals.Add(normal);
 			normals.Add(normal);
@@ -380,134 +405,6 @@ namespace VisualPinball.Unity
 			Gizmos.DrawLine(p01, p11);
 			Gizmos.DrawLine(p02, p12);
 			Gizmos.DrawLine(p03, p13);
-		}
-
-		private void DrawCollider(Matrix4x4 ltw, ICollider hitObject, bool isSelected)
-		{
-			Gizmos.color = isSelected ? ColliderColor.SelectedCollider : ColliderColor.Collider;
-			switch (hitObject) {
-
-				case PointCollider pointCol: {
-					Gizmos.DrawSphere(ltw.MultiplyPoint(pointCol.P), 0.001f);
-					break;
-				}
-
-				case LineCollider lineCol: {
-					const int num = 10;
-					var d = (lineCol.ZHigh - lineCol.ZLow) / num;
-					for (var i = 0; i < num; i++) {
-						Gizmos.DrawLine(
-							ltw.MultiplyPoint(lineCol.V1.ToFloat3(lineCol.ZLow + i * d)),
-							ltw.MultiplyPoint(lineCol.V2.ToFloat3(lineCol.ZLow + i * d))
-						);
-					}
-					// var normalFrom = ltw.MultiplyPoint(lineCol.V1.ToFloat3(lineCol.ZLow));
-					// var normal = ltw.MultiplyPoint(lineCol.Normal.ToFloat3(lineCol.ZLow));
-					// DrawArrow(normalFrom, -normal * 0.05f);
-					break;
-				}
-
-				// todo
-				// case Line3DCollider line3DCol: {
-				// 	Gizmos.DrawLine(
-				// 		ltw.MultiplyPoint(line3DCol.V1.ToUnityVector3()),
-				// 		ltw.MultiplyPoint(line3DCol.V2.ToUnityVector3())
-				// 	);
-				// 	break;
-				// }
-
-				case LineZCollider lineZCol: {
-					var aabb = lineZCol.Bounds.Aabb;
-					Gizmos.DrawLine(
-						ltw.MultiplyPoint(lineZCol.XY.ToFloat3(aabb.ZLow)),
-						ltw.MultiplyPoint(lineZCol.XY.ToFloat3(aabb.ZHigh))
-					);
-					break;
-				}
-
-				case TriangleCollider triangleCol: {
-					Gizmos.DrawLine(
-						ltw.MultiplyPoint(triangleCol.Rgv0),
-						ltw.MultiplyPoint(triangleCol.Rgv1)
-					);
-					Gizmos.DrawLine(
-						ltw.MultiplyPoint(triangleCol.Rgv1),
-						ltw.MultiplyPoint(triangleCol.Rgv2)
-					);
-					Gizmos.DrawLine(
-						ltw.MultiplyPoint(triangleCol.Rgv2),
-						ltw.MultiplyPoint(triangleCol.Rgv0)
-					);
-					break;
-				}
-
-				case CircleCollider circleCol: {
-					const int num = 20;
-					var aabb = circleCol.Bounds.Aabb;
-					var d = (aabb.ZHigh - aabb.ZLow) / num;
-					for (var i = 0; i < num; i++) {
-						GizmoDrawCircle(ltw, circleCol.Center.ToFloat3(aabb.ZLow + i * d), circleCol.Radius);
-					}
-					break;
-				}
-
-				case GateCollider gateCol: {
-					DrawCollider(ltw, gateCol.LineSeg0, isSelected);
-					DrawCollider(ltw, gateCol.LineSeg1, isSelected);
-					break;
-				}
-
-				case SpinnerCollider spinnerCol: {
-					DrawCollider(ltw, spinnerCol.LineSeg0, isSelected);
-					DrawCollider(ltw, spinnerCol.LineSeg1, isSelected);
-					break;
-				}
-
-				case FlipperCollider _: {
-
-					Mesh mesh = null;
-
-					// first see if we already have a mesh
-					var meshAuthoring = GetComponentInChildren<FlipperRubberMeshComponent>();
-					if (meshAuthoring != null) {
-						var meshComponent = meshAuthoring.gameObject.GetComponent<MeshFilter>();
-						if (meshComponent != null) {
-							mesh = meshComponent.sharedMesh;
-						}
-					}
-
-					var t = gameObject.transform;
-					Gizmos.DrawWireMesh(mesh, t.position, t.rotation, t.lossyScale);
-					break;
-				}
-
-				case PlungerCollider plungerCol: {
-					DrawCollider(ltw, plungerCol.LineSegBase, isSelected);
-					DrawCollider(ltw, plungerCol.JointBase0, isSelected);
-					DrawCollider(ltw, plungerCol.JointBase1, isSelected);
-					break;
-				}
-			}
-		}
-
-		private static void GizmoDrawCircle(Matrix4x4 ltw, Vector3 center, float radius)
-		{
-			var theta = 0f;
-			var x = radius * MathF.Cos(theta);
-			var y = radius * MathF.Sin(theta);
-			var pos = center + new Vector3(x, y, 0f);
-			var lastPos = pos;
-			for (theta = 0.1f; theta < MathF.PI * 2; theta += 0.1f){
-				x = radius * MathF.Cos(theta);
-				y = radius * MathF.Sin(theta);
-				var newPos = center + new Vector3(x, y, 0);
-				Gizmos.DrawLine(
-					ltw.MultiplyPoint(pos),
-					ltw.MultiplyPoint(newPos)
-				);
-				pos = newPos;
-			}
-			Gizmos.DrawLine(pos, lastPos);
 		}
 
 		#endregion
