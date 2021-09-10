@@ -28,31 +28,31 @@ namespace VisualPinball.Unity
 
 		private ColliderHeader _header;
 
-		private readonly float2 _v1;
-		private readonly float2 _v2;
-		private float2 _normal;
+		public readonly float2 V1;
+		public readonly float2 V2;
+		public float2 Normal;
 		private float _length;
-		private readonly float _zLow;
-		private readonly float _zHigh;
+		public readonly float ZLow;
+		public readonly float ZHigh;
 		private readonly float _force;
 
 		public ColliderBounds Bounds => new ColliderBounds(_header.Entity, _header.Id, new Aabb(
-			math.min(_v1.x, _v2.x),
-			math.max(_v1.x, _v2.x),
-			math.min(_v1.y, _v2.y),
-			math.max(_v1.y, _v2.y),
-			_zLow,
-			_zHigh
+			math.min(V1.x, V2.x),
+			math.max(V1.x, V2.x),
+			math.min(V1.y, V2.y),
+			math.max(V1.y, V2.y),
+			ZLow,
+			ZHigh
 		));
 
 		public LineSlingshotCollider(float force, float2 v1, float2 v2, float zLow, float zHigh, ColliderInfo info) : this()
 		{
 			_header.Init(info, ColliderType.LineSlingShot);
 			_force = force;
-			_v1 = v1;
-			_v2 = v2;
-			_zLow = zLow;
-			_zHigh = zHigh;
+			V1 = v1;
+			V2 = v2;
+			ZLow = zLow;
+			ZHigh = zHigh;
 			CalcNormal();
 		}
 
@@ -70,13 +70,13 @@ namespace VisualPinball.Unity
 
 		private void CalcNormal()
 		{
-			var vT = new float2(_v1.x - _v2.x, _v1.y - _v2.y);
+			var vT = new float2(V1.x - V2.x, V1.y - V2.y);
 			_length = math.length(vT);
 
 			// Set up line normal
 			var invLength = 1.0f / _length;
-			_normal.x = vT.y * invLength;
-			_normal.y = -vT.x * invLength;
+			Normal.x = vT.y * invLength;
+			Normal.y = -vT.x * invLength;
 		}
 
 		#region Narrowphase
@@ -109,7 +109,7 @@ namespace VisualPinball.Unity
 			if (!slingshotData.IsDisabled && threshold) { // enabled and if velocity greater than threshold level
 
 				// length of segment, Unit TAN points from V1 to V2
-				var len = (_v2.x - _v1.x) * hitNormal.y - (_v2.y - _v1.y) * hitNormal.x;
+				var len = (V2.x - V1.x) * hitNormal.y - (V2.y - V1.y) * hitNormal.x;
 
 				// project ball radius along norm
 				var hitPoint = new float2(ball.Position.x - hitNormal.x * ball.Radius, ball.Position.y - hitNormal.y * ball.Radius);
@@ -118,7 +118,7 @@ namespace VisualPinball.Unity
 				// Calculate this distance from the center of the slingshot to get force
 
 				// distance to hit from V1
-				var btd = (hitPoint.x - _v1.x) * hitNormal.y - (hitPoint.y - _v1.y) * hitNormal.x;
+				var btd = (hitPoint.x - V1.x) * hitNormal.y - (hitPoint.y - V1.y) * hitNormal.x;
 				var force = math.abs(len) > 1.0e-6f ? (btd + btd) / len - 1.0f : -1.0f; // -1..+1
 
 				//!! maximum value 0.5 ...I think this should have been 1.0...oh well
