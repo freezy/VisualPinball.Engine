@@ -52,9 +52,9 @@ namespace VisualPinball.Engine.VPT.Rubber
 			);
 		}
 
-		public Mesh GetTransformedMesh(float playfieldHeight, int detailLevel, int acc = -1, bool createHitShape = false)
+		public Mesh GetTransformedMesh(float playfieldHeight, int detailLevel, int acc = -1, bool createHitShape = false, float margin = 0f)
 		{
-			var mesh = GetMesh(playfieldHeight, detailLevel, acc, createHitShape);
+			var mesh = GetMesh(playfieldHeight, detailLevel, acc, createHitShape, margin);
 			var (preVertexMatrix, preNormalsMatrix) = GetTransformationMatrix(playfieldHeight);
 			return mesh.Transform(preVertexMatrix, preNormalsMatrix);
 		}
@@ -96,7 +96,7 @@ namespace VisualPinball.Engine.VPT.Rubber
 			return new Tuple<Matrix3D, Matrix3D?>(vertMatrix, fullMatrix);
 		}
 
-		public Mesh GetMesh(float playfieldHeight, int detailLevel, int acc = -1, bool createHitShape = false)
+		private Mesh GetMesh(float playfieldHeight, int detailLevel, int acc = -1, bool createHitShape = false, float margin = 0f)
 		{
 			var mesh = new Mesh();
 			var accuracy = (int)(10.0f * 1.2f);
@@ -105,7 +105,7 @@ namespace VisualPinball.Engine.VPT.Rubber
 			}
 
 			var splineAccuracy = acc != -1 ? 4.0f * MathF.Pow(10.0f, (10.0f - PhysicsConstants.HitShapeDetailLevel) * (float) (1.0 / 1.5)) : -1.0f;
-			var sv = new SplineVertex(_data.DragPoints, _data.Thickness, detailLevel, splineAccuracy);
+			var sv = new SplineVertex(_data.DragPoints, _data.Thickness, detailLevel, splineAccuracy, margin: margin);
 
 			var numRings = sv.VertexCount - 1;
 			var numSegments = accuracy;
@@ -144,7 +144,7 @@ namespace VisualPinball.Engine.VPT.Rubber
 				var u = i * invNr;
 				for (var j = 0; j < numSegments; j++) {
 					var v = ((float)j + u) * invNs;
-					var tmp = Vertex3D.GetRotatedAxis(j * (360.0f * invNs), tangent, normal) * (_data.Thickness * 0.5f);
+					var tmp = Vertex3D.GetRotatedAxis(j * (360.0f * invNs), tangent, normal) * ((_data.Thickness + margin) * 0.5f);
 
 					mesh.Vertices[index] = new Vertex3DNoTex2 {
 						X = sv.MiddlePoints[i].X + tmp.X,

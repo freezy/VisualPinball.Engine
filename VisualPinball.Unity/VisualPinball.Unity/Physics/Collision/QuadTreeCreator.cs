@@ -54,7 +54,7 @@ namespace VisualPinball.Unity
 				if (itemApi.ColliderEntity != Entity.Null) {
 					itemsColliding.Add(itemApi.ColliderEntity, itemApi.IsColliderEnabled);
 				}
-				itemApi.CreateColliders(colliderList);
+				itemApi.CreateColliders(colliderList, 0);
 				PerfMarkerCreateColliders.End();
 			}
 			PerfMarkerGenerateColliders.End();

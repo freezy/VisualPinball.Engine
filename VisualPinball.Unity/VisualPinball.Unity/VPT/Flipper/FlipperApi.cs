@@ -208,7 +208,7 @@ namespace VisualPinball.Unity
 
 		#region Collider Generation
 
-		protected override void CreateColliders(List<ICollider> colliders)
+		protected override void CreateColliders(List<ICollider> colliders, float margin)
 		{
 			var height = MainComponent.PositionZ;
 			var baseRadius = math.max(MainComponent.BaseRadius, 0.01f);

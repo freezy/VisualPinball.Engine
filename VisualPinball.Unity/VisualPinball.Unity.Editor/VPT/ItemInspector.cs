@@ -78,7 +78,7 @@ namespace VisualPinball.Unity.Editor
 		#endregion
 
 		protected void PropertyField(SerializedProperty serializedProperty, string label = null,
-			bool rebuildMesh = false, bool updateTransforms = false, bool updateVisibility = false,
+			bool rebuildMesh = false, bool updateTransforms = false, bool updateVisibility = false, bool updateColliders = false,
 			Action onChanged = null, Action onChanging = null)
 		{
 			var checkForChanges = rebuildMesh || updateTransforms || onChanged != null;

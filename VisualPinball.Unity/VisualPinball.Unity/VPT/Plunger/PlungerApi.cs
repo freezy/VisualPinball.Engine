@@ -161,7 +161,7 @@ namespace VisualPinball.Unity
 
 		#region Collider Generation
 
-		protected override void CreateColliders(List<ICollider> colliders)
+		protected override void CreateColliders(List<ICollider> colliders, float margin)
 		{
 			colliders.Add(new PlungerCollider(MainComponent, ColliderComponent, GetColliderInfo()));
 		}
