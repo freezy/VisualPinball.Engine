@@ -47,17 +47,17 @@ namespace VisualPinball.Unity.Editor
 			base.OnEnable();
 
 			_positionProperty = serializedObject.FindProperty(nameof(FlipperComponent.Position));
-			_startAngleProperty = serializedObject.FindProperty(nameof(FlipperComponent.StartAngle));
+			_startAngleProperty = serializedObject.FindProperty(nameof(FlipperComponent._startAngle));
 			_endAngleProperty = serializedObject.FindProperty(nameof(FlipperComponent.EndAngle));
 			_surfaceProperty = serializedObject.FindProperty(nameof(FlipperComponent._surface));
 			_isEnabledProperty = serializedObject.FindProperty(nameof(FlipperComponent.IsEnabled));
 			_isDualWoundProperty = serializedObject.FindProperty(nameof(FlipperComponent.IsDualWound));
-			_heightProperty = serializedObject.FindProperty(nameof(FlipperComponent.Height));
-			_baseRadiusProperty = serializedObject.FindProperty(nameof(FlipperComponent.BaseRadius));
-			_endRadiusProperty = serializedObject.FindProperty(nameof(FlipperComponent.EndRadius));
-			_rubberThicknessProperty = serializedObject.FindProperty(nameof(FlipperComponent.RubberThickness));
-			_rubberHeightProperty = serializedObject.FindProperty(nameof(FlipperComponent.RubberHeight));
-			_rubberWidthProperty = serializedObject.FindProperty(nameof(FlipperComponent.RubberWidth));
+			_heightProperty = serializedObject.FindProperty(nameof(FlipperComponent._height));
+			_baseRadiusProperty = serializedObject.FindProperty(nameof(FlipperComponent._baseRadius));
+			_endRadiusProperty = serializedObject.FindProperty(nameof(FlipperComponent._endRadius));
+			_rubberThicknessProperty = serializedObject.FindProperty(nameof(FlipperComponent._rubberThickness));
+			_rubberHeightProperty = serializedObject.FindProperty(nameof(FlipperComponent._rubberHeight));
+			_rubberWidthProperty = serializedObject.FindProperty(nameof(FlipperComponent._rubberWidth));
 			_flipperRadiusMinProperty = serializedObject.FindProperty(nameof(FlipperComponent.FlipperRadiusMin));
 			_flipperRadiusMaxProperty = serializedObject.FindProperty(nameof(FlipperComponent.FlipperRadiusMax));
 		}

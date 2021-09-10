@@ -35,7 +35,7 @@ namespace VisualPinball.Engine.VPT.Flipper
 	[BiffIgnore("RWDT", IsDeprecatedInVP = true)]
 	[BiffIgnore("RHGT", IsDeprecatedInVP = true)]
 	[BiffIgnore("RTHK", IsDeprecatedInVP = true)]
-	public class FlipperData : ItemData
+	public class FlipperData : ItemData, IFlipperData
 	{
 		public override string GetName() => Name;
 		public override void SetName(string name) { Name = name; }
@@ -44,10 +44,10 @@ namespace VisualPinball.Engine.VPT.Flipper
 		public string Name = string.Empty;
 
 		[BiffFloat("BASR", Pos = 2)]
-		public float BaseRadius = 21.5f;
+		public float BaseRadius { get; set; } = 21.5f;
 
 		[BiffFloat("ENDR", Pos = 3)]
-		public float EndRadius = 13.0f;
+		public float EndRadius { get; set; } = 13.0f;
 
 		[BiffFloat("FRMN", Pos = 29)]
 		public float FlipperRadiusMin;
@@ -56,16 +56,16 @@ namespace VisualPinball.Engine.VPT.Flipper
 		public float FlipperRadiusMax = 130.0f;
 
 		[BiffFloat("FLPR", SkipWrite = true)]
-		public float FlipperRadius = 130.0f;
+		public float FlipperRadius { get; set; } = 130.0f;
 
 		[BiffFloat("ANGS", Pos = 6)]
-		public float StartAngle = 121.0f;
+		public float StartAngle { get; set; } = 121.0f;
 
 		[BiffFloat("ANGE", Pos = 7)]
 		public float EndAngle = 70.0f;
 
 		[BiffFloat("FHGT", Pos = 30)]
-		public float Height = 50.0f;
+		public float Height { get; set; } = 50.0f;
 
 		[BiffVertex("VCEN", Pos = 1)]
 		public Vertex2D Center;
@@ -83,13 +83,13 @@ namespace VisualPinball.Engine.VPT.Flipper
 		public string RubberMaterial = string.Empty;
 
 		[BiffFloat("RTHF", Pos = 16.1)]
-		public float RubberThickness = 7.0f;
+		public float RubberThickness { get; set; } = 7.0f;
 
 		[BiffFloat("RHGF", Pos = 17.1)]
-		public float RubberHeight = 19.0f;
+		public float RubberHeight { get; set; } = 19.0f;
 
 		[BiffFloat("RWDF", Pos = 18.1)]
-		public float RubberWidth = 24.0f;
+		public float RubberWidth { get; set; } = 24.0f;
 
 		[BiffFloat("FORC", Pos = 9)]
 		public float Mass = 1f;
@@ -262,5 +262,8 @@ namespace VisualPinball.Engine.VPT.Flipper
 		#endregion
 
 		public bool DoOverridePhysics(TableData tableData) => OverridePhysics != 0 || tableData.OverridePhysicsFlipper && tableData.OverridePhysics != 0;
+
+		public float PosX => Center.X;
+		public float PosY => Center.Y;
 	}
 }

@@ -41,16 +41,19 @@ namespace VisualPinball.Unity
 	[AddComponentMenu("Visual Pinball/Game Item/Flipper")]
 	[HelpURL("https://docs.visualpinball.org/creators-guide/manual/mechanisms/flippers.html")]
 	public class FlipperComponent : ItemMainRenderableComponent<FlipperData>,
-		ISwitchDeviceComponent, ICoilDeviceComponent, IOnSurfaceComponent, IConvertGameObjectToEntity
+		IFlipperData, ISwitchDeviceComponent, ICoilDeviceComponent, IOnSurfaceComponent, IConvertGameObjectToEntity
 	{
 		#region Data
 
 		[Tooltip("Position of the flipper on the playfield.")]
 		public Vector2 Position;
+		public float PosX => Position.x;
+		public float PosY => Position.y;
 
 		[Range(-180f, 180f)]
 		[Tooltip("Angle of the flipper in start position (not flipped)")]
-		public float StartAngle = 121.0f;
+		public float _startAngle = 121.0f;
+		public float StartAngle => _startAngle;
 
 		[Range(-180f, 180f)]
 		[Tooltip("Angle of the flipper in end position (flipped)")]
@@ -68,15 +71,18 @@ namespace VisualPinball.Unity
 
 		[Range(0, 100f)]
 		[Tooltip("Height of the flipper plastic.")]
-		public float Height = 50.0f;
+		public float _height = 50.0f;
+		public float Height => _height;
 
 		[Range(0, 50f)]
 		[Tooltip("Radius of the flipper's larger end.")]
-		public float BaseRadius = 21.5f;
+		public float _baseRadius = 21.5f;
+		public float BaseRadius => _baseRadius;
 
 		[Range(0, 50f)]
 		[Tooltip("Radius of the flipper's smaller end.")]
-		public float EndRadius = 13.0f;
+		public float _endRadius = 13.0f;
+		public float EndRadius => _endRadius;
 
 		[Min(0)]
 		[Tooltip("It's not clear what TF this does. Relict from VPX.")]
@@ -85,18 +91,22 @@ namespace VisualPinball.Unity
 		[Range(10f, 250f)]
 		[Tooltip("The length of the flipper")]
 		public float FlipperRadiusMax = 130.0f;
+		public float FlipperRadius => FlipperRadiusMax;
 
 		[Range(0f, 50f)]
 		[Tooltip("Thickness of the rubber")]
-		public float RubberThickness = 7.0f;
+		public float _rubberThickness = 7.0f;
+		public float RubberThickness => _rubberThickness;
 
 		[Range(0f, 50f)]
 		[Tooltip("Vertical position of the rubber")]
-		public float RubberHeight = 19.0f;
+		public float _rubberHeight = 19.0f;
+		public float RubberHeight => _rubberHeight;
 
 		[Range(0, 100f)]
 		[Tooltip("Vertical size of the rubber")]
-		public float RubberWidth = 24.0f;
+		public float _rubberWidth = 24.0f;
+		public float RubberWidth => _rubberWidth;
 
 		#endregion
 
@@ -160,7 +170,7 @@ namespace VisualPinball.Unity
 			t.localPosition = new Vector3(Position.x, Position.y, PositionZ);
 
 			// rotation
-			t.localEulerAngles = new Vector3(0, 0, StartAngle);
+			t.localEulerAngles = new Vector3(0, 0, _startAngle);
 		}
 
 		#endregion
@@ -201,18 +211,18 @@ namespace VisualPinball.Unity
 
 			// transforms
 			Position = data.Center.ToUnityVector2();
-			StartAngle = data.StartAngle > 180f ? data.StartAngle - 360f : data.StartAngle;
+			_startAngle = data.StartAngle > 180f ? data.StartAngle - 360f : data.StartAngle;
 
 			// geometry
-			Height = data.Height;
-			BaseRadius = data.BaseRadius;
-			EndRadius = data.EndRadius;
+			_height = data.Height;
+			_baseRadius = data.BaseRadius;
+			_endRadius = data.EndRadius;
 			EndAngle = data.EndAngle > 180f ? data.EndAngle - 360f : data.EndAngle;
 			FlipperRadiusMin = data.FlipperRadiusMin;
 			FlipperRadiusMax = data.FlipperRadiusMax;
-			RubberThickness = data.RubberThickness;
-			RubberHeight = data.RubberHeight;
-			RubberWidth = data.RubberWidth;
+			_rubberThickness = data.RubberThickness;
+			_rubberHeight = data.RubberHeight;
+			_rubberWidth = data.RubberWidth;
 
 			// states
 			IsEnabled = data.IsEnabled;
@@ -263,19 +273,19 @@ namespace VisualPinball.Unity
 			// name and transforms
 			data.Name = name;
 			data.Center = Position.ToVertex2D();
-			data.StartAngle = StartAngle;
+			data.StartAngle = _startAngle;
 			data.Surface = Surface != null ? Surface.name : string.Empty;
 
 			// geometry
-			data.Height = Height;
-			data.BaseRadius = BaseRadius;
-			data.EndRadius = EndRadius;
+			data.Height = _height;
+			data.BaseRadius = _baseRadius;
+			data.EndRadius = _endRadius;
 			data.EndAngle = EndAngle;
 			data.FlipperRadiusMin = FlipperRadiusMin;
 			data.FlipperRadiusMax = FlipperRadiusMax;
-			data.RubberThickness = RubberThickness;
-			data.RubberHeight = RubberHeight;
-			data.RubberWidth = RubberWidth;
+			data.RubberThickness = _rubberThickness;
+			data.RubberHeight = _rubberHeight;
+			data.RubberWidth = _rubberWidth;
 
 			// states
 			data.IsEnabled = IsEnabled;
@@ -314,8 +324,8 @@ namespace VisualPinball.Unity
 		public override void SetEditorPosition(Vector3 pos) => Position = ((float3)pos).xy;
 
 		public override ItemDataTransformType EditorRotationType => ItemDataTransformType.OneD;
-		public override Vector3 GetEditorRotation() => new Vector3(StartAngle, 0f, 0f);
-		public override void SetEditorRotation(Vector3 rot) => StartAngle = rot.x;
+		public override Vector3 GetEditorRotation() => new Vector3(_startAngle, 0f, 0f);
+		public override void SetEditorRotation(Vector3 rot) => _startAngle = rot.x;
 
 		public override ItemDataTransformType EditorScaleType => ItemDataTransformType.None;
 
@@ -341,7 +351,7 @@ namespace VisualPinball.Unity
 			// Draw arc arrow
 			List<Vector3> arrow = new List<Vector3>();
 			float start = -90F;
-			float end = -90F + EndAngle - StartAngle;
+			float end = -90F + EndAngle - _startAngle;
 			if (IsLeft) {
 				(start, end) = (end, start);
 			}
@@ -364,7 +374,7 @@ namespace VisualPinball.Unity
 
 		#region Flipper Correction
 
-		private bool IsLeft => EndAngle < StartAngle;
+		private bool IsLeft => EndAngle < _startAngle;
 
 		private void SetupFlipperCorrection(Entity entity, EntityManager dstManager, Player player, FlipperColliderComponent colliderComponent)
 		{
@@ -467,13 +477,13 @@ namespace VisualPinball.Unity
 
 		public List<Vector3> GetEnclosingPolygon(float margin = 0.0F, float stepSize = 5F, float height = 0f)
 		{
-			var swing = EndAngle - StartAngle;
+			var swing = EndAngle - _startAngle;
 			swing = Mathf.Abs(swing);
 
 			List<Vector3> ret = new List<Vector3>(); // TODO: caching
 
-			float baseRadius = BaseRadius + margin;
-			float tipRadius = EndRadius + margin;
+			float baseRadius = _baseRadius + margin;
+			float tipRadius = _endRadius + margin;
 			Vector3 baseLocalPos = Vector3.zero;
 			float length = FlipperRadiusMax;
 			Vector3 tipLocalPos = Vector3.up * -length;
@@ -534,15 +544,15 @@ namespace VisualPinball.Unity
 			float flipperRadius;
 			if (FlipperRadiusMin > 0 && FlipperRadiusMax > FlipperRadiusMin) {
 				flipperRadius = FlipperRadiusMax - (FlipperRadiusMax - FlipperRadiusMin) /* m_ptable->m_globalDifficulty*/;
-				flipperRadius = math.max(flipperRadius, BaseRadius - EndRadius + 0.05f);
+				flipperRadius = math.max(flipperRadius, _baseRadius - _endRadius + 0.05f);
 
 			} else {
 				flipperRadius = FlipperRadiusMax;
 			}
 
-			var endRadius = math.max(EndRadius, 0.01f); // radius of flipper end
+			var endRadius = math.max(_endRadius, 0.01f); // radius of flipper end
 			flipperRadius = math.max(flipperRadius, 0.01f); // radius of flipper arc, center-to-center radius
-			var angleStart = math.radians(StartAngle);
+			var angleStart = math.radians(_startAngle);
 			var angleEnd = math.radians(EndAngle);
 
 			if (angleEnd == angleStart) {
@@ -598,7 +608,7 @@ namespace VisualPinball.Unity
 
 		private FlipperHitData GetHitData()
 		{
-			var ratio = (math.max(BaseRadius, 0.01f) - math.max(EndRadius, 0.01f)) / math.max(FlipperRadiusMax, 0.01f);
+			var ratio = (math.max(_baseRadius, 0.01f) - math.max(_endRadius, 0.01f)) / math.max(FlipperRadiusMax, 0.01f);
 			var zeroAngNorm = new float2(
 				math.sqrt(1.0f - ratio * ratio), // F2 Norm, used in Green's transform, in FPM time search  // =  sinf(faceNormOffset)
 				-ratio                              // F1 norm, change sign of x component, i.e -zeroAngNorm.x // = -cosf(faceNormOffset)

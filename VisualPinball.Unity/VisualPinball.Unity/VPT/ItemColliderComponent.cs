@@ -25,6 +25,7 @@ using UnityEditor;
 using UnityEngine;
 using UnityEngine.Profiling;
 using VisualPinball.Engine.VPT;
+using VisualPinball.Engine.VPT.Flipper;
 using Mesh = UnityEngine.Mesh;
 
 namespace VisualPinball.Unity
@@ -357,25 +358,21 @@ namespace VisualPinball.Unity
 		private void AddFlipperCollider(List<Vector3> vertices, List<Vector3> normals, List<int> indices)
 		{
 			// first see if we already have a mesh
-			var meshAuthoring = GetComponentInChildren<FlipperRubberMeshComponent>();
-			if (meshAuthoring == null) {
+			var flipperComponent = GetComponentInChildren<FlipperComponent>();
+			if (flipperComponent == null) {
 				return;
 			}
-			var meshComponent = meshAuthoring.gameObject.GetComponent<MeshFilter>();
-			if (meshComponent == null) {
-				return;
-			}
+
 			var t = transform;
 			var ltp = Matrix4x4.TRS(t.localPosition, t.localRotation, t.localScale);
-			var i = vertices.Count;
-			var mesh = meshComponent.sharedMesh;
-			for (var j = 0; j < mesh.vertices.Length; j++) {
-				vertices.Add(ltp.MultiplyPoint(mesh.vertices[j]));
-				normals.Add(ltp.MultiplyPoint(mesh.normals[j]));
+			var startIdx = vertices.Count;
+			var mesh = new FlipperMeshGenerator(flipperComponent).GetMesh(FlipperMeshGenerator.Rubber, 0, 0.01f);
+			for (var i = 0; i < mesh.Vertices.Length; i++) {
+				var vertex = mesh.Vertices[i];
+				vertices.Add(ltp.MultiplyPoint(vertex.ToUnityFloat3()));
+				normals.Add(ltp.MultiplyPoint(vertex.ToUnityNormalVector3()));
 			}
-			vertices.AddRange(mesh.vertices);
-			normals.AddRange(mesh.normals);
-			indices.AddRange(mesh.triangles.Select(n => i + n));
+			indices.AddRange(mesh.Indices.Select(n => startIdx + n));
 		}
 
 		private static void DrawAabb(Matrix4x4 ltw, Aabb aabb, bool isSelected)
