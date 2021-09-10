@@ -58,6 +58,9 @@ namespace VisualPinball.Unity
 			foreach (var meshComponent in MeshComponents) {
 				meshComponent.RebuildMeshes();
 			}
+			foreach (var colliderComponent in ColliderComponents) {
+				colliderComponent.CollidersDirty = true;
+			}
 		}
 
 		protected Mesh GetDefaultMesh()
@@ -74,6 +77,9 @@ namespace VisualPinball.Unity
 
 		public virtual void UpdateTransforms()
 		{
+			foreach (var colliderComponent in ColliderComponents) {
+				colliderComponent.CollidersDirty = true;
+			}
 		}
 
 		public virtual void UpdateVisibility()

@@ -164,6 +164,7 @@ namespace VisualPinball.Unity
 
 		public override void UpdateTransforms()
 		{
+			base.UpdateTransforms();
 			var t = transform;
 
 			// position

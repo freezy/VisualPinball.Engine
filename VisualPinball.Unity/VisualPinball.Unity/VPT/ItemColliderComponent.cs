@@ -51,15 +51,22 @@ namespace VisualPinball.Unity
 		[NonSerialized]
 		public int SelectedCollider = -1;
 
-		public List<ICollider> Colliders { get; private set; }
-
 		public IItemMainComponent MainAuthoring => MainComponent;
+		public bool CollidersDirty { set => _collidersDirty = value; }
 
 		private readonly Entity _colliderEntity = Player.PlayfieldEntity;
+
+		[NonSerialized]
+		private Mesh _colliderMesh;
+
+		[NonSerialized]
+		private bool _collidersDirty;
 
 		protected abstract IApiColliderGenerator InstantiateColliderApi(Player player, Entity entity, Entity parentEntity);
 
 		public abstract PhysicsMaterialData PhysicsMaterialData { get; }
+
+		private bool HasCachedColliders => _colliderMesh != null && !_collidersDirty;
 
 		private void Start()
 		{
@@ -102,21 +109,41 @@ namespace VisualPinball.Unity
 				Profiler.EndSample();
 				return;
 			}
-			var api = InstantiateColliderApi(player, _colliderEntity, Entity.Null);
-			Colliders = new List<ICollider>();
-			api.CreateColliders(Colliders);
 
 			var ltw = GetComponentInParent<PlayfieldComponent>().transform.localToWorldMatrix;
+			var generateColliders = ShowAabbs || showColliders && !HasCachedColliders;
+			if (generateColliders) {
+				var api = InstantiateColliderApi(player, _colliderEntity, Entity.Null);
+				var colliders = new List<ICollider>();
+				api.CreateColliders(colliders);
 
-			if (showColliders) {
-				DrawColliderMesh(ltw);
+				if (showColliders) {
+					_colliderMesh = GenerateColliderMesh(colliders, ltw);
+					_collidersDirty = false;
+				}
+
+				if (ShowAabbs) {
+					for (var i = 0; i < colliders.Count; i++) {
+						var col = colliders[i];
+						DrawAabb(ltw, col.Bounds.Aabb, i == SelectedCollider);
+					}
+				}
 			}
 
-			if (ShowAabbs) {
-				for (var i = 0; i < Colliders.Count; i++) {
-					var col = Colliders[i];
-					DrawAabb(ltw, col.Bounds.Aabb, i == SelectedCollider);
-				}
+			if (showColliders) {
+
+				var color = Color.green;
+				Handles.color = color;
+				color.a = 0.3f;
+				Gizmos.color = color;
+				Gizmos.matrix = ltw;
+				Handles.matrix = ltw;
+
+				Gizmos.DrawMesh(_colliderMesh);
+				color = Color.white;
+				color.a = 0.01f;
+				Gizmos.color = color;
+				Gizmos.DrawWireMesh(_colliderMesh);
 			}
 
 			Profiler.EndSample();
@@ -124,7 +151,7 @@ namespace VisualPinball.Unity
 
 		#region Collider Gizmos
 
-		private void DrawColliderMesh(Matrix4x4 ltw)
+		private Mesh GenerateColliderMesh(List<ICollider> colliders, Matrix4x4 ltw)
 		{
 			var color = Color.green;
 			Handles.color = color;
@@ -135,7 +162,7 @@ namespace VisualPinball.Unity
 			var vertices = new List<Vector3>();
 			var normals = new List<Vector3>();
 			var indices = new List<int>();
-			foreach (var col in Colliders) {
+			foreach (var col in colliders) {
 				switch (col) {
 
 					case CircleCollider circleCol: {
@@ -171,6 +198,8 @@ namespace VisualPinball.Unity
 
 					case LineZCollider lineZCol: {
 						var aabb = lineZCol.Bounds.Aabb;
+
+						// todo cache this too
 						DrawLine(lineZCol.XY.ToFloat3(aabb.ZLow), lineZCol.XY.ToFloat3(aabb.ZHigh));
 						//AddCollider(lineZColl, vertices, normals, indices);
 						break;
@@ -201,16 +230,12 @@ namespace VisualPinball.Unity
 				}
 			}
 
-			var mesh = new Mesh { name = $"{name} (debug collider)" };
-			mesh.vertices = vertices.ToArray();
-			mesh.triangles = indices.ToArray();
-			mesh.normals = normals.ToArray();
-
-			Gizmos.DrawMesh(mesh);
-			color = Color.white;
-			color.a = 0.01f;
-			Gizmos.color = color;
-			Gizmos.DrawWireMesh(mesh);
+			return new Mesh {
+				name = $"{name} (debug collider)",
+				vertices = vertices.ToArray(),
+				triangles = indices.ToArray(),
+				normals = normals.ToArray()
+			};
 		}
 
 		private static void AddCollider(CircleCollider circleCol, IList<Vector3> vertices, IList<Vector3> normals, ICollection<int> indices)
