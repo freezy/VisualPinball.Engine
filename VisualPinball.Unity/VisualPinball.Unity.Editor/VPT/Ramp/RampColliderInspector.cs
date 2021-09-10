@@ -65,8 +65,8 @@ namespace VisualPinball.Unity.Editor
 
 			PropertyField(_hitEventProperty, "Has Hit Event");
 			PropertyField(_thresholdProperty, "Hit Threshold");
-			PropertyField(_leftWallHeightProperty, "Left Colliding Wall Height");
-			PropertyField(_rightWallHeightProperty, "Right Colliding Wall Height");
+			PropertyField(_leftWallHeightProperty, "Left Colliding Wall Height", updateColliders: true);
+			PropertyField(_rightWallHeightProperty, "Right Colliding Wall Height", updateColliders: true);
 
 			// physics material
 			if (_foldoutMaterial = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutMaterial, "Physics Material")) {
