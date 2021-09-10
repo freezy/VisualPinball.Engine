@@ -115,7 +115,7 @@ namespace VisualPinball.Unity
 			if (generateColliders) {
 				var api = InstantiateColliderApi(player, _colliderEntity, Entity.Null);
 				var colliders = new List<ICollider>();
-				api.CreateColliders(colliders);
+				api.CreateColliders(colliders, 0.1f);
 
 				if (showColliders) {
 					_colliderMesh = GenerateColliderMesh(colliders, ltw);

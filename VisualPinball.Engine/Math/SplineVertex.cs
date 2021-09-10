@@ -39,7 +39,7 @@ namespace VisualPinball.Engine.Math
 
 		public Vertex2D[] RgvLocal;
 
-		public SplineVertex(DragPointData[] dragPoints, int thickness, int tableDetailLevel, float accuracy, bool staticRendering = true)
+		public SplineVertex(DragPointData[] dragPoints, int thickness, int tableDetailLevel, float accuracy, bool staticRendering = true, float margin = 0f)
 		{
 			var vertices = GetCentralCurve(dragPoints, tableDetailLevel, accuracy, staticRendering);
 			var numVertices = vertices.Length;
@@ -108,7 +108,7 @@ namespace VisualPinball.Engine.Math
 					}
 				}
 
-				var widthCur = thickness;
+				var widthCur = thickness + margin;
 
 				MiddlePoints[i] = new Vertex2D(middle.X, middle.Y);
 

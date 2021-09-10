@@ -91,7 +91,7 @@ namespace VisualPinball.Unity
 
 		#region Collider Generation
 
-		protected override void CreateColliders(List<ICollider> colliders)
+		protected override void CreateColliders(List<ICollider> colliders, float margin)
 		{
 			var colliderGenerator = new GateColliderGenerator(this, MainComponent, ColliderComponent);
 			colliderGenerator.GenerateColliders(MainComponent.PositionZ, colliders);
