@@ -50,7 +50,7 @@ namespace VisualPinball.Unity
 		[Tooltip("Height of the bumper. Updates z scaling. 100 = Original size.")]
 		public float HeightScale = 45f;
 
-		[Range(0f, 360f)]
+		[Range(-180f, 180f)]
 		[Tooltip("Orientation angle. Updates z rotation.")]
 		public float Orientation;
 

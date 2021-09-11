@@ -191,6 +191,12 @@ namespace VisualPinball.Unity.Editor
 						typeProp.intValue = meshTypeMap[files[newIndex]];
 					}
 					meshProp.serializedObject.ApplyModifiedProperties();
+					if (target is MonoBehaviour mb) {
+						var colliderComponent = mb.GetComponent<IItemColliderComponent>();
+						if (colliderComponent != null) {
+							colliderComponent.CollidersDirty = true;
+						}
+					}
 				}
 			}
 		}
