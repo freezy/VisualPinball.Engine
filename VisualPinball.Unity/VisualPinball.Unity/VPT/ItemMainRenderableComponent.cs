@@ -114,6 +114,11 @@ namespace VisualPinball.Unity
 			CopyMaterialName(mr, materialNames, textureNames, ref materialName, ref mapName, ref normalMapName, ref _);
 		}
 
+		protected float ClampDegrees(float deg)
+		{
+			deg %= 360;
+			return deg > 180 ? deg - 360 : deg;
+		}
 
 		private static void CopyMaterialName(MeshRenderer mr, string[] materialNames, string[] textureNames,
 			ref string materialName, ref string mapName, ref string normalMapName, ref string envMapName)
