@@ -53,7 +53,7 @@ namespace VisualPinball.Unity
 				return;
 			}
 			var colliderGenerator = new SurfaceColliderGenerator(this, MainComponent, ColliderComponent);
-			colliderGenerator.GenerateColliders(MainComponent.PlayfieldHeight, colliders);
+			colliderGenerator.GenerateColliders(MainComponent.PlayfieldHeight, colliders, margin);
 		}
 
 		#endregion

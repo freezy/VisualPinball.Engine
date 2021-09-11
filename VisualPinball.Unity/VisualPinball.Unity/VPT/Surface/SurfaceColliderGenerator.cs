@@ -35,7 +35,7 @@ namespace VisualPinball.Unity
 			_colliderComponent = colliderComponent;
 		}
 
-		internal void GenerateColliders(float playfieldHeight, List<ICollider> colliders)
+		internal void GenerateColliders(float playfieldHeight, List<ICollider> colliders, float margin = 0f)
 		{
 			var vVertex =  DragPoint.GetRgVertex<RenderVertex2D, CatmullCurve2DCatmullCurveFactory>(_component.DragPoints);
 
@@ -43,8 +43,8 @@ namespace VisualPinball.Unity
 			var rgv3Dt = new float3[count];
 			var rgv3Db = _colliderComponent.IsBottomSolid ? new float3[count] : null;
 
-			var bottom = _component.HeightBottom + playfieldHeight;
-			var top = _component.HeightTop + playfieldHeight;
+			var bottom = _component.HeightBottom + playfieldHeight - margin;
+			var top = _component.HeightTop + playfieldHeight + margin;
 
 			for (var i = 0; i < count; ++i) {
 				var pv1 = vVertex[i];
