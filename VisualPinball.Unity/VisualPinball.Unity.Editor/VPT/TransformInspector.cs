@@ -124,7 +124,7 @@ namespace VisualPinball.Unity.Editor
 				return;
 			}
 
-			GUILayout.Label("VPE item transforms driven by data on the component below.");
+			EditorGUILayout.HelpBox("VPE item transforms driven by data on the component below.", MessageType.Info);
 		}
 
 		private void OnSceneGUI()

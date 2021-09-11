@@ -38,6 +38,8 @@ namespace VisualPinball.Unity.Editor
 
 		public override void OnInspectorGUI()
 		{
+			EditorGUILayout.HelpBox($"Nothing to configure here (yet!).", MessageType.Info);
+
 			// foreach (var display in _gamelogicEngine.AvailableDisplays) {
 			// 	if (!_gamelogicEngine.DisplayOutputs.ContainsKey(display.Id)) {
 			// 		_gamelogicEngine.DisplayOutputs[display.Id] = null;
@@ -45,28 +47,28 @@ namespace VisualPinball.Unity.Editor
 			// 	_gamelogicEngine.DisplayOutputs[display.Id] = (DmdAuthoring)EditorGUILayout.ObjectField(display.Id, _gamelogicEngine.DisplayOutputs[display.Id], typeof(DmdAuthoring), true);
 			// }
 
-			_value1 = EditorGUILayout.IntSlider("Value 1", _value1, 0, 255);
-			_value2 = EditorGUILayout.IntSlider("Value 2", _value2, 0, 255);
-			_value3 = EditorGUILayout.IntSlider("Value 3", _value3, 0, 255);
-
-			if (GUILayout.Button("Apply Each")) {
-				_gamelogicEngine.SetLamp("gi_1", _value1);
-				_gamelogicEngine.SetLamp("gi_2", _value2);
-				_gamelogicEngine.SetLamp("gi_3", _value3);
-			}
-
-			if (GUILayout.Button("Apply At Once")) {
-				_gamelogicEngine.SetLamps(new LampEventArgs[] {
-					new LampEventArgs("gi_1", _value1),
-					new LampEventArgs("gi_2", _value2),
-					new LampEventArgs("gi_3", _value3),
-				});
-			}
-
-			_color = EditorGUILayout.ColorField(_color);
-			if (GUILayout.Button("Apply Color")) {
-				_gamelogicEngine.SetLampColor("gi_4", _color);
-			}
+			// _value1 = EditorGUILayout.IntSlider("Value 1", _value1, 0, 255);
+			// _value2 = EditorGUILayout.IntSlider("Value 2", _value2, 0, 255);
+			// _value3 = EditorGUILayout.IntSlider("Value 3", _value3, 0, 255);
+			//
+			// if (GUILayout.Button("Apply Each")) {
+			// 	_gamelogicEngine.SetLamp("gi_1", _value1);
+			// 	_gamelogicEngine.SetLamp("gi_2", _value2);
+			// 	_gamelogicEngine.SetLamp("gi_3", _value3);
+			// }
+			//
+			// if (GUILayout.Button("Apply At Once")) {
+			// 	_gamelogicEngine.SetLamps(new LampEventArgs[] {
+			// 		new LampEventArgs("gi_1", _value1),
+			// 		new LampEventArgs("gi_2", _value2),
+			// 		new LampEventArgs("gi_3", _value3),
+			// 	});
+			// }
+			//
+			// _color = EditorGUILayout.ColorField(_color);
+			// if (GUILayout.Button("Apply Color")) {
+			// 	_gamelogicEngine.SetLampColor("gi_4", _color);
+			// }
 		}
 	}
 }
