@@ -285,13 +285,12 @@ namespace VisualPinball.Unity
 
 		public override ItemDataTransformType EditorRotationType => ItemDataTransformType.OneD;
 		public override Vector3 GetEditorRotation() => new Vector3(Rotation, 0f, 0f);
-		public override void SetEditorRotation(Vector3 rot) => _rotation = rot.x;
+		public override void SetEditorRotation(Vector3 rot) => _rotation = ClampDegrees(rot.x);
 
 		public override ItemDataTransformType EditorScaleType => ItemDataTransformType.OneD;
 		public override Vector3 GetEditorScale() => new Vector3(Length, 0f, 0f);
 		public override void SetEditorScale(Vector3 scale) => _length = scale.x;
 
 		#endregion
-
 	}
 }
