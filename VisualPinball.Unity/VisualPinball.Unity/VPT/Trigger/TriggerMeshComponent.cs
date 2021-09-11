@@ -49,6 +49,7 @@ namespace VisualPinball.Unity
 
 		protected override RenderObject GetRenderObject(TriggerData data, Table table)
 			=> new TriggerMeshGenerator(data).GetRenderObject(table, Origin.Original, false);
+
 		protected override Mesh GetMesh(TriggerData data)
 			=> new TriggerMeshGenerator(data).GetMesh(MainComponent.PlayfieldHeight);
 	}

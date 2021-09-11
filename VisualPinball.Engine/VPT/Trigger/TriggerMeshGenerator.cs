@@ -47,7 +47,6 @@ namespace VisualPinball.Engine.VPT.Trigger
 
 		public RenderObjectGroup GetRenderObjects(Table.Table table, Origin origin, bool asRightHanded)
 		{
-			var (preMatrix, _) = GetPreMatrix(BaseHeight(table), origin, asRightHanded);
 			var postMatrix = GetPostMatrix(table, origin);
 			return new RenderObjectGroup(_data.Name, "Triggers", postMatrix, new RenderObject(
 					_data.Name,
