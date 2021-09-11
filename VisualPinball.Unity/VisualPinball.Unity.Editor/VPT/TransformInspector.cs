@@ -52,6 +52,7 @@ namespace VisualPinball.Unity.Editor
 		private Matrix4x4? _pauseAxisX;
 		private Matrix4x4? _pauseAxisY;
 		private Matrix4x4? _pauseAxisZ;
+		private bool _itemSelected;
 
 		protected virtual void OnEnable()
 		{
@@ -70,7 +71,8 @@ namespace VisualPinball.Unity.Editor
 
 
 				var item = itemTransform.GetComponent<IItemMainRenderableComponent>();
-				useDefault = useDefault && itemTransform.GetComponent<IItemMainComponent>() == null;
+				useDefault = useDefault && itemTransform.GetComponentInParent<PlayfieldComponent>() == null;
+				_itemSelected = itemTransform.GetComponent<IItemMainComponent>() != null;
 
 				// must be main but not the table itself
 				if (item != null && !(item is TableComponent)) {
@@ -124,7 +126,10 @@ namespace VisualPinball.Unity.Editor
 				return;
 			}
 
-			GUILayout.Label("Transforms are below. Don't collapse this component.");
+			GUILayout.Label(_itemSelected
+				? "Transforms are below. Don't collapse this component."
+				: "Cannot transform GameObjects on the playfield yet."
+			);
 		}
 
 		private void OnSceneGUI()
