@@ -111,6 +111,9 @@ namespace VisualPinball.Unity
 			}
 
 			var ltw = GetComponentInParent<PlayfieldComponent>().transform.localToWorldMatrix;
+			Gizmos.matrix = ltw;
+			Handles.matrix = ltw;
+
 			var generateColliders = ShowAabbs || showColliders && !HasCachedColliders;
 			if (generateColliders) {
 				var api = InstantiateColliderApi(player, _colliderEntity, Entity.Null);
@@ -125,7 +128,7 @@ namespace VisualPinball.Unity
 				if (ShowAabbs) {
 					for (var i = 0; i < colliders.Count; i++) {
 						var col = colliders[i];
-						DrawAabb(ltw, col.Bounds.Aabb, i == SelectedCollider);
+						DrawAabb(col.Bounds.Aabb, i == SelectedCollider);
 					}
 				}
 			}
@@ -136,9 +139,6 @@ namespace VisualPinball.Unity
 				Handles.color = color;
 				color.a = 0.3f;
 				Gizmos.color = color;
-				Gizmos.matrix = ltw;
-				Handles.matrix = ltw;
-
 				Gizmos.DrawMesh(_colliderMesh);
 				color = Color.white;
 				color.a = 0.01f;
@@ -404,33 +404,10 @@ namespace VisualPinball.Unity
 			indices.AddRange(mesh.Indices.Select(n => startIdx + n));
 		}
 
-		private static void DrawAabb(Matrix4x4 ltw, Aabb aabb, bool isSelected)
+		private static void DrawAabb(Aabb aabb, bool isSelected)
 		{
-			var p00 = ltw.MultiplyPoint(new Vector3( aabb.Left, aabb.Top, aabb.ZHigh));
-			var p01 = ltw.MultiplyPoint(new Vector3(aabb.Left, aabb.Bottom, aabb.ZHigh));
-			var p02 = ltw.MultiplyPoint(new Vector3(aabb.Right, aabb.Bottom, aabb.ZHigh));
-			var p03 = ltw.MultiplyPoint(new Vector3(aabb.Right, aabb.Top, aabb.ZHigh));
-
-			var p10 = ltw.MultiplyPoint(new Vector3( aabb.Left, aabb.Top, aabb.ZLow));
-			var p11 = ltw.MultiplyPoint(new Vector3(aabb.Left, aabb.Bottom, aabb.ZLow));
-			var p12 = ltw.MultiplyPoint(new Vector3(aabb.Right, aabb.Bottom, aabb.ZLow));
-			var p13 = ltw.MultiplyPoint(new Vector3(aabb.Right, aabb.Top, aabb.ZLow));
-
 			Gizmos.color = isSelected ? ColliderColor.SelectedAabb : ColliderColor.Aabb;
-			Gizmos.DrawLine(p00, p01);
-			Gizmos.DrawLine(p01, p02);
-			Gizmos.DrawLine(p02, p03);
-			Gizmos.DrawLine(p03, p00);
-
-			Gizmos.DrawLine(p10, p11);
-			Gizmos.DrawLine(p11, p12);
-			Gizmos.DrawLine(p12, p13);
-			Gizmos.DrawLine(p13, p10);
-
-			Gizmos.DrawLine(p00, p10);
-			Gizmos.DrawLine(p01, p11);
-			Gizmos.DrawLine(p02, p12);
-			Gizmos.DrawLine(p03, p13);
+			Gizmos.DrawWireCube(aabb.Center, aabb.Size);
 		}
 
 		#endregion

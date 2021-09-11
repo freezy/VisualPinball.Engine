@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using Unity.Mathematics;
+using UnityEngine;
 
 namespace VisualPinball.Unity
 {
@@ -30,6 +31,14 @@ namespace VisualPinball.Unity
 		public float Width => math.abs(Left - Right);
 		public float Height => math.abs(Top - Bottom);
 		public float Depth => math.abs(ZLow - ZHigh);
+
+		public Vector3 Center => new Vector3(
+			(Right + Left) / 2f,
+			(Bottom + Top) / 2f,
+			(ZHigh + ZLow) / 2f
+		);
+
+		public Vector3 Size => new Vector3(Width, Height, Depth);
 
 		public Aabb(float left, float right, float top, float bottom, float zLow, float zHigh)
 		{
