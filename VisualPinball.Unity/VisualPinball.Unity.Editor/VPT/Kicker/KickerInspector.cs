@@ -26,7 +26,6 @@ namespace VisualPinball.Unity.Editor
 	[CustomEditor(typeof(KickerComponent)), CanEditMultipleObjects]
 	public class KickerInspector : ItemMainInspector<KickerData, KickerComponent>
 	{
-
 		private const string MeshFolder = "Packages/org.visualpinball.engine.unity/VisualPinball.Unity/Assets/Art/Meshes/Kicker";
 
 		private static readonly Dictionary<string, int> TypeMap = new Dictionary<string, int> {
