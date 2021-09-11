@@ -31,10 +31,10 @@ using Mesh = UnityEngine.Mesh;
 namespace VisualPinball.Unity
 {
 	[DisallowMultipleComponent]
-	public abstract class ItemColliderComponent<TData, TMainAuthoring> : ItemSubComponent<TData, TMainAuthoring>,
-		IItemColliderAuthoring
+	public abstract class ItemColliderComponent<TData, TMainComponent> : ItemSubComponent<TData, TMainComponent>,
+		IItemColliderComponent
 		where TData : ItemData
-		where TMainAuthoring : ItemMainComponent<TData>
+		where TMainComponent : ItemMainComponent<TData>
 	{
 		[SerializeReference]
 		public PhysicsMaterial PhysicsMaterial;
@@ -51,7 +51,6 @@ namespace VisualPinball.Unity
 		[NonSerialized]
 		public int SelectedCollider = -1;
 
-		public IItemMainComponent MainAuthoring => MainComponent;
 		public bool CollidersDirty { set => _collidersDirty = value; }
 
 		private readonly Entity _colliderEntity = Player.PlayfieldEntity;
@@ -91,7 +90,7 @@ namespace VisualPinball.Unity
 
 		private void OnDrawGizmos()
 		{
-			Profiler.BeginSample("ItemColliderAuthoring.OnDrawGizmosSelected");
+			Profiler.BeginSample("ItemColliderComponent.OnDrawGizmosSelected");
 
 			var playfieldColliderComponent = GetComponentInParent<PlayfieldColliderComponent>();
 			var overrideColliderMesh = playfieldColliderComponent && playfieldColliderComponent.ShowAllColliderMeshes;

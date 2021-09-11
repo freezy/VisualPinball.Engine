@@ -43,7 +43,7 @@ namespace VisualPinball.Unity.Editor
 
 			OnPreInspectorGUI();
 
-			var mf = MeshAuthoring.GetComponent<MeshFilter>();
+			var mf = MeshComponent.GetComponent<MeshFilter>();
 			PropertyField(_autoGenerateProperty, rebuildMesh: true, onChanging: () => {
 				if (mf) {
 					mf.sharedMesh = _autoGenerateProperty.boolValue

@@ -57,7 +57,7 @@ namespace VisualPinball.Unity.Editor
 		{
 			_transform = target as Transform;
 
-			// use default inspector. we do that when no vpe-authoring items are selected.
+			// use default inspector. we do that when no vpe components are selected.
 			var useDefault = true;
 
 			// loop through selected objects

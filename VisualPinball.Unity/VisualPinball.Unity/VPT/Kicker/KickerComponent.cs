@@ -76,8 +76,8 @@ namespace VisualPinball.Unity
 
 		public override KickerData InstantiateData() => new KickerData();
 
-		protected override Type MeshAuthoringType { get; } = typeof(ItemMeshComponent<KickerData, KickerComponent>);
-		protected override Type ColliderAuthoringType { get; } = typeof(ItemColliderComponent<KickerData, KickerComponent>);
+		protected override Type MeshComponentType { get; } = typeof(ItemMeshComponent<KickerData, KickerComponent>);
+		protected override Type ColliderComponentType { get; } = typeof(ItemColliderComponent<KickerData, KickerComponent>);
 
 		public Vector2 Center => Position;
 
@@ -140,14 +140,14 @@ namespace VisualPinball.Unity
 			Convert(entity, dstManager);
 
 			// collision
-			var colliderAuthoring = gameObject.GetComponent<KickerColliderComponent>();
-			if (colliderAuthoring) {
+			var colliderComponent = gameObject.GetComponent<KickerColliderComponent>();
+			if (colliderComponent) {
 				dstManager.AddComponentData(entity, new KickerStaticData {
 					Center = Position,
-					FallThrough = colliderAuthoring.FallThrough,
-					HitAccuracy = colliderAuthoring.HitAccuracy,
-					Scatter = colliderAuthoring.Scatter,
-					LegacyMode = true, // todo colliderAuthoring.LegacyMode,
+					FallThrough = colliderComponent.FallThrough,
+					HitAccuracy = colliderComponent.HitAccuracy,
+					Scatter = colliderComponent.Scatter,
+					LegacyMode = true, // todo colliderComponent.LegacyMode,
 					ZLow = Surface?.Height(Position) ?? PlayfieldHeight
 				});
 
@@ -196,19 +196,19 @@ namespace VisualPinball.Unity
 			#endif
 
 			// collider data
-			var colliderAuthoring = gameObject.GetComponent<KickerColliderComponent>();
-			if (colliderAuthoring) {
-				colliderAuthoring.enabled = data.IsEnabled;
+			var colliderComponent = gameObject.GetComponent<KickerColliderComponent>();
+			if (colliderComponent) {
+				colliderComponent.enabled = data.IsEnabled;
 
-				colliderAuthoring.Scatter = data.Scatter;
-				colliderAuthoring.HitAccuracy = data.HitAccuracy;
-				colliderAuthoring.HitHeight = data.HitHeight;
-				colliderAuthoring.FallThrough = data.FallThrough;
-				colliderAuthoring.LegacyMode = data.LegacyMode;
-				colliderAuthoring.EjectAngle = data.Angle;
-				colliderAuthoring.EjectSpeed = data.Speed;
+				colliderComponent.Scatter = data.Scatter;
+				colliderComponent.HitAccuracy = data.HitAccuracy;
+				colliderComponent.HitHeight = data.HitHeight;
+				colliderComponent.FallThrough = data.FallThrough;
+				colliderComponent.LegacyMode = data.LegacyMode;
+				colliderComponent.EjectAngle = data.Angle;
+				colliderComponent.EjectSpeed = data.Speed;
 
-				updatedComponents.Add(colliderAuthoring);
+				updatedComponents.Add(colliderComponent);
 			}
 
 			return updatedComponents;
@@ -216,7 +216,7 @@ namespace VisualPinball.Unity
 
 		public override IEnumerable<MonoBehaviour> SetReferencedData(KickerData data, Table table, IMaterialProvider materialProvider, ITextureProvider textureProvider, Dictionary<string, IItemMainComponent> components)
 		{
-			Surface = GetAuthoring<SurfaceComponent>(components, data.Surface);
+			Surface = FindComponent<SurfaceComponent>(components, data.Surface);
 			return Array.Empty<MonoBehaviour>();
 		}
 
@@ -234,16 +234,16 @@ namespace VisualPinball.Unity
 
 			// todo visibility is set by the type
 
-			var colliderAuthoring = gameObject.GetComponent<KickerColliderComponent>();
-			if (colliderAuthoring) {
-				data.IsEnabled = colliderAuthoring.enabled;
-				data.Scatter = colliderAuthoring.Scatter;
-				data.HitAccuracy = colliderAuthoring.HitAccuracy;
-				data.HitHeight = colliderAuthoring.HitHeight;
-				data.FallThrough = colliderAuthoring.FallThrough;
-				data.LegacyMode = colliderAuthoring.LegacyMode;
-				data.Angle = colliderAuthoring.EjectAngle;
-				data.Speed = colliderAuthoring.EjectSpeed;
+			var colliderComponent = gameObject.GetComponent<KickerColliderComponent>();
+			if (colliderComponent) {
+				data.IsEnabled = colliderComponent.enabled;
+				data.Scatter = colliderComponent.Scatter;
+				data.HitAccuracy = colliderComponent.HitAccuracy;
+				data.HitHeight = colliderComponent.HitHeight;
+				data.FallThrough = colliderComponent.FallThrough;
+				data.LegacyMode = colliderComponent.LegacyMode;
+				data.Angle = colliderComponent.EjectAngle;
+				data.Speed = colliderComponent.EjectSpeed;
 
 			} else {
 				data.IsEnabled = false;

@@ -26,10 +26,10 @@ using Mesh = VisualPinball.Engine.VPT.Mesh;
 
 namespace VisualPinball.Unity
 {
-	public abstract class ItemMeshComponent<TData, TAuthoring> : ItemSubComponent<TData, TAuthoring>,
+	public abstract class ItemMeshComponent<TData, TComponent> : ItemSubComponent<TData, TComponent>,
 		IItemMeshComponent
 		where TData : ItemData
-		where TAuthoring : ItemMainRenderableComponent<TData>
+		where TComponent : ItemMainRenderableComponent<TData>
 	{
 		public IItemMainRenderableComponent MainRenderableComponent => MainComponent;
 

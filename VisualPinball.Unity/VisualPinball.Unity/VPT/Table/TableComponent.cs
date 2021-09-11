@@ -54,8 +54,8 @@ namespace VisualPinball.Unity
 
 		public override IEnumerable<Type> ValidParents => Type.EmptyTypes;
 
-		protected override Type MeshAuthoringType => null;
-		protected override Type ColliderAuthoringType => null;
+		protected override Type MeshComponentType => null;
+		protected override Type ColliderComponentType => null;
 
 		#endregion
 

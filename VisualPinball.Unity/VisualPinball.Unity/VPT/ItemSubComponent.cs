@@ -19,17 +19,17 @@ namespace VisualPinball.Unity
 	/// the component gets re-parented.
 	/// </remarks>
 	/// <typeparam name="TData">Data type of the item</typeparam>
-	/// <typeparam name="TMainAuthoring">Type of the main component, where the data is.</typeparam>
-	public abstract class ItemSubComponent<TData, TMainAuthoring> : ItemComponent
+	/// <typeparam name="TMainComponent">Type of the main component, where the data is.</typeparam>
+	public abstract class ItemSubComponent<TData, TMainComponent> : ItemComponent
 		where TData : ItemData
-		where TMainAuthoring : ItemMainComponent<TData>
+		where TMainComponent : ItemMainComponent<TData>
 	{
 		/// <summary>
-		/// Finds the main authoring component in the parent.
+		/// Finds the main component in the parent.
 		/// </summary>
-		public TMainAuthoring MainComponent => FindMainAuthoring();
+		public TMainComponent MainComponent => FindMainComponent();
 
-		public bool HasMainComponent => FindMainAuthoring() == null;
+		public bool HasMainComponent => FindMainComponent() == null;
 
 		public override string ItemName => MainComponent.ItemName;
 
@@ -39,28 +39,28 @@ namespace VisualPinball.Unity
 
 		public bool IsCorrectlyParented {
 			get {
-				var parentAuthoring = ParentComponent;
-				return parentAuthoring == null || ValidParents.Any(validParent => parentAuthoring.GetType() == validParent);
+				var parentComponent = ParentComponent;
+				return parentComponent == null || ValidParents.Any(validParent => parentComponent.GetType() == validParent);
 			}
 		}
 
-		private TMainAuthoring FindMainAuthoring()
+		private TMainComponent FindMainComponent()
 		{
 			var go = gameObject;
 
 			// search on current game object
-			var ac = go.GetComponent<TMainAuthoring>();
+			var ac = go.GetComponent<TMainComponent>();
 			if (ac != null) {
 				return ac;
 			}
-			if (this is IItemColliderAuthoring) {
+			if (this is IItemColliderComponent) {
 				// collider must be on the same game object
 				return null;
 			}
 
 			// search on parent
 			if (go.transform.parent != null) {
-				ac = go.transform.parent.GetComponent<TMainAuthoring>();
+				ac = go.transform.parent.GetComponent<TMainComponent>();
 			}
 			if (ac != null) {
 				return ac;
@@ -68,7 +68,7 @@ namespace VisualPinball.Unity
 
 			// search on grand parent
 			if (go.transform.parent != null && go.transform.parent.transform.parent != null) {
-				ac = go.transform.parent.transform.parent.GetComponent<TMainAuthoring>();
+				ac = go.transform.parent.transform.parent.GetComponent<TMainComponent>();
 			}
 			if (ac != null) {
 				return ac;
@@ -76,11 +76,11 @@ namespace VisualPinball.Unity
 
 			// search on great grand parent
 			if (go.transform.parent != null && go.transform.parent.transform.parent != null && go.transform.parent.transform.parent.transform.parent != null) {
-				ac = go.transform.parent.transform.parent.transform.parent.GetComponent<TMainAuthoring>();
+				ac = go.transform.parent.transform.parent.transform.parent.GetComponent<TMainComponent>();
 			}
 
 			if (ac == null) {
-				Debug.LogWarning("No same- or parent authoring component found.");
+				Debug.LogWarning("No same- or parent component found.");
 			}
 
 			return ac;

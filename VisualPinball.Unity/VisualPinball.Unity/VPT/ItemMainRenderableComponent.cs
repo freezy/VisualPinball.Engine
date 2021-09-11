@@ -31,26 +31,26 @@ namespace VisualPinball.Unity
 		public virtual bool CanBeTransformed => true;
 
 		/// <summary>
-		/// Authoring type of the child class.
+		/// Component type of the child class.
 		/// </summary>
-		protected abstract Type MeshAuthoringType { get; }
+		protected abstract Type MeshComponentType { get; }
 
-		protected abstract Type ColliderAuthoringType { get; }
+		protected abstract Type ColliderComponentType { get; }
 
 		public Entity Entity { get; set; }
 
 		/// <summary>
 		/// Returns all child mesh components linked to this data.
 		/// </summary>
-		private IEnumerable<IItemMeshComponent> MeshComponents => MeshAuthoringType != null ?
-			GetComponentsInChildren(MeshAuthoringType, true)
+		private IEnumerable<IItemMeshComponent> MeshComponents => MeshComponentType != null ?
+			GetComponentsInChildren(MeshComponentType, true)
 				.Select(c => (IItemMeshComponent) c)
 				/*.Where(ma => ma.ItemData == _data)*/ : Array.Empty<IItemMeshComponent>();
 
-		private IEnumerable<IItemColliderAuthoring> ColliderComponents => ColliderAuthoringType != null ?
-			GetComponentsInChildren(ColliderAuthoringType, true)
-				.Select(c => (IItemColliderAuthoring) c)
-				/*.Where(ca => ca.ItemData == _data)*/ : Array.Empty<IItemColliderAuthoring>();
+		private IEnumerable<IItemColliderComponent> ColliderComponents => ColliderComponentType != null ?
+			GetComponentsInChildren(ColliderComponentType, true)
+				.Select(c => (IItemColliderComponent) c)
+				/*.Where(ca => ca.ItemData == _data)*/ : Array.Empty<IItemColliderComponent>();
 
 		public void RebuildMeshes()
 		{
@@ -89,9 +89,9 @@ namespace VisualPinball.Unity
 		protected void Convert(Entity entity, EntityManager dstManager)
 		{
 			Entity = entity;
-			var parentAuthoring = ParentComponent;
-			if (parentAuthoring != null && !(parentAuthoring is TableComponent)) {
-				ParentEntity = parentAuthoring.Entity;
+			var parentComponent = ParentComponent;
+			if (parentComponent != null && !(parentComponent is TableComponent)) {
+				ParentEntity = parentComponent.Entity;
 			}
 		}
 

@@ -71,8 +71,8 @@ namespace VisualPinball.Unity
 
 		public override TriggerData InstantiateData() => new TriggerData();
 
-		protected override Type MeshAuthoringType { get; } = typeof(ItemMeshComponent<TriggerData, TriggerComponent>);
-		protected override Type ColliderAuthoringType { get; } = typeof(ItemColliderComponent<TriggerData, TriggerComponent>);
+		protected override Type MeshComponentType { get; } = typeof(ItemMeshComponent<TriggerData, TriggerComponent>);
+		protected override Type ColliderComponentType { get; } = typeof(ItemColliderComponent<TriggerData, TriggerComponent>);
 
 		public bool DragPointsActive {
 			get {
@@ -181,7 +181,7 @@ namespace VisualPinball.Unity
 
 		public override IEnumerable<MonoBehaviour> SetReferencedData(TriggerData data, Table table, IMaterialProvider materialProvider, ITextureProvider textureProvider, Dictionary<string, IItemMainComponent> components)
 		{
-			Surface = GetAuthoring<SurfaceComponent>(components, data.Surface);
+			Surface = FindComponent<SurfaceComponent>(components, data.Surface);
 
 			// mesh
 			var meshComponent = GetComponent<TriggerMeshComponent>();

@@ -23,17 +23,17 @@ using VisualPinball.Engine.VPT;
 
 namespace VisualPinball.Unity.Editor
 {
-	public class ItemMainInspector<TData, TMainAuthoring> : ItemInspector
+	public class ItemMainInspector<TData, TMainComponent> : ItemInspector
 		where TData : ItemData
-		where TMainAuthoring : ItemMainComponent<TData>
+		where TMainComponent : ItemMainComponent<TData>
 	{
-		protected TMainAuthoring MainComponent;
+		protected TMainComponent MainComponent;
 
 		protected override MonoBehaviour UndoTarget => MainComponent;
 
 		protected override void OnEnable()
 		{
-			MainComponent = (TMainAuthoring)target;
+			MainComponent = (TMainComponent)target;
 			base.OnEnable();
 		}
 
@@ -61,18 +61,16 @@ namespace VisualPinball.Unity.Editor
 
 		protected void UpdateSurfaceReferences(Transform obj)
 		{
-			var surfaceAuthoring = obj.gameObject.GetComponent<IOnSurfaceComponent>();
-			if (surfaceAuthoring != null && surfaceAuthoring.Surface == MainComponent) {
-				surfaceAuthoring.OnSurfaceUpdated();
+			var surfaceComponent = obj.gameObject.GetComponent<IOnSurfaceComponent>();
+			if (surfaceComponent != null && surfaceComponent.Surface == MainComponent) {
+				surfaceComponent.OnSurfaceUpdated();
 			}
 		}
 
 		protected void UpdateTableHeightReferences(Transform obj)
 		{
-			var onTableAuthoring = obj.gameObject.GetComponent<IOnPlayfieldComponent>();
-			if (onTableAuthoring != null) {
-				onTableAuthoring.OnPlayfieldHeightUpdated();
-			}
+			var onPlayfieldComponent = obj.gameObject.GetComponent<IOnPlayfieldComponent>();
+			onPlayfieldComponent?.OnPlayfieldHeightUpdated();
 		}
 	}
 }

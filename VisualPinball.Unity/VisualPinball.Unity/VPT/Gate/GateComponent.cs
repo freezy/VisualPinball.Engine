@@ -94,8 +94,8 @@ namespace VisualPinball.Unity
 
 		public override GateData InstantiateData() => new GateData();
 
-		protected override Type MeshAuthoringType { get; } = typeof(ItemMeshComponent<GateData, GateComponent>);
-		protected override Type ColliderAuthoringType { get; } = typeof(ItemColliderComponent<GateData, GateComponent>);
+		protected override Type MeshComponentType { get; } = typeof(ItemMeshComponent<GateData, GateComponent>);
+		protected override Type ColliderComponentType { get; } = typeof(ItemColliderComponent<GateData, GateComponent>);
 
 		public const string BracketObjectName = "Bracket";
 		public const string WireObjectName = "Wire";
@@ -148,22 +148,22 @@ namespace VisualPinball.Unity
 			Convert(entity, dstManager);
 
 			// collision
-			var colliderAuthoring = gameObject.GetComponent<GateColliderComponent>();
-			if (colliderAuthoring) {
+			var colliderComponent = gameObject.GetComponent<GateColliderComponent>();
+			if (colliderComponent) {
 
 				dstManager.AddComponentData(entity, new GateStaticData {
-					AngleMin = math.radians(colliderAuthoring._angleMin),
-					AngleMax = math.radians(colliderAuthoring._angleMax),
+					AngleMin = math.radians(colliderComponent._angleMin),
+					AngleMax = math.radians(colliderComponent._angleMax),
 					Height = Position.z,
-					Damping = math.pow(colliderAuthoring.Damping, (float)PhysicsConstants.PhysFactor),
-					GravityFactor = colliderAuthoring.GravityFactor,
-					TwoWay = colliderAuthoring.TwoWay,
+					Damping = math.pow(colliderComponent.Damping, (float)PhysicsConstants.PhysFactor),
+					GravityFactor = colliderComponent.GravityFactor,
+					TwoWay = colliderComponent.TwoWay,
 				});
 
 				// movement data
 				if (GetComponentInChildren<GateWireAnimationComponent>()) {
 					dstManager.AddComponentData(entity, new GateMovementData {
-						Angle = math.radians(colliderAuthoring._angleMin),
+						Angle = math.radians(colliderComponent._angleMin),
 						AngleSpeed = 0,
 						ForcedMove = false,
 						IsOpen = false,
@@ -204,23 +204,23 @@ namespace VisualPinball.Unity
 			}
 
 			// collider data
-			var colliderAuthoring = gameObject.GetComponent<GateColliderComponent>();
-			if (colliderAuthoring) {
-				colliderAuthoring._angleMin = math.degrees(data.AngleMin);
-				colliderAuthoring._angleMax = math.degrees(data.AngleMax);
-				if (colliderAuthoring._angleMin > 180f) {
-					colliderAuthoring._angleMin -= 360f;
+			var colliderComponent = gameObject.GetComponent<GateColliderComponent>();
+			if (colliderComponent) {
+				colliderComponent._angleMin = math.degrees(data.AngleMin);
+				colliderComponent._angleMax = math.degrees(data.AngleMax);
+				if (colliderComponent._angleMin > 180f) {
+					colliderComponent._angleMin -= 360f;
 				}
-				if (colliderAuthoring._angleMax > 180f) {
-					colliderAuthoring._angleMax -= 360f;
+				if (colliderComponent._angleMax > 180f) {
+					colliderComponent._angleMax -= 360f;
 				}
-				colliderAuthoring.Damping = data.Damping;
-				colliderAuthoring.Elasticity = data.Elasticity;
-				colliderAuthoring.Friction = data.Friction;
-				colliderAuthoring.GravityFactor = data.GravityFactor;
-				colliderAuthoring._twoWay = data.TwoWay;
+				colliderComponent.Damping = data.Damping;
+				colliderComponent.Elasticity = data.Elasticity;
+				colliderComponent.Friction = data.Friction;
+				colliderComponent.GravityFactor = data.GravityFactor;
+				colliderComponent._twoWay = data.TwoWay;
 
-				updatedComponents.Add(colliderAuthoring);
+				updatedComponents.Add(colliderComponent);
 			}
 
 			return updatedComponents;
@@ -228,7 +228,7 @@ namespace VisualPinball.Unity
 
 		public override IEnumerable<MonoBehaviour> SetReferencedData(GateData data, Table table, IMaterialProvider materialProvider, ITextureProvider textureProvider, Dictionary<string, IItemMainComponent> components)
 		{
-			Surface = GetAuthoring<SurfaceComponent>(components, data.Surface);
+			Surface = FindComponent<SurfaceComponent>(components, data.Surface);
 			return Array.Empty<MonoBehaviour>();
 		}
 
@@ -257,17 +257,17 @@ namespace VisualPinball.Unity
 			}
 
 			// collision data
-			var colliderAuthoring = gameObject.GetComponent<GateColliderComponent>();
-			if (colliderAuthoring) {
-				data.IsCollidable = colliderAuthoring.enabled;
+			var colliderComponent = gameObject.GetComponent<GateColliderComponent>();
+			if (colliderComponent) {
+				data.IsCollidable = colliderComponent.enabled;
 
-				data.AngleMin = math.radians(colliderAuthoring._angleMin);
-				data.AngleMax = math.radians(colliderAuthoring._angleMax);
-				data.Damping = colliderAuthoring.Damping;
-				data.Elasticity = colliderAuthoring.Elasticity;
-				data.Friction = colliderAuthoring.Friction;
-				data.GravityFactor = colliderAuthoring.GravityFactor;
-				data.TwoWay = colliderAuthoring._twoWay;
+				data.AngleMin = math.radians(colliderComponent._angleMin);
+				data.AngleMax = math.radians(colliderComponent._angleMax);
+				data.Damping = colliderComponent.Damping;
+				data.Elasticity = colliderComponent.Elasticity;
+				data.Friction = colliderComponent.Friction;
+				data.GravityFactor = colliderComponent.GravityFactor;
+				data.TwoWay = colliderComponent._twoWay;
 
 			} else {
 				data.IsCollidable = false;

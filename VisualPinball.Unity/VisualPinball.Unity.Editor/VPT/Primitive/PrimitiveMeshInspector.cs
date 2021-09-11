@@ -48,7 +48,7 @@ namespace VisualPinball.Unity.Editor
 			OnPreInspectorGUI();
 
 			EditorGUI.BeginDisabledGroup(_useLegacyMeshProperty.boolValue);
-			var mf = MeshAuthoring.GetComponent<MeshFilter>();
+			var mf = MeshComponent.GetComponent<MeshFilter>();
 			if (mf) {
 				EditorGUI.BeginChangeCheck();
 				var newMesh = (Mesh)EditorGUILayout.ObjectField("Mesh", mf.sharedMesh, typeof(Mesh), true);

@@ -62,8 +62,8 @@ namespace VisualPinball.Unity
 			.Concat(PrimitiveMeshComponent.ValidParentTypes)
 			.Distinct();
 
-		protected override Type MeshAuthoringType { get; } = typeof(ItemMeshComponent<PrimitiveData, PrimitiveComponent>);
-		protected override Type ColliderAuthoringType { get; } = typeof(ItemColliderComponent<PrimitiveData, PrimitiveComponent>);
+		protected override Type MeshComponentType { get; } = typeof(ItemMeshComponent<PrimitiveData, PrimitiveComponent>);
+		protected override Type ColliderComponentType { get; } = typeof(ItemColliderComponent<PrimitiveData, PrimitiveComponent>);
 
 		#endregion
 

@@ -84,8 +84,8 @@ namespace VisualPinball.Unity
 
 		public override SpinnerData InstantiateData() => new SpinnerData();
 
-		protected override Type MeshAuthoringType { get; } = typeof(ItemMeshComponent<SpinnerData, SpinnerComponent>);
-		protected override Type ColliderAuthoringType { get; } = typeof(ItemColliderComponent<SpinnerData, SpinnerComponent>);
+		protected override Type MeshComponentType { get; } = typeof(ItemMeshComponent<SpinnerData, SpinnerComponent>);
+		protected override Type ColliderComponentType { get; } = typeof(ItemColliderComponent<SpinnerData, SpinnerComponent>);
 
 		private const string BracketMeshName = "Spinner (Bracket)";
 		public const string SwitchItem = "spinner_switch";
@@ -198,7 +198,7 @@ namespace VisualPinball.Unity
 
 		public override IEnumerable<MonoBehaviour> SetReferencedData(SpinnerData data, Table table, IMaterialProvider materialProvider, ITextureProvider textureProvider, Dictionary<string, IItemMainComponent> components)
 		{
-			Surface = GetAuthoring<SurfaceComponent>(components, data.Surface);
+			Surface = FindComponent<SurfaceComponent>(components, data.Surface);
 			return Array.Empty<MonoBehaviour>();
 		}
 

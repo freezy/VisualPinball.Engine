@@ -104,11 +104,11 @@ namespace VisualPinball.Unity.Editor
 		{
 			_options = new ConvertOptions();
 			_tableGo = tableComponent.gameObject;
-			var playfieldAuthoring = _tableGo.GetComponentInChildren<PlayfieldComponent>();
-			if (!playfieldAuthoring) {
+			var playfieldComponent = _tableGo.GetComponentInChildren<PlayfieldComponent>();
+			if (!playfieldComponent) {
 				throw new InvalidOperationException("Cannot find playfield hierarchy.");
 			}
-			_playfieldGo = playfieldAuthoring.gameObject;
+			_playfieldGo = playfieldComponent.gameObject;
 			_tableComponent = tableComponent;
 			_sourceTable = new Table(_tableComponent.TableContainer, new TableData());
 

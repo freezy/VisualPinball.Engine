@@ -21,7 +21,7 @@ using UnityEngine;
 namespace VisualPinball.Unity
 {
 	/// <summary>
-	/// The base class for all authoring components on the playfield.<p/>
+	/// The base class for all components on the playfield.<p/>
 	/// </summary>
 	public abstract class ItemComponent : MonoBehaviour
 	{

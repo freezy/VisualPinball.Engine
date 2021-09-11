@@ -23,31 +23,31 @@ using VisualPinball.Engine.VPT;
 
 namespace VisualPinball.Unity.Editor
 {
-	public class ItemMeshInspector<TData, TMainAuthoring, TMeshAuthoring> : ItemInspector
-		where TMeshAuthoring : ItemMeshComponent<TData, TMainAuthoring>
+	public class ItemMeshInspector<TData, TMainComponent, TMeshComponent> : ItemInspector
+		where TMeshComponent : ItemMeshComponent<TData, TMainComponent>
 		where TData : ItemData
-		where TMainAuthoring : ItemMainRenderableComponent<TData>
+		where TMainComponent : ItemMainRenderableComponent<TData>
 	{
-		protected TMeshAuthoring MeshAuthoring;
+		protected TMeshComponent MeshComponent;
 
-		protected override MonoBehaviour UndoTarget => MeshAuthoring.MainComponent;
+		protected override MonoBehaviour UndoTarget => MeshComponent.MainComponent;
 
-		private bool HasMainComponent => MeshAuthoring == null || !MeshAuthoring.HasMainComponent;
+		private bool HasMainComponent => MeshComponent == null || !MeshComponent.HasMainComponent;
 
 		protected override void OnEnable()
 		{
-			MeshAuthoring = target as TMeshAuthoring;
+			MeshComponent = target as TMeshComponent;
 			base.OnEnable();
 		}
 
 		public override void OnInspectorGUI()
 		{
-			if (MeshAuthoring == null) {
+			if (MeshComponent == null) {
 				return;
 			}
 
 			if (GUILayout.Button("Force Update Mesh")) {
-				MeshAuthoring.RebuildMeshes();
+				MeshComponent.RebuildMeshes();
 			}
 		}
 
@@ -58,7 +58,7 @@ namespace VisualPinball.Unity.Editor
 				return true;
 			}
 
-			if (!MeshAuthoring.IsCorrectlyParented) {
+			if (!MeshComponent.IsCorrectlyParented) {
 				InvalidParentError();
 				return true;
 			}
@@ -68,16 +68,16 @@ namespace VisualPinball.Unity.Editor
 
 		private static void NoDataError()
 		{
-			EditorGUILayout.HelpBox($"Cannot find main component!\n\nYou must have a {typeof(TMainAuthoring).Name} component on either this GameObject, its parent or grand parent.", MessageType.Error);
+			EditorGUILayout.HelpBox($"Cannot find main component!\n\nYou must have a {typeof(TMainComponent).Name} component on either this GameObject, its parent or grand parent.", MessageType.Error);
 		}
 
 		private void InvalidParentError()
 		{
-			var validParentTypes = MeshAuthoring.ValidParents.ToArray();
+			var validParentTypes = MeshComponent.ValidParents.ToArray();
 			var typeMessage = validParentTypes.Length > 0
 				? $"Supported parents are: [ {string.Join(", ", validParentTypes.Select(t => t.Name))} ]."
-				: $"In this case, meshes for {MeshAuthoring.ItemName} don't support any parenting at all.";
-			EditorGUILayout.HelpBox($"Invalid parent. This {MeshAuthoring.ItemName} is parented to a {MeshAuthoring.ParentComponent.ItemName}, which VPE doesn't support.\n{typeMessage}", MessageType.Error);
+				: $"In this case, meshes for {MeshComponent.ItemName} don't support any parenting at all.";
+			EditorGUILayout.HelpBox($"Invalid parent. This {MeshComponent.ItemName} is parented to a {MeshComponent.ParentComponent.ItemName}, which VPE doesn't support.\n{typeMessage}", MessageType.Error);
 			if (GUILayout.Button("Open Documentation", EditorStyles.linkLabel)) {
 				Application.OpenURL("https://docs.visualpinball.org/creators-guide/editor/unity-components.html");
 			}

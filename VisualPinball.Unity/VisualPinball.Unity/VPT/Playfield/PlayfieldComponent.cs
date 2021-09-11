@@ -73,8 +73,8 @@ namespace VisualPinball.Unity
 
 		public override TableData InstantiateData() => new TableData();
 
-		protected override Type MeshAuthoringType => typeof(PlayfieldMeshComponent);
-		protected override Type ColliderAuthoringType => typeof(PlayfieldColliderComponent);
+		protected override Type MeshComponentType => typeof(PlayfieldMeshComponent);
+		protected override Type ColliderComponentType => typeof(PlayfieldColliderComponent);
 
 		public override IEnumerable<Type> ValidParents => PlayfieldColliderComponent.ValidParentTypes
 			.Concat(PlayfieldMeshComponent.ValidParentTypes)
@@ -149,8 +149,8 @@ namespace VisualPinball.Unity
 		public IEnumerable<MonoBehaviour> SetReferencedData(PrimitiveData primitiveData, Table table, IMaterialProvider materialProvider, ITextureProvider textureProvider)
 		{
 			var mf = GetComponent<MeshFilter>();
-			var playfieldMeshAuthoring = GetComponent<PlayfieldMeshComponent>();
-			if (!mf || !playfieldMeshAuthoring) {
+			var playfieldMeshComponent = GetComponent<PlayfieldMeshComponent>();
+			if (!mf || !playfieldMeshComponent) {
 				return Array.Empty<MonoBehaviour>();
 			}
 
@@ -163,9 +163,9 @@ namespace VisualPinball.Unity
 			);
 			ro.Mesh.Transform(mg.TransformationMatrix(PlayfieldHeight)); // apply transformation to mesh, because this is the playfield
 			ItemMeshComponent<PrimitiveData, PrimitiveComponent>.CreateMesh(gameObject, ro, "playfield_mesh", textureProvider, materialProvider);
-			playfieldMeshAuthoring.AutoGenerate = false;
+			playfieldMeshComponent.AutoGenerate = false;
 
-			updatedComponents.Add(playfieldMeshAuthoring);
+			updatedComponents.Add(playfieldMeshComponent);
 
 			return updatedComponents;
 		}
