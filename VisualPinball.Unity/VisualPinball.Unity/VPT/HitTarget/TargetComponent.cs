@@ -120,7 +120,6 @@ namespace VisualPinball.Unity
 
 		#region Transformation
 
-
 		public override void UpdateTransforms()
 		{
 			base.UpdateTransforms();
@@ -231,6 +230,10 @@ namespace VisualPinball.Unity
 			if (colliderComponent) {
 				colliderComponent.PhysicsMaterial = materialProvider.GetPhysicsMaterial(data.PhysicsMaterial);
 			}
+
+			// visibility
+			SetEnabled<Renderer>(data.IsVisible);
+
 			return Array.Empty<MonoBehaviour>();
 		}
 
@@ -243,6 +246,7 @@ namespace VisualPinball.Unity
 			data.Size = Size.ToVertex3D();
 
 			data.TargetType = _targetType;
+			data.IsVisible = GetEnabled<Renderer>();
 
 			// collision data
 			var colliderComponent = GetComponent<HitTargetColliderComponent>();
