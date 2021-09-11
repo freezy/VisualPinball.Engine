@@ -186,23 +186,6 @@ namespace VisualPinball.Unity
 			_length = data.Length;
 			_type = data.GateType;
 
-			// visibility
-			foreach (var mf in GetComponentsInChildren<MeshFilter>()) {
-				switch (mf.gameObject.name) {
-					case BracketObjectName:
-						mf.gameObject.SetActive(data.IsVisible && data.ShowBracket);
-						break;
-					case WireObjectName:
-						#if UNITY_EDITOR
-							_meshName = System.IO.Path.GetFileNameWithoutExtension(UnityEditor.AssetDatabase.GetAssetPath(mf.sharedMesh));
-						#endif
-						break;
-					default:
-						mf.gameObject.SetActive(data.IsVisible);
-						break;
-				}
-			}
-
 			// collider data
 			var colliderComponent = gameObject.GetComponent<GateColliderComponent>();
 			if (colliderComponent) {
@@ -229,6 +212,25 @@ namespace VisualPinball.Unity
 		public override IEnumerable<MonoBehaviour> SetReferencedData(GateData data, Table table, IMaterialProvider materialProvider, ITextureProvider textureProvider, Dictionary<string, IItemMainComponent> components)
 		{
 			Surface = FindComponent<SurfaceComponent>(components, data.Surface);
+
+			// visibility
+			foreach (var mf in GetComponentsInChildren<MeshFilter>()) {
+				switch (mf.gameObject.name) {
+					case BracketObjectName:
+						mf.gameObject.SetActive(data.IsVisible && data.ShowBracket);
+						break;
+					case WireObjectName:
+						#if UNITY_EDITOR
+						_meshName = System.IO.Path.GetFileNameWithoutExtension(UnityEditor.AssetDatabase.GetAssetPath(mf.sharedMesh));
+						#endif
+						mf.gameObject.SetActive(data.IsVisible);
+						break;
+					default:
+						mf.gameObject.SetActive(data.IsVisible);
+						break;
+				}
+			}
+
 			return Array.Empty<MonoBehaviour>();
 		}
 
