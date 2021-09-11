@@ -46,7 +46,13 @@ namespace VisualPinball.Unity.Editor
 			ColliderComponent = target as TColliderAuthoring;
 			if (ColliderComponent != null) {
 				ColliderComponent.ShowGizmos = true;
+
+				// if no meshes active, show collider
+				if (ColliderComponent.MainComponent && !ColliderComponent.MainComponent.GetComponentsInChildren<MeshRenderer>().Any(mr => mr.enabled)) {
+					ColliderComponent.ShowColliderMesh = true;
+				}
 			}
+
 			base.OnEnable();
 		}
 
