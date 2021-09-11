@@ -14,24 +14,12 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-using System;
-using System.Collections.Generic;
-using UnityEngine;
-
 namespace VisualPinball.Unity
 {
 	public interface IItemMeshComponent
 	{
-		IItemMainRenderableComponent IMainAuthoring { get; }
-
-		// ReSharper disable once InconsistentNaming
-		/// <summary>
-		/// Reference to the MonoBehavior's GameObject
-		/// </summary>
-		GameObject gameObject { get; }
+		IItemMainRenderableComponent MainRenderableComponent { get; }
 
 		void RebuildMeshes();
-
-		IEnumerable<Type> ValidParents { get; }
 	}
 }

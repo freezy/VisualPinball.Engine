@@ -51,9 +51,9 @@ namespace VisualPinball.Unity.Editor
 		{
 			switch (target) {
 				case IItemMeshComponent meshItem:
-					meshItem.IMainAuthoring.RebuildMeshes();
-					meshItem.IMainAuthoring.UpdateTransforms();
-					meshItem.IMainAuthoring.UpdateVisibility();
+					meshItem.MainRenderableComponent.RebuildMeshes();
+					meshItem.MainRenderableComponent.UpdateTransforms();
+					meshItem.MainRenderableComponent.UpdateVisibility();
 					break;
 				case IItemMainRenderableComponent mainItem:
 					mainItem.RebuildMeshes();
@@ -97,13 +97,13 @@ namespace VisualPinball.Unity.Editor
 				switch (target) {
 					case IItemMeshComponent meshItem:
 						if (rebuildMesh) {
-							meshItem.IMainAuthoring.RebuildMeshes();
+							meshItem.MainRenderableComponent.RebuildMeshes();
 						}
 						if (updateTransforms) {
-							meshItem.IMainAuthoring.UpdateTransforms();
+							meshItem.MainRenderableComponent.UpdateTransforms();
 						}
 						if (updateVisibility) {
-							meshItem.IMainAuthoring.UpdateVisibility();
+							meshItem.MainRenderableComponent.UpdateVisibility();
 						}
 						break;
 
@@ -152,10 +152,10 @@ namespace VisualPinball.Unity.Editor
 				switch (target) {
 					case IItemMeshComponent meshItem:
 						if (rebuildMesh) {
-							meshItem.IMainAuthoring.RebuildMeshes();
+							meshItem.MainRenderableComponent.RebuildMeshes();
 						}
 						if (updateVisibility) {
-							meshItem.IMainAuthoring.UpdateVisibility();
+							meshItem.MainRenderableComponent.UpdateVisibility();
 						}
 						break;
 
@@ -248,7 +248,7 @@ namespace VisualPinball.Unity.Editor
 
 					case IItemMeshComponent meshItem:
 						Undo.RecordObjects(new Object[] {UndoTarget, UndoTarget.transform}, undoLabel);
-						meshItem.IMainAuthoring.RebuildMeshes();
+						meshItem.MainRenderableComponent.RebuildMeshes();
 						break;
 
 					case IItemColliderAuthoring _:
