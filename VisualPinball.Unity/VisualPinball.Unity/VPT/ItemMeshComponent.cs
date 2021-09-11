@@ -116,9 +116,11 @@ namespace VisualPinball.Unity
 
 			if (mf != null) {
 				var unityMesh = mf.sharedMesh;
-				if (unityMesh) {
-					mesh.ApplyToUnityMesh(unityMesh);
+				if (!unityMesh) {
+					mf.sharedMesh = new UnityEngine.Mesh() { name = $"{name} (Generated)" };
+					unityMesh = mf.sharedMesh;
 				}
+				mesh.ApplyToUnityMesh(unityMesh);
 			}
 		}
 
