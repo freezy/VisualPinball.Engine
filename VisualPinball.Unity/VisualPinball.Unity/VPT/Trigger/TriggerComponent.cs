@@ -257,7 +257,12 @@ namespace VisualPinball.Unity
 			Position = ((float3)pos).xy;
 		}
 
-		public override ItemDataTransformType EditorRotationType => ItemDataTransformType.OneD;
+		public override ItemDataTransformType EditorRotationType{
+			get {
+				var meshComp = GetComponent<TriggerMeshComponent>();
+				return !meshComp || !meshComp.IsCircle ? ItemDataTransformType.None : ItemDataTransformType.OneD;
+			}
+		}
 		public override Vector3 GetEditorRotation() => new Vector3(Rotation, 0f, 0f);
 		public override void SetEditorRotation(Vector3 rot) => Rotation = ClampDegrees(rot.x);
 
