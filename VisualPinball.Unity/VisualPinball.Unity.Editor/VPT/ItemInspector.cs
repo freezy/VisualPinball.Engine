@@ -119,7 +119,7 @@ namespace VisualPinball.Unity.Editor
 						}
 						break;
 
-					case IItemColliderAuthoring colliderComponent:
+					case IItemColliderComponent colliderComponent:
 						if (updateColliders) {
 							colliderComponent.CollidersDirty = true;
 						}
@@ -251,7 +251,7 @@ namespace VisualPinball.Unity.Editor
 						meshItem.MainRenderableComponent.RebuildMeshes();
 						break;
 
-					case IItemColliderAuthoring _:
+					case IItemColliderComponent _:
 						Undo.RecordObject(UndoTarget, undoLabel);
 						break;
 

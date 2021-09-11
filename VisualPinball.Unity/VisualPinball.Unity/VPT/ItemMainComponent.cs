@@ -55,7 +55,7 @@ namespace VisualPinball.Unity
 
 		public abstract ItemType ItemType { get; }
 
-		protected T GetAuthoring<T>(Dictionary<string, IItemMainComponent> components, string surfaceName) where T : class, IItemMainComponent
+		protected T FindComponent<T>(Dictionary<string, IItemMainComponent> components, string surfaceName) where T : class, IItemMainComponent
 		{
 			return (components != null && components.ContainsKey(surfaceName.ToLower())
 					? components[surfaceName.ToLower()]
@@ -82,24 +82,24 @@ namespace VisualPinball.Unity
 
 		protected Entity ParentEntity {
 			get {
-				var parentAuthoring = ParentComponent;
-				if (parentAuthoring != null && !(parentAuthoring is TableComponent)) {
-					return parentAuthoring.Entity;
+				var parentComponent = ParentComponent;
+				if (parentComponent != null && !(parentComponent is TableComponent)) {
+					return parentComponent.Entity;
 				}
 				return Entity.Null;
 			}
 			set => throw new NotImplementedException();
 		}
 
-		public IItemMainRenderableComponent ParentComponent => FindParentAuthoring();
+		public IItemMainRenderableComponent ParentComponent => FindParentComponent();
 
 		public bool IsCorrectlyParented {
 			get {
-				var parentAuthoring = ParentComponent;
-				return parentAuthoring == null || ValidParents.Any(validParent => parentAuthoring.GetType() == validParent);
+				var parentComponent = ParentComponent;
+				return parentComponent == null || ValidParents.Any(validParent => parentComponent.GetType() == validParent);
 			}
 		}
-		private IItemMainRenderableComponent FindParentAuthoring()
+		private IItemMainRenderableComponent FindParentComponent()
 		{
 			IItemMainRenderableComponent ma = null;
 			var go = gameObject;
@@ -131,7 +131,7 @@ namespace VisualPinball.Unity
 
 		#endregion
 
-		#region ILayerableItemAuthoring
+		#region ILayerableItemComponent
 
 		public int EditorLayer { get => _editorLayer; set => _editorLayer = value; }
 		public string EditorLayerName { get => _editorLayerName; set => _editorLayerName = value; }

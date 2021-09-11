@@ -66,8 +66,8 @@ namespace VisualPinball.Unity
 			.Concat(SurfaceTopMeshComponent.ValidParentTypes)
 			.Distinct();
 
-		protected override Type MeshAuthoringType { get; } = typeof(ItemMeshComponent<SurfaceData, SurfaceComponent>);
-		protected override Type ColliderAuthoringType { get; } = typeof(ItemColliderComponent<SurfaceData, SurfaceComponent>);
+		protected override Type MeshComponentType { get; } = typeof(ItemMeshComponent<SurfaceData, SurfaceComponent>);
+		protected override Type ColliderComponentType { get; } = typeof(ItemColliderComponent<SurfaceData, SurfaceComponent>);
 
 		public bool DragPointsActive => true;
 

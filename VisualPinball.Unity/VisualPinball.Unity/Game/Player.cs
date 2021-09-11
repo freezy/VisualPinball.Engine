@@ -298,32 +298,32 @@ namespace VisualPinball.Unity
 				_spinnables[entity] = spinnable;
 			}
 			if (api is IApiSwitchDevice switchDevice) {
-				if (component is ISwitchDeviceComponent switchDeviceAuthoring) {
-					_switchPlayer.RegisterSwitchDevice(switchDeviceAuthoring, switchDevice);
+				if (component is ISwitchDeviceComponent switchDeviceComponent) {
+					_switchPlayer.RegisterSwitchDevice(switchDeviceComponent, switchDevice);
 				} else  {
-					Logger.Warn($"{component.GetType()} is not of type ISwitchDeviceAuthoring while ${api.GetType()} is of type IApiSwitchDevice.");
+					Logger.Warn($"{component.GetType()} is not of type ISwitchDeviceComponent while ${api.GetType()} is of type IApiSwitchDevice.");
 				}
 			}
 			if (api is IApiCoilDevice coilDevice) {
-				if (component is ICoilDeviceComponent coilDeviceAuthoring) {
-					_coilPlayer.RegisterCoilDevice(coilDeviceAuthoring, coilDevice);
+				if (component is ICoilDeviceComponent coilDeviceComponent) {
+					_coilPlayer.RegisterCoilDevice(coilDeviceComponent, coilDevice);
 				} else {
-					Logger.Warn($"{component.GetType()} is not of type ICoilDeviceAuthoring while ${api.GetType()} is of type IApiCoilDevice.");
+					Logger.Warn($"{component.GetType()} is not of type ICoilDeviceComponent while ${api.GetType()} is of type IApiCoilDevice.");
 				}
 			}
 			if (api is IApiWireDeviceDest wireDevice) {
-				if (component is IWireableComponent wireableDeviceAuthoring) {
-					_wirePlayer.RegisterWireDevice(wireableDeviceAuthoring, wireDevice);
+				if (component is IWireableComponent wireableComponent) {
+					_wirePlayer.RegisterWireDevice(wireableComponent, wireDevice);
 				} else {
-					Logger.Warn($"{component.GetType()} is not of type ICoilDeviceAuthoring while ${api.GetType()} is of type IApiWireDeviceDest.");
+					Logger.Warn($"{component.GetType()} is not of type IWireableComponent while ${api.GetType()} is of type IApiWireDeviceDest.");
 				}
 			}
 
 			if (api is IApiLamp lamp) {
-				if (component is ILampDeviceComponent lampAuthoring) {
-					_lampPlayer.RegisterLamp(lampAuthoring, lamp);
+				if (component is ILampDeviceComponent lampDeviceComponent) {
+					_lampPlayer.RegisterLamp(lampDeviceComponent, lamp);
 				} else {
-					Logger.Warn($"{component.GetType()} is not of type ILampAuthoring while ${api.GetType()} is of type IApiLamp.");
+					Logger.Warn($"{component.GetType()} is not of type ILampDeviceComponent while ${api.GetType()} is of type IApiLamp.");
 				}
 			}
 

@@ -52,7 +52,7 @@ namespace VisualPinball.Unity
 	}
 
 	/// <summary>
-	/// Abstraction for authoring components that support drag points.
+	/// Abstraction for components that support drag points.
 	/// </summary>
 	public interface IDragPointsEditable
 	{

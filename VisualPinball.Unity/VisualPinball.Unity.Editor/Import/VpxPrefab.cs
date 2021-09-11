@@ -25,10 +25,10 @@ using Object = UnityEngine.Object;
 namespace VisualPinball.Unity.Editor
 {
 
-	internal class VpxPrefab<TItem, TData, TMainAuthoring> : IVpxPrefab
+	internal class VpxPrefab<TItem, TData, TMainComponent> : IVpxPrefab
 		where TItem : Item<TData>
 		where TData : ItemData
-		where TMainAuthoring : ItemMainComponent<TData>, IItemMainComponent
+		where TMainComponent : ItemMainComponent<TData>, IItemMainComponent
 	{
 		public GameObject GameObject { get; }
 		public IItemMainComponent MainComponent => _mainComponent;
@@ -45,7 +45,7 @@ namespace VisualPinball.Unity.Editor
 			_item = item;
 			GameObject = PrefabUtility.InstantiatePrefab(prefab) as GameObject;
 			GameObject!.name = item.Name;
-			_mainComponent = GameObject.GetComponent<TMainAuthoring>();
+			_mainComponent = GameObject.GetComponent<TMainComponent>();
 		}
 
 		public void SetData()

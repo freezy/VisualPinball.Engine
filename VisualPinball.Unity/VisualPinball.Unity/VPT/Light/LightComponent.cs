@@ -70,8 +70,8 @@ namespace VisualPinball.Unity
 
 		public override LightData InstantiateData() => new LightData();
 
-		protected override Type MeshAuthoringType { get; } = typeof(ItemMeshComponent<LightData, LightComponent>);
-		protected override Type ColliderAuthoringType { get; } = null;
+		protected override Type MeshComponentType { get; } = typeof(ItemMeshComponent<LightData, LightComponent>);
+		protected override Type ColliderComponentType { get; } = null;
 
 		public const string LampIdDefault = "default_lamp";
 		private const string BulbMeshName = "Light (Bulb)";
@@ -238,7 +238,7 @@ namespace VisualPinball.Unity
 
 		public override IEnumerable<MonoBehaviour> SetReferencedData(LightData data, Table table, IMaterialProvider materialProvider, ITextureProvider textureProvider, Dictionary<string, IItemMainComponent> components)
 		{
-			Surface = GetAuthoring<SurfaceComponent>(components, data.Surface);
+			Surface = FindComponent<SurfaceComponent>(components, data.Surface);
 			return Array.Empty<MonoBehaviour>();
 		}
 

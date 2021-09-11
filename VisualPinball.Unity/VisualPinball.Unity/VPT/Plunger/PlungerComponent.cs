@@ -70,8 +70,8 @@ namespace VisualPinball.Unity
 			.Concat(PlungerSpringMeshComponent.ValidParentTypes)
 			.Distinct();
 
-		protected override Type MeshAuthoringType { get; } = typeof(ItemMeshComponent<PlungerData, PlungerComponent>);
-		protected override Type ColliderAuthoringType { get; } = typeof(ItemColliderComponent<PlungerData, PlungerComponent>);
+		protected override Type MeshComponentType { get; } = typeof(ItemMeshComponent<PlungerData, PlungerComponent>);
+		protected override Type ColliderComponentType { get; } = typeof(ItemColliderComponent<PlungerData, PlungerComponent>);
 
 		public const string PullCoilId = "c_pull";
 		public const string FireCoilId = "c_autofire";
@@ -245,7 +245,7 @@ namespace VisualPinball.Unity
 
 		public override IEnumerable<MonoBehaviour> SetReferencedData(PlungerData data, Table table, IMaterialProvider materialProvider, ITextureProvider textureProvider, Dictionary<string, IItemMainComponent> components)
 		{
-			Surface = GetAuthoring<SurfaceComponent>(components, data.Surface);
+			Surface = FindComponent<SurfaceComponent>(components, data.Surface);
 
 			// rod mesh
 			var rodMesh = GetComponentInChildren<PlungerRodMeshComponent>(true);

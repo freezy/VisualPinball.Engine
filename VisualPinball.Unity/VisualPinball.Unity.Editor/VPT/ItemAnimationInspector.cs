@@ -22,20 +22,20 @@ using VisualPinball.Engine.VPT;
 
 namespace VisualPinball.Unity.Editor
 {
-	public class ItemAnimationInspector<TData, TMainAuthoring, TMovementAuthoring> : ItemInspector
-		where TMovementAuthoring : ItemAnimationComponent<TData, TMainAuthoring>
+	public class ItemAnimationInspector<TData, TMainComponent, TMovementComponent> : ItemInspector
+		where TMovementComponent : ItemAnimationComponent<TData, TMainComponent>
 		where TData : ItemData
-		where TMainAuthoring : ItemMainRenderableComponent<TData>
+		where TMainComponent : ItemMainRenderableComponent<TData>
 	{
-		private TMovementAuthoring _movementAuthoring;
+		private TMovementComponent _movementComponent;
 
-		private bool HasMainComponent => _movementAuthoring == null || !_movementAuthoring.HasMainComponent;
+		private bool HasMainComponent => _movementComponent == null || !_movementComponent.HasMainComponent;
 
-		protected override MonoBehaviour UndoTarget => _movementAuthoring.MainComponent;
+		protected override MonoBehaviour UndoTarget => _movementComponent.MainComponent;
 
 		protected override void OnEnable()
 		{
-			_movementAuthoring = target as TMovementAuthoring;
+			_movementComponent = target as TMovementComponent;
 			base.OnEnable();
 		}
 
@@ -51,7 +51,7 @@ namespace VisualPinball.Unity.Editor
 
 		private static void NoDataError()
 		{
-			EditorGUILayout.HelpBox($"Cannot find main component!\n\nYou must have a {typeof(TMainAuthoring).Name} component on either this GameObject, its parent or grand parent.", MessageType.Error);
+			EditorGUILayout.HelpBox($"Cannot find main component!\n\nYou must have a {typeof(TMainComponent).Name} component on either this GameObject, its parent or grand parent.", MessageType.Error);
 		}
 	}
 }

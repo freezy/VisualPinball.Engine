@@ -169,8 +169,8 @@ namespace VisualPinball.Unity
 
 		public override IEnumerable<MonoBehaviour> SetReferencedData(TroughData data, Table table, IMaterialProvider materialProvider, ITextureProvider textureProvider, Dictionary<string, IItemMainComponent> components)
 		{
-			PlayfieldEntrySwitch = GetAuthoring<ITriggerComponent>(components, data.PlayfieldEntrySwitch);
-			PlayfieldExitKicker = GetAuthoring<KickerComponent>(components, data.PlayfieldExitKicker);
+			PlayfieldEntrySwitch = FindComponent<ITriggerComponent>(components, data.PlayfieldEntrySwitch);
+			PlayfieldExitKicker = FindComponent<KickerComponent>(components, data.PlayfieldExitKicker);
 
 			return Array.Empty<MonoBehaviour>();
 		}
@@ -318,7 +318,7 @@ namespace VisualPinball.Unity
 
 		private void OnDrawGizmosSelected()
 		{
-			Profiler.BeginSample("TroughAuthoring.OnDrawGizmosSelected");
+			Profiler.BeginSample("TroughComponent.OnDrawGizmosSelected");
 			if (PlayfieldEntrySwitch != null && PlayfieldExitKicker != null) {
 				var ltw = GetComponentInParent<TableComponent>().transform;
 				var entryPos = EntryPos(0f);

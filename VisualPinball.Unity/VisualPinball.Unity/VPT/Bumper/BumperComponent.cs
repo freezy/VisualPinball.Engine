@@ -71,8 +71,8 @@ namespace VisualPinball.Unity
 		public override IEnumerable<Type> ValidParents => BumperColliderComponent.ValidParentTypes;
 
 		public override BumperData InstantiateData() => new BumperData();
-		protected override Type MeshAuthoringType { get; } = typeof(ItemMeshComponent<BumperData, BumperComponent>);
-		protected override Type ColliderAuthoringType { get; } = typeof(ItemColliderComponent<BumperData, BumperComponent>);
+		protected override Type MeshComponentType { get; } = typeof(ItemMeshComponent<BumperData, BumperComponent>);
+		protected override Type ColliderComponentType { get; } = typeof(ItemColliderComponent<BumperData, BumperComponent>);
 
 		private const string SkirtMeshName = "Bumper (Skirt)";
 		private const string BaseMeshName = "Bumper (Base)";
@@ -216,7 +216,7 @@ namespace VisualPinball.Unity
 
 		public override IEnumerable<MonoBehaviour> SetReferencedData(BumperData data, Table table, IMaterialProvider materialProvider, ITextureProvider textureProvider, Dictionary<string, IItemMainComponent> components)
 		{
-			Surface = GetAuthoring<SurfaceComponent>(components, data.Surface);
+			Surface = FindComponent<SurfaceComponent>(components, data.Surface);
 			UpdateTransforms();
 
 			// children visibility

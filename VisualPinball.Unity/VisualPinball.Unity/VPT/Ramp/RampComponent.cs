@@ -116,8 +116,8 @@ namespace VisualPinball.Unity
 			.Concat(RampWireMeshComponent.ValidParentTypes)
 			.Distinct();
 
-		protected override Type MeshAuthoringType { get; } = typeof(ItemMeshComponent<RampData, RampComponent>);
-		protected override Type ColliderAuthoringType { get; } = typeof(ItemColliderComponent<RampData, RampComponent>);
+		protected override Type MeshComponentType { get; } = typeof(ItemMeshComponent<RampData, RampComponent>);
+		protected override Type ColliderComponentType { get; } = typeof(ItemColliderComponent<RampData, RampComponent>);
 
 		public override void OnPlayfieldHeightUpdated() => RebuildMeshes();
 
@@ -400,9 +400,9 @@ namespace VisualPinball.Unity
 
 		protected void UpdateSurfaceReferences(Transform obj)
 		{
-			var surfaceAuthoring = obj.gameObject.GetComponent<IOnSurfaceComponent>();
-			if (surfaceAuthoring != null && surfaceAuthoring.Surface == this) {
-				surfaceAuthoring.OnSurfaceUpdated();
+			var surfaceComponent = obj.gameObject.GetComponent<IOnSurfaceComponent>();
+			if (surfaceComponent != null && surfaceComponent.Surface == this) {
+				surfaceComponent.OnSurfaceUpdated();
 			}
 		}
 

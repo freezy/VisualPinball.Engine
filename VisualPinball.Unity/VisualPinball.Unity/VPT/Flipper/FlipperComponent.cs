@@ -122,8 +122,8 @@ namespace VisualPinball.Unity
 
 		public override FlipperData InstantiateData() => new FlipperData();
 
-		protected override Type MeshAuthoringType { get; } = typeof(ItemMeshComponent<FlipperData, FlipperComponent>);
-		protected override Type ColliderAuthoringType { get; } = typeof(ItemColliderComponent<FlipperData, FlipperComponent>);
+		protected override Type MeshComponentType { get; } = typeof(ItemMeshComponent<FlipperData, FlipperComponent>);
+		protected override Type ColliderComponentType { get; } = typeof(ItemColliderComponent<FlipperData, FlipperComponent>);
 
 		public const string MainCoilItem = "main_coil";
 		public const string HoldCoilItem = "hold_coil";
@@ -183,13 +183,13 @@ namespace VisualPinball.Unity
 			Convert(entity, dstManager);
 
 			var player = transform.GetComponentInParent<Player>();
-			var colliderAuthoring = gameObject.GetComponent<FlipperColliderComponent>();
+			var colliderComponent = gameObject.GetComponent<FlipperColliderComponent>();
 
 			// collision
-			if (colliderAuthoring) {
+			if (colliderComponent) {
 
 				// vpx physics
-				var d = GetMaterialData(colliderAuthoring);
+				var d = GetMaterialData(colliderComponent);
 				dstManager.AddComponentData(entity, d);
 				dstManager.AddComponentData(entity, GetMovementData(d));
 				dstManager.AddComponentData(entity, GetVelocityData(d));
@@ -197,8 +197,8 @@ namespace VisualPinball.Unity
 				dstManager.AddComponentData(entity, new SolenoidStateData { Value = false });
 
 				// flipper correction (nFozzy)
-				if (colliderAuthoring.FlipperCorrection) {
-					SetupFlipperCorrection(entity, dstManager, player, colliderAuthoring);
+				if (colliderComponent.FlipperCorrection) {
+					SetupFlipperCorrection(entity, dstManager, player, colliderComponent);
 				}
 			}
 
@@ -230,19 +230,19 @@ namespace VisualPinball.Unity
 			IsDualWound = data.IsDualWound;
 
 			// collider data
-			var colliderAuthoring = gameObject.GetComponent<FlipperColliderComponent>();
-			if (colliderAuthoring) {
-				colliderAuthoring.Mass = data.Mass;
-				colliderAuthoring.Strength = data.Strength;
-				colliderAuthoring.Elasticity = data.Elasticity;
-				colliderAuthoring.ElasticityFalloff = data.ElasticityFalloff;
-				colliderAuthoring.Friction = data.Friction;
-				colliderAuthoring.Return = data.Return;
-				colliderAuthoring.RampUp = data.RampUp;
-				colliderAuthoring.TorqueDamping = data.TorqueDamping;
-				colliderAuthoring.TorqueDampingAngle = data.TorqueDampingAngle;
-				colliderAuthoring.Scatter = data.Scatter;
-				updatedComponents.Add(colliderAuthoring);
+			var colliderComponent = gameObject.GetComponent<FlipperColliderComponent>();
+			if (colliderComponent) {
+				colliderComponent.Mass = data.Mass;
+				colliderComponent.Strength = data.Strength;
+				colliderComponent.Elasticity = data.Elasticity;
+				colliderComponent.ElasticityFalloff = data.ElasticityFalloff;
+				colliderComponent.Friction = data.Friction;
+				colliderComponent.Return = data.Return;
+				colliderComponent.RampUp = data.RampUp;
+				colliderComponent.TorqueDamping = data.TorqueDamping;
+				colliderComponent.TorqueDampingAngle = data.TorqueDampingAngle;
+				colliderComponent.Scatter = data.Scatter;
+				updatedComponents.Add(colliderComponent);
 			}
 
 			return updatedComponents;
@@ -250,7 +250,7 @@ namespace VisualPinball.Unity
 
 		public override IEnumerable<MonoBehaviour> SetReferencedData(FlipperData data, Table table, IMaterialProvider materialProvider, ITextureProvider textureProvider, Dictionary<string, IItemMainComponent> components)
 		{
-			Surface = GetAuthoring<SurfaceComponent>(components, data.Surface);
+			Surface = FindComponent<SurfaceComponent>(components, data.Surface);
 			UpdateTransforms();
 
 			// children mesh creation and visibility
@@ -297,18 +297,18 @@ namespace VisualPinball.Unity
 			data.IsVisible = baseMesh && baseMesh.gameObject.activeInHierarchy;
 
 			// collider data
-			var colliderAuthoring = gameObject.GetComponent<FlipperColliderComponent>();
-			if (colliderAuthoring) {
-				data.Mass = colliderAuthoring.Mass;
-				data.Strength = colliderAuthoring.Strength;
-				data.Elasticity = colliderAuthoring.Elasticity;
-				data.ElasticityFalloff = colliderAuthoring.ElasticityFalloff;
-				data.Friction = colliderAuthoring.Friction;
-				data.Return = colliderAuthoring.Return;
-				data.RampUp = colliderAuthoring.RampUp;
-				data.TorqueDamping = colliderAuthoring.TorqueDamping;
-				data.TorqueDampingAngle = colliderAuthoring.TorqueDampingAngle;
-				data.Scatter = colliderAuthoring.Scatter;
+			var colliderComponent = gameObject.GetComponent<FlipperColliderComponent>();
+			if (colliderComponent) {
+				data.Mass = colliderComponent.Mass;
+				data.Strength = colliderComponent.Strength;
+				data.Elasticity = colliderComponent.Elasticity;
+				data.ElasticityFalloff = colliderComponent.ElasticityFalloff;
+				data.Friction = colliderComponent.Friction;
+				data.Return = colliderComponent.Return;
+				data.RampUp = colliderComponent.RampUp;
+				data.TorqueDamping = colliderComponent.TorqueDamping;
+				data.TorqueDampingAngle = colliderComponent.TorqueDampingAngle;
+				data.Scatter = colliderComponent.Scatter;
 			}
 
 			return data;

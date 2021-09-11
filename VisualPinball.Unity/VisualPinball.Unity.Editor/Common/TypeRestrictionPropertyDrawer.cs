@@ -153,26 +153,26 @@ namespace VisualPinball.Unity.Editor
 			var ids = Array.Empty<string>();
 			var currentIndex = 0;
 
-			if (attrib.DeviceType == typeof(ICoilDeviceComponent) && field is ICoilDeviceComponent coilDeviceAuthoring) {
-				count = coilDeviceAuthoring.AvailableCoils.Count();
-				firstItemDescription = coilDeviceAuthoring.AvailableCoils.First().Description;
-				labels = coilDeviceAuthoring.AvailableCoils.Select(s => s.Description).ToArray();
-				ids = coilDeviceAuthoring.AvailableCoils.Select(s => s.Id).ToArray();
-				currentIndex = coilDeviceAuthoring.AvailableCoils.TakeWhile(s => s.Id != deviceItemPropField.stringValue).Count();
+			if (attrib.DeviceType == typeof(ICoilDeviceComponent) && field is ICoilDeviceComponent coilDeviceComponent) {
+				count = coilDeviceComponent.AvailableCoils.Count();
+				firstItemDescription = coilDeviceComponent.AvailableCoils.First().Description;
+				labels = coilDeviceComponent.AvailableCoils.Select(s => s.Description).ToArray();
+				ids = coilDeviceComponent.AvailableCoils.Select(s => s.Id).ToArray();
+				currentIndex = coilDeviceComponent.AvailableCoils.TakeWhile(s => s.Id != deviceItemPropField.stringValue).Count();
 			}
-			if (attrib.DeviceType == typeof(ISwitchDeviceComponent) && field is ISwitchDeviceComponent switchDeviceAuthoring) {
-				count = switchDeviceAuthoring.AvailableSwitches.Count();
-				firstItemDescription = switchDeviceAuthoring.AvailableSwitches.First().Description;
-				labels = switchDeviceAuthoring.AvailableSwitches.Select(s => s.Description).ToArray();
-				ids = switchDeviceAuthoring.AvailableSwitches.Select(s => s.Id).ToArray();
-				currentIndex = switchDeviceAuthoring.AvailableSwitches.TakeWhile(s => s.Id != deviceItemPropField.stringValue).Count();
+			if (attrib.DeviceType == typeof(ISwitchDeviceComponent) && field is ISwitchDeviceComponent switchDeviceComponent) {
+				count = switchDeviceComponent.AvailableSwitches.Count();
+				firstItemDescription = switchDeviceComponent.AvailableSwitches.First().Description;
+				labels = switchDeviceComponent.AvailableSwitches.Select(s => s.Description).ToArray();
+				ids = switchDeviceComponent.AvailableSwitches.Select(s => s.Id).ToArray();
+				currentIndex = switchDeviceComponent.AvailableSwitches.TakeWhile(s => s.Id != deviceItemPropField.stringValue).Count();
 			}
-			if (attrib.DeviceType == typeof(ILampDeviceComponent) && field is ILampDeviceComponent lampDeviceAuthoring) {
-				count = lampDeviceAuthoring.AvailableLamps.Count();
-				firstItemDescription = lampDeviceAuthoring.AvailableLamps.First().Description;
-				labels = lampDeviceAuthoring.AvailableLamps.Select(s => s.Description).ToArray();
-				ids = lampDeviceAuthoring.AvailableLamps.Select(s => s.Id).ToArray();
-				currentIndex = lampDeviceAuthoring.AvailableLamps.TakeWhile(s => s.Id != deviceItemPropField.stringValue).Count();
+			if (attrib.DeviceType == typeof(ILampDeviceComponent) && field is ILampDeviceComponent lampDeviceComponent) {
+				count = lampDeviceComponent.AvailableLamps.Count();
+				firstItemDescription = lampDeviceComponent.AvailableLamps.First().Description;
+				labels = lampDeviceComponent.AvailableLamps.Select(s => s.Description).ToArray();
+				ids = lampDeviceComponent.AvailableLamps.Select(s => s.Id).ToArray();
+				currentIndex = lampDeviceComponent.AvailableLamps.TakeWhile(s => s.Id != deviceItemPropField.stringValue).Count();
 			}
 
 			if (field != null && count == 1) {

@@ -66,7 +66,7 @@ namespace VisualPinball.Unity.Editor
 			OnPreInspectorGUI();
 
 			DropDownProperty("Shape", _shapeProperty, TriggerShapeLabels, TriggerShapeValues, true, true);
-			if (!MeshAuthoring.IsCircle) {
+			if (!MeshComponent.IsCircle) {
 				PropertyField(_wireThicknessProperty, rebuildMesh: true);
 			}
 

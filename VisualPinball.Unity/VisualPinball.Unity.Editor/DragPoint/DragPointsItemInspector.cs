@@ -24,11 +24,11 @@ using VisualPinball.Engine.VPT;
 
 namespace VisualPinball.Unity.Editor
 {
-	public abstract class DragPointsItemInspector<TData, TMainAuthoring>
-		: ItemMainInspector<TData, TMainAuthoring>,
+	public abstract class DragPointsItemInspector<TData, TMainComponent>
+		: ItemMainInspector<TData, TMainComponent>,
 			IDragPointsItemInspector, IDragPointsEditable
 		where TData : ItemData
-		where TMainAuthoring : ItemMainRenderableComponent<TData>
+		where TMainComponent : ItemMainRenderableComponent<TData>
 	{
 		/// <summary>
 		/// Catmull Curve Handler

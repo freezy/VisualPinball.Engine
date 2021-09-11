@@ -29,12 +29,12 @@ namespace VisualPinball.Unity.Editor
 	public class DragPointsHandler
 	{
 		/// <summary>
-		/// Authoring item
+		/// Component
 		/// </summary>
 		public IItemMainRenderableComponent Editable { get; private set; }
 
 		/// <summary>
-		/// Authoring item as IDragPointsEditable
+		/// Component item as IDragPointsEditable
 		/// </summary>
 		public IDragPointsEditable DragPointEditable { get; private set; }
 
@@ -84,11 +84,12 @@ namespace VisualPinball.Unity.Editor
 		/// Every DragPointsInspector instantiates this to manage its curve handling.
 		/// </summary>
 		/// <param name="target"></param>
+		/// <param name="dragPointsEditable"></param>
 		/// <exception cref="ArgumentException"></exception>
 		public DragPointsHandler(Object target, IDragPointsEditable dragPointsEditable)
 		{
 			Editable = target as IItemMainRenderableComponent
-			    ?? throw new ArgumentException("Target must extend `IEditableItemAuthoring`.");
+			    ?? throw new ArgumentException("Target must extend `IItemMainRenderableComponent`.");
 
 			DragPointEditable = dragPointsEditable;
 

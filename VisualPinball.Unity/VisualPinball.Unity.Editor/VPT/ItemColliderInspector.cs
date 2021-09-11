@@ -24,26 +24,26 @@ using VisualPinball.Engine.VPT;
 
 namespace VisualPinball.Unity.Editor
 {
-	public class ItemColliderInspector<TData, TMainAuthoring, TColliderAuthoring> : ItemInspector
-		where TColliderAuthoring : ItemColliderComponent<TData, TMainAuthoring>
+	public class ItemColliderInspector<TData, TMainComponent, TColliderComponent> : ItemInspector
+		where TColliderComponent : ItemColliderComponent<TData, TMainComponent>
 		where TData : ItemData
-		where TMainAuthoring : ItemMainRenderableComponent<TData>
+		where TMainComponent : ItemMainRenderableComponent<TData>
 	{
-		protected TColliderAuthoring ColliderComponent;
+		protected TColliderComponent ColliderComponent;
 
 		private bool _foldoutDebug = true;
 		private bool _foldoutColliders;
 		private string[] _currentColliders;
 		private Vector2 _scrollPos;
 
-		protected override MonoBehaviour UndoTarget => ColliderComponent.MainAuthoring as MonoBehaviour;
+		protected override MonoBehaviour UndoTarget => ColliderComponent.MainComponent;
 
 		private bool HasMainComponent => ColliderComponent == null || !ColliderComponent.HasMainComponent;
 
 
 		protected override void OnEnable()
 		{
-			ColliderComponent = target as TColliderAuthoring;
+			ColliderComponent = target as TColliderComponent;
 			if (ColliderComponent != null) {
 				ColliderComponent.ShowGizmos = true;
 
@@ -130,7 +130,7 @@ namespace VisualPinball.Unity.Editor
 
 		private static void NoDataError()
 		{
-			EditorGUILayout.HelpBox($"Cannot find main component!\n\nYou must have a {typeof(TMainAuthoring).Name} component on this GameObject.", MessageType.Error);
+			EditorGUILayout.HelpBox($"Cannot find main component!\n\nYou must have a {typeof(TMainComponent).Name} component on this GameObject.", MessageType.Error);
 		}
 
 		private void InvalidParentError()

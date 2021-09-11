@@ -62,8 +62,8 @@ namespace VisualPinball.Unity
 
 		public bool IsLegacy {
 			get {
-				var colliderAuthoring = GetComponent<HitTargetColliderComponent>();
-				return colliderAuthoring && colliderAuthoring.IsLegacy;
+				var colliderComponent = GetComponent<HitTargetColliderComponent>();
+				return colliderComponent && colliderComponent.IsLegacy;
 			}
 		}
 
@@ -100,8 +100,8 @@ namespace VisualPinball.Unity
 			.Distinct();
 
 		public override HitTargetData InstantiateData() => new HitTargetData();
-		protected override Type MeshAuthoringType { get; } = typeof(ItemMeshComponent<HitTargetData, TargetComponent>);
-		protected override Type ColliderAuthoringType { get; } = typeof(ItemColliderComponent<HitTargetData, TargetComponent>);
+		protected override Type MeshComponentType { get; } = typeof(ItemMeshComponent<HitTargetData, TargetComponent>);
+		protected override Type ColliderComponentType { get; } = typeof(ItemColliderComponent<HitTargetData, TargetComponent>);
 
 		public const string SwitchItem = "target_switch";
 
@@ -138,29 +138,29 @@ namespace VisualPinball.Unity
 		{
 			Convert(entity, dstManager);
 
-			var colliderAuthoring = GetComponent<HitTargetColliderComponent>();
-			if (colliderAuthoring) {
+			var colliderComponent = GetComponent<HitTargetColliderComponent>();
+			if (colliderComponent) {
 
-				var hitTargetAnimationAuthoring = GetComponent<HitTargetAnimationComponent>();
-				var dropTargetAnimationAuthoring = GetComponent<DropTargetAnimationComponent>();
-				if (dropTargetAnimationAuthoring || hitTargetAnimationAuthoring) {
+				var hitTargetAnimationComponent = GetComponent<HitTargetAnimationComponent>();
+				var dropTargetAnimationComponent = GetComponent<DropTargetAnimationComponent>();
+				if (dropTargetAnimationComponent || hitTargetAnimationComponent) {
 
-					if (hitTargetAnimationAuthoring) {
+					if (hitTargetAnimationComponent) {
 						dstManager.AddComponentData(entity, new HitTargetStaticData {
-							Speed = hitTargetAnimationAuthoring.Speed,
-							MaxAngle = hitTargetAnimationAuthoring.MaxAngle,
+							Speed = hitTargetAnimationComponent.Speed,
+							MaxAngle = hitTargetAnimationComponent.MaxAngle,
 						});
 						dstManager.AddComponentData(entity, new HitTargetAnimationData());
 					}
 
-					if (dropTargetAnimationAuthoring) {
+					if (dropTargetAnimationComponent) {
 						dstManager.AddComponentData(entity, new DropTargetStaticData {
-							Speed = dropTargetAnimationAuthoring.Speed,
-							RaiseDelay = dropTargetAnimationAuthoring.RaiseDelay,
-							UseHitEvent = colliderAuthoring.UseHitEvent,
+							Speed = dropTargetAnimationComponent.Speed,
+							RaiseDelay = dropTargetAnimationComponent.RaiseDelay,
+							UseHitEvent = colliderComponent.UseHitEvent,
 						});
 						dstManager.AddComponentData(entity, new DropTargetAnimationData {
-							IsDropped = dropTargetAnimationAuthoring.IsDropped
+							IsDropped = dropTargetAnimationComponent.IsDropped
 						});
 					}
 				}
@@ -189,36 +189,36 @@ namespace VisualPinball.Unity
 			#endif
 
 			// collider data
-			var colliderAuthoring = GetComponent<HitTargetColliderComponent>();
-			if (colliderAuthoring) {
-				colliderAuthoring.enabled = data.IsCollidable;
-				colliderAuthoring.UseHitEvent = data.UseHitEvent;
-				colliderAuthoring.Threshold = data.Threshold;
-				colliderAuthoring.IsLegacy = data.IsLegacy;
+			var colliderComponent = GetComponent<HitTargetColliderComponent>();
+			if (colliderComponent) {
+				colliderComponent.enabled = data.IsCollidable;
+				colliderComponent.UseHitEvent = data.UseHitEvent;
+				colliderComponent.Threshold = data.Threshold;
+				colliderComponent.IsLegacy = data.IsLegacy;
 
-				colliderAuthoring.OverwritePhysics = data.OverwritePhysics;
-				colliderAuthoring.Elasticity = data.Elasticity;
-				colliderAuthoring.ElasticityFalloff = data.ElasticityFalloff;
-				colliderAuthoring.Friction = data.Friction;
-				colliderAuthoring.Scatter = data.Scatter;
+				colliderComponent.OverwritePhysics = data.OverwritePhysics;
+				colliderComponent.Elasticity = data.Elasticity;
+				colliderComponent.ElasticityFalloff = data.ElasticityFalloff;
+				colliderComponent.Friction = data.Friction;
+				colliderComponent.Scatter = data.Scatter;
 
-				updatedComponents.Add(colliderAuthoring);
+				updatedComponents.Add(colliderComponent);
 
 				// animation data
-				var dropTargetAnimationAuthoring = GetComponent<DropTargetAnimationComponent>();
-				if (dropTargetAnimationAuthoring) {
-					dropTargetAnimationAuthoring.enabled = data.IsDropTarget;
-					dropTargetAnimationAuthoring.Speed = data.DropSpeed;
-					dropTargetAnimationAuthoring.RaiseDelay = data.RaiseDelay;
-					dropTargetAnimationAuthoring.IsDropped = data.IsDropped;
-					updatedComponents.Add(dropTargetAnimationAuthoring);
+				var dropTargetAnimationComponent = GetComponent<DropTargetAnimationComponent>();
+				if (dropTargetAnimationComponent) {
+					dropTargetAnimationComponent.enabled = data.IsDropTarget;
+					dropTargetAnimationComponent.Speed = data.DropSpeed;
+					dropTargetAnimationComponent.RaiseDelay = data.RaiseDelay;
+					dropTargetAnimationComponent.IsDropped = data.IsDropped;
+					updatedComponents.Add(dropTargetAnimationComponent);
 				}
 
-				var hitTargetAnimationAuthoring = GetComponent<HitTargetAnimationComponent>();
-				if (hitTargetAnimationAuthoring) {
-					hitTargetAnimationAuthoring.enabled = !data.IsDropTarget;
-					hitTargetAnimationAuthoring.Speed = data.DropSpeed;
-					updatedComponents.Add(hitTargetAnimationAuthoring);
+				var hitTargetAnimationComponent = GetComponent<HitTargetAnimationComponent>();
+				if (hitTargetAnimationComponent) {
+					hitTargetAnimationComponent.enabled = !data.IsDropTarget;
+					hitTargetAnimationComponent.Speed = data.DropSpeed;
+					updatedComponents.Add(hitTargetAnimationComponent);
 				}
 			}
 
@@ -227,9 +227,9 @@ namespace VisualPinball.Unity
 
 		public override IEnumerable<MonoBehaviour> SetReferencedData(HitTargetData data, Table table, IMaterialProvider materialProvider, ITextureProvider textureProvider, Dictionary<string, IItemMainComponent> components)
 		{
-			var colliderAuthoring = GetComponent<HitTargetColliderComponent>();
-			if (colliderAuthoring) {
-				colliderAuthoring.PhysicsMaterial = materialProvider.GetPhysicsMaterial(data.PhysicsMaterial);
+			var colliderComponent = GetComponent<HitTargetColliderComponent>();
+			if (colliderComponent) {
+				colliderComponent.PhysicsMaterial = materialProvider.GetPhysicsMaterial(data.PhysicsMaterial);
 			}
 			return Array.Empty<MonoBehaviour>();
 		}
@@ -245,26 +245,26 @@ namespace VisualPinball.Unity
 			data.TargetType = _targetType;
 
 			// collision data
-			var colliderAuthoring = GetComponent<HitTargetColliderComponent>();
-			if (colliderAuthoring) {
-				data.IsCollidable = colliderAuthoring.enabled;
-				data.Threshold = colliderAuthoring.Threshold;
-				data.UseHitEvent = colliderAuthoring.UseHitEvent;
-				data.PhysicsMaterial = colliderAuthoring.PhysicsMaterial == null ? string.Empty : colliderAuthoring.PhysicsMaterial.name;
-				data.IsLegacy = colliderAuthoring.IsLegacy;
+			var colliderComponent = GetComponent<HitTargetColliderComponent>();
+			if (colliderComponent) {
+				data.IsCollidable = colliderComponent.enabled;
+				data.Threshold = colliderComponent.Threshold;
+				data.UseHitEvent = colliderComponent.UseHitEvent;
+				data.PhysicsMaterial = colliderComponent.PhysicsMaterial == null ? string.Empty : colliderComponent.PhysicsMaterial.name;
+				data.IsLegacy = colliderComponent.IsLegacy;
 
-				data.OverwritePhysics = colliderAuthoring.OverwritePhysics;
-				data.Elasticity = colliderAuthoring.Elasticity;
-				data.ElasticityFalloff = colliderAuthoring.ElasticityFalloff;
-				data.Friction = colliderAuthoring.Friction;
-				data.Scatter = colliderAuthoring.Scatter;
+				data.OverwritePhysics = colliderComponent.OverwritePhysics;
+				data.Elasticity = colliderComponent.Elasticity;
+				data.ElasticityFalloff = colliderComponent.ElasticityFalloff;
+				data.Friction = colliderComponent.Friction;
+				data.Scatter = colliderComponent.Scatter;
 
 				// animation data
-				var dropTargetAnimationAuthoring = GetComponent<DropTargetAnimationComponent>();
-				if (dropTargetAnimationAuthoring) {
-					data.DropSpeed = dropTargetAnimationAuthoring.Speed;
-					data.RaiseDelay = dropTargetAnimationAuthoring.RaiseDelay;
-					data.IsDropped = dropTargetAnimationAuthoring.IsDropped;
+				var dropTargetAnimationComponent = GetComponent<DropTargetAnimationComponent>();
+				if (dropTargetAnimationComponent) {
+					data.DropSpeed = dropTargetAnimationComponent.Speed;
+					data.RaiseDelay = dropTargetAnimationComponent.RaiseDelay;
+					data.IsDropped = dropTargetAnimationComponent.IsDropped;
 				}
 
 			} else {

@@ -176,7 +176,7 @@ namespace VisualPinball.Unity.Editor
 
 			// if (GUILayout.Button("Test Alphanum")) {
 			// 	// ReSharper disable once PossibleNullReferenceException
-			// 	(target as SegmentDisplayAuthoring).SetTestData();
+			// 	(target as SegmentDisplayComponent).SetTestData();
 			// }
 		}
 

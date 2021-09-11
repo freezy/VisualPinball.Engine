@@ -20,15 +20,15 @@ using VisualPinball.Engine.VPT;
 
 namespace VisualPinball.Unity
 {
-	public abstract class ItemAnimationComponent<TData, TMainAuthoring> : ItemSubComponent<TData, TMainAuthoring>
+	public abstract class ItemAnimationComponent<TData, TMainComponent> : ItemSubComponent<TData, TMainComponent>
 		where TData : ItemData
-		where TMainAuthoring : ItemMainRenderableComponent<TData>
+		where TMainComponent : ItemMainRenderableComponent<TData>
 	{
 		private Entity MainEntity {
 			get {
 				var ma = MainComponent;
 				if (ma == null) {
-					throw new InvalidOperationException("Cannot find main authoring component of " + name + ".");
+					throw new InvalidOperationException("Cannot find main component of " + name + ".");
 				}
 				return ma.Entity;
 			}
