@@ -19,6 +19,7 @@
 // ReSharper disable StringLiteralTypo
 // ReSharper disable FieldCanBeMadeReadOnly.Global
 // ReSharper disable ConvertToConstant.Global
+// ReSharper disable InconsistentNaming
 #endregion
 
 using System;
@@ -56,7 +57,7 @@ namespace VisualPinball.Engine.VPT.Flipper
 		public float FlipperRadiusMax = 130.0f;
 
 		[BiffFloat("FLPR", SkipWrite = true)]
-		public float FlipperRadius { get; set; } = 130.0f;
+		public float FlipperRadius { get => FlipperRadiusMax; set => FlipperRadiusMax = value; }
 
 		[BiffFloat("ANGS", Pos = 6)]
 		public float StartAngle { get; set; } = 121.0f;

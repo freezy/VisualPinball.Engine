@@ -206,14 +206,14 @@ namespace VisualPinball.Engine.IO
 		{
 			// filter known records, join them with unknown records, and sort.
 			var records = attributes.Values
-				.Where(a => !a[0].SkipWrite && !SkipWrite(a[0]))
+				.Where(a => a.Any(a => !a.SkipWrite && !SkipWrite(a)))
 				#if WRITE_VP107
-				.Where(a => !a[0].IsVpeEnhancement && !a[0].WasRemovedInVp107)
+				.Where(a => a.Any(a => !a.IsVpeEnhancement && !a.WasRemovedInVp107))
 				#endif
 				#if WRITE_VP106
-				.Where(a => !a[0].IsVpeEnhancement && !a[0].WasAddedInVp107)
+				.Where(a => a.Any(a => !a.IsVpeEnhancement && !a.WasAddedInVp107))
 				#endif
-				.Select(a => a[0] as ISortableBiffRecord)
+				.Select(attrs => attrs.First(a => !a.SkipWrite && !SkipWrite(a)) as ISortableBiffRecord)
 				.Concat(UnknownRecords ?? new List<UnknownBiffRecord>())
 				.OrderBy(r => r.GetPosition());
 			foreach (var record in records) {
