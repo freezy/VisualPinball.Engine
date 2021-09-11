@@ -29,13 +29,27 @@ namespace VisualPinball.Unity.Editor
 	{
 		protected override MonoBehaviour UndoTarget => target as MonoBehaviour;
 
+		private SerializedProperty _globalDifficultyProperty;
+
+		protected override void OnEnable()
+		{
+			base.OnEnable();
+
+			_globalDifficultyProperty = serializedObject.FindProperty(nameof(TableComponent.GlobalDifficulty));
+		}
+
 		public override void OnInspectorGUI()
 		{
-			OnPreInspectorGUI();
-
 			var tableComponent = (TableComponent) target;
+
+			serializedObject.Update();
+
+			PropertyField(_globalDifficultyProperty);
+
+			serializedObject.ApplyModifiedProperties();
+
 			if (!EditorApplication.isPlaying) {
-				DrawDefaultInspector();
+				//DrawDefaultInspector();
 				if (GUILayout.Button("Export VPX")) {
 					var tableContainer = tableComponent.TableContainer;
 					var path = EditorUtility.SaveFilePanel(
@@ -47,10 +61,6 @@ namespace VisualPinball.Unity.Editor
 					if (!string.IsNullOrEmpty(path)) {
 						tableContainer.Save(path);
 					}
-				}
-
-				if (GUILayout.Button("Refresh game items")) {
-					tableComponent.TableContainer.Refresh();
 				}
 			}
 		}
