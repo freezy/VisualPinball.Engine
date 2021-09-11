@@ -38,7 +38,7 @@ namespace VisualPinball.Unity
 			_meshGenerator = new RampMeshGenerator(data);
 		}
 
-		internal void GenerateColliders(float tableHeight, List<ICollider> colliders)
+		internal void GenerateColliders(float tableHeight, List<ICollider> colliders, float margin = 0f)
 		{
 			var rv = _meshGenerator.GetRampVertex(tableHeight, PhysicsConstants.HitShapeDetailLevel, true);
 			var rgvLocal = rv.RgvLocal;
@@ -118,9 +118,9 @@ namespace VisualPinball.Unity
 				pv4 = rgvLocal[i + 1].ToUnityFloat2(); // (i+1)-th right
 
 				// left ramp floor triangle, CCW order
-				var rg0 = new float3(pv2.x, pv2.y, rgHeight1[i]);
-				var rg1 = new float3(pv1.x, pv1.y, rgHeight1[i]);
-				var rg2 = new float3(pv3.x, pv3.y, rgHeight1[i + 1]);
+				var rg0 = new float3(pv2.x, pv2.y, rgHeight1[i] + margin);
+				var rg1 = new float3(pv1.x, pv1.y, rgHeight1[i] + margin);
+				var rg2 = new float3(pv3.x, pv3.y, rgHeight1[i + 1] + margin);
 
 				// add joint for starting edge of ramp
 				if (i == 0) {
@@ -141,9 +141,9 @@ namespace VisualPinball.Unity
 				}
 
 				// right ramp floor triangle, CCW order
-				rg0 = new float3(pv3.x, pv3.y, rgHeight1[i + 1]);
-				rg1 = new float3(pv1.x, pv1.y, rgHeight1[i]);
-				rg2 = new float3(pv4.x, pv4.y, rgHeight1[i + 1]);
+				rg0 = new float3(pv3.x, pv3.y, rgHeight1[i + 1] + margin);
+				rg1 = new float3(pv1.x, pv1.y, rgHeight1[i] + margin);
+				rg2 = new float3(pv4.x, pv4.y, rgHeight1[i + 1] + margin);
 
 				// add joint for right edge
 				colliders.Add(new Line3DCollider(rg1, rg2, _api.GetColliderInfo()));
