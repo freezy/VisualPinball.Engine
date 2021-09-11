@@ -77,7 +77,9 @@ namespace VisualPinball.Unity.Editor
 			EditorUtility.SetDirty(GameObject);
 			PrefabUtility.RecordPrefabInstancePropertyModifications(GameObject.transform);
 			foreach (var comp in _updatedComponents.Distinct()) {
-				PrefabUtility.RecordPrefabInstancePropertyModifications(comp);
+				if (comp) {
+					PrefabUtility.RecordPrefabInstancePropertyModifications(comp);
+				}
 			}
 		}
 
