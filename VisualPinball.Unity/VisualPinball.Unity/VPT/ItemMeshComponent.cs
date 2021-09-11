@@ -31,7 +31,7 @@ namespace VisualPinball.Unity
 		where TData : ItemData
 		where TAuthoring : ItemMainRenderableComponent<TData>
 	{
-		public IItemMainRenderableComponent IMainAuthoring => MainComponent;
+		public IItemMainRenderableComponent MainRenderableComponent => MainComponent;
 
 		#region Creation and destruction
 
