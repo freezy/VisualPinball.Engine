@@ -56,11 +56,9 @@ namespace VisualPinball.Unity
 
 		private readonly Entity _colliderEntity = Player.PlayfieldEntity;
 
-		[NonSerialized]
-		private Mesh _colliderMesh;
-
-		[NonSerialized]
-		private bool _collidersDirty;
+		[NonSerialized] private Mesh _colliderMesh;
+		[NonSerialized] private readonly List<ICollider> _nonMeshColliders = new List<ICollider>();
+		[NonSerialized] private bool _collidersDirty;
 
 		protected abstract IApiColliderGenerator InstantiateColliderApi(Player player, Entity entity, Entity parentEntity);
 
@@ -134,7 +132,6 @@ namespace VisualPinball.Unity
 			}
 
 			if (showColliders) {
-
 				var color = Color.green;
 				Handles.color = color;
 				color.a = 0.3f;
@@ -144,6 +141,7 @@ namespace VisualPinball.Unity
 				color.a = 0.01f;
 				Gizmos.color = color;
 				Gizmos.DrawWireMesh(_colliderMesh);
+				DrawNonMeshColliders();
 			}
 
 			Profiler.EndSample();
@@ -162,6 +160,7 @@ namespace VisualPinball.Unity
 			var vertices = new List<Vector3>();
 			var normals = new List<Vector3>();
 			var indices = new List<int>();
+			_nonMeshColliders.Clear();
 			foreach (var col in colliders) {
 				switch (col) {
 
@@ -197,11 +196,7 @@ namespace VisualPinball.Unity
 					}
 
 					case LineZCollider lineZCol: {
-						var aabb = lineZCol.Bounds.Aabb;
-
-						// todo cache this too
-						DrawLine(lineZCol.XY.ToFloat3(aabb.ZLow), lineZCol.XY.ToFloat3(aabb.ZHigh));
-						//AddCollider(lineZColl, vertices, normals, indices);
+						_nonMeshColliders.Add(lineZCol);
 						break;
 					}
 
@@ -236,6 +231,19 @@ namespace VisualPinball.Unity
 				triangles = indices.ToArray(),
 				normals = normals.ToArray()
 			};
+		}
+
+		private void DrawNonMeshColliders()
+		{
+			foreach (var col in _nonMeshColliders) {
+				switch (col) {
+					case LineZCollider lineZCol: {
+						var aabb = lineZCol.Bounds.Aabb;
+						DrawLine(lineZCol.XY.ToFloat3(aabb.ZLow), lineZCol.XY.ToFloat3(aabb.ZHigh));
+						break;
+					}
+				}
+			}
 		}
 
 		private static void AddCollider(CircleCollider circleCol, IList<Vector3> vertices, IList<Vector3> normals, ICollection<int> indices)
