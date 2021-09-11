@@ -133,7 +133,7 @@ namespace VisualPinball.Unity
 
 		#region ILayerableItemAuthoring
 
-		public int EditorLayer => _editorLayer;
+		public int EditorLayer { get => _editorLayer; set => _editorLayer = value; }
 		public string EditorLayerName { get => _editorLayerName; set => _editorLayerName = value; }
 		public bool EditorLayerVisibility { get => _editorLayerVisibility; set => _editorLayerVisibility = value; }
 
