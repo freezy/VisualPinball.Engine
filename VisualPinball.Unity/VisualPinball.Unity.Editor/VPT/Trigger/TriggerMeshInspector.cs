@@ -25,8 +25,7 @@ namespace VisualPinball.Unity.Editor
 	[CustomEditor(typeof(TriggerMeshComponent)), CanEditMultipleObjects]
 	public class TriggerMeshInspector : ItemMeshInspector<TriggerData, TriggerComponent, TriggerMeshComponent>
 	{
-		public static readonly string[] TriggerShapeLabels = {
-			"None",
+		private static readonly string[] TriggerShapeLabels = {
 			"Button",
 			"Star",
 			"Wire A",
@@ -34,8 +33,7 @@ namespace VisualPinball.Unity.Editor
 			"Wire C",
 			"Wire D",
 		};
-		public static readonly int[] TriggerShapeValues = {
-			TriggerShape.TriggerNone,
+		private static readonly int[] TriggerShapeValues = {
 			TriggerShape.TriggerButton,
 			TriggerShape.TriggerStar,
 			TriggerShape.TriggerWireA,

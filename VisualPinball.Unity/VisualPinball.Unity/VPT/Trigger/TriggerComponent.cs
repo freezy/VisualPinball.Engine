@@ -188,7 +188,7 @@ namespace VisualPinball.Unity
 			if (meshComponent) {
 				meshComponent.CreateMesh(data, table, textureProvider, materialProvider);
 				meshComponent.enabled = data.IsVisible;
-				SetEnabled<Renderer>(data.IsVisible);
+				SetEnabled<Renderer>(data.IsVisible && meshComponent.Shape != TriggerShape.TriggerNone);
 			}
 
 			return Array.Empty<MonoBehaviour>();

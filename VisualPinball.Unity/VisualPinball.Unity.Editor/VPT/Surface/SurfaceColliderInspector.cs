@@ -68,7 +68,7 @@ namespace VisualPinball.Unity.Editor
 
 			PropertyField(_hitEventProperty, "Has Hit Event");
 			PropertyField(_thresholdProperty, "Hit Threshold");
-			PropertyField(_isBottomSolidProperty, "Is Bottom Collidable");
+			PropertyField(_isBottomSolidProperty, "Is Bottom Collidable", updateColliders: true);
 
 			// physics material
 			if (_foldoutMaterial = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutMaterial, "Physics Material")) {
