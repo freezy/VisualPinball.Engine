@@ -220,7 +220,7 @@ namespace VisualPinball.Unity
 				GetColliderInfo()
 			);
 
-			colliders.Add(new FlipperCollider(hitCircleBase, MainComponent.FlipperRadiusMax, MainComponent.EndRadius, GetColliderInfo()));
+			colliders.Add(new FlipperCollider(hitCircleBase, MainComponent.FlipperRadiusMax, MainComponent.BaseRadius, MainComponent.EndRadius, MainComponent.StartAngle, MainComponent.EndAngle, GetColliderInfo()));
 		}
 
 		#endregion
