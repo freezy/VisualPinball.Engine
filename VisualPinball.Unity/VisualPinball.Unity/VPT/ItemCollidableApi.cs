@@ -55,6 +55,9 @@ namespace VisualPinball.Unity
 
 		void IApiColliderGenerator.CreateColliders(List<ICollider> colliders, float margin)
 		{
+			if (!ColliderComponent) {
+				return;
+			}
 			CreateColliders(colliders, margin);
 		}
 

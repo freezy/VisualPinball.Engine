@@ -39,15 +39,20 @@ namespace VisualPinball.Unity
 	{
 		#region Data
 
+		[Tooltip("Position of the primitive on the playfield.")]
 		public Vector3 Position = Vector3.zero;
+
+		[Tooltip("Rotation of the primitive in the playfield coordinate system.")]
 		public Vector3 Rotation = Vector3.zero;
+
+		[Tooltip("Scaling of the primitive.")]
 		public Vector3 Size = Vector3.one;
 
+		[Tooltip("Translation of the primitive.")]
 		public Vector3 Translation = Vector3.zero;
 
+		[Tooltip("Rotation of the primitive after being translated.")]
 		public Vector3 ObjectRotation = Vector3.zero;
-
-		public bool StaticRendering = true;
 
 		#endregion
 
@@ -98,9 +103,6 @@ namespace VisualPinball.Unity
 			Rotation = new Vector3(data.RotAndTra[0], data.RotAndTra[1], data.RotAndTra[2]);
 			Translation = new Vector3(data.RotAndTra[3], data.RotAndTra[4], data.RotAndTra[5]);
 			ObjectRotation = new Vector3(data.RotAndTra[6], data.RotAndTra[7], data.RotAndTra[8]);
-
-			// static rendering & visibility
-			StaticRendering = data.StaticRendering;
 
 			// mesh
 			var meshComponent = GetComponent<PrimitiveMeshComponent>();
@@ -162,9 +164,6 @@ namespace VisualPinball.Unity
 				Translation.x, Translation.y, Translation.z,
 				ObjectRotation.x, ObjectRotation.y, ObjectRotation.z,
 			};
-
-			// static rendering & visibility
-			data.StaticRendering = StaticRendering;
 
 			// materials
 			var mr = GetComponent<MeshRenderer>();

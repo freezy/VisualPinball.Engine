@@ -7,6 +7,7 @@
 Built with Unity 2020.3.
 
 ### Added
+- Full support for custom playfield meshes.
 - Remove Hybrid Renderer ([#316](https://github.com/freezy/VisualPinball.Engine/pull/316)).
 - Create and use Unity assets when importing ([#320](https://github.com/freezy/VisualPinball.Engine/pull/302)).
 - Native support for nFozzy flipper physics ([#305](https://github.com/freezy/VisualPinball.Engine/pull/305)).
@@ -24,6 +25,9 @@ Built with Unity 2020.3.
 - Native trough component ([#229](https://github.com/freezy/VisualPinball.Engine/pull/229), [#248](https://github.com/freezy/VisualPinball.Engine/pull/248), [#256](https://github.com/freezy/VisualPinball.Engine/pull/256), [Documentation](https://docs.visualpinball.org/creators-guide/manual/mechanisms/troughs.html)).
 
 ### Changed
+- Collider debug view is now much faster and intuitive. It's also activated per default when there is no visible mesh.
+- Drop and hit targets are now different components.
+- Kicker is now a coil device with different coils for different angles/forces.
 - Ground truth of data is now the scene, not the imported data anymore ([#302](https://github.com/freezy/VisualPinball.Engine/pull/302)).
 - Plunger is now a coil device, meaning it can both be pulled back and fired through different inputs.
 - Move render pipelines into separate repos ([#259](https://github.com/freezy/VisualPinball.Engine/pull/259)).

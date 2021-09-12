@@ -127,7 +127,6 @@ namespace VisualPinball.Unity
 
 		#region Transformation
 
-
 		public float Height(Vector2 pos) {
 
 			var vVertex = new RampMeshGenerator(this).GetCentralCurve();
@@ -401,7 +400,7 @@ namespace VisualPinball.Unity
 		protected void UpdateSurfaceReferences(Transform obj)
 		{
 			var surfaceComponent = obj.gameObject.GetComponent<IOnSurfaceComponent>();
-			if (surfaceComponent != null && surfaceComponent.Surface == this) {
+			if (surfaceComponent != null && (RampComponent)surfaceComponent.Surface == this) {
 				surfaceComponent.OnSurfaceUpdated();
 			}
 		}
