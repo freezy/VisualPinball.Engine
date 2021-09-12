@@ -21,7 +21,6 @@
 
 using System;
 using System.Collections.Generic;
-using PlasticGui.Configuration.CloudEdition.Welcome;
 using UnityEngine;
 using VisualPinball.Engine.Common;
 using VisualPinball.Engine.VPT;
