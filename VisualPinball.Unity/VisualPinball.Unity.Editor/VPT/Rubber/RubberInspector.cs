@@ -27,7 +27,6 @@ namespace VisualPinball.Unity.Editor
 	public class RubberInspector : DragPointsItemInspector<RubberData, RubberComponent>
 	{
 		private SerializedProperty _heightProperty;
-		private SerializedProperty _hitHeightProperty;
 		private SerializedProperty _thicknessProperty;
 		private SerializedProperty _rotationProperty;
 
@@ -36,7 +35,6 @@ namespace VisualPinball.Unity.Editor
 			base.OnEnable();
 
 			_heightProperty = serializedObject.FindProperty(nameof(RubberComponent._height));
-			_hitHeightProperty = serializedObject.FindProperty(nameof(RubberComponent._hitHeight));
 			_thicknessProperty = serializedObject.FindProperty(nameof(RubberComponent._thickness));
 			_rotationProperty = serializedObject.FindProperty(nameof(RubberComponent.Rotation));
 		}
@@ -53,7 +51,6 @@ namespace VisualPinball.Unity.Editor
 
 			PropertyField(_rotationProperty, rebuildMesh: true);
 			PropertyField(_heightProperty, rebuildMesh: true);
-			PropertyField(_hitHeightProperty, rebuildMesh: true);
 			PropertyField(_thicknessProperty, rebuildMesh: true);
 
 			base.OnInspectorGUI();
@@ -63,7 +60,7 @@ namespace VisualPinball.Unity.Editor
 
 		#region Dragpoint Tooling
 
-		public override Vector3 EditableOffset => new Vector3(0.0f, 0.0f, MainComponent._hitHeight);
+		public override Vector3 EditableOffset => new Vector3(0.0f, 0.0f, MainComponent._height);
 		public override Vector3 GetDragPointOffset(float ratio) => Vector3.zero;
 		public override bool PointsAreLooping => true;
 		public override IEnumerable<DragPointExposure> DragPointExposition => new[] { DragPointExposure.Smooth };

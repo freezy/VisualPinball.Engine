@@ -42,7 +42,7 @@ namespace VisualPinball.Engine.VPT.Rubber
 
 		public RenderObject GetRenderObject(Table.Table table, RubberData rubberData)
 		{
-			var mesh = GetTransformedMesh(table.TableHeight, table.GetDetailLevel());
+			var mesh = GetTransformedMesh(table.TableHeight, _data.Height, table.GetDetailLevel());
 			mesh.Name = rubberData.Name;
 			return new RenderObject(
 				rubberData.Name,
@@ -52,16 +52,16 @@ namespace VisualPinball.Engine.VPT.Rubber
 			);
 		}
 
-		public Mesh GetTransformedMesh(float playfieldHeight, int detailLevel, int acc = -1, bool createHitShape = false, float margin = 0f)
+		public Mesh GetTransformedMesh(float playfieldHeight, float meshHeight, int detailLevel, int acc = -1, bool createHitShape = false, float margin = 0f)
 		{
-			var mesh = GetMesh(playfieldHeight, detailLevel, acc, createHitShape, margin);
+			var mesh = GetMesh(playfieldHeight, meshHeight, detailLevel, acc, createHitShape, margin);
 			var (preVertexMatrix, preNormalsMatrix) = GetTransformationMatrix(playfieldHeight);
 			return mesh.Transform(preVertexMatrix, preNormalsMatrix);
 		}
 
 		public RenderObjectGroup GetRenderObjects(Table.Table table, Origin origin, bool asRightHanded, RubberData rubberData)
 		{
-			var mesh = GetMesh(table.TableHeight, table.GetDetailLevel());
+			var mesh = GetMesh(table.TableHeight, rubberData.Height, table.GetDetailLevel());
 			var (preVertexMatrix, preNormalsMatrix) = GetPreMatrix(table.TableHeight, origin, asRightHanded);
 			mesh.Name = rubberData.Name;
 			var postMatrix = GetPostMatrix(table, origin);
@@ -96,7 +96,7 @@ namespace VisualPinball.Engine.VPT.Rubber
 			return new Tuple<Matrix3D, Matrix3D?>(vertMatrix, fullMatrix);
 		}
 
-		private Mesh GetMesh(float playfieldHeight, int detailLevel, int acc = -1, bool createHitShape = false, float margin = 0f)
+		private Mesh GetMesh(float playfieldHeight, float meshHeight, int detailLevel, int acc = -1, bool createHitShape = false, float margin = 0f)
 		{
 			var mesh = new Mesh();
 			var accuracy = (int)(10.0f * 1.2f);
@@ -112,7 +112,7 @@ namespace VisualPinball.Engine.VPT.Rubber
 
 			var numVertices = numRings * numSegments;
 			var numIndices = 6 * numVertices; //m_numVertices*2+2;
-			var height = _data.HitHeight + playfieldHeight;
+			var height = meshHeight + playfieldHeight;
 
 			mesh.Vertices = new Vertex3DNoTex2[numVertices];
 			mesh.Indices = new int[numIndices];
