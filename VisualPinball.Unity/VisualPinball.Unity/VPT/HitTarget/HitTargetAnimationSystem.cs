@@ -42,7 +42,6 @@ namespace VisualPinball.Unity
 		protected override void OnUpdate()
 		{
 			var timeMsec = _visualPinballSimulationSystemGroup.TimeMsec;
-			var events = _eventQueue.AsParallelWriter();
 			var marker = PerfMarker;
 
 			Entities
@@ -77,6 +76,7 @@ namespace VisualPinball.Unity
 						if (data.XRotation <= 0.0f) {
 							data.XRotation = 0.0f;
 							data.MoveAnimation = false;
+							data.MoveDirection = true;
 						}
 					}
 				}

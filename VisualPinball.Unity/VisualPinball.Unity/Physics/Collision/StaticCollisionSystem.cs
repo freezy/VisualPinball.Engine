@@ -221,14 +221,18 @@ namespace VisualPinball.Unity
 									var normal = coll.Type == ColliderType.Triangle
 										? ((TriangleCollider*) collider)->Normal()
 										: collEvent.HitNormal;
-									var hasHitTargetAnimationData = HasComponent<DropTargetAnimationData>(coll.Entity);
-									var hitTargetAnimationData = hasHitTargetAnimationData
-										? GetComponent<DropTargetAnimationData>(coll.Entity)
-										: default;
-									HitTargetCollider.Collide(ref ballData, ref events, ref hitTargetAnimationData,
-										in normal, in ballEntity, in collEvent, in coll, ref random);
 
-									if (hasHitTargetAnimationData) {
+									if (HasComponent<DropTargetAnimationData>(coll.Entity)) {
+										var dropTargetAnimationData = GetComponent<DropTargetAnimationData>(coll.Entity);
+										TargetCollider.DropTargetCollide(ref ballData, ref events, ref dropTargetAnimationData,
+											in normal, in ballEntity, in collEvent, in coll, ref random);
+										SetComponent(coll.Entity, dropTargetAnimationData);
+									}
+
+									if (HasComponent<HitTargetAnimationData>(coll.Entity)) {
+										var hitTargetAnimationData = GetComponent<HitTargetAnimationData>(coll.Entity);
+										TargetCollider.HitTargetCollide(ref ballData, ref events, ref hitTargetAnimationData,
+											in normal, in ballEntity, in collEvent, in coll, ref random);
 										SetComponent(coll.Entity, hitTargetAnimationData);
 									}
 
