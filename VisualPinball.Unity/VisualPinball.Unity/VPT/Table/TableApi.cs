@@ -200,8 +200,8 @@ namespace VisualPinball.Unity
 
 		private bool Has<T>(string name) where T : IApi => GetNameDictionary<T>().ContainsKey(name);
 		private bool Has<T>(MonoBehaviour comp) where T : IApi => GetComponentDictionary<T>().ContainsKey(comp);
-		private T Get<T>(string name) where T : class, IApi => Has<T>(name) ? GetNameDictionary<T>()[name] : null;
-		private T Get<T>(MonoBehaviour comp) where T : class, IApi => Has<T>(comp) ? GetComponentDictionary<T>()[comp] : null;
+		private T Get<T>(string name) where T : class, IApi => !string.IsNullOrEmpty(name) && Has<T>(name) ? GetNameDictionary<T>()[name] : null;
+		private T Get<T>(MonoBehaviour comp) where T : class, IApi => comp != null && Has<T>(comp) ? GetComponentDictionary<T>()[comp] : null;
 
 		private Dictionary<string, T> GetNameDictionary<T>() where T : IApi => GetNameDictionary<T>(typeof(T));
 		private Dictionary<MonoBehaviour, T> GetComponentDictionary<T>() where T : IApi => GetComponentDictionary<T>(typeof(T));
