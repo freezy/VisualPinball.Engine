@@ -20,9 +20,9 @@ using Unity.Mathematics;
 
 namespace VisualPinball.Unity
 {
-	internal static class HitTargetCollider
+	internal static class TargetCollider
 	{
-		public static void Collide(ref BallData ball, ref NativeQueue<EventData>.ParallelWriter hitEvents,
+		public static void DropTargetCollide(ref BallData ball, ref NativeQueue<EventData>.ParallelWriter hitEvents,
 			ref DropTargetAnimationData animationData, in float3 normal, in Entity ballEntity, in CollisionEventData collEvent,
 			in Collider coll, ref Random random)
 		{
@@ -30,6 +30,20 @@ namespace VisualPinball.Unity
 			BallCollider.Collide3DWall(ref ball, in coll.Header.Material, in collEvent, in normal, ref random);
 
 			if (coll.FireEvents && dot >= coll.Threshold && !animationData.IsDropped) {
+				animationData.HitEvent = true;
+				//todo m_obj->m_currentHitThreshold = dot;
+				Collider.FireHitEvent(ref ball, ref hitEvents, in ballEntity, in coll.Header);
+			}
+		}
+
+		public static void HitTargetCollide(ref BallData ball, ref NativeQueue<EventData>.ParallelWriter hitEvents,
+			ref HitTargetAnimationData animationData, in float3 normal, in Entity ballEntity, in CollisionEventData collEvent,
+			in Collider coll, ref Random random)
+		{
+			var dot = -math.dot(collEvent.HitNormal, ball.Velocity);
+			BallCollider.Collide3DWall(ref ball, in coll.Header.Material, in collEvent, in normal, ref random);
+
+			if (coll.FireEvents && dot >= coll.Threshold) {
 				animationData.HitEvent = true;
 				//todo m_obj->m_currentHitThreshold = dot;
 				Collider.FireHitEvent(ref ball, ref hitEvents, in ballEntity, in coll.Header);

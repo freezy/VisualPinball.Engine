@@ -42,7 +42,9 @@ namespace VisualPinball.Unity
 					MaxAngle = hitTargetAnimationComponent.MaxAngle,
 				});
 
-				dstManager.AddComponentData(entity, new HitTargetAnimationData());
+				dstManager.AddComponentData(entity, new HitTargetAnimationData {
+					MoveDirection = true,
+				});
 			}
 
 			// register
