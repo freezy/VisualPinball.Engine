@@ -135,7 +135,7 @@ namespace VisualPinball.Unity
 
 		#region Conversion
 
-			public void Convert(Entity entity, EntityManager dstManager, GameObjectConversionSystem conversionSystem)
+		public void Convert(Entity entity, EntityManager dstManager, GameObjectConversionSystem conversionSystem)
 		{
 			Convert(entity, dstManager);
 
