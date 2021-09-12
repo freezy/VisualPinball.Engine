@@ -42,8 +42,6 @@ namespace VisualPinball.Unity
 		[Tooltip("Height of the rubber (z-axis).")]
 		public float _height = 25f;
 
-		public float _hitHeight = 25f;
-
 		[Min(0)]
 		[Tooltip("How thick the rubber band is rendered.")]
 		public int _thickness = 8;
@@ -61,7 +59,6 @@ namespace VisualPinball.Unity
 		public DragPointData[] DragPoints { get => _dragPoints; set => _dragPoints = value; }
 		public int Thickness => _thickness;
 		public float Height => _height;
-		public float HitHeight => _hitHeight;
 		public float RotX => Rotation.x;
 		public float RotY => Rotation.y;
 		public float RotZ => Rotation.z;
@@ -108,7 +105,6 @@ namespace VisualPinball.Unity
 
 			// geometry
 			_height = data.Height;
-			_hitHeight = data.HitHeight;
 			Rotation = new Vector3(data.RotX, data.RotY, data.RotZ);
 			_thickness = data.Thickness;
 			DragPoints = data.DragPoints;
@@ -119,6 +115,7 @@ namespace VisualPinball.Unity
 				collComponent.enabled = data.IsCollidable;
 
 				collComponent.HitEvent = data.HitEvent;
+				collComponent.HitHeight = data.HitHeight;
 				collComponent.OverwritePhysics = data.OverwritePhysics;
 				collComponent.Elasticity = data.Elasticity;
 				collComponent.ElasticityFalloff = data.ElasticityFalloff;
@@ -157,7 +154,6 @@ namespace VisualPinball.Unity
 
 			// geometry
 			data.Height = _height;
-			data.HitHeight = _hitHeight;
 			data.RotX = Rotation.x;
 			data.RotY = Rotation.y;
 			data.RotZ = Rotation.z;
@@ -173,6 +169,7 @@ namespace VisualPinball.Unity
 				data.IsCollidable = collComponent.enabled;
 
 				data.HitEvent = collComponent.HitEvent;
+				data.HitHeight = collComponent.HitHeight;
 
 				data.PhysicsMaterial = collComponent.PhysicsMaterial ? collComponent.PhysicsMaterial.name : string.Empty;
 				data.OverwritePhysics = collComponent.OverwritePhysics;
@@ -207,7 +204,7 @@ namespace VisualPinball.Unity
 		public override Vector3 GetEditorPosition()
 		{
 			var pos = DragPoints.Length == 0 ? Vector3.zero : DragPointCenter;
-			return new Vector3(pos.x, pos.y, _hitHeight);
+			return new Vector3(pos.x, pos.y, _height);
 		}
 		public override void SetEditorPosition(Vector3 pos) {
 			if (DragPoints.Length == 0) {
@@ -218,7 +215,7 @@ namespace VisualPinball.Unity
 			foreach (var pt in DragPoints) {
 				pt.Center += diff;
 			}
-			_hitHeight = pos.z;
+			_height = pos.z;
 			RebuildMeshes();
 		}
 

@@ -23,7 +23,6 @@ namespace VisualPinball.Engine.VPT.Rubber
 		DragPointData[] DragPoints { get; }
 		int Thickness { get; }
 		float Height { get; }
-		float HitHeight { get; }
 
 		float RotX { get; }
 		float RotY { get; }

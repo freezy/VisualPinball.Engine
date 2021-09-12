@@ -35,7 +35,7 @@ namespace VisualPinball.Unity
 			=> new RubberMeshGenerator(MainComponent).GetRenderObject(table, data);
 		protected override Mesh GetMesh(RubberData data)
 		{
-			return new RubberMeshGenerator(MainComponent).GetTransformedMesh(MainComponent.PlayfieldHeight, MainComponent.PlayfieldDetailLevel);
+			return new RubberMeshGenerator(MainComponent).GetTransformedMesh(MainComponent.PlayfieldHeight, MainComponent.Height, MainComponent.PlayfieldDetailLevel);
 		}
 	}
 }

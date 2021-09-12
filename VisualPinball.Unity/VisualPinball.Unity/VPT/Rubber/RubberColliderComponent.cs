@@ -31,6 +31,9 @@ namespace VisualPinball.Unity
 
 		public bool HitEvent;
 
+		[Tooltip("Z-axis translation for the collider mesh.")]
+		public float HitHeight = 25f;
+
 		public bool OverwritePhysics;
 
 		public float Elasticity;

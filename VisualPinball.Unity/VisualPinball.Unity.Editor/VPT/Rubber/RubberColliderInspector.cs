@@ -26,6 +26,7 @@ namespace VisualPinball.Unity.Editor
 	{
 		private bool _foldoutMaterial = true;
 		private SerializedProperty _hitEventProperty;
+		private SerializedProperty _hitHeightProperty;
 		private SerializedProperty _overwritePhysicsProperty;
 		private SerializedProperty _physicsMaterialProperty;
 		private SerializedProperty _elasticityProperty;
@@ -38,6 +39,7 @@ namespace VisualPinball.Unity.Editor
 			base.OnEnable();
 
 			_hitEventProperty = serializedObject.FindProperty(nameof(RubberColliderComponent.HitEvent));
+			_hitHeightProperty = serializedObject.FindProperty(nameof(RubberColliderComponent.HitHeight));
 
 			_overwritePhysicsProperty = serializedObject.FindProperty(nameof(RubberColliderComponent.OverwritePhysics));
 			_physicsMaterialProperty = serializedObject.FindProperty(nameof(ItemColliderComponent<RubberData, RubberComponent>.PhysicsMaterial));
@@ -59,6 +61,7 @@ namespace VisualPinball.Unity.Editor
 			OnPreInspectorGUI();
 
 			PropertyField(_hitEventProperty, "Has Hit Event");
+			PropertyField(_hitHeightProperty, "Hit Height", updateColliders: true);
 
 			// physics material
 			if (_foldoutMaterial = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutMaterial, "Physics Material")) {
