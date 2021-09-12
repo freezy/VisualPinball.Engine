@@ -54,7 +54,7 @@ namespace VisualPinball.Unity.Editor
 			serializedObject.Update();
 
 			PropertyField(_hitAccuracyProperty);
-			PropertyField(_hitHeightProperty);
+			PropertyField(_hitHeightProperty, updateColliders: true);
 			PropertyField(_scatterProperty, "Scatter Angle");
 			PropertyField(_fallThroughProperty, "Falltrough");
 			PropertyField(_legacyModeProperty, "Legacy Mode");

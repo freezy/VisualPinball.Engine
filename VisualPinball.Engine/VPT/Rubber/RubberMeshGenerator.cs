@@ -26,12 +26,9 @@ using MathF = VisualPinball.Engine.Math.MathF;
 
 namespace VisualPinball.Engine.VPT.Rubber
 {
-	public class RubberMeshGenerator : MeshGenerator
+	public class RubberMeshGenerator
 	{
 		private readonly IRubberData _data;
-		protected override Vertex3D Position => _middlePoint;
-		protected override Vertex3D Scale => Vertex3D.One;
-		protected override float RotationZ => 0;
 
 		private Vertex3D _middlePoint;
 
@@ -55,45 +52,44 @@ namespace VisualPinball.Engine.VPT.Rubber
 		public Mesh GetTransformedMesh(float playfieldHeight, float meshHeight, int detailLevel, int acc = -1, bool createHitShape = false, float margin = 0f)
 		{
 			var mesh = GetMesh(playfieldHeight, meshHeight, detailLevel, acc, createHitShape, margin);
-			var (preVertexMatrix, preNormalsMatrix) = GetTransformationMatrix(playfieldHeight);
-			return mesh.Transform(preVertexMatrix, preNormalsMatrix);
+			return mesh.Transform(GetRotationMatrix());
 		}
 
 		public RenderObjectGroup GetRenderObjects(Table.Table table, Origin origin, bool asRightHanded, RubberData rubberData)
 		{
-			var mesh = GetMesh(table.TableHeight, rubberData.Height, table.GetDetailLevel());
-			var (preVertexMatrix, preNormalsMatrix) = GetPreMatrix(table.TableHeight, origin, asRightHanded);
+			var mesh = GetTransformedMesh(table.TableHeight, rubberData.Height, table.GetDetailLevel());
 			mesh.Name = rubberData.Name;
-			var postMatrix = GetPostMatrix(table, origin);
-			return new RenderObjectGroup(rubberData.Name, "Rubbers", postMatrix, new RenderObject(
+			var preMatrix = new Matrix3D();
+			preMatrix.SetTranslation(0, 0, -rubberData.Height);
+
+			//var postMatrix = GetPostMatrix(table, origin);
+			return new RenderObjectGroup(rubberData.Name, "Rubbers", asRightHanded ? Matrix3D.RightHanded : Matrix3D.Identity, new RenderObject(
 				rubberData.Name,
-				mesh.Transform(preVertexMatrix, preNormalsMatrix),
+				mesh.Transform(preMatrix),
 				new PbrMaterial(table.GetMaterial(rubberData.Material), table.GetTexture(rubberData.Image)),
 				rubberData.IsVisible
 			));
 		}
 
-		protected override Tuple<Matrix3D, Matrix3D?> GetTransformationMatrix(float height)
+		private Matrix3D GetRotationMatrix()
 		{
 			var fullMatrix = new Matrix3D();
 			var tempMat = new Matrix3D();
-			fullMatrix.RotateZMatrix(MathF.DegToRad(_data.RotZ));
+
+			tempMat.SetTranslation(-_middlePoint.X, -_middlePoint.Y, -_middlePoint.Z);
+			fullMatrix.Multiply(tempMat, fullMatrix);
+
+			tempMat.RotateZMatrix(MathF.DegToRad(_data.RotZ));
+			fullMatrix.Multiply(tempMat);
 			tempMat.RotateYMatrix(MathF.DegToRad(_data.RotY));
 			fullMatrix.Multiply(tempMat);
 			tempMat.RotateXMatrix(MathF.DegToRad(_data.RotX));
 			fullMatrix.Multiply(tempMat);
 
-			var vertMatrix = new Matrix3D();
-			tempMat.SetTranslation(-_middlePoint.X, -_middlePoint.Y, -_middlePoint.Z);
-			vertMatrix.Multiply(tempMat, fullMatrix);
-			tempMat.SetScaling(Scale.X, Scale.Y, Scale.Z);
-			vertMatrix.Multiply(tempMat);
+			tempMat.SetTranslation(_middlePoint.X, _middlePoint.Y, _middlePoint.Z);
+			fullMatrix.Multiply(tempMat);
 
-			tempMat.SetTranslation(_middlePoint.X, _middlePoint.Y, _data.Height + height);
-
-			vertMatrix.Multiply(tempMat);
-
-			return new Tuple<Matrix3D, Matrix3D?>(vertMatrix, fullMatrix);
+			return fullMatrix;
 		}
 
 		private Mesh GetMesh(float playfieldHeight, float meshHeight, int detailLevel, int acc = -1, bool createHitShape = false, float margin = 0f)
@@ -112,7 +108,7 @@ namespace VisualPinball.Engine.VPT.Rubber
 
 			var numVertices = numRings * numSegments;
 			var numIndices = 6 * numVertices; //m_numVertices*2+2;
-			var height = meshHeight + playfieldHeight;
+			var height = playfieldHeight + meshHeight;
 
 			mesh.Vertices = new Vertex3DNoTex2[numVertices];
 			mesh.Indices = new int[numIndices];
@@ -155,8 +151,8 @@ namespace VisualPinball.Engine.VPT.Rubber
 						// for a hit shape create a more rectangle mesh and not a smooth one
 						tmp.Z *= 0.6f;
 					}
-
 					mesh.Vertices[index].Z = height + tmp.Z;
+
 					//texel
 					mesh.Vertices[index].Tu = u;
 					mesh.Vertices[index].Tv = v;
@@ -244,11 +240,6 @@ namespace VisualPinball.Engine.VPT.Rubber
 			_middlePoint.Z = (maxZ + minZ) * 0.5f;
 
 			return mesh;
-		}
-
-		protected override float BaseHeight(Table.Table? table)
-		{
-			return 0f;
 		}
 	}
 }

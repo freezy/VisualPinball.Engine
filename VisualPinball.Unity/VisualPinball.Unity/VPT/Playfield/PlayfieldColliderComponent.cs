@@ -29,12 +29,19 @@ namespace VisualPinball.Unity
 	{
 		#region Data
 
+		[Tooltip("The gravity constant of this playfield")]
 		public float Gravity = 0.97f;
 
+		[Min(0f)]
+		[Tooltip("Playfield bounciness, also known as coefficient of restitution. Higher is more bouncy.")]
 		public float Elasticity = 0.25f;
 
+		[Min(0f)]
+		[Tooltip("How much to decrease elasticity for fast impacts.")]
 		public float ElasticityFalloff;
 
+		[Min(0)]
+		[Tooltip("Playfield of the material.")]
 		public float Friction = 0.075f;
 
 		public float Scatter;

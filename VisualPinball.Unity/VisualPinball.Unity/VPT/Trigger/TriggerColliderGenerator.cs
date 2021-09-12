@@ -69,14 +69,13 @@ namespace VisualPinball.Unity
 				rgv[i] = vVertex[i];
 				rgv3D[i] = new float3(rgv[i].X, rgv[i].Y, height + (float)(PhysicsConstants.PhysSkin * 2.0));
 			}
+			ColliderUtils.Generate3DPolyColliders(rgv3D, _api.GetColliderInfo(), colliders);
 
 			for (var i = 0; i < count; i++) {
 				var pv2 = rgv[i < count - 1 ? i + 1 : 0];
 				var pv3 = rgv[i < count - 2 ? i + 2 : i + 2 - count];
 				AddLineSeg(pv2.ToUnityFloat2(), pv3.ToUnityFloat2(), height, colliders);
 			}
-
-			ColliderUtils.Generate3DPolyColliders(rgv3D, _api.GetColliderInfo(), colliders);
 		}
 
 		private void AddLineSeg(float2 pv1, float2 pv2, float height, ICollection<ICollider> colliders) {

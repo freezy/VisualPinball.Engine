@@ -45,10 +45,10 @@ namespace VisualPinball.Unity.Editor
 
 			OnPreInspectorGUI();
 
-			PropertyField(_hitHeightProperty);
+			PropertyField(_hitHeightProperty, updateColliders: true);
 			var meshComponent = (target as TriggerColliderComponent)!.GetComponent<TriggerMeshComponent>();
 			if (meshComponent && meshComponent.IsCircle) {
-				PropertyField(_hitCircleRadiusProperty);
+				PropertyField(_hitCircleRadiusProperty, updateColliders: true);
 			}
 
 			base.OnInspectorGUI();
