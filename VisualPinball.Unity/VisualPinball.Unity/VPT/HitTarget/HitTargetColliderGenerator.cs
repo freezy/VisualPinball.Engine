@@ -6,7 +6,7 @@ namespace VisualPinball.Unity
 {
 	public class HitTargetColliderGenerator : TargetColliderGenerator
 	{
-		public HitTargetColliderGenerator(IApiColliderGenerator hitTargetApi, ITargetData data, IMeshGenerator meshProvider) : base(hitTargetApi, data, meshProvider)
+		public HitTargetColliderGenerator(IApiColliderGenerator api, ITargetData data, IMeshGenerator meshProvider) : base(api, data, meshProvider)
 		{
 		}
 

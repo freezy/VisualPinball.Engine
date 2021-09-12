@@ -28,6 +28,7 @@ namespace VisualPinball.Unity
 
 		private readonly Dictionary<string, BumperApi> _bumpersByName = new Dictionary<string, BumperApi>();
 		private readonly Dictionary<string, FlipperApi> _flippersByName = new Dictionary<string, FlipperApi>();
+		private readonly Dictionary<string, DropTargetApi> _dropTargetsByName = new Dictionary<string, DropTargetApi>();
 		private readonly Dictionary<string, GateApi> _gatesByName = new Dictionary<string, GateApi>();
 		private readonly Dictionary<string, HitTargetApi> _hitTargetsByName = new Dictionary<string, HitTargetApi>();
 		private readonly Dictionary<string, KickerApi> _kickersByName = new Dictionary<string, KickerApi>();
@@ -43,6 +44,7 @@ namespace VisualPinball.Unity
 
 		private readonly Dictionary<MonoBehaviour, BumperApi> _bumpersByComponent = new Dictionary<MonoBehaviour, BumperApi>();
 		private readonly Dictionary<MonoBehaviour, FlipperApi> _flippersByComponent = new Dictionary<MonoBehaviour, FlipperApi>();
+		private readonly Dictionary<MonoBehaviour, DropTargetApi> _dropTargetsByComponent = new Dictionary<MonoBehaviour, DropTargetApi>();
 		private readonly Dictionary<MonoBehaviour, GateApi> _gatesByComponent = new Dictionary<MonoBehaviour, GateApi>();
 		private readonly Dictionary<MonoBehaviour, HitTargetApi> _hitTargetsByComponent = new Dictionary<MonoBehaviour, HitTargetApi>();
 		private readonly Dictionary<MonoBehaviour, KickerApi> _kickersByComponent = new Dictionary<MonoBehaviour, KickerApi>();
@@ -210,6 +212,7 @@ namespace VisualPinball.Unity
 		{
 			if (t == typeof(BumperApi)) return _bumpersByName as Dictionary<string, T>;
 			if (t == typeof(FlipperApi)) return _flippersByName as Dictionary<string, T>;
+			if (t == typeof(DropTargetApi)) return _dropTargetsByName as Dictionary<string, T>;
 			if (t == typeof(GateApi)) return _gatesByName as Dictionary<string, T>;
 			if (t == typeof(HitTargetApi)) return _hitTargetsByName as Dictionary<string, T>;
 			if (t == typeof(KickerApi)) return _kickersByName as Dictionary<string, T>;
@@ -222,13 +225,14 @@ namespace VisualPinball.Unity
 			if (t == typeof(TriggerApi)) return _triggersByName as Dictionary<string, T>;
 			if (t == typeof(TroughApi)) return _troughsByName as Dictionary<string, T>;
 			if (t == typeof(PrimitiveApi)) return _primitivesByName as Dictionary<string, T>;
-			return null;
+			throw new ArgumentException($"Unknown API type {t}.");
 		}
 
 		private Dictionary<MonoBehaviour, T> GetComponentDictionary<T>(Type t) where T : IApi
 		{
 			if (t == typeof(BumperApi)) return _bumpersByComponent as Dictionary<MonoBehaviour, T>;
 			if (t == typeof(FlipperApi)) return _flippersByComponent as Dictionary<MonoBehaviour, T>;
+			if (t == typeof(DropTargetApi)) return _dropTargetsByComponent as Dictionary<MonoBehaviour, T>;
 			if (t == typeof(GateApi)) return _gatesByComponent as Dictionary<MonoBehaviour, T>;
 			if (t == typeof(HitTargetApi)) return _hitTargetsByComponent as Dictionary<MonoBehaviour, T>;
 			if (t == typeof(KickerApi)) return _kickersByComponent as Dictionary<MonoBehaviour, T>;
@@ -241,7 +245,7 @@ namespace VisualPinball.Unity
 			if (t == typeof(TriggerApi)) return _triggersByComponent as Dictionary<MonoBehaviour, T>;
 			if (t == typeof(TroughApi)) return _troughsByComponent as Dictionary<MonoBehaviour, T>;
 			if (t == typeof(PrimitiveApi)) return _primitivesByComponent as Dictionary<MonoBehaviour, T>;
-			return null;
+			throw new ArgumentException($"Unknown API type {t}.");
 		}
 
 		#endregion
