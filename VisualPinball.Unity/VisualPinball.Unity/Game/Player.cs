@@ -115,8 +115,6 @@ namespace VisualPinball.Unity
 			_playfieldComponent = GetComponentInChildren<PlayfieldComponent>();
 			var engineComponent = GetComponent<IGamelogicEngine>();
 
-			_tableComponent.TableContainer.Refresh();
-
 			_apis.Add(TableApi);
 
 			BallManager = new BallManager(this);

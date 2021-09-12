@@ -58,7 +58,7 @@ namespace VisualPinball.Unity
 		public MonoBehaviour _surface;
 
 		public List<KickerCoil> Coils = new List<KickerCoil> {
-			new KickerCoil { Name = "Default" }
+			new KickerCoil { Name = "Default Coil" }
 		};
 
 		[HideInInspector] public int KickerType;

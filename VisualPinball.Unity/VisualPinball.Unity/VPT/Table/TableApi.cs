@@ -189,13 +189,13 @@ namespace VisualPinball.Unity
 
 		#region Registration
 
-		internal void Register<T>(MonoBehaviour comp, T api) where T : IApi
+		internal void Register<T>(MonoBehaviour component, T api) where T : IApi
 		{
 			var nameDict = GetNameDictionary<T>();
 			var compDict = GetComponentDictionary<T>();
 
-			nameDict[comp.name] = api;
-			compDict[comp] = api;
+			nameDict[component.name] = api;
+			compDict[component] = api;
 		}
 
 		private bool Has<T>(string name) where T : IApi => GetNameDictionary<T>().ContainsKey(name);

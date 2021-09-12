@@ -171,6 +171,7 @@ namespace VisualPinball.Unity
 		{
 			PlayfieldEntrySwitch = FindComponent<ITriggerComponent>(components, data.PlayfieldEntrySwitch);
 			PlayfieldExitKicker = FindComponent<KickerComponent>(components, data.PlayfieldExitKicker);
+			PlayfieldExitKickerItem = PlayfieldExitKicker.AvailableCoils.First().Id;
 
 			return Array.Empty<MonoBehaviour>();
 		}
