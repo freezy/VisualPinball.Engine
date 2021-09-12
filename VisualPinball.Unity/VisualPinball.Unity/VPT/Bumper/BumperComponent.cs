@@ -145,20 +145,19 @@ namespace VisualPinball.Unity
 					HitEvent = collComponent.HitEvent,
 					Threshold = collComponent.Threshold
 				});
+			}
 
-				// skirt animation data
-				if (GetComponentInChildren<BumperSkirtAnimationComponent>()) {
-					dstManager.AddComponentData(entity, new BumperSkirtAnimationData {
-						BallPosition = default,
-						AnimationCounter = 0f,
-						DoAnimate = false,
-						DoUpdate = false,
-						EnableAnimation = true,
-						Rotation = new float2(0, 0),
-						HitEvent = collComponent.HitEvent,
-						Center = Position
-					});
-				}
+			// skirt animation data
+			if (GetComponentInChildren<BumperSkirtAnimationComponent>()) {
+				dstManager.AddComponentData(entity, new BumperSkirtAnimationData {
+					BallPosition = default,
+					AnimationCounter = 0f,
+					DoAnimate = false,
+					DoUpdate = false,
+					EnableAnimation = true,
+					Rotation = new float2(0, 0),
+					Center = Position
+				});
 			}
 
 			// ring animation data
