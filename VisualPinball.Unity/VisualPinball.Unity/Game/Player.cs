@@ -196,17 +196,22 @@ namespace VisualPinball.Unity
 			}
 		}
 
+		public void RegisterDropTarget(DropTargetComponent component, Entity entity, Entity parentEntity)
+		{
+			Register(new DropTargetApi(component.gameObject, entity, parentEntity, this), component, entity);
+			RegisterTransform<DropTargetAnimationComponent>(DropTargetTransforms, component, entity);
+		}
+
 		public void RegisterGate(GateComponent component, Entity entity, Entity parentEntity)
 		{
 			Register(new GateApi(component.gameObject, entity, parentEntity, this), component, entity);
 			RegisterTransform<GateWireAnimationComponent>(GateWireTransforms, component, entity);
 		}
 
-		public void RegisterHitTarget(TargetComponent component, Entity entity, Entity parentEntity)
+		public void RegisterHitTarget(HitTargetComponent component, Entity entity, Entity parentEntity)
 		{
 			Register(new HitTargetApi(component.gameObject, entity, parentEntity, this), component, entity);
 			RegisterTransform<HitTargetAnimationComponent>(HitTargetTransforms, component, entity);
-			RegisterTransform<DropTargetAnimationComponent>(DropTargetTransforms, component, entity);
 		}
 
 		public void RegisterKicker(KickerComponent component, Entity entity, Entity parentEntity)

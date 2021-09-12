@@ -41,7 +41,7 @@ namespace VisualPinball.Unity.Editor
 			_positionProperty = serializedObject.FindProperty(nameof(TargetComponent.Position));
 			_rotationProperty = serializedObject.FindProperty(nameof(TargetComponent.Rotation));
 			_sizeProperty = serializedObject.FindProperty(nameof(TargetComponent.Size));
-			_meshNameProperty = serializedObject.FindProperty(nameof(TargetComponent.MeshName));
+			_meshNameProperty = serializedObject.FindProperty(nameof(TargetComponent._meshName));
 			_typeNameProperty = serializedObject.FindProperty(nameof(TargetComponent._targetType));
 		}
 

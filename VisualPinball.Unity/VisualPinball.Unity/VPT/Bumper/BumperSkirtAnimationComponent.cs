@@ -24,6 +24,6 @@ namespace VisualPinball.Unity
 	[AddComponentMenu("Visual Pinball/Animation/Bumper Skirt Animation")]
 	public class BumperSkirtAnimationComponent : ItemAnimationComponent<BumperData, BumperComponent>
 	{
-		public override IEnumerable<Type> ValidParents { get; } = Type.EmptyTypes; // animation components only apply to their own
+		public override IEnumerable<Type> ValidParents => Type.EmptyTypes; // animation components only apply to their own
 	}
 }

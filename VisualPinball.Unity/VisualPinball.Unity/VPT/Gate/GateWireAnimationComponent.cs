@@ -22,6 +22,6 @@ namespace VisualPinball.Unity
 {
 	public class GateWireAnimationComponent : ItemAnimationComponent<GateData, GateComponent>
 	{
-		public override IEnumerable<Type> ValidParents { get; } = Type.EmptyTypes; // animation components only apply to their own
+		public override IEnumerable<Type> ValidParents => Type.EmptyTypes; // animation components only apply to their own
 	}
 }

@@ -56,9 +56,6 @@ namespace VisualPinball.Unity
 		[Tooltip("Minimal impact needed in order to trigger a hit event.")]
 		public float Threshold = 2.0f;
 
-		[Tooltip("If set, send \"dropped\" and \"raised\" hit events.")]
-		public bool UseHitEvent = true;
-
 		#endregion
 
 		public static readonly Type[] ValidParentTypes = Type.EmptyTypes;

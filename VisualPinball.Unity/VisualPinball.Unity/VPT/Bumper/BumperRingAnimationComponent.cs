@@ -14,6 +14,8 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+// ReSharper disable InconsistentNaming
+
 using System;
 using System.Collections.Generic;
 using UnityEngine;
@@ -24,7 +26,7 @@ namespace VisualPinball.Unity
 	[AddComponentMenu("Visual Pinball/Animation/Bumper Ring Animation")]
 	public class BumperRingAnimationComponent : ItemAnimationComponent<BumperData, BumperComponent>
 	{
-		public override IEnumerable<Type> ValidParents { get; } = Type.EmptyTypes; // animation components only apply to their own
+		public override IEnumerable<Type> ValidParents => Type.EmptyTypes; // animation components only apply to their own
 
 		#region Data
 
