@@ -35,7 +35,7 @@ namespace VisualPinball.Unity
 
 		public ColliderBounds Bounds { get; private set; }
 
-		public FlipperCollider(CircleCollider hitCircleBase, float flipperRadius, float endRadius, ColliderInfo info) : this()
+		public FlipperCollider(CircleCollider hitCircleBase, float flipperRadius, float startRadius, float endRadius, float startAngle, float endAngle, ColliderInfo info) : this()
 		{
 			var bounds = hitCircleBase.Bounds;
 			_header.Init(info, ColliderType.Flipper);
@@ -43,15 +43,89 @@ namespace VisualPinball.Unity
 			_zLow = bounds.Aabb.ZLow;
 			_zHigh = bounds.Aabb.ZHigh;
 
-			// todo this can be optimized
-			Bounds = new ColliderBounds(_header.Entity, _header.Id, new Aabb(
-				_hitCircleBase.Center.x - flipperRadius - endRadius - 0.1f,
-				_hitCircleBase.Center.x + flipperRadius + endRadius + 0.1f,
-				_hitCircleBase.Center.y - flipperRadius - endRadius - 0.1f,
-				_hitCircleBase.Center.y + flipperRadius + endRadius + 0.1f,
-				_zLow,
-				_zHigh
-			));
+			// compute bounds. we look at the flipper angles to compute the smallest possible bounds.
+			var c = _hitCircleBase.Center;
+			var r2 = endRadius + 0.1f;
+			var r3 = startRadius + 0.1f;
+
+			var a0 = ClampDegrees(startAngle);
+			var a1 = ClampDegrees(endAngle);
+
+			// start with no bounds
+			var aabb = new Aabb(c.x, c.x, c.y, c.y, _zLow, _zHigh);
+
+			// extend with start and end position
+			aabb = ExtendBoundsAtPosition(aabb, c, flipperRadius, r2, a0);
+			aabb = ExtendBoundsAtPosition(aabb, c, flipperRadius, r2, a1);
+
+			// extend with extremes (-90°, 0°, 90° and 180°)
+			aabb = ExtendBoundsAtExtreme(aabb, c, flipperRadius, r2, r3, a0, a1, -90f);
+			aabb = ExtendBoundsAtExtreme(aabb, c, flipperRadius, r2, r3, a0, a1, 0f);
+			aabb = ExtendBoundsAtExtreme(aabb, c, flipperRadius, r2, r3, a0, a1, 90f);
+			aabb = ExtendBoundsAtExtreme(aabb, c, flipperRadius, r2, r3, a0, a1, 180f);
+
+			Bounds = new ColliderBounds(_header.Entity, _header.Id, aabb);
+		}
+
+		private static Aabb ExtendBoundsAtExtreme(Aabb aabb, float2 c, float length, float endRadius, float startRadius, float startAngle, float endAngle, float angle)
+		{
+			if (startAngle < angle && endAngle > angle || endAngle < angle && startAngle > angle) {
+				// extend front side
+				return ExtendBoundsAtPosition(aabb, c, length, endRadius, angle);
+			}
+
+			// extend back side
+			return ExtendBacksideBounds(aabb, c, startRadius, ClampDegrees(angle + 180));
+		}
+
+		private static Aabb ExtendBacksideBounds(Aabb bounds, float2 center, float fixedRadius, float angle)
+		{
+			switch (angle) {
+				case -90f: bounds.Right = math.max(bounds.Right, center.x + fixedRadius); break;
+				case 90f: bounds.Left = math.min(bounds.Left, center.x - fixedRadius); break;
+				case 0f: bounds.Bottom = math.max(bounds.Bottom, center.y + fixedRadius); break;
+				case 180f: bounds.Top = math.min(bounds.Top, center.y - fixedRadius); break;
+			}
+
+			return bounds;
+		}
+
+		private static Aabb ExtendBoundsAtPosition(Aabb bounds, float2 center, float length, float fixedRadius, float angle)
+		{
+			var deg = ClampDegrees(angle);
+			if (deg > 0) {
+				var l = math.sin(math.radians(180 - deg));
+				var d1 = length * l;
+				var d2 = math.sign(l) * fixedRadius;
+				bounds.Right = math.max(bounds.Right, center.x + d1 + d2);
+
+			} else {
+				var l = math.sin(math.radians(180 - deg));
+				var d1 = length * l;
+				var d2 = math.sign(l) * fixedRadius;
+				bounds.Left = math.min(bounds.Left, center.x + d1 + d2);
+			}
+
+			if (deg > 90 || deg < -90) {
+				var l = math.cos(math.radians(180 - deg));
+				var d1 =  length * l;
+				var d2 = math.sign(l) * fixedRadius;
+				bounds.Bottom = math.max(bounds.Bottom, center.y + d1 + d2);
+
+			} else {
+				var l = math.cos(math.radians(180 - deg));
+				var d1 = length * l;
+				var d2 = math.sign(l) * fixedRadius;
+				bounds.Top = math.min(bounds.Top, center.y + d1 + d2);
+			}
+
+			return bounds;
+		}
+
+		private static float ClampDegrees(float angle)
+		{
+			var deg = angle % 360;
+			return deg > 180 ? deg - 360 : deg;
 		}
 
 		public unsafe void Allocate(BlobBuilder builder, ref BlobBuilderArray<BlobPtr<Collider>> colliders, int colliderId)

@@ -24,6 +24,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using ICSharpCode.NRefactory.Ast;
 using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
@@ -359,6 +360,10 @@ namespace VisualPinball.Unity
 			AddPolyArc(arrow, Vector3.zero, FlipperRadiusMax - 20F, start, end, height: height);
 			for (int i = 1, j = 0; i < arrow.Count; j = i++) {
 				Gizmos.DrawLine(transform.TransformPoint(arrow[j]), transform.TransformPoint(arrow[i]));
+			}
+
+			if (start == end) {
+				return;
 			}
 			var last = IsLeft ? arrow[0] : arrow[arrow.Count-1];
 			var tmpA = IsLeft ? start + 90F + 3F : end +90F - 3F;
