@@ -21,7 +21,6 @@ using System.Collections.Generic;
 using System.Linq;
 using Unity.Entities;
 using Unity.Mathematics;
-using UnityEditor;
 using UnityEngine;
 using UnityEngine.Profiling;
 using VisualPinball.Engine.VPT;
@@ -88,6 +87,8 @@ namespace VisualPinball.Unity
 				};
 		}
 
+		#if UNITY_EDITOR
+
 		private void OnDrawGizmos()
 		{
 			Profiler.BeginSample("ItemColliderComponent.OnDrawGizmosSelected");
@@ -109,7 +110,7 @@ namespace VisualPinball.Unity
 
 			var ltw = GetComponentInParent<PlayfieldComponent>().transform.localToWorldMatrix;
 			Gizmos.matrix = ltw;
-			Handles.matrix = ltw;
+			UnityEditor.Handles.matrix = ltw;
 
 			var generateColliders = ShowAabbs || showColliders && !HasCachedColliders;
 			if (generateColliders) {
@@ -132,7 +133,7 @@ namespace VisualPinball.Unity
 
 			if (showColliders) {
 				var color = Color.green;
-				Handles.color = color;
+				UnityEditor.Handles.color = color;
 				color.a = 0.3f;
 				Gizmos.color = color;
 				Gizmos.DrawMesh(_colliderMesh);
@@ -151,11 +152,11 @@ namespace VisualPinball.Unity
 		private Mesh GenerateColliderMesh(List<ICollider> colliders, Matrix4x4 ltw)
 		{
 			var color = Color.green;
-			Handles.color = color;
+			UnityEditor.Handles.color = color;
 			color.a = 0.3f;
 			Gizmos.color = color;
 			Gizmos.matrix = ltw;
-			Handles.matrix = ltw;
+			UnityEditor.Handles.matrix = ltw;
 			var vertices = new List<Vector3>();
 			var normals = new List<Vector3>();
 			var indices = new List<int>();
@@ -303,7 +304,7 @@ namespace VisualPinball.Unity
 		private static void DrawLine(Vector3 p1, Vector3 p2)
 		{
 			const int thickness = 10;
-			Handles.DrawAAPolyLine(thickness, p1, p2);
+			UnityEditor.Handles.DrawAAPolyLine(thickness, p1, p2);
 		}
 
 		private static void AddCollider(LineZCollider lineZCol, ICollection<Vector3> vertices, ICollection<Vector3> normals, ICollection<int> indices)
@@ -418,6 +419,8 @@ namespace VisualPinball.Unity
 		}
 
 		#endregion
+
+		#endif
 	}
 
 	internal static class ColliderColor
