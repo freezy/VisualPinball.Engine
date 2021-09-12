@@ -21,6 +21,7 @@
 
 using System;
 using System.Collections.Generic;
+using PlasticGui.Configuration.CloudEdition.Welcome;
 using UnityEngine;
 using VisualPinball.Engine.Common;
 using VisualPinball.Engine.VPT;
@@ -42,6 +43,7 @@ namespace VisualPinball.Unity
 		#region Data
 
 		public float GlobalDifficulty = 0.2f;
+		public int OverridePhysics;
 
 		#endregion
 
@@ -94,6 +96,7 @@ namespace VisualPinball.Unity
 		public override IEnumerable<MonoBehaviour> SetData(TableData data)
 		{
 			GlobalDifficulty = data.GlobalDifficulty;
+			OverridePhysics = data.OverridePhysics;
 			return new List<MonoBehaviour> { this };
 		}
 
@@ -106,6 +109,7 @@ namespace VisualPinball.Unity
 		{
 			data.TableHeight = PlayfieldHeight;
 			data.GlobalDifficulty = GlobalDifficulty;
+			data.OverridePhysics = OverridePhysics;
 
 			return data;
 		}

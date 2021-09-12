@@ -58,6 +58,8 @@ namespace VisualPinball.Unity
 
 		public int PlayfieldDetailLevel = 10;
 
+		public float GravityStrength = 1.762985f;
+
 		[SerializeField] private string _playfieldImage;
 		[SerializeField] private string _playfieldMaterial;
 
@@ -87,7 +89,7 @@ namespace VisualPinball.Unity
 				var tableComponent = GetComponentInParent<TableComponent>();
 				var difficulty = tableComponent ? tableComponent.GlobalDifficulty : 0.2f;
 				var slope = AngleTiltMin + (AngleTiltMax - AngleTiltMin) * difficulty;
-				var strength = PhysicsConstants.DefaultTableGravity;
+				var strength = tableComponent.OverridePhysics != 0 ? PhysicsConstants.DefaultTableGravity : GravityStrength;
 				return new float3(0, math.sin(math.radians(slope)) * strength, -math.cos(math.radians(slope)) * strength);
 			}
 		}
@@ -116,6 +118,7 @@ namespace VisualPinball.Unity
 			Bottom = data.Bottom;
 			AngleTiltMax = data.AngleTiltMax;
 			AngleTiltMin = data.AngleTiltMin;
+			GravityStrength = data.Gravity;
 
 			// playfield material
 			_playfieldImage = data.Image;
@@ -181,6 +184,7 @@ namespace VisualPinball.Unity
 			data.Bottom = Bottom;
 			data.AngleTiltMax = AngleTiltMax;
 			data.AngleTiltMin = AngleTiltMin;
+			data.Gravity = GravityStrength;
 
 			// playfield material
 			data.Image = _playfieldImage;
