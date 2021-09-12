@@ -157,8 +157,6 @@ namespace VisualPinball.Unity
 		/// </summary>
 		private readonly Dictionary<string, IApiSwitch> _switchLookup = new Dictionary<string, IApiSwitch>();
 
-		private bool _isSetup;
-
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
 		/// <summary>
@@ -178,7 +176,6 @@ namespace VisualPinball.Unity
 			_drainSwitch = TableApi.Switch(MainComponent.PlayfieldEntrySwitch, MainComponent.PlayfieldEntrySwitchItem);
 			_ejectCoil = TableApi.Coil(MainComponent.PlayfieldExitKicker, MainComponent.PlayfieldExitKickerItem);
 			_ejectKicker = TableApi.Kicker(MainComponent.PlayfieldExitKicker);
-			_isSetup = _drainSwitch != null && _ejectCoil != null;
 
 			// setup entry handler
 			if (_drainSwitch != null) {
@@ -437,10 +434,6 @@ namespace VisualPinball.Unity
 		/// <returns>True if a ball was ejected, false if there were no balls in the stack to eject.</returns>
 		public bool EjectBall()
 		{
-			if (!_isSetup) {
-				Logger.Warn($"Trough {MainComponent.name} not set up, ignoring.");
-				return false;
-			}
 			if (_countedStackBalls > 0) {
 
 				// open the switch of the ejected ball immediately
