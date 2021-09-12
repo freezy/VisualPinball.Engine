@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using Unity.Mathematics;
+using UnityEngine;
 using VisualPinball.Engine.Game;
 using VisualPinball.Engine.Math;
 
@@ -34,6 +35,8 @@ namespace VisualPinball.Unity
 			_x = x;
 			_y = y;
 			_z = playfieldHeight;
+			_kickAngle = math.radians(180f);;
+			_kickForce = 20;
 		}
 
 		public DebugBallCreator(float x, float y, float playfieldHeight, float kickAngle, float kickForce)
