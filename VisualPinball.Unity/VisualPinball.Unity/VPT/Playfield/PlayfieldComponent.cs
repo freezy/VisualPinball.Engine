@@ -40,16 +40,22 @@ namespace VisualPinball.Unity
 
 		#region Data
 
+		[Tooltip("Height of the table. Translates all elements along the Z-axis.")]
 		public float TableHeight;
 
+		[Tooltip("Height of the glass above the playfield. Serves as outer collision bounds of the Z-axis.")]
 		public float GlassHeight;
 
+		[Tooltip("Left position of the playfield (X-axis value).")]
 		public float Left;
 
+		[Tooltip("Width of the playfield.")]
 		public float Right = 952f;
 
+		[Tooltip("Top position of the playfield (Y-axis value).")]
 		public float Top;
 
+		[Tooltip("Height of the playfield (Y-axis size).")]
 		public float Bottom = 2162f;
 
 		public float AngleTiltMax = 6f;

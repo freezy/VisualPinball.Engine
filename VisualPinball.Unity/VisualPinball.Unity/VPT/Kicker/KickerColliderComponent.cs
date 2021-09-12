@@ -14,6 +14,8 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+// ReSharper disable InconsistentNaming
+
 using System;
 using System.Collections.Generic;
 using Unity.Entities;
@@ -31,12 +33,17 @@ namespace VisualPinball.Unity
 		[Tooltip("How many degrees of randomness is added to the ball trajectory when ejecting.")]
 		public float Scatter;
 
+		[Range(0f, 1f)]
+		[Tooltip("How fast the ball gets caught by the trigger.")]
 		public float HitAccuracy = 0.7f;
 
+		[Tooltip("The height of the collider of the kicker.")]
 		public float HitHeight = 40.0f;
 
+		[Tooltip("Whether the ball continues moving through the kicker. If not set, the ball is frozen and kept in the kicker.")]
 		public bool FallThrough;
 
+		[Tooltip("Use a better collision model. Currently disabled.")]
 		public bool LegacyMode = true;
 
 		[Range(-180f, 180f)]
