@@ -24,7 +24,7 @@ using VisualPinball.Engine.VPT.Rubber;
 namespace VisualPinball.Unity.Editor
 {
 	[CustomEditor(typeof(RubberComponent)), CanEditMultipleObjects]
-	public class RubberInspector : DragPointsItemInspector<RubberData, RubberComponent>
+	public class RubberInspector : DragPointsInspector<RubberData, RubberComponent>
 	{
 		private SerializedProperty _heightProperty;
 		private SerializedProperty _thicknessProperty;

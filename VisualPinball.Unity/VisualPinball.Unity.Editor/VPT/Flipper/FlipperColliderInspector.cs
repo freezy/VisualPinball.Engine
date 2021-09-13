@@ -22,7 +22,7 @@ using VisualPinball.Engine.VPT.Flipper;
 namespace VisualPinball.Unity.Editor
 {
 	[CustomEditor(typeof(FlipperColliderComponent)), CanEditMultipleObjects]
-	public class FlipperColliderInspector : ItemColliderInspector<FlipperData, FlipperComponent, FlipperColliderComponent>
+	public class FlipperColliderInspector : ColliderInspector<FlipperData, FlipperComponent, FlipperColliderComponent>
 	{
 		private bool _foldoutMaterial = true;
 

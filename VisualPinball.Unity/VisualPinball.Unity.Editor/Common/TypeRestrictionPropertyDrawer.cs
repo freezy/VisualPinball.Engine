@@ -124,7 +124,7 @@ namespace VisualPinball.Unity.Editor
 									break;
 							}
 							property.serializedObject.ApplyModifiedProperties();
-							if (comp is IItemMainRenderableComponent renderable) {
+							if (comp is IMainRenderableComponent renderable) {
 								if (attrib.RebuildMeshes) {
 									renderable.RebuildMeshes();
 								}

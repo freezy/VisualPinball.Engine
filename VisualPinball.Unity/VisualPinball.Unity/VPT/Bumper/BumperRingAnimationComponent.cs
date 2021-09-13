@@ -24,7 +24,7 @@ using VisualPinball.Engine.VPT.Bumper;
 namespace VisualPinball.Unity
 {
 	[AddComponentMenu("Visual Pinball/Animation/Bumper Ring Animation")]
-	public class BumperRingAnimationComponent : ItemAnimationComponent<BumperData, BumperComponent>
+	public class BumperRingAnimationComponent : AnimationComponent<BumperData, BumperComponent>
 	{
 		public override IEnumerable<Type> ValidParents => Type.EmptyTypes; // animation components only apply to their own
 

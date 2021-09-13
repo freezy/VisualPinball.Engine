@@ -22,7 +22,7 @@ namespace VisualPinball.Unity
 	/// <summary>
 	/// Components that can serve as "wire destination", which are coils and lamps.
 	/// </summary>
-	public interface IWireableComponent : IItemMainComponent, IDeviceComponent<IGamelogicEngineDeviceItem>
+	public interface IWireableComponent : IMainComponent, IDeviceComponent<IGamelogicEngineDeviceItem>
 	{
 		IEnumerable<IGamelogicEngineDeviceItem> AvailableWireDestinations { get; }
 	}

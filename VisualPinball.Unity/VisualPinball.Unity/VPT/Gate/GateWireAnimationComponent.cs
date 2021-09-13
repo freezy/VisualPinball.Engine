@@ -20,7 +20,7 @@ using VisualPinball.Engine.VPT.Gate;
 
 namespace VisualPinball.Unity
 {
-	public class GateWireAnimationComponent : ItemAnimationComponent<GateData, GateComponent>
+	public class GateWireAnimationComponent : AnimationComponent<GateData, GateComponent>
 	{
 		public override IEnumerable<Type> ValidParents => Type.EmptyTypes; // animation components only apply to their own
 	}

@@ -55,12 +55,12 @@ namespace VisualPinball.Unity.Editor
 		private void OnUndoRedoPerformed()
 		{
 			switch (target) {
-				case IItemMeshComponent meshItem:
+				case IMeshComponent meshItem:
 					meshItem.MainRenderableComponent.RebuildMeshes();
 					meshItem.MainRenderableComponent.UpdateTransforms();
 					meshItem.MainRenderableComponent.UpdateVisibility();
 					break;
-				case IItemMainRenderableComponent mainItem:
+				case IMainRenderableComponent mainItem:
 					mainItem.RebuildMeshes();
 					mainItem.UpdateTransforms();
 					mainItem.UpdateVisibility();
@@ -70,7 +70,7 @@ namespace VisualPinball.Unity.Editor
 
 		public override void OnInspectorGUI()
 		{
-			if (!(target is IItemMainRenderableComponent item)) {
+			if (!(target is IMainRenderableComponent item)) {
 				return;
 			}
 
@@ -92,7 +92,7 @@ namespace VisualPinball.Unity.Editor
 			serializedObject.ApplyModifiedProperties();
 
 			switch (target) {
-				case IItemMeshComponent meshItem:
+				case IMeshComponent meshItem:
 					if (_meshDirty) {
 						meshItem.MainRenderableComponent.RebuildMeshes();
 					}
@@ -104,7 +104,7 @@ namespace VisualPinball.Unity.Editor
 					}
 					break;
 
-				case IItemMainRenderableComponent mainItem:
+				case IMainRenderableComponent mainItem:
 					if (_meshDirty) {
 						mainItem.RebuildMeshes();
 					}
@@ -116,13 +116,13 @@ namespace VisualPinball.Unity.Editor
 					}
 					break;
 
-				case IItemColliderComponent colliderComponent:
+				case IColliderComponent colliderComponent:
 					if (_collidersDirty) {
 						colliderComponent.CollidersDirty = true;
 					}
 					break;
 
-				case IItemAnimationComponent animationComponent:
+				case IAnimationComponent animationComponent:
 					if (_transformsDirty) {
 						animationComponent.UpdateTransforms();
 					}
@@ -179,7 +179,7 @@ namespace VisualPinball.Unity.Editor
 				prop.intValue = optionValues[selectedIndex];
 				prop.serializedObject.ApplyModifiedProperties();
 				switch (target) {
-					case IItemMeshComponent meshItem:
+					case IMeshComponent meshItem:
 						if (rebuildMesh) {
 							meshItem.MainRenderableComponent.RebuildMeshes();
 						}
@@ -188,7 +188,7 @@ namespace VisualPinball.Unity.Editor
 						}
 						break;
 
-					case IItemMainRenderableComponent mainItem:
+					case IMainRenderableComponent mainItem:
 						if (rebuildMesh) {
 							mainItem.RebuildMeshes();
 						}
@@ -221,7 +221,7 @@ namespace VisualPinball.Unity.Editor
 					}
 					meshProp.serializedObject.ApplyModifiedProperties();
 					if (target is MonoBehaviour mb) {
-						var colliderComponent = mb.GetComponent<IItemColliderComponent>();
+						var colliderComponent = mb.GetComponent<IColliderComponent>();
 						if (colliderComponent != null) {
 							colliderComponent.CollidersDirty = true;
 						}
@@ -232,7 +232,7 @@ namespace VisualPinball.Unity.Editor
 
 		protected void OnPreInspectorGUI()
 		{
-			if (!(target is IItemMainRenderableComponent item)) {
+			if (!(target is IMainRenderableComponent item)) {
 				return;
 			}
 
@@ -281,16 +281,16 @@ namespace VisualPinball.Unity.Editor
 				// set dirty flag true before recording object state for the undo so meshes will rebuild after the undo as well
 				switch (target) {
 
-					case IItemMeshComponent meshItem:
+					case IMeshComponent meshItem:
 						Undo.RecordObjects(new Object[] {UndoTarget, UndoTarget.transform}, undoLabel);
 						meshItem.MainRenderableComponent.RebuildMeshes();
 						break;
 
-					case IItemColliderComponent _:
+					case IColliderComponent _:
 						Undo.RecordObject(UndoTarget, undoLabel);
 						break;
 
-					case IItemMainRenderableComponent mainItem:
+					case IMainRenderableComponent mainItem:
 						Undo.RecordObjects(new Object[] {UndoTarget, UndoTarget.transform }, undoLabel);
 						mainItem.RebuildMeshes();
 						break;

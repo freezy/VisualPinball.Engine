@@ -30,7 +30,7 @@ using VisualPinball.Engine.VPT.Table;
 namespace VisualPinball.Unity
 {
 	[AddComponentMenu("Visual Pinball/Table")]
-	public class TableComponent : ItemMainRenderableComponent<TableData>
+	public class TableComponent : MainRenderableComponent<TableData>
 	{
 		[SerializeReference] public LegacyContainer LegacyContainer;
 		[SerializeReference] public MappingConfig MappingConfig = new MappingConfig();
@@ -99,7 +99,7 @@ namespace VisualPinball.Unity
 			return new List<MonoBehaviour> { this };
 		}
 
-		public override IEnumerable<MonoBehaviour> SetReferencedData(TableData data, Table table, IMaterialProvider materialProvider, ITextureProvider textureProvider, Dictionary<string, IItemMainComponent> components)
+		public override IEnumerable<MonoBehaviour> SetReferencedData(TableData data, Table table, IMaterialProvider materialProvider, ITextureProvider textureProvider, Dictionary<string, IMainComponent> components)
 		{
 			return Array.Empty<MonoBehaviour>();
 		}

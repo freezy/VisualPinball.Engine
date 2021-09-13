@@ -33,7 +33,7 @@ namespace VisualPinball.Unity
 	}
 
 	/// <summary>
-	/// APIs with this interface represent collidable objects and can generate colliders. <see cref="ItemCollidableApi{TComponent,TCollidableComponent,TData}"/> implements this.
+	/// APIs with this interface represent collidable objects and can generate colliders. <see cref="CollidableApi{TComponent,TCollidableComponent,TData}"/> implements this.
 	/// </summary>
 	public interface IApiColliderGenerator
 	{

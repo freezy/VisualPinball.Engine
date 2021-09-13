@@ -31,7 +31,7 @@ namespace VisualPinball.Unity
 	/// The scripting API of the flipper.
 	/// </summary>
 	[Api]
-	public class FlipperApi : ItemCollidableApi<FlipperComponent, FlipperColliderComponent, FlipperData>,
+	public class FlipperApi : CollidableApi<FlipperComponent, FlipperColliderComponent, FlipperData>,
 		IApi, IApiHittable, IApiRotatable, IApiCollidable, IApiSwitchDevice, IApiSwitch, IApiCoilDevice, IApiWireDeviceDest
 	{
 		/// <summary>

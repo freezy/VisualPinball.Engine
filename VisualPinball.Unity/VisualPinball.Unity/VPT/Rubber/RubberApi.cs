@@ -22,7 +22,7 @@ using VisualPinball.Engine.VPT.Rubber;
 
 namespace VisualPinball.Unity
 {
-	public class RubberApi : ItemCollidableApi<RubberComponent, RubberColliderComponent, RubberData>,
+	public class RubberApi : CollidableApi<RubberComponent, RubberColliderComponent, RubberData>,
 		IApi, IApiHittable
 	{
 		/// <summary>

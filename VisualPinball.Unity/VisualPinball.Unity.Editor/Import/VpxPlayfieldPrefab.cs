@@ -26,7 +26,7 @@ namespace VisualPinball.Unity.Editor
 	internal class VpxPlayfieldPrefab : IVpxPrefab
 	{
 		public GameObject GameObject { get; }
-		public IItemMainComponent MainComponent => _playfieldComponent;
+		public IMainComponent MainComponent => _playfieldComponent;
 		public MeshFilter[] MeshFilters => GameObject.GetComponents<MeshFilter>();
 		public bool ExtractMesh => true;
 		public bool SkipParenting => true;
@@ -47,7 +47,7 @@ namespace VisualPinball.Unity.Editor
 			// nothing to do here
 		}
 
-		public void SetReferencedData(Table table, IMaterialProvider materialProvider, ITextureProvider textureProvider, Dictionary<string, IItemMainComponent> components)
+		public void SetReferencedData(Table table, IMaterialProvider materialProvider, ITextureProvider textureProvider, Dictionary<string, IMainComponent> components)
 		{
 			var playfieldComp = GameObject.GetComponent<PlayfieldComponent>();
 			if (playfieldComp) {

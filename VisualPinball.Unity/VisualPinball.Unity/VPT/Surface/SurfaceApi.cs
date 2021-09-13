@@ -21,7 +21,7 @@ using UnityEngine;
 
 namespace VisualPinball.Unity
 {
-	public class SurfaceApi : ItemCollidableApi<SurfaceComponent, SurfaceColliderComponent, Engine.VPT.Surface.SurfaceData>,
+	public class SurfaceApi : CollidableApi<SurfaceComponent, SurfaceColliderComponent, Engine.VPT.Surface.SurfaceData>,
 		IApi, IApiHittable, IApiSlingshot
 	{
 		/// <summary>

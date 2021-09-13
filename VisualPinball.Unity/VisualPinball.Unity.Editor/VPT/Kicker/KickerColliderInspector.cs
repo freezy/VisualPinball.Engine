@@ -22,7 +22,7 @@ using VisualPinball.Engine.VPT.Kicker;
 namespace VisualPinball.Unity.Editor
 {
 	[CustomEditor(typeof(KickerColliderComponent)), CanEditMultipleObjects]
-	public class KickerColliderInspector : ItemColliderInspector<KickerData, KickerComponent, KickerColliderComponent>
+	public class KickerColliderInspector : ColliderInspector<KickerData, KickerComponent, KickerColliderComponent>
 	{
 		private SerializedProperty _hitAccuracyProperty;
 		private SerializedProperty _hitHeightProperty;

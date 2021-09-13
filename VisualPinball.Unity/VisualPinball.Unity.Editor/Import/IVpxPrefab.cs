@@ -25,7 +25,7 @@ namespace VisualPinball.Unity.Editor
 	{
 		GameObject GameObject { get; }
 
-		IItemMainComponent MainComponent { get; }
+		IMainComponent MainComponent { get; }
 
 		MeshFilter[] MeshFilters { get; }
 
@@ -36,7 +36,7 @@ namespace VisualPinball.Unity.Editor
 		void SetData();
 
 		public void SetReferencedData(Table table, IMaterialProvider materialProvider, ITextureProvider textureProvider,
-			Dictionary<string, IItemMainComponent> components);
+			Dictionary<string, IMainComponent> components);
 
 		public void PersistData();
 

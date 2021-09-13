@@ -34,7 +34,7 @@ namespace VisualPinball.Unity.Editor
 		/// <summary>
 		/// The first selected item
 		/// </summary>
-		private IItemMainRenderableComponent _primaryItem;
+		private IMainRenderableComponent _primaryItem;
 
 		/// <summary>
 		/// On multi-selection, these are the other selected items.
@@ -70,9 +70,9 @@ namespace VisualPinball.Unity.Editor
 				}
 
 
-				var item = itemTransform.GetComponent<IItemMainRenderableComponent>();
+				var item = itemTransform.GetComponent<IMainRenderableComponent>();
 				useDefault = useDefault && itemTransform.GetComponentInParent<PlayfieldComponent>() == null;
-				_itemSelected = itemTransform.GetComponent<IItemMainComponent>() != null;
+				_itemSelected = itemTransform.GetComponent<IMainComponent>() != null;
 
 				// must be main but not the table itself
 				if (item != null && !(item is TableComponent)) {
@@ -359,7 +359,7 @@ namespace VisualPinball.Unity.Editor
 		private class SecondaryItem
 		{
 			public Transform Transform;
-			public IItemMainRenderableComponent Item;
+			public IMainRenderableComponent Item;
 			public Vector3 Offset;
 		}
 	}

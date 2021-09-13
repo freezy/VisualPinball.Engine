@@ -22,7 +22,7 @@ using VisualPinball.Engine.VPT.Primitive;
 namespace VisualPinball.Unity.Editor
 {
 	[CustomEditor(typeof(PrimitiveComponent)), CanEditMultipleObjects]
-	public class PrimitiveInspector : ItemMainInspector<PrimitiveData, PrimitiveComponent>
+	public class PrimitiveInspector : MainInspector<PrimitiveData, PrimitiveComponent>
 	{
 		private SerializedProperty _positionProperty;
 		private SerializedProperty _rotationProperty;

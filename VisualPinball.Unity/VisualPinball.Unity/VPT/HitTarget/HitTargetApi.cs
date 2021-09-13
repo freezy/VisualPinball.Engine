@@ -22,7 +22,7 @@ using VisualPinball.Engine.VPT.HitTarget;
 
 namespace VisualPinball.Unity
 {
-	public class HitTargetApi : ItemCollidableApi<TargetComponent, HitTargetColliderComponent, HitTargetData>,
+	public class HitTargetApi : CollidableApi<TargetComponent, HitTargetColliderComponent, HitTargetData>,
 		IApi, IApiHittable, IApiSwitch, IApiSwitchDevice
 	{
 		/// <summary>

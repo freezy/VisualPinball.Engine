@@ -22,7 +22,7 @@ using VisualPinball.Engine.VPT.Bumper;
 namespace VisualPinball.Unity.Editor
 {
 	[CustomEditor(typeof(BumperColliderComponent)), CanEditMultipleObjects]
-	public class BumperColliderInspector : ItemColliderInspector<BumperData, BumperComponent, BumperColliderComponent>
+	public class BumperColliderInspector : ColliderInspector<BumperData, BumperComponent, BumperColliderComponent>
 	{
 		private SerializedProperty _hitEventProperty;
 		private SerializedProperty _thresholdProperty;

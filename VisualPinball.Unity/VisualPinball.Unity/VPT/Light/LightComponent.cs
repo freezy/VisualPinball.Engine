@@ -36,7 +36,7 @@ using Logger = NLog.Logger;
 namespace VisualPinball.Unity
 {
 	[AddComponentMenu("Visual Pinball/Game Item/Light")]
-	public class LightComponent : ItemMainRenderableComponent<LightData>, ILampDeviceComponent
+	public class LightComponent : MainRenderableComponent<LightData>, ILampDeviceComponent
 	{
 		#region Data
 
@@ -70,7 +70,7 @@ namespace VisualPinball.Unity
 
 		public override LightData InstantiateData() => new LightData();
 
-		protected override Type MeshComponentType { get; } = typeof(ItemMeshComponent<LightData, LightComponent>);
+		protected override Type MeshComponentType { get; } = typeof(MeshComponent<LightData, LightComponent>);
 		protected override Type ColliderComponentType { get; } = null;
 
 		public const string LampIdDefault = "default_lamp";
@@ -236,7 +236,7 @@ namespace VisualPinball.Unity
 		}
 
 
-		public override IEnumerable<MonoBehaviour> SetReferencedData(LightData data, Table table, IMaterialProvider materialProvider, ITextureProvider textureProvider, Dictionary<string, IItemMainComponent> components)
+		public override IEnumerable<MonoBehaviour> SetReferencedData(LightData data, Table table, IMaterialProvider materialProvider, ITextureProvider textureProvider, Dictionary<string, IMainComponent> components)
 		{
 			Surface = FindComponent<SurfaceComponent>(components, data.Surface);
 			return Array.Empty<MonoBehaviour>();

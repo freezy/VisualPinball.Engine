@@ -26,7 +26,7 @@ namespace VisualPinball.Unity
 {
 	[ExecuteInEditMode]
 	[AddComponentMenu("Visual Pinball/Mesh/Rubber Mesh")]
-	public class RubberMeshComponent : ItemMeshComponent<RubberData, RubberComponent>
+	public class RubberMeshComponent : MeshComponent<RubberData, RubberComponent>
 	{
 		public static readonly Type[] ValidParentTypes = Type.EmptyTypes;
 		public override IEnumerable<Type> ValidParents => ValidParentTypes;

@@ -23,7 +23,7 @@ using VisualPinball.Engine.VPT.Primitive;
 namespace VisualPinball.Unity.Editor
 {
 	[CustomEditor(typeof(PrimitiveMeshComponent)), CanEditMultipleObjects]
-	public class PrimitiveMeshInspector : ItemMeshInspector<PrimitiveData, PrimitiveComponent, PrimitiveMeshComponent>
+	public class PrimitiveMeshInspector : MeshInspector<PrimitiveData, PrimitiveComponent, PrimitiveMeshComponent>
 	{
 		private SerializedProperty _sidesProperty;
 		private SerializedProperty _useLegacyMeshProperty;

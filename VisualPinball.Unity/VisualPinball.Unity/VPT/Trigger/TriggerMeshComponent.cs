@@ -29,7 +29,7 @@ namespace VisualPinball.Unity
 {
 	[ExecuteInEditMode]
 	[AddComponentMenu("Visual Pinball/Mesh/Trigger Mesh")]
-	public class TriggerMeshComponent : ItemMeshComponent<TriggerData, TriggerComponent>
+	public class TriggerMeshComponent : MeshComponent<TriggerData, TriggerComponent>
 	{
 		#region Data
 

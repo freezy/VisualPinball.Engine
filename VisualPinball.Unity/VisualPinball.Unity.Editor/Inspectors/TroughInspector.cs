@@ -24,7 +24,7 @@ using VisualPinball.Engine.VPT.Trough;
 namespace VisualPinball.Unity.Editor
 {
 	[CustomEditor(typeof(TroughComponent)), CanEditMultipleObjects]
-	public class TroughInspector : ItemMainInspector<TroughData, TroughComponent>
+	public class TroughInspector : MainInspector<TroughData, TroughComponent>
 	{
 		private static readonly string[] TypeLabels = {
 			"Modern Opto",

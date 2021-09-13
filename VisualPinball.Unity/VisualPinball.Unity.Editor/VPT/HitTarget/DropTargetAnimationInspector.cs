@@ -22,7 +22,7 @@ using VisualPinball.Engine.VPT.HitTarget;
 namespace VisualPinball.Unity.Editor
 {
 	[CustomEditor(typeof(DropTargetAnimationComponent)), CanEditMultipleObjects]
-	public class DropTargetAnimationInspector : ItemAnimationInspector<HitTargetData, DropTargetComponent, DropTargetAnimationComponent>
+	public class DropTargetAnimationInspector : AnimationInspector<HitTargetData, DropTargetComponent, DropTargetAnimationComponent>
 	{
 		private SerializedProperty _isDroppedProperty;
 		private SerializedProperty _speedProperty;

@@ -35,7 +35,7 @@ using Mesh = VisualPinball.Engine.VPT.Mesh;
 namespace VisualPinball.Unity
 {
 	[AddComponentMenu("Visual Pinball/Game Item/Primitive")]
-	public class PrimitiveComponent : ItemMainRenderableComponent<PrimitiveData>, IMeshGenerator, IConvertGameObjectToEntity
+	public class PrimitiveComponent : MainRenderableComponent<PrimitiveData>, IMeshGenerator, IConvertGameObjectToEntity
 	{
 		#region Data
 
@@ -67,8 +67,8 @@ namespace VisualPinball.Unity
 			.Concat(PrimitiveMeshComponent.ValidParentTypes)
 			.Distinct();
 
-		protected override Type MeshComponentType { get; } = typeof(ItemMeshComponent<PrimitiveData, PrimitiveComponent>);
-		protected override Type ColliderComponentType { get; } = typeof(ItemColliderComponent<PrimitiveData, PrimitiveComponent>);
+		protected override Type MeshComponentType { get; } = typeof(MeshComponent<PrimitiveData, PrimitiveComponent>);
+		protected override Type ColliderComponentType { get; } = typeof(ColliderComponent<PrimitiveData, PrimitiveComponent>);
 
 		#endregion
 
@@ -136,7 +136,7 @@ namespace VisualPinball.Unity
 			return updatedComponents;
 		}
 
-		public override IEnumerable<MonoBehaviour> SetReferencedData(PrimitiveData data, Table table, IMaterialProvider materialProvider, ITextureProvider textureProvider, Dictionary<string, IItemMainComponent> components)
+		public override IEnumerable<MonoBehaviour> SetReferencedData(PrimitiveData data, Table table, IMaterialProvider materialProvider, ITextureProvider textureProvider, Dictionary<string, IMainComponent> components)
 		{
 			var updatedComponents = new List<MonoBehaviour> { this };
 

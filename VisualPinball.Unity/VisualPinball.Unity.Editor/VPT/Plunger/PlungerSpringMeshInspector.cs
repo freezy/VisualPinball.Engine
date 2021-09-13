@@ -22,7 +22,7 @@ using VisualPinball.Engine.VPT.Plunger;
 namespace VisualPinball.Unity.Editor
 {
 	[CustomEditor(typeof(PlungerSpringMeshComponent)), CanEditMultipleObjects]
-	public class PlungerSpringMeshInspector : ItemMeshInspector<PlungerData, PlungerComponent, PlungerSpringMeshComponent>
+	public class PlungerSpringMeshInspector : MeshInspector<PlungerData, PlungerComponent, PlungerSpringMeshComponent>
 	{
 		private SerializedProperty _springDiamProperty;
 		private SerializedProperty _springGaugeProperty;

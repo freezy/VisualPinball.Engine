@@ -33,7 +33,7 @@ using VisualPinball.Engine.VPT.Table;
 namespace VisualPinball.Unity
 {
 	[AddComponentMenu("Visual Pinball/Game Item/Plunger")]
-	public class PlungerComponent : ItemMainRenderableComponent<PlungerData>,
+	public class PlungerComponent : MainRenderableComponent<PlungerData>,
 		ICoilDeviceComponent, IOnSurfaceComponent, IConvertGameObjectToEntity
 	{
 		#region Data
@@ -70,8 +70,8 @@ namespace VisualPinball.Unity
 			.Concat(PlungerSpringMeshComponent.ValidParentTypes)
 			.Distinct();
 
-		protected override Type MeshComponentType { get; } = typeof(ItemMeshComponent<PlungerData, PlungerComponent>);
-		protected override Type ColliderComponentType { get; } = typeof(ItemColliderComponent<PlungerData, PlungerComponent>);
+		protected override Type MeshComponentType { get; } = typeof(MeshComponent<PlungerData, PlungerComponent>);
+		protected override Type ColliderComponentType { get; } = typeof(ColliderComponent<PlungerData, PlungerComponent>);
 
 		public const string PullCoilId = "c_pull";
 		public const string FireCoilId = "c_autofire";
@@ -243,7 +243,7 @@ namespace VisualPinball.Unity
 			return updatedComponents;
 		}
 
-		public override IEnumerable<MonoBehaviour> SetReferencedData(PlungerData data, Table table, IMaterialProvider materialProvider, ITextureProvider textureProvider, Dictionary<string, IItemMainComponent> components)
+		public override IEnumerable<MonoBehaviour> SetReferencedData(PlungerData data, Table table, IMaterialProvider materialProvider, ITextureProvider textureProvider, Dictionary<string, IMainComponent> components)
 		{
 			Surface = FindComponent<SurfaceComponent>(components, data.Surface);
 

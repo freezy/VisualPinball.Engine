@@ -22,7 +22,7 @@ using VisualPinball.Engine.VPT.Ramp;
 namespace VisualPinball.Unity.Editor
 {
 	[CustomEditor(typeof(RampColliderComponent)), CanEditMultipleObjects]
-	public class RampColliderInspector : ItemColliderInspector<RampData, RampComponent, RampColliderComponent>
+	public class RampColliderInspector : ColliderInspector<RampData, RampComponent, RampColliderComponent>
 	{
 		private bool _foldoutMaterial = true;
 
@@ -46,7 +46,7 @@ namespace VisualPinball.Unity.Editor
 			_leftWallHeightProperty = serializedObject.FindProperty(nameof(RampColliderComponent.LeftWallHeight));
 			_rightWallHeightProperty = serializedObject.FindProperty(nameof(RampColliderComponent.RightWallHeight));
 
-			_physicsMaterialProperty = serializedObject.FindProperty(nameof(ItemColliderComponent<RampData, RampComponent>.PhysicsMaterial));
+			_physicsMaterialProperty = serializedObject.FindProperty(nameof(ColliderComponent<RampData, RampComponent>.PhysicsMaterial));
 			_overwritePhysicsProperty = serializedObject.FindProperty(nameof(RampColliderComponent.OverwritePhysics));
 			_elasticityProperty = serializedObject.FindProperty(nameof(RampColliderComponent.Elasticity));
 			_frictionProperty = serializedObject.FindProperty(nameof(RampColliderComponent.Friction));

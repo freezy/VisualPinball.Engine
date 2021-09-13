@@ -37,7 +37,7 @@ using VisualPinball.Engine.VPT.Table;
 namespace VisualPinball.Unity
 {
 	[AddComponentMenu("Visual Pinball/Game Item/Kicker")]
-	public class KickerComponent : ItemMainRenderableComponent<KickerData>,
+	public class KickerComponent : MainRenderableComponent<KickerData>,
 		ICoilDeviceComponent, ITriggerComponent, IBallCreationPosition, IOnSurfaceComponent, IConvertGameObjectToEntity, ISerializationCallbackReceiver
 	{
 		#region Data
@@ -76,8 +76,8 @@ namespace VisualPinball.Unity
 
 		public override KickerData InstantiateData() => new KickerData();
 
-		protected override Type MeshComponentType { get; } = typeof(ItemMeshComponent<KickerData, KickerComponent>);
-		protected override Type ColliderComponentType { get; } = typeof(ItemColliderComponent<KickerData, KickerComponent>);
+		protected override Type MeshComponentType { get; } = typeof(MeshComponent<KickerData, KickerComponent>);
+		protected override Type ColliderComponentType { get; } = typeof(ColliderComponent<KickerData, KickerComponent>);
 
 		public Vector2 Center => Position;
 
@@ -214,7 +214,7 @@ namespace VisualPinball.Unity
 			return updatedComponents;
 		}
 
-		public override IEnumerable<MonoBehaviour> SetReferencedData(KickerData data, Table table, IMaterialProvider materialProvider, ITextureProvider textureProvider, Dictionary<string, IItemMainComponent> components)
+		public override IEnumerable<MonoBehaviour> SetReferencedData(KickerData data, Table table, IMaterialProvider materialProvider, ITextureProvider textureProvider, Dictionary<string, IMainComponent> components)
 		{
 			Surface = FindComponent<SurfaceComponent>(components, data.Surface);
 			return Array.Empty<MonoBehaviour>();

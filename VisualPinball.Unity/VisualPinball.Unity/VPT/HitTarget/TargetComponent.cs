@@ -35,7 +35,7 @@ using Mesh = VisualPinball.Engine.VPT.Mesh;
 
 namespace VisualPinball.Unity
 {
-	public abstract class TargetComponent : ItemMainRenderableComponent<HitTargetData>,
+	public abstract class TargetComponent : MainRenderableComponent<HitTargetData>,
 		ISwitchDeviceComponent, ITargetData, IMeshGenerator
 	{
 		#region Data
@@ -97,8 +97,8 @@ namespace VisualPinball.Unity
 			.Distinct();
 
 		public override HitTargetData InstantiateData() => new HitTargetData();
-		protected override Type MeshComponentType { get; } = typeof(ItemMeshComponent<HitTargetData, TargetComponent>);
-		protected override Type ColliderComponentType { get; } = typeof(ItemColliderComponent<HitTargetData, TargetComponent>);
+		protected override Type MeshComponentType { get; } = typeof(MeshComponent<HitTargetData, TargetComponent>);
+		protected override Type ColliderComponentType { get; } = typeof(ColliderComponent<HitTargetData, TargetComponent>);
 
 		public const string SwitchItem = "target_switch";
 

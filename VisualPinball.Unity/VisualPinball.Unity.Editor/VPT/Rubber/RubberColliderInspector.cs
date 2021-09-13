@@ -22,7 +22,7 @@ using VisualPinball.Engine.VPT.Rubber;
 namespace VisualPinball.Unity.Editor
 {
 	[CustomEditor(typeof(RubberColliderComponent)), CanEditMultipleObjects]
-	public class RubberColliderInspector : ItemColliderInspector<RubberData, RubberComponent, RubberColliderComponent>
+	public class RubberColliderInspector : ColliderInspector<RubberData, RubberComponent, RubberColliderComponent>
 	{
 		private bool _foldoutMaterial = true;
 		private SerializedProperty _hitEventProperty;
@@ -42,7 +42,7 @@ namespace VisualPinball.Unity.Editor
 			_hitHeightProperty = serializedObject.FindProperty(nameof(RubberColliderComponent.HitHeight));
 
 			_overwritePhysicsProperty = serializedObject.FindProperty(nameof(RubberColliderComponent.OverwritePhysics));
-			_physicsMaterialProperty = serializedObject.FindProperty(nameof(ItemColliderComponent<RubberData, RubberComponent>.PhysicsMaterial));
+			_physicsMaterialProperty = serializedObject.FindProperty(nameof(ColliderComponent<RubberData, RubberComponent>.PhysicsMaterial));
 			_elasticityProperty = serializedObject.FindProperty(nameof(RubberColliderComponent.Elasticity));
 			_elasticityFalloffProperty = serializedObject.FindProperty(nameof(RubberColliderComponent.ElasticityFalloff));
 			_frictionProperty = serializedObject.FindProperty(nameof(RubberColliderComponent.Friction));

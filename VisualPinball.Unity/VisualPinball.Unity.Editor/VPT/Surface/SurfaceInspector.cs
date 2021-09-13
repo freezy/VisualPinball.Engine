@@ -24,7 +24,7 @@ using VisualPinball.Engine.VPT.Surface;
 namespace VisualPinball.Unity.Editor
 {
 	[CustomEditor(typeof(SurfaceComponent)), CanEditMultipleObjects]
-	public class SurfaceInspector : DragPointsItemInspector<SurfaceData, SurfaceComponent>
+	public class SurfaceInspector : DragPointsInspector<SurfaceData, SurfaceComponent>
 	{
 		private SerializedProperty _heightTopProperty;
 		private SerializedProperty _heightBottomProperty;

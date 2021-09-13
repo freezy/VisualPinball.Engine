@@ -18,7 +18,7 @@ using VisualPinball.Engine.VPT.Plunger;
 
 namespace VisualPinball.Unity
 {
-	public abstract class PlungerMeshComponent : ItemMeshComponent<PlungerData, PlungerComponent>
+	public abstract class PlungerMeshComponent : MeshComponent<PlungerData, PlungerComponent>
 	{
 	}
 }
