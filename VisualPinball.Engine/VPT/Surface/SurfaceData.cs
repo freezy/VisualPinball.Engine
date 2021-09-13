@@ -31,7 +31,7 @@ using VisualPinball.Engine.VPT.Table;
 namespace VisualPinball.Engine.VPT.Surface
 {
 	[Serializable]
-	public class SurfaceData : ItemData
+	public class SurfaceData : ItemData, ISurfaceData
 	{
 		public override string GetName() => Name;
 		public override void SetName(string name) { Name = name; }
@@ -76,10 +76,10 @@ namespace VisualPinball.Engine.VPT.Surface
 		public string SlingShotMaterial = string.Empty;
 
 		[BiffFloat("HTBT", Pos = 14)]
-		public float HeightBottom = 0f;
+		public float HeightBottom { get; set; }
 
 		[BiffFloat("HTTP", Pos = 15)]
-		public float HeightTop = 50f;
+		public float HeightTop { get; set; } = 50f;
 
 		[BiffBool("INNR", SkipWrite = true)]
 		public bool Inner = true;
@@ -127,7 +127,7 @@ namespace VisualPinball.Engine.VPT.Surface
 		public bool IsReflectionEnabled = true;
 
 		[BiffDragPoint("DPNT", TagAll = true, Pos = 2000)]
-		public DragPointData[] DragPoints;
+		public DragPointData[] DragPoints { get; set; }
 
 		[BiffBool("TMON", Pos = 6)]
 		public bool IsTimerEnabled;

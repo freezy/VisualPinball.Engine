@@ -34,7 +34,7 @@ namespace VisualPinball.Unity
 
 		protected override RenderObject GetRenderObject(SurfaceData data, Table table)
 		{
-			return new SurfaceMeshGenerator(data).GetRenderObject(table, SurfaceMeshGenerator.Top, MainComponent.PlayfieldHeight, false);
+			return new SurfaceMeshGenerator(data).GetRenderObject(table, data, SurfaceMeshGenerator.Top, MainComponent.PlayfieldHeight, false);
 		}
 		protected override Mesh GetMesh(SurfaceData data)
 		{

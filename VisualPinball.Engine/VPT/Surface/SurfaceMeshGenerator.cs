@@ -27,14 +27,14 @@ namespace VisualPinball.Engine.VPT.Surface
 		public const string Side = "Side";
 		public const string Top = "Top";
 
-		private readonly SurfaceData _data;
+		private readonly ISurfaceData _data;
 
-		public SurfaceMeshGenerator(SurfaceData data)
+		public SurfaceMeshGenerator(ISurfaceData data)
 		{
 			_data = data;
 		}
 
-		public RenderObject GetRenderObject(Table.Table table, string id, float playfieldHeight, bool asRightHanded, Mesh preGeneratedMesh = null)
+		public RenderObject GetRenderObject(Table.Table table, SurfaceData data, string id, float playfieldHeight, bool asRightHanded, Mesh preGeneratedMesh = null)
 		{
 			var mesh = preGeneratedMesh ?? GenerateMesh(table.Width, table.Height, playfieldHeight, id);
 			switch (id) {
@@ -42,15 +42,15 @@ namespace VisualPinball.Engine.VPT.Surface
 					return new RenderObject(
 						id,
 						asRightHanded ? mesh.Transform(Matrix3D.RightHanded) : mesh,
-						new PbrMaterial(table.GetMaterial(_data.SideMaterial), table.GetTexture(_data.SideImage)),
-						_data.IsSideVisible
+						new PbrMaterial(table.GetMaterial(data.SideMaterial), table.GetTexture(data.SideImage)),
+						data.IsSideVisible
 					);
 				case Top:
 					return new RenderObject(
 						id,
 						asRightHanded ? mesh.Transform(Matrix3D.RightHanded) : mesh,
-						new PbrMaterial(table.GetMaterial(_data.TopMaterial), table.GetTexture(_data.Image)),
-						_data.IsTopBottomVisible
+						new PbrMaterial(table.GetMaterial(data.TopMaterial), table.GetTexture(data.Image)),
+						data.IsTopBottomVisible
 					);
 				default:
 					throw new ArgumentException($"Unknown mesh ID \"{id}\".");
@@ -62,19 +62,19 @@ namespace VisualPinball.Engine.VPT.Surface
 			return GenerateMesh(tableWidth, tableHeight, playfieldHeight, id);
 		}
 
-		public RenderObjectGroup GetRenderObjects(Table.Table table, bool asRightHanded = true)
+		public RenderObjectGroup GetRenderObjects(Table.Table table, SurfaceData data, bool asRightHanded = true)
 		{
 			var renderObjects = new List<RenderObject>();
 			var sideMesh = GenerateSideMesh(table.TableHeight);
 			var topMesh = GenerateTopMesh(table.Width, table.Height, table.TableHeight);
 			if (sideMesh != null) {
-				renderObjects.Add(GetRenderObject(table, Side, table.TableHeight, asRightHanded, sideMesh));
+				renderObjects.Add(GetRenderObject(table, data, Side, table.TableHeight, asRightHanded, sideMesh));
 			}
 			if (topMesh != null) {
-				renderObjects.Add(GetRenderObject(table, Top, table.TableHeight, asRightHanded, topMesh));
+				renderObjects.Add(GetRenderObject(table, data, Top, table.TableHeight, asRightHanded, topMesh));
 			}
 
-			return new RenderObjectGroup(_data.Name, "Surfaces", Matrix3D.Identity, renderObjects.ToArray());
+			return new RenderObjectGroup(data.Name, "Surfaces", Matrix3D.Identity, renderObjects.ToArray());
 		}
 
 		private Mesh GenerateMesh(float tableWidth, float tableHeight, float zHeight, string id)
@@ -250,19 +250,17 @@ namespace VisualPinball.Engine.VPT.Surface
 				sideMesh.Vertices[offset + 3].Y = pv2.Y;
 				sideMesh.Vertices[offset + 3].Z = bottom;
 
-				if (_data.SideImage != null) {
-					sideMesh.Vertices[offset].Tu = rgTexCoord[i];
-					sideMesh.Vertices[offset].Tv = 1.0f;
+				sideMesh.Vertices[offset].Tu = rgTexCoord[i];
+				sideMesh.Vertices[offset].Tv = 1.0f;
 
-					sideMesh.Vertices[offset + 1].Tu = rgTexCoord[i];
-					sideMesh.Vertices[offset + 1].Tv = 0f;
+				sideMesh.Vertices[offset + 1].Tu = rgTexCoord[i];
+				sideMesh.Vertices[offset + 1].Tv = 0f;
 
-					sideMesh.Vertices[offset + 2].Tu = rgTexCoord[c];
-					sideMesh.Vertices[offset + 2].Tv = 0f;
+				sideMesh.Vertices[offset + 2].Tu = rgTexCoord[c];
+				sideMesh.Vertices[offset + 2].Tv = 0f;
 
-					sideMesh.Vertices[offset + 3].Tu = rgTexCoord[c];
-					sideMesh.Vertices[offset + 3].Tv = 1.0f;
-				}
+				sideMesh.Vertices[offset + 3].Tu = rgTexCoord[c];
+				sideMesh.Vertices[offset + 3].Tv = 1.0f;
 
 				sideMesh.Vertices[offset].Nx = vNormal[0].X;
 				sideMesh.Vertices[offset].Ny = -vNormal[0].Y;

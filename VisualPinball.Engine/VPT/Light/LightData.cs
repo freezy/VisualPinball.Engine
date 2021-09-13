@@ -26,6 +26,7 @@ using System.Collections.Generic;
 using System.IO;
 using VisualPinball.Engine.IO;
 using VisualPinball.Engine.Math;
+using VisualPinball.Engine.VPT.Surface;
 using VisualPinball.Engine.VPT.Table;
 
 namespace VisualPinball.Engine.VPT.Light
@@ -156,5 +157,19 @@ namespace VisualPinball.Engine.VPT.Light
 		private static readonly Dictionary<string, List<BiffAttribute>> Attributes = new Dictionary<string, List<BiffAttribute>>();
 
 		#endregion
+	}
+
+	public class LightInsertData : ISurfaceData
+	{
+		public float HeightBottom { get; }
+		public float HeightTop { get; }
+		public DragPointData[] DragPoints { get; }
+
+		public LightInsertData(DragPointData[] dragPoints, float height)
+		{
+			HeightBottom = -height;
+			HeightTop = 0f;
+			DragPoints = dragPoints;
+		}
 	}
 }
