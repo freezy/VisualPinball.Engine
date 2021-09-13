@@ -110,7 +110,7 @@ namespace VisualPinball.Unity
 			DragPoints = data.DragPoints;
 
 			// collider data
-			var collComponent = GetComponentInChildren<RubberColliderComponent>();
+			var collComponent = GetComponent<RubberColliderComponent>();
 			if (collComponent) {
 				collComponent.enabled = data.IsCollidable;
 

@@ -44,6 +44,7 @@ namespace VisualPinball.Unity
 		[Tooltip("Position of the spinner on the playfield.")]
 		public Vector2 Position;
 
+		[Tooltip("Z-Position on the playfield.")]
 		public float Height = 60f;
 
 		[Range(-180f, 180f)]
@@ -145,14 +146,14 @@ namespace VisualPinball.Unity
 					Elasticity = collComponent.Elasticity,
 					Height = Height
 				});
+			}
 
-				// enable animation if component available
-				if (GetComponentInChildren<SpinnerPlateAnimationComponent>()) {
-					dstManager.AddComponentData(entity, new SpinnerMovementData {
-						Angle = math.radians(math.clamp(0.0f, AngleMin, AngleMax)),
-						AngleSpeed = 0f
-					});
-				}
+			// animation
+			if (GetComponentInChildren<SpinnerPlateAnimationComponent>()) {
+				dstManager.AddComponentData(entity, new SpinnerMovementData {
+					Angle = math.radians(math.clamp(0.0f, AngleMin, AngleMax)),
+					AngleSpeed = 0f
+				});
 			}
 
 			// register
