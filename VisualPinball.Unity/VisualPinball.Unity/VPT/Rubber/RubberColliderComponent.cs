@@ -29,19 +29,29 @@ namespace VisualPinball.Unity
 	{
 		#region Data
 
+		[Tooltip("If set, a hit event is triggered.")]
 		public bool HitEvent;
 
 		[Tooltip("Z-axis translation for the collider mesh.")]
 		public float HitHeight = 25f;
 
+		[Tooltip("Ignore the assigned physics material above and use the value below.")]
 		public bool OverwritePhysics;
 
+		[Min(0f)]
+		[Tooltip("Bounciness, also known as coefficient of restitution. Higher is more bouncy.")]
 		public float Elasticity;
 
+		[Min(0f)]
+		[Tooltip("How much to decrease elasticity for fast impacts.")]
 		public float ElasticityFalloff;
 
+		[Min(0)]
+		[Tooltip("Friction of the material.")]
 		public float Friction;
 
+		[Range(-90f, 90f)]
+		[Tooltip("When hit, add a random angle between 0 and this value to the trajectory.")]
 		public float Scatter;
 
 		#endregion

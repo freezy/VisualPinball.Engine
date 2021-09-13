@@ -162,7 +162,7 @@ namespace VisualPinball.Unity
 			}
 
 			// collider
-			var collComponent = GetComponentInChildren<TriggerColliderComponent>();
+			var collComponent = GetComponent<TriggerColliderComponent>();
 			if (collComponent) {
 				collComponent.enabled = data.IsEnabled;
 				collComponent.HitHeight = data.HitHeight;
@@ -171,7 +171,7 @@ namespace VisualPinball.Unity
 			}
 
 			// animation
-			var animComponent = GetComponentInChildren<TriggerAnimationComponent>();
+			var animComponent = GetComponent<TriggerAnimationComponent>();
 			if (animComponent) {
 				animComponent.AnimSpeed = data.AnimSpeed;
 				updatedComponents.Add(animComponent);
@@ -216,7 +216,7 @@ namespace VisualPinball.Unity
 			}
 
 			// collider
-			var collComponent = GetComponentInChildren<TriggerColliderComponent>();
+			var collComponent = GetComponent<TriggerColliderComponent>();
 			if (collComponent) {
 				data.IsEnabled = collComponent.gameObject.activeInHierarchy;
 				data.HitHeight = collComponent.HitHeight;
@@ -226,7 +226,7 @@ namespace VisualPinball.Unity
 			}
 
 			// animation
-			var animComponent = GetComponentInChildren<TriggerAnimationComponent>();
+			var animComponent = GetComponent<TriggerAnimationComponent>();
 			if (animComponent) {
 				animComponent.AnimSpeed = data.AnimSpeed;
 			}

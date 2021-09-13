@@ -28,7 +28,6 @@ namespace VisualPinball.Unity.Editor
 	{
 		private SerializedProperty _heightTopProperty;
 		private SerializedProperty _heightBottomProperty;
-		private SerializedProperty _isDroppableProperty;
 
 		protected override void OnEnable()
 		{
@@ -36,7 +35,6 @@ namespace VisualPinball.Unity.Editor
 
 			_heightTopProperty = serializedObject.FindProperty(nameof(SurfaceComponent.HeightTop));
 			_heightBottomProperty = serializedObject.FindProperty(nameof(SurfaceComponent.HeightBottom));
-			_isDroppableProperty = serializedObject.FindProperty(nameof(SurfaceComponent.IsDroppable));
 		}
 
 		public override void OnInspectorGUI()
@@ -53,7 +51,6 @@ namespace VisualPinball.Unity.Editor
 				WalkChildren(PlayfieldComponent.transform, UpdateSurfaceReferences);
 			});
 			PropertyField(_heightBottomProperty, "Bottom Height", true);
-			PropertyField(_isDroppableProperty);
 
 			base.OnInspectorGUI();
 

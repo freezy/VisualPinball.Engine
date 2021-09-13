@@ -45,8 +45,6 @@ namespace VisualPinball.Unity
 		[Tooltip("Bottom height of the wall, i.e. at which height the wall starts.")]
 		public float HeightBottom;
 
-		public bool IsDroppable;
-
 		[SerializeField]
 		private DragPointData[] _dragPoints;
 		public DragPointData[] DragPoints { get => _dragPoints; set => _dragPoints = value; }
@@ -106,7 +104,6 @@ namespace VisualPinball.Unity
 			// main props
 			HeightBottom = data.HeightBottom;
 			HeightTop = data.HeightTop;
-			IsDroppable = data.IsDroppable;
 			DragPoints = data.DragPoints;
 
 			// collider data
@@ -163,7 +160,6 @@ namespace VisualPinball.Unity
 			data.Name = name;
 
 			// main props
-			data.IsDroppable = IsDroppable;
 			data.HeightBottom = HeightBottom;
 			data.HeightTop = HeightTop;
 			data.DragPoints = DragPoints;

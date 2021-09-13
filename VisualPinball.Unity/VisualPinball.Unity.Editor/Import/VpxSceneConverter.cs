@@ -458,7 +458,7 @@ namespace VisualPinball.Unity.Editor
 
 			// add trough if none available
 			if (!_sourceContainer.HasTrough) {
-				//CreateTrough(components);
+				CreateTrough(components);
 			}
 
 			// populate hardware

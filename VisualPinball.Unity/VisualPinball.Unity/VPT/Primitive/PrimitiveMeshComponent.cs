@@ -32,9 +32,11 @@ namespace VisualPinball.Unity
 	{
 		#region Data
 
+		[Tooltip("If true, don't use a real mesh but compute what Visual Pinball 8 used to use for primitives.")]
 		public bool UseLegacyMesh;
 
 		[Range(3, 32)]
+		[Tooltip("How many sides to generate for the legacy mesh.")]
 		public int Sides = 4;
 
 		#endregion
