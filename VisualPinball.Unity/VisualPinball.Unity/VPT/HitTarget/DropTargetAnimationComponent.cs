@@ -37,7 +37,7 @@ namespace VisualPinball.Unity
 		[Tooltip("Time in milliseconds how long it takes to start the raise animation after being triggered.")]
 		public int RaiseDelay = 100;
 
-		[Tooltip("Initial state of the drop target.")]
+		[Tooltip("If set, the drop target is initially dropped.")]
 		public bool IsDropped;
 
 		#endregion

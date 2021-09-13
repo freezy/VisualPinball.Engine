@@ -64,7 +64,7 @@ namespace VisualPinball.Unity.Editor
 				return;
 			}
 
-			serializedObject.Update();
+			BeginEditing();
 
 			OnPreInspectorGUI();
 
@@ -83,7 +83,7 @@ namespace VisualPinball.Unity.Editor
 
 			base.OnInspectorGUI();
 
-			serializedObject.ApplyModifiedProperties();
+			EndEditing();
 		}
 	}
 }

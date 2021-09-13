@@ -27,6 +27,8 @@ namespace VisualPinball.Unity
 	[AddComponentMenu("Visual Pinball/Game Item/Hit Target")]
 	public class HitTargetComponent : TargetComponent, IConvertGameObjectToEntity
 	{
+		protected override float ZOffset => 0;
+
 		#region Conversion
 
 		public void Convert(Entity entity, EntityManager dstManager, GameObjectConversionSystem conversionSystem)

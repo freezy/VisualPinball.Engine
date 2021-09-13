@@ -51,7 +51,7 @@ namespace VisualPinball.Unity.Editor
 				return;
 			}
 
-			serializedObject.Update();
+			BeginEditing();
 
 			OnPreInspectorGUI();
 
@@ -67,7 +67,7 @@ namespace VisualPinball.Unity.Editor
 
 			ColliderComponent.ShowAllColliderMeshes = EditorGUILayout.Toggle("Show All Colliders", ColliderComponent.ShowAllColliderMeshes);
 
-			serializedObject.ApplyModifiedProperties();
+			EndEditing();
 		}
 	}
 }

@@ -51,7 +51,7 @@ namespace VisualPinball.Unity.Editor
 				return;
 			}
 
-			serializedObject.Update();
+			BeginEditing();
 
 			OnPreInspectorGUI();
 
@@ -61,7 +61,7 @@ namespace VisualPinball.Unity.Editor
 
 			MeshDropdownProperty("Mesh", _meshNameProperty, MeshAssetFolder, MainComponent.gameObject, _typeNameProperty, MeshTypeMapping);
 
-			serializedObject.ApplyModifiedProperties();
+			EndEditing();
 		}
 	}
 }

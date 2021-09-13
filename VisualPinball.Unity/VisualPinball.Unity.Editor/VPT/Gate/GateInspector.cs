@@ -63,7 +63,7 @@ namespace VisualPinball.Unity.Editor
 				return;
 			}
 
-			serializedObject.Update();
+			BeginEditing();
 
 			OnPreInspectorGUI();
 
@@ -77,7 +77,7 @@ namespace VisualPinball.Unity.Editor
 				MeshDropdownProperty("Mesh", _meshProperty, MeshFolder, wire.gameObject, _typeProperty, TypeMap);
 			}
 
-			serializedObject.ApplyModifiedProperties();
+			EndEditing();
 		}
 
 		protected override void FinishEdit(string label, bool dirtyMesh = true)

@@ -14,27 +14,10 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-using System;
-using Unity.Entities;
-using VisualPinball.Engine.VPT;
-
 namespace VisualPinball.Unity
 {
-	public abstract class ItemAnimationComponent<TData, TMainComponent> : ItemSubComponent<TData, TMainComponent>,
-		IItemAnimationComponent
-		where TData : ItemData
-		where TMainComponent : ItemMainRenderableComponent<TData>
+	public interface IItemAnimationComponent
 	{
-		public void UpdateTransforms() => MainComponent.UpdateTransforms();
-
-		private Entity MainEntity {
-			get {
-				var ma = MainComponent;
-				if (ma == null) {
-					throw new InvalidOperationException("Cannot find main component of " + name + ".");
-				}
-				return ma.Entity;
-			}
-		}
+		void UpdateTransforms();
 	}
 }

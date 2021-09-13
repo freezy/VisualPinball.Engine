@@ -117,11 +117,14 @@ namespace VisualPinball.Unity
 
 		#region Transformation
 
+		protected abstract float ZOffset { get; }
+
 		public override void UpdateTransforms()
 		{
 			base.UpdateTransforms();
+
 			var t = transform;
-			t.localPosition = new Vector3(Position.x, Position.y, Position.z + PlayfieldHeight);
+			t.localPosition = new Vector3(Position.x, Position.y, Position.z + PlayfieldHeight + ZOffset);
 			t.localScale = Size;
 			t.localEulerAngles = new Vector3(0, 0, Rotation);
 		}

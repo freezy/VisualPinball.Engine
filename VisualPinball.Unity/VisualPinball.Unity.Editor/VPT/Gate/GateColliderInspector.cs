@@ -51,7 +51,7 @@ namespace VisualPinball.Unity.Editor
 				return;
 			}
 
-			serializedObject.Update();
+			BeginEditing();
 
 			PropertyField(_angleMinProperty, "Close Angle");
 			PropertyField(_angleMaxProperty, "Open Angle");
@@ -63,7 +63,7 @@ namespace VisualPinball.Unity.Editor
 
 			base.OnInspectorGUI();
 
-			serializedObject.ApplyModifiedProperties();
+			EndEditing();
 		}
 	}
 }

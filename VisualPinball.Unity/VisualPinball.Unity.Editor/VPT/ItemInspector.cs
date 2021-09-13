@@ -32,6 +32,11 @@ namespace VisualPinball.Unity.Editor
 		protected TableComponent TableComponent;
 		protected PlayfieldComponent PlayfieldComponent;
 
+		private bool _meshDirty;
+		private bool _collidersDirty;
+		private bool _transformsDirty;
+		private bool _visibilityDirty;
+
 		#region Unity Events
 
 		protected virtual void OnEnable()
@@ -77,14 +82,65 @@ namespace VisualPinball.Unity.Editor
 
 		#endregion
 
+		protected void BeginEditing()
+		{
+			serializedObject.Update();
+		}
+
+		protected void EndEditing()
+		{
+			serializedObject.ApplyModifiedProperties();
+
+			switch (target) {
+				case IItemMeshComponent meshItem:
+					if (_meshDirty) {
+						meshItem.MainRenderableComponent.RebuildMeshes();
+					}
+					if (_transformsDirty) {
+						meshItem.MainRenderableComponent.UpdateTransforms();
+					}
+					if (_visibilityDirty) {
+						meshItem.MainRenderableComponent.UpdateVisibility();
+					}
+					break;
+
+				case IItemMainRenderableComponent mainItem:
+					if (_meshDirty) {
+						mainItem.RebuildMeshes();
+					}
+					if (_transformsDirty) {
+						mainItem.UpdateTransforms();
+					}
+					if (_visibilityDirty) {
+						mainItem.UpdateVisibility();
+					}
+					break;
+
+				case IItemColliderComponent colliderComponent:
+					if (_collidersDirty) {
+						colliderComponent.CollidersDirty = true;
+					}
+					break;
+
+				case IItemAnimationComponent animationComponent:
+					if (_transformsDirty) {
+						animationComponent.UpdateTransforms();
+					}
+					break;
+			}
+
+			_meshDirty = false;
+			_collidersDirty = false;
+			_transformsDirty = false;
+			_visibilityDirty = false;
+		}
+
 		protected void PropertyField(SerializedProperty serializedProperty, string label = null,
 			bool rebuildMesh = false, bool updateTransforms = false, bool updateVisibility = false, bool updateColliders = false,
 			Action onChanged = null, Action onChanging = null)
 		{
-			var checkForChanges = rebuildMesh || updateTransforms || updateColliders || onChanged != null;
-			if (checkForChanges) {
-				EditorGUI.BeginChangeCheck();
-			}
+
+			EditorGUI.BeginChangeCheck();
 
 			if (string.IsNullOrEmpty(label)) {
 				EditorGUILayout.PropertyField(serializedProperty);
@@ -92,39 +148,12 @@ namespace VisualPinball.Unity.Editor
 				EditorGUILayout.PropertyField(serializedProperty, new GUIContent(label));
 			}
 
-			if (checkForChanges && EditorGUI.EndChangeCheck()) {
+			if (EditorGUI.EndChangeCheck()) {
 				onChanging?.Invoke();
-				switch (target) {
-					case IItemMeshComponent meshItem:
-						if (rebuildMesh) {
-							meshItem.MainRenderableComponent.RebuildMeshes();
-						}
-						if (updateTransforms) {
-							meshItem.MainRenderableComponent.UpdateTransforms();
-						}
-						if (updateVisibility) {
-							meshItem.MainRenderableComponent.UpdateVisibility();
-						}
-						break;
-
-					case IItemMainRenderableComponent mainItem:
-						if (rebuildMesh) {
-							mainItem.RebuildMeshes();
-						}
-						if (updateTransforms) {
-							mainItem.UpdateTransforms();
-						}
-						if (updateVisibility) {
-							mainItem.UpdateVisibility();
-						}
-						break;
-
-					case IItemColliderComponent colliderComponent:
-						if (updateColliders) {
-							colliderComponent.CollidersDirty = true;
-						}
-						break;
-				}
+				_meshDirty = rebuildMesh;
+				_collidersDirty = updateColliders;
+				_transformsDirty = updateTransforms;
+				_visibilityDirty = updateVisibility;
 				onChanged?.Invoke();
 			}
 		}

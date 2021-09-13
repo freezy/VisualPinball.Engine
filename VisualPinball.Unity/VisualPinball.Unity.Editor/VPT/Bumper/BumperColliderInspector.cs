@@ -45,7 +45,7 @@ namespace VisualPinball.Unity.Editor
 				return;
 			}
 
-			serializedObject.Update();
+			BeginEditing();
 
 			PropertyField(_hitEventProperty, "Has Hit Event");
 			PropertyField(_forceProperty);
@@ -54,7 +54,7 @@ namespace VisualPinball.Unity.Editor
 
 			base.OnInspectorGUI();
 
-			serializedObject.ApplyModifiedProperties();
+			EndEditing();
 		}
 	}
 }

@@ -24,7 +24,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using ICSharpCode.NRefactory.Ast;
 using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
@@ -66,8 +65,11 @@ namespace VisualPinball.Unity
 		[Tooltip("On which surface this flipper is attached to. Updates Z-translation.")]
 		public MonoBehaviour _surface;
 
+		// todo implement
+		[Tooltip("This does nothing yet!")]
 		public bool IsEnabled = true;
 
+		[Tooltip("If set, the flipper relies on two coils, the power coil and the hold coil. Only enable if your gamelogic engine supports it (PinMAME abstracts dual-would flippers).")]
 		public bool IsDualWound;
 
 		[Range(0, 100f)]

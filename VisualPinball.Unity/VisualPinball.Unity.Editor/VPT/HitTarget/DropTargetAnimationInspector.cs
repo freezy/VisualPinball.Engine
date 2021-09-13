@@ -43,17 +43,17 @@ namespace VisualPinball.Unity.Editor
 				return;
 			}
 
-			serializedObject.Update();
+			BeginEditing();
 
 			OnPreInspectorGUI();
 
 			PropertyField(_isDroppedProperty, updateTransforms: true);
-			PropertyField(_speedProperty, updateTransforms: true);
-			PropertyField(_raiseDelayProperty, updateTransforms: true);
+			PropertyField(_speedProperty);
+			PropertyField(_raiseDelayProperty);
 
 			base.OnInspectorGUI();
 
-			serializedObject.ApplyModifiedProperties();
+			EndEditing();
 		}
 	}
 }

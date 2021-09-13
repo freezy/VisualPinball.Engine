@@ -51,7 +51,7 @@ namespace VisualPinball.Unity.Editor
 				return;
 			}
 
-			serializedObject.Update();
+			BeginEditing();
 
 			PropertyField(_hitAccuracyProperty);
 			PropertyField(_hitHeightProperty, updateColliders: true);
@@ -65,7 +65,7 @@ namespace VisualPinball.Unity.Editor
 
 			base.OnInspectorGUI();
 
-			serializedObject.ApplyModifiedProperties();
+			EndEditing();
 		}
 	}
 }
