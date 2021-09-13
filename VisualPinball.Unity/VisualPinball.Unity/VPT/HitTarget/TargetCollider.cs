@@ -26,6 +26,10 @@ namespace VisualPinball.Unity
 			ref DropTargetAnimationData animationData, in float3 normal, in Entity ballEntity, in CollisionEventData collEvent,
 			in Collider coll, ref Random random)
 		{
+			if (animationData.IsDropped) {
+				return;
+			}
+
 			var dot = -math.dot(collEvent.HitNormal, ball.Velocity);
 			BallCollider.Collide3DWall(ref ball, in coll.Header.Material, in collEvent, in normal, ref random);
 
