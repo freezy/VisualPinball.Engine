@@ -106,12 +106,23 @@ namespace VisualPinball.Unity
 
 			// bulb size
 			foreach (var mf in GetComponentsInChildren<MeshFilter>(true)) {
+				if (!mf.sharedMesh) {
+					continue;
+				}
 				switch (mf.sharedMesh.name) {
 					case BulbMeshName:
 					case SocketMeshName:
 						mf.gameObject.transform.localScale = new Vector3(BulbSize, BulbSize, BulbSize);
 						break;
 				}
+			}
+
+			// insert mesh position
+			var insertMeshComponent = GetComponentInChildren<LightInsertMeshComponent>();
+			if (insertMeshComponent) {
+				var t = insertMeshComponent.transform;
+				var pos = t.localPosition;
+				t.localPosition = new Vector3(-Position.x, -Position.y, insertMeshComponent.PositionZ);
 			}
 		}
 
@@ -220,16 +231,10 @@ namespace VisualPinball.Unity
 				RenderPipeline.Current.LightConverter.UpdateLight(unityLight, data);
 			}
 
-			// visibility
-			if (!data.ShowBulbMesh) {
-				foreach (var mf in GetComponentsInChildren<MeshFilter>()) {
-					switch (mf.sharedMesh.name) {
-						case BulbMeshName:
-						case SocketMeshName:
-							mf.gameObject.SetActive(false);
-							break;
-					}
-				}
+			// insert mesh
+			var insertMeshComponent = GetComponentInChildren<LightInsertMeshComponent>();
+			if (insertMeshComponent) {
+				insertMeshComponent.DragPoints = data.DragPoints;
 			}
 
 			return updatedComponents;
@@ -239,6 +244,32 @@ namespace VisualPinball.Unity
 		public override IEnumerable<MonoBehaviour> SetReferencedData(LightData data, Table table, IMaterialProvider materialProvider, ITextureProvider textureProvider, Dictionary<string, IMainComponent> components)
 		{
 			Surface = FindComponent<SurfaceComponent>(components, data.Surface);
+
+			// visibility
+			if (!data.ShowBulbMesh) {
+				foreach (var mf in GetComponentsInChildren<MeshFilter>()) {
+					if (!mf.sharedMesh) {
+						continue;
+					}
+					switch (mf.sharedMesh.name) {
+						case BulbMeshName:
+						case SocketMeshName:
+							mf.gameObject.SetActive(false);
+							break;
+					}
+				}
+			}
+
+			// insert mesh
+			var insertMeshComponent = GetComponentInChildren<LightInsertMeshComponent>();
+			if (insertMeshComponent) {
+				if (!data.ShowBulbMesh && data.OffImage == table.Data.Image) {
+					insertMeshComponent.CreateMesh(data, table, textureProvider, materialProvider);
+				} else {
+					insertMeshComponent.gameObject.SetActive(false);
+				}
+			}
+
 			return Array.Empty<MonoBehaviour>();
 		}
 
@@ -256,6 +287,12 @@ namespace VisualPinball.Unity
 			data.BlinkInterval = BlinkInterval;
 			data.FadeSpeedUp = FadeSpeedUp;
 			data.FadeSpeedDown = FadeSpeedDown;
+
+			// insert mesh
+			var insertMeshComponent = GetComponentInChildren<LightInsertMeshComponent>();
+			if (insertMeshComponent) {
+				data.DragPoints = insertMeshComponent.DragPoints;
+			}
 
 			// visibility
 			data.ShowBulbMesh = false;

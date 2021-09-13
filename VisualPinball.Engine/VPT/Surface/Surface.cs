@@ -53,14 +53,10 @@ namespace VisualPinball.Engine.VPT.Surface
 
 		Matrix3D IRenderable.TransformationMatrix(Table.Table table, Origin origin) => Matrix3D.Identity;
 
-		public RenderObject GetRenderObject(Table.Table table, string id = null, Origin origin = Origin.Global, bool asRightHanded = true)
-		{
-			return _meshGenerator.GetRenderObject(table, id, table.TableHeight, asRightHanded);
-		}
 
 		public RenderObjectGroup GetRenderObjects(Table.Table table, Origin origin = Origin.Global, bool asRightHanded = true)
 		{
-			return _meshGenerator.GetRenderObjects(table, asRightHanded);
+			return _meshGenerator.GetRenderObjects(table, Data, asRightHanded);
 		}
 
 		#endregion
