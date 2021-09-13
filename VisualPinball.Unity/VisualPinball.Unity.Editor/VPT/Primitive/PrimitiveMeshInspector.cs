@@ -43,7 +43,7 @@ namespace VisualPinball.Unity.Editor
 				return;
 			}
 
-			serializedObject.Update();
+			BeginEditing();
 
 			OnPreInspectorGUI();
 
@@ -63,7 +63,7 @@ namespace VisualPinball.Unity.Editor
 					mf.sharedMesh = _useLegacyMeshProperty.boolValue
 						? new Mesh { name = $"{target.name} (Generated)" } // when switching to legacy mesh, instantiate new mesh
 						: null; // when switching to referenced mesh, reset reference.
-					serializedObject.ApplyModifiedProperties();
+					EndEditing();
 				}
 			});
 			EditorGUI.BeginDisabledGroup(!_useLegacyMeshProperty.boolValue);
@@ -72,7 +72,7 @@ namespace VisualPinball.Unity.Editor
 
 			base.OnInspectorGUI();
 
-			serializedObject.ApplyModifiedProperties();
+			EndEditing();
 		}
 	}
 }

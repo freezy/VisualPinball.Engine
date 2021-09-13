@@ -14,6 +14,8 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+// ReSharper disable InconsistentNaming
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -27,6 +29,13 @@ namespace VisualPinball.Unity
 	[AddComponentMenu("Visual Pinball/Game Item/Drop Target")]
 	public class DropTargetComponent : TargetComponent, IConvertGameObjectToEntity
 	{
+		protected override float ZOffset {
+			get {
+				var animationComponent = GetComponentInChildren<DropTargetAnimationComponent>();
+				return animationComponent && animationComponent.IsDropped ? -DropTargetAnimationData.DropTargetLimit : 0f;
+			}
+		}
+
 		#region Conversion
 
 		public void Convert(Entity entity, EntityManager dstManager, GameObjectConversionSystem conversionSystem)
@@ -135,6 +144,5 @@ namespace VisualPinball.Unity
 		}
 
 		#endregion
-
 	}
 }

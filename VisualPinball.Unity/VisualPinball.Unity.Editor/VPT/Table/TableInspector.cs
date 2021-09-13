@@ -42,11 +42,11 @@ namespace VisualPinball.Unity.Editor
 		{
 			var tableComponent = (TableComponent) target;
 
-			serializedObject.Update();
+			BeginEditing();
 
 			PropertyField(_globalDifficultyProperty);
 
-			serializedObject.ApplyModifiedProperties();
+			EndEditing();
 
 			if (!EditorApplication.isPlaying) {
 				//DrawDefaultInspector();
