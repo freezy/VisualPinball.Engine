@@ -215,10 +215,10 @@ namespace VisualPinball.Unity
 
 		private void RefreshChild(Component node, bool forExport)
 		{
-			Add(node.GetComponent<IItemMainComponent>(), forExport);
+			Add(node.GetComponent<IMainComponent>(), forExport);
 		}
 
-		private void Add(IItemMainComponent comp, bool forExport)
+		private void Add(IMainComponent comp, bool forExport)
 		{
 			if (comp == null) {
 				return;

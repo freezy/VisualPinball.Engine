@@ -26,7 +26,7 @@ namespace VisualPinball.Unity
 {
 	[AddComponentMenu("Visual Pinball/Collision/Hit Target Collider")]
 	[RequireComponent(typeof(HitTargetComponent))]
-	public class HitTargetColliderComponent : ItemColliderComponent<HitTargetData, TargetComponent>
+	public class HitTargetColliderComponent : ColliderComponent<HitTargetData, TargetComponent>
 	{
 		#region Data
 

@@ -24,7 +24,7 @@ using VisualPinball.Engine.VPT.Kicker;
 namespace VisualPinball.Unity.Editor
 {
 	[CustomEditor(typeof(KickerComponent)), CanEditMultipleObjects]
-	public class KickerInspector : ItemMainInspector<KickerData, KickerComponent>
+	public class KickerInspector : MainInspector<KickerData, KickerComponent>
 	{
 		private const string MeshFolder = "Packages/org.visualpinball.engine.unity/VisualPinball.Unity/Assets/Art/Meshes/Kicker";
 

@@ -25,7 +25,7 @@ namespace VisualPinball.Unity
 {
 	[AddComponentMenu("Visual Pinball/Animation/Hit Target Animation")]
 	[RequireComponent(typeof(HitTargetColliderComponent))]
-	public class HitTargetAnimationComponent : ItemAnimationComponent<HitTargetData, HitTargetComponent>
+	public class HitTargetAnimationComponent : AnimationComponent<HitTargetData, HitTargetComponent>
 	{
 		public override IEnumerable<Type> ValidParents => Type.EmptyTypes;
 

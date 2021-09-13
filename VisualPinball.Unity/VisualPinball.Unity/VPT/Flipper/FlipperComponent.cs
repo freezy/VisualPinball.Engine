@@ -40,7 +40,7 @@ namespace VisualPinball.Unity
 {
 	[AddComponentMenu("Visual Pinball/Game Item/Flipper")]
 	[HelpURL("https://docs.visualpinball.org/creators-guide/manual/mechanisms/flippers.html")]
-	public class FlipperComponent : ItemMainRenderableComponent<FlipperData>,
+	public class FlipperComponent : MainRenderableComponent<FlipperData>,
 		IFlipperData, ISwitchDeviceComponent, ICoilDeviceComponent, IOnSurfaceComponent, IConvertGameObjectToEntity
 	{
 		#region Data
@@ -125,8 +125,8 @@ namespace VisualPinball.Unity
 
 		public override FlipperData InstantiateData() => new FlipperData();
 
-		protected override Type MeshComponentType { get; } = typeof(ItemMeshComponent<FlipperData, FlipperComponent>);
-		protected override Type ColliderComponentType { get; } = typeof(ItemColliderComponent<FlipperData, FlipperComponent>);
+		protected override Type MeshComponentType { get; } = typeof(MeshComponent<FlipperData, FlipperComponent>);
+		protected override Type ColliderComponentType { get; } = typeof(ColliderComponent<FlipperData, FlipperComponent>);
 
 		public const string MainCoilItem = "main_coil";
 		public const string HoldCoilItem = "hold_coil";
@@ -251,7 +251,7 @@ namespace VisualPinball.Unity
 			return updatedComponents;
 		}
 
-		public override IEnumerable<MonoBehaviour> SetReferencedData(FlipperData data, Table table, IMaterialProvider materialProvider, ITextureProvider textureProvider, Dictionary<string, IItemMainComponent> components)
+		public override IEnumerable<MonoBehaviour> SetReferencedData(FlipperData data, Table table, IMaterialProvider materialProvider, ITextureProvider textureProvider, Dictionary<string, IMainComponent> components)
 		{
 			Surface = FindComponent<SurfaceComponent>(components, data.Surface);
 			UpdateTransforms();

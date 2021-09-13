@@ -22,7 +22,7 @@ using VisualPinball.Engine.VPT.Spinner;
 namespace VisualPinball.Unity.Editor
 {
 	[CustomEditor(typeof(SpinnerComponent)), CanEditMultipleObjects]
-	public class SpinnerInspector : ItemMainInspector<SpinnerData, SpinnerComponent>
+	public class SpinnerInspector : MainInspector<SpinnerData, SpinnerComponent>
 	{
 		private bool _foldoutPhysics = true;
 

@@ -22,7 +22,7 @@ using VisualPinball.Engine.VPT.Surface;
 namespace VisualPinball.Unity.Editor
 {
 	[CustomEditor(typeof(SurfaceColliderComponent)), CanEditMultipleObjects]
-	public class SurfaceColliderInspector : ItemColliderInspector<SurfaceData, SurfaceComponent, SurfaceColliderComponent>
+	public class SurfaceColliderInspector : ColliderInspector<SurfaceData, SurfaceComponent, SurfaceColliderComponent>
 	{
 		private bool _foldoutMaterial = true;
 		private bool _foldoutSlingshot;
@@ -48,7 +48,7 @@ namespace VisualPinball.Unity.Editor
 			_isBottomSolidProperty = serializedObject.FindProperty(nameof(SurfaceColliderComponent.IsBottomSolid));
 			_slingshotForceProperty = serializedObject.FindProperty(nameof(SurfaceColliderComponent.SlingshotForce));
 			_slingshotThresholdProperty = serializedObject.FindProperty(nameof(SurfaceColliderComponent.SlingshotThreshold));
-			_physicsMaterialProperty = serializedObject.FindProperty(nameof(ItemColliderComponent<SurfaceData, SurfaceComponent>.PhysicsMaterial));
+			_physicsMaterialProperty = serializedObject.FindProperty(nameof(ColliderComponent<SurfaceData, SurfaceComponent>.PhysicsMaterial));
 			_overwritePhysicsProperty = serializedObject.FindProperty(nameof(SurfaceColliderComponent.OverwritePhysics));
 			_elasticityProperty = serializedObject.FindProperty(nameof(SurfaceColliderComponent.Elasticity));
 			_elasticityFalloffProperty = serializedObject.FindProperty(nameof(SurfaceColliderComponent.ElasticityFalloff));

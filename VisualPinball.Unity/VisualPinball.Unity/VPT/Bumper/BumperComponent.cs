@@ -34,7 +34,7 @@ using VisualPinball.Engine.VPT.Table;
 namespace VisualPinball.Unity
 {
 	[AddComponentMenu("Visual Pinball/Game Item/Bumper")]
-	public class BumperComponent : ItemMainRenderableComponent<BumperData>,
+	public class BumperComponent : MainRenderableComponent<BumperData>,
 		ISwitchDeviceComponent, ICoilDeviceComponent, IOnSurfaceComponent, IConvertGameObjectToEntity
 	{
 		#region Data
@@ -71,8 +71,8 @@ namespace VisualPinball.Unity
 		public override IEnumerable<Type> ValidParents => BumperColliderComponent.ValidParentTypes;
 
 		public override BumperData InstantiateData() => new BumperData();
-		protected override Type MeshComponentType { get; } = typeof(ItemMeshComponent<BumperData, BumperComponent>);
-		protected override Type ColliderComponentType { get; } = typeof(ItemColliderComponent<BumperData, BumperComponent>);
+		protected override Type MeshComponentType { get; } = typeof(MeshComponent<BumperData, BumperComponent>);
+		protected override Type ColliderComponentType { get; } = typeof(ColliderComponent<BumperData, BumperComponent>);
 
 		private const string SkirtMeshName = "Bumper (Skirt)";
 		private const string BaseMeshName = "Bumper (Base)";
@@ -213,7 +213,7 @@ namespace VisualPinball.Unity
 			return updatedComponents;
 		}
 
-		public override IEnumerable<MonoBehaviour> SetReferencedData(BumperData data, Table table, IMaterialProvider materialProvider, ITextureProvider textureProvider, Dictionary<string, IItemMainComponent> components)
+		public override IEnumerable<MonoBehaviour> SetReferencedData(BumperData data, Table table, IMaterialProvider materialProvider, ITextureProvider textureProvider, Dictionary<string, IMainComponent> components)
 		{
 			Surface = FindComponent<SurfaceComponent>(components, data.Surface);
 			UpdateTransforms();

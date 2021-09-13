@@ -96,7 +96,7 @@ namespace VisualPinball.Unity
 			return updatedComponents;
 		}
 
-		public override IEnumerable<MonoBehaviour> SetReferencedData(HitTargetData data, Table table, IMaterialProvider materialProvider, ITextureProvider textureProvider, Dictionary<string, IItemMainComponent> components)
+		public override IEnumerable<MonoBehaviour> SetReferencedData(HitTargetData data, Table table, IMaterialProvider materialProvider, ITextureProvider textureProvider, Dictionary<string, IMainComponent> components)
 		{
 			var colliderComponent = GetComponent<DropTargetColliderComponent>();
 			if (colliderComponent) {

@@ -36,7 +36,7 @@ using VisualPinball.Engine.VPT.Trigger;
 namespace VisualPinball.Unity
 {
 	[AddComponentMenu("Visual Pinball/Game Item/Trigger")]
-	public class TriggerComponent : ItemMainRenderableComponent<TriggerData>,
+	public class TriggerComponent : MainRenderableComponent<TriggerData>,
 		ITriggerComponent, IDragPointsComponent, IOnSurfaceComponent, IConvertGameObjectToEntity
 	{
 		#region Data
@@ -71,8 +71,8 @@ namespace VisualPinball.Unity
 
 		public override TriggerData InstantiateData() => new TriggerData();
 
-		protected override Type MeshComponentType { get; } = typeof(ItemMeshComponent<TriggerData, TriggerComponent>);
-		protected override Type ColliderComponentType { get; } = typeof(ItemColliderComponent<TriggerData, TriggerComponent>);
+		protected override Type MeshComponentType { get; } = typeof(MeshComponent<TriggerData, TriggerComponent>);
+		protected override Type ColliderComponentType { get; } = typeof(ColliderComponent<TriggerData, TriggerComponent>);
 
 		public bool DragPointsActive {
 			get {
@@ -179,7 +179,7 @@ namespace VisualPinball.Unity
 			return updatedComponents;
 		}
 
-		public override IEnumerable<MonoBehaviour> SetReferencedData(TriggerData data, Table table, IMaterialProvider materialProvider, ITextureProvider textureProvider, Dictionary<string, IItemMainComponent> components)
+		public override IEnumerable<MonoBehaviour> SetReferencedData(TriggerData data, Table table, IMaterialProvider materialProvider, ITextureProvider textureProvider, Dictionary<string, IMainComponent> components)
 		{
 			Surface = FindComponent<SurfaceComponent>(components, data.Surface);
 

@@ -25,7 +25,7 @@ using VisualPinball.Engine.VPT.Table;
 namespace VisualPinball.Unity
 {
 	[AddComponentMenu("Visual Pinball/Collision/Playfield Collider")]
-	public class PlayfieldColliderComponent : ItemColliderComponent<TableData, PlayfieldComponent>
+	public class PlayfieldColliderComponent : ColliderComponent<TableData, PlayfieldComponent>
 	{
 		#region Data
 

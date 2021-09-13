@@ -25,7 +25,7 @@ using VisualPinball.Engine.VPT.Trigger;
 namespace VisualPinball.Unity
 {
 	[AddComponentMenu("Visual Pinball/Collision/Trigger Collider")]
-	public class TriggerColliderComponent : ItemColliderComponent<TriggerData, TriggerComponent>
+	public class TriggerColliderComponent : ColliderComponent<TriggerData, TriggerComponent>
 	{
 		#region Data
 

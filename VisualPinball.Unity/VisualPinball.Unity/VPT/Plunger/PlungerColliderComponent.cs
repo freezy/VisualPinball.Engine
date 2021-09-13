@@ -25,7 +25,7 @@ using VisualPinball.Engine.VPT.Plunger;
 namespace VisualPinball.Unity
 {
 	[AddComponentMenu("Visual Pinball/Collision/Plunger Collider")]
-	public class PlungerColliderComponent : ItemColliderComponent<PlungerData, PlungerComponent>
+	public class PlungerColliderComponent : ColliderComponent<PlungerData, PlungerComponent>
 	{
 		#region Data
 

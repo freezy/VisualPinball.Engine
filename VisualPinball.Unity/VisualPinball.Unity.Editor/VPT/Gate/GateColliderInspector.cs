@@ -22,7 +22,7 @@ using VisualPinball.Engine.VPT.Gate;
 namespace VisualPinball.Unity.Editor
 {
 	[CustomEditor(typeof(GateColliderComponent)), CanEditMultipleObjects]
-	public class GateColliderInspector : ItemColliderInspector<GateData, GateComponent, GateColliderComponent>
+	public class GateColliderInspector : ColliderInspector<GateData, GateComponent, GateColliderComponent>
 	{
 		private SerializedProperty _angleMinProperty;
 		private SerializedProperty _angleMaxProperty;

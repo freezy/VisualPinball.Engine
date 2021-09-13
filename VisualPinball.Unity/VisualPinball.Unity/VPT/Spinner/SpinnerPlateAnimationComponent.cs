@@ -20,7 +20,7 @@ using VisualPinball.Engine.VPT.Spinner;
 
 namespace VisualPinball.Unity
 {
-	public class SpinnerPlateAnimationComponent : ItemAnimationComponent<SpinnerData, SpinnerComponent>
+	public class SpinnerPlateAnimationComponent : AnimationComponent<SpinnerData, SpinnerComponent>
 	{
 		public override IEnumerable<Type> ValidParents => Type.EmptyTypes; // animation components only apply to their own
 	}

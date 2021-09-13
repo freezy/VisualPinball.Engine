@@ -23,7 +23,7 @@ using VisualPinball.Engine.VPT.Plunger;
 
 namespace VisualPinball.Unity
 {
-	public class PlungerApi : ItemCollidableApi<PlungerComponent, PlungerColliderComponent, PlungerData>,
+	public class PlungerApi : CollidableApi<PlungerComponent, PlungerColliderComponent, PlungerData>,
 		IApi, IApiRotatable, IApiCoilDevice, IApiWireDeviceDest
 	{
 		/// <summary>

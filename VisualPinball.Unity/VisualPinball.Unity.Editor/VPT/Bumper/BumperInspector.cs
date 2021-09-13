@@ -22,7 +22,7 @@ using VisualPinball.Engine.VPT.Bumper;
 namespace VisualPinball.Unity.Editor
 {
 	[CustomEditor(typeof(BumperComponent)), CanEditMultipleObjects]
-	public class BumperInspector : ItemMainInspector<BumperData, BumperComponent>
+	public class BumperInspector : MainInspector<BumperData, BumperComponent>
 	{
 		private SerializedProperty _positionProperty;
 		private SerializedProperty _radiusProperty;

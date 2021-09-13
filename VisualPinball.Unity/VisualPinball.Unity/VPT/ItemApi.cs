@@ -24,10 +24,10 @@ namespace VisualPinball.Unity
 	/// Base class for all item APIs.
 	/// </summary>
 	/// <typeparam name="TData">Item data type</typeparam>
-	/// <typeparam name="TItemComponent">Component Type</typeparam>
+	/// <typeparam name="TComponent">Component Type</typeparam>
 	[Api]
-	public abstract class ItemApi<TItemComponent, TData>
-		where TItemComponent : ItemMainComponent<TData>
+	public abstract class ItemApi<TComponent, TData>
+		where TComponent : MainComponent<TData>
 		where TData : ItemData
 	{
 		/// <summary>
@@ -35,7 +35,7 @@ namespace VisualPinball.Unity
 		/// </summary>
 		public string Name => MainComponent ? MainComponent.name : "unlinked";
 
-		protected readonly TItemComponent MainComponent;
+		protected readonly TComponent MainComponent;
 
 		internal readonly GameObject GameObject;
 
@@ -51,7 +51,7 @@ namespace VisualPinball.Unity
 		protected ItemApi(GameObject go, Player player)
 		{
 			GameObject = go;
-			MainComponent = go.GetComponent<TItemComponent>();
+			MainComponent = go.GetComponent<TComponent>();
 			_player = player;
 			_switchHandler = new SwitchHandler(Name, player);
 		}

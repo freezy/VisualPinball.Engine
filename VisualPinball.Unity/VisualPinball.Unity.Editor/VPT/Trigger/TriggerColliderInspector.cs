@@ -22,7 +22,7 @@ using VisualPinball.Engine.VPT.Trigger;
 namespace VisualPinball.Unity.Editor
 {
 	[CustomEditor(typeof(TriggerColliderComponent)), CanEditMultipleObjects]
-	public class TriggerColliderInspector : ItemColliderInspector<TriggerData, TriggerComponent, TriggerColliderComponent>
+	public class TriggerColliderInspector : ColliderInspector<TriggerData, TriggerComponent, TriggerColliderComponent>
 	{
 		private SerializedProperty _hitHeightProperty;
 		private SerializedProperty _hitCircleRadiusProperty;

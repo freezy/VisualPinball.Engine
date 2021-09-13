@@ -26,7 +26,7 @@ namespace VisualPinball.Unity
 {
 	[ExecuteInEditMode]
 	[AddComponentMenu("Visual Pinball/Mesh/Surface Side Mesh")]
-	public class SurfaceSideMeshComponent : ItemMeshComponent<SurfaceData, SurfaceComponent>
+	public class SurfaceSideMeshComponent : MeshComponent<SurfaceData, SurfaceComponent>
 	{
 		public static readonly Type[] ValidParentTypes = Type.EmptyTypes;
 

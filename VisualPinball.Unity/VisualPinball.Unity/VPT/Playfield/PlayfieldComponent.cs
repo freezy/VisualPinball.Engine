@@ -33,7 +33,7 @@ using VisualPinball.Unity.Playfield;
 namespace VisualPinball.Unity
 {
 	[AddComponentMenu("Visual Pinball/Game Item/Playfield")]
-	public class PlayfieldComponent : ItemMainRenderableComponent<TableData>
+	public class PlayfieldComponent : MainRenderableComponent<TableData>
 	{
 		public static readonly Quaternion GlobalRotation = Quaternion.Euler(-90, 0, 0);
 		public const float GlobalScale = 0.001f;
@@ -146,7 +146,7 @@ namespace VisualPinball.Unity
 			return updatedComponents;
 		}
 
-		public override IEnumerable<MonoBehaviour> SetReferencedData(TableData data, Table table, IMaterialProvider materialProvider, ITextureProvider textureProvider, Dictionary<string, IItemMainComponent> components)
+		public override IEnumerable<MonoBehaviour> SetReferencedData(TableData data, Table table, IMaterialProvider materialProvider, ITextureProvider textureProvider, Dictionary<string, IMainComponent> components)
 		{
 			var meshComponent = GetComponentInChildren<PlayfieldMeshComponent>();
 			if (meshComponent && meshComponent.AutoGenerate) {
@@ -171,7 +171,7 @@ namespace VisualPinball.Unity
 				table.GetTexture(_playfieldImage)
 			);
 			ro.Mesh.Transform(mg.TransformationMatrix(PlayfieldHeight)); // apply transformation to mesh, because this is the playfield
-			ItemMeshComponent<PrimitiveData, PrimitiveComponent>.CreateMesh(gameObject, ro, "playfield_mesh", textureProvider, materialProvider);
+			MeshComponent<PrimitiveData, PrimitiveComponent>.CreateMesh(gameObject, ro, "playfield_mesh", textureProvider, materialProvider);
 			playfieldMeshComponent.AutoGenerate = false;
 
 			updatedComponents.Add(playfieldMeshComponent);

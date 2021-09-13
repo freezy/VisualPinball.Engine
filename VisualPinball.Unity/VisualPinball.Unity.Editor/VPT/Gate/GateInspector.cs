@@ -25,7 +25,7 @@ using VisualPinball.Engine.VPT.Gate;
 namespace VisualPinball.Unity.Editor
 {
 	[CustomEditor(typeof(GateComponent)), CanEditMultipleObjects]
-	public class GateInspector : ItemMainInspector<GateData, GateComponent>
+	public class GateInspector : MainInspector<GateData, GateComponent>
 	{
 		private const string MeshFolder = "Packages/org.visualpinball.engine.unity/VisualPinball.Unity/Assets/Art/Meshes/Gate/Wire";
 
@@ -91,7 +91,7 @@ namespace VisualPinball.Unity.Editor
 
 		protected void OnSceneGUI()
 		{
-			if (target is IItemMainRenderableComponent editable) {
+			if (target is IMainRenderableComponent editable) {
 				var position = editable.GetEditorPosition();
 				var transform = (target as MonoBehaviour).transform;
 				if (transform != null && transform.parent != null) {

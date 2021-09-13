@@ -20,7 +20,7 @@ using VisualPinball.Engine.VPT.Spinner;
 namespace VisualPinball.Unity.Editor
 {
 	[CustomEditor(typeof(SpinnerColliderComponent)), CanEditMultipleObjects]
-	public class SpinnerColliderInspector : ItemColliderInspector<SpinnerData, SpinnerComponent, SpinnerColliderComponent>
+	public class SpinnerColliderInspector : ColliderInspector<SpinnerData, SpinnerComponent, SpinnerColliderComponent>
 	{
 		private SerializedProperty _elasticityProperty;
 

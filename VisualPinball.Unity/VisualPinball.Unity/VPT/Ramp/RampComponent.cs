@@ -35,7 +35,7 @@ using VisualPinball.Engine.VPT.Table;
 namespace VisualPinball.Unity
 {
 	[AddComponentMenu("Visual Pinball/Game Item/Ramp")]
-	public class RampComponent : ItemMainRenderableComponent<RampData>,
+	public class RampComponent : MainRenderableComponent<RampData>,
 		IRampData, ISurfaceComponent, IDragPointsComponent, IConvertGameObjectToEntity
 	{
 		#region Data
@@ -116,8 +116,8 @@ namespace VisualPinball.Unity
 			.Concat(RampWireMeshComponent.ValidParentTypes)
 			.Distinct();
 
-		protected override Type MeshComponentType { get; } = typeof(ItemMeshComponent<RampData, RampComponent>);
-		protected override Type ColliderComponentType { get; } = typeof(ItemColliderComponent<RampData, RampComponent>);
+		protected override Type MeshComponentType { get; } = typeof(MeshComponent<RampData, RampComponent>);
+		protected override Type ColliderComponentType { get; } = typeof(ColliderComponent<RampData, RampComponent>);
 
 		public override void OnPlayfieldHeightUpdated() => RebuildMeshes();
 
@@ -270,7 +270,7 @@ namespace VisualPinball.Unity
 			return updatedComponents;
 		}
 
-		public override IEnumerable<MonoBehaviour> SetReferencedData(RampData data, Table table, IMaterialProvider materialProvider, ITextureProvider textureProvider, Dictionary<string, IItemMainComponent> components)
+		public override IEnumerable<MonoBehaviour> SetReferencedData(RampData data, Table table, IMaterialProvider materialProvider, ITextureProvider textureProvider, Dictionary<string, IMainComponent> components)
 		{
 			// meshes
 			var wallComponent = GetComponentInChildren<RampWallMeshComponent>(true);

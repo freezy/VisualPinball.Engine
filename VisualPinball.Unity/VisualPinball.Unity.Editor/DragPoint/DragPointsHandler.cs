@@ -31,7 +31,7 @@ namespace VisualPinball.Unity.Editor
 		/// <summary>
 		/// Component
 		/// </summary>
-		public IItemMainRenderableComponent Editable { get; private set; }
+		public IMainRenderableComponent Editable { get; private set; }
 
 		/// <summary>
 		/// Component item as IDragPointsEditable
@@ -88,7 +88,7 @@ namespace VisualPinball.Unity.Editor
 		/// <exception cref="ArgumentException"></exception>
 		public DragPointsHandler(Object target, IDragPointsEditable dragPointsEditable)
 		{
-			Editable = target as IItemMainRenderableComponent
+			Editable = target as IMainRenderableComponent
 			    ?? throw new ArgumentException("Target must extend `IItemMainRenderableComponent`.");
 
 			DragPointEditable = dragPointsEditable;

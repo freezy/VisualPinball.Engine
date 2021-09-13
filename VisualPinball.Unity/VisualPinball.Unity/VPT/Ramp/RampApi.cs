@@ -21,7 +21,7 @@ using UnityEngine;
 
 namespace VisualPinball.Unity
 {
-	public class RampApi : ItemCollidableApi<RampComponent, RampColliderComponent, Engine.VPT.Ramp.RampData>, IApi
+	public class RampApi : CollidableApi<RampComponent, RampColliderComponent, Engine.VPT.Ramp.RampData>, IApi
 	{
 		/// <summary>
 		/// Event emitted when the table is started.

@@ -28,16 +28,16 @@ namespace VisualPinball.Unity.Editor
 	internal class VpxPrefab<TItem, TData, TMainComponent> : IVpxPrefab
 		where TItem : Item<TData>
 		where TData : ItemData
-		where TMainComponent : ItemMainComponent<TData>, IItemMainComponent
+		where TMainComponent : MainComponent<TData>, IMainComponent
 	{
 		public GameObject GameObject { get; }
-		public IItemMainComponent MainComponent => _mainComponent;
+		public IMainComponent MainComponent => _mainComponent;
 		public MeshFilter[] MeshFilters => GameObject.GetComponentsInChildren<MeshFilter>();
 		public bool ExtractMesh { get; set; }
 		public bool SkipParenting => false;
 
 		private readonly TItem _item;
-		private readonly ItemMainComponent<TData> _mainComponent;
+		private readonly MainComponent<TData> _mainComponent;
 		private readonly List<MonoBehaviour> _updatedComponents = new List<MonoBehaviour>();
 
 		public VpxPrefab(Object prefab, TItem item)
@@ -58,7 +58,7 @@ namespace VisualPinball.Unity.Editor
 			_updatedComponents.AddRange(updatedComponents);
 		}
 
-		public void SetReferencedData(Table table, IMaterialProvider materialProvider, ITextureProvider textureProvider, Dictionary<string, IItemMainComponent> components)
+		public void SetReferencedData(Table table, IMaterialProvider materialProvider, ITextureProvider textureProvider, Dictionary<string, IMainComponent> components)
 		{
 			var updatedComponents = _mainComponent.SetReferencedData(_item.Data, table, materialProvider, textureProvider, components);
 			_updatedComponents.AddRange(updatedComponents);
@@ -67,7 +67,7 @@ namespace VisualPinball.Unity.Editor
 
 		public void UpdateTransforms()
 		{
-			if (_mainComponent is IItemMainRenderableComponent renderComponent) {
+			if (_mainComponent is IMainRenderableComponent renderComponent) {
 				renderComponent.UpdateTransforms();
 			}
 		}

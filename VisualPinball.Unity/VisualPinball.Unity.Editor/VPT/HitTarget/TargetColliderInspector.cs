@@ -21,8 +21,8 @@ using VisualPinball.Engine.VPT.HitTarget;
 
 namespace VisualPinball.Unity.Editor
 {
-	public abstract class TargetColliderInspector<TColliderComponent> : ItemColliderInspector<HitTargetData, TargetComponent, TColliderComponent>
-		where TColliderComponent : ItemColliderComponent<HitTargetData, TargetComponent>
+	public abstract class TargetColliderInspector<TColliderComponent> : ColliderInspector<HitTargetData, TargetComponent, TColliderComponent>
+		where TColliderComponent : ColliderComponent<HitTargetData, TargetComponent>
 	{
 		private bool _foldoutMaterial = true;
 
@@ -41,7 +41,7 @@ namespace VisualPinball.Unity.Editor
 
 			_isLegacyProperty = serializedObject.FindProperty(nameof(HitTargetColliderComponent.IsLegacy));
 			_thresholdProperty = serializedObject.FindProperty(nameof(HitTargetColliderComponent.Threshold));
-			_physicsMaterialProperty = serializedObject.FindProperty(nameof(ItemColliderComponent<HitTargetData, TargetComponent>.PhysicsMaterial));
+			_physicsMaterialProperty = serializedObject.FindProperty(nameof(ColliderComponent<HitTargetData, TargetComponent>.PhysicsMaterial));
 			_overwritePhysicsProperty = serializedObject.FindProperty(nameof(HitTargetColliderComponent.OverwritePhysics));
 			_elasticityProperty = serializedObject.FindProperty(nameof(HitTargetColliderComponent.Elasticity));
 			_elasticityFalloffProperty = serializedObject.FindProperty(nameof(HitTargetColliderComponent.ElasticityFalloff));

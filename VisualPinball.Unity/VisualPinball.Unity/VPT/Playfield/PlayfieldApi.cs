@@ -24,7 +24,7 @@ using VisualPinball.Unity.Playfield;
 
 namespace VisualPinball.Unity
 {
-	public class PlayfieldApi : ItemCollidableApi<PlayfieldComponent, PlayfieldColliderComponent, TableData>
+	public class PlayfieldApi : CollidableApi<PlayfieldComponent, PlayfieldColliderComponent, TableData>
 	{
 		internal PlayfieldApi(GameObject go, Player player) : base(go, Player.PlayfieldEntity, Entity.Null, player)
 		{

@@ -28,7 +28,7 @@ namespace VisualPinball.Unity
 {
 	[ExecuteInEditMode]
 	[AddComponentMenu("Visual Pinball/Mesh/Primitive Mesh")]
-	public class PrimitiveMeshComponent : ItemMeshComponent<PrimitiveData, PrimitiveComponent>
+	public class PrimitiveMeshComponent : MeshComponent<PrimitiveData, PrimitiveComponent>
 	{
 		#region Data
 

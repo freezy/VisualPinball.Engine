@@ -22,7 +22,7 @@ using VisualPinball.Engine.VPT.Plunger;
 namespace VisualPinball.Unity.Editor
 {
 	[CustomEditor(typeof(PlungerRodMeshComponent)), CanEditMultipleObjects]
-	public class PlungerRodMeshInspector : ItemMeshInspector<PlungerData, PlungerComponent, PlungerRodMeshComponent>
+	public class PlungerRodMeshInspector : MeshInspector<PlungerData, PlungerComponent, PlungerRodMeshComponent>
 	{
 		private SerializedProperty _rodDiamPullProperty;
 		private SerializedProperty _tipShapeProperty;

@@ -22,7 +22,7 @@ using VisualPinball.Unity.Playfield;
 namespace VisualPinball.Unity.Editor
 {
 	[CustomEditor(typeof(PlayfieldMeshComponent)), CanEditMultipleObjects]
-	public class PlayfieldMeshInspector : ItemMeshInspector<TableData, PlayfieldComponent, PlayfieldMeshComponent>
+	public class PlayfieldMeshInspector : MeshInspector<TableData, PlayfieldComponent, PlayfieldMeshComponent>
 	{
 		private SerializedProperty _autoGenerateProperty;
 

@@ -36,7 +36,7 @@ using VisualPinball.Engine.VPT.Table;
 namespace VisualPinball.Unity
 {
 	[AddComponentMenu("Visual Pinball/Game Item/Spinner")]
-	public class SpinnerComponent : ItemMainRenderableComponent<SpinnerData>,
+	public class SpinnerComponent : MainRenderableComponent<SpinnerData>,
 		ISwitchDeviceComponent, IOnSurfaceComponent, IConvertGameObjectToEntity
 	{
 		#region Data
@@ -84,8 +84,8 @@ namespace VisualPinball.Unity
 
 		public override SpinnerData InstantiateData() => new SpinnerData();
 
-		protected override Type MeshComponentType { get; } = typeof(ItemMeshComponent<SpinnerData, SpinnerComponent>);
-		protected override Type ColliderComponentType { get; } = typeof(ItemColliderComponent<SpinnerData, SpinnerComponent>);
+		protected override Type MeshComponentType { get; } = typeof(MeshComponent<SpinnerData, SpinnerComponent>);
+		protected override Type ColliderComponentType { get; } = typeof(ColliderComponent<SpinnerData, SpinnerComponent>);
 
 		private const string BracketMeshName = "Spinner (Bracket)";
 		public const string SwitchItem = "spinner_switch";
@@ -196,7 +196,7 @@ namespace VisualPinball.Unity
 			return updatedComponents;
 		}
 
-		public override IEnumerable<MonoBehaviour> SetReferencedData(SpinnerData data, Table table, IMaterialProvider materialProvider, ITextureProvider textureProvider, Dictionary<string, IItemMainComponent> components)
+		public override IEnumerable<MonoBehaviour> SetReferencedData(SpinnerData data, Table table, IMaterialProvider materialProvider, ITextureProvider textureProvider, Dictionary<string, IMainComponent> components)
 		{
 			Surface = FindComponent<SurfaceComponent>(components, data.Surface);
 			return Array.Empty<MonoBehaviour>();

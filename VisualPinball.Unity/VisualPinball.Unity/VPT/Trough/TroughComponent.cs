@@ -36,7 +36,7 @@ namespace VisualPinball.Unity
 {
 	[AddComponentMenu("Visual Pinball/Trough")]
 	[HelpURL("https://docs.visualpinball.org/creators-guide/manual/mechanisms/troughs.html")]
-	public class TroughComponent : ItemMainComponent<TroughData>,
+	public class TroughComponent : MainComponent<TroughData>,
 		ISwitchDeviceComponent, ICoilDeviceComponent
 	{
 		#region Data
@@ -167,7 +167,7 @@ namespace VisualPinball.Unity
 			return updatedComponents;
 		}
 
-		public override IEnumerable<MonoBehaviour> SetReferencedData(TroughData data, Table table, IMaterialProvider materialProvider, ITextureProvider textureProvider, Dictionary<string, IItemMainComponent> components)
+		public override IEnumerable<MonoBehaviour> SetReferencedData(TroughData data, Table table, IMaterialProvider materialProvider, ITextureProvider textureProvider, Dictionary<string, IMainComponent> components)
 		{
 			PlayfieldEntrySwitch = FindComponent<ITriggerComponent>(components, data.PlayfieldEntrySwitch);
 			PlayfieldExitKicker = FindComponent<KickerComponent>(components, data.PlayfieldExitKicker);

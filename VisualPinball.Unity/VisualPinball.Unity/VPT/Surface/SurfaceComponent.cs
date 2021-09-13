@@ -34,7 +34,7 @@ using VisualPinball.Engine.VPT.Table;
 namespace VisualPinball.Unity
 {
 	[AddComponentMenu("Visual Pinball/Game Item/Surface")]
-	public class SurfaceComponent : ItemMainRenderableComponent<SurfaceData>,
+	public class SurfaceComponent : MainRenderableComponent<SurfaceData>,
 		IConvertGameObjectToEntity, ISurfaceComponent, IDragPointsComponent
 	{
 		#region Data
@@ -66,8 +66,8 @@ namespace VisualPinball.Unity
 			.Concat(SurfaceTopMeshComponent.ValidParentTypes)
 			.Distinct();
 
-		protected override Type MeshComponentType { get; } = typeof(ItemMeshComponent<SurfaceData, SurfaceComponent>);
-		protected override Type ColliderComponentType { get; } = typeof(ItemColliderComponent<SurfaceData, SurfaceComponent>);
+		protected override Type MeshComponentType { get; } = typeof(MeshComponent<SurfaceData, SurfaceComponent>);
+		protected override Type ColliderComponentType { get; } = typeof(ColliderComponent<SurfaceData, SurfaceComponent>);
 
 		public bool DragPointsActive => true;
 
@@ -133,7 +133,7 @@ namespace VisualPinball.Unity
 			return updatedComponents;
 		}
 
-		public override IEnumerable<MonoBehaviour> SetReferencedData(SurfaceData data, Table table, IMaterialProvider materialProvider, ITextureProvider textureProvider, Dictionary<string, IItemMainComponent> components)
+		public override IEnumerable<MonoBehaviour> SetReferencedData(SurfaceData data, Table table, IMaterialProvider materialProvider, ITextureProvider textureProvider, Dictionary<string, IMainComponent> components)
 		{
 			// children mesh creation and visibility
 			var topMesh = GetComponentInChildren<SurfaceTopMeshComponent>(true);

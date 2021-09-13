@@ -25,7 +25,7 @@ using VisualPinball.Engine.VPT.Ramp;
 namespace VisualPinball.Unity.Editor
 {
 	[CustomEditor(typeof(RampComponent)), CanEditMultipleObjects]
-	public class RampInspector : DragPointsItemInspector<RampData, RampComponent>
+	public class RampInspector : DragPointsInspector<RampData, RampComponent>
 	{
 		private bool _foldoutGeometry = true;
 

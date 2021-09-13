@@ -23,7 +23,7 @@ using VisualPinball.Engine.VPT.HitTarget;
 
 namespace VisualPinball.Unity.Editor
 {
-	public abstract class TargetInspector : ItemMainInspector<HitTargetData, TargetComponent>
+	public abstract class TargetInspector : MainInspector<HitTargetData, TargetComponent>
 	{
 		private SerializedProperty _positionProperty;
 		private SerializedProperty _rotationProperty;

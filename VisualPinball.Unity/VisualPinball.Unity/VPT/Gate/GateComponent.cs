@@ -36,7 +36,7 @@ using VisualPinball.Engine.VPT.Table;
 namespace VisualPinball.Unity
 {
 	[AddComponentMenu("Visual Pinball/Game Item/Gate")]
-	public class GateComponent : ItemMainRenderableComponent<GateData>,
+	public class GateComponent : MainRenderableComponent<GateData>,
 		IGateData, ISwitchDeviceComponent, IOnSurfaceComponent, IConvertGameObjectToEntity
 	{
 		#region Data
@@ -94,8 +94,8 @@ namespace VisualPinball.Unity
 
 		public override GateData InstantiateData() => new GateData();
 
-		protected override Type MeshComponentType { get; } = typeof(ItemMeshComponent<GateData, GateComponent>);
-		protected override Type ColliderComponentType { get; } = typeof(ItemColliderComponent<GateData, GateComponent>);
+		protected override Type MeshComponentType { get; } = typeof(MeshComponent<GateData, GateComponent>);
+		protected override Type ColliderComponentType { get; } = typeof(ColliderComponent<GateData, GateComponent>);
 
 		public const string BracketObjectName = "Bracket";
 		public const string WireObjectName = "Wire";
@@ -209,7 +209,7 @@ namespace VisualPinball.Unity
 			return updatedComponents;
 		}
 
-		public override IEnumerable<MonoBehaviour> SetReferencedData(GateData data, Table table, IMaterialProvider materialProvider, ITextureProvider textureProvider, Dictionary<string, IItemMainComponent> components)
+		public override IEnumerable<MonoBehaviour> SetReferencedData(GateData data, Table table, IMaterialProvider materialProvider, ITextureProvider textureProvider, Dictionary<string, IMainComponent> components)
 		{
 			Surface = FindComponent<SurfaceComponent>(components, data.Surface);
 

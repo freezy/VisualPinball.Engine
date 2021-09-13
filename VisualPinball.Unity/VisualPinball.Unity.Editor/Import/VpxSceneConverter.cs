@@ -234,7 +234,7 @@ namespace VisualPinball.Unity.Editor
 		/// is correctly applied.
 		/// </summary>
 		/// <param name="prefabLookup">A dictionary with lower-case names as key, and created prefabs as values.</param>
-		private Dictionary<string, IItemMainComponent> UpdateGameItems(Dictionary<string, IVpxPrefab> prefabLookup)
+		private Dictionary<string, IMainComponent> UpdateGameItems(Dictionary<string, IVpxPrefab> prefabLookup)
 		{
 			var componentLookup = prefabLookup.ToDictionary(x => x.Key, x => x.Value.MainComponent);
 			foreach (var prefab in prefabLookup.Values) {
@@ -271,7 +271,7 @@ namespace VisualPinball.Unity.Editor
 			return componentLookup;
 		}
 
-		private void FinalizeGameItems(Dictionary<string, IItemMainComponent> componentLookup)
+		private void FinalizeGameItems(Dictionary<string, IMainComponent> componentLookup)
 		{
 			// convert non-renderables
 			foreach (var item in _sourceContainer.NonRenderables) {
@@ -288,7 +288,7 @@ namespace VisualPinball.Unity.Editor
 			EditorSceneManager.MarkSceneDirty(SceneManager.GetActiveScene());
 		}
 
-		internal IVpxPrefab InstantiateAndPersistPrefab(IItem item, Dictionary<string, IItemMainComponent> components = null)
+		internal IVpxPrefab InstantiateAndPersistPrefab(IItem item, Dictionary<string, IMainComponent> components = null)
 		{
 			var prefab = InstantiateAndParentPrefab(item);
 			prefab.SetData();
@@ -450,7 +450,7 @@ namespace VisualPinball.Unity.Editor
 			}
 		}
 
-		private void ConfigurePlayer(Dictionary<string, IItemMainComponent> components)
+		private void ConfigurePlayer(Dictionary<string, IMainComponent> components)
 		{
 			// add the player script and default game engine
 			_tableGo.AddComponent<Player>();
@@ -458,14 +458,14 @@ namespace VisualPinball.Unity.Editor
 
 			// add trough if none available
 			if (!_sourceContainer.HasTrough) {
-				CreateTrough(components);
+				//CreateTrough(components);
 			}
 
 			// populate hardware
 			_tableComponent.RepopulateHardware(dga);
 		}
 
-		private void CreateTrough(Dictionary<string, IItemMainComponent> components)
+		private void CreateTrough(Dictionary<string, IMainComponent> components)
 		{
 			var troughData = new TroughData("Trough") {
 				BallCount = 4,

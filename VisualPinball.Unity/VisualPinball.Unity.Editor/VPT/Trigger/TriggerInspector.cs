@@ -24,7 +24,7 @@ using VisualPinball.Engine.VPT.Trigger;
 namespace VisualPinball.Unity.Editor
 {
 	[CustomEditor(typeof(TriggerComponent)), CanEditMultipleObjects]
-	public class TriggerInspector : DragPointsItemInspector<TriggerData, TriggerComponent>
+	public class TriggerInspector : DragPointsInspector<TriggerData, TriggerComponent>
 	{
 		private SerializedProperty _positionProperty;
 		private SerializedProperty _rotationProperty;
