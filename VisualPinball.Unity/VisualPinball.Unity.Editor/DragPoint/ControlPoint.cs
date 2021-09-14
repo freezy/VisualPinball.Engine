@@ -75,7 +75,7 @@ namespace VisualPinball.Unity.Editor
 			IndexRatio = indexRatio;
 		}
 
-		public void UpdateDragPoint(IDragPointsEditable editable, Transform transform)
+		public void UpdateDragPoint(IDragPointsInspector editable, Transform transform)
 		{
 			var dragpointPos = transform.worldToLocalMatrix.MultiplyPoint(WorldPos);
 			dragpointPos -= editable.EditableOffset;

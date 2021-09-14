@@ -35,7 +35,7 @@ namespace VisualPinball.Unity
 {
 	[AddComponentMenu("Visual Pinball/Game Item/Surface")]
 	public class SurfaceComponent : MainRenderableComponent<SurfaceData>,
-		IConvertGameObjectToEntity, ISurfaceComponent, IDragPointsComponent
+		IConvertGameObjectToEntity, ISurfaceComponent
 	{
 		#region Data
 
@@ -66,8 +66,6 @@ namespace VisualPinball.Unity
 
 		protected override Type MeshComponentType { get; } = typeof(MeshComponent<SurfaceData, SurfaceComponent>);
 		protected override Type ColliderComponentType { get; } = typeof(ColliderComponent<SurfaceData, SurfaceComponent>);
-
-		public bool DragPointsActive => true;
 
 		#endregion
 

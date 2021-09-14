@@ -43,6 +43,8 @@ namespace VisualPinball.Unity
 
 		#endregion
 
+		public bool DragPointsActive => true;
+
 		public const string InsertObjectName = "Insert";
 
 		public override IEnumerable<Type> ValidParents => Type.EmptyTypes;

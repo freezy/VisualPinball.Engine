@@ -260,7 +260,7 @@ namespace VisualPinball.Unity.Editor
 			}
 		}
 
-		protected void ItemDataField(string label, ref bool field, bool dirtyMesh = true, Action<bool, bool> onChanged = null)
+		public void ItemDataField(string label, ref bool field, bool dirtyMesh = true, Action<bool, bool> onChanged = null)
 		{
 			EditorGUI.BeginChangeCheck();
 			var val = EditorGUILayout.Toggle(label, field);

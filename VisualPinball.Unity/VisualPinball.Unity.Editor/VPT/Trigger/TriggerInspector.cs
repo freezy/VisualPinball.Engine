@@ -19,13 +19,16 @@
 using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
+using VisualPinball.Engine.Math;
 using VisualPinball.Engine.VPT.Trigger;
 
 namespace VisualPinball.Unity.Editor
 {
 	[CustomEditor(typeof(TriggerComponent)), CanEditMultipleObjects]
-	public class TriggerInspector : DragPointsInspector<TriggerData, TriggerComponent>
+	public class TriggerInspector : MainInspector<TriggerData, TriggerComponent>, IDragPointsInspector
 	{
+		private DragPointsInspectorHelper _dragPointsInspectorHelper;
+
 		private SerializedProperty _positionProperty;
 		private SerializedProperty _rotationProperty;
 		private SerializedProperty _surfaceProperty;
@@ -34,9 +37,18 @@ namespace VisualPinball.Unity.Editor
 		{
 			base.OnEnable();
 
+			_dragPointsInspectorHelper = new DragPointsInspectorHelper(MainComponent, this);
+			_dragPointsInspectorHelper.OnEnable();
+
 			_positionProperty = serializedObject.FindProperty(nameof(TriggerComponent.Position));
 			_rotationProperty = serializedObject.FindProperty(nameof(TriggerComponent.Rotation));
 			_surfaceProperty = serializedObject.FindProperty(nameof(TriggerComponent._surface));
+		}
+
+		protected override void OnDisable()
+		{
+			base.OnDisable();
+			_dragPointsInspectorHelper.OnDisable();
 		}
 
 		public override void OnInspectorGUI()
@@ -53,18 +65,33 @@ namespace VisualPinball.Unity.Editor
 			PropertyField(_rotationProperty, updateTransforms: true);
 			PropertyField(_surfaceProperty, updateTransforms: true);
 
+			_dragPointsInspectorHelper.OnInspectorGUI(this);
+
 			base.OnInspectorGUI();
 
 			EndEditing();
 		}
 
+		private void OnSceneGUI()
+		{
+			_dragPointsInspectorHelper.OnSceneGUI(this);
+		}
+
 		#region Dragpoint Tooling
 
-		public override Vector3 EditableOffset => new Vector3(-MainComponent.Position.x, -MainComponent.Position.y, 0.0f);
-		public override Vector3 GetDragPointOffset(float ratio) => Vector3.zero;
-		public override bool PointsAreLooping => true;
-		public override IEnumerable<DragPointExposure> DragPointExposition => new[] { DragPointExposure.Smooth, DragPointExposure.SlingShot };
-		public override ItemDataTransformType HandleType => ItemDataTransformType.TwoD;
+		public bool DragPointsActive {
+			get {
+				var meshComp = MainComponent.GetComponent<TriggerMeshComponent>();
+				return !meshComp || !meshComp.IsCircle;
+			}
+		}
+
+		public DragPointData[] DragPoints { get => MainComponent.DragPoints; set => MainComponent.DragPoints = value; }
+		public Vector3 EditableOffset => new Vector3(-MainComponent.Position.x, -MainComponent.Position.y, 0.0f);
+		public Vector3 GetDragPointOffset(float ratio) => Vector3.zero;
+		public bool PointsAreLooping => true;
+		public IEnumerable<DragPointExposure> DragPointExposition => new[] { DragPointExposure.Smooth, DragPointExposure.SlingShot };
+		public ItemDataTransformType HandleType => ItemDataTransformType.TwoD;
 
 		#endregion
 	}

@@ -62,7 +62,7 @@ namespace VisualPinball.Unity.Editor
 		protected void UpdateSurfaceReferences(Transform obj)
 		{
 			var surfaceComponent = obj.gameObject.GetComponent<IOnSurfaceComponent>();
-			if (surfaceComponent != null && surfaceComponent.Surface == MainComponent) {
+			if (surfaceComponent != null && (TMainComponent)surfaceComponent.Surface == MainComponent) {
 				surfaceComponent.OnSurfaceUpdated();
 			}
 		}

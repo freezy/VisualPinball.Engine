@@ -14,28 +14,23 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-using System.Collections.Generic;
+using System;
+using System.Collections;
 using System.Linq;
 using UnityEditor;
-using UnityEditor.SceneManagement;
 using UnityEngine;
 using VisualPinball.Engine.Math;
-using VisualPinball.Engine.VPT;
 
 namespace VisualPinball.Unity.Editor
 {
-	public abstract class DragPointsInspector<TData, TMainComponent>
-		: MainInspector<TData, TMainComponent>,
-			IDragPointsItemInspector, IDragPointsEditable
-		where TData : ItemData
-		where TMainComponent : MainRenderableComponent<TData>
+	public class DragPointsInspectorHelper : IDragPointsItemInspector
 	{
 		/// <summary>
 		/// Catmull Curve Handler
 		/// </summary>
 		public DragPointsHandler DragPointsHandler { get; private set; }
 
-		private bool EditingEnabled => _dragPointsComponent.DragPointsActive && Selection.count == 1 && target is MonoBehaviour mb && Selection.activeGameObject == mb.gameObject;
+		private bool EditingEnabled => _dragPointsInspector.DragPointsActive;
 
 		/// <summary>
 		/// If true, a list of the drag points is displayed in the inspector.
@@ -51,27 +46,33 @@ namespace VisualPinball.Unity.Editor
 		/// </remarks>
 		private static Vector3 _storedControlPoint = Vector3.zero;
 
-		private IMainRenderableComponent _renderable;
-		private IDragPointsComponent _dragPointsComponent;
+		private readonly MonoBehaviour _mb;
+		private readonly IMainRenderableComponent _mainComponent;
+		private readonly IDragPointsInspector _dragPointsInspector;
+		private readonly PlayfieldComponent _playfieldComponent;
+
+		public DragPointsInspectorHelper(IMainRenderableComponent mainComponent, IDragPointsInspector dragPointsInspector)
+		{
+			_mb = mainComponent as MonoBehaviour;
+			_mainComponent = mainComponent;
+			_dragPointsInspector = dragPointsInspector;
+			_playfieldComponent = mainComponent.gameObject.GetComponentInParent<PlayfieldComponent>();;
+			DragPointsHandler = new DragPointsHandler(mainComponent, _dragPointsInspector);
+		}
 
 		public void RebuildMeshes()
 		{
-			_renderable.RebuildMeshes();
-			WalkChildren(PlayfieldComponent.transform, UpdateSurfaceReferences);
+			_mainComponent.RebuildMeshes();
+			WalkChildren(_playfieldComponent.transform, UpdateSurfaceReferences);
 		}
 
-		protected override void OnEnable()
+		public void OnEnable()
 		{
-			base.OnEnable();
-			_dragPointsComponent = MainComponent as IDragPointsComponent;
-			_renderable = target as IMainRenderableComponent;
-			DragPointsHandler = new DragPointsHandler(target, this);
 			Undo.undoRedoPerformed += OnUndoRedoPerformed;
 		}
 
-		protected override void OnDisable()
+		public void OnDisable()
 		{
-			base.OnDisable();
 			DragPointsHandler = null;
 			Undo.undoRedoPerformed -= OnUndoRedoPerformed;
 		}
@@ -117,7 +118,7 @@ namespace VisualPinball.Unity.Editor
 		/// <returns>True if game item is locked, false otherwise.</returns>
 		public bool IsItemLocked()
 		{
-			return !(target is IMainRenderableComponent editable) || editable.IsLocked;
+			return _mainComponent.IsLocked;
 		}
 
 		/// <summary>
@@ -127,10 +128,7 @@ namespace VisualPinball.Unity.Editor
 		/// <returns>True if exposed, false otherwise.</returns>
 		public bool HasDragPointExposure(DragPointExposure exposure)
 		{
-			if (!(target is IDragPointsEditable editable)) {
-				return false;
-			}
-			return editable.DragPointExposition.Contains(exposure);
+			return _dragPointsInspector.DragPointExposition.Contains(exposure);
 		}
 
 		/// <summary>
@@ -139,11 +137,7 @@ namespace VisualPinball.Unity.Editor
 		/// <param name="flipAxis">Axis to flip on</param>
 		public void FlipDragPoints(FlipAxis flipAxis)
 		{
-			if (!(target is IDragPointsEditable editable)) {
-				return;
-			}
-
-			if (editable.HandleType != ItemDataTransformType.ThreeD && flipAxis == FlipAxis.Z) {
+			if (_dragPointsInspector.HandleType != ItemDataTransformType.ThreeD && flipAxis == FlipAxis.Z) {
 				return;
 			}
 
@@ -189,63 +183,51 @@ namespace VisualPinball.Unity.Editor
 		/// <param name="message">Message to appear in the UNDO menu</param>
 		public void PrepareUndo(string message)
 		{
-			Undo.RecordObjects(new []{this, target}, message);
+			Undo.RecordObject(_mb, message);
 		}
 
-		public override void OnInspectorGUI()
+		public void OnInspectorGUI(ItemInspector inspector)
 		{
-			if (!(target is IMainRenderableComponent editable)) {
-				base.OnInspectorGUI();
+			if (_mainComponent.IsLocked) {
+				EditorGUILayout.LabelField("Drag Points are Locked");
 				return;
 			}
 
-			// var editButtonText = dragPointEditable.DragPointEditEnabled ? "Stop Editing Drag Points" : "Edit Drag Points";
-			// if (GUILayout.Button(editButtonText)) {
-			// 	dragPointEditable.DragPointEditEnabled = !dragPointEditable.DragPointEditEnabled;
-			// 	SceneView.RepaintAll();
-			// }
-
-			if (editable.IsLocked) {
-				EditorGUILayout.LabelField("Drag Points are Locked");
-
-			} else {
-				_foldoutControlPoints = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutControlPoints, "Drag Points");
-				if (_foldoutControlPoints) {
+			_foldoutControlPoints = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutControlPoints, "Drag Points");
+			if (_foldoutControlPoints) {
+				EditorGUI.indentLevel++;
+				for (var i = 0; i < DragPointsHandler.ControlPoints.Count; ++i) {
+					var controlPoint = DragPointsHandler.ControlPoints[i];
+					EditorGUILayout.BeginHorizontal();
+					EditorGUILayout.LabelField($"#{i} ({controlPoint.DragPoint.Center.X},{controlPoint.DragPoint.Center.Y},{controlPoint.DragPoint.Center.Z})");
+					if (GUILayout.Button("Copy")) {
+						CopyDragPoint(controlPoint.ControlId);
+					}
+					else if (GUILayout.Button("Paste")) {
+						PasteDragPoint(controlPoint.ControlId);
+					}
+					EditorGUILayout.EndHorizontal();
 					EditorGUI.indentLevel++;
-					for (var i = 0; i < DragPointsHandler.ControlPoints.Count; ++i) {
-						var controlPoint = DragPointsHandler.ControlPoints[i];
-						EditorGUILayout.BeginHorizontal();
-						EditorGUILayout.LabelField($"#{i} ({controlPoint.DragPoint.Center.X},{controlPoint.DragPoint.Center.Y},{controlPoint.DragPoint.Center.Z})");
-						if (GUILayout.Button("Copy")) {
-							CopyDragPoint(controlPoint.ControlId);
-						}
-						else if (GUILayout.Button("Paste")) {
-							PasteDragPoint(controlPoint.ControlId);
-						}
-						EditorGUILayout.EndHorizontal();
-						EditorGUI.indentLevel++;
-						if (HasDragPointExposure(DragPointExposure.SlingShot)) {
-							ItemDataField("Slingshot", ref controlPoint.DragPoint.IsSlingshot);
-						}
-						if (HasDragPointExposure(DragPointExposure.Smooth)) {
-							ItemDataField("Smooth", ref controlPoint.DragPoint.IsSmooth);
-						}
-						if (HasDragPointExposure(DragPointExposure.Texture)) {
-							ItemDataField("Has AutoTexture", ref controlPoint.DragPoint.HasAutoTexture);
-							ItemDataSlider("Texture Coord", ref controlPoint.DragPoint.TextureCoord, 0.0f, 1.0f);
-						}
-						EditorGUI.indentLevel--;
+					if (HasDragPointExposure(DragPointExposure.SlingShot)) {
+						inspector.ItemDataField("Slingshot", ref controlPoint.DragPoint.IsSlingshot);
+					}
+					if (HasDragPointExposure(DragPointExposure.Smooth)) {
+						inspector.ItemDataField("Smooth", ref controlPoint.DragPoint.IsSmooth);
+					}
+					if (HasDragPointExposure(DragPointExposure.Texture)) {
+						inspector.ItemDataField("Has AutoTexture", ref controlPoint.DragPoint.HasAutoTexture);
+						inspector.ItemDataSlider("Texture Coord", ref controlPoint.DragPoint.TextureCoord, 0.0f, 1.0f);
 					}
 					EditorGUI.indentLevel--;
 				}
-				EditorGUILayout.EndFoldoutHeaderGroup();
+				EditorGUI.indentLevel--;
 			}
-			base.OnInspectorGUI();
+			EditorGUILayout.EndFoldoutHeaderGroup();
 		}
 
 		private void UpdateDragPointsLock()
 		{
-			if (target is IMainRenderableComponent editable && DragPointsHandler.UpdateDragPointsLock(editable.IsLocked)) {
+			if (DragPointsHandler.UpdateDragPointsLock(_mainComponent.IsLocked)) {
 				HandleUtility.Repaint();
 			}
 		}
@@ -259,15 +241,12 @@ namespace VisualPinball.Unity.Editor
 		private void OnUndoRedoPerformed()
 		{
 			RemapControlPoints();
-			WalkChildren(PlayfieldComponent.transform, UpdateSurfaceReferences);
+			WalkChildren(_playfieldComponent.transform, UpdateSurfaceReferences);
 		}
 
-		protected virtual void OnSceneGUI()
+		public void OnSceneGUI(ItemInspector inspector)
 		{
-			var editable = target as IMainRenderableComponent;
-			var bh = target as Behaviour;
-
-			if (editable == null || bh == null || !EditingEnabled) {
+			if (!EditingEnabled) {
 				return;
 			}
 
@@ -281,30 +260,32 @@ namespace VisualPinball.Unity.Editor
 				var nearestControlPoint = DragPointsHandler.ControlPoints.Find(cp => cp.ControlId == HandleUtility.nearestControl);
 
 				if (nearestControlPoint != null) {
-					var command = new MenuCommand(this, nearestControlPoint.ControlId);
+					var command = new MenuCommand(inspector, nearestControlPoint.ControlId);
 					EditorUtility.DisplayPopupMenu(new Rect(Event.current.mousePosition.x, Event.current.mousePosition.y, 0, 0), DragPointMenuItems.ControlPointsMenuPath, command);
 					Event.current.Use();
 				} else if (DragPointsHandler.CurveTravellerVisible && HandleUtility.nearestControl == DragPointsHandler.CurveTravellerControlId) {
-					var command = new MenuCommand(this, 0);
+					var command = new MenuCommand(inspector, 0);
 					EditorUtility.DisplayPopupMenu(new Rect(Event.current.mousePosition.x, Event.current.mousePosition.y, 0, 0), DragPointMenuItems.CurveTravellerMenuPath, command);
 					Event.current.Use();
 				}
 			}
 		}
 
-		public DragPointData[] DragPoints {
-			get => _dragPointsComponent.DragPoints;
-			set {
-				_dragPointsComponent.DragPoints = value;
-				EditorUtility.SetDirty(MainComponent.gameObject);
-				PrefabUtility.RecordPrefabInstancePropertyModifications(MainComponent);
-				EditorSceneManager.MarkSceneDirty(MainComponent.gameObject.scene);
+		private static void WalkChildren(IEnumerable node, Action<Transform> action)
+		{
+			foreach (Transform childTransform in node) {
+				action(childTransform);
+				WalkChildren(childTransform, action);
 			}
 		}
-		public abstract Vector3 EditableOffset { get; }
-		public abstract Vector3 GetDragPointOffset(float ratio);
-		public abstract bool PointsAreLooping { get; }
-		public abstract IEnumerable<DragPointExposure> DragPointExposition { get; }
-		public abstract ItemDataTransformType HandleType { get; }
+
+		private void UpdateSurfaceReferences(Transform obj)
+		{
+			var surfaceComponent = obj.gameObject.GetComponent<IOnSurfaceComponent>();
+			if (surfaceComponent != null && surfaceComponent.Surface == _mainComponent) {
+				surfaceComponent.OnSurfaceUpdated();
+			}
+		}
+
 	}
 }
