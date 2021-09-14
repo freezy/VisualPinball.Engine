@@ -263,7 +263,7 @@ namespace VisualPinball.Unity
 			// insert mesh
 			var insertMeshComponent = GetComponentInChildren<LightInsertMeshComponent>();
 			if (insertMeshComponent) {
-				if (!data.ShowBulbMesh && data.OffImage == table.Data.Image) {
+				if (!data.ShowBulbMesh && string.Equals(data.OffImage, table.Data.Image, StringComparison.OrdinalIgnoreCase)) {
 					insertMeshComponent.CreateMesh(data, table, textureProvider, materialProvider);
 				} else {
 					insertMeshComponent.gameObject.SetActive(false);
