@@ -35,7 +35,7 @@ namespace VisualPinball.Unity
 
 		public float InsertHeight = 20f;
 
-		public float PositionZ;
+		public float PositionZ = 0.1f;
 
 		[SerializeField]
 		private DragPointData[] _dragPoints;
