@@ -89,7 +89,7 @@ namespace VisualPinball.Unity.Editor
 				var accuracy = Mathf.Abs(vAccuracy.x * vAccuracy.y * vAccuracy.z);
 				accuracy *= HandleUtility.GetHandleSize(_handler.CurveTravellerPosition) * ControlPoint.ScreenRadius;
 				var vVertex = DragPoint.GetRgVertex<RenderVertex3D, CatmullCurve3DCatmullCurveFactory>(
-					transformedDPoints.ToArray(), _handler.DragPointEditable.PointsAreLooping, accuracy
+					transformedDPoints.ToArray(), _handler.DragPointInspector.PointsAreLooping, accuracy
 				);
 
 				if (vVertex.Length > 0) {
@@ -108,7 +108,7 @@ namespace VisualPinball.Unity.Editor
 					}
 
 					// close loop if needed
-					if (_handler.DragPointEditable.PointsAreLooping) {
+					if (_handler.DragPointInspector.PointsAreLooping) {
 						controlPointsSegments[_handler.ControlPoints.Count - 1].Add(controlPointsSegments[0][0]);
 					}
 
@@ -149,7 +149,7 @@ namespace VisualPinball.Unity.Editor
 					foreach (var controlPoint in _handler.ControlPoints) {
 						var segments = controlPointsSegments[controlPoint.Index].ToArray();
 						if (segments.Length > 1) {
-							Handles.color = _handler.DragPointEditable.DragPointExposition.Contains(DragPointExposure.SlingShot) && controlPoint.DragPoint.IsSlingshot ? CurveSlingShotColor : CurveColor;
+							Handles.color = _handler.DragPointInspector.DragPointExposition.Contains(DragPointExposure.SlingShot) && controlPoint.DragPoint.IsSlingshot ? CurveSlingShotColor : CurveColor;
 							Handles.DrawAAPolyLine(CurveWidth, segments);
 							var closestToPath = HandleUtility.ClosestPointToPolyLine(segments);
 							var dist = (closestToPath - _handler.CurveTravellerPosition).magnitude;
@@ -195,7 +195,7 @@ namespace VisualPinball.Unity.Editor
 				distToCPoint = Mathf.Min(distToCPoint, dist);
 			}
 
-			if (!_handler.Editable.IsLocked) {
+			if (!_handler.MainComponent.IsLocked) {
 				// curve traveller is not overlapping a control point, we can draw it.
 				if (distToCPoint > HandleUtility.GetHandleSize(_handler.CurveTravellerPosition) * ControlPoint.ScreenRadius) {
 					Handles.color = Color.grey;

@@ -35,7 +35,7 @@ namespace VisualPinball.Unity
 {
 	[AddComponentMenu("Visual Pinball/Game Item/Rubber")]
 	public class RubberComponent : MainRenderableComponent<RubberData>,
-		IRubberData, IDragPointsComponent, IConvertGameObjectToEntity
+		IRubberData, IConvertGameObjectToEntity
 	{
 		#region Data
 
@@ -78,8 +78,6 @@ namespace VisualPinball.Unity
 
 		protected override Type MeshComponentType { get; } = typeof(MeshComponent<RubberData, RubberComponent>);
 		protected override Type ColliderComponentType { get; } = typeof(ColliderComponent<RubberData, RubberComponent>);
-
-		public bool DragPointsActive => true;
 
 		#endregion
 

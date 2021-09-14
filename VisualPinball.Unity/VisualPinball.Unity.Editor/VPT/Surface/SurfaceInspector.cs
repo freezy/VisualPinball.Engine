@@ -19,22 +19,36 @@
 using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
+using VisualPinball.Engine.Math;
 using VisualPinball.Engine.VPT.Surface;
 
 namespace VisualPinball.Unity.Editor
 {
 	[CustomEditor(typeof(SurfaceComponent)), CanEditMultipleObjects]
-	public class SurfaceInspector : DragPointsInspector<SurfaceData, SurfaceComponent>
+	public class SurfaceInspector : MainInspector<SurfaceData, SurfaceComponent>, IDragPointsInspector
 	{
+		private DragPointsInspectorHelper _dragPointsInspectorHelper;
+
 		private SerializedProperty _heightTopProperty;
 		private SerializedProperty _heightBottomProperty;
+
+		public bool DragPointsActive => true;
 
 		protected override void OnEnable()
 		{
 			base.OnEnable();
 
+			_dragPointsInspectorHelper = new DragPointsInspectorHelper(MainComponent, this);
+			_dragPointsInspectorHelper.OnEnable();
+
 			_heightTopProperty = serializedObject.FindProperty(nameof(SurfaceComponent.HeightTop));
 			_heightBottomProperty = serializedObject.FindProperty(nameof(SurfaceComponent.HeightBottom));
+		}
+
+		protected override void OnDisable()
+		{
+			base.OnDisable();
+			_dragPointsInspectorHelper.OnDisable();
 		}
 
 		public override void OnInspectorGUI()
@@ -52,18 +66,26 @@ namespace VisualPinball.Unity.Editor
 			});
 			PropertyField(_heightBottomProperty, "Bottom Height", true);
 
+			_dragPointsInspectorHelper.OnInspectorGUI(this);
+
 			base.OnInspectorGUI();
 
 			EndEditing();
 		}
 
+		private void OnSceneGUI()
+		{
+			_dragPointsInspectorHelper.OnSceneGUI(this);
+		}
+
 		#region Dragpoint Tooling
 
-		public override Vector3 EditableOffset => new Vector3(0.0f, 0.0f, MainComponent.HeightTop + MainComponent.PlayfieldHeight);
-		public override Vector3 GetDragPointOffset(float ratio) => Vector3.zero;
-		public override bool PointsAreLooping => true;
-		public override IEnumerable<DragPointExposure> DragPointExposition => new[] { DragPointExposure.Smooth , DragPointExposure.SlingShot , DragPointExposure.Texture };
-		public override ItemDataTransformType HandleType => ItemDataTransformType.TwoD;
+		public DragPointData[] DragPoints { get => MainComponent.DragPoints; set => MainComponent.DragPoints = value; }
+		public Vector3 EditableOffset => new Vector3(0.0f, 0.0f, MainComponent.HeightTop + MainComponent.PlayfieldHeight);
+		public Vector3 GetDragPointOffset(float ratio) => Vector3.zero;
+		public bool PointsAreLooping => true;
+		public IEnumerable<DragPointExposure> DragPointExposition => new[] { DragPointExposure.Smooth, DragPointExposure.SlingShot, DragPointExposure.Texture };
+		public ItemDataTransformType HandleType => ItemDataTransformType.TwoD;
 
 		#endregion
 	}

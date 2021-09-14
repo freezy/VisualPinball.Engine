@@ -19,13 +19,14 @@
 using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
+using VisualPinball.Engine.Math;
 using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Ramp;
 
 namespace VisualPinball.Unity.Editor
 {
 	[CustomEditor(typeof(RampComponent)), CanEditMultipleObjects]
-	public class RampInspector : DragPointsInspector<RampData, RampComponent>
+	public class RampInspector : MainInspector<RampData, RampComponent>, IDragPointsInspector
 	{
 		private bool _foldoutGeometry = true;
 
@@ -54,6 +55,8 @@ namespace VisualPinball.Unity.Editor
 			RampImageAlignment.ImageModeWrap,
 		};
 
+		private DragPointsInspectorHelper _dragPointsInspectorHelper;
+
 		private SerializedProperty _typeProperty;
 		private SerializedProperty _heightTopProperty;
 		private SerializedProperty _heightBottomProperty;
@@ -66,9 +69,13 @@ namespace VisualPinball.Unity.Editor
 		private SerializedProperty _wireDistanceXProperty;
 		private SerializedProperty _wireDistanceYProperty;
 
+
 		protected override void OnEnable()
 		{
 			base.OnEnable();
+
+			_dragPointsInspectorHelper = new DragPointsInspectorHelper(MainComponent, this);
+			_dragPointsInspectorHelper.OnEnable();
 
 			_heightBottomProperty = serializedObject.FindProperty(nameof(RampComponent._heightBottom));
 			_heightTopProperty = serializedObject.FindProperty(nameof(RampComponent._heightTop));
@@ -81,6 +88,12 @@ namespace VisualPinball.Unity.Editor
 			_wireDiameterProperty = serializedObject.FindProperty(nameof(RampComponent._wireDiameter));
 			_wireDistanceXProperty = serializedObject.FindProperty(nameof(RampComponent._wireDistanceX));
 			_wireDistanceYProperty = serializedObject.FindProperty(nameof(RampComponent._wireDistanceY));
+		}
+
+		protected override void OnDisable()
+		{
+			base.OnDisable();
+			_dragPointsInspectorHelper.OnDisable();
 		}
 
 		public override void OnInspectorGUI()
@@ -124,18 +137,27 @@ namespace VisualPinball.Unity.Editor
 			}
 			EditorGUILayout.EndFoldoutHeaderGroup();
 
+			_dragPointsInspectorHelper.OnInspectorGUI(this);
+
 			base.OnInspectorGUI();
 
 			EndEditing();
 		}
 
+		private void OnSceneGUI()
+		{
+			_dragPointsInspectorHelper.OnSceneGUI(this);
+		}
+
 		#region Dragpoint Tooling
 
-		public override Vector3 EditableOffset => new Vector3(0.0f, 0.0f, 0f);
-		public override Vector3 GetDragPointOffset(float ratio) => new Vector3(0.0f, 0.0f, (MainComponent.HeightTop - MainComponent.HeightBottom) * ratio);
-		public override bool PointsAreLooping => false;
-		public override IEnumerable<DragPointExposure> DragPointExposition => new[] { DragPointExposure.Smooth, DragPointExposure.SlingShot };
-		public override ItemDataTransformType HandleType => ItemDataTransformType.ThreeD;
+		public bool DragPointsActive => true;
+		public DragPointData[] DragPoints { get => MainComponent.DragPoints; set => MainComponent.DragPoints = value; }
+		public Vector3 EditableOffset => new Vector3(0.0f, 0.0f, 0f);
+		public Vector3 GetDragPointOffset(float ratio) => new Vector3(0.0f, 0.0f, (MainComponent.HeightTop - MainComponent.HeightBottom) * ratio);
+		public bool PointsAreLooping => false;
+		public IEnumerable<DragPointExposure> DragPointExposition => new[] { DragPointExposure.Smooth, DragPointExposure.SlingShot };
+		public ItemDataTransformType HandleType => ItemDataTransformType.ThreeD;
 
 		#endregion
 	}

@@ -37,7 +37,7 @@ namespace VisualPinball.Unity
 {
 	[AddComponentMenu("Visual Pinball/Game Item/Trigger")]
 	public class TriggerComponent : MainRenderableComponent<TriggerData>,
-		ITriggerComponent, IDragPointsComponent, IOnSurfaceComponent, IConvertGameObjectToEntity
+		ITriggerComponent, IOnSurfaceComponent, IConvertGameObjectToEntity
 	{
 		#region Data
 
@@ -73,13 +73,6 @@ namespace VisualPinball.Unity
 
 		protected override Type MeshComponentType { get; } = typeof(MeshComponent<TriggerData, TriggerComponent>);
 		protected override Type ColliderComponentType { get; } = typeof(ColliderComponent<TriggerData, TriggerComponent>);
-
-		public bool DragPointsActive {
-			get {
-				var meshComp = GetComponent<TriggerMeshComponent>();
-				return !meshComp || !meshComp.IsCircle;
-			}
-		}
 
 		public const string SwitchItem = "trigger_switch";
 

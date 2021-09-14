@@ -36,7 +36,7 @@ namespace VisualPinball.Unity
 {
 	[AddComponentMenu("Visual Pinball/Game Item/Ramp")]
 	public class RampComponent : MainRenderableComponent<RampData>,
-		IRampData, ISurfaceComponent, IDragPointsComponent, IConvertGameObjectToEntity
+		IRampData, ISurfaceComponent, IConvertGameObjectToEntity
 	{
 		#region Data
 
@@ -120,8 +120,6 @@ namespace VisualPinball.Unity
 		protected override Type ColliderComponentType { get; } = typeof(ColliderComponent<RampData, RampComponent>);
 
 		public override void OnPlayfieldHeightUpdated() => RebuildMeshes();
-
-		public bool DragPointsActive => true;
 
 		#endregion
 

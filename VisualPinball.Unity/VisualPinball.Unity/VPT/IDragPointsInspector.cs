@@ -45,21 +45,20 @@ namespace VisualPinball.Unity
 		Texture
 	}
 
-	public interface IDragPointsComponent
-	{
-		bool DragPointsActive { get; }
-		DragPointData[] DragPoints { get; set; }
-	}
-
 	/// <summary>
-	/// Abstraction for components that support drag points.
+	/// Abstraction inspectors that support drag points.
 	/// </summary>
-	public interface IDragPointsEditable
+	public interface IDragPointsInspector
 	{
 		/// <summary>
 		/// Access to the drag point data
 		/// </summary>
 		DragPointData[] DragPoints { get; set; }
+
+		/// <summary>
+		/// Whether to render drag points at all. Because sometimes we don't want to, like for trigger buttons.
+		/// </summary>
+		bool DragPointsActive { get; }
 
 		/// <summary>
 		/// Returns the global offset applied on all drag points.
