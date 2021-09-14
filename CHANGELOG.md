@@ -7,6 +7,7 @@
 Built with Unity 2020.3.
 
 ### Added
+- Create insert meshes ([#320](https://github.com/freezy/VisualPinball.Engine/pull/320))
 - Full support for custom playfield meshes.
 - Remove Hybrid Renderer ([#316](https://github.com/freezy/VisualPinball.Engine/pull/316)).
 - Create and use Unity assets when importing ([#320](https://github.com/freezy/VisualPinball.Engine/pull/302)).
