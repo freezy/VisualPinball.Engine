@@ -17,6 +17,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using VisualPinball.Engine.Math;
+using VisualPinball.Unity.Editor;
 
 namespace VisualPinball.Unity
 {
@@ -87,5 +88,7 @@ namespace VisualPinball.Unity
 		/// </summary>
 		/// <returns></returns>
 		ItemDataTransformType HandleType { get; }
+
+		DragPointsInspectorHelper DragPointsHelper { get; }
 	}
 }

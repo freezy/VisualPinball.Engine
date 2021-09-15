@@ -55,8 +55,6 @@ namespace VisualPinball.Unity.Editor
 			RampImageAlignment.ImageModeWrap,
 		};
 
-		private DragPointsInspectorHelper _dragPointsInspectorHelper;
-
 		private SerializedProperty _typeProperty;
 		private SerializedProperty _heightTopProperty;
 		private SerializedProperty _heightBottomProperty;
@@ -74,8 +72,8 @@ namespace VisualPinball.Unity.Editor
 		{
 			base.OnEnable();
 
-			_dragPointsInspectorHelper = new DragPointsInspectorHelper(MainComponent, this);
-			_dragPointsInspectorHelper.OnEnable();
+			DragPointsHelper = new DragPointsInspectorHelper(MainComponent, this);
+			DragPointsHelper.OnEnable();
 
 			_heightBottomProperty = serializedObject.FindProperty(nameof(RampComponent._heightBottom));
 			_heightTopProperty = serializedObject.FindProperty(nameof(RampComponent._heightTop));
@@ -93,7 +91,7 @@ namespace VisualPinball.Unity.Editor
 		protected override void OnDisable()
 		{
 			base.OnDisable();
-			_dragPointsInspectorHelper.OnDisable();
+			DragPointsHelper.OnDisable();
 		}
 
 		public override void OnInspectorGUI()
@@ -137,7 +135,7 @@ namespace VisualPinball.Unity.Editor
 			}
 			EditorGUILayout.EndFoldoutHeaderGroup();
 
-			_dragPointsInspectorHelper.OnInspectorGUI(this);
+			DragPointsHelper.OnInspectorGUI(this);
 
 			base.OnInspectorGUI();
 
@@ -146,7 +144,7 @@ namespace VisualPinball.Unity.Editor
 
 		private void OnSceneGUI()
 		{
-			_dragPointsInspectorHelper.OnSceneGUI(this);
+			DragPointsHelper.OnSceneGUI(this);
 		}
 
 		#region Dragpoint Tooling
@@ -158,6 +156,7 @@ namespace VisualPinball.Unity.Editor
 		public bool PointsAreLooping => false;
 		public IEnumerable<DragPointExposure> DragPointExposition => new[] { DragPointExposure.Smooth, DragPointExposure.SlingShot };
 		public ItemDataTransformType HandleType => ItemDataTransformType.ThreeD;
+		public DragPointsInspectorHelper DragPointsHelper { get; private set; }
 
 		#endregion
 	}

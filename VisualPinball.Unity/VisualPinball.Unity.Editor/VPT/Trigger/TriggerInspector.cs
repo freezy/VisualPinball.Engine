@@ -27,7 +27,6 @@ namespace VisualPinball.Unity.Editor
 	[CustomEditor(typeof(TriggerComponent)), CanEditMultipleObjects]
 	public class TriggerInspector : MainInspector<TriggerData, TriggerComponent>, IDragPointsInspector
 	{
-		private DragPointsInspectorHelper _dragPointsInspectorHelper;
 
 		private SerializedProperty _positionProperty;
 		private SerializedProperty _rotationProperty;
@@ -37,8 +36,8 @@ namespace VisualPinball.Unity.Editor
 		{
 			base.OnEnable();
 
-			_dragPointsInspectorHelper = new DragPointsInspectorHelper(MainComponent, this);
-			_dragPointsInspectorHelper.OnEnable();
+			DragPointsHelper = new DragPointsInspectorHelper(MainComponent, this);
+			DragPointsHelper.OnEnable();
 
 			_positionProperty = serializedObject.FindProperty(nameof(TriggerComponent.Position));
 			_rotationProperty = serializedObject.FindProperty(nameof(TriggerComponent.Rotation));
@@ -48,7 +47,7 @@ namespace VisualPinball.Unity.Editor
 		protected override void OnDisable()
 		{
 			base.OnDisable();
-			_dragPointsInspectorHelper.OnDisable();
+			DragPointsHelper.OnDisable();
 		}
 
 		public override void OnInspectorGUI()
@@ -65,7 +64,7 @@ namespace VisualPinball.Unity.Editor
 			PropertyField(_rotationProperty, updateTransforms: true);
 			PropertyField(_surfaceProperty, updateTransforms: true);
 
-			_dragPointsInspectorHelper.OnInspectorGUI(this);
+			DragPointsHelper.OnInspectorGUI(this);
 
 			base.OnInspectorGUI();
 
@@ -74,7 +73,7 @@ namespace VisualPinball.Unity.Editor
 
 		private void OnSceneGUI()
 		{
-			_dragPointsInspectorHelper.OnSceneGUI(this);
+			DragPointsHelper.OnSceneGUI(this);
 		}
 
 		#region Dragpoint Tooling
@@ -92,6 +91,7 @@ namespace VisualPinball.Unity.Editor
 		public bool PointsAreLooping => true;
 		public IEnumerable<DragPointExposure> DragPointExposition => new[] { DragPointExposure.Smooth, DragPointExposure.SlingShot };
 		public ItemDataTransformType HandleType => ItemDataTransformType.TwoD;
+		public DragPointsInspectorHelper DragPointsHelper { get; private set; }
 
 		#endregion
 	}

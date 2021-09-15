@@ -27,7 +27,6 @@ namespace VisualPinball.Unity.Editor
 	[CustomEditor(typeof(LightInsertMeshComponent)), CanEditMultipleObjects]
 	public class LightInsertMeshInspector : MeshInspector<LightData, LightComponent, LightInsertMeshComponent>, IDragPointsInspector
 	{
-		private DragPointsInspectorHelper _dragPointsInspectorHelper;
 
 		private SerializedProperty _insertHeightProperty;
 		private SerializedProperty _positionZProperty;
@@ -38,8 +37,8 @@ namespace VisualPinball.Unity.Editor
 		{
 			base.OnEnable();
 
-			_dragPointsInspectorHelper = new DragPointsInspectorHelper(MeshComponent.MainComponent, this);
-			_dragPointsInspectorHelper.OnEnable();
+			DragPointsHelper = new DragPointsInspectorHelper(MeshComponent.MainComponent, this);
+			DragPointsHelper.OnEnable();
 
 			_insertHeightProperty = serializedObject.FindProperty(nameof(LightInsertMeshComponent.InsertHeight));
 			_positionZProperty = serializedObject.FindProperty(nameof(LightInsertMeshComponent.PositionZ));
@@ -48,7 +47,7 @@ namespace VisualPinball.Unity.Editor
 		protected override void OnDisable()
 		{
 			base.OnDisable();
-			_dragPointsInspectorHelper.OnDisable();
+			DragPointsHelper.OnDisable();
 		}
 
 		public override void OnInspectorGUI()
@@ -64,7 +63,7 @@ namespace VisualPinball.Unity.Editor
 			PropertyField(_insertHeightProperty, rebuildMesh: true);
 			PropertyField(_positionZProperty, updateTransforms: true);
 
-			_dragPointsInspectorHelper.OnInspectorGUI(this);
+			DragPointsHelper.OnInspectorGUI(this);
 
 			base.OnInspectorGUI();
 
@@ -73,7 +72,7 @@ namespace VisualPinball.Unity.Editor
 
 		private void OnSceneGUI()
 		{
-			_dragPointsInspectorHelper.OnSceneGUI(this);
+			DragPointsHelper.OnSceneGUI(this);
 		}
 
 		#region Dragpoint Tooling
@@ -84,6 +83,7 @@ namespace VisualPinball.Unity.Editor
 		public bool PointsAreLooping => true;
 		public IEnumerable<DragPointExposure> DragPointExposition => new[] { DragPointExposure.Smooth, DragPointExposure.Texture };
 		public ItemDataTransformType HandleType => ItemDataTransformType.TwoD;
+		public DragPointsInspectorHelper DragPointsHelper { get; private set; }
 
 		#endregion
 	}
