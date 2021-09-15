@@ -62,7 +62,6 @@ namespace VisualPinball.Unity
 			if (colliderComponent) {
 				colliderComponent.enabled = data.IsCollidable;
 				colliderComponent.Threshold = data.Threshold;
-				colliderComponent.IsLegacy = data.IsLegacy;
 
 				colliderComponent.OverwritePhysics = data.OverwritePhysics;
 				colliderComponent.Elasticity = data.Elasticity;
@@ -108,7 +107,6 @@ namespace VisualPinball.Unity
 				data.IsCollidable = colliderComponent.enabled;
 				data.Threshold = colliderComponent.Threshold;
 				data.PhysicsMaterial = colliderComponent.PhysicsMaterial == null ? string.Empty : colliderComponent.PhysicsMaterial.name;
-				data.IsLegacy = colliderComponent.IsLegacy;
 
 				data.OverwritePhysics = colliderComponent.OverwritePhysics;
 				data.Elasticity = colliderComponent.Elasticity;

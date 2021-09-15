@@ -21,5 +21,16 @@ namespace VisualPinball.Unity.Editor
 	[CustomEditor(typeof(DropTargetColliderComponent)), CanEditMultipleObjects]
 	public class DropTargetColliderInspector : TargetColliderInspector<DropTargetColliderComponent>
 	{
+		private SerializedProperty _isLegacyProperty;
+
+		protected override void OnEnable()
+		{
+			base.OnEnable();
+			_isLegacyProperty = serializedObject.FindProperty(nameof(DropTargetColliderComponent.IsLegacy));
+		}
+		protected override void OnTargetInspectorGUI()
+		{
+			PropertyField(_isLegacyProperty, "Legacy Collider", updateColliders: true);
+		}
 	}
 }

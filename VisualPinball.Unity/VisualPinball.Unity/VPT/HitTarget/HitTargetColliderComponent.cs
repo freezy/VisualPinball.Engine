@@ -46,9 +46,6 @@ namespace VisualPinball.Unity
 		[Tooltip("When hit, add a random angle between 0 and this value to the trajectory.")]
 		public float Scatter = 5f;
 
-		[Tooltip("If enabled, hit events by balls hitting from behind might be triggered.")]
-		public bool IsLegacy;
-
 		[Tooltip("Ignore the assigned physics material above and use the value below.")]
 		public bool OverwritePhysics = true;
 

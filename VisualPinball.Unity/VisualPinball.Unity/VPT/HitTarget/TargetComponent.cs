@@ -57,12 +57,7 @@ namespace VisualPinball.Unity
 
 		#region IHitTargetData
 
-		public bool IsLegacy {
-			get {
-				var colliderComponent = GetComponent<HitTargetColliderComponent>();
-				return colliderComponent && colliderComponent.IsLegacy;
-			}
-		}
+		public virtual bool IsLegacy => false;
 
 		public int TargetType => _targetType;
 

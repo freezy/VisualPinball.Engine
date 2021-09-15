@@ -26,7 +26,6 @@ namespace VisualPinball.Unity.Editor
 	{
 		private bool _foldoutMaterial = true;
 
-		private SerializedProperty _isLegacyProperty;
 		private SerializedProperty _thresholdProperty;
 		private SerializedProperty _physicsMaterialProperty;
 		private SerializedProperty _overwritePhysicsProperty;
@@ -39,7 +38,7 @@ namespace VisualPinball.Unity.Editor
 		{
 			base.OnEnable();
 
-			_isLegacyProperty = serializedObject.FindProperty(nameof(HitTargetColliderComponent.IsLegacy));
+
 			_thresholdProperty = serializedObject.FindProperty(nameof(HitTargetColliderComponent.Threshold));
 			_physicsMaterialProperty = serializedObject.FindProperty(nameof(ColliderComponent<HitTargetData, TargetComponent>.PhysicsMaterial));
 			_overwritePhysicsProperty = serializedObject.FindProperty(nameof(HitTargetColliderComponent.OverwritePhysics));
@@ -47,6 +46,10 @@ namespace VisualPinball.Unity.Editor
 			_elasticityFalloffProperty = serializedObject.FindProperty(nameof(HitTargetColliderComponent.ElasticityFalloff));
 			_frictionProperty = serializedObject.FindProperty(nameof(HitTargetColliderComponent.Friction));
 			_scatterProperty = serializedObject.FindProperty(nameof(HitTargetColliderComponent.Scatter));
+		}
+
+		protected virtual void OnTargetInspectorGUI()
+		{
 		}
 
 		public override void OnInspectorGUI()
@@ -60,7 +63,7 @@ namespace VisualPinball.Unity.Editor
 			OnPreInspectorGUI();
 
 			PropertyField(_thresholdProperty, "Hit Threshold");
-			PropertyField(_isLegacyProperty, "Legacy Collider");
+			OnTargetInspectorGUI();
 
 			// physics material
 			if (_foldoutMaterial = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutMaterial, "Physics Material")) {

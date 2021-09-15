@@ -22,15 +22,15 @@ namespace VisualPinball.Unity
 {
 	public abstract class TargetColliderGenerator
 	{
-		protected readonly IApiColliderGenerator Api;
+		private readonly IApiColliderGenerator _api;
 		protected readonly ITargetData Data;
 		protected readonly IMeshGenerator MeshGenerator;
 
-		public TargetColliderGenerator(IApiColliderGenerator api, ITargetData data, IMeshGenerator meshProvider)
+		protected TargetColliderGenerator(IApiColliderGenerator api, ITargetData data, IMeshGenerator meshGenerator)
 		{
-			Api = api;
+			_api = api;
 			Data = data;
-			MeshGenerator = meshProvider;
+			MeshGenerator = meshGenerator;
 		}
 
 		private protected void GenerateCollidables(Mesh hitMesh, EdgeSet addedEdges, bool setHitObject, ICollection<ICollider> colliders)  {
@@ -67,7 +67,7 @@ namespace VisualPinball.Unity
 
 		protected ColliderInfo GetColliderInfo(bool setHitObject)
 		{
-			var info = Api.GetColliderInfo();
+			var info = _api.GetColliderInfo();
 			info.FireEvents = setHitObject && info.FireEvents;
 			return info;
 		}
