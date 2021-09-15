@@ -26,6 +26,7 @@ Built with Unity 2020.3.
 - Native trough component ([#229](https://github.com/freezy/VisualPinball.Engine/pull/229), [#248](https://github.com/freezy/VisualPinball.Engine/pull/248), [#256](https://github.com/freezy/VisualPinball.Engine/pull/256), [Documentation](https://docs.visualpinball.org/creators-guide/manual/mechanisms/troughs.html)).
 
 ### Changed
+- Refactored drag points. They are nicely separated and typed now.
 - Collider debug view is now much faster and intuitive. It's also activated per default when there is no visible mesh.
 - Drop and hit targets are now different components.
 - Kicker is now a coil device with different coils for different angles/forces.
