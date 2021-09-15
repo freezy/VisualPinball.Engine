@@ -27,7 +27,6 @@ namespace VisualPinball.Unity.Editor
 	[CustomEditor(typeof(RubberComponent)), CanEditMultipleObjects]
 	public class RubberInspector : MainInspector<RubberData, RubberComponent>, IDragPointsInspector
 	{
-		private DragPointsInspectorHelper _dragPointsInspectorHelper;
 
 		private SerializedProperty _heightProperty;
 		private SerializedProperty _thicknessProperty;
@@ -38,8 +37,8 @@ namespace VisualPinball.Unity.Editor
 			base.OnEnable();
 
 
-			_dragPointsInspectorHelper = new DragPointsInspectorHelper(MainComponent, this);
-			_dragPointsInspectorHelper.OnEnable();
+			DragPointsHelper = new DragPointsInspectorHelper(MainComponent, this);
+			DragPointsHelper.OnEnable();
 
 			_heightProperty = serializedObject.FindProperty(nameof(RubberComponent._height));
 			_thicknessProperty = serializedObject.FindProperty(nameof(RubberComponent._thickness));
@@ -49,7 +48,7 @@ namespace VisualPinball.Unity.Editor
 		protected override void OnDisable()
 		{
 			base.OnDisable();
-			_dragPointsInspectorHelper.OnDisable();
+			DragPointsHelper.OnDisable();
 		}
 
 		public override void OnInspectorGUI()
@@ -66,7 +65,7 @@ namespace VisualPinball.Unity.Editor
 			PropertyField(_heightProperty, rebuildMesh: true);
 			PropertyField(_thicknessProperty, rebuildMesh: true);
 
-			_dragPointsInspectorHelper.OnInspectorGUI(this);
+			DragPointsHelper.OnInspectorGUI(this);
 
 			base.OnInspectorGUI();
 
@@ -75,7 +74,7 @@ namespace VisualPinball.Unity.Editor
 
 		private void OnSceneGUI()
 		{
-			_dragPointsInspectorHelper.OnSceneGUI(this);
+			DragPointsHelper.OnSceneGUI(this);
 		}
 
 		#region Dragpoint Tooling
@@ -87,6 +86,7 @@ namespace VisualPinball.Unity.Editor
 		public bool PointsAreLooping => true;
 		public IEnumerable<DragPointExposure> DragPointExposition => new[] { DragPointExposure.Smooth };
 		public ItemDataTransformType HandleType => ItemDataTransformType.TwoD;
+		public DragPointsInspectorHelper DragPointsHelper { get; private set; }
 
 		#endregion
 	}

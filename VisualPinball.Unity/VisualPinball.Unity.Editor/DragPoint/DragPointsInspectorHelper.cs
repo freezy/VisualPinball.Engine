@@ -23,7 +23,7 @@ using VisualPinball.Engine.Math;
 
 namespace VisualPinball.Unity.Editor
 {
-	public class DragPointsInspectorHelper : IDragPointsItemInspector
+	public class DragPointsInspectorHelper
 	{
 		/// <summary>
 		/// Catmull Curve Handler

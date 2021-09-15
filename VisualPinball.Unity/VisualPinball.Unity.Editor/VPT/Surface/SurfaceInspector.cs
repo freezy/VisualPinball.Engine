@@ -27,7 +27,6 @@ namespace VisualPinball.Unity.Editor
 	[CustomEditor(typeof(SurfaceComponent)), CanEditMultipleObjects]
 	public class SurfaceInspector : MainInspector<SurfaceData, SurfaceComponent>, IDragPointsInspector
 	{
-		private DragPointsInspectorHelper _dragPointsInspectorHelper;
 
 		private SerializedProperty _heightTopProperty;
 		private SerializedProperty _heightBottomProperty;
@@ -38,8 +37,8 @@ namespace VisualPinball.Unity.Editor
 		{
 			base.OnEnable();
 
-			_dragPointsInspectorHelper = new DragPointsInspectorHelper(MainComponent, this);
-			_dragPointsInspectorHelper.OnEnable();
+			DragPointsHelper = new DragPointsInspectorHelper(MainComponent, this);
+			DragPointsHelper.OnEnable();
 
 			_heightTopProperty = serializedObject.FindProperty(nameof(SurfaceComponent.HeightTop));
 			_heightBottomProperty = serializedObject.FindProperty(nameof(SurfaceComponent.HeightBottom));
@@ -48,7 +47,7 @@ namespace VisualPinball.Unity.Editor
 		protected override void OnDisable()
 		{
 			base.OnDisable();
-			_dragPointsInspectorHelper.OnDisable();
+			DragPointsHelper.OnDisable();
 		}
 
 		public override void OnInspectorGUI()
@@ -66,7 +65,7 @@ namespace VisualPinball.Unity.Editor
 			});
 			PropertyField(_heightBottomProperty, "Bottom Height", true);
 
-			_dragPointsInspectorHelper.OnInspectorGUI(this);
+			DragPointsHelper.OnInspectorGUI(this);
 
 			base.OnInspectorGUI();
 
@@ -75,7 +74,7 @@ namespace VisualPinball.Unity.Editor
 
 		private void OnSceneGUI()
 		{
-			_dragPointsInspectorHelper.OnSceneGUI(this);
+			DragPointsHelper.OnSceneGUI(this);
 		}
 
 		#region Dragpoint Tooling
@@ -86,6 +85,7 @@ namespace VisualPinball.Unity.Editor
 		public bool PointsAreLooping => true;
 		public IEnumerable<DragPointExposure> DragPointExposition => new[] { DragPointExposure.Smooth, DragPointExposure.SlingShot, DragPointExposure.Texture };
 		public ItemDataTransformType HandleType => ItemDataTransformType.TwoD;
+		public DragPointsInspectorHelper DragPointsHelper { get; private set; }
 
 		#endregion
 	}
