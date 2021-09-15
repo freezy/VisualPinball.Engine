@@ -122,7 +122,7 @@ namespace VisualPinball.Unity
 			var bnd = math.dot(_normal, ball.Position) - ball.Radius - _distance;
 			if (bnd < 0) {
 				// if ball has penetrated, push it out of the plane
-				ball.Position += _normal * bnd;
+				ball.Position -= _normal * bnd;
 			}
 		}
 
