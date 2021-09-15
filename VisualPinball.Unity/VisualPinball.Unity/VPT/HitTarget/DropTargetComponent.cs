@@ -53,7 +53,9 @@ namespace VisualPinball.Unity
 				});
 
 				dstManager.AddComponentData(entity, new DropTargetAnimationData {
-					IsDropped = animationComponent.IsDropped
+					IsDropped = animationComponent.IsDropped,
+					MoveDown = !animationComponent.IsDropped,
+					ZOffset = animationComponent.IsDropped ? -DropTargetAnimationData.DropTargetLimit : 0f
 				});
 			}
 
