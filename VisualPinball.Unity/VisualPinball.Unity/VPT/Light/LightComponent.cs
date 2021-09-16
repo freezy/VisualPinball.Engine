@@ -154,7 +154,7 @@ namespace VisualPinball.Unity
 			}
 
 			player.RegisterLamp(this);
-			_unityLight = GetComponent<UnityEngine.Light>();
+			_unityLight = GetComponentInChildren<UnityEngine.Light>();
 			_fullIntensity = _unityLight.intensity;
 		}
 
