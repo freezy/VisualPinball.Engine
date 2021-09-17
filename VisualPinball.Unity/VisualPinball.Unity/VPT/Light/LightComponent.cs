@@ -297,6 +297,10 @@ namespace VisualPinball.Unity
 			// visibility
 			data.ShowBulbMesh = false;
 			foreach (var mf in GetComponentsInChildren<MeshFilter>(true)) {
+				if (!mf.sharedMesh) {
+					continue;
+				}
+
 				switch (mf.sharedMesh.name) {
 					case BulbMeshName:
 					case SocketMeshName:
