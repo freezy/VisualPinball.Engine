@@ -38,46 +38,29 @@ namespace VisualPinball.Engine.VPT.Spinner
 			_data = data;
 		}
 
-		public RenderObject GetRenderObject(Table.Table table, string id, Origin origin, bool asRightHanded)
+		public Mesh GetMesh(string id, Table.Table table, Origin origin, bool asRightHanded)
 		{
 			var (preMatrix, _) = GetPreMatrix(BaseHeight(table), origin, asRightHanded);
 			switch (id) {
 				case Plate:
-					return new RenderObject(
-						id,
-						SpinnerPlateMesh.Clone().Transform(preMatrix),
-						new PbrMaterial(table.GetMaterial(_data.Material), table.GetTexture(_data.Image)),
-						_data.IsVisible
-					);
+					return SpinnerPlateMesh.Clone().Transform(preMatrix);
+
 				case Bracket:
-					return new RenderObject(
-						id,
-						SpinnerBracketMesh.Clone().Transform(preMatrix),
-						new PbrMaterial(GetBracketMaterial(), table.GetTexture(_data.Image)),
-						_data.IsVisible && _data.ShowBracket
-					);
-				default:
-					throw new ArgumentException("Unknown spinner mesh \"" + id + "\".");
+					return SpinnerBracketMesh.Clone().Transform(preMatrix);
 			}
+			throw new ArgumentException($"Invalid spinner mesh ID \"{id}\"");
 		}
 
-		public RenderObjectGroup GetRenderObjects(Table.Table table, Origin origin, bool asRightHanded)
+		public PbrMaterial GetMaterial(string id, Table.Table table)
 		{
-			var (preMatrix, _) = GetPreMatrix(BaseHeight(table), origin, asRightHanded);
-			var postMatrix = GetPostMatrix(table, origin);
-			return new RenderObjectGroup(_data.Name, "Spinners", postMatrix, new RenderObject(
-					"Plate",
-					SpinnerPlateMesh.Clone().Transform(preMatrix),
-					new PbrMaterial(table.GetMaterial(_data.Material), table.GetTexture(_data.Image)),
-					_data.IsVisible
-				),
-				new RenderObject(
-					"Bracket",
-					SpinnerBracketMesh.Clone().Transform(preMatrix),
-					new PbrMaterial(GetBracketMaterial(), table.GetTexture(_data.Image)),
-					_data.IsVisible && _data.ShowBracket
-				)
-			);
+			switch (id) {
+				case Plate:
+					return new PbrMaterial(table.GetMaterial(_data.Material), table.GetTexture(_data.Image));
+
+				case Bracket:
+					return new PbrMaterial(GetBracketMaterial(), table.GetTexture(_data.Image));
+			}
+			throw new ArgumentException($"Invalid spinner mesh ID \"{id}\"");
 		}
 
 		private static Material GetBracketMaterial()

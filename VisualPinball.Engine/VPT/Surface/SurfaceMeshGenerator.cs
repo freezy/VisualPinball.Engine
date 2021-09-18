@@ -34,9 +34,10 @@ namespace VisualPinball.Engine.VPT.Surface
 			_data = data;
 		}
 
-		public RenderObject GetRenderObject(Table.Table table, SurfaceData data, string id, float playfieldHeight, bool asRightHanded, Mesh preGeneratedMesh = null)
+		public RenderObject GetRenderObject(string id, Table.Table table, SurfaceData data, float playfieldHeight,
+			bool asRightHanded, Mesh preGeneratedMesh = null)
 		{
-			var mesh = preGeneratedMesh ?? GenerateMesh(table.Width, table.Height, playfieldHeight, id);
+			var mesh = preGeneratedMesh ?? GenerateMesh(id, table.Width, table.Height, playfieldHeight);
 			switch (id) {
 				case Side:
 					return new RenderObject(
@@ -57,27 +58,23 @@ namespace VisualPinball.Engine.VPT.Surface
 			}
 		}
 
-		public Mesh GetMesh(float tableWidth, float tableHeight, float playfieldHeight, string id)
+		public PbrMaterial GetMaterial(string id, Table.Table table, SurfaceData data)
 		{
-			return GenerateMesh(tableWidth, tableHeight, playfieldHeight, id);
+			switch (id) {
+				case Side:
+					return new PbrMaterial(table.GetMaterial(data.SideMaterial), table.GetTexture(data.SideImage));
+				case Top:
+					return new PbrMaterial(table.GetMaterial(data.TopMaterial), table.GetTexture(data.Image));
+			}
+			throw new ArgumentException($"Unknown mesh ID \"{id}\".");
 		}
 
-		public RenderObjectGroup GetRenderObjects(Table.Table table, SurfaceData data, bool asRightHanded = true)
+		public Mesh GetMesh(string id, float tableWidth, float tableHeight, float playfieldHeight)
 		{
-			var renderObjects = new List<RenderObject>();
-			var sideMesh = GenerateSideMesh(table.TableHeight);
-			var topMesh = GenerateTopMesh(table.Width, table.Height, table.TableHeight);
-			if (sideMesh != null) {
-				renderObjects.Add(GetRenderObject(table, data, Side, table.TableHeight, asRightHanded, sideMesh));
-			}
-			if (topMesh != null) {
-				renderObjects.Add(GetRenderObject(table, data, Top, table.TableHeight, asRightHanded, topMesh));
-			}
-
-			return new RenderObjectGroup(data.Name, "Surfaces", Matrix3D.Identity, renderObjects.ToArray());
+			return GenerateMesh(id, tableWidth, tableHeight, playfieldHeight);
 		}
 
-		private Mesh GenerateMesh(float tableWidth, float tableHeight, float zHeight, string id)
+		public Mesh GenerateMesh(string id, float tableWidth, float tableHeight, float zHeight)
 		{
 			switch (id) {
 				case Top: return GenerateTopMesh(tableWidth, tableHeight, zHeight);

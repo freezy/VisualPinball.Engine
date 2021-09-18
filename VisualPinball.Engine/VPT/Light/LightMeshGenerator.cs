@@ -36,54 +36,28 @@ namespace VisualPinball.Engine.VPT.Light
 			_data = data;
 		}
 
-		public RenderObject GetRenderObject(Table.Table table, string id, Origin origin, bool asRightHanded)
+		public Mesh GetMesh(string id, Table.Table table, Origin origin, bool asRightHanded)
 		{
-			switch (id)
-			{
+			switch (id) {
 				case Bulb:
 					var bulbMesh = GetBulbMesh(table, origin);
-					return new RenderObject(
-						id,
-						asRightHanded ? bulbMesh.Transform(Matrix3D.RightHanded) : bulbMesh,
-						new PbrMaterial(GetBulbMaterial()),
-						true
-					);
+					return asRightHanded ? bulbMesh.Transform(Matrix3D.RightHanded) : bulbMesh;
 				case Socket:
 					var socketMesh = GetSocketMesh(table, origin);
-					return new RenderObject(
-						id,
-						asRightHanded ? socketMesh.Transform(Matrix3D.RightHanded) : socketMesh,
-						new PbrMaterial(GetSocketMaterial()),
-						true
-					);
-				default:
-					throw new ArgumentException("Unknown light mesh \"" + id + "\".");
+					return asRightHanded ? socketMesh.Transform(Matrix3D.RightHanded) : socketMesh;
 			}
+			throw new ArgumentException("Unknown light mesh \"" + id + "\".");
 		}
 
-		public RenderObjectGroup GetRenderObjects(Table.Table table, Origin origin, bool asRightHanded = true)
+		public PbrMaterial GetMaterial(string id, Table.Table table)
 		{
-			var translationMatrix = GetPostMatrix(table, origin);
-			if (!RenderBulb()) {
-				return new RenderObjectGroup(_data.Name, "Lights", translationMatrix);
+			switch (id) {
+				case Bulb:
+					return new PbrMaterial(GetBulbMaterial());
+				case Socket:
+					return new PbrMaterial(GetSocketMaterial());
 			}
-
-			var bulbMesh = GetBulbMesh(table, origin);
-			var socketMesh = GetSocketMesh(table, origin);
-			return new RenderObjectGroup(_data.Name, "Lights", translationMatrix,
-				new RenderObject(
-					Bulb,
-					asRightHanded ? bulbMesh.Transform(Matrix3D.RightHanded) : bulbMesh,
-					new PbrMaterial(GetBulbMaterial()),
-					true
-				),
-				new RenderObject(
-					Socket,
-					asRightHanded ? socketMesh.Transform(Matrix3D.RightHanded) : socketMesh,
-					new PbrMaterial(GetSocketMaterial()),
-					true
-				)
-			);
+			throw new ArgumentException("Unknown light mesh \"" + id + "\".");
 		}
 
 		public Matrix3D GetPostMatrix(Table.Table table, Origin origin)

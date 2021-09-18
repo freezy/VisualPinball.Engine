@@ -80,37 +80,19 @@ namespace VisualPinball.Engine.VPT.Flipper
 						return meshes[Rubber].Transform(preVertexMatrix, preNormalsMatrix);
 					}
 					break;
-				default:
-					throw new ArgumentException($"Unknown flipper mesh ID \"{id}\".", nameof(id));
 			}
-			return null;
+			throw new ArgumentException($"Unknown flipper ID \"{id}\".", nameof(id));
 		}
 
-		public RenderObjectGroup GetRenderObjects(FlipperData flipperData, Table.Table table, Origin origin, bool asRightHanded = true)
+		public PbrMaterial GetMaterial(string id, Table.Table table, FlipperData data)
 		{
-			var height = table.GetSurfaceHeight(flipperData.Surface, _data.PosX, _data.PosY);
-			var meshes = GenerateMeshes(height);
-			var (preVertexMatrix, preNormalsMatrix) = GetPreMatrix(0f, origin, asRightHanded);
-			var postMatrix = GetPostMatrix(table, origin);
-			var renderObjects = new List<RenderObject> {
-				new RenderObject(
-					Base,
-					meshes[Base].Transform(preVertexMatrix, preNormalsMatrix),
-					new PbrMaterial(table.GetMaterial(flipperData.Material), table.GetTexture(flipperData.Image)),
-					flipperData.IsVisible
-				)
-			};
-
-			if (meshes.ContainsKey(Rubber)) {
-				renderObjects.Add(new RenderObject(
-					Rubber,
-					meshes[Rubber].Transform(preVertexMatrix, preNormalsMatrix),
-					new PbrMaterial(table.GetMaterial(flipperData.RubberMaterial)),
-					flipperData.IsVisible
-				));
+			switch (id) {
+				case Base:
+					return new PbrMaterial(table.GetMaterial(data.Material), table.GetTexture(data.Image));
+				case Rubber:
+					return new PbrMaterial(table.GetMaterial(data.RubberMaterial));
 			}
-
-			return new RenderObjectGroup(flipperData.Name, "Flippers", postMatrix, renderObjects.ToArray());
+			throw new ArgumentException($"Unknown flipper ID \"{id}\".", nameof(id));
 		}
 
 		protected override float BaseHeight(Table.Table? table)

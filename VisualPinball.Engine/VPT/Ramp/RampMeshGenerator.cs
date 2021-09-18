@@ -92,39 +92,21 @@ namespace VisualPinball.Engine.VPT.Ramp
 			);
 		}
 
-		public RenderObjectGroup GetRenderObjects(Table.Table table, RampData rampData, bool asRightHanded = true)
+		public Mesh GetMesh(string id, Table.Table table)
 		{
 			var meshes = GenerateMeshes(table.Width, table.Height, table.TableHeight);
-			var renderObjects = new List<RenderObject>();
 
-			// wires
-			for (var i = 1; i <= 4; i++) {
-				var name = $"Wire{i}";
-				if (meshes.ContainsKey(name)) {
-					renderObjects.Add(GetRenderObject(table, rampData, meshes, name, asRightHanded));
-				}
+			if (meshes.ContainsKey(id)) {
+				return meshes[id];
 			}
 
-			// floor and walls
-			foreach (var name in new[] { "Floor", "RightWall", "LeftWall" }) {
-				if (meshes.ContainsKey(name)) {
-					renderObjects.Add(GetRenderObject(table, rampData, meshes, name, asRightHanded));
-				}
-			}
-
-			return new RenderObjectGroup(rampData.Name, "Ramps", Matrix3D.Identity, renderObjects.ToArray());
+			throw new ArgumentException($"No mesh with ID \"{id}\" found. Valid IDs: {string.Join(", ", meshes.Keys)}.");
 		}
 
-		private RenderObject GetRenderObject(Table.Table table, RampData rampData, IReadOnlyDictionary<string, Mesh> meshes, string name, bool asRightHanded)
+		public PbrMaterial GetMaterial(Table.Table table, RampData rampData)
 		{
-			return new RenderObject(
-				name,
-				asRightHanded ? meshes[name].Transform(Matrix3D.RightHanded) : meshes[name],
-				new PbrMaterial(table.GetMaterial(rampData.Material), table.GetTexture(rampData.Image)),
-				rampData.IsVisible
-			);
+			return new PbrMaterial(table.GetMaterial(rampData.Material), table.GetTexture(rampData.Image));
 		}
-
 
 		private Dictionary<string, Mesh> GenerateMeshes(float tableWidth, float tableHeight, float heightZ)
 		{

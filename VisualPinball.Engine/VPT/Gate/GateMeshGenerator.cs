@@ -43,36 +43,27 @@ namespace VisualPinball.Engine.VPT.Gate
 			_data = data;
 		}
 
-		public RenderObject GetRenderObject(Table.Table table, string id, Origin origin, bool asRightHanded)
+		public Mesh GetMesh(string id, Table.Table table, Origin origin, bool asRightHanded)
 		{
 			var (preMatrix, _) = GetPreMatrix(BaseHeight(table), origin, asRightHanded);
 			switch (id) {
 				case Wire:
-					return new RenderObject(
-						id,
-						GetBaseMesh().Transform(preMatrix),
-						new PbrMaterial(table.GetMaterial(_data.Material)),
-						_data.IsVisible
-					);
+					return GetBaseMesh().Transform(preMatrix);
 				case Bracket:
-					return new RenderObject(
-						id,
-						GateBracketMesh.Clone().Transform(preMatrix),
-						new PbrMaterial(table.GetMaterial(_data.Material)),
-						_data.IsVisible && _data.ShowBracket
-					);
-				default:
-					throw new ArgumentException("Unknown gate mesh \"" + id + "\".");
+					return GateBracketMesh.Clone().Transform(preMatrix);
 			}
+			throw new ArgumentException("Unknown gate \"" + id + "\".");
 		}
 
-		public RenderObjectGroup GetRenderObjects(Table.Table table, Origin origin, bool asRightHanded)
+		public PbrMaterial GetMaterial(string id, Table.Table table)
 		{
-			var postMatrix = GetPostMatrix(table, origin);
-			return new RenderObjectGroup(_data.Name, "Gates", postMatrix,
-				GetRenderObject(table, Wire, origin, asRightHanded),
-				GetRenderObject(table, Bracket, origin, asRightHanded)
-			);
+			switch (id) {
+				case Wire:
+					return new PbrMaterial(table.GetMaterial(_data.Material));
+				case Bracket:
+					return new PbrMaterial(table.GetMaterial(_data.Material));
+			}
+			throw new ArgumentException("Unknown gate \"" + id + "\".");
 		}
 
 		protected override float BaseHeight(Table.Table? table)

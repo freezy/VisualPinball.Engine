@@ -41,34 +41,22 @@ namespace VisualPinball.Engine.VPT.HitTarget
 
 		public Mesh GetMesh() => GetBaseMesh();
 
+
+		public Mesh GetMesh(Origin origin, bool asRightHanded)
+		{
+			var mesh = GetBaseMesh();
+			var (preMatrix, _) = GetPreMatrix(BaseHeight(_table), origin, asRightHanded);
+			return mesh.Transform(preMatrix);
+		}
+
 		public Matrix3D GetTransformationMatrix()
 		{
 			return GetPostMatrix(_table, Origin.Original);
 		}
 
-		public RenderObject GetRenderObject(Origin origin, bool asRightHanded)
+		public PbrMaterial GetMaterial()
 		{
-			var mesh = GetBaseMesh();
-			var (preMatrix, _) = GetPreMatrix(BaseHeight(_table), origin, asRightHanded);
-			return new RenderObject(
-				_data.Name,
-				mesh.Transform(preMatrix),
-				new PbrMaterial(_table.GetMaterial(_data.Material), _table.GetTexture(_data.Image)),
-				_data.IsVisible
-			);
-		}
-
-		public RenderObjectGroup GetRenderObjects(Origin origin, bool asRightHanded)
-		{
-			var mesh = GetBaseMesh();
-			var (preMatrix, _) = GetPreMatrix(BaseHeight(_table), origin, asRightHanded);
-			var postMatrix = GetPostMatrix(_table, origin);
-			return new RenderObjectGroup(_data.Name, "HitTargets", postMatrix, new RenderObject(
-				_data.Name,
-				mesh.Transform(preMatrix),
-				new PbrMaterial(_table.GetMaterial(_data.Material),_table.GetTexture(_data.Image)),
-				_data.IsVisible
-			));
+			return new PbrMaterial(_table.GetMaterial(_data.Material), _table.GetTexture(_data.Image));
 		}
 
 		protected override float BaseHeight(Table.Table table)

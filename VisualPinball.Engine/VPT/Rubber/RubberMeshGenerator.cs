@@ -55,20 +55,18 @@ namespace VisualPinball.Engine.VPT.Rubber
 			return mesh.Transform(GetRotationMatrix());
 		}
 
-		public RenderObjectGroup GetRenderObjects(Table.Table table, Origin origin, bool asRightHanded, RubberData rubberData)
+		public Mesh GetMesh(Table.Table table, RubberData rubberData)
 		{
-			var mesh = GetTransformedMesh(table.TableHeight, rubberData.Height, table.GetDetailLevel());
+			var mesh = GetTransformedMesh(table.TableHeight, _data.Height, table.GetDetailLevel());
 			mesh.Name = rubberData.Name;
 			var preMatrix = new Matrix3D();
-			preMatrix.SetTranslation(0, 0, -rubberData.Height);
+			preMatrix.SetTranslation(0, 0, -_data.Height);
+			return mesh.Transform(preMatrix);
+		}
 
-			//var postMatrix = GetPostMatrix(table, origin);
-			return new RenderObjectGroup(rubberData.Name, "Rubbers", asRightHanded ? Matrix3D.RightHanded : Matrix3D.Identity, new RenderObject(
-				rubberData.Name,
-				mesh.Transform(preMatrix),
-				new PbrMaterial(table.GetMaterial(rubberData.Material), table.GetTexture(rubberData.Image)),
-				rubberData.IsVisible
-			));
+		public PbrMaterial GetMaterial(Table.Table table, RubberData rubberData)
+		{
+			return new PbrMaterial(table.GetMaterial(rubberData.Material), table.GetTexture(rubberData.Image));
 		}
 
 		private Matrix3D GetRotationMatrix()

@@ -41,7 +41,7 @@ namespace VisualPinball.Unity
 
 		#endregion
 
-		public static readonly Type[] ValidParentTypes = new Type[0];
+		public static readonly Type[] ValidParentTypes = Type.EmptyTypes;
 
 		public override IEnumerable<Type> ValidParents => ValidParentTypes;
 
