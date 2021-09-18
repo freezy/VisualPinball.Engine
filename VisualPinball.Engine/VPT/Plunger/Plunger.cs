@@ -53,15 +53,11 @@ namespace VisualPinball.Engine.VPT.Plunger
 
 		Matrix3D IRenderable.TransformationMatrix(Table.Table table, Origin origin) => Matrix3D.Identity;
 
-		public RenderObject GetRenderObject(Table.Table table, string id = null, Origin origin = Origin.Global, bool asRightHanded = true)
-		{
-			return MeshGenerator.GetRenderObject(table, id, asRightHanded);
-		}
+		public Mesh GetMesh(string id, Table.Table table, Origin origin = Origin.Global, bool asRightHanded = true)
+			=> MeshGenerator.GetMesh(id, 20, table, origin, asRightHanded);
 
-		public RenderObjectGroup GetRenderObjects(Table.Table table, Origin origin = Origin.Global, bool asRightHanded = true)
-		{
-			return MeshGenerator.GetRenderObjects(20, table, origin, asRightHanded);
-		}
+		public PbrMaterial GetMaterial(string id, Table.Table table)
+			=> MeshGenerator.GetMaterial(table);
 
 		#endregion
 	}

@@ -43,12 +43,16 @@ namespace VisualPinball.Engine.VPT.Flipper
 
 		#region IRenderable
 
-		Matrix3D IRenderable.TransformationMatrix(Table.Table table, Origin origin) => _meshGenerator.GetPostMatrix(table, origin);
+		Matrix3D IRenderable.TransformationMatrix(Table.Table table, Origin origin)
+			=> _meshGenerator.GetPostMatrix(table, origin);
 
-		public RenderObjectGroup GetRenderObjects(Table.Table table, Origin origin = Origin.Global, bool asRightHanded = true)
+		public Mesh GetMesh(string id, Table.Table table, Origin origin = Origin.Global, bool asRightHanded = true)
 		{
-			return _meshGenerator.GetRenderObjects(Data, table, origin, asRightHanded);
+			var height = table.GetSurfaceHeight(Data.Surface, Data.PosX, Data.PosY);
+			return _meshGenerator.GetMesh(id, height);
 		}
+
+		public PbrMaterial GetMaterial(string id, Table.Table table) => _meshGenerator.GetMaterial(id, table, Data);
 
 		#endregion
 

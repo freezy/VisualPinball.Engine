@@ -77,16 +77,10 @@ namespace VisualPinball.Engine.VPT.Table
 		#region IRenderable
 
 		Matrix3D IRenderable.TransformationMatrix(Table table, Origin origin) => Matrix3D.Identity;
+		public Mesh GetMesh(string id, Table table, Origin origin = Origin.Global, bool asRightHanded = true)
+			=> _meshGenerator.GetMesh(table, asRightHanded);
 
-		public RenderObject GetRenderObject(Table table, string id = null, Origin origin = Origin.Global, bool asRightHanded = true)
-		{
-			return _meshGenerator.GetRenderObject(table, asRightHanded);
-		}
-
-		public RenderObjectGroup GetRenderObjects(Table table, Origin origin = Origin.Global, bool asRightHanded = true)
-		{
-			return _meshGenerator.GetRenderObjects(table, asRightHanded);
-		}
+		public PbrMaterial GetMaterial(string id, Table table) => _meshGenerator.GetMaterial(table);
 
 		#endregion
 

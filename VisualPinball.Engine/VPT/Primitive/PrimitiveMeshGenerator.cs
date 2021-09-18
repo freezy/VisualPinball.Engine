@@ -53,6 +53,20 @@ namespace VisualPinball.Engine.VPT.Primitive
 			return GetTransformedMesh(height, originalMesh, origin, asRightHanded);
 		}
 
+		public Mesh GetMesh(Table.Table table, Origin origin, bool asRightHanded = true)
+		{
+			return GetTransformedMesh(BaseHeight(table), _data.Mesh, origin, asRightHanded);
+		}
+
+		public PbrMaterial GetMaterial(Table.Table table)
+		{
+			return new PbrMaterial(
+				table.GetMaterial(_data.Material),
+				table.GetTexture(_data.Image),
+				table.GetTexture(_data.NormalMap)
+			);
+		}
+
 		public RenderObjectGroup GetRenderObjects(Table.Table table, Mesh originalMesh, Origin origin, bool asRightHanded = true,
 			string parent = null, PbrMaterial material = null)
 		{

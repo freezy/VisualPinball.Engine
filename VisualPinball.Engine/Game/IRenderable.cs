@@ -24,6 +24,8 @@ namespace VisualPinball.Engine.Game
 	{
 		Matrix3D TransformationMatrix(Table table, Origin origin);
 
-		RenderObjectGroup GetRenderObjects(Table table, Origin origin = Origin.Global, bool asRightHanded = true);
+		Mesh GetMesh(string id, Table table, Origin origin = Origin.Global, bool asRightHanded = true);
+
+		PbrMaterial GetMaterial(string id, Table table);
 	}
 }

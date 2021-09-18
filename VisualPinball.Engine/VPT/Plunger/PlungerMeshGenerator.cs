@@ -122,61 +122,34 @@ namespace VisualPinball.Engine.VPT.Plunger
 			}
 		}
 
-		public RenderObjectGroup GetRenderObjects(int frame, Table.Table table, Origin origin, bool asRightHanded = true)
+		public Mesh GetMesh(string id, int frame, Table.Table table, Origin origin, bool asRightHanded = true)
 		{
 			var height = table.GetSurfaceHeight(_data.Surface, _data.Center.X, _data.Center.Y);
 			Init(height);
 
-			// todo
-			var translationMatrix = Matrix3D.Identity;
-			var material = new PbrMaterial(table.GetMaterial(_data.Material), table.GetTexture(_data.Image));
-
-			// flat plunger
-			if (_data.Type == PlungerType.PlungerTypeFlat) {
+			if (id == Flat) {
 				var flatMesh = BuildFlatMesh();
-				return new RenderObjectGroup(_data.Name, "Plungers", translationMatrix,
-					new RenderObject(
-						Flat,
-						asRightHanded ? flatMesh.Transform(Matrix3D.RightHanded) : flatMesh,
-						material,
-						true
-					)
-				) { ForceChild = true };
+				return asRightHanded ? flatMesh.Transform(Matrix3D.RightHanded) : flatMesh;
 			}
 
 			CalculateArraySizes();
-			var rodMesh = BuildRodMesh();
 
-			// custom plunger
-			if (_data.Type == PlungerType.PlungerTypeCustom) {
-				var springMesh = BuildSpringMesh();
-
-				return new RenderObjectGroup(_data.Name, "Plungers", translationMatrix,
-					new RenderObject(
-						Rod,
-						asRightHanded ? rodMesh.Transform(Matrix3D.RightHanded) : rodMesh,
-						material,
-						true
-					),
-					new RenderObject(
-						Spring,
-						asRightHanded ? springMesh.Transform(Matrix3D.RightHanded) : springMesh,
-						material,
-						true
-					)
-				);
+			switch (id) {
+				case Rod:
+					var rodMesh = BuildRodMesh();
+					return asRightHanded ? rodMesh.Transform(Matrix3D.RightHanded) : rodMesh;
+				case Spring:
+					var springMesh = BuildSpringMesh();
+					return asRightHanded ? springMesh.Transform(Matrix3D.RightHanded) : springMesh;
 			}
-
-			// modern plunger
-			return new RenderObjectGroup(_data.Name, "Plungers", translationMatrix,
-				new RenderObject(
-					Rod,
-					asRightHanded ? rodMesh.Transform(Matrix3D.RightHanded) : rodMesh,
-					material,
-					true
-				)
-			) { ForceChild = true };
+			throw new ArgumentException($"Unknown mesh ID \"{id}\".");
 		}
+
+		public PbrMaterial GetMaterial(Table.Table table)
+		{
+			return new PbrMaterial(table.GetMaterial(_data.Material), table.GetTexture(_data.Image));
+		}
+
 
 		private void Init(float height)
 		{

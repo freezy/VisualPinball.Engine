@@ -16,9 +16,7 @@
 
 using System;
 using VisualPinball.Engine.Game;
-using VisualPinball.Engine.Math;
 using VisualPinball.Engine.Resources.Meshes;
-using MathF = VisualPinball.Engine.Math.MathF;
 
 namespace VisualPinball.Engine.VPT.Bumper
 {
@@ -40,56 +38,23 @@ namespace VisualPinball.Engine.VPT.Bumper
 			_data = data;
 		}
 
-		public RenderObject GetRenderObject(Table.Table table, string id, Origin origin, bool asRightHanded)
+
+		public PbrMaterial GetMaterial(string id, Table.Table table)
 		{
-			var mesh = GetMesh(id, table, origin);
 			switch (id) {
 				case Base:
-					return new RenderObject(
-						id,
-						asRightHanded ? mesh.Transform(Matrix3D.RightHanded) : mesh,
-						new PbrMaterial(table.GetMaterial(_data.BaseMaterial), Texture.BumperBase),
-						_data.IsBaseVisible
-					);
+					return new PbrMaterial(table.GetMaterial(_data.BaseMaterial), Texture.BumperBase);
 				case Cap:
-					return new RenderObject(
-						id,
-						asRightHanded ? mesh.Transform(Matrix3D.RightHanded) : mesh,
-						new PbrMaterial(table.GetMaterial(_data.CapMaterial), Texture.BumperCap),
-						_data.IsCapVisible
-					);
+					return new PbrMaterial(table.GetMaterial(_data.CapMaterial), Texture.BumperCap);
 				case Ring:
-					return new RenderObject(
-						id,
-						asRightHanded ? mesh.Transform(Matrix3D.RightHanded) : mesh,
-						new PbrMaterial(table.GetMaterial(_data.RingMaterial), Texture.BumperRing),
-						_data.IsRingVisible
-					);
-
+					return new PbrMaterial(table.GetMaterial(_data.RingMaterial), Texture.BumperRing);
 				case Skirt:
-					return new RenderObject(
-						"Skirt",
-						asRightHanded ? mesh.Transform(Matrix3D.RightHanded) : mesh,
-						new PbrMaterial(table.GetMaterial(_data.SocketMaterial), Texture.BumperSocket),
-						_data.IsSocketVisible
-					);
+					return new PbrMaterial(table.GetMaterial(_data.SocketMaterial), Texture.BumperSocket);
 			}
-			throw new ArgumentException("Unknown bumper mesh \"" + id + "\".");
+			throw new ArgumentException("Unknown bumper id \"" + id + "\".");
 		}
 
-		public RenderObjectGroup GetRenderObjects(Table.Table table, Origin origin = Origin.Global, bool asRightHanded = true)
-		{
-			var translationMatrix = GetPostMatrix(origin);
-
-			return new RenderObjectGroup(_data.Name, "Bumpers", translationMatrix,
-				GetRenderObject(table, Base, origin, asRightHanded),
-				GetRenderObject(table, Ring, origin, asRightHanded),
-				GetRenderObject(table, Skirt, origin, asRightHanded),
-				GetRenderObject(table, Base, origin, asRightHanded)
-			);
-		}
-
-		private Mesh GetMesh(string id, Table.Table table, Origin origin) {
+		public Mesh GetMesh(string id, Table.Table table, Origin origin) {
 
 			var height = table.GetSurfaceHeight(_data.Surface, _data.Center.X, _data.Center.Y);
 			switch (id) {
@@ -111,22 +76,6 @@ namespace VisualPinball.Engine.VPT.Bumper
 				}
 			}
 			throw new ArgumentException("Unknown bumper mesh \"" + id + "\".");
-		}
-
-		private Matrix3D GetPostMatrix(Origin origin)
-		{
-			switch (origin) {
-				case Origin.Original:
-					var rotMatrix = new Matrix3D().RotateZMatrix(MathF.DegToRad(_data.Orientation));
-					var transMatrix = new Matrix3D().SetTranslation(_data.Center.X, _data.Center.Y, 0f);
-					return rotMatrix.Multiply(transMatrix);
-
-				case Origin.Global:
-					return Matrix3D.Identity;
-
-				default:
-					throw new ArgumentOutOfRangeException(nameof(origin), origin, "Unknown origin " + origin);
-			}
 		}
 
 		private Mesh TranslateMesh(Mesh mesh, Func<float, float> zPos, Origin origin) {

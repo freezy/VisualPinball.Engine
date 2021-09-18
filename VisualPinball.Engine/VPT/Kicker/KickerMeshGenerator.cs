@@ -47,28 +47,15 @@ namespace VisualPinball.Engine.VPT.Kicker
 			_data = data;
 		}
 
-		public RenderObject GetRenderObject(Table.Table table, Origin origin, bool asRightHanded)
+		public Mesh GetMesh(Table.Table table, Origin origin, bool asRightHanded)
 		{
 			var (preMatrix, _) = GetPreMatrix(BaseHeight(table), origin, asRightHanded);
-			return new RenderObject(
-				_data.Name,
-				GetBaseMesh().Transform(preMatrix),
-				new PbrMaterial(table.GetMaterial(_data.Material)),
-				_data.KickerType != KickerType.KickerInvisible
-			);
+			return GetBaseMesh().Transform(preMatrix);
 		}
 
-		public RenderObjectGroup GetRenderObjects(Table.Table table, Origin origin, bool asRightHanded)
+		public PbrMaterial GetMaterial(Table.Table table)
 		{
-			var (preMatrix, _) = GetPreMatrix(BaseHeight(table), origin, asRightHanded);
-			var postMatrix = GetPostMatrix(table, origin);
-			return new RenderObjectGroup(_data.Name, "Kickers", postMatrix, new RenderObject(
-					_data.Name,
-					GetBaseMesh().Transform(preMatrix),
-					new PbrMaterial(table.GetMaterial(_data.Material)),
-					_data.KickerType != KickerType.KickerInvisible
-				)
-			);
+			return new PbrMaterial(table.GetMaterial(_data.Material));
 		}
 
 		protected override float BaseHeight(Table.Table table)

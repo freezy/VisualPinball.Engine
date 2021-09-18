@@ -34,12 +34,12 @@ namespace VisualPinball.Unity
 
 		protected override RenderObject GetRenderObject(SurfaceData data, Table table)
 		{
-			return new SurfaceMeshGenerator(data).GetRenderObject(table, data, SurfaceMeshGenerator.Top, MainComponent.PlayfieldHeight, false);
+			return new SurfaceMeshGenerator(data).GetRenderObject(SurfaceMeshGenerator.Top, table, data, MainComponent.PlayfieldHeight, false);
 		}
 		protected override Mesh GetMesh(SurfaceData data)
 		{
 			var playfieldComponent = GetComponentInParent<PlayfieldComponent>();
-			return new SurfaceMeshGenerator(data).GetMesh(playfieldComponent.Width, playfieldComponent.Height, playfieldComponent.PlayfieldHeight, SurfaceMeshGenerator.Top);
+			return new SurfaceMeshGenerator(data).GetMesh(SurfaceMeshGenerator.Top, playfieldComponent.Width, playfieldComponent.Height, playfieldComponent.PlayfieldHeight);
 		}
 	}
 }

@@ -49,17 +49,15 @@ namespace VisualPinball.Engine.VPT.Table
 			return GetFromTableDimensions(false);
 		}
 
-		public RenderObjectGroup GetRenderObjects(Table table, bool asRightHanded = true)
+		public Mesh GetMesh(Table table, bool asRightHanded = true)
 		{
-			var material = new PbrMaterial(table.GetMaterial(_data.PlayfieldMaterial), table.GetTexture(_data.Image));
 			var mesh = GetFromTableDimensions(asRightHanded);
-			var ro = new RenderObject(
-				_data.Name,
-				asRightHanded ? mesh.Transform(Matrix3D.RightHanded) : mesh,
-				material,
-				true
-			);
-			return new RenderObjectGroup(_data.Name, "Table", Matrix3D.Identity, ro);
+			return asRightHanded ? mesh.Transform(Matrix3D.RightHanded) : mesh;
+		}
+
+		public PbrMaterial GetMaterial(Table table)
+		{
+			return new PbrMaterial(table.GetMaterial(_data.PlayfieldMaterial), table.GetTexture(_data.Image));
 		}
 
 		public void SetFromPrimitive(Primitive.Primitive primitive)

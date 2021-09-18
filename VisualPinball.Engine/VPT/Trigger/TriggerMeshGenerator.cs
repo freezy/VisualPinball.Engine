@@ -45,16 +45,14 @@ namespace VisualPinball.Engine.VPT.Trigger
 			);
 		}
 
-		public RenderObjectGroup GetRenderObjects(Table.Table table, Origin origin, bool asRightHanded)
+		public Mesh GetMesh(Table.Table table, Origin origin, bool asRightHanded)
 		{
-			var postMatrix = GetPostMatrix(table, origin);
-			return new RenderObjectGroup(_data.Name, "Triggers", postMatrix, new RenderObject(
-					_data.Name,
-					GetMesh(BaseHeight(table), origin, asRightHanded),
-					new PbrMaterial(table.GetMaterial(_data.Material)),
-					_data.IsVisible && _data.Shape != TriggerShape.TriggerNone
-				)
-			);
+			return GetMesh(BaseHeight(table), origin, asRightHanded);
+		}
+
+		public PbrMaterial GetMaterial(Table.Table table)
+		{
+			return new PbrMaterial(table.GetMaterial(_data.Material));
 		}
 
 		protected override float BaseHeight(Table.Table table)
