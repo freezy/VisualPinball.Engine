@@ -58,6 +58,38 @@ namespace VisualPinball.Engine.VPT.Surface
 			}
 		}
 
+		public RenderObjectGroup GetRenderObjects(Table.Table table, SurfaceData data, bool asRightHanded = true)
+		{
+			var renderObjects = new List<RenderObject>();
+			var sideMesh = GenerateSideMesh(table.TableHeight);
+			var topMesh = GenerateTopMesh(table.Width, table.Height, table.TableHeight);
+			if (sideMesh != null) {
+				renderObjects.Add(GetRenderObject(Side, table, data, table.TableHeight, asRightHanded, sideMesh));
+			}
+			if (topMesh != null) {
+				renderObjects.Add(GetRenderObject(Top, table, data, table.TableHeight, asRightHanded, topMesh));
+			}
+
+			return new RenderObjectGroup(data.Name, "Surfaces", Matrix3D.Identity, renderObjects.ToArray());
+		}
+
+		public Mesh GetMesh(string id, float tableWidth, float tableHeight, float playfieldHeight, bool asRightHanded)
+		{
+			var mesh = GenerateMesh(id, tableWidth, tableHeight, playfieldHeight);
+			return asRightHanded ? mesh.Transform(Matrix3D.RightHanded) : mesh;
+		}
+
+		public Mesh GenerateMesh(string id, float tableWidth, float tableHeight, float zHeight)
+		{
+			switch (id) {
+				case Top:
+					return GenerateTopMesh(tableWidth, tableHeight, zHeight);
+				case Side:
+					return GenerateSideMesh(zHeight);
+			}
+			throw new ArgumentException($"Unknown mesh ID \"{id}\".");
+		}
+
 		public PbrMaterial GetMaterial(string id, Table.Table table, SurfaceData data)
 		{
 			switch (id) {
@@ -67,21 +99,6 @@ namespace VisualPinball.Engine.VPT.Surface
 					return new PbrMaterial(table.GetMaterial(data.TopMaterial), table.GetTexture(data.Image));
 			}
 			throw new ArgumentException($"Unknown mesh ID \"{id}\".");
-		}
-
-		public Mesh GetMesh(string id, float tableWidth, float tableHeight, float playfieldHeight)
-		{
-			return GenerateMesh(id, tableWidth, tableHeight, playfieldHeight);
-		}
-
-		public Mesh GenerateMesh(string id, float tableWidth, float tableHeight, float zHeight)
-		{
-			switch (id) {
-				case Top: return GenerateTopMesh(tableWidth, tableHeight, zHeight);
-				case Side: return GenerateSideMesh(zHeight);
-				default:
-					throw new ArgumentException($"Unknown mesh ID \"{id}\".");
-			}
 		}
 
 		private Mesh GenerateTopMesh(float tableWidth, float tableHeight, float zHeight) {

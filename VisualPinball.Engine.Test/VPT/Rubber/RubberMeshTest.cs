@@ -33,17 +33,17 @@ namespace VisualPinball.Engine.Test.VPT.Rubber
 		}
 
 		//[Test] todo fix
-		public void ShouldGenerateMesh()
-		{
-			var rubberMesh = _tc.Rubber("Rubber2").GetRenderObjects(_tc.Table).RenderObjects[0].Mesh;
-			AssertObjMesh(_obj, rubberMesh, threshold: 0.00015f);
-		}
+		//public void ShouldGenerateMesh()
+		//{
+		//	var rubberMesh = _tc.Rubber("Rubber2").GetRenderObjects(_tc.Table).RenderObjects[0].Mesh;
+		//	AssertObjMesh(_obj, rubberMesh, threshold: 0.00015f);
+		//}
 
 		// [Test] todo fix
-		public void ShouldGenerateThickMesh()
-		{
-			var rubberMesh = _tc.Rubber("Rubber1").GetRenderObjects(_tc.Table).RenderObjects[0].Mesh;
-			AssertObjMesh(_obj, rubberMesh, threshold: 0.001f);
-		}
+		//public void ShouldGenerateThickMesh()
+		//{
+		//	var rubberMesh = _tc.Rubber("Rubber1").GetRenderObjects(_tc.Table).RenderObjects[0].Mesh;
+		//	AssertObjMesh(_obj, rubberMesh, threshold: 0.001f);
+		//}
 	}
 }

@@ -31,6 +31,11 @@ namespace VisualPinball.Engine.Test.Test
 	{
 		private const float Threshold = 0.0001f;
 
+		protected static Mesh[] GetMeshes(Table table, IRenderable renderable, params string[] names)
+		{
+			return names.Select(n => renderable.GetMesh(n, table)).ToArray();
+		}
+
 		protected static ObjFile LoadObjFixture(string filePath)
 		{
 			var lines = File
@@ -44,9 +49,19 @@ namespace VisualPinball.Engine.Test.Test
 			}
 		}
 
-		protected static void AssertObjMesh(Table table, ObjFile obj, IRenderable renderable, Func<IRenderable, Mesh, string> getName = null, float threshold = Threshold)
+		protected static void AssertObjMesh(Table table, ObjFile obj, IRenderable renderable, string[] meshIds,
+			Func<IRenderable, Mesh, string> getName = null, float threshold = Threshold)
 		{
-			var targetMeshes = renderable.GetRenderObjects(table).RenderObjects.Select(ro => ro.Mesh);
+			var targetMeshes = GetMeshes(table, renderable, meshIds);
+			foreach (var mesh in targetMeshes) {
+				AssertObjMesh(obj, mesh, getName?.Invoke(renderable, mesh), threshold);
+			}
+		}
+
+		protected static void AssertObjMesh(Table table, ObjFile obj, IRenderable renderable,
+			Func<IRenderable, Mesh, string> getName = null, float threshold = Threshold)
+		{
+			var targetMeshes = GetMeshes(table, renderable, string.Empty); // empty for items that only have one mesh and id is ignored
 			foreach (var mesh in targetMeshes) {
 				AssertObjMesh(obj, mesh, getName?.Invoke(renderable, mesh), threshold);
 			}

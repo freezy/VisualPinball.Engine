@@ -49,7 +49,7 @@ namespace VisualPinball.Engine.VPT.Flipper
 		public Mesh GetMesh(string id, Table.Table table, Origin origin = Origin.Global, bool asRightHanded = true)
 		{
 			var height = table.GetSurfaceHeight(Data.Surface, Data.PosX, Data.PosY);
-			return _meshGenerator.GetMesh(id, height);
+			return _meshGenerator.GetMesh(id, height, 0f, origin: origin, asRightHanded: asRightHanded);
 		}
 
 		public PbrMaterial GetMaterial(string id, Table.Table table) => _meshGenerator.GetMaterial(id, table, Data);

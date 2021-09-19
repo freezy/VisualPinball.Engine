@@ -18,6 +18,7 @@ using System.Linq;
 using JeremyAnsel.Media.WavefrontObj;
 using NUnit.Framework;
 using VisualPinball.Engine.Test.Test;
+using VisualPinball.Engine.VPT.Surface;
 using VisualPinball.Engine.VPT.Table;
 
 namespace VisualPinball.Engine.Test.VPT.Surface
@@ -37,27 +38,9 @@ namespace VisualPinball.Engine.Test.VPT.Surface
 		public void ShouldGenerateTopAndSides()
 		{
 			var surface = _tc.Surface("Wall");
+			//var surfaceMeshes = GetMeshes(_tc.Table, surface, SurfaceMeshGenerator.Top, SurfaceMeshGenerator.Side);
 			var surfaceMeshes = surface.GetRenderObjects(_tc.Table).RenderObjects.Select(ro => ro.Mesh).ToArray();
-			AssertObjMesh(_obj, surface.Name, surfaceMeshes);
-		}
 
-		[Test]
-		public void ShouldGenerateOnlyTop()
-		{
-			var surface = _tc.Surface("SideInvisible");
-			var surfaceMeshes = surface.GetRenderObjects(_tc.Table).RenderObjects
-				.Where(ro => ro.IsVisible)
-				.Select(ro => ro.Mesh).ToArray();
-			AssertObjMesh(_obj, surface.Name, surfaceMeshes, 0.001f);
-		}
-
-		[Test]
-		public void ShouldGenerateOnlySide()
-		{
-			var surface = _tc.Surface("TopInvisible");
-			var surfaceMeshes = surface.GetRenderObjects(_tc.Table).RenderObjects
-				.Where(ro => ro.IsVisible)
-				.Select(ro => ro.Mesh).ToArray();
 			AssertObjMesh(_obj, surface.Name, surfaceMeshes);
 		}
 	}

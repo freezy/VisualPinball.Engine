@@ -17,6 +17,7 @@
 using JeremyAnsel.Media.WavefrontObj;
 using NUnit.Framework;
 using VisualPinball.Engine.Test.Test;
+using VisualPinball.Engine.VPT.Bumper;
 using VisualPinball.Engine.VPT.Table;
 
 namespace VisualPinball.Engine.Test.VPT.Bumper
@@ -35,7 +36,12 @@ namespace VisualPinball.Engine.Test.VPT.Bumper
 		[Test]
 		public void ShouldGenerateMesh()
 		{
-			AssertObjMesh(_table.Table, _obj, _table.Bumper("Bumper2"), (item, mesh) => $"{item.Name}{mesh.Name}");
+			AssertObjMesh(_table.Table, _obj, _table.Bumper("Bumper2"), new[] {
+				BumperMeshGenerator.Base,
+				BumperMeshGenerator.Cap,
+				BumperMeshGenerator.Ring,
+				BumperMeshGenerator.Skirt
+			}, (item, mesh) => $"{item.Name}{mesh.Name}");
 		}
 	}
 }
