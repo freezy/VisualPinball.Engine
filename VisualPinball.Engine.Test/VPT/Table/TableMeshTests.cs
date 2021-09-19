@@ -35,7 +35,7 @@ namespace VisualPinball.Engine.Test.VPT.Table
 		[Test]
 		public void ShouldGeneratePlayfieldCorrectly()
 		{
-			var tableMesh = _tc.Table.GetRenderObjects(_tc.Table).RenderObjects[0].Mesh;
+			var tableMesh = _tc.Table.GetMesh(null, _tc.Table);
 			AssertObjMesh(_obj, tableMesh);
 		}
 	}

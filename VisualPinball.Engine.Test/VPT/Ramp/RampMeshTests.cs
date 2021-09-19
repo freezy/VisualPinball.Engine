@@ -18,6 +18,7 @@ using System.Linq;
 using JeremyAnsel.Media.WavefrontObj;
 using NUnit.Framework;
 using VisualPinball.Engine.Test.Test;
+using VisualPinball.Engine.VPT.Ramp;
 using VisualPinball.Engine.VPT.Table;
 
 namespace VisualPinball.Engine.Test.VPT.Ramp
@@ -36,44 +37,44 @@ namespace VisualPinball.Engine.Test.VPT.Ramp
 		[Test]
 		public void ShouldGenerateFlatWithoutWalls()
 		{
-			ShouldGenerate("FlatNone");
+			ShouldGenerate("FlatNone", "Floor");
 		}
 
 		[Test]
 		public void ShouldGenerateFlatWithBothWalls()
 		{
-			ShouldGenerate("Flat");
+			ShouldGenerate("Flat", "Floor", "RightWall", "LeftWall");
 		}
 
 		[Test]
 		public void ShouldGenerate1WireRamp()
 		{
-			ShouldGenerate("Wire1");
+			ShouldGenerate("Wire1", "Wire1");
 		}
 
 		[Test]
 		public void ShouldGenerate2WireRamp()
 		{
-			ShouldGenerate("Wire2");
+			ShouldGenerate("Wire2", "Wire1", "Wire2");
 		}
 
 		[Test]
 		public void ShouldGenerate3WireRamp()
 		{
-			ShouldGenerate("Wire3L");
-			ShouldGenerate("Wire3R");
+			ShouldGenerate("Wire3L", "Wire2", "Wire3", "Wire4");
+			ShouldGenerate("Wire3R", "Wire1", "Wire3", "Wire4");
 		}
 
 		[Test]
 		public void ShouldGenerate4WireRamp()
 		{
-			ShouldGenerate("Wire4");
+			ShouldGenerate("Wire4", "Wire1", "Wire2", "Wire3", "Wire4");
 		}
 
-		private void ShouldGenerate(string name)
+		private void ShouldGenerate(string name, params string[] meshIds)
 		{
 			var ramp = _tc.Ramp(name);
-			var rampMeshes = ramp.GetRenderObjects(_tc.Table).RenderObjects.Select(ro => ro.Mesh).ToArray();
+			var rampMeshes = GetMeshes(_tc.Table, ramp, meshIds);
 #if WIN64
 			const float threshold = 0.0001f;
 #else

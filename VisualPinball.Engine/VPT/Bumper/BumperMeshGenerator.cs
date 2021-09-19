@@ -16,6 +16,7 @@
 
 using System;
 using VisualPinball.Engine.Game;
+using VisualPinball.Engine.Math;
 using VisualPinball.Engine.Resources.Meshes;
 
 namespace VisualPinball.Engine.VPT.Bumper
@@ -52,6 +53,12 @@ namespace VisualPinball.Engine.VPT.Bumper
 					return new PbrMaterial(table.GetMaterial(_data.SocketMaterial), Texture.BumperSocket);
 			}
 			throw new ArgumentException("Unknown bumper id \"" + id + "\".");
+		}
+
+		public Mesh GetMesh(string id, Table.Table table, Origin origin, bool asRightHanded)
+		{
+			var mesh = GetMesh(id, table, origin);
+			return asRightHanded ? mesh.Transform(Matrix3D.RightHanded) : mesh;
 		}
 
 		public Mesh GetMesh(string id, Table.Table table, Origin origin) {

@@ -18,6 +18,7 @@ using System.Linq;
 using JeremyAnsel.Media.WavefrontObj;
 using NUnit.Framework;
 using VisualPinball.Engine.Test.Test;
+using VisualPinball.Engine.VPT.Flipper;
 using VisualPinball.Engine.VPT.Table;
 
 namespace VisualPinball.Engine.Test.VPT.Flipper
@@ -37,7 +38,7 @@ namespace VisualPinball.Engine.Test.VPT.Flipper
 		public void ShouldGenerateFatMesh()
 		{
 			var flipper = _tc.Flipper("FatFlipper");
-			var flipperMeshes = flipper.GetRenderObjects(_tc.Table).RenderObjects.Select(ro => ro.Mesh);
+			var flipperMeshes = GetMeshes(_tc.Table, flipper, FlipperMeshGenerator.Base, FlipperMeshGenerator.Rubber);
 			foreach (var flipperMesh in flipperMeshes) {
 				AssertObjMesh(_obj, flipperMesh, $"{flipper.Name}{flipperMesh.Name}", 0.00013f);
 			}
@@ -47,7 +48,7 @@ namespace VisualPinball.Engine.Test.VPT.Flipper
 		public void ShouldGenerateFatRubberMesh()
 		{
 			var flipper = _tc.Flipper("FatRubberFlipper");
-			var flipperMeshes = flipper.GetRenderObjects(_tc.Table).RenderObjects.Select(ro => ro.Mesh);
+			var flipperMeshes = GetMeshes(_tc.Table, flipper, FlipperMeshGenerator.Base, FlipperMeshGenerator.Rubber);
 			foreach (var flipperMesh in flipperMeshes) {
 				AssertObjMesh(_obj, flipperMesh, $"{flipper.Name}{flipperMesh.Name}", threshold: 0.00015f);
 			}
@@ -57,7 +58,7 @@ namespace VisualPinball.Engine.Test.VPT.Flipper
 		public void ShouldGenerateFlipperOnSurfaceMesh()
 		{
 			var flipper = _tc.Flipper("SurfaceFlipper");
-			var flipperMeshes = flipper.GetRenderObjects(_tc.Table).RenderObjects.Select(ro => ro.Mesh);
+			var flipperMeshes = GetMeshes(_tc.Table, flipper, FlipperMeshGenerator.Base, FlipperMeshGenerator.Rubber);
 			foreach (var flipperMesh in flipperMeshes) {
 				AssertObjMesh(_obj, flipperMesh, $"{flipper.Name}{flipperMesh.Name}");
 			}

@@ -41,37 +41,15 @@ namespace VisualPinball.Engine.VPT.Flipper
 			_data = data;
 		}
 
-		public RenderObject? GetRenderObject(FlipperData flipperData, string id, Table.Table table, Origin origin, bool asRightHanded)
+		public Mesh GetMesh(string id, float height, Origin origin = Origin.Original, bool asRightHanded = false, float margin = 0f)
 		{
-			var height = 0; //table.GetSurfaceHeight(_data.Surface, _data.Center.X, _data.Center.Y);
-			var meshes = GenerateMeshes(height);
-			var (preVertexMatrix, preNormalsMatrix) = GetPreMatrix(height, origin, asRightHanded);
-			switch (id) {
-				case Base:
-					return new RenderObject(
-						id,
-						meshes[Base].Transform(preVertexMatrix, preNormalsMatrix),
-						new PbrMaterial(table.GetMaterial(flipperData.Material), table.GetTexture(flipperData.Image)),
-						flipperData.IsVisible
-					);
-				case Rubber:
-					if (meshes.ContainsKey(Rubber)) {
-						return new RenderObject(
-							id,
-							meshes[Rubber].Transform(preVertexMatrix, preNormalsMatrix),
-							new PbrMaterial(table.GetMaterial(flipperData.RubberMaterial)),
-							flipperData.IsVisible
-						);
-					}
-					break;
-			}
-			return null;
+			return GetMesh(id, height, 0, origin, asRightHanded, margin);
 		}
 
-		public Mesh GetMesh(string id, float height, float margin = 0)
+		public Mesh GetMesh(string id, float height, float zTransform, Origin origin = Origin.Original, bool asRightHanded = false, float margin = 0f)
 		{
 			var meshes = GenerateMeshes(height, margin);
-			var (preVertexMatrix, preNormalsMatrix) = GetPreMatrix(height, Origin.Original, false);
+			var (preVertexMatrix, preNormalsMatrix) = GetPreMatrix(zTransform, origin, asRightHanded);
 			switch (id) {
 				case Base:
 					return meshes[Base].Transform(preVertexMatrix, preNormalsMatrix);
@@ -79,6 +57,7 @@ namespace VisualPinball.Engine.VPT.Flipper
 					if (meshes.ContainsKey(Rubber)) {
 						return meshes[Rubber].Transform(preVertexMatrix, preNormalsMatrix);
 					}
+					throw new InvalidOperationException("No rubber mesh was generated.");
 					break;
 			}
 			throw new ArgumentException($"Unknown flipper ID \"{id}\".", nameof(id));

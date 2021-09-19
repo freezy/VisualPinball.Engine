@@ -53,7 +53,7 @@ namespace VisualPinball.Engine.VPT.Ramp
 
 		Matrix3D IRenderable.TransformationMatrix(Table.Table table, Origin origin) => Matrix3D.Identity;
 		public Mesh GetMesh(string id, Table.Table table, Origin origin = Origin.Global, bool asRightHanded = true)
-			=> MeshGenerator.GetMesh(id, table);
+			=> MeshGenerator.GetMesh(id, table, asRightHanded);
 
 		public PbrMaterial GetMaterial(string id, Table.Table table) => MeshGenerator.GetMaterial(table, Data);
 

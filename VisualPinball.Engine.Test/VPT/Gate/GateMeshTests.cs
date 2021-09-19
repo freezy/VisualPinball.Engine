@@ -19,6 +19,7 @@ using NUnit.Framework;
 using VisualPinball.Engine.Game;
 using VisualPinball.Engine.Test.Test;
 using VisualPinball.Engine.VPT;
+using VisualPinball.Engine.VPT.Gate;
 using VisualPinball.Engine.VPT.Table;
 
 namespace VisualPinball.Engine.Test.VPT.Gate
@@ -37,19 +38,20 @@ namespace VisualPinball.Engine.Test.VPT.Gate
 		[Test]
 		public void ShouldGenerateBracketMeshes()
 		{
+			var meshIds = new[] { GateMeshGenerator.Bracket, GateMeshGenerator.Wire };
 			string GetName(IRenderable item, Mesh mesh) => $"{item.Name}{mesh.Name}";
-			AssertObjMesh(_tc.Table, _obj, _tc.Gate("LongPlate"), GetName, 0.00015f);
-			AssertObjMesh(_tc.Table, _obj, _tc.Gate("Plate"), GetName);
-			AssertObjMesh(_tc.Table, _obj, _tc.Gate("WireRectangle"), GetName);
-			AssertObjMesh(_tc.Table, _obj, _tc.Gate("WireW"), GetName, 0.00015f);
-			AssertObjMesh(_tc.Table, _obj, _tc.Gate("TransformedGate"), GetName);
-			AssertObjMesh(_tc.Table, _obj, _tc.Gate("SurfaceGate"), GetName);
+			AssertObjMesh(_tc.Table, _obj, _tc.Gate("LongPlate"), meshIds, GetName, 0.00015f);
+			AssertObjMesh(_tc.Table, _obj, _tc.Gate("Plate"), meshIds, GetName);
+			AssertObjMesh(_tc.Table, _obj, _tc.Gate("WireRectangle"), meshIds, GetName);
+			AssertObjMesh(_tc.Table, _obj, _tc.Gate("WireW"), meshIds, GetName, 0.00015f);
+			AssertObjMesh(_tc.Table, _obj, _tc.Gate("TransformedGate"), meshIds, GetName);
+			AssertObjMesh(_tc.Table, _obj, _tc.Gate("SurfaceGate"), meshIds, GetName);
 		}
 
 		[Test]
 		public void ShouldGenerateMeshWithoutBracket()
 		{
-			AssertObjMesh(_obj, _tc.Gate("NoBracketGate").GetRenderObjects(_tc.Table).RenderObjects[0].Mesh, "NoBracketGateWire");
+			AssertObjMesh(_obj, _tc.Gate("NoBracketGate").GetMesh(GateMeshGenerator.Wire, _tc.Table), "NoBracketGateWire");
 			AssertNoObjMesh(_obj, "NoBracketGateBracket");
 		}
 	}

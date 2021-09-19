@@ -62,7 +62,7 @@ namespace VisualPinball.Engine.VPT.Bumper
 		}
 
 		public Mesh GetMesh(string id, Table.Table table, Origin origin = Origin.Global, bool asRightHanded = true)
-			=> _meshGenerator.GetMesh(id, table, origin);
+			=> _meshGenerator.GetMesh(id, table, origin, asRightHanded);
 
 		public PbrMaterial GetMaterial(string id, Table.Table table) => _meshGenerator.GetMaterial(id, table);
 

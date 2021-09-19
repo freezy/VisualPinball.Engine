@@ -17,6 +17,7 @@
 using JeremyAnsel.Media.WavefrontObj;
 using NUnit.Framework;
 using VisualPinball.Engine.Test.Test;
+using VisualPinball.Engine.VPT.HitTarget;
 using VisualPinball.Engine.VPT.Table;
 
 namespace VisualPinball.Engine.Test.VPT.HitTarget

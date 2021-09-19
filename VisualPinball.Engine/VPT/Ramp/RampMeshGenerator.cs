@@ -81,23 +81,11 @@ namespace VisualPinball.Engine.VPT.Ramp
 			return mesh;
 		}
 
-		public RenderObject GetRenderObject(Table.Table table, RampData rampData, string id, float playfieldHeight, bool asRightHanded)
-		{
-			var mesh = GetMesh(table.Width, table.Height, playfieldHeight, id);
-			return new RenderObject(
-				id,
-				asRightHanded ? mesh.Transform(Matrix3D.RightHanded) : mesh,
-				new PbrMaterial(table.GetMaterial(rampData.Material), id == Wall && !rampData.ImageWalls ? null : table.GetTexture(rampData.Image)),
-				rampData.IsVisible
-			);
-		}
-
-		public Mesh GetMesh(string id, Table.Table table)
+		public Mesh GetMesh(string id, Table.Table table, bool asRightHanded)
 		{
 			var meshes = GenerateMeshes(table.Width, table.Height, table.TableHeight);
-
 			if (meshes.ContainsKey(id)) {
-				return meshes[id];
+				return asRightHanded ? meshes[id].Transform(Matrix3D.RightHanded) : meshes[id];
 			}
 
 			throw new ArgumentException($"No mesh with ID \"{id}\" found. Valid IDs: {string.Join(", ", meshes.Keys)}.");
