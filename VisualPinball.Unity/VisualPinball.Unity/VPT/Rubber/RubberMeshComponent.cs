@@ -17,7 +17,7 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
-using VisualPinball.Engine.Game;
+using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Rubber;
 using VisualPinball.Engine.VPT.Table;
 using Mesh = VisualPinball.Engine.VPT.Mesh;
@@ -31,11 +31,10 @@ namespace VisualPinball.Unity
 		public static readonly Type[] ValidParentTypes = Type.EmptyTypes;
 		public override IEnumerable<Type> ValidParents => ValidParentTypes;
 
-		protected override RenderObject GetRenderObject(RubberData data, Table table)
-			=> new RubberMeshGenerator(MainComponent).GetRenderObject(table, data);
 		protected override Mesh GetMesh(RubberData data)
-		{
-			return new RubberMeshGenerator(MainComponent).GetTransformedMesh(MainComponent.PlayfieldHeight, MainComponent.Height, MainComponent.PlayfieldDetailLevel);
-		}
+			=> new RubberMeshGenerator(MainComponent).GetTransformedMesh(MainComponent.PlayfieldHeight, MainComponent.Height, MainComponent.PlayfieldDetailLevel);
+
+		protected override PbrMaterial GetMaterial(RubberData data, Table table)
+			=> new RubberMeshGenerator(MainComponent).GetMaterial(table, data);
 	}
 }

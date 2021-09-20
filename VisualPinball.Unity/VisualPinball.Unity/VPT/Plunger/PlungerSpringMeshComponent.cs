@@ -14,10 +14,12 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+// ReSharper disable InconsistentNaming
+
 using System;
 using System.Collections.Generic;
 using UnityEngine;
-using VisualPinball.Engine.Game;
+using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Plunger;
 using VisualPinball.Engine.VPT.Table;
 using Mesh = VisualPinball.Engine.VPT.Mesh;
@@ -28,7 +30,6 @@ namespace VisualPinball.Unity
 	[AddComponentMenu("Visual Pinball/Mesh/Plunger Spring Mesh")]
 	public class PlungerSpringMeshComponent : PlungerMeshComponent
 	{
-
 		#region Data
 
 		public float SpringDiam = 0.77f;
@@ -45,9 +46,10 @@ namespace VisualPinball.Unity
 
 		public override IEnumerable<Type> ValidParents => ValidParentTypes;
 
-		protected override RenderObject GetRenderObject(PlungerData data, Table table)
-			=> new PlungerMeshGenerator(data).GetRenderObject(table, PlungerMeshGenerator.Spring, false);
 		protected override Mesh GetMesh(PlungerData data)
 			=> new PlungerMeshGenerator(data).GetMesh(MainComponent.PositionZ, PlungerMeshGenerator.Spring);
+
+		protected override PbrMaterial GetMaterial(PlungerData data, Table table)
+			=> new PlungerMeshGenerator(data).GetMaterial(table);
 	}
 }

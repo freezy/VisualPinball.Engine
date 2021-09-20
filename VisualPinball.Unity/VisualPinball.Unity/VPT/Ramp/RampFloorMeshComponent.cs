@@ -17,7 +17,7 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
-using VisualPinball.Engine.Game;
+using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Ramp;
 using VisualPinball.Engine.VPT.Table;
 using Mesh = VisualPinball.Engine.VPT.Mesh;
@@ -32,14 +32,13 @@ namespace VisualPinball.Unity
 
 		public override IEnumerable<Type> ValidParents => ValidParentTypes;
 
-		protected override RenderObject GetRenderObject(RampData data, Table table)
-		{
-			return new RampMeshGenerator(data).GetRenderObject(table, data, RampMeshGenerator.Floor, MainComponent.PlayfieldHeight, false);
-		}
 		protected override Mesh GetMesh(RampData _)
 		{
 			var playfieldComponent = GetComponentInParent<PlayfieldComponent>();
 			return new RampMeshGenerator(MainComponent).GetMesh(playfieldComponent.Width, playfieldComponent.Height, playfieldComponent.PlayfieldHeight, RampMeshGenerator.Floor);
 		}
+
+		protected override PbrMaterial GetMaterial(RampData data, Table table)
+			=> new RampMeshGenerator(MainComponent).GetMaterial(table, data);
 	}
 }

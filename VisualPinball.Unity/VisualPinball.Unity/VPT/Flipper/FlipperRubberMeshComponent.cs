@@ -17,7 +17,7 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
-using VisualPinball.Engine.Game;
+using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Flipper;
 using VisualPinball.Engine.VPT.Table;
 using Mesh = VisualPinball.Engine.VPT.Mesh;
@@ -32,13 +32,10 @@ namespace VisualPinball.Unity
 
 		public override IEnumerable<Type> ValidParents => ValidParentTypes;
 
-		protected override RenderObject GetRenderObject(FlipperData data, Table table)
-		{
-			return new FlipperMeshGenerator(data).GetRenderObject(data, FlipperMeshGenerator.Rubber, table, Origin.Original, false);
-		}
+		protected override PbrMaterial GetMaterial(FlipperData data, Table table)
+			=> FlipperMeshGenerator.GetMaterial(FlipperMeshGenerator.Rubber, table, data);
+
 		protected override Mesh GetMesh(FlipperData _)
-		{
-			return new FlipperMeshGenerator(MainComponent).GetMesh(FlipperMeshGenerator.Rubber, 0);
-		}
+			=> new FlipperMeshGenerator(MainComponent).GetMesh(FlipperMeshGenerator.Rubber, 0);
 	}
 }
