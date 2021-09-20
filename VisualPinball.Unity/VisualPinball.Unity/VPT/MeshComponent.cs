@@ -15,11 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Reflection;
 using UnityEngine;
-using VisualPinball.Engine.Game;
 using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Table;
 using Mesh = VisualPinball.Engine.VPT.Mesh;
@@ -70,34 +66,35 @@ namespace VisualPinball.Unity
 			}
 		}
 
-		protected abstract RenderObject GetRenderObject(TData data, Table table);
 		protected abstract Mesh GetMesh(TData data);
+
+		protected abstract PbrMaterial GetMaterial(TData data, Table table);
 
 		public void CreateMesh(TData data, Table table, ITextureProvider texProvider, IMaterialProvider matProvider)
 		{
-			CreateMesh(gameObject, GetRenderObject(data, table), data.GetName(), texProvider, matProvider);
+			CreateMesh(gameObject, GetMesh(data), GetMaterial(data, table), data.GetName(), texProvider, matProvider);
 		}
 
-		public static void CreateMesh(GameObject gameObject, RenderObject ro, string name, ITextureProvider texProvider, IMaterialProvider matProvider)
+		public static void CreateMesh(GameObject gameObject, Mesh m, PbrMaterial material, string name, ITextureProvider texProvider, IMaterialProvider matProvider)
 		{
-			if (ro?.Mesh == null) {
+			if (m == null) {
 				return;
 			}
-			var mesh = ro.Mesh.ToUnityMesh($"{name} Mesh ({gameObject.name})");
+			var mesh = m.ToUnityMesh($"{name} Mesh ({gameObject.name})");
 
 			// apply mesh to game object
 			var mf = gameObject.GetComponent<MeshFilter>();
 			mf.sharedMesh = mesh;
 
 			// apply renderer and material
-			if (ro.Mesh.AnimationFrames.Count > 0) { // if number of animations frames are 1, the blend vertices are in the uvs are handle by the lerp shader.
+			if (m.AnimationFrames.Count > 0) { // if number of animations frames are 1, the blend vertices are in the uvs are handle by the lerp shader.
 				var smr = gameObject.AddComponent<SkinnedMeshRenderer>();
-				smr.sharedMaterial = ro.Material.ToUnityMaterial(matProvider, texProvider);
+				smr.sharedMaterial = material.ToUnityMaterial(matProvider, texProvider);
 				smr.sharedMesh = mesh;
-				smr.SetBlendShapeWeight(0, ro.Mesh.AnimationDefaultPosition);
+				smr.SetBlendShapeWeight(0, m.AnimationDefaultPosition);
 			} else {
 				var mr = gameObject.AddComponent<MeshRenderer>();
-				mr.sharedMaterial = ro.Material.ToUnityMaterial(matProvider, texProvider);
+				mr.sharedMaterial = material.ToUnityMaterial(matProvider, texProvider);
 			}
 		}
 
@@ -122,14 +119,6 @@ namespace VisualPinball.Unity
 				}
 				mesh.ApplyToUnityMesh(unityMesh);
 			}
-		}
-
-		private static List<MemberInfo> GetMembersWithAttribute<TAttr>() where TAttr: Attribute
-		{
-			return typeof(TData)
-				.GetMembers(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic)
-				.Where(member => member.GetCustomAttribute<TAttr>() != null)
-				.ToList();
 		}
 	}
 }

@@ -17,7 +17,7 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
-using VisualPinball.Engine.Game;
+using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Surface;
 using VisualPinball.Engine.VPT.Table;
 using Mesh = VisualPinball.Engine.VPT.Mesh;
@@ -32,14 +32,13 @@ namespace VisualPinball.Unity
 
 		public override IEnumerable<Type> ValidParents => ValidParentTypes;
 
-		protected override RenderObject GetRenderObject(SurfaceData data, Table table)
-		{
-			return new SurfaceMeshGenerator(data).GetRenderObject(SurfaceMeshGenerator.Side, table, data, MainComponent.PlayfieldHeight, false);
-		}
 		protected override Mesh GetMesh(SurfaceData data)
 		{
 			var playfieldComponent = GetComponentInParent<PlayfieldComponent>();
-			return new SurfaceMeshGenerator(data).GetMesh(SurfaceMeshGenerator.Side, playfieldComponent.Width, playfieldComponent.Height, playfieldComponent.PlayfieldHeight);
+			return new SurfaceMeshGenerator(data).GetMesh(SurfaceMeshGenerator.Side, playfieldComponent.Width, playfieldComponent.Height, playfieldComponent.PlayfieldHeight, false);
 		}
+
+		protected override PbrMaterial GetMaterial(SurfaceData data, Table table)
+			=> new SurfaceMeshGenerator(data).GetMaterial(SurfaceMeshGenerator.Side, table, data);
 	}
 }

@@ -19,7 +19,6 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
-using VisualPinball.Engine.Game;
 using VisualPinball.Engine.Math;
 using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Light;
@@ -43,29 +42,20 @@ namespace VisualPinball.Unity
 
 		#endregion
 
-		public bool DragPointsActive => true;
-
 		public const string InsertObjectName = "Insert";
 
 		public override IEnumerable<Type> ValidParents => Type.EmptyTypes;
-
-		protected override RenderObject GetRenderObject(LightData data, Table table)
-		{
-			return new RenderObject(
-				InsertObjectName,
-				GetMesh(data),
-				new PbrMaterial(table.GetMaterial(table.Data.PlayfieldMaterial), table.GetTexture(table.Data.Image)),
-				false
-			);
-		}
 
 		protected override Mesh GetMesh(LightData data)
 		{
 			var playfieldComponent = GetComponentInParent<PlayfieldComponent>();
 			var meshGen = new SurfaceMeshGenerator(new LightInsertData(_dragPoints, InsertHeight));
-			var topMesh = meshGen.GetMesh(SurfaceMeshGenerator.Top, playfieldComponent.Width, playfieldComponent.Height, playfieldComponent.PlayfieldHeight);
-			var sideMesh = meshGen.GetMesh(SurfaceMeshGenerator.Side, playfieldComponent.Width, playfieldComponent.Height, playfieldComponent.PlayfieldHeight);
+			var topMesh = meshGen.GetMesh(SurfaceMeshGenerator.Top, playfieldComponent.Width, playfieldComponent.Height, playfieldComponent.PlayfieldHeight, false);
+			var sideMesh = meshGen.GetMesh(SurfaceMeshGenerator.Side, playfieldComponent.Width, playfieldComponent.Height, playfieldComponent.PlayfieldHeight, false);
 			return topMesh.Merge(sideMesh);
 		}
+
+		protected override PbrMaterial GetMaterial(LightData data, Table table)
+			=> new PbrMaterial(table.GetMaterial(table.Data.PlayfieldMaterial), table.GetTexture(table.Data.Image));
 	}
 }

@@ -18,7 +18,6 @@ using System.Linq;
 using JeremyAnsel.Media.WavefrontObj;
 using NUnit.Framework;
 using VisualPinball.Engine.Test.Test;
-using VisualPinball.Engine.VPT.Surface;
 using VisualPinball.Engine.VPT.Table;
 
 namespace VisualPinball.Engine.Test.VPT.Surface

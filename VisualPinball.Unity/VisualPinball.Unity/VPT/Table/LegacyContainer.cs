@@ -43,7 +43,6 @@ using VisualPinball.Engine.VPT.Table;
 using VisualPinball.Engine.VPT.TextBox;
 using VisualPinball.Engine.VPT.Timer;
 using VisualPinball.Engine.VPT.Trigger;
-using Material = VisualPinball.Engine.VPT.Material;
 using Texture = UnityEngine.Texture;
 
 namespace VisualPinball.Unity

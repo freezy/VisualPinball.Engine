@@ -54,16 +54,12 @@ namespace VisualPinball.Engine.VPT.Flipper
 				case Base:
 					return meshes[Base].Transform(preVertexMatrix, preNormalsMatrix);
 				case Rubber:
-					if (meshes.ContainsKey(Rubber)) {
-						return meshes[Rubber].Transform(preVertexMatrix, preNormalsMatrix);
-					}
-					throw new InvalidOperationException("No rubber mesh was generated.");
-					break;
+					return meshes[Rubber].Transform(preVertexMatrix, preNormalsMatrix);
 			}
 			throw new ArgumentException($"Unknown flipper ID \"{id}\".", nameof(id));
 		}
 
-		public PbrMaterial GetMaterial(string id, Table.Table table, FlipperData data)
+		public static PbrMaterial GetMaterial(string id, Table.Table table, FlipperData data)
 		{
 			switch (id) {
 				case Base:
@@ -153,41 +149,37 @@ namespace VisualPinball.Engine.VPT.Flipper
 			meshes[Base] = baseMesh;
 
 			// rubber
-			if (_data.RubberThickness > 0.0)
-			{
-				var rubberMesh = new Mesh(Rubber, Vertices, Indices).Clone();
-				for (var t = 0; t < 13; t++) {
-					for (var i = 0; i < rubberMesh.Vertices.Length; i++) {
-						var v = rubberMesh.Vertices[i];
-						if (v.X == VertsBaseBottom[t].X && v.Y == VertsBaseBottom[t].Y && v.Z == VertsBaseBottom[t].Z) {
-							ApplyFix(ref rubberMesh.Vertices[i], new Vertex2D(VertsBaseBottom[6].X, VertsBaseBottom[0].Y),
-								(float) (-System.Math.PI * 0.5), baseRadius + _data.RubberThickness + margin,
-								new Vertex2D(0, 0));
-						}
+			var rubberMesh = new Mesh(Rubber, Vertices, Indices).Clone();
+			for (var t = 0; t < 13; t++) {
+				for (var i = 0; i < rubberMesh.Vertices.Length; i++) {
+					var v = rubberMesh.Vertices[i];
+					if (v.X == VertsBaseBottom[t].X && v.Y == VertsBaseBottom[t].Y && v.Z == VertsBaseBottom[t].Z) {
+						ApplyFix(ref rubberMesh.Vertices[i], new Vertex2D(VertsBaseBottom[6].X, VertsBaseBottom[0].Y),
+							(float) (-System.Math.PI * 0.5), baseRadius + _data.RubberThickness + margin,
+							new Vertex2D(0, 0));
+					}
 
-						if (v.X == VertsTipBottom[t].X && v.Y == VertsTipBottom[t].Y && v.Z == VertsTipBottom[t].Z) {
-							ApplyFix(ref rubberMesh.Vertices[i], new Vertex2D(VertsTipBottom[6].X, VertsTipBottom[0].Y),
-								(float) (System.Math.PI * 0.5), endRadius + _data.RubberThickness + margin,
-								new Vertex2D(0, _data.FlipperRadius));
-						}
+					if (v.X == VertsTipBottom[t].X && v.Y == VertsTipBottom[t].Y && v.Z == VertsTipBottom[t].Z) {
+						ApplyFix(ref rubberMesh.Vertices[i], new Vertex2D(VertsTipBottom[6].X, VertsTipBottom[0].Y),
+							(float) (System.Math.PI * 0.5), endRadius + _data.RubberThickness + margin,
+							new Vertex2D(0, _data.FlipperRadius));
+					}
 
-						if (v.X == VertsBaseTop[t].X && v.Y == VertsBaseTop[t].Y && v.Z == VertsBaseTop[t].Z) {
-							ApplyFix(ref rubberMesh.Vertices[i], new Vertex2D(VertsBaseBottom[6].X, VertsBaseBottom[0].Y),
-								(float) (-System.Math.PI * 0.5), baseRadius + _data.RubberThickness + margin,
-								new Vertex2D(0, 0));
-						}
+					if (v.X == VertsBaseTop[t].X && v.Y == VertsBaseTop[t].Y && v.Z == VertsBaseTop[t].Z) {
+						ApplyFix(ref rubberMesh.Vertices[i], new Vertex2D(VertsBaseBottom[6].X, VertsBaseBottom[0].Y),
+							(float) (-System.Math.PI * 0.5), baseRadius + _data.RubberThickness + margin,
+							new Vertex2D(0, 0));
+					}
 
-						if (v.X == VertsTipTop[t].X && v.Y == VertsTipTop[t].Y && v.Z == VertsTipTop[t].Z) {
-							ApplyFix(ref rubberMesh.Vertices[i], new Vertex2D(VertsTipBottom[6].X, VertsTipBottom[0].Y),
-								(float) (System.Math.PI * 0.5), endRadius + _data.RubberThickness + margin,
-								new Vertex2D(0, _data.FlipperRadius));
-						}
+					if (v.X == VertsTipTop[t].X && v.Y == VertsTipTop[t].Y && v.Z == VertsTipTop[t].Z) {
+						ApplyFix(ref rubberMesh.Vertices[i], new Vertex2D(VertsTipBottom[6].X, VertsTipBottom[0].Y),
+							(float) (System.Math.PI * 0.5), endRadius + _data.RubberThickness + margin,
+							new Vertex2D(0, _data.FlipperRadius));
 					}
 				}
-
-				rubberMesh.Transform(fullMatrix, null, z => z * _data.RubberWidth + (height + _data.RubberHeight + margin * 10f));
-				meshes[Rubber] = rubberMesh;
 			}
+			rubberMesh.Transform(fullMatrix, null, z => z * _data.RubberWidth + (height + _data.RubberHeight + margin * 10f));
+			meshes[Rubber] = rubberMesh;
 
 			return meshes;
 		}

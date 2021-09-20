@@ -52,7 +52,7 @@ namespace VisualPinball.Engine.VPT.Flipper
 			return _meshGenerator.GetMesh(id, height, 0f, origin: origin, asRightHanded: asRightHanded);
 		}
 
-		public PbrMaterial GetMaterial(string id, Table.Table table) => _meshGenerator.GetMaterial(id, table, Data);
+		public PbrMaterial GetMaterial(string id, Table.Table table) => FlipperMeshGenerator.GetMaterial(id, table, Data);
 
 		#endregion
 
