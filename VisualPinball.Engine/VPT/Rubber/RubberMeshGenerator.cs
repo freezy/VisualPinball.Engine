@@ -35,18 +35,6 @@ namespace VisualPinball.Engine.VPT.Rubber
 			_data = data;
 		}
 
-		public RenderObject GetRenderObject(Table.Table table, RubberData rubberData)
-		{
-			var mesh = GetTransformedMesh(table.TableHeight, _data.Height, table.GetDetailLevel());
-			mesh.Name = rubberData.Name;
-			return new RenderObject(
-				rubberData.Name,
-				mesh,
-				new PbrMaterial(table.GetMaterial(rubberData.Material), table.GetTexture(rubberData.Image)),
-				rubberData.IsVisible
-			);
-		}
-
 		public Mesh GetTransformedMesh(float playfieldHeight, float meshHeight, int detailLevel, int acc = -1, bool createHitShape = false, float margin = 0f)
 		{
 			var mesh = GetMesh(playfieldHeight, meshHeight, detailLevel, acc, createHitShape, margin);

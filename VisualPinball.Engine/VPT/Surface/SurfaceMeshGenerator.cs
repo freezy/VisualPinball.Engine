@@ -18,7 +18,6 @@ using System;
 using System.Collections.Generic;
 using VisualPinball.Engine.Game;
 using VisualPinball.Engine.Math;
-using MathF = VisualPinball.Engine.Math.MathF;
 
 namespace VisualPinball.Engine.VPT.Surface
 {
@@ -34,69 +33,30 @@ namespace VisualPinball.Engine.VPT.Surface
 			_data = data;
 		}
 
-		public RenderObject GetRenderObject(string id, Table.Table table, SurfaceData data, float playfieldHeight,
-			bool asRightHanded, Mesh preGeneratedMesh = null)
+		public Mesh GetMesh(string id, float tableWidth, float tableHeight, float zHeight, bool asRightHanded)
 		{
-			var mesh = preGeneratedMesh ?? GenerateMesh(id, table.Width, table.Height, playfieldHeight);
-			switch (id) {
-				case Side:
-					return new RenderObject(
-						id,
-						asRightHanded ? mesh.Transform(Matrix3D.RightHanded) : mesh,
-						new PbrMaterial(table.GetMaterial(data.SideMaterial), table.GetTexture(data.SideImage)),
-						data.IsSideVisible
-					);
-				case Top:
-					return new RenderObject(
-						id,
-						asRightHanded ? mesh.Transform(Matrix3D.RightHanded) : mesh,
-						new PbrMaterial(table.GetMaterial(data.TopMaterial), table.GetTexture(data.Image)),
-						data.IsTopBottomVisible
-					);
-				default:
-					throw new ArgumentException($"Unknown mesh ID \"{id}\".");
-			}
-		}
-
-		public RenderObjectGroup GetRenderObjects(Table.Table table, SurfaceData data, bool asRightHanded = true)
-		{
-			var renderObjects = new List<RenderObject>();
-			var sideMesh = GenerateSideMesh(table.TableHeight);
-			var topMesh = GenerateTopMesh(table.Width, table.Height, table.TableHeight);
-			if (sideMesh != null) {
-				renderObjects.Add(GetRenderObject(Side, table, data, table.TableHeight, asRightHanded, sideMesh));
-			}
-			if (topMesh != null) {
-				renderObjects.Add(GetRenderObject(Top, table, data, table.TableHeight, asRightHanded, topMesh));
-			}
-
-			return new RenderObjectGroup(data.Name, "Surfaces", Matrix3D.Identity, renderObjects.ToArray());
-		}
-
-		public Mesh GetMesh(string id, float tableWidth, float tableHeight, float playfieldHeight, bool asRightHanded)
-		{
-			var mesh = GenerateMesh(id, tableWidth, tableHeight, playfieldHeight);
+			var mesh = GenerateMesh(id, tableWidth, tableHeight, zHeight);
 			return asRightHanded ? mesh.Transform(Matrix3D.RightHanded) : mesh;
 		}
 
-		public Mesh GenerateMesh(string id, float tableWidth, float tableHeight, float zHeight)
+		public PbrMaterial GetMaterial(string id, Table.Table table, SurfaceData data)
+		{
+			switch (id) {
+				case Top:
+					return new PbrMaterial(table.GetMaterial(data.TopMaterial), table.GetTexture(data.Image));
+				case Side:
+					return new PbrMaterial(table.GetMaterial(data.SideMaterial), table.GetTexture(data.SideImage));
+			}
+			throw new ArgumentException($"Unknown mesh ID \"{id}\".");
+		}
+
+		private Mesh GenerateMesh(string id, float tableWidth, float tableHeight, float zHeight)
 		{
 			switch (id) {
 				case Top:
 					return GenerateTopMesh(tableWidth, tableHeight, zHeight);
 				case Side:
 					return GenerateSideMesh(zHeight);
-			}
-			throw new ArgumentException($"Unknown mesh ID \"{id}\".");
-		}
-
-		public PbrMaterial GetMaterial(string id, Table.Table table, SurfaceData data)
-		{
-			switch (id) {
-				case Side:
-					return new PbrMaterial(table.GetMaterial(data.SideMaterial), table.GetTexture(data.SideImage));
-				case Top:
-					return new PbrMaterial(table.GetMaterial(data.TopMaterial), table.GetTexture(data.Image));
 			}
 			throw new ArgumentException($"Unknown mesh ID \"{id}\".");
 		}

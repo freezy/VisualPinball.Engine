@@ -39,36 +39,39 @@ namespace VisualPinball.Engine.Test.VPT.Primitive
 		[Test]
 		public void ShouldGenerateImportedMesh()
 		{
-			var bookMesh = _tc.Primitive("Books").GetRenderObjects(_tc.Table).RenderObjects[0].Mesh;
+			var p = _tc.Primitive("Books");
+			var bookMesh = ((IRenderable)p).GetMesh(null, _tc.Table);
 			AssertObjMesh(_obj, bookMesh, threshold: 0.00015f);
 		}
 
 		[Test]
 		public void ShouldGenerateACube()
 		{
-			var cubeMesh = _tc.Primitive("Cube").GetRenderObjects(_tc.Table).RenderObjects[0].Mesh;
+			var p = _tc.Primitive("Cube");
+			var cubeMesh = ((IRenderable)p).GetMesh(null, _tc.Table);
 			AssertObjMesh(_obj, cubeMesh);
 		}
 
 		[Test]
 		public void ShouldGenerateATriangle()
 		{
-			var triangleMesh = _tc.Primitive("Triangle").GetRenderObjects(_tc.Table).RenderObjects[0].Mesh;
+			var p = _tc.Primitive("Triangle");
+			var triangleMesh = ((IRenderable)p).GetMesh(null, _tc.Table);
 			AssertObjMesh(_obj, triangleMesh);
 		}
 
 		[Test]
 		public void ShouldProvideCorrectTransformationMatrices()
 		{
-			var rog = _tc.Primitive("Primitive1").GetRenderObjects(_tc.Table, Origin.Original, false);
+			var m = (_tc.Primitive("Primitive1") as IRenderable).TransformationMatrix(_tc.Table, Origin.Original);
 
-			rog.TransformationMatrix.GetScaling().X.Should().Be(100f);
-			rog.TransformationMatrix.GetScaling().Y.Should().Be(100f);
-			rog.TransformationMatrix.GetScaling().Z.Should().Be(100f);
+			m.GetScaling().X.Should().Be(100f);
+			m.GetScaling().Y.Should().Be(100f);
+			m.GetScaling().Z.Should().Be(100f);
 
-			rog.TransformationMatrix.GetTranslation().X.Should().Be(505f);
-			rog.TransformationMatrix.GetTranslation().Y.Should().Be(1305f);
-			rog.TransformationMatrix.GetTranslation().Z.Should().Be(_tc.Table.TableHeight);
+			m.GetTranslation().X.Should().Be(505f);
+			m.GetTranslation().Y.Should().Be(1305f);
+			m.GetTranslation().Z.Should().Be(_tc.Table.TableHeight);
 		}
 
 		[Test]
@@ -76,8 +79,9 @@ namespace VisualPinball.Engine.Test.VPT.Primitive
 		{
 			var th = FileTableContainer.Load(VpxPath.PrimitiveCompressed);
 			var obj = LoadObjFixture(ObjPath.PrimitiveCompressed);
+			var p = th.Primitive("compressed");
 
-			var compressedMesh = th.Primitive("compressed").GetRenderObjects(th.Table).RenderObjects[0].Mesh;
+			var compressedMesh = ((IRenderable)p).GetMesh(null, th.Table);
 			AssertObjMesh(obj, compressedMesh, threshold: 0.00015f);
 		}
 

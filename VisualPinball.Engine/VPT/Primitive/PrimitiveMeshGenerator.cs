@@ -34,20 +34,6 @@ namespace VisualPinball.Engine.VPT.Primitive
 			_data = data;
 		}
 
-		public RenderObject GetRenderObject(Table.Table table, Mesh originalMesh, Origin origin, bool asRightHanded)
-		{
-			return new RenderObject(
-				_data.Name,
-				GetTransformedMesh(BaseHeight(table), originalMesh, origin, asRightHanded),
-				new PbrMaterial(
-					table.GetMaterial(_data.Material),
-					table.GetTexture(_data.Image),
-					table.GetTexture(_data.NormalMap)
-				),
-				_data.IsVisible
-			);
-		}
-
 		public Mesh GetMesh(float height, Mesh originalMesh, Origin origin, bool asRightHanded)
 		{
 			return GetTransformedMesh(height, originalMesh, origin, asRightHanded);
@@ -65,23 +51,6 @@ namespace VisualPinball.Engine.VPT.Primitive
 				table.GetTexture(_data.Image),
 				table.GetTexture(_data.NormalMap)
 			);
-		}
-
-		public RenderObjectGroup GetRenderObjects(Table.Table table, Mesh originalMesh, Origin origin, bool asRightHanded = true,
-			string parent = null, PbrMaterial material = null)
-		{
-
-			var postMatrix = GetPostMatrix(table, origin);
-			return new RenderObjectGroup(_data.Name, parent ?? "Primitives", postMatrix, new RenderObject(
-				_data.Name,
-				GetTransformedMesh(BaseHeight(table), originalMesh, origin, asRightHanded),
-				material ?? new PbrMaterial(
-					table.GetMaterial(_data.Material),
-					table.GetTexture(_data.Image),
-					table.GetTexture(_data.NormalMap)
-				),
-				_data.IsVisible
-			));
 		}
 
 		public Mesh GetMesh(Mesh originalMesh)
