@@ -35,16 +35,6 @@ namespace VisualPinball.Engine.VPT.Trigger
 			_data = data;
 		}
 
-		public RenderObject GetRenderObject(Table.Table table, Origin origin, bool asRightHanded)
-		{
-			return new RenderObject(
-				_data.Name,
-				GetMesh(BaseHeight(table), origin, asRightHanded),
-				new PbrMaterial(table.GetMaterial(_data.Material)),
-				_data.IsVisible && _data.Shape != TriggerShape.TriggerNone
-			);
-		}
-
 		public Mesh GetMesh(Table.Table table, Origin origin, bool asRightHanded)
 		{
 			return GetMesh(BaseHeight(table), origin, asRightHanded);

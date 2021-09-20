@@ -67,44 +67,6 @@ namespace VisualPinball.Engine.VPT.Plunger
 			Init(0);
 		}
 
-		public RenderObject GetRenderObject(Table.Table table, string id, bool asRightHanded)
-		{
-			var height = table.GetSurfaceHeight(_data.Surface, _data.Center.X, _data.Center.Y);
-			Init(height);
-			var mat = table.GetMaterial(_data.Material);
-			var tex = table.GetTexture(_data.Image);
-			switch (id) {
-				case Flat:
-					var flatMesh = BuildFlatMesh();
-					return new RenderObject(
-						id,
-						asRightHanded ? flatMesh.Transform(Matrix3D.RightHanded) : flatMesh,
-						new PbrMaterial(id: $"__plunger_flat_{_data.Name}", material: mat, map: tex),
-						true
-					);
-				case Rod:
-					CalculateArraySizes();
-					var rodMesh = BuildRodMesh();
-					return new RenderObject(
-						id,
-						asRightHanded ? rodMesh.Transform(Matrix3D.RightHanded) : rodMesh,
-						new PbrMaterial(id: $"__plunger_rod_{_data.Name}", material: mat, map: tex),
-						true
-					);
-				case Spring:
-					CalculateArraySizes();
-					var springMesh = BuildSpringMesh();
-					return new RenderObject(
-						id,
-						asRightHanded ? springMesh.Transform(Matrix3D.RightHanded) : springMesh,
-						new PbrMaterial(id: $"__plunger_spring_{_data.Name}", material: mat, map: tex),
-						true
-					);
-				default:
-					throw new ArgumentException("Unknown plunger mesh \"" + id + "\".");
-			}
-		}
-
 		public Mesh GetMesh(float height, string id)
 		{
 			Init(height);
