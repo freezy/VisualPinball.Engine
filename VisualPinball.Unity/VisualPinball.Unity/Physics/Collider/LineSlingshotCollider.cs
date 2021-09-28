@@ -30,10 +30,12 @@ namespace VisualPinball.Unity
 
 		public readonly float2 V1;
 		public readonly float2 V2;
+
 		public float2 Normal;
-		private float _length;
 		public readonly float ZLow;
 		public readonly float ZHigh;
+		private float _length;
+
 		private readonly float _force;
 
 		public ColliderBounds Bounds => new ColliderBounds(_header.Entity, _header.Id, new Aabb(
