@@ -97,13 +97,13 @@ namespace VisualPinball.Engine.VPT.Surface
 		public bool SlingshotAnimation = true;
 
 		[BiffFloat("ELAS", Pos = 20)]
-		public float Elasticity;
+		public float Elasticity = 0.3f;
 
 		[BiffFloat("ELFO", Pos = 21, WasAddedInVp107 = true)]
 		public float ElasticityFalloff;
 
 		[BiffFloat("WFCT", Pos = 22)]
-		public float Friction;
+		public float Friction = 0.3f;
 
 		[BiffFloat("WSCT", Pos = 23)]
 		public float Scatter;

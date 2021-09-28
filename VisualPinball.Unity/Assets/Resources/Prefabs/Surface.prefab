@@ -44,7 +44,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ed6ad111d870e3b43a828b6086c08607, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _meshCreated: 1
 --- !u!33 &6530115296024031604
 MeshFilter:
   m_ObjectHideFlags: 0
@@ -100,54 +99,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b8b3e83ae5f0a1e41a2dfdfaa251caf7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _data:
-    StoragePrefix: 0
-    StorageIndex: 0
-    IsLocked: 0
-    EditorLayerName: 
-    EditorLayerVisibility: 0
-    Name: 
-    HitEvent: 0
-    IsDroppable: 0
-    IsFlipbook: 0
-    IsBottomSolid: 0
-    IsCollidable: 0
-    Threshold: 0
-    Image: 
-    SideImage: 
-    SideMaterial: 
-    TopMaterial: 
-    PhysicsMaterial: 
-    SlingShotMaterial: 
-    HeightBottom: 0
-    HeightTop: 0
-    Inner: 0
-    DisplayTexture: 0
-    SlingshotForce: 0
-    SlingshotThreshold: 0
-    SlingshotAnimation: 0
-    Elasticity: 0
-    ElasticityFalloff: 0
-    Friction: 0
-    Scatter: 0
-    IsTopBottomVisible: 0
-    OverwritePhysics: 0
-    DisableLightingTop: 0
-    DisableLightingBelow: 0
-    IsSideVisible: 0
-    IsReflectionEnabled: 0
-    DragPoints: []
-    IsTimerEnabled: 0
-    TimerInterval: 0
-    Points: 0
-    IsDisabled: 0
-  IsDroppable: 0
-  IsFlipbook: 0
-  IsBottomSolid: 0
-  HeightBottom: 0
+  _isLocked: 0
+  _editorLayer: 0
+  _editorLayerName: 
+  _editorLayerVisibility: 1
   HeightTop: 50
-  Inner: 1
-  DragPoints: []
+  HeightBottom: 0
+  _dragPoints: []
 --- !u!114 &7807490122124131058
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -161,18 +119,17 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   PhysicsMaterial: {fileID: 0}
-  ShowColliderMesh: 0
+  ShowColliderMesh: 1
   ShowAabbs: 0
   HitEvent: 0
   Threshold: 2
-  SlingShotMaterial: {fileID: 0}
-  SlingshotForce: 80
+  IsBottomSolid: 0
   SlingshotThreshold: 0
-  SlingshotAnimation: 1
+  SlingshotForce: 80
   OverwritePhysics: 1
-  Elasticity: 0
+  Elasticity: 0.3
   ElasticityFalloff: 0
-  Friction: 0
+  Friction: 0.3
   Scatter: 0
 --- !u!114 &-3256406434667294810
 MonoBehaviour:
@@ -231,7 +188,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 75abfb7d4ccc1b14bb10b53cb3f60574, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _meshCreated: 1
 --- !u!33 &6035808683100513115
 MeshFilter:
   m_ObjectHideFlags: 0
