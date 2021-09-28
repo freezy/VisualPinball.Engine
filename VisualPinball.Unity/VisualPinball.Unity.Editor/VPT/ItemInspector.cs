@@ -37,6 +37,8 @@ namespace VisualPinball.Unity.Editor
 		private bool _transformsDirty;
 		private bool _visibilityDirty;
 
+		private SerializedProperty _isLockedProperty;
+
 		#region Unity Events
 
 		protected virtual void OnEnable()
@@ -45,6 +47,8 @@ namespace VisualPinball.Unity.Editor
 
 			TableComponent = (target as MonoBehaviour)?.gameObject.GetComponentInParent<TableComponent>();
 			PlayfieldComponent = (target as MonoBehaviour)?.gameObject.GetComponentInParent<PlayfieldComponent>();
+
+			_isLockedProperty = serializedObject.FindProperty("_isLocked");
 		}
 
 		protected virtual void OnDisable()
@@ -232,16 +236,13 @@ namespace VisualPinball.Unity.Editor
 
 		protected void OnPreInspectorGUI()
 		{
-			if (!(target is IMainRenderableComponent item)) {
+			if (!(target is IMainRenderableComponent)) {
 				return;
 			}
 
 			EditorGUI.BeginChangeCheck();
-			var newLock = EditorGUILayout.Toggle("IsLocked", item.IsLocked);
-			if (EditorGUI.EndChangeCheck())
-			{
-				FinishEdit("IsLocked");
-				item.IsLocked = newLock;
+			PropertyField(_isLockedProperty, "Locked");
+			if (EditorGUI.EndChangeCheck()) {
 				SceneView.RepaintAll();
 			}
 		}
