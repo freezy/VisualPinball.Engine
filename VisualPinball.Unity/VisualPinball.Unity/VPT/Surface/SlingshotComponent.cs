@@ -26,13 +26,22 @@ using VisualPinball.Engine.VPT.Rubber;
 
 namespace VisualPinball.Unity
 {
+	[AddComponentMenu("Visual Pinball/Game Item/Slingshot")]
 	public class SlingshotComponent : MonoBehaviour, IMeshComponent, IMainRenderableComponent, IRubberData
 	{
+		[Tooltip("Reference to the wall that acts as slingshot.")]
 		public SurfaceColliderComponent SlingshotSurface;
+
+		[Tooltip("Reference to the rubber at \"enabled\" position (coil on).")]
 		public RubberComponent RubberOn;
+
+		[Tooltip("Reference to the rubber at \"disabled\" position (coil off).")]
 		public RubberComponent RubberOff;
 
+		[Tooltip("Total duration of the animation in milliseconds.")]
 		public float AnimationDuration = 200f;
+
+		[Tooltip("Animation curve. Starts at 0 and ends at 0.")]
 		public AnimationCurve AnimationCurve = new AnimationCurve(
 			new Keyframe(0, 0),
 			new Keyframe(0.5f, 1, 3.535f, 0f, 0.03333336f, 0.5416666f),
@@ -43,6 +52,28 @@ namespace VisualPinball.Unity
 		[SerializeField] private bool _isLocked;
 
 		#region Runtime
+
+		private void Start()
+		{
+			var player = GetComponentInParent<Player>();
+			if (!player || player.TableApi == null || !SlingshotSurface) {
+				return;
+			}
+			var slingshotSurfaceApi = player.TableApi.Surface(SlingshotSurface.MainComponent);
+			slingshotSurfaceApi.Slingshot += OnSlingshot;
+		}
+
+		private void OnDestroy()
+		{
+			var player = GetComponentInParent<Player>();
+			if (!player || player.TableApi == null || !SlingshotSurface) {
+				return;
+			}
+			var slingshotSurfaceApi = player.TableApi.Surface(SlingshotSurface.MainComponent);
+			slingshotSurfaceApi.Slingshot -= OnSlingshot;
+		}
+
+		private void OnSlingshot(object sender, EventArgs e) => TriggerAnimation();
 
 		public void TriggerAnimation()
 		{
@@ -60,6 +91,7 @@ namespace VisualPinball.Unity
 				var curvePercent = AnimationCurve.Evaluate(journey / duration);
 				Position = math.clamp(curvePercent, 0f, 1f);
 
+				// todo cache the meshes
 				RebuildMeshes();
 
 				yield return null;
@@ -97,6 +129,10 @@ namespace VisualPinball.Unity
 			var pf = GetComponentInParent<PlayfieldComponent>();
 			var r0 = RubberOff.GetComponent<RubberComponent>();
 			if (!r0 || !pf) {
+				return;
+			}
+
+			if (DragPoints.Length < 3) {
 				return;
 			}
 

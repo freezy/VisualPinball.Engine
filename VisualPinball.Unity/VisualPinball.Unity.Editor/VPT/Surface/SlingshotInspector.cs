@@ -47,21 +47,24 @@ namespace VisualPinball.Unity.Editor
 
 		public override void OnInspectorGUI()
 		{
-			// if (HasErrors()) {
-			// 	return;
-			// }
-
 			BeginEditing();
 
 			OnPreInspectorGUI();
 
-			PropertyField(_surfaceProperty, "Collider Surface");
+			PropertyField(_surfaceProperty, "Slingshot Wall");
 			PropertyField(_rubberOffProperty, "Rubber Off",  true);
 			PropertyField(_rubberOnProperty, "Rubber On",  true);
 
-			PropertyField(_animationDurationProperty, "Animation Duration (ms)");
+			if (_slingShot.RubberOn && _slingShot.RubberOff &&
+			    _slingShot.RubberOn.DragPoints.Length != _slingShot.RubberOff.DragPoints.Length) {
+				EditorGUILayout.HelpBox($"In order to animate the rubber, the number of drag points of both rubbers must be equal. Here we have {_slingShot.RubberOn.DragPoints.Length} (on) and {_slingShot.RubberOff.DragPoints.Length} (off).", MessageType.Error);
+			}
+
+			EditorGUILayout.Space(10f);
+			PropertyField(_animationDurationProperty, "Animation Duration");
 			PropertyField(_animationCurveProperty, "Animation Curve");
 
+			EditorGUILayout.Space(10f);
 			EditorGUI.BeginChangeCheck();
 			var pos = EditorGUILayout.Slider("Test", _slingShot.Position, 0f, 1f);
 			if (EditorGUI.EndChangeCheck()) {
@@ -72,10 +75,6 @@ namespace VisualPinball.Unity.Editor
 			base.OnInspectorGUI();
 
 			EndEditing();
-
-			if (GUILayout.Button("Trigger")) {
-				_slingShot.TriggerAnimation();
-			}
 		}
 	}
 }
