@@ -18,6 +18,7 @@
 
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using Unity.Entities;
 using Unity.Mathematics;
 using UnityEngine;
@@ -50,8 +51,17 @@ namespace VisualPinball.Unity
 
 		[NonSerialized] public float Position;
 		[SerializeField] private bool _isLocked;
+		[NonSerialized] private readonly Dictionary<int, Mesh> _meshes = new Dictionary<int, Mesh>();
+		[NonSerialized] private RubberMeshGenerator _meshGenerator;
+
+		private const int MaxNumMeshCaches = 15;
 
 		#region Runtime
+
+		private void Awake()
+		{
+			_meshGenerator = new RubberMeshGenerator(this);
+		}
 
 		private void Start()
 		{
@@ -66,11 +76,12 @@ namespace VisualPinball.Unity
 		private void OnDestroy()
 		{
 			var player = GetComponentInParent<Player>();
-			if (!player || player.TableApi == null || !SlingshotSurface) {
-				return;
+			if (player && player.TableApi != null && SlingshotSurface) {
+				var slingshotSurfaceApi = player.TableApi.Surface(SlingshotSurface.MainComponent);
+				slingshotSurfaceApi.Slingshot -= OnSlingshot;
 			}
-			var slingshotSurfaceApi = player.TableApi.Surface(SlingshotSurface.MainComponent);
-			slingshotSurfaceApi.Slingshot -= OnSlingshot;
+
+			_meshes.Clear();
 		}
 
 		private void OnSlingshot(object sender, EventArgs e) => TriggerAnimation();
@@ -123,24 +134,39 @@ namespace VisualPinball.Unity
 				return;
 			}
 
-			if (!RubberOff) {
-				return;
+			var mesh = GetMesh();
+
+			if (mesh != null) {
+				mf.sharedMesh = mesh;
 			}
+		}
+
+		private Mesh GetMesh()
+		{
+			var pos = (int)(Position * MaxNumMeshCaches);
+			if (_meshes.ContainsKey(pos)) {
+				return _meshes[pos];
+			}
+
+			if (!RubberOff || DragPoints.Length < 3) {
+				return null;
+			}
+
 			var pf = GetComponentInParent<PlayfieldComponent>();
 			var r0 = RubberOff.GetComponent<RubberComponent>();
 			if (!r0 || !pf) {
-				return;
+				return null;
 			}
 
-			if (DragPoints.Length < 3) {
-				return;
-			}
+			Debug.Log($"Generating new mesh at {pos}");
 
-			var mesh = new RubberMeshGenerator(this)
+			var mesh = _meshGenerator
 				.GetTransformedMesh(pf.PlayfieldHeight, r0.Height, pf.PlayfieldDetailLevel)
 				.ToUnityMesh();
 
-			mf.sharedMesh = mesh;
+			_meshes[pos] = mesh;
+
+			return mesh;
 		}
 
 		#endregion
