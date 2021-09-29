@@ -86,7 +86,7 @@ namespace VisualPinball.Unity
 
 		private void OnSlingshot(object sender, EventArgs e) => TriggerAnimation();
 
-		public void TriggerAnimation()
+		private void TriggerAnimation()
 		{
 			StopAllCoroutines();
 			StartCoroutine(nameof(Animate));
@@ -102,7 +102,6 @@ namespace VisualPinball.Unity
 				var curvePercent = AnimationCurve.Evaluate(journey / duration);
 				Position = math.clamp(curvePercent, 0f, 1f);
 
-				// todo cache the meshes
 				RebuildMeshes();
 
 				yield return null;
