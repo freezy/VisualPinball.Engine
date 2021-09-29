@@ -16,18 +16,33 @@
 
 // ReSharper disable InconsistentNaming
 
+using System;
 using Unity.Entities;
 using UnityEngine;
+using VisualPinball.Engine.Math;
+using VisualPinball.Engine.VPT.Rubber;
 
 namespace VisualPinball.Unity
 {
-	public class SlingshotComponent : MonoBehaviour, IMeshComponent, IMainRenderableComponent
+	public class SlingshotComponent : MonoBehaviour, IMeshComponent, IMainRenderableComponent, IRubberData
 	{
 		public SurfaceColliderComponent SlingshotSurface;
 		public RubberComponent RubberOn;
 		public RubberComponent RubberOff;
 
+		[NonSerialized] public float Position;
 		[SerializeField] private bool _isLocked;
+
+		#region IRubberData
+
+		public DragPointData[] DragPoints => DragPointsAt(Position);
+		public int Thickness => RubberOff.GetComponent<RubberComponent>()?.Thickness ?? 8;
+		public float Height => RubberOff.GetComponent<RubberComponent>()?.Height ?? 25f;
+		public float RotX => RubberOff.GetComponent<RubberComponent>()?.RotX ?? 0;
+		public float RotY => RubberOff.GetComponent<RubberComponent>()?.RotY ?? 0;
+		public float RotZ => RubberOff.GetComponent<RubberComponent>()?.RotZ ?? 0;
+
+		#endregion
 
 		#region IMeshComponent
 
@@ -35,54 +50,26 @@ namespace VisualPinball.Unity
 
 		public void RebuildMeshes()
 		{
-			// check renderers
 			var mf = GetComponent<MeshFilter>();
-			var smr = GetComponent<SkinnedMeshRenderer>();
-			if (!smr || !mf) {
-				Debug.LogWarning("Mesh filter or skinned mesh renderer not found.");
+			if (!mf) {
+				Debug.LogWarning("Mesh filter or renderer not found.");
 				return;
 			}
 
-			// no rubbers, no mesh
-			if (RubberOn == null || RubberOff == null) {
-				Debug.LogWarning("Rubber references not set.");
+			if (!RubberOff) {
 				return;
 			}
-			var m0 = RubberOff.GetComponent<MeshFilter>();
-			var m1 = RubberOn.GetComponent<MeshFilter>();
-			if (m0 == null || m1 == null || m0.sharedMesh == null || m1.sharedMesh == null) {
-				Debug.LogWarning("Rubber references not found.");
+			var pf = GetComponentInParent<PlayfieldComponent>();
+			var r0 = RubberOff.GetComponent<RubberComponent>();
+			if (!r0 || !pf) {
 				return;
 			}
 
-			if (m0.sharedMesh.vertices.Length != m1.sharedMesh.vertices.Length) {
-				Debug.LogWarning($"Rubber vertices vary ({m0.sharedMesh.vertices.Length} vs {m1.sharedMesh.vertices.Length}).");
-				return;
-			}
-
-			var mesh0 = m0.sharedMesh;
-			var mesh1 = m1.sharedMesh;
-			var triangles = mesh0.triangles;
-			var vertices0 = mesh0.vertices;
-			var normals0 = mesh0.normals;
-			var vertices1 = mesh1.vertices;
-			var normals1 = mesh1.normals;
-
-			var mesh = new Mesh { name = "Slingshot Mesh" };
-			mesh.vertices = vertices0;
-			mesh.normals = normals0;
-			mesh.triangles = triangles;
-
-			var deltaVertices = new Vector3[vertices0.Length];
-			var deltaNormals = new Vector3[vertices0.Length];
-			for (var i = 0; i < vertices0.Length; i++) {
-				deltaVertices[i] = vertices0[i] - vertices1[i];
-				deltaNormals[i] = normals0[i] - normals1[i];
-			}
-			mesh.AddBlendShapeFrame("slingshot", 1, deltaVertices, deltaNormals, null);
+			var mesh = new RubberMeshGenerator(this)
+				.GetTransformedMesh(pf.PlayfieldHeight, r0.Height, pf.PlayfieldDetailLevel)
+				.ToUnityMesh();
 
 			mf.sharedMesh = mesh;
-			smr.sharedMesh = mesh;
 		}
 
 		#endregion
@@ -110,5 +97,34 @@ namespace VisualPinball.Unity
 		public void SetEditorScale(Vector3 pos) { }
 
 		#endregion
+
+		private DragPointData[] DragPointsAt(float pos)
+		{
+			if (RubberOn == null || RubberOff == null) {
+				Debug.LogWarning("Rubber references not set.");
+				return Array.Empty<DragPointData>();
+			}
+			var r0 = RubberOff.GetComponent<RubberComponent>();
+			var r1 = RubberOn.GetComponent<RubberComponent>();
+			if (r0 == null || r1 == null || r0.DragPoints == null || r1.DragPoints == null) {
+				Debug.LogWarning("Rubber references not found or drag points not set.");
+				return Array.Empty<DragPointData>();
+			}
+
+			var dp0 = r0.DragPoints;
+			var dp1 = r1.DragPoints;
+
+			if (dp0.Length != dp1.Length) {
+				Debug.LogWarning($"Drag point number varies ({dp0.Length} vs {dp1.Length}.).");
+				return Array.Empty<DragPointData>();
+			}
+
+			var dp = new DragPointData[dp0.Length];
+			for (var i = 0; i < dp.Length; i++) {
+				dp[i] = dp0[i].Lerp(dp1[i], pos);
+			}
+
+			return dp;
+		}
 	}
 }
