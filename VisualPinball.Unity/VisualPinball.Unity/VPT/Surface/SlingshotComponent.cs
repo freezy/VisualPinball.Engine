@@ -17,7 +17,9 @@
 // ReSharper disable InconsistentNaming
 
 using System;
+using System.Collections;
 using Unity.Entities;
+using Unity.Mathematics;
 using UnityEngine;
 using VisualPinball.Engine.Math;
 using VisualPinball.Engine.VPT.Rubber;
@@ -30,8 +32,41 @@ namespace VisualPinball.Unity
 		public RubberComponent RubberOn;
 		public RubberComponent RubberOff;
 
+		public float AnimationDuration = 200f;
+		public AnimationCurve AnimationCurve = new AnimationCurve(
+			new Keyframe(0, 0),
+			new Keyframe(0.5f, 1, 3.535f, 0f, 0.03333336f, 0.5416666f),
+			new Keyframe(1, 0)
+		);
+
 		[NonSerialized] public float Position;
 		[SerializeField] private bool _isLocked;
+
+		#region Runtime
+
+		public void TriggerAnimation()
+		{
+			StopAllCoroutines();
+			StartCoroutine(nameof(Animate));
+		}
+
+		private IEnumerator Animate()
+		{
+			var duration = AnimationDuration / 1000;
+			var journey = 0f;
+			while (journey <= duration) {
+
+				journey += Time.deltaTime;
+				var curvePercent = AnimationCurve.Evaluate(journey / duration);
+				Position = math.clamp(curvePercent, 0f, 1f);
+
+				RebuildMeshes();
+
+				yield return null;
+			}
+		}
+
+		#endregion
 
 		#region IRubberData
 
