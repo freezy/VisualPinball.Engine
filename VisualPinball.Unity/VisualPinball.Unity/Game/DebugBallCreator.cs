@@ -34,8 +34,8 @@ namespace VisualPinball.Unity
 			_x = x;
 			_y = y;
 			_z = playfieldHeight;
-			_kickAngle = math.radians(180f);;
-			_kickForce = 20;
+			_kickAngle = 0;
+			_kickForce = 0;
 		}
 
 		public DebugBallCreator(float x, float y, float playfieldHeight, float kickAngle, float kickForce)
