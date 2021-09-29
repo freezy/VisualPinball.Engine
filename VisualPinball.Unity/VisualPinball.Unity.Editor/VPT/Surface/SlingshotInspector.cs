@@ -27,6 +27,8 @@ namespace VisualPinball.Unity.Editor
 		private SerializedProperty _surfaceProperty;
 		private SerializedProperty _rubberOffProperty;
 		private SerializedProperty _rubberOnProperty;
+		private SerializedProperty _animationDurationProperty;
+		private SerializedProperty _animationCurveProperty;
 
 		protected override MonoBehaviour UndoTarget => target as MonoBehaviour;
 
@@ -39,7 +41,8 @@ namespace VisualPinball.Unity.Editor
 			_surfaceProperty = serializedObject.FindProperty(nameof(SlingshotComponent.SlingshotSurface));
 			_rubberOffProperty = serializedObject.FindProperty(nameof(SlingshotComponent.RubberOff));
 			_rubberOnProperty = serializedObject.FindProperty(nameof(SlingshotComponent.RubberOn));
-
+			_animationDurationProperty = serializedObject.FindProperty(nameof(SlingshotComponent.AnimationDuration));
+			_animationCurveProperty = serializedObject.FindProperty(nameof(SlingshotComponent.AnimationCurve));
 		}
 
 		public override void OnInspectorGUI()
@@ -56,6 +59,9 @@ namespace VisualPinball.Unity.Editor
 			PropertyField(_rubberOffProperty, "Rubber Off",  true);
 			PropertyField(_rubberOnProperty, "Rubber On",  true);
 
+			PropertyField(_animationDurationProperty, "Animation Duration (ms)");
+			PropertyField(_animationCurveProperty, "Animation Curve");
+
 			EditorGUI.BeginChangeCheck();
 			var pos = EditorGUILayout.Slider("Test", _slingShot.Position, 0f, 1f);
 			if (EditorGUI.EndChangeCheck()) {
@@ -66,6 +72,10 @@ namespace VisualPinball.Unity.Editor
 			base.OnInspectorGUI();
 
 			EndEditing();
+
+			if (GUILayout.Button("Trigger")) {
+				_slingShot.TriggerAnimation();
+			}
 		}
 	}
 }
