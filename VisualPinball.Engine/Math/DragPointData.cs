@@ -20,6 +20,7 @@
 // ReSharper disable FieldCanBeMadeReadOnly.Global
 // ReSharper disable ConvertToConstant.Global
 // ReSharper disable CompareOfFloatsByEqualityOperator
+// ReSharper disable InconsistentNaming
 #endregion
 
 using System;
@@ -72,11 +73,31 @@ namespace VisualPinball.Engine.Math
 			return $"DragPoint({Center.X}/{Center.Y}/{Center.Z}, {(IsSmooth ? "S" : "")}{(IsSlingshot ? "SS" : "")}{(HasAutoTexture ? "A" : "")})";
 		}
 
+		public DragPointData Lerp(DragPointData dp, float pos)
+		{
+			return new DragPointData(Center + pos * (dp.Center - Center)) {
+				IsSmooth = dp.IsSmooth,
+				IsSlingshot = dp.IsSlingshot,
+				HasAutoTexture = dp.HasAutoTexture,
+				TextureCoord = dp.TextureCoord,
+				IsLocked = dp.IsLocked,
+				EditorLayer = dp.EditorLayer,
+				EditorLayerName = dp.EditorLayerName,
+				EditorLayerVisibility = EditorLayerVisibility
+			};
+		}
+
 		#region BIFF
 
 		static DragPointData()
 		{
 			Init(typeof(DragPointData), Attributes);
+		}
+
+		public DragPointData(Vertex3D center) : base(null)
+		{
+			Center = center;
+			HasAutoTexture = true;
 		}
 
 		public DragPointData(float x, float y) : base(null)
@@ -112,5 +133,6 @@ namespace VisualPinball.Engine.Math
 		private static readonly Dictionary<string, List<BiffAttribute>> Attributes = new Dictionary<string, List<BiffAttribute>>();
 
 		#endregion
+
 	}
 }

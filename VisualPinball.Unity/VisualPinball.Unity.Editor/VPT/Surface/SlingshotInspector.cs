@@ -22,18 +22,24 @@ namespace VisualPinball.Unity.Editor
 	[CustomEditor(typeof(SlingshotComponent))]
 	public class SlingshotInspector : ItemInspector
 	{
+		private SlingshotComponent _slingShot;
+
 		private SerializedProperty _surfaceProperty;
-		private SerializedProperty _rubberOnProperty;
 		private SerializedProperty _rubberOffProperty;
+		private SerializedProperty _rubberOnProperty;
+
 		protected override MonoBehaviour UndoTarget => target as MonoBehaviour;
 
 		protected override void OnEnable()
 		{
 			base.OnEnable();
 
+			_slingShot = target as SlingshotComponent;
+
 			_surfaceProperty = serializedObject.FindProperty(nameof(SlingshotComponent.SlingshotSurface));
-			_rubberOnProperty = serializedObject.FindProperty(nameof(SlingshotComponent.RubberOn));
 			_rubberOffProperty = serializedObject.FindProperty(nameof(SlingshotComponent.RubberOff));
+			_rubberOnProperty = serializedObject.FindProperty(nameof(SlingshotComponent.RubberOn));
+
 		}
 
 		public override void OnInspectorGUI()
@@ -49,6 +55,13 @@ namespace VisualPinball.Unity.Editor
 			PropertyField(_surfaceProperty, "Collider Surface");
 			PropertyField(_rubberOffProperty, "Rubber Off",  true);
 			PropertyField(_rubberOnProperty, "Rubber On",  true);
+
+			EditorGUI.BeginChangeCheck();
+			var pos = EditorGUILayout.Slider("Test", _slingShot.Position, 0f, 1f);
+			if (EditorGUI.EndChangeCheck()) {
+				_slingShot.Position = pos;
+				_slingShot.RebuildMeshes();
+			}
 
 			base.OnInspectorGUI();
 
