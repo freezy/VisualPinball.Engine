@@ -22,13 +22,15 @@ namespace VisualPinball.Unity.Editor
 	[CustomEditor(typeof(SlingshotComponent))]
 	public class SlingshotInspector : ItemInspector
 	{
-		private SlingshotComponent _slingShot;
+		private SlingshotComponent _slingshot;
 
 		private SerializedProperty _surfaceProperty;
 		private SerializedProperty _rubberOffProperty;
 		private SerializedProperty _rubberOnProperty;
 		private SerializedProperty _animationDurationProperty;
 		private SerializedProperty _animationCurveProperty;
+		private SerializedProperty _coilArmProperty;
+		private SerializedProperty _coilArmAngleProperty;
 
 		protected override MonoBehaviour UndoTarget => target as MonoBehaviour;
 
@@ -36,11 +38,13 @@ namespace VisualPinball.Unity.Editor
 		{
 			base.OnEnable();
 
-			_slingShot = target as SlingshotComponent;
+			_slingshot = target as SlingshotComponent;
 
 			_surfaceProperty = serializedObject.FindProperty(nameof(SlingshotComponent.SlingshotSurface));
 			_rubberOffProperty = serializedObject.FindProperty(nameof(SlingshotComponent.RubberOff));
 			_rubberOnProperty = serializedObject.FindProperty(nameof(SlingshotComponent.RubberOn));
+			_coilArmProperty = serializedObject.FindProperty(nameof(SlingshotComponent.CoilArm));
+			_coilArmAngleProperty = serializedObject.FindProperty(nameof(SlingshotComponent.CoilArmAngle));
 			_animationDurationProperty = serializedObject.FindProperty(nameof(SlingshotComponent.AnimationDuration));
 			_animationCurveProperty = serializedObject.FindProperty(nameof(SlingshotComponent.AnimationCurve));
 		}
@@ -55,10 +59,14 @@ namespace VisualPinball.Unity.Editor
 			PropertyField(_rubberOffProperty, "Rubber Off",  true);
 			PropertyField(_rubberOnProperty, "Rubber On",  true);
 
-			if (_slingShot.RubberOn && _slingShot.RubberOff &&
-			    _slingShot.RubberOn.DragPoints.Length != _slingShot.RubberOff.DragPoints.Length) {
-				EditorGUILayout.HelpBox($"In order to animate the rubber, the number of drag points of both rubbers must be equal. Here we have {_slingShot.RubberOn.DragPoints.Length} (on) and {_slingShot.RubberOff.DragPoints.Length} (off).", MessageType.Error);
+			if (_slingshot.RubberOn && _slingshot.RubberOff &&
+			    _slingshot.RubberOn.DragPoints.Length != _slingshot.RubberOff.DragPoints.Length) {
+				EditorGUILayout.HelpBox($"In order to animate the rubber, the number of drag points of both rubbers must be equal. Here we have {_slingshot.RubberOn.DragPoints.Length} (on) and {_slingshot.RubberOff.DragPoints.Length} (off).", MessageType.Error);
 			}
+
+			EditorGUILayout.Space(10f);
+			PropertyField(_coilArmProperty, "Coil Arm");
+			PropertyField(_coilArmAngleProperty, "Arm Angle");
 
 			EditorGUILayout.Space(10f);
 			PropertyField(_animationDurationProperty, "Animation Duration");
@@ -66,10 +74,10 @@ namespace VisualPinball.Unity.Editor
 
 			EditorGUILayout.Space(10f);
 			EditorGUI.BeginChangeCheck();
-			var pos = EditorGUILayout.Slider("Test", _slingShot.Position, 0f, 1f);
+			var pos = EditorGUILayout.Slider("Test", _slingshot.Position, 0f, 1f);
 			if (EditorGUI.EndChangeCheck()) {
-				_slingShot.Position = pos;
-				_slingShot.RebuildMeshes();
+				_slingshot.Position = pos;
+				_slingshot.RebuildMeshes();
 			}
 
 			base.OnInspectorGUI();

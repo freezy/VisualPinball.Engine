@@ -54,6 +54,7 @@ namespace VisualPinball.Unity.Editor
 		private const string RubberName = "rubber";
 		private const string SpinnerName = "spinner";
 		private const string SurfaceName = "surface";
+		private const string SlingshotName = "slingshot";
 		private const string TableName = "table";
 		private const string TriggerName = "trigger";
 		private const string TroughName = "trough";
@@ -63,7 +64,7 @@ namespace VisualPinball.Unity.Editor
 		private static readonly string[] Names = {
 			BumperName, BoltName, CoilName, DropTargetName, FlipperName, HitTargetName, GateName, KeyName, KickerName, LightName, PlayfieldName,
 			PlungerName, PlugName, PrimitiveName, RampName, RubberName, SpinnerName, SurfaceName, TableName, TriggerName, TroughName,
-			SwitchNcName, SwitchNoName
+			SlingshotName, SwitchNcName, SwitchNoName
 		};
 
 		private readonly Dictionary<IconVariant, Texture2D> _icons = new Dictionary<IconVariant,Texture2D>();
@@ -76,7 +77,7 @@ namespace VisualPinball.Unity.Editor
 		private static readonly int MonoBehaviourClassID = 114;
 
 		private static Icons _instance;
-		private static Icons Instance => _instance ?? (_instance = new Icons());
+		private static Icons Instance => _instance ??= new Icons();
 
 		private Icons()
 		{
@@ -112,6 +113,7 @@ namespace VisualPinball.Unity.Editor
 		public static Texture2D Table(IconSize size = IconSize.Large, IconColor color = IconColor.Gray) => Instance.GetItem(TableName, size, color);
 		public static Texture2D Trigger(IconSize size = IconSize.Large, IconColor color = IconColor.Gray) => Instance.GetItem(TriggerName, size, color);
 		public static Texture2D Trough(IconSize size = IconSize.Large, IconColor color = IconColor.Gray) => Instance.GetItem(TroughName, size, color);
+		public static Texture2D Slingshot(IconSize size = IconSize.Large, IconColor color = IconColor.Gray) => Instance.GetItem(SlingshotName, size, color);
 		public static Texture2D Switch(bool isClosed, IconSize size = IconSize.Large, IconColor color = IconColor.Gray) => Instance.GetItem(isClosed ? SwitchNcName : SwitchNoName, size, color);
 		public static Texture2D Coil(IconSize size = IconSize.Large, IconColor color = IconColor.Gray) => Instance.GetItem(CoilName, size, color);
 		public static Texture2D Key(IconSize size = IconSize.Large, IconColor color = IconColor.Gray) => Instance.GetItem(KeyName, size, color);
@@ -134,6 +136,7 @@ namespace VisualPinball.Unity.Editor
 				case RampComponent _: return Ramp(size, color);
 				case RubberComponent _: return Rubber(size, color);
 				case SpinnerComponent _: return Spinner(size, color);
+				case SlingshotComponent _: return Slingshot(size, color);
 				case SurfaceComponent _: return Surface(size, color);
 				case TriggerComponent _: return Trigger(size, color);
 				case TroughComponent _: return Trough(size, color);
@@ -186,6 +189,7 @@ namespace VisualPinball.Unity.Editor
 			DisableGizmo<RubberMeshComponent>();
 			DisableGizmo<RubberColliderComponent>();
 			DisableGizmo<SegmentDisplayComponent>();
+			DisableGizmo<SlingshotComponent>();
 			DisableGizmo<SpinnerComponent>();
 			DisableGizmo<SpinnerColliderComponent>();
 			DisableGizmo<SpinnerPlateAnimationComponent>();

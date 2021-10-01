@@ -167,6 +167,10 @@ namespace VisualPinball.Unity.Editor
 				CreateItem(Trough.GetDefault, "New Trough");
 			}
 
+			if (CreateButton("Slingshot", Icons.Slingshot(color: iconColor), iconSize, buttonStyle)) {
+				CreatePrefab("Slingshots", "Prefabs/Slingshot");
+			}
+
 			GUILayout.EndHorizontal();
 		}
 
@@ -195,6 +199,21 @@ namespace VisualPinball.Unity.Editor
 			var converter = new VpxSceneConverter(TableComponent);
 			TableComponent.TableContainer.Refresh();
 			return converter.InstantiateAndPersistPrefab(item).GameObject;
+		}
+
+		private void CreatePrefab(string groupName, string path)
+		{
+			var converter = new VpxSceneConverter(TableComponent);
+			TableComponent.TableContainer.Refresh();
+
+			var parentGo = converter.GetGroupParent(groupName);
+
+			var prefab = Resources.Load<GameObject>(path);
+			var go = PrefabUtility.InstantiatePrefab(prefab) as GameObject;
+			if (go) {
+				go.transform.SetParent(parentGo.transform, false);
+			}
+			Selection.activeGameObject = go;
 		}
 	}
 }

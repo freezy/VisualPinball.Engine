@@ -556,18 +556,20 @@ namespace VisualPinball.Unity.Editor
 			_playfieldComponent.SetData(_sourceTable.Data);
 		}
 
-		private GameObject GetGroupParent(IItem item)
+		private GameObject GetGroupParent(IItem item) => GetGroupParent(item.ItemGroupName);
+
+		public GameObject GetGroupParent(string name)
 		{
 			// create group parent if not created (if null, attach it to the table directly).
-			if (!string.IsNullOrEmpty(item.ItemGroupName)) {
-				if (!_groupParents.ContainsKey(item.ItemGroupName)) {
-					var parent = new GameObject(item.ItemGroupName);
+			if (!string.IsNullOrEmpty(name)) {
+				if (!_groupParents.ContainsKey(name)) {
+					var parent = new GameObject(name);
 					parent.transform.SetParent(_playfieldGo.transform, false);
-					_groupParents[item.ItemGroupName] = parent;
+					_groupParents[name] = parent;
 				}
 			}
-			var groupParent = !string.IsNullOrEmpty(item.ItemGroupName)
-				? _groupParents[item.ItemGroupName]
+			var groupParent = !string.IsNullOrEmpty(name)
+				? _groupParents[name]
 				: _playfieldGo;
 
 			return groupParent;

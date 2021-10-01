@@ -39,8 +39,16 @@ namespace VisualPinball.Unity
 		[Tooltip("Reference to the rubber at \"disabled\" position (coil off).")]
 		public RubberComponent RubberOff;
 
+		[Tooltip("Reference to the arm attached to the coil. Rotates around X.")]
+		public PrimitiveComponent CoilArm;
+
+		[Range(-180f, 180f)]
+		[Tooltip("Angle of the coil arm when on.")]
+		public float CoilArmAngle;
+
+		[Min(0f)]
 		[Tooltip("Total duration of the animation in milliseconds.")]
-		public float AnimationDuration = 200f;
+		public float AnimationDuration = 70f;
 
 		[Tooltip("Animation curve. Starts at 0 and ends at 0.")]
 		public AnimationCurve AnimationCurve = new AnimationCurve(
@@ -53,15 +61,11 @@ namespace VisualPinball.Unity
 		[SerializeField] private bool _isLocked;
 		[NonSerialized] private readonly Dictionary<int, Mesh> _meshes = new Dictionary<int, Mesh>();
 		[NonSerialized] private RubberMeshGenerator _meshGenerator;
+		private RubberMeshGenerator MeshGenerator => _meshGenerator ??= new RubberMeshGenerator(this);
 
 		private const int MaxNumMeshCaches = 15;
 
 		#region Runtime
-
-		private void Awake()
-		{
-			_meshGenerator = new RubberMeshGenerator(this);
-		}
 
 		private void Start()
 		{
@@ -128,22 +132,36 @@ namespace VisualPinball.Unity
 		public void RebuildMeshes()
 		{
 			var mf = GetComponent<MeshFilter>();
-			if (!mf) {
+			var mr = GetComponent<MeshRenderer>();
+			if (!mf || !mr) {
 				Debug.LogWarning("Mesh filter or renderer not found.");
 				return;
 			}
 
+			// mesh
 			var mesh = GetMesh();
-
 			if (mesh != null) {
 				mf.sharedMesh = mesh;
+			}
+
+			// material
+			if (RubberOff && !mr.sharedMaterial) {
+				var rubberMr = RubberOff.GetComponent<MeshRenderer>();
+				if (rubberMr) {
+					mr.sharedMaterial = rubberMr.sharedMaterial;
+				}
+			}
+
+			if (CoilArm) {
+				CoilArm.Rotation.x = CoilArmAngle * Position;
+				CoilArm.UpdateTransforms();
 			}
 		}
 
 		private Mesh GetMesh()
 		{
 			var pos = (int)(Position * MaxNumMeshCaches);
-			if (_meshes.ContainsKey(pos)) {
+			if (Application.isPlaying && _meshes.ContainsKey(pos)) {
 				return _meshes[pos];
 			}
 
@@ -159,7 +177,7 @@ namespace VisualPinball.Unity
 
 			Debug.Log($"Generating new mesh at {pos}");
 
-			var mesh = _meshGenerator
+			var mesh = MeshGenerator
 				.GetTransformedMesh(pf.PlayfieldHeight, r0.Height, pf.PlayfieldDetailLevel)
 				.ToUnityMesh();
 
