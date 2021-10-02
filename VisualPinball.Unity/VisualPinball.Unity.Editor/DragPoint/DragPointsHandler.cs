@@ -20,6 +20,7 @@ using System.Linq;
 using UnityEditor;
 using UnityEngine;
 using VisualPinball.Engine.Math;
+using Color = UnityEngine.Color;
 using Object = UnityEngine.Object;
 
 namespace VisualPinball.Unity.Editor
@@ -31,17 +32,17 @@ namespace VisualPinball.Unity.Editor
 		/// <summary>
 		/// Component
 		/// </summary>
-		public IMainRenderableComponent MainComponent { get; private set; }
+		public IMainRenderableComponent MainComponent { get; }
 
 		/// <summary>
 		/// Component item as IDragPointsEditable
 		/// </summary>
-		public IDragPointsInspector DragPointInspector { get; private set; }
+		public IDragPointsInspector DragPointInspector { get; }
 
 		/// <summary>
 		/// Transform component of the game object
 		/// </summary>
-		public Transform Transform { get; private set; }
+		public Transform Transform { get; }
 
 		/// <summary>
 		/// Control points storing & rendering
@@ -55,7 +56,7 @@ namespace VisualPinball.Unity.Editor
 		/// <remarks>
 		/// Will handle all the rendering part and update some handler's variables about curve traveller
 		/// </remarks>
-		private readonly DragPointsSceneViewHandler _sceneViewHandler = null;
+		private readonly DragPointsSceneViewHandler _sceneViewHandler;
 
 		/// <summary>
 		/// Drag points selection
@@ -72,7 +73,7 @@ namespace VisualPinball.Unity.Editor
 		/// </remarks>
 		public int CurveTravellerControlId { get; private set; }
 		public Vector3 CurveTravellerPosition { get; set; } = Vector3.zero;
-		public bool CurveTravellerVisible { get; set; } = false;
+		public bool CurveTravellerVisible { get; set; }
 		public int CurveTravellerControlPointIdx { get; set; } = -1;
 
 		/// <summary>
@@ -95,8 +96,8 @@ namespace VisualPinball.Unity.Editor
 
 			_sceneViewHandler = new DragPointsSceneViewHandler(this){
 				CurveWidth = 10.0f,
-				CurveColor = UnityEngine.Color.blue,
-				CurveSlingShotColor = UnityEngine.Color.red,
+				CurveColor = Color.blue,
+				CurveSlingShotColor = Color.red,
 				ControlPointsSizeRatio = 1.0f,
 				CurveTravellerSizeRatio = 0.75f
 			};
@@ -258,6 +259,10 @@ namespace VisualPinball.Unity.Editor
 				ControlPoints.Add(cp);
 			}
 			CurveTravellerControlId = GUIUtility.GetControlID(FocusType.Passive);
+
+			// persist prefab changes
+			EditorUtility.SetDirty(MainComponent.gameObject);
+			PrefabUtility.RecordPrefabInstancePropertyModifications(MainComponent as Object);
 		}
 
 		/// <summary>
