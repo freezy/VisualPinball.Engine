@@ -51,5 +51,15 @@ namespace VisualPinball.Engine.Test.Common
 				.Should().BeEquivalentTo(new Vertex3D(-162.5f, -128.5f, 141.25f));
 		}
 
+		[Test]
+		public void ShouldCorrectlyLerpDragPoints()
+		{
+			var dp0 = new DragPointData(2f, 3f);
+			var dp1 = new DragPointData(8f, 12f);
+
+			dp0.Lerp(dp1, 0).Center.Should().Be(new Vertex3D(2f, 3f, 0f));
+			dp0.Lerp(dp1, 0.2f).Center.Should().Be(new Vertex3D(3.2f, 4.8f, 0f));
+			dp0.Lerp(dp1, 1).Center.Should().Be(new Vertex3D(8f, 12f, 0f));
+		}
 	}
 }
