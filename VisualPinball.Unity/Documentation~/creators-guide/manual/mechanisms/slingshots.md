@@ -9,16 +9,36 @@ VPE provides a slingshot component that implements the rubber animation during r
 
 # Setup
 
-## Wall
+<img src="slingshot-inspector.png" width="310" alt="Slingshot Inspector" class="img-responsive pull-right" style="margin-left: 15px"/>
 
+### Slingshot Wall
 
-## Rubbers
+In order to trigger the animation, the slingshot component needs a reference to the wall which has one of the control points set to *slingshot*. 
+
+### Rubbers
+
+VPE animates the control points of the rubber from a start position to an end position and back to start. It does that by interpolating the positions from start to end depending on the frame and the duration of the animation.
+
+To set the start and end positions of the control points, we reference two rubber elements which need to have the same number of control points. In the inspector, *Rubber Off* references the rubber representing the start position, while *Rubber On* goes to the end position.
 
 > [!NOTE]
 > In VPX, tables often come with three rubbers elements that are toggled in order to fake an animation. When using VPE's slingshot component, you can delete the rubber at mid position, since only the start and end rubbers are used. The interpolation is calculated in real time depending on the speed of the slingshot.
 
+### Coil Arm
 
-# Howtos
+On physical machines, the rubber is moved by an arm attached to the coil. VPE can simulate the movement of that arm by rotating a primitive across the X-axis. In the *Coil Arm* field, a reference to the primive can be set, and the angle at and position under *Arm Angle*.
+
+<img src="slingshot-curve.png" width="310" alt="Slingshot Animation Curve" class="img-responsive pull-right" style="margin-left: 15px"/>
+
+### Animation
+
+The animation has two parameters: The duration in milliseconds, and the curve. The curve represents the position in function of time. It covers both ways. This allows non-linear movement of the rubber.
+
+### Test
+
+With the test slider you can easily verify how the rubber and arm is animated.
+
+# Howto
 
 ## Set Up a Slingshot from an Imported Table
 
@@ -83,6 +103,6 @@ Before we test, there are two things left to do:
 1. Select the coil arm and disable the collider
 2. Enable the plastic we've hidden in step 1.
 
-Then hit test and have a game!
+Then hit play and have a game!
 
 > [!Video https://www.youtube.com/embed/dNS4YPdRXTc]
