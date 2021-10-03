@@ -7,6 +7,7 @@
 Built with Unity 2020.3.
 
 ### Added
+- Slingshot component ([#329](https://github.com/freezy/VisualPinball.Engine/pull/329), [Documentation](https://docs.visualpinball.org/creators-guide/manual/mechanisms/slingshots.html)).
 - Create insert meshes ([#320](https://github.com/freezy/VisualPinball.Engine/pull/320))
 - Full support for custom playfield meshes.
 - Remove Hybrid Renderer ([#316](https://github.com/freezy/VisualPinball.Engine/pull/316)).
