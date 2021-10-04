@@ -15,14 +15,17 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using VisualPinball.Engine.VPT.Light;
+using VisualPinball.Engine.VPT.Table;
 
 namespace VisualPinball.Unity.Editor
 {
 	public static class LightExtensions
 	{
-		internal static IVpxPrefab InstantiatePrefab(this Light light)
+		internal static IVpxPrefab InstantiatePrefab(this Light light, Table table)
 		{
-			var prefab = RenderPipeline.Current.PrefabProvider.CreateLight();
+			var prefab = light.IsInsertLight(table)
+				? RenderPipeline.Current.PrefabProvider.CreateInsertLight()
+				: RenderPipeline.Current.PrefabProvider.CreateLight();
 			return new VpxPrefab<Light, LightData, LightComponent>(prefab, light);
 		}
 	}

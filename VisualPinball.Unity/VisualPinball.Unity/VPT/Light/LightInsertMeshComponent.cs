@@ -42,8 +42,6 @@ namespace VisualPinball.Unity
 
 		#endregion
 
-		public const string InsertObjectName = "Insert";
-
 		public override IEnumerable<Type> ValidParents => Type.EmptyTypes;
 
 		protected override Mesh GetMesh(LightData data)
@@ -56,6 +54,14 @@ namespace VisualPinball.Unity
 		}
 
 		protected override PbrMaterial GetMaterial(LightData data, Table table)
-			=> new PbrMaterial(table.GetMaterial(table.Data.PlayfieldMaterial), table.GetTexture(table.Data.Image));
+		{
+			var mat = table.GetMaterial(table.Data.PlayfieldMaterial);
+			if (mat != null) {
+				mat.Name += " (Playfield Insert)";
+			} else {
+				mat = new Engine.VPT.Material("Playfield Insert");
+			}
+			return new PbrMaterial(mat, table.GetTexture(table.Data.Image));
+		}
 	}
 }

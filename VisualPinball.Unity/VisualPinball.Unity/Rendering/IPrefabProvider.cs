@@ -52,6 +52,12 @@ namespace VisualPinball.Unity
 		GameObject CreateLight();
 
 		/// <summary>
+		/// Creates an insert light prefab.
+		/// </summary>
+		/// <returns>Prefab of the light (still needs to be instantiated)</returns>
+		GameObject CreateInsertLight();
+
+		/// <summary>
 		/// Creates a spinner prefab.
 		/// </summary>
 		/// <returns>Prefab of the spinner (still needs to be instantiated)</returns>
