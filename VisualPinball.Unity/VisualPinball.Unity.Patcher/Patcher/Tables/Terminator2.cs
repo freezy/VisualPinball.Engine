@@ -57,41 +57,6 @@ namespace VisualPinball.Unity.Patcher
 
 		#region Lights
 
-		[NameMatch("L61")]
-		[NameMatch("L62")]
-		[NameMatch("L63")]
-		[NameMatch("L64")]
-		[NameMatch("L65")]
-		public void LeftYellowRound(GameObject go)
-		{
-			LightPos(go, -4.3f, -18.2f, -50f);
-			LightColor(go, Color.yellow);
-		}
-
-		[NameMatch("L71")]
-		[NameMatch("L72")]
-		[NameMatch("L73")]
-		[NameMatch("L74")]
-		[NameMatch("L75")]
-		public void RightYellowRound(GameObject go)
-		{
-			LightPos(go, 2.6f, -15.9f, -50f);
-			LightColor(go, Color.yellow);
-		}
-
-		[NameMatch("L53")]
-		[NameMatch("L54")]
-		[NameMatch("L55")]
-		[NameMatch("L56")]
-		[NameMatch("L57")]
-		[NameMatch("L58")]
-		public void RightRedRect(GameObject go)
-		{
-			LightPos(go, 8.5f, -11.7f, -50f);
-			SpotAngle(go, 122f, 48f);
-			Intensity(go, 4500f);
-		}
-
 		[NameMatch("L11")]
 		[NameMatch("L12")]
 		[NameMatch("L14")]
@@ -113,6 +78,14 @@ namespace VisualPinball.Unity.Patcher
 		[NameMatch("L14")] public void Insert6xPos(GameObject go) => LightPos(go, -24.7f, 25.1f, -50f);
 		[NameMatch("L15")] public void Insert8xPos(GameObject go) => LightPos(go, -31.3f, 10.7f, -50f);
 
+		[NameMatch("L15")]
+		public void BallSave(GameObject go)
+		{
+			LightPos(go, 0, -19.6f, -50f);
+			SpotAngle(go, 64f, 67f);
+			Intensity(go, 1200f);
+		}
+
 		[NameMatch("F117")]
 		public void AutoFire(GameObject go)
 		{
@@ -123,6 +96,41 @@ namespace VisualPinball.Unity.Patcher
 			Duplicate(go, -18f, 0f, -50f);
 			Duplicate(go, 16f, 0f, -50f);
 			Duplicate(go, 52f, 3.3f, -50f);
+		}
+
+		[NameMatch("L53")]
+		[NameMatch("L54")]
+		[NameMatch("L55")]
+		[NameMatch("L56")]
+		[NameMatch("L57")]
+		[NameMatch("L58")]
+		public void RightRedRect(GameObject go)
+		{
+			LightPos(go, 8.5f, -11.7f, -50f);
+			SpotAngle(go, 122f, 48f);
+			Intensity(go, 4500f);
+		}
+
+		[NameMatch("L61")]
+		[NameMatch("L62")]
+		[NameMatch("L63")]
+		[NameMatch("L64")]
+		[NameMatch("L65")]
+		public void LeftYellowRound(GameObject go)
+		{
+			LightPos(go, -4.3f, -18.2f, -50f);
+			LightColor(go, Color.yellow);
+		}
+
+		[NameMatch("L71")]
+		[NameMatch("L72")]
+		[NameMatch("L73")]
+		[NameMatch("L74")]
+		[NameMatch("L75")]
+		public void RightYellowRound(GameObject go)
+		{
+			LightPos(go, 2.6f, -15.9f, -50f);
+			LightColor(go, Color.yellow);
 		}
 
 		#region Helpers
