@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+using System;
 using System.IO;
 using VisualPinball.Engine.Game;
 using VisualPinball.Engine.Math;
@@ -28,6 +29,8 @@ namespace VisualPinball.Engine.VPT.Light
 		public const string SocketMaterialName = "__bulbSocketMaterial";
 
 		private readonly LightMeshGenerator _meshGenerator;
+
+		public bool IsInsertLight(Table.Table table) => !Data.ShowBulbMesh && string.Equals(Data.OffImage, table.Data.Image, StringComparison.OrdinalIgnoreCase);
 
 		public Light(LightData data) : base(data)
 		{

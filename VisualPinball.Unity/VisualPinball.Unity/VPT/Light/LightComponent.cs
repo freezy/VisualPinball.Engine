@@ -155,10 +155,12 @@ namespace VisualPinball.Unity
 
 			player.RegisterLamp(this);
 			_unityLight = GetComponentInChildren<UnityEngine.Light>();
-			_fullIntensity = _unityLight.intensity;
+			if (_unityLight) {
+				_fullIntensity = _unityLight.intensity;
+			}
 		}
 
-		public void FadeTo(float seconds, float value)
+		public void FadeTo(float value)
 		{
 			StopAllCoroutines();
 			StartCoroutine(nameof(Fade), value);
@@ -225,16 +227,16 @@ namespace VisualPinball.Unity
 			FadeSpeedUp = data.FadeSpeedUp;
 			FadeSpeedDown = data.FadeSpeedDown;
 
-			// physical params
-			var unityLight = GetComponentInChildren<UnityEngine.Light>(true);
-			if (unityLight) {
-				RenderPipeline.Current.LightConverter.UpdateLight(unityLight, data);
-			}
-
 			// insert mesh
 			var insertMeshComponent = GetComponentInChildren<LightInsertMeshComponent>();
 			if (insertMeshComponent) {
 				insertMeshComponent.DragPoints = data.DragPoints;
+			}
+
+			// physical params
+			var unityLight = GetComponentInChildren<UnityEngine.Light>(true);
+			if (unityLight) {
+				RenderPipeline.Current.LightConverter.UpdateLight(unityLight, data, insertMeshComponent);
 			}
 
 			return updatedComponents;

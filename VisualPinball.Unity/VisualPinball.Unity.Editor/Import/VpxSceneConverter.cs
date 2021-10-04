@@ -327,7 +327,7 @@ namespace VisualPinball.Unity.Editor
 				case Gate gate:           return gate.InstantiatePrefab();
 				case HitTarget hitTarget: return hitTarget.InstantiatePrefab();
 				case Kicker kicker:       return kicker.InstantiatePrefab();
-				case Light lt:            return lt.InstantiatePrefab();
+				case Light lt:            return lt.InstantiatePrefab(_sourceTable);
 				case Plunger plunger:     return plunger.InstantiatePrefab();
 				case Primitive primitive: return primitive.InstantiatePrefab(_playfieldGo);
 				case Ramp ramp:           return ramp.InstantiatePrefab();
