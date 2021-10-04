@@ -460,7 +460,7 @@ namespace VisualPinball.Unity
 				? $"l{numericLampId}"
 				: engineLamp.Id;
 
-			return lamps.FirstOrDefault(l => l.name == matchKey);
+			return lamps.FirstOrDefault(l => string.Equals(l.name, matchKey, StringComparison.OrdinalIgnoreCase));
 		}
 
 		private static GamelogicEngineLamp GuessLampDeviceItem(GamelogicEngineLamp engineLamp, ILampDeviceComponent device)
