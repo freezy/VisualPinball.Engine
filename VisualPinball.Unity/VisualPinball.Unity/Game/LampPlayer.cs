@@ -53,7 +53,7 @@ namespace VisualPinball.Unity
 
 					if (lampMapping.Device == null) {
 						Logger.Warn($"Ignoring unassigned lamp \"{lampMapping.Id}\".");
-						break;
+						continue;
 					}
 
 					AssignLampMapping(lampMapping.Id, lampMapping);
@@ -67,6 +67,8 @@ namespace VisualPinball.Unity
 						}
 					}
 
+					// turn it off
+					_lamps[lampMapping.Device].OnLamp(0f, ColorChannel.Alpha);
 				}
 
 				if (_lampAssignments.Count > 0) {
