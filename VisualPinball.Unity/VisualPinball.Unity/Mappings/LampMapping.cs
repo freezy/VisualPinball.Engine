@@ -17,6 +17,7 @@
 // ReSharper disable InconsistentNaming
 
 using System;
+using UnityEngine;
 
 namespace VisualPinball.Unity
 {
@@ -29,7 +30,9 @@ namespace VisualPinball.Unity
 
 		public string Description = string.Empty;
 
-		public ILampDeviceComponent Device;
+		[SerializeReference]
+		public MonoBehaviour _device;
+		public ILampDeviceComponent Device { get => _device as ILampDeviceComponent; set => _device = value as MonoBehaviour; }
 
 		public string DeviceItem = string.Empty;
 
