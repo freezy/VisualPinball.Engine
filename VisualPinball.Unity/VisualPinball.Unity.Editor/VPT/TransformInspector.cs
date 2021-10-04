@@ -71,8 +71,8 @@ namespace VisualPinball.Unity.Editor
 
 
 				var item = itemTransform.GetComponent<IMainRenderableComponent>();
-				useDefault = useDefault && itemTransform.GetComponentInParent<PlayfieldComponent>() == null;
 				_itemSelected = itemTransform.GetComponent<IMainComponent>() != null;
+				useDefault = useDefault && !_itemSelected && itemTransform.GetComponent<IMeshComponent>() == null;
 
 				// must be main but not the table itself
 				if (item != null && !(item is TableComponent)) {

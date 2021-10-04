@@ -16,6 +16,7 @@
 
 #region ReSharper
 // ReSharper disable FieldCanBeMadeReadOnly.Global
+// ReSharper disable InconsistentNaming
 #endregion
 
 using System;
@@ -140,6 +141,7 @@ namespace VisualPinball.Engine.VPT
 			BaseColor = new Color(255, 255, 255, 255);
 			Glossiness = new Color(0, 0, 0, 255);
 			ClearCoat = new Color(0, 0, 0, 255);
+			Opacity = 1f;
 
 			UpdateData();
 		}

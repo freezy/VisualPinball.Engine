@@ -93,7 +93,7 @@ namespace VisualPinball.Unity
 			switch (lightStatus) {
 				case LightStatus.LightStateOff: {
 					if (MainComponent.FadeSpeedDown > 0) {
-						_lightComponent.FadeTo(MainComponent.FadeSpeedDown, 0);
+						_lightComponent.FadeTo(0);
 
 					} else {
 						_lightComponent.Enabled = false;
@@ -103,7 +103,7 @@ namespace VisualPinball.Unity
 
 				case LightStatus.LightStateOn: {
 					if (MainComponent.FadeSpeedUp > 0) {
-						_lightComponent.FadeTo(MainComponent.FadeSpeedUp, value);
+						_lightComponent.FadeTo(value);
 
 					} else {
 						_lightComponent.Enabled = true;
