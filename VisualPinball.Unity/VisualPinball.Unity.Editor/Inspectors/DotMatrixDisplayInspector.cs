@@ -68,6 +68,14 @@ namespace VisualPinball.Unity.Editor
 					mb.Roundness = roundness;
 				}
 			}
+
+			var emission = EditorGUILayout.Slider("Emission (nits)", _mb.Emission, 1f, 500f);
+			if (emission != _mb.Emission) {
+				RecordUndo("Change DMD Dot Emission", this);
+				foreach (var mb in _mbs) {
+					mb.Emission = emission;
+				}
+			}
 		}
 
 		[MenuItem("GameObject/Visual Pinball/Dot Matrix Display", false, 12)]

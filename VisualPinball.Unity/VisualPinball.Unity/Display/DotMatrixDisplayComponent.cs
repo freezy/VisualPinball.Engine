@@ -47,6 +47,7 @@ namespace VisualPinball.Unity
 		[SerializeField] private int _height = 32;
 		[SerializeField] private float _padding = 0.2f;
 		[SerializeField] private float _roundness = 0.35f;
+		[SerializeField] private float _emission = 100f;
 
 		[NonSerialized] private DisplayFrameFormat _frameFormat = DisplayFrameFormat.Dmd4;
 		[NonSerialized] private Color32[] _colorBuffer;
@@ -58,6 +59,7 @@ namespace VisualPinball.Unity
 		private static readonly int DimensionsProp = Shader.PropertyToID("__Dimensions");
 		private static readonly int PaddingProp = Shader.PropertyToID("__Padding");
 		private static readonly int RoundnessProp = Shader.PropertyToID("__Roundness");
+		private static readonly int EmissionProp = Shader.PropertyToID("__Emission");
 
 		public int Width
 		{
@@ -112,6 +114,18 @@ namespace VisualPinball.Unity
 				var mr = gameObject.GetComponent<MeshRenderer>();
 				if (mr != null) {
 					mr.sharedMaterial.SetFloat(RoundnessProp, value);
+				}
+			}
+		}
+
+		public float Emission
+		{
+			get => _emission;
+			set {
+				_emission = value;
+				var mr = gameObject.GetComponent<MeshRenderer>();
+				if (mr != null) {
+					mr.sharedMaterial.SetFloat(EmissionProp, value);
 				}
 			}
 		}
