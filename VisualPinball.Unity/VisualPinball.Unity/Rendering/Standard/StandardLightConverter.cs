@@ -55,5 +55,8 @@ namespace VisualPinball.Unity
 			light.spotAngle = outer;
 			light.innerSpotAngle = outer * innerPercent * 0.01f;
 		}
+		public void PyramidAngle(Light light, float angle, float aspectRatio)
+		{
+		}
 	}
 }

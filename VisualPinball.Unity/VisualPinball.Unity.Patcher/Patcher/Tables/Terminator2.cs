@@ -57,34 +57,197 @@ namespace VisualPinball.Unity.Patcher
 
 		#region Lights
 
+		#region General Shapes
+
+		[NameMatch("L43")]
+		[NameMatch("L44")]
+		[NameMatch("L45")]
+		[NameMatch("L46")]
+		[NameMatch("L47")]
+		[NameMatch("L48")]
+		[NameMatch("L53")]
+		[NameMatch("L54")]
+		[NameMatch("L55")]
+		[NameMatch("L56")]
+		[NameMatch("L57")]
+		[NameMatch("L58")]
+		public void Rectangles(GameObject go)
+		{
+			SpotAngle(go, 122f, 48f);
+			Intensity(go, 4500f);
+		}
+
+		[NameMatch("L16")]
+		[NameMatch("L22a")]
+		[NameMatch("L22b")]
+		[NameMatch("L23")]
+		[NameMatch("L24")]
+		public void MidSizedCircles(GameObject go)
+		{
+			SpotAngle(go, 64f, 67f);
+			Intensity(go, 1200f);
+		}
+
+		[NameMatch("L76")]
+		[NameMatch("L77")]
+		[NameMatch("L78")]
+		public void SmallSizedCircles(GameObject go)
+		{
+			SpotAngle(go, 45f, 13f);
+			Intensity(go, 700f);
+		}
+
+		[NameMatch("L61")]
+		[NameMatch("L62")]
+		[NameMatch("L63")]
+		[NameMatch("L64")]
+		[NameMatch("L65")]
+		[NameMatch("L71")]
+		[NameMatch("L72")]
+		[NameMatch("L73")]
+		[NameMatch("L74")]
+		[NameMatch("L75")]
+		public void InnerYellowCircles(GameObject go)
+		{
+			LightColor(go, Color.yellow);
+		}
+
+		[NameMatch("L11")]
+		[NameMatch("L12")]
+		[NameMatch("L13")]
+		[NameMatch("L14")]
+		[NameMatch("L15")]
+		[NameMatch("L21")]
+		[NameMatch("L25")]
+		[NameMatch("L26")]
+		[NameMatch("L27")]
+		[NameMatch("L28")]
+		[NameMatch("L41")]
+		[NameMatch("L42")]
+		[NameMatch("L66")]
+		[NameMatch("L67")]
+		[NameMatch("L68")]
+		[NameMatch("L81")]
+		[NameMatch("L82")]
+		[NameMatch("L83")]
+		[NameMatch("L85")]
+		public void MidSizedTriangles(GameObject go)
+		{
+			SpotAngle(go, 96.4f, 47.8f);
+		}
+
+		[NameMatch("L31")]
+		[NameMatch("L32")]
+		[NameMatch("L33")]
+		[NameMatch("L34")]
+		[NameMatch("L35")]
+		[NameMatch("L36")]
+		[NameMatch("L37")]
+		[NameMatch("L38")]
+		public void SmallSizedTriangles(GameObject go)
+		{
+			SpotAngle(go, 80f, 45f);
+		}
+
+		[NameMatch("L36")]
+		[NameMatch("L37")]
+		[NameMatch("L38")]
+		public void SmallSizedTrianglesRed(GameObject go)
+		{
+			Intensity(go, 1000f);
+		}
+
+		[NameMatch("L31")]
+		[NameMatch("L32")]
+		[NameMatch("L33")]
+		[NameMatch("L34")]
+		[NameMatch("L35")]
+		public void SmallSizedTrianglesWhite(GameObject go)
+		{
+			Intensity(go, 700f);
+			LightColor(go, Color.white);
+		}
+
 		[NameMatch("L11")]
 		[NameMatch("L12")]
 		[NameMatch("L14")]
 		[NameMatch("L15")]
-		public void InsertMultipliers(GameObject go)
+		[NameMatch("L26")]
+		[NameMatch("L41")]
+		[NameMatch("L66")]
+		public void MidSizedTrianglesGreen(GameObject go)
 		{
-			SpotAngle(go, 96.4f, 47.8f);
 			Intensity(go, 3400f);
 		}
 
-		[NameMatch("L11")] public void Insert2xPos(GameObject go) => LightPos(go, 28.6f, 9.6f, -50f);
-		[NameMatch("L12")] public void Insert4xPos(GameObject go) => LightPos(go, 22.4f, 25.1f, -50f);
-		[NameMatch("L13")] public void InsertHoldBonus(GameObject go)
+		[NameMatch("L13")]
+		[NameMatch("L21")]
+		[NameMatch("L27")]
+		[NameMatch("L81")]
+		[NameMatch("L82")]
+		public void MidSizedTrianglesRed(GameObject go)
 		{
-			SpotAngle(go, 96.4f, 47.8f);
-			LightPos(go, 0f, 35f, -50f);
 			Intensity(go, 1850f);
 		}
+
+		[NameMatch("L85")]
+		public void MidSizedTrianglesWhite(GameObject go)
+		{
+			Intensity(go, 1850f);
+			LightColor(go, Color.white);
+		}
+
+		[NameMatch("L28")]
+		public void MidSizedTrianglesBlue(GameObject go)
+		{
+			Intensity(go, 12000f);
+			LightColor(go, new Color(0f, 0.4f, 1));
+		}
+
+		[NameMatch("L25")]
+		[NameMatch("L42")]
+		[NameMatch("L67")]
+		public void MidSizedTrianglesYellow(GameObject go)
+		{
+			Intensity(go, 1850f);
+			LightColor(go, Color.yellow);
+		}
+
+		#endregion
+
+		[NameMatch("L11")] public void Insert2xPos(GameObject go) => LightPos(go, 28.6f, 9.6f, -50f);
+		[NameMatch("L12")] public void Insert4xPos(GameObject go) => LightPos(go, 22.4f, 25.1f, -50f);
+		[NameMatch("L13")] public void InsertHoldBonus(GameObject go) => LightPos(go, 0f, 35f, -50f);
 		[NameMatch("L14")] public void Insert6xPos(GameObject go) => LightPos(go, -24.7f, 25.1f, -50f);
 		[NameMatch("L15")] public void Insert8xPos(GameObject go) => LightPos(go, -31.3f, 10.7f, -50f);
+		[NameMatch("L16")] public void BallSave(GameObject go) => LightPos(go, 0, -19.6f, -50f);
 
-		[NameMatch("L15")]
-		public void BallSave(GameObject go)
+		[NameMatch("L17")]
+		public void T2Mouth(GameObject go)
 		{
-			LightPos(go, 0, -19.6f, -50f);
-			SpotAngle(go, 64f, 67f);
-			Intensity(go, 1200f);
+			LightPos(go, 0f, 0f, -50f);
+			SpotAngle(go, 73f, 10f);
+			Intensity(go, 340f);
 		}
+
+		[NameMatch("L21")]
+		public void Kickback(GameObject go) => LightPos(go, -3f, -13.5f, -50f);
+
+		[NameMatch("L22a")]
+		[NameMatch("L22b")]
+		public void Special(GameObject go) => LightPos(go, 0, -15f, -50f);
+
+		[NameMatch("L23")]
+		[NameMatch("L24")]
+		public void HurryUp(GameObject go) => LightPos(go, 0, -16f, -50f);
+
+		[NameMatch("L25")]
+		[NameMatch("L26")]
+		[NameMatch("L27")]
+		[NameMatch("L28")]
+		[NameMatch("L85")]
+		public void LockLane(GameObject go) => LightPos(go, -6f, -35f, -50f);
+
 
 		[NameMatch("F117")]
 		public void AutoFire(GameObject go)
@@ -98,40 +261,114 @@ namespace VisualPinball.Unity.Patcher
 			Duplicate(go, 52f, 3.3f, -50f);
 		}
 
+		[NameMatch("L31")]
+		[NameMatch("L32")]
+		[NameMatch("L33")]
+		[NameMatch("L34")]
+		[NameMatch("L35")]
+		public void LeftSmallTriangles(GameObject go) => LightPos(go, -21f, -10f, -50f);
+
+		[NameMatch("L36")]
+		[NameMatch("L37")]
+		[NameMatch("L38")]
+		public void TopSmallTriangles(GameObject go) => LightPos(go, 1.7f, -25f, -50f);
+
+		[NameMatch("L41")]
+		[NameMatch("L42")]
+		public void LockVideo(GameObject go) => LightPos(go, -8.2f, -35f, -50f);
+
+		[NameMatch("L43")]
+		[NameMatch("L44")]
+		[NameMatch("L45")]
+		[NameMatch("L46")]
+		[NameMatch("L47")]
+		public void LeftRedRect(GameObject go) => LightPos(go, -6.1f, -12.3f, -50f);
+
+		[NameMatch("L48")]
+		public void LeftBottomRedRect(GameObject go) => LightPos(go, -2.4f, 16.6f, -50f);
+
+
+		[NameMatch("L51a")]
+		[NameMatch("L51b")]
+		public void T2Eyes(GameObject go)
+		{
+			LightPos(go, -2.2f, 0.8f, -50f);
+			SpotAngle(go, 27f, 60f);
+			Intensity(go, 1000f);
+		}
+
 		[NameMatch("L53")]
 		[NameMatch("L54")]
 		[NameMatch("L55")]
 		[NameMatch("L56")]
 		[NameMatch("L57")]
 		[NameMatch("L58")]
-		public void RightRedRect(GameObject go)
-		{
-			LightPos(go, 8.5f, -11.7f, -50f);
-			SpotAngle(go, 122f, 48f);
-			Intensity(go, 4500f);
-		}
+		public void RightRedRect(GameObject go) => LightPos(go, 8.5f, -11.7f, -50f);
 
 		[NameMatch("L61")]
 		[NameMatch("L62")]
 		[NameMatch("L63")]
 		[NameMatch("L64")]
 		[NameMatch("L65")]
-		public void LeftYellowRound(GameObject go)
-		{
-			LightPos(go, -4.3f, -18.2f, -50f);
-			LightColor(go, Color.yellow);
-		}
+		public void LeftYellowCircle(GameObject go) => LightPos(go, -4.3f, -18.2f, -50f);
+
+		[NameMatch("L66")]
+		[NameMatch("L67")]
+		public void LeftOuterTriangles(GameObject go) => LightPos(go, -14f, -24f, -50f);
+
+		[NameMatch("L68")]
+		public void Million(GameObject go) => LightPos(go, -6.6f, -31f, -50f);
 
 		[NameMatch("L71")]
 		[NameMatch("L72")]
 		[NameMatch("L73")]
 		[NameMatch("L74")]
 		[NameMatch("L75")]
-		public void RightYellowRound(GameObject go)
+		public void RightYellowCircle(GameObject go) => LightPos(go, 2.6f, -15.9f, -50f);
+
+		[NameMatch("L76")]
+		[NameMatch("L77")]
+		[NameMatch("L78")]
+		public void LiteKickback(GameObject go) => LightPos(go, -10.6f, 0f, -50f);
+
+		[NameMatch("L81")] public void L81(GameObject go) => LightPos(go, 15f, -40f, -50f);
+		[NameMatch("L82")] public void L82(GameObject go) => LightPos(go, 10f, -28f, -50f);
+		[NameMatch("L83")] public void L83(GameObject go) => LightPos(go, 13f, -37f, -50f);
+
+		[NameMatch("L86")]
+		[NameMatch("L87")]
+		[NameMatch("L88")]
+		public void TopTriangles(GameObject go)
 		{
-			LightPos(go, 2.6f, -15.9f, -50f);
+			LightPos(go, 0f, 6f, -50f);
+			Intensity(go, 6700f);
+			SpotAngle(go, 80f, 40f);
+		}
+
+		[NameMatch("Light2")]
+		[NameMatch("Light3")]
+		[NameMatch("Light4")]
+		[NameMatch("Light5")]
+		public void Boxes(GameObject go)
+		{
+			LightPos(go, 0f, -7, -50f);
+			PyramidAngle(go, 40f, 2.74f);
+		}
+
+		[NameMatch("Light4")]
+		public void BlueBox(GameObject go)
+		{
+			Intensity(go, 12000f);
+			LightColor(go, new Color(0f, 0.4f, 1));
+		}
+
+		[NameMatch("Light5")]
+		public void YellowBox(GameObject go)
+		{
+			Intensity(go, 670f);
 			LightColor(go, Color.yellow);
 		}
+
 
 		#region Helpers
 
@@ -148,6 +385,14 @@ namespace VisualPinball.Unity.Patcher
 			var lights = go.GetComponentsInChildren<Light>();
 			foreach (var light in lights) {
 				RenderPipeline.Current.LightConverter.SpotLight(light, outer, inner);
+			}
+		}
+
+		private static void PyramidAngle(GameObject go, float angle, float ar)
+		{
+			var lights = go.GetComponentsInChildren<Light>();
+			foreach (var light in lights) {
+				RenderPipeline.Current.LightConverter.PyramidAngle(light, angle, ar);
 			}
 		}
 
