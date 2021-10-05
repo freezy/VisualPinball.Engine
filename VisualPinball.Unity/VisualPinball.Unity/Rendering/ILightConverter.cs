@@ -54,5 +54,7 @@ namespace VisualPinball.Unity
 		/// <param name="outer">Outer angle</param>
 		/// <param name="innerPercent">Inner angle in percent of outer angle</param>
 		void SpotLight(Light light, float outer, float innerPercent);
+
+		void PyramidAngle(Light light, float angle, float aspectRatio);
 	}
 }
