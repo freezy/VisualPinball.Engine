@@ -98,7 +98,25 @@ namespace VisualPinball.Engine.Math
 
 	public enum ColorChannel
 	{
-		Red, Green, Blue, Alpha
+		/// <summary>
+		/// The red channel for RGB lamps.
+		/// </summary>
+		Red,
+
+		/// <summary>
+		/// The green channel for RGB lamps.
+		/// </summary>
+		Green,
+
+		/// <summary>
+		/// The blue channel for RBG lamps.
+		/// </summary>
+		Blue,
+
+		/// <summary>
+		/// The intensity for white lamps.
+		/// </summary>
+		Alpha,
 	}
 
 	public static class Colors

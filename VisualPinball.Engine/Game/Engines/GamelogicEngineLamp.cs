@@ -17,30 +17,68 @@
 // ReSharper disable InconsistentNaming
 
 using System;
+using VisualPinball.Engine.Math;
 
 namespace VisualPinball.Engine.Game.Engines
 {
 	[Serializable]
 	public class GamelogicEngineLamp : IGamelogicEngineDeviceItem
 	{
-	public string Id { get; set; }
-	public int InternalId;
-	public string Description { get; set; }
-	public string DeviceHint;
-	public string DeviceItemHint;
-	public string MainLampIdOfGreen;
-	public string MainLampIdOfBlue;
+		/// <summary>
+		/// The unique ID of this lamp, as the gamelogic engine addresses it.
+		/// </summary>
+		public string Id { get; set; }
 
-	public GamelogicEngineLamp(string id)
-	{
-		Id = id;
-		InternalId = int.TryParse(id, out var internalId) ? internalId : 0;
+		/// <summary>
+		/// Some gamelogic engines use integers for the ID. In order to avoid repetitive casting, we store it as integer as well.
+		/// </summary>
+		public int InternalId;
+
+		/// <summary>
+		/// Which channel this lamp corresponds to.
+		/// </summary>
+		public ColorChannel Channel = ColorChannel.Alpha;
+
+		/// <summary>
+		/// An optional description of the lamp.
+		/// </summary>
+		public string Description { get; set; }
+
+		/// <summary>
+		/// How the gamelogic engine triggers the lamp. Either through GI or through the normal lamp API.
+		/// </summary>
+		///
+		/// <remarks>
+		/// Note that lamps connected to coils will appear under coils.
+		/// </remarks>
+		public LampSource Source = LampSource.Lamp;
+
+		/// <summary>
+		/// A regular expression to match the component on the playfield.
+		/// </summary>
+		public string DeviceHint;
+
+		/// <summary>
+		/// A regular expression to match the lamp component within the component.
+		/// </summary>
+		public string DeviceItemHint;
+
+		public GamelogicEngineLamp(string id)
+		{
+			Id = id;
+			InternalId = int.TryParse(id, out var internalId) ? internalId : 0;
+		}
+
+		public GamelogicEngineLamp(string id, int internalId)
+		{
+			Id = id;
+			InternalId = internalId;
+		}
 	}
 
-	public GamelogicEngineLamp(string id, int internalId)
+	public enum LampSource
 	{
-		Id = id;
-		InternalId = internalId;
-	}
+		Lamp = 0,
+		GI = 1,
 	}
 }

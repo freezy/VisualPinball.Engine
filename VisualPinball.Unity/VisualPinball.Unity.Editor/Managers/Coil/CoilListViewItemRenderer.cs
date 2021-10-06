@@ -76,7 +76,7 @@ namespace VisualPinball.Unity.Editor
 		private void UpdateId(CoilListData data, string id)
 		{
 			if (data.Destination == CoilDestination.Lamp) {
-				var lampEntry = _tableComponent.MappingConfig.Lamps.FirstOrDefault(l => l.Id == data.Id && l.Source == LampSource.Coils);
+				var lampEntry = _tableComponent.MappingConfig.Lamps.FirstOrDefault(l => l.Id == data.Id && l.IsCoil);
 				if (lampEntry != null) {
 					lampEntry.Id = id;
 					LampManager.Refresh();
@@ -95,7 +95,7 @@ namespace VisualPinball.Unity.Editor
 				{
 					if (coilListData.Destination == CoilDestination.Lamp) {
 
-						var lampEntry = _tableComponent.MappingConfig.Lamps.FirstOrDefault(l => l.Id == coilListData.Id && l.Source == LampSource.Coils);
+						var lampEntry = _tableComponent.MappingConfig.Lamps.FirstOrDefault(l => l.Id == coilListData.Id && l.IsCoil);
 						if (lampEntry != null) {
 							_tableComponent.MappingConfig.RemoveLamp(lampEntry);
 							LampManager.Refresh();
@@ -104,7 +104,8 @@ namespace VisualPinball.Unity.Editor
 					} else if (index == CoilDestination.Lamp) {
 						_tableComponent.MappingConfig.AddLamp(new LampMapping {
 							Id = coilListData.Id,
-							Source = LampSource.Coils,
+							Source = LampSource.Lamp,
+							IsCoil = true,
 							Description = coilListData.Description
 						});
 						LampManager.Refresh();

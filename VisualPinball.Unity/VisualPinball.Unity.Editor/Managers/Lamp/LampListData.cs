@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using VisualPinball.Engine.Game.Engines;
+using VisualPinball.Engine.Math;
 
 namespace VisualPinball.Unity.Editor
 {
@@ -25,39 +26,40 @@ namespace VisualPinball.Unity.Editor
 
 		public int InternalId { get; set; }
 
-		[ManagerListColumn(Order = 1, HeaderName = "Description", Width = 150)]
+		[ManagerListColumn(Order = 1, HeaderName = "Description", Width = 300)]
 		public string Description { get; set; }
 
-		[ManagerListColumn(Order = 2, HeaderName = "Element", Width = 200)]
-		public string Element;
-
-		[ManagerListColumn(Order = 3, HeaderName = "Type", Width = 110)]
-		public LampType Type;
-
-		[ManagerListColumn(Order = 4, HeaderName = "R G B", Width = 300)]
-		public string Green;
-		public string Blue;
-
-		public string Id;
-		public string PlayfieldItem;
-		public ILampDeviceComponent Device;
-		public string DeviceItem { get; set; }
+		[ManagerListColumn(Order = 2, HeaderName = "Source", Width = 80)]
 		public LampSource Source;
 
+		[ManagerListColumn(Order = 3, HeaderName = "Type", Width = 120)]
+		public LampType Type;
+
+		[ManagerListColumn(Order = 4, HeaderName = "Element", Width = 300)]
+		public string DeviceItem { get; set; }
+
+		[ManagerListColumn(Order = 5, HeaderName = "Channel", Width = 100)]
+		public ColorChannel Channel;
+
+		public string Id;
+		public readonly bool IsCoil;
+		public ILampDeviceComponent Device;
+
 		public LampMapping LampMapping;
-		
+
 		public IDeviceComponent<GamelogicEngineLamp> DeviceComponent => Device;
 
 		public LampListData(LampMapping lampMapping)
 		{
 			Id = lampMapping.Id;
+			InternalId = lampMapping.InternalId;
+			IsCoil = lampMapping.IsCoil;
 			Source = lampMapping.Source;
 			Description = lampMapping.Description;
 			Device = lampMapping.Device;
 			DeviceItem = lampMapping.DeviceItem;
 			Type = lampMapping.Type;
-			Green = lampMapping.Green;
-			Blue = lampMapping.Blue;
+			Channel = lampMapping.Channel;
 
 			LampMapping = lampMapping;
 		}
@@ -65,13 +67,14 @@ namespace VisualPinball.Unity.Editor
 		public void Update()
 		{
 			LampMapping.Id = Id;
+			LampMapping.InternalId = InternalId;
+			LampMapping.IsCoil = IsCoil;
 			LampMapping.Source = Source;
 			LampMapping.Description = Description;
 			LampMapping.Device = Device;
 			LampMapping.DeviceItem = DeviceItem;
 			LampMapping.Type = Type;
-			LampMapping.Green = Green;
-			LampMapping.Blue = Blue;
+			LampMapping.Channel = Channel;
 		}
 	}
 }

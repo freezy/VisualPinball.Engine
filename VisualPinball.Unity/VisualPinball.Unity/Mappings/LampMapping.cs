@@ -18,6 +18,8 @@
 
 using System;
 using UnityEngine;
+using VisualPinball.Engine.Game.Engines;
+using VisualPinball.Engine.Math;
 
 namespace VisualPinball.Unity
 {
@@ -26,7 +28,11 @@ namespace VisualPinball.Unity
 	{
 		public string Id = string.Empty;
 
-		public LampSource Source = LampSource.Lamps;
+		public int InternalId;
+
+		public LampSource Source = LampSource.Lamp;
+
+		public bool IsCoil;
 
 		public string Description = string.Empty;
 
@@ -38,8 +44,6 @@ namespace VisualPinball.Unity
 
 		public LampType Type = LampType.SingleOnOff;
 
-		public string Green = string.Empty;
-
-		public string Blue = string.Empty;
+		public ColorChannel Channel = ColorChannel.Alpha;
 	}
 }

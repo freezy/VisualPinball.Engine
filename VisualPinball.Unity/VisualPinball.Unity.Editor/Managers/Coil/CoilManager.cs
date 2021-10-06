@@ -138,7 +138,7 @@ namespace VisualPinball.Unity.Editor
 
 			// todo if it's a lamp, also delete the lamp entry.
 			if (data.CoilMapping.Destination == CoilDestination.Lamp) {
-				var lampEntry = TableComponent.MappingConfig.Lamps.FirstOrDefault(l => l.Id == data.Id && l.Source == LampSource.Coils);
+				var lampEntry = TableComponent.MappingConfig.Lamps.FirstOrDefault(l => l.Id == data.Id && l.IsCoil);
 				if (lampEntry != null) {
 					TableComponent.MappingConfig.RemoveLamp(lampEntry);
 					LampManager.Refresh();
