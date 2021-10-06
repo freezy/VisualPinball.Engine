@@ -169,7 +169,7 @@ namespace VisualPinball.Unity.Test
 			tableComponent.MappingConfig.Coils.Count.Should().Be(1);
 			tableComponent.MappingConfig.Lamps.Count.Should().Be(1);
 			tableComponent.MappingConfig.Lamps[0].Id.Should().Be("yyy");
-			tableComponent.MappingConfig.Lamps[0].Source.Should().Be(LampSource.Coils);
+			tableComponent.MappingConfig.Lamps[0].IsCoil.Should().Be(true);
 		}
 
 		[Test]

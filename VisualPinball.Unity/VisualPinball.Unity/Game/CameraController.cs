@@ -139,8 +139,6 @@ namespace VisualPinball.Unity
 
 			if(Mouse.current != null)
 			{
-				Debug.Log("I has mouse");
-
 				var trans = Camera.transform;
 				var altitude = trans.transform.parent;
 				var azimuth = altitude.parent;

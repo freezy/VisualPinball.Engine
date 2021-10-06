@@ -245,12 +245,13 @@ namespace VisualPinball.Unity
 			AddLamp(new LampMapping {
 				Id = engineCoil.Id,
 				Description = engineCoil.Description,
-				Source = LampSource.Coils
+				Source = LampSource.Lamp,
+				IsCoil = true,
 			});
 			return CoilDestination.Lamp;
 		}
 
-		private static ICoilDeviceComponent GuessCoilDevice(ICoilDeviceComponent[] coilDevices, GamelogicEngineCoil engineCoil)
+		private static ICoilDeviceComponent GuessCoilDevice(IEnumerable<ICoilDeviceComponent> coilDevices, GamelogicEngineCoil engineCoil)
 		{
 			foreach (var device in coilDevices) {
 				if (string.Equals(device.name, engineCoil.Id, StringComparison.OrdinalIgnoreCase)) {
@@ -323,7 +324,7 @@ namespace VisualPinball.Unity
 		{
 			Coils.Remove(coilMapping);
 			if (coilMapping.Destination == CoilDestination.Lamp) {
-				var lamp = Lamps.FirstOrDefault(l => l.Id == coilMapping.Id && l.Source == LampSource.Coils);
+				var lamp = Lamps.FirstOrDefault(l => l.Id == coilMapping.Id && l.IsCoil);
 				if (lamp != null) {
 					Lamps.Remove(lamp);
 				}
@@ -333,7 +334,7 @@ namespace VisualPinball.Unity
 		public void RemoveAllCoils()
 		{
 			Coils.Clear();
-			Lamps = Lamps.Where(l => l.Source != LampSource.Coils).ToList();
+			Lamps = Lamps.Where(l => !l.IsCoil).ToList();
 		}
 
 		#endregion
@@ -359,7 +360,7 @@ namespace VisualPinball.Unity
 
 		#region Lamps
 
-				/// <summary>
+		/// <summary>
 		/// Auto-matches the lamps provided by the gamelogic engine with the
 		/// lamps on the playfield.
 		/// </summary>
@@ -368,17 +369,10 @@ namespace VisualPinball.Unity
 		public void PopulateLamps(GamelogicEngineLamp[] engineLamps, TableComponent tableComponent)
 		{
 			var lamps = tableComponent.GetComponentsInChildren<ILampDeviceComponent>();
-			var gbLamps = new List<GamelogicEngineLamp>();
 			foreach (var engineLamp in GetLamps(engineLamps)) {
 
-				var lampMapping = Lamps.FirstOrDefault(mappingsLampData => mappingsLampData.Id == engineLamp.Id && mappingsLampData.Source != LampSource.Coils);
+				var lampMapping = Lamps.FirstOrDefault(mappingsLampData => mappingsLampData.Id == engineLamp.Id && !mappingsLampData.IsCoil);
 				if (lampMapping != null) {
-					continue;
-				}
-
-				// we'll handle those in a second loop when all the R lamps are added
-				if (!string.IsNullOrEmpty(engineLamp.MainLampIdOfGreen) || !string.IsNullOrEmpty(engineLamp.MainLampIdOfBlue)) {
-					gbLamps.Add(engineLamp);
 					continue;
 				}
 
@@ -388,33 +382,12 @@ namespace VisualPinball.Unity
 
 				AddLamp(new LampMapping {
 					Id = engineLamp.Id,
+					Channel = engineLamp.Channel,
+					Source = engineLamp.Source,
 					Description = description,
 					Device = device,
 					DeviceItem = deviceItem != null ? deviceItem.Id : string.Empty,
 				});
-			}
-
-			foreach (var gbLamp in gbLamps) {
-				var rLampId = !string.IsNullOrEmpty(gbLamp.MainLampIdOfGreen) ? gbLamp.MainLampIdOfGreen : gbLamp.MainLampIdOfBlue;
-				var rLamp = Lamps.FirstOrDefault(c => c.Id == rLampId);
-				if (rLamp == null) {
-					var device = GuessLampDevice(lamps, gbLamp);
-					var deviceItem = GuessLampDeviceItem(gbLamp, device);
-					rLamp = new LampMapping {
-						Id = rLampId,
-						Device = device,
-						DeviceItem = deviceItem != null ? deviceItem.Id : string.Empty,
-					};
-					AddLamp(rLamp);
-				}
-
-				rLamp.Type = LampType.RgbMulti;
-				if (!string.IsNullOrEmpty(gbLamp.MainLampIdOfGreen)) {
-					rLamp.Green = gbLamp.Id;
-
-				} else {
-					rLamp.Blue = gbLamp.Id;
-				}
 			}
 		}
 
@@ -501,7 +474,7 @@ namespace VisualPinball.Unity
 
 		public void RemoveAllLamps()
 		{
-			Lamps = Lamps.Where(l => l.Source == LampSource.Coils).ToList();
+			Lamps = Lamps.Where(l => l.IsCoil).ToList();
 		}
 
 		#endregion

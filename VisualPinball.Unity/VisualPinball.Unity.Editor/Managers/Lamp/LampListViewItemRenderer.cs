@@ -19,6 +19,8 @@ using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
 using VisualPinball.Engine.Game.Engines;
+using VisualPinball.Engine.Math;
+using Color = UnityEngine.Color;
 
 namespace VisualPinball.Unity.Editor
 {
@@ -32,9 +34,10 @@ namespace VisualPinball.Unity.Editor
 		{
 			Id = 0,
 			Description = 1,
-			Element = 2,
+			Source = 2,
 			Type = 3,
-			Color = 4,
+			Element = 4,
+			Channel = 5,
 		}
 
 		private readonly List<GamelogicEngineLamp> _gleLamps;
@@ -56,7 +59,7 @@ namespace VisualPinball.Unity.Editor
 
 			switch ((LampListColumn)column) {
 				case LampListColumn.Id:
-					if (data.Source == LampSource.Coils) {
+					if (data.IsCoil) {
 						RenderCoilId(lampStatuses, data, cellRect);
 					} else {
 						RenderId(lampStatuses, ref data.Id, id => data.Id = id, data, cellRect, updateAction);
@@ -65,19 +68,19 @@ namespace VisualPinball.Unity.Editor
 				case LampListColumn.Description:
 					RenderDescription(data, cellRect, updateAction);
 					break;
-				case LampListColumn.Element:
-					RenderDevice(data, cellRect, updateAction);
+				case LampListColumn.Source:
+					RenderSource(data, cellRect, updateAction);
 					break;
 				case LampListColumn.Type:
 					RenderType(data, cellRect, updateAction);
 					break;
-				case LampListColumn.Color:
-					switch (data.Type) {
-						case LampType.RgbMulti:
-							RenderRgb(lampStatuses, data, cellRect, updateAction);
-							break;
-					}
+				case LampListColumn.Element:
+					RenderDevice(data, cellRect, updateAction);
 					break;
+				case LampListColumn.Channel:
+					RenderChannel(data, cellRect, updateAction);
+					break;
+
 			}
 			EditorGUI.EndDisabledGroup();
 		}
@@ -123,17 +126,27 @@ namespace VisualPinball.Unity.Editor
 			}
 		}
 
-		private void RenderRgb(Dictionary<string, float> lampStatuses, LampListData data, Rect cellRect, Action<LampListData> updateAction)
+		private void RenderSource(LampListData lampListData, Rect cellRect, Action<LampListData> updateAction)
 		{
-			var pad = 2;
-			var width = cellRect.width / 3;
-			var c = cellRect;
-			c.width = width - pad;
-			RenderId(lampStatuses, ref data.Id, id => data.Id = id, data, c, updateAction);
-			c.x += width + pad;
-			RenderId(lampStatuses, ref data.Green, id => data.Green = id, data, c, updateAction);
-			c.x += width + pad;
-			RenderId(lampStatuses, ref data.Blue, id => data.Blue = id, data, c, updateAction);
+			EditorGUI.BeginChangeCheck();
+			var source = (LampSource)EditorGUI.EnumPopup(cellRect, lampListData.Source);
+			if (EditorGUI.EndChangeCheck()) {
+				lampListData.Source = source;
+				updateAction(lampListData);
+			}
+		}
+
+		private void RenderChannel(LampListData lampListData, Rect cellRect, Action<LampListData> updateAction)
+		{
+			if (lampListData.Type != LampType.RgbMulti) {
+				return;
+			}
+			EditorGUI.BeginChangeCheck();
+			var channel = (ColorChannel)EditorGUI.EnumPopup(cellRect, lampListData.Channel);
+			if (EditorGUI.EndChangeCheck()) {
+				lampListData.Channel = channel;
+				updateAction(lampListData);
+			}
 		}
 
 		protected override Texture GetIcon(LampListData lampListData)

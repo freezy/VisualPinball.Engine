@@ -204,18 +204,25 @@ namespace VisualPinball.Unity
 		/// </summary>
 		public readonly LampSource Source;
 
-		public LampEventArgs(string id, int value)
-		{
-			Id = id;
-			Value = value;
-			Source = LampSource.Lamps;
-		}
+		/// <summary>
+		/// True if it was triggered by a coil.
+		/// </summary>
+		public readonly bool IsCoil;
 
-		public LampEventArgs(string id, int value, LampSource source)
+		public LampEventArgs(string id, int value, LampSource source = LampSource.Lamp)
 		{
 			Id = id;
 			Value = value;
 			Source = source;
+			IsCoil = false;
+		}
+
+		public LampEventArgs(string id, int value, bool isCoil)
+		{
+			Id = id;
+			Value = value;
+			Source = LampSource.Lamp;
+			IsCoil = isCoil;
 		}
 	}
 

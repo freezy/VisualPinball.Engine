@@ -149,12 +149,13 @@ namespace VisualPinball.Unity.Editor
 
 			TableComponent.MappingConfig.AddLamp(new LampMapping {
 				Id = data.Id,
+				InternalId = data.InternalId,
 				Description = data.Description,
 				Device = data.Device,
 				DeviceItem = data.DeviceItem,
 				Type = data.Type,
-				Blue = data.Blue,
-				Green = data.Green,
+				Source = data.Source,
+				IsCoil = data.IsCoil,
 			});
 		}
 		#endregion

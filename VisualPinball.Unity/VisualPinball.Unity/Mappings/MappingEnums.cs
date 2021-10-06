@@ -48,12 +48,6 @@ namespace VisualPinball.Unity
 		Pulse = 1,
 	}
 
-	public enum LampSource
-	{
-		Lamps = 0,
-		Coils = 1,
-	}
-
 	public enum LampType
 	{
 		SingleOnOff = 0,
