@@ -32,6 +32,8 @@ namespace VisualPinball.Unity
 
 		public LampSource Source = LampSource.Lamp;
 
+		public int FadingSteps;
+
 		public bool IsCoil;
 
 		public string Description = string.Empty;

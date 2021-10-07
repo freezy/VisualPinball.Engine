@@ -23,6 +23,7 @@ using System.Text.RegularExpressions;
 using UnityEngine;
 using VisualPinball.Engine.Common;
 using VisualPinball.Engine.Game.Engines;
+using VisualPinball.Engine.Math;
 
 namespace VisualPinball.Unity
 {
@@ -387,6 +388,8 @@ namespace VisualPinball.Unity
 					Description = description,
 					Device = device,
 					DeviceItem = deviceItem != null ? deviceItem.Id : string.Empty,
+					Type = GuessLampType(engineLamp),
+					FadingSteps = engineLamp.FadingSteps,
 				});
 			}
 		}
@@ -460,6 +463,17 @@ namespace VisualPinball.Unity
 				}
 			}
 			return null;
+		}
+
+		private static LampType GuessLampType(GamelogicEngineLamp engineLamp)
+		{
+			if (engineLamp.Channel != ColorChannel.Alpha) {
+				return LampType.RgbMulti;
+			}
+
+			return engineLamp.FadingSteps > 0
+				? LampType.SingleFading
+				: LampType.SingleOnOff;
 		}
 
 		public void AddLamp(LampMapping lampMapping)
