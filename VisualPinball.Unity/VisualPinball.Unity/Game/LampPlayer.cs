@@ -94,27 +94,33 @@ namespace VisualPinball.Unity
 					}
 					if (_lamps.ContainsKey(component)) {
 						var lamp = _lamps[component];
+						var value = 0f;
+						var channel = ColorChannel.Alpha;
 						switch (mapping.Type) {
-							case LampType.SingleOnOff: {
-								var value = lampEvent.Value > 0 ? 1f : 0f;
-								lamp.OnLamp(value, ColorChannel.Alpha);
-								LampStatuses[lampEvent.Id] = value;
+							case LampType.SingleOnOff:
+								value = lampEvent.Value > 0 ? 1f : 0f;
 								break;
-							}
 
 							case LampType.Rgb:
-							case LampType.RgbMulti:
-							case LampType.SingleFading: {
-								var value = lampEvent.Value / 255f;
-								lamp.OnLamp(value, mapping.Type == LampType.RgbMulti ? mapping.Channel : ColorChannel.Alpha);
-								LampStatuses[lampEvent.Id] = value;
+								value = lampEvent.Value / 255f; // todo test
+
 								break;
-							}
+							case LampType.RgbMulti:
+								value = lampEvent.Value / 255f; // todo test
+								channel = mapping.Channel;
+								break;
+
+							case LampType.SingleFading:
+								value = lampEvent.Value / (float)mapping.FadingSteps;
+								break;
 
 							default:
 								Logger.Error($"Unknown mapping type \"{mapping.Type}\" of lamp ID {lampEvent.Id} for light {component}.");
 								break;
 						}
+
+						lamp.OnLamp(value, channel);
+						LampStatuses[lampEvent.Id] = value;
 
 					} else {
 						Logger.Error($"Cannot trigger unknown lamp {component}.");
