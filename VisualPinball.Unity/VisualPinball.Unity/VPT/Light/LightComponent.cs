@@ -130,19 +130,25 @@ namespace VisualPinball.Unity
 
 		#region Runtime
 
-		private UnityEngine.Light _unityLight;
+		private UnityEngine.Light[] _unityLights;
 		private float _fullIntensity;
 
 		public bool Enabled {
 			set {
 				StopAllCoroutines();
-				_unityLight.enabled = value;
+				foreach (var unityLight in _unityLights) {
+					unityLight.enabled = value;
+				}
 			}
 		}
 
 		public Color Color {
-			get => _unityLight.color;
-			set => _unityLight.color = value;
+			get => _unityLights[0].color;
+			set {
+				foreach (var unityLight in _unityLights) {
+					unityLight.color = value;
+				}
+			}
 		}
 
 		private void Awake()
@@ -154,9 +160,9 @@ namespace VisualPinball.Unity
 			}
 
 			player.RegisterLamp(this);
-			_unityLight = GetComponentInChildren<UnityEngine.Light>();
-			if (_unityLight) {
-				_fullIntensity = _unityLight.intensity;
+			_unityLights = GetComponentsInChildren<UnityEngine.Light>();
+			if (_unityLights.Length > 0) {
+				_fullIntensity = _unityLights[0].intensity;
 			}
 		}
 
@@ -195,7 +201,7 @@ namespace VisualPinball.Unity
 		{
 			var counter = 0f;
 
-			var a = _unityLight.intensity;
+			var a = _unityLights[0].intensity;
 			var b = _fullIntensity * value;
 			var duration = a < b
 				? FadeSpeedUp * (_fullIntensity - a) / _fullIntensity
@@ -203,7 +209,9 @@ namespace VisualPinball.Unity
 
 			while (counter < duration) {
 				counter += Time.deltaTime;
-				_unityLight.intensity = Mathf.Lerp(a, b, counter / duration);
+				foreach (var unityLight in _unityLights) {
+					unityLight.intensity = Mathf.Lerp(a, b, counter / duration);
+				}
 				yield return null;
 			}
 		}
