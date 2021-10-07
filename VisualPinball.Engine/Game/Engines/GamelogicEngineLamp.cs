@@ -40,6 +40,11 @@ namespace VisualPinball.Engine.Game.Engines
 		public ColorChannel Channel = ColorChannel.Alpha;
 
 		/// <summary>
+		/// If it's a fading light, this is the value at maximal intensity.
+		/// </summary>
+		public int FadingSteps;
+
+		/// <summary>
 		/// An optional description of the lamp.
 		/// </summary>
 		public string Description { get; set; }

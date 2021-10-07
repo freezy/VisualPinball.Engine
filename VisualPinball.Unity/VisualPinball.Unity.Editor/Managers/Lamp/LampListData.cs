@@ -41,6 +41,9 @@ namespace VisualPinball.Unity.Editor
 		[ManagerListColumn(Order = 5, HeaderName = "Channel", Width = 100)]
 		public ColorChannel Channel;
 
+		[ManagerListColumn(Order = 6, HeaderName = "Max. Intensity", Width = 100)]
+		public int FadingSteps;
+
 		public string Id;
 		public readonly bool IsCoil;
 		public ILampDeviceComponent Device;
@@ -60,6 +63,7 @@ namespace VisualPinball.Unity.Editor
 			DeviceItem = lampMapping.DeviceItem;
 			Type = lampMapping.Type;
 			Channel = lampMapping.Channel;
+			FadingSteps = lampMapping.FadingSteps;
 
 			LampMapping = lampMapping;
 		}
@@ -75,6 +79,7 @@ namespace VisualPinball.Unity.Editor
 			LampMapping.DeviceItem = DeviceItem;
 			LampMapping.Type = Type;
 			LampMapping.Channel = Channel;
+			LampMapping.FadingSteps = FadingSteps;
 		}
 	}
 }

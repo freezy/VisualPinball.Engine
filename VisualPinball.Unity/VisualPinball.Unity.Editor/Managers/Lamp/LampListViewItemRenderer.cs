@@ -38,6 +38,7 @@ namespace VisualPinball.Unity.Editor
 			Type = 3,
 			Element = 4,
 			Channel = 5,
+			FadingSteps = 6,
 		}
 
 		private readonly List<GamelogicEngineLamp> _gleLamps;
@@ -79,6 +80,9 @@ namespace VisualPinball.Unity.Editor
 					break;
 				case LampListColumn.Channel:
 					RenderChannel(data, cellRect, updateAction);
+					break;
+				case LampListColumn.FadingSteps:
+					RenderFadingSteps(data, cellRect, updateAction);
 					break;
 
 			}
@@ -145,6 +149,19 @@ namespace VisualPinball.Unity.Editor
 			var channel = (ColorChannel)EditorGUI.EnumPopup(cellRect, lampListData.Channel);
 			if (EditorGUI.EndChangeCheck()) {
 				lampListData.Channel = channel;
+				updateAction(lampListData);
+			}
+		}
+
+		private void RenderFadingSteps(LampListData lampListData, Rect cellRect, Action<LampListData> updateAction)
+		{
+			if (lampListData.Type != LampType.SingleFading) {
+				return;
+			}
+			EditorGUI.BeginChangeCheck();
+			var value = EditorGUI.IntField(cellRect, lampListData.FadingSteps);
+			if (EditorGUI.EndChangeCheck()) {
+				lampListData.FadingSteps = value;
 				updateAction(lampListData);
 			}
 		}
