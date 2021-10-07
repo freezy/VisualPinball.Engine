@@ -37,13 +37,13 @@ namespace VisualPinball.Unity
 		}
 
 		private int _state;
-		private readonly LightComponent[] _lightComponents;
+		private readonly LightComponent _lightComponent;
 
 		void IApiWireDest.OnChange(bool enabled) => Set(
 			enabled ? LightStatus.LightStateOn : LightStatus.LightStateOff,
 			enabled ? 1.0f : 0f);
 
-		public Color Color { get => _lightComponents[0].Color; set => Do(l => l.Color = value); }
+		public Color Color { get => _lightComponent.Color; set => _lightComponent.Color = value; }
 
 		IApiWireDest IApiWireDeviceDest.Wire(string deviceItem) => this;
 
@@ -54,27 +54,24 @@ namespace VisualPinball.Unity
 					Set(value == 0.0f ? LightStatus.LightStateOff : LightStatus.LightStateOn, value);
 					break;
 				}
-				case ColorChannel.Red:
-					Do(l => {
-						var color = l.Color;
-						color.r = value;
-						l.Color = color;
-					});
+				case ColorChannel.Red: {
+					var color = _lightComponent.Color;
+					color.r = value;
+					_lightComponent.Color = color;
 					break;
-				case ColorChannel.Green:
-					Do(l => {
-						var color = l.Color;
-						color.g = value;
-						l.Color = color;
-					});
+				}
+				case ColorChannel.Green: {
+					var color = _lightComponent.Color;
+					color.g = value;
+					_lightComponent.Color = color;
 					break;
-				case ColorChannel.Blue:
-					Do(l => {
-						var color = l.Color;
-						color.b = value;
-						l.Color = color;
-					});
+				}
+				case ColorChannel.Blue: {
+					var color = _lightComponent.Color;
+					color.b = value;
+					_lightComponent.Color = color;
 					break;
+				}
 				default:
 					throw new ArgumentOutOfRangeException(nameof(channel), channel, null);
 			}
@@ -82,51 +79,42 @@ namespace VisualPinball.Unity
 
 		void IApiLamp.OnLampColor(Color color)
 		{
-			Do(l => l.Color = color);
+			_lightComponent.Color = color;
 		}
 
 		internal LightApi(GameObject go, Player player) : base(go, player)
 		{
-			_lightComponents = go.GetComponentsInChildren<LightComponent>();
-			_state = _lightComponents[0].State;
-		}
-
-		private void Do(Action<LightComponent> action)
-		{
-			foreach (var t in _lightComponents) {
-				action(t);
-			}
+			_lightComponent = go.GetComponentInChildren<LightComponent>();
+			_state = _lightComponent.State;
 		}
 
 		private void Set(int lightStatus, float value)
 		{
 			switch (lightStatus) {
-				case LightStatus.LightStateOff:
-					Do(l => {
-						if (l.FadeSpeedDown > 0) {
-							l.FadeTo(0);
+				case LightStatus.LightStateOff: {
+					if (MainComponent.FadeSpeedDown > 0) {
+						_lightComponent.FadeTo(0);
 
-						} else {
-							l.Enabled = false;
-						}
-					});
+					} else {
+						_lightComponent.Enabled = false;
+					}
 					break;
-				case LightStatus.LightStateOn:
-					Do(l => {
-						if (l.FadeSpeedUp > 0) {
-							l.FadeTo(value);
+				}
 
-						} else {
-							l.Enabled = true;
-						}
-					});
-					break;
+				case LightStatus.LightStateOn: {
+					if (MainComponent.FadeSpeedUp > 0) {
+						_lightComponent.FadeTo(value);
 
-				case LightStatus.LightStateBlinking:
-					Do(l => {
-						l.StartBlinking();
-					});
+					} else {
+						_lightComponent.Enabled = true;
+					}
 					break;
+				}
+
+				case LightStatus.LightStateBlinking: {
+					_lightComponent.StartBlinking();
+					break;
+				}
 
 				default:
 					throw new ArgumentOutOfRangeException();
