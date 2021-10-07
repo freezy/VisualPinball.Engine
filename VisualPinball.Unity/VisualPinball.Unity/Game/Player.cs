@@ -221,7 +221,12 @@ namespace VisualPinball.Unity
 
 		public void RegisterLamp(LightComponent component)
 		{
-			Register(new LightApi(component.gameObject, this), component);
+			Register(component.GetApi(this), component);
+		}
+
+		public void RegisterLampGroup(LightGroupComponent component)
+		{
+			Register(new LightGroupApi(component.Lights.Select(l => l.GetApi(this)).ToArray()), component);
 		}
 
 		public void RegisterPlunger(PlungerComponent component, Entity entity, Entity parentEntity, InputActionReference actionRef)

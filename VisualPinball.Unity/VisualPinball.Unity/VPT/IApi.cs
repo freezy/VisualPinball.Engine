@@ -27,9 +27,11 @@ namespace VisualPinball.Unity
 	/// </summary>
 	public interface IApi
 	{
-		void OnDestroy();
+		public event EventHandler Init;
 
 		void OnInit(BallManager ballManager);
+
+		void OnDestroy();
 	}
 
 	/// <summary>
