@@ -16,6 +16,7 @@
 
 // ReSharper disable AssignmentInConditionalExpression
 
+using System.Collections.Generic;
 using System.Linq;
 using UnityEditor;
 using UnityEngine;
@@ -74,6 +75,16 @@ namespace VisualPinball.Unity.Editor
 			base.OnInspectorGUI();
 
 			EndEditing();
+
+			GUILayout.Space(10);
+			if (GUILayout.Button("Select Light Sources")) {
+				var selection = new List<Object>();
+				foreach (var lightComponent in _lightGroupComponent.Lights) {
+					selection.AddRange(lightComponent.GetComponentsInChildren<Light>().Select(l => l.gameObject));
+				}
+
+				Selection.objects = selection.ToArray();
+			}
 		}
 	}
 }

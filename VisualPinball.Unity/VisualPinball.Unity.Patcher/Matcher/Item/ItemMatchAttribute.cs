@@ -16,7 +16,6 @@
 
 using System;
 using UnityEngine;
-using VisualPinball.Engine.Game;
 using VisualPinball.Engine.VPT.Table;
 
 namespace VisualPinball.Unity.Patcher

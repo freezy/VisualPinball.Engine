@@ -17,15 +17,32 @@
 // ReSharper disable StringLiteralTypo
 // ReSharper disable InconsistentNaming
 // ReSharper disable UnusedMember.Global
+// ReSharper disable UnusedType.Global
 
 using UnityEngine;
+using VisualPinball.Unity.VisualPinball.Unity.Patcher.Matcher;
 
 namespace VisualPinball.Unity.Patcher
 {
 	[MetaMatch(TableName = "Terminator 2 (Williams 1991)", AuthorName = "NFOZZY")]
 	[MetaMatch(TableName = "Terminator 2 - Judgment Day (Williams 1991)", AuthorName = "g5k")]
-	public class Terminator2
+	public class Terminator2 : TablePatcher
 	{
+
+		public override void PostPatch(GameObject tableGo)
+		{
+			var pf = Playfield(tableGo);
+
+			// create GI light groups
+			var gi = CreateEmptyGameObject(pf, "GI");
+			var gi2 = CreateEmptyGameObject(gi, "GI2");
+			var gi3 = CreateEmptyGameObject(gi, "GI3");
+			AddLightGroup(tableGo, gi2, "B1", "B2", "B3", "GI_1", "GI_2", "GI_3", "GI_4", "GI_5", "GI_6", "GI_7", "GI_8", "GI_9", "GI_10", "GI_11", "GI_12", "GI_13", "GI_14", "GI_15", "GI_16", "GI_17", "GI_18", "GI_19", "GI_20");
+			AddLightGroup(tableGo, gi3, "GI_21", "GI_22", "GI_23", "GI_24", "GI_25", "GI_26", "GI_27", "GI_28", "GI_29", "GI_30", "GI_31", "GI_32", "GI_33", "GI_34", "GI_35", "GI_36");
+
+			base.PostPatch(tableGo);
+		}
+
 		[NameMatch("LeftRampCover")]
 		[NameMatch("LeftRampSign")]
 		[NameMatch("RightRampCover")]
@@ -57,7 +74,7 @@ namespace VisualPinball.Unity.Patcher
 
 		#region Lights
 
-		#region General Shapes
+		#region Insert Shapes
 
 		[NameMatch("L43")]
 		[NameMatch("L44")]
@@ -215,6 +232,8 @@ namespace VisualPinball.Unity.Patcher
 
 		#endregion
 
+		#region Insert Positions
+
 		[NameMatch("L11")] public void Insert2xPos(GameObject go) => LightPos(go, 28.6f, 9.6f, -50f);
 		[NameMatch("L12")] public void Insert4xPos(GameObject go) => LightPos(go, 22.4f, 25.1f, -50f);
 		[NameMatch("L13")] public void InsertHoldBonus(GameObject go) => LightPos(go, 0f, 35f, -50f);
@@ -367,58 +386,6 @@ namespace VisualPinball.Unity.Patcher
 		{
 			Intensity(go, 670f);
 			LightColor(go, Color.yellow);
-		}
-
-
-		#region Helpers
-
-		private static void LightColor(GameObject go, Color color)
-		{
-			var lights = go.GetComponentsInChildren<Light>();
-			foreach (var light in lights) {
-				RenderPipeline.Current.LightConverter.SetColor(light, color);
-			}
-		}
-
-		private static void SpotAngle(GameObject go, float outer, float inner)
-		{
-			var lights = go.GetComponentsInChildren<Light>();
-			foreach (var light in lights) {
-				RenderPipeline.Current.LightConverter.SpotLight(light, outer, inner);
-			}
-		}
-
-		private static void PyramidAngle(GameObject go, float angle, float ar)
-		{
-			var lights = go.GetComponentsInChildren<Light>();
-			foreach (var light in lights) {
-				RenderPipeline.Current.LightConverter.PyramidAngle(light, angle, ar);
-			}
-		}
-
-		private static void Intensity(GameObject go, float intensityLumen)
-		{
-			var lights = go.GetComponentsInChildren<Light>();
-			foreach (var light in lights) {
-				RenderPipeline.Current.LightConverter.SetIntensity(light, intensityLumen);
-			}
-		}
-
-		private static void LightPos(GameObject go, float x, float y, float z)
-		{
-			var light = go.GetComponentInChildren<Light>();
-			if (light != null) {
-				light.gameObject.transform.localPosition = new Vector3(x, y, z);
-			}
-		}
-
-		private static void Duplicate(GameObject go, float x, float y, float z)
-		{
-			var light = go.GetComponentInChildren<Light>();
-			if (light != null) {
-				var newGo = Object.Instantiate(light.gameObject, go.transform, true);
-				newGo.transform.localPosition = new Vector3(x, y, z);
-			}
 		}
 
 		#endregion

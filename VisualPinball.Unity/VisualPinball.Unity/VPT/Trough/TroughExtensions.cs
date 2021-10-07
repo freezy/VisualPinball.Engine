@@ -1,4 +1,4 @@
-// Visual Pinball Engine
+﻿// Visual Pinball Engine
 // Copyright (C) 2021 freezy and VPE Team
 //
 // This program is free software: you can redistribute it and/or modify
@@ -14,31 +14,27 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-using System;
 using UnityEngine;
-using VisualPinball.Engine.VPT.Table;
+using VisualPinball.Engine.VPT.Trough;
 
-namespace VisualPinball.Unity.Patcher
+namespace VisualPinball.Unity.Editor
 {
-	/// <summary>
-	/// Matches an game item by its name.
-	/// </summary>
-	public class NameMatchAttribute : ItemMatchAttribute
+	public static class TroughExtensions
 	{
-		public bool IgnoreCase = true;
+		#if UNITY_EDITOR
 
-		private readonly string _name;
-
-		public NameMatchAttribute(string name)
+		public static GameObject InstantiateEditorPrefab(this Trough trough, Transform parent)
 		{
-			_name = name;
+			var prefab = Resources.Load<GameObject>("Prefabs/Trough");
+			var troughGo = UnityEditor.PrefabUtility.InstantiatePrefab(prefab, parent) as GameObject;
+			if (!troughGo) {
+				return troughGo;
+			}
+			var troughComponent = troughGo.GetComponent<TroughComponent>();
+			troughComponent.SetData(trough.Data);
+			return troughGo;
 		}
 
-		public override bool Matches(FileTableContainer tableContainer, GameObject obj)
-		{
-			return IgnoreCase
-				? string.Equals(obj.name, _name, StringComparison.CurrentCultureIgnoreCase)
-				: obj.name == _name;
-		}
+		#endif
 	}
 }

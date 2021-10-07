@@ -22,14 +22,13 @@ using System.Linq;
 using System.Reflection;
 using NLog;
 using UnityEngine;
-using VisualPinball.Engine.Game;
-using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Table;
+using VisualPinball.Unity.VisualPinball.Unity.Patcher.Matcher;
 using Logger = NLog.Logger;
 
 namespace VisualPinball.Unity.Patcher
 {
-	public class Patcher : IPatcher
+	public sealed class Patcher : IPatcher
 	{
 		private readonly List<object> _patchers = new List<object>();
 		private FileTableContainer _tableContainer;
@@ -59,6 +58,8 @@ namespace VisualPinball.Unity.Patcher
 		{
 			foreach (var patcher in _patchers) {
 				var methods = patcher.GetType().GetMembers().Where(member => member.MemberType == MemberTypes.Method);
+
+
 				foreach (var method in methods) {
 					var methodMatchers = Attribute
 						.GetCustomAttributes(method, typeof(ItemMatchAttribute))
@@ -132,6 +133,15 @@ namespace VisualPinball.Unity.Patcher
 							}
 						}
 					}
+				}
+			}
+		}
+
+		public void PostPatch(GameObject go)
+		{
+			foreach (var patcher in _patchers) {
+				if (patcher is TablePatcher p) {
+					p.PostPatch(go);
 				}
 			}
 		}

@@ -15,15 +15,17 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 // ReSharper disable StringLiteralTypo
+// ReSharper disable UnusedType.Global
+// ReSharper disable UnusedMember.Global
 
 using UnityEngine;
 using UnityEngine.Rendering;
-using VisualPinball.Engine.VPT.Primitive;
+using VisualPinball.Unity.VisualPinball.Unity.Patcher.Matcher;
 
 namespace VisualPinball.Unity.Patcher
 {
 	[MetaMatch(TableName = "Indiana Jones - The Pinball Adventure", AuthorName = "ninuzzu,tom tower")]
-	public class IndianaJones
+	public class IndianaJones : TablePatcher
 	{
 		[NameMatch("LeftFlipperSh", IgnoreCase = false)]
 		[NameMatch("RightFlipperSh")]

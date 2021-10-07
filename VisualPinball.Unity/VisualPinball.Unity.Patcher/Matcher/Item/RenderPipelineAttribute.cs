@@ -15,7 +15,6 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using UnityEngine;
-using VisualPinball.Engine.Game;
 using VisualPinball.Engine.VPT.Table;
 
 namespace VisualPinball.Unity.Patcher.Matcher.Item
