@@ -81,6 +81,15 @@ namespace VisualPinball.Unity
 
 		#endregion
 
+		#region API
+
+		public LightApi GetApi(Player player) => _api ??= new LightApi(gameObject, player);
+
+		[NonSerialized]
+		private LightApi _api;
+
+		#endregion
+
 		#region Wiring
 
 		public IEnumerable<GamelogicEngineLamp> AvailableLamps => new[] {
