@@ -18,6 +18,7 @@ using System.Linq;
 using FluentAssertions;
 using NUnit.Framework;
 using VisualPinball.Engine.Game.Engines;
+using VisualPinball.Engine.Math;
 using VisualPinball.Engine.VPT.Table;
 using VisualPinball.Unity.Editor;
 
@@ -132,48 +133,26 @@ namespace VisualPinball.Unity.Test
 			var tableComponent = go.GetComponent<TableComponent>();
 
 			var gameEngineLamps = new[] {
-				new GamelogicEngineLamp("rgb") { Description = "RGB", DeviceHint = "rgb"},
-				new GamelogicEngineLamp("g") { MainLampIdOfGreen = "rgb"},
-				new GamelogicEngineLamp("b") { MainLampIdOfBlue = "rgb"}
+				new GamelogicEngineLamp("r") { Description = "red", DeviceHint = "rgb", Channel = ColorChannel.Red},
+				new GamelogicEngineLamp("g") { Description = "green", DeviceHint = "rgb", Channel = ColorChannel.Green},
+				new GamelogicEngineLamp("b") { Description = "blue", DeviceHint = "rgb", Channel = ColorChannel.Blue},
 			};
 
 			tableComponent.MappingConfig.Clear();
 			tableComponent.MappingConfig.PopulateLamps(gameEngineLamps, tableComponent);
 
-			tableComponent.MappingConfig.Lamps.Should().HaveCount(1);
-			tableComponent.MappingConfig.Lamps[0].Id.Should().Be("rgb");
-			tableComponent.MappingConfig.Lamps[0].Green.Should().Be("g");
-			tableComponent.MappingConfig.Lamps[0].Blue.Should().Be("b");
-			tableComponent.MappingConfig.Lamps[0].Description.Should().Be("RGB");
+			tableComponent.MappingConfig.Lamps.Should().HaveCount(3);
+			tableComponent.MappingConfig.Lamps[2].Id.Should().Be("r");
+			tableComponent.MappingConfig.Lamps[2].Channel.Should().Be(ColorChannel.Red);
+			tableComponent.MappingConfig.Lamps[1].Id.Should().Be("g");
+			tableComponent.MappingConfig.Lamps[1].Channel.Should().Be(ColorChannel.Green);
+			tableComponent.MappingConfig.Lamps[0].Id.Should().Be("b");
+			tableComponent.MappingConfig.Lamps[0].Channel.Should().Be(ColorChannel.Blue);
+
 			tableComponent.MappingConfig.Lamps[0].Device.name.Should().Be("my_rgb_light");
+			tableComponent.MappingConfig.Lamps[1].Device.name.Should().Be("my_rgb_light");
+			tableComponent.MappingConfig.Lamps[2].Device.name.Should().Be("my_rgb_light");
 			tableComponent.MappingConfig.Lamps[0].DeviceItem.Should().Be(LightComponent.LampIdDefault);
-		}
-
-		[Test]
-		public void ShouldCreateMapAnRgbLampIfRisMissing()
-		{
-			var table = new TableBuilder()
-				.AddLight("my_rgb_light")
-				.Build();
-
-			var go = VpxImportEngine.ImportIntoScene(table, options: ConvertOptions.SkipNone);
-			var tableComponent = go.GetComponent<TableComponent>();
-
-			var gameEngineLamps = new[] {
-				new GamelogicEngineLamp("g") { Description = "RGB", MainLampIdOfGreen = "rgb"},
-				new GamelogicEngineLamp("b") { MainLampIdOfBlue = "rgb"}
-			};
-
-			tableComponent.MappingConfig.Clear();
-			tableComponent.MappingConfig.PopulateLamps(gameEngineLamps, tableComponent);
-
-			tableComponent.MappingConfig.Lamps.Should().HaveCount(1);
-			tableComponent.MappingConfig.Lamps[0].Id.Should().Be("rgb");
-			tableComponent.MappingConfig.Lamps[0].Green.Should().Be("g");
-			tableComponent.MappingConfig.Lamps[0].Blue.Should().Be("b");
-			tableComponent.MappingConfig.Lamps[0].Description.Should().BeEmpty();
-			tableComponent.MappingConfig.Lamps[0].Device.Should().BeNull();
-			tableComponent.MappingConfig.Lamps[0].DeviceItem.Should().BeEmpty();
 		}
 
 		[Test]
