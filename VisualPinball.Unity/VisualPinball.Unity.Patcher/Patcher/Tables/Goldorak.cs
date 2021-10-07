@@ -15,14 +15,16 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 // ReSharper disable StringLiteralTypo
+// ReSharper disable UnusedType.Global
+// ReSharper disable UnusedMember.Global
 
 using UnityEngine;
-using VisualPinball.Engine.VPT.Primitive;
+using VisualPinball.Unity.VisualPinball.Unity.Patcher.Matcher;
 
 namespace VisualPinball.Unity.Patcher
 {
 	[MetaMatch(TableName = "Goldorak", AuthorName = "Rom (Future PinBall) Javier VPX")]
-	public class Goldorak
+	public class Goldorak : TablePatcher
 	{
 		[NameMatch("LFLogo", Ref = "Playfield/Flippers/LeftFlipper")]
 		[NameMatch("RFLogo", Ref = "Playfield/Flippers/RightFlipper")]

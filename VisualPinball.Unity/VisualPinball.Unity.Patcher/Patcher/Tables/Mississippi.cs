@@ -19,11 +19,12 @@
 // ReSharper disable UnusedMember.Global
 
 using UnityEngine;
+using VisualPinball.Unity.VisualPinball.Unity.Patcher.Matcher;
 
 namespace VisualPinball.Unity.Patcher
 {
 	[MetaMatch(TableName = "Mississipi", AuthorName = "jpsalas, akiles50000, Loserman")]
-	public class Mississippi
+	public class Mississippi : TablePatcher
 	{
 		[NameMatch("lrail1", Ref = "Playfield/Ramps/lrail1/LeftWall")] // left outside wall to the left
 		[NameMatch("rrail1", Ref = "Playfield/Ramps/rrail1/LeftWall")] // left inside wall to the right

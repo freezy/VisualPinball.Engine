@@ -268,6 +268,11 @@ namespace VisualPinball.Unity.Editor
 				prefab.PersistData();
 			}
 
+			// patch
+			if (_applyPatch) {
+				_patcher?.PostPatch(_tableGo);
+			}
+
 			return componentLookup;
 		}
 
@@ -456,33 +461,8 @@ namespace VisualPinball.Unity.Editor
 			_tableGo.AddComponent<Player>();
 			var dga = _tableGo.AddComponent<DefaultGamelogicEngine>();
 
-			// add trough if none available
-			if (!_sourceContainer.HasTrough) {
-				CreateTrough(components);
-			}
-
 			// populate hardware
 			_tableComponent.RepopulateHardware(dga);
-		}
-
-		private void CreateTrough(Dictionary<string, IMainComponent> components)
-		{
-			var troughData = new TroughData("Trough") {
-				BallCount = 4,
-				SwitchCount = 4,
-				Type = TroughType.ModernMech
-			};
-			if (_sourceContainer.Has<Kicker>("BallRelease")) {
-				troughData.PlayfieldExitKicker = "BallRelease";
-			}
-			if (_sourceContainer.Has<Kicker>("Drain")) {
-				troughData.PlayfieldEntrySwitch = "Drain";
-			}
-			var item = new Trough(troughData) {
-				StorageIndex = _sourceContainer.ItemDatas.Count()
-			};
-
-			InstantiateAndPersistPrefab(item, components);
 		}
 
 		private void CreateFileHierarchy()

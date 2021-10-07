@@ -20,11 +20,12 @@
 
 using UnityEngine;
 using UnityEngine.Rendering;
+using VisualPinball.Unity.VisualPinball.Unity.Patcher.Matcher;
 
 namespace VisualPinball.Unity.Patcher
 {
 	[MetaMatch(TableName = "Jurassic Park (Data East)", AuthorName = "Dark & Friends")]
-	public class JurassicPark
+	public class JurassicPark : TablePatcher
 	{
 		#region Shader Properties
 

@@ -1,9 +1,10 @@
 {
     "name": "VisualPinball.Unity.Patcher",
-    "rootNamespace": "",
+    "rootNamespace": "VisualPinball.Unity.Patcher",
     "references": [
         "VisualPinball.Engine",
-        "VisualPinball.Unity"
+        "VisualPinball.Unity",
+        "Unity.Entities.Hybrid"
     ],
     "includePlatforms": [
         "Editor"

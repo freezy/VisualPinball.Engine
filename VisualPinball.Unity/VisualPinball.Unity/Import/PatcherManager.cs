@@ -9,6 +9,7 @@ namespace VisualPinball.Unity
 	{
 		void Set(FileTableContainer tableContainer, string filename);
 		void ApplyPatches(GameObject gameObject, GameObject tableGameObject);
+		void PostPatch(GameObject tableGameObject);
 	}
 
 	public static class PatcherManager

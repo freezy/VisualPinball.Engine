@@ -19,12 +19,12 @@
 // ReSharper disable UnusedMember.Global
 
 using UnityEngine;
-using VisualPinball.Engine.VPT.Primitive;
+using VisualPinball.Unity.VisualPinball.Unity.Patcher.Matcher;
 
 namespace VisualPinball.Unity.Patcher
 {
 	[MetaMatch(TableName = "Wipe Out Premier 1993", AuthorName = "Edizzle & Kiwi")]
-	public class WipeOut
+	public class WipeOut : TablePatcher
 	{
 		[NameMatch("Prim_RightFlipper", Ref="Playfield/Flippers/RightFlipper")]
 		[NameMatch("Prim_LeftFlipper", Ref="Playfield/Flippers/LeftFlipper")]
