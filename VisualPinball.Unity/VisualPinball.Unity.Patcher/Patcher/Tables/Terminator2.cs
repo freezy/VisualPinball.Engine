@@ -19,10 +19,14 @@
 // ReSharper disable UnusedMember.Global
 // ReSharper disable UnusedType.Global
 
+using System.Linq;
+using UnityEditor;
 using UnityEngine;
+using VisualPinball.Engine.Math;
 using VisualPinball.Engine.PinMAME;
 using VisualPinball.Engine.VPT;
 using VisualPinball.Unity.VisualPinball.Unity.Patcher.Matcher;
+using Color = UnityEngine.Color;
 
 namespace VisualPinball.Unity.Patcher
 {
@@ -31,44 +35,52 @@ namespace VisualPinball.Unity.Patcher
 	public class Terminator2 : TablePatcher
 	{
 
+		#region Global
+
 		public override void PostPatch(GameObject tableGo)
 		{
-			var pf = Playfield(tableGo);
+			var playfieldGo = Playfield(tableGo);
 
 			// playfield material
-			RenderPipeline.Current.MaterialConverter.SetSmoothness(pf.GetComponent<Renderer>().sharedMaterial, 0.96f);
+			RenderPipeline.Current.MaterialConverter.SetSmoothness(playfieldGo.GetComponent<Renderer>().sharedMaterial, 0.96f);
+
+			SetupPinMame(tableGo, playfieldGo);
+
+
+			base.PostPatch(tableGo);
+		}
+
+		private void SetupPinMame(GameObject tableGo, GameObject playfieldGo)
+		{
+			var tableComponent = tableGo.GetComponent<TableComponent>();
 
 			// GLE
 			Object.DestroyImmediate(tableGo.GetComponent<DefaultGamelogicEngine>());
 			var pinmameGle = tableGo.AddComponent<PinMameGamelogicEngine>();
 			pinmameGle.Game = new Engine.PinMAME.Games.Terminator2();
 			pinmameGle.romId = "t2_l82";
+			tableComponent.RepopulateHardware(pinmameGle);
+			TableSelector.Instance.TableUpdated();
 
 			// create GI light groups
-			var gi = CreateEmptyGameObject(pf, "GI");
+			var gi = CreateEmptyGameObject(playfieldGo, "GI");
 			var gi1 = CreateEmptyGameObject(gi, "CPU");
 			var gi2 = CreateEmptyGameObject(gi, "Left Playfield");
 			var gi3 = CreateEmptyGameObject(gi, "Right Playfield");
-			AddLightGroup(tableGo, gi1, "Light2", "Light3", "Light4", "Light5");
-			AddLightGroup(tableGo, gi2, "GI_35", "GI_1", "GI_3", "GI_4", "GI_12", "GI_7",
+			var giCpu = AddLightGroup(tableGo, gi1, "Light2", "Light3", "Light4", "Light5");
+			var giLeftPlayfield = AddLightGroup(tableGo, gi2, "GI_35", "GI_1", "GI_3", "GI_4", "GI_12", "GI_7",
 				"GI_8", "GI_9", "GI_13", "GI_14", "GI_23", "GI_24", "GI_25", "GI_38");
-			AddLightGroup(tableGo, gi3, "GI_36", "GI_2", "GI_5", "GI_6", "GI_10", "GI_11", "GI_15", "GI_16", "GI_18", "GI_19", "GI_17",
+			var giRightPlayfield = AddLightGroup(tableGo, gi3, "GI_36", "GI_2", "GI_5", "GI_6", "GI_10", "GI_11", "GI_15", "GI_16", "GI_18", "GI_19", "GI_17",
 				"GI_20", "GI_21", "GI_22", "GI_26", "GI_27", "GI_28", "GI_30", "GI_29", "GI_31", "GI_32", "GI_33", "GI_34", "GI_37", "B1", "B2", "B3");
 
-			base.PostPatch(tableGo);
+			// map GI light groups
+			tableComponent.MappingConfig.Lamps.First(lm => lm.Id == "2").Device = giRightPlayfield;
+			tableComponent.MappingConfig.Lamps.First(lm => lm.Id == "3").Device = giCpu;
+			tableComponent.MappingConfig.Lamps.First(lm => lm.Id == "4").Device = giLeftPlayfield;
 		}
 
-		[NameMatch("batleft", Ref = "Playfield/Flippers/LeftFlipper")]
-		[NameMatch("batright", Ref = "Playfield/Flippers/RightFlipper")]
-		public void ReparentFlippers(PrimitiveComponent flipper, GameObject gameObject, ref GameObject parent)
-		{
-			PatcherUtil.Reparent(gameObject, parent);
+		#endregion
 
-			flipper.Position.x = 0;
-			flipper.Position.y = 0;
-
-			flipper.ObjectRotation.z = 0;
-		}
 
 		[NameMatch("LeftRampCover")]
 		[NameMatch("LeftRampSign")]
@@ -97,6 +109,97 @@ namespace VisualPinball.Unity.Patcher
 			kickerComponent.Coils[0].Speed = 5;
 			kickerComponent.Coils[0].Angle = 60;
 		}
+
+		#region Flippers
+
+		[NameMatch("batleft", Ref = "Playfield/Flippers/LeftFlipper")]
+		[NameMatch("batright", Ref = "Playfield/Flippers/RightFlipper")]
+		public void ReparentFlippers(PrimitiveComponent flipper, GameObject gameObject, ref GameObject parent)
+		{
+			PatcherUtil.Reparent(gameObject, parent);
+
+			flipper.Position.x = 0;
+			flipper.Position.y = 0;
+
+			flipper.ObjectRotation.z = 0;
+		}
+
+		[NameMatch("LeftFlipper")]
+		[NameMatch("RightFlipper")]
+		public void DeleteFlipperMeshes(GameObject go)
+		{
+			go.GetComponentInChildren<FlipperBaseMeshComponent>().gameObject.SetActive(false);
+			go.GetComponentInChildren<FlipperRubberMeshComponent>().gameObject.SetActive(false);
+		}
+
+		#endregion
+
+		#region Slingshots
+
+		[NameMatch("LSling2")]
+		[NameMatch("RSling2")]
+		[NameMatch("_SteelBits")]
+		public void DisableObsoleteSlingshotElements(GameObject go)
+		{
+			go.SetActive(false);
+		}
+
+		[NameMatch("LSling")]
+		[NameMatch("LSling1")]
+		[NameMatch("RSling")]
+		[NameMatch("RSling1")]
+		public void ShowSlingshotRubbers(GameObject go)
+		{
+			go.GetComponent<RubberMeshComponent>().enabled = true;
+		}
+
+		[NameMatch("LSling")]
+		public void AddLeftSlingshotDragPoints(RubberComponent rubberComponent)
+		{
+			var dp = rubberComponent.DragPoints.ToList();
+			dp.RemoveAt(9);
+			dp.RemoveAt(10);
+			dp.Insert(9, new DragPointData(208.9f, 1597.3f));
+			dp.Insert(10, new DragPointData(202.9f, 1580.6f));
+			rubberComponent.DragPoints = dp.ToArray();
+		}
+
+		[NameMatch("RSling")]
+		public void AddRightSlingshotDragPoints(RubberComponent rubberComponent)
+		{
+			var dp = rubberComponent.DragPoints.ToList();
+			dp.RemoveAt(4);
+			dp.RemoveAt(5);
+			dp.Insert(4, new DragPointData(661.6f, 1583f));
+			dp.Insert(5, new DragPointData(657f, 1595.7f));
+			rubberComponent.DragPoints = dp.ToArray();
+		}
+
+		[NameMatch("SLING1")]
+		[NameMatch("SLING2")]
+		public void EnableSlingshotArm(GameObject go)
+		{
+			go.GetComponent<PrimitiveMeshComponent>().enabled = true;
+		}
+
+		[NameMatch("LeftSlingshot")]
+		public void SetupLeftSlingshot(GameObject go)
+		{
+			var playfieldGo = go.GetComponentInParent<PlayfieldComponent>().gameObject;
+			var ssParentGo = GetOrCreateGameObject(playfieldGo, "Slingshots");
+
+			var prefab = PrefabUtility.InstantiatePrefab(SlingshotComponent.LoadPrefab(), ssParentGo.transform) as GameObject;
+			var ss = prefab!.GetComponent<SlingshotComponent>();
+
+			ss.name = "Left Slingshot";
+			ss.SlingshotSurface = go.GetComponent<SurfaceColliderComponent>();
+			ss.RubberOff = playfieldGo.transform.Find("Rubbers/LSling").GetComponent<RubberComponent>();
+			ss.RubberOn = playfieldGo.transform.Find("Rubbers/LSling1").GetComponent<RubberComponent>();
+			ss.CoilArm = playfieldGo.transform.Find("Primitives/SLING2").GetComponent<PrimitiveComponent>();
+			ss.RebuildMeshes();
+		}
+
+		#endregion
 
 		#region Materials
 
