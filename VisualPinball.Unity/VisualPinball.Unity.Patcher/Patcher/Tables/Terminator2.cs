@@ -19,6 +19,7 @@
 // ReSharper disable UnusedMember.Global
 // ReSharper disable UnusedType.Global
 
+using UnityEditor;
 using UnityEngine;
 using VisualPinball.Unity.VisualPinball.Unity.Patcher.Matcher;
 
@@ -35,12 +36,29 @@ namespace VisualPinball.Unity.Patcher
 
 			// create GI light groups
 			var gi = CreateEmptyGameObject(pf, "GI");
-			var gi2 = CreateEmptyGameObject(gi, "GI2");
-			var gi3 = CreateEmptyGameObject(gi, "GI3");
-			AddLightGroup(tableGo, gi2, "B1", "B2", "B3", "GI_1", "GI_2", "GI_3", "GI_4", "GI_5", "GI_6", "GI_7", "GI_8", "GI_9", "GI_10", "GI_11", "GI_12", "GI_13", "GI_14", "GI_15", "GI_16", "GI_17", "GI_18", "GI_19", "GI_20");
-			AddLightGroup(tableGo, gi3, "GI_21", "GI_22", "GI_23", "GI_24", "GI_25", "GI_26", "GI_27", "GI_28", "GI_29", "GI_30", "GI_31", "GI_32", "GI_33", "GI_34", "GI_35", "GI_36");
+			var gi1 = CreateEmptyGameObject(gi, "CPU");
+			var gi2 = CreateEmptyGameObject(gi, "Left Playfield");
+			var gi3 = CreateEmptyGameObject(gi, "Right Playfield");
+			AddLightGroup(tableGo, gi1, "Light2", "Light3", "Light4", "Light5");
+			AddLightGroup(tableGo, gi2, "GI_35", "GI_1", "GI_3", "GI_4", "GI_12", "GI_7",
+				"GI_8", "GI_9", "GI_13", "GI_14", "GI_23", "GI_24", "GI_25", "GI_38");
+			AddLightGroup(tableGo, gi3, "GI_36", "GI_2", "GI_5", "GI_6", "GI_10", "GI_11", "GI_15", "GI_16", "GI_18", "GI_19", "GI_17",
+				"GI_20", "GI_21", "GI_22", "GI_26", "GI_27", "GI_28", "GI_30", "GI_29", "GI_31", "GI_32", "GI_33", "GI_34", "GI_37", "B1", "B2", "B3");
+
 
 			base.PostPatch(tableGo);
+		}
+
+		[NameMatch("batleft", Ref = "Playfield/Flippers/LeftFlipper")]
+		[NameMatch("batright", Ref = "Playfield/Flippers/RightFlipper")]
+		public void ReparentFlippers(PrimitiveComponent flipper, GameObject gameObject, ref GameObject parent)
+		{
+			PatcherUtil.Reparent(gameObject, parent);
+
+			flipper.Position.x = 0;
+			flipper.Position.y = 0;
+
+			flipper.ObjectRotation.z = 0;
 		}
 
 		[NameMatch("LeftRampCover")]
@@ -71,8 +89,123 @@ namespace VisualPinball.Unity.Patcher
 			kickerComponent.Coils[0].Angle = 60;
 		}
 
+		#region Materials
+
+		[NameMatch("_Plastics")]
+		public void fixPlasticsMaterial(GameObject go)
+		{
+			var material = go.GetComponent<Renderer>().sharedMaterial;
+			RenderPipeline.Current.MaterialConverter.SetDiffusionProfile(material, DiffusionProfileTemplate.Plastics);
+			RenderPipeline.Current.MaterialConverter.SetMaterialType(material, MaterialType.Translucent);
+		}
+
+		#endregion
 
 		#region Lights
+
+		#region Global Illumination
+
+		[NameMatch("B1")]
+		[NameMatch("B2")]
+		[NameMatch("B3")]
+		[NameMatch("GI_1")]
+		[NameMatch("GI_2")]
+		[NameMatch("GI_3")]
+		[NameMatch("GI_4")]
+		[NameMatch("GI_5")]
+		[NameMatch("GI_6")]
+		[NameMatch("GI_7")]
+		[NameMatch("GI_8")]
+		[NameMatch("GI_9")]
+		[NameMatch("GI_10")]
+		[NameMatch("GI_11")]
+		[NameMatch("GI_12")]
+		[NameMatch("GI_13")]
+		[NameMatch("GI_14")]
+		[NameMatch("GI_15")]
+		[NameMatch("GI_16")]
+		[NameMatch("GI_17")]
+		[NameMatch("GI_18")]
+		[NameMatch("GI_19")]
+		[NameMatch("GI_20")]
+		[NameMatch("GI_21")]
+		[NameMatch("GI_22")]
+		[NameMatch("GI_23")]
+		[NameMatch("GI_24")]
+		[NameMatch("GI_25")]
+		[NameMatch("GI_26")]
+		[NameMatch("GI_27")]
+		[NameMatch("GI_28")]
+		[NameMatch("GI_29")]
+		[NameMatch("GI_30")]
+		[NameMatch("GI_31")]
+		[NameMatch("GI_32")]
+		[NameMatch("GI_33")]
+		[NameMatch("GI_34")]
+		[NameMatch("GI_35")]
+		[NameMatch("GI_36")]
+		[NameMatch("GI_37")]
+		[NameMatch("GI_38")]
+		public void GiIntensity(GameObject go)
+		{
+			foreach (var l in go.GetComponentsInChildren<Light>()) {
+				RenderPipeline.Current.LightConverter.SetIntensity(l, 1000f);
+				RenderPipeline.Current.LightConverter.SetTemperature(l, 2700);
+			}
+		}
+
+		[NameMatch("GI_3", FloatParam = 0.01f)]
+		[NameMatch("GI_4", FloatParam = 0.01f)]
+		[NameMatch("GI_5", FloatParam = 0.02f)]
+		[NameMatch("GI_6", FloatParam = 0.01f)]
+		[NameMatch("GI_10", FloatParam = 0.01f)]
+		[NameMatch("GI_11", FloatParam = 0.01f)]
+		[NameMatch("GI_12", FloatParam = 0.01f)]
+		[NameMatch("GI_15", FloatParam = 0.02f)]
+		[NameMatch("GI_16", FloatParam = 0.02f)]
+		[NameMatch("GI_18", FloatParam = 0.01f)]
+		[NameMatch("GI_19", FloatParam = 0.02f)]
+		[NameMatch("GI_20", FloatParam = 0.02f)]
+		[NameMatch("GI_33", FloatParam = 0.02f)]
+		[NameMatch("GI_34", FloatParam = 0.02f)]
+		[NameMatch("GI_37", FloatParam = 0.01f)]
+		[NameMatch("GI_38", FloatParam = 0.01f)]
+		public void GiDynamicShadow(GameObject go, float param)
+		{
+			foreach (var l in go.GetComponentsInChildren<Light>()) {
+				RenderPipeline.Current.LightConverter.SetShadow(l, true, false, param);
+			}
+		}
+
+		[NameMatch("GI_7", FloatParam = 0.01f)] // leaks
+		[NameMatch("GI_8", FloatParam = 0.01f)] // leaks
+		[NameMatch("GI_9", FloatParam = 0.01f)] // leaks
+		[NameMatch("GI_13", FloatParam = 0.01f)] // leaks
+		[NameMatch("GI_14", FloatParam = 0.01f)] // leaks
+		[NameMatch("GI_22", FloatParam = 0.01f)] // leaks
+		[NameMatch("GI_23", FloatParam = 0.01f)] // leaks
+		[NameMatch("GI_24", FloatParam = 0.01f)] // leaks (not too badly)
+		[NameMatch("GI_25", FloatParam = 0.01f)] // leaks (not too badly)
+		[NameMatch("GI_29", FloatParam = 0.01f)] // leaks
+		[NameMatch("GI_30", FloatParam = 0.01f)] // leaks
+		[NameMatch("GI_31", FloatParam = 0.01f)] // leaks
+		[NameMatch("GI_32", FloatParam = 0.01f)] // leaks
+		[NameMatch("GI_35", FloatParam = 0.01f)] // leaks (not too badly)
+		public void GiStaticShadow(GameObject go, float param)
+		{
+			foreach (var l in go.GetComponentsInChildren<Light>()) {
+				RenderPipeline.Current.LightConverter.SetShadow(l, true, false, param);
+			}
+		}
+
+		[NameMatch("GI_27")]
+		[NameMatch("GI_28")]
+		public void GiDisable(GameObject go)
+		{
+			go.SetActive(false);
+		}
+
+		#endregion
 
 		#region Insert Shapes
 

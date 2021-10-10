@@ -24,8 +24,8 @@ namespace VisualPinball.Unity
 {
 	public class StandardMaterialConverter : IMaterialConverter
 	{
-		public Material DotMatrixDisplay => UnityEngine.Resources.Load<Material>("Materials/Dot Matrix Display (Builtin)");
-		public Material SegmentDisplay => UnityEngine.Resources.Load<Material>("Materials/Segment Display (Builtin)");
+		public Material DotMatrixDisplay => Resources.Load<Material>("Materials/Dot Matrix Display (Builtin)");
+		public Material SegmentDisplay => Resources.Load<Material>("Materials/Segment Display (Builtin)");
 
 		public int NormalMapProperty => NormalMap;
 
@@ -58,11 +58,11 @@ namespace VisualPinball.Unity
 			switch (blendMode)
 			{
 				case BlendMode.Opaque:
-					return UnityEngine.Resources.Load<Material>("Materials/Table Opaque (Builtin)");
+					return Resources.Load<Material>("Materials/Table Opaque (Builtin)");
 				case BlendMode.Cutout:
-					return UnityEngine.Resources.Load<Material>("Materials/Table Cutout (Builtin)");
+					return Resources.Load<Material>("Materials/Table Cutout (Builtin)");
 				case BlendMode.Translucent:
-					return UnityEngine.Resources.Load<Material>("Materials/Table Translucent (Builtin)");
+					return Resources.Load<Material>("Materials/Table Translucent (Builtin)");
 				default:
 					throw new ArgumentOutOfRangeException("Undefined blend mode " + blendMode);
 			}
@@ -127,7 +127,7 @@ namespace VisualPinball.Unity
 
 		public Material MergeMaterials(PbrMaterial vpxMaterial, Material texturedMaterial)
 		{
-			var nonTexturedMaterial = CreateMaterial(vpxMaterial, null, null);
+			var nonTexturedMaterial = CreateMaterial(vpxMaterial, null);
 			var mergedMaterial = new Material(GetShader());
 			mergedMaterial.CopyPropertiesFromMaterial(texturedMaterial);
 
@@ -137,6 +137,15 @@ namespace VisualPinball.Unity
 			mergedMaterial.SetFloat(Smoothness, nonTexturedMaterial.GetFloat(Smoothness));
 
 			return mergedMaterial;
+		}
+
+		public void SetDiffusionProfile(Material material, DiffusionProfileTemplate template)
+		{
+			// don't think that standard renderer supports this..
+		}
+
+		public void SetMaterialType(Material material, MaterialType materialType)
+		{
 		}
 	}
 }

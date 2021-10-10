@@ -33,6 +33,7 @@ namespace VisualPinball.Unity
 		private readonly Dictionary<string, HitTargetApi> _hitTargetsByName = new Dictionary<string, HitTargetApi>();
 		private readonly Dictionary<string, KickerApi> _kickersByName = new Dictionary<string, KickerApi>();
 		private readonly Dictionary<string, LightApi> _lightsByName = new Dictionary<string, LightApi>();
+		private readonly Dictionary<string, LightGroupApi> _lightGroupsByName = new Dictionary<string, LightGroupApi>();
 		private readonly Dictionary<string, PlungerApi> _plungersByName = new Dictionary<string, PlungerApi>();
 		private readonly Dictionary<string, RampApi> _rampsByName = new Dictionary<string, RampApi>();
 		private readonly Dictionary<string, RubberApi> _rubbersByName = new Dictionary<string, RubberApi>();
@@ -49,6 +50,7 @@ namespace VisualPinball.Unity
 		private readonly Dictionary<MonoBehaviour, HitTargetApi> _hitTargetsByComponent = new Dictionary<MonoBehaviour, HitTargetApi>();
 		private readonly Dictionary<MonoBehaviour, KickerApi> _kickersByComponent = new Dictionary<MonoBehaviour, KickerApi>();
 		private readonly Dictionary<MonoBehaviour, LightApi> _lightsByComponent = new Dictionary<MonoBehaviour, LightApi>();
+		private readonly Dictionary<MonoBehaviour, LightGroupApi> _lightGroupsByComponent = new Dictionary<MonoBehaviour, LightGroupApi>();
 		private readonly Dictionary<MonoBehaviour, PlungerApi> _plungersByComponent = new Dictionary<MonoBehaviour, PlungerApi>();
 		private readonly Dictionary<MonoBehaviour, RampApi> _rampsByComponent = new Dictionary<MonoBehaviour, RampApi>();
 		private readonly Dictionary<MonoBehaviour, RubberApi> _rubbersByComponent = new Dictionary<MonoBehaviour, RubberApi>();
@@ -217,6 +219,7 @@ namespace VisualPinball.Unity
 			if (t == typeof(HitTargetApi)) return _hitTargetsByName as Dictionary<string, T>;
 			if (t == typeof(KickerApi)) return _kickersByName as Dictionary<string, T>;
 			if (t == typeof(LightApi)) return _lightsByName as Dictionary<string, T>;
+			if (t == typeof(LightGroupApi)) return _lightGroupsByName as Dictionary<string, T>;
 			if (t == typeof(PlungerApi)) return _plungersByName as Dictionary<string, T>;
 			if (t == typeof(RampApi)) return _rampsByName as Dictionary<string, T>;
 			if (t == typeof(RubberApi)) return _rubbersByName as Dictionary<string, T>;
@@ -237,6 +240,7 @@ namespace VisualPinball.Unity
 			if (t == typeof(HitTargetApi)) return _hitTargetsByComponent as Dictionary<MonoBehaviour, T>;
 			if (t == typeof(KickerApi)) return _kickersByComponent as Dictionary<MonoBehaviour, T>;
 			if (t == typeof(LightApi)) return _lightsByComponent as Dictionary<MonoBehaviour, T>;
+			if (t == typeof(LightGroupApi)) return _lightGroupsByComponent as Dictionary<MonoBehaviour, T>;
 			if (t == typeof(PlungerApi)) return _plungersByComponent as Dictionary<MonoBehaviour, T>;
 			if (t == typeof(RampApi)) return _rampsByComponent as Dictionary<MonoBehaviour, T>;
 			if (t == typeof(RubberApi)) return _rubbersByComponent as Dictionary<MonoBehaviour, T>;

@@ -57,6 +57,25 @@ namespace VisualPinball.Unity
 		/// <returns>Merged material</returns>
 		Material MergeMaterials(PbrMaterial vpxMaterial, Material unityTextureMaterial);
 
+		void SetDiffusionProfile(Material material, DiffusionProfileTemplate template);
+
+		void SetMaterialType(Material material, MaterialType materialType);
+
 		int NormalMapProperty { get; }
+	}
+
+	public enum DiffusionProfileTemplate
+	{
+		Plastics
+	}
+
+	public enum MaterialType
+	{
+		Standard,
+		SubsurfaceScattering,
+		Anisotropy,
+		Iridescence,
+		SpecularColor,
+		Translucent
 	}
 }
