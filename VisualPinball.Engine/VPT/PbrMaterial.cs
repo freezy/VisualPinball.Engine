@@ -39,6 +39,10 @@ namespace VisualPinball.Engine.VPT
 		public bool IsOpacityActive => _material?.IsOpacityActive ?? false;
 		public float Opacity => MathF.Min(1, MathF.Max(0, _material?.Opacity ?? 1f));
 		public float Roughness => _material?.Roughness ?? 0.5f;
+
+		public MaterialType MaterialType = MaterialType.Translucent;
+		public DiffusionProfileTemplate DiffusionProfile = DiffusionProfileTemplate.None;
+
 		private float Edge => _material?.Edge ?? 0f;
 
 		public const string NameNoMaterial = "__std";
@@ -154,5 +158,21 @@ namespace VisualPinball.Engine.VPT
 		Opaque,
 		Cutout,
 		Translucent
+	}
+
+	public enum DiffusionProfileTemplate
+	{
+		None,
+		Plastics
+	}
+
+	public enum MaterialType
+	{
+		SubsurfaceScattering = 0,
+		Standard = 1,
+		Anisotropy = 2,
+		Iridescence = 3,
+		SpecularColor = 4,
+		Translucent = 5,
 	}
 }

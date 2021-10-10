@@ -4,6 +4,7 @@
     "references": [
         "VisualPinball.Engine",
         "VisualPinball.Unity",
+        "VisualPinball.Engine.PinMAME.Unity",
         "Unity.Entities.Hybrid"
     ],
     "includePlatforms": [

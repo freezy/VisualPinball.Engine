@@ -58,10 +58,11 @@ namespace VisualPinball.Unity
 			var mat = table.GetMaterial(table.Data.PlayfieldMaterial);
 			if (mat != null) {
 				mat.Name += " (Playfield Insert)";
-			} else {
-				mat = new Engine.VPT.Material("Playfield Insert");
+				return new PbrMaterial(mat, table.GetTexture(table.Data.Image));
 			}
-			return new PbrMaterial(mat, table.GetTexture(table.Data.Image));
+
+			mat = new Engine.VPT.Material("Playfield Insert");
+			return new PbrMaterial(mat, table.GetTexture(table.Data.Image)) { DiffusionProfile = DiffusionProfileTemplate.Plastics };
 		}
 	}
 }

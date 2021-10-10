@@ -61,21 +61,8 @@ namespace VisualPinball.Unity
 
 		void SetMaterialType(Material material, MaterialType materialType);
 
+		void SetSmoothness(Material material, float smoothness);
+
 		int NormalMapProperty { get; }
-	}
-
-	public enum DiffusionProfileTemplate
-	{
-		Plastics
-	}
-
-	public enum MaterialType
-	{
-		Standard,
-		SubsurfaceScattering,
-		Anisotropy,
-		Iridescence,
-		SpecularColor,
-		Translucent
 	}
 }

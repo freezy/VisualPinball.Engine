@@ -155,6 +155,11 @@ namespace VisualPinball.Unity.Editor
 
 			ConfigurePlayer(componentLookup);
 
+			// patch
+			if (_applyPatch) {
+				_patcher?.PostPatch(_tableGo);
+			}
+
 			return _tableGo;
 		}
 
@@ -266,11 +271,6 @@ namespace VisualPinball.Unity.Editor
 
 				// persist changes
 				prefab.PersistData();
-			}
-
-			// patch
-			if (_applyPatch) {
-				_patcher?.PostPatch(_tableGo);
 			}
 
 			return componentLookup;
