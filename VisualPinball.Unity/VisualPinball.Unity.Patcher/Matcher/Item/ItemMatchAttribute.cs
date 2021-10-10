@@ -28,6 +28,8 @@ namespace VisualPinball.Unity.Patcher
 		/// </summary>
 		public string Ref;
 
+		public float FloatParam;
+
 		public abstract bool Matches(FileTableContainer tableContainer, GameObject obj);
 	}
 }

@@ -40,12 +40,16 @@ namespace VisualPinball.Unity
 		/// <param name="color">New color</param>
 		void SetColor(Light light, Color color);
 
+		void SetShadow(Light light, bool enabled, bool isDynamic, float nearPlane = 0.01f);
+
 		/// <summary>
 		/// Sets the intensity of a given light.
 		/// </summary>
 		/// <param name="light">Which light to update</param>
 		/// <param name="intensityLumen">Intensity in Lumen</param>
 		void SetIntensity(Light light, float intensityLumen);
+
+		void SetTemperature(Light light, float temperature);
 
 		/// <summary>
 		/// Sets the spotlight parameters of a light (doesn't set it to spotlight)

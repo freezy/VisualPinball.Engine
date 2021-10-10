@@ -116,6 +116,10 @@ namespace VisualPinball.Unity.Patcher
 									} else if (pi.ParameterType == typeof(FileTableContainer)) {
 										patcherParams[pi.Position] = _tableContainer;
 
+									// param from matcher
+									} else if (pi.ParameterType == typeof(float) && pi.Name == "param") {
+										patcherParams[pi.Position] = methodMatcher.FloatParam;
+
 									} else {
 										Logger.Warn($"Unknown parameter {pi.ParameterType} {pi.Name} in patch method {patcher.GetType()}.{methodInfo.Name}(), skipping.");
 										validArgs = false;
