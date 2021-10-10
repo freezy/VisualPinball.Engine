@@ -65,6 +65,17 @@ namespace VisualPinball.Unity.VisualPinball.Unity.Patcher.Matcher
 			return newGo;
 		}
 
+		protected static GameObject GetOrCreateGameObject(GameObject parentGo, string name)
+		{
+			for (var i = 0; i < parentGo.transform.childCount; i++) {
+				if (parentGo.transform.GetChild(i).gameObject.name == name) {
+					return parentGo.transform.GetChild(i).gameObject;
+				}
+			}
+
+			return CreateEmptyGameObject(parentGo, name);
+		}
+
 		#endregion
 
 		#region Element Helpers
@@ -122,7 +133,7 @@ namespace VisualPinball.Unity.VisualPinball.Unity.Patcher.Matcher
 		/// <param name="tableGo">Table game object for retrieving light references.</param>
 		/// <param name="go">Game object to which the light group is added to.</param>
 		/// <param name="names">A list of light names that are part of the light group.</param>
-		protected static void AddLightGroup(GameObject tableGo, GameObject go, params string[] names)
+		protected static LightGroupComponent AddLightGroup(GameObject tableGo, GameObject go, params string[] names)
 		{
 			var nameIndex = new HashSet<string>(names);
 			var lightComponentGroup = go.AddComponent<LightGroupComponent>();
@@ -130,6 +141,8 @@ namespace VisualPinball.Unity.VisualPinball.Unity.Patcher.Matcher
 				.GetComponentsInChildren<LightComponent>()
 				.Where(lc => nameIndex.Contains(lc.name));
 			lightComponentGroup.Lights = lights.ToArray();
+
+			return lightComponentGroup;
 		}
 
 		/// <summary>

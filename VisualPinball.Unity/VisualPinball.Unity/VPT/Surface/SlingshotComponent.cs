@@ -212,6 +212,8 @@ namespace VisualPinball.Unity
 
 		#endregion
 
+		public static GameObject LoadPrefab() => Resources.Load<GameObject>("Prefabs/Slingshot");
+
 		private DragPointData[] DragPointsAt(float pos)
 		{
 			if (RubberOn == null || RubberOff == null) {
