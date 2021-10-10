@@ -19,8 +19,9 @@
 // ReSharper disable UnusedMember.Global
 // ReSharper disable UnusedType.Global
 
-using UnityEditor;
 using UnityEngine;
+using VisualPinball.Engine.PinMAME;
+using VisualPinball.Engine.VPT;
 using VisualPinball.Unity.VisualPinball.Unity.Patcher.Matcher;
 
 namespace VisualPinball.Unity.Patcher
@@ -34,6 +35,15 @@ namespace VisualPinball.Unity.Patcher
 		{
 			var pf = Playfield(tableGo);
 
+			// playfield material
+			RenderPipeline.Current.MaterialConverter.SetSmoothness(pf.GetComponent<Renderer>().sharedMaterial, 0.96f);
+
+			// GLE
+			Object.DestroyImmediate(tableGo.GetComponent<DefaultGamelogicEngine>());
+			var pinmameGle = tableGo.AddComponent<PinMameGamelogicEngine>();
+			pinmameGle.Game = new Engine.PinMAME.Games.Terminator2();
+			pinmameGle.romId = "t2_l82";
+
 			// create GI light groups
 			var gi = CreateEmptyGameObject(pf, "GI");
 			var gi1 = CreateEmptyGameObject(gi, "CPU");
@@ -44,7 +54,6 @@ namespace VisualPinball.Unity.Patcher
 				"GI_8", "GI_9", "GI_13", "GI_14", "GI_23", "GI_24", "GI_25", "GI_38");
 			AddLightGroup(tableGo, gi3, "GI_36", "GI_2", "GI_5", "GI_6", "GI_10", "GI_11", "GI_15", "GI_16", "GI_18", "GI_19", "GI_17",
 				"GI_20", "GI_21", "GI_22", "GI_26", "GI_27", "GI_28", "GI_30", "GI_29", "GI_31", "GI_32", "GI_33", "GI_34", "GI_37", "B1", "B2", "B3");
-
 
 			base.PostPatch(tableGo);
 		}

@@ -45,7 +45,9 @@ namespace VisualPinball.Engine.VPT.Table
 
 		public PbrMaterial GetMaterial(Table table)
 		{
-			return new PbrMaterial(table.GetMaterial(_data.PlayfieldMaterial), table.GetTexture(_data.Image));
+			return new PbrMaterial(table.GetMaterial(_data.PlayfieldMaterial), table.GetTexture(_data.Image)) {
+				MaterialType = MaterialType.Standard
+			};
 		}
 
 		public void SetFromPrimitive(Primitive.Primitive primitive)

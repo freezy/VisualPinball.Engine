@@ -107,7 +107,7 @@ namespace VisualPinball.Unity
 			unityMaterial.SetFloat(Metallic, metallicValue);
 
 			// roughness / glossiness
-			unityMaterial.SetFloat(Smoothness, vpxMaterial.Roughness);
+			SetSmoothness(unityMaterial, vpxMaterial.Roughness);
 
 			// map
 			if (vpxMaterial.HasMap && textureProvider != null) {
@@ -137,6 +137,11 @@ namespace VisualPinball.Unity
 			mergedMaterial.SetFloat(Smoothness, nonTexturedMaterial.GetFloat(Smoothness));
 
 			return mergedMaterial;
+		}
+
+		public void SetSmoothness(Material unityMaterial, float smoothness)
+		{
+			unityMaterial.SetFloat(Smoothness, smoothness);
 		}
 
 		public void SetDiffusionProfile(Material material, DiffusionProfileTemplate template)
