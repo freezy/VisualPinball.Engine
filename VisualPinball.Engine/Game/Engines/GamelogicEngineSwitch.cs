@@ -61,12 +61,15 @@ namespace VisualPinball.Engine.Game.Engines
 		public string Description { get => _description; set => _description = value; }
 		public string InputActionHint;
 		public string InputMapHint;
-		public string DeviceHint;
-		public string DeviceItemHint;
+
+		public string DeviceHint { get => _deviceHint; set => _deviceHint = value; }
+		public string DeviceItemHint { get => _deviceItemHint; set => _deviceItemHint = value; }
 		public SwitchConstantHint ConstantHint = SwitchConstantHint.None;
 
 		private string _description;
 		private string _id;
+		private string _deviceHint;
+		private string _deviceItemHint;
 
 		public GamelogicEngineSwitch(string id)
 		{

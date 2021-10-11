@@ -27,8 +27,8 @@ namespace VisualPinball.Engine.Game.Engines
 		public string Description { get => _description; set => _description = value; }
 
 		public int InternalId;
-		public string DeviceHint;
-		public string DeviceItemHint;
+		public string DeviceHint { get => _deviceHint; set => _deviceHint = value; }
+		public string DeviceItemHint { get => _deviceItemHint; set => _deviceItemHint = value; }
 		public bool IsLamp;
 
 		/// <summary>
@@ -38,6 +38,8 @@ namespace VisualPinball.Engine.Game.Engines
 
 		private string _description;
 		private string _id;
+		private string _deviceHint;
+		private string _deviceItemHint;
 
 		public GamelogicEngineCoil(string id)
 		{
