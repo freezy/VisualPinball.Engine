@@ -61,7 +61,7 @@ namespace VisualPinball.Unity.VisualPinball.Unity.Patcher.Matcher
 		protected static GameObject CreateEmptyGameObject(GameObject parentGo, string name)
 		{
 			var newGo = new GameObject(name);
-			newGo.transform.SetParent(parentGo.transform);
+			newGo.transform.SetParent(parentGo.transform, false);
 			return newGo;
 		}
 

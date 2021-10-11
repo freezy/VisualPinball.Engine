@@ -46,11 +46,15 @@ namespace VisualPinball.Unity.Patcher
 
 			SetupPinMame(tableGo, playfieldGo);
 
+			// slingshots
+			SetupLeftSlingshot(playfieldGo.transform.Find("Walls/LeftSlingshot").gameObject);
+			SetupRightSlingshot(playfieldGo.transform.Find("Walls/RightSlingshot").gameObject);
+
 
 			base.PostPatch(tableGo);
 		}
 
-		private void SetupPinMame(GameObject tableGo, GameObject playfieldGo)
+		private static void SetupPinMame(GameObject tableGo, GameObject playfieldGo)
 		{
 			var tableComponent = tableGo.GetComponent<TableComponent>();
 
@@ -145,15 +149,6 @@ namespace VisualPinball.Unity.Patcher
 		}
 
 		[NameMatch("LSling")]
-		[NameMatch("LSling1")]
-		[NameMatch("RSling")]
-		[NameMatch("RSling1")]
-		public void ShowSlingshotRubbers(GameObject go)
-		{
-			go.GetComponent<RubberMeshComponent>().enabled = true;
-		}
-
-		[NameMatch("LSling")]
 		public void AddLeftSlingshotDragPoints(RubberComponent rubberComponent)
 		{
 			var dp = rubberComponent.DragPoints.ToList();
@@ -182,20 +177,43 @@ namespace VisualPinball.Unity.Patcher
 			go.GetComponent<PrimitiveMeshComponent>().enabled = true;
 		}
 
-		[NameMatch("LeftSlingshot")]
-		public void SetupLeftSlingshot(GameObject go)
+		private static void SetupLeftSlingshot(GameObject go)
 		{
 			var playfieldGo = go.GetComponentInParent<PlayfieldComponent>().gameObject;
 			var ssParentGo = GetOrCreateGameObject(playfieldGo, "Slingshots");
 
-			var prefab = PrefabUtility.InstantiatePrefab(SlingshotComponent.LoadPrefab(), ssParentGo.transform) as GameObject;
-			var ss = prefab!.GetComponent<SlingshotComponent>();
+			var ssGo = PrefabUtility.InstantiatePrefab(SlingshotComponent.LoadPrefab(), ssParentGo.transform) as GameObject;
+			var ss = ssGo!.GetComponent<SlingshotComponent>();
 
 			ss.name = "Left Slingshot";
 			ss.SlingshotSurface = go.GetComponent<SurfaceColliderComponent>();
 			ss.RubberOff = playfieldGo.transform.Find("Rubbers/LSling").GetComponent<RubberComponent>();
 			ss.RubberOn = playfieldGo.transform.Find("Rubbers/LSling1").GetComponent<RubberComponent>();
-			ss.CoilArm = playfieldGo.transform.Find("Primitives/SLING2").GetComponent<PrimitiveComponent>();
+			//ss.CoilArm = playfieldGo.transform.Find("Primitives/SLING2").GetComponent<PrimitiveComponent>();
+
+			EditorUtility.SetDirty(ssGo);
+			PrefabUtility.RecordPrefabInstancePropertyModifications(ss);
+
+			ss.RebuildMeshes();
+		}
+
+		private static void SetupRightSlingshot(GameObject go)
+		{
+			var playfieldGo = go.GetComponentInParent<PlayfieldComponent>().gameObject;
+			var ssParentGo = GetOrCreateGameObject(playfieldGo, "Slingshots");
+
+			var ssGo = PrefabUtility.InstantiatePrefab(SlingshotComponent.LoadPrefab(), ssParentGo.transform) as GameObject;
+			var ss = ssGo!.GetComponent<SlingshotComponent>();
+
+			ss.name = "Right Slingshot";
+			ss.SlingshotSurface = go.GetComponent<SurfaceColliderComponent>();
+			ss.RubberOff = playfieldGo.transform.Find("Rubbers/RSling").GetComponent<RubberComponent>();
+			ss.RubberOn = playfieldGo.transform.Find("Rubbers/RSling1").GetComponent<RubberComponent>();
+			//ss.CoilArm = playfieldGo.transform.Find("Primitives/SLING1").GetComponent<PrimitiveComponent>();
+
+			EditorUtility.SetDirty(ssGo);
+			PrefabUtility.RecordPrefabInstancePropertyModifications(ss);
+
 			ss.RebuildMeshes();
 		}
 
@@ -285,7 +303,7 @@ namespace VisualPinball.Unity.Patcher
 		public void GiDynamicShadow(GameObject go, float param)
 		{
 			foreach (var l in go.GetComponentsInChildren<Light>()) {
-				RenderPipeline.Current.LightConverter.SetShadow(l, true, false, param);
+				RenderPipeline.Current.LightConverter.SetShadow(l, true, true, param);
 			}
 		}
 
