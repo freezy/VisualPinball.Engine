@@ -181,6 +181,7 @@ namespace VisualPinball.Unity
 				.GetTransformedMesh(pf.PlayfieldHeight, r0.Height, pf.PlayfieldDetailLevel)
 				.ToUnityMesh();
 
+			mesh.name = $"{name} (Mesh)";
 			_meshes[pos] = mesh;
 
 			return mesh;
