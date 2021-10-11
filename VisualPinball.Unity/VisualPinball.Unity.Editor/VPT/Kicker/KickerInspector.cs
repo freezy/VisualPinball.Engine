@@ -16,8 +16,11 @@
 
 // ReSharper disable AssignmentInConditionalExpression
 
+using System;
 using System.Collections.Generic;
+using Unity.Mathematics;
 using UnityEditor;
+using UnityEngine;
 using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Kicker;
 
@@ -84,6 +87,31 @@ namespace VisualPinball.Unity.Editor
 			base.OnInspectorGUI();
 
 			EndEditing();
+		}
+
+		private void OnSceneGUI()
+		{
+			if (Event.current.type != EventType.Repaint) {
+				return;
+			}
+
+			Handles.color = Color.cyan;
+			var transform = MainComponent.transform;
+			var position = transform.parent.TransformPoint(MainComponent.GetEditorPosition());
+
+			foreach (var coil in MainComponent.Coils) {
+				var from = MainComponent.GetBallCreationPosition().ToUnityVector3();
+				var l = 20f * coil.Speed;
+				var dir = new Vector3(
+					l * math.cos(math.radians(coil.Angle)),
+					l * math.sin(math.radians(coil.Angle)),
+					l * math.sin(math.radians(coil.Inclination))
+				);
+				var to = from + dir;
+				var worldDir = transform.TransformDirection(math.normalize( to - from));
+
+				Handles.ArrowHandleCap(-1, position, Quaternion.LookRotation(worldDir), coil.Speed / 10f, EventType.Repaint);
+			}
 		}
 	}
 }

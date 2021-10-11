@@ -71,7 +71,9 @@ namespace VisualPinball.Unity
 					AssignLampMapping(lampMapping);
 
 					// turn it off
-					_lamps[lampMapping.Device].OnLamp(0f, ColorChannel.Alpha);
+					if (_lamps.ContainsKey(lampMapping.Device)) {
+						_lamps[lampMapping.Device].OnLamp(0f, ColorChannel.Alpha);
+					}
 				}
 
 				if (_lampAssignments.Count > 0) {
@@ -122,8 +124,6 @@ namespace VisualPinball.Unity
 						lamp.OnLamp(value, channel);
 						LampStatuses[lampEvent.Id] = value;
 
-					} else {
-						Logger.Error($"Cannot trigger unknown lamp {component}.");
 					}
 				}
 #if UNITY_EDITOR
