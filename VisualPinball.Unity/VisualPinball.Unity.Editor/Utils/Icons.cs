@@ -40,11 +40,13 @@ namespace VisualPinball.Unity.Editor
 		private const string BoltName = "bolt";
 		private const string CoilName = "coil";
 		private const string DropTargetName = "drop_target";
+		private const string FlasherName = "light_flasher";
 		private const string FlipperName = "flipper";
 		private const string GateName = "gate";
 		private const string HitTargetName = "hit_target";
 		private const string KeyName = "keyboard";
 		private const string KickerName = "kicker";
+		private const string LightGroupName = "light_group";
 		private const string LightName = "light";
 		private const string PlayfieldName = "playfield";
 		private const string PlungerName = "plunger";
@@ -62,9 +64,9 @@ namespace VisualPinball.Unity.Editor
 		private const string SwitchNoName = "switch_no";
 
 		private static readonly string[] Names = {
-			BumperName, BoltName, CoilName, DropTargetName, FlipperName, HitTargetName, GateName, KeyName, KickerName, LightName, PlayfieldName,
-			PlungerName, PlugName, PrimitiveName, RampName, RubberName, SpinnerName, SurfaceName, TableName, TriggerName, TroughName,
-			SlingshotName, SwitchNcName, SwitchNoName
+			BumperName, BoltName, CoilName, DropTargetName, FlasherName, FlipperName, HitTargetName, GateName, KeyName, KickerName, LightGroupName,
+			LightName, PlayfieldName, PlungerName, PlugName, PrimitiveName, RampName, RubberName, SpinnerName, SurfaceName, TableName, TriggerName,
+			TroughName, SlingshotName, SwitchNcName, SwitchNoName
 		};
 
 		private readonly Dictionary<IconVariant, Texture2D> _icons = new Dictionary<IconVariant,Texture2D>();
@@ -97,11 +99,13 @@ namespace VisualPinball.Unity.Editor
 
 		public static Texture2D Bumper(IconSize size = IconSize.Large, IconColor color = IconColor.Gray) => Instance.GetItem(BumperName, size, color);
 		public static Texture2D DropTarget(IconSize size = IconSize.Large, IconColor color = IconColor.Gray) => Instance.GetItem(DropTargetName, size, color);
+		public static Texture2D Flasher(IconSize size = IconSize.Large, IconColor color = IconColor.Gray) => Instance.GetItem(FlasherName, size, color);
 		public static Texture2D Flipper(IconSize size = IconSize.Large, IconColor color = IconColor.Gray) => Instance.GetItem(FlipperName, size, color);
 		public static Texture2D Gate(IconSize size = IconSize.Large, IconColor color = IconColor.Gray) => Instance.GetItem(GateName, size, color);
 		public static Texture2D HitTarget(IconSize size = IconSize.Large, IconColor color = IconColor.Gray) => Instance.GetItem(HitTargetName, size, color);
 		public static Texture2D Kicker(IconSize size = IconSize.Large, IconColor color = IconColor.Gray) => Instance.GetItem(KickerName, size, color);
 		public static Texture2D Light(IconSize size = IconSize.Large, IconColor color = IconColor.Gray) => Instance.GetItem(LightName, size, color);
+		public static Texture2D LightGroup(IconSize size = IconSize.Large, IconColor color = IconColor.Gray) => Instance.GetItem(LightGroupName, size, color);
 		public static Texture2D Playfield(IconSize size = IconSize.Large, IconColor color = IconColor.Gray) => Instance.GetItem(PlayfieldName, size, color);
 		public static Texture2D Plunger(IconSize size = IconSize.Large, IconColor color = IconColor.Gray) => Instance.GetItem(PlungerName, size, color);
 		public static Texture2D Plug(IconSize size = IconSize.Large, IconColor color = IconColor.Gray) => Instance.GetItem(PlugName, size, color);
@@ -125,11 +129,13 @@ namespace VisualPinball.Unity.Editor
 			switch (mb) {
 				case BumperComponent _: return Bumper(size, color);
 				case DropTargetComponent _: return DropTarget(size, color);
+				//case FlasherComponent _: return Flasher(size, color);
 				case FlipperComponent _: return Flipper(size, color);
 				case GateComponent _: return Gate(size, color);
 				case HitTargetComponent _: return HitTarget(size, color);
 				case KickerComponent _: return Kicker(size, color);
 				case LightComponent _: return Light(size, color);
+				case LightGroupComponent _: return LightGroup(size, color);
 				case PlungerComponent _: return Plunger(size, color);
 				case PlayfieldComponent _: return Playfield(size, color);
 				case PrimitiveComponent _: return Primitive(size, color);
@@ -156,6 +162,7 @@ namespace VisualPinball.Unity.Editor
 			DisableGizmo<DropTargetComponent>();
 			DisableGizmo<DropTargetColliderComponent>();
 			DisableGizmo<DropTargetAnimationComponent>();
+			//DisableGizmo<FlasherComponent>();
 			DisableGizmo<FlipperComponent>();
 			DisableGizmo<FlipperColliderComponent>();
 			DisableGizmo<FlipperBaseMeshComponent>();
@@ -169,6 +176,7 @@ namespace VisualPinball.Unity.Editor
 			DisableGizmo<KickerComponent>();
 			DisableGizmo<KickerColliderComponent>();
 			DisableGizmo<LightComponent>();
+			DisableGizmo<LightGroupComponent>();
 			DisableGizmo<PlayfieldComponent>();
 			DisableGizmo<PlayfieldColliderComponent>();
 			DisableGizmo<PlayfieldMeshComponent>();
