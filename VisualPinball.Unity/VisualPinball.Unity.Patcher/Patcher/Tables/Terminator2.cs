@@ -50,7 +50,6 @@ namespace VisualPinball.Unity.Patcher
 			SetupLeftSlingshot(playfieldGo.transform.Find("Walls/LeftSlingshot").gameObject);
 			SetupRightSlingshot(playfieldGo.transform.Find("Walls/RightSlingshot").gameObject);
 
-
 			base.PostPatch(tableGo);
 		}
 
@@ -222,16 +221,57 @@ namespace VisualPinball.Unity.Patcher
 		#region Materials
 
 		[NameMatch("_Plastics")]
-		public void fixPlasticsMaterial(GameObject go)
+		[NameMatch("_RightRampPlastic")]
+		public void FixPlasticsMaterial(GameObject go)
 		{
 			var material = go.GetComponent<Renderer>().sharedMaterial;
 			RenderPipeline.Current.MaterialConverter.SetDiffusionProfile(material, DiffusionProfileTemplate.Plastics);
 			RenderPipeline.Current.MaterialConverter.SetMaterialType(material, MaterialType.Translucent);
 		}
 
+		[NameMatch("_HKShip")]
+		public void FixShip(GameObject go)
+		{
+			var material = go.GetComponent<Renderer>().sharedMaterial;
+			RenderPipeline.Current.MaterialConverter.SetMaterialType(material, MaterialType.Standard);
+			RenderPipeline.Current.MaterialConverter.SetSmoothness(material, 1f);
+		}
+
 		#endregion
 
 		#region Lights
+
+		#region Flashers
+
+		[NameMatch("F118", FloatParam = 10000f)]
+		[NameMatch("F119", FloatParam = 10000f)]
+		[NameMatch("F120", FloatParam = 10000f)]
+		[NameMatch("F121", FloatParam = 10000f)]
+		[NameMatch("F122", FloatParam = 20000f)]
+		[NameMatch("F123", FloatParam = 20000f)]
+		[NameMatch("F125", FloatParam = 10000f)]
+		public void SlingFlashers(GameObject go, float param)
+		{
+			foreach (var l in go.GetComponentsInChildren<Light>()) {
+				RenderPipeline.Current.LightConverter.SetIntensity(l, param);
+				RenderPipeline.Current.LightConverter.SetTemperature(l, 3000);
+				RenderPipeline.Current.LightConverter.SetShadow(l, true, true, 0.001f);
+			}
+		}
+
+		[NameMatch("F120")]
+		[NameMatch("F125")] 
+		public void F120Pos(GameObject go) => LightPos(go, -160.8f, 17.6f, -6f);
+		[NameMatch("F121")] public void F121Pos(GameObject go) => LightPos(go, 0f, -12.5f, 15.7f);
+		[NameMatch("F122")] public void F122Pos(GameObject go) => LightPos(go, -4f, 97f, 25f);
+		[NameMatch("F123")] public void F123Pos(GameObject go)
+		{
+			LightPos(go, -6.9f, -21.9f, 94.1f);
+			//todo RenderPipeline.Current.LightConverter.Range(l, 0.3f);
+		}
+		//[NameMatch("F125")] public void F125Pos(GameObject go) => LightPos(go, 182.6f, -58.3f, 12.8f);
+
+		#endregion
 
 		#region Global Illumination
 

@@ -27,7 +27,7 @@ namespace VisualPinball.Engine.Game.Engines
 		/// <summary>
 		/// The unique ID of this lamp, as the gamelogic engine addresses it.
 		/// </summary>
-		public string Id { get; set; }
+		public string Id { get => _id; set => _id = value; }
 
 		/// <summary>
 		/// Some gamelogic engines use integers for the ID. In order to avoid repetitive casting, we store it as integer as well.
@@ -47,7 +47,7 @@ namespace VisualPinball.Engine.Game.Engines
 		/// <summary>
 		/// An optional description of the lamp.
 		/// </summary>
-		public string Description { get; set; }
+		public string Description { get => _description; set => _description = value; }
 
 		/// <summary>
 		/// How the gamelogic engine triggers the lamp. Either through GI or through the normal lamp API.
@@ -61,12 +61,17 @@ namespace VisualPinball.Engine.Game.Engines
 		/// <summary>
 		/// A regular expression to match the component on the playfield.
 		/// </summary>
-		public string DeviceHint;
+		public string DeviceHint { get => _deviceHint; set => _deviceHint = value; }
 
 		/// <summary>
 		/// A regular expression to match the lamp component within the component.
 		/// </summary>
-		public string DeviceItemHint;
+		public string DeviceItemHint { get => _deviceItemHint; set => _deviceItemHint = value; }
+
+		private string _description;
+		private string _id;
+		private string _deviceHint;
+		private string _deviceItemHint;
 
 		public GamelogicEngineLamp(string id)
 		{

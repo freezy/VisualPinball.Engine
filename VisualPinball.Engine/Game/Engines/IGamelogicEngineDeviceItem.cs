@@ -20,5 +20,7 @@ namespace VisualPinball.Engine.Game.Engines
 	{
 		string Id { get; }
 		string Description { get; }
+		string DeviceHint { get; }
+		string DeviceItemHint { get; }
 	}
 }
