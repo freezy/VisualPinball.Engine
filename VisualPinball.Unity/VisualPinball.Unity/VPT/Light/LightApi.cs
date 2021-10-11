@@ -38,6 +38,7 @@ namespace VisualPinball.Unity
 
 		private int _state;
 		private readonly LightComponent _lightComponent;
+		private bool _initialized;
 
 		void IApiWireDest.OnChange(bool enabled) => Set(
 			enabled ? LightStatus.LightStateOn : LightStatus.LightStateOff,
@@ -49,6 +50,10 @@ namespace VisualPinball.Unity
 
 		void IApiLamp.OnLamp(float value, ColorChannel channel)
 		{
+			if (!_initialized) {
+				// might have disabled some lights in the editor..
+				return;
+			}
 			switch (channel) {
 				case ColorChannel.Alpha: {
 					Set(value == 0.0f ? LightStatus.LightStateOff : LightStatus.LightStateOn, value);
@@ -128,6 +133,7 @@ namespace VisualPinball.Unity
 		{
 			base.OnInit(ballManager);
 			Init?.Invoke(this, EventArgs.Empty);
+			_initialized = true;
 		}
 
 		void IApi.OnDestroy()

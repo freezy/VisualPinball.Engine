@@ -19,6 +19,7 @@
 // ReSharper disable UnusedMember.Global
 // ReSharper disable UnusedType.Global
 
+using System;
 using System.Linq;
 using UnityEditor;
 using UnityEngine;
@@ -27,6 +28,7 @@ using VisualPinball.Engine.PinMAME;
 using VisualPinball.Engine.VPT;
 using VisualPinball.Unity.VisualPinball.Unity.Patcher.Matcher;
 using Color = UnityEngine.Color;
+using Object = UnityEngine.Object;
 
 namespace VisualPinball.Unity.Patcher
 {
@@ -40,17 +42,28 @@ namespace VisualPinball.Unity.Patcher
 		public override void PostPatch(GameObject tableGo)
 		{
 			var playfieldGo = Playfield(tableGo);
+			playfieldGo.isStatic = true;
 
 			// playfield material
 			RenderPipeline.Current.MaterialConverter.SetSmoothness(playfieldGo.GetComponent<Renderer>().sharedMaterial, 0.96f);
 
+			SetupTrough(tableGo, playfieldGo);
 			SetupPinMame(tableGo, playfieldGo);
 
+			SetupMapping(tableGo);
 			// slingshots
 			SetupLeftSlingshot(playfieldGo.transform.Find("Walls/LeftSlingshot").gameObject);
 			SetupRightSlingshot(playfieldGo.transform.Find("Walls/RightSlingshot").gameObject);
+		}
 
-			base.PostPatch(tableGo);
+		private static void SetupTrough(GameObject tableGo, GameObject playfieldGo)
+		{
+			var troughComponent = CreateTrough(tableGo, playfieldGo);
+			troughComponent.Type = TroughType.TwoCoilsNSwitches;
+			troughComponent.BallCount = 3;
+			troughComponent.SwitchCount = 3;
+			troughComponent.JamSwitch = false;
+			troughComponent.RollTime = 300;
 		}
 
 		private static void SetupPinMame(GameObject tableGo, GameObject playfieldGo)
@@ -82,36 +95,116 @@ namespace VisualPinball.Unity.Patcher
 			tableComponent.MappingConfig.Lamps.First(lm => lm.Id == "4").Device = giLeftPlayfield;
 		}
 
+		private static void SetupMapping(GameObject tableGo)
+		{
+			var tc = tableGo.GetComponent<TableComponent>();
+
+			var kickers = tableGo.GetComponentsInChildren<KickerComponent>();
+			foreach (var kicker in kickers) {
+
+				// shooter
+				LinkSwitch(tc, "sw78", "78", kicker);
+				LinkCoil(tc, "sw78", "09", kicker);
+			}
+		}
+
+		protected static void LinkCoil(TableComponent tableComponent, string elementName, string coilId, ICoilDeviceComponent coilDevice)
+		{
+			if (!string.Equals(coilDevice.gameObject.name, elementName, StringComparison.OrdinalIgnoreCase)) {
+				return;
+			}
+			var coilMapping = tableComponent.MappingConfig.Coils.FirstOrDefault(cm => cm.Id == coilId);
+			if (coilMapping == null) {
+				return;
+			}
+			coilMapping.Device = coilDevice;
+			coilMapping.DeviceItem = coilDevice.AvailableCoils.First().Id;
+		}
+
+		protected static void LinkSwitch(TableComponent tableComponent, string elementName, string switchId, ISwitchDeviceComponent switchDevice)
+		{
+			if (!string.Equals(switchDevice.gameObject.name, elementName, StringComparison.OrdinalIgnoreCase)) {
+				return;
+			}
+			var switchMapping = tableComponent.MappingConfig.Switches.FirstOrDefault(sw => sw.Id == switchId);
+			if (switchMapping == null) {
+				return;
+			}
+			switchMapping.Device = switchDevice;
+			switchMapping.DeviceItem = switchDevice.AvailableSwitches.First().Id;
+		}
+
 		#endregion
 
+		#region Geometry
 
-		[NameMatch("LeftRampCover")]
-		[NameMatch("LeftRampSign")]
-		[NameMatch("RightRampCover")]
-		[NameMatch("RightRampSign")]
-		[NameMatch("Plastics_LVL2")]
-		[NameMatch("BumperCaps")]
-		[NameMatch("RightRamp")]
-		public void FixZPosition(PrimitiveComponent primitive)
+		[NameMatch("_Apron")]
+		[NameMatch("_BackWall")]
+		[NameMatch("_Bulbs (GI - visible)")]
+		[NameMatch("_ChromeRails")]
+		[NameMatch("_ClearPlastics")]
+		[NameMatch("_CliffyPosts")]
+		[NameMatch("_HKShip")]
+		[NameMatch("_LeftOVerBits")]
+		[NameMatch("_LeftRampMetal")]
+		[NameMatch("_MetalPosts")]
+		[NameMatch("_Plastics")]
+		[NameMatch("_Posts")]
+		[NameMatch("_RedPlastics")]
+		[NameMatch("_RightRampPlastic")]
+		[NameMatch("_Rubbers")]
+		[NameMatch("_Screws")]
+		[NameMatch("_StarPosts")]
+		[NameMatch("_SteelBits")]
+		[NameMatch("_SteelWalls")]
+		[NameMatch("_Switches")]
+		[NameMatch("_Timber")]
+		[NameMatch("_Washers")]
+		[NameMatch("_WireSwitches")]
+		[NameMatch("_Wireforms")]
+		[NameMatch("_popbumperassy")]
+		[NameMatch("_wires")]
+		public void MakeStatic(GameObject go)
 		{
-			primitive.Position.z = 0;
+			go.isStatic = true;
 		}
 
-		[NameMatch("Drain")]
-		public void FixDrain(KickerComponent kickerComponent)
+		[NameMatch("RubberPostPrim001")]
+		[NameMatch("RubberPostPrim002")]
+		[NameMatch("RubberPostPrim003")]
+		[NameMatch("RubberPostPrim004")]
+		[NameMatch("RubberPostPrim005")]
+		[NameMatch("RubberPostPrim006")]
+		[NameMatch("RubberPostPrim007")]
+		[NameMatch("RubberPostPrim008")]
+		[NameMatch("RubberPostPrim009")]
+		[NameMatch("RubberPostPrim010")]
+		[NameMatch("RubberPostPrim011")]
+		[NameMatch("RubberPostPrim012")]
+		[NameMatch("RubberPostPrim013")]
+		[NameMatch("RubberPostPrim014")]
+		[NameMatch("RubberPostPrim015")]
+		[NameMatch("RubberPostPrim016")]
+		public void PrimitiveCollider(GameObject go)
 		{
-			kickerComponent.Coils[0].Name = "Drain";
-			kickerComponent.Coils[0].Speed = 15;
-			kickerComponent.Coils[0].Angle = 60;
+			go.isStatic = true;
+			Object.DestroyImmediate(go.GetComponent<PrimitiveMeshComponent>());
+			Object.DestroyImmediate(go.GetComponent<MeshRenderer>());
+			Object.DestroyImmediate(go.GetComponent<MeshFilter>());
 		}
 
-		[NameMatch("sw17")]
-		public void FixSw17(KickerComponent kickerComponent)
+		[NameMatch("EndPointLp")]
+		[NameMatch("EndPointRp")]
+		[NameMatch("batleftshadow")]
+		[NameMatch("batrightshadow")]
+		[NameMatch("FlasherT1")]
+		[NameMatch("FlasherT2")]
+		public void Disable(GameObject go)
 		{
-			kickerComponent.Coils[0].Name = "Eject";
-			kickerComponent.Coils[0].Speed = 5;
-			kickerComponent.Coils[0].Angle = 60;
+			go.SetActive(false);
 		}
+
+		#endregion
 
 		#region Flippers
 
@@ -218,6 +311,34 @@ namespace VisualPinball.Unity.Patcher
 
 		#endregion
 
+		#region Kickers
+
+		[NameMatch("BallRelease")]
+		public void FixSw17(KickerComponent kickerComponent)
+		{
+			kickerComponent.Coils[0].Name = "Eject";
+			kickerComponent.Coils[0].Speed = 5;
+			kickerComponent.Coils[0].Angle = 60;
+		}
+
+		[NameMatch("sw78")]
+		public void Shooter(KickerComponent kickerComponent)
+		{
+			kickerComponent.Coils[0].Name = "kicker_coil";
+			kickerComponent.Coils[0].Speed = 50;
+			kickerComponent.Coils[0].Angle = 0;
+		}
+
+		[NameMatch("sw76")]
+		public void SkullKicker(KickerComponent kickerComponent)
+		{
+			kickerComponent.Coils[0].Name = "kicker_coil";
+			kickerComponent.Coils[0].Speed = 15;
+			kickerComponent.Coils[0].Angle = 72;
+		}
+
+		#endregion
+
 		#region Materials
 
 		[NameMatch("_Plastics")]
@@ -260,7 +381,7 @@ namespace VisualPinball.Unity.Patcher
 		}
 
 		[NameMatch("F120")]
-		[NameMatch("F125")] 
+		[NameMatch("F125")]
 		public void F120Pos(GameObject go) => LightPos(go, -160.8f, 17.6f, -6f);
 		[NameMatch("F121")] public void F121Pos(GameObject go) => LightPos(go, 0f, -12.5f, 15.7f);
 		[NameMatch("F122")] public void F122Pos(GameObject go) => LightPos(go, -4f, 97f, 25f);

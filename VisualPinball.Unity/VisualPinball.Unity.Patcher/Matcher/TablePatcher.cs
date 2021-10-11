@@ -88,7 +88,7 @@ namespace VisualPinball.Unity.VisualPinball.Unity.Patcher.Matcher
 		/// <param name="name">Name of the new trough</param>
 		/// <param name="exitKicker">Name of the exit kicker</param>
 		/// <param name="entrySwitch">Name of the entry switch</param>
-		protected static void CreateTrough(GameObject tableGo, GameObject parentGo,
+		protected static TroughComponent CreateTrough(GameObject tableGo, GameObject parentGo,
 			string name = "Trough", string exitKicker = "BallRelease", string entrySwitch = "Drain")
 		{
 			var trough = new Trough(new TroughData {
@@ -121,6 +121,7 @@ namespace VisualPinball.Unity.VisualPinball.Unity.Patcher.Matcher
 			}
 
 			troughGo.name = name;
+			return troughComponent;
 		}
 
 		#endregion
