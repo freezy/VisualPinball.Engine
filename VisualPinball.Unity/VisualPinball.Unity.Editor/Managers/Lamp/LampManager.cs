@@ -16,6 +16,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using NLog;
 using UnityEditor;
 using UnityEngine;
@@ -41,6 +42,8 @@ namespace VisualPinball.Unity.Editor
 		private readonly List<GamelogicEngineLamp> _gleLamps = new List<GamelogicEngineLamp>();
 
 		private LampListViewItemRenderer _listViewItemRenderer;
+
+		private ToggleAction _toggleAction = ToggleAction.All;
 
 		public static void Refresh()
 		{
@@ -104,6 +107,43 @@ namespace VisualPinball.Unity.Editor
 						TableComponent.MappingConfig.RemoveAllLamps();
 					}
 					Reload();
+				}
+			}
+
+			GUILayout.FlexibleSpace();
+
+			_toggleAction = (ToggleAction)EditorGUILayout.EnumPopup(_toggleAction);
+			if (GUILayout.Button("Lights Out", GUILayout.ExpandWidth(false))) {
+				Toggle(false);
+			}
+			if (GUILayout.Button("Lights On", GUILayout.ExpandWidth(false))) {
+				Toggle(true);
+			}
+		}
+
+		private void Toggle(bool enable)
+		{
+			if (TableComponent != null) {
+				IEnumerable<LampMapping> selection = _toggleAction switch {
+					ToggleAction.All => TableComponent.MappingConfig.Lamps,
+					ToggleAction.Inserts => TableComponent.MappingConfig.Lamps.Where(lm => !lm.IsCoil && lm.Source == LampSource.Lamp),
+					ToggleAction.GI => TableComponent.MappingConfig.Lamps.Where(lm => lm.Source == LampSource.GI),
+					ToggleAction.Flasher => TableComponent.MappingConfig.Lamps.Where(lm => lm.IsCoil),
+					_ => throw new ArgumentOutOfRangeException()
+				};
+
+				foreach (var lampMapping in selection) {
+					if (lampMapping.Device == null) {
+						continue;
+					}
+
+					var lights = lampMapping.Device is LightGroupComponent lightGroupComponent
+						? lightGroupComponent.Lights.SelectMany(l => l.GetComponentsInChildren<Light>())
+						: lampMapping.Device.gameObject.GetComponentsInChildren<Light>();
+
+					foreach (var light in lights) {
+						light.enabled = enable;
+					}
 				}
 			}
 		}
@@ -195,5 +235,10 @@ namespace VisualPinball.Unity.Editor
 		}
 
 		#endregion
+	}
+
+	internal enum ToggleAction
+	{
+		All, Inserts, GI, Flasher
 	}
 }

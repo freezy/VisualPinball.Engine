@@ -170,9 +170,17 @@ namespace VisualPinball.Unity
 
 			player.RegisterLamp(this);
 			_unityLights = GetComponentsInChildren<UnityEngine.Light>();
+
+			// remember intensity
 			if (_unityLights.Length > 0) {
 				_fullIntensity = _unityLights[0].intensity;
 			}
+			// enable at 0
+			foreach (var unityLight in _unityLights) {
+				unityLight.intensity = 0;
+				unityLight.enabled = true;
+			}
+
 		}
 
 		public void FadeTo(float value)
