@@ -104,9 +104,11 @@ namespace VisualPinball.Unity.VisualPinball.Unity.Patcher.Matcher
 			foreach (var kicker in kickers) {
 				if (string.Equals(kicker.name, exitKicker, StringComparison.OrdinalIgnoreCase)) {
 					troughComponent.PlayfieldExitKicker = kicker;
+					troughComponent.PlayfieldExitKickerItem = kicker.AvailableCoils.First().Id;
 				}
 				if (string.Equals(kicker.name, entrySwitch, StringComparison.OrdinalIgnoreCase)) {
 					troughComponent.PlayfieldEntrySwitch = kicker;
+					troughComponent.PlayfieldEntrySwitchItem = kicker.AvailableSwitches.First().Id;
 				}
 			}
 
