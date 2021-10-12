@@ -19,7 +19,6 @@
 // ReSharper disable UnusedMember.Global
 // ReSharper disable UnusedType.Global
 
-using System;
 using System.Linq;
 using UnityEditor;
 using UnityEngine;
@@ -28,11 +27,9 @@ using VisualPinball.Engine.PinMAME;
 using VisualPinball.Engine.VPT;
 using VisualPinball.Unity.VisualPinball.Unity.Patcher.Matcher;
 using Color = UnityEngine.Color;
-using Object = UnityEngine.Object;
 
 namespace VisualPinball.Unity.Patcher
 {
-	[MetaMatch(TableName = "Terminator 2 (Williams 1991)", AuthorName = "NFOZZY")]
 	[MetaMatch(TableName = "Terminator 2 - Judgment Day (Williams 1991)", AuthorName = "g5k")]
 	public class Terminator2 : TablePatcher
 	{
@@ -106,32 +103,6 @@ namespace VisualPinball.Unity.Patcher
 				LinkSwitch(tc, "sw78", "78", kicker);
 				LinkCoil(tc, "sw78", "09", kicker);
 			}
-		}
-
-		protected static void LinkCoil(TableComponent tableComponent, string elementName, string coilId, ICoilDeviceComponent coilDevice)
-		{
-			if (!string.Equals(coilDevice.gameObject.name, elementName, StringComparison.OrdinalIgnoreCase)) {
-				return;
-			}
-			var coilMapping = tableComponent.MappingConfig.Coils.FirstOrDefault(cm => cm.Id == coilId);
-			if (coilMapping == null) {
-				return;
-			}
-			coilMapping.Device = coilDevice;
-			coilMapping.DeviceItem = coilDevice.AvailableCoils.First().Id;
-		}
-
-		protected static void LinkSwitch(TableComponent tableComponent, string elementName, string switchId, ISwitchDeviceComponent switchDevice)
-		{
-			if (!string.Equals(switchDevice.gameObject.name, elementName, StringComparison.OrdinalIgnoreCase)) {
-				return;
-			}
-			var switchMapping = tableComponent.MappingConfig.Switches.FirstOrDefault(sw => sw.Id == switchId);
-			if (switchMapping == null) {
-				return;
-			}
-			switchMapping.Device = switchDevice;
-			switchMapping.DeviceItem = switchDevice.AvailableSwitches.First().Id;
 		}
 
 		#endregion

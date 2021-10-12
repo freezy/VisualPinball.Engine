@@ -84,7 +84,7 @@ namespace VisualPinball.Unity
 		public void RemoveWireDest(string destId)
 		{
 			foreach (var wire in _wires) {
-				if (wire.IsDynamic && wire.DeviceItem == destId) {
+				if (wire.IsHardwareRule && wire.DeviceItem == destId) {
 					_wires.Remove(wire);
 					return;
 				}
@@ -128,7 +128,7 @@ namespace VisualPinball.Unity
 						var dest = device.Wire(wireConfig.DeviceItem);
 						if (dest != null) {
 
-							// close the switch now
+							// toggle switch
 							dest.OnChange(enabled);
 
 							// if it's pulse, schedule to re-open

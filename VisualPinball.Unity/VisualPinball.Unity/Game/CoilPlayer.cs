@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using System.Collections.Generic;
+using System.Linq;
 using NLog;
 
 namespace VisualPinball.Unity
@@ -34,6 +35,7 @@ namespace VisualPinball.Unity
 		private TableComponent _tableComponent;
 		private IGamelogicEngine _gamelogicEngine;
 		private LampPlayer _lampPlayer;
+		private WirePlayer _wirePlayer;
 
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
@@ -43,11 +45,12 @@ namespace VisualPinball.Unity
 		internal IApiCoil Coil(ICoilDeviceComponent component, string coilItem)
 			=> _coilDevices.ContainsKey(component) ? _coilDevices[component].Coil(coilItem) : null;
 
-		public void Awake(TableComponent tableComponent, IGamelogicEngine gamelogicEngine, LampPlayer lampPlayer)
+		public void Awake(TableComponent tableComponent, IGamelogicEngine gamelogicEngine, LampPlayer lampPlayer, WirePlayer wirePlayer)
 		{
 			_tableComponent = tableComponent;
 			_gamelogicEngine = gamelogicEngine;
 			_lampPlayer = lampPlayer;
+			_wirePlayer = wirePlayer;
 		}
 
 		public void OnStart()
@@ -74,16 +77,17 @@ namespace VisualPinball.Unity
 							var device = _coilDevices[coilMapping.Device];
 							var coil = device.Coil(coilMapping.DeviceItem);
 							if (coil != null) {
-								AssignCoilMapping(coilMapping.Id, coilMapping.Device, coilMapping.DeviceItem);
+								AssignCoilMapping(coilMapping, false);
 
 							} else {
 								Logger.Error($"Unknown coil \"{coilMapping.DeviceItem}\" in coil device \"{coilMapping.Device}\".");
 							}
 							break;
 
-						case CoilDestination.Lamp:
-							AssignCoilMapping(coilMapping.Id, coilMapping.Device, coilMapping.DeviceItem, isLampCoil: true);
+						case CoilDestination.Lamp: {
+							AssignCoilMapping(coilMapping, true);
 							break;
+						}
 					}
 				}
 
@@ -93,13 +97,17 @@ namespace VisualPinball.Unity
 			}
 		}
 
-		private void AssignCoilMapping(string id, ICoilDeviceComponent device, string deviceCoilId, bool isLampCoil = false)
+		private void AssignCoilMapping(CoilMapping coilMapping, bool isLampCoil)
 		{
-			if (!_coilAssignments.ContainsKey(id)) {
-				_coilAssignments[id] = new List<CoilDestConfig>();
+			if (!_coilAssignments.ContainsKey(coilMapping.Id)) {
+				_coilAssignments[coilMapping.Id] = new List<CoilDestConfig>();
 			}
-			_coilAssignments[id].Add(new CoilDestConfig(device, deviceCoilId, isLampCoil));
-			CoilStatuses[id] = false;
+			var hasDynamicWire = _tableComponent.MappingConfig.Wires.FirstOrDefault(w =>
+				w.DestinationDevice == coilMapping.Device &&
+				w.DestinationDeviceItem == coilMapping.DeviceItem) != null;
+
+			_coilAssignments[coilMapping.Id].Add(new CoilDestConfig(coilMapping.Device, coilMapping.DeviceItem, isLampCoil, hasDynamicWire));
+			CoilStatuses[coilMapping.Id] = false;
 		}
 
 		private void HandleCoilEvent(object sender, CoilEventArgs coilEvent)
@@ -108,6 +116,11 @@ namespace VisualPinball.Unity
 				CoilStatuses[coilEvent.Id] = coilEvent.IsEnabled;
 
 				foreach (var destConfig in _coilAssignments[coilEvent.Id]) {
+
+					if (destConfig.HasDynamicWire) {
+						_wirePlayer.HandleCoilEvent();
+						continue;
+					}
 
 					if (destConfig.IsLampCoil) {
 						_lampPlayer.HandleLampEvent(new LampEventArgs(coilEvent.Id, coilEvent.IsEnabled ? 1 : 0, true));
@@ -159,17 +172,19 @@ namespace VisualPinball.Unity
 		public readonly ICoilDeviceComponent Device;
 		public readonly string DeviceItem;
 		public readonly bool IsLampCoil;
+		public readonly bool HasDynamicWire;
 
-		public CoilDestConfig(ICoilDeviceComponent device, string deviceItem, bool isLampCoil)
+		public CoilDestConfig(ICoilDeviceComponent device, string deviceItem, bool isLampCoil, bool hasDynamicWire)
 		{
 			Device = device;
 			DeviceItem = deviceItem;
 			IsLampCoil = isLampCoil;
+			HasDynamicWire = hasDynamicWire;
 		}
 
 		public override string ToString()
 		{
-			return $"coil destination (device = {Device}, coild id = {DeviceItem}, lamp = {IsLampCoil})";
+			return $"coil destination (device = {Device}, coild id = {DeviceItem}, lamp = {IsLampCoil}, wire = {HasDynamicWire})";
 		}
 	}
 }

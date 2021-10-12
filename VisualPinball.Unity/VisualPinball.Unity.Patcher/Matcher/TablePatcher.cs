@@ -249,5 +249,49 @@ namespace VisualPinball.Unity.VisualPinball.Unity.Patcher.Matcher
 		}
 
 		#endregion
+
+		#region Mapping Helpers
+
+		/// <summary>
+		/// Links a coil device to an existing coil mapping if it matches a given name.
+		/// </summary>
+		/// <param name="tableComponent">Table component for retrieving mappings.</param>
+		/// <param name="elementName">The name that the coil device's GameObject has to match in order to be linked.</param>
+		/// <param name="coilId">The ID of the coil mapping that the coil device will be linked to</param>
+		/// <param name="coilDevice">The coil device to be linked</param>
+		protected static void LinkCoil(TableComponent tableComponent, string elementName, string coilId, ICoilDeviceComponent coilDevice)
+		{
+			if (!string.Equals(coilDevice.gameObject.name, elementName, StringComparison.OrdinalIgnoreCase)) {
+				return;
+			}
+			var coilMapping = tableComponent.MappingConfig.Coils.FirstOrDefault(cm => cm.Id == coilId);
+			if (coilMapping == null) {
+				return;
+			}
+			coilMapping.Device = coilDevice;
+			coilMapping.DeviceItem = coilDevice.AvailableCoils.First().Id;
+		}
+
+		/// <summary>
+		/// Links a switch device to an existing switch mapping if it matches a given name.
+		/// </summary>
+		/// <param name="tableComponent">Table component for retrieving mappings.</param>
+		/// <param name="elementName">The name that the switch device's GameObject has to match in order to be linked.</param>
+		/// <param name="switchId">The ID of the switch mapping that the switch device will be linked to</param>
+		/// <param name="switchDevice">The switch device to be linked</param>
+		protected static void LinkSwitch(TableComponent tableComponent, string elementName, string switchId, ISwitchDeviceComponent switchDevice)
+		{
+			if (!string.Equals(switchDevice.gameObject.name, elementName, StringComparison.OrdinalIgnoreCase)) {
+				return;
+			}
+			var switchMapping = tableComponent.MappingConfig.Switches.FirstOrDefault(sw => sw.Id == switchId);
+			if (switchMapping == null) {
+				return;
+			}
+			switchMapping.Device = switchDevice;
+			switchMapping.DeviceItem = switchDevice.AvailableSwitches.First().Id;
+		}
+
+		#endregion
 	}
 }
