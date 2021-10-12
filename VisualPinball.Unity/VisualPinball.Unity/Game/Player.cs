@@ -124,7 +124,7 @@ namespace VisualPinball.Unity
 			if (engineComponent != null) {
 				GamelogicEngine = engineComponent;
 				_lampPlayer.Awake(_tableComponent, GamelogicEngine);
-				_coilPlayer.Awake(_tableComponent, GamelogicEngine, _lampPlayer);
+				_coilPlayer.Awake(_tableComponent, GamelogicEngine, _lampPlayer, _wirePlayer);
 				_switchPlayer.Awake(_tableComponent, GamelogicEngine, _inputManager);
 				_wirePlayer.Awake(_tableComponent, _inputManager, _switchPlayer);
 				_displayPlayer.Awake(GamelogicEngine);
@@ -414,7 +414,7 @@ namespace VisualPinball.Unity
 
 		#region API
 
-		public void AddDynamicWire(string switchId, string coilId)
+		public void AddHardwareRule(string switchId, string coilId)
 		{
 			var switchMapping = _tableComponent.MappingConfig.Switches.FirstOrDefault(c => c.Id == switchId);
 			var coilMapping = _tableComponent.MappingConfig.Coils.FirstOrDefault(c => c.Id == coilId);
@@ -434,7 +434,7 @@ namespace VisualPinball.Unity
 			_tableComponent.MappingConfig.AddWire(wireMapping);
 		}
 
-		public void RemoveDynamicWire(string switchId, string coilId)
+		public void RemoveHardwareRule(string switchId, string coilId)
 		{
 			var switchMapping = _tableComponent.MappingConfig.Switches.FirstOrDefault(c => c.Id == switchId);
 			var coilMapping = _tableComponent.MappingConfig.Coils.FirstOrDefault(c => c.Id == coilId);

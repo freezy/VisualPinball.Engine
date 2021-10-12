@@ -18,6 +18,7 @@ using System.Collections.Generic;
 using System.Linq;
 using NLog;
 using UnityEngine.InputSystem;
+using UnityEngine.Networking.Types;
 
 namespace VisualPinball.Unity
 {
@@ -32,6 +33,8 @@ namespace VisualPinball.Unity
 		private TableComponent _tableComponent;
 		private InputManager _inputManager;
 		private SwitchPlayer _switchPlayer;
+
+		private Dictionary<(string, string), Queue<float>> _dynamicWireSignals = new Dictionary<(string, string), Queue<float>>();
 
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
@@ -56,7 +59,7 @@ namespace VisualPinball.Unity
 			_inputManager.Enable(HandleKeyInput);
 		}
 
-		internal void AddWire(WireMapping wireMapping, bool isDynamic = false)
+		internal void AddWire(WireMapping wireMapping, bool isHardwareRule = false)
 		{
 			switch (wireMapping.Source) {
 
@@ -75,7 +78,7 @@ namespace VisualPinball.Unity
 
 					var deviceSwitch = _switchPlayer.Switch(wireMapping.SourceDevice, wireMapping.SourceDeviceItem);
 					if (deviceSwitch != null) {
-						deviceSwitch.AddWireDest(new WireDestConfig(wireMapping) { IsDynamic = isDynamic });
+						deviceSwitch.AddWireDest(SetupWireDestConfig(wireMapping, isHardwareRule));
 						Logger.Info($"Wiring device switch \"{wireMapping.Src}\" to \"{wireMapping.Dst}\"");
 
 					} else {
@@ -88,7 +91,7 @@ namespace VisualPinball.Unity
 					if (!_keyWireAssignments.ContainsKey(wireMapping.SourceInputAction)) {
 						_keyWireAssignments[wireMapping.SourceInputAction] = new List<WireDestConfig>();
 					}
-					_keyWireAssignments[wireMapping.SourceInputAction].Add(new WireDestConfig(wireMapping) { IsDynamic = isDynamic });
+					_keyWireAssignments[wireMapping.SourceInputAction].Add(SetupWireDestConfig(wireMapping, isHardwareRule));
 					break;
 				}
 
@@ -99,6 +102,34 @@ namespace VisualPinball.Unity
 					Logger.Warn($"Unknown wire switch source \"{wireMapping.Source}\".");
 					break;
 			}
+		}
+
+		private WireDestConfig SetupWireDestConfig(WireMapping wireMapping, bool isHardwareRule)
+		{
+			var wireDest = new WireDestConfig(wireMapping) { IsHardwareRule = isHardwareRule };
+			if (!wireMapping.IsDynamic) {
+				return wireDest;
+			}
+			if (GetGamelogicEngineIds(wireMapping, out var srcId, out var destId)) {
+				wireMapping.DynamicSrcId = srcId;
+				wireMapping.DynamicDestId = destId;
+				_dynamicWireSignals[(srcId, destId)] = new Queue<float>();
+
+			} else {
+				Logger.Warn($"GLE IDs not found for dynamic wire {wireMapping.Description} ({srcId} / {destId}).");
+			}
+			return wireDest;
+		}
+
+		private bool GetGamelogicEngineIds(WireMapping wireMapping, out string src, out string dest)
+		{
+			var sourceMapping = _tableComponent.MappingConfig.Switches.FirstOrDefault(switchMapping =>
+				switchMapping.Device == wireMapping.SourceDevice && switchMapping.DeviceItem == wireMapping.SourceDeviceItem);
+			var destMapping = _tableComponent.MappingConfig.Coils.FirstOrDefault(coilMapping =>
+				coilMapping.Device == wireMapping.DestinationDevice && coilMapping.DeviceItem == wireMapping.DestinationDeviceItem);
+			src = sourceMapping?.Id;
+			dest = destMapping?.Id;
+			return sourceMapping != null && destMapping != null;
 		}
 
 		internal void RemoveWire(WireMapping wireMapping)
@@ -132,7 +163,7 @@ namespace VisualPinball.Unity
 						_keyWireAssignments[wireMapping.SourceInputAction] = new List<WireDestConfig>();
 					}
 					var assignment = _keyWireAssignments[wireMapping.SourceInputAction]
-						.FirstOrDefault(a => a.IsDynamic && a.Device == wireMapping.DestinationDevice && a.DeviceItem == wireMapping.DestinationDeviceItem);
+						.FirstOrDefault(a => a.IsHardwareRule && a.Device == wireMapping.DestinationDevice && a.DeviceItem == wireMapping.DestinationDeviceItem);
 					_keyWireAssignments[wireMapping.SourceInputAction].Remove(assignment);
 					break;
 				}
@@ -154,19 +185,34 @@ namespace VisualPinball.Unity
 					var action = (InputAction)obj;
 					if (_keyWireAssignments != null && _keyWireAssignments.ContainsKey(action.name)) {
 						foreach (var wireConfig in _keyWireAssignments[action.name]) {
-							if (_wireDevices.ContainsKey(wireConfig.Device)) {
-								var device = _wireDevices[wireConfig.Device];
-								var wire = device.Wire(wireConfig.DeviceItem);
-								if (wire != null) {
-									wire.OnChange(change == InputActionChange.ActionStarted);
+							if (!_wireDevices.ContainsKey(wireConfig.Device)) {
+								continue;
+							}
+
+							var device = _wireDevices[wireConfig.Device];
+							var wire = device.Wire(wireConfig.DeviceItem);
+							if (wire != null) {
+								var isEnabled = change == InputActionChange.ActionStarted;
+								if (!wireConfig.IsDynamic) {
+									wire.OnChange(isEnabled);
+
 								} else {
-									Logger.Warn($"Unknown wire \"{wireConfig.DeviceItem}\" in wire device \"{wireConfig.Device}\".");
+									if (wireConfig.IsActive) {
+										wire.OnChange(isEnabled);
+									}
 								}
+							} else {
+								Logger.Warn($"Unknown wire \"{wireConfig.DeviceItem}\" in wire device \"{wireConfig.Device}\".");
 							}
 						}
 					}
 					break;
 			}
+		}
+
+		public void HandleCoilEvent()
+		{
+
 		}
 
 		public void OnDestroy()
@@ -185,19 +231,49 @@ namespace VisualPinball.Unity
 		public bool IsPulseSource;
 
 		/// <summary>
-		/// If the destination is dynamic, it means it was added during
-		/// gameplay. MPF does this, and it's called a "hardware rule". We tag
+		/// Wires that are added during gameplay (MPF does this). We tag
 		/// it as such here so we can filter when removing the wire.
 		/// </summary>
+		public bool IsHardwareRule;
+
+		/// <summary>
+		/// Unlike hardware rules, dynamic wires are permanently added, but
+		/// they dynamically enable and disable depending on the GLE. <p/>
+		///
+		/// If a dynamic wire is enabled, it stays active until the output
+		/// signal isn't received from the GLE within a certain threshold
+		/// (<see cref="DynamicThresholdMs"/>). If it's disabled, no signal
+		/// is sent until we get it from the GLE.
+		/// </summary>
+		///
+		/// <remarks>
+		/// The goal is to compensate lag introduced by the GLE. The typical
+		/// use case are flippers. By additionally linking the flipper button
+		/// switch to the flipper coil with a dynamic wire, VPE will instantly
+		/// trigger the flipper coil and only stop doing so if no coil signal
+		/// is received from the GLE.
+		/// </remarks>
 		public bool IsDynamic;
+
+		/// <summary>
+		/// Threshold in milliseconds within a confirming signal from the GLE
+		/// is expected. Should the signal arrive outside the threshold, the
+		/// dynamic wire's enabled status will be toggled.
+		/// </summary>
+		public int DynamicThresholdMs;
+
+		public bool IsActive = true;
 
 		public WireDestConfig(WireMapping wireMapping)
 		{
 			Device = wireMapping.DestinationDevice;
 			DeviceItem = wireMapping.DestinationDeviceItem;
 			PulseDelay = wireMapping.PulseDelay;
+			IsDynamic = wireMapping.IsDynamic;
+			DynamicThresholdMs = wireMapping.DynamicThresholdMs;
 			IsPulseSource = false;
-			IsDynamic = false;
+			IsHardwareRule = false;
+			IsActive = !wireMapping.IsDynamic;
 		}
 
 		public WireDestConfig WithPulse(bool isPulseSource)

@@ -51,6 +51,13 @@ namespace VisualPinball.Unity
 
 		public int PulseDelay = 250;
 
+		public bool IsDynamic;
+
+		public int DynamicThresholdMs;
+
+		internal string DynamicSrcId;
+		internal string DynamicDestId;
+
 		public WireMapping()
 		{
 		}
