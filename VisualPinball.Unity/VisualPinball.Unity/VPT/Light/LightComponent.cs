@@ -180,7 +180,6 @@ namespace VisualPinball.Unity
 				unityLight.intensity = 0;
 				unityLight.enabled = true;
 			}
-
 		}
 
 		public void FadeTo(float value)

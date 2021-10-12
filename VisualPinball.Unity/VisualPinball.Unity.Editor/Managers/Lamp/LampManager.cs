@@ -113,15 +113,20 @@ namespace VisualPinball.Unity.Editor
 			GUILayout.FlexibleSpace();
 
 			_toggleAction = (ToggleAction)EditorGUILayout.EnumPopup(_toggleAction);
-			if (GUILayout.Button("Lights Out", GUILayout.ExpandWidth(false))) {
-				Toggle(false);
+			if (GUILayout.Button("Turn On", GUILayout.ExpandWidth(false))) {
+				Toggle(l => l.enabled = true);
 			}
-			if (GUILayout.Button("Lights On", GUILayout.ExpandWidth(false))) {
-				Toggle(true);
+			if (GUILayout.Button("Turn Off", GUILayout.ExpandWidth(false))) {
+				Toggle(l => l.enabled = false);
+			}
+			if (GUILayout.Button("Select", GUILayout.ExpandWidth(false))) {
+				var lights = new List<Light>();
+				Toggle(lights.Add);
+				Selection.objects = lights.Select(l => l.gameObject as Object).ToArray();
 			}
 		}
 
-		private void Toggle(bool enable)
+		private void Toggle(Action<Light> action)
 		{
 			if (TableComponent != null) {
 				IEnumerable<LampMapping> selection = _toggleAction switch {
@@ -142,7 +147,7 @@ namespace VisualPinball.Unity.Editor
 						: lampMapping.Device.gameObject.GetComponentsInChildren<Light>();
 
 					foreach (var light in lights) {
-						light.enabled = enable;
+						action(light);
 					}
 				}
 			}
