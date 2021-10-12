@@ -58,6 +58,7 @@ namespace VisualPinball.Unity
 
 		public float FadeSpeedUp;
 		public float FadeSpeedDown;
+		private bool IsFlasher => FadeSpeedUp == 0f && FadeSpeedDown == 0f;
 
 		#endregion
 
@@ -177,15 +178,33 @@ namespace VisualPinball.Unity
 			}
 			// enable at 0
 			foreach (var unityLight in _unityLights) {
-				unityLight.intensity = 0;
-				unityLight.enabled = true;
+				if (IsFlasher) {
+					unityLight.enabled = false;
+
+				} else {
+					unityLight.enabled = true;
+					unityLight.intensity = 0;
+				}
 			}
 		}
 
 		public void FadeTo(float value)
 		{
-			StopAllCoroutines();
-			StartCoroutine(nameof(Fade), value);
+			if (IsFlasher) {
+				foreach (var unityLight in _unityLights) {
+					if (value > 0) {
+						unityLight.intensity = value * _fullIntensity;
+						unityLight.enabled = true;
+
+					} else {
+						unityLight.enabled = false;
+					}
+				}
+
+			} else {
+				StopAllCoroutines();
+				StartCoroutine(nameof(Fade), value);
+			}
 		}
 
 		public void StartBlinking()
