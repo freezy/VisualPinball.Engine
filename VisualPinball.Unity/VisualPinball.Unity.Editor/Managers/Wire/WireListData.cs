@@ -32,7 +32,10 @@ namespace VisualPinball.Unity.Editor
 		[ManagerListColumn(Order = 3, HeaderName = "Destination Element", Width = 270)]
 		public string DestinationElement;
 
-		[ManagerListColumn(Order = 4, HeaderName = "Pulse Delay", Width = 100)]
+		[ManagerListColumn(Order = 4, HeaderName = "Dynamic", Width = 100)]
+		public bool IsDynamic;
+
+		[ManagerListColumn(Order = 5, HeaderName = "Pulse Delay", Width = 100)]
 		public int PulseDelay;
 
 		public string Description { get => Name; set => Name = value; }
@@ -61,6 +64,7 @@ namespace VisualPinball.Unity.Editor
 			SourceConstant = wireMapping.SourceConstant;
 			SourceDevice = wireMapping.SourceDevice;
 			SourceDeviceItem = wireMapping.SourceDeviceItem;
+			IsDynamic = wireMapping.IsDynamic;
 
 			DestinationDevice = wireMapping.DestinationDevice;
 			DestinationDeviceItem = wireMapping.DestinationDeviceItem;
@@ -80,6 +84,7 @@ namespace VisualPinball.Unity.Editor
 			WireMapping.SourceConstant = SourceConstant;
 			WireMapping.SourceDevice = SourceDevice;
 			WireMapping.SourceDeviceItem = SourceDeviceItem;
+			WireMapping.IsDynamic = IsDynamic;
 
 			WireMapping.DestinationDevice = DestinationDevice;
 			WireMapping.DestinationDeviceItem = DestinationDeviceItem;
