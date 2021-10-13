@@ -74,7 +74,9 @@ namespace VisualPinball.Unity
 				return;
 			}
 			var slingshotSurfaceApi = player.TableApi.Surface(SlingshotSurface.MainComponent);
-			slingshotSurfaceApi.Slingshot += OnSlingshot;
+			if (slingshotSurfaceApi != null) {
+				slingshotSurfaceApi.Slingshot += OnSlingshot;
+			}
 		}
 
 		private void OnDestroy()

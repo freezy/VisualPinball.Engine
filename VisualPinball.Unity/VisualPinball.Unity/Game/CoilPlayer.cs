@@ -118,7 +118,8 @@ namespace VisualPinball.Unity
 				foreach (var destConfig in _coilAssignments[coilEvent.Id]) {
 
 					if (destConfig.HasDynamicWire) {
-						_wirePlayer.HandleCoilEvent();
+						// goes back through the wire mapping, which will decide whether it has already sent the event or not
+						_wirePlayer.HandleCoilEvent(coilEvent.Id, coilEvent.IsEnabled);
 						continue;
 					}
 

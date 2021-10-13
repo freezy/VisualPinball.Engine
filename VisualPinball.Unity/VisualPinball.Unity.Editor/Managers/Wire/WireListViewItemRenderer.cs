@@ -41,7 +41,8 @@ namespace VisualPinball.Unity.Editor
 			Source = 1,
 			SourceElement = 2,
 			DestinationElement = 3,
-			PulseDelay = 4,
+			Dynamic = 4,
+			PulseDelay = 5,
 		}
 
 		private readonly InputManager _inputManager;
@@ -57,7 +58,7 @@ namespace VisualPinball.Unity.Editor
 			_destDevicePicker = new ObjectReferencePicker<IWireableComponent>("Wire Destination", tableComponent, false);
 		}
 
-		public void Render(TableComponent tableComponent, WireListData data, Rect cellRect, int column, Action<WireListData> updateAction)
+		public void Render(WireListData data, Rect cellRect, int column, Action<WireListData> updateAction)
 		{
 			switch ((WireListColumn)column)
 			{
@@ -72,6 +73,9 @@ namespace VisualPinball.Unity.Editor
 					break;
 				case WireListColumn.DestinationElement:
 					RenderDestinationElement(data, cellRect, updateAction);
+					break;
+				case WireListColumn.Dynamic:
+					RenderIsDynamic(data, cellRect, updateAction);
 					break;
 				case WireListColumn.PulseDelay:
 					RenderPulseDelay(data, cellRect, updateAction);
@@ -229,6 +233,17 @@ namespace VisualPinball.Unity.Editor
 				}
 				updateAction(listData);
 			});
+		}
+
+
+		private void RenderIsDynamic(WireListData wireListData, Rect cellRect, Action<WireListData> updateAction)
+		{
+			EditorGUI.BeginChangeCheck();
+			var isDynamic = EditorGUI.Toggle(cellRect, wireListData.IsDynamic);
+			if (EditorGUI.EndChangeCheck()) {
+				wireListData.IsDynamic = isDynamic;
+				updateAction(wireListData);
+			}
 		}
 
 		private void RenderPulseDelay(WireListData wireListData, Rect cellRect, Action<WireListData> updateAction)

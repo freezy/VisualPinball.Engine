@@ -17,8 +17,11 @@
 using System.Collections.Generic;
 using System.Linq;
 using NLog;
+using Unity.Mathematics;
+using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.Networking.Types;
+using Logger = NLog.Logger;
 
 namespace VisualPinball.Unity
 {
@@ -29,12 +32,14 @@ namespace VisualPinball.Unity
 		/// </summary>
 		private readonly Dictionary<IWireableComponent, IApiWireDeviceDest> _wireDevices = new Dictionary<IWireableComponent, IApiWireDeviceDest>();
 		private readonly Dictionary<string, List<WireDestConfig>> _keyWireAssignments = new Dictionary<string, List<WireDestConfig>>();
+		private readonly Dictionary<string, List<WireDestConfig>> _gleDestAssignments = new Dictionary<string, List<WireDestConfig>>();
+		private readonly Dictionary<string, List<WireDestConfig>> _gleSrcAssignments = new Dictionary<string, List<WireDestConfig>>();
+		private readonly Dictionary<WireDestConfig, Queue<float>> _gleSignals = new Dictionary<WireDestConfig, Queue<float>>();
 
 		private TableComponent _tableComponent;
 		private InputManager _inputManager;
 		private SwitchPlayer _switchPlayer;
 
-		private Dictionary<(string, string), Queue<float>> _dynamicWireSignals = new Dictionary<(string, string), Queue<float>>();
 
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
@@ -52,6 +57,7 @@ namespace VisualPinball.Unity
 		{
 			var config = _tableComponent.MappingConfig;
 			_keyWireAssignments.Clear();
+			_gleDestAssignments.Clear();
 			foreach (var wireData in config.Wires) {
 				AddWire(wireData);
 			}
@@ -111,9 +117,20 @@ namespace VisualPinball.Unity
 				return wireDest;
 			}
 			if (GetGamelogicEngineIds(wireMapping, out var srcId, out var destId)) {
-				wireMapping.DynamicSrcId = srcId;
-				wireMapping.DynamicDestId = destId;
-				_dynamicWireSignals[(srcId, destId)] = new Queue<float>();
+				var queue = new Queue<float>();
+
+				_gleSignals[wireDest] = new Queue<float>();
+
+				// reference the queue both by src and dest
+				if (!_gleSrcAssignments.ContainsKey(srcId)) {
+					_gleSrcAssignments[srcId] = new List<WireDestConfig>();
+				}
+				_gleSrcAssignments[srcId].Add(wireDest);
+
+				if (!_gleDestAssignments.ContainsKey(destId)) {
+					_gleDestAssignments[destId] = new List<WireDestConfig>();
+				}
+				_gleDestAssignments[destId].Add(wireDest);
 
 			} else {
 				Logger.Warn($"GLE IDs not found for dynamic wire {wireMapping.Description} ({srcId} / {destId}).");
@@ -197,8 +214,13 @@ namespace VisualPinball.Unity
 									wire.OnChange(isEnabled);
 
 								} else {
+									_gleSignals[wireConfig].Enqueue(Time.realtimeSinceStartup);
 									if (wireConfig.IsActive) {
+										Logger.Info($"Skipping GLE for setting coil at {wireConfig.DeviceItem} @ ${wireConfig.Device.gameObject.name} to {isEnabled}.");
 										wire.OnChange(isEnabled);
+
+									} else {
+
 									}
 								}
 							} else {
@@ -210,9 +232,52 @@ namespace VisualPinball.Unity
 			}
 		}
 
-		public void HandleCoilEvent()
+		public void HandleCoilEvent(string id, bool isEnabled)
 		{
+			foreach (var wireConfig in _gleDestAssignments[id]) {
+				if (!_wireDevices.ContainsKey(wireConfig.Device)) {
+					continue;
+				}
+				var device = _wireDevices[wireConfig.Device];
+				var wire = device.Wire(wireConfig.DeviceItem);
+				if (wire != null) {
+					var lagMs = GetLag(wireConfig);
+					if (lagMs > 0 && lagMs < WireDestConfig.DynamicThresholdMs) {
+						if (!wireConfig.IsActive) {
+							Logger.Info($"Enabling dynamic wire from {id} to {wireConfig.DeviceItem} @ {wireConfig.Device.gameObject.name} ({lagMs}ms).");
+						}
+						wireConfig.IsActive = true;
 
+					} else {
+						if (wireConfig.IsActive) {
+							Logger.Info($"Disabling dynamic wire from {id} to {wireConfig.DeviceItem} @ {wireConfig.Device.gameObject.name} ({lagMs}ms).");
+						} else {
+							Logger.Info($"NOT enabling dynamic wire from {id} to {wireConfig.DeviceItem} @ {wireConfig.Device.gameObject.name} ({lagMs}ms).");
+						}
+						wireConfig.IsActive = false;
+					}
+
+					wire.OnChange(isEnabled);
+
+				} else {
+					Logger.Warn($"Unknown dynamic wire \"{wireConfig.DeviceItem}\" in wire device \"{wireConfig.Device}\".");
+				}
+			}
+		}
+
+		private float GetLag(WireDestConfig wireConfig)
+		{
+			var timeNow = Time.realtimeSinceStartup;
+			var queue = _gleSignals[wireConfig];
+			var lagMs = -1;
+			while (queue.Count > 0) {
+				var timeQueue = queue.Dequeue();
+				lagMs = (int)math.round((timeNow - timeQueue) * 1000);
+				if (lagMs < WireDestConfig.DynamicThresholdMs) {
+					return lagMs;
+				}
+			}
+			return lagMs;
 		}
 
 		public void OnDestroy()
@@ -260,9 +325,9 @@ namespace VisualPinball.Unity
 		/// is expected. Should the signal arrive outside the threshold, the
 		/// dynamic wire's enabled status will be toggled.
 		/// </summary>
-		public int DynamicThresholdMs;
+		public const int DynamicThresholdMs = 200;
 
-		public bool IsActive = true;
+		public bool IsActive;
 
 		public WireDestConfig(WireMapping wireMapping)
 		{
@@ -270,7 +335,6 @@ namespace VisualPinball.Unity
 			DeviceItem = wireMapping.DestinationDeviceItem;
 			PulseDelay = wireMapping.PulseDelay;
 			IsDynamic = wireMapping.IsDynamic;
-			DynamicThresholdMs = wireMapping.DynamicThresholdMs;
 			IsPulseSource = false;
 			IsHardwareRule = false;
 			IsActive = !wireMapping.IsDynamic;

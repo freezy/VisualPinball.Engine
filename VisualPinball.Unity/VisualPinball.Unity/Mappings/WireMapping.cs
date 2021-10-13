@@ -53,10 +53,7 @@ namespace VisualPinball.Unity
 
 		public bool IsDynamic;
 
-		public int DynamicThresholdMs;
-
-		internal string DynamicSrcId;
-		internal string DynamicDestId;
+		public int DynamicThresholdMs = 75;
 
 		public WireMapping()
 		{

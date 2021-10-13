@@ -103,7 +103,7 @@ namespace VisualPinball.Unity.Editor
 
 		protected override void OnListViewItemRenderer(WireListData data, Rect cellRect, int column)
 		{
-			_listViewItemRenderer.Render(TableComponent, data, cellRect, column, wireListData => {
+			_listViewItemRenderer.Render(data, cellRect, column, wireListData => {
 				RecordUndo(DataTypeName + " Data Change");
 
 				wireListData.Update();
