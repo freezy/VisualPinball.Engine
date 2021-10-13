@@ -17,6 +17,7 @@
 // ReSharper disable ConditionIsAlwaysTrueOrFalse
 
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using NLog;
@@ -24,6 +25,9 @@ using UnityEngine;
 using VisualPinball.Engine.Common;
 using VisualPinball.Engine.Game.Engines;
 using Logger = NLog.Logger;
+
+// uncomment to simulate dual-wound flippers
+// #define DUAL_WOUND_FLIPPERS
 
 namespace VisualPinball.Unity
 {
@@ -36,7 +40,7 @@ namespace VisualPinball.Unity
 	[AddComponentMenu("Visual Pinball/Game Logic Engine/Default Game Logic")]
 	public class DefaultGamelogicEngine : MonoBehaviour, IGamelogicEngine
 	{
-		public string Name { get; } = "Default Game Engine";
+		public string Name => "Default Game Engine";
 
 		public event EventHandler<CoilEventArgs> OnCoilChanged;
 		public event EventHandler<LampEventArgs> OnLampChanged;
@@ -44,8 +48,6 @@ namespace VisualPinball.Unity
 		public event EventHandler<LampColorEventArgs> OnLampColorChanged;
 		public event EventHandler<AvailableDisplays> OnDisplaysAvailable;
 		public event EventHandler<DisplayFrameData> OnDisplayFrame;
-
-		private const bool DualWoundFlippers = false;
 
 		private const int DmdWidth = 128;
 		private const int DmdHeight = 32;
@@ -135,8 +137,9 @@ namespace VisualPinball.Unity
 
 		private Player _player;
 		private BallManager _ballManager;
-		private bool _frameSent = false;
+		private bool _frameSent;
 		private PlayfieldComponent _playfieldComponent;
+		private const float FlipperLag = 0.5f;
 
 		private readonly Dictionary<string, Stopwatch> _switchTime = new Dictionary<string, Stopwatch>();
 
@@ -146,7 +149,7 @@ namespace VisualPinball.Unity
 		{
 			Logger.Info("New Gamelogic engine instantiated.");
 
-			if (DualWoundFlippers) {
+			#if DUAL_WOUND_FLIPPERS
 				_availableCoils.AddRange(new [] {
 					new GamelogicEngineCoil(CoilLeftFlipperHold) { Description = "Left Flipper (Hold)", DeviceHint = "^(LeftFlipper|LFlipper|FlipperLeft|FlipperL)$", DeviceItemHint = FlipperComponent.HoldCoilItem },
 					new GamelogicEngineCoil(CoilRightFlipperHold) { Description = "Right Flipper (Hold)", DeviceHint = "^(RightFlipper|RFlipper|FlipperRight|FlipperR)$", DeviceItemHint = FlipperComponent.HoldCoilItem },
@@ -156,7 +159,7 @@ namespace VisualPinball.Unity
 					new GamelogicEngineSwitch(SwLeftFlipperEos) { Description = "Left Flipper (EOS)", DeviceHint = "^(LeftFlipper|LFlipper|FlipperLeft|FlipperL)$"},
 					new GamelogicEngineSwitch(SwRightFlipperEos) { Description = "Right Flipper (EOS)", DeviceHint = "^(RightFlipper|RFlipper|FlipperRight|FlipperR)$"},
 				});
-			}
+			#endif
 		}
 
 		public void OnInit(Player player, TableApi tableApi, BallManager ballManager)
@@ -266,7 +269,7 @@ namespace VisualPinball.Unity
 			switch (id) {
 
 				case SwLeftFlipper:
-					if (DualWoundFlippers) {
+					#if DUAL_WOUND_FLIPPERS
 						if (isClosed) {
 							OnCoilChanged?.Invoke(this, new CoilEventArgs(CoilLeftFlipperMain, true));
 
@@ -277,23 +280,22 @@ namespace VisualPinball.Unity
 									: new CoilEventArgs(CoilLeftFlipperMain, false)
 							);
 						}
-					} else {
-						OnCoilChanged?.Invoke(this, new CoilEventArgs(CoilLeftFlipperMain, isClosed));
-					}
-
+					#else
+						Wait(FlipperLag, () => OnCoilChanged?.Invoke(this, new CoilEventArgs(CoilLeftFlipperMain, isClosed)));
+					#endif
 					break;
 
 				case SwLeftFlipperEos:
-					if (DualWoundFlippers) {
+					#if DUAL_WOUND_FLIPPERS
 						if (isClosed) {
 							OnCoilChanged?.Invoke(this, new CoilEventArgs(CoilLeftFlipperMain, false));
 							OnCoilChanged?.Invoke(this, new CoilEventArgs(CoilLeftFlipperHold, true));
 						}
-					}
+					#endif
 					break;
 
 				case SwRightFlipper:
-					if (DualWoundFlippers) {
+					#if DUAL_WOUND_FLIPPERS
 						if (isClosed) {
 							OnCoilChanged?.Invoke(this, new CoilEventArgs(CoilRightFlipperMain, true));
 						} else {
@@ -303,20 +305,27 @@ namespace VisualPinball.Unity
 									: new CoilEventArgs(CoilRightFlipperMain, false)
 							);
 						}
-					} else {
-						OnCoilChanged?.Invoke(this, new CoilEventArgs(CoilRightFlipperMain, isClosed));
-					}
+					#else
+						Wait(FlipperLag, () => OnCoilChanged?.Invoke(this, new CoilEventArgs(CoilRightFlipperMain, isClosed)));
+					#endif
 					break;
 
 				case SwRightFlipperEos:
-					if (DualWoundFlippers) {
+					#if DUAL_WOUND_FLIPPERS
 						if (isClosed) {
 							OnCoilChanged?.Invoke(this, new CoilEventArgs(CoilRightFlipperMain, false));
 							OnCoilChanged?.Invoke(this, new CoilEventArgs(CoilRightFlipperHold, true));
 						}
-					}
+					#endif
 					break;
 			}
+		}
+
+		private void Wait(float seconds, Action action) => StartCoroutine(_wait(seconds, action));
+
+		private static IEnumerator _wait(float time, Action callback){
+			yield return new WaitForSeconds(time);
+			callback();
 		}
 	}
 }
