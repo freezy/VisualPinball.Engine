@@ -216,11 +216,8 @@ namespace VisualPinball.Unity
 								} else {
 									_gleSignals[wireConfig].Enqueue(Time.realtimeSinceStartup);
 									if (wireConfig.IsActive) {
-										Logger.Info($"Skipping GLE for setting coil at {wireConfig.DeviceItem} @ ${wireConfig.Device.gameObject.name} to {isEnabled}.");
+										// the dynamic wire is active, so trigger directly.
 										wire.OnChange(isEnabled);
-
-									} else {
-
 									}
 								}
 							} else {
@@ -251,8 +248,6 @@ namespace VisualPinball.Unity
 					} else {
 						if (wireConfig.IsActive) {
 							Logger.Info($"Disabling dynamic wire from {id} to {wireConfig.DeviceItem} @ {wireConfig.Device.gameObject.name} ({lagMs}ms).");
-						} else {
-							Logger.Info($"NOT enabling dynamic wire from {id} to {wireConfig.DeviceItem} @ {wireConfig.Device.gameObject.name} ({lagMs}ms).");
 						}
 						wireConfig.IsActive = false;
 					}
