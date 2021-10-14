@@ -229,6 +229,11 @@ namespace VisualPinball.Unity
 			Register(new LightGroupApi(component.Lights.Select(l => l.GetApi(this)).ToArray()), component);
 		}
 
+		public void RegisterMech(CannonComponent component)
+		{
+			Register(new CannonApi(component.gameObject, this), component);
+		}
+
 		public void RegisterPlunger(PlungerComponent component, Entity entity, Entity parentEntity, InputActionReference actionRef)
 		{
 			var plungerApi = new PlungerApi(component.gameObject, entity, parentEntity, this);
