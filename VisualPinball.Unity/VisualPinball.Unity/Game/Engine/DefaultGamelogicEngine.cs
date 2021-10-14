@@ -22,8 +22,10 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using NLog;
 using UnityEngine;
+using UnityEngine.InputSystem;
 using VisualPinball.Engine.Common;
 using VisualPinball.Engine.Game.Engines;
+using Debug = UnityEngine.Debug;
 using Logger = NLog.Logger;
 
 // uncomment to simulate dual-wound flippers
@@ -145,6 +147,9 @@ namespace VisualPinball.Unity
 
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
+		[NonSerialized]
+		private bool _flippersEnabled = true;
+
 		public DefaultGamelogicEngine()
 		{
 			Logger.Info("New Gamelogic engine instantiated.");
@@ -189,6 +194,16 @@ namespace VisualPinball.Unity
 				OnDisplayFrame?.Invoke(this, new DisplayFrameData(DisplayDmd, DisplayFrameFormat.Dmd24, data));
 
 				_frameSent = true;
+			}
+
+			if (Keyboard.current.fKey.wasPressedThisFrame) {
+				Debug.Log("Flippers disabled");
+				_flippersEnabled = false;
+			}
+
+			if (Keyboard.current.fKey.wasReleasedThisFrame) {
+				Debug.Log("Flippers enabled");
+				_flippersEnabled = true;
 			}
 		}
 
@@ -281,7 +296,9 @@ namespace VisualPinball.Unity
 							);
 						}
 					#else
-						Wait(FlipperLag, () => OnCoilChanged?.Invoke(this, new CoilEventArgs(CoilLeftFlipperMain, isClosed)));
+						if (_flippersEnabled) {
+							Wait(FlipperLag, () => OnCoilChanged?.Invoke(this, new CoilEventArgs(CoilLeftFlipperMain, isClosed)));
+						}
 					#endif
 					break;
 
@@ -306,7 +323,9 @@ namespace VisualPinball.Unity
 							);
 						}
 					#else
-						Wait(FlipperLag, () => OnCoilChanged?.Invoke(this, new CoilEventArgs(CoilRightFlipperMain, isClosed)));
+						if (_flippersEnabled) {
+							Wait(FlipperLag, () => OnCoilChanged?.Invoke(this, new CoilEventArgs(CoilRightFlipperMain, isClosed)));
+						}
 					#endif
 					break;
 
