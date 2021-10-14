@@ -43,6 +43,8 @@ namespace VisualPinball.Unity
 		[NonSerialized]
 		public BallManager BallManager;
 
+		public event EventHandler OnUpdate;
+
 		[HideInInspector] [SerializeField] public string debugUiId;
 		[HideInInspector] [SerializeField] public string physicsEngineId;
 
@@ -126,7 +128,7 @@ namespace VisualPinball.Unity
 				_lampPlayer.Awake(_tableComponent, GamelogicEngine);
 				_coilPlayer.Awake(_tableComponent, GamelogicEngine, _lampPlayer, _wirePlayer);
 				_switchPlayer.Awake(_tableComponent, GamelogicEngine, _inputManager);
-				_wirePlayer.Awake(_tableComponent, _inputManager, _switchPlayer);
+				_wirePlayer.Awake(_tableComponent, _inputManager, _switchPlayer, this);
 				_displayPlayer.Awake(GamelogicEngine);
 			}
 
@@ -155,6 +157,11 @@ namespace VisualPinball.Unity
 			if (EngineProvider<IDebugUI>.Exists) {
 				EngineProvider<IDebugUI>.Get().Init(_tableComponent);
 			}
+		}
+
+		private void Update()
+		{
+			OnUpdate?.Invoke(this, EventArgs.Empty);
 		}
 
 		private void OnDestroy()

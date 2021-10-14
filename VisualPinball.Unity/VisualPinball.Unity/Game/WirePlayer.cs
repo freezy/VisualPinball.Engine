@@ -14,13 +14,12 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using NLog;
-using Unity.Mathematics;
 using UnityEngine;
 using UnityEngine.InputSystem;
-using UnityEngine.Networking.Types;
 using Logger = NLog.Logger;
 
 namespace VisualPinball.Unity
@@ -36,6 +35,7 @@ namespace VisualPinball.Unity
 		private readonly Dictionary<string, List<WireDestConfig>> _gleSrcAssignments = new Dictionary<string, List<WireDestConfig>>();
 		private readonly Dictionary<WireDestConfig, Queue<float>> _gleSignals = new Dictionary<WireDestConfig, Queue<float>>();
 
+		private Player _player;
 		private TableComponent _tableComponent;
 		private InputManager _inputManager;
 		private SwitchPlayer _switchPlayer;
@@ -46,24 +46,40 @@ namespace VisualPinball.Unity
 		internal IApiWireDeviceDest WireDevice(IWireableComponent c) => _wireDevices.ContainsKey(c) ? _wireDevices[c] : null;
 		internal void RegisterWireDevice(IWireableComponent component, IApiWireDeviceDest wireDeviceApi) => _wireDevices[component] = wireDeviceApi;
 
-		public void Awake(TableComponent tableComponent, InputManager inputManager, SwitchPlayer switchPlayer)
+		#region Lifecycle
+
+		public void Awake(TableComponent tableComponent, InputManager inputManager, SwitchPlayer switchPlayer, Player player)
 		{
 			_tableComponent = tableComponent;
 			_inputManager = inputManager;
 			_switchPlayer = switchPlayer;
+			_player = player;
 		}
 
 		public void OnStart()
 		{
-			var config = _tableComponent.MappingConfig;
+			_player.OnUpdate += Update;
 			_keyWireAssignments.Clear();
 			_gleDestAssignments.Clear();
+			var config = _tableComponent.MappingConfig;
 			foreach (var wireData in config.Wires) {
 				AddWire(wireData);
 			}
 
 			_inputManager.Enable(HandleKeyInput);
 		}
+
+		public void OnDestroy()
+		{
+			if (_keyWireAssignments.Count > 0) {
+				_inputManager.Disable(HandleKeyInput);
+			}
+			_player.OnUpdate -= Update;
+		}
+
+		#endregion
+
+		#region Setup
 
 		internal void AddWire(WireMapping wireMapping, bool isHardwareRule = false)
 		{
@@ -202,6 +218,10 @@ namespace VisualPinball.Unity
 			}
 		}
 
+		#endregion
+
+		#region Runtime
+
 		private void HandleKeyInput(object obj, InputActionChange change)
 		{
 			switch (change) {
@@ -278,9 +298,27 @@ namespace VisualPinball.Unity
 						wireConfig.IsActive = false;
 					}
 
-
 				} else {
 					Logger.Warn($"Unknown dynamic wire \"{wireConfig.DeviceItem}\" in wire device \"{wireConfig.Device}\".");
+				}
+			}
+		}
+
+		private void Update(object sender, EventArgs e)
+		{
+			foreach (var wireConfig in _gleSignals.Keys) {
+				if (!wireConfig.IsActive) {
+					continue;
+				}
+				var queue = _gleSignals[wireConfig];
+				if (queue.Count == 0) {
+					continue;
+				}
+				var lagSec = Time.realtimeSinceStartup - queue.Peek();
+				if (lagSec > WireDestConfig.DynamicThresholdSec) {
+					Logger.Info($"Disabling dynamic wire to {wireConfig.DeviceItem} @ {wireConfig.Device.gameObject.name} due to inactivity.");
+					_wireDevices[wireConfig.Device].Wire(wireConfig.DeviceItem).OnChange(false); // todo save status in queue and emit other status
+					wireConfig.IsActive = false;
 				}
 			}
 		}
@@ -303,12 +341,7 @@ namespace VisualPinball.Unity
 			return lagSec;
 		}
 
-		public void OnDestroy()
-		{
-			if (_keyWireAssignments.Count > 0) {
-				_inputManager.Disable(HandleKeyInput);
-			}
-		}
+		#endregion
 	}
 
 	public class WireDestConfig
