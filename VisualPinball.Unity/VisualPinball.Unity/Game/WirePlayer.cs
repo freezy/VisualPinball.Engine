@@ -117,7 +117,6 @@ namespace VisualPinball.Unity
 				return wireDest;
 			}
 			if (GetGamelogicEngineIds(wireMapping, out var srcId, out var destId)) {
-				var queue = new Queue<float>();
 
 				_gleSignals[wireDest] = new Queue<float>();
 
@@ -132,18 +131,27 @@ namespace VisualPinball.Unity
 				}
 				_gleDestAssignments[destId].Add(wireDest);
 
+				Logger.Warn($"Added dynamic wire \"{wireMapping.Description}\" ({srcId} -> {destId}).");
+
 			} else {
-				Logger.Warn($"GLE IDs not found for dynamic wire {wireMapping.Description} ({srcId} / {destId}).");
+				Logger.Warn($"GLE IDs not found for dynamic wire {wireMapping.Description} ({srcId} -> {destId}).");
 			}
 			return wireDest;
 		}
 
 		private bool GetGamelogicEngineIds(WireMapping wireMapping, out string src, out string dest)
 		{
-			var sourceMapping = _tableComponent.MappingConfig.Switches.FirstOrDefault(switchMapping =>
-				switchMapping.Device == wireMapping.SourceDevice && switchMapping.DeviceItem == wireMapping.SourceDeviceItem);
+			var sourceMapping = _tableComponent.MappingConfig.Switches.FirstOrDefault(switchMapping => {
+				return switchMapping.Source switch {
+					SwitchSource.InputSystem => switchMapping.InputActionMap == wireMapping.SourceInputActionMap && switchMapping.InputAction == wireMapping.SourceInputAction,
+					SwitchSource.Playfield => switchMapping.Device == wireMapping.SourceDevice && switchMapping.DeviceItem == wireMapping.SourceDeviceItem,
+					_ => false
+				};
+			});
 			var destMapping = _tableComponent.MappingConfig.Coils.FirstOrDefault(coilMapping =>
-				coilMapping.Device == wireMapping.DestinationDevice && coilMapping.DeviceItem == wireMapping.DestinationDeviceItem);
+				coilMapping.Device == wireMapping.DestinationDevice &&
+				coilMapping.DeviceItem == wireMapping.DestinationDeviceItem);
+
 			src = sourceMapping?.Id;
 			dest = destMapping?.Id;
 			return sourceMapping != null && destMapping != null;
@@ -320,7 +328,7 @@ namespace VisualPinball.Unity
 		/// is expected. Should the signal arrive outside the threshold, the
 		/// dynamic wire's enabled status will be toggled.
 		/// </summary>
-		public const int DynamicThresholdMs = 200;
+		public const int DynamicThresholdMs = 600;
 
 		public bool IsActive;
 
