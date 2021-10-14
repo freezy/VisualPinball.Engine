@@ -42,6 +42,7 @@ namespace VisualPinball.Unity
 		private readonly Dictionary<string, TriggerApi> _triggersByName = new Dictionary<string, TriggerApi>();
 		private readonly Dictionary<string, TroughApi> _troughsByName = new Dictionary<string, TroughApi>();
 		private readonly Dictionary<string, PrimitiveApi> _primitivesByName = new Dictionary<string, PrimitiveApi>();
+		private readonly Dictionary<string, CannonApi> _mechsByName = new Dictionary<string, CannonApi>();
 
 		private readonly Dictionary<MonoBehaviour, BumperApi> _bumpersByComponent = new Dictionary<MonoBehaviour, BumperApi>();
 		private readonly Dictionary<MonoBehaviour, FlipperApi> _flippersByComponent = new Dictionary<MonoBehaviour, FlipperApi>();
@@ -59,6 +60,7 @@ namespace VisualPinball.Unity
 		private readonly Dictionary<MonoBehaviour, TriggerApi> _triggersByComponent = new Dictionary<MonoBehaviour, TriggerApi>();
 		private readonly Dictionary<MonoBehaviour, TroughApi> _troughsByComponent = new Dictionary<MonoBehaviour, TroughApi>();
 		private readonly Dictionary<MonoBehaviour, PrimitiveApi> _primitivesByComponent = new Dictionary<MonoBehaviour, PrimitiveApi>();
+		private readonly Dictionary<MonoBehaviour, CannonApi> _mechsByComponent = new Dictionary<MonoBehaviour, CannonApi>();
 
 		#endregion
 
@@ -189,6 +191,14 @@ namespace VisualPinball.Unity
 		public TroughApi Trough(string name) => Get<TroughApi>(name);
 		public TroughApi Trough(MonoBehaviour component) => Get<TroughApi>(component);
 
+		/// <summary>
+		/// Returns a mech by name.
+		/// </summary>
+		/// <param name="name">Name of the mech</param>
+		/// <returns>Primitive or `null` if no mech with that name exists.</returns>
+		public CannonApi Cannon(string name) => Get<CannonApi>(name);
+		public CannonApi Cannon(MonoBehaviour component) => Get<CannonApi>(component);
+
 		#endregion
 
 		#region Registration
@@ -228,6 +238,7 @@ namespace VisualPinball.Unity
 			if (t == typeof(TriggerApi)) return _triggersByName as Dictionary<string, T>;
 			if (t == typeof(TroughApi)) return _troughsByName as Dictionary<string, T>;
 			if (t == typeof(PrimitiveApi)) return _primitivesByName as Dictionary<string, T>;
+			if (t == typeof(CannonApi)) return _mechsByName as Dictionary<string, T>;
 			throw new ArgumentException($"Unknown API type {t}.");
 		}
 
@@ -249,6 +260,7 @@ namespace VisualPinball.Unity
 			if (t == typeof(TriggerApi)) return _triggersByComponent as Dictionary<MonoBehaviour, T>;
 			if (t == typeof(TroughApi)) return _troughsByComponent as Dictionary<MonoBehaviour, T>;
 			if (t == typeof(PrimitiveApi)) return _primitivesByComponent as Dictionary<MonoBehaviour, T>;
+			if (t == typeof(CannonApi)) return _mechsByComponent as Dictionary<MonoBehaviour, T>;
 			throw new ArgumentException($"Unknown API type {t}.");
 		}
 
