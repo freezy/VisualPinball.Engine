@@ -18,6 +18,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using NLog;
+using Unity.Entities;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using Logger = NLog.Logger;
@@ -40,7 +41,7 @@ namespace VisualPinball.Unity
 		private InputManager _inputManager;
 		private SwitchPlayer _switchPlayer;
 
-
+		private static VisualPinballSimulationSystemGroup SimulationSystemGroup => World.DefaultGameObjectInjectionWorld.GetOrCreateSystem<VisualPinballSimulationSystemGroup>();
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
 		internal IApiWireDeviceDest WireDevice(IWireableComponent c) => _wireDevices.ContainsKey(c) ? _wireDevices[c] : null;
@@ -278,6 +279,40 @@ namespace VisualPinball.Unity
 						}
 					}
 					break;
+			}
+		}
+
+		public void HandleSwitchChange(WireDestConfig wireConfig, bool isEnabled)
+		{
+			var device = _player.WireDevice(wireConfig.Device);
+			if (device != null) {
+				var wire = device.Wire(wireConfig.DeviceItem);
+				if (wire != null) {
+
+					if (!wireConfig.IsDynamic) {
+						wire.OnChange(isEnabled);
+
+						// if it's pulse, schedule to re-open
+						if (isEnabled && wireConfig.IsPulseSource) {
+							SimulationSystemGroup.ScheduleAction(wireConfig.PulseDelay, () => wire.OnChange(false));
+						}
+
+					} else {
+						_gleSignals[wireConfig][isEnabled].Enqueue(Time.realtimeSinceStartup);
+						if (wireConfig.IsActive) {
+							// the dynamic wire is active, so trigger directly.
+							wire.OnChange(isEnabled);
+
+							// if it's pulse, schedule to re-open
+							if (isEnabled && wireConfig.IsPulseSource) {
+								SimulationSystemGroup.ScheduleAction(wireConfig.PulseDelay, () => wire.OnChange(false));
+							}
+						}
+					}
+				}
+
+			} else {
+				Logger.Warn($"Cannot find wire device \"{wireConfig.Device}\".");
 			}
 		}
 
