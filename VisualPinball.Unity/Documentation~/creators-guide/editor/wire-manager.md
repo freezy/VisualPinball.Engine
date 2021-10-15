@@ -5,7 +5,7 @@ description: VPE's wire manager lets you directly hook up any switch to any coil
 
 Using the [Switch Manager](switch-manager.md), you can wire playfield and cabinet switches to the [Gamelogic Engine](../manual/gamelogic-engine.md). Similarly, the [Coil Manager](coil-manager.md) and [Lamp Manager](#) let you connect playfield elements to the outputs of the Gamelogic Engine.
 
-The **Wire Manager** allows you to *bypass* the gamelogic engine and connect switches directly to coils and lamps. This can be useful for debugging, but also for game logic that might not be covered by the gamelogic engine.
+The **Wire Manager** allows you to *bypass* the gamelogic engine and connect switches directly to coils and lamps. Using the *dynamic* wires, this can be used to eliminate the flipper lag often introduced by emulated ROMs. But it also can be useful for debugging, or for game logic that might not be covered by the gamelogic engine.
 
 You can open the wire manager under *Visual Pinball -> Wire Manager*.
 
@@ -50,6 +50,28 @@ Under **Destination** you can select the type of the element that will *receive*
 ### Destination Element
 
 The **Destination Element** column is where you select which specific element in the destination column should receive switch changes. If *Device* was selected in the previous column, both the actual device and the element within the device have to be selected.
+
+### Dynamic
+
+By checking the **Dynamic** box, the wire dynamically enables and disables depending on the gamelogic engine's output. Used with flippers, this feature is also known as *Fast Flip* and can be used to reduce the lag introduced by an emulated gamelogic engine like PinMAME.
+
+If it's enabled and a game is started, VPE compares the switches and coils linked to the gamelogic engine and tries to find the switch and coil IDs that correspond to the wire. If found, VPE monitors the coil signals of the gamelogic engine. If the time between the switch and the coil response is below a threshold, the wire is enabled and future coil signals from the gamelogic engine are discarded. In the same way, if the wire is active and no coil signal is received within the threshold, the wire is disabled again.
+
+> [!note]
+> In order to match the switch and coil signals from the gamelogic engine, the switch and the coil need to be linked to the gamelogic engine using the *Switch Manager* and *Coil Manager* respectively. For example, it's not sufficient to just create a flipper button -> flipper coil wire and not link the flipper button to the flipper switch and the flipper coil to the flipper.
+
+There are a few edge cases that are handled as well. For example, if the wire is active and the gamelogic engine enables the coil without a switch signal (like the Phantom Flip in Monster Bash), the coil event is not discarded (VPE internally keeps a queue of switch events and if the queue is empty, coil events are still processed).
+
+However, by design, there are two caveats:
+
+1. When the wire is inactive, the first event always has the gamelogic engine lag, since VPE will only activate the wire when it's sure a coil event is emitted.
+2. When the gamelogic engine stops emitting coil events, VPE continues emitting the coil event one more time until it discovers the absence of the coil event and thus sends the negative signal after the threshold to "undo" its mistake.
+
+
+> [!note]
+> [MPF](../../plugins/mpf/index.md) has a similar feature called [Hardware Rules](https://docs.missionpinball.org/en/dev/hardware/hw_rules.html#the-solution-hardware-rules). This is the preferred way, because the gamelogic engine explicitly notifies VPE about which wires to add and remove during gameplay.
+>
+> However, other gamelogic engines like PinMAME don't have this feature, that's why VPE comes with the *dynamic wire* feature that guesses when wire is active and when not.
 
 ### Pulse Delay
 
