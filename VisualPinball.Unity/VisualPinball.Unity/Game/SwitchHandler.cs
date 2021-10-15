@@ -123,23 +123,7 @@ namespace VisualPinball.Unity
 			// handle switch -> wire
 			if (_wires != null) {
 				foreach (var wireConfig in _wires) {
-					var device = _player.WireDevice(wireConfig.Device);
-					if (device != null) {
-						var dest = device.Wire(wireConfig.DeviceItem);
-						if (dest != null) {
-
-							// toggle switch
-							dest.OnChange(enabled);
-
-							// if it's pulse, schedule to re-open
-							if (enabled && wireConfig.IsPulseSource) {
-								SimulationSystemGroup.ScheduleAction(wireConfig.PulseDelay, () => dest.OnChange(false));
-							}
-						}
-
-					} else {
-						Logger.Warn($"Cannot find wire device \"{wireConfig.Device}\".");
-					}
+					_player.HandleWireSwitchChange(wireConfig, enabled);
 				}
 			}
 
