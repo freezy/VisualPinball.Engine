@@ -7,8 +7,10 @@
 Built with Unity 2020.3.
 
 ### Added
+- Support for dynamic wires, also known as *Fast Flip* ([#329](https://github.com/freezy/VisualPinball.Engine/pull/329), [Documentation](https://docs.visualpinball.org/creators-guide/editor/wire-manager.html#dynamic)).
+- Component for light groups, allowing easy grouping of GI lamps. ([#330](https://github.com/freezy/VisualPinball.Engine/pull/330)).
 - Slingshot component ([#329](https://github.com/freezy/VisualPinball.Engine/pull/329), [Documentation](https://docs.visualpinball.org/creators-guide/manual/mechanisms/slingshots.html)).
-- Create insert meshes ([#320](https://github.com/freezy/VisualPinball.Engine/pull/320))
+- Create insert meshes ([#320](https://github.com/freezy/VisualPinball.Engine/pull/320)).
 - Full support for custom playfield meshes.
 - Remove Hybrid Renderer ([#316](https://github.com/freezy/VisualPinball.Engine/pull/316)).
 - Create and use Unity assets when importing ([#320](https://github.com/freezy/VisualPinball.Engine/pull/302)).
@@ -37,6 +39,7 @@ Built with Unity 2020.3.
 - Put game-, mesh-, collision- animation data into separate components ([#227](https://github.com/freezy/VisualPinball.Engine/pull/227), [Documentation](https://docs.visualpinball.org/creators-guide/editor/unity-components.html)). 
 
 ### Fixed
+- Lighting setup. It's now usable ([#330](https://github.com/freezy/VisualPinball.Engine/pull/330)).
 - Ball passing through collider plane and disappearing.
 - Alpha channel of color values is now correctly written ([#291](https://github.com/freezy/VisualPinball.Engine/pull/291)).
 - Layer names are correctly computed when importing a 10.6 file ([#291](https://github.com/freezy/VisualPinball.Engine/pull/291)).
