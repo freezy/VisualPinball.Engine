@@ -33,7 +33,7 @@ namespace VisualPinball.Unity
 		private readonly Dictionary<string, List<WireDestConfig>> _keyWireAssignments = new Dictionary<string, List<WireDestConfig>>();
 		private readonly Dictionary<string, List<WireDestConfig>> _gleDestAssignments = new Dictionary<string, List<WireDestConfig>>();
 		private readonly Dictionary<string, List<WireDestConfig>> _gleSrcAssignments = new Dictionary<string, List<WireDestConfig>>();
-		private readonly Dictionary<WireDestConfig, Queue<float>> _gleSignals = new Dictionary<WireDestConfig, Queue<float>>();
+		private readonly Dictionary<WireDestConfig, Dictionary<bool, Queue<float>>> _gleSignals = new Dictionary<WireDestConfig, Dictionary<bool, Queue<float>>>();
 
 		private Player _player;
 		private TableComponent _tableComponent;
@@ -75,15 +75,17 @@ namespace VisualPinball.Unity
 				if (!wireConfig.IsActive) {
 					continue;
 				}
-				var queue = _gleSignals[wireConfig];
-				if (queue.Count == 0) {
-					continue;
-				}
-				var lagSec = Time.realtimeSinceStartup - queue.Peek();
-				if (lagSec > WireDestConfig.DynamicThresholdSec) {
-					Logger.Info($"Disabling dynamic wire to {wireConfig.DeviceItem} @ {wireConfig.Device.gameObject.name} due to inactivity.");
-					_wireDevices[wireConfig.Device].Wire(wireConfig.DeviceItem).OnChange(false); // todo save status in queue and emit other status
-					wireConfig.IsActive = false;
+				foreach (var isEnabled in _gleSignals[wireConfig].Keys) {
+					var queue = _gleSignals[wireConfig][isEnabled];
+					if (queue.Count == 0) {
+						continue;
+					}
+					var lagSec = Time.realtimeSinceStartup - queue.Peek();
+					if (lagSec > WireDestConfig.DynamicThresholdSec) {
+						Logger.Info($"Disabling dynamic wire to {wireConfig.DeviceItem} @ {wireConfig.Device.gameObject.name} due to inactivity.");
+						_wireDevices[wireConfig.Device].Wire(wireConfig.DeviceItem).OnChange(!isEnabled);
+						wireConfig.IsActive = false;
+					}
 				}
 			}
 		}
@@ -153,7 +155,10 @@ namespace VisualPinball.Unity
 			}
 			if (GetGamelogicEngineIds(wireMapping, out var srcId, out var destId)) {
 
-				_gleSignals[wireDest] = new Queue<float>();
+				_gleSignals[wireDest] = new Dictionary<bool, Queue<float>> {
+					[true] = new Queue<float>(),
+					[false] = new Queue<float>()
+				};
 
 				// reference the queue both by src and dest
 				if (!_gleSrcAssignments.ContainsKey(srcId)) {
@@ -261,7 +266,7 @@ namespace VisualPinball.Unity
 									wire.OnChange(isEnabled);
 
 								} else {
-									_gleSignals[wireConfig].Enqueue(Time.realtimeSinceStartup);
+									_gleSignals[wireConfig][isEnabled].Enqueue(Time.realtimeSinceStartup);
 									if (wireConfig.IsActive) {
 										// the dynamic wire is active, so trigger directly.
 										wire.OnChange(isEnabled);
@@ -291,7 +296,7 @@ namespace VisualPinball.Unity
 				var device = _wireDevices[wireConfig.Device];
 				var wire = device.Wire(wireConfig.DeviceItem);
 				if (wire != null) {
-					var lagSec = GetLag(wireConfig);
+					var lagSec = GetLag(wireConfig, isEnabled);
 					if (lagSec > 0) {
 
 						// switch event was less than threshold ago, so let's check if the wire is active
@@ -322,10 +327,10 @@ namespace VisualPinball.Unity
 			}
 		}
 
-		private float GetLag(WireDestConfig wireConfig)
+		private float GetLag(WireDestConfig wireConfig, bool isEnabled)
 		{
 			var timeNow = Time.realtimeSinceStartup;
-			var queue = _gleSignals[wireConfig];
+			var queue = _gleSignals[wireConfig][isEnabled];
 			var lagSec = -1f;
 			var numDequeue = 0;
 			while (queue.Count > 0) {
