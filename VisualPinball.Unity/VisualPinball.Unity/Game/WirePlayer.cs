@@ -58,7 +58,7 @@ namespace VisualPinball.Unity
 
 		public void OnStart()
 		{
-			_player.OnUpdate += Update;
+			_player.OnUpdate += OnUpdate;
 			_keyWireAssignments.Clear();
 			_gleDestAssignments.Clear();
 			var config = _tableComponent.MappingConfig;
@@ -69,12 +69,31 @@ namespace VisualPinball.Unity
 			_inputManager.Enable(HandleKeyInput);
 		}
 
+		private void OnUpdate(object sender, EventArgs e)
+		{
+			foreach (var wireConfig in _gleSignals.Keys) {
+				if (!wireConfig.IsActive) {
+					continue;
+				}
+				var queue = _gleSignals[wireConfig];
+				if (queue.Count == 0) {
+					continue;
+				}
+				var lagSec = Time.realtimeSinceStartup - queue.Peek();
+				if (lagSec > WireDestConfig.DynamicThresholdSec) {
+					Logger.Info($"Disabling dynamic wire to {wireConfig.DeviceItem} @ {wireConfig.Device.gameObject.name} due to inactivity.");
+					_wireDevices[wireConfig.Device].Wire(wireConfig.DeviceItem).OnChange(false); // todo save status in queue and emit other status
+					wireConfig.IsActive = false;
+				}
+			}
+		}
+
 		public void OnDestroy()
 		{
 			if (_keyWireAssignments.Count > 0) {
 				_inputManager.Disable(HandleKeyInput);
 			}
-			_player.OnUpdate -= Update;
+			_player.OnUpdate -= OnUpdate;
 		}
 
 		#endregion
@@ -273,7 +292,7 @@ namespace VisualPinball.Unity
 				var wire = device.Wire(wireConfig.DeviceItem);
 				if (wire != null) {
 					var lagSec = GetLag(wireConfig);
-					if (lagSec > 0 && lagSec < WireDestConfig.DynamicThresholdSec) {
+					if (lagSec > 0) {
 
 						// switch event was less than threshold ago, so let's check if the wire is active
 						if (!wireConfig.IsActive) {
@@ -292,33 +311,13 @@ namespace VisualPinball.Unity
 						}
 
 					} else {
-						if (wireConfig.IsActive) {
-							Logger.Info($"Disabling dynamic wire from {id} to {wireConfig.DeviceItem} @ {wireConfig.Device.gameObject.name} ({lagSec}ms).");
-						}
-						wireConfig.IsActive = false;
+						// so we got a coil with no or too old switch in the queue. we assume this comes from the GLE
+						// without a corresponding switch event.
+						wire.OnChange(isEnabled);
 					}
 
 				} else {
 					Logger.Warn($"Unknown dynamic wire \"{wireConfig.DeviceItem}\" in wire device \"{wireConfig.Device}\".");
-				}
-			}
-		}
-
-		private void Update(object sender, EventArgs e)
-		{
-			foreach (var wireConfig in _gleSignals.Keys) {
-				if (!wireConfig.IsActive) {
-					continue;
-				}
-				var queue = _gleSignals[wireConfig];
-				if (queue.Count == 0) {
-					continue;
-				}
-				var lagSec = Time.realtimeSinceStartup - queue.Peek();
-				if (lagSec > WireDestConfig.DynamicThresholdSec) {
-					Logger.Info($"Disabling dynamic wire to {wireConfig.DeviceItem} @ {wireConfig.Device.gameObject.name} due to inactivity.");
-					_wireDevices[wireConfig.Device].Wire(wireConfig.DeviceItem).OnChange(false); // todo save status in queue and emit other status
-					wireConfig.IsActive = false;
 				}
 			}
 		}
@@ -346,10 +345,34 @@ namespace VisualPinball.Unity
 
 	public class WireDestConfig
 	{
+		/// <summary>
+		/// Threshold in milliseconds within a confirming signal from the GLE
+		/// is expected. Should the signal arrive outside the threshold, the
+		/// dynamic wire's enabled status will be toggled.
+		/// </summary>
+		public const float DynamicThresholdSec = 600 / 1000f;
+
+		/// <summary>
+		/// Reference to the destination device.
+		/// </summary>
 		public readonly IWireableComponent Device;
+
+		/// <summary>
+		/// The item within the device.
+		/// </summary>
 		public readonly string DeviceItem;
-		public readonly int PulseDelay;
+
+		/// <summary>
+		/// If true, this is a pulse source, in which case there is only the
+		/// enable event and the disable event is automatically triggered
+		/// after <see cref="PulseDelay"/> milliseconds.
+		/// </summary>
 		public bool IsPulseSource;
+
+		/// <summary>
+		/// If it's a pulse source, the pulse delay in milliseconds.
+		/// </summary>
+		public readonly int PulseDelay;
 
 		/// <summary>
 		/// Wires that are added during gameplay (MPF does this). We tag
@@ -363,7 +386,7 @@ namespace VisualPinball.Unity
 		///
 		/// If a dynamic wire is enabled, it stays active until the output
 		/// signal isn't received from the GLE within a certain threshold
-		/// (<see cref="DynamicThresholdMs"/>). If it's disabled, no signal
+		/// (<see cref="DynamicThresholdSec"/>). If it's disabled, no signal
 		/// is sent until we get it from the GLE.
 		/// </summary>
 		///
@@ -374,17 +397,19 @@ namespace VisualPinball.Unity
 		/// trigger the flipper coil and only stop doing so if no coil signal
 		/// is received from the GLE.
 		/// </remarks>
-		public bool IsDynamic;
+		public readonly bool IsDynamic;
 
 		/// <summary>
-		/// Threshold in milliseconds within a confirming signal from the GLE
-		/// is expected. Should the signal arrive outside the threshold, the
-		/// dynamic wire's enabled status will be toggled.
+		/// Status flag for dynamic wires. If true, the wire will emit events
+		/// to the destination, otherwise it won't.
 		/// </summary>
-		public const float DynamicThresholdSec = 600 / 1000f;
+		internal bool IsActive;
 
-		public bool IsActive;
-		public float ActiveSince;
+		/// <summary>
+		/// Status flag for dynamic wires. Timestamp (<see cref="Time.realtimeSinceStartup"/>)
+		/// when the wire became active.
+		/// </summary>
+		internal float ActiveSince;
 
 		public WireDestConfig(WireMapping wireMapping)
 		{
