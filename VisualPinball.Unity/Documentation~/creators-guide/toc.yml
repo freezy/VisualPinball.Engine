@@ -47,3 +47,5 @@
         href: manual/mechanisms/flippers.md
       - name: Slingshots
         href: manual/mechanisms/slingshots.md
+      - name: Light Groups
+        href: manual/mechanisms/light-groups.md
