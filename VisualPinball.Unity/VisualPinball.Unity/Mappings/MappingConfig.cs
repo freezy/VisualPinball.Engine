@@ -434,6 +434,7 @@ namespace VisualPinball.Unity
 
 				AddLamp(new LampMapping {
 					Id = engineLamp.Id,
+					InternalId = engineLamp.InternalId,
 					Channel = engineLamp.Channel,
 					Source = engineLamp.Source,
 					Description = description,
