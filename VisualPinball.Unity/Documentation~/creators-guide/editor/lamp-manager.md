@@ -45,13 +45,9 @@ The first column, **ID** shows the name that the gamelogic engine exports for ea
 
 The **Description** column is optional. If you're setting up a recreation, you would typically use this for the lamp name from the manual. It's purely for your own benefit, and you can leave this empty if you want.
 
-### Destination
+### Source
 
-The **Destination** column defines where the lamp is located. Currently, *Playfield* is the only option.
-
-### Element
-
-Under the **Element** column, you choose which lamp among the game items on the playfield should be controlled.
+GI lights can be emitted as a different type of light from the gamelogic engine. Set the **source** here in order to prevent conflicts of matching IDs between normal lights and GI lights.
 
 ### Type
 
@@ -62,9 +58,17 @@ The **Type** column defines how the signal is interpreted by the lamp. This is i
 - *RGB Multi* - An RGB lamp that can change its color during gameplay. Lamps of this type receive three connections, one from each red, green and blue. Each color channel receives values as a fading lamp.
 - *RGB* - An RGB lamp that receives its data from a single connection. This is the only mode where the lamp doesn't receive an integer, but an entire color value.
 
-### R G B
+### Element
 
-If the type of the previous column has been set to *RGB Multi*, here is where you link each wire to a color. Note that the *red* channel is always the one shown under the *ID* column, so changing the red link will also change the ID (and vice versa).
+Under the **Element** column, you choose which lamp among the game items on the playfield should be controlled.
+
+### Channel
+
+If the type of the previous column has been set to *RGB Multi*, here is where you define which **color channel** this output corresponds to.
+
+### Max. Intensity
+
+For fading lights, VPE expects values between `0` and `255`. However, GI light have usually less variations, typically eight. This column is only enabled for GI lights, and the value is the highest value for a given GI strand that the gamelogic engine will emit.
 
 ## Flashers
 
@@ -82,9 +86,7 @@ Note that you cannot change the *ID* of the lamp, because it's still linked to t
 
 ## GI Strands
 
-There is currently no special support for GI strands. In Visual Pinball, you can put GI lamps into a collection and address the whole collection at once via script. VPE doesn't have this feature yet. In order to hook up GI lamps, you can add an entry for each lamp and link all of them to the same ID.
-
-We'd like to make this easier in the future, so we're thinking of integrating this into the editor directly.
+In Visual Pinball, you can put GI lamps into a collection and address the whole collection at once via script. VPE provides [light groups](xref:light_groups) as a similar feature.
 
 ## Editor vs Runtime
 
