@@ -92,9 +92,8 @@ namespace VisualPinball.Unity.Editor
 		private void RenderCoilId(Dictionary<string, float> lampStatuses, LampListData lampListData, Rect cellRect)
 		{
 			// add some padding
-			cellRect.x += 2;
+			cellRect.x = cellRect.width - 45;
 			cellRect.width -= 4;
-
 
 			var statusAvail = Application.isPlaying && lampStatuses != null && lampStatuses.ContainsKey(lampListData.Id);
 			var icon = Icons.Coil(IconSize.Small, statusAvail && lampStatuses[lampListData.Id] > 0 ? IconColor.Orange : IconColor.Gray);
