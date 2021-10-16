@@ -20,7 +20,6 @@
 
 using UnityEngine;
 using UnityEngine.Rendering;
-using VisualPinball.Unity.VisualPinball.Unity.Patcher.Matcher;
 
 namespace VisualPinball.Unity.Patcher
 {

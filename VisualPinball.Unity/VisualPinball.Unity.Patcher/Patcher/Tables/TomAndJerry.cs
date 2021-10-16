@@ -20,7 +20,6 @@
 
 using UnityEngine;
 using VisualPinball.Unity.Patcher.Matcher.Table;
-using VisualPinball.Unity.VisualPinball.Unity.Patcher.Matcher;
 
 namespace VisualPinball.Unity.Patcher
 {

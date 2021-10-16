@@ -23,7 +23,6 @@ using System.Reflection;
 using NLog;
 using UnityEngine;
 using VisualPinball.Engine.VPT.Table;
-using VisualPinball.Unity.VisualPinball.Unity.Patcher.Matcher;
 using Logger = NLog.Logger;
 
 namespace VisualPinball.Unity.Patcher

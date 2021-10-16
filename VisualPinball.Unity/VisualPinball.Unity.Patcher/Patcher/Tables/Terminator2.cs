@@ -23,9 +23,7 @@ using System.Linq;
 using UnityEditor;
 using UnityEngine;
 using VisualPinball.Engine.Math;
-using VisualPinball.Engine.PinMAME;
 using VisualPinball.Engine.VPT;
-using VisualPinball.Unity.VisualPinball.Unity.Patcher.Matcher;
 using Color = UnityEngine.Color;
 
 namespace VisualPinball.Unity.Patcher
@@ -65,11 +63,12 @@ namespace VisualPinball.Unity.Patcher
 
 		private static void SetupPinMame(GameObject tableGo, GameObject playfieldGo)
 		{
+			#if !NO_PINMAME
 			var tableComponent = tableGo.GetComponent<TableComponent>();
 
 			// GLE
 			Object.DestroyImmediate(tableGo.GetComponent<DefaultGamelogicEngine>());
-			var pinmameGle = tableGo.AddComponent<PinMameGamelogicEngine>();
+			var pinmameGle = tableGo.AddComponent<VisualPinball.Engine.PinMAME.PinMameGamelogicEngine>();
 			pinmameGle.Game = new Engine.PinMAME.Games.Terminator2();
 			pinmameGle.romId = "t2_l82";
 			tableComponent.RepopulateHardware(pinmameGle);
@@ -90,6 +89,7 @@ namespace VisualPinball.Unity.Patcher
 			tableComponent.MappingConfig.Lamps.First(lm => lm.Id == "2").Device = giRightPlayfield;
 			tableComponent.MappingConfig.Lamps.First(lm => lm.Id == "3").Device = giCpu;
 			tableComponent.MappingConfig.Lamps.First(lm => lm.Id == "4").Device = giLeftPlayfield;
+			#endif
 		}
 
 		private static void SetupMapping(GameObject tableGo)
