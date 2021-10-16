@@ -103,7 +103,7 @@ namespace VisualPinball.Unity.Editor
 
 		protected override void OnListViewItemRenderer(WireListData data, Rect cellRect, int column)
 		{
-			_listViewItemRenderer.Render(data, cellRect, column, wireListData => {
+			_listViewItemRenderer.Render(TableComponent, data, cellRect, column, wireListData => {
 				RecordUndo(DataTypeName + " Data Change");
 
 				wireListData.Update();
@@ -124,7 +124,7 @@ namespace VisualPinball.Unity.Editor
 		{
 			RecordUndo(undoName);
 
-			TableComponent.MappingConfig.AddWire(new WireMapping());
+			TableComponent.MappingConfig.AddWire(new WireMapping().WithId());
 		}
 
 		protected override void RemoveData(string undoName, WireListData data)
@@ -138,7 +138,7 @@ namespace VisualPinball.Unity.Editor
 		{
 			RecordUndo(undoName);
 
-			TableComponent.MappingConfig.AddWire(new WireMapping());
+			TableComponent.MappingConfig.AddWire(new WireMapping().WithId());
 		}
 
 		#endregion

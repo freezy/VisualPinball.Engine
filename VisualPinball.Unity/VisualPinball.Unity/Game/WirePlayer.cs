@@ -43,6 +43,7 @@ namespace VisualPinball.Unity
 
 		private static VisualPinballSimulationSystemGroup SimulationSystemGroup => World.DefaultGameObjectInjectionWorld.GetOrCreateSystem<VisualPinballSimulationSystemGroup>();
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
+		internal Dictionary<string, (bool, float)> WireStatuses { get; } = new Dictionary<string, (bool, float)>();
 
 		internal IApiWireDeviceDest WireDevice(IWireableComponent c) => _wireDevices.ContainsKey(c) ? _wireDevices[c] : null;
 		internal void RegisterWireDevice(IWireableComponent component, IApiWireDeviceDest wireDeviceApi) => _wireDevices[component] = wireDeviceApi;
@@ -105,6 +106,7 @@ namespace VisualPinball.Unity
 
 		internal void AddWire(WireMapping wireMapping, bool isHardwareRule = false)
 		{
+			WireStatuses[wireMapping.Id] = (false, 0);
 			switch (wireMapping.Source) {
 
 				case SwitchSource.Playfield: {
@@ -140,6 +142,7 @@ namespace VisualPinball.Unity
 				}
 
 				case SwitchSource.Constant:
+					// todo
 					break;
 
 				default:
@@ -265,14 +268,22 @@ namespace VisualPinball.Unity
 								var isEnabled = change == InputActionChange.ActionStarted;
 								if (!wireConfig.IsDynamic) {
 									wire.OnChange(isEnabled);
+									WireStatuses[wireConfig.Id] = (isEnabled, 0);
 
 								} else {
 									_gleSignals[wireConfig][isEnabled].Enqueue(Time.realtimeSinceStartup);
 									if (wireConfig.IsActive) {
 										// the dynamic wire is active, so trigger directly.
 										wire.OnChange(isEnabled);
+										WireStatuses[wireConfig.Id] = (isEnabled, -2);
+
+									} else {
+										WireStatuses[wireConfig.Id] = (WireStatuses[wireConfig.Id].Item1, -1);
 									}
 								}
+								#if UNITY_EDITOR
+									UnityEditorInternal.InternalEditorUtility.RepaintAllViews();
+								#endif
 							} else {
 								Logger.Warn($"Unknown wire \"{wireConfig.DeviceItem}\" in wire device \"{wireConfig.Device}\".");
 							}
@@ -291,10 +302,17 @@ namespace VisualPinball.Unity
 
 					if (!wireConfig.IsDynamic) {
 						wire.OnChange(isEnabled);
+						WireStatuses[wireConfig.Id] = (isEnabled, 0);
 
 						// if it's pulse, schedule to re-open
 						if (isEnabled && wireConfig.IsPulseSource) {
-							SimulationSystemGroup.ScheduleAction(wireConfig.PulseDelay, () => wire.OnChange(false));
+							SimulationSystemGroup.ScheduleAction(wireConfig.PulseDelay, () => {
+								wire.OnChange(false);
+								WireStatuses[wireConfig.Id] = (false, 0);
+								#if UNITY_EDITOR
+									UnityEditorInternal.InternalEditorUtility.RepaintAllViews();
+								#endif
+							});
 						}
 
 					} else {
@@ -302,13 +320,26 @@ namespace VisualPinball.Unity
 						if (wireConfig.IsActive) {
 							// the dynamic wire is active, so trigger directly.
 							wire.OnChange(isEnabled);
+							WireStatuses[wireConfig.Id] = (isEnabled, -2);
 
 							// if it's pulse, schedule to re-open
 							if (isEnabled && wireConfig.IsPulseSource) {
-								SimulationSystemGroup.ScheduleAction(wireConfig.PulseDelay, () => wire.OnChange(false));
+								SimulationSystemGroup.ScheduleAction(wireConfig.PulseDelay, () => {
+									wire.OnChange(false);
+									WireStatuses[wireConfig.Id] = (false, -2);
+									#if UNITY_EDITOR
+										UnityEditorInternal.InternalEditorUtility.RepaintAllViews();
+									#endif
+								});
 							}
+
+						} else {
+							WireStatuses[wireConfig.Id] = (WireStatuses[wireConfig.Id].Item1, -1);
 						}
 					}
+					#if UNITY_EDITOR
+						UnityEditorInternal.InternalEditorUtility.RepaintAllViews();
+					#endif
 				}
 
 			} else {
@@ -343,12 +374,23 @@ namespace VisualPinball.Unity
 
 							// since it wasn't active before, we need to emit, because the wire didn't catch it.
 							wire.OnChange(isEnabled);
+							WireStatuses[wireConfig.Id] = (isEnabled, lagSec);
+
+						} else {
+							// just update lag time
+							WireStatuses[wireConfig.Id] = (WireStatuses[wireConfig.Id].Item1, lagSec);
 						}
+
 						// if it was already active, do nothing, since it was emitted by the wire already,
 						// but that's only the case if it was *after* it became active. otherwise, emit.
 						if (now - lagSec < wireConfig.ActiveSince) {
 							wire.OnChange(isEnabled);
+							WireStatuses[wireConfig.Id] = (isEnabled, lagSec);
 						}
+
+						#if UNITY_EDITOR
+							UnityEditorInternal.InternalEditorUtility.RepaintAllViews();
+						#endif
 
 					} else {
 						// so we got a coil with no or too old switch in the queue. we assume this comes from the GLE
@@ -391,6 +433,11 @@ namespace VisualPinball.Unity
 		/// dynamic wire's enabled status will be toggled.
 		/// </summary>
 		public const float DynamicThresholdSec = 600 / 1000f;
+
+		/// <summary>
+		/// ID reference from the wire, to easily identify the wire.
+		/// </summary>
+		public readonly string Id;
 
 		/// <summary>
 		/// Reference to the destination device.
@@ -453,6 +500,7 @@ namespace VisualPinball.Unity
 
 		public WireDestConfig(WireMapping wireMapping)
 		{
+			Id = wireMapping.Id;
 			Device = wireMapping.DestinationDevice;
 			DeviceItem = wireMapping.DestinationDeviceItem;
 			PulseDelay = wireMapping.PulseDelay;

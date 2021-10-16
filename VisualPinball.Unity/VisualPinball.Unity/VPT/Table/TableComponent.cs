@@ -145,14 +145,14 @@ namespace VisualPinball.Unity
 			// hook up plunger
 			var plunger = GetComponentInChildren<PlungerComponent>();
 			if (plunger) {
-				MappingConfig.AddWire(new WireMapping {
-					Description = "Manual Plunger",
-					Source = SwitchSource.InputSystem,
-					SourceInputActionMap = InputConstants.MapCabinetSwitches,
-					SourceInputAction = InputConstants.ActionPlunger,
-					DestinationDevice = plunger,
-					DestinationDeviceItem = PlungerComponent.PullCoilId
-				});
+				var mapping = new WireMapping().WithId();
+				mapping.Description = "Manual Plunger";
+				mapping.Source = SwitchSource.InputSystem;
+				mapping.SourceInputActionMap = InputConstants.MapCabinetSwitches;
+				mapping.SourceInputAction = InputConstants.ActionPlunger;
+				mapping.DestinationDevice = plunger;
+				mapping.DestinationDeviceItem = PlungerComponent.PullCoilId;
+				MappingConfig.AddWire(mapping);
 			}
 		}
 	}

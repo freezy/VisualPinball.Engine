@@ -101,6 +101,7 @@ namespace VisualPinball.Unity
 		public Dictionary<string, bool> SwitchStatusesClosed => _switchPlayer.SwitchStatusesClosed;
 		public Dictionary<string, bool> CoilStatuses => _coilPlayer.CoilStatuses;
 		public Dictionary<string, float> LampStatuses => _lampPlayer.LampStatuses;
+		public Dictionary<string, (bool, float)> WireStatuses => _wirePlayer.WireStatuses;
 		public float3 Gravity => _playfieldComponent.Gravity;
 
 		#endregion
@@ -440,7 +441,7 @@ namespace VisualPinball.Unity
 				return;
 			}
 
-			var wireMapping = new WireMapping($"Hardware rule: {switchId} -> {coilId}", switchMapping, coilMapping);
+			var wireMapping = new WireMapping($"Hardware rule: {switchId} -> {coilId}", switchMapping, coilMapping).WithId();
 			_wirePlayer.AddWire(wireMapping);
 
 			// this is for showing it in the editor during runtime only
@@ -460,6 +461,7 @@ namespace VisualPinball.Unity
 				return;
 			}
 
+			// todo this can be done more elegantly with Ids now.
 			var wireMapping = new WireMapping($"Hardware rule: {switchId} -> {coilId}", switchMapping, coilMapping);
 			_wirePlayer.RemoveWire(wireMapping);
 

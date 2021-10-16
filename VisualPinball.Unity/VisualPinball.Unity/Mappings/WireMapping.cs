@@ -25,6 +25,8 @@ namespace VisualPinball.Unity
 	[Serializable]
 	public class WireMapping
 	{
+		public string Id;
+
 		public string Description = string.Empty;
 
 		/* Source */
@@ -53,8 +55,6 @@ namespace VisualPinball.Unity
 
 		public bool IsDynamic;
 
-		public int DynamicThresholdMs = 75;
-
 		public WireMapping()
 		{
 		}
@@ -70,6 +70,12 @@ namespace VisualPinball.Unity
 			SourceInputActionMap = switchMapping.InputActionMap;
 			DestinationDevice = coilMapping.Device;
 			DestinationDeviceItem = coilMapping.DeviceItem;
+		}
+
+		public WireMapping WithId()
+		{
+			Id = $"wire_{Guid.NewGuid().ToString().Substring(0, 8)}";
+			return this;
 		}
 
 		[ExcludeFromCodeCoverage]

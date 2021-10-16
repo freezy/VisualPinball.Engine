@@ -17,6 +17,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Unity.Mathematics;
 using UnityEditor;
 using UnityEngine;
 using VisualPinball.Engine.Game.Engines;
@@ -27,7 +28,7 @@ namespace VisualPinball.Unity.Editor
 	{
 		protected override List<IGamelogicEngineDeviceItem> GleItems => new List<IGamelogicEngineDeviceItem>();
 		protected override IGamelogicEngineDeviceItem InstantiateGleItem(string id) => null;
-		protected override Texture2D StatusIcon(bool status) => null;
+		protected override Texture2D StatusIcon(bool status) => Icons.Plug(IconSize.Small, status ? IconColor.Orange : IconColor.Gray);
 
 		private struct InputSystemEntry
 		{
@@ -58,12 +59,15 @@ namespace VisualPinball.Unity.Editor
 			_destDevicePicker = new ObjectReferencePicker<IWireableComponent>("Wire Destination", tableComponent, false);
 		}
 
-		public void Render(WireListData data, Rect cellRect, int column, Action<WireListData> updateAction)
+		public void Render(TableComponent tableComponent, WireListData data, Rect cellRect, int column, Action<WireListData> updateAction)
 		{
-			switch ((WireListColumn)column)
-			{
+			EditorGUI.BeginDisabledGroup(Application.isPlaying);
+			var switchStatuses = Application.isPlaying
+				? tableComponent.gameObject.GetComponent<Player>()?.WireStatuses
+				: null;
+			switch ((WireListColumn)column) {
 				case WireListColumn.Description:
-					RenderDescription(data, cellRect, updateAction);
+					RenderDescription(switchStatuses, data, cellRect, updateAction);
 					break;
 				case WireListColumn.Source:
 					RenderSource(data, cellRect, updateAction);
@@ -75,12 +79,32 @@ namespace VisualPinball.Unity.Editor
 					RenderDestinationElement(data, cellRect, updateAction);
 					break;
 				case WireListColumn.Dynamic:
-					RenderIsDynamic(data, cellRect, updateAction);
+					RenderIsDynamic(switchStatuses, data, cellRect, updateAction);
 					break;
 				case WireListColumn.PulseDelay:
 					RenderPulseDelay(data, cellRect, updateAction);
 					break;
 			}
+			EditorGUI.EndDisabledGroup();
+		}
+
+		private void RenderDescription(Dictionary<string, (bool, float)> statuses, WireListData listData, Rect cellRect, Action<WireListData> updateAction)
+		{
+			if (Application.isPlaying && statuses != null) {
+				var iconRect = cellRect;
+				iconRect.width = 20;
+				if (statuses.ContainsKey(listData.Id)) {
+					var status = statuses[listData.Id];
+					var icon = StatusIcon(status.Item1);
+					var guiColor = GUI.color;
+					GUI.color = Color.clear;
+					EditorGUI.DrawTextureTransparent(iconRect, icon, ScaleMode.ScaleToFit);
+					GUI.color = guiColor;
+				}
+				cellRect.x += 25;
+				cellRect.width -= 25;
+			}
+			base.RenderDescription(listData, cellRect, updateAction);
 		}
 
 		private void RenderSource(WireListData wireListData, Rect cellRect, Action<WireListData> updateAction)
@@ -236,8 +260,21 @@ namespace VisualPinball.Unity.Editor
 		}
 
 
-		private void RenderIsDynamic(WireListData wireListData, Rect cellRect, Action<WireListData> updateAction)
+		private void RenderIsDynamic(Dictionary<string, (bool, float)> statuses, WireListData wireListData, Rect cellRect, Action<WireListData> updateAction)
 		{
+			if (Application.isPlaying && statuses != null) {
+				var status = statuses[wireListData.Id];
+				var lag = status.Item2;
+				var displayLag = math.round(lag * 10000f) / 10f;
+				if (lag < 0) {
+					EditorGUI.LabelField(cellRect, "Measuring...");
+					return;
+				}
+				if (lag > 0) {
+					EditorGUI.LabelField(cellRect, $"{displayLag} ms");
+					return;
+				}
+			}
 			EditorGUI.BeginChangeCheck();
 			var isDynamic = EditorGUI.Toggle(cellRect, wireListData.IsDynamic);
 			if (EditorGUI.EndChangeCheck()) {
@@ -250,8 +287,7 @@ namespace VisualPinball.Unity.Editor
 		{
 			if (wireListData.SourceDevice != null && !string.IsNullOrEmpty(wireListData.SourceDeviceItem)) {
 				var switchable = wireListData.SourceDevice.AvailableSwitches.First(s => s.Id == wireListData.SourceDeviceItem);
-				if (switchable.IsPulseSwitch)
-				{
+				if (switchable.IsPulseSwitch) {
 					var labelRect = cellRect;
 					labelRect.x += labelRect.width - 20;
 					labelRect.width = 20;
@@ -269,6 +305,9 @@ namespace VisualPinball.Unity.Editor
 
 					EditorGUI.LabelField(labelRect, "ms");
 				}
+			} else {
+				// todo remove
+				EditorGUI.LabelField(cellRect, wireListData.Id);
 			}
 		}
 
