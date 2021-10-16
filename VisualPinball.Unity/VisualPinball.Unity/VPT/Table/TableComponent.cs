@@ -21,6 +21,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using VisualPinball.Engine.Common;
 using VisualPinball.Engine.VPT;
@@ -141,18 +142,23 @@ namespace VisualPinball.Unity
 			MappingConfig.PopulateSwitches(gle.AvailableSwitches, this);
 			MappingConfig.PopulateLamps(gle.AvailableLamps, this);
 			MappingConfig.PopulateCoils(gle.AvailableCoils, this);
+			MappingConfig.PopulateWires(gle.AvailableWires, this);
 
 			// hook up plunger
 			var plunger = GetComponentInChildren<PlungerComponent>();
 			if (plunger) {
-				var mapping = new WireMapping().WithId();
-				mapping.Description = "Manual Plunger";
-				mapping.Source = SwitchSource.InputSystem;
-				mapping.SourceInputActionMap = InputConstants.MapCabinetSwitches;
-				mapping.SourceInputAction = InputConstants.ActionPlunger;
-				mapping.DestinationDevice = plunger;
-				mapping.DestinationDeviceItem = PlungerComponent.PullCoilId;
-				MappingConfig.AddWire(mapping);
+				const string description = "Manual Plunger";
+				var plungerMapping = MappingConfig.Wires.FirstOrDefault(mc => mc.Description == description);
+				if (plungerMapping == null) {
+					var mapping = new WireMapping().WithId();
+					mapping.Description = description;
+					mapping.Source = SwitchSource.InputSystem;
+					mapping.SourceInputActionMap = InputConstants.MapCabinetSwitches;
+					mapping.SourceInputAction = InputConstants.ActionPlunger;
+					mapping.DestinationDevice = plunger;
+					mapping.DestinationDeviceItem = PlungerComponent.PullCoilId;
+					MappingConfig.AddWire(mapping);
+				}
 			}
 		}
 	}

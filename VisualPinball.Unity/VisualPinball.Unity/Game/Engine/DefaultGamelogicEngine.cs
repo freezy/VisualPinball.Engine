@@ -98,6 +98,11 @@ namespace VisualPinball.Unity
 			new GamelogicEngineCoil(CoilTroughEntry) { Description = "Trough Entry", DeviceHint = "^Trough\\s*\\d?", DeviceItemHint = TroughComponent.EntryCoilId},
 		};
 
+		public GamelogicEngineWire[] AvailableWires { get; } = {
+			new GamelogicEngineWire(SwLeftFlipper, CoilLeftFlipperMain, DestinationType.Coil, "Left Flipper"),
+			new GamelogicEngineWire(SwRightFlipper, CoilRightFlipperMain, DestinationType.Coil, "Right Flipper"),
+		};
+
 		private const string GiSlingshotRightLower = "gi_1";
 		private const string GiSlingshotRightUpper = "gi_2";
 		private const string GiSlingshotLeftLower = "gi_3";

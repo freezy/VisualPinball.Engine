@@ -219,7 +219,7 @@ namespace VisualPinball.Unity.Editor
 			});
 		}
 
-		private void RenderSourceElementDeviceItem(WireListData wireListData, Rect cellRect, Action<WireListData> updateAction)
+		private static void RenderSourceElementDeviceItem(WireListData wireListData, Rect cellRect, Action<WireListData> updateAction)
 		{
 			EditorGUI.BeginDisabledGroup(wireListData.SourceDevice == null);
 
@@ -260,7 +260,7 @@ namespace VisualPinball.Unity.Editor
 		}
 
 
-		private void RenderIsDynamic(Dictionary<string, (bool, float)> statuses, WireListData wireListData, Rect cellRect, Action<WireListData> updateAction)
+		private static void RenderIsDynamic(IReadOnlyDictionary<string, (bool, float)> statuses, WireListData wireListData, Rect cellRect, Action<WireListData> updateAction)
 		{
 			if (Application.isPlaying && statuses != null) {
 				var status = statuses[wireListData.Id];
@@ -283,7 +283,7 @@ namespace VisualPinball.Unity.Editor
 			}
 		}
 
-		private void RenderPulseDelay(WireListData wireListData, Rect cellRect, Action<WireListData> updateAction)
+		private static void RenderPulseDelay(WireListData wireListData, Rect cellRect, Action<WireListData> updateAction)
 		{
 			if (wireListData.SourceDevice != null && !string.IsNullOrEmpty(wireListData.SourceDeviceItem)) {
 				var switchable = wireListData.SourceDevice.AvailableSwitches.First(s => s.Id == wireListData.SourceDeviceItem);
@@ -305,13 +305,10 @@ namespace VisualPinball.Unity.Editor
 
 					EditorGUI.LabelField(labelRect, "ms");
 				}
-			} else {
-				// todo remove
-				EditorGUI.LabelField(cellRect, wireListData.Id);
 			}
 		}
 
-		private Texture GetSourceIcon(WireListData wireListData)
+		private static Texture GetSourceIcon(WireListData wireListData)
 		{
 			Texture2D icon = null;
 
