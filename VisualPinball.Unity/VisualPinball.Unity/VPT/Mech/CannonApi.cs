@@ -27,8 +27,9 @@ namespace VisualPinball.Unity
 
 		public event EventHandler Init;
 
-		private Direction _direction;
+		private bool _enabled;
 		private float _position;
+		private Direction _direction;
 
 		internal CannonApi(GameObject go, Player player)
 		{
@@ -57,6 +58,10 @@ namespace VisualPinball.Unity
 
 		void IApi.OnInit(BallManager ballManager)
 		{
+			_enabled = false;
+			_position = 0;
+			_direction = Direction.Forward;
+
 			GunMotorCoil = new DeviceCoil(OnGunMotorCoilEnabled, OnGunMotorCoilDisabled);
 
 			GunHomeSwitch = new DeviceSwitch(CannonComponent.GunHomeSwitchItem, false, SwitchDefault.NormallyOpen, _player);
@@ -65,31 +70,33 @@ namespace VisualPinball.Unity
 			GunMarkSwitch = new DeviceSwitch(CannonComponent.GunMarkSwitchItem, false, SwitchDefault.NormallyOpen, _player);
 			GunMarkSwitch.SetSwitch(false);
 
-			_direction = Direction.Forward;
-			_position = 0;
-
-			_cannonComponent.OnGunMotorUpdatePosition += OnGunMotorUpdatePosition;
+			_player.OnUpdate += OnUpdate;
 
 			Init?.Invoke(this, EventArgs.Empty);
 		}
 
 		private void OnGunMotorCoilEnabled()
 		{
-			Logger.Info("OnGunMotorCoilEnabled");
+			_enabled = true;
 
-			_cannonComponent.IsEnabled = true;
+			Logger.Info("OnGunMotorCoilEnabled");
 		}
 
 		private void OnGunMotorCoilDisabled()
 		{
-			_cannonComponent.IsEnabled = false;
+			_enabled = false;
 
 			Logger.Info("OnGunMotorCoilDisabled");
 		}
 
-		public float OnGunMotorUpdatePosition(float delta)
+		private void OnUpdate(object sender, EventArgs eventArgs)
 		{
-			float speed = (Length * 2 / 6.5f) * delta;
+			if (!_enabled)
+			{
+				return;
+			}
+
+			float speed = (Length * 2 / 6.5f) * Time.deltaTime;
 
 			if (_direction == Direction.Forward)
 			{
@@ -138,16 +145,16 @@ namespace VisualPinball.Unity
 				GunMarkSwitch.SetSwitch(false);
 			}
 
-			Logger.Info($"Position={_position}");
+			_cannonComponent.UpdateRotation(_position / Length);
 
-			return _position / Length;
+			Logger.Debug($"Cannon position={_position}");
 		}
 
 		void IApi.OnDestroy()
 		{
-			Logger.Info("Destroying cannon api!");
+			_player.OnUpdate -= OnUpdate;
 
-			_cannonComponent.OnGunMotorUpdatePosition -= OnGunMotorUpdatePosition;
+			Logger.Info("Destroying cannon!");
 		}
 	}
 }
