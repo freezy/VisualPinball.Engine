@@ -23,11 +23,19 @@ using VisualPinball.Engine.VPT.Trough;
 using VisualPinball.Unity.Editor;
 using Object = UnityEngine.Object;
 
-namespace VisualPinball.Unity.VisualPinball.Unity.Patcher.Matcher
+namespace VisualPinball.Unity.Patcher
 {
 	[Api]
 	public abstract class TablePatcher
 	{
+		/// <summary>
+		/// This method is executed once after all element-specific patches had
+		/// been applied.<p/>
+		///
+		/// Override this method when you need to create new objects or make global
+		/// changes to the project.
+		/// </summary>
+		/// <param name="tableGo">GameObject of the table.</param>
 		public virtual void PostPatch(GameObject tableGo)
 		{
 			CreateTrough(tableGo, Playfield(tableGo));

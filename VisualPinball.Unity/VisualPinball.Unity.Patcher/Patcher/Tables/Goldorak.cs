@@ -19,7 +19,6 @@
 // ReSharper disable UnusedMember.Global
 
 using UnityEngine;
-using VisualPinball.Unity.VisualPinball.Unity.Patcher.Matcher;
 
 namespace VisualPinball.Unity.Patcher
 {
