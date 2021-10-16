@@ -44,7 +44,9 @@ namespace VisualPinball.Unity
 			Lamps.Clear();
 
 			if (clearWires) {
-				Wires.Clear();
+				RemoveAllWires();
+			} else {
+				RemoveDynamicWires();
 			}
 		}
 
@@ -350,6 +352,42 @@ namespace VisualPinball.Unity
 
 		#region Wires
 
+		public void PopulateWires(GamelogicEngineWire[] engineWires, TableComponent tableComponent)
+		{
+			foreach (var engineWire in engineWires) {
+				var srcMapping = Switches.FirstOrDefault(switchMapping => switchMapping.Id == engineWire.SourceId);
+				if (srcMapping == null) {
+					continue;
+				}
+
+				switch (engineWire.DestinationType) {
+					case DestinationType.Coil: {
+						var destMapping = Coils.FirstOrDefault(coilMapping => coilMapping.Id == engineWire.DestinationId);
+						if (destMapping != null) {
+							AddWire(new WireMapping(engineWire.Description, srcMapping, destMapping).Dynamic().WithId());
+						}
+						break;
+					}
+					case DestinationType.Lamp: {
+						var destMapping = Lamps.FirstOrDefault(lampMapping => lampMapping.Id == engineWire.DestinationId && lampMapping.Source == LampSource.Lamp);
+						if (destMapping != null) {
+							AddWire(new WireMapping(engineWire.Description, srcMapping, destMapping).Dynamic().WithId());
+						}
+						break;
+					}
+					case DestinationType.GI: {
+						var destMapping = Lamps.FirstOrDefault(lampMapping => lampMapping.Id == engineWire.DestinationId && lampMapping.Source == LampSource.GI);
+						if (destMapping != null) {
+							AddWire(new WireMapping(engineWire.Description, srcMapping, destMapping).Dynamic().WithId());
+						}
+						break;
+					}
+					default:
+						throw new ArgumentOutOfRangeException();
+				}
+			}
+		}
+
 		public void AddWire(WireMapping wireMapping)
 		{
 			Wires.Add(wireMapping);
@@ -358,6 +396,11 @@ namespace VisualPinball.Unity
 		public void RemoveWire(WireMapping wireMapping)
 		{
 			Wires.Remove(wireMapping);
+		}
+
+		public void RemoveDynamicWires()
+		{
+			Wires = Wires.Where(w => !w.IsDynamic).ToList();
 		}
 
 		public void RemoveAllWires()

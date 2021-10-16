@@ -60,7 +60,21 @@ namespace VisualPinball.Unity
 		}
 
 		[ExcludeFromCodeCoverage]
-		public WireMapping(string description, SwitchMapping switchMapping, CoilMapping coilMapping)
+		public WireMapping(string description, SwitchMapping switchMapping, CoilMapping coilMapping) : this(description, switchMapping)
+		{
+			DestinationDevice = coilMapping.Device;
+			DestinationDeviceItem = coilMapping.DeviceItem;
+		}
+
+		[ExcludeFromCodeCoverage]
+		public WireMapping(string description, SwitchMapping switchMapping, LampMapping lampMapping) : this(description, switchMapping)
+		{
+			DestinationDevice = lampMapping.Device;
+			DestinationDeviceItem = lampMapping.DeviceItem;
+		}
+
+		[ExcludeFromCodeCoverage]
+		private WireMapping(string description, SwitchMapping switchMapping)
 		{
 			Description = description;
 			Source = switchMapping.Source;
@@ -68,13 +82,17 @@ namespace VisualPinball.Unity
 			SourceDeviceItem = switchMapping.DeviceItem;
 			SourceInputAction = switchMapping.InputAction;
 			SourceInputActionMap = switchMapping.InputActionMap;
-			DestinationDevice = coilMapping.Device;
-			DestinationDeviceItem = coilMapping.DeviceItem;
 		}
 
 		public WireMapping WithId()
 		{
 			Id = $"wire_{Guid.NewGuid().ToString().Substring(0, 8)}";
+			return this;
+		}
+
+		public WireMapping Dynamic()
+		{
+			IsDynamic = true;
 			return this;
 		}
 

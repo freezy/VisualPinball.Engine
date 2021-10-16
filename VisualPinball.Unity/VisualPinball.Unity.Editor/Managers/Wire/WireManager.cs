@@ -14,11 +14,14 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+using System;
 using System.Collections.Generic;
 using NLog;
 using UnityEditor;
 using UnityEngine;
+using VisualPinball.Engine.Game.Engines;
 using Logger = NLog.Logger;
+using Object = UnityEngine.Object;
 
 namespace VisualPinball.Unity.Editor
 {
@@ -91,6 +94,13 @@ namespace VisualPinball.Unity.Editor
 
 		protected override void OnButtonBarGUI()
 		{
+			if (GUILayout.Button("Populate All", GUILayout.ExpandWidth(false)))
+			{
+				RecordUndo("Populate all wire mappings");
+				TableComponent.MappingConfig.PopulateWires(GetAvailableEngineWires(), TableComponent);
+				Reload();
+			}
+
 			if (GUILayout.Button("Remove All", GUILayout.ExpandWidth(false)))
 			{
 				if (EditorUtility.DisplayDialog("Wire Manager", "Are you sure want to remove all wire mappings?", "Yes", "Cancel")) {
@@ -144,6 +154,13 @@ namespace VisualPinball.Unity.Editor
 		#endregion
 
 		#region Helper methods
+
+		private GamelogicEngineWire[] GetAvailableEngineWires()
+		{
+			var gle = TableComponent.gameObject.GetComponent<IGamelogicEngine>();
+			return gle == null ? Array.Empty<GamelogicEngineWire>() : gle.AvailableWires;
+		}
+
 		private void DisplayMessage(string message)
 		{
 			GUILayout.BeginHorizontal();

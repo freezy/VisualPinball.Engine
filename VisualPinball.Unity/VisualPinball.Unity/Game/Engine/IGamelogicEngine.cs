@@ -96,6 +96,15 @@ namespace VisualPinball.Unity
 		event EventHandler<CoilEventArgs> OnCoilChanged;
 
 		#endregion
+
+		#region Wires
+
+		/// <summary>
+		/// A list of *dynamic* wires.
+		/// </summary>
+		GamelogicEngineWire[] AvailableWires { get; }
+
+		#endregion
 	}
 
 	public class AvailableDisplays
