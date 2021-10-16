@@ -20,6 +20,8 @@ namespace VisualPinball.Unity.Editor
 {
 	public class WireListData : IManagerListData, IDeviceListData<IGamelogicEngineDeviceItem>
 	{
+		public string Id;
+
 		[ManagerListColumn(Order = 0, HeaderName = "Description", Width = 150)]
 		public string Name { get; private set; }
 
@@ -27,10 +29,15 @@ namespace VisualPinball.Unity.Editor
 		public SwitchSource Source;
 
 		[ManagerListColumn(Order = 2, HeaderName = "Source Element", Width = 270)]
-		public string SourceElement;
+		public string SourceInputActionMap;
+		public string SourceInputAction;
+		public SwitchConstant SourceConstant;
+		public ISwitchDeviceComponent SourceDevice;
+		public string SourceDeviceItem;
 
 		[ManagerListColumn(Order = 3, HeaderName = "Destination Element", Width = 270)]
-		public string DestinationElement;
+		public IWireableComponent DestinationDevice;
+		public string DestinationDeviceItem;
 
 		[ManagerListColumn(Order = 4, HeaderName = "Dynamic", Width = 100)]
 		public bool IsDynamic;
@@ -40,24 +47,16 @@ namespace VisualPinball.Unity.Editor
 
 		public string Description { get => Name; set => Name = value; }
 
-		public string SourceInputActionMap;
-		public string SourceInputAction;
-		public SwitchConstant SourceConstant;
-		public ISwitchDeviceComponent SourceDevice;
-		public string SourceDeviceItem;
-
-		public IWireableComponent DestinationDevice;
-		public string DestinationDeviceItem;
-
 		public readonly WireMapping WireMapping;
 
 		public IDeviceComponent<IGamelogicEngineDeviceItem> DeviceComponent => DestinationDevice;
 		public string DeviceItem { get => DestinationDeviceItem; set => DestinationDeviceItem = value; }
 		public int InternalId { get; set; }
 
-		public WireListData(WireMapping wireMapping) {
+		public WireListData(WireMapping wireMapping)
+		{
+			Id = wireMapping.Id;
 			Description = wireMapping.Description;
-
 			Source = wireMapping.Source;
 			SourceInputActionMap = wireMapping.SourceInputActionMap;
 			SourceInputAction = wireMapping.SourceInputAction;
