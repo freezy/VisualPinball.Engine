@@ -3,15 +3,12 @@ using UnityEngine;
 using VisualPinball.Engine.Game.Engines;
 using Logger = NLog.Logger;
 using NLog;
-using System;
 
 namespace VisualPinball.Unity
 {
 	[AddComponentMenu("Visual Pinball/Game Item/Cannon")]
 	public class CannonComponent : MonoBehaviour, ISwitchDeviceComponent, ICoilDeviceComponent
 	{
-		public delegate float OnGunMotorUpdatePositionHandler(float delta);
-
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
 		public const string GunMotorCoilItem = "gun_motor_coil";
@@ -41,10 +38,6 @@ namespace VisualPinball.Unity
 		IEnumerable<IGamelogicEngineDeviceItem> IWireableComponent.AvailableWireDestinations => AvailableCoils;
 		IEnumerable<IGamelogicEngineDeviceItem> IDeviceComponent<IGamelogicEngineDeviceItem>.AvailableDeviceItems => AvailableCoils;
 
-		public event OnGunMotorUpdatePositionHandler OnGunMotorUpdatePosition;
-
-		public bool IsEnabled = false;
-
 		private void Awake()
 		{
 			var player = GetComponentInParent<Player>();
@@ -57,14 +50,10 @@ namespace VisualPinball.Unity
 			player.RegisterMech(this);
 		}
 
-		private void Update()
+		public void UpdateRotation(float y)
 		{
-			if (!IsEnabled) return;
-
-			float position = OnGunMotorUpdatePosition(Time.deltaTime);
-
 			var rotation = transform.rotation;
-			rotation.y = -(position * 0.65f);
+			rotation.y = -(y * 0.65f);
 
 			transform.rotation = rotation;
 		}
