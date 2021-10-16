@@ -48,7 +48,7 @@ namespace VisualPinball.Unity.Editor
 		public readonly bool IsCoil;
 		public ILampDeviceComponent Device;
 
-		public LampMapping LampMapping;
+		public readonly LampMapping LampMapping;
 
 		public IDeviceComponent<GamelogicEngineLamp> DeviceComponent => Device;
 
