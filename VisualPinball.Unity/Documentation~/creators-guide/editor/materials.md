@@ -1,7 +1,10 @@
 ---
+uid: materials_index
 title: Materials
 description: How VPE deals with materials.
 ---
+
+![Unity Materials](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@13.0/manual/images/HDRPFeatures-LitShader.png)
 
 # Materials
 
@@ -40,5 +43,3 @@ As mentioned above, there are two differences between Visual Pinball and VPE how
 When importing a `.vpx` file, VPE converts the "visual part" of Visual Pinball materials into materials for the current render pipeline. It does that by creating a new material for every material/texture combination in Visual Pinball. The materials are then written to the `Materials` asset folder of the imported table where they can be easily edited and referenced. Since Visual Pinball uses different shaders than Unity, the results of the conversion are approximations and should be heavily tweaked. 
 
 Since VPE uses the same physics engine as Visual Pinball, the physical values of the materials don't need to be converted, they are copied 1:1 into a new physics material and saved in the asset folder.
-
-In case you're using the Unity editor for authoring a Visual Pinball table, you can still edit the original VPX materials using the materials manager. However, you'll notice that the physical attributes are missing, since they are now handled by physical material assets. That means when exporting, VPE will apply the physics values from the assets to the internal materials (the match between the material editor and the asset is done via name).

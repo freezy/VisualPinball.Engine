@@ -1,3 +1,9 @@
+---
+uid: troughs
+title: Troughs / Ball Drains
+description: How VPE works with troughs (ball drains).
+---
+
 # Troughs / Ball Drains
 
 If you are unfamiliar with ball troughs, have a quick look at [MPF's documentation](https://mpf-docs.readthedocs.io/en/latest/mechs/troughs/), which does an excellent job explaining them.

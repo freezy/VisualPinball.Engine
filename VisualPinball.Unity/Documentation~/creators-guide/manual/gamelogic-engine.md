@@ -1,4 +1,6 @@
 ---
+uid: gamelogic_engine
+title: Gamelogic Engine
 description: VPE's gamelogic engine is the code driving your game's logic.
 ---
 # Gamelogic Engine

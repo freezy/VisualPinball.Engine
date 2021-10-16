@@ -1,4 +1,6 @@
 ---
+uid: lamp_manager
+title: Lamp Manager
 description: The lamp manager lets you configure the lights, flashers, and general illumination of the playfield and connect them to the gamelogic engine.
 ---
 # Lamp Manager

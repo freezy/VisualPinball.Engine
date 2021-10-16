@@ -1,14 +1,13 @@
 ---
+uid: unity_components
+title: Unity Components
 description: Working with mesh, collider and animation components.
 ---
 # Unity Components
 
 When loading or creating a table in Unity, what you're creating is a hierarchy of [GameObjects](https://docs.unity3d.com/Manual/GameObjects.html), the basic building blocks of Unity scenes. By default we group game items by their type when importing, but you can arrange them however you want.
 
-To give the GameObjects behavior during gameplay, we add [components](https://docs.unity3d.com/Manual/Components.html) onto them. VPE comes with large number of components that are used to set up and control the game mechanisms of the table, and advanced programmers can contibute new ones.
-
-> [!note]
-> During runtime, VPE converts the GameObjects and components into entities in Unity's [DOTS workflow](https://unity.com/dots). There are special components used to control this conversion which we call *Authoring Components*.
+To give the GameObjects behavior during gameplay, we add [components](https://docs.unity3d.com/Manual/Components.html) onto them. VPE comes with a large number of components that are used to set up and control the game mechanisms of the table, and advanced programmers can contibute new ones.
 
 If you've never heard about GameObjects or components, we recommmend you read through the links in the first two paragraphs. They are short, to the point, and a much better introduction than we could provide here.
 

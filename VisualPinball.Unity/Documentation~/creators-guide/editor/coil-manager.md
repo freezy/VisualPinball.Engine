@@ -1,9 +1,11 @@
 ---
+uid: coil_manager
+title: Coil Manager
 description: VPE's coil manager lets you hook up the coils of the playfield to the gamelogic engine.
 ---
 # Coil Manager
 
-On a real pinball table most moving parts, including the flippers, are triggered by [coils](https://en.wikipedia.org/wiki/Inductor) (also called [solenoids](https://en.wikipedia.org/wiki/Solenoid)). In VPE it's the job of the [gamelogic engine](~/creators-guide/manual/gamelogic-engine.md) to trigger them when needed.
+On a real pinball table most moving parts, including the flippers, are triggered by [coils](https://en.wikipedia.org/wiki/Inductor) (also called [solenoids](https://en.wikipedia.org/wiki/Solenoid)). In VPE it's the job of the [gamelogic engine](xref:gamelogic_engine) to trigger them when needed.
 
 Just as the coils are physically wired to the power driver board on a regular machine they can be virtually connected in VPE using the coil manager under *Visual Pinball -> Coil Manager*.
 
@@ -29,8 +31,8 @@ The **Description** column is optional. If you're setting up a re-creation, you 
 The **Destination** column defines where the element in the following column is located. There are three options:
 
 - *Playfield* lets you select a game element on the playfield that features the coil
-- *Device* lets you choose a *coil device*, a mechanism which may include multiple coils, such as a [trough](../manual/mechanisms/troughs.md).
-- *Lamp* sets the coil to be configured in the lamp manager (see [flashers in the lamp manager](lamp-manager.md#flashers) for more details).
+- *Device* lets you choose a *coil device*, a mechanism which may include multiple coils, such as a [trough](xref:troughs).
+- *Lamp* sets the coil to be configured in the lamp manager (see [flashers in the lamp manager](xref:lamp_manager#flashers) for more details).
 
 ### Element
 

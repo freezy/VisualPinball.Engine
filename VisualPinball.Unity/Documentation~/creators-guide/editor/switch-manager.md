@@ -1,4 +1,6 @@
 ---
+uid: switch_manager
+title: Switch Manager
 description: VPE's switch manager lets you hook up the switches of the playfield to the gamelogic engine.
 ---
 # Switch Manager
