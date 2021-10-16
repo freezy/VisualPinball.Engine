@@ -1,9 +1,11 @@
 ---
+uid: wire_manager
+title: Wire Manager
 description: VPE's wire manager lets you directly hook up any switch to any coil or lamp.
 ---
 # Wire Manager
 
-Using the [Switch Manager](switch-manager.md), you can wire playfield and cabinet switches to the [Gamelogic Engine](../manual/gamelogic-engine.md). Similarly, the [Coil Manager](coil-manager.md) and [Lamp Manager](#) let you connect playfield elements to the outputs of the Gamelogic Engine.
+Using the [Switch Manager](xref:switch_manager), you can wire playfield and cabinet switches to the [Gamelogic Engine](../manual/gamelogic-engine.md). Similarly, the [Coil Manager](xref:coil_manager) and [Lamp Manager](xref:lamp_manager) let you connect playfield elements to the outputs of the Gamelogic Engine.
 
 The **Wire Manager** allows you to *bypass* the gamelogic engine and connect switches directly to coils and lamps. Using the *dynamic* wires, this can be used to eliminate the flipper lag often introduced by emulated ROMs. But it also can be useful for debugging, or for game logic that might not be covered by the gamelogic engine.
 

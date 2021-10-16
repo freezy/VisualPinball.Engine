@@ -4,7 +4,8 @@
       "src": [
         {
           "files": [
-            "VisualPinball.Unity/**.csproj"
+            "VisualPinball.Unity/**.csproj",
+            "VisualPinball.Unity.Patcher/**.csproj"
           ],
           "src": "../" 
         }
