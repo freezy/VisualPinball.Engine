@@ -76,4 +76,4 @@ Click *Yes*. When complete, you should now have a *Visual Pinball* menu in the e
 
 ![Package Manager after installation](unity-packages-after-installation.png)
 
-Now that VPE is installed let's [import a table](running-vpe.md)!
+Now that VPE is installed let's [import a table](xref:setup_running_vpe)!

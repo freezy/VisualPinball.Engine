@@ -8,7 +8,7 @@ description: How VPE works with troughs (ball drains).
 
 If you are unfamiliar with ball troughs, have a quick look at [MPF's documentation](https://mpf-docs.readthedocs.io/en/latest/mechs/troughs/), which does an excellent job explaining them.
 
-VPE comes with a trough mechanism that simulates the behavior of a real-world ball trough. This is especially important when emulating existing games, since the [gamelogic engine](../gamelogic-engine.md) expects the trough's switches to be in a plausible state, or else it may have errors.
+VPE comes with a trough mechanism that simulates the behavior of a real-world ball trough. This is especially important when emulating existing games, since the [gamelogic engine](xref:gamelogic_engine) expects the trough's switches to be in a plausible state, or else it may have errors.
 
 ## Creating a Trough
 
@@ -103,13 +103,13 @@ A single ball trough may work [with](https://docs.missionpinball.org/en/latest/m
 
 The number of simulated switches in the trough depends on the type of trough and the *Switch Count* property in the inspector panel. For recreations, you can quickly determine the number of trough switches by looking at the switch matrix in the operation manual, it usually matches the number of balls installed in the game.
 
-To configure the switches, open the [switch manager](../../editor/switch-manager.md) and add the trough switches if they're not already there. For *Destination* select "Device", under *Element*, select the trough you've created and which switch to connect. For a modern five-ball trough, it will look something like this:
+To configure the switches, open the [switch manager](xref:switch_manager) and add the trough switches if they're not already there. For *Destination* select "Device", under *Element*, select the trough you've created and which switch to connect. For a modern five-ball trough, it will look something like this:
 
 ![Switch Manager](trough-switches.png)
 
 ## Coil Setup
 
-VPE's trough supports up to two coils, an entry coil which drains the ball from the outhole into the trough, and an eject coil which pushes a new ball into the plunger lane. To configure the coils, open the [coil manager](../../editor/coil-manager.md), find or add the coils, and link them to the trough like you did with the switches:
+VPE's trough supports up to two coils, an entry coil which drains the ball from the outhole into the trough, and an eject coil which pushes a new ball into the plunger lane. To configure the coils, open the [coil manager](xref:coil_manager), find or add the coils, and link them to the trough like you did with the switches:
 
 ![Coil Manager](trough-coils.png)
 

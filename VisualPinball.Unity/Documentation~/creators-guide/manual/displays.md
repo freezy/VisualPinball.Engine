@@ -1,4 +1,5 @@
 ---
+gui: displays
 description: How VPE handles dot matrix and segment displays.
 ---
 # Displays
@@ -8,7 +9,7 @@ Every pinball machine has one or more displays where the score and other importa
 ![DMD](dmd-game_over.jpg)
 <small>*A dot matrix display used in the late 90s - Photo © 2009 by [ElHeineken](https://commons.wikimedia.org/wiki/File:Pinball_Dot_Matrix_Display_-_Demolition_Man.JPG)*</small>
 
-VPE supports both segment displays and dot matrix displays (usually referred to as DMDs). During game play displays are driven by the [Gamelogic Engine](gamelogic-engine.md). VPE supports multiple displays per game.
+VPE supports both segment displays and dot matrix displays (usually referred to as DMDs). During game play displays are driven by the [Gamelogic Engine](xref:gamelogic_engine). VPE supports multiple displays per game.
 
 > [!note]
 > While the earliest electro-mechanical pinball machines used motorized score reels, and today's are using high resolution LCDs neither are yet supported in VPE.
@@ -17,7 +18,7 @@ VPE supports both segment displays and dot matrix displays (usually referred to 
 
 Displays are lazily bound, meaning that when the game starts the gamelogic engine announces its displays and VPE connects them to objects in your scene that actually render them. Matching is done with an ID and depends on how the gamelogic engine being used manages displays. 
 
-For example, in [MPF](../../plugins/mpf/index.md) you name your displays yourself in the machine configuration, while PinMAME uses IDs like `dmd0` and `display0` to identify its DMDs and segment displays.
+For example, in [MPF](xref:mpf_index) you name your displays yourself in the machine configuration, while PinMAME uses IDs like `dmd0` and `display0` to identify its DMDs and segment displays.
 
 ### Editor
 

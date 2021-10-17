@@ -1,4 +1,5 @@
 ---
+guid: setup_running_vpe
 description: How to run VPE
 ---
 # Running VPE
