@@ -20,16 +20,12 @@
 // ReSharper disable UnusedType.Global
 
 using System.Linq;
-using NLog.Fluent;
 using UnityEditor;
 using UnityEngine;
 using VisualPinball.Engine.Math;
 using VisualPinball.Engine.PinMAME;
 using VisualPinball.Engine.VPT;
-using VisualPinball.Engine.VPT.Light;
-using VisualPinball.Engine.VPT.Table;
 using Color = UnityEngine.Color;
-using Light = UnityEngine.Light;
 
 namespace VisualPinball.Unity.Patcher
 {
@@ -51,6 +47,7 @@ namespace VisualPinball.Unity.Patcher
 
 			SetupTrough(tableGo, playfieldGo);
 			SetupPinMame(tableGo, playfieldGo);
+			SetupDmd(tableGo);
 			SetupMapping(tableGo);
 
 			// slingshots
@@ -110,6 +107,25 @@ namespace VisualPinball.Unity.Patcher
 				LinkSwitch(tc, "sw78", "78", kicker);
 				LinkCoil(tc, "sw78", "09", kicker);
 			}
+		}
+
+		private static void SetupDmd(GameObject tableGo)
+		{
+			const float scale = 0.43f;
+			var cabinetGo = tableGo.transform.Find("Cabinet").gameObject;
+			var go = new GameObject {
+				name = "Dot Matrix Display",
+				transform = {
+					localEulerAngles = new Vector3(5.963f, 0, 0),
+					localPosition = new Vector3(0f, 0.513f, 1.0329f),
+					localScale = new Vector3(scale, scale, scale)
+				}
+			};
+			go.transform.SetParent(cabinetGo.transform, false);
+
+			var dmd = go.AddComponent<DotMatrixDisplayComponent>();
+			dmd.UpdateDimensions(128, 32);
+			dmd.Emission = 100f;
 		}
 
 		#endregion
@@ -499,10 +515,6 @@ namespace VisualPinball.Unity.Patcher
 
 		[NameMatch("L22a")] public void Link22(GameObject go) => LinkLights(go, "L22a", "L22b");
 		[NameMatch("L51a")] public void Link51(GameObject go) => LinkLights(go, "L51a", "L51b");
-
-		#endregion
-
-		#region Insert Shapes
 
 		[NameMatch("L481")]
 		[NameMatch("L581")]
