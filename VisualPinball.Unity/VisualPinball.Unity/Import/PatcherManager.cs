@@ -7,7 +7,7 @@ namespace VisualPinball.Unity
 {
 	public interface IPatcher
 	{
-		void Set(FileTableContainer tableContainer, string filename);
+		void Set(FileTableContainer tableContainer, string filename, IMaterialProvider materialProvider, ITextureProvider textureProvider);
 		void ApplyPatches(GameObject gameObject, GameObject tableGameObject);
 		void PostPatch(GameObject tableGameObject);
 	}
