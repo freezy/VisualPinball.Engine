@@ -369,9 +369,11 @@ namespace VisualPinball.Unity.Patcher
 		[NameMatch("F126a", FloatParam = 10000f)]
 		[NameMatch("F127", FloatParam = 10000f)]
 		[NameMatch("F127a", FloatParam = 10000f)]
-		public void FlasherIntensities(GameObject go, float param)
+		public void FlasherIntensities(GameObject go, LightComponent lc, float param)
 		{
 			foreach (var l in go.GetComponentsInChildren<Light>()) {
+				lc.FadeSpeedUp = 0f;
+				lc.FadeSpeedDown = 0f;
 				RenderPipeline.Current.LightConverter.SetIntensity(l, param);
 				RenderPipeline.Current.LightConverter.SetTemperature(l, 3000);
 				RenderPipeline.Current.LightConverter.SetShadow(l, true, true, 0.001f);
@@ -466,7 +468,7 @@ namespace VisualPinball.Unity.Patcher
 		public void GiIntensity(GameObject go)
 		{
 			foreach (var l in go.GetComponentsInChildren<Light>()) {
-				RenderPipeline.Current.LightConverter.SetIntensity(l, 1000f);
+				RenderPipeline.Current.LightConverter.SetIntensity(l, 200f);
 				RenderPipeline.Current.LightConverter.SetTemperature(l, 2700);
 			}
 		}
@@ -475,6 +477,9 @@ namespace VisualPinball.Unity.Patcher
 		[NameMatch("GI_4", FloatParam = 0.01f)]
 		[NameMatch("GI_5", FloatParam = 0.02f)]
 		[NameMatch("GI_6", FloatParam = 0.01f)]
+
+		public void GiDynamicShadow(GameObject go, float param) => LightShadow(go, true, true, param);
+
 		[NameMatch("GI_10", FloatParam = 0.01f)]
 		[NameMatch("GI_11", FloatParam = 0.01f)]
 		[NameMatch("GI_12", FloatParam = 0.01f)]
@@ -487,8 +492,6 @@ namespace VisualPinball.Unity.Patcher
 		[NameMatch("GI_34", FloatParam = 0.02f)]
 		[NameMatch("GI_37", FloatParam = 0.01f)]
 		[NameMatch("GI_38", FloatParam = 0.01f)]
-		public void GiDynamicShadow(GameObject go, float param) => LightShadow(go, true, true, param);
-
 		[NameMatch("GI_7", FloatParam = 0.01f)] // leaks
 		[NameMatch("GI_8", FloatParam = 0.01f)] // leaks
 		[NameMatch("GI_9", FloatParam = 0.01f)] // leaks
