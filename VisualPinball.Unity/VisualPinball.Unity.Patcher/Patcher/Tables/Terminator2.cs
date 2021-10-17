@@ -352,16 +352,24 @@ namespace VisualPinball.Unity.Patcher
 		}
 
 		[NameMatch("F120")]
-		[NameMatch("F125")]
 		public void F120Pos(GameObject go) => LightPos(go, -160.8f, 17.6f, -6f);
 		[NameMatch("F121")] public void F121Pos(GameObject go) => LightPos(go, 0f, -12.5f, 15.7f);
 		[NameMatch("F122")] public void F122Pos(GameObject go) => LightPos(go, -4f, 97f, 25f);
 		[NameMatch("F123")] public void F123Pos(GameObject go)
 		{
 			LightPos(go, -6.9f, -21.9f, 94.1f);
-			//todo RenderPipeline.Current.LightConverter.Range(l, 0.3f);
+			RenderPipeline.Current.LightConverter.SetRange(go.GetComponentInChildren<Light>(), 0.3f);
 		}
-		//[NameMatch("F125")] public void F125Pos(GameObject go) => LightPos(go, 182.6f, -58.3f, 12.8f);
+		[NameMatch("F125")] public void F125Pos(GameObject go)
+		{
+			LightPos(go, 42.5f, -75.8f, 12.8f);
+			RenderPipeline.Current.LightConverter.SetRange(go.GetComponentInChildren<Light>(), 0.17f);
+		}
+
+		[NameMatch("F126")] public void F126(GameObject go, LightComponent lightComponent)
+		{
+			LinkLights(go, lightComponent.name, "F126a");
+		}
 
 		#endregion
 
@@ -670,9 +678,9 @@ namespace VisualPinball.Unity.Patcher
 			Intensity(go, 4000f);
 
 			LightPos(go, -52f, 3.3f, -50f);
-			Duplicate(go, -18f, 0f, -50f);
-			Duplicate(go, 16f, 0f, -50f);
-			Duplicate(go, 52f, 3.3f, -50f);
+			DuplicateLight(go, -18f, 0f, -50f);
+			DuplicateLight(go, 16f, 0f, -50f);
+			DuplicateLight(go, 52f, 3.3f, -50f);
 		}
 
 		[NameMatch("L31")]

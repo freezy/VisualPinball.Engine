@@ -213,7 +213,7 @@ namespace VisualPinball.Unity
 		public void PopulateCoils(GamelogicEngineCoil[] engineCoils, TableComponent tableComponent)
 		{
 			var coilDevices = tableComponent.GetComponentsInChildren<ICoilDeviceComponent>();
-			var lamps = tableComponent.GetComponentsInChildren<ILampDeviceComponent>();
+			var lamps = tableComponent.GetComponentsInChildren<ILampDeviceComponent>().OrderBy(LampTypePriority).ToArray();
 			foreach (var engineCoil in GetCoils(engineCoils)) {
 
 				var coilMapping = Coils.FirstOrDefault(mappingsCoilData => mappingsCoilData.Id == engineCoil.Id);
@@ -420,9 +420,8 @@ namespace VisualPinball.Unity
 		/// <param name="tableComponent">Table component</param>
 		public void PopulateLamps(GamelogicEngineLamp[] engineLamps, TableComponent tableComponent)
 		{
-			var lamps = tableComponent.GetComponentsInChildren<ILampDeviceComponent>();
+			var lamps = tableComponent.GetComponentsInChildren<ILampDeviceComponent>().OrderBy(LampTypePriority).ToArray();
 			foreach (var engineLamp in GetLamps(engineLamps)) {
-
 				var lampMapping = Lamps.FirstOrDefault(mappingsLampData => mappingsLampData.Id == engineLamp.Id && !mappingsLampData.IsCoil);
 				if (lampMapping != null) {
 					continue;
@@ -445,6 +444,12 @@ namespace VisualPinball.Unity
 				});
 			}
 		}
+
+		private int LampTypePriority(ILampDeviceComponent comp) => comp switch {
+			LightGroupComponent _ => 0,
+			LightComponent _ => 1,
+			_ => 10
+		};
 
 		/// <summary>
 		/// Returns a sorted list of lamp names from the gamelogic engine,

@@ -247,13 +247,28 @@ namespace VisualPinball.Unity.Patcher
 		/// <param name="x">X-position of the new light source, relative to the lamp</param>
 		/// <param name="y">Y-position of the new light source, relative to the lamp</param>
 		/// <param name="z">Z-position of the new light source, relative to the lamp</param>
-		protected static void Duplicate(GameObject go, float x, float y, float z)
+		protected static void DuplicateLight(GameObject go, float x, float y, float z)
 		{
 			var light = go.GetComponentInChildren<Light>();
 			if (light != null) {
 				var newGo = Object.Instantiate(light.gameObject, go.transform, true);
 				newGo.transform.localPosition = new Vector3(x, y, z);
 			}
+		}
+
+		/// <summary>
+		/// Creates a light group with the given light names
+		/// </summary>
+		/// <param name="go">GameObject to add the light group to.</param>
+		/// <param name="lightNames">Names of the light GameObjects. They must be sister objects of the first parameter.</param>
+		protected static void LinkLights(GameObject go, params string[] lightNames)
+		{
+			var parentTransform = go.transform.parent;
+			var lightComponents = lightNames
+				.Select(n => parentTransform.Find(n).GetComponent<LightComponent>())
+				.Where(c => c != null);
+			var lg = go.AddComponent<LightGroupComponent>();
+			lg.Lights = lightComponents.ToArray();
 		}
 
 		#endregion
