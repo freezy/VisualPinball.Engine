@@ -7,8 +7,8 @@
 Built with Unity 2020.3.
 
 ### Added
-- Support for dynamic wires, also known as *Fast Flip* ([#329](https://github.com/freezy/VisualPinball.Engine/pull/329), [Documentation](https://docs.visualpinball.org/creators-guide/editor/wire-manager.html#dynamic)).
-- Component for light groups, allowing easy grouping of GI lamps. ([#330](https://github.com/freezy/VisualPinball.Engine/pull/330)).
+- Support for dynamic wires, also known as *Fast Flip* ([#330](https://github.com/freezy/VisualPinball.Engine/pull/330), [Documentation](https://docs.visualpinball.org/creators-guide/editor/wire-manager.html#dynamic)).
+- Component for light groups, allowing easy grouping of GI lamps. ([#330](https://github.com/freezy/VisualPinball.Engine/pull/330) ([Documentation](https://docs.visualpinball.org/creators-guide/manual/mechanisms/light-groups.html))).
 - Slingshot component ([#329](https://github.com/freezy/VisualPinball.Engine/pull/329), [Documentation](https://docs.visualpinball.org/creators-guide/manual/mechanisms/slingshots.html)).
 - Create insert meshes ([#320](https://github.com/freezy/VisualPinball.Engine/pull/320)).
 - Full support for custom playfield meshes.

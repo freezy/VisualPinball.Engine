@@ -5,7 +5,7 @@ description: VPE's switch manager lets you hook up the switches of the playfield
 ---
 # Switch Manager
 
-During gameplay, the [gamelogic engine](~/creators-guide/manual/gamelogic-engine.md) needs to know what is happening on the playfield. For that, real pinball tables have switches on the playfield that signal when a ball rolls over or settles in a certain position. These switches are also built into targets, bumpers, kickers, and other mechanisms (see *[Supported Game Mechanisms](#supported-game-mechanisms)* below).
+During gameplay, the [gamelogic engine](xref:gamelogic_engine) needs to know what is happening on the playfield. For that, real pinball tables have switches on the playfield that signal when a ball rolls over or settles in a certain position. These switches are also built into targets, bumpers, kickers, and other mechanisms (see *[Supported Game Mechanisms](#supported-game-mechanisms)* below).
 
 Wiring these switches up to the gamelogic engine with code can be a tedious process, so VPE provides a graphical interface where you can do it easily. If you've named them appropriately it can even guess which switch maps to which game item.
 
@@ -55,7 +55,7 @@ The **Source** column defines where the element in the following column originat
 - *Playfield* lets you choose a game item from the playfield
 - *Input System* lets you choose an input action from a pre-defined list, e.g. cabinet switches
 - *Constant* sets the switch once at the beginning of the game to the given value.
-- *Device* lets you choose a switch device containing the switch. Switch devices are mechanisms that include multiple switches, for example [troughs](../manual/mechanisms/troughs.md).
+- *Device* lets you choose a switch device containing the switch. Switch devices are mechanisms that include multiple switches, for example [troughs](xref:troughs).
 
 
 ### Element

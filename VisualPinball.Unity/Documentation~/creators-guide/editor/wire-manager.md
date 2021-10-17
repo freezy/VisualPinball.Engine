@@ -5,7 +5,7 @@ description: VPE's wire manager lets you directly hook up any switch to any coil
 ---
 # Wire Manager
 
-Using the [Switch Manager](xref:switch_manager), you can wire playfield and cabinet switches to the [Gamelogic Engine](../manual/gamelogic-engine.md). Similarly, the [Coil Manager](xref:coil_manager) and [Lamp Manager](xref:lamp_manager) let you connect playfield elements to the outputs of the Gamelogic Engine.
+Using the [Switch Manager](xref:switch_manager), you can wire playfield and cabinet switches to the [Gamelogic Engine](xref:gamelogic_engine). Similarly, the [Coil Manager](xref:coil_manager) and [Lamp Manager](xref:lamp_manager) let you connect playfield elements to the outputs of the Gamelogic Engine.
 
 The **Wire Manager** allows you to *bypass* the gamelogic engine and connect switches directly to coils and lamps. Using the *dynamic* wires, this can be used to eliminate the flipper lag often introduced by emulated ROMs. But it also can be useful for debugging, or for game logic that might not be covered by the gamelogic engine.
 
@@ -28,7 +28,7 @@ The **Source** column defines the type of source you are connecting to. There ar
 - *Playfield* lets you select any game item that qualifies as a source from the playfield.
 - *Input System* lets you select an input action from a pre-defined list, e.g. cabinet switches.
 - *Constant* sets the destination to a constant value.
-- *Device* lets you select a source device. Such devices are mechanisms that include multiple sources, for example [troughs](../manual/mechanisms/troughs.md).
+- *Device* lets you select a source device. Such devices are mechanisms that include multiple sources, for example [troughs](xref:troughs).
 
 ### Source Element
 
@@ -47,7 +47,7 @@ Finally, if **Constant** is selected, you select the value that will be permanen
 Under **Destination** you can select the type of the element that will *receive* the switch changes. There are two types to choose from:
 
 - *Playfield* lets you select any game item that qualifies as a destination from the playfield
-- *Device* lets you choose a destination device. Such devices are mechanisms that include multiple coils or lamps, for example [troughs](../manual/mechanisms/troughs.md).
+- *Device* lets you choose a destination device. Such devices are mechanisms that include multiple coils or lamps, for example [troughs](xref:troughs).
 
 ### Destination Element
 
@@ -71,7 +71,7 @@ However, by design, there are two caveats:
 
 
 > [!note]
-> [MPF](../../plugins/mpf/index.md) has a similar feature called [Hardware Rules](https://docs.missionpinball.org/en/dev/hardware/hw_rules.html#the-solution-hardware-rules). This is the preferred way, because the gamelogic engine explicitly notifies VPE about which wires to add and remove during gameplay.
+> [MPF](xref:mpf_index) has a similar feature called [Hardware Rules](https://docs.missionpinball.org/en/dev/hardware/hw_rules.html#the-solution-hardware-rules). This is the preferred way, because the gamelogic engine explicitly notifies VPE about which wires to add and remove during gameplay.
 >
 > However, other gamelogic engines like PinMAME don't have this feature, that's why VPE comes with the *dynamic wire* feature that guesses when wire is active and when not.
 
