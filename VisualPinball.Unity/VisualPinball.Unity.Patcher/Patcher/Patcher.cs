@@ -32,11 +32,17 @@ namespace VisualPinball.Unity.Patcher
 		private readonly List<object> _patchers = new List<object>();
 		private FileTableContainer _tableContainer;
 
+		private IMaterialProvider _materialProvider;
+		private ITextureProvider _textureProvider;
+
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
-		public void Set(FileTableContainer tableContainer, string fileName)
+		public void Set(FileTableContainer tableContainer, string fileName, IMaterialProvider materialProvider, ITextureProvider textureProvider)
 		{
 			_tableContainer = tableContainer;
+			_materialProvider = materialProvider;
+			_textureProvider = textureProvider;
+
 			var types = typeof(Patcher).Assembly.GetTypes();
 			foreach (var type in types) {
 				var classMatchers = type
@@ -58,6 +64,11 @@ namespace VisualPinball.Unity.Patcher
 			foreach (var patcher in _patchers) {
 				var methods = patcher.GetType().GetMembers().Where(member => member.MemberType == MemberTypes.Method);
 
+				if (patcher is TablePatcher tp) {
+					tp.TableContainer = _tableContainer;
+					tp.MaterialProvider = _materialProvider;
+					tp.TextureProvider = _textureProvider;
+				}
 
 				foreach (var method in methods) {
 					var methodMatchers = Attribute
@@ -68,6 +79,10 @@ namespace VisualPinball.Unity.Patcher
 					var methodInfo = method as MethodInfo;
 					if (methodInfo != null) {
 						foreach (var methodMatcher in methodMatchers) {
+							// if the game object has been destroyed by a patcher, exit.
+							if (!gameObject) {
+								return;
+							}
 							if (methodMatcher.Matches(_tableContainer, gameObject)) {
 								var validArgs = true;
 								var patcherParamInfos = methodInfo.GetParameters();

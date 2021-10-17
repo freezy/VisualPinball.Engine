@@ -92,7 +92,7 @@ namespace VisualPinball.Unity.Editor
 			_sourceContainer = sourceContainer;
 			_sourceTable = sourceContainer.Table;
 			_patcher = PatcherManager.GetPatcher();
-			_patcher?.Set(sourceContainer, fileName);
+			_patcher?.Set(sourceContainer, fileName, this, this);
 			_options = options ?? new ConvertOptions();
 		}
 
@@ -266,11 +266,15 @@ namespace VisualPinball.Unity.Editor
 				// patch
 				if (_applyPatch) {
 					_patcher?.ApplyPatches(prefab.GameObject, _tableGo);
-					prefab.UpdateTransforms();
+					if (prefab.GameObject) { // only if not destroyed..
+						prefab.UpdateTransforms();
+					}
 				}
 
 				// persist changes
-				prefab.PersistData();
+				if (prefab.GameObject) { // only if not destroyed..
+					prefab.PersistData();
+				}
 			}
 
 			return componentLookup;

@@ -490,10 +490,10 @@ namespace VisualPinball.Unity
 
 			// second, match by "lXX" or name
 			var matchKey = int.TryParse(engineLamp.Id, out var numericLampId)
-				? $"l{numericLampId}"
-				: engineLamp.Id;
-
-			return lamps.FirstOrDefault(l => string.Equals(l.name, matchKey, StringComparison.OrdinalIgnoreCase));
+				? $"^l{numericLampId}a?$"
+				: $"^{engineLamp.Id}$";
+			var nameRegex = new Regex(matchKey, RegexOptions.IgnoreCase);
+			return lamps.FirstOrDefault(l => nameRegex.Match(l.name).Success);
 		}
 
 		private static GamelogicEngineLamp GuessLampDeviceItem(IGamelogicEngineDeviceItem engineLamp, ILampDeviceComponent device)

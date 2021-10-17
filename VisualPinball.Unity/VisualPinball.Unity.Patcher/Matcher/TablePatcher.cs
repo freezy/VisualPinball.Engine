@@ -17,9 +17,11 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using UnityEditor;
 using UnityEngine;
 using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Light;
+using VisualPinball.Engine.VPT.Table;
 using VisualPinball.Engine.VPT.Trough;
 using VisualPinball.Unity.Editor;
 using Light = UnityEngine.Light;
@@ -30,6 +32,10 @@ namespace VisualPinball.Unity.Patcher
 	[Api]
 	public abstract class TablePatcher
 	{
+		public TableContainer TableContainer;
+		public ITextureProvider TextureProvider;
+		public IMaterialProvider MaterialProvider;
+
 		/// <summary>
 		/// This method is executed once after all element-specific patches had
 		/// been applied.<p/>
@@ -282,13 +288,21 @@ namespace VisualPinball.Unity.Patcher
 			}
 		}
 
+		/// <summary>
+		/// Creates a point light.
+		/// </summary>
+		/// <param name="name">Name of the new light</param>
+		/// <param name="x">X-position on the playfield</param>
+		/// <param name="y">Y-position on the playfield</param>
+		/// <param name="parentGo">Game object to parent to (usually "Lights")</param>
+		/// <returns></returns>
 		protected static LightComponent CreateLight(string name, float x, float y, GameObject parentGo)
 		{
-			var light = VisualPinball.Engine.VPT.Light.Light.GetDefault(name, x, y);
+			var light = Engine.VPT.Light.Light.GetDefault(name, x, y);
 			light.Data.ShowBulbMesh = false;
 
 			var prefab = RenderPipeline.Current.PrefabProvider.CreateLight();
-			var lightGo = UnityEditor.PrefabUtility.InstantiatePrefab(prefab, parentGo.transform) as GameObject;
+			var lightGo = PrefabUtility.InstantiatePrefab(prefab, parentGo.transform) as GameObject;
 			if (!lightGo) {
 				return null;
 			}
@@ -300,6 +314,40 @@ namespace VisualPinball.Unity.Patcher
 			lightTransform.Find("Bulb").gameObject.SetActive(false);
 			lightTransform.Find("Socket").gameObject.SetActive(false);
 			return lightComponent;
+		}
+
+		/// <summary>
+		/// Converts a normal light to an insert light, by deleting and re-creating the insert prefab.
+		/// </summary>
+		/// <param name="lo">Light component to convert</param>
+		/// <returns>New converted game object</returns>
+		protected GameObject ConvertToInsertLight(LightComponent lo)
+		{
+			var name = lo.name;
+			var parent = lo.transform.parent.gameObject;
+			Object.DestroyImmediate(lo.gameObject);
+			return CreateInsertLight(TableContainer.Get<VisualPinball.Engine.VPT.Light.Light>(name).Data, parent);
+		}
+
+		/// <summary>
+		/// Creates an insert light based on existing light data.
+		/// </summary>
+		/// <param name="data"></param>
+		/// <param name="parentGo"></param>
+		private GameObject CreateInsertLight(LightData data, GameObject parentGo)
+		{
+			var prefab = RenderPipeline.Current.PrefabProvider.CreateInsertLight();
+			var go = PrefabUtility.InstantiatePrefab(prefab, parentGo.transform) as GameObject;
+			go!.name = data.Name;
+			data.OffImage = TableContainer.Table.Data.Image;
+			var lc = go.GetComponent<LightComponent>();
+			lc.SetData(data);
+			lc.SetReferencedData(data, TableContainer.Table, MaterialProvider, TextureProvider, null);
+
+			EditorUtility.SetDirty(go);
+			PrefabUtility.RecordPrefabInstancePropertyModifications(lc);
+
+			return go;
 		}
 
 		/// <summary>

@@ -20,19 +20,22 @@
 // ReSharper disable UnusedType.Global
 
 using System.Linq;
+using NLog.Fluent;
 using UnityEditor;
 using UnityEngine;
 using VisualPinball.Engine.Math;
 using VisualPinball.Engine.PinMAME;
 using VisualPinball.Engine.VPT;
+using VisualPinball.Engine.VPT.Light;
+using VisualPinball.Engine.VPT.Table;
 using Color = UnityEngine.Color;
+using Light = UnityEngine.Light;
 
 namespace VisualPinball.Unity.Patcher
 {
 	[MetaMatch(TableName = "Terminator 2 - Judgment Day (Williams 1991)", AuthorName = "g5k")]
 	public class Terminator2 : TablePatcher
 	{
-
 		#region Global
 
 		public override void PostPatch(GameObject tableGo)
@@ -43,7 +46,7 @@ namespace VisualPinball.Unity.Patcher
 			// playfield material
 			RenderPipeline.Current.MaterialConverter.SetSmoothness(playfieldGo.GetComponent<Renderer>().sharedMaterial, 0.96f);
 
-			// lights
+			// missing lights
 			CreateFlasher28(playfieldGo);
 
 			SetupTrough(tableGo, playfieldGo);
@@ -492,7 +495,23 @@ namespace VisualPinball.Unity.Patcher
 
 		#endregion
 
+		#region Insert Links
+
+		[NameMatch("L22a")] public void Link22(GameObject go) => LinkLights(go, "L22a", "L22b");
+		[NameMatch("L51a")] public void Link51(GameObject go) => LinkLights(go, "L51a", "L51b");
+
+		#endregion
+
 		#region Insert Shapes
+
+		[NameMatch("L481")]
+		[NameMatch("L581")]
+		public void MakeInsert481(LightComponent lo)
+		{
+			var go = ConvertToInsertLight(lo);
+			// those don't actually need a light source, because the first light shines through the insert mesh.
+			go.transform.Find("Source").gameObject.SetActive(false);
+		}
 
 		[NameMatch("L43")]
 		[NameMatch("L44")]
@@ -500,12 +519,14 @@ namespace VisualPinball.Unity.Patcher
 		[NameMatch("L46")]
 		[NameMatch("L47")]
 		[NameMatch("L48")]
+		[NameMatch("L481")]
 		[NameMatch("L53")]
 		[NameMatch("L54")]
 		[NameMatch("L55")]
 		[NameMatch("L56")]
 		[NameMatch("L57")]
 		[NameMatch("L58")]
+		[NameMatch("L581")]
 		public void Rectangles(GameObject go)
 		{
 			SpotAngle(go, 122f, 48f);
