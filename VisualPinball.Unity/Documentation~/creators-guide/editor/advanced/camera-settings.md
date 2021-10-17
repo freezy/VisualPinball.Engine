@@ -22,7 +22,7 @@ To use the camera controller, select the `Camera` scene object, which is at the 
 - **Distance**: Moves the camera closer to or further away from the pivot point. This is used in conjunction with the FOV to frame the table in view.
 - **FOV**: Sets the field of view of the camera. High values result in a wide field of view and more depth perspective. Low values narrow and flatten the view.
   > [!note]
-  > Adjusting the distance and FOV together will control how much apparent depth there is to tge table. A wide field of view and low distance will give the table a lit of perspective and depth, but will be more challenging to fit in the view without clipping the front, or having a lot of space to the sides in the back. Conversely, moving the camera further away and lowering the FOV will remove much of the perspective allowing the table to fit more evenly in the frame.
+  > Adjusting the distance and FOV together will control how much apparent depth there is to the table. A wide field of view and low distance will give the table a bit of perspective and depth, but will be more challenging to fit in the view without clipping the front, or having a lot of space to the sides in the back. Conversely, moving the camera further away and lowering the FOV will remove much of the perspective allowing the table to fit more evenly in the frame.
 - **Orbit**: Controls the camera angle in an orbit around the table. 0 and 360 are standing in front of the table, 90 is on the left, 270 to the right.
 
 ## Presets
