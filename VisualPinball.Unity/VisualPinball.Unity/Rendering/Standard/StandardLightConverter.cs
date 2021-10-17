@@ -50,6 +50,11 @@ namespace VisualPinball.Unity
 			light.shadowNearPlane = nearPlane;
 		}
 
+		public void SetRange(Light light, float range)
+		{
+			light.range = range;
+		}
+
 		public void SetIntensity(Light light, float intensityLumen)
 		{
 			light.intensity = intensityLumen;

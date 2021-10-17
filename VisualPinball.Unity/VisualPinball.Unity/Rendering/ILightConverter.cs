@@ -42,6 +42,8 @@ namespace VisualPinball.Unity
 
 		void SetShadow(Light light, bool enabled, bool isDynamic, float nearPlane = 0.01f);
 
+		void SetRange(Light light, float range);
+
 		/// <summary>
 		/// Sets the intensity of a given light.
 		/// </summary>
