@@ -66,6 +66,7 @@ namespace VisualPinball.Unity
 
 		public void SpotLight(Light light, float outer, float innerPercent)
 		{
+			light.type = LightType.Spot;
 			light.spotAngle = outer;
 			light.innerSpotAngle = outer * innerPercent * 0.01f;
 		}

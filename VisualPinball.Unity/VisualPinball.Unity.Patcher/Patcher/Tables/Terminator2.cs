@@ -23,7 +23,6 @@ using System.Linq;
 using UnityEditor;
 using UnityEngine;
 using VisualPinball.Engine.Math;
-using VisualPinball.Engine.PinMAME;
 using VisualPinball.Engine.VPT;
 using Color = UnityEngine.Color;
 
@@ -72,7 +71,7 @@ namespace VisualPinball.Unity.Patcher
 
 			// GLE
 			Object.DestroyImmediate(tableGo.GetComponent<DefaultGamelogicEngine>());
-			var pinmameGle = tableGo.AddComponent<PinMameGamelogicEngine>();
+			var pinmameGle = tableGo.AddComponent<Engine.PinMAME.PinMameGamelogicEngine>();
 			pinmameGle.Game = new Engine.PinMAME.Games.Terminator2();
 			pinmameGle.romId = "t2_l82";
 			tableComponent.RepopulateHardware(pinmameGle);
