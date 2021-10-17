@@ -19,8 +19,10 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using VisualPinball.Engine.VPT;
+using VisualPinball.Engine.VPT.Light;
 using VisualPinball.Engine.VPT.Trough;
 using VisualPinball.Unity.Editor;
+using Light = UnityEngine.Light;
 using Object = UnityEngine.Object;
 
 namespace VisualPinball.Unity.Patcher
@@ -173,6 +175,18 @@ namespace VisualPinball.Unity.Patcher
 		}
 
 		/// <summary>
+		/// Sets the temperature of the light.
+		/// </summary>
+		/// <param name="go">Game object of the light</param>
+		/// <param name="temp">Temperature in Kelvin</param>
+		protected static void LightTemperature(GameObject go, float temp)
+		{
+			foreach (var l in go.GetComponentsInChildren<Light>()) {
+				RenderPipeline.Current.LightConverter.SetTemperature(l, temp);
+			}
+		}
+
+		/// <summary>
 		/// Sets the angle of a spot light.
 		/// </summary>
 		/// <remarks>
@@ -214,11 +228,39 @@ namespace VisualPinball.Unity.Patcher
 		/// </remarks>
 		/// <param name="go">Game object of the light source</param>
 		/// <param name="intensityLumen">Intensity of the light in lumen</param>
-		protected static void Intensity(GameObject go, float intensityLumen)
+		protected static void LightIntensity(GameObject go, float intensityLumen)
 		{
 			var lights = go.GetComponentsInChildren<Light>();
 			foreach (var light in lights) {
 				RenderPipeline.Current.LightConverter.SetIntensity(light, intensityLumen);
+			}
+		}
+
+		/// <summary>
+		/// Sets the range of the light.
+		/// </summary>
+		/// <param name="go">Game object of the light</param>
+		/// <param name="range">Range in meters</param>
+		protected static void LightRange(GameObject go, float range)
+		{
+			var lights = go.GetComponentsInChildren<Light>();
+			foreach (var light in lights) {
+				RenderPipeline.Current.LightConverter.SetRange(light, range);
+			}
+		}
+
+		/// <summary>
+		/// Sets the shadow of the light.
+		/// </summary>
+		/// <param name="go">Game object of the light</param>
+		/// <param name="enabled">Whether to enable or disable shadows.</param>
+		/// <param name="isDynamic">If true, update on each frame.</param>
+		/// <param name="nearPlane">Distance from when on shadows are cast.</param>
+		protected static void LightShadow(GameObject go, bool enabled, bool isDynamic, float nearPlane = 0.01f)
+		{
+			var lights = go.GetComponentsInChildren<Light>();
+			foreach (var light in lights) {
+				RenderPipeline.Current.LightConverter.SetShadow(light, enabled, isDynamic, nearPlane);
 			}
 		}
 
@@ -238,6 +280,26 @@ namespace VisualPinball.Unity.Patcher
 			if (light != null) {
 				light.gameObject.transform.localPosition = new Vector3(x, y, z);
 			}
+		}
+
+		protected static LightComponent CreateLight(string name, float x, float y, GameObject parentGo)
+		{
+			var light = VisualPinball.Engine.VPT.Light.Light.GetDefault(name, x, y);
+			light.Data.ShowBulbMesh = false;
+
+			var prefab = RenderPipeline.Current.PrefabProvider.CreateLight();
+			var lightGo = UnityEditor.PrefabUtility.InstantiatePrefab(prefab, parentGo.transform) as GameObject;
+			if (!lightGo) {
+				return null;
+			}
+			lightGo.name = name;
+			var lightTransform = lightGo.transform;
+			var lightComponent = lightGo.GetComponent<LightComponent>();
+			lightComponent.SetData(light.Data);
+			lightComponent.UpdateTransforms();
+			lightTransform.Find("Bulb").gameObject.SetActive(false);
+			lightTransform.Find("Socket").gameObject.SetActive(false);
+			return lightComponent;
 		}
 
 		/// <summary>

@@ -22,6 +22,7 @@
 using System.Linq;
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.Experimental.GlobalIllumination;
 using VisualPinball.Engine.Math;
 using VisualPinball.Engine.VPT;
 using Color = UnityEngine.Color;
@@ -42,10 +43,13 @@ namespace VisualPinball.Unity.Patcher
 			// playfield material
 			RenderPipeline.Current.MaterialConverter.SetSmoothness(playfieldGo.GetComponent<Renderer>().sharedMaterial, 0.96f);
 
+			// lights
+			CreateFlasher28(playfieldGo);
+
 			SetupTrough(tableGo, playfieldGo);
 			SetupPinMame(tableGo, playfieldGo);
-
 			SetupMapping(tableGo);
+
 			// slingshots
 			SetupLeftSlingshot(playfieldGo.transform.Find("Walls/LeftSlingshot").gameObject);
 			SetupRightSlingshot(playfieldGo.transform.Find("Walls/RightSlingshot").gameObject);
@@ -342,6 +346,10 @@ namespace VisualPinball.Unity.Patcher
 		[NameMatch("F122", FloatParam = 20000f)]
 		[NameMatch("F123", FloatParam = 20000f)]
 		[NameMatch("F125", FloatParam = 10000f)]
+		[NameMatch("F126", FloatParam = 10000f)]
+		[NameMatch("F126a", FloatParam = 10000f)]
+		[NameMatch("F127", FloatParam = 10000f)]
+		[NameMatch("F127a", FloatParam = 10000f)]
 		public void SlingFlashers(GameObject go, float param)
 		{
 			foreach (var l in go.GetComponentsInChildren<Light>()) {
@@ -358,17 +366,37 @@ namespace VisualPinball.Unity.Patcher
 		[NameMatch("F123")] public void F123Pos(GameObject go)
 		{
 			LightPos(go, -6.9f, -21.9f, 94.1f);
-			RenderPipeline.Current.LightConverter.SetRange(go.GetComponentInChildren<Light>(), 0.3f);
+			LightRange(go, 0.3f);
 		}
 		[NameMatch("F125")] public void F125Pos(GameObject go)
 		{
 			LightPos(go, 42.5f, -75.8f, 12.8f);
-			RenderPipeline.Current.LightConverter.SetRange(go.GetComponentInChildren<Light>(), 0.17f);
+			LightRange(go, 0.17f);
 		}
-
 		[NameMatch("F126")] public void F126(GameObject go, LightComponent lightComponent)
 		{
+			LightPos(go, 51.6f, 34.5f, 5f);
 			LinkLights(go, lightComponent.name, "F126a");
+		}
+		[NameMatch("F126a")] public void F126aPos(GameObject go) => LightPos(go, -28.1f, 61.1f, 37f);
+
+		[NameMatch("F127")] public void F127(GameObject go, LightComponent lightComponent)
+		{
+			LightPos(go, -33.2f, 2.9f, 5f);
+			LinkLights(go, lightComponent.name, "F127a");
+		}
+		[NameMatch("F127a")] public void F127aPos(GameObject go) => LightPos(go, -31.5f, 89.5f, 37f);
+
+		private static void CreateFlasher28(GameObject playfieldGo)
+		{
+			var parent = GetOrCreateGameObject(playfieldGo, "Lights");
+			var lightComponent = CreateLight("F128", 302.4f, 361.4f, parent);
+			var go = lightComponent.gameObject;
+			SpotAngle(go, 104f, 53.4f);
+			LightPos(go, 0, 0, -79f);
+			LightIntensity(go, 10000f);
+			LightTemperature(go, 3400f);
+			LightRange(go, 0.11f);
 		}
 
 		#endregion
@@ -440,12 +468,7 @@ namespace VisualPinball.Unity.Patcher
 		[NameMatch("GI_34", FloatParam = 0.02f)]
 		[NameMatch("GI_37", FloatParam = 0.01f)]
 		[NameMatch("GI_38", FloatParam = 0.01f)]
-		public void GiDynamicShadow(GameObject go, float param)
-		{
-			foreach (var l in go.GetComponentsInChildren<Light>()) {
-				RenderPipeline.Current.LightConverter.SetShadow(l, true, true, param);
-			}
-		}
+		public void GiDynamicShadow(GameObject go, float param) => LightShadow(go, true, true, param);
 
 		[NameMatch("GI_7", FloatParam = 0.01f)] // leaks
 		[NameMatch("GI_8", FloatParam = 0.01f)] // leaks
@@ -461,19 +484,11 @@ namespace VisualPinball.Unity.Patcher
 		[NameMatch("GI_31", FloatParam = 0.01f)] // leaks
 		[NameMatch("GI_32", FloatParam = 0.01f)] // leaks
 		[NameMatch("GI_35", FloatParam = 0.01f)] // leaks (not too badly)
-		public void GiStaticShadow(GameObject go, float param)
-		{
-			foreach (var l in go.GetComponentsInChildren<Light>()) {
-				RenderPipeline.Current.LightConverter.SetShadow(l, true, false, param);
-			}
-		}
+		public void GiStaticShadow(GameObject go, float param) => LightShadow(go, true, false, param);
 
 		[NameMatch("GI_27")]
 		[NameMatch("GI_28")]
-		public void GiDisable(GameObject go)
-		{
-			go.SetActive(false);
-		}
+		public void GiDisable(GameObject go) => go.SetActive(false);
 
 		#endregion
 
@@ -494,7 +509,7 @@ namespace VisualPinball.Unity.Patcher
 		public void Rectangles(GameObject go)
 		{
 			SpotAngle(go, 122f, 48f);
-			Intensity(go, 4500f);
+			LightIntensity(go, 4500f);
 		}
 
 		[NameMatch("L16")]
@@ -505,7 +520,7 @@ namespace VisualPinball.Unity.Patcher
 		public void MidSizedCircles(GameObject go)
 		{
 			SpotAngle(go, 64f, 67f);
-			Intensity(go, 1200f);
+			LightIntensity(go, 1200f);
 		}
 
 		[NameMatch("L76")]
@@ -514,7 +529,7 @@ namespace VisualPinball.Unity.Patcher
 		public void SmallSizedCircles(GameObject go)
 		{
 			SpotAngle(go, 45f, 13f);
-			Intensity(go, 700f);
+			LightIntensity(go, 700f);
 		}
 
 		[NameMatch("L61")]
@@ -574,7 +589,7 @@ namespace VisualPinball.Unity.Patcher
 		[NameMatch("L38")]
 		public void SmallSizedTrianglesRed(GameObject go)
 		{
-			Intensity(go, 1000f);
+			LightIntensity(go, 1000f);
 		}
 
 		[NameMatch("L31")]
@@ -584,7 +599,7 @@ namespace VisualPinball.Unity.Patcher
 		[NameMatch("L35")]
 		public void SmallSizedTrianglesWhite(GameObject go)
 		{
-			Intensity(go, 700f);
+			LightIntensity(go, 700f);
 			LightColor(go, Color.white);
 		}
 
@@ -597,7 +612,7 @@ namespace VisualPinball.Unity.Patcher
 		[NameMatch("L66")]
 		public void MidSizedTrianglesGreen(GameObject go)
 		{
-			Intensity(go, 3400f);
+			LightIntensity(go, 3400f);
 		}
 
 		[NameMatch("L13")]
@@ -607,20 +622,20 @@ namespace VisualPinball.Unity.Patcher
 		[NameMatch("L82")]
 		public void MidSizedTrianglesRed(GameObject go)
 		{
-			Intensity(go, 1850f);
+			LightIntensity(go, 1850f);
 		}
 
 		[NameMatch("L85")]
 		public void MidSizedTrianglesWhite(GameObject go)
 		{
-			Intensity(go, 1850f);
+			LightIntensity(go, 1850f);
 			LightColor(go, Color.white);
 		}
 
 		[NameMatch("L28")]
 		public void MidSizedTrianglesBlue(GameObject go)
 		{
-			Intensity(go, 12000f);
+			LightIntensity(go, 12000f);
 			LightColor(go, new Color(0f, 0.4f, 1));
 		}
 
@@ -629,7 +644,7 @@ namespace VisualPinball.Unity.Patcher
 		[NameMatch("L67")]
 		public void MidSizedTrianglesYellow(GameObject go)
 		{
-			Intensity(go, 1850f);
+			LightIntensity(go, 1850f);
 			LightColor(go, Color.yellow);
 		}
 
@@ -649,7 +664,7 @@ namespace VisualPinball.Unity.Patcher
 		{
 			LightPos(go, 0f, 0f, -50f);
 			SpotAngle(go, 73f, 10f);
-			Intensity(go, 340f);
+			LightIntensity(go, 340f);
 		}
 
 		[NameMatch("L21")]
@@ -675,7 +690,7 @@ namespace VisualPinball.Unity.Patcher
 		public void AutoFire(GameObject go)
 		{
 			SpotAngle(go, 70f, 15f);
-			Intensity(go, 4000f);
+			LightIntensity(go, 4000f);
 
 			LightPos(go, -52f, 3.3f, -50f);
 			DuplicateLight(go, -18f, 0f, -50f);
@@ -716,7 +731,7 @@ namespace VisualPinball.Unity.Patcher
 		{
 			LightPos(go, -2.2f, 0.8f, -50f);
 			SpotAngle(go, 27f, 60f);
-			Intensity(go, 1000f);
+			LightIntensity(go, 1000f);
 		}
 
 		[NameMatch("L53")]
@@ -763,7 +778,7 @@ namespace VisualPinball.Unity.Patcher
 		public void TopTriangles(GameObject go)
 		{
 			LightPos(go, 0f, 6f, -50f);
-			Intensity(go, 6700f);
+			LightIntensity(go, 6700f);
 			SpotAngle(go, 80f, 40f);
 		}
 
@@ -780,14 +795,14 @@ namespace VisualPinball.Unity.Patcher
 		[NameMatch("Light4")]
 		public void BlueBox(GameObject go)
 		{
-			Intensity(go, 12000f);
+			LightIntensity(go, 12000f);
 			LightColor(go, new Color(0f, 0.4f, 1));
 		}
 
 		[NameMatch("Light5")]
 		public void YellowBox(GameObject go)
 		{
-			Intensity(go, 670f);
+			LightIntensity(go, 670f);
 			LightColor(go, Color.yellow);
 		}
 

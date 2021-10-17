@@ -41,11 +41,9 @@ namespace VisualPinball.Engine.VPT.Light
 		{
 		}
 
-		public static Light GetDefault(Table.Table table)
+		public static Light GetDefault(string name, float x, float y)
 		{
-			var x = table.Width / 2f;
-			var y = table.Height / 2f;
-			var lightData = new LightData(table.GetNewName<Light>("Light"), table.Width / 2f, table.Height / 2f) {
+			var lightData = new LightData(name, x, y) {
 				DragPoints = new[] {
 					new DragPointData(x, y - 50f) {IsSmooth = true },
 					new DragPointData(x - 50f * MathF.Cos(MathF.PI / 4), y - 50f * MathF.Sin(MathF.PI / 4)) {IsSmooth = true },
@@ -59,6 +57,8 @@ namespace VisualPinball.Engine.VPT.Light
 			};
 			return new Light(lightData);
 		}
+		
+		public static Light GetDefault(Table.Table table) => GetDefault(table.GetNewName<Light>("Light"), table.Width / 2f, table.Height / 2f);
 
 		#region IRenderable
 

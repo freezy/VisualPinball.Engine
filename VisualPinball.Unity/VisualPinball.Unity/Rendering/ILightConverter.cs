@@ -54,7 +54,7 @@ namespace VisualPinball.Unity
 		void SetTemperature(Light light, float temperature);
 
 		/// <summary>
-		/// Sets the spotlight parameters of a light (doesn't set it to spotlight)
+		/// Converts the light to a spotlight.
 		/// </summary>
 		/// <param name="light">Which light to update</param>
 		/// <param name="outer">Outer angle</param>
