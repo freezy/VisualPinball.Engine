@@ -22,8 +22,8 @@
 using System.Linq;
 using UnityEditor;
 using UnityEngine;
-using UnityEngine.Experimental.GlobalIllumination;
 using VisualPinball.Engine.Math;
+using VisualPinball.Engine.PinMAME;
 using VisualPinball.Engine.VPT;
 using Color = UnityEngine.Color;
 
@@ -72,7 +72,7 @@ namespace VisualPinball.Unity.Patcher
 
 			// GLE
 			Object.DestroyImmediate(tableGo.GetComponent<DefaultGamelogicEngine>());
-			var pinmameGle = tableGo.AddComponent<VisualPinball.Engine.PinMAME.PinMameGamelogicEngine>();
+			var pinmameGle = tableGo.AddComponent<PinMameGamelogicEngine>();
 			pinmameGle.Game = new Engine.PinMAME.Games.Terminator2();
 			pinmameGle.romId = "t2_l82";
 			tableComponent.RepopulateHardware(pinmameGle);
@@ -350,7 +350,7 @@ namespace VisualPinball.Unity.Patcher
 		[NameMatch("F126a", FloatParam = 10000f)]
 		[NameMatch("F127", FloatParam = 10000f)]
 		[NameMatch("F127a", FloatParam = 10000f)]
-		public void SlingFlashers(GameObject go, float param)
+		public void FlasherIntensities(GameObject go, float param)
 		{
 			foreach (var l in go.GetComponentsInChildren<Light>()) {
 				RenderPipeline.Current.LightConverter.SetIntensity(l, param);

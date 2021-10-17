@@ -67,7 +67,7 @@ namespace VisualPinball.Unity.Editor
 		protected T _selectedItem;
 
 		private List<T> _data = new List<T>();
-		private ManagerListView<T> _listView;
+		protected ManagerListView<T> _listView;
 		private TreeViewState _treeViewState;
 		private bool _renaming;
 		private string _renameBuffer = string.Empty;

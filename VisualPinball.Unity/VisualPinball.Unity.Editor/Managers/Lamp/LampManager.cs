@@ -134,6 +134,7 @@ namespace VisualPinball.Unity.Editor
 					ToggleAction.Inserts => TableComponent.MappingConfig.Lamps.Where(lm => !lm.IsCoil && lm.Source == LampSource.Lamp),
 					ToggleAction.GI => TableComponent.MappingConfig.Lamps.Where(lm => lm.Source == LampSource.GI),
 					ToggleAction.Flasher => TableComponent.MappingConfig.Lamps.Where(lm => lm.IsCoil),
+					ToggleAction.Selected => _listView.GetSelectedData().Select(lld => lld.LampMapping),
 					_ => throw new ArgumentOutOfRangeException()
 				};
 
@@ -244,6 +245,6 @@ namespace VisualPinball.Unity.Editor
 
 	internal enum ToggleAction
 	{
-		All, Inserts, GI, Flasher
+		All, Inserts, GI, Flasher, Selected
 	}
 }
