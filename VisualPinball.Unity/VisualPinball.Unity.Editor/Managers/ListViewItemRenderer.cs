@@ -19,6 +19,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.InputSystem;
 using VisualPinball.Engine.Game.Engines;
 
 namespace VisualPinball.Unity.Editor
@@ -34,6 +35,12 @@ namespace VisualPinball.Unity.Editor
 		protected abstract Texture GetIcon(TListData listData);
 
 		protected abstract void RenderDeviceElement(TListData listData, Rect cellRect, Action<TListData> updateAction);
+
+		protected virtual void OnIconClick(TListData data, bool pressedDown)
+		{
+		}
+
+		private bool _mouseDownOnIcon;
 
 		protected void RenderId(Dictionary<string, TStatus> statuses, ref string id, Action<string> setId, TListData listData, Rect cellRect, Action<TListData> updateAction)
 		{
@@ -58,8 +65,19 @@ namespace VisualPinball.Unity.Editor
 			options.Add("Add...");
 
 			if (Application.isPlaying && statuses != null) {
+
 				var iconRect = cellRect;
 				iconRect.width = 20;
+
+				if (Mouse.current.leftButton.wasPressedThisFrame && !_mouseDownOnIcon && iconRect.Contains(Event.current.mousePosition)) {
+					OnIconClick(listData, true);
+					_mouseDownOnIcon = true;
+				}
+				if (Mouse.current.leftButton.wasReleasedThisFrame && _mouseDownOnIcon && iconRect.Contains(Event.current.mousePosition)) {
+					OnIconClick(listData, false);
+					_mouseDownOnIcon = false;
+				}
+
 				dropdownRect.x += 25;
 				dropdownRect.width -= 25;
 				if (statuses.ContainsKey(id)) {
