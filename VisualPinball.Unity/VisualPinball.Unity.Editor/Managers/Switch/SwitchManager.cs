@@ -77,15 +77,12 @@ namespace VisualPinball.Unity.Editor
 			}
 
 			var gle = TableComponent.gameObject.GetComponent<IGamelogicEngine>();
-
-			if (gle == null)
-			{
+			if (gle == null) {
 				DisplayMessage("No gamelogic engine set.");
 				return false;
 			}
 
-			if (_needsAssetRefresh)
-			{
+			if (_needsAssetRefresh) {
 				AssetDatabase.Refresh();
 				_needsAssetRefresh = false;
 			}

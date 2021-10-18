@@ -49,12 +49,14 @@ namespace VisualPinball.Unity.Editor
 		private readonly InputManager _inputManager;
 
 		private readonly ObjectReferencePicker<ISwitchDeviceComponent> _devicePicker;
+		private readonly TableComponent _tableComponent;
 
 		public SwitchListViewItemRenderer(List<GamelogicEngineSwitch> gleSwitches, TableComponent tableComponent, InputManager inputManager)
 		{
 			_gleSwitches = gleSwitches;
 			_inputManager = inputManager;
 			_devicePicker = new ObjectReferencePicker<ISwitchDeviceComponent>("Switch Devices", tableComponent, false);
+			_tableComponent = tableComponent;
 		}
 
 		public void Render(TableComponent tableComponent, SwitchListData data, Rect cellRect, int column, Action<SwitchListData> updateAction)
@@ -85,6 +87,16 @@ namespace VisualPinball.Unity.Editor
 					break;
 			}
 			EditorGUI.EndDisabledGroup();
+		}
+
+		protected override void OnIconClick(SwitchListData data, bool pressedDown)
+		{
+			var gle = _tableComponent.GetComponent<IGamelogicEngine>();
+			var player = _tableComponent.GetComponent<Player>();
+			gle?.Switch(data.Id, pressedDown);
+			if (player != null && player.SwitchStatusesClosed.ContainsKey(data.Id)) {
+				player.SwitchStatusesClosed[data.Id] = pressedDown;
+			}
 		}
 
 		private void RenderNc(SwitchListData switchListData, Rect cellRect, Action<SwitchListData> updateAction)
