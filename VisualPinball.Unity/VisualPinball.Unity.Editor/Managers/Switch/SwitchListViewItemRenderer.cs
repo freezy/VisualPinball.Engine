@@ -23,11 +23,11 @@ using VisualPinball.Engine.Game.Engines;
 
 namespace VisualPinball.Unity.Editor
 {
-	public class SwitchListViewItemRenderer : ListViewItemRenderer<SwitchListData, GamelogicEngineSwitch, bool>
+	public class SwitchListViewItemRenderer : ListViewItemRenderer<SwitchListData, GamelogicEngineSwitch, IApiSwitchStatus>
 	{
 		protected override List<GamelogicEngineSwitch> GleItems => _gleSwitches;
 		protected override GamelogicEngineSwitch InstantiateGleItem(string id) => new GamelogicEngineSwitch(id);
-		protected override Texture2D StatusIcon(bool status) => Icons.Switch(status, IconSize.Small, status ? IconColor.Orange : IconColor.Gray);
+		protected override Texture2D StatusIcon(IApiSwitchStatus status) => Icons.Switch(status.IsSwitchClosed, IconSize.Small, status.IsSwitchClosed ? IconColor.Orange : IconColor.Gray);
 
 		private struct InputSystemEntry
 		{
@@ -63,7 +63,7 @@ namespace VisualPinball.Unity.Editor
 		{
 			EditorGUI.BeginDisabledGroup(Application.isPlaying);
 			var switchStatuses = Application.isPlaying
-				? tableComponent.gameObject.GetComponent<Player>()?.SwitchStatusesClosed
+				? tableComponent.gameObject.GetComponent<Player>()?.SwitchStatuses
 				: null;
 			switch ((SwitchListColumn)column)
 			{
@@ -94,8 +94,8 @@ namespace VisualPinball.Unity.Editor
 			var gle = _tableComponent.GetComponent<IGamelogicEngine>();
 			var player = _tableComponent.GetComponent<Player>();
 			gle?.Switch(data.Id, pressedDown);
-			if (player != null && player.SwitchStatusesClosed.ContainsKey(data.Id)) {
-				player.SwitchStatusesClosed[data.Id] = pressedDown;
+			if (player != null && player.SwitchStatuses.ContainsKey(data.Id)) {
+				player.SwitchStatuses[data.Id].IsSwitchClosed = pressedDown;
 			}
 		}
 
