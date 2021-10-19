@@ -179,7 +179,10 @@ namespace VisualPinball.Unity
 		private readonly bool _isNormallyClosed;
 
 		public bool IsSwitchEnabled { get; set; }
-		public bool IsSwitchClosed => _isNormallyClosed ? !IsSwitchEnabled : IsSwitchEnabled;
+		public bool IsSwitchClosed {
+			get => _isNormallyClosed ? !IsSwitchEnabled : IsSwitchEnabled;
+			set => IsSwitchEnabled = _isNormallyClosed ? !value : value;
+		}
 
 		public ItemSwitchStatus(bool normallyClosed)
 		{

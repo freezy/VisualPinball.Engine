@@ -31,7 +31,7 @@ namespace VisualPinball.Unity
 		/// <summary>
 		/// Maps the switch configuration ID to a switch status.
 		/// </summary>
-		private readonly Dictionary<string, IApiSwitchStatus> _switchStatuses = new Dictionary<string, IApiSwitchStatus>();
+		internal readonly Dictionary<string, IApiSwitchStatus> SwitchStatuses = new Dictionary<string, IApiSwitchStatus>();
 
 		/// <summary>
 		/// Maps the input action to a list of switch statuses
@@ -44,8 +44,6 @@ namespace VisualPinball.Unity
 
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
-		internal Dictionary<string, bool> SwitchStatusesClosed
-			=> _switchStatuses.ToDictionary(s => s.Key, s => s.Value.IsSwitchClosed);
 		internal IApiSwitch Switch(ISwitchDeviceComponent component, string deviceSwitchId)
 			=> _switchDevices.ContainsKey(component) ? _switchDevices[component].Switch(deviceSwitchId) : null;
 		internal void RegisterSwitchDevice(ISwitchDeviceComponent component, IApiSwitchDevice switchDeviceApi)
@@ -88,7 +86,7 @@ namespace VisualPinball.Unity
 							var deviceSwitch = device.Switch(switchMapping.DeviceItem);
 							if (deviceSwitch != null) {
 								var switchStatus = deviceSwitch.AddSwitchDest(new SwitchConfig(switchMapping));
-								_switchStatuses[switchMapping.Id] = switchStatus;
+								SwitchStatuses[switchMapping.Id] = switchStatus;
 
 							} else {
 								Logger.Error($"Unknown switch \"{switchMapping.DeviceItem}\" in switch device \"{switchMapping.Device}\".");
@@ -103,11 +101,11 @@ namespace VisualPinball.Unity
 							}
 							var keyboardSwitch = new KeyboardSwitch(switchMapping.Id, switchMapping.IsNormallyClosed);
 							_keySwitchAssignments[switchMapping.InputAction].Add(keyboardSwitch);
-							_switchStatuses[switchMapping.Id] = keyboardSwitch;
+							SwitchStatuses[switchMapping.Id] = keyboardSwitch;
 							break;
 
 						case SwitchSource.Constant:
-							_switchStatuses[switchMapping.Id] = new ConstantSwitch(switchMapping.Constant == SwitchConstant.Closed);
+							SwitchStatuses[switchMapping.Id] = new ConstantSwitch(switchMapping.Constant == SwitchConstant.Closed);
 							break;
 
 						default:
@@ -156,7 +154,11 @@ namespace VisualPinball.Unity
 		private readonly bool _isNormallyClosed;
 
 		public bool IsSwitchEnabled { get; set; }
-		public bool IsSwitchClosed => _isNormallyClosed ? !IsSwitchEnabled : IsSwitchEnabled;
+		public bool IsSwitchClosed
+		{
+			get => _isNormallyClosed ? !IsSwitchEnabled : IsSwitchEnabled;
+			set => IsSwitchEnabled = _isNormallyClosed ? !value : value;
+		}
 
 		public KeyboardSwitch(string switchId, bool normallyClosed)
 		{
@@ -167,8 +169,11 @@ namespace VisualPinball.Unity
 
 	internal class ConstantSwitch : IApiSwitchStatus
 	{
-		public bool IsSwitchEnabled { get; }
-		public bool IsSwitchClosed => IsSwitchEnabled;
+		public bool IsSwitchEnabled { get; set; }
+		public bool IsSwitchClosed {
+			get => IsSwitchEnabled;
+			set => IsSwitchEnabled = value;
+		}
 
 		public ConstantSwitch(bool isSwitchClosed)
 		{

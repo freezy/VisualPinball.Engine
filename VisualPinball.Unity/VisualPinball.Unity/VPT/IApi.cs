@@ -173,17 +173,17 @@ namespace VisualPinball.Unity
 	/// <summary>
 	/// This interface abstracts objects that can represent a switch status (keyboard, constant, items).
 	/// </summary>
-	internal interface IApiSwitchStatus
+	public interface IApiSwitchStatus
 	{
 		/// <summary>
 		/// True if switch is enabled, false otherwise. Note that enabled != closed.
 		/// </summary>
-		bool IsSwitchEnabled { get; }
+		bool IsSwitchEnabled { get; set; }
 
 		/// <summary>
 		/// True if switch is closed, false otherwise.
 		/// </summary>
-		bool IsSwitchClosed { get; }
+		bool IsSwitchClosed { get; set; }
 	}
 
 	/// <summary>
