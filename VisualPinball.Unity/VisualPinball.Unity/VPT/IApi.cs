@@ -273,7 +273,7 @@ namespace VisualPinball.Unity
 	/// <summary>
 	/// A game item that can act as one or more wire destinations.
 	/// </summary>
-	internal interface IApiWireDeviceDest
+	public interface IApiWireDeviceDest
 	{
 		/// <summary>
 		/// Which wire destination to return.
