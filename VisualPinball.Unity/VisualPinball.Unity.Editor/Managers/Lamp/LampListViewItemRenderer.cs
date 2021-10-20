@@ -41,12 +41,14 @@ namespace VisualPinball.Unity.Editor
 			FadingSteps = 6,
 		}
 
+		private readonly TableComponent _tableComponent;
 		private readonly List<GamelogicEngineLamp> _gleLamps;
 
 		private readonly ObjectReferencePicker<ILampDeviceComponent> _devicePicker;
 
 		public LampListViewItemRenderer(List<GamelogicEngineLamp> gleLamps, TableComponent tableComponent)
 		{
+			_tableComponent = tableComponent;
 			_gleLamps = gleLamps;
 			_devicePicker = new ObjectReferencePicker<ILampDeviceComponent>("Lamps", tableComponent, false);
 		}
@@ -87,6 +89,19 @@ namespace VisualPinball.Unity.Editor
 
 			}
 			EditorGUI.EndDisabledGroup();
+		}
+
+		protected override void OnIconClick(LampListData data, bool pressedDown)
+		{
+			var player = _tableComponent.GetComponent<Player>();
+			if (player == null || data.Device == null || string.IsNullOrEmpty(data.DeviceItem)) {
+				return;
+			}
+			var lamp = player.Lamp(data.Device);
+			lamp?.OnChange(pressedDown);
+			if (player.LampStatuses.ContainsKey(data.Id)) {
+				player.LampStatuses[data.Id] = pressedDown ? 1 : 0;
+			}
 		}
 
 		private void RenderCoilId(Dictionary<string, float> lampStatuses, LampListData lampListData, Rect cellRect)
