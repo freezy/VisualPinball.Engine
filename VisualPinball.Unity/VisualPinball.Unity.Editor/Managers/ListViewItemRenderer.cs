@@ -40,7 +40,7 @@ namespace VisualPinball.Unity.Editor
 		{
 		}
 
-		private bool _mouseDownOnIcon;
+		protected bool MouseDownOnIcon;
 
 		protected void RenderId(Dictionary<string, TStatus> statuses, ref string id, Action<string> setId, TListData listData, Rect cellRect, Action<TListData> updateAction)
 		{
@@ -69,13 +69,13 @@ namespace VisualPinball.Unity.Editor
 				var iconRect = cellRect;
 				iconRect.width = 20;
 
-				if (Mouse.current.leftButton.wasPressedThisFrame && !_mouseDownOnIcon && iconRect.Contains(Event.current.mousePosition)) {
+				if (Mouse.current.leftButton.wasPressedThisFrame && !MouseDownOnIcon && iconRect.Contains(Event.current.mousePosition)) {
 					OnIconClick(listData, true);
-					_mouseDownOnIcon = true;
+					MouseDownOnIcon = true;
 				}
-				if (Mouse.current.leftButton.wasReleasedThisFrame && _mouseDownOnIcon && iconRect.Contains(Event.current.mousePosition)) {
+				if (Mouse.current.leftButton.wasReleasedThisFrame && MouseDownOnIcon && iconRect.Contains(Event.current.mousePosition)) {
 					OnIconClick(listData, false);
-					_mouseDownOnIcon = false;
+					MouseDownOnIcon = false;
 				}
 
 				dropdownRect.x += 25;

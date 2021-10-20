@@ -20,6 +20,7 @@ using System.Linq;
 using Unity.Mathematics;
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.InputSystem;
 using VisualPinball.Engine.Game.Engines;
 
 namespace VisualPinball.Unity.Editor
@@ -46,6 +47,7 @@ namespace VisualPinball.Unity.Editor
 			PulseDelay = 5,
 		}
 
+		private readonly TableComponent _tableComponent;
 		private readonly InputManager _inputManager;
 
 		private readonly ObjectReferencePicker<ISwitchDeviceComponent> _sourceDevicePicker;
@@ -53,6 +55,7 @@ namespace VisualPinball.Unity.Editor
 
 		public WireListViewItemRenderer(TableComponent tableComponent, InputManager inputManager)
 		{
+			_tableComponent = tableComponent;
 			_inputManager = inputManager;
 
 			_sourceDevicePicker = new ObjectReferencePicker<ISwitchDeviceComponent>("Wire Source", tableComponent, false);
@@ -88,11 +91,34 @@ namespace VisualPinball.Unity.Editor
 			EditorGUI.EndDisabledGroup();
 		}
 
+		protected override void OnIconClick(WireListData data, bool pressedDown)
+		{
+			var player = _tableComponent.GetComponent<Player>();
+			if (player == null || data.DestinationDevice == null || string.IsNullOrEmpty(data.DestinationDeviceItem)) {
+				return;
+			}
+			var wire = player.WireDevice(data.DestinationDevice);
+			wire?.Wire(data.DestinationDeviceItem).OnChange(pressedDown);
+			if (player.WireStatuses.ContainsKey(data.Id)) {
+				player.WireStatuses[data.Id] = (pressedDown, Time.realtimeSinceStartup);
+			}
+		}
+
 		private void RenderDescription(Dictionary<string, (bool, float)> statuses, WireListData listData, Rect cellRect, Action<WireListData> updateAction)
 		{
 			if (Application.isPlaying && statuses != null) {
 				var iconRect = cellRect;
 				iconRect.width = 20;
+				
+				if (Mouse.current.leftButton.wasPressedThisFrame && !MouseDownOnIcon && iconRect.Contains(Event.current.mousePosition)) {
+					OnIconClick(listData, true);
+					MouseDownOnIcon = true;
+				}
+				if (Mouse.current.leftButton.wasReleasedThisFrame && MouseDownOnIcon && iconRect.Contains(Event.current.mousePosition)) {
+					OnIconClick(listData, false);
+					MouseDownOnIcon = false;
+				}
+
 				if (statuses.ContainsKey(listData.Id)) {
 					var status = statuses[listData.Id];
 					var icon = StatusIcon(status.Item1);
