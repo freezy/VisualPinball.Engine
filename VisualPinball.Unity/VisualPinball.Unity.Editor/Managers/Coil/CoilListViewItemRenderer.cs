@@ -73,6 +73,19 @@ namespace VisualPinball.Unity.Editor
 			EditorGUI.EndDisabledGroup();
 		}
 
+		protected override void OnIconClick(CoilListData data, bool pressedDown)
+		{
+			var player = _tableComponent.GetComponent<Player>();
+			if (player == null || data.Device == null || string.IsNullOrEmpty(data.DeviceItem)) {
+				return;
+			}
+			var coil = player.Coil(data.Device, data.DeviceItem);
+			coil?.OnCoil(pressedDown);
+			if (player.CoilStatuses.ContainsKey(data.Id)) {
+				player.CoilStatuses[data.Id] = pressedDown;
+			}
+		}
+
 		private void UpdateId(CoilListData data, string id)
 		{
 			if (data.Destination == CoilDestination.Lamp) {

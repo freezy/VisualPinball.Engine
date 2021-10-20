@@ -211,7 +211,7 @@ namespace VisualPinball.Unity
 	/// <summary>
 	/// This interface makes the implementation act as a coil that consumes coil events.
 	/// </summary>
-	internal interface IApiCoil : IApiWireDest
+	public interface IApiCoil : IApiWireDest
 	{
 		/// <summary>
 		/// The coil status changed.
@@ -261,7 +261,7 @@ namespace VisualPinball.Unity
 	/// <summary>
 	/// This interface groups devices that can receive binary data, currently coils and lamps.
 	/// </summary>
-	internal interface IApiWireDest
+	public interface IApiWireDest
 	{
 		/// <summary>
 		/// Changes the status at the destination.
