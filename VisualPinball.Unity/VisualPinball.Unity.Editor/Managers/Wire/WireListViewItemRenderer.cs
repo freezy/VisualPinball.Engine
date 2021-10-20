@@ -109,7 +109,7 @@ namespace VisualPinball.Unity.Editor
 			if (Application.isPlaying && statuses != null) {
 				var iconRect = cellRect;
 				iconRect.width = 20;
-				
+
 				if (Mouse.current.leftButton.wasPressedThisFrame && !MouseDownOnIcon && iconRect.Contains(Event.current.mousePosition)) {
 					OnIconClick(listData, true);
 					MouseDownOnIcon = true;

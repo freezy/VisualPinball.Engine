@@ -46,6 +46,9 @@ namespace VisualPinball.Unity
 
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
+		internal IApiLamp Lamp(ILampDeviceComponent component)
+			=> _lamps.ContainsKey(component) ? _lamps[component] : null;
+
 		internal Dictionary<string, float> LampStatuses { get; } = new Dictionary<string, float>();
 		internal void RegisterLamp(ILampDeviceComponent component, IApiLamp lampApi) => _lamps[component] = lampApi;
 
