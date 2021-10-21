@@ -41,24 +41,6 @@ The **Element** column is where you choose which specifc element in the destinat
 > [!note]
 > Bumpers are currently hard-wired, i.e. their switch will directly trigger the coil without going through the gamelogic engine. That means they don't need to be configured in the switch or coil manager. VPE will make this configurable in the future.
 
-### Type
+## Runtime
 
-In the **Type** column you can define whether the coil is single-wound or dual-wound. There's an excellent page about the differences in [MPF's documentation](https://docs.missionpinball.org/en/latest/mechs/coils/dual_vs_single_wound.html). In short, dual-wound coils have two circuits, one for powering the coil, and one for holding it, while single-wound coils only have one.
-
-This changes how the coil powers off:
-
-- For **single-wound** coils, VPE uses the same coil's events for powering on and off.
-- For **dual-wound** coils, it uses the *on* event from the main coil and the *off* event from the hold coil.
-
-### Hold Coil
-
-When the coil type is set to *Dual-Wound*, this column defines the hold coil event, i.e. the event on which the coil powers off.
-
-Dual-wound coils are fairly common. For example, *Medieval Madness* has the following dual-wound coils:
-
-![Medieval Madness dual-wound coils](dual-wound-coils.png)
-<small>*From the Medieval Madness manual*</small>
-
-In VPE, the two flippers would map to the following configuration:
-
-![Dual-wound example configuration](switch-manager-dual-wound.png)
+During runtime, you'll see the coil statuses update in real-time. Clicking on the icon manually toggles the coil, which can be handy for debugging.

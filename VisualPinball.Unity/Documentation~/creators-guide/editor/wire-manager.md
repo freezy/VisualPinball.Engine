@@ -80,3 +80,7 @@ However, by design, there are two caveats:
 Internally, VPE connects switches to events. Some switchable game items only emit the *switch closed* event. Such items are spinners and targets. These are elements where the re-opening of the switch does not have any semantic value.
 
 In order for those to not stay closed forever, VPE closes them after a given delay. We call this the **Pulse Delay**. This field is only visible if the input source is a pulse-driven source.
+
+## Runtime
+
+During runtime, you'll see the wire statuses update in real-time. Clicking on the icon manually toggles the wire, which can be handy for debugging.
