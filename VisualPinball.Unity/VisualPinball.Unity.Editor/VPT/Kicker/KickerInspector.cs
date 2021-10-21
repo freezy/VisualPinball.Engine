@@ -103,8 +103,8 @@ namespace VisualPinball.Unity.Editor
 				var from = MainComponent.GetBallCreationPosition().ToUnityVector3();
 				var l = 20f * coil.Speed;
 				var dir = new Vector3(
-					l * math.cos(math.radians(coil.Angle)),
 					l * math.sin(math.radians(coil.Angle)),
+					-l * math.cos(math.radians(coil.Angle)),
 					l * math.sin(math.radians(coil.Inclination))
 				);
 				var to = from + dir;
