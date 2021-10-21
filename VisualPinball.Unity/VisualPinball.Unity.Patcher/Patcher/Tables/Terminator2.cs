@@ -105,6 +105,18 @@ namespace VisualPinball.Unity.Patcher
 				// shooter
 				LinkSwitch(tc, "sw78", "78", kicker);
 				LinkCoil(tc, "sw78", "09", kicker);
+
+				// top lock
+				LinkCoil(tc, "sw55", "10", kicker);
+
+				// left lock
+				LinkCoil(tc, "sw51", "16", kicker);
+			}
+
+			var plungers = tableGo.GetComponentsInChildren<PlungerComponent>();
+			foreach (var plunger in plungers) {
+				// kickback
+				LinkCoil(tc, "Plunger1", "08", plunger, PlungerComponent.FireCoilId);
 			}
 		}
 
@@ -328,6 +340,22 @@ namespace VisualPinball.Unity.Patcher
 			kickerComponent.Coils[0].Name = "kicker_coil";
 			kickerComponent.Coils[0].Speed = 15;
 			kickerComponent.Coils[0].Angle = 72;
+		}
+
+		[NameMatch("sw55")]
+		public void TopLock(KickerComponent kickerComponent)
+		{
+			kickerComponent.Coils[0].Name = "kicker_coil";
+			kickerComponent.Coils[0].Speed = 5;
+			kickerComponent.Coils[0].Angle = 270;
+		}
+
+		[NameMatch("sw51")]
+		public void LeftLock(KickerComponent kickerComponent)
+		{
+			kickerComponent.Coils[0].Name = "kicker_coil";
+			kickerComponent.Coils[0].Speed = 13;
+			kickerComponent.Coils[0].Angle = 160;
 		}
 
 		#endregion
