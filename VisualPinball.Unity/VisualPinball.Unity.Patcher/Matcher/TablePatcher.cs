@@ -392,7 +392,8 @@ namespace VisualPinball.Unity.Patcher
 		/// <param name="elementName">The name that the coil device's GameObject has to match in order to be linked.</param>
 		/// <param name="coilId">The ID of the coil mapping that the coil device will be linked to</param>
 		/// <param name="coilDevice">The coil device to be linked</param>
-		protected static void LinkCoil(TableComponent tableComponent, string elementName, string coilId, ICoilDeviceComponent coilDevice)
+		/// <param name="deviceItem">If set, it's the device item, otherwise the first item of the device.</param>
+		protected static void LinkCoil(TableComponent tableComponent, string elementName, string coilId, ICoilDeviceComponent coilDevice, string deviceItem = null)
 		{
 			if (!string.Equals(coilDevice.gameObject.name, elementName, StringComparison.OrdinalIgnoreCase)) {
 				return;
@@ -402,7 +403,7 @@ namespace VisualPinball.Unity.Patcher
 				return;
 			}
 			coilMapping.Device = coilDevice;
-			coilMapping.DeviceItem = coilDevice.AvailableCoils.First().Id;
+			coilMapping.DeviceItem = deviceItem ?? coilDevice.AvailableCoils.First().Id;
 		}
 
 		/// <summary>
