@@ -56,9 +56,15 @@ namespace VisualPinball.Unity
 		public string BlinkPattern;
 		public int BlinkInterval;
 
+		[Min(0)]
+		[Tooltip("Time in seconds the lamp takes to reach 100% of intensity.")]
 		public float FadeSpeedUp;
+
+		[Min(0)]
+		[Tooltip("Time in seconds the lamp takes to turn off.")]
 		public float FadeSpeedDown;
-		private bool IsFlasher => FadeSpeedUp == 0f && FadeSpeedDown == 0f;
+
+		private bool FadeEnabled => FadeSpeedUp > 0f || FadeSpeedDown > 0f;
 
 		#endregion
 
@@ -178,19 +184,23 @@ namespace VisualPinball.Unity
 			}
 			// enable at 0
 			foreach (var unityLight in _unityLights) {
-				if (IsFlasher) {
-					unityLight.enabled = false;
-
-				} else {
+				if (FadeEnabled) {
 					unityLight.enabled = true;
 					unityLight.intensity = 0;
+
+				} else {
+					unityLight.enabled = false;
 				}
 			}
 		}
 
 		public void FadeTo(float value)
 		{
-			if (IsFlasher) {
+			if (FadeEnabled) {
+				StopAllCoroutines();
+				StartCoroutine(nameof(Fade), value);
+
+			} else {
 				foreach (var unityLight in _unityLights) {
 					if (value > 0) {
 						unityLight.intensity = value * _fullIntensity;
@@ -200,10 +210,6 @@ namespace VisualPinball.Unity
 						unityLight.enabled = false;
 					}
 				}
-
-			} else {
-				StopAllCoroutines();
-				StartCoroutine(nameof(Fade), value);
 			}
 		}
 
@@ -242,12 +248,19 @@ namespace VisualPinball.Unity
 				? FadeSpeedUp * (_fullIntensity - a) / _fullIntensity
 				: FadeSpeedDown * (1 - (_fullIntensity - a) / _fullIntensity);
 
-			while (counter < duration) {
-				counter += Time.deltaTime;
+			if (duration == 0) {
 				foreach (var unityLight in _unityLights) {
-					unityLight.intensity = Mathf.Lerp(a, b, counter / duration);
+					unityLight.intensity = b;
 				}
-				yield return null;
+
+			} else {
+				while (counter <= duration) {
+					counter += Time.deltaTime;
+					foreach (var unityLight in _unityLights) {
+						unityLight.intensity = Mathf.Lerp(a, b, counter / duration);
+					}
+					yield return null;
+				}
 			}
 		}
 

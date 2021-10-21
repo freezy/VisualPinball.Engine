@@ -97,22 +97,13 @@ namespace VisualPinball.Unity
 		{
 			switch (lightStatus) {
 				case LightStatus.LightStateOff: {
-					if (MainComponent.FadeSpeedDown > 0) {
-						_lightComponent.FadeTo(0);
-
-					} else {
-						_lightComponent.Enabled = false;
-					}
+					_lightComponent.FadeTo(0);
 					break;
 				}
 
 				case LightStatus.LightStateOn: {
-					if (MainComponent.FadeSpeedUp > 0) {
-						_lightComponent.FadeTo(value);
+					_lightComponent.FadeTo(value);
 
-					} else {
-						_lightComponent.Enabled = true;
-					}
 					break;
 				}
 

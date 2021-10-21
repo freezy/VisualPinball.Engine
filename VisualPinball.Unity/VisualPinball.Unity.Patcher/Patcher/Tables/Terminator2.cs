@@ -370,9 +370,9 @@ namespace VisualPinball.Unity.Patcher
 		[NameMatch("F127a", FloatParam = 10000f)]
 		public void FlasherIntensities(GameObject go, LightComponent lc, float param)
 		{
+			lc.FadeSpeedUp = 0f;
+			lc.FadeSpeedDown = 0.15f;
 			foreach (var l in go.GetComponentsInChildren<Light>()) {
-				lc.FadeSpeedUp = 0f;
-				lc.FadeSpeedDown = 0f;
 				RenderPipeline.Current.LightConverter.SetIntensity(l, param);
 				RenderPipeline.Current.LightConverter.SetTemperature(l, 3000);
 				RenderPipeline.Current.LightConverter.SetShadow(l, true, true, 0.001f);
