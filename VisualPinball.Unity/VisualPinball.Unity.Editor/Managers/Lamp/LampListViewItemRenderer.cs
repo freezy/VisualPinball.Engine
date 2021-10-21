@@ -18,6 +18,7 @@ using System;
 using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.InputSystem;
 using VisualPinball.Engine.Game.Engines;
 using VisualPinball.Engine.Math;
 using Color = UnityEngine.Color;
@@ -110,11 +111,21 @@ namespace VisualPinball.Unity.Editor
 			cellRect.x = cellRect.width - 45;
 			cellRect.width -= 4;
 
+			var iconRect = cellRect;
+			iconRect.width = 20;
+
+			if (Mouse.current.leftButton.wasPressedThisFrame && !MouseDownOnIcon && iconRect.Contains(Event.current.mousePosition)) {
+				OnIconClick(lampListData, true);
+				MouseDownOnIcon = true;
+			}
+			if (Mouse.current.leftButton.wasReleasedThisFrame && MouseDownOnIcon && iconRect.Contains(Event.current.mousePosition)) {
+				OnIconClick(lampListData, false);
+				MouseDownOnIcon = false;
+			}
+
 			var statusAvail = Application.isPlaying && lampStatuses != null && lampStatuses.ContainsKey(lampListData.Id);
 			var icon = Icons.Coil(IconSize.Small, statusAvail && lampStatuses[lampListData.Id] > 0 ? IconColor.Orange : IconColor.Gray);
 			if (icon != null) {
-				var iconRect = cellRect;
-				iconRect.width = 20;
 				var guiColor = GUI.color;
 				GUI.color = Color.clear;
 				EditorGUI.DrawTextureTransparent(iconRect, icon, ScaleMode.ScaleToFit);
