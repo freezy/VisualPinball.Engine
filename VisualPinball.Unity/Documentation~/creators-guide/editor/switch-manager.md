@@ -96,3 +96,7 @@ Below a list of game mechanisms that contain built-in switches.
 | **Kicker**  | When ball enters the kicker                         | When ball's outside the kicker                                               |
 | **Spinner** | On each spin                                           | *After pulse delay*                                                    |
 | **Trigger** | When the ball rolls over the trigger                   | When the ball is outside of the trigger                                      |
+
+## Runtime
+
+During runtime, you'll see the switch statuses update in real-time. Clicking on the icon manually toggles the switch, which can be handy for debugging.

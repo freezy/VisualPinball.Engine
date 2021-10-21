@@ -90,8 +90,10 @@ In Visual Pinball, you can put GI lamps into a collection and address the whole 
 
 ## Editor vs Runtime
 
-While editing the table in the Unity editor, you may find it helpful to disable lamps you're not editing. During runtime, VPE first turns all lamps off, then turns on the constant lamps, and then transfers control of the lamps to the gamelogic engine.
+While editing the table in the Unity editor, you may find it helpful to disable lamps you're not editing. You can quickly do that with the top-right controls, which allow you to toggle selectively GIs, inserts, flashers, lamps selected in the manager, or all lamps. You can also quickly select the light source to quickly edit multiple lights.
 
-If you are running the game in the editor, the lamp manager shows the lamp statuses in real time:
+During runtime, VPE first turns all lamps off, then turns on the constant lamps, and then transfers control of the lamps to the gamelogic engine. If you are running the game in the editor, the lamp manager shows the lamp statuses in real time:
 
 ![Lamps runtime](lamp-manager-gameplay.gif)
+
+During gameplay you can also click on the lamp icon to toggle the lamp. This can be handy for debugging.
