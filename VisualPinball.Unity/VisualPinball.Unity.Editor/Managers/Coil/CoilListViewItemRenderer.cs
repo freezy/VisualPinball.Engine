@@ -152,7 +152,7 @@ namespace VisualPinball.Unity.Editor
 				coilListData.Device = item;
 				UpdateDeviceItem(coilListData);
 				updateAction(coilListData);
-			});
+			}, item => item.AvailableCoils.Any());
 		}
 
 		protected override Texture GetIcon(CoilListData coilListData)
