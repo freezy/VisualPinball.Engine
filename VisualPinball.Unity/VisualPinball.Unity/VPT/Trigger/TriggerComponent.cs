@@ -174,7 +174,7 @@ namespace VisualPinball.Unity
 
 		public override IEnumerable<MonoBehaviour> SetReferencedData(TriggerData data, Table table, IMaterialProvider materialProvider, ITextureProvider textureProvider, Dictionary<string, IMainComponent> components)
 		{
-			Surface = FindComponent<SurfaceComponent>(components, data.Surface);
+			Surface = FindComponent<ISurfaceComponent>(components, data.Surface);
 
 			// mesh
 			var meshComponent = GetComponent<TriggerMeshComponent>();
