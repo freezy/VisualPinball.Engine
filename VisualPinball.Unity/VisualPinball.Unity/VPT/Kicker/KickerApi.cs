@@ -108,6 +108,26 @@ namespace VisualPinball.Unity
 			(this as IApiSwitch).DestroyBall(ballEntity);
 		}
 
+		/// <summary>
+		/// Checks whether the kicker contains a ball.
+		/// </summary>
+		/// <returns>True if there is a ball in the kicker, false otherwise.</returns>
+		public bool HasBall()
+		{
+			var entityManager = World.DefaultGameObjectInjectionWorld.EntityManager;
+			var kickerCollisionData = entityManager.GetComponentData<KickerCollisionData>(Entity);
+			return kickerCollisionData.HasBall;
+		}
+
+		internal BallData GetBallData()
+		{
+			var entityManager = World.DefaultGameObjectInjectionWorld.EntityManager;
+			var kickerCollisionData = entityManager.GetComponentData<KickerCollisionData>(Entity);
+			return kickerCollisionData.HasBall
+				? entityManager.GetComponentData<BallData>(kickerCollisionData.BallEntity)
+				: default;
+		}
+
 		#region Wiring
 
 		public bool IsSwitchEnabled => SwitchHandler.IsEnabled;
