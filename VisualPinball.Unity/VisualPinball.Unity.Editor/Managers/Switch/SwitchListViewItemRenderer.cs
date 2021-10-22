@@ -220,7 +220,7 @@ namespace VisualPinball.Unity.Editor
 				switchListData.Device = component;
 				UpdateDeviceItem(switchListData);
 				updateAction(switchListData);
-			});
+			}, switchDevice => switchDevice.AvailableSwitches.Any());
 		}
 
 		private void RenderPulseDelay(SwitchListData switchListData, Rect cellRect, Action<SwitchListData> updateAction)

@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using System;
+using System.Linq;
 using UnityEditor;
 using UnityEditor.IMGUI.Controls;
 using UnityEngine;
@@ -38,7 +39,7 @@ namespace VisualPinball.Unity.Editor
 			_showIcon = showIcon;
 		}
 
-		public void Render(Rect pos, T currentObj, Action<T> onUpdated)
+		public void Render(Rect pos, T currentObj, Action<T> onUpdated, Func<T, bool> filter = null)
 		{
 			// render content
 			var content = currentObj == null
@@ -70,7 +71,8 @@ namespace VisualPinball.Unity.Editor
 						_itemPickDropdownState,
 						_tableComp,
 						_pickerTitle,
-						onUpdated
+						onUpdated,
+						filter
 					);
 					dropdown.Show(pos);
 				}
@@ -90,10 +92,13 @@ namespace VisualPinball.Unity.Editor
 		private readonly TableComponent _tableComponent;
 
 		private readonly Action<T> _onElementSelected;
+		private readonly Func<T, bool> _filter;
 
-		public ItemSearchableDropdown(AdvancedDropdownState state, TableComponent tableComponent, string title, Action<T> onElementSelected) : base(state)
+		public ItemSearchableDropdown(AdvancedDropdownState state, TableComponent tableComponent,
+			string title, Action<T> onElementSelected, Func<T, bool> filter) : base(state)
 		{
 			_onElementSelected = onElementSelected;
+			_filter = filter;
 			_tableComponent = tableComponent;
 			minimumSize = new Vector2(200, 300);
 			_title = title;
@@ -102,7 +107,10 @@ namespace VisualPinball.Unity.Editor
 		protected override AdvancedDropdownItem BuildRoot()
 		{
 			var node = new AdvancedDropdownItem(_title);
-			var elements = _tableComponent.GetComponentsInChildren<T>();
+			var elements = _filter == null
+				? _tableComponent.GetComponentsInChildren<T>()
+				: _tableComponent.GetComponentsInChildren<T>().Where(_filter);
+
 			node.AddChild(new ElementDropdownItem<T>(null));
 			foreach (var element in elements) {
 				node.AddChild(new ElementDropdownItem<T>(element));
