@@ -188,9 +188,12 @@ namespace VisualPinball.Unity.Editor
 
 		protected void UpdateDeviceItem(TListData listData)
 		{
-			if (listData.DeviceComponent != null && listData.DeviceComponent.AvailableDeviceItems.Count() == 1) {
-				listData.DeviceItem = listData.DeviceComponent.AvailableDeviceItems.First().Id;
-			}
+			var numDeviceItems = listData.DeviceComponent == null ? -1 : listData.DeviceComponent.AvailableDeviceItems.Count();
+			listData.DeviceItem = numDeviceItems switch {
+				1 => listData.DeviceComponent!.AvailableDeviceItems.First().Id,
+				0 => null,
+				_ => listData.DeviceItem
+			};
 		}
 
 		protected Rect RenderIcon(TListData listData, Rect cellRect)
