@@ -240,6 +240,24 @@ namespace VisualPinball.Unity.Patcher
 			}
 		}
 
+
+		/// <summary>
+		/// Sets the angle of a spot light.
+		/// </summary>
+		/// <remarks>
+		/// Supports multiple light sources.
+		/// </remarks>
+		/// <param name="go">Game object of the spot light</param>
+		/// <param name="outer">Outer angle of the spot</param>
+		/// <param name="inner">Inner angle of the spot, in percent of the outer angle</param>
+		protected static void PointRange(GameObject go, float outer, float inner)
+		{
+			var lights = go.GetComponentsInChildren<Light>();
+			foreach (var light in lights) {
+				RenderPipeline.Current.LightConverter.SpotLight(light, outer, inner);
+			}
+		}
+
 		/// <summary>
 		/// Sets a light source to pyramid spotlight and sets its parameters.
 		/// </summary>
