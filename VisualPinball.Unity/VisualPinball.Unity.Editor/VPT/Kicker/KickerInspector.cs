@@ -101,7 +101,7 @@ namespace VisualPinball.Unity.Editor
 
 			foreach (var coil in MainComponent.Coils) {
 				var from = MainComponent.GetBallCreationPosition().ToUnityVector3();
-				var l = 20f * coil.Speed;
+				var l = coil.Speed == 0 ? 1f : 20f * coil.Speed;
 				var dir = new Vector3(
 					l * math.sin(math.radians(coil.Angle)),
 					-l * math.cos(math.radians(coil.Angle)),
@@ -109,8 +109,9 @@ namespace VisualPinball.Unity.Editor
 				);
 				var to = from + dir;
 				var worldDir = transform.TransformDirection(math.normalize( to - from));
+				var length = coil.Speed == 0 ? 0.1f : coil.Speed / 10f;
 
-				Handles.ArrowHandleCap(-1, position, Quaternion.LookRotation(worldDir), coil.Speed / 10f, EventType.Repaint);
+				Handles.ArrowHandleCap(-1, position, Quaternion.LookRotation(worldDir), length, EventType.Repaint);
 			}
 		}
 	}
