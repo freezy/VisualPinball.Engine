@@ -138,13 +138,34 @@ namespace VisualPinball.Unity.Editor
 
 		private void RenderDeviceItemElement(TListData listData, Rect cellRect, Action<TListData> updateAction)
 		{
+			// sets the item if only one coil
 			UpdateDeviceItem(listData);
 
-			var onlyOneDeviceItem = listData.DeviceComponent != null && listData.DeviceComponent.AvailableDeviceItems.Count() == 1;
-			if (onlyOneDeviceItem && string.IsNullOrEmpty(listData.DeviceComponent.AvailableDeviceItems.First().Description)) {
+			var numDeviceItems = listData.DeviceComponent == null ? -1 : listData.DeviceComponent.AvailableDeviceItems.Count();
+
+			// no coils: show error
+			if (numDeviceItems == 0) {
+				var icon = EditorGUIUtility.IconContent("Error@2x").image;
+				var iconRect = cellRect;
+				iconRect.width = 20;
+				var guiColor = GUI.color;
+				GUI.color = Color.clear;
+				EditorGUI.DrawTextureTransparent(iconRect, icon, ScaleMode.ScaleToFit);
+				GUI.color = guiColor;
+				cellRect.x += 20;
+
+				var s = new GUIStyle(EditorStyles.label) { normal = { textColor = new Color(1f, 0.431f, 0.25f) } };
+				EditorGUI.LabelField(cellRect, "No coils!", s);
 				return;
 			}
-			EditorGUI.BeginDisabledGroup(listData.DeviceComponent == null || onlyOneDeviceItem);
+
+			// only one coil with no description: show nothing
+			if (numDeviceItems == 1 && string.IsNullOrEmpty(listData.DeviceComponent!.AvailableDeviceItems.First().Description)) {
+				return;
+			}
+
+			// disable if nothing to select
+			EditorGUI.BeginDisabledGroup(numDeviceItems <= 1);
 
 			var currentIndex = 0;
 			var labels = Array.Empty<string>();
