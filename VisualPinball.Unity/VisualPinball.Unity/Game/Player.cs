@@ -289,6 +289,11 @@ namespace VisualPinball.Unity
 			Register(new SurfaceApi(component.gameObject, entity, parentEntity, this), component, entity);
 		}
 
+		public void RegisterTeleporter(TeleporterComponent component)
+		{
+			Register(new TeleporterApi(component.gameObject, this), component);
+		}
+
 		public void RegisterTrigger(TriggerComponent component, Entity entity, Entity parentEntity)
 		{
 			Register(new TriggerApi(component.gameObject, entity, parentEntity, this), component, entity);

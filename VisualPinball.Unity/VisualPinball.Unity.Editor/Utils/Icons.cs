@@ -58,6 +58,7 @@ namespace VisualPinball.Unity.Editor
 		private const string SurfaceName = "surface";
 		private const string SlingshotName = "slingshot";
 		private const string TableName = "table";
+		private const string TeleporterName = "teleporter";
 		private const string TriggerName = "trigger";
 		private const string TroughName = "trough";
 		private const string SwitchNcName = "switch_nc";
@@ -65,8 +66,8 @@ namespace VisualPinball.Unity.Editor
 
 		private static readonly string[] Names = {
 			BumperName, BoltName, CoilName, DropTargetName, FlasherName, FlipperName, HitTargetName, GateName, KeyName, KickerName, LightGroupName,
-			LightName, PlayfieldName, PlungerName, PlugName, PrimitiveName, RampName, RubberName, SpinnerName, SurfaceName, TableName, TriggerName,
-			TroughName, SlingshotName, SwitchNcName, SwitchNoName
+			LightName, PlayfieldName, PlungerName, PlugName, PrimitiveName, RampName, RubberName, SpinnerName, SurfaceName, TableName, TeleporterName,
+			TriggerName, TroughName, SlingshotName, SwitchNcName, SwitchNoName
 		};
 
 		private readonly Dictionary<IconVariant, Texture2D> _icons = new Dictionary<IconVariant,Texture2D>();
@@ -115,6 +116,7 @@ namespace VisualPinball.Unity.Editor
 		public static Texture2D Spinner(IconSize size = IconSize.Large, IconColor color = IconColor.Gray) => Instance.GetItem(SpinnerName, size, color);
 		public static Texture2D Surface(IconSize size = IconSize.Large, IconColor color = IconColor.Gray) => Instance.GetItem(SurfaceName, size, color);
 		public static Texture2D Table(IconSize size = IconSize.Large, IconColor color = IconColor.Gray) => Instance.GetItem(TableName, size, color);
+		public static Texture2D Teleporter(IconSize size = IconSize.Large, IconColor color = IconColor.Gray) => Instance.GetItem(TeleporterName, size, color);
 		public static Texture2D Trigger(IconSize size = IconSize.Large, IconColor color = IconColor.Gray) => Instance.GetItem(TriggerName, size, color);
 		public static Texture2D Trough(IconSize size = IconSize.Large, IconColor color = IconColor.Gray) => Instance.GetItem(TroughName, size, color);
 		public static Texture2D Slingshot(IconSize size = IconSize.Large, IconColor color = IconColor.Gray) => Instance.GetItem(SlingshotName, size, color);
@@ -144,6 +146,7 @@ namespace VisualPinball.Unity.Editor
 				case SpinnerComponent _: return Spinner(size, color);
 				case SlingshotComponent _: return Slingshot(size, color);
 				case SurfaceComponent _: return Surface(size, color);
+				case TeleporterComponent _: return Teleporter(size, color);
 				case TriggerComponent _: return Trigger(size, color);
 				case TroughComponent _: return Trough(size, color);
 				default: return null;
@@ -206,6 +209,7 @@ namespace VisualPinball.Unity.Editor
 			DisableGizmo<SurfaceSideMeshComponent>();
 			DisableGizmo<SurfaceTopMeshComponent>();
 			DisableGizmo<TableComponent>();
+			DisableGizmo<TeleporterComponent>();
 			DisableGizmo<TriggerComponent>();
 			DisableGizmo<TriggerAnimationComponent>();
 			DisableGizmo<TriggerColliderComponent>();
