@@ -55,7 +55,7 @@ namespace VisualPinball.Unity
 
 		public abstract ItemType ItemType { get; }
 
-		protected T FindComponent<T>(Dictionary<string, IMainComponent> components, string surfaceName) where T : class, IMainComponent
+		protected T FindComponent<T>(Dictionary<string, IMainComponent> components, string surfaceName) where T : class
 		{
 			return (components != null && components.ContainsKey(surfaceName.ToLower())
 					? components[surfaceName.ToLower()]
