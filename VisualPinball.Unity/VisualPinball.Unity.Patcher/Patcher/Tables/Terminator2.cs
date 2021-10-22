@@ -22,6 +22,7 @@
 using System.Linq;
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.Experimental.GlobalIllumination;
 using VisualPinball.Engine.Math;
 using VisualPinball.Engine.VPT;
 using Color = UnityEngine.Color;
@@ -209,6 +210,16 @@ namespace VisualPinball.Unity.Patcher
 			go.SetActive(false);
 		}
 
+
+		[NameMatch("Wall002")]
+		[NameMatch("Wall003")]
+		public void InvisibleWall(GameObject go)
+		{
+			foreach (var mr in go.GetComponentsInChildren<MeshRenderer>()) {
+				mr.gameObject.SetActive(false);
+			}
+		}
+
 		#endregion
 
 		#region Flippers
@@ -363,12 +374,41 @@ namespace VisualPinball.Unity.Patcher
 		#region Materials
 
 		[NameMatch("_Plastics")]
+		[NameMatch("_RedPlastics")]
 		[NameMatch("_RightRampPlastic")]
-		public void FixPlasticsMaterial(GameObject go)
+		[NameMatch("_StarPosts")]
+		public void FixTranslucentMaterials(GameObject go)
 		{
 			var material = go.GetComponent<Renderer>().sharedMaterial;
 			RenderPipeline.Current.MaterialConverter.SetDiffusionProfile(material, DiffusionProfileTemplate.Plastics);
 			RenderPipeline.Current.MaterialConverter.SetMaterialType(material, MaterialType.Translucent);
+		}
+
+		[NameMatch("Cab_DT")]
+		[NameMatch("L52")]
+		[NameMatch("LSling")]
+		[NameMatch("Rubber2")]
+		[NameMatch("Rubber7")]
+		[NameMatch("SLING1")]
+		[NameMatch("T2_Gun")]
+		[NameMatch("_Apron")]
+		[NameMatch("_ChromeRails")]
+		[NameMatch("_CliffyPosts")]
+		[NameMatch("_LeftRampMetal")]
+		[NameMatch("_MetalPosts")]
+		[NameMatch("_Rubbers")]
+		[NameMatch("_Screws")]
+		[NameMatch("_SteelWalls")]
+		[NameMatch("_Targets")]
+		[NameMatch("_Washers")]
+		[NameMatch("_Wireforms")]
+		[NameMatch("batleft")]
+		[NameMatch("batright")]
+		[NameMatch("sw53")]
+		public void FixSolidMaterials(GameObject go)
+		{
+			var material = go.GetComponent<Renderer>().sharedMaterial;
+			RenderPipeline.Current.MaterialConverter.SetMaterialType(material, MaterialType.Standard);
 		}
 
 		[NameMatch("_HKShip")]
@@ -451,9 +491,6 @@ namespace VisualPinball.Unity.Patcher
 
 		#region Global Illumination
 
-		[NameMatch("B1")]
-		[NameMatch("B2")]
-		[NameMatch("B3")]
 		[NameMatch("GI_1")]
 		[NameMatch("GI_2")]
 		[NameMatch("GI_3")]
@@ -539,6 +576,14 @@ namespace VisualPinball.Unity.Patcher
 		[NameMatch("GI_28")]
 		public void GiDisable(GameObject go) => go.SetActive(false);
 
+		[NameMatch("B1")]
+		[NameMatch("B2")]
+		[NameMatch("B3")]
+		public void Bumpers(GameObject go)
+		{
+			LightIntensity(go,  1000f);
+			LightTemperature(go, 2700f);
+		}
 		#endregion
 
 		#region Insert Links
