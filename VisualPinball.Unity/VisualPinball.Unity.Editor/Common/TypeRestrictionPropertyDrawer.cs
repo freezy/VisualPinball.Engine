@@ -177,9 +177,15 @@ namespace VisualPinball.Unity.Editor
 				currentIndex = lampDeviceComponent.AvailableLamps.TakeWhile(s => s.Id != deviceItemPropField.stringValue).Count();
 			}
 
+			if (field != null && count == 0) {
+				deviceItemPropField.stringValue = null;
+				deviceItemPropField.serializedObject.ApplyModifiedProperties();
+				return;
+			}
+
 			if (field != null && count == 1) {
-					deviceItemPropField.stringValue = ids[0];
-					deviceItemPropField.serializedObject.ApplyModifiedProperties();
+				deviceItemPropField.stringValue = ids[0];
+				deviceItemPropField.serializedObject.ApplyModifiedProperties();
 				if (string.IsNullOrEmpty(firstItemDescription)) {
 					return;
 				}
