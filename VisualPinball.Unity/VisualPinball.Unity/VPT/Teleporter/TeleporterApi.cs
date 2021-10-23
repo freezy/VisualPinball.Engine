@@ -27,26 +27,26 @@ namespace VisualPinball.Unity
 	{
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
-		private readonly TeleporterComponent _teleporterComponent;
+		private readonly TeleporterComponent _component;
 		private readonly Player _player;
 
 		private DeviceCoil _teleporterCoil;
-		private KickerApi _portalA;
-		private KickerApi _portalB;
+		private KickerApi _fromKicker;
+		private KickerApi _toKicker;
 
 		public event EventHandler Init;
 
 		internal TeleporterApi(GameObject go, Player player)
 		{
-			_teleporterComponent = go.GetComponentInChildren<TeleporterComponent>();
+			_component = go.GetComponentInChildren<TeleporterComponent>();
 			_player = player;
 		}
 
 		void IApi.OnInit(BallManager ballManager)
 		{
 			_teleporterCoil = new DeviceCoil(OnTeleport);
-			_portalA = _player.TableApi.Kicker(_teleporterComponent.FromKicker);
-			_portalB = _player.TableApi.Kicker(_teleporterComponent.ToKicker);
+			_fromKicker = _player.TableApi.Kicker(_component.FromKicker);
+			_toKicker = _player.TableApi.Kicker(_component.ToKicker);
 
 			Init?.Invoke(this, EventArgs.Empty);
 		}
@@ -55,22 +55,32 @@ namespace VisualPinball.Unity
 
 		private void OnTeleport()
 		{
-			var ballInPortalA = _portalA.HasBall();
-			var ballInPortalB = _portalB.HasBall();
+			if (_toKicker == null || _fromKicker == null) {
+				Logger.Warn($"[teleporter {_component.name}] Cannot teleport due to missing kicker configuration.");
+				return;
+			}
+
+			var ballInPortalA = _fromKicker.HasBall();
+			var ballInPortalB = _toKicker.HasBall();
 			if (ballInPortalA && ballInPortalB || !ballInPortalA && !ballInPortalB) {
 				// duh, do nothing.
 				return;
 			}
 
 			if (ballInPortalA) {
-				var ballData = _portalA.GetBallData();
-				_portalA.DestroyBall();
-				_portalB.CreateSizedBallWithMass(ballData.Radius, ballData.Mass);
+				var ballData = _fromKicker.GetBallData();
+				_fromKicker.DestroyBall();
+				_toKicker.CreateSizedBallWithMass(ballData.Radius, ballData.Mass);
+
+				if (_component.KickAfterTeleportation && !string.IsNullOrEmpty(_component.ToKickerItem)) {
+					var kickerCoil = (_toKicker as IApiCoilDevice).Coil(_component.ToKickerItem);
+					kickerCoil.OnCoil(true);
+				}
 
 			} else {
-				var ballData = _portalB.GetBallData();
-				_portalB.DestroyBall();
-				_portalA.CreateSizedBallWithMass(ballData.Radius, ballData.Mass);
+				var ballData = _toKicker.GetBallData();
+				_toKicker.DestroyBall();
+				_fromKicker.CreateSizedBallWithMass(ballData.Radius, ballData.Mass);
 			}
 		}
 
