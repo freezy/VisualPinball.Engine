@@ -45,8 +45,8 @@ namespace VisualPinball.Unity
 		void IApi.OnInit(BallManager ballManager)
 		{
 			_teleporterCoil = new DeviceCoil(OnTeleport);
-			_portalA = _player.TableApi.Kicker(_teleporterComponent.PortalA);
-			_portalB = _player.TableApi.Kicker(_teleporterComponent.PortalB);
+			_portalA = _player.TableApi.Kicker(_teleporterComponent.FromKicker);
+			_portalB = _player.TableApi.Kicker(_teleporterComponent.ToKicker);
 
 			Init?.Invoke(this, EventArgs.Empty);
 		}
