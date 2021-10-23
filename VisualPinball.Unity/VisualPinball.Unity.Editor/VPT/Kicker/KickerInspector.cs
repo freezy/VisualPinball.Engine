@@ -97,7 +97,10 @@ namespace VisualPinball.Unity.Editor
 
 			Handles.color = Color.cyan;
 			var transform = MainComponent.transform;
-			var position = transform.parent.TransformPoint(MainComponent.GetEditorPosition());
+			var localPos = MainComponent.GetEditorPosition();
+			localPos.z = MainComponent.PositionZ;
+
+			var worldPos = transform.parent.TransformPoint(localPos);
 
 			foreach (var coil in MainComponent.Coils) {
 				var from = MainComponent.GetBallCreationPosition().ToUnityVector3();
@@ -111,7 +114,7 @@ namespace VisualPinball.Unity.Editor
 				var worldDir = transform.TransformDirection(math.normalize( to - from));
 				var length = coil.Speed == 0 ? 0.1f : coil.Speed / 10f;
 
-				Handles.ArrowHandleCap(-1, position, Quaternion.LookRotation(worldDir), length, EventType.Repaint);
+				Handles.ArrowHandleCap(-1, worldPos, Quaternion.LookRotation(worldDir), length, EventType.Repaint);
 			}
 		}
 	}
