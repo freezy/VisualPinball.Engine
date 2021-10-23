@@ -3,6 +3,7 @@ using UnityEngine;
 using VisualPinball.Engine.Game.Engines;
 using Logger = NLog.Logger;
 using NLog;
+using System.ComponentModel;
 
 namespace VisualPinball.Unity
 {
@@ -11,17 +12,38 @@ namespace VisualPinball.Unity
 	{
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
-		[Range(1, 5)]
-		[Tooltip("How many drop targets for this bank.")]
-		public int BankSize = 3;
+		[ToolboxItem("The type of the drop target bank. See documentation of a description of each type.")]
+		public int Type = 1;
 
-		[Tooltip("The drop targets")]
-		[TypeRestriction(typeof(DropTargetComponent), PickerLabel = "Drop Targets", DeviceItem = nameof(DropTargetItem))]
-		public DropTargetComponent[] DropTargets = new DropTargetComponent[5];
-		public string[] DropTargetItem = new string[] {
-			string.Empty, string.Empty, string.Empty, string.Empty, string.Empty
-		};
+		[SerializeField]
+		[TypeRestriction(typeof(DropTargetComponent), PickerLabel = "Drop Target 1", DeviceItem = nameof(DropTarget1Item))]
+		[Tooltip("Drop Target 1")]
+		public MonoBehaviour _dropTarget1;
+		public string DropTarget1Item = string.Empty;
 
+		[SerializeField]
+		[TypeRestriction(typeof(DropTargetComponent), PickerLabel = "Drop Target 1", DeviceItem = nameof(DropTarget2Item))]
+		[Tooltip("Drop Target 2")]
+		public MonoBehaviour _dropTarget2;
+		public string DropTarget2Item = string.Empty;
+
+		[SerializeField]
+		[TypeRestriction(typeof(DropTargetComponent), PickerLabel = "Drop Target 3", DeviceItem = nameof(DropTarget3Item))]
+		[Tooltip("Drop Target 3")]
+		public MonoBehaviour _dropTarget3;
+		public string DropTarget3Item = string.Empty;
+
+		[SerializeField]
+		[TypeRestriction(typeof(DropTargetComponent), PickerLabel = "Drop Target 4", DeviceItem = nameof(DropTarget4Item))]
+		[Tooltip("Drop Target 4")]
+		public MonoBehaviour _dropTarget4;
+		public string DropTarget4Item = string.Empty;
+
+		[SerializeField]
+		[TypeRestriction(typeof(DropTargetComponent), PickerLabel = "Drop Target 5", DeviceItem = nameof(DropTarget5Item))]
+		[Tooltip("Drop Target 5")]
+		public MonoBehaviour _dropTarget5;
+		public string DropTarget5Item = string.Empty;
 
 		public IEnumerable<GamelogicEngineCoil> AvailableCoils => new[] {
 			new GamelogicEngineCoil(name) {
