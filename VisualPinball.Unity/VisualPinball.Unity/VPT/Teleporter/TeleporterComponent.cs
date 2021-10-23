@@ -14,6 +14,8 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+// ReSharper disable InconsistentNaming
+
 using System.Collections.Generic;
 using UnityEngine;
 using VisualPinball.Engine.Game.Engines;
@@ -27,11 +29,25 @@ namespace VisualPinball.Unity
 	{
 		#region Data
 
-		public KickerComponent PortalA;
+		[Tooltip("If set, the teleporter also teleports into the opposite direction.")]
+		public bool Bidirectional;
 
-		public KickerComponent PortalB;
+		[Tooltip("If set, the ball is automatically popped out of the destination kicker upon arrival.")]
+		public bool KickAfterTeleportation = true;
 
-		public float TimeMs;
+		[Min(0)]
+		[Tooltip("The time in seconds between the ball arriving at the destination kicker and being popped out of the kicker.")]
+		public float KickDelay = 0.5f;
+
+		[Tooltip("The kicker where the ball is teleported from.")]
+		[TypeRestriction(typeof(KickerComponent), PickerLabel = "Kickers", DeviceItem = nameof(FromKickerItem), DeviceType = typeof(ICoilDeviceComponent))]
+		public KickerComponent FromKicker;
+		public string FromKickerItem = string.Empty;
+
+		[Tooltip("The kicker where the ball is teleported into.")]
+		[TypeRestriction(typeof(KickerComponent), PickerLabel = "Kickers", DeviceItem = nameof(ToKickerItem), DeviceType = typeof(ICoilDeviceComponent))]
+		public KickerComponent ToKicker;
+		public string ToKickerItem = string.Empty;
 
 		#endregion
 
