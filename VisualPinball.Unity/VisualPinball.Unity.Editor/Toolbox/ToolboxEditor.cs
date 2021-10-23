@@ -167,6 +167,12 @@ namespace VisualPinball.Unity.Editor
 				CreateItem(Trough.GetDefault, "New Trough");
 			}
 
+			if (CreateButton("Bank", Icons.DropTarget(color: iconColor), iconSize, buttonStyle))
+			{
+				//CreateItem(DropTargetBank.GetDefault, "Bank");
+			}
+
+
 			if (CreateButton("Slingshot", Icons.Slingshot(color: iconColor), iconSize, buttonStyle)) {
 				CreatePrefab("Slingshots", "Prefabs/Slingshot");
 			}
