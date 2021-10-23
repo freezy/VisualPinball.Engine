@@ -24,10 +24,31 @@ namespace VisualPinball.Unity.Editor
 	[CustomEditor(typeof(DropTargetBankComponent)), CanEditMultipleObjects]
 	public class DropTargetBankInspector : ItemInspector
 	{
+
+		private static readonly string[] TypeLabels = {
+			"Single",
+			"2 Bank",
+			"3 Bank",
+			"4 Bank",
+			"5 Bank"
+		};
+
+		private static readonly int[] TypeValues = {
+			1,
+			2,
+			3,
+			4,
+			5
+		};
+
 		private bool _togglePlayfield = true;
 
-		private SerializedProperty _bankSizeProperty;
-		private SerializedProperty _dropTargetsProperty;
+		private SerializedProperty _typeProperty;
+		private SerializedProperty _dropTarget1Property;
+		private SerializedProperty _dropTarget2Property;
+		private SerializedProperty _dropTarget3Property;
+		private SerializedProperty _dropTarget4Property;
+		private SerializedProperty _dropTarget5Property;
 
 		protected override MonoBehaviour UndoTarget => throw new System.NotImplementedException();
 
@@ -35,25 +56,48 @@ namespace VisualPinball.Unity.Editor
 		{
 			base.OnEnable();
 
-			_bankSizeProperty = serializedObject.FindProperty(nameof(DropTargetBankComponent.BankSize));
-			_dropTargetsProperty = serializedObject.FindProperty(nameof(DropTargetBankComponent.DropTargets));
+			_typeProperty = serializedObject.FindProperty(nameof(DropTargetBankComponent.Type));
+			_dropTarget1Property = serializedObject.FindProperty(nameof(DropTargetBankComponent._dropTarget1));
+			_dropTarget2Property = serializedObject.FindProperty(nameof(DropTargetBankComponent._dropTarget2));
+			_dropTarget3Property = serializedObject.FindProperty(nameof(DropTargetBankComponent._dropTarget3));
+			_dropTarget4Property = serializedObject.FindProperty(nameof(DropTargetBankComponent._dropTarget4));
+			_dropTarget5Property = serializedObject.FindProperty(nameof(DropTargetBankComponent._dropTarget5));
 		}
 
 		public override void OnInspectorGUI()
 		{
 			serializedObject.Update();
 
-			PropertyField(_bankSizeProperty);
-			
+			DropDownProperty("Type", _typeProperty, TypeLabels, TypeValues);
+
 			if (!Application.isPlaying)
 			{
 				if (_togglePlayfield = EditorGUILayout.BeginFoldoutHeaderGroup(_togglePlayfield, "Playfield Links"))
 				{
 					EditorGUI.indentLevel++;
-					for (int index = 0; index < _bankSizeProperty.intValue; index++)
+
+					PropertyField(_dropTarget1Property, $"Drop Target 1");
+
+					if (_typeProperty.intValue > 1)
 					{
-						PropertyField(_dropTargetsProperty.GetArrayElementAtIndex(index), $"Drop Target {index + 1}");
+						PropertyField(_dropTarget2Property, $"Drop Target 2");
 					}
+
+					if (_typeProperty.intValue > 2)
+					{
+						PropertyField(_dropTarget3Property, $"Drop Target 3");
+					}
+
+					if (_typeProperty.intValue > 3)
+					{
+						PropertyField(_dropTarget4Property, $"Drop Target 4");
+					}
+
+					if (_typeProperty.intValue > 4)
+					{
+						PropertyField(_dropTarget5Property, $"Drop Target 5");
+					}
+
 					EditorGUI.indentLevel--;
 				}
 				EditorGUILayout.EndFoldoutHeaderGroup();
