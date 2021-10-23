@@ -56,14 +56,16 @@ namespace VisualPinball.Unity.Editor
 			var ta = go.GetComponentInParent<TableComponent>();
 
 			var field = property.objectReferenceValue;
+			var indentedOffset = EditorGUI.indentLevel * 15f;
+
 			pos = EditorGUI.PrefixLabel(pos, label);
 
 			if (!string.IsNullOrEmpty(attrib.DeviceItem) && attrib.DeviceType != null) {
-				pos.width = pos.width / 2f + 10f;
+				const float padding = 4f;
+				pos.width = (pos.width - padding + indentedOffset) / 2f;
 				DevicePicker(pos, property, attrib, comp, field, ta);
 
-				pos.width -= 10f;
-				pos.x += pos.width;
+				pos.x += pos.width + padding - indentedOffset;
 				DeviceItemDropdown(pos, property, attrib, field);
 
 			} else {
@@ -155,21 +157,21 @@ namespace VisualPinball.Unity.Editor
 
 			if (attrib.DeviceType == typeof(ICoilDeviceComponent) && field is ICoilDeviceComponent coilDeviceComponent) {
 				count = coilDeviceComponent.AvailableCoils.Count();
-				firstItemDescription = coilDeviceComponent.AvailableCoils.First().Description;
+				firstItemDescription = count > 0 ? coilDeviceComponent.AvailableCoils.First().Description : string.Empty;
 				labels = coilDeviceComponent.AvailableCoils.Select(s => s.Description).ToArray();
 				ids = coilDeviceComponent.AvailableCoils.Select(s => s.Id).ToArray();
 				currentIndex = coilDeviceComponent.AvailableCoils.TakeWhile(s => s.Id != deviceItemPropField.stringValue).Count();
 			}
 			if (attrib.DeviceType == typeof(ISwitchDeviceComponent) && field is ISwitchDeviceComponent switchDeviceComponent) {
 				count = switchDeviceComponent.AvailableSwitches.Count();
-				firstItemDescription = switchDeviceComponent.AvailableSwitches.First().Description;
+				firstItemDescription = count > 0 ? switchDeviceComponent.AvailableSwitches.First().Description : string.Empty;
 				labels = switchDeviceComponent.AvailableSwitches.Select(s => s.Description).ToArray();
 				ids = switchDeviceComponent.AvailableSwitches.Select(s => s.Id).ToArray();
 				currentIndex = switchDeviceComponent.AvailableSwitches.TakeWhile(s => s.Id != deviceItemPropField.stringValue).Count();
 			}
 			if (attrib.DeviceType == typeof(ILampDeviceComponent) && field is ILampDeviceComponent lampDeviceComponent) {
 				count = lampDeviceComponent.AvailableLamps.Count();
-				firstItemDescription = lampDeviceComponent.AvailableLamps.First().Description;
+				firstItemDescription = count > 0 ? lampDeviceComponent.AvailableLamps.First().Description : string.Empty;
 				labels = lampDeviceComponent.AvailableLamps.Select(s => s.Description).ToArray();
 				ids = lampDeviceComponent.AvailableLamps.Select(s => s.Id).ToArray();
 				currentIndex = lampDeviceComponent.AvailableLamps.TakeWhile(s => s.Id != deviceItemPropField.stringValue).Count();
