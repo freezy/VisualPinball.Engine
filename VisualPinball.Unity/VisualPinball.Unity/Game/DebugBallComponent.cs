@@ -15,6 +15,8 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using System;
+using Codice.CM.Common.Merge;
+using NLog.LayoutRenderers.Wrappers;
 using Unity.Mathematics;
 using UnityEditor;
 using UnityEngine;
@@ -55,19 +57,30 @@ namespace VisualPinball.Unity
 
 		private void OnDrawGizmos()
 		{
-			var ltw = _playfield.transform.localToWorldMatrix;
-			var origin = ltw.MultiplyPoint(Vector3.zero);
-			var up = ltw.MultiplyPoint(new Vector3(0, 0, 500f));
-			var normal = up - origin;
-			normal.Normalize();
 
-			var cameraWorld = SceneView.lastActiveSceneView.camera.transform.position;
+			var playfieldTransform = _playfield.transform;
+			var ltw = playfieldTransform.localToWorldMatrix;
+			var wtl = playfieldTransform.worldToLocalMatrix;
 
-			//var plane = new Plane(Vector3.forward, m_DistanceFromCamera);
+			var z = _playfield.PlayfieldHeight;
+			var p1 = ltw.MultiplyPoint(new Vector3(-100f, 100f, z));
+			var p2 = ltw.MultiplyPoint(new Vector3(100f, 100f, z));
+			var p3 = ltw.MultiplyPoint(new Vector3(100f, -100f, z));
 
-			Ray ray = SceneView.lastActiveSceneView.camera.ScreenPointToRay(Event.current.mousePosition);
+			Gizmos.DrawLine(p1, p2);
+			Gizmos.DrawLine(p2, p3);
+			Gizmos.DrawLine(p3, p1);
 
-			Gizmos.DrawLine(Vector3.zero, normal);
+			var planeWorld = new Plane();
+			planeWorld.Set3Points(p1, p2, p3);
+
+			var ray = SceneView.lastActiveSceneView.camera.ScreenPointToRay(Event.current.mousePosition);
+			if (planeWorld.Raycast(ray, out var enter)) {
+				var playfieldPosWorld = ray.GetPoint(enter);
+				var playfieldPosLocal = wtl.MultiplyPoint(playfieldPosWorld);
+
+				Debug.Log($"Position on playfield: {playfieldPosLocal}");
+			}
 		}
 	}
 }
