@@ -102,7 +102,7 @@ namespace VisualPinball.Unity
 		#region Wiring
 
 		public IEnumerable<GamelogicEngineSwitch> AvailableSwitches => new[] {
-			new GamelogicEngineSwitch(SwitchItem) { IsPulseSwitch = true }
+			new GamelogicEngineSwitch(SwitchItem) { IsPulseSwitch = !(this is DropTargetComponent) }
 		};
 		public SwitchDefault SwitchDefault => SwitchDefault.Configurable;
 

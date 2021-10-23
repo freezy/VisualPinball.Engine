@@ -4,6 +4,7 @@ using VisualPinball.Engine.Game.Engines;
 using Logger = NLog.Logger;
 using NLog;
 using System.ComponentModel;
+using System;
 
 namespace VisualPinball.Unity
 {
@@ -16,34 +17,9 @@ namespace VisualPinball.Unity
 		public int Type = 1;
 
 		[SerializeField]
-		[TypeRestriction(typeof(DropTargetComponent), PickerLabel = "Drop Target 1", DeviceItem = nameof(DropTarget1Item))]
-		[Tooltip("Drop Target 1")]
-		public MonoBehaviour _dropTarget1;
-		public string DropTarget1Item = string.Empty;
-
-		[SerializeField]
-		[TypeRestriction(typeof(DropTargetComponent), PickerLabel = "Drop Target 1", DeviceItem = nameof(DropTarget2Item))]
-		[Tooltip("Drop Target 2")]
-		public MonoBehaviour _dropTarget2;
-		public string DropTarget2Item = string.Empty;
-
-		[SerializeField]
-		[TypeRestriction(typeof(DropTargetComponent), PickerLabel = "Drop Target 3", DeviceItem = nameof(DropTarget3Item))]
-		[Tooltip("Drop Target 3")]
-		public MonoBehaviour _dropTarget3;
-		public string DropTarget3Item = string.Empty;
-
-		[SerializeField]
-		[TypeRestriction(typeof(DropTargetComponent), PickerLabel = "Drop Target 4", DeviceItem = nameof(DropTarget4Item))]
-		[Tooltip("Drop Target 4")]
-		public MonoBehaviour _dropTarget4;
-		public string DropTarget4Item = string.Empty;
-
-		[SerializeField]
-		[TypeRestriction(typeof(DropTargetComponent), PickerLabel = "Drop Target 5", DeviceItem = nameof(DropTarget5Item))]
-		[Tooltip("Drop Target 5")]
-		public MonoBehaviour _dropTarget5;
-		public string DropTarget5Item = string.Empty;
+		//[TypeRestriction(typeof(DropTargetComponent), PickerLabel = "Drop Targets", DeviceItem = nameof(TargetComponent.SwitchItem))]
+		[Tooltip("Drop Targets")]
+		public DropTargetComponent[] DropTargets = Array.Empty<DropTargetComponent>();
 
 		public IEnumerable<GamelogicEngineCoil> AvailableCoils => new[] {
 			new GamelogicEngineCoil(name) {
@@ -64,7 +40,7 @@ namespace VisualPinball.Unity
 				return;
 			}
 
-			//player.RegisterMech(this);
+			player.RegisterMech(this);
 		}
 	}
 }
