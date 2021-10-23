@@ -73,13 +73,19 @@ namespace VisualPinball.Unity
 				if (isDropped) {
 					data.MoveDown = true;
 
+                                        Switch?.Invoke(this, new SwitchEventArgs());
+                                        OnSwitch(true);
 				} else {
 					data.MoveDown = false;
 					data.TimeStamp = World.DefaultGameObjectInjectionWorld.GetOrCreateSystem<VisualPinballSimulationSystemGroup>().TimeMsec;
+
+					Switch?.Invoke(this, new SwitchEventArgs());
+					OnSwitch(false);
 				}
 			} else {
 				data.IsDropped = isDropped;
 			}
+
 			EntityManager.SetComponentData(Entity, data);
 		}
 
@@ -87,8 +93,8 @@ namespace VisualPinball.Unity
 
 		IApiSwitch IApiSwitchDevice.Switch(string deviceItem) => this;
 
-		IApiSwitchStatus IApiSwitch.AddSwitchDest(SwitchConfig switchConfig) => AddSwitchDest(switchConfig.WithPulse(true));
-		void IApiSwitch.AddWireDest(WireDestConfig wireConfig) => AddWireDest(wireConfig.WithPulse(true));
+		IApiSwitchStatus IApiSwitch.AddSwitchDest(SwitchConfig switchConfig) => AddSwitchDest(switchConfig);
+		void IApiSwitch.AddWireDest(WireDestConfig wireConfig) => AddWireDest(wireConfig);
 		void IApiSwitch.RemoveWireDest(string destId) => RemoveWireDest(destId);
 		void IApiSwitch.DestroyBall(Entity ballEntity) => DestroyBall(ballEntity);
 
