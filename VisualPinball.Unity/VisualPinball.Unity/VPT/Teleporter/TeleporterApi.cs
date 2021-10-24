@@ -19,6 +19,8 @@
 using System;
 using Logger = NLog.Logger;
 using NLog;
+using Unity.Entities;
+using Unity.Mathematics;
 using UnityEngine;
 
 namespace VisualPinball.Unity
@@ -33,6 +35,7 @@ namespace VisualPinball.Unity
 		private DeviceCoil _teleporterCoil;
 		private KickerApi _fromKicker;
 		private KickerApi _toKicker;
+		private readonly VisualPinballSimulationSystemGroup _simulationSystemGroup;
 
 		public event EventHandler Init;
 
@@ -40,6 +43,7 @@ namespace VisualPinball.Unity
 		{
 			_component = go.GetComponentInChildren<TeleporterComponent>();
 			_player = player;
+			_simulationSystemGroup = World.DefaultGameObjectInjectionWorld.GetOrCreateSystem<VisualPinballSimulationSystemGroup>();
 		}
 
 		void IApi.OnInit(BallManager ballManager)
@@ -60,27 +64,35 @@ namespace VisualPinball.Unity
 				return;
 			}
 
-			var ballInPortalA = _fromKicker.HasBall();
-			var ballInPortalB = _toKicker.HasBall();
-			if (ballInPortalA && ballInPortalB || !ballInPortalA && !ballInPortalB) {
+			var ballInSrc = _fromKicker.HasBall();
+			var ballInDst = _toKicker.HasBall();
+			if (!ballInSrc || ballInDst) {
 				// duh, do nothing.
 				return;
 			}
 
-			if (ballInPortalA) {
-				var ballData = _fromKicker.GetBallData();
-				_fromKicker.DestroyBall();
-				_toKicker.CreateSizedBallWithMass(ballData.Radius, ballData.Mass);
+			var ballData = _fromKicker.GetBallData();
+			_fromKicker.DestroyBall();
+			_toKicker.CreateSizedBallWithMass(ballData.Radius, ballData.Mass);
 
-				if (_component.KickAfterTeleportation && !string.IsNullOrEmpty(_component.ToKickerItem)) {
-					var kickerCoil = (_toKicker as IApiCoilDevice).Coil(_component.ToKickerItem);
-					kickerCoil.OnCoil(true);
-				}
+			// if no eject, we're done here.
+			if (!_component.EjectAfterTeleportation) {
+				return;
+			}
+
+			if (_component.EjectDelay > 0) {
+				_simulationSystemGroup.ScheduleAction((int)math.round(_component.EjectDelay * 1000f), Eject);
 
 			} else {
-				var ballData = _toKicker.GetBallData();
-				_toKicker.DestroyBall();
-				_fromKicker.CreateSizedBallWithMass(ballData.Radius, ballData.Mass);
+				Eject();
+			}
+		}
+
+		private void Eject()
+		{
+			if (!string.IsNullOrEmpty(_component.ToKickerItem)) {
+				var kickerCoil = (_toKicker as IApiCoilDevice).Coil(_component.ToKickerItem);
+				kickerCoil.OnCoil(true);
 			}
 		}
 

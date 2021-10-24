@@ -22,7 +22,6 @@ namespace VisualPinball.Unity.Editor
 	[CustomEditor(typeof(TeleporterComponent)), CanEditMultipleObjects]
 	public class TeleporterInspector : ItemInspector
 	{
-		private SerializedProperty _bidirectionalProperty;
 		private SerializedProperty _kickAfterTeleportationProperty;
 		private SerializedProperty _kickDelayProperty;
 		private SerializedProperty _fromKickerProperty;
@@ -34,9 +33,8 @@ namespace VisualPinball.Unity.Editor
 		{
 			base.OnEnable();
 
-			_bidirectionalProperty = serializedObject.FindProperty(nameof(TeleporterComponent.Bidirectional));
-			_kickAfterTeleportationProperty = serializedObject.FindProperty(nameof(TeleporterComponent.KickAfterTeleportation));
-			_kickDelayProperty = serializedObject.FindProperty(nameof(TeleporterComponent.KickDelay));
+			_kickAfterTeleportationProperty = serializedObject.FindProperty(nameof(TeleporterComponent.EjectAfterTeleportation));
+			_kickDelayProperty = serializedObject.FindProperty(nameof(TeleporterComponent.EjectDelay));
 			_fromKickerProperty = serializedObject.FindProperty(nameof(TeleporterComponent.FromKicker));
 			_toKickerProperty = serializedObject.FindProperty(nameof(TeleporterComponent.ToKicker));
 		}
@@ -47,9 +45,8 @@ namespace VisualPinball.Unity.Editor
 
 			OnPreInspectorGUI();
 
-			PropertyField(_bidirectionalProperty, "Bi-Directional");
-			PropertyField(_kickAfterTeleportationProperty, "Kick After Teleport");
-			PropertyField(_kickDelayProperty, "Wait Before Kick (s)");
+			PropertyField(_kickAfterTeleportationProperty, "Eject After Teleport");
+			PropertyField(_kickDelayProperty, "Wait Before Eject (s)");
 
 			PropertyField(_fromKickerProperty);
 			PropertyField(_toKickerProperty);

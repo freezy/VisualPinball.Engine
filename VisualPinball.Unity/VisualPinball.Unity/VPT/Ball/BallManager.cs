@@ -104,7 +104,7 @@ namespace VisualPinball.Unity
 
 			ecb.AddComponent(entity, new BallData {
 				Id = id,
-				IsFrozen = false,
+				IsFrozen = kickerEntity != Entity.Null,
 				Position = localPos,
 				Radius = radius,
 				Mass = mass,
