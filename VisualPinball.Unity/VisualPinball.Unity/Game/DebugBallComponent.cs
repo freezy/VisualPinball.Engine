@@ -14,7 +14,9 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-using UnityEditor;
+using Unity.Collections;
+using Unity.Entities;
+using Unity.Mathematics;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -28,12 +30,14 @@ namespace VisualPinball.Unity
 		private Matrix4x4 _wtl;
 
 		private Plane _playfieldPlane;
-		private GameObject _ball;
+
+		private EntityManager _entityManager;
+		private Entity _ballEntity;
+		private EntityQuery _ballEntityQuery;
 
 		private void Awake()
 		{
 			_playfield = GetComponentInChildren<PlayfieldComponent>();
-			_ball = _playfield.transform.Find("Ball").gameObject;
 
 			var playfieldTransform = _playfield.transform;
 			_ltw = playfieldTransform.localToWorldMatrix;
@@ -44,6 +48,9 @@ namespace VisualPinball.Unity
 			var p2 = _ltw.MultiplyPoint(new Vector3(100f, 100f, z));
 			var p3 = _ltw.MultiplyPoint(new Vector3(100f, -100f, z));
 			_playfieldPlane.Set3Points(p1, p2, p3);
+
+			_entityManager = World.DefaultGameObjectInjectionWorld.EntityManager;
+			_ballEntityQuery = _entityManager.CreateEntityQuery(typeof(BallData));
 		}
 
 		private void Update()
@@ -52,23 +59,74 @@ namespace VisualPinball.Unity
 				return;
 			}
 
-			if (Mouse.current.middleButton.isPressed) {
-				var mouseOnScreenPos = Mouse.current.position.ReadValue();
-				var ray = Camera.main.ScreenPointToRay(mouseOnScreenPos);
+			// find nearest ball
+			if (Mouse.current.middleButton.wasPressedThisFrame) {
+				if (GetCursorPositionOnPlayfield(out var mousePosition)) {
+					var ballEntities = _ballEntityQuery.ToEntityArray(Allocator.Temp);
+					var nearestDistance = float.PositiveInfinity;
+					BallData nearestBall = default;
+					var ballFound = false;
+					foreach (var ballEntity in ballEntities) {
+						var ballData = _entityManager.GetComponentData<BallData>(ballEntity);
+						if (ballData.IsFrozen) {
+							continue;
+						}
+						var distance = math.distance(mousePosition, ballData.Position.xy);
+						if (distance < nearestDistance) {
+							nearestDistance = distance;
+							nearestBall = ballData;
+							ballFound = true;
+							_ballEntity = ballEntity;
+						}
+					}
 
-				if (_playfieldPlane.Raycast(ray, out var enter)) {
-					var playfieldPosWorld = ray.GetPoint(enter);
-					var playfieldPosLocal = _wtl.MultiplyPoint(playfieldPosWorld);
+					if (ballFound) {
+						UpdateBall(ref nearestBall, mousePosition);
+					}
+				}
 
-					var ballPosLocal = _ball.transform.localPosition;
-					ballPosLocal.x = playfieldPosLocal.x;
-					ballPosLocal.y = playfieldPosLocal.y;
-					_ball.transform.localPosition = ballPosLocal;
-
-				} else {
-					Debug.Log($"Missed.");
+			} else if (Mouse.current.middleButton.isPressed) {
+				if (GetCursorPositionOnPlayfield(out var mousePosition)) {
+					var ballData = _entityManager.GetComponentData<BallData>(_ballEntity);
+					UpdateBall(ref ballData, mousePosition);
 				}
 			}
+
+			if (Mouse.current.middleButton.wasReleasedThisFrame) {
+				var ballData = _entityManager.GetComponentData<BallData>(_ballEntity);
+				ballData.ManualControl = false;
+				_entityManager.SetComponentData(_ballEntity, ballData);
+			}
+		}
+
+		private void UpdateBall(ref BallData ballData, float2 position)
+		{
+			ballData.ManualControl = true;
+			ballData.ManualPosition = position;
+			_entityManager.SetComponentData(_ballEntity, ballData);
+		}
+
+		private bool GetCursorPositionOnPlayfield(out float2 position)
+		{
+			if (Camera.main == null) {
+				position = float2.zero;
+				return false;
+			}
+
+			var mouseOnScreenPos = Mouse.current.position.ReadValue();
+			var ray = Camera.main.ScreenPointToRay(mouseOnScreenPos);
+
+			if (_playfieldPlane.Raycast(ray, out var enter)) {
+				var playfieldPosWorld = ray.GetPoint(enter);
+				var playfieldPosLocal = _wtl.MultiplyPoint(playfieldPosWorld);
+
+				position = new float2(playfieldPosLocal.x, playfieldPosLocal.y);
+
+				// todo check playfield bounds
+				return true;
+			}
+			position = float2.zero;
+			return false;
 		}
 	}
 }
