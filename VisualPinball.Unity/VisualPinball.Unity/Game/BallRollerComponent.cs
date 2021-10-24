@@ -22,9 +22,8 @@ using UnityEngine.InputSystem;
 
 namespace VisualPinball.Unity
 {
-	public class DebugBallComponent : MonoBehaviour
+	public class BallRollerComponent : MonoBehaviour
 	{
-
 		private PlayfieldComponent _playfield;
 		private Matrix4x4 _ltw;
 		private Matrix4x4 _wtl;

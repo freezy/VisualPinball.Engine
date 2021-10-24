@@ -36,6 +36,7 @@ namespace VisualPinball.Unity.Editor
 			}
 		}
 
+		private const string BallRollerName = "ball_roller";
 		private const string BumperName = "bumper";
 		private const string BoltName = "bolt";
 		private const string CoilName = "coil";
@@ -65,9 +66,9 @@ namespace VisualPinball.Unity.Editor
 		private const string SwitchNoName = "switch_no";
 
 		private static readonly string[] Names = {
-			BumperName, BoltName, CoilName, DropTargetName, FlasherName, FlipperName, HitTargetName, GateName, KeyName, KickerName, LightGroupName,
-			LightName, PlayfieldName, PlungerName, PlugName, PrimitiveName, RampName, RubberName, SpinnerName, SurfaceName, TableName, TeleporterName,
-			TriggerName, TroughName, SlingshotName, SwitchNcName, SwitchNoName
+			BallRollerName, BumperName, BoltName, CoilName, DropTargetName, FlasherName, FlipperName, HitTargetName, GateName, KeyName, KickerName,
+			LightGroupName, LightName, PlayfieldName, PlungerName, PlugName, PrimitiveName, RampName, RubberName, SpinnerName, SurfaceName, TableName,
+			TeleporterName, TriggerName, TroughName, SlingshotName, SwitchNcName, SwitchNoName
 		};
 
 		private readonly Dictionary<IconVariant, Texture2D> _icons = new Dictionary<IconVariant,Texture2D>();
@@ -98,6 +99,7 @@ namespace VisualPinball.Unity.Editor
 			}
 		}
 
+		public static Texture2D BallRoller(IconSize size = IconSize.Large, IconColor color = IconColor.Gray) => Instance.GetItem(BallRollerName, size, color);
 		public static Texture2D Bumper(IconSize size = IconSize.Large, IconColor color = IconColor.Gray) => Instance.GetItem(BumperName, size, color);
 		public static Texture2D DropTarget(IconSize size = IconSize.Large, IconColor color = IconColor.Gray) => Instance.GetItem(DropTargetName, size, color);
 		public static Texture2D Flasher(IconSize size = IconSize.Large, IconColor color = IconColor.Gray) => Instance.GetItem(FlasherName, size, color);
@@ -129,6 +131,7 @@ namespace VisualPinball.Unity.Editor
 			where T : class
 		{
 			switch (mb) {
+				case BallRollerComponent _: return BallRoller(size, color);
 				case BumperComponent _: return Bumper(size, color);
 				case DropTargetComponent _: return DropTarget(size, color);
 				//case FlasherComponent _: return Flasher(size, color);
@@ -156,6 +159,7 @@ namespace VisualPinball.Unity.Editor
 		[MenuItem("Visual Pinball/Editor/Disable Gizmo Icons", false, 510)]
 		public static void DisableGizmoIcons()
 		{
+			DisableGizmo<BallRollerComponent>();
 			DisableGizmo<BumperComponent>();
 			DisableGizmo<BumperColliderComponent>();
 			DisableGizmo<BumperRingAnimationComponent>();
