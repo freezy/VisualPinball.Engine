@@ -142,6 +142,11 @@ namespace VisualPinball.Unity.Patcher
 			return troughComponent;
 		}
 
+		protected T FindSiblingComponent<T>(MonoBehaviour mb, string name) where T : MonoBehaviour
+		{
+			return mb.gameObject.transform.parent.transform.Find(name).gameObject.GetComponent<T>();
+		}
+
 		#endregion
 
 		#region Light Helpers
