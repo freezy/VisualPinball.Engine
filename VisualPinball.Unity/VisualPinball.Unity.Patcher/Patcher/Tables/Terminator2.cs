@@ -122,7 +122,7 @@ namespace VisualPinball.Unity.Patcher
 
 			var teleporters = tableGo.GetComponentsInChildren<TeleporterComponent>();
 			foreach (var teleporter in teleporters) {
-				
+
 				// skull kicker
 				LinkCoil(tc, "sw76", "01", teleporter, TeleporterComponent.CoilItem);
 			}
@@ -360,7 +360,7 @@ namespace VisualPinball.Unity.Patcher
 			tp.FromKicker = kickerComponent;
 			tp.ToKicker = FindSiblingComponent<KickerComponent>(kickerComponent, "sw76a");
 			tp.ToKickerItem = tp.ToKicker.AvailableCoils.First().Id;
-			tp.KickAfterTeleportation = true;
+			tp.EjectAfterTeleportation = true;
 		}
 
 		[NameMatch("sw55")]
