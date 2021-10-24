@@ -49,5 +49,7 @@
         href: manual/mechanisms/slingshots.md
       - name: Light Groups
         href: manual/mechanisms/light-groups.md
+      - name: Teleporters
+        href: manual/mechanisms/teleporters.md
       - name: Drop Target Banks
         href: manual/mechanisms/drop-target-banks.md
