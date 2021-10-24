@@ -27,43 +27,47 @@ namespace VisualPinball.Unity
 		#region Dictionaries
 
 		private readonly Dictionary<string, BumperApi> _bumpersByName = new Dictionary<string, BumperApi>();
-		private readonly Dictionary<string, FlipperApi> _flippersByName = new Dictionary<string, FlipperApi>();
+		private readonly Dictionary<string, CannonApi> _cannonsByName = new Dictionary<string, CannonApi>();
+		private readonly Dictionary<string, CannonApi> _mechsByName = new Dictionary<string, CannonApi>();
 		private readonly Dictionary<string, DropTargetApi> _dropTargetsByName = new Dictionary<string, DropTargetApi>();
+		private readonly Dictionary<string, DropTargetBankApi> _dropTargetBanksByName = new Dictionary<string, DropTargetBankApi>();
+		private readonly Dictionary<string, FlipperApi> _flippersByName = new Dictionary<string, FlipperApi>();
 		private readonly Dictionary<string, GateApi> _gatesByName = new Dictionary<string, GateApi>();
 		private readonly Dictionary<string, HitTargetApi> _hitTargetsByName = new Dictionary<string, HitTargetApi>();
 		private readonly Dictionary<string, KickerApi> _kickersByName = new Dictionary<string, KickerApi>();
 		private readonly Dictionary<string, LightApi> _lightsByName = new Dictionary<string, LightApi>();
 		private readonly Dictionary<string, LightGroupApi> _lightGroupsByName = new Dictionary<string, LightGroupApi>();
 		private readonly Dictionary<string, PlungerApi> _plungersByName = new Dictionary<string, PlungerApi>();
+		private readonly Dictionary<string, PrimitiveApi> _primitivesByName = new Dictionary<string, PrimitiveApi>();
 		private readonly Dictionary<string, RampApi> _rampsByName = new Dictionary<string, RampApi>();
 		private readonly Dictionary<string, RubberApi> _rubbersByName = new Dictionary<string, RubberApi>();
 		private readonly Dictionary<string, SpinnerApi> _spinnersByName = new Dictionary<string, SpinnerApi>();
 		private readonly Dictionary<string, SurfaceApi> _surfacesByName = new Dictionary<string, SurfaceApi>();
+		private readonly Dictionary<string, TeleporterApi> _teleportersByName = new Dictionary<string, TeleporterApi>();
 		private readonly Dictionary<string, TriggerApi> _triggersByName = new Dictionary<string, TriggerApi>();
 		private readonly Dictionary<string, TroughApi> _troughsByName = new Dictionary<string, TroughApi>();
-		private readonly Dictionary<string, PrimitiveApi> _primitivesByName = new Dictionary<string, PrimitiveApi>();
-		private readonly Dictionary<string, CannonApi> _cannonsByName = new Dictionary<string, CannonApi>();
-		private readonly Dictionary<string, DropTargetBankApi> _dropTargetBanksByName = new Dictionary<string, DropTargetBankApi>();
 
 
 		private readonly Dictionary<MonoBehaviour, BumperApi> _bumpersByComponent = new Dictionary<MonoBehaviour, BumperApi>();
-		private readonly Dictionary<MonoBehaviour, FlipperApi> _flippersByComponent = new Dictionary<MonoBehaviour, FlipperApi>();
+		private readonly Dictionary<MonoBehaviour, CannonApi> _cannonsByComponent = new Dictionary<MonoBehaviour, CannonApi>();
+		private readonly Dictionary<MonoBehaviour, CannonApi> _mechsByComponent = new Dictionary<MonoBehaviour, CannonApi>();
 		private readonly Dictionary<MonoBehaviour, DropTargetApi> _dropTargetsByComponent = new Dictionary<MonoBehaviour, DropTargetApi>();
+		private readonly Dictionary<MonoBehaviour, DropTargetBankApi> _dropTargetBanksByComponent = new Dictionary<MonoBehaviour, DropTargetBankApi>();
+		private readonly Dictionary<MonoBehaviour, FlipperApi> _flippersByComponent = new Dictionary<MonoBehaviour, FlipperApi>();
 		private readonly Dictionary<MonoBehaviour, GateApi> _gatesByComponent = new Dictionary<MonoBehaviour, GateApi>();
 		private readonly Dictionary<MonoBehaviour, HitTargetApi> _hitTargetsByComponent = new Dictionary<MonoBehaviour, HitTargetApi>();
 		private readonly Dictionary<MonoBehaviour, KickerApi> _kickersByComponent = new Dictionary<MonoBehaviour, KickerApi>();
 		private readonly Dictionary<MonoBehaviour, LightApi> _lightsByComponent = new Dictionary<MonoBehaviour, LightApi>();
 		private readonly Dictionary<MonoBehaviour, LightGroupApi> _lightGroupsByComponent = new Dictionary<MonoBehaviour, LightGroupApi>();
 		private readonly Dictionary<MonoBehaviour, PlungerApi> _plungersByComponent = new Dictionary<MonoBehaviour, PlungerApi>();
+		private readonly Dictionary<MonoBehaviour, PrimitiveApi> _primitivesByComponent = new Dictionary<MonoBehaviour, PrimitiveApi>();
 		private readonly Dictionary<MonoBehaviour, RampApi> _rampsByComponent = new Dictionary<MonoBehaviour, RampApi>();
 		private readonly Dictionary<MonoBehaviour, RubberApi> _rubbersByComponent = new Dictionary<MonoBehaviour, RubberApi>();
 		private readonly Dictionary<MonoBehaviour, SpinnerApi> _spinnersByComponent = new Dictionary<MonoBehaviour, SpinnerApi>();
 		private readonly Dictionary<MonoBehaviour, SurfaceApi> _surfacesByComponent = new Dictionary<MonoBehaviour, SurfaceApi>();
+		private readonly Dictionary<MonoBehaviour, TeleporterApi> _teleportersByComponent = new Dictionary<MonoBehaviour, TeleporterApi>();
 		private readonly Dictionary<MonoBehaviour, TriggerApi> _triggersByComponent = new Dictionary<MonoBehaviour, TriggerApi>();
 		private readonly Dictionary<MonoBehaviour, TroughApi> _troughsByComponent = new Dictionary<MonoBehaviour, TroughApi>();
-		private readonly Dictionary<MonoBehaviour, PrimitiveApi> _primitivesByComponent = new Dictionary<MonoBehaviour, PrimitiveApi>();
-		private readonly Dictionary<MonoBehaviour, CannonApi> _cannonsByComponent = new Dictionary<MonoBehaviour, CannonApi>();
-		private readonly Dictionary<MonoBehaviour, DropTargetBankApi> _dropTargetBanksByComponent = new Dictionary<MonoBehaviour, DropTargetBankApi>();
 
 		#endregion
 
@@ -242,46 +246,52 @@ namespace VisualPinball.Unity
 		private Dictionary<string, T> GetNameDictionary<T>(Type t) where T : IApi
 		{
 			if (t == typeof(BumperApi)) return _bumpersByName as Dictionary<string, T>;
-			if (t == typeof(FlipperApi)) return _flippersByName as Dictionary<string, T>;
+			if (t == typeof(CannonApi)) return _cannonsByName as Dictionary<string, T>;
+			if (t == typeof(CannonApi)) return _mechsByName as Dictionary<string, T>;
 			if (t == typeof(DropTargetApi)) return _dropTargetsByName as Dictionary<string, T>;
+			if (t == typeof(DropTargetBankApi)) return _dropTargetBanksByName as Dictionary<string, T>;
+			if (t == typeof(FlipperApi)) return _flippersByName as Dictionary<string, T>;
 			if (t == typeof(GateApi)) return _gatesByName as Dictionary<string, T>;
 			if (t == typeof(HitTargetApi)) return _hitTargetsByName as Dictionary<string, T>;
 			if (t == typeof(KickerApi)) return _kickersByName as Dictionary<string, T>;
 			if (t == typeof(LightApi)) return _lightsByName as Dictionary<string, T>;
 			if (t == typeof(LightGroupApi)) return _lightGroupsByName as Dictionary<string, T>;
 			if (t == typeof(PlungerApi)) return _plungersByName as Dictionary<string, T>;
+			if (t == typeof(PrimitiveApi)) return _primitivesByName as Dictionary<string, T>;
+			if (t == typeof(PrimitiveApi)) return _primitivesByName as Dictionary<string, T>;
 			if (t == typeof(RampApi)) return _rampsByName as Dictionary<string, T>;
 			if (t == typeof(RubberApi)) return _rubbersByName as Dictionary<string, T>;
 			if (t == typeof(SpinnerApi)) return _spinnersByName as Dictionary<string, T>;
 			if (t == typeof(SurfaceApi)) return _surfacesByName as Dictionary<string, T>;
+			if (t == typeof(TeleporterApi)) return _teleportersByName as Dictionary<string, T>;
 			if (t == typeof(TriggerApi)) return _triggersByName as Dictionary<string, T>;
 			if (t == typeof(TroughApi)) return _troughsByName as Dictionary<string, T>;
-			if (t == typeof(PrimitiveApi)) return _primitivesByName as Dictionary<string, T>;
-			if (t == typeof(CannonApi)) return _cannonsByName as Dictionary<string, T>;
-			if (t == typeof(DropTargetBankApi)) return _dropTargetBanksByName as Dictionary<string, T>;
 			throw new ArgumentException($"Unknown API type {t}.");
 		}
 
 		private Dictionary<MonoBehaviour, T> GetComponentDictionary<T>(Type t) where T : IApi
 		{
 			if (t == typeof(BumperApi)) return _bumpersByComponent as Dictionary<MonoBehaviour, T>;
-			if (t == typeof(FlipperApi)) return _flippersByComponent as Dictionary<MonoBehaviour, T>;
+			if (t == typeof(CannonApi)) return _cannonsByComponent as Dictionary<MonoBehaviour, T>;
+			if (t == typeof(CannonApi)) return _mechsByComponent as Dictionary<MonoBehaviour, T>;
 			if (t == typeof(DropTargetApi)) return _dropTargetsByComponent as Dictionary<MonoBehaviour, T>;
+			if (t == typeof(DropTargetBankApi)) return _dropTargetBanksByComponent as Dictionary<MonoBehaviour, T>;
+			if (t == typeof(FlipperApi)) return _flippersByComponent as Dictionary<MonoBehaviour, T>;
 			if (t == typeof(GateApi)) return _gatesByComponent as Dictionary<MonoBehaviour, T>;
 			if (t == typeof(HitTargetApi)) return _hitTargetsByComponent as Dictionary<MonoBehaviour, T>;
 			if (t == typeof(KickerApi)) return _kickersByComponent as Dictionary<MonoBehaviour, T>;
 			if (t == typeof(LightApi)) return _lightsByComponent as Dictionary<MonoBehaviour, T>;
 			if (t == typeof(LightGroupApi)) return _lightGroupsByComponent as Dictionary<MonoBehaviour, T>;
 			if (t == typeof(PlungerApi)) return _plungersByComponent as Dictionary<MonoBehaviour, T>;
+			if (t == typeof(PrimitiveApi)) return _primitivesByComponent as Dictionary<MonoBehaviour, T>;
+			if (t == typeof(PrimitiveApi)) return _primitivesByComponent as Dictionary<MonoBehaviour, T>;
 			if (t == typeof(RampApi)) return _rampsByComponent as Dictionary<MonoBehaviour, T>;
 			if (t == typeof(RubberApi)) return _rubbersByComponent as Dictionary<MonoBehaviour, T>;
 			if (t == typeof(SpinnerApi)) return _spinnersByComponent as Dictionary<MonoBehaviour, T>;
 			if (t == typeof(SurfaceApi)) return _surfacesByComponent as Dictionary<MonoBehaviour, T>;
+			if (t == typeof(TeleporterApi)) return _teleportersByComponent as Dictionary<MonoBehaviour, T>;
 			if (t == typeof(TriggerApi)) return _triggersByComponent as Dictionary<MonoBehaviour, T>;
 			if (t == typeof(TroughApi)) return _troughsByComponent as Dictionary<MonoBehaviour, T>;
-			if (t == typeof(PrimitiveApi)) return _primitivesByComponent as Dictionary<MonoBehaviour, T>;
-			if (t == typeof(CannonApi)) return _cannonsByComponent as Dictionary<MonoBehaviour, T>;
-			if (t == typeof(DropTargetBankApi)) return _dropTargetBanksByComponent as Dictionary<MonoBehaviour, T>;
 			throw new ArgumentException($"Unknown API type {t}.");
 		}
 

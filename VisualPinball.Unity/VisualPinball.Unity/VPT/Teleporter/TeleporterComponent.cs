@@ -73,6 +73,8 @@ namespace VisualPinball.Unity
 
 		#endregion
 
+		#region Runtime
+
 		private void Awake()
 		{
 			var player = GetComponentInParent<Player>();
@@ -84,5 +86,7 @@ namespace VisualPinball.Unity
 
 			player.RegisterTeleporter(this);
 		}
+
+		#endregion
 	}
 }
