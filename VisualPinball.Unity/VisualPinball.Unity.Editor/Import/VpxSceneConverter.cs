@@ -463,6 +463,7 @@ namespace VisualPinball.Unity.Editor
 		{
 			// add the player script and default game engine
 			_tableGo.AddComponent<Player>();
+			_tableGo.AddComponent<BallRollerComponent>();
 			var dga = _tableGo.AddComponent<DefaultGamelogicEngine>();
 
 			// populate hardware
