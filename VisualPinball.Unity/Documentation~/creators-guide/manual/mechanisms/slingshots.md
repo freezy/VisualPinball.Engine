@@ -1,3 +1,9 @@
+---
+uid: slingshots
+title: Slingshots
+description: How to animate VPE's slingshots
+---
+
 # Slingshots
 
 Slingshots are most commonly located just above the flippers. They usually consist of two "blade" switches on the inner side of a triangular rubber. Between the switches there is a coil driven arm that propels the ball away from the slingshot when either switch closes.
