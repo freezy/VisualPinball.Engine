@@ -14,25 +14,36 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-using System;
-using Codice.CM.Common.Merge;
-using NLog.LayoutRenderers.Wrappers;
-using Unity.Mathematics;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
 namespace VisualPinball.Unity
 {
-	[ExecuteAlways]
 	public class DebugBallComponent : MonoBehaviour
 	{
 
 		private PlayfieldComponent _playfield;
+		private Matrix4x4 _ltw;
+		private Matrix4x4 _wtl;
+
+		private Plane _playfieldPlane;
+		private GameObject _ball;
 
 		private void Awake()
 		{
 			_playfield = GetComponentInChildren<PlayfieldComponent>();
+			_ball = _playfield.transform.Find("Ball").gameObject;
+
+			var playfieldTransform = _playfield.transform;
+			_ltw = playfieldTransform.localToWorldMatrix;
+			_wtl = playfieldTransform.worldToLocalMatrix;
+
+			var z = _playfield.PlayfieldHeight;
+			var p1 = _ltw.MultiplyPoint(new Vector3(-100f, 100f, z));
+			var p2 = _ltw.MultiplyPoint(new Vector3(100f, 100f, z));
+			var p3 = _ltw.MultiplyPoint(new Vector3(100f, -100f, z));
+			_playfieldPlane.Set3Points(p1, p2, p3);
 		}
 
 		private void Update()
@@ -41,45 +52,22 @@ namespace VisualPinball.Unity
 				return;
 			}
 
-			if (Mouse.current.middleButton.wasPressedThisFrame) {
+			if (Mouse.current.middleButton.isPressed) {
 				var mouseOnScreenPos = Mouse.current.position.ReadValue();
 				var ray = Camera.main.ScreenPointToRay(mouseOnScreenPos);
 
-				Debug.Log($"Ray = {ray.origin} -> {ray.direction} ({mouseOnScreenPos})");
+				if (_playfieldPlane.Raycast(ray, out var enter)) {
+					var playfieldPosWorld = ray.GetPoint(enter);
+					var playfieldPosLocal = _wtl.MultiplyPoint(playfieldPosWorld);
 
-				// if (Physics.Raycast(ray, out var hit, 100)) {
-				// 	Debug.Log($"Got a hit: {hit.transform.gameObject.name}");
-				// } else {
-				// 	Debug.Log($"Not hit.");
-				// }
-			}
-		}
+					var ballPosLocal = _ball.transform.localPosition;
+					ballPosLocal.x = playfieldPosLocal.x;
+					ballPosLocal.y = playfieldPosLocal.y;
+					_ball.transform.localPosition = ballPosLocal;
 
-		private void OnDrawGizmos()
-		{
-
-			var playfieldTransform = _playfield.transform;
-			var ltw = playfieldTransform.localToWorldMatrix;
-			var wtl = playfieldTransform.worldToLocalMatrix;
-
-			var z = _playfield.PlayfieldHeight;
-			var p1 = ltw.MultiplyPoint(new Vector3(-100f, 100f, z));
-			var p2 = ltw.MultiplyPoint(new Vector3(100f, 100f, z));
-			var p3 = ltw.MultiplyPoint(new Vector3(100f, -100f, z));
-
-			Gizmos.DrawLine(p1, p2);
-			Gizmos.DrawLine(p2, p3);
-			Gizmos.DrawLine(p3, p1);
-
-			var planeWorld = new Plane();
-			planeWorld.Set3Points(p1, p2, p3);
-
-			var ray = SceneView.lastActiveSceneView.camera.ScreenPointToRay(Event.current.mousePosition);
-			if (planeWorld.Raycast(ray, out var enter)) {
-				var playfieldPosWorld = ray.GetPoint(enter);
-				var playfieldPosLocal = wtl.MultiplyPoint(playfieldPosWorld);
-
-				Debug.Log($"Position on playfield: {playfieldPosLocal}");
+				} else {
+					Debug.Log($"Missed.");
+				}
 			}
 		}
 	}
