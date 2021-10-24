@@ -19,10 +19,10 @@
 // ReSharper disable UnusedMember.Global
 // ReSharper disable UnusedType.Global
 
+using System.Collections.Generic;
 using System.Linq;
 using UnityEditor;
 using UnityEngine;
-using UnityEngine.Experimental.GlobalIllumination;
 using VisualPinball.Engine.Math;
 using VisualPinball.Engine.VPT;
 using Color = UnityEngine.Color;
@@ -118,6 +118,13 @@ namespace VisualPinball.Unity.Patcher
 			foreach (var plunger in plungers) {
 				// kickback
 				LinkCoil(tc, "Plunger1", "08", plunger, PlungerComponent.FireCoilId);
+			}
+
+			var teleporters = tableGo.GetComponentsInChildren<TeleporterComponent>();
+			foreach (var teleporter in teleporters) {
+				
+				// skull kicker
+				LinkCoil(tc, "sw76", "01", teleporter, TeleporterComponent.CoilItem);
 			}
 		}
 
@@ -348,9 +355,12 @@ namespace VisualPinball.Unity.Patcher
 		[NameMatch("sw76")]
 		public void SkullKicker(KickerComponent kickerComponent)
 		{
-			kickerComponent.Coils[0].Name = "kicker_coil";
-			kickerComponent.Coils[0].Speed = 15;
-			kickerComponent.Coils[0].Angle = 72;
+			kickerComponent.Coils.Clear();
+			var tp = kickerComponent.gameObject.AddComponent<TeleporterComponent>();
+			tp.FromKicker = kickerComponent;
+			tp.ToKicker = FindSiblingComponent<KickerComponent>(kickerComponent, "sw76a");
+			tp.ToKickerItem = tp.ToKicker.AvailableCoils.First().Id;
+			tp.KickAfterTeleportation = true;
 		}
 
 		[NameMatch("sw55")]
