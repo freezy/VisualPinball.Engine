@@ -34,6 +34,9 @@ namespace VisualPinball.Unity
 		public bool IsFrozen;
 		public int RingCounterOldPos;
 
+		public bool ManualControl;
+		public float2 ManualPosition;
+
 		public float3 OldVelocity;
 
 		public Aabb Aabb {

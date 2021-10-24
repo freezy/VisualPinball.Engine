@@ -47,7 +47,16 @@ namespace VisualPinball.Unity
 
 				marker.Begin();
 
-				ball.Velocity += gravity * (float)PhysicsConstants.PhysFactor;
+				if (ball.ManualControl) {
+					ball.Velocity *= 0.5f; // Null out most of the X/Y velocity, want a little bit so the ball can sort of find its way out of obstacles.
+					ball.Velocity += new float3(
+						math.max(-10.0f, math.min(10.0f, (ball.ManualPosition.x - ball.Position.x) * (float)(1.0/10.0))),
+						math.max(-10.0f, math.min(10.0f, (ball.ManualPosition.y - ball.Position.y) * (float)(1.0/10.0))),
+						-2.0f
+					);
+				} else {
+					ball.Velocity += gravity * (float)PhysicsConstants.PhysFactor;
+				}
 
 				marker.End();
 
