@@ -32,6 +32,7 @@ using VisualPinball.Engine.VPT.Surface;
 using VisualPinball.Engine.VPT.Table;
 using VisualPinball.Engine.VPT.Trigger;
 using VisualPinball.Engine.VPT.Trough;
+using VisualPinball.Engine.VPT.DropTargetBank;
 using Light = VisualPinball.Engine.VPT.Light.Light;
 using Texture = UnityEngine.Texture;
 
@@ -167,11 +168,10 @@ namespace VisualPinball.Unity.Editor
 				CreateItem(Trough.GetDefault, "New Trough");
 			}
 
-			if (CreateButton("Bank", Icons.DropTarget(color: iconColor), iconSize, buttonStyle))
+			if (CreateButton("Drop Target\nBank", Icons.DropTargetBank(color: iconColor), iconSize, buttonStyle))
 			{
-				//CreateItem(DropTargetBank.GetDefault, "Bank");
+				CreateItem(DropTargetBank.GetDefault, "New Drop Target Bank");
 			}
-
 
 			if (CreateButton("Slingshot", Icons.Slingshot(color: iconColor), iconSize, buttonStyle)) {
 				CreatePrefab("Slingshots", "Prefabs/Slingshot");

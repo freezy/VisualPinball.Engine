@@ -2,6 +2,7 @@ using System;
 using Logger = NLog.Logger;
 using NLog;
 using UnityEngine;
+using System.Collections.Generic;
 
 namespace VisualPinball.Unity
 {
@@ -13,6 +14,8 @@ namespace VisualPinball.Unity
 		private Player _player;
 
 		public DeviceCoil ResetCoil;
+
+		public List<DropTargetApi> _dropTargetApis = new List<DropTargetApi>();
 
 		public event EventHandler Init;
 
@@ -30,6 +33,11 @@ namespace VisualPinball.Unity
 		void IApi.OnInit(BallManager ballManager)
 		{
 			ResetCoil = new DeviceCoil(OnResetCoilEnabled);
+			
+			for (var index = 0; index < _dropTargetBankComponent.BankSize; index++)
+			{
+				_dropTargetApis.Add(_player.TableApi.DropTarget(_dropTargetBankComponent.DropTargets[index]));
+			}
 
 			Init?.Invoke(this, EventArgs.Empty);
 		}
@@ -38,10 +46,9 @@ namespace VisualPinball.Unity
 		{
 			Logger.Info("OnResetCoilEnabled");
 
-			for (var index = 0; index < _dropTargetBankComponent.Type; index++)
+			foreach (var dropTargetApi in _dropTargetApis)
 			{
-				DropTargetApi api = _player.TableApi.DropTarget(_dropTargetBankComponent.DropTargets[index]);
-				api.IsDropped = false;
+				dropTargetApi.IsDropped = false;
 			}
 		}
 

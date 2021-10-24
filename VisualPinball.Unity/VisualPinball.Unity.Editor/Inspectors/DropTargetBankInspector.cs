@@ -20,15 +20,16 @@ using UnityEditor;
 using UnityEngine;
 using Logger = NLog.Logger;
 using NLog;
+using VisualPinball.Engine.VPT.DropTargetBank;
 
 namespace VisualPinball.Unity.Editor
 {
 	[CustomEditor(typeof(DropTargetBankComponent)), CanEditMultipleObjects]
-	public class DropTargetBankInspector : ItemInspector
+	public class DropTargetBankInspector : MainInspector<DropTargetBankData, DropTargetBankComponent>
 	{
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
-		private static readonly string[] TypeLabels = {
+		private static readonly string[] BankSizeLabels = {
 			"Single",
 			"2 Bank",
 			"3 Bank",
@@ -36,7 +37,7 @@ namespace VisualPinball.Unity.Editor
 			"5 Bank"
 		};
 
-		private static readonly int[] TypeValues = {
+		private static readonly int[] BankSizeValues = {
 			1,
 			2,
 			3,
@@ -46,16 +47,14 @@ namespace VisualPinball.Unity.Editor
 
 		private bool _togglePlayfield = true;
 
-		private SerializedProperty _typeProperty;
+		private SerializedProperty _bankSizeProperty;
 		private SerializedProperty _dropTargetsProperty;
-
-		protected override MonoBehaviour UndoTarget => throw new System.NotImplementedException();
 
 		override protected void OnEnable()
 		{
 			base.OnEnable();
 
-			_typeProperty = serializedObject.FindProperty(nameof(DropTargetBankComponent.Type));
+			_bankSizeProperty = serializedObject.FindProperty(nameof(DropTargetBankComponent.BankSize));
 			_dropTargetsProperty = serializedObject.FindProperty(nameof(DropTargetBankComponent.DropTargets));
 		}
 
@@ -65,9 +64,9 @@ namespace VisualPinball.Unity.Editor
 
 			OnPreInspectorGUI();
 
-			DropDownProperty("Type", _typeProperty, TypeLabels, TypeValues);
+			DropDownProperty("Banks", _bankSizeProperty, BankSizeLabels, BankSizeValues);
 
-			while (_dropTargetsProperty.arraySize < _typeProperty.intValue)
+			while (_dropTargetsProperty.arraySize < _bankSizeProperty.intValue)
 			{
 				_dropTargetsProperty.InsertArrayElementAtIndex(_dropTargetsProperty.arraySize);
 			}
@@ -78,7 +77,7 @@ namespace VisualPinball.Unity.Editor
 				{
 					EditorGUI.indentLevel++;
 
-					for (var index = 0; index < _typeProperty.intValue; index++)
+					for (var index = 0; index < _bankSizeProperty.intValue; index++)
 					{
 						PropertyField(_dropTargetsProperty.GetArrayElementAtIndex(index), $"Drop Target {index + 1}");
 					}
@@ -97,36 +96,72 @@ namespace VisualPinball.Unity.Editor
 				EditorGUILayout.Separator();
 
 				TableApi tableApi = TableComponent.GetComponent<Player>().TableApi;
+				DropTargetBankApi dropTargetBankApi = tableApi.DropTargetBank(target.name);
 
-				GUILayout.BeginVertical();
+			   GUILayout.BeginVertical();
 
 				if (_togglePlayfield = EditorGUILayout.BeginFoldoutHeaderGroup(_togglePlayfield, "Playfield Links"))
 				{
 					EditorGUI.indentLevel++;
 
-					for (var index = 0; index < _typeProperty.intValue; index++)
+					for (var index = 0; index < _bankSizeProperty.intValue; index++)
 					{
 						GUILayout.BeginHorizontal();
 
-						GUILayout.Label($"Drop Target {index + 1}");
+						var dropTargetComponent = (DropTargetComponent)_dropTargetsProperty.GetArrayElementAtIndex(index).objectReferenceValue;
+						var dropTargetApi = tableApi.DropTarget(dropTargetComponent);
 
-						var dropTargetApi = TableComponent.GetComponent<Player>().TableApi.DropTarget((DropTargetComponent)_dropTargetsProperty.GetArrayElementAtIndex(index).objectReferenceValue);
+						DrawSwitch($"Drop Target {index + 1}", dropTargetApi.IsDropped);
 
 						if (GUILayout.Button(dropTargetApi.IsDropped ? "Reset" : "Drop"))
 						{
 							dropTargetApi.IsDropped = !dropTargetApi.IsDropped;
 						}
 
+						
 						GUILayout.EndHorizontal();
 					}
-
+			
 					EditorGUI.indentLevel--;
 				}
 
-				DrawCoil("Reset Coil", tableApi.DropTargetBank(target.name).ResetCoil);
+				EditorGUILayout.Separator();
+
+				GUILayout.BeginHorizontal();
+
+				if (GUILayout.Button("Drop All"))
+				{
+					for (var index = 0; index < _bankSizeProperty.intValue; index++)
+					{
+						tableApi.DropTarget((DropTargetComponent)_dropTargetsProperty.GetArrayElementAtIndex(index).objectReferenceValue).IsDropped = true;
+					}
+				}
+
+				if (GUILayout.Button("Reset All"))
+				{
+					for (var index = 0; index < _bankSizeProperty.intValue; index++)
+					{
+						tableApi.DropTarget((DropTargetComponent)_dropTargetsProperty.GetArrayElementAtIndex(index).objectReferenceValue).IsDropped = false;
+					}
+				}
+
+				GUILayout.EndHorizontal();
+
+				EditorGUILayout.Separator();
+
+				DrawCoil("Reset Coil", dropTargetBankApi.ResetCoil);
 
 				GUILayout.EndVertical();
 			}
+		}
+
+		private static void DrawSwitch(string label, bool sw)
+		{
+			var labelPos = EditorGUILayout.GetControlRect();
+			labelPos.height = 18;
+			var switchPos = new Rect((float)(labelPos.x + (double)EditorGUIUtility.labelWidth + 2.0), labelPos.y, labelPos.height, labelPos.height);
+			GUI.Label(labelPos, label);
+			GUI.DrawTexture(switchPos, Icons.Switch(sw, IconSize.Small, sw ? IconColor.Orange : IconColor.Gray));
 		}
 
 		private static void DrawCoil(string label, DeviceCoil coil)

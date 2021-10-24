@@ -55,6 +55,7 @@ namespace VisualPinball.Engine.VPT
 		// VPE internal
 		Ball = 100,
 		Trough = 101,
+		DropTargetBank = 102,
 		Playfield = 200,
 
 		// not game items
