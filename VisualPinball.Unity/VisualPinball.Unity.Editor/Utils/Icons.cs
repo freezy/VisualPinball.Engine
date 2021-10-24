@@ -40,6 +40,7 @@ namespace VisualPinball.Unity.Editor
 		private const string BoltName = "bolt";
 		private const string CoilName = "coil";
 		private const string DropTargetName = "drop_target";
+		private const string DropTargetBankName = "drop_target_bank";
 		private const string FlasherName = "light_flasher";
 		private const string FlipperName = "flipper";
 		private const string GateName = "gate";
@@ -64,14 +65,14 @@ namespace VisualPinball.Unity.Editor
 		private const string SwitchNoName = "switch_no";
 
 		private static readonly string[] Names = {
-			BumperName, BoltName, CoilName, DropTargetName, FlasherName, FlipperName, HitTargetName, GateName, KeyName, KickerName, LightGroupName,
-			LightName, PlayfieldName, PlungerName, PlugName, PrimitiveName, RampName, RubberName, SpinnerName, SurfaceName, TableName, TriggerName,
-			TroughName, SlingshotName, SwitchNcName, SwitchNoName
+			BumperName, BoltName, CoilName, DropTargetName, DropTargetBankName, FlasherName, FlipperName, HitTargetName, GateName, KeyName, KickerName,
+			LightGroupName, LightName, PlayfieldName, PlungerName, PlugName, PrimitiveName, RampName, RubberName, SpinnerName, SurfaceName, TableName,
+			TriggerName, TroughName, SlingshotName, SwitchNcName, SwitchNoName
 		};
 
-		private readonly Dictionary<IconVariant, Texture2D> _icons = new Dictionary<IconVariant,Texture2D>();
-		private static readonly MethodInfo CopyMonoScriptIconToImporters = typeof(MonoImporter).GetMethod("CopyMonoScriptIconToImporters", BindingFlags.Static|BindingFlags.NonPublic);
-		private static readonly MethodInfo SetIconForObject = typeof(EditorGUIUtility).GetMethod("SetIconForObject", BindingFlags.Static|BindingFlags.NonPublic);
+		private readonly Dictionary<IconVariant, Texture2D> _icons = new Dictionary<IconVariant, Texture2D>();
+		private static readonly MethodInfo CopyMonoScriptIconToImporters = typeof(MonoImporter).GetMethod("CopyMonoScriptIconToImporters", BindingFlags.Static | BindingFlags.NonPublic);
+		private static readonly MethodInfo SetIconForObject = typeof(EditorGUIUtility).GetMethod("SetIconForObject", BindingFlags.Static | BindingFlags.NonPublic);
 		private static readonly MethodInfo SetGizmoEnabled = Assembly.GetAssembly(typeof(UnityEditor.Editor))?.GetType("UnityEditor.AnnotationUtility")?.GetMethod("SetGizmoEnabled", BindingFlags.Static | BindingFlags.NonPublic);
 		private static readonly MethodInfo SetIconEnabled = Assembly.GetAssembly(typeof(UnityEditor.Editor))?.GetType("UnityEditor.AnnotationUtility")?.GetMethod("SetIconEnabled", BindingFlags.Static | BindingFlags.NonPublic);
 
@@ -84,12 +85,16 @@ namespace VisualPinball.Unity.Editor
 		private Icons()
 		{
 			const string iconPath = "Packages/org.visualpinball.engine.unity/VisualPinball.Unity/Assets/Editor/Icons";
-			foreach (var name in Names) {
-				foreach (var size in Enum.GetValues(typeof(IconSize)).Cast<IconSize>()) {
-					foreach (var color in Enum.GetValues(typeof(IconColor)).Cast<IconColor>()) {
+			foreach (var name in Names)
+			{
+				foreach (var size in Enum.GetValues(typeof(IconSize)).Cast<IconSize>())
+				{
+					foreach (var color in Enum.GetValues(typeof(IconColor)).Cast<IconColor>())
+					{
 						var variant = new IconVariant(name, size, color);
 						var path = $"{iconPath}/{size.ToString().ToLower()}_{color.ToString().ToLower()}/{name}.png";
-						if (File.Exists(path)) {
+						if (File.Exists(path))
+						{
 							_icons[variant] = AssetDatabase.LoadAssetAtPath<Texture2D>(path);
 						}
 					}
@@ -99,6 +104,7 @@ namespace VisualPinball.Unity.Editor
 
 		public static Texture2D Bumper(IconSize size = IconSize.Large, IconColor color = IconColor.Gray) => Instance.GetItem(BumperName, size, color);
 		public static Texture2D DropTarget(IconSize size = IconSize.Large, IconColor color = IconColor.Gray) => Instance.GetItem(DropTargetName, size, color);
+		public static Texture2D DropTargetBank(IconSize size = IconSize.Large, IconColor color = IconColor.Gray) => Instance.GetItem(DropTargetBankName, size, color);
 		public static Texture2D Flasher(IconSize size = IconSize.Large, IconColor color = IconColor.Gray) => Instance.GetItem(FlasherName, size, color);
 		public static Texture2D Flipper(IconSize size = IconSize.Large, IconColor color = IconColor.Gray) => Instance.GetItem(FlipperName, size, color);
 		public static Texture2D Gate(IconSize size = IconSize.Large, IconColor color = IconColor.Gray) => Instance.GetItem(GateName, size, color);
@@ -126,9 +132,11 @@ namespace VisualPinball.Unity.Editor
 		public static Texture2D ByComponent<T>(T mb, IconSize size = IconSize.Large, IconColor color = IconColor.Gray)
 			where T : class
 		{
-			switch (mb) {
+			switch (mb)
+			{
 				case BumperComponent _: return Bumper(size, color);
 				case DropTargetComponent _: return DropTarget(size, color);
+				case DropTargetBankComponent _: return DropTargetBank(size, color);
 				//case FlasherComponent _: return Flasher(size, color);
 				case FlipperComponent _: return Flipper(size, color);
 				case GateComponent _: return Gate(size, color);
@@ -160,6 +168,7 @@ namespace VisualPinball.Unity.Editor
 			DisableGizmo<DefaultGamelogicEngine>();
 			DisableGizmo<DotMatrixDisplayComponent>();
 			DisableGizmo<DropTargetComponent>();
+			DisableGizmo<DropTargetBankComponent>();
 			DisableGizmo<DropTargetColliderComponent>();
 			DisableGizmo<DropTargetAnimationComponent>();
 			//DisableGizmo<FlasherComponent>();
@@ -214,30 +223,35 @@ namespace VisualPinball.Unity.Editor
 
 		public static void ApplyToComponent<T>(Object target, Texture2D tex) where T : MonoBehaviour
 		{
-			if (target == null || tex == null) {
+			if (target == null || tex == null)
+			{
 				throw new ArgumentNullException();
 			}
-			SetIconForObject.Invoke(null, new object[]{ target, tex });
+			SetIconForObject.Invoke(null, new object[] { target, tex });
 			DisableGizmo<T>();
 
 			var monoScript = target as MonoScript;
-			if (monoScript) {
-				CopyMonoScriptIconToImporters.Invoke(null, new object[]{ monoScript });
+			if (monoScript)
+			{
+				CopyMonoScriptIconToImporters.Invoke(null, new object[] { monoScript });
 			}
 		}
 
 		private Texture2D GetItem(string name, IconSize size, IconColor color)
 		{
 			var variant = new IconVariant(name, size, color);
-			if (!_icons.ContainsKey(variant)) {
+			if (!_icons.ContainsKey(variant))
+			{
 				variant = new IconVariant(name, IconSize.Large, color);
 			}
 
-			if (!_icons.ContainsKey(variant)) {
+			if (!_icons.ContainsKey(variant))
+			{
 				variant = new IconVariant(name, IconSize.Large, IconColor.Gray);
 			}
 
-			if (!_icons.ContainsKey(variant)) {
+			if (!_icons.ContainsKey(variant))
+			{
 				throw new InvalidOperationException($"Cannot find {variant.Size} {variant.Name} icon of color {variant.Color}.");
 			}
 

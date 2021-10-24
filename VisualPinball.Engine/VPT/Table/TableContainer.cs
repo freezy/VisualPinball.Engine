@@ -78,6 +78,7 @@ namespace VisualPinball.Engine.VPT.Table
 		protected readonly Dictionary<string, Timer.Timer> _timers = new Dictionary<string, Timer.Timer>();
 		protected readonly Dictionary<string, Trigger.Trigger> _triggers = new Dictionary<string, Trigger.Trigger>();
 		protected readonly Dictionary<string, Trough.Trough> _troughs = new Dictionary<string, Trough.Trough>();
+		protected readonly Dictionary<string, DropTargetBank.DropTargetBank> _dropTargetBanks = new Dictionary<string, DropTargetBank.DropTargetBank>();
 
 		protected virtual void Clear()
 		{
@@ -101,6 +102,7 @@ namespace VisualPinball.Engine.VPT.Table
 			_timers.Clear();
 			_triggers.Clear();
 			_troughs.Clear();
+			_dropTargetBanks.Clear();
 		}
 
 		public Bumper.Bumper Bumper(string name) => _bumpers[name.ToLower()];
@@ -123,6 +125,7 @@ namespace VisualPinball.Engine.VPT.Table
 		public Timer.Timer Timer(string name) => _timers[name.ToLower()];
 		public Trigger.Trigger Trigger(string name) => _triggers[name.ToLower()];
 		public Trough.Trough Trough(string name) => _troughs[name.ToLower()];
+		public DropTargetBank.DropTargetBank DropTargetBank(string name) => _dropTargetBanks[name.ToLower()];
 
 		public IEnumerable<IRenderable> Renderables => Array.Empty<IRenderable>()
 			.Concat(_bumpers.Values)
@@ -165,7 +168,8 @@ namespace VisualPinball.Engine.VPT.Table
 			.Concat(_textBoxes.Values)
 			.Concat(_timers.Values)
 			.Concat(_triggers.Values)
-			.Concat(_troughs.Values);
+			.Concat(_troughs.Values)
+			.Concat(_dropTargetBanks.Values);
 
 		public IEnumerable<ItemData> ItemDatas => ItemSupportedDatas.Concat(ItemLegacyDatas);
 
@@ -198,7 +202,8 @@ namespace VisualPinball.Engine.VPT.Table
 			.ToDictionary(x => x.GetName().ToLower(), x => x);
 
 		public IEnumerable<ItemData> VpeItemDatas => new ItemData[] { }
-			.Concat(_troughs.Values.Select(i => i.Data));
+			.Concat(_troughs.Values.Select(i => i.Data))
+			.Concat(_dropTargetBanks.Values.Select(i => i.Data));
 
 		protected Dictionary<string, T> GetItemDictionary<T>() where T : IItem
 		{
@@ -280,6 +285,11 @@ namespace VisualPinball.Engine.VPT.Table
 
 			if (t == typeof(Trough.Trough)) {
 				return _troughs as Dictionary<string, T>;
+			}
+
+			if (t == typeof(DropTargetBank.DropTargetBank))
+			{
+				return _dropTargetBanks as Dictionary<string, T>;
 			}
 
 			return null;
