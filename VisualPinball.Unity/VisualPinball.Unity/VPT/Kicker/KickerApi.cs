@@ -109,6 +109,16 @@ namespace VisualPinball.Unity
 
 		#region Wiring
 
+		public bool IsSwitchClosed => _switchHandler.IsEnabled;
+		void IApiSwitch.DestroyBall(Entity ballEntity)
+		{
+			if (ballEntity != Entity.Null)
+			{
+				BallManager.DestroyEntity(ballEntity);
+				SimulationSystemGroup.QueueAfterBallCreation(OnBallDestroyed);
+			}
+		}
+
 		IApiSwitch IApiSwitchDevice.Switch(string deviceItem) => this;
 
 		IApiCoil IApiCoilDevice.Coil(string deviceItem) => Coil(deviceItem);
@@ -116,14 +126,6 @@ namespace VisualPinball.Unity
 		IApiWireDest IApiWireDeviceDest.Wire(string deviceItem) => Coil(deviceItem);
 
 		private IApiCoil Coil(string deviceItem) => _coils.ContainsKey(deviceItem) ? _coils[deviceItem] : null;
-
-		void IApiSwitch.DestroyBall(Entity ballEntity)
-		{
-			if (ballEntity != Entity.Null) {
-				BallManager.DestroyEntity(ballEntity);
-				SimulationSystemGroup.QueueAfterBallCreation(OnBallDestroyed);
-			}
-		}
 
 		private void OnBallDestroyed()
 		{
