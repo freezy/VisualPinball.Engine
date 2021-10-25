@@ -49,7 +49,7 @@ namespace VisualPinball.Unity
 
 		private void OnResetCoilEnabled()
 		{
-			Logger.Info("OnResetCoilEnabled");
+			Logger.Info($"OnResetCoilEnabled - resetting {_dropTargetBankComponent.name}");
 
 			foreach (var dropTargetApi in _dropTargetApis)
 			{
@@ -59,7 +59,7 @@ namespace VisualPinball.Unity
 
 		void IApi.OnDestroy()
 		{
-			Logger.Info("Destroying drop target bank!");
+			Logger.Info($"Destroying {_dropTargetBankComponent.name}");
 		}
 	}
 }

@@ -163,11 +163,12 @@ namespace VisualPinball.Unity.Patcher
 				.ToDictionary(dtc => dtc.name, dtc => dtc);
 			var dropTargetComponents = dropTargetNames
 				.Where(n => compIndex.ContainsKey(n))
-				.Select(n => compIndex[n]);
+				.Select(n => compIndex[n])
+				.ToArray();
 
 			dropTargetBank.name = name;
-			dropTargetBank.BankSize = dropTargetComponents.Count();
-			dropTargetBank.DropTargets = dropTargetComponents.ToArray();
+			dropTargetBank.BankSize = dropTargetComponents.Length;
+			dropTargetBank.DropTargets = dropTargetComponents;
 
 			return dropTargetBank;
 		}
