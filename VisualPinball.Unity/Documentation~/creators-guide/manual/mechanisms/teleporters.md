@@ -24,7 +24,7 @@ In order to create a new teleporter, select the GameObject you want to add it to
 
 ### Eject After Teleport
 
-Once the ball is created at the destination kicker, it can ejected immediately or after a delay (see next section), or it can stay in the kicker.
+Once the ball is created at the destination kicker, it can be ejected immediately or after a delay (see next section), or it can stay in the kicker.
 
 If disabled, this option makes the destination kicker keep the ball until it's explicitly ejected trough the kicker's coil.
 
