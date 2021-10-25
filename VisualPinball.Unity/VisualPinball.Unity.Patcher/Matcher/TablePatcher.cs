@@ -142,6 +142,46 @@ namespace VisualPinball.Unity.Patcher
 			return troughComponent;
 		}
 
+		/// <summary>
+		/// Creates a drop target bank component.
+		/// </summary>
+		/// <param name="tableGo">Table game object, for retrieving references</param>
+		/// <param name="parentGo">Parent game object of the new trough</param>
+		/// <param name="name">Name of the new drop target bank</param>
+		/// <param name="names">A list of drop targets that are in the drop target bank.</param>
+
+		protected static DropTargetBankComponent CreateDropTargetBank(GameObject tableGo, GameObject go,
+			string name = "DropTargetBank", params string[] dropTargetNames)
+		{
+			var playfieldGo = go.GetComponentInParent<PlayfieldComponent>().gameObject;
+			var dropTargetBankParentGo = GetOrCreateGameObject(playfieldGo, "Drop Target Banks");
+
+			var dropTargetBankGo = PrefabUtility.InstantiatePrefab(DropTargetBankComponent.LoadPrefab(), dropTargetBankParentGo.transform) as GameObject;
+			var dropTargetBank = dropTargetBankGo!.GetComponent<DropTargetBankComponent>();
+
+			var dropTargets = tableGo.GetComponentsInChildren<DropTargetComponent>();
+
+			List<DropTargetComponent> dropTargetComponents = new List<DropTargetComponent>();
+
+			foreach (var dropTargetName in dropTargetNames)
+			{
+				foreach (var dropTarget in dropTargets)
+				{
+					if (string.Equals(dropTarget.name, dropTargetName, StringComparison.OrdinalIgnoreCase))
+					{
+						dropTargetComponents.Add(dropTarget);
+						break;
+					}
+				}
+			}
+
+			dropTargetBank.name = name;
+			dropTargetBank.BankSize = dropTargetComponents.Count;
+			dropTargetBank.DropTargets = dropTargetComponents.ToArray();
+
+			return dropTargetBank;
+		}
+
 		#endregion
 
 		#region Light Helpers

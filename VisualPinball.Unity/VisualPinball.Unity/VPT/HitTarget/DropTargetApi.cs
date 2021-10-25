@@ -49,11 +49,11 @@ namespace VisualPinball.Unity
 		/// </remarks>
 		///
 		/// <exception cref="InvalidOperationException">Thrown if target is not a drop target (but a hit target, which can't be dropped)</exception>
-		public bool IsDropped {
+		public bool IsDropped
+		{
 			get => EntityManager.GetComponentData<DropTargetAnimationData>(Entity).IsDropped;
 			set => SetIsDropped(value);
 		}
-
 
 		internal DropTargetApi(GameObject go, Entity entity, Entity parentEntity, Player player)
 			: base(go, entity, parentEntity, player)
@@ -68,21 +68,27 @@ namespace VisualPinball.Unity
 		private void SetIsDropped(bool isDropped)
 		{
 			var data = EntityManager.GetComponentData<DropTargetAnimationData>(Entity);
-			if (data.IsDropped != isDropped) {
+			if (data.IsDropped != isDropped)
+			{
 				data.MoveAnimation = true;
-				if (isDropped) {
+				if (isDropped)
+				{
 					data.MoveDown = true;
 
-                                        Switch?.Invoke(this, new SwitchEventArgs());
-                                        OnSwitch(true);
-				} else {
+					Switch?.Invoke(this, new SwitchEventArgs(true, Entity.Null));
+					OnSwitch(true);
+				}
+				else
+				{
 					data.MoveDown = false;
 					data.TimeStamp = World.DefaultGameObjectInjectionWorld.GetOrCreateSystem<VisualPinballSimulationSystemGroup>().TimeMsec;
 
-					Switch?.Invoke(this, new SwitchEventArgs());
+					Switch?.Invoke(this, new SwitchEventArgs(false, Entity.Null));
 					OnSwitch(false);
 				}
-			} else {
+			}
+			else
+			{
 				data.IsDropped = isDropped;
 			}
 

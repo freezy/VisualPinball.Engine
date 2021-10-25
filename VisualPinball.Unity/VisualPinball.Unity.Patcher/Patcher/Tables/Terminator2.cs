@@ -45,6 +45,7 @@ namespace VisualPinball.Unity.Patcher
 			CreateFlasher28(playfieldGo);
 
 			SetupTrough(tableGo, playfieldGo);
+			SetupDropTargetBank(tableGo, playfieldGo);
 			SetupPinMame(tableGo, playfieldGo);
 			SetupDmd(tableGo);
 			SetupMapping(tableGo);
@@ -62,6 +63,11 @@ namespace VisualPinball.Unity.Patcher
 			troughComponent.SwitchCount = 3;
 			troughComponent.JamSwitch = false;
 			troughComponent.RollTime = 300;
+		}
+
+		private static void SetupDropTargetBank(GameObject tableGo, GameObject playfieldGo)
+		{
+			CreateDropTargetBank(tableGo, playfieldGo, "DropTargetBank", new string[] { "sw77" });
 		}
 
 		private static void SetupPinMame(GameObject tableGo, GameObject playfieldGo)

@@ -20,12 +20,11 @@ using UnityEditor;
 using UnityEngine;
 using Logger = NLog.Logger;
 using NLog;
-using VisualPinball.Engine.VPT.DropTargetBank;
 
 namespace VisualPinball.Unity.Editor
 {
 	[CustomEditor(typeof(DropTargetBankComponent)), CanEditMultipleObjects]
-	public class DropTargetBankInspector : MainInspector<DropTargetBankData, DropTargetBankComponent>
+	public class DropTargetBankInspector : ItemInspector
 	{
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
@@ -34,7 +33,8 @@ namespace VisualPinball.Unity.Editor
 			"2 Bank",
 			"3 Bank",
 			"4 Bank",
-			"5 Bank"
+			"5 Bank",
+			"6 Bank"
 		};
 
 		private static readonly int[] BankSizeValues = {
@@ -42,13 +42,16 @@ namespace VisualPinball.Unity.Editor
 			2,
 			3,
 			4,
-			5
+			5,
+			6
 		};
 
 		private bool _togglePlayfield = true;
 
 		private SerializedProperty _bankSizeProperty;
 		private SerializedProperty _dropTargetsProperty;
+
+		protected override MonoBehaviour UndoTarget => throw new System.NotImplementedException();
 
 		override protected void OnEnable()
 		{
@@ -98,7 +101,7 @@ namespace VisualPinball.Unity.Editor
 				TableApi tableApi = TableComponent.GetComponent<Player>().TableApi;
 				DropTargetBankApi dropTargetBankApi = tableApi.DropTargetBank(target.name);
 
-			   GUILayout.BeginVertical();
+				GUILayout.BeginVertical();
 
 				if (_togglePlayfield = EditorGUILayout.BeginFoldoutHeaderGroup(_togglePlayfield, "Playfield Links"))
 				{
@@ -118,10 +121,10 @@ namespace VisualPinball.Unity.Editor
 							dropTargetApi.IsDropped = !dropTargetApi.IsDropped;
 						}
 
-						
+
 						GUILayout.EndHorizontal();
 					}
-			
+
 					EditorGUI.indentLevel--;
 				}
 
