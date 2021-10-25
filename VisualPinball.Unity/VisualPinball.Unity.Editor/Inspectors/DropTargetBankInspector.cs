@@ -18,16 +18,12 @@
 
 using UnityEditor;
 using UnityEngine;
-using Logger = NLog.Logger;
-using NLog;
 
 namespace VisualPinball.Unity.Editor
 {
 	[CustomEditor(typeof(DropTargetBankComponent)), CanEditMultipleObjects]
 	public class DropTargetBankInspector : ItemInspector
 	{
-		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
-
 		private static readonly string[] BankSizeLabels = {
 			"Single",
 			"2 Bank",

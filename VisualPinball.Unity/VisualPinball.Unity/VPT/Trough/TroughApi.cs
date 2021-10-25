@@ -608,6 +608,9 @@ namespace VisualPinball.Unity
 			return _switchLookup.ContainsKey(deviceItem) ? _switchLookup[deviceItem] : null;
 		}
 
+		IApiCoil IApiCoilDevice.Coil(string deviceItem) => Coil(deviceItem);
+		IApiWireDest IApiWireDeviceDest.Wire(string deviceItem) => Coil(deviceItem);
+
 		/// <summary>
 		/// Returns a coil by ID. Same principle as <see cref="IApiSwitchDevice.Switch"/>
 		/// </summary>
@@ -615,21 +618,13 @@ namespace VisualPinball.Unity
 		/// <returns></returns>
 		private IApiCoil Coil(string deviceItem)
 		{
-			switch (deviceItem) {
-				case TroughComponent.EntryCoilId:
-					return EntryCoil;
-
-				case TroughComponent.EjectCoilId:
-					return ExitCoil;
-
-				default:
-					return null;
-			}
+			return deviceItem switch
+			{
+				TroughComponent.EntryCoilId => EntryCoil,
+				TroughComponent.EjectCoilId => ExitCoil,
+				_ => throw new ArgumentException($"Unknown trough coil \"{deviceItem}\". Valid names are: [ \"{TroughComponent.EntryCoilId}\", \"{TroughComponent.EjectCoilId}\" ].")
+			};
 		}
-
-		IApiCoil IApiCoilDevice.Coil(string deviceItem) => Coil(deviceItem);
-
-		IApiWireDest IApiWireDeviceDest.Wire(string deviceItem) => Coil(deviceItem);
 
 		void IApi.OnDestroy()
 		{

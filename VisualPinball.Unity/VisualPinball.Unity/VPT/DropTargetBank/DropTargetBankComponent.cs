@@ -10,6 +10,8 @@ namespace VisualPinball.Unity
 	[HelpURL("https://docs.visualpinball.org/creators-guide/manual/mechanisms/drop-target-banks.html")]
 	public class DropTargetBankComponent : MonoBehaviour, ICoilDeviceComponent
 	{
+		public const string ResetCoilItem = "reset_coil";
+
 		[ToolboxItem("The number of the drop targets. See documentation of a description of each type.")]
 		public int BankSize = 1;
 
@@ -18,7 +20,7 @@ namespace VisualPinball.Unity
 		public DropTargetComponent[] DropTargets = Array.Empty<DropTargetComponent>();
 
 		public IEnumerable<GamelogicEngineCoil> AvailableCoils => new[] {
-			new GamelogicEngineCoil(name) {
+			new GamelogicEngineCoil(ResetCoilItem) {
 				Description = "Reset Coil"
 			}
 		};

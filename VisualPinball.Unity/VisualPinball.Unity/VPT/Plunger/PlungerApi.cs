@@ -140,24 +140,18 @@ namespace VisualPinball.Unity
 			EntityManager.SetComponentData(Entity, velocityData);
 		}
 
+		IApiCoil IApiCoilDevice.Coil(string deviceItem) => Coil(deviceItem);
+		IApiWireDest IApiWireDeviceDest.Wire(string deviceItem) => Coil(deviceItem);
 
 		private IApiCoil Coil(string deviceItem)
 		{
-			switch (deviceItem) {
-				case PlungerComponent.FireCoilId:
-					return FireCoil;
-
-				case PlungerComponent.PullCoilId:
-					return PullCoil;
-
-				default:
-					return null;
-			}
+			return deviceItem switch
+			{
+				PlungerComponent.FireCoilId => FireCoil,
+				PlungerComponent.PullCoilId => PullCoil,
+				_ => throw new ArgumentException($"Unknown plunger coil \"{deviceItem}\". Valid names are: [ \"{PlungerComponent.FireCoilId}\", \"{PlungerComponent.PullCoilId}\" ].")
+			};
 		}
-
-		IApiCoil IApiCoilDevice.Coil(string deviceItem) => Coil(deviceItem);
-
-		IApiWireDest IApiWireDeviceDest.Wire(string deviceItem) => Coil(deviceItem);
 
 		#region Collider Generation
 
