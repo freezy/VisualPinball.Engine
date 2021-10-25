@@ -123,24 +123,24 @@ namespace VisualPinball.Unity
 
 			if (_position >= 0 && _position <= 5)
 			{
-				if (!GunHomeSwitch.IsEnabled)
+				if (!GunHomeSwitch.IsSwitchEnabled)
 				{
 					GunHomeSwitch.SetSwitch(true);
 				}
 			}
-			else if (GunHomeSwitch.IsEnabled)
+			else if (GunHomeSwitch.IsSwitchEnabled)
 			{
 				GunHomeSwitch.SetSwitch(false);
 			}
 
 			if (_position >= 98 && _position <= 105)
 			{
-				if (!GunMarkSwitch.IsEnabled)
+				if (!GunMarkSwitch.IsSwitchEnabled)
 				{
 					GunMarkSwitch.SetSwitch(true);
 				}
 			}
-			else if (GunMarkSwitch.IsEnabled)
+			else if (GunMarkSwitch.IsSwitchEnabled)
 			{
 				GunMarkSwitch.SetSwitch(false);
 			}

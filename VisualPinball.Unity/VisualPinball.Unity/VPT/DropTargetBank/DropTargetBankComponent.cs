@@ -17,7 +17,6 @@ namespace VisualPinball.Unity
 		public int BankSize = 1;
 
 		[SerializeField]
-		//[TypeRestriction(typeof(DropTargetComponent), PickerLabel = "Drop Targets", DeviceItem = nameof(TargetComponent.SwitchItem))]
 		[Tooltip("Drop Targets")]
 		public DropTargetComponent[] DropTargets = Array.Empty<DropTargetComponent>();
 

@@ -109,7 +109,7 @@ namespace VisualPinball.Unity
 
 		#region Wiring
 
-		public bool IsSwitchClosed => _switchHandler.IsEnabled;
+		public bool IsSwitchEnabled => _switchHandler.IsEnabled;
 		void IApiSwitch.DestroyBall(Entity ballEntity)
 		{
 			if (ballEntity != Entity.Null)
