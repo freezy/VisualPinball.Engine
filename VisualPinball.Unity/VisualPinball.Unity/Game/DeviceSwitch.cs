@@ -31,11 +31,6 @@ namespace VisualPinball.Unity
 		public event EventHandler<SwitchEventArgs> Switch;
 
 		/// <summary>
-		/// Indicates whether the switch is currently opened or closed.
-		/// </summary>
-		public bool IsEnabled => _switchHandler.IsEnabled;
-
-		/// <summary>
 		/// Guesses whether the switch is closed or not.
 		/// </summary>
 		///
@@ -44,7 +39,12 @@ namespace VisualPinball.Unity
 		/// in case the switch default is configurable, we don't actually know, because then it depends
 		/// on each individual mapping.
 		/// </remarks>
-		public bool IsSwitchClosed => _switchDefault == SwitchDefault.NormallyClosed ? !IsEnabled : IsEnabled;
+		public bool IsSwitchClosed => _switchDefault == SwitchDefault.NormallyClosed ? !IsSwitchEnabled : IsSwitchEnabled;
+
+		/// <summary>
+		/// Indicates whether the switch is currently opened or closed.
+		/// </summary>
+		public bool IsSwitchEnabled => _switchHandler.IsEnabled;
 
 		private readonly bool _isPulseSwitch;
 		private readonly SwitchDefault _switchDefault;

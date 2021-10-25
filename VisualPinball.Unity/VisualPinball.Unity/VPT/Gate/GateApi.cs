@@ -80,7 +80,7 @@ namespace VisualPinball.Unity
 
 		#region Wiring
 
-		public bool IsSwitchClosed => _switchHandler.IsEnabled;
+		public bool IsSwitchEnabled => _switchHandler.IsEnabled;
 		IApiSwitchStatus IApiSwitch.AddSwitchDest(SwitchConfig switchConfig) => AddSwitchDest(switchConfig.WithPulse(true));
 		void IApiSwitch.AddWireDest(WireDestConfig wireConfig) => AddWireDest(wireConfig.WithPulse(true));
 		void IApiSwitch.RemoveWireDest(string destId) => RemoveWireDest(destId);

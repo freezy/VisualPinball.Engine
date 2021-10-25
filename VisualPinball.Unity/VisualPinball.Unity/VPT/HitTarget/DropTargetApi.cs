@@ -68,27 +68,22 @@ namespace VisualPinball.Unity
 		private void SetIsDropped(bool isDropped)
 		{
 			var data = EntityManager.GetComponentData<DropTargetAnimationData>(Entity);
-			if (data.IsDropped != isDropped)
-			{
+			if (data.IsDropped != isDropped) {
 				data.MoveAnimation = true;
-				if (isDropped)
-				{
+				if (isDropped) {
 					data.MoveDown = true;
 
 					Switch?.Invoke(this, new SwitchEventArgs(true, Entity.Null));
 					OnSwitch(true);
 				}
-				else
-				{
+				else {
 					data.MoveDown = false;
 					data.TimeStamp = World.DefaultGameObjectInjectionWorld.GetOrCreateSystem<VisualPinballSimulationSystemGroup>().TimeMsec;
 
 					Switch?.Invoke(this, new SwitchEventArgs(false, Entity.Null));
 					OnSwitch(false);
 				}
-			}
-			else
-			{
+			} else {
 				data.IsDropped = isDropped;
 			}
 
@@ -97,7 +92,7 @@ namespace VisualPinball.Unity
 
 		#region Wiring
 
-		public bool IsSwitchClosed => _switchHandler.IsEnabled;
+		public bool IsSwitchEnabled => _switchHandler.IsEnabled;
 		IApiSwitchStatus IApiSwitch.AddSwitchDest(SwitchConfig switchConfig) => AddSwitchDest(switchConfig);
 		IApiSwitch IApiSwitchDevice.Switch(string deviceItem) => this;
 	

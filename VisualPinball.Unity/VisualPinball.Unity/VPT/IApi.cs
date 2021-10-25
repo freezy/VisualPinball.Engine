@@ -169,9 +169,10 @@ namespace VisualPinball.Unity
 		/// </remarks>
 		event EventHandler<SwitchEventArgs> Switch;
 
-		/// True if switch is closed, false otherwise.
+		/// <summary>
+		/// True if switch is enabled, false otherwise. Note that enabled != closed.
 		/// </summary>
-		bool IsSwitchClosed { get; }
+		bool IsSwitchEnabled { get; }
 	}
 
 	/// <summary>
