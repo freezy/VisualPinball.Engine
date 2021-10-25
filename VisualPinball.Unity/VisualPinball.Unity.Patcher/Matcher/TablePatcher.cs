@@ -159,24 +159,14 @@ namespace VisualPinball.Unity.Patcher
 			var dropTargetBankGo = PrefabUtility.InstantiatePrefab(DropTargetBankComponent.LoadPrefab(), dropTargetBankParentGo.transform) as GameObject;
 			var dropTargetBank = dropTargetBankGo!.GetComponent<DropTargetBankComponent>();
 
-			var dropTargets = tableGo.GetComponentsInChildren<DropTargetComponent>();
-
-			List<DropTargetComponent> dropTargetComponents = new List<DropTargetComponent>();
-
-			foreach (var dropTargetName in dropTargetNames)
-			{
-				foreach (var dropTarget in dropTargets)
-				{
-					if (string.Equals(dropTarget.name, dropTargetName, StringComparison.OrdinalIgnoreCase))
-					{
-						dropTargetComponents.Add(dropTarget);
-						break;
-					}
-				}
-			}
+			var compIndex = tableGo.GetComponentsInChildren<DropTargetComponent>()
+				.ToDictionary(dtc => dtc.name, dtc => dtc);
+			var dropTargetComponents = dropTargetNames
+				.Where(n => compIndex.ContainsKey(n))
+				.Select(n => compIndex[n]);
 
 			dropTargetBank.name = name;
-			dropTargetBank.BankSize = dropTargetComponents.Count;
+			dropTargetBank.BankSize = dropTargetComponents.Count();
 			dropTargetBank.DropTargets = dropTargetComponents.ToArray();
 
 			return dropTargetBank;

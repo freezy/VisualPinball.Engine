@@ -92,7 +92,7 @@ namespace VisualPinball.Unity
 
 		#region Wiring
 
-		public bool IsSwitchEnabled => _switchHandler.IsEnabled;
+		public bool IsSwitchEnabled => SwitchHandler.IsEnabled;
 		IApiSwitchStatus IApiSwitch.AddSwitchDest(SwitchConfig switchConfig) => AddSwitchDest(switchConfig);
 		IApiSwitch IApiSwitchDevice.Switch(string deviceItem) => this;
 	

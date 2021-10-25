@@ -1,18 +1,15 @@
 using System.Collections.Generic;
 using UnityEngine;
 using VisualPinball.Engine.Game.Engines;
-using Logger = NLog.Logger;
-using NLog;
 using System.ComponentModel;
 using System;
 
 namespace VisualPinball.Unity
 {
 	[AddComponentMenu("Visual Pinball/Drop Target Bank")]
+	[HelpURL("https://docs.visualpinball.org/creators-guide/manual/mechanisms/drop-target-banks.html")]
 	public class DropTargetBankComponent : MonoBehaviour, ICoilDeviceComponent
 	{
-		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
-
 		[ToolboxItem("The number of the drop targets. See documentation of a description of each type.")]
 		public int BankSize = 1;
 

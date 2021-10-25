@@ -44,7 +44,7 @@ namespace VisualPinball.Unity
 		internal VisualPinballSimulationSystemGroup SimulationSystemGroup => World.DefaultGameObjectInjectionWorld.GetOrCreateSystem<VisualPinballSimulationSystemGroup>();
 
 		private readonly Player _player;
-		private protected readonly SwitchHandler _switchHandler;
+		private protected readonly SwitchHandler SwitchHandler;
 		private protected BallManager BallManager;
 		private protected TableComponent TableComponent;
 
@@ -53,7 +53,7 @@ namespace VisualPinball.Unity
 			GameObject = go;
 			MainComponent = go.GetComponent<TComponent>();
 			_player = player;
-			_switchHandler = new SwitchHandler(Name, player);
+			SwitchHandler = new SwitchHandler(Name, player);
 		}
 
 		protected void OnInit(BallManager ballManager)
@@ -71,12 +71,12 @@ namespace VisualPinball.Unity
 
 		private protected DeviceSwitch CreateSwitch(string name, bool isPulseSwitch, SwitchDefault switchDefault = SwitchDefault.Configurable) => new DeviceSwitch(name, isPulseSwitch, switchDefault, _player);
 
-		private protected IApiSwitchStatus AddSwitchDest(SwitchConfig switchConfig) => _switchHandler.AddSwitchDest(switchConfig);
+		private protected IApiSwitchStatus AddSwitchDest(SwitchConfig switchConfig) => SwitchHandler.AddSwitchDest(switchConfig);
 
-		internal void AddWireDest(WireDestConfig wireConfig) => _switchHandler.AddWireDest(wireConfig);
-		internal void RemoveWireDest(string destId) => _switchHandler.RemoveWireDest(destId);
+		internal void AddWireDest(WireDestConfig wireConfig) => SwitchHandler.AddWireDest(wireConfig);
+		internal void RemoveWireDest(string destId) => SwitchHandler.RemoveWireDest(destId);
 
-		private protected void OnSwitch(bool closed) => _switchHandler.OnSwitch(closed);
+		private protected void OnSwitch(bool closed) => SwitchHandler.OnSwitch(closed);
 
 		#endregion
 	}

@@ -15,6 +15,8 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using UnityEditor;
 using UnityEngine;
 using VisualPinball.Engine.VPT;
@@ -169,14 +171,14 @@ namespace VisualPinball.Unity.Editor
 
 			if (CreateButton("Drop Target\nBank", Icons.DropTargetBank(color: iconColor), iconSize, buttonStyle))
 			{
-				CreatePrefab("Drop Target Banks", "Prefabs/DropTargetBank");
+				CreatePrefab<DropTargetBankComponent>("Drop Target Banks", "Prefabs/DropTargetBank");
 			}
 
 			GUILayout.EndHorizontal();
 			GUILayout.BeginHorizontal();
 
 			if (CreateButton("Slingshot", Icons.Slingshot(color: iconColor), iconSize, buttonStyle)) {
-				CreatePrefab("Slingshots", "Prefabs/Slingshot");
+				CreatePrefab<SlingshotComponent>("Slingshots", "Prefabs/Slingshot");
 			}
 
 			GUILayout.EndHorizontal();
@@ -209,7 +211,7 @@ namespace VisualPinball.Unity.Editor
 			return converter.InstantiateAndPersistPrefab(item).GameObject;
 		}
 
-		private void CreatePrefab(string groupName, string path)
+		private void CreatePrefab<T>(string groupName, string path) where T : Component
 		{
 			var converter = new VpxSceneConverter(TableComponent);
 			TableComponent.TableContainer.Refresh();
@@ -218,10 +220,30 @@ namespace VisualPinball.Unity.Editor
 
 			var prefab = Resources.Load<GameObject>(path);
 			var go = PrefabUtility.InstantiatePrefab(prefab) as GameObject;
+
 			if (go) {
+				go.name = GetNewPrefabName<T>(go.name);
+
 				go.transform.SetParent(parentGo.transform, false);
 			}
+
 			Selection.activeGameObject = go;
+		}
+
+		private string GetNewPrefabName<T>(string prefix) where T : Component
+		{
+			var dict = TableComponent.GetComponentsInChildren<T>()
+					.ToDictionary(component => component.name.ToLower(), component => component);
+
+			var n = 0;
+			do
+			{
+				var elementName = $"{prefix}{++n}";
+				if (!dict.ContainsKey(elementName.ToLower()))
+				{
+					return elementName;
+				}
+			} while (true);
 		}
 	}
 }
