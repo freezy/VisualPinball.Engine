@@ -45,7 +45,6 @@ namespace VisualPinball.Unity.Patcher
 			CreateFlasher28(playfieldGo);
 
 			SetupTrough(tableGo, playfieldGo);
-			SetupDropTargetBank(tableGo, playfieldGo);
 			SetupPinMame(tableGo, playfieldGo);
 			SetupDmd(tableGo);
 			SetupMapping(tableGo);
@@ -63,11 +62,6 @@ namespace VisualPinball.Unity.Patcher
 			troughComponent.SwitchCount = 3;
 			troughComponent.JamSwitch = false;
 			troughComponent.RollTime = 300;
-		}
-
-		private static void SetupDropTargetBank(GameObject tableGo, GameObject playfieldGo)
-		{
-			CreateDropTargetBank(tableGo, playfieldGo, "DropTargetBank", new string[] { "sw77" });
 		}
 
 		private static void SetupPinMame(GameObject tableGo, GameObject playfieldGo)
@@ -334,6 +328,18 @@ namespace VisualPinball.Unity.Patcher
 			kickerComponent.Coils[0].Name = "kicker_coil";
 			kickerComponent.Coils[0].Speed = 15;
 			kickerComponent.Coils[0].Angle = 72;
+		}
+
+		#endregion
+
+		#region Drop Target Banks
+
+		[NameMatch("sw77")]
+		public void CreateDropTargetBank(GameObject dropTargetGo, DropTargetComponent dropTargetComponent)
+		{
+			var dropTargetBank = dropTargetGo.AddComponent<DropTargetBankComponent>();
+			dropTargetBank.BankSize = 1;
+			dropTargetBank.DropTargets = new[] { dropTargetComponent };
 		}
 
 		#endregion
