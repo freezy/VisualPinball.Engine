@@ -146,6 +146,7 @@ namespace VisualPinball.Unity
 			map.AddAction(InputConstants.ActionCoinDoorAdvance, InputActionType.Button, "<Keyboard>/8");
 			map.AddAction(InputConstants.ActionCoinDoorUpDown, InputActionType.Button, "<Keyboard>/7");
 			map.AddAction(InputConstants.ActionSlamTilt, InputActionType.Button, "<Keyboard>/home");
+			map.AddAction(InputConstants.ActionSelfTest, InputActionType.Button, "<Keyboard>/8");
 
 			asset.AddActionMap(map);
 
