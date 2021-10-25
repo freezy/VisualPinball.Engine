@@ -46,7 +46,6 @@ using VisualPinball.Engine.VPT.TextBox;
 using VisualPinball.Engine.VPT.Timer;
 using VisualPinball.Engine.VPT.Trigger;
 using VisualPinball.Engine.VPT.Trough;
-using VisualPinball.Engine.VPT.DropTargetBank;
 using VisualPinball.Unity.Playfield;
 using Light = VisualPinball.Engine.VPT.Light.Light;
 using Material = UnityEngine.Material;
@@ -346,7 +345,6 @@ namespace VisualPinball.Unity.Editor
 				case Surface surface:     return surface.InstantiatePrefab();
 				case Trigger trigger:     return trigger.InstantiatePrefab();
 				case Trough trough:       return trough.InstantiatePrefab();
-				case DropTargetBank dropTargetBank: return dropTargetBank.InstantiatePrefab();
 			}
 
 			throw new InvalidOperationException("Unknown item " + item + " to setup!");

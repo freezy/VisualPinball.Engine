@@ -202,13 +202,13 @@ namespace VisualPinball.Unity
 		public CannonApi Cannon(string name) => Get<CannonApi>(name);
 		public CannonApi Cannon(MonoBehaviour component) => Get<CannonApi>(component);
 
-                /// <summary>
-                /// Returns a drop target by name.
-                /// </summary>
-                /// <param name="name">Name of the drop target</param>
-                /// <returns>Drop target or `null` if no drop target with that name exists.</returns>
-                public DropTargetApi DropTarget(string name) => Get<DropTargetApi>(name);
-                public DropTargetApi DropTarget(MonoBehaviour component) => Get<DropTargetApi>(component);
+		/// <summary>
+		/// Returns a drop target by name.
+		/// </summary>
+		/// <param name="name">Name of the drop target</param>
+		/// <returns>Drop target or `null` if no drop target with that name exists.</returns>
+		public DropTargetApi DropTarget(string name) => Get<DropTargetApi>(name);
+		public DropTargetApi DropTarget(MonoBehaviour component) => Get<DropTargetApi>(component);
 
 		/// <summary>
 		/// Returns a drop target bank by name.

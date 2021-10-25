@@ -239,16 +239,14 @@ namespace VisualPinball.Unity
 			Register(new LightGroupApi(component.Lights.Select(l => l.GetApi(this)).ToArray()), component);
 		}
 
-		public void RegisterMech(MonoBehaviour component)
+		public void RegisterCannonComponent(CannonComponent component)
 		{
-			if (component is CannonComponent)
-			{
-				Register(new CannonApi(component.gameObject, this), component);
-			}
-			else if (component is DropTargetBankComponent)
-			{
-				Register(new DropTargetBankApi(component.gameObject, this), component);
-			}
+			Register(new CannonApi(component.gameObject, this), component);
+		}
+
+		public void RegisterDropTargetBankComponent(DropTargetBankComponent component)
+		{
+			Register(new DropTargetBankApi(component.gameObject, this), component);
 		}
 
 		public void RegisterPlunger(PlungerComponent component, Entity entity, Entity parentEntity, InputActionReference actionRef)

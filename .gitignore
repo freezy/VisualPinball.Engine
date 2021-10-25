@@ -383,3 +383,5 @@ VisualPinball.Unity/VisualPinball.Unity.Test/TestProject~/VisualPinball.Unity.Pa
 VisualPinball.Unity/VisualPinball.Unity.Test/TestProject~/VisualPinball.Unity.Test.csproj
 VisualPinball.Unity/VisualPinball.Unity.Test/TestProject~/VisualPinball.Unity.csproj
 VisualPinball.Unity/VisualPinball.Unity.Test/TestProject~/editmode-results.xml
+
+.DS_Store

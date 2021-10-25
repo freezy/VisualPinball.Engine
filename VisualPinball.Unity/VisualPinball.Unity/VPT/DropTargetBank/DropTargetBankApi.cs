@@ -27,7 +27,12 @@ namespace VisualPinball.Unity
 
 		IApiCoil IApiCoilDevice.Coil(string deviceItem)
 		{
-			return deviceItem == _dropTargetBankComponent.name ? ResetCoil : null;
+			if (deviceItem == _dropTargetBankComponent.name)
+			{
+				return ResetCoil;
+			}
+
+			throw new ArgumentException($"Unknown device item {deviceItem}.");
 		}
 
 		void IApi.OnInit(BallManager ballManager)

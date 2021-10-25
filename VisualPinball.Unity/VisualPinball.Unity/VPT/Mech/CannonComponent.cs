@@ -47,7 +47,7 @@ namespace VisualPinball.Unity
 				return;
 			}
 
-			player.RegisterMech(this);
+			player.RegisterCannonComponent(this);
 		}
 
 		public void UpdateRotation(float y)
