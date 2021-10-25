@@ -72,11 +72,13 @@ namespace VisualPinball.Unity
 
 		#region IApiSwitch
 
-		IApiSwitch IApiSwitchDevice.Switch(string deviceItem) => this;
+		public bool IsSwitchClosed => _switchHandler.IsEnabled;
 		IApiSwitchStatus IApiSwitch.AddSwitchDest(SwitchConfig switchConfig) => AddSwitchDest(switchConfig.WithPulse(true));
 		void IApiSwitch.AddWireDest(WireDestConfig wireConfig) => AddWireDest(wireConfig.WithPulse(true));
 		void IApiSwitch.RemoveWireDest(string destId) => RemoveWireDest(destId);
 		void IApiSwitch.DestroyBall(Entity ballEntity) => DestroyBall(ballEntity);
+
+		IApiSwitch IApiSwitchDevice.Switch(string deviceItem) => this;
 
 		#endregion
 

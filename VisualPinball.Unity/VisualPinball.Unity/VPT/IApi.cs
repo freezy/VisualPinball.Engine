@@ -168,6 +168,10 @@ namespace VisualPinball.Unity
 		/// Note that for pulse switches, you currently only get the "closed" event.
 		/// </remarks>
 		event EventHandler<SwitchEventArgs> Switch;
+
+		/// True if switch is closed, false otherwise.
+		/// </summary>
+		bool IsSwitchClosed { get; }
 	}
 
 	/// <summary>

@@ -114,7 +114,7 @@ namespace VisualPinball.Unity.Editor
 						var dropTargetComponent = (DropTargetComponent)_dropTargetsProperty.GetArrayElementAtIndex(index).objectReferenceValue;
 						var dropTargetApi = tableApi.DropTarget(dropTargetComponent);
 
-						DrawSwitch($"Drop Target {index + 1}", dropTargetApi.IsDropped);
+						DrawSwitch($"Drop Target {index + 1}", dropTargetApi.IsSwitchClosed);
 
 						if (GUILayout.Button(dropTargetApi.IsDropped ? "Reset" : "Drop"))
 						{
