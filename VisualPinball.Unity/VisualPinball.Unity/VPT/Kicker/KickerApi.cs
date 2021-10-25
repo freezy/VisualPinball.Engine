@@ -16,6 +16,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Unity.Entities;
 using Unity.Mathematics;
 using UnityEngine;
@@ -120,12 +121,18 @@ namespace VisualPinball.Unity
 		}
 
 		IApiSwitch IApiSwitchDevice.Switch(string deviceItem) => this;
-
 		IApiCoil IApiCoilDevice.Coil(string deviceItem) => Coil(deviceItem);
 
 		IApiWireDest IApiWireDeviceDest.Wire(string deviceItem) => Coil(deviceItem);
 
-		private IApiCoil Coil(string deviceItem) => _coils.ContainsKey(deviceItem) ? _coils[deviceItem] : null;
+		private IApiCoil Coil(string deviceItem)
+		{
+			if (_coils.ContainsKey(deviceItem)) {
+				return _coils[deviceItem];
+			}
+
+			throw new ArgumentException($"Unknown coil \"{deviceItem}\". Valid names are [ {string.Join(", ", _coils.Select(item => $"\"{item.Key}\""))} ].");
+		}
 
 		private void OnBallDestroyed()
 		{

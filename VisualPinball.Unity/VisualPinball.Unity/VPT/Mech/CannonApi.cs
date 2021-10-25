@@ -20,8 +20,7 @@ namespace VisualPinball.Unity
 		private readonly CannonComponent _cannonComponent;
 		private Player _player;
 
-		private DeviceCoil GunMotorCoil;
-
+		public DeviceCoil GunMotorCoil;
 		public DeviceSwitch GunHomeSwitch;
 		public DeviceSwitch GunMarkSwitch;
 
@@ -37,23 +36,25 @@ namespace VisualPinball.Unity
 			_player = player;
 		}
 
-		IApiCoil IApiCoilDevice.Coil(string deviceItem)
+		IApiCoil IApiCoilDevice.Coil(string deviceItem) => Coil(deviceItem);
+
+		private IApiCoil Coil(string deviceItem)
 		{
-			return deviceItem == CannonComponent.GunMotorCoilItem ? GunMotorCoil : null;
+			return deviceItem switch
+			{
+				CannonComponent.GunMotorCoilItem => GunMotorCoil,
+				_ => throw new ArgumentException($"Unknown coil \"{deviceItem}\". Valid name is: \"{CannonComponent.GunMotorCoilItem}\".")
+			};
 		}
 
 		IApiSwitch IApiSwitchDevice.Switch(string deviceItem)
 		{
-			if (deviceItem == CannonComponent.GunHomeSwitchItem)
+			return deviceItem switch
 			{
-				return GunHomeSwitch;
-			}
-			else if (deviceItem == CannonComponent.GunMarkSwitchItem)
-			{
-				return GunMarkSwitch;
-			}
-
-			return null;
+				CannonComponent.GunHomeSwitchItem => GunHomeSwitch,
+				CannonComponent.GunMarkSwitchItem => GunMarkSwitch,
+				_ => throw new ArgumentException($"Unknown switch \"{deviceItem}\". Valid names are: [ \"{CannonComponent.GunHomeSwitchItem}\", \"{CannonComponent.GunMarkSwitchItem}\" ].")
+			};
 		}
 
 		void IApi.OnInit(BallManager ballManager)
@@ -79,14 +80,14 @@ namespace VisualPinball.Unity
 		{
 			_enabled = true;
 
-			Logger.Info("OnGunMotorCoilEnabled");
+			Logger.Info("OnGunMotorCoilEnabled - starting rotation");
 		}
 
 		private void OnGunMotorCoilDisabled()
 		{
 			_enabled = false;
 
-			Logger.Info("OnGunMotorCoilDisabled");
+			Logger.Info("OnGunMotorCoilDisabled - stopping rotation");
 		}
 
 		private void OnUpdate(object sender, EventArgs eventArgs)
@@ -147,14 +148,14 @@ namespace VisualPinball.Unity
 
 			_cannonComponent.UpdateRotation(_position / Length);
 
-			Logger.Debug($"Cannon position={_position}");
+			Logger.Debug($"{_cannonComponent.name} position={_position}");
 		}
 
 		void IApi.OnDestroy()
 		{
 			_player.OnUpdate -= OnUpdate;
 
-			Logger.Info("Destroying cannon!");
+			Logger.Info($"Destroying {_cannonComponent.name}");
 		}
 	}
 }

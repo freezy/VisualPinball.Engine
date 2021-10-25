@@ -13,9 +13,8 @@ namespace VisualPinball.Unity
 		private readonly DropTargetBankComponent _dropTargetBankComponent;
 		private Player _player;
 
+		private List<DropTargetApi> _dropTargetApis = new List<DropTargetApi>();
 		public DeviceCoil ResetCoil;
-
-		public List<DropTargetApi> _dropTargetApis = new List<DropTargetApi>();
 
 		public event EventHandler Init;
 
@@ -25,14 +24,15 @@ namespace VisualPinball.Unity
 			_player = player;
 		}
 
-		IApiCoil IApiCoilDevice.Coil(string deviceItem)
-		{
-			if (deviceItem == _dropTargetBankComponent.name)
-			{
-				return ResetCoil;
-			}
+		IApiCoil IApiCoilDevice.Coil(string deviceItem) => Coil(deviceItem);
 
-			throw new ArgumentException($"Unknown device item {deviceItem}.");
+		private IApiCoil Coil(string deviceItem)
+		{
+			return deviceItem switch
+			{
+				DropTargetBankComponent.ResetCoilItem => ResetCoil,
+				_ => throw new ArgumentException($"Unknown reset coil \"{deviceItem}\". Valid name is \"{DropTargetBankComponent.ResetCoilItem}\".")
+			};
 		}
 
 		void IApi.OnInit(BallManager ballManager)
