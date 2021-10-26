@@ -21,19 +21,11 @@ To configure the drop target bank, select the total number of drop targets from 
 
 To configure the reset coil, use the [Coil Manager](xref:coil_manager) and associate the corresponding game logic engine coil with the *Reset Coil* exposed by the drop target bank:
 
-![Coil Manager](drop-target-bank-coil-manager-1.png)
+![Coil Manager](drop-target-bank-coil-manager.png)
 
 ## Runtime
 
-During gameplay, the inspector will show you switch information for each of the drop targets.  You can also drop or reset a drop target by using the *Drop* / *Reset button*. To drop or reset all drop targets, use the *Drop All* / *Reset All* buttons:
 
-<img src="drop-target-bank-test.png" width="717" class="img-responsive pull-right" style="margin-left: 15px"/>
+<img src="drop-target-bank-inspector-runtime.gif" width="328" class="img-responsive pull-left" style="margin-right: 15px">
 
-To test resetting a drop target bank from the *Coil Manager*, click the icon next to the corresponding reset coil:
-
-<img src="drop-target-bank-coil-manager-2.png" width="799" class="img-responsive pull-right" style="margin-left: 15px"/>
-
-
-
-
-
+During gameplay, the inspector shows you switch information for each of the drop targets. You can also drop or reset a drop target by using the *Drop* and *Reset* buttons. To test resetting a drop target bank from the *Coil Manager*, click the icon next to the corresponding reset coil.
