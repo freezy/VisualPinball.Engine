@@ -20,9 +20,6 @@ If your game has drop target banks with multiple drop targets, select *Drop Targ
 
 <img src="drop-target-bank-toolbox.png" width="107" class="img-responsive pull-right" style="margin-left: 15px"/>
 
-> [!NOTE]
-> You can rename the drop target bank to whatever you want. Make sure all drop target banks have unique names.
-
 ## Configuring the Drop Target Bank size
 
 To configure the drop target bank, select the total number of drop targets from the *Banks* drop down. 

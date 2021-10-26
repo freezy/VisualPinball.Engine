@@ -108,15 +108,28 @@ namespace VisualPinball.Unity.Editor
 						GUILayout.BeginHorizontal();
 
 						var dropTargetComponent = (DropTargetComponent)_dropTargetsProperty.GetArrayElementAtIndex(index).objectReferenceValue;
-						var dropTargetApi = tableApi.DropTarget(dropTargetComponent);
 
-						DrawSwitch($"Drop Target {index + 1}", dropTargetApi.IsSwitchEnabled);
-
-						if (GUILayout.Button(dropTargetApi.IsDropped ? "Reset" : "Drop"))
+						if (dropTargetComponent != null)
 						{
-							dropTargetApi.IsDropped = !dropTargetApi.IsDropped;
-						}
+							var dropTargetApi = tableApi.DropTarget(dropTargetComponent);
 
+							DrawSwitch($"Drop Target {index + 1}", dropTargetApi.IsSwitchEnabled);
+
+							if (GUILayout.Button(dropTargetApi.IsDropped ? "Reset" : "Drop"))
+							{
+								dropTargetApi.IsDropped = !dropTargetApi.IsDropped;
+							}
+						}
+						else
+						{
+							GUILayout.Label($"Drop Target {index + 1}");
+
+							GUIStyle style = new GUIStyle(GUI.skin.label);
+							style.fontStyle = FontStyle.Italic;
+							style.alignment = TextAnchor.MiddleRight;
+
+							GUILayout.Label("Not configured", style);
+						}
 
 						GUILayout.EndHorizontal();
 					}
@@ -132,7 +145,12 @@ namespace VisualPinball.Unity.Editor
 				{
 					for (var index = 0; index < _bankSizeProperty.intValue; index++)
 					{
-						tableApi.DropTarget((DropTargetComponent)_dropTargetsProperty.GetArrayElementAtIndex(index).objectReferenceValue).IsDropped = true;
+						var dropTargetComponent = (DropTargetComponent)_dropTargetsProperty.GetArrayElementAtIndex(index).objectReferenceValue;
+
+						if (dropTargetComponent != null)
+						{
+							tableApi.DropTarget(dropTargetComponent).IsDropped = true;
+						}
 					}
 				}
 
@@ -140,7 +158,12 @@ namespace VisualPinball.Unity.Editor
 				{
 					for (var index = 0; index < _bankSizeProperty.intValue; index++)
 					{
-						tableApi.DropTarget((DropTargetComponent)_dropTargetsProperty.GetArrayElementAtIndex(index).objectReferenceValue).IsDropped = false;
+						var dropTargetComponent = (DropTargetComponent)_dropTargetsProperty.GetArrayElementAtIndex(index).objectReferenceValue;
+
+						if (dropTargetComponent != null)
+						{
+							tableApi.DropTarget(dropTargetComponent).IsDropped = false;
+						}
 					}
 				}
 
