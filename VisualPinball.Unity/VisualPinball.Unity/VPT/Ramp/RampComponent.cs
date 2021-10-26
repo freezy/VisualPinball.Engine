@@ -31,6 +31,7 @@ using VisualPinball.Engine.Math;
 using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Ramp;
 using VisualPinball.Engine.VPT.Table;
+using MathF = VisualPinball.Engine.Math.MathF;
 
 namespace VisualPinball.Unity
 {
