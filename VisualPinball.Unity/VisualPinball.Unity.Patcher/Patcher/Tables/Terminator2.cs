@@ -19,11 +19,11 @@
 // ReSharper disable UnusedMember.Global
 // ReSharper disable UnusedType.Global
 
-using System.Collections.Generic;
 using System.Linq;
 using UnityEditor;
 using UnityEngine;
 using VisualPinball.Engine.Math;
+using VisualPinball.Engine.PinMAME;
 using VisualPinball.Engine.VPT;
 using Color = UnityEngine.Color;
 
@@ -72,7 +72,7 @@ namespace VisualPinball.Unity.Patcher
 
 			// GLE
 			Object.DestroyImmediate(tableGo.GetComponent<DefaultGamelogicEngine>());
-			var pinmameGle = tableGo.AddComponent<Engine.PinMAME.PinMameGamelogicEngine>();
+			var pinmameGle = tableGo.AddComponent<PinMameGamelogicEngine>();
 			pinmameGle.Game = new Engine.PinMAME.Games.Terminator2();
 			pinmameGle.romId = "t2_l82";
 			tableComponent.RepopulateHardware(pinmameGle);
@@ -347,7 +347,7 @@ namespace VisualPinball.Unity.Patcher
 		[NameMatch("sw78")]
 		public void Shooter(KickerComponent kickerComponent)
 		{
-			kickerComponent.Coils[0].Name = "kicker_coil";
+			kickerComponent.Coils[0].Name = "Shooter";
 			kickerComponent.Coils[0].Speed = 50;
 			kickerComponent.Coils[0].Angle = 0;
 		}
@@ -360,13 +360,22 @@ namespace VisualPinball.Unity.Patcher
 			tp.FromKicker = kickerComponent;
 			tp.ToKicker = FindSiblingComponent<KickerComponent>(kickerComponent, "sw76a");
 			tp.ToKickerItem = tp.ToKicker.AvailableCoils.First().Id;
+			tp.EjectDelay = 0;
 			tp.EjectAfterTeleportation = true;
+		}
+
+		[NameMatch("sw76a")]
+		public void Teleporter(KickerComponent kickerComponent)
+		{
+			kickerComponent.Coils[0].Name = "Teleporter Out";
+			kickerComponent.Coils[0].Speed = 15;
+			kickerComponent.Coils[0].Angle = 72;
 		}
 
 		[NameMatch("sw55")]
 		public void TopLock(KickerComponent kickerComponent)
 		{
-			kickerComponent.Coils[0].Name = "kicker_coil";
+			kickerComponent.Coils[0].Name = "Kick Out";
 			kickerComponent.Coils[0].Speed = 5;
 			kickerComponent.Coils[0].Angle = 270;
 		}
@@ -374,7 +383,7 @@ namespace VisualPinball.Unity.Patcher
 		[NameMatch("sw51")]
 		public void LeftLock(KickerComponent kickerComponent)
 		{
-			kickerComponent.Coils[0].Name = "kicker_coil";
+			kickerComponent.Coils[0].Name = "Kick Out";
 			kickerComponent.Coils[0].Speed = 13;
 			kickerComponent.Coils[0].Angle = 160;
 		}
