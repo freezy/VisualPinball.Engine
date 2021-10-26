@@ -21,12 +21,17 @@ using UnityEngine;
 
 namespace VisualPinball.Unity
 {
-	public class RampApi : CollidableApi<RampComponent, RampColliderComponent, Engine.VPT.Ramp.RampData>, IApi
+	public class RampApi : CollidableApi<RampComponent, RampColliderComponent, Engine.VPT.Ramp.RampData>, IApi, IApiHittable
 	{
 		/// <summary>
 		/// Event emitted when the table is started.
 		/// </summary>
 		public event EventHandler Init;
+
+		/// <summary>
+		/// Event emitted when the ball hits the ramp.
+		/// </summary>
+		public event EventHandler<HitEventArgs> Hit;
 
 		internal RampApi(GameObject go, Entity entity, Entity parentEntity, Player player) : base(go, entity, parentEntity, player)
 		{
@@ -38,6 +43,11 @@ namespace VisualPinball.Unity
 		{
 			base.OnInit(ballManager);
 			Init?.Invoke(this, EventArgs.Empty);
+		}
+
+		public void OnHit(Entity ballEntity, bool isUnHit = false)
+		{
+			Hit?.Invoke(this, new HitEventArgs(ballEntity));
 		}
 
 		void IApi.OnDestroy()
