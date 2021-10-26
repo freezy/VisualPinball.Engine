@@ -18,6 +18,7 @@ using System;
 using System.IO;
 using VisualPinball.Engine.Game;
 using VisualPinball.Engine.Math;
+using MathF = VisualPinball.Engine.Math.MathF;
 
 namespace VisualPinball.Engine.VPT.Light
 {
@@ -57,7 +58,7 @@ namespace VisualPinball.Engine.VPT.Light
 			};
 			return new Light(lightData);
 		}
-		
+
 		public static Light GetDefault(Table.Table table) => GetDefault(table.GetNewName<Light>("Light"), table.Width / 2f, table.Height / 2f);
 
 		#region IRenderable
