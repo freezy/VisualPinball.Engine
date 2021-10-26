@@ -113,7 +113,7 @@ namespace VisualPinball.Unity.Editor
 						{
 							var dropTargetApi = tableApi.DropTarget(dropTargetComponent);
 
-							DrawSwitch($"Drop Target {index + 1}", dropTargetApi.IsSwitchEnabled);
+							DrawSwitch($"Drop Target {index + 1} ({dropTargetComponent.name})", dropTargetApi.IsSwitchEnabled);
 
 							if (GUILayout.Button(dropTargetApi.IsDropped ? "Reset" : "Drop"))
 							{
@@ -181,9 +181,16 @@ namespace VisualPinball.Unity.Editor
 		{
 			var labelPos = EditorGUILayout.GetControlRect();
 			labelPos.height = 18;
-			var switchPos = new Rect((float)(labelPos.x + (double)EditorGUIUtility.labelWidth + 2.0), labelPos.y, labelPos.height, labelPos.height);
+
+			var icon = Icons.Switch(sw, IconSize.Small, sw ? IconColor.Orange : IconColor.Gray);
+			var width = ((labelPos.height / icon.height) * icon.width) + 2;
+
+			labelPos.x += width;
+			labelPos.width -= width; 
+			
+			var switchPos = new Rect(labelPos.x - width, labelPos.y, labelPos.height, labelPos.height);
 			GUI.Label(labelPos, label);
-			GUI.DrawTexture(switchPos, Icons.Switch(sw, IconSize.Small, sw ? IconColor.Orange : IconColor.Gray));
+			GUI.DrawTexture(switchPos, icon);
 		}
 
 		private static void DrawCoil(string label, DeviceCoil coil)
