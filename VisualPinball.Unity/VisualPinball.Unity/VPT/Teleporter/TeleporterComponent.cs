@@ -74,10 +74,14 @@ namespace VisualPinball.Unity
 		private void Awake()
 		{
 			var player = GetComponentInParent<Player>();
-			if (player == null)
-			{
-				Logger.Error($"Cannot find player for cannon {name}.");
+			if (player == null) {
+				Logger.Error($"Cannot find player for teleporter {name}.");
 				return;
+			}
+
+			// disable destination kicker collider
+			if (ToKicker != null) {
+				ToKicker.GetComponent<KickerColliderComponent>().enabled = false;
 			}
 
 			player.RegisterTeleporter(this);
