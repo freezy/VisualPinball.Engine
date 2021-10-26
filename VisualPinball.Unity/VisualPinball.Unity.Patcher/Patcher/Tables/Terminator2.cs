@@ -23,7 +23,6 @@ using System.Linq;
 using UnityEditor;
 using UnityEngine;
 using VisualPinball.Engine.Math;
-using VisualPinball.Engine.PinMAME;
 using VisualPinball.Engine.VPT;
 using Color = UnityEngine.Color;
 
@@ -72,7 +71,7 @@ namespace VisualPinball.Unity.Patcher
 
 			// GLE
 			Object.DestroyImmediate(tableGo.GetComponent<DefaultGamelogicEngine>());
-			var pinmameGle = tableGo.AddComponent<PinMameGamelogicEngine>();
+			var pinmameGle = tableGo.AddComponent<Engine.PinMAME.PinMameGamelogicEngine>();
 			pinmameGle.Game = new Engine.PinMAME.Games.Terminator2();
 			pinmameGle.romId = "t2_l82";
 			tableComponent.RepopulateHardware(pinmameGle);
@@ -573,7 +572,7 @@ namespace VisualPinball.Unity.Patcher
 		[NameMatch("GI_5", FloatParam = 0.02f)]
 		[NameMatch("GI_6", FloatParam = 0.01f)]
 
-		public void GiDynamicShadow(GameObject go, float param) => LightShadow(go, true, true, param);
+		public void GiDynamicShadow(GameObject go, float param) => LightShadow(go, false, false, param);
 
 		[NameMatch("GI_10", FloatParam = 0.01f)]
 		[NameMatch("GI_11", FloatParam = 0.01f)]
@@ -601,7 +600,7 @@ namespace VisualPinball.Unity.Patcher
 		[NameMatch("GI_31", FloatParam = 0.01f)] // leaks
 		[NameMatch("GI_32", FloatParam = 0.01f)] // leaks
 		[NameMatch("GI_35", FloatParam = 0.01f)] // leaks (not too badly)
-		public void GiStaticShadow(GameObject go, float param) => LightShadow(go, true, false, param);
+		public void GiStaticShadow(GameObject go, float param) => LightShadow(go, false, false, param);
 
 		[NameMatch("GI_27")]
 		[NameMatch("GI_28")]
