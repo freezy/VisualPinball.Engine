@@ -37,11 +37,11 @@ namespace VisualPinball.Unity.Editor
 		}
 
 		private const string BallRollerName = "ball_roller";
-		private const string BumperName = "bumper";
 		private const string BoltName = "bolt";
+		private const string BumperName = "bumper";
 		private const string CoilName = "coil";
-		private const string DropTargetName = "drop_target";
 		private const string DropTargetBankName = "drop_target_bank";
+		private const string DropTargetName = "drop_target";
 		private const string FlasherName = "light_flasher";
 		private const string FlipperName = "flipper";
 		private const string GateName = "gate";
@@ -51,25 +51,25 @@ namespace VisualPinball.Unity.Editor
 		private const string LightGroupName = "light_group";
 		private const string LightName = "light";
 		private const string PlayfieldName = "playfield";
-		private const string PlungerName = "plunger";
 		private const string PlugName = "plug";
+		private const string PlungerName = "plunger";
 		private const string PrimitiveName = "primitive";
 		private const string RampName = "ramp";
 		private const string RubberName = "rubber";
+		private const string SlingshotName = "slingshot";
 		private const string SpinnerName = "spinner";
 		private const string SurfaceName = "surface";
-		private const string SlingshotName = "slingshot";
+		private const string SwitchNcName = "switch_nc";
+		private const string SwitchNoName = "switch_no";
 		private const string TableName = "table";
 		private const string TeleporterName = "teleporter";
 		private const string TriggerName = "trigger";
 		private const string TroughName = "trough";
-		private const string SwitchNcName = "switch_nc";
-		private const string SwitchNoName = "switch_no";
 
 		private static readonly string[] Names = {
-			BallRollerName, BumperName, BoltName, CoilName, DropTargetName, DropTargetBankName, FlasherName, FlipperName, HitTargetName, GateName, KeyName,
-			KickerName, LightGroupName, LightName, PlayfieldName, PlungerName, PlugName, PrimitiveName, RampName, RubberName, SpinnerName, SurfaceName,
-			TableName, TeleporterName, TriggerName, TroughName, SlingshotName, SwitchNcName, SwitchNoName
+			BallRollerName, BoltName, BumperName, CoilName, DropTargetBankName, DropTargetName, FlasherName, FlipperName, GateName, HitTargetName, KeyName,
+			KickerName, LightGroupName, LightName, PlayfieldName, PlugName, PlungerName, PrimitiveName, RampName, RubberName, SlingshotName, SpinnerName,
+			SurfaceName, SwitchNcName, SwitchNoName, TableName, TeleporterName, TriggerName, TroughName,
 		};
 
 		private readonly Dictionary<IconVariant, Texture2D> _icons = new Dictionary<IconVariant, Texture2D>();
@@ -101,33 +101,33 @@ namespace VisualPinball.Unity.Editor
 		}
 
 		public static Texture2D BallRoller(IconSize size = IconSize.Large, IconColor color = IconColor.Gray) => Instance.GetItem(BallRollerName, size, color);
+		public static Texture2D Bolt(IconSize size = IconSize.Large, IconColor color = IconColor.Gray) => Instance.GetItem(BoltName, size, color);
 		public static Texture2D Bumper(IconSize size = IconSize.Large, IconColor color = IconColor.Gray) => Instance.GetItem(BumperName, size, color);
+		public static Texture2D Coil(IconSize size = IconSize.Large, IconColor color = IconColor.Gray) => Instance.GetItem(CoilName, size, color);
 		public static Texture2D DropTarget(IconSize size = IconSize.Large, IconColor color = IconColor.Gray) => Instance.GetItem(DropTargetName, size, color);
 		public static Texture2D DropTargetBank(IconSize size = IconSize.Large, IconColor color = IconColor.Gray) => Instance.GetItem(DropTargetBankName, size, color);
 		public static Texture2D Flasher(IconSize size = IconSize.Large, IconColor color = IconColor.Gray) => Instance.GetItem(FlasherName, size, color);
 		public static Texture2D Flipper(IconSize size = IconSize.Large, IconColor color = IconColor.Gray) => Instance.GetItem(FlipperName, size, color);
 		public static Texture2D Gate(IconSize size = IconSize.Large, IconColor color = IconColor.Gray) => Instance.GetItem(GateName, size, color);
 		public static Texture2D HitTarget(IconSize size = IconSize.Large, IconColor color = IconColor.Gray) => Instance.GetItem(HitTargetName, size, color);
+		public static Texture2D Key(IconSize size = IconSize.Large, IconColor color = IconColor.Gray) => Instance.GetItem(KeyName, size, color);
 		public static Texture2D Kicker(IconSize size = IconSize.Large, IconColor color = IconColor.Gray) => Instance.GetItem(KickerName, size, color);
 		public static Texture2D Light(IconSize size = IconSize.Large, IconColor color = IconColor.Gray) => Instance.GetItem(LightName, size, color);
 		public static Texture2D LightGroup(IconSize size = IconSize.Large, IconColor color = IconColor.Gray) => Instance.GetItem(LightGroupName, size, color);
 		public static Texture2D Playfield(IconSize size = IconSize.Large, IconColor color = IconColor.Gray) => Instance.GetItem(PlayfieldName, size, color);
-		public static Texture2D Plunger(IconSize size = IconSize.Large, IconColor color = IconColor.Gray) => Instance.GetItem(PlungerName, size, color);
 		public static Texture2D Plug(IconSize size = IconSize.Large, IconColor color = IconColor.Gray) => Instance.GetItem(PlugName, size, color);
+		public static Texture2D Plunger(IconSize size = IconSize.Large, IconColor color = IconColor.Gray) => Instance.GetItem(PlungerName, size, color);
 		public static Texture2D Primitive(IconSize size = IconSize.Large, IconColor color = IconColor.Gray) => Instance.GetItem(PrimitiveName, size, color);
 		public static Texture2D Ramp(IconSize size = IconSize.Large, IconColor color = IconColor.Gray) => Instance.GetItem(RampName, size, color);
 		public static Texture2D Rubber(IconSize size = IconSize.Large, IconColor color = IconColor.Gray) => Instance.GetItem(RubberName, size, color);
+		public static Texture2D Slingshot(IconSize size = IconSize.Large, IconColor color = IconColor.Gray) => Instance.GetItem(SlingshotName, size, color);
 		public static Texture2D Spinner(IconSize size = IconSize.Large, IconColor color = IconColor.Gray) => Instance.GetItem(SpinnerName, size, color);
 		public static Texture2D Surface(IconSize size = IconSize.Large, IconColor color = IconColor.Gray) => Instance.GetItem(SurfaceName, size, color);
+		public static Texture2D Switch(bool isClosed, IconSize size = IconSize.Large, IconColor color = IconColor.Gray) => Instance.GetItem(isClosed ? SwitchNcName : SwitchNoName, size, color);
 		public static Texture2D Table(IconSize size = IconSize.Large, IconColor color = IconColor.Gray) => Instance.GetItem(TableName, size, color);
 		public static Texture2D Teleporter(IconSize size = IconSize.Large, IconColor color = IconColor.Gray) => Instance.GetItem(TeleporterName, size, color);
 		public static Texture2D Trigger(IconSize size = IconSize.Large, IconColor color = IconColor.Gray) => Instance.GetItem(TriggerName, size, color);
 		public static Texture2D Trough(IconSize size = IconSize.Large, IconColor color = IconColor.Gray) => Instance.GetItem(TroughName, size, color);
-		public static Texture2D Slingshot(IconSize size = IconSize.Large, IconColor color = IconColor.Gray) => Instance.GetItem(SlingshotName, size, color);
-		public static Texture2D Switch(bool isClosed, IconSize size = IconSize.Large, IconColor color = IconColor.Gray) => Instance.GetItem(isClosed ? SwitchNcName : SwitchNoName, size, color);
-		public static Texture2D Coil(IconSize size = IconSize.Large, IconColor color = IconColor.Gray) => Instance.GetItem(CoilName, size, color);
-		public static Texture2D Key(IconSize size = IconSize.Large, IconColor color = IconColor.Gray) => Instance.GetItem(KeyName, size, color);
-		public static Texture2D Bolt(IconSize size = IconSize.Large, IconColor color = IconColor.Gray) => Instance.GetItem(BoltName, size, color);
 
 		public static Texture2D ByComponent<T>(T mb, IconSize size = IconSize.Large, IconColor color = IconColor.Gray)
 			where T : class

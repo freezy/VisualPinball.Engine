@@ -31,7 +31,7 @@ namespace VisualPinball.Unity
 		private Plane _playfieldPlane;
 
 		private EntityManager _entityManager;
-		private Entity _ballEntity;
+		private Entity _ballEntity = Entity.Null;
 		private EntityQuery _ballEntityQuery;
 
 		private void Awake()
@@ -84,17 +84,18 @@ namespace VisualPinball.Unity
 					}
 				}
 
-			} else if (Mouse.current.middleButton.isPressed) {
+			} else if (Mouse.current.middleButton.isPressed && _ballEntity != Entity.Null) {
 				if (GetCursorPositionOnPlayfield(out var mousePosition)) {
 					var ballData = _entityManager.GetComponentData<BallData>(_ballEntity);
 					UpdateBall(ref ballData, mousePosition);
 				}
 			}
 
-			if (Mouse.current.middleButton.wasReleasedThisFrame) {
+			if (Mouse.current.middleButton.wasReleasedThisFrame && _ballEntity != Entity.Null) {
 				var ballData = _entityManager.GetComponentData<BallData>(_ballEntity);
 				ballData.ManualControl = false;
 				_entityManager.SetComponentData(_ballEntity, ballData);
+				_ballEntity = Entity.Null;
 			}
 		}
 

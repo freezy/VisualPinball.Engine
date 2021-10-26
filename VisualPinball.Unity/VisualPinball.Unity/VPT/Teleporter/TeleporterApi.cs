@@ -66,8 +66,13 @@ namespace VisualPinball.Unity
 
 			var ballInSrc = _fromKicker.HasBall();
 			var ballInDst = _toKicker.HasBall();
-			if (!ballInSrc || ballInDst) {
+			if (!ballInSrc && !ballInDst || ballInSrc && ballInDst) {
 				// duh, do nothing.
+				return;
+			}
+
+			if (ballInDst) {
+				Eject();
 				return;
 			}
 
@@ -80,15 +85,20 @@ namespace VisualPinball.Unity
 				return;
 			}
 
-			if (_component.EjectDelay > 0) {
-				_simulationSystemGroup.ScheduleAction((int)math.round(_component.EjectDelay * 1000f), Eject);
-
-			} else {
-				Eject();
-			}
+			Eject();
 		}
 
 		private void Eject()
+		{
+			if (_component.EjectDelay > 0) {
+				_simulationSystemGroup.ScheduleAction((int)math.round(_component.EjectDelay * 1000f), TriggerEjectCoil);
+
+			} else {
+				TriggerEjectCoil();
+			}
+		}
+
+		private void TriggerEjectCoil()
 		{
 			if (!string.IsNullOrEmpty(_component.ToKickerItem)) {
 				var kickerCoil = (_toKicker as IApiCoilDevice).Coil(_component.ToKickerItem);
