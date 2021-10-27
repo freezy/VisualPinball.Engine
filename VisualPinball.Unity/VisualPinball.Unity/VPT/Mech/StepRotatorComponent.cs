@@ -31,7 +31,14 @@ namespace VisualPinball.Unity
 	{
 		#region Data
 
+		[Range(0f, 360f)]
+		[Tooltip("Angle in degrees the object rotates until it changes rotation and goes back. It's the angle that corresponds to the number of steps below.")]
+		public float TotalRotationDegrees = 65;
+
+		[Min(0)]
 		public int NumSteps;
+
+		[Tooltip("On each mark, the switch changes are transmitted to the gamelogic engine.")]
 		public StepRotatorMark[] Marks;
 
 		#endregion

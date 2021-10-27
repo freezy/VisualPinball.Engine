@@ -119,14 +119,6 @@ namespace VisualPinball.Unity
 			return kickerCollisionData.HasBall;
 		}
 
-		internal Entity BallEntity {
-			get {
-				var entityManager = World.DefaultGameObjectInjectionWorld.EntityManager;
-				var kickerCollisionData = entityManager.GetComponentData<KickerCollisionData>(Entity);
-				return kickerCollisionData.BallEntity;
-			}
-		}
-
 		internal BallData GetBallData()
 		{
 			var entityManager = World.DefaultGameObjectInjectionWorld.EntityManager;
@@ -134,6 +126,15 @@ namespace VisualPinball.Unity
 			return kickerCollisionData.HasBall
 				? entityManager.GetComponentData<BallData>(kickerCollisionData.BallEntity)
 				: default;
+		}
+
+		internal Entity BallEntity
+		{
+			get {
+				var entityManager = World.DefaultGameObjectInjectionWorld.EntityManager;
+				var kickerCollisionData = entityManager.GetComponentData<KickerCollisionData>(Entity);
+				return kickerCollisionData.BallEntity;
+			}
 		}
 
 		#region Wiring
