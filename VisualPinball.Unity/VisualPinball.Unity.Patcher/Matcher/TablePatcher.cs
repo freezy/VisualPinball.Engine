@@ -92,6 +92,23 @@ namespace VisualPinball.Unity.Patcher
 			return CreateEmptyGameObject(parentGo, name);
 		}
 
+		/// <summary>
+		/// Set a new parent for the given child while keeping the position and rotation.
+		/// </summary>
+		/// <param name="child"></param>
+		/// <param name="parent"></param>
+		protected static void Reparent(GameObject child, GameObject parent)
+		{
+			var rot = child.transform.rotation;
+			var pos = child.transform.position;
+
+			// re-parent the child
+			child.transform.SetParent(parent.transform, false);
+
+			child.transform.rotation = rot;
+			child.transform.position = pos;
+		}
+
 		#endregion
 
 		#region Element Helpers

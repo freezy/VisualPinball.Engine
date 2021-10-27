@@ -67,6 +67,10 @@ namespace VisualPinball.Unity
 		private const string SwCreateBall = "s_create_ball";
 		private const string SwRedBumper = "s_red_bumper";
 
+		private const string SwCannon = "s_cannon";
+		private const string SwMotorStart = "s_motor_start";
+		private const string SwMotorEnd = "s_motor_end";
+
 		public GamelogicEngineSwitch[] AvailableSwitches => _availableSwitches.ToArray();
 		private readonly List<GamelogicEngineSwitch> _availableSwitches = new List<GamelogicEngineSwitch> {
 			new GamelogicEngineSwitch(SwLeftFlipper) { Description = "Left Flipper (Button)", InputActionHint = InputConstants.ActionLeftFlipper },
@@ -78,7 +82,11 @@ namespace VisualPinball.Unity
 			new GamelogicEngineSwitch(SwTrough4) { Description = "Trough 4", DeviceHint = "^Trough\\s*\\d?", DeviceItemHint = "4"},
 			new GamelogicEngineSwitch(SwTrough4) { Description = "Trough 4", DeviceHint = "^Trough\\s*\\d?", DeviceItemHint = "4"},
 			new GamelogicEngineSwitch(SwCreateBall) { Description = "Create Debug Ball", InputActionHint = InputConstants.ActionCreateBall, InputMapHint = InputConstants.MapDebug },
-			new GamelogicEngineSwitch(SwRedBumper) { Description = "Red Bumper", DeviceHint = "^Bumper1$" }
+			new GamelogicEngineSwitch(SwRedBumper) { Description = "Red Bumper", DeviceHint = "^Bumper1$" },
+
+			new GamelogicEngineSwitch(SwCannon) { Description = "Cannon" },
+			new GamelogicEngineSwitch(SwMotorStart) { Description = "Motor Start" },
+			new GamelogicEngineSwitch(SwMotorEnd) { Description = "Motor End" }
 		};
 
 		private const string CoilLeftFlipperMain = "c_flipper_left_main";
@@ -87,6 +95,7 @@ namespace VisualPinball.Unity
 		private const string CoilRightFlipperHold = "c_flipper_right_hold";
 		private const string CoilTroughEntry = "c_trough_entry";
 		private const string CoilTroughEject = "c_trough_eject";
+		private const string CoilMotorStart = "c_motor_start";
 
 		public GamelogicEngineCoil[] AvailableCoils => _availableCoils.ToArray();
 		private readonly List<GamelogicEngineCoil> _availableCoils = new List<GamelogicEngineCoil> {
@@ -96,6 +105,7 @@ namespace VisualPinball.Unity
 			new GamelogicEngineCoil(CoilRightFlipperHold) { Description = "Right Flipper (Hold)", DeviceHint = "^(RightFlipper|RFlipper|FlipperRight|FlipperR)$", DeviceItemHint = FlipperComponent.HoldCoilItem },
 			new GamelogicEngineCoil(CoilTroughEject) { Description = "Trough Eject", DeviceHint = "^Trough\\s*\\d?", DeviceItemHint = TroughComponent.EjectCoilId},
 			new GamelogicEngineCoil(CoilTroughEntry) { Description = "Trough Entry", DeviceHint = "^Trough\\s*\\d?", DeviceItemHint = TroughComponent.EntryCoilId},
+			new GamelogicEngineCoil(CoilMotorStart) { Description = "Cannon Motor" },
 		};
 
 		public GamelogicEngineWire[] AvailableWires { get; } = {
@@ -254,6 +264,23 @@ namespace VisualPinball.Unity
 					if (isClosed) {
 						_ballManager.CreateBall(new DebugBallCreator(630, _playfieldComponent.Height / 2f, _playfieldComponent.TableHeight));
 					}
+					break;
+				}
+
+				case SwCannon: {
+					SetCoil(CoilMotorStart, true);
+					break;
+				}
+
+				case SwMotorStart: {
+					if (isClosed) {
+						SetCoil(CoilMotorStart, false);
+					}
+					break;
+				}
+
+				case SwMotorEnd: {
+
 					break;
 				}
 			}

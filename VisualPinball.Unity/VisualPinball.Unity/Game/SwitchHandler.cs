@@ -22,7 +22,7 @@ namespace VisualPinball.Unity
 		/// </summary>
 		public bool IsEnabled;
 
-		private readonly string _name;
+		public readonly string Name;
 		private readonly Player _player;
 		private IGamelogicEngine Engine => _player.GamelogicEngine;
 
@@ -43,7 +43,7 @@ namespace VisualPinball.Unity
 
 		public SwitchHandler(string name, Player player, bool isEnabled = false)
 		{
-			_name = name;
+			Name = name;
 			_player = player;
 			IsEnabled = isEnabled;
 		}
@@ -163,7 +163,7 @@ namespace VisualPinball.Unity
 
 			// handle own status
 			SimulationSystemGroup.ScheduleAction(delay, () => {
-				Debug.Log($"Setting scheduled switch {_name} to {enabled}.");
+				Debug.Log($"Setting scheduled switch {Name} to {enabled}.");
 				IsEnabled = enabled;
 
 #if UNITY_EDITOR

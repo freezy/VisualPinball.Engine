@@ -27,8 +27,6 @@ namespace VisualPinball.Unity
 		#region Dictionaries
 
 		private readonly Dictionary<string, BumperApi> _bumpersByName = new Dictionary<string, BumperApi>();
-		private readonly Dictionary<string, CannonApi> _cannonsByName = new Dictionary<string, CannonApi>();
-		private readonly Dictionary<string, CannonApi> _mechsByName = new Dictionary<string, CannonApi>();
 		private readonly Dictionary<string, DropTargetApi> _dropTargetsByName = new Dictionary<string, DropTargetApi>();
 		private readonly Dictionary<string, DropTargetBankApi> _dropTargetBanksByName = new Dictionary<string, DropTargetBankApi>();
 		private readonly Dictionary<string, FlipperApi> _flippersByName = new Dictionary<string, FlipperApi>();
@@ -42,6 +40,7 @@ namespace VisualPinball.Unity
 		private readonly Dictionary<string, RampApi> _rampsByName = new Dictionary<string, RampApi>();
 		private readonly Dictionary<string, RubberApi> _rubbersByName = new Dictionary<string, RubberApi>();
 		private readonly Dictionary<string, SpinnerApi> _spinnersByName = new Dictionary<string, SpinnerApi>();
+		private readonly Dictionary<string, StepRotatorApi> _stepRotatorsByName = new Dictionary<string, StepRotatorApi>();
 		private readonly Dictionary<string, SurfaceApi> _surfacesByName = new Dictionary<string, SurfaceApi>();
 		private readonly Dictionary<string, TeleporterApi> _teleportersByName = new Dictionary<string, TeleporterApi>();
 		private readonly Dictionary<string, TriggerApi> _triggersByName = new Dictionary<string, TriggerApi>();
@@ -49,8 +48,6 @@ namespace VisualPinball.Unity
 
 
 		private readonly Dictionary<MonoBehaviour, BumperApi> _bumpersByComponent = new Dictionary<MonoBehaviour, BumperApi>();
-		private readonly Dictionary<MonoBehaviour, CannonApi> _cannonsByComponent = new Dictionary<MonoBehaviour, CannonApi>();
-		private readonly Dictionary<MonoBehaviour, CannonApi> _mechsByComponent = new Dictionary<MonoBehaviour, CannonApi>();
 		private readonly Dictionary<MonoBehaviour, DropTargetApi> _dropTargetsByComponent = new Dictionary<MonoBehaviour, DropTargetApi>();
 		private readonly Dictionary<MonoBehaviour, DropTargetBankApi> _dropTargetBanksByComponent = new Dictionary<MonoBehaviour, DropTargetBankApi>();
 		private readonly Dictionary<MonoBehaviour, FlipperApi> _flippersByComponent = new Dictionary<MonoBehaviour, FlipperApi>();
@@ -64,6 +61,7 @@ namespace VisualPinball.Unity
 		private readonly Dictionary<MonoBehaviour, RampApi> _rampsByComponent = new Dictionary<MonoBehaviour, RampApi>();
 		private readonly Dictionary<MonoBehaviour, RubberApi> _rubbersByComponent = new Dictionary<MonoBehaviour, RubberApi>();
 		private readonly Dictionary<MonoBehaviour, SpinnerApi> _spinnersByComponent = new Dictionary<MonoBehaviour, SpinnerApi>();
+		private readonly Dictionary<MonoBehaviour, StepRotatorApi> _stepRotatorsByComponent = new Dictionary<MonoBehaviour, StepRotatorApi>();
 		private readonly Dictionary<MonoBehaviour, SurfaceApi> _surfacesByComponent = new Dictionary<MonoBehaviour, SurfaceApi>();
 		private readonly Dictionary<MonoBehaviour, TeleporterApi> _teleportersByComponent = new Dictionary<MonoBehaviour, TeleporterApi>();
 		private readonly Dictionary<MonoBehaviour, TriggerApi> _triggersByComponent = new Dictionary<MonoBehaviour, TriggerApi>();
@@ -199,12 +197,12 @@ namespace VisualPinball.Unity
 		public TroughApi Trough(MonoBehaviour component) => Get<TroughApi>(component);
 
 		/// <summary>
-		/// Returns a cannon by name.
+		/// Returns a step rotator by name.
 		/// </summary>
-		/// <param name="name">Name of the cannon</param>
-		/// <returns>Cannon or `null` if no cannon with that name exists.</returns>
-		public CannonApi Cannon(string name) => Get<CannonApi>(name);
-		public CannonApi Cannon(MonoBehaviour component) => Get<CannonApi>(component);
+		/// <param name="name">Name of the step rotator</param>
+		/// <returns>Step rotator or `null` if no step rotator with that name exists.</returns>
+		public StepRotatorApi StepRotator(string name) => Get<StepRotatorApi>(name);
+		public StepRotatorApi StepRotator(MonoBehaviour component) => Get<StepRotatorApi>(component);
 
 		/// <summary>
 		/// Returns a drop target by name.
@@ -246,8 +244,6 @@ namespace VisualPinball.Unity
 		private Dictionary<string, T> GetNameDictionary<T>(Type t) where T : IApi
 		{
 			if (t == typeof(BumperApi)) return _bumpersByName as Dictionary<string, T>;
-			if (t == typeof(CannonApi)) return _cannonsByName as Dictionary<string, T>;
-			if (t == typeof(CannonApi)) return _mechsByName as Dictionary<string, T>;
 			if (t == typeof(DropTargetApi)) return _dropTargetsByName as Dictionary<string, T>;
 			if (t == typeof(DropTargetBankApi)) return _dropTargetBanksByName as Dictionary<string, T>;
 			if (t == typeof(FlipperApi)) return _flippersByName as Dictionary<string, T>;
@@ -262,6 +258,7 @@ namespace VisualPinball.Unity
 			if (t == typeof(RampApi)) return _rampsByName as Dictionary<string, T>;
 			if (t == typeof(RubberApi)) return _rubbersByName as Dictionary<string, T>;
 			if (t == typeof(SpinnerApi)) return _spinnersByName as Dictionary<string, T>;
+			if (t == typeof(StepRotatorApi)) return _stepRotatorsByName as Dictionary<string, T>;
 			if (t == typeof(SurfaceApi)) return _surfacesByName as Dictionary<string, T>;
 			if (t == typeof(TeleporterApi)) return _teleportersByName as Dictionary<string, T>;
 			if (t == typeof(TriggerApi)) return _triggersByName as Dictionary<string, T>;
@@ -272,8 +269,6 @@ namespace VisualPinball.Unity
 		private Dictionary<MonoBehaviour, T> GetComponentDictionary<T>(Type t) where T : IApi
 		{
 			if (t == typeof(BumperApi)) return _bumpersByComponent as Dictionary<MonoBehaviour, T>;
-			if (t == typeof(CannonApi)) return _cannonsByComponent as Dictionary<MonoBehaviour, T>;
-			if (t == typeof(CannonApi)) return _mechsByComponent as Dictionary<MonoBehaviour, T>;
 			if (t == typeof(DropTargetApi)) return _dropTargetsByComponent as Dictionary<MonoBehaviour, T>;
 			if (t == typeof(DropTargetBankApi)) return _dropTargetBanksByComponent as Dictionary<MonoBehaviour, T>;
 			if (t == typeof(FlipperApi)) return _flippersByComponent as Dictionary<MonoBehaviour, T>;
@@ -288,6 +283,7 @@ namespace VisualPinball.Unity
 			if (t == typeof(RampApi)) return _rampsByComponent as Dictionary<MonoBehaviour, T>;
 			if (t == typeof(RubberApi)) return _rubbersByComponent as Dictionary<MonoBehaviour, T>;
 			if (t == typeof(SpinnerApi)) return _spinnersByComponent as Dictionary<MonoBehaviour, T>;
+			if (t == typeof(StepRotatorApi)) return _stepRotatorsByComponent as Dictionary<MonoBehaviour, T>;
 			if (t == typeof(SurfaceApi)) return _surfacesByComponent as Dictionary<MonoBehaviour, T>;
 			if (t == typeof(TeleporterApi)) return _teleportersByComponent as Dictionary<MonoBehaviour, T>;
 			if (t == typeof(TriggerApi)) return _triggersByComponent as Dictionary<MonoBehaviour, T>;

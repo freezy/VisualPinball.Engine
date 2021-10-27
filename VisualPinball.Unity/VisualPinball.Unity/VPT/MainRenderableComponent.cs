@@ -90,9 +90,10 @@ namespace VisualPinball.Unity
 		{
 			Entity = entity;
 			var parentComponent = ParentComponent;
-			if (parentComponent != null && !(parentComponent is TableComponent)) {
-				ParentEntity = parentComponent.Entity;
-			}
+			// todo remove the parenting stuff
+			// if (parentComponent != null && !(parentComponent is TableComponent)) {
+			// 	ParentEntity = parentComponent.Entity;
+			// }
 		}
 
 		protected float SurfaceHeight(ISurfaceComponent surface, Vector2 position)

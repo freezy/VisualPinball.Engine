@@ -14,7 +14,11 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+// ReSharper disable InconsistentNaming
+
+using System;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using VisualPinball.Engine.Game.Engines;
 using Logger = NLog.Logger;
@@ -22,30 +26,35 @@ using NLog;
 
 namespace VisualPinball.Unity
 {
-	[AddComponentMenu("Visual Pinball/Game Item/Cannon")]
-	public class CannonComponent : MonoBehaviour, ISwitchDeviceComponent, ICoilDeviceComponent
+	[AddComponentMenu("Visual Pinball/Game Item/Step Rotator")]
+	public class StepRotatorComponent : MonoBehaviour, ISwitchDeviceComponent, ICoilDeviceComponent
 	{
+		#region Data
+
+		public int NumSteps;
+		public StepRotatorMark[] Marks;
+
+		#endregion
+
+		#region Constants
+
+		public const string MotorCoilItem = "motor_coil";
+
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
-		public const string GunMotorCoilItem = "gun_motor_coil";
+		#endregion
+
+		internal KickerComponent[] Kickers;
+
+		#region Wiring
 
 		public IEnumerable<GamelogicEngineCoil> AvailableCoils => new[] {
-			new GamelogicEngineCoil(GunMotorCoilItem) {
-				Description = "Gun Motor"
+			new GamelogicEngineCoil(MotorCoilItem) {
+				Description = "Motor"
 			}
 		};
 
-		public const string GunMarkSwitchItem = "gun_mark_switch";
-		public const string GunHomeSwitchItem = "gun_home_switch";
-
-		public IEnumerable<GamelogicEngineSwitch> AvailableSwitches => new[] {
-			new GamelogicEngineSwitch(GunMarkSwitchItem) {
-				Description = "Gun Mark"
-			},
-			 new GamelogicEngineSwitch(GunHomeSwitchItem) {
-				Description = "Gun Home"
-			}
-		};
+		public IEnumerable<GamelogicEngineSwitch> AvailableSwitches => Marks.Select(m => m.Switch);
 
 		public SwitchDefault SwitchDefault => SwitchDefault.NormallyOpen;
 
@@ -53,6 +62,10 @@ namespace VisualPinball.Unity
 		IEnumerable<GamelogicEngineSwitch> IDeviceComponent<GamelogicEngineSwitch>.AvailableDeviceItems => AvailableSwitches;
 		IEnumerable<IGamelogicEngineDeviceItem> IWireableComponent.AvailableWireDestinations => AvailableCoils;
 		IEnumerable<IGamelogicEngineDeviceItem> IDeviceComponent<IGamelogicEngineDeviceItem>.AvailableDeviceItems => AvailableCoils;
+
+		#endregion
+
+		#region Runtime
 
 		private void Awake()
 		{
@@ -63,7 +76,9 @@ namespace VisualPinball.Unity
 				return;
 			}
 
-			player.RegisterCannonComponent(this);
+			Kickers = GetComponentsInChildren<KickerComponent>();
+
+			player.RegisterStepRotator(this);
 		}
 
 		public void UpdateRotation(float y)
@@ -73,5 +88,27 @@ namespace VisualPinball.Unity
 
 			transform.rotation = rotation;
 		}
+
+		#endregion
 	}
+
+	[Serializable]
+	public class StepRotatorMark
+	{
+		public string Description;
+		public string SwitchId;
+		public int StepBeginning;
+		public int StepEnd;
+
+		public GamelogicEngineSwitch Switch => new(SwitchId) { Description = Description };
+
+		public StepRotatorMark(string description, string switchId, int stepBeginning, int stepEnd)
+		{
+			Description = description;
+			SwitchId = switchId;
+			StepBeginning = stepBeginning;
+			StepEnd = stepEnd;
+		}
+	}
+
 }
