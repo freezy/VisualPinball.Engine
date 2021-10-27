@@ -12,7 +12,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: da692e001514ec24dbc4cca1949ff7e8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  version: 11
+  version: 12
+  hdPluginSubTargetMaterialVersions:
+    m_Keys: []
+    m_Values: 
 --- !u!21 &2100000
 Material:
   serializedVersion: 6
@@ -102,6 +105,10 @@ Material:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
+    - _SegmentDisplayCustomFunction_a94cb738cee9426e8bf076adaa3b6811_SegmentData_2:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
     - _SpecularColorMap:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
@@ -126,6 +133,10 @@ Material:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
+    - __Data:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
     - unity_Lightmaps:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
@@ -138,6 +149,7 @@ Material:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
+    m_Ints: []
     m_Floats:
     - Vector1_48868e3f644c4f8d9dc2d14907d07c46: 7
     - Vector1_78a66e5d29d14bd2954daf3fb60bb4aa: 0
@@ -161,6 +173,7 @@ Material:
     - _Anisotropy: 0
     - _BlendMode: 0
     - _CoatMask: 0
+    - _ConservativeDepthOffsetEnable: 0
     - _CullMode: 2
     - _CullModeForward: 2
     - _Cutoff: 0.5
@@ -174,6 +187,7 @@ Material:
     - _DisplacementLockTilingScale: 1
     - _DisplacementMode: 0
     - _DoubleSidedEnable: 0
+    - _DoubleSidedGIMode: 0
     - _DoubleSidedNormalMode: 1
     - _DstBlend: 0
     - _EmissiveColorMode: 1
@@ -256,6 +270,13 @@ Material:
     - _ZTestGBuffer: 4
     - _ZTestTransparent: 4
     - _ZWrite: 1
+    - __HorizontalMiddle: 0
+    - __NumChars: 2
+    - __NumSegments: 14
+    - __SegmentWeight: 0.05
+    - __SeparatorEveryThree: 0
+    - __SeparatorType: 2
+    - __SkewAngle: 0
     m_Colors:
     - Color_754dade2513142578632eb55adb8f59b: {r: 1, g: 0.36865607, b: 0, a: 0}
     - Color_a1cf9b5e0df34a8c907984367d220f54: {r: 0.25471696, g: 0.25471696, b: 0.25471696, a: 0}
@@ -276,4 +297,8 @@ Material:
     - _UVDetailsMappingMask: {r: 1, g: 0, b: 0, a: 0}
     - _UVMappingMask: {r: 1, g: 0, b: 0, a: 0}
     - _UVMappingMaskEmissive: {r: 1, g: 0, b: 0, a: 0}
+    - __LitColor: {r: 1, g: 0.39999998, b: 0, a: 0}
+    - __Padding: {r: 0.3, g: 0.5, b: 0, a: 0}
+    - __SeparatorPos: {r: 1.4, g: 0, b: 0, a: 0}
+    - __UnlitColor: {r: 0.25471696, g: 0.25471696, b: 0.25471696, a: 0}
   m_BuildTextureStacks: []

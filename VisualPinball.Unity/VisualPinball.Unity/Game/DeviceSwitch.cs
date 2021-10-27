@@ -41,6 +41,8 @@ namespace VisualPinball.Unity
 		/// </remarks>
 		public bool IsSwitchClosed => _switchDefault == SwitchDefault.NormallyClosed ? !IsSwitchEnabled : IsSwitchEnabled;
 
+		public string Id => _switchHandler.Name;
+
 		/// <summary>
 		/// Indicates whether the switch is currently opened or closed.
 		/// </summary>

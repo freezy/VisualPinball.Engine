@@ -367,7 +367,7 @@ namespace VisualPinball.Unity.Patcher
 		public void Teleporter(KickerComponent kickerComponent)
 		{
 			kickerComponent.Coils[0].Name = "Teleporter Out";
-			kickerComponent.Coils[0].Speed = 15;
+			kickerComponent.Coils[0].Speed = 3;
 			kickerComponent.Coils[0].Angle = 72;
 		}
 
@@ -389,7 +389,7 @@ namespace VisualPinball.Unity.Patcher
 
 		#endregion
 
-		#region Drop Target Banks
+		#region Mechs
 
 		[NameMatch("sw77")]
 		public void CreateDropTargetBank(GameObject dropTargetGo, DropTargetComponent dropTargetComponent)
@@ -397,6 +397,25 @@ namespace VisualPinball.Unity.Patcher
 			var dropTargetBank = dropTargetGo.AddComponent<DropTargetBankComponent>();
 			dropTargetBank.BankSize = 1;
 			dropTargetBank.DropTargets = new[] { dropTargetComponent };
+		}
+
+		[NameMatch("T2_Gun")]
+		public void SetupCannon(GameObject primitiveGo)
+		{
+			var playfieldGo = primitiveGo.GetComponentInParent<PlayfieldComponent>().gameObject;
+			var mechsParent = GetOrCreateGameObject(playfieldGo, "Mechs");
+			var kickerGo = playfieldGo.transform.Find("Kickers/sw31").gameObject;
+			Reparent(primitiveGo, mechsParent);
+			Reparent(kickerGo, primitiveGo);
+
+			var cannon = primitiveGo.AddComponent<StepRotatorComponent>();
+			cannon.NumSteps = 240;
+			cannon.Marks = new[] {
+				new StepRotatorMark("Gun Mark", "gun_mark_switch", 0, 5),
+				new StepRotatorMark("Gun Home", "gun_home_switch", 98, 105)
+			};
+
+			// todo remove convertoentity component
 		}
 
 		#endregion

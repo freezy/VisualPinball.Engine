@@ -119,6 +119,14 @@ namespace VisualPinball.Unity
 			return kickerCollisionData.HasBall;
 		}
 
+		internal Entity BallEntity {
+			get {
+				var entityManager = World.DefaultGameObjectInjectionWorld.EntityManager;
+				var kickerCollisionData = entityManager.GetComponentData<KickerCollisionData>(Entity);
+				return kickerCollisionData.BallEntity;
+			}
+		}
+
 		internal BallData GetBallData()
 		{
 			var entityManager = World.DefaultGameObjectInjectionWorld.EntityManager;

@@ -95,6 +95,9 @@ namespace VisualPinball.Unity
 
 		public bool IsCorrectlyParented {
 			get {
+				if (!ValidParents.Any()) {
+					return true;
+				}
 				var parentComponent = ParentComponent;
 				return parentComponent == null || ValidParents.Any(validParent => parentComponent.GetType() == validParent);
 			}
