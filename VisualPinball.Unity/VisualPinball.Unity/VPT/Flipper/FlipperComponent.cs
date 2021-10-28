@@ -41,7 +41,8 @@ namespace VisualPinball.Unity
 	[AddComponentMenu("Visual Pinball/Game Item/Flipper")]
 	[HelpURL("https://docs.visualpinball.org/creators-guide/manual/mechanisms/flippers.html")]
 	public class FlipperComponent : MainRenderableComponent<FlipperData>,
-		IFlipperData, ISwitchDeviceComponent, ICoilDeviceComponent, IOnSurfaceComponent, IConvertGameObjectToEntity
+		IFlipperData, ISwitchDeviceComponent, ICoilDeviceComponent, IOnSurfaceComponent,
+		IRotatableComponent, IConvertGameObjectToEntity
 	{
 		#region Data
 
@@ -175,6 +176,26 @@ namespace VisualPinball.Unity
 
 			// rotation
 			t.localEulerAngles = new Vector3(0, 0, _startAngle);
+		}
+
+		private FlipperApi _flipperApi;
+		public float _originalRotateZ;
+
+		public float RotateZ {
+			set {
+				_startAngle = _originalRotateZ + value;
+				_flipperApi.StartAngle = _originalRotateZ + value;
+				UpdateTransforms();
+			}
+		}
+
+		public float2 RotatedPosition {
+			get => new(Position.x, Position.y);
+			set {
+				Position.x = value.x;
+				Position.y = value.y;
+				UpdateTransforms();
+			}
 		}
 
 		#endregion
@@ -541,6 +562,20 @@ namespace VisualPinball.Unity
 				return data;
 			}
 			throw new InvalidOperationException("Cannot create correction trigger for flipper outside of the table hierarchy.");
+		}
+
+		#endregion
+
+		#region Runtime
+
+		private void Awake()
+		{
+			_originalRotateZ = _startAngle;
+		}
+
+		private void Start()
+		{
+			_flipperApi = GetComponentInParent<Player>().TableApi.Flipper(this);
 		}
 
 		#endregion
