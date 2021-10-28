@@ -285,17 +285,17 @@ namespace VisualPinball.Unity
 
 	public class KickerDeviceCoil : DeviceCoil
 	{
-		public readonly KickerCoil KickerCoil;
+		public readonly KickerCoil Coil;
 		private readonly KickerApi _kickerApi;
 
-		public KickerDeviceCoil(KickerCoil kickerCoil, KickerApi api)
+		public KickerDeviceCoil(KickerCoil coil, KickerApi api)
 		{
-			KickerCoil = kickerCoil;
+			Coil = coil;
 			_kickerApi = api;
 			OnEnable = Kick;
 		}
 
-		private void Kick() => _kickerApi.Kick(KickerCoil.Angle, KickerCoil.Speed, KickerCoil.Inclination);
+		private void Kick() => _kickerApi.Kick(Coil.Angle, Coil.Speed, Coil.Inclination);
 
 	}
 }

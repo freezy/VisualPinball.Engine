@@ -400,22 +400,22 @@ namespace VisualPinball.Unity.Patcher
 		}
 
 		[NameMatch("T2_Gun")]
-		public void SetupCannon(GameObject primitiveGo)
+		public void SetupCannon(GameObject primitiveGo, PrimitiveComponent cannonComp)
 		{
 			var playfieldGo = primitiveGo.GetComponentInParent<PlayfieldComponent>().gameObject;
 			var mechsParent = GetOrCreateGameObject(playfieldGo, "Mechs");
-			var kickerGo = playfieldGo.transform.Find("Kickers/sw31").gameObject;
-			Reparent(primitiveGo, mechsParent);
-			Reparent(kickerGo, primitiveGo);
 
-			var cannon = primitiveGo.AddComponent<StepRotatorComponent>();
-			cannon.NumSteps = 240;
-			cannon.Marks = new[] {
+			var rotatorGo = CreateEmptyGameObject(mechsParent, "Cannon");
+			var rotatorComp = rotatorGo.AddComponent<StepRotatorComponent>();
+			rotatorComp.Target = cannonComp;
+			rotatorComp.NumSteps = 240;
+			rotatorComp.Marks = new[] {
 				new StepRotatorMark("Gun Mark", "gun_mark_switch", 0, 5),
 				new StepRotatorMark("Gun Home", "gun_home_switch", 98, 105)
 			};
 
-			// todo remove convertoentity component
+			var kickerGo = playfieldGo.transform.Find("Kickers/sw31").gameObject;
+
 		}
 
 		#endregion

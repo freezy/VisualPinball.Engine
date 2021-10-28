@@ -25,6 +25,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Unity.Entities;
+using Unity.Mathematics;
 using UnityEngine;
 using VisualPinball.Engine.Math;
 using VisualPinball.Engine.VPT;
@@ -36,7 +37,8 @@ using Mesh = VisualPinball.Engine.VPT.Mesh;
 namespace VisualPinball.Unity
 {
 	[AddComponentMenu("Visual Pinball/Game Item/Primitive")]
-	public class PrimitiveComponent : MainRenderableComponent<PrimitiveData>, IMeshGenerator, IConvertGameObjectToEntity
+	public class PrimitiveComponent : MainRenderableComponent<PrimitiveData>, IMeshGenerator,
+		IRotatableComponent, IConvertGameObjectToEntity
 	{
 		#region Data
 
@@ -79,6 +81,22 @@ namespace VisualPinball.Unity
 		{
 			base.UpdateTransforms();
 			transform.SetFromMatrix(GetTransformationMatrix().ToUnityMatrix());
+		}
+
+		public float _originalRotateZ;
+		public float RotateZ {
+			set {
+				ObjectRotation.z = _originalRotateZ + value;
+				UpdateTransforms();
+			}
+		}
+		public float2 RotatedPosition {
+			get => new(Position.x, Position.y);
+			set {
+				Position.x = value.x;
+				Position.y = value.y;
+				UpdateTransforms();
+			}
 		}
 
 		#endregion
@@ -210,6 +228,15 @@ namespace VisualPinball.Unity
 			}
 
 			return data;
+		}
+
+		#endregion
+
+		#region Runtime
+
+		private void Awake()
+		{
+			_originalRotateZ = ObjectRotation.z;
 		}
 
 		#endregion

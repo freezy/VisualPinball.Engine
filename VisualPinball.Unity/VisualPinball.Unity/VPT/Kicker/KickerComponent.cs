@@ -38,7 +38,8 @@ namespace VisualPinball.Unity
 {
 	[AddComponentMenu("Visual Pinball/Game Item/Kicker")]
 	public class KickerComponent : MainRenderableComponent<KickerData>,
-		ICoilDeviceComponent, ITriggerComponent, IBallCreationPosition, IOnSurfaceComponent, IConvertGameObjectToEntity, ISerializationCallbackReceiver
+		ICoilDeviceComponent, ITriggerComponent, IBallCreationPosition, IOnSurfaceComponent,
+		IRotatableComponent, IConvertGameObjectToEntity, ISerializationCallbackReceiver
 	{
 		#region Data
 
@@ -129,6 +130,26 @@ namespace VisualPinball.Unity
 				Engine.VPT.KickerType.KickerWilliams => new Vector3(0, 0, Orientation + 90f),
 				_ => t.localEulerAngles
 			};
+		}
+
+		private float _originalRotationZ;
+		private float _originalKickerAngle;
+		private KickerApi _kickerApi;
+
+		public float RotateZ {
+			set {
+				Orientation = _originalRotationZ + value;
+				_kickerApi.KickerCoil.Coil.Angle = _originalKickerAngle + value;
+			}
+		}
+
+		public float2 RotatedPosition {
+			get => new(Position.x, Position.y);
+			set {
+				Position.x = value.x;
+				Position.y = value.y;
+				UpdateTransforms();
+			}
 		}
 
 		#endregion
@@ -277,6 +298,21 @@ namespace VisualPinball.Unity
 
 		public void OnAfterDeserialize()
 		{
+		}
+
+		#endregion
+
+		#region Runtime
+
+		private void Awake()
+		{
+			_originalRotationZ = Orientation;
+		}
+
+		private void Start()
+		{
+			_kickerApi = GetComponentInParent<Player>().TableApi.Kicker(this);
+			_originalKickerAngle = _kickerApi.KickerCoil.Coil.Angle;
 		}
 
 		#endregion
