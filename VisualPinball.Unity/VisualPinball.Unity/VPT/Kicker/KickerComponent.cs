@@ -144,6 +144,7 @@ namespace VisualPinball.Unity
 			if (colliderComponent) {
 				dstManager.AddComponentData(entity, new KickerStaticData {
 					Center = Position,
+					FallIn = colliderComponent.FallIn,
 					FallThrough = colliderComponent.FallThrough,
 					HitAccuracy = colliderComponent.HitAccuracy,
 					Scatter = colliderComponent.Scatter,

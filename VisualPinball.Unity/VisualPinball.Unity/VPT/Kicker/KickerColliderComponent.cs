@@ -43,6 +43,9 @@ namespace VisualPinball.Unity
 		[Tooltip("Whether the ball continues moving through the kicker. If not set, the ball is frozen and kept in the kicker.")]
 		public bool FallThrough;
 
+		// don't expose for now
+		public bool FallIn = true;
+
 		[Tooltip("Use a better collision model. Currently disabled.")]
 		public bool LegacyMode = true;
 
