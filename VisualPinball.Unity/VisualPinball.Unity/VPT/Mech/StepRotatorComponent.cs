@@ -52,6 +52,7 @@ namespace VisualPinball.Unity
 		[TypeRestriction(typeof(IRotatableComponent), PickerLabel = "Rotatable Objects")]
 		[Tooltip("Other objects at will rotate around the target.")]
 		public MonoBehaviour[] _rotateWith;
+		public IRotatableComponent[] RotateWith => _rotateWith.OfType<IRotatableComponent>().ToArray();
 
 		#endregion
 
@@ -106,12 +107,10 @@ namespace VisualPinball.Unity
 			}
 
 			var pos = Target.RotatedPosition;
-			_rotatingObjectDistances = _rotateWith
-				.OfType<IRotatableComponent>()
-				.ToDictionary(
-					r => r,
-					r => math.sqrt(math.pow(pos.x - r.RotatedPosition.x, 2) + math.pow(pos.y - r.RotatedPosition.y, 2))
-				);
+			_rotatingObjectDistances = RotateWith.ToDictionary(
+				r => r,
+				r => math.sqrt(math.pow(pos.x - r.RotatedPosition.x, 2) + math.pow(pos.y - r.RotatedPosition.y, 2))
+			);
 
 			player.RegisterStepRotator(this);
 		}
@@ -126,8 +125,8 @@ namespace VisualPinball.Unity
 			foreach (var obj in _rotatingObjectDistances.Keys) {
 				obj.RotateZ = angleDeg;
 				obj.RotatedPosition = new float2(
-					pos.x - _rotatingObjectDistances[obj] * math.sin(angleDeg * math.PI / 180f),
-					pos.y - _rotatingObjectDistances[obj] * math.cos(angleDeg * math.PI / 180f)
+					pos.x - _rotatingObjectDistances[obj] * math.sin(math.radians(angleDeg)),
+					pos.y - _rotatingObjectDistances[obj] * math.cos(math.radians(angleDeg))
 				);
 			}
 		}

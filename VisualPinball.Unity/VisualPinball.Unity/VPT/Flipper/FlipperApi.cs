@@ -107,6 +107,15 @@ namespace VisualPinball.Unity
 			EngineProvider<IPhysicsEngine>.Get().FlipperRotateToStart(Entity);
 		}
 
+		internal float StartAngle
+		{
+			set {
+				var staticData = EntityManager.GetComponentData<FlipperStaticData>(Entity);
+				staticData.AngleStart = value;
+				EntityManager.SetComponentData(Entity, staticData);
+			}
+		}
+
 		#region Coil Handling
 
 		private DeviceCoil _mainCoil;
