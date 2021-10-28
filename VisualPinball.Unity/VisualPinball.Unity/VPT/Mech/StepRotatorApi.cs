@@ -51,7 +51,9 @@ namespace VisualPinball.Unity
 		private float _currentStep;
 		private Direction _direction;
 		private KickerApi[] _kickers;
+
 		private (KickerApi kicker, float distance, Entity ballEntity)[] _ballEntities;
+
 
 		internal StepRotatorApi(GameObject go, Player player)
 		{
@@ -77,7 +79,10 @@ namespace VisualPinball.Unity
 			}
 
 			_player.OnUpdate += OnUpdate;
-			_kickers = _component.Kickers.Select(k => _player.TableApi.Kicker(k)).ToArray();
+
+			_kickers = _component.Kickers
+				.Select(k => _player.TableApi.Kicker(k))
+				.ToArray();
 
 			Init?.Invoke(this, EventArgs.Empty);
 		}
@@ -102,7 +107,7 @@ namespace VisualPinball.Unity
 
 		private void OnMotorCoilEnabled()
 		{
-			var pos = _component.transform.localPosition;
+			var pos = _component.Target.RotatedPosition;
 			_enabled = true;
 			_ballEntities = _kickers.Where(k => k.HasBall()).Select(k => (
 				k,
@@ -166,11 +171,13 @@ namespace VisualPinball.Unity
 			}
 
 			var value = _currentStep / numSteps;
+
+			// rotate target
 			_component.UpdateRotation(value);
 
+			// rotate ball(s)
 			var currentAngle = value * _component.TotalRotationDegrees;
-
-			var pos = _component.transform.localPosition;
+			var pos = _component.Target.RotatedPosition;
 			foreach (var (kicker, distance, ballEntity) in _ballEntities) {
 				var ballData = EntityManager.GetComponentData<BallData>(ballEntity);
 				ballData.Position = new float3(
@@ -181,12 +188,10 @@ namespace VisualPinball.Unity
 				ballData.Velocity = float3.zero;
 				ballData.AngularMomentum = float3.zero;
 				ballData.AngularVelocity = float3.zero;
-				kicker.KickerCoil.KickerCoil.Angle = currentAngle;
+				kicker.KickerCoil.Coil.Angle = currentAngle;
 
 				EntityManager.SetComponentData(ballEntity, ballData);
 			}
-
-			Logger.Debug($"{_component.name} position={_currentStep}");
 		}
 
 		void IApi.OnDestroy()

@@ -20,8 +20,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using NLog;
+using Unity.Mathematics;
 using UnityEngine;
-using UnityEngine.UIElements;
 using VisualPinball.Engine.Game.Engines;
 using Logger = NLog.Logger;
 
@@ -31,6 +31,12 @@ namespace VisualPinball.Unity
 	public class StepRotatorComponent : MonoBehaviour, ISwitchDeviceComponent, ICoilDeviceComponent
 	{
 		#region Data
+
+		public IRotatableComponent Target { get => _target as IRotatableComponent; set => _target = value as MonoBehaviour; }
+		[SerializeField]
+		[TypeRestriction(typeof(IRotatableComponent), PickerLabel = "Rotatable Objects")]
+		[Tooltip("The target that will rotate.")]
+		public MonoBehaviour _target;
 
 		[Range(0f, 360f)]
 		[Tooltip("Angle in degrees the object rotates until it changes rotation and goes back. It's the angle that corresponds to the number of steps below.")]
@@ -42,6 +48,17 @@ namespace VisualPinball.Unity
 		[Tooltip("On each mark, the switch changes are transmitted to the gamelogic engine.")]
 		public StepRotatorMark[] Marks;
 
+		[SerializeField]
+		[TypeRestriction(typeof(IRotatableComponent), PickerLabel = "Rotatable Objects")]
+		[Tooltip("Other objects at will rotate around the target.")]
+		public MonoBehaviour[] _rotateWith;
+
+		#endregion
+
+		#region Access
+
+		internal IEnumerable<KickerComponent> Kickers => _rotateWith.OfType<KickerComponent>();
+
 		#endregion
 
 		#region Constants
@@ -51,9 +68,6 @@ namespace VisualPinball.Unity
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
 		#endregion
-
-		internal KickerComponent[] Kickers;
-		private PrimitiveComponent _primitiveComponent;
 
 		#region Wiring
 
@@ -76,6 +90,8 @@ namespace VisualPinball.Unity
 
 		#region Runtime
 
+		private Dictionary<IRotatableComponent, float> _rotatingObjectDistances = new();
+
 		private void Awake()
 		{
 			var player = GetComponentInParent<Player>();
@@ -85,19 +101,35 @@ namespace VisualPinball.Unity
 				return;
 			}
 
-			_primitiveComponent = GetComponent<PrimitiveComponent>();
-			Kickers = GetComponentsInChildren<KickerComponent>();
 			foreach (var kicker in GetComponentsInChildren<KickerColliderComponent>()) {
 				kicker.FallIn = false;
 			}
+
+			var pos = Target.RotatedPosition;
+			_rotatingObjectDistances = _rotateWith
+				.OfType<IRotatableComponent>()
+				.ToDictionary(
+					r => r,
+					r => math.sqrt(math.pow(pos.x - r.RotatedPosition.x, 2) + math.pow(pos.y - r.RotatedPosition.y, 2))
+				);
 
 			player.RegisterStepRotator(this);
 		}
 
 		public void UpdateRotation(float value)
 		{
-			_primitiveComponent.ObjectRotation.z = -value * TotalRotationDegrees;
-			_primitiveComponent.UpdateTransforms();
+			var angleDeg =  -value * TotalRotationDegrees;
+
+			Target.RotateZ = angleDeg;
+
+			var pos = Target.RotatedPosition;
+			foreach (var obj in _rotatingObjectDistances.Keys) {
+				obj.RotateZ = angleDeg;
+				obj.RotatedPosition = new float2(
+					pos.x - _rotatingObjectDistances[obj] * math.sin(angleDeg * math.PI / 180f),
+					pos.y - _rotatingObjectDistances[obj] * math.cos(angleDeg * math.PI / 180f)
+				);
+			}
 		}
 
 		#endregion
