@@ -50,13 +50,15 @@ namespace VisualPinball.Unity
 
 		internal float3 Position => new(MainComponent.Position.x, MainComponent.Position.y, MainComponent.PositionZ);
 
-		private readonly Dictionary<string, DeviceCoil> _coils = new Dictionary<string, DeviceCoil>();
+		public KickerDeviceCoil KickerCoil => _coils.Values.FirstOrDefault();
+
+		private readonly Dictionary<string, KickerDeviceCoil> _coils = new Dictionary<string, KickerDeviceCoil>();
 
 		public KickerApi(GameObject go, Entity entity, Entity parentEntity, Player player)
 			: base(go, entity, parentEntity, player)
 		{
 			foreach (var coil in MainComponent.Coils) {
-				_coils[coil.Id] = new DeviceCoil(() => Kick(coil.Angle, coil.Speed, coil.Inclination));
+				_coils[coil.Id] = new KickerDeviceCoil(coil, this);
 			}
 		}
 
@@ -155,6 +157,8 @@ namespace VisualPinball.Unity
 		IApiCoil IApiCoilDevice.Coil(string deviceItem) => Coil(deviceItem);
 
 		IApiWireDest IApiWireDeviceDest.Wire(string deviceItem) => Coil(deviceItem);
+
+		public IApiCoil Coil() => _coils.Values.FirstOrDefault();
 
 		private IApiCoil Coil(string deviceItem)
 		{
@@ -277,5 +281,21 @@ namespace VisualPinball.Unity
 		}
 
 		#endregion
+	}
+
+	public class KickerDeviceCoil : DeviceCoil
+	{
+		public readonly KickerCoil KickerCoil;
+		private readonly KickerApi _kickerApi;
+
+		public KickerDeviceCoil(KickerCoil kickerCoil, KickerApi api)
+		{
+			KickerCoil = kickerCoil;
+			_kickerApi = api;
+			OnEnable = Kick;
+		}
+
+		private void Kick() => _kickerApi.Kick(KickerCoil.Angle, KickerCoil.Speed, KickerCoil.Inclination);
+
 	}
 }

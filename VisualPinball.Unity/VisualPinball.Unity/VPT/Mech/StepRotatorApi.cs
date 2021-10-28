@@ -168,19 +168,20 @@ namespace VisualPinball.Unity
 			var value = _currentStep / numSteps;
 			_component.UpdateRotation(value);
 
-			var currentPos = value * _component.TotalRotationDegrees;
+			var currentAngle = value * _component.TotalRotationDegrees;
 
 			var pos = _component.transform.localPosition;
 			foreach (var (kicker, distance, ballEntity) in _ballEntities) {
 				var ballData = EntityManager.GetComponentData<BallData>(ballEntity);
 				ballData.Position = new float3(
-					pos.x - distance * math.sin(currentPos * math.PI / 180f),
-					pos.y - distance * math.cos(currentPos * math.PI / 180f),
+					pos.x - distance * math.sin(currentAngle * math.PI / 180f),
+					pos.y - distance * math.cos(currentAngle * math.PI / 180f),
 					kicker.Position.z + ballData.Radius * 2f
 				);
 				ballData.Velocity = float3.zero;
 				ballData.AngularMomentum = float3.zero;
 				ballData.AngularVelocity = float3.zero;
+				kicker.KickerCoil.KickerCoil.Angle = currentAngle;
 
 				EntityManager.SetComponentData(ballEntity, ballData);
 			}
