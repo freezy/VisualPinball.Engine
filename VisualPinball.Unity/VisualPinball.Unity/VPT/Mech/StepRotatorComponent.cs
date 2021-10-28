@@ -19,10 +19,11 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using NLog;
 using UnityEngine;
+using UnityEngine.UIElements;
 using VisualPinball.Engine.Game.Engines;
 using Logger = NLog.Logger;
-using NLog;
 
 namespace VisualPinball.Unity
 {
@@ -52,6 +53,7 @@ namespace VisualPinball.Unity
 		#endregion
 
 		internal KickerComponent[] Kickers;
+		private PrimitiveComponent _primitiveComponent;
 
 		#region Wiring
 
@@ -83,17 +85,19 @@ namespace VisualPinball.Unity
 				return;
 			}
 
+			_primitiveComponent = GetComponent<PrimitiveComponent>();
 			Kickers = GetComponentsInChildren<KickerComponent>();
+			foreach (var kicker in GetComponentsInChildren<KickerColliderComponent>()) {
+				kicker.FallIn = false;
+			}
 
 			player.RegisterStepRotator(this);
 		}
 
-		public void UpdateRotation(float y)
+		public void UpdateRotation(float value)
 		{
-			var rotation = transform.rotation;
-			rotation.y = -(y * 0.65f);
-
-			transform.rotation = rotation;
+			_primitiveComponent.ObjectRotation.z = -value * TotalRotationDegrees;
+			_primitiveComponent.UpdateTransforms();
 		}
 
 		#endregion

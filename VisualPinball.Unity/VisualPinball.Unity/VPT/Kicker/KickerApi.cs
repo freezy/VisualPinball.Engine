@@ -48,6 +48,8 @@ namespace VisualPinball.Unity
 		/// </summary>
 		public event EventHandler<SwitchEventArgs> Switch;
 
+		internal float3 Position => new(MainComponent.Position.x, MainComponent.Position.y, MainComponent.PositionZ);
+
 		private readonly Dictionary<string, DeviceCoil> _coils = new Dictionary<string, DeviceCoil>();
 
 		public KickerApi(GameObject go, Entity entity, Entity parentEntity, Player player)

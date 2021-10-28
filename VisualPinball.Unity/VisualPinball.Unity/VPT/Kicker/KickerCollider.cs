@@ -100,9 +100,11 @@ namespace VisualPinball.Unity
 							// Only mess with variables if ball was not kicked during event
 							ball.Velocity = float3.zero;
 							ball.AngularMomentum = float3.zero;
-							var posZ = staticData.FallThrough
-								? staticData.ZLow - ball.Radius - 5.0f
-								: staticData.ZLow + ball.Radius;
+							var posZ = !staticData.FallIn
+								? staticData.ZLow + ball.Radius * 2
+								: staticData.FallThrough
+									? staticData.ZLow - ball.Radius - 5.0f
+									: staticData.ZLow + ball.Radius;
 							ball.Position = new float3(staticData.Center.x, staticData.Center.y, posZ);
 
 						} else {

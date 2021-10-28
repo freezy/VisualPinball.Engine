@@ -23,6 +23,7 @@ namespace VisualPinball.Unity
 	{
 		public bool LegacyMode;
 		public bool FallThrough;
+		public bool FallIn;
 		public float2 Center;
 		public float ZLow;
 		public float HitAccuracy;

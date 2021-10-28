@@ -19,6 +19,7 @@ using System.Collections.Generic;
 using System.Linq;
 using NLog;
 using Unity.Entities;
+using Unity.Mathematics;
 using UnityEngine;
 using Logger = NLog.Logger;
 
@@ -29,6 +30,8 @@ namespace VisualPinball.Unity
 		public event EventHandler Init;
 
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
+		private static EntityManager EntityManager => World.DefaultGameObjectInjectionWorld.EntityManager;
+
 
 		private enum Direction
 		{
@@ -48,7 +51,7 @@ namespace VisualPinball.Unity
 		private float _currentStep;
 		private Direction _direction;
 		private KickerApi[] _kickers;
-		private (KickerApi kicker, Entity ballEntity)[] _ballEntities;
+		private (KickerApi kicker, float distance, Entity ballEntity)[] _ballEntities;
 
 		internal StepRotatorApi(GameObject go, Player player)
 		{
@@ -83,8 +86,7 @@ namespace VisualPinball.Unity
 
 		private IApiCoil Coil(string deviceItem)
 		{
-			return deviceItem switch
-			{
+			return deviceItem switch {
 				StepRotatorComponent.MotorCoilItem => MotorCoil,
 				_ => throw new ArgumentException($"Unknown coil \"{deviceItem}\". Valid name is: \"{StepRotatorComponent.MotorCoilItem}\".")
 			};
@@ -98,11 +100,15 @@ namespace VisualPinball.Unity
 			return _switches[deviceItem];
 		}
 
-
 		private void OnMotorCoilEnabled()
 		{
+			var pos = _component.transform.localPosition;
 			_enabled = true;
-			_ballEntities = _kickers.Where(k => k.HasBall()).Select(k => (k, k.BallEntity)).ToArray();
+			_ballEntities = _kickers.Where(k => k.HasBall()).Select(k => (
+				k,
+				math.sqrt(math.pow(pos.x - k.Position.x, 2) + math.pow(pos.y - k.Position.y, 2)),
+				k.BallEntity)
+			).ToArray();
 
 			Logger.Info("OnGunMotorCoilEnabled - starting rotation");
 		}
@@ -159,7 +165,25 @@ namespace VisualPinball.Unity
 				}
 			}
 
-			_component.UpdateRotation(_currentStep / numSteps);
+			var value = _currentStep / numSteps;
+			_component.UpdateRotation(value);
+
+			var currentPos = value * _component.TotalRotationDegrees;
+
+			var pos = _component.transform.localPosition;
+			foreach (var (kicker, distance, ballEntity) in _ballEntities) {
+				var ballData = EntityManager.GetComponentData<BallData>(ballEntity);
+				ballData.Position = new float3(
+					pos.x - distance * math.sin(currentPos * math.PI / 180f),
+					pos.y - distance * math.cos(currentPos * math.PI / 180f),
+					kicker.Position.z + ballData.Radius * 2f
+				);
+				ballData.Velocity = float3.zero;
+				ballData.AngularMomentum = float3.zero;
+				ballData.AngularVelocity = float3.zero;
+
+				EntityManager.SetComponentData(ballEntity, ballData);
+			}
 
 			Logger.Debug($"{_component.name} position={_currentStep}");
 		}
