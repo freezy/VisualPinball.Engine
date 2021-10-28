@@ -22,22 +22,22 @@ namespace VisualPinball.Unity
 	{
 		public bool IsEnabled;
 
-		private readonly Action _onEnable;
-		private readonly Action _onDisable;
+		protected Action OnEnable;
+		protected Action OnDisable;
 
 		public DeviceCoil(Action onEnable = null, Action onDisable = null)
 		{
-			_onEnable = onEnable;
-			_onDisable = onDisable;
+			OnEnable = onEnable;
+			OnDisable = onDisable;
 		}
 
 		public void OnCoil(bool enabled)
 		{
 			IsEnabled = enabled;
 			if (enabled) {
-				_onEnable?.Invoke();
+				OnEnable?.Invoke();
 			} else {
-				_onDisable?.Invoke();
+				OnDisable?.Invoke();
 			}
 #if UNITY_EDITOR
 			UnityEditorInternal.InternalEditorUtility.RepaintAllViews();
