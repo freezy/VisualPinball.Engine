@@ -87,11 +87,6 @@ namespace VisualPinball.Unity
 			BallManager.CreateBall(MainComponent, radius, 1f, Entity);
 		}
 
-		public void Kick()
-		{
-			SimulationSystemGroup.QueueAfterBallCreation(() => KickXYZ(Entity, ColliderComponent.EjectAngle, ColliderComponent.EjectSpeed, 0, 0, 0, 0));
-		}
-
 		public void Kick(float angle, float speed, float inclination = 0)
 		{
 			SimulationSystemGroup.QueueAfterBallCreation(() => KickXYZ(Entity, angle, speed, inclination, 0, 0, 0));

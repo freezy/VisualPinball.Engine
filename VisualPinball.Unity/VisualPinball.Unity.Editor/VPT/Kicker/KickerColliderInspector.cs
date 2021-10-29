@@ -29,8 +29,6 @@ namespace VisualPinball.Unity.Editor
 		private SerializedProperty _scatterProperty;
 		private SerializedProperty _fallThroughProperty;
 		private SerializedProperty _legacyModeProperty;
-		private SerializedProperty _ejectAngleProperty;
-		private SerializedProperty _ejectSpeedProperty;
 
 		protected override void OnEnable()
 		{
@@ -41,8 +39,6 @@ namespace VisualPinball.Unity.Editor
 			_scatterProperty = serializedObject.FindProperty(nameof(KickerColliderComponent.Scatter));
 			_fallThroughProperty = serializedObject.FindProperty(nameof(KickerColliderComponent.FallThrough));
 			_legacyModeProperty = serializedObject.FindProperty(nameof(KickerColliderComponent.LegacyMode));
-			_ejectAngleProperty = serializedObject.FindProperty(nameof(KickerColliderComponent.EjectAngle));
-			_ejectSpeedProperty = serializedObject.FindProperty(nameof(KickerColliderComponent.EjectSpeed));
 		}
 
 		public override void OnInspectorGUI()
@@ -58,10 +54,6 @@ namespace VisualPinball.Unity.Editor
 			PropertyField(_scatterProperty, "Scatter Angle");
 			PropertyField(_fallThroughProperty, "Falltrough");
 			PropertyField(_legacyModeProperty, "Legacy Mode");
-
-			EditorGUILayout.Space(20f);
-			PropertyField(_ejectSpeedProperty);
-			PropertyField(_ejectAngleProperty);
 
 			base.OnInspectorGUI();
 

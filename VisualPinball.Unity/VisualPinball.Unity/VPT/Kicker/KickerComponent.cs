@@ -227,8 +227,6 @@ namespace VisualPinball.Unity
 				colliderComponent.HitHeight = data.HitHeight;
 				colliderComponent.FallThrough = data.FallThrough;
 				colliderComponent.LegacyMode = data.LegacyMode;
-				colliderComponent.EjectAngle = data.Angle;
-				colliderComponent.EjectSpeed = data.Speed;
 
 				updatedComponents.Add(colliderComponent);
 			}
@@ -264,8 +262,6 @@ namespace VisualPinball.Unity
 				data.HitHeight = colliderComponent.HitHeight;
 				data.FallThrough = colliderComponent.FallThrough;
 				data.LegacyMode = colliderComponent.LegacyMode;
-				data.Angle = colliderComponent.EjectAngle;
-				data.Speed = colliderComponent.EjectSpeed;
 
 			} else {
 				data.IsEnabled = false;
