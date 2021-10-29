@@ -49,14 +49,6 @@ namespace VisualPinball.Unity
 		[Tooltip("Use a better collision model. Currently disabled.")]
 		public bool LegacyMode = true;
 
-		[Range(-180f, 180f)]
-		[Tooltip("Angle of the ball when kicked out.")]
-		public float EjectAngle = 90f;
-
-		[Range(0f, 100f)]
-		[Tooltip("Speed the kicker hits the ball when ejecting.")]
-		public float EjectSpeed = 3f;
-
 		#endregion
 
 		public static readonly Type[] ValidParentTypes = Type.EmptyTypes;
