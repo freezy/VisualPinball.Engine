@@ -180,11 +180,14 @@ namespace VisualPinball.Unity
 			var currentAngle = value * _component.TotalRotationDegrees;
 			var pos = _component.Target.RotatedPosition;
 			foreach (var (kicker, distance, angle, ballEntity) in _ballEntities) {
+				if (!kicker.HasBall()) {
+					return;
+				}
 				var ballData = EntityManager.GetComponentData<BallData>(ballEntity);
 				ballData.Position = new float3(
 					pos.x -distance * math.sin(math.radians(currentAngle + angle)),
 					pos.y -distance * math.cos(math.radians(currentAngle + angle)),
-					kicker.Position.z + ballData.Radius * 2f
+					ballData.Position.z
 				);
 				ballData.Velocity = float3.zero;
 				ballData.AngularMomentum = float3.zero;
