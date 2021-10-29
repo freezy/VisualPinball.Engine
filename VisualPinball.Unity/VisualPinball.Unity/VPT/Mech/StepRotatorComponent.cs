@@ -91,7 +91,7 @@ namespace VisualPinball.Unity
 
 		#region Runtime
 
-		private Dictionary<IRotatableComponent, float> _rotatingObjectDistances = new();
+		private Dictionary<IRotatableComponent, (float, float)> _rotatingObjectDistances = new();
 
 		private void Awake()
 		{
@@ -109,7 +109,10 @@ namespace VisualPinball.Unity
 			var pos = Target.RotatedPosition;
 			_rotatingObjectDistances = RotateWith.ToDictionary(
 				r => r,
-				r => math.sqrt(math.pow(pos.x - r.RotatedPosition.x, 2) + math.pow(pos.y - r.RotatedPosition.y, 2))
+				r => (
+					math.distance(pos, r.RotatedPosition),
+					math.sign(pos.x - r.RotatedPosition.x) * Vector2.Angle(r.RotatedPosition - pos, new float2(0f, -1f))
+				)
 			);
 
 			player.RegisterStepRotator(this);
@@ -117,16 +120,17 @@ namespace VisualPinball.Unity
 
 		public void UpdateRotation(float value)
 		{
-			var angleDeg =  -value * TotalRotationDegrees;
+			var angleDeg =  value * TotalRotationDegrees;
 
-			Target.RotateZ = angleDeg;
+			Target.RotateZ = -angleDeg;
 
 			var pos = Target.RotatedPosition;
 			foreach (var obj in _rotatingObjectDistances.Keys) {
-				obj.RotateZ = angleDeg;
+				var (distance, angle) = _rotatingObjectDistances[obj];
+				obj.RotateZ = -angleDeg;
 				obj.RotatedPosition = new float2(
-					pos.x - _rotatingObjectDistances[obj] * math.sin(math.radians(angleDeg)),
-					pos.y - _rotatingObjectDistances[obj] * math.cos(math.radians(angleDeg))
+					pos.x -distance * math.sin(math.radians(angleDeg + angle)),
+					pos.y -distance * math.cos(math.radians(angleDeg + angle))
 				);
 			}
 		}
