@@ -58,7 +58,7 @@ namespace VisualPinball.Unity
 		[Tooltip("On which surface the kicker is attached to. Updates Z-translation.")]
 		public MonoBehaviour _surface;
 
-		public List<KickerCoil> Coils = new List<KickerCoil> {
+		public List<KickerCoil> Coils = new() {
 			new KickerCoil { Name = "Default Coil" }
 		};
 

@@ -52,7 +52,7 @@ namespace VisualPinball.Unity
 		private Direction _direction;
 		private KickerApi[] _kickers;
 
-		private (KickerApi kicker, float distance, Entity ballEntity)[] _ballEntities;
+		private (KickerApi kicker, float distance, float angle, Entity ballEntity)[] _ballEntities;
 
 
 		internal StepRotatorApi(GameObject go, Player player)
@@ -111,7 +111,8 @@ namespace VisualPinball.Unity
 			_enabled = true;
 			_ballEntities = _kickers.Where(k => k.HasBall()).Select(k => (
 				k,
-				math.sqrt(math.pow(pos.x - k.Position.x, 2) + math.pow(pos.y - k.Position.y, 2)),
+				math.distance(pos, k.Position.xy),
+				math.sign(pos.x - k.Position.x) * Vector2.Angle(k.Position.xy - pos, new float2(0f, -1f)),
 				k.BallEntity)
 			).ToArray();
 
@@ -178,11 +179,11 @@ namespace VisualPinball.Unity
 			// rotate ball(s)
 			var currentAngle = value * _component.TotalRotationDegrees;
 			var pos = _component.Target.RotatedPosition;
-			foreach (var (kicker, distance, ballEntity) in _ballEntities) {
+			foreach (var (kicker, distance, angle, ballEntity) in _ballEntities) {
 				var ballData = EntityManager.GetComponentData<BallData>(ballEntity);
 				ballData.Position = new float3(
-					pos.x - distance * math.sin(currentAngle * math.PI / 180f),
-					pos.y - distance * math.cos(currentAngle * math.PI / 180f),
+					pos.x -distance * math.sin(math.radians(currentAngle + angle)),
+					pos.y -distance * math.cos(math.radians(currentAngle + angle)),
 					kicker.Position.z + ballData.Radius * 2f
 				);
 				ballData.Velocity = float3.zero;
