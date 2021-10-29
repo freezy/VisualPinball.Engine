@@ -96,14 +96,13 @@ namespace VisualPinball.Unity
 		private void Awake()
 		{
 			var player = GetComponentInParent<Player>();
-			if (player == null)
-			{
+			if (player == null) {
 				Logger.Error($"Cannot find player for cannon {name}.");
 				return;
 			}
 
-			foreach (var kicker in GetComponentsInChildren<KickerColliderComponent>()) {
-				kicker.FallIn = false;
+			foreach (var kicker in Kickers) {
+				kicker.GetComponent<KickerColliderComponent>().FallIn = false;
 			}
 
 			var pos = Target.RotatedPosition;
