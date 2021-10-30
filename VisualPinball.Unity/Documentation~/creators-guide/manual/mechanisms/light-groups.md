@@ -16,7 +16,7 @@ A light group is a component you can add to any GameObject. It's recommended to 
 
 To create a new light group, select the GameObject you want to add your light group to, and in the inspector click on *Add Component* and choose *Visual Pinball -> Game Item -> Light Group*.
 
-Then use the list control to add and remove lights. There are a few button that make this easier.
+Then use the list control to add and remove lights. There are a few buttons that make this easier.
 
 ### Add Children
 
