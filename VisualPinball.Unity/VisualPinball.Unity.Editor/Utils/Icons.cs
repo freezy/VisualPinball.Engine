@@ -50,6 +50,7 @@ namespace VisualPinball.Unity.Editor
 		private const string KickerName = "kicker";
 		private const string LightGroupName = "light_group";
 		private const string LightName = "light";
+		private const string MechName = "mech";
 		private const string PlayfieldName = "playfield";
 		private const string PlugName = "plug";
 		private const string PlungerName = "plunger";
@@ -69,8 +70,8 @@ namespace VisualPinball.Unity.Editor
 
 		private static readonly string[] Names = {
 			BallRollerName, BoltName, BumperName, CoilName, DropTargetBankName, DropTargetName, FlasherName, FlipperName, GateName, HitTargetName, KeyName,
-			KickerName, LightGroupName, LightName, PlayfieldName, PlugName, PlungerName, PrimitiveName, RampName, RotatorName, RubberName, SlingshotName, SpinnerName,
-			SurfaceName, SwitchNcName, SwitchNoName, TableName, TeleporterName, TriggerName, TroughName,
+			KickerName, LightGroupName, LightName, MechName, PlayfieldName, PlugName, PlungerName, PrimitiveName, RampName, RotatorName, RubberName,
+			SlingshotName, SpinnerName, SurfaceName, SwitchNcName, SwitchNoName, TableName, TeleporterName, TriggerName, TroughName,
 		};
 
 		private readonly Dictionary<IconVariant, Texture2D> _icons = new Dictionary<IconVariant, Texture2D>();
@@ -115,6 +116,7 @@ namespace VisualPinball.Unity.Editor
 		public static Texture2D Kicker(IconSize size = IconSize.Large, IconColor color = IconColor.Gray) => Instance.GetItem(KickerName, size, color);
 		public static Texture2D Light(IconSize size = IconSize.Large, IconColor color = IconColor.Gray) => Instance.GetItem(LightName, size, color);
 		public static Texture2D LightGroup(IconSize size = IconSize.Large, IconColor color = IconColor.Gray) => Instance.GetItem(LightGroupName, size, color);
+		public static Texture2D Mech(IconSize size = IconSize.Large, IconColor color = IconColor.Gray) => Instance.GetItem(MechName, size, color);
 		public static Texture2D Playfield(IconSize size = IconSize.Large, IconColor color = IconColor.Gray) => Instance.GetItem(PlayfieldName, size, color);
 		public static Texture2D Plug(IconSize size = IconSize.Large, IconColor color = IconColor.Gray) => Instance.GetItem(PlugName, size, color);
 		public static Texture2D Plunger(IconSize size = IconSize.Large, IconColor color = IconColor.Gray) => Instance.GetItem(PlungerName, size, color);
@@ -155,6 +157,7 @@ namespace VisualPinball.Unity.Editor
 				case SpinnerComponent _: return Spinner(size, color);
 				case SlingshotComponent _: return Slingshot(size, color);
 				case SurfaceComponent _: return Surface(size, color);
+				case StepRotatorMechComponent _: return Mech(size, color);
 				case TeleporterComponent _: return Teleporter(size, color);
 				case TriggerComponent _: return Trigger(size, color);
 				case TroughComponent _: return Trough(size, color);

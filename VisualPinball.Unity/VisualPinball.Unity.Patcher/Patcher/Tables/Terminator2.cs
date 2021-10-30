@@ -111,6 +111,9 @@ namespace VisualPinball.Unity.Patcher
 
 				// left lock
 				LinkCoil(tc, "sw51", "16", kicker);
+
+				// cannon
+				LinkCoil(tc, "sw31", "02", kicker);
 			}
 
 			var plungers = tableGo.GetComponentsInChildren<PlungerComponent>();
@@ -125,6 +128,20 @@ namespace VisualPinball.Unity.Patcher
 				// skull kicker
 				LinkCoil(tc, "sw76", "01", teleporter, TeleporterComponent.CoilItem);
 			}
+
+			var bumpers = tableGo.GetComponentsInChildren<BumperComponent>();
+			foreach (var bumper in bumpers) {
+				LinkSwitch(tc, "Bumper1", "41", bumper);
+				LinkSwitch(tc, "Bumper2", "43", bumper);
+				LinkSwitch(tc, "Bumper3", "42", bumper);
+			}
+
+			// cannon
+			var cannonGo = tc.transform.Find("Playfield/Mechs/Cannon").gameObject;
+			var cannonMech = cannonGo.GetComponent<StepRotatorMechComponent>();
+			LinkSwitch(tc, "32", cannonMech, "gun_mark_switch");
+			LinkSwitch(tc, "33", cannonMech, "gun_home_switch");
+			LinkCoil(tc, "11", cannonMech);
 		}
 
 		private static void SetupDmd(GameObject tableGo)
