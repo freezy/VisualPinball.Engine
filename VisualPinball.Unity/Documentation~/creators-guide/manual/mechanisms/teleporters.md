@@ -6,7 +6,7 @@ description: VPE can teleport the ball from one kicker to another.
 
 # Teleporters
 
-Sometimes, it's easier to teleport the ball from one place to another instead of setting up the physical environment to simulate the actual movement. VPE provides a simple component that destroys a ball at kicker A and creates a new one at kicker B.
+Sometimes it's easier to teleport the ball from one place to another instead of setting up the physical environment to simulate the actual movement. VPE provides a simple component that destroys a ball at kicker A and creates a new one at kicker B.
 
 > [!NOTE]
 > Please note that you shouldn't be using teleporters when the ball is visible, because it breaks the natural flow of the ball and looks choppy. 
@@ -26,7 +26,7 @@ In order to create a new teleporter, select the GameObject you want to add it to
 
 Once the ball is created at the destination kicker, it can be ejected immediately or after a delay (see next section), or it can stay in the kicker.
 
-If disabled, this option makes the destination kicker keep the ball until it's explicitly ejected trough the kicker's coil.
+If disabled, this option makes the destination kicker keep the ball until it's explicitly ejected through the kicker's coil.
 
 
 ### Wait Before Eject
