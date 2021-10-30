@@ -916,8 +916,8 @@ namespace VisualPinball.Unity.Patcher
 		[NameMatch("L55")]
 		[NameMatch("L56")]
 		[NameMatch("L57")]
-		[NameMatch("L58")]
 		public void RightRedRect(GameObject go) => LightPos(go, 8.5f, -11.7f, -50f);
+		[NameMatch("L58")] public void L58Pos(GameObject go) => LightPos(go, -2.3f, 20f, -50f);
 
 		[NameMatch("L61")]
 		[NameMatch("L62")]
