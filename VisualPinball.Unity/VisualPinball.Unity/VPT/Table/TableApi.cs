@@ -40,7 +40,7 @@ namespace VisualPinball.Unity
 		private readonly Dictionary<string, RampApi> _rampsByName = new Dictionary<string, RampApi>();
 		private readonly Dictionary<string, RubberApi> _rubbersByName = new Dictionary<string, RubberApi>();
 		private readonly Dictionary<string, SpinnerApi> _spinnersByName = new Dictionary<string, SpinnerApi>();
-		private readonly Dictionary<string, StepRotatorApi> _stepRotatorsByName = new Dictionary<string, StepRotatorApi>();
+		private readonly Dictionary<string, StepRotatorMechApi> _stepRotatorsByName = new Dictionary<string, StepRotatorMechApi>();
 		private readonly Dictionary<string, SurfaceApi> _surfacesByName = new Dictionary<string, SurfaceApi>();
 		private readonly Dictionary<string, TeleporterApi> _teleportersByName = new Dictionary<string, TeleporterApi>();
 		private readonly Dictionary<string, TriggerApi> _triggersByName = new Dictionary<string, TriggerApi>();
@@ -61,7 +61,7 @@ namespace VisualPinball.Unity
 		private readonly Dictionary<MonoBehaviour, RampApi> _rampsByComponent = new Dictionary<MonoBehaviour, RampApi>();
 		private readonly Dictionary<MonoBehaviour, RubberApi> _rubbersByComponent = new Dictionary<MonoBehaviour, RubberApi>();
 		private readonly Dictionary<MonoBehaviour, SpinnerApi> _spinnersByComponent = new Dictionary<MonoBehaviour, SpinnerApi>();
-		private readonly Dictionary<MonoBehaviour, StepRotatorApi> _stepRotatorsByComponent = new Dictionary<MonoBehaviour, StepRotatorApi>();
+		private readonly Dictionary<MonoBehaviour, StepRotatorMechApi> _stepRotatorsByComponent = new Dictionary<MonoBehaviour, StepRotatorMechApi>();
 		private readonly Dictionary<MonoBehaviour, SurfaceApi> _surfacesByComponent = new Dictionary<MonoBehaviour, SurfaceApi>();
 		private readonly Dictionary<MonoBehaviour, TeleporterApi> _teleportersByComponent = new Dictionary<MonoBehaviour, TeleporterApi>();
 		private readonly Dictionary<MonoBehaviour, TriggerApi> _triggersByComponent = new Dictionary<MonoBehaviour, TriggerApi>();
@@ -201,8 +201,8 @@ namespace VisualPinball.Unity
 		/// </summary>
 		/// <param name="name">Name of the step rotator</param>
 		/// <returns>Step rotator or `null` if no step rotator with that name exists.</returns>
-		public StepRotatorApi StepRotator(string name) => Get<StepRotatorApi>(name);
-		public StepRotatorApi StepRotator(MonoBehaviour component) => Get<StepRotatorApi>(component);
+		public StepRotatorMechApi StepRotator(string name) => Get<StepRotatorMechApi>(name);
+		public StepRotatorMechApi StepRotator(MonoBehaviour component) => Get<StepRotatorMechApi>(component);
 
 		/// <summary>
 		/// Returns a drop target by name.
@@ -258,7 +258,7 @@ namespace VisualPinball.Unity
 			if (t == typeof(RampApi)) return _rampsByName as Dictionary<string, T>;
 			if (t == typeof(RubberApi)) return _rubbersByName as Dictionary<string, T>;
 			if (t == typeof(SpinnerApi)) return _spinnersByName as Dictionary<string, T>;
-			if (t == typeof(StepRotatorApi)) return _stepRotatorsByName as Dictionary<string, T>;
+			if (t == typeof(StepRotatorMechApi)) return _stepRotatorsByName as Dictionary<string, T>;
 			if (t == typeof(SurfaceApi)) return _surfacesByName as Dictionary<string, T>;
 			if (t == typeof(TeleporterApi)) return _teleportersByName as Dictionary<string, T>;
 			if (t == typeof(TriggerApi)) return _triggersByName as Dictionary<string, T>;
@@ -283,7 +283,7 @@ namespace VisualPinball.Unity
 			if (t == typeof(RampApi)) return _rampsByComponent as Dictionary<MonoBehaviour, T>;
 			if (t == typeof(RubberApi)) return _rubbersByComponent as Dictionary<MonoBehaviour, T>;
 			if (t == typeof(SpinnerApi)) return _spinnersByComponent as Dictionary<MonoBehaviour, T>;
-			if (t == typeof(StepRotatorApi)) return _stepRotatorsByComponent as Dictionary<MonoBehaviour, T>;
+			if (t == typeof(StepRotatorMechApi)) return _stepRotatorsByComponent as Dictionary<MonoBehaviour, T>;
 			if (t == typeof(SurfaceApi)) return _surfacesByComponent as Dictionary<MonoBehaviour, T>;
 			if (t == typeof(TeleporterApi)) return _teleportersByComponent as Dictionary<MonoBehaviour, T>;
 			if (t == typeof(TriggerApi)) return _triggersByComponent as Dictionary<MonoBehaviour, T>;

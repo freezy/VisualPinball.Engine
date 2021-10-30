@@ -18,20 +18,16 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using NLog;
-using Unity.Entities;
-using Unity.Mathematics;
 using UnityEngine;
 using Logger = NLog.Logger;
 
 namespace VisualPinball.Unity
 {
-	public class StepRotatorApi : IApi, IApiSwitchDevice, IApiCoilDevice
+	public class StepRotatorMechApi : IApi, IApiSwitchDevice, IApiCoilDevice
 	{
 		public event EventHandler Init;
 
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
-		private static EntityManager EntityManager => World.DefaultGameObjectInjectionWorld.EntityManager;
-
 
 		private enum Direction
 		{
@@ -40,24 +36,19 @@ namespace VisualPinball.Unity
 		}
 
 		private readonly Player _player;
-		private readonly StepRotatorComponent _component;
+		private readonly StepRotatorMechComponent _component;
 
-		public DeviceCoil MotorCoil;
-		private Dictionary<string, DeviceSwitch> _switches;
-		private Dictionary<string, StepRotatorMark> _marks;
-
-
+		private DeviceCoil _motorCoil;
 		private bool _enabled;
 		private float _currentStep;
 		private Direction _direction;
-		private KickerApi[] _kickers;
 
-		private (KickerApi kicker, float distance, float angle, Entity ballEntity)[] _ballEntities;
+		private Dictionary<string, DeviceSwitch> _switches;
+		private Dictionary<string, StepRotatorMark> _marks;
 
-
-		internal StepRotatorApi(GameObject go, Player player)
+		internal StepRotatorMechApi(GameObject go, Player player)
 		{
-			_component = go.GetComponentInChildren<StepRotatorComponent>();
+			_component = go.GetComponentInChildren<StepRotatorMechComponent>();
 			_player = player;
 		}
 
@@ -68,7 +59,7 @@ namespace VisualPinball.Unity
 			_currentStep = 0;
 			_direction = Direction.Forward;
 
-			MotorCoil = new DeviceCoil(OnMotorCoilEnabled, OnMotorCoilDisabled);
+			_motorCoil = new DeviceCoil(OnMotorCoilEnabled, OnMotorCoilDisabled);
 
 			_marks = _component.Marks.ToDictionary(m => m.SwitchId, m => m);
 			_switches = _component.Marks.ToDictionary(m => m.SwitchId, m => new DeviceSwitch(m.SwitchId, false, SwitchDefault.NormallyOpen, _player));
@@ -80,10 +71,6 @@ namespace VisualPinball.Unity
 
 			_player.OnUpdate += OnUpdate;
 
-			_kickers = _component.Kickers
-				.Select(k => _player.TableApi.Kicker(k))
-				.ToArray();
-
 			Init?.Invoke(this, EventArgs.Empty);
 		}
 
@@ -92,8 +79,8 @@ namespace VisualPinball.Unity
 		private IApiCoil Coil(string deviceItem)
 		{
 			return deviceItem switch {
-				StepRotatorComponent.MotorCoilItem => MotorCoil,
-				_ => throw new ArgumentException($"Unknown coil \"{deviceItem}\". Valid name is: \"{StepRotatorComponent.MotorCoilItem}\".")
+				StepRotatorMechComponent.MotorCoilItem => _motorCoil,
+				_ => throw new ArgumentException($"Unknown coil \"{deviceItem}\". Valid name is: \"{StepRotatorMechComponent.MotorCoilItem}\".")
 			};
 		}
 
@@ -107,15 +94,8 @@ namespace VisualPinball.Unity
 
 		private void OnMotorCoilEnabled()
 		{
-			var pos = _component.Target.RotatedPosition;
+			_component.Target.StartRotating();
 			_enabled = true;
-			_ballEntities = _kickers.Where(k => k.HasBall()).Select(k => (
-				k,
-				math.distance(pos, k.Position.xy),
-				math.sign(pos.x - k.Position.x) * Vector2.Angle(k.Position.xy - pos, new float2(0f, -1f)),
-				k.BallEntity)
-			).ToArray();
-
 			Logger.Info("OnGunMotorCoilEnabled - starting rotation");
 		}
 
@@ -127,14 +107,13 @@ namespace VisualPinball.Unity
 
 		private void OnUpdate(object sender, EventArgs eventArgs)
 		{
-			if (!_enabled)
+			if (!_enabled || _component.NumSteps == 0)
 			{
 				return;
 			}
 
 			var numSteps = _component.NumSteps;
-			float speed = (numSteps * 2 / 6.5f) * Time.deltaTime;
-
+			var speed = numSteps * 2 / 6.5f * Time.deltaTime;
 
 			// determine position
 			if (_direction == Direction.Forward)
@@ -171,30 +150,8 @@ namespace VisualPinball.Unity
 				}
 			}
 
-			var value = _currentStep / numSteps;
-
 			// rotate target
-			_component.UpdateRotation(value);
-
-			// rotate ball(s)
-			var currentAngle = value * _component.TotalRotationDegrees;
-			var pos = _component.Target.RotatedPosition;
-			foreach (var (kicker, distance, angle, ballEntity) in _ballEntities) {
-				if (!kicker.HasBall()) {
-					return;
-				}
-				var ballData = EntityManager.GetComponentData<BallData>(ballEntity);
-				ballData.Position = new float3(
-					pos.x -distance * math.sin(math.radians(currentAngle + angle)),
-					pos.y -distance * math.cos(math.radians(currentAngle + angle)),
-					ballData.Position.z
-				);
-				ballData.Velocity = float3.zero;
-				ballData.AngularMomentum = float3.zero;
-				ballData.AngularVelocity = float3.zero;
-
-				EntityManager.SetComponentData(ballEntity, ballData);
-			}
+			_component.UpdateRotation(_currentStep / numSteps);
 		}
 
 		void IApi.OnDestroy()
