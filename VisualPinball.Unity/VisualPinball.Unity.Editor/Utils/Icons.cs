@@ -55,6 +55,7 @@ namespace VisualPinball.Unity.Editor
 		private const string PlungerName = "plunger";
 		private const string PrimitiveName = "primitive";
 		private const string RampName = "ramp";
+		private const string RotatorName = "rotator";
 		private const string RubberName = "rubber";
 		private const string SlingshotName = "slingshot";
 		private const string SpinnerName = "spinner";
@@ -68,7 +69,7 @@ namespace VisualPinball.Unity.Editor
 
 		private static readonly string[] Names = {
 			BallRollerName, BoltName, BumperName, CoilName, DropTargetBankName, DropTargetName, FlasherName, FlipperName, GateName, HitTargetName, KeyName,
-			KickerName, LightGroupName, LightName, PlayfieldName, PlugName, PlungerName, PrimitiveName, RampName, RubberName, SlingshotName, SpinnerName,
+			KickerName, LightGroupName, LightName, PlayfieldName, PlugName, PlungerName, PrimitiveName, RampName, RotatorName, RubberName, SlingshotName, SpinnerName,
 			SurfaceName, SwitchNcName, SwitchNoName, TableName, TeleporterName, TriggerName, TroughName,
 		};
 
@@ -119,6 +120,7 @@ namespace VisualPinball.Unity.Editor
 		public static Texture2D Plunger(IconSize size = IconSize.Large, IconColor color = IconColor.Gray) => Instance.GetItem(PlungerName, size, color);
 		public static Texture2D Primitive(IconSize size = IconSize.Large, IconColor color = IconColor.Gray) => Instance.GetItem(PrimitiveName, size, color);
 		public static Texture2D Ramp(IconSize size = IconSize.Large, IconColor color = IconColor.Gray) => Instance.GetItem(RampName, size, color);
+		public static Texture2D Rotator(IconSize size = IconSize.Large, IconColor color = IconColor.Gray) => Instance.GetItem(RotatorName, size, color);
 		public static Texture2D Rubber(IconSize size = IconSize.Large, IconColor color = IconColor.Gray) => Instance.GetItem(RubberName, size, color);
 		public static Texture2D Slingshot(IconSize size = IconSize.Large, IconColor color = IconColor.Gray) => Instance.GetItem(SlingshotName, size, color);
 		public static Texture2D Spinner(IconSize size = IconSize.Large, IconColor color = IconColor.Gray) => Instance.GetItem(SpinnerName, size, color);
@@ -148,6 +150,7 @@ namespace VisualPinball.Unity.Editor
 				case PlayfieldComponent _: return Playfield(size, color);
 				case PrimitiveComponent _: return Primitive(size, color);
 				case RampComponent _: return Ramp(size, color);
+				case RotatorComponent _: return Rotator(size, color);
 				case RubberComponent _: return Rubber(size, color);
 				case SpinnerComponent _: return Spinner(size, color);
 				case SlingshotComponent _: return Slingshot(size, color);
@@ -204,6 +207,7 @@ namespace VisualPinball.Unity.Editor
 			DisableGizmo<RampFloorMeshComponent>();
 			DisableGizmo<RampWallMeshComponent>();
 			DisableGizmo<RampWireMeshComponent>();
+			DisableGizmo<RotatorComponent>();
 			DisableGizmo<RubberComponent>();
 			DisableGizmo<RubberMeshComponent>();
 			DisableGizmo<RubberColliderComponent>();
