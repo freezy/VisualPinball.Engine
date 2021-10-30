@@ -406,16 +406,19 @@ namespace VisualPinball.Unity.Patcher
 			var mechsParent = GetOrCreateGameObject(playfieldGo, "Mechs");
 
 			var rotatorGo = CreateEmptyGameObject(mechsParent, "Cannon");
-			var rotatorComp = rotatorGo.AddComponent<StepRotatorComponent>();
-			rotatorComp.Target = cannonComp;
-			rotatorComp.NumSteps = 240;
-			rotatorComp.Marks = new[] {
+			var rotatorComp = rotatorGo.AddComponent<RotatorComponent>();
+			var mechComp = rotatorGo.AddComponent<StepRotatorMechComponent>();
+			mechComp.Target = rotatorComp;
+			mechComp.NumSteps = 240;
+			mechComp.Marks = new[] {
 				new StepRotatorMark("Gun Mark", "gun_mark_switch", 0, 5),
 				new StepRotatorMark("Gun Home", "gun_home_switch", 98, 105)
 			};
 
-			var kickerGo = playfieldGo.transform.Find("Kickers/sw31").gameObject;
-
+			rotatorComp.Target = cannonComp;
+			rotatorComp.RotateWith = new IRotatableComponent[] {
+				playfieldGo.transform.Find("Kickers/sw31").GetComponent<KickerComponent>(),
+			};
 		}
 
 		#endregion

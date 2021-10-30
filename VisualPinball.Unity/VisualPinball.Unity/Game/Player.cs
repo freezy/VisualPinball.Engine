@@ -239,9 +239,9 @@ namespace VisualPinball.Unity
 			Register(new LightGroupApi(component.Lights.Select(l => l.GetApi(this)).ToArray()), component);
 		}
 
-		public void RegisterStepRotator(StepRotatorComponent component)
+		public void RegisterStepRotator(StepRotatorMechComponent component)
 		{
-			Register(new StepRotatorApi(component.gameObject, this), component);
+			Register(new StepRotatorMechApi(component.gameObject, this), component);
 		}
 
 		public void RegisterDropTargetBankComponent(DropTargetBankComponent component)
