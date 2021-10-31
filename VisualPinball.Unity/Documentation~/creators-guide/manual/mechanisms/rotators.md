@@ -8,13 +8,13 @@ description: Rotating objects during gameplay
 
 Sometimes during gameplay, you might need to rotate objects in order to recreate certain mechanisms. Like Visual Pinball, VPE doesn't support dynamic colliders (yet), but visually, objects can still be rotated.
 
-**Rotators** in VPE are components that allow you to easily rotate objects around the Z-axis. It works by choosing a *target* which rotates around its local origin (typically the position on the playfield). Additional objects can be linked to rotate around the same axis at the same time.
+**Rotators** in VPE are components that allow you to easily rotate objects around the Z-axis. The **Rotator** component is applied to a *target*, which will then rotate around its local origin (typically the position on the playfield). Additional objects can be linked to rotate around the same axis at the same time.
 
 ## Setup
 
 <img src="rotator-inspector.png" width="369" alt="Rotator Inspector" class="img-responsive pull-right" style="margin-left: 15px"/>
 
-In order to create a rotator, add the *Rotator* component to a game object by clicking *Add Component* in the inspector, then choosing *Visual Pinball -> Game Item -> Rotator*. You can use any game object, although we recommend adding it to the target that you want to rotate.
+In order to create a rotator, add the **Rotator** component to a game object by clicking *Add Component* in the inspector, then choosing *Visual Pinball -> Game Item -> Rotator*. You can use any game object, although we recommend adding it to the target that you want to rotate.
 
 ### Target
 
@@ -30,4 +30,4 @@ Add other objects that rotate along with your target here. Currently, the follow
 
 ## Usage
 
-When adding a rotator component to a game object, it provides a float input that other components can use to rotate the object. Currently, only the step rotator mech makes use of this input. However, the step rotator will probably be replaced by a more generic system soon, so we won't go into more details here.
+When adding a **Rotator** component to a game object, it provides a float input that other components can use to rotate the object. Currently, only the step rotator mech makes use of this input. However, the step rotator will probably be replaced by a more generic system soon, so we won't go into more details here.
