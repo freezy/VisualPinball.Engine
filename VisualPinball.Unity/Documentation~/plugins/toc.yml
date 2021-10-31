@@ -1,5 +1,12 @@
 - name: Overview
   href: index.md
+- name: PinMAME
+  items:
+  - name: Overview
+    href: pinmame/index.md
+  - name: Mechs
+    href: pinmame/mechs.md
+
 - name: Mission Pinball Framework
   items:
   - name: Overview
