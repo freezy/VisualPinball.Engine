@@ -53,3 +53,5 @@
         href: manual/mechanisms/teleporters.md
       - name: Drop Target Banks
         href: manual/mechanisms/drop-target-banks.md
+      - name: Rotators
+        href: manual/mechanisms/rotators.md
