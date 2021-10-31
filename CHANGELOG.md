@@ -4,9 +4,10 @@
 
 ## Unreleased
 
-Built with Unity 2020.3.
+Built with Unity 2021.2.
 
 ### Added
+- A *Rotator* component ([#337](https://github.com/freezy/VisualPinball.Engine/pull/337), [Documentation](https://docs.visualpinball.org/creators-guide/manual/mechanisms/rotator.html)).
 - A *Teleporter* component ([#336](https://github.com/freezy/VisualPinball.Engine/pull/336), [Documentation](https://docs.visualpinball.org/creators-guide/manual/mechanisms/drop-target-banks.html)).
 - A *Drop Target Bank* component ([#333](https://github.com/freezy/VisualPinball.Engine/pull/333), [Documentation](https://docs.visualpinball.org/creators-guide/manual/mechanisms/teleporters.html)).
 - Editor: Enable manual trigger for coils, switches, lamps and wires during gameplay ([#332](https://github.com/freezy/VisualPinball.Engine/pull/332))
