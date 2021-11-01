@@ -44,10 +44,10 @@ namespace VisualPinball.Unity
 		{
 			_rotator = GetComponent<RotatorComponent>();
 			if (Mech != null) {
-				Mech.OnMechUpdate += Update;
+				Mech.OnMechUpdate += UpdateCannon;
 			}
 		}
-		private void Update(object sender, MechEventArgs e)
+		private void UpdateCannon(object sender, MechEventArgs e)
 		{
 			if (_lastSpeed == e.Speed && _lastPosition == e.Position) {
 				return;
@@ -64,7 +64,7 @@ namespace VisualPinball.Unity
 		private void OnDestroy()
 		{
 			if (Mech != null) {
-				Mech.OnMechUpdate -= Update;
+				Mech.OnMechUpdate -= UpdateCannon;
 			}
 		}
 		#endregion
