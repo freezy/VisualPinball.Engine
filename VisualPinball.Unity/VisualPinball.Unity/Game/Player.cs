@@ -44,6 +44,7 @@ namespace VisualPinball.Unity
 		public BallManager BallManager;
 
 		public List<SwitchMapping> SwitchMapping => _tableComponent.MappingConfig.Switches;
+		public List<CoilMapping> CoilMapping => _tableComponent.MappingConfig.Coils;
 
 		public event EventHandler OnUpdate;
 

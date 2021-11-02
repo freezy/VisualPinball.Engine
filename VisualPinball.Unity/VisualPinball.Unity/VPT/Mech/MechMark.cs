@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 // ReSharper disable InconsistentNaming
+
 using System;
 using VisualPinball.Engine.Game.Engines;
 
@@ -23,17 +24,22 @@ namespace VisualPinball.Unity
 	[Serializable]
 	public class MechMark
 	{
-		public string Description;
+		public MechMarkSwitchType Type;
+		public string Name;
 		public string SwitchId;
 		public int StepBeginning;
 		public int StepEnd;
-		public int Pulse;
+		[Unit("step(s)")]
+		public int PulseFreq = 1;
+		[Unit("ms")]
+		public int PulseDuration = 50;
 
-		public GamelogicEngineSwitch Switch => new(SwitchId) { Description = Description };
+		public GamelogicEngineSwitch Switch => new(SwitchId) { Description = Name };
 
-		public MechMark(string description, string switchId, int stepBeginning, int stepEnd)
+		public MechMark(MechMarkSwitchType type, string name, string switchId, int stepBeginning, int stepEnd)
 		{
-			Description = description;
+			Type = type;
+			Name = name;
 			SwitchId = switchId;
 			StepBeginning = stepBeginning;
 			StepEnd = stepEnd;
@@ -41,5 +47,10 @@ namespace VisualPinball.Unity
 
 		public bool HasId => !string.IsNullOrEmpty(SwitchId);
 		public void GenerateId() => SwitchId = $"switch_{Guid.NewGuid().ToString()[..8]}";
+	}
+
+	public enum MechMarkSwitchType
+	{
+		EnableBetween = 0, AlwaysPulse = 1, PulseBetween = 2
 	}
 }

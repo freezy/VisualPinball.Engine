@@ -77,13 +77,11 @@ A PinMAME mech can have multitple marker switches. They consist each of:
 
 - The *start position* - at which step the switch is enabled.
 - The *end position* - at which step the switch is disabled again.
-- The *switch number* - the number that is sent to the game while the switch is enabled.
 
 Those switches can also be defined as pulse switches, in which case the configuration becomes:
 
 - The *frequency* - how often the switch is pulsed. 1 means at every position, 2 every 2nd position, etc.
-- The *pulse duration* - How many steps the switch is closed.
-- The *switch number* - the number that is sent to the game while the switch is enabled.
+- The *pulse duration* - During how many steps the switch is closed.
 
 ### Acceleration and Retardation
 
