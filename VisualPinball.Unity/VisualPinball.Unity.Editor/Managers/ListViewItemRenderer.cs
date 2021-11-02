@@ -129,6 +129,10 @@ namespace VisualPinball.Unity.Editor
 
 		protected void RenderDevice(TListData listData, Rect cellRect, Action<TListData> updateAction)
 		{
+			if (listData != null && !(listData.DeviceComponent as Component)) {
+				listData.ClearDevice();
+			}
+
 			cellRect = RenderIcon(listData, cellRect);
 			cellRect.width = cellRect.width / 2f - 3f;
 			RenderDeviceElement(listData, cellRect, updateAction);

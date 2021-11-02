@@ -81,5 +81,12 @@ namespace VisualPinball.Unity.Editor
 			LampMapping.Channel = Channel;
 			LampMapping.FadingSteps = FadingSteps;
 		}
+
+		public void ClearDevice()
+		{
+			Device = null;
+			DeviceItem = null;
+			Update();
+		}
 	}
 }
