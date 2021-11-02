@@ -30,7 +30,7 @@ namespace VisualPinball.Unity.Editor
 			var leftRect = position;
 			var rightRect = position;
 			leftRect.width -= labelWidth;
-			rightRect.x = position.width;
+			rightRect.x = leftRect.x + leftRect.width;
 			rightRect.width = labelWidth;
 
 			EditorGUI.PropertyField(leftRect, property, label);
