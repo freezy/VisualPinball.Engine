@@ -16,11 +16,9 @@
 
 // ReSharper disable InconsistentNaming
 
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using NLog;
-using Unity.Mathematics;
 using UnityEngine;
 using VisualPinball.Engine.Game.Engines;
 using Logger = NLog.Logger;
@@ -28,7 +26,7 @@ using Logger = NLog.Logger;
 namespace VisualPinball.Unity
 {
 	[AddComponentMenu("Visual Pinball/Mechs/Step Rotator")]
-	public class StepRotatorMechComponent : MonoBehaviour, ISwitchDeviceComponent, ICoilDeviceComponent
+	public class StepRotatorMechComponent : MonoBehaviour, ISwitchDeviceComponent, ICoilDeviceComponent, ISerializationCallbackReceiver
 	{
 		#region Data
 
@@ -43,7 +41,7 @@ namespace VisualPinball.Unity
 		public int NumSteps;
 
 		[Tooltip("On each mark, the switch changes are transmitted to the gamelogic engine.")]
-		public StepRotatorMark[] Marks;
+		public MechMark[] Marks;
 
 		#endregion
 
@@ -95,25 +93,28 @@ namespace VisualPinball.Unity
 		}
 
 		#endregion
-	}
 
-	[Serializable]
-	public class StepRotatorMark
-	{
-		public string Description;
-		public string SwitchId;
-		public int StepBeginning;
-		public int StepEnd;
+		#region ISerializationCallbackReceiver
 
-		public GamelogicEngineSwitch Switch => new(SwitchId) { Description = Description };
-
-		public StepRotatorMark(string description, string switchId, int stepBeginning, int stepEnd)
+		public void OnBeforeSerialize()
 		{
-			Description = description;
-			SwitchId = switchId;
-			StepBeginning = stepBeginning;
-			StepEnd = stepEnd;
+			#if UNITY_EDITOR
+
+			var switchIds = new HashSet<string>();
+			foreach (var mark in Marks) {
+				if (!mark.HasId || switchIds.Contains(mark.SwitchId)) {
+					mark.GenerateId();
+				}
+				switchIds.Add(mark.SwitchId);
+			}
+			#endif
 		}
+
+		public void OnAfterDeserialize()
+		{
+		}
+
+		#endregion
 	}
 
 }

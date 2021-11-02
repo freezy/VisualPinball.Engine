@@ -19,7 +19,7 @@ using UnityEngine;
 
 namespace VisualPinball.Unity.Editor
 {
-	[CustomPropertyDrawer(typeof(StepRotatorMark))]
+	[CustomPropertyDrawer(typeof(MechMark))]
 	public class StepRotatorMarkPropertyDrawer : PropertyDrawer
 	{
 		private const float Padding = 2f;
@@ -37,9 +37,9 @@ namespace VisualPinball.Unity.Editor
 			EditorGUI.indentLevel = 0;
 
 			// description and switch id
-			EditorGUI.PropertyField(position, property.FindPropertyRelative(nameof(StepRotatorMark.Description)), new GUIContent("Title"));
+			EditorGUI.PropertyField(position, property.FindPropertyRelative(nameof(MechMark.Description)), new GUIContent("Title"));
 			position.y += EditorGUIUtility.singleLineHeight + Padding;
-			EditorGUI.PropertyField(position, property.FindPropertyRelative(nameof(StepRotatorMark.SwitchId)));
+			EditorGUI.PropertyField(position, property.FindPropertyRelative(nameof(MechMark.SwitchId)));
 
 			// step line
 			position.y += EditorGUIUtility.singleLineHeight + Padding;
@@ -51,9 +51,9 @@ namespace VisualPinball.Unity.Editor
 			var midRect = new Rect(position.x + width + 6f, position.y, width, position.height);
 			var rightRect = new Rect(position.x + position.width - 40 + 4, position.y, 40, position.height);
 
-			EditorGUI.PropertyField(fromRect, property.FindPropertyRelative(nameof(StepRotatorMark.StepBeginning)), GUIContent.none);
+			EditorGUI.PropertyField(fromRect, property.FindPropertyRelative(nameof(MechMark.StepBeginning)), GUIContent.none);
 			EditorGUI.LabelField(midRect, new GUIContent("-"));
-			EditorGUI.PropertyField(toRect, property.FindPropertyRelative(nameof(StepRotatorMark.StepEnd)), GUIContent.none);
+			EditorGUI.PropertyField(toRect, property.FindPropertyRelative(nameof(MechMark.StepEnd)), GUIContent.none);
 			EditorGUI.LabelField(rightRect, new GUIContent("steps"));
 
 			// set indent back to what it was
