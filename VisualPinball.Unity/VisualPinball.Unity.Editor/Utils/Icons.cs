@@ -1,4 +1,23 @@
-﻿using System;
+﻿// Visual Pinball Engine
+// Copyright (C) 2021 freezy and VPE Team
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+
+// ReSharper disable UnusedType.Global
+
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -18,6 +37,12 @@ namespace VisualPinball.Unity.Editor
 	public enum IconColor
 	{
 		Gray, Green, Orange, Blue
+	}
+
+	public interface IIconLookup
+	{
+		Texture2D Lookup<T>(T mb, IconSize size = IconSize.Large, IconColor color = IconColor.Gray) where T : class;
+		void DisableGizmoIcons();
 	}
 
 	public class Icons
@@ -52,6 +77,7 @@ namespace VisualPinball.Unity.Editor
 		private const string LightGroupName = "light_group";
 		private const string LightName = "light";
 		private const string MechName = "mech";
+		private const string MechPinMameName = "mech_pinmame";
 		private const string PlayfieldName = "playfield";
 		private const string PlugName = "plug";
 		private const string PlungerName = "plunger";
@@ -71,7 +97,7 @@ namespace VisualPinball.Unity.Editor
 
 		private static readonly string[] Names = {
 			BallRollerName, BoltName, BumperName, CannonName, CoilName, DropTargetBankName, DropTargetName, FlasherName, FlipperName, GateName,
-			HitTargetName, KeyName, KickerName, LightGroupName, LightName, MechName, PlayfieldName, PlugName, PlungerName,
+			HitTargetName, KeyName, KickerName, LightGroupName, LightName, MechName, MechPinMameName, PlayfieldName, PlugName, PlungerName,
 			PrimitiveName, RampName, RotatorName, RubberName, SlingshotName, SpinnerName, SurfaceName, SwitchNcName, SwitchNoName, TableName,
 			TeleporterName, TriggerName, TroughName,
 		};
@@ -86,7 +112,9 @@ namespace VisualPinball.Unity.Editor
 		private static readonly int MonoBehaviourClassID = 114;
 
 		private static Icons _instance;
+		private static IIconLookup[] _lookups;
 		private static Icons Instance => _instance ??= new Icons();
+		private static IIconLookup[] Lookups => _lookups ??= GetLookups();
 
 		private Icons()
 		{
@@ -102,6 +130,16 @@ namespace VisualPinball.Unity.Editor
 					}
 				}
 			}
+		}
+
+		private static IIconLookup[] GetLookups() {
+			var t = typeof(IIconLookup);
+			return AppDomain.CurrentDomain.GetAssemblies()
+				.Where(x => x.FullName.StartsWith("VisualPinball."))
+				.SelectMany(x => x.GetTypes())
+				.Where(x => x.IsClass && t.IsAssignableFrom(x))
+				.Select(x => (IIconLookup) Activator.CreateInstance(x))
+				.ToArray();
 		}
 
 		public static Texture2D BallRoller(IconSize size = IconSize.Large, IconColor color = IconColor.Gray) => Instance.GetItem(BallRollerName, size, color);
@@ -120,6 +158,7 @@ namespace VisualPinball.Unity.Editor
 		public static Texture2D Light(IconSize size = IconSize.Large, IconColor color = IconColor.Gray) => Instance.GetItem(LightName, size, color);
 		public static Texture2D LightGroup(IconSize size = IconSize.Large, IconColor color = IconColor.Gray) => Instance.GetItem(LightGroupName, size, color);
 		public static Texture2D Mech(IconSize size = IconSize.Large, IconColor color = IconColor.Gray) => Instance.GetItem(MechName, size, color);
+		public static Texture2D MechPinMame(IconSize size = IconSize.Large, IconColor color = IconColor.Gray) => Instance.GetItem(MechPinMameName, size, color);
 		public static Texture2D Playfield(IconSize size = IconSize.Large, IconColor color = IconColor.Gray) => Instance.GetItem(PlayfieldName, size, color);
 		public static Texture2D Plug(IconSize size = IconSize.Large, IconColor color = IconColor.Gray) => Instance.GetItem(PlugName, size, color);
 		public static Texture2D Plunger(IconSize size = IconSize.Large, IconColor color = IconColor.Gray) => Instance.GetItem(PlungerName, size, color);
@@ -139,101 +178,17 @@ namespace VisualPinball.Unity.Editor
 		public static Texture2D ByComponent<T>(T mb, IconSize size = IconSize.Large, IconColor color = IconColor.Gray)
 			where T : class
 		{
-			switch (mb) {
-				case BallRollerComponent _: return BallRoller(size, color);
-				case BumperComponent _: return Bumper(size, color);
-				case CannonRotatorComponent _: return Cannon(size, color);
-				case DropTargetComponent _: return DropTarget(size, color);
-				case DropTargetBankComponent _: return DropTargetBank(size, color);
-				//case FlasherComponent _: return Flasher(size, color);
-				case FlipperComponent _: return Flipper(size, color);
-				case GateComponent _: return Gate(size, color);
-				case HitTargetComponent _: return HitTarget(size, color);
-				case KickerComponent _: return Kicker(size, color);
-				case LightComponent _: return Light(size, color);
-				case LightGroupComponent _: return LightGroup(size, color);
-				case PlungerComponent _: return Plunger(size, color);
-				case PlayfieldComponent _: return Playfield(size, color);
-				case PrimitiveComponent _: return Primitive(size, color);
-				case RampComponent _: return Ramp(size, color);
-				case RotatorComponent _: return Rotator(size, color);
-				case RubberComponent _: return Rubber(size, color);
-				case SpinnerComponent _: return Spinner(size, color);
-				case SlingshotComponent _: return Slingshot(size, color);
-				case SurfaceComponent _: return Surface(size, color);
-				case StepRotatorMechComponent _: return Mech(size, color);
-				case TeleporterComponent _: return Teleporter(size, color);
-				case TriggerComponent _: return Trigger(size, color);
-				case TroughComponent _: return Trough(size, color);
-				default: return null;
-			}
+			return Lookups
+				.Select(lookup => lookup.Lookup(mb, size, color))
+				.FirstOrDefault(icon => icon != null);
 		}
 
 		[MenuItem("Visual Pinball/Editor/Disable Gizmo Icons", false, 510)]
 		public static void DisableGizmoIcons()
 		{
-			DisableGizmo<BallRollerComponent>();
-			DisableGizmo<BumperComponent>();
-			DisableGizmo<BumperColliderComponent>();
-			DisableGizmo<BumperRingAnimationComponent>();
-			DisableGizmo<BumperSkirtAnimationComponent>();
-			DisableGizmo<CannonRotatorComponent>();
-			DisableGizmo<DefaultGamelogicEngine>();
-			DisableGizmo<DotMatrixDisplayComponent>();
-			DisableGizmo<DropTargetComponent>();
-			DisableGizmo<DropTargetBankComponent>();
-			DisableGizmo<DropTargetColliderComponent>();
-			DisableGizmo<DropTargetAnimationComponent>();
-			//DisableGizmo<FlasherComponent>();
-			DisableGizmo<FlipperComponent>();
-			DisableGizmo<FlipperColliderComponent>();
-			DisableGizmo<FlipperBaseMeshComponent>();
-			DisableGizmo<FlipperRubberMeshComponent>();
-			DisableGizmo<GateComponent>();
-			DisableGizmo<GateColliderComponent>();
-			DisableGizmo<GateWireAnimationComponent>();
-			DisableGizmo<HitTargetComponent>();
-			DisableGizmo<HitTargetColliderComponent>();
-			DisableGizmo<HitTargetAnimationComponent>();
-			DisableGizmo<KickerComponent>();
-			DisableGizmo<KickerColliderComponent>();
-			DisableGizmo<LightComponent>();
-			DisableGizmo<LightGroupComponent>();
-			DisableGizmo<PlayfieldComponent>();
-			DisableGizmo<PlayfieldColliderComponent>();
-			DisableGizmo<PlayfieldMeshComponent>();
-			DisableGizmo<PlungerComponent>();
-			DisableGizmo<PlungerColliderComponent>();
-			DisableGizmo<PlungerFlatMeshComponent>();
-			DisableGizmo<PlungerRodMeshComponent>();
-			DisableGizmo<PlungerSpringMeshComponent>();
-			DisableGizmo<PrimitiveComponent>();
-			DisableGizmo<PrimitiveColliderComponent>();
-			DisableGizmo<PrimitiveMeshComponent>();
-			DisableGizmo<RampComponent>();
-			DisableGizmo<RampColliderComponent>();
-			DisableGizmo<RampFloorMeshComponent>();
-			DisableGizmo<RampWallMeshComponent>();
-			DisableGizmo<RampWireMeshComponent>();
-			DisableGizmo<RotatorComponent>();
-			DisableGizmo<RubberComponent>();
-			DisableGizmo<RubberMeshComponent>();
-			DisableGizmo<RubberColliderComponent>();
-			DisableGizmo<SegmentDisplayComponent>();
-			DisableGizmo<SlingshotComponent>();
-			DisableGizmo<SpinnerComponent>();
-			DisableGizmo<SpinnerColliderComponent>();
-			DisableGizmo<SpinnerPlateAnimationComponent>();
-			DisableGizmo<SurfaceComponent>();
-			DisableGizmo<SurfaceColliderComponent>();
-			DisableGizmo<SurfaceSideMeshComponent>();
-			DisableGizmo<SurfaceTopMeshComponent>();
-			DisableGizmo<TableComponent>();
-			DisableGizmo<TeleporterComponent>();
-			DisableGizmo<TriggerComponent>();
-			DisableGizmo<TriggerAnimationComponent>();
-			DisableGizmo<TriggerColliderComponent>();
-			DisableGizmo<TriggerMeshComponent>();
+			foreach (var lookup in Lookups) {
+				lookup.DisableGizmoIcons();
+			}
 		}
 
 		public static void ApplyToComponent<T>(Object target, Texture2D tex) where T : MonoBehaviour
@@ -268,11 +223,111 @@ namespace VisualPinball.Unity.Editor
 			return _icons[variant];
 		}
 
-		private static void DisableGizmo<T>() where T : MonoBehaviour
+		public static void DisableGizmo<T>() where T : MonoBehaviour
 		{
 			var className = typeof(T).Name;
 			//SetGizmoEnabled?.Invoke(null, new object[] { MonoBehaviourClassID, className, 0, false });
 			SetIconEnabled?.Invoke(null, new object[] { MonoBehaviourClassID, className, 0 });
+		}
+	}
+
+	internal class IconLookup : IIconLookup
+	{
+		public Texture2D Lookup<T>(T mb, IconSize size = IconSize.Large, IconColor color = IconColor.Gray) where T : class
+		{
+			switch (mb) {
+				case BallRollerComponent _: return Icons.BallRoller(size, color);
+				case BumperComponent _: return Icons.Bumper(size, color);
+				case CannonRotatorComponent _: return Icons.Cannon(size, color);
+				case DropTargetComponent _: return Icons.DropTarget(size, color);
+				case DropTargetBankComponent _: return Icons.DropTargetBank(size, color);
+				case FlipperComponent _: return Icons.Flipper(size, color);
+				case GateComponent _: return Icons.Gate(size, color);
+				case HitTargetComponent _: return Icons.HitTarget(size, color);
+				case KickerComponent _: return Icons.Kicker(size, color);
+				case LightComponent _: return Icons.Light(size, color);
+				case LightGroupComponent _: return Icons.LightGroup(size, color);
+				case PlungerComponent _: return Icons.Plunger(size, color);
+				case PlayfieldComponent _: return Icons.Playfield(size, color);
+				case PrimitiveComponent _: return Icons.Primitive(size, color);
+				case RampComponent _: return Icons.Ramp(size, color);
+				case RotatorComponent _: return Icons.Rotator(size, color);
+				case RubberComponent _: return Icons.Rubber(size, color);
+				case SpinnerComponent _: return Icons.Spinner(size, color);
+				case SlingshotComponent _: return Icons.Slingshot(size, color);
+				case SurfaceComponent _: return Icons.Surface(size, color);
+				case StepRotatorMechComponent _: return Icons.Mech(size, color);
+				case TeleporterComponent _: return Icons.Teleporter(size, color);
+				case TriggerComponent _: return Icons.Trigger(size, color);
+				case TroughComponent _: return Icons.Trough(size, color);
+				default: return null;
+			}
+		}
+
+		public void DisableGizmoIcons()
+		{
+			Icons.DisableGizmo<BallRollerComponent>();
+			Icons.DisableGizmo<BumperComponent>();
+			Icons.DisableGizmo<BumperColliderComponent>();
+			Icons.DisableGizmo<BumperRingAnimationComponent>();
+			Icons.DisableGizmo<BumperSkirtAnimationComponent>();
+			Icons.DisableGizmo<CannonRotatorComponent>();
+			Icons.DisableGizmo<DefaultGamelogicEngine>();
+			Icons.DisableGizmo<DotMatrixDisplayComponent>();
+			Icons.DisableGizmo<DropTargetComponent>();
+			Icons.DisableGizmo<DropTargetBankComponent>();
+			Icons.DisableGizmo<DropTargetColliderComponent>();
+			Icons.DisableGizmo<DropTargetAnimationComponent>();
+			//Icons.DisableGizmo<FlasherComponent>();
+			Icons.DisableGizmo<FlipperComponent>();
+			Icons.DisableGizmo<FlipperColliderComponent>();
+			Icons.DisableGizmo<FlipperBaseMeshComponent>();
+			Icons.DisableGizmo<FlipperRubberMeshComponent>();
+			Icons.DisableGizmo<GateComponent>();
+			Icons.DisableGizmo<GateColliderComponent>();
+			Icons.DisableGizmo<GateWireAnimationComponent>();
+			Icons.DisableGizmo<HitTargetComponent>();
+			Icons.DisableGizmo<HitTargetColliderComponent>();
+			Icons.DisableGizmo<HitTargetAnimationComponent>();
+			Icons.DisableGizmo<KickerComponent>();
+			Icons.DisableGizmo<KickerColliderComponent>();
+			Icons.DisableGizmo<LightComponent>();
+			Icons.DisableGizmo<LightGroupComponent>();
+			Icons.DisableGizmo<PlayfieldComponent>();
+			Icons.DisableGizmo<PlayfieldColliderComponent>();
+			Icons.DisableGizmo<PlayfieldMeshComponent>();
+			Icons.DisableGizmo<PlungerComponent>();
+			Icons.DisableGizmo<PlungerColliderComponent>();
+			Icons.DisableGizmo<PlungerFlatMeshComponent>();
+			Icons.DisableGizmo<PlungerRodMeshComponent>();
+			Icons.DisableGizmo<PlungerSpringMeshComponent>();
+			Icons.DisableGizmo<PrimitiveComponent>();
+			Icons.DisableGizmo<PrimitiveColliderComponent>();
+			Icons.DisableGizmo<PrimitiveMeshComponent>();
+			Icons.DisableGizmo<RampComponent>();
+			Icons.DisableGizmo<RampColliderComponent>();
+			Icons.DisableGizmo<RampFloorMeshComponent>();
+			Icons.DisableGizmo<RampWallMeshComponent>();
+			Icons.DisableGizmo<RampWireMeshComponent>();
+			Icons.DisableGizmo<RotatorComponent>();
+			Icons.DisableGizmo<RubberComponent>();
+			Icons.DisableGizmo<RubberMeshComponent>();
+			Icons.DisableGizmo<RubberColliderComponent>();
+			Icons.DisableGizmo<SegmentDisplayComponent>();
+			Icons.DisableGizmo<SlingshotComponent>();
+			Icons.DisableGizmo<SpinnerComponent>();
+			Icons.DisableGizmo<SpinnerColliderComponent>();
+			Icons.DisableGizmo<SpinnerPlateAnimationComponent>();
+			Icons.DisableGizmo<SurfaceComponent>();
+			Icons.DisableGizmo<SurfaceColliderComponent>();
+			Icons.DisableGizmo<SurfaceSideMeshComponent>();
+			Icons.DisableGizmo<SurfaceTopMeshComponent>();
+			Icons.DisableGizmo<TableComponent>();
+			Icons.DisableGizmo<TeleporterComponent>();
+			Icons.DisableGizmo<TriggerComponent>();
+			Icons.DisableGizmo<TriggerAnimationComponent>();
+			Icons.DisableGizmo<TriggerColliderComponent>();
+			Icons.DisableGizmo<TriggerMeshComponent>();
 		}
 	}
 }

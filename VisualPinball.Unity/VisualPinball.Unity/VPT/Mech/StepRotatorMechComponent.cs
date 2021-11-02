@@ -41,7 +41,7 @@ namespace VisualPinball.Unity
 		public int NumSteps;
 
 		[Tooltip("On each mark, the switch changes are transmitted to the gamelogic engine.")]
-		public MechMark[] Marks;
+		public MechMark[] Marks = {};
 
 		#endregion
 
