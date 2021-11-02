@@ -43,6 +43,8 @@ namespace VisualPinball.Unity
 		[NonSerialized]
 		public BallManager BallManager;
 
+		public List<SwitchMapping> SwitchMapping => _tableComponent.MappingConfig.Switches;
+
 		public event EventHandler OnUpdate;
 
 		[HideInInspector] [SerializeField] public string debugUiId;

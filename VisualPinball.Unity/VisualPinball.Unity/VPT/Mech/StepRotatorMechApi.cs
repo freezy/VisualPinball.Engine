@@ -44,7 +44,7 @@ namespace VisualPinball.Unity
 		private Direction _direction;
 
 		private Dictionary<string, DeviceSwitch> _switches;
-		private Dictionary<string, StepRotatorMark> _marks;
+		private Dictionary<string, MechMark> _marks;
 
 		internal StepRotatorMechApi(GameObject go, Player player)
 		{

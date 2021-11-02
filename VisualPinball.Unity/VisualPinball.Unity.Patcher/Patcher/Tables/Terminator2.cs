@@ -428,8 +428,8 @@ namespace VisualPinball.Unity.Patcher
 			mechComp.Target = rotatorComp;
 			mechComp.NumSteps = 240;
 			mechComp.Marks = new[] {
-				new StepRotatorMark("Gun Home", "gun_home_switch", 0, 5),
-				new StepRotatorMark("Gun Mark", "gun_mark_switch", 98, 105),
+				new MechMark("Gun Home", "gun_home_switch", 0, 5),
+				new MechMark("Gun Mark", "gun_mark_switch", 98, 105),
 			};
 
 			rotatorComp.Target = cannonComp;
