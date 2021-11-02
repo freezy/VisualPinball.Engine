@@ -67,5 +67,12 @@ namespace VisualPinball.Unity.Editor
 			CoilMapping.Device = Device;
 			CoilMapping.DeviceItem = DeviceItem;
 		}
+
+		public void ClearDevice()
+		{
+			Device = null;
+			DeviceItem = null;
+			Update();
+		}
 	}
 }

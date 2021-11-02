@@ -87,5 +87,12 @@ namespace VisualPinball.Unity.Editor
 			SwitchMapping.DeviceItem = DeviceItem;
 			SwitchMapping.PulseDelay = PulseDelay;
 		}
+
+		public void ClearDevice()
+		{
+			Device = null;
+			DeviceItem = null;
+			Update();
+		}
 	}
 }

@@ -90,5 +90,12 @@ namespace VisualPinball.Unity.Editor
 
 			WireMapping.PulseDelay = PulseDelay;
 		}
+
+		public void ClearDevice()
+		{
+			DestinationDevice = null;
+			DestinationDeviceItem = null;
+			Update();
+		}
 	}
 }

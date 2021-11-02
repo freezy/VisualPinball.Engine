@@ -24,5 +24,7 @@ namespace VisualPinball.Unity.Editor
 		string DeviceItem { get; set; }
 		int InternalId { get; set; }
 		string Description { get; set; }
+
+		void ClearDevice();
 	}
 }
