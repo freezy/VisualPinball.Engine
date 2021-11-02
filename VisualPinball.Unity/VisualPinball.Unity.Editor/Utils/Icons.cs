@@ -39,6 +39,7 @@ namespace VisualPinball.Unity.Editor
 		private const string BallRollerName = "ball_roller";
 		private const string BoltName = "bolt";
 		private const string BumperName = "bumper";
+		private const string CannonName = "cannon";
 		private const string CoilName = "coil";
 		private const string DropTargetBankName = "drop_target_bank";
 		private const string DropTargetName = "drop_target";
@@ -69,9 +70,10 @@ namespace VisualPinball.Unity.Editor
 		private const string TroughName = "trough";
 
 		private static readonly string[] Names = {
-			BallRollerName, BoltName, BumperName, CoilName, DropTargetBankName, DropTargetName, FlasherName, FlipperName, GateName, HitTargetName, KeyName,
-			KickerName, LightGroupName, LightName, MechName, PlayfieldName, PlugName, PlungerName, PrimitiveName, RampName, RotatorName, RubberName,
-			SlingshotName, SpinnerName, SurfaceName, SwitchNcName, SwitchNoName, TableName, TeleporterName, TriggerName, TroughName,
+			BallRollerName, BoltName, BumperName, CannonName, CoilName, DropTargetBankName, DropTargetName, FlasherName, FlipperName, GateName,
+			HitTargetName, KeyName, KickerName, LightGroupName, LightName, MechName, PlayfieldName, PlugName, PlungerName,
+			PrimitiveName, RampName, RotatorName, RubberName, SlingshotName, SpinnerName, SurfaceName, SwitchNcName, SwitchNoName, TableName,
+			TeleporterName, TriggerName, TroughName,
 		};
 
 		private readonly Dictionary<IconVariant, Texture2D> _icons = new Dictionary<IconVariant, Texture2D>();
@@ -105,6 +107,7 @@ namespace VisualPinball.Unity.Editor
 		public static Texture2D BallRoller(IconSize size = IconSize.Large, IconColor color = IconColor.Gray) => Instance.GetItem(BallRollerName, size, color);
 		public static Texture2D Bolt(IconSize size = IconSize.Large, IconColor color = IconColor.Gray) => Instance.GetItem(BoltName, size, color);
 		public static Texture2D Bumper(IconSize size = IconSize.Large, IconColor color = IconColor.Gray) => Instance.GetItem(BumperName, size, color);
+		public static Texture2D Cannon(IconSize size = IconSize.Large, IconColor color = IconColor.Gray) => Instance.GetItem(CannonName, size, color);
 		public static Texture2D Coil(IconSize size = IconSize.Large, IconColor color = IconColor.Gray) => Instance.GetItem(CoilName, size, color);
 		public static Texture2D DropTarget(IconSize size = IconSize.Large, IconColor color = IconColor.Gray) => Instance.GetItem(DropTargetName, size, color);
 		public static Texture2D DropTargetBank(IconSize size = IconSize.Large, IconColor color = IconColor.Gray) => Instance.GetItem(DropTargetBankName, size, color);
@@ -139,6 +142,7 @@ namespace VisualPinball.Unity.Editor
 			switch (mb) {
 				case BallRollerComponent _: return BallRoller(size, color);
 				case BumperComponent _: return Bumper(size, color);
+				case CannonRotatorComponent _: return Cannon(size, color);
 				case DropTargetComponent _: return DropTarget(size, color);
 				case DropTargetBankComponent _: return DropTargetBank(size, color);
 				//case FlasherComponent _: return Flasher(size, color);
@@ -173,6 +177,7 @@ namespace VisualPinball.Unity.Editor
 			DisableGizmo<BumperColliderComponent>();
 			DisableGizmo<BumperRingAnimationComponent>();
 			DisableGizmo<BumperSkirtAnimationComponent>();
+			DisableGizmo<CannonRotatorComponent>();
 			DisableGizmo<DefaultGamelogicEngine>();
 			DisableGizmo<DotMatrixDisplayComponent>();
 			DisableGizmo<DropTargetComponent>();
