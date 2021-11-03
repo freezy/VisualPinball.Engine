@@ -20,6 +20,7 @@ using UnityEngine;
 namespace VisualPinball.Unity
 {
 	[RequireComponent(typeof(RotatorComponent))]
+	[AddComponentMenu("Visual Pinball/Game Item/Cannon Rotator")]
 	public class CannonRotatorComponent : MonoBehaviour
 	{
 		#region Data
