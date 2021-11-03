@@ -425,7 +425,7 @@ namespace VisualPinball.Unity.Patcher
 			var rotatorGo = CreateEmptyGameObject(mechsParent, "Cannon");
 			var rotatorComp = rotatorGo.AddComponent<RotatorComponent>();
 			var mechComp = rotatorGo.AddComponent<StepRotatorMechComponent>();
-			mechComp.Target = rotatorComp;
+			//mechComp.Target = rotatorComp;
 			mechComp.NumSteps = 240;
 			mechComp.Marks = new[] {
 				new MechMark(MechMarkSwitchType.EnableBetween, "Gun Home", "gun_home_switch", 0, 5),

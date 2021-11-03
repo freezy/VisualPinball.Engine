@@ -6,7 +6,7 @@ using System;
 
 namespace VisualPinball.Unity
 {
-	[AddComponentMenu("Visual Pinball/Drop Target Bank")]
+	[AddComponentMenu("Visual Pinball/Mechs/Drop Target Bank")]
 	[HelpURL("https://docs.visualpinball.org/creators-guide/manual/mechanisms/drop-target-banks.html")]
 	public class DropTargetBankComponent : MonoBehaviour, ICoilDeviceComponent
 	{
