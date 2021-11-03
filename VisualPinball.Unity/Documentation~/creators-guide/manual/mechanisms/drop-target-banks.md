@@ -12,7 +12,7 @@ A Drop Target Bank is a collection of one or more drop targets that are reset (r
 
 You can create a Drop Target Bank in two different ways.
 
-1. If your game has a single bank drop target, or multiple single bank drop targets, it is preferred to add it directly to the drop target. Select the drop target you want to add it to, click on *Add Component* in the inspector and select *Visual Pinball -> Game Item -> Drop Target Bank*. 
+1. If your game has a single bank drop target, or multiple single bank drop targets, it is preferred to add it directly to the drop target. Select the drop target you want to add it to, click on *Add Component* in the inspector and select *Visual Pinball -> Mechs -> Drop Target Bank*. 
 2. If your game has drop target banks with multiple drop targets, click on *Drop Target Bank* in the toolbox. This will add a *Drop Target Banks* hierarchy to the playfield and create a new GameObject with the right component assigned.
 
 <img src="drop-target-bank-inspector.png" width="332" class="img-responsive pull-right" style="margin-left: 15px">

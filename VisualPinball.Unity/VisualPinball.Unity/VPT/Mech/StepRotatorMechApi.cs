@@ -93,7 +93,7 @@ namespace VisualPinball.Unity
 		private void OnMotorCoilEnabled()
 		{
 			_player.OnUpdate += OnUpdate;
-			_component.Target.StartRotating();
+			_component.UpdateRotation(1, _currentStep);
 			_enabled = true;
 			Logger.Info("OnGunMotorCoilEnabled - starting rotation");
 		}
@@ -101,8 +101,9 @@ namespace VisualPinball.Unity
 		private void OnMotorCoilDisabled()
 		{
 			_enabled = false;
-			Logger.Info("OnGunMotorCoilDisabled - stopping rotation");
+			_component.UpdateRotation(1, _currentStep);
 			_player.OnUpdate -= OnUpdate;
+			Logger.Info("OnGunMotorCoilDisabled - stopping rotation");
 		}
 
 		private void OnUpdate(object sender, EventArgs eventArgs)
@@ -151,7 +152,7 @@ namespace VisualPinball.Unity
 			}
 
 			// rotate target
-			_component.UpdateRotation(_currentStep / numSteps);
+			_component.UpdateRotation(1, _currentStep);
 		}
 
 		void IApi.OnDestroy()

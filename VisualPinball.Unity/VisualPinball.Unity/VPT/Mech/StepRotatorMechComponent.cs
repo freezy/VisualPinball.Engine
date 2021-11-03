@@ -16,6 +16,7 @@
 
 // ReSharper disable InconsistentNaming
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using NLog;
@@ -25,17 +26,10 @@ using Logger = NLog.Logger;
 
 namespace VisualPinball.Unity
 {
-	[AddComponentMenu("Visual Pinball/Mechs/Step Rotator")]
-	public class StepRotatorMechComponent : MonoBehaviour, ISwitchDeviceComponent, ICoilDeviceComponent, ISerializationCallbackReceiver
+	[AddComponentMenu("Visual Pinball/Mechs/Step Rotator Mech")]
+	public class StepRotatorMechComponent : MonoBehaviour, ISwitchDeviceComponent, ICoilDeviceComponent, IMechHandler, ISerializationCallbackReceiver
 	{
 		#region Data
-
-		[Tooltip("The target to rotate.")]
-		public RotatorComponent Target;
-
-		[Range(0f, 360f)]
-		[Tooltip("Angle in degrees the object rotates until it changes rotation and goes back. It's the angle that corresponds to the number of steps below.")]
-		public float TotalRotationDegrees = 65;
 
 		[Min(0)]
 		public int NumSteps;
@@ -74,6 +68,8 @@ namespace VisualPinball.Unity
 
 		#region Runtime
 
+		public event EventHandler<MechEventArgs> OnMechUpdate;
+
 		private void Awake()
 		{
 			var player = GetComponentInParent<Player>();
@@ -85,11 +81,9 @@ namespace VisualPinball.Unity
 			player.RegisterStepRotator(this);
 		}
 
-		public void UpdateRotation(float value)
+		public void UpdateRotation(float speed, float position)
 		{
-			if (Target != null) {
-				Target.UpdateRotation(value * TotalRotationDegrees);
-			}
+			OnMechUpdate?.Invoke(this, new MechEventArgs(speed, position));
 		}
 
 		#endregion
@@ -115,6 +109,7 @@ namespace VisualPinball.Unity
 		}
 
 		#endregion
+
 	}
 
 }

@@ -29,14 +29,14 @@ namespace VisualPinball.Unity
 		/// <summary>
 		/// Speed with which the mech is moving.
 		/// </summary>
-		public readonly int Speed;
+		public readonly float Speed;
 
 		/// <summary>
 		/// Current position of the mech.
 		/// </summary>
-		public readonly int Position;
+		public readonly float Position;
 
-		public MechEventArgs(int speed, int position)
+		public MechEventArgs(float speed, float position)
 		{
 			Speed = speed;
 			Position = position;
