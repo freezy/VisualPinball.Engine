@@ -6,7 +6,7 @@ description: How PinMAME mech handlers work in VPE.
 
 # PinMAME Mech Handlers
 
-A pinball table contains many mechanisms that interact with the ball. Classic examples are the flippers, kickers, or the trough. However, when we refer to *PinMAME Mechs*, we refer to very specific mechanisms involving a motor -- usually toys of some sort.
+A pinball table contains many mechanisms that interact with the ball. Classic examples are the flippers, kickers, or the trough. However, when we refer to *PinMAME Mechs*, we refer to very specific mechanisms involving a motor - usually toys of some sort.
 
 Mechs come in all forms and complexities. Some like the pole dancers in the Sopranos are for show only, while many others serve a very specifc purpose during gameplay. A few more examples are Rudy's eyes in Funhouse, the cannon in Terminator 2, the glove in Johnny Mnemonic which has full player control, or the spinning wheels in Whirlwind.
 
@@ -22,9 +22,9 @@ However, this worked only for a handful of fully simulated WPC games, and even f
 
 To sum it up, in *Visual Pinball*, there are three approaches today to deal with mechs:
 
-1. Use PinMAME's internal simulation -- nearly never used.
-2. Configure a custom mech handler -- occasionally used.
-3. Use timers and handle everything in the table script -- the most common approach.
+1. Use PinMAME's internal simulation - nearly never used.
+2. Configure a custom mech handler - occasionally used.
+3. Use timers and handle everything in the table script - the most common approach.
 
 This page is about approach #2 and describes how you can configure and use PinMAME mech handlers in VPE.
 
