@@ -16,7 +16,9 @@
 
 // ReSharper disable AssignmentInConditionalExpression
 
+using System.Linq;
 using UnityEditor;
+using UnityEngine;
 using VisualPinball.Engine.VPT.Primitive;
 
 namespace VisualPinball.Unity.Editor
@@ -60,6 +62,33 @@ namespace VisualPinball.Unity.Editor
 			base.OnInspectorGUI();
 
 			EndEditing();
+		}
+
+		[MenuItem("GameObject/Visual Pinball/Make Primitive", true, 20)]
+		public static bool CheckContextMenu()
+		{
+			return Selection.gameObjects.All(gameObject => gameObject.GetComponent<IMainComponent>() == null);
+		}
+
+		[MenuItem("GameObject/Visual Pinball/Make Primitive", false, 20)]
+		public static void MakePrimitive()
+		{
+			foreach (var go in Selection.gameObjects) {
+				var mf = go.GetComponent<MeshFilter>();
+				if (!mf) {
+					continue;
+				}
+				var pc = go.AddComponent<PrimitiveComponent>();
+				pc.Position = go.transform.localPosition;
+				pc.Rotation = go.transform.localEulerAngles;
+				pc.Size = go.transform.localScale;
+
+				var mc = go.AddComponent<PrimitiveMeshComponent>();
+				mc.UseLegacyMesh = false;
+
+				var cc = go.AddComponent<PrimitiveColliderComponent>();
+				cc.enabled = true;
+			}
 		}
 	}
 }
