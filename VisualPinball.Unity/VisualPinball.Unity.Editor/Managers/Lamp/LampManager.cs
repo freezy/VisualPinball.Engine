@@ -44,6 +44,7 @@ namespace VisualPinball.Unity.Editor
 		private LampListViewItemRenderer _listViewItemRenderer;
 
 		private ToggleAction _toggleAction = ToggleAction.All;
+		private bool _toggleSource = true;
 
 		public static void Refresh()
 		{
@@ -122,8 +123,11 @@ namespace VisualPinball.Unity.Editor
 			if (GUILayout.Button("Select", GUILayout.ExpandWidth(false))) {
 				var lights = new List<Light>();
 				Toggle(lights.Add);
-				Selection.objects = lights.Select(l => l.gameObject as Object).ToArray();
+				Selection.objects = _toggleSource
+					? lights.Select(l => l.gameObject as Object).ToArray()
+					: lights.Select(l => l.gameObject.transform.parent.gameObject as Object).ToArray();
 			}
+			_toggleSource = GUILayout.Toggle(_toggleSource, "Source");
 		}
 
 		private void Toggle(Action<Light> action)
