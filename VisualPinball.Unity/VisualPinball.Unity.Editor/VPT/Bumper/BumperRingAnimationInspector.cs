@@ -43,7 +43,7 @@ namespace VisualPinball.Unity.Editor
 			BeginEditing();
 
 			PropertyField(_ringSpeedProperty, "Ring Speed");
-			PropertyField(_ringDropOffsetProperty, "Ring Speed");
+			PropertyField(_ringDropOffsetProperty, "Ring Offset");
 
 			base.OnInspectorGUI();
 
