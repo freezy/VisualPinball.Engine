@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+using System.Collections.Generic;
 using Unity.Entities;
 using Unity.Profiling;
 using UnityEngine;
@@ -27,10 +28,15 @@ namespace VisualPinball.Unity
 
 		private Player _player;
 
+		private Dictionary<Entity, float> _initialOffset = new();
+
 		protected override void OnStartRunning()
 		{
 			base.OnStartRunning();
 			_player = Object.FindObjectOfType<Player>();
+			Entities.WithoutBurst().ForEach((Entity entity) => {
+				_initialOffset[entity] = _player.BumperRingTransforms[entity].transform.localPosition.z;
+			}).Run();
 		}
 
 		protected override void OnUpdate()
@@ -41,10 +47,10 @@ namespace VisualPinball.Unity
 				marker.Begin();
 
 				var localPos = _player.BumperRingTransforms[entity].transform.localPosition;
-				_player.BumperRingTransforms[entity].transform.localPosition= new Vector3(
+				_player.BumperRingTransforms[entity].transform.localPosition = new Vector3(
 					localPos.x,
 					localPos.y,
-					data.Offset
+					_initialOffset[entity] + data.Offset
 				);
 
 				marker.End();
