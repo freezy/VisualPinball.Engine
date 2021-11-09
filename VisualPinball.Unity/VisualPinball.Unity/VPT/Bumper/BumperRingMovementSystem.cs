@@ -28,15 +28,12 @@ namespace VisualPinball.Unity
 
 		private Player _player;
 
-		private Dictionary<Entity, float> _initialOffset = new();
+		private readonly Dictionary<Entity, float> _initialOffset = new();
 
 		protected override void OnStartRunning()
 		{
 			base.OnStartRunning();
 			_player = Object.FindObjectOfType<Player>();
-			Entities.WithoutBurst().ForEach((Entity entity) => {
-				_initialOffset[entity] = _player.BumperRingTransforms[entity].transform.localPosition.z;
-			}).Run();
 		}
 
 		protected override void OnUpdate()
@@ -46,11 +43,18 @@ namespace VisualPinball.Unity
 
 				marker.Begin();
 
+				if (!_initialOffset.ContainsKey(entity)) {
+					_initialOffset[entity] = _player.BumperRingTransforms[entity].transform.localPosition.z;
+				}
+
 				var localPos = _player.BumperRingTransforms[entity].transform.localPosition;
+				var limit = data.DropOffset + data.HeightScale * 0.5f;
+				var localLimit = _initialOffset[entity] + limit;
+				var localOffset = localLimit / limit * data.Offset;
 				_player.BumperRingTransforms[entity].transform.localPosition = new Vector3(
 					localPos.x,
 					localPos.y,
-					_initialOffset[entity] + data.Offset
+					_initialOffset[entity] + localOffset
 				);
 
 				marker.End();

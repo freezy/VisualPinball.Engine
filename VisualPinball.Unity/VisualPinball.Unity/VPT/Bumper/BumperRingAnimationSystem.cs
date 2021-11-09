@@ -37,14 +37,14 @@ namespace VisualPinball.Unity
 
 					marker.Begin();
 
-					var limit = data.DropOffset + data.HeightScale * 0.5f * data.ScaleZ;
+					var limit = data.DropOffset + data.HeightScale * 0.5f;
 					if (data.IsHit) {
 						data.DoAnimate = true;
 						data.AnimateDown = true;
 						data.IsHit = false;
 					}
 					if (data.DoAnimate) {
-						var step = data.Speed * data.ScaleZ;
+						var step = data.Speed;
 						if (data.AnimateDown) {
 							step = -step;
 						}
