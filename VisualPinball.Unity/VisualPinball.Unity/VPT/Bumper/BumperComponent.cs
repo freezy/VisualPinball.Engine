@@ -175,7 +175,6 @@ namespace VisualPinball.Unity
 					DropOffset = ringAnimComponent.RingDropOffset,
 					HeightScale = HeightScale,
 					Speed = ringAnimComponent.RingSpeed,
-					ScaleZ = 1f
 				});
 			}
 

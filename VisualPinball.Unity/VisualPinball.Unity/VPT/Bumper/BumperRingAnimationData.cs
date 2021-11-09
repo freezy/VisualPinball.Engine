@@ -23,7 +23,6 @@ namespace VisualPinball.Unity
 		public bool IsHit;
 		public float DropOffset;
 		public float HeightScale;
-		public float ScaleZ;
 		public bool DoAnimate;
 		public bool AnimateDown;
 		public float Speed;
