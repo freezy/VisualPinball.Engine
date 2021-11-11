@@ -28,18 +28,18 @@
     <None Remove="obj\**" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="NLog" Version="4.7.10" />
+    <PackageReference Include="NLog" Version="4.7.12" />
     <PackageReference Include="OpenMcdf" Version="2.2.1.9" />
-    <PackageReference Include="NetMiniZ" Version="1.2.2" />
-    <PackageReference Include="NetMiniZ.Native" Version="1.2.2" />
+    <PackageReference Include="NetMiniZ" Version="1.3.0-preview.1" />
+    <PackageReference Include="NetMiniZ.Native" Version="1.3.0" />
     <PackageReference Include="NetVips" Version="2.0.1" />
-    <PackageReference Include="NetVips.Native" Version="8.11.0" />
+    <PackageReference Include="NetVips.Native" Version="8.11.4" />
   </ItemGroup>
   <ImportGroup Condition="'$(RuntimeIdentifier)' == 'win-x86' Or '$(RuntimeIdentifier)' == 'win-x64'">
-    <Import Project="$(NuGetPackageRoot)\netvips.native.$(RuntimeIdentifier)\8.11.0\build\net45\NetVips.Native.$(RuntimeIdentifier).targets" Condition="Exists('$(NuGetPackageRoot)\netvips.native.$(RuntimeIdentifier)\8.11.0\build\net45\NetVips.Native.$(RuntimeIdentifier).targets')" />
+    <Import Project="$(NuGetPackageRoot)\netvips.native.$(RuntimeIdentifier)\8.11.4\build\net45\NetVips.Native.$(RuntimeIdentifier).targets" Condition="Exists('$(NuGetPackageRoot)\netvips.native.$(RuntimeIdentifier)\8.11.4\build\net45\NetVips.Native.$(RuntimeIdentifier).targets')" />
   </ImportGroup>
   <ImportGroup Condition="'$(RuntimeIdentifier)' == 'osx-x64' Or '$(RuntimeIdentifier)' == 'linux-x64'">
-    <Import Project="$(NuGetPackageRoot)\netvips.native.$(RuntimeIdentifier)\8.11.0\build\net461\NetVips.Native.$(RuntimeIdentifier).targets" Condition="Exists('$(NuGetPackageRoot)\netvips.native.$(RuntimeIdentifier)\8.11.0\build\net461\NetVips.Native.$(RuntimeIdentifier).targets')" />
+    <Import Project="$(NuGetPackageRoot)\netvips.native.$(RuntimeIdentifier)\8.11.4\build\net461\NetVips.Native.$(RuntimeIdentifier).targets" Condition="Exists('$(NuGetPackageRoot)\netvips.native.$(RuntimeIdentifier)\8.11.4\build\net461\NetVips.Native.$(RuntimeIdentifier).targets')" />
   </ImportGroup>
   <ItemGroup>
     <ProjectReference Include="..\VisualPinball.Resources\VisualPinball.Resources.csproj" />
@@ -62,10 +62,10 @@
       <Plugins Include="$(OutDir)OpenMcdf.dll" />
 
       <Plugins Include="$(OutDir)NetMiniZ.dll" />
-      <Plugins Include="$(NuGetPackageRoot)\netminiz.native.$(RuntimeIdentifier)\1.2.2\runtimes\$(RuntimeIdentifier)\native\*" />
+      <Plugins Include="$(NuGetPackageRoot)\netminiz.native.$(RuntimeIdentifier)\1.3.0\runtimes\$(RuntimeIdentifier)\native\*" />
 
       <Plugins Include="$(OutDir)NetVips.dll" />
-      <Plugins Include="$(NuGetPackageRoot)\netvips.native.$(RuntimeIdentifier)\8.11.0\runtimes\$(RuntimeIdentifier)\native\*" />
+      <Plugins Include="$(NuGetPackageRoot)\netvips.native.$(RuntimeIdentifier)\8.11.4\runtimes\$(RuntimeIdentifier)\native\*" />
 
       <Plugins Include="$(OutDir)System.Buffers.dll" />
     </ItemGroup>

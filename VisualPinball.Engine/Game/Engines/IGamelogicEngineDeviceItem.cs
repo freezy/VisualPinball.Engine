@@ -22,5 +22,6 @@ namespace VisualPinball.Engine.Game.Engines
 		string Description { get; }
 		string DeviceHint { get; }
 		string DeviceItemHint { get; }
+		int NumMatches { get; }
 	}
 }

@@ -29,6 +29,7 @@ namespace VisualPinball.Engine.Game.Engines
 		public int InternalId;
 		public string DeviceHint { get => _deviceHint; set => _deviceHint = value; }
 		public string DeviceItemHint { get => _deviceItemHint; set => _deviceItemHint = value; }
+		public int NumMatches { get => _numMatches; set => _numMatches = value; }
 		public bool IsLamp;
 
 		/// <summary>
@@ -40,6 +41,7 @@ namespace VisualPinball.Engine.Game.Engines
 		private string _id;
 		private string _deviceHint;
 		private string _deviceItemHint;
+		private int _numMatches = 1;
 
 		public GamelogicEngineCoil(string id)
 		{

@@ -34,10 +34,51 @@ namespace VisualPinball.Unity.Patcher
 			var playfieldGo = Playfield(tableGo);
 			playfieldGo.isStatic = true;
 
+			SetupFlippers(playfieldGo);
 			SetupDropTargetBanks(tableGo, playfieldGo);
 			SetupTrough(tableGo, playfieldGo);
 			SetupPinMame(tableGo, playfieldGo);
 			SetupDisplays(tableGo);
+		}
+
+		private static void SetupFlippers(GameObject playfieldGo)
+		{ 
+
+			var lowerLeftFlipper = playfieldGo.transform.Find("Flippers/LeftFlipper1").gameObject;
+			lowerLeftFlipper.name = "LowerLeftFlipper";
+
+			var leftFlipper2 = playfieldGo.transform.Find("Flippers/LeftFlipper2").gameObject;
+			leftFlipper2.GetComponentInChildren<FlipperRubberMeshComponent>().gameObject.SetActive(false);
+			PatcherUtil.Reparent(leftFlipper2, lowerLeftFlipper);
+
+			var leftFlipper3 = playfieldGo.transform.Find("Flippers/LeftFlipper3").gameObject;
+			leftFlipper3.GetComponentInChildren<FlipperRubberMeshComponent>().gameObject.SetActive(false);
+			PatcherUtil.Reparent(leftFlipper3, lowerLeftFlipper);
+
+			var leftFlipper4 = playfieldGo.transform.Find("Flippers/LeftFlipper4").gameObject;
+			leftFlipper4.GetComponentInChildren<FlipperRubberMeshComponent>().gameObject.SetActive(false);			
+			PatcherUtil.Reparent(leftFlipper4, lowerLeftFlipper);
+
+			var lowerRightFlipper = playfieldGo.transform.Find("Flippers/RightFlipper1").gameObject;
+			lowerRightFlipper.name = "LowerRightFlipper";
+
+			var rightFlipper2 = playfieldGo.transform.Find("Flippers/RightFlipper2").gameObject;
+			rightFlipper2.GetComponentInChildren<FlipperRubberMeshComponent>().gameObject.SetActive(false);
+			PatcherUtil.Reparent(rightFlipper2, lowerRightFlipper);
+
+			var rightFlipper3 = playfieldGo.transform.Find("Flippers/RightFlipper3").gameObject;
+			rightFlipper3.GetComponentInChildren<FlipperRubberMeshComponent>().gameObject.SetActive(false);
+			PatcherUtil.Reparent(rightFlipper3, lowerRightFlipper);
+
+			var rightFlipper4 = playfieldGo.transform.Find("Flippers/RightFlipper4").gameObject;
+			rightFlipper4.GetComponentInChildren<FlipperRubberMeshComponent>().gameObject.SetActive(false);
+			PatcherUtil.Reparent(rightFlipper4, lowerRightFlipper);
+
+			var upperLeftFlipper = playfieldGo.transform.Find("Flippers/LeftFlipper5").gameObject;
+			upperLeftFlipper.name = "UpperLeftFlipper";
+
+			var upperRightFlipper = playfieldGo.transform.Find("Flippers/RightFlipper5").gameObject;
+			upperRightFlipper.name = "UpperRightFlipper";
 		}
 
 		private static void SetupDropTargetBanks(GameObject tableGo, GameObject playfieldGo)
