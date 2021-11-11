@@ -64,8 +64,7 @@ namespace VisualPinball.Unity
 
 				var description = engineSwitch.Description ?? string.Empty;
 				var source = GuessSwitchSource(engineSwitch);
-				var device = source == SwitchSource.Playfield ? GuessSwitchDevice(switchDevices, engineSwitch) : null;
-				var deviceItem = source == SwitchSource.Playfield && device != null ? GuessSwitchDeviceItem(engineSwitch, device) : null;
+
 				var inputActionMap = source == SwitchSource.InputSystem
 					? string.IsNullOrEmpty(engineSwitch.InputMapHint) ? InputConstants.MapCabinetSwitches : engineSwitch.InputMapHint
 					: string.Empty;
@@ -73,26 +72,54 @@ namespace VisualPinball.Unity
 					? string.IsNullOrEmpty(engineSwitch.InputActionHint) ? string.Empty : engineSwitch.InputActionHint
 					: string.Empty;
 
-				// if there was a device match, device has only one item and there was a hint that didn't match, clear the device.
-				if (device != null && deviceItem == null && !string.IsNullOrEmpty(engineSwitch.DeviceItemHint) && device.AvailableSwitches.Count() == 1) {
-					device = null;
+				bool deviceAdded = false;
+
+				if (source == SwitchSource.Playfield) {
+					foreach (var device in GuessSwitchDevices(switchDevices, engineSwitch)) {
+						var matchedDevice = device;
+
+						var deviceItem = GuessSwitchDeviceItem(engineSwitch, matchedDevice);
+
+						// if there was a device match, device has only one item and there was a hint that didn't match, clear the device.
+						if (deviceItem == null && !string.IsNullOrEmpty(engineSwitch.DeviceItemHint) && matchedDevice.AvailableSwitches.Count() == 1) {
+							matchedDevice = null;
+						}
+
+						AddSwitch(new SwitchMapping
+						{
+							Id = engineSwitch.Id,
+							InternalId = engineSwitch.InternalId,
+							IsNormallyClosed = engineSwitch.NormallyClosed,
+							Description = description,
+							Source = source,
+							InputActionMap = inputActionMap,
+							InputAction = inputAction,
+							Device = matchedDevice,
+							DeviceItem = deviceItem != null ? deviceItem.Id : string.Empty,
+							Constant = engineSwitch.ConstantHint == SwitchConstantHint.AlwaysOpen ? SwitchConstant.Open : SwitchConstant.Closed
+						});
+
+						deviceAdded = true;
+					}
 				}
 
-				AddSwitch(new SwitchMapping {
-					Id = engineSwitch.Id,
-					InternalId = engineSwitch.InternalId,
-					IsNormallyClosed = engineSwitch.NormallyClosed,
-					Description = description,
-					Source = source,
-					InputActionMap = inputActionMap,
-					InputAction = inputAction,
-					Device = device,
-					DeviceItem = deviceItem != null ? deviceItem.Id : string.Empty,
-					Constant = engineSwitch.ConstantHint == SwitchConstantHint.AlwaysOpen ? SwitchConstant.Open : SwitchConstant.Closed
-				});
+				if (!deviceAdded) {
+					AddSwitch(new SwitchMapping
+					{
+						Id = engineSwitch.Id,
+						InternalId = engineSwitch.InternalId,
+						IsNormallyClosed = engineSwitch.NormallyClosed,
+						Description = description,
+						Source = source,
+						InputActionMap = inputActionMap,
+						InputAction = inputAction,
+						Device = null,
+						DeviceItem = string.Empty,
+						Constant = engineSwitch.ConstantHint == SwitchConstantHint.AlwaysOpen ? SwitchConstant.Open : SwitchConstant.Closed
+					});
+				}
 			}
 		}
-
 
 		/// <summary>
 		/// Returns a sorted list of switch names from the gamelogic engine,
@@ -129,8 +156,10 @@ namespace VisualPinball.Unity
 			return !string.IsNullOrEmpty(engineSwitch.InputActionHint) ? SwitchSource.InputSystem : SwitchSource.Playfield;
 		}
 
-		private static ISwitchDeviceComponent GuessSwitchDevice(ISwitchDeviceComponent[] switchDevices, GamelogicEngineSwitch engineSwitch)
+		private static IEnumerable<ISwitchDeviceComponent> GuessSwitchDevices(ISwitchDeviceComponent[] switchDevices, GamelogicEngineSwitch engineSwitch)
 		{
+			List<ISwitchDeviceComponent> switches = new List<ISwitchDeviceComponent>();
+
 			// if no hint, match by name
 			if (string.IsNullOrEmpty(engineSwitch.DeviceHint)) {
 				var matchKey = int.TryParse(engineSwitch.Id, out var numericSwitchId)
@@ -139,23 +168,23 @@ namespace VisualPinball.Unity
 
 				var swMatch = switchDevices.FirstOrDefault(sw => sw.name == matchKey);
 				if (swMatch != null) {
-					return swMatch;
+					switches.Add(swMatch);
+				}
+			}
+			else if (!string.IsNullOrEmpty(engineSwitch.DeviceHint)) {
+				foreach (var device in switchDevices) {
+					var regex = new Regex(engineSwitch.DeviceHint, RegexOptions.IgnoreCase);
+					if (regex.Match(device.name).Success) {
+						switches.Add(device);
+					}
+
+					if (switches.Count() >= engineSwitch.NumMatches) {
+						break;
+					}
 				}
 			}
 
-			// if no match and no hint, return.
-			if (string.IsNullOrEmpty(engineSwitch.DeviceHint)) {
-				return null;
-			}
-
-			// match by regex
-			foreach (var device in switchDevices) {
-				var regex = new Regex(engineSwitch.DeviceHint, RegexOptions.IgnoreCase);
-				if (regex.Match(device.name).Success) {
-					return device;
-				}
-			}
-			return null;
+			return switches;
 		}
 
 		private static GamelogicEngineSwitch GuessSwitchDeviceItem(GamelogicEngineSwitch engineSwitch, ISwitchDeviceComponent device)
@@ -215,7 +244,6 @@ namespace VisualPinball.Unity
 			var coilDevices = tableComponent.GetComponentsInChildren<ICoilDeviceComponent>();
 			var lamps = tableComponent.GetComponentsInChildren<ILampDeviceComponent>().OrderBy(LampTypePriority).ToArray();
 			foreach (var engineCoil in GetCoils(engineCoils)) {
-
 				var coilMapping = Coils.FirstOrDefault(mappingsCoilData => mappingsCoilData.Id == engineCoil.Id);
 				if (coilMapping != null || engineCoil.IsUnused) {
 					continue;
@@ -227,11 +255,8 @@ namespace VisualPinball.Unity
 				var deviceAdded = false;
 
 				if (destination == CoilDestination.Playfield) {
-					var devices = GuessCoilDevices(coilDevices, engineCoil);
-
 					foreach (var device in GuessCoilDevices(coilDevices, engineCoil)) {
 						var matchedDevice = device;
-
 						var deviceItem = GuessCoilDeviceItem(engineCoil, matchedDevice);
 
 						// if there was a device match, device has only one item and there was a hint that didn't match, clear the device.
