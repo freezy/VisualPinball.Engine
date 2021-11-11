@@ -55,7 +55,6 @@ namespace VisualPinball.Unity
 		public void PopulateSwitches(GamelogicEngineSwitch[] engineSwitches, TableComponent tableComponent)
 		{
 			var switchDevices = tableComponent.GetComponentsInChildren<ISwitchDeviceComponent>();
-
 			foreach (var engineSwitch in GetSwitchIds(engineSwitches)) {
 				var switchMapping = Switches.FirstOrDefault(mappingsSwitchData => mappingsSwitchData.Id == engineSwitch.Id);
 				if (switchMapping != null) {
