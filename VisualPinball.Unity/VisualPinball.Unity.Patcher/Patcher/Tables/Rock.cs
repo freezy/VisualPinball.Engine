@@ -43,42 +43,25 @@ namespace VisualPinball.Unity.Patcher
 
 		private static void SetupFlippers(GameObject playfieldGo)
 		{ 
+			var flipper = playfieldGo.transform.Find("Flippers/LeftFlipper1").gameObject;
+			flipper.name = "LowerLeftFlipper";
 
-			var lowerLeftFlipper = playfieldGo.transform.Find("Flippers/LeftFlipper1").gameObject;
-			lowerLeftFlipper.name = "LowerLeftFlipper";
+			foreach (var name in new string[] { "LeftFlipper2", "LeftFlipper3", "LeftFlipper4" }) {
+				PatcherUtil.Reparent(playfieldGo.transform.Find($"Flippers/{name}").gameObject, flipper);
+			}
 
-			var leftFlipper2 = playfieldGo.transform.Find("Flippers/LeftFlipper2").gameObject;
-			leftFlipper2.GetComponentInChildren<FlipperRubberMeshComponent>().gameObject.SetActive(false);
-			PatcherUtil.Reparent(leftFlipper2, lowerLeftFlipper);
+			flipper = playfieldGo.transform.Find("Flippers/RightFlipper1").gameObject;
+			flipper.name = "LowerRightFlipper";
 
-			var leftFlipper3 = playfieldGo.transform.Find("Flippers/LeftFlipper3").gameObject;
-			leftFlipper3.GetComponentInChildren<FlipperRubberMeshComponent>().gameObject.SetActive(false);
-			PatcherUtil.Reparent(leftFlipper3, lowerLeftFlipper);
+			foreach (var name in new string[] { "RightFlipper2", "RightFlipper3", "RightFlipper4" }) {
+				PatcherUtil.Reparent(playfieldGo.transform.Find($"Flippers/{name}").gameObject, flipper);
+			}
 
-			var leftFlipper4 = playfieldGo.transform.Find("Flippers/LeftFlipper4").gameObject;
-			leftFlipper4.GetComponentInChildren<FlipperRubberMeshComponent>().gameObject.SetActive(false);			
-			PatcherUtil.Reparent(leftFlipper4, lowerLeftFlipper);
+			flipper = playfieldGo.transform.Find("Flippers/LeftFlipper5").gameObject;
+			flipper.name = "UpperLeftFlipper";
 
-			var lowerRightFlipper = playfieldGo.transform.Find("Flippers/RightFlipper1").gameObject;
-			lowerRightFlipper.name = "LowerRightFlipper";
-
-			var rightFlipper2 = playfieldGo.transform.Find("Flippers/RightFlipper2").gameObject;
-			rightFlipper2.GetComponentInChildren<FlipperRubberMeshComponent>().gameObject.SetActive(false);
-			PatcherUtil.Reparent(rightFlipper2, lowerRightFlipper);
-
-			var rightFlipper3 = playfieldGo.transform.Find("Flippers/RightFlipper3").gameObject;
-			rightFlipper3.GetComponentInChildren<FlipperRubberMeshComponent>().gameObject.SetActive(false);
-			PatcherUtil.Reparent(rightFlipper3, lowerRightFlipper);
-
-			var rightFlipper4 = playfieldGo.transform.Find("Flippers/RightFlipper4").gameObject;
-			rightFlipper4.GetComponentInChildren<FlipperRubberMeshComponent>().gameObject.SetActive(false);
-			PatcherUtil.Reparent(rightFlipper4, lowerRightFlipper);
-
-			var upperLeftFlipper = playfieldGo.transform.Find("Flippers/LeftFlipper5").gameObject;
-			upperLeftFlipper.name = "UpperLeftFlipper";
-
-			var upperRightFlipper = playfieldGo.transform.Find("Flippers/RightFlipper5").gameObject;
-			upperRightFlipper.name = "UpperRightFlipper";
+			flipper = playfieldGo.transform.Find("Flippers/RightFlipper5").gameObject;
+			flipper.name = "UpperRightFlipper";
 		}
 
 		private static void SetupDropTargetBanks(GameObject tableGo, GameObject playfieldGo)
@@ -110,6 +93,8 @@ namespace VisualPinball.Unity.Patcher
 			var pinmameGle = tableGo.AddComponent<Engine.PinMAME.PinMameGamelogicEngine>();
 			pinmameGle.Game = new Engine.PinMAME.Games.Rock();
 			pinmameGle.romId = "rock";
+			pinmameGle.DisableMechs = true;
+			pinmameGle.SolenoidDelay = 1000;
 			tableComponent.RepopulateHardware(pinmameGle);
 			TableSelector.Instance.TableUpdated();
 			#endif
@@ -158,5 +143,16 @@ namespace VisualPinball.Unity.Patcher
 		}
 
 		#endregion
+
+		[NameMatch("LeftFlipper2")]
+		[NameMatch("LeftFlipper3")]
+		[NameMatch("LeftFlipper4")]
+		[NameMatch("RightFlipper2")]
+		[NameMatch("RightFlipper3")]
+		[NameMatch("RightFlipper4")]
+		public void DisableFlipperRubberMesh(GameObject go)
+		{
+			go.GetComponentInChildren<FlipperRubberMeshComponent>().gameObject.SetActive(false);
+		}
 	}
 }
