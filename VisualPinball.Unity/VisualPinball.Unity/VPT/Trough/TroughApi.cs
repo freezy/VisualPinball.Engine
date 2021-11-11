@@ -300,8 +300,6 @@ namespace VisualPinball.Unity
 
 				case TroughType.TwoCoilsNSwitches:
 				case TroughType.TwoCoilsOneSwitch:
-				case TroughType.ClassicSingleBall:
-
 					if (EntrySwitch.IsSwitchEnabled) {   // if the drain slot is already occupied, queue it.
 						UncountedDrainBalls++;
 
@@ -309,6 +307,10 @@ namespace VisualPinball.Unity
 						EntrySwitch.ScheduleSwitch(true, MainComponent.RollTime / 2);
 					}
 
+					break;
+
+				case TroughType.ClassicSingleBall:
+					AddBall();
 					break;
 
 				default:
