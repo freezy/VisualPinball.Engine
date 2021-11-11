@@ -223,22 +223,47 @@ namespace VisualPinball.Unity
 
 				var destination = GuessCoilDestination(engineCoil, lamps);
 				var description = string.IsNullOrEmpty(engineCoil.Description) ? string.Empty : engineCoil.Description;
-				var device = destination == CoilDestination.Playfield ? GuessCoilDevice(coilDevices, engineCoil) : null;
-				var deviceItem = destination == CoilDestination.Playfield && device != null ? GuessCoilDeviceItem(engineCoil, device) : null;
 
-				// if there was a device match, device has only one item and there was a hint that didn't match, clear the device.
-				if (device != null && deviceItem == null && !string.IsNullOrEmpty(engineCoil.DeviceItemHint) && device.AvailableCoils.Count() == 1) {
-					device = null;
+				var deviceAdded = false;
+
+				if (destination == CoilDestination.Playfield) {
+					var devices = GuessCoilDevices(coilDevices, engineCoil);
+
+					foreach (var device in GuessCoilDevices(coilDevices, engineCoil)) {
+						var matchedDevice = device;
+
+						var deviceItem = GuessCoilDeviceItem(engineCoil, matchedDevice);
+
+						// if there was a device match, device has only one item and there was a hint that didn't match, clear the device.
+						if (deviceItem == null && !string.IsNullOrEmpty(engineCoil.DeviceItemHint) && matchedDevice.AvailableCoils.Count() == 1) {
+							matchedDevice = null;
+						}
+
+						AddCoil(new CoilMapping
+						{
+							Id = engineCoil.Id,
+							InternalId = engineCoil.InternalId,
+							Description = description,
+							Destination = destination,
+							Device = matchedDevice,
+							DeviceItem = deviceItem != null ? deviceItem.Id : string.Empty,
+						});
+
+						deviceAdded = true;
+					}
 				}
 
-				AddCoil(new CoilMapping {
-					Id = engineCoil.Id,
-					InternalId = engineCoil.InternalId,
-					Description = description,
-					Destination = destination,
-					Device = device,
-					DeviceItem = deviceItem != null ? deviceItem.Id : string.Empty,
-				});
+				if (!deviceAdded) {
+					AddCoil(new CoilMapping
+					{
+						Id = engineCoil.Id,
+						InternalId = engineCoil.InternalId,
+						Description = description,
+						Destination = destination,
+						Device = null,
+						DeviceItem = string.Empty,
+					});
+				}
 			}
 		}
 
@@ -262,21 +287,26 @@ namespace VisualPinball.Unity
 			return CoilDestination.Lamp;
 		}
 
-		private static ICoilDeviceComponent GuessCoilDevice(IEnumerable<ICoilDeviceComponent> coilDevices, IGamelogicEngineDeviceItem engineCoil)
+		private static IEnumerable<ICoilDeviceComponent> GuessCoilDevices(IEnumerable<ICoilDeviceComponent> coilDevices, IGamelogicEngineDeviceItem engineCoil)
 		{
+			List<ICoilDeviceComponent> devices = new List<ICoilDeviceComponent>();
+
 			foreach (var device in coilDevices) {
 				if (string.Equals(device.name, engineCoil.Id, StringComparison.OrdinalIgnoreCase)) {
-					return device;
+					devices.Add(device);
 				}
-				if (string.IsNullOrEmpty(engineCoil.DeviceHint)) {
-					continue;
+				else if (!string.IsNullOrEmpty(engineCoil.DeviceHint)) {
+					var regex = new Regex(engineCoil.DeviceHint, RegexOptions.IgnoreCase);
+					if (regex.Match(device.name).Success) {
+						devices.Add(device);
+					}
 				}
-				var regex = new Regex(engineCoil.DeviceHint, RegexOptions.IgnoreCase);
-				if (regex.Match(device.name).Success) {
-					return device;
+
+				if (devices.Count() >= engineCoil.NumMatches) {
+					break;
 				}
 			}
-			return null;
+			return devices;
 		}
 
 		private static GamelogicEngineCoil GuessCoilDeviceItem(IGamelogicEngineDeviceItem engineCoil, ICoilDeviceComponent device)

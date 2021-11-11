@@ -68,10 +68,13 @@ namespace VisualPinball.Engine.Game.Engines
 		/// </summary>
 		public string DeviceItemHint { get => _deviceItemHint; set => _deviceItemHint = value; }
 
+		public int NumMatches { get => _numMatches; set => _numMatches = value; }
+
 		private string _description;
 		private string _id;
 		private string _deviceHint;
 		private string _deviceItemHint;
+		private int _numMatches;
 
 		public GamelogicEngineLamp(string id)
 		{

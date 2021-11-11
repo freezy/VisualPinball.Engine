@@ -64,12 +64,14 @@ namespace VisualPinball.Engine.Game.Engines
 
 		public string DeviceHint { get => _deviceHint; set => _deviceHint = value; }
 		public string DeviceItemHint { get => _deviceItemHint; set => _deviceItemHint = value; }
+		public int NumMatches { get => _numMatches; set => _numMatches = value; }
 		public SwitchConstantHint ConstantHint = SwitchConstantHint.None;
 
 		private string _description;
 		private string _id;
 		private string _deviceHint;
 		private string _deviceItemHint;
+		private int _numMatches = 1;
 
 		public GamelogicEngineSwitch(string id)
 		{
