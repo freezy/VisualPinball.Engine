@@ -160,6 +160,16 @@ namespace VisualPinball.Unity.Editor
 					}
 				}
 
+				var emission = EditorGUILayout.Slider("Emission (nits)", _mb.Emission, 1f, 500f);
+				if (emission != _mb.Emission)
+				{
+					RecordUndo("Change Segment Emission", this);
+					foreach (var mb in _mbs)
+					{
+						mb.Emission = emission;
+					}
+				}
+
 				EditorGUI.indentLevel--;
 			}
 

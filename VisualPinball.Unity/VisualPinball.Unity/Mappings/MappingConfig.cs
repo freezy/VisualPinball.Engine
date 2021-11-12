@@ -171,14 +171,13 @@ namespace VisualPinball.Unity
 				}
 			}
 			else if (!string.IsNullOrEmpty(engineSwitch.DeviceHint)) {
+				var regex = new Regex(engineSwitch.DeviceHint, RegexOptions.IgnoreCase);
 				foreach (var device in switchDevices) {
-					var regex = new Regex(engineSwitch.DeviceHint, RegexOptions.IgnoreCase);
 					if (regex.Match(device.name).Success) {
 						switches.Add(device);
-					}
-
-					if (switches.Count() >= engineSwitch.NumMatches) {
-						break;
+						if (switches.Count() >= engineSwitch.NumMatches) {
+							break;
+						}
 					}
 				}
 			}

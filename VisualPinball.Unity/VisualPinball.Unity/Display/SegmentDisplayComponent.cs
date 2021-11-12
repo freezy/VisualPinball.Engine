@@ -49,6 +49,7 @@ namespace VisualPinball.Unity
 		[SerializeField] private float2 _separatorPos = new float2(1.5f, 0.0f);
 		[SerializeField] private int _separatorType = 1;
 		[SerializeField] private bool _separatorEveryThreeOnly;
+		[SerializeField] private float _emission = 1f;
 
 		[NonSerialized] private Color32[] _colorBuffer;
 
@@ -68,6 +69,7 @@ namespace VisualPinball.Unity
 		private static readonly int SeparatorPosProp = Shader.PropertyToID("__SeparatorPos");
 		private static readonly int SeparatorTypeProp = Shader.PropertyToID("__SeparatorType");
 		private static readonly int SeparatorEveryThreeOnlyProp = Shader.PropertyToID("__SeparatorEveryThreeOnly");
+		private static readonly int EmissionProp = Shader.PropertyToID("__Emission");
 
 		#endregion
 
@@ -192,6 +194,20 @@ namespace VisualPinball.Unity
 				var mr = gameObject.GetComponent<MeshRenderer>();
 				if (mr != null) {
 					mr.sharedMaterial.SetInt(SeparatorEveryThreeOnlyProp, value ? 1 : 0);
+				}
+			}
+		}
+
+		public float Emission
+		{
+			get => _emission;
+			set
+			{
+				_emission = value;
+				var mr = gameObject.GetComponent<MeshRenderer>();
+				if (mr != null)
+				{
+					mr.sharedMaterial.SetFloat(EmissionProp, value);
 				}
 			}
 		}
