@@ -42,20 +42,12 @@ namespace VisualPinball.Unity.Patcher
 		}
 
 		private static void SetupFlippers(GameObject playfieldGo)
-		{ 
+		{
 			var flipper = playfieldGo.transform.Find("Flippers/LeftFlipper1").gameObject;
 			flipper.name = "LowerLeftFlipper";
 
-			foreach (var name in new string[] { "LeftFlipper2", "LeftFlipper3", "LeftFlipper4" }) {
-				PatcherUtil.Reparent(playfieldGo.transform.Find($"Flippers/{name}").gameObject, flipper);
-			}
-
 			flipper = playfieldGo.transform.Find("Flippers/RightFlipper1").gameObject;
 			flipper.name = "LowerRightFlipper";
-
-			foreach (var name in new string[] { "RightFlipper2", "RightFlipper3", "RightFlipper4" }) {
-				PatcherUtil.Reparent(playfieldGo.transform.Find($"Flippers/{name}").gameObject, flipper);
-			}
 
 			flipper = playfieldGo.transform.Find("Flippers/LeftFlipper5").gameObject;
 			flipper.name = "UpperLeftFlipper";
@@ -85,7 +77,7 @@ namespace VisualPinball.Unity.Patcher
 
 		private static void SetupPinMame(GameObject tableGo, GameObject playfieldGo)
 		{
-			#if !NO_PINMAME
+#if !NO_PINMAME
 			var tableComponent = tableGo.GetComponent<TableComponent>();
 
 			// GLE
@@ -97,7 +89,7 @@ namespace VisualPinball.Unity.Patcher
 			pinmameGle.SolenoidDelay = 1000;
 			tableComponent.RepopulateHardware(pinmameGle);
 			TableSelector.Instance.TableUpdated();
-			#endif
+#endif
 		}
 
 		private static void SetupDisplays(GameObject tableGo)
@@ -121,9 +113,9 @@ namespace VisualPinball.Unity.Patcher
 			segment.SeparatorType = 2;
 			segment.NumChars = 20;
 			segment.LitColor = Color.green;
+			segment.Emission = 3;
 
-			go = new GameObject
-			{
+			go = new GameObject {
 				name = "Segment Display [1]",
 				transform = {
 					localEulerAngles = new Vector3(0, 0, 0),
@@ -140,19 +132,85 @@ namespace VisualPinball.Unity.Patcher
 			segment.SeparatorType = 2;
 			segment.NumChars = 20;
 			segment.LitColor = Color.green;
+			segment.Emission = 3;
 		}
 
 		#endregion
 
-		[NameMatch("LeftFlipper2")]
-		[NameMatch("LeftFlipper3")]
-		[NameMatch("LeftFlipper4")]
-		[NameMatch("RightFlipper2")]
-		[NameMatch("RightFlipper3")]
-		[NameMatch("RightFlipper4")]
-		public void DisableFlipperRubberMesh(GameObject go)
+		[NameMatch("LeftFlipper2", Ref = "Playfield/Flippers/LeftFlipper1")]
+		[NameMatch("LeftFlipper3", Ref = "Playfield/Flippers/LeftFlipper1")]
+		[NameMatch("LeftFlipper4", Ref = "Playfield/Flippers/LeftFlipper1")]
+		[NameMatch("RightFlipper2", Ref = "Playfield/Flippers/RightFlipper1")]
+		[NameMatch("RightFlipper3", Ref = "Playfield/Flippers/RightFlipper1")]
+		[NameMatch("RightFlipper4", Ref = "Playfield/Flippers/RightFlipper1")]
+		public void ReparentFlipper(FlipperComponent flipper, GameObject go, ref GameObject parent)
 		{
-			go.GetComponentInChildren<FlipperRubberMeshComponent>().gameObject.SetActive(false);
+			PatcherUtil.Reparent(go, parent);
+			PatcherUtil.Hide(go.GetComponentInChildren<FlipperRubberMeshComponent>().gameObject);
+
+			flipper.Position.x = 0;
+			flipper.Position.y = 0;
+			flipper._startAngle = 0;
+		}
+
+		[NameMatch("sw40")]
+		[NameMatch("sw50")]
+		[NameMatch("sw60")]
+		[NameMatch("sw70")]
+		public void FixUpperDropTargetTexture(GameObject go)
+		{
+			var renderer = go.GetComponent<Renderer>();
+			var material = new UnityEngine.Material(renderer.sharedMaterial);
+			material.mainTexture = TextureProvider.GetTexture("DropTargetSimple_rock-red");
+			material.color = Color.white;
+			renderer.sharedMaterial = material;
+		}
+
+		[NameMatch("sw51")]
+		[NameMatch("sw61")]
+		[NameMatch("sw71")]
+		[NameMatch("sw62")]
+		[NameMatch("sw72")]
+		public void FixLowerDropTargetTexture(GameObject go)
+		{
+			var renderer = go.GetComponent<Renderer>();
+			var material = new UnityEngine.Material(renderer.sharedMaterial);
+			material.mainTexture = TextureProvider.GetTexture("DropTargetSimple_rock-black");
+			material.color = Color.white;
+			renderer.sharedMaterial = material;
+		}
+
+		[NameMatch("sw52")]
+		public void FixTargetTexture(GameObject go)
+		{
+			var renderer = go.GetComponent<Renderer>();
+			var material = new UnityEngine.Material(renderer.sharedMaterial);
+			material.mainTexture = TextureProvider.GetTexture("target1-rock");
+			material.color = Color.white;
+			renderer.sharedMaterial = material;
+		}
+
+		[NameMatch("sw45")]
+		[NameMatch("sw75")]
+		public void FixSpinnerTexture(GameObject go)
+		{
+			var plate = go.transform.Find("Plate").gameObject;
+			var renderer = plate.GetComponent<Renderer>();
+			var material = new UnityEngine.Material(renderer.sharedMaterial);
+			material.mainTexture = TextureProvider.GetTexture("spinner_gottlieb");
+			material.color = Color.white;
+			renderer.sharedMaterial = material;
+		}
+
+		[NameMatch("Gate4", Ref = "Playfield/Spinners/sw45")]
+		[NameMatch("Gate5", Ref = "Playfield/Spinners/sw45")]
+		public void FixGateBracketMaterial(GameObject go, ref GameObject spinnerGo)
+		{
+			var gateBracket = go.transform.Find("Bracket").gameObject;
+			var spinnerBracket = spinnerGo.transform.Find("Bracket").gameObject;
+
+			// Use spinner bracket material set gate bracket material not found
+			gateBracket.GetComponent<Renderer>().sharedMaterial = spinnerBracket.GetComponent<Renderer>().sharedMaterial;
 		}
 	}
 }
