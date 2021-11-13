@@ -19,6 +19,8 @@
 // ReSharper disable UnusedMember.Global
 // ReSharper disable UnusedType.Global
 
+using System.Linq;
+using System.Text.RegularExpressions;
 using UnityEngine;
 using VisualPinball.Engine.VPT;
 
@@ -34,11 +36,24 @@ namespace VisualPinball.Unity.Patcher
 			var playfieldGo = Playfield(tableGo);
 			playfieldGo.isStatic = true;
 
+			RemoveDisplayLights(playfieldGo);
+
 			SetupFlippers(playfieldGo);
 			SetupDropTargetBanks(tableGo, playfieldGo);
 			SetupTrough(tableGo, playfieldGo);
 			SetupPinMame(tableGo, playfieldGo);
 			SetupDisplays(tableGo);
+		}
+
+		private static void RemoveDisplayLights(GameObject playfieldGo)
+		{
+			var regex = new Regex("^[a-c][0-9a-f][0-9a-f]$");
+			foreach (var child in playfieldGo.transform.Find("Lights").gameObject.transform.Cast<Transform>().ToList()) {
+				var go = child.gameObject;
+				if (regex.Match(go.name).Success) {
+					Object.DestroyImmediate(go);
+				}
+			}
 		}
 
 		private static void SetupFlippers(GameObject playfieldGo)
