@@ -21,7 +21,9 @@
 
 using System.Linq;
 using System.Text.RegularExpressions;
+using UnityEditor;
 using UnityEngine;
+using VisualPinball.Engine.Math;
 using VisualPinball.Engine.VPT;
 
 namespace VisualPinball.Unity.Patcher
@@ -43,6 +45,9 @@ namespace VisualPinball.Unity.Patcher
 			SetupTrough(tableGo, playfieldGo);
 			SetupPinMame(tableGo, playfieldGo);
 			SetupDisplays(tableGo);
+
+			SetupLeftSlingshot(playfieldGo.transform.Find("Walls/LeftSlingshot").gameObject);
+			SetupRightSlingshot(playfieldGo.transform.Find("Walls/RightSlingshot").gameObject);
 		}
 
 		private static void RemoveDisplayLights(GameObject playfieldGo)
@@ -127,7 +132,7 @@ namespace VisualPinball.Unity.Patcher
 			segment.NumSegments = 14;
 			segment.SeparatorType = 2;
 			segment.NumChars = 20;
-			segment.LitColor = Color.green;
+			segment.LitColor = UnityEngine.Color.green;
 			segment.Emission = 3;
 
 			go = new GameObject {
@@ -146,11 +151,54 @@ namespace VisualPinball.Unity.Patcher
 			segment.NumSegments = 14;
 			segment.SeparatorType = 2;
 			segment.NumChars = 20;
-			segment.LitColor = Color.green;
+			segment.LitColor = UnityEngine.Color.green;
 			segment.Emission = 3;
 		}
 
 		#endregion
+
+		private static void SetupLeftSlingshot(GameObject go)
+		{
+			var playfieldGo = go.GetComponentInParent<PlayfieldComponent>().gameObject;
+			var ssParentGo = GetOrCreateGameObject(playfieldGo, "Slingshots");
+
+			var ssGo = PrefabUtility.InstantiatePrefab(SlingshotComponent.LoadPrefab(), ssParentGo.transform) as GameObject;
+			var ss = ssGo!.GetComponent<SlingshotComponent>();
+
+			ss.name = "Left Slingshot";
+			ss.SlingshotSurface = go.GetComponent<SurfaceColliderComponent>();
+			ss.RubberOff = playfieldGo.transform.Find("Rubbers/LeftSling1").GetComponent<RubberComponent>();
+			ss.RubberOn = playfieldGo.transform.Find("Rubbers/LeftSling4").GetComponent<RubberComponent>();
+			ss.CoilArm = playfieldGo.transform.Find("Primitives/Lemk").GetComponent<PrimitiveComponent>();
+			ss.CoilArmAngle = 22f;
+
+			EditorUtility.SetDirty(ssGo);
+			PrefabUtility.RecordPrefabInstancePropertyModifications(ss);
+
+			ss.RebuildMeshes();
+		}
+
+		private static void SetupRightSlingshot(GameObject go)
+		{
+			var playfieldGo = go.GetComponentInParent<PlayfieldComponent>().gameObject;
+			var ssParentGo = GetOrCreateGameObject(playfieldGo, "Slingshots");
+
+			var ssGo = PrefabUtility.InstantiatePrefab(SlingshotComponent.LoadPrefab(), ssParentGo.transform) as GameObject;
+			var ss = ssGo!.GetComponent<SlingshotComponent>();
+
+			ss.name = "Right Slingshot";
+			ss.SlingshotSurface = go.GetComponent<SurfaceColliderComponent>();
+			ss.RubberOff = playfieldGo.transform.Find("Rubbers/RightSling1").GetComponent<RubberComponent>();
+			ss.RubberOn = playfieldGo.transform.Find("Rubbers/RightSling3").GetComponent<RubberComponent>();
+			ss.CoilArm = playfieldGo.transform.Find("Primitives/Remk").GetComponent<PrimitiveComponent>();
+			ss.CoilArmAngle = 22f;
+
+			EditorUtility.SetDirty(ssGo);
+			PrefabUtility.RecordPrefabInstancePropertyModifications(ss);
+
+			ss.RebuildMeshes();
+		}
+
 
 		[NameMatch("LeftFlipper2", Ref = "Playfield/Flippers/LeftFlipper1")]
 		[NameMatch("LeftFlipper3", Ref = "Playfield/Flippers/LeftFlipper1")]
@@ -177,7 +225,7 @@ namespace VisualPinball.Unity.Patcher
 			var renderer = go.GetComponent<Renderer>();
 			var material = new UnityEngine.Material(renderer.sharedMaterial);
 			material.mainTexture = TextureProvider.GetTexture("DropTargetSimple_rock-red");
-			material.color = Color.white;
+			material.color = UnityEngine.Color.white;
 			renderer.sharedMaterial = material;
 		}
 
@@ -191,7 +239,7 @@ namespace VisualPinball.Unity.Patcher
 			var renderer = go.GetComponent<Renderer>();
 			var material = new UnityEngine.Material(renderer.sharedMaterial);
 			material.mainTexture = TextureProvider.GetTexture("DropTargetSimple_rock-black");
-			material.color = Color.white;
+			material.color = UnityEngine.Color.white;
 			renderer.sharedMaterial = material;
 		}
 
@@ -201,7 +249,7 @@ namespace VisualPinball.Unity.Patcher
 			var renderer = go.GetComponent<Renderer>();
 			var material = new UnityEngine.Material(renderer.sharedMaterial);
 			material.mainTexture = TextureProvider.GetTexture("target1-rock");
-			material.color = Color.white;
+			material.color = UnityEngine.Color.white;
 			renderer.sharedMaterial = material;
 		}
 
@@ -213,7 +261,7 @@ namespace VisualPinball.Unity.Patcher
 			var renderer = plate.GetComponent<Renderer>();
 			var material = new UnityEngine.Material(renderer.sharedMaterial);
 			material.mainTexture = TextureProvider.GetTexture("spinner_gottlieb");
-			material.color = Color.white;
+			material.color = UnityEngine.Color.white;
 			renderer.sharedMaterial = material;
 		}
 
@@ -226,6 +274,33 @@ namespace VisualPinball.Unity.Patcher
 
 			// Use spinner bracket material set gate bracket material not found
 			gateBracket.GetComponent<Renderer>().sharedMaterial = spinnerBracket.GetComponent<Renderer>().sharedMaterial;
+		}
+
+		[NameMatch("LeftSling2")]
+		[NameMatch("LeftSling3")]
+		[NameMatch("RightSling2")]
+		[NameMatch("RightSling3")]
+		public void DisableObsoleteSlingshotElements(GameObject go)
+		{
+			go.SetActive(false);
+		}
+
+		[NameMatch("LeftSling1")]
+		public void AddLeftSlingshotDragPoints(RubberComponent rubberComponent)
+		{
+			var dp = rubberComponent.DragPoints.ToList();
+			dp.Insert(13, new DragPointData(219.8f, 1342.7f));
+			dp.Insert(14, new DragPointData(209.1f, 1305.8f));
+			rubberComponent.DragPoints = dp.ToArray();
+		}
+
+		[NameMatch("RightSling1")]
+		public void AddRightSlingshotDragPoints(RubberComponent rubberComponent)
+		{
+			var dp = rubberComponent.DragPoints.ToList();
+			dp.Insert(8, new DragPointData(657.1f, 1308.5f));
+			dp.Insert(9, new DragPointData(648.8f, 1338.4f));
+			rubberComponent.DragPoints = dp.ToArray();
 		}
 	}
 }
