@@ -22,6 +22,8 @@ jobs:
             rid: win-x86
           - os: macos-latest
             rid: osx-x64
+          - os: macos-latest
+            rid: osx-arm64
           - os: ubuntu-latest
             rid: linux-x64
     steps:
@@ -61,7 +63,7 @@ jobs:
       - uses: game-ci/unity-test-runner@main
         id: test
         with:
-          unityVersion: '2021.2.0f1'
+          unityVersion: '2021.2.2f1'
           projectPath: VisualPinball.Unity/VisualPinball.Unity.Test/TestProject~
           artifactsPath: VisualPinball.Unity/VisualPinball.Unity.Test/TestProject~/artifacts
           testMode: all
