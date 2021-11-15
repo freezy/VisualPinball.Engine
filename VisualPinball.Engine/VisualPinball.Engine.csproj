@@ -1,6 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>netstandard2.0</TargetFramework>
+    <TargetFramework>netstandard2.1</TargetFramework>
     <!-- https://github.com/dotnet/sdk/issues/747#issuecomment-518156718 -->
     <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
     <Title>VisualPinball.Engine</Title>
@@ -33,14 +33,8 @@
     <PackageReference Include="NetMiniZ" Version="1.3.0-preview.1" />
     <PackageReference Include="NetMiniZ.Native" Version="1.3.0" />
     <PackageReference Include="NetVips" Version="2.0.1" />
-    <PackageReference Include="NetVips.Native" Version="8.11.4" />
+    <PackageReference Include="NetVips.Native" Version="8.11.4.1" />
   </ItemGroup>
-  <ImportGroup Condition="'$(RuntimeIdentifier)' == 'win-x86' Or '$(RuntimeIdentifier)' == 'win-x64'">
-    <Import Project="$(NuGetPackageRoot)\netvips.native.$(RuntimeIdentifier)\8.11.4\build\net45\NetVips.Native.$(RuntimeIdentifier).targets" Condition="Exists('$(NuGetPackageRoot)\netvips.native.$(RuntimeIdentifier)\8.11.4\build\net45\NetVips.Native.$(RuntimeIdentifier).targets')" />
-  </ImportGroup>
-  <ImportGroup Condition="'$(RuntimeIdentifier)' == 'osx-x64' Or '$(RuntimeIdentifier)' == 'linux-x64'">
-    <Import Project="$(NuGetPackageRoot)\netvips.native.$(RuntimeIdentifier)\8.11.4\build\net461\NetVips.Native.$(RuntimeIdentifier).targets" Condition="Exists('$(NuGetPackageRoot)\netvips.native.$(RuntimeIdentifier)\8.11.4\build\net461\NetVips.Native.$(RuntimeIdentifier).targets')" />
-  </ImportGroup>
   <ItemGroup>
     <ProjectReference Include="..\VisualPinball.Resources\VisualPinball.Resources.csproj" />
   </ItemGroup>
@@ -65,7 +59,7 @@
       <Plugins Include="$(NuGetPackageRoot)\netminiz.native.$(RuntimeIdentifier)\1.3.0\runtimes\$(RuntimeIdentifier)\native\*" />
 
       <Plugins Include="$(OutDir)NetVips.dll" />
-      <Plugins Include="$(NuGetPackageRoot)\netvips.native.$(RuntimeIdentifier)\8.11.4\runtimes\$(RuntimeIdentifier)\native\*" />
+      <Plugins Include="$(NuGetPackageRoot)\netvips.native.$(RuntimeIdentifier)\8.11.4.1\runtimes\$(RuntimeIdentifier)\native\*" />
 
       <Plugins Include="$(OutDir)System.Buffers.dll" />
     </ItemGroup>
