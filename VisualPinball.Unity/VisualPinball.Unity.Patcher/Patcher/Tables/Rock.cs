@@ -38,8 +38,8 @@ namespace VisualPinball.Unity.Patcher
 			var playfieldGo = Playfield(tableGo);
 			playfieldGo.isStatic = true;
 
-			RemoveDisplayLights(playfieldGo);
-
+			SetupLights(playfieldGo);
+			
 			SetupFlippers(playfieldGo);
 			SetupDropTargetBanks(tableGo, playfieldGo);
 			SetupTrough(tableGo, playfieldGo);
@@ -50,12 +50,29 @@ namespace VisualPinball.Unity.Patcher
 			SetupRightSlingshot(playfieldGo.transform.Find("Walls/RightSlingshot").gameObject);
 		}
 
-		private static void RemoveDisplayLights(GameObject playfieldGo)
+		private static void SetupLights(GameObject playfieldGo)
 		{
-			var regex = new Regex("^[a-c][0-9a-f][0-9a-f]$");
+			var displayRegEx = new Regex("^[a-c][0-9a-f][0-9a-f]$");
+			var giRegEx = new Regex("^gi\\d+$");
+
 			foreach (var child in playfieldGo.transform.Find("Lights").gameObject.transform.Cast<Transform>().ToList()) {
 				var go = child.gameObject;
-				if (regex.Match(go.name).Success) {
+
+				if (!displayRegEx.Match(go.name).Success) {
+					var lc = go.GetComponentInParent<LightComponent>();
+
+					if (lc != null) {
+						lc.FadeSpeedUp = .2f;
+						lc.FadeSpeedDown = .1f;
+					}
+
+					foreach (var l in go.GetComponentsInChildren<Light>())
+					{
+						RenderPipeline.Current.LightConverter.SetIntensity(l, giRegEx.Match(go.name).Success ? 120 : 50);
+						RenderPipeline.Current.LightConverter.SetTemperature(l, 2700);
+					}
+				}
+				else {
 					Object.DestroyImmediate(go);
 				}
 			}
@@ -117,9 +134,10 @@ namespace VisualPinball.Unity.Patcher
 			var lamp13 = CreateEmptyGameObject(lightGroups, "Lamp 13");
 
 			var lamp1Group = AddLightGroup(tableGo, lamp1,
-				"gi1", "gi2", "gi3", "gi4", "gi5", "gi6", "gi7", "gi8", "gi9", "gi10",
-				"gi11", "gi12", "gi13", "gi14", "gi15", "gi16", "gi17", "gi18", "gi19", "gi20",
-				"gi21", "gi23", "gi25", "gi26", "gi28", "gi29", "gi30", "gi31");
+				"gi1", "gi3", "gi4", "gi5", "gi6", "gi8",
+				"gi10", "gi11", "gi12", "gi13", "gi14", "gi15", "gi16", "gi17", "gi18", "gi19",
+				"gi20", "gi21", "gi23", "gi25", "gi26", "gi28", "gi29",
+				"gi30", "gi31");
 
 			var lamp12Group = AddLightGroup(tableGo, lamp12,
 				"gi22", "gi24", "gi27", "L12");
@@ -155,7 +173,7 @@ namespace VisualPinball.Unity.Patcher
 			segment.NumSegments = 14;
 			segment.SeparatorType = 2;
 			segment.NumChars = 20;
-			segment.LitColor = UnityEngine.Color.green;
+			segment.LitColor = new UnityEngine.Color(0, 0.87f, 0.87f);
 			segment.Emission = 3;
 
 			go = new GameObject {
@@ -174,7 +192,7 @@ namespace VisualPinball.Unity.Patcher
 			segment.NumSegments = 14;
 			segment.SeparatorType = 2;
 			segment.NumChars = 20;
-			segment.LitColor = UnityEngine.Color.green;
+			segment.LitColor = new UnityEngine.Color(0, 0.87f, 0.87f);
 			segment.Emission = 3;
 		}
 
@@ -221,7 +239,6 @@ namespace VisualPinball.Unity.Patcher
 
 			ss.RebuildMeshes();
 		}
-
 
 		[NameMatch("LeftFlipper2", Ref = "Playfield/Flippers/LeftFlipper1")]
 		[NameMatch("LeftFlipper3", Ref = "Playfield/Flippers/LeftFlipper1")]
@@ -324,6 +341,18 @@ namespace VisualPinball.Unity.Patcher
 			dp.Insert(8, new DragPointData(657.1f, 1308.5f));
 			dp.Insert(9, new DragPointData(648.8f, 1338.4f));
 			rubberComponent.DragPoints = dp.ToArray();
+		}
+
+		[NameMatch("L0")]
+		[NameMatch("L1")]
+		[NameMatch("L2")]
+		[NameMatch("L4")]
+		[NameMatch("gi2")]
+		[NameMatch("gi7")]
+		[NameMatch("gi9")]
+		public void DisableUnusedLights(GameObject go)
+		{
+			go.SetActive(false);
 		}
 	}
 }
