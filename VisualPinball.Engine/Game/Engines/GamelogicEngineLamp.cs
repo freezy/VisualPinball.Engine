@@ -59,6 +59,11 @@ namespace VisualPinball.Engine.Game.Engines
 		public LampSource Source = LampSource.Lamp;
 
 		/// <summary>
+		/// Which type this lamp is.
+		/// </summary>
+		public LampType Type = LampType.SingleOnOff;
+
+		/// <summary>
 		/// A regular expression to match the component on the playfield.
 		/// </summary>
 		public string DeviceHint { get => _deviceHint; set => _deviceHint = value; }
@@ -74,7 +79,7 @@ namespace VisualPinball.Engine.Game.Engines
 		private string _id;
 		private string _deviceHint;
 		private string _deviceItemHint;
-		private int _numMatches;
+		private int _numMatches = 1;
 
 		public GamelogicEngineLamp(string id)
 		{
@@ -93,5 +98,14 @@ namespace VisualPinball.Engine.Game.Engines
 	{
 		Lamp = 0,
 		GI = 1,
+	}
+
+	public enum LampType
+	{
+		SingleOnOff = 0,
+		SingleFading = 1,
+		RgbMulti = 2,
+		Rgb = 3,
+		SingleOffOn = 4,
 	}
 }
