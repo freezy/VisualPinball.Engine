@@ -152,5 +152,7 @@ namespace VisualPinball.Engine.Common
 		public const string ActionCoinDoorUpDown = "Coin Door Up/Down";
 		public const string ActionSlamTilt = "Slam Tilt";
 		public const string ActionSelfTest = "Self Test";
+		public const string ActionLeftAdvance = "Left Advance";
+		public const string ActionRightAdvance = "Right Advance";
 	}
 }
