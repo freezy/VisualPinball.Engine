@@ -38,7 +38,7 @@ namespace VisualPinball.Unity.Patcher
 			var playfieldGo = Playfield(tableGo);
 			playfieldGo.isStatic = true;
 
-			SetupLights(playfieldGo);
+			SetupLights(tableGo, playfieldGo);
 			
 			SetupFlippers(playfieldGo);
 			SetupDropTargetBanks(tableGo, playfieldGo);
@@ -50,7 +50,7 @@ namespace VisualPinball.Unity.Patcher
 			SetupRightSlingshot(playfieldGo.transform.Find("Walls/RightSlingshot").gameObject);
 		}
 
-		private static void SetupLights(GameObject playfieldGo)
+		private static void SetupLights(GameObject tableGo, GameObject playfieldGo)
 		{
 			var displayRegEx = new Regex("^[a-c][0-9a-f][0-9a-f]$");
 			var giRegEx = new Regex("^gi\\d+$");
@@ -76,6 +76,28 @@ namespace VisualPinball.Unity.Patcher
 					Object.DestroyImmediate(go);
 				}
 			}
+
+			var lampGroups = CreateEmptyGameObject(playfieldGo, "Lamp Groups");
+
+			var lampGroup1 = CreateEmptyGameObject(lampGroups, "LampGroup1");
+			
+			AddLightGroup(tableGo, lampGroup1,
+				"gi2", "gi4", "gi6", "gi7", "gi9",
+				"gi10", "gi11", "gi12", "gi13", "gi15", "gi16", "gi17", "gi18", "gi19",
+				"gi20", "gi21", "gi23", "gi25", "gi26", "gi28", "gi29",
+				"gi30", "gi31");
+
+			var lampGroup12 = CreateEmptyGameObject(lampGroups, "LampGroup12");
+			
+			AddLightGroup(tableGo, lampGroup12,
+				"gi22", "gi24", "gi27");
+
+			var lampGroup13 = CreateEmptyGameObject(lampGroups, "LampGroup13");
+
+			AddLightGroup(tableGo, lampGroup13,
+				"AL1a", "AL1b", "AL2a", "AL2b", "AL3a", "AL3b", "AL4a", "AL4b",
+				"AL5a", "AL5b", "AL6a", "AL6b", "AL7a", "AL7b", "AL8a", "AL8b",
+				"AL9a", "AL10a");
 		}
 
 		private static void SetupFlippers(GameObject playfieldGo)
@@ -126,30 +148,6 @@ namespace VisualPinball.Unity.Patcher
 			pinmameGle.SolenoidDelay = 1000;
 			tableComponent.RepopulateHardware(pinmameGle);
 			TableSelector.Instance.TableUpdated();
-
-			// create light groups
-			var lightGroups = CreateEmptyGameObject(playfieldGo, "Light Groups");
-			var lamp1 = CreateEmptyGameObject(lightGroups, "Lamp 1");
-			var lamp12 = CreateEmptyGameObject(lightGroups, "Lamp 12");
-			var lamp13 = CreateEmptyGameObject(lightGroups, "Lamp 13");
-
-			var lamp1Group = AddLightGroup(tableGo, lamp1,
-				"gi1", "gi3", "gi4", "gi5", "gi6", "gi8",
-				"gi10", "gi11", "gi12", "gi13", "gi14", "gi15", "gi16", "gi17", "gi18", "gi19",
-				"gi20", "gi21", "gi23", "gi25", "gi26", "gi28", "gi29",
-				"gi30", "gi31");
-
-			var lamp12Group = AddLightGroup(tableGo, lamp12,
-				"gi22", "gi24", "gi27", "L12");
-
-			var lamp13Group = AddLightGroup(tableGo, lamp13,
-				"AL1a", "AL1b", "AL2a", "AL2b", "AL3a", "AL3b", "AL4a", "AL4b",
-				"AL5a", "AL5b", "AL6a", "AL6b", "AL7a", "AL7b", "AL8a", "AL8b",
-				"AL9a", "AL10a", "L13a", "L13b");
-
-			tableComponent.MappingConfig.Lamps.First(lm => lm.Id == "01").Device = lamp1Group;
-			tableComponent.MappingConfig.Lamps.First(lm => lm.Id == "12").Device = lamp12Group;
-			tableComponent.MappingConfig.Lamps.First(lm => lm.Id == "13").Device = lamp13Group;
 #endif
 		}
 
@@ -347,9 +345,11 @@ namespace VisualPinball.Unity.Patcher
 		[NameMatch("L1")]
 		[NameMatch("L2")]
 		[NameMatch("L4")]
-		[NameMatch("gi2")]
-		[NameMatch("gi7")]
-		[NameMatch("gi9")]
+		[NameMatch("gi5")]
+		[NameMatch("gi1")]
+		[NameMatch("gi3")]
+		[NameMatch("gi8")]
+		[NameMatch("gi14")]
 		public void DisableUnusedLights(GameObject go)
 		{
 			go.SetActive(false);
