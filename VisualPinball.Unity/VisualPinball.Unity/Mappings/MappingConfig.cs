@@ -176,7 +176,7 @@ namespace VisualPinball.Unity
 					if (regex.Match(device.name).Success) {
 						switches.Add(device);
 						if (switches.Count() >= engineSwitch.NumMatches) {
-							break;
+							return switches;
 						}
 					}
 				}
@@ -297,7 +297,7 @@ namespace VisualPinball.Unity
 			}
 
 			// if it's a lamp, add a new entry to the lamps.
-			var lampDevice = GuessLampDevice(lampDevices, engineCoil);
+			var lampDevice = GuessLampDevices(lampDevices, engineCoil).FirstOrDefault();
 			var lampDeviceItem = lampDevice != null ? GuessLampDeviceItem(engineCoil, lampDevice) : null;
 			AddLamp(new LampMapping {
 				Id = engineCoil.Id,
@@ -324,9 +324,8 @@ namespace VisualPinball.Unity
 						devices.Add(device);
 					}
 				}
-
 				if (devices.Count() >= engineCoil.NumMatches) {
-					break;
+					return devices;
 				}
 			}
 			return devices;
@@ -481,20 +480,42 @@ namespace VisualPinball.Unity
 				}
 
 				var description = string.IsNullOrEmpty(engineLamp.Description) ? string.Empty : engineLamp.Description;
-				var device = GuessLampDevice(lamps, engineLamp);
-				var deviceItem = device != null ? GuessLampDeviceItem(engineLamp, device) : null;
 
-				AddLamp(new LampMapping {
-					Id = engineLamp.Id,
-					InternalId = engineLamp.InternalId,
-					Channel = engineLamp.Channel,
-					Source = engineLamp.Source,
-					Description = description,
-					Device = device,
-					DeviceItem = deviceItem != null ? deviceItem.Id : string.Empty,
-					Type = engineLamp.Type,
-					FadingSteps = engineLamp.FadingSteps,
-				});
+				var deviceAdded = false;
+
+				foreach (var device in GuessLampDevices(lamps, engineLamp)) {
+					var deviceItem = GuessLampDeviceItem(engineLamp, device);
+
+					AddLamp(new LampMapping
+					{
+						Id = engineLamp.Id,
+						InternalId = engineLamp.InternalId,
+						Channel = engineLamp.Channel,
+						Source = engineLamp.Source,
+						Description = description,
+						Device = device,
+						DeviceItem = deviceItem != null ? deviceItem.Id : string.Empty,
+						Type = engineLamp.Type,
+						FadingSteps = engineLamp.FadingSteps,
+					});
+
+					deviceAdded = true;
+				}
+
+				if (!deviceAdded) {
+					AddLamp(new LampMapping
+					{
+						Id = engineLamp.Id,
+						InternalId = engineLamp.InternalId,
+						Channel = engineLamp.Channel,
+						Source = engineLamp.Source,
+						Description = description,
+						Device = null,
+						DeviceItem = string.Empty,
+						Type = engineLamp.Type,
+						FadingSteps = engineLamp.FadingSteps,
+					});
+				}
 			}
 		}
 
@@ -529,14 +550,19 @@ namespace VisualPinball.Unity
 			return lamps;
 		}
 
-		private static ILampDeviceComponent GuessLampDevice(ILampDeviceComponent[] lamps, IGamelogicEngineDeviceItem engineLamp)
+		private static IEnumerable<ILampDeviceComponent> GuessLampDevices(ILampDeviceComponent[] lamps, IGamelogicEngineDeviceItem engineLamp)
 		{
+			List<ILampDeviceComponent> devices = new List<ILampDeviceComponent>();
+
 			// first, match by regex if hint provided
 			if (!string.IsNullOrEmpty(engineLamp.DeviceHint)) {
+				var regex = new Regex(engineLamp.DeviceHint, RegexOptions.IgnoreCase);
 				foreach (var lamp in lamps) {
-					var regex = new Regex(engineLamp.DeviceHint, RegexOptions.IgnoreCase);
 					if (regex.Match(lamp.name).Success) {
-						return lamp;
+						devices.Add(lamp);
+						if (devices.Count() >= engineLamp.NumMatches) {
+							return devices;
+						}
 					}
 				}
 			}
@@ -546,7 +572,15 @@ namespace VisualPinball.Unity
 				? $"^l{numericLampId}a?$"
 				: $"^{engineLamp.Id}$";
 			var nameRegex = new Regex(matchKey, RegexOptions.IgnoreCase);
-			return lamps.FirstOrDefault(l => nameRegex.Match(l.name).Success);
+			foreach (var lamp in lamps) {
+				if (nameRegex.Match(lamp.name).Success) {
+					devices.Add(lamp);
+					if (devices.Count() >= engineLamp.NumMatches) {
+						return devices;
+					}
+				}
+			}
+			return devices;
 		}
 
 		private static GamelogicEngineLamp GuessLampDeviceItem(IGamelogicEngineDeviceItem engineLamp, ILampDeviceComponent device)
