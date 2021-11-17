@@ -33,7 +33,7 @@
     <PackageReference Include="NetMiniZ" Version="1.3.0-preview.1" />
     <PackageReference Include="NetMiniZ.Native" Version="1.3.0" />
     <PackageReference Include="NetVips" Version="2.0.1" />
-    <PackageReference Include="NetVips.Native" Version="8.11.4.1" />
+    <PackageReference Include="NetVips.Native" Version="8.12.0-rc1" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\VisualPinball.Resources\VisualPinball.Resources.csproj" />
@@ -59,7 +59,7 @@
       <Plugins Include="$(NuGetPackageRoot)\netminiz.native.$(RuntimeIdentifier)\1.3.0\runtimes\$(RuntimeIdentifier)\native\*" />
 
       <Plugins Include="$(OutDir)NetVips.dll" />
-      <Plugins Include="$(NuGetPackageRoot)\netvips.native.$(RuntimeIdentifier)\8.11.4.1\runtimes\$(RuntimeIdentifier)\native\*" />
+      <Plugins Include="$(NuGetPackageRoot)\netvips.native.$(RuntimeIdentifier)\8.12.0-rc1\runtimes\$(RuntimeIdentifier)\native\*" />
 
       <Plugins Include="$(OutDir)System.Buffers.dll" />
     </ItemGroup>
