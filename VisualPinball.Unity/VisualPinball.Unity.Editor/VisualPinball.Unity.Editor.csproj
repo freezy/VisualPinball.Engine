@@ -52,5 +52,8 @@
     <Reference Include="Unity.Entities.Hybrid">
       <HintPath>..\Plugins\.unity\Unity.Entities.Hybrid.dll</HintPath>
     </Reference>
+    <Reference Include="UnityEngine.UIElementsModule">
+      <HintPath>..\Plugins\.unity\UnityEngine.UIElementsModule.dll</HintPath>
+    </Reference>
   </ItemGroup>
 </Project>
