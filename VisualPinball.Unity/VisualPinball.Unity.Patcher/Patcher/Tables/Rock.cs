@@ -38,7 +38,7 @@ namespace VisualPinball.Unity.Patcher
 			var playfieldGo = Playfield(tableGo);
 			playfieldGo.isStatic = true;
 
-			SetupLights(tableGo, playfieldGo);
+			SetupLamps(tableGo, playfieldGo);
 			
 			SetupFlippers(playfieldGo);
 			SetupDropTargetBanks(tableGo, playfieldGo);
@@ -50,30 +50,25 @@ namespace VisualPinball.Unity.Patcher
 			SetupRightSlingshot(playfieldGo.transform.Find("Walls/RightSlingshot").gameObject);
 		}
 
-		private static void SetupLights(GameObject tableGo, GameObject playfieldGo)
+		private static void SetupLamps(GameObject tableGo, GameObject playfieldGo)
 		{
 			var displayRegEx = new Regex("^[a-c][0-9a-f][0-9a-f]$");
-			var giRegEx = new Regex("^gi\\d+$");
-
+		
 			foreach (var child in playfieldGo.transform.Find("Lights").gameObject.transform.Cast<Transform>().ToList()) {
 				var go = child.gameObject;
 
-				if (!displayRegEx.Match(go.name).Success) {
+				if (displayRegEx.Match(go.name).Success) {
+					Object.DestroyImmediate(go);
+				}
+				else {
 					var lc = go.GetComponentInParent<LightComponent>();
 
 					if (lc != null) {
 						lc.FadeSpeedUp = .2f;
 						lc.FadeSpeedDown = .1f;
-					}
 
-					foreach (var l in go.GetComponentsInChildren<Light>())
-					{
-						RenderPipeline.Current.LightConverter.SetIntensity(l, giRegEx.Match(go.name).Success ? 120 : 50);
-						RenderPipeline.Current.LightConverter.SetTemperature(l, 2700);
+						PrefabUtility.RecordPrefabInstancePropertyModifications(lc);
 					}
-				}
-				else {
-					Object.DestroyImmediate(go);
 				}
 			}
 
@@ -83,7 +78,7 @@ namespace VisualPinball.Unity.Patcher
 			
 			AddLightGroup(tableGo, lampGroup1,
 				"gi2", "gi4", "gi6", "gi7", "gi9",
-				"gi10", "gi11", "gi12", "gi13", "gi15", "gi16", "gi17", "gi18", "gi19",
+				"gi10", "gi11", "gi12", "gi13", "gi14", "gi15", "gi16", "gi17", "gi18", "gi19",
 				"gi20", "gi21", "gi23", "gi25", "gi26", "gi28", "gi29",
 				"gi30", "gi31");
 
@@ -349,10 +344,127 @@ namespace VisualPinball.Unity.Patcher
 		[NameMatch("gi1")]
 		[NameMatch("gi3")]
 		[NameMatch("gi8")]
-		[NameMatch("gi14")]
-		public void DisableUnusedLights(GameObject go)
+		public void DisableLamps(GameObject go)
 		{
 			go.SetActive(false);
+		}
+
+		[NameMatch("gi14")]
+		public void FixGI14(GameObject go)
+		{
+			go.GetComponent<LightComponent>().Position = new Vector3(894.29f, 178.4f);
+		}
+
+		[NameMatch("gi2")]
+		[NameMatch("gi4")]
+		[NameMatch("gi6")]
+		[NameMatch("gi7")]
+		[NameMatch("gi9")]
+		[NameMatch("gi10")]
+		[NameMatch("gi11")]
+		[NameMatch("gi12")]
+		[NameMatch("gi13")]
+		[NameMatch("gi14")]
+		[NameMatch("gi15")]
+		[NameMatch("gi16")]
+		[NameMatch("gi17")]
+		[NameMatch("gi18")]
+		[NameMatch("gi19")]
+		[NameMatch("gi20")]
+		[NameMatch("gi21")]
+		[NameMatch("gi23")]
+		[NameMatch("gi25")]
+		[NameMatch("gi26")]
+		[NameMatch("gi28")]
+		[NameMatch("gi29")]
+		[NameMatch("gi30")]
+		[NameMatch("gi31")]
+		[NameMatch("gi22")]
+		[NameMatch("gi24")]
+		[NameMatch("gi27")]
+		public void FixGIs(GameObject go)
+		{
+			LightTemperature(go, 2700f);
+			LightIntensity(go, 120f);
+		}
+
+		[NameMatch("L3")]
+		[NameMatch("L5")]
+		[NameMatch("L6")]
+		[NameMatch("L7")]
+		[NameMatch("L8")]
+		[NameMatch("L9")]
+		[NameMatch("L10")]
+		[NameMatch("L11")]
+		[NameMatch("L12")]
+		[NameMatch("L13a")]
+		[NameMatch("L13b")]
+		[NameMatch("L14")]
+		[NameMatch("L15")]
+		[NameMatch("L16")]
+		[NameMatch("L17")]
+		[NameMatch("L18")]
+		[NameMatch("L19")]
+		[NameMatch("L20")]
+		[NameMatch("L21")]
+		[NameMatch("L22")]
+		[NameMatch("L23")]
+		[NameMatch("L24")]
+		[NameMatch("L25")]
+		[NameMatch("L26")]
+		[NameMatch("L27")]
+		[NameMatch("L28")]
+		[NameMatch("L29")]
+		[NameMatch("L30")]
+		[NameMatch("L31")]
+		[NameMatch("L32")]
+		[NameMatch("L33")]
+		[NameMatch("L34")]
+		[NameMatch("L35")]
+		[NameMatch("L36")]
+		[NameMatch("L37")]
+		[NameMatch("L38")]
+		[NameMatch("L39")]
+		[NameMatch("L40")]
+		[NameMatch("L41")]
+		[NameMatch("L42")]
+		[NameMatch("L43")]
+		[NameMatch("L44")]
+		[NameMatch("L45")]
+		[NameMatch("L46")]
+		[NameMatch("L47a")]
+		[NameMatch("L47b")]
+		[NameMatch("L51a")]
+		[NameMatch("L51b")]
+		public void FixLamps(GameObject go)
+		{
+			LightTemperature(go, 2700f);
+			LightIntensity(go, 50f);
+		}
+
+		[NameMatch("AL1a")]
+		[NameMatch("AL1b")]
+		[NameMatch("AL2a")]
+		[NameMatch("AL2b")]
+		[NameMatch("AL3a")]
+		[NameMatch("AL3b")]
+		[NameMatch("AL4a")]
+		[NameMatch("AL4b")]
+		[NameMatch("AL5a")]
+		[NameMatch("AL5b")]
+		[NameMatch("AL6a")]
+		[NameMatch("AL6b")]
+		[NameMatch("AL7a")]
+		[NameMatch("AL7b")]
+		[NameMatch("AL8a")]
+		[NameMatch("AL8b")]
+		[NameMatch("AL9a")]
+		[NameMatch("AL10a")]
+		public void FixAuxilaryLamps(GameObject go)
+		{
+			LightTemperature(go, 5500f);
+			LightColor(go, UnityEngine.Color.white);
+			LightIntensity(go, 175f);
 		}
 	}
 }
