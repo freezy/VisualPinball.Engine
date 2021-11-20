@@ -45,7 +45,7 @@ namespace VisualPinball.Unity
 		private readonly Dictionary<string, TeleporterApi> _teleportersByName = new Dictionary<string, TeleporterApi>();
 		private readonly Dictionary<string, TriggerApi> _triggersByName = new Dictionary<string, TriggerApi>();
 		private readonly Dictionary<string, TroughApi> _troughsByName = new Dictionary<string, TroughApi>();
-
+		private readonly Dictionary<string, SurfaceSwitchApi> _surfaceSwitchesByName = new Dictionary<string, SurfaceSwitchApi>();
 
 		private readonly Dictionary<MonoBehaviour, BumperApi> _bumpersByComponent = new Dictionary<MonoBehaviour, BumperApi>();
 		private readonly Dictionary<MonoBehaviour, DropTargetApi> _dropTargetsByComponent = new Dictionary<MonoBehaviour, DropTargetApi>();
@@ -66,6 +66,7 @@ namespace VisualPinball.Unity
 		private readonly Dictionary<MonoBehaviour, TeleporterApi> _teleportersByComponent = new Dictionary<MonoBehaviour, TeleporterApi>();
 		private readonly Dictionary<MonoBehaviour, TriggerApi> _triggersByComponent = new Dictionary<MonoBehaviour, TriggerApi>();
 		private readonly Dictionary<MonoBehaviour, TroughApi> _troughsByComponent = new Dictionary<MonoBehaviour, TroughApi>();
+		private readonly Dictionary<MonoBehaviour, SurfaceSwitchApi> _surfaceSwitchesByComponent = new Dictionary<MonoBehaviour, SurfaceSwitchApi>();
 
 		#endregion
 
@@ -220,6 +221,14 @@ namespace VisualPinball.Unity
 		public DropTargetBankApi DropTargetBank(string name) => Get<DropTargetBankApi>(name);
 		public DropTargetBankApi DropTargetBank(MonoBehaviour component) => Get<DropTargetBankApi>(component);
 
+		/// <summary>
+		/// Returns a surface switch by name.
+		/// </summary>
+		/// <param name="name">Name of the surface switch</param>
+		/// <returns>Surface Switch or `null` if no surface switch with that name exists.</returns>
+		public SurfaceSwitchApi SurfaceSwitch(string name) => Get<SurfaceSwitchApi>(name);
+		public SurfaceSwitchApi SurfaceSwitch(MonoBehaviour component) => Get<SurfaceSwitchApi>(component);
+
 		#endregion
 
 		#region Registration
@@ -263,6 +272,7 @@ namespace VisualPinball.Unity
 			if (t == typeof(TeleporterApi)) return _teleportersByName as Dictionary<string, T>;
 			if (t == typeof(TriggerApi)) return _triggersByName as Dictionary<string, T>;
 			if (t == typeof(TroughApi)) return _troughsByName as Dictionary<string, T>;
+			if (t == typeof(SurfaceSwitchApi)) return _surfaceSwitchesByName as Dictionary<string, T>;
 			throw new ArgumentException($"Unknown API type {t}.");
 		}
 
@@ -288,6 +298,8 @@ namespace VisualPinball.Unity
 			if (t == typeof(TeleporterApi)) return _teleportersByComponent as Dictionary<MonoBehaviour, T>;
 			if (t == typeof(TriggerApi)) return _triggersByComponent as Dictionary<MonoBehaviour, T>;
 			if (t == typeof(TroughApi)) return _troughsByComponent as Dictionary<MonoBehaviour, T>;
+			if (t == typeof(SurfaceSwitchApi)) return _surfaceSwitchesByComponent as Dictionary<MonoBehaviour, T>;
+
 			throw new ArgumentException($"Unknown API type {t}.");
 		}
 
