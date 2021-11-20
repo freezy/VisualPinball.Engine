@@ -39,15 +39,21 @@ namespace VisualPinball.Unity.Patcher
 			playfieldGo.isStatic = true;
 
 			SetupLamps(tableGo, playfieldGo);
-			
+
 			SetupFlippers(playfieldGo);
 			SetupDropTargetBanks(tableGo, playfieldGo);
 			SetupTrough(tableGo, playfieldGo);
-			SetupPinMame(tableGo, playfieldGo);
-			SetupDisplays(tableGo);
+			
+			SetupSurfaceSwitch(playfieldGo.transform.Find("Walls/sw41a").gameObject);
+			SetupSurfaceSwitch(playfieldGo.transform.Find("Walls/sw41b").gameObject);
+			SetupSurfaceSwitch(playfieldGo.transform.Find("Walls/sw41c").gameObject);
+			SetupSurfaceSwitch(playfieldGo.transform.Find("Walls/sw41d").gameObject);
 
 			SetupLeftSlingshot(playfieldGo.transform.Find("Walls/LeftSlingshot").gameObject);
 			SetupRightSlingshot(playfieldGo.transform.Find("Walls/RightSlingshot").gameObject);
+
+			SetupPinMame(tableGo, playfieldGo);
+			SetupDisplays(tableGo);
 		}
 
 		private static void SetupLamps(GameObject tableGo, GameObject playfieldGo)
@@ -129,67 +135,10 @@ namespace VisualPinball.Unity.Patcher
 			troughComponent.RollTime = 300;
 		}
 
-		private static void SetupPinMame(GameObject tableGo, GameObject playfieldGo)
+		private static void SetupSurfaceSwitch(GameObject go)
 		{
-#if !NO_PINMAME
-			var tableComponent = tableGo.GetComponent<TableComponent>();
-
-			// GLE
-			Object.DestroyImmediate(tableGo.GetComponent<DefaultGamelogicEngine>());
-			var pinmameGle = tableGo.AddComponent<Engine.PinMAME.PinMameGamelogicEngine>();
-			pinmameGle.Game = new Engine.PinMAME.Games.Rock();
-			pinmameGle.romId = "rock";
-			pinmameGle.DisableMechs = true;
-			pinmameGle.SolenoidDelay = 1000;
-			tableComponent.RepopulateHardware(pinmameGle);
-			TableSelector.Instance.TableUpdated();
-#endif
+			go.AddComponent<SurfaceSwitchComponent>();
 		}
-
-		private static void SetupDisplays(GameObject tableGo)
-		{
-			const float scale = 0.5f;
-			var cabinetGo = tableGo.transform.Find("Cabinet").gameObject;
-			var go = new GameObject {
-				name = "Segment Display [0]",
-				transform = {
-					localEulerAngles = new Vector3(0, 0, 0),
-					localPosition = new Vector3(0, 0.31f, 1.1f),
-					localScale = new Vector3(scale, scale, scale)
-				}
-			};
-			go.transform.SetParent(cabinetGo.transform, false);
-
-			var segment = go.AddComponent<SegmentDisplayComponent>();
-			segment.Id = "display0";
-			segment.SegmentTypeName = "Seg16";
-			segment.NumSegments = 14;
-			segment.SeparatorType = 2;
-			segment.NumChars = 20;
-			segment.LitColor = new UnityEngine.Color(0, 0.87f, 0.87f);
-			segment.Emission = 3;
-
-			go = new GameObject {
-				name = "Segment Display [1]",
-				transform = {
-					localEulerAngles = new Vector3(0, 0, 0),
-					localPosition = new Vector3(0, 0.21f, 1.1f),
-					localScale = new Vector3(scale, scale, scale)
-				}
-			};
-			go.transform.SetParent(cabinetGo.transform, false);
-
-			segment = go.AddComponent<SegmentDisplayComponent>();
-			segment.Id = "display1";
-			segment.SegmentTypeName = "Seg16";
-			segment.NumSegments = 14;
-			segment.SeparatorType = 2;
-			segment.NumChars = 20;
-			segment.LitColor = new UnityEngine.Color(0, 0.87f, 0.87f);
-			segment.Emission = 3;
-		}
-
-		#endregion
 
 		private static void SetupLeftSlingshot(GameObject go)
 		{
@@ -232,6 +181,70 @@ namespace VisualPinball.Unity.Patcher
 
 			ss.RebuildMeshes();
 		}
+
+		private static void SetupPinMame(GameObject tableGo, GameObject playfieldGo)
+		{
+#if !NO_PINMAME
+			var tableComponent = tableGo.GetComponent<TableComponent>();
+
+			// GLE
+			Object.DestroyImmediate(tableGo.GetComponent<DefaultGamelogicEngine>());
+			var pinmameGle = tableGo.AddComponent<Engine.PinMAME.PinMameGamelogicEngine>();
+			pinmameGle.Game = new Engine.PinMAME.Games.Rock();
+			pinmameGle.romId = "rock";
+			pinmameGle.DisableMechs = true;
+			pinmameGle.SolenoidDelay = 1000;
+			tableComponent.RepopulateHardware(pinmameGle);
+			TableSelector.Instance.TableUpdated();
+#endif
+		}
+
+		private static void SetupDisplays(GameObject tableGo)
+		{
+			const float scale = 0.5f;
+			var cabinetGo = tableGo.transform.Find("Cabinet").gameObject;
+			var go = new GameObject
+			{
+				name = "Segment Display [0]",
+				transform = {
+					localEulerAngles = new Vector3(0, 0, 0),
+					localPosition = new Vector3(0, 0.31f, 1.1f),
+					localScale = new Vector3(scale, scale, scale)
+				}
+			};
+			go.transform.SetParent(cabinetGo.transform, false);
+
+			var segment = go.AddComponent<SegmentDisplayComponent>();
+			segment.Id = "display0";
+			segment.SegmentTypeName = "Seg16";
+			segment.NumSegments = 14;
+			segment.SeparatorType = 2;
+			segment.NumChars = 20;
+			segment.LitColor = new UnityEngine.Color(0, 0.87f, 0.87f);
+			segment.Emission = 3;
+
+			go = new GameObject
+			{
+				name = "Segment Display [1]",
+				transform = {
+					localEulerAngles = new Vector3(0, 0, 0),
+					localPosition = new Vector3(0, 0.21f, 1.1f),
+					localScale = new Vector3(scale, scale, scale)
+				}
+			};
+			go.transform.SetParent(cabinetGo.transform, false);
+
+			segment = go.AddComponent<SegmentDisplayComponent>();
+			segment.Id = "display1";
+			segment.SegmentTypeName = "Seg16";
+			segment.NumSegments = 14;
+			segment.SeparatorType = 2;
+			segment.NumChars = 20;
+			segment.LitColor = new UnityEngine.Color(0, 0.87f, 0.87f);
+			segment.Emission = 3;
+		}
+
+		#endregion
 
 		[NameMatch("LeftFlipper2", Ref = "Playfield/Flippers/LeftFlipper1")]
 		[NameMatch("LeftFlipper3", Ref = "Playfield/Flippers/LeftFlipper1")]
