@@ -31,15 +31,18 @@ namespace VisualPinball.Unity.Editor
 			base.OnInspectorGUI();
 
 			if (Application.isPlaying) {
-				EditorGUILayout.Separator();
-
 				TableApi tableApi = TableComponent.GetComponent<Player>().TableApi;
 				CollisionSwitchApi collisionSwitchApi = tableApi.CollisionSwitch(target.name);
 
-				DrawSwitch($"Collision switch exposed as {target.name}.", collisionSwitchApi.IsSwitchEnabled);
+				if (collisionSwitchApi.IsHittable) {
+					DrawSwitch($"Collision switch exposed as {target.name}.", collisionSwitchApi.IsSwitchEnabled);
+				}
+				else {
+					GUILayout.Label($"Collision switch not connected to hittable.");
+				}
 			}
 			else {
-				GUILayout.Label($"Collision switch exposed as {target.name}.");
+				GUILayout.Label($"Collision switch will be exposed as {target.name}.");
 			}
 		}
 

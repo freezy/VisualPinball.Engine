@@ -30,7 +30,11 @@ namespace VisualPinball.Unity.Editor
 			"3 Bank",
 			"4 Bank",
 			"5 Bank",
-			"6 Bank"
+			"6 Bank",
+			"7 Bank",
+			"8 Bank",
+			"9 Bank",
+			"10 Bank"
 		};
 
 		private static readonly int[] BankSizeValues = {
@@ -39,7 +43,11 @@ namespace VisualPinball.Unity.Editor
 			3,
 			4,
 			5,
-			6
+			6,
+			7,
+			8,
+			9,
+			10
 		};
 
 		private bool _togglePlayfield = true;

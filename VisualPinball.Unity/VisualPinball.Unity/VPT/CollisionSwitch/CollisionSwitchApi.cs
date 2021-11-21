@@ -11,7 +11,7 @@ namespace VisualPinball.Unity
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
 		private readonly CollisionSwitchComponent _collisionSwitchComponent;
-		private IColliderComponent _colliderComponent;
+		private IApiHittable _hittable;
 		private Player _player;
 		private BallManager _ballManager;
 	
@@ -27,7 +27,9 @@ namespace VisualPinball.Unity
 		IApiSwitch IApiSwitchDevice.Switch(string deviceItem) => this;
 		public void OnSwitch(bool closed) => SwitchHandler.OnSwitch(closed);
 		public void DestroyBall(Entity ballEntity) => _ballManager.DestroyEntity(ballEntity);
-		
+
+		public bool IsHittable => _hittable != null;
+
 		internal CollisionSwitchApi(GameObject go, Player player)
 		{
 			_collisionSwitchComponent = go.GetComponentInChildren<CollisionSwitchComponent>();
@@ -40,19 +42,14 @@ namespace VisualPinball.Unity
 		{
 			_ballManager = ballManager;
 
-			_colliderComponent = _collisionSwitchComponent.GetComponentInParent<IColliderComponent>();
+			var parentComponent = _collisionSwitchComponent.GetComponentInParent<MonoBehaviour>();
+			_hittable = _player.TableApi.Hittable(parentComponent.name);
 
-			if (_colliderComponent is SurfaceColliderComponent) {
-				_player.TableApi.Surface(_collisionSwitchComponent.name).Hit += OnHit;
-			}
-			else if (_colliderComponent is RubberColliderComponent) {
-				_player.TableApi.Rubber(_collisionSwitchComponent.name).Hit += OnHit;
-			}
-			else if (_colliderComponent is PrimitiveColliderComponent) {
-				_player.TableApi.Primitive(_collisionSwitchComponent.name).Hit += OnHit;
+			if (_hittable != null) {
+				_hittable.Hit += OnHit;
 			}
 			else {
-				Logger.Error($"{_collisionSwitchComponent.name} not connected to a surface, rubber, or primitive");
+				Logger.Error($"{_collisionSwitchComponent.name} not connected to a hittable component");
 			}
 
 			Init?.Invoke(this, EventArgs.Empty);
@@ -68,14 +65,8 @@ namespace VisualPinball.Unity
 		{
 			Logger.Info($"Destroying {_collisionSwitchComponent.name}");
 
-			if (_colliderComponent is SurfaceColliderComponent) {
-				_player.TableApi.Surface(_collisionSwitchComponent.name).Hit -= OnHit;
-			}
-			else if (_colliderComponent is RubberColliderComponent) {
-				_player.TableApi.Rubber(_collisionSwitchComponent.name).Hit -= OnHit;
-			}
-			else if (_colliderComponent is PrimitiveColliderComponent) {
-				_player.TableApi.Primitive(_collisionSwitchComponent.name).Hit -= OnHit;
+			if (_hittable != null) {
+				_hittable.Hit -= OnHit;
 			}
 		}
 	}

@@ -46,6 +46,7 @@ namespace VisualPinball.Unity
 		private readonly Dictionary<string, TriggerApi> _triggersByName = new Dictionary<string, TriggerApi>();
 		private readonly Dictionary<string, TroughApi> _troughsByName = new Dictionary<string, TroughApi>();
 		private readonly Dictionary<string, CollisionSwitchApi> _collisionSwitchesByName = new Dictionary<string, CollisionSwitchApi>();
+		private readonly Dictionary<string, IApiHittable> _hittablesByName = new Dictionary<string, IApiHittable>();
 
 		private readonly Dictionary<MonoBehaviour, BumperApi> _bumpersByComponent = new Dictionary<MonoBehaviour, BumperApi>();
 		private readonly Dictionary<MonoBehaviour, DropTargetApi> _dropTargetsByComponent = new Dictionary<MonoBehaviour, DropTargetApi>();
@@ -67,6 +68,7 @@ namespace VisualPinball.Unity
 		private readonly Dictionary<MonoBehaviour, TriggerApi> _triggersByComponent = new Dictionary<MonoBehaviour, TriggerApi>();
 		private readonly Dictionary<MonoBehaviour, TroughApi> _troughsByComponent = new Dictionary<MonoBehaviour, TroughApi>();
 		private readonly Dictionary<MonoBehaviour, CollisionSwitchApi> _collisionSwitchesByComponent = new Dictionary<MonoBehaviour, CollisionSwitchApi>();
+		private readonly Dictionary<MonoBehaviour, IApiHittable> _hittablesByComponent = new Dictionary<MonoBehaviour, IApiHittable>();
 
 		#endregion
 
@@ -222,13 +224,20 @@ namespace VisualPinball.Unity
 		public DropTargetBankApi DropTargetBank(MonoBehaviour component) => Get<DropTargetBankApi>(component);
 
 		/// <summary>
-		/// Returns a surface switch by name.
+		/// Returns a collision switch by name.
 		/// </summary>
-		/// <param name="name">Name of the surface switch</param>
-		/// <returns>Surface Switch or `null` if no surface switch with that name exists.</returns>
+		/// <param name="name">Name of the collision switch</param>
+		/// <returns>Collision switch or `null` if no collision switch with that name exists.</returns>
 		public CollisionSwitchApi CollisionSwitch(string name) => Get<CollisionSwitchApi>(name);
 		public CollisionSwitchApi CollisionSwitch(MonoBehaviour component) => Get<CollisionSwitchApi>(component);
 
+		/// <summary>
+		/// Returns a hittable by name.
+		/// </summary>
+		/// <param name="name">Name of the hittable</param>
+		/// <returns>Hittable or `null` if no hittable with that name exists.</returns>
+		public IApiHittable Hittable(string name) => _hittablesByName[name];
+		public IApiHittable Hittable(MonoBehaviour component) => _hittablesByComponent[component];
 
 		#endregion
 
@@ -241,6 +250,11 @@ namespace VisualPinball.Unity
 
 			nameDict[component.name] = api;
 			compDict[component] = api;
+
+			if (api is IApiHittable hittable) {
+				_hittablesByName[component.name] = hittable;
+				_hittablesByComponent[component] = hittable;
+			}
 		}
 
 		private bool Has<T>(string name) where T : IApi => GetNameDictionary<T>().ContainsKey(name);
