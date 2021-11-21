@@ -44,10 +44,10 @@ namespace VisualPinball.Unity.Patcher
 			SetupDropTargetBanks(tableGo, playfieldGo);
 			SetupTrough(tableGo, playfieldGo);
 			
-			SetupSurfaceSwitch(playfieldGo.transform.Find("Walls/sw41a").gameObject);
-			SetupSurfaceSwitch(playfieldGo.transform.Find("Walls/sw41b").gameObject);
-			SetupSurfaceSwitch(playfieldGo.transform.Find("Walls/sw41c").gameObject);
-			SetupSurfaceSwitch(playfieldGo.transform.Find("Walls/sw41d").gameObject);
+			SetupCollisionSwitch(playfieldGo.transform.Find("Walls/sw41a").gameObject);
+			SetupCollisionSwitch(playfieldGo.transform.Find("Walls/sw41b").gameObject);
+			SetupCollisionSwitch(playfieldGo.transform.Find("Walls/sw41c").gameObject);
+			SetupCollisionSwitch(playfieldGo.transform.Find("Walls/sw41d").gameObject);
 
 			SetupLeftSlingshot(playfieldGo.transform.Find("Walls/LeftSlingshot").gameObject);
 			SetupRightSlingshot(playfieldGo.transform.Find("Walls/RightSlingshot").gameObject);
@@ -135,9 +135,9 @@ namespace VisualPinball.Unity.Patcher
 			troughComponent.RollTime = 300;
 		}
 
-		private static void SetupSurfaceSwitch(GameObject go)
+		private static void SetupCollisionSwitch(GameObject go)
 		{
-			go.AddComponent<SurfaceSwitchComponent>();
+			go.AddComponent<CollisionSwitchComponent>();
 		}
 
 		private static void SetupLeftSlingshot(GameObject go)

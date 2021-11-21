@@ -6,16 +6,15 @@ using Unity.Entities;
 
 namespace VisualPinball.Unity
 {
-	public class SurfaceSwitchApi : IApi, IApiSwitch, IApiSwitchDevice
+	public class CollisionSwitchApi : IApi, IApiSwitch, IApiSwitchDevice
 	{
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
-		private readonly SurfaceSwitchComponent _surfaceSwitchComponent;
+		private readonly CollisionSwitchComponent _collisionSwitchComponent;
+		private IColliderComponent _colliderComponent;
 		private Player _player;
 		private BallManager _ballManager;
-
-		private SurfaceApi _surfaceApi;
-
+	
 		private protected readonly SwitchHandler SwitchHandler;
 
 		public event EventHandler Init;
@@ -29,9 +28,9 @@ namespace VisualPinball.Unity
 		public void OnSwitch(bool closed) => SwitchHandler.OnSwitch(closed);
 		public void DestroyBall(Entity ballEntity) => _ballManager.DestroyEntity(ballEntity);
 		
-		internal SurfaceSwitchApi(GameObject go, Player player)
+		internal CollisionSwitchApi(GameObject go, Player player)
 		{
-			_surfaceSwitchComponent = go.GetComponentInChildren<SurfaceSwitchComponent>();
+			_collisionSwitchComponent = go.GetComponentInChildren<CollisionSwitchComponent>();
 			_player = player;
 
 			SwitchHandler = new SwitchHandler(go.name, player);
@@ -41,13 +40,19 @@ namespace VisualPinball.Unity
 		{
 			_ballManager = ballManager;
 
-			_surfaceApi = _player.TableApi.Surface(_surfaceSwitchComponent.name);
+			_colliderComponent = _collisionSwitchComponent.GetComponentInParent<IColliderComponent>();
 
-			if (_surfaceApi != null) {
-				_surfaceApi.Hit += OnHit;
+			if (_colliderComponent is SurfaceColliderComponent) {
+				_player.TableApi.Surface(_collisionSwitchComponent.name).Hit += OnHit;
+			}
+			else if (_colliderComponent is RubberColliderComponent) {
+				_player.TableApi.Rubber(_collisionSwitchComponent.name).Hit += OnHit;
+			}
+			else if (_colliderComponent is PrimitiveColliderComponent) {
+				_player.TableApi.Primitive(_collisionSwitchComponent.name).Hit += OnHit;
 			}
 			else {
-				Logger.Error($"{_surfaceSwitchComponent.name} not connected to a surface");
+				Logger.Error($"{_collisionSwitchComponent.name} not connected to a surface, rubber, or primitive");
 			}
 
 			Init?.Invoke(this, EventArgs.Empty);
@@ -61,9 +66,17 @@ namespace VisualPinball.Unity
 
 		void IApi.OnDestroy()
 		{
-			Logger.Info($"Destroying {_surfaceSwitchComponent.name}");
+			Logger.Info($"Destroying {_collisionSwitchComponent.name}");
 
-			_surfaceApi.Hit -= OnHit;
+			if (_colliderComponent is SurfaceColliderComponent) {
+				_player.TableApi.Surface(_collisionSwitchComponent.name).Hit -= OnHit;
+			}
+			else if (_colliderComponent is RubberColliderComponent) {
+				_player.TableApi.Rubber(_collisionSwitchComponent.name).Hit -= OnHit;
+			}
+			else if (_colliderComponent is PrimitiveColliderComponent) {
+				_player.TableApi.Primitive(_collisionSwitchComponent.name).Hit -= OnHit;
+			}
 		}
 	}
 }
