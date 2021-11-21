@@ -252,9 +252,9 @@ namespace VisualPinball.Unity
 			Register(new DropTargetBankApi(component.gameObject, this), component);
 		}
 
-		public void RegisterSurfaceSwitchComponent(SurfaceSwitchComponent component)
+		public void RegisterCollisionSwitchComponent(CollisionSwitchComponent component)
 		{
-			Register(new SurfaceSwitchApi(component.gameObject, this), component);
+			Register(new CollisionSwitchApi(component.gameObject, this), component);
 		}
 
 		public void RegisterPlunger(PlungerComponent component, Entity entity, Entity parentEntity, InputActionReference actionRef)

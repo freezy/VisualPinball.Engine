@@ -21,8 +21,8 @@ using UnityEngine;
 
 namespace VisualPinball.Unity.Editor
 {
-	[CustomEditor(typeof(SurfaceSwitchComponent)), CanEditMultipleObjects]
-	public class SurfaceSwitchInspector : ItemInspector
+	[CustomEditor(typeof(CollisionSwitchComponent)), CanEditMultipleObjects]
+	public class CollisionSwitchInspector : ItemInspector
 	{
 		protected override MonoBehaviour UndoTarget => throw new System.NotImplementedException();
 
@@ -34,12 +34,12 @@ namespace VisualPinball.Unity.Editor
 				EditorGUILayout.Separator();
 
 				TableApi tableApi = TableComponent.GetComponent<Player>().TableApi;
-				SurfaceSwitchApi surfaceSwitchApi = tableApi.SurfaceSwitch(target.name);
+				CollisionSwitchApi collisionSwitchApi = tableApi.CollisionSwitch(target.name);
 
-				DrawSwitch($"{target.name}", surfaceSwitchApi.IsSwitchEnabled);
+				DrawSwitch($"Collision switch exposed as {target.name}.", collisionSwitchApi.IsSwitchEnabled);
 			}
 			else {
-				GUILayout.Label($"Switch exposed as {target.name}.");
+				GUILayout.Label($"Collision switch exposed as {target.name}.");
 			}
 		}
 

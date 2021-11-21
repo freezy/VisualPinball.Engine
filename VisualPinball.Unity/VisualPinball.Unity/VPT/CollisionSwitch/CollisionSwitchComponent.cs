@@ -1,15 +1,13 @@
 using System.Collections.Generic;
 using UnityEngine;
 using VisualPinball.Engine.Game.Engines;
-using System.ComponentModel;
-using System;
 
 namespace VisualPinball.Unity
 {
-	[AddComponentMenu("Visual Pinball/Surface Switch")]
-	public class SurfaceSwitchComponent : MonoBehaviour, ISwitchDeviceComponent
+	[AddComponentMenu("Visual Pinball/Collision Switch")]
+	public class CollisionSwitchComponent : MonoBehaviour, ISwitchDeviceComponent
 	{
-		public const string MainSwitchItem = "surface_switch";
+		public const string MainSwitchItem = "collision_switch";
 
 		public IEnumerable<GamelogicEngineSwitch> AvailableSwitches => new[] {
 			new GamelogicEngineSwitch(MainSwitchItem)  {
@@ -25,7 +23,7 @@ namespace VisualPinball.Unity
 
 		private void Awake()
 		{
-			GetComponentInParent<Player>().RegisterSurfaceSwitchComponent(this); 
+			GetComponentInParent<Player>().RegisterCollisionSwitchComponent(this); 
 		}
 
 		#endregion
