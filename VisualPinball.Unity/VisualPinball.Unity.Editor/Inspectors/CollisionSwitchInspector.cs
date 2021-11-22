@@ -32,7 +32,7 @@ namespace VisualPinball.Unity.Editor
 
 			if (Application.isPlaying) {
 				TableApi tableApi = TableComponent.GetComponent<Player>().TableApi;
-				CollisionSwitchApi collisionSwitchApi = tableApi.CollisionSwitch(target.name);
+				CollisionSwitchApi collisionSwitchApi = (CollisionSwitchApi)tableApi.CollisionSwitch((MonoBehaviour)target);
 
 				if (collisionSwitchApi.IsHittable) {
 					DrawSwitch($"Collision switch exposed as {target.name}.", collisionSwitchApi.IsSwitchEnabled);

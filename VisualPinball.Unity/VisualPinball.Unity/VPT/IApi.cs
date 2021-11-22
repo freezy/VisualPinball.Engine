@@ -136,7 +136,7 @@ namespace VisualPinball.Unity
 	/// implement <see cref="IApiSwitchDevice"/>, and the ones that only support one switch also
 	/// implement <see cref="IApiSwitch"/> and return themself at <see cref="IApiSwitchDevice.Switch"/>.
 	/// </remarks>
-	internal interface IApiSwitch
+	public interface IApiSwitch
 	{
 		/// <summary>
 		/// Set up this switch to send its status to the gamelogic engine with the given ID.

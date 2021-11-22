@@ -11,8 +11,8 @@ namespace VisualPinball.Unity
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
 		private readonly CollisionSwitchComponent _collisionSwitchComponent;
-		private IApiHittable _hittable;
 		private Player _player;
+		private IApiHittable _hittable;
 		private BallManager _ballManager;
 	
 		private protected readonly SwitchHandler SwitchHandler;
@@ -41,9 +41,7 @@ namespace VisualPinball.Unity
 		void IApi.OnInit(BallManager ballManager)
 		{
 			_ballManager = ballManager;
-
-			var parentComponent = _collisionSwitchComponent.GetComponentInParent<MonoBehaviour>();
-			_hittable = _player.TableApi.Hittable(parentComponent.name);
+			_hittable = _player.TableApi.Hittable(_collisionSwitchComponent.GetComponentInParent<MonoBehaviour>());
 
 			if (_hittable != null) {
 				_hittable.Hit += OnHit;
