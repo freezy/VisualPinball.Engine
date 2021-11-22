@@ -43,11 +43,13 @@ namespace VisualPinball.Unity.Patcher
 			SetupFlippers(playfieldGo);
 			SetupDropTargetBanks(tableGo, playfieldGo);
 			SetupTrough(tableGo, playfieldGo);
-			
+
 			SetupCollisionSwitch(playfieldGo.transform.Find("Walls/sw41a").gameObject);
 			SetupCollisionSwitch(playfieldGo.transform.Find("Walls/sw41b").gameObject);
 			SetupCollisionSwitch(playfieldGo.transform.Find("Walls/sw41c").gameObject);
 			SetupCollisionSwitch(playfieldGo.transform.Find("Walls/sw41d").gameObject);
+			SetupCollisionSwitch(playfieldGo.transform.Find("Walls/sw41e").gameObject);
+			SetupCollisionSwitch(playfieldGo.transform.Find("Walls/sw41f").gameObject);
 
 			SetupLeftSlingshot(playfieldGo.transform.Find("Walls/LeftSlingshot").gameObject);
 			SetupRightSlingshot(playfieldGo.transform.Find("Walls/RightSlingshot").gameObject);
