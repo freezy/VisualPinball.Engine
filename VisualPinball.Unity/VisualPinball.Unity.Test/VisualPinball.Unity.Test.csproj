@@ -8,7 +8,7 @@
     <AssemblyVersion>0.1.0.0</AssemblyVersion>
     <AssemblyFileVersion>0.1.0.0</AssemblyFileVersion>
     <InformationalVersion>0.1.0.0</InformationalVersion>
-    <LangVersion>8</LangVersion>
+    <LangVersion>9.0</LangVersion>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
   </PropertyGroup>
@@ -23,17 +23,21 @@
     <None Remove="TestProject~\**" />
   </ItemGroup>
   <ItemGroup>
+    <PackageReference Include="NUnit" Version="3.13.2" />
+    <PackageReference Include="NUnit3TestAdapter" Version="4.1.0" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.1.0-preview-20211109-03" />
+    <PackageReference Include="FluentAssertions" Version="5.10.3" ExcludeAssets="Compile" />
+  </ItemGroup>
+  <ItemGroup>
     <ProjectReference Include="..\VisualPinball.Unity.Editor\VisualPinball.Unity.Editor.csproj" />
     <ProjectReference Include="..\VisualPinball.Unity\VisualPinball.Unity.csproj" />
     <ProjectReference Include="..\..\VisualPinball.Engine\VisualPinball.Engine.csproj" />
     <ProjectReference Include="..\..\VisualPinball.Engine.Test\VisualPinball.Engine.Test.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="NUnit" Version="3.13.2" />
-    <PackageReference Include="NUnit3TestAdapter" Version="4.1.0" />
-    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.1.0-preview-20211109-03" />
-  </ItemGroup>
-  <ItemGroup>
+    <Reference Include="FluentAssertions">
+      <HintPath>$(NuGetPackageRoot)\fluentassertions\5.10.3\lib\net47\FluentAssertions.dll</HintPath>
+    </Reference>
     <Reference Include="UnityEngine.CoreModule">
       <HintPath>..\Plugins\.unity\UnityEngine.CoreModule.dll</HintPath>
     </Reference>
