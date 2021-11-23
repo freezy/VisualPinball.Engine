@@ -45,7 +45,6 @@ namespace VisualPinball.Unity
 		private readonly Dictionary<string, TeleporterApi> _teleportersByName = new Dictionary<string, TeleporterApi>();
 		private readonly Dictionary<string, TriggerApi> _triggersByName = new Dictionary<string, TriggerApi>();
 		private readonly Dictionary<string, TroughApi> _troughsByName = new Dictionary<string, TroughApi>();
-		private readonly Dictionary<string, CollisionSwitchApi> _collisionSwitchesByName = new Dictionary<string, CollisionSwitchApi>();
 		private readonly Dictionary<string, IApiSwitch> _switchablesByName = new Dictionary<string, IApiSwitch>();
 		private readonly Dictionary<string, IApiHittable> _hittablesByName = new Dictionary<string, IApiHittable>();
 
@@ -68,7 +67,6 @@ namespace VisualPinball.Unity
 		private readonly Dictionary<MonoBehaviour, TeleporterApi> _teleportersByComponent = new Dictionary<MonoBehaviour, TeleporterApi>();
 		private readonly Dictionary<MonoBehaviour, TriggerApi> _triggersByComponent = new Dictionary<MonoBehaviour, TriggerApi>();
 		private readonly Dictionary<MonoBehaviour, TroughApi> _troughsByComponent = new Dictionary<MonoBehaviour, TroughApi>();
-		private readonly Dictionary<MonoBehaviour, CollisionSwitchApi> _collisionSwitchesByComponent = new Dictionary<MonoBehaviour, CollisionSwitchApi>();
 		private readonly Dictionary<MonoBehaviour, IApiSwitch> _switchablesByComponent = new Dictionary<MonoBehaviour, IApiSwitch>();
 		private readonly Dictionary<MonoBehaviour, IApiHittable> _hittablesByComponent = new Dictionary<MonoBehaviour, IApiHittable>();
 
@@ -226,14 +224,6 @@ namespace VisualPinball.Unity
 		public DropTargetBankApi DropTargetBank(MonoBehaviour component) => Get<DropTargetBankApi>(component);
 
 		/// <summary>
-		/// Returns a collision switch by name.
-		/// </summary>
-		/// <param name="name">Name of the collision switch</param>
-		/// <returns>Collision switch or `null` if no collision switch with that name exists.</returns>
-		public CollisionSwitchApi CollisionSwitch(string name) => Get<CollisionSwitchApi>(name);
-		public CollisionSwitchApi CollisionSwitch(MonoBehaviour component) => Get<CollisionSwitchApi>(component);
-
-		/// <summary>
 		/// Returns a switchable component by name.
 		/// </summary>
 		/// <param name="name">Name of the switchable component</param>
@@ -258,8 +248,10 @@ namespace VisualPinball.Unity
 			var nameDict = GetNameDictionary<T>();
 			var compDict = GetComponentDictionary<T>();
 
-			nameDict[component.name] = api;
-			compDict[component] = api;
+			if (nameDict != null) {
+				nameDict[component.name] = api;
+				compDict[component] = api;
+			}
 
 			if (api is IApiHittable hittable) {
 				_hittablesByName[component.name] = hittable;
@@ -303,9 +295,9 @@ namespace VisualPinball.Unity
 			if (t == typeof(TeleporterApi)) return _teleportersByName as Dictionary<string, T>;
 			if (t == typeof(TriggerApi)) return _triggersByName as Dictionary<string, T>;
 			if (t == typeof(TroughApi)) return _troughsByName as Dictionary<string, T>;
-			if (t == typeof(CollisionSwitchApi)) return _collisionSwitchesByName as Dictionary<string, T>;
 
-			throw new ArgumentException($"Unknown API type {t}.");
+			// can be null, because we don't track all elements, namely hittable switches
+			return null;
 		}
 
 		private Dictionary<MonoBehaviour, T> GetComponentDictionary<T>(Type t) where T : IApi
@@ -330,9 +322,9 @@ namespace VisualPinball.Unity
 			if (t == typeof(TeleporterApi)) return _teleportersByComponent as Dictionary<MonoBehaviour, T>;
 			if (t == typeof(TriggerApi)) return _triggersByComponent as Dictionary<MonoBehaviour, T>;
 			if (t == typeof(TroughApi)) return _troughsByComponent as Dictionary<MonoBehaviour, T>;
-			if (t == typeof(CollisionSwitchApi)) return _collisionSwitchesByComponent as Dictionary<MonoBehaviour, T>;
 
-			throw new ArgumentException($"Unknown API type {t}.");
+			// can be null, because we don't track all elements, namely hittable switches
+			return null;
 		}
 
 		#endregion

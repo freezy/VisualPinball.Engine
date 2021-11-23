@@ -24,18 +24,18 @@ namespace VisualPinball.Unity.Editor
 	[CustomEditor(typeof(CollisionSwitchComponent)), CanEditMultipleObjects]
 	public class CollisionSwitchInspector : ItemInspector
 	{
-		protected override MonoBehaviour UndoTarget => throw new System.NotImplementedException();
+		protected override MonoBehaviour UndoTarget => target as MonoBehaviour;
 
 		public override void OnInspectorGUI()
 		{
 			base.OnInspectorGUI();
 
 			if (Application.isPlaying) {
-				TableApi tableApi = TableComponent.GetComponent<Player>().TableApi;
-				CollisionSwitchApi collisionSwitchApi = (CollisionSwitchApi)tableApi.CollisionSwitch((MonoBehaviour)target);
+				var tableApi = TableComponent.GetComponent<Player>().TableApi;
+				var switchApi = tableApi.Switchable((MonoBehaviour)target);
 
-				if (collisionSwitchApi.IsHittable) {
-					DrawSwitch($"Collision switch exposed as {target.name}.", collisionSwitchApi.IsSwitchEnabled);
+				if (switchApi is CollisionSwitchApi { IsHittable: true }) {
+					DrawSwitch($"Collision switch exposed as {target.name}.", switchApi.IsSwitchEnabled);
 				}
 				else {
 					GUILayout.Label($"Collision switch not connected to hittable.");
@@ -55,8 +55,8 @@ namespace VisualPinball.Unity.Editor
 			var width = ((labelPos.height / icon.height) * icon.width) + 2;
 
 			labelPos.x += width;
-			labelPos.width -= width; 
-			
+			labelPos.width -= width;
+
 			var switchPos = new Rect(labelPos.x - width, labelPos.y, labelPos.height, labelPos.height);
 			GUI.Label(labelPos, label);
 			GUI.DrawTexture(switchPos, icon);
