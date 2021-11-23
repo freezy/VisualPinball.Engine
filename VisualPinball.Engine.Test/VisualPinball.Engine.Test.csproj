@@ -10,7 +10,7 @@
     <AssemblyVersion>0.1.0.0</AssemblyVersion>
     <AssemblyFileVersion>0.1.0.0</AssemblyFileVersion>
     <InformationalVersion>0.1.0.0</InformationalVersion>
-    <LangVersion>8</LangVersion>
+    <LangVersion>9.0</LangVersion>
     <AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(RuntimeIdentifier)' == ''">
