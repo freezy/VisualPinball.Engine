@@ -55,7 +55,7 @@ namespace VisualPinball.Unity.Editor
 		private SerializedProperty _bankSizeProperty;
 		private SerializedProperty _dropTargetsProperty;
 
-		protected override MonoBehaviour UndoTarget => throw new System.NotImplementedException();
+		protected override MonoBehaviour UndoTarget => target as MonoBehaviour;
 
 		override protected void OnEnable()
 		{
@@ -194,8 +194,8 @@ namespace VisualPinball.Unity.Editor
 			var width = ((labelPos.height / icon.height) * icon.width) + 2;
 
 			labelPos.x += width;
-			labelPos.width -= width; 
-			
+			labelPos.width -= width;
+
 			var switchPos = new Rect(labelPos.x - width, labelPos.y, labelPos.height, labelPos.height);
 			GUI.Label(labelPos, label);
 			GUI.DrawTexture(switchPos, icon);
