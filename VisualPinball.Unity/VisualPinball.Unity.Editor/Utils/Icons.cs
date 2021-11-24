@@ -260,6 +260,7 @@ namespace VisualPinball.Unity.Editor
 				case TeleporterComponent _: return Icons.Teleporter(size, color);
 				case TriggerComponent _: return Icons.Trigger(size, color);
 				case TroughComponent _: return Icons.Trough(size, color);
+				case CollisionSwitchComponent _: return Icons.Switch(false, size, color);
 				default: return null;
 			}
 		}
