@@ -4,7 +4,7 @@ using VisualPinball.Engine.Game.Engines;
 
 namespace VisualPinball.Unity
 {
-	[AddComponentMenu("Visual Pinball/Collision Switch")]
+	[AddComponentMenu("Visual Pinball/Mechs/Collision Switch")]
 	public class CollisionSwitchComponent : MonoBehaviour, ISwitchDeviceComponent
 	{
 		public const string MainSwitchItem = "collision_switch";
