@@ -1,8 +1,23 @@
+// Visual Pinball Engine
+// Copyright (C) 2021 freezy and VPE Team
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
 using System;
-using Logger = NLog.Logger;
 using NLog;
 using UnityEngine;
-using Unity.Entities;
+using Logger = NLog.Logger;
 
 namespace VisualPinball.Unity
 {
@@ -11,20 +26,20 @@ namespace VisualPinball.Unity
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
 		private readonly CollisionSwitchComponent _collisionSwitchComponent;
-		private Player _player;
+		private readonly Player _player;
 		private IApiHittable _hittable;
 
-		private protected readonly SwitchHandler SwitchHandler;
+		private readonly SwitchHandler _switchHandler;
 
 		public event EventHandler Init;
 		public event EventHandler<SwitchEventArgs> Switch;
 
-		public bool IsSwitchEnabled => SwitchHandler.IsEnabled;
-		IApiSwitchStatus IApiSwitch.AddSwitchDest(SwitchConfig switchConfig) => SwitchHandler.AddSwitchDest(switchConfig.WithPulse(true));
-		void IApiSwitch.AddWireDest(WireDestConfig wireConfig) => SwitchHandler.AddWireDest(wireConfig.WithPulse(true));
-		void IApiSwitch.RemoveWireDest(string destId) => SwitchHandler.RemoveWireDest(destId);
+		public bool IsSwitchEnabled => _switchHandler.IsEnabled;
+		IApiSwitchStatus IApiSwitch.AddSwitchDest(SwitchConfig switchConfig, IApiSwitchStatus switchStatus) => _switchHandler.AddSwitchDest(switchConfig.WithPulse(true), switchStatus);
+		void IApiSwitch.AddWireDest(WireDestConfig wireConfig) => _switchHandler.AddWireDest(wireConfig.WithPulse(true));
+		void IApiSwitch.RemoveWireDest(string destId) => _switchHandler.RemoveWireDest(destId);
 		IApiSwitch IApiSwitchDevice.Switch(string deviceItem) => this;
-		public void OnSwitch(bool closed) => SwitchHandler.OnSwitch(closed);
+		public void OnSwitch(bool closed) => _switchHandler.OnSwitch(closed);
 
 		public bool IsHittable => _hittable != null;
 
@@ -33,7 +48,7 @@ namespace VisualPinball.Unity
 			_collisionSwitchComponent = go.GetComponentInChildren<CollisionSwitchComponent>();
 			_player = player;
 
-			SwitchHandler = new SwitchHandler(go.name, player);
+			_switchHandler = new SwitchHandler(go.name, player);
 		}
 
 		void IApi.OnInit(BallManager ballManager)

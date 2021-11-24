@@ -36,7 +36,7 @@ namespace VisualPinball.Unity
 		/// </summary>
 		private List<WireDestConfig> _wires;
 
-		private readonly Dictionary<string, ItemSwitchStatus> _switchStatuses = new Dictionary<string, ItemSwitchStatus>();
+		private readonly Dictionary<string, IApiSwitchStatus> _switchStatuses = new Dictionary<string, IApiSwitchStatus>();
 
 		private static VisualPinballSimulationSystemGroup SimulationSystemGroup => World.DefaultGameObjectInjectionWorld.GetOrCreateSystem<VisualPinballSimulationSystemGroup>();
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
@@ -52,12 +52,14 @@ namespace VisualPinball.Unity
 		/// Set up this switch to send its status to the gamelogic engine with the given ID.
 		/// </summary>
 		/// <param name="switchConfig">Config containing gamelogic engine's switch ID and pulse settings</param>
-		internal IApiSwitchStatus AddSwitchDest(SwitchConfig switchConfig)
+		/// <param name="switchStatus">Since multiple switch destinations can map to a switch, we might already have a status object.</param>
+		internal IApiSwitchStatus AddSwitchDest(SwitchConfig switchConfig, IApiSwitchStatus switchStatus)
 		{
 			if (_switches == null) {
 				_switches = new List<SwitchConfig>();
 			}
-			var swStatus = new ItemSwitchStatus(switchConfig.IsNormallyClosed) { IsSwitchEnabled = IsEnabled };
+
+			var swStatus = switchStatus ?? new ItemSwitchStatus(switchConfig.IsNormallyClosed) { IsSwitchEnabled = IsEnabled };
 			_switches.Add(switchConfig);
 			_switchStatuses[switchConfig.SwitchId] = swStatus;
 

@@ -66,7 +66,7 @@ namespace VisualPinball.Unity
 
 		private protected DeviceSwitch CreateSwitch(string name, bool isPulseSwitch, SwitchDefault switchDefault = SwitchDefault.Configurable) => new DeviceSwitch(name, isPulseSwitch, switchDefault, _player);
 
-		private protected IApiSwitchStatus AddSwitchDest(SwitchConfig switchConfig) => SwitchHandler.AddSwitchDest(switchConfig);
+		private protected IApiSwitchStatus AddSwitchDest(SwitchConfig switchConfig,IApiSwitchStatus switchStatus) => SwitchHandler.AddSwitchDest(switchConfig, switchStatus);
 
 		internal void AddWireDest(WireDestConfig wireConfig) => SwitchHandler.AddWireDest(wireConfig);
 		internal void RemoveWireDest(string destId) => SwitchHandler.RemoveWireDest(destId);
