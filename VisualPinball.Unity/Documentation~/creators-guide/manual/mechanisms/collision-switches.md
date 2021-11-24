@@ -6,15 +6,19 @@ description: VPE supports collisions switches, which turn hittable game objects 
 
 # Collision Switches
 
-A Collision Switch turns a hittable game object into a switch device. Example's of hittable game objects are Walls, Rubbers, and Primitives.
+A Collision Switch turns a hittable game object into a switch device. Examples of hittable game objects are walls, rubbers, and primitives.
 
 ## Setup
 
 To create a Collision Switch:
 
-- Add the Collision Switch directly to a hittable game object. Select the game object you want to add it to, click on *Add Component* in the inspector and select *Visual Pinball -> Mechs -> Collision Switch*. 
+- Add the collision switch directly to a hittable game object. Select the game object you want to add it to, click on *Add Component* in the inspector and select *Visual Pinball -> Mechs -> Collision Switch*. 
 
-To associate the collision switch with a game logic engine switch, use the [Switch Manager](xref:switch_manager) and select the switch in the *Element* column.
+<img src="collision-switch-inspector.png" width="323" class="img-responsive pull-right" style="margin-left: 15px">
+
+To associate the collision switch with a game logic engine switch, use the [Switch Manager](xref:switch_manager) and select the switch in the *Element* column:
+
+![Switch Manager](collision-switch-switch-manager.png)
 
 ## Runtime
 
