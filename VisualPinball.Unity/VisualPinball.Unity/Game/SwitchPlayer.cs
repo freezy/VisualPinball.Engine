@@ -85,7 +85,8 @@ namespace VisualPinball.Unity
 							var device = _switchDevices[switchMapping.Device];
 							var deviceSwitch = device.Switch(switchMapping.DeviceItem);
 							if (deviceSwitch != null) {
-								var switchStatus = deviceSwitch.AddSwitchDest(new SwitchConfig(switchMapping));
+								var existingSwitchStatus = SwitchStatuses.ContainsKey(switchMapping.Id) ? SwitchStatuses[switchMapping.Id] : null;
+								var switchStatus = deviceSwitch.AddSwitchDest(new SwitchConfig(switchMapping), existingSwitchStatus);
 								SwitchStatuses[switchMapping.Id] = switchStatus;
 
 							} else {

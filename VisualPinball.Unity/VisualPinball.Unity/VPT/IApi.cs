@@ -142,7 +142,8 @@ namespace VisualPinball.Unity
 		/// Set up this switch to send its status to the gamelogic engine with the given ID.
 		/// </summary>
 		/// <param name="switchConfig">Config containing gamelogic engine's switch ID and pulse settings</param>
-		IApiSwitchStatus AddSwitchDest(SwitchConfig switchConfig);
+		/// <param name="switchStatus">Since multiple switch destinations can map to a switch, we might already have a status object.</param>
+		IApiSwitchStatus AddSwitchDest(SwitchConfig switchConfig, IApiSwitchStatus switchStatus);
 
 		/// <summary>
 		/// Set up this switch to directly trigger another game item (coil or lamp), or

@@ -59,8 +59,8 @@ namespace VisualPinball.Unity
 			_switchHandler = new SwitchHandler(name, player);
 		}
 
-		IApiSwitchStatus IApiSwitch.AddSwitchDest(SwitchConfig switchConfig) =>
-			_switchHandler.AddSwitchDest(switchConfig.WithPulse(_isPulseSwitch).WithDefault(_switchDefault));
+		IApiSwitchStatus IApiSwitch.AddSwitchDest(SwitchConfig switchConfig, IApiSwitchStatus switchStatus) =>
+			_switchHandler.AddSwitchDest(switchConfig.WithPulse(_isPulseSwitch).WithDefault(_switchDefault), switchStatus);
 		public void AddWireDest(WireDestConfig wireConfig) => _switchHandler.AddWireDest(wireConfig);
 		void IApiSwitch.RemoveWireDest(string destId) => _switchHandler.RemoveWireDest(destId);
 

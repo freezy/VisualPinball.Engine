@@ -235,7 +235,7 @@ namespace VisualPinball.Unity
 			}
 		}
 
-		IApiSwitchStatus IApiSwitch.AddSwitchDest(SwitchConfig switchConfig) => AddSwitchDest(switchConfig.WithPulse(false));
+		IApiSwitchStatus IApiSwitch.AddSwitchDest(SwitchConfig switchConfig, IApiSwitchStatus switchStatus) => AddSwitchDest(switchConfig.WithPulse(false), switchStatus);
 		void IApiSwitch.AddWireDest(WireDestConfig wireConfig) => AddWireDest(wireConfig.WithPulse(false));
 		void IApiSwitch.RemoveWireDest(string destId) => RemoveWireDest(destId);
 
