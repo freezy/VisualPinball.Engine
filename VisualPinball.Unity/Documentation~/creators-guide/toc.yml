@@ -55,3 +55,5 @@
         href: manual/mechanisms/drop-target-banks.md
       - name: Rotators
         href: manual/mechanisms/rotators.md
+      - name: Collision Switches
+        href: manual/mechanisms/collision-switches.md

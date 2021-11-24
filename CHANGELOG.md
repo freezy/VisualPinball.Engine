@@ -7,6 +7,7 @@
 Built with Unity 2021.2.
 
 ### Added
+- A *Collision Switch* component ([#344](https://github.com/freezy/VisualPinball.Engine/pull/344), [Documentation](https://docs.visualpinball.org/creators-guide/manual/mechanisms/collision-switches.html)).
 - A *Rotator* component ([#337](https://github.com/freezy/VisualPinball.Engine/pull/337), [Documentation](https://docs.visualpinball.org/creators-guide/manual/mechanisms/rotators.html)).
 - A *Teleporter* component ([#336](https://github.com/freezy/VisualPinball.Engine/pull/336), [Documentation](https://docs.visualpinball.org/creators-guide/manual/mechanisms/teleporters.html)).
 - A *Drop Target Bank* component ([#333](https://github.com/freezy/VisualPinball.Engine/pull/333), [Documentation](https://docs.visualpinball.org/creators-guide/manual/mechanisms/drop-target-banks.html)).
