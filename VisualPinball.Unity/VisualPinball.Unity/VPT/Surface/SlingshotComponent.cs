@@ -24,11 +24,12 @@ using Unity.Mathematics;
 using UnityEngine;
 using VisualPinball.Engine.Math;
 using VisualPinball.Engine.VPT.Rubber;
+using VisualPinball.Engine.Game.Engines;
 
 namespace VisualPinball.Unity
 {
 	[AddComponentMenu("Visual Pinball/Game Item/Slingshot")]
-	public class SlingshotComponent : MonoBehaviour, IMeshComponent, IMainRenderableComponent, IRubberData
+	public class SlingshotComponent : MonoBehaviour, IMeshComponent, IMainRenderableComponent, IRubberData, ISwitchDeviceComponent
 	{
 		[Tooltip("Reference to the wall that acts as slingshot.")]
 		public SurfaceColliderComponent SlingshotSurface;
@@ -65,7 +66,26 @@ namespace VisualPinball.Unity
 
 		private const int MaxNumMeshCaches = 15;
 
+
+		public const string MainSwitchItem = "main_switch";
+
+		public IEnumerable<GamelogicEngineSwitch> AvailableSwitches => new[] {
+			new GamelogicEngineSwitch(MainSwitchItem)  {
+				IsPulseSwitch = true
+			}
+		};
+
+		public SwitchDefault SwitchDefault => SwitchDefault.NormallyOpen;
+
+		IEnumerable<GamelogicEngineSwitch> IDeviceComponent<GamelogicEngineSwitch>.AvailableDeviceItems => AvailableSwitches;
+
+
 		#region Runtime
+
+		private void Awake()
+		{
+			GetComponentInParent<Player>().RegisterSlingshotComponent(this);
+		}
 
 		private void Start()
 		{

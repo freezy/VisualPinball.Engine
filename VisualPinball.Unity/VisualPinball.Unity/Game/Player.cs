@@ -257,6 +257,11 @@ namespace VisualPinball.Unity
 			Register(new CollisionSwitchApi(component.gameObject, this), component);
 		}
 
+		public void RegisterSlingshotComponent(SlingshotComponent component)
+		{
+			Register(new SlingshotApi(component.gameObject, this), component);
+		}
+
 		public void RegisterPlunger(PlungerComponent component, Entity entity, Entity parentEntity, InputActionReference actionRef)
 		{
 			var plungerApi = new PlungerApi(component.gameObject, entity, parentEntity, this);
