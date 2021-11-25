@@ -104,7 +104,10 @@ namespace VisualPinball.Unity
 			var entityManager = World.DefaultGameObjectInjectionWorld.EntityManager;
 			var kickerCollisionData = entityManager.GetComponentData<KickerCollisionData>(Entity);
 			var ballEntity = kickerCollisionData.BallEntity;
-			(this as IApiSwitch).DestroyBall(ballEntity);
+			if (ballEntity != Entity.Null) {
+				BallManager.DestroyEntity(ballEntity);
+				SimulationSystemGroup.QueueAfterBallCreation(OnBallDestroyed);
+			}
 		}
 
 		/// <summary>
@@ -139,14 +142,6 @@ namespace VisualPinball.Unity
 		#region Wiring
 
 		public bool IsSwitchEnabled => SwitchHandler.IsEnabled;
-		void IApiSwitch.DestroyBall(Entity ballEntity)
-		{
-			if (ballEntity != Entity.Null)
-			{
-				BallManager.DestroyEntity(ballEntity);
-				SimulationSystemGroup.QueueAfterBallCreation(OnBallDestroyed);
-			}
-		}
 
 		IApiSwitch IApiSwitchDevice.Switch(string deviceItem) => this;
 		IApiCoil IApiCoilDevice.Coil(string deviceItem) => Coil(deviceItem);

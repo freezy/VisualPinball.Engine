@@ -62,11 +62,6 @@ namespace VisualPinball.Unity
 			TableComponent = GameObject.GetComponentInParent<TableComponent>();
 		}
 
-		private protected void DestroyBall(Entity ballEntity)
-		{
-			BallManager.DestroyEntity(ballEntity);
-		}
-
 		#region IApiSwitchable
 
 		private protected DeviceSwitch CreateSwitch(string name, bool isPulseSwitch, SwitchDefault switchDefault = SwitchDefault.Configurable) => new DeviceSwitch(name, isPulseSwitch, switchDefault, _player);

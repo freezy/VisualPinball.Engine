@@ -56,7 +56,6 @@ namespace VisualPinball.Unity
 
 		void IApiSwitch.AddWireDest(WireDestConfig wireConfig) => AddWireDest(wireConfig.WithPulse(true));
 		void IApiSwitch.RemoveWireDest(string destId) => RemoveWireDest(destId);
-		void IApiSwitch.DestroyBall(Entity ballEntity) => DestroyBall(ballEntity);
 		void IApiCoil.OnCoil(bool enabled)
 		{
 			if (enabled) {

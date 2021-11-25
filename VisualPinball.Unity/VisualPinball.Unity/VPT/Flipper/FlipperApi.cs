@@ -184,7 +184,6 @@ namespace VisualPinball.Unity
 		IApiSwitchStatus IApiSwitch.AddSwitchDest(SwitchConfig switchConfig) => AddSwitchDest(switchConfig);
 		void IApiSwitch.AddWireDest(WireDestConfig wireConfig) => AddWireDest(wireConfig);
 		void IApiSwitch.RemoveWireDest(string destId) => RemoveWireDest(destId);
-		void IApiSwitch.DestroyBall(Entity ballEntity) => DestroyBall(ballEntity);
 
 		IApiSwitch IApiSwitchDevice.Switch(string deviceItem) => this;
 

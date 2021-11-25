@@ -157,8 +157,6 @@ namespace VisualPinball.Unity
 		/// <param name="destId"></param>
 		void RemoveWireDest(string destId);
 
-		void DestroyBall(Entity ballEntity);
-
 		/// <summary>
 		/// Event emitted when the trigger is switched on or off.
 		/// </summary>

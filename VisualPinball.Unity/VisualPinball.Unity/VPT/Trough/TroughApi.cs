@@ -280,7 +280,7 @@ namespace VisualPinball.Unity
 		{
 			if (args.IsEnabled) {
 				Logger.Info("Draining ball into trough.");
-				_drainSwitch.DestroyBall(args.BallEntity);
+				BallManager.DestroyEntity(args.BallEntity);
 				DrainBall();
 			}
 		}
