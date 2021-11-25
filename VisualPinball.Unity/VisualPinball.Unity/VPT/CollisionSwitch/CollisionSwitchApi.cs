@@ -13,8 +13,7 @@ namespace VisualPinball.Unity
 		private readonly CollisionSwitchComponent _collisionSwitchComponent;
 		private Player _player;
 		private IApiHittable _hittable;
-		private BallManager _ballManager;
-	
+
 		private protected readonly SwitchHandler SwitchHandler;
 
 		public event EventHandler Init;
@@ -26,7 +25,6 @@ namespace VisualPinball.Unity
 		void IApiSwitch.RemoveWireDest(string destId) => SwitchHandler.RemoveWireDest(destId);
 		IApiSwitch IApiSwitchDevice.Switch(string deviceItem) => this;
 		public void OnSwitch(bool closed) => SwitchHandler.OnSwitch(closed);
-		public void DestroyBall(Entity ballEntity) => _ballManager.DestroyEntity(ballEntity);
 
 		public bool IsHittable => _hittable != null;
 
@@ -40,7 +38,6 @@ namespace VisualPinball.Unity
 
 		void IApi.OnInit(BallManager ballManager)
 		{
-			_ballManager = ballManager;
 			_hittable = _player.TableApi.Hittable(_collisionSwitchComponent.GetComponentInParent<MonoBehaviour>());
 
 			if (_hittable != null) {

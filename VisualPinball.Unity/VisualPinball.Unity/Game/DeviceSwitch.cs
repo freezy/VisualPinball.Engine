@@ -63,7 +63,6 @@ namespace VisualPinball.Unity
 			_switchHandler.AddSwitchDest(switchConfig.WithPulse(_isPulseSwitch).WithDefault(_switchDefault));
 		public void AddWireDest(WireDestConfig wireConfig) => _switchHandler.AddWireDest(wireConfig);
 		void IApiSwitch.RemoveWireDest(string destId) => _switchHandler.RemoveWireDest(destId);
-		public void DestroyBall(Entity ballEntity) { } // device switches can't destroy balls
 
 		/// <summary>
 		/// Enables or disables the switch.

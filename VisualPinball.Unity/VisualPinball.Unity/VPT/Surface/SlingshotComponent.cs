@@ -66,11 +66,10 @@ namespace VisualPinball.Unity
 
 		private const int MaxNumMeshCaches = 15;
 
-
-		public const string MainSwitchItem = "main_switch";
+		private const string SlingshotSwitchItem = "slingshot_switch";
 
 		public IEnumerable<GamelogicEngineSwitch> AvailableSwitches => new[] {
-			new GamelogicEngineSwitch(MainSwitchItem)  {
+			new GamelogicEngineSwitch(SlingshotSwitchItem)  {
 				IsPulseSwitch = true
 			}
 		};
