@@ -44,6 +44,7 @@ Built with Unity 2021.2.
 - Put game-, mesh-, collision- animation data into separate components ([#227](https://github.com/freezy/VisualPinball.Engine/pull/227), [Documentation](https://docs.visualpinball.org/creators-guide/editor/unity-components.html)). 
 
 ### Fixed
+- Fixed switch status when multiple mappings point to the same ID ([#347](https://github.com/freezy/VisualPinball.Engine/pull/347)).
 - Lighting setup. It's now usable ([#330](https://github.com/freezy/VisualPinball.Engine/pull/330)).
 - Ball passing through collider plane and disappearing.
 - Alpha channel of color values is now correctly written ([#291](https://github.com/freezy/VisualPinball.Engine/pull/291)).
