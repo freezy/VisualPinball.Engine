@@ -23,7 +23,16 @@ namespace VisualPinball.Unity
 	{
 		bool IsLocked { get; set; }
 
+		/// <summary>
+		/// If true, no transformation gizmos are displayed
+		/// </summary>
 		bool CanBeTransformed { get; }
+
+		/// <summary>
+		/// If true, we override the transformation gizmos to be able to sync transformation
+		/// with the component data. Otherwise, Unity's transformation is used.
+		/// </summary>
+		bool OverrideTransform { get; }
 
 		string ItemName { get; }
 
