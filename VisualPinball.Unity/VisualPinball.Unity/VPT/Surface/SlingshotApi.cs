@@ -36,7 +36,7 @@ namespace VisualPinball.Unity
 		public event EventHandler<SwitchEventArgs> Switch;
 
 		public bool IsSwitchEnabled => _switchHandler.IsEnabled;
-		IApiSwitchStatus IApiSwitch.AddSwitchDest(SwitchConfig switchConfig) => _switchHandler.AddSwitchDest(switchConfig.WithPulse(true));
+		IApiSwitchStatus IApiSwitch.AddSwitchDest(SwitchConfig switchConfig, IApiSwitchStatus switchStatus) => _switchHandler.AddSwitchDest(switchConfig.WithPulse(true), switchStatus);
 		void IApiSwitch.AddWireDest(WireDestConfig wireConfig) => _switchHandler.AddWireDest(wireConfig.WithPulse(true));
 		void IApiSwitch.RemoveWireDest(string destId) => _switchHandler.RemoveWireDest(destId);
 		IApiSwitch IApiSwitchDevice.Switch(string deviceItem) => this;
