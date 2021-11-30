@@ -77,6 +77,8 @@ namespace VisualPinball.Unity
 
 		public override LightData InstantiateData() => new LightData();
 
+		public override bool OverrideTransform => false;
+
 		protected override Type MeshComponentType { get; } = typeof(MeshComponent<LightData, LightComponent>);
 		protected override Type ColliderComponentType { get; } = null;
 

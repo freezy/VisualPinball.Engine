@@ -69,13 +69,14 @@ namespace VisualPinball.Unity.Editor
 					continue;
 				}
 
-
 				var item = itemTransform.GetComponent<IMainRenderableComponent>();
+				var isRenderableItem = item != null;
+				var overrideTransform = isRenderableItem && item.OverrideTransform;
 				_itemSelected = itemTransform.GetComponent<IMainComponent>() != null;
-				useDefault = useDefault && !_itemSelected && itemTransform.GetComponent<IMeshComponent>() == null;
+				useDefault = useDefault && !_itemSelected && overrideTransform && itemTransform.GetComponent<IMeshComponent>() == null;
 
 				// must be main but not the table itself
-				if (item != null && !(item is TableComponent)) {
+				if (isRenderableItem && !(item is TableComponent)) {
 
 					if (_primaryItem == null) {
 						_primaryItem = item;

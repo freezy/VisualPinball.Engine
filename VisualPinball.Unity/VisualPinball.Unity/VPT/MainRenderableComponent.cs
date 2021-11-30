@@ -30,6 +30,8 @@ namespace VisualPinball.Unity
 	{
 		public virtual bool CanBeTransformed => true;
 
+		public virtual bool OverrideTransform => true;
+
 		/// <summary>
 		/// Component type of the child class.
 		/// </summary>
