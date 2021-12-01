@@ -78,7 +78,7 @@ namespace VisualPinball.Unity.Editor
 		#region Dragpoint Tooling
 
 		public DragPointData[] DragPoints { get => MeshComponent.DragPoints; set => MeshComponent.DragPoints = value; }
-		public Vector3 EditableOffset => new Vector3(-MeshComponent.MainComponent.Position.x, -MeshComponent.MainComponent.Position.y, MeshComponent.PositionZ);
+		public Vector3 EditableOffset => new Vector3(-MeshComponent.MainComponent.transform.localPosition.x, -MeshComponent.MainComponent.transform.localPosition.y, MeshComponent.PositionZ);
 		public Vector3 GetDragPointOffset(float ratio) => Vector3.zero;
 		public bool PointsAreLooping => true;
 		public IEnumerable<DragPointExposure> DragPointExposition => new[] { DragPointExposure.Smooth, DragPointExposure.Texture };

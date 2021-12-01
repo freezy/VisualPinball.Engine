@@ -34,7 +34,7 @@ namespace VisualPinball.Unity.Editor
 		private static readonly string[] LightStateLabels = { "Off", "On", "Blinking" };
 		private static readonly int[] LightStateValues = { LightStatus.LightStateOff, LightStatus.LightStateOn, LightStatus.LightStateBlinking };
 
-		private SerializedProperty _positionProperty;
+		//private SerializedProperty _positionProperty;
 		private SerializedProperty _surfaceProperty;
 		private SerializedProperty _bulbSizeProperty;
 		private SerializedProperty _stateProperty;
@@ -47,7 +47,7 @@ namespace VisualPinball.Unity.Editor
 		{
 			base.OnEnable();
 
-			_positionProperty = serializedObject.FindProperty(nameof(LightComponent.Position));
+			//_positionProperty = serializedObject.FindProperty(nameof(LightComponent.Position));
 			_surfaceProperty = serializedObject.FindProperty(nameof(LightComponent._surface));
 			_bulbSizeProperty = serializedObject.FindProperty(nameof(LightComponent.BulbSize));
 
@@ -68,7 +68,7 @@ namespace VisualPinball.Unity.Editor
 
 			OnPreInspectorGUI();
 
-			PropertyField(_positionProperty, updateTransforms: true);
+			//PropertyField(_positionProperty, updateTransforms: true);
 			PropertyField(_surfaceProperty, updateTransforms: true);
 			PropertyField(_bulbSizeProperty, "Bulb Mesh Size", updateTransforms: true);
 
