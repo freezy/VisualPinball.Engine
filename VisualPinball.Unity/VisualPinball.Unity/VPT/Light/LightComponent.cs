@@ -84,6 +84,8 @@ namespace VisualPinball.Unity
 		private const string BulbMeshName = "Light (Bulb)";
 		private const string SocketMeshName = "Light (Socket)";
 
+		private static readonly int EmissiveIntensityProperty = Shader.PropertyToID("_EmissiveIntensity");
+
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
 		#endregion
@@ -147,7 +149,9 @@ namespace VisualPinball.Unity
 		#region Runtime
 
 		private UnityEngine.Light[] _unityLights;
+		private List<(Renderer, float)> _fullEmissions = new List<(Renderer, float)>();
 		private float _fullIntensity;
+		private MaterialPropertyBlock _propBlock;
 
 		public bool Enabled {
 			set {
@@ -192,6 +196,15 @@ namespace VisualPinball.Unity
 					unityLight.enabled = false;
 				}
 			}
+
+			// emissive materials
+			_propBlock = new MaterialPropertyBlock();
+			foreach (var mr in GetComponentsInChildren<MeshRenderer>()) {
+				var emission = mr.sharedMaterial.GetFloat(EmissiveIntensityProperty);
+				if (mr.sharedMaterial.GetFloat(EmissiveIntensityProperty) > 0) {
+					_fullEmissions.Add((mr, emission));
+				}
+			}
 		}
 
 		public void FadeTo(float value)
@@ -210,6 +223,8 @@ namespace VisualPinball.Unity
 						unityLight.enabled = false;
 					}
 				}
+
+				SetEmissions(value);
 			}
 		}
 
@@ -252,15 +267,44 @@ namespace VisualPinball.Unity
 				foreach (var unityLight in _unityLights) {
 					unityLight.intensity = b;
 				}
+				SetEmissions(value);
 
 			} else {
 				while (counter <= duration) {
 					counter += Time.deltaTime;
+					var position = counter / duration;
 					foreach (var unityLight in _unityLights) {
-						unityLight.intensity = Mathf.Lerp(a, b, counter / duration);
+						unityLight.intensity = Mathf.Lerp(a, b, position);
 					}
-					yield return null;
+					yield return FadeEmissions(value, position);
 				}
+			}
+		}
+
+		/// <summary>
+		/// Sets the material emissions as a LERP between the current emission and
+		/// a value for a given position.
+		/// </summary>
+		/// <param name="value">Value, between 0 and 1. End position of LERP is this value times full emission.</param>
+		/// <param name="position">LERP position</param>
+		private IEnumerator FadeEmissions(float value, float position)
+		{
+			foreach (var (mr, fullEmission) in _fullEmissions) {
+				mr.GetPropertyBlock(_propBlock);
+				var a = _propBlock.GetFloat(EmissiveIntensityProperty);
+				var b = value * fullEmission;
+				_propBlock.SetFloat(EmissiveIntensityProperty, Mathf.Lerp(a, b, position));
+				mr.SetPropertyBlock(_propBlock);
+			}
+			yield return null;
+		}
+
+		private void SetEmissions(float value)
+		{
+			foreach (var (mr, fullEmission) in _fullEmissions) {
+				mr.GetPropertyBlock(_propBlock);
+				_propBlock.SetFloat(EmissiveIntensityProperty, value * fullEmission);
+				mr.SetPropertyBlock(_propBlock);
 			}
 		}
 
