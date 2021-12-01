@@ -61,7 +61,7 @@ namespace VisualPinball.Unity.Patcher
 		private static void SetupLamps(GameObject tableGo, GameObject playfieldGo)
 		{
 			var displayRegEx = new Regex("^[a-c][0-9a-f][0-9a-f]$");
-		
+
 			foreach (var child in playfieldGo.transform.Find("Lights").gameObject.transform.Cast<Transform>().ToList()) {
 				var go = child.gameObject;
 
@@ -83,7 +83,7 @@ namespace VisualPinball.Unity.Patcher
 			var lampGroups = CreateEmptyGameObject(playfieldGo, "Lamp Groups");
 
 			var lampGroup1 = CreateEmptyGameObject(lampGroups, "LampGroup1");
-			
+
 			AddLightGroup(tableGo, lampGroup1,
 				"gi2", "gi4", "gi6", "gi7", "gi9",
 				"gi10", "gi11", "gi12", "gi13", "gi14", "gi15", "gi16", "gi17", "gi18", "gi19",
@@ -91,7 +91,7 @@ namespace VisualPinball.Unity.Patcher
 				"gi30", "gi31");
 
 			var lampGroup12 = CreateEmptyGameObject(lampGroups, "LampGroup12");
-			
+
 			AddLightGroup(tableGo, lampGroup12,
 				"gi22", "gi24", "gi27");
 
@@ -367,7 +367,7 @@ namespace VisualPinball.Unity.Patcher
 		[NameMatch("gi14")]
 		public void FixGI14(GameObject go)
 		{
-			go.GetComponent<LightComponent>().Position = new Vector3(894.29f, 178.4f);
+			go.GetComponent<LightComponent>().transform.localPosition = new Vector3(894.29f, 178.4f);
 		}
 
 		[NameMatch("gi2")]

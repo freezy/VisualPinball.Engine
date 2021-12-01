@@ -40,8 +40,6 @@ namespace VisualPinball.Unity
 	{
 		#region Data
 
-		public Vector3 Position;
-
 		public ISurfaceComponent Surface { get => _surface as ISurfaceComponent; set => _surface = value as MonoBehaviour; }
 		[SerializeField]
 		[TypeRestriction(typeof(ISurfaceComponent), PickerLabel = "Walls & Ramps", UpdateTransforms = true)]
@@ -113,36 +111,36 @@ namespace VisualPinball.Unity
 
 		#region Transformation
 
-		public override void UpdateTransforms()
-		{
-			base.UpdateTransforms();
-
-			// position
-			transform.localPosition = Surface != null
-				? new Vector3(Position.x, Position.y, Surface.Height(Position) + Position.z)
-				: new Vector3(Position.x, Position.y, PlayfieldHeight + Position.z);
-
-			// bulb size
-			foreach (var mf in GetComponentsInChildren<MeshFilter>(true)) {
-				if (!mf.sharedMesh) {
-					continue;
-				}
-				switch (mf.sharedMesh.name) {
-					case BulbMeshName:
-					case SocketMeshName:
-						mf.gameObject.transform.localScale = new Vector3(BulbSize, BulbSize, BulbSize);
-						break;
-				}
-			}
-
-			// insert mesh position
-			var insertMeshComponent = GetComponentInChildren<LightInsertMeshComponent>();
-			if (insertMeshComponent) {
-				var t = insertMeshComponent.transform;
-				var pos = t.localPosition;
-				t.localPosition = new Vector3(-Position.x, -Position.y, insertMeshComponent.PositionZ);
-			}
-		}
+		// public override void UpdateTransforms()
+		// {
+		// 	base.UpdateTransforms();
+		//
+		// 	// position
+		// 	transform.localPosition = Surface != null
+		// 		? new Vector3(Position.x, Position.y, Surface.Height(Position) + Position.z)
+		// 		: new Vector3(Position.x, Position.y, PlayfieldHeight + Position.z);
+		//
+		// 	// bulb size
+		// 	foreach (var mf in GetComponentsInChildren<MeshFilter>(true)) {
+		// 		if (!mf.sharedMesh) {
+		// 			continue;
+		// 		}
+		// 		switch (mf.sharedMesh.name) {
+		// 			case BulbMeshName:
+		// 			case SocketMeshName:
+		// 				mf.gameObject.transform.localScale = new Vector3(BulbSize, BulbSize, BulbSize);
+		// 				break;
+		// 		}
+		// 	}
+		//
+		// 	// insert mesh position
+		// 	var insertMeshComponent = GetComponentInChildren<LightInsertMeshComponent>();
+		// 	if (insertMeshComponent) {
+		// 		var t = insertMeshComponent.transform;
+		// 		var pos = t.localPosition;
+		// 		t.localPosition = new Vector3(-Position.x, -Position.y, insertMeshComponent.PositionZ);
+		// 	}
+		// }
 
 		#endregion
 
@@ -275,7 +273,7 @@ namespace VisualPinball.Unity
 			var updatedComponents = new List<MonoBehaviour> { this };
 
 			// transforms
-			Position = new Vector3(data.Center.X, data.Center.Y, 0);
+			//Position = new Vector3(data.Center.X, data.Center.Y, 0);
 			BulbSize = data.MeshRadius;
 
 			// logical params
@@ -337,7 +335,7 @@ namespace VisualPinball.Unity
 		{
 			// name and position
 			data.Name = name;
-			data.Center = Position.ToVertex2Dxy();
+			//data.Center = Position.ToVertex2Dxy();
 			data.Surface = Surface != null ? Surface.name : string.Empty;
 			data.MeshRadius = BulbSize;
 
@@ -371,18 +369,6 @@ namespace VisualPinball.Unity
 
 			return data;
 		}
-
-		#endregion
-
-		#region Editor Tooling
-
-		public override ItemDataTransformType EditorPositionType => ItemDataTransformType.ThreeD;
-		public override Vector3 GetEditorPosition() => Position;
-		public override void SetEditorPosition(Vector3 pos) => Position = pos;
-
-		public override ItemDataTransformType EditorScaleType => ItemDataTransformType.OneD;
-		public override Vector3 GetEditorScale() => new Vector3(BulbSize, BulbSize, BulbSize);
-		public override void SetEditorScale(Vector3 scale) => BulbSize = scale.x;
 
 		#endregion
 	}

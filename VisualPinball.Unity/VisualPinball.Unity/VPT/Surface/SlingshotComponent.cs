@@ -214,6 +214,7 @@ namespace VisualPinball.Unity
 
 		public bool IsLocked { get => _isLocked; set => _isLocked = value; }
 		public bool CanBeTransformed => false;
+		public bool OverrideTransform => false;
 		public string ItemName => "Slingshot";
 		public Entity Entity { get; set; }
 
