@@ -38,6 +38,7 @@ namespace VisualPinball.Unity
 		public Entity ParentEntity => Header.ParentEntity;
 		public ColliderType Type => Header.Type;
 		public PhysicsMaterialData Material => Header.Material;
+
 		public float Threshold => Header.Threshold;
 		public bool FireEvents => Header.FireEvents;
 		public ItemType ItemType => Header.ItemType;
@@ -134,32 +135,33 @@ namespace VisualPinball.Unity
 		/// </summary>
 		internal static unsafe void Collide(ref Collider coll, ref BallData ballData,
 			ref NativeQueue<EventData>.ParallelWriter events, in Entity ballEntity,
-			in CollisionEventData collEvent, ref Random random)
+			in CollisionEventData collEvent, ref Random random,
+			ref AdditionalPhysicsMaterialData additionnalMaterial)
 		{
 			fixed (Collider* collider = &coll)
 			{
 				switch (collider->Type)
 				{
 					case ColliderType.Circle:
-						((CircleCollider*) collider)->Collide(ref ballData, in collEvent, ref random);
+						((CircleCollider*) collider)->Collide(ref ballData, in collEvent, ref random, ref additionnalMaterial);
 						break;
 					case ColliderType.Line:
-						((LineCollider*) collider)->Collide(ref ballData, ref events, in ballEntity, in collEvent, ref random);
+						((LineCollider*) collider)->Collide(ref ballData, ref events, in ballEntity, in collEvent, ref random, ref additionnalMaterial);
 						break;
 					case ColliderType.Line3D:
-						((Line3DCollider*) collider)->Collide(ref ballData, ref events, in ballEntity, in collEvent, ref random);
+						((Line3DCollider*) collider)->Collide(ref ballData, ref events, in ballEntity, in collEvent, ref random, ref additionnalMaterial);
 						break;
 					case ColliderType.LineZ:
-						((LineZCollider*) collider)->Collide(ref ballData, ref events, in ballEntity, in collEvent, ref random);
+						((LineZCollider*) collider)->Collide(ref ballData, ref events, in ballEntity, in collEvent, ref random, ref additionnalMaterial);
 						break;
 					case ColliderType.Plane:
-						((PlaneCollider*) collider)->Collide(ref ballData, in collEvent, ref random);
+						((PlaneCollider*) collider)->Collide(ref ballData, in collEvent, ref random, ref additionnalMaterial);
 						break;
 					case ColliderType.Point:
-						((PointCollider*) collider)->Collide(ref ballData, ref events, in ballEntity, in collEvent, ref random);
+						((PointCollider*) collider)->Collide(ref ballData, ref events, in ballEntity, in collEvent, ref random, ref additionnalMaterial);
 						break;
 					case ColliderType.Triangle:
-						((TriangleCollider*) collider)->Collide(ref ballData, ref events, in ballEntity, in collEvent, ref random);
+						((TriangleCollider*) collider)->Collide(ref ballData, ref events, in ballEntity, in collEvent, ref random, ref additionnalMaterial);
 						break;
 
 					default:

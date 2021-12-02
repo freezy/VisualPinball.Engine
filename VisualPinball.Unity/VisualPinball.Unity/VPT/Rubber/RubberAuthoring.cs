@@ -49,7 +49,20 @@ namespace VisualPinball.Unity
 
 			// register
 			transform.GetComponentInParent<Player>().RegisterRubber(Item, entity, ParentEntity, gameObject);
-		}
+
+			Item.Data.PhysicsMateri.Col
+			//dstManager.AddComponent<AdditionalPhysicsMaterialData> (entity);
+			using (var builder = new BlobBuilder(Unity.Collections.Allocator.Temp))
+			{
+				var addData = new AdditionalPhysicsMaterialData();
+
+				// Discretize the curves
+				var curve = builder.Allocate(ref addData.ElastictyCurve, fc.PolaritiesCurveSlicingCount + 1);
+				CurveUtils.CurveToBlobArray(ref fc.Polarities, ref polarities, fc.PolaritiesCurveSlicingCount, 0F);
+				
+				// add correction data
+				dstManager.AddComponentData(entity, addData);
+			});
 
 		public override void Restore()
 		{

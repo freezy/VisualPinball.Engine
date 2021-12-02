@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using Unity.Entities;
+using Unity.Mathematics;
 
 namespace VisualPinball.Unity
 {
@@ -24,5 +25,10 @@ namespace VisualPinball.Unity
 		public float ElasticityFalloff;
 		public float Friction;
 		public float ScatterAngleRad;
+	}
+
+	public struct AdditionalPhysicsMaterialData : IComponentData
+	{
+		public BlobArray<float2> ElastictyCurve;
 	}
 }

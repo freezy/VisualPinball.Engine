@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+using Unity.Entities;
 using Unity.Mathematics;
 using VisualPinball.Engine.Common;
 using Random = Unity.Mathematics.Random;
@@ -24,7 +25,19 @@ namespace VisualPinball.Unity
 	{
 		private const float HardScatter = 0.0f;
 
-		public static void Collide3DWall(ref BallData ball, in PhysicsMaterialData material, in CollisionEventData collEvent, in float3 hitNormal, ref Random random)
+		public static void Collide3DWall(ref BallData ball, in PhysicsMaterialData material, in CollisionEventData collEvent, in float3 hitNormal, ref Random random, ref AdditionalPhysicsMaterialData addMaterial)
+		{
+			float elasticity = -1F;
+			if (addMaterial.ElastictyCurve.Length > 0)
+			{
+				// TODO: check if magnitude or normal projection
+				var dot = math.dot(ball.Velocity, hitNormal);
+				elasticity = CurveUtils.LinearEnvelope(dot, ref addMaterial.ElastictyCurve, 1F);
+			}
+			UnityEngine.Debug.Log("<b> <size=13> <color=#9DF155>Debug : Complex elasticity computation:" + elasticity +"</color> </size> </b>");
+			Collide3DWall(ref ball, material, collEvent, hitNormal, ref random, elasticity);
+		}
+		public static void Collide3DWall(ref BallData ball, in PhysicsMaterialData material, in CollisionEventData collEvent, in float3 hitNormal, ref Random random, float overrideElasticity = -1F)
 		{
 			// speed normal to wall
 			var dot = math.dot(ball.Velocity, hitNormal);
@@ -61,7 +74,7 @@ namespace VisualPinball.Unity
 			// penetrating the wall (needed for friction computations)
 			var reactionImpulse = ball.Mass * math.abs(dot);
 
-			var elasticity = Math.ElasticityWithFalloff(material.Elasticity, material.ElasticityFalloff, dot);
+			var elasticity = overrideElasticity >=0F ? overrideElasticity : Math.ElasticityWithFalloff(material.Elasticity, material.ElasticityFalloff, dot);
 			dot *= -(1.0f + elasticity);
 			ball.Velocity += hitNormal * dot;                                  // apply collision impulse (along normal, so no torque)
 

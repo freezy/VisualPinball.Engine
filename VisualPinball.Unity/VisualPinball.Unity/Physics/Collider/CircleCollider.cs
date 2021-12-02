@@ -228,9 +228,9 @@ namespace VisualPinball.Unity
 
 		#endregion
 
-		public void Collide(ref BallData ball, in CollisionEventData collEvent, ref Random random)
+		public void Collide(ref BallData ball, in CollisionEventData collEvent, ref Random random, ref AdditionalPhysicsMaterialData additionnalMaterial)
 		{
-			BallCollider.Collide3DWall(ref ball, in _header.Material, in collEvent, in collEvent.HitNormal, ref random);
+			BallCollider.Collide3DWall(ref ball, in _header.Material, in collEvent, in collEvent.HitNormal, ref random , ref additionnalMaterial);
 		}
 	}
 }

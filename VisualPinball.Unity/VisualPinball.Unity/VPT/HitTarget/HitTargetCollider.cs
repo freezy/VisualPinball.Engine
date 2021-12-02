@@ -24,10 +24,10 @@ namespace VisualPinball.Unity
 	{
 		public static void Collide(ref BallData ball, ref NativeQueue<EventData>.ParallelWriter hitEvents,
 			ref HitTargetAnimationData animationData, in float3 normal, in Entity ballEntity, in CollisionEventData collEvent,
-			in Collider coll, ref Random random)
+			in Collider coll, ref Random random, ref AdditionalPhysicsMaterialData additionalMaterial)
 		{
 			var dot = -math.dot(collEvent.HitNormal, ball.Velocity);
-			BallCollider.Collide3DWall(ref ball, in coll.Header.Material, in collEvent, in normal, ref random);
+			BallCollider.Collide3DWall(ref ball, in coll.Header.Material, in collEvent, in normal, ref random, ref additionalMaterial);
 
 			if (coll.FireEvents && dot >= coll.Threshold && !animationData.IsDropped) {
 				animationData.HitEvent = true;

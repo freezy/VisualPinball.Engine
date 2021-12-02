@@ -32,5 +32,6 @@ namespace VisualPinball.Unity
 		public float ElasticityFalloff;
 		public float Friction;
 		public float ScatterAngle;
+		public AnimationCurve ElasticityPerVelocity;
 	}
 }

@@ -104,6 +104,14 @@ namespace VisualPinball.Unity
 			return default;
 		}
 
+		protected virtual AdditionalPhysicsMaterialData GetAdditionalPhysicsMaterial(PhysicsMaterial mat)
+		{
+			if (mat.ElasticityPerVelocity.length == 0)
+				return default;
+			var additionalMaterial = new AdditionalPhysicsMaterialData();
+			return additionalMaterial;
+		}
+
 		/// <summary>
 		/// Returns returns collider info passed when creating the collider.
 		///

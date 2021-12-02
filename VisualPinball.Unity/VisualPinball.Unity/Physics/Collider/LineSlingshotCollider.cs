@@ -96,7 +96,7 @@ namespace VisualPinball.Unity
 
 		#region Collision
 
-		public void Collide(ref BallData ball, ref NativeQueue<EventData>.ParallelWriter events, in Entity ballEntity, in LineSlingshotData slingshotData, in CollisionEventData collEvent, ref Random random)
+		public void Collide(ref BallData ball, ref NativeQueue<EventData>.ParallelWriter events, in Entity ballEntity, in LineSlingshotData slingshotData, in CollisionEventData collEvent, ref Random random, ref AdditionalPhysicsMaterialData additionalMaterial)
 		{
 			var hitNormal = collEvent.HitNormal;
 
@@ -130,8 +130,8 @@ namespace VisualPinball.Unity
 				// boost velocity, drive into slingshot (counter normal), allow CollideWall to handle the remainder
 				ball.Velocity -= hitNormal * force;
 			}
+			BallCollider.Collide3DWall(ref ball, in _header.Material, in collEvent, in hitNormal, ref random, ref additionalMaterial);
 
-			BallCollider.Collide3DWall(ref ball, in _header.Material, in collEvent, in hitNormal, ref random);
 
 			if (/*m_obj &&*/ _header.FireEvents /*&& !m_psurface->m_disabled*/ && threshold) { // todo enabled
 

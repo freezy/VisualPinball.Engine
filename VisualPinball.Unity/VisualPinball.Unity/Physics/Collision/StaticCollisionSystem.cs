@@ -131,9 +131,12 @@ namespace VisualPinball.Unity
 
 							case ColliderType.LineSlingShot: {
 								var slingshotData = GetComponent<LineSlingshotData>(coll.Entity);
-								((LineSlingshotCollider*)collider)->Collide(
+									var addMaterial = HasComponent<AdditionalPhysicsMaterialData>(coll.Entity)
+											? GetComponent<AdditionalPhysicsMaterialData>(coll.Entity)
+											: new AdditionalPhysicsMaterialData();
+									((LineSlingshotCollider*)collider)->Collide(
 									ref ballData, ref events,
-									in ballEntity, in slingshotData, in collEvent, ref random);
+									in ballEntity, in slingshotData, in collEvent, ref random, ref addMaterial);
 								break;
 							}
 
@@ -216,8 +219,11 @@ namespace VisualPinball.Unity
 										? ((TriangleCollider*) collider)->Normal()
 										: collEvent.HitNormal;
 									var hitTargetAnimationData = GetComponent<HitTargetAnimationData>(coll.Entity);
-									HitTargetCollider.Collide(ref ballData, ref events, ref hitTargetAnimationData,
-										in normal, in ballEntity, in collEvent, in coll, ref random);
+									var addMaterial = HasComponent<AdditionalPhysicsMaterialData>(coll.Entity)
+										? GetComponent<AdditionalPhysicsMaterialData>(coll.Entity)
+										: new AdditionalPhysicsMaterialData();
+											HitTargetCollider.Collide(ref ballData, ref events, ref hitTargetAnimationData,
+										in normal, in ballEntity, in collEvent, in coll, ref random, ref addMaterial);
 									SetComponent(coll.Entity, hitTargetAnimationData);
 
 								// trigger
@@ -248,7 +254,10 @@ namespace VisualPinball.Unity
 									}
 
 								} else {
-									Collider.Collide(ref coll, ref ballData, ref events, in ballEntity, in collEvent, ref random);
+								var addMaterial = HasComponent<AdditionalPhysicsMaterialData>(coll.Entity)
+										? GetComponent<AdditionalPhysicsMaterialData>(coll.Entity)
+										: new AdditionalPhysicsMaterialData();
+									Collider.Collide(ref coll, ref ballData, ref events, in ballEntity, in collEvent, ref random, ref addMaterial);
 								}
 								break;
 

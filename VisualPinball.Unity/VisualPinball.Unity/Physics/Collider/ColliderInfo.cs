@@ -26,6 +26,7 @@ namespace VisualPinball.Unity
 		public Entity Entity;
 		public Entity ParentEntity;
 		public PhysicsMaterialData Material;
+		public AdditionalPhysicsMaterialData AdditionalMaterial;
 		public float HitThreshold;
 		public bool FireEvents;
 		public bool IsEnabled;

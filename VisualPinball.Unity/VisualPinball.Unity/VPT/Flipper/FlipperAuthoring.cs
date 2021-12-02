@@ -52,7 +52,7 @@ namespace VisualPinball.Unity
 		private bool IsLeft => Data.EndAngle < Data.StartAngle;
 
 		private static readonly Color EndAngleMeshColor = new Color32(0, 255, 248, 10);
-
+		
 		public void Convert(Entity entity, EntityManager dstManager, GameObjectConversionSystem conversionSystem)
 		{
 			Convert(entity, dstManager);
@@ -84,46 +84,10 @@ namespace VisualPinball.Unity
 
 					// Discretize the curves
 					var polarities = builder.Allocate(ref root.Polarities, fc.PolaritiesCurveSlicingCount + 1);
-					if (fc.Polarities != null)
-					{
-						var curve = fc.Polarities;
-						float stepP = (curve[curve.length - 1].time - curve[0].time) / fc.PolaritiesCurveSlicingCount;
-						int i = 0;
-						for (var t = curve[0].time; t <= curve[curve.length - 1].time; t += stepP)
-						{
-							polarities[i].x = t;
-							polarities[i++].y = curve.Evaluate(t);
-						}
-					}
-					else
-					{
-						for (int i = 0; i < fc.PolaritiesCurveSlicingCount + 1; i++)
-						{
-							polarities[i].x = i / (float)fc.PolaritiesCurveSlicingCount;
-							polarities[i].y = 0F;
-						}
-					}
+					CurveUtils.CurveToBlobArray(ref fc.Polarities, ref polarities, fc.PolaritiesCurveSlicingCount, 0F);
 
 					var velocities = builder.Allocate(ref root.Velocities, fc.VelocitiesCurveSlicingCount + 1);
-					if (fc.Velocities != null)
-					{
-						var curve = fc.Velocities;
-						float stepP = (curve[curve.length - 1].time - curve[0].time) / fc.VelocitiesCurveSlicingCount;
-						int i = 0;
-						for (var t = curve[0].time; t <= curve[curve.length - 1].time; t += stepP)
-						{
-							velocities[i].x = t;
-							velocities[i++].y = curve.Evaluate(t);
-						}
-					}
-					else
-					{
-						for (int i = 0; i < fc.VelocitiesCurveSlicingCount + 1; i++)
-						{
-							velocities[i].x = i / (float)fc.PolaritiesCurveSlicingCount;
-							velocities[i].y = 1F;
-						}
-					}
+					CurveUtils.CurveToBlobArray(ref fc.Velocities, ref velocities, fc.VelocitiesCurveSlicingCount, 0F);
 
 					var blobAssetRef = builder.CreateBlobAssetReference<FlipperCorrectionBlob>(Allocator.Persistent);
 
