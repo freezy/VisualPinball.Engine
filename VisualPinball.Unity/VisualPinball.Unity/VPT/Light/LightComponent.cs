@@ -25,6 +25,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using Codice.CM.Client.Gui;
 using NLog;
 using UnityEngine;
 using VisualPinball.Engine.Game.Engines;
@@ -84,7 +85,7 @@ namespace VisualPinball.Unity
 		private const string BulbMeshName = "Light (Bulb)";
 		private const string SocketMeshName = "Light (Socket)";
 
-		private static readonly int EmissiveIntensityProperty = Shader.PropertyToID("_EmissiveIntensity");
+		private static readonly int EmissiveColorProperty = Shader.PropertyToID("_EmissiveColor");
 
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
@@ -148,8 +149,9 @@ namespace VisualPinball.Unity
 
 		#region Runtime
 
+		private bool _hasLights;
 		private UnityEngine.Light[] _unityLights;
-		private List<(Renderer, float)> _fullEmissions = new List<(Renderer, float)>();
+		private readonly List<(Renderer, Color, float)> _fullEmissions = new List<(Renderer, Color, float)>();
 		private float _fullIntensity;
 		private MaterialPropertyBlock _propBlock;
 
@@ -181,9 +183,10 @@ namespace VisualPinball.Unity
 
 			player.RegisterLamp(this);
 			_unityLights = GetComponentsInChildren<UnityEngine.Light>();
+			_hasLights = _unityLights.Length > 0;
 
 			// remember intensity
-			if (_unityLights.Length > 0) {
+			if (_hasLights) {
 				_fullIntensity = _unityLights[0].intensity;
 			}
 			// enable at 0
@@ -200,15 +203,18 @@ namespace VisualPinball.Unity
 			// emissive materials
 			_propBlock = new MaterialPropertyBlock();
 			foreach (var mr in GetComponentsInChildren<MeshRenderer>()) {
-				var emission = mr.sharedMaterial.GetFloat(EmissiveIntensityProperty);
-				if (mr.sharedMaterial.GetFloat(EmissiveIntensityProperty) > 0) {
-					_fullEmissions.Add((mr, emission));
+				var emissiveColor = mr.sharedMaterial.GetColor(EmissiveColorProperty);
+				if (emissiveColor.a > 10f) {
+					_fullEmissions.Add((mr, emissiveColor, 0));
 				}
 			}
 		}
 
 		public void FadeTo(float value)
 		{
+			if (!_hasLights) {
+				return;
+			}
 			if (FadeEnabled) {
 				StopAllCoroutines();
 				StartCoroutine(nameof(Fade), value);
@@ -230,6 +236,9 @@ namespace VisualPinball.Unity
 
 		public void StartBlinking()
 		{
+			if (!_hasLights) {
+				return;
+			}
 			StopAllCoroutines();
 			StartCoroutine(nameof(Blink));
 		}
@@ -289,11 +298,12 @@ namespace VisualPinball.Unity
 		/// <param name="position">LERP position</param>
 		private IEnumerator FadeEmissions(float value, float position)
 		{
-			foreach (var (mr, fullEmission) in _fullEmissions) {
+			for (var i = 0; i < _fullEmissions.Count; i++) {
+				var (mr, color, lastValue) = _fullEmissions[i];
 				mr.GetPropertyBlock(_propBlock);
-				var a = _propBlock.GetFloat(EmissiveIntensityProperty);
-				var b = value * fullEmission;
-				_propBlock.SetFloat(EmissiveIntensityProperty, Mathf.Lerp(a, b, position));
+				var emission = Mathf.Lerp(lastValue, value, position);
+				_propBlock.SetColor(EmissiveColorProperty, emission * color * 0.05f);
+				_fullEmissions[i] = (mr, color, emission);
 				mr.SetPropertyBlock(_propBlock);
 			}
 			yield return null;
@@ -301,9 +311,9 @@ namespace VisualPinball.Unity
 
 		private void SetEmissions(float value)
 		{
-			foreach (var (mr, fullEmission) in _fullEmissions) {
+			foreach (var (mr, color, lastValue) in _fullEmissions) {
 				mr.GetPropertyBlock(_propBlock);
-				_propBlock.SetFloat(EmissiveIntensityProperty, value * fullEmission);
+				_propBlock.SetColor(EmissiveColorProperty, value * color * 0.05f);
 				mr.SetPropertyBlock(_propBlock);
 			}
 		}
