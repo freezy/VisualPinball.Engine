@@ -4,7 +4,7 @@ description: How to run VPE
 ---
 # Running VPE
 
-Now we can get begin with some simple game play. Open Visual Pinball, create a new "blank" table, and save it somewhere. In Unity, go to *Visual Pinball -> Import VPX* and choose the new `.vpx` file.
+Now we can get begin with some simple game play. Open [Visual Pinball](https://github.com/vpinball/vpinball), create a new "blank" table, and save it somewhere. In Unity, go to *Visual Pinball -> Import VPX* and choose the `.vpx` file you've just created.
 
 You should now see Visual Pinball's blank table in the Editor's scene view:
 
@@ -19,11 +19,11 @@ Now that we have the camera of the scene view somewhat aligned, we still can't s
 
 ![Imported blank table](unity-imported-table-ugly-gizmos.png)
 
-These orange artifacts are what Unity calls [Gizmo Icons](https://docs.unity3d.com/Manual/GizmosMenu.html). They are enabled by default, and since VPE uses icons for its playfield elements, they are all over the place. In order to hide them, click on *Visual Pinball -> Editor -> Disable Gizmo Icons*. 
+<img src="unity-gizmo-size.png" width="350" alt="Gizmo Size" class="img-responsive pull-right" style="margin-left: 15px"/>
 
-Since a pinball table is a relatively small object, the remaining icons are huge when working on a table, so click on the *Gizmos* dropdown in the scene view and use the top slider to shrink them down a bit.
+These orange artifacts are what Unity calls [Gizmo Icons](https://docs.unity3d.com/Manual/GizmosMenu.html). They are enabled by default, and since VPE uses icons for its playfield elements, they are all over the place. Unity's default gizmo size is adapted for rather large scenes and we're dealing with a pinball table, let's make them smaller by clicking on the gizmo icon in the *Scene* view, and pull the size *3D Icons* slider down until you're happy. You can additionally hide the VPE icons by clicking on *Visual Pinball -> Editor -> Disable Gizmo Icons*. 
 
-And while we're at it, choose *Visual Pinball -> Editor -> Setup Layouts* to populate a bunch of pre-made editor layouts that give you easy access to the tooling we've added to the editor.
+And while we're at it, choose *Visual Pinball -> Editor -> Setup Layouts* to populate a bunch of pre-made editor layouts that give you easy access to the tooling we've added to the editor. Then, click on the top right drop down in the editor where it says *Default*, and choose *3) VPE Simple*.
 
 ![Scene view camera on table](unity-imported-table-aligned.png)
 
