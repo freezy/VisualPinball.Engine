@@ -70,7 +70,8 @@ namespace VisualPinball.Unity
 
 		public static readonly Type[] ValidParentTypes = {
 			typeof(RubberComponent),
-			typeof(PrimitiveComponent)
+			typeof(PrimitiveComponent),
+			typeof(SlingshotComponent),
 		};
 
 		public override IEnumerable<Type> ValidParents => ValidParentTypes;
