@@ -73,7 +73,7 @@ namespace VisualPinball.Unity.Editor
 				var isRenderableItem = item != null;
 				var overrideTransform = isRenderableItem && item.OverrideTransform;
 				_itemSelected = itemTransform.GetComponent<IMainComponent>() != null;
-				useDefault = useDefault && (!_itemSelected || overrideTransform) && itemTransform.GetComponent<IMeshComponent>() == null;
+				useDefault = useDefault && (!_itemSelected || !overrideTransform) && itemTransform.GetComponent<IMeshComponent>() == null;
 
 				// must be main but not the table itself
 				if (isRenderableItem && item is not TableComponent) {
