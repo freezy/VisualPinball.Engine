@@ -50,7 +50,7 @@ namespace VisualPinball.Unity
 					_displayGameObjects[display.Id].Clear();
 
 				} else {
-					Logger.Error($"Cannot find DMD game object for display \"{display.Id}\"");
+					Logger.Warn($"Cannot find DMD game object for display \"{display.Id}\"");
 				}
 			}
 		}
