@@ -126,7 +126,7 @@ namespace VisualPinball.Unity
 		private static void CopyMaterialName(MeshRenderer mr, string[] materialNames, string[] textureNames,
 			ref string materialName, ref string mapName, ref string normalMapName, ref string envMapName)
 		{
-			if (!mr || materialNames == null || textureNames == null) {
+			if (!mr || materialNames == null || textureNames == null || mr.sharedMaterial == null) {
 				return;
 			}
 			var result = PbrMaterial.ParseId(mr.sharedMaterial.name, materialNames, textureNames);
