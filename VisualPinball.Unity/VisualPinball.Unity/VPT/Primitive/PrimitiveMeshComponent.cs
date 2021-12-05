@@ -54,6 +54,7 @@ namespace VisualPinball.Unity
 			typeof(SpinnerComponent),
 			typeof(SurfaceComponent),
 			typeof(TriggerComponent),
+			typeof(SlingshotComponent),
 		};
 
 		public override IEnumerable<Type> ValidParents => ValidParentTypes;
