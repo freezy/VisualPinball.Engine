@@ -14,8 +14,6 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-using System;
-using System.Collections.Generic;
 using UnityEngine;
 using VisualPinball.Engine.VPT.Bumper;
 
@@ -24,6 +22,5 @@ namespace VisualPinball.Unity
 	[AddComponentMenu("Visual Pinball/Animation/Bumper Skirt Animation")]
 	public class BumperSkirtAnimationComponent : AnimationComponent<BumperData, BumperComponent>
 	{
-		public override IEnumerable<Type> ValidParents => Type.EmptyTypes; // animation components only apply to their own
 	}
 }

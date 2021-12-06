@@ -195,16 +195,16 @@ namespace VisualPinball.Unity
 
 		#region Registrations
 
-		public void RegisterBumper(BumperComponent component, Entity entity, Entity parentEntity)
+		public void RegisterBumper(BumperComponent component, Entity entity)
 		{
-			Register(new BumperApi(component.gameObject, entity, parentEntity, this), component, entity);
+			Register(new BumperApi(component.gameObject, entity, this), component, entity);
 			RegisterTransform<BumperRingAnimationComponent>(BumperRingTransforms, component, entity);
 			RegisterTransform<BumperSkirtAnimationComponent>(BumperSkirtTransforms, component, entity);
 		}
 
-		public void RegisterFlipper(FlipperComponent component, Entity entity, Entity parentEntity)
+		public void RegisterFlipper(FlipperComponent component, Entity entity)
 		{
-			Register(new FlipperApi(component.gameObject, entity, parentEntity, this), component, entity);
+			Register(new FlipperApi(component.gameObject, entity, this), component, entity);
 			FlipperTransforms[entity] = component.gameObject.transform;
 
 			if (EngineProvider<IDebugUI>.Exists) {
@@ -212,27 +212,27 @@ namespace VisualPinball.Unity
 			}
 		}
 
-		public void RegisterDropTarget(DropTargetComponent component, Entity entity, Entity parentEntity)
+		public void RegisterDropTarget(DropTargetComponent component, Entity entity)
 		{
-			Register(new DropTargetApi(component.gameObject, entity, parentEntity, this), component, entity);
+			Register(new DropTargetApi(component.gameObject, entity, this), component, entity);
 			RegisterTransform<DropTargetAnimationComponent>(DropTargetTransforms, component, entity);
 		}
 
-		public void RegisterGate(GateComponent component, Entity entity, Entity parentEntity)
+		public void RegisterGate(GateComponent component, Entity entity)
 		{
-			Register(new GateApi(component.gameObject, entity, parentEntity, this), component, entity);
+			Register(new GateApi(component.gameObject, entity, this), component, entity);
 			RegisterTransform<GateWireAnimationComponent>(GateWireTransforms, component, entity);
 		}
 
-		public void RegisterHitTarget(HitTargetComponent component, Entity entity, Entity parentEntity)
+		public void RegisterHitTarget(HitTargetComponent component, Entity entity)
 		{
-			Register(new HitTargetApi(component.gameObject, entity, parentEntity, this), component, entity);
+			Register(new HitTargetApi(component.gameObject, entity, this), component, entity);
 			RegisterTransform<HitTargetAnimationComponent>(HitTargetTransforms, component, entity);
 		}
 
-		public void RegisterKicker(KickerComponent component, Entity entity, Entity parentEntity)
+		public void RegisterKicker(KickerComponent component, Entity entity)
 		{
-			Register(new KickerApi(component.gameObject, entity, parentEntity, this), component, entity);
+			Register(new KickerApi(component.gameObject, entity, this), component, entity);
 		}
 
 		public void RegisterLamp(LightComponent component)
@@ -265,9 +265,9 @@ namespace VisualPinball.Unity
 			Register(new SlingshotApi(component.gameObject, this), component);
 		}
 
-		public void RegisterPlunger(PlungerComponent component, Entity entity, Entity parentEntity, InputActionReference actionRef)
+		public void RegisterPlunger(PlungerComponent component, Entity entity, InputActionReference actionRef)
 		{
-			var plungerApi = new PlungerApi(component.gameObject, entity, parentEntity, this);
+			var plungerApi = new PlungerApi(component.gameObject, entity, this);
 			Register(plungerApi, component, entity);
 
 			if (actionRef != null) {
@@ -284,30 +284,30 @@ namespace VisualPinball.Unity
 			_colliderGenerators.Add(PlayfieldApi);
 		}
 
-		public void RegisterPrimitive(PrimitiveComponent component, Entity entity, Entity parentEntity)
+		public void RegisterPrimitive(PrimitiveComponent component, Entity entity)
 		{
-			Register(new PrimitiveApi(component.gameObject, entity, parentEntity, this), component, entity);
+			Register(new PrimitiveApi(component.gameObject, entity, this), component, entity);
 		}
 
-		public void RegisterRamp(RampComponent component, Entity entity, Entity parentEntity)
+		public void RegisterRamp(RampComponent component, Entity entity)
 		{
-			Register(new RampApi(component.gameObject, entity, parentEntity, this), component, entity);
+			Register(new RampApi(component.gameObject, entity, this), component, entity);
 		}
 
-		public void RegisterRubber(RubberComponent component, Entity entity, Entity parentEntity)
+		public void RegisterRubber(RubberComponent component, Entity entity)
 		{
-			Register(new RubberApi(component.gameObject, entity, parentEntity, this), component, entity);
+			Register(new RubberApi(component.gameObject, entity, this), component, entity);
 		}
 
-		public void RegisterSpinner(SpinnerComponent component, Entity entity, Entity parentEntity)
+		public void RegisterSpinner(SpinnerComponent component, Entity entity)
 		{
-			Register(new SpinnerApi(component.gameObject, entity, parentEntity, this), component, entity);
+			Register(new SpinnerApi(component.gameObject, entity, this), component, entity);
 			RegisterTransform<SpinnerPlateAnimationComponent>(SpinnerPlateTransforms, component, entity);
 		}
 
-		public void RegisterSurface(SurfaceComponent component, Entity entity, Entity parentEntity)
+		public void RegisterSurface(SurfaceComponent component, Entity entity)
 		{
-			Register(new SurfaceApi(component.gameObject, entity, parentEntity, this), component, entity);
+			Register(new SurfaceApi(component.gameObject, entity, this), component, entity);
 		}
 
 		public void RegisterTeleporter(TeleporterComponent component)
@@ -315,9 +315,9 @@ namespace VisualPinball.Unity
 			Register(new TeleporterApi(component.gameObject, this), component);
 		}
 
-		public void RegisterTrigger(TriggerComponent component, Entity entity, Entity parentEntity)
+		public void RegisterTrigger(TriggerComponent component, Entity entity)
 		{
-			Register(new TriggerApi(component.gameObject, entity, parentEntity, this), component, entity);
+			Register(new TriggerApi(component.gameObject, entity, this), component, entity);
 			TriggerTransforms[entity] = component.gameObject.transform;
 		}
 
@@ -325,7 +325,7 @@ namespace VisualPinball.Unity
 		{
 			var component = go.AddComponent<TriggerComponent>();
 			component.SetData(data);
-			Register(new TriggerApi(go, entity, Entity.Null, this), component, entity);
+			Register(new TriggerApi(go, entity, this), component, entity);
 		}
 
 		public void RegisterTrough(TroughComponent component)

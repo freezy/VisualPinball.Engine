@@ -17,7 +17,6 @@
 // ReSharper disable InconsistentNaming
 
 using System;
-using System.Collections.Generic;
 using UnityEngine;
 using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Table;
@@ -43,8 +42,6 @@ namespace VisualPinball.Unity
 		public bool IsCircle => Shape == TriggerShape.TriggerStar || Shape == TriggerShape.TriggerButton;
 
 		public static readonly Type[] ValidParentTypes = Type.EmptyTypes;
-
-		public override IEnumerable<Type> ValidParents => ValidParentTypes;
 
 		protected override Mesh GetMesh(TriggerData data)
 			=> new TriggerMeshGenerator(data).GetMesh(MainComponent.PlayfieldHeight);

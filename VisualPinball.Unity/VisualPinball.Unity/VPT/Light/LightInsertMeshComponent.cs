@@ -16,8 +16,6 @@
 
 // ReSharper disable InconsistentNaming
 
-using System;
-using System.Collections.Generic;
 using UnityEngine;
 using VisualPinball.Engine.Math;
 using VisualPinball.Engine.VPT;
@@ -41,8 +39,6 @@ namespace VisualPinball.Unity
 		public DragPointData[] DragPoints { get => _dragPoints; set => _dragPoints = value; }
 
 		#endregion
-
-		public override IEnumerable<Type> ValidParents => Type.EmptyTypes;
 
 		protected override Mesh GetMesh(LightData data)
 		{

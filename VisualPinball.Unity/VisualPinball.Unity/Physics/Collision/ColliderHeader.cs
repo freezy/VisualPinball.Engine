@@ -31,7 +31,6 @@ namespace VisualPinball.Unity
 		public ItemType ItemType;
 		public int Id;
 		public Entity Entity;
-		public Entity ParentEntity;
 		public PhysicsMaterialData Material;
 
 		public float Threshold;
@@ -62,9 +61,6 @@ namespace VisualPinball.Unity
 			ItemType = info.ItemType;
 			Id = info.Id;
 			Entity = info.Entity;
-			ParentEntity = info.ParentEntity != Entity.Null
-				? info.ParentEntity
-				: Entity;
 			Material = info.Material;
 			Threshold = info.HitThreshold;
 			FireEvents = info.FireEvents;

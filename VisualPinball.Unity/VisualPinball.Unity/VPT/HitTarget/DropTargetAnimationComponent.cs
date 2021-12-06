@@ -16,8 +16,6 @@
 
 // ReSharper disable InconsistentNaming
 
-using System;
-using System.Collections.Generic;
 using UnityEngine;
 using VisualPinball.Engine.VPT.HitTarget;
 
@@ -27,8 +25,6 @@ namespace VisualPinball.Unity
 	[RequireComponent(typeof(DropTargetColliderComponent))]
 	public class DropTargetAnimationComponent : AnimationComponent<HitTargetData, DropTargetComponent>
 	{
-		public override IEnumerable<Type> ValidParents => Type.EmptyTypes;
-
 		#region Data
 
 		[Tooltip("How fast the drop target moves down.")]

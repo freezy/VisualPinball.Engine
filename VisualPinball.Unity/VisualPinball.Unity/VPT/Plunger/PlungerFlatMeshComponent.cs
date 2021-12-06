@@ -15,7 +15,6 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using System;
-using System.Collections.Generic;
 using UnityEngine;
 using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Plunger;
@@ -29,8 +28,6 @@ namespace VisualPinball.Unity
 	public class PlungerFlatMeshComponent : PlungerMeshComponent
 	{
 		public static readonly Type[] ValidParentTypes = Type.EmptyTypes;
-
-		public override IEnumerable<Type> ValidParents => ValidParentTypes;
 
 		protected override Mesh GetMesh(PlungerData data)
 			=> new PlungerMeshGenerator(data).GetMesh(MainComponent.PositionZ, PlungerMeshGenerator.Flat);

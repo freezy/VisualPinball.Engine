@@ -40,8 +40,8 @@ namespace VisualPinball.Unity
 		/// </summary>
 		public event EventHandler<SwitchEventArgs> Switch;
 
-		public BumperApi(GameObject go, Entity entity, Entity parentEntity, Player player)
-			: base(go, entity, parentEntity, player)
+		public BumperApi(GameObject go, Entity entity, Player player)
+			: base(go, entity, player)
 		{
 		}
 

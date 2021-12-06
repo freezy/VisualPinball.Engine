@@ -68,7 +68,6 @@ namespace VisualPinball.Unity
 
 		public override ItemType ItemType => ItemType.Bumper;
 		public override string ItemName => "Bumper";
-		public override IEnumerable<Type> ValidParents => BumperColliderComponent.ValidParentTypes;
 
 		public override BumperData InstantiateData() => new BumperData();
 		protected override Type MeshComponentType { get; } = typeof(MeshComponent<BumperData, BumperComponent>);
@@ -179,7 +178,7 @@ namespace VisualPinball.Unity
 			}
 
 			// register at player
-			GetComponentInParent<Player>().RegisterBumper(this, entity, ParentEntity);
+			GetComponentInParent<Player>().RegisterBumper(this, entity);
 		}
 
 		public override IEnumerable<MonoBehaviour> SetData(BumperData data)

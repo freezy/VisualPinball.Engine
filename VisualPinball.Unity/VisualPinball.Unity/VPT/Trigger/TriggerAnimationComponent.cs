@@ -16,8 +16,6 @@
 
 // ReSharper disable InconsistentNaming
 
-using System;
-using System.Collections.Generic;
 using UnityEngine;
 using VisualPinball.Engine.VPT.Trigger;
 
@@ -26,8 +24,6 @@ namespace VisualPinball.Unity
 	[AddComponentMenu("Visual Pinball/Animation/Trigger Animation")]
 	public class TriggerAnimationComponent : AnimationComponent<TriggerData, TriggerComponent>
 	{
-		public override IEnumerable<Type> ValidParents => Type.EmptyTypes; // animation components only apply to their own
-
 		#region Data
 
 		[Min(0)]

@@ -16,8 +16,6 @@
 
 // ReSharper disable InconsistentNaming
 
-using System;
-using System.Collections.Generic;
 using UnityEngine;
 using VisualPinball.Engine.VPT.Bumper;
 
@@ -26,8 +24,6 @@ namespace VisualPinball.Unity
 	[AddComponentMenu("Visual Pinball/Animation/Bumper Ring Animation")]
 	public class BumperRingAnimationComponent : AnimationComponent<BumperData, BumperComponent>
 	{
-		public override IEnumerable<Type> ValidParents => Type.EmptyTypes; // animation components only apply to their own
-
 		#region Data
 
 		[Tooltip("How quick the ring moves down when the ball is hit.")]

@@ -23,7 +23,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using Unity.Entities;
 using Unity.Mathematics;
 using UnityEngine;
@@ -79,9 +78,6 @@ namespace VisualPinball.Unity
 
 		public override ItemType ItemType => ItemType.Spinner;
 		public override string ItemName => "Spinner";
-
-		public override IEnumerable<Type> ValidParents => SpinnerColliderComponent.ValidParentTypes
-			.Distinct();
 
 		public override SpinnerData InstantiateData() => new SpinnerData();
 
@@ -157,7 +153,7 @@ namespace VisualPinball.Unity
 			}
 
 			// register
-			transform.GetComponentInParent<Player>().RegisterSpinner(this, entity, ParentEntity);
+			transform.GetComponentInParent<Player>().RegisterSpinner(this, entity);
 		}
 
 		public override IEnumerable<MonoBehaviour> SetData(SpinnerData data)

@@ -17,7 +17,6 @@
 // ReSharper disable InconsistentNaming
 
 using System;
-using System.Collections.Generic;
 using UnityEngine;
 using VisualPinball.Engine.Game;
 using VisualPinball.Engine.VPT;
@@ -56,8 +55,6 @@ namespace VisualPinball.Unity
 			typeof(TriggerComponent),
 			typeof(SlingshotComponent),
 		};
-
-		public override IEnumerable<Type> ValidParents => ValidParentTypes;
 
 		protected override Mesh GetMesh(PrimitiveData data)
 			=> new PrimitiveMeshGenerator(data).GetMesh(MainComponent.PlayfieldHeight, data.Mesh, Origin.Original, false);

@@ -65,8 +65,8 @@ namespace VisualPinball.Unity
 		/// </summary>
 		public event EventHandler<SwitchEventArgs> Switch;
 
-		public SpinnerApi(GameObject go, Entity entity, Entity parentEntity, Player player)
-			: base(go, entity, parentEntity, player)
+		public SpinnerApi(GameObject go, Entity entity, Player player)
+			: base(go, entity, player)
 		{
 		}
 

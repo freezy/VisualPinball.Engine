@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using UnityEngine;
 using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Table;
@@ -18,8 +17,6 @@ namespace VisualPinball.Unity.Playfield
 		#endregion
 
 		public static readonly Type[] ValidParentTypes = Type.EmptyTypes;
-
-		public override IEnumerable<Type> ValidParents => ValidParentTypes;
 
 		protected override Mesh GetMesh(TableData data)
 			=> new TableMeshGenerator(data).GetMesh();

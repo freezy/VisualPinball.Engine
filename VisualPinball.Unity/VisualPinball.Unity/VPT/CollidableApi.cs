@@ -31,13 +31,11 @@ namespace VisualPinball.Unity
 		protected readonly TCollidableComponent ColliderComponent;
 
 		private protected EntityManager EntityManager;
-		private readonly Entity _parentEntity;
 
-		protected CollidableApi(GameObject go, Entity entity, Entity parentEntity, Player player) : base(go, player)
+		protected CollidableApi(GameObject go, Entity entity, Player player) : base(go, player)
 		{
 			EntityManager = World.DefaultGameObjectInjectionWorld != null ? World.DefaultGameObjectInjectionWorld.EntityManager : default;
 			Entity = entity;
-			_parentEntity = parentEntity;
 
 			ColliderComponent = go.GetComponent<TCollidableComponent>();
 		}
@@ -71,7 +69,6 @@ namespace VisualPinball.Unity
 				Id = -1,
 				ItemType = itemType,
 				Entity = Entity,
-				ParentEntity = _parentEntity,
 				FireEvents = FireHitEvents,
 				IsEnabled = ColliderComponent && ColliderComponent.isActiveAndEnabled,
 				Material = ColliderComponent.PhysicsMaterialData,

@@ -16,10 +16,7 @@
 
 // ReSharper disable InconsistentNaming
 
-using System;
 using System.Collections.Generic;
-using System.Linq;
-using Unity.Entities;
 using UnityEngine;
 using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Table;
@@ -70,67 +67,6 @@ namespace VisualPinball.Unity
 		/// </summary>
 		/// <returns></returns>
 		public abstract TData InstantiateData();
-
-		#endregion
-
-		#region Parenting
-
-		/// <summary>
-		/// List of types for parenting. Empty list if only to own parent.
-		/// </summary>
-		public abstract IEnumerable<Type> ValidParents { get; }
-
-		protected Entity ParentEntity {
-			get {
-				var parentComponent = ParentComponent;
-				if (parentComponent != null && !(parentComponent is TableComponent)) {
-					return parentComponent.Entity;
-				}
-				return Entity.Null;
-			}
-			set => throw new NotImplementedException();
-		}
-
-		public IMainRenderableComponent ParentComponent => FindParentComponent();
-
-		public bool IsCorrectlyParented {
-			get {
-				if (!ValidParents.Any()) {
-					return true;
-				}
-				var parentComponent = ParentComponent;
-				return parentComponent == null || ValidParents.Any(validParent => parentComponent.GetType() == validParent);
-			}
-		}
-		private IMainRenderableComponent FindParentComponent()
-		{
-			IMainRenderableComponent ma = null;
-			var go = gameObject;
-
-			// search on parent
-			if (go.transform.parent != null) {
-				ma = go.transform.parent.GetComponent<IMainRenderableComponent>();
-			}
-
-			if (ma is MonoBehaviour mb && (mb.GetComponent<TableComponent>() != null || mb.GetComponent<PlayfieldComponent>() != null)) {
-				return null;
-			}
-
-			if (ma != null) {
-				return ma;
-			}
-
-			// search on grand parent
-			if (go.transform.parent != null && go.transform.parent.transform.parent != null) {
-				ma = go.transform.parent.transform.parent.GetComponent<IMainRenderableComponent>();
-			}
-
-			if (ma is MonoBehaviour mb2 && (mb2.GetComponent<TableComponent>() != null || mb2.GetComponent<PlayfieldComponent>() != null)) {
-				return null;
-			}
-
-			return ma;
-		}
 
 		#endregion
 

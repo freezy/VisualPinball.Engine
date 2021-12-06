@@ -856,11 +856,11 @@ namespace VisualPinball.Unity
 				var flipperHit = hitData.HitMomentBit ? -1.0f : -bnv; // move event processing to end of collision handler...
 				if (flipperHit < 0f) {
 					// simple hit event
-					events.Enqueue(new EventData(EventId.HitEventsHit, _header.ParentEntity, ballEntity, true));
+					events.Enqueue(new EventData(EventId.HitEventsHit, _header.Entity, ballEntity, true));
 
 				} else {
 					// collision velocity (normal to face)
-					events.Enqueue(new EventData(EventId.FlipperEventsCollide, _header.ParentEntity, ballEntity, flipperHit));
+					events.Enqueue(new EventData(EventId.FlipperEventsCollide, _header.Entity, ballEntity, flipperHit));
 				}
 			}
 			movementData.LastHitTime = timeMsec; // keep resetting until idle for 250 milliseconds

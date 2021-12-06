@@ -15,7 +15,6 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using System;
-using System.Collections.Generic;
 using UnityEngine;
 using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Flipper;
@@ -29,8 +28,6 @@ namespace VisualPinball.Unity
 	public class FlipperRubberMeshComponent : MeshComponent<FlipperData, FlipperComponent>
 	{
 		public static readonly Type[] ValidParentTypes = Type.EmptyTypes;
-
-		public override IEnumerable<Type> ValidParents => ValidParentTypes;
 
 		protected override PbrMaterial GetMaterial(FlipperData data, Table table)
 			=> FlipperMeshGenerator.GetMaterial(FlipperMeshGenerator.Rubber, table, data);

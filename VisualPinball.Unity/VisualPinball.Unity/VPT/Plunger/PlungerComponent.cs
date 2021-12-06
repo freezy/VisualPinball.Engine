@@ -20,7 +20,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using Unity.Entities;
 using Unity.Mathematics;
 using UnityEngine;
@@ -63,12 +62,6 @@ namespace VisualPinball.Unity
 		public override string ItemName => "Plunger";
 
 		public override PlungerData InstantiateData() => new PlungerData();
-
-		public override IEnumerable<Type> ValidParents => PlungerColliderComponent.ValidParentTypes
-			.Concat(PlungerFlatMeshComponent.ValidParentTypes)
-			.Concat(PlungerRodMeshComponent.ValidParentTypes)
-			.Concat(PlungerSpringMeshComponent.ValidParentTypes)
-			.Distinct();
 
 		protected override Type MeshComponentType { get; } = typeof(MeshComponent<PlungerData, PlungerComponent>);
 		protected override Type ColliderComponentType { get; } = typeof(ColliderComponent<PlungerData, PlungerComponent>);
@@ -130,7 +123,6 @@ namespace VisualPinball.Unity
 				FireEvents = true,
 				IsEnabled = true,
 				ItemType = ItemType.Plunger,
-				ParentEntity = entity
 			};
 
 			dstManager.AddComponentData(entity, new PlungerStaticData {
@@ -182,7 +174,7 @@ namespace VisualPinball.Unity
 			});
 
 			// register at player
-			GetComponentInParent<Player>().RegisterPlunger(this, entity, ParentEntity, analogPlungerAction);
+			GetComponentInParent<Player>().RegisterPlunger(this, entity, analogPlungerAction);
 		}
 
 		public override IEnumerable<MonoBehaviour> SetData(PlungerData data)

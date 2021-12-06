@@ -35,7 +35,7 @@ namespace VisualPinball.Unity
 		/// </summary>
 		public event EventHandler<HitEventArgs> Hit;
 
-		internal PrimitiveApi(GameObject go, Entity entity, Entity parentEntity, Player player) : base(go, entity, parentEntity, player)
+		internal PrimitiveApi(GameObject go, Entity entity, Player player) : base(go, entity, player)
 		{
 		}
 

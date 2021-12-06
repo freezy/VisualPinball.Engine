@@ -53,34 +53,17 @@ namespace VisualPinball.Unity.Editor
 
 		protected bool HasErrors()
 		{
-			if (!HasMainComponent) {
-				NoDataError();
-				return true;
+			if (HasMainComponent) {
+				return false;
 			}
 
-			if (!MeshComponent.IsCorrectlyParented) {
-				InvalidParentError();
-				return true;
-			}
-
-			return false;
+			NoDataError();
+			return true;
 		}
 
 		private static void NoDataError()
 		{
 			EditorGUILayout.HelpBox($"Cannot find main component!\n\nYou must have a {typeof(TMainComponent).Name} component on either this GameObject, its parent or grand parent.", MessageType.Error);
-		}
-
-		private void InvalidParentError()
-		{
-			var validParentTypes = MeshComponent.ValidParents.ToArray();
-			var typeMessage = validParentTypes.Length > 0
-				? $"Supported parents are: [ {string.Join(", ", validParentTypes.Select(t => t.Name))} ]."
-				: $"In this case, meshes for {MeshComponent.ItemName} don't support any parenting at all.";
-			EditorGUILayout.HelpBox($"Invalid parent. This {MeshComponent.ItemName} is parented to a {MeshComponent.ParentComponent.ItemName}, which VPE doesn't support.\n{typeMessage}", MessageType.Error);
-			if (GUILayout.Button("Open Documentation", EditorStyles.linkLabel)) {
-				Application.OpenURL("https://docs.visualpinball.org/creators-guide/editor/unity-components.html");
-			}
 		}
 	}
 }

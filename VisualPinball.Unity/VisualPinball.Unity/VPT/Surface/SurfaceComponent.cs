@@ -23,7 +23,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using Unity.Entities;
 using UnityEngine;
 using VisualPinball.Engine.Math;
@@ -59,11 +58,6 @@ namespace VisualPinball.Unity
 		public override SurfaceData InstantiateData() => new SurfaceData();
 
 
-		public override IEnumerable<Type> ValidParents => SurfaceColliderComponent.ValidParentTypes
-			.Concat(SurfaceSideMeshComponent.ValidParentTypes)
-			.Concat(SurfaceTopMeshComponent.ValidParentTypes)
-			.Distinct();
-
 		protected override Type MeshComponentType { get; } = typeof(MeshComponent<SurfaceData, SurfaceComponent>);
 		protected override Type ColliderComponentType { get; } = typeof(ColliderComponent<SurfaceData, SurfaceComponent>);
 
@@ -92,7 +86,7 @@ namespace VisualPinball.Unity
 				});
 			}
 
-			transform.GetComponentInParent<Player>().RegisterSurface(this, entity, ParentEntity);
+			transform.GetComponentInParent<Player>().RegisterSurface(this, entity);
 		}
 
 		public override IEnumerable<MonoBehaviour> SetData(SurfaceData data)

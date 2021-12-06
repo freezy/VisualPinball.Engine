@@ -26,7 +26,7 @@ namespace VisualPinball.Unity
 {
 	public class PlayfieldApi : CollidableApi<PlayfieldComponent, PlayfieldColliderComponent, TableData>
 	{
-		internal PlayfieldApi(GameObject go, Player player) : base(go, Player.PlayfieldEntity, Entity.Null, player)
+		internal PlayfieldApi(GameObject go, Player player) : base(go, Player.PlayfieldEntity, player)
 		{
 		}
 

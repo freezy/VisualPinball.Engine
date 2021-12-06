@@ -73,8 +73,8 @@ namespace VisualPinball.Unity
 		// todo
 		public event EventHandler Timer;
 
-		public GateApi(GameObject go, Entity entity, Entity parentEntity, Player player)
-			: base(go, entity, parentEntity, player)
+		public GateApi(GameObject go, Entity entity, Player player)
+			: base(go, entity, player)
 		{
 		}
 

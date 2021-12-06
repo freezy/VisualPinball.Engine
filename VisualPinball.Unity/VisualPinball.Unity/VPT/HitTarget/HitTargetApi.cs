@@ -40,8 +40,8 @@ namespace VisualPinball.Unity
 		/// </summary>
 		public event EventHandler<SwitchEventArgs> Switch;
 
-		internal HitTargetApi(GameObject go, Entity entity, Entity parentEntity, Player player)
-			: base(go, entity, parentEntity, player)
+		internal HitTargetApi(GameObject go, Entity entity, Player player)
+			: base(go, entity, player)
 		{
 		}
 
