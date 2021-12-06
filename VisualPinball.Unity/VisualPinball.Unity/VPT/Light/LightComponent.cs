@@ -331,7 +331,6 @@ namespace VisualPinball.Unity
 			var updatedComponents = new List<MonoBehaviour> { this };
 
 			// transforms
-			//Position = new Vector3(data.Center.X, data.Center.Y, 0);
 			transform.localPosition = new Vector3(data.Center.X, data.Center.Y, 0);
 			BulbSize = data.MeshRadius;
 
@@ -397,7 +396,6 @@ namespace VisualPinball.Unity
 			// name and position
 			data.Name = name;
 			data.Center = pos.ToVertex2Dxy();
-			//data.Center = Position.ToVertex2Dxy();
 			data.Surface = Surface != null ? Surface.name : string.Empty;
 			data.MeshRadius = BulbSize;
 
