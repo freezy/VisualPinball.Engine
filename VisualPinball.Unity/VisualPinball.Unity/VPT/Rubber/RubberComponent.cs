@@ -23,7 +23,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using Unity.Entities;
 using UnityEngine;
 using VisualPinball.Engine.Math;
@@ -72,10 +71,6 @@ namespace VisualPinball.Unity
 
 		public override RubberData InstantiateData() => new RubberData();
 
-		public override IEnumerable<Type> ValidParents => RubberColliderComponent.ValidParentTypes
-			.Concat(RubberMeshComponent.ValidParentTypes)
-			.Distinct();
-
 		protected override Type MeshComponentType { get; } = typeof(MeshComponent<RubberData, RubberComponent>);
 		protected override Type ColliderComponentType { get; } = typeof(ColliderComponent<RubberData, RubberComponent>);
 
@@ -94,7 +89,7 @@ namespace VisualPinball.Unity
 			Convert(entity, dstManager);
 
 			// register
-			transform.GetComponentInParent<Player>().RegisterRubber(this, entity, ParentEntity);
+			transform.GetComponentInParent<Player>().RegisterRubber(this, entity);
 		}
 
 		public override IEnumerable<MonoBehaviour> SetData(RubberData data)

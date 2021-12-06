@@ -91,11 +91,6 @@ namespace VisualPinball.Unity
 		protected void Convert(Entity entity, EntityManager dstManager)
 		{
 			Entity = entity;
-			var parentComponent = ParentComponent;
-			// todo remove the parenting stuff
-			// if (parentComponent != null && !(parentComponent is TableComponent)) {
-			// 	ParentEntity = parentComponent.Entity;
-			// }
 		}
 
 		protected float SurfaceHeight(ISurfaceComponent surface, Vector2 position)

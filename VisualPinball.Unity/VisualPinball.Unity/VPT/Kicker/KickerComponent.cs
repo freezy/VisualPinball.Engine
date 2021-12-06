@@ -72,9 +72,6 @@ namespace VisualPinball.Unity
 		public override ItemType ItemType => ItemType.Kicker;
 		public override string ItemName => "Kicker";
 
-		public override IEnumerable<Type> ValidParents => KickerColliderComponent.ValidParentTypes
-			.Distinct();
-
 		public override KickerData InstantiateData() => new KickerData();
 
 		protected override Type MeshComponentType { get; } = typeof(MeshComponent<KickerData, KickerComponent>);
@@ -197,7 +194,7 @@ namespace VisualPinball.Unity
 			}
 
 			// register
-			transform.GetComponentInParent<Player>().RegisterKicker(this, entity, ParentEntity);
+			transform.GetComponentInParent<Player>().RegisterKicker(this, entity);
 		}
 
 		public override IEnumerable<MonoBehaviour> SetData(KickerData data)

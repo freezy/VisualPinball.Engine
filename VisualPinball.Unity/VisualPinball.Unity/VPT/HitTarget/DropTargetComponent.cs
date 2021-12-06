@@ -67,7 +67,7 @@ namespace VisualPinball.Unity
 			}
 
 			// register
-			transform.GetComponentInParent<Player>().RegisterDropTarget(this, entity, ParentEntity);
+			transform.GetComponentInParent<Player>().RegisterDropTarget(this, entity);
 		}
 
 		public override IEnumerable<MonoBehaviour> SetData(HitTargetData data)

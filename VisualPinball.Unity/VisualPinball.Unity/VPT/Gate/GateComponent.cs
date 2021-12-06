@@ -23,7 +23,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using Unity.Entities;
 using Unity.Mathematics;
 using UnityEngine;
@@ -88,9 +87,6 @@ namespace VisualPinball.Unity
 
 		public override ItemType ItemType => ItemType.Gate;
 		public override string ItemName => "Gate";
-
-		public override IEnumerable<Type> ValidParents => GateColliderComponent.ValidParentTypes
-			.Distinct();
 
 		public override GateData InstantiateData() => new GateData();
 
@@ -173,7 +169,7 @@ namespace VisualPinball.Unity
 			}
 
 			// register
-			transform.GetComponentInParent<Player>().RegisterGate(this, entity, ParentEntity);
+			transform.GetComponentInParent<Player>().RegisterGate(this, entity);
 		}
 
 		public override IEnumerable<MonoBehaviour> SetData(GateData data)

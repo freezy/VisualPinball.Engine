@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿using System.Linq;
 using UnityEngine;
 using VisualPinball.Engine.VPT;
 
@@ -32,20 +30,6 @@ namespace VisualPinball.Unity
 		public bool HasMainComponent => FindMainComponent() == null;
 
 		public override string ItemName => MainComponent.ItemName;
-
-		public IMainRenderableComponent ParentComponent => MainComponent.ParentComponent;
-
-		public abstract IEnumerable<Type> ValidParents { get; }
-
-		public bool IsCorrectlyParented {
-			get {
-				if (!ValidParents.Any()) {
-					return true;
-				}
-				var parentComponent = ParentComponent;
-				return parentComponent == null || ValidParents.Any(validParent => parentComponent.GetType() == validParent);
-			}
-		}
 
 		private TMainComponent FindMainComponent()
 		{

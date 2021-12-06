@@ -24,7 +24,6 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using UnityEditor;
 using UnityEngine;
 using VisualPinball.Engine.Game.Engines;
@@ -87,9 +86,6 @@ namespace VisualPinball.Unity
 
 		public override ItemType ItemType => ItemType.HitTarget;
 		public override string ItemName => "Target";
-
-		public override IEnumerable<Type> ValidParents => HitTargetColliderComponent.ValidParentTypes
-			.Distinct();
 
 		public override HitTargetData InstantiateData() => new HitTargetData();
 		protected override Type MeshComponentType { get; } = typeof(MeshComponent<HitTargetData, TargetComponent>);

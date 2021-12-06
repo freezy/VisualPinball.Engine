@@ -17,7 +17,6 @@
 // ReSharper disable InconsistentNaming
 
 using System;
-using System.Collections.Generic;
 using Unity.Entities;
 using UnityEngine;
 using VisualPinball.Engine.VPT.Ramp;
@@ -65,9 +64,8 @@ namespace VisualPinball.Unity
 			typeof(PrimitiveComponent)
 		};
 
-		public override IEnumerable<Type> ValidParents => ValidParentTypes;
 		public override PhysicsMaterialData PhysicsMaterialData => GetPhysicsMaterialData(Elasticity, friction: Friction, scatterAngleDeg: Scatter, overwrite: OverwritePhysics);
-		protected override IApiColliderGenerator InstantiateColliderApi(Player player, Entity entity, Entity parentEntity)
-			=> new RampApi(gameObject, entity, parentEntity, player);
+		protected override IApiColliderGenerator InstantiateColliderApi(Player player, Entity entity)
+			=> new RampApi(gameObject, entity, player);
 	}
 }

@@ -18,7 +18,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using Unity.Entities;
 using Unity.Mathematics;
 using UnityEngine;
@@ -83,10 +82,6 @@ namespace VisualPinball.Unity
 
 		protected override Type MeshComponentType => typeof(PlayfieldMeshComponent);
 		protected override Type ColliderComponentType => typeof(PlayfieldColliderComponent);
-
-		public override IEnumerable<Type> ValidParents => PlayfieldColliderComponent.ValidParentTypes
-			.Concat(PlayfieldMeshComponent.ValidParentTypes)
-			.Distinct();
 
 		public Rect3D BoundingBox => new Rect3D(Left, Right, Top, Bottom, TableHeight, GlassHeight);
 

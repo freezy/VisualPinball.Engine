@@ -16,8 +16,6 @@
 
 // ReSharper disable AssignmentInConditionalExpression
 
-using System.Linq;
-using UnityEditor;
 using UnityEngine;
 using VisualPinball.Engine.VPT;
 
@@ -37,27 +35,7 @@ namespace VisualPinball.Unity.Editor
 			base.OnEnable();
 		}
 
-		protected bool HasErrors()
-		{
-			if (!MainComponent.IsCorrectlyParented) {
-				InvalidParentError();
-				return true;
-			}
-
-			return false;
-		}
-
-		protected void InvalidParentError()
-		{
-			var validParentTypes = MainComponent.ValidParents.ToArray();
-			var typeMessage = validParentTypes.Length > 0
-				? $"Supported parents are: [ {string.Join(", ", validParentTypes.Select(t => t.Name))} ]."
-				: $"In this case, {MainComponent.ItemName} doesn't support any parenting at all.";
-			EditorGUILayout.HelpBox($"Invalid parent. This {MainComponent.ItemName} is parented to a {MainComponent.ParentComponent.ItemName}, which VPE doesn't support.\n{typeMessage}", MessageType.Error);
-			if (GUILayout.Button("Open Documentation", EditorStyles.linkLabel)) {
-				Application.OpenURL("https://docs.visualpinball.org/creators-guide/editor/unity-components.html");
-			}
-		}
+		protected bool HasErrors() => false;
 
 		protected void UpdateSurfaceReferences(Transform obj)
 		{

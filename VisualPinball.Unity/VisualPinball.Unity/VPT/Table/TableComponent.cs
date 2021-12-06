@@ -54,8 +54,6 @@ namespace VisualPinball.Unity
 
 		public override TableData InstantiateData() => new TableData();
 
-		public override IEnumerable<Type> ValidParents => Type.EmptyTypes;
-
 		protected override Type MeshComponentType => null;
 		protected override Type ColliderComponentType => null;
 

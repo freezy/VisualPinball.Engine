@@ -24,7 +24,6 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
 using Unity.Entities;
 using UnityEngine;
 using VisualPinball.Engine.Math;
@@ -111,11 +110,6 @@ namespace VisualPinball.Unity
 		public override string ItemName => "Ramp";
 
 		public override RampData InstantiateData() => new RampData();
-		public override IEnumerable<Type> ValidParents => RampColliderComponent.ValidParentTypes
-			.Concat(RampFloorMeshComponent.ValidParentTypes)
-			.Concat(RampWallMeshComponent.ValidParentTypes)
-			.Concat(RampWireMeshComponent.ValidParentTypes)
-			.Distinct();
 
 		protected override Type MeshComponentType { get; } = typeof(MeshComponent<RampData, RampComponent>);
 		protected override Type ColliderComponentType { get; } = typeof(ColliderComponent<RampData, RampComponent>);
@@ -198,7 +192,7 @@ namespace VisualPinball.Unity
 			Convert(entity, dstManager);
 
 			// register
-			transform.GetComponentInParent<Player>().RegisterRamp(this, entity, ParentEntity);
+			transform.GetComponentInParent<Player>().RegisterRamp(this, entity);
 		}
 
 		public override IEnumerable<MonoBehaviour> SetData(RampData data)

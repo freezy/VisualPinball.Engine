@@ -23,7 +23,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using Unity.Entities;
 using Unity.Mathematics;
 using UnityEngine;
@@ -64,10 +63,6 @@ namespace VisualPinball.Unity
 
 		public override ItemType ItemType => ItemType.Trigger;
 		public override string ItemName => "Trigger";
-
-		public override IEnumerable<Type> ValidParents => TriggerColliderComponent.ValidParentTypes
-			.Concat(TriggerMeshComponent.ValidParentTypes)
-			.Distinct();
 
 		public override TriggerData InstantiateData() => new TriggerData();
 
@@ -132,7 +127,7 @@ namespace VisualPinball.Unity
 			}
 
 			// register
-			transform.GetComponentInParent<Player>().RegisterTrigger(this, entity, ParentEntity);
+			transform.GetComponentInParent<Player>().RegisterTrigger(this, entity);
 		}
 
 		public override IEnumerable<MonoBehaviour> SetData(TriggerData data)

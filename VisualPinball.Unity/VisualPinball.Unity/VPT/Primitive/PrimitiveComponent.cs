@@ -23,7 +23,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using Unity.Entities;
 using Unity.Mathematics;
 using UnityEngine;
@@ -66,10 +65,6 @@ namespace VisualPinball.Unity
 
 		public override PrimitiveData InstantiateData() => new PrimitiveData();
 
-		public override IEnumerable<Type> ValidParents => PrimitiveColliderComponent.ValidParentTypes
-			.Concat(PrimitiveMeshComponent.ValidParentTypes)
-			.Distinct();
-
 		protected override Type MeshComponentType { get; } = typeof(MeshComponent<PrimitiveData, PrimitiveComponent>);
 		protected override Type ColliderComponentType { get; } = typeof(ColliderComponent<PrimitiveData, PrimitiveComponent>);
 
@@ -108,7 +103,7 @@ namespace VisualPinball.Unity
 			Convert(entity, dstManager);
 
 			// register
-			transform.GetComponentInParent<Player>().RegisterPrimitive(this, entity, ParentEntity);
+			transform.GetComponentInParent<Player>().RegisterPrimitive(this, entity);
 		}
 
 

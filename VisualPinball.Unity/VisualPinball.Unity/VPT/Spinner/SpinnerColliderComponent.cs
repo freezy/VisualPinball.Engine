@@ -17,7 +17,6 @@
 // ReSharper disable InconsistentNaming
 
 using System;
-using System.Collections.Generic;
 using Unity.Entities;
 using UnityEngine;
 using VisualPinball.Engine.VPT.Spinner;
@@ -37,9 +36,8 @@ namespace VisualPinball.Unity
 
 		public static readonly Type[] ValidParentTypes = Type.EmptyTypes;
 
-		public override IEnumerable<Type> ValidParents => ValidParentTypes;
 		public override PhysicsMaterialData PhysicsMaterialData => GetPhysicsMaterialData(Elasticity);
-		protected override IApiColliderGenerator InstantiateColliderApi(Player player, Entity entity, Entity parentEntity)
-			=> new SpinnerApi(gameObject, entity, parentEntity, player);
+		protected override IApiColliderGenerator InstantiateColliderApi(Player player, Entity entity)
+			=> new SpinnerApi(gameObject, entity, player);
 	}
 }

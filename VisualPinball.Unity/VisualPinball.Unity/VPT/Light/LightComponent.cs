@@ -73,8 +73,6 @@ namespace VisualPinball.Unity
 		public override ItemType ItemType => ItemType.Light;
 		public override string ItemName => "Light";
 
-		public override IEnumerable<Type> ValidParents => Type.EmptyTypes;
-
 		public override LightData InstantiateData() => new LightData();
 
 		public override bool OverrideTransform => false;

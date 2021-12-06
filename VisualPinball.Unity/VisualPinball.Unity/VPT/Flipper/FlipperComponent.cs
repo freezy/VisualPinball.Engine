@@ -23,7 +23,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
@@ -118,11 +117,6 @@ namespace VisualPinball.Unity
 
 		public override ItemType ItemType => ItemType.Flipper;
 		public override string ItemName => "Flipper";
-
-		public override IEnumerable<Type> ValidParents => FlipperColliderComponent.ValidParentTypes
-			.Concat(FlipperBaseMeshComponent.ValidParentTypes)
-			.Concat(FlipperRubberMeshComponent.ValidParentTypes)
-			.Distinct();
 
 		public override FlipperData InstantiateData() => new FlipperData();
 
@@ -227,7 +221,7 @@ namespace VisualPinball.Unity
 			}
 
 			// register
-			player.RegisterFlipper(this, entity, ParentEntity);
+			player.RegisterFlipper(this, entity);
 		}
 
 		public override IEnumerable<MonoBehaviour> SetData(FlipperData data)

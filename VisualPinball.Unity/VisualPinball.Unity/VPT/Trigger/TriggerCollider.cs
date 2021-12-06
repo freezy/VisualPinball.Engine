@@ -34,13 +34,13 @@ namespace VisualPinball.Unity
 					BallData.SetInsideOf(ref insideOfs, coll.Entity);
 					animationData.HitEvent = true;
 
-					events.Enqueue(new EventData(EventId.HitEventsHit, coll.ParentEntity,  ballEntity, true));
+					events.Enqueue(new EventData(EventId.HitEventsHit, coll.Entity,  ballEntity, true));
 
 				} else {
 					BallData.SetOutsideOf(ref insideOfs, coll.Entity);
 					animationData.UnHitEvent = true;
 
-					events.Enqueue(new EventData(EventId.HitEventsUnhit, coll.ParentEntity, ballEntity, true));
+					events.Enqueue(new EventData(EventId.HitEventsUnhit, coll.Entity, ballEntity, true));
 				}
 			}
 		}

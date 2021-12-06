@@ -58,7 +58,7 @@ namespace VisualPinball.Unity
 		[NonSerialized] private readonly List<ICollider> _nonMeshColliders = new List<ICollider>();
 		[NonSerialized] private bool _collidersDirty;
 
-		protected abstract IApiColliderGenerator InstantiateColliderApi(Player player, Entity entity, Entity parentEntity);
+		protected abstract IApiColliderGenerator InstantiateColliderApi(Player player, Entity entity);
 
 		public abstract PhysicsMaterialData PhysicsMaterialData { get; }
 
@@ -114,7 +114,7 @@ namespace VisualPinball.Unity
 
 			var generateColliders = ShowAabbs || showColliders && !HasCachedColliders;
 			if (generateColliders) {
-				var api = InstantiateColliderApi(player, _colliderEntity, Entity.Null);
+				var api = InstantiateColliderApi(player, _colliderEntity);
 				var colliders = new List<ICollider>();
 				api.CreateColliders(colliders, 0.1f);
 

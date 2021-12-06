@@ -17,7 +17,6 @@
 // ReSharper disable InconsistentNaming
 
 using System;
-using System.Collections.Generic;
 using Unity.Entities;
 using UnityEngine;
 using VisualPinball.Engine.VPT.Bumper;
@@ -48,9 +47,8 @@ namespace VisualPinball.Unity
 
 		#endregion
 
-		public override IEnumerable<Type> ValidParents => ValidParentTypes;
-		protected override IApiColliderGenerator InstantiateColliderApi(Player player, Entity entity, Entity parentEntity)
-			=> new BumperApi(gameObject, entity, parentEntity, player);
+		protected override IApiColliderGenerator InstantiateColliderApi(Player player, Entity entity)
+			=> new BumperApi(gameObject, entity, player);
 
 		public override PhysicsMaterialData PhysicsMaterialData => GetPhysicsMaterialData(scatterAngleDeg: Scatter);
 	}

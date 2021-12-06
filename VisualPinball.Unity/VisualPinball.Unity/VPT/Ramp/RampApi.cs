@@ -33,7 +33,7 @@ namespace VisualPinball.Unity
 		/// </summary>
 		public event EventHandler<HitEventArgs> Hit;
 
-		internal RampApi(GameObject go, Entity entity, Entity parentEntity, Player player) : base(go, entity, parentEntity, player)
+		internal RampApi(GameObject go, Entity entity, Player player) : base(go, entity, player)
 		{
 		}
 

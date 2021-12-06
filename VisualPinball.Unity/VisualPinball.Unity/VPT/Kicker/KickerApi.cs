@@ -54,8 +54,8 @@ namespace VisualPinball.Unity
 
 		private readonly Dictionary<string, KickerDeviceCoil> _coils = new Dictionary<string, KickerDeviceCoil>();
 
-		public KickerApi(GameObject go, Entity entity, Entity parentEntity, Player player)
-			: base(go, entity, parentEntity, player)
+		public KickerApi(GameObject go, Entity entity, Player player)
+			: base(go, entity, player)
 		{
 			foreach (var coil in MainComponent.Coils) {
 				_coils[coil.Id] = new KickerDeviceCoil(player, coil, this);

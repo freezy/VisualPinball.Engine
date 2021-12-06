@@ -91,8 +91,6 @@ namespace VisualPinball.Unity
 		public override ItemType ItemType => ItemType.Trough;
 		public override string ItemName => "Trough";
 
-		public override IEnumerable<Type> ValidParents => System.Type.EmptyTypes;
-
 		public override TroughData InstantiateData() => new TroughData();
 
 		#endregion
