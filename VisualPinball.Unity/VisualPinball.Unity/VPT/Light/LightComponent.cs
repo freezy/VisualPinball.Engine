@@ -26,11 +26,13 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using NLog;
+using Unity.Mathematics;
 using UnityEngine;
 using VisualPinball.Engine.Game.Engines;
 using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Light;
 using VisualPinball.Engine.VPT.Table;
+using Light = UnityEngine.Light;
 using Logger = NLog.Logger;
 
 namespace VisualPinball.Unity
@@ -113,43 +115,46 @@ namespace VisualPinball.Unity
 
 		#region Transformation
 
-		// public override void UpdateTransforms()
-		// {
-		// 	base.UpdateTransforms();
-		//
-		// 	// position
-		// 	transform.localPosition = Surface != null
-		// 		? new Vector3(Position.x, Position.y, Surface.Height(Position) + Position.z)
-		// 		: new Vector3(Position.x, Position.y, PlayfieldHeight + Position.z);
-		//
-		// 	// bulb size
-		// 	foreach (var mf in GetComponentsInChildren<MeshFilter>(true)) {
-		// 		if (!mf.sharedMesh) {
-		// 			continue;
-		// 		}
-		// 		switch (mf.sharedMesh.name) {
-		// 			case BulbMeshName:
-		// 			case SocketMeshName:
-		// 				mf.gameObject.transform.localScale = new Vector3(BulbSize, BulbSize, BulbSize);
-		// 				break;
-		// 		}
-		// 	}
-		//
-		// 	// insert mesh position
-		// 	var insertMeshComponent = GetComponentInChildren<LightInsertMeshComponent>();
-		// 	if (insertMeshComponent) {
-		// 		var t = insertMeshComponent.transform;
-		// 		var pos = t.localPosition;
-		// 		t.localPosition = new Vector3(-Position.x, -Position.y, insertMeshComponent.PositionZ);
-		// 	}
-		// }
+		public override void UpdateTransforms()
+		{
+			base.UpdateTransforms();
+
+			var localPos = transform.localPosition;
+
+			// position
+			localPos.z = Surface != null
+				? Surface.Height(((float3)localPos).xy) + localPos.z
+				: PlayfieldHeight + localPos.z;
+			transform.localPosition = localPos;
+
+			// bulb size
+			foreach (var mf in GetComponentsInChildren<MeshFilter>(true)) {
+				if (!mf.sharedMesh) {
+					continue;
+				}
+				switch (mf.sharedMesh.name) {
+					case BulbMeshName:
+					case SocketMeshName:
+						mf.gameObject.transform.localScale = new Vector3(BulbSize, BulbSize, BulbSize);
+						break;
+				}
+			}
+
+			// insert mesh position
+			var insertMeshComponent = GetComponentInChildren<LightInsertMeshComponent>();
+			if (insertMeshComponent) {
+				var t = insertMeshComponent.transform;
+				var pos = t.localPosition;
+				t.localPosition = new Vector3(-localPos.x, -localPos.y, insertMeshComponent.PositionZ);
+			}
+		}
 
 		#endregion
 
 		#region Runtime
 
 		private bool _hasLights;
-		private UnityEngine.Light[] _unityLights;
+		private Light[] _unityLights;
 		private readonly List<(Renderer, Color, float)> _fullEmissions = new List<(Renderer, Color, float)>();
 		private float _fullIntensity;
 		private MaterialPropertyBlock _propBlock;
@@ -181,7 +186,7 @@ namespace VisualPinball.Unity
 			}
 
 			player.RegisterLamp(this);
-			_unityLights = GetComponentsInChildren<UnityEngine.Light>();
+			_unityLights = GetComponentsInChildren<Light>();
 			_hasLights = _unityLights.Length > 0;
 
 			// remember intensity
@@ -327,6 +332,7 @@ namespace VisualPinball.Unity
 
 			// transforms
 			//Position = new Vector3(data.Center.X, data.Center.Y, 0);
+			transform.localPosition = new Vector3(data.Center.X, data.Center.Y, 0);
 			BulbSize = data.MeshRadius;
 
 			// logical params
@@ -343,7 +349,7 @@ namespace VisualPinball.Unity
 			}
 
 			// physical params
-			var unityLight = GetComponentInChildren<UnityEngine.Light>(true);
+			var unityLight = GetComponentInChildren<Light>(true);
 			if (unityLight) {
 				RenderPipeline.Current.LightConverter.UpdateLight(unityLight, data, insertMeshComponent);
 			}
@@ -386,8 +392,11 @@ namespace VisualPinball.Unity
 
 		public override LightData CopyDataTo(LightData data, string[] materialNames, string[] textureNames, bool forExport)
 		{
+			var pos = transform.localPosition;
+
 			// name and position
 			data.Name = name;
+			data.Center = pos.ToVertex2Dxy();
 			//data.Center = Position.ToVertex2Dxy();
 			data.Surface = Surface != null ? Surface.name : string.Empty;
 			data.MeshRadius = BulbSize;
