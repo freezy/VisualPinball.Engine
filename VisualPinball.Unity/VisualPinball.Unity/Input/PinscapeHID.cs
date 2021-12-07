@@ -34,8 +34,8 @@ namespace VisualPinball.Unity
 			InputSystem.RegisterLayout<PinscapeHID>(
 				matches: new InputDeviceMatcher()
 					.WithInterface("HID")
-					.WithCapability("vendorId", 0x54C)
-					.WithCapability("productId", 0x9CC));
+					.WithCapability("vendorId", 0xFAFA)
+					.WithCapability("productId", 0xF7));
 		}
 
 		[RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]

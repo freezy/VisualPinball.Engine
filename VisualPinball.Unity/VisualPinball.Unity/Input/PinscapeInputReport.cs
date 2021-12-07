@@ -21,6 +21,7 @@ using UnityEngine.InputSystem.Utilities;
 
 namespace VisualPinball.Unity
 {
+	[StructLayout(LayoutKind.Explicit, Size = 14)]
 	public struct PinscapeInputReport : IInputStateTypeInfo
 	{
 		public FourCC format => new FourCC('H', 'I', 'D');
@@ -72,9 +73,12 @@ namespace VisualPinball.Unity
 		[InputControl(name = "acceleration/x", offset = 0, format = "SHRT", parameters = "normalize,normalizeMin=0,normalizeMax=1,normalizeZero=0.5")]
 		[InputControl(name = "acceleration/y", offset = 1, format = "SHRT", parameters = "invert,normalize,normalizeMin=0,normalizeMax=1,normalizeZero=0.5")]
 		[InputControl(name = "acceleration/z", offset = 2, format = "SHRT", parameters = "normalize,normalizeMin=0,normalizeMax=1,normalizeZero=0.5")]
-		[FieldOffset(8)] public byte x;
-		[FieldOffset(10)] public byte y;
-		[FieldOffset(12)] public byte z;
+		[FieldOffset(8)] public byte x1;
+		[FieldOffset(9)] public byte x2;
+		[FieldOffset(10)] public byte y1;
+		[FieldOffset(11)] public byte y2;
+		[FieldOffset(12)] public byte z1;
+		[FieldOffset(13)] public byte z2;
 
 	}
 }
