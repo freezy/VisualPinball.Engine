@@ -82,22 +82,20 @@ namespace VisualPinball.Unity.Patcher
 
 			var lampGroups = CreateEmptyGameObject(playfieldGo, "Lamp Groups");
 
-			var lampGroup1 = CreateEmptyGameObject(lampGroups, "LampGroup1");
+			AddLightGroup(tableGo, CreateEmptyGameObject(lampGroups, "LampGroupUpperLeft1"),
+				"gi26", "gi28", "gi25", "gi23");
 
-			AddLightGroup(tableGo, lampGroup1,
-				"gi2", "gi4", "gi6", "gi7", "gi9",
-				"gi10", "gi11", "gi12", "gi13", "gi14", "gi15", "gi16", "gi17", "gi18", "gi19",
-				"gi20", "gi21", "gi23", "gi25", "gi26", "gi28", "gi29",
-				"gi30", "gi31");
+			AddLightGroup(tableGo, CreateEmptyGameObject(lampGroups, "LampGroupUpperLeft2"),
+				"gi27", "gi24", "gi22");
 
-			var lampGroup12 = CreateEmptyGameObject(lampGroups, "LampGroup12");
+			AddLightGroup(tableGo, CreateEmptyGameObject(lampGroups, "LampGroupUpperRight"),
+				 "gi30", "gi31", "gi14", "gi29", "gi4", "gi2", "gi7", "gi9", "gi21",
+				 "gi20", "gi19", "gi18", "gi17", "gi16", "gi15", "gi13", "gi12", "gi11");
 
-			AddLightGroup(tableGo, lampGroup12,
-				"gi22", "gi24", "gi27");
+			AddLightGroup(tableGo, CreateEmptyGameObject(lampGroups, "LampGroupLower"),
+				 "gi6", "gi10");
 
-			var lampGroup13 = CreateEmptyGameObject(lampGroups, "LampGroup13");
-
-			AddLightGroup(tableGo, lampGroup13,
+			AddLightGroup(tableGo, CreateEmptyGameObject(lampGroups, "LampGroupAux"),
 				"AL1a", "AL1b", "AL2a", "AL2b", "AL3a", "AL3b", "AL4a", "AL4b",
 				"AL5a", "AL5b", "AL6a", "AL6b", "AL7a", "AL7b", "AL8a", "AL8b",
 				"AL9a", "AL10a");
