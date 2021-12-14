@@ -15,10 +15,11 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using System;
+using UnityEngine;
 
 namespace VisualPinball.Unity
 {
-	public class DeviceCoil: IApiCoil
+	public class DeviceCoil : IApiCoil
 	{
 		public bool IsEnabled;
 
@@ -34,16 +35,29 @@ namespace VisualPinball.Unity
 		public void OnCoil(bool enabled)
 		{
 			IsEnabled = enabled;
-			if (enabled) {
+			if (enabled)
+			{
 				OnEnable?.Invoke();
-			} else {
+			}
+			else
+			{
 				OnDisable?.Invoke();
 			}
 #if UNITY_EDITOR
-			UnityEditorInternal.InternalEditorUtility.RepaintAllViews();
+			RefreshEditor();
 #endif
 		}
 
 		public void OnChange(bool enabled) => OnCoil(enabled);
+
+#if UNITY_EDITOR
+		private static void RefreshEditor()
+		{
+			foreach (var editor in (UnityEditor.Editor[])Resources.FindObjectsOfTypeAll(Type.GetType("VisualPinball.Unity.Editor.TroughInspector, VisualPinball.Unity.Editor")))
+			{
+				editor.Repaint();
+			}
+		}
+#endif
 	}
 }

@@ -14,12 +14,18 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+using System;
 using System.Collections.Generic;
-using NLog;
+using UnityEngine;
 using VisualPinball.Engine.Game.Engines;
 using VisualPinball.Engine.Math;
 using Color = UnityEngine.Color;
+using NLog;
 using Logger = NLog.Logger;
+
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
 
 namespace VisualPinball.Unity
 {
@@ -51,10 +57,14 @@ namespace VisualPinball.Unity
 		internal Dictionary<string, float> LampStatuses { get; } = new Dictionary<string, float>();
 		internal void RegisterLamp(ILampDeviceComponent component, IApiLamp lampApi) => _lamps[component] = lampApi;
 
+		private bool _updateDuringGameplay = false;
+		
 		public void Awake(TableComponent tableComponent, IGamelogicEngine gamelogicEngine)
 		{
 			_tableComponent = tableComponent;
 			_gamelogicEngine = gamelogicEngine;
+
+			_updateDuringGameplay = UnityEngine.Object.FindObjectOfType<Player>().UpdateDuringGamplay;
 		}
 
 		public void OnStart()
@@ -130,11 +140,13 @@ namespace VisualPinball.Unity
 
 						lamp.OnLamp(value, channel);
 						LampStatuses[lampEvent.Id] = value;
-
 					}
 				}
+
 #if UNITY_EDITOR
-				UnityEditorInternal.InternalEditorUtility.RepaintAllViews();
+				if (_updateDuringGameplay) {
+					RepaintManagers();
+				}
 #endif
 			}
 		}
@@ -208,5 +220,14 @@ namespace VisualPinball.Unity
 		{
 			HandleLampEvent(lampEvent);
 		}
+
+#if UNITY_EDITOR
+		private void RepaintManagers()
+		{
+			foreach (var manager in (EditorWindow[])Resources.FindObjectsOfTypeAll(Type.GetType("VisualPinball.Unity.Editor.LampManager, VisualPinball.Unity.Editor"))) {
+				manager.Repaint();
+			}
+		}
+#endif
 	}
 }

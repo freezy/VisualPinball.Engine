@@ -14,9 +14,17 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
+using UnityEngine;
 using NLog;
+using Logger = NLog.Logger;
+
+#if UNITY_EDITOR
+using UnityEditor;
+
+#endif
 
 namespace VisualPinball.Unity
 {
@@ -37,6 +45,8 @@ namespace VisualPinball.Unity
 		private LampPlayer _lampPlayer;
 		private WirePlayer _wirePlayer;
 
+		private bool _updateDuringGameplay = false;
+
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
 		internal Dictionary<string, bool> CoilStatuses { get; } = new Dictionary<string, bool>();
@@ -51,6 +61,8 @@ namespace VisualPinball.Unity
 			_gamelogicEngine = gamelogicEngine;
 			_lampPlayer = lampPlayer;
 			_wirePlayer = wirePlayer;
+
+			_updateDuringGameplay = UnityEngine.Object.FindObjectOfType<Player>().UpdateDuringGamplay;
 		}
 
 		public void OnStart()
@@ -152,7 +164,9 @@ namespace VisualPinball.Unity
 				}
 
 #if UNITY_EDITOR
-				UnityEditorInternal.InternalEditorUtility.RepaintAllViews();
+				if (_updateDuringGameplay) {
+					RepaintManagers();
+				}
 #endif
 
 			} else {
@@ -166,6 +180,15 @@ namespace VisualPinball.Unity
 				_gamelogicEngine.OnCoilChanged -= HandleCoilEvent;
 			}
 		}
+
+#if UNITY_EDITOR
+		private void RepaintManagers()
+		{
+			foreach (var manager in (EditorWindow[])Resources.FindObjectsOfTypeAll(Type.GetType("VisualPinball.Unity.Editor.CoilManager, VisualPinball.Unity.Editor"))) {
+				manager.Repaint();
+			}
+		}
+#endif
 	}
 
 	internal class CoilDestConfig

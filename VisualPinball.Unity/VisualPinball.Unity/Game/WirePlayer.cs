@@ -17,11 +17,15 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using NLog;
 using Unity.Entities;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using NLog;
 using Logger = NLog.Logger;
+
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
 
 namespace VisualPinball.Unity
 {
@@ -282,7 +286,7 @@ namespace VisualPinball.Unity
 									}
 								}
 								#if UNITY_EDITOR
-									UnityEditorInternal.InternalEditorUtility.RepaintAllViews();
+									//UnityEditorInternal.InternalEditorUtility.RepaintAllViews();
 								#endif
 							} else {
 								Logger.Warn($"Unknown wire \"{wireConfig.DeviceItem}\" in wire device \"{wireConfig.Device}\".");
@@ -310,7 +314,7 @@ namespace VisualPinball.Unity
 								wire.OnChange(false);
 								WireStatuses[wireConfig.Id] = (false, 0);
 								#if UNITY_EDITOR
-									UnityEditorInternal.InternalEditorUtility.RepaintAllViews();
+									//UnityEditorInternal.InternalEditorUtility.RepaintAllViews();
 								#endif
 							});
 						}
@@ -328,7 +332,7 @@ namespace VisualPinball.Unity
 									wire.OnChange(false);
 									WireStatuses[wireConfig.Id] = (false, -2);
 									#if UNITY_EDITOR
-										UnityEditorInternal.InternalEditorUtility.RepaintAllViews();
+										//UnityEditorInternal.InternalEditorUtility.RepaintAllViews();
 									#endif
 								});
 							}
@@ -338,7 +342,7 @@ namespace VisualPinball.Unity
 						}
 					}
 					#if UNITY_EDITOR
-						UnityEditorInternal.InternalEditorUtility.RepaintAllViews();
+						//UnityEditorInternal.InternalEditorUtility.RepaintAllViews();
 					#endif
 				}
 
@@ -388,9 +392,11 @@ namespace VisualPinball.Unity
 							WireStatuses[wireConfig.Id] = (isEnabled, lagSec);
 						}
 
-						#if UNITY_EDITOR
-							UnityEditorInternal.InternalEditorUtility.RepaintAllViews();
-						#endif
+#if UNITY_EDITOR
+						if (_player.UpdateDuringGamplay) {
+							repaintManagers();
+						}
+#endif
 
 					} else {
 						// so we got a coil with no or too old switch in the queue. we assume this comes from the GLE
@@ -423,6 +429,16 @@ namespace VisualPinball.Unity
 		}
 
 		#endregion
+
+#if UNITY_EDITOR
+		private void repaintManagers()
+		{
+			foreach (var manager in (EditorWindow[])Resources.FindObjectsOfTypeAll(Type.GetType("VisualPinball.Unity.Editor.WireManager, VisualPinball.Unity.Editor")))
+			{
+				manager.Repaint();
+			}
+		}
+#endif
 	}
 
 	public class WireDestConfig
