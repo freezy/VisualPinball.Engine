@@ -5,6 +5,10 @@ using Unity.Entities;
 using UnityEngine;
 using Logger = NLog.Logger;
 
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
+
 namespace VisualPinball.Unity
 {
 	/// <summary>
@@ -115,7 +119,9 @@ namespace VisualPinball.Unity
 								IsEnabled = false;
 								_switchStatuses[switchConfig.SwitchId].IsSwitchEnabled = false;
 #if UNITY_EDITOR
-								UnityEditorInternal.InternalEditorUtility.RepaintAllViews();
+								if (_player.UpdateDuringGamplay) {
+									RepaintManagers();
+								}
 #endif
 							});
 					}
@@ -133,7 +139,9 @@ namespace VisualPinball.Unity
 			IsEnabled = enabled;
 
 #if UNITY_EDITOR
-			UnityEditorInternal.InternalEditorUtility.RepaintAllViews();
+			if (_player.UpdateDuringGamplay) {
+				RepaintManagers();
+			}
 #endif
 		}
 
@@ -168,12 +176,25 @@ namespace VisualPinball.Unity
 				Debug.Log($"Setting scheduled switch {Name} to {enabled}.");
 				IsEnabled = enabled;
 
-#if UNITY_EDITOR
-				UnityEditorInternal.InternalEditorUtility.RepaintAllViews();
-#endif
 				onSwitched.Invoke(enabled);
+
+#if UNITY_EDITOR
+				if (_player.UpdateDuringGamplay) {
+					RepaintManagers();
+				}
+#endif
 			});
 		}
+
+#if UNITY_EDITOR
+		private void RepaintManagers()
+		{
+			foreach (var manager in (EditorWindow[])Resources.FindObjectsOfTypeAll(Type.GetType("VisualPinball.Unity.Editor.SwitchManager, VisualPinball.Unity.Editor")))
+			{
+				manager.Repaint();
+			}
+		}
+#endif
 	}
 
 	internal class ItemSwitchStatus : IApiSwitchStatus

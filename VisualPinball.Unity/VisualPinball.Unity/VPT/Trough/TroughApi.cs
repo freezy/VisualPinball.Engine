@@ -16,11 +16,12 @@
 
 using System;
 using System.Collections.Generic;
-using NLog;
 using UnityEngine;
 using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Trough;
+using NLog;
 using Logger = NLog.Logger;
+using UnityEditor;
 
 namespace VisualPinball.Unity
 {
@@ -316,8 +317,9 @@ namespace VisualPinball.Unity
 				default:
 					throw new ArgumentOutOfRangeException();
 			}
-
-			RefreshUI();
+#if UNITY_EDITOR
+			RefreshEditor();
+#endif
 		}
 
 		/// <summary>
@@ -357,7 +359,9 @@ namespace VisualPinball.Unity
 				default:
 					throw new ArgumentOutOfRangeException();
 			}
-			RefreshUI();
+#if UNITY_EDITOR
+			RefreshEditor();
+#endif
 		}
 
 		private void DrainNextUncountedBall()
@@ -487,7 +491,9 @@ namespace VisualPinball.Unity
 				TriggerJamSwitch();
 				RollOverStackBalls();
 				RollOverNextUncountedStackBall();
-				RefreshUI();
+#if UNITY_EDITOR
+				RefreshEditor();
+#endif
 				return true;
 			}
 
@@ -554,10 +560,14 @@ namespace VisualPinball.Unity
 		private void OnLastStackSwitch(object sender, SwitchEventArgs switchEventArgs)
 		{
 			if (!switchEventArgs.IsEnabled && UncountedStackBalls > 0) {
-				RefreshUI();
+#if UNITY_EDITOR
+				RefreshEditor();
+#endif
 				UncountedStackBalls--;
 				RollOverEntryBall(MainComponent.RollTime / 2);
-				RefreshUI();
+#if UNITY_EDITOR
+				RefreshEditor();
+#endif
 			}
 		}
 
@@ -587,12 +597,14 @@ namespace VisualPinball.Unity
 			UncountedStackBalls--;
 		}
 
-		private static void RefreshUI()
-		{
 #if UNITY_EDITOR
-			UnityEditorInternal.InternalEditorUtility.RepaintAllViews();
-#endif
+		private static void RefreshEditor()
+		{
+			foreach (var editor in (UnityEditor.Editor[])Resources.FindObjectsOfTypeAll(Type.GetType("VisualPinball.Unity.Editor.TroughInspector, VisualPinball.Unity.Editor"))) {
+				editor.Repaint();
+			}
 		}
+#endif
 
 		#region Wiring
 

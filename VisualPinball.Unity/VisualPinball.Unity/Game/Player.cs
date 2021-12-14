@@ -51,6 +51,9 @@ namespace VisualPinball.Unity
 		[HideInInspector] [SerializeField] public string debugUiId;
 		[HideInInspector] [SerializeField] public string physicsEngineId;
 
+		[Tooltip("UpdateDuringGamplay")]
+		public bool UpdateDuringGamplay = true;
+
 		// table related
 		private readonly List<IApi> _apis = new List<IApi>();
 		private readonly List<IApiColliderGenerator> _colliderGenerators = new List<IApiColliderGenerator>();

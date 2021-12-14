@@ -16,6 +16,7 @@
 
 using System.Linq;
 using UnityEditor;
+using UnityEngine;
 using VisualPinball.Engine.Common;
 
 namespace VisualPinball.Unity.Editor
@@ -32,6 +33,17 @@ namespace VisualPinball.Unity.Editor
 		private string[] _debugUINames;
 		private int _debugUIIndex;
 
+		private bool _toggleDebug = true;
+
+		private SerializedProperty _updateDuringGameplayProperty;
+
+		private void OnEnable()
+		{
+			var player = (Player)target;
+
+			_updateDuringGameplayProperty = serializedObject.FindProperty(nameof(player.UpdateDuringGamplay));
+		}
+		
 		public override void OnInspectorGUI()
 		{
 			var player = (Player) target;
@@ -40,6 +52,24 @@ namespace VisualPinball.Unity.Editor
 			}
 			DrawEngineSelector("Physics Engine", ref player.physicsEngineId, ref _physicsEngines, ref _physicsEngineNames, ref _physicsEngineIndex);
 			DrawEngineSelector("Debug UI", ref player.debugUiId, ref _debugUIs, ref _debugUINames, ref _debugUIIndex);
+
+			if (_toggleDebug = EditorGUILayout.BeginFoldoutHeaderGroup(_toggleDebug, "Debug"))
+			{
+				EditorGUI.indentLevel++;
+
+				EditorGUI.BeginChangeCheck();
+
+				EditorGUILayout.PropertyField(_updateDuringGameplayProperty, new GUIContent("Update During Gameplay"));
+
+				if (EditorGUI.EndChangeCheck())
+				{
+					serializedObject.ApplyModifiedProperties();
+				}
+
+				EditorGUI.indentLevel--;
+			}
+
+			EditorGUILayout.EndFoldoutHeaderGroup();
 		}
 
 		private void DrawEngineSelector<T>(string engineName, ref string engineId, ref T[] instances, ref string[] names, ref int index) where T : IEngine

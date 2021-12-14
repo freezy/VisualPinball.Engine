@@ -15,9 +15,9 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using System.Collections.Generic;
-using System.Linq;
-using NLog;
 using UnityEngine.InputSystem;
+using NLog;
+using Logger = NLog.Logger;
 
 namespace VisualPinball.Unity
 {
