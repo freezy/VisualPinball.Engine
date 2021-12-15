@@ -80,10 +80,10 @@ namespace VisualPinball.Unity
 
 					AssignLampMapping(lampMapping);
 
-					// turn all lamps off (or on if SingleOffOn)
+					// turn it off
 
 					if (_lamps.ContainsKey(lampMapping.Device)) {
-						_lamps[lampMapping.Device].OnLamp(lampMapping.Type != LampType.SingleOffOn ? 1f : 0f, ColorChannel.Alpha);
+						_lamps[lampMapping.Device].OnLamp(0f, ColorChannel.Alpha);
 					}
 				}
 
@@ -125,10 +125,6 @@ namespace VisualPinball.Unity
 
 							case LampType.SingleFading:
 								value = lampEvent.Value / (float)mapping.FadingSteps;
-								break;
-
-							case LampType.SingleOffOn:
-								value = lampEvent.Value > 0 ? 0f : 1f;
 								break;
 
 							default:

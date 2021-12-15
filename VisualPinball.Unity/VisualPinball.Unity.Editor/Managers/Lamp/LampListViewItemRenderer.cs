@@ -102,12 +102,7 @@ namespace VisualPinball.Unity.Editor
 			lamp?.OnChange(pressedDown);
 			if (player.LampStatuses.ContainsKey(data.Id)) {
 
-				if (data.Type != LampType.SingleOffOn) {
-					player.LampStatuses[data.Id] = pressedDown ? 1 : 0;
-				}
-				else {
-					player.LampStatuses[data.Id] = pressedDown ? 0 : 1;
-				}
+				player.LampStatuses[data.Id] = pressedDown ? 1 : 0;
 			}
 		}
 
