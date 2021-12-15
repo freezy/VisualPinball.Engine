@@ -79,8 +79,8 @@ namespace VisualPinball.Unity
 			base.OnInit(ballManager);
 			Init?.Invoke(this, EventArgs.Empty);
 
-			PullCoil = new DeviceCoil(PullBack, Fire);
-			FireCoil = new DeviceCoil(Fire);
+			PullCoil = new DeviceCoil(Player, PullBack, Fire);
+			FireCoil = new DeviceCoil(Player, Fire);
 		}
 
 		void IApi.OnDestroy()

@@ -81,8 +81,8 @@ namespace VisualPinball.Unity
 			base.OnInit(ballManager);
 			Init?.Invoke(this, EventArgs.Empty);
 
-			_mainCoil = new DeviceCoil(OnMainCoilEnabled, OnMainCoilDisabled);
-			_holdCoil = new DeviceCoil(OnHoldCoilEnabled, OnHoldCoilDisabled);
+			_mainCoil = new DeviceCoil(Player, OnMainCoilEnabled, OnMainCoilDisabled);
+			_holdCoil = new DeviceCoil(Player, OnHoldCoilEnabled, OnHoldCoilDisabled);
 		}
 
 		void IApi.OnDestroy()

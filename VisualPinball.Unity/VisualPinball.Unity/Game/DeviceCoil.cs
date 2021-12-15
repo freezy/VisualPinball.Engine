@@ -26,10 +26,11 @@ namespace VisualPinball.Unity
 		protected Action OnEnable;
 		protected Action OnDisable;
 
-		private Player _player;
+		private readonly Player _player;
 
-		public DeviceCoil(Action onEnable = null, Action onDisable = null)
+		public DeviceCoil(Player player, Action onEnable = null, Action onDisable = null)
 		{
+			_player = player;
 			OnEnable = onEnable;
 			OnDisable = onDisable;
 		}
@@ -52,10 +53,6 @@ namespace VisualPinball.Unity
 #if UNITY_EDITOR
 		private void RefreshUI()
 		{
-			if (_player == null) {
-				_player = UnityEngine.Object.FindObjectOfType<Player>();
-			}
-
 			if (!_player.UpdateDuringGamplay) {
 				return;
 			}

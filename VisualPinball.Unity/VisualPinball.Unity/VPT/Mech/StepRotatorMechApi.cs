@@ -59,7 +59,7 @@ namespace VisualPinball.Unity
 			_currentStep = 0;
 			_direction = Direction.Forward;
 
-			_motorCoil = new DeviceCoil(OnMotorCoilEnabled, OnMotorCoilDisabled);
+			_motorCoil = new DeviceCoil(_player, OnMotorCoilEnabled, OnMotorCoilDisabled);
 
 			_marks = _component.Marks.ToDictionary(m => m.SwitchId, m => m);
 			_switches = _component.Marks.ToDictionary(m => m.SwitchId, m => new DeviceSwitch(m.SwitchId, false, SwitchDefault.NormallyOpen, _player));
