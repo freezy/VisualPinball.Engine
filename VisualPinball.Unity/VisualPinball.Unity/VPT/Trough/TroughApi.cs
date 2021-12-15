@@ -216,8 +216,8 @@ namespace VisualPinball.Unity
 			}
 
 			// setup coils
-			EntryCoil = new DeviceCoil(OnEntryCoilEnabled);
-			ExitCoil = new DeviceCoil(() => EjectBall());
+			EntryCoil = new DeviceCoil(Player, OnEntryCoilEnabled);
+			ExitCoil = new DeviceCoil(Player, () => EjectBall());
 
 			// fill up the ball stack
 			var ballCount = MainComponent.Type == TroughType.ClassicSingleBall ? 1 : MainComponent.BallCount;
@@ -603,7 +603,7 @@ namespace VisualPinball.Unity
 			if (!Player.UpdateDuringGamplay) {
 				return;
 			}
-			
+
 			foreach (var editor in (UnityEditor.Editor[])Resources.FindObjectsOfTypeAll(Type.GetType("VisualPinball.Unity.Editor.TroughInspector, VisualPinball.Unity.Editor"))) {
 				editor.Repaint();
 			}

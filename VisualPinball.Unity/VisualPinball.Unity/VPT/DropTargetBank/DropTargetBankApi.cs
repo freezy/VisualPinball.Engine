@@ -11,9 +11,9 @@ namespace VisualPinball.Unity
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
 		private readonly DropTargetBankComponent _dropTargetBankComponent;
-		private Player _player;
+		private readonly Player _player;
 
-		private List<DropTargetApi> _dropTargetApis = new List<DropTargetApi>();
+		private readonly List<DropTargetApi> _dropTargetApis = new List<DropTargetApi>();
 		public DeviceCoil ResetCoil;
 
 		public event EventHandler Init;
@@ -37,8 +37,8 @@ namespace VisualPinball.Unity
 
 		void IApi.OnInit(BallManager ballManager)
 		{
-			ResetCoil = new DeviceCoil(OnResetCoilEnabled);
-			
+			ResetCoil = new DeviceCoil(_player, OnResetCoilEnabled);
+
 			for (var index = 0; index < _dropTargetBankComponent.BankSize; index++)
 			{
 				_dropTargetApis.Add(_player.TableApi.DropTarget(_dropTargetBankComponent.DropTargets[index]));

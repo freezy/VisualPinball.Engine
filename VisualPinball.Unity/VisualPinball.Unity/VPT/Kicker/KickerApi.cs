@@ -58,7 +58,7 @@ namespace VisualPinball.Unity
 			: base(go, entity, parentEntity, player)
 		{
 			foreach (var coil in MainComponent.Coils) {
-				_coils[coil.Id] = new KickerDeviceCoil(coil, this);
+				_coils[coil.Id] = new KickerDeviceCoil(player, coil, this);
 			}
 		}
 
@@ -278,7 +278,7 @@ namespace VisualPinball.Unity
 		public readonly KickerCoil Coil;
 		private readonly KickerApi _kickerApi;
 
-		public KickerDeviceCoil(KickerCoil coil, KickerApi api)
+		public KickerDeviceCoil(Player player, KickerCoil coil, KickerApi api) : base(player)
 		{
 			Coil = coil;
 			_kickerApi = api;
