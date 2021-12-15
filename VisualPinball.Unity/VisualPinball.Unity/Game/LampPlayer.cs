@@ -46,9 +46,9 @@ namespace VisualPinball.Unity
 		/// </summary>
 		private readonly Dictionary<string, Dictionary<ILampDeviceComponent, LampMapping>> _lampMappings = new Dictionary<string, Dictionary<ILampDeviceComponent, LampMapping>>();
 
+		private Player _player;
 		private TableComponent _tableComponent;
 		private IGamelogicEngine _gamelogicEngine;
-		private Player _player;
 
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
@@ -57,15 +57,12 @@ namespace VisualPinball.Unity
 
 		internal Dictionary<string, float> LampStatuses { get; } = new Dictionary<string, float>();
 		internal void RegisterLamp(ILampDeviceComponent component, IApiLamp lampApi) => _lamps[component] = lampApi;
-
-		private bool _updateDuringGameplay = false;
 		
-		public void Awake(TableComponent tableComponent, IGamelogicEngine gamelogicEngine)
+		public void Awake(Player player, TableComponent tableComponent, IGamelogicEngine gamelogicEngine)
 		{
+			_player = player;
 			_tableComponent = tableComponent;
 			_gamelogicEngine = gamelogicEngine;
-
-			_player = UnityEngine.Object.FindObjectOfType<Player>();
 		}
 
 		public void OnStart()
