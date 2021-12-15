@@ -39,11 +39,11 @@ namespace VisualPinball.Unity
 
 		internal readonly GameObject GameObject;
 
-		private protected TableApi TableApi => _player.TableApi;
+		private protected TableApi TableApi => Player.TableApi;
 
 		internal VisualPinballSimulationSystemGroup SimulationSystemGroup => World.DefaultGameObjectInjectionWorld.GetOrCreateSystem<VisualPinballSimulationSystemGroup>();
 
-		private protected readonly Player _player;
+		private protected readonly Player Player;
 		private protected readonly SwitchHandler SwitchHandler;
 		private protected BallManager BallManager;
 		private protected TableComponent TableComponent;
@@ -52,7 +52,7 @@ namespace VisualPinball.Unity
 		{
 			GameObject = go;
 			MainComponent = go.GetComponent<TComponent>();
-			_player = player;
+			Player = player;
 			SwitchHandler = new SwitchHandler(Name, player);
 		}
 
@@ -64,7 +64,7 @@ namespace VisualPinball.Unity
 
 		#region IApiSwitchable
 
-		private protected DeviceSwitch CreateSwitch(string name, bool isPulseSwitch, SwitchDefault switchDefault = SwitchDefault.Configurable) => new DeviceSwitch(name, isPulseSwitch, switchDefault, _player);
+		private protected DeviceSwitch CreateSwitch(string name, bool isPulseSwitch, SwitchDefault switchDefault = SwitchDefault.Configurable) => new DeviceSwitch(name, isPulseSwitch, switchDefault, Player);
 
 		private protected IApiSwitchStatus AddSwitchDest(SwitchConfig switchConfig,IApiSwitchStatus switchStatus) => SwitchHandler.AddSwitchDest(switchConfig, switchStatus);
 

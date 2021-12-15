@@ -39,11 +39,11 @@ namespace VisualPinball.Unity
 		/// </summary>
 		private readonly Dictionary<string, List<CoilDestConfig>> _coilAssignments = new Dictionary<string, List<CoilDestConfig>>();
 
+		private Player _player;
 		private TableComponent _tableComponent;
 		private IGamelogicEngine _gamelogicEngine;
 		private LampPlayer _lampPlayer;
 		private WirePlayer _wirePlayer;
-		private Player _player;
 
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
@@ -53,14 +53,13 @@ namespace VisualPinball.Unity
 		internal IApiCoil Coil(ICoilDeviceComponent component, string coilItem)
 			=> _coilDevices.ContainsKey(component) ? _coilDevices[component].Coil(coilItem) : null;
 
-		public void Awake(TableComponent tableComponent, IGamelogicEngine gamelogicEngine, LampPlayer lampPlayer, WirePlayer wirePlayer)
+		public void Awake(Player player, TableComponent tableComponent, IGamelogicEngine gamelogicEngine, LampPlayer lampPlayer, WirePlayer wirePlayer)
 		{
+			_player = player;
 			_tableComponent = tableComponent;
 			_gamelogicEngine = gamelogicEngine;
 			_lampPlayer = lampPlayer;
 			_wirePlayer = wirePlayer;
-
-			_player = UnityEngine.Object.FindObjectOfType<Player>();
 		}
 
 		public void OnStart()

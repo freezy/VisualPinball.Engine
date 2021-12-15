@@ -134,8 +134,8 @@ namespace VisualPinball.Unity
 
 			if (engineComponent != null) {
 				GamelogicEngine = engineComponent;
-				_lampPlayer.Awake(_tableComponent, GamelogicEngine);
-				_coilPlayer.Awake(_tableComponent, GamelogicEngine, _lampPlayer, _wirePlayer);
+				_lampPlayer.Awake(this, _tableComponent, GamelogicEngine);
+				_coilPlayer.Awake(this, _tableComponent, GamelogicEngine, _lampPlayer, _wirePlayer);
 				_switchPlayer.Awake(_tableComponent, GamelogicEngine, _inputManager);
 				_wirePlayer.Awake(_tableComponent, _inputManager, _switchPlayer, this);
 				_displayPlayer.Awake(GamelogicEngine);
