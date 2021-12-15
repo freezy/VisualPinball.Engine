@@ -23,7 +23,6 @@ using Logger = NLog.Logger;
 
 #if UNITY_EDITOR
 using UnityEditor;
-
 #endif
 
 namespace VisualPinball.Unity
@@ -45,8 +44,6 @@ namespace VisualPinball.Unity
 		private LampPlayer _lampPlayer;
 		private WirePlayer _wirePlayer;
 		private Player _player;
-
-		private bool _updateDuringGameplay = false;
 
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
