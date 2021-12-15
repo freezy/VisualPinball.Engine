@@ -106,6 +106,5 @@ namespace VisualPinball.Engine.Game.Engines
 		SingleFading = 1,
 		RgbMulti = 2,
 		Rgb = 3,
-		SingleOffOn = 4,
 	}
 }
