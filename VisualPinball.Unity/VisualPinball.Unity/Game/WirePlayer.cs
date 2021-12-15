@@ -285,10 +285,11 @@ namespace VisualPinball.Unity
 										WireStatuses[wireConfig.Id] = (WireStatuses[wireConfig.Id].Item1, -1);
 									}
 								}
-								#if UNITY_EDITOR
-									//UnityEditorInternal.InternalEditorUtility.RepaintAllViews();
-								#endif
-							} else {
+#if UNITY_EDITOR
+								RefreshUI();
+#endif
+							}
+							else {
 								Logger.Warn($"Unknown wire \"{wireConfig.DeviceItem}\" in wire device \"{wireConfig.Device}\".");
 							}
 						}
@@ -313,9 +314,9 @@ namespace VisualPinball.Unity
 							SimulationSystemGroup.ScheduleAction(wireConfig.PulseDelay, () => {
 								wire.OnChange(false);
 								WireStatuses[wireConfig.Id] = (false, 0);
-								#if UNITY_EDITOR
-									//UnityEditorInternal.InternalEditorUtility.RepaintAllViews();
-								#endif
+#if UNITY_EDITOR
+								RefreshUI();
+#endif
 							});
 						}
 
@@ -331,9 +332,9 @@ namespace VisualPinball.Unity
 								SimulationSystemGroup.ScheduleAction(wireConfig.PulseDelay, () => {
 									wire.OnChange(false);
 									WireStatuses[wireConfig.Id] = (false, -2);
-									#if UNITY_EDITOR
-										//UnityEditorInternal.InternalEditorUtility.RepaintAllViews();
-									#endif
+#if UNITY_EDITOR
+									RefreshUI();
+#endif
 								});
 							}
 
@@ -341,9 +342,10 @@ namespace VisualPinball.Unity
 							WireStatuses[wireConfig.Id] = (WireStatuses[wireConfig.Id].Item1, -1);
 						}
 					}
-					#if UNITY_EDITOR
-						//UnityEditorInternal.InternalEditorUtility.RepaintAllViews();
-					#endif
+
+#if UNITY_EDITOR
+					RefreshUI();
+#endif
 				}
 
 			} else {
@@ -393,9 +395,7 @@ namespace VisualPinball.Unity
 						}
 
 #if UNITY_EDITOR
-						if (_player.UpdateDuringGamplay) {
-							repaintManagers();
-						}
+						RefreshUI();
 #endif
 
 					} else {
@@ -431,8 +431,12 @@ namespace VisualPinball.Unity
 		#endregion
 
 #if UNITY_EDITOR
-		private void repaintManagers()
+		private void RefreshUI()
 		{
+			if (!_player.UpdateDuringGamplay) {
+				return;
+			}
+
 			foreach (var manager in (EditorWindow[])Resources.FindObjectsOfTypeAll(Type.GetType("VisualPinball.Unity.Editor.WireManager, VisualPinball.Unity.Editor")))
 			{
 				manager.Repaint();

@@ -51,7 +51,7 @@ namespace VisualPinball.Unity
 		[HideInInspector] [SerializeField] public string debugUiId;
 		[HideInInspector] [SerializeField] public string physicsEngineId;
 
-		[Tooltip("UpdateDuringGamplay")]
+		[Tooltip("When enabled, update the switch, coil, lamp and wire manager windows in the editor (slower performance)")]
 		public bool UpdateDuringGamplay = true;
 
 		// table related

@@ -44,6 +44,7 @@ namespace VisualPinball.Unity
 		private IGamelogicEngine _gamelogicEngine;
 		private LampPlayer _lampPlayer;
 		private WirePlayer _wirePlayer;
+		private Player _player;
 
 		private bool _updateDuringGameplay = false;
 
@@ -62,7 +63,7 @@ namespace VisualPinball.Unity
 			_lampPlayer = lampPlayer;
 			_wirePlayer = wirePlayer;
 
-			_updateDuringGameplay = UnityEngine.Object.FindObjectOfType<Player>().UpdateDuringGamplay;
+			_player = UnityEngine.Object.FindObjectOfType<Player>();
 		}
 
 		public void OnStart()
@@ -164,9 +165,7 @@ namespace VisualPinball.Unity
 				}
 
 #if UNITY_EDITOR
-				if (_updateDuringGameplay) {
-					RepaintManagers();
-				}
+				RefreshUI();
 #endif
 
 			} else {
@@ -182,8 +181,12 @@ namespace VisualPinball.Unity
 		}
 
 #if UNITY_EDITOR
-		private void RepaintManagers()
+		private void RefreshUI()
 		{
+			if (!_player.UpdateDuringGamplay) {
+				return;
+			}
+
 			foreach (var manager in (EditorWindow[])Resources.FindObjectsOfTypeAll(Type.GetType("VisualPinball.Unity.Editor.CoilManager, VisualPinball.Unity.Editor"))) {
 				manager.Repaint();
 			}

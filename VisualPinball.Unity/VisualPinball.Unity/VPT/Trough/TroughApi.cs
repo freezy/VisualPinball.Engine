@@ -318,7 +318,7 @@ namespace VisualPinball.Unity
 					throw new ArgumentOutOfRangeException();
 			}
 #if UNITY_EDITOR
-			RefreshEditor();
+			RefreshUI();
 #endif
 		}
 
@@ -360,7 +360,7 @@ namespace VisualPinball.Unity
 					throw new ArgumentOutOfRangeException();
 			}
 #if UNITY_EDITOR
-			RefreshEditor();
+			RefreshUI();
 #endif
 		}
 
@@ -492,7 +492,7 @@ namespace VisualPinball.Unity
 				RollOverStackBalls();
 				RollOverNextUncountedStackBall();
 #if UNITY_EDITOR
-				RefreshEditor();
+				RefreshUI();
 #endif
 				return true;
 			}
@@ -561,12 +561,12 @@ namespace VisualPinball.Unity
 		{
 			if (!switchEventArgs.IsEnabled && UncountedStackBalls > 0) {
 #if UNITY_EDITOR
-				RefreshEditor();
+				RefreshUI();
 #endif
 				UncountedStackBalls--;
 				RollOverEntryBall(MainComponent.RollTime / 2);
 #if UNITY_EDITOR
-				RefreshEditor();
+				RefreshUI();
 #endif
 			}
 		}
@@ -598,8 +598,12 @@ namespace VisualPinball.Unity
 		}
 
 #if UNITY_EDITOR
-		private static void RefreshEditor()
+		private void RefreshUI()
 		{
+			if (!_player.UpdateDuringGamplay) {
+				return;
+			}
+			
 			foreach (var editor in (UnityEditor.Editor[])Resources.FindObjectsOfTypeAll(Type.GetType("VisualPinball.Unity.Editor.TroughInspector, VisualPinball.Unity.Editor"))) {
 				editor.Repaint();
 			}

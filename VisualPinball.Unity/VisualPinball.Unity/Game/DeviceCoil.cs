@@ -21,6 +21,8 @@ namespace VisualPinball.Unity
 {
 	public class DeviceCoil : IApiCoil
 	{
+		private Player _player;
+
 		public bool IsEnabled;
 
 		protected Action OnEnable;
@@ -44,17 +46,24 @@ namespace VisualPinball.Unity
 				OnDisable?.Invoke();
 			}
 #if UNITY_EDITOR
-			RefreshEditor();
+			RefreshUI();
 #endif
 		}
 
 		public void OnChange(bool enabled) => OnCoil(enabled);
 
 #if UNITY_EDITOR
-		private static void RefreshEditor()
+		private void RefreshUI()
 		{
-			foreach (var editor in (UnityEditor.Editor[])Resources.FindObjectsOfTypeAll(Type.GetType("VisualPinball.Unity.Editor.TroughInspector, VisualPinball.Unity.Editor")))
-			{
+			if (_player == null) {
+				_player = UnityEngine.Object.FindObjectOfType<Player>();
+			}
+
+			if (!_player.UpdateDuringGamplay) {
+				return;
+			}
+
+			foreach (var editor in (UnityEditor.Editor[])Resources.FindObjectsOfTypeAll(Type.GetType("VisualPinball.Unity.Editor.TroughInspector, VisualPinball.Unity.Editor"))) {
 				editor.Repaint();
 			}
 		}
