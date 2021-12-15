@@ -43,7 +43,7 @@ namespace VisualPinball.Unity
 
 		internal VisualPinballSimulationSystemGroup SimulationSystemGroup => World.DefaultGameObjectInjectionWorld.GetOrCreateSystem<VisualPinballSimulationSystemGroup>();
 
-		private readonly Player _player;
+		private protected readonly Player _player;
 		private protected readonly SwitchHandler SwitchHandler;
 		private protected BallManager BallManager;
 		private protected TableComponent TableComponent;

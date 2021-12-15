@@ -119,9 +119,7 @@ namespace VisualPinball.Unity
 								IsEnabled = false;
 								_switchStatuses[switchConfig.SwitchId].IsSwitchEnabled = false;
 #if UNITY_EDITOR
-								if (_player.UpdateDuringGamplay) {
-									RepaintManagers();
-								}
+								RefreshUI();
 #endif
 							});
 					}
@@ -139,9 +137,7 @@ namespace VisualPinball.Unity
 			IsEnabled = enabled;
 
 #if UNITY_EDITOR
-			if (_player.UpdateDuringGamplay) {
-				RepaintManagers();
-			}
+			RefreshUI();
 #endif
 		}
 
@@ -179,18 +175,19 @@ namespace VisualPinball.Unity
 				onSwitched.Invoke(enabled);
 
 #if UNITY_EDITOR
-				if (_player.UpdateDuringGamplay) {
-					RepaintManagers();
-				}
+				RefreshUI();
 #endif
 			});
 		}
 
 #if UNITY_EDITOR
-		private void RepaintManagers()
+		private void RefreshUI()
 		{
-			foreach (var manager in (EditorWindow[])Resources.FindObjectsOfTypeAll(Type.GetType("VisualPinball.Unity.Editor.SwitchManager, VisualPinball.Unity.Editor")))
-			{
+			if (!_player.UpdateDuringGamplay) {
+				return;
+			}
+
+			foreach (var manager in (EditorWindow[])Resources.FindObjectsOfTypeAll(Type.GetType("VisualPinball.Unity.Editor.SwitchManager, VisualPinball.Unity.Editor"))) {
 				manager.Repaint();
 			}
 		}

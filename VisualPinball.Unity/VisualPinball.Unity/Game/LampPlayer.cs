@@ -48,6 +48,7 @@ namespace VisualPinball.Unity
 
 		private TableComponent _tableComponent;
 		private IGamelogicEngine _gamelogicEngine;
+		private Player _player;
 
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
@@ -64,7 +65,7 @@ namespace VisualPinball.Unity
 			_tableComponent = tableComponent;
 			_gamelogicEngine = gamelogicEngine;
 
-			_updateDuringGameplay = UnityEngine.Object.FindObjectOfType<Player>().UpdateDuringGamplay;
+			_player = UnityEngine.Object.FindObjectOfType<Player>();
 		}
 
 		public void OnStart()
@@ -144,9 +145,7 @@ namespace VisualPinball.Unity
 				}
 
 #if UNITY_EDITOR
-				if (_updateDuringGameplay) {
-					RepaintManagers();
-				}
+				RefreshUI();
 #endif
 			}
 		}
@@ -222,8 +221,12 @@ namespace VisualPinball.Unity
 		}
 
 #if UNITY_EDITOR
-		private void RepaintManagers()
+		private void RefreshUI()
 		{
+			if (!_player.UpdateDuringGamplay) {
+				return;
+			}
+
 			foreach (var manager in (EditorWindow[])Resources.FindObjectsOfTypeAll(Type.GetType("VisualPinball.Unity.Editor.LampManager, VisualPinball.Unity.Editor"))) {
 				manager.Repaint();
 			}
