@@ -21,12 +21,12 @@ namespace VisualPinball.Unity
 {
 	public class DeviceCoil : IApiCoil
 	{
-		private Player _player;
-
 		public bool IsEnabled;
 
 		protected Action OnEnable;
 		protected Action OnDisable;
+
+		private Player _player;
 
 		public DeviceCoil(Action onEnable = null, Action onDisable = null)
 		{
@@ -37,12 +37,9 @@ namespace VisualPinball.Unity
 		public void OnCoil(bool enabled)
 		{
 			IsEnabled = enabled;
-			if (enabled)
-			{
+			if (enabled) {
 				OnEnable?.Invoke();
-			}
-			else
-			{
+			} else {
 				OnDisable?.Invoke();
 			}
 #if UNITY_EDITOR
