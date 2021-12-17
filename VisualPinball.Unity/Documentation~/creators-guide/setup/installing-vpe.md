@@ -10,7 +10,7 @@ In order to start creating or modifying tables with VPE, the first thing you'll 
 > [!NOTE]
 > As long as you don't use Unity for a game that makes $100K or more in revenue or funding a year, the free [Personal](https://store.unity.com/compare-plans) plan is sufficient for you.
 
-Unity uses an application called *Unity Hub* to update itself and provide quick access to your projects. The install process is straight-forward and documented [here](https://docs.unity3d.com/Manual/GettingStartedInstallingHub.html) if you run into troubles.
+Unity uses an application called *Unity Hub* to update itself, create new projects and provide quick access to them. Choose version 3 Beta or newer as we need it for later. The install process is straight-forward and documented [here](https://docs.unity3d.com/Manual/GettingStartedInstallingHub.html) if you run into troubles.
 
 When installing Unity, use the latest **2021.2** version. You can leave all the other options unchecked.
 
@@ -38,7 +38,7 @@ Once the editor has opened you can click away the HDRP Wizard that opens. You sh
 
 Click on *File -> New Scene* and select the *Basic Indoors (HDRP)* template. Save it in your *Assets/Scenes* folder as `TestTable.unity`.
 
-In this base scene there's a plane that will [Z-fight](https://en.wikipedia.org/wiki/Z-fighting) with our imported table later. Select it in the *Hierarchy* and move it down a little by setting the *Y Position* under *Transform* in the *Inspector* to `-0.1`. Your scene should now look like this:
+In this base scene there's a *Plane* that will [Z-fight](https://en.wikipedia.org/wiki/Z-fighting) with our imported table later. Select it in the *Hierarchy* ( left by default) and move it down a little by setting the *Y Position* under *Transform* in the *Inspector* (right by default) to `-0.1`. Your scene should now look like this:
 
 ![TestTable Scene](unity-hdrp-test-scene.png)
 
