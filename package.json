@@ -3,16 +3,15 @@
   "version": "0.0.1-preview.83",
   "displayName": "Visual Pinball Engine",
   "description": "Main project of the Visual Pinball Engine.",
-  "unity": "2020.3",
-  "unityRelease": "12f1",
+  "unity": "2021.2",
+  "unityRelease": "7f1",
   "dependencies": {
-    "com.unity.burst": "1.4.4",
-    "com.unity.collections": "0.15.0-preview.21",
-    "com.unity.entities": "0.17.0-preview.41",
+    "com.unity.burst": "1.6.3",
+    "com.unity.entities": "0.17.0-preview.42",
     "com.unity.jobs": "0.8.0-preview.23",
-    "com.unity.mathematics": "1.2.1",
-    "com.unity.inputsystem": "1.0.2",
-    "com.unity.test-framework": "1.1.22"
+    "com.unity.mathematics": "1.2.5",
+    "com.unity.inputsystem": "1.2.0",
+    "com.unity.test-framework": "1.1.30"
   },
   "keywords": [
     "Pinball",
