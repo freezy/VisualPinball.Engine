@@ -17,6 +17,7 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using Unity.VisualScripting;
 using VisualPinball.Engine.Game.Engines;
 using VisualPinball.Engine.Math;
 using Color = UnityEngine.Color;
@@ -132,10 +133,12 @@ namespace VisualPinball.Unity
 								break;
 						}
 
-						lamp.OnLamp(value, channel);
 						LampStatuses[lampEvent.Id] = value;
+						lamp.OnLamp(value, channel);
 					}
 				}
+
+				EventBus.Trigger(EventNames.LampEvent, lampEvent);
 
 #if UNITY_EDITOR
 				RefreshUI();
@@ -151,7 +154,6 @@ namespace VisualPinball.Unity
 				_gamelogicEngine.OnLampsChanged -= HandleLampsEvent;
 			}
 		}
-
 
 		private void AssignLampMapping(LampMapping lampMapping)
 		{

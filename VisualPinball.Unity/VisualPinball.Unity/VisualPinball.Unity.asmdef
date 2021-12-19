@@ -11,6 +11,7 @@
 		"Unity.Physics.Hybrid",
 		"Unity.Transforms",
 		"Unity.InputSystem",
+		"Unity.VisualScripting.Core",
 		"VisualPinball.Engine",
 		"VisualPinball.Resources"
 	],

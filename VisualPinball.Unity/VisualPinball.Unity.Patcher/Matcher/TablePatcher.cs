@@ -207,12 +207,16 @@ namespace VisualPinball.Unity.Patcher
 		/// <param name="names">A list of light names that are part of the light group.</param>
 		protected static LightGroupComponent AddLightGroup(GameObject tableGo, GameObject go, params string[] names)
 		{
-			var nameIndex = new HashSet<string>(names);
 			var lightComponentGroup = go.AddComponent<LightGroupComponent>();
-			var lights = tableGo
-				.GetComponentsInChildren<LightComponent>()
-				.Where(lc => nameIndex.Contains(lc.name));
-			lightComponentGroup.Lights = lights.ToArray();
+
+			var compIndex = tableGo.GetComponentsInChildren<LightComponent>()
+				.ToDictionary(lc => lc.name, lc => lc);
+			var lightComponents = names
+				.Where(n => compIndex.ContainsKey(n))
+				.Select(n => compIndex[n])
+				.ToArray();
+
+			lightComponentGroup.Lights = lightComponents;
 
 			return lightComponentGroup;
 		}

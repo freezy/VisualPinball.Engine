@@ -63,7 +63,7 @@ jobs:
       - uses: game-ci/unity-test-runner@main
         id: test
         with:
-          unityVersion: '2021.2.3f1'
+          unityVersion: '2021.2.7f1'
           projectPath: VisualPinball.Unity/VisualPinball.Unity.Test/TestProject~
           artifactsPath: VisualPinball.Unity/VisualPinball.Unity.Test/TestProject~/artifacts
           testMode: all

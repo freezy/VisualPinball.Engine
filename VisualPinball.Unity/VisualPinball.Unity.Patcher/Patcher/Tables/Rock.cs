@@ -98,7 +98,7 @@ namespace VisualPinball.Unity.Patcher
 			AddLightGroup(tableGo, CreateEmptyGameObject(lampGroups, "LampGroupAux"),
 				"AL1a", "AL1b", "AL2a", "AL2b", "AL3a", "AL3b", "AL4a", "AL4b",
 				"AL5a", "AL5b", "AL6a", "AL6b", "AL7a", "AL7b", "AL8a", "AL8b",
-				"AL9a", "AL10a");
+				"AL9a", "AL9a", "AL10a", "AL10a");
 		}
 
 		private static void SetupFlippers(GameObject playfieldGo)
