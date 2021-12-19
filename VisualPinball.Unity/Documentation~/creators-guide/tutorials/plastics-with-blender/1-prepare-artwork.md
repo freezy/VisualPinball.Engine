@@ -52,7 +52,11 @@ Your artboard should now look something like this:
 
 ![Joined artwork in Adobe Illustrator](illustrator-joined-artwork.png)
 
-Note the *Links* toolbox that shows the individual plastic files. Also note the pink outlines on the right, outside the artboard. These are plastics that don't have any artwork, i.e. blank, transparent pieces. We keep them here because we want to generate meshes as well, but don't need it in the texture. Also verify that the onlines of the textures are all hidden.
+Note the *Links* toolbox that shows the individual plastic files. Also note the pink surfaces on the right, outside the artboard. These are plastics that don't have any artwork, i.e. blank, transparent pieces. We keep them here because we want to generate meshes as well, but don't need it in the texture.
+
+> [!warning]
+> Verify that the outlines in the artboard are hidden. This is the version we'll create the texture with, and we don't want to leak the outlines onto the final texture.
+
 
 ## Step 3: Export Texture and Outlines
 
@@ -76,8 +80,13 @@ In order to do that, open all your artwork files, hide the actual artwork and on
 
 Your document should now look like this:
 
-![Plastic surfaces in Adobe Illustrator](illustrator-joined-artwork.png)
+![Plastic surfaces in Adobe Illustrator](illustrator-joined-surfaces.png)
 
-Click again on *File -> Export -> Export As...*, but this time, uncheck *Use Artboards* and select *SVG* as export format. Enter `Plastics.svg` as file name and click *Export*.
+Don't worry about the color, it just needs to be filled in any color. I'm using magenta because it gives a nice contrast to the rest of the artwork. 
 
-Under the export options **TODO**
+<img src="illustrator-export-svg.png" width="470" class="img-responsive pull-right" style="margin-left: 15px">
+
+
+Click on *File -> Save a Copy...*, enter `Plastics.svg` as file name, save as type *SVG* and make *Use Artboards* is unchecked this time. Click on *Save*. In the options panel, click on *More Options* and make sure all the options are disabled, like shown in the screenshot.
+
+You're now ready to [create the meshes](xref:plastics_with_blender_2).
