@@ -30,14 +30,18 @@ The T2 table we're using in this tutorial contains exclusively vector art, so we
 
 Note the pink outlines. They sit on a separate layer and can be easily toggled. They should contain drill holes for the screws as well, as they are visible due to the plastic being transparent and the ink actually sitting below the plastic.
 
+Since our first step is to create the texture, hide the outlines and save all of your files.
+
 > [!note]
 > If you're using pixel-based sources for the plastics, don't worry about the outlines just yet. ;)
 
 ## Step 2: Arrange Artwork
 
-Now we have one file per plastic, we'll place them into a single document that we can render out as a texture. For this, create a new, square document in Illustrator. Depending on the size and number of plastics you might want to change this later, but give it a width and height of 4096 pixels for now.
+Now we have one file per plastic, we'll place them into a single document that we can render out as a texture. For this, create a new, square document in Illustrator. Depending on the size and number of plastics you might want to change this later, but give it a width and height of 4096 pixels for now. Let's all it `Plastics.ai`.
 
-![Artwork in Adobe Illustrator](illustrator-new-document.png)
+![New Document](illustrator-new-document.png)
+
+Since we're creating the texture, we don't need the pink outlines. So before continueing, open all of your source files, hide them, and save them.
 
 As we might update our original files later, we won't copy and paste our plastics into this document, but *link them*. In order to do this, go to *File -> Place...* and select all your plastics. Then arrange them in a way so there's as little white space as possible remaining. 
 
@@ -48,13 +52,32 @@ Your artboard should now look something like this:
 
 ![Joined artwork in Adobe Illustrator](illustrator-joined-artwork.png)
 
-Note the *Links* toolbox that shows the individual plastic files. Also note the pink outlines on the right, outside the artboard. These are plastics that don't have any artwork, i.e. blank, transparent pieces. We keep them here because we want to generate meshes as well, but don't need it in the texture.
+Note the *Links* toolbox that shows the individual plastic files. Also note the pink outlines on the right, outside the artboard. These are plastics that don't have any artwork, i.e. blank, transparent pieces. We keep them here because we want to generate meshes as well, but don't need it in the texture. Also verify that the onlines of the textures are all hidden.
 
 ## Step 3: Export Texture and Outlines
 
 <img src="illustrator-export-texture.png" width="350" class="img-responsive pull-right" style="margin-left: 15px">
 
-We'll first export the texture. In Illustrator, click on *File -> Export -> Export As...*, and make sure *Use Artboards* is checked. As type, select *PNG*. Then, click on *Export*, which will result in the dialog seen in the screenshot.
+We'll first export the texture. In Illustrator, click on *File -> Export -> Export As...*, and make sure *Use Artboards* is checked. As type, select *PNG*. Then, enter `Plastics.png` as file name and click on *Export*, which will result in the dialog seen in the screenshot.
 
-Since you've set the resolution to 4096 x 4096 pixels when you've created the document, and the default pixel density is 72dpi, choose 72dpi. This should result in a PNG file at 4096 x 4096 pixels.
+Since you've set the resolution to 4096 × 4096 pixels when you've created the document, and the default pixel density is 72dpi, choose 72dpi. This should result in a PNG file at 4096 × 4096 pixels.
 
+> [!note]
+> When I exported it when writing this tutorial, the texture ended up at 4097 × 4097 🤦‍♂. So I ended up exporting it with a slightly higher resolution and sizing it down in Photoshop.
+
+### Outlines
+
+The goal of having outlines in the artwork is so that we can extract the mesh from it, and allows us to align the artwork perfectly on the surface. We're going to export the outlines as solid surfaces in the SVG format. The result we can then import into Blender.
+
+In order to do that, open all your artwork files, hide the actual artwork and only show the outline. Make it **one single solid surface per plastic**, meaning if you have holes, you need to remove them from the parent outline.
+
+> [!note]
+> If your artwork are pixel graphics, you can draw your outlines directly into `Plastics.ai`. We recommend putting them on a separate layer, so you can toggle them easily.
+
+Your document should now look like this:
+
+![Plastic surfaces in Adobe Illustrator](illustrator-joined-artwork.png)
+
+Click again on *File -> Export -> Export As...*, but this time, uncheck *Use Artboards* and select *SVG* as export format. Enter `Plastics.svg` as file name and click *Export*.
+
+Under the export options **TODO**
