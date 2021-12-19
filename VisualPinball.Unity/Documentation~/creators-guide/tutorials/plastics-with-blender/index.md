@@ -31,8 +31,8 @@ Every plastic will have its own GameObject. However, only one texture is shared 
 ## Workflow
 
 1. [Prepare Artwork](xref:plastics_with_blender_1)
-2. Create mesh in Blender
-3. UV-map texture in Blender
+2. [Create mesh in Blender](xref:plastics_with_blender_2)
+3. [UV-map texture in Blender](xref:plastics_with_blender_3)
 4. Import mesh into Unity
 
 ## Alternative Workflow with Houdini
