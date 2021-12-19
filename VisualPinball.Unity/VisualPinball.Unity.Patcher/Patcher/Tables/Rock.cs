@@ -38,7 +38,7 @@ namespace VisualPinball.Unity.Patcher
 			var playfieldGo = Playfield(tableGo);
 			playfieldGo.isStatic = true;
 
-			SetupLamps(tableGo, playfieldGo);
+			SetupLights(tableGo, playfieldGo);
 
 			SetupFlippers(playfieldGo);
 			SetupDropTargetBanks(tableGo, playfieldGo);
@@ -58,7 +58,7 @@ namespace VisualPinball.Unity.Patcher
 			SetupDisplays(tableGo);
 		}
 
-		private static void SetupLamps(GameObject tableGo, GameObject playfieldGo)
+		private static void SetupLights(GameObject tableGo, GameObject playfieldGo)
 		{
 			var displayRegEx = new Regex("^[a-c][0-9a-f][0-9a-f]$");
 
@@ -80,22 +80,22 @@ namespace VisualPinball.Unity.Patcher
 				}
 			}
 
-			var lampGroups = CreateEmptyGameObject(playfieldGo, "Lamp Groups");
+			var lightGroups = CreateEmptyGameObject(playfieldGo, "Light Groups");
 
-			AddLightGroup(tableGo, CreateEmptyGameObject(lampGroups, "LampGroupUpperLeft1"),
+			AddLightGroup(tableGo, CreateEmptyGameObject(lightGroups, "LightGroupUpperLeft1"),
 				"gi26", "gi28", "gi25", "gi23");
 
-			AddLightGroup(tableGo, CreateEmptyGameObject(lampGroups, "LampGroupUpperLeft2"),
+			AddLightGroup(tableGo, CreateEmptyGameObject(lightGroups, "LightGroupUpperLeft2"),
 				"gi27", "gi24", "gi22");
 
-			AddLightGroup(tableGo, CreateEmptyGameObject(lampGroups, "LampGroupUpperRight"),
+			AddLightGroup(tableGo, CreateEmptyGameObject(lightGroups, "LightGroupUpperRight"),
 				 "gi30", "gi31", "gi14", "gi29", "gi4", "gi2", "gi7", "gi9", "gi21",
 				 "gi20", "gi19", "gi18", "gi17", "gi16", "gi15", "gi13", "gi12", "gi11");
 
-			AddLightGroup(tableGo, CreateEmptyGameObject(lampGroups, "LampGroupLower"),
+			AddLightGroup(tableGo, CreateEmptyGameObject(lightGroups, "LightGroupLower"),
 				 "gi6", "gi10");
 
-			AddLightGroup(tableGo, CreateEmptyGameObject(lampGroups, "LampGroupAux"),
+			AddLightGroup(tableGo, CreateEmptyGameObject(lightGroups, "LightGroupAuxiliary"),
 				"AL1a", "AL1b", "AL2a", "AL2b", "AL3a", "AL3b", "AL4a", "AL4b",
 				"AL5a", "AL5b", "AL6a", "AL6b", "AL7a", "AL7b", "AL8a", "AL8b",
 				"AL9a", "AL9a", "AL10a", "AL10a");
@@ -357,7 +357,7 @@ namespace VisualPinball.Unity.Patcher
 		[NameMatch("gi1")]
 		[NameMatch("gi3")]
 		[NameMatch("gi8")]
-		public void DisableLamps(GameObject go)
+		public void DisableLights(GameObject go)
 		{
 			go.SetActive(false);
 		}
@@ -449,7 +449,7 @@ namespace VisualPinball.Unity.Patcher
 		[NameMatch("L47b")]
 		[NameMatch("L51a")]
 		[NameMatch("L51b")]
-		public void FixLamps(GameObject go)
+		public void FixLights(GameObject go)
 		{
 			LightTemperature(go, 2700f);
 			LightIntensity(go, 50f);
@@ -473,7 +473,7 @@ namespace VisualPinball.Unity.Patcher
 		[NameMatch("AL8b")]
 		[NameMatch("AL9a")]
 		[NameMatch("AL10a")]
-		public void FixAuxilaryLamps(GameObject go)
+		public void FixAuxiliaryLights(GameObject go)
 		{
 			LightTemperature(go, 5500f);
 			LightColor(go, UnityEngine.Color.white);
