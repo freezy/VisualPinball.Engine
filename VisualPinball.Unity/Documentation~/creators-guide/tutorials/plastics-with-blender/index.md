@@ -10,17 +10,21 @@ This tutorial runs through a workflow that has been working well for us, from ex
 
 For mesh creation, we'll use vector outlines that are part of the plastics artwork. This allows us to precisely align the artwork to the future mesh.
 
-## Result
+## Overview
 
-The result of this workflow is a set of GameObjects in Unity with the typical plastic look. For that, our meshes consist of three pieces:
+The result of this workflow is a set of GameObjects in Unity with the typical plastic look. For that, our meshes consist of three pieces, each assigned to a material slot:
 
-1. The bottom surface, with the normals pointing up. This is where the texture is mapped to.
-2. The top surface, acting as the semi-transparent plastic.
-3. The side faces that include a simple bevel. This is where we add the refraction effect.
+![Overview](overview.png)
+
+
+- The top surface, acting as the semi-transparent plastic.
+- The side faces that include a simple bevel. This is where we add the refraction effect.
+- The bottom surface, with the normals pointing up. This is where the texture is mapped to.
 
 Every plastic will have its own GameObject. However, only one texture is shared between all the plastics.
 
 ![Final result in Unity](t2-example.png)
+<small><i>The final result!</i></small>
 
 ## Prerequisites
 
