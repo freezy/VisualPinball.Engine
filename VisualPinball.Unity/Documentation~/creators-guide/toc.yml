@@ -36,11 +36,17 @@
 - name: Tutorials
   href: tutorials/index.md
   items:
-    - name: Create Realistic Looking Plastics (with Blender)
-      href: tutorials/plastics_with_blender/index.md
+    - name: Create Realistic Looking Plastics
+      href: xref:plastics_with_blender
       items:
         - name: Prepare Artwork
-          href: tutorials/plastics_with_blender/1-prepare-artwork.md
+          href: xref:plastics_with_blender_1
+        - name: Create Mesh
+          href: xref:plastics_with_blender_2
+        - name: UV-Map Mesh
+          href: xref:plastics_with_blender_3
+        - name: Import Into Unity
+          href: xref:plastics_with_blender_4
 
 - name: Manual
   href: manual/manual.md

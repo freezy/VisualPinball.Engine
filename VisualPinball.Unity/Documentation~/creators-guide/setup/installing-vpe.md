@@ -77,4 +77,4 @@ When complete, you should now have a *Visual Pinball* menu in the editor, and yo
 
 <p><img alt="Unity Input System Warning" width="907" src="unity-packages-after-installation.png" /></p>
 
-Now that VPE is installed let's [import a table](xref:setup_running_vpe)!
+Now that VPE is installed let's [import a table](xref:setup-running-vpe)!

@@ -1,10 +1,10 @@
 ---
 uid: plastics_with_blender
-title: Create Realistic Looking Plastics (with Blender)
+title: Create Realistic Looking Plastics
 description: How to create plastics that are semi-transparent with refraction
 ---
 
-# Create Realistic Looking Plastics (with Blender)
+# Create Realistic Looking Plastics
 
 This tutorial runs through a workflow that has been working well for us, from exporting the art and surfaces from a vector graphics program like Adobe Illustrator, through creating the mesh in Blender, to importing it into Unity setting up the correct materials.
 
@@ -37,7 +37,7 @@ Every plastic will have its own GameObject. However, only one texture is shared 
 1. [Prepare Artwork](xref:plastics_with_blender_1)
 2. [Create mesh in Blender](xref:plastics_with_blender_2)
 3. [UV-map texture in Blender](xref:plastics_with_blender_3)
-4. Import mesh into Unity
+4. [Import mesh into Unity](xref:plastics_with_blender_4)
 
 ## Alternative Workflow with Houdini
 
