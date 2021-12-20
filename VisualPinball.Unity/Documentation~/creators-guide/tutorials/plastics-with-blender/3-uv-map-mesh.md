@@ -23,30 +23,45 @@ Then, press `7` on the numpad to switch to top view, zoom in a bit so you can cl
 
 <img src="blender-select-coplanar.png" width="280" class="img-responsive pull-right" style="margin-left: 15px">
 
-Click on *Select -> Select Similar -> Coplanar*, which should result in all top faces of all plastics being selected. However, that's probably not the case, since there's a threshold that might be too large. So expand the parameters and set it to a small enough value. Then, select the "top" material slot and hit *Assign*. The surfaces should turn red.
+Click on *Select -> Select Similar -> Coplanar*, which should result in all top faces of all plastics being selected. However, that's probably not the case, since there's a threshold that might be too large. You can check it by rotating the camera and verify that the bottom faces are *not* selected. If they are, expand the parameters and set the threshold to a small enough value. Then, select the "top" material slot and hit *Assign*. The top surfaces should turn red.
 
-For the bottom faces, hit `7`, `9` on the numpad to switch to bottom view, and select again one face. Like before, select all faces with the same normal, click the "bottom" material slot, and *Assign*. You should see the bottom faces turn green.
+For the bottom faces, hit `7`, `9` on the numpad to switch to bottom view, and select again one face. Like before, select all coplanar faces, click the "bottom" material slot, and *Assign*. You should see the bottom faces turn green.
 
 Now, the "edges" material slot should only contain the edges. Check by unselecting all (`A` `A`), then selecting the "edge" material slot and hitting *Select*. This should only select the edges, like here:
 
 ![Edges selected](blender-edges-selected.png)
 
-In *Material Preview* mode, your meshes should now be colored like this (from top / bottom):
+Your meshes should now be colored like this (from top / bottom):
 
 ![Selecting edges](blender-material-geometry.png)
 
 ## Step 2: UV-Map
 
-Switch to the *UV Editing* workspace. In the left *UV Editor*, choose *Image -> Open*, and select the exported `Plastic-01.png` you've created in part one. On the right, enter edit mode, click on the "top" material slot in the *Materials* property tab, and hit *Assign*. Select "bottom" and click on *Assign* again.
+Switch to the *UV Editing* workspace. In the left *UV Editor*, choose *Image -> Open*, and select the exported `Plastic-01.png` you've created in part one. On the right, enter edit mode, click on the "top" material slot in the *Materials* property tab, and hit *Select*. Click on "bottom" and then on *Select* again.
 
-We're now going to UV-map both the top and bottom surface at once. Move your cursor to the left side, hit `A` and use the `G` and `S` keys to align the **outer** contour on top of your texture, like so:
+From the *UV* menu, select *Cube Projection*. Move your cursor to the left view and press `A`. You should see both the top and bottom surfaces projected onto your texture:
+
+![UV Mapping in Blender](blender-uv-mapping.png)
+
+We're now going to align the projection with the texture. You can do that by using the `G` and `S` keys. What's important is to align the **outer** contour with the texture, like so:
 
 ![UV mapped correctly](blender-uv-mapped.png)
 
-## Step 3: Export
+## Step 3: Prepare and Export
 
-We still have a single object, so before exporting, let's split it. Still in edit mode in the 3D viewport, hit `A` to select all and choose *Mesh -> Separate -> By Loose Parts*.
+Once done, switch back to the *Layout* workspace. Before we export, there's still a bit of a clean up to do. In edit mode, hit `A` to select all and choose *Mesh -> Clean Up -> Limited Dissolve*. Exit edit mode, go to *Modifier Properties*, add the *Triangulate* modifier, and hit `Ctrl`+`A` to apply.
 
-Hit `Tab` to exit edit mode. Select *File -> Export -> FBX*. Name it `Plastics.fbx` and hit *Export FBX*.
+What we just did reduced the complexity of our topology. We triangulate at the end to avoid problems during export. 
+
+![Reduced polygons](blender-poly-reduction.png)
+
+From left to right: 
+- Original (102k vertices, 44k triangles)
+- After limited dissolve (66k vertices, 30k triangles, but errors in mesh)
+- After triangulation (66k vertices, 30k triangles)
+
+We still have a single object, so before exporting, let's split it. In edit mode, hit `A` to select all and choose *Mesh -> Separate -> By Loose Parts*. Before exporting, feel free to rename your objects in the Outliner, it's what you'll see in Unity.
+
+Exit edit mode and select *File -> Export -> FBX*. Name it `Plastics.fbx` and hit *Export FBX*.
 
 Now let's import this into Unity!
