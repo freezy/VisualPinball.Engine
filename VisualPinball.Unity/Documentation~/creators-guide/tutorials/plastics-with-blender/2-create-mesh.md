@@ -12,7 +12,7 @@ We're now going to import the SVG created in the [previous step](xref:plastics_w
 
 Open Blender, clear the scene with `A`, `X`, `Enter`. Then, click on *File -> Import -> Scalable Vector Graphics (.svg)*, navigate to where you've saved the SVG in the previous step, select `Plastics.svg`, and hit *Import*.
 
-You probably won't see much due to the imported size. If there were no errors, you should see your imported plastics in the Outliner. Select them and press numpad `.` while hovering over the 3D viewport to zoom in. 
+You might not see much due to the imported size. If there were no errors, you should see your imported plastics in the Outliner. Select them and press numpad `.` while hovering over the 3D viewport to zoom in. 
 
 > [!note]
 > You might run into another issue due to the size of the plastics: Camera clipping. To fix that, press `N` with your cursor over the 3D Viewport, select *View* and set something like 0.001m for *Clip Start*.
@@ -51,7 +51,7 @@ Here are all the non-default options in red:
 
 As seen in the previous screenshot, our bottom object now sits in the middle of the extruded mesh. Let's fix that by typing `G` (move), `Z` (on z-axis only), and the extrude value of the previous step, in our case `0.003`, followed by `Enter`.
 
-Then type `A` to select all objects, choose *Object -> Convert -> Mesh*, and hit `Ctrl`+`J` to join them all. Finally, clean up the duplicated vertices from the extrusion by hitting `Tab` for edit mode, `A` to select all vertices, and choose `Mesh -> Clean Up -> Merge by Distance`.
+Then type `A` to select all objects, choose *Object -> Convert -> Mesh*, and hit `Ctrl`+`J` to join them all. Finally, clean up the duplicated vertices from the extrusion by hitting `Tab` for edit mode, `A` to select all vertices, and choose *Mesh -> Clean Up -> Merge by Distance*.
 
 
 Exit edit mode and this is how it should look:
