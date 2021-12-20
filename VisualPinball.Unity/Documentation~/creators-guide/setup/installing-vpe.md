@@ -1,6 +1,7 @@
 ---
 description: How to install VPE
 ---
+
 # Installing VPE
 
 ## Unity
@@ -10,7 +11,7 @@ In order to start creating or modifying tables with VPE, the first thing you'll 
 > [!NOTE]
 > As long as you don't use Unity for a game that makes $100K or more in revenue or funding a year, the free [Personal](https://store.unity.com/compare-plans) plan is sufficient for you.
 
-Unity uses an application called *Unity Hub* to update itself, create new projects and provide quick access to them. Choose version 3 Beta or newer as we need it for later. The install process is straight-forward and documented [here](https://docs.unity3d.com/Manual/GettingStartedInstallingHub.html) if you run into troubles.
+Unity uses an application called *Unity Hub* to update itself, create new projects and provide quick access to them. The install process is straight-forward and documented [here](https://docs.unity3d.com/Manual/GettingStartedInstallingHub.html) if you run into troubles.
 
 When installing Unity, use the latest **2021.2** version. You can leave all the other options unchecked.
 
@@ -38,7 +39,7 @@ Once the editor has opened you can click away the HDRP Wizard that opens. You sh
 
 Click on *File -> New Scene* and select the *Basic Indoors (HDRP)* template. Save it in your *Assets/Scenes* folder as `TestTable.unity`.
 
-In this base scene there's a *Plane* that will [Z-fight](https://en.wikipedia.org/wiki/Z-fighting) with our imported table later. Select it in the *Hierarchy* ( left by default) and move it down a little by setting the *Y Position* under *Transform* in the *Inspector* (right by default) to `-0.1`. Your scene should now look like this:
+In this base scene there's a *Plane* that will [Z-fight](https://en.wikipedia.org/wiki/Z-fighting) with our imported table later. Select it in the [Hierarchy](https://docs.unity3d.com/Manual/Hierarchy.html) and move it down a little by setting the *Y Position* under *Transform* in the [Inspector](https://docs.unity3d.com/Manual/UsingTheInspector.html) to `-0.1`. Your scene should now look like this:
 
 ![TestTable Scene](unity-hdrp-test-scene.png)
 
@@ -58,9 +59,9 @@ Also check *Enable Pre-release Packages* (and confirm), as well as *Show depende
 
 <img alt="Scoped Registry" width="916" src="unity-scoped-registry.png" />
 
-Hit *Save* and close the window. Now you'll add VPE's HDRP package, which will automatically pull in the core package and the assets package. 
+Hit *Save* and close the window. Now you'll add VPE's HDRP package, which will automatically pull in the core package and the assets package.
 
-Open the package manager by clicking on *Window -> Package Manager*. Then click on the "plus" icon on the top left corner of the window, and choose *Add package by name..*. 
+Open the package manager by clicking on *Window -> Package Manager*. Then click on the "plus" icon on the top left corner of the window, and choose *Add package by name..*.
 
 <p><img alt="Package Manager" width="237" src="unity-package-manager.png"/></p>
 
@@ -68,7 +69,7 @@ There, enter `org.visualpinball.engine.unity.hdrp` and click *Add*. This will ta
 
 <p><img alt="Unity Input System Warning" width="390" src="unity-input-system-warning.png" /></p>
 
-Click *Yes*. 
+Click *Yes*.
 
 > [!WARNING]
 > Our patcher, which is currently part of the main package, depends on the PinMAME package. Until we move the patcher into a separate package, you will have to install the PinMAME package as well. To do that, click on the plus button again and enter `org.visualpinball.engine.pinmame`, then click on *Add*.
