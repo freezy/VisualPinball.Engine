@@ -132,18 +132,20 @@ namespace VisualPinball.Unity
 								Logger.Error($"Unknown mapping type \"{mapping.Type}\" of lamp ID {lampEvent.Id} for light {component}.");
 								break;
 						}
-
 						LampStatuses[lampEvent.Id] = value;
 						lamp.OnLamp(value, channel);
 					}
 				}
-
-				EventBus.Trigger(EventNames.LampEvent, lampEvent);
+			}
+			else {
+				LampStatuses[lampEvent.Id] = lampEvent.Value;
+			}
 
 #if UNITY_EDITOR
-				RefreshUI();
+			RefreshUI();
 #endif
-			}
+
+			EventBus.Trigger(EventNames.LampEvent, lampEvent);
 		}
 
 		public void OnDestroy()
