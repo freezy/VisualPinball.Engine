@@ -1,5 +1,5 @@
 ---
-uid: plastics_with_blender_3
+uid: tutorial_plastics_3
 title: Realistic Looking Plastics - UV-Map Mesh
 description: How to UV-map the texture onto your mesh in Blender
 ---
@@ -13,7 +13,7 @@ description: How to UV-map the texture onto your mesh in Blender
 
 <img src="blender-material-slots.png" width="235" class="img-responsive pull-right" style="margin-left: 15px">
 
-In object mode, open *Materials* properties and remove the current material slot (hit `-`). Add three new slots (press `+`), and for each slot, create a new material by hitting the *New* button when the slot is selected. Name them "top", "bottom" and "edge" and set their base color to red, green and blue respectively. Your slots should now look like in the screenshot.
+In object mode, open *Materials* properties and remove the current material slot (hit `-`). Add three new slots (press 3× `+`), and for each slot, create a new material by hitting the *New* button when the slot is selected. Name them "top", "bottom" and "edge" and set their base color to red, green and blue respectively. Your slots should now look like in the screenshot.
 
 Set the 3D viewport to *Material Preview*. Select your mesh, press `Tab` to switch to edit mode. Press `A` to select all vertices, select the "edge" material slot, and hit *Assign*. Your plastics should turn blue. Press `A` twice to deselect everything.
 
@@ -23,7 +23,7 @@ Then, press `7` on the numpad to switch to top view, zoom in a bit so you can cl
 
 <img src="blender-select-coplanar.png" width="280" class="img-responsive pull-right" style="margin-left: 15px">
 
-Click on *Select -> Select Similar -> Coplanar*, which should result in all top faces of all plastics being selected. However, that's probably not the case, since there's a threshold that might be too large. You can check it by rotating the camera and verify that the bottom faces are *not* selected. If they are, expand the parameters and set the threshold to a small enough value. Then, select the "top" material slot and hit *Assign*. The top surfaces should turn red.
+Click on *Select -> Select Similar -> Coplanar*, which should result in all top faces of all plastics being selected (but *not* the bottoms ones). However, you might get the bottom faces selected too, because there's a threshold that might be too large. You can check it by rotating the camera and verify that the bottom faces are not selected. If they are, expand the parameters and set the threshold to a small enough value. Then, select the "top" material slot and hit *Assign*. The top surfaces should turn red.
 
 For the bottom faces, hit `7`, `9` on the numpad to switch to bottom view, and select again one face. Like before, select all coplanar faces, click the "bottom" material slot, and *Assign*. You should see the bottom faces turn green.
 
@@ -60,10 +60,10 @@ From left to right:
 - After limited dissolve (66k vertices, 30k triangles, but errors in mesh)
 - After triangulation (66k vertices, 30k triangles)
 
-We still have a single object, so before exporting, let's split it. In edit mode, hit `A` to select all and choose *Mesh -> Separate -> By Loose Parts*. Before exporting, feel free to rename your objects in the Outliner, it's what you'll see in Unity.
+We still have one single object, so before exporting, let's split it. In edit mode, hit `A` to select all and choose *Mesh -> Separate -> By Loose Parts*. Before exporting, feel free to rename your objects in the Outliner, it's what you'll see in Unity.
 
 Lastly, in object mode, hit `A` to select all objects and click on *Object -> Set Origin -> Origin to Geometry*. This will set the local origin of each object to the object itself, making it easier to place it.
 
 Export the plastics by selecting *File -> Export -> FBX*. Name it `Plastics.fbx` and hit *Export FBX*.
 
-Now let's [import this into Unity](xref:plastics_with_blender_4)!
+Now let's [import this into Unity](xref:tutorial_plastics_4)!
