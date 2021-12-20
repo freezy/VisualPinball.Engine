@@ -62,6 +62,8 @@ From left to right:
 
 We still have a single object, so before exporting, let's split it. In edit mode, hit `A` to select all and choose *Mesh -> Separate -> By Loose Parts*. Before exporting, feel free to rename your objects in the Outliner, it's what you'll see in Unity.
 
-Exit edit mode and select *File -> Export -> FBX*. Name it `Plastics.fbx` and hit *Export FBX*.
+Lastly, in object mode, hit `A` to select all objects and click on *Object -> Set Origin -> Origin to Geometry*. This will set the local origin of each object to the object itself, making it easier to place it.
 
-Now let's import this into Unity!
+Export the plastics by selecting *File -> Export -> FBX*. Name it `Plastics.fbx` and hit *Export FBX*.
+
+Now let's [import this into Unity](xref:plastics_with_blender_4)!
