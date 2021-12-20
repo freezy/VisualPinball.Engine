@@ -1,12 +1,12 @@
 ---
-uid: plastics_with_blender_2
+uid: tutorial_plastics_2
 title: Realistic Looking Plastics - Create Mesh
 description: How to create the meshes in Blender
 ---
 
 # Create Mesh
 
-We're now going to import the SVG created in the [previous step](xref:plastics_with_blender_1) and create a mesh that is beveled on the top.
+We're now going to import the SVG created in the [previous step](xref:tutorial_plastics_1) and create a mesh that is beveled on the top.
 
 ## Step 1: Import
 
@@ -35,9 +35,9 @@ Hit `Shift`+`D`, `Esc` to duplicate at the same position. In the *Outliner*, let
 
 Select "extruded" in the outliner and click on the *Object Properties* tab in the *Properties* view on the right side. Under *Geometry*, there is an *Extrude* field, and a bit below a *Bevel* section.
 
-Now, the *Extrude* value is difficult to judge. If you have access to the physical plastics, you can calculate the scale between the real world and the object in Blender by physically measuring the size of a plastic and dividing it by the measured value in Blender. Then, also measure the thickness of the real-world plastic and multiply it by that factor. Personally, I just eyeballed it and ended up with 0.003m for the *Extrude* value and 0.001m for the *Bevel Depth*.
+Now, the *Extrude* value is difficult to judge. If you have access to the physical plastics, you can calculate the scale between the real world and the object in Blender by physically measuring the size of a plastic and dividing it by the measured value in Blender. Then, also measure the thickness of the real-world plastic and multiply it by that factor. Personally, I just eyeballed it and ended up with 0.003 m for the *Extrude* value and 0.001 m for the *Bevel Depth*.
 
-Then there are three more options to check:
+Then there are three more properties to change:
 
 - We only want to extrude the front, so set *Fill Mode* to *Front*.
 - We don't want to make the object larger by bevelling, so enter the negative value of the bevel depth under *Offset*.
@@ -53,10 +53,10 @@ As seen in the previous screenshot, our bottom object now sits in the middle of 
 
 Then type `A` to select all objects, choose *Object -> Convert -> Mesh*, and hit `Ctrl`+`J` to join them all. Finally, clean up the duplicated vertices from the extrusion by hitting `Tab` for edit mode, `A` to select all vertices, and choose *Mesh -> Clean Up -> Merge by Distance*.
 
-
 Exit edit mode and this is how it should look:
-
 
 ![Extruded Shapes](blender-extruded.png)
 
-If that's the case, congrats, you're done with the meshes! Maybe now it's a good moment to save your Blender file. `Ctrl`+`S` and enter `Plastics.blend`. Now, let's [UV-Map them](xref:plastics_with_blender_3)!
+If that's the case, congrats, you're done with the meshes! Maybe now it's a good moment to save your Blender file. `Ctrl`+`S` and enter `Plastics.blend`. 
+
+In the [next part](xref:tutorial_plastics_3) of this tutorial, we're going to UV-Map them.

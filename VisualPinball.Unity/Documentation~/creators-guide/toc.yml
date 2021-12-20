@@ -37,16 +37,16 @@
   href: tutorials/index.md
   items:
     - name: Create Realistic Looking Plastics
-      href: xref:plastics_with_blender
+      href: xref:tutorial_plastics
       items:
         - name: Prepare Artwork
-          href: xref:plastics_with_blender_1
+          href: xref:tutorial_plastics_1
         - name: Create Mesh
-          href: xref:plastics_with_blender_2
+          href: xref:tutorial_plastics_2
         - name: UV-Map Mesh
-          href: xref:plastics_with_blender_3
+          href: xref:tutorial_plastics_3
         - name: Import Into Unity
-          href: xref:plastics_with_blender_4
+          href: xref:tutorial_plastics_4
 
 - name: Manual
   href: manual/manual.md
