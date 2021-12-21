@@ -78,7 +78,7 @@ The goal of having outlines in the artwork is so that we can extract the mesh fr
 
 In order to do that, open all your artwork files, hide the actual artwork, and only show the outline. Make it **one single solid surface per plastic**, meaning if you have holes, you need to remove them from the parent curve.
 
-> [Note!]
+> [!note]
 > If your artwork are pixel graphics, draw your outlines directly into `Plastics.ai`. We recommend putting them on a separate layer, so you can toggle them easily.
 
 Your document should now look like this:
