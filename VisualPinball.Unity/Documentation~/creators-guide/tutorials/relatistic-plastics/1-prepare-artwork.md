@@ -14,7 +14,7 @@ As mentioned in the introduction, we're aiming for a single texture that contain
 
 There are many ways to create artwork. If you're working on an original game, you might draw it using a drawing software. For recreations where you have access to the physical machine, you might disassemble the plastics and scan them or take pictures with a good camera. If you don't have access to the physical plastics, you might get good sources by searching on the internet.
 
-> [Warning!]
+> [!note]
 > If you're using a camera, be sure to remove any lens distortion with [Camera Raw](https://helpx.adobe.com/camera-raw/using/supported-cameras.html) or similar software. For images found online, you will probably have to manually un-distort the image.
 
 For optimal quality, two things are important when dealing with source material not coming directly from a scanner:
