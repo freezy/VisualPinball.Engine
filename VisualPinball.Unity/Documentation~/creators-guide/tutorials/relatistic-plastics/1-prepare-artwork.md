@@ -48,7 +48,7 @@ Since we're creating the texture, we don't need the pink outlines. So, before co
 
 As we might update our original files later, we won't copy and paste our plastics into this document but *link them* instead. In order to do this, go to *File -> Place...* and select all your plastics. Then arrange them in a way so there's as little white space as possible remaining. 
 
-> [Note!]
+> [!note]
 > In order for the plastics to have a similar pixel density, we recommend keeping the proportional size of the plastics approximately the same, i.e., larger plastics should take more space than smaller ones.
 
 Your artboard should now look something like this:
