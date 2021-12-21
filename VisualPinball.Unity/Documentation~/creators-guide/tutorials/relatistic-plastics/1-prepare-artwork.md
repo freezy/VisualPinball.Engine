@@ -35,7 +35,7 @@ Note the pink outlines. They sit on a separate layer and can be easily toggled. 
 
 Since our first step is to create the texture, hide the outlines and save all your files.
 
-> [Note!]
+> [!note]
 > If you're using pixel-based sources for the plastics, don't worry about the outlines just yet. ;)
 
 ## Step 2: Arrange Artwork
