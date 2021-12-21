@@ -60,6 +60,8 @@ From left to right:
 - After limited dissolve (66k vertices, 30k triangles, but errors in mesh)
 - After triangulation (66k vertices, 30k triangles)
 
+Switch to the *Object Data* properties, and under *Normals*, enable *Auto Smooth*. This will properly align the normals on the bevel side, giving it a more realistic refraction effect.
+
 We still have one single object, so before exporting, let's split it. In edit mode, hit `A` to select all and choose *Mesh -> Separate -> By Loose Parts*. Before exporting, feel free to rename your objects in the Outliner, it's what you'll see in Unity.
 
 Lastly, in object mode, hit `A` to select all objects and click on *Object -> Set Origin -> Origin to Geometry*. This will set the local origin of each object to the object itself, making it easier to place it.
