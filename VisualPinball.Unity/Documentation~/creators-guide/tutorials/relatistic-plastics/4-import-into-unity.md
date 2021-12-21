@@ -38,4 +38,28 @@ Select all plastics GameObjects. In the inspector, under *Mesh Renderer -> Mater
 Then, in the *Project* window, navigate to where you were before, to `Packages/Visual Pinball Engine (HDRP)/Assets/Art/Materials/Default/Plastic`. Drag `Plastics Edges` to *Element 0* and `Plastic Top` to *Element 1*.
 
 > [!note]
-> For some reason, material slots might be different depending on the object, so you'll need to verify if all the plastics looks correctly, and shuffe the material slots if necessary (you can just re-order them under *Materials*).
+> For some reason, material slots might be different depending on the object, so you'll need to verify if all the plastics looks correctly, and shuffle the material slots if necessary (you can just re-order them under *Materials*).
+
+If all went well, it should look like that!
+
+> [!Video https://www.youtube.com/embed/Difnx_uBGgo?showinfo=0&loop=1&autopause=0]
+
+### Transparent Plastics
+
+If you had completely transparent plastics without any artwork, you'll notice that they are still textured:
+
+![Textured transparent](unity-transparent-textured.png)
+
+In order to fix that, replace the `Plastics Decal` material with the `Plastics Top` material, and it will look correctly:
+
+![Fully transparent](unity-transparent.png)
+
+## Step 4: Aligment
+
+Use the *Scene View* to move each plastic to the right position. You'll also need to rotate them and probably resize them as well. 
+
+Tip: Once you're happy with all positions, set height of the plastic of all objects to the same value by selecting them in the Hierarchy and putting a Z-value of *Scale* in the *Transform* panel of the Inspector.
+
+## That's It!
+
+If you came across an error or have a better way of achieving this, don't hesitate to click on the *Improve this Doc* button on the top right side ([documentation](https://github.com/freezy/VisualPinball.Engine/wiki/Documentation)).
