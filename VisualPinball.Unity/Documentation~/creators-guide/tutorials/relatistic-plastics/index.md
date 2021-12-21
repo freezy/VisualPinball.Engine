@@ -28,7 +28,7 @@ Every plastic will have its own GameObject. However, only one texture is shared 
 
 ## Prerequisites
 
-- While we provide some guidelines for the artwork, we won't go into detail how to produce it. So we assume that you have your artwork ready.
+- While we provide some guidelines for the artwork, we won't go into detail how to produce it. So, we assume that you have your artwork ready.
 - You should be familiar with a vector graphics software such as Adobe Illustrator. 
 - You should know your way around in Blender. Beginner level is fine, but you should be able to navigate in the viewport, know what UV-mapping is and know the basics about modifiers.
 
@@ -41,6 +41,6 @@ Every plastic will have its own GameObject. However, only one texture is shared 
 
 ## Alternative Workflow with Houdini
 
-If you're familiar with Houdini, you might be interested in replacing Blender with Houdini. The problem with Blender is that it's a destructive workflow, i.e. if you have to change the outlines from which the mesh is generated from, you'll need to redo steps two and three.
+If you're familiar with Houdini, you might be interested in replacing Blender with Houdini. The problem with Blender is that it's a destructive workflow, i.e., if you have to change the outlines from which the mesh is generated from, you'll need to redo steps two and three.
 
 Houdini however is completely non-destructive, so here's a workflow that allows you to quickly regenerate meshes in case you need make changes when placing them on the playfield.
