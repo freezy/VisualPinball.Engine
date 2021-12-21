@@ -57,7 +57,7 @@ Your artboard should now look something like this:
 
 Note the *Links* toolbox that shows the individual plastic files. Also note the pink surfaces on the right, outside the artboard. These are plastics that don't have any artwork, i.e., blank, transparent pieces. We keep them here because we want to generate meshes as well, but don't need it in the texture, which is defined by the artboard.
 
-> [Warning!]
+> [!warning]
 > Verify that the outlines on the artboard are hidden. This is the version we'll create the texture with, and we don't want to leak the outlines onto the final texture.
 
 
