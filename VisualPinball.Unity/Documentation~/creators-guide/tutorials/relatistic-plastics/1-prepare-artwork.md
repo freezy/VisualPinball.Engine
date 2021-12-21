@@ -24,7 +24,7 @@ For optimal quality, two things are important when dealing with source material 
 
 Once you have an image of the plastic, you need to decide whether you will be using it as-is, or whether you're going to redraw it. Depending on the type of artwork, redrawing might not possible or a huge effort, and "cleaning it up" in Photoshop will do it. The advantage of redrawing it is that you can produce arbitrary large textures and make the colors match perfectly.
 
-> [Note!]
+> [!note]
 > Speaking of colors, it's best to use PBR-compatible colors, meaning your texture shouldn't contain absolute blacks or whites, and the brightness of other colors should be at around 95% max. For black, we're using `#272727` and for white `#f4f5f0`.
 
 The T2 table we're using in this tutorial contains exclusively vector art, so we've created an `.ai` file per plastic:
