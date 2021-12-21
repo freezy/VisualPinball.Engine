@@ -69,7 +69,7 @@ We'll first export the texture. In Illustrator, click on *File -> Export -> Expo
 
 Since you've set the resolution to 4096 × 4096 pixels when you've created the document, and the default pixel density is 72dpi, choose 72dpi. This should result in a PNG file at 4096 × 4096 pixels.
 
-> [Note!]
+> [!note]
 > When I exported it when writing this tutorial, Illustrator exported it as 4097 × 4097 🤦‍♂. So, I ended up exporting it with a slightly higher resolution and sizing it down in Photoshop.
 
 ### Outlines
