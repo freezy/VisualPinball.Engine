@@ -25,7 +25,7 @@ Your viewport should look like this now:
 
 The way we're going for this is to extrude and bevel our SVG on one side only. This however results in the bottom faces missing. To fix that, we'll duplicate our SVG and use one for extrusion and the other for the bottom mesh.
 
-Before we start, let's make it one single object so we can easily apply everyting we do in one step. Select one element, hit `A` for select all, then `Ctrl`+`J` for joining all curves.
+Before we start, let's make it one single object so we can easily apply everything we do in one step. Select one element, hit `A` for select all, then `Ctrl`+`J` for joining all curves.
 
 Hit `Shift`+`D`, `Esc` to duplicate at the same position. In the *Outliner*, let's name our objects "bottom" and "extruded":
 
@@ -40,7 +40,7 @@ Now, the *Extrude* value is difficult to judge. If you have access to the physic
 Then there are three more properties to change:
 
 - We only want to extrude the front, so set *Fill Mode* to *Front*.
-- We don't want to make the object larger by bevelling, so enter the negative value of the bevel depth under *Offset*.
+- We don't want to make the object larger by beveling, so enter the negative value of the bevel depth under *Offset*.
 - Finally, a *Resolution* of `0` will do.
 
 Here are all the non-default options in red:
