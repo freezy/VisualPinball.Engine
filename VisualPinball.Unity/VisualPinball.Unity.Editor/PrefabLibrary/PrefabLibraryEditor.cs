@@ -1,18 +1,29 @@
-﻿using System;
+﻿// Visual Pinball Engine
+// Copyright (C) 2021 freezy and VPE Team
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+using System;
 using System.Collections.Generic;
-using System.Text;
 using UnityEngine;
 using UnityEditor;
 using Logger = NLog.Logger;
-using Object = UnityEngine.Object;
 using System.Linq;
 using System.IO;
-using UnityEngine.UIElements;
 
 namespace VisualPinball.Unity.Editor
 {
-
-
 	internal class PrefabLibraryFolderContent
 	{
 		private static readonly Logger Logger = NLog.LogManager.GetCurrentClassLogger();
@@ -20,27 +31,12 @@ namespace VisualPinball.Unity.Editor
 		public class PrefabData
 		{
 			public GameObject Prefab;
-			public PinballTagsMetadata TagsMetadata;
+			public string[] Labels;
 		}
 
 		public PrefabLibrarySettingsAsset.FolderSettings FolderSetting;
 		public List<PrefabData> Prefabs = new List<PrefabData>();
 		private FileSystemWatcher FolderWatcher = new FileSystemWatcher();
-		private List<string> TagsCategories = new List<string>();
-
-		public List<string> Categories => TagsCategories;
-
-		public List<string> Tags {
-			get {
-				var tags = new List<string>();
-				foreach (var prefab in Prefabs) {
-					if (prefab.TagsMetadata != null) {
-						tags = tags.Union(prefab.TagsMetadata.Tags).ToList();
-					}
-				}
-				return tags;
-			}
-		}
 
 		public Action<PrefabLibraryFolderContent> Populate;
 
@@ -92,26 +88,13 @@ namespace VisualPinball.Unity.Editor
 				var asset = AssetDatabase.LoadMainAssetAtPath(path.Replace("\\", "/")) as GameObject;
 				if (asset != null) {
 					var cachedMetadata = PinballMetadataCache.LoadMetadata(guid);
-					var prefabData = new PrefabData() { Prefab = asset, TagsMetadata = cachedMetadata.GetExtension<PinballTagsMetadata>() };
+					var prefabData = new PrefabData() { Prefab = asset, Labels = AssetDatabase.GetLabels(new GUID(guid)) };
 					Prefabs.Add(prefabData);
 				}
 				EditorUtility.DisplayProgressBar($"Parsing Prefabs {count+1}/{guids.Length}", path, (float)count++/guids.Length);
 			}
 
 			EditorUtility.ClearProgressBar();
-
-			//Extract Categories
-			TagsCategories.Clear();
-			foreach (var prefab in Prefabs) {
-				if (prefab.TagsMetadata != null) {
-					foreach (var tag in prefab.TagsMetadata.Tags) {
-						var subtags = tag.Split('.');
-						if (subtags.Length > 1 && !TagsCategories.Contains(subtags[0])) {
-							TagsCategories.Add(subtags[0]);
-						}
-					}
-				}
-			}
 
 			Populate?.Invoke(this);
 		}
@@ -121,9 +104,14 @@ namespace VisualPinball.Unity.Editor
 	{
 		private static readonly Logger Logger = NLog.LogManager.GetCurrentClassLogger();
 
-		private List<PrefabLibraryFolderContent> FolderContents = new List<PrefabLibraryFolderContent>();
-		private List<string> Tags = new List<string>();
-		private List<string> Categories = new List<string>();
+		private List<PrefabLibraryFolderContent> _folderContents = new List<PrefabLibraryFolderContent>();
+
+		private LabelsHandler _labelsHandler = new LabelsHandler();
+
+		private List<PrefabThumbnailElement> _thumbs = new List<PrefabThumbnailElement>();
+		private PrefabThumbnailView _thumbView = new PrefabThumbnailView(null) { MultiSelection = false };
+
+		private UnityEditor.Editor _previewEditor = null;
 
 		[MenuItem("Visual Pinball/Prefab Library", false, 601)]
 		public static void ShowWindow()
@@ -135,39 +123,114 @@ namespace VisualPinball.Unity.Editor
 		{
 			base.OnEnable();
 
-			VisualTreeAsset original = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>("Packages/org.visualpinball.engine.unity/VisualPinball.Unity/VisualPinball.Unity.Editor/PrefabLibrary/PrefabLibraryEditor.uxml");
-			TemplateContainer treeAsset = original.CloneTree();
-			rootVisualElement.Add(treeAsset);
+			CheckPrefabSettinbgsAssets();
+		}
+
+		private const float DetailsWindowWidth = 400.0f;
+
+		private bool _showDetails = true;
+		private bool _showLabels = true;
+
+		private void DetailsGUI()
+		{
+
+			if (_thumbView.SelectedPrefab == null) {
+				DestroyImmediate(_previewEditor);
+				_previewEditor = null;
+			} else if (_previewEditor == null || _thumbView.SelectedPrefab != _previewEditor.target) {
+				if (_previewEditor != null) {
+					DestroyImmediate(_previewEditor);
+				}
+				_previewEditor = UnityEditor.Editor.CreateEditor(_thumbView.SelectedPrefab);
+			}
+
+			if (_previewEditor) {
+				var previewSize = DetailsWindowWidth - GUI.skin.box.lineHeight - GUI.skin.label.padding.horizontal;
+				var rect = EditorGUILayout.GetControlRect(false, previewSize, GUILayout.Width(previewSize));
+				EditorGUI.PrefixLabel(rect, new GUIContent("Preview"));
+				rect.yMin += GUI.skin.label.lineHeight + GUI.skin.label.padding.vertical;
+				_previewEditor.OnInteractivePreviewGUI(rect, GUI.skin.box);
+
+				if (_showDetails = EditorGUILayout.BeginFoldoutHeaderGroup(_showDetails, new GUIContent("Details"))) {
+					EditorGUI.indentLevel++;
+					var style = EditorStyles.label;
+					style.wordWrap = true;
+					EditorGUILayout.LabelField($"Name : {_thumbView.SelectedPrefab.name}", style);
+					EditorGUILayout.LabelField($"Path : {AssetDatabase.GetAssetPath(_thumbView.SelectedPrefab)}", style);
+					EditorGUILayout.Separator();
+					var meshRenderer = _thumbView.SelectedPrefab.GetComponentInChildren<MeshRenderer>();
+					var meshFilter = _thumbView.SelectedPrefab.GetComponentInChildren<MeshFilter>();
+					if (meshRenderer && meshFilter){
+						EditorGUILayout.LabelField($"Mesh : {meshRenderer.name}", style);
+						EditorGUI.indentLevel++;
+						if (meshFilter.sharedMesh != null) {
+							EditorGUILayout.LabelField($"{meshFilter.sharedMesh.subMeshCount} submesh{(meshFilter.sharedMesh.subMeshCount>1?"es":"")}", style);
+							EditorGUILayout.LabelField($"{meshFilter.sharedMesh.vertices.Length} vertices", style);
+							EditorGUILayout.LabelField($"{meshFilter.sharedMesh.triangles.Length} triangles", style);
+						}
+						if (meshRenderer.sharedMaterials != null) {
+							EditorGUILayout.LabelField($"{meshRenderer.sharedMaterials.Length} material{(meshRenderer.sharedMaterials.Length>1?"s":"")} : {(meshRenderer.sharedMaterials.Length > 0 ? string.Join(',', meshRenderer.sharedMaterials.Select(M => M ? M.name : "null")) : "")}", style);
+						}
+						EditorGUI.indentLevel--;
+					}
+					EditorGUI.indentLevel--;
+				}
+				EditorGUILayout.EndFoldoutHeaderGroup();
+
+				if (_showLabels = EditorGUILayout.BeginFoldoutHeaderGroup(_showLabels, new GUIContent("Labels"))) {
+					EditorGUI.indentLevel++;
+					EditorGUILayout.LabelField(new GUIContent("Labels"));
+					EditorGUI.indentLevel--;
+				}
+				EditorGUILayout.EndFoldoutHeaderGroup();
+
+			} else {
+				EditorGUILayout.LabelField(new GUIContent("Select a prefab"));
+			}
 		}
 
 		public void OnGUI()
 		{
-			CheckPrefabSettinbgsAssets();
+			EditorGUILayout.BeginHorizontal();
+
+			var thumbRect = new Rect(position);
+			thumbRect.width -= DetailsWindowWidth;
+			_thumbView.OnGUI(thumbRect);
+
+			EditorGUILayout.BeginVertical();
+			DetailsGUI();
+			EditorGUILayout.EndVertical();
+
+			EditorGUILayout.EndHorizontal();
 		}
 
 		private void CheckPrefabSettinbgsAssets()
 		{
 			PinballMetadataCache.ClearCache();
+
 			var guids = AssetDatabase.FindAssets("t: PrefabLibrarySettingsAsset");
 			foreach(var guid in guids) {
 				var asset = AssetDatabase.LoadAssetAtPath<PrefabLibrarySettingsAsset>(AssetDatabase.GUIDToAssetPath(guid));
 				foreach (var folder in asset.Folders) {
-					if (!FolderContents.Any(FC=>FC.FolderSetting == folder)) {
+					if (!_folderContents.Any(FC=>FC.FolderSetting == folder)) {
 						var newFolder = new PrefabLibraryFolderContent(folder);
 						newFolder.Populate += OnFolderPopulate;
 						newFolder.PopulatePrefabs();
-						FolderContents.Add(newFolder);
+						_folderContents.Add(newFolder);
 					}
 				}
-				Categories = Categories.Union(asset.Categories).ToList();
-				Tags = Tags.Union(asset.AvailableTags).ToList();
+				//LabelHandler add tags from settings assets
 			}
+
+			_thumbView.SetData(_thumbs);
+			AssetPreview.SetPreviewTextureCacheSize(_thumbs.Count + 10);
 		}
 
 		private void OnFolderPopulate(PrefabLibraryFolderContent folder)
 		{
-			Categories = Categories.Union(folder.Categories).ToList();
-			Tags = Tags.Union(folder.Tags).ToList();
+			foreach (var prefab in folder.Prefabs) {
+				_thumbs.Add(new PrefabThumbnailElement(prefab.Prefab));
+			}
 		}
 	}
 }

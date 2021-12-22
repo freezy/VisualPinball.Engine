@@ -44,22 +44,6 @@ namespace VisualPinball.Unity.Editor
 
 		public bool Locked = false;
 
-		public List<string> AvailableTags = new List<string>();
-
-		public List<string> Categories
-		{
-			get {
-				var categories = new List<string>();
-				foreach(var tag in AvailableTags) {
-					var subtags = tag.Split('.');
-					if (subtags.Length > 1 && !categories.Contains(subtags[0])) {
-						categories.Add(subtags[0]);
-					}
-				}
-				return categories;
-			}
-		}
-
 		public List<FolderSettings> Folders = new List<FolderSettings>();
 
 		private Dictionary<string, List<string>> AssetTags = new Dictionary<string, List<string>>();

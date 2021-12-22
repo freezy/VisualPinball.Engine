@@ -14,17 +14,6 @@ namespace VisualPinball.Unity.Editor
 	}
 
 	[Serializable]
-	public class PinballTagsMetadata : PinballMetadataExtension
-	{
-		public PinballTagsMetadata() : base()
-		{
-			Version = 2;
-		}
-
-		public List<string> Tags = new List<string>();
-	}
-
-	[Serializable]
 	public class PinballMetadata
 	{
 		[SerializeField]
