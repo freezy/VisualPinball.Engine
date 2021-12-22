@@ -35,7 +35,7 @@ Hit `Shift`+`D`, `Esc` to duplicate at the same position. In the *Outliner*, let
 
 Select "extruded" in the outliner and click on the *Object Properties* tab in the *Properties* view on the right side. Under *Geometry*, there is an *Extrude* field, and a bit below a *Bevel* section.
 
-Now, the *Extrude* value is difficult to judge. If you have access to the physical plastics, you can calculate the scale between the real world and the object in Blender by physically measuring the size of a plastic and dividing it by the measured value in Blender. Then, also measure the thickness of the real-world plastic and multiply it by that factor. Personally, I just eyeballed it and ended up with 0.003 m for the *Extrude* value and 0.001 m for the *Bevel Depth*.
+Now, the *Extrude* value is difficult to judge. If you have access to the physical plastics, you can calculate the scale between the real world and the object in Blender by physically measuring the size of a plastic and dividing it by the [measured value](https://docs.blender.org/manual/en/latest/editors/3dview/toolbar/measure.html) in Blender. Then, also measure the thickness of the real-world plastic and multiply it by that factor. Personally, I just eyeballed it and ended up with 0.003 m for the *Extrude* value and 0.001 m for the *Bevel Depth*.
 
 Then there are three more properties to change:
 
