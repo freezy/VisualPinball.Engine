@@ -12,7 +12,7 @@ We're now going to import the SVG created in the [previous step](xref:tutorial_p
 
 Open Blender, clear the scene with `A`, `X`, `Enter`. Then, click on *File -> Import -> Scalable Vector Graphics (.svg)*, navigate to where you've saved the SVG in the previous step, select `Plastics.svg`, and hit *Import*.
 
-You might not see much due to the imported size. If there were no errors, you should see your imported plastics in the Outliner. Select them and press numpad `.` while hovering over the 3D viewport to zoom in. 
+You might not see much due to the imported size. If there were no errors, you should see your imported plastics in the Outliner. Select them and press `.` on the numpad (not the main keyboard) while hovering over the 3D viewport to zoom in. 
 
 > [!note]
 > You might run into another issue due to the size of the plastics: Camera clipping. To fix that, press `N` with your cursor over the 3D Viewport, select *View* and set something like 0.001m for *Clip Start*.
