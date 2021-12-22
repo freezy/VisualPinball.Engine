@@ -8,7 +8,7 @@ description: How setup your exported mesh in Unity
 
 ## Step 1: Import the FBX
 
-Open your scene in Unity, and use the *Project* window to navigate to where you've exported your FBX.
+Open your scene in Unity and use the *Project* window to navigate to where you've exported your FBX.
 
 > [!note]
 > We recommend storing models at `Assets/<Table Name>/Models`, and texture at `Assets/<Table Name>/Textures`. If you haven't already, copy `Plastics-01.png` as `Plastics.png` and `Plastics.fbx` into the corresponding folders.
@@ -38,7 +38,7 @@ Select all plastics GameObjects. In the inspector, under *Mesh Renderer -> Mater
 Then, in the *Project* window, navigate to where you were before, to `Packages/Visual Pinball Engine (HDRP)/Assets/Art/Materials/Default/Plastic`. Drag `Plastics Edges` to *Element 0* and `Plastic Top` to *Element 1*.
 
 > [!note]
-> For some reason, material slots might be different depending on the object, so you'll need to verify if all the plastics looks correctly, and shuffle the material slots if necessary (you can just re-order them under *Materials*).
+> For some reason, material slots might be different depending on the object, so you'll need to verify if all the plastics look correct, and shuffle the material slots if necessary (you can just re-order them under *Materials*).
 
 If all went well, it should look like that!
 
@@ -50,11 +50,11 @@ If you had completely transparent plastics without any artwork, you'll notice th
 
 ![Textured transparent](unity-transparent-textured.png)
 
-In order to fix that, replace the `Plastics Decal` material with the `Plastics Top` material, and it will look correctly:
+In order to fix that, replace the `Plastics Decal` material with the `Plastics Top` material, and it will look correct:
 
 ![Fully transparent](unity-transparent.png)
 
-## Step 4: Aligment
+## Step 4: Alignment
 
 Use the *Scene View* to move each plastic to the right position. You'll also need to rotate them and probably resize them as well. 
 
