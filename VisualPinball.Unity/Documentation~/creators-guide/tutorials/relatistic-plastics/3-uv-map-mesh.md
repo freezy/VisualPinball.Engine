@@ -9,11 +9,11 @@ description: How to UV-map the texture onto your mesh in Blender
 
 ## Step 1: Create Material Slots
 
- We need three material slots, for the top and bottom faces, as well as for the edges. We'll split the vertices by firstly assigning everything to an "edge" slot, and the re-assigning the top and bottom faces to their own slots.
+ We need three material slots, for the top and bottom faces, as well as for the edges. We'll split the vertices by firstly assigning everything to an "edge" slot, and then re-assigning the top and bottom faces to their own slots.
 
 <img src="blender-material-slots.png" width="235" class="img-responsive pull-right" style="margin-left: 15px">
 
-In object mode, open *Materials* properties and remove the current material slot (hit `-`). Add three new slots (press 3× `+`), and for each slot, create a new material by hitting the *New* button when the slot is selected. Name them "top", "bottom" and "edge" and set their base color to red, green and blue respectively. Your slots should now look like in the screenshot.
+In object mode, open *Materials* properties and remove the current material slot (hit `-`). Add three new slots (press 3× `+`), and for each slot, create a new material by hitting the *New* button when the slot is selected. Name them "top", "bottom" and "edge" and set their base color to red, green, and blue respectively. Your slots should now look like in the screenshot.
 
 Set the 3D viewport to *Material Preview*. Select your mesh, press `Tab` to switch to edit mode. Press `A` to select all vertices, select the "edge" material slot, and hit *Assign*. Your plastics should turn blue. Press `A` twice to deselect everything.
 
