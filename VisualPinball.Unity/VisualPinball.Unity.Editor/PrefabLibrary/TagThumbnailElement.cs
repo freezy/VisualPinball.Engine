@@ -32,14 +32,17 @@ namespace VisualPinball.Unity.Editor
 
 		public override string Name => throw new System.NotImplementedException();
 
-		public override Dictionary<EThumbnailSize, Rect> CommonSizes => throw new System.NotImplementedException();
-
 		public override void DrawHoverContainer(Rect rect)
 		{
 			throw new System.NotImplementedException();
 		}
 
 		public override Vector2 GetHoverContainerSize()
+		{
+			throw new System.NotImplementedException();
+		}
+
+		public override float GetWidth(EThumbnailSize thumbSize, GUIStyle style)
 		{
 			throw new System.NotImplementedException();
 		}

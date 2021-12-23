@@ -22,6 +22,9 @@ namespace VisualPinball.Unity.Editor
 	[Serializable]
 	public class PinballLabelCategory 
 	{
+		[NonSerialized]
+		public static readonly Color DefaultColor = Color.blue;
+
 		[SerializeField]
 		public string Name = string.Empty;
 
@@ -29,6 +32,6 @@ namespace VisualPinball.Unity.Editor
 		public bool MultipleSelection = true;
 
 		[SerializeField]
-		public Color Color = Color.blue;
+		public Color Color = DefaultColor;
 	}
 }
