@@ -25,12 +25,13 @@ namespace VisualPinball.Unity.Editor
 		private GameObject _prefab = null;
 		public GameObject Prefab => _prefab;
 
-		private static Dictionary<EThumbnailSize, Rect> _commonSizes = new Dictionary<EThumbnailSize, Rect>() {
-			{ EThumbnailSize.Small, new Rect(3, 3, 64, 64) },
-			{ EThumbnailSize.Normal, new Rect(3, 3, 128, 128) },
-			{ EThumbnailSize.Large, new Rect(3, 3, 256, 256) }
+		private static Dictionary<EThumbnailSize, Dimension> _commonDimensions = new Dictionary<EThumbnailSize, Dimension>() {
+			{ EThumbnailSize.Small, new Dimension(){ Offset = new Vector2(3.0f, 3.0f), Height = 64 } },
+			{ EThumbnailSize.Normal, new Dimension(){ Offset = new Vector2(3.0f, 3.0f), Height = 128 } },
+			{ EThumbnailSize.Large, new Dimension(){ Offset = new Vector2(3.0f, 3.0f), Height = 196 } },
 		};
-		public override Dictionary<EThumbnailSize, Rect> CommonSizes => _commonSizes;
+
+		public override Dictionary<EThumbnailSize, Dimension> CommonDimensions => _commonDimensions;
 
 		public PrefabThumbnailElement(GameObject prefab) : base()
 		{
@@ -38,6 +39,8 @@ namespace VisualPinball.Unity.Editor
 		}
 
 		public override string Name => _prefab?.name;
+
+		public override float GetWidth(EThumbnailSize thumbSize, GUIStyle style) => CommonDimensions[thumbSize].Height;
 
 		public override void OnGUI(Rect rect, GUIStyle style)
 		{

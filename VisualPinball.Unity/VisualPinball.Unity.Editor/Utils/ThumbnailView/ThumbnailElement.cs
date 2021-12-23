@@ -26,7 +26,7 @@ namespace VisualPinball.Unity.Editor
 		Normal,
 		Large
 	}
-	
+
 	public abstract class ThumbnailElement
     {
 		/// <summary>
@@ -57,6 +57,14 @@ namespace VisualPinball.Unity.Editor
 		public abstract void OnGUI(Rect rect, GUIStyle style);
 
 		/// <summary>
+		/// Return the element width using the provided style.
+		/// </summary>
+		/// <param name="style">A style used to calcule the element width</param>
+		/// <param name="thumbSize">A thumbnail size enum to calculate the element width</param>
+		/// <returns>The element width</returns>
+		public abstract float GetWidth(EThumbnailSize thumbSize, GUIStyle style);
+
+		/// <summary>
 		/// Returns the size of the hovering container for this element.
 		/// </summary>
 		/// <returns>The size of the hovering container in pixels</returns>
@@ -73,7 +81,20 @@ namespace VisualPinball.Unity.Editor
 		/// </remarks>
 		public abstract void DrawHoverContainer(Rect rect);
 
-		public abstract Dictionary<EThumbnailSize, Rect> CommonSizes { get; }
+		public struct Dimension
+		{
+			public Vector2 Offset;
+			public float Height;
+		}
+
+		private static Dictionary<EThumbnailSize, Dimension> _commonDimensions = new Dictionary<EThumbnailSize, Dimension>() {
+			{ EThumbnailSize.Small, new Dimension(){ Offset = Vector2.zero, Height = 50 } },
+			{ EThumbnailSize.Normal, new Dimension(){ Offset = Vector2.zero, Height = 100 } },
+			{ EThumbnailSize.Large, new Dimension(){ Offset = Vector2.zero, Height = 150 } }
+		};
+
+		public virtual Dictionary<EThumbnailSize, Dimension> CommonDimensions => _commonDimensions;
+
 
 		public ThumbnailElement()
 		{

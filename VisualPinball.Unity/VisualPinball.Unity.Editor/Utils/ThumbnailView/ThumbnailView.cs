@@ -154,32 +154,41 @@ namespace VisualPinball.Unity.Editor
 			_selectedItems = filteredItems.Intersect(_selectedItems).ToList();
 
 			if (filteredItems.Count > 0) {
-				var buttonRect = filteredItems[0].CommonSizes[_thumbnailSize];
-				var rowcol = ComputeRowCollums(rect.width - buttonRect.x * 2.0f);
+				var dimension = filteredItems[0].CommonDimensions[_thumbnailSize];
 
-				if (rowcol.Valid) {
-					Rect fullRect = EditorGUILayout.GetControlRect(false, ((buttonRect.y + buttonRect.height + _commonStyles.NameStyle.lineHeight) * rowcol.Rows) + buttonRect.y, GUILayout.Width(rect.width - GUI.skin.box.padding.left));
+				var maxRow = ComputeMaxRows(filteredItems, rect.width - dimension.Offset.x * 2.0f);
+				if (maxRow > 0) {
+					Rect fullRect = EditorGUILayout.GetControlRect(false, ((dimension.Offset.y + dimension.Height + _commonStyles.NameStyle.lineHeight) * maxRow) + dimension.Offset.y, GUILayout.Width(rect.width - GUI.skin.box.padding.left));
 					Rect viewRect = new Rect(fullRect.x, fullRect.y, fullRect.width + 15, rect.height - fullRect.y);
 
 					_scroll = GUI.BeginScrollView(viewRect, _scroll, fullRect, false, true);
 					Rect scrolledViewRect = new Rect(viewRect.position + _scroll, viewRect.size);
 
+					int rowCount = 0;
+					float rowWidth = 0.0f;
 					for (int i = 0; i < filteredItems.Count; i++) {
 						var item = filteredItems[i];
-						var col = i % rowcol.Collumns;
-						var row = i / rowcol.Collumns;
-						Rect itemRect = new Rect(fullRect.x + col * (buttonRect.x + buttonRect.width) + buttonRect.x, fullRect.y + row * (buttonRect.y + buttonRect.height + _commonStyles.NameStyle.lineHeight) + buttonRect.y, buttonRect.width, buttonRect.height);
-
-						HandleEvents(item, itemRect);
-
+						var style = _selectedItems.Contains(item) ? _commonStyles.SelectedStyle : _commonStyles.DefaultStyle;
+						var itemW = item.GetWidth(_thumbnailSize, style);
+						if (itemW > fullRect.width)
+							break;
+						if (rowWidth + itemW + dimension.Offset.x > fullRect.width) {
+							rowCount++;
+							rowWidth = 0.0f;
+						} 
+						Rect itemRect = new Rect(fullRect.x + rowWidth + dimension.Offset.x, fullRect.y + rowCount * (dimension.Offset.y + dimension.Height + _commonStyles.NameStyle.lineHeight) + dimension.Offset.y, itemW, dimension.Height);
 						if (itemRect.Overlaps(scrolledViewRect)) {
-							item.OnGUI(itemRect, _selectedItems.Contains(item) ? _commonStyles.SelectedStyle : _commonStyles.DefaultStyle);
+							item.OnGUI(itemRect, style);
 							if (!string.IsNullOrEmpty(item.Name)) {
-								itemRect.y += itemRect.height;
-								itemRect.height = _commonStyles.NameStyle.lineHeight;
-								GUI.Label(itemRect, item.Name, _commonStyles.NameStyle);
+								var nameRect = new Rect(itemRect);
+								nameRect.y += itemRect.height;
+								nameRect.height = _commonStyles.NameStyle.lineHeight;
+								GUI.Label(nameRect, item.Name, _commonStyles.NameStyle);
 							}
 						}
+
+						HandleEvents(item, itemRect);
+						rowWidth += itemW + dimension.Offset.x;
 					}
 
 					GUI.EndScrollView();
@@ -214,29 +223,37 @@ namespace VisualPinball.Unity.Editor
 
 		}
 
-		public RowCollums ComputeRowCollums(float viewWidth)
+		protected int ComputeMaxRows(List<T> items, float viewWidth)
 		{
-			if (_data.Count == 0 || viewWidth <= 0.0f)
-				return new RowCollums() { Rows = 0, Collumns = 0 };
+			if (items.Count == 0 || viewWidth <= 0.0f)
+				return 0;
 
-			var buttonRect = _data[0].CommonSizes[_thumbnailSize];
-			int nbCollumns = (int)((viewWidth - 5) / (buttonRect.width + buttonRect.x));
-			if (nbCollumns == 0)
-				return new RowCollums() { Rows = 0, Collumns = 0 };
-			int nbRows = _data.Count / nbCollumns;
-			if (_data.Count % nbCollumns != 0) {
-				nbRows++;
+			var rowWidth = 0.0f;
+			var rowCount = 0;
+			foreach (var item in items) {
+				var itemWidth = item.GetWidth(_thumbnailSize, _commonStyles.DefaultStyle);
+				if (itemWidth > viewWidth) {
+					return 0;
+				}
+				if (rowWidth + itemWidth > viewWidth) {
+					rowCount++;
+					rowWidth = itemWidth;
+				} else {
+					rowWidth += itemWidth;
+				}
 			}
-			return new RowCollums() { Rows = nbRows, Collumns = nbCollumns };
+
+			return rowCount;
 		}
 
-		public float ComputeViewHeight(float viewWidth)
+		public float ComputeViewHeight(float viewWidth, bool filteredItems = true)
 		{
 			if (_data.Count == 0)
 				return 0.0f;
-			var buttonRect = _data[0].CommonSizes[_thumbnailSize];
-			var rowcol = ComputeRowCollums(viewWidth);
-			return (buttonRect.y + buttonRect.height) * rowcol.Rows;
+			var items = filteredItems ? GetFilteredItems() : _data;
+			if (items.Count == 0)
+				return 0.0f;
+			return ComputeMaxRows(items, viewWidth) * items[0].CommonDimensions[_thumbnailSize].Height;
 		}
 	}
 }
