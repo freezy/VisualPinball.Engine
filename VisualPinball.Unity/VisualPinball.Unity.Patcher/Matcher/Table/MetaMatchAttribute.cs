@@ -26,11 +26,15 @@ namespace VisualPinball.Unity.Patcher
 	public class MetaMatchAttribute : TableMatchAttribute
 	{
 		public string TableName;
+		public string TableVersion;
 		public string AuthorName;
 
 		public override bool Matches(FileTableContainer tableContainer, string fileName)
 		{
 			if (TableName != null && tableContainer.InfoName != TableName) {
+				return false;
+			}
+			if (TableVersion != null && tableContainer.InfoVersion != TableVersion) {
 				return false;
 			}
 			if (AuthorName != null && tableContainer.InfoAuthorName != AuthorName) {
