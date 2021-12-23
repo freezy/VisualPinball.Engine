@@ -20,6 +20,7 @@ using System.Linq;
 using NLog;
 using Unity.Entities;
 using Unity.Mathematics;
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using VisualPinball.Engine.Common;
@@ -166,6 +167,8 @@ namespace VisualPinball.Unity
 			if (EngineProvider<IDebugUI>.Exists) {
 				EngineProvider<IDebugUI>.Get().Init(_tableComponent);
 			}
+
+			EventBus.Trigger(EventNames.PlayerStartedEvent, new EventArgs());
 		}
 
 		private void Update()
