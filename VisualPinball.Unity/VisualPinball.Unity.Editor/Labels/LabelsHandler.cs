@@ -23,20 +23,72 @@ namespace VisualPinball.Unity.Editor
 {
 	public class LabelsHandler
 	{
-		private List<PinballLabel> _pinballLabels = new List<PinballLabel>();
-
-		public string[] Categories => _pinballLabels.Select(L => L.Category).Distinct().ToArray();
-
-		public LabelsHandler() { }
-
-		public void AddLabels(IEnumerable<string> labels)
+		public enum LabelType
 		{
-			_pinballLabels.Union(labels.Select(L => new PinballLabel(L)));
+			LabelLibraries,
+			Assets
 		}
 
-		public string[] GetLabels(string category) => _pinballLabels.Where(L => string.IsNullOrEmpty(category) || L.Category.Equals(category, StringComparison.InvariantCultureIgnoreCase))
-																	.Select(L => L.Label).ToArray();
-	
+		private Dictionary<LabelType, PinballLabelList> _labels = new Dictionary<LabelType, PinballLabelList>() {
+			{LabelType.LabelLibraries, new PinballLabelList() },
+			{LabelType.Assets, new PinballLabelList() }
+		};
 
+		private Dictionary<LabelType, PinballLabelCategoryList> _categories = new Dictionary<LabelType, PinballLabelCategoryList>() {
+			{LabelType.LabelLibraries, new PinballLabelCategoryList() },
+			{LabelType.Assets, new PinballLabelCategoryList() }
+		};
+
+		public LabelsHandler() 
+		{
+		}
+
+		private void BuildFromLibraries()
+		{
+			ClearAssetLabels();
+
+			var guids = AssetDatabase.FindAssets("t: LabelsLibraryAsset");
+			foreach (var guid in guids) {
+				var asset = AssetDatabase.LoadAssetAtPath<LabelsLibraryAsset>(AssetDatabase.GUIDToAssetPath(guid));
+				foreach (var category in asset.Categories) {
+					if (!string.IsNullOrEmpty(category.Name)) {
+						_categories[LabelType.LabelLibraries].Add(new PinballLabelCategory(category));
+					}
+				}
+				foreach(var label in asset.Labels) {
+					if (!string.IsNullOrEmpty(label.FullLabel)) {
+						_labels[LabelType.LabelLibraries].Add(new PinballLabel(label.FullLabel));
+					}
+				}
+			}
+		}
+
+		public void Init()
+		{
+			BuildFromLibraries();
+		}
+
+		public void ClearAssetLabels()
+		{
+			_categories[LabelType.Assets].Clear();
+			_labels[LabelType.Assets].Clear();
+		}
+
+		public void AddLabels(string[] labels)
+		{
+			foreach(var label in labels) {
+				PinballLabel pLabel = new PinballLabel(label);
+				if (!string.IsNullOrEmpty(pLabel.FullLabel)) {
+					if (!_labels[LabelType.LabelLibraries].Contains(pLabel)) {
+						if (_labels[LabelType.Assets].Add(pLabel) && !string.IsNullOrEmpty(pLabel.Category)) {
+							var category = new PinballLabelCategory() { Name = pLabel.Category };
+							if (!_categories[LabelType.LabelLibraries].Contains(category)) {
+								_categories[LabelType.Assets].Add(category);
+							}
+						}
+					}
+				}
+			}
+		}
 	}
 }

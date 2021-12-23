@@ -15,10 +15,12 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using System;
+using System.Diagnostics;
 using UnityEngine;
 
 namespace VisualPinball.Unity.Editor
 {
+	[DebuggerDisplay("Name = {Name}, MultipleSelection = {MultipleSelection}, Color = {Color}")]
 	[Serializable]
 	public class PinballLabelCategory 
 	{
@@ -33,5 +35,16 @@ namespace VisualPinball.Unity.Editor
 
 		[SerializeField]
 		public Color Color = DefaultColor;
+
+		public PinballLabelCategory()
+		{
+		}
+
+		public PinballLabelCategory(PinballLabelCategory category)
+		{
+			Name = category.Name;
+			MultipleSelection = category.MultipleSelection;
+			Color = category.Color;
+		}
 	}
 }

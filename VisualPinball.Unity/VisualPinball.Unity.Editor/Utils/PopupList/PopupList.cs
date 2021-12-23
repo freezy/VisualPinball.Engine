@@ -255,14 +255,14 @@ namespace VisualPinball.Unity.Editor
 
 		public PopupList(InputData inputData) : this(inputData, null) { }
 
-		public PopupList(InputData inputData, string initialSelectionLabel)
+		public PopupList(InputData inputData, string inititalFilter)
 		{
 			m_Data = inputData;
 			m_Data.ResetScores();
 			SelectNoCompletion();
 			m_Gravity = Gravity.Top;
-			if (initialSelectionLabel != null) {
-				m_EnteredTextCompletion = initialSelectionLabel;
+			if (inititalFilter != null) {
+				m_EnteredTextCompletion = inititalFilter;
 				UpdateCompletion();
 			}
 		}

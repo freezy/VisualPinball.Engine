@@ -15,10 +15,12 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using System;
+using System.Diagnostics;
 using UnityEngine;
 
 namespace VisualPinball.Unity.Editor
 {
+	[DebuggerDisplay("Category = {Category}, Label = {Label}")]
 	[Serializable]
 	public class PinballLabel : ISerializationCallbackReceiver
 	{
@@ -78,5 +80,10 @@ namespace VisualPinball.Unity.Editor
 		public void OnBeforeSerialize()		{}
 
 		public void OnAfterDeserialize() { Build(); }
+
+		public new string ToString()
+		{
+			return FullLabel;
+		}
 	}
 }

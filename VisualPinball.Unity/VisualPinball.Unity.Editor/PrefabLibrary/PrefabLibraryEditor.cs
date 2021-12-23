@@ -104,14 +104,18 @@ namespace VisualPinball.Unity.Editor
 	{
 		private static readonly Logger Logger = NLog.LogManager.GetCurrentClassLogger();
 
+		private LabelsHandler _labelsHandler = new LabelsHandler();
+
 		private List<PrefabLibraryFolderContent> _folderContents = new List<PrefabLibraryFolderContent>();
 
-		private LabelsHandler _labelsHandler = new LabelsHandler();
+		private List<PinballLabel> _filterLabels = new List<PinballLabel>();
 
 		private List<PrefabThumbnailElement> _thumbs = new List<PrefabThumbnailElement>();
 		private PrefabThumbnailView _thumbView = new PrefabThumbnailView(null) { MultiSelection = false };
 
 		private UnityEditor.Editor _previewEditor = null;
+
+		private List<PinballLabel> _prefabLabels = new List<PinballLabel>();
 
 		[MenuItem("Visual Pinball/Prefab Library", false, 601)]
 		public static void ShowWindow()
@@ -119,10 +123,13 @@ namespace VisualPinball.Unity.Editor
 			GetWindow<PrefabLibraryEditor>().titleContent = new GUIContent("Prefabs Library");
 		}
 
+		public PrefabLibraryEditor() : base()
+		{
+		}
+
 		public override void OnEnable()
 		{
 			base.OnEnable();
-
 			CheckPrefabSettinbgsAssets();
 		}
 
@@ -141,7 +148,13 @@ namespace VisualPinball.Unity.Editor
 				if (_previewEditor != null) {
 					DestroyImmediate(_previewEditor);
 				}
+
 				_previewEditor = UnityEditor.Editor.CreateEditor(_thumbView.SelectedPrefab);
+				_prefabLabels.Clear();
+				if (_thumbView.SelectedPrefab != null) {
+					var labels = AssetDatabase.GetLabels(_thumbView.SelectedPrefab);
+					_prefabLabels.AddRange(labels.Select(L => new PinballLabel(L)).ToList());
+				}
 			}
 
 			if (_previewEditor) {
@@ -206,7 +219,7 @@ namespace VisualPinball.Unity.Editor
 
 		private void CheckPrefabSettinbgsAssets()
 		{
-			PinballMetadataCache.ClearCache();
+			_labelsHandler.Init();
 
 			var guids = AssetDatabase.FindAssets("t: PrefabLibrarySettingsAsset");
 			foreach(var guid in guids) {
@@ -219,7 +232,6 @@ namespace VisualPinball.Unity.Editor
 						_folderContents.Add(newFolder);
 					}
 				}
-				//LabelHandler add tags from settings assets
 			}
 
 			_thumbView.SetData(_thumbs);
@@ -230,6 +242,7 @@ namespace VisualPinball.Unity.Editor
 		{
 			foreach (var prefab in folder.Prefabs) {
 				_thumbs.Add(new PrefabThumbnailElement(prefab.Prefab));
+				_labelsHandler.AddLabels(prefab.Labels);
 			}
 		}
 	}
