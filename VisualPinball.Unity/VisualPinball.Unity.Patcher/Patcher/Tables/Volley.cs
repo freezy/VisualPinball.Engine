@@ -44,7 +44,7 @@ namespace VisualPinball.Unity.Patcher
 
 		private static void SetupLights(GameObject tableGo, GameObject playfieldGo)
 		{
-			foreach (var child in playfieldGo.transform.Find("Lights").gameObject.transform.Cast<Transform>().ToList()) {
+			/*foreach (var child in playfieldGo.transform.Find("Lights").gameObject.transform.Cast<Transform>().ToList()) {
 				var go = child.gameObject;
 
 				var lc = go.GetComponentInParent<LightComponent>();
@@ -55,7 +55,7 @@ namespace VisualPinball.Unity.Patcher
 
 					PrefabUtility.RecordPrefabInstancePropertyModifications(lc);
 				}
-			}
+			}*/
 
 			var lightGroups = CreateEmptyGameObject(playfieldGo, "Light Groups");
 
@@ -84,12 +84,12 @@ namespace VisualPinball.Unity.Patcher
 
 		private static void SetupTrough(GameObject tableGo, GameObject playfieldGo)
 		{
-			var troughComponent = CreateTrough(tableGo, playfieldGo);
+			/*var troughComponent = CreateTrough(tableGo, playfieldGo);
 			troughComponent.Type = TroughType.ClassicSingleBall;
 			troughComponent.BallCount = 1;
 			troughComponent.SwitchCount = 1;
 			troughComponent.KickTime = 100;
-			troughComponent.RollTime = 300;
+			troughComponent.RollTime = 300;*/
 		}
 
 		[NameMatch("Yellow1")]
@@ -169,8 +169,8 @@ namespace VisualPinball.Unity.Patcher
 		[NameMatch("GILight34")]
 		public void FixGIs(GameObject go)
 		{
-			LightTemperature(go, 2700f);
-			LightIntensity(go, 120f);
+			//LightTemperature(go, 2700f);
+			//LightIntensity(go, 120f);
 		}
 	}
 }
