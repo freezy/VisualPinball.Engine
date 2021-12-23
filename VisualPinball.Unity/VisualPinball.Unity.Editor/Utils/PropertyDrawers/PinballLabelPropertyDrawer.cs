@@ -59,15 +59,15 @@ namespace VisualPinball.Unity.Editor
 				labelsList.m_ListElements.Add(new PopupListElement("Decades.2000"));
 				labelsList.m_ListElements.Add(new PopupListElement("AFM"));
 
-				if (string.IsNullOrEmpty(fullLabel.stringValue)) {
-					labelRect.width = labelButtonStyle.margin.left + labelButtonStyle.fixedWidth + labelButtonStyle.padding.right;
-					if (EditorGUI.DropdownButton(labelRect, GUIContent.none, FocusType.Passive, labelButtonStyle)) {
-						PopupWindow.Show(labelRect, new PopupLabelList(labelsList));
-					}
-				} else {
+				//if (string.IsNullOrEmpty(fullLabel.stringValue)) {
+				//	labelRect.width = labelButtonStyle.margin.left + labelButtonStyle.fixedWidth + labelButtonStyle.padding.right;
+				//	if (EditorGUI.DropdownButton(labelRect, GUIContent.none, FocusType.Passive, labelButtonStyle)) {
+				//		PopupWindow.Show(labelRect, new PopupLabelList(labelsList));
+				//	}
+				//} else {
 					labelRect.width = labelStyle.CalcSize(new GUIContent(fullLabel.stringValue)).x;
 					fullLabel.stringValue = GUI.TextField(labelRect, fullLabel.stringValue, labelStyle);
-				}
+				//}
 
 			}
 		}
