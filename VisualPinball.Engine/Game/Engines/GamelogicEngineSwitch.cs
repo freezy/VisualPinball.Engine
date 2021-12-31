@@ -38,7 +38,7 @@ namespace VisualPinball.Engine.Game.Engines
 		/// <summary>
 		/// A unique identifier. This is what VPE uses to identify a switch.
 		/// </summary>
-		public string Id { get => _id; set => _id = value; }
+		public virtual string Id { get => _id; set => _id = value; }
 
 		/// <summary>
 		/// A numerical identifier that can be used in gamelogic engines that
@@ -58,7 +58,7 @@ namespace VisualPinball.Engine.Game.Engines
 		/// </summary>
 		public bool IsPulseSwitch;
 
-		public string Description { get => _description; set => _description = value; }
+		public virtual string Description { get => _description; set => _description = value; }
 		public string InputActionHint;
 		public string InputMapHint;
 

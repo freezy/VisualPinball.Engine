@@ -25,7 +25,7 @@ namespace VisualPinball.Unity
 	///
 	/// There will typically be implementations for PinMAME and MPF.
 	/// </summary>
-	public interface IGamelogicEngine
+	public interface IGamelogicEngine : IGamelogicBridge
 	{
 		string Name { get; }
 
@@ -105,6 +105,21 @@ namespace VisualPinball.Unity
 		GamelogicEngineWire[] AvailableWires { get; }
 
 		#endregion
+	}
+
+	/// <summary>
+	/// Sometimes we want to extend an existing GLE with other components. This
+	/// API allows other components to be able to drive the GLE.
+	/// </summary>
+	public interface IGamelogicBridge
+	{
+		void SetCoil(string id, bool isEnabled);
+		void SetLamp(string id, int value, bool isCoil = false, LampSource source = LampSource.Lamp);
+		void SetLamp(string id, Color color);
+
+		public event EventHandler<SwitchEventArgs2> OnSwitchChanged;
+
+		// todo displays
 	}
 
 	public class AvailableDisplays
@@ -226,11 +241,11 @@ namespace VisualPinball.Unity
 			IsCoil = false;
 		}
 
-		public LampEventArgs(string id, int value, bool isCoil)
+		public LampEventArgs(string id, int value, bool isCoil, LampSource source = LampSource.Lamp)
 		{
 			Id = id;
 			Value = value;
-			Source = LampSource.Lamp;
+			Source = source;
 			IsCoil = isCoil;
 		}
 	}
@@ -263,4 +278,18 @@ namespace VisualPinball.Unity
 			LampsChanged = lampsChanged;
 		}
 	}
+
+	public readonly struct SwitchEventArgs2
+	{
+		public readonly string Id;
+		public readonly bool IsEnabled;
+
+		public SwitchEventArgs2(string id, bool isEnabled)
+		{
+			Id = id;
+			IsEnabled = isEnabled;
+		}
+	}
+
+
 }
