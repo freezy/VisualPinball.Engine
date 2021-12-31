@@ -23,8 +23,8 @@ namespace VisualPinball.Engine.Game.Engines
 	[Serializable]
 	public class GamelogicEngineCoil : IGamelogicEngineDeviceItem
 	{
-		public string Id { get => _id; set => _id = value; }
-		public string Description { get => _description; set => _description = value; }
+		public virtual string Id { get => _id; set => _id = value; }
+		public virtual string Description { get => _description; set => _description = value; }
 
 		public int InternalId;
 		public string DeviceHint { get => _deviceHint; set => _deviceHint = value; }
