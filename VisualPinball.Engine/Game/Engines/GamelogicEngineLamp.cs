@@ -27,7 +27,12 @@ namespace VisualPinball.Engine.Game.Engines
 		/// <summary>
 		/// The unique ID of this lamp, as the gamelogic engine addresses it.
 		/// </summary>
-		public string Id { get => _id; set => _id = value; }
+		public virtual string Id { get => _id; set => _id = value; }
+
+		/// <summary>
+		/// An optional description of the lamp.
+		/// </summary>
+		public virtual string Description { get => _description; set => _description = value; }
 
 		/// <summary>
 		/// Some gamelogic engines use integers for the ID. In order to avoid repetitive casting, we store it as integer as well.
@@ -43,11 +48,6 @@ namespace VisualPinball.Engine.Game.Engines
 		/// If it's a fading light, this is the value at maximal intensity.
 		/// </summary>
 		public int FadingSteps;
-
-		/// <summary>
-		/// An optional description of the lamp.
-		/// </summary>
-		public string Description { get => _description; set => _description = value; }
 
 		/// <summary>
 		/// How the gamelogic engine triggers the lamp. Either through GI or through the normal lamp API.
