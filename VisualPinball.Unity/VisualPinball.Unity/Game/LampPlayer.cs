@@ -58,7 +58,7 @@ namespace VisualPinball.Unity
 
 		internal Dictionary<string, float> LampStatuses { get; } = new Dictionary<string, float>();
 		internal void RegisterLamp(ILampDeviceComponent component, IApiLamp lampApi) => _lamps[component] = lampApi;
-		
+
 		public void Awake(Player player, TableComponent tableComponent, IGamelogicEngine gamelogicEngine)
 		{
 			_player = player;
@@ -144,8 +144,6 @@ namespace VisualPinball.Unity
 #if UNITY_EDITOR
 			RefreshUI();
 #endif
-
-			EventBus.Trigger(EventNames.LampEvent, lampEvent);
 		}
 
 		public void OnDestroy()
