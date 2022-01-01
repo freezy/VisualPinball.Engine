@@ -44,6 +44,8 @@ namespace VisualPinball.Unity
 		[NonSerialized]
 		public BallManager BallManager;
 
+		public event EventHandler OnPlayerStarted;
+
 		public List<SwitchMapping> SwitchMapping => _tableComponent.MappingConfig.Switches;
 		public List<CoilMapping> CoilMapping => _tableComponent.MappingConfig.Coils;
 
@@ -163,12 +165,13 @@ namespace VisualPinball.Unity
 			_wirePlayer.OnStart();
 
 			GamelogicEngine?.OnInit(this, TableApi, BallManager);
+			OnPlayerStarted?.Invoke(this, EventArgs.Empty);
 
 			if (EngineProvider<IDebugUI>.Exists) {
 				EngineProvider<IDebugUI>.Get().Init(_tableComponent);
 			}
 
-			EventBus.Trigger(EventNames.PlayerStartedEvent, new EventArgs());
+
 		}
 
 		private void Update()
