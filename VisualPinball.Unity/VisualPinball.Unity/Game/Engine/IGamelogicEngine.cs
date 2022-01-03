@@ -117,6 +117,10 @@ namespace VisualPinball.Unity
 		void SetLamp(string id, int value, bool isCoil = false, LampSource source = LampSource.Lamp);
 		void SetLamp(string id, Color color);
 
+		bool GetSwitch(string id);
+		bool GetCoil(string id);
+		float GetLamp(string id);
+
 		public event EventHandler<SwitchEventArgs2> OnSwitchChanged;
 
 		// todo displays
