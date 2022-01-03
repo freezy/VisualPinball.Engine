@@ -114,7 +114,7 @@ namespace VisualPinball.Unity
 	public interface IGamelogicBridge
 	{
 		void SetCoil(string id, bool isEnabled);
-		void SetLamp(string id, int value, bool isCoil = false, LampSource source = LampSource.Lamp);
+		void SetLamp(string id, float value, bool isCoil = false, LampSource source = LampSource.Lamp);
 		void SetLamp(string id, Color color);
 
 		bool GetSwitch(string id);
@@ -222,10 +222,10 @@ namespace VisualPinball.Unity
 		public readonly string Id;
 
 		/// <summary>
-		/// Value of the lamp. Depending on its type, it can be 0/1 for on/off, or 0-255 for
+		/// Value of the lamp, between 0.0 and 1.0.
 		/// a fading light.
 		/// </summary>
-		public readonly int Value;
+		public readonly float Value;
 
 		/// <summary>
 		/// Source which triggered the lamp.
@@ -245,7 +245,7 @@ namespace VisualPinball.Unity
 			IsCoil = false;
 		}
 
-		public LampEventArgs(string id, int value, bool isCoil, LampSource source = LampSource.Lamp)
+		public LampEventArgs(string id, float value, bool isCoil, LampSource source = LampSource.Lamp)
 		{
 			Id = id;
 			Value = value;

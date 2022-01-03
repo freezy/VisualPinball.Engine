@@ -112,7 +112,7 @@ namespace VisualPinball.Unity
 						var channel = ColorChannel.Alpha;
 						switch (mapping.Type) {
 							case LampType.SingleOnOff:
-								value = lampEvent.Value > 0 ? 1f : 0f;
+								value = lampEvent.Value / 255f;
 								break;
 
 							case LampType.Rgb:
@@ -125,7 +125,7 @@ namespace VisualPinball.Unity
 								break;
 
 							case LampType.SingleFading:
-								value = lampEvent.Value / (float)mapping.FadingSteps;
+								value = lampEvent.Value / mapping.FadingSteps;
 								break;
 
 							default:
