@@ -36,7 +36,7 @@ namespace VisualPinball.Unity.Editor
 
 	public enum IconColor
 	{
-		Gray, Green, Orange, Blue
+		Gray, Green, Orange, Blue, Colored
 	}
 
 	public interface IIconLookup
@@ -95,11 +95,18 @@ namespace VisualPinball.Unity.Editor
 		private const string TriggerName = "trigger";
 		private const string TroughName = "trough";
 
+		// colored
+		private const string CoilEventName = "coil_event";
+		private const string SwitchEventName = "switch_event";
+		private const string LampEventName = "lamp_event";
+
 		private static readonly string[] Names = {
 			BallRollerName, BoltName, BumperName, CannonName, CoilName, DropTargetBankName, DropTargetName, FlasherName, FlipperName, GateName,
 			HitTargetName, KeyName, KickerName, LightGroupName, LightName, MechName, MechPinMameName, PlayfieldName, PlugName, PlungerName,
 			PrimitiveName, RampName, RotatorName, RubberName, SlingshotName, SpinnerName, SurfaceName, SwitchNcName, SwitchNoName, TableName,
 			TeleporterName, TriggerName, TroughName,
+
+			CoilEventName, SwitchEventName, LampEventName
 		};
 
 		private readonly Dictionary<IconVariant, Texture2D> _icons = new Dictionary<IconVariant, Texture2D>();
@@ -174,6 +181,11 @@ namespace VisualPinball.Unity.Editor
 		public static Texture2D Teleporter(IconSize size = IconSize.Large, IconColor color = IconColor.Gray) => Instance.GetItem(TeleporterName, size, color);
 		public static Texture2D Trigger(IconSize size = IconSize.Large, IconColor color = IconColor.Gray) => Instance.GetItem(TriggerName, size, color);
 		public static Texture2D Trough(IconSize size = IconSize.Large, IconColor color = IconColor.Gray) => Instance.GetItem(TroughName, size, color);
+
+		public static Texture2D CoilEvent => Instance.GetItem(CoilEventName, IconSize.Large, IconColor.Colored);
+		public static Texture2D SwitchEvent => Instance.GetItem(SwitchEventName, IconSize.Large, IconColor.Colored);
+		public static Texture2D LampEvent => Instance.GetItem(LampEventName, IconSize.Large, IconColor.Colored);
+
 
 		public static Texture2D ByComponent<T>(T mb, IconSize size = IconSize.Large, IconColor color = IconColor.Gray)
 			where T : class
