@@ -293,6 +293,7 @@ namespace VisualPinball.Unity
 		{
 			OnCoilChanged?.Invoke(this, new CoilEventArgs(n, value));
 		}
+
 		public void SetLamp(string id, int value, bool isCoil = false, LampSource source = LampSource.Lamp)
 		{
 			OnLampChanged?.Invoke(this, new LampEventArgs(id, value, isCoil, source));
@@ -306,6 +307,21 @@ namespace VisualPinball.Unity
 		public void SetLamps(LampEventArgs[] values)
 		{
 			OnLampsChanged?.Invoke(this, new LampsEventArgs(values));
+		}
+
+		public float GetLamp(string id)
+		{
+			return _player.LampStatuses.ContainsKey(id) ? _player.LampStatuses[id] : 0;
+		}
+
+		public bool GetSwitch(string id)
+		{
+			return _player.SwitchStatuses.ContainsKey(id) && _player.SwitchStatuses[id].IsSwitchEnabled;
+		}
+
+		public bool GetCoil(string id)
+		{
+			return _player.CoilStatuses.ContainsKey(id) && _player.CoilStatuses[id];
 		}
 
 		private void DebugPrintCoil(object sender, CoilEventArgs e)
