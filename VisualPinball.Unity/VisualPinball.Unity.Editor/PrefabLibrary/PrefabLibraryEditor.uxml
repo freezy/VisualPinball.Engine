@@ -1,8 +1,0 @@
-<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" xsi="http://www.w3.org/2001/XMLSchema-instance" engine="UnityEngine.UIElements" editor="UnityEditor.UIElements" noNamespaceSchemaLocation="../../../../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
-    <ui:VisualElement name="toolbar" />
-    <ui:VisualElement name="main-view" style="flex-grow: 1; flex-direction: row;">
-        <ui:ListView focusable="true" name="list" style="height: auto; width: 244px; flex-grow: 0; flex-basis: 20%; align-items: auto;" />
-        <ui:ScrollView scroll-deceleration-rate="0,135" elasticity="0,1" show-horizontal-scroller="false" show-vertical-scroller="true" style="height: auto; flex-grow: 1;" />
-        <ui:Foldout text="Foldout" />
-    </ui:VisualElement>
-</ui:UXML>
