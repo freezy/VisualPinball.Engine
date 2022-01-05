@@ -83,7 +83,8 @@ namespace VisualPinball.Unity.Editor
 
 		protected abstract void InitCommonStyles();
 
-		protected virtual void OnGUIToolbar() { }
+		protected virtual void OnGUIToolbarBegin() { }
+		protected virtual void OnGUIToolbarEnd() { }
 
 		protected virtual bool MatchLabelFilter(T item, string labelFilter) => false;
 
@@ -129,6 +130,8 @@ namespace VisualPinball.Unity.Editor
 			if (ShowToolbar) {
 				EditorGUILayout.BeginVertical();
 
+				OnGUIToolbarBegin();
+
 				EditorGUILayout.BeginHorizontal(EditorStyles.toolbar, GUILayout.Width(rect.width));
 				EditorGUILayout.LabelField("Name Filter", GUILayout.Width(100));
 				_searchFilter = EditorGUILayout.TextField(_searchFilter, EditorStyles.toolbarSearchField, GUILayout.Width(rect.width-320));
@@ -144,7 +147,7 @@ namespace VisualPinball.Unity.Editor
 				_thumbnailSize = (EThumbnailSize)EditorGUILayout.EnumPopup(_thumbnailSize, GUILayout.Width(100));
 				EditorGUILayout.EndHorizontal();
 
-				OnGUIToolbar();
+				OnGUIToolbarEnd();
 
 				EditorGUILayout.EndVertical();
 			}
@@ -229,7 +232,7 @@ namespace VisualPinball.Unity.Editor
 				return 0;
 
 			var rowWidth = 0.0f;
-			var rowCount = 0;
+			var rowCount = 1;
 			foreach (var item in items) {
 				var itemWidth = item.GetWidth(_thumbnailSize, _commonStyles.DefaultStyle);
 				if (itemWidth > viewWidth) {

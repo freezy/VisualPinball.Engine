@@ -24,28 +24,30 @@ namespace VisualPinball.Unity.Editor
 {
 	/// <summary>
 	/// An asset containing somme prefab library settings.
-	/// Prefabs are populated to the <see cref="PrefabLibraryEditor"/> using these settings.
+	/// Prefabs are populated to the <see cref="AssetsLibraryEditor"/> using these settings.
 	/// </summary>
 	/// <remarks>
 	/// You can have several PrefabLibrarySettingsAssets, the editor will find all of them into the AssetDatabase.
 	/// </remarks>
-	[CreateAssetMenu(fileName = "Prefab Library Settings", menuName = "Visual Pinball/Prefab Library Settings", order = 101)]
-	public class PrefabLibrarySettingsAsset : ScriptableObject
+	[CreateAssetMenu(fileName = "Assets Library Settings", menuName = "Visual Pinball/Assets Library Settings", order = 101)]
+	public class AssetsLibrarySettingsAsset : ScriptableObject
 	{
-		public string Name = "Prefab Library";
-
 		[Serializable]
 		public class FolderSettings
 		{
 			public ProjectFolderReference FolderReference = new ProjectFolderReference();
-			[Tooltip("Prefabs will be searched recursively into this path.")]
+
+			[Tooltip("Assets will be searched recursively into this path.")]
 			public bool Recursive = true;
 		}
 
+		public string Name = "Assets Library";
+
 		public bool Locked = false;
 
-		public List<FolderSettings> Folders = new List<FolderSettings>();
+		[Tooltip("List of the asset's types to search for.")]
+		public List<string> AssetTypes = new List<string>();
 
-		private Dictionary<string, List<string>> AssetTags = new Dictionary<string, List<string>>();
+		public List<FolderSettings> Folders = new List<FolderSettings>();
 	}
 }

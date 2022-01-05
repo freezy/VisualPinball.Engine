@@ -4,14 +4,15 @@ using System.Linq;
 using System.Text;
 using UnityEditor;
 using UnityEngine;
+using Object = UnityEngine.Object;
 
 namespace VisualPinball.Unity.Editor
 {
-	public class PrefabThumbnailView : ThumbnailView<PrefabThumbnailElement>
+	public class AssetsThumbnailView : ThumbnailView<AssetThumbnailElement>
 	{
-		public GameObject SelectedPrefab => SelectedItem?.Prefab;
+		public Object SelectedAsset => SelectedItem?.Asset;
 
-		public PrefabThumbnailView(IEnumerable<PrefabThumbnailElement> data) : base(data) { }
+		public AssetsThumbnailView(IEnumerable<AssetThumbnailElement> data) : base(data) { }
 
 		protected override void InitCommonStyles()
 		{
@@ -28,13 +29,18 @@ namespace VisualPinball.Unity.Editor
 			}
 		}
 
-		protected override void OnGUIToolbar() 
+		protected override void OnGUIToolbarBegin() 
+		{
+
+		}
+
+		protected override void OnGUIToolbarEnd()
 		{
 		}
 
-		protected override bool MatchLabelFilter(PrefabThumbnailElement item, string labelFilter)
+		protected override bool MatchLabelFilter(AssetThumbnailElement item, string labelFilter)
 		{
-			var labels = AssetDatabase.GetLabels(item.Prefab);
+			var labels = AssetDatabase.GetLabels(item.Asset);
 			return labels.Any(L => L.Contains(labelFilter, StringComparison.InvariantCultureIgnoreCase));
 		}
 

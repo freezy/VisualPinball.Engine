@@ -17,13 +17,14 @@
 using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
+using Object = UnityEngine.Object;
 
 namespace VisualPinball.Unity.Editor
 {
-	public class PrefabThumbnailElement : ThumbnailElement
+	public class AssetThumbnailElement : ThumbnailElement
 	{
-		private GameObject _prefab = null;
-		public GameObject Prefab => _prefab;
+		private Object _asset = null;
+		public Object Asset => _asset;
 
 		private static Dictionary<EThumbnailSize, Dimension> _commonDimensions = new Dictionary<EThumbnailSize, Dimension>() {
 			{ EThumbnailSize.Small, new Dimension(){ Offset = new Vector2(3.0f, 3.0f), Height = 64 } },
@@ -33,19 +34,19 @@ namespace VisualPinball.Unity.Editor
 
 		public override Dictionary<EThumbnailSize, Dimension> CommonDimensions => _commonDimensions;
 
-		public PrefabThumbnailElement(GameObject prefab) : base()
+		public AssetThumbnailElement(Object asset) : base()
 		{
-			_prefab = prefab;
+			_asset = asset;
 		}
 
-		public override string Name => _prefab?.name;
+		public override string Name => _asset?.name;
 
 		public override float GetWidth(EThumbnailSize thumbSize, GUIStyle style) => CommonDimensions[thumbSize].Height;
 
 		public override void OnGUI(Rect rect, GUIStyle style)
 		{
 			var boxRect = new Rect(rect.x, rect.y, rect.width, rect.height);
-			var assetPreview = AssetPreview.GetAssetPreview(_prefab);
+			var assetPreview = AssetPreview.GetAssetPreview(_asset);
 			GUI.Box(boxRect, new GUIContent(), style);
 			boxRect.x += style.border.left;
 			boxRect.y += style.border.top;

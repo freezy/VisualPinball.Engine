@@ -515,4 +515,10 @@ namespace VisualPinball.Unity.Editor
 			}
 		}
 	}
+
+	public class GenericPopupList : PopupList<PopupListElement>	
+	{
+		public GenericPopupList(InputData inputData) : base(inputData) { }
+		public GenericPopupList(InputData inputData, string inititalFilter) : base(inputData, inititalFilter) { }
+	}
 }
