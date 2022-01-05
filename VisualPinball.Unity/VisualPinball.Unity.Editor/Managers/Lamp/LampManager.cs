@@ -147,11 +147,7 @@ namespace VisualPinball.Unity.Editor
 						continue;
 					}
 
-					var lights = lampMapping.Device is LightGroupComponent lightGroupComponent
-						? lightGroupComponent.Lights.SelectMany(l => l.GetComponentsInChildren<Light>())
-						: lampMapping.Device.gameObject.GetComponentsInChildren<Light>();
-
-					foreach (var light in lights) {
+					foreach (var light in lampMapping.Device.LightSources) {
 						action(light);
 					}
 				}

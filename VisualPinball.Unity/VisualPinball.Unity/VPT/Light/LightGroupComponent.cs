@@ -41,6 +41,7 @@ namespace VisualPinball.Unity
 		public IApiLamp GetApi(Player player) => _api ??= new LightGroupApi(
 			Lights.Select(l => l.GetApi(player)).ToArray()
 		);
+		public IEnumerable<Light> LightSources => Lights.SelectMany(l => l.LightSources).ToArray();
 
 		[NonSerialized]
 		private LightGroupApi _api;
