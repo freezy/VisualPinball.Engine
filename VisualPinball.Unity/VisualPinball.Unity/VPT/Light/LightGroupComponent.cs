@@ -18,6 +18,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using NLog;
 using UnityEngine;
 using VisualPinball.Engine.Game.Engines;
@@ -28,7 +29,21 @@ namespace VisualPinball.Unity
 	[AddComponentMenu("Visual Pinball/Game Item/Light Group")]
 	public class LightGroupComponent : MonoBehaviour, ILampDeviceComponent
 	{
-		public LightComponent[] Lights = Array.Empty<LightComponent>();
+		public List<ILampDeviceComponent> Lights {
+			get => _lights.Select(l => l as ILampDeviceComponent).ToList();
+			set => _lights = value.Select(l => l as MonoBehaviour).ToArray();
+		}
+		[SerializeField]
+		[TypeRestriction(typeof(ILampDeviceComponent), PickerLabel = "Lamps", UpdateTransforms = false)]
+		[Tooltip("The children of this light group. Can be lights or even other light groups.")]
+		public MonoBehaviour[] _lights = Array.Empty<MonoBehaviour>();
+
+		public IApiLamp GetApi(Player player) => _api ??= new LightGroupApi(
+			Lights.Select(l => l.GetApi(player)).ToArray()
+		);
+
+		[NonSerialized]
+		private LightGroupApi _api;
 
 		#region Wiring
 
@@ -58,7 +73,5 @@ namespace VisualPinball.Unity
 		}
 
 		#endregion
-
-
 	}
 }

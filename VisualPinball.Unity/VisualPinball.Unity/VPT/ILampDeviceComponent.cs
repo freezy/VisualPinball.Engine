@@ -25,5 +25,8 @@ namespace VisualPinball.Unity
 		/// A list of available lamps supported by the lamp device
 		/// </summary>
 		IEnumerable<GamelogicEngineLamp> AvailableLamps { get; }
+
+		T[] GetComponentsInChildren<T>();
+		IApiLamp GetApi(Player player);
 	}
 }

@@ -248,7 +248,7 @@ namespace VisualPinball.Unity
 
 		public void RegisterLampGroup(LightGroupComponent component)
 		{
-			Register(new LightGroupApi(component.Lights.Select(l => l.GetApi(this)).ToArray()), component);
+			Register(component.GetApi(this), component);
 		}
 
 		public void RegisterStepRotator(StepRotatorMechComponent component)

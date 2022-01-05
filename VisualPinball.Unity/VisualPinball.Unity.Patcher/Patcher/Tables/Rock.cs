@@ -82,20 +82,20 @@ namespace VisualPinball.Unity.Patcher
 
 			var lightGroups = CreateEmptyGameObject(playfieldGo, "Light Groups");
 
-			AddLightGroup(tableGo, CreateEmptyGameObject(lightGroups, "LightGroupUpperLeft1"),
+			AddLightGroup(tableGo, CreateEmptyGameObject(lightGroups, "UpperLeft1"),
 				"gi26", "gi28", "gi25", "gi23");
 
-			AddLightGroup(tableGo, CreateEmptyGameObject(lightGroups, "LightGroupUpperLeft2"),
+			AddLightGroup(tableGo, CreateEmptyGameObject(lightGroups, "UpperLeft2"),
 				"gi27", "gi24", "gi22");
 
-			AddLightGroup(tableGo, CreateEmptyGameObject(lightGroups, "LightGroupUpperRight"),
+			AddLightGroup(tableGo, CreateEmptyGameObject(lightGroups, "UpperRight"),
 				 "gi30", "gi31", "gi14", "gi29", "gi4", "gi2", "gi7", "gi9", "gi21",
 				 "gi20", "gi19", "gi18", "gi17", "gi16", "gi15", "gi13", "gi12", "gi11");
 
-			AddLightGroup(tableGo, CreateEmptyGameObject(lightGroups, "LightGroupLower"),
+			AddLightGroup(tableGo, CreateEmptyGameObject(lightGroups, "Lower"),
 				 "gi6", "gi10");
 
-			AddLightGroup(tableGo, CreateEmptyGameObject(lightGroups, "LightGroupAuxiliary"),
+			AddLightGroup(tableGo, CreateEmptyGameObject(lightGroups, "Auxiliary"),
 				"AL1a", "AL1b", "AL2a", "AL2b", "AL3a", "AL3b", "AL4a", "AL4b",
 				"AL5a", "AL5b", "AL6a", "AL6b", "AL7a", "AL7b", "AL8a", "AL8b",
 				"AL9a", "AL9a", "AL10a", "AL10a");

@@ -20,11 +20,11 @@ using Color = UnityEngine.Color;
 
 namespace VisualPinball.Unity
 {
-	public class LightGroupApi : IApi, IApiLamp, IApiWireDeviceDest
+	public class LightGroupApi : IApiLamp, IApiWireDeviceDest
 	{
-		private readonly LightApi[] _apis;
+		private readonly IApiLamp[] _apis;
 
-		public LightGroupApi(LightApi[] apis)
+		public LightGroupApi(IApiLamp[] apis)
 		{
 			_apis = apis;
 		}

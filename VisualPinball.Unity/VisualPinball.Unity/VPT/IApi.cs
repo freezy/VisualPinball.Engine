@@ -241,7 +241,7 @@ namespace VisualPinball.Unity
 	/// <summary>
 	/// A game item that acts a lamp that can either receive a float value or a color.
 	/// </summary>
-	public interface IApiLamp : IApiWireDest
+	public interface IApiLamp : IApiWireDest, IApi
 	{
 		/// <summary>
 		/// Sets the color of the light.

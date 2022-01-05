@@ -36,7 +36,7 @@ namespace VisualPinball.Unity.Editor
 			base.OnEnable();
 
 			_lightGroupComponent = target as LightGroupComponent;
-			_lightGroupProperty = serializedObject.FindProperty(nameof(LightGroupComponent.Lights));
+			_lightGroupProperty = serializedObject.FindProperty(nameof(LightGroupComponent._lights));
 		}
 
 		public override void OnInspectorGUI()
@@ -49,22 +49,25 @@ namespace VisualPinball.Unity.Editor
 
 			GUILayout.Space(10);
 			if (GUILayout.Button("Add Children")) {
-				var lights = _lightGroupComponent.GetComponentsInChildren<LightComponent>();
+				var lights = _lightGroupComponent.GetComponentsInChildren<ILampDeviceComponent>();
 				foreach (var light in lights) {
-					if (_lightGroupComponent.Lights.ToList().Contains(light)) {
+					if (_lightGroupComponent._lights.Contains(light as MonoBehaviour) || ReferenceEquals(light, _lightGroupComponent)) {
 						continue;
 					}
 					_lightGroupProperty.InsertArrayElementAtIndex(_lightGroupProperty.arraySize);
-					_lightGroupProperty.GetArrayElementAtIndex(_lightGroupProperty.arraySize - 1).objectReferenceValue = light;
+					_lightGroupProperty.GetArrayElementAtIndex(_lightGroupProperty.arraySize - 1).objectReferenceValue = light as MonoBehaviour;
 				}
 			}
 
 			if (GUILayout.Button("Replace With Children")) {
-				var lights = _lightGroupComponent.GetComponentsInChildren<LightComponent>();
+				var lights = _lightGroupComponent.GetComponentsInChildren<ILampDeviceComponent>();
 				_lightGroupProperty.ClearArray();
 				foreach (var light in lights) {
+					if (ReferenceEquals(light, _lightGroupComponent)) {
+						continue;
+					}
 					_lightGroupProperty.InsertArrayElementAtIndex(_lightGroupProperty.arraySize);
-					_lightGroupProperty.GetArrayElementAtIndex(_lightGroupProperty.arraySize - 1).objectReferenceValue = light;
+					_lightGroupProperty.GetArrayElementAtIndex(_lightGroupProperty.arraySize - 1).objectReferenceValue = light as MonoBehaviour;
 				}
 			}
 
