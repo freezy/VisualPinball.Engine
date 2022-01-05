@@ -209,12 +209,12 @@ namespace VisualPinball.Unity.Patcher
 		{
 			var lightComponentGroup = go.AddComponent<LightGroupComponent>();
 
-			var compIndex = tableGo.GetComponentsInChildren<LightComponent>()
+			var compIndex = tableGo.GetComponentsInChildren<ILampDeviceComponent>()
 				.ToDictionary(lc => lc.name, lc => lc);
 			var lightComponents = names
 				.Where(n => compIndex.ContainsKey(n))
 				.Select(n => compIndex[n])
-				.ToArray();
+				.ToList();
 
 			lightComponentGroup.Lights = lightComponents;
 
@@ -450,10 +450,10 @@ namespace VisualPinball.Unity.Patcher
 		{
 			var parentTransform = go.transform.parent;
 			var lightComponents = lightNames
-				.Select(n => parentTransform.Find(n).GetComponent<LightComponent>())
+				.Select(n => parentTransform.Find(n).GetComponent<ILampDeviceComponent>())
 				.Where(c => c != null);
 			var lg = go.AddComponent<LightGroupComponent>();
-			lg.Lights = lightComponents.ToArray();
+			lg.Lights = lightComponents.ToList();
 		}
 
 		#endregion

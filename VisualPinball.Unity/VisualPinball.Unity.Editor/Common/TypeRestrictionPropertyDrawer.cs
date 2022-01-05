@@ -19,7 +19,6 @@ using System.Linq;
 using UnityEditor;
 using UnityEditor.IMGUI.Controls;
 using UnityEngine;
-using Object = UnityEngine.Object;
 
 namespace VisualPinball.Unity.Editor
 {
@@ -28,6 +27,8 @@ namespace VisualPinball.Unity.Editor
 	{
 		private MonoBehaviour _component;
 		private AdvancedDropdownState _itemPickDropdownState;
+
+		public override float GetPropertyHeight(SerializedProperty property, GUIContent label) => EditorGUIUtility.singleLineHeight + 2;
 
 		public override void OnGUI(Rect pos, SerializedProperty property, GUIContent label)
 		{
@@ -59,6 +60,7 @@ namespace VisualPinball.Unity.Editor
 			var indentedOffset = EditorGUI.indentLevel * 15f;
 
 			pos = EditorGUI.PrefixLabel(pos, label);
+			pos.height -= 2;
 
 			if (!string.IsNullOrEmpty(attrib.DeviceItem) && attrib.DeviceType != null) {
 				const float padding = 4f;
@@ -73,7 +75,7 @@ namespace VisualPinball.Unity.Editor
 			}
 		}
 
-		private void DevicePicker(Rect pos, SerializedProperty property, TypeRestrictionAttribute attrib, Component comp, Object field, TableComponent ta)
+		private void DevicePicker(Rect pos, SerializedProperty property, TypeRestrictionAttribute attrib, Component comp, UnityEngine.Object field, TableComponent ta)
 		{
 			// retrieve selected reference
 			MonoBehaviour obj = null;
@@ -145,7 +147,7 @@ namespace VisualPinball.Unity.Editor
 			}
 		}
 
-		private void DeviceItemDropdown(Rect pos, SerializedProperty property, TypeRestrictionAttribute attrib, Object field)
+		private void DeviceItemDropdown(Rect pos, SerializedProperty property, TypeRestrictionAttribute attrib, UnityEngine.Object field)
 		{
 			var deviceItemPropField = property.serializedObject.FindProperty(attrib.DeviceItem);
 

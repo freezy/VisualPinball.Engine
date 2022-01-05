@@ -92,7 +92,7 @@ namespace VisualPinball.Unity
 
 		#region API
 
-		public LightApi GetApi(Player player) => _api ??= new LightApi(gameObject, player);
+		public IApiLamp GetApi(Player player) => _api ??= new LightApi(gameObject, player);
 
 		[NonSerialized]
 		private LightApi _api;
