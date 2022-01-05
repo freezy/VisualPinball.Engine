@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using System.Collections.Generic;
+using UnityEngine;
 using VisualPinball.Engine.Game.Engines;
 
 namespace VisualPinball.Unity
@@ -26,7 +27,8 @@ namespace VisualPinball.Unity
 		/// </summary>
 		IEnumerable<GamelogicEngineLamp> AvailableLamps { get; }
 
-		T[] GetComponentsInChildren<T>();
 		IApiLamp GetApi(Player player);
+
+		IEnumerable<Light> LightSources { get; }
 	}
 }

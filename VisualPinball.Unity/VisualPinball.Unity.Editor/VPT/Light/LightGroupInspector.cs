@@ -82,8 +82,8 @@ namespace VisualPinball.Unity.Editor
 			GUILayout.Space(10);
 			if (GUILayout.Button("Select Light Sources")) {
 				var selection = new List<Object>();
-				foreach (var lightComponent in _lightGroupComponent.Lights) {
-					selection.AddRange(lightComponent.GetComponentsInChildren<Light>().Select(l => l.gameObject));
+				foreach (var light in _lightGroupComponent.Lights) {
+					selection.AddRange(light.LightSources.Select(l => l.gameObject));
 				}
 
 				Selection.objects = selection.ToArray();
