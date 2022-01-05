@@ -87,14 +87,15 @@ namespace VisualPinball.Unity.Editor
 		protected virtual void OnGUIToolbarEnd() { }
 
 		protected virtual bool MatchLabelFilter(T item, string labelFilter) => false;
+		protected virtual bool MatchTypeFilter(T item, string typeFilter) => false;
 
 
 		private static int FilterCompare(string f1, string f2)
 		{
-			var f1Label = f1.StartsWith("l:", StringComparison.InvariantCultureIgnoreCase);
-			var f2Label = f2.StartsWith("l:", StringComparison.InvariantCultureIgnoreCase);
-			if (f1Label != f2Label)
-				return f1Label ? 1 : -1;
+			var f1filter = f1.StartsWith("l:", StringComparison.InvariantCultureIgnoreCase) || f1.StartsWith("t:", StringComparison.InvariantCultureIgnoreCase);
+			var f2filter = f2.StartsWith("l:", StringComparison.InvariantCultureIgnoreCase) || f2.StartsWith("t:", StringComparison.InvariantCultureIgnoreCase);
+			if (f1filter != f2filter)
+				return f1filter ? 1 : -1;
 			return f1.CompareTo(f2);
 		}
 
@@ -102,23 +103,34 @@ namespace VisualPinball.Unity.Editor
 		{
 			List<T> filteredNames = new List<T>();
 			List<T> filteredLabels = new List<T>();
+			List<T> filteredTypes = new List<T>();
 			filteredNames.AddRange(_data);
 			var filters = _searchFilter.Split(' ').ToList();
 			filters.Sort(FilterCompare);
+			int labelCnt = 0, typeCnt = 0;
 			foreach (var filter in filters) {
 				if (string.IsNullOrEmpty(filter)) continue;
 				if (filter.StartsWith("l:", StringComparison.InvariantCultureIgnoreCase)) {
 					var labelFilter = filter.Split(':')[1];
 					if (!string.IsNullOrEmpty(labelFilter)) {
+						labelCnt++;
 						filteredLabels = filteredLabels.Union(_data.Where(I => MatchLabelFilter(I, labelFilter))).ToList();
+					}
+				}else if (filter.StartsWith("t:", StringComparison.InvariantCultureIgnoreCase)) {
+					var typeFilter = filter.Split(':')[1];
+					if (!string.IsNullOrEmpty(typeFilter)) {
+						typeCnt++;
+						filteredTypes = filteredTypes.Union(_data.Where(I => MatchTypeFilter(I, typeFilter))).ToList();
 					}
 				} else {
 					filteredNames = filteredNames.Where(I => I.Name.Contains(filter, StringComparison.InvariantCultureIgnoreCase)).ToList();
 				}
 			}
-			if (filteredLabels.Count == 0)
-				return filteredNames;
-			return filteredNames.Intersect(filteredLabels).ToList();
+			if (labelCnt > 0)
+				filteredNames = filteredNames.Intersect(filteredLabels).ToList();
+			if (typeCnt > 0)
+				filteredNames = filteredNames.Intersect(filteredTypes).ToList();
+			return filteredNames;
 		}
 
 		public void OnGUI(Rect rect)

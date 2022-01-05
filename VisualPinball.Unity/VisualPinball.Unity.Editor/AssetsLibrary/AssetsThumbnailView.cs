@@ -44,5 +44,10 @@ namespace VisualPinball.Unity.Editor
 			return labels.Any(L => L.Contains(labelFilter, StringComparison.InvariantCultureIgnoreCase));
 		}
 
+		protected override bool MatchTypeFilter(AssetThumbnailElement item, string typeFilter)
+		{
+			return (item.Asset.GetType().Name.Equals(typeFilter, StringComparison.InvariantCultureIgnoreCase));
+		}
+
 	}
 }
