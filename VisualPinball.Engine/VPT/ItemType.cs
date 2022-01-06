@@ -50,6 +50,7 @@ namespace VisualPinball.Engine.VPT
 		Rubber = 21,
 		HitTarget = 22,
 		Count = 23,
+		MetalWireGuide = 24,
 		Invalid = -1,
 
 		// VPE internal

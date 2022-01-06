@@ -78,6 +78,7 @@ namespace VisualPinball.Engine.VPT.Table
 		protected readonly Dictionary<string, Timer.Timer> _timers = new Dictionary<string, Timer.Timer>();
 		protected readonly Dictionary<string, Trigger.Trigger> _triggers = new Dictionary<string, Trigger.Trigger>();
 		protected readonly Dictionary<string, Trough.Trough> _troughs = new Dictionary<string, Trough.Trough>();
+		protected readonly Dictionary<string, MetalWireGuide.MetalWireGuide> _metalWireGuides = new Dictionary<string, MetalWireGuide.MetalWireGuide>();
 
 		protected virtual void Clear()
 		{
@@ -101,6 +102,7 @@ namespace VisualPinball.Engine.VPT.Table
 			_timers.Clear();
 			_triggers.Clear();
 			_troughs.Clear();
+			_metalWireGuides.Clear();
 		}
 
 		public Bumper.Bumper Bumper(string name) => _bumpers[name.ToLower()];
@@ -123,6 +125,7 @@ namespace VisualPinball.Engine.VPT.Table
 		public Timer.Timer Timer(string name) => _timers[name.ToLower()];
 		public Trigger.Trigger Trigger(string name) => _triggers[name.ToLower()];
 		public Trough.Trough Trough(string name) => _troughs[name.ToLower()];
+		public MetalWireGuide.MetalWireGuide MetalWireGuide(string name) => _metalWireGuides[name.ToLower()];
 
 		public IEnumerable<IRenderable> Renderables => Array.Empty<IRenderable>()
 			.Concat(_bumpers.Values)
@@ -137,7 +140,8 @@ namespace VisualPinball.Engine.VPT.Table
 			.Concat(_rubbers.Values)
 			.Concat(_spinners.Values)
 			.Concat(_surfaces.Values)
-			.Concat(_triggers.Values);
+			.Concat(_triggers.Values)
+			.Concat(_metalWireGuides.Values);
 
 		/// <summary>
 		/// Game items that need to be converted but aren't rendered.
@@ -165,7 +169,8 @@ namespace VisualPinball.Engine.VPT.Table
 			.Concat(_textBoxes.Values)
 			.Concat(_timers.Values)
 			.Concat(_triggers.Values)
-			.Concat(_troughs.Values);
+			.Concat(_triggers.Values)
+			.Concat(_metalWireGuides.Values);
 
 		public IEnumerable<ItemData> ItemDatas => ItemSupportedDatas.Concat(ItemLegacyDatas);
 
@@ -183,7 +188,8 @@ namespace VisualPinball.Engine.VPT.Table
 			.Concat(_rubbers.Values.Select(i => i.Data))
 			.Concat(_spinners.Values.Select(i => i.Data))
 			.Concat(_surfaces.Values.Select(i => i.Data))
-			.Concat(_triggers.Values.Select(i => i.Data));
+			.Concat(_triggers.Values.Select(i => i.Data))
+			.Concat(_metalWireGuides.Values.Select(i => i.Data));
 
 		public IEnumerable<ItemData> ItemLegacyDatas => new ItemData[] { }
 			.Concat(_decals.Select(i => i.Data))
@@ -281,6 +287,12 @@ namespace VisualPinball.Engine.VPT.Table
 			if (t == typeof(Trough.Trough)) {
 				return _troughs as Dictionary<string, T>;
 			}
+
+			if (t == typeof(MetalWireGuide.MetalWireGuide))
+			{
+				return _metalWireGuides as Dictionary<string, T>;
+			}
+
 
 			return null;
 		}

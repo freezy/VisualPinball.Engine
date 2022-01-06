@@ -43,6 +43,7 @@ using VisualPinball.Engine.VPT.Table;
 using VisualPinball.Engine.VPT.TextBox;
 using VisualPinball.Engine.VPT.Timer;
 using VisualPinball.Engine.VPT.Trigger;
+using VisualPinball.Engine.VPT.MetalWireGuide;
 using Texture = UnityEngine.Texture;
 
 namespace VisualPinball.Unity
@@ -68,6 +69,7 @@ namespace VisualPinball.Unity
 		public SerializableDictionary<string, SpinnerData> Spinners = new SerializableDictionary<string, SpinnerData>();
 		public SerializableDictionary<string, SurfaceData> Surfaces = new SerializableDictionary<string, SurfaceData>();
 		public SerializableDictionary<string, TriggerData> Triggers = new SerializableDictionary<string, TriggerData>();
+		public SerializableDictionary<string, MetalWireGuideData> MetalWireGuides = new SerializableDictionary<string, MetalWireGuideData>();
 
 		public DecalData[] Decals;
 		public DispReelData[] DispReels;

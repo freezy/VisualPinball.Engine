@@ -43,6 +43,7 @@ using VisualPinball.Engine.VPT.TextBox;
 using VisualPinball.Engine.VPT.Timer;
 using VisualPinball.Engine.VPT.Trigger;
 using VisualPinball.Engine.VPT.Trough;
+using VisualPinball.Engine.VPT.MetalWireGuide;
 
 namespace VisualPinball.Unity
 {
@@ -148,6 +149,10 @@ namespace VisualPinball.Unity
 						}
 						case ItemType.Trough: {
 							tableContainer.Add(objHandle.Target as Trough);
+							break;
+						}
+						case ItemType.MetalWireGuide:{
+							tableContainer.Add(objHandle.Target as Rubber);
 							break;
 						}
 						default:

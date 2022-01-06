@@ -34,6 +34,7 @@ using VisualPinball.Engine.VPT.Surface;
 using VisualPinball.Engine.VPT.Table;
 using VisualPinball.Engine.VPT.Trigger;
 using VisualPinball.Engine.VPT.Trough;
+using VisualPinball.Engine.VPT.MetalWireGuide;
 using Light = VisualPinball.Engine.VPT.Light.Light;
 using Texture = UnityEngine.Texture;
 
@@ -180,6 +181,12 @@ namespace VisualPinball.Unity.Editor
 			if (CreateButton("Slingshot", Icons.Slingshot(color: iconColor), iconSize, buttonStyle)) {
 				CreatePrefab<SlingshotComponent>("Slingshots", "Prefabs/Slingshot");
 			}
+
+			if (CreateButton("Metal Wire\nGuides", Icons.Rubber(color: iconColor), iconSize, buttonStyle))
+			{
+				CreateItem(MetalWireGuide.GetDefault, "New MetalWireGuide");
+			}
+
 
 			GUILayout.EndHorizontal();
 		}

@@ -338,6 +338,11 @@ namespace VisualPinball.Unity
 			Register(new TroughApi(component.gameObject, this), component);
 		}
 
+		public void RegisterMetalWireGuide(MetalWireGuideComponent component, Entity entity)
+		{
+			Register(new MetalWireGuideApi(component.gameObject, entity, this), component, entity);
+		}
+
 		private void Register<TApi>(TApi api, MonoBehaviour component, Entity entity = default) where TApi : IApi
 		{
 			TableApi.Register(component, api);
