@@ -95,6 +95,9 @@ namespace VisualPinball.Unity.Patcher
 			AddLightGroup(tableGo, CreateEmptyGameObject(lightGroups, "Lower"),
 				 "gi6", "gi10");
 
+			AddLightGroup(tableGo, CreateEmptyGameObject(lightGroups, "AllGI"),
+				 "UpperLeft1", "UpperLeft2", "UpperRight", "Lower");
+
 			AddLightGroup(tableGo, CreateEmptyGameObject(lightGroups, "Auxiliary"),
 				"AL1a", "AL1b", "AL2a", "AL2b", "AL3a", "AL3b", "AL4a", "AL4b",
 				"AL5a", "AL5b", "AL6a", "AL6b", "AL7a", "AL7b", "AL8a", "AL8b",
