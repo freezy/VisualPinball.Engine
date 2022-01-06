@@ -1,0 +1,113 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1 &5446999501863086646
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 657206998972773943}
+  - component: {fileID: 7950640923248477891}
+  - component: {fileID: 2107529826525245329}
+  - component: {fileID: -3250516992663423584}
+  - component: {fileID: 4392546155774236836}
+  - component: {fileID: 171621741425913877}
+  m_Layer: 0
+  m_Name: MetalWireGuide
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &657206998972773943
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5446999501863086646}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_RootOrder: 0
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &7950640923248477891
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5446999501863086646}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f05deabc91c0d3d4db83a445f2a755b9, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _isLocked: 0
+  _editorLayer: 0
+  _editorLayerName: 
+  _editorLayerVisibility: 1
+  _height: 25
+  _thickness: 8
+  Rotation: {x: 0, y: 0, z: 0}
+  _dragPoints: []
+--- !u!114 &2107529826525245329
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5446999501863086646}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 735a13a6d901dbc4fb644b96ba7801ff, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  PhysicsMaterial: {fileID: 0}
+  ShowColliderMesh: 1
+  ShowAabbs: 0
+  HitEvent: 0
+  HitHeight: 25
+  OverwritePhysics: 0
+  Elasticity: 0
+  ElasticityFalloff: 0
+  Friction: 0
+  Scatter: 0
+--- !u!114 &-3250516992663423584
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5446999501863086646}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bcc8f0e761a7bc145abb5a6f918953aa, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!33 &4392546155774236836
+MeshFilter:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5446999501863086646}
+  m_Mesh: {fileID: 0}
+--- !u!114 &171621741425913877
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5446999501863086646}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ea7d7495833204790ba1d3a8755397f8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  ConversionMode: 1

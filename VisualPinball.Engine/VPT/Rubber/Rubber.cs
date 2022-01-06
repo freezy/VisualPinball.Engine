@@ -19,6 +19,7 @@ using VisualPinball.Engine.Game;
 using VisualPinball.Engine.Math;
 
 namespace VisualPinball.Engine.VPT.Rubber
+
 {
 	public class Rubber : Item<RubberData>, IRenderable
 	{

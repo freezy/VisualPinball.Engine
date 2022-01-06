@@ -114,6 +114,7 @@ namespace VisualPinball.Engine.VPT.Table
 				case ItemType.Timer: item = new Timer.Timer(reader, itemName); break;
 				case ItemType.Trigger: item = new Trigger.Trigger(reader, itemName); break;
 				case ItemType.Trough: item = new Trough.Trough(reader, $"VpeGameItem{storageIndex}"); break;
+				case ItemType.MetalWireGuide: item = new MetalWireGuide.MetalWireGuide(reader, itemName); break;
 				default:
 					Logger.Info("Unhandled item type " + itemType);
 					itemType = ItemType.Invalid; break;
@@ -242,6 +243,12 @@ namespace VisualPinball.Engine.VPT.Table
 					}
 					case ItemType.Trough: {
 						var item = new Trough.Trough(reader, itemName);
+						tableContainer.Add(item);
+						break;
+					}
+					case ItemType.MetalWireGuide:
+					{
+						var item = new MetalWireGuide.MetalWireGuide(reader, itemName);
 						tableContainer.Add(item);
 						break;
 					}

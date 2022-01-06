@@ -53,6 +53,7 @@ namespace VisualPinball.Engine.Test.Test
 		public static readonly string Timer = PathHelper.GetFixturePath("TimerTest.vpx");
 		public static readonly string Trigger = PathHelper.GetFixturePath("TriggerTest.vpx");
 		public static readonly string Trough = PathHelper.GetFixturePath("TroughTest.vpx");
+		public static readonly string MetalWireGuide = PathHelper.GetFixturePath("MetalWireGuideTest.vpx");
 	}
 
 	public static class ObjPath
@@ -79,6 +80,7 @@ namespace VisualPinball.Engine.Test.Test
 		public static readonly string Surface = PathHelper.GetFixturePath("SurfaceTest.obj");
 		public static readonly string Table = PathHelper.GetFixturePath("TableTest.obj");
 		public static readonly string Trigger = PathHelper.GetFixturePath("TriggerTest.obj");
+		public static readonly string MetalWireGuide = PathHelper.GetFixturePath("MetalWireGuideTest.obj");
 	}
 
 	public static class TexturePath

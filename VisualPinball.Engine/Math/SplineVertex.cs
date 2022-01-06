@@ -39,19 +39,31 @@ namespace VisualPinball.Engine.Math
 
 		public Vertex2D[] RgvLocal;
 
-		public SplineVertex(DragPointData[] dragPoints, int thickness, int tableDetailLevel, float accuracy, bool staticRendering = true, float margin = 0f)
+		public SplineVertex(DragPointData[] dragPoints, int thickness, int tableDetailLevel, float accuracy, bool staticRendering = true, float margin = 0f, bool loop = true)
 		{
-			var vertices = GetCentralCurve(dragPoints, tableDetailLevel, accuracy, staticRendering);
+			var vertices = GetCentralCurve(dragPoints, tableDetailLevel, accuracy, staticRendering, loop: loop);
 			var numVertices = vertices.Length;
 
 			Cross = new bool[numVertices + 1];
 			MiddlePoints = new Vertex2D[numVertices + 1];
 			RgvLocal = new Vertex2D[(numVertices + 1) * 2];
 
-			for (var i = 0; i < numVertices; i++) {
-				// prev and next wrap around as rubbers always loop
+			for (var i = 0; i < numVertices; i++)
+			{
+				// prev and next wrap around in loops
 				var prev = vertices[i > 0 ? i - 1 : numVertices - 1];
 				var next = vertices[i < numVertices - 1 ? i + 1 : 0];
+
+				// .. but have to be corrected at start and end with "virtual vertices" continuing the spline when not looping, so cuts perpendicular to the tangents
+				// maybe fix ramps after that that also hat the same problem.
+				if (!loop && i == 0) {
+					prev = new RenderVertex2D(vertices[0].X*2-vertices[1].X, vertices[0].Y * 2 - vertices[1].Y);
+				}
+				if (!loop && i == (numVertices-1))
+				{
+					next = new RenderVertex2D(vertices[numVertices-1].X * 2 - vertices[numVertices - 2].X, vertices[numVertices - 1].Y * 2 - vertices[numVertices - 2].Y);
+				}
+
 				var middle = vertices[i];
 
 				Cross[i] = middle.IsControlPoint;
@@ -63,12 +75,13 @@ namespace VisualPinball.Engine.Math
 				var normal1 = new Vertex2D(prev.Y - middle.Y, middle.X - prev.X); // vector vmiddle-vprev rotated RIGHT
 				var normal2 = new Vertex2D(middle.Y - next.Y, next.X - middle.X); // vector vnext-vmiddle rotated RIGHT
 
-				// not needed special start/end handling as rubbers always loop, except for the case where there are only 2 control points
-				if (numVertices == 2 && i == numVertices - 1) {
+				// not needed special start/end handling as rubbers always loop, except for the case where there are only 2 control points 
+				// I guess this does not work as intended, but could not figure out what was wrong. i think that somehow the normal of Node 1 is wrong. /cupiii
+				if (numVertices == 2 && i == numVertices - 1) { 
 					normal1.Normalize();
 					normal = normal1;
 
-				} else if (numVertices == 2 && i == 0) {
+				} else if (numVertices == 2 && i == 0) { 
 					normal2.Normalize();
 					normal = normal2;
 
@@ -121,12 +134,17 @@ namespace VisualPinball.Engine.Math
 				}
 			}
 
-			Cross[numVertices] = vertices[0].IsControlPoint;
-			MiddlePoints[numVertices] = MiddlePoints[0];
-			VertexCount = numVertices + 1;
+			if (loop)
+				VertexCount = numVertices;
+			else
+			{
+				MiddlePoints[numVertices] = MiddlePoints[0];
+				Cross[numVertices] = vertices[0].IsControlPoint;
+				VertexCount = numVertices + 1;
+			}
 		}
 
-		private static RenderVertex2D[] GetCentralCurve(DragPointData[] dragPoints, int tableDetailLevel, float acc, bool staticRendering = true)
+		private static RenderVertex2D[] GetCentralCurve(DragPointData[] dragPoints, int tableDetailLevel, float acc, bool staticRendering = true, bool loop = true)
 		{
 			float accuracy;
 
@@ -141,7 +159,7 @@ namespace VisualPinball.Engine.Math
 				accuracy = 4.0f * MathF.Pow(10.0f, (10.0f - accuracy) * (float) (1.0 / 1.5));
 			}
 
-			return DragPoint.GetRgVertex<RenderVertex2D, CatmullCurve2DCatmullCurveFactory>(dragPoints, true, accuracy);
+			return DragPoint.GetRgVertex<RenderVertex2D, CatmullCurve2DCatmullCurveFactory>(dragPoints, loop, accuracy);
 		}
 	}
 }

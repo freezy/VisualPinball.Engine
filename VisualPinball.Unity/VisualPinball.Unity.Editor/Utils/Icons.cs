@@ -94,6 +94,7 @@ namespace VisualPinball.Unity.Editor
 		private const string TeleporterName = "teleporter";
 		private const string TriggerName = "trigger";
 		private const string TroughName = "trough";
+		private const string MetalWireGuideName = "metalWireGuide";
 
 		// colored
 		private const string CoilEventName = "coil_event";
@@ -106,8 +107,7 @@ namespace VisualPinball.Unity.Editor
 			HitTargetName, KeyName, KickerName, LightGroupName, LightName, MechName, MechPinMameName, PlayfieldName, PlugName, PlungerName,
 			PrimitiveName, RampName, RotatorName, RubberName, SlingshotName, SpinnerName, SurfaceName, SwitchNcName, SwitchNoName, TableName,
 			TeleporterName, TriggerName, TroughName,
-
-			CoilEventName, SwitchEventName, LampEventName, LampSeqName
+			CoilEventName, SwitchEventName, LampEventName, LampSeqName, MetalWireGuideName
 		};
 
 		private readonly Dictionary<IconVariant, Texture2D> _icons = new Dictionary<IconVariant, Texture2D>();
@@ -182,6 +182,7 @@ namespace VisualPinball.Unity.Editor
 		public static Texture2D Teleporter(IconSize size = IconSize.Large, IconColor color = IconColor.Gray) => Instance.GetItem(TeleporterName, size, color);
 		public static Texture2D Trigger(IconSize size = IconSize.Large, IconColor color = IconColor.Gray) => Instance.GetItem(TriggerName, size, color);
 		public static Texture2D Trough(IconSize size = IconSize.Large, IconColor color = IconColor.Gray) => Instance.GetItem(TroughName, size, color);
+		public static Texture2D MetalWireGuide(IconSize size = IconSize.Large, IconColor color = IconColor.Gray) => Instance.GetItem(RubberName, size, color);
 
 		public static Texture2D CoilEvent => Instance.GetItem(CoilEventName, IconSize.Large, IconColor.Colored);
 		public static Texture2D SwitchEvent => Instance.GetItem(SwitchEventName, IconSize.Large, IconColor.Colored);
@@ -274,6 +275,7 @@ namespace VisualPinball.Unity.Editor
 				case TeleporterComponent _: return Icons.Teleporter(size, color);
 				case TriggerComponent _: return Icons.Trigger(size, color);
 				case TroughComponent _: return Icons.Trough(size, color);
+				case MetalWireGuideComponent _: return Icons.Rubber(size, color);
 				case CollisionSwitchComponent _: return Icons.Switch(false, size, color);
 				default: return null;
 			}
@@ -343,6 +345,9 @@ namespace VisualPinball.Unity.Editor
 			Icons.DisableGizmo<TriggerAnimationComponent>();
 			Icons.DisableGizmo<TriggerColliderComponent>();
 			Icons.DisableGizmo<TriggerMeshComponent>();
+			Icons.DisableGizmo<MetalWireGuideComponent>();
+			Icons.DisableGizmo<MetalWireGuideMeshComponent>();
+			Icons.DisableGizmo<MetalWireGuideColliderComponent>();
 		}
 	}
 }

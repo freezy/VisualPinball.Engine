@@ -65,6 +65,7 @@ namespace VisualPinball.Unity
 			typeof(RubberComponent),
 			typeof(SlingshotComponent),
 			typeof(SurfaceComponent),
+			typeof(MetalWireGuideComponent),
 		};
 
 		public override PhysicsMaterialData PhysicsMaterialData => GetPhysicsMaterialData(Elasticity, ElasticityFalloff, Friction, Scatter, OverwritePhysics);

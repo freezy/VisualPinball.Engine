@@ -54,6 +54,7 @@ namespace VisualPinball.Unity
 			typeof(SurfaceComponent),
 			typeof(TriggerComponent),
 			typeof(SlingshotComponent),
+			typeof(MetalWireGuideComponent),
 		};
 
 		protected override Mesh GetMesh(PrimitiveData data)

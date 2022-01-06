@@ -46,6 +46,7 @@ using VisualPinball.Engine.VPT.TextBox;
 using VisualPinball.Engine.VPT.Timer;
 using VisualPinball.Engine.VPT.Trigger;
 using VisualPinball.Engine.VPT.Trough;
+using VisualPinball.Engine.VPT.MetalWireGuide;
 using Light = VisualPinball.Engine.VPT.Light.Light;
 using Material = VisualPinball.Engine.VPT.Material;
 using Texture = VisualPinball.Engine.VPT.Texture;
@@ -280,6 +281,10 @@ namespace VisualPinball.Unity
 				case TroughComponent troughComponent:
 					var troughData = troughComponent.CopyDataTo(new TroughData(), MaterialNames, TextureNames, forExport);
 					Add(comp.gameObject.name, new Trough(troughData));
+					break;
+				case MetalWireGuideComponent metalWireGuideComponent:
+					var metalWireGuideData = metalWireGuideComponent.CopyDataTo(_tableComponent.LegacyContainer.MetalWireGuides.ContainsKey(name) ? _tableComponent.LegacyContainer.MetalWireGuides[name] : new MetalWireGuideData(), MaterialNames, TextureNames, forExport);
+					Add(comp.gameObject.name, new MetalWireGuide(metalWireGuideData));
 					break;
 			}
 		}

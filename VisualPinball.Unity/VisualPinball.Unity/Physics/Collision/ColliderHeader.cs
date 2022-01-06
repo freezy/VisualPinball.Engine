@@ -50,7 +50,7 @@ namespace VisualPinball.Unity
 		/// <see cref="HitLine3D"/> check this in order to know whether to emit
 		/// the hit event.
 		/// </remarks>
-		public bool IsPrimitive => ItemType == ItemType.Primitive || ItemType == ItemType.Ramp || ItemType == ItemType.Rubber;
+		public bool IsPrimitive => ItemType == ItemType.Primitive || ItemType == ItemType.Ramp || ItemType == ItemType.Rubber || ItemType == ItemType.MetalWireGuide;
 
 		public void Init(ColliderInfo info, ColliderType colliderType)
 		{

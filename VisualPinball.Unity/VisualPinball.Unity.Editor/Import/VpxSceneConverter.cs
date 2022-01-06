@@ -46,6 +46,7 @@ using VisualPinball.Engine.VPT.TextBox;
 using VisualPinball.Engine.VPT.Timer;
 using VisualPinball.Engine.VPT.Trigger;
 using VisualPinball.Engine.VPT.Trough;
+using VisualPinball.Engine.VPT.MetalWireGuide;
 using VisualPinball.Unity.Playfield;
 using Light = VisualPinball.Engine.VPT.Light.Light;
 using Material = UnityEngine.Material;
@@ -189,6 +190,7 @@ namespace VisualPinball.Unity.Editor
 			_sourceContainer.WriteDataToDict<Surface, SurfaceData>(_tableComponent.LegacyContainer.Surfaces);
 			_sourceContainer.WriteDataToDict<Trigger, TriggerData>(_tableComponent.LegacyContainer.Triggers);
 			_sourceContainer.WriteDataToDict<Bumper, BumperData>(_tableComponent.LegacyContainer.Bumpers);
+			_sourceContainer.WriteDataToDict<MetalWireGuide, MetalWireGuideData>(_tableComponent.LegacyContainer.MetalWireGuides);
 
 			_tableComponent.LegacyContainer.Decals = _sourceContainer.GetAllData<Decal, DecalData>();
 			_tableComponent.LegacyContainer.DispReels = _sourceContainer.GetAllData<DispReel, DispReelData>();
@@ -331,20 +333,21 @@ namespace VisualPinball.Unity.Editor
 		private IVpxPrefab InstantiatePrefab(IItem item)
 		{
 			switch (item) {
-				case Bumper bumper:       return bumper.InstantiatePrefab();
-				case Flipper flipper:     return flipper.InstantiatePrefab();
-				case Gate gate:           return gate.InstantiatePrefab();
-				case HitTarget hitTarget: return hitTarget.InstantiatePrefab();
-				case Kicker kicker:       return kicker.InstantiatePrefab();
-				case Light lt:            return lt.InstantiatePrefab(_sourceTable);
-				case Plunger plunger:     return plunger.InstantiatePrefab();
-				case Primitive primitive: return primitive.InstantiatePrefab(_playfieldGo);
-				case Ramp ramp:           return ramp.InstantiatePrefab();
-				case Rubber rubber:       return rubber.InstantiatePrefab();
-				case Spinner spinner:     return spinner.InstantiatePrefab();
-				case Surface surface:     return surface.InstantiatePrefab();
-				case Trigger trigger:     return trigger.InstantiatePrefab();
-				case Trough trough:       return trough.InstantiatePrefab();
+				case Bumper bumper:                  return bumper.InstantiatePrefab();
+				case Flipper flipper:                return flipper.InstantiatePrefab();
+				case Gate gate:                      return gate.InstantiatePrefab();
+				case HitTarget hitTarget:            return hitTarget.InstantiatePrefab();
+				case Kicker kicker:                  return kicker.InstantiatePrefab();
+				case Light lt:                       return lt.InstantiatePrefab(_sourceTable);
+				case Plunger plunger:                return plunger.InstantiatePrefab();
+				case Primitive primitive:            return primitive.InstantiatePrefab(_playfieldGo);
+				case Ramp ramp:                      return ramp.InstantiatePrefab();
+				case Rubber rubber:                  return rubber.InstantiatePrefab();
+				case Spinner spinner:                return spinner.InstantiatePrefab();
+				case Surface surface:                return surface.InstantiatePrefab();
+				case Trigger trigger:                return trigger.InstantiatePrefab();
+				case Trough trough:                  return trough.InstantiatePrefab();
+				case MetalWireGuide metalWireGuide : return metalWireGuide.InstantiatePrefab();
 			}
 
 			throw new InvalidOperationException("Unknown item " + item + " to setup!");
