@@ -99,6 +99,7 @@ namespace VisualPinball.Unity.Editor
 		private const string CoilEventName = "coil_event";
 		private const string SwitchEventName = "switch_event";
 		private const string LampEventName = "lamp_event";
+		private const string LampSeqName = "lamp_seq";
 
 		private static readonly string[] Names = {
 			BallRollerName, BoltName, BumperName, CannonName, CoilName, DropTargetBankName, DropTargetName, FlasherName, FlipperName, GateName,
@@ -106,7 +107,7 @@ namespace VisualPinball.Unity.Editor
 			PrimitiveName, RampName, RotatorName, RubberName, SlingshotName, SpinnerName, SurfaceName, SwitchNcName, SwitchNoName, TableName,
 			TeleporterName, TriggerName, TroughName,
 
-			CoilEventName, SwitchEventName, LampEventName
+			CoilEventName, SwitchEventName, LampEventName, LampSeqName
 		};
 
 		private readonly Dictionary<IconVariant, Texture2D> _icons = new Dictionary<IconVariant, Texture2D>();
@@ -185,6 +186,7 @@ namespace VisualPinball.Unity.Editor
 		public static Texture2D CoilEvent => Instance.GetItem(CoilEventName, IconSize.Large, IconColor.Colored);
 		public static Texture2D SwitchEvent => Instance.GetItem(SwitchEventName, IconSize.Large, IconColor.Colored);
 		public static Texture2D LampEvent => Instance.GetItem(LampEventName, IconSize.Large, IconColor.Colored);
+		public static Texture2D LampSequence => Instance.GetItem(LampSeqName, IconSize.Large, IconColor.Colored);
 
 
 		public static Texture2D ByComponent<T>(T mb, IconSize size = IconSize.Large, IconColor color = IconColor.Gray)
