@@ -17,7 +17,6 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
-using Unity.VisualScripting;
 using VisualPinball.Engine.Game.Engines;
 using VisualPinball.Engine.Math;
 using Color = UnityEngine.Color;
