@@ -20,36 +20,39 @@ using UnityEngine;
 
 namespace VisualPinball.Unity.Editor
 {
-	public class TagThumbnailElement : ThumbnailElement
+	public class LabelThumbnailElement : ThumbnailElement
 	{
-		private string _tag = string.Empty;
-		private string _category = string.Empty;
+		private PinballLabel _label = null;
 
-		public TagThumbnailElement(string tag) : base()
+		private static Dictionary<EThumbnailSize, Dimension> _commonDimensions = new Dictionary<EThumbnailSize, Dimension>() {
+			{ EThumbnailSize.Small, new Dimension(){ Offset = new Vector2(3.0f, 3.0f), Height = GUI.skin.label.lineHeight * 0.75f } },
+			{ EThumbnailSize.Normal, new Dimension(){ Offset = new Vector2(3.0f, 3.0f), Height = GUI.skin.label.lineHeight } },
+			{ EThumbnailSize.Large, new Dimension(){ Offset = new Vector2(3.0f, 3.0f), Height = GUI.skin.label.lineHeight * 1.5f } },
+		};
+
+		public override Dictionary<EThumbnailSize, Dimension> CommonDimensions => _commonDimensions;
+
+		public LabelThumbnailElement(PinballLabel label) : base()
 		{
-			_tag = tag;
+			_label = label;
 		}
 
-		public override string Name => throw new System.NotImplementedException();
+		public override string Name => string.Empty;
 
 		public override void DrawHoverContainer(Rect rect)
 		{
-			throw new System.NotImplementedException();
 		}
 
-		public override Vector2 GetHoverContainerSize()
-		{
-			throw new System.NotImplementedException();
-		}
+		public override Vector2 GetHoverContainerSize() => Vector2.zero;
 
 		public override float GetWidth(EThumbnailSize thumbSize, GUIStyle style)
 		{
-			throw new System.NotImplementedException();
+			return style.CalcSize(new GUIContent(_label.FullLabel)).x + style.padding.horizontal;
 		}
 
 		public override void OnGUI(Rect rect, GUIStyle style)
 		{
-			throw new System.NotImplementedException();
+			GUI.Label(rect, _label.FullLabel, style);
 		}
 	}
 }
