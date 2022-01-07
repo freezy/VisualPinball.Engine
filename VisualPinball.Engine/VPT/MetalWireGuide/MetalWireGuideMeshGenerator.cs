@@ -96,6 +96,7 @@ namespace VisualPinball.Engine.VPT.MetalWireGuide
 			// todo: could be better, if accuracy was taken into account
 			var numRingsInBend = (int)(bendradius + 1);
 			var numRings = sv.VertexCount-1 + numRingsInBend * 2 + 2;
+			var numSegments = accuracy;
 
 			var up = new Vertex3D(0f, 0f, 1f);
 			var points = new Vertex3D[numRings]; // middlepoints of rings
@@ -164,15 +165,21 @@ namespace VisualPinball.Engine.VPT.MetalWireGuide
 			accLength[0] = 0.0f;
 			for (int i = 1; i < numRings; i++)
 				accLength[i] = accLength[i - 1] + (points[i]-points[i-1]).Length();
-			var totalLength = accLength[numRings];
+			var totalLength = accLength[numRings-1];
 
 			var numVertices = numRings*3;
 			var numIndices = numRings*3;
 			mesh.Vertices = new Vertex3DNoTex2[numVertices];
 			mesh.Indices = new int[numIndices];
 
-
-			
+			// precalculate the rings (positive X is left, positive Y is up) Starting at the bottom clockwise (X=0, Y=-1)
+			var ringsX = new float[numSegments];
+			var ringsY = new float[numSegments];
+			for (int i = 0; i < numSegments;i++)
+			{
+				ringsX[i] = -1.0f * (float)System.Math.Sin(System.Math.PI*2 * i / numSegments);
+				ringsY[i] = (float)System.Math.Cos(System.Math.PI + System.Math.PI*2 * i / numSegments);
+			}
 
 			var verticesIndex = 0;
 
