@@ -89,7 +89,7 @@ namespace VisualPinball.Engine.VPT.MetalWireGuide
 			SplineVertex sv = new SplineVertex(_data.DragPoints, _data.Thickness, detailLevel, splineAccuracy, margin: margin, loop: false);
 
 			var height = playfieldHeight + meshHeight;
-			// hack - Component has to get edited.
+			// hack - Component has to get edited. --- and TODO: Thickness should become a float.
 			var standheight = 50;
 
 			// one ring for each Splinevertex, two for the stands, and "bendradius" tomes two for the bend (should be enough) 
@@ -123,7 +123,7 @@ namespace VisualPinball.Engine.VPT.MetalWireGuide
 			points[1] = points[numRingsInBend + 1] + tangents[numRingsInBend + 1] * bendradius * -1 + up * bendradius * -1f;
 			tangents[1] = tangents[0];
 			right[1] = right[0];
-			// now bend from point 1 to numRingsInBend+1(-1)
+			// now bend from point 1 to numRingsInBend+1(-1)   
 			var diffXY = points[numRingsInBend + 1] - points[1];
 			diffXY.Z = 0;
 			var diffZ = points[numRingsInBend + 1] - points[1];
