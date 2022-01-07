@@ -152,5 +152,17 @@ namespace VisualPinball.Unity
 		public void SetMaterialType(Material material, MaterialType materialType)
 		{
 		}
+
+		public void SetEmissiveColor(MaterialPropertyBlock propBlock, Color color)
+		{
+			// standard has no emissive color
+		}
+
+		public Color? GetEmissiveColor(Material material)
+		{
+			// standard has no emissive color
+
+			return null;
+		}
 	}
 }
