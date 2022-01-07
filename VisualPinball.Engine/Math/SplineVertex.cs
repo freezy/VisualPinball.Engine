@@ -53,7 +53,7 @@ namespace VisualPinball.Engine.Math
 				// prev and next wrap around in loops
 				var prev = vertices[i > 0 ? i - 1 : numVertices - 1];
 				var next = vertices[i < numVertices - 1 ? i + 1 : 0];
-
+				
 				// .. but have to be corrected at start and end with "virtual vertices" continuing the spline when not looping, so cuts perpendicular to the tangents
 				// maybe fix ramps after that that also hat the same problem.
 				if (!loop && i == 0) {
