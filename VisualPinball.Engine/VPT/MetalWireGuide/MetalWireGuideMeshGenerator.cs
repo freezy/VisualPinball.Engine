@@ -101,7 +101,8 @@ namespace VisualPinball.Engine.VPT.MetalWireGuide
 			var up = new Vertex3D(0f, 0f, 1f);
 			var points = new Vertex3D[numRings]; // middlepoints of rings
 			var tangents = new Vertex3D[numRings]; // pointing into the direction of the spline, even first and last
-			var right = new Vertex3D[numRings]; // pointing right, looking into tangent direction with up=up
+			var right = new Vertex3D[numRings]; // pointing right, looking into tangent direction 
+			var down = new Vertex3D[numRings]; // pointing down from tangent view
 			var accLength = new float[numRings]; // accumulated length of the wire beginning at 0;
 
 			// copy the data from the pline into the middle of the new variables
@@ -131,11 +132,11 @@ namespace VisualPinball.Engine.VPT.MetalWireGuide
 			for (int i = 1; i < (numRingsInBend+1); i++)
 			{
 
-				points[i + 1] = points[1] +diffXY - (float)System.Math.Sin(System.Math.PI/2 / numRingsInBend * i) * diffXY + (float)System.Math.Cos(System.Math.PI/2 / numRingsInBend* i) * diffZ;
+				points[numRingsInBend - i + 1] = points[1] + diffXY - (float)System.Math.Sin(System.Math.PI / 2 / numRingsInBend * i) * diffXY + (float)System.Math.Cos(System.Math.PI / 2 / numRingsInBend * i) * diffZ;
 				var tmp = tangents[numRingsInBend + 1];
 				tmp.Normalize();
-				tangents[i + 1] = tmp * (float)System.Math.Cos(System.Math.PI / 2 / numRingsInBend * i)  + (float)System.Math.Sin(System.Math.PI / 2 / numRingsInBend * i) * up;
-				right[i + 1] = right[0];
+				tangents[numRingsInBend - i + 1] = tmp * (float)System.Math.Cos(System.Math.PI / 2 / numRingsInBend * i)  + (float)System.Math.Sin(System.Math.PI / 2 / numRingsInBend * i) * up;
+				right[numRingsInBend - i + 1] = right[0];
 			}
 			// set up last point
 			points[numRings-1] = points[(numRings - 1) - numRingsInBend - 1] + tangents[numRings - 1 - numRingsInBend - 1] * bendradius + up * standheight * -1f;
@@ -154,11 +155,18 @@ namespace VisualPinball.Engine.VPT.MetalWireGuide
 			for (int i = 1; i < (numRingsInBend + 1); i++)
 			{
 
-				points[numRings-2-i] = points[numRings-2] + diffXY - (float)System.Math.Sin(System.Math.PI / 2 / numRingsInBend * i) * diffXY + (float)System.Math.Cos(System.Math.PI / 2 / numRingsInBend * i) * diffZ;
+				points[numRings - 2 - numRingsInBend + i] = points[numRings - 2] + diffXY - (float)System.Math.Sin(System.Math.PI / 2 / numRingsInBend * i) * diffXY + (float)System.Math.Cos(System.Math.PI / 2 / numRingsInBend * i) * diffZ;
 				var tmp = tangents[numRings - 1 - numRingsInBend - 1];
 				tmp.Normalize();
-				tangents[numRings - 2 - i] = tmp * (float)System.Math.Cos(System.Math.PI / 2 / numRingsInBend * i) + (float)System.Math.Sin(System.Math.PI / 2 / numRingsInBend * i) * up*-1;
-				right[numRings - 2 - i] = right[numRings-1];
+				tangents[numRings - 2 - numRingsInBend + i] = tmp * (float)System.Math.Cos(System.Math.PI / 2 / numRingsInBend * i) + (float)System.Math.Sin(System.Math.PI / 2 / numRingsInBend * i) * up*-1;
+				right[numRings - 2 - numRingsInBend + i] = right[numRings-1];
+			}
+
+			// calculate downvectors
+			for (int i = 0; i < numRings; i++)
+			{
+				down[i] = Vertex3D.CrossProduct(right[i], tangents[i]);
+				down[i].Normalize();
 			}
 
 			// For UV calculation we need the whole length of the wire
@@ -167,71 +175,112 @@ namespace VisualPinball.Engine.VPT.MetalWireGuide
 				accLength[i] = accLength[i - 1] + (points[i]-points[i-1]).Length();
 			var totalLength = accLength[numRings-1];
 
-			var numVertices = numRings*3;
-			var numIndices = numRings*3;
+			var numVertices = numRings * numSegments;
+			var numIndices = (numRings-1) * numSegments * 6;
 			mesh.Vertices = new Vertex3DNoTex2[numVertices];
 			mesh.Indices = new int[numIndices];
 
-			// precalculate the rings (positive X is left, positive Y is up) Starting at the bottom clockwise (X=0, Y=-1)
+			// precalculate the rings (positive X is left, positive Y is up) Starting at the bottom clockwise (X=0, Y=1)
 			var ringsX = new float[numSegments];
 			var ringsY = new float[numSegments];
 			for (int i = 0; i < numSegments;i++)
 			{
-				ringsX[i] = -1.0f * (float)System.Math.Sin(System.Math.PI*2 * i / numSegments);
-				ringsY[i] = (float)System.Math.Cos(System.Math.PI + System.Math.PI*2 * i / numSegments);
+				ringsX[i] = -1.0f * (float)System.Math.Sin(System.Math.PI*2 * i / numSegments) * _data.Thickness;
+				ringsY[i] = -1.0f * (float)System.Math.Cos(System.Math.PI + System.Math.PI*2 * i / numSegments) * _data.Thickness;
 			}
 
 			var verticesIndex = 0;
+			var indicesIndex = 0;
 
-
-			for (int i = 0; i < numRings; i++)
+			// calculate Vertices first
+			for (int currentRing = 0; currentRing < numRings; currentRing++)
 			{
-				/*
-				var tmp1 = new Vertex3D
+				// calculate one ring
+				for (int currentSegment = 0; currentSegment < numSegments; currentSegment++)
 				{
-					X = sv.MiddlePoints[i].X-sv.RgvLocal[numRings*2-i-1].X,
-					Y = sv.MiddlePoints[i].Y-sv.RgvLocal[numRings * 2 - i - 1].Y,
-					Z = 0
-				};
-				*/
-				var tmp1 = right[i];
+					mesh.Vertices[verticesIndex++] = new Vertex3DNoTex2
+					{
+						X = points[currentRing].X + right[currentRing].X * ringsX[currentSegment] + down[currentRing].X * ringsY[currentSegment],
+						Y = points[currentRing].Y + right[currentRing].Y * ringsX[currentSegment] + down[currentRing].Y * ringsY[currentSegment],
+						Z = points[currentRing].Z + right[currentRing].Z * ringsX[currentSegment] + down[currentRing].Z * ringsY[currentSegment],
+						Nx = right[currentRing].X * ringsX[currentSegment] + down[currentRing].X * ringsY[currentSegment],
+						Ny = right[currentRing].Y * ringsX[currentSegment] + down[currentRing].Y * ringsY[currentSegment],
+						Nz = right[currentRing].Z * ringsX[currentSegment] + down[currentRing].Z * ringsY[currentSegment],
+						Tu = accLength[currentRing] / totalLength,
+						Tv = (float)currentSegment/((float)numSegments-1)
+
+					};
+				}
+
+
+				// could be integrated in above for loop, but better to read and will be optimized anyway by compiler
+				if (currentRing > 0)
+				{
+					for (int currentSegment = 0; currentSegment < numSegments; currentSegment++)
+					{
+						var csp1 = currentSegment + 1;
+						if (csp1 >= numSegments)
+							csp1 = 0;
+						mesh.Indices[indicesIndex++] = (currentRing - 1) * numSegments + currentSegment;
+						mesh.Indices[indicesIndex++] = currentRing * numSegments + currentSegment;
+						mesh.Indices[indicesIndex++] = currentRing * numSegments + csp1;
+						mesh.Indices[indicesIndex++] = (currentRing - 1) * numSegments + currentSegment;
+						mesh.Indices[indicesIndex++] = currentRing * numSegments + csp1;
+						mesh.Indices[indicesIndex++] = (currentRing - 1) * numSegments + csp1;
+					}
+				}
+			}
+			//Mesh.ComputeNormals(mesh.Vertices, numVertices, mesh.Indices, numIndices);
+
+
+
+
+			/*
+			var tmp1 = new Vertex3D
+			{
+				X = sv.MiddlePoints[i].X-sv.RgvLocal[numRings*2-i-1].X,
+				Y = sv.MiddlePoints[i].Y-sv.RgvLocal[numRings * 2 - i - 1].Y,
+				Z = 0
+			};
+			
+			var tmp1 = right[currentRing];
 				tmp1.Normalize();
 				tmp1 *= 10;
 
 //				tmp1.X = 5;
 //				tmp1.Y = 5;
 
-				var tmp2 = tangents[i];
+				var tmp2 = tangents[currentRing];
 				tmp2.Normalize();
 				tmp2 *= 5;
 
 				// tmp2 = tangent!
 				mesh.Vertices[verticesIndex] = new Vertex3DNoTex2
 				{
-					X = points[i].X,
-					Y = points[i].Y,
-					Z = points[i].Z
+					X = points[currentRing].X,
+					Y = points[currentRing].Y,
+					Z = points[currentRing].Z
 				};
 
 				mesh.Indices[verticesIndex] = verticesIndex;
 				mesh.Vertices[verticesIndex+1] = new Vertex3DNoTex2
 				{
-					X = points[i].X + tmp1.X + tmp2.X,
-					Y = points[i].Y + tmp1.Y + tmp2.Y,
-					Z = points[i].Z + tmp1.Z + tmp2.Z
+					X = points[currentRing].X + tmp1.X + tmp2.X,
+					Y = points[currentRing].Y + tmp1.Y + tmp2.Y,
+					Z = points[currentRing].Z + tmp1.Z + tmp2.Z
 				};
 				mesh.Indices[verticesIndex+1] = verticesIndex+1;
 				mesh.Vertices[verticesIndex + 2] = new Vertex3DNoTex2
 				{
-					X = points[i].X + tmp1.X - tmp2.X * 0,
-					Y = points[i].Y + tmp1.Y - tmp2.Y * 0,
-					Z = points[i].Z + tmp1.Z - tmp2.Z * 0
+					X = points[currentRing].X + tmp1.X - tmp2.X * 0,
+					Y = points[currentRing].Y + tmp1.Y - tmp2.Y * 0,
+					Z = points[currentRing].Z + tmp1.Z - tmp2.Z * 0
 				};
 				mesh.Indices[verticesIndex+2] = verticesIndex+2;
 				verticesIndex += 3;
 			}
 			Mesh.ComputeNormals(mesh.Vertices, numVertices, mesh.Indices, numIndices);
-
+			*/
 			// so now we have all centers of the ring points in sv.
 			// normals are sv.RgvLocal - sv.Middlepoints
 
