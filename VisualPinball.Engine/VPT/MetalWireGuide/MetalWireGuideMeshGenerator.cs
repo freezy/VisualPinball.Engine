@@ -102,7 +102,6 @@ namespace VisualPinball.Engine.VPT.MetalWireGuide
 			var tangents = new Vertex3D[numRings]; // pointing into the direction of the spline, even first and last
 			var right = new Vertex3D[numRings]; // pointing right, looking into tangent direction with up=up
 			var accLength = new float[numRings]; // accumulated length of the wire beginning at 0;
-			accLength[0] = 0.0f;
 
 			// copy the data from the pline into the middle of the new variables
 			for (int i = 0; i < sv.VertexCount-1; i++)
@@ -162,9 +161,10 @@ namespace VisualPinball.Engine.VPT.MetalWireGuide
 			}
 
 			// For UV calculation we need the whole length of the wire
+			accLength[0] = 0.0f;
 			for (int i = 1; i < numRings; i++)
 				accLength[i] = accLength[i - 1] + (points[i]-points[i-1]).Length();
-
+			var totalLength = accLength[numRings];
 
 			var numVertices = numRings*3;
 			var numIndices = numRings*3;
