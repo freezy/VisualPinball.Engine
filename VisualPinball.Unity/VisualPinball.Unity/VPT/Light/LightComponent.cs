@@ -84,8 +84,6 @@ namespace VisualPinball.Unity
 		private const string BulbMeshName = "Light (Bulb)";
 		private const string SocketMeshName = "Light (Socket)";
 
-		private static readonly int EmissiveColorProperty = Shader.PropertyToID("_EmissiveColor");
-
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
 		#endregion
@@ -206,9 +204,9 @@ namespace VisualPinball.Unity
 			// emissive materials
 			_propBlock = new MaterialPropertyBlock();
 			foreach (var mr in GetComponentsInChildren<MeshRenderer>()) {
-				var emissiveColor = mr.sharedMaterial.GetColor(EmissiveColorProperty);
-				if (emissiveColor.a > 10f) {
-					_fullEmissions.Add((mr, emissiveColor, 0));
+				var emissiveColor = RenderPipeline.Current.MaterialConverter.GetEmissiveColor(mr.sharedMaterial);
+				if (emissiveColor?.a > 10f) {
+					_fullEmissions.Add((mr, (Color)emissiveColor, 0));
 				}
 			}
 		}
@@ -305,7 +303,7 @@ namespace VisualPinball.Unity
 				var (mr, color, lastValue) = _fullEmissions[i];
 				mr.GetPropertyBlock(_propBlock);
 				var emission = Mathf.Lerp(lastValue, value, position);
-				_propBlock.SetColor(EmissiveColorProperty, emission * color * 0.05f);
+				RenderPipeline.Current.MaterialConverter.SetEmissiveColor(_propBlock, emission * color * 0.05f);
 				_fullEmissions[i] = (mr, color, emission);
 				mr.SetPropertyBlock(_propBlock);
 			}
@@ -316,7 +314,7 @@ namespace VisualPinball.Unity
 		{
 			foreach (var (mr, color, lastValue) in _fullEmissions) {
 				mr.GetPropertyBlock(_propBlock);
-				_propBlock.SetColor(EmissiveColorProperty, value * color * 0.05f);
+				RenderPipeline.Current.MaterialConverter.SetEmissiveColor(_propBlock, value * color * 0.05f);
 				mr.SetPropertyBlock(_propBlock);
 			}
 		}

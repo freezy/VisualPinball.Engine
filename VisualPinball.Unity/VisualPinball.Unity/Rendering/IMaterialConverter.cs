@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using System.Text;
+using UnityEngine;
 using VisualPinball.Engine.VPT;
 using Material = UnityEngine.Material;
 
@@ -64,5 +65,9 @@ namespace VisualPinball.Unity
 		void SetSmoothness(Material material, float smoothness);
 
 		int NormalMapProperty { get; }
+
+		void SetEmissiveColor(MaterialPropertyBlock propBlock, Color color);
+
+		Color? GetEmissiveColor(Material material);
 	}
 }
