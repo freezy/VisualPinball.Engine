@@ -182,7 +182,7 @@ namespace VisualPinball.Unity.Editor
 				CreatePrefab<SlingshotComponent>("Slingshots", "Prefabs/Slingshot");
 			}
 
-			if (CreateButton("Metal Wire\nGuides", Icons.Rubber(color: iconColor), iconSize, buttonStyle))
+			if (CreateButton("Metal Wire\nGuide", Icons.MetalWireGuide(color: iconColor), iconSize, buttonStyle))
 			{
 				CreateItem(MetalWireGuide.GetDefault, "New MetalWireGuide");
 			}
