@@ -42,6 +42,12 @@ namespace VisualPinball.Unity.Editor
 	/// <typeparam name="T">a <see cref="ThumbnailElement"/> generic class</typeparam>
 	public abstract class ThumbnailView<T> where T : ThumbnailElement
 	{
+		public bool ShowToolbar = true;
+
+		public bool DisplayNames = true;
+
+		public bool MultiSelection = false;
+
 		public struct RowCollums
 		{
 			public int Rows;
@@ -59,10 +65,6 @@ namespace VisualPinball.Unity.Editor
 		public T SelectedItem => _selectedItems.Count == 1 ? _selectedItems[0] : null;
 
 		private string _searchFilter = string.Empty;
-
-		public bool ShowToolbar = true;
-
-		public bool MultiSelection = false;
 
 		protected EThumbnailSize _thumbnailSize = EThumbnailSize.Normal;
 
@@ -98,6 +100,8 @@ namespace VisualPinball.Unity.Editor
 				return f1filter ? 1 : -1;
 			return f1.CompareTo(f2);
 		}
+
+		private float NameLineHeight => DisplayNames ? _commonStyles.NameStyle.lineHeight : 0.0f;
 
 		private List<T> GetFilteredItems()
 		{
@@ -137,7 +141,7 @@ namespace VisualPinball.Unity.Editor
         {
 			InitCommonStyles();
 
-			EditorGUILayout.BeginVertical();
+			EditorGUILayout.BeginVertical(GUILayout.Width(rect.width),GUILayout.Height(rect.height));
 
 			if (ShowToolbar) {
 				EditorGUILayout.BeginVertical();
@@ -173,7 +177,7 @@ namespace VisualPinball.Unity.Editor
 
 				var maxRow = ComputeMaxRows(filteredItems, rect.width - dimension.Offset.x * 2.0f);
 				if (maxRow > 0) {
-					Rect fullRect = EditorGUILayout.GetControlRect(false, ((dimension.Offset.y + dimension.Height + _commonStyles.NameStyle.lineHeight) * maxRow) + dimension.Offset.y, GUILayout.Width(rect.width - GUI.skin.box.padding.left));
+					Rect fullRect = EditorGUILayout.GetControlRect(false, ((dimension.Offset.y + dimension.Height + NameLineHeight) * maxRow) + dimension.Offset.y, GUILayout.Width(rect.width - GUI.skin.box.padding.left));
 					Rect viewRect = new Rect(fullRect.x, fullRect.y, fullRect.width + 15, rect.height - fullRect.y);
 
 					_scroll = GUI.BeginScrollView(viewRect, _scroll, fullRect, false, true);
@@ -191,13 +195,13 @@ namespace VisualPinball.Unity.Editor
 							rowCount++;
 							rowWidth = 0.0f;
 						} 
-						Rect itemRect = new Rect(fullRect.x + rowWidth + dimension.Offset.x, fullRect.y + rowCount * (dimension.Offset.y + dimension.Height + _commonStyles.NameStyle.lineHeight) + dimension.Offset.y, itemW, dimension.Height);
+						Rect itemRect = new Rect(fullRect.x + rowWidth + dimension.Offset.x, fullRect.y + rowCount * (dimension.Offset.y + dimension.Height + NameLineHeight) + dimension.Offset.y, itemW, dimension.Height);
 						if (itemRect.Overlaps(scrolledViewRect)) {
 							item.OnGUI(itemRect, style);
-							if (!string.IsNullOrEmpty(item.Name)) {
+							if (!string.IsNullOrEmpty(item.Name) && DisplayNames) {
 								var nameRect = new Rect(itemRect);
 								nameRect.y += itemRect.height;
-								nameRect.height = _commonStyles.NameStyle.lineHeight;
+								nameRect.height = NameLineHeight;
 								GUI.Label(nameRect, item.Name, _commonStyles.NameStyle);
 							}
 						}
@@ -220,7 +224,7 @@ namespace VisualPinball.Unity.Editor
 			switch(evt.type) {
 
 				case EventType.MouseDown: {
-					if (evt.button == 0 && itemRect.Contains(evt.mousePosition)) {
+					if (evt.button == 0 && item.Selectable && itemRect.Contains(evt.mousePosition)) {
 						if (evt.control && MultiSelection) {
 							if (!_selectedItems.Contains(item))
 								_selectedItems.Add(item);
@@ -240,6 +244,8 @@ namespace VisualPinball.Unity.Editor
 
 		protected int ComputeMaxRows(List<T> items, float viewWidth)
 		{
+			InitCommonStyles();
+
 			if (items.Count == 0 || viewWidth <= 0.0f)
 				return 0;
 
@@ -268,7 +274,8 @@ namespace VisualPinball.Unity.Editor
 			var items = filteredItems ? GetFilteredItems() : _data;
 			if (items.Count == 0)
 				return 0.0f;
-			return ComputeMaxRows(items, viewWidth) * items[0].CommonDimensions[_thumbnailSize].Height;
+			var dimension = items[0].CommonDimensions[_thumbnailSize];
+			return ComputeMaxRows(items, viewWidth) * (dimension.Height + dimension.Offset.y);
 		}
 	}
 }

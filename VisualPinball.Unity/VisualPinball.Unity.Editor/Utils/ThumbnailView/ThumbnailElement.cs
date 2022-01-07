@@ -49,6 +49,11 @@ namespace VisualPinball.Unity.Editor
 		public abstract string Name { get; }
 
 		/// <summary>
+		/// Is the element selectable
+		/// </summary>
+		public bool Selectable { get; set; } = true;
+
+		/// <summary>
 		/// Draw the main thumbnail area for this element.
 		/// </summary>
 		/// <param name="rect">

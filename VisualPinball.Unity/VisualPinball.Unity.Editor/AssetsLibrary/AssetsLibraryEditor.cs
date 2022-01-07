@@ -38,6 +38,8 @@ namespace VisualPinball.Unity.Editor
 		private List<AssetThumbnailElement> _thumbs = new List<AssetThumbnailElement>();
 		private AssetsThumbnailView _thumbView = new AssetsThumbnailView(null) { MultiSelection = false };
 
+		private LabelsThumbnailView _labelsView = new LabelsThumbnailView(null) { ShowToolbar = false, DisplayNames = false, MultiSelection = false };
+
 		private UnityEditor.Editor _previewEditor = null;
 
 		private List<PinballLabel> _assetLabels = new List<PinballLabel>();
@@ -80,6 +82,8 @@ namespace VisualPinball.Unity.Editor
 					var labels = AssetDatabase.GetLabels(_thumbView.SelectedAsset);
 					_assetLabels.AddRange(labels.Select(L => new PinballLabel(L)).ToList());
 				}
+
+				_labelsView.SetData(_assetLabels.Select(L=>new LabelThumbnailElement(L) { Selectable = false }));
 			}
 
 			if (_previewEditor) {
@@ -125,7 +129,11 @@ namespace VisualPinball.Unity.Editor
 
 				if (_showLabels = EditorGUILayout.BeginFoldoutHeaderGroup(_showLabels, new GUIContent("Labels"))) {
 					EditorGUI.indentLevel++;
-					EditorGUILayout.LabelField(new GUIContent("Labels"));
+
+					Rect r = new Rect(position);
+					r.width = DetailsWindowWidth;
+					_labelsView.OnGUI(r);
+
 					EditorGUI.indentLevel--;
 				}
 				EditorGUILayout.EndFoldoutHeaderGroup();

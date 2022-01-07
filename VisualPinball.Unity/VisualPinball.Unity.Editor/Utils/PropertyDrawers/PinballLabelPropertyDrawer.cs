@@ -49,26 +49,8 @@ namespace VisualPinball.Unity.Editor
 			if (fullLabel != null) {
 				Rect labelRect = position;
 
-				var labelsList = new PopupLabelList.InputData() { m_AllowCustom = true, m_CloseOnSelection = false, m_EnableAutoCompletion = true, m_SortAlphabetically = true, m_OnSelectCallback = OnSelectCallback };
-				labelsList.m_ListElements.Add(new PopupListElement("Manufacturers.Bally"));
-				labelsList.m_ListElements.Add(new PopupListElement("Manufacturers.Stern"));
-				labelsList.m_ListElements.Add(new PopupListElement("Manufacturers.Williams"));
-				labelsList.m_ListElements.Add(new PopupListElement("Manufacturers.Sega"));
-				labelsList.m_ListElements.Add(new PopupListElement("Decades.1980"));
-				labelsList.m_ListElements.Add(new PopupListElement("Decades.1990"));
-				labelsList.m_ListElements.Add(new PopupListElement("Decades.2000"));
-				labelsList.m_ListElements.Add(new PopupListElement("AFM"));
-
-				//if (string.IsNullOrEmpty(fullLabel.stringValue)) {
-				//	labelRect.width = labelButtonStyle.margin.left + labelButtonStyle.fixedWidth + labelButtonStyle.padding.right;
-				//	if (EditorGUI.DropdownButton(labelRect, GUIContent.none, FocusType.Passive, labelButtonStyle)) {
-				//		PopupWindow.Show(labelRect, new PopupLabelList(labelsList));
-				//	}
-				//} else {
-					labelRect.width = labelStyle.CalcSize(new GUIContent(fullLabel.stringValue)).x;
-					fullLabel.stringValue = GUI.TextField(labelRect, fullLabel.stringValue, labelStyle);
-				//}
-
+				labelRect.width = labelStyle.CalcSize(new GUIContent(fullLabel.stringValue)).x;
+				fullLabel.stringValue = GUI.TextField(labelRect, fullLabel.stringValue, labelStyle);
 			}
 		}
 	}
