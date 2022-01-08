@@ -30,7 +30,7 @@ namespace VisualPinball.Unity.Test
 		public void ShouldWriteImportedMetalWireGuideData()
 		{
 			const string tmpFileName = "ShouldWriteMetalWireGuideData.vpx";
-			var go = VpxImportEngine.ImportIntoScene(VpxPath.Rubber, options: ConvertOptions.SkipNone);
+			var go = VpxImportEngine.ImportIntoScene(VpxPath.MetalWireGuide, options: ConvertOptions.SkipNone);
 			var ta = go.GetComponent<TableComponent>();
 			ta.TableContainer.Save(tmpFileName);
 
