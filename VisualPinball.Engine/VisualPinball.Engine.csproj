@@ -54,14 +54,13 @@
     <ItemGroup>
       <Plugins Include="$(OutDir)NLog.dll" />
       <Plugins Include="$(OutDir)OpenMcdf.dll" />
-
       <Plugins Include="$(OutDir)NetMiniZ.dll" />
-      <Plugins Include="$(NuGetPackageRoot)\netminiz.native.$(RuntimeIdentifier)\1.3.0\runtimes\$(RuntimeIdentifier)\native\*" />
-
       <Plugins Include="$(OutDir)NetVips.dll" />
-      <Plugins Include="$(NuGetPackageRoot)\netvips.native.$(RuntimeIdentifier)\8.12.1\runtimes\$(RuntimeIdentifier)\native\*" />
-
       <Plugins Include="$(OutDir)System.Buffers.dll" />
+    </ItemGroup>
+    <ItemGroup Condition="'$(RuntimeIdentifier)' != 'ios-arm64'">
+      <Plugins Include="$(NuGetPackageRoot)\netminiz.native.$(RuntimeIdentifier)\1.3.0\runtimes\$(RuntimeIdentifier)\native\*" />
+      <Plugins Include="$(NuGetPackageRoot)\netvips.native.$(RuntimeIdentifier)\8.12.1\runtimes\$(RuntimeIdentifier)\native\*" />
     </ItemGroup>
     <Message Text="PluginsDeploy: @(Plugins)" />
     <Copy SourceFiles="@(Plugins)" DestinationFolder="..\VisualPinball.Unity\Plugins\$(RuntimeIdentifier)\" SkipUnchangedFiles="true" />
