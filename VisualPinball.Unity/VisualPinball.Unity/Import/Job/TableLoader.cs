@@ -152,7 +152,7 @@ namespace VisualPinball.Unity
 							break;
 						}
 						case ItemType.MetalWireGuide:{
-							tableContainer.Add(objHandle.Target as Rubber);
+							tableContainer.Add(objHandle.Target as MetalWireGuide);
 							break;
 						}
 						default:
