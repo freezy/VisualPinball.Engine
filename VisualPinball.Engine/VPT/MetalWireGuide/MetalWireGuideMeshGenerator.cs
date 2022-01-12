@@ -80,13 +80,14 @@ namespace VisualPinball.Engine.VPT.MetalWireGuide
 		{
 			/*
 			 * Todo:
-			 *   Better default Vaules, maybe Default texture (half done)
 			 *   New Tests
 			 *   Test Import Export from/to VPX
-			 *   Test physics
+
 			 * Done:
 			 *   thickness = float, 
 			 *   standheight should be a property
+			 *   Better default Vaules, maybe Default texture
+			 *   Test physics
 			 */
 			var mesh = new Mesh();
 			// i dont understand the calculation of splineaccuracy here /cupiii
