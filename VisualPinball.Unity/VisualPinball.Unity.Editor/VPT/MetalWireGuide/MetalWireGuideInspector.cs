@@ -31,7 +31,8 @@ namespace VisualPinball.Unity.Editor
 		private SerializedProperty _heightProperty;
 		private SerializedProperty _thicknessProperty;
 		private SerializedProperty _rotationProperty;
-		private SerializedProperty _bendradius;
+		private SerializedProperty _bendradiusProperty;
+		private SerializedProperty _standheightProperty;
 
 		protected override void OnEnable()
 		{
@@ -44,7 +45,8 @@ namespace VisualPinball.Unity.Editor
 			_heightProperty = serializedObject.FindProperty(nameof(MetalWireGuideComponent._height));
 			_thicknessProperty = serializedObject.FindProperty(nameof(MetalWireGuideComponent._thickness));
 			_rotationProperty = serializedObject.FindProperty(nameof(MetalWireGuideComponent.Rotation));
-			_bendradius = serializedObject.FindProperty(nameof(MetalWireGuideComponent._bendradius));
+			_bendradiusProperty = serializedObject.FindProperty(nameof(MetalWireGuideComponent._bendradius));
+			_standheightProperty = serializedObject.FindProperty(nameof(MetalWireGuideComponent._standheight));
 		}
 
 		protected override void OnDisable()
@@ -65,8 +67,9 @@ namespace VisualPinball.Unity.Editor
 
 			PropertyField(_rotationProperty, rebuildMesh: true);
 			PropertyField(_heightProperty, rebuildMesh: true);
+			PropertyField(_standheightProperty, rebuildMesh: true);
 			PropertyField(_thicknessProperty, rebuildMesh: true);
-			PropertyField(_bendradius, rebuildMesh: true);
+			PropertyField(_bendradiusProperty, rebuildMesh: true);
 
 			DragPointsHelper.OnInspectorGUI(this);
 

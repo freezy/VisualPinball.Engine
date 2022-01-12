@@ -80,12 +80,13 @@ namespace VisualPinball.Engine.VPT.MetalWireGuide
 		{
 			/*
 			 * Todo:
-			 *   thickness = float, 
-			 *   standheight should be a property
-			 *   Better default Vaules, maybe Default texture
+			 *   Better default Vaules, maybe Default texture (half done)
 			 *   New Tests
 			 *   Test Import Export from/to VPX
 			 *   Test physics
+			 * Done:
+			 *   thickness = float, 
+			 *   standheight should be a property
 			 */
 			var mesh = new Mesh();
 			// i dont understand the calculation of splineaccuracy here /cupiii
@@ -95,11 +96,15 @@ namespace VisualPinball.Engine.VPT.MetalWireGuide
 			}
 
 			var splineAccuracy = acc != -1 ? 4.0f * MathF.Pow(10.0f, (10.0f - PhysicsConstants.HitShapeDetailLevel) * (float)(1.0 / 1.5)) : -1.0f;
-			SplineVertex sv = new SplineVertex(_data.DragPoints, _data.Thickness, detailLevel, splineAccuracy, margin: margin, loop: false);
+			SplineVertex sv = new SplineVertex(_data.DragPoints, (int)(_data.Thickness+0.5), detailLevel, splineAccuracy, margin: margin, loop: false);
 
 			var height = playfieldHeight + meshHeight;
 			// hack - Component has to get edited. --- and TODO: Thickness should become a float.
-			var standheight = 50;
+			var standheight = _data.Standheight;
+			// dont lat the Collider be higher than the visible mesh, just shift the top of the MWG.
+			if (createHitShape)
+				standheight = standheight - _data.Height + height;
+			
 
 			// one ring for each Splinevertex, two for the stands, and "bendradius" tomes two for the bend (should be enough) 
 			// todo: could be better, if accuracy was taken into account

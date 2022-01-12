@@ -38,12 +38,17 @@ namespace VisualPinball.Unity
 	{
 		#region Data
 
-		[Tooltip("Height of the rubber (z-axis).")]
+		[Tooltip("Height of the metal wire guide (z-axis).")]
 		public float _height = 25f;
 
 		[Min(0)]
-		[Tooltip("How thick the rubber band is rendered.")]
-		public int _thickness = 8;
+		[Tooltip("How thick the metal wire guide band is rendered.")]
+		public float _thickness = 3;
+
+		[Min(0)]
+		[Tooltip("How tall the metal wire ends are rendered.")]
+		public float _standheight = 30f;
+
 
 		[Tooltip("Rotation on the playfield")]
 		public Vector3 Rotation;
@@ -59,7 +64,8 @@ namespace VisualPinball.Unity
 		#region IMetalWireGuideData
 
 		public DragPointData[] DragPoints { get => _dragPoints; set => _dragPoints = value; }
-		public int Thickness => _thickness;
+		public float Thickness => _thickness;
+		public float Standheight => _standheight;
 		public float Height => _height;
 		public float RotX => Rotation.x;
 		public float RotY => Rotation.y;
@@ -106,6 +112,7 @@ namespace VisualPinball.Unity
 			_thickness = data.Thickness;
 			DragPoints = data.DragPoints;
 			_bendradius = data.Bendradius;
+			_standheight = data.Standheight;
 
 			// collider data
 			var collComponent = GetComponent<MetalWireGuideColliderComponent>();
