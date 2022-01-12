@@ -21,7 +21,8 @@ namespace VisualPinball.Engine.VPT.MetalWireGuide
 	public interface IMetalWireGuideData
 	{
 		DragPointData[] DragPoints { get; }
-		int Thickness { get; }
+		float Thickness { get; }
+		float Standheight { get; }
 		float Height { get; }
 		float Bendradius { get; }
 		float RotX { get; }

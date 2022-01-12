@@ -45,10 +45,13 @@ namespace VisualPinball.Engine.VPT.MetalWireGuide
 		[BiffFloat("HTHI", Pos = 2)]
 		public float HitHeight { get; set; } = 25f;
 
-		[BiffInt("WDTP", Pos = 3)]
-		public int Thickness { get; set; } = 8;
+		[BiffFloat("WDTP", Pos = 3)]
+		public float Thickness { get; set; } = 3f;
 
-		[BiffFloat("HTRD", Pos = 22)]
+		[BiffFloat("HTST", Pos = 25)]
+		public float Standheight { get; set; } = 30f;
+
+		[BiffFloat("HTRD", Pos = 24)]
 		public float Bendradius { get; set; } = 8f;
 
 		[BiffBool("HTEV", Pos = 4)]
