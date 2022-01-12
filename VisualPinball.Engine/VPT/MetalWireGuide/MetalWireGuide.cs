@@ -42,13 +42,7 @@ namespace VisualPinball.Engine.VPT.MetalWireGuide
 			var metalWireGuideData = new MetalWireGuideData(table.GetNewName<MetalWireGuide>("MetalWireGuide")) {
 				DragPoints = new[] {
 					new DragPointData(x, y - 100f) {IsSmooth = true },
-					new DragPointData(x - 50f * MathF.Cos(MathF.PI / 4), y - 50f * MathF.Sin(MathF.PI / 4)) {IsSmooth = true },
-					new DragPointData(x - 50f, y) {IsSmooth = true },
-					new DragPointData(x - 50f * MathF.Cos(MathF.PI / 4), y + 50f * MathF.Sin(MathF.PI / 4)) {IsSmooth = true },
-					new DragPointData(x, y + 50f) {IsSmooth = true },
-					new DragPointData(x + 50f * MathF.Cos(MathF.PI / 4), y + 50f * MathF.Sin(MathF.PI / 4)) {IsSmooth = true },
-					new DragPointData(x + 50f, y) {IsSmooth = true },
-					new DragPointData(x + 50f * MathF.Cos(MathF.PI / 4), y - 50f * MathF.Sin(MathF.PI / 4)) {IsSmooth = true },
+					new DragPointData(x, y) {IsSmooth = true },
 				}
 			};
 			return new MetalWireGuide(metalWireGuideData);
