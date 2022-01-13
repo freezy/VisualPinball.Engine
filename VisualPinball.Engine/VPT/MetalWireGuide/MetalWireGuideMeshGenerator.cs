@@ -218,6 +218,7 @@ namespace VisualPinball.Engine.VPT.MetalWireGuide
 						X = points[currentRing].X + right[currentRing].X * ringsX[currentSegment] + down[currentRing].X * ringsY[currentSegment],
 						Y = points[currentRing].Y + right[currentRing].Y * ringsX[currentSegment] + down[currentRing].Y * ringsY[currentSegment],
 						Z = points[currentRing].Z + right[currentRing].Z * ringsX[currentSegment] + down[currentRing].Z * ringsY[currentSegment],
+						//normals seem to be somehow off, but are caculated again at the end of mesh creation.
 						Nx = right[currentRing].X * ringsX[currentSegment] + down[currentRing].X * ringsY[currentSegment],
 						Ny = right[currentRing].Y * ringsX[currentSegment] + down[currentRing].Y * ringsY[currentSegment],
 						Nz = right[currentRing].Z * ringsX[currentSegment] + down[currentRing].Z * ringsY[currentSegment],
@@ -245,6 +246,8 @@ namespace VisualPinball.Engine.VPT.MetalWireGuide
 					}
 				}
 			}
+
+			Mesh.ComputeNormals(mesh.Vertices, numVertices, mesh.Indices, numIndices);
 
 			return mesh;
 		}
