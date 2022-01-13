@@ -62,7 +62,9 @@ namespace VisualPinball.Unity
 				var or = ball.Orientation;
 				var ballTransform = _player.Balls[entity].transform;
 				ballTransform.localPosition = new Vector3(ball.Position.x, ball.Position.y, zHeight);
-				ballTransform.localRotation = Quaternion.LookRotation(or.c2, or.c1);
+
+				//ballTransform.localRotation = Quaternion.LookRotation(or.c2, or.c1);
+				ballTransform.localRotation = Quaternion.LookRotation(new Vector3(or.c0.x*-1, or.c1.x*-1, or.c2.x), new Vector3(or.c0.z*-1, or.c1.z*-1, or.c2.z));
 
 				marker.End();
 
