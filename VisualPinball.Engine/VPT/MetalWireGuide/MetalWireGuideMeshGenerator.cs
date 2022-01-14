@@ -78,17 +78,6 @@ namespace VisualPinball.Engine.VPT.MetalWireGuide
 
 		private Mesh GetMesh(float playfieldHeight, float meshHeight, int detailLevel, float bendradius, int acc = -1, bool createHitShape = false, float margin = 0f)
 		{
-			/*
-			 * Todo:
-			 *   New Tests
-			 *   Test Import Export from/to VPX
-
-			 * Done:
-			 *   thickness = float, 
-			 *   standheight should be a property
-			 *   Better default Vaules, maybe Default texture
-			 *   Test physics
-			 */
 			var mesh = new Mesh();
 			// i dont understand the calculation of splineaccuracy here /cupiii
 			var accuracy = (int)(10.0f * 1.2f);
