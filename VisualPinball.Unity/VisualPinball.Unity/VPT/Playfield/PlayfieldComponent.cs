@@ -61,6 +61,9 @@ namespace VisualPinball.Unity
 
 		public float AngleTiltMin = 6f;
 
+		[Tooltip("How much the playfield should be rotated during runtime (in edit time, we keep it horizontal)")]
+		public float RenderSlope = 3.6f;
+
 		public int PlayfieldDetailLevel = 10;
 
 		public float GravityStrength = 1.762985f;
@@ -102,6 +105,8 @@ namespace VisualPinball.Unity
 			if (meshComp) {
 				World.DefaultGameObjectInjectionWorld.GetOrCreateSystem<StaticNarrowPhaseSystem>().CollideAgainstPlayfieldPlane = meshComp.AutoGenerate;
 			}
+
+			transform.RotateAround(Vector3.zero, Vector3.right, -RenderSlope);
 		}
 
 		public override IEnumerable<MonoBehaviour> SetData(TableData data)

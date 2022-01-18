@@ -28,6 +28,7 @@ namespace VisualPinball.Unity.Editor
 		private SerializedProperty _tableHeightProperty;
 		private SerializedProperty _angleTiltMinProperty;
 		private SerializedProperty _angleTiltMaxProperty;
+		private SerializedProperty _renderSlopeProperty;
 
 		protected override void OnEnable()
 		{
@@ -39,6 +40,7 @@ namespace VisualPinball.Unity.Editor
 			_tableHeightProperty = serializedObject.FindProperty(nameof(PlayfieldComponent.TableHeight));
 			_angleTiltMinProperty = serializedObject.FindProperty(nameof(PlayfieldComponent.AngleTiltMin));
 			_angleTiltMaxProperty = serializedObject.FindProperty(nameof(PlayfieldComponent.AngleTiltMax));
+			_renderSlopeProperty = serializedObject.FindProperty(nameof(PlayfieldComponent.RenderSlope));
 		}
 
 		public override void OnInspectorGUI()
@@ -59,6 +61,7 @@ namespace VisualPinball.Unity.Editor
 			});
 			PropertyField(_angleTiltMinProperty, "Slope for Min. Difficulty");
 			PropertyField(_angleTiltMaxProperty, "Slope for Max. Difficulty");
+			PropertyField(_renderSlopeProperty, "Rendered Playfield Angle");
 
 			base.OnInspectorGUI();
 
