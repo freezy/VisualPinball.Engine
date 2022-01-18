@@ -33,8 +33,9 @@ namespace VisualPinball.Unity
 
 		public int Shape;
 
-		[Min(0)]
+		[Range(0, 6)]
 		[Tooltip("Thickness of the trigger wire. Doesn't have any impact on the ball.")]
+
 		public float WireThickness;
 
 		#endregion
