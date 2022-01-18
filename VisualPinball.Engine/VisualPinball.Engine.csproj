@@ -58,7 +58,7 @@
       <Plugins Include="$(OutDir)NetVips.dll" />
       <Plugins Include="$(OutDir)System.Buffers.dll" />
     </ItemGroup>
-    <ItemGroup Condition="'$(RuntimeIdentifier)' != 'ios-arm64'">
+    <ItemGroup Condition="'$(RuntimeIdentifier)' != 'ios-arm64' And '$(RuntimeIdentifier)' != 'android-arm64-v8a'">
       <Plugins Include="$(NuGetPackageRoot)\netminiz.native.$(RuntimeIdentifier)\1.3.0\runtimes\$(RuntimeIdentifier)\native\*" />
       <Plugins Include="$(NuGetPackageRoot)\netvips.native.$(RuntimeIdentifier)\8.12.1\runtimes\$(RuntimeIdentifier)\native\*" />
     </ItemGroup>

@@ -28,6 +28,8 @@ jobs:
             rid: ios-arm64
           - os: ubuntu-latest
             rid: linux-x64
+          - os: ubuntu-latest
+            rid: android-arm64-v8a
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-dotnet@v1
@@ -65,7 +67,7 @@ jobs:
       - uses: game-ci/unity-test-runner@main
         id: test
         with:
-          unityVersion: '2021.2.7f1'
+          unityVersion: '2021.2.8f1'
           projectPath: VisualPinball.Unity/VisualPinball.Unity.Test/TestProject~
           artifactsPath: VisualPinball.Unity/VisualPinball.Unity.Test/TestProject~/artifacts
           testMode: all
