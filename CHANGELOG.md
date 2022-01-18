@@ -35,6 +35,7 @@ Built with Unity 2021.2.
 - Native trough component ([#229](https://github.com/freezy/VisualPinball.Engine/pull/229), [#248](https://github.com/freezy/VisualPinball.Engine/pull/248), [#256](https://github.com/freezy/VisualPinball.Engine/pull/256), [Documentation](https://docs.visualpinball.org/creators-guide/manual/mechanisms/troughs.html)).
 
 ### Changed
+- Playfield is now rotated to the correct angle during gameplay ([#370](https://github.com/freezy/VisualPinball.Engine/pull/370))
 - Decouple light components from transformation override ([#350](https://github.com/freezy/VisualPinball.Engine/pull/350)).
 - Refactored drag points. They are nicely separated and typed now.
 - Collider debug view is now much faster and intuitive. It's also activated per default when there is no visible mesh.
