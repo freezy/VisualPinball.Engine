@@ -4,7 +4,7 @@
   "displayName": "Visual Pinball Engine",
   "description": "Main project of the Visual Pinball Engine.",
   "unity": "2021.2",
-  "unityRelease": "7f1",
+  "unityRelease": "8f1",
   "dependencies": {
     "com.unity.burst": "1.6.3",
     "com.unity.entities": "0.17.0-preview.42",

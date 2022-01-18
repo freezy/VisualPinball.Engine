@@ -24,9 +24,9 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="NUnit" Version="3.13.2" />
-    <PackageReference Include="NUnit3TestAdapter" Version="4.1.0" />
+    <PackageReference Include="NUnit3TestAdapter" Version="4.2.0" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.1.0-preview-20211130-02" />
-    <PackageReference Include="FluentAssertions" Version="6.2.0" ExcludeAssets="Compile" />
+    <PackageReference Include="FluentAssertions" Version="6.3.0" ExcludeAssets="Compile" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\VisualPinball.Unity.Editor\VisualPinball.Unity.Editor.csproj" />
@@ -36,7 +36,7 @@
   </ItemGroup>
   <ItemGroup>
     <Reference Include="FluentAssertions">
-      <HintPath>$(NuGetPackageRoot)\fluentassertions\6.2.0\lib\netstandard2.1\FluentAssertions.dll</HintPath>
+      <HintPath>$(NuGetPackageRoot)\fluentassertions\6.3.0\lib\netstandard2.1\FluentAssertions.dll</HintPath>
     </Reference>
     <Reference Include="UnityEngine.CoreModule">
       <HintPath>..\Plugins\.unity\UnityEngine.CoreModule.dll</HintPath>
