@@ -23,31 +23,62 @@ using System;
 
 namespace VisualPinball.Unity.Editor
 {
+	/// <summary>
+	/// The AssetsLibraryEditor is the main window for VPE Assets Libray
+	/// </summary>
 	public class AssetsLibraryEditor : BaseEditorWindow
 	{
-		private static readonly Logger Logger = NLog.LogManager.GetCurrentClassLogger();
-
-		private LabelsHandler _labelsHandler = new LabelsHandler();
-
-		private List<AssetLibraryContent> _assetLibraries = new List<AssetLibraryContent>();
-		private Dictionary<AssetLibraryContent, bool> _assetLibrariesSelection = new Dictionary<AssetLibraryContent, bool>();
-
-		private List<PinballLabel> _filterLabels = new List<PinballLabel>();
-
-		private List<AssetThumbnailElement> _thumbs = new List<AssetThumbnailElement>();
-		private AssetsThumbnailView _thumbView = new AssetsThumbnailView(null) { MultiSelection = false };
-
-		private LabelsThumbnailView _labelsView = new LabelsThumbnailView(null) { ShowToolbar = false, DisplayNames = false, MultiSelection = false };
-
-		private UnityEditor.Editor _previewEditor = null;
-
-		private List<PinballLabel> _assetLabels = new List<PinballLabel>();
-
+		#region Menu Item
 		[MenuItem("Visual Pinball/Assets Library", false, 601)]
 		public static void ShowWindow()
 		{
 			GetWindow<AssetsLibraryEditor>().titleContent = new GUIContent("Assets Library");
 		}
+		#endregion
+
+		private static readonly Logger Logger = NLog.LogManager.GetCurrentClassLogger();
+
+		#region Assets Management
+		/// <summary>
+		/// This handler will manage all Populated Pinball labels and provide helpers for categories
+		/// </summary>
+		private LabelsHandler _labelsHandler = new LabelsHandler();
+
+		/// <summary>
+		/// Populated assets libraries from all <see cref="AssetsLibrarySettingsAsset"/> found within the AssetDatabase
+		/// </summary>
+		private List<AssetLibraryContent> _assetLibraries = new List<AssetLibraryContent>();
+		#endregion
+
+		#region Assets Thumbnail View
+		/// <summary>
+		/// Keep selections from the Libraries dropdown selector
+		/// </summary>
+		private Dictionary<AssetLibraryContent, bool> _assetLibrariesSelection = new Dictionary<AssetLibraryContent, bool>();
+
+		/// <summary>
+		/// Editor left side assets thumbnail view
+		/// </summary>
+		private AssetsThumbnailView _thumbView = new AssetsThumbnailView(null) { MultiSelection = false };
+		private List<AssetThumbnailElement> _thumbs = new List<AssetThumbnailElement>();
+		#endregion
+
+		#region Details Panel
+		/// <summary>
+		/// Preview from the Details panel
+		/// </summary>
+		private UnityEditor.Editor _previewEditor = null;
+
+		/// <summary>
+		/// Labels list from the Details panel
+		/// </summary>
+		private LabelsThumbnailView _labelsView = new LabelsThumbnailView(null) { ShowToolbar = false, DisplayNames = false, MultiSelection = false };
+
+		/// <summary>
+		/// List of selected asset's labels.
+		/// </summary>
+		private List<PinballLabel> _assetLabels = new List<PinballLabel>();
+		#endregion
 
 		public AssetsLibraryEditor() : base()
 		{
@@ -65,6 +96,32 @@ namespace VisualPinball.Unity.Editor
 
 		private bool _showDetails = true;
 		private bool _showLabels = true;
+
+		public void OnGUI()
+		{
+			EditorGUILayout.BeginHorizontal();
+
+			var thumbRect = new Rect(position);
+			thumbRect.y += GUI.skin.button.lineHeight;
+			thumbRect.width -= DetailsWindowWidth;
+			thumbRect.height -= GUI.skin.button.lineHeight;
+
+			EditorGUILayout.BeginVertical(GUILayout.Width(thumbRect.width));
+			//Library selector
+			if (EditorGUILayout.DropdownButton(new GUIContent("Libraries"), FocusType.Passive, GUILayout.Width(150))) {
+				DoLibrariesPopup();
+			}
+
+			_thumbView.OnGUI(thumbRect);
+
+			EditorGUILayout.EndVertical();
+
+			EditorGUILayout.BeginVertical();
+			DetailsGUI();
+			EditorGUILayout.EndVertical();
+
+			EditorGUILayout.EndHorizontal();
+		}
 
 		private void DetailsGUI()
 		{
@@ -142,32 +199,6 @@ namespace VisualPinball.Unity.Editor
 			} else {
 				EditorGUILayout.LabelField(new GUIContent("Select an asset"));
 			}
-		}
-
-		public void OnGUI()
-		{
-			EditorGUILayout.BeginHorizontal();
-
-			var thumbRect = new Rect(position);
-			thumbRect.y += GUI.skin.button.lineHeight;
-			thumbRect.width -= DetailsWindowWidth;
-			thumbRect.height -= GUI.skin.button.lineHeight;
-
-			EditorGUILayout.BeginVertical(GUILayout.Width(thumbRect.width));
-			//Library selector
-			if (EditorGUILayout.DropdownButton(new GUIContent("Libraries"), FocusType.Passive, GUILayout.Width(150))) {
-				DoLibrariesPopup();
-			}
-
-			_thumbView.OnGUI(thumbRect);
-
-			EditorGUILayout.EndVertical();
-
-			EditorGUILayout.BeginVertical();
-			DetailsGUI();
-			EditorGUILayout.EndVertical();
-
-			EditorGUILayout.EndHorizontal();
 		}
 
 		private void DoLibrariesPopup()
