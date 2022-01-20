@@ -24,6 +24,8 @@ namespace VisualPinball.Unity.Editor
 	[Serializable]
 	public class PinballLabelCategory 
 	{
+		public static readonly char Separator = '_';
+
 		[NonSerialized]
 		public static readonly Color DefaultColor = Color.blue;
 

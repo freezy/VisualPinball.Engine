@@ -15,7 +15,6 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using System.Collections.Generic;
-using UnityEditor;
 using UnityEngine;
 
 namespace VisualPinball.Unity.Editor
