@@ -20,6 +20,9 @@ using UnityEngine;
 
 namespace VisualPinball.Unity.Editor
 {
+	/// <summary>
+	/// Thumbnail elements display size enum. used by <see cref="ThumbnailElement.CommonDimensions"/>.
+	/// </summary>
 	public enum EThumbnailSize
 	{
 		Small,
@@ -27,6 +30,9 @@ namespace VisualPinball.Unity.Editor
 		Large
 	}
 
+	/// <summary>
+	/// Default class to display elements within a <see cref="ThumbnailView{T}"/>.
+	/// </summary>
 	public abstract class ThumbnailElement
     {
 		/// <summary>
@@ -86,6 +92,9 @@ namespace VisualPinball.Unity.Editor
 		/// </remarks>
 		public abstract void DrawHoverContainer(Rect rect);
 
+		/// <summary>
+		/// Description of the element height & offset when displayed, width will be computed by the element itself.
+		/// </summary>
 		public struct Dimension
 		{
 			public Vector2 Offset;
@@ -98,6 +107,9 @@ namespace VisualPinball.Unity.Editor
 			{ EThumbnailSize.Large, new Dimension(){ Offset = Vector2.zero, Height = 150 } }
 		};
 
+		/// <summary>
+		/// Common dimensions used by the <see cref="ThumbnailView{T}"/> 
+		/// </summary>
 		public virtual Dictionary<EThumbnailSize, Dimension> CommonDimensions => _commonDimensions;
 
 

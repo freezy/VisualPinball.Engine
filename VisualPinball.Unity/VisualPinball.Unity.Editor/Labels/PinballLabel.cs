@@ -24,6 +24,8 @@ namespace VisualPinball.Unity.Editor
 	[Serializable]
 	public class PinballLabel : ISerializationCallbackReceiver
 	{
+		public static readonly char Separator = '.';
+
 		[SerializeField]
 		private string _fullLabel = string.Empty;
 		public string FullLabel
@@ -37,7 +39,9 @@ namespace VisualPinball.Unity.Editor
 
 		[field:NonSerialized]
 		public string Label { get; private set; } = string.Empty;
-		[field:NonSerialized]
+		[field: NonSerialized]
+		public string Path { get; private set; } = string.Empty;
+		[field: NonSerialized]
 		public string Category { get; private set; } = string.Empty;
 
 		public PinballLabel(string label)
@@ -55,26 +59,26 @@ namespace VisualPinball.Unity.Editor
 			}
 			var tuple = Split(_fullLabel);
 			Category = tuple.Item1;
-			Label = tuple.Item2;
+			Path = tuple.Item2;
+			Label = tuple.Item3;
 		}
 
-		internal static Tuple<string, string> Split(string fullLabel)
+		internal static Tuple<string, string, string> Split(string fullLabel)
 		{
-			var split = fullLabel.Split('.');
-			string category = string.Empty, label = string.Empty;
+			var split = fullLabel.Split(Separator);
+			string category = string.Empty, path = string.Empty, label;
 
 			if (split.Length > 1) {
+				category = split[0];
 				if (split.Length > 2) {
-					category = string.Join('_', split, 0, split.Length - 1);
-				} else {
-					category = split[0];
-				}
+					path = string.Join(Separator, split, 1, split.Length - 2);
+				} 
 				label = split[split.Length - 1];
 			} else {
 				label = fullLabel;
 			}
 
-			return new Tuple<string, string>(category, label);
+			return new Tuple<string, string, string>(category, path, label);
 		}
 
 		public void OnBeforeSerialize()		{}

@@ -1,7 +1,22 @@
-﻿using System;
+﻿// Visual Pinball Engine
+// Copyright (C) 2021 freezy and VPE Team
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using UnityEditor;
 using UnityEngine;
 using Object = UnityEngine.Object;
@@ -13,6 +28,15 @@ namespace VisualPinball.Unity.Editor
 		public Object SelectedAsset => SelectedItem?.Asset;
 
 		public AssetsThumbnailView(IEnumerable<AssetThumbnailElement> data) : base(data) { }
+
+		public LabelsHandler LabelsHandler
+		{
+			set {
+				_filteredLabelsView.LabelsHandler = value;
+			}
+		}
+
+		private LabelsThumbnailView _filteredLabelsView = new LabelsThumbnailView(null);
 
 		protected override void InitCommonStyles()
 		{
@@ -29,15 +53,6 @@ namespace VisualPinball.Unity.Editor
 			}
 		}
 
-		protected override void OnGUIToolbarBegin() 
-		{
-
-		}
-
-		protected override void OnGUIToolbarEnd()
-		{
-		}
-
 		protected override bool MatchLabelFilter(AssetThumbnailElement item, string labelFilter)
 		{
 			var labels = AssetDatabase.GetLabels(item.Asset);
@@ -46,8 +61,17 @@ namespace VisualPinball.Unity.Editor
 
 		protected override bool MatchTypeFilter(AssetThumbnailElement item, string typeFilter)
 		{
-			return (item.Asset.GetType().Name.Equals(typeFilter, StringComparison.InvariantCultureIgnoreCase));
+			var prefabType = PrefabUtility.GetPrefabAssetType(item.Asset);
+			if (prefabType != PrefabAssetType.NotAPrefab && typeFilter.Equals("prefab", StringComparison.InvariantCultureIgnoreCase)) {
+				return true;
+			} 
+			return (item.Asset.GetType().Name.Contains(typeFilter, StringComparison.InvariantCultureIgnoreCase));
 		}
 
+		protected override void OnGUIToolbarEnd(Rect r)
+		{
+			base.OnGUIToolbarEnd(r);
+
+		}
 	}
 }

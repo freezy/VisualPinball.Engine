@@ -23,7 +23,7 @@ using System;
 namespace VisualPinball.Unity.Editor
 {
 	/// <summary>
-	/// 
+	/// Styles used by the view to display elements, elements' names & hover container
 	/// </summary>
 	public class ThumbnailViewStyles
 	{
@@ -42,10 +42,19 @@ namespace VisualPinball.Unity.Editor
 	/// <typeparam name="T">a <see cref="ThumbnailElement"/> generic class</typeparam>
 	public abstract class ThumbnailView<T> where T : ThumbnailElement
 	{
+		/// <summary>
+		/// Displays the toolbar (name filter, thumnail size selector, potential custom pre/port toolbar elements).
+		/// </summary>
 		public bool ShowToolbar = true;
 
+		/// <summary>
+		/// Display elements' names under each element.
+		/// </summary>
 		public bool DisplayNames = true;
 
+		/// <summary>
+		/// Set single or multiple elements' selection.
+		/// </summary>
 		public bool MultiSelection = false;
 
 		public struct RowCollums
@@ -57,11 +66,21 @@ namespace VisualPinball.Unity.Editor
 		}
 
 		private List<T> _data = new List<T>();
+		/// <summary>
+		/// Does this view contains data to display.
+		/// </summary>
+		public bool HasData => _data.Count > 0;
 
 		private Vector2 _scroll;
 
 		private List<T> _selectedItems = new List<T>();
+		/// <summary>
+		/// List of selected items.
+		/// </summary>
 		public List<T> SelectedItems => _selectedItems;
+		/// <summary>
+		/// Selected item (null in case of multi selection).
+		/// </summary>
 		public T SelectedItem => _selectedItems.Count == 1 ? _selectedItems[0] : null;
 
 		private string _searchFilter = string.Empty;
@@ -70,11 +89,28 @@ namespace VisualPinball.Unity.Editor
 
 		protected ThumbnailViewStyles _commonStyles = new ThumbnailViewStyles();
 
+		private enum Filters
+		{
+			Name, 
+			Label,
+			Type
+		}
+
+		private Dictionary<Filters, HashSet<string>> _filters = new Dictionary<Filters, HashSet<string>> {
+			{Filters.Name , new HashSet<string>()},
+			{Filters.Label, new HashSet<string>()},
+			{Filters.Type, new HashSet<string>()}
+		};
+
 		public ThumbnailView(IEnumerable<T> data)
 		{
 			SetData(data);
 		}
 
+		/// <summary>
+		/// Fill the view with elements to display.
+		/// </summary>
+		/// <param name="data">Elements to be displayed.</param>
 		public void SetData(IEnumerable<T> data)
         {
 			_data.Clear();
@@ -85,8 +121,10 @@ namespace VisualPinball.Unity.Editor
 
 		protected abstract void InitCommonStyles();
 
-		protected virtual void OnGUIToolbarBegin() { }
-		protected virtual void OnGUIToolbarEnd() { }
+		protected virtual void OnGUIToolbarBegin(Rect r) { }
+		protected virtual void OnGUIToolbarEnd(Rect r) { }
+		protected virtual void OnGUIBegin(Rect r) { }
+		protected virtual void OnGUIEnd(Rect r) { }
 
 		protected virtual bool MatchLabelFilter(T item, string labelFilter) => false;
 		protected virtual bool MatchTypeFilter(T item, string typeFilter) => false;
@@ -103,50 +141,71 @@ namespace VisualPinball.Unity.Editor
 
 		private float NameLineHeight => DisplayNames ? _commonStyles.NameStyle.lineHeight : 0.0f;
 
-		private List<T> GetFilteredItems()
+		private void SetupFilters()
 		{
-			List<T> filteredNames = new List<T>();
-			List<T> filteredLabels = new List<T>();
-			List<T> filteredTypes = new List<T>();
-			filteredNames.AddRange(_data);
+			foreach(var set in _filters.Values) {
+				set.Clear();
+			}
+
 			var filters = _searchFilter.Split(' ').ToList();
 			filters.Sort(FilterCompare);
-			int labelCnt = 0, typeCnt = 0;
 			foreach (var filter in filters) {
 				if (string.IsNullOrEmpty(filter)) continue;
 				if (filter.StartsWith("l:", StringComparison.InvariantCultureIgnoreCase)) {
 					var labelFilter = filter.Split(':')[1];
 					if (!string.IsNullOrEmpty(labelFilter)) {
-						labelCnt++;
-						filteredLabels = filteredLabels.Union(_data.Where(I => MatchLabelFilter(I, labelFilter))).ToList();
+						_filters[Filters.Label].Add(labelFilter);
 					}
-				}else if (filter.StartsWith("t:", StringComparison.InvariantCultureIgnoreCase)) {
+				} else if (filter.StartsWith("t:", StringComparison.InvariantCultureIgnoreCase)) {
 					var typeFilter = filter.Split(':')[1];
 					if (!string.IsNullOrEmpty(typeFilter)) {
-						typeCnt++;
-						filteredTypes = filteredTypes.Union(_data.Where(I => MatchTypeFilter(I, typeFilter))).ToList();
+						_filters[Filters.Type].Add(typeFilter);
 					}
 				} else {
-					filteredNames = filteredNames.Where(I => I.Name.Contains(filter, StringComparison.InvariantCultureIgnoreCase)).ToList();
+					_filters[Filters.Name].Add(filter);
 				}
 			}
-			if (labelCnt > 0)
-				filteredNames = filteredNames.Intersect(filteredLabels).ToList();
-			if (typeCnt > 0)
-				filteredNames = filteredNames.Intersect(filteredTypes).ToList();
-			return filteredNames;
+		}
+
+		private List<T> GetFilteredItems()
+		{
+			List<T> filteredByNames = new List<T>();
+			List<T> filteredByLabels = new List<T>();
+			List<T> filteredByTypes = new List<T>();
+			var filteredItems = _filters[Filters.Label].Select(L => _data.Where(I => MatchLabelFilter(I, L)));
+			foreach (var items in filteredItems) {
+				filteredByLabels = filteredByLabels.Union(items).ToList();
+			}
+			filteredItems = _filters[Filters.Type].Select(L => _data.Where(I => MatchTypeFilter(I, L)));
+			foreach (var items in filteredItems) {
+				filteredByTypes = filteredByTypes.Union(items).ToList();
+			}
+
+			if (_filters[Filters.Name].Count > 0) {
+				filteredByNames = _data.Where(I => _filters[Filters.Name].Any(F => I.Name.Contains(F, StringComparison.InvariantCultureIgnoreCase))).ToList();
+			} else {
+				filteredByNames.AddRange(_data);
+			}
+
+			if (_filters[Filters.Label].Count > 0)
+				filteredByNames = filteredByNames.Intersect(filteredByLabels).ToList();
+			if (_filters[Filters.Type].Count > 0)
+				filteredByNames = filteredByNames.Intersect(filteredByTypes).ToList();
+			return filteredByNames;
 		}
 
 		public void OnGUI(Rect rect)
         {
 			InitCommonStyles();
 
+			OnGUIBegin(rect);
+
 			EditorGUILayout.BeginVertical(GUILayout.Width(rect.width),GUILayout.Height(rect.height));
 
 			if (ShowToolbar) {
 				EditorGUILayout.BeginVertical();
 
-				OnGUIToolbarBegin();
+				OnGUIToolbarBegin(rect);
 
 				EditorGUILayout.BeginHorizontal(EditorStyles.toolbar, GUILayout.Width(rect.width));
 				EditorGUILayout.LabelField("Name Filter", GUILayout.Width(100));
@@ -159,11 +218,13 @@ namespace VisualPinball.Unity.Editor
 					GUIUtility.keyboardControl = 0;
 				}
 
+				SetupFilters();
+
 				EditorGUILayout.LabelField("Thumbnail Size", GUILayout.Width(100));
 				_thumbnailSize = (EThumbnailSize)EditorGUILayout.EnumPopup(_thumbnailSize, GUILayout.Width(100));
 				EditorGUILayout.EndHorizontal();
 
-				OnGUIToolbarEnd();
+				OnGUIToolbarEnd(rect);
 
 				EditorGUILayout.EndVertical();
 			}
@@ -215,6 +276,8 @@ namespace VisualPinball.Unity.Editor
 			}
 
 			EditorGUILayout.EndVertical();
+
+			OnGUIEnd(rect);
 		}
 
 		public void HandleEvents(T item, Rect itemRect)
@@ -267,6 +330,12 @@ namespace VisualPinball.Unity.Editor
 			return rowCount;
 		}
 
+		/// <summary>
+		/// Will return the computed view height based on view's elements
+		/// </summary>
+		/// <param name="viewWidth">The wiew width needed to evaluate how many rows are needed.</param>
+		/// <param name="filteredItems">If true, will be computed only with filtered elements base on the toolbar's name filter.</param>
+		/// <returns>The height of the view to display all needed elements.</returns>
 		public float ComputeViewHeight(float viewWidth, bool filteredItems = true)
 		{
 			if (_data.Count == 0)

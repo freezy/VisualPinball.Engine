@@ -18,7 +18,6 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor;
 using Logger = NLog.Logger;
-using Object = UnityEngine.Object;
 using System.Linq;
 using System;
 
@@ -57,6 +56,8 @@ namespace VisualPinball.Unity.Editor
 		public override void OnEnable()
 		{
 			base.OnEnable();
+			_thumbView.LabelsHandler = _labelsHandler;
+			_labelsView.LabelsHandler = _labelsHandler;
 			CheckSettinbgsAssets();
 		}
 

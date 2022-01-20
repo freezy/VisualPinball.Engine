@@ -16,8 +16,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using UnityEditor;
 using UnityEngine;
 
 namespace VisualPinball.Unity.Editor

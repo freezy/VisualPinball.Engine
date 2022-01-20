@@ -17,7 +17,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using UnityEditor;
 using UnityEngine;
 using Logger = NLog.Logger;
@@ -116,7 +115,8 @@ namespace VisualPinball.Unity.Editor
 					bool isActive = selected;
 
 					using (new EditorGUI.DisabledScope(!element.enabled)) {
-						GUIContent content = new GUIContent($"{(string.IsNullOrEmpty(category) ? string.Empty : "    ")}{PinballLabel.Split(element.text).Item2}");
+						var label = PinballLabel.Split(element.text);
+						GUIContent content = new GUIContent($"{(string.IsNullOrEmpty(category) ? string.Empty : "    ")}{label.Item3}");
 						style.Draw(rect, content, isHover, isActive, selected, false);
 					}
 				}

@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEditor;
@@ -26,7 +25,8 @@ namespace VisualPinball.Unity.Editor
 		public enum LabelType
 		{
 			LabelLibraries,
-			Assets
+			Assets,
+			All
 		}
 
 		private Dictionary<LabelType, PinballLabelList> _labels = new Dictionary<LabelType, PinballLabelList>() {
@@ -52,7 +52,9 @@ namespace VisualPinball.Unity.Editor
 				var asset = AssetDatabase.LoadAssetAtPath<LabelsLibraryAsset>(AssetDatabase.GUIDToAssetPath(guid));
 				foreach (var category in asset.Categories) {
 					if (!string.IsNullOrEmpty(category.Name)) {
-						_categories[LabelType.LabelLibraries].Add(new PinballLabelCategory(category));
+						_categories[LabelType.LabelLibraries].Add(new PinballLabelCategory(category) {
+							Name = category.Name.Replace(PinballLabel.Separator, PinballLabelCategory.Separator),
+						}) ;
 					}
 				}
 				foreach(var label in asset.Labels) {
@@ -88,6 +90,19 @@ namespace VisualPinball.Unity.Editor
 						}
 					}
 				}
+			}
+		}
+
+		public List<PinballLabel> GetLabels(LabelType type = LabelType.All)
+		{
+			if (type == LabelType.All) {
+				var list = new List<PinballLabel>();
+				foreach(var labels in _labels) {
+					list.AddRange(labels.Value);
+				}
+				return list;
+			} else {
+				return _labels[type].ToList();
 			}
 		}
 	}

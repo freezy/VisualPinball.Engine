@@ -17,7 +17,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using UnityEditor;
 using UnityEngine;
 
@@ -187,7 +186,7 @@ namespace VisualPinball.Unity.Editor
 					return m_ListElements;
 				else
 					return m_ListElements.Where(
-						element => element.m_Content.text.StartsWith(prefix, System.StringComparison.OrdinalIgnoreCase)
+						element => element.m_Content.text.Contains(prefix, System.StringComparison.OrdinalIgnoreCase)
 					);
 			}
 
