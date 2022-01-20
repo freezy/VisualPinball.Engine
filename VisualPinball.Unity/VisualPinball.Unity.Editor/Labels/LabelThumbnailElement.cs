@@ -19,6 +19,9 @@ using UnityEngine;
 
 namespace VisualPinball.Unity.Editor
 {
+	/// <summary>
+	/// A <see cref="ThumbnailElement"/> dedicated for displaying PinballLabels.
+	/// </summary>
 	public class LabelThumbnailElement : ThumbnailElement
 	{
 		private PinballLabel _label = null;

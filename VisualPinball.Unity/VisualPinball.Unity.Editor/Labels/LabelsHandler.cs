@@ -20,6 +20,9 @@ using UnityEditor;
 
 namespace VisualPinball.Unity.Editor
 {
+	/// <summary>
+	/// The LabelHandler stores PinballLabels from both <see cref="LabelsLibraryAsset"/> and parsed assets from the <see cref="AssetsLibraryEditor"/>
+	/// </summary>
 	public class LabelsHandler
 	{
 		public enum LabelType

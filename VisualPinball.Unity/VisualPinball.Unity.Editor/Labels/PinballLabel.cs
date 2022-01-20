@@ -20,7 +20,11 @@ using UnityEngine;
 
 namespace VisualPinball.Unity.Editor
 {
-	[DebuggerDisplay("Category = {Category}, Label = {Label}")]
+	/// <summary>
+	/// Expose classic Unity's labels (strings) as categorized labels
+	/// Provide helpers to split directly a string into PinballLabel parts following proper format.
+	/// </summary>
+	[DebuggerDisplay("Category = {Category}, Path = {Path}, Label = {Label}")]
 	[Serializable]
 	public class PinballLabel : ISerializationCallbackReceiver
 	{

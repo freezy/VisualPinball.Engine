@@ -21,12 +21,21 @@ using UnityEngine;
 
 namespace VisualPinball.Unity.Editor
 {
+	/// <summary>
+	/// A <see cref="ThumbnailView{T}"/> dedicated for labels displaying, using Unity's AssetLabel styles
+	/// </summary>
 	public class LabelsThumbnailView : ThumbnailView<LabelThumbnailElement>
 	{
 		GUIStyle _labelButtonStyle;
 
+		/// <summary>
+		/// Handler used to populate the labels dropdown
+		/// </summary>
 		public LabelsHandler LabelsHandler = null;
 
+		/// <summary>
+		/// If true, will authorize to open a label dropdown to add/remove labels.
+		/// </summary>
 		public bool Editable = false;
 
 		public LabelsThumbnailView(IEnumerable<LabelThumbnailElement> data) : base(data) 
