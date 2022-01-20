@@ -20,6 +20,9 @@ using UnityEngine;
 
 namespace VisualPinball.Unity.Editor
 {
+	/// <summary>
+	/// <see cref="PinballLabel"/> category settings used to help PinballLabels browsing.
+	/// </summary>
 	[DebuggerDisplay("Name = {Name}, MultipleSelection = {MultipleSelection}, Color = {Color}")]
 	[Serializable]
 	public class PinballLabelCategory 

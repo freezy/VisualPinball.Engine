@@ -23,6 +23,9 @@ using Logger = NLog.Logger;
 
 namespace VisualPinball.Unity.Editor
 {
+	/// <summary>
+	/// A <see cref="PopupList{T}"/> used for displaying PinballLabel & PinballLabelsCategory in a <see cref="PopupWindow"/>
+	/// </summary>
 	public class PopupLabelList : PopupList<PopupListElement>
 	{
 		private static readonly Logger Logger = NLog.LogManager.GetCurrentClassLogger();

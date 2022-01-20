@@ -22,6 +22,9 @@ using UnityEngine;
 
 namespace VisualPinball.Unity.Editor
 {
+	/// <summary>
+	/// Base class for elements used in a <see cref="PopupList{T}"/>
+	/// </summary>
 	public class PopupListElement
 	{
 		public GUIContent m_Content;
@@ -141,6 +144,12 @@ namespace VisualPinball.Unity.Editor
 		}
 	}
 
+	/// <summary>
+	/// Base class for displaying a selectable list within a <see cref="PopupWindow"/>
+	/// Manage name filtering & custom items rendering
+	/// Heavily inspired by <see cref="https://github.com/Unity-Technologies/UnityCsReference/blob/master/Editor/Mono/ProjectBrowserPopups.cs"/> internal PopupList class.
+	/// </summary>
+	/// <typeparam name="T">A child class of <see cref="PopupListElement"/></typeparam>
 	public class PopupList<T> : PopupWindowContent where T : PopupListElement, new()
 	{
 		public delegate void OnSelectCallback(T element);

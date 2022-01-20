@@ -22,6 +22,9 @@ using UnityEngine;
 
 namespace VisualPinball.Unity.Editor
 {
+	/// <summary>
+	/// LabelsLibraryAsset stores categories identifiers and pre-built labels to help Labels proposal and Categories formatting 
+	/// </summary>
 	[CreateAssetMenu(fileName = "Labels Library", menuName = "Visual Pinball/Label Library", order = 101)]
 	public class LabelsLibraryAsset : ScriptableObject
 	{
