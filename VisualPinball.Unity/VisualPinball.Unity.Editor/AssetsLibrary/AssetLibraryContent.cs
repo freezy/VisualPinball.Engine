@@ -24,8 +24,15 @@ using Object = UnityEngine.Object;
 
 namespace VisualPinball.Unity.Editor
 {
+	/// <summary>
+	/// AssetLibraryContent will host all populated assets from a <see cref="AssetsLibrarySettingsAsset"/>
+	/// </summary>
 	public class AssetLibraryContent
 	{
+		/// <summary>
+		/// Within the <see cref="AssetLibraryContent"/>, each AssetLibraryFolderContent will host assets from each <see cref="AssetsLibrarySettingsAsset.FolderSettings"/>
+		/// It'll also watch for any changes within this folder to automatically update assets' list.
+		/// </summary>
 		public class AssetLibraryFolderContent
 		{
 			private static readonly Logger Logger = NLog.LogManager.GetCurrentClassLogger();
@@ -66,12 +73,12 @@ namespace VisualPinball.Unity.Editor
 
 			private void OnChanged(object sender, FileSystemEventArgs e)
 			{
-
+				//TODO
 			}
 
 			private void OnRenamed(object sender, RenamedEventArgs e)
 			{
-
+				//TODO
 			}
 
 			public void PopulateAssets()

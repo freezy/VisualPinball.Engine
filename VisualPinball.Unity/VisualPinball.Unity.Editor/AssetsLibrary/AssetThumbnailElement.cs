@@ -21,6 +21,9 @@ using Object = UnityEngine.Object;
 
 namespace VisualPinball.Unity.Editor
 {
+	/// <summary>
+	/// A <see cref="ThumbnailElement"/> dedicated for displaying assets
+	/// </summary>
 	public class AssetThumbnailElement : ThumbnailElement
 	{
 		private Object _asset = null;
