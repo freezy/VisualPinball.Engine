@@ -31,8 +31,6 @@ namespace VisualPinball.Unity.Editor
 	///
 	class WireManager : ManagerWindow<WireListData>
 	{
-		private readonly string RESOURCE_PATH = "Assets/Resources";
-
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
 		protected override string DataTypeName => "Wire";
@@ -62,7 +60,7 @@ namespace VisualPinball.Unity.Editor
 
 		private void OnFocus()
 		{
-			_inputManager = new InputManager(RESOURCE_PATH);
+			_inputManager = new InputManager(InputManager.ASSETS_RESOURCES_PATH);
 			_listViewItemRenderer = new WireListViewItemRenderer(TableComponent, _inputManager);
 			_needsAssetRefresh = true;
 		}
