@@ -31,8 +31,6 @@ namespace VisualPinball.Unity.Editor
 	///
 	internal class SwitchManager : ManagerWindow<SwitchListData>
 	{
-		private readonly string RESOURCE_PATH = "Assets/Resources";
-
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
 		protected override string DataTypeName => "Switch";
@@ -63,7 +61,7 @@ namespace VisualPinball.Unity.Editor
 
 		private void OnFocus()
 		{
-			_inputManager = new InputManager(RESOURCE_PATH);
+			_inputManager = new InputManager(InputManager.ASSETS_RESOURCES_PATH);
 			_listViewItemRenderer = new SwitchListViewItemRenderer(_gleSwitches, TableComponent, _inputManager);
 			_needsAssetRefresh = true;
 		}

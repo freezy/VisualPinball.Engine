@@ -27,6 +27,8 @@ namespace VisualPinball.Unity
 {
 	public class InputManager
 	{
+		public static readonly string ASSETS_RESOURCES_PATH = "Assets/Resources";
+
 		private static readonly string RESOURCE_NAME = "InputBindings";
 
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
@@ -116,6 +118,20 @@ namespace VisualPinball.Unity
 			}
 
 			return list;
+		}
+
+		public InputAction FindAction(string mapName, string actionName)
+		{
+			InputAction action = null;
+
+			var actionMap = _asset.FindActionMap(mapName);
+
+			if (actionMap != null)
+			{
+				action = actionMap.FindAction(actionName);
+			}
+
+			return action;
 		}
 
 		public static InputActionAsset GetDefaultInputActionAsset()
