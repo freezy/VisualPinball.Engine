@@ -39,7 +39,7 @@ namespace VisualPinball.Unity
 	/// them up to the switches.
 	/// </summary>
 	[DisallowMultipleComponent]
-	[AddComponentMenu("Visual Pinball/Game Logic Engine/Default Game Logic")]
+	[AddComponentMenu("Visual Pinball/Gamelogic Engine/Default Game Logic")]
 	public class DefaultGamelogicEngine : MonoBehaviour, IGamelogicEngine
 	{
 		public string Name => "Default Game Engine";
@@ -51,6 +51,7 @@ namespace VisualPinball.Unity
 		public event EventHandler<LampColorEventArgs> OnLampColorChanged;
 		public event EventHandler<AvailableDisplays> OnDisplaysAvailable;
 		public event EventHandler<DisplayFrameData> OnDisplayFrame;
+		public event EventHandler<EventArgs> OnStarted;
 
 		private const int DmdWidth = 128;
 		private const int DmdHeight = 32;
@@ -198,6 +199,8 @@ namespace VisualPinball.Unity
 			_player.ScheduleAction(100, () => OnCoilChanged?.Invoke(this, new CoilEventArgs(CoilTroughEject, false)));
 
 			_playfieldComponent = GetComponentInChildren<PlayfieldComponent>();
+
+			OnStarted?.Invoke(this, EventArgs.Empty);
 		}
 
 		private void Update()

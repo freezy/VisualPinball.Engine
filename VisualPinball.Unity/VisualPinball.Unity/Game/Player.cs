@@ -164,13 +164,10 @@ namespace VisualPinball.Unity
 			_wirePlayer.OnStart();
 
 			GamelogicEngine?.OnInit(this, TableApi, BallManager);
-			OnPlayerStarted?.Invoke(this, EventArgs.Empty);
-
+			
 			if (EngineProvider<IDebugUI>.Exists) {
 				EngineProvider<IDebugUI>.Get().Init(_tableComponent);
 			}
-
-
 		}
 
 		private void Update()
