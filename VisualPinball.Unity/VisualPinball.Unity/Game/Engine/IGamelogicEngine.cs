@@ -105,6 +105,8 @@ namespace VisualPinball.Unity
 		GamelogicEngineWire[] AvailableWires { get; }
 
 		#endregion
+
+		event EventHandler<EventArgs> OnStarted;
 	}
 
 	/// <summary>
