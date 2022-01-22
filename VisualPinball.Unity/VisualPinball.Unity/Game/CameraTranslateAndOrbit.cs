@@ -21,17 +21,18 @@ public class CameraTranslateAndOrbit : MonoBehaviour
 	
 	private Vector3 _focusPoint;
 	private float _radiusCurrent = 15f;
-	private bool _isTrackingMouse0;
-	private Vector2 _mouse0StartPosition;
-
-	private bool _isTrackingMouse1;
-	private Vector2 _mouse1StartPosition;
 
 	private bool _isTrackingTouch0;
 	private Vector2 _touch0StartPosition;
 
 	private float _startMultiTouchRadius;
 	private float _startMultiTouchDistance;
+
+	private bool _isTrackingMouse0;
+	private Vector2 _mouse0StartPosition;
+
+	private bool _isTrackingMouse1;
+	private Vector2 _mouse1StartPosition;
 
 	public Vector3 positionOffset = Vector3.zero;
 	private Vector3 _positionOffsetCurrent = Vector3.zero;
@@ -71,104 +72,15 @@ public class CameraTranslateAndOrbit : MonoBehaviour
 	// Update is called once per frame
 	private void Update()
 	{
-		if (Touchscreen.current != null)
-		{
+		if (Touchscreen.current != null) {
 			UpdateTouchscreen();
+
+			return;
 		}
 
 		if (Mouse.current != null) {
 			UpdateMouse();
 		}
-	}
-
-	private void UpdateMouse()
-	{
-		transformCache.position = dummyTransform.position = Vector3.zero;
-
-		var hasHitRestrictedHitArea = false;
-
-		if (Mouse.current.leftButton.wasPressedThisFrame)
-		{
-			_mouse0StartPosition = Mouse.current.position.ReadValue();
-			_isTrackingMouse0 = true;
-		}
-
-		if (_mouse0StartPosition.x < 200f && _mouse0StartPosition.y > Screen.height - 200f)
-		{
-			hasHitRestrictedHitArea = true;
-		}
-
-		if (!hasHitRestrictedHitArea)
-		{
-			if (_isTrackingMouse0)
-			{
-				Vector3 mousePositionDifference = Mouse.current.position.ReadValue() - _mouse0StartPosition;
-				dummyTransform.Rotate(Vector3.up, mousePositionDifference.x * 0.4f, Space.World);
-
-				dummyTransform.Rotate(dummyTransform.right.normalized, mousePositionDifference.y * -0.4f,
-					Space.World);
-				_rot2 = dummyTransform.rotation;
-				_mouse0StartPosition = Mouse.current.position.ReadValue();
-			}
-			transformCache.rotation = Quaternion.Lerp(transformCache.rotation, _rot2, Time.deltaTime * 4f);
-		}
-
-
-		if (Mouse.current.leftButton.wasReleasedThisFrame)
-		{
-			_isTrackingMouse0 = false;
-		}
-
-
-		if (Mouse.current.rightButton.wasPressedThisFrame)
-		{
-			_mouse1StartPosition = Mouse.current.position.ReadValue();
-			_isTrackingMouse1 = true;
-		}
-
-		if (!hasHitRestrictedHitArea)
-		{
-			if (_isTrackingMouse1)
-			{
-				var mousePositionDifference = Mouse.current.position.ReadValue() - _mouse1StartPosition;
-				//Vector3 XZPlanerDirection = transformCache.forward.normalized;
-				//XZPlanerDirection.y = 0;
-
-				positionOffset += transformCache.up.normalized * (mousePositionDifference.y * -(_radius / 2f / 100f));
-
-				positionOffset += transformCache.right.normalized *
-								  (mousePositionDifference.x * -(_radius / 2f / 100f));
-				/*
-				if(positionOffset.y < 0){
-					positionOffset.y = 0;
-				}*/
-
-				_mouse1StartPosition = Mouse.current.position.ReadValue();
-			}
-		}
-
-		if (Mouse.current.rightButton.wasReleasedThisFrame)
-		{
-			_isTrackingMouse1 = false;
-		}
-
-		if (!hasHitRestrictedHitArea) {
-			if (!isAnimating) {
-				var delta = Mouse.current.scroll.y.ReadValue() / 1000f * zoomSpeed * -_radius;
-				_radius += delta;
-				if (_radius < RadiusMin) {
-					var radDiff = RadiusMin - _radius;
-					positionOffset += transformCache.forward * (radDiff * 4f);
-					_radius = RadiusMin;
-				}
-			}
-		}
-
-		_positionOffsetCurrent = Vector3.Lerp(_positionOffsetCurrent, positionOffset, Time.deltaTime * 4f);
-		_radiusCurrent = Mathf.Lerp(_radiusCurrent, _radius, Time.deltaTime * 4f);
-		_focusPoint = transformCache.forward * -1f * _radiusCurrent;
-		transformCache.position = _focusPoint + _positionOffsetCurrent;
-		dummyTransform.position = transformCache.position;
 	}
 
 	private void UpdateTouchscreen()
@@ -226,6 +138,85 @@ public class CameraTranslateAndOrbit : MonoBehaviour
 
 				_radius += delta;
 
+				if (_radius < RadiusMin) {
+					var radDiff = RadiusMin - _radius;
+					positionOffset += transformCache.forward * (radDiff * 4f);
+					_radius = RadiusMin;
+				}
+			}
+		}
+
+		_positionOffsetCurrent = Vector3.Lerp(_positionOffsetCurrent, positionOffset, Time.deltaTime * 4f);
+		_radiusCurrent = Mathf.Lerp(_radiusCurrent, _radius, Time.deltaTime * 4f);
+		_focusPoint = transformCache.forward * -1f * _radiusCurrent;
+		transformCache.position = _focusPoint + _positionOffsetCurrent;
+		dummyTransform.position = transformCache.position;
+	}
+
+	private void UpdateMouse()
+	{
+		transformCache.position = dummyTransform.position = Vector3.zero;
+
+		var hasHitRestrictedHitArea = false;
+
+		if (Mouse.current.leftButton.wasPressedThisFrame) {
+			_mouse0StartPosition = Mouse.current.position.ReadValue();
+			_isTrackingMouse0 = true;
+		}
+
+		if (_mouse0StartPosition.x < 200f && _mouse0StartPosition.y > Screen.height - 200f) {
+			hasHitRestrictedHitArea = true;
+		}
+
+		if (!hasHitRestrictedHitArea) {
+			if (_isTrackingMouse0) {
+				Vector3 mousePositionDifference = Mouse.current.position.ReadValue() - _mouse0StartPosition;
+				dummyTransform.Rotate(Vector3.up, mousePositionDifference.x * 0.4f, Space.World);
+
+				dummyTransform.Rotate(dummyTransform.right.normalized, mousePositionDifference.y * -0.4f,
+					Space.World);
+				_rot2 = dummyTransform.rotation;
+				_mouse0StartPosition = Mouse.current.position.ReadValue();
+			}
+			transformCache.rotation = Quaternion.Lerp(transformCache.rotation, _rot2, Time.deltaTime * 4f);
+		}
+
+		if (Mouse.current.leftButton.wasReleasedThisFrame) {
+			_isTrackingMouse0 = false;
+		}
+
+		if (Mouse.current.rightButton.wasPressedThisFrame) {
+			_mouse1StartPosition = Mouse.current.position.ReadValue();
+			_isTrackingMouse1 = true;
+		}
+
+		if (!hasHitRestrictedHitArea) {
+			if (_isTrackingMouse1) {
+				var mousePositionDifference = Mouse.current.position.ReadValue() - _mouse1StartPosition;
+				//Vector3 XZPlanerDirection = transformCache.forward.normalized;
+				//XZPlanerDirection.y = 0;
+
+				positionOffset += transformCache.up.normalized * (mousePositionDifference.y * -(_radius / 2f / 100f));
+
+				positionOffset += transformCache.right.normalized *
+								  (mousePositionDifference.x * -(_radius / 2f / 100f));
+				/*
+				if(positionOffset.y < 0){
+					positionOffset.y = 0;
+				}*/
+
+				_mouse1StartPosition = Mouse.current.position.ReadValue();
+			}
+		}
+
+		if (Mouse.current.rightButton.wasReleasedThisFrame) {
+			_isTrackingMouse1 = false;
+		}
+
+		if (!hasHitRestrictedHitArea) {
+			if (!isAnimating) {
+				var delta = Mouse.current.scroll.y.ReadValue() / 1000f * zoomSpeed * -_radius;
+				_radius += delta;
 				if (_radius < RadiusMin) {
 					var radDiff = RadiusMin - _radius;
 					positionOffset += transformCache.forward * (radDiff * 4f);
