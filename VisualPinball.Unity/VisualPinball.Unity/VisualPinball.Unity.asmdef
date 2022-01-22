@@ -1,20 +1,24 @@
 {
-	"name": "VisualPinball.Unity",
-	"references": [
-		"Unity.Burst",
-		"Unity.Entities",
-		"Unity.Entities.Hybrid",
-		"Unity.Collections",
-		"Unity.Mathematics",
-		"Unity.Mathematics.Extensions",
-		"Unity.Physics",
-		"Unity.Physics.Hybrid",
-		"Unity.Transforms",
-		"Unity.InputSystem",
-		"VisualPinball.Engine",
-		"VisualPinball.Resources"
-	],
-	"includePlatforms": [],
-	"excludePlatforms": [],
-	"allowUnsafeCode": true
+    "name": "VisualPinball.Unity",
+    "rootNamespace": "",
+    "references": [
+        "Unity.Burst",
+        "Unity.Entities",
+        "Unity.Entities.Hybrid",
+        "Unity.Collections",
+        "Unity.Mathematics",
+        "Unity.Mathematics.Extensions",
+        "Unity.Transforms",
+        "Unity.InputSystem",
+        "VisualPinball.Engine"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": true,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
 }
