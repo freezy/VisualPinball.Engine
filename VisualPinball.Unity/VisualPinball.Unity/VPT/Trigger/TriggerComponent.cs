@@ -25,6 +25,7 @@ using System;
 using System.Collections.Generic;
 using Unity.Entities;
 using Unity.Mathematics;
+using UnityEditor;
 using UnityEngine;
 using VisualPinball.Engine.Game.Engines;
 using VisualPinball.Engine.Math;
@@ -42,6 +43,10 @@ namespace VisualPinball.Unity
 
 		[Tooltip("Position on the playfield.")]
 		public Vector2 Position;
+
+		[Tooltip("Scales the trigger mesh by this value.")]
+		[Range(0.5f, 1.5f)]
+		public float Scale = 1;
 
 		[Tooltip("Rotation of the trigger.")]
 		[Range(-180f, 180f)]
@@ -99,6 +104,9 @@ namespace VisualPinball.Unity
 
 			// position
 			t.localPosition = new Vector3(Position.x, Position.y, PositionZ);
+
+			// scale
+			t.localScale = new Vector3(Scale, Scale, Scale);
 
 			// rotation
 			t.localEulerAngles = new Vector3(0, 0, Rotation);
