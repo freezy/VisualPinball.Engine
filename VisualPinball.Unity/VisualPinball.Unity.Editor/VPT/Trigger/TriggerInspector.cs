@@ -29,6 +29,7 @@ namespace VisualPinball.Unity.Editor
 	{
 
 		private SerializedProperty _positionProperty;
+		private SerializedProperty _scaleProperty;
 		private SerializedProperty _rotationProperty;
 		private SerializedProperty _surfaceProperty;
 
@@ -40,6 +41,7 @@ namespace VisualPinball.Unity.Editor
 			DragPointsHelper.OnEnable();
 
 			_positionProperty = serializedObject.FindProperty(nameof(TriggerComponent.Position));
+			_scaleProperty = serializedObject.FindProperty(nameof(TriggerComponent.Scale));
 			_rotationProperty = serializedObject.FindProperty(nameof(TriggerComponent.Rotation));
 			_surfaceProperty = serializedObject.FindProperty(nameof(TriggerComponent._surface));
 		}
@@ -61,6 +63,7 @@ namespace VisualPinball.Unity.Editor
 			OnPreInspectorGUI();
 
 			PropertyField(_positionProperty, updateTransforms: true);
+			PropertyField(_scaleProperty, updateTransforms: true);
 			PropertyField(_rotationProperty, updateTransforms: true);
 			PropertyField(_surfaceProperty, updateTransforms: true);
 
