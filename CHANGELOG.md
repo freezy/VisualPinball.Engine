@@ -7,6 +7,7 @@
 Built with Unity 2021.2.
 
 ### Added
+- Trigger meshes can now be easily scaled ([#374](https://github.com/freezy/VisualPinball.Engine/pull/374))
 - We got a new game item called *Metal Wire Guide* (thanks @Cupiii, [#366](https://github.com/freezy/VisualPinball.Engine/pull/366))
 - A *Collision Switch* component ([#344](https://github.com/freezy/VisualPinball.Engine/pull/344), [Documentation](https://docs.visualpinball.org/creators-guide/manual/mechanisms/collision-switches.html)).
 - A *Rotator* component ([#337](https://github.com/freezy/VisualPinball.Engine/pull/337), [Documentation](https://docs.visualpinball.org/creators-guide/manual/mechanisms/rotators.html)).
