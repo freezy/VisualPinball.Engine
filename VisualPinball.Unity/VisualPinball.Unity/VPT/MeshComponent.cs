@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using System;
+using Codice.Client.Common;
 using UnityEngine;
 using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Table;
@@ -49,7 +50,7 @@ namespace VisualPinball.Unity
 
 		#endregion
 
-		public void RebuildMeshes()
+		public virtual void RebuildMeshes()
 		{
 			UpdateMesh();
 		}
