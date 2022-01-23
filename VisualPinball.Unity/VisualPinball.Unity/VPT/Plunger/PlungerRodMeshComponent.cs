@@ -50,5 +50,17 @@ namespace VisualPinball.Unity
 
 		protected override PbrMaterial GetMaterial(PlungerData data, Table table)
 			=> new PlungerMeshGenerator(data).GetMaterial(table);
+
+		public override void RebuildMeshes()
+		{
+			base.RebuildMeshes();
+			var plungerComp = GetComponentInParent<PlungerComponent>();
+			var smr = GetComponent<SkinnedMeshRenderer>();
+			var bounds = smr.localBounds;
+			var ringOffset = (RingGap + RingWidth) / 2f;
+			bounds.center = new Vector3(plungerComp.Position.x, plungerComp.Position.y + ringOffset - 32, bounds.center.z);
+			bounds.extents = new Vector3(12f, 125f + ringOffset, 12f);
+			smr.localBounds = bounds;
+		}
 	}
 }
