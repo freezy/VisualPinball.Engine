@@ -26,8 +26,6 @@ namespace VisualPinball.Unity
 	[AddComponentMenu("Visual Pinball/Collision/Bumper Collider")]
 	public class BumperColliderComponent : ColliderComponent<BumperData, BumperComponent>
 	{
-		public static readonly Type[] ValidParentTypes = Type.EmptyTypes;
-
 		#region Data
 
 		[Min(0f)]

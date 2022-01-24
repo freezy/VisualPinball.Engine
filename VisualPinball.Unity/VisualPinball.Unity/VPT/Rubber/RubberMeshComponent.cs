@@ -27,8 +27,6 @@ namespace VisualPinball.Unity
 	[AddComponentMenu("Visual Pinball/Mesh/Rubber Mesh")]
 	public class RubberMeshComponent : MeshComponent<RubberData, RubberComponent>
 	{
-		public static readonly Type[] ValidParentTypes = Type.EmptyTypes;
-
 		protected override Mesh GetMesh(RubberData data)
 			=> new RubberMeshGenerator(MainComponent).GetTransformedMesh(MainComponent.PlayfieldHeight, MainComponent.Height, MainComponent.PlayfieldDetailLevel);
 

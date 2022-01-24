@@ -42,8 +42,6 @@ namespace VisualPinball.Unity
 
 		public bool IsCircle => Shape == TriggerShape.TriggerStar || Shape == TriggerShape.TriggerButton;
 
-		public static readonly Type[] ValidParentTypes = Type.EmptyTypes;
-
 		protected override Mesh GetMesh(TriggerData data)
 			=> new TriggerMeshGenerator(data).GetMesh(MainComponent.PlayfieldHeight);
 

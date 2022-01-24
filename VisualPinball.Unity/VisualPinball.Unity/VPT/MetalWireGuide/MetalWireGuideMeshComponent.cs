@@ -27,8 +27,6 @@ namespace VisualPinball.Unity
 	[AddComponentMenu("Visual Pinball/Mesh/Metal Wire Guide Mesh")]
 	public class MetalWireGuideMeshComponent : MeshComponent<MetalWireGuideData, MetalWireGuideComponent>
 	{
-		public static readonly Type[] ValidParentTypes = Type.EmptyTypes;
-
 		protected override Mesh GetMesh(MetalWireGuideData data)
 			=> new MetalWireGuideMeshGenerator(MainComponent).GetTransformedMesh(MainComponent.PlayfieldHeight, MainComponent.Height, MainComponent.PlayfieldDetailLevel, MainComponent.Bendradius);
 

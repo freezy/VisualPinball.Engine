@@ -27,8 +27,6 @@ namespace VisualPinball.Unity
 	[AddComponentMenu("Visual Pinball/Mesh/Ramp Wall Mesh")]
 	public class RampWallMeshComponent : MeshComponent<RampData, RampComponent>
 	{
-		public static readonly Type[] ValidParentTypes = Type.EmptyTypes;
-
 		protected override Mesh GetMesh(RampData data)
 		{
 			var playfieldComponent = GetComponentInParent<PlayfieldComponent>();

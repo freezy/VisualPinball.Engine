@@ -27,8 +27,6 @@ namespace VisualPinball.Unity
 	[AddComponentMenu("Visual Pinball/Mesh/Flipper Rubber Mesh")]
 	public class FlipperRubberMeshComponent : MeshComponent<FlipperData, FlipperComponent>
 	{
-		public static readonly Type[] ValidParentTypes = Type.EmptyTypes;
-
 		protected override PbrMaterial GetMaterial(FlipperData data, Table table)
 			=> FlipperMeshGenerator.GetMaterial(FlipperMeshGenerator.Rubber, table, data);
 
