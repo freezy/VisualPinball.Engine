@@ -27,8 +27,6 @@ namespace VisualPinball.Unity
 	[AddComponentMenu("Visual Pinball/Mesh/Plunger Flat Mesh")]
 	public class PlungerFlatMeshComponent : PlungerMeshComponent
 	{
-		public static readonly Type[] ValidParentTypes = Type.EmptyTypes;
-
 		protected override Mesh GetMesh(PlungerData data)
 			=> new PlungerMeshGenerator(data).GetMesh(MainComponent.PositionZ, PlungerMeshGenerator.Flat);
 

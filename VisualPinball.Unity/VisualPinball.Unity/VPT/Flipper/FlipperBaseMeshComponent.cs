@@ -27,8 +27,6 @@ namespace VisualPinball.Unity
 	[AddComponentMenu("Visual Pinball/Mesh/Flipper Base Mesh")]
 	public class FlipperBaseMeshComponent : MeshComponent<FlipperData, FlipperComponent>
 	{
-		public static readonly Type[] ValidParentTypes = Type.EmptyTypes;
-
 		protected override Mesh GetMesh(FlipperData _)
 			=> new FlipperMeshGenerator(MainComponent).GetMesh(FlipperMeshGenerator.Base, 0);
 

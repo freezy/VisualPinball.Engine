@@ -67,12 +67,6 @@ namespace VisualPinball.Unity
 
 		#endregion
 
-		public static readonly Type[] ValidParentTypes = {
-			typeof(RubberComponent),
-			typeof(PrimitiveComponent),
-			typeof(SlingshotComponent),
-		};
-
 		public override PhysicsMaterialData PhysicsMaterialData => GetPhysicsMaterialData(Elasticity, ElasticityFalloff, Friction, Scatter, OverwritePhysics);
 		protected override IApiColliderGenerator InstantiateColliderApi(Player player, Entity entity)
 			=> new SurfaceApi(gameObject, entity, player);

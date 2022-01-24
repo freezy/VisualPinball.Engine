@@ -41,22 +41,6 @@ namespace VisualPinball.Unity
 
 		#endregion
 
-		public static readonly Type[] ValidParentTypes = {
-			typeof(BumperComponent),
-			typeof(FlipperComponent),
-			typeof(GateComponent),
-			typeof(TargetComponent),
-			typeof(KickerComponent),
-			typeof(LightComponent),
-			typeof(RampComponent),
-			typeof(RubberComponent),
-			typeof(SpinnerComponent),
-			typeof(SurfaceComponent),
-			typeof(TriggerComponent),
-			typeof(SlingshotComponent),
-			typeof(MetalWireGuideComponent),
-		};
-
 		protected override Mesh GetMesh(PrimitiveData data)
 			=> new PrimitiveMeshGenerator(data).GetMesh(MainComponent.PlayfieldHeight, data.Mesh, Origin.Original, false);
 

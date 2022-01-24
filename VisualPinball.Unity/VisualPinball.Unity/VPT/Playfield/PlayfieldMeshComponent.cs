@@ -16,8 +16,6 @@ namespace VisualPinball.Unity.Playfield
 
 		#endregion
 
-		public static readonly Type[] ValidParentTypes = Type.EmptyTypes;
-
 		protected override Mesh GetMesh(TableData data)
 			=> new TableMeshGenerator(data).GetMesh();
 

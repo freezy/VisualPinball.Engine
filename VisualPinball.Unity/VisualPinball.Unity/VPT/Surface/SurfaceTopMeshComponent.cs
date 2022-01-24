@@ -27,8 +27,6 @@ namespace VisualPinball.Unity
 	[AddComponentMenu("Visual Pinball/Mesh/Surface Top Mesh")]
 	public class SurfaceTopMeshComponent : MeshComponent<SurfaceData, SurfaceComponent>
 	{
-		public static readonly Type[] ValidParentTypes = Type.EmptyTypes;
-
 		protected override Mesh GetMesh(SurfaceData data)
 		{
 			var playfieldComponent = GetComponentInParent<PlayfieldComponent>();

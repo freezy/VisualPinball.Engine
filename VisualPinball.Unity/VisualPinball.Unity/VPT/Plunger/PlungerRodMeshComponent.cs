@@ -43,8 +43,6 @@ namespace VisualPinball.Unity
 
 		#endregion
 
-		public static readonly Type[] ValidParentTypes = Type.EmptyTypes;
-
 		protected override Mesh GetMesh(PlungerData data)
 			=> new PlungerMeshGenerator(data).GetMesh(MainComponent.PositionZ, PlungerMeshGenerator.Rod);
 

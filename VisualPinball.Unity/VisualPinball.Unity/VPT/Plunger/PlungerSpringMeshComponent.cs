@@ -16,7 +16,6 @@
 
 // ReSharper disable InconsistentNaming
 
-using System;
 using UnityEngine;
 using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Plunger;
@@ -41,8 +40,6 @@ namespace VisualPinball.Unity
 
 		#endregion
 
-		public static readonly Type[] ValidParentTypes = Type.EmptyTypes;
-
 		protected override Mesh GetMesh(PlungerData data)
 			=> new PlungerMeshGenerator(data).GetMesh(MainComponent.PositionZ, PlungerMeshGenerator.Spring);
 
@@ -56,7 +53,7 @@ namespace VisualPinball.Unity
 			var rodComp = plungerComp.GetComponentInChildren<PlungerRodMeshComponent>();
 			var smr = GetComponent<SkinnedMeshRenderer>();
 			var bounds = smr.localBounds;
-			var ringOffset = rodComp != null ? (rodComp.RingGap + rodComp.RingWidth) : 0f;
+			var ringOffset = rodComp != null ? rodComp.RingGap + rodComp.RingWidth : 0f;
 			bounds.center = new Vector3(plungerComp.Position.x, plungerComp.Position.y + ringOffset - 6, bounds.center.z);
 			bounds.extents = new Vector3(12.5f * SpringDiam + 2f, 100f, 12.5f * SpringDiam + 2f);
 			smr.localBounds = bounds;
