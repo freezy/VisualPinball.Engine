@@ -1,5 +1,5 @@
 // Visual Pinball Engine
-// Copyright (C) 2021 freezy and VPE Team
+// Copyright (C) 2022 freezy and VPE Team
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -138,7 +138,7 @@ namespace VisualPinball.Unity.Editor
 			EditorGUILayout.Space();
 			EditorGUILayout.Separator();
 
-			//Editor Play Mode Camera Controls 
+			//Editor Play Mode Camera Controls
 			EditorGUILayout.LabelField("Runtime Motion Controls", EditorStyles.boldLabel);
 			EditorGUILayout.Space();
 
@@ -175,7 +175,7 @@ namespace VisualPinball.Unity.Editor
 			EditorGUILayout.Space();
 			EditorGUILayout.Separator();
 
-			EditorGUILayout.BeginHorizontal(); 
+			EditorGUILayout.BeginHorizontal();
 			EditorGUILayout.LabelField("Invert Horizontal Axis", EditorStyles.boldLabel);
 			_cameraController.invertX = EditorGUILayout.Toggle(_cameraController.invertX);
 			EditorGUILayout.EndHorizontal();

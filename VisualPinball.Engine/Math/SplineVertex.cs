@@ -1,5 +1,5 @@
 ﻿// Visual Pinball Engine
-// Copyright (C) 2021 freezy and VPE Team
+// Copyright (C) 2022 freezy and VPE Team
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -53,7 +53,7 @@ namespace VisualPinball.Engine.Math
 				// prev and next wrap around in loops
 				var prev = vertices[i > 0 ? i - 1 : numVertices - 1];
 				var next = vertices[i < numVertices - 1 ? i + 1 : 0];
-				
+
 				// .. but have to be corrected at start and end with "virtual vertices" continuing the spline when not looping, so cuts perpendicular to the tangents
 				// maybe fix ramps after that that also hat the same problem.
 				if (!loop && i == 0) {
@@ -75,13 +75,13 @@ namespace VisualPinball.Engine.Math
 				var normal1 = new Vertex2D(prev.Y - middle.Y, middle.X - prev.X); // vector vmiddle-vprev rotated RIGHT
 				var normal2 = new Vertex2D(middle.Y - next.Y, next.X - middle.X); // vector vnext-vmiddle rotated RIGHT
 
-				// not needed special start/end handling as rubbers always loop, except for the case where there are only 2 control points 
+				// not needed special start/end handling as rubbers always loop, except for the case where there are only 2 control points
 				// I guess this does not work as intended, but could not figure out what was wrong. i think that somehow the normal of Node 1 is wrong. /cupiii
-				if (numVertices == 2 && i == numVertices - 1) { 
+				if (numVertices == 2 && i == numVertices - 1) {
 					normal1.Normalize();
 					normal = normal1;
 
-				} else if (numVertices == 2 && i == 0) { 
+				} else if (numVertices == 2 && i == 0) {
 					normal2.Normalize();
 					normal = normal2;
 

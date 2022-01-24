@@ -1,4 +1,20 @@
-﻿using System;
+﻿// Visual Pinball Engine
+// Copyright (C) 2022 freezy and VPE Team
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+using System;
 using System.Reflection;
 using UnityEditor;
 using UnityEngine;
@@ -48,7 +64,7 @@ namespace VisualPinball.Unity.Editor
 		/// <param name="width">the width of the search field</param>
 		/// <returns>The value of the search field</returns>
 		/// <remarks>
-		/// Invoking this method will synchronize other <see cref="SearchableEditorWindow"/> with the same search group & hierarchy type 
+		/// Invoking this method will synchronize other <see cref="SearchableEditorWindow"/> with the same search group & hierarchy type
 		/// </remarks>
 		protected string SyncSearchFieldGUI(float width)
 		{
@@ -74,7 +90,7 @@ namespace VisualPinball.Unity.Editor
 			_searchFilterInfo = typeof(SearchableEditorWindow).GetField("m_SearchFilter", BindingFlags.NonPublic | BindingFlags.Instance);
 			//Retrieve SearchFilterGUI(float width) method info
 			_searchFieldGUIInfo = typeof(SearchableEditorWindow).GetMethod("SearchFieldGUI", BindingFlags.NonPublic | BindingFlags.Instance, null, CallingConventions.Any, new System.Type[] { typeof(float) }, null);
-			//Retrieve m_HasSearchFilterFocus field info 
+			//Retrieve m_HasSearchFilterFocus field info
 			_hasFilterFocusInfo = typeof(SearchableEditorWindow).GetField("m_HasSearchFilterFocus", BindingFlags.NonPublic | BindingFlags.Instance);
 
 
