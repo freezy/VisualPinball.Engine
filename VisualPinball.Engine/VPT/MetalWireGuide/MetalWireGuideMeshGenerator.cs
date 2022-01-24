@@ -1,5 +1,5 @@
 ﻿// Visual Pinball Engine
-// Copyright (C) 2021 freezy and VPE Team
+// Copyright (C) 2022 freezy and VPE Team
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -94,9 +94,9 @@ namespace VisualPinball.Engine.VPT.MetalWireGuide
 			// dont lat the Collider be higher than the visible mesh, just shift the top of the MWG.
 			if (createHitShape)
 				standheight = standheight - _data.Height + height;
-			
 
-			// one ring for each Splinevertex, two for the stands, and "bendradius" tomes two for the bend (should be enough) 
+
+			// one ring for each Splinevertex, two for the stands, and "bendradius" tomes two for the bend (should be enough)
 			// todo: could be better, if accuracy was taken into account
 			var numRingsInBend = (int)(bendradius + 1);
 			var numRings = sv.VertexCount-1 + numRingsInBend * 2 + 2;
@@ -105,7 +105,7 @@ namespace VisualPinball.Engine.VPT.MetalWireGuide
 			var up = new Vertex3D(0f, 0f, 1f);
 			var points = new Vertex3D[numRings]; // middlepoints of rings
 			var tangents = new Vertex3D[numRings]; // pointing into the direction of the spline, even first and last
-			var right = new Vertex3D[numRings]; // pointing right, looking into tangent direction 
+			var right = new Vertex3D[numRings]; // pointing right, looking into tangent direction
 			var down = new Vertex3D[numRings]; // pointing down from tangent view
 			var accLength = new float[numRings]; // accumulated length of the wire beginning at 0;
 
@@ -127,7 +127,7 @@ namespace VisualPinball.Engine.VPT.MetalWireGuide
 			points[1] = points[numRingsInBend + 1] + tangents[numRingsInBend + 1] * bendradius * -1 + up * bendradius * -1f;
 			tangents[1] = tangents[0];
 			right[1] = right[0];
-			// now bend from point 1 to numRingsInBend+1(-1)   
+			// now bend from point 1 to numRingsInBend+1(-1)
 			var diffXY = points[numRingsInBend + 1] - points[1];
 			diffXY.Z = 0;
 			var diffZ = points[numRingsInBend + 1] - points[1];
