@@ -32,6 +32,7 @@ Transform:
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
   m_RootOrder: 0
@@ -48,38 +49,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 064785265e73edf499c963876c56ebac, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _data:
-    StoragePrefix: 0
-    StorageIndex: -1
-    IsLocked: 0
-    EditorLayerName: 
-    EditorLayerVisibility: 1
-    Name: 
-    DragPoints: []
-    Center:
-      X: 0
-      Y: 0
-    Radius: 25
-    Rotation: 0
-    ScaleX: 1
-    ScaleY: 1
-    Material: 
-    Surface: 
-    IsVisible: 1
-    IsEnabled: 1
-    HitHeight: 50
-    Shape: 1
-    AnimSpeed: 1
-    WireThickness: 0
-    IsReflectionEnabled: 1
-    IsTimerEnabled: 0
-    TimerInterval: 0
+  _isLocked: 0
+  _editorLayer: 0
+  _editorLayerName: 
+  _editorLayerVisibility: 1
   Position: {x: 0, y: 0}
+  Scale: 1
   Rotation: 0
-  Radius: 25
   _surface: {fileID: 0}
   _dragPoints: []
-  Shape: 0
 --- !u!114 &7416895219031566499
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -93,9 +71,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   PhysicsMaterial: {fileID: 0}
-  ShowColliderMesh: 0
+  ShowColliderMesh: 1
   ShowAabbs: 0
   HitHeight: 50
+  HitCircleRadius: 25
 --- !u!114 &3195222361417257232
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -121,7 +100,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 12ec3c1d7933a674b867fada1788b0f4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _meshCreated: 1
+  Shape: 0
   WireThickness: 0
 --- !u!33 &1934921143686933034
 MeshFilter:
