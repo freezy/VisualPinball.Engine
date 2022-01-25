@@ -281,8 +281,15 @@ namespace VisualPinball.Unity
 		{
 			if (args.IsEnabled) {
 				Logger.Info("Draining ball into trough.");
-				BallManager.DestroyEntity(args.BallEntity);
+				if (_drainSwitch is KickerApi kickerApi) {
+					kickerApi.DestroyBall();
+				} else {
+					BallManager.DestroyEntity(args.BallEntity);
+				}
 				DrainBall();
+
+			} else {
+				Logger.Error("Draining ball into trough.");
 			}
 		}
 
@@ -348,12 +355,7 @@ namespace VisualPinball.Unity
 					break;
 
 				case TroughType.ClassicSingleBall:
-					// balls get ejected immediately
-					if (EntrySwitch.IsSwitchEnabled) {
-						EntrySwitch.SetSwitch(false);
-						EjectBall();
-						DrainNextUncountedBall();
-					}
+					throw new InvalidOperationException("Single ball trough does not have an entry coil.");
 					break;
 
 				default:
@@ -636,8 +638,7 @@ namespace VisualPinball.Unity
 		/// <returns></returns>
 		private IApiCoil Coil(string deviceItem)
 		{
-			return deviceItem switch
-			{
+			return deviceItem switch {
 				TroughComponent.EntryCoilId => EntryCoil,
 				TroughComponent.EjectCoilId => ExitCoil,
 				_ => throw new ArgumentException($"Unknown trough coil \"{deviceItem}\". Valid names are: [ \"{TroughComponent.EntryCoilId}\", \"{TroughComponent.EjectCoilId}\" ].")
