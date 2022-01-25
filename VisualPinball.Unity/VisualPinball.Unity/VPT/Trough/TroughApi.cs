@@ -261,8 +261,8 @@ namespace VisualPinball.Unity
 
 				case TroughType.ClassicSingleBall:
 					if (!EntrySwitch.IsSwitchEnabled) {
-						EntrySwitch.SetSwitch(true);
 						_countedStackBalls++; // entry and stack is the same here
+						EntrySwitch.SetSwitch(true);
 
 					} else {
 						UncountedStackBalls++;
