@@ -92,6 +92,8 @@ namespace VisualPinball.Unity
 				typeof(CollisionEventData)
 			);
 
+			EntityManager.SetName(entity, $"Ball{id}");
+
 			_player.Balls[entity] = ballGo;
 
 			var world = World.DefaultGameObjectInjectionWorld;
