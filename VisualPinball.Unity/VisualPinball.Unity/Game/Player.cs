@@ -153,6 +153,10 @@ namespace VisualPinball.Unity
 
 		private void Start()
 		{
+			#if UNITY_IOS && !UNITY_EDITOR
+				Application.targetFrameRate = 60;
+			#endif
+
 			// trigger init events now
 			foreach (var i in _apis) {
 				i.OnInit(BallManager);
@@ -193,9 +197,9 @@ namespace VisualPinball.Unity
 			}
 		}
 
-		#endregion
+#endregion
 
-		#region Registrations
+#region Registrations
 
 		public void RegisterBumper(BumperComponent component, Entity entity)
 		{
@@ -411,9 +415,9 @@ namespace VisualPinball.Unity
 			}
 		}
 
-		#endregion
+#endregion
 
-		#region Events
+#region Events
 
 		public void Queue(Action action) => _simulationSystemGroup.QueueBeforeBallCreation(action);
 		public void ScheduleAction(int timeMs, Action action) => _simulationSystemGroup.ScheduleAction(timeMs, action);
@@ -458,9 +462,9 @@ namespace VisualPinball.Unity
 			}
 		}
 
-		#endregion
+#endregion
 
-		#region API
+#region API
 
 		public void AddHardwareRule(string switchId, string coilId)
 		{
@@ -512,7 +516,7 @@ namespace VisualPinball.Unity
 			_tableComponent.MappingConfig.RemoveWire(wire);
 		}
 
-		#endregion
+#endregion
 
 		private static void HandleInput(object obj, InputActionChange change)
 		{
