@@ -92,7 +92,9 @@ namespace VisualPinball.Unity
 				typeof(CollisionEventData)
 			);
 
+#if UNITY_EDITOR
 			EntityManager.SetName(entity, $"Ball{id}");
+#endif
 
 			_player.Balls[entity] = ballGo;
 
