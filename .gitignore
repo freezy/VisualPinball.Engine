@@ -369,6 +369,7 @@ MigrationBackup/
 
 **/Plugins/**
 
+obj.meta
 VisualPinball.Unity/VisualPinball.Unity.Test/TestProject~/*.vpx
 VisualPinball.Unity/VisualPinball.Unity.Test/TestProject~/Assets/Tables.meta
 VisualPinball.Unity/VisualPinball.Unity.Test/TestProject~/Assets/Tables/
@@ -385,3 +386,4 @@ VisualPinball.Unity/VisualPinball.Unity.Test/TestProject~/VisualPinball.Unity.cs
 VisualPinball.Unity/VisualPinball.Unity.Test/TestProject~/editmode-results.xml
 
 .DS_Store
+
