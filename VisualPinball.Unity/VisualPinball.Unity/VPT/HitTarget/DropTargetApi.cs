@@ -73,15 +73,16 @@ namespace VisualPinball.Unity
 				if (isDropped) {
 					data.MoveDown = true;
 
-					Switch?.Invoke(this, new SwitchEventArgs(true, Entity.Null));
 					OnSwitch(true);
+					Switch?.Invoke(this, new SwitchEventArgs(true, Entity.Null));
+
 				}
 				else {
 					data.MoveDown = false;
 					data.TimeStamp = World.DefaultGameObjectInjectionWorld.GetOrCreateSystem<VisualPinballSimulationSystemGroup>().TimeMsec;
 
-					Switch?.Invoke(this, new SwitchEventArgs(false, Entity.Null));
 					OnSwitch(false);
+					Switch?.Invoke(this, new SwitchEventArgs(false, Entity.Null));
 				}
 			} else {
 				data.IsDropped = isDropped;
@@ -129,8 +130,9 @@ namespace VisualPinball.Unity
 		void IApiHittable.OnHit(Entity ballEntity, bool _)
 		{
 			Hit?.Invoke(this, new HitEventArgs(ballEntity));
-			Switch?.Invoke(this, new SwitchEventArgs(true, ballEntity));
+
 			OnSwitch(true);
+			Switch?.Invoke(this, new SwitchEventArgs(true, ballEntity));
 		}
 
 		#endregion

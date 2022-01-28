@@ -22,7 +22,7 @@ using System.Collections.Generic;
 
 namespace VisualPinball.Unity
 {
-	public class DropTargetBankApi : IApi, IApiCoilDevice
+	public class DropTargetBankApi : IApi, IApiCoilDevice, IApiSwitchDevice
 	{
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
@@ -30,17 +30,22 @@ namespace VisualPinball.Unity
 		private readonly Player _player;
 
 		private readonly List<DropTargetApi> _dropTargetApis = new List<DropTargetApi>();
+		public DeviceSwitch SequenceCompletedSwitch;
 		public DeviceCoil ResetCoil;
 
 		public event EventHandler Init;
 
-		internal DropTargetBankApi(GameObject go, Player player)
-		{
-			_dropTargetBankComponent = go.GetComponentInChildren<DropTargetBankComponent>();
-			_player = player;
-		}
-
+		IApiSwitch IApiSwitchDevice.Switch(string deviceItem) => Switch(deviceItem);
 		IApiCoil IApiCoilDevice.Coil(string deviceItem) => Coil(deviceItem);
+		
+		public IApiSwitch Switch(string deviceItem)
+		{
+			return deviceItem switch
+			{
+				DropTargetBankComponent.SequenceCompletedSwitchItem => SequenceCompletedSwitch,
+				_ => throw new ArgumentException($"Unknown sequence completed switch \"{deviceItem}\". Valid name is \"{DropTargetBankComponent.SequenceCompletedSwitchItem}\".")
+			};
+		}
 
 		private IApiCoil Coil(string deviceItem)
 		{
@@ -51,30 +56,58 @@ namespace VisualPinball.Unity
 			};
 		}
 
+		internal DropTargetBankApi(GameObject go, Player player)
+		{
+			_dropTargetBankComponent = go.GetComponentInChildren<DropTargetBankComponent>();
+			_player = player;
+		}
+
 		void IApi.OnInit(BallManager ballManager)
 		{
+			SequenceCompletedSwitch = new DeviceSwitch(DropTargetBankComponent.SequenceCompletedSwitchItem, false, SwitchDefault.NormallyOpen, _player);
 			ResetCoil = new DeviceCoil(_player, OnResetCoilEnabled);
 
-			for (var index = 0; index < _dropTargetBankComponent.BankSize; index++)
-			{
-				_dropTargetApis.Add(_player.TableApi.DropTarget(_dropTargetBankComponent.DropTargets[index]));
+			for (var index = 0; index < _dropTargetBankComponent.BankSize; index++) {
+				var dropTargetApi = _player.TableApi.DropTarget(_dropTargetBankComponent.DropTargets[index]);
+				dropTargetApi.Switch += OnSwitch;
+
+				_dropTargetApis.Add(dropTargetApi);
+
 			}
 
 			Init?.Invoke(this, EventArgs.Empty);
+		}
+
+		private void OnSwitch(object sender, SwitchEventArgs e)
+		{
+			foreach (var dropTargetApi in _dropTargetApis) {
+				if (!dropTargetApi.IsSwitchEnabled) {
+					SequenceCompletedSwitch.SetSwitch(false);
+
+					return;
+				}
+			}
+
+			Logger.Info($"OnSwitch - {_dropTargetBankComponent.name} sequence completed");
+
+			SequenceCompletedSwitch.SetSwitch(true);
 		}
 
 		private void OnResetCoilEnabled()
 		{
 			Logger.Info($"OnResetCoilEnabled - resetting {_dropTargetBankComponent.name}");
 
-			foreach (var dropTargetApi in _dropTargetApis)
-			{
+			foreach (var dropTargetApi in _dropTargetApis) {
 				dropTargetApi.IsDropped = false;
 			}
 		}
 
 		void IApi.OnDestroy()
 		{
+			foreach (var dropTargetApi in _dropTargetApis) {
+				dropTargetApi.Switch -= OnSwitch;
+			}
+
 			Logger.Info($"Destroying {_dropTargetBankComponent.name}");
 		}
 	}
