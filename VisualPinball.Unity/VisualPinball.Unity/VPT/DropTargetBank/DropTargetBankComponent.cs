@@ -24,9 +24,11 @@ namespace VisualPinball.Unity
 {
 	[AddComponentMenu("Visual Pinball/Mechs/Drop Target Bank")]
 	[HelpURL("https://docs.visualpinball.org/creators-guide/manual/mechanisms/drop-target-banks.html")]
-	public class DropTargetBankComponent : MonoBehaviour, ICoilDeviceComponent
+	public class DropTargetBankComponent : MonoBehaviour, ICoilDeviceComponent, ISwitchDeviceComponent
 	{
 		public const string ResetCoilItem = "reset_coil";
+
+		public const string SequenceCompletedSwitchItem = "sequence_completed_switch";
 
 		[ToolboxItem("The number of the drop targets. See documentation of a description of each type.")]
 		public int BankSize = 1;
@@ -41,9 +43,18 @@ namespace VisualPinball.Unity
 			}
 		};
 
+		public IEnumerable<GamelogicEngineSwitch> AvailableSwitches => new[] {
+			new GamelogicEngineSwitch(SequenceCompletedSwitchItem) {
+				Description = "Sequence Completed Switch"
+			}
+		};
+
 		IEnumerable<GamelogicEngineCoil> IDeviceComponent<GamelogicEngineCoil>.AvailableDeviceItems => AvailableCoils;
 		IEnumerable<IGamelogicEngineDeviceItem> IWireableComponent.AvailableWireDestinations => AvailableCoils;
 		IEnumerable<IGamelogicEngineDeviceItem> IDeviceComponent<IGamelogicEngineDeviceItem>.AvailableDeviceItems => AvailableCoils;
+
+		public SwitchDefault SwitchDefault => SwitchDefault.NormallyOpen;
+		IEnumerable<GamelogicEngineSwitch> IDeviceComponent<GamelogicEngineSwitch>.AvailableDeviceItems => AvailableSwitches;
 
 		public static GameObject LoadPrefab() => Resources.Load<GameObject>("Prefabs/DropTargetBank");
 

@@ -180,6 +180,7 @@ namespace VisualPinball.Unity.Editor
 				EditorGUILayout.Separator();
 
 				DrawCoil("Reset Coil", dropTargetBankApi.ResetCoil);
+				DrawSwitch("Sequence Completed Switch", dropTargetBankApi.SequenceCompletedSwitch.IsSwitchEnabled);
 
 				GUILayout.EndVertical();
 			}
