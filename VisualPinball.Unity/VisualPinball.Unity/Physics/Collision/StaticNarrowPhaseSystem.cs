@@ -18,6 +18,7 @@ using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Profiling;
+using VisualPinball.Engine.VPT;
 
 namespace VisualPinball.Unity
 {
@@ -79,8 +80,10 @@ namespace VisualPinball.Unity
 				var end = traversalOrder ? colliderIds.Length : -1;
 				var dt = traversalOrder ? 1 : -1;
 
+
 				for (var i  = start; i != end; i += dt) {
 					ref var coll = ref colliders[colliderIds[i].Value].Value;
+					var dontsaveCollision = false;
 
 					var newCollEvent = new CollisionEventData();
 					float newTime = 0;
@@ -124,16 +127,44 @@ namespace VisualPinball.Unity
 
 										SetComponent(coll.Entity, plungerMovementData);
 									}
+								break;
+								case ColliderType.Line:
+								case ColliderType.Line3D:
+								case ColliderType.Circle:
+								case ColliderType.LineZ:
+								case ColliderType.Plane:
+								case ColliderType.Point:
+								case ColliderType.Triangle:
+									// hit target
+									if (coll.Header.ItemType == ItemType.HitTarget) {
+										var normal = coll.Type == ColliderType.Triangle
+											? ((TriangleCollider*)collider)->Normal()
+											: collEvent.HitNormal;
+										if (coll.Header.IsEnabled) { }
+										if (HasComponent<DropTargetAnimationData>(coll.Entity)){
+											var dropTargetAnimationData = GetComponent<DropTargetAnimationData>(coll.Entity);
+											if (dropTargetAnimationData.IsDropped || dropTargetAnimationData.MoveAnimation) {  // QUICKFIX so that DT is not triggered twice
+												dontsaveCollision = true;
+											}
+											else {
+												newTime = Collider.HitTest(ref coll, ref newCollEvent, ref insideOfs, in ballData, collEvent.HitTime);
+											}
+										}
+										if (HasComponent<HitTargetAnimationData>(coll.Entity)) {
+											newTime = Collider.HitTest(ref coll, ref newCollEvent, ref insideOfs, in ballData, collEvent.HitTime);
+										}
+									}
+									else
+										newTime = Collider.HitTest(ref coll, ref newCollEvent, ref insideOfs, in ballData, collEvent.HitTime);
 									break;
-
 								default:
 									newTime = Collider.HitTest(ref coll, ref newCollEvent, ref insideOfs, in ballData, collEvent.HitTime);
-									break;
+								break;
 							}
 						}
 					}
-
-					SaveCollisions(ref collEvent, ref newCollEvent, ref contacts, in ballEntity, in coll, newTime);
+					if (!dontsaveCollision)
+						SaveCollisions(ref collEvent, ref newCollEvent, ref contacts, in ballEntity, in coll, newTime);
 				}
 
 				// no negative time allowed
