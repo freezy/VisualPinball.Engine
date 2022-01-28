@@ -124,16 +124,16 @@ namespace VisualPinball.Unity
 				foreach (var switchConfig in _switches) {
 
 					// set new status now
-					Engine.Switch(switchConfig.SwitchId, switchConfig.IsNormallyClosed ? !enabled : enabled);
 					_switchStatuses[switchConfig.SwitchId].IsSwitchEnabled = enabled;
+					Engine.Switch(switchConfig.SwitchId, switchConfig.IsNormallyClosed ? !enabled : enabled);
 
 					// if it's pulse, schedule to re-open
 					if (enabled && switchConfig.IsPulseSwitch) {
 						SimulationSystemGroup.ScheduleAction(switchConfig.PulseDelay,
 							() => {
+								_switchStatuses[switchConfig.SwitchId].IsSwitchEnabled = false;
 								Engine.Switch(switchConfig.SwitchId, switchConfig.IsNormallyClosed);
 								IsEnabled = false;
-								_switchStatuses[switchConfig.SwitchId].IsSwitchEnabled = false;
 #if UNITY_EDITOR
 								RefreshUI();
 #endif
