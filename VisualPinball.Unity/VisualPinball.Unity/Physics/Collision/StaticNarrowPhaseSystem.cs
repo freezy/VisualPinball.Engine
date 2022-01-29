@@ -83,7 +83,7 @@ namespace VisualPinball.Unity
 
 				for (var i  = start; i != end; i += dt) {
 					ref var coll = ref colliders[colliderIds[i].Value].Value;
-					var dontsaveCollision = false;
+					var saveCollision = true;
 
 					var newCollEvent = new CollisionEventData();
 					float newTime = 0;
@@ -127,7 +127,7 @@ namespace VisualPinball.Unity
 
 										SetComponent(coll.Entity, plungerMovementData);
 									}
-								break;
+									break;
 								case ColliderType.Line:
 								case ColliderType.Line3D:
 								case ColliderType.Circle:
@@ -137,14 +137,10 @@ namespace VisualPinball.Unity
 								case ColliderType.Triangle:
 									// hit target
 									if (coll.Header.ItemType == ItemType.HitTarget) {
-										var normal = coll.Type == ColliderType.Triangle
-											? ((TriangleCollider*)collider)->Normal()
-											: collEvent.HitNormal;
-										if (coll.Header.IsEnabled) { }
-										if (HasComponent<DropTargetAnimationData>(coll.Entity)){
+										if (HasComponent<DropTargetAnimationData>(coll.Entity)) {
 											var dropTargetAnimationData = GetComponent<DropTargetAnimationData>(coll.Entity);
 											if (dropTargetAnimationData.IsDropped || dropTargetAnimationData.MoveAnimation) {  // QUICKFIX so that DT is not triggered twice
-												dontsaveCollision = true;
+												saveCollision = false;
 											}
 											else {
 												newTime = Collider.HitTest(ref coll, ref newCollEvent, ref insideOfs, in ballData, collEvent.HitTime);
@@ -157,14 +153,16 @@ namespace VisualPinball.Unity
 									else
 										newTime = Collider.HitTest(ref coll, ref newCollEvent, ref insideOfs, in ballData, collEvent.HitTime);
 									break;
+
 								default:
 									newTime = Collider.HitTest(ref coll, ref newCollEvent, ref insideOfs, in ballData, collEvent.HitTime);
 								break;
 							}
 						}
 					}
-					if (!dontsaveCollision)
+					if (saveCollision) {
 						SaveCollisions(ref collEvent, ref newCollEvent, ref contacts, in ballEntity, in coll, newTime);
+					}
 				}
 
 				// no negative time allowed
