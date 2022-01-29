@@ -153,7 +153,7 @@ namespace VisualPinball.Unity
 
 		private void Start()
 		{
-			#if UNITY_IOS && !UNITY_EDITOR
+			#if FPS60_IOS && UNITY_IOS && !UNITY_EDITOR
 				Application.targetFrameRate = 60;
 			#endif
 
