@@ -15,6 +15,9 @@ Unity uses an application called *Unity Hub* to update itself, create new projec
 
 When installing Unity, use the latest **2021.2** version. You can leave all the other options unchecked.
 
+> [!NOTE]
+> Since 2021.2 is not an LTS version, Unity will not show other options than 2020.3 if you don't have anything installed yet. If that's the case, click on *Skip Installation* in the first dialog, which will take you to a screen with more options.
+
 Once Unity is downloaded and installed, you're ready to create a new VPE project. Click on *New Project*, be sure to have selected the 2021.2 version at the top, and you'll see the following choices:
 
 ![New Unity Project](unity-create-new-project.png)
@@ -23,7 +26,7 @@ The relevant options for VPE are:
 
 - **3D** - Unity's original built-in renderer.
 - **3D (URP)** - Unity's [Universal Render Pipeline](https://docs.unity3d.com/Packages/com.unity.render-pipelines.universal@8.2/manual/index.html) is aimed at mobile and low-end platforms.
-- **3D (HDRP)** - Unity's [High Definition Render Pipeline](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@0.0.0/manual/index.html) used for high-end platforms.
+- **3D (HDRP)** - Unity's [High Definition Render Pipeline](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@12.0/manual/index.html) used for high-end platforms.
 
 We recommend using HDRP. It's what we're using when developing and should be the most stable pipeline. Alternatively if you're on a laptop don't have a beefy GPU, use the URP. The built-in renderer is legacy not recommended.
 
