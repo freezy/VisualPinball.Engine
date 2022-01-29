@@ -106,6 +106,9 @@ namespace VisualPinball.Unity
 
 		#endregion
 
+		/// <summary>
+		/// This event is triggered when the gamelogic has booted up and is ready to handle events.
+		/// </summary>
 		event EventHandler<EventArgs> OnStarted;
 	}
 

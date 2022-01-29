@@ -16,12 +16,11 @@
 
 using System;
 using System.Collections.Generic;
+using NLog;
 using UnityEngine;
 using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Trough;
-using NLog;
 using Logger = NLog.Logger;
-using UnityEditor;
 
 namespace VisualPinball.Unity
 {
