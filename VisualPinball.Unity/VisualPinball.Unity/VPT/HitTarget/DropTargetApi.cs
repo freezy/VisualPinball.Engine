@@ -23,7 +23,7 @@ using VisualPinball.Engine.VPT.HitTarget;
 namespace VisualPinball.Unity
 {
 	public class DropTargetApi : CollidableApi<TargetComponent, DropTargetColliderComponent, HitTargetData>,
-		IApi, IApiHittable, IApiSwitch, IApiSwitchDevice
+		IApi, IApiHittable, IApiSwitch, IApiSwitchDevice, IApiDroppable
 	{
 		/// <summary>
 		/// Event emitted when the table is started.
@@ -60,6 +60,12 @@ namespace VisualPinball.Unity
 		{
 		}
 
+		public void OnDropStatusChanged(bool isDropped, Entity ballEntity)
+		{
+			OnSwitch(isDropped);
+			Switch?.Invoke(this, new SwitchEventArgs(isDropped, ballEntity));
+		}
+
 		/// <summary>
 		///
 		/// </summary>
@@ -72,17 +78,10 @@ namespace VisualPinball.Unity
 				data.MoveAnimation = true;
 				if (isDropped) {
 					data.MoveDown = true;
-
-					OnSwitch(true);
-					Switch?.Invoke(this, new SwitchEventArgs(true, Entity.Null));
-
 				}
 				else {
 					data.MoveDown = false;
 					data.TimeStamp = World.DefaultGameObjectInjectionWorld.GetOrCreateSystem<VisualPinballSimulationSystemGroup>().TimeMsec;
-
-					OnSwitch(false);
-					Switch?.Invoke(this, new SwitchEventArgs(false, Entity.Null));
 				}
 			} else {
 				data.IsDropped = isDropped;
@@ -130,9 +129,6 @@ namespace VisualPinball.Unity
 		void IApiHittable.OnHit(Entity ballEntity, bool _)
 		{
 			Hit?.Invoke(this, new HitEventArgs(ballEntity));
-
-			OnSwitch(true);
-			Switch?.Invoke(this, new SwitchEventArgs(true, ballEntity));
 		}
 
 		#endregion

@@ -17,6 +17,7 @@
 using Unity.Collections;
 using Unity.Entities;
 using Unity.Profiling;
+using UnityEngine;
 using VisualPinball.Engine.Game;
 
 namespace VisualPinball.Unity
@@ -24,6 +25,7 @@ namespace VisualPinball.Unity
 	[UpdateInGroup(typeof(UpdateAnimationsSystemGroup))]
 	internal class DropTargetAnimationSystem : SystemBase
 	{
+		private Player _player;
 		private VisualPinballSimulationSystemGroup _visualPinballSimulationSystemGroup;
 		private NativeQueue<EventData> _eventQueue;
 
@@ -31,6 +33,7 @@ namespace VisualPinball.Unity
 
 		protected override void OnCreate()
 		{
+			_player = Object.FindObjectOfType<Player>();
 			_visualPinballSimulationSystemGroup = World.GetOrCreateSystem<VisualPinballSimulationSystemGroup>();
 			_eventQueue = new NativeQueue<EventData>(Allocator.Persistent);
 		}
@@ -103,6 +106,11 @@ namespace VisualPinball.Unity
 				marker.End();
 
 			}).Run();
+
+			// dequeue events
+			while (_eventQueue.TryDequeue(out var eventData)) {
+				_player.OnEvent(in eventData);
+			}
 		}
 	}
 }
