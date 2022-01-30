@@ -124,6 +124,14 @@ namespace VisualPinball.Unity
 	}
 
 	/// <summary>
+	/// Internal interface for droppables.
+	/// </summary>
+	internal interface IApiDroppable
+	{
+		void OnDropStatusChanged(bool isDropped, Entity ballEntity);
+	}
+
+	/// <summary>
 	/// This interface makes the implementation act as a switch that can emit switch events to
 	/// one or many destinations.
 	/// </summary>

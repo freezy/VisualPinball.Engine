@@ -64,6 +64,7 @@ namespace VisualPinball.Unity
 		private readonly Dictionary<Entity, IApiCollidable> _collidables = new Dictionary<Entity, IApiCollidable>();
 		private readonly Dictionary<Entity, IApiSpinnable> _spinnables = new Dictionary<Entity, IApiSpinnable>();
 		private readonly Dictionary<Entity, IApiSlingshot> _slingshots = new Dictionary<Entity, IApiSlingshot>();
+		private readonly Dictionary<Entity, IApiDroppable> _droppables = new Dictionary<Entity, IApiDroppable>();
 
 		internal readonly Dictionary<Entity, Transform> FlipperTransforms = new Dictionary<Entity, Transform>();
 		internal readonly Dictionary<Entity, Transform> BumperSkirtTransforms = new Dictionary<Entity, Transform>();
@@ -354,6 +355,9 @@ namespace VisualPinball.Unity
 			if (api is IApiSlingshot slingshot) {
 				_slingshots[entity] = slingshot;
 			}
+			if (api is IApiDroppable droppable) {
+				_droppables[entity] = droppable;
+			}
 			if (api is IApiSpinnable spinnable) {
 				_spinnables[entity] = spinnable;
 			}
@@ -455,6 +459,14 @@ namespace VisualPinball.Unity
 
 				case EventId.SurfaceEventsSlingshot:
 					_slingshots[eventData.ItemEntity].OnSlingshot(eventData.BallEntity);
+					break;
+
+				case EventId.TargetEventsDropped:
+					_droppables[eventData.ItemEntity].OnDropStatusChanged(true, eventData.BallEntity);
+					break;
+
+				case EventId.TargetEventsRaised:
+					_droppables[eventData.ItemEntity].OnDropStatusChanged(false, eventData.BallEntity);
 					break;
 
 				default:
