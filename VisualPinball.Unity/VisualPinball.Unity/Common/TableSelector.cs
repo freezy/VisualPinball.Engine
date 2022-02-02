@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using System;
+using Object = UnityEngine.Object;
 
 namespace VisualPinball.Unity
 {
@@ -26,6 +27,20 @@ namespace VisualPinball.Unity
 		public TableComponent SelectedTable {
 			get => _selectedTable;
 			set => SetSelectedTable(value);
+		}
+
+		public TableComponent SelectedOrFirstTable
+		{
+			get {
+				if (HasSelectedTable) {
+					return _selectedTable;
+				}
+				var selectedTable = Object.FindObjectOfType<TableComponent>();
+				if (selectedTable) {
+					SetSelectedTable(selectedTable);
+				}
+				return selectedTable;
+			}
 		}
 
 		public void TableUpdated()
@@ -48,7 +63,7 @@ namespace VisualPinball.Unity
 		{
 		}
 
-		public static TableSelector Instance => _instance ?? (_instance = new TableSelector());
+		public static TableSelector Instance => _instance ??= new TableSelector();
 
 		private void SetSelectedTable(TableComponent ta)
 		{
