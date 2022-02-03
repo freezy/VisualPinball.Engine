@@ -101,13 +101,18 @@ namespace VisualPinball.Unity.Editor
 		private const string SwitchEventName = "switch_event";
 		private const string LampEventName = "lamp_event";
 		private const string LampSeqName = "lamp_seq";
+		private const string PlayerVariableName = "player_variable";
+		private const string PlayerVariableEventName = "player_variable_event";
+		private const string TableVariableName = "table_variable";
+		private const string TableVariableEventName = "table_variable_event";
 
 		private static readonly string[] Names = {
 			BallRollerName, BoltName, BumperName, CannonName, CoilName, DropTargetBankName, DropTargetName, FlasherName, FlipperName, GateName,
 			HitTargetName, KeyName, KickerName, LightGroupName, LightName, MechName, MechPinMameName, PlayfieldName, PlugName, PlungerName,
 			PrimitiveName, RampName, RotatorName, RubberName, SlingshotName, SpinnerName, SurfaceName, SwitchNcName, SwitchNoName, TableName,
 			TeleporterName, TriggerName, TroughName,
-			CoilEventName, SwitchEventName, LampEventName, LampSeqName, MetalWireGuideName
+			CoilEventName, SwitchEventName, LampEventName, LampSeqName, MetalWireGuideName,
+			PlayerVariableName, PlayerVariableEventName, TableVariableName, TableVariableEventName
 		};
 
 		private readonly Dictionary<IconVariant, Texture2D> _icons = new Dictionary<IconVariant, Texture2D>();
@@ -188,6 +193,10 @@ namespace VisualPinball.Unity.Editor
 		public static Texture2D SwitchEvent => Instance.GetItem(SwitchEventName, IconSize.Large, IconColor.Colored);
 		public static Texture2D LampEvent => Instance.GetItem(LampEventName, IconSize.Large, IconColor.Colored);
 		public static Texture2D LampSequence => Instance.GetItem(LampSeqName, IconSize.Large, IconColor.Colored);
+		public static Texture2D PlayerVariable => Instance.GetItem(PlayerVariableName, IconSize.Large, IconColor.Colored);
+		public static Texture2D PlayerVariableEvent => Instance.GetItem(PlayerVariableEventName, IconSize.Large, IconColor.Colored);
+		public static Texture2D TableVariable => Instance.GetItem(TableVariableName, IconSize.Large, IconColor.Colored);
+		public static Texture2D TableVariableEvent => Instance.GetItem(TableVariableEventName, IconSize.Large, IconColor.Colored);
 
 
 		public static Texture2D ByComponent<T>(T mb, IconSize size = IconSize.Large, IconColor color = IconColor.Gray)
