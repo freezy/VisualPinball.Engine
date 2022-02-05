@@ -7,6 +7,17 @@
   - name: Mechs
     href: pinmame/mechs.md
 
+- name: Visual Scripting
+  items:
+  - name: Overview
+    href: visual-scripting/index.md
+  - name: Principles
+    href: visual-scripting/principles.md
+  - name: Complemetary Usage
+    href: visual-scripting/complementary-usage.md
+  - name: Node Reference
+    href: visual-scripting/node-reference.md
+
 - name: Mission Pinball Framework
   items:
   - name: Overview

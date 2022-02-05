@@ -12,6 +12,9 @@ VPE has a plug-in system that allows other software to integrate with it. Plugin
 
 [PinMAME](https://github.com/vpinball/pinmame) is an emulator written in C which supports most of the hardware found in pinball machines the mid 1970's until 2014.
 
+## [Visual Scripting](xref:uvs_index)
+
+For original games or EM machines, we recommend using our visual scripting package which extends [Unity's visual scripting](https://unity.com/products/unity-visual-scripting).
 
 ## [Mission Pinball Framework](xref:mpf_index)
 
