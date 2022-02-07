@@ -16,6 +16,5 @@ This means you firstly need to declare which hardware your gamelogic supports. Y
 
 ## State vs Graph
 
-## Variables
 
-
+## Embedded vs Linked
