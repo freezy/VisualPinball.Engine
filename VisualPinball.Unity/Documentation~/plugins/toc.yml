@@ -13,6 +13,8 @@
     href: visual-scripting/index.md
   - name: Principles
     href: visual-scripting/principles.md
+  - name: Variables
+    href: visual-scripting/variables.md
   - name: Complemetary Usage
     href: visual-scripting/complementary-usage.md
   - name: Node Reference
