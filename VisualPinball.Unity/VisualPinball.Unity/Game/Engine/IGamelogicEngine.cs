@@ -33,7 +33,15 @@ namespace VisualPinball.Unity
 
 		#region Displays
 
-		event EventHandler<AvailableDisplays> OnDisplaysAvailable;
+		/// <summary>
+		/// Emitted during gameplay when a new display is requested.
+		/// </summary>
+		///
+		/// <remarks>
+		/// The reason we don't have a `AvailableDisplays` at design time is because
+		/// most GLEs only know about their displays when they start the game.
+		/// </remarks>
+		event EventHandler<RequestedDisplays> OnDisplaysRequested;
 		event EventHandler<DisplayFrameData> OnDisplayFrame;
 
 		#endregion
@@ -43,12 +51,12 @@ namespace VisualPinball.Unity
 		/// <summary>
 		/// A list of available switches supported by the game logic engine.
 		/// </summary>
-		GamelogicEngineSwitch[] AvailableSwitches { get; }
+		GamelogicEngineSwitch[] RequestedSwitches { get; }
 
 		/// <summary>
 		/// Enables or disables a switch.
 		/// </summary>
-		/// <param name="id">Name of the switch, as defined by <see cref="AvailableSwitches"/>.</param>
+		/// <param name="id">Name of the switch, as defined by <see cref="RequestedSwitches"/>.</param>
 		/// <param name="isClosed">True for normally closed (NC) i.e. contact, a.k.a. "enabled". False for normally open (NO), i.e. no contact, a.k.a "off".</param>
 		void Switch(string id, bool isClosed);
 
@@ -59,7 +67,7 @@ namespace VisualPinball.Unity
 		/// <summary>
 		/// A list of available lamps.
 		/// </summary>
-		GamelogicEngineLamp[] AvailableLamps { get; }
+		GamelogicEngineLamp[] RequestedLamps { get; }
 
 		/// <summary>
 		/// Triggered when a lamp is turned on or off.
@@ -88,7 +96,7 @@ namespace VisualPinball.Unity
 		/// <summary>
 		/// A list of available coils.
 		/// </summary>
-		GamelogicEngineCoil[] AvailableCoils { get; }
+		GamelogicEngineCoil[] RequestedCoils { get; }
 
 		/// <summary>
 		/// Triggered when a coil is enabled or disabled.
@@ -131,21 +139,22 @@ namespace VisualPinball.Unity
 		// todo displays
 	}
 
-	public class AvailableDisplays
+	public class RequestedDisplays
 	{
 		public readonly DisplayConfig[] Displays;
 
-		public AvailableDisplays(DisplayConfig[] availableDisplays)
+		public RequestedDisplays(DisplayConfig[] availableDisplays)
 		{
 			Displays = availableDisplays;
 		}
 
-		public AvailableDisplays(DisplayConfig config)
+		public RequestedDisplays(DisplayConfig config)
 		{
 			Displays = new [] { config };
 		}
 	}
 
+	[Serializable]
 	public class DisplayConfig
 	{
 		public readonly string Id;
@@ -183,6 +192,8 @@ namespace VisualPinball.Unity
 		Dmd8, // 8-bit (0-255)
 		Dmd24, // rgb (3x 0-255)
 		Segment,
+		AlphaNumeric, // gets a byte-array converted string
+		Numeric       // gets a byte-array converted integer
 	}
 
 	public class DisplayFrameData
@@ -203,7 +214,7 @@ namespace VisualPinball.Unity
 	public readonly struct CoilEventArgs
 	{
 		/// <summary>
-		/// Id of the coil, as defined by <see cref="IGamelogicEngine.AvailableCoils"/>.
+		/// Id of the coil, as defined by <see cref="IGamelogicEngine.RequestedCoils"/>.
 		/// </summary>
 		public readonly string Id;
 
@@ -222,7 +233,7 @@ namespace VisualPinball.Unity
 	public readonly struct LampEventArgs
 	{
 		/// <summary>
-		/// Id of the lamp, as defined by <see cref="IGamelogicEngine.AvailableLamps"/>.
+		/// Id of the lamp, as defined by <see cref="IGamelogicEngine.RequestedLamps"/>.
 		/// </summary>
 		public readonly string Id;
 
@@ -262,7 +273,7 @@ namespace VisualPinball.Unity
 	public readonly struct LampColorEventArgs
 	{
 		/// <summary>
-		/// Id of the lamp, as defined by <see cref="IGamelogicEngine.AvailableLamps"/>.
+		/// Id of the lamp, as defined by <see cref="IGamelogicEngine.RequestedLamps"/>.
 		/// </summary>
 		public readonly string Id;
 

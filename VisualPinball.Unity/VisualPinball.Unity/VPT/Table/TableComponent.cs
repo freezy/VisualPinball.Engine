@@ -137,9 +137,9 @@ namespace VisualPinball.Unity
 		public void RepopulateHardware(IGamelogicEngine gle)
 		{
 			MappingConfig.Clear(false);
-			MappingConfig.PopulateSwitches(gle.AvailableSwitches, this);
-			MappingConfig.PopulateLamps(gle.AvailableLamps, this);
-			MappingConfig.PopulateCoils(gle.AvailableCoils, this);
+			MappingConfig.PopulateSwitches(gle.RequestedSwitches, this);
+			MappingConfig.PopulateLamps(gle.RequestedLamps, this);
+			MappingConfig.PopulateCoils(gle.RequestedCoils, this);
 			MappingConfig.PopulateWires(gle.AvailableWires, this);
 
 			// hook up plunger
