@@ -31,7 +31,7 @@ namespace VisualPinball.Unity
 		public void Awake(IGamelogicEngine gamelogicEngine)
 		{
 			_gamelogicEngine = gamelogicEngine;
-			_gamelogicEngine.OnDisplaysAvailable += HandleDisplayAvailable;
+			_gamelogicEngine.OnDisplaysRequested += HandleDisplayRequested;
 			_gamelogicEngine.OnDisplayFrame += HandleFrameEvent;
 
 			var dmds = Object.FindObjectsOfType<DisplayComponent>();
@@ -41,9 +41,9 @@ namespace VisualPinball.Unity
 			}
 		}
 
-		private void HandleDisplayAvailable(object sender, AvailableDisplays availableDisplays)
+		private void HandleDisplayRequested(object sender, RequestedDisplays requestedDisplays)
 		{
-			foreach (var display in availableDisplays.Displays) {
+			foreach (var display in requestedDisplays.Displays) {
 				if (_displayGameObjects.ContainsKey(display.Id)) {
 					Logger.Info($"Updating display \"{display.Id}\" to {display.Width}x{display.Height}");
 					_displayGameObjects[display.Id].UpdateDimensions(display.Width, display.Height, display.FlipX);
@@ -64,7 +64,7 @@ namespace VisualPinball.Unity
 
 		public void OnDestroy()
 		{
-			_gamelogicEngine.OnDisplaysAvailable -= HandleDisplayAvailable;
+			_gamelogicEngine.OnDisplaysRequested -= HandleDisplayRequested;
 			_gamelogicEngine.OnDisplayFrame -= HandleFrameEvent;
 		}
 	}

@@ -185,7 +185,7 @@ namespace VisualPinball.Unity.Editor
 		private GamelogicEngineSwitch[] GetAvailableEngineSwitches()
 		{
 			var gle = TableComponent.gameObject.GetComponent<IGamelogicEngine>();
-			return gle == null ? Array.Empty<GamelogicEngineSwitch>() : gle.AvailableSwitches;
+			return gle == null ? Array.Empty<GamelogicEngineSwitch>() : gle.RequestedSwitches;
 		}
 
 		#endregion

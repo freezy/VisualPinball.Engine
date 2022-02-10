@@ -49,7 +49,7 @@ namespace VisualPinball.Unity
 		public event EventHandler<LampsEventArgs> OnLampsChanged;
 		public event EventHandler<SwitchEventArgs2> OnSwitchChanged;
 		public event EventHandler<LampColorEventArgs> OnLampColorChanged;
-		public event EventHandler<AvailableDisplays> OnDisplaysAvailable;
+		public event EventHandler<RequestedDisplays> OnDisplaysRequested;
 		public event EventHandler<DisplayFrameData> OnDisplayFrame;
 		public event EventHandler<EventArgs> OnStarted;
 
@@ -73,7 +73,7 @@ namespace VisualPinball.Unity
 		private const string SwMotorStart = "s_motor_start";
 		private const string SwMotorEnd = "s_motor_end";
 
-		public GamelogicEngineSwitch[] AvailableSwitches => _availableSwitches.ToArray();
+		public GamelogicEngineSwitch[] RequestedSwitches => _availableSwitches.ToArray();
 		private readonly List<GamelogicEngineSwitch> _availableSwitches = new List<GamelogicEngineSwitch> {
 			new GamelogicEngineSwitch(SwLeftFlipper) { Description = "Left Flipper (Button)", InputActionHint = InputConstants.ActionLeftFlipper },
 			new GamelogicEngineSwitch(SwRightFlipper) { Description = "Right Flipper (Button)", InputActionHint = InputConstants.ActionRightFlipper },
@@ -99,7 +99,9 @@ namespace VisualPinball.Unity
 		private const string CoilTroughEject = "c_trough_eject";
 		private const string CoilMotorStart = "c_motor_start";
 
-		public GamelogicEngineCoil[] AvailableCoils => _availableCoils.ToArray();
+		public DisplayConfig[] RequiredDisplays => new[] { new DisplayConfig(DisplayDmd, DmdWidth, DmdHeight) };
+
+		public GamelogicEngineCoil[] RequestedCoils => _availableCoils.ToArray();
 		private readonly List<GamelogicEngineCoil> _availableCoils = new List<GamelogicEngineCoil> {
 			new GamelogicEngineCoil(CoilLeftFlipperMain) { Description = "Left Flipper (Main)", DeviceHint = "^(LeftFlipper|LFlipper|FlipperLeft|FlipperL)$", DeviceItemHint = FlipperComponent.MainCoilItem },
 			new GamelogicEngineCoil(CoilLeftFlipperHold) { Description = "Left Flipper (Hold)", DeviceHint = "^(LeftFlipper|LFlipper|FlipperLeft|FlipperL)$", DeviceItemHint = FlipperComponent.HoldCoilItem },
@@ -134,7 +136,7 @@ namespace VisualPinball.Unity
 
 		private const string LampRedBumper = "l_bumper";
 
-		public GamelogicEngineLamp[] AvailableLamps { get; } = {
+		public GamelogicEngineLamp[] RequestedLamps { get; } = {
 			new GamelogicEngineLamp(GiSlingshotRightLower) { Description = "Right Slingshot (lower)", DeviceHint = "gi1$" },
 			new GamelogicEngineLamp(GiSlingshotRightUpper) { Description = "Right Slingshot (upper)", DeviceHint = "gi2$" },
 			new GamelogicEngineLamp(GiSlingshotLeftLower) { Description = "Left Slingshot (lower)", DeviceHint = "gi3$" },
@@ -189,7 +191,7 @@ namespace VisualPinball.Unity
 			_player = player;
 			_ballManager = ballManager;
 
-			OnDisplaysAvailable?.Invoke(this, new AvailableDisplays(new DisplayConfig(DisplayDmd, DmdWidth, DmdHeight)));
+			OnDisplaysRequested?.Invoke(this, new RequestedDisplays(new DisplayConfig(DisplayDmd, DmdWidth, DmdHeight)));
 
 			// debug print stuff
 			OnCoilChanged += DebugPrintCoil;

@@ -182,7 +182,7 @@ namespace VisualPinball.Unity.Editor
 		private GamelogicEngineCoil[] GetAvailableEngineCoils()
 		{
 			var gle = TableComponent.gameObject.GetComponent<IGamelogicEngine>();
-			return gle == null ? Array.Empty<GamelogicEngineCoil>() : gle.AvailableCoils;
+			return gle == null ? Array.Empty<GamelogicEngineCoil>() : gle.RequestedCoils;
 		}
 
 		#endregion
