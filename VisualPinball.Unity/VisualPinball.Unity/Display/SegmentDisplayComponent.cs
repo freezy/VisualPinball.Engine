@@ -19,7 +19,10 @@
 
 using System;
 using System.Collections.Generic;
+using System.Globalization;
+using System.Text;
 using NLog;
+using NLog.LayoutRenderers.Wrappers;
 using Unity.Mathematics;
 using UnityEngine;
 using Logger = NLog.Logger;
@@ -239,8 +242,38 @@ namespace VisualPinball.Unity
 
 		public override void UpdateFrame(DisplayFrameFormat format, byte[] source)
 		{
-			var target = new ushort[source.Length / sizeof(short)];
-			Buffer.BlockCopy(source, 0, target, 0, source.Length);
+			Debug.Log($"Getting segment data!");
+			ushort[] target;
+			switch (format) {
+				case DisplayFrameFormat.Dmd2:
+				case DisplayFrameFormat.Dmd4:
+				case DisplayFrameFormat.Dmd8:
+				case DisplayFrameFormat.Dmd24:
+					Logger.Error("Segment displays cannot not render pixel data. Use a DMD display!");
+					return;
+
+				case DisplayFrameFormat.Segment: {
+					target = new ushort[source.Length / sizeof(short)];
+					Buffer.BlockCopy(source, 0, target, 0, source.Length);
+					break;
+				}
+
+				case DisplayFrameFormat.AlphaNumeric: {
+					var text = FixedLeft(Encoding.UTF8.GetString(source));
+					target = FromAlphaNumeric(text);
+					break;
+				}
+
+				case DisplayFrameFormat.Numeric: {
+					var num = BitConverter.ToSingle(source);
+					var text = FixedRight(num.ToString(CultureInfo.InvariantCulture));
+					target = FromAlphaNumeric(text);
+					break;
+				}
+				default:
+					throw new ArgumentOutOfRangeException(nameof(format), format, null);
+			}
+
 			UpdateFrame(target);
 		}
 
@@ -258,7 +291,7 @@ namespace VisualPinball.Unity
 
 		public void SetText(string text)
 		{
-			var source = GenerateAlphaNumeric(text);
+			var source = FromAlphaNumeric(text);
 			const int size = sizeof(short);
 			var target = new byte[_numChars * size];
 			Buffer.BlockCopy(source, 0, target, 0, math.min(source.Length, _numChars) * size);
@@ -292,7 +325,23 @@ namespace VisualPinball.Unity
 			_texture.Apply();
 		}
 
-		private static ushort[] GenerateAlphaNumeric(string text)
+		private string FixedRight(string str)
+		{
+			if (str.Length > _numChars) {
+				return str[^_numChars..];
+			}
+			return str.Length < _numChars ? str.PadLeft(_numChars) : str;
+		}
+
+		private string FixedLeft(string str)
+		{
+			if (str.Length > _numChars) {
+				return str[.._numChars];
+			}
+			return str.Length < _numChars ? str.PadRight(_numChars) : str;
+		}
+
+		private static ushort[] FromAlphaNumeric(string text)
 		{
 			var data = new ushort[text.Length];
 			for (var i = 0; i < text.Length; i++) {
@@ -304,6 +353,19 @@ namespace VisualPinball.Unity
 			}
 			return data;
 		}
+
+		private static readonly Dictionary<char, ushort> Numeric14Map = new Dictionary<char, ushort> {
+			{ '0', 0x443f },
+			{ '1', 0x406 },
+			{ '2', 0x85b },
+			{ '3', 0x80f },
+			{ '4', 0x866 },
+			{ '5', 0x1069 },
+			{ '6', 0x87d },
+			{ '7', 0x7 },
+			{ '8', 0x87f },
+			{ '9', 0x86f },
+		};
 
 		private static readonly Dictionary<char, ushort> AlphaNumericMap = new Dictionary<char, ushort> {
 			{ '0', 0x443f },
