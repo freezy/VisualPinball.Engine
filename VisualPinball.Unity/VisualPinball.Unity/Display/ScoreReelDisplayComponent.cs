@@ -21,6 +21,7 @@ using UnityEngine;
 
 namespace VisualPinball.Unity
 {
+	[AddComponentMenu("Visual Pinball/Display/Score Reel")]
 	public class ScoreReelDisplayComponent : DisplayComponent
 	{
 		public override string Id { get => _id; set => _id = value; }
@@ -36,7 +37,7 @@ namespace VisualPinball.Unity
 		[Tooltip("The reel components, from left to right.")]
 		public ScoreReelComponent[] ReelObjects;
 
-		[SerializeField] private string _id = "display0";
+		[SerializeField] public string _id = "display0";
 
 		private void Start()
 		{
