@@ -32,9 +32,13 @@ In the graph, you'll get events for every defined variable that you can use to t
 
 ### Setup
 
+<img src="variables-gle-inspector.png" width="407" alt="Variable Definitions" class="img-responsive pull-right" style="margin-left: 15px"/>
+
 In the hierarchy, select the GameObject where you added the visual scripting GLE (usually the root node of the table). In there, you'll find two sections, *Player Variables* and *Table Variables*. 
 
 You can define as many as you want for each. You'll need a name and a variable type, for which [`string`](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/builtin-types/reference-types#the-string-type), [`int`](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/builtin-types/integral-numeric-types), [`float`](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/builtin-types/floating-point-numeric-types) and [`bool`](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/builtin-types/bool) are supported.
+
+<div class="clearfix">&nbsp;</div><p>&nbsp;</p>
 
 > [!NOTE]
 > You can use any human-readable name (with spaces and so on), since variables are referenced by an internal ID. You can also rename them later, but changing the *type* later might result in issues.
@@ -43,7 +47,7 @@ You can define as many as you want for each. You'll need a name and a variable t
 
 Once you have declared your variables, you can use them in your graphs. In the graph editor, those nodes can be found under *Visual Pinball/Variables* and *Events/Visual Pinball* for the event node.
 
-There are two sets of nodes, one for player variables and one for table variables. They are identical apart from two additional player variable nodes described in the next section.
+There are two sets of nodes, one for player variables and one for table variables. They are identical apart from two additional player variable nodes described in the *Player State* section below.
 
 - **Get Variable** contains an output with the current value of your variable.
 - **Set Variable** contains an input with the new value of your variable. When executed, it applies that value to the variable.
@@ -71,6 +75,10 @@ So in this example, you would have one subgraph that would handle display update
 
 Besides not having to think about all the consequences every time you change a variable, this patterns also gives you a free perk: When you switch players, VPE will automatically trigger events for all player variables that changed, which will result in the display showing the correct score, without the need of any further logic from your side.
 
+Here is an example of the graph that synchronizes the light variables of Gottlieb's Volley with the lamps on the playfield:
+
+![Variable to Lamp mapping](variables-light-events.png)
+
 
 #### Persisting Variables
 
@@ -79,8 +87,8 @@ You might want to persist state across launches, i.e. have them written to disk.
 
 ## Unity Visual Scripting Variables
 
-For everything game relaed, we recommend using VPE variables as decribed above. However, there is a use case where a graph variable might be necessary.
+For everything game related, we recommend using VPE variables as decribed above. However, there is a use case where using Unity's built-in variable system might be necessary.
 
 Imagine you have created somewhat complex in a graph and you want to re-use that logic in different ways, by passing different arguments to that graph. Like a function that takes in parameters.
 
-In this case you should rely on graph variables (to be verified!)
+In this case you should rely on the graph's [data ports](https://docs.unity3d.com/Packages/com.unity.visualscripting@1.7/manual/vs-add-triggers-data-graph.html) that allow passing data to graphs, which you then can access through the *Input* node.
