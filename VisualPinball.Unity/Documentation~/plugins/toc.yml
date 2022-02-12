@@ -11,6 +11,8 @@
   items:
   - name: Overview
     href: visual-scripting/index.md
+  - name: Setup
+    href: visual-scripting/setup.md
   - name: Principles
     href: visual-scripting/principles.md
   - name: Variables
