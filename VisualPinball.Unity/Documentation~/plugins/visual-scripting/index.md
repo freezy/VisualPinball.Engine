@@ -8,7 +8,7 @@ description: Unity Visual Scripting and VPE
 
 # Visual Scripting
 
-Unity has a powerful [visual scripting](https://unity.com/products/unity-visual-scripting) package that VPE leverages for creating game logic without having to write code. It uses a node system which VPE extends to significantly simplify common tasks in a pinball game.
+Unity has a powerful [visual scripting](https://unity.com/products/unity-visual-scripting) feature that VPE leverages for creating game logic without having to write code. It uses a node system which VPE extends to significantly simplify common tasks in a pinball game.
 
 > [!note]
 > Visual scripting was previously named *Bolt*, and was a commercial product in Unity's asset store. In 2020, [Unity acquired Bolt](https://ludiq.io/blog/unity-acquires-bolt) and made it freely available.
