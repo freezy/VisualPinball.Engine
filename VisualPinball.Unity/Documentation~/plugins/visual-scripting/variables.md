@@ -22,9 +22,9 @@ VPE provides its own type of variables for that, and they come in two flavors:
 - **Player Variables** are as described above, scoped *per player*. Here, you would be storing data such as the *current score*.
 - **Table Variables** are *global* to the table. You would use them for things like *balls per game*.
 
-In the visual scripting GLE, you can define the structure of both types of variables.
+In the visual scripting GLE, you can define the structure of both types of variables. Then, in the graph, you'll get events for every defined variable that you can use to trigger the desired action.
 
-In the graph, you'll get events for every defined variable that you can use to trigger the desired action.
+If you're testing gameplay in the editor, the current values of both player and table variables are shown in the inspector.
 
 > [!NOTE]
 > In the future, table variables could also marked as *editable*, so the player app could allow the user to change them.
