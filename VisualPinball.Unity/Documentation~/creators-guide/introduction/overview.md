@@ -14,6 +14,10 @@ VPE uses [Unity](https://unity.com/) for its underlying game architecture. Unity
 > [!Video https://www.youtube.com/embed/JxjdZ6mohfA]
 <small>*An imported .vpx file in VPE, using Unitys' High Definition Render Pipeline.*</small>
 
+> [!Video https://www.youtube.com/embed/wHcKd_FExsE]
+<small>Gottlieb's *Volley*, remodeled and retextured in Unity</small>
+
+
 > [!NOTE] 
 > Technically, VPE is what we call a "library". A library is not executable per se, because it needs a host application. 
 >
@@ -21,6 +25,4 @@ VPE uses [Unity](https://unity.com/) for its underlying game architecture. Unity
 
 ## Audience
 
-This documentation is mainly aimed at table creators ("authors"). Since it covers table scripting as well, it also contains code-related documentation.
-
-VPE is currently not in a state where it is usable by the general public ("players"). Documentation about how to setup VPE to play will follow at a later stage.
+This documentation is mainly aimed at table creators ("authors"). VPE is currently not in a state where it is usable by the general public ("players"). Documentation about how to setup VPE to play will follow at a later stage.
