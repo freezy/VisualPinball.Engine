@@ -55,3 +55,55 @@ The other switch event triggers in both cases, when the switch is enabled, and w
 
 This node just returns the current switch value of a given switch. While usually you should rely on player and table variables for saving and retrieving status, it still has its usage. For example, you might want to not add the state of a kicker to the variables and rely on the kicker switch directly instead.
 
+![Get Switch](get-switch-example.png)
+
+## Lamps
+
+## Variables
+
+See [Variables](xref:uvs_variables) for an overview on how variables work. We will be using examples for player variables, but apart from [creation](#create-player-state) and [changing](#change-player-state), they work the same way as table variables.
+
+### Create Player State
+
+This node adds variables for a new player. If the game starts and you want to use player variables, you need to create a player state, even if your game has only one player. 
+
+You would typically do it when the game starts. Multiplayer games would execute this node when *start* is pressed during the first ball.
+
+This node has the following options:
+
+- **Auto-Increment** automatically sets the player ID. It does that by increasing the largest existing player ID by one.
+- **Player ID** is only visible if auto-increment is not set, and lets you specify the player ID.
+- **Set as Active** will make the newly created player state the current state. This makes sense when a new game is started, but not when new players are added.
+- **Destroy Previous** deletes all player states before creating the new one. This is useful when starting a new game.
+
+Here an example of the player state being created right after the state machine enters the game state, i.e. when the game starts.
+
+![Create Player State](create-player-state-example.png)
+
+> [!note]
+> This one of two nodes that doesn't exist for table variables.
+
+### Change Player State
+
+This nodes swaps out the current player variables with the ones from another player. You do this when a player has finished playing and it's the next player's turn.
+
+The following options are available:
+
+- **Next Player** automatically choses the next player. If the current player is the last player, the next player is the first player. You typically enable this option when using *auto-increment* during player state creation. It means that VPE handles the player IDs.
+- **Player ID** lets you explicitly set the ID of the player you want to change to (only visible of *Next Player* is disabled).
+
+The following is an example of a multiplayer game with infinite balls (i.e. remaining balls are not checked). The flow starts with the drain switch, which then checks whether the current player has any extra balls left. If that's not the case, then the player state is changed to the next player, otherwise the number of extra balls is decreased instead, and finally the eject coil of the trough is pulsed.
+
+![Change Player State](change-player-state-example.png)
+
+> [!note]
+> This the second node that doesn't exist for table variables.
+
+### Get Variable
+
+This node returns the value of a given variable. To build on the previous example, let's do a check whether we should end the game if a ball was drained.
+
+To do that, we retrieve the player variable *Current Ball Number* and check if it's the same as the global variable *Balls per Game*. If that's the case, we assume that it's the last ball. Then we compare the current player ID to the last player ID. The final *And* node checks if both conditions are true, and what comes out is whether we should end the game or not.
+
+![Change Player State](get-variable-example.png)
+
