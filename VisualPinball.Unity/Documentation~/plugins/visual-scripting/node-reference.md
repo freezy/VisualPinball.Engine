@@ -99,11 +99,42 @@ The following is an example of a multiplayer game with infinite balls (i.e. rema
 > [!note]
 > This the second node that doesn't exist for table variables.
 
+### Get Player ID
+
+This node gives you access to the player ID. There are three different modes:
+
+- *Current* returns the ID of the current player
+- *First* return the smallest player ID
+- *Last* returns the largest player ID
+
+A typical example is shown in the [next section](#get-variable).
+
 ### Get Variable
 
 This node returns the value of a given variable. To build on the previous example, let's do a check whether we should end the game if a ball was drained.
 
 To do that, we retrieve the player variable *Current Ball Number* and check if it's the same as the global variable *Balls per Game*. If that's the case, we assume that it's the last ball. Then we compare the current player ID to the last player ID. The final *And* node checks if both conditions are true, and what comes out is whether we should end the game or not.
 
-![Change Player State](get-variable-example.png)
+![Get Variable](get-variable-example.png)
 
+### Set Variable
+
+This node applies a given value to a variable. It's very straightforward. Here an example of a trigger enabling the lit status of a bumper.
+
+![Set Variable](set-variable-example.png)
+
+### Increase Variable
+
+More often than not, you want to increase a variable by a given value rather than setting an absolute value. This node does exactly that, for integer and float typed variables. For string types, it concatenates the value to the current one. For boolean types, it inverts the current value, *if* the input value is `true`.
+
+A typical example for this node is scoring. This example adds 1000 points to the score when the bumper switch is enabled.
+
+![Increase Variable](increase-variable-example.png)
+
+### On Variable Changed
+
+One of the main advantages of using VPE's variable system is that you get events when they change. That makes it easy to separate how the variable is updated from what effect updating it causes. That's great, because you shouldn't care *why* a variable was updated, only *when* and *to which value* ([see also](xref:uvs_variables#synchronizing-state)).
+
+In this example, we listen to the score variable and fetch it into our *Update Display* node, which sends the data to our score reel component, which then rotates the reels accordingly. Note that you'll also get the previous value of the variable, before it changed.
+
+![On Variable Changed](on-variable-changed-example.png)
