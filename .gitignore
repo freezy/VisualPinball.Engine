@@ -367,7 +367,7 @@ MigrationBackup/
 # Vi swap files
 *.swp
 
-**/Plugins/**
+/VisualPinball.Unity/Plugins/**
 
 obj.meta
 VisualPinball.Unity/VisualPinball.Unity.Test/TestProject~/*.vpx
