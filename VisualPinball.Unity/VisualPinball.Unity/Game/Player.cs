@@ -114,6 +114,8 @@ namespace VisualPinball.Unity
 		public Dictionary<string, (bool, float)> WireStatuses => _wirePlayer.WireStatuses;
 		public float3 Gravity => _playfieldComponent.Gravity;
 
+		public List<ILampDeviceComponent> LampDevice(string id) => _lampPlayer.LampDevice(id);
+
 		#endregion
 
 		#region Lifecycle

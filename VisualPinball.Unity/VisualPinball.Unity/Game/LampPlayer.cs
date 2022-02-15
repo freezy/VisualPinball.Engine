@@ -41,6 +41,8 @@ namespace VisualPinball.Unity
 		/// </summary>
 		private readonly Dictionary<string, List<ILampDeviceComponent>> _lampAssignments = new Dictionary<string, List<ILampDeviceComponent>>();
 
+		public List<ILampDeviceComponent> LampDevice(string id) => _lampAssignments[id];
+
 		/// <summary>
 		/// Links the GLE's IDs to the mappings.
 		/// </summary>
