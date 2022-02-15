@@ -50,12 +50,15 @@ The other switch event triggers in both cases, when the switch is enabled, and w
 
 ![Set Coil](set-coil-example.png)
 
+When using multiple switches, you'll get an event for any of the switches with the value of the switch that changed.
 
 ### Get Switch Value
 
 This node just returns the current switch value of a given switch. While usually you should rely on player and table variables for saving and retrieving status, it still has its usage. For example, you might want to not add the state of a kicker to the variables and rely on the kicker switch directly instead.
 
 ![Get Switch](get-switch-example.png)
+
+You can also add multiple switches, in which case the output is only true if *all switches* are enabled.
 
 ## Lamps
 
@@ -133,7 +136,7 @@ A typical example for this node is scoring. This example adds 1000 points to the
 
 ### On Variable Changed
 
-One of the main advantages of using VPE's variable system is that you get events when they change. That makes it easy to separate how the variable is updated from what effect updating it causes. That's great, because you shouldn't care *why* a variable was updated, only *when* and *to which value* ([see also](xref:uvs_variables#synchronizing-state)).
+One of the main advantages of using VPE's variable system is that you get events when they change. That makes it easy to separate how the variable is updated from what effect updating it causes. That's great, because you shouldn't care *why* a variable was updated, only *when* and *to which value* (see also [Synchronizing State](xref:uvs_variables#synchronizing-state)).
 
 In this example, we listen to the score variable and fetch it into our *Update Display* node, which sends the data to our score reel component, which then rotates the reels accordingly. Note that you'll also get the previous value of the variable, before it changed.
 
