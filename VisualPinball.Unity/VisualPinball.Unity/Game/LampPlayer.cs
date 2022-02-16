@@ -57,7 +57,7 @@ namespace VisualPinball.Unity
 		internal IApiLamp Lamp(ILampDeviceComponent component)
 			=> _lamps.ContainsKey(component) ? _lamps[component] : null;
 
-		internal Dictionary<string, float> LampStatuses { get; } = new Dictionary<string, float>();
+		internal Dictionary<string, LampState> LampStatuses { get; } = new Dictionary<string, LampState>();
 		internal void RegisterLamp(ILampDeviceComponent component, IApiLamp lampApi) => _lamps[component] = lampApi;
 
 		public void Awake(Player player, TableComponent tableComponent, IGamelogicEngine gamelogicEngine)
@@ -109,37 +109,35 @@ namespace VisualPinball.Unity
 					}
 					if (_lamps.ContainsKey(component)) {
 						var lamp = _lamps[component];
-						var value = 0f;
-						var channel = ColorChannel.Alpha;
+						var status = LampStatuses[lampEvent.Id];
 						switch (mapping.Type) {
 							case LampType.SingleOnOff:
-								value = lampEvent.Value / 255f;
+								status.IsOn = lampEvent.Value > 0;
 								break;
 
 							case LampType.Rgb:
-								value = lampEvent.Value / 255f; // todo test
-
+								status.Intensity = lampEvent.Value / 255f; // todo test
 								break;
+
 							case LampType.RgbMulti:
-								value = lampEvent.Value / 255f; // todo test
-								channel = mapping.Channel;
+								status.SetChannel(mapping.Channel, lampEvent.Value / 255f); // todo test
 								break;
 
 							case LampType.SingleFading:
-								value = lampEvent.Value / mapping.FadingSteps;
+								status.Intensity = lampEvent.Value / mapping.FadingSteps;
 								break;
 
 							default:
 								Logger.Error($"Unknown mapping type \"{mapping.Type}\" of lamp ID {lampEvent.Id} for light {component}.");
 								break;
 						}
-						LampStatuses[lampEvent.Id] = value;
-						lamp.OnLamp(value, channel);
+						LampStatuses[lampEvent.Id] = status;
+						lamp.OnLamp(status.Intensity, ColorChannel.Alpha);
 					}
 				}
-			}
-			else {
-				LampStatuses[lampEvent.Id] = lampEvent.Value;
+
+			} else {
+				LampStatuses[lampEvent.Id] =  new LampState(lampEvent.Value);
 			}
 
 #if UNITY_EDITOR
@@ -167,7 +165,7 @@ namespace VisualPinball.Unity
 			}
 			_lampAssignments[id].Add(lampMapping.Device);
 			_lampMappings[id][lampMapping.Device] = lampMapping;
-			LampStatuses[id] = 0f;
+			LampStatuses[id] = new LampState(0f);
 		}
 
 		private void HandleLampColorEvent(object sender, LampColorEventArgs lampEvent)
@@ -207,7 +205,7 @@ namespace VisualPinball.Unity
 
 			foreach (var mappingId in colors.Keys) {
 				lamps[mappingId].Color = colors[mappingId];
-				LampStatuses[mappingId] = colors[mappingId].grayscale;
+				LampStatuses[mappingId] = new LampState(colors[mappingId].grayscale);
 			}
 		}
 

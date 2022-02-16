@@ -25,11 +25,11 @@ using Color = UnityEngine.Color;
 
 namespace VisualPinball.Unity.Editor
 {
-	public class LampListViewItemRenderer : ListViewItemRenderer<LampListData, GamelogicEngineLamp, float>
+	public class LampListViewItemRenderer : ListViewItemRenderer<LampListData, GamelogicEngineLamp, LampState>
 	{
 		protected override List<GamelogicEngineLamp> GleItems => _gleLamps;
 		protected override GamelogicEngineLamp InstantiateGleItem(string id) => new GamelogicEngineLamp(id);
-		protected override Texture2D StatusIcon(float status) => Icons.Light(IconSize.Small, status > 0 ? IconColor.Orange : IconColor.Gray);
+		protected override Texture2D StatusIcon(LampState status) => Icons.Light(IconSize.Small, status.IsOn ? IconColor.Orange : IconColor.Gray);
 
 		private enum LampListColumn
 		{
@@ -101,12 +101,11 @@ namespace VisualPinball.Unity.Editor
 			var lamp = player.Lamp(data.Device);
 			lamp?.OnChange(pressedDown);
 			if (player.LampStatuses.ContainsKey(data.Id)) {
-
-				player.LampStatuses[data.Id] = pressedDown ? 1 : 0;
+				player.LampStatuses[data.Id].IsOn = pressedDown;
 			}
 		}
 
-		private void RenderCoilId(Dictionary<string, float> lampStatuses, LampListData lampListData, Rect cellRect)
+		private void RenderCoilId(Dictionary<string, LampState> lampStatuses, LampListData lampListData, Rect cellRect)
 		{
 			// add some padding
 			cellRect.x = cellRect.width - 45;
@@ -125,7 +124,7 @@ namespace VisualPinball.Unity.Editor
 			}
 
 			var statusAvail = Application.isPlaying && lampStatuses != null && lampStatuses.ContainsKey(lampListData.Id);
-			var icon = Icons.Coil(IconSize.Small, statusAvail && lampStatuses[lampListData.Id] > 0 ? IconColor.Orange : IconColor.Gray);
+			var icon = Icons.Coil(IconSize.Small, statusAvail && lampStatuses[lampListData.Id].IsOn ? IconColor.Orange : IconColor.Gray);
 			if (icon != null) {
 				var guiColor = GUI.color;
 				GUI.color = Color.clear;

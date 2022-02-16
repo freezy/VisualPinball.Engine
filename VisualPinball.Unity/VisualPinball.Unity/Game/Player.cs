@@ -24,6 +24,7 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 using VisualPinball.Engine.Common;
 using VisualPinball.Engine.Game;
+using VisualPinball.Engine.Game.Engines;
 using VisualPinball.Engine.VPT.Trigger;
 using Logger = NLog.Logger;
 
@@ -110,7 +111,7 @@ namespace VisualPinball.Unity
 
 		public Dictionary<string, IApiSwitchStatus> SwitchStatuses => _switchPlayer.SwitchStatuses;
 		public Dictionary<string, bool> CoilStatuses => _coilPlayer.CoilStatuses;
-		public Dictionary<string, float> LampStatuses => _lampPlayer.LampStatuses;
+		public Dictionary<string, LampState> LampStatuses => _lampPlayer.LampStatuses;
 		public Dictionary<string, (bool, float)> WireStatuses => _wirePlayer.WireStatuses;
 		public float3 Gravity => _playfieldComponent.Gravity;
 

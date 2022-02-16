@@ -314,9 +314,9 @@ namespace VisualPinball.Unity
 			OnLampsChanged?.Invoke(this, new LampsEventArgs(values));
 		}
 
-		public float GetLamp(string id)
+		public LampState GetLamp(string id)
 		{
-			return _player.LampStatuses.ContainsKey(id) ? _player.LampStatuses[id] : 0;
+			return _player.LampStatuses.ContainsKey(id) ? _player.LampStatuses[id] : LampState.Default;
 		}
 
 		public bool GetSwitch(string id)

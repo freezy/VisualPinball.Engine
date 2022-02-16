@@ -132,7 +132,7 @@ namespace VisualPinball.Unity
 
 		bool GetSwitch(string id);
 		bool GetCoil(string id);
-		float GetLamp(string id);
+		LampState GetLamp(string id);
 
 		public event EventHandler<SwitchEventArgs2> OnSwitchChanged;
 
@@ -238,7 +238,7 @@ namespace VisualPinball.Unity
 		public readonly string Id;
 
 		/// <summary>
-		/// Value of the lamp, between 0.0 and 1.0.
+		/// Intensity of the lamp, between 0.0 and 1.0.
 		/// a fading light.
 		/// </summary>
 		public readonly float Value;
@@ -253,7 +253,7 @@ namespace VisualPinball.Unity
 		/// </summary>
 		public readonly bool IsCoil;
 
-		public LampEventArgs(string id, int value, LampSource source = LampSource.Lamp)
+		public LampEventArgs(string id, float value, LampSource source = LampSource.Lamp)
 		{
 			Id = id;
 			Value = value;
