@@ -107,4 +107,75 @@ namespace VisualPinball.Engine.Game.Engines
 		RgbMulti = 2,
 		Rgb = 3,
 	}
+
+	public enum LampStatus
+	{
+		Off = 0,
+		On = 1,
+		Blinking = 2,
+	}
+
+	public class LampState
+	{
+		public LampStatus Status {
+			get => _status;
+			set {
+				if (value != LampStatus.Off) {
+					_lastOnStatus = value;
+				}
+				_status = value;
+			}
+		}
+
+		public bool IsOn {
+			get => _status is LampStatus.On or LampStatus.Blinking;
+			set => _status = value ? _lastOnStatus : LampStatus.Off;
+		}
+
+		public float Intensity {
+			get => Color.A;
+			set => Color = Color.WithAlpha(value);
+		}
+
+		public Color Color;
+
+		private LampStatus _status;
+		private LampStatus _lastOnStatus = LampStatus.On;
+
+		public LampState(LampStatus status, Color color)
+		{
+			Status = status;
+			Color = color;
+		}
+
+		public LampState(float intensity)
+		{
+			Status = intensity > 0 ? LampStatus.On : LampStatus.Off;
+			Color = new Color(255, 255, 255, (int)(intensity * 255));
+		}
+
+		public void SetChannel(ColorChannel channel, float value)
+		{
+			switch (channel) {
+
+				case ColorChannel.Red:
+					Color.R = value;
+					break;
+				case ColorChannel.Green:
+					Color.G = value;
+					break;
+				case ColorChannel.Blue:
+					Color.B = value;
+					break;
+				case ColorChannel.Alpha:
+					Color.A = value;
+					break;
+
+				default:
+					throw new ArgumentOutOfRangeException(nameof(channel), channel, null);
+			}
+		}
+
+		public static readonly LampState Default = new LampState(LampStatus.Off, Colors.White);
+	}
 }

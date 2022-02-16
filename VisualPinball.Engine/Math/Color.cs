@@ -18,6 +18,7 @@ using System;
 
 namespace VisualPinball.Engine.Math
 {
+	// todo make struct
 	[Serializable]
 	public class Color
 	{
@@ -26,10 +27,10 @@ namespace VisualPinball.Engine.Math
 		public int Blue;
 		public int Alpha = 0xff;
 
-		public float R => Red / 255f;
-		public float G => Green / 255f;
-		public float B => Blue / 255f;
-		public float A => Alpha / 255f;
+		public float R { get => Red / 255f; set => Red = (int)(value * 255f); }
+		public float G { get => Green / 255f; set => Green = (int)(value * 255f); }
+		public float B { get => Blue / 255f; set => Blue = (int)(value * 255f); }
+		public float A { get => Alpha / 255f; set => Alpha = (int)(value * 255f); }
 
 		public uint Bgr => (uint)Alpha * 16777216 + (uint)Blue * 65536 + (uint)Green * 256 + (uint)Red;
 
@@ -67,6 +68,11 @@ namespace VisualPinball.Engine.Math
 		public Color WithAlpha(int alpha)
 		{
 			return new Color(Red, Green, Blue, alpha);
+		}
+
+		public Color WithAlpha(float alpha)
+		{
+			return new Color(Red, Green, Blue, (int)(alpha * 255f));
 		}
 
 		public bool IsGray()
