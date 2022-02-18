@@ -62,6 +62,17 @@ You can also add multiple switches, in which case the output is only true if *al
 
 ## Lamps
 
+Lamps a bit more complex than coils and switches, because besides of simply being turned on or off, they have an intensity and a color. VPE currently has poor support of dynamically colored lamps, so visual scripting currently ignores the color. The nodes will be updated when we work on a table that has RGB LEDs.
+
+Note also that when creating your proper game logic, you should rely on [variables](#variables) instead of lamp status in your logic. However, since you can also use visual scripting along with different gamelogic engine such as [PinMAME](xref:pinmame_index), where you can't access the internal state, it makes sense to provide nodes for lamp events and retrieving their value.
+
+
+### On Lamp Changed
+
+
+
+
+
 ## Variables
 
 See [Variables](xref:uvs_variables) for an overview on how variables work. We will be using examples for player variables, but apart from [creation](#create-player-state) and [changing](#change-player-state), they work the same way as table variables.
