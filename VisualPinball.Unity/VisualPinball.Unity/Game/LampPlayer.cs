@@ -110,21 +110,29 @@ namespace VisualPinball.Unity
 					if (_lamps.ContainsKey(component)) {
 						var lamp = _lamps[component];
 						var status = LampStatuses[lampEvent.Id];
+						var intensity = status.Intensity;
+						var channel = ColorChannel.Alpha;
+
 						switch (mapping.Type) {
 							case LampType.SingleOnOff:
 								status.IsOn = lampEvent.Value > 0;
+								intensity = status.IsOn ? 1 : 0;
 								break;
 
 							case LampType.Rgb:
 								status.Intensity = lampEvent.Value / 255f; // todo test
+								intensity = status.Intensity;
 								break;
 
 							case LampType.RgbMulti:
 								status.SetChannel(mapping.Channel, lampEvent.Value / 255f); // todo test
+								channel = mapping.Channel;
+								intensity = lampEvent.Value / 255f;
 								break;
 
 							case LampType.SingleFading:
 								status.Intensity = lampEvent.Value / mapping.FadingSteps;
+								intensity = status.Intensity;
 								break;
 
 							default:
@@ -132,7 +140,7 @@ namespace VisualPinball.Unity
 								break;
 						}
 						LampStatuses[lampEvent.Id] = status;
-						lamp.OnLamp(status.Intensity, ColorChannel.Alpha);
+						lamp.OnLamp(intensity, channel);
 					}
 				}
 

@@ -150,7 +150,7 @@ namespace VisualPinball.Engine.Game.Engines
 
 		public LampState(float intensity)
 		{
-			Status = intensity > 0 ? LampStatus.On : LampStatus.Off;
+			_status = intensity > 0 ? LampStatus.On : LampStatus.Off;
 			Color = new Color(255, 255, 255, (int)(intensity * 255));
 		}
 
@@ -176,6 +176,6 @@ namespace VisualPinball.Engine.Game.Engines
 			}
 		}
 
-		public static readonly LampState Default = new LampState(LampStatus.Off, Colors.White);
+		public static LampState Default => new LampState(LampStatus.Off, Colors.White);
 	}
 }
