@@ -84,11 +84,6 @@ namespace VisualPinball.Unity
 		/// </remarks>
 		event EventHandler<LampsEventArgs> OnLampsChanged;
 
-		/// <summary>
-		/// Triggered when the an RGB lamp changes color.
-		/// </summary>
-		event EventHandler<LampColorEventArgs> OnLampColorChanged;
-
 		#endregion
 
 		#region Coils
@@ -129,7 +124,6 @@ namespace VisualPinball.Unity
 		void SetCoil(string id, bool isEnabled);
 
 		void SetLamp(string id, float value, bool isCoil = false, LampSource source = LampSource.Lamp);
-		void SetLamp(string id, Color color);
 
 		bool GetSwitch(string id);
 		bool GetCoil(string id);
@@ -269,25 +263,6 @@ namespace VisualPinball.Unity
 			Value = value;
 			Source = source;
 			IsCoil = isCoil;
-		}
-	}
-
-	public readonly struct LampColorEventArgs
-	{
-		/// <summary>
-		/// Id of the lamp, as defined by <see cref="IGamelogicEngine.RequestedLamps"/>.
-		/// </summary>
-		public readonly string Id;
-
-		/// <summary>
-		/// New color
-		/// </summary>
-		public readonly Color Color;
-
-		public LampColorEventArgs(string id, Color color)
-		{
-			Id = id;
-			Color = color;
 		}
 	}
 

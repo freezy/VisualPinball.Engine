@@ -150,8 +150,20 @@ namespace VisualPinball.Engine.Game.Engines
 
 		public LampState(float intensity)
 		{
-			_status = intensity > 0 ? LampStatus.On : LampStatus.Off;
-			Color = new Color(255, 255, 255, (int)(intensity * 255));
+			if (intensity == 0f) {
+				_status = LampStatus.Off;
+				Color = new Color(255, 255, 255, 255);
+
+			} else {
+				_status = LampStatus.On;
+				Color = new Color(255, 255, 255, (int)(intensity * 255));
+			}
+		}
+
+		public LampState(Color color)
+		{
+			_status = color.A > 0 ? LampStatus.On : LampStatus.Off;
+			Color = color;
 		}
 
 		public void SetChannel(ColorChannel channel, float value)
@@ -174,6 +186,11 @@ namespace VisualPinball.Engine.Game.Engines
 				default:
 					throw new ArgumentOutOfRangeException(nameof(channel), channel, null);
 			}
+		}
+
+		public override string ToString()
+		{
+			return $"[{_status}] {Color}";
 		}
 
 		public static LampState Default => new LampState(LampStatus.Off, Colors.White);
