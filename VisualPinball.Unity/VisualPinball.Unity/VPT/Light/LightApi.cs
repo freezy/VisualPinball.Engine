@@ -54,9 +54,15 @@ namespace VisualPinball.Unity
 				// might have disabled some lights in the editor..
 				return;
 			}
+
 			switch (channel) {
 				case ColorChannel.Alpha: {
-					Set(value == 0.0f ? LightStatus.LightStateOff : LightStatus.LightStateOn, value);
+					if (_state != LightStatus.LightStateBlinking) {
+						Set(value == 0.0f ? LightStatus.LightStateOff : LightStatus.LightStateOn, value);
+					}
+					else {
+						Set(LightStatus.LightStateBlinking, value);
+					}
 					break;
 				}
 				case ColorChannel.Red: {
