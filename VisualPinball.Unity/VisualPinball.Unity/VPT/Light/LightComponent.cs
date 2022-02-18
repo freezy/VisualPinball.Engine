@@ -52,7 +52,7 @@ namespace VisualPinball.Unity
 		[Tooltip("The radius of the bulb mesh")]
 		public float BulbSize = 20f;
 
-		public int State;
+		public LampStatus State;
 		public string BlinkPattern;
 		public int BlinkInterval;
 
@@ -170,6 +170,8 @@ namespace VisualPinball.Unity
 			set {
 				foreach (var unityLight in _unityLights) {
 					unityLight.color = value;
+
+					// todo handle insert material color
 				}
 			}
 		}
@@ -332,7 +334,7 @@ namespace VisualPinball.Unity
 			BulbSize = data.MeshRadius;
 
 			// logical params
-			State = data.State;
+			State = (LampStatus)data.State;
 			BlinkPattern = data.BlinkPattern;
 			BlinkInterval = data.BlinkInterval;
 			FadeSpeedUp = data.FadeSpeedUp;
@@ -397,7 +399,7 @@ namespace VisualPinball.Unity
 			data.MeshRadius = BulbSize;
 
 			// logical params
-			data.State = State;
+			data.State = (int)State;
 			data.BlinkPattern = BlinkPattern;
 			data.BlinkInterval = BlinkInterval;
 			data.FadeSpeedUp = FadeSpeedUp;

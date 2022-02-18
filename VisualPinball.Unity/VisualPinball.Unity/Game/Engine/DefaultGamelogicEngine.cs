@@ -48,7 +48,6 @@ namespace VisualPinball.Unity
 		public event EventHandler<LampEventArgs> OnLampChanged;
 		public event EventHandler<LampsEventArgs> OnLampsChanged;
 		public event EventHandler<SwitchEventArgs2> OnSwitchChanged;
-		public event EventHandler<LampColorEventArgs> OnLampColorChanged;
 		public event EventHandler<RequestedDisplays> OnDisplaysRequested;
 		public event EventHandler<DisplayFrameData> OnDisplayFrame;
 		public event EventHandler<EventArgs> OnStarted;
@@ -302,11 +301,6 @@ namespace VisualPinball.Unity
 		public void SetLamp(string id, float value, bool isCoil = false, LampSource source = LampSource.Lamp)
 		{
 			OnLampChanged?.Invoke(this, new LampEventArgs(id, value, isCoil, source));
-		}
-
-		public void SetLamp(string id, Color color)
-		{
-			OnLampColorChanged?.Invoke(this, new LampColorEventArgs(id, color));
 		}
 
 		public void SetLamps(LampEventArgs[] values)

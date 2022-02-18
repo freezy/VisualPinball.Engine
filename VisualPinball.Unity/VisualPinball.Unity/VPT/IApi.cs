@@ -17,8 +17,7 @@
 using System;
 using System.Collections.Generic;
 using Unity.Entities;
-using VisualPinball.Engine.Math;
-using Color = UnityEngine.Color;
+using VisualPinball.Engine.Game.Engines;
 
 namespace VisualPinball.Unity
 {
@@ -251,23 +250,7 @@ namespace VisualPinball.Unity
 	/// </summary>
 	public interface IApiLamp : IApiWireDest, IApi
 	{
-		/// <summary>
-		/// Sets the color of the light.
-		/// </summary>
-		Color Color { get; set; }
-
-		/// <summary>
-		/// Sets the light intensity to a given value between 0 and 1.
-		/// </summary>
-		/// <param name="value">0.0 = off, 1.0 = full intensity</param>
-		/// <param name="channel">If channel is <see cref="ColorChannel.Alpha"/>, change intensity, otherwise update color.</param>
-		void OnLamp(float value, ColorChannel channel);
-
-		/// <summary>
-		/// Sets the light color of the lamp.
-		/// </summary>
-		/// <param name="color">New color to set</param>
-		void OnLampColor(Color color);
+		void OnLamp(LampState newState);
 	}
 
 	/// <summary>

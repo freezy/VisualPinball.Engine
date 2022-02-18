@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using System;
-using VisualPinball.Engine.Math;
+using VisualPinball.Engine.Game.Engines;
 using Color = UnityEngine.Color;
 
 namespace VisualPinball.Unity
@@ -49,22 +49,11 @@ namespace VisualPinball.Unity
 
 		#region IApiLamp
 
-		public Color Color
-		{
-			get => _color;
-			set {
-				_color = value;
-				Do<LightApi>(l => l.Color = value);
-			}
-		}
-
 		private Color _color;
 
 		void IApiWireDest.OnChange(bool enabled) => Do<IApiWireDest>(l => l.OnChange(enabled));
 
-		void IApiLamp.OnLamp(float value, ColorChannel channel) => Do<IApiLamp>(l => l.OnLamp(value, channel));
-
-		void IApiLamp.OnLampColor(Color color) => Do<IApiLamp>(l => l.OnLampColor(color));
+		void IApiLamp.OnLamp(LampState newState) => Do<IApiLamp>(l => l.OnLamp(newState));
 
 		#endregion
 
