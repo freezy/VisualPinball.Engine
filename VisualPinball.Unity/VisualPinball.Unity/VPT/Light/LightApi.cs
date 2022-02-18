@@ -23,8 +23,7 @@ using Color = UnityEngine.Color;
 
 namespace VisualPinball.Unity
 {
-	public class LightApi : ItemApi<LightComponent, LightData>,
-		IApi, IApiLamp, IApiWireDeviceDest
+	public class LightApi : ItemApi<LightComponent, LightData>, IApiLamp, IApiWireDeviceDest
 	{
 		/// <summary>
 		/// Event emitted when the table is started.

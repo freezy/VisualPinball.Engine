@@ -127,6 +127,7 @@ namespace VisualPinball.Unity
 	public interface IGamelogicBridge
 	{
 		void SetCoil(string id, bool isEnabled);
+
 		void SetLamp(string id, float value, bool isCoil = false, LampSource source = LampSource.Lamp);
 		void SetLamp(string id, Color color);
 
@@ -238,8 +239,9 @@ namespace VisualPinball.Unity
 		public readonly string Id;
 
 		/// <summary>
-		/// Intensity of the lamp, between 0.0 and 1.0.
-		/// a fading light.
+		/// The intensity of the light. The range is dependent on the GLE,
+		/// i.e. PinMAME sends 0-255 or sometimes 0-8 for GI. MPF sends 0-1.
+		/// This value get normalized *after* the mapping.
 		/// </summary>
 		public readonly float Value;
 
