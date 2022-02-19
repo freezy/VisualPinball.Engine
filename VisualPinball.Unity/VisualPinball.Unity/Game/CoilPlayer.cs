@@ -19,6 +19,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using NLog;
+using VisualPinball.Engine.Math;
 using Logger = NLog.Logger;
 
 #if UNITY_EDITOR
@@ -133,7 +134,7 @@ namespace VisualPinball.Unity
 					}
 
 					if (destConfig.IsLampCoil) {
-						_lampPlayer.HandleLampEvent(new LampEventArgs(coilEvent.Id, coilEvent.IsEnabled ? 1 : 0, true));
+						_lampPlayer.HandleLampEvent(coilEvent.Id, coilEvent.IsEnabled ? 255f : 0f,  Colors.White.Clone(), isCoil: true);
 						continue;
 					}
 
