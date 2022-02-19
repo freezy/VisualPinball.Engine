@@ -111,11 +111,13 @@ namespace VisualPinball.Unity
 
 		public Dictionary<string, IApiSwitchStatus> SwitchStatuses => _switchPlayer.SwitchStatuses;
 		public Dictionary<string, bool> CoilStatuses => _coilPlayer.CoilStatuses;
-		public Dictionary<string, LampState> LampStatuses => _lampPlayer.LampStatuses;
+		public Dictionary<string, LampState> LampStatuses => _lampPlayer.LampStates;
 		public Dictionary<string, (bool, float)> WireStatuses => _wirePlayer.WireStatuses;
 		public float3 Gravity => _playfieldComponent.Gravity;
 
 		public List<ILampDeviceComponent> LampDevice(string id) => _lampPlayer.LampDevice(id);
+
+		public void SetLamp(string lampId, LampState lampState) => _lampPlayer.HandleLampEvent(lampId, lampState);
 
 		#endregion
 

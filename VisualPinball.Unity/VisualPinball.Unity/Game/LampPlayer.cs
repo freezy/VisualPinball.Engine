@@ -57,7 +57,7 @@ namespace VisualPinball.Unity
 		internal IApiLamp Lamp(ILampDeviceComponent component)
 			=> _lamps.ContainsKey(component) ? _lamps[component] : null;
 
-		internal Dictionary<string, LampState> LampStatuses { get; } = new Dictionary<string, LampState>();
+		internal Dictionary<string, LampState> LampStates { get; } = new Dictionary<string, LampState>();
 		internal void RegisterLamp(ILampDeviceComponent component, IApiLamp lampApi) => _lamps[component] = lampApi;
 
 		public void Awake(Player player, TableComponent tableComponent, IGamelogicEngine gamelogicEngine)
@@ -96,58 +96,51 @@ namespace VisualPinball.Unity
 			}
 		}
 
-		public void HandleLampEvent(LampEventArgs lampEvent)
+		public void HandleLampEvent(string id, LampState state) => HandleLampEvent(id, state.Intensity, state.Color);
+
+		public void HandleLampEvent(string id, float value, Engine.Math.Color color, LampSource lampSource = LampSource.Lamp, bool isCoil = false)
 		{
-			Logger.Debug($"lamp {lampEvent.Id}: {lampEvent.Value}");
-			if (_lampAssignments.ContainsKey(lampEvent.Id)) {
-				foreach (var component in _lampAssignments[lampEvent.Id]) {
-					var mapping = _lampMappings[lampEvent.Id][component];
-					if (mapping.Source != lampEvent.Source || mapping.IsCoil != lampEvent.IsCoil) {
+			if (_lampAssignments.ContainsKey(id)) {
+				foreach (var component in _lampAssignments[id]) {
+					var mapping = _lampMappings[id][component];
+					if (mapping.Source != lampSource || mapping.IsCoil != isCoil) {
 						// so, if we have a coil here that happens to have the same name as a lamp,
 						// or a GI light with the same name as an other lamp, skip.
 						continue;
 					}
 					if (_lamps.ContainsKey(component)) {
 						var lamp = _lamps[component];
-						var status = LampStatuses[lampEvent.Id];
-						// var intensity = status.Intensity;
-						// var channel = ColorChannel.Alpha;
+						var state = LampStates[id];
 
 						switch (mapping.Type) {
 							case LampType.SingleOnOff:
-								status.IsOn = lampEvent.Value > 0;
-								//intensity = status.IsOn ? 1 : 0;
+								state.IsOn = value > 0;
 								break;
 
 							case LampType.Rgb:
-								status.Intensity = lampEvent.Value / 255f; // todo test
-								//intensity = status.Intensity;
+								state.Color = color; // todo test
 								break;
 
 							case LampType.RgbMulti:
-								status.SetChannel(mapping.Channel, lampEvent.Value / 255f); // todo test
-								//channel = mapping.Channel;
-								//intensity = lampEvent.Value / 255f;
+								state.SetChannel(mapping.Channel, value / 255f); // todo test
 								break;
 
 							case LampType.SingleFading:
-								status.Intensity = lampEvent.Value / mapping.FadingSteps;
-								//intensity = status.Intensity;
+								state.Intensity = value / mapping.FadingSteps;
 								break;
 
 							default:
-								Logger.Error($"Unknown mapping type \"{mapping.Type}\" of lamp ID {lampEvent.Id} for light {component}.");
+								Logger.Error($"Unknown mapping type \"{mapping.Type}\" of lamp ID {id} for light {component}.");
 								break;
 						}
 
-						Logger.Debug($"lamp {lampEvent.Id}: {status}");
-						LampStatuses[lampEvent.Id] = status;
-						lamp.OnLamp(status);
+						LampStates[id] = state;
+						lamp.OnLamp(state);
 					}
 				}
 
 			} else {
-				LampStatuses[lampEvent.Id] = new LampState(lampEvent.Value);
+				LampStates[id] = new LampState(value);
 			}
 
 #if UNITY_EDITOR
@@ -174,19 +167,19 @@ namespace VisualPinball.Unity
 			}
 			_lampAssignments[id].Add(lampMapping.Device);
 			_lampMappings[id][lampMapping.Device] = lampMapping;
-			LampStatuses[id] = new LampState(0f);
+			LampStates[id] = new LampState(0f);
 		}
 
 		private void HandleLampsEvent(object sender, LampsEventArgs lampsEvent)
 		{
 			foreach (var lampEvent in lampsEvent.LampsChanged) {
-				HandleLampEvent(lampEvent);
+				HandleLampEvent(lampEvent.Id, lampEvent.Value, Colors.White.Clone());
 			}
 		}
 
 		private void HandleLampEvent(object sender, LampEventArgs lampEvent)
 		{
-			HandleLampEvent(lampEvent);
+			HandleLampEvent(lampEvent.Id, lampEvent.Value, Colors.White.Clone());
 		}
 
 #if UNITY_EDITOR

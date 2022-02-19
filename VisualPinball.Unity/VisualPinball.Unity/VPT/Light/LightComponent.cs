@@ -249,10 +249,12 @@ namespace VisualPinball.Unity
 		private IEnumerator Blink()
 		{
 			// parse blink sequence
-			var sequence = BlinkPattern.ToCharArray().Select(c => c == '1').ToArray();
+			var blinkInterval = BlinkInterval == 0 ? 1000 : BlinkInterval;
+			var blinkPattern = BlinkPattern.Trim().Length < 2 ? "10" : BlinkPattern.Trim();
+			var sequence = blinkPattern.ToCharArray().Select(c => c == '1').ToArray();
 
 			// step time is stored in ms but we need seconds
-			var stepTime = BlinkInterval / 1000f;
+			var stepTime = blinkInterval / 1000f;
 
 			while (true) {
 				foreach (var on in sequence) {
