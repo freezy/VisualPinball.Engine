@@ -32,7 +32,6 @@ namespace VisualPinball.Unity
 		public float Radius;
 		public float Mass;
 		public bool IsFrozen;
-		public int RingCounterOldPos;
 
 		public bool ManualControl;
 		public float2 ManualPosition;

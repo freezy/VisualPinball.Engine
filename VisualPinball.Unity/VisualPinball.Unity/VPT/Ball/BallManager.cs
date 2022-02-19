@@ -87,7 +87,6 @@ namespace VisualPinball.Unity
 				typeof(OverlappingStaticColliderBufferElement),
 				typeof(OverlappingDynamicBufferElement),
 				typeof(BallInsideOfBufferElement),
-				typeof(BallLastPositionsBufferElement),
 				typeof(BallData),
 				typeof(CollisionEventData)
 			);
@@ -114,7 +113,6 @@ namespace VisualPinball.Unity
 				Mass = mass,
 				Velocity = localVel,
 				Orientation = float3x3.identity,
-				RingCounterOldPos = 0,
 				AngularMomentum = float3.zero
 			});
 
@@ -125,13 +123,6 @@ namespace VisualPinball.Unity
 				IsContact = false,
 				HitNormal = new float3(0, 0, 0),
 			});
-
-			var lastBallPostBuffer = ecb.AddBuffer<BallLastPositionsBufferElement>(entity);
-			for (var i = 0; i < BallRingCounterSystem.MaxBallTrailPos; i++) {
-				lastBallPostBuffer.Add(new BallLastPositionsBufferElement
-					{ Value = new float3(float.MaxValue, float.MaxValue, float.MaxValue) }
-				);
-			}
 
 			// handle inside-kicker creation
 			if (kickerEntity != Entity.Null) {

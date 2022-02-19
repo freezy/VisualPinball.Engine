@@ -56,7 +56,6 @@ namespace VisualPinball.Unity
 		private StaticCollisionSystem _staticCollisionSystem;
 		private DynamicCollisionSystem _dynamicCollisionSystem;
 		private ContactSystem _contactSystem;
-		private BallSpinHackSystem _ballSpinHackSystem;
 
 		private float _staticCounts;
 		private EntityQuery _flipperDataQuery;
@@ -85,7 +84,6 @@ namespace VisualPinball.Unity
 			_staticCollisionSystem = World.GetOrCreateSystem<StaticCollisionSystem>();
 			_dynamicCollisionSystem = World.GetOrCreateSystem<DynamicCollisionSystem>();
 			_contactSystem = World.GetOrCreateSystem<ContactSystem>();
-			_ballSpinHackSystem = World.GetOrCreateSystem<BallSpinHackSystem>();
 			_systemsToUpdate.Add(_staticBroadPhaseSystem);
 			_systemsToUpdate.Add(_dynamicBroadPhaseSystem);
 			_systemsToUpdate.Add(_staticNarrowPhaseSystem);
@@ -94,7 +92,6 @@ namespace VisualPinball.Unity
 			_systemsToUpdate.Add(_staticCollisionSystem);
 			_systemsToUpdate.Add(_dynamicCollisionSystem);
 			_systemsToUpdate.Add(_contactSystem);
-			_systemsToUpdate.Add(_ballSpinHackSystem);
 
 			Contacts = new NativeList<ContactBufferElement>(Allocator.Persistent);
 		}
@@ -144,8 +141,6 @@ namespace VisualPinball.Unity
 				_contactSystem.Update();
 
 				ClearContacts();
-
-				_ballSpinHackSystem.Update();
 
 				dTime -= HitTime;
 
