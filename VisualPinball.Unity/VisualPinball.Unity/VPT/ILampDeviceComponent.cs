@@ -30,5 +30,8 @@ namespace VisualPinball.Unity
 		IApiLamp GetApi(Player player);
 
 		IEnumerable<Light> LightSources { get; }
+
+		Color LampColor { get; }
+		LampStatus LampStatus { get; }
 	}
 }

@@ -82,6 +82,13 @@ namespace VisualPinball.Engine.Math
 			return Red == Green && Green == Blue;
 		}
 
+		public void SetColorWithoutAlpha(Color color)
+		{
+			Red = color.Red;
+			Green = color.Green;
+			Blue = color.Blue;
+		}
+
 		public override string ToString()
 		{
 			return $"rgba({System.Math.Round(R, 3)}, {System.Math.Round(G, 3)}, {System.Math.Round(B, 3)}, {System.Math.Round(A, 3)})";
