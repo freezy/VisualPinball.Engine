@@ -134,7 +134,7 @@ namespace VisualPinball.Unity
 					}
 
 					if (destConfig.IsLampCoil) {
-						_lampPlayer.HandleLampEvent(coilEvent.Id, coilEvent.IsEnabled ? 255f : 0f,  Colors.White.Clone(), isCoil: true);
+						_lampPlayer.HandleCoilEvent(coilEvent.Id, coilEvent.IsEnabled);
 						continue;
 					}
 

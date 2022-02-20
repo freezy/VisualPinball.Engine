@@ -82,7 +82,7 @@ namespace VisualPinball.Unity
 			if (math.abs(newState.Intensity - _intensity) > 0.0001f) {
 				switch (_status) {
 					case LampStatus.Off: {
-						// ignore, lamp's off anyway
+						// ignore, lamp's off
 						break;
 					}
 					case LampStatus.On: {
@@ -90,7 +90,7 @@ namespace VisualPinball.Unity
 						break;
 					}
 					case LampStatus.Blinking: {
-						//_lightComponent.StartBlinking(newState.Intensity);
+						// todo: _lightComponent.StartBlinking(newState.Intensity);
 						break;
 					}
 					default:

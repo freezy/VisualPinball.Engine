@@ -93,6 +93,15 @@ namespace VisualPinball.Unity
 		public IApiLamp GetApi(Player player) => _api ??= new LightApi(gameObject, player);
 		public IEnumerable<Light> LightSources => GetComponentsInChildren<Light>();
 
+		public Color LampColor {
+			get {
+				var src = GetComponentInChildren<Light>();
+				return Color.magenta; //src == null ? Color.white : src.color;
+			}
+		}
+
+		public LampStatus LampStatus => State;
+
 		[NonSerialized]
 		private LightApi _api;
 
