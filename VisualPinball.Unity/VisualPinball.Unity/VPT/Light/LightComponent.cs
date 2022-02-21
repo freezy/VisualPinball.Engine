@@ -246,16 +246,16 @@ namespace VisualPinball.Unity
 			}
 		}
 
-		public void StartBlinking()
+		public void StartBlinking(float blinkIntensity)
 		{
 			if (!_hasLights) {
 				return;
 			}
 			StopAllCoroutines();
-			StartCoroutine(nameof(Blink));
+			StartCoroutine(nameof(Blink), blinkIntensity);
 		}
 
-		private IEnumerator Blink()
+		private IEnumerator Blink(float blinkIntensity)
 		{
 			// parse blink sequence
 			var blinkInterval = BlinkInterval == 0 ? 1000 : BlinkInterval;
@@ -267,7 +267,7 @@ namespace VisualPinball.Unity
 
 			while (true) {
 				foreach (var on in sequence) {
-					yield return Fade(on ? 1 : 0);
+					yield return Fade(on ? 1 * blinkIntensity : 0);
 					var timeFading = on ? FadeSpeedUp : FadeSpeedDown;
 					if (timeFading < stepTime) {
 						yield return new WaitForSeconds(stepTime - timeFading);
