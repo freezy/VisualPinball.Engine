@@ -52,8 +52,9 @@ namespace VisualPinball.Unity
 		private Color _color;
 
 		void IApiWireDest.OnChange(bool enabled) => Do<IApiWireDest>(l => l.OnChange(enabled));
-
-		void IApiLamp.OnLamp(LampState newState) => Do<IApiLamp>(l => l.OnLamp(newState));
+		void IApiLamp.OnLamp(LampStatus newState) => Do<IApiLamp>(l => l.OnLamp(newState));
+		void IApiLamp.OnLamp(float newState) => Do<IApiLamp>(l => l.OnLamp(newState));
+		void IApiLamp.OnLamp(Color newState) => Do<IApiLamp>(l => l.OnLamp(newState));
 
 		#endregion
 

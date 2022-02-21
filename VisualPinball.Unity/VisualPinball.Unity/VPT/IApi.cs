@@ -17,6 +17,7 @@
 using System;
 using System.Collections.Generic;
 using Unity.Entities;
+using UnityEngine;
 using VisualPinball.Engine.Game.Engines;
 
 namespace VisualPinball.Unity
@@ -250,7 +251,9 @@ namespace VisualPinball.Unity
 	/// </summary>
 	public interface IApiLamp : IApiWireDest, IApi
 	{
-		void OnLamp(LampState newState);
+		void OnLamp(LampStatus newStatus);
+		void OnLamp(float intensity);
+		void OnLamp(Color color);
 	}
 
 	/// <summary>
