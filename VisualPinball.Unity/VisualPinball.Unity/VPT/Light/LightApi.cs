@@ -15,7 +15,6 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using System;
-using Unity.Mathematics;
 using UnityEngine;
 using VisualPinball.Engine.Game.Engines;
 using VisualPinball.Engine.VPT.Light;
@@ -31,72 +30,63 @@ namespace VisualPinball.Unity
 
 		private bool _initialized;
 		private LampStatus _status;
-		private Color _color;
-		private float _intensity = -1f;
+		private float _intensity = 1f;
 
 		private readonly LightComponent _lightComponent;
 
 		void IApiWireDest.OnChange(bool enabled)
 		{
-			var color = _color.ToEngineColor();
-			color.Alpha = enabled ? 0 : 0xff;
-			OnLamp(new LampState(color));
+			OnLamp(enabled ? LampStatus.On : LampStatus.Off);
 		}
 
-		public void OnLamp(LampState newState)
+		public void OnLamp(LampStatus status)
+		{
+			if (!_initialized) {
+				// might have disabled some lights in the editor..
+				return;
+			}
+			_status = status;
+			Update();
+		}
+
+		public void OnLamp(float intensity)
 		{
 			if (!_initialized) {
 				// might have disabled some lights in the editor..
 				return;
 			}
 
-			// apply new color (state independent)
-			var newColor = newState.Color.ToUnityColor();
-			if (newColor != _color) {
-				_color = newColor;
-				_lightComponent.Color = newColor;
-			}
+			_intensity = intensity;
+			Update();
+		}
 
-			// apply new state
-			if (newState.Status != _status) {
-				switch (newState.Status) {
-					case LampStatus.Off: {
-						_lightComponent.FadeTo(0);
-						break;
-					}
-					case LampStatus.On: {
-						_lightComponent.FadeTo(newState.Intensity);
-						break;
-					}
-					case LampStatus.Blinking: {
-						_lightComponent.StartBlinking();
-						break;
-					}
-					default:
-						throw new ArgumentOutOfRangeException();
+		private void Update()
+		{
+			switch (_status) {
+				case LampStatus.Off: {
+					_lightComponent.FadeTo(0);
+					break;
 				}
-				_status = newState.Status;
+				case LampStatus.On: {
+					_lightComponent.FadeTo(_intensity);
+					break;
+				}
+				case LampStatus.Blinking: {
+					_lightComponent.StartBlinking(_intensity);
+					break;
+				}
+				default:
+					throw new ArgumentOutOfRangeException();
 			}
+		}
 
-			// apply new intensity
-			if (math.abs(newState.Intensity - _intensity) > 0.0001f) {
-				switch (_status) {
-					case LampStatus.Off: {
-						// ignore, lamp's off
-						break;
-					}
-					case LampStatus.On: {
-						_lightComponent.FadeTo(newState.Intensity);
-						break;
-					}
-					case LampStatus.Blinking: {
-						// todo: _lightComponent.StartBlinking(newState.Intensity);
-						break;
-					}
-					default:
-						throw new ArgumentOutOfRangeException();
-				}
+		public void OnLamp(Color color)
+		{
+			if (!_initialized) {
+				// might have disabled some lights in the editor..
+				return;
 			}
+			_lightComponent.Color = new Color(color.r, color.g, color.b, _lightComponent.Color.a);
 		}
 
 		IApiWireDest IApiWireDeviceDest.Wire(string deviceItem) => this;
@@ -107,14 +97,12 @@ namespace VisualPinball.Unity
 			_status = _lightComponent.State;
 		}
 
-
 		#region Events
 
 		void IApi.OnInit(BallManager ballManager)
 		{
 			base.OnInit(ballManager);
 			Init?.Invoke(this, EventArgs.Empty);
-			_color = _lightComponent.Color;
 			_initialized = true;
 		}
 

@@ -154,14 +154,14 @@ namespace VisualPinball.Unity
 		{
 			state.Status = status;
 			LampStates[id] = state;
-			lamp.OnLamp(state);
+			lamp.OnLamp(status);
 		}
 
 		private void ApplyColor(IApiLamp lamp, LampState state, string id, VisualPinball.Engine.Math.Color color)
 		{
 			state.Color.SetColorWithoutAlpha(color);
 			LampStates[id] = state;
-			lamp.OnLamp(state);
+			lamp.OnLamp(state.Color.ToUnityColor());
 		}
 
 		private void ApplyValue(LampMapping mapping, IApiLamp lamp, LampState state, string id, float value)
@@ -169,27 +169,32 @@ namespace VisualPinball.Unity
 			switch (mapping.Type) {
 				case LampType.SingleOnOff:
 					state.IsOn = value > 0;
+					LampStates[id] = state;
+					lamp.OnLamp(state.Status);
 					break;
 
 				case LampType.Rgb:
 					state.Color.Alpha = (int)value;
+					LampStates[id] = state;
+					lamp.OnLamp(state.Intensity);
 					break;
 
 				case LampType.RgbMulti:
 					state.SetChannel(mapping.Channel, value / 255f); // todo test
+					LampStates[id] = state;
+					lamp.OnLamp(state.Color.ToUnityColor());
 					break;
 
 				case LampType.SingleFading:
 					state.Intensity = value / mapping.FadingSteps;
+					LampStates[id] = state;
+					lamp.OnLamp(state.Intensity);
 					break;
 
 				default:
 					Logger.Error($"Unknown mapping type \"{mapping.Type}\" of lamp ID {id} for light {lamp}.");
 					break;
 			}
-
-			LampStates[id] = state;
-			lamp.OnLamp(state);
 		}
 
 		public void OnDestroy()

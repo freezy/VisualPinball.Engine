@@ -42,7 +42,11 @@ namespace VisualPinball.Unity
 			Lights.Select(l => l.GetApi(player)).ToArray()
 		);
 		public IEnumerable<Light> LightSources => Lights.SelectMany(l => l.LightSources).ToArray();
-		public Color LampColor => _lights.Length > 0 ? (_lights.First() as ILampDeviceComponent)!.LampColor : Color.blue;
+		public Color LampColor {
+			get {
+				return _lights.Length > 0 ? (_lights.First() as ILampDeviceComponent)!.LampColor : Color.blue;
+			}
+		}
 		public LampStatus LampStatus => _lights.Length > 0 ? (_lights.First() as ILampDeviceComponent)!.LampStatus : LampStatus.Off;
 		[NonSerialized]
 		private LightGroupApi _api;
