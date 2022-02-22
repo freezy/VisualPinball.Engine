@@ -60,7 +60,6 @@ namespace VisualPinball.Unity
 			mr.sharedMaterial.mainTexture = _texture;
 			mr.sharedMaterial.SetTexture(DataProp, _texture);
 
-
 			var mf = gameObject.GetComponent<MeshFilter>();
 			if (mf == null) {
 				mf = gameObject.AddComponent<MeshFilter>();
