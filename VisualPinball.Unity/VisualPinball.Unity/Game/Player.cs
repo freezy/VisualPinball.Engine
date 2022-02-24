@@ -48,6 +48,7 @@ namespace VisualPinball.Unity
 
 		public List<SwitchMapping> SwitchMapping => _tableComponent.MappingConfig.Switches;
 		public List<CoilMapping> CoilMapping => _tableComponent.MappingConfig.Coils;
+		public List<LampMapping> LampMapping => _tableComponent.MappingConfig.Lamps;
 
 		public event EventHandler OnUpdate;
 
