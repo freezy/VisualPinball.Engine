@@ -62,7 +62,19 @@ You can also add multiple switches, in which case the output is only true if *al
 
 ## Lamps
 
-Lamps a bit more complex than coils and switches, because besides of simply being turned on or off, they have an intensity and a color. VPE currently has poor support of dynamically colored lamps, so visual scripting currently ignores the color. The nodes will be updated when we work on a table that has RGB LEDs.
+Lamps a bit more complex than coils and switches, because besides of simply being turned on or off, they have an intensity and a color. Additionally, they have a *blinking* state. This means that every lamp node includes a dropdown indicating how you want to drive it, with the input (or output) types changing accordingly:
+
+- **State** corresponds to a `enum`, one of  *On*, *Off* and *Blinking*.
+- **On/Off** is a `boolean`, where `true` corresponds to the *On* state, and `false` to the *Off* state.
+- **Intensity** corresponds to a `float`, and is the brightness of the lamp.
+- **Color** has its own `Color` type.
+
+These four methods allow you to completely control a lamp (with *On/Off* being sugar for setting the *State* with a boolean). However, there is a second factor that defines how the lamp will actually react, and that is its [mapping type](xref:lamp_manager#type) in the Lamp Manager.
+
+See, VPE supports a wide range of gamelogic engines, and they often don't have an internal API as rich as our visual scripting package. For example, when PinMAME sets a light to the value of 255, it doesn't know whether it just "turned it on" from 0 or whether it was "faded in" from a previous non-0 value. That's information we have to set in the Lamp Manager (in this example, the mapping type would be *Single On|Off* or *Single Fading* respectively).
+
+
+
 
 Note also that when creating your proper game logic, you should rely on [variables](#variables) instead of lamp status in your logic. However, since you can also use visual scripting along with different gamelogic engine such as [PinMAME](xref:pinmame_index), where you can't access the internal state, it makes sense to provide nodes for lamp events and retrieving their value.
 
