@@ -14,17 +14,15 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using UnityEngine;
 using NLog;
-using VisualPinball.Engine.Math;
-using Logger = NLog.Logger;
-
-#if UNITY_EDITOR
 using UnityEditor;
-#endif
+using UnityEngine;
+using Logger = NLog.Logger;
 
 namespace VisualPinball.Unity
 {
@@ -33,26 +31,25 @@ namespace VisualPinball.Unity
 		/// <summary>
 		/// Maps the coil component to the API class.
 		/// </summary>
-		private readonly Dictionary<ICoilDeviceComponent, IApiCoilDevice> _coilDevices = new Dictionary<ICoilDeviceComponent, IApiCoilDevice>();
+		private readonly Dictionary<ICoilDeviceComponent, IApiCoilDevice> _coilDevices = new();
 
 		/// <summary>
 		/// Maps the coil configuration ID to a destination.
 		/// </summary>
-		private readonly Dictionary<string, List<CoilDestConfig>> _coilAssignments = new Dictionary<string, List<CoilDestConfig>>();
+		private readonly Dictionary<string, List<CoilDestConfig>> _coilAssignments = new();
 
-		private Player _player;
-		private TableComponent _tableComponent;
-		private IGamelogicEngine _gamelogicEngine;
-		private LampPlayer _lampPlayer;
-		private WirePlayer _wirePlayer;
+		private Player? _player;
+		private TableComponent? _tableComponent;
+		private IGamelogicEngine? _gamelogicEngine;
+		private LampPlayer? _lampPlayer;
+		private WirePlayer? _wirePlayer;
 
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
-		internal Dictionary<string, bool> CoilStatuses { get; } = new Dictionary<string, bool>();
+		internal Dictionary<string, bool> CoilStatuses { get; } = new();
 		internal void RegisterCoilDevice(ICoilDeviceComponent component, IApiCoilDevice coilDeviceApi) => _coilDevices[component] = coilDeviceApi;
 
-		internal IApiCoil Coil(ICoilDeviceComponent component, string coilItem)
-			=> _coilDevices.ContainsKey(component) ? _coilDevices[component].Coil(coilItem) : null;
+		internal IApiCoil? Coil(ICoilDeviceComponent component, string coilItem) => _coilDevices.ContainsKey(component) ? _coilDevices[component].Coil(coilItem) : null;
 
 		public void Awake(Player player, TableComponent tableComponent, IGamelogicEngine gamelogicEngine, LampPlayer lampPlayer, WirePlayer wirePlayer)
 		{
@@ -65,7 +62,7 @@ namespace VisualPinball.Unity
 
 		public void OnStart()
 		{
-			if (_gamelogicEngine != null) {
+			if (_gamelogicEngine != null && _tableComponent != null) {
 				var config = _tableComponent.MappingConfig;
 				_coilAssignments.Clear();
 				foreach (var coilMapping in config.Coils) {
@@ -98,6 +95,9 @@ namespace VisualPinball.Unity
 							AssignCoilMapping(coilMapping, true);
 							break;
 						}
+
+						default:
+							throw new ArgumentOutOfRangeException();
 					}
 				}
 
@@ -112,7 +112,7 @@ namespace VisualPinball.Unity
 			if (!_coilAssignments.ContainsKey(coilMapping.Id)) {
 				_coilAssignments[coilMapping.Id] = new List<CoilDestConfig>();
 			}
-			var hasDynamicWire = _tableComponent.MappingConfig.Wires.FirstOrDefault(w =>
+			var hasDynamicWire = _tableComponent!.MappingConfig.Wires.FirstOrDefault(w =>
 				w.DestinationDevice == coilMapping.Device &&
 				w.DestinationDeviceItem == coilMapping.DeviceItem) != null;
 
@@ -122,19 +122,21 @@ namespace VisualPinball.Unity
 
 		private void HandleCoilEvent(object sender, CoilEventArgs coilEvent)
 		{
-			if (_coilAssignments.ContainsKey(coilEvent.Id)) {
-				CoilStatuses[coilEvent.Id] = coilEvent.IsEnabled;
+			// always save state
+			CoilStatuses[coilEvent.Id] = coilEvent.IsEnabled;
 
+			// trigger coil if mapped
+			if (_coilAssignments.ContainsKey(coilEvent.Id)) {
 				foreach (var destConfig in _coilAssignments[coilEvent.Id]) {
 
 					if (destConfig.HasDynamicWire) {
 						// goes back through the wire mapping, which will decide whether it has already sent the event or not
-						_wirePlayer.HandleCoilEvent(coilEvent.Id, coilEvent.IsEnabled);
+						_wirePlayer!.HandleCoilEvent(coilEvent.Id, coilEvent.IsEnabled);
 						continue;
 					}
 
 					if (destConfig.IsLampCoil) {
-						_lampPlayer.HandleCoilEvent(coilEvent.Id, coilEvent.IsEnabled);
+						_lampPlayer!.HandleCoilEvent(coilEvent.Id, coilEvent.IsEnabled);
 						continue;
 					}
 
@@ -180,7 +182,7 @@ namespace VisualPinball.Unity
 #if UNITY_EDITOR
 		private void RefreshUI()
 		{
-			if (!_player.UpdateDuringGamplay) {
+			if (!_player!.UpdateDuringGamplay) {
 				return;
 			}
 
@@ -193,8 +195,8 @@ namespace VisualPinball.Unity
 
 	internal class CoilDestConfig
 	{
-		public readonly ICoilDeviceComponent Device;
-		public readonly string DeviceItem;
+		public readonly ICoilDeviceComponent? Device;
+		public readonly string? DeviceItem;
 		public readonly bool IsLampCoil;
 		public readonly bool HasDynamicWire;
 
