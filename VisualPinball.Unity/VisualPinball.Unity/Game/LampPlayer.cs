@@ -14,18 +14,15 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
+using NLog;
 using UnityEngine;
 using VisualPinball.Engine.Game.Engines;
-using VisualPinball.Engine.Math;
-using Color = UnityEngine.Color;
-using NLog;
+using Color = VisualPinball.Engine.Math.Color;
 using Logger = NLog.Logger;
-
-#if UNITY_EDITOR
-using UnityEditor;
-#endif
 
 namespace VisualPinball.Unity
 {
@@ -34,28 +31,27 @@ namespace VisualPinball.Unity
 		/// <summary>
 		/// List of all registered lamp APIs.
 		/// </summary>
-		private readonly Dictionary<ILampDeviceComponent, IApiLamp> _lamps = new Dictionary<ILampDeviceComponent, IApiLamp>();
+		private readonly Dictionary<ILampDeviceComponent, IApiLamp> _lamps = new();
 
 		/// <summary>
 		/// Links the GLE's IDs to the lamps.
 		/// </summary>
-		private readonly Dictionary<string, List<ILampDeviceComponent>> _lampAssignments = new Dictionary<string, List<ILampDeviceComponent>>();
+		private readonly Dictionary<string, List<ILampDeviceComponent>> _lampAssignments = new();
 
 		/// <summary>
 		/// Links the GLE's IDs to the mappings.
 		/// </summary>
-		private readonly Dictionary<string, Dictionary<ILampDeviceComponent, LampMapping>> _lampMappings = new Dictionary<string, Dictionary<ILampDeviceComponent, LampMapping>>();
+		private readonly Dictionary<string, Dictionary<ILampDeviceComponent, LampMapping>> _lampMappings = new();
 
-		private Player _player;
-		private TableComponent _tableComponent;
-		private IGamelogicEngine _gamelogicEngine;
+		private Player? _player;
+		private TableComponent? _tableComponent;
+		private IGamelogicEngine? _gamelogicEngine;
 
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
-		internal IApiLamp Lamp(ILampDeviceComponent component)
-			=> _lamps.ContainsKey(component) ? _lamps[component] : null;
+		internal IApiLamp? Lamp(ILampDeviceComponent component) => _lamps.ContainsKey(component) ? _lamps[component] : null;
 
-		internal Dictionary<string, LampState> LampStates { get; } = new Dictionary<string, LampState>();
+		internal Dictionary<string, LampState> LampStates { get; } = new();
 		internal void RegisterLamp(ILampDeviceComponent component, IApiLamp lampApi) => _lamps[component] = lampApi;
 
 		public void Awake(Player player, TableComponent tableComponent, IGamelogicEngine gamelogicEngine)
@@ -68,7 +64,7 @@ namespace VisualPinball.Unity
 		public void OnStart()
 		{
 			if (_gamelogicEngine != null) {
-				var config = _tableComponent.MappingConfig;
+				var config = _tableComponent!.MappingConfig;
 				_lampAssignments.Clear();
 				_lampMappings.Clear();
 				foreach (var lampMapping in config.Lamps) {
@@ -96,36 +92,36 @@ namespace VisualPinball.Unity
 		private void HandleLampsEvent(object sender, LampsEventArgs lampsEvent)
 		{
 			foreach (var lampEvent in lampsEvent.LampsChanged) {
-				Apply(lampEvent.Id, lampEvent.Source, lampEvent.IsCoil, (mapping, lamp, state) => ApplyValue(mapping, lamp, state, lampEvent.Id, lampEvent.Value));
+				Apply(lampEvent.Id, lampEvent.Source, lampEvent.IsCoil, (state, lamp, mapping) => ApplyValue(lampEvent.Id, lampEvent.Value, state, lamp, mapping));
 			}
 		}
 
 		private void HandleLampEvent(object sender, LampEventArgs lampEvent)
 		{
-			Apply(lampEvent.Id, lampEvent.Source, lampEvent.IsCoil, (mapping, lamp, state) => ApplyValue(mapping, lamp, state, lampEvent.Id, lampEvent.Value));
+			Apply(lampEvent.Id, lampEvent.Source, lampEvent.IsCoil, (state, lamp, mapping) => ApplyValue(lampEvent.Id, lampEvent.Value, state, lamp, mapping));
 		}
 
 		public void HandleLampEvent(string id, float value)
 		{
-			Apply(id, LampSource.Lamp, false, (mapping, lamp, state) => ApplyValue(mapping, lamp, state, id, value));
+			Apply(id, LampSource.Lamp, false, (state, lamp, mapping) => ApplyValue(id, value, state, lamp, mapping));
 		}
 
 		public void HandleLampEvent(string id, LampStatus status)
 		{
-			Apply(id, LampSource.Lamp, false, (_, lamp, state) => ApplyStatus(lamp, state, id, status));
+			Apply(id, LampSource.Lamp, false, (state, lamp, _) => ApplyStatus(id, status, state, lamp));
 		}
 
-		public void HandleLampEvent(string id, VisualPinball.Engine.Math.Color color)
+		public void HandleLampEvent(string id, Color color)
 		{
-			Apply(id, LampSource.Lamp, false, (_, lamp, state) => ApplyColor(lamp, state, id, color));
+			Apply(id, LampSource.Lamp, false, (state, lamp, _) => ApplyColor(id, color, state, lamp));
 		}
 
 		public void HandleCoilEvent(string id, bool isEnabled)
 		{
-			Apply(id, LampSource.Lamp, true, (_, lamp, state) => ApplyStatus(lamp, state, id, isEnabled ? LampStatus.On : LampStatus.Off));
+			Apply(id, LampSource.Lamp, true, (state, lamp, _) => ApplyStatus(id, isEnabled ? LampStatus.On : LampStatus.Off, state, lamp));
 		}
 
-		private void Apply(string id, LampSource lampSource, bool isCoil, Action<LampMapping, IApiLamp, LampState> action)
+		private void Apply(string id, LampSource lampSource, bool isCoil, Action<LampState, IApiLamp?, LampMapping?> action)
 		{
 			if (_lampAssignments.ContainsKey(id)) {
 				foreach (var component in _lampAssignments[id]) {
@@ -138,7 +134,7 @@ namespace VisualPinball.Unity
 					if (_lamps.ContainsKey(component)) {
 						var lamp = _lamps[component];
 						var state = LampStates[id];
-						action(mapping, lamp, state);
+						action(state, lamp, mapping);
 					}
 				}
 
@@ -148,45 +144,54 @@ namespace VisualPinball.Unity
 			}
 		}
 
-		private void ApplyStatus(IApiLamp lamp, LampState state, string id, LampStatus status)
+		private void ApplyStatus(string id, LampStatus status, LampState state, IApiLamp? lamp)
 		{
 			state.Status = status;
 			LampStates[id] = state;
-			lamp.OnLamp(status);
+			lamp?.OnLamp(status);
 		}
 
-		private void ApplyColor(IApiLamp lamp, LampState state, string id, VisualPinball.Engine.Math.Color color)
+		private void ApplyColor(string id, Color color, LampState state, IApiLamp? lamp)
 		{
 			state.Color.SetColorWithoutAlpha(color);
 			LampStates[id] = state;
-			lamp.OnLamp(state.Color.ToUnityColor());
+			lamp?.OnLamp(state.Color.ToUnityColor());
 		}
 
-		private void ApplyValue(LampMapping mapping, IApiLamp lamp, LampState state, string id, float value)
+		private void ApplyValue(string id, float value, LampState state, IApiLamp? lamp, LampMapping? mapping)
 		{
+			if (mapping == null) {
+				// if not mapped, there is no lamp, so just save the state.
+				// we do that by setting both status and intensity
+				state.IsOn = value > 0;
+				state.Color.Alpha = (int)value;
+				LampStates[id] = state;
+				return;
+			}
+
 			switch (mapping.Type) {
 				case LampType.SingleOnOff:
 					state.IsOn = value > 0;
 					LampStates[id] = state;
-					lamp.OnLamp(state.Status);
+					lamp?.OnLamp(state.Status);
 					break;
 
 				case LampType.Rgb:
 					state.Color.Alpha = (int)value;
 					LampStates[id] = state;
-					lamp.OnLamp(state.Intensity);
+					lamp?.OnLamp(state.Intensity);
 					break;
 
 				case LampType.RgbMulti:
 					state.SetChannel(mapping.Channel, value / 255f); // todo test
 					LampStates[id] = state;
-					lamp.OnLamp(state.Color.ToUnityColor());
+					lamp?.OnLamp(state.Color.ToUnityColor());
 					break;
 
 				case LampType.SingleFading:
 					state.Intensity = value / mapping.FadingSteps;
 					LampStates[id] = state;
-					lamp.OnLamp(state.Intensity);
+					lamp?.OnLamp(state.Intensity);
 					break;
 
 				default:
@@ -220,11 +225,11 @@ namespace VisualPinball.Unity
 #if UNITY_EDITOR
 		private void RefreshUI()
 		{
-			if (!_player.UpdateDuringGamplay) {
+			if (!_player!.UpdateDuringGamplay) {
 				return;
 			}
 
-			foreach (var manager in (EditorWindow[])Resources.FindObjectsOfTypeAll(Type.GetType("VisualPinball.Unity.Editor.LampManager, VisualPinball.Unity.Editor"))) {
+			foreach (var manager in (UnityEditor.EditorWindow[])Resources.FindObjectsOfTypeAll(Type.GetType("VisualPinball.Unity.Editor.LampManager, VisualPinball.Unity.Editor"))) {
 				manager.Repaint();
 			}
 		}
