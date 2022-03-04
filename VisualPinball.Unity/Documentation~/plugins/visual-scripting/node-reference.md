@@ -62,27 +62,37 @@ You can also add multiple switches, in which case the output is only true if *al
 
 ## Lamps
 
-Lamps a bit more complex than coils and switches, because besides of simply being turned on or off, they have an intensity and a color. Additionally, they have a *blinking* state. This means that every lamp node includes a dropdown indicating how you want to drive it, with the input (or output) types changing accordingly:
+Lamps a bit more complex than coils and switches, because besides of simply being *on* or *off*, they have an *intensity* and a *color*. Additionally, they can be set to a *blinking* state. This means that all our lamp nodes include a dropdown indicating how it should be driven, with the port types changing accordingly:
 
-- **State** corresponds to a `enum`, one of  *On*, *Off* and *Blinking*.
-- **On/Off** is a `boolean`, where `true` corresponds to the *On* state, and `false` to the *Off* state.
-- **Intensity** corresponds to a `float`, and is the brightness of the lamp.
+- **Status** corresponds to a `enum`, one of  *On*, *Off* and *Blinking*.
+- **On/Off** is a `boolean`, where `true` corresponds to the *On* status, and `false` to the *Off* status.
+- **Intensity** corresponds to a `float`, and is explained in more detail below.
 - **Color** has its own `Color` type.
 
-These four methods allow you to completely control a lamp (with *On/Off* being sugar for setting the *State* with a boolean). However, there is a second factor that defines how the lamp will actually react, and that is its [mapping type](xref:lamp_manager#type) in the Lamp Manager.
+These four modes allow you to completely control a lamp (with *On/Off* being sugar for setting the status using a `boolean`). However, there is a second factor that defines how the lamp will actually react, and that is its [mapping type](xref:lamp_manager#type) in the lamp manager.
 
-See, VPE supports a wide range of gamelogic engines, and they often don't have an internal API as rich as our visual scripting package. For example, when PinMAME sets a light to the value of 255, it doesn't know whether it just "turned it on" from 0 or whether it was "faded in" from a previous non-0 value. That's information we have to set in the Lamp Manager (in this example, the mapping type would be *Single On|Off* or *Single Fading* respectively).
+See, VPE supports a wide range of gamelogic engines, and they often don't have an internal API as rich as our visual scripting package. For example, when PinMAME sets a light to the value of 255, it doesn't know whether it just "turned it on" from 0 or whether it was "faded in" from a previous non-0 value. That's information we have to manually set in the lamp manager (in this example, the mapping type would be *Single On|Off* and *Single Fading* respectively).
 
+That said, the only mode that might leads to confusion is *Intensity*, mainly because it's the only value that PinMAME emits. So if you choose *Intensity*, here is how the value is treated depending each mapping type:
 
-
-
-Note also that when creating your proper game logic, you should rely on [variables](#variables) instead of lamp status in your logic. However, since you can also use visual scripting along with different gamelogic engine such as [PinMAME](xref:pinmame_index), where you can't access the internal state, it makes sense to provide nodes for lamp events and retrieving their value.
-
-
-### On Lamp Changed
-
+- *Single On|Off* sets the **status** of the lamp to *On* if the value is greater than 0, and to *Off* otherwise.
+- *Single Fading* sets the **intensity** to the value *divided by [maximal intensity](xref:lamp_manager#max-intensity)*. We recommend setting the maximal intensity to 100 in the lamp manager and use values from 0 to 100 in the visual scripting nodes.
+- *RGB* sets the **intensity**, where the value is between 0 and 1.
+- *RGB Multi* you probably won't use. It sets the [channel](xref:lamp_manager#channel) defined in the mapping to the value divided by 255 (yes, it's very PinMAME specific).
 
 
+> [!NOTE]
+> When creating your proper game logic, you should rely on [variables](#variables) instead of lamp status in your logic. However, since you can also use visual scripting along with different gamelogic engine such as [PinMAME](xref:pinmame_index), where you can't access the internal state, we also provide nodes for lamp events and retrieving their value.
+
+Let's jump to the nodes.
+
+### Set Lamp
+
+This node assigns a given value to a lamp defined by its mapped ID. This also triggers the lamp changed event. 
+
+In the example, we have defined a player variable of type `boolean` called *Yellow Bank Lit*. We synchronize the lamp status with the variable by setting the lamp with the ID `l_yellow_bank` to the value of the variable when it changes.
+
+![Set Lamp](set-lamp-example.png)
 
 
 ## Variables
@@ -164,3 +174,22 @@ One of the main advantages of using VPE's variable system is that you get events
 In this example, we listen to the score variable and fetch it into our *Update Display* node, which sends the data to our score reel component, which then rotates the reels accordingly. Note that you'll also get the previous value of the variable, before it changed.
 
 ![On Variable Changed](on-variable-changed-example.png)
+
+
+## Events
+
+### Trigger Pinball Event
+
+This node triggers an event that was previously defined in the inspector of the visual scripting gamelogic engine. It can be fed with an arbitrary number of arguments.
+
+In this example we don't set the score directly but emit an event so we can have a centralized logic dealing with scores (it's for an EM, and while the reel motor is on, no scoring is skipped):
+
+![Trigger Event](trigger-event-example.png)
+
+
+### On Pinball Event
+
+On the receiving end, this is the event node that is triggered when a pinball event node with the same event is executed. To continue the previous example, here a graph triggered by a pinball event, which updates the score if the score reel motor is not running.
+
+![On Pinball Event](pinball-event-example.png)
+

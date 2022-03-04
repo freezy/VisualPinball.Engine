@@ -51,6 +51,12 @@ Same goes for the lamps. They appear in the [Lamp Manager](xref:lamp_manager) an
 
 It's worth noting that VPE currently doesn't provide any tools for creating light shows. Once we do, we'll provide additional lamp nodes to trigger and blend them together.
 
+### Events
+
+<img src="event-setup.png" width="407" alt="Event Definitions" class="img-responsive pull-right" style="margin-left: 15px"/>
+
+Unity provides [Custom Events](https://docs.unity3d.com/Packages/com.unity.visualscripting@1.7/manual/vs-events-reference.html#custom-events) which allow you to globally pass data across graphs. While this is a valid approach, VPE provides its own event nodes called *Pinball Events*, which allow you to declare your events. This has the benefit of being able to simply pick an event from a drop-down when configuring the nodes, as opposed to having to remember or separately document existing event names.
+
 ### Variables
 
 It's worth describing variables more in detail, which we do in the [next section](xref:uvs_variables).
