@@ -8,7 +8,7 @@ description: Reference documentation for all VPE-specific nodes.
 
 This page details all the VPE-specific nodes that we have created for visual scripting.
 
-You can recognize VPE nodes easily by their color; they are orange. When creating new nodes, VPE event nodes can be found under *Events/Visual Pinball*, and other nodes simply under the root's *Visual Pinball*.
+You can recognize VPE nodes easily by their color: they are orange. When creating new nodes, VPE event nodes can be found under *Events/Visual Pinball*, and other nodes simply under the root's *Visual Pinball*.
 
 Besides the simple read/write/event nodes, there are a bunch of nodes that solve common patterns in pinball games. While you could implement the same logic using Unity's standard nodes, we recommend using those custom nodes, because they save you space and thus increase the readability of your graphs.
 
@@ -93,6 +93,37 @@ This node assigns a given value to a lamp defined by its mapped ID. This also tr
 In the example, we have defined a player variable of type `boolean` called *Yellow Bank Lit*. We synchronize the lamp status with the variable by setting the lamp with the ID `l_yellow_bank` to the value of the variable when it changes.
 
 ![Set Lamp](set-lamp-example.png)
+
+### Get Lamp Value
+
+This node retrieves the current value of a lamp by its mapped ID. As described before, the type of the output port depends on which mode has been selected.
+
+A typical usage is to check whether a lamp has previously been set, where no variable is available. That's the case if you're expanding PinMAME with additional logic.
+
+![Get Lamp](get-lamp-example.png)
+
+This is an example from the table *Rock (Premier 1985)*, where PinMAME doesn't emulate the starting light sequence. The graph above checks if lamp 01 is lit, and turns off a bunch of lamps if that's not the case (otherwise, it's more complicated). It does this when lamp 01, 12 or 13 changes, and at the beginning of the game.
+
+### On Lamp Changed
+
+This node triggers when any of the defined lamps changes state. Its application is quite similar to the previous *[get lamp value](#get-lamp-value)* node, where the example covers this node as well.
+
+### Lamp Sequence
+
+This node takes in a list of lamps and loops through each lamp with a given step size, while applying a given value to the active lamp(s) and another value to the inactive lamps. The counter is internal to the node and increases each time the node is processed.
+
+The inputs are the following:
+
+- *Lamps* - The list of lamps to loop through. Note that light groups are flattened, i.e. split into single lamps.
+- *Step* - By how much the internal counter increases when the node is processed. It's also how many lamps are active.
+- *Value* - The value that is applied to the *active* lamps
+- *Non Step Value* - The value that is applied to *inactive* lamps.
+
+As an example, here is a loop that gets triggered when lamp 13 gets lit and repeats until lamp 13 is unlit. On each iteration, two lamps get turned on, while the others are turned off. It starts with the first two lamps, then the second two lamps, then lamp 5 and 6, and so on. All these lamps are part of the `l_auxiliary` light group, which contains 20 lamps. After lamp 19 and 20 were turned on, it goes back to lamp 1 and 2. After each interation, the loop pauses for 60ms before continuing.
+
+Finally, when lamp 13 is turned off, the loop exits and the entire light group is turned off as well.
+
+![Lamp Sequence](lamp-sequence-example.png)
 
 
 ## Variables
