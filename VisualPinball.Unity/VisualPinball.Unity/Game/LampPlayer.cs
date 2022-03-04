@@ -141,6 +141,11 @@ namespace VisualPinball.Unity
 				#if UNITY_EDITOR
 				RefreshUI();
 				#endif
+			} else {
+				if (!LampStates.ContainsKey(id)) {
+					LampStates[id] = LampState.Default;
+				}
+				action(LampStates[id], null, null);
 			}
 		}
 
