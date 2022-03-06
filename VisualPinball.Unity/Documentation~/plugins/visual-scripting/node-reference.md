@@ -10,7 +10,7 @@ This page details all the VPE-specific nodes that we have created for visual scr
 
 You can recognize VPE nodes easily by their color: they are orange. When creating new nodes, VPE event nodes can be found under *Events/Visual Pinball*, and other nodes simply under the root's *Visual Pinball*.
 
-Besides the simple read/write/event nodes, there are a bunch of nodes that solve common patterns in pinball games. While you could implement the same logic using Unity's standard nodes, we recommend using those custom nodes, because they save you space and thus increase the readability of your graphs.
+Besides the simple read/write/event nodes, there are a bunch of nodes that solve common patterns in pinball games. While you could implement the same logic using Unity's standard nodes, we recommend using these custom nodes, because they save you space and thus increase the readability of your graphs.
 
 However, it's hard to use them without knowing about them, so we recommend reading through this page in order to familiarize with them.
 
@@ -37,7 +37,7 @@ This node enables one or multiple coils, and disables them after a given delay. 
 
 ### On Switch Enabled
 
-This is probably the most common switch event you'll use. It triggers when any switch of a list of switches is *enabled*.
+This is probably the most common switch event you will use. It triggers when any switch in a list of switches is *enabled*.
 
 Here is an example of the drain switch increasing the *current ball* variable.
 
@@ -46,15 +46,15 @@ Here is an example of the drain switch increasing the *current ball* variable.
 
 ### On Switch Changed
 
-The other switch event triggers in both cases, when the switch is enabled, and when it gets disabled. The classic example already mentioned above are the flipper buttons.
+The other switch event triggers in both cases, when the switch is enabled, and when it gets disabled. The classic example already mentioned above is the flipper buttons.
 
 ![Set Coil](set-coil-example.png)
 
-When using multiple switches, you'll get an event for any of the switches with the value of the switch that changed.
+When using multiple switches, you will get an event for any of the switches with the value of the switch that changed.
 
 ### Get Switch Value
 
-This node just returns the current switch value of a given switch. While usually you should rely on player and table variables for saving and retrieving status, it still has its usage. For example, you might want to not add the state of a kicker to the variables and rely on the kicker switch directly instead.
+This node returns the current switch value of a given switch. While usually you should rely on player and table variables for saving and retrieving status, it still has its usage. For example, you might want to not add the state of a kicker to the variables and rely on the kicker switch directly instead.
 
 ![Get Switch](get-switch-example.png)
 
@@ -62,23 +62,23 @@ You can also add multiple switches, in which case the output is only true if *al
 
 ## Lamps
 
-Lamps a bit more complex than coils and switches, because besides of simply being *on* or *off*, they have an *intensity* and a *color*. Additionally, they can be set to a *blinking* state. This means that all our lamp nodes include a dropdown indicating how it should be driven, with the port types changing accordingly:
+Lamps are a bit more complex than coils and switches, because besides simply being *on* or *off*, they have an *intensity* and a *color*. Additionally, they can be set to a *blinking* state. This means that all our lamp nodes include a dropdown indicating how it should be driven, with the port types changing accordingly:
 
 - **Status** corresponds to a `enum`, one of  *On*, *Off* and *Blinking*.
 - **On/Off** is a `boolean`, where `true` corresponds to the *On* status, and `false` to the *Off* status.
 - **Intensity** corresponds to a `float`, and is explained in more detail below.
 - **Color** has its own `Color` type.
 
-These four modes allow you to completely control a lamp (with *On/Off* being sugar for setting the status using a `boolean`). However, there is a second factor that defines how the lamp will actually react, and that is its [mapping type](xref:lamp_manager#type) in the lamp manager.
+These four modes allow you to completely control a lamp (with *On/Off* setting the status using a `boolean`). However, there is a second factor that defines how the lamp will actually react, and that is its [mapping type](xref:lamp_manager#type) in the lamp manager.
 
-See, VPE supports a wide range of gamelogic engines, and they often don't have an internal API as rich as our visual scripting package. For example, when PinMAME sets a light to the value of 255, it doesn't know whether it just "turned it on" from 0 or whether it was "faded in" from a previous non-0 value. That's information we have to manually set in the lamp manager (in this example, the mapping type would be *Single On|Off* and *Single Fading* respectively).
+See, VPE supports a wide range of gamelogic engines, and they often don't have an internal API as rich as our visual scripting package. For example, when PinMAME sets a light to the value of 255, it doesn't know whether it just "turned it on" from 0 or whether it was "faded in" from a previous non 0 value. That's information we have to manually set in the lamp manager (in this example, the mapping type would be *Single On|Off* and *Single Fading* respectively).
 
-That said, the only mode that might leads to confusion is *Intensity*, mainly because it's the only value that PinMAME emits. So if you choose *Intensity*, here is how the value is treated depending each mapping type:
+That said, the only mode that might lead to confusion is *Intensity*, mainly because it's the only value that PinMAME emits. So if you choose *Intensity*, here is how the value is treated depending each mapping type:
 
 - *Single On|Off* sets the **status** of the lamp to *On* if the value is greater than 0, and to *Off* otherwise.
-- *Single Fading* sets the **intensity** to the value *divided by [maximal intensity](xref:lamp_manager#max-intensity)*. We recommend setting the maximal intensity to 100 in the lamp manager and use values from 0 to 100 in the visual scripting nodes.
+- *Single Fading* sets the **intensity** to the value *divided by [maximal intensity](xref:lamp_manager#max-intensity)*. We recommend setting the maximum intensity to 100 in the lamp manager and use values from 0 to 100 in the visual scripting nodes.
 - *RGB* sets the **intensity**, where the value is between 0 and 1.
-- *RGB Multi* you probably won't use. It sets the [channel](xref:lamp_manager#channel) defined in the mapping to the value divided by 255 (yes, it's very PinMAME specific).
+- *RGB Multi* you probably will not use. It sets the [channel](xref:lamp_manager#channel) defined in the mapping to the value divided by 255 (yes, it's very PinMAME specific).
 
 
 > [!NOTE]
@@ -211,16 +211,16 @@ In this example, we listen to the score variable and fetch it into our *Update D
 
 ### Trigger Pinball Event
 
-This node triggers an event that was previously defined in the inspector of the visual scripting gamelogic engine. It can be fed with an arbitrary number of arguments.
+This node triggers an event that was previously defined in the inspector of the visual scripting gamelogic engine. It can be fed with an any number of arguments.
 
-In this example we don't set the score directly but emit an event so we can have a centralized logic dealing with scores (it's for an EM, and while the reel motor is on, no scoring is skipped):
+In this example we don't set the score directly but emit an event so we can have centralized logic dealing with scores (it's for an EM, and while the reel motor is on, no scoring is skipped):
 
 ![Trigger Event](trigger-event-example.png)
 
 
 ### On Pinball Event
 
-On the receiving end, this is the event node that is triggered when a pinball event node with the same event is executed. To continue the previous example, here a graph triggered by a pinball event, which updates the score if the score reel motor is not running.
+On the receiving end, this is the event node that is triggered when a pinball event node with the same event is executed. To continue the previous example, here the graph was triggered by a pinball event, which updates the score if the score reel motor is not running.
 
 ![On Pinball Event](pinball-event-example.png)
 
