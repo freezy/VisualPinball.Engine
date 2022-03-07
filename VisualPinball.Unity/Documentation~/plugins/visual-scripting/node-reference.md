@@ -125,6 +125,14 @@ Finally, when lamp 13 is turned off, the loop exits and the entire light group i
 
 ![Lamp Sequence](lamp-sequence-example.png)
 
+### Switch Lamp
+
+This node takes in a list of lamps, matches them based on an input, and updates them based on the match.
+
+In the following example we enable the lamp on an EM backglass which indicates the current ball in play. As an input we get an integer representing the ball number, and we toggle the respective lamp based on that value.
+
+![Switch Lamp](switch-lamp-example.png)
+
 
 ## Variables
 
