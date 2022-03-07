@@ -133,6 +133,10 @@ In the following example we enable the lamp on an EM backglass which indicates t
 
 ![Switch Lamp](switch-lamp-example.png)
 
+You don't need to populate all possible input values with your lamps. Here is an example that matches only if the current ball number is 0 (no game running), in which case the GAME OVER lamp is set to *blinking*.
+
+![Switch Lamp](switch-lamp-example2.png)
+
 
 ## Variables
 
@@ -232,3 +236,19 @@ On the receiving end, this is the event node that is triggered when a pinball ev
 
 ![On Pinball Event](pinball-event-example.png)
 
+
+## Displays
+
+Creating original *graphical* content for displays is not yet supported by VPE. We're looking into leveraging Unity's 2D engine to create content and send the result to the different output devices VPE supports. This will most likely be a system independent from visual scripting.
+
+Even if we have nothing that creates the graphical content, we've defined the APIs used to pass the data around. This allows us to already have a working system that supports number and text data.
+
+### Update Display
+
+This node takes in some data and sends it to one of the [displays defined in the GLE](xref:uvs_setup#displays). VPE supports segment displays and score reels, so the data can be numeric (score reels and segment displays) or alphanumeric (segment displays).
+
+This example shows how the display is updated for a simple one player EM machine.
+
+![Update Display](update-display-example.png)
+
+The score reel animation is handled by the component driving the reel. It's also on component level where you can define the speed and delays of the score reel animation.
