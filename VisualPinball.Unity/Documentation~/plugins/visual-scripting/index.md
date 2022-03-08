@@ -4,7 +4,7 @@ title: Visual Scripting
 description: Unity Visual Scripting and VPE
 ---
 
-![Cover](cover.png)
+![Cover](banner.jpg)
 
 # Visual Scripting
 
@@ -48,3 +48,14 @@ Then, input `org.visualpinball.engine.unity.visualscripting` and click *Add* or 
 > You will need to have our scoped registry added in order for Unity to find the visual scripting package. How to do this is documented in the [general setup section](/creators-guide/setup/installing-vpe.html#vpe-package).
 
 Once the visual scripting package is install, you can [set up](xref:uvs_setup) the gamelogic engine for it.
+
+## Disclaimer
+
+We've successfully used this package in a single player EM game. Its logic was relatively simple, and there are two important distinctions between an EM game and a modern era game:
+
+1. Modern games have light shows that need to be programmed
+2. Modern games have a display like a DMD or even a high resolution LCD that needs content in form of pixel data.
+
+Visual scripting does neither of that. As mentioned above, it's good at reading switch changes and triggering coils and single lamps. Driving a segment display or score reel is very well feasible too, but don't expect to recreate JJP's Guns N' Roses just yet.
+
+For this you'll need a proper light sequencer and a video engine. Both are tools that will eventually be created, but today that's not yet the case.
