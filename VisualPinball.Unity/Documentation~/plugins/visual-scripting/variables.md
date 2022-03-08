@@ -24,7 +24,7 @@ VPE provides its own type of variables for that, and they come in two flavors:
 
 In the visual scripting GLE, you can define the structure of both types of variables. Then, in the graph, you'll get events for every defined variable that you can use to trigger the desired action.
 
-If you're testing gameplay in the editor, the current values of both player and table variables are shown in the inspector.
+If you're testing gameplay in the editor, the current values of both player and table variables are shown in the inspector and get updated in real time.
 
 > [!NOTE]
 > In the future, table variables could also marked as *editable*, so the player app could allow the user to change them.
