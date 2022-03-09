@@ -474,20 +474,18 @@ namespace VisualPinball.Unity
 		{
 			var lamps = tableComponent.GetComponentsInChildren<ILampDeviceComponent>().OrderBy(LampTypePriority).ToArray();
 			foreach (var engineLamp in GetLamps(engineLamps)) {
-				var lampMapping = Lamps.FirstOrDefault(mappingsLampData => mappingsLampData.Id == engineLamp.Id && !mappingsLampData.IsCoil);
+				var lampMapping = Lamps.FirstOrDefault(mappingsLampData => mappingsLampData.Id == engineLamp.Id && mappingsLampData.Channel == engineLamp.Channel && !mappingsLampData.IsCoil);
 				if (lampMapping != null) {
 					continue;
 				}
 
 				var description = string.IsNullOrEmpty(engineLamp.Description) ? string.Empty : engineLamp.Description;
-
 				var deviceAdded = false;
 
 				foreach (var device in GuessLampDevices(lamps, engineLamp)) {
 					var deviceItem = GuessLampDeviceItem(engineLamp, device);
 
-					AddLamp(new LampMapping
-					{
+					AddLamp(new LampMapping {
 						Id = engineLamp.Id,
 						InternalId = engineLamp.InternalId,
 						Channel = engineLamp.Channel,
@@ -503,8 +501,7 @@ namespace VisualPinball.Unity
 				}
 
 				if (!deviceAdded) {
-					AddLamp(new LampMapping
-					{
+					AddLamp(new LampMapping {
 						Id = engineLamp.Id,
 						InternalId = engineLamp.InternalId,
 						Channel = engineLamp.Channel,
