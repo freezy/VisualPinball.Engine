@@ -24,14 +24,14 @@
     <None Remove="Fixtures*/*" Visible="false" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="coverlet.msbuild" Version="3.1.0">
+    <PackageReference Include="coverlet.msbuild" Version="3.1.2">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
     <PackageReference Include="NUnit" Version="3.13.2" />
-    <PackageReference Include="NUnit3TestAdapter" Version="4.2.0" />
-    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.1.0-preview-20211130-02" />
-    <PackageReference Include="FluentAssertions" Version="6.3.0" ExcludeAssets="Compile" />
+    <PackageReference Include="NUnit3TestAdapter" Version="4.2.1" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.2.0-preview-20220131-20" />
+    <PackageReference Include="FluentAssertions" Version="6.5.1" ExcludeAssets="Compile" />
     <PackageReference Include="JeremyAnsel.Media.WavefrontObj" Version="2.0.19" />
   </ItemGroup>
   <ItemGroup>
@@ -40,7 +40,7 @@
   </ItemGroup>
   <ItemGroup>
     <Reference Include="FluentAssertions">
-      <HintPath>$(NuGetPackageRoot)\fluentassertions\6.3.0\lib\netstandard2.1\FluentAssertions.dll</HintPath>
+      <HintPath>$(NuGetPackageRoot)\fluentassertions\6.5.1\lib\netstandard2.1\FluentAssertions.dll</HintPath>
     </Reference>
   </ItemGroup>
   <Target Name="PluginsDeploy" AfterTargets="Build">

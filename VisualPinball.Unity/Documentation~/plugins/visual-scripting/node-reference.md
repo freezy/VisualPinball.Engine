@@ -16,6 +16,20 @@ However, it's hard to use them without knowing about them, so we recommend readi
 
 ## Coils
 
+### On Coil Enabled
+
+This event is triggered when the status of any coil in a list of coils is *enabled*.
+
+### On Coil Changed
+
+This coil event triggers when the status of a coil in a list of coils changes.
+
+![On Coil Changed](on-coil-changed.png)
+
+### On All Coils Enabled
+
+This coil event triggers when all coils in a list of coils are enabled.
+
 ### Set Coil
 
 This node assigns a given value to one or multiple coils, and keeps that value. This is useful when both the *enabled* and *disabled* status are important. Otherwise, use the [*Pulse Coil*](#pulse-coil) node, which enables a coil, and automatically disables it after a short delay.
@@ -24,7 +38,7 @@ A typical use case for this node is linking the flipper coil to a switch event. 
 
 ![Set Coil](set-coil-example.png)
 
-As seen in the screenshot, you can set the number of affected switches in the header of the node. Increasing the number will add additional ports below.
+As seen in the screenshot, you can set the number of affected coils in the header of the node. Increasing the number will add additional ports below.
 
 ### Pulse Coil
 
@@ -32,6 +46,9 @@ This node enables one or multiple coils, and disables them after a given delay. 
 
 ![Pulse Coil](pulse-coil-example.png)
 
+### Get Coil Value
+
+This node returns the current coil status of a given coil. While usually you should rely on player and table variables for saving and retrieving status, it still has its usage. For example, you might need to see if a coil is still *enabled* after a period of time.
 
 ## Switches
 
@@ -43,14 +60,13 @@ Here is an example of the drain switch increasing the *current ball* variable.
 
 ![On Switch Enabled](on-switch-enabled.png)
 
-
 ### On Switch Changed
 
 The other switch event triggers in both cases, when the switch is enabled, and when it gets disabled. The classic example already mentioned above is the flipper buttons.
 
-![Set Coil](set-coil-example.png)
+![Set Switch]
 
-When using multiple switches, you will get an event for any of the switches with the value of the switch that changed.
+As seen in the screenshot, you can set the number of affected switches in the header of the node. Increasing the number will add additional ports below.
 
 ### Get Switch Value
 
