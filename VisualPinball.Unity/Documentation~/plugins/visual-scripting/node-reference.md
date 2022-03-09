@@ -42,7 +42,7 @@ As seen in the screenshot, you can set the number of affected coils in the heade
 
 ### Pulse Coil
 
-This node enables one or multiple coils, and disables them after a given delay. This is useful when you only care about the "enabled" event, which often the case. Here an example of the eject coil of the trough being pulsed when the *running* state is entered.
+This node enables one or multiple coils, and disables them after a given delay. This is useful when you only care about the "enabled" event, which often the case. Here is an example of the eject coil of the trough being pulsed when the *running* state is entered.
 
 ![Pulse Coil](pulse-coil-example.png)
 
@@ -64,9 +64,17 @@ Here is an example of the drain switch increasing the *current ball* variable.
 
 The other switch event triggers in both cases, when the switch is enabled, and when it gets disabled. The classic example already mentioned above is the flipper buttons.
 
-![Set Switch]
+### On All Switches Enabled
 
-As seen in the screenshot, you can set the number of affected switches in the header of the node. Increasing the number will add additional ports below.
+This switch event triggers when all switches in a list of switches are enabled.
+
+### Set Switch
+
+This node enables or disables one or multiple switches.
+
+### Pulse Switch
+
+This node enables one or multiple switches, and disables them after a given delay. 
 
 ### Get Switch Value
 
