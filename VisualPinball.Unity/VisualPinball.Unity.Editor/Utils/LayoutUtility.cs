@@ -28,6 +28,10 @@ namespace VisualPinball.Unity.Editor
 		[MenuItem("Visual Pinball/Editor/Setup Layouts", false, 511)]
 		public static void PopulateEditorLayout()
 		{
+			// to update, do your changes, save the layout back, and finally copy it from
+			// from: C:\Users\%USERNAME%\AppData\Roaming\Unity\Editor-5.x\Preferences\Layouts\default
+			// to: VisualPinball.Unity\Assets\Editor\WindowLayouts
+
 			var layouts = CollectCustomLayouts();
 			var unityPrefs = InternalEditorUtility.unityPreferencesFolder;
 
