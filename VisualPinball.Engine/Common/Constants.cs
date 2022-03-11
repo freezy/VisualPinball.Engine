@@ -149,8 +149,8 @@ namespace VisualPinball.Engine.Common
 		public const string ActionCoinDoorUp = "Coin Door Up (WPC)";
 		public const string ActionCoinDoorEnter = "Coin Door Enter (WPC)";
 		public const string ActionCoinDoorBack = "Coin Door Back (SAM)";
-		public const string ActionCoinDoorMinus = "Coin Door - (SAM)";
-		public const string ActionCoinDoorPlus = "Coin Door + (SAM)";
+		public const string ActionCoinDoorMinus = "Coin Door Minus (-) (SAM)";
+		public const string ActionCoinDoorPlus = "Coin Door Plus (+) (SAM)";
 		public const string ActionCoinDoorSelect = "Coin Door Select (SAM)";
 		public const string ActionCoinDoorAdvance = "Coin Door Advance";
 		public const string ActionCoinDoorUpDown = "Coin Door Up/Down";
