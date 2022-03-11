@@ -18,7 +18,9 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using UnityEditor;
+using UnityEditor.Formats.Fbx.Exporter;
 using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -244,25 +246,53 @@ namespace VisualPinball.Unity.Editor
 		private Dictionary<string, IMainComponent> UpdateGameItems(Dictionary<string, IVpxPrefab> prefabLookup)
 		{
 			var componentLookup = prefabLookup.ToDictionary(x => x.Key, x => x.Value.MainComponent);
-			foreach (var prefab in prefabLookup.Values) {
-				prefab.SetReferencedData(_sourceTable, this, this, componentLookup);
-				prefab.FreeBinaryData();
+			try {
+				// pause asset database refreshing
+				AssetDatabase.StartAssetEditing();
 
-				if (prefab.ExtractMesh) {
-					var mfs = prefab.MeshFilters;
-					foreach (var mf in mfs) {
-						var suffix = mfs.Length == 1 ? "" : $" ({mf.gameObject.name})";
-						var meshFilename = $"{prefab.GameObject.name.ToFilename()}{suffix.ToFilename()}.mesh";
+				// thanks unity for not letting me pass the options to ModelExporter.ExportObject().
+				var modelExporter = typeof(ModelExporter);
+				var optionsProp = modelExporter.GetProperty("DefaultOptions", BindingFlags.Static | BindingFlags.NonPublic);
+				var optionsValue = optionsProp!.GetValue(null, null);
+				var optionsType = optionsValue.GetType();
+				var exportFormatField = optionsType.BaseType!.GetField("exportFormat", BindingFlags.Instance | BindingFlags.NonPublic);
+				exportFormatField!.SetValue(optionsValue, 1); // set to binary
+				var exportObject = modelExporter.GetMethod("ExportObjects", BindingFlags.NonPublic | BindingFlags.Static);
+
+				// first loop: write fbx files
+				foreach (var prefab in prefabLookup.Values) {
+					prefab.SetReferencedData(_sourceTable, this, this, componentLookup);
+					prefab.FreeBinaryData();
+
+					if (prefab.ExtractMesh) {
+						var meshFilename = $"{prefab.GameObject.name.ToFilename()}.fbx";
 						var meshPath = Path.Combine(_assetsMeshes, meshFilename);
 						if (_options.SkipExistingMeshes && File.Exists(meshPath)) {
-							mf.sharedMesh = AssetDatabase.LoadAssetAtPath<Mesh>(meshPath);
 							continue;
 						}
 						if (File.Exists(meshPath)) {
 							AssetDatabase.DeleteAsset(meshPath);
 						}
-						AssetDatabase.CreateAsset(mf.sharedMesh, meshPath);
+
+						// export via reflection, because we need binary.
+						exportObject!.Invoke(null, new[] { meshPath, new UnityEngine.Object[] {prefab.GameObject}, optionsValue, null });
 					}
+				}
+
+			} finally {
+				// resume asset database refreshing
+				AssetDatabase.StopAssetEditing();
+				AssetDatabase.Refresh();
+			}
+
+			// second loop: assign them to the game object.
+			foreach (var prefab in prefabLookup.Values) {
+
+				if (prefab.ExtractMesh) {
+					var meshFilename = $"{prefab.GameObject.name.ToFilename()}.fbx";
+					var meshPath = Path.Combine(_assetsMeshes, meshFilename);
+					var mf = prefab.GameObject.GetComponent<MeshFilter>();
+					mf.sharedMesh = AssetDatabase.LoadAssetAtPath<Mesh>(meshPath);
 				}
 
 				// patch
@@ -572,8 +602,8 @@ namespace VisualPinball.Unity.Editor
 		private string GetMeshPath(string parentName, string name)
 		{
 			var filename = parentName == name
-				? $"{parentName.ToFilename()}.mesh"
-				: $"{parentName.ToFilename()} ({name.ToFilename()}).mesh";
+				? $"{parentName.ToFilename()}.fbx"
+				: $"{parentName.ToFilename()} ({name.ToFilename()}).fbx";
 			return Path.Combine(_assetsMeshes, filename);
 		}
 

@@ -27,7 +27,6 @@ namespace VisualPinball.Unity.Editor
 	{
 		public GameObject GameObject { get; }
 		public IMainComponent MainComponent => _playfieldComponent;
-		public MeshFilter[] MeshFilters => GameObject.GetComponents<MeshFilter>();
 		public bool ExtractMesh => true;
 		public bool SkipParenting => true;
 
