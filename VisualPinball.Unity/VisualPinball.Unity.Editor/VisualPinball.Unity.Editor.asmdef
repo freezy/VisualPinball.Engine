@@ -4,6 +4,7 @@
     "references": [
         "Unity.Entities",
         "Unity.Entities.Hybrid",
+        "Unity.Formats.Fbx.Editor",
         "Unity.Mathematics",
         "Unity.Transforms",
         "Unity.InputSystem",
