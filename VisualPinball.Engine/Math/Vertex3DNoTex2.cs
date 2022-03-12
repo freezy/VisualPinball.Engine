@@ -122,6 +122,19 @@ namespace VisualPinball.Engine.Math
 		{
 			return X.Equals(other.X) && Y.Equals(other.Y) && Z.Equals(other.Z) && Nx.Equals(other.Nx) && Ny.Equals(other.Ny) && Nz.Equals(other.Nz) && Tu.Equals(other.Tu) && Tv.Equals(other.Tv);
 		}
+
+		public bool Equals(Vertex3DNoTex2 other, int precision)
+		{
+			return Round(X, precision) == Round(other.X, precision)
+			       && Round(Y, precision) == Round(other.Y, precision)
+			       && Round(Z, precision) == Round(other.Z, precision)
+			       && Round(Nx, precision) == Round(other.Nx, precision)
+			       && Round(Ny, precision) == Round(other.Ny, precision)
+			       && Round(Nz, precision) == Round(other.Nz, precision)
+			       && Round(Tu, precision) == Round(other.Tu, precision)
+			       && Round(Tv, precision) == Round(other.Tv, precision);
+		}
+
 		public override bool Equals(object obj)
 		{
 			return obj is Vertex3DNoTex2 other && Equals(other);
@@ -131,5 +144,13 @@ namespace VisualPinball.Engine.Math
 		{
 			return (X, Y, Z, Nx, Ny, Nz, Tu, Tv).GetHashCode();
 		}
+
+		public int GetRoundedHash(int digits) => (
+			Round(X, digits), Round(Y, digits), Round(Z, digits),
+			Round(Nx, digits), Round(Ny, digits), Round(Nz, digits),
+			Round(Tu, digits), Round(Tv, digits)
+		).GetHashCode();
+
+		private static int Round(float value, int digits) => (int)System.Math.Round(value * System.Math.Pow(10, digits));
 	}
 }

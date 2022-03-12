@@ -57,7 +57,7 @@ namespace VisualPinball.Unity.Test
 			var table = FileTableContainer.Load(VpxPath.Primitive);
 			var originalMesh = table.Primitive(primitiveName).GetMesh();
 
-			Assert.AreEqual(originalMesh, writtenMesh);
+			Assert.IsTrue(originalMesh.SomewhatEquals(writtenMesh, 0.9f, 4));
 
 			File.Delete(tmpFileName);
 			Object.DestroyImmediate(go);

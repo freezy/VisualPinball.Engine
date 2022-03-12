@@ -494,7 +494,7 @@ namespace VisualPinball.Engine.VPT
 
 		#region IEquatable
 
-		public bool Equals(Mesh other)
+		public bool SomewhatEquals(Mesh other, float trianglesToBeMatched, int precision)
 		{
 			if (ReferenceEquals(null, other)) {
 				return false;
@@ -502,11 +502,26 @@ namespace VisualPinball.Engine.VPT
 			if (ReferenceEquals(this, other)) {
 				return true;
 			}
-			if (!Name.Equals(other.Name) || Vertices.Length != other.Vertices.Length
-			                             || Indices.Length != other.Indices.Length
-			                             || AnimationFrames.Count != other.AnimationFrames.Count
-			                             || !AnimationDefaultPosition.Equals(other.AnimationDefaultPosition)) {
+			var triangles1 = IndexTriangles(Vertices, Indices, precision);
+			var triangles2 = IndexTriangles(other.Vertices, other.Indices, precision);
+
+			using var enumerator = triangles1.GetEnumerator();
+			var matched = 0;
+			foreach (var hash in triangles1.Keys) {
+				if (triangles2.ContainsKey(hash)) {
+					matched++;
+				}
+			}
+			return matched / (float)triangles1.Count > trianglesToBeMatched;
+		}
+
+		public bool Equals(Mesh other)
+		{
+			if (ReferenceEquals(null, other)) {
 				return false;
+			}
+			if (ReferenceEquals(this, other)) {
+				return true;
 			}
 
 			for (var i = 0; i < Vertices.Length; i++) {
@@ -531,6 +546,43 @@ namespace VisualPinball.Engine.VPT
 
 			return true;
 		}
+
+		private Vertex3DNoTex2[] Find(IEnumerable<Vertex3DNoTex2> vertices, Vertex3DNoTex2 vertex, int precision)
+		{
+			return vertices.Where(v => v.Equals(vertex, precision)).ToArray();
+		}
+
+		private static Dictionary<int, Vertex3DNoTex2[]> IndexTriangles(IReadOnlyList<Vertex3DNoTex2> vertices, IReadOnlyList<int> indices, int precision)
+		{
+			var triangles = new Dictionary<int, Vertex3DNoTex2[]>();
+			for (var i = 0; i < indices.Count; i += 3) {
+				var hash = HashTriangle(Sort(
+					vertices[indices[i]],
+					vertices[indices[i + 1]],
+					vertices[indices[i + 2]]
+				), precision);
+				triangles.Add(hash, new [] { vertices[indices[i]], vertices[indices[i + 1]], vertices[indices[i + 2]] });
+			}
+			return triangles;
+		}
+
+		private static Vertex3DNoTex2[] Sort(params Vertex3DNoTex2[] vertices)
+		{
+			var firstVertex = vertices
+				.OrderBy(s => s.X).ThenBy(s => s.Y).ThenBy(s => s.Z)
+				.ThenBy(s => s.Nx).ThenBy(s => s.Ny).ThenBy(s => s.Nz)
+				.ThenBy(s => s.Tu).ThenBy(s => s.Tv)
+				.First();
+			var firstVertexIndex = Array.IndexOf(vertices, firstVertex);
+			return new[] {
+				vertices[firstVertexIndex],
+				vertices[(firstVertexIndex + 1) % 3],
+				vertices[(firstVertexIndex + 2) % 3]
+			};
+		}
+
+		private static int HashTriangle(IReadOnlyList<Vertex3DNoTex2> vertices, int precision)
+			=> (vertices[0].GetRoundedHash(precision), vertices[1].GetRoundedHash(precision), vertices[2].GetRoundedHash(precision)).GetHashCode();
 
 		public override bool Equals(object obj)
 		{
