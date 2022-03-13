@@ -238,6 +238,26 @@ namespace VisualPinball.Engine.VPT.MetalWireGuide
 
 			Mesh.ComputeNormals(mesh.Vertices, numVertices, mesh.Indices, numIndices);
 
+			var maxX = Constants.FloatMin;
+			var minX = Constants.FloatMax;
+			var maxY = Constants.FloatMin;
+			var minY = Constants.FloatMax;
+			var maxZ = Constants.FloatMin;
+			var minZ = Constants.FloatMax;
+			for (var i = 0; i < numVertices; i++)
+			{
+				MathF.Max(maxX, mesh.Vertices[i].X);
+				MathF.Max(maxY, mesh.Vertices[i].Y);
+				MathF.Max(maxZ, mesh.Vertices[i].Z);
+				MathF.Min(minX, mesh.Vertices[i].X);
+				MathF.Min(minY, mesh.Vertices[i].X);
+				MathF.Min(minZ, mesh.Vertices[i].X);
+			}
+
+			_middlePoint.X = (maxX + minX) * 0.5f;
+			_middlePoint.Y = (maxY + minY) * 0.5f;
+			_middlePoint.Z = (maxZ + minZ) * 0.5f;
+
 			return mesh;
 		}
 	}
