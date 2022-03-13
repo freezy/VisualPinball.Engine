@@ -63,8 +63,25 @@ namespace VisualPinball.Unity
 				var ballTransform = _player.Balls[entity].transform;
 				ballTransform.localPosition = new Vector3(ball.Position.x, ball.Position.y, zHeight);
 
+				// Following is the transistion from VP-Physics Ball Orientation to the Unity Ball-Orientation.
+				// following statements: when looking at the backglass:
+				// The problem here is, that we have 
+				//    a right handed universe in VP (X->R, Y->F, Z->U) and
+				//    a left handed universe in Unity (X->R, Y->U, Z->F) 
+				// The other problem is, that Unity likes quaternions and VP uses Orientation matrices.
+				// I THINK!!!:
+				//    where x via C0 to C2 describes the right vector,
+				//    and y the front vector and z the top vector
+
+				// So we have to transform between these. Not only that the Column-wise Vectors is hard to understand,
+				// but also the transition from one universe to another is hard. 
+
+				//very old transformation (looks strange)  (freezy)
 				//ballTransform.localRotation = Quaternion.LookRotation(or.c2, or.c1);
-				ballTransform.localRotation = Quaternion.LookRotation(new Vector3(or.c0.x*-1, or.c1.x*-1, or.c2.x), new Vector3(or.c0.z*-1, or.c1.z*-1, or.c2.z));
+				//1st iteration by (looks strange, but less strange)  (cupiii)
+				//ballTransform.localRotation = Quaternion.LookRotation(new Vector3(or.c0.x*-1, or.c1.x*-1, or.c2.x), new Vector3(or.c0.z*-1, or.c1.z*-1, or.c2.z));
+				//newest iteration (hopefully correct))
+				ballTransform.localRotation = Quaternion.LookRotation(new Vector3(or.c0.z*1f, or.c2.z*1f, or.c1.z*1f), new Vector3(or.c0.y*1f, or.c2.y*1f, or.c1.y*1f));
 
 				marker.End();
 
