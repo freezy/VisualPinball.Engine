@@ -67,7 +67,8 @@ jobs:
       - uses: game-ci/unity-test-runner@main
         id: test
         with:
-          unityVersion: '2021.2.8f1'
+          unityVersion: '2021.2.15f1'
+          customImage: 'jsm174/unityci_editor:2021.2.15f1-linux-il2cpp-0'
           projectPath: VisualPinball.Unity/VisualPinball.Unity.Test/TestProject~
           artifactsPath: VisualPinball.Unity/VisualPinball.Unity.Test/TestProject~/artifacts
           testMode: all
