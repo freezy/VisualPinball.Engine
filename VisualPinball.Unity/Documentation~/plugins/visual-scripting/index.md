@@ -11,7 +11,7 @@ description: Unity Visual Scripting and VPE
 Unity has a powerful [visual scripting](https://unity.com/products/unity-visual-scripting) feature that VPE leverages for creating game logic without having to write code. It uses a node system which VPE extends to significantly simplify common tasks in a pinball game.
 
 > [!note]
-> Visual scripting was previously named *Bolt*, and was a commercial product in Unity's asset store. In 2020, [Unity acquired Bolt](https://ludiq.io/blog/unity-acquires-bolt) and made it freely available.
+> Visual scripting was previously named *Bolt* and was a commercial product in Unity's asset store. In 2020, [Unity acquired Bolt](https://ludiq.io/blog/unity-acquires-bolt) and made it freely available.
 
 
 ## Why?
@@ -26,13 +26,13 @@ Looking at Visual Pinball, which uses VBScript for not only the game logic but a
 Visual scripting doesn't have the above problems. It doesn't need to be compiled, and the VPE APIs are the nodes that we provide.
 
 > [!note]
-> Personal note: As software developers, we're obviously sceptical about anything that is supposed to replace code. So we started implementing an EM game in visual scripting. After putting some effort into creating the right kind of nodes to bring down the graph size significantly, we're happy and we think it's an awesome way of creating game logic.
+> Personal note: As software developers, we're obviously skeptical about anything that is supposed to replace code. So, we started implementing an EM game in visual scripting. After putting some effort into creating the right kind of nodes to bring down the graph size significantly, we're happy and we think it's an awesome way of creating game logic.
 
 ## How?
 
 If you're coming from Visual Pinball, you're probably used to doing everything in VBScript, including physics hacks and transforming objects on the playfield. VPE is different in that it separates the physical aspect of the table from the logical part (the "game logic"). We use visual scripting exclusively as a [Gamelogic Engine](xref:gamelogic_engine).
 
-This approach already reduces a lot what visual scripting must be able to do. It basically boils down to triggering coils and lamps based on switch events. Of course there are a few more things like updating the display and for more complicated games, triggering entire light shows and sounds, but in a nutshell it's very simple.
+This approach already reduces a lot what visual scripting must be able to do. It basically boils down to triggering coils and lamps based on switch events. Of course, there are a few more things like updating the display and for more complicated games, triggering entire light shows and sounds, but in a nutshell it's very simple.
 
 For more details about visual scripting in general, check out [Unity's documentation](https://docs.unity3d.com/Packages/com.unity.visualscripting@1.8/manual/index.html). You will learn about [graphs](https://docs.unity3d.com/Packages/com.unity.visualscripting@1.8/manual/vs-graph-types.html), and about [script and state machines](https://docs.unity3d.com/Packages/com.unity.visualscripting@1.8/manual/vs-graph-machine-types.html).
 
@@ -47,14 +47,14 @@ Then, input `org.visualpinball.engine.unity.visualscripting` and click *Add* or 
 > [!NOTE]
 > You will need to have our scoped registry added in order for Unity to find the visual scripting package. How to do this is documented in the [general setup section](/creators-guide/setup/installing-vpe.html#vpe-package).
 
-Once the visual scripting package is install, you can [set up](xref:uvs_setup) the gamelogic engine for it.
+Once the visual scripting package is installed, you can [set up](xref:uvs_setup) the Gamelogic engine for it.
 
 ## Disclaimer
 
 We've successfully used this package in a single player EM game. Its logic was relatively simple, and there are two important distinctions between an EM game and a modern era game:
 
 1. Modern games have light shows that need to be programmed
-2. Modern games have a display like a DMD or even a high resolution LCD that needs content in form of pixel data.
+2. Modern games have a display like a DMD or even a high-resolution LCD that needs content in form of pixel data.
 
 Visual scripting does neither of that. As mentioned above, it's good at reading switch changes and triggering coils and single lamps. Driving a segment display or score reel is very well feasible too, but don't expect to recreate JJP's Guns N' Roses just yet.
 
