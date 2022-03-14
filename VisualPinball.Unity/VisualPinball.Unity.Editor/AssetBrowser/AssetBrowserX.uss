@@ -1,0 +1,41 @@
+.assetGridHeaderRow {
+	flex-direction: row;
+	height:22px;
+	align-items: center;
+	flex-shrink: 0;
+	justify-content: space-between;
+	padding-left:4px;
+	border-bottom-width: 1px;
+	border-color: #222;
+
+	background-color: #3c3c3c; /* TODO (CLEANUP): This should come from the attached unity-toolbar class; but that class isn't showing up in ui debugger.  not sure what I need to do... */
+}
+
+.leftSide {
+	flex-direction: row;
+	flex-shrink: 1;
+	margin-bottom:1px;
+}
+
+.rightSide {
+	flex-direction: row;
+	margin-right:4px;
+	margin-bottom:1px;
+	flex-shrink: 0;
+}
+
+/***********************/
+/** Split view styles **/
+/***********************/
+
+ListView {
+	flex-grow: 1;
+}
+
+.unity-two-pane-split-view {
+	flex-grow: 1;
+}
+
+.unity-two-pane-split-view__dragline-anchor {
+	background-color: #1d1d1d;
+}
