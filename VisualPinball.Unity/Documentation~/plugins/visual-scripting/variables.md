@@ -27,7 +27,7 @@ In the visual scripting GLE, you can define the structure of both types of varia
 If you're testing gameplay in the editor, the current values of both player and table variables are shown in the inspector and get updated in real time.
 
 > [!NOTE]
-> In the future, table variables could also marked as *editable*, so the player app could allow the user to change them.
+> In the future, table variables could also be marked as *editable*, so the player app could allow the user to change them.
 
 
 ### Setup
@@ -41,7 +41,7 @@ You can define as many as you want for each. You'll need a name and a variable t
 <div class="clearfix">&nbsp;</div><p>&nbsp;</p>
 
 > [!NOTE]
-> You can use any human-readable name (with spaces and so on), since variables are referenced by an internal ID. You can also rename them later, but changing the *type* later might result in issues.
+> You can use any human-readable name (with spaces and so on), since variables are referenced by an internal ID. You can also rename them later but changing the *type* later might result in issues.
 
 ### Accessing Variables
 
@@ -66,9 +66,9 @@ You currently cannot explicitly destroy player states, but you can tell the play
 
 In most of your graphs, you should be reading and writing variables only. For example, if you increase the player's score, you shouldn't have to worry about updating the display where the score is shown. You just update the *score* player variable, that's it.
 
-The idea here is to separate the pure game logic from what's going on on the playfield and the display. This is where events come in. As described earlier, there is an *On Variable Changed* event that you can put in any graph. This event triggers every time you change the value of a given player- or table variable, no matter from which subgraph.
+The idea here is to separate the pure game logic from what's going on the playfield and the display. This is where events come in. As described earlier, there is an *On Variable Changed* event that you can put in any graph. This event triggers every time you change the value of a given player- or table variable, no matter from which subgraph.
 
-So in this example, you would have one subgraph that would handle display updates. This graph would contain event nodes for all relevant variables that have any effect on the display, and update the display accordingly.
+So, in this example, you would have one subgraph that would handle display updates. This graph would contain event nodes for all relevant variables that have any effect on the display and update the display accordingly.
 
 > [!NOTE]
 > In computer science, this is called *SoC*, or [Separation of concerns](https://en.wikipedia.org/wiki/Separation_of_concerns). It means that each section (in our case, a subgraph) should only care about one specific thing, and not about any of the side effects.
@@ -82,13 +82,13 @@ Here is an example of the graph that synchronizes the light variables of Gottlie
 
 #### Persisting Variables
 
-You might want to persist state across launches, i.e. have them written to disk. Examples are high scores or game settings. This is still work in progress.
+You might want to persist state across launches, i.e., have them written to disk. Examples are high scores or game settings. This is still work in progress.
 
 
 ## Unity Visual Scripting Variables
 
-For everything game related, we recommend using VPE variables as decribed above. However, there is a use case where using Unity's built-in variable system might be necessary.
+For everything game related, we recommend using VPE variables as described above. However, there is a use case where using Unity's built-in variable system might be necessary.
 
-Imagine you have created somewhat complex in a graph and you want to re-use that logic in different ways, by passing different arguments to that graph. Like a function that takes in parameters.
+Imagine you have created somewhat complex in a graph, and you want to re-use that logic in different ways, by passing different arguments to that graph. Like a function that takes in parameters.
 
 In this case you should rely on the graph's [data ports](https://docs.unity3d.com/Packages/com.unity.visualscripting@1.7/manual/vs-add-triggers-data-graph.html) that allow passing data to graphs, which you then can access through the *Input* node.
