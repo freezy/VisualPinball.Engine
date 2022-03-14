@@ -14,22 +14,22 @@ Then, add the visual scripting GLE component by (still in the inspector) clickin
 
 Remember that a [gamelogic engine](xref:gamelogic_engine) doesn't know about your playfield. It communicates with the game through IDs that you assign in editor. We acknowledge that visual scripting is tied somewhat more closely to the playfield than, let's say, PinMAME, because it's equally created in the editor. However, there are multiple reasons to use the same pattern as in other GLEs, which is what visual scripting does.
 
-So instead of interacting with playfield items directly, you need to define the displays, switches, coils and lamps in the visual scripting component. Once added, you can link them with the respective editors to the playfield.
+So instead of interacting with playfield items directly, you need to define the displays, switches, coils, and lamps in the visual scripting component. Once added, you can link them with the respective editors to the playfield.
 
 ### Displays
 
 <img src="displays.png" width="407" alt="Display Configuration" class="img-responsive pull-right" style="margin-left: 15px"/>
 
-The first configuration you'll see in the inspector is which type of displays your game expects to find on the playfield. You can have multiple displays. For each display, you define the size and which type of formats it must able to handle. These are the possible types:
+The first configuration you'll see in the inspector is which type of displays your game expects to find on the playfield. You can have multiple displays. For each display, you define the size and which type of formats it must be able to handle. These are the possible types:
 
 - *DMD2, DMD4, DMD8 and DMD24* is pixel data, where the number is the number of bits:
   - 2, 4 and 8 bits equal 4, 16 and 256 respectively gray tones
   - 24 means RGB24, standing for 16mio colors.
-- *Segment* are segment displays, which take in an array of binary data, where each two bytes represent the segments of one digit.
+- *Segments* are segment displays, which take in an array of binary data, where each two bytes represent the segments of one digit.
 - *Alphanumeric* are displays that can render text on one line.
 - *Numeric* displays only render digits.
 
-The display components that VPE provides understand multiple formats, e.g. our segment display component takes in segment data, but also text and numeric data. In the future, we'll also add a simple numeric and text renderer for DMDs.
+The display components that VPE provides understand multiple formats, e.g., our segment display component takes in segment data, but also text and numeric data. In the future, we'll also add a simple numeric and text renderer for DMDs.
 
 ### Switches
 
