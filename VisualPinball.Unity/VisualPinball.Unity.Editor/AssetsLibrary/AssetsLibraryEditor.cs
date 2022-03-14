@@ -36,18 +36,16 @@ namespace VisualPinball.Unity.Editor
 		}
 		#endregion
 
-		private static readonly Logger Logger = NLog.LogManager.GetCurrentClassLogger();
-
 		#region Assets Management
 		/// <summary>
 		/// This handler will manage all Populated Pinball labels and provide helpers for categories
 		/// </summary>
-		private LabelsHandler _labelsHandler = new LabelsHandler();
+		private readonly LabelsHandler _labelsHandler = new LabelsHandler();
 
 		/// <summary>
 		/// Populated assets libraries from all <see cref="AssetsLibrarySettingsAsset"/> found within the AssetDatabase
 		/// </summary>
-		private List<AssetLibraryContent> _assetLibraries = new List<AssetLibraryContent>();
+		private readonly List<AssetLibraryContent> _assetLibraries = new List<AssetLibraryContent>();
 		#endregion
 
 		#region Assets Thumbnail View
@@ -79,10 +77,6 @@ namespace VisualPinball.Unity.Editor
 		/// </summary>
 		private List<PinballLabel> _assetLabels = new List<PinballLabel>();
 		#endregion
-
-		public AssetsLibraryEditor() : base()
-		{
-		}
 
 		public override void OnEnable()
 		{
