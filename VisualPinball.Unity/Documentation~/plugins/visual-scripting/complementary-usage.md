@@ -22,7 +22,7 @@ This will give you access to most of the nodes. For example, the [On Lamp Change
 
 ## Nodes
 
-There are a few nodes you cannot rely on, because they need the visual scripting gamelogic engine and won't work with the bridge. These nodes currently are:
+There are a few nodes you cannot rely on because they need the visual scripting gamelogic engine and won't work with the bridge. These nodes currently are:
 
 - The [display node](xref:uvs_node_reference#displays)
 - The [variable nodes](xref:uvs_node_reference#variables)
