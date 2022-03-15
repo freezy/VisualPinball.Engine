@@ -7,7 +7,7 @@
 		<uie:ToolbarToggle focusable="false" label="Toggle"/>
 	</uie:Toolbar>
 	<ui:TwoPaneSplitView fixed-pane-initial-dimension="250">
-		<ui:ListView name="leftPane" focusable="true"/>
-		<ui:ScrollView name="rightPane"/>
+		<ui:VisualElement name="leftPane" focusable="true"/>
+		<ui:ListView name="rightPane" focusable="true"/>
 	</ui:TwoPaneSplitView>
 </ui:UXML>
