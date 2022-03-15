@@ -30,14 +30,10 @@ namespace VisualPinball.Unity.Editor
 		private int selectedIndex = -1;
 
 		private List<LibraryAsset> _assets;
-
-		private ToolbarButton _refreshButton;
-		private VisualElement _rightPane;
-
 		private List<AssetLibrary> _assetLibraries;
 
 		[MenuItem("Visual Pinball/Asset Browser X")]
-		public static void Init()
+		public static void ShowWindow()
 		{
 			var wnd = GetWindow<AssetBrowserX>("Asset Browser X");
 
@@ -54,13 +50,27 @@ namespace VisualPinball.Unity.Editor
 				.Where(asset => asset != null).ToList();
 		}
 
+		private void Init()
+		{
+			_assets = _assetLibraries.SelectMany(lib => lib.GetAssets()).ToList();
+
+			_rightPane.makeItem = () => new Label();
+			_rightPane.bindItem = (item, index) => {
+				(item as Label)!.text = Path.GetFileName(_assets[index].Path);
+			};
+			_rightPane.itemsSource = _assets;
+			_rightPane.onSelectionChange += OnAssetSelectionChange;
+			_rightPane.onSelectionChange += _ => {
+				selectedIndex = _rightPane.selectedIndex;
+			};
+			_rightPane.selectedIndex = selectedIndex;
+		}
+
 		private void Refresh()
 		{
 			_assets = _assetLibraries.SelectMany(lib => lib.GetAssets()).ToList();
-			var leftPane = rootVisualElement.Q<ListView>("leftPane");
-
-			leftPane.itemsSource = _assets;
-			leftPane.RefreshItems();
+			_rightPane.itemsSource = _assets;
+			_rightPane.RefreshItems();
 		}
 
 		private void OnDragUpdatedEvent(DragUpdatedEvent evt)

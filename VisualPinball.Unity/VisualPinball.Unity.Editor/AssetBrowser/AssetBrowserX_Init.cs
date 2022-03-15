@@ -26,6 +26,10 @@ namespace VisualPinball.Unity.Editor
 {
 	public partial class AssetBrowserX
 	{
+		private ToolbarButton _refreshButton;
+		private VisualElement _leftPane;
+		private ListView _rightPane;
+
 		public void CreateGUI()
 		{
 			// import UXML
@@ -38,17 +42,17 @@ namespace VisualPinball.Unity.Editor
 			var styleSheet = AssetDatabase.LoadAssetAtPath<StyleSheet>("Packages/org.visualpinball.engine.unity/VisualPinball.Unity/VisualPinball.Unity.Editor/AssetBrowser/AssetBrowserX.uss");
 			ui.styleSheets.Add(styleSheet);
 
-			InitLeftPane(ui.Q<ListView>("leftPane"));
-			_rightPane = ui.Q<ScrollView>("rightPane");
+			_leftPane = ui.Q<VisualElement>("leftPane");
+			_rightPane = ui.Q<ListView>("rightPane");
 
 			_refreshButton = ui.Q<ToolbarButton>("refreshButton");
-			Debug.Log("Got refresh button: " + _refreshButton);
 			_refreshButton.clicked += Refresh;
 
 			_rightPane.RegisterCallback<DragUpdatedEvent>(OnDragUpdatedEvent);
 			_rightPane.RegisterCallback<DragPerformEvent>(OnDragPerformEvent);
-		}
 
+			Init();
+		}
 
 		private void OnDestroy()
 		{
@@ -59,24 +63,6 @@ namespace VisualPinball.Unity.Editor
 			foreach (var assetLibrary in _assetLibraries) {
 				assetLibrary.Dispose();
 			}
-		}
-
-		private void InitLeftPane(BaseVerticalCollectionView leftPane)
-		{
-			_assets = _assetLibraries.SelectMany(lib => lib.GetAssets()).ToList();
-
-			leftPane.makeItem = () => new Label();
-			leftPane.bindItem = (item, index) => {
-				(item as Label)!.text = Path.GetFileName(_assets[index].Path);
-			};
-			leftPane.itemsSource = _assets;
-			leftPane.onSelectionChange += OnAssetSelectionChange;
-			leftPane.onSelectionChange += _ => {
-				selectedIndex = leftPane.selectedIndex;
-			};
-			leftPane.selectedIndex = selectedIndex;
-
-			leftPane.RefreshItems();
 		}
 
 		private void OnAssetSelectionChange(IEnumerable<object> selectedItems)
