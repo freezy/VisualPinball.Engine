@@ -14,15 +14,13 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
-using Unity.Plastic.Antlr3.Runtime.Debug;
 using UnityEditor;
 using UnityEditor.UIElements;
 using UnityEngine;
 using UnityEngine.UIElements;
-
 
 namespace VisualPinball.Unity.Editor
 {
@@ -30,6 +28,8 @@ namespace VisualPinball.Unity.Editor
 	{
 		[SerializeField]
 		private int selectedIndex = -1;
+
+		private List<LibraryAsset> _assets;
 
 		private ToolbarButton _refreshButton;
 		private VisualElement _rightPane;
@@ -56,9 +56,45 @@ namespace VisualPinball.Unity.Editor
 
 		private void Refresh()
 		{
-			Debug.Log($"Found {_assetLibraries.Count} asset libraries:");
-			foreach (var assetLibrary in _assetLibraries) {
-				Debug.Log($"{assetLibrary.Name}: {assetLibrary._dbPath}");
+			_assets = _assetLibraries.SelectMany(lib => lib.GetAssets()).ToList();
+			var leftPane = rootVisualElement.Q<ListView>("leftPane");
+
+			leftPane.itemsSource = _assets;
+			leftPane.RefreshItems();
+		}
+
+		private void OnDragUpdatedEvent(DragUpdatedEvent evt)
+		{
+			DragAndDrop.visualMode = DragAndDrop.objectReferences != null
+				? DragAndDropVisualMode.Move
+				: DragAndDropVisualMode.Copy;
+		}
+
+		private void OnDragPerformEvent(DragPerformEvent evt)
+		{
+			DragAndDrop.AcceptDrag();
+
+			// Disallow adding from outside of Unity
+			foreach (var path in DragAndDrop.paths) {
+				var libraryFound = false;
+				foreach (var assetLibrary in _assetLibraries) {
+					if (path.Replace('\\', '/').StartsWith(assetLibrary.LibraryRoot.Replace('\\', '/'))) {
+						libraryFound = true;
+						var guid = AssetDatabase.AssetPathToGUID(path);
+						var type = AssetDatabase.GetMainAssetTypeAtPath(path);
+
+						if (assetLibrary.AddAsset(guid, type, path)) {
+							Debug.Log($"{Path.GetFileName(path)} added to library {assetLibrary.Name}.");
+						} else {
+							Debug.Log($"{Path.GetFileName(path)} updated in library {assetLibrary.Name}.");
+						}
+
+						Refresh();
+					}
+				}
+				if (!libraryFound) {
+					Debug.LogError($"Cannot find a VPE library at path {Path.GetDirectoryName(path)}, ignoring asset {Path.GetFileName(path)}.");
+				}
 			}
 		}
 	}
