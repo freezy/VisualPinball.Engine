@@ -92,18 +92,18 @@ namespace VisualPinball.Unity
 		private void HandleLampsEvent(object sender, LampsEventArgs lampsEvent)
 		{
 			foreach (var lampEvent in lampsEvent.LampsChanged) {
-				Apply(lampEvent.Id, lampEvent.Source, lampEvent.IsCoil, (state, lamp, mapping) => ApplyValue(lampEvent.Id, lampEvent.Value, state, lamp, mapping));
+				Apply(lampEvent.Id, lampEvent.Source, lampEvent.IsCoil, (state, lamp, mapping) => ApplyValue(lampEvent.Id, lampEvent.InternalId, lampEvent.Value, state, lamp, mapping));
 			}
 		}
 
 		private void HandleLampEvent(object sender, LampEventArgs lampEvent)
 		{
-			Apply(lampEvent.Id, lampEvent.Source, lampEvent.IsCoil, (state, lamp, mapping) => ApplyValue(lampEvent.Id, lampEvent.Value, state, lamp, mapping));
+			Apply(lampEvent.Id, lampEvent.Source, lampEvent.IsCoil, (state, lamp, mapping) => ApplyValue(lampEvent.Id, lampEvent.InternalId, lampEvent.Value, state, lamp, mapping));
 		}
 
 		public void HandleLampEvent(string id, float value)
 		{
-			Apply(id, LampSource.Lamp, false, (state, lamp, mapping) => ApplyValue(id, value, state, lamp, mapping));
+			Apply(id, LampSource.Lamp, false, (state, lamp, mapping) => ApplyValue(id, int.TryParse(id, out var internalId) ? internalId : 0, value, state, lamp, mapping));
 		}
 
 		public void HandleLampEvent(string id, LampStatus status)
@@ -163,7 +163,7 @@ namespace VisualPinball.Unity
 			lamp?.OnLamp(state.Color.ToUnityColor());
 		}
 
-		private void ApplyValue(string id, float value, LampState state, IApiLamp? lamp, LampMapping? mapping)
+		private void ApplyValue(string id, int internalId, float value, LampState state, IApiLamp? lamp, LampMapping? mapping)
 		{
 			if (mapping == null) {
 				// if not mapped, there is no lamp, so just save the state.
@@ -188,9 +188,11 @@ namespace VisualPinball.Unity
 					break;
 
 				case LampType.RgbMulti:
-					state.SetChannel(mapping.Channel, value / 255f); // todo test
-					LampStates[id] = state;
-					lamp?.OnLamp(state.Color.ToUnityColor());
+					if (mapping.InternalId == internalId) {
+						state.SetChannel(mapping.Channel, value / 255f);
+						LampStates[id] = state;
+						lamp?.OnLamp(state.Color.ToUnityColor());
+					}
 					break;
 
 				case LampType.SingleFading:
