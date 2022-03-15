@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using UnityEditor;
 using UnityEditor.UIElements;
@@ -44,27 +44,33 @@ namespace VisualPinball.Unity.Editor
 			_refreshButton = ui.Q<ToolbarButton>("refreshButton");
 			Debug.Log("Got refresh button: " + _refreshButton);
 			_refreshButton.clicked += Refresh;
+
+			_rightPane.RegisterCallback<DragUpdatedEvent>(OnDragUpdatedEvent);
+			_rightPane.RegisterCallback<DragPerformEvent>(OnDragPerformEvent);
 		}
 
 
 		private void OnDestroy()
 		{
+			_rightPane.UnregisterCallback<DragPerformEvent>(OnDragPerformEvent);
+			_rightPane.UnregisterCallback<DragUpdatedEvent>(OnDragUpdatedEvent);
 			_refreshButton.clicked -= Refresh;
+
+			foreach (var assetLibrary in _assetLibraries) {
+				assetLibrary.Dispose();
+			}
 		}
 
 		private void InitLeftPane(BaseVerticalCollectionView leftPane)
 		{
-			var allObjectGuids = AssetDatabase.FindAssets("t:Texture", new [] {
-				"Packages/org.visualpinball.unity.assetlibrary/Assets"
-			});
-			var allObjects = allObjectGuids.Select(guid => AssetDatabase.LoadAssetAtPath<Texture>(AssetDatabase.GUIDToAssetPath(guid))).ToList();
+			_assets = _assetLibraries.SelectMany(lib => lib.GetAssets()).ToList();
 
 			leftPane.makeItem = () => new Label();
 			leftPane.bindItem = (item, index) => {
-				(item as Label)!.text = allObjects[index].name;
+				(item as Label)!.text = Path.GetFileName(_assets[index].Path);
 			};
-			leftPane.itemsSource = allObjects;
-			leftPane.onSelectionChange += OnSpriteSelectionChange;
+			leftPane.itemsSource = _assets;
+			leftPane.onSelectionChange += OnAssetSelectionChange;
 			leftPane.onSelectionChange += _ => {
 				selectedIndex = leftPane.selectedIndex;
 			};
@@ -73,25 +79,25 @@ namespace VisualPinball.Unity.Editor
 			leftPane.RefreshItems();
 		}
 
-		private void OnSpriteSelectionChange(IEnumerable<object> selectedItems)
+		private void OnAssetSelectionChange(IEnumerable<object> selectedItems)
 		{
-			// Clear all previous content from the pane
-			_rightPane?.Clear();
-
-			// Get the selected sprite
-			var selectedTexture = selectedItems.First() as Texture;
-			if (selectedTexture == null) {
-				return;
-			}
-
-			// Add a new Image control and display the sprite
-			var spriteImage = new Image {
-				scaleMode = ScaleMode.ScaleToFit,
-				image = selectedTexture
-			};
-
-			// Add the Image control to the right-hand pane
-			_rightPane?.Add(spriteImage);
+			// // Clear all previous content from the pane
+			// _rightPane?.Clear();
+			//
+			// // Get the selected asset
+			// var selectedTexture = selectedItems.First() as Texture;
+			// if (selectedTexture == null) {
+			// 	return;
+			// }
+			//
+			// // Add a new Image control and display the asset
+			// var spriteImage = new Image {
+			// 	scaleMode = ScaleMode.ScaleToFit,
+			// 	image = selectedTexture
+			// };
+			//
+			// // Add the Image control to the right-hand pane
+			// _rightPane?.Add(spriteImage);
 		}
 	}
 }

@@ -14,6 +14,10 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+// ReSharper disable InconsistentNaming
+
+using System;
+using System.Collections.Generic;
 using System.IO;
 using LiteDB;
 using UnityEditor;
@@ -22,27 +26,74 @@ using UnityEngine;
 namespace VisualPinball.Unity.Editor
 {
 	[CreateAssetMenu(fileName = "Library", menuName = "Visual Pinball/Asset Library", order = 300)]
-	public class AssetLibrary : ScriptableObject, ISerializationCallbackReceiver
+	public class AssetLibrary : ScriptableObject, ISerializationCallbackReceiver, IDisposable
 	{
 		public string Name;
 
 		public string LibraryRoot;
 
-		public string _dbPath {
+		private LiteDatabase _db {
+			get {
+				if (_dbInstance != null) {
+					return _dbInstance;
+				}
+				_dbInstance = new LiteDatabase(_dbPath);
+				return _dbInstance;
+			}
+		}
+
+		private void OnDestroy()
+		{
+			Dispose();
+		}
+
+		public void Dispose()
+		{
+			_dbInstance?.Dispose();
+			_dbInstance = null;
+		}
+
+		private string _dbPath {
 			get {
 				var thisPath = AssetDatabase.GetAssetPath(this);
 				return Path.GetDirectoryName(thisPath) + Path.DirectorySeparatorChar + Path.GetFileNameWithoutExtension(thisPath) + ".db";
 			}
 		}
 
-		public void Test()
+		private LiteDatabase _dbInstance;
+
+		public bool AddAsset(string guid, Type type, string path)
 		{
-			Debug.Log($"DB PATH = {_dbPath}");
-			// using (var db = new LiteDatabase(@"MyData.db")) {
-			//
-			// }
-			// var col = db.GetCollection<Customer>("customers");
+			var collection = _db.GetCollection<LibraryAsset>("assets");
+
+			var existingAsset = collection.FindOne(x => x.Guid == guid);
+			if (existingAsset != null) {
+				existingAsset.Type = type.ToString();
+				existingAsset.Path = path;
+				collection.Update(existingAsset);
+				return false;
+			}
+
+
+			var asset = new LibraryAsset {
+				Guid = guid,
+				Type = type.ToString(),
+				Path = path,
+			};
+
+			collection.EnsureIndex(x => x.Guid, true);
+			collection.EnsureIndex(x => x.Type);
+			collection.Insert(asset);
+
+			return true;
 		}
+
+		public IEnumerable<LibraryAsset> GetAssets()
+		{
+			var collection = _db.GetCollection<LibraryAsset>("assets");
+			return collection.FindAll();
+		}
+
 		public void OnBeforeSerialize()
 		{
 			if (string.IsNullOrEmpty(LibraryRoot)) {
@@ -58,6 +109,7 @@ namespace VisualPinball.Unity.Editor
 	public class LibraryAsset
 	{
 		public string Guid { get; set; }
-
+		public string Type { get; set; }
+		public string Path { get; set; }
 	}
 }
