@@ -228,9 +228,14 @@ namespace VisualPinball.Unity
 	public readonly struct LampEventArgs
 	{
 		/// <summary>
-		/// Id of the lamp, as defined by <see cref="IGamelogicEngine.RequestedLamps"/>.
+		/// ID of the lamp, as defined by <see cref="IGamelogicEngine.RequestedLamps"/>.
 		/// </summary>
 		public readonly string Id;
+
+		/// <summary>
+		/// Internal ID of the lamp. Some lamps have multiple internal IDs per ID, like RGBs.
+		/// </summary>
+		public readonly int InternalId;
 
 		/// <summary>
 		/// The intensity of the light. The range is dependent on the GLE,
@@ -252,6 +257,16 @@ namespace VisualPinball.Unity
 		public LampEventArgs(string id, float value, LampSource source = LampSource.Lamp)
 		{
 			Id = id;
+			InternalId = int.TryParse(id, out var internalId) ? internalId : 0;
+			Value = value;
+			Source = source;
+			IsCoil = false;
+		}
+
+		public LampEventArgs(string id, int internalId, float value, LampSource source = LampSource.Lamp)
+		{
+			Id = id;
+			InternalId = internalId;
 			Value = value;
 			Source = source;
 			IsCoil = false;
@@ -260,6 +275,7 @@ namespace VisualPinball.Unity
 		public LampEventArgs(string id, float value, bool isCoil, LampSource source = LampSource.Lamp)
 		{
 			Id = id;
+			InternalId = int.TryParse(id, out var internalId) ? internalId : 0;
 			Value = value;
 			Source = source;
 			IsCoil = isCoil;
