@@ -25,7 +25,7 @@ The first configuration you'll see in the inspector is which type of displays yo
 - *DMD2, DMD4, DMD8 and DMD24* is pixel data, where the number is the number of bits:
   - 2, 4 and 8 bits equal 4, 16 and 256 respectively gray tones
   - 24 means RGB24, standing for 16mio colors.
-- *Segments* are segment displays, which take in an array of binary data, where each two bytes represent the segments of one digit.
+- *Segment* are segment displays, which take in an array of binary data, where each two bytes represent the segments of one digit.
 - *Alphanumeric* are displays that can render text on one line.
 - *Numeric* displays only render digits.
 

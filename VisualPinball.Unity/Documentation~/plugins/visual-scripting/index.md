@@ -47,7 +47,7 @@ Then, input `org.visualpinball.engine.unity.visualscripting` and click *Add* or 
 > [!NOTE]
 > You will need to have our scoped registry added in order for Unity to find the visual scripting package. How to do this is documented in the [general setup section](/creators-guide/setup/installing-vpe.html#vpe-package).
 
-Once the visual scripting package is installed, you can [set up](xref:uvs_setup) the Gamelogic engine for it.
+Once the visual scripting package is installed, you can [set up](xref:uvs_setup) the gamelogic engine for it.
 
 ## Disclaimer
 
