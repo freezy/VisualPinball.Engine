@@ -89,11 +89,11 @@ You can also add multiple switches, in which case the output is only true if *al
 Lamps are a bit more complex than coils and switches, because besides simply being *on* or *off*, they have an *intensity* and a *color*. Additionally, they can be set to a *blinking* state. This means that all our lamp nodes include a dropdown indicating how it should be driven, with the port types changing accordingly:
 
 - **Status** corresponds to an `enum`, one of  *On*, *Off* and *Blinking*.
-- **On/Off** is a `Boolean`, where `true` corresponds to the *On* status, and `false` to the *Off* status.
+- **On/Off** is a `bool`, where `true` corresponds to the *On* status, and `false` to the *Off* status.
 - **Intensity** corresponds to a `float` and is explained in more detail below.
 - **Color** has its own `Color` type.
 
-These four modes allow you to completely control a lamp (with *On/Off* setting the status using a `Boolean`). However, there is a second factor that defines how the lamp will actually react, and that is its [mapping type](xref:lamp_manager#type) in the lamp manager.
+These four modes allow you to completely control a lamp (with *On/Off* setting the status using a `bool`). However, there is a second factor that defines how the lamp will actually react, and that is its [mapping type](xref:lamp_manager#type) in the lamp manager.
 
 See, VPE supports a wide range of gamelogic engines, and they often don't have an internal API as rich as our visual scripting package. For example, when PinMAME sets a light to the value of 255, it doesn't know whether it just "turned it on" from 0 or whether it was "faded in" from a previous non 0 value. That's information we have to manually set in the lamp manager (in this example, the mapping type would be *Single On|Off* and *Single Fading* respectively).
 
@@ -114,7 +114,7 @@ Let's jump to the nodes.
 
 This node assigns a given value to a lamp defined by its mapped ID. This also triggers the lamp changed event. 
 
-In the example, we have defined a player variable of type `Boolean` called *Yellow Bank Lit*. We synchronize the lamp status with the variable by setting the lamp with the ID `l_yellow_bank` to the value of the variable when it changes.
+In the example, we have defined a player variable of type `bool` called *Yellow Bank Lit*. We synchronize the lamp status with the variable by setting the lamp with the ID `l_yellow_bank` to the value of the variable when it changes.
 
 ![Set Lamp](set-lamp-example.png)
 
