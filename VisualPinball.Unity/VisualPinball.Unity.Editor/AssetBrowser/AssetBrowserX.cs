@@ -18,7 +18,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using UnityEditor;
-using UnityEditor.UIElements;
 using UnityEngine;
 using UnityEngine.UIElements;
 
@@ -50,28 +49,40 @@ namespace VisualPinball.Unity.Editor
 				.Where(asset => asset != null).ToList();
 		}
 
-		private void Init()
+		private void Search()
 		{
 			_assets = _assetLibraries.SelectMany(lib => lib.GetAssets()).ToList();
+		}
 
-			_rightPane.makeItem = () => new Label();
-			_rightPane.bindItem = (item, index) => {
-				(item as Label)!.text = Path.GetFileName(_assets[index].Path);
-			};
-			_rightPane.itemsSource = _assets;
-			_rightPane.onSelectionChange += OnAssetSelectionChange;
-			_rightPane.onSelectionChange += _ => {
-				selectedIndex = _rightPane.selectedIndex;
-			};
-			_rightPane.selectedIndex = selectedIndex;
+		private void Init()
+		{
+			Search();
+
+			// _rightPane.makeItem = () => new Label();
+			// _rightPane.bindItem = (item, index) => {
+			// 	(item as Label)!.text = Path.GetFileName(_assets[index].Path);
+			// };
+			// _rightPane.itemsSource = _assets;
+			// _rightPane.onSelectionChange += OnAssetSelectionChange;
+			// _rightPane.onSelectionChange += _ => {
+			// 	selectedIndex = _rightPane.selectedIndex;
+			// };
+			// _rightPane.selectedIndex = selectedIndex;
 		}
 
 		private void Refresh()
 		{
-			_assets = _assetLibraries.SelectMany(lib => lib.GetAssets()).ToList();
-			_rightPane.itemsSource = _assets;
-			_rightPane.RefreshItems();
+			OnDestroy();
+			rootVisualElement.Clear();
+			CreateGUI();
+			_rightPane.Clear();
+			foreach (var a in _assets) {
+				var obj = AssetDatabase.LoadAssetAtPath(a.Path, TypeByName(a.Type));
+				var tex = AssetPreview.GetAssetPreview(obj);
+				_rightPane.Add(new Image { image = tex });
+			}
 		}
+
 
 		private void OnDragUpdatedEvent(DragUpdatedEvent evt)
 		{

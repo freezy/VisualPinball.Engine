@@ -1,13 +1,16 @@
-<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" xsi="http://www.w3.org/2001/XMLSchema-instance" editor-extension-mode="True">
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements"
+		 xsi="http://www.w3.org/2001/XMLSchema-instance" editor-extension-mode="True">
 	<uie:Toolbar>
 		<uie:ToolbarButton text="Refresh" name="refreshButton"/>
-		<uie:ToolbarSpacer />
+		<uie:ToolbarSpacer/>
 		<uie:ToolbarSearchField focusable="true"/>
-		<uie:ToolbarSpacer />
+		<uie:ToolbarSpacer/>
 		<uie:ToolbarToggle focusable="false" label="Toggle"/>
 	</uie:Toolbar>
 	<ui:TwoPaneSplitView fixed-pane-initial-dimension="250">
 		<ui:VisualElement name="leftPane" focusable="true"/>
-		<ui:ListView name="rightPane" focusable="true"/>
+		<ui:VisualElement focusable="true">
+			<ui:ScrollView name="rightPane"/>
+		</ui:VisualElement>
 	</ui:TwoPaneSplitView>
 </ui:UXML>

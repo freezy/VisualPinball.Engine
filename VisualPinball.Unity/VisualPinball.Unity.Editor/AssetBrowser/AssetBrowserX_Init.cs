@@ -14,12 +14,11 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using UnityEditor;
 using UnityEditor.UIElements;
-using UnityEngine;
 using UnityEngine.UIElements;
 
 namespace VisualPinball.Unity.Editor
@@ -28,7 +27,9 @@ namespace VisualPinball.Unity.Editor
 	{
 		private ToolbarButton _refreshButton;
 		private VisualElement _leftPane;
-		private ListView _rightPane;
+		private VisualElement _rightPane;
+
+		private static readonly Dictionary<string, Type> _types = new();
 
 		public void CreateGUI()
 		{
@@ -43,7 +44,7 @@ namespace VisualPinball.Unity.Editor
 			ui.styleSheets.Add(styleSheet);
 
 			_leftPane = ui.Q<VisualElement>("leftPane");
-			_rightPane = ui.Q<ListView>("rightPane");
+			_rightPane = ui.Q<VisualElement>("rightPane");
 
 			_refreshButton = ui.Q<ToolbarButton>("refreshButton");
 			_refreshButton.clicked += Refresh;
@@ -84,6 +85,16 @@ namespace VisualPinball.Unity.Editor
 			//
 			// // Add the Image control to the right-hand pane
 			// _rightPane?.Add(spriteImage);
+		}
+
+		private static Type TypeByName(string name)
+		{
+			if (_types.ContainsKey(name)) {
+				return _types[name];
+			}
+			_types[name] = AppDomain.CurrentDomain.GetAssemblies().Reverse().Select(assembly => assembly.GetType(name)).FirstOrDefault(tt => tt != null);
+
+			return _types[name];
 		}
 	}
 }
