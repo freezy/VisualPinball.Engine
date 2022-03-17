@@ -213,6 +213,10 @@ namespace VisualPinball.Unity
 		/// </summary>
 		public readonly string Id;
 
+		/// Internal ID of the coil.
+		/// </summary>
+		public readonly int InternalId;
+
 		/// <summary>
 		/// State of the coil, true if the coil is under voltage, false if not.
 		/// </summary>
@@ -221,6 +225,14 @@ namespace VisualPinball.Unity
 		public CoilEventArgs(string id, bool isEnabled)
 		{
 			Id = id;
+			InternalId = int.TryParse(id, out var internalId) ? internalId : 0;
+			IsEnabled = isEnabled;
+		}
+
+		public CoilEventArgs(string id, int internalId, bool isEnabled)
+		{
+			Id = id;
+			InternalId = internalId;
 			IsEnabled = isEnabled;
 		}
 	}
