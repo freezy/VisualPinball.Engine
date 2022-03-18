@@ -1,3 +1,5 @@
+/* "grid" */
+/* ------ */
 #midPane {
 	flex-grow: 1;
 	background-color: #333333; /* sampled from project window */
@@ -10,11 +12,14 @@
 }
 
 #midPane .unity-image {
-	width: 200px;
-	height: 200px;
+	width: 150px;
+	height: 150px;
 	margin: 10px;
 }
 
+
+/* bottom toolbar */
+/* -------------- */
 #bottomToolbar {
 	justify-content: space-between;
 	border-top-width: 1px;
@@ -23,14 +28,12 @@
 	background-color: #383838; /* sampled from background */
 }
 
-#sizeSlider {
-	width: 75px;
-}
+#bottomLabel { margin-top: 2px; }
+#sizeSlider { width: 75px; }
 
 
-
-
-
+/* fixes and overridden colors */
+/* --------------------------- */
 ListView {
 	flex-grow: 1;
 }

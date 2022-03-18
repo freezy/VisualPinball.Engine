@@ -14,6 +14,8 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+// ReSharper disable InconsistentNaming
+
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -26,10 +28,15 @@ namespace VisualPinball.Unity.Editor
 	public partial class AssetBrowserX : EditorWindow
 	{
 		[SerializeField]
-		private int selectedIndex = -1;
+		private int _selectedIndex = -1;
+
+		[SerializeField]
+		private int _thumbnailSize = 150;
 
 		private List<LibraryAsset> _assets;
 		private List<AssetLibrary> _assetLibraries;
+
+		private readonly Dictionary<LibraryAsset, VisualElement> _elements = new();
 
 		[MenuItem("Visual Pinball/Asset Browser X")]
 		public static void ShowWindow()
@@ -52,6 +59,7 @@ namespace VisualPinball.Unity.Editor
 		private void Search()
 		{
 			_assets = _assetLibraries.SelectMany(lib => lib.GetAssets()).ToList();
+			_bottomLabel.text = $"Found {_assets.Count} assets.";
 		}
 
 		private void Init()
@@ -76,10 +84,12 @@ namespace VisualPinball.Unity.Editor
 			rootVisualElement.Clear();
 			CreateGUI();
 			_midPane.Clear();
+			_elements.Clear();
 			foreach (var a in _assets) {
 				var obj = AssetDatabase.LoadAssetAtPath(a.Path, TypeByName(a.Type));
 				var tex = AssetPreview.GetAssetPreview(obj);
-				_midPane.Add(new Image { image = tex });
+				_elements[a] = new Image { image = tex };
+				_midPane.Add(_elements[a]);
 			}
 		}
 
@@ -116,6 +126,14 @@ namespace VisualPinball.Unity.Editor
 				if (!libraryFound) {
 					Debug.LogError($"Cannot find a VPE library at path {Path.GetDirectoryName(path)}, ignoring asset {Path.GetFileName(path)}.");
 				}
+			}
+		}
+		private void OnThumbSizeChanged(ChangeEvent<float> evt)
+		{
+			_thumbnailSize = (int)evt.newValue;
+			foreach (var e in _elements.Values) {
+				e.style.width = _thumbnailSize;
+				e.style.height = _thumbnailSize;
 			}
 		}
 	}
