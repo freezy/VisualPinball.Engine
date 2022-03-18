@@ -38,10 +38,10 @@ namespace VisualPinball.Unity.Editor
 
 		private readonly Dictionary<LibraryAsset, VisualElement> _elements = new();
 
-		[MenuItem("Visual Pinball/Asset Browser X")]
+		[MenuItem("Visual Pinball/Asset Browser")]
 		public static void ShowWindow()
 		{
-			var wnd = GetWindow<AssetBrowserX>("Asset Browser X");
+			var wnd = GetWindow<AssetBrowserX>("Asset Browser");
 
 			// Limit size of the window
 			wnd.minSize = new Vector2(450, 200);
@@ -88,7 +88,7 @@ namespace VisualPinball.Unity.Editor
 			foreach (var a in _assets) {
 				var obj = AssetDatabase.LoadAssetAtPath(a.Path, TypeByName(a.Type));
 				var tex = AssetPreview.GetAssetPreview(obj);
-				_elements[a] = new Image { image = tex };
+				_elements[a] = NewItem(tex, Path.GetFileNameWithoutExtension(a.Path));
 				_midPane.Add(_elements[a]);
 			}
 		}
