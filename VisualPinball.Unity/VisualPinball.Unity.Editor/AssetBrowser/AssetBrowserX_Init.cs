@@ -31,7 +31,7 @@ namespace VisualPinball.Unity.Editor
 		private Label _bottomLabel;
 		private Slider _sizeSlider;
 
-		private static readonly Dictionary<string, Type> _types = new();
+		private static readonly Dictionary<string, Type> Types = new();
 
 		public void CreateGUI()
 		{
@@ -50,6 +50,8 @@ namespace VisualPinball.Unity.Editor
 
 			_bottomLabel = ui.Q<Label>("bottomLabel");
 			_sizeSlider = ui.Q<Slider>("sizeSlider");
+			_sizeSlider.value = _thumbnailSize;
+			_sizeSlider.RegisterValueChangedCallback(OnThumbSizeChanged);
 
 			_refreshButton = ui.Q<ToolbarButton>("refreshButton");
 			_refreshButton.clicked += Refresh;
@@ -62,6 +64,8 @@ namespace VisualPinball.Unity.Editor
 
 		private void OnDestroy()
 		{
+			_sizeSlider.UnregisterValueChangedCallback(OnThumbSizeChanged);
+
 			_midPane.UnregisterCallback<DragPerformEvent>(OnDragPerformEvent);
 			_midPane.UnregisterCallback<DragUpdatedEvent>(OnDragUpdatedEvent);
 			_refreshButton.clicked -= Refresh;
@@ -94,12 +98,11 @@ namespace VisualPinball.Unity.Editor
 
 		private static Type TypeByName(string name)
 		{
-			if (_types.ContainsKey(name)) {
-				return _types[name];
+			if (Types.ContainsKey(name)) {
+				return Types[name];
 			}
-			_types[name] = AppDomain.CurrentDomain.GetAssemblies().Reverse().Select(assembly => assembly.GetType(name)).FirstOrDefault(tt => tt != null);
-
-			return _types[name];
+			Types[name] = AppDomain.CurrentDomain.GetAssemblies().Reverse().Select(assembly => assembly.GetType(name)).FirstOrDefault(tt => tt != null);
+			return Types[name];
 		}
 	}
 }
