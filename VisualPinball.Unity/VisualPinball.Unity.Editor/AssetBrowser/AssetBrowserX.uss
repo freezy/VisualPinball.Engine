@@ -1,15 +1,15 @@
-#rightPane {
+#midPane {
 	flex-grow: 1;
 	background-color: #333333; /* sampled from project window */
 }
 
-#rightPane .unity-scroll-view__content-container {
+#midPane .unity-scroll-view__content-container {
 	flex-direction: row;
 	flex-wrap: wrap;
 	padding: 10px;
 }
 
-#rightPane .unity-image {
+#midPane .unity-image {
 	width: 200px;
 	height: 200px;
 	margin: 10px;

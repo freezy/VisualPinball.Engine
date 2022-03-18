@@ -75,11 +75,11 @@ namespace VisualPinball.Unity.Editor
 			OnDestroy();
 			rootVisualElement.Clear();
 			CreateGUI();
-			_rightPane.Clear();
+			_midPane.Clear();
 			foreach (var a in _assets) {
 				var obj = AssetDatabase.LoadAssetAtPath(a.Path, TypeByName(a.Type));
 				var tex = AssetPreview.GetAssetPreview(obj);
-				_rightPane.Add(new Image { image = tex });
+				_midPane.Add(new Image { image = tex });
 			}
 		}
 

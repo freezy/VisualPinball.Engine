@@ -27,7 +27,7 @@ namespace VisualPinball.Unity.Editor
 	{
 		private ToolbarButton _refreshButton;
 		private VisualElement _leftPane;
-		private VisualElement _rightPane;
+		private VisualElement _midPane;
 		private Label _bottomLabel;
 		private Slider _sizeSlider;
 
@@ -46,7 +46,7 @@ namespace VisualPinball.Unity.Editor
 			ui.styleSheets.Add(styleSheet);
 
 			_leftPane = ui.Q<VisualElement>("leftPane");
-			_rightPane = ui.Q<VisualElement>("rightPane");
+			_midPane = ui.Q<VisualElement>("midPane");
 
 			_bottomLabel = ui.Q<Label>("bottomLabel");
 			_sizeSlider = ui.Q<Slider>("sizeSlider");
@@ -54,16 +54,16 @@ namespace VisualPinball.Unity.Editor
 			_refreshButton = ui.Q<ToolbarButton>("refreshButton");
 			_refreshButton.clicked += Refresh;
 
-			_rightPane.RegisterCallback<DragUpdatedEvent>(OnDragUpdatedEvent);
-			_rightPane.RegisterCallback<DragPerformEvent>(OnDragPerformEvent);
+			_midPane.RegisterCallback<DragUpdatedEvent>(OnDragUpdatedEvent);
+			_midPane.RegisterCallback<DragPerformEvent>(OnDragPerformEvent);
 
 			Init();
 		}
 
 		private void OnDestroy()
 		{
-			_rightPane.UnregisterCallback<DragPerformEvent>(OnDragPerformEvent);
-			_rightPane.UnregisterCallback<DragUpdatedEvent>(OnDragUpdatedEvent);
+			_midPane.UnregisterCallback<DragPerformEvent>(OnDragPerformEvent);
+			_midPane.UnregisterCallback<DragUpdatedEvent>(OnDragUpdatedEvent);
 			_refreshButton.clicked -= Refresh;
 
 			foreach (var assetLibrary in _assetLibraries) {

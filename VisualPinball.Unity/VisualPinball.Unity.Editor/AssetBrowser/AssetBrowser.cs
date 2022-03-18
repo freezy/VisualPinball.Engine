@@ -25,7 +25,7 @@ namespace VisualPinball.Unity.Editor
 {
 	public class AssetBrowser : EditorWindow
 	{
-		private VisualElement _rightPane;
+		private VisualElement _midPane;
 
 		[SerializeField]
 		private int selectedIndex = -1;
@@ -60,8 +60,8 @@ namespace VisualPinball.Unity.Editor
 			var leftPane = new ListView();
 			splitView.Add(leftPane);
 
-			_rightPane = new ScrollView(ScrollViewMode.VerticalAndHorizontal);
-			splitView.Add(_rightPane);
+			_midPane = new ScrollView(ScrollViewMode.VerticalAndHorizontal);
+			splitView.Add(_midPane);
 
 			// Initialize the list view with all sprites' names
 			leftPane.makeItem = () => new Label();
@@ -75,7 +75,7 @@ namespace VisualPinball.Unity.Editor
 		private void OnSpriteSelectionChange(IEnumerable<object> selectedItems)
 		{
 			// Clear all previous content from the pane
-			_rightPane.Clear();
+			_midPane.Clear();
 
 			// Get the selected sprite
 			var selectedTexture = selectedItems.First() as Texture;
@@ -90,7 +90,7 @@ namespace VisualPinball.Unity.Editor
 			};
 
 			// Add the Image control to the right-hand pane
-			_rightPane.Add(spriteImage);
+			_midPane.Add(spriteImage);
 		}
 	}
 }
