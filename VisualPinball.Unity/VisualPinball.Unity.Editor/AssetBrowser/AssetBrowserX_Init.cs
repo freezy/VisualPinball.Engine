@@ -28,6 +28,8 @@ namespace VisualPinball.Unity.Editor
 		private ToolbarButton _refreshButton;
 		private VisualElement _leftPane;
 		private VisualElement _rightPane;
+		private Label _bottomLabel;
+		private Slider _sizeSlider;
 
 		private static readonly Dictionary<string, Type> _types = new();
 
@@ -45,6 +47,9 @@ namespace VisualPinball.Unity.Editor
 
 			_leftPane = ui.Q<VisualElement>("leftPane");
 			_rightPane = ui.Q<VisualElement>("rightPane");
+
+			_bottomLabel = ui.Q<Label>("bottomLabel");
+			_sizeSlider = ui.Q<Slider>("sizeSlider");
 
 			_refreshButton = ui.Q<ToolbarButton>("refreshButton");
 			_refreshButton.clicked += Refresh;

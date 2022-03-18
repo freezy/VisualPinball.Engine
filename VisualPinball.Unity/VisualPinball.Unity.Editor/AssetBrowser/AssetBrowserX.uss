@@ -1,3 +1,8 @@
+#rightPane {
+	flex-grow: 1;
+	background-color: #333333; /* sampled from project window */
+}
+
 #rightPane .unity-scroll-view__content-container {
 	flex-direction: row;
 	flex-wrap: wrap;
@@ -7,9 +12,24 @@
 #rightPane .unity-image {
 	width: 200px;
 	height: 200px;
-	background-color: #1c2298;
 	margin: 10px;
 }
+
+#bottomToolbar {
+	justify-content: space-between;
+	border-top-width: 1px;
+	border-bottom-width: 0;
+	padding: 0 5px;
+	background-color: #383838; /* sampled from background */
+}
+
+#sizeSlider {
+	width: 75px;
+}
+
+
+
+
 
 ListView {
 	flex-grow: 1;
