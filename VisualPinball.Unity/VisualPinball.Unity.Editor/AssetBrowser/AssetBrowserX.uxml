@@ -9,8 +9,12 @@
 	</uie:Toolbar>
 	<ui:TwoPaneSplitView fixed-pane-initial-dimension="250">
 		<ui:VisualElement name="leftPane" focusable="true"/>
-		<ui:VisualElement focusable="true">
-			<ui:ScrollView name="rightPane"/>
+		<ui:VisualElement>
+			<ui:ScrollView name="rightPane" focusable="true"/>
+			<uie:Toolbar name="bottomToolbar">
+				<ui:Label name="bottomLabel" text="Label" display-tooltip-when-elided="true"/>
+				<ui:Slider name="sizeSlider" picking-mode="Ignore" label="" value="42" low-value="50" high-value="300"/>
+			</uie:Toolbar>
 		</ui:VisualElement>
 	</ui:TwoPaneSplitView>
 </ui:UXML>
