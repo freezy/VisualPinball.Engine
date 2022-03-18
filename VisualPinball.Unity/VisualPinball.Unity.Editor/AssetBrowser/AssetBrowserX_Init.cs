@@ -19,6 +19,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEditor;
 using UnityEditor.UIElements;
+using UnityEngine;
 using UnityEngine.UIElements;
 
 namespace VisualPinball.Unity.Editor
@@ -32,12 +33,14 @@ namespace VisualPinball.Unity.Editor
 		private Slider _sizeSlider;
 
 		private static readonly Dictionary<string, Type> Types = new();
+		private VisualTreeAsset _itemTree;
 
 		public void CreateGUI()
 		{
 			// import UXML
 			var visualTree = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>("Packages/org.visualpinball.engine.unity/VisualPinball.Unity/VisualPinball.Unity.Editor/AssetBrowser/AssetBrowserX.uxml");
 			visualTree.CloneTree(rootVisualElement);
+			_itemTree = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>("Packages/org.visualpinball.engine.unity/VisualPinball.Unity/VisualPinball.Unity.Editor/AssetBrowser/AssetBrowserItem.uxml");
 
 			var ui = rootVisualElement;
 
@@ -73,6 +76,15 @@ namespace VisualPinball.Unity.Editor
 			foreach (var assetLibrary in _assetLibraries) {
 				assetLibrary.Dispose();
 			}
+		}
+
+		private VisualElement NewItem(Texture image, string label)
+		{
+			var item = new VisualElement();
+			_itemTree.CloneTree(item);
+			item.Q<Image>("thumbnail").image = image;
+			item.Q<Label>("label").text = label;
+			return item;
 		}
 
 		private void OnAssetSelectionChange(IEnumerable<object> selectedItems)
