@@ -1,12 +1,14 @@
 #rightPane .unity-scroll-view__content-container {
 	flex-direction: row;
 	flex-wrap: wrap;
+	padding: 10px;
 }
 
 #rightPane .unity-image {
 	width: 200px;
 	height: 200px;
 	background-color: #1c2298;
+	margin: 10px;
 }
 
 ListView {
