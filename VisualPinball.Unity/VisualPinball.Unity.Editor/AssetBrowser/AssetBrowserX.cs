@@ -109,6 +109,7 @@ namespace VisualPinball.Unity.Editor
 
 		private static void ToggleSelectionClass(VisualElement element) => element.ToggleInClassList("selected");
 
+		private void OnSearchQueryChanged(ChangeEvent<string> evt) => _query.Search(evt.newValue);
 		private void OnLibraryToggled(AssetLibrary lib, bool enabled) => _query.Toggle(lib, enabled);
 
 		private void OnDragUpdatedEvent(DragUpdatedEvent evt)

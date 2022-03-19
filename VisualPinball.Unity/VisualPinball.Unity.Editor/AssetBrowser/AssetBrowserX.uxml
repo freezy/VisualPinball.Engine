@@ -3,7 +3,7 @@
 	<uie:Toolbar>
 		<uie:ToolbarButton text="Refresh" name="refreshButton"/>
 		<uie:ToolbarSpacer/>
-		<uie:ToolbarSearchField focusable="true"/>
+		<uie:ToolbarSearchField focusable="true" name="queryInput"/>
 		<uie:ToolbarSpacer/>
 		<uie:ToolbarToggle focusable="false" label="Toggle"/>
 	</uie:Toolbar>
