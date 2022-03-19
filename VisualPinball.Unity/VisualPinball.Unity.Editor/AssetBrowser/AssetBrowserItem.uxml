@@ -1,6 +1,6 @@
 ﻿<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements"
 		 xsi="http://www.w3.org/2001/XMLSchema-instance" editor-extension-mode="True">
-	<ui:VisualElement>
+	<ui:VisualElement class="thumb-item">
 		<ui:Image name="thumbnail" />
 		<ui:Label name="label"/>
 	</ui:VisualElement>
