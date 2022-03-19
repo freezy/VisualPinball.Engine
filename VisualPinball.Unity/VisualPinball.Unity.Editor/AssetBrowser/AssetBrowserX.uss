@@ -17,6 +17,19 @@
 	margin: 10px;
 }
 
+/* thumb item */
+/* ---------- */
+.thumb-item {
+	align-items: center;
+	overflow: scroll;
+}
+.thumb-item #thumbnail {
+	flex: 1;
+}
+.thumb-item #label {
+	margin-top: 0;
+	font-size: 80%;
+}
 
 /* bottom toolbar */
 /* -------------- */
