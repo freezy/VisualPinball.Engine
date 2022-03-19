@@ -1,17 +1,24 @@
+/* left panel */
+/* ---------- */
+
+#leftPane {
+	padding: 5px;
+}
+
 /* "grid" */
 /* ------ */
-#midPane {
+#gridContent {
 	flex-grow: 1;
 	background-color: #333333; /* sampled from project window */
 }
 
-#midPane .unity-scroll-view__content-container {
+#gridContent .unity-scroll-view__content-container {
 	flex-direction: row;
 	flex-wrap: wrap;
 	padding: 10px;
 }
 
-#midPane .unity-image {
+#gridContent .unity-image {
 	width: 150px;
 	height: 150px;
 	margin: 10px 10px 5px 10px;

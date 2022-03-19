@@ -35,6 +35,7 @@ namespace VisualPinball.Unity.Editor
 
 		private List<LibraryAsset> _assets;
 		private List<AssetLibrary> _assetLibraries;
+		private AssetQuery _query;
 
 		private LibraryAsset _selectedAsset;
 		private readonly Dictionary<LibraryAsset, VisualElement> _elementByAsset = new();
@@ -56,46 +57,43 @@ namespace VisualPinball.Unity.Editor
 				.Select(AssetDatabase.GUIDToAssetPath)
 				.Select(AssetDatabase.LoadAssetAtPath<AssetLibrary>)
 				.Where(asset => asset != null).ToList();
+
+			_query = new AssetQuery(_assetLibraries);
+			_query.OnQueryUpdated += OnResult;
 		}
 
-		private void Search()
+		private void OnResult(object sender, AssetQueryResult e)
 		{
-			_assets = _assetLibraries.SelectMany(lib => lib.GetAssets()).ToList();
-			_bottomLabel.text = $"Found {_assets.Count} assets.";
+			UpdateResults(e.Assets);
 		}
 
-		private void Init()
+		private void UpdateResults(List<LibraryAsset> assets)
 		{
-			Search();
-
-			// _rightPane.makeItem = () => new Label();
-			// _rightPane.bindItem = (item, index) => {
-			// 	(item as Label)!.text = Path.GetFileName(_assets[index].Path);
-			// };
-			// _rightPane.itemsSource = _assets;
-			// _rightPane.onSelectionChange += OnAssetSelectionChange;
-			// _rightPane.onSelectionChange += _ => {
-			// 	selectedIndex = _rightPane.selectedIndex;
-			// };
-			// _rightPane.selectedIndex = selectedIndex;
-		}
-
-		private void Refresh()
-		{
-			OnDestroy();
-			rootVisualElement.Clear();
-			CreateGUI();
-			_midPane.Clear();
+			_bottomLabel.text = $"Found {assets.Count} assets.";
+			_gridContent.Clear();
 			_elementByAsset.Clear();
 			_assetsByElement.Clear();
-			_selectedAsset = null;
-			foreach (var asset in _assets) {
+			foreach (var asset in assets) {
 				var obj = AssetDatabase.LoadAssetAtPath(asset.Path, TypeByName(asset.Type));
 				var tex = AssetPreview.GetAssetPreview(obj);
 				var element = NewItem(tex, Path.GetFileNameWithoutExtension(asset.Path));
 				_elementByAsset[asset] = element;
 				_assetsByElement[element] = asset;
-				_midPane.Add(_elementByAsset[asset]);
+				_gridContent.Add(_elementByAsset[asset]);
+			}
+		}
+
+		private void Setup()
+		{
+			OnDestroy();
+			rootVisualElement.Clear();
+			CreateGUI();
+			_libraryList.Clear();
+			_selectedAsset = null;
+			UpdateResults(_query.All);
+
+			foreach (var assetLibrary in _assetLibraries) {
+				_libraryList.Add(NewAssetLibrary(assetLibrary));
 			}
 		}
 
@@ -110,6 +108,8 @@ namespace VisualPinball.Unity.Editor
 		}
 
 		private static void ToggleSelectionClass(VisualElement element) => element.ToggleInClassList("selected");
+
+		private void OnLibraryToggled(AssetLibrary lib, bool enabled) => _query.Toggle(lib, enabled);
 
 		private void OnDragUpdatedEvent(DragUpdatedEvent evt)
 		{
@@ -137,7 +137,7 @@ namespace VisualPinball.Unity.Editor
 							Debug.Log($"{Path.GetFileName(path)} updated in library {assetLibrary.Name}.");
 						}
 
-						Refresh();
+						Setup();
 					}
 				}
 				if (!libraryFound) {
@@ -154,4 +154,5 @@ namespace VisualPinball.Unity.Editor
 			}
 		}
 	}
+
 }
