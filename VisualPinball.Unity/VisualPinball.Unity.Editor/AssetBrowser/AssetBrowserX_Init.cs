@@ -27,8 +27,8 @@ namespace VisualPinball.Unity.Editor
 	public partial class AssetBrowserX
 	{
 		private ToolbarButton _refreshButton;
-		private VisualElement _leftPane;
-		private VisualElement _midPane;
+		private VisualElement _libraryList;
+		private VisualElement _gridContent;
 		private Label _bottomLabel;
 		private Slider _sizeSlider;
 
@@ -48,8 +48,8 @@ namespace VisualPinball.Unity.Editor
 			var styleSheet = AssetDatabase.LoadAssetAtPath<StyleSheet>("Packages/org.visualpinball.engine.unity/VisualPinball.Unity/VisualPinball.Unity.Editor/AssetBrowser/AssetBrowserX.uss");
 			ui.styleSheets.Add(styleSheet);
 
-			_leftPane = ui.Q<VisualElement>("leftPane");
-			_midPane = ui.Q<VisualElement>("midPane");
+			_libraryList = ui.Q<VisualElement>("libraryList");
+			_gridContent = ui.Q<VisualElement>("gridContent");
 
 			_bottomLabel = ui.Q<Label>("bottomLabel");
 			_sizeSlider = ui.Q<Slider>("sizeSlider");
@@ -57,21 +57,19 @@ namespace VisualPinball.Unity.Editor
 			_sizeSlider.RegisterValueChangedCallback(OnThumbSizeChanged);
 
 			_refreshButton = ui.Q<ToolbarButton>("refreshButton");
-			_refreshButton.clicked += Refresh;
+			_refreshButton.clicked += Setup;
 
-			_midPane.RegisterCallback<DragUpdatedEvent>(OnDragUpdatedEvent);
-			_midPane.RegisterCallback<DragPerformEvent>(OnDragPerformEvent);
-
-			Init();
+			_gridContent.RegisterCallback<DragUpdatedEvent>(OnDragUpdatedEvent);
+			_gridContent.RegisterCallback<DragPerformEvent>(OnDragPerformEvent);
 		}
 
 		private void OnDestroy()
 		{
 			_sizeSlider.UnregisterValueChangedCallback(OnThumbSizeChanged);
 
-			_midPane.UnregisterCallback<DragPerformEvent>(OnDragPerformEvent);
-			_midPane.UnregisterCallback<DragUpdatedEvent>(OnDragUpdatedEvent);
-			_refreshButton.clicked -= Refresh;
+			_gridContent.UnregisterCallback<DragPerformEvent>(OnDragPerformEvent);
+			_gridContent.UnregisterCallback<DragUpdatedEvent>(OnDragUpdatedEvent);
+			_refreshButton.clicked -= Setup;
 
 			foreach (var assetLibrary in _assetLibraries) {
 				assetLibrary.Dispose();
@@ -85,6 +83,19 @@ namespace VisualPinball.Unity.Editor
 			item.Q<Image>("thumbnail").image = image;
 			item.Q<Label>("label").text = label;
 			item.RegisterCallback<MouseUpEvent>(_ => OnItemClicked(item));
+			return item;
+		}
+
+		private VisualElement NewAssetLibrary(AssetLibrary lib)
+		{
+			var toggle = new Toggle(lib.Name);
+			var item = new VisualElement();
+			item.AddToClassList("library-item");
+			item.style.flexDirection = FlexDirection.Row;
+			item.Add(toggle);
+
+			toggle.value = true;
+			toggle.RegisterValueChangedCallback(evt => OnLibraryToggled(lib, evt.newValue));
 			return item;
 		}
 
