@@ -36,7 +36,9 @@ namespace VisualPinball.Unity.Editor
 		private List<LibraryAsset> _assets;
 		private List<AssetLibrary> _assetLibraries;
 
-		private readonly Dictionary<LibraryAsset, VisualElement> _elements = new();
+		private LibraryAsset _selectedAsset;
+		private readonly Dictionary<LibraryAsset, VisualElement> _elementByAsset = new();
+		private readonly Dictionary<VisualElement, LibraryAsset> _assetsByElement = new();
 
 		[MenuItem("Visual Pinball/Asset Browser")]
 		public static void ShowWindow()
@@ -84,15 +86,30 @@ namespace VisualPinball.Unity.Editor
 			rootVisualElement.Clear();
 			CreateGUI();
 			_midPane.Clear();
-			_elements.Clear();
-			foreach (var a in _assets) {
-				var obj = AssetDatabase.LoadAssetAtPath(a.Path, TypeByName(a.Type));
+			_elementByAsset.Clear();
+			_assetsByElement.Clear();
+			_selectedAsset = null;
+			foreach (var asset in _assets) {
+				var obj = AssetDatabase.LoadAssetAtPath(asset.Path, TypeByName(asset.Type));
 				var tex = AssetPreview.GetAssetPreview(obj);
-				_elements[a] = NewItem(tex, Path.GetFileNameWithoutExtension(a.Path));
-				_midPane.Add(_elements[a]);
+				var element = NewItem(tex, Path.GetFileNameWithoutExtension(asset.Path));
+				_elementByAsset[asset] = element;
+				_assetsByElement[element] = asset;
+				_midPane.Add(_elementByAsset[asset]);
 			}
 		}
 
+		private void OnItemClicked(VisualElement element)
+		{
+			var asset = _assetsByElement[element];
+			if (_selectedAsset != null) {
+				ToggleSelectionClass(_elementByAsset[_selectedAsset]);
+			}
+			_selectedAsset = asset;
+			ToggleSelectionClass(element);
+		}
+
+		private static void ToggleSelectionClass(VisualElement element) => element.ToggleInClassList("selected");
 
 		private void OnDragUpdatedEvent(DragUpdatedEvent evt)
 		{
@@ -131,7 +148,7 @@ namespace VisualPinball.Unity.Editor
 		private void OnThumbSizeChanged(ChangeEvent<float> evt)
 		{
 			_thumbnailSize = (int)evt.newValue;
-			foreach (var e in _elements.Values) {
+			foreach (var e in _elementByAsset.Values) {
 				e.style.width = _thumbnailSize;
 				e.style.height = _thumbnailSize;
 			}

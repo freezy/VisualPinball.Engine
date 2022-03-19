@@ -84,28 +84,8 @@ namespace VisualPinball.Unity.Editor
 			_itemTree.CloneTree(item);
 			item.Q<Image>("thumbnail").image = image;
 			item.Q<Label>("label").text = label;
+			item.RegisterCallback<MouseUpEvent>(_ => OnItemClicked(item));
 			return item;
-		}
-
-		private void OnAssetSelectionChange(IEnumerable<object> selectedItems)
-		{
-			// // Clear all previous content from the pane
-			// _rightPane?.Clear();
-			//
-			// // Get the selected asset
-			// var selectedTexture = selectedItems.First() as Texture;
-			// if (selectedTexture == null) {
-			// 	return;
-			// }
-			//
-			// // Add a new Image control and display the asset
-			// var spriteImage = new Image {
-			// 	scaleMode = ScaleMode.ScaleToFit,
-			// 	image = selectedTexture
-			// };
-			//
-			// // Add the Image control to the right-hand pane
-			// _rightPane?.Add(spriteImage);
 		}
 
 		private static Type TypeByName(string name)

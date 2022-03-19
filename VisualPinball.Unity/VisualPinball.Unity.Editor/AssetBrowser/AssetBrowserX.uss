@@ -14,7 +14,7 @@
 #midPane .unity-image {
 	width: 150px;
 	height: 150px;
-	margin: 10px;
+	margin: 10px 10px 5px 10px;
 }
 
 /* thumb item */
@@ -28,7 +28,11 @@
 }
 .thumb-item #label {
 	margin-top: 0;
+	margin-bottom: 5px;
 	font-size: 80%;
+}
+.selected .thumb-item {
+	background-color: #2C5D87; /* picked from list view */
 }
 
 /* bottom toolbar */
