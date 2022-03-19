@@ -88,10 +88,14 @@ namespace VisualPinball.Unity.Editor
 			return true;
 		}
 
-		public IEnumerable<LibraryAsset> GetAssets()
+		public IEnumerable<LibraryAsset> GetAssets(string query = null)
 		{
 			var collection = _db.GetCollection<LibraryAsset>("assets");
-			return collection.FindAll();
+			var q = collection.Query();
+			if (!string.IsNullOrWhiteSpace(query)) {
+				q = q.Where(a => a.Path.Contains(query, StringComparison.OrdinalIgnoreCase));
+			}
+			return q.ToList();
 		}
 
 		public void OnBeforeSerialize()

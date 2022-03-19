@@ -27,6 +27,7 @@ namespace VisualPinball.Unity.Editor
 	public partial class AssetBrowserX
 	{
 		private ToolbarButton _refreshButton;
+		private ToolbarSearchField _queryInput;
 		private VisualElement _libraryList;
 		private VisualElement _gridContent;
 		private Label _bottomLabel;
@@ -59,6 +60,9 @@ namespace VisualPinball.Unity.Editor
 			_refreshButton = ui.Q<ToolbarButton>("refreshButton");
 			_refreshButton.clicked += Setup;
 
+			_queryInput = ui.Q<ToolbarSearchField>("queryInput");
+			_queryInput.RegisterValueChangedCallback(OnSearchQueryChanged);
+
 			_gridContent.RegisterCallback<DragUpdatedEvent>(OnDragUpdatedEvent);
 			_gridContent.RegisterCallback<DragPerformEvent>(OnDragPerformEvent);
 		}
@@ -66,6 +70,7 @@ namespace VisualPinball.Unity.Editor
 		private void OnDestroy()
 		{
 			_sizeSlider.UnregisterValueChangedCallback(OnThumbSizeChanged);
+			_queryInput.UnregisterValueChangedCallback(OnSearchQueryChanged);
 
 			_gridContent.UnregisterCallback<DragPerformEvent>(OnDragPerformEvent);
 			_gridContent.UnregisterCallback<DragUpdatedEvent>(OnDragUpdatedEvent);

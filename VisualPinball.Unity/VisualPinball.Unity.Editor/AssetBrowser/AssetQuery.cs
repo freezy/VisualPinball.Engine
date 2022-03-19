@@ -25,10 +25,17 @@ namespace VisualPinball.Unity.Editor
 		public event EventHandler<AssetQueryResult> OnQueryUpdated;
 
 		private readonly List<AssetLibrary> _libraries;
+		private string _query;
 
 		public AssetQuery(List<AssetLibrary> libraries)
 		{
 			_libraries = libraries;
+		}
+
+		public void Search(string q)
+		{
+			_query = q;
+			Run();
 		}
 
 		public void Toggle(AssetLibrary lib, bool enabled)
@@ -39,13 +46,15 @@ namespace VisualPinball.Unity.Editor
 			if (!enabled && _libraries.Contains(lib)) {
 				_libraries.Remove(lib);
 			}
-
 			Run();
 		}
 
 		public void Run()
 		{
-			var assets = _libraries.SelectMany(lib => lib.GetAssets()).ToList();
+			var assets = _libraries
+				.SelectMany(lib => lib.GetAssets(_query))
+				.ToList();
+
 			OnQueryUpdated?.Invoke(this, new AssetQueryResult(assets));
 		}
 
