@@ -1,4 +1,4 @@
-// Visual Pinball Engine
+// Visual Pinball Engineball.Orientation
 // Copyright (C) 2022 freezy and VPE Team
 //
 // This program is free software: you can redistribute it and/or modify
@@ -56,7 +56,10 @@ namespace VisualPinball.Unity
 
 				ball.Orientation += addedOrientation;
 				math.orthonormalize(ball.Orientation);
+				// https://docs.unity.cn/Packages/com.unity.mathematics@1.2/api/Unity.Mathematics.math.orthonormalize.html#Unity_Mathematics_math_orthonormalize_Unity_Mathematics_float3x3_
 
+				// angular momentum = drehimpuls / Schwung, Impulsmomemt
+				// angular velocity = Winkelgeschwindigkeit
 				ball.AngularVelocity = ball.AngularMomentum / inertia;
 
 				marker.End();
