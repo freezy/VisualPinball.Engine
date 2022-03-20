@@ -60,8 +60,20 @@ namespace VisualPinball.Unity
 				var zHeight = !ball.IsFrozen ? ball.Position.z : ball.Position.z - ball.Radius;
 
 				var or = ball.Orientation;
+				var vpright = new Vector3(or.c0.x, or.c1.x, or.c2.x);
+				var vpfront = new Vector3(or.c0.y, or.c1.y, or.c2.y);
+				var vptop = new Vector3(or.c0.z, or.c1.z, or.c2.z);
+				Debug.Log("c0: (" + or.c0.x + ", " + or.c0.y + ", " + or.c0.z + ")");
+				Debug.Log("c1: (" + or.c1.x + ", " + or.c1.y + ", " + or.c1.z + ")");
+				Debug.Log("c2: (" + or.c2.x + ", " + or.c2.y + ", " + or.c2.z + ")");
 				var ballTransform = _player.Balls[entity].transform;
 				ballTransform.localPosition = new Vector3(ball.Position.x, ball.Position.y, zHeight);
+				Vector3.OrthoNormalize(ref vptop, ref vpfront, ref vpright);
+
+				var unitytop = new Vector3(vptop.x, vptop.z, vptop.y);
+				var unityfront = new Vector3(vpfront.x, vpfront.z, vpfront.y);
+
+				Vector3.OrthoNormalize(ref unitytop, ref unityfront);
 
 				// Following is the transistion from VP-Physics Ball Orientation to the Unity Ball-Orientation.
 				// following statements: when looking at the backglass:
@@ -81,7 +93,14 @@ namespace VisualPinball.Unity
 				//1st iteration by (looks strange, but less strange)  (cupiii)
 				//ballTransform.localRotation = Quaternion.LookRotation(new Vector3(or.c0.x*-1, or.c1.x*-1, or.c2.x), new Vector3(or.c0.z*-1, or.c1.z*-1, or.c2.z));
 				//newest iteration (hopefully correct))
-				ballTransform.localRotation = Quaternion.LookRotation(new Vector3(or.c0.z*1f, or.c2.z*1f, or.c1.z*1f), new Vector3(or.c0.y*1f, or.c2.y*1f, or.c1.y*1f));
+
+				// Better Ways than skew matrix: 
+				//    https://gamedev.stackexchange.com/questions/108920/applying-angular-velocity-to-quaternion
+				//	  https://stackoverflow.com/questions/23503151/how-to-update-quaternion-based-on-3d-gyro-data
+				//    https://stackoverflow.com/questions/12053895/converting-angular-velocity-to-quaternion-in-opencv
+
+				ballTransform.localRotation = Quaternion.LookRotation(unityfront, unitytop);
+
 
 				marker.End();
 

@@ -26,7 +26,24 @@ namespace VisualPinball.Unity
 		public float3 Position;
 		public float3 EventPosition; // m_lastEventPos
 		public float3 Velocity;
+
+		/// <summary>
+		/// AngularVelocity 
+		///		* Set to 0 at start
+		///			(in BallManualRoll(in Entity entity, in float3 targetWorldPosition)
+		///			(which is not used anywhere)
+		///		* Used to get  tangential velocity due to rotation when rolling / colliding on surfaces (alsways added to normal velocity) 
+		///			(in BallData.SurfaceVelocity(in BallData ball, in float3 surfP))
+		///		* Calculated from AngularMomentum / inertia 
+		///			(In BallDisplacementSystem.OnUpdate())
+		///			(Where Inertia is a "constant" based on radius and mass (2/5 m r^2))
+		/// </summary>
 		public float3 AngularVelocity;
+		/// <summary>
+		/// AngularMomentum
+		///		* set to 0 at Start.
+		///		* When a survace applies an impule, it applies it to velocity and to angMom. ()
+		/// </summary>
 		public float3 AngularMomentum;
 		public float3x3 Orientation;
 		public float Radius;
@@ -72,7 +89,12 @@ namespace VisualPinball.Unity
 			}
 		}
 
+		/// <summary>
+		/// Calculates Moment of Inertia for a Ball 
+		/// https://en.wikipedia.org/wiki/Moment_of_inertia#Examples_2
+		/// </summary>
 		public float Inertia => 2.0f / 5.0f * Radius * Radius * Mass;
+		
 		public float InvMass => 1f / Mass;
 
 		public void ApplySurfaceImpulse(in float3 rotI, in float3 impulse)
