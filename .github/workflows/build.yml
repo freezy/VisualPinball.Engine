@@ -68,6 +68,7 @@ jobs:
         id: test
         with:
           unityVersion: '2021.2.16f1'
+          customImage: 'unityci/editor:2021.2.16f1-linux-il2cpp-1'
           projectPath: VisualPinball.Unity/VisualPinball.Unity.Test/TestProject~
           artifactsPath: VisualPinball.Unity/VisualPinball.Unity.Test/TestProject~/artifacts
           testMode: all
