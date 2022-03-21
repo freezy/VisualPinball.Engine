@@ -29,20 +29,39 @@ namespace VisualPinball.Unity
 
 		/// <summary>
 		/// AngularVelocity 
-		///		* Set to 0 at start
+		///		* Set to 0 at Manual Roll
 		///			(in BallManualRoll(in Entity entity, in float3 targetWorldPosition)
 		///			(which is not used anywhere)
-		///		* Used to get  tangential velocity due to rotation when rolling / colliding on surfaces (alsways added to normal velocity) 
-		///			(in BallData.SurfaceVelocity(in BallData ball, in float3 surfP))
+		///		* Is set to zero At RotatorComponent. Possibly an error and should be AngularVelocity 
+		///			(in UpdateRotation(float angleDeg))
 		///		* Calculated from AngularMomentum / inertia 
 		///			(In BallDisplacementSystem.OnUpdate())
 		///			(Where Inertia is a "constant" based on radius and mass (2/5 m r^2))
+		///		* Used to get tangential velocity due to rotation when rolling / colliding on surfaces (alsways added to normal velocity) 
+		///			(in BallData.SurfaceVelocity(in BallData ball, in float3 surfP))
+
 		/// </summary>
 		public float3 AngularVelocity;
 		/// <summary>
 		/// AngularMomentum
-		///		* set to 0 at Start.
-		///		* When a survace applies an impule, it applies it to velocity and to angMom. ()
+		///		* Set to 0 at Manual Roll
+		///			(in BallManualRoll(in Entity entity, in float3 targetWorldPosition)
+		///		* Set to 0 at every new ball	
+		///			(in Ballmanager.CreateEntity(GameObject ballGo, int id, in float3 worldPos, in float3 localPos, in float3 localVel, in float scale, in float mass, in float radius, in Entity kickerEntity)
+		///		* Set to 0 in KickerApi, KickerCollider and RotatorComponent
+		///			(in several places)
+		///		* Calculated when a survace applies an impulse, it applies it to velocity (div by mass) and to angMom fully. 
+		///			(ApplySurfaceImpulse(in float3 rotI, in float3 impulse))
+		///			(Where rotI seems to be the Rotation impulse and impulse is the (non angular)velocity (makes sense to divide by mass)
+		///			(angularMomenmtom = rotI;)
+		///		* used to calculate Angular Velocity (ball.AngularVelocity = ball.AngularMomentum / inertia;)
+		///			(in BalldisplacementSystem.OnUpdate())
+		///		* used to add and thus calculate Orientation 
+		///			(in BalldisplacementSystem.OnUpdate())
+		///			skewSymmetricMatrix is created from the Angular Momentum divided by Inertia
+		///			The original orientation is multiplied with the skewSymmetric Matrix
+		///			and added to the old Orientation to form new orientation
+		///			
 		/// </summary>
 		public float3 AngularMomentum;
 		public float3x3 Orientation;

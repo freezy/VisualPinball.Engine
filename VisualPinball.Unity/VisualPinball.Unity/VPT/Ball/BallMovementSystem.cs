@@ -69,7 +69,6 @@ namespace VisualPinball.Unity
 				var ballTransform = _player.Balls[entity].transform;
 				ballTransform.localPosition = new Vector3(ball.Position.x, ball.Position.y, zHeight);
 				Vector3.OrthoNormalize(ref vptop, ref vpfront, ref vpright);
-
 				var unitytop = new Vector3(vptop.x, vptop.z, vptop.y);
 				var unityfront = new Vector3(vpfront.x, vpfront.z, vpfront.y);
 
