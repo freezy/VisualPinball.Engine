@@ -74,11 +74,11 @@ namespace VisualPinball.Unity.Editor
 				return false;
 			}
 
-
 			var asset = new LibraryAsset {
 				Guid = guid,
 				Type = type.ToString(),
 				Path = path,
+				AddedAt = DateTime.Now
 			};
 
 			collection.EnsureIndex(x => x.Guid, true);
@@ -115,5 +115,15 @@ namespace VisualPinball.Unity.Editor
 		public string Guid { get; set; }
 		public string Type { get; set; }
 		public string Path { get; set; }
+		public DateTime AddedAt;
+		public LibraryCategory Category;
+	}
+
+	public class LibraryCategory
+	{
+		public ObjectId Id;
+		public string Name { get; set; }
+		public LibraryCategory Parent { get; set; }
+		public List<LibraryAsset> Assets { get; set; }
 	}
 }
