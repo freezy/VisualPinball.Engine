@@ -58,16 +58,17 @@ namespace VisualPinball.Unity
 
 				// calculate/adapt height of ball
 				var zHeight = !ball.IsFrozen ? ball.Position.z : ball.Position.z - ball.Radius;
+				var ballTransform = _player.Balls[entity].transform;
+				ballTransform.localPosition = new Vector3(ball.Position.x, ball.Position.y, zHeight);
+
 
 				var or = ball.Orientation;
 				var vpright = new Vector3(or.c0.x, or.c1.x, or.c2.x);
 				var vpfront = new Vector3(or.c0.y, or.c1.y, or.c2.y);
 				var vptop = new Vector3(or.c0.z, or.c1.z, or.c2.z);
-				Debug.Log("c0: (" + or.c0.x + ", " + or.c0.y + ", " + or.c0.z + ")");
-				Debug.Log("c1: (" + or.c1.x + ", " + or.c1.y + ", " + or.c1.z + ")");
-				Debug.Log("c2: (" + or.c2.x + ", " + or.c2.y + ", " + or.c2.z + ")");
-				var ballTransform = _player.Balls[entity].transform;
-				ballTransform.localPosition = new Vector3(ball.Position.x, ball.Position.y, zHeight);
+				// Debug.Log("c0: (" + or.c0.x + ", " + or.c0.y + ", " + or.c0.z + ")");
+				// Debug.Log("c1: (" + or.c1.x + ", " + or.c1.y + ", " + or.c1.z + ")");
+				// Debug.Log("c2: (" + or.c2.x + ", " + or.c2.y + ", " + or.c2.z + ")");
 				Vector3.OrthoNormalize(ref vptop, ref vpfront, ref vpright);
 				var unitytop = new Vector3(vptop.x, vptop.z, vptop.y);
 				var unityfront = new Vector3(vpfront.x, vpfront.z, vpfront.y);

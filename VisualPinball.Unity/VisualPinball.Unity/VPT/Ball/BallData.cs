@@ -28,7 +28,8 @@ namespace VisualPinball.Unity
 		public float3 Velocity;
 
 		/// <summary>
-		/// AngularVelocity 
+		/// AngularVelocity  -  german: Winkelgeschwindigkeit
+
 		///		* Set to 0 at Manual Roll
 		///			(in BallManualRoll(in Entity entity, in float3 targetWorldPosition)
 		///			(which is not used anywhere)
@@ -39,11 +40,10 @@ namespace VisualPinball.Unity
 		///			(Where Inertia is a "constant" based on radius and mass (2/5 m r^2))
 		///		* Used to get tangential velocity due to rotation when rolling / colliding on surfaces (alsways added to normal velocity) 
 		///			(in BallData.SurfaceVelocity(in BallData ball, in float3 surfP))
-
 		/// </summary>
 		public float3 AngularVelocity;
 		/// <summary>
-		/// AngularMomentum
+		/// AngularMomentum  - german: drehimpuls, Impulsmomemt
 		///		* Set to 0 at Manual Roll
 		///			(in BallManualRoll(in Entity entity, in float3 targetWorldPosition)
 		///		* Set to 0 at every new ball	
