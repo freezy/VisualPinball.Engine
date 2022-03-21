@@ -56,33 +56,43 @@ namespace VisualPinball.Unity
 
 				ball.Orientation += addedOrientation;
 				math.orthonormalize(ball.Orientation);
-				NormalizeOrientation(ball.Orientation);
-				// https://docs.unity.cn/Packages/com.unity.mathematics@1.2/api/Unity.Mathematics.math.orthonormalize.html#Unity_Mathematics_math_orthonormalize_Unity_Mathematics_float3x3_
 
-				// angular momentum = drehimpuls / Schwung, Impulsmomemt
-				// angular velocity = Winkelgeschwindigkeit
+				// after Othonomalization, the Orientation vectors also have to be normalized - this is not done by othonomalize, since the skew matrix creates quite lengthy vectors.
+				// in fact, they dont have to be normalized, but just shortened, so we can abs-add the x, y and z together and just divide by the sum.
+				// This saves three qrts in the game loop per ball. 
+				float lengthX, lengthY, lengthZ;
+				/* Correct normalization would be: 
+				 * lengthX = math.sqrt(ball.Orientation.c0.x * ball.Orientation.c0.x + ball.Orientation.c0.y * ball.Orientation.c0.y + ball.Orientation.c0.z * ball.Orientation.c0.z);
+				 * lengthY = math.sqrt(ball.Orientation.c1.x * ball.Orientation.c1.x + ball.Orientation.c1.y * ball.Orientation.c1.y + ball.Orientation.c1.z * ball.Orientation.c1.z);
+				 * lengthZ = math.sqrt(ball.Orientation.c2.x * ball.Orientation.c2.x + ball.Orientation.c2.y * ball.Orientation.c2.y + ball.Orientation.c2.z * ball.Orientation.c2.z);
+				 */
+				lengthX = math.abs(ball.Orientation.c0.x) + math.abs(ball.Orientation.c0.y) + math.abs(ball.Orientation.c0.z);
+				lengthY = math.abs(ball.Orientation.c1.x) + math.abs(ball.Orientation.c1.y) + math.abs(ball.Orientation.c1.z);
+				lengthZ = math.abs(ball.Orientation.c2.x) + math.abs(ball.Orientation.c2.y) + math.abs(ball.Orientation.c2.z);
+				if (lengthX != 0f)
+				{
+					ball.Orientation.c0.x /= lengthX;
+					ball.Orientation.c0.y /= lengthX;
+					ball.Orientation.c0.z /= lengthX;
+				}
+				if (lengthY != 0f)
+				{
+					ball.Orientation.c1.x /= lengthY;
+					ball.Orientation.c1.y /= lengthY;
+					ball.Orientation.c1.z /= lengthY;
+				}
+				if (lengthZ != 0f)
+				{
+					ball.Orientation.c2.x /= lengthZ;
+					ball.Orientation.c2.y /= lengthZ;
+					ball.Orientation.c2.z /= lengthZ;
+				}
+
 				ball.AngularVelocity = ball.AngularMomentum / inertia;
 
 				marker.End();
 
 			}).Run();
-		}
-
-		private void NormalizeOrientation(float3x3 orientation)
-		{
-			float lengthX, lengthY, lengthZ = 0f;
-			lengthX = math.sqrt(orientation.c0.x * orientation.c0.x + orientation.c1.x * orientation.c1.x + orientation.c2.x * orientation.c2.x);
-			lengthY = math.sqrt(orientation.c0.y * orientation.c0.y + orientation.c1.y * orientation.c1.y + orientation.c2.y * orientation.c2.y);
-			lengthZ = math.sqrt(orientation.c0.z * orientation.c0.z + orientation.c1.z * orientation.c1.z + orientation.c2.z * orientation.c2.z);
-			orientation.c0.x /= lengthX;
-			orientation.c1.x /= lengthX;
-			orientation.c2.x /= lengthX;
-			orientation.c0.y /= lengthY;
-			orientation.c1.y /= lengthY;
-			orientation.c2.y /= lengthY;
-			orientation.c0.z /= lengthZ;
-			orientation.c1.z /= lengthZ;
-			orientation.c2.z /= lengthZ;
 		}
 
 		private static float3x3 CreateSkewSymmetric(in float3 pv3D)
