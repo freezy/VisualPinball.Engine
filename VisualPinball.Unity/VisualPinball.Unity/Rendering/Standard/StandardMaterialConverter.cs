@@ -161,8 +161,17 @@ namespace VisualPinball.Unity
 		public Color? GetEmissiveColor(Material material)
 		{
 			// standard has no emissive color
-
 			return null;
+		}
+
+		public void SetEmissiveIntensity(Material material, MaterialPropertyBlock propBlock, float intensity)
+		{
+			// standard has no emissive materials
+		}
+
+		public float GetEmissiveIntensity(Material material)
+		{
+			return 1;
 		}
 	}
 }

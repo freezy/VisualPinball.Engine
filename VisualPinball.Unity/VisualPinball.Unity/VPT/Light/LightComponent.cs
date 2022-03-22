@@ -93,12 +93,7 @@ namespace VisualPinball.Unity
 		public IApiLamp GetApi(Player player) => _api ??= new LightApi(gameObject, player);
 		public IEnumerable<Light> LightSources => GetComponentsInChildren<Light>();
 
-		public Color LampColor {
-			get {
-				var src = GetComponentInChildren<Light>();
-				return Color.magenta; //src == null ? Color.white : src.color;
-			}
-		}
+		public Color LampColor => _color;
 
 		public LampStatus LampStatus => State;
 
@@ -160,28 +155,31 @@ namespace VisualPinball.Unity
 		#region Runtime
 
 		private float _value;
+		private Color _color;
 		private bool _hasLights;
-		private Light[] _unityLights;
-		private readonly List<(Renderer, Color, float)> _fullEmissions = new();
-		private readonly Dictionary<Light, float> _fullIntensities = new();
+		private readonly List<(Light, float)> _lights = new();
+		private readonly List<(Renderer, float)> _materials = new();
 		private MaterialPropertyBlock _propBlock;
 
 		public bool Enabled {
 			set {
 				StopAllCoroutines();
-				foreach (var unityLight in _unityLights) {
-					unityLight.enabled = value;
-				}
+				SetLightIntensity(value ? 1 : 0);
+				SetMaterialIntensity(value ? 1 : 0);
 			}
 		}
 
 		public Color Color {
-			get => _unityLights[0].color;
+			get => _color;
 			set {
-				foreach (var unityLight in _unityLights) {
+				_color = value;
+				foreach (var (unityLight, _) in _lights) {
 					unityLight.color = value;
-
-					// todo handle insert material color
+				}
+				foreach (var (mr, intensity) in _materials) {
+					mr.GetPropertyBlock(_propBlock);
+					RenderPipeline.Current.MaterialConverter.SetEmissiveColor(_propBlock, value * intensity);
+					mr.SetPropertyBlock(_propBlock);
 				}
 			}
 		}
@@ -195,12 +193,13 @@ namespace VisualPinball.Unity
 			}
 
 			player.RegisterLamp(this);
-			_unityLights = GetComponentsInChildren<Light>();
+			var lights = GetComponentsInChildren<Light>();
 			_value = 0;
+			_color = lights.FirstOrDefault()?.color ?? Color.white;
 
 			// remember intensities
-			foreach (var unityLight in _unityLights) {
-				_fullIntensities[unityLight] = unityLight.intensity;
+			foreach (var unityLight in lights) {
+				_lights.Add((unityLight, unityLight.intensity));
 				if (FadeEnabled) {
 					unityLight.enabled = true;
 					unityLight.intensity = 0;
@@ -211,15 +210,16 @@ namespace VisualPinball.Unity
 			}
 
 			// remember material emissions
-			_propBlock = new MaterialPropertyBlock();
+			_propBlock = new MaterialPropertyBlock(); // this is just something we can recycle
 			foreach (var mr in GetComponentsInChildren<MeshRenderer>()) {
-				var emissiveColor = RenderPipeline.Current.MaterialConverter.GetEmissiveColor(mr.sharedMaterial);
-				if (emissiveColor?.a > 10f) {
-					_fullEmissions.Add((mr, (Color)emissiveColor, 0));
+				var emissiveIntensity = RenderPipeline.Current.MaterialConverter.GetEmissiveIntensity(mr.sharedMaterial);
+				if (emissiveIntensity > 0) {
+					_materials.Add((mr, emissiveIntensity));
 				}
+				// todo set to 0 initially
 			}
 
-			_hasLights = _unityLights.Length > 0 || _fullEmissions.Count > 0;
+			_hasLights = _lights.Count > 0 || _materials.Count > 0;
 		}
 
 		public void FadeTo(float value)
@@ -233,17 +233,8 @@ namespace VisualPinball.Unity
 
 			} else {
 				_value = value;
-				foreach (var unityLight in _unityLights) {
-					if (value > 0) {
-						unityLight.intensity = value * _fullIntensities[unityLight];
-						unityLight.enabled = true;
-
-					} else {
-						unityLight.enabled = false;
-					}
-				}
-
-				SetEmissions(value);
+				SetLightIntensity(value);
+				SetMaterialIntensity(value);
 			}
 		}
 
@@ -286,48 +277,45 @@ namespace VisualPinball.Unity
 
 			if (duration == 0) {
 				_value = value;
-				foreach (var unityLight in _unityLights) {
-					unityLight.intensity = _fullIntensities[unityLight] * value;
-				}
-				SetEmissions(value);
+				SetLightIntensity(value);
+				SetMaterialIntensity(value);
 
 			} else {
 				while (counter <= duration) {
 					counter += Time.deltaTime;
 					var position = counter / duration;
-					_value = Mathf.Lerp(_value, 1, position);
-					foreach (var unityLight in _unityLights) {
-						unityLight.intensity = _fullIntensities[unityLight] * _value;
-					}
-					yield return FadeEmissions(value, position);
+					var newValue = Mathf.Lerp(_value, 1, position);
+					yield return SetIntensity(newValue);
 				}
 			}
 		}
 
-		/// <summary>
-		/// Sets the material emissions as a LERP between the current emission and
-		/// a value for a given position.
-		/// </summary>
-		/// <param name="value">Value, between 0 and 1. End position of LERP is this value times full emission.</param>
-		/// <param name="position">LERP position</param>
-		private IEnumerator FadeEmissions(float value, float position)
+		private IEnumerator SetIntensity(float value)
 		{
-			for (var i = 0; i < _fullEmissions.Count; i++) {
-				var (mr, color, lastValue) = _fullEmissions[i];
-				mr.GetPropertyBlock(_propBlock);
-				var emission = Mathf.Lerp(lastValue, value, position);
-				RenderPipeline.Current.MaterialConverter.SetEmissiveColor(_propBlock, emission * color * 0.05f);
-				_fullEmissions[i] = (mr, color, emission);
-				mr.SetPropertyBlock(_propBlock);
-			}
+			_value = value;
+			SetLightIntensity(value);
+			SetMaterialIntensity(value);
 			yield return null;
 		}
 
-		private void SetEmissions(float value)
+		private void SetLightIntensity(float value)
 		{
-			foreach (var (mr, color, lastValue) in _fullEmissions) {
+			foreach (var (unityLight, intensity) in _lights) {
+				if (value > 0) {
+					unityLight.intensity = intensity * value;
+					unityLight.enabled = true;
+
+				} else {
+					unityLight.enabled = false;
+				}
+			}
+		}
+
+		private void SetMaterialIntensity(float value)
+		{
+			foreach (var (mr, intensity) in _materials) {
 				mr.GetPropertyBlock(_propBlock);
-				RenderPipeline.Current.MaterialConverter.SetEmissiveColor(_propBlock, value * color * 0.05f);
+				RenderPipeline.Current.MaterialConverter.SetEmissiveIntensity(mr.sharedMaterial, _propBlock, value * intensity);
 				mr.SetPropertyBlock(_propBlock);
 			}
 		}
