@@ -32,6 +32,9 @@ namespace VisualPinball.Unity.Editor
 
 		public string LibraryRoot;
 
+		private const string CollectionAssets = "assets";
+		private const string CollectionCategories = "categories";
+
 		private LiteDatabase _db {
 			get {
 				if (_dbInstance != null) {
@@ -62,14 +65,15 @@ namespace VisualPinball.Unity.Editor
 
 		private LiteDatabase _dbInstance;
 
-		public bool AddAsset(string guid, Type type, string path)
+		public bool AddAsset(string guid, Type type, string path, LibraryCategory category = null, List<LibraryAttribute> attrs = null)
 		{
-			var collection = _db.GetCollection<LibraryAsset>("assets");
+			var collection = _db.GetCollection<LibraryAsset>(CollectionAssets);
 
 			var existingAsset = collection.FindOne(x => x.Guid == guid);
 			if (existingAsset != null) {
 				existingAsset.Type = type.ToString();
 				existingAsset.Path = path;
+				existingAsset.Category = category;
 				collection.Update(existingAsset);
 				return false;
 			}
@@ -78,11 +82,14 @@ namespace VisualPinball.Unity.Editor
 				Guid = guid,
 				Type = type.ToString(),
 				Path = path,
-				AddedAt = DateTime.Now
+				Category = category,
+				Attributes = attrs ?? new List<LibraryAttribute>(),
+				AddedAt = DateTime.Now,
 			};
 
 			collection.EnsureIndex(x => x.Guid, true);
 			collection.EnsureIndex(x => x.Type);
+			collection.EnsureIndex(x => x.Category);
 			collection.Insert(asset);
 
 			return true;
@@ -90,12 +97,18 @@ namespace VisualPinball.Unity.Editor
 
 		public IEnumerable<LibraryAsset> GetAssets(string query = null)
 		{
-			var collection = _db.GetCollection<LibraryAsset>("assets");
+			var collection = _db.GetCollection<LibraryAsset>(CollectionAssets);
 			var q = collection.Query();
 			if (!string.IsNullOrWhiteSpace(query)) {
 				q = q.Where(a => a.Path.Contains(query, StringComparison.OrdinalIgnoreCase));
 			}
 			return q.ToList();
+		}
+
+		public IEnumerable<LibraryCategory> GetCategories()
+		{
+			var collection = _db.GetCollection<LibraryCategory>(CollectionCategories);
+			return collection.Query().ToList();
 		}
 
 		public void OnBeforeSerialize()
@@ -115,15 +128,23 @@ namespace VisualPinball.Unity.Editor
 		public string Guid { get; set; }
 		public string Type { get; set; }
 		public string Path { get; set; }
-		public DateTime AddedAt;
-		public LibraryCategory Category;
+		public DateTime AddedAt { get; set; }
+		public LibraryCategory Category { get; set; }
+		public List<LibraryAttribute> Attributes { get; set; }
 	}
 
 	public class LibraryCategory
 	{
+		[BsonId]
 		public ObjectId Id;
 		public string Name { get; set; }
-		public LibraryCategory Parent { get; set; }
-		public List<LibraryAsset> Assets { get; set; }
+	}
+
+	public class LibraryAttribute
+	{
+		[BsonId]
+		public ObjectId Id;
+		public string Key { get; set; }
+		public string Value { get; set; }
 	}
 }

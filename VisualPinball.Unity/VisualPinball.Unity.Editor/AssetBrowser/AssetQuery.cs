@@ -58,6 +58,8 @@ namespace VisualPinball.Unity.Editor
 			OnQueryUpdated?.Invoke(this, new AssetQueryResult(assets));
 		}
 
-		public List<LibraryAsset> All => _libraries.SelectMany(lib => lib.GetAssets()).ToList();
+		public List<LibraryAsset> Assets => _libraries.SelectMany(lib => lib.GetAssets()).ToList();
+
+		public List<LibraryCategory> Categories => _libraries.SelectMany(lib => lib.GetCategories()).ToList();
 	}
 }
