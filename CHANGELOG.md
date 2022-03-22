@@ -36,7 +36,7 @@ Built with Unity 2021.2.
 - Native trough component ([#229](https://github.com/freezy/VisualPinball.Engine/pull/229), [#248](https://github.com/freezy/VisualPinball.Engine/pull/248), [#256](https://github.com/freezy/VisualPinball.Engine/pull/256), [Documentation](https://docs.visualpinball.org/creators-guide/manual/mechanisms/troughs.html)).
 
 ### Changed
-
+- When importing, meshes are now saved as easily editable `.fbx` files instead of Unity's internal format ([#387](https://github.com/freezy/VisualPinball.Engine/pull/387)).
 - Revised rubber mesh generation ([#384](https://github.com/freezy/VisualPinball.Engine/pull/384)).
 - APIs for RGB lamps and Visual Scripting ([#382](https://github.com/freezy/VisualPinball.Engine/pull/382)).
 - Playfield is now rotated to the correct angle during gameplay ([#370](https://github.com/freezy/VisualPinball.Engine/pull/370)).
@@ -51,8 +51,8 @@ Built with Unity 2021.2.
 - Put game-, mesh-, collision- animation data into separate components ([#227](https://github.com/freezy/VisualPinball.Engine/pull/227), [Documentation](https://docs.visualpinball.org/creators-guide/editor/unity-components.html)). 
 
 ### Fixed
-
 - Remaining ball spinning issue should now be solved ([#397](https://github.com/freezy/VisualPinball.Engine/pull/397)).
+- Physics error when the ball would stop rotate ([#393](https://github.com/freezy/VisualPinball.Engine/pull/393)).
 - Finally, ball rotation is rendered correctly ([#386](https://github.com/freezy/VisualPinball.Engine/pull/386)).
 - Ball stuttering when rolling over dropped target ([#375](https://github.com/freezy/VisualPinball.Engine/pull/375)).
 - Plunger disappearing due to too small bounding box.
