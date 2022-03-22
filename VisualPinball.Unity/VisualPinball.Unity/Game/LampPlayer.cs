@@ -41,7 +41,7 @@ namespace VisualPinball.Unity
 		/// <summary>
 		/// Links the GLE's IDs to the mappings.
 		/// </summary>
-		private readonly Dictionary<string,  Dictionary<int, Dictionary<ILampDeviceComponent, LampMapping>>> _lampMappings = new();
+		private readonly Dictionary<string, Dictionary<ILampDeviceComponent, Dictionary<int, LampMapping>>> _lampMappings = new();
 
 		private Player? _player;
 		private TableComponent? _tableComponent;
@@ -132,10 +132,11 @@ namespace VisualPinball.Unity
 		{
 			if (_lampAssignments.ContainsKey(id)) {
 				foreach (var component in _lampAssignments[id]) {
-					if (!_lampMappings[id].ContainsKey(internalId)) {
+
+					if (!_lampMappings[id][component].ContainsKey(internalId)) {
 						continue;
 					}
-					var mapping = _lampMappings[id][internalId][component];
+					var mapping = _lampMappings[id][component][internalId];
 					if (mapping.Source != lampSource || mapping.IsCoil != isCoil) {
 						// so, if we have a coil here that happens to have the same name as a lamp,
 						// or a GI light with the same name as an other lamp, skip.
@@ -230,13 +231,13 @@ namespace VisualPinball.Unity
 				_lampAssignments[id] = new List<ILampDeviceComponent>();
 			}
 			if (!_lampMappings.ContainsKey(id)) {
-				_lampMappings[id] = new Dictionary<int, Dictionary<ILampDeviceComponent, LampMapping>>();
+				_lampMappings[id] = new Dictionary<ILampDeviceComponent, Dictionary<int, LampMapping>>();
 			}
 			_lampAssignments[id].Add(lampMapping.Device);
-			if (!_lampMappings[id].ContainsKey(lampMapping.InternalId)) {
-				_lampMappings[id][lampMapping.InternalId] = new Dictionary<ILampDeviceComponent, LampMapping>();
+			if (!_lampMappings[id].ContainsKey(lampMapping.Device)) {
+				_lampMappings[id][lampMapping.Device] = new Dictionary<int, LampMapping>();
 			}
-			_lampMappings[id][lampMapping.InternalId][lampMapping.Device] = lampMapping;
+			_lampMappings[id][lampMapping.Device][lampMapping.InternalId] = lampMapping;
 
 			if (!LampStates.ContainsKey(id)) {
 				LampStates[id] = new LampState(lampMapping.Device.LampStatus, lampMapping.Device.LampColor.ToEngineColor());

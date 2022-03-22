@@ -107,6 +107,9 @@ namespace VisualPinball.Unity.Editor
 
 		private void RenderCoilId(Dictionary<string, LampState> lampStatuses, LampListData lampListData, Rect cellRect)
 		{
+			cellRect.x += 5;
+			EditorGUI.LabelField(cellRect, lampListData.Id);
+
 			// add some padding
 			cellRect.x = cellRect.width - 45;
 			cellRect.width -= 4;
@@ -134,7 +137,7 @@ namespace VisualPinball.Unity.Editor
 			cellRect.x += 20;
 			cellRect.width -= 20;
 
-			EditorGUI.LabelField(cellRect, lampListData.Id);
+			EditorGUI.LabelField(cellRect, lampListData.InternalId.ToString());
 		}
 
 		protected override void RenderDeviceElement(LampListData listData, Rect cellRect, Action<LampListData> updateAction)
