@@ -159,10 +159,11 @@ namespace VisualPinball.Unity
 
 		#region Runtime
 
+		private float _value;
 		private bool _hasLights;
 		private Light[] _unityLights;
-		private readonly List<(Renderer, Color, float)> _fullEmissions = new List<(Renderer, Color, float)>();
-		private float _fullIntensity;
+		private readonly List<(Renderer, Color, float)> _fullEmissions = new();
+		private readonly Dictionary<Light, float> _fullIntensities = new();
 		private MaterialPropertyBlock _propBlock;
 
 		public bool Enabled {
@@ -195,14 +196,11 @@ namespace VisualPinball.Unity
 
 			player.RegisterLamp(this);
 			_unityLights = GetComponentsInChildren<Light>();
-			_hasLights = _unityLights.Length > 0;
+			_value = 0;
 
-			// remember intensity
-			if (_hasLights) {
-				_fullIntensity = _unityLights[0].intensity;
-			}
-			// enable at 0
+			// remember intensities
 			foreach (var unityLight in _unityLights) {
+				_fullIntensities[unityLight] = unityLight.intensity;
 				if (FadeEnabled) {
 					unityLight.enabled = true;
 					unityLight.intensity = 0;
@@ -212,7 +210,7 @@ namespace VisualPinball.Unity
 				}
 			}
 
-			// emissive materials
+			// remember material emissions
 			_propBlock = new MaterialPropertyBlock();
 			foreach (var mr in GetComponentsInChildren<MeshRenderer>()) {
 				var emissiveColor = RenderPipeline.Current.MaterialConverter.GetEmissiveColor(mr.sharedMaterial);
@@ -220,6 +218,8 @@ namespace VisualPinball.Unity
 					_fullEmissions.Add((mr, (Color)emissiveColor, 0));
 				}
 			}
+
+			_hasLights = _unityLights.Length > 0 || _fullEmissions.Count > 0;
 		}
 
 		public void FadeTo(float value)
@@ -232,9 +232,10 @@ namespace VisualPinball.Unity
 				StartCoroutine(nameof(Fade), value);
 
 			} else {
+				_value = value;
 				foreach (var unityLight in _unityLights) {
 					if (value > 0) {
-						unityLight.intensity = value * _fullIntensity;
+						unityLight.intensity = value * _fullIntensities[unityLight];
 						unityLight.enabled = true;
 
 					} else {
@@ -279,16 +280,14 @@ namespace VisualPinball.Unity
 		private IEnumerator Fade(float value)
 		{
 			var counter = 0f;
-
-			var a = _unityLights[0].intensity;
-			var b = _fullIntensity * value;
-			var duration = a < b
-				? FadeSpeedUp * (_fullIntensity - a) / _fullIntensity
-				: FadeSpeedDown * (1 - (_fullIntensity - a) / _fullIntensity);
+			var duration = _value < 1
+				? FadeSpeedUp * (1 - _value) / 1
+				: FadeSpeedDown * (1 - (1 - _value) / 1);
 
 			if (duration == 0) {
+				_value = value;
 				foreach (var unityLight in _unityLights) {
-					unityLight.intensity = b;
+					unityLight.intensity = _fullIntensities[unityLight] * value;
 				}
 				SetEmissions(value);
 
@@ -296,8 +295,9 @@ namespace VisualPinball.Unity
 				while (counter <= duration) {
 					counter += Time.deltaTime;
 					var position = counter / duration;
+					_value = Mathf.Lerp(_value, 1, position);
 					foreach (var unityLight in _unityLights) {
-						unityLight.intensity = Mathf.Lerp(a, b, position);
+						unityLight.intensity = _fullIntensities[unityLight] * _value;
 					}
 					yield return FadeEmissions(value, position);
 				}
