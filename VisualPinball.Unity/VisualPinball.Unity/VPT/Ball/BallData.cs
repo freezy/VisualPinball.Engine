@@ -32,7 +32,7 @@ namespace VisualPinball.Unity
 
 		///		* Set to 0 at Manual Roll
 		///			(in BallManualRoll(in Entity entity, in float3 targetWorldPosition)
-		///			(which is not used anywhere)
+		///			(which is not used anywhere in this Project, but is at least used in Ravarcade's ImGui Physics Debugger - Addon)
 		///		* Is set to zero At RotatorComponent. Possibly an error and should be AngularVelocity 
 		///			(in UpdateRotation(float angleDeg))
 		///		* Calculated from AngularMomentum / inertia 
