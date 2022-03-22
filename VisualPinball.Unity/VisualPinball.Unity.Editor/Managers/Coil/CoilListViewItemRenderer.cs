@@ -117,6 +117,7 @@ namespace VisualPinball.Unity.Editor
 					} else if (index == CoilDestination.Lamp) {
 						_tableComponent.MappingConfig.AddLamp(new LampMapping {
 							Id = coilListData.Id,
+							InternalId = coilListData.InternalId,
 							Source = LampSource.Lamp,
 							IsCoil = true,
 							Description = coilListData.Description
