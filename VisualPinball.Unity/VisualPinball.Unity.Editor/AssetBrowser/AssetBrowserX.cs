@@ -40,6 +40,7 @@ namespace VisualPinball.Unity.Editor
 		private LibraryAsset _selectedAsset;
 		private readonly Dictionary<LibraryAsset, VisualElement> _elementByAsset = new();
 		private readonly Dictionary<VisualElement, LibraryAsset> _assetsByElement = new();
+		private List<LibraryCategory> _categories = new();
 
 		[MenuItem("Visual Pinball/Asset Browser")]
 		public static void ShowWindow()
@@ -83,14 +84,22 @@ namespace VisualPinball.Unity.Editor
 			}
 		}
 
+		private void UpdateCategories(List<LibraryCategory> categories)
+		{
+			_categories = categories;
+			_categoryList.itemsSource = categories;
+		}
+
 		private void Setup()
 		{
 			OnDestroy();
 			rootVisualElement.Clear();
 			CreateGUI();
 			_libraryList.Clear();
+			_categoryList.Clear();
 			_selectedAsset = null;
-			UpdateResults(_query.All);
+			UpdateResults(_query.Assets);
+			UpdateCategories(_query.Categories);
 
 			foreach (var assetLibrary in _assetLibraries) {
 				_libraryList.Add(NewAssetLibrary(assetLibrary));
