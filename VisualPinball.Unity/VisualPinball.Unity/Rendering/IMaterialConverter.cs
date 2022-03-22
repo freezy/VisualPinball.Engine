@@ -69,5 +69,9 @@ namespace VisualPinball.Unity
 		void SetEmissiveColor(MaterialPropertyBlock propBlock, Color color);
 
 		Color? GetEmissiveColor(Material material);
+
+		void SetEmissiveIntensity(Material material, MaterialPropertyBlock propBlock, float intensity);
+
+		float GetEmissiveIntensity(Material material);
 	}
 }
