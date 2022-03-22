@@ -57,9 +57,9 @@ namespace VisualPinball.Unity
 				ball.Orientation += addedOrientation;
 				math.orthonormalize(ball.Orientation);
 
-				// after Othonomalization, the Orientation vectors also have to be normalized - this is not done by othonomalize, since the skew matrix creates quite lengthy vectors.
+				// after Orthonormalization, the orientation vectors also have to be normalized - this is not done by othonomalize, since the skew matrix creates quite lengthy vectors.
 				// in fact, they dont have to be normalized, but just shortened, so we can abs-add the x, y and z together and just divide by the sum.
-				// This saves three qrts in the game loop per ball. 
+				// This saves three sqrts in the game loop per ball. 
 				float lengthX, lengthY, lengthZ;
 				/* Correct normalization would be: 
 				 * lengthX = math.sqrt(ball.Orientation.c0.x * ball.Orientation.c0.x + ball.Orientation.c0.y * ball.Orientation.c0.y + ball.Orientation.c0.z * ball.Orientation.c0.z);
