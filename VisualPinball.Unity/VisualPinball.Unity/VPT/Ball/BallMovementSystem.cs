@@ -99,6 +99,9 @@ namespace VisualPinball.Unity
 				//	  https://stackoverflow.com/questions/23503151/how-to-update-quaternion-based-on-3d-gyro-data
 				//    https://stackoverflow.com/questions/12053895/converting-angular-velocity-to-quaternion-in-opencv
 
+				// also implementing VP's "Orthonormalize" Code - although it does not really orthonormalize could give a performance benefit:
+				// https://github.com/vpinball/vpinball/blob/be08b04d61096272df97bd45e6f0682043228a73/math/matrix.h#L208
+
 				ballTransform.localRotation = Quaternion.LookRotation(unityfront, unitytop);
 
 
