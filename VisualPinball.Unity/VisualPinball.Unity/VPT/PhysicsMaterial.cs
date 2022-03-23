@@ -17,6 +17,7 @@
 // ReSharper disable InconsistentNaming
 
 using UnityEngine;
+using UnityEditor;
 
 namespace VisualPinball.Unity
 {
@@ -28,11 +29,25 @@ namespace VisualPinball.Unity
 	/// of writing them into the scene seems a good plan.
 	/// </summary>
 	[CreateAssetMenu(fileName = "PhysicsMaterial", menuName = "Visual Pinball/Physics Material", order = 100)]
+	//[CustomEditor(typeof(PhysicsMaterial))]
 	public class PhysicsMaterial : ScriptableObject
 	{
+		public bool RubberDampeners;
 		public float Elasticity;
 		public float ElasticityFalloff;
+		public AnimationCurve ElasticityCurve;
 		public float Friction;
 		public float ScatterAngle;
+
+		public enum Season
+		{
+			Spring, 
+			Summer,
+			Autumn, 
+			Winter
+		}
+		public Season sea;
+
+		
 	}
 }
