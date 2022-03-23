@@ -271,9 +271,9 @@ namespace VisualPinball.Unity
 		private IEnumerator Fade(float value)
 		{
 			var counter = 0f;
-			var duration = _value < 1
-				? FadeSpeedUp * (1 - _value) / 1
-				: FadeSpeedDown * (1 - (1 - _value) / 1);
+			var duration = _value < value
+				? FadeSpeedUp * (1 - _value)
+				: FadeSpeedDown * _value;
 
 			if (duration == 0) {
 				_value = value;
@@ -284,7 +284,7 @@ namespace VisualPinball.Unity
 				while (counter <= duration) {
 					counter += Time.deltaTime;
 					var position = counter / duration;
-					var newValue = Mathf.Lerp(_value, 1, position);
+					var newValue = Mathf.Lerp(_value, value, position);
 					yield return SetIntensity(newValue);
 				}
 			}
