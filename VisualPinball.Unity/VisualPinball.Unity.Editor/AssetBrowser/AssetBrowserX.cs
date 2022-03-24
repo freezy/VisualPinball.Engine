@@ -34,7 +34,8 @@ namespace VisualPinball.Unity.Editor
 		private int _thumbnailSize = 150;
 
 		private List<LibraryAsset> _assets;
-		private List<AssetLibrary> _assetLibraries;
+		private List<AssetLibrary> _libraries;
+		private AssetLibrary _activeLibrary;
 		private AssetQuery _query;
 
 		private LibraryAsset _selectedAsset;
@@ -54,12 +55,12 @@ namespace VisualPinball.Unity.Editor
 
 		private void OnEnable()
 		{
-			_assetLibraries = AssetDatabase.FindAssets($"t:{typeof(AssetLibrary)}")
+			_libraries = AssetDatabase.FindAssets($"t:{typeof(AssetLibrary)}")
 				.Select(AssetDatabase.GUIDToAssetPath)
 				.Select(AssetDatabase.LoadAssetAtPath<AssetLibrary>)
 				.Where(asset => asset != null).ToList();
 
-			_query = new AssetQuery(_assetLibraries);
+			_query = new AssetQuery(_libraries);
 			_query.OnQueryUpdated += OnResult;
 		}
 
@@ -90,12 +91,17 @@ namespace VisualPinball.Unity.Editor
 			rootVisualElement.Clear();
 			CreateGUI();
 			_libraryList.Clear();
-			_categoryView.Refresh(_assetLibraries);
+			_categoryView.Refresh(_libraries);
 			_selectedAsset = null;
 			UpdateResults(_query.Assets);
 
-			foreach (var assetLibrary in _assetLibraries) {
+			foreach (var assetLibrary in _libraries) {
 				_libraryList.Add(NewAssetLibrary(assetLibrary));
+			}
+
+			_activeLibraryDropdown.choices = _libraries.Select(l => l.Name).ToList();
+			if (_activeLibrary != null) {
+				_activeLibraryDropdown.index = _activeLibraryDropdown.choices.IndexOf(_activeLibrary.Name);
 			}
 		}
 
@@ -128,7 +134,7 @@ namespace VisualPinball.Unity.Editor
 			// Disallow adding from outside of Unity
 			foreach (var path in DragAndDrop.paths) {
 				var libraryFound = false;
-				foreach (var assetLibrary in _assetLibraries) {
+				foreach (var assetLibrary in _libraries) {
 					if (path.Replace('\\', '/').StartsWith(assetLibrary.LibraryRoot.Replace('\\', '/'))) {
 						libraryFound = true;
 						var guid = AssetDatabase.AssetPathToGUID(path);

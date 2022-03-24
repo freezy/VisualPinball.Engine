@@ -27,12 +27,11 @@ namespace VisualPinball.Unity.Editor
 	/// </summary>
 	public class LibraryCategoryElement : VisualElement
 	{
-		public new class UxmlFactory : UxmlFactory<LibraryCategoryElement, UxmlTraits> { }
-
 		public readonly (AssetLibrary, LibraryCategory)[] Categories;
 
 		public readonly bool IsCreateButton;
 
+		private readonly LibraryCategoryView _libraryCategoryView;
 		private readonly VisualElement _ui;
 		private readonly Label _label;
 
@@ -41,20 +40,20 @@ namespace VisualPinball.Unity.Editor
 		/// <summary>
 		/// Construct as normal category
 		/// </summary>
+		/// <param name="libraryCategoryView">Reference to parent</param>
 		/// <param name="categories">Category of each library</param>
-		public LibraryCategoryElement(IEnumerable<(AssetLibrary, LibraryCategory)> categories) : this(categories, false)
-		{
-		}
+		public LibraryCategoryElement(LibraryCategoryView libraryCategoryView, IEnumerable<(AssetLibrary, LibraryCategory)> categories)
+			: this(libraryCategoryView, categories, false) { }
 
 		/// <summary>
 		/// Construct as "add new" entry
 		/// </summary>
-		public LibraryCategoryElement() : this(null, true)
-		{
-		}
+		public LibraryCategoryElement(LibraryCategoryView libraryCategoryView)
+			: this(libraryCategoryView, null, true) { }
 
-		private LibraryCategoryElement(IEnumerable<(AssetLibrary, LibraryCategory)> categories, bool isCreateButton)
+		private LibraryCategoryElement(LibraryCategoryView libraryCategoryView, IEnumerable<(AssetLibrary, LibraryCategory)> categories, bool isCreateButton)
 		{
+			_libraryCategoryView = libraryCategoryView;
 			Categories = categories?.ToArray();
 			IsCreateButton = isCreateButton;
 
@@ -66,6 +65,18 @@ namespace VisualPinball.Unity.Editor
 			_label = _ui.Q<Label>();
 			_label.text = !isCreateButton ? Categories!.First().Item2.Name : "Add New";
 
+			RegisterCallback<PointerUpEvent>(OnPointerUp);
+
+		}
+
+		private void OnPointerUp(PointerUpEvent evt)
+		{
+			if (evt.button != 0) {
+				return;
+			}
+			if (IsCreateButton) {
+				_libraryCategoryView.Create();
+			}
 		}
 	}
 }

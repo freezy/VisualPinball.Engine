@@ -31,6 +31,7 @@ namespace VisualPinball.Unity.Editor
 
 		private LibraryCategoryView _categoryView;
 		private VisualElement _libraryList;
+		private DropdownField _activeLibraryDropdown;
 
 		private VisualElement _gridContent;
 		private Label _bottomLabel;
@@ -53,6 +54,7 @@ namespace VisualPinball.Unity.Editor
 			ui.styleSheets.Add(styleSheet);
 
 			_libraryList = ui.Q<VisualElement>("libraryList");
+			_activeLibraryDropdown = ui.Q<DropdownField>("activeLibrary");
 			_categoryView = ui.Q<LibraryCategoryView>();
 			_gridContent = ui.Q<VisualElement>("gridContent");
 
@@ -80,7 +82,7 @@ namespace VisualPinball.Unity.Editor
 			_gridContent.UnregisterCallback<DragUpdatedEvent>(OnDragUpdatedEvent);
 			_refreshButton.clicked -= Setup;
 
-			foreach (var assetLibrary in _assetLibraries) {
+			foreach (var assetLibrary in _libraries) {
 				assetLibrary.Dispose();
 			}
 		}
