@@ -27,7 +27,15 @@ namespace VisualPinball.Unity.Editor
 	[CustomEditor(typeof(PhysicsMaterial)), CanEditMultipleObjects]
 	public class PhysicsMaterialInspector : UnityEditor.Editor
 	{
-		protected PhysicsMaterial _physicsMaterial;
+		SerializedProperty Elasticity;
+		SerializedProperty ElasticityFalloff;
+		SerializedProperty ElasticityOverVelocity;
+		SerializedProperty Friction;
+		SerializedProperty FrictionOverVelocity;
+		SerializedProperty FrictionOverAngularMomentum;
+
+		SerializedProperty ScatterAngle;
+
 
 		private bool _foldoutDebug = true;
 		private bool _foldoutColliders;
@@ -37,6 +45,16 @@ namespace VisualPinball.Unity.Editor
 		//protected override MonoBehaviour UndoTarget => null;
 
 
+		private void OnEnable()
+		{
+			Elasticity = serializedObject.FindProperty("Elasticity");
+			ElasticityFalloff = serializedObject.FindProperty("ElasticityFalloff");
+			ElasticityOverVelocity = serializedObject.FindProperty("ElasticityOverVelocity");
+			Friction = serializedObject.FindProperty("Friction");
+			ScatterAngle = serializedObject.FindProperty("ScatterAngle");
+			FrictionOverVelocity = serializedObject.FindProperty("FrictionOverVelocity");
+			FrictionOverAngularMomentum = serializedObject.FindProperty("FrictionOverAngularMomentum");
+		}
 
 		private void OnDestroy()
 		{
@@ -49,14 +67,85 @@ namespace VisualPinball.Unity.Editor
 
 		public override void OnInspectorGUI()
 		{
-			base.DrawDefaultInspector();
+			//base.DrawDefaultInspector();
 
-			GUILayout.Space(20f);
-			GUILayout.Label("Test Inspector");
-			GUILayout.Label("Test 2 Inspector");
-			if (_physicsMaterial == null) {
-				return;
+			var physicsMaterial = (PhysicsMaterial)target;  //casting from type object to type Physicsmaterial
+			
+
+			GUILayout.Label("Elasticity:");
+			EditorGUI.indentLevel++;
+			//physicsMaterial.Elasticity = EditorGUILayout.DelayedFloatField(physicsMaterial.Elasticity);
+			serializedObject.Update();
+			//EditorGUILayout.LabelField("Elasticity", physicsMaterial.Elasticity.ToString());
+			EditorGUILayout.PropertyField(Elasticity, true);
+			EditorGUILayout.PropertyField(ElasticityFalloff, true);
+			EditorGUILayout.PropertyField(ElasticityOverVelocity, new GUIContent("Elasticity / Velocity"), true);
+			GUILayout.BeginHorizontal();
+			GUILayout.Space(15);
+			GUILayout.Label("E/V-Curve:");
+			GUILayout.FlexibleSpace();
+			if (GUILayout.Button("Generate from Elasticity & Falloff", GUILayout.Width(220)))
+			{
+
 			}
+			GUILayout.EndHorizontal();
+			GUILayout.BeginHorizontal();
+			GUILayout.FlexibleSpace();
+			if (GUILayout.Button("Generate nFozzy Rubber", GUILayout.Width(220)))
+			{
+
+			}
+			GUILayout.EndHorizontal();
+			GUILayout.BeginHorizontal();
+			GUILayout.FlexibleSpace();
+			if (GUILayout.Button("Generate nFozzy Post", GUILayout.Width(220)))
+			{
+
+			}
+			GUILayout.EndHorizontal();
+			GUILayout.BeginHorizontal();
+			GUILayout.FlexibleSpace();
+			if (GUILayout.Button("Clear (don't use)", GUILayout.Width(220)))
+			{
+
+			}
+			GUILayout.EndHorizontal();
+
+
+			//EditorGUILayout.PropertyField(Friction, true);
+			//EditorGUILayout.PropertyField(ElasticityFalloff, true);
+
+
+
+			//EditorGUILayout.DropdownButton(new GUIContent("Bla"), FocusType.Keyboard);
+			EditorGUI.indentLevel--;
+			EditorGUI.indentLevel++;
+			GUILayout.Label("Friction");
+			EditorGUILayout.PropertyField(Friction, true);
+			EditorGUILayout.PropertyField(FrictionOverVelocity, new GUIContent("Friction / Velocity"), true);
+			GUILayout.BeginHorizontal();
+			GUILayout.FlexibleSpace();
+			if (GUILayout.Button("Clear (don't use)", GUILayout.Width(220)))
+			{
+
+			}
+			GUILayout.EndHorizontal();
+
+			EditorGUILayout.PropertyField(FrictionOverAngularMomentum, new GUIContent("Friction / Ang.Momentum"), true);
+			GUILayout.BeginHorizontal();
+			GUILayout.FlexibleSpace();
+			if (GUILayout.Button("Clear (don't use)", GUILayout.Width(220)))
+			{
+
+			}
+			GUILayout.EndHorizontal();
+
+
+			EditorGUI.indentLevel--;
+			EditorGUILayout.PropertyField(ScatterAngle, true);
+			//GUILayout.Label("Test 2 Inspector");
+
+			serializedObject.ApplyModifiedProperties();
 
 			var refresh = false;
 			/*
