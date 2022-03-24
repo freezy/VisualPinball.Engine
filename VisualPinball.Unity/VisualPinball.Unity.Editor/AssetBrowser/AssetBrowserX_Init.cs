@@ -29,7 +29,7 @@ namespace VisualPinball.Unity.Editor
 		private ToolbarButton _refreshButton;
 		private ToolbarSearchField _queryInput;
 
-		private ListView _categoryList;
+		private LibraryCategoryView _categoryView;
 		private VisualElement _libraryList;
 
 		private VisualElement _gridContent;
@@ -53,9 +53,7 @@ namespace VisualPinball.Unity.Editor
 			ui.styleSheets.Add(styleSheet);
 
 			_libraryList = ui.Q<VisualElement>("libraryList");
-			_categoryList = ui.Q<ListView>("categoryList");
-			_categoryList.makeItem = () => new Label();
-			_categoryList.bindItem = (item, index) => { (item as Label)!.text = _categories[index].Name; };
+			_categoryView = ui.Q<LibraryCategoryView>();
 			_gridContent = ui.Q<VisualElement>("gridContent");
 
 			_bottomLabel = ui.Q<Label>("bottomLabel");

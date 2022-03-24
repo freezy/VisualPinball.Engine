@@ -1,0 +1,5 @@
+﻿<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements">
+	<ui:VisualElement class="library-category-element">
+		<ui:Label/>
+	</ui:VisualElement>
+</ui:UXML>

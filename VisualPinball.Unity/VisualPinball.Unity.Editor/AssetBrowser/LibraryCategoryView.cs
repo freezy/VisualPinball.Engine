@@ -20,15 +20,15 @@ using UnityEngine.UIElements;
 
 namespace VisualPinball.Unity.Editor
 {
-	public class AssetBrowserCategoryView : VisualElement
+	public class LibraryCategoryView : VisualElement
 	{
-		public new class UxmlFactory : UxmlFactory<AssetBrowserCategoryView, UxmlTraits> { }
+		public new class UxmlFactory : UxmlFactory<LibraryCategoryView, UxmlTraits> { }
 
 		public List<LibraryCategoryElement> Elements = new();
 
 		private readonly VisualElement _container = new();
 
-		public AssetBrowserCategoryView()
+		public LibraryCategoryView()
 		{
 			var scrollView = new ScrollView();
 			Add(scrollView);

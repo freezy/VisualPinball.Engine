@@ -84,22 +84,15 @@ namespace VisualPinball.Unity.Editor
 			}
 		}
 
-		private void UpdateCategories(List<LibraryCategory> categories)
-		{
-			_categories = categories;
-			_categoryList.itemsSource = categories;
-		}
-
 		private void Setup()
 		{
 			OnDestroy();
 			rootVisualElement.Clear();
 			CreateGUI();
 			_libraryList.Clear();
-			_categoryList.Clear();
+			_categoryView.Refresh(_assetLibraries);
 			_selectedAsset = null;
 			UpdateResults(_query.Assets);
-			UpdateCategories(_query.Categories);
 
 			foreach (var assetLibrary in _assetLibraries) {
 				_libraryList.Add(NewAssetLibrary(assetLibrary));
