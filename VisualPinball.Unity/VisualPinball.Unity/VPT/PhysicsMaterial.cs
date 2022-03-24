@@ -35,8 +35,10 @@ namespace VisualPinball.Unity
 		public bool RubberDampeners;
 		public float Elasticity;
 		public float ElasticityFalloff;
-		public AnimationCurve ElasticityCurve;
+		public AnimationCurve ElasticityOverVelocity;
 		public float Friction;
+		public AnimationCurve FrictionOverVelocity;
+		public AnimationCurve FrictionOverAngularMomentum;
 		public float ScatterAngle;
 
 		public enum Season
