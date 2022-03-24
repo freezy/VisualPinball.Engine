@@ -12,8 +12,7 @@
 			<ui:Label text="Libraries" style="-unity-font-style: bold; margin-top: 2px;"/>
 			<ui:VisualElement name="libraryList"/>
 			<ui:Label text="Categories" style="-unity-font-style: bold; margin-top: 2px;"/>
-			<ui:ListView name="categoryList" />
-
+			<VisualPinball.Unity.Editor.LibraryCategoryView/>
 		</ui:VisualElement>
 		<ui:TwoPaneSplitView fixed-pane-initial-dimension="300" fixed-pane-index="1">
 			<ui:VisualElement>

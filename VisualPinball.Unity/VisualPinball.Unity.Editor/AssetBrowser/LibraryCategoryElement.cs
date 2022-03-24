@@ -16,6 +16,7 @@
 
 using System.Collections.Generic;
 using System.Linq;
+using UnityEditor;
 using UnityEngine.UIElements;
 
 namespace VisualPinball.Unity.Editor
@@ -24,13 +25,16 @@ namespace VisualPinball.Unity.Editor
 	/// A category element groups categories with the same name of multiple libraries.
 	/// It's also what's rendered.
 	/// </summary>
-	public class AssetBrowserCategoryElement : VisualElement
+	public class LibraryCategoryElement : VisualElement
 	{
+		public new class UxmlFactory : UxmlFactory<LibraryCategoryElement, UxmlTraits> { }
+
 		public readonly (AssetLibrary, LibraryCategory)[] Categories;
 
-		public readonly bool IsCreateElement;
+		public readonly bool IsCreateButton;
 
-		private Label _label;
+		private readonly VisualElement _ui;
+		private readonly Label _label;
 
 		private const string ClassSelected = "selected";
 
@@ -38,22 +42,30 @@ namespace VisualPinball.Unity.Editor
 		/// Construct as normal category
 		/// </summary>
 		/// <param name="categories">Category of each library</param>
-		public AssetBrowserCategoryElement(IEnumerable<(AssetLibrary, LibraryCategory)> categories) : this(false)
+		public LibraryCategoryElement(IEnumerable<(AssetLibrary, LibraryCategory)> categories) : this(categories, false)
 		{
-			Categories = categories.ToArray();
 		}
 
 		/// <summary>
 		/// Construct as "add new" entry
 		/// </summary>
-		public AssetBrowserCategoryElement() : this(true)
+		public LibraryCategoryElement() : this(null, true)
 		{
 		}
 
-		private AssetBrowserCategoryElement(bool isCreateElement)
+		private LibraryCategoryElement(IEnumerable<(AssetLibrary, LibraryCategory)> categories, bool isCreateButton)
 		{
-			IsCreateElement = isCreateElement;
-			_label.text = !isCreateElement ? Categories.First().Item2.Name : "Add New";
+			Categories = categories?.ToArray();
+			IsCreateButton = isCreateButton;
+
+			var visualTree = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>("Packages/org.visualpinball.engine.unity/VisualPinball.Unity/VisualPinball.Unity.Editor/AssetBrowser/LibraryCategoryElement.uxml");
+			var ui = visualTree.CloneTree();
+			Add(ui);
+
+			_ui = ui.Q<VisualElement>(null, "library-category-element");
+			_label = _ui.Q<Label>();
+			_label.text = !isCreateButton ? Categories!.First().Item2.Name : "Add New";
+
 		}
 	}
 }
