@@ -46,11 +46,16 @@ namespace VisualPinball.Unity.Editor
 
 
 			foreach (var cat in categories) {
-				var categoryElement = new LibraryCategoryElement(cat);
+				var categoryElement = new LibraryCategoryElement(this, cat);
 				Elements.Add(categoryElement);
 				_container.Add(categoryElement);
 			}
-			_container.Add(new LibraryCategoryElement()); // that's the "add" entry
+			_container.Add(new LibraryCategoryElement(this)); // that's the "add" entry
+		}
+
+		public void Create()
+		{
+
 		}
 	}
 }

@@ -95,6 +95,17 @@ namespace VisualPinball.Unity.Editor
 			return true;
 		}
 
+		public LibraryCategory AddCategory(string categoryName)
+		{
+			var collection = _db.GetCollection<LibraryCategory>(CollectionCategories);
+			var category = new LibraryCategory {
+				Name = name
+			};
+			collection.Insert(category);
+
+			return category;
+		}
+
 		public IEnumerable<LibraryAsset> GetAssets(string query = null)
 		{
 			var collection = _db.GetCollection<LibraryAsset>(CollectionAssets);
