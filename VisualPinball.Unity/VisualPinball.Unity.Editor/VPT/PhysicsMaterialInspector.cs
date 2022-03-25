@@ -77,37 +77,84 @@ namespace VisualPinball.Unity.Editor
 			//physicsMaterial.Elasticity = EditorGUILayout.DelayedFloatField(physicsMaterial.Elasticity);
 			serializedObject.Update();
 			//EditorGUILayout.LabelField("Elasticity", physicsMaterial.Elasticity.ToString());
+			GUI.enabled = (ElasticityOverVelocity.animationCurveValue.keys.Length == 0);
 			EditorGUILayout.PropertyField(Elasticity, true);
 			EditorGUILayout.PropertyField(ElasticityFalloff, true);
+			GUI.enabled = true;
 			EditorGUILayout.PropertyField(ElasticityOverVelocity, new GUIContent("Elasticity / Velocity"), true);
+
 			GUILayout.BeginHorizontal();
 			GUILayout.Space(15);
 			GUILayout.Label("E/V-Curve:");
 			GUILayout.FlexibleSpace();
 			if (GUILayout.Button("Generate from Elasticity & Falloff", GUILayout.Width(220)))
 			{
-
+				ElasticityOverVelocity.animationCurveValue.keys.Initialize();
+				Keyframe[] keyframes = new Keyframe[64];
+				for (int i = 0; i < keyframes.Length; i++)
+				{
+					keyframes[i] = new Keyframe(i, Elasticity.floatValue / (1.0f + ElasticityFalloff.floatValue * i / 18.53f));
+				}
+				var tempcurve = new AnimationCurve(keyframes);
+				for (int i = 0; i < keyframes.Length; i++)
+				{
+					AnimationUtility.SetKeyLeftTangentMode(tempcurve, i, AnimationUtility.TangentMode.ClampedAuto);
+					AnimationUtility.SetKeyRightTangentMode(tempcurve, i, AnimationUtility.TangentMode.ClampedAuto);
+				}
+				
+				ElasticityOverVelocity.animationCurveValue = tempcurve;
+				ElasticityOverVelocity.serializedObject.ApplyModifiedProperties();
 			}
 			GUILayout.EndHorizontal();
 			GUILayout.BeginHorizontal();
 			GUILayout.FlexibleSpace();
 			if (GUILayout.Button("Generate nFozzy Rubber", GUILayout.Width(220)))
 			{
+				ElasticityOverVelocity.animationCurveValue.keys.Initialize();
+				Keyframe[] keyframes = new Keyframe[5];
+				keyframes[0] = new Keyframe(0f, 1.1f);
+				keyframes[1] = new Keyframe(3.77f, 0.97f);
+				keyframes[2] = new Keyframe(5.76f, 0.967f);
+				keyframes[3] = new Keyframe(15.84f, 0.874f);
+				keyframes[4] = new Keyframe(56f, 0.64f);
+				var tempcurve = new AnimationCurve(keyframes);
+				for (int i = 0; i < keyframes.Length; i++)
+				{
+					AnimationUtility.SetKeyLeftTangentMode(tempcurve, i, AnimationUtility.TangentMode.Linear);
+					AnimationUtility.SetKeyRightTangentMode(tempcurve, i, AnimationUtility.TangentMode.Linear);
+				}
+
+				ElasticityOverVelocity.animationCurveValue = tempcurve;
+				ElasticityOverVelocity.serializedObject.ApplyModifiedProperties();
 
 			}
 			GUILayout.EndHorizontal();
 			GUILayout.BeginHorizontal();
 			GUILayout.FlexibleSpace();
-			if (GUILayout.Button("Generate nFozzy Post", GUILayout.Width(220)))
+			if (GUILayout.Button("Generate nFozzy Sleeves", GUILayout.Width(220)))
 			{
+				ElasticityOverVelocity.animationCurveValue.keys.Initialize();
+				Keyframe[] keyframes = new Keyframe[2];
+				keyframes[0] = new Keyframe(0f, 0.85f);
+				keyframes[1] = new Keyframe(56f, 0.85f);
+				var tempcurve = new AnimationCurve(keyframes);
+				for (int i = 0; i < keyframes.Length; i++)
+				{
+					AnimationUtility.SetKeyLeftTangentMode(tempcurve, i, AnimationUtility.TangentMode.Linear);
+					AnimationUtility.SetKeyRightTangentMode(tempcurve, i, AnimationUtility.TangentMode.Linear);
+				}
 
+				ElasticityOverVelocity.animationCurveValue = tempcurve;
+				ElasticityOverVelocity.serializedObject.ApplyModifiedProperties();
 			}
 			GUILayout.EndHorizontal();
 			GUILayout.BeginHorizontal();
 			GUILayout.FlexibleSpace();
 			if (GUILayout.Button("Clear (don't use)", GUILayout.Width(220)))
 			{
-
+				ElasticityOverVelocity.animationCurveValue.keys.Initialize();
+				ElasticityOverVelocity.animationCurveValue = new AnimationCurve();
+				ElasticityOverVelocity.serializedObject.ApplyModifiedProperties();
 			}
 			GUILayout.EndHorizontal();
 
