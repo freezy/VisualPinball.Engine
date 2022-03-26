@@ -16,10 +16,12 @@
 
 // ReSharper disable InconsistentNaming
 
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using UnityEditor;
+using UnityEditor.UIElements;
 using UnityEngine;
 using UnityEngine.UIElements;
 
@@ -32,6 +34,9 @@ namespace VisualPinball.Unity.Editor
 
 		[SerializeField]
 		private int _thumbnailSize = 150;
+
+		[SerializeField]
+		public int _activeLibraryIndex = -1;
 
 		private List<LibraryAsset> _assets;
 		private List<AssetLibrary> _libraries;
@@ -161,6 +166,14 @@ namespace VisualPinball.Unity.Editor
 				e.style.width = _thumbnailSize;
 				e.style.height = _thumbnailSize;
 			}
+		}
+		private string OnActiveLibraryChanged(string libraryName)
+		{
+			var library = _libraries.FirstOrDefault(l => l.Name == libraryName);
+			if (library != null) {
+				_activeLibrary = library;
+			}
+			return libraryName;
 		}
 	}
 

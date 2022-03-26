@@ -54,7 +54,12 @@ namespace VisualPinball.Unity.Editor
 			ui.styleSheets.Add(styleSheet);
 
 			_libraryList = ui.Q<VisualElement>("libraryList");
-			_activeLibraryDropdown = ui.Q<DropdownField>("activeLibrary");
+			var activeLibraryContainer = ui.Q<VisualElement>("activeLibrary");
+			_activeLibraryDropdown = new DropdownField(new List<string> { "--refresh--" }, 0, OnActiveLibraryChanged) {
+				tooltip = "The library that is currently being edited."
+			};
+			activeLibraryContainer.Add(_activeLibraryDropdown);
+
 			_categoryView = ui.Q<LibraryCategoryView>();
 			_gridContent = ui.Q<VisualElement>("gridContent");
 
