@@ -60,8 +60,14 @@ namespace VisualPinball.Unity
 			// magnitude of the impulse which is just sufficient to keep the ball from
 			// penetrating the wall (needed for friction computations)
 			var reactionImpulse = ball.Mass * math.abs(dot);
-
-			var elasticity = Math.ElasticityWithFalloff(material.Elasticity, material.ElasticityFalloff, dot);
+			float elasticity;
+			if (material.UseElasticityOverVelocity)
+			{
+				var Velocity = math.sqrt(ball.Velocity.x * ball.Velocity.x + ball.Velocity.y * ball.Velocity.y + ball.Velocity.z * ball.Velocity.z);
+				elasticity = material.ElasticityOverVelocityLUT[math.clamp((int)Velocity, 0, 99)];
+			}
+			else
+				elasticity = Math.ElasticityWithFalloff(material.Elasticity, material.ElasticityFalloff, dot);
 			dot *= -(1.0f + elasticity);
 			ball.Velocity += hitNormal * dot;                                  // apply collision impulse (along normal, so no torque)
 

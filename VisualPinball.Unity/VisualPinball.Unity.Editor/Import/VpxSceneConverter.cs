@@ -77,7 +77,7 @@ namespace VisualPinball.Unity.Editor
 		private readonly Dictionary<string, GameObject> _groupParents = new Dictionary<string, GameObject>();
 		private readonly Dictionary<string, Texture> _textures = new Dictionary<string, Texture>();
 		private readonly Dictionary<string, Material> _materials = new Dictionary<string, Material>();
-		private readonly Dictionary<string, PhysicsMaterial> _physicalMaterials = new Dictionary<string, PhysicsMaterial>();
+		private readonly Dictionary<string, PhysicsMaterialComponent> _physicalMaterials = new Dictionary<string, PhysicsMaterialComponent>();
 
 		private readonly IPatcher _patcher;
 		private bool _applyPatch = true;
@@ -375,7 +375,7 @@ namespace VisualPinball.Unity.Editor
 			}
 
 			foreach (var material in _sourceTable.Data.Materials) {
-				_physicalMaterials[material.Name] = AssetDatabase.LoadAssetAtPath<PhysicsMaterial>($"{_assetsPhysicsMaterials}/{material.Name}.asset");
+				_physicalMaterials[material.Name] = AssetDatabase.LoadAssetAtPath<PhysicsMaterialComponent>($"{_assetsPhysicsMaterials}/{material.Name}.asset");
 			}
 		}
 
@@ -386,7 +386,7 @@ namespace VisualPinball.Unity.Editor
 				return path;
 			}
 
-			var mat = ScriptableObject.CreateInstance<PhysicsMaterial>();
+			var mat = ScriptableObject.CreateInstance<PhysicsMaterialComponent>();
 			mat.Elasticity = material.Elasticity;
 			mat.ElasticityFalloff = material.ElasticityFalloff;
 			mat.ScatterAngle = material.ScatterAngle;
@@ -618,7 +618,7 @@ namespace VisualPinball.Unity.Editor
 			}
 			return null;
 		}
-		public PhysicsMaterial GetPhysicsMaterial(string name)
+		public PhysicsMaterialComponent GetPhysicsMaterial(string name)
 		{
 			if (string.IsNullOrEmpty(name)) {
 				return null;
@@ -630,7 +630,7 @@ namespace VisualPinball.Unity.Editor
 			var material = _tableComponent.LegacyContainer.TableData.Materials.FirstOrDefault(m => string.Equals(m.Name, name, StringComparison.CurrentCultureIgnoreCase));
 			if (material != null) {
 				var path = SavePhysicsMaterial(material);
-				_physicalMaterials[material.Name] = AssetDatabase.LoadAssetAtPath<PhysicsMaterial>(path);
+				_physicalMaterials[material.Name] = AssetDatabase.LoadAssetAtPath<PhysicsMaterialComponent>(path);
 				return _physicalMaterials[material.Name];
 			}
 

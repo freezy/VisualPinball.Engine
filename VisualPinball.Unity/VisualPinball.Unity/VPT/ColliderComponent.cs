@@ -21,6 +21,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Unity.Entities;
 using Unity.Mathematics;
+using Unity.Collections;
 using UnityEngine;
 using UnityEngine.Profiling;
 using VisualPinball.Engine.VPT;
@@ -36,7 +37,7 @@ namespace VisualPinball.Unity
 		where TMainComponent : MainComponent<TData>
 	{
 		[SerializeReference]
-		public PhysicsMaterial PhysicsMaterial;
+		public PhysicsMaterialComponent PhysicsMaterial;
 
 		[NonSerialized]
 		public bool ShowGizmos;
@@ -72,14 +73,22 @@ namespace VisualPinball.Unity
 		protected PhysicsMaterialData GetPhysicsMaterialData(float elasticity = 1f, float elasticityFalloff = 1f,
 			float friction = 0f, float scatterAngleDeg = 0f, bool overwrite = true)
 		{
-			return !overwrite && PhysicsMaterial != null
-				? new PhysicsMaterialData {
-					Elasticity = PhysicsMaterial.Elasticity,
-					ElasticityFalloff = PhysicsMaterial.ElasticityFalloff,
-					Friction = PhysicsMaterial.Friction,
-					ScatterAngleRad = math.radians(PhysicsMaterial.ScatterAngle)
-				}
-				: new PhysicsMaterialData {
+			if (!overwrite && PhysicsMaterial != null)
+			{
+				//Debug.Log("load special Physics Material Data:" + PhysicsMaterial.name);
+				PhysicsMaterialData physicsMaterialData = new PhysicsMaterialData();
+				physicsMaterialData.Elasticity = PhysicsMaterial.Elasticity;
+				physicsMaterialData.ElasticityFalloff = PhysicsMaterial.ElasticityFalloff;
+				physicsMaterialData.Friction = PhysicsMaterial.Friction;
+				physicsMaterialData.ScatterAngleRad = PhysicsMaterial.ScatterAngle;
+
+				physicsMaterialData.ElasticityOverVelocityLUT = PhysicsMaterial.ElasticityOverVelocityLUT;
+				physicsMaterialData.UseElasticityOverVelocity = PhysicsMaterial.UseElasticictyOverVelocity;
+
+				return physicsMaterialData;
+			}
+			else 
+			return new PhysicsMaterialData {
 					Elasticity = elasticity,
 					ElasticityFalloff = elasticityFalloff,
 					Friction = friction,

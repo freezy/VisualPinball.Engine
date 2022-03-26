@@ -161,7 +161,7 @@ namespace VisualPinball.Unity
 			var guids = AssetDatabase.FindAssets("t:PhysicsMaterial", null);
 			foreach (var guid in guids) {
 				var assetPath = AssetDatabase.GUIDToAssetPath(guid);
-				var matAsset = AssetDatabase.LoadAssetAtPath<PhysicsMaterial>(assetPath);
+				var matAsset = AssetDatabase.LoadAssetAtPath<PhysicsMaterialComponent>(assetPath);
 				var name = Path.GetFileNameWithoutExtension(assetPath);
 				if (!_materials.ContainsKey(name.ToLower())) {
 					continue;
