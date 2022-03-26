@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+using Unity.Collections;
 using Unity.Entities;
 
 namespace VisualPinball.Unity
@@ -24,5 +25,8 @@ namespace VisualPinball.Unity
 		public float ElasticityFalloff;
 		public float Friction;
 		public float ScatterAngleRad;
+		public FixedListFloat512 ElasticityOverVelocityLUT;
+		public bool UseElasticityOverVelocity;
+
 	}
 }

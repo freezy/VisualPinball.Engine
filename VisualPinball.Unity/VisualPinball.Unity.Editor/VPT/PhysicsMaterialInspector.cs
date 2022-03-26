@@ -24,7 +24,7 @@ using VisualPinball.Engine.VPT;
 
 namespace VisualPinball.Unity.Editor
 {
-	[CustomEditor(typeof(PhysicsMaterial)), CanEditMultipleObjects]
+	[CustomEditor(typeof(PhysicsMaterialComponent)), CanEditMultipleObjects]
 	public class PhysicsMaterialInspector : UnityEditor.Editor
 	{
 		SerializedProperty Elasticity;
@@ -65,11 +65,13 @@ namespace VisualPinball.Unity.Editor
 			*/
 		}
 
+		
+
 		public override void OnInspectorGUI()
 		{
 			//base.DrawDefaultInspector();
 
-			var physicsMaterial = (PhysicsMaterial)target;  //casting from type object to type Physicsmaterial
+			var physicsMaterial = (PhysicsMaterialComponent)target;  //casting from type object to type Physicsmaterial
 			
 
 			GUILayout.Label("Elasticity:");
@@ -239,6 +241,8 @@ namespace VisualPinball.Unity.Editor
 				EditorWindow.GetWindow<SceneView>().Repaint();
 			}
 		}
+
+		
 
 		protected bool HasErrors()
 		{
