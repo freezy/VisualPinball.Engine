@@ -27,6 +27,7 @@ namespace VisualPinball.Unity.Editor
 		public List<LibraryCategoryElement> Elements = new();
 
 		private readonly VisualElement _container = new();
+		private AssetBrowserX _browser;
 
 		public LibraryCategoryView()
 		{
@@ -35,12 +36,15 @@ namespace VisualPinball.Unity.Editor
 			scrollView.Add(_container);
 		}
 
-		public void Refresh(IEnumerable<AssetLibrary> libraries)
+		public void Refresh(AssetBrowserX browser = null)
 		{
+			if (browser != null) {
+				_browser = browser;
+			}
 			Elements.Clear();
 			_container.Clear();
 
-			var categories = libraries
+			var categories = _browser.Libraries
 				.SelectMany(lib => lib.GetCategories().Select(c => (lib, c)))
 				.GroupBy(t => t.Item2.Name, (_, g) => g);
 
@@ -55,7 +59,8 @@ namespace VisualPinball.Unity.Editor
 
 		public void Create()
 		{
-
+			_browser.ActiveLibrary.AddCategory("New category");
+			Refresh();
 		}
 	}
 }

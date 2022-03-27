@@ -87,7 +87,7 @@ namespace VisualPinball.Unity.Editor
 			_gridContent.UnregisterCallback<DragUpdatedEvent>(OnDragUpdatedEvent);
 			_refreshButton.clicked -= Setup;
 
-			foreach (var assetLibrary in _libraries) {
+			foreach (var assetLibrary in Libraries) {
 				assetLibrary.Dispose();
 			}
 		}

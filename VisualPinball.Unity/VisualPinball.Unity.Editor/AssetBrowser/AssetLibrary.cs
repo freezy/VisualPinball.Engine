@@ -99,10 +99,9 @@ namespace VisualPinball.Unity.Editor
 		{
 			var collection = _db.GetCollection<LibraryCategory>(CollectionCategories);
 			var category = new LibraryCategory {
-				Name = name
+				Name = categoryName
 			};
 			collection.Insert(category);
-
 			return category;
 		}
 

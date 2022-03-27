@@ -35,12 +35,10 @@ namespace VisualPinball.Unity.Editor
 		[SerializeField]
 		private int _thumbnailSize = 150;
 
-		[SerializeField]
-		public int _activeLibraryIndex = -1;
+		public AssetLibrary ActiveLibrary;
+		public List<AssetLibrary> Libraries;
 
 		private List<LibraryAsset> _assets;
-		private List<AssetLibrary> _libraries;
-		private AssetLibrary _activeLibrary;
 		private AssetQuery _query;
 
 		private LibraryAsset _selectedAsset;
@@ -60,12 +58,12 @@ namespace VisualPinball.Unity.Editor
 
 		private void OnEnable()
 		{
-			_libraries = AssetDatabase.FindAssets($"t:{typeof(AssetLibrary)}")
+			Libraries = AssetDatabase.FindAssets($"t:{typeof(AssetLibrary)}")
 				.Select(AssetDatabase.GUIDToAssetPath)
 				.Select(AssetDatabase.LoadAssetAtPath<AssetLibrary>)
 				.Where(asset => asset != null).ToList();
 
-			_query = new AssetQuery(_libraries);
+			_query = new AssetQuery(Libraries);
 			_query.OnQueryUpdated += OnResult;
 		}
 
@@ -96,17 +94,17 @@ namespace VisualPinball.Unity.Editor
 			rootVisualElement.Clear();
 			CreateGUI();
 			_libraryList.Clear();
-			_categoryView.Refresh(_libraries);
+			_categoryView.Refresh(this);
 			_selectedAsset = null;
 			UpdateResults(_query.Assets);
 
-			foreach (var assetLibrary in _libraries) {
+			foreach (var assetLibrary in Libraries) {
 				_libraryList.Add(NewAssetLibrary(assetLibrary));
 			}
 
-			_activeLibraryDropdown.choices = _libraries.Select(l => l.Name).ToList();
-			if (_activeLibrary != null) {
-				_activeLibraryDropdown.index = _activeLibraryDropdown.choices.IndexOf(_activeLibrary.Name);
+			_activeLibraryDropdown.choices = Libraries.Select(l => l.Name).ToList();
+			if (ActiveLibrary != null) {
+				_activeLibraryDropdown.index = _activeLibraryDropdown.choices.IndexOf(ActiveLibrary.Name);
 			}
 		}
 
@@ -139,7 +137,7 @@ namespace VisualPinball.Unity.Editor
 			// Disallow adding from outside of Unity
 			foreach (var path in DragAndDrop.paths) {
 				var libraryFound = false;
-				foreach (var assetLibrary in _libraries) {
+				foreach (var assetLibrary in Libraries) {
 					if (path.Replace('\\', '/').StartsWith(assetLibrary.LibraryRoot.Replace('\\', '/'))) {
 						libraryFound = true;
 						var guid = AssetDatabase.AssetPathToGUID(path);
@@ -169,9 +167,9 @@ namespace VisualPinball.Unity.Editor
 		}
 		private string OnActiveLibraryChanged(string libraryName)
 		{
-			var library = _libraries.FirstOrDefault(l => l.Name == libraryName);
+			var library = Libraries.FirstOrDefault(l => l.Name == libraryName);
 			if (library != null) {
-				_activeLibrary = library;
+				ActiveLibrary = library;
 			}
 			return libraryName;
 		}
