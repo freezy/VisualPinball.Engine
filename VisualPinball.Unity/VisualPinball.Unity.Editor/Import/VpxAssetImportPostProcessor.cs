@@ -37,61 +37,64 @@ namespace VisualPinball.Unity.Editor
 		private string[] tangentIDs = new string[] { "_tangent", "_tan", "_tng" };
 		private string[] coatIDs = new string[] { "_coat", "_coatmask" };
 		private string[] emitIDs = new string[] { "_emission", "_emit", "_em", "_emm" };
+		
 
 		void OnPreprocessTexture()
 		{
 
 			TextureImporter importer = assetImporter as TextureImporter;
-			string iName = PrepareName(assetPath);  //Prepare string for evaluation. 
+			string textureName = PrepareName(assetPath);  //Prepare string for evaluation. 
 
 			//Common settings to apply to all textures.  
-			//importer.mipmapEnabled = true;
-			//importer.streamingMipmaps = true;
+			importer.mipmapEnabled = true;
+			importer.streamingMipmaps = true;
 
 			//Process normal map inputs and set normal map and compression flags.  
-			if(normalIDs.Any(iName.EndsWith))
+			if(normalIDs.Any(textureName.EndsWith))
 			{
 				importer.textureType = TextureImporterType.NormalMap;
 				importer.sRGBTexture = false;
 				importer.textureCompression = TextureImporterCompression.CompressedHQ;
-				Debug.Log("Processed normal map: " + iName);
+				Debug.Log("Processed normal map: " + textureName);
 			}
 
 			//Process mask files to ensure they are linear.  
-			if(maskIDs.Any(iName.EndsWith))
+			if(maskIDs.Any(textureName.EndsWith))
 			{
 				importer.sRGBTexture = false;
-				Debug.Log("Processed mask map: " + iName);
+				Debug.Log("Processed mask map: " + textureName);
 			}
 
 			//Emsure thickness maps are linear. 
-			if(thickIDs.Any(iName.EndsWith))
+			if(thickIDs.Any(textureName.EndsWith))
 			{
 				importer.sRGBTexture = false;
-				Debug.Log("Processed thickness map: " + iName);
+				Debug.Log("Processed thickness map: " + textureName);
 			}
 
 			//Ensure tangent maps are set to normal
-			if(tangentIDs.Any(iName.EndsWith))
+			if(tangentIDs.Any(textureName.EndsWith))
 			{
 				importer.textureType = TextureImporterType.NormalMap;
 				importer.sRGBTexture = false;
-				Debug.Log("Processed tangent map: " + iName);
+				Debug.Log("Processed tangent map: " + textureName);
 			}
 
 			//Ensure coat roughness maps are linear and single channel.  
-			if(coatIDs.Any(iName.EndsWith))
+			if(coatIDs.Any(textureName.EndsWith))
 			{
 				importer.textureType = TextureImporterType.SingleChannel;
 				importer.sRGBTexture = false; 
-				Debug.Log("Processed coat roughness map: " + iName);
+				Debug.Log("Processed coat roughness map: " + textureName);
 			}
 			//Ensure emission maps are high quality to avoid compression artifacts.  
-			if(emitIDs.Any(iName.EndsWith))
+			if(emitIDs.Any(textureName.EndsWith))
 			{
 				importer.textureCompression = TextureImporterCompression.CompressedHQ;
-				Debug.Log("Processed emission map: " + iName);
+				Debug.Log("Processed emission map: " + textureName);
 			}
+
+
 
 			
 		}
