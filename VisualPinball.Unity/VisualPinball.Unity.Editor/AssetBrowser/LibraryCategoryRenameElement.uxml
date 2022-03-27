@@ -1,6 +1,5 @@
 ﻿<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements">
 	<ui:VisualElement class="library-category-element">
-		<ui:Label/>
-		<VisualPinball.Unity.Editor.LibraryCategoryRenameElement />
+		<ui:Label text="haha, renaming!"/>
 	</ui:VisualElement>
 </ui:UXML>

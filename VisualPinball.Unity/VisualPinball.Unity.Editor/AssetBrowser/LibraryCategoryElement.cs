@@ -35,6 +35,8 @@ namespace VisualPinball.Unity.Editor
 		private readonly VisualElement _ui;
 		private readonly Label _label;
 
+		private LibraryCategoryRenameElement _renameElement;
+
 		private const string ClassSelected = "selected";
 
 		/// <summary>
@@ -64,8 +66,22 @@ namespace VisualPinball.Unity.Editor
 			_ui = ui.Q<VisualElement>(null, "library-category-element");
 			_label = _ui.Q<Label>();
 			_label.text = !isCreateButton ? Categories!.First().Item2.Name : "Add New";
+			_renameElement = ui.Q<LibraryCategoryRenameElement>();
 
 			RegisterCallback<PointerUpEvent>(OnPointerUp);
+
+			// right-click menu
+			this.AddManipulator(new ContextualMenuManipulator(AddContextMenu));
+		}
+
+
+		private void AddContextMenu(ContextualMenuPopulateEvent evt)
+		{
+			evt.menu.AppendAction("Rename", Rename);
+		}
+
+		private void Rename(DropdownMenuAction act)
+		{
 
 		}
 
