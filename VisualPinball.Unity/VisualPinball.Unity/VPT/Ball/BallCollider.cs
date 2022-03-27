@@ -63,8 +63,11 @@ namespace VisualPinball.Unity
 			float elasticity;
 			if (material.UseElasticityOverVelocity)
 			{
-				var Velocity = math.sqrt(ball.Velocity.x * ball.Velocity.x + ball.Velocity.y * ball.Velocity.y + ball.Velocity.z * ball.Velocity.z);
-				elasticity = material.ElasticityOverVelocityLUT[math.clamp((int)Velocity, 0, 99)];
+				var velocity = math.sqrt(ball.Velocity.x * ball.Velocity.x + ball.Velocity.y * ball.Velocity.y + ball.Velocity.z * ball.Velocity.z);
+				var elasticityLow = material.ElasticityOverVelocityLUT[math.clamp((int)math.trunc(velocity), 0, 99)];
+				var elasticityHigh = material.ElasticityOverVelocityLUT[math.clamp((int)math.trunc(velocity+1), 0, 99)];
+				elasticity = elasticityLow * (velocity - math.trunc(velocity)) +
+							 elasticityHigh * (1 - (velocity - math.trunc(velocity)));
 			}
 			else
 				elasticity = Math.ElasticityWithFalloff(material.Elasticity, material.ElasticityFalloff, dot);
@@ -85,8 +88,27 @@ namespace VisualPinball.Unity
 				var cross = math.cross(surfP, tangent); // todo check this does the same as Vertex3D.CrossProduct
 				var kt = 1f / ball.Mass + math.dot(tangent, math.cross(cross / ball.Inertia, surfP));
 
+				// Cupiiis Friction over Velocity LUT-Code
+				// get friction based on normal Velocity  
+				float friction;
+				if (material.UseFrictionOverVelocity)
+				{
+					var normalVelocity = math.dot(ball.Velocity, hitNormal);
+					var frictionLow = material.FrictionOverVelocityLUT[math.clamp((int)math.trunc(normalVelocity), 0, 99)];
+					var frictionHigh = material.FrictionOverVelocityLUT[math.clamp((int)math.trunc(normalVelocity + 1), 0, 99)];
+					friction = frictionLow * (normalVelocity - math.trunc(normalVelocity)) +
+								 frictionHigh * (1 - (normalVelocity - math.trunc(normalVelocity)));
+				}
+				else
+				{
+					friction = material.Friction;
+				}
+				// End of Cupiiis Friction over Velocity LUT-Code
+
 				// friction impulse can't be greater than coefficient of friction times collision impulse (Coulomb friction cone)
-				var maxFric = material.Friction * reactionImpulse;
+				//var maxFric = material.Friction * reactionImpulse;   // changed by cupiii because of cupiii's friction over Vel code
+				var maxFric = friction * reactionImpulse;
+
 				var jt = math.clamp(-vt / kt, -maxFric, maxFric);
 
 				if (!float.IsNaN(jt) && !float.IsInfinity(jt)) {
