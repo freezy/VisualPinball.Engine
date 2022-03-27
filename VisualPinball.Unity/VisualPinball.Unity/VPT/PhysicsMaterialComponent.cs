@@ -38,11 +38,13 @@ namespace VisualPinball.Unity
 		public float ElasticityFalloff;
 		public AnimationCurve ElasticityOverVelocity;
 		public bool UseElasticictyOverVelocity;
+		public FixedListFloat512 ElasticityOverVelocityLUT;
 		public float Friction;
 		public AnimationCurve FrictionOverVelocity;
-		public AnimationCurve FrictionOverAngularMomentum;
+		public bool UseFrictionOverVelocity;
+		public FixedListFloat512 FrictionOverVelocityLUT;
+		// public AnimationCurve FrictionOverAngularMomentum;
 		public float ScatterAngle;
-		public FixedListFloat512 ElasticityOverVelocityLUT;
 
 		void OnValidate()
 		{
@@ -58,9 +60,21 @@ namespace VisualPinball.Unity
 			else
 				UseElasticictyOverVelocity = false;
 
+			FrictionOverVelocityLUT.Clear();
+			if (FrictionOverVelocity.keys.Length > 0)
+			{
+				for (int i = 0; i < 100; i++)
+				{
+					FrictionOverVelocityLUT.Add(ElasticityOverVelocity.Evaluate(i));
+				}
+				UseFrictionOverVelocity = true;
+			}
+			else
+				UseFrictionOverVelocity = false;
+
 		}
 
 
-		
+
 	}
 }

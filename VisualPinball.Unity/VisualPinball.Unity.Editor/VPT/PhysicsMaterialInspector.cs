@@ -32,7 +32,7 @@ namespace VisualPinball.Unity.Editor
 		SerializedProperty ElasticityOverVelocity;
 		SerializedProperty Friction;
 		SerializedProperty FrictionOverVelocity;
-		SerializedProperty FrictionOverAngularMomentum;
+		//SerializedProperty FrictionOverAngularMomentum;
 
 		SerializedProperty ScatterAngle;
 
@@ -53,7 +53,7 @@ namespace VisualPinball.Unity.Editor
 			Friction = serializedObject.FindProperty("Friction");
 			ScatterAngle = serializedObject.FindProperty("ScatterAngle");
 			FrictionOverVelocity = serializedObject.FindProperty("FrictionOverVelocity");
-			FrictionOverAngularMomentum = serializedObject.FindProperty("FrictionOverAngularMomentum");
+			//FrictionOverAngularMomentum = serializedObject.FindProperty("FrictionOverAngularMomentum");
 		}
 
 		private void OnDestroy()
@@ -160,13 +160,6 @@ namespace VisualPinball.Unity.Editor
 			}
 			GUILayout.EndHorizontal();
 
-
-			//EditorGUILayout.PropertyField(Friction, true);
-			//EditorGUILayout.PropertyField(ElasticityFalloff, true);
-
-
-
-			//EditorGUILayout.DropdownButton(new GUIContent("Bla"), FocusType.Keyboard);
 			EditorGUI.indentLevel--;
 			EditorGUI.indentLevel++;
 			GUILayout.Label("Friction");
@@ -179,7 +172,9 @@ namespace VisualPinball.Unity.Editor
 
 			}
 			GUILayout.EndHorizontal();
-
+			/*
+			 * don't use Friction over AngularMomentum yet
+			 * 
 			EditorGUILayout.PropertyField(FrictionOverAngularMomentum, new GUIContent("Friction / Ang.Momentum"), true);
 			GUILayout.BeginHorizontal();
 			GUILayout.FlexibleSpace();
@@ -188,58 +183,12 @@ namespace VisualPinball.Unity.Editor
 
 			}
 			GUILayout.EndHorizontal();
-
+			*/
 
 			EditorGUI.indentLevel--;
 			EditorGUILayout.PropertyField(ScatterAngle, true);
-			//GUILayout.Label("Test 2 Inspector");
 
 			serializedObject.ApplyModifiedProperties();
-
-			var refresh = false;
-			/*
-			// scene view toggles
-			if (_foldoutDebug = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutDebug, "Debug")) {
-
-				var showAabbs = EditorGUILayout.Toggle("Show Bounding Boxes", ColliderComponent.ShowAabbs);
-				refresh = showAabbs != ColliderComponent.ShowAabbs;
-				ColliderComponent.ShowAabbs = showAabbs;
-
-				var showColliders = EditorGUILayout.Toggle("Show Colliders", ColliderComponent.ShowColliderMesh);
-				refresh = refresh || showColliders != ColliderComponent.ShowColliderMesh;
-				ColliderComponent.ShowColliderMesh = showColliders;
-			}
-			EditorGUILayout.EndFoldoutHeaderGroup();
-			*/
-
-
-			// individual collider list
-			/*
-			if (_foldoutColliders = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutColliders, "Colliders")) {
-
-				var hitObjects = ColliderComponent.Colliders ?? new List<ICollider>(0);
-				_currentColliders = hitObjects
-					.Where(h => h != null)
-					.Select((h, i) => $"[{i}] {h.GetType().Name}")
-					.ToArray();
-
-				if (_currentColliders.Length == 0) {
-					GUILayout.Label("No colliders for this item.");
-				}
-
-				_scrollPos = EditorGUILayout.BeginScrollView(_scrollPos, GUILayout.ExpandWidth(true),
-					GUILayout.ExpandHeight(true));
-				var selectedCollider = GUILayout.SelectionGrid(ColliderComponent.SelectedCollider, _currentColliders, 1);
-				refresh = refresh || selectedCollider == ColliderComponent.SelectedCollider;
-				ColliderComponent.SelectedCollider = selectedCollider;
-				EditorGUILayout.EndScrollView();
-			}
-			EditorGUILayout.EndFoldoutHeaderGroup();*/
-
-			// refresh scene view manually
-			if (refresh) {
-				EditorWindow.GetWindow<SceneView>().Repaint();
-			}
 		}
 
 		
