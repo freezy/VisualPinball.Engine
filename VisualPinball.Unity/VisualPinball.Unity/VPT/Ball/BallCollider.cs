@@ -63,7 +63,9 @@ namespace VisualPinball.Unity
 			float elasticity;
 			if (material.UseElasticityOverVelocity)
 			{
-				var velocity = math.sqrt(ball.Velocity.x * ball.Velocity.x + ball.Velocity.y * ball.Velocity.y + ball.Velocity.z * ball.Velocity.z);
+				// nFozzy used the xy velocity, but using the dot velocity seems more "physical".
+				//var velocity = math.sqrt(ball.Velocity.x * ball.Velocity.x + ball.Velocity.y * ball.Velocity.y + ball.Velocity.z * ball.Velocity.z);
+				var velocity = dot;
 				var elasticityLow = material.ElasticityOverVelocityLUT[math.clamp((int)math.trunc(velocity), 0, 99)];
 				var elasticityHigh = material.ElasticityOverVelocityLUT[math.clamp((int)math.trunc(velocity+1), 0, 99)];
 				elasticity = elasticityLow * (velocity - math.trunc(velocity)) +
