@@ -92,10 +92,10 @@ namespace VisualPinball.Unity.Editor
 			if (GUILayout.Button("Generate from Elasticity & Falloff", GUILayout.Width(220)))
 			{
 				ElasticityOverVelocity.animationCurveValue.keys.Initialize();
-				Keyframe[] keyframes = new Keyframe[64];
+				Keyframe[] keyframes = new Keyframe[8];
 				for (int i = 0; i < keyframes.Length; i++)
 				{
-					keyframes[i] = new Keyframe(i, Elasticity.floatValue / (1.0f + ElasticityFalloff.floatValue * i / 18.53f));
+					keyframes[i] = new Keyframe(i*8, Elasticity.floatValue / (1.0f + ElasticityFalloff.floatValue * i*8 / 18.53f));
 				}
 				var tempcurve = new AnimationCurve(keyframes);
 				for (int i = 0; i < keyframes.Length; i++)
@@ -163,13 +163,17 @@ namespace VisualPinball.Unity.Editor
 			EditorGUI.indentLevel--;
 			EditorGUI.indentLevel++;
 			GUILayout.Label("Friction");
+			GUI.enabled = (FrictionOverVelocity.animationCurveValue.keys.Length == 0);
 			EditorGUILayout.PropertyField(Friction, true);
+			GUI.enabled = true;
 			EditorGUILayout.PropertyField(FrictionOverVelocity, new GUIContent("Friction / Velocity"), true);
 			GUILayout.BeginHorizontal();
 			GUILayout.FlexibleSpace();
 			if (GUILayout.Button("Clear (don't use)", GUILayout.Width(220)))
 			{
-
+				FrictionOverVelocity.animationCurveValue.keys.Initialize();
+				FrictionOverVelocity.animationCurveValue = new AnimationCurve();
+				FrictionOverVelocity.serializedObject.ApplyModifiedProperties();
 			}
 			GUILayout.EndHorizontal();
 			/*
