@@ -31,7 +31,7 @@ namespace VisualPinball.Unity
 	/// </summary>
 	[CreateAssetMenu(fileName = "PhysicsMaterial", menuName = "Visual Pinball/Physics Material", order = 100)]
 	//[CustomEditor(typeof(PhysicsMaterial))]
-	public class PhysicsMaterialComponent : ScriptableObject
+	public class PhysicsMaterialAsset : ScriptableObject
 	{
 		
 		public float Elasticity;
