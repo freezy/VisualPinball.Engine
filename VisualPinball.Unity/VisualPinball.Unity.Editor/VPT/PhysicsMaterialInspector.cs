@@ -24,7 +24,7 @@ using VisualPinball.Engine.VPT;
 
 namespace VisualPinball.Unity.Editor
 {
-	[CustomEditor(typeof(PhysicsMaterialComponent)), CanEditMultipleObjects]
+	[CustomEditor(typeof(PhysicsMaterialAsset)), CanEditMultipleObjects]
 	public class PhysicsMaterialInspector : UnityEditor.Editor
 	{
 		SerializedProperty Elasticity;
@@ -47,12 +47,12 @@ namespace VisualPinball.Unity.Editor
 
 		private void OnEnable()
 		{
-			Elasticity = serializedObject.FindProperty("Elasticity");
-			ElasticityFalloff = serializedObject.FindProperty("ElasticityFalloff");
-			ElasticityOverVelocity = serializedObject.FindProperty("ElasticityOverVelocity");
-			Friction = serializedObject.FindProperty("Friction");
-			ScatterAngle = serializedObject.FindProperty("ScatterAngle");
-			FrictionOverVelocity = serializedObject.FindProperty("FrictionOverVelocity");
+			Elasticity = serializedObject.FindProperty(nameof(PhysicsMaterialAsset.Elasticity));
+			ElasticityFalloff = serializedObject.FindProperty(nameof(PhysicsMaterialAsset.ElasticityFalloff));
+			ElasticityOverVelocity = serializedObject.FindProperty(nameof(PhysicsMaterialAsset.ElasticityOverVelocity));
+			Friction = serializedObject.FindProperty(nameof(PhysicsMaterialAsset.Friction));
+			ScatterAngle = serializedObject.FindProperty(nameof(PhysicsMaterialAsset.ScatterAngle));
+			FrictionOverVelocity = serializedObject.FindProperty(nameof(PhysicsMaterialAsset.FrictionOverVelocity));
 			//FrictionOverAngularMomentum = serializedObject.FindProperty("FrictionOverAngularMomentum");
 		}
 
@@ -71,7 +71,7 @@ namespace VisualPinball.Unity.Editor
 		{
 			//base.DrawDefaultInspector();
 
-			var physicsMaterial = (PhysicsMaterialComponent)target;  //casting from type object to type Physicsmaterial
+			var physicsMaterial = (PhysicsMaterialAsset)target;  //casting from type object to type Physicsmaterial
 			
 
 			GUILayout.Label("Elasticity:");

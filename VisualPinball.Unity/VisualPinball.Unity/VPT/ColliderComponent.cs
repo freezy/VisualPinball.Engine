@@ -37,7 +37,7 @@ namespace VisualPinball.Unity
 		where TMainComponent : MainComponent<TData>
 	{
 		[SerializeReference]
-		public PhysicsMaterialComponent PhysicsMaterial;
+		public PhysicsMaterialAsset PhysicsMaterial;
 
 		[NonSerialized]
 		public bool ShowGizmos;
