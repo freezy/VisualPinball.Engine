@@ -1,3 +1,9 @@
+/* generic stuff */
+/* ------------- */
+.hidden {
+	display: none;
+}
+
 /* left panel */
 /* ---------- */
 
