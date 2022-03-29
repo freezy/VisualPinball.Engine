@@ -1,5 +1,10 @@
 ﻿<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements">
-	<ui:VisualElement class="library-category-element">
-		<ui:Label text="haha, renaming!"/>
+	<ui:VisualElement class="library-category-rename-element">
+		<ui:TextField />
+		<ui:Button name="cancelButton" text="✕" />
+		<ui:Button name="okButton" text="✔" />
 	</ui:VisualElement>
 </ui:UXML>
+
+
+

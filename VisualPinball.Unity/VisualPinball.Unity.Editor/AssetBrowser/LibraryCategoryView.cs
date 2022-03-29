@@ -48,7 +48,6 @@ namespace VisualPinball.Unity.Editor
 				.SelectMany(lib => lib.GetCategories().Select(c => (lib, c)))
 				.GroupBy(t => t.Item2.Name, (_, g) => g);
 
-
 			foreach (var cat in categories) {
 				var categoryElement = new LibraryCategoryElement(this, cat);
 				Elements.Add(categoryElement);

@@ -30,12 +30,14 @@ namespace VisualPinball.Unity.Editor
 		public readonly (AssetLibrary, LibraryCategory)[] Categories;
 
 		public readonly bool IsCreateButton;
+		public string Name => _label.text;
 
 		private readonly LibraryCategoryView _libraryCategoryView;
 		private readonly VisualElement _ui;
 		private readonly Label _label;
+		private readonly LibraryCategoryRenameElement _renameElement;
 
-		private LibraryCategoryRenameElement _renameElement;
+		private bool _isRenaming;
 
 		private const string ClassSelected = "selected";
 
@@ -67,6 +69,7 @@ namespace VisualPinball.Unity.Editor
 			_label = _ui.Q<Label>();
 			_label.text = !isCreateButton ? Categories!.First().Item2.Name : "Add New";
 			_renameElement = ui.Q<LibraryCategoryRenameElement>();
+			_renameElement.Category = this;
 
 			RegisterCallback<PointerUpEvent>(OnPointerUp);
 
@@ -77,12 +80,33 @@ namespace VisualPinball.Unity.Editor
 
 		private void AddContextMenu(ContextualMenuPopulateEvent evt)
 		{
-			evt.menu.AppendAction("Rename", Rename);
+			evt.menu.AppendAction("Rename", ToggleRename);
 		}
 
-		private void Rename(DropdownMenuAction act)
+		private void ToggleRename(DropdownMenuAction act = null)
 		{
+			if (_isRenaming) {
+				_label.RemoveFromClassList("hidden");
+				_renameElement.AddToClassList("hidden");
 
+			} else {
+				_label.AddToClassList("hidden");
+				_renameElement.RemoveFromClassList("hidden");
+				_renameElement.StartEditing();
+			}
+
+			_isRenaming = !_isRenaming;
+		}
+
+		public void CompleteRename(bool success, string newName = null)
+		{
+			if (success) {
+				_label.text = newName;
+				foreach (var (lib, category) in Categories) {
+					lib.RenameCategory(category, newName);
+				}
+			}
+			ToggleRename();
 		}
 
 		private void OnPointerUp(PointerUpEvent evt)

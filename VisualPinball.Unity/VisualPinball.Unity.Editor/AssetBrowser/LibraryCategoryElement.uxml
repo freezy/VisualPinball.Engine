@@ -1,6 +1,6 @@
 ﻿<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements">
 	<ui:VisualElement class="library-category-element">
 		<ui:Label/>
-		<VisualPinball.Unity.Editor.LibraryCategoryRenameElement />
+		<VisualPinball.Unity.Editor.LibraryCategoryRenameElement class="hidden" />
 	</ui:VisualElement>
 </ui:UXML>

@@ -1,0 +1,8 @@
+﻿.library-category-rename-element {
+	flex-direction: row;
+}
+
+.library-category-rename-element TextField {
+	flex-grow: 1;
+}
+

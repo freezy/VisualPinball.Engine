@@ -105,6 +105,13 @@ namespace VisualPinball.Unity.Editor
 			return category;
 		}
 
+		public void RenameCategory(LibraryCategory category, string newName)
+		{
+			var collection = _db.GetCollection<LibraryCategory>(CollectionCategories);
+			category.Name = newName;
+			collection.Update(category);
+		}
+
 		public IEnumerable<LibraryAsset> GetAssets(string query = null)
 		{
 			var collection = _db.GetCollection<LibraryAsset>(CollectionAssets);
@@ -135,6 +142,8 @@ namespace VisualPinball.Unity.Editor
 
 	public class LibraryAsset
 	{
+		[BsonId]
+		public Guid Id { get; set; }
 		public string Guid { get; set; }
 		public string Type { get; set; }
 		public string Path { get; set; }
@@ -146,14 +155,14 @@ namespace VisualPinball.Unity.Editor
 	public class LibraryCategory
 	{
 		[BsonId]
-		public ObjectId Id;
+		public Guid Id { get; set; }
 		public string Name { get; set; }
 	}
 
 	public class LibraryAttribute
 	{
 		[BsonId]
-		public ObjectId Id;
+		public Guid Id { get; set; }
 		public string Key { get; set; }
 		public string Value { get; set; }
 	}
