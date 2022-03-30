@@ -77,13 +77,7 @@ namespace VisualPinball.Unity.Editor
 			this.AddManipulator(new ContextualMenuManipulator(AddContextMenu));
 		}
 
-
-		private void AddContextMenu(ContextualMenuPopulateEvent evt)
-		{
-			evt.menu.AppendAction("Rename", ToggleRename);
-		}
-
-		private void ToggleRename(DropdownMenuAction act = null)
+		public void ToggleRename(DropdownMenuAction act = null)
 		{
 			if (_isRenaming) {
 				_label.RemoveFromClassList("hidden");
@@ -107,6 +101,23 @@ namespace VisualPinball.Unity.Editor
 				}
 			}
 			ToggleRename();
+		}
+
+		private void AddContextMenu(ContextualMenuPopulateEvent evt)
+		{
+			evt.menu.AppendAction("Rename", ToggleRename);
+			evt.menu.AppendAction("Delete", Delete);
+		}
+
+
+		private void Delete(DropdownMenuAction obj)
+		{
+			foreach (var (lib, category) in Categories) {
+				if (lib.NumAssetsWithCategory(category) == 0) {
+					lib.DeleteCategory(category);
+				}
+			}
+			_libraryCategoryView.Refresh();
 		}
 
 		private void OnPointerUp(PointerUpEvent evt)

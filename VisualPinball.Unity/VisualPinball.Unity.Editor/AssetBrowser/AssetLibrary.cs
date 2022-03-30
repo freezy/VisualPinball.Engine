@@ -97,25 +97,38 @@ namespace VisualPinball.Unity.Editor
 
 		public LibraryCategory AddCategory(string categoryName)
 		{
-			var collection = _db.GetCollection<LibraryCategory>(CollectionCategories);
+			var categories = _db.GetCollection<LibraryCategory>(CollectionCategories);
 			var category = new LibraryCategory {
 				Name = categoryName
 			};
-			collection.Insert(category);
+			categories.Insert(category);
 			return category;
 		}
 
 		public void RenameCategory(LibraryCategory category, string newName)
 		{
-			var collection = _db.GetCollection<LibraryCategory>(CollectionCategories);
+			var categories = _db.GetCollection<LibraryCategory>(CollectionCategories);
 			category.Name = newName;
-			collection.Update(category);
+			categories.Update(category);
+		}
+
+		public int NumAssetsWithCategory(LibraryCategory category) => _db.GetCollection<LibraryAsset>(CollectionAssets)
+			.Query()
+			.Where(a => a.Category.Id == category.Id)
+			.Count();
+
+		public void DeleteCategory(LibraryCategory category)
+		{
+			if (NumAssetsWithCategory(category) > 0) {
+				throw new InvalidOperationException("Cannot delete category when there are assigned assets.");
+			}
+			_db.GetCollection<LibraryCategory>(CollectionCategories).Delete(category.Id);
 		}
 
 		public IEnumerable<LibraryAsset> GetAssets(string query = null)
 		{
-			var collection = _db.GetCollection<LibraryAsset>(CollectionAssets);
-			var q = collection.Query();
+			var assets = _db.GetCollection<LibraryAsset>(CollectionAssets);
+			var q = assets.Query();
 			if (!string.IsNullOrWhiteSpace(query)) {
 				q = q.Where(a => a.Path.Contains(query, StringComparison.OrdinalIgnoreCase));
 			}
