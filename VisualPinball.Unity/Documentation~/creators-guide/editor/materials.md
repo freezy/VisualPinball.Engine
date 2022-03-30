@@ -17,7 +17,7 @@ We refer to rendered materials just as **materials**. They describe how a surfac
 A material typically includes one or more textures that define the color, normals, roughness, metalness and many more parameters on a per-pixel basis. 
 
 > [!note]
-> In Visual Pinball, materials don't include the texture. Instead, the texture is applied on a per-object basis.
+> Contrary to VPE - in Visual Pinball, materials don't include the texture. Instead, the texture is applied on a per-object basis.
 
 ## Physics Materials
 
@@ -31,7 +31,7 @@ We refer to how the material interacts with the ball during the physics simulati
 Physics materials are a way to group common behavior among certain objects, but contrarily to rendered materials, you can also *not* assign a physics material to an object and set each of those four parameters individually.
 
 > [!note]
-> In Visual Pinball, the physical parameters are part of the rendered material, so there is only one notion of material.
+> Contrary to VPE - in Visual Pinball, the physical parameters are part of the rendered material, so there is only one notion of material.
 
 ## Conversion from Visual Pinball
 
