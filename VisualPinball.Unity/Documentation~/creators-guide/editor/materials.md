@@ -30,6 +30,8 @@ We refer to how the material interacts with the ball during the physics simulati
 
 Physics materials are a way to group common behavior among certain objects, but contrarily to rendered materials, you can also *not* assign a physics material to an object and set each of those four parameters individually.
 
+Physics materials also give access to additional features such as curves for elasticity and friction, not present in objects directly.  
+
 > [!note]
 > Contrary to VPE - in Visual Pinball, the physical parameters are part of the rendered material, so there is only one notion of material.
 
