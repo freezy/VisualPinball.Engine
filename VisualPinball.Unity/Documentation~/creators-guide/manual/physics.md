@@ -45,7 +45,7 @@ In Unity also looking from above onto the playfield:
 ### Walls and Rubbers
 
 Playfield elemets may have collider components, such as a rubber collider:
-[!Rubber Collider](rubber-collider-with-physics-material-asset.png)
+![Rubber Collider](rubber-collider-with-physics-material-asset.png)
 In general, you can set 
 - Elasticity, 
 - Elasticity Falloff,
@@ -57,14 +57,14 @@ Targets, metal wire guides, primitives, ramps, rubbers also have the ability to 
 You can create a new Physics Materials Asset in any Asset Folder in the project view by "right click, create, visual pinball, physics material".
 
 A physics material asset has more options compared to the collider components themselves. 
-[Physics Material Asset](physics-material-asset-with-curves.png)
+![Physics Material Asset](physics-material-asset-with-curves.png)
 While you can set the options from above, you also can set curves for elasticity over velocity and friction over velocity. 
 Many people think  the the physics settings and scripts proposed by nFozzy come closest to real pinball. 
 
 While nFozzy wrote Visual Basic Scripts which optimized the Visual Pinball physics. While it would be possible to implement exactly the same behaviour as nFozzy proposed in his scripts, VPE deviates from the original implementation slightly:
 
 nFozzy felt the elasticity and elasticity fall-off settings were somewhat limited in simulating the correct behaviors for these objects so he defined new curves for elasticity of objects for different ball speeds:  
-[nFozzy Rubber Dampening Curve](nfozzy-curve.png)
+![nFozzy Rubber Dampening Curve](nfozzy-curve.png)
 (original nFozzy curve for a rubber band)
 
 What nFozzy did, was adjusting the XY-velocity of a ball from before collision to a new velocity after collision. According to different speeds, different factors were used for reduction of the velocity.
