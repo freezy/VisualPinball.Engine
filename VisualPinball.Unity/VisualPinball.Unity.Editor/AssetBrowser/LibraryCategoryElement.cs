@@ -29,7 +29,6 @@ namespace VisualPinball.Unity.Editor
 	{
 		public readonly (AssetLibrary, LibraryCategory)[] Categories;
 
-		public readonly bool IsCreateButton;
 		public string Name => _label.text;
 
 		private readonly LibraryCategoryView _libraryCategoryView;
@@ -47,19 +46,9 @@ namespace VisualPinball.Unity.Editor
 		/// <param name="libraryCategoryView">Reference to parent</param>
 		/// <param name="categories">Category of each library</param>
 		public LibraryCategoryElement(LibraryCategoryView libraryCategoryView, IEnumerable<(AssetLibrary, LibraryCategory)> categories)
-			: this(libraryCategoryView, categories, false) { }
-
-		/// <summary>
-		/// Construct as "add new" entry
-		/// </summary>
-		public LibraryCategoryElement(LibraryCategoryView libraryCategoryView)
-			: this(libraryCategoryView, null, true) { }
-
-		private LibraryCategoryElement(LibraryCategoryView libraryCategoryView, IEnumerable<(AssetLibrary, LibraryCategory)> categories, bool isCreateButton)
 		{
 			_libraryCategoryView = libraryCategoryView;
 			Categories = categories?.ToArray();
-			IsCreateButton = isCreateButton;
 
 			var visualTree = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>("Packages/org.visualpinball.engine.unity/VisualPinball.Unity/VisualPinball.Unity.Editor/AssetBrowser/LibraryCategoryElement.uxml");
 			var ui = visualTree.CloneTree();
@@ -67,7 +56,7 @@ namespace VisualPinball.Unity.Editor
 
 			_ui = ui.Q<VisualElement>(null, "library-category-element");
 			_label = _ui.Q<Label>();
-			_label.text = !isCreateButton ? Categories!.First().Item2.Name : "Add New";
+			_label.text = Categories!.First().Item2.Name;
 			_renameElement = ui.Q<LibraryCategoryRenameElement>();
 			_renameElement.Category = this;
 
@@ -124,9 +113,6 @@ namespace VisualPinball.Unity.Editor
 		{
 			if (evt.button != 0) {
 				return;
-			}
-			if (IsCreateButton) {
-				_libraryCategoryView.Create();
 			}
 		}
 	}

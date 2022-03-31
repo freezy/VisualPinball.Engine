@@ -26,14 +26,18 @@ namespace VisualPinball.Unity.Editor
 
 		public List<LibraryCategoryElement> Elements = new();
 
-		private readonly VisualElement _container = new();
+		private readonly VisualElement _list = new();
 		private AssetBrowserX _browser;
 
 		public LibraryCategoryView()
 		{
 			var scrollView = new ScrollView();
+			var button = new Button(Create) {
+				text = "New Category"
+			};
 			Add(scrollView);
-			scrollView.Add(_container);
+			scrollView.Add(_list);
+			Add(button);
 		}
 
 		public void Refresh(AssetBrowserX browser = null)
@@ -42,7 +46,7 @@ namespace VisualPinball.Unity.Editor
 				_browser = browser;
 			}
 			Elements.Clear();
-			_container.Clear();
+			_list.Clear();
 
 			var categories = _browser.Libraries
 				.SelectMany(lib => lib.GetCategories().Select(c => (lib, c)))
@@ -51,16 +55,15 @@ namespace VisualPinball.Unity.Editor
 			foreach (var cat in categories) {
 				var categoryElement = new LibraryCategoryElement(this, cat);
 				Elements.Add(categoryElement);
-				_container.Add(categoryElement);
+				_list.Add(categoryElement);
 			}
-			_container.Add(new LibraryCategoryElement(this)); // that's the "add" entry
 		}
 
-		public void Create()
+		private void Create()
 		{
-			var category = _browser.ActiveLibrary.AddCategory("New category");
+			var category = _browser.ActiveLibrary.AddCategory("New Category");
 			var categoryElement = new LibraryCategoryElement(this, new []{(_browser.ActiveLibrary, category)});
-			_container.Add(categoryElement);
+			_list.Add(categoryElement);
 			categoryElement.ToggleRename();
 		}
 	}
