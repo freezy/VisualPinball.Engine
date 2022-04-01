@@ -10,9 +10,9 @@
 	</uie:Toolbar>
 	<ui:TwoPaneSplitView fixed-pane-initial-dimension="180">
 		<ui:VisualElement name="leftPane" focusable="true">
-			<ui:Label text="Libraries" style="-unity-font-style: bold; margin-top: 2px;"/>
+			<ui:Label text="Libraries" class="left-title"/>
 			<ui:VisualElement name="libraryList"/>
-			<ui:Label text="Categories" style="-unity-font-style: bold; margin-top: 2px;"/>
+			<ui:Label text="Categories" class="left-title"/>
 			<VisualPinball.Unity.Editor.LibraryCategoryView/>
 		</ui:VisualElement>
 		<ui:TwoPaneSplitView fixed-pane-initial-dimension="300" fixed-pane-index="1">

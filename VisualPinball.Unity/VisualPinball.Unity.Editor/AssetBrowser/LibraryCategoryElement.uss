@@ -1,0 +1,17 @@
+﻿.library-category-element {
+	flex-direction: row;
+	flex-wrap: nowrap;
+	padding: 0 3px;
+	margin-left: 5px;
+}
+
+.library-category-element > Image {
+	flex-shrink: 0;
+	width: 16px;
+	height: 16px;
+	margin-right: 2px;
+}
+
+.library-category-element:hover {
+	/*background-color: #4c4c4c;*/
+}
