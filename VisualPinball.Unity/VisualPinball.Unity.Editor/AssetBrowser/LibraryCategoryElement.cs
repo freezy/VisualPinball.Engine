@@ -30,15 +30,33 @@ namespace VisualPinball.Unity.Editor
 		public readonly (AssetLibrary, LibraryCategory)[] Categories;
 
 		public string Name => _label.text;
+		public bool IsSelected {
+			get => _isSelected;
+			set {
+				switch (value) {
+					case true when !_isSelected:
+						AddToClassList(ClassSelected);
+						break;
+					case false when _isSelected:
+						RemoveFromClassList(ClassSelected);
+						break;
+				}
+				_isSelected = value;
+			}
+		}
 
 		private readonly LibraryCategoryView _libraryCategoryView;
 		private readonly VisualElement _ui;
+		private readonly Image _icon;
 		private readonly Label _label;
 		private readonly LibraryCategoryRenameElement _renameElement;
 
+		private int NumAssets => Categories.Select(c => c.Item1.NumAssetsWithCategory(c.Item2)).Sum();
+
+		private bool _isSelected;
 		private bool _isRenaming;
 
-		private const string ClassSelected = "selected";
+		private const string ClassSelected = "unity-collection-view__item--selected";
 
 		/// <summary>
 		/// Construct as normal category
@@ -52,14 +70,18 @@ namespace VisualPinball.Unity.Editor
 
 			var visualTree = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>("Packages/org.visualpinball.engine.unity/VisualPinball.Unity/VisualPinball.Unity.Editor/AssetBrowser/LibraryCategoryElement.uxml");
 			var ui = visualTree.CloneTree();
+			var styleSheet = AssetDatabase.LoadAssetAtPath<StyleSheet>("Packages/org.visualpinball.engine.unity/VisualPinball.Unity/VisualPinball.Unity.Editor/AssetBrowser/LibraryCategoryElement.uss");
+			ui.styleSheets.Add(styleSheet);
 			Add(ui);
 
 			_ui = ui.Q<VisualElement>(null, "library-category-element");
+			_icon = _ui.Q<Image>();
 			_label = _ui.Q<Label>();
 			_label.text = Categories!.First().Item2.Name;
 			_renameElement = ui.Q<LibraryCategoryRenameElement>();
 			_renameElement.Category = this;
 
+			UpdateIcon();
 			RegisterCallback<PointerUpEvent>(OnPointerUp);
 
 			// right-click menu
@@ -98,7 +120,6 @@ namespace VisualPinball.Unity.Editor
 			evt.menu.AppendAction("Delete", Delete);
 		}
 
-
 		private void Delete(DropdownMenuAction obj)
 		{
 			foreach (var (lib, category) in Categories) {
@@ -111,9 +132,17 @@ namespace VisualPinball.Unity.Editor
 
 		private void OnPointerUp(PointerUpEvent evt)
 		{
-			if (evt.button != 0) {
+			if (evt.button != 0) { // only handle left mouse click
 				return;
 			}
+			_libraryCategoryView.OnCategoryClicked(this, evt.ctrlKey);
+		}
+
+		private void UpdateIcon()
+		{
+			var iconName = _isSelected ? "d_FolderOpened Icon" : NumAssets > 0 ? "d_Folder Icon" : "d_FolderEmpty Icon";
+			//iconName = "_Help";
+			_icon.image = EditorGUIUtility.IconContent(iconName).image;
 		}
 	}
 }

@@ -11,6 +11,12 @@
 	padding: 5px;
 }
 
+.left-title {
+	-unity-font-style: bold;
+	margin-top: 10px;
+	margin-bottom: 3px;
+}
+
 /* "grid" */
 /* ------ */
 #gridContent {

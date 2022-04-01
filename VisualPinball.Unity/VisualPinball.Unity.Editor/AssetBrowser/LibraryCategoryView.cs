@@ -24,10 +24,11 @@ namespace VisualPinball.Unity.Editor
 	{
 		public new class UxmlFactory : UxmlFactory<LibraryCategoryView, UxmlTraits> { }
 
-		public List<LibraryCategoryElement> Elements = new();
 
-		private readonly VisualElement _list = new();
 		private AssetBrowserX _browser;
+		private readonly VisualElement _container = new();
+		private readonly HashSet<LibraryCategoryElement> _selectedCategoryElements = new();
+		private readonly Dictionary<AssetLibrary, List<LibraryCategory>> _selectedCategories = new();
 
 		public LibraryCategoryView()
 		{
@@ -36,7 +37,7 @@ namespace VisualPinball.Unity.Editor
 				text = "New Category"
 			};
 			Add(scrollView);
-			scrollView.Add(_list);
+			scrollView.Add(_container);
 			Add(button);
 		}
 
@@ -45,8 +46,7 @@ namespace VisualPinball.Unity.Editor
 			if (browser != null) {
 				_browser = browser;
 			}
-			Elements.Clear();
-			_list.Clear();
+			_container.Clear();
 
 			var categories = _browser.Libraries
 				.SelectMany(lib => lib.GetCategories().Select(c => (lib, c)))
@@ -54,16 +54,75 @@ namespace VisualPinball.Unity.Editor
 
 			foreach (var cat in categories) {
 				var categoryElement = new LibraryCategoryElement(this, cat);
-				Elements.Add(categoryElement);
-				_list.Add(categoryElement);
+				_container.Add(categoryElement);
 			}
+		}
+
+		public void OnCategoryClicked(LibraryCategoryElement categoryElement, bool ctrlPressed)
+		{
+			switch (categoryElement.IsSelected) {
+
+				// if not selected, select it.
+				case false: {
+					// clear if ctrl not pressed
+					if (!ctrlPressed) {
+						foreach (var selectedElement in _selectedCategoryElements) {
+							selectedElement.IsSelected = false;
+						}
+						_selectedCategoryElements.Clear();
+					}
+					_selectedCategoryElements.Add(categoryElement);
+					categoryElement.IsSelected = true;
+					break;
+				}
+
+				// if it's the only one and it's already selected, de-select (= select all)
+				case true when _selectedCategoryElements.Count == 1:
+					categoryElement.IsSelected = false;
+					_selectedCategoryElements.Clear();
+					break;
+
+				// if it's already selected but not the only one, make it the only one (or de-select, if ctrl pressed)
+				case true when _selectedCategoryElements.Count > 1: {
+					if (!ctrlPressed) {
+						foreach (var selectedElement in _selectedCategoryElements) {
+							if (selectedElement != categoryElement) {
+								selectedElement.IsSelected = false;
+							}
+						}
+						_selectedCategoryElements.Clear();
+						_selectedCategoryElements.Add(categoryElement);
+
+					} else {
+						categoryElement.IsSelected = false;
+						_selectedCategoryElements.Remove(categoryElement);
+					}
+					break;
+				}
+			}
+
+			foreach (var selectedCategoryElement in _selectedCategoryElements) {
+				_selectedCategories.Clear();
+				foreach (var (lib, category) in selectedCategoryElement.Categories) {
+					if (!_selectedCategories.ContainsKey(lib)) {
+						_selectedCategories[lib] = new List<LibraryCategory>();
+					}
+					_selectedCategories[lib].Add(category);
+				}
+			}
+			Query();
+		}
+
+		private void Query()
+		{
+
 		}
 
 		private void Create()
 		{
 			var category = _browser.ActiveLibrary.AddCategory("New Category");
 			var categoryElement = new LibraryCategoryElement(this, new []{(_browser.ActiveLibrary, category)});
-			_list.Add(categoryElement);
+			_container.Add(categoryElement);
 			categoryElement.ToggleRename();
 		}
 	}
