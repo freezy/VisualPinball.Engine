@@ -36,6 +36,14 @@
 - name: Tutorials
   href: tutorials/index.md
   items:
+    - name: Create a Playfield
+      href: xref:tutorial_playfield
+      items:
+        - name: Albedo Texture and Masks
+          href: xref:tutorial_playfield_1
+        - name: Playfield Mesh
+          href: xref:tutorial_playfield_2
+  
     - name: Create Realistic Looking Plastics
       href: xref:tutorial_plastics
       items:
