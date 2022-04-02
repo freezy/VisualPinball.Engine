@@ -29,41 +29,42 @@ namespace VisualPinball.Unity
 
 		/// <summary>
 		/// AngularVelocity  -  german: Winkelgeschwindigkeit
-
 		///		* Set to 0 at Manual Roll
 		///			(in BallManualRoll(in Entity entity, in float3 targetWorldPosition)
 		///			(which is not used anywhere in this Project, but is at least used in Ravarcade's ImGui Physics Debugger - Addon)
-		///		* Is set to zero At RotatorComponent. Possibly an error and should be AngularVelocity 
+		///		* Is set to zero At RotatorComponent. Possibly an error and should be AngularVelocity
 		///			(in UpdateRotation(float angleDeg))
-		///		* Calculated from AngularMomentum / inertia 
+		///		* Calculated from AngularMomentum / inertia
 		///			(In BallDisplacementSystem.OnUpdate())
 		///			(Where Inertia is a "constant" based on radius and mass (2/5 m r^2))
-		///		* Used to get tangential velocity due to rotation when rolling / colliding on surfaces (alsways added to normal velocity) 
+		///		* Used to get tangential velocity due to rotation when rolling / colliding on surfaces (alsways added to normal velocity)
 		///			(in BallData.SurfaceVelocity(in BallData ball, in float3 surfP))
 		/// </summary>
 		public float3 AngularVelocity;
+
 		/// <summary>
 		/// AngularMomentum  - german: drehimpuls, Impulsmomemt
 		///		* Set to 0 at Manual Roll
 		///			(in BallManualRoll(in Entity entity, in float3 targetWorldPosition)
-		///		* Set to 0 at every new ball	
+		///		* Set to 0 at every new ball
 		///			(in Ballmanager.CreateEntity(GameObject ballGo, int id, in float3 worldPos, in float3 localPos, in float3 localVel, in float scale, in float mass, in float radius, in Entity kickerEntity)
 		///		* Set to 0 in KickerApi, KickerCollider and RotatorComponent
 		///			(in several places)
-		///		* Calculated when a survace applies an impulse, it applies it to velocity (div by mass) and to angMom fully. 
+		///		* Calculated when a survace applies an impulse, it applies it to velocity (div by mass) and to angMom fully.
 		///			(ApplySurfaceImpulse(in float3 rotI, in float3 impulse))
 		///			(Where rotI seems to be the Rotation impulse and impulse is the (non angular)velocity (makes sense to divide by mass)
 		///			(angularMomenmtom = rotI;)
 		///		* used to calculate Angular Velocity (ball.AngularVelocity = ball.AngularMomentum / inertia;)
 		///			(in BalldisplacementSystem.OnUpdate())
-		///		* used to add and thus calculate Orientation 
+		///		* used to add and thus calculate Orientation
 		///			(in BalldisplacementSystem.OnUpdate())
 		///			skewSymmetricMatrix is created from the Angular Momentum divided by Inertia
 		///			The original orientation is multiplied with the skewSymmetric Matrix
 		///			and added to the old Orientation to form new orientation
-		///			
+		///
 		/// </summary>
 		public float3 AngularMomentum;
+
 		public float3x3 BallOrientation;
 		public float3x3 BallOrientationForUnity;
 		public float Radius;
@@ -76,10 +77,8 @@ namespace VisualPinball.Unity
 
 		public float3 OldVelocity;
 
-		public Aabb Aabb
-		{
-			get
-			{
+		public Aabb Aabb {
+			get {
 				var vl = math.length(Velocity) + Radius + 0.05f; // 0.05f = paranoia
 				return new Aabb(
 					Position.x - vl,
@@ -105,17 +104,15 @@ namespace VisualPinball.Unity
 			));
 		}
 
-		public float CollisionRadiusSqr
-		{
-			get
-			{
+		public float CollisionRadiusSqr {
+			get {
 				var v1 = math.length(Velocity) + Radius + 0.05f;
 				return v1 * v1;
 			}
 		}
 
 		/// <summary>
-		/// Calculates Moment of Inertia for a Ball 
+		/// Calculates Moment of Inertia for a Ball
 		/// https://en.wikipedia.org/wiki/Moment_of_inertia#Examples_2
 		/// </summary>
 		public float Inertia => 2.0f / 5.0f * Radius * Radius * Mass;
@@ -134,7 +131,7 @@ namespace VisualPinball.Unity
 			return ball.Velocity + math.cross(ball.AngularMomentum / ball.Inertia, surfP);
 			/*
 			This was (from freezy's first implementation):
-				return ball.Velocity + math.cross(ball.AngularVelocity, surfP); 
+				return ball.Velocity + math.cross(ball.AngularVelocity, surfP);
 				(angular velocity should not be used to calculate the surface velocity, since angVel is the imapct of the ball from a collider, not the angular "speed" of a ball.
 				Only after all collision-calculations angVel is set to AngMom / inertia)
 
@@ -163,16 +160,14 @@ namespace VisualPinball.Unity
 				return g_pplayer->m_gravity/m_d.m_mass    // linear acceleration
 					 + CrossProduct(angularvelocity, CrossProduct(angularvelocity, surfP)); // centripetal acceleration
 
-				the angular velocity used here is not the angular velocity that the ball has (which is more like an angular impulse which is added to the angMom). 
+				the angular velocity used here is not the angular velocity that the ball has (which is more like an angular impulse which is added to the angMom).
 			*/
 		}
 
 		public static void SetOutsideOf(ref DynamicBuffer<BallInsideOfBufferElement> insideOfs, in Entity entity)
 		{
-			for (var i = 0; i < insideOfs.Length; i++)
-			{
-				if (insideOfs[i].Value == entity)
-				{
+			for (var i = 0; i < insideOfs.Length; i++) {
+				if (insideOfs[i].Value == entity) {
 					insideOfs.RemoveAt(i);
 					return;
 				}
@@ -191,10 +186,8 @@ namespace VisualPinball.Unity
 
 		public static bool IsInsideOf(in DynamicBuffer<BallInsideOfBufferElement> insideOfs, in Entity entity)
 		{
-			for (var i = 0; i < insideOfs.Length; i++)
-			{
-				if (insideOfs[i].Value == entity)
-				{
+			for (var i = 0; i < insideOfs.Length; i++) {
+				if (insideOfs[i].Value == entity) {
 					return true;
 				}
 			}
