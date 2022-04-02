@@ -64,7 +64,8 @@ namespace VisualPinball.Unity
 		///			
 		/// </summary>
 		public float3 AngularMomentum;
-		public float3x3 Orientation;
+		public float3x3 BallOrientation;
+		public float3x3 BallOrientationForUnity;
 		public float Radius;
 		public float Mass;
 		public bool IsFrozen;
@@ -75,8 +76,10 @@ namespace VisualPinball.Unity
 
 		public float3 OldVelocity;
 
-		public Aabb Aabb {
-			get {
+		public Aabb Aabb
+		{
+			get
+			{
 				var vl = math.length(Velocity) + Radius + 0.05f; // 0.05f = paranoia
 				return new Aabb(
 					Position.x - vl,
@@ -89,7 +92,8 @@ namespace VisualPinball.Unity
 			}
 		}
 
-		public BallColliderBounds Bounds(Entity entity) {
+		public BallColliderBounds Bounds(Entity entity)
+		{
 			var vl = math.length(Velocity) + Radius + 0.05f; // 0.05f = paranoia
 			return new BallColliderBounds(entity, new Aabb(
 				Position.x - vl,
@@ -101,8 +105,10 @@ namespace VisualPinball.Unity
 			));
 		}
 
-		public float CollisionRadiusSqr {
-			get {
+		public float CollisionRadiusSqr
+		{
+			get
+			{
 				var v1 = math.length(Velocity) + Radius + 0.05f;
 				return v1 * v1;
 			}
@@ -113,7 +119,7 @@ namespace VisualPinball.Unity
 		/// https://en.wikipedia.org/wiki/Moment_of_inertia#Examples_2
 		/// </summary>
 		public float Inertia => 2.0f / 5.0f * Radius * Radius * Mass;
-		
+
 		public float InvMass => 1f / Mass;
 
 		public void ApplySurfaceImpulse(in float3 rotI, in float3 impulse)
@@ -125,20 +131,48 @@ namespace VisualPinball.Unity
 		public static float3 SurfaceVelocity(in BallData ball, in float3 surfP)
 		{
 			// linear velocity plus tangential velocity due to rotation
-			return ball.Velocity + math.cross(ball.AngularVelocity, surfP);
+			return ball.Velocity + math.cross(ball.AngularMomentum / ball.Inertia, surfP);
+			/*
+			This was (from freezy's first implementation):
+				return ball.Velocity + math.cross(ball.AngularVelocity, surfP); 
+				(angular velocity should not be used to calculate the surface velocity, since angVel is the imapct of the ball from a collider, not the angular "speed" of a ball.
+				Only after all collision-calculations angVel is set to AngMom / inertia)
+
+			Original code from VPX
+				Vertex3Ds Ball::SurfaceVelocity(const Vertex3Ds& surfP) const
+				{
+				return m_d.m_vel + CrossProduct(m_angularmomentum / Inertia(), surfP); // linear velocity plus tangential velocity due to rotation
+				}
+			*/
 		}
 
 		public static float3 SurfaceAcceleration(in BallData ball, in float3 surfP, in float3 gravity)
 		{
+			var currentAngularVelocity = ball.AngularMomentum / ball.Inertia;
+
 			// if we had any external torque, we would have to add "(deriv. of ang.Vel.) x surfP" here
 			return gravity / ball.Mass // linear acceleration
-			       + math.cross(ball.AngularVelocity, math.cross(ball.AngularVelocity, surfP)); // centripetal acceleration
+				+ math.cross(currentAngularVelocity, math.cross(currentAngularVelocity, surfP)); // centripetal acceleration
+
+			/* This was  (from freezy's first implementation):
+				return gravity / ball.Mass // linear acceleration
+					+ math.cross(ball.angularVelocity, math.cross(ball.angularVelocity, surfP)); // centripetal acceleration
+			 * Original Code:
+				const Vertex3Ds angularvelocity = m_angularmomentum / Inertia();
+					// if we had any external torque, we would have to add "(deriv. of ang.vel.) x surfP" here
+				return g_pplayer->m_gravity/m_d.m_mass    // linear acceleration
+					 + CrossProduct(angularvelocity, CrossProduct(angularvelocity, surfP)); // centripetal acceleration
+
+				the angular velocity used here is not the angular velocity that the ball has (which is more like an angular impulse which is added to the angMom). 
+			*/
 		}
 
 		public static void SetOutsideOf(ref DynamicBuffer<BallInsideOfBufferElement> insideOfs, in Entity entity)
 		{
-			for (var i = 0; i < insideOfs.Length; i++) {
-				if (insideOfs[i].Value == entity) {
+			for (var i = 0; i < insideOfs.Length; i++)
+			{
+				if (insideOfs[i].Value == entity)
+				{
 					insideOfs.RemoveAt(i);
 					return;
 				}
@@ -147,7 +181,7 @@ namespace VisualPinball.Unity
 
 		public static void SetInsideOf(ref DynamicBuffer<BallInsideOfBufferElement> insideOfs, Entity entity)
 		{
-			insideOfs.Add(new BallInsideOfBufferElement {Value = entity});
+			insideOfs.Add(new BallInsideOfBufferElement { Value = entity });
 		}
 
 		public static bool IsOutsideOf(in DynamicBuffer<BallInsideOfBufferElement> insideOfs, in Entity entity)
@@ -157,8 +191,10 @@ namespace VisualPinball.Unity
 
 		public static bool IsInsideOf(in DynamicBuffer<BallInsideOfBufferElement> insideOfs, in Entity entity)
 		{
-			for (var i = 0; i < insideOfs.Length; i++) {
-				if (insideOfs[i].Value == entity) {
+			for (var i = 0; i < insideOfs.Length; i++)
+			{
+				if (insideOfs[i].Value == entity)
+				{
 					return true;
 				}
 			}
