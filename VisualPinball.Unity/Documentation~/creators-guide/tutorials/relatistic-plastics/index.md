@@ -38,9 +38,3 @@ Every plastic will have its own GameObject. However, only one texture is shared 
 2. [Create mesh in Blender](xref:tutorial_plastics_2)
 3. [UV-map texture in Blender](xref:tutorial_plastics_3)
 4. [Import mesh into Unity](xref:tutorial_plastics_4)
-
-## Alternative Workflow with Houdini
-
-If you're familiar with Houdini, you might be interested in replacing Blender with Houdini. The problem with Blender is that it's a destructive workflow, i.e., if you have to change the outlines from which the mesh is generated from, you'll need to redo steps two and three.
-
-Houdini however is completely non-destructive, so here's a workflow that allows you to quickly regenerate meshes in case you need make changes when placing them on the playfield.
