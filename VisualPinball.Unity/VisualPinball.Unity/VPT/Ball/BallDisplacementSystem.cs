@@ -17,6 +17,7 @@
 using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Profiling;
+using UnityEngine;
 
 namespace VisualPinball.Unity
 {
@@ -52,48 +53,50 @@ namespace VisualPinball.Unity
 
 				var inertia = ball.Inertia;
 				var mat3 = CreateSkewSymmetric(ball.AngularMomentum / inertia);
-				var addedOrientation = math.mul(ball.Orientation, mat3);
+				var addedOrientation = math.mul(ball.BallOrientation, mat3);
 				addedOrientation *= dTime;
 
-				ball.Orientation += addedOrientation;
-				math.orthonormalize(ball.Orientation);
+				ball.BallOrientation += addedOrientation;
 
-				// after Orthonormalization, the orientation vectors also have to be normalized - this is not done by othonomalize, since the skew matrix creates quite lengthy vectors.
-				// in fact, they dont have to be normalized, but just shortened, so we can abs-add the x, y and z together and just divide by the sum.
-				// This saves three sqrts in the game loop per ball. 
-				float lengthX, lengthY, lengthZ;
-				/* Correct normalization would be: 
-				 * lengthX = math.sqrt(ball.Orientation.c0.x * ball.Orientation.c0.x + ball.Orientation.c0.y * ball.Orientation.c0.y + ball.Orientation.c0.z * ball.Orientation.c0.z);
-				 * lengthY = math.sqrt(ball.Orientation.c1.x * ball.Orientation.c1.x + ball.Orientation.c1.y * ball.Orientation.c1.y + ball.Orientation.c1.z * ball.Orientation.c1.z);
-				 * lengthZ = math.sqrt(ball.Orientation.c2.x * ball.Orientation.c2.x + ball.Orientation.c2.y * ball.Orientation.c2.y + ball.Orientation.c2.z * ball.Orientation.c2.z);
-				 */
-				lengthX = math.abs(ball.Orientation.c0.x) + math.abs(ball.Orientation.c0.y) + math.abs(ball.Orientation.c0.z);
-				lengthY = math.abs(ball.Orientation.c1.x) + math.abs(ball.Orientation.c1.y) + math.abs(ball.Orientation.c1.z);
-				lengthZ = math.abs(ball.Orientation.c2.x) + math.abs(ball.Orientation.c2.y) + math.abs(ball.Orientation.c2.z);
-				if (lengthX != 0f)
-				{
-					ball.Orientation.c0.x /= lengthX;
-					ball.Orientation.c0.y /= lengthX;
-					ball.Orientation.c0.z /= lengthX;
-				}
-				if (lengthY != 0f)
-				{
-					ball.Orientation.c1.x /= lengthY;
-					ball.Orientation.c1.y /= lengthY;
-					ball.Orientation.c1.z /= lengthY;
-				}
-				if (lengthZ != 0f)
-				{
-					ball.Orientation.c2.x /= lengthZ;
-					ball.Orientation.c2.y /= lengthZ;
-					ball.Orientation.c2.z /= lengthZ;
-				}
+				// do the same for Unity's ball Orientation (where z (and z only rotation) has to be flipped),
+				// which (maybe??) can't be done after skew matrix operations (or we don't know how))
+				// If we flip an exis in the matrix, we always flip two rotations.
+				var AngMomFlippedZ = new float3(ball.AngularMomentum.x, ball.AngularMomentum.y, -ball.AngularMomentum.z);
+				mat3 = CreateSkewSymmetric(AngMomFlippedZ / inertia);
+				addedOrientation = math.mul(ball.BallOrientationForUnity, mat3);
+				addedOrientation *= dTime;
 
+				ball.BallOrientationForUnity += addedOrientation;
+
+				VPOrthonormalize(ref ball.BallOrientation);
+				VPOrthonormalize(ref ball.BallOrientationForUnity);
+				
 				ball.AngularVelocity = ball.AngularMomentum / inertia;
 
 				marker.End();
 
 			}).Run();
+		}
+
+		private static void VPOrthonormalize(ref float3x3 orientation) 
+		{
+			Vector3 vX = new Vector3(orientation.c0.x, orientation.c1.x, orientation.c2.x);
+			Vector3 vY = new Vector3(orientation.c0.y, orientation.c1.y, orientation.c2.y);
+			Vector3 vZ = Vector3.Cross(vX, vY);
+			vX = Vector3.Normalize(vX);
+			vZ = Vector3.Normalize(vZ);
+			vY = Vector3.Cross(vZ, vX);
+
+			orientation.c0.x = vX.x;
+			orientation.c0.y = vY.x;
+			orientation.c0.z = vZ.x;
+			orientation.c1.x = vX.y;
+			orientation.c1.y = vY.y;
+			orientation.c1.z = vZ.y;
+			orientation.c2.x = vX.z;
+			orientation.c2.y = vY.z;
+			orientation.c2.z = vZ.z;
+
 		}
 
 		private static float3x3 CreateSkewSymmetric(in float3 pv3D)

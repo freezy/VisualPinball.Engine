@@ -47,11 +47,13 @@ namespace VisualPinball.Unity
 		{
 			var ltw = _baseTransform;
 			var marker = PerfMarker;
-			Entities.WithoutBurst().WithName("BallMovementJob").ForEach((Entity entity, in BallData ball) => {
+			Entities.WithoutBurst().WithName("BallMovementJob").ForEach((Entity entity, in BallData ball) =>
+			{
 
 				marker.Begin();
 
-				if (!_player.Balls.ContainsKey(entity)) {
+				if (!_player.Balls.ContainsKey(entity))
+				{
 					marker.End();
 					return;
 				}
@@ -61,53 +63,72 @@ namespace VisualPinball.Unity
 				var ballTransform = _player.Balls[entity].transform;
 				ballTransform.localPosition = new Vector3(ball.Position.x, ball.Position.y, zHeight);
 
+				var or = ball.BallOrientationForUnity;
 
-				var or = ball.Orientation;
-				var vpright = new Vector3(or.c0.x, or.c1.x, or.c2.x);
-				var vpfront = new Vector3(or.c0.y, or.c1.y, or.c2.y);
-				var vptop = new Vector3(or.c0.z, or.c1.z, or.c2.z);
+				var VPX = new Vector3(or.c0.x, or.c1.x, or.c2.x);
+				var VPY = new Vector3(or.c0.y, or.c1.y, or.c2.y);
+				var VPZ = new Vector3(or.c0.z, or.c1.z, or.c2.z);
+
 				// Debug.Log("c0: (" + or.c0.x + ", " + or.c0.y + ", " + or.c0.z + ")");
 				// Debug.Log("c1: (" + or.c1.x + ", " + or.c1.y + ", " + or.c1.z + ")");
 				// Debug.Log("c2: (" + or.c2.x + ", " + or.c2.y + ", " + or.c2.z + ")");
-				Vector3.OrthoNormalize(ref vptop, ref vpfront, ref vpright);
-				var unitytop = new Vector3(vptop.x, vptop.z, vptop.y);
-				var unityfront = new Vector3(vpfront.x, vpfront.z, vpfront.y);
+				
+				// for security reasons, so that we don't get NaN, NaN, NaN, NaN erroro, when vectors are not fully orthonormalized because of skewMatrix operation
+				Vector3.OrthoNormalize(ref VPZ, ref VPY, ref VPX);
 
-				Vector3.OrthoNormalize(ref unitytop, ref unityfront);
+				Quaternion q = Quaternion.LookRotation(VPZ, VPY);
 
-				// Following is the transistion from VP-Physics Ball Orientation to the Unity Ball-Orientation.
-				// following statements: when looking at the backglass:
-				// The problem here is, that we have 
-				//    a right handed universe in VP (X->R, Y->F, Z->U) and
-				//    a left handed universe in Unity (X->R, Y->U, Z->F) 
-				// The other problem is, that Unity likes quaternions and VP uses Orientation matrices.
-				// I THINK!!!:
-				//    where x via C0 to C2 describes the right vector,
-				//    and y the front vector and z the top vector
+				// flip Z axis
+				q = FlipZAxis(q); 
 
-				// So we have to transform between these. Not only that the Column-wise Vectors is hard to understand,
-				// but also the transition from one universe to another is hard. 
-
-				//very old transformation (looks strange)  (freezy)
-				//ballTransform.localRotation = Quaternion.LookRotation(or.c2, or.c1);
-				//1st iteration by (looks strange, but less strange)  (cupiii)
-				//ballTransform.localRotation = Quaternion.LookRotation(new Vector3(or.c0.x*-1, or.c1.x*-1, or.c2.x), new Vector3(or.c0.z*-1, or.c1.z*-1, or.c2.z));
-				//newest iteration (hopefully correct))
-
-				// Better Ways than skew matrix: 
-				//    https://gamedev.stackexchange.com/questions/108920/applying-angular-velocity-to-quaternion
-				//	  https://stackoverflow.com/questions/23503151/how-to-update-quaternion-based-on-3d-gyro-data
-				//    https://stackoverflow.com/questions/12053895/converting-angular-velocity-to-quaternion-in-opencv
-
-				// also implementing VP's "Orthonormalize" Code - although it does not really orthonormalize could give a performance benefit:
-				// https://github.com/vpinball/vpinball/blob/be08b04d61096272df97bd45e6f0682043228a73/math/matrix.h#L208
-
-				ballTransform.localRotation = Quaternion.LookRotation(unityfront, unitytop);
-
+				ballTransform.localRotation = q;
 
 				marker.End();
 
 			}).Run();
+
+
+			static Quaternion FlipZAxis(Quaternion q)
+			{
+				// which actually flips x and y axis visually... 
+				return new Quaternion(q.x, q.y, -q.z, -q.w);
+			}
+
+			/* 
+			 * I let these two in here, just in case we need them.
+			 
+			static float3x3 transpose(float3x3 or)
+			{
+				float3x3 or2;
+				or2.c0.x = or.c0.x;
+				or2.c0.y = or.c1.x;
+				or2.c0.z = or.c2.x;
+				or2.c1.x = or.c0.y;
+				or2.c1.y = or.c1.y;
+				or2.c1.z = or.c2.y;
+				or2.c2.x = or.c0.z;
+				or2.c2.y = or.c1.z;
+				or2.c2.z = or.c2.z;
+				return or2;
+			}
+
+			static Quaternion QuaternionFromMatrix(Matrix4x4 m)
+			{
+				// Adapted from: http://www.euclideanspace.com/maths/geometry/rotations/conversions/matrixToQuaternion/index.htm
+				Quaternion q = new Quaternion();
+				q.w = Mathf.Sqrt(Mathf.Max(0, 1 + m[0, 0] + m[1, 1] + m[2, 2])) / 2;
+				q.x = Mathf.Sqrt(Mathf.Max(0, 1 + m[0, 0] - m[1, 1] - m[2, 2])) / 2;
+				q.y = Mathf.Sqrt(Mathf.Max(0, 1 - m[0, 0] + m[1, 1] - m[2, 2])) / 2;
+				q.z = Mathf.Sqrt(Mathf.Max(0, 1 - m[0, 0] - m[1, 1] + m[2, 2])) / 2;
+				q.x *= Mathf.Sign(q.x * (m[2, 1] - m[1, 2]));
+				q.y *= Mathf.Sign(q.y * (m[0, 2] - m[2, 0]));
+				q.z *= Mathf.Sign(q.z * (m[1, 0] - m[0, 1]));
+				return q;
+			}
+
+			*/
+
+
 		}
 	}
 }

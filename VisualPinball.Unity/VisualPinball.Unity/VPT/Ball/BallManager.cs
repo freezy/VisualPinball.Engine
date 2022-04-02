@@ -113,7 +113,8 @@ namespace VisualPinball.Unity
 				Radius = radius,
 				Mass = mass,
 				Velocity = localVel,
-				Orientation = float3x3.identity,
+				BallOrientation = float3x3.identity,
+				BallOrientationForUnity = float3x3.identity,
 				RingCounterOldPos = 0,
 				AngularMomentum = float3.zero
 			});
