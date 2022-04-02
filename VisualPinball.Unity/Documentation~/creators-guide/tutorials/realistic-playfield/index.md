@@ -26,7 +26,7 @@ The other GameObject contains the printed ink above the inserts. It consists of 
 
 The material we'll be creating takes into account the difference between the wood and the ink, irregularities of the ink as well as some scratches. 
 
-In this tutorial, we're using the limited edition of Stern's *Tron: Legacy* as an example, which has two additional properties: There are mylar protection stickers on the playfield, and some of the ink has a silver screening.
+In this tutorial, we're using the Limited Edition of Stern's *Tron: Legacy* as an example, which has two additional properties: There are mylar protection stickers on the playfield, and some of the ink has a silver screening.
 
 ![Final result in Unity](tron-example.png)
 <small><i>The final result in Unity.</i></small>
