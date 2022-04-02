@@ -47,13 +47,11 @@ namespace VisualPinball.Unity
 		{
 			var ltw = _baseTransform;
 			var marker = PerfMarker;
-			Entities.WithoutBurst().WithName("BallMovementJob").ForEach((Entity entity, in BallData ball) =>
-			{
+			Entities.WithoutBurst().WithName("BallMovementJob").ForEach((Entity entity, in BallData ball) => {
 
 				marker.Begin();
 
-				if (!_player.Balls.ContainsKey(entity))
-				{
+				if (!_player.Balls.ContainsKey(entity)) {
 					marker.End();
 					return;
 				}
@@ -72,14 +70,14 @@ namespace VisualPinball.Unity
 				// Debug.Log("c0: (" + or.c0.x + ", " + or.c0.y + ", " + or.c0.z + ")");
 				// Debug.Log("c1: (" + or.c1.x + ", " + or.c1.y + ", " + or.c1.z + ")");
 				// Debug.Log("c2: (" + or.c2.x + ", " + or.c2.y + ", " + or.c2.z + ")");
-				
+
 				// for security reasons, so that we don't get NaN, NaN, NaN, NaN erroro, when vectors are not fully orthonormalized because of skewMatrix operation
 				Vector3.OrthoNormalize(ref VPZ, ref VPY, ref VPX);
 
 				Quaternion q = Quaternion.LookRotation(VPZ, VPY);
 
 				// flip Z axis
-				q = FlipZAxis(q); 
+				q = FlipZAxis(q);
 
 				ballTransform.localRotation = q;
 
@@ -90,13 +88,13 @@ namespace VisualPinball.Unity
 
 			static Quaternion FlipZAxis(Quaternion q)
 			{
-				// which actually flips x and y axis visually... 
+				// which actually flips x and y axis visually...
 				return new Quaternion(q.x, q.y, -q.z, -q.w);
 			}
 
-			/* 
+			/*
 			 * I let these two in here, just in case we need them.
-			 
+
 			static float3x3 transpose(float3x3 or)
 			{
 				float3x3 or2;
