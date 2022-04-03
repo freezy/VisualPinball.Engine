@@ -57,7 +57,7 @@ jobs:
         with:
           name: Plugins
           path: VisualPinball.Unity/Plugins
-      - uses: actions/cache@v3.0.0
+      - uses: actions/cache@v3.0.1
         with:
          path: VisualPinball.Unity/VisualPinball.Unity.Test/TestProject~/Library
          key: Library-Test-Project
