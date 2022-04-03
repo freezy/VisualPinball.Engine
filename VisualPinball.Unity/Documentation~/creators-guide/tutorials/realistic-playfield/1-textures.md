@@ -64,7 +64,7 @@ Finally, your mask should look something like this.
 
 Now, we'll need the inverse shape of what you've just drawn. So, create an new layer, call it *masks*, and draw two rectangles: One that covers the playfield, and another that covers the plywood (turn *Smart Guides* back on for this, and make sure to snap to the edges of the artboard). Color them differently and name them *full* and *plywood*. Duplicate *full* by hitting `Ctrl+C` and `Ctrl+F`. Hide the copy, and lock the *masks* layer so only the *wood mask* layer is unlocked.
 
-Hit `Ctrl+A` to select all the wood mask shapes, and duplicate them with `Ctrl+C`, `Ctrl+F`. Unlock the *masks* layer, shift+select the *full* rectangle, open the *Path Finder* tool and hit the *Minus Front* button. Select the *masks* layer, right-click on the selected shape, and click *Arrange -> Send to Current Layer*. Rename the new object `<Compound Path>` to *wood*. Hide the *reference* and *wood mask* layer.
+Hit `Ctrl+A` to select all the wood mask shapes, and duplicate them with `Ctrl+C`, `Ctrl+F`. Unlock the *masks* layer, `Shift`+select the *full* rectangle, open the *Path Finder* tool and hit the *Minus Front* button. Select the *masks* layer, right-click on the selected shape, and click *Arrange -> Send to Current Layer*. Rename the new object `<Compound Path>` to *wood*. Hide the *reference* and *wood mask* layer.
 
 The result should look like this:
 

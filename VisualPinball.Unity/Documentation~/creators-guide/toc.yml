@@ -43,6 +43,8 @@
           href: xref:tutorial_playfield_1
         - name: Playfield Mesh
           href: xref:tutorial_playfield_2
+        - name: Texturing
+          href: xref:tutorial_playfield_3
   
     - name: Create Realistic Looking Plastics
       href: xref:tutorial_plastics
