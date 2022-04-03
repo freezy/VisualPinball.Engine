@@ -80,7 +80,6 @@ namespace VisualPinball.Unity
 			float3 target = _worldToLocal.MultiplyPoint(targetWorldPosition);
 			var ballData = _entityManager.GetComponentData<BallData>(entity);
 			ballData.Velocity = float3.zero;
-			ballData.AngularVelocity = float3.zero;
 			ballData.AngularMomentum = float3.zero;
 			ballData.IsFrozen = false;
 
