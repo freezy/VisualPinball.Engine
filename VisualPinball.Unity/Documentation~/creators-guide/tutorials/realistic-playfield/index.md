@@ -42,5 +42,5 @@ In this tutorial, we're using the Limited Edition of Stern's *Tron: Legacy* as a
 
 1. [Create albedo texture and masks](xref:tutorial_playfield_1)
 3. [Create the mesh in Blender](xref:tutorial_playfield_2)
-3. [Texture the mesh in Substance Painter](xref:tutorial_playfield_3)
+3. [Texture the mesh in Substance Painter](xref:tutorial_playfield_3) ([Annex](xref:tutorial_playfield_3b))
 4. [Import mesh and material into Unity](xref:tutorial_playfield_4)
