@@ -52,6 +52,7 @@ Built with Unity 2021.2.
 
 ### Fixed
 
+- Remaining ball spinning issue should now be solved ([#397](https://github.com/freezy/VisualPinball.Engine/pull/397)).
 - Finally, ball rotation is rendered correctly ([#386](https://github.com/freezy/VisualPinball.Engine/pull/386)).
 - Ball stuttering when rolling over dropped target ([#375](https://github.com/freezy/VisualPinball.Engine/pull/375)).
 - Plunger disappearing due to too small bounding box.
