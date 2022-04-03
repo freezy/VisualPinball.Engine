@@ -10,7 +10,7 @@ description: How to create the playfield mesh.
 
 Open Blender and delete everything (press `A`, `X`, `D`). Click on *File -> Import -> Scalable Vector Graphics (.svg)* and choose `playfield.svg` which you exported in the last step. Select *wood* in the outliner, move your cursor over the viewport and hit `numpad .` (zoom in on selected), `numpad 7` (top view).
 
-If you haven't grouped your inserts, you'll have a bunch of "Curve" objects. Select them all and hit `Ctrl+J` to join them. Rename the object to *inserts*. Hit `A` and choose *Object -> Set Origin -> Origin to Geometry*. You should see something like this:
+If you haven't grouped your inserts, you'll have a bunch of "Curve" objects. Select them all and hit `Ctrl+J` to join them. Rename the joined object to *inserts*. Hit `A` and choose *Object -> Set Origin -> Origin to Geometry*. You should see something like this:
 
 ![Imported Shapes](blender-imported.png)
 
@@ -26,7 +26,7 @@ Hit `E` to extrude, and eyeball it to something more or less accurate - but reme
 
 ## Smooth
 
-Since our cuts are round, let's smooth out the mesh. Select *Object -> Shade Smooth*. Don't panic, we'll fix the normals. Switch to edit mode (`Tab`) and select one of the top faces. Hit `Shift+G`, *Coplanar*. While holding `Shift`, select one of the bottom faces. Again `Shift+G`, *Coplanar*. `Ctrl+I` to invert the selection. *Select -> Select Loops -> Select Boundary Loop*. You now have all edges of the inserts as well as the outer borders selected.
+Since our cuts are round, let's smooth out the mesh. Select *Object -> Shade Smooth*. Don't panic, we'll fix the normals. Switch to edit mode (`Tab`) and select one of the top faces. Hit `Shift+G` and select *Coplanar*. While holding `Shift`, select one of the bottom faces. Hit `Shift+G` again and choose *Coplanar*. Press `Ctrl+I` to invert the selection. Choose *Select -> Select Loops -> Select Boundary Loop*. You now have all edges of the inserts as well as the outer borders selected.
 
 Make these edges sharp by selecting *Edge -> Mark Sharp*. Hit `A` to select all and choose *Mesh -> Normals -> Reset Vectors*. You should how have a mesh with a flat, uniform top and smooth inserts.
 
@@ -36,9 +36,9 @@ Maybe now it's a good time to save your project. Name it `Playfield.blend`.
 
 ## Convert Other Objects
 
-We don't need to extrude the other objects, just convert them to a mesh so we can UV-map them. Exit edit mode with `Tab` and select the *inserts* object. Remove `SVGMat`, select *Object -> Convert -> Mesh*, and hit `Tab` for edit mode.
+We don't need to extrude the other objects, but convert them to a mesh so we can UV-map them. Exit edit mode with `Tab` and select the *inserts* object. Remove `SVGMat`, select *Object -> Convert -> Mesh*, and hit `Tab` for edit mode.
 
-Press `A` to select all, *Mesh -> Cleanup -> Limited Dissolve*, and `M`, *By Distance*. Exit edit mode by pressing `Tab`. Since we extruded to the top, we need to align the *inserts* mesh. Hit `G`, `Z`, and type the distance you remembered when extruding.
+Press `A` to select all, select *Mesh -> Cleanup -> Limited Dissolve*, and hit `M`, *By Distance*. Exit edit mode by pressing `Tab`. Since we extruded to the top, we need to align the *inserts* mesh. Hit `G`, `Z`, and type the distance you remembered when extruding.
 
 Finally, select the *plywood* object, remove its material and convert it to a mesh as well. The result should look like that:
 
@@ -46,15 +46,15 @@ Finally, select the *plywood* object, remove its material and convert it to a me
 
 ## UV-Map
 
-Now we map our objects so they perfectly align with the masks we've created in the previous step. There is just one add-on for Blender that we need to install first, to make this quick.
+Now we will map our objects so they perfectly align with the masks we've created in the previous step. There is just one add-on for Blender that we need to install first, to make this quick.
 
-It's called *TexTools*. Go to the [GitHub page](https://github.com/SavMartin/TexTools-Blender) and [download](https://github.com/SavMartin/TexTools-Blender/archive/master.zip) the archive of the repo. In Blender, choose *Edit -> Preferences -> Add-ons*, click on *Install*, select the downloaded archive, and enable the checkbox after installation. Then, close preferences.
+The add-on is called *TexTools*. Go to the [GitHub page](https://github.com/SavMartin/TexTools-Blender) and [download](https://github.com/SavMartin/TexTools-Blender/archive/master.zip) the archive of the repo. In Blender, choose *Edit -> Preferences -> Add-ons*, click on *Install*, select the downloaded archive, and enable the checkbox after installation. Then, close preferences.
 
 ### Seams
 
 Now we'll create seams for the plywood edges so we can easily unwrap them. We'll create them on the side facing the player, so they aren't visible when playing.
 
-Hide the *inserts* and *plywood* objects, and orbit 180° around your table in the viewport. Select *wood*, `Tab` for edit mode, `2` to select edges. Then, `Shift` select one edge of each hole in the mesh. Also select the four outer edges of the mesh. When done, click on *UV -> Mark Seam*.
+Hide the *inserts* and *plywood* objects, and orbit 180° around your table in the viewport. Select *wood*, `Tab` for edit mode, `2` to select edges. Then, `Shift`-select one edge of each hole in the mesh. Additionally, select the four outer edges of the mesh. When done, click on *UV -> Mark Seam*.
 
 ![Plywood edge seams](blender-seams.png)
 
@@ -62,7 +62,7 @@ Hit `Tab` to exit edit mode, and unhide the *inserts* and *plywood* objects agai
 
 ### Top Surface
 
-Let's map the top surface first. Select a face of *wood*'s main surface, hit `Shift+G` and choose *Coplanar*. Make sure that besides the wood surface, also the inserts and the plywood faces have been selected. Then click the *UV* menu and select *Project from View (Bounds)*.
+Let's map the top surface first. Select a face of *wood*'s top surface, hit `Shift+G` and choose *Coplanar*. Make sure that besides the wood surface, also the inserts and the *plywood* mesh (but not the bottom surface or the edge faces) have been selected. Then click the *UV* menu and select *Project from View (Bounds)*.
 
 ![Mapped Main Surface](blender-uv-surface.png)
 
@@ -76,7 +76,7 @@ Select the *wood* mesh. Hit `Tab` for edit mode and select one of the faces of t
 
 ### Plywood Edges
 
-Next are the plywood edges. With the bottom surfaces still selected, `Shift`+select one of *wood*s top surface, `Shift+G`, *Coplanar*, followed by `Ctrl+I` (select inverse). Now, only the edges should be selected.
+Next are the plywood edges. With the bottom surfaces still selected, `Shift`-select one face of *wood*'s top surface, `Shift+G`, *Coplanar*, followed by `Ctrl+I` (select inverse). Now, only the edges should be selected.
 
 From the *UV* menu, choose *UV Unwrap*. On the left, you should see all edges unwrapped as rectangles.
 
@@ -90,6 +90,8 @@ From the *UV* menu, choose *UV Unwrap*. On the left, you should see all edges un
 > In this case, simply select an edge of each of the island, select *UV -> Mark Seam*, and *UV Unwrap* again.
 
 Now, on the left, hit `4` for island selection mode, and select all horizontal islands. Hit `R`, type `90` and `Enter`. Type `A` to select all islands, open TexTools by hitting `N` and selecting *TexTools*, expand the *UV Layout* section, and *left align* all islands. 
+
+![Left-align all islands](blender-uv-left-align.png)
 
 Hit `G`, `X` and move them to the left side, out of the tile.
 
