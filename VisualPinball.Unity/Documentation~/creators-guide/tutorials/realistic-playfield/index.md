@@ -36,7 +36,7 @@ In this tutorial, we're using the Limited Edition of Stern's *Tron: Legacy* as a
 - A playfield scan. It should be at least 2000x4000 pixels of size, and of decent quality, meaning that dust and other artifacts from the scan should have been removed. It doesn't have to PBR-valid, since we'll be dealing with that in Substance Painter.
 - You should be familiar with a vector graphics software such as Adobe Illustrator and have basic Photoshop skills.
 - You should know your way around in Blender. Beginner level is fine, but you should be able to navigate in the viewport, know what UV-mapping is and know the basics about modifiers.
-- You should have a basic understanding of how Substance Painter works.
+- You should have a basic understanding of how Substance Painter works, i.e. what layers and effects are and how they blend together.
 
 ## Workflow
 

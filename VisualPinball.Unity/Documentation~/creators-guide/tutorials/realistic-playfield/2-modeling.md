@@ -117,7 +117,8 @@ Mesh work is nearly done :)
 
 Back in the *Layout* workspace, in object mode, select *wood* and under *Modifier Properties*, add the *Triangulate* modifier. Do the same for *inserts*.
 
-Then, select *inserts* and *wood*, then select *File -> Export -> FBX (.fbx)*. Check *Limit to Selected Objects*. Name it `Playfield.fbx` and hit *Export FBX*.
+Then, select *inserts* and *wood* and click on *File -> Export -> FBX (.fbx)*. Check *Limit to Selected Objects*. Name it `Playfield.fbx` and hit *Export FBX*.
 
+![Final Mesh](final-mesh.png)
 
 [Let's texture this](xref:tutorial_playfield_3)!
