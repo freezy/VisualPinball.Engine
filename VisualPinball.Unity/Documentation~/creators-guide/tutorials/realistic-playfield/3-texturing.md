@@ -175,7 +175,7 @@ If you want to align the mapping, hit `F2` to see the mapping on the UV tile, wh
 
 ## Wrapping Up
 
-This tutorial is already long enough, so we've created a separate annex for dealing with our mylar sticker and silver screening. Here, we're going to wrap up and get this exported. But first, there is one last thing we need to do, which is making sure our material is PBR valid.
+This tutorial is already long enough, so we've created a [separate annex](xref:tutorial_playfield_3b) for dealing with our mylar sticker and silver screening. Here, we're going to wrap up and get this exported. But first, there is one last thing we need to do, which is making sure our material is PBR valid.
 
 PBR valid basically means that the color of your textures aren't too light or too dark. There is no such thing as absolute black in the nature, and if we provide such values, there will be problems when rendering later. More literature about this [here](https://substance3d.adobe.com/tutorials/courses/the-pbr-guide-part-2) under "Base Color (RGB – sRGB)".
 
