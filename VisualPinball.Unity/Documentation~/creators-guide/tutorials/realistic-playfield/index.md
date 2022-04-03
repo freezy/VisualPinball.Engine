@@ -41,6 +41,6 @@ In this tutorial, we're using the Limited Edition of Stern's *Tron: Legacy* as a
 ## Workflow
 
 1. [Create albedo texture and masks](xref:tutorial_playfield_1)
-3. [Create mesh in Blender](xref:tutorial_playfield_2)
-3. [UV-map texture in Blender](xref:tutorial_playfield_3)
-4. [Import mesh and material in Unity](xref:tutorial_playfield_4)
+3. [Create the mesh in Blender](xref:tutorial_playfield_2)
+3. [Texture the mesh in Substance Painter](xref:tutorial_playfield_3)
+4. [Import mesh and material into Unity](xref:tutorial_playfield_4)
