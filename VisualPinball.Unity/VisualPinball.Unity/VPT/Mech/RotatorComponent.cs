@@ -122,7 +122,6 @@ namespace VisualPinball.Unity
 				);
 				ballData.Velocity = float3.zero;
 				ballData.AngularMomentum = float3.zero;
-				ballData.AngularVelocity = float3.zero;
 
 				EntityManager.SetComponentData(ballEntity, ballData);
 			}

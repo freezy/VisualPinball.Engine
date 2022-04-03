@@ -70,8 +70,6 @@ namespace VisualPinball.Unity
 
 				VPOrthonormalize(ref ball.BallOrientation);
 				VPOrthonormalize(ref ball.BallOrientationForUnity);
-				
-				ball.AngularVelocity = ball.AngularMomentum / inertia;
 
 				marker.End();
 
