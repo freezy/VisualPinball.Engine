@@ -234,6 +234,9 @@ namespace VisualPinball.Unity
 			var dot = (ball.Velocity.x - collEvent.HitVelocity.x) * collEvent.HitNormal.x
 			          + (ball.Velocity.y - collEvent.HitVelocity.y) * collEvent.HitNormal.y;
 
+			// HACK to stop the ball from spinning.
+			ball.AngularMomentum.z *= 0.6f;
+
 			// nearly receding ... make sure of conditions
 			if (dot >= -PhysicsConstants.LowNormVel) {
 
