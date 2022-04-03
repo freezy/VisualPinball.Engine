@@ -89,7 +89,7 @@ namespace VisualPinball.Engine.VPT.MetalWireGuide
 			SplineVertex sv = new SplineVertex(_data.DragPoints, (int)(_data.Thickness+0.5), detailLevel, splineAccuracy, margin: margin, loop: false);
 
 			var height = playfieldHeight + meshHeight;
-			// hack - Component has to get edited. --- and TODO: Thickness should become a float.
+
 			var standheight = _data.Standheight;
 			// dont lat the Collider be higher than the visible mesh, just shift the top of the MWG.
 			if (createHitShape)
