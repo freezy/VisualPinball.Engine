@@ -47,6 +47,7 @@
           "**/*.jpg",
           "**/*.svg",
           "**/*.ico",
+          "**/*.sbsar",
           "**/*.webmanifest",
           "../VisualPinball.Unity.Editor/Resources/Icons/*.png",
           "CNAME"
