@@ -178,6 +178,33 @@ If you want to align the mapping, hit `F2` to see the mapping on the UV tile, wh
 
 ![Edge Mapping](substance-edge-mapping.png)
 
+## Plunger Lane
+
+One of the drawbacks of replacing the scanned wood with a material from Substance Painter is that the plunger lane which is typically cut into the wood, becomes invisible. So let's add this back.
+
+Just above the *Wood* folder, create a new folder layer called *Plunger Lane*. Inside, add a new fill layer and name it *Albedo*. Make it *color* only, click on *Base color*, search for *albedo*, and choose your previously imported playfield scan. Now we have the scan replacing all our wood, which we don't want.
+
+Right-click on the *Albedo* layer and add a black mask. Right-click on the mask and add a paint effect. With the brush tool, use a soft brush to draw back the plunger lane of the original playfield scan. Use `X` to swap between painting black and white. After masking, it should look similar to this:
+
+![Masked plunge lane](substance-plunger-unmatched.png)
+
+Now, this doesn't really match the surrounding colors. Click on the left preview icon of the *Albedo* layer, right-click and select *Add filter*. Click on *Filter* and look for *Color Balance*. Manipulate the parameters so they colors match the surrounding wood. Then, add another filter, select *Color Correct*, and adjust the parameters to further improve.
+
+Finally, if you see that your scan is softer than the generated wood, add a *Sharpen* filter to compensate. The final result here looks like this:
+
+![Color corrected plunger lane](substance-plunger-matched.png)
+
+Let's also add a proper height map. I've simply drawn a triangle on the lane and exported it as PNG ([download](plunger-height.png)). Above the plunger lane's *Albedo*, create a new fill layer named *Height*. `Alt`-click on *height* to make it height only. Right-click on the layer, add a black mask with a fill effect. Import `plunger-height.png` and assign it to the fill effect. 
+
+Set *UV Wrap* to *None*. `Alt`-click on the mask icon of the layer to visualize it, select the *Fill* effect again and hit `F1` to place the texture over the plunger lane. On top of the fill effect, add a filter effect and select the *Blur* filter. Adjust it so it blurs similar to this:
+
+![Plunger lane height map](substance-plunger-height-map.png)
+
+Hit `F2` and set the viewport from *Mask* back to *Material*. Play with the layer's *Height* while rotating the environment lights until you're satisfied. You can also go back to the mask and adjust the amount of blurring. 
+
+![Plunger lane](tron-plunger-lane-heightmap.webp)
+
+
 ## Wrapping Up
 
 This tutorial is already long enough, so we've created a [separate page](xref:tutorial_playfield_3b) for dealing with our Mylar sticker and silver paint. Here, we're going to wrap up and get this exported. But first, there is one last thing we need to do, which is making sure our material is PBR valid.
@@ -188,7 +215,7 @@ Download the free ["PBR Validate" smart material](https://stylizedstation.gumroa
 
 ![PBR Invalid](substance-pbr-invalid.png)
 
-Red means there's a problem. This is most definitely the playfield's albedo that is too dark. Adding a *Levels* effect to the ink's albedo and pushing up the lower boundary to `0.01` already solves most of the problems. We need to copy/paste it to the insert's albedo as well though.
+Red means there's a problem. This is most definitely the playfield's albedo that is too dark. Adding a *Levels* effect to the ink's albedo and pushing up the lower boundary to `0.01` already solves most of the problems.
 
 ![PBR Invalid](substance-pbr-invalid-but-better.png)
 
