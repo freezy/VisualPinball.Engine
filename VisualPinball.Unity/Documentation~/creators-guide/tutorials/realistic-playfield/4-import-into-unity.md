@@ -98,6 +98,9 @@ This looks pretty good already, but when zooming in, the structure in the reflec
 
 ![Normal map adjusted](unity-material-adjusted.png)
 
-## Final Words
+## That's It!
 
-We hope you've enjoyed this tutorial. It might have been one of the first ones you went through. If you were stuck somewhere, please let us know in the [forum](https://vpuniverse.com/forums/forum/174-visual-pinball-engine-general-discussion/) so we can fix it. If you have improvements, use the button on the top right side on each page.
+We hope you've enjoyed this tutorial. It might have been one of the first ones you went through. If you were stuck somewhere, please let us know in the [forum](https://vpuniverse.com/forums/forum/174-visual-pinball-engine-general-discussion/) so we can fix it. If you have improvements, use the button on the top right side on each page. More info about that [here](https://github.com/freezy/VisualPinball.Engine/wiki/Documentation).
+
+> [!Video https://www.youtube.com/embed/YX_1ThpWxZg?showinfo=0&loop=0&autopause=0]
+
