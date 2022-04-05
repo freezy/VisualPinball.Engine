@@ -4,7 +4,7 @@ title: Create a Realistic Looking Playfield - Texturing (advanced)
 description: Adding those cherrys on top...
 ---
 
-# Texturing (advanced)
+# Texturing (details)
 
 Most projects probably don't have Mylar stickers or silver paint on the playfield, which is why we decided to dedicate a separate page for this. If you have something similar to add to your playfield, do it before the [Wrapping Up](xref:tutorial_playfield_3#wrapping-up) section of *Texturing*.
 
