@@ -10,7 +10,7 @@ description: How to create the playfield mesh.
 
 Open Blender and delete everything (press `A`, `X`, `D`). Click on *File -> Import -> Scalable Vector Graphics (.svg)* and choose `playfield.svg` which you exported in the last step. Select *wood* in the outliner, move your cursor over the viewport and hit `numpad .` (zoom in on selected), `numpad 7` (top view).
 
-If you haven't grouped your inserts, you'll have a bunch of "Curve" objects. Select them all and hit `Ctrl+J` to join them. Rename the joined object to *inserts*. Hit `A` and choose *Object -> Set Origin -> Origin to Geometry*. You should see something like this:
+If you haven't grouped your inserts, you'll have a bunch of "Curve" objects. Select them all and hit `CTRL+J` to join them. Rename the joined object to *inserts*. Hit `A` and choose *Object -> Set Origin -> Origin to Geometry*. You should see something like this:
 
 ![Imported Shapes](blender-imported.png)
 
@@ -20,13 +20,13 @@ Make sure that all three shapes (inserts, plywood and wood) are there.
 
 Select the *wood* object. Under *Material Properties*, remove the `SVGMat` material so we better see the shape. Convert the shape to mesh by choosing *Object -> Convert To -> Mesh*. Hit `Tab` for edit mode, `A` to select all, then clean up the mesh by going to *Mesh -> Cleanup -> Limited Dissolve*, followed by `M` and *By Distance* (merge by distance).
 
-Hit `E` to extrude, and eyeball it to something more or less accurate - but remember the number (you can of course always measure and type in the number). Hit `Tab` to go back to object mode.
+Hit `E` to extrude and eyeball it to something more or less accurate - but remember the number (you can of course always measure and type in the number). Hit `Tab` to go back to object mode.
 
 ![Imported Shapes](blender-extruded.png)
 
 ## Smooth
 
-Since our cuts are round, let's smooth out the mesh. Select *Object -> Shade Smooth*. Don't panic, we'll fix the normals. Switch to edit mode (`Tab`) and select one of the top faces. Hit `Shift+G` and select *Coplanar*. While holding `Shift`, select one of the bottom faces. Hit `Shift+G` again and choose *Coplanar*. Press `Ctrl+I` to invert the selection. Choose *Select -> Select Loops -> Select Boundary Loop*. You now have all edges of the inserts as well as the outer borders selected.
+Since our cuts are round, let's smooth out the mesh. Select *Object -> Shade Smooth*. Don't panic, we'll fix the normals. Switch to edit mode (`Tab`) and select one of the top faces. Hit `Shift+G` and select *Coplanar*. While holding `Shift`, select one of the bottom faces. Hit `Shift+G` again and choose *Coplanar*. Press `CTRL+I` to invert the selection. Choose *Select -> Select Loops -> Select Boundary Loop*. You now have all edges of the inserts as well as the outer borders selected.
 
 Make these edges sharp by selecting *Edge -> Mark Sharp*. Hit `A` to select all and choose *Mesh -> Normals -> Reset Vectors*. You should how have a mesh with a flat, uniform top and smooth inserts.
 
@@ -36,7 +36,7 @@ Maybe now it's a good time to save your project. Name it `Playfield.blend`.
 
 ## Convert Other Objects
 
-We don't need to extrude the other objects, but convert them to a mesh so we can UV-map them. Exit edit mode with `Tab` and select the *inserts* object. Remove `SVGMat`, select *Object -> Convert -> Mesh*, and hit `Tab` for edit mode.
+We don't need to extrude the other objects but convert them to a mesh so we can UV-map them. Exit edit mode with `Tab` and select the *inserts* object. Remove `SVGMat`, select *Object -> Convert -> Mesh*, and hit `Tab` for edit mode.
 
 Press `A` to select all, select *Mesh -> Cleanup -> Limited Dissolve*, and hit `M`, *By Distance*. Exit edit mode by pressing `Tab`. Since we extruded to the top, we need to align the *inserts* mesh. Hit `G`, `Z`, and type the distance you remembered when extruding.
 
@@ -46,7 +46,7 @@ Finally, select the *plywood* object, remove its material and convert it to a me
 
 ## UV-Map
 
-Now we will map our objects so they perfectly align with the masks we've created in the previous step. There is just one add-on for Blender that we need to install first, to make this quick.
+Now we will map our objects, so they perfectly align with the masks we've created in the previous step. There is just one add-on for Blender that we need to install first, to make this quick.
 
 The add-on is called *TexTools*. Go to the [GitHub page](https://github.com/SavMartin/TexTools-Blender) and [download](https://github.com/SavMartin/TexTools-Blender/archive/master.zip) the archive of the repo. In Blender, choose *Edit -> Preferences -> Add-ons*, click on *Install*, select the downloaded archive, and enable the checkbox after installation. Then, close preferences.
 
