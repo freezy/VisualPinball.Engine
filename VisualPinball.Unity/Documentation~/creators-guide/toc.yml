@@ -45,6 +45,10 @@
           href: xref:tutorial_playfield_2
         - name: Texturing
           href: xref:tutorial_playfield_3
+        - name: Texturing (details)
+          href: xref:tutorial_playfield_3b
+        - name: Import Into Unity
+          href: xref:tutorial_playfield_4
   
     - name: Create Realistic Looking Plastics
       href: xref:tutorial_plastics

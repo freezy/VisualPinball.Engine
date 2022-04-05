@@ -178,6 +178,12 @@ If you want to align the mapping, hit `F2` to see the mapping on the UV tile, wh
 
 ![Edge Mapping](substance-edge-mapping.png)
 
+But let's stick with the current one. It needs a bit of adjusting. First of all, looking at it from a distance, it's kind of boring, nearly like solid colors. Right-click on the layer and choose *Add filter*. Click on *Filter* and select *Sharpen*. At `1` it looks better already, but tweak as you feel like.
+
+Secondly, the colors are slightly off. Add another filter effect and choose *Color Balance*. In our case, increasing the reds and magentas of midtones and highlights does the trick.
+
+![Edge Mapping](substance-edge-corrected.png)
+
 ## Plunger Lane
 
 One of the drawbacks of replacing the scanned wood with a material from Substance Painter is that the plunger lane, which is typically cut into the wood, becomes invisible. So, let's add this back.
@@ -221,6 +227,10 @@ Red means there's a problem. This is most definitely the playfield's albedo that
 
 The rest seems related to the fake holes. Looks like `#050505` was way too dark. Pushing up to `#1E1E1E` turns the rest of the playfield green.
 
+Here our fully textured playfield.
+
+![PBR Invalid](substance-final-result.png)
+
 ## Export
 
 First of all, if you have come so far, congrats. That was quite a ride. The rest is a lot easier.
@@ -248,4 +258,4 @@ Now, to export, click again on *File -> Export Textures*, select the folder wher
 
 ![Final Masks](substance-final-masks.png)
 
-On first sight, the result doesn't look like much, so let's bring this into Unity!
+On first sight, the result doesn't look like much, so let's [bring this into Unity](xref:tutorial_playfield_4)!
