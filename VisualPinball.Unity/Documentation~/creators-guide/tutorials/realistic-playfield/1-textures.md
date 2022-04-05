@@ -16,17 +16,17 @@ The geometry of the playfield has three different areas:
 
 1. The top surface, which will occupy most of our texture
 2. The plywood edges, which will be re-used by all edges that we will place on the left side of the texture
-3. The back side of the playfield, that is virtually invisible and mainly ignored.
+3. The back side of the playfield, which is virtually invisible and mainly ignored.
 
 While often you create your geometry first, and then map the texture onto it, we're going to do it the other way around, which is firstly defining the UV-layout, and then extruding the geometry based on that. This will give us perfectly accurate mapping.
 
 The best way of doing this is to load your playfield scan, extend the canvas to the left, add the plywood texture, and save the result to a new file. 
 
-So let's start!
+So, let's start!
 
 ## Albedo Texture
 
-We start by creating a plywood texture for the edges. Check the dimensions of your playfield scan, and create a new file with the same height (it's 6750 pixels in our example). Then, get a photo from the edge of some plywood, copy it a few times to get the whole height, and paint with a blurry brush on a mask to make the copies seamless. Add some contrast if necessary and save it as `plywood.png`.
+We start by creating a plywood texture for the edges. Check the dimensions of your playfield scan and create a new file with the same height (it's 6750 pixels in our example). Then, get a photo from the edge of some plywood, copy it a few times to get the whole height, and paint with a blurry brush on a mask to make the copies seamless. Add some contrast if necessary and save it as `plywood.png`.
 
 ![Plywood edge](plywood-rotated.jpg)
 <small><i>The plywood edge texture. Get the original [here](plywood.png) or an alternative [here](plywood2.jpg).</i></small>
@@ -44,7 +44,7 @@ Go ahead and save this texture as `albedo.png`.
 
 Now we'll be creating a mask that we'll export as PNG for Substance, but also as SVG so we can extrude it in Blender.
 
-Open Adobe Illustrator. Create a new document, and import `albedo.png`. Resize the artboard to the exact size of the imported image (enable *View -> Smart Guide* to make Illustrator snap to the edges). Name the layer *reference* and lock it.
+Open Adobe Illustrator. Create a new document and import `albedo.png`. Resize the artboard to the exact size of the imported image (enable *View -> Smart Guide* to make Illustrator snap to the edges). Name the layer *reference* and lock it.
 
 ![Playfield in Illustrator](illustrator-playfield.png)
 
@@ -52,9 +52,9 @@ Create a new layer, name it *wood mask* and draw solid shapes that cover the vis
 
 Here a few tips that will probably make your life easier.
 
-- Click on the small circle right to the *wood mask* layer, and set the opacity to 50%. This way, all elements in that layer are semi-transparent, allowing you to align your edges much better.
+- Click on the small circle right to the *wood mask* layer and set the opacity to 50%. This way, all elements in that layer are semi-transparent, allowing you to align your edges much better.
 - Draw with no stroke and a fill color that doesn't exist in the art, like magenta. It gives you a better contrast and allows you to be more precise.
-- Disable smart guides (`Ctrl+U`). It's much less annoying when you manipulate the curves.
+- Disable smart guides (`CTRL+U`). It's much less annoying when you manipulate the curves.
 - Use Illustrator's [Live Corners](https://helpx.adobe.com/illustrator/using/reshape-with-live-corners.html) feature. Specially for inserts, draw pointed corners and use Live Corners to round them off. You can do this for each corner individually.
 - Try to get a photo of the real playfield's back side. It gives you a better idea how narrow the inserts are cut. Often, the printed border of the insert overlaps with the hole, which isn't visible in the playfield scan.
 - If you're unsure whether a hole will be visible or not, draw it. Poly count isn't as important in modern engines, and it'll save you a lot of time.
@@ -63,9 +63,9 @@ Finally, your mask should look something like this.
 
 ![Wood Mask](illustrator-wood-mask.png)
 
-Now, we'll need the inverse shape of what you've just drawn. So, create an new layer, call it *masks*, and draw two rectangles: One that covers the playfield, and another that covers the plywood edge (turn *Smart Guides* back on for this, and make sure to snap to the edges of the artboard). Color them differently and name them *full* and *plywood*. Duplicate *full* by hitting `Ctrl+C` and `Ctrl+F`. Hide the copy, and lock the *masks* layer so only the *wood mask* layer is unlocked.
+Now, we'll need the inverse shape of what you've just drawn. So, create a new layer, call it *masks*, and draw two rectangles: One that covers the playfield, and another that covers the plywood edge (turn *Smart Guides* back on for this, and make sure to snap to the edges of the artboard). Color them differently and name them *full* and *plywood*. Duplicate *full* by hitting `CTRL+C` and `CTRL+F`. Hide the copy and lock the *masks* layer so only the *wood mask* layer is unlocked.
 
-Hit `Ctrl+A` to select all the wood mask shapes, and duplicate them with `Ctrl+C`, `Ctrl+F`. Unlock the *masks* layer, `Shift`-select the *full* rectangle, open the *Path Finder* tool and hit the *Minus Front* button. Select the *masks* layer, right-click on the selected shape, and click *Arrange -> Send to Current Layer*. Rename the new object `<Compound Path>` to *wood*. Hide the *reference* and *wood mask* layer.
+Hit `CTRL+A` to select all the wood mask shapes, and duplicate them with `CTRL+C`, `CTRL+F`. Unlock the *masks* layer, `Shift`-select the *full* rectangle, open the *Path Finder* tool and hit the *Minus Front* button. Select the *masks* layer, right-click on the selected shape, and click *Arrange -> Send to Current Layer*. Rename the new object `<Compound Path>` to *wood*. Hide the *reference* and *wood mask* layer.
 
 The result should look like this:
 
@@ -81,7 +81,7 @@ Drag and drop the *wood mask* layer onto the "plus" icon at the bottom of the *L
 
 ![Insert Mask](illustrator-insert-mask.png)
 
-Now we have everything we need for the playfield mesh. Hide the *reference* layer, unhide the *masks* layer (with both *wood* and *plywood* visible), hit `Ctrl+A`, `Ctrl+C`, *File -> New -> Create*, `Ctrl+F`. Then, resize the artboard so it fits the content. Click on *File -> Save A Copy*, choose type *SVG*, and name it `playfield.svg`. In the *SVG Options* dialog hit *More Options* and uncheck everything. Also, set *Decimal Places* to `5`.
+Now we have everything we need for the playfield mesh. Hide the *reference* layer, unhide the *masks* layer (with both *wood* and *plywood* visible), hit `CTRL+A`, `CTRL+C`, *File -> New -> Create*, `CTRL+F`. Then, resize the artboard so it fits the content. Click on *File -> Save A Copy*, choose type *SVG*, and name it `playfield.svg`. In the *SVG Options* dialog hit *More Options* and uncheck everything. Also, set *Decimal Places* to `5`.
 
 > [!note]
 > The reason of doing it this way is that when "exporting" instead of "saving a copy", Illustrator saves the file differently, which often ends up in an erroneous import in Blender. *Save A Copy* also saves hidden layers which we don't want, that's why we create a new document.
@@ -106,7 +106,7 @@ Once you're done, export it as a **white on black** PNG: Make all shapes white, 
 
 Since we will not physically cut out *all* holes into the playfield mesh, there will be many smaller and some bigger holes where posts, pins, screws, wire guides, bumpers, and other things are attached to. Sometimes they are even visible, but not recognizable as a full-featured hole.
 
-Masking those elements out allows us to use a proper height map later when creating the materials. It also allows us to replace the scanned wood with a high quality material, and still be able to exactly know where to position elements on the playfield.
+Masking those elements out allows us to use a proper height map later when creating the materials. It also allows us to replace the scanned wood with a high-quality material, and still be able to exactly know where to position elements on the playfield.
 
 ![Ink Mask (closeup)](illustrator-fake-holes-mask-closeup.png)
 
