@@ -13,7 +13,7 @@ Start up Substance Painter. Select *File -> New* and use the *PBR - Metallic Rou
 ![Imported into Substance](substance-new.png)
 
 > [!note]
-> We don't need any baking in this tutorial, so we'll skip it to keep the file size smaller. However if you would use any smart materials in your texturing, baking at least the curvature map and thickness map is required for the material to work correctly.
+> We don't need any baking in this tutorial, so we'll skip it to keep the file size smaller. However, if you would use any smart materials in your texturing, baking at least the curvature map and thickness map is required for the material to work correctly.
 
 
 ## Setup
@@ -79,7 +79,7 @@ Now, this is way too much noise, but it allows us to tweak it better before we t
 
 So, the *Noise* effect still selected, change the *Projection* under *Fill* to *Tri-planar projection*. You'll immediately notice how the noise is less skewed.
 
-Then, the size of the bumps is way to high as well. Still under *Properties*, look for *UV transformations*, and set the scale to `5`. Finally, make the effect more subtle by selecting the *Wear* layer (not the mask), and changing the *Height* at the bottom of *Properties* from `-0.1` to `-0.01`.
+Then, the size of the bumps is way too high as well. Still under *Properties*, look for *UV transformations*, and set the scale to `5`. Finally, make the effect more subtle by selecting the *Wear* layer (not the mask), and changing the *Height* at the bottom of *Properties* from `-0.1` to `-0.01`.
 
 ![That's better](substance-noise-better.png)
 
@@ -119,9 +119,9 @@ Also, hit *Random* a few times if you don't like the pattern.
 
 ![Wooden Playfield](substance-wood.png)
 
-Let's mask this out, since we don't want any of the channels influence the ink, and we don't want wood under the meshes that covers the inserts either. Right-click on the *Wood* folder, add a white mask with a fill effect named *Wood Mask*.
+Let's mask this out, since we don't want any of the channels influence the ink, and we don't want wood under the meshes that covers the inserts either. Right-click on the *Wood* folder add a white mask with a fill effect named *Wood Mask*.
 
-Drag and drop `wood-mask-01.png` into *Assets*, import it as *alpha* into *project 'Playfield'*. Then drag the imported texture on *Wood Mask*'s grayscale. This does the inverse of what we want (i.e. it shows the wood only over the inserts). To fix this, right-click on *Wood Mask*, choose *Add filter*, click on *filter*, and choose *Invert*.
+Drag and drop `wood-mask-01.png` into *Assets*, import it as *alpha* into *project 'Playfield'*. Then drag the imported texture on *Wood Mask*'s grayscale. This does the inverse of what we want (i.e., it shows the wood only over the inserts). To fix this, right-click on *Wood Mask*, choose *Add filter*, click on *filter*, and choose *Invert*.
 
 Now we have masked out the inserts, but we still have wood over the ink. To fix this, create a new fill effect above the *Invert* filter, name it *Ink Mask*, import `ink-mask-01.png` and assign it to the fill effect. Select the blending mode to *Multiply*.
 
@@ -161,9 +161,9 @@ This should make the insert overlay to be cut out correctly.
 
 Remember the fake holes mask we've created so we can use them as markers on the playfield? Let's do those. Create a new folder layer above *Inserts* called *Fake Holes*. But before we add anything to it, we need to mask out a few things.
 
-Click on the mask of your *Wood* folder, where the *Ink Mask* is the top effect. Add another fill effect called *Fake Holes Mask*. From your file explorer, drop `fake-holes-mask-01.png` and import it into your project as an alpha. Assign it to the *Fake Holes Mask* fill effect, and set the blend mode to *Subtract*.
+Click on the mask of your *Wood* folder, where the *Ink Mask* is the top effect. Add another fill effect called *Fake Holes Mask*. From your file explorer, drop `fake-holes-mask-01.png` and import it into your project as an alpha. Assign it to the *Fake Holes Mask* fill effect and set the blend mode to *Subtract*.
 
-You should now see gray spots in your wood. Go back to your new *Fake Holes* layer, and add a white mask with a fill effect called *Fake Hole Mask*. Click on *grayscale* and find *fake-holes-mask-01*.
+You should now see gray spots in your wood. Go back to your new *Fake Holes* layer and add a white mask with a fill effect called *Fake Hole Mask*. Click on *grayscale* and find *fake-holes-mask-01*.
 
 In the *Fake Hole* folder, add a new fill layer and call it *Material*. Only enable *color*, *height* and *rough* on it. Set the color to `#050505`, the height to something like `-0.08`, and roughness to let's say `0.7`.
 
@@ -180,7 +180,7 @@ If you want to align the mapping, hit `F2` to see the mapping on the UV tile, wh
 
 ## Plunger Lane
 
-One of the drawbacks of replacing the scanned wood with a material from Substance Painter is that the plunger lane which is typically cut into the wood, becomes invisible. So let's add this back.
+One of the drawbacks of replacing the scanned wood with a material from Substance Painter is that the plunger lane, which is typically cut into the wood, becomes invisible. So, let's add this back.
 
 Just above the *Wood* folder, create a new folder layer called *Plunger Lane*. Inside, add a new fill layer and name it *Albedo*. Make it *color* only, click on *Base color*, search for *albedo*, and choose your previously imported playfield scan. Now we have the scan replacing all our wood, which we don't want.
 
@@ -209,7 +209,7 @@ Hit `F2` and set the viewport from *Mask* back to *Material*. Play with the laye
 
 This tutorial is already long enough, so we've created a [separate page](xref:tutorial_playfield_3b) for dealing with our Mylar sticker and silver paint. Here, we're going to wrap up and get this exported. But first, there is one last thing we need to do, which is making sure our material is PBR valid.
 
-PBR valid basically means that the color of your textures aren't too light or too dark. There is no such thing as absolute black in the nature, and if we provide such values, there will be problems when rendering later. More literature about this can be found [here](https://substance3d.adobe.com/tutorials/courses/the-pbr-guide-part-2) under "Base Color (RGB – sRGB)".
+PBR valid basically means that the color of your textures isn't too light or too dark. There is no such thing as absolute black in the nature, and if we provide such values, there will be problems when rendering later. More literature about this can be found [here](https://substance3d.adobe.com/tutorials/courses/the-pbr-guide-part-2) under "Base Color (RGB – sRGB)".
 
 Download the free ["PBR Validate" smart material](https://stylizedstation.gumroad.com/l/PBRValidate) and drop it at the very top of all the layers. Here, it looks like that:
 
@@ -229,7 +229,7 @@ What Unity needs is a set of maps. In HDRP, those maps are the base map (aka alb
 
 However, since Painter usually deals with multiple materials, it will add the material name into each map's file name. For the playfield, we don't want that, because we only have one material.
 
-If you go to *File -> Export Textures*, a dialog pops up where you can edit the output templates. Click on the tab called *Output Templates*, and find the one called *Unity HD Render Pipeline (Metallic Standard)*. Click the *duplicate* icon on the top, and double click the copy to rename. I just called it *Unity HDRP*. Rename the three maps to:
+If you go to *File -> Export Textures*, a dialog pops up where you can edit the output templates. Click on the tab called *Output Templates* and find the one called *Unity HD Render Pipeline (Metallic Standard)*. Click the *duplicate* icon on the top, and double click the copy to rename. I just called it *Unity HDRP*. Rename the three maps to:
 
 - `$mesh_BaseMap(_$colorSpace)(.$udim)`
 - `$mesh_MaskMap(_$colorSpace)(.$udim)`
@@ -239,7 +239,7 @@ If you go to *File -> Export Textures*, a dialog pops up where you can edit the 
 
 I've removed the fourth map, the emissive map, because we don't need it.
 
-Hit *Save Settings* to close, because we want to do one last thing before exporting. In the *Texture Set Settings* panel, disable the lock icon and set the texture resolution to 2048×4096. This will not squeeze your 2:1 playfield into a 1:1 texture anymore, but use a more appropriate aspect ratio.
+Hit *Save Settings* to close, because we want to do one last thing before exporting. In the *Texture Set Settings* panel, disable the lock icon and set the texture resolution to 2048×4096. This will not squeeze your 2:1 playfield into a 1:1 texture anymore but use a more appropriate aspect ratio.
 
 Now, to export, click again on *File -> Export Textures*, select the folder where you want to put your textures in (usually in your Unity project folder at `Assets/<table name>/Textures`), change the output template to *Unity HDRP* (the one you created before), and hit *Export*.
 
