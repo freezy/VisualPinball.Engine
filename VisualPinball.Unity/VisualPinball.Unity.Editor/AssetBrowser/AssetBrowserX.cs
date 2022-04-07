@@ -44,7 +44,6 @@ namespace VisualPinball.Unity.Editor
 		private LibraryAsset _selectedAsset;
 		private readonly Dictionary<LibraryAsset, VisualElement> _elementByAsset = new();
 		private readonly Dictionary<VisualElement, LibraryAsset> _assetsByElement = new();
-		private List<LibraryCategory> _categories = new();
 
 		[MenuItem("Visual Pinball/Asset Browser")]
 		public static void ShowWindow()
@@ -132,6 +131,12 @@ namespace VisualPinball.Unity.Editor
 
 		private void OnDragPerformEvent(DragPerformEvent evt)
 		{
+			// can only drag onto the asset grid if only one category is selected.
+			if (_categoryView.NumSelectedCategories != 1) {
+				Debug.Log("Only one category must be selected when dragging onto the main asset panel.");
+				return;
+			}
+
 			DragAndDrop.AcceptDrag();
 
 			// Disallow adding from outside of Unity
@@ -142,8 +147,9 @@ namespace VisualPinball.Unity.Editor
 						libraryFound = true;
 						var guid = AssetDatabase.AssetPathToGUID(path);
 						var type = AssetDatabase.GetMainAssetTypeAtPath(path);
+						var category = _categoryView.GetOrCreateSelected(assetLibrary);
 
-						if (assetLibrary.AddAsset(guid, type, path)) {
+						if (assetLibrary.AddAsset(guid, type, path, category)) {
 							Debug.Log($"{Path.GetFileName(path)} added to library {assetLibrary.Name}.");
 						} else {
 							Debug.Log($"{Path.GetFileName(path)} updated in library {assetLibrary.Name}.");

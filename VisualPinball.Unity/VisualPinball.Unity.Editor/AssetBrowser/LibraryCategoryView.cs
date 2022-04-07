@@ -24,6 +24,7 @@ namespace VisualPinball.Unity.Editor
 	{
 		public new class UxmlFactory : UxmlFactory<LibraryCategoryView, UxmlTraits> { }
 
+		public int NumSelectedCategories => _selectedCategories.Count;
 
 		private AssetBrowserX _browser;
 		private readonly VisualElement _container = new();
@@ -124,6 +125,17 @@ namespace VisualPinball.Unity.Editor
 			var categoryElement = new LibraryCategoryElement(this, new []{(_browser.ActiveLibrary, category)});
 			_container.Add(categoryElement);
 			categoryElement.ToggleRename();
+		}
+
+		public LibraryCategory GetOrCreateSelected(AssetLibrary assetLibrary)
+		{
+			if (_selectedCategories.ContainsKey(assetLibrary)) {
+				return _selectedCategories[assetLibrary].First();
+			}
+			var selectedElement = _selectedCategoryElements.First();
+			var addedCategory = assetLibrary.AddCategory(selectedElement.Name);
+			_selectedCategories[assetLibrary] = new List<LibraryCategory> { addedCategory };
+			return addedCategory;
 		}
 	}
 }
