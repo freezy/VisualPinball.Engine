@@ -33,7 +33,7 @@ namespace VisualPinball.Unity.Editor
 		public string LibraryRoot;
 
 		private const string CollectionAssets = "assets";
-		private const string CollectionCategories = "categories";
+		public const string CollectionCategories = "categories";
 
 		private LiteDatabase _db {
 			get {
@@ -138,7 +138,7 @@ namespace VisualPinball.Unity.Editor
 		public IEnumerable<LibraryCategory> GetCategories()
 		{
 			var collection = _db.GetCollection<LibraryCategory>(CollectionCategories);
-			return collection.Query().ToList();
+			return collection.Query().OrderBy(c => c.Name).ToList();
 		}
 
 		public void OnBeforeSerialize()
@@ -161,6 +161,7 @@ namespace VisualPinball.Unity.Editor
 		public string Type { get; set; }
 		public string Path { get; set; }
 		public DateTime AddedAt { get; set; }
+		[BsonRef(AssetLibrary.CollectionCategories)]
 		public LibraryCategory Category { get; set; }
 		public List<LibraryAttribute> Attributes { get; set; }
 	}

@@ -91,11 +91,11 @@ namespace VisualPinball.Unity.Editor
 		public void ToggleRename(DropdownMenuAction act = null)
 		{
 			if (_isRenaming) {
-				_label.RemoveFromClassList("hidden");
+				_ui.RemoveFromClassList("hidden");
 				_renameElement.AddToClassList("hidden");
 
 			} else {
-				_label.AddToClassList("hidden");
+				_ui.AddToClassList("hidden");
 				_renameElement.RemoveFromClassList("hidden");
 				_renameElement.StartEditing();
 			}
@@ -110,6 +110,7 @@ namespace VisualPinball.Unity.Editor
 				foreach (var (lib, category) in Categories) {
 					lib.RenameCategory(category, newName);
 				}
+				_libraryCategoryView.Refresh();
 			}
 			ToggleRename();
 		}
