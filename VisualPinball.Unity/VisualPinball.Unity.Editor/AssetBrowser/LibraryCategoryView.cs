@@ -102,8 +102,8 @@ namespace VisualPinball.Unity.Editor
 				}
 			}
 
+			_selectedCategories.Clear();
 			foreach (var selectedCategoryElement in _selectedCategoryElements) {
-				_selectedCategories.Clear();
 				foreach (var (lib, category) in selectedCategoryElement.Categories) {
 					if (!_selectedCategories.ContainsKey(lib)) {
 						_selectedCategories[lib] = new List<LibraryCategory>();
@@ -111,13 +111,10 @@ namespace VisualPinball.Unity.Editor
 					_selectedCategories[lib].Add(category);
 				}
 			}
-			Query();
+
+			_browser.OnCategoriesUpdated(_selectedCategories);
 		}
 
-		private void Query()
-		{
-
-		}
 
 		private void Create()
 		{

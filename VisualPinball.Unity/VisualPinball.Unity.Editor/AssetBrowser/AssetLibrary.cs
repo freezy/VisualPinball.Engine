@@ -19,6 +19,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using LiteDB;
 using UnityEditor;
 using UnityEngine;
@@ -125,12 +126,17 @@ namespace VisualPinball.Unity.Editor
 			_db.GetCollection<LibraryCategory>(CollectionCategories).Delete(category.Id);
 		}
 
-		public IEnumerable<LibraryAsset> GetAssets(string query = null)
+		public IEnumerable<LibraryAsset> GetAssets(string query = null, List<LibraryCategory> categories = null)
 		{
 			var assets = _db.GetCollection<LibraryAsset>(CollectionAssets);
 			var q = assets.Query();
 			if (!string.IsNullOrWhiteSpace(query)) {
 				q = q.Where(a => a.Path.Contains(query, StringComparison.OrdinalIgnoreCase));
+			}
+			if (categories != null) {
+				// SELECT $ FROM assets WHERE Category.$id IN [{"$guid": "7292885c-c6e5-4b6b-9fa1-fd2916784fed"}, {"$guid": "94a58b38-96ab-4b0c-8955-7d787b64333a"}];
+				var categoryIds = categories.Select(c => c.Id);
+				q.Where(a => categoryIds.Contains(a.Category.Id));
 			}
 			return q.ToList();
 		}
