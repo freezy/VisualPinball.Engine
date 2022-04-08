@@ -26,6 +26,7 @@ namespace VisualPinball.Unity.Editor
 
 		private readonly List<AssetLibrary> _libraries;
 		private string _query;
+		private Dictionary<AssetLibrary, List<LibraryCategory>> _categories;
 
 		public AssetQuery(List<AssetLibrary> libraries)
 		{
@@ -35,6 +36,12 @@ namespace VisualPinball.Unity.Editor
 		public void Search(string q)
 		{
 			_query = q;
+			Run();
+		}
+
+		public void Filter(Dictionary<AssetLibrary, List<LibraryCategory>> categories)
+		{
+			_categories = categories;
 			Run();
 		}
 
@@ -52,7 +59,10 @@ namespace VisualPinball.Unity.Editor
 		public void Run()
 		{
 			var assets = _libraries
-				.SelectMany(lib => lib.GetAssets(_query))
+				.SelectMany(lib => lib.GetAssets(
+					_query,
+					_categories != null && _categories.ContainsKey(lib) ? _categories[lib] : null
+				))
 				.ToList();
 
 			OnQueryUpdated?.Invoke(this, new AssetQueryResult(assets));

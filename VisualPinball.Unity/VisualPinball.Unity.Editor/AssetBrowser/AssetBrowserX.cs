@@ -16,12 +16,10 @@
 
 // ReSharper disable InconsistentNaming
 
-using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using UnityEditor;
-using UnityEditor.UIElements;
 using UnityEngine;
 using UnityEngine.UIElements;
 
@@ -119,6 +117,7 @@ namespace VisualPinball.Unity.Editor
 
 		private static void ToggleSelectionClass(VisualElement element) => element.ToggleInClassList("selected");
 
+		public void OnCategoriesUpdated(Dictionary<AssetLibrary, List<LibraryCategory>> categories) => _query.Filter(categories);
 		private void OnSearchQueryChanged(ChangeEvent<string> evt) => _query.Search(evt.newValue);
 		private void OnLibraryToggled(AssetLibrary lib, bool enabled) => _query.Toggle(lib, enabled);
 
