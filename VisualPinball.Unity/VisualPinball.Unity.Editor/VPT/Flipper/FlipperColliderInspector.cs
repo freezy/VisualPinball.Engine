@@ -125,9 +125,6 @@ namespace VisualPinball.Unity.Editor
 			}
 			EditorGUILayout.EndFoldoutHeaderGroup();
 
-
-
-
 			base.OnInspectorGUI();
 
 			EndEditing();

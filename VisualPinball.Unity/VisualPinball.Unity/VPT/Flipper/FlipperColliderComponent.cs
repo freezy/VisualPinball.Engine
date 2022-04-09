@@ -79,10 +79,10 @@ namespace VisualPinball.Unity
 
 		public override PhysicsMaterialData PhysicsMaterialData => GetPhysicsMaterialData(Elasticity, ElasticityFalloff, Friction, Scatter);
 
+		#region Flipper_Tricks
 		/// <summary>
 		/// If set, apply Flipper Tricks Physics (nFozzy/RothBauerW)
 		/// </summary>
-		#region Flipper_Tricks
 		[Tooltip("The nFozzy's and Rothbauerw's Flipper Tricks Physics")]
 		public bool useFlipperTricksPhysics = false;
 
@@ -117,7 +117,6 @@ namespace VisualPinball.Unity
 		[Min(0f)]
 		[Tooltip("Bump Ball vertically on release button (speed, up)")]
 		public float BumpOnRelease = 0.4f;
-
 		#endregion
 
 		protected override IApiColliderGenerator InstantiateColliderApi(Player player, Entity entity)
