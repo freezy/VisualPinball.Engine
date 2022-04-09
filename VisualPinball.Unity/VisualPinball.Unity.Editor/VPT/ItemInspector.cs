@@ -147,9 +147,16 @@ namespace VisualPinball.Unity.Editor
 			EditorGUI.BeginChangeCheck();
 
 			if (string.IsNullOrEmpty(label)) {
-				EditorGUILayout.PropertyField(serializedProperty);
+				if (string.IsNullOrEmpty(serializedProperty.tooltip))
+					EditorGUILayout.PropertyField(serializedProperty);
+				else
+					EditorGUILayout.PropertyField(serializedProperty, new GUIContent(serializedProperty.displayName, serializedProperty.tooltip));
 			} else {
-				EditorGUILayout.PropertyField(serializedProperty, new GUIContent(label));
+				if (string.IsNullOrEmpty(serializedProperty.tooltip))
+					EditorGUILayout.PropertyField(serializedProperty, new GUIContent(label));
+				else
+					EditorGUILayout.PropertyField(serializedProperty, new GUIContent(label, serializedProperty.tooltip));
+
 			}
 
 			if (EditorGUI.EndChangeCheck()) {

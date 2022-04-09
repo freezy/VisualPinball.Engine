@@ -79,6 +79,40 @@ namespace VisualPinball.Unity
 
 		public override PhysicsMaterialData PhysicsMaterialData => GetPhysicsMaterialData(Elasticity, ElasticityFalloff, Friction, Scatter);
 
+		#region Flipper_Tricks
+		[Tooltip("The nFozzy's and Rothbauerw's Flipper Tricks Physics")]
+		public bool useFlipperTricksPhysics;
+
+		[Min(0f)]
+		[Tooltip("Start of stroke RampUp")]
+		public float SOSRampUp;
+
+		[Min(0f)]
+		[Tooltip("Start of Elasticity multiplier")]
+		public float SOSEM;
+
+		[Min(0f)]
+		[Tooltip("EOSReturnTorque modifier (Torque on depress is original Torque * EOSReturn / Flipper Return Strength)")]
+		public float EOSReturn;
+
+		[Min(0f)]
+		[Tooltip("End of stroke Torque")]
+		public float EOSTNew;
+
+		[Min(0f)]
+		[Tooltip("End of stroke Torque Angle")]
+		public float EOSANew;
+
+		[Min(0f)]
+		[Tooltip("End of stroke RampUp")]
+		public float EOSRampup;
+
+		[Min(0f)]
+		[Tooltip("Degrees of Overshoot above End Angle")]
+		public float Overshoot;
+
+		#endregion
+
 		protected override IApiColliderGenerator InstantiateColliderApi(Player player, Entity entity)
 			=> new FlipperApi(gameObject, entity, player);
 
