@@ -112,13 +112,13 @@ namespace VisualPinball.Unity.Editor
 				PropertyField(_useFlipperTricksPhysicsProperty, "Use Flipper Tricks");
 
 				EditorGUI.BeginDisabledGroup(!_useFlipperTricksPhysicsProperty.boolValue);
-				PropertyField(_SOSRampUpProperty);
-				PropertyField(_SOSEMProperty);
-				PropertyField(_EOSReturnProperty);
-				PropertyField(_EOSTNewProperty);
-				PropertyField(_EOSANewProperty);
-				PropertyField(_EOSRampupProperty);
-				PropertyField(_OvershootProperty);
+				PropertyField(_SOSRampUpProperty, "SOSRampUP");
+				PropertyField(_SOSEMProperty, "SOSEM");
+				PropertyField(_EOSReturnProperty, "EOSReturn");
+				PropertyField(_EOSTNewProperty, "EOSTNew");
+				PropertyField(_EOSANewProperty, "EOSANew");
+				PropertyField(_EOSRampupProperty, "EOSRampup");
+				PropertyField(_OvershootProperty, "");
 				EditorGUI.EndDisabledGroup();
 			}
 			EditorGUILayout.EndFoldoutHeaderGroup();
