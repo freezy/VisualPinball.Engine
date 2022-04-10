@@ -31,6 +31,23 @@ namespace VisualPinball.Unity
 		public float TorqueDampingAngle;
 		public float RampUpSpeed;
 
+		// used in flippertricks
+		// internals
+		public float OriginalAngleEnd;
+		public float OriginalRampUpSpeed;
+		public float OriginalTorqueDamping;
+		public float OriginalTorqueDampingAngle;
+		public float ElasticityMultiplier;
+		// externals
+		public float SOSRampUp;
+		public float SOSEM;
+		public float EOSReturn;
+		public float EOSTNew;
+		public float EOSANew;
+		public float EOSRampup;
+		public float Overshoot;
+		public float BumpOnRelease;
+
 		// only used in hit, probably split
 		public float EndRadius;
 		public float FlipperRadius;

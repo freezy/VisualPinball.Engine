@@ -611,6 +611,20 @@ namespace VisualPinball.Unity
 				TorqueDamping = colliderComponent.TorqueDamping,
 				TorqueDampingAngle = colliderComponent.TorqueDampingAngle,
 				RampUpSpeed = colliderComponent.RampUp,
+				SOSRampUp = colliderComponent.SOSRampUp,
+				SOSEM = colliderComponent.SOSEM,
+				EOSReturn = colliderComponent.EOSReturn,
+				EOSTNew = colliderComponent.EOSTNew,
+				EOSANew = colliderComponent.EOSANew,
+				EOSRampup = colliderComponent.EOSRampup,
+				Overshoot = colliderComponent.Overshoot,
+				BumpOnRelease = colliderComponent.BumpOnRelease,
+
+				OriginalAngleEnd = angleEnd,
+				OriginalRampUpSpeed = colliderComponent.RampUp,
+				OriginalTorqueDamping = colliderComponent.TorqueDamping,
+				OriginalTorqueDampingAngle = colliderComponent.TorqueDampingAngle,
+				ElasticityMultiplier = 1f,
 
 				EndRadius = endRadius,
 				FlipperRadius = flipperRadius
