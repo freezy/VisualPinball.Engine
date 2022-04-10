@@ -38,7 +38,10 @@ namespace VisualPinball.Unity
 		public float OriginalTorqueDamping;
 		public float OriginalTorqueDampingAngle;
 		public float ElasticityMultiplier;
-		public bool lastSolState;
+		public bool LastSolState;
+		public bool WasInContact;
+		public bool UseFlipperTricks;
+
 		// externals
 		public float SOSRampUp;
 		public float SOSEM;
@@ -53,5 +56,7 @@ namespace VisualPinball.Unity
 		public float EndRadius;
 		public float FlipperRadius;
 
+		// for debugging while in burst
+		//public float ft;
 	}
 }

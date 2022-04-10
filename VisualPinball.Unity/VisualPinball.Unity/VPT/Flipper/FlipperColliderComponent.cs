@@ -83,7 +83,7 @@ namespace VisualPinball.Unity
 		/// <summary>
 		/// If set, apply Flipper Tricks Physics (nFozzy/RothBauerW)
 		/// </summary>
-		[Tooltip("The nFozzy's and Rothbauerw's Flipper Tricks Physics")]
+		[Tooltip("The Rothbauerw's Flipper Tricks Physics")]
 		public bool useFlipperTricksPhysics = false;
 
 		[Min(0f)]

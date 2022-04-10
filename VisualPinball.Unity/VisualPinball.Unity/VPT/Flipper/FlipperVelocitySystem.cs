@@ -38,6 +38,7 @@ namespace VisualPinball.Unity
 
 				var angleMin = math.min(data.AngleStart, data.AngleEnd);
 				var angleMax = math.max(data.AngleStart, data.AngleEnd);
+				var minIsStart = angleMin == data.AngleStart; // Usually true for the right Flipper
 
 				var desiredTorque = data.Strength;
 				if (!solenoid.Value) {
@@ -45,19 +46,28 @@ namespace VisualPinball.Unity
 					desiredTorque *= -data.ReturnRatio;
 				}
 
-				// check if solenoid was just activated or deactivated
-				if (solenoid.Value != data.lastSolState) {
-					if (solenoid.Value) {
-						// Flippertricks, case 2 (OnButtonActivate)
-						data.TorqueDamping = data.OriginalTorqueDamping;
-						data.TorqueDampingAngle = data.OriginalTorqueDampingAngle;
-						data.ElasticityMultiplier = 1f;
-					} else {
-						// Flippertricks, case 1 (OnButtonDeactivate)
-						data.TorqueDamping = data.OriginalTorqueDamping * data.EOSReturn / data.ReturnRatio;
-						data.TorqueDampingAngle = data.OriginalTorqueDampingAngle;
+				if (data.UseFlipperTricks) {
+					// check if solenoid was just activated or deactivated for Flippertricks
+					// Flippertricks case 1 and 2 are always before case 3, 4 and 5.
+					if (solenoid.Value != data.LastSolState) {
+						if (solenoid.Value) {
+							// Flippertricks, case 2 (OnButtonActivate)
+							data.TorqueDamping = data.OriginalTorqueDamping;
+							data.TorqueDampingAngle = data.OriginalTorqueDampingAngle;
+							data.ElasticityMultiplier = 1f;
+
+							//data.ft = 2f;
+						}
+						else {
+							// Flippertricks, case 1 (OnButtonDeactivate)
+							data.TorqueDamping = data.OriginalTorqueDamping * data.EOSReturn / data.ReturnRatio;
+							data.TorqueDampingAngle = data.OriginalTorqueDampingAngle;
+
+							//data.ft = 1f;
+						}
 					}
 				}
+
 
 				// hold coil is weaker
 				var eosAngle = math.radians(data.TorqueDampingAngle);
@@ -114,7 +124,49 @@ namespace VisualPinball.Unity
 				mState.AngleSpeed = mState.AngularMomentum / data.Inertia;
 				vState.AngularAcceleration = torque / data.Inertia;
 
-				data.lastSolState = solenoid.Value;
+				if (data.UseFlipperTricks) {
+					// Flippertricks, case 3 (OnFlipperDown) and 4 (OnFlipperUpResting)
+					if (!data.WasInContact && vState.IsInContact) {
+						// the flipper stopped due to being at max or min angle.
+						// so check if at start angle 
+						if (((mState.Angle == angleMin) && (minIsStart)) ||
+							((mState.Angle == angleMax) && (!minIsStart))) {
+							// is at start angle
+							// FlipperTricks case 3: OnFlipperDown
+							if (minIsStart)
+								data.AngleEnd = data.OriginalAngleEnd + data.Overshoot;
+							else
+								data.AngleEnd = data.OriginalAngleEnd - data.Overshoot;
+
+							data.RampUpSpeed = data.SOSRampUp;
+							data.ElasticityMultiplier = data.SOSEM;
+
+							//data.ft = 3f;
+						} else {
+							// is at end angle
+							// FlipperTricks case 4: OnFlipperUpResting
+							data.AngleEnd = data.OriginalAngleEnd; // This causes the flipper to instantly flip back to normal end angle (like in the original Flippertricks implementation)
+							data.RampUpSpeed = data.EOSRampup;
+							data.TorqueDamping = data.EOSTNew;
+							data.TorqueDampingAngle = data.EOSANew;
+
+							//data.ft = 4f;
+						}
+					}
+
+					// Flippertricks, case 5 (OnEnterinbetween) (and pressed)
+					if ((data.WasInContact) && (!vState.IsInContact) && solenoid.Value) {
+						// Flippertricks Case 5
+						data.RampUpSpeed = data.OriginalRampUpSpeed;
+						data.TorqueDamping = data.OriginalTorqueDamping;
+						data.TorqueDampingAngle = data.OriginalTorqueDampingAngle;
+						data.ElasticityMultiplier = 1f;
+
+						//data.ft = 5f;
+					}
+					data.LastSolState = solenoid.Value;
+					data.WasInContact = vState.IsInContact;
+				}
 
 				marker.End();
 

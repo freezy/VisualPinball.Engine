@@ -617,7 +617,7 @@ namespace VisualPinball.Unity
 				EOSTNew = colliderComponent.EOSTNew,
 				EOSANew = colliderComponent.EOSANew,
 				EOSRampup = colliderComponent.EOSRampup,
-				Overshoot = colliderComponent.Overshoot,
+				Overshoot = math.radians(colliderComponent.Overshoot),
 				BumpOnRelease = colliderComponent.BumpOnRelease,
 
 				OriginalAngleEnd = angleEnd,
@@ -625,6 +625,7 @@ namespace VisualPinball.Unity
 				OriginalTorqueDamping = colliderComponent.TorqueDamping,
 				OriginalTorqueDampingAngle = colliderComponent.TorqueDampingAngle,
 				ElasticityMultiplier = 1f,
+				UseFlipperTricks = colliderComponent.useFlipperTricksPhysics,
 
 				EndRadius = endRadius,
 				FlipperRadius = flipperRadius

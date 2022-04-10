@@ -786,6 +786,8 @@ namespace VisualPinball.Unity
 			 * 0 = no falloff, 1 = half the COR at 1 m/s (18.53 speed units)
 			 */
 			var epsilon = Math.ElasticityWithFalloff(_header.Material.Elasticity, _header.Material.ElasticityFalloff, bnv);
+			if (matData.UseFlipperTricks)
+				epsilon *= matData.ElasticityMultiplier;
 
 			var pv1 = angResp / matData.Inertia;
 			var impulse = -(1.0f + epsilon) * bnv / (ball.InvMass + math.dot(normal, math.cross(pv1, rF)));
