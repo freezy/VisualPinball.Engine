@@ -16,7 +16,9 @@
 
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using UnityEditor;
+using UnityEngine;
 using UnityEngine.UIElements;
 
 namespace VisualPinball.Unity.Editor
@@ -81,6 +83,9 @@ namespace VisualPinball.Unity.Editor
 			_renameElement = ui.Q<LibraryCategoryRenameElement>();
 			_renameElement.Category = this;
 
+			_ui.RegisterCallback<DragUpdatedEvent>(OnDragUpdatedEvent);
+			_ui.RegisterCallback<DragPerformEvent>(OnDragPerformEvent);
+
 			UpdateIcon();
 			RegisterCallback<PointerUpEvent>(OnPointerUp);
 
@@ -137,6 +142,21 @@ namespace VisualPinball.Unity.Editor
 				return;
 			}
 			_libraryCategoryView.OnCategoryClicked(this, evt.ctrlKey);
+		}
+
+		private void OnDragPerformEvent(DragPerformEvent evt)
+		{
+			DragAndDrop.visualMode = DragAndDrop.objectReferences != null
+				? DragAndDropVisualMode.Move
+				: DragAndDropVisualMode.Copy;
+		}
+
+		private void OnDragUpdatedEvent(DragUpdatedEvent evt)
+		{
+			Debug.Log($"Got drag: {evt.target}/{evt.currentTarget}");
+			foreach (var path in DragAndDrop.paths) {
+				Debug.Log($"Got new drag: {path}");
+			}
 		}
 
 		private void UpdateIcon()
