@@ -38,6 +38,7 @@ namespace VisualPinball.Unity
 		public float OriginalTorqueDamping;
 		public float OriginalTorqueDampingAngle;
 		public float ElasticityMultiplier;
+		public bool lastSolState;
 		// externals
 		public float SOSRampUp;
 		public float SOSEM;

@@ -32,7 +32,7 @@ namespace VisualPinball.Unity
 		protected override void OnUpdate()
 		{
 			var marker = PerfMarker;
-			Entities.WithName("FlipperVelocityJob").ForEach((ref FlipperMovementData mState, ref FlipperVelocityData vState, in SolenoidStateData solenoid, in FlipperStaticData data) => {
+			Entities.WithName("FlipperVelocityJob").ForEach((ref FlipperMovementData mState, ref FlipperVelocityData vState, ref FlipperStaticData data, in SolenoidStateData solenoid) => {
 
 				marker.Begin();
 
@@ -43,6 +43,20 @@ namespace VisualPinball.Unity
 				if (!solenoid.Value) {
 					// True solState = button pressed, false = released
 					desiredTorque *= -data.ReturnRatio;
+				}
+
+				// check if solenoid was just activated or deactivated
+				if (solenoid.Value != data.lastSolState) {
+					if (solenoid.Value) {
+						// Flippertricks, case 2 (OnButtonActivate)
+						data.TorqueDamping = data.OriginalTorqueDamping;
+						data.TorqueDampingAngle = data.OriginalTorqueDampingAngle;
+						data.ElasticityMultiplier = 1f;
+					} else {
+						// Flippertricks, case 1 (OnButtonDeactivate)
+						data.TorqueDamping = data.OriginalTorqueDamping * data.EOSReturn / data.ReturnRatio;
+						data.TorqueDampingAngle = data.OriginalTorqueDampingAngle;
+					}
 				}
 
 				// hold coil is weaker
@@ -99,6 +113,8 @@ namespace VisualPinball.Unity
 				mState.AngularMomentum += (float)PhysicsConstants.PhysFactor * torque;
 				mState.AngleSpeed = mState.AngularMomentum / data.Inertia;
 				vState.AngularAcceleration = torque / data.Inertia;
+
+				data.lastSolState = solenoid.Value;
 
 				marker.End();
 
