@@ -1,5 +1,7 @@
 <ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements"
 		 xsi="http://www.w3.org/2001/XMLSchema-instance" editor-extension-mode="True">
+
+	<!-- TOP TOOLBAR -->
 	<uie:Toolbar>
 		<uie:ToolbarButton text="Refresh" name="refreshButton"/>
 		<uie:ToolbarSpacer/>
@@ -8,7 +10,11 @@
 		<uie:ToolbarToggle focusable="false" label="Toggle"/>
 		<ui:VisualElement name="activeLibrary"/>
 	</uie:Toolbar>
+
+	<!-- CONTAINER -->
 	<ui:TwoPaneSplitView fixed-pane-initial-dimension="180">
+
+		<!-- LEFT COLUMN (selection) -->
 		<ui:VisualElement name="leftPane" focusable="true">
 			<ui:Label text="Libraries" class="left-title"/>
 			<ui:VisualElement name="libraryList"/>
@@ -16,13 +22,21 @@
 			<VisualPinball.Unity.Editor.LibraryCategoryView/>
 		</ui:VisualElement>
 		<ui:TwoPaneSplitView fixed-pane-initial-dimension="300" fixed-pane-index="1">
+
+			<!-- MAIN COLUMN (grid) -->
 			<ui:VisualElement>
+
+				<!-- CONTENT -->
 				<ui:ScrollView name="gridContent" focusable="true"/>
+
+				<!-- BOTTOM INFO BAR -->
 				<uie:Toolbar name="bottomToolbar">
 					<ui:Label name="bottomLabel" text="Label" display-tooltip-when-elided="true"/>
 					<ui:Slider name="sizeSlider" picking-mode="Ignore" value="42" low-value="50" high-value="300"/>
 				</uie:Toolbar>
 			</ui:VisualElement>
+
+			<!-- RIGHT COLUMN (details) -->
 			<ui:VisualElement/>
 		</ui:TwoPaneSplitView>
 	</ui:TwoPaneSplitView>

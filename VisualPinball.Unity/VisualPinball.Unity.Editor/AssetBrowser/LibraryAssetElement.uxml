@@ -1,0 +1,7 @@
+﻿<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements"
+		 xsi="http://www.w3.org/2001/XMLSchema-instance" editor-extension-mode="True">
+	<VisualPinball.Unity.Editor.LibraryAssetElement class="thumb-item">
+		<ui:Image name="thumbnail" />
+		<ui:Label name="label"/>
+	</VisualPinball.Unity.Editor.LibraryAssetElement>
+</ui:UXML>

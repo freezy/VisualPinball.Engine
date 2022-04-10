@@ -38,14 +38,14 @@ namespace VisualPinball.Unity.Editor
 		private Slider _sizeSlider;
 
 		private static readonly Dictionary<string, Type> Types = new();
-		private VisualTreeAsset _itemTree;
+		private VisualTreeAsset _assetTree;
 
 		public void CreateGUI()
 		{
 			// import UXML
 			var visualTree = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>("Packages/org.visualpinball.engine.unity/VisualPinball.Unity/VisualPinball.Unity.Editor/AssetBrowser/AssetBrowserX.uxml");
 			visualTree.CloneTree(rootVisualElement);
-			_itemTree = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>("Packages/org.visualpinball.engine.unity/VisualPinball.Unity/VisualPinball.Unity.Editor/AssetBrowser/AssetBrowserItem.uxml");
+			_assetTree = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>("Packages/org.visualpinball.engine.unity/VisualPinball.Unity/VisualPinball.Unity.Editor/AssetBrowser/LibraryAssetElement.uxml");
 
 			var ui = rootVisualElement;
 
@@ -95,7 +95,7 @@ namespace VisualPinball.Unity.Editor
 		private VisualElement NewItem(Texture image, string label)
 		{
 			var item = new VisualElement();
-			_itemTree.CloneTree(item);
+			_assetTree.CloneTree(item);
 			item.Q<Image>("thumbnail").image = image;
 			item.Q<Label>("label").text = label;
 			item.RegisterCallback<MouseUpEvent>(_ => OnItemClicked(item));
