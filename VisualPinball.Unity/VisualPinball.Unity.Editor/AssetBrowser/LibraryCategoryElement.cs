@@ -146,13 +146,13 @@ namespace VisualPinball.Unity.Editor
 
 		private void OnDragPerformEvent(DragPerformEvent evt)
 		{
-			DragAndDrop.visualMode = DragAndDrop.objectReferences != null
-				? DragAndDropVisualMode.Move
-				: DragAndDropVisualMode.Copy;
+			DragAndDrop.AcceptDrag();
 		}
 
 		private void OnDragUpdatedEvent(DragUpdatedEvent evt)
 		{
+			DragAndDrop.visualMode = DragAndDropVisualMode.Move;
+
 			Debug.Log($"Got drag: {evt.target}/{evt.currentTarget}");
 			foreach (var path in DragAndDrop.paths) {
 				Debug.Log($"Got new drag: {path}");
