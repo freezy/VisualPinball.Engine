@@ -14,9 +14,11 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+using System;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.UIElements;
+using Object = UnityEngine.Object;
 
 namespace VisualPinball.Unity.Editor
 {
@@ -43,7 +45,7 @@ namespace VisualPinball.Unity.Editor
 
 		private void OnPointerDownEvent(PointerDownEvent evt)
 		{
-			if (evt.target == this && evt.button == 0 && evt.isPrimary) {
+			if (/*evt.target == this && */evt.button == 0 && evt.isPrimary) {
 				_dragState = DragState.Ready;
 				_mouseOffset = evt.localPosition;
 				this.CaptureMouse();
@@ -54,17 +56,17 @@ namespace VisualPinball.Unity.Editor
 		private void OnPointerMoveEvent(PointerMoveEvent evt)
 		{
 			var movingDistance = (_mouseOffset - evt.localPosition).magnitude;
-			if (_dragState == DragState.Ready && evt.pressedButtons == 1 && movingDistance > 10) {
+			if (_dragState == DragState.Ready && evt.pressedButtons == 1/* && movingDistance > 10*/) {
+
+				Debug.Log("Dragging...");
 
 				DragAndDrop.PrepareStartDrag();
-				DragAndDrop.objectReferences = new Object[0];
-				DragAndDrop.paths = new string[0];
+				DragAndDrop.objectReferences = Array.Empty<Object>();
+				DragAndDrop.paths = Array.Empty<string>();
 				this.ReleaseMouse();
 				DragAndDrop.SetGenericData("data", this);
 				DragAndDrop.StartDrag("drag text");
 				_dragState = DragState.Dragging;
-
-				Debug.Log("Dragging...");
 			}
 		}
 
