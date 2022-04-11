@@ -46,9 +46,9 @@ This is our starting point. The playfield is the original import from a VPX file
 > [!note]
 > **Crash course in *Scene* navigation**
 >
-> Move the camera like in a first person shooter. Hold the right mouse button, then use the `WASD` keys for horizontal movement, `Q` and `E` for vertical movement. The mouse wheel changes the movement speed. Just panning the screen is done while holding the middle mouse button. Full documentation [here](https://docs.unity3d.com/2021.2/Documentation/Manual/SceneViewNavigation.html).
+> Move the camera like in a first-person shooter. Hold the right mouse button, then use the `WASD` keys for horizontal movement, `Q` and `E` for vertical movement. The mouse wheel changes the movement speed. Just panning the screen is done while holding the middle mouse button. Full documentation [here](https://docs.unity3d.com/2021.2/Documentation/Manual/SceneViewNavigation.html).
 
-In the *Project* panel you see our FBX file. It's a tree structure because Unity imported it and found out that it contains two objects and two meshes. Drag the entire *Playfield* object from the *Project* panel into the *Hierarchy*, and drop it over the *Playfield* GameObject.
+In the *Project* panel you see our FBX file. It's a tree structure because Unity imported it and found out that it contains two objects and two meshes. Drag the entire *Playfield* object from the *Project* panel into the *Hierarchy* and drop it over the *Playfield* GameObject.
 
 ![Model dropped](unity-model-dropped.png)
 
@@ -99,7 +99,7 @@ This looks pretty good already, but when zooming in, the structure in the reflec
 
 ## Future Changes
 
-So you're all happy with your playfield, when suddenly you realize that you need to change something. Here a few hints of what you'll need to do depending on what you need to change.
+So, you're all happy with your playfield, when suddenly you realize that you need to change something. Here a few hints of what you'll need to do depending on what you need to change.
 
 - **Material Updates** - Updates in Substance Painter are the quickest - Make changes and re-export the textures, that's it. Unity will automatically pick up the changes.
 
