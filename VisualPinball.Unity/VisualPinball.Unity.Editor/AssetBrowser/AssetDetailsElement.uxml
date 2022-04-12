@@ -1,0 +1,3 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements">
+	<ui:Label name="nothing-selected" text="No item selected."/>
+</ui:UXML>

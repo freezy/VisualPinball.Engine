@@ -17,6 +17,10 @@
 	margin-bottom: 3px;
 }
 
+AssetDetailsElement > TemplateContainer {
+	flex-grow: 1;
+}
+
 /* "grid" */
 /* ------ */
 #gridContent {
