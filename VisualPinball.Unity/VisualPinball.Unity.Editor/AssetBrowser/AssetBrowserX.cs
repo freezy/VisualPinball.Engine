@@ -16,6 +16,7 @@
 
 // ReSharper disable InconsistentNaming
 
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -36,7 +37,10 @@ namespace VisualPinball.Unity.Editor
 		private List<LibraryAsset> _assets;
 		private AssetQuery _query;
 
-		private LibraryAsset _selectedAsset;
+		private LibraryAsset _firstSelectedAsset;
+		private LibraryAsset _lastSelectedAsset;
+		private HashSet<LibraryAsset> _selectedAssets = new();
+
 		private readonly Dictionary<LibraryAsset, VisualElement> _elementByAsset = new();
 		private readonly Dictionary<VisualElement, LibraryAsset> _assetsByElement = new();
 
@@ -100,9 +104,13 @@ namespace VisualPinball.Unity.Editor
 		private void UpdateQueryResults(List<LibraryAsset> assets)
 		{
 			_bottomLabel.text = $"Found {assets.Count} assets.";
+			_assets = assets;
 			_gridContent.Clear();
 			_elementByAsset.Clear();
 			_assetsByElement.Clear();
+			_selectedAssets.Clear();
+			_firstSelectedAsset = null;
+			_lastSelectedAsset = null;
 			foreach (var asset in assets) {
 				var obj = AssetDatabase.LoadAssetAtPath(asset.Path, TypeByName(asset.Type));
 				var tex = AssetPreview.GetAssetPreview(obj);
@@ -113,17 +121,106 @@ namespace VisualPinball.Unity.Editor
 			}
 		}
 
-		private void OnItemClicked(VisualElement element)
+		private void OnItemClicked(MouseUpEvent evt, VisualElement element)
 		{
-			var asset = _assetsByElement[element];
-			if (_selectedAsset != null) {
-				ToggleSelectionClass(_elementByAsset[_selectedAsset]);
+			var clickedAsset = _assetsByElement[element];
+
+			// no modifier pressed
+			if (!evt.shiftKey && !evt.ctrlKey) {
+				// already selected?
+				if (_selectedAssets.Contains(clickedAsset)) {
+					if (_selectedAssets.Count != 1) {
+						SelectOnly(clickedAsset);
+					} // if count is 1, and user clicks on it, do nothing.
+				} else {
+					SelectOnly(clickedAsset);
+				}
 			}
-			_selectedAsset = asset;
-			ToggleSelectionClass(element);
+
+			// only CTRL pressed
+			if (!evt.shiftKey && evt.ctrlKey) {
+				// already selected?
+				if (_selectedAssets.Contains(clickedAsset)) {
+					UnSelect(clickedAsset);
+				} else {
+					Select(clickedAsset);
+				}
+			}
+
+			// only SHIFT pressed
+			if (evt.shiftKey && !evt.ctrlKey) {
+				var startIndex = _firstSelectedAsset != null ? _assets.IndexOf(_firstSelectedAsset) : 0;
+				var endIndex = _assets.IndexOf(clickedAsset);
+				_lastSelectedAsset = clickedAsset;
+				SelectRange(startIndex, endIndex);
+			}
+
+
+			// both SHIFT and CTRL pressed
+			if (evt.shiftKey && evt.ctrlKey) {
+				// todo
+			}
+		}
+
+		#region Selection
+
+		private void SelectRange(int start, int end)
+		{
+			if (start > end) {
+				(start, end) = (end, start);
+			}
+			for (var i = 0; i < _assets.Count; i++) {
+				var asset = _assets[i];
+				if (i >= start && i <= end) {
+					if (!_selectedAssets.Contains(asset)) {
+						_selectedAssets.Add(asset);
+						ToggleSelectionClass(_elementByAsset[asset]);
+					}
+				} else if (_selectedAssets.Contains(asset)) {
+					_selectedAssets.Remove(asset);
+					ToggleSelectionClass(_elementByAsset[asset]);
+				}
+			}
+		}
+
+		private void SelectOnly(LibraryAsset asset)
+		{
+			var wasAlreadySelected = false;
+			foreach (var selectedAsset in _selectedAssets) {
+				if (selectedAsset != asset) {
+					ToggleSelectionClass(_elementByAsset[selectedAsset]);
+				} else {
+					wasAlreadySelected = true;
+				}
+			}
+			_selectedAssets.Clear();
+			_selectedAssets.Add(asset);
+			if (!wasAlreadySelected) {
+				ToggleSelectionClass(_elementByAsset[asset]);
+			}
+			_firstSelectedAsset = asset;
+			_lastSelectedAsset = asset;
+		}
+
+		private void UnSelect(LibraryAsset asset)
+		{
+			_selectedAssets.Remove(asset);
+			ToggleSelectionClass(_elementByAsset[asset]);
+			_firstSelectedAsset = _selectedAssets.Count > 0 ? _selectedAssets.FirstOrDefault() : null;
+			_lastSelectedAsset = _selectedAssets.Count > 0 ? _selectedAssets.LastOrDefault() : null;
+		}
+
+
+		private void Select(LibraryAsset asset)
+		{
+			_selectedAssets.Add(asset);
+			ToggleSelectionClass(_elementByAsset[asset]);
+			_lastSelectedAsset = asset;
 		}
 
 		private static void ToggleSelectionClass(VisualElement element) => element.ToggleInClassList("selected");
+
+		#endregion Selection
 
 		public void OnCategoriesUpdated(Dictionary<AssetLibrary, List<LibraryCategory>> categories) => _query.Filter(categories);
 		private void OnSearchQueryChanged(ChangeEvent<string> evt) => _query.Search(evt.newValue);
