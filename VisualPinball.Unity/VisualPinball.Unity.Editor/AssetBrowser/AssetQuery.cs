@@ -17,6 +17,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using UnityEngine;
 
 namespace VisualPinball.Unity.Editor
 {
@@ -59,17 +60,22 @@ namespace VisualPinball.Unity.Editor
 		public void Run()
 		{
 			var assets = _libraries
-				.SelectMany(lib => lib.GetAssets(
-					_query,
-					_categories != null && _categories.ContainsKey(lib) ? _categories[lib] : null
-				))
+				.SelectMany(lib => {
+					try {
+						return lib.GetAssets(
+							_query,
+							_categories != null && _categories.ContainsKey(lib) ? _categories[lib] : null
+						);
+
+					} catch (Exception e) {
+						Debug.LogError($"Error reading assets from {lib.Name}, maybe corruption? ({e.Message})");
+						// old data or whatever, just don't crash here.
+						return Array.Empty<LibraryAsset>();
+					}
+				})
 				.ToList();
 
 			OnQueryUpdated?.Invoke(this, new AssetQueryResult(assets));
 		}
-
-		public List<LibraryAsset> Assets => _libraries.SelectMany(lib => lib.GetAssets()).ToList();
-
-		public List<LibraryCategory> Categories => _libraries.SelectMany(lib => lib.GetCategories()).ToList();
 	}
 }
