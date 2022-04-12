@@ -147,9 +147,15 @@ namespace VisualPinball.Unity.Editor
 		{
 			DragAndDrop.AcceptDrag();
 
-			Debug.Log($"Got drag: {evt.target}/{evt.currentTarget}");
-			foreach (var path in DragAndDrop.paths) {
-				Debug.Log($"Got new drag: {path}");
+			if (DragAndDrop.GetGenericData("assets") is HashSet<AssetData> data) {
+				foreach (var d in data) {
+					var category = Categories.First(i => i.Item1 == d.Library).Item2 ?? d.Library.AddCategory(Name);
+					d.Library.SetCategory(d.Asset, category);
+				}
+				_libraryCategoryView.OnCategoryClicked(this, false);
+
+			} else {
+				Debug.Log($"Unknown drag data.");
 			}
 		}
 

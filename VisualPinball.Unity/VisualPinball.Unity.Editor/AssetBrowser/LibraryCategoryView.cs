@@ -78,10 +78,11 @@ namespace VisualPinball.Unity.Editor
 				}
 
 				// if it's the only one and it's already selected, de-select (= select all)
-				case true when _selectedCategoryElements.Count == 1:
+				case true when _selectedCategoryElements.Count == 1: {
 					categoryElement.IsSelected = false;
 					_selectedCategoryElements.Clear();
 					break;
+				}
 
 				// if it's already selected but not the only one, make it the only one (or de-select, if ctrl pressed)
 				case true when _selectedCategoryElements.Count > 1: {

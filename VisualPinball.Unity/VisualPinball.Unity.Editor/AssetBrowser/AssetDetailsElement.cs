@@ -28,29 +28,29 @@ namespace VisualPinball.Unity.Editor
 		private readonly VisualElement _detailsElement;
 		private readonly Label _titleElement;
 
-		public LibraryAsset Asset {
-			get => _asset;
+		public AssetData Asset {
+			get => _data;
 			set {
-				if (_asset == value) {
+				if (_data == value) {
 					return;
 				}
 				// toggle empty label
-				if (value != null && _asset == null) {
+				if (value != null && _data == null) {
 					_noSelectionElement.AddToClassList("hidden");
 					_detailsElement.RemoveFromClassList("hidden");
 				}
-				if (value == null && _asset != null) {
+				if (value == null && _data != null) {
 					_noSelectionElement.RemoveFromClassList("hidden");
 					_detailsElement.AddToClassList("hidden");
 				}
-				_asset = value;
+				_data = value;
 				if (value != null) {
 					UpdateDetails();
 				}
 			}
 		}
 
-		private LibraryAsset _asset;
+		private AssetData _data;
 
 		public new class UxmlFactory : UxmlFactory<AssetDetailsElement, UxmlTraits> { }
 
@@ -69,7 +69,7 @@ namespace VisualPinball.Unity.Editor
 
 		private void UpdateDetails()
 		{
-			var obj = _asset.LoadAsset();
+			var obj = _data.Asset.LoadAsset();
 			_titleElement.text = obj.name;
 		}
 	}

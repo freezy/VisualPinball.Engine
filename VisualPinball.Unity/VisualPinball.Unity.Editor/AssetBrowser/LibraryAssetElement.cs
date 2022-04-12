@@ -36,12 +36,16 @@ namespace VisualPinball.Unity.Editor
 		private DragState _dragState = DragState.AtRest;
 		private Vector3 _mouseOffset;
 
+		private IDragHandler _dragHandler;
+
 		public LibraryAssetElement()
 		{
 			RegisterCallback<PointerDownEvent>(OnPointerDownEvent);
 			RegisterCallback<PointerMoveEvent>(OnPointerMoveEvent);
 			RegisterCallback<PointerUpEvent>(OnPointerUpEvent);
 		}
+
+		public void RegisterDrag(IDragHandler handler) => _dragHandler = handler;
 
 		private void OnPointerDownEvent(PointerDownEvent evt)
 		{
@@ -60,9 +64,10 @@ namespace VisualPinball.Unity.Editor
 				DragAndDrop.PrepareStartDrag();
 				DragAndDrop.objectReferences = Array.Empty<Object>();
 				DragAndDrop.paths = Array.Empty<string>();
+				_dragHandler?.AttachData();
 				this.ReleaseMouse();
-				DragAndDrop.SetGenericData("data", this);
-				DragAndDrop.StartDrag("drag text");
+				//DragAndDrop.SetGenericData("data", this);
+				DragAndDrop.StartDrag("Dragging..");
 				_dragState = DragState.Dragging;
 			}
 		}

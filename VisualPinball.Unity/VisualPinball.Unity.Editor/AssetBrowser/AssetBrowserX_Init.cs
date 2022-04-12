@@ -112,6 +112,7 @@ namespace VisualPinball.Unity.Editor
 			item.Q<Image>("thumbnail").image = image;
 			item.Q<Label>("label").text = label;
 			item.RegisterCallback<MouseUpEvent>(evt => OnItemClicked(evt, item));
+			item.Q<LibraryAssetElement>().RegisterDrag(this);
 			return item;
 		}
 
