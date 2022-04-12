@@ -86,7 +86,7 @@ namespace VisualPinball.Unity.Editor
 			_gridContent.RegisterCallback<DragUpdatedEvent>(OnDragUpdatedEvent);
 			_gridContent.RegisterCallback<DragPerformEvent>(OnDragPerformEvent);
 
-			Refresh();
+			//Refresh();
 		}
 
 		private void OnDestroy()
