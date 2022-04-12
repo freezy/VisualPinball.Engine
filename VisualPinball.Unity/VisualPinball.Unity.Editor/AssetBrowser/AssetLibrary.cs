@@ -157,6 +157,18 @@ namespace VisualPinball.Unity.Editor
 		public void OnAfterDeserialize()
 		{
 		}
+
+
+		private static readonly Dictionary<string, Type> Types = new();
+
+		public static Type TypeByName(string name)
+		{
+			if (Types.ContainsKey(name)) {
+				return Types[name];
+			}
+			Types[name] = AppDomain.CurrentDomain.GetAssemblies().Reverse().Select(assembly => assembly.GetType(name)).FirstOrDefault(tt => tt != null);
+			return Types[name];
+		}
 	}
 
 	public class LibraryAsset
@@ -170,6 +182,11 @@ namespace VisualPinball.Unity.Editor
 		[BsonRef(AssetLibrary.CollectionCategories)]
 		public LibraryCategory Category { get; set; }
 		public List<LibraryAttribute> Attributes { get; set; }
+
+		public UnityEngine.Object LoadAsset()
+		{
+			return AssetDatabase.LoadAssetAtPath(Path, AssetLibrary.TypeByName(Type));
+		}
 	}
 
 	public class LibraryCategory
