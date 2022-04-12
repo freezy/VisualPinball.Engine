@@ -20,7 +20,7 @@
   <PropertyGroup Condition="'$(RuntimeIdentifier)' == ''">
     <RuntimeIdentifier Condition="$([MSBuild]::IsOSPlatform('Windows')) And '$(PlatformTarget)' != 'x86'">win-x64</RuntimeIdentifier>
     <RuntimeIdentifier Condition="$([MSBuild]::IsOSPlatform('Windows')) And '$(PlatformTarget)' == 'x86'">win-x86</RuntimeIdentifier>
-    <RuntimeIdentifier Condition="$([MSBuild]::IsOSPlatform('OSX'))">osx-x64</RuntimeIdentifier>
+    <RuntimeIdentifier Condition="$([MSBuild]::IsOSPlatform('OSX'))">osx</RuntimeIdentifier>
     <RuntimeIdentifier Condition="$([MSBuild]::IsOSPlatform('Linux'))">linux-x64</RuntimeIdentifier>
   </PropertyGroup>
   <ItemGroup>
@@ -28,10 +28,10 @@
     <None Remove="obj\**" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="NLog" Version="4.7.14" />
+    <PackageReference Include="NLog" Version="4.7.15" />
     <PackageReference Include="OpenMcdf" Version="2.2.1.9" />
-    <PackageReference Include="NetMiniZ" Version="1.3.0-preview.1" />
-    <PackageReference Include="NetMiniZ.Native" Version="1.3.0" />
+    <PackageReference Include="NetMiniZ" Version="1.4.0-preview.2" />
+    <PackageReference Include="NetMiniZ.Native" Version="1.4.0" />
     <PackageReference Include="NetVips" Version="2.1.0" />
     <PackageReference Include="NetVips.Native" Version="8.12.2" />
   </ItemGroup>
@@ -58,11 +58,23 @@
       <Plugins Include="$(OutDir)NetVips.dll" />
       <Plugins Include="$(OutDir)System.Buffers.dll" />
     </ItemGroup>
-    <ItemGroup Condition="'$(RuntimeIdentifier)' != 'ios-arm64' And '$(RuntimeIdentifier)' != 'android-arm64-v8a'">
-      <Plugins Include="$(NuGetPackageRoot)\netminiz.native.$(RuntimeIdentifier)\1.3.0\runtimes\$(RuntimeIdentifier)\native\*" />
+    <ItemGroup Condition="'$(RuntimeIdentifier)' == 'win-x64' Or '$(RuntimeIdentifier)' == 'win-x86' Or '$(RuntimeIdentifier)' == 'osx' Or '$(RuntimeIdentifier)' == 'linux-x64'">
+      <Plugins Include="$(NuGetPackageRoot)\netminiz.native.$(RuntimeIdentifier)\1.4.0\runtimes\$(RuntimeIdentifier)\native\*" />
+    </ItemGroup>
+    <ItemGroup Condition="'$(RuntimeIdentifier)' == 'win-x64' Or '$(RuntimeIdentifier)' == 'win-x86' Or '$(RuntimeIdentifier)' == 'linux-x64'">
       <Plugins Include="$(NuGetPackageRoot)\netvips.native.$(RuntimeIdentifier)\8.12.2\runtimes\$(RuntimeIdentifier)\native\*" />
     </ItemGroup>
     <Message Text="PluginsDeploy: @(Plugins)" />
     <Copy SourceFiles="@(Plugins)" DestinationFolder="..\VisualPinball.Unity\Plugins\$(RuntimeIdentifier)\" SkipUnchangedFiles="true" />
+  </Target>
+  <!-- NetVips does not have dual architecture binaries for osx -->
+  <Target Name="PluginsDeploy_osx" AfterTargets="PluginsDeploy" Condition="'$(RuntimeIdentifier)' == 'osx'">
+    <ItemGroup>
+      <Plugins_x64 Include="$(NuGetPackageRoot)\netvips.native.osx-x64\8.12.2\runtimes\osx-x64\native\*" />
+      <Plugins_arm64 Include="$(NuGetPackageRoot)\netvips.native.osx-arm64\8.12.2\runtimes\osx-arm64\native\*" />
+    </ItemGroup>
+    <Message Text="PluginsDeploy_osx: @(Plugins_x64) @(Plugins_arm64)" />
+    <Copy SourceFiles="@(Plugins_x64)" DestinationFolder="..\VisualPinball.Unity\Plugins\osx\x64\" SkipUnchangedFiles="true" />
+    <Copy SourceFiles="@(Plugins_arm64)" DestinationFolder="..\VisualPinball.Unity\Plugins\osx\arm64\" SkipUnchangedFiles="true" />
   </Target>
 </Project>
