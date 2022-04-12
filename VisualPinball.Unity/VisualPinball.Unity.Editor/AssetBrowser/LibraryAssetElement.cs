@@ -56,7 +56,7 @@ namespace VisualPinball.Unity.Editor
 		private void OnPointerMoveEvent(PointerMoveEvent evt)
 		{
 			var movingDistance = (_mouseOffset - evt.localPosition).magnitude;
-			if (_dragState == DragState.Ready && evt.pressedButtons == 1/* && movingDistance > 10*/) {
+			if (_dragState == DragState.Ready && evt.pressedButtons == 1 && movingDistance > 25) {
 
 				Debug.Log("Dragging...");
 

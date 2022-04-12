@@ -28,9 +28,6 @@ namespace VisualPinball.Unity.Editor
 	public partial class AssetBrowserX : EditorWindow
 	{
 		[SerializeField]
-		private int _selectedIndex = -1;
-
-		[SerializeField]
 		private int _thumbnailSize = 150;
 
 		public AssetLibrary ActiveLibrary;
@@ -53,23 +50,54 @@ namespace VisualPinball.Unity.Editor
 			wnd.maxSize = new Vector2(1920, 720);
 		}
 
-		private void OnEnable()
+		private void Refresh()
 		{
+			RefreshLibraries();
+			RefreshCategories();
+			RefreshAssets();
+		}
+
+		private void RefreshLibraries()
+		{
+			// find library assets
 			Libraries = AssetDatabase.FindAssets($"t:{typeof(AssetLibrary)}")
 				.Select(AssetDatabase.GUIDToAssetPath)
 				.Select(AssetDatabase.LoadAssetAtPath<AssetLibrary>)
 				.Where(asset => asset != null).ToList();
 
+			// setup query
 			_query = new AssetQuery(Libraries);
-			_query.OnQueryUpdated += OnResult;
+			_query.OnQueryUpdated += OnQueryUpdated;
+
+			// update left column
+			_libraryList.Clear();
+			foreach (var assetLibrary in Libraries) {
+				_libraryList.Add(NewAssetLibrary(assetLibrary));
+			}
+
+			// update top dropdown
+			_activeLibraryDropdown.choices = Libraries.Select(l => l.Name).ToList();
+			if (ActiveLibrary != null && Libraries.Count > 0) {
+				_activeLibraryDropdown.index = System.Math.Max(0, _activeLibraryDropdown.choices.IndexOf(ActiveLibrary.Name));
+			}
 		}
 
-		private void OnResult(object sender, AssetQueryResult e)
+		private void RefreshCategories()
 		{
-			UpdateResults(e.Assets);
+			_categoryView.Refresh(this);
 		}
 
-		private void UpdateResults(List<LibraryAsset> assets)
+		private void RefreshAssets()
+		{
+			_query.Run();
+		}
+
+		private void OnQueryUpdated(object sender, AssetQueryResult e)
+		{
+			UpdateQueryResults(e.Assets);
+		}
+
+		private void UpdateQueryResults(List<LibraryAsset> assets)
 		{
 			_bottomLabel.text = $"Found {assets.Count} assets.";
 			_gridContent.Clear();
@@ -82,26 +110,6 @@ namespace VisualPinball.Unity.Editor
 				_elementByAsset[asset] = element;
 				_assetsByElement[element] = asset;
 				_gridContent.Add(_elementByAsset[asset]);
-			}
-		}
-
-		private void Setup()
-		{
-			OnDestroy();
-			rootVisualElement.Clear();
-			CreateGUI();
-			_libraryList.Clear();
-			_categoryView.Refresh(this);
-			_selectedAsset = null;
-			UpdateResults(_query.Assets);
-
-			foreach (var assetLibrary in Libraries) {
-				_libraryList.Add(NewAssetLibrary(assetLibrary));
-			}
-
-			_activeLibraryDropdown.choices = Libraries.Select(l => l.Name).ToList();
-			if (ActiveLibrary != null) {
-				_activeLibraryDropdown.index = _activeLibraryDropdown.choices.IndexOf(ActiveLibrary.Name);
 			}
 		}
 
@@ -154,7 +162,7 @@ namespace VisualPinball.Unity.Editor
 							Debug.Log($"{Path.GetFileName(path)} updated in library {assetLibrary.Name}.");
 						}
 
-						Setup();
+						//Setup();
 					}
 				}
 				if (!libraryFound) {
@@ -172,6 +180,9 @@ namespace VisualPinball.Unity.Editor
 		}
 		private string OnActiveLibraryChanged(string libraryName)
 		{
+			if (Libraries == null) {
+				return libraryName;
+			}
 			var library = Libraries.FirstOrDefault(l => l.Name == libraryName);
 			if (library != null) {
 				ActiveLibrary = library;
