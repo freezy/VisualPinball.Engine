@@ -26,7 +26,7 @@ using UnityEngine.UIElements;
 
 namespace VisualPinball.Unity.Editor
 {
-	public partial class AssetBrowserX : EditorWindow
+	public partial class AssetBrowserX : EditorWindow, IDragHandler
 	{
 		[SerializeField]
 		private int _thumbnailSize = 150;
@@ -34,18 +34,18 @@ namespace VisualPinball.Unity.Editor
 		public AssetLibrary ActiveLibrary;
 		public List<AssetLibrary> Libraries;
 
-		private List<LibraryAsset> _assets;
+		private List<AssetData> _assets;
 		private AssetQuery _query;
 
-		private LibraryAsset LastSelectedAsset {
+		private AssetData LastSelectedAsset {
 			set => _detailsElement.Asset = value;
 		}
 
-		private LibraryAsset _firstSelectedAsset;
-		private readonly HashSet<LibraryAsset> _selectedAssets = new();
+		private AssetData _firstSelectedAsset;
+		private readonly HashSet<AssetData> _selectedAssets = new();
 
-		private readonly Dictionary<LibraryAsset, VisualElement> _elementByAsset = new();
-		private readonly Dictionary<VisualElement, LibraryAsset> _assetsByElement = new();
+		private readonly Dictionary<AssetData, VisualElement> _elementByAsset = new();
+		private readonly Dictionary<VisualElement, AssetData> _assetsByElement = new();
 
 		[MenuItem("Visual Pinball/Asset Browser")]
 		public static void ShowWindow()
@@ -101,10 +101,10 @@ namespace VisualPinball.Unity.Editor
 
 		private void OnQueryUpdated(object sender, AssetQueryResult e)
 		{
-			UpdateQueryResults(e.Assets);
+			UpdateQueryResults(e.Rows);
 		}
 
-		private void UpdateQueryResults(List<LibraryAsset> assets)
+		private void UpdateQueryResults(List<AssetData> assets)
 		{
 			_bottomLabel.text = $"Found {assets.Count} assets.";
 			_assets = assets;
@@ -114,13 +114,13 @@ namespace VisualPinball.Unity.Editor
 			_selectedAssets.Clear();
 			_firstSelectedAsset = null;
 			LastSelectedAsset = null;
-			foreach (var asset in assets) {
-				var obj = AssetDatabase.LoadAssetAtPath(asset.Path, AssetLibrary.TypeByName(asset.Type));
+			foreach (var row in assets) {
+				var obj = AssetDatabase.LoadAssetAtPath(row.Asset.Path, AssetLibrary.TypeByName(row.Asset.Type));
 				var tex = AssetPreview.GetAssetPreview(obj);
-				var element = NewItem(tex, Path.GetFileNameWithoutExtension(asset.Path));
-				_elementByAsset[asset] = element;
-				_assetsByElement[element] = asset;
-				_gridContent.Add(_elementByAsset[asset]);
+				var element = NewItem(tex, Path.GetFileNameWithoutExtension(row.Asset.Path));
+				_elementByAsset[row] = element;
+				_assetsByElement[element] = row;
+				_gridContent.Add(_elementByAsset[row]);
 			}
 		}
 
@@ -186,7 +186,7 @@ namespace VisualPinball.Unity.Editor
 			}
 		}
 
-		private void SelectOnly(LibraryAsset asset)
+		private void SelectOnly(AssetData asset)
 		{
 			var wasAlreadySelected = false;
 			foreach (var selectedAsset in _selectedAssets) {
@@ -205,7 +205,7 @@ namespace VisualPinball.Unity.Editor
 			LastSelectedAsset = asset;
 		}
 
-		private void UnSelect(LibraryAsset asset)
+		private void UnSelect(AssetData asset)
 		{
 			_selectedAssets.Remove(asset);
 			ToggleSelectionClass(_elementByAsset[asset]);
@@ -214,7 +214,7 @@ namespace VisualPinball.Unity.Editor
 		}
 
 
-		private void Select(LibraryAsset asset)
+		private void Select(AssetData asset)
 		{
 			_selectedAssets.Add(asset);
 			ToggleSelectionClass(_elementByAsset[asset]);
@@ -289,6 +289,17 @@ namespace VisualPinball.Unity.Editor
 			}
 			return libraryName;
 		}
+
+		public void AttachData()
+		{
+			DragAndDrop.objectReferences = _selectedAssets.Select(row => row.Asset.LoadAsset()).ToArray();
+			DragAndDrop.SetGenericData("assets", _selectedAssets);
+		}
+	}
+
+	public interface IDragHandler
+	{
+		void AttachData();
 	}
 
 }

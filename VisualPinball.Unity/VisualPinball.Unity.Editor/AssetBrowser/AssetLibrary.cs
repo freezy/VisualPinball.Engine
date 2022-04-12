@@ -113,6 +113,13 @@ namespace VisualPinball.Unity.Editor
 			categories.Update(category);
 		}
 
+		public void SetCategory(LibraryAsset asset, LibraryCategory category)
+		{
+			var assets = _db.GetCollection<LibraryAsset>(CollectionAssets);
+			asset.Category.Id = category.Id;
+			assets.Upsert(asset);
+		}
+
 		public int NumAssetsWithCategory(LibraryCategory category) => _db.GetCollection<LibraryAsset>(CollectionAssets)
 			.Query()
 			.Where(a => a.Category.Id == category.Id)
@@ -157,7 +164,6 @@ namespace VisualPinball.Unity.Editor
 		public void OnAfterDeserialize()
 		{
 		}
-
 
 		private static readonly Dictionary<string, Type> Types = new();
 

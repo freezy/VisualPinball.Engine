@@ -65,17 +65,29 @@ namespace VisualPinball.Unity.Editor
 						return lib.GetAssets(
 							_query,
 							_categories != null && _categories.ContainsKey(lib) ? _categories[lib] : null
-						);
+						).Select(asset => new AssetData(lib, asset));
 
 					} catch (Exception e) {
 						Debug.LogError($"Error reading assets from {lib.Name}, maybe corruption? ({e.Message})");
 						// old data or whatever, just don't crash here.
-						return Array.Empty<LibraryAsset>();
+						return Array.Empty<AssetData>();
 					}
 				})
 				.ToList();
 
 			OnQueryUpdated?.Invoke(this, new AssetQueryResult(assets));
+		}
+	}
+
+	public class AssetData
+	{
+		public readonly AssetLibrary Library;
+		public readonly LibraryAsset Asset;
+
+		public AssetData(AssetLibrary library, LibraryAsset asset)
+		{
+			Library = library;
+			Asset = asset;
 		}
 	}
 }
