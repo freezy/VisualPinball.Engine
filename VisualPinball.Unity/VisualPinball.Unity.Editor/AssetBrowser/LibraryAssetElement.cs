@@ -26,7 +26,7 @@ namespace VisualPinball.Unity.Editor
 	{
 		public new class UxmlFactory : UxmlFactory<LibraryAssetElement, UxmlTraits> { }
 
-		enum DragState
+		private enum DragState
 		{
 			AtRest,
 			Ready,
@@ -49,7 +49,6 @@ namespace VisualPinball.Unity.Editor
 				_dragState = DragState.Ready;
 				_mouseOffset = evt.localPosition;
 				this.CaptureMouse();
-				Debug.Log("Start dragging...");
 			}
 		}
 
@@ -57,8 +56,6 @@ namespace VisualPinball.Unity.Editor
 		{
 			var movingDistance = (_mouseOffset - evt.localPosition).magnitude;
 			if (_dragState == DragState.Ready && evt.pressedButtons == 1 && movingDistance > 25) {
-
-				Debug.Log("Dragging...");
 
 				DragAndDrop.PrepareStartDrag();
 				DragAndDrop.objectReferences = Array.Empty<Object>();
@@ -74,7 +71,6 @@ namespace VisualPinball.Unity.Editor
 		{
 			if (_dragState == DragState.Ready && evt.button == 0) {
 				_dragState = DragState.AtRest;
-				Debug.Log("Back at rest.");
 			}
 			this.ReleaseMouse();
 			evt.StopImmediatePropagation();
