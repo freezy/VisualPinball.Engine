@@ -16,7 +16,6 @@
 
 using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.UIElements;
@@ -147,11 +146,6 @@ namespace VisualPinball.Unity.Editor
 		private void OnDragPerformEvent(DragPerformEvent evt)
 		{
 			DragAndDrop.AcceptDrag();
-		}
-
-		private void OnDragUpdatedEvent(DragUpdatedEvent evt)
-		{
-			DragAndDrop.visualMode = DragAndDropVisualMode.Move;
 
 			Debug.Log($"Got drag: {evt.target}/{evt.currentTarget}");
 			foreach (var path in DragAndDrop.paths) {
@@ -159,10 +153,14 @@ namespace VisualPinball.Unity.Editor
 			}
 		}
 
+		private void OnDragUpdatedEvent(DragUpdatedEvent evt)
+		{
+			DragAndDrop.visualMode = DragAndDropVisualMode.Move;
+		}
+
 		private void UpdateIcon()
 		{
 			var iconName = _isSelected ? "d_FolderOpened Icon" : NumAssets > 0 ? "d_Folder Icon" : "d_FolderEmpty Icon";
-			//iconName = "_Help";
 			_icon.image = EditorGUIUtility.IconContent(iconName).image;
 		}
 	}

@@ -40,8 +40,13 @@ namespace VisualPinball.Unity.Editor
 		private static readonly Dictionary<string, Type> Types = new();
 		private VisualTreeAsset _assetTree;
 
+		/// <summary>
+		/// Setup the UI. Data is already set up at this point. We'll just trigger a refresh once the UI is set up.
+		/// </summary>
 		public void CreateGUI()
 		{
+			Debug.Log("CREATING ASSET BROWSER GUI...");
+
 			// import UXML
 			var visualTree = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>("Packages/org.visualpinball.engine.unity/VisualPinball.Unity/VisualPinball.Unity.Editor/AssetBrowser/AssetBrowserX.uxml");
 			visualTree.CloneTree(rootVisualElement);
@@ -53,9 +58,12 @@ namespace VisualPinball.Unity.Editor
 			var styleSheet = AssetDatabase.LoadAssetAtPath<StyleSheet>("Packages/org.visualpinball.engine.unity/VisualPinball.Unity/VisualPinball.Unity.Editor/AssetBrowser/AssetBrowserX.uss");
 			ui.styleSheets.Add(styleSheet);
 
+			// libraries
 			_libraryList = ui.Q<VisualElement>("libraryList");
+
+			// active library dropdown
 			var activeLibraryContainer = ui.Q<VisualElement>("activeLibrary");
-			_activeLibraryDropdown = new DropdownField(new List<string> { "--refresh--" }, 0, OnActiveLibraryChanged) {
+			_activeLibraryDropdown = new DropdownField(new List<string> { "none" }, 0, OnActiveLibraryChanged) {
 				tooltip = "The library that is currently being edited."
 			};
 			activeLibraryContainer.Add(_activeLibraryDropdown);
@@ -69,13 +77,15 @@ namespace VisualPinball.Unity.Editor
 			_sizeSlider.RegisterValueChangedCallback(OnThumbSizeChanged);
 
 			_refreshButton = ui.Q<ToolbarButton>("refreshButton");
-			_refreshButton.clicked += Setup;
+			_refreshButton.clicked += Refresh;
 
 			_queryInput = ui.Q<ToolbarSearchField>("queryInput");
 			_queryInput.RegisterValueChangedCallback(OnSearchQueryChanged);
 
 			_gridContent.RegisterCallback<DragUpdatedEvent>(OnDragUpdatedEvent);
 			_gridContent.RegisterCallback<DragPerformEvent>(OnDragPerformEvent);
+
+			Refresh();
 		}
 
 		private void OnDestroy()
@@ -85,11 +95,13 @@ namespace VisualPinball.Unity.Editor
 
 			_gridContent.UnregisterCallback<DragPerformEvent>(OnDragPerformEvent);
 			_gridContent.UnregisterCallback<DragUpdatedEvent>(OnDragUpdatedEvent);
-			_refreshButton.clicked -= Setup;
+			_refreshButton.clicked -= Refresh;
 
 			foreach (var assetLibrary in Libraries) {
 				assetLibrary.Dispose();
 			}
+
+			Debug.Log("ASSET BROWSER UNLOADED.");
 		}
 
 		private VisualElement NewItem(Texture image, string label)
