@@ -34,10 +34,10 @@ namespace VisualPinball.Unity.Editor
 		private DropdownField _activeLibraryDropdown;
 
 		private VisualElement _gridContent;
+		private AssetDetailsElement _detailsElement;
 		private Label _bottomLabel;
 		private Slider _sizeSlider;
 
-		private static readonly Dictionary<string, Type> Types = new();
 		private VisualTreeAsset _assetTree;
 
 		/// <summary>
@@ -70,6 +70,7 @@ namespace VisualPinball.Unity.Editor
 
 			_categoryView = ui.Q<LibraryCategoryView>();
 			_gridContent = ui.Q<VisualElement>("gridContent");
+			_detailsElement = ui.Q<AssetDetailsElement>();
 
 			_bottomLabel = ui.Q<Label>("bottomLabel");
 			_sizeSlider = ui.Q<Slider>("sizeSlider");
@@ -125,15 +126,6 @@ namespace VisualPinball.Unity.Editor
 			toggle.value = true;
 			toggle.RegisterValueChangedCallback(evt => OnLibraryToggled(lib, evt.newValue));
 			return item;
-		}
-
-		private static Type TypeByName(string name)
-		{
-			if (Types.ContainsKey(name)) {
-				return Types[name];
-			}
-			Types[name] = AppDomain.CurrentDomain.GetAssemblies().Reverse().Select(assembly => assembly.GetType(name)).FirstOrDefault(tt => tt != null);
-			return Types[name];
 		}
 	}
 }

@@ -1,4 +1,10 @@
-﻿#nothing-selected {
+﻿#details > #title {
+	margin: 8px;
+	font-size: 18px;
+	white-space: normal;
+	-unity-font-style: bold;
+}
+#nothing-selected {
 	width: 100%;
 	height: 100%;
 	margin: 10px;

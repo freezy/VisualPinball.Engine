@@ -37,9 +37,12 @@ namespace VisualPinball.Unity.Editor
 		private List<LibraryAsset> _assets;
 		private AssetQuery _query;
 
+		private LibraryAsset LastSelectedAsset {
+			set => _detailsElement.Asset = value;
+		}
+
 		private LibraryAsset _firstSelectedAsset;
-		private LibraryAsset _lastSelectedAsset;
-		private HashSet<LibraryAsset> _selectedAssets = new();
+		private readonly HashSet<LibraryAsset> _selectedAssets = new();
 
 		private readonly Dictionary<LibraryAsset, VisualElement> _elementByAsset = new();
 		private readonly Dictionary<VisualElement, LibraryAsset> _assetsByElement = new();
@@ -110,9 +113,9 @@ namespace VisualPinball.Unity.Editor
 			_assetsByElement.Clear();
 			_selectedAssets.Clear();
 			_firstSelectedAsset = null;
-			_lastSelectedAsset = null;
+			LastSelectedAsset = null;
 			foreach (var asset in assets) {
-				var obj = AssetDatabase.LoadAssetAtPath(asset.Path, TypeByName(asset.Type));
+				var obj = AssetDatabase.LoadAssetAtPath(asset.Path, AssetLibrary.TypeByName(asset.Type));
 				var tex = AssetPreview.GetAssetPreview(obj);
 				var element = NewItem(tex, Path.GetFileNameWithoutExtension(asset.Path));
 				_elementByAsset[asset] = element;
@@ -151,7 +154,7 @@ namespace VisualPinball.Unity.Editor
 			if (evt.shiftKey && !evt.ctrlKey) {
 				var startIndex = _firstSelectedAsset != null ? _assets.IndexOf(_firstSelectedAsset) : 0;
 				var endIndex = _assets.IndexOf(clickedAsset);
-				_lastSelectedAsset = clickedAsset;
+				LastSelectedAsset = clickedAsset;
 				SelectRange(startIndex, endIndex);
 			}
 
@@ -199,7 +202,7 @@ namespace VisualPinball.Unity.Editor
 				ToggleSelectionClass(_elementByAsset[asset]);
 			}
 			_firstSelectedAsset = asset;
-			_lastSelectedAsset = asset;
+			LastSelectedAsset = asset;
 		}
 
 		private void UnSelect(LibraryAsset asset)
@@ -207,7 +210,7 @@ namespace VisualPinball.Unity.Editor
 			_selectedAssets.Remove(asset);
 			ToggleSelectionClass(_elementByAsset[asset]);
 			_firstSelectedAsset = _selectedAssets.Count > 0 ? _selectedAssets.FirstOrDefault() : null;
-			_lastSelectedAsset = _selectedAssets.Count > 0 ? _selectedAssets.LastOrDefault() : null;
+			LastSelectedAsset = _selectedAssets.Count > 0 ? _selectedAssets.LastOrDefault() : null;
 		}
 
 
@@ -215,7 +218,7 @@ namespace VisualPinball.Unity.Editor
 		{
 			_selectedAssets.Add(asset);
 			ToggleSelectionClass(_elementByAsset[asset]);
-			_lastSelectedAsset = asset;
+			LastSelectedAsset = asset;
 		}
 
 		private static void ToggleSelectionClass(VisualElement element) => element.ToggleInClassList("selected");

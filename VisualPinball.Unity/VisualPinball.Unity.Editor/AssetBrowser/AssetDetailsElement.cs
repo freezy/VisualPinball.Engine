@@ -24,6 +24,34 @@ namespace VisualPinball.Unity.Editor
 	/// </summary>
 	public class AssetDetailsElement : VisualElement
 	{
+		private readonly Label _noSelectionElement;
+		private readonly VisualElement _detailsElement;
+		private readonly Label _titleElement;
+
+		public LibraryAsset Asset {
+			get => _asset;
+			set {
+				if (_asset == value) {
+					return;
+				}
+				// toggle empty label
+				if (value != null && _asset == null) {
+					_noSelectionElement.AddToClassList("hidden");
+					_detailsElement.RemoveFromClassList("hidden");
+				}
+				if (value == null && _asset != null) {
+					_noSelectionElement.RemoveFromClassList("hidden");
+					_detailsElement.AddToClassList("hidden");
+				}
+				_asset = value;
+				if (value != null) {
+					UpdateDetails();
+				}
+			}
+		}
+
+		private LibraryAsset _asset;
+
 		public new class UxmlFactory : UxmlFactory<AssetDetailsElement, UxmlTraits> { }
 
 		public AssetDetailsElement()
@@ -33,6 +61,16 @@ namespace VisualPinball.Unity.Editor
 			var styleSheet = AssetDatabase.LoadAssetAtPath<StyleSheet>("Packages/org.visualpinball.engine.unity/VisualPinball.Unity/VisualPinball.Unity.Editor/AssetBrowser/AssetDetailsElement.uss");
 			ui.styleSheets.Add(styleSheet);
 			Add(ui);
+
+			_noSelectionElement = ui.Q<Label>("nothing-selected");
+			_detailsElement = ui.Q<VisualElement>("details");
+			_titleElement = ui.Q<Label>("title");
+		}
+
+		private void UpdateDetails()
+		{
+			var obj = _asset.LoadAsset();
+			_titleElement.text = obj.name;
 		}
 	}
 }
