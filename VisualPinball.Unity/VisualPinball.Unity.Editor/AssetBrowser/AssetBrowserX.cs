@@ -124,7 +124,12 @@ namespace VisualPinball.Unity.Editor
 			}
 		}
 
-		private void OnItemClicked(MouseUpEvent evt, VisualElement element)
+		private void OnEmptyClicked(PointerUpEvent evt)
+		{
+			SelectNone();
+		}
+
+		private void OnItemClicked(IMouseEvent evt, VisualElement element)
 		{
 			var clickedAsset = _assetsByElement[element];
 
@@ -184,6 +189,16 @@ namespace VisualPinball.Unity.Editor
 					ToggleSelectionClass(_elementByAsset[asset]);
 				}
 			}
+		}
+
+		private void SelectNone()
+		{
+			foreach (var selectedAsset in _selectedAssets) {
+				ToggleSelectionClass(_elementByAsset[selectedAsset]);
+			}
+			_selectedAssets.Clear();
+			_firstSelectedAsset = null;
+			LastSelectedAsset = null;
 		}
 
 		private void SelectOnly(AssetData asset)
