@@ -14,9 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-using System;
 using System.Collections.Generic;
-using System.Linq;
 using UnityEditor;
 using UnityEditor.UIElements;
 using UnityEngine;
@@ -85,6 +83,7 @@ namespace VisualPinball.Unity.Editor
 
 			_gridContent.RegisterCallback<DragUpdatedEvent>(OnDragUpdatedEvent);
 			_gridContent.RegisterCallback<DragPerformEvent>(OnDragPerformEvent);
+			_gridContent.RegisterCallback<PointerUpEvent>(evt => OnEmptyClicked(evt));
 
 			Refresh();
 		}
@@ -111,7 +110,7 @@ namespace VisualPinball.Unity.Editor
 			_assetTree.CloneTree(item);
 			item.Q<Image>("thumbnail").image = image;
 			item.Q<Label>("label").text = label;
-			item.RegisterCallback<MouseUpEvent>(evt => OnItemClicked(evt, item));
+			item.RegisterCallback<MouseDownEvent>(evt => OnItemClicked(evt, item));
 			item.Q<LibraryAssetElement>().RegisterDrag(this);
 			return item;
 		}
