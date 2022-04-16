@@ -110,7 +110,7 @@ namespace VisualPinball.Unity.Editor
 			_assetTree.CloneTree(item);
 			item.Q<Image>("thumbnail").image = image;
 			item.Q<Label>("label").text = label;
-			item.RegisterCallback<MouseDownEvent>(evt => OnItemClicked(evt, item));
+			item.RegisterCallback<MouseUpEvent>(evt => OnItemClicked(evt, item));
 			item.Q<LibraryAssetElement>().RegisterDrag(this);
 			return item;
 		}

@@ -62,6 +62,10 @@ namespace VisualPinball.Unity.Editor
 			var assets = _libraries
 				.SelectMany(lib => {
 					try {
+						// if categories are set but none exist of this lib, skip entire lib.
+						if (_categories != null && !_categories.ContainsKey(lib)) {
+							return Array.Empty<AssetData>();
+						}
 						return lib.GetAssets(
 							_query,
 							_categories != null && _categories.ContainsKey(lib) ? _categories[lib] : null
