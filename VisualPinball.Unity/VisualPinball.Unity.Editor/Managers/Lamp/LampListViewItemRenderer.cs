@@ -134,8 +134,6 @@ namespace VisualPinball.Unity.Editor
 				EditorGUI.DrawTextureTransparent(iconRect, icon, ScaleMode.ScaleToFit);
 				GUI.color = guiColor;
 			}
-			cellRect.x += 20;
-			cellRect.width -= 20;
 		}
 
 		protected override void RenderDeviceElement(LampListData listData, Rect cellRect, Action<LampListData> updateAction)

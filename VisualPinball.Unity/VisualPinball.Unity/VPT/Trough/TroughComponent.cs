@@ -207,6 +207,7 @@ namespace VisualPinball.Unity
 				switch (Type) {
 					case TroughType.ModernOpto:
 					case TroughType.ModernMech:
+						// ball_switch_# is matched with regex in TroughApi
 						return Enumerable.Repeat(0, SwitchCount)
 							.Select((_, i) => new GamelogicEngineSwitch($"ball_switch_{i + 1}")
 								{ Description = SwitchDescription(i) })
@@ -216,6 +217,7 @@ namespace VisualPinball.Unity
 							);
 
 					case TroughType.TwoCoilsNSwitches:
+						// ball_switch_# is matched with regex in TroughApi
 						return new[] {
 							new GamelogicEngineSwitch(EntrySwitchId) { Description = "Entry Switch" }
 						}.Concat(Enumerable.Repeat(0, SwitchCount)

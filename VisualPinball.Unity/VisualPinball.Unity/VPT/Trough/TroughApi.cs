@@ -197,8 +197,11 @@ namespace VisualPinball.Unity
 
 			} else {
 				_stackSwitches = new DeviceSwitch[MainComponent.SwitchCount];
+
+				// ball_switch_# switches created in TroughComponent
+				var ballSwitchRegex = new Regex(@"^ball_switch_(\d+)$");
 				foreach (var @switch in MainComponent.AvailableSwitches) {
-					var match = new Regex(@"^ball_switch_(\d+)$").Match(@switch.Id);
+					var match = ballSwitchRegex.Match(@switch.Id);
 					if (match.Success) {
 						int.TryParse(match.Groups[1].Value, out int id);
 						if (id > 0) {
