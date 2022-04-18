@@ -41,12 +41,6 @@ namespace VisualPinball.Engine.Game.Engines
 		public virtual string Id { get => _id; set => _id = value; }
 
 		/// <summary>
-		/// A numerical identifier that can be used in gamelogic engines that
-		/// are tied to numerical identifiers.
-		/// </summary>
-		public int InternalId;
-
-		/// <summary>
 		/// If true, inverts the signal, i.e. disabled switches return "closed" (true),
 		/// while enabled switched return "open" (false).
 		/// </summary>
@@ -76,13 +70,11 @@ namespace VisualPinball.Engine.Game.Engines
 		public GamelogicEngineSwitch(string id)
 		{
 			Id = id;
-			InternalId = int.TryParse(id, out var internalId) ? internalId : 0;
 		}
 
-		public GamelogicEngineSwitch(string id, int internalId)
+		public GamelogicEngineSwitch(int id)
 		{
-			Id = id;
-			InternalId = internalId;
+			Id = id.ToString();
 		}
 	}
 

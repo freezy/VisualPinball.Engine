@@ -51,7 +51,6 @@ namespace VisualPinball.Unity.Editor
 
 		public IDeviceComponent<IGamelogicEngineDeviceItem> DeviceComponent => DestinationDevice;
 		public string DeviceItem { get => DestinationDeviceItem; set => DestinationDeviceItem = value; }
-		public int InternalId { get; set; }
 
 		public WireListData(WireMapping wireMapping)
 		{

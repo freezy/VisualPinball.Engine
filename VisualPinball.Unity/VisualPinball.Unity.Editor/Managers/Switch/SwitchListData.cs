@@ -40,7 +40,6 @@ namespace VisualPinball.Unity.Editor
 		public int PulseDelay;
 
 		public string Id;
-		public int InternalId { get; set; }
 		public string InputActionMap;
 		public string InputAction;
 		public SwitchConstant Constant;
@@ -53,7 +52,6 @@ namespace VisualPinball.Unity.Editor
 
 		public SwitchListData(SwitchMapping switchMapping) {
 			Id = switchMapping.Id;
-			InternalId = switchMapping.InternalId;
 			NormallyClosed = switchMapping.IsNormallyClosed;
 			Description = switchMapping.Description;
 			Source = switchMapping.Source;
@@ -76,7 +74,6 @@ namespace VisualPinball.Unity.Editor
 		public void Update()
 		{
 			SwitchMapping.Id = Id;
-			SwitchMapping.InternalId = InternalId;
 			SwitchMapping.IsNormallyClosed = NormallyClosed;
 			SwitchMapping.Description = Description;
 			SwitchMapping.Source = Source;

@@ -26,7 +26,6 @@ namespace VisualPinball.Engine.Game.Engines
 		public virtual string Id { get => _id; set => _id = value; }
 		public virtual string Description { get => _description; set => _description = value; }
 
-		public int InternalId;
 		public string DeviceHint { get => _deviceHint; set => _deviceHint = value; }
 		public string DeviceItemHint { get => _deviceItemHint; set => _deviceItemHint = value; }
 		public int NumMatches { get => _numMatches; set => _numMatches = value; }
@@ -46,13 +45,11 @@ namespace VisualPinball.Engine.Game.Engines
 		public GamelogicEngineCoil(string id)
 		{
 			Id = id;
-			InternalId = int.TryParse(id, out var internalId) ? internalId : 0;
 		}
 
-		public GamelogicEngineCoil(string id, int internalId)
+		public GamelogicEngineCoil(int id)
 		{
-			Id = id;
-			InternalId = internalId;
+			Id = id.ToString();
 		}
 	}
 }

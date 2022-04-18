@@ -55,10 +55,9 @@ namespace VisualPinball.Unity.Test
 		{
 			var coil = new CoilMapping {
 				Id = "c_left_flipper",
-				InternalId = 12,
 				Description = "Left Flipper"
 			};
-			coil.ToString().Should().Be("coil c_left_flipper (12) Left Flipper");
+			coil.ToString().Should().Be("coil c_left_flipper Left Flipper");
 		}
 
 		[Test]

@@ -41,7 +41,7 @@ namespace VisualPinball.Unity
 		/// <summary>
 		/// Links the GLE's IDs to the mappings.
 		/// </summary>
-		private readonly Dictionary<string, Dictionary<ILampDeviceComponent, Dictionary<int, LampMapping>>> _lampMappings = new();
+		private readonly Dictionary<string, Dictionary<ILampDeviceComponent, LampMapping>> _lampMappings = new();
 
 		private Player? _player;
 		private TableComponent? _tableComponent;
@@ -80,11 +80,11 @@ namespace VisualPinball.Unity
 						// turn off non-rgb lamps, turn on rgb lamps, but set to channel to 0
 
 						if (lampMapping.Type != LampType.RgbMulti) {
-							HandleLampEvent(lampMapping.Id, lampMapping.InternalId, LampStatus.Off);
+							HandleLampEvent(lampMapping.Id, LampStatus.Off);
 						}
 						else {
-							HandleLampEvent(lampMapping.Id, lampMapping.InternalId, LampStatus.On);
-							HandleLampEvent(lampMapping.Id, lampMapping.InternalId, 0f);
+							HandleLampEvent(lampMapping.Id, LampStatus.On);
+							HandleLampEvent(lampMapping.Id, 0f);
 						}
 					}
 				}
@@ -99,44 +99,40 @@ namespace VisualPinball.Unity
 		private void HandleLampsEvent(object sender, LampsEventArgs lampsEvent)
 		{
 			foreach (var lampEvent in lampsEvent.LampsChanged) {
-				Apply(lampEvent.Id, lampEvent.InternalId, lampEvent.Source, lampEvent.IsCoil, (state, lamp, mapping) => ApplyValue(lampEvent.Id, lampEvent.InternalId, lampEvent.Value, state, lamp, mapping));
+				Apply(lampEvent.Id, lampEvent.Source, lampEvent.IsCoil, (state, lamp, mapping) => ApplyValue(lampEvent.Id, lampEvent.Value, state, lamp, mapping));
 			}
 		}
 
 		private void HandleLampEvent(object sender, LampEventArgs lampEvent)
 		{
-			Apply(lampEvent.Id, lampEvent.InternalId, lampEvent.Source, lampEvent.IsCoil, (state, lamp, mapping) => ApplyValue(lampEvent.Id, lampEvent.InternalId, lampEvent.Value, state, lamp, mapping));
+			Apply(lampEvent.Id, lampEvent.Source, lampEvent.IsCoil, (state, lamp, mapping) => ApplyValue(lampEvent.Id, lampEvent.Value, state, lamp, mapping));
 		}
 
-		public void HandleLampEvent(string id, int internalId, float value)
+		public void HandleLampEvent(string id, float value)
 		{
-			Apply(id, internalId, LampSource.Lamp, false, (state, lamp, mapping) => ApplyValue(id, internalId, value, state, lamp, mapping));
+			Apply(id, LampSource.Lamp, false, (state, lamp, mapping) => ApplyValue(id, value, state, lamp, mapping));
 		}
 
-		public void HandleLampEvent(string id, int internalId, LampStatus status)
+		public void HandleLampEvent(string id, LampStatus status)
 		{
-			Apply(id, internalId, LampSource.Lamp, false, (state, lamp, _) => ApplyStatus(id, status, state, lamp));
+			Apply(id, LampSource.Lamp, false, (state, lamp, _) => ApplyStatus(id, status, state, lamp));
 		}
 
-		public void HandleLampEvent(string id, int internalId, Color color)
+		public void HandleLampEvent(string id, Color color)
 		{
-			Apply(id, internalId, LampSource.Lamp, false, (state, lamp, _) => ApplyColor(id, color, state, lamp));
+			Apply(id, LampSource.Lamp, false, (state, lamp, _) => ApplyColor(id, color, state, lamp));
 		}
 
-		public void HandleCoilEvent(string id, int internalId, bool isEnabled)
+		public void HandleCoilEvent(string id, bool isEnabled)
 		{
-			Apply(id, internalId, LampSource.Lamp, true, (state, lamp, _) => ApplyStatus(id, isEnabled ? LampStatus.On : LampStatus.Off, state, lamp));
+			Apply(id, LampSource.Lamp, true, (state, lamp, _) => ApplyStatus(id, isEnabled ? LampStatus.On : LampStatus.Off, state, lamp));
 		}
 
-		private void Apply(string id, int internalId, LampSource lampSource, bool isCoil, Action<LampState, IApiLamp?, LampMapping?> action)
+		private void Apply(string id, LampSource lampSource, bool isCoil, Action<LampState, IApiLamp?, LampMapping?> action)
 		{
 			if (_lampAssignments.ContainsKey(id)) {
 				foreach (var component in _lampAssignments[id]) {
-
-					if (!_lampMappings[id][component].ContainsKey(internalId)) {
-						continue;
-					}
-					var mapping = _lampMappings[id][component][internalId];
+					var mapping = _lampMappings[id][component];
 					if (mapping.Source != lampSource || mapping.IsCoil != isCoil) {
 						// so, if we have a coil here that happens to have the same name as a lamp,
 						// or a GI light with the same name as an other lamp, skip.
@@ -149,10 +145,11 @@ namespace VisualPinball.Unity
 					}
 				}
 
-				#if UNITY_EDITOR
+#if UNITY_EDITOR
 				RefreshUI();
-				#endif
-			} else {
+#endif
+			}
+			else {
 				if (!LampStates.ContainsKey(id)) {
 					LampStates[id] = LampState.Default;
 				}
@@ -174,7 +171,7 @@ namespace VisualPinball.Unity
 			lamp?.OnLamp(state.Color.ToUnityColor());
 		}
 
-		private void ApplyValue(string id, int internalId, float value, LampState state, IApiLamp? lamp, LampMapping? mapping)
+		private void ApplyValue(string id, float value, LampState state, IApiLamp? lamp, LampMapping? mapping)
 		{
 			if (mapping == null) {
 				// if not mapped, there is no lamp, so just save the state.
@@ -231,17 +228,11 @@ namespace VisualPinball.Unity
 				_lampAssignments[id] = new List<ILampDeviceComponent>();
 			}
 			if (!_lampMappings.ContainsKey(id)) {
-				_lampMappings[id] = new Dictionary<ILampDeviceComponent, Dictionary<int, LampMapping>>();
+				_lampMappings[id] = new Dictionary<ILampDeviceComponent, LampMapping>();
 			}
 			_lampAssignments[id].Add(lampMapping.Device);
-			if (!_lampMappings[id].ContainsKey(lampMapping.Device)) {
-				_lampMappings[id][lampMapping.Device] = new Dictionary<int, LampMapping>();
-			}
-			_lampMappings[id][lampMapping.Device][lampMapping.InternalId] = lampMapping;
-
-			if (!LampStates.ContainsKey(id)) {
-				LampStates[id] = new LampState(lampMapping.Device.LampStatus, lampMapping.Device.LampColor.ToEngineColor());
-			}
+			_lampMappings[id][lampMapping.Device] = lampMapping;
+			LampStates[id] = new LampState(lampMapping.Device.LampStatus, lampMapping.Device.LampColor.ToEngineColor());
 		}
 
 #if UNITY_EDITOR

@@ -44,7 +44,6 @@ namespace VisualPinball.Unity.Editor
 
 		protected void RenderId(Dictionary<string, TStatus> statuses, ref string id, Action<string> setId, TListData listData, Rect cellRect, Action<TListData> updateAction)
 		{
-			const float idWidth = 25f;
 			const float padding = 2f;
 
 			// add some padding
@@ -52,12 +51,7 @@ namespace VisualPinball.Unity.Editor
 			cellRect.width -= 2 * padding;
 
 			var dropdownRect = cellRect;
-			dropdownRect.width -= idWidth + 2 * padding;
-
-			var idRect = cellRect;
-			idRect.width = idWidth;
-			idRect.x += cellRect.width - idWidth;
-
+			
 			var options = new List<string>(GleItems.Select(entry => entry.Id).ToArray());
 			if (options.Count > 0) {
 				options.Add("");
@@ -65,7 +59,6 @@ namespace VisualPinball.Unity.Editor
 			options.Add("Add...");
 
 			if (Application.isPlaying && statuses != null) {
-
 				var iconRect = cellRect;
 				iconRect.width = 20;
 
@@ -107,13 +100,6 @@ namespace VisualPinball.Unity.Editor
 					setId(GleItems[index].Id);
 					updateAction(listData);
 				}
-			}
-
-			EditorGUI.BeginChangeCheck();
-			var value = EditorGUI.IntField(idRect, listData.InternalId);
-			if (EditorGUI.EndChangeCheck()) {
-				listData.InternalId = value;
-				updateAction(listData);
 			}
 		}
 

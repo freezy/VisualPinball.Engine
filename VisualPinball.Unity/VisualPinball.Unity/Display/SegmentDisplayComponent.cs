@@ -22,7 +22,6 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Text;
 using NLog;
-using NLog.LayoutRenderers.Wrappers;
 using Unity.Mathematics;
 using UnityEngine;
 using Logger = NLog.Logger;
@@ -242,7 +241,6 @@ namespace VisualPinball.Unity
 
 		public override void UpdateFrame(DisplayFrameFormat format, byte[] source)
 		{
-			Debug.Log($"Getting segment data!");
 			ushort[] target;
 			switch (format) {
 				case DisplayFrameFormat.Dmd2:
