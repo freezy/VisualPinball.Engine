@@ -151,7 +151,6 @@ namespace VisualPinball.Unity.Editor
 			RecordUndo(undoName);
 			TableComponent.MappingConfig.AddCoil(new CoilMapping {
 				Id = data.Id,
-				InternalId = data.InternalId,
 				Description = data.Description,
 				Destination = data.Destination,
 				Device = data.Device,

@@ -195,7 +195,6 @@ namespace VisualPinball.Unity.Editor
 
 			TableComponent.MappingConfig.AddLamp(new LampMapping {
 				Id = data.Id,
-				InternalId = data.InternalId,
 				Description = data.Description,
 				Device = data.Device,
 				DeviceItem = data.DeviceItem,

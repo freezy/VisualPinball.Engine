@@ -213,10 +213,6 @@ namespace VisualPinball.Unity
 		/// </summary>
 		public readonly string Id;
 
-		/// Internal ID of the coil.
-		/// </summary>
-		public readonly int InternalId;
-
 		/// <summary>
 		/// State of the coil, true if the coil is under voltage, false if not.
 		/// </summary>
@@ -225,14 +221,6 @@ namespace VisualPinball.Unity
 		public CoilEventArgs(string id, bool isEnabled)
 		{
 			Id = id;
-			InternalId = int.TryParse(id, out var internalId) ? internalId : 0;
-			IsEnabled = isEnabled;
-		}
-
-		public CoilEventArgs(string id, int internalId, bool isEnabled)
-		{
-			Id = id;
-			InternalId = internalId;
 			IsEnabled = isEnabled;
 		}
 	}
@@ -243,11 +231,6 @@ namespace VisualPinball.Unity
 		/// ID of the lamp, as defined by <see cref="IGamelogicEngine.RequestedLamps"/>.
 		/// </summary>
 		public readonly string Id;
-
-		/// <summary>
-		/// Internal ID of the lamp. Some lamps have multiple internal IDs per ID, like RGBs.
-		/// </summary>
-		public readonly int InternalId;
 
 		/// <summary>
 		/// The intensity of the light. The range is dependent on the GLE,
@@ -269,16 +252,6 @@ namespace VisualPinball.Unity
 		public LampEventArgs(string id, float value, LampSource source = LampSource.Lamp)
 		{
 			Id = id;
-			InternalId = int.TryParse(id, out var internalId) ? internalId : 0;
-			Value = value;
-			Source = source;
-			IsCoil = false;
-		}
-
-		public LampEventArgs(string id, int internalId, float value, LampSource source = LampSource.Lamp)
-		{
-			Id = id;
-			InternalId = internalId;
 			Value = value;
 			Source = source;
 			IsCoil = false;
@@ -287,7 +260,6 @@ namespace VisualPinball.Unity
 		public LampEventArgs(string id, float value, bool isCoil, LampSource source = LampSource.Lamp)
 		{
 			Id = id;
-			InternalId = int.TryParse(id, out var internalId) ? internalId : 0;
 			Value = value;
 			Source = source;
 			IsCoil = isCoil;

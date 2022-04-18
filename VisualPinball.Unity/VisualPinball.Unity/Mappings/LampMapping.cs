@@ -28,8 +28,6 @@ namespace VisualPinball.Unity
 	{
 		public string Id = string.Empty;
 
-		public int InternalId;
-
 		public LampSource Source = LampSource.Lamp;
 
 		public int FadingSteps;

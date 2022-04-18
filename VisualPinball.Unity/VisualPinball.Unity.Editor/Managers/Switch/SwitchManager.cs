@@ -151,7 +151,6 @@ namespace VisualPinball.Unity.Editor
 
 			TableComponent.MappingConfig.AddSwitch(new SwitchMapping {
 				Id = data.Id,
-				InternalId = data.InternalId,
 				IsNormallyClosed = data.NormallyClosed,
 				Description = data.Description,
 				Source = data.Source,

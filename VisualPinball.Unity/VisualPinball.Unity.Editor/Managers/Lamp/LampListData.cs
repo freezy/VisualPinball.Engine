@@ -24,8 +24,6 @@ namespace VisualPinball.Unity.Editor
 		[ManagerListColumn(Order = 0, HeaderName = "ID", Width = 135)]
 		public string Name => Id;
 
-		public int InternalId { get; set; }
-
 		[ManagerListColumn(Order = 1, HeaderName = "Description", Width = 300)]
 		public string Description { get; set; }
 
@@ -55,7 +53,6 @@ namespace VisualPinball.Unity.Editor
 		public LampListData(LampMapping lampMapping)
 		{
 			Id = lampMapping.Id;
-			InternalId = lampMapping.InternalId;
 			IsCoil = lampMapping.IsCoil;
 			Source = lampMapping.Source;
 			Description = lampMapping.Description;
@@ -71,7 +68,6 @@ namespace VisualPinball.Unity.Editor
 		public void Update()
 		{
 			LampMapping.Id = Id;
-			LampMapping.InternalId = InternalId;
 			LampMapping.IsCoil = IsCoil;
 			LampMapping.Source = Source;
 			LampMapping.Description = Description;

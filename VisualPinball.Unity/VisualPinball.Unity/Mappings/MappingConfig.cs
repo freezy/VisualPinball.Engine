@@ -87,7 +87,6 @@ namespace VisualPinball.Unity
 						AddSwitch(new SwitchMapping
 						{
 							Id = engineSwitch.Id,
-							InternalId = engineSwitch.InternalId,
 							IsNormallyClosed = engineSwitch.NormallyClosed,
 							Description = description,
 							Source = source,
@@ -106,7 +105,6 @@ namespace VisualPinball.Unity
 					AddSwitch(new SwitchMapping
 					{
 						Id = engineSwitch.Id,
-						InternalId = engineSwitch.InternalId,
 						IsNormallyClosed = engineSwitch.NormallyClosed,
 						Description = description,
 						Source = source,
@@ -265,7 +263,6 @@ namespace VisualPinball.Unity
 						AddCoil(new CoilMapping
 						{
 							Id = engineCoil.Id,
-							InternalId = engineCoil.InternalId,
 							Description = description,
 							Destination = destination,
 							Device = matchedDevice,
@@ -280,7 +277,6 @@ namespace VisualPinball.Unity
 					AddCoil(new CoilMapping
 					{
 						Id = engineCoil.Id,
-						InternalId = engineCoil.InternalId,
 						Description = description,
 						Destination = destination,
 						Device = null,
@@ -487,7 +483,6 @@ namespace VisualPinball.Unity
 
 					AddLamp(new LampMapping {
 						Id = engineLamp.Id,
-						InternalId = engineLamp.InternalId,
 						Channel = engineLamp.Channel,
 						Source = engineLamp.Source,
 						Description = description,
@@ -503,7 +498,6 @@ namespace VisualPinball.Unity
 				if (!deviceAdded) {
 					AddLamp(new LampMapping {
 						Id = engineLamp.Id,
-						InternalId = engineLamp.InternalId,
 						Channel = engineLamp.Channel,
 						Source = engineLamp.Source,
 						Description = description,

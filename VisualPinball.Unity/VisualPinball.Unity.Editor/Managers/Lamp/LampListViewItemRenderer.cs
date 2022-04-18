@@ -136,8 +136,6 @@ namespace VisualPinball.Unity.Editor
 			}
 			cellRect.x += 20;
 			cellRect.width -= 20;
-
-			EditorGUI.LabelField(cellRect, lampListData.InternalId.ToString());
 		}
 
 		protected override void RenderDeviceElement(LampListData listData, Rect cellRect, Action<LampListData> updateAction)

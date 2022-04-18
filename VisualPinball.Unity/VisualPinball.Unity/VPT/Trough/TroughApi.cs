@@ -16,6 +16,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Text.RegularExpressions;
 using NLog;
 using UnityEngine;
 using VisualPinball.Engine.VPT;
@@ -196,10 +197,14 @@ namespace VisualPinball.Unity
 
 			} else {
 				_stackSwitches = new DeviceSwitch[MainComponent.SwitchCount];
-				foreach (var sw in MainComponent.AvailableSwitches) {
-					if (sw.InternalId > 0) {
-						_stackSwitches[sw.InternalId - 1] = CreateSwitch(sw.Id, false, MainComponent.Type == TroughType.ModernOpto ? SwitchDefault.NormallyClosed : SwitchDefault.NormallyOpen);
-						_switchLookup[sw.Id] = _stackSwitches[sw.InternalId - 1];
+				foreach (var @switch in MainComponent.AvailableSwitches) {
+					var match = new Regex(@"^ball_switch_(\d+)$").Match(@switch.Id);
+					if (match.Success) {
+						int.TryParse(match.Groups[1].Value, out int id);
+						if (id > 0) {
+							_stackSwitches[id - 1] = CreateSwitch(@switch.Id, false, MainComponent.Type == TroughType.ModernOpto ? SwitchDefault.NormallyClosed : SwitchDefault.NormallyOpen);
+							_switchLookup[@switch.Id] = _stackSwitches[id - 1];
+						}
 					}
 				}
 

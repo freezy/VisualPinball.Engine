@@ -116,9 +116,9 @@ namespace VisualPinball.Unity
 		public Dictionary<string, (bool, float)> WireStatuses => _wirePlayer.WireStatuses;
 		public float3 Gravity => _playfieldComponent.Gravity;
 
-		public void SetLamp(string lampId, int internalId, float value) => _lampPlayer.HandleLampEvent(lampId, internalId, value);
-		public void SetLamp(string lampId, int internalId, LampStatus status) => _lampPlayer.HandleLampEvent(lampId, internalId, status);
-		public void SetLamp(string lampId, int internalId, VisualPinball.Engine.Math.Color color) => _lampPlayer.HandleLampEvent(lampId, internalId, color);
+		public void SetLamp(string lampId, float value) => _lampPlayer.HandleLampEvent(lampId, value);
+		public void SetLamp(string lampId, LampStatus status) => _lampPlayer.HandleLampEvent(lampId, status);
+		public void SetLamp(string lampId, VisualPinball.Engine.Math.Color color) => _lampPlayer.HandleLampEvent(lampId, color);
 
 		#endregion
 

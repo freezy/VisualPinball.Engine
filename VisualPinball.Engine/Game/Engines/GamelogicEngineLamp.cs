@@ -35,11 +35,6 @@ namespace VisualPinball.Engine.Game.Engines
 		public virtual string Description { get => _description; set => _description = value; }
 
 		/// <summary>
-		/// Some gamelogic engines use integers for the ID. In order to avoid repetitive casting, we store it as integer as well.
-		/// </summary>
-		public int InternalId;
-
-		/// <summary>
 		/// Which channel this lamp corresponds to.
 		/// </summary>
 		public ColorChannel Channel = ColorChannel.Alpha;
@@ -84,13 +79,11 @@ namespace VisualPinball.Engine.Game.Engines
 		public GamelogicEngineLamp(string id)
 		{
 			Id = id;
-			InternalId = int.TryParse(id, out var internalId) ? internalId : 0;
 		}
 
-		public GamelogicEngineLamp(string id, int internalId)
+		public GamelogicEngineLamp(int id)
 		{
-			Id = id;
-			InternalId = internalId;
+			Id = id.ToString();
 		}
 	}
 

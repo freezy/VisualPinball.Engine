@@ -26,8 +26,6 @@ namespace VisualPinball.Unity
 	{
 		public string Id = string.Empty;
 
-		public int InternalId;
-
 		public string Description = string.Empty;
 
 		public CoilDestination Destination = CoilDestination.Playfield;
@@ -40,7 +38,7 @@ namespace VisualPinball.Unity
 
 		public override string ToString()
 		{
-			return $"coil {Id} ({InternalId}) {Description}";
+			return $"coil {Id} {Description}";
 		}
 	}
 }

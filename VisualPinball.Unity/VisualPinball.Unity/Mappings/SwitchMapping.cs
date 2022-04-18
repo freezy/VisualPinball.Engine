@@ -26,8 +26,6 @@ namespace VisualPinball.Unity
 	{
 		public string Id = string.Empty;
 
-		public int InternalId;
-
 		public bool IsNormallyClosed;
 
 		public string Description = string.Empty;
