@@ -58,6 +58,7 @@ namespace VisualPinball.Unity.Editor
 		private bool _isRenaming;
 
 		private const string ClassSelected = "unity-collection-view__item--selected";
+		private const string ClassDrag = "library-category-element--dragover";
 
 		/// <summary>
 		/// Construct as normal category
@@ -84,6 +85,8 @@ namespace VisualPinball.Unity.Editor
 
 			_ui.RegisterCallback<DragUpdatedEvent>(OnDragUpdatedEvent);
 			_ui.RegisterCallback<DragPerformEvent>(OnDragPerformEvent);
+			_ui.RegisterCallback<DragEnterEvent>(OnDragEnterEvent);
+			_ui.RegisterCallback<DragLeaveEvent>(OnDragLeaveEvent);
 
 			UpdateIcon();
 			RegisterCallback<PointerUpEvent>(OnPointerUp);
@@ -159,9 +162,21 @@ namespace VisualPinball.Unity.Editor
 			}
 		}
 
-		private void OnDragUpdatedEvent(DragUpdatedEvent evt)
+		private void OnDragEnterEvent(DragEnterEvent evt)
+		{
+			AddToClassList(ClassDrag);
+			Debug.Log($"Adding class {ClassDrag} to {_label.text}");
+		}
+
+		private static void OnDragUpdatedEvent(DragUpdatedEvent evt)
 		{
 			DragAndDrop.visualMode = DragAndDropVisualMode.Move;
+		}
+
+		private void OnDragLeaveEvent(DragLeaveEvent evt)
+		{
+			RemoveFromClassList(ClassDrag);
+			Debug.Log($"Removing class {ClassDrag} from {_label.text}");
 		}
 
 		private void UpdateIcon()

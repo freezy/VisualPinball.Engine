@@ -12,6 +12,10 @@
 	margin-right: 2px;
 }
 
+.library-category-element--dragover > TemplateContainer {
+	background-color: #515151 !important;
+}
+
 .library-category-element:hover {
 	/*background-color: #4c4c4c;*/
 }
