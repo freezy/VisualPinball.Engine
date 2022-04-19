@@ -145,7 +145,12 @@ namespace VisualPinball.Unity.Editor
 							} else if (bVal == null) {
 								compareResult = -1;
 							} else {
-								compareResult = aVal.CompareTo(bVal);
+								if (aVal is string && bVal is string && int.TryParse((string)aVal, out int aNum) && int.TryParse((string)bVal, out int bNum)) {
+									compareResult = aNum.CompareTo(bNum);
+								}
+								else {
+									compareResult = aVal.CompareTo(bVal);
+								}
 							}
 						}
 						// not equal in this column, then return that
