@@ -96,6 +96,8 @@ namespace VisualPinball.Unity.Editor
 			return true;
 		}
 
+		#region Category
+
 		public LibraryCategory AddCategory(string categoryName)
 		{
 			var categories = _db.GetCollection<LibraryCategory>(CollectionCategories);
@@ -132,6 +134,24 @@ namespace VisualPinball.Unity.Editor
 			}
 			_db.GetCollection<LibraryCategory>(CollectionCategories).Delete(category.Id);
 		}
+
+		#endregion
+
+		#region Attribute
+
+		public LibraryAttribute AddAttribute(LibraryAsset asset, string attributeName)
+		{
+			var assets = _db.GetCollection<LibraryAsset>(CollectionAssets);
+			var attribute = new LibraryAttribute {
+				Key = attributeName,
+				Value = string.Empty,
+			};
+			asset.Attributes.Add(attribute);
+			assets.Upsert(asset);
+			return attribute;
+		}
+
+		#endregion
 
 		public IEnumerable<LibraryAsset> GetAssets(string query = null, List<LibraryCategory> categories = null)
 		{
@@ -189,10 +209,7 @@ namespace VisualPinball.Unity.Editor
 		public LibraryCategory Category { get; set; }
 		public List<LibraryAttribute> Attributes { get; set; }
 
-		public UnityEngine.Object LoadAsset()
-		{
-			return AssetDatabase.LoadAssetAtPath(Path, AssetLibrary.TypeByName(Type));
-		}
+		public UnityEngine.Object LoadAsset() => AssetDatabase.LoadAssetAtPath(Path, AssetLibrary.TypeByName(Type));
 	}
 
 	public class LibraryCategory
@@ -204,8 +221,6 @@ namespace VisualPinball.Unity.Editor
 
 	public class LibraryAttribute
 	{
-		[BsonId]
-		public Guid Id { get; set; }
 		public string Key { get; set; }
 		public string Value { get; set; }
 	}

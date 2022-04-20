@@ -27,6 +27,7 @@ namespace VisualPinball.Unity.Editor
 		private readonly Label _noSelectionElement;
 		private readonly VisualElement _detailsElement;
 		private readonly Label _titleElement;
+		private readonly VisualElement _attributesElement;
 
 		public AssetData Asset {
 			get => _data;
@@ -51,6 +52,7 @@ namespace VisualPinball.Unity.Editor
 		}
 
 		private AssetData _data;
+		private readonly Button _button;
 
 		public new class UxmlFactory : UxmlFactory<AssetDetailsElement, UxmlTraits> { }
 
@@ -65,12 +67,30 @@ namespace VisualPinball.Unity.Editor
 			_noSelectionElement = ui.Q<Label>("nothing-selected");
 			_detailsElement = ui.Q<VisualElement>("details");
 			_titleElement = ui.Q<Label>("title");
+			_attributesElement = ui.Q<VisualElement>("attributes");
+
+			_button = ui.Q<Button>("add");
+			_button.clicked += OnAddAttribute;
+		}
+
+		private void OnAddAttribute()
+		{
+			var attribute = _data.Library.AddAttribute(_data.Asset, "New Attribute");
+			var attributeElement = new LibraryAttributeElement(attribute);
+			_attributesElement.Add(attributeElement);
+			attributeElement.ToggleEdit();
 		}
 
 		private void UpdateDetails()
 		{
 			var obj = _data.Asset.LoadAsset();
 			_titleElement.text = obj.name;
+
+			_attributesElement.Clear();
+			foreach (var attr in _data.Asset.Attributes) {
+				var categoryElement = new LibraryAttributeElement(attr);
+				_attributesElement.Add(categoryElement);
+			}
 		}
 	}
 }
