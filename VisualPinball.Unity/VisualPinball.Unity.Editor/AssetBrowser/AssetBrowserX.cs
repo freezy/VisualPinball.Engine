@@ -115,9 +115,7 @@ namespace VisualPinball.Unity.Editor
 			_firstSelectedAsset = null;
 			LastSelectedAsset = null;
 			foreach (var row in assets) {
-				var obj = AssetDatabase.LoadAssetAtPath(row.Asset.Path, AssetLibrary.TypeByName(row.Asset.Type));
-				var tex = AssetPreview.GetAssetPreview(obj);
-				var element = NewItem(tex, Path.GetFileNameWithoutExtension(row.Asset.Path));
+				var element = NewItem(row);
 				_elementByAsset[row] = element;
 				_assetsByElement[element] = row;
 				_gridContent.Add(_elementByAsset[row]);

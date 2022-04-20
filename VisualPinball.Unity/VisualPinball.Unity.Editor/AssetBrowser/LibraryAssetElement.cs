@@ -26,6 +26,8 @@ namespace VisualPinball.Unity.Editor
 	{
 		public new class UxmlFactory : UxmlFactory<LibraryAssetElement, UxmlTraits> { }
 
+		public AssetData Data;
+
 		private enum DragState
 		{
 			AtRest,
@@ -43,6 +45,14 @@ namespace VisualPinball.Unity.Editor
 			RegisterCallback<PointerDownEvent>(OnPointerDownEvent);
 			RegisterCallback<PointerMoveEvent>(OnPointerMoveEvent);
 			RegisterCallback<PointerUpEvent>(OnPointerUpEvent);
+			RegisterCallback<MouseDownEvent>(OnMouseDown);
+		}
+		private void OnMouseDown(MouseDownEvent evt)
+		{
+			if (evt.clickCount == 2) {
+				EditorGUIUtility.PingObject(Data.Asset.LoadAsset());
+				Debug.Log("Double click!");
+			}
 		}
 
 		public void RegisterDrag(IDragHandler handler) => _dragHandler = handler;
