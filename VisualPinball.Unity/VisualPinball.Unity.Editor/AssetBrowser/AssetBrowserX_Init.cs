@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using System.Collections.Generic;
+using System.IO;
 using UnityEditor;
 using UnityEditor.UIElements;
 using UnityEngine;
@@ -104,12 +105,15 @@ namespace VisualPinball.Unity.Editor
 			Debug.Log("ASSET BROWSER UNLOADED.");
 		}
 
-		private VisualElement NewItem(Texture image, string label)
+		private VisualElement NewItem(AssetData data)
 		{
+			var obj = AssetDatabase.LoadAssetAtPath(data.Asset.Path, AssetLibrary.TypeByName(data.Asset.Type));
+			var tex = AssetPreview.GetAssetPreview(obj);
 			var item = new VisualElement();
 			_assetTree.CloneTree(item);
-			item.Q<Image>("thumbnail").image = image;
-			item.Q<Label>("label").text = label;
+			item.Q<LibraryAssetElement>().Data = data;
+			item.Q<Image>("thumbnail").image = tex;
+			item.Q<Label>("label").text = Path.GetFileNameWithoutExtension(data.Asset.Path);
 			item.RegisterCallback<MouseUpEvent>(evt => OnItemClicked(evt, item));
 			item.Q<LibraryAssetElement>().RegisterDrag(this);
 			return item;
