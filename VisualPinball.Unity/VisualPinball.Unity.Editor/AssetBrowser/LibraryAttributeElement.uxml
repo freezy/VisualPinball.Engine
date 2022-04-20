@@ -1,0 +1,13 @@
+﻿<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements">
+	<ui:VisualElement name="display" class="library-attribute-element">
+		<ui:Label name="attribute-name"/>
+		<ui:VisualElement name="attribute-values">
+		</ui:VisualElement>
+	</ui:VisualElement>
+	<ui:VisualElement name="edit" class="library-attribute-edit-element hidden">
+		<ui:TextField name="attribute-name-edit" />
+		<ui:TextField name="attribute-values-edit"/>
+		<ui:Button name="cancelButton" text="✕" />
+		<ui:Button name="okButton" text="✔" />
+	</ui:VisualElement>
+</ui:UXML>

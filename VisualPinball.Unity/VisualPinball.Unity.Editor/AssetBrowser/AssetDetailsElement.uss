@@ -1,9 +1,18 @@
-﻿#details > #title {
-	margin: 8px;
+﻿#details {
+	padding: 8px;
+}
+
+#details > #title {
+	margin-bottom: 8px;
 	font-size: 18px;
 	white-space: normal;
 	-unity-font-style: bold;
 }
+
+#details > #attributes-title {
+	-unity-font-style: bold;
+}
+
 #nothing-selected {
 	width: 100%;
 	height: 100%;

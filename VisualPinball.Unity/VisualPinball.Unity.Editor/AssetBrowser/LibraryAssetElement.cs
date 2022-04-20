@@ -51,7 +51,6 @@ namespace VisualPinball.Unity.Editor
 		{
 			if (evt.clickCount == 2) {
 				EditorGUIUtility.PingObject(Data.Asset.LoadAsset());
-				Debug.Log("Double click!");
 			}
 		}
 

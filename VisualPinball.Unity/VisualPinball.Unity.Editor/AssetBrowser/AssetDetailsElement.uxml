@@ -2,5 +2,9 @@
 	<ui:Label name="nothing-selected" text="No item selected."/>
 	<ui:VisualElement name="details">
 		<ui:Label name="title"/>
+		<ui:Label name="attributes-title" text="Attributes" />
+		<ui:VisualElement name="attributes">
+		</ui:VisualElement>
+		<ui:Button name="add" text="Add New"/>
 	</ui:VisualElement>
 </ui:UXML>
