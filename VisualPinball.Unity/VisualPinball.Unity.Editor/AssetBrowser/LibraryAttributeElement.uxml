@@ -6,7 +6,7 @@
 	</ui:VisualElement>
 	<ui:VisualElement name="edit" class="library-attribute-edit-element hidden">
 		<ui:TextField name="attribute-name-edit" />
-		<ui:TextField name="attribute-values-edit"/>
+		<ui:TextField name="attribute-value-edit"/>
 		<ui:Button name="cancelButton" text="✕" />
 		<ui:Button name="okButton" text="✔" />
 	</ui:VisualElement>

@@ -93,5 +93,10 @@ namespace VisualPinball.Unity.Editor
 			Library = library;
 			Asset = asset;
 		}
+
+		public void Update()
+		{
+			Library.UpdateAsset(Asset);
+		}
 	}
 }
