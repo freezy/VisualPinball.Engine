@@ -76,7 +76,7 @@ namespace VisualPinball.Unity.Editor
 		private void OnAddAttribute()
 		{
 			var attribute = _data.Library.AddAttribute(_data.Asset, "New Attribute");
-			var attributeElement = new LibraryAttributeElement(attribute);
+			var attributeElement = new LibraryAttributeElement(_data, attribute);
 			_attributesElement.Add(attributeElement);
 			attributeElement.ToggleEdit();
 		}
@@ -88,7 +88,7 @@ namespace VisualPinball.Unity.Editor
 
 			_attributesElement.Clear();
 			foreach (var attr in _data.Asset.Attributes) {
-				var categoryElement = new LibraryAttributeElement(attr);
+				var categoryElement = new LibraryAttributeElement(_data, attr);
 				_attributesElement.Add(categoryElement);
 			}
 		}

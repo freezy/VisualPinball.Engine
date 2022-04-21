@@ -96,6 +96,11 @@ namespace VisualPinball.Unity.Editor
 			return true;
 		}
 
+		public void UpdateAsset(LibraryAsset asset)
+		{
+			_db.GetCollection<LibraryAsset>(CollectionAssets).Update(asset);
+		}
+
 		#region Category
 
 		public LibraryCategory AddCategory(string categoryName)

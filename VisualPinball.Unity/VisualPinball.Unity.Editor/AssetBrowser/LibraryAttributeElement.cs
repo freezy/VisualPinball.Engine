@@ -24,12 +24,21 @@ namespace VisualPinball.Unity.Editor
 {
 	public class LibraryAttributeElement : VisualElement
 	{
+		private readonly AssetData _assetData;
 		private readonly LibraryAttribute _attribute;
 
-		private bool _isRenaming;
+		private readonly Label _nameElement;
+		private readonly VisualElement _valuesElement;
+		private readonly VisualElement _displayElement;
+		private readonly VisualElement _editElement;
+		private readonly TextField _nameEditElement;
+		private readonly TextField _valuesEditElement;
 
-		public LibraryAttributeElement(LibraryAttribute attribute)
+		private bool _isEditing;
+
+		public LibraryAttributeElement(AssetData data, LibraryAttribute attribute)
 		{
+			_assetData = data;
 			_attribute = attribute;
 
 			var visualTree = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>("Packages/org.visualpinball.engine.unity/VisualPinball.Unity/VisualPinball.Unity.Editor/AssetBrowser/LibraryAttributeElement.uxml");
@@ -38,40 +47,68 @@ namespace VisualPinball.Unity.Editor
 			ui.styleSheets.Add(styleSheet);
 			Add(ui);
 
+			_displayElement = ui.Q<VisualElement>("display");
+			_editElement = ui.Q<VisualElement>("edit");
+			_nameElement = ui.Q<Label>("attribute-name");
+			_valuesElement = ui.Q<VisualElement>("attribute-values");
+			_nameEditElement = ui.Q<TextField>("attribute-name-edit");
+			_valuesEditElement = ui.Q<TextField>("attribute-value-edit");
+
+			ui.Q<Button>("okButton").RegisterCallback<MouseUpEvent>(_ => CompleteEdit(true, _nameEditElement.value, _valuesEditElement.value));
+			ui.Q<Button>("cancelButton").RegisterCallback<MouseUpEvent>(_ => CompleteEdit(false));
+
+			Update();
+
 			// right-click menu
-			this.AddManipulator(new ContextualMenuManipulator(AddContextMenu));
+			_displayElement.AddManipulator(new ContextualMenuManipulator(AddContextMenu));
 		}
 
 		public void ToggleEdit(DropdownMenuAction act = null)
 		{
-			// if (_isRenaming) {
-			// 	_ui.RemoveFromClassList("hidden");
-			// 	_renameElement.AddToClassList("hidden");
-			//
-			// } else {
-			// 	_ui.AddToClassList("hidden");
-			// 	_renameElement.RemoveFromClassList("hidden");
-			// 	_renameElement.StartEditing();
-			// }
+			if (_isEditing) {
+				_displayElement.RemoveFromClassList("hidden");
+				_editElement.AddToClassList("hidden");
 
-			_isRenaming = !_isRenaming;
+			} else {
+				_displayElement.AddToClassList("hidden");
+				_editElement.RemoveFromClassList("hidden");
+				StartEditing();
+			}
+
+			_isEditing = !_isEditing;
 		}
 
-		public void CompleteRename(bool success, string newName = null)
+		private void Update()
 		{
-			// if (success) {
-			// 	_label.text = newName;
-			// 	foreach (var (lib, category) in Categories) {
-			// 		lib.RenameCategory(category, newName);
-			// 	}
-			// 	_libraryCategoryView.Refresh();
-			// }
-			// ToggleRename();
+			if (!string.IsNullOrEmpty(_attribute.Value)) {
+				var values = _attribute.Value.Split(',').Select(s => s.Trim());
+				foreach (var value in values) {
+					_valuesElement.Add(new Label(value)); // todo make each of those clickable
+				}
+			}
+			_nameElement.text = _attribute.Key;
+		}
+
+		private void StartEditing()
+		{
+			_nameEditElement.value = _attribute.Key;
+			_valuesEditElement.value = _attribute.Value;
+			_valuesEditElement.Focus();
+			_valuesEditElement.SelectAll();
+		}
+
+		public void CompleteEdit(bool success, string newName = null, string newValue = null)
+		{
+			if (success) {
+				_assetData.Update();
+				Update();
+			}
+			ToggleEdit();
 		}
 
 		private void AddContextMenu(ContextualMenuPopulateEvent evt)
 		{
-			evt.menu.AppendAction("Rename", ToggleEdit);
+			evt.menu.AppendAction("Edit", ToggleEdit);
 			evt.menu.AppendAction("Delete", Delete);
 		}
 
