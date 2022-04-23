@@ -57,6 +57,7 @@ namespace VisualPinball.Unity.Editor
 			ui.Q<Button>("okButton").RegisterCallback<MouseUpEvent>(_ => CompleteEdit(true, _nameEditElement.value, _valuesEditElement.value));
 			ui.Q<Button>("cancelButton").RegisterCallback<MouseUpEvent>(_ => CompleteEdit(false));
 
+			_displayElement.RegisterCallback<MouseDownEvent>(OnMouseDown);
 			_nameEditElement.RegisterCallback<KeyDownEvent>(OnKeyDown);
 			_valuesEditElement.RegisterCallback<KeyDownEvent>(OnKeyDown);
 
@@ -64,6 +65,13 @@ namespace VisualPinball.Unity.Editor
 
 			// right-click menu
 			_displayElement.AddManipulator(new ContextualMenuManipulator(AddContextMenu));
+		}
+
+		private void OnMouseDown(MouseDownEvent evt)
+		{
+			if (evt.clickCount == 2) {
+				ToggleEdit();
+			}
 		}
 
 		public void ToggleEdit(DropdownMenuAction act = null)
