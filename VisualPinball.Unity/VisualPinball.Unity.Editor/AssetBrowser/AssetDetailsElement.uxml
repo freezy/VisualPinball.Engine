@@ -5,6 +5,6 @@
 		<ui:Label name="attributes-title" text="Attributes" />
 		<ui:VisualElement name="attributes">
 		</ui:VisualElement>
-		<ui:Button name="add" text="Add New"/>
+		<ui:Button name="add" text="New Attribute"/>
 	</ui:VisualElement>
 </ui:UXML>
