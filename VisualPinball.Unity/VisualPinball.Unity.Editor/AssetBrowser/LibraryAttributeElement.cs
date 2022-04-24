@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-using System.Collections.Generic;
 using System.Linq;
 using UnityEditor;
 using UnityEngine;
@@ -142,13 +141,11 @@ namespace VisualPinball.Unity.Editor
 
 		private void Delete(DropdownMenuAction obj)
 		{
-			// foreach (var (lib, category) in Categories) {
-			// 	if (lib.NumAssetsWithCategory(category) == 0) {
-			// 		lib.DeleteCategory(category);
-			// 	}
-			// }
-			// _libraryCategoryView.Refresh();
+			if (_assetData.Asset.Attributes.Contains(_attribute)) {
+				_assetData.Asset.Attributes.Remove(_attribute);
+				_assetData.Update();
+				parent.Remove(this);
+			}
 		}
-
 	}
 }
