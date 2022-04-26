@@ -2,6 +2,8 @@
 	<ui:Label name="nothing-selected" text="No item selected."/>
 	<ui:VisualElement name="details">
 		<ui:Label name="title"/>
+		<ui:Label name="category"/>
+		<ui:IMGUIContainer />
 		<ui:Label name="attributes-title" text="Attributes" />
 		<ui:VisualElement name="attributes">
 		</ui:VisualElement>

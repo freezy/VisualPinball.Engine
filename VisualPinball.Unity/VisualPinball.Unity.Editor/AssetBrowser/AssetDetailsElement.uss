@@ -9,6 +9,10 @@
 	-unity-font-style: bold;
 }
 
+IMGUIContainer {
+	margin-bottom: 16px;
+}
+
 #details > #add {
 	margin-top: 8px;
 }
