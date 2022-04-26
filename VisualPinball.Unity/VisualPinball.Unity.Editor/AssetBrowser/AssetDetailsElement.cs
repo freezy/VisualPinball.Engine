@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using UnityEditor;
+using UnityEngine;
 using UnityEngine.UIElements;
 
 namespace VisualPinball.Unity.Editor
@@ -52,7 +53,9 @@ namespace VisualPinball.Unity.Editor
 		}
 
 		private AssetData _data;
-		private readonly Button _button;
+		private UnityEditor.Editor _previewEditor;
+		private Object _object;
+		private readonly Label _categoryElement;
 
 		public new class UxmlFactory : UxmlFactory<AssetDetailsElement, UxmlTraits> { }
 
@@ -67,10 +70,34 @@ namespace VisualPinball.Unity.Editor
 			_noSelectionElement = ui.Q<Label>("nothing-selected");
 			_detailsElement = ui.Q<VisualElement>("details");
 			_titleElement = ui.Q<Label>("title");
+			_categoryElement = ui.Q<Label>("category");
 			_attributesElement = ui.Q<VisualElement>("attributes");
 
-			_button = ui.Q<Button>("add");
-			_button.clicked += OnAddAttribute;
+			var button = ui.Q<Button>("add");
+			button.clicked += OnAddAttribute;
+
+			var editorElement = ui.Q<IMGUIContainer>();
+			editorElement.onGUIHandler = OnGUI;
+		}
+
+		private void OnGUI()
+		{
+			if (_data == null) {
+				Object.DestroyImmediate(_previewEditor);
+				_previewEditor = null;
+
+			} else if (_previewEditor == null || _object != _previewEditor.target) {
+				if (_previewEditor != null) {
+					Object.DestroyImmediate(_previewEditor);
+				}
+				_previewEditor = UnityEditor.Editor.CreateEditor(_object);
+			}
+
+			if (_previewEditor) {
+				var previewSize = _detailsElement.resolvedStyle.width - _detailsElement.resolvedStyle.paddingLeft - _detailsElement.resolvedStyle.paddingRight;
+				var rect = EditorGUILayout.GetControlRect(false, previewSize, GUILayout.Width(previewSize));
+				_previewEditor.OnInteractivePreviewGUI(rect, GUI.skin.box);
+			}
 		}
 
 		private void OnAddAttribute()
@@ -83,8 +110,11 @@ namespace VisualPinball.Unity.Editor
 
 		private void UpdateDetails()
 		{
-			var obj = _data.Asset.LoadAsset();
-			_titleElement.text = obj.name;
+			_object = _data.Asset.LoadAsset();
+			_titleElement.text = _object.name;
+
+			//var category = _data.Library.GetCategories()
+			_categoryElement.text = _data.Asset.Category.Name;
 
 			_attributesElement.Clear();
 			foreach (var attr in _data.Asset.Attributes) {
