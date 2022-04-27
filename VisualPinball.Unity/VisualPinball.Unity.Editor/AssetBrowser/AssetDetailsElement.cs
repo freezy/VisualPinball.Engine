@@ -70,7 +70,7 @@ namespace VisualPinball.Unity.Editor
 			_noSelectionElement = ui.Q<Label>("nothing-selected");
 			_detailsElement = ui.Q<VisualElement>("details");
 			_titleElement = ui.Q<Label>("title");
-			_categoryElement = ui.Q<Label>("category");
+			_categoryElement = ui.Q<Label>("category-name");
 			_attributesElement = ui.Q<VisualElement>("attributes");
 
 			var button = ui.Q<Button>("add");
@@ -78,6 +78,9 @@ namespace VisualPinball.Unity.Editor
 
 			var editorElement = ui.Q<IMGUIContainer>();
 			editorElement.onGUIHandler = OnGUI;
+
+			var categoryIcon = ui.Q<Image>("category-icon");
+			categoryIcon.image = EditorGUIUtility.IconContent("d_Folder Icon").image;
 		}
 
 		private void OnGUI()
