@@ -9,6 +9,17 @@
 	-unity-font-style: bold;
 }
 
+#details > #category {
+	flex-direction: row;
+	margin-bottom: 16px;
+}
+
+#details > #category #category-icon {
+	width: 16px;
+	height: 16px;
+	margin-right: 2px;
+}
+
 IMGUIContainer {
 	margin-bottom: 16px;
 }

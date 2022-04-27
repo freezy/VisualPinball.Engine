@@ -1,12 +1,14 @@
 <ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements">
 	<ui:Label name="nothing-selected" text="No item selected."/>
 	<ui:VisualElement name="details">
-		<ui:Label name="title"/>
-		<ui:Label name="category"/>
+		<ui:Label name="title" />
+		<ui:VisualElement name="category">
+			<ui:Image name="category-icon" />
+			<ui:Label name="category-name" />
+		</ui:VisualElement>
 		<ui:IMGUIContainer />
 		<ui:Label name="attributes-title" text="Attributes" />
-		<ui:VisualElement name="attributes">
-		</ui:VisualElement>
-		<ui:Button name="add" text="New Attribute"/>
+		<ui:VisualElement name="attributes" />
+		<ui:Button name="add" text="New Attribute" />
 	</ui:VisualElement>
 </ui:UXML>
