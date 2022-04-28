@@ -170,7 +170,9 @@ namespace VisualPinball.Unity.Editor
 				var categoryIds = categories.Select(c => c.Id);
 				q.Where(a => categoryIds.Contains(a.Category.Id));
 			}
-			return q.ToList();
+			return q
+				.Include(a => a.Category)
+				.ToList();
 		}
 
 		public IEnumerable<LibraryCategory> GetCategories()
