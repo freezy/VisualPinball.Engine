@@ -98,7 +98,7 @@ namespace VisualPinball.Unity.Editor
 
 		#region Asset
 
-		public void UpdateAsset(LibraryAsset asset)
+		public void SaveAsset(LibraryAsset asset)
 		{
 			_db.GetCollection<LibraryAsset>(CollectionAssets).Update(asset);
 		}

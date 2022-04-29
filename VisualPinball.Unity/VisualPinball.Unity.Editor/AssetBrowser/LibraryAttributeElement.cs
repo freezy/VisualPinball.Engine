@@ -113,7 +113,7 @@ namespace VisualPinball.Unity.Editor
 			if (success) {
 				_attribute.Key = newName;
 				_attribute.Value = newValue;
-				_assetData.Update();
+				_assetData.Save();
 				Update();
 			}
 			ToggleEdit();
@@ -143,7 +143,7 @@ namespace VisualPinball.Unity.Editor
 		{
 			if (_assetData.Asset.Attributes.Contains(_attribute)) {
 				_assetData.Asset.Attributes.Remove(_attribute);
-				_assetData.Update();
+				_assetData.Save();
 				parent.Remove(this);
 			}
 		}

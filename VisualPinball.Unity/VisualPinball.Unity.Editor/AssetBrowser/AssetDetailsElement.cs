@@ -56,7 +56,6 @@ namespace VisualPinball.Unity.Editor
 		private UnityEditor.Editor _previewEditor;
 		private Object _object;
 		private readonly Label _categoryElement;
-		private readonly TextElement _descriptionElement;
 		private readonly TextField _descriptionEditElement;
 		private readonly Label _dateElement;
 
@@ -75,9 +74,10 @@ namespace VisualPinball.Unity.Editor
 			_titleElement = ui.Q<Label>("title");
 			_categoryElement = ui.Q<Label>("category-name");
 			_dateElement = ui.Q<Label>("date-value");
-			_descriptionElement = ui.Q<TextElement>("description");
 			_descriptionEditElement = ui.Q<TextField>("description-edit");
 			_attributesElement = ui.Q<VisualElement>("attributes");
+
+			_descriptionEditElement.RegisterValueChangedCallback(OnDescriptionEdited);
 
 			var button = ui.Q<Button>("add");
 			button.clicked += OnAddAttribute;
@@ -120,12 +120,21 @@ namespace VisualPinball.Unity.Editor
 			attributeElement.ToggleEdit();
 		}
 
+		private void OnDescriptionEdited(ChangeEvent<string> evt)
+		{
+			_data.Asset.Description = evt.newValue;
+			_data.Save();
+		}
+
 		private void UpdateDetails()
 		{
 			_object = _data.Asset.LoadAsset();
 			_titleElement.text = _object.name;
 			_categoryElement.text = _data.Asset.Category.Name;
 			_dateElement.text = _data.Asset.AddedAt.ToLongDateString();
+			_descriptionEditElement.UnregisterValueChangedCallback(OnDescriptionEdited);
+			_descriptionEditElement.value = _data.Asset.Description;
+			_descriptionEditElement.RegisterValueChangedCallback(OnDescriptionEdited);
 
 			_attributesElement.Clear();
 			foreach (var attr in _data.Asset.Attributes) {
