@@ -56,6 +56,9 @@ namespace VisualPinball.Unity.Editor
 		private UnityEditor.Editor _previewEditor;
 		private Object _object;
 		private readonly Label _categoryElement;
+		private readonly TextElement _descriptionElement;
+		private readonly TextField _descriptionEditElement;
+		private readonly Label _dateElement;
 
 		public new class UxmlFactory : UxmlFactory<AssetDetailsElement, UxmlTraits> { }
 
@@ -71,6 +74,9 @@ namespace VisualPinball.Unity.Editor
 			_detailsElement = ui.Q<VisualElement>("details");
 			_titleElement = ui.Q<Label>("title");
 			_categoryElement = ui.Q<Label>("category-name");
+			_dateElement = ui.Q<Label>("date-value");
+			_descriptionElement = ui.Q<TextElement>("description");
+			_descriptionEditElement = ui.Q<TextField>("description-edit");
 			_attributesElement = ui.Q<VisualElement>("attributes");
 
 			var button = ui.Q<Button>("add");
@@ -78,6 +84,9 @@ namespace VisualPinball.Unity.Editor
 
 			var editorElement = ui.Q<IMGUIContainer>();
 			editorElement.onGUIHandler = OnGUI;
+
+			var dateIcon = ui.Q<Image>("date-icon");
+			dateIcon.image = Icons.Calendar(IconSize.Small);
 
 			var categoryIcon = ui.Q<Image>("category-icon");
 			categoryIcon.image = EditorGUIUtility.IconContent("d_Folder Icon").image;
@@ -115,9 +124,8 @@ namespace VisualPinball.Unity.Editor
 		{
 			_object = _data.Asset.LoadAsset();
 			_titleElement.text = _object.name;
-
-			//var category = _data.Library.GetCategories()
 			_categoryElement.text = _data.Asset.Category.Name;
+			_dateElement.text = _data.Asset.AddedAt.ToLongDateString();
 
 			_attributesElement.Clear();
 			foreach (var attr in _data.Asset.Attributes) {

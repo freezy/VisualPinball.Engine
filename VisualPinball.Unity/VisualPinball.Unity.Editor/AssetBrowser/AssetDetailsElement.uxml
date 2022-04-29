@@ -2,12 +2,17 @@
 	<ui:Label name="nothing-selected" text="No item selected."/>
 	<ui:VisualElement name="details">
 		<ui:Label name="title" />
-		<ui:VisualElement name="category">
+		<ui:VisualElement name="header">
 			<ui:Image name="category-icon" />
 			<ui:Label name="category-name" />
+			<ui:Image name="date-icon" />
+			<ui:Label name="date-value" />
 		</ui:VisualElement>
 		<ui:IMGUIContainer />
-		<ui:Label name="attributes-title" text="Attributes" />
+		<ui:Label class="subtitle" text="Description" />
+		<ui:TextElement name="description" enable-rich-text="true" />
+		<ui:TextField name="description-edit" />
+		<ui:Label class="subtitle" text="Attributes" />
 		<ui:VisualElement name="attributes" />
 		<ui:Button name="add" text="New Attribute" />
 	</ui:VisualElement>
