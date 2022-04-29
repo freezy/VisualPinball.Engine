@@ -10,8 +10,7 @@
 		</ui:VisualElement>
 		<ui:IMGUIContainer />
 		<ui:Label class="subtitle" text="Description" />
-		<ui:TextElement name="description" enable-rich-text="true" />
-		<ui:TextField name="description-edit" />
+		<ui:TextField name="description-edit" multiline="true"/>
 		<ui:Label class="subtitle" text="Attributes" />
 		<ui:VisualElement name="attributes" />
 		<ui:Button name="add" text="New Attribute" />

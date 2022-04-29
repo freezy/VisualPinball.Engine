@@ -29,6 +29,7 @@
 }
 
 #details > .subtitle {
+	margin-bottom: 8px;
 	margin-top: 16px;
 	-unity-font-style: bold;
 }
