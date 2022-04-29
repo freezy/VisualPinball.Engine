@@ -9,26 +9,27 @@
 	-unity-font-style: bold;
 }
 
-#details > #category {
+#details > #header {
 	flex-direction: row;
 	margin-bottom: 16px;
 }
 
-#details > #category #category-icon {
+#details > #header Label {
+	margin-right: 8px;
+}
+
+#details > #header Image {
 	width: 16px;
 	height: 16px;
 	margin-right: 2px;
-}
-
-IMGUIContainer {
-	margin-bottom: 16px;
 }
 
 #details > #add {
 	margin-top: 8px;
 }
 
-#details > #attributes-title {
+#details > .subtitle {
+	margin-top: 16px;
 	-unity-font-style: bold;
 }
 

@@ -96,10 +96,31 @@ namespace VisualPinball.Unity.Editor
 			return true;
 		}
 
+		#region Asset
+
 		public void UpdateAsset(LibraryAsset asset)
 		{
 			_db.GetCollection<LibraryAsset>(CollectionAssets).Update(asset);
 		}
+
+		public IEnumerable<LibraryAsset> GetAssets(string query = null, List<LibraryCategory> categories = null)
+		{
+			var assets = _db.GetCollection<LibraryAsset>(CollectionAssets);
+			var q = assets.Query();
+			if (!string.IsNullOrWhiteSpace(query)) {
+				q = q.Where(a => a.Path.Contains(query, StringComparison.OrdinalIgnoreCase));
+			}
+			if (categories != null) {
+				// SELECT $ FROM assets WHERE Category.$id IN [{"$guid": "7292885c-c6e5-4b6b-9fa1-fd2916784fed"}, {"$guid": "94a58b38-96ab-4b0c-8955-7d787b64333a"}];
+				var categoryIds = categories.Select(c => c.Id);
+				q.Where(a => categoryIds.Contains(a.Category.Id));
+			}
+			return q
+				.Include(a => a.Category)
+				.ToList();
+		}
+
+		#endregion
 
 		#region Category
 
@@ -140,6 +161,12 @@ namespace VisualPinball.Unity.Editor
 			_db.GetCollection<LibraryCategory>(CollectionCategories).Delete(category.Id);
 		}
 
+		public IEnumerable<LibraryCategory> GetCategories()
+		{
+			var collection = _db.GetCollection<LibraryCategory>(CollectionCategories);
+			return collection.Query().OrderBy(c => c.Name).ToList();
+		}
+
 		#endregion
 
 		#region Attribute
@@ -157,29 +184,6 @@ namespace VisualPinball.Unity.Editor
 		}
 
 		#endregion
-
-		public IEnumerable<LibraryAsset> GetAssets(string query = null, List<LibraryCategory> categories = null)
-		{
-			var assets = _db.GetCollection<LibraryAsset>(CollectionAssets);
-			var q = assets.Query();
-			if (!string.IsNullOrWhiteSpace(query)) {
-				q = q.Where(a => a.Path.Contains(query, StringComparison.OrdinalIgnoreCase));
-			}
-			if (categories != null) {
-				// SELECT $ FROM assets WHERE Category.$id IN [{"$guid": "7292885c-c6e5-4b6b-9fa1-fd2916784fed"}, {"$guid": "94a58b38-96ab-4b0c-8955-7d787b64333a"}];
-				var categoryIds = categories.Select(c => c.Id);
-				q.Where(a => categoryIds.Contains(a.Category.Id));
-			}
-			return q
-				.Include(a => a.Category)
-				.ToList();
-		}
-
-		public IEnumerable<LibraryCategory> GetCategories()
-		{
-			var collection = _db.GetCollection<LibraryCategory>(CollectionCategories);
-			return collection.Query().OrderBy(c => c.Name).ToList();
-		}
 
 		public void OnBeforeSerialize()
 		{
@@ -213,6 +217,8 @@ namespace VisualPinball.Unity.Editor
 		public string Path { get; set; }
 		public DateTime AddedAt { get; set; }
 		[BsonRef(AssetLibrary.CollectionCategories)]
+
+		public string Description { get; set; }
 		public LibraryCategory Category { get; set; }
 		public List<LibraryAttribute> Attributes { get; set; }
 

@@ -64,6 +64,7 @@ namespace VisualPinball.Unity.Editor
 		private const string BallRollerName = "ball_roller";
 		private const string BoltName = "bolt";
 		private const string BumperName = "bumper";
+		private const string CalendarName = "calendar";
 		private const string CannonName = "cannon";
 		private const string CoilName = "coil";
 		private const string DropTargetBankName = "drop_target_bank";
@@ -110,8 +111,8 @@ namespace VisualPinball.Unity.Editor
 		private const string UpdateDisplayName = "update_display";
 
 		private static readonly string[] Names = {
-			BallRollerName, BoltName, BumperName, CannonName, CoilName, DropTargetBankName, DropTargetName, FlasherName, FlipperName, GateName,
-			HitTargetName, KeyName, KickerName, LightGroupName, LightName, MechName, MechPinMameName, PlayfieldName, PlugName, PlungerName,
+			BallRollerName, BoltName, BumperName, CalendarName, CannonName, CoilName, DropTargetBankName, DropTargetName, FlasherName, FlipperName,
+			GateName, HitTargetName, KeyName, KickerName, LightGroupName, LightName, MechName, MechPinMameName, PlayfieldName, PlugName, PlungerName,
 			PrimitiveName, RampName, RotatorName, RubberName, ScoreReelName, ScoreReelSimpleName, SlingshotName, SpinnerName, SurfaceName,
 			SwitchNcName, SwitchNoName, TableName, TeleporterName, TriggerName, TroughName,
 			CoilEventName, SwitchEventName, LampEventName, LampSeqName, MetalWireGuideName,
@@ -161,6 +162,7 @@ namespace VisualPinball.Unity.Editor
 		public static Texture2D BallRoller(IconSize size = IconSize.Large, IconColor color = IconColor.Gray) => Instance.GetItem(BallRollerName, size, color);
 		public static Texture2D Bolt(IconSize size = IconSize.Large, IconColor color = IconColor.Gray) => Instance.GetItem(BoltName, size, color);
 		public static Texture2D Bumper(IconSize size = IconSize.Large, IconColor color = IconColor.Gray) => Instance.GetItem(BumperName, size, color);
+		public static Texture2D Calendar(IconSize size = IconSize.Large, IconColor color = IconColor.Gray) => Instance.GetItem(CalendarName, size, color);
 		public static Texture2D Cannon(IconSize size = IconSize.Large, IconColor color = IconColor.Gray) => Instance.GetItem(CannonName, size, color);
 		public static Texture2D Coil(IconSize size = IconSize.Large, IconColor color = IconColor.Gray) => Instance.GetItem(CoilName, size, color);
 		public static Texture2D DropTarget(IconSize size = IconSize.Large, IconColor color = IconColor.Gray) => Instance.GetItem(DropTargetName, size, color);
