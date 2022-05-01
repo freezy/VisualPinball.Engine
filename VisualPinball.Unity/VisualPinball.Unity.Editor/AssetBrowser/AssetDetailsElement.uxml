@@ -1,18 +1,18 @@
-<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements">
-	<ui:Label name="nothing-selected" text="No item selected."/>
-	<ui:VisualElement name="details">
-		<ui:Label name="title" />
-		<ui:VisualElement name="header">
-			<ui:Image name="category-icon" />
-			<ui:Label name="category-name" />
-			<ui:Image name="date-icon" />
-			<ui:Label name="date-value" />
-		</ui:VisualElement>
-		<ui:IMGUIContainer />
-		<ui:Label class="subtitle" text="Description" />
-		<ui:TextField name="description-edit" multiline="true"/>
-		<ui:Label class="subtitle" text="Attributes" />
-		<ui:VisualElement name="attributes" />
-		<ui:Button name="add" text="New Attribute" />
-	</ui:VisualElement>
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" editor-extension-mode="True">
+    <ui:Label name="nothing-selected" text="No item selected." />
+    <ui:VisualElement name="details">
+        <ui:Label name="title" />
+        <ui:VisualElement name="header">
+            <ui:Image name="category-icon" />
+            <ui:Label name="category-name" />
+            <ui:Image name="date-icon" />
+            <ui:Label name="date-value" />
+        </ui:VisualElement>
+        <ui:IMGUIContainer />
+        <ui:Label text="Description" class="subtitle" />
+        <ui:TextField name="description-edit" multiline="true" />
+        <ui:Label text="Attributes" class="subtitle" />
+        <ui:VisualElement name="attributes" />
+        <ui:Button name="add" text="New Attribute" />
+    </ui:VisualElement>
 </ui:UXML>
