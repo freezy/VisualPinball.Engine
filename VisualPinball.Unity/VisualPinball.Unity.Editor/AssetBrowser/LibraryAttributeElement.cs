@@ -31,7 +31,7 @@ namespace VisualPinball.Unity.Editor
 		private readonly VisualElement _displayElement;
 		private readonly VisualElement _editElement;
 		private readonly SearchSuggest _nameEditElement;
-		private readonly TextField _valuesEditElement;
+		private readonly SearchSuggest _valuesEditElement;
 
 		private bool _isEditing;
 
@@ -51,14 +51,14 @@ namespace VisualPinball.Unity.Editor
 			_nameElement = ui.Q<Label>("attribute-name");
 			_valuesElement = ui.Q<VisualElement>("attribute-values");
 			_nameEditElement = ui.Q<SearchSuggest>("attribute-name-edit");
-			_valuesEditElement = ui.Q<TextField>("attribute-value-edit");
+			_valuesEditElement = ui.Q<SearchSuggest>("attribute-value-edit");
 
 			_nameEditElement.SuggestOption = new[] {
 				new SuggestOption { DisplayName = "Manufacturer" },
 				new SuggestOption { DisplayName = "Part" },
 			};
 
-			//ui.Q<Button>("okButton").RegisterCallback<MouseUpEvent>(_ => CompleteEdit(true, _nameEditElement.value, _valuesEditElement.value));
+			ui.Q<Button>("okButton").RegisterCallback<MouseUpEvent>(_ => CompleteEdit(true, _nameEditElement.Value, _valuesEditElement.Value));
 			ui.Q<Button>("cancelButton").RegisterCallback<MouseUpEvent>(_ => CompleteEdit(false));
 
 			_displayElement.RegisterCallback<MouseDownEvent>(OnMouseDown);
@@ -107,10 +107,10 @@ namespace VisualPinball.Unity.Editor
 
 		private void StartEditing()
 		{
-			//_nameEditElement.value = _attribute.Key;
-			_valuesEditElement.value = _attribute.Value;
-			//_nameEditElement.Focus();
-			//_nameEditElement.SelectAll();
+			_nameEditElement.Value = _attribute.Key;
+			_valuesEditElement.Value = _attribute.Value;
+			_nameEditElement.Focus();
+			_nameEditElement.SelectAll();
 		}
 
 		public void CompleteEdit(bool success, string newName = null, string newValue = null)
@@ -128,7 +128,7 @@ namespace VisualPinball.Unity.Editor
 		{
 			switch (evt.keyCode) {
 				case KeyCode.Return or KeyCode.KeypadEnter:
-					//CompleteEdit(true, _nameEditElement.value, _valuesEditElement.value);
+					CompleteEdit(true, _nameEditElement.Value, _valuesEditElement.Value);
 					break;
 
 				case KeyCode.Escape:

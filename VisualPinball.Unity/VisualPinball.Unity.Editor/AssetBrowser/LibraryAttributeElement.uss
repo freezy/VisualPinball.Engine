@@ -14,7 +14,11 @@
 	flex-direction: row;
 }
 
-.library-attribute-edit-element TextField {
+.library-attribute-edit-element SearchSuggest {
+	flex-basis: 50%;
 	flex-grow: 1;
 }
 
+#search-suggest-list {
+	background-color: #5bc0de;
+}

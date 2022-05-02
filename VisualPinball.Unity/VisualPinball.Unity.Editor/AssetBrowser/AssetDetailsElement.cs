@@ -132,9 +132,9 @@ namespace VisualPinball.Unity.Editor
 			_titleElement.text = _object.name;
 			_categoryElement.text = _data.Asset.Category.Name;
 			_dateElement.text = _data.Asset.AddedAt.ToLongDateString();
-			_descriptionEditElement.UnregisterValueChangedCallback(OnDescriptionEdited);
-			_descriptionEditElement.value = _data.Asset.Description;
-			_descriptionEditElement.RegisterValueChangedCallback(OnDescriptionEdited);
+			//_descriptionEditElement.UnregisterValueChangedCallback(OnDescriptionEdited);
+			_descriptionEditElement.SetValueWithoutNotify(_data.Asset.Description);
+			//_descriptionEditElement.RegisterValueChangedCallback(OnDescriptionEdited);
 
 			_attributesElement.Clear();
 			foreach (var attr in _data.Asset.Attributes) {
