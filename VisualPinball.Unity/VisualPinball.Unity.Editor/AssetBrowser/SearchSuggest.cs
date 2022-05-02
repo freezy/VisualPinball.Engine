@@ -27,7 +27,6 @@ using System.Linq;
 using System.Reflection;
 using UnityEditor;
 using UnityEngine;
-using UnityEditor.UIElements;
 using UnityEngine.UIElements;
 
 namespace VisualPinball.Unity.Editor
@@ -59,7 +58,6 @@ namespace VisualPinball.Unity.Editor
 			public override IEnumerable<UxmlChildElementDescription> uxmlChildElementsDescription {
 				get {
 					yield return new UxmlChildElementDescription(typeof(SuggestOption));
-					yield return new UxmlChildElementDescription(typeof(SuggestOptions));
 				}
 			}
 
@@ -78,13 +76,17 @@ namespace VisualPinball.Unity.Editor
 
 		public event SuggestionSelected OnSuggestedSelected;
 
+		public string Value { get => _textEntry.value; set => _textEntry.value = value; }
+		public new void Focus() => _textEntry.Focus();
+		public void SelectAll() => _textEntry.SelectAll();
+
 		public List<SuggestOption> MatchedSuggestOption { get; set; }
-		private Func<SuggestOption, bool> _matchingSuggestOptions;
+		private readonly Func<SuggestOption, bool> _matchingSuggestOptions;
 		public SuggestOption[] SuggestOption { get; set; }
 
 		private EditorWindow _popupWindow;
 		private ListView _optionList;
-		private readonly ToolbarSearchField _textEntry;
+		private readonly TextField _textEntry;
 
 		private PropertyInfo _ownerObjectProperty;
 		private PropertyInfo _screenPositionProperty;
@@ -101,13 +103,12 @@ namespace VisualPinball.Unity.Editor
 		{
 			AddToClassList("search-suggest");
 
-			_textEntry = new ToolbarSearchField { name = "search-suggest-input" };
+			_textEntry = new TextField { name = "search-suggest-input" };
 			MatchedSuggestOption = new List<SuggestOption>();
 
 			ConfigureOptionList();
 
-
-			_textEntry.style.flexGrow = 1;
+			//_textEntry.style.flexGrow = 1;
 
 			_matchingSuggestOptions = suggestOption => suggestOption.DisplayName.ToLower().Contains(_textEntry.value.ToLower());
 
@@ -129,21 +130,24 @@ namespace VisualPinball.Unity.Editor
 		private void ConfigureOptionList()
 		{
 			if (_optionList == null) {
-				_optionList = new ListView { name = "search-suggest-list", fixedItemHeight = 20 };
+				_optionList = new ListView {
+					name = "search-suggest-list",
+					fixedItemHeight = 20,
+					makeItem = () => {
+						var label = new Label();
+						label.AddToClassList("suggestion");
+						label.RegisterCallback<MouseDownEvent>(OnLabelMouseDown);
 
-				_optionList.makeItem = () => {
-					var label = new Label();
-					label.AddToClassList("suggestion");
-					label.RegisterCallback<MouseDownEvent>(OnLabelMouseDown);
-
-					return label;
+						return label;
+					}
 				};
+
 				_optionList.bindItem = (v, i) => {
-					Label label = v as Label;
+					var label = v as Label;
 					var suggestOption = (SuggestOption)_optionList.itemsSource[i];
 
-					label.text = suggestOption.DisplayName;
-					label.userData = suggestOption;
+					label!.text = suggestOption.DisplayName;
+					label!.userData = suggestOption;
 				};
 				_optionList.selectionType = SelectionType.Single;
 				OppahOptionStyle(_optionList);
@@ -155,7 +159,7 @@ namespace VisualPinball.Unity.Editor
 			element.style.left = 0;
 			element.style.right = 0;
 			element.style.height = 100;
-			element.style.backgroundColor = Color.Lerp(Color.gray, Color.white, 0.5f);
+			//element.style.backgroundColor = Color.Lerp(Color.gray, Color.white, 0.5f);
 
 			element.style.borderTopWidth =
 				element.style.borderLeftWidth =
@@ -215,7 +219,7 @@ namespace VisualPinball.Unity.Editor
 				case KeyCode.KeypadEnter:
 					var suggestOption = MatchedSuggestOption[_optionList.selectedIndex];
 					OnSuggestedSelected?.Invoke(suggestOption);
-					_textEntry.SetValueWithoutNotify("");
+					_textEntry.value = suggestOption.DisplayName;
 					_hasFocus = false;
 					UpdateVisibility();
 					return;
@@ -352,28 +356,6 @@ namespace VisualPinball.Unity.Editor
 			public override IEnumerable<UxmlChildElementDescription> uxmlChildElementsDescription
 			{
 				get { yield break; }
-			}
-		}
-	}
-
-	public abstract class SuggestOptions : VisualElement
-	{
-		public virtual IEnumerable<SuggestOption> Options => Children().OfType<SuggestOption>();
-		//public new class UxmlFactory : UxmlFactory<SuggestOptions, UxmlTraits> { }
-		public new class UxmlTraits : BindableElement.UxmlTraits
-		{
-			public override void Init(VisualElement ve, IUxmlAttributes bag, CreationContext cc)
-			{
-				base.Init(ve, bag, cc);
-			}
-
-			public override IEnumerable<UxmlChildElementDescription> uxmlChildElementsDescription
-			{
-				get
-				{
-					yield return new UxmlChildElementDescription(typeof(SuggestOption));
-					yield break;
-				}
 			}
 		}
 	}
