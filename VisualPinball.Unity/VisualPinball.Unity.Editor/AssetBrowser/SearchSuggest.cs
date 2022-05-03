@@ -33,56 +33,15 @@ namespace VisualPinball.Unity.Editor
 {
 	public class SearchSuggest : VisualElement
 	{
-		internal enum ShowMode
-		{
-			// Show as a normal window with max, min & close buttons.
-			NormalWindow = 0,
-			// Used for a popup menu. On mac this means light shadow and no titlebar.
-			PopupMenu = 1,
-			// Utility window - floats above the app. Disappears when app loses focus.
-			Utility = 2,
-			// Window has no shadow or decorations. Used internally for dragging stuff around.
-			NoShadow = 3,
-			// The Unity main window. On mac, this is the same as NormalWindow, except window doesn't have a close button.
-			MainWindow = 4,
-			// Aux windows. The ones that close the moment you move the mouse out of them.
-			AuxWindow = 5,
-			// Like PopupMenu, but without keyboard focus
-			Tooltip = 6,
-			// Modal Utility window
-			ModalUtility = 7
-		}
-
-		public new class UxmlFactory : UxmlFactory<SearchSuggest, UxmlTraits>
-		{
-			public override IEnumerable<UxmlChildElementDescription> uxmlChildElementsDescription {
-				get {
-					yield return new UxmlChildElementDescription(typeof(SuggestOption));
-				}
-			}
-
-			public override VisualElement Create(IUxmlAttributes bag, CreationContext cc)
-			{
-				var searchSuggest = (SearchSuggest)base.Create(bag, cc);
-				return searchSuggest;
-			}
-		}
-
-		public new class UxmlTraits : VisualElement.UxmlTraits
-		{
-		}
-
-		public delegate void SuggestionSelected(SuggestOption pickedSuggestion);
-
-		public event SuggestionSelected OnSuggestedSelected;
+		public new class UxmlFactory : UxmlFactory<SearchSuggest, UxmlTraits> { }
 
 		public string Value { get => _textEntry.value; set => _textEntry.value = value; }
 		public new void Focus() => _textEntry.Focus();
 		public void SelectAll() => _textEntry.SelectAll();
 
-		public List<SuggestOption> MatchedSuggestOption { get; set; }
-		private readonly Func<SuggestOption, bool> _matchingSuggestOptions;
-		public SuggestOption[] SuggestOption { get; set; }
+		public List<string> MatchedSuggestOption { get; set; }
+		private readonly Func<string, bool> _matchingSuggestOptions;
+		public string[] SuggestOption { get; set; } = Array.Empty<string>();
 
 		private EditorWindow _popupWindow;
 		private ListView _optionList;
@@ -104,13 +63,13 @@ namespace VisualPinball.Unity.Editor
 			AddToClassList("search-suggest");
 
 			_textEntry = new TextField { name = "search-suggest-input" };
-			MatchedSuggestOption = new List<SuggestOption>();
+			MatchedSuggestOption = new List<string>();
 
 			ConfigureOptionList();
 
 			//_textEntry.style.flexGrow = 1;
 
-			_matchingSuggestOptions = suggestOption => suggestOption.DisplayName.ToLower().Contains(_textEntry.value.ToLower());
+			_matchingSuggestOptions = suggestOption => suggestOption.ToLower().Contains(_textEntry.value.ToLower());
 
 			RegisterCallback<AttachToPanelEvent>(OnAttached);
 			RegisterCallback<DetachFromPanelEvent>(OnDetached);
@@ -144,10 +103,8 @@ namespace VisualPinball.Unity.Editor
 
 				_optionList.bindItem = (v, i) => {
 					var label = v as Label;
-					var suggestOption = (SuggestOption)_optionList.itemsSource[i];
-
-					label!.text = suggestOption.DisplayName;
-					label!.userData = suggestOption;
+					var suggestOption = (string)_optionList.itemsSource[i];
+					label!.text = suggestOption;
 				};
 				_optionList.selectionType = SelectionType.Single;
 				OppahOptionStyle(_optionList);
@@ -218,8 +175,7 @@ namespace VisualPinball.Unity.Editor
 				case KeyCode.Return:
 				case KeyCode.KeypadEnter:
 					var suggestOption = MatchedSuggestOption[_optionList.selectedIndex];
-					OnSuggestedSelected?.Invoke(suggestOption);
-					_textEntry.value = suggestOption.DisplayName;
+					_textEntry.value = suggestOption;
 					_hasFocus = false;
 					UpdateVisibility();
 					return;
@@ -325,38 +281,31 @@ namespace VisualPinball.Unity.Editor
 
 		private void OnLabelMouseDown(MouseDownEvent evt)
 		{
-			var pickedLabel = evt.target as VisualElement;
-			var suggestOption = (SuggestOption)pickedLabel.userData;
-			OnSuggestedSelected?.Invoke(suggestOption);
-			_textEntry.SetValueWithoutNotify("");
+			var pickedLabel = evt.target as Label;
+			var suggestOption = pickedLabel!.text;
+			_textEntry.value = suggestOption;
 			_hasFocus = false;
 			UpdateVisibility();
 		}
-	}
 
-	public class SuggestOption : VisualElement
-	{
-		public string DisplayName { get; set; }
-
-		public object Data { get; set; }
-		public new class UxmlFactory : UxmlFactory<SuggestOption, UxmlTraits> { }
-		public new class UxmlTraits : BindableElement.UxmlTraits
+		private enum ShowMode
 		{
-			UxmlStringAttributeDescription _mDisplayName = new UxmlStringAttributeDescription { name = "display-name" };
-
-			public override void Init(VisualElement ve, IUxmlAttributes bag, CreationContext cc)
-			{
-				base.Init(ve, bag, cc);
-
-				var suggestOption = (SuggestOption)ve;
-
-				suggestOption.DisplayName = _mDisplayName.GetValueFromBag(bag, cc);
-			}
-
-			public override IEnumerable<UxmlChildElementDescription> uxmlChildElementsDescription
-			{
-				get { yield break; }
-			}
+			// Show as a normal window with max, min & close buttons.
+			NormalWindow = 0,
+			// Used for a popup menu. On mac this means light shadow and no titlebar.
+			PopupMenu = 1,
+			// Utility window - floats above the app. Disappears when app loses focus.
+			Utility = 2,
+			// Window has no shadow or decorations. Used internally for dragging stuff around.
+			NoShadow = 3,
+			// The Unity main window. On mac, this is the same as NormalWindow, except window doesn't have a close button.
+			MainWindow = 4,
+			// Aux windows. The ones that close the moment you move the mouse out of them.
+			AuxWindow = 5,
+			// Like PopupMenu, but without keyboard focus
+			Tooltip = 6,
+			// Modal Utility window
+			ModalUtility = 7
 		}
 	}
 }

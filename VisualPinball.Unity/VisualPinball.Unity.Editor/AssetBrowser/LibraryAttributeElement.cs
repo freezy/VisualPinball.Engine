@@ -54,8 +54,8 @@ namespace VisualPinball.Unity.Editor
 			_valuesEditElement = ui.Q<SearchSuggest>("attribute-value-edit");
 
 			_nameEditElement.SuggestOption = new[] {
-				new SuggestOption { DisplayName = "Manufacturer" },
-				new SuggestOption { DisplayName = "Part" },
+				"Manufacturer",
+				"Part",
 			};
 
 			ui.Q<Button>("okButton").RegisterCallback<MouseUpEvent>(_ => CompleteEdit(true, _nameEditElement.Value, _valuesEditElement.Value));
