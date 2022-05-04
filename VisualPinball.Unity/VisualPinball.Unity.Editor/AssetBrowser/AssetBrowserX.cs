@@ -35,7 +35,7 @@ namespace VisualPinball.Unity.Editor
 		public List<AssetLibrary> Libraries;
 
 		private List<AssetData> _assets;
-		private AssetQuery _query;
+		public AssetQuery Query;
 
 		private AssetData LastSelectedAsset {
 			set => _detailsElement.Asset = value;
@@ -73,8 +73,8 @@ namespace VisualPinball.Unity.Editor
 				.Where(asset => asset != null).ToList();
 
 			// setup query
-			_query = new AssetQuery(Libraries);
-			_query.OnQueryUpdated += OnQueryUpdated;
+			Query = new AssetQuery(Libraries);
+			Query.OnQueryUpdated += OnQueryUpdated;
 
 			// update left column
 			_libraryList.Clear();
@@ -96,7 +96,7 @@ namespace VisualPinball.Unity.Editor
 
 		private void RefreshAssets()
 		{
-			_query.Run();
+			Query.Run();
 		}
 
 		private void OnQueryUpdated(object sender, AssetQueryResult e)
@@ -238,9 +238,9 @@ namespace VisualPinball.Unity.Editor
 
 		#endregion Selection
 
-		public void OnCategoriesUpdated(Dictionary<AssetLibrary, List<LibraryCategory>> categories) => _query.Filter(categories);
-		private void OnSearchQueryChanged(ChangeEvent<string> evt) => _query.Search(evt.newValue);
-		private void OnLibraryToggled(AssetLibrary lib, bool enabled) => _query.Toggle(lib, enabled);
+		public void OnCategoriesUpdated(Dictionary<AssetLibrary, List<LibraryCategory>> categories) => Query.Filter(categories);
+		private void OnSearchQueryChanged(ChangeEvent<string> evt) => Query.Search(evt.newValue);
+		private void OnLibraryToggled(AssetLibrary lib, bool enabled) => Query.Toggle(lib, enabled);
 
 		private void OnDragUpdatedEvent(DragUpdatedEvent evt)
 		{

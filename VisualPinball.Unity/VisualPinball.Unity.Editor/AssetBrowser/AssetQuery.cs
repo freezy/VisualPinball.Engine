@@ -21,7 +21,10 @@ using UnityEngine;
 
 namespace VisualPinball.Unity.Editor
 {
-	internal class AssetQuery
+	/// <summary>
+	/// This class queries all loaded libraries and returns a merged result of assets.
+	/// </summary>
+	public class AssetQuery
 	{
 		public event EventHandler<AssetQueryResult> OnQueryUpdated;
 
@@ -56,6 +59,12 @@ namespace VisualPinball.Unity.Editor
 			}
 			Run();
 		}
+
+		public string[] AttributeNames => _libraries
+			.SelectMany(lib => lib.GetAttributeKeys())
+			.Distinct()
+			.OrderBy(x => x)
+			.ToArray();
 
 		public void Run()
 		{
