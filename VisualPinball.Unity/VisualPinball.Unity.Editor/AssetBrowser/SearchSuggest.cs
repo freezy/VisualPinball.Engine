@@ -27,7 +27,9 @@ using System.Linq;
 using System.Reflection;
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.UI;
 using UnityEngine.UIElements;
+using Object = UnityEngine.Object;
 
 namespace VisualPinball.Unity.Editor
 {
@@ -54,8 +56,8 @@ namespace VisualPinball.Unity.Editor
 		private object _ownerObject;
 		private object _showValue;
 
-		private bool _hasFocus = false;
-		private bool _popupVisible = false;
+		private bool _hasFocus;
+		private bool _popupVisible;
 		private Rect _popupPosition;
 
 		public SearchSuggest()
@@ -66,8 +68,6 @@ namespace VisualPinball.Unity.Editor
 			MatchedSuggestOption = new List<string>();
 
 			ConfigureOptionList();
-
-			//_textEntry.style.flexGrow = 1;
 
 			_matchingSuggestOptions = suggestOption => suggestOption.ToLower().Contains(_textEntry.value.ToLower());
 
@@ -81,8 +81,7 @@ namespace VisualPinball.Unity.Editor
 		{
 			if (_popupWindow == null) {
 				_popupWindow = ScriptableObject.CreateInstance<EditorWindow>();
-				_popupWindow.rootVisualElement.hierarchy
-					.Add(_optionList);
+				_popupWindow.rootVisualElement.hierarchy.Add(_optionList);
 			}
 		}
 
@@ -107,16 +106,15 @@ namespace VisualPinball.Unity.Editor
 					label!.text = suggestOption;
 				};
 				_optionList.selectionType = SelectionType.Single;
-				OppahOptionStyle(_optionList);
+				StyleOptionList(_optionList);
 			}
 		}
 
-		private void OppahOptionStyle(VisualElement element)
+		private static void StyleOptionList(VisualElement element)
 		{
 			element.style.left = 0;
 			element.style.right = 0;
 			element.style.height = 100;
-			//element.style.backgroundColor = Color.Lerp(Color.gray, Color.white, 0.5f);
 
 			element.style.borderTopWidth =
 				element.style.borderLeftWidth =
@@ -144,7 +142,7 @@ namespace VisualPinball.Unity.Editor
 		private void OnAttached(AttachToPanelEvent evt)
 		{
 			_ownerObjectProperty = evt.destinationPanel.GetType().GetProperty("ownerObject");
-			_ownerObject = _ownerObjectProperty.GetValue(evt.destinationPanel);
+			_ownerObject = _ownerObjectProperty!.GetValue(evt.destinationPanel);
 
 			_screenPositionProperty = _ownerObject.GetType().GetProperty("screenPosition");
 
@@ -154,12 +152,6 @@ namespace VisualPinball.Unity.Editor
 
 			_showValue = Enum.GetValues(showMode).GetValue((int)ShowMode.Tooltip);
 			_showValueArray = new[] { _showValue, false };
-
-			// var suggestOptions = Children().OfType<SuggestOptions>().SelectMany(sos => sos.Options)
-			// 	.Union(Children().OfType<SuggestOption>()).ToArray();
-
-			//SuggestOption = suggestOptions;
-
 
 			_textEntry.RegisterValueChangedCallback(OnTextChanged);
 			_textEntry.RegisterCallback<FocusOutEvent>(OnLostFocus);
@@ -261,7 +253,7 @@ namespace VisualPinball.Unity.Editor
 
 		private void UpdateVisibility()
 		{
-			if (_hasFocus && _optionList.itemsSource.Count > 0) {
+			if (_hasFocus && _optionList.itemsSource.Count > 0 && !(_optionList.itemsSource.Count == 1 && (string)_optionList.itemsSource[0] == _textEntry.value)) {
 				if (_popupVisible) return;
 				CreateNewWindow();
 				_showPopupNonFocus.Invoke(_popupWindow, _showValueArray);
@@ -274,7 +266,7 @@ namespace VisualPinball.Unity.Editor
 			_optionList.RemoveFromHierarchy();
 			if (_popupWindow != null) {
 				_popupWindow.Close();
-				ScriptableObject.DestroyImmediate(_popupWindow);
+				Object.DestroyImmediate(_popupWindow);
 			}
 			_popupVisible = false;
 		}
