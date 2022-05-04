@@ -44,8 +44,6 @@ namespace VisualPinball.Unity.Editor
 		/// </summary>
 		public void CreateGUI()
 		{
-			Debug.Log("CREATING ASSET BROWSER GUI...");
-
 			// import UXML
 			var visualTree = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>("Packages/org.visualpinball.engine.unity/VisualPinball.Unity/VisualPinball.Unity.Editor/AssetBrowser/AssetBrowserX.uxml");
 			visualTree.CloneTree(rootVisualElement);
@@ -84,7 +82,9 @@ namespace VisualPinball.Unity.Editor
 
 			_gridContent.RegisterCallback<DragUpdatedEvent>(OnDragUpdatedEvent);
 			_gridContent.RegisterCallback<DragPerformEvent>(OnDragPerformEvent);
-			_gridContent.RegisterCallback<PointerUpEvent>(evt => OnEmptyClicked(evt));
+			_gridContent.RegisterCallback<PointerUpEvent>(OnEmptyClicked);
+
+			ui.panel.visualTree.userData = this; // children need access to this. if there's another way of getting the panel's owner object, let me know!
 
 			Refresh();
 		}

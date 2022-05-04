@@ -34,6 +34,7 @@ namespace VisualPinball.Unity.Editor
 		private readonly SearchSuggest _valuesEditElement;
 
 		private bool _isEditing;
+		private AssetBrowserX _browser;
 
 		public LibraryAttributeElement(AssetData data, LibraryAttribute attribute)
 		{
@@ -53,11 +54,6 @@ namespace VisualPinball.Unity.Editor
 			_nameEditElement = ui.Q<SearchSuggest>("attribute-name-edit");
 			_valuesEditElement = ui.Q<SearchSuggest>("attribute-value-edit");
 
-			_nameEditElement.SuggestOption = new[] {
-				"Manufacturer",
-				"Part",
-			};
-
 			ui.Q<Button>("okButton").RegisterCallback<MouseUpEvent>(_ => CompleteEdit(true, _nameEditElement.Value, _valuesEditElement.Value));
 			ui.Q<Button>("cancelButton").RegisterCallback<MouseUpEvent>(_ => CompleteEdit(false));
 
@@ -69,6 +65,14 @@ namespace VisualPinball.Unity.Editor
 
 			// right-click menu
 			_displayElement.AddManipulator(new ContextualMenuManipulator(AddContextMenu));
+
+			RegisterCallback<AttachToPanelEvent>(OnAttached);
+		}
+
+		private void OnAttached(AttachToPanelEvent evt)
+		{
+			_browser = panel.visualTree.userData as AssetBrowserX;
+			_nameEditElement.SuggestOption = _browser!.Query.AttributeNames;
 		}
 
 		private void OnMouseDown(MouseDownEvent evt)

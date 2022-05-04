@@ -116,7 +116,6 @@ namespace VisualPinball.Unity.Editor
 			_browser.OnCategoriesUpdated(_selectedCategories);
 		}
 
-
 		private void Create()
 		{
 			var category = _browser.ActiveLibrary.AddCategory("New Category");

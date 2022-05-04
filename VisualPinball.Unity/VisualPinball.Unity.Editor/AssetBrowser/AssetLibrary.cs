@@ -26,6 +26,9 @@ using UnityEngine;
 
 namespace VisualPinball.Unity.Editor
 {
+	/// <summary>
+	/// This class handles the data layer of one asset library.
+	/// </summary>
 	[CreateAssetMenu(fileName = "Library", menuName = "Visual Pinball/Asset Library", order = 300)]
 	public class AssetLibrary : ScriptableObject, ISerializationCallbackReceiver, IDisposable
 	{
@@ -170,6 +173,12 @@ namespace VisualPinball.Unity.Editor
 		#endregion
 
 		#region Attribute
+
+		public IEnumerable<string> GetAttributeKeys()
+		{
+			var assets = _db.GetCollection<LibraryAsset>(CollectionAssets);
+			return assets.Query().ToList().SelectMany(a => a.Attributes).Select(a => a.Key).Distinct();
+		}
 
 		public LibraryAttribute AddAttribute(LibraryAsset asset, string attributeName)
 		{

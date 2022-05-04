@@ -18,7 +18,7 @@ using System.Collections.Generic;
 
 namespace VisualPinball.Unity.Editor
 {
-	internal class AssetQueryResult
+	public class AssetQueryResult
 	{
 		public readonly List<AssetData> Rows;
 
