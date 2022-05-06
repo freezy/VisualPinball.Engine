@@ -66,6 +66,11 @@ namespace VisualPinball.Unity.Editor
 			.OrderBy(x => x)
 			.ToArray();
 
+		public string[] AttributeValues(string attributeKey) => _libraries
+			.SelectMany(lib => lib.GetAttributeValues(attributeKey))
+			.Distinct()
+			.ToArray();
+
 		public void Run()
 		{
 			var assets = _libraries

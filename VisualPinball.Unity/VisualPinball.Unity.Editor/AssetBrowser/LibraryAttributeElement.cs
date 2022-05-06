@@ -73,6 +73,7 @@ namespace VisualPinball.Unity.Editor
 		{
 			_browser = panel.visualTree.userData as AssetBrowserX;
 			_nameEditElement.SuggestOption = _browser!.Query.AttributeNames;
+			_valuesEditElement.SuggestOption = _browser!.Query.AttributeValues(_attribute.Key);
 		}
 
 		private void OnMouseDown(MouseDownEvent evt)

@@ -177,7 +177,21 @@ namespace VisualPinball.Unity.Editor
 		public IEnumerable<string> GetAttributeKeys()
 		{
 			var assets = _db.GetCollection<LibraryAsset>(CollectionAssets);
-			return assets.Query().ToList().SelectMany(a => a.Attributes).Select(a => a.Key).Distinct();
+			return assets.Query().ToList()
+				.SelectMany(a => a.Attributes)
+				.Select(a => a.Key)
+				.Distinct();
+		}
+
+		public IEnumerable<string> GetAttributeValues(string key)
+		{
+			var assets = _db.GetCollection<LibraryAsset>(CollectionAssets);
+			return assets.Query().ToList()
+				.SelectMany(a => a.Attributes)
+				.Where(a => a.Key == key && !string.IsNullOrEmpty(a.Value))
+				.SelectMany(a => a.Value.Split(','))
+				.Select(v => v.Trim())
+				.Distinct();
 		}
 
 		public LibraryAttribute AddAttribute(LibraryAsset asset, string attributeName)
