@@ -58,8 +58,8 @@ namespace VisualPinball.Unity.Editor
 			ui.Q<Button>("cancelButton").RegisterCallback<MouseUpEvent>(_ => CompleteEdit(false));
 
 			_displayElement.RegisterCallback<MouseDownEvent>(OnMouseDown);
-			_nameEditElement.RegisterCallback<KeyDownEvent>(OnKeyDown);
-			_valuesEditElement.RegisterCallback<KeyDownEvent>(OnKeyDown);
+			_nameEditElement.RegisterKeyDownCallback(evt => OnKeyDown(evt, _nameEditElement));
+			_valuesEditElement.RegisterKeyDownCallback(evt => OnKeyDown(evt, _valuesEditElement));
 
 			Update();
 
@@ -72,8 +72,8 @@ namespace VisualPinball.Unity.Editor
 		private void OnAttached(AttachToPanelEvent evt)
 		{
 			_browser = panel.visualTree.userData as AssetBrowserX;
-			_nameEditElement.SuggestOption = _browser!.Query.AttributeNames;
-			_valuesEditElement.SuggestOption = _browser!.Query.AttributeValues(_attribute.Key);
+			_nameEditElement.SuggestOptions = _browser!.Query.AttributeNames;
+			_valuesEditElement.SuggestOptions = _browser!.Query.AttributeValues(_attribute.Key);
 		}
 
 		private void OnMouseDown(MouseDownEvent evt)
@@ -129,8 +129,11 @@ namespace VisualPinball.Unity.Editor
 			ToggleEdit();
 		}
 
-		private void OnKeyDown(KeyDownEvent evt)
+		private void OnKeyDown(KeyDownEvent evt, SearchSuggest ss)
 		{
+			if (ss.PopupVisible) {
+				return;
+			}
 			switch (evt.keyCode) {
 				case KeyCode.Return or KeyCode.KeypadEnter:
 					CompleteEdit(true, _nameEditElement.Value, _valuesEditElement.Value);
