@@ -40,10 +40,11 @@ namespace VisualPinball.Unity.Editor
 		public string Value { get => _textEntry.value; set => _textEntry.value = value; }
 		public new void Focus() => _textEntry.Focus();
 		public void SelectAll() => _textEntry.SelectAll();
+		public void RegisterKeyDownCallback(EventCallback<KeyDownEvent> evt) => _textEntry.RegisterCallback(evt);
 
 		public List<string> MatchedSuggestOption { get; set; }
 		private readonly Func<string, bool> _matchingSuggestOptions;
-		public string[] SuggestOption { get; set; } = Array.Empty<string>();
+		public string[] SuggestOptions { get; set; } = Array.Empty<string>();
 
 		private EditorWindow _popupWindow;
 		private ListView _optionList;
@@ -57,7 +58,7 @@ namespace VisualPinball.Unity.Editor
 		private object _showValue;
 
 		private bool _hasFocus;
-		private bool _popupVisible;
+		public bool PopupVisible;
 		private Rect _popupPosition;
 
 		public SearchSuggest()
@@ -162,14 +163,15 @@ namespace VisualPinball.Unity.Editor
 
 		private void OnKeyDown(KeyDownEvent evt)
 		{
-
 			switch (evt.keyCode) {
 				case KeyCode.Return:
 				case KeyCode.KeypadEnter:
-					var suggestOption = MatchedSuggestOption[_optionList.selectedIndex];
-					_textEntry.value = suggestOption;
-					_hasFocus = false;
-					UpdateVisibility();
+					if (_optionList.selectedIndex != -1) {
+						var suggestOption = MatchedSuggestOption[_optionList.selectedIndex];
+						_textEntry.value = suggestOption;
+						_hasFocus = false;
+						UpdateVisibility();
+					}
 					return;
 
 				case KeyCode.UpArrow:
@@ -246,7 +248,7 @@ namespace VisualPinball.Unity.Editor
 				return;
 			}
 
-			MatchedSuggestOption.AddRange(SuggestOption.Where(_matchingSuggestOptions));
+			MatchedSuggestOption.AddRange(SuggestOptions.Where(_matchingSuggestOptions));
 
 			_optionList.Rebuild();
 		}
@@ -254,10 +256,10 @@ namespace VisualPinball.Unity.Editor
 		private void UpdateVisibility()
 		{
 			if (_hasFocus && _optionList.itemsSource.Count > 0 && !(_optionList.itemsSource.Count == 1 && (string)_optionList.itemsSource[0] == _textEntry.value)) {
-				if (_popupVisible) return;
+				if (PopupVisible) return;
 				CreateNewWindow();
 				_showPopupNonFocus.Invoke(_popupWindow, _showValueArray);
-				_popupVisible = true;
+				PopupVisible = true;
 			} else Cleanup();
 		}
 
@@ -268,7 +270,7 @@ namespace VisualPinball.Unity.Editor
 				_popupWindow.Close();
 				Object.DestroyImmediate(_popupWindow);
 			}
-			_popupVisible = false;
+			PopupVisible = false;
 		}
 
 		private void OnLabelMouseDown(MouseDownEvent evt)
