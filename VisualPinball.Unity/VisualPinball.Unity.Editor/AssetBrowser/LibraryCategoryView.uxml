@@ -1,0 +1,14 @@
+﻿<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements">
+	<ui:ScrollView>
+		<ui:VisualElement name="container" />
+	</ui:ScrollView>
+	<ui:Label name="noCategories" text="No categories found." class="left-empty"/>
+	<ui:VisualElement name="addContainer">
+		<ui:Button name="add" text="Add"/>
+		<ui:Label text="to"/>
+		<ui:VisualElement name="activeLibrary"/>
+	</ui:VisualElement>
+</ui:UXML>
+
+
+

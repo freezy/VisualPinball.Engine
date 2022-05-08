@@ -31,7 +31,10 @@ namespace VisualPinball.Unity.Editor
 		[SerializeField]
 		private int _thumbnailSize = 150;
 
-		public AssetLibrary ActiveLibrary;
+		[SerializeField]
+		public string ActiveLibraryForCategories;
+
+		[NonSerialized]
 		public List<AssetLibrary> Libraries;
 
 		private List<AssetData> _assets;
@@ -72,6 +75,13 @@ namespace VisualPinball.Unity.Editor
 				.Select(AssetDatabase.LoadAssetAtPath<AssetLibrary>)
 				.Where(asset => asset != null).ToList();
 
+			// toggle label
+			if (Libraries.Count == 0) {
+				_noLibrariesLabel.RemoveFromClassList("hidden");
+			} else {
+				_noLibrariesLabel.AddToClassList("hidden");
+			}
+
 			// setup query
 			Query = new AssetQuery(Libraries);
 			Query.OnQueryUpdated += OnQueryUpdated;
@@ -80,12 +90,6 @@ namespace VisualPinball.Unity.Editor
 			_libraryList.Clear();
 			foreach (var assetLibrary in Libraries) {
 				_libraryList.Add(NewAssetLibrary(assetLibrary));
-			}
-
-			// update top dropdown
-			_activeLibraryDropdown.choices = Libraries.Select(l => l.Name).ToList();
-			if (ActiveLibrary != null && Libraries.Count > 0) {
-				_activeLibraryDropdown.index = System.Math.Max(0, _activeLibraryDropdown.choices.IndexOf(ActiveLibrary.Name));
 			}
 		}
 
@@ -303,17 +307,6 @@ namespace VisualPinball.Unity.Editor
 				e.style.width = _thumbnailSize;
 				e.style.height = _thumbnailSize;
 			}
-		}
-		private string OnActiveLibraryChanged(string libraryName)
-		{
-			if (Libraries == null) {
-				return libraryName;
-			}
-			var library = Libraries.FirstOrDefault(l => l.Name == libraryName);
-			if (library != null) {
-				ActiveLibrary = library;
-			}
-			return libraryName;
 		}
 
 		public void AttachData()

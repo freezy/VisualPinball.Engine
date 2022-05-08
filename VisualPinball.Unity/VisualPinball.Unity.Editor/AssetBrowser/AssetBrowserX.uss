@@ -17,6 +17,14 @@
 	margin-bottom: 3px;
 }
 
+.left-empty {
+	margin: 16px;
+	white-space: normal;
+	-unity-font-style: italic;
+	-unity-text-align: middle-center;
+}
+
+
 AssetDetailsElement > TemplateContainer {
 	flex-grow: 1;
 }
