@@ -24,9 +24,13 @@
 	-unity-text-align: middle-center;
 }
 
-
 AssetDetailsElement > TemplateContainer {
 	flex-grow: 1;
+}
+
+#libraryList .library-item Image {
+	width: 16px;
+	height: 16px;
 }
 
 /* "grid" */

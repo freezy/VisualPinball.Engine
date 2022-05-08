@@ -282,7 +282,7 @@ namespace VisualPinball.Unity.Editor
 							if (!assetLibrary.IsReadOnly) {
 								continue;
 							}
-							_dragError = "Access Error. The library you're trying to add assets to is in read-only mode.";
+							_dragError = "Access Error. The library you're trying to add assets to is locked.";
 							break;
 						}
 
