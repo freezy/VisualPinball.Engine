@@ -28,11 +28,17 @@
 				<!-- CONTENT -->
 				<ui:ScrollView name="gridContent" focusable="true"/>
 
+				<!-- ERROR PANEL -->
+				<ui:VisualElement name="dragErrorContainer" class="hidden">
+					<ui:Label name="dragError" />
+				</ui:VisualElement>
+
 				<!-- BOTTOM INFO BAR -->
 				<uie:Toolbar name="bottomToolbar">
 					<ui:Label name="bottomLabel" text="Label" display-tooltip-when-elided="true"/>
 					<ui:Slider name="sizeSlider" picking-mode="Ignore" value="42" low-value="50" high-value="300"/>
 				</uie:Toolbar>
+
 			</ui:VisualElement>
 
 			<!-- RIGHT COLUMN (details) -->

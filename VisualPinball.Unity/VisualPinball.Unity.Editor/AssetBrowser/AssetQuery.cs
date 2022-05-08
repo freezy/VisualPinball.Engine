@@ -32,7 +32,7 @@ namespace VisualPinball.Unity.Editor
 		private readonly List<AssetLibrary> _libraries;
 		private string _query;
 		private Dictionary<AssetLibrary, List<LibraryCategory>> _categories;
-		private List<(string, string)> _attributes = new();
+		private readonly List<(string, string)> _attributes = new();
 
 		public AssetQuery(List<AssetLibrary> libraries)
 		{

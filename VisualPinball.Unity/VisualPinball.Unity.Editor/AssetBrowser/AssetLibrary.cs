@@ -36,6 +36,8 @@ namespace VisualPinball.Unity.Editor
 
 		public string LibraryRoot;
 
+		public bool IsReadOnly = false;
+
 		private const string CollectionAssets = "assets";
 		public const string CollectionCategories = "categories";
 
@@ -72,6 +74,10 @@ namespace VisualPinball.Unity.Editor
 
 		public bool AddAsset(string guid, Type type, string path, LibraryCategory category = null, List<LibraryAttribute> attrs = null)
 		{
+			if (IsReadOnly) {
+				throw new InvalidOperationException($"Library {Name} is read-only.");
+			}
+
 			var collection = _db.GetCollection<LibraryAsset>(CollectionAssets);
 
 			var existingAsset = collection.FindOne(x => x.Guid == guid);

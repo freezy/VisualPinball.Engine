@@ -37,7 +37,13 @@ namespace VisualPinball.Unity.Editor
 		[NonSerialized]
 		public List<AssetLibrary> Libraries;
 
+		[NonSerialized]
 		private List<AssetData> _assets;
+
+		[NonSerialized]
+		private string _dragError;
+
+		[NonSerialized]
 		public AssetQuery Query;
 
 		private AssetData LastSelectedAsset {
@@ -259,18 +265,62 @@ namespace VisualPinball.Unity.Editor
 		private void OnSearchQueryChanged(ChangeEvent<string> evt) => Query.Search(evt.newValue);
 		private void OnLibraryToggled(AssetLibrary lib, bool enabled) => Query.Toggle(lib, enabled);
 
+		private void OnDragEnterEvent(DragEnterEvent evt)
+		{
+			_dragError = null;
+
+			if (_categoryView.NumCategories == 0) {
+				_dragError = "Unknown category. Seems there are no categories in the database, so you'll need to create one first.";
+
+			} else if (_categoryView.NumSelectedCategories != 1) {
+				_dragError = "Unknown category. You have to filter by one single category when dragging into the grid view. But you can also drag onto the category directly on the left directly.";
+
+			} else {
+				foreach (var path in DragAndDrop.paths) {
+					foreach (var assetLibrary in Libraries) {
+						if (path.Replace('\\', '/').StartsWith(assetLibrary.LibraryRoot.Replace('\\', '/'))) {
+							if (!assetLibrary.IsReadOnly) {
+								continue;
+							}
+							_dragError = "Access Error. The library you're trying to add assets to is in read-only mode.";
+							break;
+						}
+
+						_dragError = "Unknown library. Your assets must be under the root of a library, and at least one of the assets you're dragging is not.";
+						break;
+					}
+
+					if (_dragError != null) {
+						break;
+					}
+				}
+			}
+
+			if (_dragError != null) {
+				// show error panel
+				_dragErrorContainer.RemoveFromClassList("hidden");
+				_dragErrorLabel.text = _dragError;
+			}
+		}
+
 		private void OnDragUpdatedEvent(DragUpdatedEvent evt)
 		{
-			DragAndDrop.visualMode = DragAndDrop.objectReferences != null
-				? DragAndDropVisualMode.Move
+			DragAndDrop.visualMode = _dragError != null
+				? DragAndDropVisualMode.Rejected
 				: DragAndDropVisualMode.Copy;
+		}
+
+		private void OnDragLeaveEvent(DragLeaveEvent evt)
+		{
+			// hide error panel
+			_dragErrorContainer.AddToClassList("hidden");
 		}
 
 		private void OnDragPerformEvent(DragPerformEvent evt)
 		{
-			// can only drag onto the asset grid if only one category is selected.
-			if (_categoryView.NumSelectedCategories != 1) {
-				Debug.Log("Only one category must be selected when dragging onto the main asset panel.");
+			if (_dragError != null) {
+				// hide error panel
+				_dragErrorContainer.AddToClassList("hidden");
 				return;
 			}
 
@@ -278,10 +328,8 @@ namespace VisualPinball.Unity.Editor
 
 			// Disallow adding from outside of Unity
 			foreach (var path in DragAndDrop.paths) {
-				var libraryFound = false;
 				foreach (var assetLibrary in Libraries) {
 					if (path.Replace('\\', '/').StartsWith(assetLibrary.LibraryRoot.Replace('\\', '/'))) {
-						libraryFound = true;
 						var guid = AssetDatabase.AssetPathToGUID(path);
 						var type = AssetDatabase.GetMainAssetTypeAtPath(path);
 						var category = _categoryView.GetOrCreateSelected(assetLibrary);
@@ -292,14 +340,12 @@ namespace VisualPinball.Unity.Editor
 							Debug.Log($"{Path.GetFileName(path)} updated in library {assetLibrary.Name}.");
 						}
 
-						//Setup();
+						// todo update data views
 					}
-				}
-				if (!libraryFound) {
-					Debug.LogError($"Cannot find a VPE library at path {Path.GetDirectoryName(path)}, ignoring asset {Path.GetFileName(path)}.");
 				}
 			}
 		}
+
 		private void OnThumbSizeChanged(ChangeEvent<float> evt)
 		{
 			_thumbnailSize = (int)evt.newValue;

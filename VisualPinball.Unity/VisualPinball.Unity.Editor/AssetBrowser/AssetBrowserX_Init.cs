@@ -31,6 +31,8 @@ namespace VisualPinball.Unity.Editor
 		private Label _noLibrariesLabel;
 
 		private VisualElement _gridContent;
+		private Label _dragErrorLabel;
+		private VisualElement _dragErrorContainer;
 		private AssetDetailsElement _detailsElement;
 		private Label _bottomLabel;
 		private Slider _sizeSlider;
@@ -72,8 +74,13 @@ namespace VisualPinball.Unity.Editor
 			_queryInput = ui.Q<ToolbarSearchField>("queryInput");
 			_queryInput.RegisterValueChangedCallback(OnSearchQueryChanged);
 
+			_dragErrorContainer = ui.Q<VisualElement>("dragErrorContainer");
+			_dragErrorLabel = ui.Q<Label>("dragError");
+
 			_gridContent.RegisterCallback<DragUpdatedEvent>(OnDragUpdatedEvent);
 			_gridContent.RegisterCallback<DragPerformEvent>(OnDragPerformEvent);
+			_gridContent.RegisterCallback<DragEnterEvent>(OnDragEnterEvent);
+			_gridContent.RegisterCallback<DragLeaveEvent>(OnDragLeaveEvent);
 			_gridContent.RegisterCallback<PointerUpEvent>(OnEmptyClicked);
 
 			ui.panel.visualTree.userData = this; // children need access to this. if there's another way of getting the panel's owner object, let me know!

@@ -26,6 +26,7 @@ namespace VisualPinball.Unity.Editor
 		public new class UxmlFactory : UxmlFactory<LibraryCategoryView, UxmlTraits> { }
 
 		public int NumSelectedCategories => _selectedCategories.Count;
+		public int NumCategories;
 
 		private AssetBrowserX _browser;
 		private AssetLibrary _activeLibrary;
@@ -91,10 +92,11 @@ namespace VisualPinball.Unity.Editor
 			foreach (var cat in categories) {
 				var categoryElement = new LibraryCategoryElement(this, cat);
 				_container.Add(categoryElement);
+				NumCategories++;
 			}
 
 			// show/hide "no categories"
-			if (_container.childCount > 0) {
+			if (NumCategories > 0) {
 				_noCategoriesLabel.AddToClassList("hidden");
 			} else {
 				_noCategoriesLabel.RemoveFromClassList("hidden");
@@ -106,6 +108,7 @@ namespace VisualPinball.Unity.Editor
 				_activeLibraryDropdown.index = System.Math.Max(0, _activeLibraryDropdown.choices.IndexOf(_activeLibrary.Name));
 			}
 
+			// if active library isn't set, try to match it by name
 			if (_activeLibrary == null && _browser.Libraries.Count > 0) {
 				var activeLibrary = _browser.Libraries.FirstOrDefault(l => l.Name == _browser.ActiveLibraryForCategories);
 				if (activeLibrary != null) {
@@ -114,6 +117,7 @@ namespace VisualPinball.Unity.Editor
 				}
 			}
 
+			// if active library cannot be determined, fall back to first available library.
 			if (_activeLibrary == null && _browser.Libraries.Count > 0) {
 				_activeLibrary = _browser.Libraries.First();
 				_activeLibraryDropdown.index = System.Math.Max(0, _activeLibraryDropdown.choices.IndexOf(_activeLibrary.Name));
