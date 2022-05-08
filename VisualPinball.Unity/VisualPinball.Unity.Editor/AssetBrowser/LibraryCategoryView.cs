@@ -16,6 +16,7 @@
 
 using System.Collections.Generic;
 using System.Linq;
+using UnityEditor;
 using UnityEngine.UIElements;
 
 namespace VisualPinball.Unity.Editor
@@ -27,19 +28,52 @@ namespace VisualPinball.Unity.Editor
 		public int NumSelectedCategories => _selectedCategories.Count;
 
 		private AssetBrowserX _browser;
-		private readonly VisualElement _container = new();
+		private AssetLibrary _activeLibrary;
+
+		private readonly VisualElement _container;
 		private readonly HashSet<LibraryCategoryElement> _selectedCategoryElements = new();
 		private readonly Dictionary<AssetLibrary, List<LibraryCategory>> _selectedCategories = new();
+		private readonly DropdownField _activeLibraryDropdown;
+		private readonly Label _noCategoriesLabel;
+		private readonly VisualElement _addContainer;
 
 		public LibraryCategoryView()
 		{
-			var scrollView = new ScrollView();
-			var button = new Button(Create) {
-				text = "New Category"
+			// import UXML
+			var visualTree = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>("Packages/org.visualpinball.engine.unity/VisualPinball.Unity/VisualPinball.Unity.Editor/AssetBrowser/LibraryCategoryView.uxml");
+			var ui = visualTree.CloneTree();
+
+			// import style sheet
+			var styleSheet = AssetDatabase.LoadAssetAtPath<StyleSheet>("Packages/org.visualpinball.engine.unity/VisualPinball.Unity/VisualPinball.Unity.Editor/AssetBrowser/LibraryCategoryView.uss");
+			ui.styleSheets.Add(styleSheet);
+
+			Add(ui);
+
+			_container = ui.Q<VisualElement>("container");
+			_noCategoriesLabel = ui.Q<Label>("noCategories");
+			_addContainer = ui.Q<VisualElement>("addContainer");
+			ui.Q<Button>("add").clickable = new Clickable(Create);
+
+			// active library dropdown
+			var activeLibraryContainer = ui.Q<VisualElement>("activeLibrary");
+			_activeLibraryDropdown = new DropdownField(new List<string> { "none" }, 0, OnActiveLibraryChanged) {
+				tooltip = "The library in which the new category will be created."
 			};
-			Add(scrollView);
-			scrollView.Add(_container);
-			Add(button);
+			activeLibraryContainer.Add(_activeLibraryDropdown);
+		}
+
+		private string OnActiveLibraryChanged(string libraryName)
+		{
+			if (_browser == null || _browser.Libraries == null) {
+				return libraryName;
+			}
+			var library = _browser.Libraries.FirstOrDefault(l => l.Name == libraryName);
+			if (library == null) {
+				return libraryName;
+			}
+			_activeLibrary = library;
+			_browser.ActiveLibraryForCategories = _activeLibrary.Name;
+			return libraryName;
 		}
 
 		public void Refresh(AssetBrowserX browser = null)
@@ -47,8 +81,9 @@ namespace VisualPinball.Unity.Editor
 			if (browser != null) {
 				_browser = browser;
 			}
-			_container.Clear();
 
+			// update categories
+			_container.Clear();
 			var categories = _browser.Libraries
 				.SelectMany(lib => lib.GetCategories().Select(c => (lib, c)))
 				.GroupBy(t => t.Item2.Name, (_, g) => g);
@@ -56,6 +91,39 @@ namespace VisualPinball.Unity.Editor
 			foreach (var cat in categories) {
 				var categoryElement = new LibraryCategoryElement(this, cat);
 				_container.Add(categoryElement);
+			}
+
+			// show/hide "no categories"
+			if (_container.childCount > 0) {
+				_noCategoriesLabel.AddToClassList("hidden");
+			} else {
+				_noCategoriesLabel.RemoveFromClassList("hidden");
+			}
+
+			// update libraries dropdown
+			_activeLibraryDropdown.choices = _browser.Libraries.Select(l => l.Name).ToList();
+			if (_activeLibrary != null && _browser.Libraries.Count > 0) {
+				_activeLibraryDropdown.index = System.Math.Max(0, _activeLibraryDropdown.choices.IndexOf(_activeLibrary.Name));
+			}
+
+			if (_activeLibrary == null && _browser.Libraries.Count > 0) {
+				var activeLibrary = _browser.Libraries.FirstOrDefault(l => l.Name == _browser.ActiveLibraryForCategories);
+				if (activeLibrary != null) {
+					_activeLibrary = activeLibrary;
+					_activeLibraryDropdown.index = System.Math.Max(0, _activeLibraryDropdown.choices.IndexOf(_activeLibrary.Name));
+				}
+			}
+
+			if (_activeLibrary == null && _browser.Libraries.Count > 0) {
+				_activeLibrary = _browser.Libraries.First();
+				_activeLibraryDropdown.index = System.Math.Max(0, _activeLibraryDropdown.choices.IndexOf(_activeLibrary.Name));
+			}
+
+			// show/hide add button
+			if (_activeLibrary != null) {
+				_addContainer.RemoveFromClassList("hidden");
+			} else {
+				_addContainer.AddToClassList("hidden");
 			}
 		}
 
@@ -118,8 +186,8 @@ namespace VisualPinball.Unity.Editor
 
 		private void Create()
 		{
-			var category = _browser.ActiveLibrary.AddCategory("New Category");
-			var categoryElement = new LibraryCategoryElement(this, new []{(_browser.ActiveLibrary, category)});
+			var category = _activeLibrary.AddCategory("New Category");
+			var categoryElement = new LibraryCategoryElement(this, new []{(_activeLibrary, category)});
 			_container.Add(categoryElement);
 			categoryElement.ToggleRename();
 		}

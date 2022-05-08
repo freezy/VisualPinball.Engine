@@ -7,7 +7,6 @@
 		<uie:ToolbarSpacer/>
 		<uie:ToolbarSearchField focusable="true" name="queryInput"/>
 		<uie:ToolbarSpacer/>
-		<ui:VisualElement name="activeLibrary"/>
 	</uie:Toolbar>
 
 	<!-- CONTAINER -->
@@ -17,6 +16,7 @@
 		<ui:VisualElement name="leftPane" focusable="true">
 			<ui:Label text="Libraries" class="left-title"/>
 			<ui:VisualElement name="libraryList"/>
+			<ui:Label name="noLibraries" text="No libraries found." class="left-empty"/>
 			<ui:Label text="Categories" class="left-title"/>
 			<VisualPinball.Unity.Editor.LibraryCategoryView/>
 		</ui:VisualElement>

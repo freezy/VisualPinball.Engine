@@ -44,6 +44,7 @@ namespace VisualPinball.Unity.Editor
 				if (_dbInstance != null) {
 					return _dbInstance;
 				}
+
 				_dbInstance = new LiteDatabase(_dbPath);
 				return _dbInstance;
 			}
@@ -223,7 +224,11 @@ namespace VisualPinball.Unity.Editor
 		public void OnBeforeSerialize()
 		{
 			if (string.IsNullOrEmpty(LibraryRoot)) {
-				LibraryRoot = Path.GetDirectoryName(AssetDatabase.GetAssetPath(this));
+				var path = AssetDatabase.GetAssetPath(this);
+				if (!string.IsNullOrEmpty(path)) {
+					Name = Path.GetFileNameWithoutExtension(path);
+					LibraryRoot = Path.GetDirectoryName(path);
+				}
 			}
 		}
 

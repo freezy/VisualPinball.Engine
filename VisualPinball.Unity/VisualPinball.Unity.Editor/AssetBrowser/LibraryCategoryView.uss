@@ -1,0 +1,11 @@
+﻿#addContainer {
+	flex-direction: row;
+}
+
+#addContainer > #activeLibrary {
+	flex-grow: 1;
+}
+
+#addContainer > Label {
+	margin-top: 2px;
+}

@@ -14,11 +14,9 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-using System.Collections.Generic;
 using System.IO;
 using UnityEditor;
 using UnityEditor.UIElements;
-using UnityEngine;
 using UnityEngine.UIElements;
 
 namespace VisualPinball.Unity.Editor
@@ -30,7 +28,7 @@ namespace VisualPinball.Unity.Editor
 
 		private LibraryCategoryView _categoryView;
 		private VisualElement _libraryList;
-		private DropdownField _activeLibraryDropdown;
+		private Label _noLibrariesLabel;
 
 		private VisualElement _gridContent;
 		private AssetDetailsElement _detailsElement;
@@ -57,13 +55,7 @@ namespace VisualPinball.Unity.Editor
 
 			// libraries
 			_libraryList = ui.Q<VisualElement>("libraryList");
-
-			// active library dropdown
-			var activeLibraryContainer = ui.Q<VisualElement>("activeLibrary");
-			_activeLibraryDropdown = new DropdownField(new List<string> { "none" }, 0, OnActiveLibraryChanged) {
-				tooltip = "The library that is currently being edited."
-			};
-			activeLibraryContainer.Add(_activeLibraryDropdown);
+			_noLibrariesLabel = ui.Q<Label>("noLibraries");
 
 			_categoryView = ui.Q<LibraryCategoryView>();
 			_gridContent = ui.Q<VisualElement>("gridContent");
@@ -101,8 +93,6 @@ namespace VisualPinball.Unity.Editor
 			foreach (var assetLibrary in Libraries) {
 				assetLibrary.Dispose();
 			}
-
-			Debug.Log("ASSET BROWSER UNLOADED.");
 		}
 
 		private VisualElement NewItem(AssetData data)
