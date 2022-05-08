@@ -106,7 +106,7 @@ namespace VisualPinball.Unity.Editor
 			_db.GetCollection<LibraryAsset>(CollectionAssets).Update(asset);
 		}
 
-		public IEnumerable<LibraryAsset> GetAssets(string query = null, List<LibraryCategory> categories = null)
+		public IEnumerable<LibraryAsset> GetAssets(string query, List<LibraryCategory> categories, List<(string, string)> attributes)
 		{
 			var assets = _db.GetCollection<LibraryAsset>(CollectionAssets);
 			var q = assets.Query();
@@ -118,9 +118,21 @@ namespace VisualPinball.Unity.Editor
 				var categoryIds = categories.Select(c => c.Id);
 				q.Where(a => categoryIds.Contains(a.Category.Id));
 			}
-			return q
+			// run query
+			var result = q
 				.Include(a => a.Category)
 				.ToList();
+
+			// do the attribute search after the query.
+			foreach (var (attrKey, attrValue) in attributes) {
+				result = result.Where(a => a.Attributes != null && a.Attributes.Any(at => {
+					var keyMatches = string.Equals(at.Key, attrKey, StringComparison.CurrentCultureIgnoreCase);
+					var valueMatches = attrValue != null && at.Value != null && at.Value.ToLower().Contains(attrValue.ToLower());
+					return attrValue != null ? keyMatches && valueMatches : keyMatches;
+				})).ToList();
+			}
+
+			return result;
 		}
 
 		#endregion

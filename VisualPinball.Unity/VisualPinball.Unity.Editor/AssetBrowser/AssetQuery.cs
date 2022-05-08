@@ -17,6 +17,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.RegularExpressions;
 using UnityEngine;
 
 namespace VisualPinball.Unity.Editor
@@ -31,6 +32,7 @@ namespace VisualPinball.Unity.Editor
 		private readonly List<AssetLibrary> _libraries;
 		private string _query;
 		private Dictionary<AssetLibrary, List<LibraryCategory>> _categories;
+		private List<(string, string)> _attributes = new();
 
 		public AssetQuery(List<AssetLibrary> libraries)
 		{
@@ -39,7 +41,13 @@ namespace VisualPinball.Unity.Editor
 
 		public void Search(string q)
 		{
-			_query = q;
+			var attrRegex = new Regex(@"(\w+):(\w+)");
+			_attributes.Clear();
+			foreach (Match match in attrRegex.Matches(q)) {
+				_attributes.Add((match.Groups[1].Value, match.Groups[2].Value));
+				q = q.Replace(match.Value, "");
+			}
+			_query = Regex.Replace(q, @"\s+", " ");
 			Run();
 		}
 
@@ -82,11 +90,12 @@ namespace VisualPinball.Unity.Editor
 						}
 						return lib.GetAssets(
 							_query,
-							_categories != null && _categories.ContainsKey(lib) ? _categories[lib] : null
+							_categories != null && _categories.ContainsKey(lib) ? _categories[lib] : null,
+							_attributes
 						).Select(asset => new AssetData(lib, asset));
 
 					} catch (Exception e) {
-						Debug.LogError($"Error reading assets from {lib.Name}, maybe corruption? ({e.Message})");
+						Debug.LogError($"Error reading assets from {lib.Name}, maybe corruption? ({e.Message})\n{e.StackTrace}");
 						// old data or whatever, just don't crash here.
 						return Array.Empty<AssetData>();
 					}

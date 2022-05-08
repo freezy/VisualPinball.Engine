@@ -89,6 +89,11 @@ namespace VisualPinball.Unity.Editor
 			}
 		}
 
+		public void FilterByAttribute(string attributeKey, string value)
+		{
+			_queryInput.value = $"{_queryInput.value} {attributeKey}:{value}".Trim();
+		}
+
 		private void RefreshCategories()
 		{
 			_categoryView.Refresh(this);
