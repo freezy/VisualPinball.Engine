@@ -7,7 +7,6 @@
 		<uie:ToolbarSpacer/>
 		<uie:ToolbarSearchField focusable="true" name="queryInput"/>
 		<uie:ToolbarSpacer/>
-		<uie:ToolbarToggle focusable="false" label="Toggle"/>
 		<ui:VisualElement name="activeLibrary"/>
 	</uie:Toolbar>
 

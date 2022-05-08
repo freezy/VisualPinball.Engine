@@ -41,12 +41,16 @@ namespace VisualPinball.Unity.Editor
 
 		public void Search(string q)
 		{
-			var attrRegex = new Regex(@"(\w+):(\w+)");
 			_attributes.Clear();
-			foreach (Match match in attrRegex.Matches(q)) {
-				_attributes.Add((match.Groups[1].Value, match.Groups[2].Value));
-				q = q.Replace(match.Value, "");
+
+			foreach (var regex in new []{ new Regex(@"(\w+):(\w+)"), new Regex("\"([\\w\\s]+)\":(\\w+)"), new Regex("(\\w+):\"([\\w\\s]+)\""), new Regex("\"([\\w\\s]+)\":\"([\\w\\s]+)\"") }) {
+				foreach (Match match in regex.Matches(q)) {
+					_attributes.Add((match.Groups[1].Value, match.Groups[2].Value));
+					q = q.Replace(match.Value, "");
+				}
 			}
+
+
 			_query = Regex.Replace(q, @"\s+", " ");
 			Run();
 		}

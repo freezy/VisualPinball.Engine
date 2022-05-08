@@ -91,7 +91,15 @@ namespace VisualPinball.Unity.Editor
 
 		public void FilterByAttribute(string attributeKey, string value)
 		{
-			_queryInput.value = $"{_queryInput.value} {attributeKey}:{value}".Trim();
+			_queryInput.value = attributeKey.Contains(" ")
+				? $"{_queryInput.value} \"{attributeKey}\":".Trim()
+				: $"{_queryInput.value} {attributeKey}:".Trim();
+
+			if (value.Contains(" ")) {
+				_queryInput.value += $"\"{value}\"".Trim();
+			} else {
+				_queryInput.value += $"{value}".Trim();
+			}
 		}
 
 		private void RefreshCategories()
@@ -111,7 +119,7 @@ namespace VisualPinball.Unity.Editor
 
 		private void UpdateQueryResults(List<AssetData> assets)
 		{
-			_bottomLabel.text = $"Found {assets.Count} assets.";
+			_bottomLabel.text = $"Found {assets.Count} asset" + (assets.Count == 1 ? "" : "s") + ".";
 			_assets = assets;
 			_gridContent.Clear();
 			_elementByAsset.Clear();
