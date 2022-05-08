@@ -5,6 +5,7 @@
 	flex-grow: 1;
 	flex-direction: row;
 	justify-content: flex-end;
+	flex-wrap: wrap;
 }
 
 .library-attribute-element #attribute-values > Label:hover {
