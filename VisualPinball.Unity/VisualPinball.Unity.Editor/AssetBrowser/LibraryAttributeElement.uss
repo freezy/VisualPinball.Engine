@@ -3,11 +3,12 @@
 }
 .library-attribute-element #attribute-values {
 	flex-grow: 1;
-	flex-direction: row-reverse;
+	flex-direction: row;
+	justify-content: flex-end;
 }
 
-.library-attribute-element #attribute-values > Label {
-	-unity-text-align: middle-right;
+.library-attribute-element #attribute-values > Label:hover {
+	cursor: zoom;
 }
 
 .library-attribute-edit-element {

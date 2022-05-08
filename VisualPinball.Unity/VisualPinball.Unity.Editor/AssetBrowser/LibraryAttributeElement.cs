@@ -105,7 +105,9 @@ namespace VisualPinball.Unity.Editor
 				var values = _attribute.Value.Split(',').Select(s => s.Trim());
 				_valuesElement.Clear();
 				foreach (var value in values) {
-					_valuesElement.Add(new Label(value)); // todo make each of those clickable
+					var label = new Label(value);
+					label.RegisterCallback<MouseDownEvent>(_ => _browser.FilterByAttribute(_attribute.Key, value));
+					_valuesElement.Add(label);
 				}
 			}
 			_nameElement.text = _attribute.Key;
