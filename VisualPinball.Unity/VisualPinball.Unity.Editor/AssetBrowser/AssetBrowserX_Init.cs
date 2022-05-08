@@ -122,6 +122,13 @@ namespace VisualPinball.Unity.Editor
 			var item = new VisualElement();
 			item.AddToClassList("library-item");
 			item.style.flexDirection = FlexDirection.Row;
+			//if (lib.IsReadOnly) {
+				var icon = new Image {
+					//image = EditorGUIUtility.IconContent("InspectorLock").image
+					image = EditorGUIUtility.IconContent("d_Folder Icon").image
+				};
+				item.Add(icon);
+			//}
 			item.Add(toggle);
 
 			toggle.value = true;

@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEditor;
@@ -103,14 +104,18 @@ namespace VisualPinball.Unity.Editor
 			}
 
 			// update libraries dropdown
-			_activeLibraryDropdown.choices = _browser.Libraries.Select(l => l.Name).ToList();
-			if (_activeLibrary != null && _browser.Libraries.Count > 0) {
+			var writableLibraries = _browser.Libraries.Where(lib => !lib.IsReadOnly).ToArray();
+			_activeLibraryDropdown.choices = writableLibraries.Select(l => l.Name).ToList();
+			if (_activeLibrary != null && _activeLibrary.IsReadOnly) {
+				_activeLibrary = null;
+			}
+			if (_activeLibrary != null && writableLibraries.Length > 0) {
 				_activeLibraryDropdown.index = System.Math.Max(0, _activeLibraryDropdown.choices.IndexOf(_activeLibrary.Name));
 			}
 
 			// if active library isn't set, try to match it by name
-			if (_activeLibrary == null && _browser.Libraries.Count > 0) {
-				var activeLibrary = _browser.Libraries.FirstOrDefault(l => l.Name == _browser.ActiveLibraryForCategories);
+			if (_activeLibrary == null && writableLibraries.Length > 0) {
+				var activeLibrary = writableLibraries.FirstOrDefault(l => l.Name == _browser.ActiveLibraryForCategories);
 				if (activeLibrary != null) {
 					_activeLibrary = activeLibrary;
 					_activeLibraryDropdown.index = System.Math.Max(0, _activeLibraryDropdown.choices.IndexOf(_activeLibrary.Name));
@@ -118,8 +123,8 @@ namespace VisualPinball.Unity.Editor
 			}
 
 			// if active library cannot be determined, fall back to first available library.
-			if (_activeLibrary == null && _browser.Libraries.Count > 0) {
-				_activeLibrary = _browser.Libraries.First();
+			if (_activeLibrary == null && writableLibraries.Length > 0) {
+				_activeLibrary = writableLibraries.First();
 				_activeLibraryDropdown.index = System.Math.Max(0, _activeLibraryDropdown.choices.IndexOf(_activeLibrary.Name));
 			}
 
@@ -190,6 +195,9 @@ namespace VisualPinball.Unity.Editor
 
 		private void Create()
 		{
+			if (_activeLibrary.IsReadOnly) {
+				throw new InvalidOperationException($"Library {_activeLibrary.Name} is locked.");
+			}
 			var category = _activeLibrary.AddCategory("New Category");
 			var categoryElement = new LibraryCategoryElement(this, new []{(_activeLibrary, category)});
 			_container.Add(categoryElement);
