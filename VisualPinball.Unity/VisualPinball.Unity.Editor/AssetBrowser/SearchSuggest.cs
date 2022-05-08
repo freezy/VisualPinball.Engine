@@ -42,6 +42,7 @@ namespace VisualPinball.Unity.Editor
 		public void SelectAll() => _textEntry.SelectAll();
 		public void RegisterKeyDownCallback(EventCallback<KeyDownEvent> evt) => _textEntry.RegisterCallback(evt);
 
+		public bool IsMultiValue;
 		public List<string> MatchedSuggestOption { get; set; }
 		private readonly Func<string, bool> _matchingSuggestOptions;
 		public string[] SuggestOptions { get; set; } = Array.Empty<string>();
@@ -70,12 +71,50 @@ namespace VisualPinball.Unity.Editor
 
 			ConfigureOptionList();
 
-			_matchingSuggestOptions = suggestOption => suggestOption.ToLower().Contains(_textEntry.value.ToLower());
+			_matchingSuggestOptions = suggestOption => suggestOption.ToLower().Contains(CurrentValue.ToLower());
 
 			RegisterCallback<AttachToPanelEvent>(OnAttached);
 			RegisterCallback<DetachFromPanelEvent>(OnDetached);
 
 			Add(_textEntry);
+		}
+
+		private string CurrentValue {
+			get {
+				if (!IsMultiValue) {
+					return _textEntry.value;
+				}
+				var startIndex = 0;
+				var endIndex = _textEntry.value.Length;
+				for (var i = 0; i < _textEntry.value.Length; i++) {
+					if (_textEntry.value[i] == ',' && i < _textEntry.cursorIndex) {
+						startIndex = i + 1;
+					}
+					if (_textEntry.value[i] == ',' && i >= _textEntry.cursorIndex) {
+						endIndex = i;
+						break;
+					}
+				}
+				return _textEntry.value.Substring(startIndex, endIndex - startIndex).Trim();
+			}
+			set {
+				if (!IsMultiValue) {
+					_textEntry.value = value;
+					return;
+				}
+				var before = string.Empty;
+				var after = string.Empty;
+				for (var i = 0; i < _textEntry.value.Length; i++) {
+					if (_textEntry.value[i] == ',' && i < _textEntry.cursorIndex) {
+						before = _textEntry.value[..(i + 1)];
+					}
+					if (_textEntry.value[i] == ',' && i >= _textEntry.cursorIndex) {
+						after = _textEntry.value[i..];
+						break;
+					}
+				}
+				_textEntry.value = before + value + after;
+			}
 		}
 
 		private void CreateNewWindow()
@@ -131,12 +170,10 @@ namespace VisualPinball.Unity.Editor
 
 		private void OnDetached(DetachFromPanelEvent evt)
 		{
-
 			_textEntry.UnregisterValueChangedCallback(OnTextChanged);
 			_textEntry.UnregisterCallback<FocusOutEvent>(OnLostFocus);
 			_textEntry.UnregisterCallback<FocusInEvent>(OnGainedFocus);
 			_textEntry.UnregisterCallback<KeyDownEvent>(OnKeyDown);
-
 			Cleanup();
 		}
 
@@ -168,7 +205,7 @@ namespace VisualPinball.Unity.Editor
 				case KeyCode.KeypadEnter:
 					if (_optionList.selectedIndex != -1) {
 						var suggestOption = MatchedSuggestOption[_optionList.selectedIndex];
-						_textEntry.value = suggestOption;
+						CurrentValue = suggestOption;
 						_hasFocus = false;
 						UpdateVisibility();
 					}
@@ -243,7 +280,7 @@ namespace VisualPinball.Unity.Editor
 			_optionList.itemsSource = MatchedSuggestOption;
 			_optionList.selectedIndex = -1;
 
-			if (string.IsNullOrEmpty(_textEntry.value)) {
+			if (string.IsNullOrEmpty(CurrentValue)) {
 				_optionList.Rebuild();
 				return;
 			}
@@ -255,8 +292,10 @@ namespace VisualPinball.Unity.Editor
 
 		private void UpdateVisibility()
 		{
-			if (_hasFocus && _optionList.itemsSource.Count > 0 && !(_optionList.itemsSource.Count == 1 && (string)_optionList.itemsSource[0] == _textEntry.value)) {
-				if (PopupVisible) return;
+			if (_hasFocus && _optionList.itemsSource.Count > 0 && !(_optionList.itemsSource.Count == 1 && (string)_optionList.itemsSource[0] == CurrentValue)) {
+				if (PopupVisible) {
+					return;
+				}
 				CreateNewWindow();
 				_showPopupNonFocus.Invoke(_popupWindow, _showValueArray);
 				PopupVisible = true;
@@ -277,7 +316,7 @@ namespace VisualPinball.Unity.Editor
 		{
 			var pickedLabel = evt.target as Label;
 			var suggestOption = pickedLabel!.text;
-			_textEntry.value = suggestOption;
+			CurrentValue = suggestOption;
 			_hasFocus = false;
 			UpdateVisibility();
 		}

@@ -60,6 +60,7 @@ namespace VisualPinball.Unity.Editor
 			_displayElement.RegisterCallback<MouseDownEvent>(OnMouseDown);
 			_nameEditElement.RegisterKeyDownCallback(evt => OnKeyDown(evt, _nameEditElement));
 			_valuesEditElement.RegisterKeyDownCallback(evt => OnKeyDown(evt, _valuesEditElement));
+			_valuesEditElement.IsMultiValue = true;
 
 			Update();
 
