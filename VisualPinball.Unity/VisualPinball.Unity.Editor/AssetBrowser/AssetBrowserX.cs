@@ -308,11 +308,9 @@ namespace VisualPinball.Unity.Editor
 			}
 		}
 
-		private void OnDragUpdatedEvent(DragUpdatedEvent evt)
+		private static void OnDragUpdatedEvent(DragUpdatedEvent evt)
 		{
-			DragAndDrop.visualMode = _dragError != null
-				? DragAndDropVisualMode.Rejected
-				: DragAndDropVisualMode.Copy;
+			DragAndDrop.visualMode = DragAndDropVisualMode.Copy;
 		}
 
 		private void OnDragLeaveEvent(DragLeaveEvent evt)

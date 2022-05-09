@@ -16,7 +16,11 @@
 
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.Rendering;
+using UnityEngine.UI;
 using UnityEngine.UIElements;
+using Button = UnityEngine.UIElements.Button;
+using Image = UnityEngine.UIElements.Image;
 
 namespace VisualPinball.Unity.Editor
 {
@@ -57,7 +61,9 @@ namespace VisualPinball.Unity.Editor
 		private Object _object;
 		private readonly Label _categoryElement;
 		private readonly TextField _descriptionEditElement;
+		private readonly Label _descriptionViewElement;
 		private readonly Label _dateElement;
+		private readonly Button _addAttributeButton;
 
 		public new class UxmlFactory : UxmlFactory<AssetDetailsElement, UxmlTraits> { }
 
@@ -74,13 +80,14 @@ namespace VisualPinball.Unity.Editor
 			_titleElement = ui.Q<Label>("title");
 			_categoryElement = ui.Q<Label>("category-name");
 			_dateElement = ui.Q<Label>("date-value");
+			_descriptionViewElement = ui.Q<Label>("description-view");
 			_descriptionEditElement = ui.Q<TextField>("description-edit");
 			_attributesElement = ui.Q<VisualElement>("attributes");
 
 			_descriptionEditElement.RegisterValueChangedCallback(OnDescriptionEdited);
 
-			var button = ui.Q<Button>("add");
-			button.clicked += OnAddAttribute;
+			_addAttributeButton = ui.Q<Button>("add");
+			_addAttributeButton.clicked += OnAddAttribute;
 
 			var editorElement = ui.Q<IMGUIContainer>();
 			editorElement.onGUIHandler = OnGUI;
@@ -132,14 +139,29 @@ namespace VisualPinball.Unity.Editor
 			_titleElement.text = _object.name;
 			_categoryElement.text = _data.Asset.Category.Name;
 			_dateElement.text = _data.Asset.AddedAt.ToLongDateString();
-			//_descriptionEditElement.UnregisterValueChangedCallback(OnDescriptionEdited);
 			_descriptionEditElement.SetValueWithoutNotify(_data.Asset.Description);
-			//_descriptionEditElement.RegisterValueChangedCallback(OnDescriptionEdited);
 
 			_attributesElement.Clear();
 			foreach (var attr in _data.Asset.Attributes) {
 				var categoryElement = new LibraryAttributeElement(_data, attr);
 				_attributesElement.Add(categoryElement);
+			}
+
+			SetVisibility(_descriptionViewElement, _data.Library.IsReadOnly);
+			SetVisibility(_descriptionViewElement, _data.Library.IsReadOnly);
+			SetVisibility(_descriptionEditElement, !_data.Library.IsReadOnly);
+			SetVisibility(_addAttributeButton, !_data.Library.IsReadOnly);
+		}
+
+		private void SetVisibility(VisualElement element, bool isVisible)
+		{
+			switch (isVisible) {
+				case false when !element.ClassListContains("hidden"):
+					element.AddToClassList("hidden");
+					break;
+				case true when element.ClassListContains("hidden"):
+					element.RemoveFromClassList("hidden");
+					break;
 			}
 		}
 	}

@@ -57,16 +57,17 @@ namespace VisualPinball.Unity.Editor
 			ui.Q<Button>("okButton").RegisterCallback<MouseUpEvent>(_ => CompleteEdit(true, _nameEditElement.Value, _valuesEditElement.Value));
 			ui.Q<Button>("cancelButton").RegisterCallback<MouseUpEvent>(_ => CompleteEdit(false));
 
-			_displayElement.RegisterCallback<MouseDownEvent>(OnMouseDown);
-			_nameEditElement.RegisterKeyDownCallback(evt => OnKeyDown(evt, _nameEditElement));
-			_valuesEditElement.RegisterKeyDownCallback(evt => OnKeyDown(evt, _valuesEditElement));
-			_valuesEditElement.IsMultiValue = true;
+			if (!_assetData.Library.IsReadOnly) {
+				_displayElement.RegisterCallback<MouseDownEvent>(OnMouseDown);
+				_nameEditElement.RegisterKeyDownCallback(evt => OnKeyDown(evt, _nameEditElement));
+				_valuesEditElement.RegisterKeyDownCallback(evt => OnKeyDown(evt, _valuesEditElement));
+				_valuesEditElement.IsMultiValue = true;
+
+				// right-click menu
+				_displayElement.AddManipulator(new ContextualMenuManipulator(AddContextMenu));
+			}
 
 			Update();
-
-			// right-click menu
-			_displayElement.AddManipulator(new ContextualMenuManipulator(AddContextMenu));
-
 			RegisterCallback<AttachToPanelEvent>(OnAttached);
 		}
 
