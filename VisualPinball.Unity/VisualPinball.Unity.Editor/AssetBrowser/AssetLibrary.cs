@@ -110,6 +110,9 @@ namespace VisualPinball.Unity.Editor
 
 		public void SaveAsset(LibraryAsset asset)
 		{
+			if (IsReadOnly) {
+				throw new InvalidOperationException($"Cannot write to library {Name} since it's locked.");
+			}
 			_db.GetCollection<LibraryAsset>(CollectionAssets).Update(asset);
 		}
 

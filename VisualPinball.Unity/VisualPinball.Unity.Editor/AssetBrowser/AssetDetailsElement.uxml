@@ -10,6 +10,7 @@
         </ui:VisualElement>
         <ui:IMGUIContainer />
         <ui:Label text="Description" class="subtitle" />
+        <ui:Label name="description-view" multiline="true" />
         <ui:TextField name="description-edit" multiline="true" />
         <ui:Label text="Attributes" class="subtitle" />
         <ui:VisualElement name="attributes" />

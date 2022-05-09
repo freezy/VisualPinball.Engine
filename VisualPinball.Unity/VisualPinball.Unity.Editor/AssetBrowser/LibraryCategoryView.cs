@@ -26,7 +26,7 @@ namespace VisualPinball.Unity.Editor
 	{
 		public new class UxmlFactory : UxmlFactory<LibraryCategoryView, UxmlTraits> { }
 
-		public int NumSelectedCategories => _selectedCategories.Count;
+		public int NumSelectedCategories => _selectedCategoryElements.Count;
 		public int NumCategories;
 
 		private AssetBrowserX _browser;
