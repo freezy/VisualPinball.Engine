@@ -129,7 +129,7 @@ namespace VisualPinball.Unity.Editor
 
 		private void UpdateQueryResults(List<AssetData> assets)
 		{
-			_bottomLabel.text = $"Found {assets.Count} asset" + (assets.Count == 1 ? "" : "s") + ".";
+			_statusLabel.text = $"Found {assets.Count} asset" + (assets.Count == 1 ? "" : "s") + ".";
 			_assets = assets;
 			_gridContent.Clear();
 			_elementByAsset.Clear();
@@ -277,20 +277,25 @@ namespace VisualPinball.Unity.Editor
 
 			} else {
 				foreach (var path in DragAndDrop.paths) {
+					var libFoundForPath = false;
 					foreach (var assetLibrary in Libraries) {
+						// path in library?
 						if (path.Replace('\\', '/').StartsWith(assetLibrary.LibraryRoot.Replace('\\', '/'))) {
 							if (!assetLibrary.IsReadOnly) {
+								libFoundForPath = true;
 								continue;
 							}
 							_dragError = "Access Error. The library you're trying to add assets to is locked.";
 							break;
 						}
-
-						_dragError = "Unknown library. Your assets must be under the root of a library, and at least one of the assets you're dragging is not.";
-						break;
 					}
 
 					if (_dragError != null) {
+						break;
+					}
+
+					if (!libFoundForPath) {
+						_dragError = "Unknown library. Your assets must be under the root of a library, and at least one of the assets you're dragging is not.";
 						break;
 					}
 				}
@@ -326,7 +331,9 @@ namespace VisualPinball.Unity.Editor
 
 			DragAndDrop.AcceptDrag();
 
-			// Disallow adding from outside of Unity
+			var numAdded = 0;
+			var numUpdated = 0;
+			AssetLibrary updatedLibrary = null;
 			foreach (var path in DragAndDrop.paths) {
 				foreach (var assetLibrary in Libraries) {
 					if (path.Replace('\\', '/').StartsWith(assetLibrary.LibraryRoot.Replace('\\', '/'))) {
@@ -336,13 +343,25 @@ namespace VisualPinball.Unity.Editor
 
 						if (assetLibrary.AddAsset(guid, type, path, category)) {
 							Debug.Log($"{Path.GetFileName(path)} added to library {assetLibrary.Name}.");
+							numAdded++;
 						} else {
 							Debug.Log($"{Path.GetFileName(path)} updated in library {assetLibrary.Name}.");
+							numUpdated++;
 						}
-
-						// todo update data views
+						updatedLibrary = assetLibrary;
 					}
 				}
+			}
+			// todo update data views
+
+			if (numAdded > 0 && numUpdated == 0) {
+				_statusLabel.text = $"{numAdded} asset" + (numAdded == 1 ? "" : "s") + $" added to library \"{updatedLibrary!.Name}\".";
+			} else if (numAdded == 0 && numUpdated > 0) {
+				_statusLabel.text = $"{numUpdated} asset" + (numUpdated == 1 ? "" : "s") + $" updated in library \"{updatedLibrary!.Name}\".";
+			} else if (numAdded > 0 && numUpdated > 0) {
+				_statusLabel.text = $"{numAdded} asset" + (numAdded == 1 ? "" : "s") + $" added and {numUpdated} asset" + (numUpdated == 1 ? "" : "s") + $" updated in library \"{updatedLibrary!.Name}\".";
+			} else {
+				_statusLabel.text = "No assets added to library.";
 			}
 		}
 

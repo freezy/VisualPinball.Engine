@@ -158,6 +158,7 @@ namespace VisualPinball.Unity.Editor
 				_libraryCategoryView.OnCategoryClicked(this, false);
 
 			} else {
+				// todo manage drag to add assets from outside, not just changing categories.
 				Debug.Log($"Unknown drag data.");
 			}
 		}
@@ -165,7 +166,6 @@ namespace VisualPinball.Unity.Editor
 		private void OnDragEnterEvent(DragEnterEvent evt)
 		{
 			AddToClassList(ClassDrag);
-			Debug.Log($"Adding class {ClassDrag} to {_label.text}");
 		}
 
 		private static void OnDragUpdatedEvent(DragUpdatedEvent evt)
@@ -176,7 +176,6 @@ namespace VisualPinball.Unity.Editor
 		private void OnDragLeaveEvent(DragLeaveEvent evt)
 		{
 			RemoveFromClassList(ClassDrag);
-			Debug.Log($"Removing class {ClassDrag} from {_label.text}");
 		}
 
 		private void UpdateIcon()
