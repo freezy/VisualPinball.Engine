@@ -118,21 +118,24 @@ namespace VisualPinball.Unity.Editor
 
 		private VisualElement NewAssetLibrary(AssetLibrary lib)
 		{
-			var toggle = new Toggle(lib.Name);
 			var item = new VisualElement();
+			var toggle = new Toggle();
+			var label = new Label(lib.Name);
+
 			item.AddToClassList("library-item");
 			item.style.flexDirection = FlexDirection.Row;
-			//if (lib.IsReadOnly) {
+			item.Add(toggle);
+			item.Add(label);
+			if (lib.IsReadOnly) {
 				var icon = new Image {
-					//image = EditorGUIUtility.IconContent("InspectorLock").image
-					image = EditorGUIUtility.IconContent("d_Folder Icon").image
+					image = EditorGUIUtility.IconContent("InspectorLock").image
 				};
 				item.Add(icon);
-			//}
-			item.Add(toggle);
+			}
 
 			toggle.value = true;
 			toggle.RegisterValueChangedCallback(evt => OnLibraryToggled(lib, evt.newValue));
+			label.RegisterCallback<MouseDownEvent>(evt => toggle.value = !toggle.value);
 			return item;
 		}
 	}

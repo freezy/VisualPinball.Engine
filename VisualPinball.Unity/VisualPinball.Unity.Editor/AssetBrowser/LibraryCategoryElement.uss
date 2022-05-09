@@ -2,7 +2,9 @@
 	flex-direction: row;
 	flex-wrap: nowrap;
 	padding: 0 3px;
-	margin-left: 5px;
+	margin-top: 1px;
+	margin-bottom: 1px;
+	margin-left: 8px;
 }
 
 .library-category-element > Image {
