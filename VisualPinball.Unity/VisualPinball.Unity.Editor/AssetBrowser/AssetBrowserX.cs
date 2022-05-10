@@ -62,7 +62,8 @@ namespace VisualPinball.Unity.Editor
 		[MenuItem("Visual Pinball/Asset Browser")]
 		public static void ShowWindow()
 		{
-			var wnd = GetWindow<AssetBrowserX>("Asset Browser");
+			var wnd = GetWindow<AssetBrowserX>();
+			wnd.titleContent = new GUIContent("Asset Browser", Icons.AssetLibrary(IconSize.Small));
 
 			// Limit size of the window
 			wnd.minSize = new Vector2(450, 200);
@@ -78,7 +79,7 @@ namespace VisualPinball.Unity.Editor
 
 		private void RefreshLibraries()
 		{
-			var selectedLibraries = new HashSet<string>(_selectedLibraries);
+			var selectedLibraries = _selectedLibraries == null ? null : new HashSet<string>(_selectedLibraries);
 
 			if (Libraries != null) {
 				foreach (var lib in Libraries) {
@@ -106,7 +107,7 @@ namespace VisualPinball.Unity.Editor
 			// update left column and subscribe
 			_libraryList.Clear();
 			foreach (var lib in Libraries) {
-				lib.IsActive = selectedLibraries.Contains(lib.Id);
+				lib.IsActive = selectedLibraries?.Contains(lib.Id) ?? true;
 				_libraryList.Add(NewAssetLibrary(lib));
 				lib.OnChange += OnLibraryChanged;
 			}

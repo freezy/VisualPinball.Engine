@@ -16,11 +16,7 @@
 
 using UnityEditor;
 using UnityEngine;
-using UnityEngine.Rendering;
-using UnityEngine.UI;
 using UnityEngine.UIElements;
-using Button = UnityEngine.UIElements.Button;
-using Image = UnityEngine.UIElements.Image;
 
 namespace VisualPinball.Unity.Editor
 {
@@ -66,6 +62,8 @@ namespace VisualPinball.Unity.Editor
 		private readonly Label _attributesTitleElement;
 		private readonly Button _addAttributeButton;
 		private readonly Label _descriptionTitleElement;
+		private readonly Label _libraryElement;
+		private readonly Image _libraryLockElement;
 
 		public new class UxmlFactory : UxmlFactory<AssetDetailsElement, UxmlTraits> { }
 
@@ -80,6 +78,8 @@ namespace VisualPinball.Unity.Editor
 			_noSelectionElement = ui.Q<Label>("nothing-selected");
 			_detailsElement = ui.Q<VisualElement>("details");
 			_titleElement = ui.Q<Label>("title");
+			_libraryElement = ui.Q<Label>("library-name");
+			_libraryLockElement = ui.Q<Image>("library-lock");
 			_categoryElement = ui.Q<Label>("category-name");
 			_dateElement = ui.Q<Label>("date-value");
 			_descriptionTitleElement = ui.Q<Label>("description-title");
@@ -89,17 +89,15 @@ namespace VisualPinball.Unity.Editor
 			_attributesTitleElement = ui.Q<Label>("attributes-title");
 			_addAttributeButton = ui.Q<Button>("add");
 
+			_libraryLockElement.image = EditorGUIUtility.IconContent("InspectorLock").image;
 			_descriptionEditElement.RegisterValueChangedCallback(OnDescriptionEdited);
 			_addAttributeButton.clicked += OnAddAttribute;
 
-			var editorElement = ui.Q<IMGUIContainer>();
-			editorElement.onGUIHandler = OnGUI;
+			ui.Q<IMGUIContainer>().onGUIHandler = OnGUI;
+			ui.Q<Image>("library-icon").image = Icons.AssetLibrary(IconSize.Small);
+			ui.Q<Image>("date-icon").image = Icons.Calendar(IconSize.Small);
+			ui.Q<Image>("category-icon").image = EditorGUIUtility.IconContent("d_Folder Icon").image;
 
-			var dateIcon = ui.Q<Image>("date-icon");
-			dateIcon.image = Icons.Calendar(IconSize.Small);
-
-			var categoryIcon = ui.Q<Image>("category-icon");
-			categoryIcon.image = EditorGUIUtility.IconContent("d_Folder Icon").image;
 		}
 
 		private void OnGUI()
@@ -138,8 +136,12 @@ namespace VisualPinball.Unity.Editor
 
 		public void UpdateDetails()
 		{
+			if (_data == null) {
+				return;
+			}
 			_object = _data.Asset.LoadAsset();
 			_titleElement.text = _object.name;
+			_libraryElement.text = _data.Library.Name;
 			_categoryElement.text = _data.Asset.Category.Name;
 			_dateElement.text = _data.Asset.AddedAt.ToLongDateString();
 			_descriptionViewElement.text = _data.Asset.Description;
@@ -151,6 +153,7 @@ namespace VisualPinball.Unity.Editor
 				_attributesElement.Add(categoryElement);
 			}
 
+			SetVisibility(_libraryLockElement, _data.Library.IsLocked);
 			SetVisibility(_descriptionTitleElement, !string.IsNullOrEmpty(_data.Asset.Description) || !_data.Library.IsLocked);
 			SetVisibility(_descriptionViewElement, !string.IsNullOrEmpty(_data.Asset.Description) && _data.Library.IsLocked);
 			SetVisibility(_descriptionEditElement, !_data.Library.IsLocked);
