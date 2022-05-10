@@ -84,17 +84,29 @@ namespace VisualPinball.Unity.Editor
 				_browser = browser;
 			}
 
+			// remember categories
+			var selectedCategoryNames = new HashSet<string>(_container.Children()
+				.Select(c => c as LibraryCategoryElement)
+				.Select(c => c.Name));
+
 			// update categories
 			_container.Clear();
 			var categories = _browser.Libraries
 				.SelectMany(lib => lib.GetCategories().Select(c => (lib, c)))
 				.GroupBy(t => t.Item2.Name, (_, g) => g);
 
+			// re-apply selection
 			foreach (var cat in categories) {
 				var categoryElement = new LibraryCategoryElement(this, cat);
 				_container.Add(categoryElement);
+				if (selectedCategoryNames.Contains(categoryElement.Name)) {
+					categoryElement.IsSelected = true;
+				}
 				NumCategories++;
 			}
+
+			// re-apply selection
+			_browser.OnCategoriesUpdated(_selectedCategories);
 
 			// show/hide "no categories"
 			if (NumCategories > 0) {
