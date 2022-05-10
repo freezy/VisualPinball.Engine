@@ -1,5 +1,6 @@
 ﻿#addContainer {
 	flex-direction: row;
+	margin-top: 4px;
 }
 
 #addContainer > #activeLibrary {
