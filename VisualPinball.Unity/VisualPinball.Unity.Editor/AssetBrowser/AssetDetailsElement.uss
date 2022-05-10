@@ -29,6 +29,10 @@
 	margin-right: 2px;
 }
 
+#details > #description-view, #details > #info-view {
+	white-space: normal;
+}
+
 #details > #add {
 	margin-top: 8px;
 }
