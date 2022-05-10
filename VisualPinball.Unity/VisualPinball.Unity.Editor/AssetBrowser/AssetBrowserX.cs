@@ -80,6 +80,12 @@ namespace VisualPinball.Unity.Editor
 		{
 			var selectedLibraries = new HashSet<string>(_selectedLibraries);
 
+			if (Libraries != null) {
+				foreach (var lib in Libraries) {
+					lib.OnChange -= OnLibraryChanged;
+				}
+			}
+
 			// find library assets
 			Libraries = AssetDatabase.FindAssets($"t:{typeof(AssetLibrary)}")
 				.Select(AssetDatabase.GUIDToAssetPath)
@@ -97,12 +103,19 @@ namespace VisualPinball.Unity.Editor
 			Query = new AssetQuery(Libraries.Where(lib => lib.IsActive).ToList());
 			Query.OnQueryUpdated += OnQueryUpdated;
 
-			// update left column
+			// update left column and subscribe
 			_libraryList.Clear();
 			foreach (var lib in Libraries) {
 				lib.IsActive = selectedLibraries.Contains(lib.Id);
 				_libraryList.Add(NewAssetLibrary(lib));
+				lib.OnChange += OnLibraryChanged;
 			}
+		}
+
+		private void OnLibraryChanged(object sender, EventArgs e)
+		{
+			RefreshLibraries();
+			_detailsElement.UpdateDetails();
 		}
 
 		public void FilterByAttribute(string attributeKey, string value)
