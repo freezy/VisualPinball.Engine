@@ -159,6 +159,34 @@ namespace VisualPinball.Unity.Editor
 			SetVisibility(_descriptionEditElement, !_data.Library.IsLocked);
 			SetVisibility(_attributesTitleElement, _data.Asset.Attributes.Count > 0 || !_data.Library.IsLocked);
 			SetVisibility(_addAttributeButton, !_data.Library.IsLocked);
+
+			// info
+			if (_object is GameObject go) {
+				var (meshes, subMeshes, vertices, triangles, uvs, materials) = CountVertices(go);
+			}
+		}
+
+		private static (int, int, int, int, int, int) CountVertices(GameObject go)
+		{
+			var vertices = 0;
+			var triangles = 0;
+			var uvs = 0;
+			var meshes = 0;
+			var subMeshes = 0;
+			var materials = 0;
+			foreach (var mf in go.GetComponentsInChildren<MeshFilter>()) {
+				var mesh = mf.sharedMesh;
+				meshes++;
+				vertices += mesh.vertexCount;
+				triangles += mesh.triangles.Length;
+				uvs += mesh.uv.Length;
+				subMeshes += mesh.subMeshCount;
+				var mr = mf.gameObject.GetComponent<MeshRenderer>();
+				if (mr != null) {
+					materials += mr.sharedMaterials.Length;
+				}
+			}
+			return (meshes, subMeshes, vertices, triangles, uvs, materials);
 		}
 
 		private void SetVisibility(VisualElement element, bool isVisible)
