@@ -61,6 +61,7 @@ namespace VisualPinball.Unity.Editor
 			}
 		}
 
+		private const string AssetLibraryName = "asset_library";
 		private const string BallRollerName = "ball_roller";
 		private const string BoltName = "bolt";
 		private const string BumperName = "bumper";
@@ -111,9 +112,9 @@ namespace VisualPinball.Unity.Editor
 		private const string UpdateDisplayName = "update_display";
 
 		private static readonly string[] Names = {
-			BallRollerName, BoltName, BumperName, CalendarName, CannonName, CoilName, DropTargetBankName, DropTargetName, FlasherName, FlipperName,
-			GateName, HitTargetName, KeyName, KickerName, LightGroupName, LightName, MechName, MechPinMameName, PlayfieldName, PlugName, PlungerName,
-			PrimitiveName, RampName, RotatorName, RubberName, ScoreReelName, ScoreReelSimpleName, SlingshotName, SpinnerName, SurfaceName,
+			AssetLibraryName, BallRollerName, BoltName, BumperName, CalendarName, CannonName, CoilName, DropTargetBankName, DropTargetName, FlasherName,
+			FlipperName, GateName, HitTargetName, KeyName, KickerName, LightGroupName, LightName, MechName, MechPinMameName, PlayfieldName, PlugName,
+			PlungerName, PrimitiveName, RampName, RotatorName, RubberName, ScoreReelName, ScoreReelSimpleName, SlingshotName, SpinnerName, SurfaceName,
 			SwitchNcName, SwitchNoName, TableName, TeleporterName, TriggerName, TroughName,
 			CoilEventName, SwitchEventName, LampEventName, LampSeqName, MetalWireGuideName,
 			PlayerVariableName, PlayerVariableEventName, TableVariableName, TableVariableEventName, UpdateDisplayName
@@ -159,6 +160,7 @@ namespace VisualPinball.Unity.Editor
 				.ToArray();
 		}
 
+		public static Texture2D AssetLibrary(IconSize size = IconSize.Large, IconColor color = IconColor.Gray) => Instance.GetItem(AssetLibraryName, size, color);
 		public static Texture2D BallRoller(IconSize size = IconSize.Large, IconColor color = IconColor.Gray) => Instance.GetItem(BallRollerName, size, color);
 		public static Texture2D Bolt(IconSize size = IconSize.Large, IconColor color = IconColor.Gray) => Instance.GetItem(BoltName, size, color);
 		public static Texture2D Bumper(IconSize size = IconSize.Large, IconColor color = IconColor.Gray) => Instance.GetItem(BumperName, size, color);

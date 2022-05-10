@@ -9,16 +9,21 @@
 	-unity-font-style: bold;
 }
 
-#details > #header {
+#details > #header1 {
+	flex-direction: row;
+	margin-bottom: 4px;
+}
+
+#details > #header2 {
 	flex-direction: row;
 	margin-bottom: 16px;
 }
 
-#details > #header Label {
+#details > #header2 Label {
 	margin-right: 8px;
 }
 
-#details > #header Image {
+#details > #header1 Image, #details > #header2 Image {
 	width: 16px;
 	height: 16px;
 	margin-right: 2px;
