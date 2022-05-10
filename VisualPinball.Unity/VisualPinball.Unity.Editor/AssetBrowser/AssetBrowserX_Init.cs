@@ -133,7 +133,7 @@ namespace VisualPinball.Unity.Editor
 				item.Add(icon);
 			}
 
-			toggle.value = true;
+			toggle.value = lib.IsActive;
 			toggle.RegisterValueChangedCallback(evt => OnLibraryToggled(lib, evt.newValue));
 			label.RegisterCallback<MouseDownEvent>(evt => toggle.value = !toggle.value);
 			return item;

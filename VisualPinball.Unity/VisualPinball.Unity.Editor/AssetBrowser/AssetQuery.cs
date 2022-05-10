@@ -61,12 +61,12 @@ namespace VisualPinball.Unity.Editor
 			Run();
 		}
 
-		public void Toggle(AssetLibrary lib, bool enabled)
+		public void Toggle(AssetLibrary lib)
 		{
-			if (enabled && !_libraries.Contains(lib)) {
+			if (lib.IsActive && !_libraries.Contains(lib)) {
 				_libraries.Add(lib);
 			}
-			if (!enabled && _libraries.Contains(lib)) {
+			if (!lib.IsActive && _libraries.Contains(lib)) {
 				_libraries.Remove(lib);
 			}
 			Run();

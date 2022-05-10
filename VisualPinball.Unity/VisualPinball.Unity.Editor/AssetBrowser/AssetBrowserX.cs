@@ -37,6 +37,9 @@ namespace VisualPinball.Unity.Editor
 		[NonSerialized]
 		public List<AssetLibrary> Libraries;
 
+		[SerializeField]
+		private List<string> _selectedLibraries;
+
 		[NonSerialized]
 		private List<AssetData> _assets;
 
@@ -75,6 +78,8 @@ namespace VisualPinball.Unity.Editor
 
 		private void RefreshLibraries()
 		{
+			var selectedLibraries = new HashSet<string>(_selectedLibraries);
+
 			// find library assets
 			Libraries = AssetDatabase.FindAssets($"t:{typeof(AssetLibrary)}")
 				.Select(AssetDatabase.GUIDToAssetPath)
@@ -89,13 +94,14 @@ namespace VisualPinball.Unity.Editor
 			}
 
 			// setup query
-			Query = new AssetQuery(Libraries);
+			Query = new AssetQuery(Libraries.Where(lib => lib.IsActive).ToList());
 			Query.OnQueryUpdated += OnQueryUpdated;
 
 			// update left column
 			_libraryList.Clear();
-			foreach (var assetLibrary in Libraries) {
-				_libraryList.Add(NewAssetLibrary(assetLibrary));
+			foreach (var lib in Libraries) {
+				lib.IsActive = selectedLibraries.Contains(lib.Id);
+				_libraryList.Add(NewAssetLibrary(lib));
 			}
 		}
 
@@ -263,7 +269,12 @@ namespace VisualPinball.Unity.Editor
 
 		public void OnCategoriesUpdated(Dictionary<AssetLibrary, List<LibraryCategory>> categories) => Query.Filter(categories);
 		private void OnSearchQueryChanged(ChangeEvent<string> evt) => Query.Search(evt.newValue);
-		private void OnLibraryToggled(AssetLibrary lib, bool enabled) => Query.Toggle(lib, enabled);
+		private void OnLibraryToggled(AssetLibrary lib, bool enabled)
+		{
+			lib.IsActive = enabled;
+			Query.Toggle(lib);
+			_selectedLibraries = Libraries.Where(l => l.IsActive).Select(l => l.Id).ToList();
+		}
 
 		private void OnDragEnterEvent(DragEnterEvent evt)
 		{
