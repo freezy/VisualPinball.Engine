@@ -126,7 +126,7 @@ namespace VisualPinball.Unity.Editor
 			item.style.flexDirection = FlexDirection.Row;
 			item.Add(toggle);
 			item.Add(label);
-			if (lib.IsReadOnly) {
+			if (lib.IsLocked) {
 				var icon = new Image {
 					image = EditorGUIUtility.IconContent("InspectorLock").image
 				};

@@ -84,10 +84,11 @@ namespace VisualPinball.Unity.Editor
 				_browser = browser;
 			}
 
-			// remember categories
+			// remember selection
 			var selectedCategoryNames = new HashSet<string>(_container.Children()
 				.Select(c => c as LibraryCategoryElement)
-				.Select(c => c.Name));
+				.Where(c => c!.IsSelected)
+				.Select(c => c!.Name));
 
 			// update categories
 			_container.Clear();
@@ -95,17 +96,20 @@ namespace VisualPinball.Unity.Editor
 				.SelectMany(lib => lib.GetCategories().Select(c => (lib, c)))
 				.GroupBy(t => t.Item2.Name, (_, g) => g);
 
-			// re-apply selection
+			// update elements
+			_selectedCategoryElements.Clear();
 			foreach (var cat in categories) {
 				var categoryElement = new LibraryCategoryElement(this, cat);
 				_container.Add(categoryElement);
 				if (selectedCategoryNames.Contains(categoryElement.Name)) {
 					categoryElement.IsSelected = true;
+					_selectedCategoryElements.Add(categoryElement);
 				}
 				NumCategories++;
 			}
 
 			// re-apply selection
+			BuildSelectedCategories();
 			_browser.OnCategoriesUpdated(_selectedCategories);
 
 			// show/hide "no categories"
@@ -116,9 +120,9 @@ namespace VisualPinball.Unity.Editor
 			}
 
 			// update libraries dropdown
-			var writableLibraries = _browser.Libraries.Where(lib => !lib.IsReadOnly).ToArray();
+			var writableLibraries = _browser.Libraries.Where(lib => !lib.IsLocked).ToArray();
 			_activeLibraryDropdown.choices = writableLibraries.Select(l => l.Name).ToList();
-			if (_activeLibrary != null && _activeLibrary.IsReadOnly) {
+			if (_activeLibrary != null && _activeLibrary.IsLocked) {
 				_activeLibrary = null;
 			}
 			if (_activeLibrary != null && writableLibraries.Length > 0) {
@@ -192,6 +196,12 @@ namespace VisualPinball.Unity.Editor
 				}
 			}
 
+			BuildSelectedCategories();
+			_browser.OnCategoriesUpdated(_selectedCategories);
+		}
+
+		private void BuildSelectedCategories()
+		{
 			_selectedCategories.Clear();
 			foreach (var selectedCategoryElement in _selectedCategoryElements) {
 				foreach (var (lib, category) in selectedCategoryElement.Categories) {
@@ -201,13 +211,11 @@ namespace VisualPinball.Unity.Editor
 					_selectedCategories[lib].Add(category);
 				}
 			}
-
-			_browser.OnCategoriesUpdated(_selectedCategories);
 		}
 
 		private void Create()
 		{
-			if (_activeLibrary.IsReadOnly) {
+			if (_activeLibrary.IsLocked) {
 				throw new InvalidOperationException($"Library {_activeLibrary.Name} is locked.");
 			}
 			var category = _activeLibrary.AddCategory("New Category");
