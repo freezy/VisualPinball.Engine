@@ -350,7 +350,8 @@ namespace VisualPinball.Unity.Editor
 					}
 				}
 			}
-			// todo update data views
+
+			_categoryView.Refresh(this);
 
 			if (numAdded > 0 && numUpdated == 0) {
 				_statusLabel.text = $"{numAdded} asset" + (numAdded == 1 ? "" : "s") + $" added to library \"{updatedLibrary!.Name}\".";

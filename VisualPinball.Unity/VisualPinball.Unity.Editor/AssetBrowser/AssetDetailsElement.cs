@@ -63,7 +63,9 @@ namespace VisualPinball.Unity.Editor
 		private readonly TextField _descriptionEditElement;
 		private readonly Label _descriptionViewElement;
 		private readonly Label _dateElement;
+		private readonly Label _attributesTitleElement;
 		private readonly Button _addAttributeButton;
+		private readonly Label _descriptionTitleElement;
 
 		public new class UxmlFactory : UxmlFactory<AssetDetailsElement, UxmlTraits> { }
 
@@ -80,13 +82,14 @@ namespace VisualPinball.Unity.Editor
 			_titleElement = ui.Q<Label>("title");
 			_categoryElement = ui.Q<Label>("category-name");
 			_dateElement = ui.Q<Label>("date-value");
+			_descriptionTitleElement = ui.Q<Label>("description-title");
 			_descriptionViewElement = ui.Q<Label>("description-view");
 			_descriptionEditElement = ui.Q<TextField>("description-edit");
 			_attributesElement = ui.Q<VisualElement>("attributes");
+			_attributesTitleElement = ui.Q<Label>("attributes-title");
+			_addAttributeButton = ui.Q<Button>("add");
 
 			_descriptionEditElement.RegisterValueChangedCallback(OnDescriptionEdited);
-
-			_addAttributeButton = ui.Q<Button>("add");
 			_addAttributeButton.clicked += OnAddAttribute;
 
 			var editorElement = ui.Q<IMGUIContainer>();
@@ -139,6 +142,7 @@ namespace VisualPinball.Unity.Editor
 			_titleElement.text = _object.name;
 			_categoryElement.text = _data.Asset.Category.Name;
 			_dateElement.text = _data.Asset.AddedAt.ToLongDateString();
+			_descriptionViewElement.text = _data.Asset.Description;
 			_descriptionEditElement.SetValueWithoutNotify(_data.Asset.Description);
 
 			_attributesElement.Clear();
@@ -147,9 +151,10 @@ namespace VisualPinball.Unity.Editor
 				_attributesElement.Add(categoryElement);
 			}
 
-			SetVisibility(_descriptionViewElement, _data.Library.IsReadOnly);
-			SetVisibility(_descriptionViewElement, _data.Library.IsReadOnly);
+			SetVisibility(_descriptionTitleElement, !string.IsNullOrEmpty(_data.Asset.Description) || !_data.Library.IsReadOnly);
+			SetVisibility(_descriptionViewElement, !string.IsNullOrEmpty(_data.Asset.Description) && _data.Library.IsReadOnly);
 			SetVisibility(_descriptionEditElement, !_data.Library.IsReadOnly);
+			SetVisibility(_attributesTitleElement, _data.Asset.Attributes.Count > 0 || !_data.Library.IsReadOnly);
 			SetVisibility(_addAttributeButton, !_data.Library.IsReadOnly);
 		}
 
