@@ -32,11 +32,17 @@ namespace VisualPinball.Unity.Editor
 	[CreateAssetMenu(fileName = "Library", menuName = "Visual Pinball/Asset Library", order = 300)]
 	public class AssetLibrary : ScriptableObject, ISerializationCallbackReceiver, IDisposable
 	{
+		[HideInInspector]
+		public string Id;
+
 		public string Name;
 
 		public string LibraryRoot;
 
 		public bool IsLocked;
+
+		[NonSerialized]
+		public bool IsActive;
 
 		private const string CollectionAssets = "assets";
 		public const string CollectionCategories = "categories";
@@ -238,6 +244,10 @@ namespace VisualPinball.Unity.Editor
 					Name = Path.GetFileNameWithoutExtension(path);
 					LibraryRoot = Path.GetDirectoryName(path);
 				}
+			}
+
+			if (string.IsNullOrEmpty(Id)) {
+				Id =  $"{Guid.NewGuid().ToString()}";
 			}
 		}
 
