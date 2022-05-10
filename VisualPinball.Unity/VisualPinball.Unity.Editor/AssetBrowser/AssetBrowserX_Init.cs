@@ -98,6 +98,7 @@ namespace VisualPinball.Unity.Editor
 			_refreshButton.clicked -= Refresh;
 
 			foreach (var assetLibrary in Libraries) {
+				assetLibrary.OnChange -= OnLibraryChanged;
 				assetLibrary.Dispose();
 			}
 		}

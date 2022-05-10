@@ -41,6 +41,8 @@ namespace VisualPinball.Unity.Editor
 
 		public bool IsLocked;
 
+		public event EventHandler OnChange;
+
 		[NonSerialized]
 		public bool IsActive;
 
@@ -257,7 +259,7 @@ namespace VisualPinball.Unity.Editor
 
 		private void OnValidate()
 		{
-			Debug.Log("ASSETS: OnValidate()");
+			OnChange?.Invoke(this, EventArgs.Empty);
 		}
 
 		private static readonly Dictionary<string, Type> Types = new();

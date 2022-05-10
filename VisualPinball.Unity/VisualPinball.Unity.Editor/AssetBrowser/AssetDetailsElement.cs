@@ -136,7 +136,7 @@ namespace VisualPinball.Unity.Editor
 			_data.Save();
 		}
 
-		private void UpdateDetails()
+		public void UpdateDetails()
 		{
 			_object = _data.Asset.LoadAsset();
 			_titleElement.text = _object.name;
