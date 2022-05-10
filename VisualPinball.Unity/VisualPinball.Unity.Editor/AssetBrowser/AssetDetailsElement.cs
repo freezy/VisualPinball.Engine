@@ -151,11 +151,11 @@ namespace VisualPinball.Unity.Editor
 				_attributesElement.Add(categoryElement);
 			}
 
-			SetVisibility(_descriptionTitleElement, !string.IsNullOrEmpty(_data.Asset.Description) || !_data.Library.IsReadOnly);
-			SetVisibility(_descriptionViewElement, !string.IsNullOrEmpty(_data.Asset.Description) && _data.Library.IsReadOnly);
-			SetVisibility(_descriptionEditElement, !_data.Library.IsReadOnly);
-			SetVisibility(_attributesTitleElement, _data.Asset.Attributes.Count > 0 || !_data.Library.IsReadOnly);
-			SetVisibility(_addAttributeButton, !_data.Library.IsReadOnly);
+			SetVisibility(_descriptionTitleElement, !string.IsNullOrEmpty(_data.Asset.Description) || !_data.Library.IsLocked);
+			SetVisibility(_descriptionViewElement, !string.IsNullOrEmpty(_data.Asset.Description) && _data.Library.IsLocked);
+			SetVisibility(_descriptionEditElement, !_data.Library.IsLocked);
+			SetVisibility(_attributesTitleElement, _data.Asset.Attributes.Count > 0 || !_data.Library.IsLocked);
+			SetVisibility(_addAttributeButton, !_data.Library.IsLocked);
 		}
 
 		private void SetVisibility(VisualElement element, bool isVisible)

@@ -119,7 +119,7 @@ namespace VisualPinball.Unity.Editor
 
 		private void RefreshAssets()
 		{
-			Query.Run();
+			Query.Search(_queryInput.value);
 		}
 
 		private void OnQueryUpdated(object sender, AssetQueryResult e)
@@ -281,7 +281,7 @@ namespace VisualPinball.Unity.Editor
 					foreach (var assetLibrary in Libraries) {
 						// path in library?
 						if (path.Replace('\\', '/').StartsWith(assetLibrary.LibraryRoot.Replace('\\', '/'))) {
-							if (!assetLibrary.IsReadOnly) {
+							if (!assetLibrary.IsLocked) {
 								libFoundForPath = true;
 								continue;
 							}

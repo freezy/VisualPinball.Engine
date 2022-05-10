@@ -41,8 +41,8 @@ namespace VisualPinball.Unity.Editor
 
 		public void Search(string q)
 		{
+			// parse attributes
 			_attributes.Clear();
-
 			foreach (var regex in new []{ new Regex(@"(\w+):(\w+)"), new Regex("\"([\\w\\s]+)\":(\\w+)"), new Regex("(\\w+):\"([\\w\\s]+)\""), new Regex("\"([\\w\\s]+)\":\"([\\w\\s]+)\"") }) {
 				foreach (Match match in regex.Matches(q)) {
 					_attributes.Add((match.Groups[1].Value, match.Groups[2].Value));
@@ -50,7 +50,7 @@ namespace VisualPinball.Unity.Editor
 				}
 			}
 
-
+			// clean attributes from query
 			_query = Regex.Replace(q, @"\s+", " ");
 			Run();
 		}

@@ -36,7 +36,7 @@ namespace VisualPinball.Unity.Editor
 
 		public string LibraryRoot;
 
-		public bool IsReadOnly = false;
+		public bool IsLocked;
 
 		private const string CollectionAssets = "assets";
 		public const string CollectionCategories = "categories";
@@ -74,8 +74,8 @@ namespace VisualPinball.Unity.Editor
 
 		public bool AddAsset(string guid, Type type, string path, LibraryCategory category = null, List<LibraryAttribute> attrs = null)
 		{
-			if (IsReadOnly) {
-				throw new InvalidOperationException($"Library {Name} is read-only.");
+			if (IsLocked) {
+				throw new InvalidOperationException($"Library {Name} is locked.");
 			}
 
 			var collection = _db.GetCollection<LibraryAsset>(CollectionAssets);
@@ -110,7 +110,7 @@ namespace VisualPinball.Unity.Editor
 
 		public void SaveAsset(LibraryAsset asset)
 		{
-			if (IsReadOnly) {
+			if (IsLocked) {
 				throw new InvalidOperationException($"Cannot write to library {Name} since it's locked.");
 			}
 			_db.GetCollection<LibraryAsset>(CollectionAssets).Update(asset);
@@ -243,6 +243,11 @@ namespace VisualPinball.Unity.Editor
 
 		public void OnAfterDeserialize()
 		{
+		}
+
+		private void OnValidate()
+		{
+			Debug.Log("ASSETS: OnValidate()");
 		}
 
 		private static readonly Dictionary<string, Type> Types = new();

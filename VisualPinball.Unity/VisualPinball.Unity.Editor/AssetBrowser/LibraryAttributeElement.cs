@@ -57,7 +57,7 @@ namespace VisualPinball.Unity.Editor
 			ui.Q<Button>("okButton").RegisterCallback<MouseUpEvent>(_ => CompleteEdit(true, _nameEditElement.Value, _valuesEditElement.Value));
 			ui.Q<Button>("cancelButton").RegisterCallback<MouseUpEvent>(_ => CompleteEdit(false));
 
-			if (!_assetData.Library.IsReadOnly) {
+			if (!_assetData.Library.IsLocked) {
 				_displayElement.RegisterCallback<MouseDownEvent>(OnMouseDown);
 				_nameEditElement.RegisterKeyDownCallback(evt => OnKeyDown(evt, _nameEditElement));
 				_valuesEditElement.RegisterKeyDownCallback(evt => OnKeyDown(evt, _valuesEditElement));
