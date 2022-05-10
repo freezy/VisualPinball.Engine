@@ -265,10 +265,10 @@ namespace VisualPinball.Unity.Editor
 		public string Type { get; set; }
 		public string Path { get; set; }
 		public DateTime AddedAt { get; set; }
-		[BsonRef(AssetLibrary.CollectionCategories)]
-
 		public string Description { get; set; }
+		[BsonRef(AssetLibrary.CollectionCategories)]
 		public LibraryCategory Category { get; set; }
+
 		public List<LibraryAttribute> Attributes { get; set; }
 
 		public UnityEngine.Object LoadAsset() => AssetDatabase.LoadAssetAtPath(Path, AssetLibrary.TypeByName(Type));
