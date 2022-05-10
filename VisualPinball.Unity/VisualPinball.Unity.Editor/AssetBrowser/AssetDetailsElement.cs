@@ -64,6 +64,8 @@ namespace VisualPinball.Unity.Editor
 		private readonly Label _descriptionTitleElement;
 		private readonly Label _libraryElement;
 		private readonly Image _libraryLockElement;
+		private readonly Label _infoTitleElement;
+		private readonly Label _infoElement;
 
 		public new class UxmlFactory : UxmlFactory<AssetDetailsElement, UxmlTraits> { }
 
@@ -88,6 +90,8 @@ namespace VisualPinball.Unity.Editor
 			_attributesElement = ui.Q<VisualElement>("attributes");
 			_attributesTitleElement = ui.Q<Label>("attributes-title");
 			_addAttributeButton = ui.Q<Button>("add");
+			_infoTitleElement = ui.Q<Label>("info-title");
+			_infoElement = ui.Q<Label>("info-view");
 
 			_libraryLockElement.image = EditorGUIUtility.IconContent("InspectorLock").image;
 			_descriptionEditElement.RegisterValueChangedCallback(OnDescriptionEdited);
@@ -162,7 +166,21 @@ namespace VisualPinball.Unity.Editor
 
 			// info
 			if (_object is GameObject go) {
+				SetVisibility(_infoTitleElement, true);
+				SetVisibility(_infoElement, true);
 				var (meshes, subMeshes, vertices, triangles, uvs, materials) = CountVertices(go);
+				const string separator = ", ";
+				_infoElement.text =
+					vertices + (vertices == 1 ? " vertex" : " vertices") + separator +
+					triangles + " triangle" + (triangles == 1 ? "" : "s") + separator +
+					uvs + " uv" + (uvs == 1 ? "" : "s") + separator +
+					meshes + " mesh" + (meshes == 1 ? "" : "es") + separator +
+					subMeshes + " sub mesh" + (subMeshes == 1 ? "" : "es") + separator +
+					materials + " material" + (materials == 1 ? "" : "s");
+
+			} else {
+				SetVisibility(_infoTitleElement, false);
+				SetVisibility(_infoElement, false);
 			}
 		}
 

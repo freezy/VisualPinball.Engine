@@ -20,5 +20,7 @@
 		<ui:Label name="attributes-title" text="Attributes" class="subtitle"/>
 		<ui:VisualElement name="attributes"/>
 		<ui:Button name="add" text="New Attribute"/>
+		<ui:Label name="info-title" text="Info" class="subtitle"/>
+		<ui:Label name="info-view"/>
 	</ui:VisualElement>
 </ui:UXML>
