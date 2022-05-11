@@ -31,6 +31,8 @@ namespace VisualPinball.Unity.Editor
 		private Label _noLibrariesLabel;
 
 		private VisualElement _gridContent;
+		private Label _dragErrorLabelLeft;
+		private VisualElement _dragErrorContainerLeft;
 		private Label _dragErrorLabel;
 		private VisualElement _dragErrorContainer;
 		private AssetDetailsElement _detailsElement;
@@ -38,6 +40,36 @@ namespace VisualPinball.Unity.Editor
 		private Slider _sizeSlider;
 
 		private VisualTreeAsset _assetTree;
+
+		public string DragErrorLeft {
+			set {
+				if (value == null && !_dragErrorContainerLeft.ClassListContains("hidden")) {
+					_dragErrorContainerLeft.AddToClassList("hidden");
+					return;
+				}
+
+				if (_dragErrorContainerLeft.ClassListContains("hidden")) {
+					_dragErrorContainerLeft.RemoveFromClassList("hidden");
+				}
+
+				_dragErrorLabelLeft.text = value;
+			}
+		}
+
+		private string DragError {
+			set {
+				if (value == null && !_dragErrorContainer.ClassListContains("hidden")) {
+					_dragErrorContainer.AddToClassList("hidden");
+					return;
+				}
+
+				if (_dragErrorContainer.ClassListContains("hidden")) {
+					_dragErrorContainer.RemoveFromClassList("hidden");
+				}
+
+				_dragErrorLabel.text = value;
+			}
+		}
 
 		/// <summary>
 		/// Setup the UI. Data is already set up at this point. We'll just trigger a refresh once the UI is set up.
@@ -76,6 +108,9 @@ namespace VisualPinball.Unity.Editor
 
 			_dragErrorContainer = ui.Q<VisualElement>("dragErrorContainer");
 			_dragErrorLabel = ui.Q<Label>("dragError");
+
+			_dragErrorContainerLeft = ui.Q<VisualElement>("dragErrorContainerLeft");
+			_dragErrorLabelLeft = ui.Q<Label>("dragErrorLeft");
 
 			_gridContent.RegisterCallback<DragUpdatedEvent>(OnDragUpdatedEvent);
 			_gridContent.RegisterCallback<DragPerformEvent>(OnDragPerformEvent);

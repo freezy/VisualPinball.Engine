@@ -290,46 +290,39 @@ namespace VisualPinball.Unity.Editor
 			_selectedLibraries = Libraries.Where(l => l.IsActive).Select(l => l.Id).ToList();
 		}
 
+		public AssetLibrary GetLibraryByPath(string pathToCheck)
+		{
+			return Libraries.First(assetLibrary =>
+				pathToCheck.Replace('\\', '/')
+					.StartsWith(assetLibrary.LibraryRoot.Replace('\\', '/')));
+		}
+
 		private void OnDragEnterEvent(DragEnterEvent evt)
 		{
-			_dragError = null;
+			DragError = null;
 
 			if (_categoryView.NumCategories == 0) {
-				_dragError = "Unknown category. Seems there are no categories in the database, so you'll need to create one first.";
-
-			} else if (_categoryView.NumSelectedCategories != 1) {
-				_dragError = "Unknown category. You have to filter by one single category when dragging into the grid view. But you can also drag onto the category directly on the left directly.";
-
-			} else {
-				foreach (var path in DragAndDrop.paths) {
-					var libFoundForPath = false;
-					foreach (var assetLibrary in Libraries) {
-						// path in library?
-						if (path.Replace('\\', '/').StartsWith(assetLibrary.LibraryRoot.Replace('\\', '/'))) {
-							if (!assetLibrary.IsLocked) {
-								libFoundForPath = true;
-								continue;
-							}
-							_dragError = "Access Error. The library you're trying to add assets to is locked.";
-							break;
-						}
-					}
-
-					if (_dragError != null) {
-						break;
-					}
-
-					if (!libFoundForPath) {
-						_dragError = "Unknown library. Your assets must be under the root of a library, and at least one of the assets you're dragging is not.";
-						break;
-					}
-				}
+				DragError = "Unknown category. Seems there are no categories in the database, so you'll need to create one first.";
+				return;
 			}
 
-			if (_dragError != null) {
-				// show error panel
-				_dragErrorContainer.RemoveFromClassList("hidden");
-				_dragErrorLabel.text = _dragError;
+			if (_categoryView.NumSelectedCategories != 1) {
+				DragError = "Unknown category. You have to filter by one single category when dragging into the grid view. But you can also drag onto the category directly on the left directly.";
+				return;
+			}
+
+			foreach (var path in DragAndDrop.paths) {
+				var assetLibrary = GetLibraryByPath(path);
+
+				if (assetLibrary == null) {
+					DragError = "Unknown library. Your assets must be under the root of a library, and at least one of the assets you're dragging is not.";
+					break;
+				}
+
+				if (assetLibrary.IsLocked) {
+					DragError = "Access Error. The library you're trying to add assets to is locked.";
+					break;
+				}
 			}
 		}
 
@@ -341,39 +334,31 @@ namespace VisualPinball.Unity.Editor
 		private void OnDragLeaveEvent(DragLeaveEvent evt)
 		{
 			// hide error panel
-			_dragErrorContainer.AddToClassList("hidden");
+			DragError = null;
 		}
 
-		private void OnDragPerformEvent(DragPerformEvent evt)
+		public void AddAssets(IEnumerable<string> paths, Func<AssetLibrary, LibraryCategory> getCategory)
 		{
-			if (_dragError != null) {
-				// hide error panel
-				_dragErrorContainer.AddToClassList("hidden");
-				return;
-			}
-
-			DragAndDrop.AcceptDrag();
-
 			var numAdded = 0;
 			var numUpdated = 0;
 			AssetLibrary updatedLibrary = null;
-			foreach (var path in DragAndDrop.paths) {
-				foreach (var assetLibrary in Libraries) {
-					if (path.Replace('\\', '/').StartsWith(assetLibrary.LibraryRoot.Replace('\\', '/'))) {
-						var guid = AssetDatabase.AssetPathToGUID(path);
-						var type = AssetDatabase.GetMainAssetTypeAtPath(path);
-						var category = _categoryView.GetOrCreateSelected(assetLibrary);
-
-						if (assetLibrary.AddAsset(guid, type, path, category)) {
-							Debug.Log($"{Path.GetFileName(path)} added to library {assetLibrary.Name}.");
-							numAdded++;
-						} else {
-							Debug.Log($"{Path.GetFileName(path)} updated in library {assetLibrary.Name}.");
-							numUpdated++;
-						}
-						updatedLibrary = assetLibrary;
-					}
+			foreach (var path in paths) {
+				var assetLibrary = GetLibraryByPath(path);
+				if (assetLibrary == null) {
+					continue;
 				}
+				var guid = AssetDatabase.AssetPathToGUID(path);
+				var type = AssetDatabase.GetMainAssetTypeAtPath(path);
+				var category = getCategory(assetLibrary);
+
+				if (assetLibrary.AddAsset(guid, type, path, category)) {
+					Debug.Log($"{Path.GetFileName(path)} added to library {assetLibrary.Name}.");
+					numAdded++;
+				} else {
+					Debug.Log($"{Path.GetFileName(path)} updated in library {assetLibrary.Name}.");
+					numUpdated++;
+				}
+				updatedLibrary = assetLibrary;
 			}
 
 			_categoryView.Refresh(this);
@@ -387,6 +372,13 @@ namespace VisualPinball.Unity.Editor
 			} else {
 				_statusLabel.text = "No assets added to library.";
 			}
+		}
+
+		private void OnDragPerformEvent(DragPerformEvent evt)
+		{
+			DragError = null;
+			DragAndDrop.AcceptDrag();
+			AddAssets(DragAndDrop.paths, assetLibrary => _categoryView.GetOrCreateSelected(assetLibrary));
 		}
 
 		private void OnThumbSizeChanged(ChangeEvent<float> evt)

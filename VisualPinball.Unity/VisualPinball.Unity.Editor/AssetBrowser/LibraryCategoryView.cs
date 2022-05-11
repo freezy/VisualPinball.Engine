@@ -29,6 +29,14 @@ namespace VisualPinball.Unity.Editor
 		public int NumSelectedCategories => _selectedCategoryElements.Count;
 		public int NumCategories;
 
+		public string DragError {
+			set => _browser.DragErrorLeft = value;
+		}
+
+		public AssetLibrary GetLibraryByPath(string path) => _browser.GetLibraryByPath(path);
+
+		public void AddAssets(IEnumerable<string> paths, Func<AssetLibrary, LibraryCategory> getCategory) => _browser.AddAssets(paths, getCategory);
+
 		private AssetBrowserX _browser;
 		private AssetLibrary _activeLibrary;
 
@@ -233,6 +241,11 @@ namespace VisualPinball.Unity.Editor
 			var addedCategory = assetLibrary.AddCategory(selectedElement.Name);
 			_selectedCategories[assetLibrary] = new List<LibraryCategory> { addedCategory };
 			return addedCategory;
+		}
+
+		public LibraryCategory GetOrCreate(AssetLibrary assetLibrary, string n)
+		{
+			return assetLibrary.AddCategory(n);
 		}
 	}
 }

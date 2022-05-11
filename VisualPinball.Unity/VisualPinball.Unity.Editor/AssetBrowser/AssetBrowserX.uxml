@@ -19,6 +19,12 @@
 			<ui:Label name="noLibraries" text="No libraries found." class="left-empty"/>
 			<ui:Label text="Categories" class="left-title"/>
 			<VisualPinball.Unity.Editor.LibraryCategoryView/>
+
+			<!-- ERROR PANEL -->
+			<ui:VisualElement name="dragErrorContainerLeft" class="hidden">
+				<ui:Label name="dragErrorLeft" />
+			</ui:VisualElement>
+
 		</ui:VisualElement>
 		<ui:TwoPaneSplitView fixed-pane-initial-dimension="300" fixed-pane-index="1">
 
