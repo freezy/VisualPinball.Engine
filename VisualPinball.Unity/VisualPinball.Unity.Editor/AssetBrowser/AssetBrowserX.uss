@@ -55,13 +55,13 @@ AssetDetailsElement > TemplateContainer {
 	margin: 10px 10px 5px 10px;
 }
 
-#dragErrorContainer {
+#dragErrorContainer, #dragErrorContainerLeft {
 	background-color: darkred;
 	padding: 2px 0 0 5px;
 	flex-wrap: wrap;
 }
 
-#dragErrorContainer Label {
+#dragErrorContainer Label, #dragErrorContainerLeft Label {
 	white-space: normal;
 }
 

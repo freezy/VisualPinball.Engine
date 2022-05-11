@@ -115,7 +115,9 @@ namespace VisualPinball.Unity.Editor
 			if (success) {
 				_label.text = newName;
 				foreach (var (lib, category) in Categories) {
-					lib.RenameCategory(category, newName);
+					if (!lib.IsLocked) {
+						lib.RenameCategory(category, newName);
+					}
 				}
 				_libraryCategoryView.Refresh();
 			}
@@ -146,9 +148,28 @@ namespace VisualPinball.Unity.Editor
 			_libraryCategoryView.OnCategoryClicked(this, evt.ctrlKey);
 		}
 
+		private void OnDragEnterEvent(DragEnterEvent evt)
+		{
+			AddToClassList(ClassDrag);
+			_libraryCategoryView.DragError = null;
+			foreach (var path in DragAndDrop.paths) {
+				var assetLibrary = _libraryCategoryView.GetLibraryByPath(path);
+				if (assetLibrary == null) {
+					_libraryCategoryView.DragError = "Unknown library. Your assets must be under the root of a library, and at least one of the assets you're dragging is not.";
+					break;
+				}
+
+				if (assetLibrary.IsLocked) {
+					_libraryCategoryView.DragError = "Access Error. The library you're trying to add assets to is locked.";
+					break;
+				}
+			}
+		}
+
 		private void OnDragPerformEvent(DragPerformEvent evt)
 		{
 			DragAndDrop.AcceptDrag();
+			_libraryCategoryView.DragError = null;
 
 			if (DragAndDrop.GetGenericData("assets") is HashSet<AssetData> data) {
 				foreach (var d in data) {
@@ -157,15 +178,13 @@ namespace VisualPinball.Unity.Editor
 				}
 				_libraryCategoryView.OnCategoryClicked(this, false);
 
+			} else if (DragAndDrop.paths is { Length: > 0 }) {
+				_libraryCategoryView.AddAssets(DragAndDrop.paths, assetLibrary => _libraryCategoryView.GetOrCreate(assetLibrary, Name));
+
 			} else {
 				// todo manage drag to add assets from outside, not just changing categories.
 				Debug.Log($"Unknown drag data.");
 			}
-		}
-
-		private void OnDragEnterEvent(DragEnterEvent evt)
-		{
-			AddToClassList(ClassDrag);
 		}
 
 		private static void OnDragUpdatedEvent(DragUpdatedEvent evt)
@@ -176,6 +195,7 @@ namespace VisualPinball.Unity.Editor
 		private void OnDragLeaveEvent(DragLeaveEvent evt)
 		{
 			RemoveFromClassList(ClassDrag);
+			_libraryCategoryView.DragError = null;
 		}
 
 		private void UpdateIcon()

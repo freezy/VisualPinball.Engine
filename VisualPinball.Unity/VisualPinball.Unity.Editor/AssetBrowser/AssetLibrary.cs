@@ -49,6 +49,8 @@ namespace VisualPinball.Unity.Editor
 		private const string CollectionAssets = "assets";
 		public const string CollectionCategories = "categories";
 
+		#region Database
+
 		private LiteDatabase _db {
 			get {
 				if (_dbInstance != null) {
@@ -60,17 +62,6 @@ namespace VisualPinball.Unity.Editor
 			}
 		}
 
-		private void OnDestroy()
-		{
-			Dispose();
-		}
-
-		public void Dispose()
-		{
-			_dbInstance?.Dispose();
-			_dbInstance = null;
-		}
-
 		private string _dbPath {
 			get {
 				var thisPath = AssetDatabase.GetAssetPath(this);
@@ -80,10 +71,14 @@ namespace VisualPinball.Unity.Editor
 
 		private LiteDatabase _dbInstance;
 
+		#endregion
+
+		#region Asset
+
 		public bool AddAsset(string guid, Type type, string path, LibraryCategory category = null, List<LibraryAttribute> attrs = null)
 		{
 			if (IsLocked) {
-				throw new InvalidOperationException($"Library {Name} is locked.");
+				throw new InvalidOperationException($"Cannot add new asset because library {Name} is locked.");
 			}
 
 			var collection = _db.GetCollection<LibraryAsset>(CollectionAssets);
@@ -114,12 +109,10 @@ namespace VisualPinball.Unity.Editor
 			return true;
 		}
 
-		#region Asset
-
 		public void SaveAsset(LibraryAsset asset)
 		{
 			if (IsLocked) {
-				throw new InvalidOperationException($"Cannot write to library {Name} since it's locked.");
+				throw new InvalidOperationException($"Cannot update asset {asset.Guid} because library {Name} is locked.");
 			}
 			_db.GetCollection<LibraryAsset>(CollectionAssets).Update(asset);
 		}
@@ -159,6 +152,10 @@ namespace VisualPinball.Unity.Editor
 
 		public LibraryCategory AddCategory(string categoryName)
 		{
+			if (IsLocked) {
+				throw new InvalidOperationException($"Cannot add category {categoryName} because library {Name} is locked.");
+			}
+
 			var categories = _db.GetCollection<LibraryCategory>(CollectionCategories);
 			var category = new LibraryCategory {
 				Name = categoryName
@@ -169,6 +166,10 @@ namespace VisualPinball.Unity.Editor
 
 		public void RenameCategory(LibraryCategory category, string newName)
 		{
+			if (IsLocked) {
+				throw new InvalidOperationException($"Cannot rename category {category.Name} because library {Name} is locked.");
+			}
+
 			var categories = _db.GetCollection<LibraryCategory>(CollectionCategories);
 			category.Name = newName;
 			categories.Update(category);
@@ -176,6 +177,10 @@ namespace VisualPinball.Unity.Editor
 
 		public void SetCategory(LibraryAsset asset, LibraryCategory category)
 		{
+			if (IsLocked) {
+				throw new InvalidOperationException($"Cannot assign category {category.Name} because library {Name} is locked.");
+			}
+
 			var assets = _db.GetCollection<LibraryAsset>(CollectionAssets);
 			asset.Category.Id = category.Id;
 			assets.Upsert(asset);
@@ -188,6 +193,10 @@ namespace VisualPinball.Unity.Editor
 
 		public void DeleteCategory(LibraryCategory category)
 		{
+			if (IsLocked) {
+				throw new InvalidOperationException($"Cannot delete category {category.Name} because library {Name} is locked.");
+			}
+
 			if (NumAssetsWithCategory(category) > 0) {
 				throw new InvalidOperationException("Cannot delete category when there are assigned assets.");
 			}
@@ -226,6 +235,10 @@ namespace VisualPinball.Unity.Editor
 
 		public LibraryAttribute AddAttribute(LibraryAsset asset, string attributeName)
 		{
+			if (IsLocked) {
+				throw new InvalidOperationException($"Cannot add new attribute to asset {asset.Guid} because library {Name} is locked.");
+			}
+
 			var assets = _db.GetCollection<LibraryAsset>(CollectionAssets);
 			var attribute = new LibraryAttribute {
 				Key = attributeName,
@@ -238,8 +251,22 @@ namespace VisualPinball.Unity.Editor
 
 		#endregion
 
+		#region Lifecycle
+
+		private void OnDestroy()
+		{
+			Dispose();
+		}
+
+		public void Dispose()
+		{
+			_dbInstance?.Dispose();
+			_dbInstance = null;
+		}
+
 		public void OnBeforeSerialize()
 		{
+			// set default path to asset's location
 			if (string.IsNullOrEmpty(LibraryRoot)) {
 				var path = AssetDatabase.GetAssetPath(this);
 				if (!string.IsNullOrEmpty(path)) {
@@ -248,6 +275,7 @@ namespace VisualPinball.Unity.Editor
 				}
 			}
 
+			// generate id
 			if (string.IsNullOrEmpty(Id)) {
 				Id =  $"{Guid.NewGuid().ToString()}";
 			}
@@ -262,6 +290,10 @@ namespace VisualPinball.Unity.Editor
 			OnChange?.Invoke(this, EventArgs.Empty);
 		}
 
+		#endregion
+
+		#region Type Map
+
 		private static readonly Dictionary<string, Type> Types = new();
 
 		public static Type TypeByName(string name)
@@ -272,6 +304,8 @@ namespace VisualPinball.Unity.Editor
 			Types[name] = AppDomain.CurrentDomain.GetAssemblies().Reverse().Select(assembly => assembly.GetType(name)).FirstOrDefault(tt => tt != null);
 			return Types[name];
 		}
+
+		#endregion
 	}
 
 	public class LibraryAsset
