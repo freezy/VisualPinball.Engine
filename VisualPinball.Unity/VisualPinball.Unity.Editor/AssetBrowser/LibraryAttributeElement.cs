@@ -23,7 +23,7 @@ namespace VisualPinball.Unity.Editor
 {
 	public class LibraryAttributeElement : VisualElement
 	{
-		private readonly AssetData _assetData;
+		private readonly AssetResult _assetResult;
 		private readonly LibraryAttribute _attribute;
 
 		private readonly Label _nameElement;
@@ -36,9 +36,9 @@ namespace VisualPinball.Unity.Editor
 		private bool _isEditing;
 		private AssetBrowserX _browser;
 
-		public LibraryAttributeElement(AssetData data, LibraryAttribute attribute)
+		public LibraryAttributeElement(AssetResult result, LibraryAttribute attribute)
 		{
-			_assetData = data;
+			_assetResult = result;
 			_attribute = attribute;
 
 			var visualTree = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>("Packages/org.visualpinball.engine.unity/VisualPinball.Unity/VisualPinball.Unity.Editor/AssetBrowser/LibraryAttributeElement.uxml");
@@ -57,7 +57,7 @@ namespace VisualPinball.Unity.Editor
 			ui.Q<Button>("okButton").RegisterCallback<MouseUpEvent>(_ => CompleteEdit(true, _nameEditElement.Value, _valuesEditElement.Value));
 			ui.Q<Button>("cancelButton").RegisterCallback<MouseUpEvent>(_ => CompleteEdit(false));
 
-			if (!_assetData.Library.IsLocked) {
+			if (!_assetResult.Library.IsLocked) {
 				_displayElement.RegisterCallback<MouseDownEvent>(OnMouseDown);
 				_nameEditElement.RegisterKeyDownCallback(evt => OnKeyDown(evt, _nameEditElement));
 				_valuesEditElement.RegisterKeyDownCallback(evt => OnKeyDown(evt, _valuesEditElement));
@@ -127,7 +127,7 @@ namespace VisualPinball.Unity.Editor
 			if (success) {
 				_attribute.Key = newName;
 				_attribute.Value = newValue;
-				_assetData.Save();
+				_assetResult.Save();
 				Update();
 			}
 			ToggleEdit();
@@ -158,9 +158,9 @@ namespace VisualPinball.Unity.Editor
 
 		private void Delete(DropdownMenuAction obj)
 		{
-			if (_assetData.Asset.Attributes.Contains(_attribute)) {
-				_assetData.Asset.Attributes.Remove(_attribute);
-				_assetData.Save();
+			if (_assetResult.Asset.Attributes.Contains(_attribute)) {
+				_assetResult.Asset.Attributes.Remove(_attribute);
+				_assetResult.Save();
 				parent.Remove(this);
 			}
 		}

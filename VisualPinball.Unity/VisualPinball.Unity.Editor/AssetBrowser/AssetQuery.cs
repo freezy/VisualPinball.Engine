@@ -32,7 +32,7 @@ namespace VisualPinball.Unity.Editor
 		private readonly List<AssetLibrary> _libraries;
 		private string _query;
 		private Dictionary<AssetLibrary, List<LibraryCategory>> _categories;
-		private readonly List<(string, string)> _attributes = new();
+		private readonly Dictionary<string, string> _attributes = new();
 
 		public AssetQuery(List<AssetLibrary> libraries)
 		{
@@ -45,7 +45,7 @@ namespace VisualPinball.Unity.Editor
 			_attributes.Clear();
 			foreach (var regex in new []{ new Regex(@"(\w+):(\w+)"), new Regex("\"([\\w\\s]+)\":(\\w+)"), new Regex("(\\w+):\"([\\w\\s]+)\""), new Regex("\"([\\w\\s]+)\":\"([\\w\\s]+)\"") }) {
 				foreach (Match match in regex.Matches(q)) {
-					_attributes.Add((match.Groups[1].Value, match.Groups[2].Value));
+					_attributes[match.Groups[1].Value] = match.Groups[2].Value;
 					q = q.Replace(match.Value, "");
 				}
 			}
@@ -90,35 +90,38 @@ namespace VisualPinball.Unity.Editor
 					try {
 						// if categories are set but none exist of this lib, skip entire lib.
 						if (_categories is { Count: > 0 } && !_categories.ContainsKey(lib)) {
-							return Array.Empty<AssetData>();
+							return Array.Empty<AssetResult>();
 						}
 						return lib.GetAssets(
 							_query,
 							_categories != null && _categories.ContainsKey(lib) ? _categories[lib] : null,
 							_attributes
-						).Select(asset => new AssetData(lib, asset));
+						);
 
 					} catch (Exception e) {
 						Debug.LogError($"Error reading assets from {lib.Name}, maybe corruption? ({e.Message})\n{e.StackTrace}");
 						// old data or whatever, just don't crash here.
-						return Array.Empty<AssetData>();
+						return Array.Empty<AssetResult>();
 					}
 				})
+				.OrderBy(r => r.Score)
 				.ToList();
 
 			OnQueryUpdated?.Invoke(this, new AssetQueryResult(assets));
 		}
 	}
 
-	public class AssetData
+	public class AssetResult
 	{
 		public readonly AssetLibrary Library;
 		public readonly LibraryAsset Asset;
+		public long Score;
 
-		public AssetData(AssetLibrary library, LibraryAsset asset)
+		public AssetResult(AssetLibrary library, LibraryAsset asset, long score)
 		{
 			Library = library;
 			Asset = asset;
+			Score = score;
 		}
 
 		public void Save()
