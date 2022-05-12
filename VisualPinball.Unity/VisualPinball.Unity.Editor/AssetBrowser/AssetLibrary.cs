@@ -23,6 +23,7 @@ using System.Linq;
 using LiteDB;
 using UnityEditor;
 using UnityEngine;
+using Object = UnityEngine.Object;
 
 namespace VisualPinball.Unity.Editor
 {
@@ -144,6 +145,15 @@ namespace VisualPinball.Unity.Editor
 			}
 
 			return result;
+		}
+
+		public void RemoveAsset(LibraryAsset asset)
+		{
+			if (IsLocked) {
+				throw new InvalidOperationException($"Cannot delete asset because library {Name} is locked.");
+			}
+
+			_db.GetCollection<LibraryCategory>(CollectionAssets).Delete(asset.Id);
 		}
 
 		#endregion
@@ -329,7 +339,7 @@ namespace VisualPinball.Unity.Editor
 
 		public List<LibraryAttribute> Attributes { get; set; }
 
-		public UnityEngine.Object LoadAsset() => AssetDatabase.LoadAssetAtPath(Path, AssetLibrary.TypeByName(Type));
+		public Object LoadAsset() => AssetDatabase.LoadAssetAtPath(Path, AssetLibrary.TypeByName(Type));
 	}
 
 	public class LibraryCategory

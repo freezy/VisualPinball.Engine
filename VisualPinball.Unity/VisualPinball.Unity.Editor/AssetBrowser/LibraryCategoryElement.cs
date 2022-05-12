@@ -132,7 +132,15 @@ namespace VisualPinball.Unity.Editor
 		private void AddContextMenu(ContextualMenuPopulateEvent evt)
 		{
 			evt.menu.AppendAction("Rename", ToggleRename);
-			evt.menu.AppendAction("Delete", Delete);
+
+			// count assets
+			var num = 0;
+			foreach (var (lib, category) in Categories) {
+				num += lib.NumAssetsWithCategory(category);
+			}
+			if (num == 0) {
+				evt.menu.AppendAction("Delete", Delete);
+			}
 		}
 
 		private void Delete(DropdownMenuAction obj)

@@ -149,6 +149,7 @@ namespace VisualPinball.Unity.Editor
 			item.Q<Label>("label").text = Path.GetFileNameWithoutExtension(data.Asset.Path);
 			item.RegisterCallback<MouseUpEvent>(evt => OnAssetClicked(evt, item));
 			item.Q<LibraryAssetElement>().RegisterDrag(this);
+			item.AddManipulator(new ContextualMenuManipulator(AddAssetContextMenu));
 			return item;
 		}
 

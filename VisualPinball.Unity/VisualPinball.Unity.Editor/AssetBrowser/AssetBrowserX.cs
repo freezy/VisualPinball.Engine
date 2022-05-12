@@ -165,6 +165,23 @@ namespace VisualPinball.Unity.Editor
 			}
 		}
 
+		private void AddAssetContextMenu(ContextualMenuPopulateEvent evt)
+		{
+			if (evt.target is VisualElement ve && _assetsByElement.ContainsKey(ve)) {
+				var asset = _assetsByElement[ve].Asset;
+				var lib = _assetsByElement[ve].Library;
+				if (!lib.IsLocked) {
+					evt.menu.AppendAction("Remove from Library", _ => {
+						var assetName = Path.GetFileNameWithoutExtension(asset.Path);
+						lib.RemoveAsset(asset);
+						RefreshCategories();
+						RefreshAssets();
+						_statusLabel.text = $"Removed asset <i>{assetName}</i> from library <i>{lib.Name}</i>.";
+					});
+				}
+			}
+		}
+
 		private void OnEmptyClicked(PointerUpEvent evt)
 		{
 			SelectNone();
@@ -257,11 +274,11 @@ namespace VisualPinball.Unity.Editor
 			_categoryView.Refresh(this);
 
 			if (numAdded > 0 && numUpdated == 0) {
-				_statusLabel.text = $"{numAdded} asset" + (numAdded == 1 ? "" : "s") + $" added to library \"{updatedLibrary!.Name}\".";
+				_statusLabel.text = $"{numAdded} asset" + (numAdded == 1 ? "" : "s") + $" added to library <i>{updatedLibrary!.Name}</i>.";
 			} else if (numAdded == 0 && numUpdated > 0) {
-				_statusLabel.text = $"{numUpdated} asset" + (numUpdated == 1 ? "" : "s") + $" updated in library \"{updatedLibrary!.Name}\".";
+				_statusLabel.text = $"{numUpdated} asset" + (numUpdated == 1 ? "" : "s") + $" updated in library <i>{updatedLibrary!.Name}</i>.";
 			} else if (numAdded > 0 && numUpdated > 0) {
-				_statusLabel.text = $"{numAdded} asset" + (numAdded == 1 ? "" : "s") + $" added and {numUpdated} asset" + (numUpdated == 1 ? "" : "s") + $" updated in library \"{updatedLibrary!.Name}\".";
+				_statusLabel.text = $"{numAdded} asset" + (numAdded == 1 ? "" : "s") + $" added and {numUpdated} asset" + (numUpdated == 1 ? "" : "s") + $" updated in library <i>{updatedLibrary!.Name}</i>.";
 			} else {
 				_statusLabel.text = "No assets added to library.";
 			}
