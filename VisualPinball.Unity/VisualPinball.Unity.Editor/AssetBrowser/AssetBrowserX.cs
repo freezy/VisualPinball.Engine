@@ -115,6 +115,7 @@ namespace VisualPinball.Unity.Editor
 		private void OnLibraryChanged(object sender, EventArgs e)
 		{
 			RefreshLibraries();
+			RefreshCategories();
 			_detailsElement.UpdateDetails();
 		}
 
@@ -169,7 +170,7 @@ namespace VisualPinball.Unity.Editor
 			SelectNone();
 		}
 
-		private void OnItemClicked(IMouseEvent evt, VisualElement element)
+		private void OnAssetClicked(IMouseEvent evt, VisualElement element)
 		{
 			var clickedAsset = _assetsByElement[element];
 
@@ -217,6 +218,7 @@ namespace VisualPinball.Unity.Editor
 			lib.IsActive = enabled;
 			Query.Toggle(lib);
 			_selectedLibraries = Libraries.Where(l => l.IsActive).Select(l => l.Id).ToList();
+			RefreshCategories();
 		}
 
 		public AssetLibrary GetLibraryByPath(string pathToCheck)

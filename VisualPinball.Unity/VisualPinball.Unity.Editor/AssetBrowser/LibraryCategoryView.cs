@@ -102,11 +102,14 @@ namespace VisualPinball.Unity.Editor
 			// update categories
 			_container.Clear();
 			var categories = _browser.Libraries
+				.Where(lib => lib.IsActive)
 				.SelectMany(lib => lib.GetCategories().Select(c => (lib, c)))
+				.OrderBy(tuple => tuple.c.Name)
 				.GroupBy(t => t.Item2.Name, (_, g) => g);
 
 			// update elements
 			_selectedCategoryElements.Clear();
+			NumCategories = 0;
 			foreach (var cat in categories) {
 				var categoryElement = new LibraryCategoryElement(this, cat);
 				_container.Add(categoryElement);
@@ -129,9 +132,9 @@ namespace VisualPinball.Unity.Editor
 			}
 
 			// update libraries dropdown
-			var writableLibraries = _browser.Libraries.Where(lib => !lib.IsLocked).ToArray();
+			var writableLibraries = _browser.Libraries.Where(lib => !lib.IsLocked && lib.IsActive).ToArray();
 			_activeLibraryDropdown.choices = writableLibraries.Select(l => l.Name).ToList();
-			if (_activeLibrary != null && _activeLibrary.IsLocked) {
+			if (_activeLibrary != null && (_activeLibrary.IsLocked || !_activeLibrary.IsActive)) {
 				_activeLibrary = null;
 			}
 			if (_activeLibrary != null && writableLibraries.Length > 0) {

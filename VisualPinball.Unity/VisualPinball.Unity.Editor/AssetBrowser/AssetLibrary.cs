@@ -181,9 +181,16 @@ namespace VisualPinball.Unity.Editor
 				throw new InvalidOperationException($"Cannot assign category {category.Name} because library {Name} is locked.");
 			}
 
+			var previousCategoryId = asset.Category.Id;
 			var assets = _db.GetCollection<LibraryAsset>(CollectionAssets);
 			asset.Category.Id = category.Id;
-			assets.Upsert(asset);
+			assets.Update(asset);
+
+			// clean up
+			if (assets.Count(a => a.Category.Id == previousCategoryId) == 0) {
+				var categories = _db.GetCollection<LibraryAsset>(CollectionCategories);
+				categories.Delete(previousCategoryId);
+			}
 		}
 
 		public int NumAssetsWithCategory(LibraryCategory category) => _db.GetCollection<LibraryAsset>(CollectionAssets)

@@ -1,7 +1,7 @@
 ﻿<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements">
 	<ui:VisualElement>
 		<ui:VisualElement class="library-category-element unity-list-view__item">
-			<ui:Image/>
+			<ui:Image name="icon-folder"/>
 			<ui:Label/>
 		</ui:VisualElement>
 		<VisualPinball.Unity.Editor.LibraryCategoryRenameElement class="hidden" />

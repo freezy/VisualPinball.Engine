@@ -147,7 +147,7 @@ namespace VisualPinball.Unity.Editor
 			item.Q<LibraryAssetElement>().Data = data;
 			item.Q<Image>("thumbnail").image = tex;
 			item.Q<Label>("label").text = Path.GetFileNameWithoutExtension(data.Asset.Path);
-			item.RegisterCallback<MouseUpEvent>(evt => OnItemClicked(evt, item));
+			item.RegisterCallback<MouseUpEvent>(evt => OnAssetClicked(evt, item));
 			item.Q<LibraryAssetElement>().RegisterDrag(this);
 			return item;
 		}
