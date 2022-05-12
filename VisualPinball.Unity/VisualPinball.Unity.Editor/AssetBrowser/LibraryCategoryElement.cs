@@ -54,6 +54,8 @@ namespace VisualPinball.Unity.Editor
 
 		private int NumAssets => Categories.Select(c => c.Item1.NumAssetsWithCategory(c.Item2)).Sum();
 		private bool AllLibrariesLocked => Categories.Count(c => !c.Item1.IsLocked) == 0;
+		public bool HasLockedLibraries => Categories.Any(c => c.Item1.IsLocked);
+		public AssetLibrary[] UnlockedLibraries => Categories.Where(c => !c.Item1.IsLocked).Select(c => c.Item1).ToArray();
 
 		private bool _isSelected;
 		private bool _isRenaming;

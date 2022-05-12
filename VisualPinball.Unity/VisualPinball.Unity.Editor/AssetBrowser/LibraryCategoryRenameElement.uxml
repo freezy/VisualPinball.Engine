@@ -4,6 +4,7 @@
 		<ui:Button name="cancelButton" text="✕" />
 		<ui:Button name="okButton" text="✔" />
 	</ui:VisualElement>
+	<ui:Label name="locked-notice"/>
 </ui:UXML>
 
 
