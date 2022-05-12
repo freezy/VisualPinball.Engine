@@ -73,9 +73,8 @@ namespace VisualPinball.Unity.Editor
 				DragAndDrop.PrepareStartDrag();
 				DragAndDrop.objectReferences = Array.Empty<Object>();
 				DragAndDrop.paths = Array.Empty<string>();
-				_dragHandler?.AttachData();
+				_dragHandler?.AttachData(Data);
 				this.ReleaseMouse();
-				//DragAndDrop.SetGenericData("data", this);
 				DragAndDrop.StartDrag("Dragging..");
 				_dragState = DragState.Dragging;
 			}

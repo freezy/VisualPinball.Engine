@@ -150,8 +150,25 @@ namespace VisualPinball.Unity.Editor
 
 		private void OnDragEnterEvent(DragEnterEvent evt)
 		{
-			AddToClassList(ClassDrag);
+			if (AssetBrowserX.IsDraggingExistingAssets || AssetBrowserX.IsDraggingNewAssets) {
+				AddToClassList(ClassDrag);
+			} else {
+				return;
+			}
 			_libraryCategoryView.DragError = null;
+
+			// drag from asset panel
+			if (DragAndDrop.GetGenericData("assets") is HashSet<AssetData> data) {
+				foreach (var d in data) {
+					if (d.Library.IsLocked) {
+						_libraryCategoryView.DragError = "Access Error. At least one of the assets you're dragging is part of a locked library.";
+						break;
+					}
+				}
+				return;
+			}
+
+			// drag from outside
 			foreach (var path in DragAndDrop.paths) {
 				var assetLibrary = _libraryCategoryView.GetLibraryByPath(path);
 				if (assetLibrary == null) {
@@ -166,30 +183,39 @@ namespace VisualPinball.Unity.Editor
 			}
 		}
 
+		private static void OnDragUpdatedEvent(DragUpdatedEvent evt)
+		{
+			DragAndDrop.visualMode = AssetBrowserX.IsDraggingExistingAssets || AssetBrowserX.IsDraggingNewAssets
+				? DragAndDropVisualMode.Move
+				: DragAndDropVisualMode.Rejected;
+		}
+
 		private void OnDragPerformEvent(DragPerformEvent evt)
 		{
-			DragAndDrop.AcceptDrag();
-			_libraryCategoryView.DragError = null;
+			RemoveFromClassList(ClassDrag);
+			if (_libraryCategoryView.DragError != null) {
+				_libraryCategoryView.DragError = null;
+				AssetBrowserX.StopDraggingAssets();
+				return;
+			}
 
+			DragAndDrop.AcceptDrag();
+
+			// drop from asset panel
 			if (DragAndDrop.GetGenericData("assets") is HashSet<AssetData> data) {
 				foreach (var d in data) {
 					var category = Categories.First(i => i.Item1 == d.Library).Item2 ?? d.Library.AddCategory(Name);
 					d.Library.SetCategory(d.Asset, category);
 				}
 				_libraryCategoryView.OnCategoryClicked(this, false);
-
-			} else if (DragAndDrop.paths is { Length: > 0 }) {
-				_libraryCategoryView.AddAssets(DragAndDrop.paths, assetLibrary => _libraryCategoryView.GetOrCreate(assetLibrary, Name));
-
-			} else {
-				// todo manage drag to add assets from outside, not just changing categories.
-				Debug.Log($"Unknown drag data.");
+				AssetBrowserX.StopDraggingAssets();
+				return;
 			}
-		}
 
-		private static void OnDragUpdatedEvent(DragUpdatedEvent evt)
-		{
-			DragAndDrop.visualMode = DragAndDropVisualMode.Move;
+			// drop from outside
+			if (AssetBrowserX.IsDraggingNewAssets) {
+				_libraryCategoryView.AddAssets(DragAndDrop.paths, assetLibrary => _libraryCategoryView.GetOrCreate(assetLibrary, Name));
+			}
 		}
 
 		private void OnDragLeaveEvent(DragLeaveEvent evt)

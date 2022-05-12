@@ -42,31 +42,31 @@ namespace VisualPinball.Unity.Editor
 		private VisualTreeAsset _assetTree;
 
 		public string DragErrorLeft {
+			get => _dragErrorContainerLeft.ClassListContains("hidden") ? null : _dragErrorLabelLeft.text;
 			set {
-				if (value == null && !_dragErrorContainerLeft.ClassListContains("hidden")) {
-					_dragErrorContainerLeft.AddToClassList("hidden");
+				if (value == null) {
+					if (!_dragErrorContainerLeft.ClassListContains("hidden")) {
+						_dragErrorContainerLeft.AddToClassList("hidden");
+					}
 					return;
 				}
 
-				if (_dragErrorContainerLeft.ClassListContains("hidden")) {
-					_dragErrorContainerLeft.RemoveFromClassList("hidden");
-				}
-
+				_dragErrorContainerLeft.RemoveFromClassList("hidden");
 				_dragErrorLabelLeft.text = value;
 			}
 		}
 
 		private string DragError {
+			get => _dragErrorContainer.ClassListContains("hidden") ? null : _dragErrorLabel.text;
 			set {
-				if (value == null && !_dragErrorContainer.ClassListContains("hidden")) {
-					_dragErrorContainer.AddToClassList("hidden");
+				if (value == null) {
+					if (!_dragErrorContainer.ClassListContains("hidden")) {
+						_dragErrorContainer.AddToClassList("hidden");
+					}
 					return;
 				}
 
-				if (_dragErrorContainer.ClassListContains("hidden")) {
-					_dragErrorContainer.RemoveFromClassList("hidden");
-				}
-
+				_dragErrorContainer.RemoveFromClassList("hidden");
 				_dragErrorLabel.text = value;
 			}
 		}

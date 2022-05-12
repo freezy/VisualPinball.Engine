@@ -44,9 +44,6 @@ namespace VisualPinball.Unity.Editor
 		private List<AssetData> _assets;
 
 		[NonSerialized]
-		private string _dragError;
-
-		[NonSerialized]
 		public AssetQuery Query;
 
 		private AssetData LastSelectedAsset {
@@ -69,6 +66,8 @@ namespace VisualPinball.Unity.Editor
 			wnd.minSize = new Vector2(450, 200);
 			wnd.maxSize = new Vector2(1920, 720);
 		}
+
+		#region Data
 
 		private void Refresh()
 		{
@@ -211,6 +210,63 @@ namespace VisualPinball.Unity.Editor
 			}
 		}
 
+		public void OnCategoriesUpdated(Dictionary<AssetLibrary, List<LibraryCategory>> categories) => Query.Filter(categories);
+		private void OnSearchQueryChanged(ChangeEvent<string> evt) => Query.Search(evt.newValue);
+		private void OnLibraryToggled(AssetLibrary lib, bool enabled)
+		{
+			lib.IsActive = enabled;
+			Query.Toggle(lib);
+			_selectedLibraries = Libraries.Where(l => l.IsActive).Select(l => l.Id).ToList();
+		}
+
+		public AssetLibrary GetLibraryByPath(string pathToCheck)
+		{
+			pathToCheck = pathToCheck.Replace('\\', '/');
+			return Libraries.FirstOrDefault(assetLibrary => {
+				var libraryPath = assetLibrary.LibraryRoot.Replace('\\', '/');
+				return pathToCheck.StartsWith(libraryPath);
+			});
+		}
+
+		public void AddAssets(IEnumerable<string> paths, Func<AssetLibrary, LibraryCategory> getCategory)
+		{
+			var numAdded = 0;
+			var numUpdated = 0;
+			AssetLibrary updatedLibrary = null;
+			foreach (var path in paths) {
+				var assetLibrary = GetLibraryByPath(path);
+				if (assetLibrary == null) {
+					continue;
+				}
+				var guid = AssetDatabase.AssetPathToGUID(path);
+				var type = AssetDatabase.GetMainAssetTypeAtPath(path);
+				var category = getCategory(assetLibrary);
+
+				if (assetLibrary.AddAsset(guid, type, path, category)) {
+					Debug.Log($"{Path.GetFileName(path)} added to library {assetLibrary.Name}.");
+					numAdded++;
+				} else {
+					Debug.Log($"{Path.GetFileName(path)} updated in library {assetLibrary.Name}.");
+					numUpdated++;
+				}
+				updatedLibrary = assetLibrary;
+			}
+
+			_categoryView.Refresh(this);
+
+			if (numAdded > 0 && numUpdated == 0) {
+				_statusLabel.text = $"{numAdded} asset" + (numAdded == 1 ? "" : "s") + $" added to library \"{updatedLibrary!.Name}\".";
+			} else if (numAdded == 0 && numUpdated > 0) {
+				_statusLabel.text = $"{numUpdated} asset" + (numUpdated == 1 ? "" : "s") + $" updated in library \"{updatedLibrary!.Name}\".";
+			} else if (numAdded > 0 && numUpdated > 0) {
+				_statusLabel.text = $"{numAdded} asset" + (numAdded == 1 ? "" : "s") + $" added and {numUpdated} asset" + (numUpdated == 1 ? "" : "s") + $" updated in library \"{updatedLibrary!.Name}\".";
+			} else {
+				_statusLabel.text = "No assets added to library.";
+			}
+		}
+
+		#endregion
+
 		#region Selection
 
 		private void SelectRange(int start, int end)
@@ -281,25 +337,22 @@ namespace VisualPinball.Unity.Editor
 
 		#endregion Selection
 
-		public void OnCategoriesUpdated(Dictionary<AssetLibrary, List<LibraryCategory>> categories) => Query.Filter(categories);
-		private void OnSearchQueryChanged(ChangeEvent<string> evt) => Query.Search(evt.newValue);
-		private void OnLibraryToggled(AssetLibrary lib, bool enabled)
-		{
-			lib.IsActive = enabled;
-			Query.Toggle(lib);
-			_selectedLibraries = Libraries.Where(l => l.IsActive).Select(l => l.Id).ToList();
-		}
+		#region Drag and Drop
 
-		public AssetLibrary GetLibraryByPath(string pathToCheck)
-		{
-			return Libraries.First(assetLibrary =>
-				pathToCheck.Replace('\\', '/')
-					.StartsWith(assetLibrary.LibraryRoot.Replace('\\', '/')));
-		}
+		private static void StartDraggingAssets(HashSet<AssetData> data) => DragAndDrop.SetGenericData("assets", data);
+		public static void StopDraggingAssets() => DragAndDrop.SetGenericData("assets", null);
+
+		public static bool IsDraggingExistingAssets => DragAndDrop.GetGenericData("assets") is HashSet<AssetData>;
+
+		public static bool IsDraggingNewAssets => DragAndDrop.paths is { Length: > 0 };
 
 		private void OnDragEnterEvent(DragEnterEvent evt)
 		{
 			DragError = null;
+
+			if (!IsDraggingNewAssets) {
+				return;
+			}
 
 			if (_categoryView.NumCategories == 0) {
 				DragError = "Unknown category. Seems there are no categories in the database, so you'll need to create one first.";
@@ -328,7 +381,7 @@ namespace VisualPinball.Unity.Editor
 
 		private static void OnDragUpdatedEvent(DragUpdatedEvent evt)
 		{
-			DragAndDrop.visualMode = DragAndDropVisualMode.Copy;
+			DragAndDrop.visualMode = IsDraggingNewAssets ? DragAndDropVisualMode.Copy : DragAndDropVisualMode.Rejected;
 		}
 
 		private void OnDragLeaveEvent(DragLeaveEvent evt)
@@ -337,49 +390,18 @@ namespace VisualPinball.Unity.Editor
 			DragError = null;
 		}
 
-		public void AddAssets(IEnumerable<string> paths, Func<AssetLibrary, LibraryCategory> getCategory)
-		{
-			var numAdded = 0;
-			var numUpdated = 0;
-			AssetLibrary updatedLibrary = null;
-			foreach (var path in paths) {
-				var assetLibrary = GetLibraryByPath(path);
-				if (assetLibrary == null) {
-					continue;
-				}
-				var guid = AssetDatabase.AssetPathToGUID(path);
-				var type = AssetDatabase.GetMainAssetTypeAtPath(path);
-				var category = getCategory(assetLibrary);
-
-				if (assetLibrary.AddAsset(guid, type, path, category)) {
-					Debug.Log($"{Path.GetFileName(path)} added to library {assetLibrary.Name}.");
-					numAdded++;
-				} else {
-					Debug.Log($"{Path.GetFileName(path)} updated in library {assetLibrary.Name}.");
-					numUpdated++;
-				}
-				updatedLibrary = assetLibrary;
-			}
-
-			_categoryView.Refresh(this);
-
-			if (numAdded > 0 && numUpdated == 0) {
-				_statusLabel.text = $"{numAdded} asset" + (numAdded == 1 ? "" : "s") + $" added to library \"{updatedLibrary!.Name}\".";
-			} else if (numAdded == 0 && numUpdated > 0) {
-				_statusLabel.text = $"{numUpdated} asset" + (numUpdated == 1 ? "" : "s") + $" updated in library \"{updatedLibrary!.Name}\".";
-			} else if (numAdded > 0 && numUpdated > 0) {
-				_statusLabel.text = $"{numAdded} asset" + (numAdded == 1 ? "" : "s") + $" added and {numUpdated} asset" + (numUpdated == 1 ? "" : "s") + $" updated in library \"{updatedLibrary!.Name}\".";
-			} else {
-				_statusLabel.text = "No assets added to library.";
-			}
-		}
-
 		private void OnDragPerformEvent(DragPerformEvent evt)
 		{
-			DragError = null;
+			if (DragError != null) {
+				DragError = null;
+				return;
+			}
+
 			DragAndDrop.AcceptDrag();
 			AddAssets(DragAndDrop.paths, assetLibrary => _categoryView.GetOrCreateSelected(assetLibrary));
 		}
+
+		#endregion
 
 		private void OnThumbSizeChanged(ChangeEvent<float> evt)
 		{
@@ -390,16 +412,19 @@ namespace VisualPinball.Unity.Editor
 			}
 		}
 
-		public void AttachData()
+		public void AttachData(AssetData clickedAsset)
 		{
+			if (!_selectedAssets.Contains(clickedAsset)) {
+				_selectedAssets.Add(clickedAsset);
+			}
 			DragAndDrop.objectReferences = _selectedAssets.Select(row => row.Asset.LoadAsset()).ToArray();
-			DragAndDrop.SetGenericData("assets", _selectedAssets);
+			StartDraggingAssets(_selectedAssets);
 		}
 	}
 
 	public interface IDragHandler
 	{
-		void AttachData();
+		void AttachData(AssetData clickedAsset);
 	}
 
 }

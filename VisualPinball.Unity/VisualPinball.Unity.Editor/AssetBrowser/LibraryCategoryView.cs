@@ -30,6 +30,7 @@ namespace VisualPinball.Unity.Editor
 		public int NumCategories;
 
 		public string DragError {
+			get => _browser.DragErrorLeft;
 			set => _browser.DragErrorLeft = value;
 		}
 

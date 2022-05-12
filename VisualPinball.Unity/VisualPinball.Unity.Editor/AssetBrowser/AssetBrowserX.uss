@@ -36,6 +36,14 @@ AssetDetailsElement > TemplateContainer {
 	height: 16px;
 }
 
+LibraryCategoryView {
+	flex-grow: 1;
+}
+
+#dragErrorContainerLeft {
+	margin: -5px;
+}
+
 /* "grid" */
 /* ------ */
 #gridContent {
