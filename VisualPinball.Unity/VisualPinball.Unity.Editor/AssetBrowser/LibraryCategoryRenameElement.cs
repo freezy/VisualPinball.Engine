@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+using System.Linq;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.UIElements;
@@ -27,6 +28,7 @@ namespace VisualPinball.Unity.Editor
 		public LibraryCategoryElement Category;
 
 		private readonly TextField _textField;
+		private readonly Label _lockedNotice;
 
 		public LibraryCategoryRenameElement()
 		{
@@ -38,6 +40,7 @@ namespace VisualPinball.Unity.Editor
 
 			_textField = ui.Q<TextField>();
 			_textField.RegisterCallback<KeyDownEvent>(OnKeyDown);
+			_lockedNotice = ui.Q<Label>("locked-notice");
 
 			ui.Q<Button>("okButton").RegisterCallback<MouseUpEvent>(_ => Category.CompleteRename(true, _textField.value));
 			ui.Q<Button>("cancelButton").RegisterCallback<MouseUpEvent>(_ => Category.CompleteRename(false));
@@ -48,6 +51,20 @@ namespace VisualPinball.Unity.Editor
 			_textField.value = Category.Name;
 			_textField.Focus();
 			_textField.SelectAll();
+
+			if (Category.HasLockedLibraries && Category.UnlockedLibraries.Length > 0) {
+				var unlockedLibraries = Category.UnlockedLibraries;
+				_lockedNotice.RemoveFromClassList("hidden");
+				_lockedNotice.text = unlockedLibraries.Length switch {
+					1 => $"Changes will only be applied to <i>{unlockedLibraries.First().Name}</i>.",
+					> 1 => "Changes will only be applied to <i>" + string.Join("</i>, <i>", unlockedLibraries[..^1].Select(c => c.Name)) + $"</i> and <i>{unlockedLibraries.Last().Name}</i>.",
+					_ => _lockedNotice.text
+				};
+			} else {
+				if (!_lockedNotice.ClassListContains("hidden")) {
+					_lockedNotice.AddToClassList("hidden");
+				}
+			}
 		}
 
 		private void OnKeyDown(KeyDownEvent evt)

@@ -6,3 +6,7 @@
 	flex-grow: 1;
 }
 
+#locked-notice {
+	white-space: normal;
+	margin: 4px;
+}

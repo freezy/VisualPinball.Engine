@@ -187,10 +187,10 @@ namespace VisualPinball.Unity.Editor
 			assets.Update(asset);
 
 			// clean up
-			if (assets.Count(a => a.Category.Id == previousCategoryId) == 0) {
-				var categories = _db.GetCollection<LibraryAsset>(CollectionCategories);
-				categories.Delete(previousCategoryId);
-			}
+			// if (assets.Count(a => a.Category.Id == previousCategoryId) == 0) {
+			// 	var categories = _db.GetCollection<LibraryAsset>(CollectionCategories);
+			// 	categories.Delete(previousCategoryId);
+			// }
 		}
 
 		public int NumAssetsWithCategory(LibraryCategory category) => _db.GetCollection<LibraryAsset>(CollectionAssets)
