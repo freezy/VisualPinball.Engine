@@ -17,7 +17,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using UnityEditor;
-using UnityEngine;
 using UnityEngine.UIElements;
 
 namespace VisualPinball.Unity.Editor
@@ -48,11 +47,13 @@ namespace VisualPinball.Unity.Editor
 
 		private readonly LibraryCategoryView _libraryCategoryView;
 		private readonly VisualElement _ui;
-		private readonly Image _icon;
+		private readonly Image _folderIcon;
 		private readonly Label _label;
+		private readonly Image _lockIcon;
 		private readonly LibraryCategoryRenameElement _renameElement;
 
 		private int NumAssets => Categories.Select(c => c.Item1.NumAssetsWithCategory(c.Item2)).Sum();
+		private bool AllLibrariesLocked => Categories.Count(c => !c.Item1.IsLocked) == 0;
 
 		private bool _isSelected;
 		private bool _isRenaming;
@@ -68,7 +69,7 @@ namespace VisualPinball.Unity.Editor
 		public LibraryCategoryElement(LibraryCategoryView libraryCategoryView, IEnumerable<(AssetLibrary, LibraryCategory)> categories)
 		{
 			_libraryCategoryView = libraryCategoryView;
-			Categories = categories?.ToArray();
+			Categories = categories.ToArray();
 
 			var visualTree = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>("Packages/org.visualpinball.engine.unity/VisualPinball.Unity/VisualPinball.Unity.Editor/AssetBrowser/LibraryCategoryElement.uxml");
 			var ui = visualTree.CloneTree();
@@ -77,7 +78,7 @@ namespace VisualPinball.Unity.Editor
 			Add(ui);
 
 			_ui = ui.Q<VisualElement>(null, "library-category-element");
-			_icon = _ui.Q<Image>();
+			_folderIcon = _ui.Q<Image>("icon-folder");
 			_label = _ui.Q<Label>();
 			_label.text = Categories!.First().Item2.Name;
 			_renameElement = ui.Q<LibraryCategoryRenameElement>();
@@ -91,8 +92,10 @@ namespace VisualPinball.Unity.Editor
 			UpdateIcon();
 			RegisterCallback<PointerUpEvent>(OnPointerUp);
 
-			// right-click menu
-			this.AddManipulator(new ContextualMenuManipulator(AddContextMenu));
+			// if at least one lib is unlocked, enable right-click menu
+			if (!AllLibrariesLocked) {
+				this.AddManipulator(new ContextualMenuManipulator(AddContextMenu));
+			}
 		}
 
 		public void ToggleRename(DropdownMenuAction act = null)
@@ -204,10 +207,10 @@ namespace VisualPinball.Unity.Editor
 			// drop from asset panel
 			if (DragAndDrop.GetGenericData("assets") is HashSet<AssetData> data) {
 				foreach (var d in data) {
-					var category = Categories.First(i => i.Item1 == d.Library).Item2 ?? d.Library.AddCategory(Name);
+					var category = Categories.FirstOrDefault(i => i.Item1 == d.Library).Item2 ?? d.Library.AddCategory(Name);
 					d.Library.SetCategory(d.Asset, category);
 				}
-				_libraryCategoryView.OnCategoryClicked(this, false);
+				_libraryCategoryView.Refresh();
 				AssetBrowserX.StopDraggingAssets();
 				return;
 			}
@@ -227,7 +230,7 @@ namespace VisualPinball.Unity.Editor
 		private void UpdateIcon()
 		{
 			var iconName = _isSelected ? "d_FolderOpened Icon" : NumAssets > 0 ? "d_Folder Icon" : "d_FolderEmpty Icon";
-			_icon.image = EditorGUIUtility.IconContent(iconName).image;
+			_folderIcon.image = EditorGUIUtility.IconContent(iconName).image;
 		}
 	}
 }
