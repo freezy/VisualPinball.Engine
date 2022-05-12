@@ -20,9 +20,9 @@ namespace VisualPinball.Unity.Editor
 {
 	public class AssetQueryResult
 	{
-		public readonly List<AssetData> Rows;
+		public readonly List<AssetResult> Rows;
 
-		public AssetQueryResult(List<AssetData> rows)
+		public AssetQueryResult(List<AssetResult> rows)
 		{
 			Rows = rows;
 		}

@@ -30,29 +30,29 @@ namespace VisualPinball.Unity.Editor
 		private readonly Label _titleElement;
 		private readonly VisualElement _attributesElement;
 
-		public AssetData Asset {
-			get => _data;
+		public AssetResult Asset {
+			get => _result;
 			set {
-				if (_data == value) {
+				if (_result == value) {
 					return;
 				}
 				// toggle empty label
-				if (value != null && _data == null) {
+				if (value != null && _result == null) {
 					_noSelectionElement.AddToClassList("hidden");
 					_detailsElement.RemoveFromClassList("hidden");
 				}
-				if (value == null && _data != null) {
+				if (value == null && _result != null) {
 					_noSelectionElement.RemoveFromClassList("hidden");
 					_detailsElement.AddToClassList("hidden");
 				}
-				_data = value;
+				_result = value;
 				if (value != null) {
 					UpdateDetails();
 				}
 			}
 		}
 
-		private AssetData _data;
+		private AssetResult _result;
 		private UnityEditor.Editor _previewEditor;
 		private Object _object;
 		private readonly Label _categoryElement;
@@ -106,7 +106,7 @@ namespace VisualPinball.Unity.Editor
 
 		private void OnGUI()
 		{
-			if (_data == null) {
+			if (_result == null) {
 				Object.DestroyImmediate(_previewEditor);
 				_previewEditor = null;
 
@@ -126,43 +126,43 @@ namespace VisualPinball.Unity.Editor
 
 		private void OnAddAttribute()
 		{
-			var attribute = _data.Library.AddAttribute(_data.Asset, "New Attribute");
-			var attributeElement = new LibraryAttributeElement(_data, attribute);
+			var attribute = _result.Library.AddAttribute(_result.Asset, "New Attribute");
+			var attributeElement = new LibraryAttributeElement(_result, attribute);
 			_attributesElement.Add(attributeElement);
 			attributeElement.ToggleEdit();
 		}
 
 		private void OnDescriptionEdited(ChangeEvent<string> evt)
 		{
-			_data.Asset.Description = evt.newValue;
-			_data.Save();
+			_result.Asset.Description = evt.newValue;
+			_result.Save();
 		}
 
 		public void UpdateDetails()
 		{
-			if (_data == null) {
+			if (_result == null) {
 				return;
 			}
-			_object = _data.Asset.LoadAsset();
+			_object = _result.Asset.Asset;
 			_titleElement.text = _object.name;
-			_libraryElement.text = _data.Library.Name;
-			_categoryElement.text = _data.Asset.Category.Name;
-			_dateElement.text = _data.Asset.AddedAt.ToLongDateString();
-			_descriptionViewElement.text = _data.Asset.Description;
-			_descriptionEditElement.SetValueWithoutNotify(_data.Asset.Description);
+			_libraryElement.text = _result.Library.Name;
+			_categoryElement.text = _result.Asset.Category.Name;
+			_dateElement.text = _result.Asset.AddedAt.ToLongDateString();
+			_descriptionViewElement.text = _result.Asset.Description;
+			_descriptionEditElement.SetValueWithoutNotify(_result.Asset.Description);
 
 			_attributesElement.Clear();
-			foreach (var attr in _data.Asset.Attributes) {
-				var categoryElement = new LibraryAttributeElement(_data, attr);
+			foreach (var attr in _result.Asset.Attributes) {
+				var categoryElement = new LibraryAttributeElement(_result, attr);
 				_attributesElement.Add(categoryElement);
 			}
 
-			SetVisibility(_libraryLockElement, _data.Library.IsLocked);
-			SetVisibility(_descriptionTitleElement, !string.IsNullOrEmpty(_data.Asset.Description) || !_data.Library.IsLocked);
-			SetVisibility(_descriptionViewElement, !string.IsNullOrEmpty(_data.Asset.Description) && _data.Library.IsLocked);
-			SetVisibility(_descriptionEditElement, !_data.Library.IsLocked);
-			SetVisibility(_attributesTitleElement, _data.Asset.Attributes.Count > 0 || !_data.Library.IsLocked);
-			SetVisibility(_addAttributeButton, !_data.Library.IsLocked);
+			SetVisibility(_libraryLockElement, _result.Library.IsLocked);
+			SetVisibility(_descriptionTitleElement, !string.IsNullOrEmpty(_result.Asset.Description) || !_result.Library.IsLocked);
+			SetVisibility(_descriptionViewElement, !string.IsNullOrEmpty(_result.Asset.Description) && _result.Library.IsLocked);
+			SetVisibility(_descriptionEditElement, !_result.Library.IsLocked);
+			SetVisibility(_attributesTitleElement, _result.Asset.Attributes.Count > 0 || !_result.Library.IsLocked);
+			SetVisibility(_addAttributeButton, !_result.Library.IsLocked);
 
 			// info
 			if (_object is GameObject go) {

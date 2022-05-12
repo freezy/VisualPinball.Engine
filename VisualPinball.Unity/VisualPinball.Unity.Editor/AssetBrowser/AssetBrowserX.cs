@@ -41,20 +41,20 @@ namespace VisualPinball.Unity.Editor
 		private List<string> _selectedLibraries;
 
 		[NonSerialized]
-		private List<AssetData> _assets;
+		private List<AssetResult> _assets;
 
 		[NonSerialized]
 		public AssetQuery Query;
 
-		private AssetData LastSelectedAsset {
+		private AssetResult LastSelectedAsset {
 			set => _detailsElement.Asset = value;
 		}
 
-		private AssetData _firstSelectedAsset;
-		private readonly HashSet<AssetData> _selectedAssets = new();
+		private AssetResult _firstSelectedAsset;
+		private readonly HashSet<AssetResult> _selectedAssets = new();
 
-		private readonly Dictionary<AssetData, VisualElement> _elementByAsset = new();
-		private readonly Dictionary<VisualElement, AssetData> _assetsByElement = new();
+		private readonly Dictionary<AssetResult, VisualElement> _elementByAsset = new();
+		private readonly Dictionary<VisualElement, AssetResult> _assetsByElement = new();
 
 		[MenuItem("Visual Pinball/Asset Browser")]
 		public static void ShowWindow()
@@ -147,7 +147,7 @@ namespace VisualPinball.Unity.Editor
 			UpdateQueryResults(e.Rows);
 		}
 
-		private void UpdateQueryResults(List<AssetData> assets)
+		private void UpdateQueryResults(List<AssetResult> assets)
 		{
 			_statusLabel.text = $"Found {assets.Count} asset" + (assets.Count == 1 ? "" : "s") + ".";
 			_assets = assets;
@@ -317,7 +317,7 @@ namespace VisualPinball.Unity.Editor
 			LastSelectedAsset = null;
 		}
 
-		private void SelectOnly(AssetData asset)
+		private void SelectOnly(AssetResult asset)
 		{
 			var wasAlreadySelected = false;
 			foreach (var selectedAsset in _selectedAssets) {
@@ -336,7 +336,7 @@ namespace VisualPinball.Unity.Editor
 			LastSelectedAsset = asset;
 		}
 
-		private void UnSelect(AssetData asset)
+		private void UnSelect(AssetResult asset)
 		{
 			_selectedAssets.Remove(asset);
 			ToggleSelectionClass(_elementByAsset[asset]);
@@ -345,7 +345,7 @@ namespace VisualPinball.Unity.Editor
 		}
 
 
-		private void Select(AssetData asset)
+		private void Select(AssetResult asset)
 		{
 			_selectedAssets.Add(asset);
 			ToggleSelectionClass(_elementByAsset[asset]);
@@ -358,10 +358,10 @@ namespace VisualPinball.Unity.Editor
 
 		#region Drag and Drop
 
-		private static void StartDraggingAssets(HashSet<AssetData> data) => DragAndDrop.SetGenericData("assets", data);
+		private static void StartDraggingAssets(HashSet<AssetResult> data) => DragAndDrop.SetGenericData("assets", data);
 		public static void StopDraggingAssets() => DragAndDrop.SetGenericData("assets", null);
 
-		public static bool IsDraggingExistingAssets => DragAndDrop.GetGenericData("assets") is HashSet<AssetData>;
+		public static bool IsDraggingExistingAssets => DragAndDrop.GetGenericData("assets") is HashSet<AssetResult>;
 
 		public static bool IsDraggingNewAssets => DragAndDrop.paths is { Length: > 0 };
 
@@ -431,19 +431,19 @@ namespace VisualPinball.Unity.Editor
 			}
 		}
 
-		public void AttachData(AssetData clickedAsset)
+		public void AttachData(AssetResult clickedAsset)
 		{
 			if (!_selectedAssets.Contains(clickedAsset)) {
 				_selectedAssets.Add(clickedAsset);
 			}
-			DragAndDrop.objectReferences = _selectedAssets.Select(row => row.Asset.LoadAsset()).ToArray();
+			DragAndDrop.objectReferences = _selectedAssets.Select(result => result.Asset.Asset).ToArray();
 			StartDraggingAssets(_selectedAssets);
 		}
 	}
 
 	public interface IDragHandler
 	{
-		void AttachData(AssetData clickedAsset);
+		void AttachData(AssetResult clickedAsset);
 	}
 
 }

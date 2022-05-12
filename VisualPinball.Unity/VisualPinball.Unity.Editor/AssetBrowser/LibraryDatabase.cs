@@ -29,82 +29,256 @@ namespace VisualPinball.Unity.Editor
 	[Serializable]
 	public class LibraryDatabase
 	{
-		public Dictionary<string, LibraryAsset2> Assets = new();
-		public Dictionary<string, LibraryCategory2> Categories = new();
+		[SerializeField] private Assets Assets = new();
+		[SerializeField] private Categories Categories = new();
 
-		public IEnumerable<(long, LibraryAsset2)> GetAssets(AssetQuery2 query)
+		#region Assets
+
+		public IEnumerable<AssetResult> GetAssets(AssetLibrary lib, AssetQuery2 query)
 		{
-			var result = Assets.Values.Select(asset => (0L, asset));
+			var results = Assets.All(this).Select(asset => new AssetResult(lib, asset, 0L));
 			if (query.HasKeywords) {
-				result = result.Select(hit => {
-					var (score, asset) = hit;
-					FuzzySearch.FuzzyMatch(query.Keywords, asset.Asset.name, ref score);
-					return (score, asset);
-				});
+				results = results
+					.Select(result => {
+						FuzzySearch.FuzzyMatch(query.Keywords, result.Asset.Asset.name, ref result.Score);
+						return result;
+					})
+					.Where(result => result.Score > 0);
 			}
 
 			if (query.HasCategories) {
-				result = result.Where(hit => query.HasCategory(hit.asset.Category));
+				results = results.Where(result => query.HasCategory(result.Asset.Category));
 			}
 
-			return result.Where(hit => hit.Item1 > 0);
+			// do the attribute search after the query.
+			if (query.HasAttributes) {
+				foreach (var (attrKey, attrValue) in query.Attributes) {
+					results = results.Where(result => result.Asset.Attributes != null && result.Asset.Attributes.Any(at => {
+						var keyMatches = string.Equals(at.Key, attrKey, StringComparison.CurrentCultureIgnoreCase);
+						var valueMatches = attrValue != null && at.Value != null && at.Value.ToLower().Contains(attrValue.ToLower());
+						return attrValue != null ? keyMatches && valueMatches : keyMatches;
+					})).ToList();
+				}
+			}
+
+			return results;
 		}
+
+		public bool AddAsset(string guid, Type type, string path, LibraryCategory category = null, List<LibraryAttribute> attrs = null)
+		{
+			if (Assets.Contains(guid)) {
+				var existingAsset = Assets[guid];
+				existingAsset.Category = category;
+				return false;
+			}
+
+			var asset = new LibraryAsset {
+				Guid = guid,
+				Category = category,
+				Attributes = attrs ?? new List<LibraryAttribute>(),
+				AddedAt = DateTime.Now,
+			};
+			Assets.Add(asset);
+
+			return true;
+		}
+
+		public void RemoveAsset(LibraryAsset asset)
+		{
+			if (Assets.Contains(asset)) {
+				Assets.Remove(asset);
+			}
+		}
+
+		#endregion
+
+		#region Category
+
+		public LibraryCategory AddCategory(string categoryName)
+		{
+			var category = new LibraryCategory {
+				Id = Guid.NewGuid().ToString(),
+				Name = categoryName
+			};
+			Categories.Add(category);
+
+			return category;
+		}
+
+		public void RenameCategory(LibraryCategory category, string newName)
+		{
+			category.Name = newName;
+		}
+
+		public LibraryCategory GetCategory(string id) => Categories[id];
+
+		public IEnumerable<LibraryCategory> GetCategories() => Categories.Values.OrderBy(c => c.Name).ToList();
+
+		public void SetCategory(LibraryAsset asset, LibraryCategory category)
+		{
+			asset.Category = category;
+		}
+
+		public int NumAssetsWithCategory(LibraryCategory category) => Assets.Values.Count(a => a.IsOfCategory(category));
+
+		public void DeleteCategory(LibraryCategory category)
+		{
+			if (NumAssetsWithCategory(category) > 0) {
+				throw new InvalidOperationException("Cannot delete category when there are assigned assets.");
+			}
+
+			Categories.Remove(category);
+		}
+
+		#endregion
+
+		#region Attribute
+
+		public IEnumerable<string> GetAttributeKeys()
+		{
+			return  Assets.Values
+				.SelectMany(a => a.Attributes)
+				.Select(a => a.Key)
+				.Distinct()
+				.OrderBy(a => a);
+		}
+
+		public IEnumerable<string> GetAttributeValues(string key)
+		{
+			return Assets.Values
+				.SelectMany(a => a.Attributes)
+				.Where(a => a.Key == key && !string.IsNullOrEmpty(a.Value))
+				.SelectMany(a => a.Value.Split(','))
+				.Select(v => v.Trim())
+				.Distinct()
+				.OrderBy(a => a);
+		}
+
+		public LibraryAttribute AddAttribute(LibraryAsset asset, string attributeName)
+		{
+			var attribute = new LibraryAttribute {
+				Key = attributeName,
+				Value = string.Empty,
+			};
+			asset.Attributes.Add(attribute);
+			return attribute;
+		}
+
+		#endregion
 	}
 
 	public class AssetQuery2
 	{
-		public string Keywords;
-		public bool HasKeywords => string.IsNullOrEmpty(Keywords);
+		#region Keywords
 
-		public LibraryCategory2[] Categories
+		public string Keywords;
+		public bool HasKeywords => !string.IsNullOrEmpty(Keywords);
+
+		#endregion
+
+		#region Categories
+
+		public List<LibraryCategory> Categories
 		{
 			get => _categories;
 			set {
 				_categories = value;
-				_categoryIds = new HashSet<string>(value.Select(c => c.Id));
+				_categoryIds = value == null
+					? new HashSet<string>()
+					: new HashSet<string>(value.Select(c => c.Id));
 			}
 		}
 
-		private LibraryCategory2[] _categories;
+		private List<LibraryCategory> _categories;
 		private HashSet<string> _categoryIds;
-		public bool HasCategories => Categories is { Length: > 0 };
-		public bool HasCategory(LibraryCategory2 category) => _categoryIds.Contains(category.Id);
+		public bool HasCategories => Categories is { Count: > 0 };
+		public bool HasCategory(LibraryCategory category) => _categoryIds.Contains(category.Id);
+
+		#endregion
+
+		#region Attributes
 
 		public Dictionary<string, string> Attributes = new();
+
+		public bool HasAttributes => Attributes.Count > 0;
+
+		#endregion
 	}
 
 	[Serializable]
-	public class LibraryAsset2
+	public class LibraryAsset
 	{
 		[SerializeReference]
 		public Object Asset;
 
-		public string Guid;
-		public string Type;
-		public string Path;
+		public string Guid {
+			get => _guid;
+			set {
+				_guid = value;
+				Path = AssetDatabase.GUIDToAssetPath(value);
+				Asset = AssetDatabase.LoadAssetAtPath(Path, AssetDatabase.GetMainAssetTypeAtPath(Path));
+			}
+		}
+
+		public string Path { get; private set; }
+
 		public DateTime AddedAt;
 		public string Description;
+
+		[SerializeField]
+		private string _guid;
+
+		[SerializeField]
 		private string _categoryId;
 
+		public LibraryCategory Category {
+			get => _category;
+			set {
+				_category = value;
+				_categoryId = value.Id;
+			}
+		}
 		[NonSerialized]
-		public LibraryCategory2 Category;
+		private LibraryCategory _category;
 
-		public List<LibraryAttribute2> Attributes;
+		public List<LibraryAttribute> Attributes;
+		public LibraryAsset SetCategory(LibraryDatabase lib)
+		{
+			_category = lib.GetCategory(_categoryId);
+			return this;
+		}
 
-		public Object LoadAsset() => AssetDatabase.LoadAssetAtPath(Path, AssetLibrary.TypeByName(Type));
+		public bool IsOfCategory(LibraryCategory category) => _categoryId == category.Id;
 	}
 
 	[Serializable]
-	public class LibraryCategory2
+	public class LibraryCategory
 	{
 		public string Id;
 		public string Name;
 	}
 
 	[Serializable]
-	public class LibraryAttribute2
+	public class LibraryAttribute
 	{
 		public string Key;
 		public string Value;
+	}
+
+	[Serializable]
+	internal class Assets : SerializableDictionary<string, LibraryAsset>
+	{
+		public IEnumerable<LibraryAsset> All(LibraryDatabase lib) => Values.Select(v => v.SetCategory(lib));
+		public void Add(LibraryAsset asset) => this[asset.Guid] = asset;
+		public bool Contains(LibraryAsset asset) => ContainsKey(asset.Guid);
+		public bool Contains(string guid) => ContainsKey(guid);
+		public bool Remove(LibraryAsset asset) => Remove(asset.Guid);
+	}
+
+	[Serializable]
+	internal class Categories : SerializableDictionary<string, LibraryCategory>
+	{
+		public void Add(LibraryCategory category) => this[category.Id] = category;
+		public bool Remove(LibraryCategory category) => Remove(category.Id);
 	}
 }

@@ -134,19 +134,18 @@ namespace VisualPinball.Unity.Editor
 
 			foreach (var assetLibrary in Libraries) {
 				assetLibrary.OnChange -= OnLibraryChanged;
-				assetLibrary.Dispose();
 			}
 		}
 
-		private VisualElement NewItem(AssetData data)
+		private VisualElement NewItem(AssetResult result)
 		{
-			var obj = AssetDatabase.LoadAssetAtPath(data.Asset.Path, AssetLibrary.TypeByName(data.Asset.Type));
+			var obj = result.Asset.Asset;
 			var tex = AssetPreview.GetAssetPreview(obj);
 			var item = new VisualElement();
 			_assetTree.CloneTree(item);
-			item.Q<LibraryAssetElement>().Data = data;
+			item.Q<LibraryAssetElement>().Result = result;
 			item.Q<Image>("thumbnail").image = tex;
-			item.Q<Label>("label").text = Path.GetFileNameWithoutExtension(data.Asset.Path);
+			item.Q<Label>("label").text = Path.GetFileNameWithoutExtension(result.Asset.Path);
 			item.RegisterCallback<MouseUpEvent>(evt => OnAssetClicked(evt, item));
 			item.Q<LibraryAssetElement>().RegisterDrag(this);
 			item.AddManipulator(new ContextualMenuManipulator(AddAssetContextMenu));
