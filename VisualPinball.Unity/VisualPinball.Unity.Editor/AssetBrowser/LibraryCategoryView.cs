@@ -246,10 +246,5 @@ namespace VisualPinball.Unity.Editor
 			_selectedCategories[assetLibrary] = new List<LibraryCategory> { addedCategory };
 			return addedCategory;
 		}
-
-		public LibraryCategory GetOrCreate(AssetLibrary assetLibrary, string n)
-		{
-			return assetLibrary.AddCategory(n);
-		}
 	}
 }
