@@ -168,15 +168,24 @@ namespace VisualPinball.Unity.Editor
 		private void AddAssetContextMenu(ContextualMenuPopulateEvent evt)
 		{
 			if (evt.target is VisualElement ve && _assetsByElement.ContainsKey(ve)) {
-				var asset = _assetsByElement[ve].Asset;
+				var clickedAsset = _assetsByElement[ve];
 				var lib = _assetsByElement[ve].Library;
 				if (!lib.IsLocked) {
 					evt.menu.AppendAction("Remove from Library", _ => {
-						var assetName = Path.GetFileNameWithoutExtension(asset.Path);
-						lib.RemoveAsset(asset);
+						if (!_selectedAssets.Contains(clickedAsset)) {
+							_selectedAssets.Add(clickedAsset);
+							ToggleSelectionClass(_elementByAsset[clickedAsset]);
+						}
+						var numRemovedAssets = 0;
+						foreach (var asset in _selectedAssets.Where(a => !a.Library.IsLocked).ToList()) {
+							_selectedAssets.Remove(asset);
+							asset.Library.RemoveAsset(asset.Asset);
+							numRemovedAssets++;
+						}
+
 						RefreshCategories();
 						RefreshAssets();
-						_statusLabel.text = $"Removed asset <i>{assetName}</i> from library <i>{lib.Name}</i>.";
+						_statusLabel.text = $"Removed {numRemovedAssets} assets from library.";
 					});
 				}
 			}
@@ -189,6 +198,10 @@ namespace VisualPinball.Unity.Editor
 
 		private void OnAssetClicked(IMouseEvent evt, VisualElement element)
 		{
+			// only interested in left click here
+			if (evt.button != 0) {
+				return;
+			}
 			var clickedAsset = _assetsByElement[element];
 
 			// no modifier pressed
