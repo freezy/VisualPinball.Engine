@@ -64,7 +64,7 @@ namespace VisualPinball.Unity.Editor
 			return results;
 		}
 
-		public bool AddAsset(string guid, Type type, string path, LibraryCategory category = null, List<LibraryAttribute> attrs = null)
+		public bool AddAsset(string guid, LibraryCategory category)
 		{
 			if (Assets.Contains(guid)) {
 				var existingAsset = Assets[guid];
@@ -75,7 +75,7 @@ namespace VisualPinball.Unity.Editor
 			var asset = new LibraryAsset {
 				Guid = guid,
 				Category = category,
-				Attributes = attrs ?? new List<LibraryAttribute>(),
+				Attributes = new List<LibraryAttribute>(),
 				AddedAt = DateTime.Now,
 			};
 			Assets.Add(asset);

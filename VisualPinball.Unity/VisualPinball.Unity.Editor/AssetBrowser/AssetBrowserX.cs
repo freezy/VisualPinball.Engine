@@ -258,10 +258,9 @@ namespace VisualPinball.Unity.Editor
 					continue;
 				}
 				var guid = AssetDatabase.AssetPathToGUID(path);
-				var type = AssetDatabase.GetMainAssetTypeAtPath(path);
 				var category = getCategory(assetLibrary);
 
-				if (assetLibrary.AddAsset(guid, type, path, category)) {
+				if (assetLibrary.AddAsset(guid, category)) {
 					Debug.Log($"{Path.GetFileName(path)} added to library {assetLibrary.Name}.");
 					numAdded++;
 				} else {

@@ -31,28 +31,28 @@ namespace VisualPinball.Unity.Editor
 		private readonly VisualElement _attributesElement;
 
 		public AssetResult Asset {
-			get => _result;
+			get => _asset;
 			set {
-				if (_result == value) {
+				if (_asset == value) {
 					return;
 				}
 				// toggle empty label
-				if (value != null && _result == null) {
+				if (value != null && _asset == null) {
 					_noSelectionElement.AddToClassList("hidden");
 					_detailsElement.RemoveFromClassList("hidden");
 				}
-				if (value == null && _result != null) {
+				if (value == null && _asset != null) {
 					_noSelectionElement.RemoveFromClassList("hidden");
 					_detailsElement.AddToClassList("hidden");
 				}
-				_result = value;
+				_asset = value;
 				if (value != null) {
 					UpdateDetails();
 				}
 			}
 		}
 
-		private AssetResult _result;
+		private AssetResult _asset;
 		private UnityEditor.Editor _previewEditor;
 		private Object _object;
 		private readonly Label _categoryElement;
@@ -94,7 +94,8 @@ namespace VisualPinball.Unity.Editor
 			_infoElement = ui.Q<Label>("info-view");
 
 			_libraryLockElement.image = EditorGUIUtility.IconContent("InspectorLock").image;
-			_descriptionEditElement.RegisterValueChangedCallback(OnDescriptionEdited);
+			_descriptionEditElement.RegisterCallback<FocusInEvent>(OnDescriptionStartEditing);
+			_descriptionEditElement.RegisterCallback<FocusOutEvent>(OnDescriptionEndEditing);
 			_addAttributeButton.clicked += OnAddAttribute;
 
 			ui.Q<IMGUIContainer>().onGUIHandler = OnGUI;
@@ -106,7 +107,7 @@ namespace VisualPinball.Unity.Editor
 
 		private void OnGUI()
 		{
-			if (_result == null) {
+			if (_asset == null) {
 				Object.DestroyImmediate(_previewEditor);
 				_previewEditor = null;
 
@@ -126,43 +127,50 @@ namespace VisualPinball.Unity.Editor
 
 		private void OnAddAttribute()
 		{
-			var attribute = _result.Library.AddAttribute(_result.Asset, "New Attribute");
-			var attributeElement = new LibraryAttributeElement(_result, attribute);
+			var attribute = _asset.Library.AddAttribute(_asset.Asset, "New Attribute");
+			var attributeElement = new LibraryAttributeElement(_asset, attribute);
 			_attributesElement.Add(attributeElement);
 			attributeElement.ToggleEdit();
 		}
 
-		private void OnDescriptionEdited(ChangeEvent<string> evt)
+		private void OnDescriptionStartEditing(FocusInEvent focusInEvent)
 		{
-			_result.Asset.Description = evt.newValue;
-			_result.Save();
+			Undo.RecordObject(_asset.Library, "edit description");
+		}
+
+		private void OnDescriptionEndEditing(FocusOutEvent focusOutEvent)
+		{
+			_asset.Asset.Description = _descriptionEditElement.value;
+			_asset.Save();
+			EditorUtility.SetDirty(_asset.Library);
+			AssetDatabase.SaveAssetIfDirty(_asset.Library);
 		}
 
 		public void UpdateDetails()
 		{
-			if (_result == null) {
+			if (_asset == null) {
 				return;
 			}
-			_object = _result.Asset.Asset;
+			_object = _asset.Asset.Asset;
 			_titleElement.text = _object.name;
-			_libraryElement.text = _result.Library.Name;
-			_categoryElement.text = _result.Asset.Category.Name;
-			_dateElement.text = _result.Asset.AddedAt.ToLongDateString();
-			_descriptionViewElement.text = _result.Asset.Description;
-			_descriptionEditElement.SetValueWithoutNotify(_result.Asset.Description);
+			_libraryElement.text = _asset.Library.Name;
+			_categoryElement.text = _asset.Asset.Category.Name;
+			_dateElement.text = _asset.Asset.AddedAt.ToLongDateString();
+			_descriptionViewElement.text = _asset.Asset.Description;
+			_descriptionEditElement.SetValueWithoutNotify(_asset.Asset.Description);
 
 			_attributesElement.Clear();
-			foreach (var attr in _result.Asset.Attributes) {
-				var categoryElement = new LibraryAttributeElement(_result, attr);
+			foreach (var attr in _asset.Asset.Attributes) {
+				var categoryElement = new LibraryAttributeElement(_asset, attr);
 				_attributesElement.Add(categoryElement);
 			}
 
-			SetVisibility(_libraryLockElement, _result.Library.IsLocked);
-			SetVisibility(_descriptionTitleElement, !string.IsNullOrEmpty(_result.Asset.Description) || !_result.Library.IsLocked);
-			SetVisibility(_descriptionViewElement, !string.IsNullOrEmpty(_result.Asset.Description) && _result.Library.IsLocked);
-			SetVisibility(_descriptionEditElement, !_result.Library.IsLocked);
-			SetVisibility(_attributesTitleElement, _result.Asset.Attributes.Count > 0 || !_result.Library.IsLocked);
-			SetVisibility(_addAttributeButton, !_result.Library.IsLocked);
+			SetVisibility(_libraryLockElement, _asset.Library.IsLocked);
+			SetVisibility(_descriptionTitleElement, !string.IsNullOrEmpty(_asset.Asset.Description) || !_asset.Library.IsLocked);
+			SetVisibility(_descriptionViewElement, !string.IsNullOrEmpty(_asset.Asset.Description) && _asset.Library.IsLocked);
+			SetVisibility(_descriptionEditElement, !_asset.Library.IsLocked);
+			SetVisibility(_attributesTitleElement, _asset.Asset.Attributes.Count > 0 || !_asset.Library.IsLocked);
+			SetVisibility(_addAttributeButton, !_asset.Library.IsLocked);
 
 			// info
 			if (_object is GameObject go) {
