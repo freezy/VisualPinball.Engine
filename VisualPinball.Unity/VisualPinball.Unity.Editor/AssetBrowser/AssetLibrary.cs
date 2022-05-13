@@ -49,15 +49,28 @@ namespace VisualPinball.Unity.Editor
 
 		#region Asset
 
-		public bool AddAsset(string guid, Type type, string path, LibraryCategory category = null, List<LibraryAttribute> attrs = null)
+		public void AddAssets((string guid, LibraryCategory category)[] assets)
+		{
+			if (IsLocked) {
+				throw new InvalidOperationException($"Cannot add new asset because library {Name} is locked.");
+			}
+
+			RecordUndo("add assets to library");
+			foreach (var (guid, category) in assets) {
+				_db.AddAsset(guid, category);
+			}
+			SaveLibrary();
+		}
+
+		public bool AddAsset(string guid, LibraryCategory category)
 		{
 			if (IsLocked) {
 				throw new InvalidOperationException($"Cannot add new asset because library {Name} is locked.");
 			}
 
 			RecordUndo("add asset to library");
-			var wasAdded = _db.AddAsset(guid, type, path, category, attrs);
-			SaveAsset();
+			var wasAdded = _db.AddAsset(guid, category);
+			SaveLibrary();
 
 			return wasAdded;
 		}
@@ -67,7 +80,7 @@ namespace VisualPinball.Unity.Editor
 			if (IsLocked) {
 				throw new InvalidOperationException($"Cannot update asset {asset.Guid} because library {Name} is locked.");
 			}
-			SaveAsset();
+			SaveLibrary();
 		}
 
 		public IEnumerable<AssetResult> GetAssets(string query, List<LibraryCategory> categories, Dictionary<string, string> attributes)
@@ -89,7 +102,7 @@ namespace VisualPinball.Unity.Editor
 
 			RecordUndo("remove asset from library");
 			_db.RemoveAsset(asset);
-			SaveAsset();
+			SaveLibrary();
 		}
 
 		#endregion
@@ -104,7 +117,7 @@ namespace VisualPinball.Unity.Editor
 
 			RecordUndo("add category to library");
 			var category = _db.AddCategory(categoryName);
-			SaveAsset();
+			SaveLibrary();
 
 			return category;
 		}
@@ -117,7 +130,7 @@ namespace VisualPinball.Unity.Editor
 
 			RecordUndo("rename category");
 			_db.RenameCategory(category, newName);
-			SaveAsset();
+			SaveLibrary();
 		}
 
 		public void SetCategory(LibraryAsset asset, LibraryCategory category)
@@ -128,7 +141,7 @@ namespace VisualPinball.Unity.Editor
 
 			RecordUndo("assign category");
 			_db.SetCategory(asset, category);
-			SaveAsset();
+			SaveLibrary();
 		}
 
 		public int NumAssetsWithCategory(LibraryCategory category) => _db.NumAssetsWithCategory(category);
@@ -141,7 +154,7 @@ namespace VisualPinball.Unity.Editor
 
 			RecordUndo("delete category");
 			_db.DeleteCategory(category);
-			SaveAsset();
+			SaveLibrary();
 		}
 
 		public IEnumerable<LibraryCategory> GetCategories() => _db.GetCategories();
@@ -162,7 +175,7 @@ namespace VisualPinball.Unity.Editor
 
 			RecordUndo("add attribute");
 			var attr = _db.AddAttribute(asset, attributeName);
-			SaveAsset();
+			SaveLibrary();
 
 			return attr;
 		}
@@ -208,7 +221,7 @@ namespace VisualPinball.Unity.Editor
 			Undo.RecordObject(this, message);
 		}
 
-		private void SaveAsset()
+		private void SaveLibrary()
 		{
 			EditorUtility.SetDirty(this);
 			AssetDatabase.SaveAssetIfDirty(this);

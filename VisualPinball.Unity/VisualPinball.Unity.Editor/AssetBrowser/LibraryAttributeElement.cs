@@ -74,8 +74,7 @@ namespace VisualPinball.Unity.Editor
 		private void OnAttached(AttachToPanelEvent evt)
 		{
 			_browser = panel.visualTree.userData as AssetBrowserX;
-			_nameEditElement.SuggestOptions = _browser!.Query.AttributeNames;
-			_valuesEditElement.SuggestOptions = _browser!.Query.AttributeValues(_attribute.Key);
+			_valuesEditElement.RegisterCallback<FocusInEvent>(OnAttributeValueFocus);
 		}
 
 		private void OnMouseDown(MouseDownEvent evt)
@@ -117,9 +116,15 @@ namespace VisualPinball.Unity.Editor
 		private void StartEditing()
 		{
 			_nameEditElement.Value = _attribute.Key;
+			_nameEditElement.SuggestOptions = _browser!.Query.AttributeNames;
 			_valuesEditElement.Value = _attribute.Value;
 			_nameEditElement.Focus();
 			_nameEditElement.SelectAll();
+		}
+
+		private void OnAttributeValueFocus(FocusInEvent focusInEvent)
+		{
+			_valuesEditElement.SuggestOptions = _browser!.Query.AttributeValues(_nameEditElement.Value);
 		}
 
 		public void CompleteEdit(bool success, string newName = null, string newValue = null)
