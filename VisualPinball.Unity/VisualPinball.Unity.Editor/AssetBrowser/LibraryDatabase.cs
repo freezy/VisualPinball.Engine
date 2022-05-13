@@ -222,7 +222,13 @@ namespace VisualPinball.Unity.Editor
 
 		public string Path { get; private set; }
 
-		public DateTime AddedAt;
+		public DateTime AddedAt {
+			get => Convert.ToDateTime(_addedAt);
+			set => _addedAt = value.ToString("o");
+		}
+		[SerializeField]
+		private string _addedAt;
+
 		public string Description;
 
 		[SerializeField]
