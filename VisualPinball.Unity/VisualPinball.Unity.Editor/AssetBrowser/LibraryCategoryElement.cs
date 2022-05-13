@@ -227,7 +227,7 @@ namespace VisualPinball.Unity.Editor
 
 			// drop from outside
 			if (AssetBrowserX.IsDraggingNewAssets) {
-				_libraryCategoryView.AddAssets(DragAndDrop.paths, assetLibrary => _libraryCategoryView.GetOrCreate(assetLibrary, Name));
+				_libraryCategoryView.AddAssets(DragAndDrop.paths, assetLibrary => Categories.FirstOrDefault(i => i.Item1 == assetLibrary).Item2 ??assetLibrary.AddCategory(Name));
 			}
 		}
 

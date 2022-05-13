@@ -202,11 +202,14 @@ namespace VisualPinball.Unity.Editor
 			var materials = 0;
 			foreach (var mf in go.GetComponentsInChildren<MeshFilter>()) {
 				var mesh = mf.sharedMesh;
-				meshes++;
-				vertices += mesh.vertexCount;
-				triangles += mesh.triangles.Length;
-				uvs += mesh.uv.Length;
-				subMeshes += mesh.subMeshCount;
+				if (mesh != null) {
+					meshes++;
+					vertices += mesh.vertexCount;
+					triangles += mesh.triangles.Length;
+					uvs += mesh.uv.Length;
+					subMeshes += mesh.subMeshCount;
+				}
+
 				var mr = mf.gameObject.GetComponent<MeshRenderer>();
 				if (mr != null) {
 					materials += mr.sharedMaterials.Length;

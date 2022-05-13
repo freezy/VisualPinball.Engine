@@ -49,19 +49,6 @@ namespace VisualPinball.Unity.Editor
 
 		#region Asset
 
-		public void AddAssets((string guid, LibraryCategory category)[] assets)
-		{
-			if (IsLocked) {
-				throw new InvalidOperationException($"Cannot add new asset because library {Name} is locked.");
-			}
-
-			RecordUndo("add assets to library");
-			foreach (var (guid, category) in assets) {
-				_db.AddAsset(guid, category);
-			}
-			SaveLibrary();
-		}
-
 		public bool AddAsset(string guid, LibraryCategory category)
 		{
 			if (IsLocked) {
