@@ -145,14 +145,15 @@ namespace VisualPinball.Unity.Editor
 			EditorUtility.SetDirty(_asset.Library);
 			AssetDatabase.SaveAssetIfDirty(_asset.Library);
 		}
+		
 
 		public void UpdateDetails()
 		{
 			if (_asset == null) {
 				return;
 			}
-			_object = _asset.Asset.Asset;
-			_titleElement.text = _object.name;
+			_object = _asset.Asset.Object;
+			_titleElement.text = _asset.Asset.Name;
 			_libraryElement.text = _asset.Library.Name;
 			_categoryElement.text = _asset.Asset.Category.Name;
 			_dateElement.text = _asset.Asset.AddedAt.ToLongDateString();

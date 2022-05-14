@@ -270,10 +270,10 @@ namespace VisualPinball.Unity.Editor
 				if (assetLibrary == null) {
 					continue;
 				}
-				var guid = AssetDatabase.AssetPathToGUID(path);
+				var obj = AssetDatabase.LoadAssetAtPath(path, AssetDatabase.GetMainAssetTypeAtPath(path));
 				var category = getCategory(assetLibrary);
 
-				if (assetLibrary.AddAsset(guid, category)) {
+				if (assetLibrary.AddAsset(obj, category)) {
 					Debug.Log($"{Path.GetFileName(path)} added to library {assetLibrary.Name}.");
 					numAdded++;
 				} else {
@@ -448,7 +448,7 @@ namespace VisualPinball.Unity.Editor
 			if (!_selectedAssets.Contains(clickedAsset)) {
 				_selectedAssets.Add(clickedAsset);
 			}
-			DragAndDrop.objectReferences = _selectedAssets.Select(result => result.Asset.Asset).ToArray();
+			DragAndDrop.objectReferences = _selectedAssets.Select(result => result.Asset.Object).ToArray();
 			StartDraggingAssets(_selectedAssets);
 		}
 	}

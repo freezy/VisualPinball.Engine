@@ -40,7 +40,7 @@ namespace VisualPinball.Unity.Editor
 			if (query.HasKeywords) {
 				results = results
 					.Select(result => {
-						FuzzySearch.FuzzyMatch(query.Keywords, result.Asset.Asset.name, ref result.Score);
+						FuzzySearch.FuzzyMatch(query.Keywords, result.Asset.Object.name, ref result.Score);
 						return result;
 					})
 					.Where(result => result.Score > 0);
@@ -64,16 +64,16 @@ namespace VisualPinball.Unity.Editor
 			return results;
 		}
 
-		public bool AddAsset(string guid, LibraryCategory category)
+		public bool AddAsset(Object obj, LibraryCategory category)
 		{
-			if (Assets.Contains(guid)) {
-				var existingAsset = Assets[guid];
+			if (Assets.Contains(obj)) {
+				var existingAsset = Assets.Get(obj);
 				existingAsset.Category = category;
 				return false;
 			}
 
 			var asset = new LibraryAsset {
-				Guid = guid,
+				Object = obj,
 				Category = category,
 				Attributes = new List<LibraryAttribute>(),
 				AddedAt = DateTime.Now,
@@ -208,19 +208,10 @@ namespace VisualPinball.Unity.Editor
 	[Serializable]
 	public class LibraryAsset
 	{
+		public string Name => Object != null ? Object.name : "<invalid ref>";
+
 		[SerializeReference]
-		public Object Asset;
-
-		public string Guid {
-			get => _guid;
-			set {
-				_guid = value;
-				Path = AssetDatabase.GUIDToAssetPath(value);
-				Asset = AssetDatabase.LoadAssetAtPath(Path, AssetDatabase.GetMainAssetTypeAtPath(Path));
-			}
-		}
-
-		public string Path { get; private set; }
+		public Object Object;
 
 		public DateTime AddedAt {
 			get => Convert.ToDateTime(_addedAt);
@@ -230,9 +221,6 @@ namespace VisualPinball.Unity.Editor
 		private string _addedAt;
 
 		public string Description;
-
-		[SerializeField]
-		private string _guid;
 
 		[SerializeField]
 		private string _categoryId;
@@ -275,10 +263,26 @@ namespace VisualPinball.Unity.Editor
 	internal class Assets : SerializableDictionary<string, LibraryAsset>
 	{
 		public IEnumerable<LibraryAsset> All(LibraryDatabase lib) => Values.Select(v => v.SetCategory(lib));
-		public void Add(LibraryAsset asset) => this[asset.Guid] = asset;
-		public bool Contains(LibraryAsset asset) => ContainsKey(asset.Guid);
+		public void Add(LibraryAsset asset)
+		{
+			if (AssetDatabase.TryGetGUIDAndLocalFileIdentifier(asset.Object, out var guid, out long _)) {
+				this[guid] = asset;
+			}
+		}
+		public bool Contains(LibraryAsset asset)
+		{
+			return AssetDatabase.TryGetGUIDAndLocalFileIdentifier(asset.Object, out var guid, out long _) && ContainsKey(guid);
+		}
+
 		public bool Contains(string guid) => ContainsKey(guid);
-		public bool Remove(LibraryAsset asset) => Remove(asset.Guid);
+		public bool Remove(LibraryAsset asset)
+		{
+			return AssetDatabase.TryGetGUIDAndLocalFileIdentifier(asset.Object, out var guid, out long _) && Remove(guid);
+		}
+		public LibraryAsset Get(Object obj)
+		{
+			return AssetDatabase.TryGetGUIDAndLocalFileIdentifier(obj, out var guid, out long _) ? this[guid] : null;
+		}
 	}
 
 	[Serializable]

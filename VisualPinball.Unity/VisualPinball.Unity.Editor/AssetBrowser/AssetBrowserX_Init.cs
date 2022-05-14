@@ -139,13 +139,13 @@ namespace VisualPinball.Unity.Editor
 
 		private VisualElement NewItem(AssetResult result)
 		{
-			var obj = result.Asset.Asset;
+			var obj = result.Asset.Object;
 			var tex = AssetPreview.GetAssetPreview(obj);
 			var item = new VisualElement();
 			_assetTree.CloneTree(item);
 			item.Q<LibraryAssetElement>().Result = result;
 			item.Q<Image>("thumbnail").image = tex;
-			item.Q<Label>("label").text = Path.GetFileNameWithoutExtension(result.Asset.Path);
+			item.Q<Label>("label").text = result.Asset.Name;
 			item.RegisterCallback<MouseUpEvent>(evt => OnAssetClicked(evt, item));
 			item.Q<LibraryAssetElement>().RegisterDrag(this);
 			item.AddManipulator(new ContextualMenuManipulator(AddAssetContextMenu));

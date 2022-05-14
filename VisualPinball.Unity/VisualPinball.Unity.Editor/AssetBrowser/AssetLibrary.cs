@@ -21,6 +21,7 @@ using System.Collections.Generic;
 using System.IO;
 using UnityEditor;
 using UnityEngine;
+using Object = UnityEngine.Object;
 
 namespace VisualPinball.Unity.Editor
 {
@@ -49,14 +50,14 @@ namespace VisualPinball.Unity.Editor
 
 		#region Asset
 
-		public bool AddAsset(string guid, LibraryCategory category)
+		public bool AddAsset(Object obj, LibraryCategory category)
 		{
 			if (IsLocked) {
 				throw new InvalidOperationException($"Cannot add new asset because library {Name} is locked.");
 			}
 
 			RecordUndo("add asset to library");
-			var wasAdded = _db.AddAsset(guid, category);
+			var wasAdded = _db.AddAsset(obj, category);
 			SaveLibrary();
 
 			return wasAdded;
@@ -65,7 +66,7 @@ namespace VisualPinball.Unity.Editor
 		public void SaveAsset(LibraryAsset asset)
 		{
 			if (IsLocked) {
-				throw new InvalidOperationException($"Cannot update asset {asset.Guid} because library {Name} is locked.");
+				throw new InvalidOperationException($"Cannot update asset {asset.Name} because library {Name} is locked.");
 			}
 			SaveLibrary();
 		}
@@ -157,7 +158,7 @@ namespace VisualPinball.Unity.Editor
 		public LibraryAttribute AddAttribute(LibraryAsset asset, string attributeName)
 		{
 			if (IsLocked) {
-				throw new InvalidOperationException($"Cannot add new attribute to asset {asset.Guid} because library {Name} is locked.");
+				throw new InvalidOperationException($"Cannot add new attribute to asset {asset.Name} because library {Name} is locked.");
 			}
 
 			RecordUndo("add attribute");
