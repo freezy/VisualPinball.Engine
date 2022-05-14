@@ -75,7 +75,7 @@ namespace VisualPinball.Unity.Editor
 			var asset = new LibraryAsset {
 				Object = obj,
 				Category = category,
-				Attributes = new List<LibraryAttribute>(),
+				Attributes = new List<LibraryKeyValue>(),
 				AddedAt = DateTime.Now,
 			};
 			Assets.Add(asset);
@@ -154,14 +154,29 @@ namespace VisualPinball.Unity.Editor
 				.OrderBy(a => a);
 		}
 
-		public LibraryAttribute AddAttribute(LibraryAsset asset, string attributeName)
+		public LibraryKeyValue AddAttribute(LibraryAsset asset, string attributeName)
 		{
-			var attribute = new LibraryAttribute {
+			var attribute = new LibraryKeyValue {
 				Key = attributeName,
 				Value = string.Empty,
 			};
 			asset.Attributes.Add(attribute);
 			return attribute;
+		}
+
+		#endregion
+
+
+		#region Links
+
+		public LibraryKeyValue AddLink(LibraryAsset asset, string linkName)
+		{
+			var link = new LibraryKeyValue {
+				Key = linkName,
+				Value = "https://",
+			};
+			asset.Links.Add(link);
+			return link;
 		}
 
 		#endregion
@@ -235,7 +250,7 @@ namespace VisualPinball.Unity.Editor
 		[NonSerialized]
 		private LibraryCategory _category;
 
-		public List<LibraryAttribute> Attributes;
+		public List<LibraryKeyValue> Attributes;
 		public LibraryAsset SetCategory(LibraryDatabase lib)
 		{
 			_category = lib.GetCategory(_categoryId);
@@ -243,6 +258,11 @@ namespace VisualPinball.Unity.Editor
 		}
 
 		public bool IsOfCategory(LibraryCategory category) => _categoryId == category.Id;
+
+		public List<LibraryKeyValue> Links;
+
+		[SerializeField]
+		internal Tags Tags;
 	}
 
 	[Serializable]
@@ -253,7 +273,7 @@ namespace VisualPinball.Unity.Editor
 	}
 
 	[Serializable]
-	public class LibraryAttribute
+	public class LibraryKeyValue
 	{
 		public string Key;
 		public string Value;
@@ -290,5 +310,10 @@ namespace VisualPinball.Unity.Editor
 	{
 		public void Add(LibraryCategory category) => this[category.Id] = category;
 		public bool Remove(LibraryCategory category) => Remove(category.Id);
+	}
+
+	[Serializable]
+	internal class Tags : SerializableHashSet<string>
+	{
 	}
 }

@@ -9,7 +9,7 @@
 }
 
 .library-attribute-element #attribute-values > Label:hover {
-	cursor: zoom;
+	background-color: #515151;
 }
 
 .library-attribute-edit-element {
@@ -19,6 +19,10 @@
 .library-attribute-edit-element SearchSuggest {
 	flex-basis: 50%;
 	flex-grow: 1;
+}
+
+#display-link Label:hover {
+	background-color: #515151;
 }
 
 #search-suggest-list {

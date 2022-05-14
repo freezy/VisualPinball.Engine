@@ -38,6 +38,7 @@ namespace VisualPinball.Unity.Editor
 				}
 				// toggle empty label
 				if (value != null && _asset == null) {
+					_previewEditorElement.style.height = _previewEditorElement.resolvedStyle.width;
 					_noSelectionElement.AddToClassList("hidden");
 					_detailsElement.RemoveFromClassList("hidden");
 				}
@@ -66,6 +67,13 @@ namespace VisualPinball.Unity.Editor
 		private readonly Image _libraryLockElement;
 		private readonly Label _infoTitleElement;
 		private readonly Label _infoElement;
+		private readonly VisualElement _tagsElement;
+		private readonly Label _tagsTitleElement;
+		private readonly Button _addTagButton;
+		private readonly VisualElement _linksElement;
+		private readonly Label _linksTitleElement;
+		private readonly Button _addLinkButton;
+		private readonly IMGUIContainer _previewEditorElement;
 
 		public new class UxmlFactory : UxmlFactory<AssetDetailsElement, UxmlTraits> { }
 
@@ -89,7 +97,13 @@ namespace VisualPinball.Unity.Editor
 			_descriptionEditElement = ui.Q<TextField>("description-edit");
 			_attributesElement = ui.Q<VisualElement>("attributes");
 			_attributesTitleElement = ui.Q<Label>("attributes-title");
-			_addAttributeButton = ui.Q<Button>("add");
+			_addAttributeButton = ui.Q<Button>("attributes-add");
+			_tagsElement = ui.Q<VisualElement>("tags");
+			_tagsTitleElement = ui.Q<Label>("tags-title");
+			_addTagButton = ui.Q<Button>("tags-add");
+			_linksElement = ui.Q<VisualElement>("links");
+			_linksTitleElement = ui.Q<Label>("links-title");
+			_addLinkButton = ui.Q<Button>("links-add");
 			_infoTitleElement = ui.Q<Label>("info-title");
 			_infoElement = ui.Q<Label>("info-view");
 
@@ -97,12 +111,15 @@ namespace VisualPinball.Unity.Editor
 			_descriptionEditElement.RegisterCallback<FocusInEvent>(OnDescriptionStartEditing);
 			_descriptionEditElement.RegisterCallback<FocusOutEvent>(OnDescriptionEndEditing);
 			_addAttributeButton.clicked += OnAddAttribute;
+			_addLinkButton.clicked += OnAddLink;
 
-			ui.Q<IMGUIContainer>().onGUIHandler = OnGUI;
+			_previewEditorElement = ui.Q<IMGUIContainer>();
+			_previewEditorElement.onGUIHandler = OnGUI;
+			_previewEditorElement.style.height = _previewEditorElement.resolvedStyle.width;
+
 			ui.Q<Image>("library-icon").image = Icons.AssetLibrary(IconSize.Small);
 			ui.Q<Image>("date-icon").image = Icons.Calendar(IconSize.Small);
 			ui.Q<Image>("category-icon").image = EditorGUIUtility.IconContent("d_Folder Icon").image;
-
 		}
 
 		private void OnGUI()
@@ -122,15 +139,24 @@ namespace VisualPinball.Unity.Editor
 				var previewSize = _detailsElement.resolvedStyle.width - _detailsElement.resolvedStyle.paddingLeft - _detailsElement.resolvedStyle.paddingRight;
 				var rect = EditorGUILayout.GetControlRect(false, previewSize, GUILayout.Width(previewSize));
 				_previewEditor.OnInteractivePreviewGUI(rect, GUI.skin.box);
+				_previewEditorElement.style.height = _previewEditorElement.resolvedStyle.width;
 			}
 		}
 
 		private void OnAddAttribute()
 		{
 			var attribute = _asset.Library.AddAttribute(_asset.Asset, "New Attribute");
-			var attributeElement = new LibraryAttributeElement(_asset, attribute);
+			var attributeElement = new KeyValueElement(_asset, attribute, false);
 			_attributesElement.Add(attributeElement);
 			attributeElement.ToggleEdit();
+		}
+
+		private void OnAddLink()
+		{
+			var link = _asset.Library.AddLink(_asset.Asset, "New Link");
+			var linkElement = new KeyValueElement(_asset, link, true);
+			_linksElement.Add(linkElement);
+			linkElement.ToggleEdit();
 		}
 
 		private void OnDescriptionStartEditing(FocusInEvent focusInEvent)
@@ -145,7 +171,6 @@ namespace VisualPinball.Unity.Editor
 			EditorUtility.SetDirty(_asset.Library);
 			AssetDatabase.SaveAssetIfDirty(_asset.Library);
 		}
-		
 
 		public void UpdateDetails()
 		{
@@ -162,8 +187,14 @@ namespace VisualPinball.Unity.Editor
 
 			_attributesElement.Clear();
 			foreach (var attr in _asset.Asset.Attributes) {
-				var categoryElement = new LibraryAttributeElement(_asset, attr);
-				_attributesElement.Add(categoryElement);
+				var attrElement = new KeyValueElement(_asset, attr, false);
+				_attributesElement.Add(attrElement);
+			}
+
+			_linksElement.Clear();
+			foreach (var link in _asset.Asset.Links) {
+				var linkElement = new KeyValueElement(_asset, link, true);
+				_linksElement.Add(linkElement);
 			}
 
 			SetVisibility(_libraryLockElement, _asset.Library.IsLocked);
