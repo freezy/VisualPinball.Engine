@@ -155,7 +155,7 @@ namespace VisualPinball.Unity.Editor
 
 		public IEnumerable<string> GetAttributeValues(string key) => _db.GetAttributeValues(key);
 
-		public LibraryAttribute AddAttribute(LibraryAsset asset, string attributeName)
+		public LibraryKeyValue AddAttribute(LibraryAsset asset, string attributeName)
 		{
 			if (IsLocked) {
 				throw new InvalidOperationException($"Cannot add new attribute to asset {asset.Name} because library {Name} is locked.");
@@ -166,6 +166,23 @@ namespace VisualPinball.Unity.Editor
 			SaveLibrary();
 
 			return attr;
+		}
+
+		#endregion
+
+		#region Links
+
+		public LibraryKeyValue AddLink(LibraryAsset asset, string linkName)
+		{
+			if (IsLocked) {
+				throw new InvalidOperationException($"Cannot add new link to asset {asset.Name} because library {Name} is locked.");
+			}
+
+			RecordUndo("add link");
+			var link = _db.AddLink(asset, linkName);
+			SaveLibrary();
+
+			return link;
 		}
 
 		#endregion

@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+using System;
 using System.Linq;
 using UnityEditor;
 using UnityEngine;
@@ -21,35 +22,43 @@ using UnityEngine.UIElements;
 
 namespace VisualPinball.Unity.Editor
 {
-	public class LibraryAttributeElement : VisualElement
+	public class KeyValueElement : VisualElement
 	{
 		private readonly AssetResult _assetResult;
-		private readonly LibraryAttribute _attribute;
+		private readonly LibraryKeyValue _keyValue;
 
 		private readonly Label _nameElement;
+		private readonly Label _linkElement;
 		private readonly VisualElement _valuesElement;
 		private readonly VisualElement _displayElement;
+		private readonly VisualElement _displayLinkElement;
 		private readonly VisualElement _editElement;
 		private readonly SearchSuggest _nameEditElement;
 		private readonly SearchSuggest _valuesEditElement;
 
+		private readonly bool _isLink;
 		private bool _isEditing;
 		private AssetBrowserX _browser;
 
-		public LibraryAttributeElement(AssetResult result, LibraryAttribute attribute)
+		private VisualElement DisplayContainer => _isLink ? _displayLinkElement : _displayElement;
+		private Label DisplayElement => _isLink ? _linkElement : _nameElement;
+
+		public KeyValueElement(AssetResult result, LibraryKeyValue keyValue, bool isLink)
 		{
 			_assetResult = result;
-			_attribute = attribute;
+			_keyValue = keyValue;
 
-			var visualTree = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>("Packages/org.visualpinball.engine.unity/VisualPinball.Unity/VisualPinball.Unity.Editor/AssetBrowser/LibraryAttributeElement.uxml");
+			var visualTree = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>("Packages/org.visualpinball.engine.unity/VisualPinball.Unity/VisualPinball.Unity.Editor/AssetBrowser/KeyValueElement.uxml");
 			var ui = visualTree.CloneTree();
-			var styleSheet = AssetDatabase.LoadAssetAtPath<StyleSheet>("Packages/org.visualpinball.engine.unity/VisualPinball.Unity/VisualPinball.Unity.Editor/AssetBrowser/LibraryAttributeElement.uss");
+			var styleSheet = AssetDatabase.LoadAssetAtPath<StyleSheet>("Packages/org.visualpinball.engine.unity/VisualPinball.Unity/VisualPinball.Unity.Editor/AssetBrowser/KeyValueElement.uss");
 			ui.styleSheets.Add(styleSheet);
 			Add(ui);
 
 			_displayElement = ui.Q<VisualElement>("display");
+			_displayLinkElement = ui.Q<VisualElement>("display-link");
 			_editElement = ui.Q<VisualElement>("edit");
 			_nameElement = ui.Q<Label>("attribute-name");
+			_linkElement = ui.Q<Label>("attribute-link");
 			_valuesElement = ui.Q<VisualElement>("attribute-values");
 			_nameEditElement = ui.Q<SearchSuggest>("attribute-name-edit");
 			_valuesEditElement = ui.Q<SearchSuggest>("attribute-value-edit");
@@ -57,14 +66,19 @@ namespace VisualPinball.Unity.Editor
 			ui.Q<Button>("okButton").RegisterCallback<MouseUpEvent>(_ => CompleteEdit(true, _nameEditElement.Value, _valuesEditElement.Value));
 			ui.Q<Button>("cancelButton").RegisterCallback<MouseUpEvent>(_ => CompleteEdit(false));
 
+			_isLink = isLink;
+			DisplayContainer.RemoveFromClassList("hidden");
+			DisplayContainer.RegisterCallback<MouseDownEvent>(OnNameClicked);
+
 			if (!_assetResult.Library.IsLocked) {
-				_displayElement.RegisterCallback<MouseDownEvent>(OnMouseDown);
 				_nameEditElement.RegisterKeyDownCallback(evt => OnKeyDown(evt, _nameEditElement));
 				_valuesEditElement.RegisterKeyDownCallback(evt => OnKeyDown(evt, _valuesEditElement));
-				_valuesEditElement.IsMultiValue = true;
+				if (!_isLink) {
+					_valuesEditElement.IsMultiValue = true;
+				}
 
 				// right-click menu
-				_displayElement.AddManipulator(new ContextualMenuManipulator(AddContextMenu));
+				DisplayContainer.AddManipulator(new ContextualMenuManipulator(AddContextMenu));
 			}
 
 			Update();
@@ -77,9 +91,15 @@ namespace VisualPinball.Unity.Editor
 			_valuesEditElement.RegisterCallback<FocusInEvent>(OnAttributeValueFocus);
 		}
 
-		private void OnMouseDown(MouseDownEvent evt)
+		private void OnNameClicked(MouseDownEvent evt)
 		{
-			if (evt.clickCount == 2) {
+			// if it's a link, open it on first left click
+			if (_isLink && evt.button == 0 && evt.clickCount == 1) {
+				OpenLink(_keyValue.Value);
+			}
+
+			// on double click and lib isn't locked, toggle edit.
+			if (!_assetResult.Library.IsLocked && evt.button == 0 && evt.clickCount == 2) {
 				ToggleEdit();
 			}
 		}
@@ -87,11 +107,11 @@ namespace VisualPinball.Unity.Editor
 		public void ToggleEdit(DropdownMenuAction act = null)
 		{
 			if (_isEditing) {
-				_displayElement.RemoveFromClassList("hidden");
+				DisplayContainer.RemoveFromClassList("hidden");
 				_editElement.AddToClassList("hidden");
 
 			} else {
-				_displayElement.AddToClassList("hidden");
+				DisplayContainer.AddToClassList("hidden");
 				_editElement.RemoveFromClassList("hidden");
 				StartEditing();
 			}
@@ -101,23 +121,36 @@ namespace VisualPinball.Unity.Editor
 
 		private void Update()
 		{
-			if (!string.IsNullOrEmpty(_attribute.Value)) {
-				var values = _attribute.Value.Split(',').Select(s => s.Trim());
+			if (!string.IsNullOrEmpty(_keyValue.Value)) {
 				_valuesElement.Clear();
-				foreach (var value in values) {
-					var label = new Label(value);
-					label.RegisterCallback<MouseDownEvent>(_ => _browser.FilterByAttribute(_attribute.Key, value));
+				if (_isLink) {
+					var label = new Label(_keyValue.Value);
+					if (IsValidLink(_keyValue.Value)) {
+						label.RegisterCallback<MouseDownEvent>(_ => OpenLink(_keyValue.Value));
+					} else {
+						label.AddToClassList("non-clickable");
+					}
 					_valuesElement.Add(label);
+
+				} else {
+					var values = _keyValue.Value.Split(',').Select(s => s.Trim());
+
+					foreach (var value in values) {
+						var label = new Label(value);
+						label.RegisterCallback<MouseDownEvent>(_ => _browser.FilterByAttribute(_keyValue.Key, value));
+						_valuesElement.Add(label);
+					}
 				}
 			}
-			_nameElement.text = _attribute.Key;
+			DisplayElement.text = _keyValue.Key;
 		}
+
 
 		private void StartEditing()
 		{
-			_nameEditElement.Value = _attribute.Key;
+			_nameEditElement.Value = _keyValue.Key;
 			_nameEditElement.SuggestOptions = _browser!.Query.AttributeNames;
-			_valuesEditElement.Value = _attribute.Value;
+			_valuesEditElement.Value = _keyValue.Value;
 			_nameEditElement.Focus();
 			_nameEditElement.SelectAll();
 		}
@@ -130,13 +163,17 @@ namespace VisualPinball.Unity.Editor
 		public void CompleteEdit(bool success, string newName = null, string newValue = null)
 		{
 			if (success) {
-				_attribute.Key = newName;
-				_attribute.Value = newValue;
+				_keyValue.Key = newName;
+				_keyValue.Value = newValue;
 				_assetResult.Save();
 				Update();
 			}
 			ToggleEdit();
 		}
+
+		private static bool IsValidLink(string link) => Uri.TryCreate(link, UriKind.Absolute, out var uriResult) && (uriResult.Scheme == Uri.UriSchemeHttp || uriResult.Scheme == Uri.UriSchemeHttps);
+
+		private static void OpenLink(string link) => Application.OpenURL(link);
 
 		private void OnKeyDown(KeyDownEvent evt, SearchSuggest ss)
 		{
@@ -163,8 +200,8 @@ namespace VisualPinball.Unity.Editor
 
 		private void Delete(DropdownMenuAction obj)
 		{
-			if (_assetResult.Asset.Attributes.Contains(_attribute)) {
-				_assetResult.Asset.Attributes.Remove(_attribute);
+			if (_assetResult.Asset.Attributes.Contains(_keyValue)) {
+				_assetResult.Asset.Attributes.Remove(_keyValue);
 				_assetResult.Save();
 				parent.Remove(this);
 			}

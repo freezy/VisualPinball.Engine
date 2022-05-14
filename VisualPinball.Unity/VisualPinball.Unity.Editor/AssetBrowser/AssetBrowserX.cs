@@ -63,8 +63,7 @@ namespace VisualPinball.Unity.Editor
 			wnd.titleContent = new GUIContent("Asset Browser", Icons.AssetLibrary(IconSize.Small));
 
 			// Limit size of the window
-			wnd.minSize = new Vector2(450, 200);
-			wnd.maxSize = new Vector2(1920, 720);
+			wnd.minSize = new Vector2(640, 240);
 		}
 
 		#region Data

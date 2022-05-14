@@ -1,8 +1,17 @@
 ﻿<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements">
-	<ui:VisualElement name="display" class="library-attribute-element">
+
+	<!-- display non-link (locked and unlocked) -->
+	<ui:VisualElement name="display" class="library-attribute-element hidden">
 		<ui:Label name="attribute-name" />
 		<ui:VisualElement name="attribute-values" />
 	</ui:VisualElement>
+
+	<!-- display link (locked and unlocked) -->
+	<ui:VisualElement name="display-link" class="library-attribute-element hidden">
+		<ui:Label name="attribute-link" />
+	</ui:VisualElement>
+
+	<!-- edit (both link and non-link) -->
 	<ui:VisualElement name="edit" class="library-attribute-edit-element hidden">
 		<VisualPinball.Unity.Editor.SearchSuggest name="attribute-name-edit" />
 		<VisualPinball.Unity.Editor.SearchSuggest name="attribute-value-edit" />
