@@ -50,7 +50,7 @@ namespace VisualPinball.Unity.Editor
 		private void OnMouseDown(MouseDownEvent evt)
 		{
 			if (evt.clickCount == 2) {
-				EditorGUIUtility.PingObject(Result.Asset.Asset);
+				EditorGUIUtility.PingObject(Result.Asset.Object);
 			}
 		}
 
