@@ -202,7 +202,11 @@ namespace VisualPinball.Unity.Editor
 			SetVisibility(_descriptionViewElement, !string.IsNullOrEmpty(_asset.Asset.Description) && _asset.Library.IsLocked);
 			SetVisibility(_descriptionEditElement, !_asset.Library.IsLocked);
 			SetVisibility(_attributesTitleElement, _asset.Asset.Attributes.Count > 0 || !_asset.Library.IsLocked);
+			SetVisibility(_tagsTitleElement, _asset.Asset.Tags.Count > 0 || !_asset.Library.IsLocked);
+			SetVisibility(_linksTitleElement, _asset.Asset.Links.Count > 0 || !_asset.Library.IsLocked);
 			SetVisibility(_addAttributeButton, !_asset.Library.IsLocked);
+			SetVisibility(_addTagButton, !_asset.Library.IsLocked);
+			SetVisibility(_addLinkButton, !_asset.Library.IsLocked);
 
 			// info
 			if (_object is GameObject go) {
