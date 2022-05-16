@@ -62,6 +62,8 @@ namespace VisualPinball.Unity.Editor
 			m_hashSet = new HashSet<T>(set);
 		}
 
+		public T[] Keys => m_keys;
+
 		public void CopyFrom(ISet<T> set)
 		{
 			m_hashSet.Clear();

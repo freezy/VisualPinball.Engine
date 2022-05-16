@@ -78,6 +78,12 @@ namespace VisualPinball.Unity.Editor
 			.OrderBy(x => x)
 			.ToArray();
 
+		public string[] TagNames => _libraries
+			.SelectMany(lib => lib.GetAllTags())
+			.Distinct()
+			.OrderBy(x => x)
+			.ToArray();
+
 		public string[] AttributeValues(string attributeKey) => _libraries
 			.SelectMany(lib => lib.GetAttributeValues(attributeKey))
 			.Distinct()
