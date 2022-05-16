@@ -20,7 +20,7 @@ using UnityEngine.UIElements;
 
 namespace VisualPinball.Unity.Editor
 {
-	public class ValueElement : VisualElement
+	public class TagElement : VisualElement
 	{
 		private readonly AssetResult _assetResult;
 
@@ -35,15 +35,15 @@ namespace VisualPinball.Unity.Editor
 		private bool _isEditing;
 		private AssetBrowserX _browser;
 
-		public ValueElement(AssetResult result, string value, SerializableHashSet<string> values)
+		public TagElement(AssetResult result, string value, SerializableHashSet<string> values)
 		{
 			_assetResult = result;
 			_value = value;
 			_values = values;
 
-			var visualTree = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>("Packages/org.visualpinball.engine.unity/VisualPinball.Unity/VisualPinball.Unity.Editor/AssetBrowser/ValueElement.uxml");
+			var visualTree = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>("Packages/org.visualpinball.engine.unity/VisualPinball.Unity/VisualPinball.Unity.Editor/AssetBrowser/TagElement.uxml");
 			var ui = visualTree.CloneTree();
-			var styleSheet = AssetDatabase.LoadAssetAtPath<StyleSheet>("Packages/org.visualpinball.engine.unity/VisualPinball.Unity/VisualPinball.Unity.Editor/AssetBrowser/ValueElement.uss");
+			var styleSheet = AssetDatabase.LoadAssetAtPath<StyleSheet>("Packages/org.visualpinball.engine.unity/VisualPinball.Unity/VisualPinball.Unity.Editor/AssetBrowser/TagElement.uss");
 			ui.styleSheets.Add(styleSheet);
 			Add(ui);
 
@@ -77,6 +77,7 @@ namespace VisualPinball.Unity.Editor
 		{
 			// if it's a link, apply filter
 			if (evt.button == 0 && evt.clickCount == 1) {
+
 				//OpenLink(_keyValue.Value);
 			}
 		}
@@ -98,6 +99,7 @@ namespace VisualPinball.Unity.Editor
 
 		private void Update()
 		{
+			_nameElement.RegisterCallback<MouseDownEvent>(_ => _browser.FilterByTag(_value));
 			_nameElement.text = _value;
 		}
 

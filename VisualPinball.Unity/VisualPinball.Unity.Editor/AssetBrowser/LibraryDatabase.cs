@@ -57,7 +57,14 @@ namespace VisualPinball.Unity.Editor
 						var keyMatches = string.Equals(at.Key, attrKey, StringComparison.CurrentCultureIgnoreCase);
 						var valueMatches = attrValue != null && at.Value != null && at.Value.ToLower().Contains(attrValue.ToLower());
 						return attrValue != null ? keyMatches && valueMatches : keyMatches;
-					})).ToList();
+					}));
+				}
+			}
+
+			// tag filter
+			if (query.HasTags) {
+				foreach (var tag in query.Tags) {
+					results = results.Where(result => result.Asset.Tags != null && result.Asset.Tags.Contains(tag));
 				}
 			}
 
@@ -227,6 +234,14 @@ namespace VisualPinball.Unity.Editor
 		public Dictionary<string, string> Attributes = new();
 
 		public bool HasAttributes => Attributes.Count > 0;
+
+		#endregion
+
+		#region Tags
+
+		public HashSet<string> Tags = new();
+
+		public bool HasTags => Tags.Count > 0;
 
 		#endregion
 	}
