@@ -33,6 +33,7 @@ namespace VisualPinball.Unity.Editor
 		private string _query;
 		private Dictionary<AssetLibrary, List<LibraryCategory>> _categories;
 		private readonly Dictionary<string, string> _attributes = new();
+		private readonly HashSet<string> _tags = new();
 
 		public AssetQuery(List<AssetLibrary> libraries)
 		{
@@ -50,8 +51,18 @@ namespace VisualPinball.Unity.Editor
 				}
 			}
 
-			// clean attributes from query
-			_query = Regex.Replace(q, @"\s+", " ");
+			_tags.Clear();
+			var tagRegex = new Regex(@"\[([^\]]+)\]");
+			foreach (Match match in tagRegex.Matches(q)) {
+				if (!_tags.Contains(match.Groups[1].Value)) {
+					_tags.Add(match.Groups[1].Value);
+				}
+				q = q.Replace(match.Value, "");
+			}
+
+			// clean white spaces
+			_query = Regex.Replace(q, @"\s+", " ").Trim();
+
 			Run();
 		}
 
@@ -101,7 +112,8 @@ namespace VisualPinball.Unity.Editor
 						return lib.GetAssets(
 							_query,
 							_categories != null && _categories.ContainsKey(lib) ? _categories[lib] : null,
-							_attributes
+							_attributes,
+							_tags
 						);
 
 					} catch (Exception e) {

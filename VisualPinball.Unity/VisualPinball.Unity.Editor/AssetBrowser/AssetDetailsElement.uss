@@ -51,6 +51,18 @@ KeyValueElement {
 	margin: 2px 8px 0;
 }
 
+#details > #tags {
+	flex-direction: row;
+	margin-left: 8px;
+}
+#details > #tags #display > #attribute-name {
+	margin-right: 4px;
+}
+
+#details > #tags #display > #attribute-name:hover {
+	background-color: #515151;
+}
+
 #nothing-selected {
 	width: 100%;
 	height: 100%;

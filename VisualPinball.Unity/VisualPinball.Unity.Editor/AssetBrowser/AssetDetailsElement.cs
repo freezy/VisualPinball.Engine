@@ -163,7 +163,7 @@ namespace VisualPinball.Unity.Editor
 		private void OnAddTag()
 		{
 			var tag = _asset.Library.AddTag(_asset.Asset, "New Tag");
-			var tagElement = new ValueElement(_asset, tag, _asset.Asset.Tags);
+			var tagElement = new TagElement(_asset, tag, _asset.Asset.Tags);
 			_tagsElement.Add(tagElement);
 			tagElement.ToggleEdit();
 		}
@@ -202,7 +202,7 @@ namespace VisualPinball.Unity.Editor
 
 			_tagsElement.Clear();
 			foreach (var tag in _asset.Asset.Tags) {
-				var linkElement = new ValueElement(_asset, tag, _asset.Asset.Tags);
+				var linkElement = new TagElement(_asset, tag, _asset.Asset.Tags);
 				_tagsElement.Add(linkElement);
 			}
 
