@@ -152,6 +152,7 @@ namespace VisualPinball.Unity.Editor
 		#region Attribute
 
 		public IEnumerable<string> GetAttributeKeys() => _db.GetAttributeKeys();
+		public IEnumerable<string> GetAllTags() => _db.GetAllTags();
 
 		public IEnumerable<string> GetAttributeValues(string key) => _db.GetAttributeValues(key);
 
@@ -183,6 +184,19 @@ namespace VisualPinball.Unity.Editor
 			SaveLibrary();
 
 			return link;
+		}
+
+		public string AddTag(LibraryAsset asset, string tagName)
+		{
+			if (IsLocked) {
+				throw new InvalidOperationException($"Cannot add new tag to asset {asset.Name} because library {Name} is locked.");
+			}
+
+			RecordUndo("add tag");
+			var tag = _db.AddTag(asset, tagName);
+			SaveLibrary();
+
+			return tag;
 		}
 
 		#endregion

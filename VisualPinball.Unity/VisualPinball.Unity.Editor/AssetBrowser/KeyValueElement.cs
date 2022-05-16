@@ -127,8 +127,6 @@ namespace VisualPinball.Unity.Editor
 					var label = new Label(_keyValue.Value);
 					if (IsValidLink(_keyValue.Value)) {
 						label.RegisterCallback<MouseDownEvent>(_ => OpenLink(_keyValue.Value));
-					} else {
-						label.AddToClassList("non-clickable");
 					}
 					_valuesElement.Add(label);
 

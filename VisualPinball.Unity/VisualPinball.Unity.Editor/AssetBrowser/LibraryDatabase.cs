@@ -134,25 +134,19 @@ namespace VisualPinball.Unity.Editor
 
 		#region Attribute
 
-		public IEnumerable<string> GetAttributeKeys()
-		{
-			return  Assets.Values
-				.SelectMany(a => a.Attributes)
-				.Select(a => a.Key)
-				.Distinct()
-				.OrderBy(a => a);
-		}
+		public IEnumerable<string> GetAttributeKeys() => Assets.Values
+			.SelectMany(a => a.Attributes)
+			.Select(a => a.Key)
+			.Distinct()
+			.OrderBy(a => a);
 
-		public IEnumerable<string> GetAttributeValues(string key)
-		{
-			return Assets.Values
-				.SelectMany(a => a.Attributes)
-				.Where(a => a.Key == key && !string.IsNullOrEmpty(a.Value))
-				.SelectMany(a => a.Value.Split(','))
-				.Select(v => v.Trim())
-				.Distinct()
-				.OrderBy(a => a);
-		}
+		public IEnumerable<string> GetAttributeValues(string key) => Assets.Values
+			.SelectMany(a => a.Attributes)
+			.Where(a => a.Key == key && !string.IsNullOrEmpty(a.Value))
+			.SelectMany(a => a.Value.Split(','))
+			.Select(v => v.Trim())
+			.Distinct()
+			.OrderBy(a => a);
 
 		public LibraryKeyValue AddAttribute(LibraryAsset asset, string attributeName)
 		{
@@ -166,6 +160,23 @@ namespace VisualPinball.Unity.Editor
 
 		#endregion
 
+		#region Tags
+
+		public IEnumerable<string> GetAllTags() => Assets.Values
+			.SelectMany(a => a.Tags.Keys)
+			.Distinct()
+			.OrderBy(a => a);
+
+		public string AddTag(LibraryAsset asset, string tag)
+		{
+			if (!asset.Tags.Contains(tag)) {
+				asset.Tags.Add(tag);
+			}
+			return tag;
+		}
+
+
+		#endregion
 
 		#region Links
 

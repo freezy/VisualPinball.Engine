@@ -112,6 +112,7 @@ namespace VisualPinball.Unity.Editor
 			_descriptionEditElement.RegisterCallback<FocusOutEvent>(OnDescriptionEndEditing);
 			_addAttributeButton.clicked += OnAddAttribute;
 			_addLinkButton.clicked += OnAddLink;
+			_addTagButton.clicked += OnAddTag;
 
 			_previewEditorElement = ui.Q<IMGUIContainer>();
 			_previewEditorElement.onGUIHandler = OnGUI;
@@ -159,6 +160,14 @@ namespace VisualPinball.Unity.Editor
 			linkElement.ToggleEdit();
 		}
 
+		private void OnAddTag()
+		{
+			var tag = _asset.Library.AddTag(_asset.Asset, "New Tag");
+			var tagElement = new ValueElement(_asset, tag, _asset.Asset.Tags);
+			_tagsElement.Add(tagElement);
+			tagElement.ToggleEdit();
+		}
+
 		private void OnDescriptionStartEditing(FocusInEvent focusInEvent)
 		{
 			Undo.RecordObject(_asset.Library, "edit description");
@@ -189,6 +198,12 @@ namespace VisualPinball.Unity.Editor
 			foreach (var attr in _asset.Asset.Attributes) {
 				var attrElement = new KeyValueElement(_asset, attr, false);
 				_attributesElement.Add(attrElement);
+			}
+
+			_tagsElement.Clear();
+			foreach (var tag in _asset.Asset.Tags) {
+				var linkElement = new ValueElement(_asset, tag, _asset.Asset.Tags);
+				_tagsElement.Add(linkElement);
 			}
 
 			_linksElement.Clear();
