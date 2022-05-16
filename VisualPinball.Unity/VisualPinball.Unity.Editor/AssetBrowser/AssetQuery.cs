@@ -100,7 +100,7 @@ namespace VisualPinball.Unity.Editor
 			.Distinct()
 			.ToArray();
 
-		public void Run()
+		private void Run()
 		{
 			var assets = _libraries
 				.SelectMany(lib => {
@@ -129,7 +129,7 @@ namespace VisualPinball.Unity.Editor
 		}
 	}
 
-	public class AssetResult
+	public class AssetResult : IEquatable<AssetResult>
 	{
 		public readonly AssetLibrary Library;
 		public readonly LibraryAsset Asset;
@@ -146,5 +146,33 @@ namespace VisualPinball.Unity.Editor
 		{
 			Library.SaveAsset(Asset);
 		}
+
+		#region IEquatable
+
+		public bool Equals(AssetResult other)
+		{
+			if (ReferenceEquals(null, other))
+				return false;
+			if (ReferenceEquals(this, other))
+				return true;
+			return Equals(Library, other.Library) && Equals(Asset, other.Asset);
+		}
+
+		public override bool Equals(object obj)
+		{
+			if (ReferenceEquals(null, obj))
+				return false;
+			if (ReferenceEquals(this, obj))
+				return true;
+			return obj.GetType() == GetType() && Equals((AssetResult)obj);
+		}
+
+		public override int GetHashCode()
+		{
+			return HashCode.Combine(Library, Asset);
+		}
+
+		#endregion
+
 	}
 }

@@ -53,7 +53,7 @@ namespace VisualPinball.Unity.Editor
 		private AssetResult _firstSelectedAsset;
 		private readonly HashSet<AssetResult> _selectedAssets = new();
 
-		private readonly Dictionary<AssetResult, VisualElement> _elementByAsset = new();
+		private readonly Dictionary<LibraryAsset, VisualElement> _elementByAsset = new();
 		private readonly Dictionary<VisualElement, AssetResult> _assetsByElement = new();
 
 		[MenuItem("Visual Pinball/Asset Browser")]
@@ -159,13 +159,19 @@ namespace VisualPinball.Unity.Editor
 			_elementByAsset.Clear();
 			_assetsByElement.Clear();
 			_selectedAssets.Clear();
-			_firstSelectedAsset = null;
+
 			LastSelectedAsset = null;
 			foreach (var row in assets) {
 				var element = NewItem(row);
-				_elementByAsset[row] = element;
+				_elementByAsset[row.Asset] = element;
 				_assetsByElement[element] = row;
-				_gridContent.Add(_elementByAsset[row]);
+				_gridContent.Add(_elementByAsset[row.Asset]);
+			}
+
+			if (!assets.Contains(_firstSelectedAsset)) {
+				_firstSelectedAsset = null;
+			} else {
+				SelectOnly(_firstSelectedAsset);
 			}
 		}
 
@@ -178,7 +184,7 @@ namespace VisualPinball.Unity.Editor
 					evt.menu.AppendAction("Remove from Library", _ => {
 						if (!_selectedAssets.Contains(clickedAsset)) {
 							_selectedAssets.Add(clickedAsset);
-							ToggleSelectionClass(_elementByAsset[clickedAsset]);
+							ToggleSelectionClass(_elementByAsset[clickedAsset.Asset]);
 						}
 						var numRemovedAssets = 0;
 						foreach (var asset in _selectedAssets.Where(a => !a.Library.IsLocked).ToList()) {
@@ -314,11 +320,11 @@ namespace VisualPinball.Unity.Editor
 				if (i >= start && i <= end) {
 					if (!_selectedAssets.Contains(asset)) {
 						_selectedAssets.Add(asset);
-						ToggleSelectionClass(_elementByAsset[asset]);
+						ToggleSelectionClass(_elementByAsset[asset.Asset]);
 					}
 				} else if (_selectedAssets.Contains(asset)) {
 					_selectedAssets.Remove(asset);
-					ToggleSelectionClass(_elementByAsset[asset]);
+					ToggleSelectionClass(_elementByAsset[asset.Asset]);
 				}
 			}
 		}
@@ -326,7 +332,7 @@ namespace VisualPinball.Unity.Editor
 		private void SelectNone()
 		{
 			foreach (var selectedAsset in _selectedAssets) {
-				ToggleSelectionClass(_elementByAsset[selectedAsset]);
+				ToggleSelectionClass(_elementByAsset[selectedAsset.Asset]);
 			}
 			_selectedAssets.Clear();
 			_firstSelectedAsset = null;
@@ -338,7 +344,7 @@ namespace VisualPinball.Unity.Editor
 			var wasAlreadySelected = false;
 			foreach (var selectedAsset in _selectedAssets) {
 				if (selectedAsset != asset) {
-					ToggleSelectionClass(_elementByAsset[selectedAsset]);
+					ToggleSelectionClass(_elementByAsset[selectedAsset.Asset]);
 				} else {
 					wasAlreadySelected = true;
 				}
@@ -346,7 +352,7 @@ namespace VisualPinball.Unity.Editor
 			_selectedAssets.Clear();
 			_selectedAssets.Add(asset);
 			if (!wasAlreadySelected) {
-				ToggleSelectionClass(_elementByAsset[asset]);
+				ToggleSelectionClass(_elementByAsset[asset.Asset]);
 			}
 			_firstSelectedAsset = asset;
 			LastSelectedAsset = asset;
@@ -355,7 +361,7 @@ namespace VisualPinball.Unity.Editor
 		private void UnSelect(AssetResult asset)
 		{
 			_selectedAssets.Remove(asset);
-			ToggleSelectionClass(_elementByAsset[asset]);
+			ToggleSelectionClass(_elementByAsset[asset.Asset]);
 			_firstSelectedAsset = _selectedAssets.Count > 0 ? _selectedAssets.FirstOrDefault() : null;
 			LastSelectedAsset = _selectedAssets.Count > 0 ? _selectedAssets.LastOrDefault() : null;
 		}
@@ -364,7 +370,7 @@ namespace VisualPinball.Unity.Editor
 		private void Select(AssetResult asset)
 		{
 			_selectedAssets.Add(asset);
-			ToggleSelectionClass(_elementByAsset[asset]);
+			ToggleSelectionClass(_elementByAsset[asset.Asset]);
 			LastSelectedAsset = asset;
 		}
 
