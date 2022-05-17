@@ -30,7 +30,7 @@ namespace VisualPinball.Unity.Editor
 		public event EventHandler<AssetQueryResult> OnQueryUpdated;
 
 		private readonly List<AssetLibrary> _libraries;
-		private string _query;
+		private string _keywords;
 		private Dictionary<AssetLibrary, List<LibraryCategory>> _categories;
 		private readonly Dictionary<string, string> _attributes = new();
 		private readonly HashSet<string> _tags = new();
@@ -61,7 +61,7 @@ namespace VisualPinball.Unity.Editor
 			}
 
 			// clean white spaces
-			_query = Regex.Replace(q, @"\s+", " ").Trim();
+			_keywords = Regex.Replace(q, @"\s+", " ").Trim();
 
 			Run();
 		}
@@ -109,12 +109,12 @@ namespace VisualPinball.Unity.Editor
 						if (_categories is { Count: > 0 } && !_categories.ContainsKey(lib)) {
 							return Array.Empty<AssetResult>();
 						}
-						return lib.GetAssets(
-							_query,
-							_categories != null && _categories.ContainsKey(lib) ? _categories[lib] : null,
-							_attributes,
-							_tags
-						);
+						return lib.GetAssets(new LibraryQuery {
+							Keywords = _keywords,
+							Categories = _categories != null && _categories.ContainsKey(lib) ? _categories[lib] : null,
+							Attributes = _attributes,
+							Tags = _tags
+						});
 
 					} catch (Exception e) {
 						Debug.LogError($"Error reading assets from {lib.Name}, maybe corruption? ({e.Message})\n{e.StackTrace}");

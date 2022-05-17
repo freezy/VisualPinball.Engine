@@ -71,17 +71,7 @@ namespace VisualPinball.Unity.Editor
 			SaveLibrary();
 		}
 
-		public IEnumerable<AssetResult> GetAssets(string query, List<LibraryCategory> categories, Dictionary<string, string> attributes, HashSet<string> tags)
-		{
-			var q = new AssetQuery2 {
-				Keywords = query,
-				Categories = categories,
-				Attributes = attributes,
-				Tags = tags
-			};
-
-			return _db.GetAssets(this, q);
-		}
+		public IEnumerable<AssetResult> GetAssets(LibraryQuery q) => _db.GetAssets(this, q);
 
 		public void RemoveAsset(LibraryAsset asset)
 		{
