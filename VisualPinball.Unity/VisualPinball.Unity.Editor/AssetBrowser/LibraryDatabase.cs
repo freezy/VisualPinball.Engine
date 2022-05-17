@@ -34,7 +34,7 @@ namespace VisualPinball.Unity.Editor
 
 		#region Assets
 
-		public IEnumerable<AssetResult> GetAssets(AssetLibrary lib, AssetQuery2 query)
+		public IEnumerable<AssetResult> GetAssets(AssetLibrary lib, LibraryQuery query)
 		{
 			var results = Assets.All(this).Select(asset => new AssetResult(lib, asset, 0L));
 			if (query.HasKeywords) {
@@ -200,7 +200,7 @@ namespace VisualPinball.Unity.Editor
 		#endregion
 	}
 
-	public class AssetQuery2
+	public class LibraryQuery
 	{
 		#region Keywords
 
