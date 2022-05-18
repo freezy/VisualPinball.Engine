@@ -18,7 +18,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
+using UnityEditor;
 using UnityEngine;
+using UnityEngine.UIElements;
 
 namespace VisualPinball.Unity.Editor
 {
@@ -147,6 +149,13 @@ namespace VisualPinball.Unity.Editor
 			Library.SaveAsset(Asset);
 		}
 
+		public bool IsLoadingAssetPreview => AssetPreview.IsLoadingAssetPreview(Asset.Object.GetInstanceID());
+
+		public void RefreshPreviewImage(VisualElement visualElement)
+		{
+			visualElement.Q<Image>("thumbnail").image = AssetPreview.GetAssetPreview(Asset.Object);
+		}
+
 		#region IEquatable
 
 		public bool Equals(AssetResult other)
@@ -173,6 +182,5 @@ namespace VisualPinball.Unity.Editor
 		}
 
 		#endregion
-
 	}
 }

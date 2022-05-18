@@ -44,6 +44,9 @@ namespace VisualPinball.Unity.Editor
 		private List<AssetResult> _assets;
 
 		[NonSerialized]
+		private HashSet<AssetResult> _previewLoadingAssets = new();
+
+		[NonSerialized]
 		public AssetQuery Query;
 
 		private AssetResult LastSelectedAsset {
@@ -159,6 +162,7 @@ namespace VisualPinball.Unity.Editor
 			_elementByAsset.Clear();
 			_assetsByElement.Clear();
 			_selectedAssets.Clear();
+			_previewLoadingAssets.Clear();
 
 			LastSelectedAsset = null;
 			foreach (var row in assets) {
@@ -166,6 +170,9 @@ namespace VisualPinball.Unity.Editor
 				_elementByAsset[row.Asset] = element;
 				_assetsByElement[element] = row;
 				_gridContent.Add(_elementByAsset[row.Asset]);
+				if (row.IsLoadingAssetPreview) {
+					_previewLoadingAssets.Add(row);
+				}
 			}
 
 			if (!assets.Contains(_firstSelectedAsset)) {
@@ -443,6 +450,16 @@ namespace VisualPinball.Unity.Editor
 		}
 
 		#endregion
+
+		private void Update()
+		{
+			foreach (var asset in _previewLoadingAssets) {
+				if (_elementByAsset.ContainsKey(asset.Asset)) {
+					asset.RefreshPreviewImage(_elementByAsset[asset.Asset]);
+				}
+			}
+			_previewLoadingAssets.RemoveWhere(asset => !asset.IsLoadingAssetPreview);
+		}
 
 		private void OnThumbSizeChanged(ChangeEvent<float> evt)
 		{
