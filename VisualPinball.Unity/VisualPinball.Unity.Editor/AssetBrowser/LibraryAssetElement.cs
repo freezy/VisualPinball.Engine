@@ -47,6 +47,7 @@ namespace VisualPinball.Unity.Editor
 			RegisterCallback<PointerUpEvent>(OnPointerUpEvent);
 			RegisterCallback<MouseDownEvent>(OnMouseDown);
 		}
+
 		private void OnMouseDown(MouseDownEvent evt)
 		{
 			if (evt.clickCount == 2) {
