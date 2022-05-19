@@ -195,30 +195,42 @@ namespace VisualPinball.Unity.Editor
 			_descriptionEditElement.SetValueWithoutNotify(_asset.Asset.Description);
 
 			_attributesElement.Clear();
-			foreach (var attr in _asset.Asset.Attributes) {
-				var attrElement = new KeyValueElement(_asset, attr, false);
-				_attributesElement.Add(attrElement);
+			if (_asset.Asset.Attributes != null) {
+				SetVisibility(_attributesTitleElement, _asset.Asset.Attributes.Count > 0 || !_asset.Library.IsLocked);
+				foreach (var attr in _asset.Asset.Attributes) {
+					var attrElement = new KeyValueElement(_asset, attr, false);
+					_attributesElement.Add(attrElement);
+				}
+			} else {
+				SetVisibility(_attributesTitleElement, !_asset.Library.IsLocked);
 			}
 
 			_tagsElement.Clear();
-			foreach (var tag in _asset.Asset.Tags) {
-				var linkElement = new TagElement(_asset, tag, _asset.Asset.Tags);
-				_tagsElement.Add(linkElement);
+			if (_asset.Asset.Tags != null) {
+				SetVisibility(_tagsTitleElement, _asset.Asset.Tags.Count > 0 || !_asset.Library.IsLocked);
+				foreach (var tag in _asset.Asset.Tags) {
+					var linkElement = new TagElement(_asset, tag, _asset.Asset.Tags);
+					_tagsElement.Add(linkElement);
+				}
+			} else {
+				SetVisibility(_tagsTitleElement, !_asset.Library.IsLocked);
 			}
 
 			_linksElement.Clear();
-			foreach (var link in _asset.Asset.Links) {
-				var linkElement = new KeyValueElement(_asset, link, true);
-				_linksElement.Add(linkElement);
+			if (_asset.Asset.Links != null) {
+				SetVisibility(_linksTitleElement, _asset.Asset.Links.Count > 0 || !_asset.Library.IsLocked);
+				foreach (var link in _asset.Asset.Links) {
+					var linkElement = new KeyValueElement(_asset, link, true);
+					_linksElement.Add(linkElement);
+				}
+			} else {
+				SetVisibility(_linksTitleElement, !_asset.Library.IsLocked);
 			}
 
 			SetVisibility(_libraryLockElement, _asset.Library.IsLocked);
 			SetVisibility(_descriptionTitleElement, !string.IsNullOrEmpty(_asset.Asset.Description) || !_asset.Library.IsLocked);
 			SetVisibility(_descriptionViewElement, !string.IsNullOrEmpty(_asset.Asset.Description) && _asset.Library.IsLocked);
 			SetVisibility(_descriptionEditElement, !_asset.Library.IsLocked);
-			SetVisibility(_attributesTitleElement, _asset.Asset.Attributes.Count > 0 || !_asset.Library.IsLocked);
-			SetVisibility(_tagsTitleElement, _asset.Asset.Tags.Count > 0 || !_asset.Library.IsLocked);
-			SetVisibility(_linksTitleElement, _asset.Asset.Links.Count > 0 || !_asset.Library.IsLocked);
 			SetVisibility(_addAttributeButton, !_asset.Library.IsLocked);
 			SetVisibility(_addTagButton, !_asset.Library.IsLocked);
 			SetVisibility(_addLinkButton, !_asset.Library.IsLocked);
