@@ -31,6 +31,8 @@ namespace VisualPinball.Unity.Editor
 	{
 		public event EventHandler<AssetQueryResult> OnQueryUpdated;
 
+		public bool HasTag(string tag) => _tags.Contains(tag);
+
 		private readonly List<AssetLibrary> _libraries;
 		private string _keywords;
 		private Dictionary<AssetLibrary, List<LibraryCategory>> _categories;

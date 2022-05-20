@@ -123,6 +123,7 @@ namespace VisualPinball.Unity.Editor
 			ui.Q<Image>("category-icon").image = EditorGUIUtility.IconContent("d_Folder Icon").image;
 		}
 
+
 		private void OnGUI()
 		{
 			if (_asset == null) {
@@ -186,6 +187,8 @@ namespace VisualPinball.Unity.Editor
 			if (_asset == null) {
 				return;
 			}
+
+			var browser = panel.visualTree.userData as AssetBrowserX;
 			_object = _asset.Asset.Object;
 			_titleElement.text = _asset.Asset.Name;
 			_libraryElement.text = _asset.Library.Name;
@@ -209,8 +212,10 @@ namespace VisualPinball.Unity.Editor
 			if (_asset.Asset.Tags != null) {
 				SetVisibility(_tagsTitleElement, _asset.Asset.Tags.Count > 0 || !_asset.Library.IsLocked);
 				foreach (var tag in _asset.Asset.Tags) {
-					var linkElement = new TagElement(_asset, tag, _asset.Asset.Tags);
-					_tagsElement.Add(linkElement);
+					var tagElement = new TagElement(_asset, tag, _asset.Asset.Tags) {
+						IsActive = browser!.Query.HasTag(tag)
+					};
+					_tagsElement.Add(tagElement);
 				}
 			} else {
 				SetVisibility(_tagsTitleElement, !_asset.Library.IsLocked);
