@@ -22,6 +22,19 @@ namespace VisualPinball.Unity.Editor
 {
 	public class TagElement : VisualElement
 	{
+		public bool IsActive {
+			set {
+				_isActive = value;
+				if (_isActive && !_displayElement.ClassListContains("active")) {
+					_displayElement.AddToClassList("active");
+				} else if (!_isActive) {
+					_displayElement.RemoveFromClassList("active");
+				}
+			}
+		}
+
+		private bool _isActive;
+
 		private readonly AssetResult _assetResult;
 
 		private string _value;
@@ -75,10 +88,13 @@ namespace VisualPinball.Unity.Editor
 
 		private void OnNameClicked(MouseDownEvent evt)
 		{
-			// if it's a link, apply filter
 			if (evt.button == 0 && evt.clickCount == 1) {
 
-				//OpenLink(_keyValue.Value);
+				if (_isActive) {
+					_browser.FilterByTag(_value, true);
+				} else {
+					_browser.FilterByTag(_value);
+				}
 			}
 		}
 
@@ -99,7 +115,6 @@ namespace VisualPinball.Unity.Editor
 
 		private void Update()
 		{
-			_nameElement.RegisterCallback<MouseDownEvent>(_ => _browser.FilterByTag(_value));
 			_nameElement.text = _value;
 		}
 

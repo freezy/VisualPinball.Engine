@@ -44,7 +44,7 @@ namespace VisualPinball.Unity.Editor
 		private List<AssetResult> _assets;
 
 		[NonSerialized]
-		private HashSet<AssetResult> _previewLoadingAssets = new();
+		private readonly HashSet<AssetResult> _previewLoadingAssets = new();
 
 		[NonSerialized]
 		public AssetQuery Query;
@@ -134,10 +134,16 @@ namespace VisualPinball.Unity.Editor
 			}
 		}
 
-		public void FilterByTag(string tag)
+		public void FilterByTag(string tag, bool remove = false)
 		{
-			_queryInput.value = $"{_queryInput.value} [{tag}]".Trim();
+			if (remove) {
+				_queryInput.value = _queryInput.value.Replace($"[{tag}]", "").Trim();
+
+			} else {
+				_queryInput.value = $"{_queryInput.value} [{tag}]".Trim();
+			}
 		}
+
 
 		private void RefreshCategories()
 		{
