@@ -44,14 +44,6 @@ namespace VisualPinball.Unity
 					: Path.GetFileNameWithoutExtension(fileName) + ext;
 		}
 
-		public static Texture2D CreatePixelTexture(Color color)
-		{
-			Texture2D tex = new Texture2D(1, 1);
-			tex.SetPixel(0, 0, color);
-			tex.Apply();
-			return tex;
-		}
-
 		private static Texture2D FromBinary(Engine.VPT.Texture vpTex)
 		{
 			var unityTex = new Texture2D(vpTex.Width, vpTex.Height, TextureFormat.RGBA32, true) {
