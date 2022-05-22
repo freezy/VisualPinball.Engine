@@ -32,11 +32,12 @@ namespace VisualPinball.Unity.Editor
 		public event EventHandler<AssetQueryResult> OnQueryUpdated;
 
 		public bool HasTag(string tag) => _tags.Contains(tag);
+		public bool HasAttribute(string attrKey, string attrValue) => _attributes.ContainsKey(attrKey) && _attributes[attrKey].Contains(attrValue);
 
 		private readonly List<AssetLibrary> _libraries;
 		private string _keywords;
 		private Dictionary<AssetLibrary, List<LibraryCategory>> _categories;
-		private readonly Dictionary<string, string> _attributes = new();
+		private readonly Dictionary<string, HashSet<string>> _attributes = new();
 		private readonly HashSet<string> _tags = new();
 
 		public AssetQuery(List<AssetLibrary> libraries)
@@ -50,7 +51,11 @@ namespace VisualPinball.Unity.Editor
 			_attributes.Clear();
 			foreach (var regex in new []{ new Regex(@"(\w+):(\w+)"), new Regex("\"([\\w\\s]+)\":(\\w+)"), new Regex("(\\w+):\"([\\w\\s]+)\""), new Regex("\"([\\w\\s]+)\":\"([\\w\\s]+)\"") }) {
 				foreach (Match match in regex.Matches(q)) {
-					_attributes[match.Groups[1].Value] = match.Groups[2].Value;
+					var key = match.Groups[1].Value;
+					if (!_attributes.ContainsKey(key)) {
+						_attributes[key] = new HashSet<string>();
+					}
+					_attributes[key].Add(match.Groups[2].Value);
 					q = q.Replace(match.Value, "");
 				}
 			}

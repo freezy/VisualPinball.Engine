@@ -121,16 +121,16 @@ namespace VisualPinball.Unity.Editor
 			_detailsElement.UpdateDetails();
 		}
 
-		public void FilterByAttribute(string attributeKey, string value)
+		public void FilterByAttribute(string attributeKey, string value, bool remove = false)
 		{
-			_queryInput.value = attributeKey.Contains(" ")
-				? $"{_queryInput.value} \"{attributeKey}\":".Trim()
-				: $"{_queryInput.value} {attributeKey}:".Trim();
+			var queryString = attributeKey.Contains(" ") ? $"\"{attributeKey}\":" : $"{attributeKey}:";
+			queryString += value.Contains(" ") ? $"\"{value}\"" : value;
 
-			if (value.Contains(" ")) {
-				_queryInput.value += $"\"{value}\"".Trim();
+			if (remove) {
+				_queryInput.value = _queryInput.value.Replace(queryString, "").Trim();
+
 			} else {
-				_queryInput.value += $"{value}".Trim();
+				_queryInput.value = $"{_queryInput.value} {queryString}".Trim();
 			}
 		}
 
