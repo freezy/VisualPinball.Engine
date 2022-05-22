@@ -28,3 +28,14 @@
 #search-suggest-list {
 	background-color: #5bc0de;
 }
+
+#display #attribute-values Label {
+	padding: 1px 3px 1px 3px;
+	border-radius: 3px;
+}
+
+#display #attribute-values Label.active {
+	padding: 0 2px 0 2px;
+	border-color: #7e7e7e;
+	border-width: 1px;
+}

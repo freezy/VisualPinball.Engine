@@ -81,7 +81,6 @@ namespace VisualPinball.Unity.Editor
 				DisplayContainer.AddManipulator(new ContextualMenuManipulator(AddContextMenu));
 			}
 
-			Update();
 			RegisterCallback<AttachToPanelEvent>(OnAttached);
 		}
 
@@ -89,6 +88,7 @@ namespace VisualPinball.Unity.Editor
 		{
 			_browser = panel.visualTree.userData as AssetBrowserX;
 			_valuesEditElement.RegisterCallback<FocusInEvent>(OnAttributeValueFocus);
+			Update();
 		}
 
 		private void OnNameClicked(MouseDownEvent evt)
@@ -131,18 +131,42 @@ namespace VisualPinball.Unity.Editor
 					_valuesElement.Add(label);
 
 				} else {
-					var values = _keyValue.Value.Split(',').Select(s => s.Trim());
 
+					var values = _keyValue.Value.Split(',').Select(s => s.Trim());
 					foreach (var value in values) {
 						var label = new Label(value);
-						label.RegisterCallback<MouseDownEvent>(_ => _browser.FilterByAttribute(_keyValue.Key, value));
+						label.RegisterCallback<MouseDownEvent>(_ => OnAttributeValueClicked(label, value));
 						_valuesElement.Add(label);
+						SetActive(label, _browser.Query.HasAttribute(_keyValue.Key, value));
 					}
 				}
 			}
 			DisplayElement.text = _keyValue.Key;
 		}
 
+		private void OnAttributeValueClicked(VisualElement label, string value)
+		{
+			if (IsActive(label)) {
+				_browser.FilterByAttribute(_keyValue.Key, value, true);
+
+			} else {
+				_browser.FilterByAttribute(_keyValue.Key, value);
+			}
+		}
+
+		private static void SetActive(VisualElement label, bool isActive)
+		{
+			var currentlyActive = label.ClassListContains("active");
+			switch (isActive) {
+				case true when !currentlyActive:
+					label.AddToClassList("active");
+					break;
+				case false:
+					label.RemoveFromClassList("active");
+					break;
+			}
+		}
+		private static bool IsActive(VisualElement label) => label.ClassListContains("active");
 
 		private void StartEditing()
 		{

@@ -52,12 +52,14 @@ namespace VisualPinball.Unity.Editor
 
 			// do the attribute search after the query.
 			if (query.HasAttributes) {
-				foreach (var (attrKey, attrValue) in query.Attributes) {
-					results = results.Where(result => result.Asset.Attributes != null && result.Asset.Attributes.Any(at => {
-						var keyMatches = string.Equals(at.Key, attrKey, StringComparison.CurrentCultureIgnoreCase);
-						var valueMatches = attrValue != null && at.Value != null && at.Value.ToLower().Contains(attrValue.ToLower());
-						return attrValue != null ? keyMatches && valueMatches : keyMatches;
-					}));
+				foreach (var (attrKey, attrValues) in query.Attributes) {
+					foreach (var attrValue in attrValues) {
+						results = results.Where(result => result.Asset.Attributes != null && result.Asset.Attributes.Any(at => {
+							var keyMatches = string.Equals(at.Key, attrKey, StringComparison.CurrentCultureIgnoreCase);
+							var valueMatches = attrValue != null && at.Value != null && at.Value.ToLower().Contains(attrValue.ToLower());
+							return attrValue != null ? keyMatches && valueMatches : keyMatches;
+						}));
+					}
 				}
 			}
 
@@ -231,7 +233,7 @@ namespace VisualPinball.Unity.Editor
 
 		#region Attributes
 
-		public Dictionary<string, string> Attributes = new();
+		public Dictionary<string, HashSet<string>> Attributes = new();
 
 		public bool HasAttributes => Attributes.Count > 0;
 
