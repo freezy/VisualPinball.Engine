@@ -195,6 +195,7 @@ namespace VisualPinball.Unity.Editor
 				Key = linkName,
 				Value = "https://",
 			};
+			asset.Links ??= new List<LibraryKeyValue>();
 			asset.Links.Add(link);
 			return link;
 		}
