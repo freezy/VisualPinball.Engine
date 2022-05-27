@@ -41,6 +41,13 @@ namespace VisualPinball.Unity.Editor
 				results = results
 					.Select(result => {
 						FuzzySearch.FuzzyMatch(query.Keywords, result.Asset.Object.name, ref result.Score);
+						/* todo fix search in tags and attributes.
+						foreach (var tag in result.Asset.Tags) {
+							FuzzySearch.FuzzyMatch(query.Keywords, tag, ref result.Score);
+						}
+						foreach (var value in result.Asset.Attributes.SelectMany(values => values.Value.Split(","))) {
+							FuzzySearch.FuzzyMatch(query.Keywords, value, ref result.Score);
+						}*/
 						return result;
 					})
 					.Where(result => result.Score > 0);
