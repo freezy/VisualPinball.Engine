@@ -7,6 +7,7 @@
 Built with Unity 2021.2.
 
 ### Added
+- Asset Browser ([#412](https://github.com/freezy/VisualPinball.Engine/pull/412))
 - Trigger meshes can now be easily scaled ([#374](https://github.com/freezy/VisualPinball.Engine/pull/374))
 - We got a new game item called *Metal Wire Guide* (thanks @Cupiii, [#366](https://github.com/freezy/VisualPinball.Engine/pull/366))
 - A *Collision Switch* component ([#344](https://github.com/freezy/VisualPinball.Engine/pull/344), [Documentation](https://docs.visualpinball.org/creators-guide/manual/mechanisms/collision-switches.html)).
@@ -36,6 +37,7 @@ Built with Unity 2021.2.
 - Native trough component ([#229](https://github.com/freezy/VisualPinball.Engine/pull/229), [#248](https://github.com/freezy/VisualPinball.Engine/pull/248), [#256](https://github.com/freezy/VisualPinball.Engine/pull/256), [Documentation](https://docs.visualpinball.org/creators-guide/manual/mechanisms/troughs.html)).
 
 ### Changed
+- Removed internal ID in gamelogic engine API ([#408](https://github.com/freezy/VisualPinball.Engine/pull/408))
 - When importing, meshes are now saved as easily editable `.fbx` files instead of Unity's internal format ([#387](https://github.com/freezy/VisualPinball.Engine/pull/387)).
 - Revised rubber mesh generation ([#384](https://github.com/freezy/VisualPinball.Engine/pull/384)).
 - APIs for RGB lamps and Visual Scripting ([#382](https://github.com/freezy/VisualPinball.Engine/pull/382)).
