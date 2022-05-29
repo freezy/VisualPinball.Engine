@@ -35,7 +35,7 @@ namespace VisualPinball.Unity
 	public class PlayfieldComponent : MainRenderableComponent<TableData>
 	{
 		public static readonly Quaternion GlobalRotation = Quaternion.Euler(-90, 0, 0);
-		public const float GlobalScale = 0.001f;
+		public const float GlobalScale = 0.00053975f; // see: https://github.com/freezy/VisualPinball.Engine/issues/151
 
 		#region Data
 
