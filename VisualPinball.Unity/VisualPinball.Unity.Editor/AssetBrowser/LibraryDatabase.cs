@@ -19,6 +19,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Unity.Mathematics;
 using UnityEditor;
 using UnityEditor.Search;
 using UnityEngine;
@@ -41,13 +42,16 @@ namespace VisualPinball.Unity.Editor
 				results = results
 					.Select(result => {
 						FuzzySearch.FuzzyMatch(query.Keywords, result.Asset.Object.name, ref result.Score);
-						/* todo fix search in tags and attributes.
 						foreach (var tag in result.Asset.Tags) {
-							FuzzySearch.FuzzyMatch(query.Keywords, tag, ref result.Score);
+							var score = 0L;
+							FuzzySearch.FuzzyMatch(query.Keywords, tag, ref score);
+							result.AddScore(score);
 						}
 						foreach (var value in result.Asset.Attributes.SelectMany(values => values.Value.Split(","))) {
-							FuzzySearch.FuzzyMatch(query.Keywords, value, ref result.Score);
-						}*/
+							var score = 0L;
+							FuzzySearch.FuzzyMatch(query.Keywords, value, ref score);
+							result.AddScore(score);
+						}
 						return result;
 					})
 					.Where(result => result.Score > 0);
