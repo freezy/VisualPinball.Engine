@@ -18,6 +18,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
+using Unity.Mathematics;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.UIElements;
@@ -157,6 +158,13 @@ namespace VisualPinball.Unity.Editor
 			Library = library;
 			Asset = asset;
 			Score = score;
+		}
+
+		public void AddScore(long score)
+		{
+			Score = Score < 0
+				? math.max(Score, score)
+				: math.max(Score, Score + score);
 		}
 
 		public void Save()
