@@ -38,7 +38,7 @@ namespace VisualPinball.Unity.Editor
 
 		private readonly bool _isLink;
 		private bool _isEditing;
-		private AssetBrowserX _browser;
+		private AssetBrowser _browser;
 
 		private VisualElement DisplayContainer => _isLink ? _displayLinkElement : _displayElement;
 		private Label DisplayElement => _isLink ? _linkElement : _nameElement;
@@ -86,7 +86,7 @@ namespace VisualPinball.Unity.Editor
 
 		private void OnAttached(AttachToPanelEvent evt)
 		{
-			_browser = panel.visualTree.userData as AssetBrowserX;
+			_browser = panel.visualTree.userData as AssetBrowser;
 			_valuesEditElement.RegisterCallback<FocusInEvent>(OnAttributeValueFocus);
 			Update();
 		}

@@ -46,7 +46,7 @@ namespace VisualPinball.Unity.Editor
 		private readonly SearchSuggest _nameEditElement;
 
 		private bool _isEditing;
-		private AssetBrowserX _browser;
+		private AssetBrowser _browser;
 
 		public TagElement(AssetResult result, string value, SerializableHashSet<string> values)
 		{
@@ -83,7 +83,7 @@ namespace VisualPinball.Unity.Editor
 
 		private void OnAttached(AttachToPanelEvent evt)
 		{
-			_browser = panel.visualTree.userData as AssetBrowserX;
+			_browser = panel.visualTree.userData as AssetBrowser;
 		}
 
 		private void OnNameClicked(MouseDownEvent evt)
