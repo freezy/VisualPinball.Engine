@@ -49,7 +49,15 @@ namespace VisualPinball.Unity.Editor
 		{
 			// parse attributes
 			_attributes.Clear();
-			foreach (var regex in new []{ new Regex(@"(\w+):(\w+)"), new Regex("\"([\\w\\s]+)\":(\\w+)"), new Regex("(\\w+):\"([\\w\\s]+)\""), new Regex("\"([\\w\\s]+)\":\"([\\w\\s]+)\"") }) {
+			const string quoted = "\"([\\w\\d\\s_-]+)\"";
+			const string nonQuoted = "([\\w\\d_-]+)";
+			var regexes = new[] {
+				new Regex($"{nonQuoted}:{nonQuoted}"),
+				new Regex($"{quoted}:{nonQuoted}"),
+				new Regex($"{nonQuoted}:{quoted}"),
+				new Regex($"{quoted}:{quoted}")
+			};
+			foreach (var regex in regexes) {
 				foreach (Match match in regex.Matches(q)) {
 					var key = match.Groups[1].Value;
 					if (!_attributes.ContainsKey(key)) {
