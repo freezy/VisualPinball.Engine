@@ -26,7 +26,7 @@ using UnityEngine.UIElements;
 
 namespace VisualPinball.Unity.Editor
 {
-	public partial class AssetBrowserX : EditorWindow, IDragHandler
+	public partial class AssetBrowser : EditorWindow, IDragHandler
 	{
 		[SerializeField]
 		private int _thumbnailSize = 150;
@@ -62,7 +62,7 @@ namespace VisualPinball.Unity.Editor
 		[MenuItem("Visual Pinball/Asset Browser")]
 		public static void ShowWindow()
 		{
-			var wnd = GetWindow<AssetBrowserX>();
+			var wnd = GetWindow<AssetBrowser>();
 			wnd.titleContent = new GUIContent("Asset Browser", Icons.AssetLibrary(IconSize.Small));
 
 			// Limit size of the window

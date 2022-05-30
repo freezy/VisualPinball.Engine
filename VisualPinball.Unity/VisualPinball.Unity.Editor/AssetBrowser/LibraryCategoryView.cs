@@ -38,7 +38,7 @@ namespace VisualPinball.Unity.Editor
 
 		public void AddAssets(IEnumerable<string> paths, Func<AssetLibrary, LibraryCategory> getCategory) => _browser.AddAssets(paths, getCategory);
 
-		private AssetBrowserX _browser;
+		private AssetBrowser _browser;
 		private AssetLibrary _activeLibrary;
 
 		private readonly VisualElement _container;
@@ -87,7 +87,7 @@ namespace VisualPinball.Unity.Editor
 			return libraryName;
 		}
 
-		public void Refresh(AssetBrowserX browser = null)
+		public void Refresh(AssetBrowser browser = null)
 		{
 			if (browser != null) {
 				_browser = browser;

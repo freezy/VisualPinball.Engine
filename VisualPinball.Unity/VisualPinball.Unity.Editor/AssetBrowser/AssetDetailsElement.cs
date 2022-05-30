@@ -188,7 +188,7 @@ namespace VisualPinball.Unity.Editor
 				return;
 			}
 
-			var browser = panel.visualTree.userData as AssetBrowserX;
+			var browser = panel.visualTree.userData as AssetBrowser;
 			_object = _asset.Asset.Object;
 			_titleElement.text = _asset.Asset.Name;
 			_libraryElement.text = _asset.Library.Name;

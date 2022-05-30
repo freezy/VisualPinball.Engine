@@ -163,7 +163,7 @@ namespace VisualPinball.Unity.Editor
 
 		private void OnDragEnterEvent(DragEnterEvent evt)
 		{
-			if (AssetBrowserX.IsDraggingExistingAssets || AssetBrowserX.IsDraggingNewAssets) {
+			if (AssetBrowser.IsDraggingExistingAssets || AssetBrowser.IsDraggingNewAssets) {
 				AddToClassList(ClassDrag);
 			} else {
 				return;
@@ -198,7 +198,7 @@ namespace VisualPinball.Unity.Editor
 
 		private static void OnDragUpdatedEvent(DragUpdatedEvent evt)
 		{
-			DragAndDrop.visualMode = AssetBrowserX.IsDraggingExistingAssets || AssetBrowserX.IsDraggingNewAssets
+			DragAndDrop.visualMode = AssetBrowser.IsDraggingExistingAssets || AssetBrowser.IsDraggingNewAssets
 				? DragAndDropVisualMode.Move
 				: DragAndDropVisualMode.Rejected;
 		}
@@ -208,7 +208,7 @@ namespace VisualPinball.Unity.Editor
 			RemoveFromClassList(ClassDrag);
 			if (_libraryCategoryView.DragError != null) {
 				_libraryCategoryView.DragError = null;
-				AssetBrowserX.StopDraggingAssets();
+				AssetBrowser.StopDraggingAssets();
 				return;
 			}
 
@@ -221,12 +221,12 @@ namespace VisualPinball.Unity.Editor
 					d.Library.SetCategory(d.Asset, category);
 				}
 				_libraryCategoryView.Refresh();
-				AssetBrowserX.StopDraggingAssets();
+				AssetBrowser.StopDraggingAssets();
 				return;
 			}
 
 			// drop from outside
-			if (AssetBrowserX.IsDraggingNewAssets) {
+			if (AssetBrowser.IsDraggingNewAssets) {
 				_libraryCategoryView.AddAssets(DragAndDrop.paths, assetLibrary => Categories.FirstOrDefault(i => i.Item1 == assetLibrary).Item2 ??assetLibrary.AddCategory(Name));
 			}
 		}
