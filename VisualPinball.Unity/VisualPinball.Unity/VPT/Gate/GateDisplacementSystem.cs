@@ -52,7 +52,7 @@ namespace VisualPinball.Unity
 
 			Entities
 				.WithName("GateDisplacementJob")
-				.ForEach((Entity entity,  ref GateMovementData movementData, in GateStaticData data) => {
+				.ForEach((Entity entity, ref GateMovementData movementData, in GateStaticData data) => {
 
 				marker.Begin();
 
@@ -117,6 +117,16 @@ namespace VisualPinball.Unity
 					}
 				}
 				movementData.Angle += movementData.AngleSpeed * dTime;
+				
+				if (movementData.IsLifting) {
+					if (math.abs(movementData.Angle - movementData.LiftAngle) > 0.000001f) {
+						var direction = movementData.Angle < movementData.LiftAngle ? 1f : -1f;
+						movementData.Angle += direction * (movementData.LiftSpeed * dTime);
+
+					} else {
+						movementData.IsLifting = false;
+					}
+				}
 
 				marker.End();
 

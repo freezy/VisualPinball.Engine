@@ -237,6 +237,11 @@ namespace VisualPinball.Unity
 			RegisterTransform<GateWireAnimationComponent>(GateWireTransforms, component, entity);
 		}
 
+		public void RegisterGateLifter(GateLifterComponent component)
+		{
+			Register(new GateLifterApi(component.gameObject, this), component);
+		}
+
 		public void RegisterHitTarget(HitTargetComponent component, Entity entity)
 		{
 			Register(new HitTargetApi(component.gameObject, entity, this), component, entity);
