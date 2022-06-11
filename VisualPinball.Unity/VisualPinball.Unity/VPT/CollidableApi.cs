@@ -27,13 +27,20 @@ namespace VisualPinball.Unity
 		where TCollidableComponent : ColliderComponent<TData, TComponent>
 		where TData : ItemData
 	{
+		public bool IsCollidable {
+			get => _simulateCycleSystemGroup.ItemsColliding[Entity];
+			set => _simulateCycleSystemGroup.ItemsColliding[Entity] = value;
+		}
+		
 		protected readonly Entity Entity;
 		protected readonly TCollidableComponent ColliderComponent;
 
 		private protected EntityManager EntityManager;
+		private readonly SimulateCycleSystemGroup _simulateCycleSystemGroup;
 
 		protected CollidableApi(GameObject go, Entity entity, Player player) : base(go, player)
 		{
+			_simulateCycleSystemGroup = World.DefaultGameObjectInjectionWorld.GetOrCreateSystem<SimulateCycleSystemGroup>();
 			EntityManager = World.DefaultGameObjectInjectionWorld != null ? World.DefaultGameObjectInjectionWorld.EntityManager : default;
 			Entity = entity;
 
