@@ -114,7 +114,8 @@ namespace VisualPinball.Unity
 			}
 			var hasDynamicWire = _tableComponent!.MappingConfig.Wires.FirstOrDefault(w =>
 				w.DestinationDevice == coilMapping.Device &&
-				w.DestinationDeviceItem == coilMapping.DeviceItem) != null;
+				w.DestinationDeviceItem == coilMapping.DeviceItem &&
+				w.IsDynamic) != null;
 
 			_coilAssignments[coilMapping.Id].Add(new CoilDestConfig(coilMapping.Device, coilMapping.DeviceItem, isLampCoil, hasDynamicWire));
 			CoilStatuses[coilMapping.Id] = false;
