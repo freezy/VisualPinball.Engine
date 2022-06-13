@@ -360,6 +360,9 @@ namespace VisualPinball.Unity
 		/// <param name="isEnabled">Whether to enable or disable the coil.</param>
 		public void HandleCoilEvent(string id, bool isEnabled)
 		{
+			if (!_gleDestAssignments.ContainsKey(id)) {
+				return;
+			}
 			foreach (var wireConfig in _gleDestAssignments[id]) {
 				if (!_wireDevices.ContainsKey(wireConfig.Device)) {
 					continue;
