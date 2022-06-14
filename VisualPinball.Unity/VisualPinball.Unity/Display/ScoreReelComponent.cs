@@ -23,6 +23,14 @@ namespace VisualPinball.Unity
 {
 	public class ScoreReelComponent : MonoBehaviour
 	{
+		public enum ScoreReelDirection
+		{
+			up, down
+		}
+
+		[Tooltip("In which direction the reel rotates, when looking from the front.")]
+		public ScoreReelDirection Direction = ScoreReelDirection.down;
+
 		[HideInInspector]
 		public float Speed = 1;
 
@@ -34,6 +42,8 @@ namespace VisualPinball.Unity
 		private int _remainingPositions;
 
 		private float _currentRotation;
+
+		private bool _isRotatingDown => Direction == ScoreReelDirection.down;
 
 		public void AnimateTo(int position)
 		{
@@ -48,9 +58,10 @@ namespace VisualPinball.Unity
 
 		private IEnumerator Rotate()
 		{
+			var dir = _isRotatingDown ? 1 : -1;
 			while (_remainingPositions > 0) {
 				var lastPosition = (int)(_currentRotation / 36f);
-				_currentRotation += Time.deltaTime * Speed * 36f;
+				_currentRotation += dir * Time.deltaTime * Speed * 36f;
 				var currentPosition = (int)(_currentRotation / 36f);
 				_currentRotation %= 360f;
 
