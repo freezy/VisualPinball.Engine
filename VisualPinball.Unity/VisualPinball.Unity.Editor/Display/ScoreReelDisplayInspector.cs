@@ -37,10 +37,14 @@ namespace VisualPinball.Unity.Editor
 
 		public override void OnInspectorGUI()
 		{
+			serializedObject.Update();
+
 			EditorGUILayout.PropertyField(_idProperty, new GUIContent("ID"));
 			EditorGUILayout.PropertyField(_speedProperty);
 			EditorGUILayout.PropertyField(_waitProperty);
 			EditorGUILayout.PropertyField(_reelObjectsProperty);
+
+			serializedObject.ApplyModifiedProperties();
 		}
 	}
 }
