@@ -57,6 +57,9 @@ namespace VisualPinball.Unity.Editor
 			ui.Q<Button>("okButton").RegisterCallback<MouseUpEvent>(_ => CompleteEdit(true, _nameEditElement.value, _valuesEditElement.value));
 			ui.Q<Button>("cancelButton").RegisterCallback<MouseUpEvent>(_ => CompleteEdit(false));
 
+			_nameEditElement.RegisterCallback<KeyDownEvent>(OnKeyDown);
+			_valuesEditElement.RegisterCallback<KeyDownEvent>(OnKeyDown);
+
 			Update();
 
 			// right-click menu
@@ -82,6 +85,7 @@ namespace VisualPinball.Unity.Editor
 		{
 			if (!string.IsNullOrEmpty(_attribute.Value)) {
 				var values = _attribute.Value.Split(',').Select(s => s.Trim());
+				_valuesElement.Clear();
 				foreach (var value in values) {
 					_valuesElement.Add(new Label(value)); // todo make each of those clickable
 				}
@@ -93,17 +97,33 @@ namespace VisualPinball.Unity.Editor
 		{
 			_nameEditElement.value = _attribute.Key;
 			_valuesEditElement.value = _attribute.Value;
-			_valuesEditElement.Focus();
-			_valuesEditElement.SelectAll();
+			_nameEditElement.Focus();
+			_nameEditElement.SelectAll();
 		}
 
 		public void CompleteEdit(bool success, string newName = null, string newValue = null)
 		{
 			if (success) {
+				_attribute.Key = newName;
+				_attribute.Value = newValue;
 				_assetData.Update();
 				Update();
 			}
 			ToggleEdit();
+		}
+
+		private void OnKeyDown(KeyDownEvent evt)
+		{
+			switch (evt.keyCode) {
+				case KeyCode.Return or KeyCode.KeypadEnter:
+					CompleteEdit(true, _nameEditElement.value, _valuesEditElement.value);
+					break;
+
+				case KeyCode.Escape:
+					CompleteEdit(false);
+					evt.StopImmediatePropagation();
+					break;
+			}
 		}
 
 		private void AddContextMenu(ContextualMenuPopulateEvent evt)

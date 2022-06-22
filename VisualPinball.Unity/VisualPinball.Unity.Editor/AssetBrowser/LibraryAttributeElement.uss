@@ -1,1 +1,20 @@
-﻿
+﻿.library-attribute-element {
+	flex-direction: row;
+}
+.library-attribute-element #attribute-values {
+	flex-grow: 1;
+	flex-direction: row-reverse;
+}
+
+.library-attribute-element #attribute-values > Label {
+	-unity-text-align: middle-right;
+}
+
+.library-attribute-edit-element {
+	flex-direction: row;
+}
+
+.library-attribute-edit-element TextField {
+	flex-grow: 1;
+}
+

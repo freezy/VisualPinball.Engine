@@ -9,6 +9,10 @@
 	-unity-font-style: bold;
 }
 
+#details > #add {
+	margin-top: 8px;
+}
+
 #details > #attributes-title {
 	-unity-font-style: bold;
 }
