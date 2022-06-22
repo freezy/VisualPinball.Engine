@@ -29,7 +29,7 @@ Every plastic will have its own GameObject. However, only one texture is shared 
 ## Prerequisites
 
 - While we provide some guidelines for the artwork, we won't go into detail how to produce it. So, we assume that you have your artwork ready.
-- You should be familiar with a vector graphics software such as Adobe Illustrator. 
+- You should be familiar with a vector graphics software such as Adobe Illustrator.
 - You should know your way around in Blender. Beginner level is fine, but you should be able to navigate in the viewport, know what UV-mapping is and know the basics about modifiers.
 
 ## Workflow
