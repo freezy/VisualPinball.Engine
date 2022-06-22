@@ -49,7 +49,7 @@
           href: xref:tutorial_playfield_3b
         - name: Import Into Unity
           href: xref:tutorial_playfield_4
-  
+
     - name: Create Realistic Looking Plastics
       href: xref:tutorial_plastics
       items:
@@ -61,6 +61,17 @@
           href: xref:tutorial_plastics_3
         - name: Import Into Unity
           href: xref:tutorial_plastics_4
+
+    - name: Create a Backglass
+      href: xref:tutorial_backglass
+      items:
+        - name: Prepare Artwork
+          href: xref:tutorial_backglass_1
+        - name: Create Mesh
+          href: xref:tutorial_backglass_2
+        - name: Import into Unity
+          href: xref:tutorial_backglass_3
+
 
 - name: Manual
   href: manual/manual.md
