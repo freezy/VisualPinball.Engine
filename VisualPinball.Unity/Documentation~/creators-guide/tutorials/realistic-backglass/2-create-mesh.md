@@ -10,13 +10,13 @@ We're now going to import edit a cube and unwrap it to fit the backglass artwork
 
 ## Step 1: Edit the Cube
 
-Open Blender, choose File/New/General and select the cube that is native to this scene while in Object Mode.  Under the Scene setting in the lower right change the units to "Imperial" and set the length to "Inches".  At the upper right of the window pull out the menu there and type in the exact dimensions of your backglass.
+Open Blender, choose *File -> New -> General* and select the cube that is native to this scene while in Object Mode.  Under the Scene setting in the lower right change the units to *Imperial* and set the length to *Inches*.  At the upper right of the window pull out the menu there and type in the exact dimensions of your backglass.
 
 ![Editing the Cube](BlenderObject.jpg)
 
 ## Step 2: Scale the Backglass
 
-Once you've set the dimensions of the backglass zoom in on it and while still in "Object Mode" select Object/Apply/Scale.  This will set the scale to 1:1:1 which will lock in your edit of the backglass.
+Once you've set the dimensions of the backglass zoom in on it and while still in *Object Mode* select *Object -> Apply -> Scale*.  This will set the scale to 1:1:1 which will lock in your edit of the backglass.
 
 ![Set the Scale](BlenderScale.jpg)
 
@@ -28,7 +28,11 @@ To start the process of unwrapping the object that we just made we first must br
 
 ## Step 4: Unwrap the Front surface
 
-To be able to use the object that you've just created we need to create a UV map for it.  For this to work we only need to "unwrap" the front face of the backglass and make sure that it fits the artwork that we created earlier. In the "Edit Mode" window on the right, press Number Pad 5 and Number Pad 7 to switch to an orthographic top-down view of the backglass.  Choose the "faces" option at the top right of this screen and select the front face of the backglass.  In the top Menu of the right screen choose UV/Project From View (Bounds).  You should see an unwrapped face appear in the left screen that lines up with the artwork that you made.  If the edges don't line up, choose "edges" in the left screen, click on the edge that needs to be moved and hit "G" while hovering over that edge.  This will select the edge and allow you to move it to the correct location.  Note that you do not need to "click" to move the edge.
+To be able to use the object that you've just created, we'll create a UV map for it. For this to work, we only need to unwrap the front face of the backglass and make sure that it fits the artwork.
+
+Change to the *UV Editing* workspace. Put your mouse cursor over the right window and press `numpad 7` to switch to an orthographic top-down view of the backglass.  Hit `3` for face selection and click on the front face. In the right window, choose *UV -> Project From View (Bounds)*.  
+
+You should see an unwrapped face appear in the left window that lines up with the artwork that you made.  If the edges don't line up, hit `2` for edge selection in the left screen, click on the edge that needs to be moved and hit `G` while hovering over that edge.  This will select the edge and allow you to move it to the correct location. Note that you do not need to "click" to move the edge.
 
 ![Unwrap the Backglass Front Face](ProjectFromView.jpg)
 
