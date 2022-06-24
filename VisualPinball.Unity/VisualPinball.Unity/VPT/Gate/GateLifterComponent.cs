@@ -23,11 +23,13 @@ using VisualPinball.Engine.Game.Engines;
 
 namespace VisualPinball.Unity
 {
+	[RequireComponent(typeof(GateComponent))]
 	[AddComponentMenu("Visual Pinball/Mechs/Gate Lifter")]
 	public class GateLifterComponent : MonoBehaviour, ICoilDeviceComponent
 	{
 		public const string LifterCoilItem = "lifter_coil";
 
+		[Unit("degrees")]
 		[Tooltip("How much to rotate the wire to the end position, in degrees.")]
 		public float LiftedAngleDeg;
 
@@ -50,7 +52,6 @@ namespace VisualPinball.Unity
 		private void Awake()
 		{
 			GetComponentInParent<Player>().RegisterGateLifter(this);
-			var wireComponent = GetComponentInChildren<GateWireAnimationComponent>();
 		}
 	}
 }
