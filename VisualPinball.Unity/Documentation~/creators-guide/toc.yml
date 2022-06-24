@@ -87,3 +87,5 @@
         href: manual/mechanisms/rotators.md
       - name: Collision Switches
         href: manual/mechanisms/collision-switches.md
+      - name: Lifting Gates
+        href: manual/mechanisms/lifting-gates.md
