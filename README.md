@@ -38,7 +38,7 @@ This repository is part of a number of packages. It is what we're referring to a
 VPE is still work in progress. You can check the current features list [here](https://docs.visualpinball.org/creators-guide/introduction/features.html)
 and the open issues [here](https://github.com/freezy/VisualPinball.Engine/issues).
 
-There are a few videos in the [VPF thread](https://www.vpforums.org/index.php?showtopic=43651), 
+There are a few videos in the [VPF thread](https://vpuniverse.com/forums/topic/5362-wip-visual-pinball-in-unity-2021-edition/), 
 where you can discuss. Screenshots are [here](https://github.com/freezy/VisualPinball.Engine/wiki/Unity-Screenshots)! :)
 
 ## Credits
