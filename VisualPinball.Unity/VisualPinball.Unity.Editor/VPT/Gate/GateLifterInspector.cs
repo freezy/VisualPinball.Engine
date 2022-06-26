@@ -35,7 +35,7 @@ namespace VisualPinball.Unity.Editor
 		{
 			serializedObject.Update();
 
-			EditorGUILayout.PropertyField(_angleProperty);
+			EditorGUILayout.PropertyField(_angleProperty, new GUIContent("Lifting Angle"));
 			EditorGUILayout.PropertyField(_speedProperty);
 
 			serializedObject.ApplyModifiedProperties();
