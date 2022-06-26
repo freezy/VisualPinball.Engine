@@ -25,11 +25,11 @@ namespace VisualPinball.Unity
 	{
 		public enum ScoreReelDirection
 		{
-			up, down
+			Up, Down
 		}
 
 		[Tooltip("In which direction the reel rotates, when looking from the front.")]
-		public ScoreReelDirection Direction = ScoreReelDirection.down;
+		public ScoreReelDirection Direction = ScoreReelDirection.Down;
 
 		[HideInInspector]
 		public float Speed = 1;
@@ -43,7 +43,7 @@ namespace VisualPinball.Unity
 
 		private float _currentRotation;
 
-		private bool _isRotatingDown => Direction == ScoreReelDirection.down;
+		private bool _isRotatingDown => Direction == ScoreReelDirection.Down;
 
 		public void AnimateTo(int position)
 		{
