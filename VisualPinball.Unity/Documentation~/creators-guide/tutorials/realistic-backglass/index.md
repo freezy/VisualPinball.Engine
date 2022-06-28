@@ -13,7 +13,7 @@ This tutorial runs through the workflow for making the color and mask artwork, c
 The result of this workflow is a pinball backglass that is properly sized and contains color artwork along with a light blocking thickness map:
 
 
-![Final Result](BGdone.jpg)
+![Final Result](unity-bg-lit.png)
 <small><i>The final result!</i></small>
 
 ## Prerequisites

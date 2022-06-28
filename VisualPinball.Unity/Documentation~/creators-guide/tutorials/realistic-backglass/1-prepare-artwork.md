@@ -1,7 +1,7 @@
 ---
 uid: tutorial_backglass_1
-title: Realistic Looking Backglass - Create Artwork
-description: How to edit art in Photoshop
+title: Realistic Looking Backglass - Prepare Artwork
+description: How to prepare the backglass artwork in Photoshop
 ---
 
 # Finding Artwork
@@ -10,7 +10,7 @@ Perhaps the most challenging aspect to making a working backglass is finding goo
 
 ## Create the Color Map
 
-Once you have your artwork secured save this as a PNG file. We'll name it `albedo.png` since it'll become our diffuse, or color map. Make sure that the areas for the score reels and credit reel set as transparent. Also be sure to size the backglass image to the size of the original backglass, in the case of Volley this is 19 ¾" x 22".
+Once you have your artwork secured save this as a PNG file. We'll name it `Backglass Albedo.png` since it'll become our diffuse, or color map. Make sure that the areas for the score reels and credit reel set as transparent. Also be sure to size the backglass image to the size of the original backglass, in the case of Volley this is 19 ¾" x 22".
 
 ![Color Edit](ps-albedo.png)
 
@@ -24,4 +24,4 @@ Elements that aren't visible are often scores that aren't part of the actual art
 
 ![Thickness Mask Edit](ps-thickness.png)
 
-Save this as a grayscale PNG file without transparency named `thickness.png`. You're now ready to [create a backglass mesh](xref:tutorial_backglass_2).
+Save this as a grayscale PNG file without transparency named `Backglass Thickness.png`. You're now ready to [create a backglass mesh](xref:tutorial_backglass_2).
