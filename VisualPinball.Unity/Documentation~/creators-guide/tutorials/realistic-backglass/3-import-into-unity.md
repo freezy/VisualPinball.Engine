@@ -41,7 +41,9 @@ In the *Project* window, navigate to your `Materials` folder, right click, selec
 
 ![Backglass material](unity-material.png)
 
-Then, in the *Project* window, navigate back to your materials, drag and drop the `Backglass` material onto the backglass in your 3D view, and...
+## Apply the Material
+
+In the *Project* window, navigate back to your materials, drag and drop the `Backglass` material onto the backglass in your 3D view, and...
 
 ![Material applied](unity-material-applied.png)
 
