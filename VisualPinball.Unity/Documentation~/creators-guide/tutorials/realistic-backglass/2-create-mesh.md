@@ -6,9 +6,7 @@ description: How to create a backglass mesh in Blender
 
 # Create a Backglass Mesh
 
-We're now going to edit Blender's *default cube* and unwrap it to fit the backglass artwork. 
-
-*Note: this might be the only tutorial on the internet that actually uses the default cube ;)*
+We're now going to edit Blender's *default cube* and unwrap it to fit the backglass artwork. Note: this might be the only tutorial on the internet that actually uses the default cube ;)
 
 ## Create the Geometry
 

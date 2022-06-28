@@ -19,10 +19,13 @@ The result of this workflow is a pinball backglass that is properly sized and co
 ## Prerequisites
 
 - While we provide some guidelines for the artwork, we won't go into detail how to produce it. So, we assume that you have your artwork ready.
-- You should know your way around in Blender. This tutorial will show how to size and unwrap the mesh for import into Unity.
+- You should have a entry level skills in Blender.
 
 ## Workflow
 
 1. [Prepare Artwork](xref:tutorial_backglass_1)
 2. [Create mesh in Blender](xref:tutorial_backglass_2)
 3. [Import mesh into Unity](xref:tutorial_backglass_3)
+
+> [!note]
+> We don't provide guidelines how to go about the light sources behind the translite, although we might will in a future tutorial.
