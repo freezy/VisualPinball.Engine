@@ -1,7 +1,7 @@
 ---
 uid: tutorial_backglass_2
 title: Realistic Looking Backglass - Create Mesh
-description: How to create a Backglass mesh in Blender
+description: How to create a backglass mesh in Blender
 ---
 
 # Create a Backglass Mesh
@@ -30,8 +30,8 @@ In order to clear the unused faces, hit `CTRL+I`, hover over the left side, hit 
 
 ## Clean Up and Export
 
-Go back to the *Layout* workspace. Select *Material Properties*, click on *Material* and on the `-` button to remove it.
+Go back to the *Layout* workspace. Select *Material Properties*, click on *Material* and on the `-` button to remove it. Hit `F2` and rename the `Cube` to `Backglass`.
 
-Then, with the object still selected, choose *File -> Export -> FBX*. Check *Selected Objects* only, and name it `backglass.fbx`.
+Then, with the object still selected, choose *File -> Export -> FBX*. Check *Selected Objects* only, and name it `Backglass.fbx`.
 
 You're now ready to [import into Unity](xref:tutorial_backglass_3).

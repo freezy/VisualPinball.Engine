@@ -6,43 +6,48 @@ description: How setup your backglass in Unity
 
 # Import Into Unity
 
-## Step 1: Import the FBX
+## Import Your Assets
 
-Open your scene in Unity and navigate to where your table stores its Materials, Meshes and textures.  Drag and drop your backglass mesh into "Meshes" and your images into "Textures"
+Open your scene in Unity and copy the `Backglass.fbx` into your models folder, and `Backglass Albedo.png` as well as `Backglass Thickness.png` into the textures folder. You can do that by dragging the files from the file explorer into Unity's *Project* window.
 
 > [!note]
-> We recommend storing models at `Assets/<Table Name>/Models`, and texture at `Assets/<Table Name>/Textures`. In this example the Tropic Fun backglass is being created in another table for demonstrative purposes.
+> We recommend storing models at `Assets/<Table Name>/Models`, textures at `Assets/<Table Name>/Textures`, and materials at `Assets/<Table Name>/Materials`.
 
-![Navigate to Table Folders](BringMeshAndpngsIntoUnity.jpg)
+![Copy assets into your Unity project](unity-imported.jpg)
 
-## Step 2: Add a Mesh Filter
+## Add the Backglass to the Scene
 
-In the inspector window, click on Add Component and find Mesh Filter. Locate your exported FBX in the Project window, expand it, and drag the Cube mesh into the mesh filter's Mesh slot.  
+In the *Project* window, select the *Backglass* prefab (your FBX). In the inspector, uncheck *Convert Units* and hit *Apply*.
 
-![Add Mesh Filter](ChooseCubeFromtfAsMesh.jpg)
+Drag the backglass it into your scene view.
 
-## Step 2: Add a Mesh Renderer
+![In scene, but too large](unity-in-scene-wrong-size.png)
 
-In the inspector window, click on Add Component and find Mesh Renderer and add this to the inspector window.
+Ouch, that's too large and not oriented correctly. Let's fix that. In the inspector, set *Rotation* to `-90/180/90` and the scale to `1` on all axes. Then use the *Move Tool* in the scene view to position it correctly.
 
-![Add Mesh Renderer](AddMeshFilterAndMeshRenderer.jpg)
+![Correctly positioned in the scene](unity-in-scene-correct-size.png)
 
-## Step 4: Add a Translite Material
+## Create the Material
 
-Navigate to the "Translite" material and drag and drop this into the "Materials Element" box of the Mesh Renderer.
+In the *Project* window, navigate to your `Materials` folder, right click, select *Create -> Material*, and name the new material `Backglass`. Set the following properties:
 
-![Add Translite Material](ChooseTranslightAsTheMaterial.jpg)
+- *Material Type* to *Translucent*
+- *Base Map* to `Backglass Albedo` (use the small target icon to search)
+- *Smoothness* to something high like `0.97`
+- *Thickness Map* to `Backglass Thickness`
+- For the *Diffusion Profile*, use the *Project* window and navigate to `Packages/VisualPinball.Unity.Hdrp/Assets/Settings` and drag and drop `Translite` into the slot (it cannot be searched after because it's part of an external package).
 
-## Step 5: Set up the Masks
 
-Under the Surface Inputs of the Translite material drag and drop the color backglass png into the "Base Map" slot and the black & white thickness map png into the "Thickness Map" slot.
+![Backglass material](unity-material.png)
 
-![Set Up the Masks](SetUpMasks.jpg)
+Then, in the *Project* window, navigate back to your materials, drag and drop the `Backglass` material onto the backglass in your 3D view, and...
 
-## Step 6: Hooray You are Done!
+![Material applied](unity-material-applied.png)
 
-Congratulations!  You have now made a backglass that will transmit light through the color overlay and block light in any of the masked area.  You can test it out by putting a light source behind the backglass and move it around.
+To test the thickness mask, place a light source behind the backglass and move it around:
 
-![Finished Backglass](BGDone.jpg)
 
-If you came across an error or have a better way of achieving this, don't hesitate to click on the *Improve this Doc* button on the top right side ([documentation](https://github.com/freezy/VisualPinball.Engine/wiki/Documentation)).
+![Moving light](unity-backglass-light-source.webp)
+
+
+Congratulations! You have now made a backglass that will transmit light through the color overlay and block light in any of the masked area.
