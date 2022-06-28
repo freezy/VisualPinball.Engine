@@ -10,7 +10,7 @@ We're now going to edit Blender's *default cube* and unwrap it to fit the backgl
 
 ## Create the Geometry
 
-Open Blender and select the default cube. In the *Scene Properties* window, set units to *Imperial* and the length to *Inches*. With your mouse cursor over 3D viewport, hit `N` to show the transform properties of the cube. Enter the dimensions of your backglass in the `Y` and `Z` fields under *Scale*. The `X` value isn't really important, make it something small like 0.2".
+Open Blender and select the default cube. In the *Scene Properties* window, set units to *Imperial* and the length to *Inches*. With your mouse cursor over 3D viewport, hit `N` to show the transform properties of the cube. Enter the dimensions of your backglass in the `Y` and `Z` fields under *Dimensions*. The `X` value isn't really important, make it something small like 0.2".
 
 ![Editing the Cube](blender-object.png)
 
