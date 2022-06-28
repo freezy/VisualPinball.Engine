@@ -13,7 +13,7 @@ Open your scene in Unity and copy the `Backglass.fbx` into your models folder, a
 > [!note]
 > We recommend storing models at `Assets/<Table Name>/Models`, textures at `Assets/<Table Name>/Textures`, and materials at `Assets/<Table Name>/Materials`.
 
-![Copy assets into your Unity project](unity-imported.jpg)
+![Copy assets into your Unity project](unity-imported.png)
 
 ## Add the Backglass to the Scene
 
@@ -31,6 +31,7 @@ Ouch, that's too large and not oriented correctly. Let's fix that. In the inspec
 
 In the *Project* window, navigate to your `Materials` folder, right click, select *Create -> Material*, and name the new material `Backglass`. Set the following properties:
 
+- Enable *Alpha Clipping* to make the score reels visible through the transparent areas.
 - *Material Type* to *Translucent*
 - *Base Map* to `Backglass Albedo` (use the small target icon to search)
 - *Smoothness* to something high like `0.97`
@@ -44,10 +45,14 @@ Then, in the *Project* window, navigate back to your materials, drag and drop th
 
 ![Material applied](unity-material-applied.png)
 
+Voilà!
+
 To test the thickness mask, place a light source behind the backglass and move it around:
 
 
 ![Moving light](unity-backglass-light-source.webp)
+
+Finally, in the *Hierarchy* window, move the *Backglass* game object from the root into your table structure. Best practice is to create a `Back Box` parent where you keep all your game objects that are part of the back box.
 
 
 Congratulations! You have now made a backglass that will transmit light through the color overlay and block light in any of the masked area.
