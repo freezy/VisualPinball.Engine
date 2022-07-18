@@ -52,6 +52,9 @@ namespace VisualPinball.Unity
 
 		public event EventHandler OnUpdate;
 
+		public event EventHandler<BallEvent> OnBallCreated;
+		public event EventHandler<BallEvent> OnBallDestroyed;
+
 		[HideInInspector] [SerializeField] public string debugUiId;
 		[HideInInspector] [SerializeField] public string physicsEngineId;
 
@@ -485,6 +488,15 @@ namespace VisualPinball.Unity
 			}
 		}
 
+		internal void BallCreated(Entity ballEntity, GameObject ball)
+		{
+			OnBallCreated?.Invoke(this, new BallEvent(ballEntity, ball));
+		}
+		internal void BallDestroyed(Entity ballEntity, GameObject ball)
+		{
+			OnBallDestroyed?.Invoke(this, new BallEvent(ballEntity, ball));
+		}
+
 		#endregion
 
 		#region API
@@ -577,6 +589,18 @@ namespace VisualPinball.Unity
 					}
 				}
 			}
+		}
+	}
+
+	public readonly struct BallEvent
+	{
+		public readonly Entity BallEntity;
+		public readonly GameObject Ball;
+
+		public BallEvent(Entity ballEntity, GameObject ball)
+		{
+			BallEntity = ballEntity;
+			Ball = ball;
 		}
 	}
 }

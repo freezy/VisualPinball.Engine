@@ -148,12 +148,17 @@ namespace VisualPinball.Unity
 			}
 
 			NumBalls++;
+
+			_player.BallCreated(entity, ballGo);
 		}
 
 		public void DestroyEntity(Entity ballEntity)
 		{
+			var ballGo = _player.Balls[ballEntity];
+			_player.BallDestroyed(ballEntity, ballGo);
+
 			// destroy game object
-			Object.DestroyImmediate(_player.Balls[ballEntity]);
+			Object.DestroyImmediate(ballGo);
 			_player.Balls.Remove(ballEntity);
 
 			// destroy entity
