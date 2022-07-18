@@ -148,10 +148,11 @@ namespace VisualPinball.Unity.Editor
 			ExtractTextures();
 			ExtractSounds();
 			SaveData();
-			SaveLegacyData();
 
 			var prefabLookup = InstantiateGameItems();
 			var componentLookup = UpdateGameItems(prefabLookup);
+
+			SaveLegacyData(); // now we freed the binary data, write the remaining game items.
 			FinalizeGameItems(componentLookup);
 
 			FreeTextures();
