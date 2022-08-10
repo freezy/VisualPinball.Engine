@@ -15,9 +15,10 @@ Unity uses an application called *Unity Hub* to update itself, create new projec
 
 **2021.3.0** is the latest version supported by VPE so click on *Skip Installation* in the first dialog to avoid installing the newest version of the Editor. After accepting the license agreement you will have access to Unity Hub.
 
-To install the supported version of the editor you can either
-* Paste this direct link into your browser: unityhub://2021.3.0f1/6eacc8284459 
-* Find the correct version from the [Unity release archive](https://unity3d.com/get-unity/download/archive)
+> [!NOTE]
+> To install the supported version of the editor you can either
+>	* Paste this direct link into your browser: unityhub://2021.3.0f1/6eacc8284459 
+>	* Find the correct version from the [Unity release archive](https://unity3d.com/get-unity/download/archive)
 
 You can leave all the other options unchecked during install.
 
