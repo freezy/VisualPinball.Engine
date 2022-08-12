@@ -16,16 +16,16 @@ and let our peers review the code before it gets merged.
 ### Unity License Setup For Automated Testing
 
 All Pull Request must pass an automated run of all the unit tests before merging. These will fail until your fork of the `VisualPinball.Engine` is configured with Unity's license information.
-Most contributos will be using a Personal License and will need to request a key on behalf of GitHub. Professional account users can gather their key from the [Unity Subscriptions Page](https://id.unity.com/en/subscriptions) and skip to create secret setup below
+Most contributors will be using a Personal license and will need to request a key on behalf of GitHub. Professional license users can gather their key from the [Unity Subscriptions Page](https://id.unity.com/en/subscriptions) and skip to step 8.
 
-- Create a new branch. We will use the [Unity - Request Activation File](https://github.com/marketplace/actions/unity-request-activation-file) action to request an activation file
-- Create a file called `.github/workflows/activation.yml` and add the following workflow action defintion.
+1. Create a new branch. We will use the [Unity - Request Activation File](https://github.com/marketplace/actions/unity-request-activation-file) action to request an activation file
+2. Create a file called `.github/workflows/activation.yml` and add the following workflow action defintion.
 ```
 name: Acquire activation file
 on: push
 jobs:
   activation:
-    name: Request manual activation file 🔑
+    name: Request manual activation file 
     runs-on: ubuntu-latest
     steps:
       # Request manual activation file
@@ -39,13 +39,13 @@ jobs:
           name: ${{ steps.getManualLicenseFile.outputs.filePath }}
           path: ${{ steps.getManualLicenseFile.outputs.filePath }}
 ```
-- Commit and Push the new file
-- Navigate to the Actions Tab of GitHub
-- Once the action has completed download the manual activation file that now appeared as an artifact and extract the `Unity_v20XX.X.XXXX.alf` file from the zip.
-- Visit (license.unity3d.com) and upload the `Unity_v20XX.X.XXXX.alf` file.
+3. Commit and Push the new file
+4. Navigate to the Actions Tab of GitHub
+5. Once the action has completed download the manual activation file that now appeared as an artifact and extract the `Unity_v20XX.X.XXXX.alf` file from the zip.
+6. Visit (license.unity3d.com) and upload the `Unity_v20XX.X.XXXX.alf` file.
 - You should now receive your license file (Unity_v20XX.x.ulf) as a download. It's ok if the numbers don't match your Unity version exactly.
-- Open `Github` > `<Your repository>` > `Settings` > `Secrets`
-- Create the following secrets
+7. Open `Github` > `<Your repository>` > `Settings` > `Secrets`
+8. Create the following secrets
   - `UNITY_EMAIL` - (Add the email address that you use to login to Unity)
   - `UNITY_PASSWORD` - (Add the password that you use to login to Unity)
 - If Personal License
