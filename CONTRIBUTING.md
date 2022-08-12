@@ -39,18 +39,18 @@ jobs:
           name: ${{ steps.getManualLicenseFile.outputs.filePath }}
           path: ${{ steps.getManualLicenseFile.outputs.filePath }}
 ```
-3. Commit and Push the new file
-4. Navigate to the Actions Tab of GitHub
+3. Commit and Push the new file.
+4. Navigate to the Actions Tab of GitHub.
 5. Once the action has completed download the manual activation file that now appeared as an artifact and extract the `Unity_v20XX.X.XXXX.alf` file from the zip.
 6. Visit (license.unity3d.com) and upload the `Unity_v20XX.X.XXXX.alf` file.
-- You should now receive your license file (Unity_v20XX.x.ulf) as a download. It's ok if the numbers don't match your Unity version exactly.
-7. Open `Github` > `<Your repository>` > `Settings` > `Secrets`
-8. Create the following secrets
+7. You should now receive your license file (Unity_v20XX.x.ulf) as a download. It's ok if the numbers don't match your Unity version exactly.
+8. Open `Github` > `<Your repository>` > `Settings` > `Secrets`
+- Create the following secrets
   - `UNITY_EMAIL` - (Add the email address that you use to login to Unity)
   - `UNITY_PASSWORD` - (Add the password that you use to login to Unity)
-- If Personal License
-  - `UNITY_LICENSE` - (Copy the contents of your license file into here)
-- If Professional License
+- Personal License
+  - `UNITY_LICENSE` - (Copy the contents of your ulf license file into here)
+- Professional License
   - `UNITY_SERIAL` - (Add you serial key it should look like XX-XXXX-XXXX-XXXX-XXXX-XXXX)
   
 This license can now be used by the automated build and test steps required for pull requests. You can delete the branch.
