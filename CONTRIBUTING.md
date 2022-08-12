@@ -15,7 +15,7 @@ and let our peers review the code before it gets merged.
 
 ### Unity License Setup For Automated Testing
 
-All Pull Request must pass an automated run of all the unit tests before merging. These will fail until your fork of the `VisualPinball.Engine` is configured with Unity's license information.
+It's preferred to make the automated tests run when creating your PR. Since Unity needs a license key (which can be obtained with a free account), you'll need to configure your fork to use the correct secrets.
 Most contributors will be using a Personal license and will need to request a key on behalf of GitHub. Professional license users can gather their key from the [Unity Subscriptions Page](https://id.unity.com/en/subscriptions) and skip to step 8.
 
 1. Create a new branch. We will use the [Unity - Request Activation File](https://github.com/marketplace/actions/unity-request-activation-file) action to request an activation file
