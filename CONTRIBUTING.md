@@ -53,7 +53,7 @@ jobs:
 - Professional License
   - `UNITY_SERIAL` - (Add you serial key it should look like XX-XXXX-XXXX-XXXX-XXXX-XXXX)
   
-This license can now be used by the automated build and test steps required for pull requests. You can delete the branch.
+9. You can delete the branch. This license can now be used by the automated build and test steps required for pull requests. 
 
 
 ## Code Style 
