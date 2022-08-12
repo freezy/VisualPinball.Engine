@@ -15,11 +15,11 @@ and let our peers review the code before it gets merged.
 
 ### Unity License Setup For Automated Testing
 
-All Pull Request must pass an automated run of all the unit tests before merging. These will fail until your fork of the `VisualPinball.Engine` is configured with your license information.
-Most contributos will be using a Personal Account and will need to request a key on behalf of GitHub. Professional Account Users can gather their key from the Unity Subscription and skip to secret setup below
+All Pull Request must pass an automated run of all the unit tests before merging. These will fail until your fork of the `VisualPinball.Engine` is configured with Unity's license information.
+Most contributos will be using a Personal License and will need to request a key on behalf of GitHub. Professional account users can gather their key from the [Unity Subscriptions Page](https://id.unity.com/en/subscriptions) and skip to create secret setup below
 
-- We will use the [Unity - Request Activation File](https://github.com/marketplace/actions/unity-request-activation-file) action to request an activation file
-- Create a file called `.github/workflows/activation.yml` and add the following workflow action.
+- Create a new branch. We will use the [Unity - Request Activation File](https://github.com/marketplace/actions/unity-request-activation-file) action to request an activation file
+- Create a file called `.github/workflows/activation.yml` and add the following workflow action defintion.
 ```
 name: Acquire activation file
 on: push
@@ -53,7 +53,7 @@ jobs:
 - If Professional License
   - `UNITY_SERIAL` - (Add you serial key it should look like XX-XXXX-XXXX-XXXX-XXXX-XXXX)
   
-This license can now be used by the automated build and test steps required for pull requests.
+This license can now be used by the automated build and test steps required for pull requests. You can delete the branch.
 
 
 ## Code Style 
