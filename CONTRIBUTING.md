@@ -15,46 +15,15 @@ and let our peers review the code before it gets merged.
 
 ### Unity License Setup For Automated Testing
 
-It's preferred to make the automated tests run when creating your PR. Since Unity needs a license key (which can be obtained with a free account), you'll need to configure your fork to use the correct secrets.
-Most contributors will be using a Personal license and will need to request a key on behalf of GitHub. Professional license users can gather their key from the [Unity Subscriptions Page](https://id.unity.com/en/subscriptions) and skip to step 8.
+It's preferred to make the automated tests run when creating your PR. Since Unity needs a license key (which can be obtained with a free account), you'll need to configure your fork to use the correct secrets.  You will need to use a Personal license and request a key on behalf of GitHub: 
 
-1. Create a new branch. We will use the [Unity - Request Activation File](https://github.com/marketplace/actions/unity-request-activation-file) action to request an activation file
-2. Create a file called `.github/workflows/activation.yml` and add the following workflow action defintion.
-```
-name: Acquire activation file
-on: push
-jobs:
-  activation:
-    name: Request manual activation file 
-    runs-on: ubuntu-latest
-    steps:
-      # Request manual activation file
-      - name: Request manual activation file
-        id: getManualLicenseFile
-        uses: game-ci/unity-request-activation-file@v2
-      # Upload artifact (Unity_v20XX.X.XXXX.alf)
-      - name: Expose as artifact
-        uses: actions/upload-artifact@v2
-        with:
-          name: ${{ steps.getManualLicenseFile.outputs.filePath }}
-          path: ${{ steps.getManualLicenseFile.outputs.filePath }}
-```
-3. Commit and Push the new file.
-4. Navigate to the Actions Tab of GitHub.
-5. Once the action has completed download the manual activation file that now appeared as an artifact and extract the `Unity_v20XX.X.XXXX.alf` file from the zip.
-6. Visit (license.unity3d.com) and upload the `Unity_v20XX.X.XXXX.alf` file.
-7. You should now receive your license file (Unity_v20XX.x.ulf) as a download. It's ok if the numbers don't match your Unity version exactly.
-8. Open `Github` > `<Your repository>` > `Settings` > `Secrets`
-- Create the following secrets
-  - `UNITY_EMAIL` - (Add the email address that you use to login to Unity)
-  - `UNITY_PASSWORD` - (Add the password that you use to login to Unity)
-- Personal License
-  - `UNITY_LICENSE` - (Copy the contents of your ulf license file into here)
-- Professional License
-  - `UNITY_SERIAL` - (Add you serial key it should look like XX-XXXX-XXXX-XXXX-XXXX-XXXX)
-  
-9. You can delete the branch. This license can now be used by the automated build and test steps required for pull requests. 
-
+1. Run the `License` workflow by clicking the `Run workflow` button in the `Actions` tab. When the workflow completes, download and unzip the `Unity_v2021.3.0f1.alf` artifact. 
+2. Visit [license.unity3d.com](https://license.unity3d.com), sign in, and upload the `Unity_v2021.3.0f1.alf` file.
+3. You should now receive your license file (`Unity_v2021.x.ulf`) as a download. 
+4. Open `Github` > `<Your repository>` > `Settings` > `Secrets`
+- Create the following secret:
+  - `UNITY_LICENSE` - (Copy the contents of the `Unity_v2021.x.ulf` license file here)
+5. Delete the `License` workflow run by selecting `Delete workflow run` in the `...` menu.  
 
 ## Code Style 
 
