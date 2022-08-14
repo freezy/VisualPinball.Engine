@@ -89,7 +89,7 @@ namespace VisualPinball.Unity.Editor
 		private const string RotatorName = "rotator";
 		private const string RubberName = "rubber";
 		private const string ScoreReelName = "score_reel";
-		private const string ScoreReelSimpleName = "score_reel_simple";
+		private const string ScoreReelSingleName = "score_reel_single";
 		private const string SlingshotName = "slingshot";
 		private const string SpinnerName = "spinner";
 		private const string SurfaceName = "surface";
@@ -115,7 +115,7 @@ namespace VisualPinball.Unity.Editor
 		private static readonly string[] Names = {
 			AssetLibraryName, BallRollerName, BoltName, BumperName, CalendarName, CannonName, CoilName, DropTargetBankName, DropTargetName, FlasherName,
 			FlipperName, GateName, GateLifterName, HitTargetName, KeyName, KickerName, LightGroupName, LightName, MechName, MechPinMameName, PlayfieldName, PlugName,
-			PlungerName, PrimitiveName, RampName, RotatorName, RubberName, ScoreReelName, ScoreReelSimpleName, SlingshotName, SpinnerName, SurfaceName,
+			PlungerName, PrimitiveName, RampName, RotatorName, RubberName, ScoreReelName, ScoreReelSingleName, SlingshotName, SpinnerName, SurfaceName,
 			SwitchNcName, SwitchNoName, TableName, TeleporterName, TriggerName, TroughName,
 			CoilEventName, SwitchEventName, LampEventName, LampSeqName, MetalWireGuideName,
 			PlayerVariableName, PlayerVariableEventName, TableVariableName, TableVariableEventName, UpdateDisplayName
@@ -190,7 +190,7 @@ namespace VisualPinball.Unity.Editor
 		public static Texture2D Rotator(IconSize size = IconSize.Large, IconColor color = IconColor.Gray) => Instance.GetItem(RotatorName, size, color);
 		public static Texture2D Rubber(IconSize size = IconSize.Large, IconColor color = IconColor.Gray) => Instance.GetItem(RubberName, size, color);
 		public static Texture2D ScoreReel(IconSize size = IconSize.Large, IconColor color = IconColor.Gray) => Instance.GetItem(ScoreReelName, size, color);
-		public static Texture2D ScoreReelSimple(IconSize size = IconSize.Large, IconColor color = IconColor.Gray) => Instance.GetItem(ScoreReelSimpleName, size, color);
+		public static Texture2D ScoreReelSingle(IconSize size = IconSize.Large, IconColor color = IconColor.Gray) => Instance.GetItem(ScoreReelSingleName, size, color);
 		public static Texture2D Slingshot(IconSize size = IconSize.Large, IconColor color = IconColor.Gray) => Instance.GetItem(SlingshotName, size, color);
 		public static Texture2D Spinner(IconSize size = IconSize.Large, IconColor color = IconColor.Gray) => Instance.GetItem(SpinnerName, size, color);
 		public static Texture2D Surface(IconSize size = IconSize.Large, IconColor color = IconColor.Gray) => Instance.GetItem(SurfaceName, size, color);
@@ -291,10 +291,11 @@ namespace VisualPinball.Unity.Editor
 				case RotatorComponent _: return Icons.Rotator(size, color);
 				case RubberComponent _: return Icons.Rubber(size, color);
 				case ScoreReelDisplayComponent _: return Icons.ScoreReel(size, color);
-				case ScoreReelComponent _: return Icons.ScoreReelSimple(size, color);
+				case ScoreReelComponent _: return Icons.ScoreReelSingle(size, color);
 				case SpinnerComponent _: return Icons.Spinner(size, color);
 				case SlingshotComponent _: return Icons.Slingshot(size, color);
 				case SurfaceComponent _: return Icons.Surface(size, color);
+				case ScoreMotorComponent _: return Icons.Mech(size, color);
 				case StepRotatorMechComponent _: return Icons.Mech(size, color);
 				case TeleporterComponent _: return Icons.Teleporter(size, color);
 				case TriggerComponent _: return Icons.Trigger(size, color);

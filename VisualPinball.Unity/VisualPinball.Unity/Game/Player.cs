@@ -271,6 +271,11 @@ namespace VisualPinball.Unity
 			Register(new StepRotatorMechApi(component.gameObject, this), component);
 		}
 
+		public void RegisterScoreMotorComponent(ScoreMotorComponent component)
+		{
+			Register(new ScoreMotorApi(component.gameObject, this), component);
+		}
+
 		public void RegisterDropTargetBankComponent(DropTargetBankComponent component)
 		{
 			Register(new DropTargetBankApi(component.gameObject, this), component);
