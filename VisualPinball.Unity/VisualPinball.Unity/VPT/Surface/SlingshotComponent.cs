@@ -22,12 +22,18 @@ using System.Collections.Generic;
 using Unity.Entities;
 using Unity.Mathematics;
 using UnityEngine;
+using UnityEngine.Serialization;
 using VisualPinball.Engine.Math;
 using VisualPinball.Engine.VPT.Rubber;
 using VisualPinball.Engine.Game.Engines;
 
 namespace VisualPinball.Unity
 {
+	public enum Axis
+	{
+		X, Y, Z
+	}
+
 	[AddComponentMenu("Visual Pinball/Game Item/Slingshot")]
 	public class SlingshotComponent : MonoBehaviour, IMeshComponent, IMainRenderableComponent, IRubberData, ISwitchDeviceComponent
 	{
@@ -41,11 +47,19 @@ namespace VisualPinball.Unity
 		public RubberComponent RubberOff;
 
 		[Tooltip("Reference to the arm attached to the coil. Rotates around X.")]
-		public PrimitiveComponent CoilArm;
+		public GameObject CoilArm;
 
 		[Range(-180f, 180f)]
+		[Tooltip("Angle of the coil arm when off.")]
+		public float CoilArmStartAngle;
+
+		[FormerlySerializedAs("CoilArmAngle")]
+		[Range(-180f, 180f)]
 		[Tooltip("Angle of the coil arm when on.")]
-		public float CoilArmAngle;
+		public float CoilArmEndAngle;
+
+		[Tooltip("Which axis to rotate.")]
+		public Axis CoilArmRotationAxis;
 
 		[Min(0f)]
 		[Tooltip("Total duration of the animation in milliseconds.")]
@@ -174,8 +188,18 @@ namespace VisualPinball.Unity
 			}
 
 			if (CoilArm) {
-				CoilArm.Rotation.x = CoilArmAngle * Position;
-				CoilArm.UpdateTransforms();
+				var currentRot = CoilArm.transform.rotation.eulerAngles;
+				switch (CoilArmRotationAxis) {
+					case Axis.X:
+						CoilArm.transform.rotation = Quaternion.Euler(CoilArmStartAngle + CoilArmEndAngle * Position, currentRot.y, currentRot.z);
+						break;
+					case Axis.Y:
+						CoilArm.transform.rotation = Quaternion.Euler(currentRot.x, CoilArmStartAngle + CoilArmEndAngle * Position, currentRot.z);
+						break;
+					case Axis.Z:
+						CoilArm.transform.rotation = Quaternion.Euler(currentRot.x, currentRot.y, CoilArmStartAngle + CoilArmEndAngle * Position);
+						break;
+				}
 			}
 		}
 
