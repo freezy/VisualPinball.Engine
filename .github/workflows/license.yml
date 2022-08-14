@@ -1,5 +1,6 @@
 name: License
-on: [workflow_dispatch]
+on:
+  workflow_dispatch: {}
 jobs:
   license:
     runs-on: ubuntu-latest
