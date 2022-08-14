@@ -152,8 +152,8 @@ namespace VisualPinball.Unity.Patcher
 			ss.SlingshotSurface = go.GetComponent<SurfaceColliderComponent>();
 			ss.RubberOff = playfieldGo.transform.Find("Rubbers/LeftSling1").GetComponent<RubberComponent>();
 			ss.RubberOn = playfieldGo.transform.Find("Rubbers/LeftSling4").GetComponent<RubberComponent>();
-			ss.CoilArm = playfieldGo.transform.Find("Primitives/Lemk").GetComponent<PrimitiveComponent>();
-			ss.CoilArmAngle = 22f;
+			ss.CoilArm = playfieldGo.transform.Find("Primitives/Lemk").gameObject;
+			ss.CoilArmEndAngle = 22f;
 
 			EditorUtility.SetDirty(ssGo);
 			PrefabUtility.RecordPrefabInstancePropertyModifications(ss);
@@ -173,8 +173,8 @@ namespace VisualPinball.Unity.Patcher
 			ss.SlingshotSurface = go.GetComponent<SurfaceColliderComponent>();
 			ss.RubberOff = playfieldGo.transform.Find("Rubbers/RightSling1").GetComponent<RubberComponent>();
 			ss.RubberOn = playfieldGo.transform.Find("Rubbers/RightSling3").GetComponent<RubberComponent>();
-			ss.CoilArm = playfieldGo.transform.Find("Primitives/Remk").GetComponent<PrimitiveComponent>();
-			ss.CoilArmAngle = 22f;
+			ss.CoilArm = playfieldGo.transform.Find("Primitives/Remk").gameObject;
+			ss.CoilArmEndAngle = 22f;
 
 			EditorUtility.SetDirty(ssGo);
 			PrefabUtility.RecordPrefabInstancePropertyModifications(ss);

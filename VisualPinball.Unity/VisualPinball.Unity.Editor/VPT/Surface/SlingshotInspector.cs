@@ -30,7 +30,9 @@ namespace VisualPinball.Unity.Editor
 		private SerializedProperty _animationDurationProperty;
 		private SerializedProperty _animationCurveProperty;
 		private SerializedProperty _coilArmProperty;
-		private SerializedProperty _coilArmAngleProperty;
+		private SerializedProperty _coilArmEndAngleProperty;
+		private SerializedProperty _coilArmStartAngleProperty;
+		private SerializedProperty _coilArmRotationAxis;
 
 		protected override MonoBehaviour UndoTarget => target as MonoBehaviour;
 
@@ -44,7 +46,9 @@ namespace VisualPinball.Unity.Editor
 			_rubberOffProperty = serializedObject.FindProperty(nameof(SlingshotComponent.RubberOff));
 			_rubberOnProperty = serializedObject.FindProperty(nameof(SlingshotComponent.RubberOn));
 			_coilArmProperty = serializedObject.FindProperty(nameof(SlingshotComponent.CoilArm));
-			_coilArmAngleProperty = serializedObject.FindProperty(nameof(SlingshotComponent.CoilArmAngle));
+			_coilArmStartAngleProperty = serializedObject.FindProperty(nameof(SlingshotComponent.CoilArmStartAngle));
+			_coilArmEndAngleProperty = serializedObject.FindProperty(nameof(SlingshotComponent.CoilArmEndAngle));
+			_coilArmRotationAxis = serializedObject.FindProperty(nameof(SlingshotComponent.CoilArmRotationAxis));
 			_animationDurationProperty = serializedObject.FindProperty(nameof(SlingshotComponent.AnimationDuration));
 			_animationCurveProperty = serializedObject.FindProperty(nameof(SlingshotComponent.AnimationCurve));
 		}
@@ -66,7 +70,9 @@ namespace VisualPinball.Unity.Editor
 
 			EditorGUILayout.Space(10f);
 			PropertyField(_coilArmProperty, "Coil Arm");
-			PropertyField(_coilArmAngleProperty, "Arm Angle");
+			PropertyField(_coilArmStartAngleProperty, "Start Angle");
+			PropertyField(_coilArmEndAngleProperty, "End Angle");
+			PropertyField(_coilArmRotationAxis, "Rotation Axis");
 
 			EditorGUILayout.Space(10f);
 			PropertyField(_animationDurationProperty, "Animation Duration");
