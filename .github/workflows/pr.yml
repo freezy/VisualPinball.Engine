@@ -1,5 +1,7 @@
-name: Build
-on: push
+name: PR
+on: 
+  pull_request_target:
+    types: [ opened, synchronize, reopened, labeled ]
 
 env:
   UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
@@ -12,6 +14,7 @@ jobs:
   build:
     name: Build ${{ matrix.rid }}
     runs-on: ${{ matrix.os }}
+    if: github.event.pull_request.head.repo.full_name == 'freezy/VisualPinball.Engine' || contains(github.event.pull_request.labels.*.name, 'safe to test')
     strategy:
       fail-fast: false
       matrix:
@@ -30,6 +33,8 @@ jobs:
             rid: android-arm64-v8a
     steps:
       - uses: actions/checkout@v3
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
       - uses: actions/setup-dotnet@v1
         with:
           dotnet-version: '3.1.x'
@@ -51,6 +56,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
       - uses: actions/download-artifact@v3
         with:
           name: Plugins
@@ -81,15 +88,3 @@ jobs:
         with:
           name: Test results
           path: ${{ steps.test.outputs.artifactsPath }}
-
-  dispatch:
-    name: Dispatch
-    runs-on: ubuntu-latest
-    needs: [ test ]
-    if: github.repository == 'freezy/VisualPinball.Engine' && github.ref == 'refs/heads/master'
-    steps:
-      - uses: peter-evans/repository-dispatch@v1
-        with:
-          token: ${{ secrets.GH_PAT }}
-          event-type: build-complete
-          client-payload: '{"artifacts_run_id": "${{ github.run_id }}"}'
