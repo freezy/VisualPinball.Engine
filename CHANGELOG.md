@@ -4,9 +4,10 @@
 
 ## Unreleased
 
-Built with Unity 2021.2.
+Built with Unity 2021.3.0
 
 ### Added
+- Scale support for rubbers.
 - Gate Lifter Component ([#418](https://github.com/freezy/VisualPinball.Engine/pull/418), [Documentation](https://docs.visualpinball.org/creators-guide/manual/mechanisms/lifting-gates.html)).
 - Asset Browser ([#412](https://github.com/freezy/VisualPinball.Engine/pull/412))
 - Trigger meshes can now be easily scaled ([#374](https://github.com/freezy/VisualPinball.Engine/pull/374))
