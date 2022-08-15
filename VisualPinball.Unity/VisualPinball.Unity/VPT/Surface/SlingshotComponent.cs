@@ -256,6 +256,8 @@ namespace VisualPinball.Unity
 		public ItemDataTransformType EditorScaleType => ItemDataTransformType.None;
 		public Vector3 GetEditorScale() => Vector3.one;
 		public void SetEditorScale(Vector3 pos) { }
+		public void EditorStartScaling() { }
+		public void EditorEndScaling() { }
 
 		#endregion
 

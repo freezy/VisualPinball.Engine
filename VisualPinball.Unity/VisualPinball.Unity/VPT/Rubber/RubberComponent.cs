@@ -23,6 +23,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Unity.Entities;
 using UnityEngine;
 using VisualPinball.Engine.Math;
@@ -50,6 +51,12 @@ namespace VisualPinball.Unity
 
 		[SerializeField]
 		private DragPointData[] _dragPoints;
+
+		[NonSerialized]
+		private float _scale = 1f;
+
+		[NonSerialized]
+		private Vertex3D[] _scalingDragPoints;
 
 		#endregion
 
@@ -216,6 +223,31 @@ namespace VisualPinball.Unity
 		public override Vector3 GetEditorRotation() => Rotation;
 		public override void SetEditorRotation(Vector3 rot) {
 			Rotation = rot;
+			RebuildMeshes();
+		}
+
+		public override void EditorStartScaling()
+		{
+			_scalingDragPoints = _dragPoints.Select(dp => dp.Center).ToArray();
+			_scale = 1f;
+		}
+
+		public override void EditorEndScaling()
+		{
+			_scalingDragPoints = null;
+		}
+
+		public override ItemDataTransformType EditorScaleType => ItemDataTransformType.OneD;
+		public override Vector3 GetEditorScale() => new(_scale, 1f, 1f);
+		public override void SetEditorScale(Vector3 vScale)
+		{
+			var scale = 1 + (vScale.x - 1) / 5f;
+			_scale = scale;
+			var center = DragPointCenter.ToVertex3D();
+			for (var i = 0; i < _dragPoints.Length; i++) {
+				_dragPoints[i].Center = center + scale * (_scalingDragPoints[i] - center);
+			}
+
 			RebuildMeshes();
 		}
 

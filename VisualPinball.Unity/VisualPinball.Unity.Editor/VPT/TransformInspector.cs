@@ -277,7 +277,9 @@ namespace VisualPinball.Unity.Editor
 		private void HandleScaleTool()
 		{
 			var e = Event.current;
-			if (e.type == EventType.MouseDown || e.type == EventType.MouseUp) {
+			var startScaling = e.type == EventType.MouseDown;
+			var endScaling = e.type == EventType.MouseUp;
+			if (startScaling || endScaling) {
 				_scaleFactor = _primaryItem.GetEditorScale().x;
 			}
 
@@ -290,6 +292,14 @@ namespace VisualPinball.Unity.Editor
 			}
 			var handleRot = _transform.rotation;
 			var handleScale = HandleUtility.GetHandleSize(handlePos);
+
+			if (startScaling) {
+				_primaryItem.EditorStartScaling();
+			}
+			if (endScaling) {
+				_primaryItem.EditorEndScaling();
+			}
+
 			switch (_primaryItem.EditorScaleType) {
 
 				case ItemDataTransformType.OneD: {

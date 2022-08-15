@@ -58,6 +58,8 @@ namespace VisualPinball.Unity
 		Entity Entity { get; set; }
 		Vector3 GetEditorScale();
 		void SetEditorScale(Vector3 pos);
+		void EditorStartScaling();
+		void EditorEndScaling();
 	}
 
 	public enum ItemDataTransformType
