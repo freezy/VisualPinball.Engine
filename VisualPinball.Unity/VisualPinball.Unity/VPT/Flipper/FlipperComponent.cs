@@ -589,9 +589,13 @@ namespace VisualPinball.Unity
 				EOSANew = colliderComponent.EOSANew,
 				EOSRampup = colliderComponent.EOSRampup,
 				Overshoot = math.radians(colliderComponent.Overshoot),
+				AngleEnd = staticData.AngleEnd,
+				TorqueDamping = staticData.TorqueDamping,
+				TorqueDampingAngle = staticData.TorqueDampingAngle,
+				RampUpSpeed = staticData.RampUpSpeed, 
 
-				//initialize
-				OriginalAngleEnd = staticData.AngleEnd,
+		//initialize
+		OriginalAngleEnd = staticData.AngleEnd,
 				OriginalRampUpSpeed = staticData.RampUpSpeed,
 				OriginalTorqueDamping = staticData.TorqueDamping,
 				OriginalTorqueDampingAngle = staticData.TorqueDampingAngle
