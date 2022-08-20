@@ -81,35 +81,39 @@ namespace VisualPinball.Unity
 
 		#region Flipper_Tricks
 		[Tooltip("The nFozzy's and Rothbauerw's Flipper Tricks Physics")]
-		public bool useFlipperTricksPhysics;
+		public bool useFlipperTricksPhysics = false;
 
 		[Min(0f)]
 		[Tooltip("Start of stroke RampUp")]
-		public float SOSRampUp;
+		public float SOSRampUp = 2.5f;
 
 		[Min(0f)]
 		[Tooltip("Start of Elasticity multiplier")]
-		public float SOSEM;
+		public float SOSEM = 0.85f;
 
 		[Min(0f)]
 		[Tooltip("EOSReturnTorque modifier (Torque on depress is original Torque * EOSReturn / Flipper Return Strength)")]
-		public float EOSReturn;
+		public float EOSReturn = 0.055f;
 
 		[Min(0f)]
 		[Tooltip("End of stroke Torque")]
-		public float EOSTNew;
+		public float EOSTNew = 0.8f;
 
 		[Min(0f)]
 		[Tooltip("End of stroke Torque Angle")]
-		public float EOSANew;
+		public float EOSANew = 1.0f;
 
 		[Min(0f)]
 		[Tooltip("End of stroke RampUp")]
-		public float EOSRampup;
+		public float EOSRampup = 0.0f;
 
 		[Min(0f)]
 		[Tooltip("Degrees of Overshoot above End Angle")]
-		public float Overshoot;
+		public float Overshoot = 3.0f;
+
+		[Min(0f)]
+		[Tooltip("Bump Ball vertically on release button (speed, up)")]
+		public float BumpOnRelease = 0.4f;
 
 		#endregion
 

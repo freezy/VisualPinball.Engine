@@ -49,6 +49,7 @@ namespace VisualPinball.Unity.Editor
 		private SerializedProperty _EOSANewProperty;
 		private SerializedProperty _EOSRampupProperty;
 		private SerializedProperty _OvershootProperty;
+		private SerializedProperty _BumpOnReleaseProperty;
 		#endregion
 
 
@@ -77,6 +78,7 @@ namespace VisualPinball.Unity.Editor
 			_EOSANewProperty = serializedObject.FindProperty(nameof(FlipperColliderComponent.EOSANew));
 			_EOSRampupProperty = serializedObject.FindProperty(nameof(FlipperColliderComponent.EOSRampup));
 			_OvershootProperty = serializedObject.FindProperty(nameof(FlipperColliderComponent.Overshoot));
+			_BumpOnReleaseProperty = serializedObject.FindProperty(nameof(FlipperColliderComponent.BumpOnRelease));
 			#endregion
 
 		}
@@ -120,7 +122,8 @@ namespace VisualPinball.Unity.Editor
 				PropertyField(_EOSTNewProperty, "EOSTNew");
 				PropertyField(_EOSANewProperty, "EOSANew");
 				PropertyField(_EOSRampupProperty, "EOSRampup");
-				PropertyField(_OvershootProperty, "");
+				PropertyField(_OvershootProperty, "Overshoot Angle");
+				PropertyField(_BumpOnReleaseProperty, "Bump on release");
 				EditorGUI.EndDisabledGroup();
 			}
 			EditorGUILayout.EndFoldoutHeaderGroup();
