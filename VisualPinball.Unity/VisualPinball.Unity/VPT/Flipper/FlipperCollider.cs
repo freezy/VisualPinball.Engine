@@ -720,7 +720,7 @@ namespace VisualPinball.Unity
 		#region Collision
 
 		public void Collide(ref BallData ball, ref CollisionEventData collEvent, ref FlipperMovementData movementData,
-			ref NativeQueue<EventData>.ParallelWriter events, in Entity ballEntity, in FlipperStaticData matData,
+			ref NativeQueue<EventData>.ParallelWriter events, in Entity ballEntity, in FlipperTricksData tricks, in FlipperStaticData matData,
 			in FlipperVelocityData velData, in FlipperHitData hitData, uint timeMsec)
 		{
 			var normal = collEvent.HitNormal;
@@ -786,6 +786,8 @@ namespace VisualPinball.Unity
 			 * 0 = no falloff, 1 = half the COR at 1 m/s (18.53 speed units)
 			 */
 			var epsilon = Math.ElasticityWithFalloff(_header.Material.Elasticity, _header.Material.ElasticityFalloff, bnv);
+			if (tricks.useFlipperTricksPhysics)
+				epsilon *= tricks.ElasticityMultiplier;
 
 			var pv1 = angResp / matData.Inertia;
 			var impulse = -(1.0f + epsilon) * bnv / (ball.InvMass + math.dot(normal, math.cross(pv1, rF)));

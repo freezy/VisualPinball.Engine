@@ -588,7 +588,7 @@ namespace VisualPinball.Unity
 				EOSTNew = colliderComponent.EOSTNew,
 				EOSANew = colliderComponent.EOSANew,
 				EOSRampup = colliderComponent.EOSRampup,
-				Overshoot = colliderComponent.Overshoot,
+				Overshoot = math.radians(colliderComponent.Overshoot),
 
 				//initialize
 				OriginalAngleEnd = staticData.AngleEnd,

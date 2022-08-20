@@ -115,10 +115,11 @@ namespace VisualPinball.Unity
 								var flipperMovementData = GetComponent<FlipperMovementData>(coll.Entity);
 								var flipperMaterialData = GetComponent<FlipperStaticData>(coll.Entity);
 								var flipperHitData = GetComponent<FlipperHitData>(coll.Entity);
+								var flipperTricksData = GetComponent<FlipperTricksData>(coll.Entity);
 
 								((FlipperCollider*)collider)->Collide(
 									ref ballData, ref collEvent, ref flipperMovementData, ref events,
-									in ballEntity, in flipperMaterialData, in flipperVelocityData, in flipperHitData, timeMsec
+									in ballEntity, in flipperTricksData,in flipperMaterialData, in flipperVelocityData, in flipperHitData, timeMsec
 								);
 								SetComponent(coll.Entity, flipperMovementData);
 								break;
