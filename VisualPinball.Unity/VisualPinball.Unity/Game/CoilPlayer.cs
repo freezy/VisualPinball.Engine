@@ -107,18 +107,32 @@ namespace VisualPinball.Unity
 			}
 		}
 
+		/// <summary>
+		/// Assigns a coil mapping with the coil's ID, but also with an int-parsed ID,
+		/// so we can name them "01" and it still works with PinMAME.
+		/// </summary>
+		/// <param name="coilMapping">Mapping to assign</param>
+		/// <param name="isLampCoil">If it's a flasher</param>
 		private void AssignCoilMapping(CoilMapping coilMapping, bool isLampCoil)
 		{
-			if (!_coilAssignments.ContainsKey(coilMapping.Id)) {
-				_coilAssignments[coilMapping.Id] = new List<CoilDestConfig>();
+			AssignCoilMapping(coilMapping.Id, coilMapping, isLampCoil);
+			if (int.TryParse(coilMapping.Id, out var id) && id.ToString() != coilMapping.Id) {
+				AssignCoilMapping(id.ToString(), coilMapping, isLampCoil);
+			}
+		}
+
+		private void AssignCoilMapping(string id, CoilMapping coilMapping, bool isLampCoil)
+		{
+			if (!_coilAssignments.ContainsKey(id)) {
+				_coilAssignments[id] = new List<CoilDestConfig>();
 			}
 			var hasDynamicWire = _tableComponent!.MappingConfig.Wires.FirstOrDefault(w =>
 				w.DestinationDevice == coilMapping.Device &&
 				w.DestinationDeviceItem == coilMapping.DeviceItem &&
 				w.IsDynamic) != null;
 
-			_coilAssignments[coilMapping.Id].Add(new CoilDestConfig(coilMapping.Device, coilMapping.DeviceItem, isLampCoil, hasDynamicWire));
-			CoilStatuses[coilMapping.Id] = false;
+			_coilAssignments[id].Add(new CoilDestConfig(coilMapping.Device, coilMapping.DeviceItem, isLampCoil, hasDynamicWire));
+			CoilStatuses[id] = false;
 		}
 
 		private void HandleCoilEvent(object sender, CoilEventArgs coilEvent)
