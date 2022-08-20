@@ -40,7 +40,7 @@ namespace VisualPinball.Unity.Editor
 
 		private bool _foldoutFlipperTricks = true;
 
-		#region Flipper_Tricks
+		#region FlipperTricks
 		private SerializedProperty _useFlipperTricksPhysicsProperty;
 		private SerializedProperty _SOSRampUpProperty;
 		private SerializedProperty _SOSEMProperty;
