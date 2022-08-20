@@ -173,7 +173,8 @@ namespace VisualPinball.Unity
 			foreach (var entity in entities) {
 				var movementData = EntityManager.GetComponentData<FlipperMovementData>(entity);
 				var staticData = EntityManager.GetComponentData<FlipperStaticData>(entity);
-				var flipperHitTime = movementData.GetHitTime(staticData.AngleStart, staticData.AngleEnd);
+				var tricksData = EntityManager.GetComponentData<FlipperTricksData>(entity);
+				var flipperHitTime = movementData.GetHitTime(staticData.AngleStart, tricksData.AngleEnd);
 
 				// if flipper comes to a rest before the end of the cycle, advance to that time
 				if (flipperHitTime > 0 && flipperHitTime < HitTime) { //!! >= 0.f causes infinite loop

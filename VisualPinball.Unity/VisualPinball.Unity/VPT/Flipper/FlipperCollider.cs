@@ -147,7 +147,7 @@ namespace VisualPinball.Unity
 
 		public float HitTest(ref CollisionEventData collEvent, ref DynamicBuffer<BallInsideOfBufferElement> insideOfs,
 			ref FlipperHitData hitData,
-			in FlipperMovementData movementData, in FlipperStaticData matData, in BallData ball, float dTime)
+			in FlipperMovementData movementData, in FlipperTricksData tricks, in FlipperStaticData matData, in BallData ball, float dTime)
 		{
 			// todo
 			// if (!_data.IsEnabled) {
@@ -163,20 +163,20 @@ namespace VisualPinball.Unity
 			// endRadius is more likely than baseRadius ... so check it first
 
 			// first face
-			var hitTime = HitTestFlipperFace(ref collEvent, ref hitData, movementData, matData, ball, dTime, lastFace);
+			var hitTime = HitTestFlipperFace(ref collEvent, ref hitData, movementData, tricks, matData, ball, dTime, lastFace);
 			if (hitTime >= 0) {
 				return hitTime;
 			}
 
 			// second face
-			hitTime = HitTestFlipperFace(ref collEvent, ref hitData, movementData, matData, ball, dTime, !lastFace);
+			hitTime = HitTestFlipperFace(ref collEvent, ref hitData, movementData, tricks, matData, ball, dTime, !lastFace);
 			if (hitTime >= 0) {
 				hitData.LastHitFace = !lastFace; // change this face to check first // HACK
 				return hitTime;
 			}
 
 			// end radius
-			hitTime = HitTestFlipperEnd(ref collEvent, ref hitData, movementData, matData, ball, dTime);
+			hitTime = HitTestFlipperEnd(ref collEvent, ref hitData, movementData, tricks, matData, ball, dTime);
 			if (hitTime >= 0) {
 				return hitTime;
 			}
@@ -193,7 +193,7 @@ namespace VisualPinball.Unity
 		}
 
 		private float HitTestFlipperFace(ref CollisionEventData collEvent, ref FlipperHitData hitData,
-			in FlipperMovementData movementData, in FlipperStaticData matData, in BallData ball,
+			in FlipperMovementData movementData, in FlipperTricksData tricks, in FlipperStaticData matData, in BallData ball,
 			float dTime, bool face1)
 		{
 			var angleCur = movementData.Angle;
@@ -202,8 +202,8 @@ namespace VisualPinball.Unity
 			var flipperBase = _hitCircleBase.Center;
 			var feRadius = matData.EndRadius;
 
-			var angleMin = math.min(matData.AngleStart, matData.AngleEnd);
-			var angleMax = math.max(matData.AngleStart, matData.AngleEnd);
+			var angleMin = math.min(matData.AngleStart, tricks.AngleEnd);
+			var angleMax = math.max(matData.AngleStart, tricks.AngleEnd);
 
 			var ballRadius = ball.Radius;
 			var ballVx = ball.Velocity.x;
@@ -413,15 +413,15 @@ namespace VisualPinball.Unity
 		}
 
 		private float HitTestFlipperEnd(ref CollisionEventData collEvent, ref FlipperHitData hitData,
-			in FlipperMovementData movementData, in FlipperStaticData matData, in BallData ball, float dTime)
+			in FlipperMovementData movementData, in FlipperTricksData tricks, in FlipperStaticData matData, in BallData ball, float dTime)
 		{
 			var angleCur = movementData.Angle;
 			var angleSpeed = movementData.AngleSpeed; // rotation rate
 
 			var flipperBase = _hitCircleBase.Center;
 
-			var angleMin = math.min(matData.AngleStart, matData.AngleEnd);
-			var angleMax = math.max(matData.AngleStart, matData.AngleEnd);
+			var angleMin = math.min(matData.AngleStart, tricks.AngleEnd);
+			var angleMax = math.max(matData.AngleStart, tricks.AngleEnd);
 
 			var ballRadius = ball.Radius;
 			var feRadius = matData.EndRadius;

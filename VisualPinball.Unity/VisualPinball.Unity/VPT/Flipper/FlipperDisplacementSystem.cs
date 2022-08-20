@@ -51,14 +51,14 @@ namespace VisualPinball.Unity
 			var events = _eventQueue.AsParallelWriter();
 			var marker = PerfMarker;
 
-			Entities.WithName("FlipperDisplacementJob").ForEach((Entity entity, ref FlipperMovementData state, in FlipperStaticData data) => {
+			Entities.WithName("FlipperDisplacementJob").ForEach((Entity entity, ref FlipperMovementData state, in FlipperTricksData tricks,in FlipperStaticData data) => {
 
 				marker.Begin();
 
 				state.Angle += state.AngleSpeed * dTime; // move flipper angle
 
-				var angleMin = math.min(data.AngleStart, data.AngleEnd);
-				var angleMax = math.max(data.AngleStart, data.AngleEnd);
+				var angleMin = math.min(data.AngleStart, tricks.AngleEnd);
+				var angleMax = math.max(data.AngleStart, tricks.AngleEnd);
 
 				if (state.Angle > angleMax) {
 					state.Angle = angleMax;

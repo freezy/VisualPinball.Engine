@@ -183,8 +183,9 @@ namespace VisualPinball.Unity
 										ref var flipperCorrectionBlob = ref flipperCorrectionData.Value.Value;
 										var flipperMovementData = GetComponent<FlipperMovementData>(flipperCorrectionBlob.FlipperEntity);
 										var flipperStaticData = GetComponent<FlipperStaticData>(flipperCorrectionBlob.FlipperEntity);
+										var flipperTricksData = GetComponent<FlipperTricksData>(flipperCorrectionBlob.FlipperEntity);
 										FlipperCorrection.OnBallLeaveFlipper(
-											ref ballData, ref flipperCorrectionBlob, in flipperMovementData, in flipperStaticData, timeMsec
+											ref ballData, ref flipperCorrectionBlob, in flipperMovementData, in flipperTricksData, in flipperStaticData, timeMsec
 										);
 									}
 
@@ -255,8 +256,9 @@ namespace VisualPinball.Unity
 											ref var flipperCorrectionBlob = ref flipperCorrectionData.Value.Value;
 											var flipperMovementData = GetComponent<FlipperMovementData>(flipperCorrectionBlob.FlipperEntity);
 											var flipperStaticData = GetComponent<FlipperStaticData>(flipperCorrectionBlob.FlipperEntity);
+											var flipperTricksData = GetComponent<FlipperTricksData>(flipperCorrectionBlob.FlipperEntity);
 											FlipperCorrection.OnBallLeaveFlipper(
-												ref ballData, ref flipperCorrectionBlob, in flipperMovementData, in flipperStaticData, timeMsec
+												ref ballData, ref flipperCorrectionBlob, in flipperMovementData, in flipperTricksData, in flipperStaticData, timeMsec
 											);
 										}
 
