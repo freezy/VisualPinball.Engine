@@ -576,6 +576,21 @@ namespace VisualPinball.Unity
 
 		#region DOTS Data
 
+		private FlipperTricksData GetFlipperTricksData(FlipperColliderComponent colliderComponent)
+		{
+			return new FlipperTricksData
+			{
+				useFlipperTricksPhysics = colliderComponent.useFlipperTricksPhysics,
+				SOSRampUp = colliderComponent.SOSRampUp,
+				SOSEM = colliderComponent.SOSEM,
+				EOSReturn = colliderComponent.EOSReturn,
+				EOSTNew = colliderComponent.EOSTNew,
+				EOSANew = colliderComponent.EOSANew,
+				EOSRampup = colliderComponent.EOSRampup,
+				Overshoot = colliderComponent.Overshoot
+			};
+		}
+
 		private FlipperStaticData GetMaterialData(FlipperColliderComponent colliderComponent)
 		{
 			float flipperRadius;
