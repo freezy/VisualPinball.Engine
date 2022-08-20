@@ -38,6 +38,20 @@ namespace VisualPinball.Unity.Editor
 		private SerializedProperty _scatterProperty;
 		private SerializedProperty _flipperCorrectionProperty;
 
+		private bool _foldoutFlipperTricks = true;
+
+		#region Flipper_Tricks
+		private SerializedProperty _useFlipperTricksPhysicsProperty;
+		private SerializedProperty _SOSRampUpProperty;
+		private SerializedProperty _SOSEMProperty;
+		private SerializedProperty _EOSReturnProperty;
+		private SerializedProperty _EOSTNewProperty;
+		private SerializedProperty _EOSANewProperty;
+		private SerializedProperty _EOSRampupProperty;
+		private SerializedProperty _OvershootProperty;
+		#endregion
+
+
 		protected override void OnEnable()
 		{
 			base.OnEnable();
@@ -53,6 +67,18 @@ namespace VisualPinball.Unity.Editor
 			_frictionProperty = serializedObject.FindProperty(nameof(FlipperColliderComponent.Friction));
 			_scatterProperty = serializedObject.FindProperty(nameof(FlipperColliderComponent.Scatter));
 			_flipperCorrectionProperty = serializedObject.FindProperty(nameof(FlipperColliderComponent.FlipperCorrection));
+
+			#region Flipper_Tricks
+			_useFlipperTricksPhysicsProperty = serializedObject.FindProperty(nameof(FlipperColliderComponent.useFlipperTricksPhysics));
+			_SOSRampUpProperty = serializedObject.FindProperty(nameof(FlipperColliderComponent.SOSRampUp));
+			_SOSEMProperty = serializedObject.FindProperty(nameof(FlipperColliderComponent.SOSEM));
+			_EOSReturnProperty = serializedObject.FindProperty(nameof(FlipperColliderComponent.EOSReturn));
+			_EOSTNewProperty = serializedObject.FindProperty(nameof(FlipperColliderComponent.EOSTNew));
+			_EOSANewProperty = serializedObject.FindProperty(nameof(FlipperColliderComponent.EOSANew));
+			_EOSRampupProperty = serializedObject.FindProperty(nameof(FlipperColliderComponent.EOSRampup));
+			_OvershootProperty = serializedObject.FindProperty(nameof(FlipperColliderComponent.Overshoot));
+			#endregion
+
 		}
 
 		public override void OnInspectorGUI()
@@ -79,6 +105,23 @@ namespace VisualPinball.Unity.Editor
 				PropertyField(_elasticityFalloffProperty);
 				PropertyField(_frictionProperty);
 				PropertyField(_scatterProperty, "Scatter Angle");
+			}
+			EditorGUILayout.EndFoldoutHeaderGroup();
+
+			if (_foldoutFlipperTricks = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutFlipperTricks, "Flipper Tricks"))
+			{
+
+				PropertyField(_useFlipperTricksPhysicsProperty, "Use Flipper Tricks");
+
+				EditorGUI.BeginDisabledGroup(!_useFlipperTricksPhysicsProperty.boolValue);
+				PropertyField(_SOSRampUpProperty);
+				PropertyField(_SOSEMProperty);
+				PropertyField(_EOSReturnProperty);
+				PropertyField(_EOSTNewProperty);
+				PropertyField(_EOSANewProperty);
+				PropertyField(_EOSRampupProperty);
+				PropertyField(_OvershootProperty);
+				EditorGUI.EndDisabledGroup();
 			}
 			EditorGUILayout.EndFoldoutHeaderGroup();
 
