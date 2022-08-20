@@ -21,6 +21,14 @@ namespace VisualPinball.Unity
 {
 	internal struct FlipperTricksData : IComponentData
 	{
+		// used in flippertricks
+		// internals
+		public float OriginalAngleEnd;
+		public float OriginalRampUpSpeed;
+		public float OriginalTorqueDamping;
+		public float OriginalTorqueDampingAngle;
+		public float ElasticityMultiplier;
+		// externals
 		public bool useFlipperTricksPhysics;
 		public float SOSRampUp;
 		public float SOSEM;

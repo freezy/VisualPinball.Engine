@@ -230,7 +230,23 @@ namespace VisualPinball.Unity
 				GetColliderInfo()
 			);
 
-			colliders.Add(new FlipperCollider(hitCircleBase, MainComponent.FlipperRadiusMax, MainComponent.BaseRadius, MainComponent.EndRadius, MainComponent.StartAngle, MainComponent.EndAngle, GetColliderInfo()));
+			// check which side we are at
+			var multiplicator = 0.0f;
+			if (ColliderComponent.useFlipperTricksPhysics)
+				multiplicator = MainComponent.StartAngle > MainComponent.EndAngle ? -1f : 1f; // usually: -1f = left flipper
+
+			// and add ColliderComponent.Overshoot to the endangle so that the bounding box is correctly calculated
+			colliders.Add(
+				new FlipperCollider(
+					hitCircleBase,
+					MainComponent.FlipperRadiusMax,
+					MainComponent.BaseRadius,
+					MainComponent.EndRadius,
+					MainComponent.StartAngle,
+					MainComponent.EndAngle + ColliderComponent.Overshoot * multiplicator,
+					GetColliderInfo()
+				)
+			);
 		}
 
 		#endregion
