@@ -32,7 +32,8 @@ namespace VisualPinball.Unity
 		protected override void OnUpdate()
 		{
 			var marker = PerfMarker;
-			Entities.WithName("FlipperVelocityJob").ForEach((ref FlipperMovementData mState, ref FlipperVelocityData vState, in SolenoidStateData solenoid, in FlipperStaticData data) => {
+			Entities.WithName("FlipperVelocityJob").ForEach((ref FlipperMovementData mState, ref FlipperVelocityData vState, ref FlipperTricksData tricks, in SolenoidStateData solenoid, in FlipperStaticData data) =>
+			{
 
 				marker.Begin();
 
@@ -40,17 +41,45 @@ namespace VisualPinball.Unity
 				var angleMax = math.max(data.AngleStart, data.AngleEnd);
 
 				var desiredTorque = data.Strength;
-				if (!solenoid.Value) {
+				if (!solenoid.Value)
+				{
 					// True solState = button pressed, false = released
 					desiredTorque *= -data.ReturnRatio;
 				}
 
+				if (tricks.useFlipperTricksPhysics) { 
+					// check if solenoid was just activated or deactivated
+					if (solenoid.Value != tricks.lastSolState)
+					{
+						if (solenoid.Value)
+						{
+							// Flippertricks, case 2 (OnButtonActivate)
+							tricks.TorqueDamping = tricks.OriginalTorqueDamping;
+							tricks.TorqueDampingAngle = tricks.OriginalTorqueDampingAngle;
+							tricks.ElasticityMultiplier = 1f;
+						}
+						else
+						{
+							// Flippertricks, case 1 (OnButtonDeactivate)
+							tricks.TorqueDamping = tricks.OriginalTorqueDamping * tricks.EOSReturn / data.ReturnRatio;
+							tricks.TorqueDampingAngle = tricks.OriginalTorqueDampingAngle;
+						}
+					}
+				}
+
 				// hold coil is weaker
-				var eosAngle = math.radians(data.TorqueDampingAngle);
+				float eosAngle;
+				if (tricks.useFlipperTricksPhysics)
+					eosAngle = math.radians(data.TorqueDampingAngle);
+				else
+					eosAngle = math.radians(tricks.TorqueDampingAngle);
 				if (math.abs(mState.Angle - data.AngleEnd) < eosAngle) {
 					// fade in/out damping, depending on angle to end
 					var lerp = math.pow(math.abs(mState.Angle - data.AngleEnd) / eosAngle, 4);
-					desiredTorque *= lerp + data.TorqueDamping * (1 - lerp);
+					if (tricks.useFlipperTricksPhysics)
+						desiredTorque *= lerp + tricks.TorqueDamping * (1 - lerp);
+					else 
+						desiredTorque *= lerp + data.TorqueDamping * (1 - lerp);
 				}
 
 				if (!vState.Direction) {
@@ -99,6 +128,8 @@ namespace VisualPinball.Unity
 				mState.AngularMomentum += (float)PhysicsConstants.PhysFactor * torque;
 				mState.AngleSpeed = mState.AngularMomentum / data.Inertia;
 				vState.AngularAcceleration = torque / data.Inertia;
+
+				tricks.lastSolState = solenoid.Value;
 
 				marker.End();
 
