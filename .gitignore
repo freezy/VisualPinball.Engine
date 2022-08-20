@@ -387,3 +387,20 @@ VisualPinball.Unity/VisualPinball.Unity.Test/TestProject~/editmode-results.xml
 
 .DS_Store
 
+VisualPinball.Unity/Plugins/linux-x64/libminiz.so.2.2.0.meta
+VisualPinball.Unity/Plugins/linux-x64/libvips.so.42.meta
+VisualPinball.Unity/Plugins/osx/arm64/libvips.42.dylib.meta
+VisualPinball.Unity/Plugins/osx/x64/libvips.42.dylib.meta
+VisualPinball.Unity/Plugins/osx/FluentAssertions.dll.meta
+VisualPinball.Unity/Plugins/osx/JeremyAnsel.Media.WavefrontObj.dll.meta
+VisualPinball.Unity/Plugins/osx/libminiz.2.2.0.dylib.meta
+VisualPinball.Unity/Plugins/osx/NetMiniZ.dll.meta
+VisualPinball.Unity/Plugins/osx/NetVips.dll.meta
+VisualPinball.Unity/Plugins/osx/NLog.dll.meta
+VisualPinball.Unity/Plugins/osx/OpenMcdf.dll.meta
+VisualPinball.Unity/Plugins/osx/System.Buffers.dll.meta
+VisualPinball.Unity/Plugins/osx/VisualPinball.Resources.dll.meta
+VisualPinball.Unity/Plugins/win-x86/libglib-2.0-0.dll.meta
+VisualPinball.Unity/Plugins/win-x86/libgobject-2.0-0.dll.meta
+VisualPinball.Unity/Plugins/win-x86/libminiz-2.2.0.dll.meta
+VisualPinball.Unity/Plugins/win-x86/libvips-42.dll.meta
