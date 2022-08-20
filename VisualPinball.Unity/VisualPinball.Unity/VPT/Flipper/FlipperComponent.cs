@@ -212,6 +212,7 @@ namespace VisualPinball.Unity
 				dstManager.AddComponentData(entity, GetMovementData(d));
 				dstManager.AddComponentData(entity, GetVelocityData(d));
 				dstManager.AddComponentData(entity, GetHitData());
+				dstManager.AddComponentData(entity, GetFlipperTricksData(colliderComponent, d));
 				dstManager.AddComponentData(entity, new SolenoidStateData { Value = false });
 
 				// flipper correction (nFozzy)
@@ -576,7 +577,7 @@ namespace VisualPinball.Unity
 
 		#region DOTS Data
 
-		private FlipperTricksData GetFlipperTricksData(FlipperColliderComponent colliderComponent)
+		private FlipperTricksData GetFlipperTricksData(FlipperColliderComponent colliderComponent, FlipperStaticData staticData)
 		{
 			return new FlipperTricksData
 			{
@@ -587,7 +588,13 @@ namespace VisualPinball.Unity
 				EOSTNew = colliderComponent.EOSTNew,
 				EOSANew = colliderComponent.EOSANew,
 				EOSRampup = colliderComponent.EOSRampup,
-				Overshoot = colliderComponent.Overshoot
+				Overshoot = colliderComponent.Overshoot,
+
+				//initialize
+				OriginalAngleEnd = staticData.AngleEnd,
+				OriginalRampUpSpeed = staticData.RampUpSpeed,
+				OriginalTorqueDamping = staticData.TorqueDamping,
+				OriginalTorqueDampingAngle = staticData.TorqueDampingAngle
 			};
 		}
 
