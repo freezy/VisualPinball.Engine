@@ -31,6 +31,12 @@ namespace VisualPinball.Unity
 		public bool lastSolState;
 		public float TorqueDamping;
 		public float TorqueDampingAngle;
+		//new
+		public float AngleEnd;
+		public float RampUpSpeed;
+
+		public bool WasInContact;
+
 		// externals
 		public bool useFlipperTricksPhysics;
 		public float SOSRampUp;

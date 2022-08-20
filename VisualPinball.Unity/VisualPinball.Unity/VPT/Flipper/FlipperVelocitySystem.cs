@@ -37,8 +37,9 @@ namespace VisualPinball.Unity
 
 				marker.Begin();
 
-				var angleMin = math.min(data.AngleStart, data.AngleEnd);
-				var angleMax = math.max(data.AngleStart, data.AngleEnd);
+				var angleMin = tricks.useFlipperTricksPhysics? math.min(data.AngleStart, tricks.AngleEnd) : math.min(data.AngleStart, data.AngleEnd);
+				var angleMax = tricks.useFlipperTricksPhysics? math.max(data.AngleStart, tricks.AngleEnd) : math.max(data.AngleStart, data.AngleEnd);
+				var minIsStart = angleMin == data.AngleStart; // Usually true for the right Flipper
 
 				var desiredTorque = data.Strength;
 				if (!solenoid.Value)
@@ -51,6 +52,8 @@ namespace VisualPinball.Unity
 					// check if solenoid was just activated or deactivated
 					if (solenoid.Value != tricks.lastSolState)
 					{
+						// check if solenoid was just activated or deactivated for Flippertricks
+						// Flippertricks case 1 and 2 are always before case 3, 4 and 5.
 						if (solenoid.Value)
 						{
 							// Flippertricks, case 2 (OnButtonActivate)
@@ -73,9 +76,9 @@ namespace VisualPinball.Unity
 					eosAngle = math.radians(data.TorqueDampingAngle);
 				else
 					eosAngle = math.radians(tricks.TorqueDampingAngle);
-				if (math.abs(mState.Angle - data.AngleEnd) < eosAngle) {
+				if (math.abs(mState.Angle - (tricks.useFlipperTricksPhysics?tricks.AngleEnd:data.AngleEnd)) < eosAngle) {
 					// fade in/out damping, depending on angle to end
-					var lerp = math.pow(math.abs(mState.Angle - data.AngleEnd) / eosAngle, 4);
+					var lerp = math.pow(math.abs(mState.Angle - (tricks.useFlipperTricksPhysics?tricks.AngleEnd:data.AngleEnd)) / eosAngle, 4);
 					if (tricks.useFlipperTricksPhysics)
 						desiredTorque *= lerp + tricks.TorqueDamping * (1 - lerp);
 					else 
@@ -86,7 +89,7 @@ namespace VisualPinball.Unity
 					desiredTorque = -desiredTorque;
 				}
 
-				var torqueRampUpSpeed = data.RampUpSpeed;
+				var torqueRampUpSpeed = tricks.useFlipperTricksPhysics?tricks.RampUpSpeed:data.RampUpSpeed;
 				if (torqueRampUpSpeed <= 0) {
 					// set very high for instant coil response
 					torqueRampUpSpeed = 1e6f;
@@ -129,8 +132,58 @@ namespace VisualPinball.Unity
 				mState.AngleSpeed = mState.AngularMomentum / data.Inertia;
 				vState.AngularAcceleration = torque / data.Inertia;
 
-				tricks.lastSolState = solenoid.Value;
+				if (tricks.useFlipperTricksPhysics)
+				{
+					// Flippertricks, case 3 (OnFlipperDown) and 4 (OnFlipperUpResting)
+					if (!tricks.WasInContact && vState.IsInContact)
+					{
+						// the flipper stopped due to being at max or min angle.
+						// so check if at start angle 
+						if (((mState.Angle == angleMin) && (minIsStart)) ||
+							((mState.Angle == angleMax) && (!minIsStart)))
+						{
+							// is at start angle
+							// FlipperTricks case 3: OnFlipperDown
+							if (minIsStart)
+								tricks.AngleEnd = tricks.OriginalAngleEnd + tricks.Overshoot;
+							else
+								tricks.AngleEnd = tricks.OriginalAngleEnd - tricks.Overshoot;
 
+							tricks.RampUpSpeed = tricks.SOSRampUp;
+							tricks.ElasticityMultiplier = tricks.SOSEM;
+
+							//data.ft = 3f;
+						}
+						else
+						{
+							// is at end angle
+							// FlipperTricks case 4: OnFlipperUpResting
+							tricks.AngleEnd = tricks.OriginalAngleEnd; // This causes the flipper to instantly flip back to normal end angle (like in the original Flippertricks implementation)
+							tricks.RampUpSpeed = tricks.EOSRampup;
+							tricks.TorqueDamping = tricks.EOSTNew;
+							tricks.TorqueDampingAngle = tricks.EOSANew;
+
+							//data.ft = 4f;
+						}
+					}
+
+					// Flippertricks, case 5 (OnEnterinbetween) (and pressed)
+					if ((tricks.WasInContact) && (!vState.IsInContact) && solenoid.Value)
+					{
+						// Flippertricks Case 5
+						tricks.RampUpSpeed = tricks.OriginalRampUpSpeed;
+						tricks.TorqueDamping = tricks.OriginalTorqueDamping;
+						tricks.TorqueDampingAngle = tricks.OriginalTorqueDampingAngle;
+						tricks.ElasticityMultiplier = 1f;
+
+						//data.ft = 5f;
+					}
+					tricks.WasInContact = vState.IsInContact;
+
+
+					// check if solenoid was just activated or deactivated
+					tricks.lastSolState = solenoid.Value;
+				}
 				marker.End();
 
 			}).Run();
