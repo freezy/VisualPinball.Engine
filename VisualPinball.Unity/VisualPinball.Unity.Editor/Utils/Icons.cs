@@ -295,7 +295,6 @@ namespace VisualPinball.Unity.Editor
 				case SpinnerComponent _: return Icons.Spinner(size, color);
 				case SlingshotComponent _: return Icons.Slingshot(size, color);
 				case SurfaceComponent _: return Icons.Surface(size, color);
-				case ScoreMotorComponent _: return Icons.Mech(size, color);
 				case StepRotatorMechComponent _: return Icons.Mech(size, color);
 				case TeleporterComponent _: return Icons.Teleporter(size, color);
 				case TriggerComponent _: return Icons.Trigger(size, color);
