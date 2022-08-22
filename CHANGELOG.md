@@ -8,6 +8,7 @@ Built with Unity 2021.3.0
 
 ### Added
 - Scale support for rubbers.
+- Slingarm coil arms can now be any game objects, not just primitives ([#432](https://github.com/freezy/VisualPinball.Engine/pull/432)).
 - Gate Lifter Component ([#418](https://github.com/freezy/VisualPinball.Engine/pull/418), [Documentation](https://docs.visualpinball.org/creators-guide/manual/mechanisms/lifting-gates.html)).
 - Asset Browser ([#412](https://github.com/freezy/VisualPinball.Engine/pull/412))
 - Trigger meshes can now be easily scaled ([#374](https://github.com/freezy/VisualPinball.Engine/pull/374))
@@ -55,6 +56,7 @@ Built with Unity 2021.3.0
 - Put game-, mesh-, collision- animation data into separate components ([#227](https://github.com/freezy/VisualPinball.Engine/pull/227), [Documentation](https://docs.visualpinball.org/creators-guide/editor/unity-components.html)). 
 
 ### Fixed
+- Default table import ([#434](https://github.com/freezy/VisualPinball.Engine/pull/434))
 - Remaining ball spinning issue should now be solved ([#397](https://github.com/freezy/VisualPinball.Engine/pull/397)).
 - Physics error when the ball would stop rotate ([#393](https://github.com/freezy/VisualPinball.Engine/pull/393)).
 - Finally, ball rotation is rendered correctly ([#386](https://github.com/freezy/VisualPinball.Engine/pull/386)).
