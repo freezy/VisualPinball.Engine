@@ -29,10 +29,12 @@ namespace VisualPinball.Unity
 		public float OriginalTorqueDampingAngle;
 		public float ElasticityMultiplier;
 		public bool lastSolState;
-		public float TorqueDamping;
-		public float TorqueDampingAngle;
-		public float AngleEnd;
-		public float RampUpSpeed;
+		// the following four variables are also present in flippertricksdata. While they are static at flipperstaticData, they may change in flipperTricksData (here) at runtime.
+		// if no flippertricks are used, for simplicity also the variables at flipperTricksData are used (but not changed while runtime)
+		public float TorqueDamping; //
+		public float TorqueDampingAngle; //
+		public float AngleEnd; //
+		public float RampUpSpeed; //
 
 		public bool WasInContact;
 
