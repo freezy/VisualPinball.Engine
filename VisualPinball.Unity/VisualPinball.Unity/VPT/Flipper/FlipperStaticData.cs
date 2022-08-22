@@ -24,12 +24,14 @@ namespace VisualPinball.Unity
 		public float3 Position;
 		public float Inertia;
 		public float AngleStart;
-		public float AngleEnd;
 		public float Strength;
 		public float ReturnRatio;
-		public float TorqueDamping;
-		public float TorqueDampingAngle;
-		public float RampUpSpeed;
+		// the following four variables are also present in flippertricksdata. While they are static at flipperstaticData (here), they may change in flipperTricksData at runtime.
+		// no no flippertricks are used, for simplicity also the variables at flipperTricksData are used (but not changed while runtime)
+		public float AngleEnd; //
+		public float TorqueDamping; //
+		public float TorqueDampingAngle; //
+		public float RampUpSpeed; //
 
 		// only used in hit, probably split
 		public float EndRadius;
