@@ -15,7 +15,6 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using System.IO;
-using System.Web.WebPages;
 using UnityEditor;
 using UnityEditor.Presets;
 
@@ -27,7 +26,7 @@ namespace VisualPinball.Unity.Editor
 
 		private void OnPreprocessAsset()
 		{
-			if (assetPath == null || assetPath.IsEmpty()) {
+			if (string.IsNullOrEmpty(assetPath)) {
 				return;
 			}
 
