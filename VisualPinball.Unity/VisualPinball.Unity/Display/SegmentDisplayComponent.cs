@@ -239,6 +239,18 @@ namespace VisualPinball.Unity
 			return material;
 		}
 
+		public override void UpdateDimensions(int width, int height, bool _ = false)
+		{
+			_texture = new Texture2D(MaxNumSegments, width * height);
+			_colorBuffer = new Color32[MaxNumSegments * width * height];
+			RegenerateMesh();
+		}
+
+		public override void Clear()
+		{
+			UpdateFrame(DisplayFrameFormat.Segment, new byte[_colorBuffer.Length * sizeof(short)]);
+		}
+
 		public override void UpdateFrame(DisplayFrameFormat format, byte[] source)
 		{
 			ushort[] target;
@@ -273,18 +285,6 @@ namespace VisualPinball.Unity
 			}
 
 			UpdateFrame(target);
-		}
-
-		public override void UpdateDimensions(int width, int height, bool _ = false)
-		{
-			_texture = new Texture2D(MaxNumSegments, width * height);
-			_colorBuffer = new Color32[MaxNumSegments * width * height];
-			RegenerateMesh();
-		}
-
-		public override void Clear()
-		{
-			UpdateFrame(DisplayFrameFormat.Segment, new byte[_colorBuffer.Length * sizeof(short)]);
 		}
 
 		public void SetText(string text)

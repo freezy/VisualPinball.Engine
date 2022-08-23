@@ -73,7 +73,6 @@ namespace VisualPinball.Unity
 		public const string MotorStepSwitchItem = "motor_step_switch";
 		public const string MotorTurnSwitchItem = "motor_turn_switch";
 
-
 		public IEnumerable<GamelogicEngineCoil> AvailableCoils => new[] {
 			new GamelogicEngineCoil(ResetCoilItem) {
 				Description = "Reset Coil"
@@ -106,6 +105,8 @@ namespace VisualPinball.Unity
 
 		public event EventHandler OnUpdate;
 
+		private float score = 0;
+
 		#region Runtime
 
 		private void Awake()
@@ -117,10 +118,26 @@ namespace VisualPinball.Unity
 
 		private void Start()
 		{
+			score = 0;
+
 			foreach (var reelObject in ReelObjects) {
 				reelObject.Speed = Speed;
 				reelObject.Wait = Wait;
 			}
+		}
+
+		public override void Clear()
+		{
+			foreach (var reelObject in ReelObjects) {
+				reelObject.AnimateTo(0);
+			}
+		}
+
+		public override void AddPoints(float points)
+		{
+			score += points;
+
+			_displayPlayer.DisplayScoreEvent(this, score);
 		}
 
 		public override void UpdateFrame(DisplayFrameFormat format, byte[] data)
@@ -136,13 +153,6 @@ namespace VisualPinball.Unity
 				}
 				SetReel(ReelObjects[i], digits[j]);
 				j--;
-			}
-		}
-
-		public override void Clear()
-		{
-			foreach (var reelObject in ReelObjects) {
-				reelObject.AnimateTo(0);
 			}
 		}
 
