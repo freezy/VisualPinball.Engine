@@ -49,7 +49,8 @@ namespace VisualPinball.Unity
 		public event EventHandler<LampsEventArgs> OnLampsChanged;
 		public event EventHandler<SwitchEventArgs2> OnSwitchChanged;
 		public event EventHandler<RequestedDisplays> OnDisplaysRequested;
-		public event EventHandler<DisplayFrameData> OnDisplayFrame;
+		public event EventHandler<DisplayFrameData> OnDisplayUpdateFrame;
+		public event EventHandler<DisplayAddPointsData> OnDisplayAddPoints;
 		public event EventHandler<EventArgs> OnStarted;
 
 		private const int DmdWidth = 128;
@@ -98,7 +99,7 @@ namespace VisualPinball.Unity
 		private const string CoilTroughEject = "c_trough_eject";
 		private const string CoilMotorStart = "c_motor_start";
 
-		public DisplayConfig[] RequiredDisplays => new[] { new DisplayConfig(DisplayDmd, DmdWidth, DmdHeight) };
+		public DisplayConfig[] RequiredDisplays => new[] { new DisplayConfig(DisplayDmd, DisplayType.DotMatrix, DmdWidth, DmdHeight) };
 
 		public GamelogicEngineCoil[] RequestedCoils => _availableCoils.ToArray();
 		private readonly List<GamelogicEngineCoil> _availableCoils = new List<GamelogicEngineCoil> {
@@ -190,7 +191,7 @@ namespace VisualPinball.Unity
 			_player = player;
 			_ballManager = ballManager;
 
-			OnDisplaysRequested?.Invoke(this, new RequestedDisplays(new DisplayConfig(DisplayDmd, DmdWidth, DmdHeight)));
+			OnDisplaysRequested?.Invoke(this, new RequestedDisplays(new DisplayConfig(DisplayDmd, DisplayType.DotMatrix, DmdWidth, DmdHeight)));
 
 			// debug print stuff
 			OnCoilChanged += DebugPrintCoil;
@@ -211,7 +212,7 @@ namespace VisualPinball.Unity
 				var data = frameTex.GetRawTextureData<byte>().ToArray();
 
 				// this texture happens to be stored as RGB24, so we can send the raw data directly.
-				OnDisplayFrame?.Invoke(this, new DisplayFrameData(DisplayDmd, DisplayFrameFormat.Dmd24, data));
+				OnDisplayUpdateFrame?.Invoke(this, new DisplayFrameData(DisplayDmd, DisplayFrameFormat.Dmd24, data));
 
 				_frameSent = true;
 			}
@@ -291,6 +292,11 @@ namespace VisualPinball.Unity
 			}
 
 			OnSwitchChanged?.Invoke(this, new SwitchEventArgs2(id, isClosed));
+		}
+
+
+		void IGamelogicEngine.DisplayScoreEvent(string id, float score)
+		{
 		}
 
 		public void SetCoil(string n, bool value)

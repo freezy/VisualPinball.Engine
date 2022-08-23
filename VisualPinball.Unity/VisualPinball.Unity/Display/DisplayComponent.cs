@@ -17,6 +17,7 @@
 // ReSharper disable InconsistentNaming
 // ReSharper disable CheckNamespace
 
+using System;
 using NLog;
 using UnityEngine;
 using Logger = NLog.Logger;
@@ -25,6 +26,8 @@ namespace VisualPinball.Unity
 {
 	public abstract class DisplayComponent : MonoBehaviour
 	{
+		public DisplayPlayer _displayPlayer { get; set; }
+
 		public abstract string Id { get; set; }
 		public abstract Color LitColor { get; set; }
 		public abstract Color UnlitColor { get; set; }
@@ -35,14 +38,21 @@ namespace VisualPinball.Unity
 
 		protected Texture2D _texture;
 
-		public abstract void UpdateFrame(DisplayFrameFormat format, byte[] data);
 		public abstract void UpdateDimensions(int width, int height, bool flipX = false);
-		public abstract void Clear();
 
 		public virtual void UpdateColor(Color color)
 		{
 			LitColor = color;
 		}
+
+		public abstract void Clear();
+
+		public virtual void AddPoints(float points)
+		{
+			Logger.Error("This display component does not support add points!");
+		}
+
+		public abstract void UpdateFrame(DisplayFrameFormat format, byte[] data);
 
 		protected abstract Material CreateMaterial();
 		protected abstract float MeshWidth { get; }

@@ -14,7 +14,9 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+using System;
 using System.Collections.Generic;
+using System.Linq;
 using NLog;
 using UnityEngine;
 using Logger = NLog.Logger;
@@ -31,41 +33,61 @@ namespace VisualPinball.Unity
 		public void Awake(IGamelogicEngine gamelogicEngine)
 		{
 			_gamelogicEngine = gamelogicEngine;
-			_gamelogicEngine.OnDisplaysRequested += HandleDisplayRequested;
-			_gamelogicEngine.OnDisplayFrame += HandleFrameEvent;
 
-			var dmds = Object.FindObjectsOfType<DisplayComponent>();
-			foreach (var dmd in dmds) {
-				Logger.Info($"[Player] Display \"{dmd.Id}\" connected.");
-				_displayGameObjects[dmd.Id] = dmd;
+			_gamelogicEngine.OnDisplaysRequested += HandleDisplaysRequested;
+			_gamelogicEngine.OnDisplayUpdateFrame += HandleDisplayUpdateFrame;
+			_gamelogicEngine.OnDisplayAddPoints += HandleDisplayAddPoints;
+
+			var displays = UnityEngine.Object.FindObjectsOfType<DisplayComponent>();
+			foreach (var display in displays) {
+				Logger.Info($"[Player] display \"{display.Id}\" connected.");
+
+				display._displayPlayer = this;
+				_displayGameObjects[display.Id] = display;
 			}
 		}
 
-		private void HandleDisplayRequested(object sender, RequestedDisplays requestedDisplays)
+		private void HandleDisplaysRequested(object sender, RequestedDisplays requestedDisplays)
 		{
 			foreach (var display in requestedDisplays.Displays) {
 				if (_displayGameObjects.ContainsKey(display.Id)) {
 					Logger.Info($"Updating display \"{display.Id}\" to {display.Width}x{display.Height}");
 					_displayGameObjects[display.Id].UpdateDimensions(display.Width, display.Height, display.FlipX);
 					_displayGameObjects[display.Id].Clear();
-
 				} else {
-					Logger.Warn($"Cannot find DMD game object for display \"{display.Id}\"");
+					Logger.Warn($"Cannot find game object for display \"{display.Id}\"");
 				}
 			}
 		}
 
-		private void HandleFrameEvent(object sender, DisplayFrameData e)
+		private void HandleDisplayUpdateFrame(object sender, DisplayFrameData e)
 		{
 			if (_displayGameObjects.ContainsKey(e.Id)) {
 				_displayGameObjects[e.Id].UpdateFrame(e.Format, e.Data);
 			}
 		}
 
+		private void HandleDisplayAddPoints(object sender, DisplayAddPointsData e)
+		{
+			if (_displayGameObjects.ContainsKey(e.Id)) {
+				_displayGameObjects[e.Id].AddPoints(e.Points);
+			}
+		}
+
+		public void DisplayScoreEvent(DisplayComponent display, float score)
+		{
+			var id = _displayGameObjects.FirstOrDefault(x => x.Value == display).Key;
+
+			if (id != null) {
+				_gamelogicEngine.DisplayScoreEvent(id, score);
+			}
+		}
+
 		public void OnDestroy()
 		{
-			_gamelogicEngine.OnDisplaysRequested -= HandleDisplayRequested;
-			_gamelogicEngine.OnDisplayFrame -= HandleFrameEvent;
+			_gamelogicEngine.OnDisplaysRequested -= HandleDisplaysRequested;
+			_gamelogicEngine.OnDisplayUpdateFrame -= HandleDisplayUpdateFrame;
+			_gamelogicEngine.OnDisplayAddPoints -= HandleDisplayAddPoints;
 		}
 	}
 }
