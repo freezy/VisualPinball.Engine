@@ -85,10 +85,10 @@ namespace VisualPinball.Unity
 
 			Init?.Invoke(this, EventArgs.Empty);
 
-			_scoreReelDisplayComponent.OnScore += HandleScore;
+			_scoreReelDisplayComponent.OnAddPoints += HandleAddPoints;
 
 			_degreesPerSecond = _scoreReelDisplayComponent.Degrees / (_scoreReelDisplayComponent.Duration / 1000f);
-			_degreesPerStep = (int)(_scoreReelDisplayComponent.Degrees / _scoreReelDisplayComponent.Steps);
+			_degreesPerStep = _scoreReelDisplayComponent.Degrees / _scoreReelDisplayComponent.Steps;
 
 			_score = 0;
 			_points = 0;
@@ -99,39 +99,39 @@ namespace VisualPinball.Unity
 		{
 		}
 
-		private void HandleScore(object sender, DisplayScoreEventArgs e)
+		private void HandleAddPoints(object sender, DisplayAddPointsEventArgs e)
 		{
-			if (_running) {
-				Logger.Info($"{_scoreReelDisplayComponent.name} - aleady running");
+			var increase = (int)
+				((e.Points % 1000000 == 0) ? e.Points / 1000000 :
+				(e.Points % 100000 == 0) ? e.Points / 100000 :
+				(e.Points % 10000 == 0) ? e.Points / 10000 :
+				(e.Points % 1000 == 0) ? e.Points / 1000 :
+				(e.Points % 100 == 0) ? e.Points / 100 :
+				(e.Points % 10 == 0) ? e.Points / 10 :
+				e.Points);
+
+			if (increase > ScoreReelDisplayComponent.MAX_INCREASE) {
+				Logger.Info($"too many increases (ignoring points), name={_scoreReelDisplayComponent.name}, points={e.Points}, increase={increase}");
 				return;
 			}
 
-			if (e.Score == 10 || e.Score == 100 || e.Score == 1000) {
-				Logger.Info($"{_scoreReelDisplayComponent.name} - single point score: {e.Score}");
-				_score = _score + e.Score;
+			if (_running) {
+				if (increase > 1 || (increase == 1 && _scoreReelDisplayComponent.BlockScoring)) {
+					Logger.Info($"already running (ignoring points), name={_scoreReelDisplayComponent.name}, points={e.Points}");
+					return;
+				}
+			}
+
+			if (increase == 1) {
+				_score = _score + e.Points;
 				_scoreReelDisplayComponent.UpdateScore(_score);
 				return;
 			}
 
-			if (e.Score == 2000 || e.Score == 200 || e.Score == 20) {
-				_increase = 2;
-				_points = e.Score / 2;
-			}
+			_increase = increase;
+			_points = e.Points / increase;
 
-			if (e.Score == 3000 || e.Score == 300 || e.Score == 30) {
-				_increase = 3;
-				_points = e.Score / 3;
-			}
-
-			if (e.Score == 4000 || e.Score == 400 || e.Score == 40) {
-				_increase = 4;
-				_points = e.Score / 4;
-			}
-
-			if (e.Score == 5000 || e.Score == 500 || e.Score == 50) {
-				_increase = 5;
-				_points = e.Score / 5;
-			}
+			Logger.Info($"multi points, name={_scoreReelDisplayComponent.name}, increase={_increase}, points={e.Points}");
 
 			_time = 0;
 			_pos = 0;
@@ -167,7 +167,7 @@ namespace VisualPinball.Unity
 		void IApi.OnDestroy()
 		{
 			_scoreReelDisplayComponent.OnUpdate -= HandleUpdate;
-			_scoreReelDisplayComponent.OnScore -= HandleScore;
+			_scoreReelDisplayComponent.OnAddPoints -= HandleAddPoints;
 
 			Logger.Info($"Destroying {_scoreReelDisplayComponent.name}");
 		}
@@ -177,10 +177,10 @@ namespace VisualPinball.Unity
 			if (_pos % _degreesPerStep == 0) {
 				MotorStepSwitch.SetSwitch(true);
 
-				var step = (int)(_pos / _degreesPerStep);
+				var step = _pos / _degreesPerStep;
 				var action = _scoreReelDisplayComponent.ScoreMotorActionsList[_increase - 1].Actions[step];
 
-				Logger.Info($"{_scoreReelDisplayComponent.name} advancing - pos={_pos}, time={_time}, increase={_increase}, step={step}, points={_points}, action={action}");
+				Logger.Info($"advance, name={_scoreReelDisplayComponent.name}, pos={_pos}, time={_time}, increase={_increase}, step={step}, points={_points}, action={action}");
 
 				if (action == ScoreMotorAction.Increase) {
 					_score += _points;

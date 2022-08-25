@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+using System;
 using System.Collections.Generic;
 using UnityEditor;
 using UnityEditorInternal;
@@ -32,15 +33,17 @@ namespace VisualPinball.Unity.Editor
 		private SerializedProperty _stepsProperty;
 		private SerializedProperty _degreesProperty;
 		private SerializedProperty _durationProperty;
+		private SerializedProperty _blockScoringProperty;
 
 		private SerializedProperty _scoreMotorActionsListProperty;
 
 		private List<ReorderableList> scoreMotorActionsLists = new List<ReorderableList>();
+
 		private bool _toggleScoreMotor = true;
 
 		protected override MonoBehaviour UndoTarget => target as MonoBehaviour;
 
-		private void OnEnable()
+		protected override void OnEnable()
 		{
 			base.OnEnable();
 
@@ -52,6 +55,7 @@ namespace VisualPinball.Unity.Editor
 			_stepsProperty = serializedObject.FindProperty(nameof(ScoreReelDisplayComponent.Steps));
 			_degreesProperty = serializedObject.FindProperty(nameof(ScoreReelDisplayComponent.Degrees));
 			_durationProperty = serializedObject.FindProperty(nameof(ScoreReelDisplayComponent.Duration));
+			_blockScoringProperty = serializedObject.FindProperty(nameof(ScoreReelDisplayComponent.BlockScoring));
 
 			_scoreMotorActionsListProperty = serializedObject.FindProperty(nameof(ScoreReelDisplayComponent.ScoreMotorActionsList));
 
@@ -73,15 +77,23 @@ namespace VisualPinball.Unity.Editor
 			if (_toggleScoreMotor = EditorGUILayout.BeginFoldoutHeaderGroup(_toggleScoreMotor, "Score Motor")) {
 				PropertyField(_stepsProperty);
 
-				UpdateScoreMotorActionsList();
+				RecalcuteScoreMotorActions();
 
-				if (_stepsProperty.intValue > 0) {
-					PropertyField(_degreesProperty);
-					PropertyField(_durationProperty);
+				PropertyField(_degreesProperty);
+				PropertyField(_durationProperty);
+				PropertyField(_blockScoringProperty);
 
-					for (var index = 1; index < _stepsProperty.intValue - 1; index++) {
-						EditorGUILayout.LabelField($"Increase By {index + 1}");
+				EditorGUILayout.Space();
+				EditorGUILayout.LabelField($"Reel timing by increase:");
 
+				var size = ScoreReelDisplayComponent.MAX_INCREASE;
+				if (size == _stepsProperty.intValue) {
+					size -= 1;
+				}
+
+				for (var index = 1; index < size; index++) {
+					if (_scoreMotorActionsListProperty.GetArrayElementAtIndex(index).isExpanded =
+						EditorGUILayout.Foldout(_scoreMotorActionsListProperty.GetArrayElementAtIndex(index).isExpanded, $"Increase By {index + 1}")) {
 						scoreMotorActionsLists[index].DoLayoutList();
 					}
 				}
@@ -94,52 +106,34 @@ namespace VisualPinball.Unity.Editor
 			EndEditing();
 		}
 
-		private void UpdateScoreMotorActionsList()
-		{
-			// Steps Per Turn Decreased
-
-			if (_scoreMotorActionsListProperty.arraySize > _stepsProperty.intValue) {
-				while (_scoreMotorActionsListProperty.arraySize > _stepsProperty.intValue) { 
-					_scoreMotorActionsListProperty.DeleteArrayElementAtIndex(_scoreMotorActionsListProperty.arraySize - 1);
-					scoreMotorActionsLists.RemoveAt(scoreMotorActionsLists.Count - 1);
-				}
-
-				RecalcuteScoreMotorActions();
-			}
-
-			// Steps Per Turn Increased
-
-			if (_scoreMotorActionsListProperty.arraySize < _stepsProperty.intValue) {
-				while (_scoreMotorActionsListProperty.arraySize < _stepsProperty.intValue) {
-					_scoreMotorActionsListProperty.InsertArrayElementAtIndex(_scoreMotorActionsListProperty.arraySize);
-
-					var actionsProperty = _scoreMotorActionsListProperty.GetArrayElementAtIndex(_scoreMotorActionsListProperty.arraySize - 1).FindPropertyRelative(nameof(ScoreMotorActions.Actions));
-					scoreMotorActionsLists.Add(GenerateReordableList(actionsProperty));
-				}
-
-				RecalcuteScoreMotorActions();
-			}
-		}
-
 		private void RecalcuteScoreMotorActions()
 		{
-			for (var increaseBy = 0; increaseBy < _stepsProperty.intValue; increaseBy++) {
-				var actionsProperty = _scoreMotorActionsListProperty.GetArrayElementAtIndex(increaseBy).FindPropertyRelative(nameof(ScoreMotorActions.Actions));
+			for (var increase = 0; increase < _scoreMotorActionsListProperty.arraySize; increase++) {
+				var change = false;
 
-				// Steps Per Turn Decreased
+				var actionsProperty = _scoreMotorActionsListProperty.GetArrayElementAtIndex(increase).FindPropertyRelative(nameof(ScoreMotorActions.Actions));
+
+				// Steps Decreased
 
 				while (actionsProperty.arraySize > _stepsProperty.intValue) {
 					actionsProperty.DeleteArrayElementAtIndex(actionsProperty.arraySize - 1);
+
+					change = true;
 				}
 
-				// Steps Per Turn Increased
+				// Steps Increased
 
 				while (actionsProperty.arraySize < _stepsProperty.intValue) {
 					actionsProperty.InsertArrayElementAtIndex(actionsProperty.arraySize);
+
+					change = true;
 				}
 
-				for (var index = 0; index < actionsProperty.arraySize; index++) {
-					actionsProperty.GetArrayElementAtIndex(index).intValue = index <= increaseBy ? (int)ScoreMotorAction.Increase : (int)ScoreMotorAction.Wait;
+				if (change) {
+					for (var index = 0; index < actionsProperty.arraySize; index++) {
+						actionsProperty.GetArrayElementAtIndex(actionsProperty.arraySize - (index + 1)).intValue =
+							(index <= increase && increase <= ScoreReelDisplayComponent.MAX_INCREASE) ? (int)ScoreMotorAction.Increase : (int)ScoreMotorAction.Wait;
+					}
 				}
 			}
 		}

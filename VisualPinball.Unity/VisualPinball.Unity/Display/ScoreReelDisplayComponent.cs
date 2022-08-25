@@ -39,6 +39,8 @@ namespace VisualPinball.Unity
 	[AddComponentMenu("Visual Pinball/Display/Score Reel")]
 	public class ScoreReelDisplayComponent : DisplayComponent, ICoilDeviceComponent, ISwitchDeviceComponent
 	{
+		public const int MAX_INCREASE = 5;
+
 		[SerializeField]
 		public string _id = "display0";
 
@@ -61,18 +63,28 @@ namespace VisualPinball.Unity
 
 		[Unit("ms")]
 		[Tooltip("Amount of time, in milliseconds to move one turn.")]
-		public int Duration = 760;
+		public int Duration = 769;
 
 		[Tooltip("The total number of steps per turn.")]
-		public int Steps = 0;
+		[Min(MAX_INCREASE)]
+		public int Steps = 6;
 
-		public List<ScoreMotorActions> ScoreMotorActionsList = new List<ScoreMotorActions>();
+		[Tooltip("Disable to allow single point scores while score motor running.")]
+		public bool BlockScoring = true;
+
+		public List<ScoreMotorActions> ScoreMotorActionsList = new List<ScoreMotorActions>()
+		{
+			new ScoreMotorActions(),
+			new ScoreMotorActions(),
+			new ScoreMotorActions(),
+			new ScoreMotorActions(),
+			new ScoreMotorActions()
+		};
 
 		public const string ResetCoilItem = "reset_coil";
 
 		public const string MotorRunningSwitchItem = "motor_running_switch";
 		public const string MotorStepSwitchItem = "motor_step_switch";
-		public const string MotorTurnSwitchItem = "motor_turn_switch";
 
 		public IEnumerable<GamelogicEngineCoil> AvailableCoils => new[] {
 			new GamelogicEngineCoil(ResetCoilItem) {
@@ -89,11 +101,6 @@ namespace VisualPinball.Unity
 			{
 				Description = "Motor Step Switch",
 				IsPulseSwitch = true
-			},
-			new GamelogicEngineSwitch(MotorTurnSwitchItem)
-			{
-				Description = "Motor Turn Switch",
-				IsPulseSwitch = true
 			}
 		};
 
@@ -105,7 +112,7 @@ namespace VisualPinball.Unity
 		IEnumerable<GamelogicEngineSwitch> IDeviceComponent<GamelogicEngineSwitch>.AvailableDeviceItems => AvailableSwitches;
 
 		public event EventHandler OnUpdate;
-		public event EventHandler<DisplayScoreEventArgs> OnScore;
+		public event EventHandler<DisplayAddPointsEventArgs> OnAddPoints;
 
 		#region Runtime
 
@@ -138,7 +145,7 @@ namespace VisualPinball.Unity
 
 		public override void AddPoints(float points)
 		{
-			OnScore?.Invoke(this, new DisplayScoreEventArgs("", points));
+			OnAddPoints?.Invoke(this, new DisplayAddPointsEventArgs(points));
 		}
 
 		public void UpdateScore(float score)
