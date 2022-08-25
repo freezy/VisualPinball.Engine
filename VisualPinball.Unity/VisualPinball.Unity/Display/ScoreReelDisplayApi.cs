@@ -123,6 +123,8 @@ namespace VisualPinball.Unity
 			}
 
 			if (increase == 1) {
+				Logger.Info($"single points, name={_scoreReelDisplayComponent.name}, points={e.Points}");
+
 				_score = _score + e.Points;
 				_scoreReelDisplayComponent.UpdateScore(_score);
 				return;
