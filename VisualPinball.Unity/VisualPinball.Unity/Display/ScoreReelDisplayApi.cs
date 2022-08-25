@@ -36,7 +36,18 @@ namespace VisualPinball.Unity
 		public DeviceCoil ResetCoil;
 		public DeviceSwitch MotorRunningSwitch;
 		public DeviceSwitch MotorStepSwitch;
-		public DeviceSwitch MotorTurnSwitch;
+
+		private int _degreesPerStep;
+		private float _degreesPerSecond;
+
+		private bool _running;
+
+		private float _time;
+		private int _pos;
+
+		private float _score;
+		private float _points;
+		private int _increase;
 
 		private IApiCoil Coil(string deviceItem)
 		{
@@ -53,10 +64,9 @@ namespace VisualPinball.Unity
 			{
 				ScoreReelDisplayComponent.MotorRunningSwitchItem => MotorRunningSwitch,
 				ScoreReelDisplayComponent.MotorStepSwitchItem => MotorStepSwitch,
-				ScoreReelDisplayComponent.MotorTurnSwitchItem => MotorTurnSwitch,
 				_ => throw new ArgumentException($"Unknown switch \"{deviceItem}\". "
-					+ "Valid names are \"{ScoreReelDisplayComponent.MotorRunningSwitchItem}\", " 
-					+ "\"{ScoreReelDisplayComponent.MotorStepSwitchItem}\", \"{ScoreReelDisplayComponent.MotorTurnSwitchItem}\".")
+					+ "Valid names are \"{ScoreReelDisplayComponent.MotorRunningSwitchItem}\", and "
+					+ "\"{ScoreReelDisplayComponent.MotorStepSwitchItem}\".")
 			};
 		}
 
@@ -72,18 +82,113 @@ namespace VisualPinball.Unity
 
 			MotorRunningSwitch = new DeviceSwitch(ScoreReelDisplayComponent.MotorRunningSwitchItem, false, SwitchDefault.NormallyOpen, _player);
 			MotorStepSwitch = new DeviceSwitch(ScoreReelDisplayComponent.MotorStepSwitchItem, true, SwitchDefault.NormallyOpen, _player);
-			MotorTurnSwitch = new DeviceSwitch(ScoreReelDisplayComponent.MotorTurnSwitchItem, true, SwitchDefault.NormallyOpen, _player);
 
 			Init?.Invoke(this, EventArgs.Empty);
+
+			_scoreReelDisplayComponent.OnScore += HandleScore;
+
+			_degreesPerSecond = _scoreReelDisplayComponent.Degrees / (_scoreReelDisplayComponent.Duration / 1000f);
+			_degreesPerStep = (int)(_scoreReelDisplayComponent.Degrees / _scoreReelDisplayComponent.Steps);
+
+			_score = 0;
+			_points = 0;
+			_increase = 0;
 		}
 
 		private void OnResetCoilEnabled()
 		{
 		}
 
+		private void HandleScore(object sender, DisplayScoreEventArgs e)
+		{
+			if (_running) {
+				Logger.Info($"{_scoreReelDisplayComponent.name} - aleady running");
+				return;
+			}
+
+			if (e.Score == 10 || e.Score == 100 || e.Score == 1000) {
+				Logger.Info($"{_scoreReelDisplayComponent.name} - single point score: {e.Score}");
+				_score = _score + e.Score;
+				_scoreReelDisplayComponent.UpdateScore(_score);
+				return;
+			}
+
+			if (e.Score == 2000 || e.Score == 200 || e.Score == 20) {
+				_increase = 2;
+				_points = e.Score / 2;
+			}
+
+			if (e.Score == 3000 || e.Score == 300 || e.Score == 30) {
+				_increase = 3;
+				_points = e.Score / 3;
+			}
+
+			if (e.Score == 4000 || e.Score == 400 || e.Score == 40) {
+				_increase = 4;
+				_points = e.Score / 4;
+			}
+
+			if (e.Score == 5000 || e.Score == 500 || e.Score == 50) {
+				_increase = 5;
+				_points = e.Score / 5;
+			}
+
+			_time = 0;
+			_pos = 0;
+
+			_running = true;
+
+			MotorRunningSwitch.SetSwitch(true);
+
+			Advance();
+
+			_scoreReelDisplayComponent.OnUpdate += HandleUpdate;
+		}
+
+		private void HandleUpdate(object sender, EventArgs eventArgs)
+		{
+			_time += Time.deltaTime;
+
+			int newPos = (int)(_degreesPerSecond * _time);
+
+			while (_pos <= newPos && _pos < _scoreReelDisplayComponent.Degrees) {
+				Advance();
+			}
+
+			if (_pos >= _scoreReelDisplayComponent.Degrees) {
+				_scoreReelDisplayComponent.OnUpdate -= HandleUpdate;
+
+				MotorRunningSwitch.SetSwitch(false);
+
+				_running = false;
+			}
+		}
+
 		void IApi.OnDestroy()
 		{
+			_scoreReelDisplayComponent.OnUpdate -= HandleUpdate;
+			_scoreReelDisplayComponent.OnScore -= HandleScore;
+
 			Logger.Info($"Destroying {_scoreReelDisplayComponent.name}");
+		}
+
+		private void Advance()
+		{
+			if (_pos % _degreesPerStep == 0) {
+				MotorStepSwitch.SetSwitch(true);
+
+				var step = (int)(_pos / _degreesPerStep);
+				var action = _scoreReelDisplayComponent.ScoreMotorActionsList[_increase - 1].Actions[step];
+
+				Logger.Info($"{_scoreReelDisplayComponent.name} advancing - pos={_pos}, time={_time}, increase={_increase}, step={step}, points={_points}, action={action}");
+
+				if (action == ScoreMotorAction.Increase) {
+					_score += _points;
+					_scoreReelDisplayComponent.UpdateScore(_score);
+				}
+			}
+
+			_pos++;
 		}
 	}
 }

@@ -19,6 +19,7 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SocialPlatforms.Impl;
 using VisualPinball.Engine.Game.Engines;
 
 namespace VisualPinball.Unity
@@ -54,16 +55,16 @@ namespace VisualPinball.Unity
 		[Tooltip("The reel components, from left to right.")]
 		public ScoreReelComponent[] ReelObjects;
 
+		[Unit("\u00B0")]
+		[Tooltip("The total number of degrees in one turn.")]
+		public int Degrees = 120;
+
+		[Unit("ms")]
+		[Tooltip("Amount of time, in milliseconds to move one turn.")]
+		public int Duration = 760;
+
 		[Tooltip("The total number of steps per turn.")]
-		public int StepsPerTurn = 0;
-
-		[Unit("ms")]
-		[Tooltip("Amount of time, in milliseconds to move one step.")]
-		public int TimePerStep = 10;
-
-		[Unit("ms")]
-		[Tooltip("Amount of time, in milliseconds to delay after turn.")]
-		public int DelayAfterTurn = 10;
+		public int Steps = 0;
 
 		public List<ScoreMotorActions> ScoreMotorActionsList = new List<ScoreMotorActions>();
 
@@ -104,8 +105,7 @@ namespace VisualPinball.Unity
 		IEnumerable<GamelogicEngineSwitch> IDeviceComponent<GamelogicEngineSwitch>.AvailableDeviceItems => AvailableSwitches;
 
 		public event EventHandler OnUpdate;
-
-		private float score = 0;
+		public event EventHandler<DisplayScoreEventArgs> OnScore;
 
 		#region Runtime
 
@@ -118,12 +118,15 @@ namespace VisualPinball.Unity
 
 		private void Start()
 		{
-			score = 0;
-
 			foreach (var reelObject in ReelObjects) {
 				reelObject.Speed = Speed;
 				reelObject.Wait = Wait;
 			}
+		}
+
+		private void Update()
+		{
+			OnUpdate?.Invoke(this, EventArgs.Empty);
 		}
 
 		public override void Clear()
@@ -135,7 +138,12 @@ namespace VisualPinball.Unity
 
 		public override void AddPoints(float points)
 		{
-			score += points;
+			OnScore?.Invoke(this, new DisplayScoreEventArgs("", points));
+		}
+
+		public void UpdateScore(float score)
+		{
+			UpdateFrame(DisplayFrameFormat.Numeric, BitConverter.GetBytes(score));
 
 			_displayPlayer.DisplayScoreEvent(this, score);
 		}
@@ -206,34 +214,6 @@ namespace VisualPinball.Unity
 		public override float MeshHeight { get; }
 		protected override float MeshDepth { get; }
 		public override float AspectRatio { get; set; }
-
-		#endregion
-
-		private void Update()
-		{
-			OnUpdate?.Invoke(this, EventArgs.Empty);
-		}
-
-		#region ISerializationCallbackReceiver
-
-		public void OnBeforeSerialize()
-		{
-#if UNITY_EDITOR
-			var switchIds = new HashSet<string>();
-			/*foreach (var @switch in Switches)
-			{
-				if (!@switch.HasId || switchIds.Contains(@switch.SwitchId))
-				{
-					@switch.GenerateId();
-				}
-				switchIds.Add(@switch.SwitchId);
-			}*/
-#endif
-		}
-
-		public void OnAfterDeserialize()
-		{
-		}
 
 		#endregion
 	}
