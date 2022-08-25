@@ -314,6 +314,16 @@ namespace VisualPinball.Unity
 		}
 	}
 
+	public readonly struct DisplayAddPointsEventArgs
+	{
+		public readonly float Points;
+
+		public DisplayAddPointsEventArgs(float points)
+		{
+			Points = points;
+		}
+	}
+
 	public readonly struct DisplayScoreEventArgs
 	{
 		public readonly string Id;
@@ -325,4 +335,5 @@ namespace VisualPinball.Unity
 			Score = score;
 		}
 	}
+
 }
