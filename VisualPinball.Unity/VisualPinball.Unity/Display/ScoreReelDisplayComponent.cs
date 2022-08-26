@@ -24,23 +24,9 @@ using VisualPinball.Engine.Game.Engines;
 
 namespace VisualPinball.Unity
 {
-	public enum ScoreMotorAction
-	{
-		Wait = 0,
-		Increase = 1
-	}
-
-	[Serializable]
-	public class ScoreMotorActions
-	{
-		public List<ScoreMotorAction> Actions = new List<ScoreMotorAction>();
-	}
-
 	[AddComponentMenu("Visual Pinball/Display/Score Reel")]
-	public class ScoreReelDisplayComponent : DisplayComponent, ICoilDeviceComponent, ISwitchDeviceComponent
+	public class ScoreReelDisplayComponent : DisplayComponent
 	{
-		public const int MAX_INCREASE = 5;
-
 		[SerializeField]
 		public string _id = "display0";
 
@@ -57,71 +43,8 @@ namespace VisualPinball.Unity
 		[Tooltip("The reel components, from left to right.")]
 		public ScoreReelComponent[] ReelObjects;
 
-		[Unit("\u00B0")]
-		[Tooltip("The total number of degrees in one turn.")]
-		public int Degrees = 120;
-
-		[Unit("ms")]
-		[Tooltip("Amount of time, in milliseconds to move one turn.")]
-		public int Duration = 769;
-
-		[Tooltip("The total number of steps per turn.")]
-		[Min(MAX_INCREASE)]
-		public int Steps = 6;
-
-		[Tooltip("Disable to allow single point scores while score motor running.")]
-		public bool BlockScoring = true;
-
-		public List<ScoreMotorActions> ScoreMotorActionsList = new List<ScoreMotorActions>()
-		{
-			new ScoreMotorActions(),
-			new ScoreMotorActions(),
-			new ScoreMotorActions(),
-			new ScoreMotorActions(),
-			new ScoreMotorActions()
-		};
-
-		public const string ResetCoilItem = "reset_coil";
-
-		public const string MotorRunningSwitchItem = "motor_running_switch";
-		public const string MotorStepSwitchItem = "motor_step_switch";
-
-		public IEnumerable<GamelogicEngineCoil> AvailableCoils => new[] {
-			new GamelogicEngineCoil(ResetCoilItem) {
-				Description = "Reset Coil"
-			}
-		};
-
-		public IEnumerable<GamelogicEngineSwitch> AvailableSwitches => new[] {
-			new GamelogicEngineSwitch(MotorRunningSwitchItem)
-			{
-				Description = "Motor Running Switch"
-			},
-			new GamelogicEngineSwitch(MotorStepSwitchItem)
-			{
-				Description = "Motor Step Switch",
-				IsPulseSwitch = true
-			}
-		};
-
-		IEnumerable<IGamelogicEngineDeviceItem> IDeviceComponent<IGamelogicEngineDeviceItem>.AvailableDeviceItems => AvailableCoils;
-		IEnumerable<IGamelogicEngineDeviceItem> IWireableComponent.AvailableWireDestinations => AvailableCoils;
-		IEnumerable<GamelogicEngineCoil> IDeviceComponent<GamelogicEngineCoil>.AvailableDeviceItems => AvailableCoils;
-
-		public SwitchDefault SwitchDefault => SwitchDefault.NormallyOpen;
-		IEnumerable<GamelogicEngineSwitch> IDeviceComponent<GamelogicEngineSwitch>.AvailableDeviceItems => AvailableSwitches;
-
-		public event EventHandler OnUpdate;
-		public event EventHandler<DisplayAddPointsEventArgs> OnAddPoints;
-
-		#region Runtime
-
-		private void Awake()
-		{
-			GetComponentInParent<Player>().RegisterScoreDisplayComponent(this);
-		}
-
-		#endregion
+		private ScoreMotorComponent _scoreMotorComponent;
+		private float _score;
 
 		private void Start()
 		{
@@ -129,11 +52,9 @@ namespace VisualPinball.Unity
 				reelObject.Speed = Speed;
 				reelObject.Wait = Wait;
 			}
-		}
 
-		private void Update()
-		{
-			OnUpdate?.Invoke(this, EventArgs.Empty);
+			_scoreMotorComponent = GetComponentInParent<ScoreMotorComponent>();
+			_score = 0;
 		}
 
 		public override void Clear()
@@ -145,14 +66,17 @@ namespace VisualPinball.Unity
 
 		public override void AddPoints(float points)
 		{
-			OnAddPoints?.Invoke(this, new DisplayAddPointsEventArgs(points));
+			if (_scoreMotorComponent) {
+				_scoreMotorComponent.AddPoints(this, points);
+			}
 		}
 
-		public void UpdateScore(float score)
+		public override void IncrementScore(float points)
 		{
-			UpdateFrame(DisplayFrameFormat.Numeric, BitConverter.GetBytes(score));
+			_score += points;
+			_displayPlayer.DisplayScoreEvent(this, _score);
 
-			_displayPlayer.DisplayScoreEvent(this, score);
+			UpdateFrame(DisplayFrameFormat.Numeric, BitConverter.GetBytes(_score));
 		}
 
 		public override void UpdateFrame(DisplayFrameFormat format, byte[] data)
@@ -210,6 +134,7 @@ namespace VisualPinball.Unity
 		{
 			throw new NotImplementedException();
 		}
+
 		public override void UpdateDimensions(int width, int height, bool flipX = false)
 		{
 			Debug.Log($"Reel of {width} requested.");

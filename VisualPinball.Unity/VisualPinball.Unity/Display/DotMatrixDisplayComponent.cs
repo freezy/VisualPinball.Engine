@@ -157,14 +157,14 @@ namespace VisualPinball.Unity
 			UpdateFrame(DisplayFrameFormat.Dmd2, new byte[_width * _height]);
 		}
 
-		protected override Material CreateMaterial()
+		public override void AddPoints(float points)
 		{
-			var material = Instantiate(RenderPipeline.Current.MaterialConverter.DotMatrixDisplay);
-			material.mainTexture = _texture;
-			material.SetVector(DimensionsProp, new Vector4(_width, _height));
-			material.SetColor(UnlitColorProp, _unlitColor);
-			material.SetFloat(PaddingProp, _padding);
-			return material;
+			Logger.Error("This display does not support add points.");
+		}
+
+		public override void IncrementScore(float points)
+		{
+			Logger.Error("This display does not support increment score.");
 		}
 
 		public override void UpdateFrame(DisplayFrameFormat format, byte[] frame)
@@ -227,6 +227,16 @@ namespace VisualPinball.Unity
 				var dstPtr = dst.GetUnsafePtr();
 				UnsafeUtility.MemCpy(dstPtr,srcPtr + offset, sizeof(T) * count);
 			}
+		}
+
+		protected override Material CreateMaterial()
+		{
+			var material = Instantiate(RenderPipeline.Current.MaterialConverter.DotMatrixDisplay);
+			material.mainTexture = _texture;
+			material.SetVector(DimensionsProp, new Vector4(_width, _height));
+			material.SetColor(UnlitColorProp, _unlitColor);
+			material.SetFloat(PaddingProp, _padding);
+			return material;
 		}
 
 		private void UpdatePalette(DisplayFrameFormat format)

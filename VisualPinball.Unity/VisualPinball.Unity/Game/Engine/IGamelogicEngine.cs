@@ -314,12 +314,14 @@ namespace VisualPinball.Unity
 		}
 	}
 
-	public readonly struct DisplayAddPointsEventArgs
+	public readonly struct ScoreMotorAddPointsEventArgs
 	{
+		public readonly DisplayComponent DisplayComponent;
 		public readonly float Points;
 
-		public DisplayAddPointsEventArgs(float points)
+		public ScoreMotorAddPointsEventArgs(DisplayComponent displayComponent, float points)
 		{
+			DisplayComponent = displayComponent;
 			Points = points;
 		}
 	}
