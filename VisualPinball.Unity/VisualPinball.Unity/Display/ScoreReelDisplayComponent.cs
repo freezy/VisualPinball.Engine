@@ -21,6 +21,8 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SocialPlatforms.Impl;
 using VisualPinball.Engine.Game.Engines;
+using NLog;
+using Logger = NLog.Logger;
 
 namespace VisualPinball.Unity
 {
@@ -46,6 +48,8 @@ namespace VisualPinball.Unity
 		private ScoreMotorComponent _scoreMotorComponent;
 		private float _score;
 
+		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
+
 		private void Start()
 		{
 			foreach (var reelObject in ReelObjects) {
@@ -59,24 +63,37 @@ namespace VisualPinball.Unity
 
 		public override void Clear()
 		{
-			foreach (var reelObject in ReelObjects) {
-				reelObject.AnimateTo(0);
+			if (_scoreMotorComponent) {
+				var score = (float)(_score % System.Math.Pow(10, ReelObjects.Length));
+				_scoreMotorComponent.ResetScore(score, (score) => {
+					_score = score;
+
+					_displayPlayer.DisplayScoreEvent(this, 0, _score);
+					UpdateFrame(DisplayFrameFormat.Numeric, BitConverter.GetBytes(_score));
+				});
+			}
+			else
+			{
+				foreach (var reelObject in ReelObjects) {
+					reelObject.AnimateTo(0);
+				}
 			}
 		}
 
 		public override void AddPoints(float points)
 		{
 			if (_scoreMotorComponent) {
-				_scoreMotorComponent.AddPoints(this, points);
+				_scoreMotorComponent.AddPoints(points, (points) => {
+					_score += points;
+
+					_displayPlayer.DisplayScoreEvent(this, points, _score);
+					UpdateFrame(DisplayFrameFormat.Numeric, BitConverter.GetBytes(_score));
+				});
 			}
-		}
-
-		public override void IncrementScore(float points)
-		{
-			_score += points;
-			_displayPlayer.DisplayScoreEvent(this, _score);
-
-			UpdateFrame(DisplayFrameFormat.Numeric, BitConverter.GetBytes(_score));
+			else
+			{
+				Logger.Error("This display does not support add points.");
+			}
 		}
 
 		public override void UpdateFrame(DisplayFrameFormat format, byte[] data)
