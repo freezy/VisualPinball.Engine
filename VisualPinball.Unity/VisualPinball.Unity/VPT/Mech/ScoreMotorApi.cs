@@ -18,19 +18,19 @@ using System;
 using Logger = NLog.Logger;
 using NLog;
 using UnityEngine;
+using System.Collections.Generic;
 
 namespace VisualPinball.Unity
 {
-	public class ScoreReelDisplayApi : IApi, IApiCoilDevice, IApiSwitchDevice
+	public class ScoreMotorApi : IApi, IApiSwitchDevice
 	{
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
-		private readonly ScoreReelDisplayComponent _scoreReelDisplayComponent;
+		private readonly ScoreMotorComponent _scoreMotorComponent;
 		private readonly Player _player;
 
 		public event EventHandler Init;
 
-		IApiCoil IApiCoilDevice.Coil(string deviceItem) => Coil(deviceItem);
 		IApiSwitch IApiSwitchDevice.Switch(string deviceItem) => Switch(deviceItem);
 
 		public DeviceCoil ResetCoil;
@@ -48,58 +48,44 @@ namespace VisualPinball.Unity
 		private float _score;
 		private float _points;
 		private int _increase;
-
-		private IApiCoil Coil(string deviceItem)
-		{
-			return deviceItem switch
-			{
-				ScoreReelDisplayComponent.ResetCoilItem => ResetCoil,
-				_ => throw new ArgumentException($"Unknown coil \"{deviceItem}\". Valid name is \"{ScoreReelDisplayComponent.ResetCoilItem}\".")
-			};
-		}
+		private DisplayComponent _displayComponent;
 
 		public IApiSwitch Switch(string deviceItem)
 		{
 			return deviceItem switch
 			{
-				ScoreReelDisplayComponent.MotorRunningSwitchItem => MotorRunningSwitch,
-				ScoreReelDisplayComponent.MotorStepSwitchItem => MotorStepSwitch,
+				ScoreMotorComponent.MotorRunningSwitchItem => MotorRunningSwitch,
+				ScoreMotorComponent.MotorStepSwitchItem => MotorStepSwitch,
 				_ => throw new ArgumentException($"Unknown switch \"{deviceItem}\". "
 					+ "Valid names are \"{ScoreReelDisplayComponent.MotorRunningSwitchItem}\", and "
 					+ "\"{ScoreReelDisplayComponent.MotorStepSwitchItem}\".")
 			};
 		}
 
-		internal ScoreReelDisplayApi(GameObject go, Player player)
+		internal ScoreMotorApi(GameObject go, Player player)
 		{
-			_scoreReelDisplayComponent = go.GetComponentInChildren<ScoreReelDisplayComponent>();
+			_scoreMotorComponent = go.GetComponentInChildren<ScoreMotorComponent>();
 			_player = player;
 		}
 
 		void IApi.OnInit(BallManager ballManager)
 		{
-			ResetCoil = new DeviceCoil(_player, OnResetCoilEnabled);
-
-			MotorRunningSwitch = new DeviceSwitch(ScoreReelDisplayComponent.MotorRunningSwitchItem, false, SwitchDefault.NormallyOpen, _player);
-			MotorStepSwitch = new DeviceSwitch(ScoreReelDisplayComponent.MotorStepSwitchItem, true, SwitchDefault.NormallyOpen, _player);
+			MotorRunningSwitch = new DeviceSwitch(ScoreMotorComponent.MotorRunningSwitchItem, false, SwitchDefault.NormallyOpen, _player);
+			MotorStepSwitch = new DeviceSwitch(ScoreMotorComponent.MotorStepSwitchItem, true, SwitchDefault.NormallyOpen, _player);
 
 			Init?.Invoke(this, EventArgs.Empty);
 
-			_scoreReelDisplayComponent.OnAddPoints += HandleAddPoints;
+			_scoreMotorComponent.OnAddPoints += HandleAddPoints;
 
-			_degreesPerSecond = _scoreReelDisplayComponent.Degrees / (_scoreReelDisplayComponent.Duration / 1000f);
-			_degreesPerStep = _scoreReelDisplayComponent.Degrees / _scoreReelDisplayComponent.Steps;
+			_degreesPerSecond = _scoreMotorComponent.Degrees / (_scoreMotorComponent.Duration / 1000f);
+			_degreesPerStep = _scoreMotorComponent.Degrees / _scoreMotorComponent.Steps;
 
 			_score = 0;
 			_points = 0;
 			_increase = 0;
 		}
 
-		private void OnResetCoilEnabled()
-		{
-		}
-
-		private void HandleAddPoints(object sender, DisplayAddPointsEventArgs e)
+		private void HandleAddPoints(object sender, ScoreMotorAddPointsEventArgs e)
 		{
 			var increase = (int)
 				((e.Points % 1000000 == 0) ? e.Points / 1000000 :
@@ -110,30 +96,32 @@ namespace VisualPinball.Unity
 				(e.Points % 10 == 0) ? e.Points / 10 :
 				e.Points);
 
-			if (increase > ScoreReelDisplayComponent.MAX_INCREASE) {
-				Logger.Info($"too many increases (ignoring points), name={_scoreReelDisplayComponent.name}, points={e.Points}, increase={increase}");
+			if (increase > ScoreMotorComponent.MaxIncrease) {
+				Logger.Info($"too many increases (ignoring points), name={_scoreMotorComponent.name}, points={e.Points}, increase={increase}");
 				return;
 			}
 
 			if (_running) {
-				if (increase > 1 || (increase == 1 && _scoreReelDisplayComponent.BlockScoring)) {
-					Logger.Info($"already running (ignoring points), name={_scoreReelDisplayComponent.name}, points={e.Points}");
+				if (increase > 1 || (increase == 1 && _scoreMotorComponent.BlockScoring))
+				{
+					Logger.Info($"already running (ignoring points), name={_scoreMotorComponent.name}, points={e.Points}");
 					return;
 				}
 			}
 
 			if (increase == 1) {
-				Logger.Info($"single points, name={_scoreReelDisplayComponent.name}, points={e.Points}");
+				Logger.Info($"single points, name={_scoreMotorComponent.name}, points={e.Points}");
 
-				_score = _score + e.Points;
-				_scoreReelDisplayComponent.UpdateScore(_score);
+				e.DisplayComponent.IncrementScore(e.Points);
+
 				return;
 			}
 
 			_increase = increase;
 			_points = e.Points / increase;
+			_displayComponent = e.DisplayComponent;
 
-			Logger.Info($"multi points, name={_scoreReelDisplayComponent.name}, increase={_increase}, points={e.Points}");
+			Logger.Info($"multi points, name={_scoreMotorComponent.name}, increase={_increase}, points={e.Points}");
 
 			_time = 0;
 			_pos = 0;
@@ -144,7 +132,7 @@ namespace VisualPinball.Unity
 
 			Advance();
 
-			_scoreReelDisplayComponent.OnUpdate += HandleUpdate;
+			_scoreMotorComponent.OnUpdate += HandleUpdate;
 		}
 
 		private void HandleUpdate(object sender, EventArgs eventArgs)
@@ -153,12 +141,12 @@ namespace VisualPinball.Unity
 
 			int newPos = (int)(_degreesPerSecond * _time);
 
-			while (_pos <= newPos && _pos < _scoreReelDisplayComponent.Degrees) {
+			while (_pos <= newPos && _pos < _scoreMotorComponent.Degrees) {
 				Advance();
 			}
 
-			if (_pos >= _scoreReelDisplayComponent.Degrees) {
-				_scoreReelDisplayComponent.OnUpdate -= HandleUpdate;
+			if (_pos >= _scoreMotorComponent.Degrees) {
+				_scoreMotorComponent.OnUpdate -= HandleUpdate;
 
 				MotorRunningSwitch.SetSwitch(false);
 
@@ -168,10 +156,10 @@ namespace VisualPinball.Unity
 
 		void IApi.OnDestroy()
 		{
-			_scoreReelDisplayComponent.OnUpdate -= HandleUpdate;
-			_scoreReelDisplayComponent.OnAddPoints -= HandleAddPoints;
+			_scoreMotorComponent.OnUpdate -= HandleUpdate;
+			_scoreMotorComponent.OnAddPoints -= HandleAddPoints;
 
-			Logger.Info($"Destroying {_scoreReelDisplayComponent.name}");
+			Logger.Info($"Destroying {_scoreMotorComponent.name}");
 		}
 
 		private void Advance()
@@ -180,13 +168,12 @@ namespace VisualPinball.Unity
 				MotorStepSwitch.SetSwitch(true);
 
 				var step = _pos / _degreesPerStep;
-				var action = _scoreReelDisplayComponent.ScoreMotorActionsList[_increase - 1].Actions[step];
+				var action = _scoreMotorComponent.ScoreMotorActionsList[_increase - 1].Actions[step];
 
-				Logger.Info($"advance, name={_scoreReelDisplayComponent.name}, pos={_pos}, time={_time}, increase={_increase}, step={step}, points={_points}, action={action}");
+				Logger.Info($"advance, name={_scoreMotorComponent.name}, pos={_pos}, time={_time}, increase={_increase}, step={step}, points={_points}, action={action}");
 
 				if (action == ScoreMotorAction.Increase) {
-					_score += _points;
-					_scoreReelDisplayComponent.UpdateScore(_score);
+					_displayComponent.IncrementScore(_points);
 				}
 			}
 

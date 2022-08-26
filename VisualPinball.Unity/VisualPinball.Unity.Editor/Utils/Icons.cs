@@ -290,7 +290,7 @@ namespace VisualPinball.Unity.Editor
 				case RampComponent _: return Icons.Ramp(size, color);
 				case RotatorComponent _: return Icons.Rotator(size, color);
 				case RubberComponent _: return Icons.Rubber(size, color);
-				case ScoreReelDisplayComponent _: return Icons.ScoreReel(size, color);
+  				case ScoreMotorComponent _: return Icons.Mech(size, color);
 				case ScoreReelComponent _: return Icons.ScoreReelSingle(size, color);
 				case SpinnerComponent _: return Icons.Spinner(size, color);
 				case SlingshotComponent _: return Icons.Slingshot(size, color);
@@ -356,7 +356,7 @@ namespace VisualPinball.Unity.Editor
 			Icons.DisableGizmo<RubberMeshComponent>();
 			Icons.DisableGizmo<RubberColliderComponent>();
 			Icons.DisableGizmo<ScoreReelComponent>();
-			Icons.DisableGizmo<ScoreReelDisplayComponent>();
+			Icons.DisableGizmo<ScoreMotorComponent>();
 			Icons.DisableGizmo<SegmentDisplayComponent>();
 			Icons.DisableGizmo<SlingshotComponent>();
 			Icons.DisableGizmo<SpinnerComponent>();

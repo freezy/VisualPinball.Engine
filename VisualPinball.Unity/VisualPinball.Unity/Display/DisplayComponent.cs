@@ -47,10 +47,8 @@ namespace VisualPinball.Unity
 
 		public abstract void Clear();
 
-		public virtual void AddPoints(float points)
-		{
-			Logger.Error("This display component does not support add points!");
-		}
+		public abstract void AddPoints(float points);
+		public abstract void IncrementScore(float points);
 
 		public abstract void UpdateFrame(DisplayFrameFormat format, byte[] data);
 
