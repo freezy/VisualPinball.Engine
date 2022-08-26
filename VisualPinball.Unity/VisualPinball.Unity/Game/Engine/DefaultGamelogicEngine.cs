@@ -49,6 +49,7 @@ namespace VisualPinball.Unity
 		public event EventHandler<LampsEventArgs> OnLampsChanged;
 		public event EventHandler<SwitchEventArgs2> OnSwitchChanged;
 		public event EventHandler<RequestedDisplays> OnDisplaysRequested;
+		public event EventHandler<DisplayClearData> OnDisplayClear;
 		public event EventHandler<DisplayFrameData> OnDisplayUpdateFrame;
 		public event EventHandler<DisplayAddPointsData> OnDisplayAddPoints;
 		public event EventHandler<EventArgs> OnStarted;
@@ -295,7 +296,7 @@ namespace VisualPinball.Unity
 		}
 
 
-		void IGamelogicEngine.DisplayScoreEvent(string id, float score)
+		void IGamelogicEngine.DisplayScoreEvent(string id, float points, float score)
 		{
 		}
 

@@ -42,10 +42,11 @@ namespace VisualPinball.Unity
 		/// most GLEs only know about their displays when they start the game.
 		/// </remarks>
 		event EventHandler<RequestedDisplays> OnDisplaysRequested;
+		event EventHandler<DisplayClearData> OnDisplayClear;
 		event EventHandler<DisplayFrameData> OnDisplayUpdateFrame;
 		event EventHandler<DisplayAddPointsData> OnDisplayAddPoints;
 
-		void DisplayScoreEvent(string id, float score);
+		void DisplayScoreEvent(string id, float points, float score);
 
 		#endregion
 
@@ -205,6 +206,16 @@ namespace VisualPinball.Unity
 		Numeric       // gets a byte-array converted float
 	}
 
+	public class DisplayClearData
+	{
+		public readonly string Id;
+
+		public DisplayClearData(string id)
+		{
+			Id = id;
+		}
+	}
+
 	public class DisplayFrameData
 	{
 		public readonly string Id;
@@ -314,26 +325,16 @@ namespace VisualPinball.Unity
 		}
 	}
 
-	public readonly struct ScoreMotorAddPointsEventArgs
-	{
-		public readonly DisplayComponent DisplayComponent;
-		public readonly float Points;
-
-		public ScoreMotorAddPointsEventArgs(DisplayComponent displayComponent, float points)
-		{
-			DisplayComponent = displayComponent;
-			Points = points;
-		}
-	}
-
 	public readonly struct DisplayScoreEventArgs
 	{
 		public readonly string Id;
+		public readonly float Points;
 		public readonly float Score;
 
-		public DisplayScoreEventArgs(string id, float score)
+		public DisplayScoreEventArgs(string id, float points, float score)
 		{
 			Id = id;
+			Points = points;
 			Score = score;
 		}
 	}

@@ -48,7 +48,6 @@ namespace VisualPinball.Unity
 		public abstract void Clear();
 
 		public abstract void AddPoints(float points);
-		public abstract void IncrementScore(float points);
 
 		public abstract void UpdateFrame(DisplayFrameFormat format, byte[] data);
 

@@ -21,9 +21,9 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Text;
-using NLog;
 using Unity.Mathematics;
 using UnityEngine;
+using NLog;
 using Logger = NLog.Logger;
 
 namespace VisualPinball.Unity
@@ -254,11 +254,6 @@ namespace VisualPinball.Unity
 		public override void AddPoints(float points)
 		{
 			Logger.Error("This display does not support add points.");
-		}
-
-		public override void IncrementScore(float points)
-		{
-			Logger.Error("This display does not support increment score.");
 		}
 
 		public override void UpdateFrame(DisplayFrameFormat format, byte[] source)
