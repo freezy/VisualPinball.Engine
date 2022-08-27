@@ -724,8 +724,8 @@ namespace VisualPinball.Unity
 			var normalSpeed = math.dot(collEvent.HitNormal, ball.Velocity) * -1f;
 			// Vector from position of the flipper ball to ball
 			var flipperToBall = ball.Position - matData.Position;
-			var HatTangent = Math.CrossZ(1f, collEvent.HitNormal);
-			var ballPosition = math.dot(HatTangent, flipperToBall);
+			var HitTangent = Math.CrossZ(1f, collEvent.HitNormal);
+			var ballPosition = math.dot(HitTangent, flipperToBall);
 			//Logger.Info("BallPosition = {0}", ballPosition);
 			if (math.abs(ballPosition) > tricks.LiveCatchDistanceMax) {
 				//Logger.Info("BallPosition = {0} -> no calculation", ballPosition);
