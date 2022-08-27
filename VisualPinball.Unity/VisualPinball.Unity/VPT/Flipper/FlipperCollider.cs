@@ -720,7 +720,7 @@ namespace VisualPinball.Unity
 
 		public static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 		#region LiveCatch
-		public void LiveCatch(ref BallData ball, in FlipperTricksData tricks, in FlipperStaticData matData, uint msec )
+		public void LiveCatch(ref BallData ball, ref CollisionEventData collEvent, ref FlipperTricksData tricks, in FlipperStaticData matData, uint msec )
 		{
 
 			if (ball.Velocity.y > 6)

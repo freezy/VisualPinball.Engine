@@ -122,7 +122,7 @@ namespace VisualPinball.Unity
 
 		#region LiveCatch
 		/// <summary>
-		/// If set, apply Flipper Tricks Physics (nFozzy/RothBauerW)
+		/// If set, apply Live Catch (nFozzy/RothBauerW)
 		/// </summary>
 		#endregion
 		[Tooltip("The nFozzy's LiveCatch Physics")]
