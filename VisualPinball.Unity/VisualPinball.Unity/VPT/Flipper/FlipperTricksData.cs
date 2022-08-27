@@ -59,7 +59,8 @@ namespace VisualPinball.Unity
 		public float LiveCatchMinimalBallSpeed; 
 		public float LiveCatchPerfectTime;
 		public float LiveCatchFullTime;
-		public float LiveCatchInaccuracySpeed;
+		public float LiveCatchMinimalBounceSpeedMultiplier;
+		public float LiveCatchInaccurateBounceSpeedMultiplier;
 
 	}
 }

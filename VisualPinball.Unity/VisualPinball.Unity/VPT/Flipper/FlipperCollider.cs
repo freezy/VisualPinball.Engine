@@ -720,19 +720,36 @@ namespace VisualPinball.Unity
 
 		public static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 		#region LiveCatch
-		public void LiveCatch(ref BallData ball, ref CollisionEventData collEvent, ref FlipperTricksData tricks, in FlipperStaticData matData, uint msec )
-		{
+		public void LiveCatch(ref BallData ball, ref CollisionEventData collEvent, ref FlipperTricksData tricks, in FlipperStaticData matData, uint msec ) {
 			var normalSpeed = math.dot(collEvent.HitNormal, ball.Velocity) * -1f;
 
 			// only test for LiveCatch if Ballspeed is greater as set Minimal Speed (default = 6)
-			if (normalSpeed >= tricks.LiveCatchMinimalBallSpeed)
+			// different to nFozzys implementation we calculate all speeds based on the angle of the flipper, not y direction.
+			if (normalSpeed >= tricks.LiveCatchMinimalBallSpeed) {
+				float catchTime = (float)(msec - tricks.FlipperAngleEndTime * 1000);
+				if (catchTime <= tricks.LiveCatchFullTime){
+					// we have a live catch, so stop the ball for now.
+					ball.Velocity += normalSpeed * collEvent.HitNormal;
+					// do we have some bounce
+					// as a difference to the nFozzy implementation, we don't deal with hard-coded speeds, but multiplier to current speed against the flipper.
+					var liveCatchBounceMultiplier = tricks.LiveCatchMinimalBounceSpeedMultiplier;
+					Logger.Info("We have a live catch");
+					if (catchTime > tricks.LiveCatchPerfectTime) {
+						// but it's imperfect, so we have add some bounce
+						// example: hit after 10 msecs, fulltime is 16, perfect time is 8, should be (10-8)/(16-8)*inaccuracySpeedMultiplier
+						liveCatchBounceMultiplier = (catchTime - tricks.LiveCatchPerfectTime) / (tricks.LiveCatchFullTime - tricks.LiveCatchPerfectTime) * (tricks.LiveCatchInaccurateBounceSpeedMultiplier-tricks.LiveCatchMinimalBounceSpeedMultiplier) + tricks.LiveCatchMinimalBounceSpeedMultiplier;
+					
+					}
+					Logger.Info("Bounce Multiplicator is {0}, catchtime {1}", liveCatchBounceMultiplier, catchTime);
+					ball.Velocity -= collEvent.HitNormal * normalSpeed * liveCatchBounceMultiplier;
+					ball.AngularMomentum.x = 0;
+					ball.AngularMomentum.y = 0;
 
-				if (ball.Velocity.y > 6)
-				{
-					Logger.Info("LiveCatchTest - Ball with y-speed {0}, at CollisionTime: {1}, livecatchTime is {2}, difference is {3} msecs", ball.Velocity.y, msec, tricks.FlipperAngleEndTime * 1000, tricks.FlipperAngleEndTime * 1000 - msec);
-					Logger.Info("LiveCatchTest - normalspeed = {0}", normalSpeed);
-					ball.Velocity.y = 0.6f;
 				}
+				Logger.Info("LiveCatchTest - Ball with y-speed {0}, at CollisionTime: {1}, livecatchTime is {2}, difference is {3} msecs", ball.Velocity.y, msec, tricks.FlipperAngleEndTime * 1000, tricks.FlipperAngleEndTime * 1000 - msec);
+				Logger.Info("LiveCatchTest - normalspeed = {0}, catchTime = {1}", normalSpeed, catchTime);
+
+			}
 		}
 
 		#endregion
