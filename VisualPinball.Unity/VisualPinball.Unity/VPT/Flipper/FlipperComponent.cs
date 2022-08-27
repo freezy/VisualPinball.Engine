@@ -592,7 +592,15 @@ namespace VisualPinball.Unity
 				AngleEnd = staticData.AngleEnd,
 				TorqueDamping = staticData.TorqueDamping,
 				TorqueDampingAngle = staticData.TorqueDampingAngle,
-				RampUpSpeed = staticData.RampUpSpeed, 
+				RampUpSpeed = staticData.RampUpSpeed,
+
+				UseFlipperLiveCatch = colliderComponent.useFlipperLiveCatch,
+				LiveCatchDistanceMin = colliderComponent.LiveCatchDistanceMin, // vp units from base
+				LiveCatchDistanceMax = colliderComponent.LiveCatchDistanceMax, // vp units from base
+				LiveCatchMinimalBallSpeed = colliderComponent.LiveCatchMinimalBallSpeed,
+				LiveCatchPerfectTime = colliderComponent.LiveCatchPerfectTime,
+				LiveCatchFullTime = colliderComponent.LiveCatchFullTime,
+				LiveCatchInaccuracySpeed = colliderComponent.LiveCatchInaccuracySpeed,
 
 		//initialize
 		OriginalAngleEnd = staticData.AngleEnd,
