@@ -149,8 +149,12 @@ namespace VisualPinball.Unity
 		public float LiveCatchPerfectTime = 8;
 
 		[Min(0f)]
-		[Tooltip("Maximum bounce speed for an inaccurate live catch")]
-		public float LiveCatchInaccuracySpeed = 32;
+		[Tooltip("Minimum bounce speed multiplier for a live catch (0 allows perfect live catches)")]
+		public float LiveCatchMinmalBounceSpeedMultiplier = 0.1f;
+
+		[Min(0f)]
+		[Tooltip("Maximum bounce speed multiplier for an inaccurate live catch")]
+		public float LiveCatchInaccurateBounceSpeedMultiplier = 1.0f;
 
 		protected override IApiColliderGenerator InstantiateColliderApi(Player player, Entity entity)
 			=> new FlipperApi(gameObject, entity, player);

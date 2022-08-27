@@ -58,7 +58,8 @@ namespace VisualPinball.Unity.Editor
 		private SerializedProperty _LiveCatchMinimalBallSpeed;
 		private SerializedProperty _LiveCatchPerfectTime;
 		private SerializedProperty _LiveCatchFullTime;
-		private SerializedProperty _LiveCatchInaccuracySpeed;
+		private SerializedProperty _LiveCatchInaccurateBounceSpeedMultiplier;
+		private SerializedProperty _LiveCatchMinimumBounceSpeedMultiplier;
 
 		protected override void OnEnable()
 		{
@@ -95,9 +96,10 @@ namespace VisualPinball.Unity.Editor
 			_LiveCatchMinimalBallSpeed = serializedObject.FindProperty(nameof(FlipperColliderComponent.LiveCatchMinimalBallSpeed));
 			_LiveCatchPerfectTime = serializedObject.FindProperty(nameof(FlipperColliderComponent.LiveCatchPerfectTime));
 			_LiveCatchFullTime = serializedObject.FindProperty(nameof(FlipperColliderComponent.LiveCatchFullTime));
-			_LiveCatchInaccuracySpeed = serializedObject.FindProperty(nameof(FlipperColliderComponent.LiveCatchInaccuracySpeed));
-			# endregion
-	}
+			_LiveCatchInaccurateBounceSpeedMultiplier = serializedObject.FindProperty(nameof(FlipperColliderComponent.LiveCatchInaccurateBounceSpeedMultiplier));
+			_LiveCatchMinimumBounceSpeedMultiplier = serializedObject.FindProperty(nameof(FlipperColliderComponent.LiveCatchMinmalBounceSpeedMultiplier));
+			#endregion
+		}
 
 		public override void OnInspectorGUI()
 		{
@@ -151,7 +153,8 @@ namespace VisualPinball.Unity.Editor
 				PropertyField(_LiveCatchMinimalBallSpeed, "Min Ball Speed");
 				PropertyField(_LiveCatchPerfectTime, "Perfect Time");
 				PropertyField(_LiveCatchFullTime, "Full Time");
-				PropertyField(_LiveCatchInaccuracySpeed, "Inaccuracy Speed");
+				PropertyField(_LiveCatchMinimumBounceSpeedMultiplier, "Perfect Bounce");
+				PropertyField(_LiveCatchInaccurateBounceSpeedMultiplier, "Inaccurate Bounce");
 
 				EditorGUI.EndDisabledGroup();
 			}
