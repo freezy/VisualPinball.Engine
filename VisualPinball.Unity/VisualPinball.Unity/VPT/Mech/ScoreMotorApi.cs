@@ -49,11 +49,13 @@ namespace VisualPinball.Unity
 		private int _pos;
 
 		private ScoreMotorMode _mode;
+		private string _id;
 		private int _increase;
+		private float _points;
 		private ScoreMotorActionCallback _callback;
 
-		private float _score;
-		private float _points;
+		private Dictionary<string, DisplayComponent> _displays = new();
+		private Dictionary<string, float> _displayScores = new();
 
 		public IApiSwitch Switch(string deviceItem)
 		{
@@ -80,6 +82,10 @@ namespace VisualPinball.Unity
 
 			Init?.Invoke(this, EventArgs.Empty);
 
+			_displays.Clear();
+			_displayScores.Clear();
+
+			_scoreMotorComponent.OnRegisterDisplay += HandleRegisterDisplay;
 			_scoreMotorComponent.OnResetScore += HandleResetScore;
 			_scoreMotorComponent.OnAddPoints += HandleAddPoints;
 
@@ -89,32 +95,51 @@ namespace VisualPinball.Unity
 			_running = false;
 		}
 
+		private void HandleRegisterDisplay(object sender, ScoreMotorRegisterDisplayEventArgs e)
+		{
+			var id = e.DisplayComponent.Id;
+
+			_displays[id] = e.DisplayComponent;
+			_displayScores[id] = 0f;
+		}
+
 		private void HandleResetScore(object sender, ScoreMotorResetScoreEventArgs e)
 		{
+			var id = e.DisplayComponent.Id;
+
 			if (_running) {
-				Logger.Info($"already running (ignoring reset), name={_scoreMotorComponent.name}");
+				Logger.Info($"already running (ignoring reset), id={id}");
 				return;
 			}
 
-			if (e.Score == 0) {
-				Logger.Info($"score already 0 (ignoring reset), name={_scoreMotorComponent.name}");
+			if (_displayScores[id] == 0) {
+				Logger.Info($"score already 0 (ignoring reset), id={id}");
+				e.Callback(0, 0);
 
-				e.Callback(0);
 				return;
 			}
-			
+
+			// If display is score reel, truncate to amount of zeros
+
+			if (_displays[id] is ScoreReelDisplayComponent) {
+				_displayScores[id] = (float)(_displayScores[id] % System.Math.Pow(10,
+					((ScoreReelDisplayComponent)_displays[id]).ReelObjects.Length));
+			}
+
 			_mode = ScoreMotorMode.Reset;
+			_id = id;
 			_increase = ScoreMotorComponent.MaxIncrease;
-			_score = e.Score;
 			_callback = e.Callback;
 
-			Logger.Info($"reset, name={_scoreMotorComponent.name}");
+			Logger.Info($"reset, id={id}");
 
 			StartMotor();
 		}
 
 		private void HandleAddPoints(object sender, ScoreMotorAddPointsEventArgs e)
 		{
+			var id = e.DisplayComponent.Id;
+
 			var increase = (int)
 				((e.Points % 1000000000 == 0) ? e.Points / 1000000000 :
 				 (e.Points % 100000000 == 0) ? e.Points / 100000000 :
@@ -128,30 +153,33 @@ namespace VisualPinball.Unity
 				 e.Points);
 
 			if (increase > ScoreMotorComponent.MaxIncrease) {
-				Logger.Error($"too many increases (ignoring points), name={_scoreMotorComponent.name}, points={e.Points}, increase={increase}");
+				Logger.Error($"too many increases (ignoring points), id={id}, points={e.Points}, increase={increase}");
 				return;
 			}
 
 			if (_running) {
 				if (increase > 1 || (increase == 1 && _scoreMotorComponent.BlockScoring)) {
-					Logger.Info($"already running (ignoring points), name={_scoreMotorComponent.name}, points={e.Points}");
+					Logger.Info($"already running (ignoring points), id={id}, points={e.Points}");
 					return;
 				}
 			}
 
 			if (increase == 1) {
-				Logger.Info($"single points, name={_scoreMotorComponent.name}, points={e.Points}");
-				e.Callback(e.Points);
+				_displayScores[id] += e.Points;
+
+				Logger.Info($"single points, id={id}, points={e.Points}");
+				e.Callback(e.Points, _displayScores[id]);
 
 				return;
 			}
 
 			_mode = ScoreMotorMode.AddPoints;
+			_id = id;
 			_increase = increase;
 			_points = e.Points / increase;
 			_callback = e.Callback;
 
-			Logger.Info($"multi points, name={_scoreMotorComponent.name}, increase={_increase}, points={e.Points}");
+			Logger.Info($"multi points, id={id}, increase={_increase}, points={e.Points}");
 
 			StartMotor();
 		}
@@ -191,7 +219,7 @@ namespace VisualPinball.Unity
 
 			if (_pos >= _scoreMotorComponent.Degrees) {
 				if (_mode == ScoreMotorMode.Reset) {
-					if (_score > 0) {
+					if (_displayScores[_id] > 0) {
 						_time = 0;
 						_pos = 0;
 
@@ -219,17 +247,19 @@ namespace VisualPinball.Unity
 		{
 			switch(_mode) {
 				case ScoreMotorMode.Reset:
-					_score = RotateScore(_score);
+					_displayScores[_id] = ResetScore(_id);
 
-					Logger.Info($"increase, mode={_mode}, name={_scoreMotorComponent.name}, score={_score}");
+					Logger.Info($"increase, mode={_mode}, id={_id}, score={_displayScores[_id]}");
+					_callback(0, _displayScores[_id]);
 
-					_callback(_score);
 					break;
 
 				case ScoreMotorMode.AddPoints:
-					Logger.Info($"increase, mode={_mode}, name={_scoreMotorComponent.name}, points={_points}");
+					_displayScores[_id] += _points;
 
-					_callback(_points);
+					Logger.Info($"increase, mode={_mode}, id={_id}, points={_points}, score={_displayScores[_id]}");
+					_callback(_points, _displayScores[_id]);
+
 					break;
 			}
 		}
@@ -242,7 +272,7 @@ namespace VisualPinball.Unity
 				var step = _pos / _degreesPerStep;
 				var action = _scoreMotorComponent.ScoreMotorActionsList[_increase - 1].Actions[step];
 
-				Logger.Info($"advance, name={_scoreMotorComponent.name}, pos={_pos}, time={_time}, increase={_increase}, step={step}, action={action}");
+				Logger.Info($"advance, pos={_pos}, time={_time}, increase={_increase}, step={step}, action={action}");
 
 				if (action == ScoreMotorAction.Increase) {
 					Increase();
@@ -252,21 +282,35 @@ namespace VisualPinball.Unity
 			_pos++;
 		}
 
-		private float RotateScore(float score)
+		private float ResetScore(string id)
 		{
-			float newScore = 0;
+			DisplayComponent displayComponent = _displays[id];
 
-			var pos = 0;
-			while (score > 0) {
-				var i = (int)(score % 10);
-				if (i > 0 && i < 9) {
-					newScore += (float)(System.Math.Pow(10, pos) * (i + 1));
+			if (displayComponent is ScoreReelDisplayComponent) {
+				var score = _displayScores[id];
+
+				// Truncate score to the amount of reels
+
+				score = (float)(score % System.Math.Pow(10,
+						((ScoreReelDisplayComponent)displayComponent).ReelObjects.Length));
+
+				float newScore = 0;
+
+				var pos = 0;
+				while (score > 0) {
+					var i = (int)(score % 10);
+					if (i > 0 && i < 9)
+					{
+						newScore += (float)(System.Math.Pow(10, pos) * (i + 1));
+					}
+					score = (int)(score / 10);
+					pos++;
 				}
-				score = (int)(score / 10);
-				pos++;
+
+				return newScore;
 			}
 
-			return newScore;
+			return 0;
 		}
 	}
 }
