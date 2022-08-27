@@ -14,13 +14,13 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-using NLog;
 using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
 using Unity.Entities;
 using Unity.Mathematics;
 using VisualPinball.Engine.Common;
 using VisualPinball.Engine.Game;
+// using NLog;
 
 namespace VisualPinball.Unity
 {
@@ -718,7 +718,7 @@ namespace VisualPinball.Unity
 
 		#endregion
 
-		public static readonly Logger Logger = LogManager.GetCurrentClassLogger();
+		//public static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 		#region LiveCatch
 		public void LiveCatch(ref BallData ball, ref CollisionEventData collEvent, ref FlipperTricksData tricks, in FlipperStaticData matData, uint msec ) {
 			var normalSpeed = math.dot(collEvent.HitNormal, ball.Velocity) * -1f;
@@ -733,21 +733,22 @@ namespace VisualPinball.Unity
 					// do we have some bounce
 					// as a difference to the nFozzy implementation, we don't deal with hard-coded speeds, but multiplier to current speed against the flipper.
 					var liveCatchBounceMultiplier = tricks.LiveCatchMinimalBounceSpeedMultiplier;
-					Logger.Info("We have a live catch");
+					//Logger.Info("We have a live catch");
 					if (catchTime > tricks.LiveCatchPerfectTime) {
 						// but it's imperfect, so we have add some bounce
 						// example: hit after 10 msecs, fulltime is 16, perfect time is 8, should be (10-8)/(16-8)*inaccuracySpeedMultiplier
 						liveCatchBounceMultiplier = (catchTime - tricks.LiveCatchPerfectTime) / (tricks.LiveCatchFullTime - tricks.LiveCatchPerfectTime) * (tricks.LiveCatchInaccurateBounceSpeedMultiplier-tricks.LiveCatchMinimalBounceSpeedMultiplier) + tricks.LiveCatchMinimalBounceSpeedMultiplier;
 					
 					}
-					Logger.Info("Bounce Multiplicator is {0}, catchtime {1}", liveCatchBounceMultiplier, catchTime);
+					//Logger.Info("Bounce Multiplicator is {0}, catchtime {1}", liveCatchBounceMultiplier, catchTime);
+					// re-add speed (to the flipper, since the rubber has still to be calculated)
 					ball.Velocity -= collEvent.HitNormal * normalSpeed * liveCatchBounceMultiplier;
+					// kill momentum, but not z... (why is this in nFozzy's?)
 					ball.AngularMomentum.x = 0;
 					ball.AngularMomentum.y = 0;
-
 				}
-				Logger.Info("LiveCatchTest - Ball with y-speed {0}, at CollisionTime: {1}, livecatchTime is {2}, difference is {3} msecs", ball.Velocity.y, msec, tricks.FlipperAngleEndTime * 1000, tricks.FlipperAngleEndTime * 1000 - msec);
-				Logger.Info("LiveCatchTest - normalspeed = {0}, catchTime = {1}", normalSpeed, catchTime);
+				//Logger.Info("LiveCatchTest - Ball with y-speed {0}, at CollisionTime: {1}, livecatchTime is {2}, difference is {3} msecs", ball.Velocity.y, msec, tricks.FlipperAngleEndTime * 1000, tricks.FlipperAngleEndTime * 1000 - msec);
+				//Logger.Info("LiveCatchTest - normalspeed = {0}, catchTime = {1}", normalSpeed, catchTime);
 
 			}
 		}
