@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+using NLog;
 using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
 using Unity.Entities;
@@ -574,7 +575,7 @@ namespace VisualPinball.Unity
 
 			// hit limits ???
 			if (contactAng >= angleMax && angleSpeed > 0 || contactAng <= angleMin && angleSpeed < 0) {
-				angleSpeed = 0; // rotation stopped
+				angleSpeed = 0f; // rotation stopped
 			}
 
 			// Unit Tangent vector velocity of contact point(rotate normal right)
@@ -713,6 +714,19 @@ namespace VisualPinball.Unity
 			var vB = BallData.SurfaceVelocity(in ball, in rB);
 			var vF = FlipperMovementData.SurfaceVelocity(in movementData, in rF);
 			vRel = vB - vF;
+		}
+
+		#endregion
+
+		public static readonly Logger Logger = LogManager.GetCurrentClassLogger();
+		#region LiveCatch
+		public void LiveCatch(ref BallData ball, in FlipperTricksData tricks, in FlipperStaticData matData, uint msec )
+		{
+			if (ball.Velocity.y > 6)
+			{
+				Logger.Info("LiveCatchTest - Ball with y-speed {0}, at CollisionTime: {1}, livecatchTime is {2}, difference is {3} msecs", ball.Velocity.y, msec, tricks.liveCatchTime*1000, tricks.liveCatchTime*1000-msec);
+				ball.Velocity.y = 0.6f;
+			}
 		}
 
 		#endregion

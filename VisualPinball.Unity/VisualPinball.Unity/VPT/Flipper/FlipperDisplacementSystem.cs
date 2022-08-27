@@ -50,8 +50,9 @@ namespace VisualPinball.Unity
 			var dTime = _simulateCycleSystemGroup.HitTime;
 			var events = _eventQueue.AsParallelWriter();
 			var marker = PerfMarker;
+			var currentTime = Time.ElapsedTime;
 
-			Entities.WithName("FlipperDisplacementJob").ForEach((Entity entity, ref FlipperMovementData state, in FlipperTricksData tricks,in FlipperStaticData data) => {
+			Entities.WithName("FlipperDisplacementJob").ForEach((Entity entity, ref FlipperMovementData state, ref FlipperTricksData tricks, in FlipperStaticData data) => {
 
 				marker.Begin();
 
@@ -75,6 +76,10 @@ namespace VisualPinball.Unity
 				}
 
 				var handleEvent = false;
+
+				if (state.Angle == tricks.AngleEnd) {
+					tricks.liveCatchTime = currentTime;
+				}
 
 				if (state.Angle >= angleMax) {
 					// hit stop?

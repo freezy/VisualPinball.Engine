@@ -38,6 +38,9 @@ namespace VisualPinball.Unity
 
 		public bool WasInContact;
 
+		// time used for live Catch
+		public double liveCatchTime;
+
 		// externals
 		public bool useFlipperTricksPhysics;
 		public float SOSRampUp;
@@ -47,5 +50,7 @@ namespace VisualPinball.Unity
 		public float EOSANew;
 		public float EOSRampup;
 		public float Overshoot;
+		public bool useFlipperLiveCatch;
+
 	}
 }
