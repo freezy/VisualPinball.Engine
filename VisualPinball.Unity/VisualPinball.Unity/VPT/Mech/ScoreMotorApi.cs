@@ -80,7 +80,7 @@ namespace VisualPinball.Unity
 			_degreesPerSecond = _scoreMotorComponent.Degrees / (_scoreMotorComponent.Duration / 1000f);
 			_degreesPerStep = _scoreMotorComponent.Degrees / _scoreMotorComponent.Steps;
 
-			_scoreMotorComponent.OnAttachDisplayComponent += HandleRegisterDisplay;
+			_scoreMotorComponent.OnAttachDisplayComponent += HandleAttachDisplayComponent;
 			_scoreMotorComponent.OnResetScore += HandleResetScore;
 			_scoreMotorComponent.OnAddPoints += HandleAddPoints;
 
@@ -95,7 +95,7 @@ namespace VisualPinball.Unity
 			Init?.Invoke(this, EventArgs.Empty);
 		}
 
-		private void HandleRegisterDisplay(object sender, ScoreMotorAttachDisplayComponentEventArgs e)
+		private void HandleAttachDisplayComponent(object sender, ScoreMotorAttachDisplayComponentEventArgs e)
 		{
 			var id = e.DisplayComponent.Id;
 
@@ -122,13 +122,6 @@ namespace VisualPinball.Unity
 				e.Callback(0, 0);
 
 				return;
-			}
-
-			// If display is score reel, truncate to amount of zeros
-
-			if (_displays[id] is ScoreReelDisplayComponent) {
-				_displayScores[id] = (float)(_displayScores[id] % System.Math.Pow(10,
-					((ScoreReelDisplayComponent)_displays[id]).ReelObjects.Length));
 			}
 
 			_mode = ScoreMotorMode.Reset;
@@ -247,6 +240,7 @@ namespace VisualPinball.Unity
 		{
 			_scoreMotorComponent.OnUpdate -= HandleUpdate;
 
+			_scoreMotorComponent.OnAttachDisplayComponent -= HandleAttachDisplayComponent;
 			_scoreMotorComponent.OnResetScore -= HandleResetScore;
 			_scoreMotorComponent.OnAddPoints -= HandleAddPoints;
 
