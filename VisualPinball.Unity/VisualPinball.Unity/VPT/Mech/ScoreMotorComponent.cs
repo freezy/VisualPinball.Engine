@@ -24,29 +24,41 @@ using VisualPinball.Engine.Game.Engines;
 
 namespace VisualPinball.Unity
 {
-	public delegate void ScoreMotorActionCallback(float value);
+	public delegate void ScoreMotorActionCallback(float points, float score);
 
 	public readonly struct ScoreMotorResetScoreEventArgs
 	{
-		public readonly float Score;
+		public readonly DisplayComponent DisplayComponent;
 		public readonly ScoreMotorActionCallback Callback;
 
-		public ScoreMotorResetScoreEventArgs(float score, ScoreMotorActionCallback callback)
+		public ScoreMotorResetScoreEventArgs(DisplayComponent displayComponent, ScoreMotorActionCallback callback)
 		{
-			Score = score;
+			DisplayComponent = displayComponent;
 			Callback = callback;
 		}
 	}
 
 	public readonly struct ScoreMotorAddPointsEventArgs
 	{
+		public readonly DisplayComponent DisplayComponent;
 		public readonly float Points;
 		public readonly ScoreMotorActionCallback Callback;
 
-		public ScoreMotorAddPointsEventArgs(float points, ScoreMotorActionCallback callback)
+		public ScoreMotorAddPointsEventArgs(DisplayComponent displayComponent, float points, ScoreMotorActionCallback callback)
 		{
+			DisplayComponent = displayComponent;
 			Points = points;
 			Callback = callback;
+		}
+	}
+
+	public readonly struct ScoreMotorRegisterDisplayEventArgs
+	{
+		public readonly DisplayComponent DisplayComponent;
+
+		public ScoreMotorRegisterDisplayEventArgs(DisplayComponent displayComponent)
+		{
+			DisplayComponent = displayComponent;
 		}
 	}
 
@@ -101,6 +113,7 @@ namespace VisualPinball.Unity
 		public const string MotorStepSwitchItem = "motor_step_switch";
 
 		public event EventHandler OnUpdate;
+		public event EventHandler<ScoreMotorRegisterDisplayEventArgs> OnRegisterDisplay;
 		public event EventHandler<ScoreMotorResetScoreEventArgs> OnResetScore;
 		public event EventHandler<ScoreMotorAddPointsEventArgs> OnAddPoints;
 
@@ -131,14 +144,19 @@ namespace VisualPinball.Unity
 			OnUpdate?.Invoke(this, EventArgs.Empty);
 		}
 
-		public void ResetScore(float score, ScoreMotorActionCallback callback)
+		public void RegisterDisplay(DisplayComponent displayComponent)
 		{
-			OnResetScore?.Invoke(this, new ScoreMotorResetScoreEventArgs(score, callback));
+			OnRegisterDisplay?.Invoke(this, new ScoreMotorRegisterDisplayEventArgs(displayComponent));
 		}
 
-		public void AddPoints(float points, ScoreMotorActionCallback callback)
+		public void ResetScore(DisplayComponent displayComponent, ScoreMotorActionCallback callback)
 		{
-			OnAddPoints?.Invoke(this, new ScoreMotorAddPointsEventArgs(points, callback));
+			OnResetScore?.Invoke(this, new ScoreMotorResetScoreEventArgs(displayComponent, callback));
+		}
+
+		public void AddPoints(DisplayComponent displayComponent, float points, ScoreMotorActionCallback callback)
+		{
+			OnAddPoints?.Invoke(this, new ScoreMotorAddPointsEventArgs(displayComponent, points, callback));
 		}
 
 		#endregion

@@ -46,7 +46,6 @@ namespace VisualPinball.Unity
 		public ScoreReelComponent[] ReelObjects;
 
 		private ScoreMotorComponent _scoreMotorComponent;
-		private float _score;
 
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
@@ -58,18 +57,15 @@ namespace VisualPinball.Unity
 			}
 
 			_scoreMotorComponent = GetComponentInParent<ScoreMotorComponent>();
-			_score = 0;
+			_scoreMotorComponent.RegisterDisplay(this);
 		}
 
 		public override void Clear()
 		{
 			if (_scoreMotorComponent) {
-				var score = (float)(_score % System.Math.Pow(10, ReelObjects.Length));
-				_scoreMotorComponent.ResetScore(score, (score) => {
-					_score = score;
-
-					_displayPlayer.DisplayScoreEvent(this, 0, _score);
-					UpdateFrame(DisplayFrameFormat.Numeric, BitConverter.GetBytes(_score));
+				_scoreMotorComponent.ResetScore(this, (points, score) => {
+					_displayPlayer.DisplayScoreEvent(this, 0, score);
+					UpdateFrame(DisplayFrameFormat.Numeric, BitConverter.GetBytes(score));
 				});
 			}
 			else
@@ -83,11 +79,9 @@ namespace VisualPinball.Unity
 		public override void AddPoints(float points)
 		{
 			if (_scoreMotorComponent) {
-				_scoreMotorComponent.AddPoints(points, (points) => {
-					_score += points;
-
-					_displayPlayer.DisplayScoreEvent(this, points, _score);
-					UpdateFrame(DisplayFrameFormat.Numeric, BitConverter.GetBytes(_score));
+				_scoreMotorComponent.AddPoints(this, points, (points, score) => {
+					_displayPlayer.DisplayScoreEvent(this, points, score);
+					UpdateFrame(DisplayFrameFormat.Numeric, BitConverter.GetBytes(score));
 				});
 			}
 			else
