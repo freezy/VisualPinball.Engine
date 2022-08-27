@@ -42,7 +42,7 @@ namespace VisualPinball.Unity
 		public double FlipperAngleEndTime;
 
 		// externals
-		//  Flipper Tricksdeu absolut
+		//  Flipper Tricks
 		public bool UseFlipperTricksPhysics;
 		public float SOSRampUp;
 		public float SOSEM;

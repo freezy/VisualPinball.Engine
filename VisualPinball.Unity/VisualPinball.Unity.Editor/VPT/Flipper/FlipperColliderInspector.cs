@@ -52,6 +52,13 @@ namespace VisualPinball.Unity.Editor
 		private SerializedProperty _BumpOnReleaseProperty;
 		#endregion
 
+		private SerializedProperty _UseFlipperLiveCatch;
+		private SerializedProperty _LiveCatchDistanceMin; 
+		private SerializedProperty _LiveCatchDistanceMax; 
+		private SerializedProperty _LiveCatchMinimalBallSpeed;
+		private SerializedProperty _LiveCatchPerfectTime;
+		private SerializedProperty _LiveCatchFullTime;
+		private SerializedProperty _LiveCatchInaccuracySpeed;
 
 		protected override void OnEnable()
 		{
@@ -69,7 +76,7 @@ namespace VisualPinball.Unity.Editor
 			_scatterProperty = serializedObject.FindProperty(nameof(FlipperColliderComponent.Scatter));
 			_flipperCorrectionProperty = serializedObject.FindProperty(nameof(FlipperColliderComponent.FlipperCorrection));
 
-			#region Flipper_Tricks
+			#region FlipperTricks
 			_useFlipperTricksPhysicsProperty = serializedObject.FindProperty(nameof(FlipperColliderComponent.useFlipperTricksPhysics));
 			_SOSRampUpProperty = serializedObject.FindProperty(nameof(FlipperColliderComponent.SOSRampUp));
 			_SOSEMProperty = serializedObject.FindProperty(nameof(FlipperColliderComponent.SOSEM));
@@ -81,7 +88,16 @@ namespace VisualPinball.Unity.Editor
 			_BumpOnReleaseProperty = serializedObject.FindProperty(nameof(FlipperColliderComponent.BumpOnRelease));
 			#endregion
 
-		}
+			#region LiveCatch
+			_UseFlipperLiveCatch = serializedObject.FindProperty(nameof(FlipperColliderComponent.useFlipperLiveCatch));
+			_LiveCatchDistanceMin = serializedObject.FindProperty(nameof(FlipperColliderComponent.LiveCatchDistanceMin));
+			_LiveCatchDistanceMax = serializedObject.FindProperty(nameof(FlipperColliderComponent.LiveCatchDistanceMax));
+			_LiveCatchMinimalBallSpeed = serializedObject.FindProperty(nameof(FlipperColliderComponent.LiveCatchMinimalBallSpeed));
+			_LiveCatchPerfectTime = serializedObject.FindProperty(nameof(FlipperColliderComponent.LiveCatchPerfectTime));
+			_LiveCatchFullTime = serializedObject.FindProperty(nameof(FlipperColliderComponent.LiveCatchFullTime));
+			_LiveCatchInaccuracySpeed = serializedObject.FindProperty(nameof(FlipperColliderComponent.LiveCatchInaccuracySpeed));
+			# endregion
+	}
 
 		public override void OnInspectorGUI()
 		{
@@ -123,7 +139,20 @@ namespace VisualPinball.Unity.Editor
 				PropertyField(_EOSANewProperty, "EOSANew");
 				PropertyField(_EOSRampupProperty, "EOSRampup");
 				PropertyField(_OvershootProperty, "Overshoot Angle");
-				PropertyField(_BumpOnReleaseProperty, "Bump on release");
+				PropertyField(_BumpOnReleaseProperty, "Bump on Release");
+				EditorGUI.EndDisabledGroup();
+
+
+				PropertyField(_UseFlipperLiveCatch, "Use Live Catch");
+
+				EditorGUI.BeginDisabledGroup(!_UseFlipperLiveCatch.boolValue);
+				PropertyField(_LiveCatchDistanceMin, "Min Distance");
+				PropertyField(_LiveCatchDistanceMax, "Max Distance");
+				PropertyField(_LiveCatchMinimalBallSpeed, "Min Ball Speed");
+				PropertyField(_LiveCatchPerfectTime, "Perfect Time");
+				PropertyField(_LiveCatchFullTime, "Full Time");
+				PropertyField(_LiveCatchInaccuracySpeed, "Inaccuracy Speed");
+
 				EditorGUI.EndDisabledGroup();
 			}
 			EditorGUILayout.EndFoldoutHeaderGroup();

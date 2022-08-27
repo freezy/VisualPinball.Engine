@@ -79,7 +79,7 @@ namespace VisualPinball.Unity
 
 		public override PhysicsMaterialData PhysicsMaterialData => GetPhysicsMaterialData(Elasticity, ElasticityFalloff, Friction, Scatter);
 
-		#region Flipper_Tricks
+		#region FlipperTricks
 		/// <summary>
 		/// If set, apply Flipper Tricks Physics (nFozzy/RothBauerW)
 		/// </summary>
@@ -119,6 +119,38 @@ namespace VisualPinball.Unity
 		[Tooltip("Bump Ball vertically on release button (speed, up)")]
 		public float BumpOnRelease = 0.4f;
 		#endregion
+
+		#region LiveCatch
+		/// <summary>
+		/// If set, apply Flipper Tricks Physics (nFozzy/RothBauerW)
+		/// </summary>
+		#endregion
+		[Tooltip("The nFozzy's LiveCatch Physics")]
+		public bool useFlipperLiveCatch = false;
+		
+		[Min(0f)]
+		[Tooltip("Minimum distance in vp units from flipper base live catch dampening will occur")]
+		public float LiveCatchDistanceMin = 30f;
+
+		[Min(0f)]
+		[Tooltip("Maxium distance in vp units from flipper base live catch dampening will occur")]
+		public float LiveCatchDistanceMax = 114f; 
+
+		[Min(0f)]
+		[Tooltip("Minimal ball speed for live catch")]
+		public float LiveCatchMinimalBallSpeed = 6f;
+
+		[Min(0f)]
+		[Tooltip("Maximum Time in msecs for (perfect or imperfect) live catch")]
+		public float LiveCatchFullTime = 16;
+
+		[Min(0f)]
+		[Tooltip("Maximum Time in msecs for a perfect live catch")]
+		public float LiveCatchPerfectTime = 8;
+
+		[Min(0f)]
+		[Tooltip("Maximum bounce speed for an inaccurate live catch")]
+		public float LiveCatchInaccuracySpeed = 32;
 
 		protected override IApiColliderGenerator InstantiateColliderApi(Player player, Entity entity)
 			=> new FlipperApi(gameObject, entity, player);
