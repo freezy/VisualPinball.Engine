@@ -130,11 +130,11 @@ namespace VisualPinball.Unity
 		
 		[Min(0f)]
 		[Tooltip("Minimum distance in vp units from flipper base live catch dampening will occur")]
-		public float LiveCatchDistanceMin = 30f;
+		public float LiveCatchDistanceMin = 40f;
 
 		[Min(0f)]
 		[Tooltip("Maxium distance in vp units from flipper base live catch dampening will occur")]
-		public float LiveCatchDistanceMax = 114f; 
+		public float LiveCatchDistanceMax = 100f; 
 
 		[Min(0f)]
 		[Tooltip("Minimal ball speed for live catch")]

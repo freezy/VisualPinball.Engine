@@ -722,7 +722,19 @@ namespace VisualPinball.Unity
 		#region LiveCatch
 		public void LiveCatch(ref BallData ball, ref CollisionEventData collEvent, ref FlipperTricksData tricks, in FlipperStaticData matData, uint msec ) {
 			var normalSpeed = math.dot(collEvent.HitNormal, ball.Velocity) * -1f;
-
+			// Vector from position of the flipper ball to ball
+			var flipperToBall = ball.Position - matData.Position;
+			var HatTangent = Math.CrossZ(1f, collEvent.HitNormal);
+			var ballPosition = math.dot(HatTangent, flipperToBall);
+			Logger.Info("BallPosition = {0}", ballPosition);
+			if (math.abs(ballPosition) > tricks.LiveCatchDistanceMax) {
+				Logger.Info("BallPosition = {0} -> no calculation", ballPosition);
+				return;
+			}
+			if (math.abs(ballPosition) < tricks.LiveCatchDistanceMin) {
+				Logger.Info("BallPosition = {0} -> no calculation", ballPosition);
+				return;
+			}
 			// only test for LiveCatch if Ballspeed is greater as set Minimal Speed (default = 6)
 			// different to nFozzys implementation we calculate all speeds based on the angle of the flipper, not y direction.
 			if (normalSpeed >= tricks.LiveCatchMinimalBallSpeed) {
