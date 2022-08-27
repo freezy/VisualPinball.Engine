@@ -57,7 +57,10 @@ namespace VisualPinball.Unity
 			}
 
 			_scoreMotorComponent = GetComponentInParent<ScoreMotorComponent>();
-			_scoreMotorComponent.RegisterDisplay(this);
+
+			if (_scoreMotorComponent) {
+				_scoreMotorComponent.AttachDisplayComponent(this);
+			}
 		}
 
 		public override void Clear()

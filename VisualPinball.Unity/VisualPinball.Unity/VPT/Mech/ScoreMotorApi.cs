@@ -73,6 +73,18 @@ namespace VisualPinball.Unity
 		{
 			_scoreMotorComponent = go.GetComponentInChildren<ScoreMotorComponent>();
 			_player = player;
+
+			_displays.Clear();
+			_displayScores.Clear();
+
+			_degreesPerSecond = _scoreMotorComponent.Degrees / (_scoreMotorComponent.Duration / 1000f);
+			_degreesPerStep = _scoreMotorComponent.Degrees / _scoreMotorComponent.Steps;
+
+			_scoreMotorComponent.OnAttachDisplayComponent += HandleRegisterDisplay;
+			_scoreMotorComponent.OnResetScore += HandleResetScore;
+			_scoreMotorComponent.OnAddPoints += HandleAddPoints;
+
+			_running = false;
 		}
 
 		void IApi.OnInit(BallManager ballManager)
@@ -81,21 +93,9 @@ namespace VisualPinball.Unity
 			MotorStepSwitch = new DeviceSwitch(ScoreMotorComponent.MotorStepSwitchItem, true, SwitchDefault.NormallyOpen, _player);
 
 			Init?.Invoke(this, EventArgs.Empty);
-
-			_displays.Clear();
-			_displayScores.Clear();
-
-			_scoreMotorComponent.OnRegisterDisplay += HandleRegisterDisplay;
-			_scoreMotorComponent.OnResetScore += HandleResetScore;
-			_scoreMotorComponent.OnAddPoints += HandleAddPoints;
-
-			_degreesPerSecond = _scoreMotorComponent.Degrees / (_scoreMotorComponent.Duration / 1000f);
-			_degreesPerStep = _scoreMotorComponent.Degrees / _scoreMotorComponent.Steps;
-
-			_running = false;
 		}
 
-		private void HandleRegisterDisplay(object sender, ScoreMotorRegisterDisplayEventArgs e)
+		private void HandleRegisterDisplay(object sender, ScoreMotorAttachDisplayComponentEventArgs e)
 		{
 			var id = e.DisplayComponent.Id;
 
@@ -106,6 +106,11 @@ namespace VisualPinball.Unity
 		private void HandleResetScore(object sender, ScoreMotorResetScoreEventArgs e)
 		{
 			var id = e.DisplayComponent.Id;
+
+			if (!_displays.ContainsKey(id)) {
+				Logger.Error($"invalid id, id={id}");
+				return;
+			}
 
 			if (_running) {
 				Logger.Info($"already running (ignoring reset), id={id}");
@@ -139,6 +144,11 @@ namespace VisualPinball.Unity
 		private void HandleAddPoints(object sender, ScoreMotorAddPointsEventArgs e)
 		{
 			var id = e.DisplayComponent.Id;
+
+			if (!_displays.ContainsKey(id)) {
+				Logger.Error($"invalid id, id={id}");
+				return;
+			}
 
 			var increase = (int)
 				((e.Points % 1000000000 == 0) ? e.Points / 1000000000 :

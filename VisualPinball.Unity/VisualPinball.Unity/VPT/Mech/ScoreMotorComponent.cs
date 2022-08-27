@@ -52,11 +52,11 @@ namespace VisualPinball.Unity
 		}
 	}
 
-	public readonly struct ScoreMotorRegisterDisplayEventArgs
+	public readonly struct ScoreMotorAttachDisplayComponentEventArgs
 	{
 		public readonly DisplayComponent DisplayComponent;
 
-		public ScoreMotorRegisterDisplayEventArgs(DisplayComponent displayComponent)
+		public ScoreMotorAttachDisplayComponentEventArgs(DisplayComponent displayComponent)
 		{
 			DisplayComponent = displayComponent;
 		}
@@ -113,7 +113,7 @@ namespace VisualPinball.Unity
 		public const string MotorStepSwitchItem = "motor_step_switch";
 
 		public event EventHandler OnUpdate;
-		public event EventHandler<ScoreMotorRegisterDisplayEventArgs> OnRegisterDisplay;
+		public event EventHandler<ScoreMotorAttachDisplayComponentEventArgs> OnAttachDisplayComponent;
 		public event EventHandler<ScoreMotorResetScoreEventArgs> OnResetScore;
 		public event EventHandler<ScoreMotorAddPointsEventArgs> OnAddPoints;
 
@@ -144,9 +144,9 @@ namespace VisualPinball.Unity
 			OnUpdate?.Invoke(this, EventArgs.Empty);
 		}
 
-		public void RegisterDisplay(DisplayComponent displayComponent)
+		public void AttachDisplayComponent(DisplayComponent displayComponent)
 		{
-			OnRegisterDisplay?.Invoke(this, new ScoreMotorRegisterDisplayEventArgs(displayComponent));
+			OnAttachDisplayComponent?.Invoke(this, new ScoreMotorAttachDisplayComponentEventArgs(displayComponent));
 		}
 
 		public void ResetScore(DisplayComponent displayComponent, ScoreMotorActionCallback callback)
