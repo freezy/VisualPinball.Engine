@@ -39,10 +39,11 @@ namespace VisualPinball.Unity
 		public bool WasInContact;
 
 		// time used for live Catch
-		public double liveCatchTime;
+		public double FlipperAngleEndTime;
 
 		// externals
-		public bool useFlipperTricksPhysics;
+		//  Flipper Tricksdeu absolut
+		public bool UseFlipperTricksPhysics;
 		public float SOSRampUp;
 		public float SOSEM;
 		public float EOSReturn;
@@ -50,7 +51,15 @@ namespace VisualPinball.Unity
 		public float EOSANew;
 		public float EOSRampup;
 		public float Overshoot;
-		public bool useFlipperLiveCatch;
+		
+		//  Live Catch
+		public bool UseFlipperLiveCatch;
+		public float LiveCatchDistanceMin; // vp units from base
+		public float LiveCatchDistanceMax; // vp units from base
+		public float LiveCatchMinimalBallSpeed; 
+		public float LiveCatchPerfectTime;
+		public float LiveCatchFullTime;
+		public float LiveCatchInaccuracySpeed;
 
 	}
 }
