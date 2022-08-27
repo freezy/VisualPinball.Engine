@@ -71,11 +71,7 @@ namespace VisualPinball.Unity
 				}
 
 				// hold coil is weaker
-				float eosAngle;
-				if (tricks.useFlipperTricksPhysics)
-					eosAngle = math.radians(tricks.TorqueDampingAngle);
-				else
-					eosAngle = math.radians(tricks.TorqueDampingAngle);
+				float eosAngle = math.radians(tricks.TorqueDampingAngle);
 				if (math.abs(mState.Angle - tricks.AngleEnd) < eosAngle) {
 					// fade in/out damping, depending on angle to end
 					var lerp = math.pow(math.abs(mState.Angle - tricks.AngleEnd) / eosAngle, 4);
