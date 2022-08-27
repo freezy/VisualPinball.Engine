@@ -48,7 +48,7 @@ namespace VisualPinball.Unity
 					desiredTorque *= -data.ReturnRatio;
 				}
 
-				if (tricks.useFlipperTricksPhysics) { 
+				if (tricks.UseFlipperTricksPhysics) { 
 					// check if solenoid was just activated or deactivated
 					if (solenoid.Value != tricks.lastSolState)
 					{
@@ -75,7 +75,7 @@ namespace VisualPinball.Unity
 				if (math.abs(mState.Angle - tricks.AngleEnd) < eosAngle) {
 					// fade in/out damping, depending on angle to end
 					var lerp = math.pow(math.abs(mState.Angle - tricks.AngleEnd) / eosAngle, 4);
-					if (tricks.useFlipperTricksPhysics)
+					if (tricks.UseFlipperTricksPhysics)
 						desiredTorque *= lerp + tricks.TorqueDamping * (1 - lerp);
 					else 
 						desiredTorque *= lerp + tricks.TorqueDamping * (1 - lerp);
@@ -128,7 +128,7 @@ namespace VisualPinball.Unity
 				mState.AngleSpeed = mState.AngularMomentum / data.Inertia;
 				vState.AngularAcceleration = torque / data.Inertia;
 
-				if (tricks.useFlipperTricksPhysics)
+				if (tricks.UseFlipperTricksPhysics)
 				{
 					// Flippertricks, case 3 (OnFlipperDown) and 4 (OnFlipperUpResting)
 					if (!tricks.WasInContact && vState.IsInContact)

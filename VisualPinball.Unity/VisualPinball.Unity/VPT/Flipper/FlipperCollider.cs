@@ -722,9 +722,10 @@ namespace VisualPinball.Unity
 		#region LiveCatch
 		public void LiveCatch(ref BallData ball, in FlipperTricksData tricks, in FlipperStaticData matData, uint msec )
 		{
+
 			if (ball.Velocity.y > 6)
 			{
-				Logger.Info("LiveCatchTest - Ball with y-speed {0}, at CollisionTime: {1}, livecatchTime is {2}, difference is {3} msecs", ball.Velocity.y, msec, tricks.liveCatchTime*1000, tricks.liveCatchTime*1000-msec);
+				Logger.Info("LiveCatchTest - Ball with y-speed {0}, at CollisionTime: {1}, livecatchTime is {2}, difference is {3} msecs", ball.Velocity.y, msec, tricks.FlipperAngleEndTime*1000, tricks.FlipperAngleEndTime*1000-msec);
 				ball.Velocity.y = 0.6f;
 			}
 		}
@@ -800,7 +801,7 @@ namespace VisualPinball.Unity
 			 * 0 = no falloff, 1 = half the COR at 1 m/s (18.53 speed units)
 			 */
 			var epsilon = Math.ElasticityWithFalloff(_header.Material.Elasticity, _header.Material.ElasticityFalloff, bnv);
-			if (tricks.useFlipperTricksPhysics)
+			if (tricks.UseFlipperTricksPhysics)
 				epsilon *= tricks.ElasticityMultiplier;
 
 			var pv1 = angResp / matData.Inertia;

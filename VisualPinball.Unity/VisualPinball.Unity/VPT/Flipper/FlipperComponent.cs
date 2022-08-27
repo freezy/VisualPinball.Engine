@@ -581,7 +581,7 @@ namespace VisualPinball.Unity
 		{
 			return new FlipperTricksData
 			{
-				useFlipperTricksPhysics = colliderComponent.useFlipperTricksPhysics,
+				UseFlipperTricksPhysics = colliderComponent.useFlipperTricksPhysics,
 				SOSRampUp = colliderComponent.SOSRampUp,
 				SOSEM = colliderComponent.SOSEM,
 				EOSReturn = colliderComponent.EOSReturn,

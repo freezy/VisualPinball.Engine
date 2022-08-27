@@ -78,7 +78,7 @@ namespace VisualPinball.Unity
 				var handleEvent = false;
 
 				if (state.Angle == tricks.AngleEnd) {
-					tricks.liveCatchTime = currentTime;
+					tricks.FlipperAngleEndTime = currentTime;
 				}
 
 				if (state.Angle >= angleMax) {
