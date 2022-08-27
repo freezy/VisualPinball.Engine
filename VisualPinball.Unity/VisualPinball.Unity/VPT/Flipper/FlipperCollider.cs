@@ -722,12 +722,17 @@ namespace VisualPinball.Unity
 		#region LiveCatch
 		public void LiveCatch(ref BallData ball, ref CollisionEventData collEvent, ref FlipperTricksData tricks, in FlipperStaticData matData, uint msec )
 		{
+			var normalSpeed = math.dot(collEvent.HitNormal, ball.Velocity) * -1f;
 
-			if (ball.Velocity.y > 6)
-			{
-				Logger.Info("LiveCatchTest - Ball with y-speed {0}, at CollisionTime: {1}, livecatchTime is {2}, difference is {3} msecs", ball.Velocity.y, msec, tricks.FlipperAngleEndTime*1000, tricks.FlipperAngleEndTime*1000-msec);
-				ball.Velocity.y = 0.6f;
-			}
+			// only test for LiveCatch if Ballspeed is greater as set Minimal Speed (default = 6)
+			if (normalSpeed >= tricks.LiveCatchMinimalBallSpeed)
+
+				if (ball.Velocity.y > 6)
+				{
+					Logger.Info("LiveCatchTest - Ball with y-speed {0}, at CollisionTime: {1}, livecatchTime is {2}, difference is {3} msecs", ball.Velocity.y, msec, tricks.FlipperAngleEndTime * 1000, tricks.FlipperAngleEndTime * 1000 - msec);
+					Logger.Info("LiveCatchTest - normalspeed = {0}", normalSpeed);
+					ball.Velocity.y = 0.6f;
+				}
 		}
 
 		#endregion
