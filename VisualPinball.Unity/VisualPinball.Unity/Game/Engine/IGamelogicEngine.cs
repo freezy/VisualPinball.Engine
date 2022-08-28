@@ -45,7 +45,7 @@ namespace VisualPinball.Unity
 		event EventHandler<DisplayClearData> OnDisplayClear;
 		event EventHandler<DisplayFrameData> OnDisplayUpdateFrame;
 
-		void DisplayScoreEvent(string id, float points, float score);
+		void DisplayUpdateEvent(DisplayFrameData displayFrameData);
 
 		#endregion
 
@@ -156,42 +156,31 @@ namespace VisualPinball.Unity
 	public class DisplayConfig
 	{
 		public readonly string Id;
-		public readonly DisplayType Type;
 		public readonly int Width;
 		public readonly int Height;
 		public readonly bool FlipX;
 
-		public DisplayConfig(string id, DisplayType type, int width, int height)
+		public DisplayConfig(string id, int width, int height)
 		{
 			Id = id;
-			Type = type;
 			Width = width;
 			Height = height;
 		}
 
-		public DisplayConfig(string id, DisplayType type, uint width, uint height)
+		public DisplayConfig(string id, uint width, uint height)
 		{
 			Id = id;
-			Type = type;
 			Width = (int)width;
 			Height = (int)height;
 		}
 
-		public DisplayConfig(string id, DisplayType type, uint width, uint height, bool flipX)
+		public DisplayConfig(string id, uint width, uint height, bool flipX)
 		{
 			Id = id;
-			Type = type;
 			Width = (int)width;
 			Height = (int)height;
 			FlipX = flipX;
 		}
-	}
-
-	public enum DisplayType
-	{
-		Segment,
-		ScoreReel,
-		DotMatrix
 	}
 
 	public enum DisplayFrameFormat
@@ -324,17 +313,13 @@ namespace VisualPinball.Unity
 		}
 	}
 
-	public readonly struct DisplayScoreEventArgs
+	public readonly struct DisplayUpdateEventArgs
 	{
-		public readonly string Id;
-		public readonly float Points;
-		public readonly float Score;
+		public readonly DisplayFrameData DisplayFrameData;
 
-		public DisplayScoreEventArgs(string id, float points, float score)
+		public DisplayUpdateEventArgs(DisplayFrameData displayFrameData)
 		{
-			Id = id;
-			Points = points;
-			Score = score;
+			DisplayFrameData = displayFrameData;
 		}
 	}
 

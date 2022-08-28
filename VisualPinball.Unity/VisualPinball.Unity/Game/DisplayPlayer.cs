@@ -74,13 +74,9 @@ namespace VisualPinball.Unity
 			}
 		}
 
-		public void DisplayScoreEvent(DisplayComponent display, float points, float score)
+		public void DisplayUpdateEvent(DisplayFrameData e)
 		{
-			var id = _displayGameObjects.FirstOrDefault(x => x.Value == display).Key;
-
-			if (id != null) {
-				_gamelogicEngine.DisplayScoreEvent(id, points, score);
-			}
+			_gamelogicEngine.DisplayUpdateEvent(e);
 		}
 
 		public void OnDestroy()

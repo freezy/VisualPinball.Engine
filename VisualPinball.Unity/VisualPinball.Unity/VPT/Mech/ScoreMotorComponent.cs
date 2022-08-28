@@ -24,41 +24,35 @@ using VisualPinball.Engine.Game.Engines;
 
 namespace VisualPinball.Unity
 {
-	public delegate void ScoreMotorActionCallback(float points, float score);
+	public delegate void ScoreMotorResetCallback(float score);
 
-	public readonly struct ScoreMotorResetScoreEventArgs
+	public readonly struct ScoreMotorResetEventArgs
 	{
-		public readonly DisplayComponent DisplayComponent;
-		public readonly ScoreMotorActionCallback Callback;
+		public readonly string Id;
+		public readonly float Score;
+		public readonly ScoreMotorResetCallback Callback;
 
-		public ScoreMotorResetScoreEventArgs(DisplayComponent displayComponent, ScoreMotorActionCallback callback)
+		public ScoreMotorResetEventArgs(string id, float score, ScoreMotorResetCallback callback)
 		{
-			DisplayComponent = displayComponent;
+			Id = id;
+			Score = score;
 			Callback = callback;
 		}
 	}
+
+	public delegate void ScoreMotorAddPointsCallback(float points);
 
 	public readonly struct ScoreMotorAddPointsEventArgs
 	{
-		public readonly DisplayComponent DisplayComponent;
+		public readonly string Id;
 		public readonly float Points;
-		public readonly ScoreMotorActionCallback Callback;
+		public readonly ScoreMotorAddPointsCallback Callback;
 
-		public ScoreMotorAddPointsEventArgs(DisplayComponent displayComponent, float points, ScoreMotorActionCallback callback)
+		public ScoreMotorAddPointsEventArgs(string id, float points, ScoreMotorAddPointsCallback callback)
 		{
-			DisplayComponent = displayComponent;
+			Id = id;
 			Points = points;
 			Callback = callback;
-		}
-	}
-
-	public readonly struct ScoreMotorAttachDisplayComponentEventArgs
-	{
-		public readonly DisplayComponent DisplayComponent;
-
-		public ScoreMotorAttachDisplayComponentEventArgs(DisplayComponent displayComponent)
-		{
-			DisplayComponent = displayComponent;
 		}
 	}
 
@@ -113,8 +107,7 @@ namespace VisualPinball.Unity
 		public const string MotorStepSwitchItem = "motor_step_switch";
 
 		public event EventHandler OnUpdate;
-		public event EventHandler<ScoreMotorAttachDisplayComponentEventArgs> OnAttachDisplayComponent;
-		public event EventHandler<ScoreMotorResetScoreEventArgs> OnResetScore;
+		public event EventHandler<ScoreMotorResetEventArgs> OnReset;
 		public event EventHandler<ScoreMotorAddPointsEventArgs> OnAddPoints;
 
 		public IEnumerable<GamelogicEngineSwitch> AvailableSwitches => new[] {
@@ -144,19 +137,14 @@ namespace VisualPinball.Unity
 			OnUpdate?.Invoke(this, EventArgs.Empty);
 		}
 
-		public void AttachDisplayComponent(DisplayComponent displayComponent)
+		public void Reset(string id, float score, ScoreMotorResetCallback callback)
 		{
-			OnAttachDisplayComponent?.Invoke(this, new ScoreMotorAttachDisplayComponentEventArgs(displayComponent));
+			OnReset?.Invoke(this, new ScoreMotorResetEventArgs(id, score, callback));
 		}
 
-		public void ResetScore(DisplayComponent displayComponent, ScoreMotorActionCallback callback)
+		public void AddPoints(string id, float points, ScoreMotorAddPointsCallback callback)
 		{
-			OnResetScore?.Invoke(this, new ScoreMotorResetScoreEventArgs(displayComponent, callback));
-		}
-
-		public void AddPoints(DisplayComponent displayComponent, float points, ScoreMotorActionCallback callback)
-		{
-			OnAddPoints?.Invoke(this, new ScoreMotorAddPointsEventArgs(displayComponent, points, callback));
+			OnAddPoints?.Invoke(this, new ScoreMotorAddPointsEventArgs(id, points, callback));
 		}
 
 		#endregion

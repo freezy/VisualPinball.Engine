@@ -99,7 +99,7 @@ namespace VisualPinball.Unity
 		private const string CoilTroughEject = "c_trough_eject";
 		private const string CoilMotorStart = "c_motor_start";
 
-		public DisplayConfig[] RequiredDisplays => new[] { new DisplayConfig(DisplayDmd, DisplayType.DotMatrix, DmdWidth, DmdHeight) };
+		public DisplayConfig[] RequiredDisplays => new[] { new DisplayConfig(DisplayDmd, DmdWidth, DmdHeight) };
 
 		public GamelogicEngineCoil[] RequestedCoils => _availableCoils.ToArray();
 		private readonly List<GamelogicEngineCoil> _availableCoils = new List<GamelogicEngineCoil> {
@@ -191,7 +191,7 @@ namespace VisualPinball.Unity
 			_player = player;
 			_ballManager = ballManager;
 
-			OnDisplaysRequested?.Invoke(this, new RequestedDisplays(new DisplayConfig(DisplayDmd, DisplayType.DotMatrix, DmdWidth, DmdHeight)));
+			OnDisplaysRequested?.Invoke(this, new RequestedDisplays(new DisplayConfig(DisplayDmd, DmdWidth, DmdHeight)));
 
 			// debug print stuff
 			OnCoilChanged += DebugPrintCoil;
@@ -295,7 +295,7 @@ namespace VisualPinball.Unity
 		}
 
 
-		void IGamelogicEngine.DisplayScoreEvent(string id, float points, float score)
+		void IGamelogicEngine.DisplayUpdateEvent(DisplayFrameData displayFrameData)
 		{
 		}
 
