@@ -721,6 +721,8 @@ namespace VisualPinball.Unity
 		//public static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 		#region LiveCatch
 		public void LiveCatch(ref BallData ball, ref CollisionEventData collEvent, ref FlipperTricksData tricks, in FlipperStaticData matData, uint msec ) {
+			if (!tricks.UseFlipperLiveCatch)
+				return;
 			var normalSpeed = math.dot(collEvent.HitNormal, ball.Velocity) * -1f;
 			// Vector from position of the flipper ball to ball
 			var flipperToBall = ball.Position - matData.Position;
