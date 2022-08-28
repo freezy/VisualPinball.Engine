@@ -29,6 +29,7 @@ namespace VisualPinball.Unity.Editor
 		private SerializedProperty _speedProperty;
 		private SerializedProperty _waitProperty;
 		private SerializedProperty _reelObjectsProperty;
+		private SerializedProperty _scoreMotorProperty;
 
 		protected override MonoBehaviour UndoTarget => target as MonoBehaviour;
 
@@ -40,6 +41,7 @@ namespace VisualPinball.Unity.Editor
 			_speedProperty = serializedObject.FindProperty(nameof(ScoreReelDisplayComponent.Speed));
 			_waitProperty = serializedObject.FindProperty(nameof(ScoreReelDisplayComponent.Wait));
 			_reelObjectsProperty = serializedObject.FindProperty(nameof(ScoreReelDisplayComponent.ReelObjects));
+			_scoreMotorProperty = serializedObject.FindProperty(nameof(ScoreReelDisplayComponent.ScoreMotorComponent));
 		}
 
 		public override void OnInspectorGUI()
@@ -50,6 +52,7 @@ namespace VisualPinball.Unity.Editor
 			PropertyField(_speedProperty);
 			PropertyField(_waitProperty);
 			PropertyField(_reelObjectsProperty);
+			PropertyField(_scoreMotorProperty, "Score Motor");
 
 			base.OnInspectorGUI();
 

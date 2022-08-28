@@ -45,7 +45,8 @@ namespace VisualPinball.Unity
 		[Tooltip("The reel components, from left to right.")]
 		public ScoreReelComponent[] ReelObjects;
 
-		private ScoreMotorComponent _scoreMotorComponent;
+		[Tooltip("The reel components, from left to right.")]
+		public ScoreMotorComponent ScoreMotorComponent;
 
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
@@ -56,19 +57,17 @@ namespace VisualPinball.Unity
 				reelObject.Wait = Wait;
 			}
 
-			_scoreMotorComponent = GetComponentInParent<ScoreMotorComponent>();
-
-			if (_scoreMotorComponent) {
-				_scoreMotorComponent.AttachDisplayComponent(this);
+			if (ScoreMotorComponent) {
+				ScoreMotorComponent.AttachDisplayComponent(this);
 			}
 		}
 
 		public override void Clear()
 		{
-			if (_scoreMotorComponent) {
-				_scoreMotorComponent.ResetScore(this, (points, score) => {
+			if (ScoreMotorComponent) {
+				ScoreMotorComponent.ResetScore(this, (points, score) => {
 					_displayPlayer.DisplayScoreEvent(this, 0, score);
-					UpdateFrame(DisplayFrameFormat.Numeric, BitConverter.GetBytes(score));
+					InternalUpdateFrame(DisplayFrameFormat.Numeric, BitConverter.GetBytes(score));
 				});
 			}
 			else
@@ -79,21 +78,22 @@ namespace VisualPinball.Unity
 			}
 		}
 
-		public override void AddPoints(float points)
+		public override void UpdateFrame(DisplayFrameFormat format, byte[] data)
 		{
-			if (_scoreMotorComponent) {
-				_scoreMotorComponent.AddPoints(this, points, (points, score) => {
+			if (ScoreMotorComponent) {
+				var points = (int)BitConverter.ToSingle(data);
+
+				ScoreMotorComponent.AddPoints(this, points, (points, score) => {
 					_displayPlayer.DisplayScoreEvent(this, points, score);
-					UpdateFrame(DisplayFrameFormat.Numeric, BitConverter.GetBytes(score));
+					InternalUpdateFrame(DisplayFrameFormat.Numeric, BitConverter.GetBytes(score));
 				});
 			}
-			else
-			{
-				Logger.Error("This display does not support add points.");
+			else { 
+				InternalUpdateFrame(format, data);
 			}
 		}
 
-		public override void UpdateFrame(DisplayFrameFormat format, byte[] data)
+		private void InternalUpdateFrame(DisplayFrameFormat format, byte[] data)
 		{
 			var score = (int)BitConverter.ToSingle(data);
 			var digits = DigitArr(score);

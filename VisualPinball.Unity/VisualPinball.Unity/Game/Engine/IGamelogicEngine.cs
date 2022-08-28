@@ -44,7 +44,6 @@ namespace VisualPinball.Unity
 		event EventHandler<RequestedDisplays> OnDisplaysRequested;
 		event EventHandler<DisplayClearData> OnDisplayClear;
 		event EventHandler<DisplayFrameData> OnDisplayUpdateFrame;
-		event EventHandler<DisplayAddPointsData> OnDisplayAddPoints;
 
 		void DisplayScoreEvent(string id, float points, float score);
 

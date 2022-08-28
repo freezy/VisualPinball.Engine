@@ -51,7 +51,6 @@ namespace VisualPinball.Unity
 		public event EventHandler<RequestedDisplays> OnDisplaysRequested;
 		public event EventHandler<DisplayClearData> OnDisplayClear;
 		public event EventHandler<DisplayFrameData> OnDisplayUpdateFrame;
-		public event EventHandler<DisplayAddPointsData> OnDisplayAddPoints;
 		public event EventHandler<EventArgs> OnStarted;
 
 		private const int DmdWidth = 128;

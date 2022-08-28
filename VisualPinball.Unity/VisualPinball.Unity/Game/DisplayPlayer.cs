@@ -37,7 +37,6 @@ namespace VisualPinball.Unity
 			_gamelogicEngine.OnDisplaysRequested += HandleDisplaysRequested;
 			_gamelogicEngine.OnDisplayClear += HandleDisplayClear;
 			_gamelogicEngine.OnDisplayUpdateFrame += HandleDisplayUpdateFrame;
-			_gamelogicEngine.OnDisplayAddPoints += HandleDisplayAddPoints;
 
 			var displays = UnityEngine.Object.FindObjectsOfType<DisplayComponent>();
 			foreach (var display in displays) {
@@ -75,13 +74,6 @@ namespace VisualPinball.Unity
 			}
 		}
 
-		private void HandleDisplayAddPoints(object sender, DisplayAddPointsData e)
-		{
-			if (_displayGameObjects.ContainsKey(e.Id)) {
-				_displayGameObjects[e.Id].AddPoints(e.Points);
-			}
-		}
-
 		public void DisplayScoreEvent(DisplayComponent display, float points, float score)
 		{
 			var id = _displayGameObjects.FirstOrDefault(x => x.Value == display).Key;
@@ -96,7 +88,6 @@ namespace VisualPinball.Unity
 			_gamelogicEngine.OnDisplaysRequested -= HandleDisplaysRequested;
 			_gamelogicEngine.OnDisplayClear -= HandleDisplayClear;
 			_gamelogicEngine.OnDisplayUpdateFrame -= HandleDisplayUpdateFrame;
-			_gamelogicEngine.OnDisplayAddPoints -= HandleDisplayAddPoints;
 		}
 	}
 }
