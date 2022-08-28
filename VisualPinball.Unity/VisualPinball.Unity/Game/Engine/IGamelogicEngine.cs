@@ -219,18 +219,6 @@ namespace VisualPinball.Unity
 		}
 	}
 
-	public class DisplayAddPointsData
-	{
-		public readonly string Id;
-		public readonly float Points;
-
-		public DisplayAddPointsData(string id, float points)
-		{
-			Id = id;
-			Points = points;
-		}
-	}
-
 	public readonly struct CoilEventArgs
 	{
 		/// <summary>
