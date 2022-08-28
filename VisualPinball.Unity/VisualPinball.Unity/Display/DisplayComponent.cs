@@ -46,9 +46,6 @@ namespace VisualPinball.Unity
 		}
 
 		public abstract void Clear();
-
-		public abstract void AddPoints(float points);
-
 		public abstract void UpdateFrame(DisplayFrameFormat format, byte[] data);
 
 		protected abstract Material CreateMaterial();

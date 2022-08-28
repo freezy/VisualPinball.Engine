@@ -251,11 +251,6 @@ namespace VisualPinball.Unity
 			UpdateFrame(DisplayFrameFormat.Segment, new byte[_colorBuffer.Length * sizeof(short)]);
 		}
 
-		public override void AddPoints(float points)
-		{
-			Logger.Error("This display does not support add points.");
-		}
-
 		public override void UpdateFrame(DisplayFrameFormat format, byte[] source)
 		{
 			ushort[] target;
