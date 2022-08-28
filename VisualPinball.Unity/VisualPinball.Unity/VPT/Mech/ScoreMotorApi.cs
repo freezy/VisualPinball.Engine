@@ -102,7 +102,6 @@ namespace VisualPinball.Unity
 			if (e.Score == 0) {
 				Logger.Info($"score already 0 (ignoring reset), id={e.Id}");
 				e.Callback(0);
-
 				return;
 			}
 
@@ -146,7 +145,6 @@ namespace VisualPinball.Unity
 			if (increase == 1) {
 				Logger.Info($"single points, id={e.Id}, points={e.Points}");
 				e.Callback(e.Points);
-
 				return;
 			}
 
@@ -247,16 +245,13 @@ namespace VisualPinball.Unity
 			switch(_mode) {
 				case ScoreMotorMode.Reset:
 					_score = Reset(_score);
-
 					Logger.Info($"increase, mode={_mode}, id={_id}, score={_score}");
 					_resetCallback(0);
-
 					break;
 
 				case ScoreMotorMode.AddPoints:
 					Logger.Info($"increase, mode={_mode}, id={_id}, points={_points}");
 					_addPointsCallback(_points);
-
 					break;
 			}
 		}
