@@ -50,6 +50,8 @@ namespace VisualPinball.Unity
 
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
+		private float _score;
+
 		private void Start()
 		{
 			foreach (var reelObject in ReelObjects) {
@@ -57,46 +59,45 @@ namespace VisualPinball.Unity
 				reelObject.Wait = Wait;
 			}
 
-			if (ScoreMotorComponent) {
-				ScoreMotorComponent.AttachDisplayComponent(this);
-			}
+			_score = 0;
 		}
 
 		public override void Clear()
 		{
 			if (ScoreMotorComponent) {
-				ScoreMotorComponent.ResetScore(this, (points, score) => {
-					_displayPlayer.DisplayScoreEvent(this, 0, score);
-					InternalUpdateFrame(DisplayFrameFormat.Numeric, BitConverter.GetBytes(score));
+				// Truncate score to the amount of reels
+				_score = (float)(_score % System.Math.Pow(10, ReelObjects.Length));
+
+				ScoreMotorComponent.Reset(Id, _score, (score) => {
+					_score = score;
+					UpdateFrame();
 				});
 			}
-			else
-			{
-				foreach (var reelObject in ReelObjects) {
-					reelObject.AnimateTo(0);
-				}
+			else {
+				_score = 0;
+				UpdateFrame();
 			}
 		}
 
 		public override void UpdateFrame(DisplayFrameFormat format, byte[] data)
 		{
 			if (ScoreMotorComponent) {
-				var points = (int)BitConverter.ToSingle(data);
+				var points = BitConverter.ToSingle(data);
 
-				ScoreMotorComponent.AddPoints(this, points, (points, score) => {
-					_displayPlayer.DisplayScoreEvent(this, points, score);
-					InternalUpdateFrame(DisplayFrameFormat.Numeric, BitConverter.GetBytes(score));
+				ScoreMotorComponent.AddPoints(Id, points, (points) => {
+					_score += points;
+					UpdateFrame();
 				});
 			}
-			else { 
-				InternalUpdateFrame(format, data);
+			else {
+				_score = BitConverter.ToSingle(data);
+				UpdateFrame();
 			}
 		}
 
-		private void InternalUpdateFrame(DisplayFrameFormat format, byte[] data)
+		private void UpdateFrame()
 		{
-			var score = (int)BitConverter.ToSingle(data);
-			var digits = DigitArr(score);
+			var digits = DigitArr((int)_score);
 			var j = digits.Length - 1;
 			for (var i = ReelObjects.Length - 1; i >= 0; i--) {
 				if (j < 0) {
@@ -107,6 +108,8 @@ namespace VisualPinball.Unity
 				SetReel(ReelObjects[i], digits[j]);
 				j--;
 			}
+
+			_displayPlayer.DisplayUpdateEvent(new DisplayFrameData(Id, DisplayFrameFormat.Numeric, BitConverter.GetBytes(_score)));
 		}
 
 		private static void SetReel(ScoreReelComponent sr, int num)
