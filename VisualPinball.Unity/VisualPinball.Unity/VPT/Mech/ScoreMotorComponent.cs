@@ -21,6 +21,8 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using VisualPinball.Engine.Game.Engines;
+using NLog;
+using Logger = NLog.Logger;
 
 namespace VisualPinball.Unity
 {
@@ -58,10 +60,6 @@ namespace VisualPinball.Unity
 		public const string MotorRunningSwitchItem = "motor_running_switch";
 		public const string MotorStepSwitchItem = "motor_step_switch";
 
-		public event EventHandler OnUpdate;
-		public event EventHandler<ScoreMotorResetEventArgs> OnReset;
-		public event EventHandler<ScoreMotorAddPointsEventArgs> OnAddPoints;
-
 		public IEnumerable<GamelogicEngineSwitch> AvailableSwitches => new[] {
 			new GamelogicEngineSwitch(MotorRunningSwitchItem)
 			{
@@ -76,6 +74,28 @@ namespace VisualPinball.Unity
 
 		public SwitchDefault SwitchDefault => SwitchDefault.NormallyOpen;
 		IEnumerable<GamelogicEngineSwitch> IDeviceComponent<GamelogicEngineSwitch>.AvailableDeviceItems => AvailableSwitches;
+		
+		public event EventHandler<SwitchEventArgs2> OnSwitchChanged;
+
+		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
+
+		private int DegreesPerStep => Degrees / Steps;
+		private float DegreesPerSecond => Degrees / (Duration / 1000f);
+
+		private bool _running;
+
+		private float _time;
+		private int _pos;
+
+		private ScoreMotorMode _mode;
+		private string _id;
+		private int _increase;
+
+		private float _score;
+		private ScoreMotorResetCallback _resetCallback;
+
+		private float _points;
+		private ScoreMotorAddPointsCallback _addPointsCallback;
 
 		#region Runtime
 
@@ -84,19 +104,180 @@ namespace VisualPinball.Unity
 			GetComponentInParent<Player>().RegisterScoreMotorComponent(this);
 		}
 
+		private void Switch(string id, bool isClosed)
+		{
+			OnSwitchChanged?.Invoke(this, new SwitchEventArgs2(id, isClosed));
+		}
+
 		private void Update()
 		{
-			OnUpdate?.Invoke(this, EventArgs.Empty);
+			if (!_running) {
+				return;
+			}
+
+			_time += Time.deltaTime;
+
+			int currentPos = (int)(DegreesPerSecond * _time);
+
+			while (_pos <= currentPos && _pos < Degrees) {
+				AdvanceMotor();
+			}
+
+			if (_pos >= Degrees) {
+				if (_mode == ScoreMotorMode.Reset) {
+					if (_score > 0) {
+						_time = 0;
+						_pos = 0;
+
+						AdvanceMotor();
+
+						return;
+					}
+				}
+
+				StopMotor();
+			}
 		}
 
 		public void Reset(string id, float score, ScoreMotorResetCallback callback)
 		{
-			OnReset?.Invoke(this, new ScoreMotorResetEventArgs(id, score, callback));
+			if (_running) {
+				Logger.Info($"already running (ignoring reset), id={id}");
+				return;
+			}
+
+			if (score == 0) {
+				Logger.Info($"score already 0 (ignoring reset), id={id}");
+				callback(0);
+				return;
+			}
+
+			Logger.Info($"reset, id={id}, score={score}");
+
+			_mode = ScoreMotorMode.Reset;
+			_id = id;
+			_score = score;
+			_increase = MaxIncrease;
+			_resetCallback = callback;
+
+			StartMotor();
 		}
 
 		public void AddPoints(string id, float points, ScoreMotorAddPointsCallback callback)
 		{
-			OnAddPoints?.Invoke(this, new ScoreMotorAddPointsEventArgs(id, points, callback));
+			var increase = (int)
+				((points % 1000000000 == 0) ? points / 1000000000 :
+				 (points % 100000000 == 0) ? points / 100000000 :
+				 (points % 10000000 == 0) ? points / 10000000 :
+				 (points % 1000000 == 0) ? points / 1000000 :
+				 (points % 100000 == 0) ? points / 100000 :
+				 (points % 10000 == 0) ? points / 10000 :
+				 (points % 1000 == 0) ? points / 1000 :
+				 (points % 100 == 0) ? points / 100 :
+				 (points % 10 == 0) ? points / 10 :
+				 points);
+
+			if (increase > ScoreMotorComponent.MaxIncrease) {
+				Logger.Error($"too many increases (ignoring points), id={id}, points={points}, increase={increase}");
+				return;
+			}
+
+			if (_running) {
+				if (increase > 1 || (increase == 1 && BlockScoring)) {
+					Logger.Info($"already running (ignoring points), id={id}, points={points}");
+					return;
+				}
+			}
+
+			if (increase == 1) {
+				Logger.Info($"single points, id={id}, points={points}");
+				callback(points);
+				return;
+			}
+
+			Logger.Info($"multi points, id={id}, increase={increase}, points={points}");
+
+			_mode = ScoreMotorMode.AddPoints;
+			_id = id;
+			_increase = increase;
+			_points = points / increase;
+			_addPointsCallback = callback;
+
+			StartMotor();
+		}
+
+		private void StartMotor()
+		{
+			Logger.Info($"start motor");
+
+			_time = 0;
+			_pos = 0;
+
+			_running = true;
+
+			Switch(MotorRunningSwitchItem, true);
+
+			AdvanceMotor();
+		}
+
+		private void AdvanceMotor()
+		{
+			if (_pos % DegreesPerStep == 0) {
+				Switch(MotorStepSwitchItem, true);
+
+				var step = _pos / DegreesPerStep;
+				var action = ScoreMotorTimingList[_increase - 1].Actions[step];
+
+				Logger.Info($"advance motor, pos={_pos}, time={_time}, increase={_increase}, step={step}, action={action}");
+
+				if (action == ScoreMotorAction.Increase) {
+					Increase();
+				}
+			}
+
+			_pos++;
+		}
+
+		private void StopMotor()
+		{
+			Logger.Info($"stop motor");
+
+			_running = false;
+
+			Switch(MotorRunningSwitchItem, false);
+		}
+
+		private void Increase()
+		{
+			switch (_mode) {
+				case ScoreMotorMode.Reset:
+					_score = ResetScore(_score);
+					Logger.Info($"increase, mode={_mode}, id={_id}, score={_score}");
+					_resetCallback(0);
+					break;
+
+				case ScoreMotorMode.AddPoints:
+					Logger.Info($"increase, mode={_mode}, id={_id}, points={_points}");
+					_addPointsCallback(_points);
+					break;
+			}
+		}
+
+		private float ResetScore(float score)
+		{
+			float newScore = 0;
+
+			var pos = 0;
+			while (score > 0) {
+				var i = (int)(score % 10);
+				if (i > 0 && i < 9) {
+					newScore += (float)(System.Math.Pow(10, pos) * (i + 1));
+				}
+				score = (int)(score / 10);
+				pos++;
+			}
+
+			return newScore;
 		}
 
 		#endregion
@@ -106,34 +287,6 @@ namespace VisualPinball.Unity
 	public class ScoreMotorTiming
 	{
 		public List<ScoreMotorAction> Actions = new List<ScoreMotorAction>();
-	}
-
-	public readonly struct ScoreMotorResetEventArgs
-	{
-		public readonly string Id;
-		public readonly float Score;
-		public readonly ScoreMotorResetCallback Callback;
-
-		public ScoreMotorResetEventArgs(string id, float score, ScoreMotorResetCallback callback)
-		{
-			Id = id;
-			Score = score;
-			Callback = callback;
-		}
-	}
-
-	public readonly struct ScoreMotorAddPointsEventArgs
-	{
-		public readonly string Id;
-		public readonly float Points;
-		public readonly ScoreMotorAddPointsCallback Callback;
-
-		public ScoreMotorAddPointsEventArgs(string id, float points, ScoreMotorAddPointsCallback callback)
-		{
-			Id = id;
-			Points = points;
-			Callback = callback;
-		}
 	}
 
 	public enum ScoreMotorMode
