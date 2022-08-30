@@ -180,7 +180,7 @@ namespace VisualPinball.Unity
 				MotorStepSwitch.SetSwitch(true);
 
 				var step = _pos / _degreesPerStep;
-				var action = _scoreMotorComponent.ScoreMotorActionsList[_increase - 1].Actions[step];
+				var action = _scoreMotorComponent.ScoreMotorTimingList[_increase - 1].Actions[step];
 
 				Logger.Info($"advance motor, pos={_pos}, time={_time}, increase={_increase}, step={step}, action={action}");
 

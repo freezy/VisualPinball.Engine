@@ -29,10 +29,9 @@ namespace VisualPinball.Unity.Editor
 		private SerializedProperty _degreesProperty;
 		private SerializedProperty _durationProperty;
 		private SerializedProperty _blockScoringProperty;
+		private SerializedProperty _scoreMotorTimingListProperty;
 
-		private SerializedProperty _scoreMotorActionsListProperty;
-
-		private List<ReorderableList> scoreMotorActionsLists = new List<ReorderableList>();
+		private List<ReorderableList> scoreMotorTimingReorderableList = new List<ReorderableList>();
 
 		protected override MonoBehaviour UndoTarget => target as MonoBehaviour;
 
@@ -44,12 +43,11 @@ namespace VisualPinball.Unity.Editor
 			_degreesProperty = serializedObject.FindProperty(nameof(ScoreMotorComponent.Degrees));
 			_durationProperty = serializedObject.FindProperty(nameof(ScoreMotorComponent.Duration));
 			_blockScoringProperty = serializedObject.FindProperty(nameof(ScoreMotorComponent.BlockScoring));
+			_scoreMotorTimingListProperty = serializedObject.FindProperty(nameof(ScoreMotorComponent.ScoreMotorTimingList));
 
-			_scoreMotorActionsListProperty = serializedObject.FindProperty(nameof(ScoreMotorComponent.ScoreMotorActionsList));
-
-			for (var index = 0; index < _scoreMotorActionsListProperty.arraySize; index++) {
-				var actionsProperty = _scoreMotorActionsListProperty.GetArrayElementAtIndex(index).FindPropertyRelative(nameof(ScoreMotorActions.Actions));
-				scoreMotorActionsLists.Add(GenerateReordableList(actionsProperty));
+			for (var index = 0; index < _scoreMotorTimingListProperty.arraySize; index++) {
+				var actionsProperty = _scoreMotorTimingListProperty.GetArrayElementAtIndex(index).FindPropertyRelative(nameof(ScoreMotorTiming.Actions));
+				scoreMotorTimingReorderableList.Add(GenerateReordableList(actionsProperty));
 			}
 		}
 
@@ -59,7 +57,7 @@ namespace VisualPinball.Unity.Editor
 
 			PropertyField(_stepsProperty);
 
-			RecalcuteScoreMotorActions();
+			RecalcuteScoreMotorTimingActions();
 
 			PropertyField(_degreesProperty);
 			PropertyField(_durationProperty);
@@ -74,9 +72,9 @@ namespace VisualPinball.Unity.Editor
 			}
 
 			for (var index = 1; index < size; index++) {
-				if (_scoreMotorActionsListProperty.GetArrayElementAtIndex(index).isExpanded =
-					EditorGUILayout.Foldout(_scoreMotorActionsListProperty.GetArrayElementAtIndex(index).isExpanded, $"Increase By {index + 1}")) {
-					scoreMotorActionsLists[index].DoLayoutList();
+				if (_scoreMotorTimingListProperty.GetArrayElementAtIndex(index).isExpanded =
+					EditorGUILayout.Foldout(_scoreMotorTimingListProperty.GetArrayElementAtIndex(index).isExpanded, $"Increase By {index + 1}")) {
+					scoreMotorTimingReorderableList[index].DoLayoutList();
 				}
 			}
 
@@ -85,12 +83,12 @@ namespace VisualPinball.Unity.Editor
 			EndEditing();
 		}
 
-		private void RecalcuteScoreMotorActions()
+		private void RecalcuteScoreMotorTimingActions()
 		{
-			for (var increase = 0; increase < _scoreMotorActionsListProperty.arraySize; increase++) {
+			for (var increase = 0; increase < _scoreMotorTimingListProperty.arraySize; increase++) {
 				var change = false;
 
-				var actionsProperty = _scoreMotorActionsListProperty.GetArrayElementAtIndex(increase).FindPropertyRelative(nameof(ScoreMotorActions.Actions));
+				var actionsProperty = _scoreMotorTimingListProperty.GetArrayElementAtIndex(increase).FindPropertyRelative(nameof(ScoreMotorTiming.Actions));
 
 				// Steps Decreased
 
