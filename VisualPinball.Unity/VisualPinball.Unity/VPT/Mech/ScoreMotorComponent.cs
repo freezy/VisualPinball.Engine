@@ -27,7 +27,6 @@ namespace VisualPinball.Unity
 	public delegate void ScoreMotorResetCallback(float score);
 	public delegate void ScoreMotorAddPointsCallback(float points);
 
-
 	[AddComponentMenu("Visual Pinball/Game Item/Score Motor")]
 	public class ScoreMotorComponent : MonoBehaviour, ISwitchDeviceComponent
 	{
@@ -48,12 +47,12 @@ namespace VisualPinball.Unity
 		[Tooltip("Disable to allow single point scores while score motor running.")]
 		public bool BlockScoring = true;
 
-		public List<ScoreMotorActions> ScoreMotorActionsList = new List<ScoreMotorActions>() {
-			new ScoreMotorActions(),
-			new ScoreMotorActions(),
-			new ScoreMotorActions(),
-			new ScoreMotorActions(),
-			new ScoreMotorActions()
+		public List<ScoreMotorTiming> ScoreMotorTimingList = new List<ScoreMotorTiming>() {
+			new ScoreMotorTiming(),
+			new ScoreMotorTiming(),
+			new ScoreMotorTiming(),
+			new ScoreMotorTiming(),
+			new ScoreMotorTiming()
 		};
 
 		public const string MotorRunningSwitchItem = "motor_running_switch";
@@ -104,7 +103,7 @@ namespace VisualPinball.Unity
 	}
 
 	[Serializable]
-	public class ScoreMotorActions
+	public class ScoreMotorTiming
 	{
 		public List<ScoreMotorAction> Actions = new List<ScoreMotorAction>();
 	}
