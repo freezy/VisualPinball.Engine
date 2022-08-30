@@ -39,24 +39,6 @@ namespace VisualPinball.Unity
 		private DeviceSwitch MotorRunningSwitch;
 		private DeviceSwitch MotorStepSwitch;
 
-		private readonly int _degreesPerStep;
-		private readonly float _degreesPerSecond;
-
-		private bool _running;
-
-		private float _time;
-		private int _pos;
-
-		private ScoreMotorMode _mode;
-		private string _id;
-		private int _increase;
-
-		private float _score;
-		private ScoreMotorResetCallback _resetCallback;
-
-		private float _points;
-		private ScoreMotorAddPointsCallback _addPointsCallback;
-
 		public IApiSwitch Switch(string deviceItem)
 		{
 			return deviceItem switch
@@ -74,13 +56,7 @@ namespace VisualPinball.Unity
 			_scoreMotorComponent = go.GetComponentInChildren<ScoreMotorComponent>();
 			_player = player;
 
-			_degreesPerSecond = _scoreMotorComponent.Degrees / (_scoreMotorComponent.Duration / 1000f);
-			_degreesPerStep = _scoreMotorComponent.Degrees / _scoreMotorComponent.Steps;
-
-			_scoreMotorComponent.OnReset += HandleReset;
-			_scoreMotorComponent.OnAddPoints += HandleAddPoints;
-
-			_running = false;
+			_scoreMotorComponent.OnSwitchChanged += HandleSwitchChanged;
 		}
 
 		void IApi.OnInit(BallManager ballManager)
@@ -91,185 +67,16 @@ namespace VisualPinball.Unity
 			Init?.Invoke(this, EventArgs.Empty);
 		}
 
-		private void HandleReset(object sender, ScoreMotorResetEventArgs e)
+		private void HandleSwitchChanged(object sender, SwitchEventArgs2 e)
 		{
-			if (_running) {
-				Logger.Info($"already running (ignoring reset), id={e.Id}");
-				return;
-			}
-
-			if (e.Score == 0) {
-				Logger.Info($"score already 0 (ignoring reset), id={e.Id}");
-				e.Callback(0);
-				return;
-			}
-
-			Logger.Info($"reset, id={e.Id}, score={e.Score}");
-
-			_mode = ScoreMotorMode.Reset;
-			_id = e.Id;
-			_score = e.Score;
-			_increase = ScoreMotorComponent.MaxIncrease;
-			_resetCallback = e.Callback;
-
-			StartMotor();
-		}
-
-		private void HandleAddPoints(object sender, ScoreMotorAddPointsEventArgs e)
-		{
-			var increase = (int)
-				((e.Points % 1000000000 == 0) ? e.Points / 1000000000 :
-				 (e.Points % 100000000 == 0) ? e.Points / 100000000 :
-				 (e.Points % 10000000 == 0) ? e.Points / 10000000 :
-				 (e.Points % 1000000 == 0) ? e.Points / 1000000 :
-				 (e.Points % 100000 == 0) ? e.Points / 100000 :
-				 (e.Points % 10000 == 0) ? e.Points / 10000 :
-				 (e.Points % 1000 == 0) ? e.Points / 1000 :
-				 (e.Points % 100 == 0) ? e.Points / 100 :
-				 (e.Points % 10 == 0) ? e.Points / 10 :
-				 e.Points);
-
-			if (increase > ScoreMotorComponent.MaxIncrease) {
-				Logger.Error($"too many increases (ignoring points), id={e.Id}, points={e.Points}, increase={increase}");
-				return;
-			}
-
-			if (_running) {
-				if (increase > 1 || (increase == 1 && _scoreMotorComponent.BlockScoring)) {
-					Logger.Info($"already running (ignoring points), id={e.Id}, points={e.Points}");
-					return;
-				}
-			}
-
-			if (increase == 1) {
-				Logger.Info($"single points, id={e.Id}, points={e.Points}");
-				e.Callback(e.Points);
-				return;
-			}
-
-			Logger.Info($"multi points, id={e.Id}, increase={increase}, points={e.Points}");
-
-			_mode = ScoreMotorMode.AddPoints;
-			_id = e.Id;
-			_increase = increase;
-			_points = e.Points / increase;
-			_addPointsCallback = e.Callback;
-
-			StartMotor();
-		}
-
-		private void StartMotor()
-		{
-			Logger.Info($"start motor");
-
-			_time = 0;
-			_pos = 0;
-
-			_running = true;
-
-			MotorRunningSwitch.SetSwitch(true);
-
-			AdvanceMotor();
-
-			_scoreMotorComponent.OnUpdate += HandleUpdate;
-		}
-
-		private void AdvanceMotor()
-		{
-			if (_pos % _degreesPerStep == 0) {
-				MotorStepSwitch.SetSwitch(true);
-
-				var step = _pos / _degreesPerStep;
-				var action = _scoreMotorComponent.ScoreMotorTimingList[_increase - 1].Actions[step];
-
-				Logger.Info($"advance motor, pos={_pos}, time={_time}, increase={_increase}, step={step}, action={action}");
-
-				if (action == ScoreMotorAction.Increase) {
-					Increase();
-				}
-			}
-
-			_pos++;
-		}
-
-		private void StopMotor()
-		{
-			Logger.Info($"stop motor");
-
-			_scoreMotorComponent.OnUpdate -= HandleUpdate;
-
-			MotorRunningSwitch.SetSwitch(false);
-
-			_running = false;
-		}
-
-		private void HandleUpdate(object sender, EventArgs eventArgs)
-		{
-			_time += Time.deltaTime;
-
-			int currentPos = (int)(_degreesPerSecond * _time);
-
-			while (_pos <= currentPos && _pos < _scoreMotorComponent.Degrees) {
-				AdvanceMotor();
-			}
-
-			if (_pos >= _scoreMotorComponent.Degrees) {
-				if (_mode == ScoreMotorMode.Reset) {
-					if (_score > 0) {
-						_time = 0;
-						_pos = 0;
-
-						AdvanceMotor();
-
-						return;
-					}
-				}
-
-				StopMotor();
-			}
+			((DeviceSwitch)Switch(e.Id)).SetSwitch(e.IsEnabled);
 		}
 
 		void IApi.OnDestroy()
 		{
-			_scoreMotorComponent.OnUpdate -= HandleUpdate;
-
-			_scoreMotorComponent.OnReset -= HandleReset;
-			_scoreMotorComponent.OnAddPoints -= HandleAddPoints;
+			_scoreMotorComponent.OnSwitchChanged -= HandleSwitchChanged;
 
 			Logger.Info($"Destroying {_scoreMotorComponent.name}");
-		}
-
-		private void Increase()
-		{
-			switch(_mode) {
-				case ScoreMotorMode.Reset:
-					_score = Reset(_score);
-					Logger.Info($"increase, mode={_mode}, id={_id}, score={_score}");
-					_resetCallback(0);
-					break;
-
-				case ScoreMotorMode.AddPoints:
-					Logger.Info($"increase, mode={_mode}, id={_id}, points={_points}");
-					_addPointsCallback(_points);
-					break;
-			}
-		}
-
-		private float Reset(float score)
-		{
-			float newScore = 0;
-
-			var pos = 0;
-			while (score > 0) {
-				var i = (int)(score % 10);
-				if (i > 0 && i < 9) {
-					newScore += (float)(System.Math.Pow(10, pos) * (i + 1));
-				}
-				score = (int)(score / 10);
-				pos++;
-			}
-
-			return newScore;
 		}
 	}
 }
