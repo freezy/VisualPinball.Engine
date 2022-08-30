@@ -165,17 +165,7 @@ namespace VisualPinball.Unity
 
 		public void AddPoints(string id, float points, ScoreMotorAddPointsCallback callback)
 		{
-			var increase = (int)
-				((points % 1000000000 == 0) ? points / 1000000000 :
-				 (points % 100000000 == 0) ? points / 100000000 :
-				 (points % 10000000 == 0) ? points / 10000000 :
-				 (points % 1000000 == 0) ? points / 1000000 :
-				 (points % 100000 == 0) ? points / 100000 :
-				 (points % 10000 == 0) ? points / 10000 :
-				 (points % 1000 == 0) ? points / 1000 :
-				 (points % 100 == 0) ? points / 100 :
-				 (points % 10 == 0) ? points / 10 :
-				 points);
+			var increase = (int)System.Math.Floor(points / System.Math.Pow(10, System.Math.Floor(System.Math.Log10(points))));
 
 			if (increase > ScoreMotorComponent.MaxIncrease) {
 				Logger.Error($"too many increases (ignoring points), id={id}, points={points}, increase={increase}");
