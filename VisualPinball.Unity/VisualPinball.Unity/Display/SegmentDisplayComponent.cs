@@ -286,7 +286,7 @@ namespace VisualPinball.Unity
 
 			UpdateFrame(target);
 
-			_displayPlayer.DisplayUpdateEvent(new DisplayFrameData(Id, format, source));
+			DisplayPlayer.DisplayUpdateEvent(new DisplayFrameData(Id, format, source));
 		}
 
 		public void SetText(string text)

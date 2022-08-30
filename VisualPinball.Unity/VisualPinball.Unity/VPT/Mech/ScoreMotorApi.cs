@@ -36,12 +36,11 @@ namespace VisualPinball.Unity
 
 		IApiSwitch IApiSwitchDevice.Switch(string deviceItem) => Switch(deviceItem);
 
-		public DeviceCoil ResetCoil;
-		public DeviceSwitch MotorRunningSwitch;
-		public DeviceSwitch MotorStepSwitch;
+		private DeviceSwitch MotorRunningSwitch;
+		private DeviceSwitch MotorStepSwitch;
 
-		private int _degreesPerStep;
-		private float _degreesPerSecond;
+		private readonly int _degreesPerStep;
+		private readonly float _degreesPerSecond;
 
 		private bool _running;
 

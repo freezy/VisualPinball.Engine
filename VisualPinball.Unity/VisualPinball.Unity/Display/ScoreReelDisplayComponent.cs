@@ -42,10 +42,10 @@ namespace VisualPinball.Unity
 		[Tooltip("Wait between positions in milliseconds")]
 		public float Wait = 30;
 
-		[Tooltip("The reel components, from left to right.")]
+		[Tooltip("The reel components, from left to right")]
 		public ScoreReelComponent[] ReelObjects;
 
-		[Tooltip("The reel components, from left to right.")]
+		[Tooltip("The score motor component to simulate EM reel timing")]
 		public ScoreMotorComponent ScoreMotorComponent;
 
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
@@ -66,9 +66,9 @@ namespace VisualPinball.Unity
 		{
 			if (ScoreMotorComponent) {
 				// Truncate score to the amount of reels
-				_score = (float)(_score % System.Math.Pow(10, ReelObjects.Length));
+				var value = (float)(_score % System.Math.Pow(10, ReelObjects.Length));
 
-				ScoreMotorComponent.Reset(Id, _score, (score) => {
+				ScoreMotorComponent.Reset(Id, value, (score) => {
 					_score = score;
 					UpdateFrame();
 				});
@@ -81,16 +81,16 @@ namespace VisualPinball.Unity
 
 		public override void UpdateFrame(DisplayFrameFormat format, byte[] data)
 		{
-			if (ScoreMotorComponent) {
-				var points = BitConverter.ToSingle(data);
+			var value = BitConverter.ToSingle(data);
 
-				ScoreMotorComponent.AddPoints(Id, points, (points) => {
+			if (ScoreMotorComponent) {
+				ScoreMotorComponent.AddPoints(Id, value, (points) => {
 					_score += points;
 					UpdateFrame();
 				});
 			}
 			else {
-				_score = BitConverter.ToSingle(data);
+				_score = value;
 				UpdateFrame();
 			}
 		}
@@ -109,7 +109,9 @@ namespace VisualPinball.Unity
 				j--;
 			}
 
-			_displayPlayer.DisplayUpdateEvent(new DisplayFrameData(Id, DisplayFrameFormat.Numeric, BitConverter.GetBytes(_score)));
+			Logger.Info($"reels should be at {_score}, digits: {string.Join(", ", digits)}");
+
+			DisplayPlayer.DisplayUpdateEvent(new DisplayFrameData(Id, DisplayFrameFormat.Numeric, BitConverter.GetBytes(_score)));
 		}
 
 		private static void SetReel(ScoreReelComponent sr, int num)

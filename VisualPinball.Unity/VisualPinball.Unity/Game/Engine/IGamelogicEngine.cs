@@ -42,9 +42,20 @@ namespace VisualPinball.Unity
 		/// most GLEs only know about their displays when they start the game.
 		/// </remarks>
 		event EventHandler<RequestedDisplays> OnDisplaysRequested;
-		event EventHandler<DisplayClearData> OnDisplayClear;
+
+		/// <summary>
+		/// Emitted by the display player when a display clear is requested.
+		/// </summary>
+		event EventHandler<string> OnDisplayClear;
+
+		/// <summary>
+		/// Emitted by the display player when a display frame update is requested.
+		/// </summary>
 		event EventHandler<DisplayFrameData> OnDisplayUpdateFrame;
 
+		/// <summary>
+		/// Called by the display player after a display frame update has occurred.
+		/// </summary>
 		void DisplayUpdateEvent(DisplayFrameData displayFrameData);
 
 		#endregion
@@ -192,16 +203,6 @@ namespace VisualPinball.Unity
 		Segment,
 		AlphaNumeric, // gets a byte-array converted string
 		Numeric       // gets a byte-array converted float
-	}
-
-	public class DisplayClearData
-	{
-		public readonly string Id;
-
-		public DisplayClearData(string id)
-		{
-			Id = id;
-		}
 	}
 
 	public class DisplayFrameData
