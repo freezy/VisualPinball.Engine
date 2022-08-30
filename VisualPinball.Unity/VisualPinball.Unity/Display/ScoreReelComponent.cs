@@ -48,7 +48,7 @@ namespace VisualPinball.Unity
 		public void AnimateTo(int position)
 		{
 			var numPositions = (position - _nextPosition + 10) % 10;
-			_remainingPositions += numPositions;
+			_remainingPositions = (_remainingPositions + numPositions) % 10;
 			_nextPosition = position;
 			if (!_running) {
 				_running = true;
@@ -67,8 +67,8 @@ namespace VisualPinball.Unity
 
 				if (currentPosition != lastPosition) {
 
-					// stop on correct position
-					_currentRotation -= _currentRotation % 36f;
+					// round to correct position
+					_currentRotation = (float)System.Math.Round(_currentRotation / 36f) * 36;
 					transform.localRotation = Quaternion.Euler(0, 0, _currentRotation);
 
 					_remainingPositions--;
