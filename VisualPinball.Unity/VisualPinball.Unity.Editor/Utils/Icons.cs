@@ -111,7 +111,7 @@ namespace VisualPinball.Unity.Editor
 		private const string TableVariableName = "table_variable";
 		private const string TableVariableEventName = "table_variable_event";
 		private const string UpdateDisplayName = "update_display";
-		private const string DisplayUpdateEventName = "display_update_event";
+		private const string DisplayEventName = "display_event";
 
 		private static readonly string[] Names = {
 			AssetLibraryName, BallRollerName, BoltName, BumperName, CalendarName, CannonName, CoilName, DropTargetBankName, DropTargetName, FlasherName,
@@ -119,7 +119,7 @@ namespace VisualPinball.Unity.Editor
 			PlungerName, PrimitiveName, RampName, RotatorName, RubberName, ScoreReelName, ScoreReelSingleName, SlingshotName, SpinnerName, SurfaceName,
 			SwitchNcName, SwitchNoName, TableName, TeleporterName, TriggerName, TroughName,
 			CoilEventName, SwitchEventName, LampEventName, LampSeqName, MetalWireGuideName,
-			PlayerVariableName, PlayerVariableEventName, TableVariableName, TableVariableEventName, UpdateDisplayName, DisplayUpdateEventName
+			PlayerVariableName, PlayerVariableEventName, TableVariableName, TableVariableEventName, UpdateDisplayName, DisplayEventName
 		};
 
 		private readonly Dictionary<IconVariant, Texture2D> _icons = new Dictionary<IconVariant, Texture2D>();
@@ -210,7 +210,7 @@ namespace VisualPinball.Unity.Editor
 		public static Texture2D TableVariable => Instance.GetItem(TableVariableName, IconSize.Large, IconColor.Colored);
 		public static Texture2D TableVariableEvent => Instance.GetItem(TableVariableEventName, IconSize.Large, IconColor.Colored);
 		public static Texture2D UpdateDisplay => Instance.GetItem(UpdateDisplayName, IconSize.Large, IconColor.Colored);
-		public static Texture2D DisplayUpdateEvent => Instance.GetItem(DisplayUpdateEventName, IconSize.Large, IconColor.Colored);
+		public static Texture2D DisplayEvent => Instance.GetItem(DisplayEventName, IconSize.Large, IconColor.Colored);
 
 		public static Texture2D ByComponent<T>(T mb, IconSize size = IconSize.Large, IconColor color = IconColor.Gray)
 			where T : class

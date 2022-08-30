@@ -42,8 +42,8 @@ namespace VisualPinball.Unity
 			foreach (var display in displays) {
 				Logger.Info($"[Player] display \"{display.Id}\" connected.");
 
-				display.DisplayPlayer = this;
 				_displayGameObjects[display.Id] = display;
+				_displayGameObjects[display.Id].OnDisplayChanged += HandleDisplayChanged;
 			}
 		}
 
@@ -74,9 +74,9 @@ namespace VisualPinball.Unity
 			}
 		}
 
-		public void DisplayUpdateEvent(DisplayFrameData e)
+		private void HandleDisplayChanged(object sender, DisplayFrameData e)
 		{
-			_gamelogicEngine.DisplayUpdateEvent(e);
+			_gamelogicEngine.SetDisplay(e);
 		}
 
 		public void OnDestroy()
@@ -84,6 +84,10 @@ namespace VisualPinball.Unity
 			_gamelogicEngine.OnDisplaysRequested -= HandleDisplaysRequested;
 			_gamelogicEngine.OnDisplayClear -= HandleDisplayClear;
 			_gamelogicEngine.OnDisplayUpdateFrame -= HandleDisplayUpdateFrame;
+
+			foreach (var id in _displayGameObjects.Keys) {
+				_displayGameObjects[id].OnDisplayChanged -= HandleDisplayChanged;
+			}
 		}
 	}
 }

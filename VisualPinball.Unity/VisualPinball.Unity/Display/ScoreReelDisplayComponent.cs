@@ -19,7 +19,6 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.SocialPlatforms.Impl;
 using VisualPinball.Engine.Game.Engines;
 using NLog;
 using Logger = NLog.Logger;
@@ -35,17 +34,17 @@ namespace VisualPinball.Unity
 		public override string Id { get => _id; set => _id = value; }
 
 		[Unit("positions/s")]
-		[Tooltip("Positions per second")]
+		[Tooltip("Positions per second.")]
 		public float Speed = 15;
 
 		[Unit("ms")]
-		[Tooltip("Wait between positions in milliseconds")]
+		[Tooltip("Wait between positions in milliseconds.")]
 		public float Wait = 30;
 
-		[Tooltip("The reel components, from left to right")]
+		[Tooltip("The reel components, from left to right.")]
 		public ScoreReelComponent[] ReelObjects;
 
-		[Tooltip("The score motor component to simulate EM reel timing")]
+		[Tooltip("The score motor component to simulate EM reel timing.")]
 		public ScoreMotorComponent ScoreMotorComponent;
 
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
@@ -97,7 +96,9 @@ namespace VisualPinball.Unity
 
 		private void UpdateFrame()
 		{
-			var digits = DigitArr((int)_score);
+			var score = _score;
+
+			var digits = DigitArr((int)score);
 			var j = digits.Length - 1;
 			for (var i = ReelObjects.Length - 1; i >= 0; i--) {
 				if (j < 0) {
@@ -109,9 +110,7 @@ namespace VisualPinball.Unity
 				j--;
 			}
 
-			Logger.Info($"reels should be at {_score}, digits: {string.Join(", ", digits)}");
-
-			DisplayPlayer.DisplayUpdateEvent(new DisplayFrameData(Id, DisplayFrameFormat.Numeric, BitConverter.GetBytes(_score)));
+			OnDisplayChanged?.Invoke(this, new DisplayFrameData(Id, DisplayFrameFormat.Numeric, BitConverter.GetBytes(score)));
 		}
 
 		private static void SetReel(ScoreReelComponent sr, int num)
