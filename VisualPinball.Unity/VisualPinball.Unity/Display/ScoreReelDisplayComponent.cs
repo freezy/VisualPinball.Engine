@@ -122,18 +122,7 @@ namespace VisualPinball.Unity
 			if (n < 0) {
 				n = n == int.MinValue ? int.MaxValue : -n;
 			}
-			return n switch {
-				< 10 => 1,
-				< 100 => 2,
-				< 1000 => 3,
-				< 10000 => 4,
-				< 100000 => 5,
-				< 1000000 => 6,
-				< 10000000 => 7,
-				< 100000000 => 8,
-				< 1000000000 => 9,
-				_ => 10
-			};
+			return n == 0 ? 1 : (int)System.Math.Floor(System.Math.Log10(n)) + 1;
 		}
 
 		private static int[] DigitArr(int n)
