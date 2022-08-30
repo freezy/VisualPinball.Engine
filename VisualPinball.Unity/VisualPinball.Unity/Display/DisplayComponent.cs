@@ -26,7 +26,7 @@ namespace VisualPinball.Unity
 {
 	public abstract class DisplayComponent : MonoBehaviour
 	{
-		public DisplayPlayer _displayPlayer { get; set; }
+		public DisplayPlayer DisplayPlayer { get; set; }
 
 		public abstract string Id { get; set; }
 		public abstract Color LitColor { get; set; }

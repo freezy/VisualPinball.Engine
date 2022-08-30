@@ -49,7 +49,7 @@ namespace VisualPinball.Unity
 		public event EventHandler<LampsEventArgs> OnLampsChanged;
 		public event EventHandler<SwitchEventArgs2> OnSwitchChanged;
 		public event EventHandler<RequestedDisplays> OnDisplaysRequested;
-		public event EventHandler<DisplayClearData> OnDisplayClear;
+		public event EventHandler<string> OnDisplayClear;
 		public event EventHandler<DisplayFrameData> OnDisplayUpdateFrame;
 		public event EventHandler<EventArgs> OnStarted;
 

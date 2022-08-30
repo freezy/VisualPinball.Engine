@@ -42,7 +42,7 @@ namespace VisualPinball.Unity
 			foreach (var display in displays) {
 				Logger.Info($"[Player] display \"{display.Id}\" connected.");
 
-				display._displayPlayer = this;
+				display.DisplayPlayer = this;
 				_displayGameObjects[display.Id] = display;
 			}
 		}
@@ -60,10 +60,10 @@ namespace VisualPinball.Unity
 			}
 		}
 
-		private void HandleDisplayClear(object sender, DisplayClearData e)
+		private void HandleDisplayClear(object sender, string id)
 		{
-			if (_displayGameObjects.ContainsKey(e.Id)) {
-				_displayGameObjects[e.Id].Clear();
+			if (_displayGameObjects.ContainsKey(id)) {
+				_displayGameObjects[id].Clear();
 			}
 		}
 

@@ -25,54 +25,8 @@ using VisualPinball.Engine.Game.Engines;
 namespace VisualPinball.Unity
 {
 	public delegate void ScoreMotorResetCallback(float score);
-
-	public readonly struct ScoreMotorResetEventArgs
-	{
-		public readonly string Id;
-		public readonly float Score;
-		public readonly ScoreMotorResetCallback Callback;
-
-		public ScoreMotorResetEventArgs(string id, float score, ScoreMotorResetCallback callback)
-		{
-			Id = id;
-			Score = score;
-			Callback = callback;
-		}
-	}
-
 	public delegate void ScoreMotorAddPointsCallback(float points);
 
-	public readonly struct ScoreMotorAddPointsEventArgs
-	{
-		public readonly string Id;
-		public readonly float Points;
-		public readonly ScoreMotorAddPointsCallback Callback;
-
-		public ScoreMotorAddPointsEventArgs(string id, float points, ScoreMotorAddPointsCallback callback)
-		{
-			Id = id;
-			Points = points;
-			Callback = callback;
-		}
-	}
-
-	public enum ScoreMotorMode
-	{
-		Reset = 0,
-		AddPoints = 1
-	}
-
-	public enum ScoreMotorAction
-	{
-		Wait = 0,
-		Increase = 1
-	}
-
-	[Serializable]
-	public class ScoreMotorActions
-	{
-		public List<ScoreMotorAction> Actions = new List<ScoreMotorAction>();
-	}
 
 	[AddComponentMenu("Visual Pinball/Game Item/Score Motor")]
 	public class ScoreMotorComponent : MonoBehaviour, ISwitchDeviceComponent
@@ -94,8 +48,7 @@ namespace VisualPinball.Unity
 		[Tooltip("Disable to allow single point scores while score motor running.")]
 		public bool BlockScoring = true;
 
-		public List<ScoreMotorActions> ScoreMotorActionsList = new List<ScoreMotorActions>()
-		{
+		public List<ScoreMotorActions> ScoreMotorActionsList = new List<ScoreMotorActions>() {
 			new ScoreMotorActions(),
 			new ScoreMotorActions(),
 			new ScoreMotorActions(),
@@ -148,5 +101,51 @@ namespace VisualPinball.Unity
 		}
 
 		#endregion
+	}
+
+	[Serializable]
+	public class ScoreMotorActions
+	{
+		public List<ScoreMotorAction> Actions = new List<ScoreMotorAction>();
+	}
+
+	public readonly struct ScoreMotorResetEventArgs
+	{
+		public readonly string Id;
+		public readonly float Score;
+		public readonly ScoreMotorResetCallback Callback;
+
+		public ScoreMotorResetEventArgs(string id, float score, ScoreMotorResetCallback callback)
+		{
+			Id = id;
+			Score = score;
+			Callback = callback;
+		}
+	}
+
+	public readonly struct ScoreMotorAddPointsEventArgs
+	{
+		public readonly string Id;
+		public readonly float Points;
+		public readonly ScoreMotorAddPointsCallback Callback;
+
+		public ScoreMotorAddPointsEventArgs(string id, float points, ScoreMotorAddPointsCallback callback)
+		{
+			Id = id;
+			Points = points;
+			Callback = callback;
+		}
+	}
+
+	public enum ScoreMotorMode
+	{
+		Reset = 0,
+		AddPoints = 1
+	}
+
+	public enum ScoreMotorAction
+	{
+		Wait = 0,
+		Increase = 1
 	}
 }
