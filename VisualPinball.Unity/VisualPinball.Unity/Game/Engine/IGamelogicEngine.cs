@@ -54,9 +54,9 @@ namespace VisualPinball.Unity
 		event EventHandler<DisplayFrameData> OnDisplayUpdateFrame;
 
 		/// <summary>
-		/// Called by the display player after a display frame update has occurred.
+		/// Indicate a display has been updated.
 		/// </summary>
-		void DisplayUpdateEvent(DisplayFrameData displayFrameData);
+		void SetDisplay(DisplayFrameData displayFrameData);
 
 		#endregion
 
@@ -302,11 +302,11 @@ namespace VisualPinball.Unity
 		}
 	}
 
-	public readonly struct DisplayUpdateEventArgs
+	public readonly struct DisplayEventArgs
 	{
 		public readonly DisplayFrameData DisplayFrameData;
 
-		public DisplayUpdateEventArgs(DisplayFrameData displayFrameData)
+		public DisplayEventArgs(DisplayFrameData displayFrameData)
 		{
 			DisplayFrameData = displayFrameData;
 		}

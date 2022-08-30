@@ -26,11 +26,11 @@ namespace VisualPinball.Unity
 {
 	public abstract class DisplayComponent : MonoBehaviour
 	{
-		public DisplayPlayer DisplayPlayer { get; set; }
-
 		public abstract string Id { get; set; }
 		public abstract Color LitColor { get; set; }
 		public abstract Color UnlitColor { get; set; }
+
+		public EventHandler<DisplayFrameData> OnDisplayChanged;
 
 		private static readonly int DataProp = Shader.PropertyToID("__Data");
 

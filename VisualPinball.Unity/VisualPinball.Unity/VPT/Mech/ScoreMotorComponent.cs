@@ -253,7 +253,7 @@ namespace VisualPinball.Unity
 				case ScoreMotorMode.Reset:
 					_score = ResetScore(_score);
 					Logger.Info($"increase, mode={_mode}, id={_id}, score={_score}");
-					_resetCallback(0);
+					_resetCallback(_score);
 					break;
 
 				case ScoreMotorMode.AddPoints:

@@ -20,12 +20,12 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
-using NLog;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using VisualPinball.Engine.Common;
 using VisualPinball.Engine.Game.Engines;
 using Debug = UnityEngine.Debug;
+using NLog;
 using Logger = NLog.Logger;
 
 // uncomment to simulate dual-wound flippers
@@ -294,11 +294,6 @@ namespace VisualPinball.Unity
 			OnSwitchChanged?.Invoke(this, new SwitchEventArgs2(id, isClosed));
 		}
 
-
-		void IGamelogicEngine.DisplayUpdateEvent(DisplayFrameData displayFrameData)
-		{
-		}
-
 		public void SetCoil(string n, bool value)
 		{
 			OnCoilChanged?.Invoke(this, new CoilEventArgs(n, value));
@@ -312,6 +307,10 @@ namespace VisualPinball.Unity
 		public void SetLamps(LampEventArgs[] values)
 		{
 			OnLampsChanged?.Invoke(this, new LampsEventArgs(values));
+		}
+
+		void IGamelogicEngine.SetDisplay(DisplayFrameData displayFrameData)
+		{
 		}
 
 		public LampState GetLamp(string id)
