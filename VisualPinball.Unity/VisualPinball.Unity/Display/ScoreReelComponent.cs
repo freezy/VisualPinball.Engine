@@ -51,14 +51,14 @@ namespace VisualPinball.Unity
 		private int _endPosition;
 
 		/// <summary>
-		/// How many positions are left to reach _nextPosition.
-		/// </summary>
-		private int _remainingPositions;
-
-		/// <summary>
 		/// The current rotation of the reel, in degrees.
 		/// </summary>
 		private float _currentRotation;
+
+		/// <summary>
+		/// The current position, based on the rotation of the reel.
+		/// </summary>
+		private int _currentPosition;
 
 		private bool _isRotatingDown => Direction == ScoreReelDirection.Down;
 
@@ -68,11 +68,10 @@ namespace VisualPinball.Unity
 			if (increasePositions == 0) { // early out if no additional increments.
 				return;
 			}
-			_remainingPositions = (_remainingPositions + increasePositions) % 10;
 			_endPosition = position;
 
 			if (DebugPrint) {
-				Debug.Log($"[reel] --> New position: {position} ({_remainingPositions} remaining)");
+				Debug.Log($"[reel] --> New position: {position}");
 			}
 
 			if (!_isRunning) {
@@ -84,35 +83,32 @@ namespace VisualPinball.Unity
 		private IEnumerator Rotate()
 		{
 			var dir = _isRotatingDown ? 1 : -1;
-			while (_remainingPositions > 0) {
-				var currentPosition = (int)(_currentRotation / 36f);
+			while (_currentPosition != _endPosition) {
 				var nextRotationSinceLastFrame = _currentRotation + dir * Time.deltaTime * Speed * 36f;
-				var nextPositionSinceLastFrame = (int)(nextRotationSinceLastFrame / 36f);
-				var numPositionsSinceLastFrame = math.abs(nextPositionSinceLastFrame - currentPosition);
+				var nextPositionSinceLastFrame = Position(nextRotationSinceLastFrame);
+				var numPositionsSinceLastFrame = dir * (nextPositionSinceLastFrame - _currentPosition);
 
 				// check if since last frame we would over rotate to the wrong position
-				if (numPositionsSinceLastFrame > _remainingPositions) {
+				if (_currentPosition < _endPosition && _currentPosition + numPositionsSinceLastFrame > _endPosition) {
 
-					_currentRotation = (currentPosition + dir * _remainingPositions * 36f) % 360f;
-					_remainingPositions = 0;
+					_currentRotation = _endPosition * 36f;
+					_currentPosition = _endPosition;
 
 					if (DebugPrint) {
-						var nextPosition = (int)(_currentRotation / 36f);
-						Debug.Log($"[reel] === OVER-ROTATION: {currentPosition} -> {nextPositionSinceLastFrame}, resetting to {nextPosition}");
+						Debug.Log($"[reel] === OVER-ROTATION: {_currentPosition} -> {nextPositionSinceLastFrame}, resetting to {_currentPosition}");
 					}
 
 					transform.localRotation = Quaternion.Euler(0, 0, _currentRotation);
 					yield return new WaitForSeconds(Wait / 1000f);
 
-				} else if (nextPositionSinceLastFrame != currentPosition) {
+				} else if (nextPositionSinceLastFrame != _currentPosition) {
 					// if we reached a new position, click to position, and wait
-					_currentRotation = (int)(nextRotationSinceLastFrame / 36f) * 36f % 360f;
-					_remainingPositions -= numPositionsSinceLastFrame;
+					_currentRotation = ClickToRotation(nextRotationSinceLastFrame);
+					_currentPosition = Position(_currentRotation);
 
 					// round to correct position
 					if (DebugPrint) {
-						var nextPosition = (int)(_currentRotation / 36f);
-						Debug.Log($"[reel] <-- Rotated to {nextPosition} ({numPositionsSinceLastFrame} increased, {_remainingPositions} remaining)");
+						Debug.Log($"[reel] <-- Rotated to {_currentPosition} ({numPositionsSinceLastFrame} increased)");
 					}
 
 					transform.localRotation = Quaternion.Euler(0, 0, _currentRotation);
@@ -122,8 +118,7 @@ namespace VisualPinball.Unity
 					// otherwise, continue animating
 					_currentRotation = nextRotationSinceLastFrame % 360f;
 					if (DebugPrint) {
-						var nextPosition = _currentRotation / 36f;
-						Debug.Log($"[reel] ... Animating to {(int)(nextPosition * 100f) / 100f} ({numPositionsSinceLastFrame} increased, {_remainingPositions} remaining)");
+						Debug.Log($"[reel] ... Animating to {(int)(_currentRotation / 36f * 100f) / 100f} ({numPositionsSinceLastFrame} increased)");
 					}
 
 					transform.localRotation = Quaternion.Euler(0, 0, _currentRotation);
@@ -134,6 +129,21 @@ namespace VisualPinball.Unity
 				Debug.Log($"[reel] --- Finished at {(int)(_currentRotation / 36f)}");
 			}
 			_isRunning = false;
+		}
+
+		private int Position(float rotation)
+		{
+			return _isRotatingDown
+				? (int)(rotation / 36f)
+				: (10 - (int)math.ceil(rotation / 36f)) % 10;
+		}
+
+		private float ClickToRotation(float rotation)
+		{
+			var clickedAngle = _isRotatingDown
+				? (int)(rotation / 36f)
+				: math.ceil(rotation / 36f);
+			return clickedAngle * 36f % 360f;
 		}
 	}
 }
