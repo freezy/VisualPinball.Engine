@@ -17,6 +17,7 @@
 // ReSharper disable InconsistentNaming
 
 using System.Collections;
+using Unity.Mathematics;
 using UnityEngine;
 
 namespace VisualPinball.Unity
@@ -28,6 +29,8 @@ namespace VisualPinball.Unity
 			Up, Down
 		}
 
+		public bool DebugPrint = false;
+
 		[Tooltip("In which direction the reel rotates, when looking from the front.")]
 		public ScoreReelDirection Direction = ScoreReelDirection.Down;
 
@@ -37,21 +40,43 @@ namespace VisualPinball.Unity
 		[HideInInspector]
 		public float Wait;
 
-		private bool _running;
-		private int _nextPosition;
+		/// <summary>
+		/// True if the co-routine is running, false otherwise.
+		/// </summary>
+		private bool _isRunning;
+
+		/// <summary>
+		/// The position the reel is currently moving towards, or has already been moved to.
+		/// </summary>
+		private int _endPosition;
+
+		/// <summary>
+		/// How many positions are left to reach _nextPosition.
+		/// </summary>
 		private int _remainingPositions;
 
+		/// <summary>
+		/// The current rotation of the reel, in degrees.
+		/// </summary>
 		private float _currentRotation;
 
 		private bool _isRotatingDown => Direction == ScoreReelDirection.Down;
 
 		public void AnimateTo(int position)
 		{
-			var numPositions = (position - _nextPosition + 10) % 10;
-			_remainingPositions = (_remainingPositions + numPositions) % 10;
-			_nextPosition = position;
-			if (!_running) {
-				_running = true;
+			var increasePositions = (position - _endPosition + 10) % 10;
+			if (increasePositions == 0) { // early out if no additional increments.
+				return;
+			}
+			_remainingPositions = (_remainingPositions + increasePositions) % 10;
+			_endPosition = position;
+
+			if (DebugPrint) {
+				Debug.Log($"[reel] --> New position: {position} ({_remainingPositions} remaining)");
+			}
+
+			if (!_isRunning) {
+				_isRunning = true;
 				StartCoroutine(nameof(Rotate));
 			}
 		}
@@ -60,27 +85,55 @@ namespace VisualPinball.Unity
 		{
 			var dir = _isRotatingDown ? 1 : -1;
 			while (_remainingPositions > 0) {
-				var lastPosition = (int)(_currentRotation / 36f);
-				_currentRotation += dir * Time.deltaTime * Speed * 36f;
 				var currentPosition = (int)(_currentRotation / 36f);
-				_currentRotation %= 360f;
+				var nextRotationSinceLastFrame = _currentRotation + dir * Time.deltaTime * Speed * 36f;
+				var nextPositionSinceLastFrame = (int)(nextRotationSinceLastFrame / 36f);
+				var numPositionsSinceLastFrame = math.abs(nextPositionSinceLastFrame - currentPosition);
 
-				if (currentPosition != lastPosition) {
+				// check if since last frame we would over rotate to the wrong position
+				if (numPositionsSinceLastFrame > _remainingPositions) {
+
+					_currentRotation = (currentPosition + dir * _remainingPositions * 36f) % 360f;
+					_remainingPositions = 0;
+
+					if (DebugPrint) {
+						var nextPosition = (int)(_currentRotation / 36f);
+						Debug.Log($"[reel] === OVER-ROTATION: {currentPosition} -> {nextPositionSinceLastFrame}, resetting to {nextPosition}");
+					}
+
+					transform.localRotation = Quaternion.Euler(0, 0, _currentRotation);
+					yield return new WaitForSeconds(Wait / 1000f);
+
+				} else if (nextPositionSinceLastFrame != currentPosition) {
+					// if we reached a new position, click to position, and wait
+					_currentRotation = (int)(nextRotationSinceLastFrame / 36f) * 36f % 360f;
+					_remainingPositions -= numPositionsSinceLastFrame;
 
 					// round to correct position
-					_currentRotation = (float)System.Math.Round(_currentRotation / 36f) * 36;
+					if (DebugPrint) {
+						var nextPosition = (int)(_currentRotation / 36f);
+						Debug.Log($"[reel] <-- Rotated to {nextPosition} ({numPositionsSinceLastFrame} increased, {_remainingPositions} remaining)");
+					}
+
 					transform.localRotation = Quaternion.Euler(0, 0, _currentRotation);
-
-					_remainingPositions--;
-
 					yield return new WaitForSeconds(Wait / 1000f);
 
 				} else {
+					// otherwise, continue animating
+					_currentRotation = nextRotationSinceLastFrame % 360f;
+					if (DebugPrint) {
+						var nextPosition = _currentRotation / 36f;
+						Debug.Log($"[reel] ... Animating to {(int)(nextPosition * 100f) / 100f} ({numPositionsSinceLastFrame} increased, {_remainingPositions} remaining)");
+					}
+
 					transform.localRotation = Quaternion.Euler(0, 0, _currentRotation);
 					yield return null;
 				}
 			}
-			_running = false;
+			if (DebugPrint) {
+				Debug.Log($"[reel] --- Finished at {(int)(_currentRotation / 36f)}");
+			}
+			_isRunning = false;
 		}
 	}
 }
