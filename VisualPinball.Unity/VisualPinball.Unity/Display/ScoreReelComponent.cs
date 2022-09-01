@@ -82,11 +82,10 @@ namespace VisualPinball.Unity
 
 		private IEnumerator Rotate()
 		{
-			var dir = _isRotatingDown ? 1 : -1;
 			while (_currentPosition != _endPosition) {
-				var nextRotationSinceLastFrame = _currentRotation + dir * Time.deltaTime * Speed * 36f;
+				var nextRotationSinceLastFrame = _currentRotation + Time.deltaTime * Speed * 36f;
 				var nextPositionSinceLastFrame = Position(nextRotationSinceLastFrame);
-				var numPositionsSinceLastFrame = dir * (nextPositionSinceLastFrame - _currentPosition);
+				var numPositionsSinceLastFrame = nextPositionSinceLastFrame - _currentPosition;
 
 				// check if since last frame we would over rotate to the wrong position
 				if (_currentPosition < _endPosition && _currentPosition + numPositionsSinceLastFrame > _endPosition) {
@@ -98,7 +97,7 @@ namespace VisualPinball.Unity
 						Debug.Log($"[reel] === OVER-ROTATION: {_currentPosition} -> {nextPositionSinceLastFrame}, resetting to {_currentPosition}");
 					}
 
-					transform.localRotation = Quaternion.Euler(0, 0, _currentRotation);
+					RotateReel();
 					yield return new WaitForSeconds(Wait / 1000f);
 
 				} else if (nextPositionSinceLastFrame != _currentPosition) {
@@ -111,7 +110,7 @@ namespace VisualPinball.Unity
 						Debug.Log($"[reel] <-- Rotated to {_currentPosition} ({numPositionsSinceLastFrame} increased)");
 					}
 
-					transform.localRotation = Quaternion.Euler(0, 0, _currentRotation);
+					RotateReel();
 					yield return new WaitForSeconds(Wait / 1000f);
 
 				} else {
@@ -121,7 +120,7 @@ namespace VisualPinball.Unity
 						Debug.Log($"[reel] ... Animating to {(int)(_currentRotation / 36f * 100f) / 100f} ({numPositionsSinceLastFrame} increased)");
 					}
 
-					transform.localRotation = Quaternion.Euler(0, 0, _currentRotation);
+					RotateReel();
 					yield return null;
 				}
 			}
@@ -131,19 +130,10 @@ namespace VisualPinball.Unity
 			_isRunning = false;
 		}
 
-		private int Position(float rotation)
-		{
-			return _isRotatingDown
-				? (int)(rotation / 36f)
-				: (10 - (int)math.ceil(rotation / 36f)) % 10;
-		}
+		private void RotateReel() => transform.localRotation = Quaternion.Euler(0, 0,  _isRotatingDown ? _currentRotation : -_currentRotation);
 
-		private float ClickToRotation(float rotation)
-		{
-			var clickedAngle = _isRotatingDown
-				? (int)(rotation / 36f)
-				: math.ceil(rotation / 36f);
-			return clickedAngle * 36f % 360f;
-		}
+		private static int Position(float rotation) => (int)(rotation / 36f);
+
+		private static float ClickToRotation(float rotation) => (int)(rotation / 36f) * 36f % 360f;
 	}
 }
