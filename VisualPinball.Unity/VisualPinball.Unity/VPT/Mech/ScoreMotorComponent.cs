@@ -74,7 +74,7 @@ namespace VisualPinball.Unity
 
 		public SwitchDefault SwitchDefault => SwitchDefault.NormallyOpen;
 		IEnumerable<GamelogicEngineSwitch> IDeviceComponent<GamelogicEngineSwitch>.AvailableDeviceItems => AvailableSwitches;
-		
+
 		public event EventHandler<SwitchEventArgs2> OnSwitchChanged;
 
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
@@ -167,7 +167,7 @@ namespace VisualPinball.Unity
 		{
 			var increase = (int)System.Math.Floor(points / System.Math.Pow(10, System.Math.Floor(System.Math.Log10(points))));
 
-			if (increase > ScoreMotorComponent.MaxIncrease) {
+			if (increase > MaxIncrease) {
 				Logger.Error($"too many increases (ignoring points), id={id}, points={points}, increase={increase}");
 				return;
 			}

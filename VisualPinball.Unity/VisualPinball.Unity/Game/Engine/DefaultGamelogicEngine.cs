@@ -309,7 +309,7 @@ namespace VisualPinball.Unity
 			OnLampsChanged?.Invoke(this, new LampsEventArgs(values));
 		}
 
-		void IGamelogicEngine.SetDisplay(DisplayFrameData displayFrameData)
+		void IGamelogicEngine.DisplayChanged(DisplayFrameData displayFrameData)
 		{
 		}
 

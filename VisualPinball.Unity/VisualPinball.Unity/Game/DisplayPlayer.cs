@@ -76,7 +76,7 @@ namespace VisualPinball.Unity
 
 		private void HandleDisplayChanged(object sender, DisplayFrameData e)
 		{
-			_gamelogicEngine.SetDisplay(e);
+			_gamelogicEngine.DisplayChanged(e);
 		}
 
 		public void OnDestroy()
