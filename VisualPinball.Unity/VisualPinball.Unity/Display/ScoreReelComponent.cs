@@ -29,8 +29,6 @@ namespace VisualPinball.Unity
 			Up, Down
 		}
 
-		public bool DebugPrint = false;
-
 		[Tooltip("In which direction the reel rotates, when looking from the front.")]
 		public ScoreReelDirection Direction = ScoreReelDirection.Down;
 
@@ -70,10 +68,6 @@ namespace VisualPinball.Unity
 			}
 			_endPosition = position;
 
-			if (DebugPrint) {
-				Debug.Log($"[reel] --> New position: {position}");
-			}
-
 			if (!_isRunning) {
 				_isRunning = true;
 				StartCoroutine(nameof(Rotate));
@@ -92,11 +86,6 @@ namespace VisualPinball.Unity
 
 					_currentRotation = _endPosition * 36f;
 					_currentPosition = _endPosition;
-
-					if (DebugPrint) {
-						Debug.Log($"[reel] === OVER-ROTATION: {_currentPosition} -> {nextPositionSinceLastFrame}, resetting to {_currentPosition}");
-					}
-
 					RotateReel();
 					yield return new WaitForSeconds(Wait / 1000f);
 
@@ -104,28 +93,15 @@ namespace VisualPinball.Unity
 					// if we reached a new position, click to position, and wait
 					_currentRotation = ClickToRotation(nextRotationSinceLastFrame);
 					_currentPosition = Position(_currentRotation);
-
-					// round to correct position
-					if (DebugPrint) {
-						Debug.Log($"[reel] <-- Rotated to {_currentPosition} ({numPositionsSinceLastFrame} increased)");
-					}
-
 					RotateReel();
 					yield return new WaitForSeconds(Wait / 1000f);
 
 				} else {
 					// otherwise, continue animating
 					_currentRotation = nextRotationSinceLastFrame % 360f;
-					if (DebugPrint) {
-						Debug.Log($"[reel] ... Animating to {(int)(_currentRotation / 36f * 100f) / 100f} ({numPositionsSinceLastFrame} increased)");
-					}
-
 					RotateReel();
 					yield return null;
 				}
-			}
-			if (DebugPrint) {
-				Debug.Log($"[reel] --- Finished at {(int)(_currentRotation / 36f)}");
 			}
 			_isRunning = false;
 		}
