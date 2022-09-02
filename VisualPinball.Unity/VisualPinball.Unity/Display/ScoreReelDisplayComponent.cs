@@ -97,42 +97,14 @@ namespace VisualPinball.Unity
 		private void UpdateFrame()
 		{
 			var score = _score;
+			var tmp = score;
 
-			var digits = DigitArr((int)score);
-			var j = digits.Length - 1;
 			for (var i = ReelObjects.Length - 1; i >= 0; i--) {
-				if (j < 0) {
-					SetReel(ReelObjects[i], 0);
-					j--;
-					continue;
-				}
-				SetReel(ReelObjects[i], digits[j]);
-				j--;
+				ReelObjects[i].AnimateTo((int)tmp % 10);
+				tmp /= 10;
 			}
 
 			OnDisplayChanged?.Invoke(this, new DisplayFrameData(Id, DisplayFrameFormat.Numeric, BitConverter.GetBytes(score)));
-		}
-
-		private static void SetReel(ScoreReelComponent sr, int num)
-		{
-			sr.AnimateTo(num);
-		}
-
-		private static int NumDigits(int n) {
-			if (n < 0) {
-				n = n == int.MinValue ? int.MaxValue : -n;
-			}
-			return n == 0 ? 1 : (int)System.Math.Floor(System.Math.Log10(n)) + 1;
-		}
-
-		private static int[] DigitArr(int n)
-		{
-			var result = new int[NumDigits(n)];
-			for (var i = result.Length - 1; i >= 0; i--) {
-				result[i] = n % 10;
-				n /= 10;
-			}
-			return result;
 		}
 
 		#region Unused
