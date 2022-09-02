@@ -56,7 +56,7 @@ namespace VisualPinball.Unity
 		/// <summary>
 		/// Indicate a display has been updated.
 		/// </summary>
-		void SetDisplay(DisplayFrameData displayFrameData);
+		void DisplayChanged(DisplayFrameData displayFrameData);
 
 		#endregion
 
@@ -302,11 +302,11 @@ namespace VisualPinball.Unity
 		}
 	}
 
-	public readonly struct DisplayEventArgs
+	public readonly struct DisplayUpToDateEventArgs
 	{
 		public readonly DisplayFrameData DisplayFrameData;
 
-		public DisplayEventArgs(DisplayFrameData displayFrameData)
+		public DisplayUpToDateEventArgs(DisplayFrameData displayFrameData)
 		{
 			DisplayFrameData = displayFrameData;
 		}
