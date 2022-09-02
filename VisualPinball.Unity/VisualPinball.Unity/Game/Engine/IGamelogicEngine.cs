@@ -302,11 +302,11 @@ namespace VisualPinball.Unity
 		}
 	}
 
-	public readonly struct DisplayUpToDateEventArgs
+	public readonly struct DisplayChangedEventArgs
 	{
 		public readonly DisplayFrameData DisplayFrameData;
 
-		public DisplayUpToDateEventArgs(DisplayFrameData displayFrameData)
+		public DisplayChangedEventArgs(DisplayFrameData displayFrameData)
 		{
 			DisplayFrameData = displayFrameData;
 		}
