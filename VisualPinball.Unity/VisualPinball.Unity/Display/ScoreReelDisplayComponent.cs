@@ -67,7 +67,7 @@ namespace VisualPinball.Unity
 				// Truncate score to the amount of reels
 				var value = (float)(_score % System.Math.Pow(10, ReelObjects.Length));
 
-				ScoreMotorComponent.Reset(Id, value, (score) => {
+				ScoreMotorComponent.ResetScore(Id, value, (score) => {
 					_score = score;
 					UpdateFrame();
 				});

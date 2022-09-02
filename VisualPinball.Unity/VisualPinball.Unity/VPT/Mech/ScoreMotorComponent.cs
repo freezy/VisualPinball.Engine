@@ -18,10 +18,9 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
+using NLog;
 using UnityEngine;
 using VisualPinball.Engine.Game.Engines;
-using NLog;
 using Logger = NLog.Logger;
 
 namespace VisualPinball.Unity
@@ -30,6 +29,7 @@ namespace VisualPinball.Unity
 	public delegate void ScoreMotorAddPointsCallback(float points);
 
 	[AddComponentMenu("Visual Pinball/Game Item/Score Motor")]
+	[HelpURL("https://docs.visualpinball.org/creators-guide/manual/mechanisms/score-motor.html")]
 	public class ScoreMotorComponent : MonoBehaviour, ISwitchDeviceComponent
 	{
 		public const int MaxIncrease = 5;
@@ -82,7 +82,7 @@ namespace VisualPinball.Unity
 		private int DegreesPerStep => Degrees / Steps;
 		private float DegreesPerSecond => Degrees / (Duration / 1000f);
 
-		private bool _running;
+		private bool _isRunning;
 
 		private float _time;
 		private int _pos;
@@ -111,13 +111,13 @@ namespace VisualPinball.Unity
 
 		private void Update()
 		{
-			if (!_running) {
+			if (!_isRunning) {
 				return;
 			}
 
 			_time += Time.deltaTime;
 
-			int currentPos = (int)(DegreesPerSecond * _time);
+			var currentPos = (int)(DegreesPerSecond * _time);
 
 			while (_pos <= currentPos && _pos < Degrees) {
 				AdvanceMotor();
@@ -139,20 +139,20 @@ namespace VisualPinball.Unity
 			}
 		}
 
-		public void Reset(string id, float score, ScoreMotorResetCallback callback)
+		public void ResetScore(string id, float score, ScoreMotorResetCallback callback)
 		{
-			if (_running) {
-				Logger.Info($"already running (ignoring reset), id={id}");
+			if (_isRunning) {
+				Logger.Debug($"already running (ignoring reset), id={id}");
 				return;
 			}
 
 			if (score == 0) {
-				Logger.Info($"score already 0 (ignoring reset), id={id}");
+				Logger.Debug($"score already 0 (ignoring reset), id={id}");
 				callback(0);
 				return;
 			}
 
-			Logger.Info($"reset, id={id}, score={score}");
+			Logger.Debug($"reset, id={id}, score={score}");
 
 			_mode = ScoreMotorMode.Reset;
 			_id = id;
@@ -172,20 +172,20 @@ namespace VisualPinball.Unity
 				return;
 			}
 
-			if (_running) {
+			if (_isRunning) {
 				if (increase > 1 || (increase == 1 && BlockScoring)) {
-					Logger.Info($"already running (ignoring points), id={id}, points={points}");
+					Logger.Debug($"already running (ignoring points), id={id}, points={points}");
 					return;
 				}
 			}
 
 			if (increase == 1) {
-				Logger.Info($"single points, id={id}, points={points}");
+				Logger.Debug($"single points, id={id}, points={points}");
 				callback(points);
 				return;
 			}
 
-			Logger.Info($"multi points, id={id}, increase={increase}, points={points}");
+			Logger.Debug($"multi points, id={id}, increase={increase}, points={points}");
 
 			_mode = ScoreMotorMode.AddPoints;
 			_id = id;
@@ -198,12 +198,12 @@ namespace VisualPinball.Unity
 
 		private void StartMotor()
 		{
-			Logger.Info($"start motor");
+			Logger.Debug($"start motor");
 
 			_time = 0;
 			_pos = 0;
 
-			_running = true;
+			_isRunning = true;
 
 			Switch(MotorRunningSwitchItem, true);
 
@@ -218,7 +218,7 @@ namespace VisualPinball.Unity
 				var step = _pos / DegreesPerStep;
 				var action = ScoreMotorTimingList[_increase - 1].Actions[step];
 
-				Logger.Info($"advance motor, pos={_pos}, time={_time}, increase={_increase}, step={step}, action={action}");
+				Logger.Debug($"advance motor, pos={_pos}, time={_time}, increase={_increase}, step={step}, action={action}");
 
 				if (action == ScoreMotorAction.Increase) {
 					Increase();
@@ -230,9 +230,9 @@ namespace VisualPinball.Unity
 
 		private void StopMotor()
 		{
-			Logger.Info($"stop motor");
+			Logger.Debug($"stop motor");
 
-			_running = false;
+			_isRunning = false;
 
 			Switch(MotorRunningSwitchItem, false);
 		}
@@ -242,12 +242,12 @@ namespace VisualPinball.Unity
 			switch (_mode) {
 				case ScoreMotorMode.Reset:
 					_score = ResetScore(_score);
-					Logger.Info($"increase, mode={_mode}, id={_id}, score={_score}");
+					Logger.Debug($"increase, mode={_mode}, id={_id}, score={_score}");
 					_resetCallback(_score);
 					break;
 
 				case ScoreMotorMode.AddPoints:
-					Logger.Info($"increase, mode={_mode}, id={_id}, points={_points}");
+					Logger.Debug($"increase, mode={_mode}, id={_id}, points={_points}");
 					_addPointsCallback(_points);
 					break;
 			}

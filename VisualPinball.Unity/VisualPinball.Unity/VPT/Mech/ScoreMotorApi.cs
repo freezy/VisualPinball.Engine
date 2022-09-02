@@ -15,13 +15,9 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using System;
-using UnityEngine;
-using System.Collections.Generic;
 using NLog;
+using UnityEngine;
 using Logger = NLog.Logger;
-using VisualPinball.Engine.VPT.Light;
-using static Unity.Entities.SystemBaseDelegates;
-using UnityEngine.SocialPlatforms.Impl;
 
 namespace VisualPinball.Unity
 {
@@ -36,15 +32,15 @@ namespace VisualPinball.Unity
 
 		IApiSwitch IApiSwitchDevice.Switch(string deviceItem) => Switch(deviceItem);
 
-		private DeviceSwitch MotorRunningSwitch;
-		private DeviceSwitch MotorStepSwitch;
+		private DeviceSwitch _motorRunningSwitch;
+		private DeviceSwitch _motorStepSwitch;
 
 		public IApiSwitch Switch(string deviceItem)
 		{
 			return deviceItem switch
 			{
-				ScoreMotorComponent.MotorRunningSwitchItem => MotorRunningSwitch,
-				ScoreMotorComponent.MotorStepSwitchItem => MotorStepSwitch,
+				ScoreMotorComponent.MotorRunningSwitchItem => _motorRunningSwitch,
+				ScoreMotorComponent.MotorStepSwitchItem => _motorStepSwitch,
 				_ => throw new ArgumentException($"Unknown switch \"{deviceItem}\". "
 					+ "Valid names are \"{ScoreReelDisplayComponent.MotorRunningSwitchItem}\", and "
 					+ "\"{ScoreReelDisplayComponent.MotorStepSwitchItem}\".")
@@ -61,8 +57,8 @@ namespace VisualPinball.Unity
 
 		void IApi.OnInit(BallManager ballManager)
 		{
-			MotorRunningSwitch = new DeviceSwitch(ScoreMotorComponent.MotorRunningSwitchItem, false, SwitchDefault.NormallyOpen, _player);
-			MotorStepSwitch = new DeviceSwitch(ScoreMotorComponent.MotorStepSwitchItem, true, SwitchDefault.NormallyOpen, _player);
+			_motorRunningSwitch = new DeviceSwitch(ScoreMotorComponent.MotorRunningSwitchItem, false, SwitchDefault.NormallyOpen, _player);
+			_motorStepSwitch = new DeviceSwitch(ScoreMotorComponent.MotorStepSwitchItem, true, SwitchDefault.NormallyOpen, _player);
 
 			Init?.Invoke(this, EventArgs.Empty);
 		}
