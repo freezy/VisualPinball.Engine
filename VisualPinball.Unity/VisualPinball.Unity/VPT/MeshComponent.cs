@@ -101,7 +101,7 @@ namespace VisualPinball.Unity
 			}
 		}
 
-		protected static Bounds CalculateBounds(IEnumerable<DragPointData> dragPoints, float margin = 0, float sizeZ = 0)
+		protected static Bounds CalculateBounds(IEnumerable<DragPointData> dragPoints, float margin = 0, float sizeZ = 0, float posZ = 0)
 		{
 			var min = new float3(float.MaxValue, float.MaxValue, float.MaxValue);
 			var max = new float3(float.MinValue, float.MinValue, float.MinValue);
@@ -111,10 +111,13 @@ namespace VisualPinball.Unity
 				max = math.max(max, p);
 			}
 			var middle = min + (max - min) / 2;
-			var sizeXy = max - min;
-			var size = new float3(sizeXy.x, sizeXy.y, sizeZ > 0 ? sizeZ : sizeXy.z) + margin * new float3(1f, 1f, 1f);
+			var size = max - min;
+			if (sizeZ > 0) {
+				middle.z = posZ + sizeZ / 2;
+				size.z = sizeZ;
+			}
 
-			return new Bounds(middle, size);
+			return new Bounds(middle, size + margin * new float3(1f, 1f, 1f));
 		}
 
 		private void UpdateMesh()
