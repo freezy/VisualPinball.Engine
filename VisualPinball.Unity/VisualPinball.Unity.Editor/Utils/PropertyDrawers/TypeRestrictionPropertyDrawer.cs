@@ -16,9 +16,11 @@
 
 using System;
 using System.Linq;
+using NLog;
 using UnityEditor;
 using UnityEditor.IMGUI.Controls;
 using UnityEngine;
+using Logger = NLog.Logger;
 
 namespace VisualPinball.Unity.Editor
 {
@@ -28,6 +30,8 @@ namespace VisualPinball.Unity.Editor
 		private MonoBehaviour _component;
 		private AdvancedDropdownState _itemPickDropdownState;
 
+		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
+
 		public override float GetPropertyHeight(SerializedProperty property, GUIContent label) => EditorGUIUtility.singleLineHeight + 2;
 
 		public override void OnGUI(Rect pos, SerializedProperty property, GUIContent label)
@@ -36,7 +40,7 @@ namespace VisualPinball.Unity.Editor
 			#region Sanity Checks
 
 			if (property.propertyType != SerializedPropertyType.ObjectReference) {
-				Debug.LogError("[TypeRestriction] attribute must be on an object reference.");
+				Logger.Error("[TypeRestriction] attribute must be on an object reference.");
 				return;
 			}
 
@@ -46,7 +50,7 @@ namespace VisualPinball.Unity.Editor
 
 			var comp = property.serializedObject.targetObject as Component;
 			if (comp == null) {
-				Debug.LogError($"Cannot find component of {property.serializedObject.targetObject.name}.");
+				Logger.Error($"Cannot find component of {property.serializedObject.targetObject.name}.");
 				return;
 			}
 

@@ -20,9 +20,11 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using NLog;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.UIElements;
+using Logger = NLog.Logger;
 
 namespace VisualPinball.Unity.Editor
 {
@@ -58,6 +60,8 @@ namespace VisualPinball.Unity.Editor
 
 		private readonly Dictionary<LibraryAsset, VisualElement> _elementByAsset = new();
 		private readonly Dictionary<VisualElement, AssetResult> _assetsByElement = new();
+
+		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
 		[MenuItem("Visual Pinball/Asset Browser")]
 		public static void ShowWindow()
@@ -297,10 +301,10 @@ namespace VisualPinball.Unity.Editor
 				var category = getCategory(assetLibrary);
 
 				if (assetLibrary.AddAsset(obj, category)) {
-					Debug.Log($"{Path.GetFileName(path)} added to library {assetLibrary.Name}.");
+					Logger.Debug($"{Path.GetFileName(path)} added to library {assetLibrary.Name}.");
 					numAdded++;
 				} else {
-					Debug.Log($"{Path.GetFileName(path)} updated in library {assetLibrary.Name}.");
+					Logger.Debug($"{Path.GetFileName(path)} updated in library {assetLibrary.Name}.");
 					numUpdated++;
 				}
 				updatedLibrary = assetLibrary;

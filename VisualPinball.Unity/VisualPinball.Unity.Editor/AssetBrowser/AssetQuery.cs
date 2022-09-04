@@ -18,9 +18,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
+using NLog;
 using Unity.Mathematics;
 using UnityEditor;
-using UnityEngine;
 using UnityEngine.UIElements;
 
 namespace VisualPinball.Unity.Editor
@@ -40,6 +40,8 @@ namespace VisualPinball.Unity.Editor
 		private Dictionary<AssetLibrary, List<LibraryCategory>> _categories;
 		private readonly Dictionary<string, HashSet<string>> _attributes = new();
 		private readonly HashSet<string> _tags = new();
+
+		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
 		public AssetQuery(List<AssetLibrary> libraries)
 		{
@@ -135,7 +137,7 @@ namespace VisualPinball.Unity.Editor
 						});
 
 					} catch (Exception e) {
-						Debug.LogError($"Error reading assets from {lib.Name}, maybe corruption? ({e.Message})\n{e.StackTrace}");
+						Logger.Error($"Error reading assets from {lib.Name}, maybe corruption? ({e.Message})\n{e.StackTrace}");
 						// old data or whatever, just don't crash here.
 						return Array.Empty<AssetResult>();
 					}
