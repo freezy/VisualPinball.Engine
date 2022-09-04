@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-using System;
 using UnityEngine;
 using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.MetalWireGuide;
@@ -32,5 +31,17 @@ namespace VisualPinball.Unity
 
 		protected override PbrMaterial GetMaterial(MetalWireGuideData data, Table table)
 			=> new MetalWireGuideMeshGenerator(MainComponent).GetMaterial(table, data);
+
+		public override void RebuildMeshes()
+		{
+			base.RebuildMeshes();
+			var mwgComponent = GetComponentInParent<MetalWireGuideComponent>();
+			var mr = GetComponent<MeshRenderer>();
+
+			var bounds = mr.localBounds;
+			bounds.center = mwgComponent.DragPointMiddle;
+			bounds.size = mwgComponent.DragPointSize + 25f * Vector3.one;
+			mr.localBounds = bounds;
+		}
 	}
 }
