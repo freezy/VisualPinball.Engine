@@ -35,5 +35,13 @@ namespace VisualPinball.Unity
 
 		protected override PbrMaterial GetMaterial(SurfaceData data, Table table)
 			=> new SurfaceMeshGenerator(data).GetMaterial(SurfaceMeshGenerator.Top, table, data);
+
+		public override void RebuildMeshes()
+		{
+			base.RebuildMeshes();
+			var sc = GetComponentInParent<SurfaceComponent>();
+			var mr = GetComponent<MeshRenderer>();
+			mr.localBounds = CalculateBounds(sc.DragPoints, 0, 2f, sc.HeightTop - 1f);
+		}
 	}
 }
