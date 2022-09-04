@@ -207,34 +207,6 @@ namespace VisualPinball.Unity
 			}
 		}
 
-		internal Vector3 DragPointMiddle {
-			get {
-				var min = new float3(float.MaxValue, float.MaxValue, float.MaxValue);
-				var max = new float3(float.MinValue, float.MinValue, float.MinValue);
-				foreach (var t in DragPoints) {
-					var p = (float3)t.Center.ToUnityVector3();
-					min = math.min(min, p);
-					max = math.max(max, p);
-				}
-				var xy = min + (max - min) / 2;
-				return new Vector3(xy.x, xy.y, 0);
-			}
-		}
-
-		internal Vector3 DragPointSize {
-			get {
-				var min = new float3(float.MaxValue, float.MaxValue, float.MaxValue);
-				var max = new float3(float.MinValue, float.MinValue, float.MinValue);
-				foreach (var t in DragPoints) {
-					var p = (float3)t.Center.ToUnityVector3();
-					min = math.min(min, p);
-					max = math.max(max, p);
-				}
-				var xy = max - min;
-				return new Vector3(xy.x, xy.y, _standheight);
-			}
-		}
-
 		public override ItemDataTransformType EditorPositionType => ItemDataTransformType.ThreeD;
 		public override Vector3 GetEditorPosition()
 		{
