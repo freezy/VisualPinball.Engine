@@ -56,6 +56,7 @@ Built with Unity 2021.3.0
 - Put game-, mesh-, collision- animation data into separate components ([#227](https://github.com/freezy/VisualPinball.Engine/pull/227), [Documentation](https://docs.visualpinball.org/creators-guide/editor/unity-components.html)). 
 
 ### Fixed
+- Disappearing objects due to wrong bounding box ([#441](https://github.com/freezy/VisualPinball.Engine/pull/441)).
 - Default table import ([#434](https://github.com/freezy/VisualPinball.Engine/pull/434))
 - Remaining ball spinning issue should now be solved ([#397](https://github.com/freezy/VisualPinball.Engine/pull/397)).
 - Physics error when the ball would stop rotate ([#393](https://github.com/freezy/VisualPinball.Engine/pull/393)).
