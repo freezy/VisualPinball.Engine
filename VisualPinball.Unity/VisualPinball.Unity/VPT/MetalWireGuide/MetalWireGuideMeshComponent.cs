@@ -37,11 +37,7 @@ namespace VisualPinball.Unity
 			base.RebuildMeshes();
 			var mwgComponent = GetComponentInParent<MetalWireGuideComponent>();
 			var mr = GetComponent<MeshRenderer>();
-
-			var bounds = mr.localBounds;
-			bounds.center = mwgComponent.DragPointMiddle;
-			bounds.size = mwgComponent.DragPointSize + 25f * Vector3.one;
-			mr.localBounds = bounds;
+			mr.localBounds = CalculateBounds(mwgComponent.DragPoints, 25f, mwgComponent._standheight);
 		}
 	}
 }
