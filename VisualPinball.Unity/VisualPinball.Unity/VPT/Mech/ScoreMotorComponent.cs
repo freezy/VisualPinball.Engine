@@ -21,6 +21,7 @@ using System.Collections.Generic;
 using NLog;
 using UnityEngine;
 using VisualPinball.Engine.Game.Engines;
+using VisualPinball.Engine.VPT.Gate;
 using Logger = NLog.Logger;
 
 namespace VisualPinball.Unity
@@ -28,7 +29,7 @@ namespace VisualPinball.Unity
 	public delegate void ScoreMotorResetCallback(float score);
 	public delegate void ScoreMotorAddPointsCallback(float points);
 
-	[AddComponentMenu("Visual Pinball/Game Item/Score Motor")]
+	[AddComponentMenu("Visual Pinball/Mechs/Score Motor")]
 	[HelpURL("https://docs.visualpinball.org/creators-guide/manual/mechanisms/score-motor.html")]
 	public class ScoreMotorComponent : MonoBehaviour, ISwitchDeviceComponent
 	{

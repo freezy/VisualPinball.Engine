@@ -267,6 +267,12 @@ Creating original *graphical* content for displays is not yet supported by VPE. 
 
 Even if we have nothing that creates the graphical content, we've defined the APIs used to pass the data around. This allows us to already have a working system that supports number and text data.
 
+### Clear Display
+
+This node clears a [display defined in the GLE](xref:uvs_setup#displays).
+
+![Clear Display](clear-display-example.png)
+
 ### Update Display
 
 This node takes in some data and sends it to one of the [displays defined in the GLE](xref:uvs_setup#displays). VPE supports segment displays and score reels, so the data can be numeric (score reels and segment displays) or alphanumeric (segment displays).
@@ -275,4 +281,10 @@ This example shows how the display is updated for a simple one player EM machine
 
 ![Update Display](update-display-example.png)
 
-The score reel animation is handled by the component driving the reel. It's also on component level where you can define the speed and delays of the score reel animation.
+The score reel animation is handled by the component driving the reel. It's also on component level where you can define the speed and delays of the score reel animation and associate a [score motor](xref:score-motors).
+
+### On Display Changed
+
+This event is triggered when a [display defined in the GLE](xref:uvs_setup#displays) is updated by *Clear Display* or *Update Display*. It is useful for EM machines that use a [score motor](xref:score-motors) and need to capture the score in a player variable.
+
+![On Display Changed](display-changed-example.png)
