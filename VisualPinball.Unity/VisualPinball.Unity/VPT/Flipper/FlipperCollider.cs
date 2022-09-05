@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//using NLog;
+using NLog;
 using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
 using Unity.Entities;
@@ -35,6 +35,10 @@ namespace VisualPinball.Unity
 		private readonly float _zHigh;
 
 		public ColliderBounds Bounds { get; private set; }
+
+		public static readonly Logger Logger = LogManager.GetCurrentClassLogger();
+
+		#region Setup
 
 		public FlipperCollider(CircleCollider hitCircleBase, float flipperRadius, float startRadius, float endRadius, float startAngle, float endAngle, ColliderInfo info) : this()
 		{
@@ -143,6 +147,8 @@ namespace VisualPinball.Unity
 				sizeof(FlipperCollider)
 			);
 		}
+
+		#endregion
 
 		#region Narrowphase
 
@@ -718,16 +724,16 @@ namespace VisualPinball.Unity
 
 		#endregion
 
-		//public static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 		#region LiveCatch
-		public void LiveCatch(ref BallData ball, ref CollisionEventData collEvent, ref FlipperTricksData tricks, in FlipperStaticData matData, uint msec ) {
+
+		public static void LiveCatch(ref BallData ball, ref CollisionEventData collEvent, ref FlipperTricksData tricks, in FlipperStaticData matData, uint msec ) {
 			if (!tricks.UseFlipperLiveCatch)
 				return;
 			var normalSpeed = math.dot(collEvent.HitNormal, ball.Velocity) * -1f;
 			// Vector from position of the flipper ball to ball
 			var flipperToBall = ball.Position - matData.Position;
-			var HitTangent = Math.CrossZ(1f, collEvent.HitNormal);
-			var ballPosition = math.dot(HitTangent, flipperToBall);
+			var hitTangent = Math.CrossZ(1f, collEvent.HitNormal);
+			var ballPosition = math.dot(hitTangent, flipperToBall);
 			//Logger.Info("BallPosition = {0}", ballPosition);
 			if (math.abs(ballPosition) > tricks.LiveCatchDistanceMax) {
 				//Logger.Info("BallPosition = {0} -> no calculation", ballPosition);
@@ -752,7 +758,7 @@ namespace VisualPinball.Unity
 						// but it's imperfect, so we have add some bounce
 						// example: hit after 10 msecs, fulltime is 16, perfect time is 8, should be (10-8)/(16-8)*inaccuracySpeedMultiplier
 						liveCatchBounceMultiplier = (catchTime - tricks.LiveCatchPerfectTime) / (tricks.LiveCatchFullTime - tricks.LiveCatchPerfectTime) * (tricks.LiveCatchInaccurateBounceSpeedMultiplier-tricks.LiveCatchMinimalBounceSpeedMultiplier) + tricks.LiveCatchMinimalBounceSpeedMultiplier;
-					
+
 					}
 					//Logger.Info("Bounce Multiplicator is {0}, catchtime {1}", liveCatchBounceMultiplier, catchTime);
 					ball.Velocity -= collEvent.HitNormal * normalSpeed * liveCatchBounceMultiplier;

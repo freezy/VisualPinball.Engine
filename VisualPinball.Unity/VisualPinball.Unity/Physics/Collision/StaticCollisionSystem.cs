@@ -117,9 +117,9 @@ namespace VisualPinball.Unity
 								var flipperHitData = GetComponent<FlipperHitData>(coll.Entity);
 								var flipperTricksData = GetComponent<FlipperTricksData>(coll.Entity);
 								// do liveCatch - check before collision
-								((FlipperCollider*)collider)->LiveCatch(
+								FlipperCollider.LiveCatch(
 									ref ballData, ref collEvent, ref flipperTricksData, in flipperMaterialData, timeMsec
-								) ; 
+								);
 								((FlipperCollider*)collider)->Collide(
 									ref ballData, ref collEvent, ref flipperMovementData, ref events,
 									in ballEntity, in flipperTricksData,in flipperMaterialData, in flipperVelocityData, in flipperHitData, timeMsec

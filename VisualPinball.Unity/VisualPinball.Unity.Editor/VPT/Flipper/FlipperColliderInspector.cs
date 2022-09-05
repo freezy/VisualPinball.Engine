@@ -39,27 +39,34 @@ namespace VisualPinball.Unity.Editor
 		private SerializedProperty _flipperCorrectionProperty;
 
 		private bool _foldoutFlipperTricks = true;
+		private bool _foldoutLiveCatch = true;
 
-		#region FlipperTricks
+		#region Flipper Tricks
+
 		private SerializedProperty _useFlipperTricksPhysicsProperty;
-		private SerializedProperty _SOSRampUpProperty;
-		private SerializedProperty _SOSEMProperty;
-		private SerializedProperty _EOSReturnProperty;
-		private SerializedProperty _EOSTNewProperty;
-		private SerializedProperty _EOSANewProperty;
-		private SerializedProperty _EOSRampupProperty;
-		private SerializedProperty _OvershootProperty;
-		private SerializedProperty _BumpOnReleaseProperty;
+		private SerializedProperty _sosRampUpProperty;
+		private SerializedProperty _sosEmProperty;
+		private SerializedProperty _eosReturnProperty;
+		private SerializedProperty _eosTNewProperty;
+		private SerializedProperty _eosANewProperty;
+		private SerializedProperty _eosRampUpProperty;
+		private SerializedProperty _overshootProperty;
+		private SerializedProperty _bumpOnReleaseProperty;
+
 		#endregion
 
-		private SerializedProperty _UseFlipperLiveCatch;
-		private SerializedProperty _LiveCatchDistanceMin; 
-		private SerializedProperty _LiveCatchDistanceMax; 
-		private SerializedProperty _LiveCatchMinimalBallSpeed;
-		private SerializedProperty _LiveCatchPerfectTime;
-		private SerializedProperty _LiveCatchFullTime;
-		private SerializedProperty _LiveCatchInaccurateBounceSpeedMultiplier;
-		private SerializedProperty _LiveCatchMinimumBounceSpeedMultiplier;
+		#region Live Catch
+
+		private SerializedProperty _useFlipperLiveCatch;
+		private SerializedProperty _liveCatchDistanceMin;
+		private SerializedProperty _liveCatchDistanceMax;
+		private SerializedProperty _liveCatchMinimalBallSpeed;
+		private SerializedProperty _liveCatchPerfectTime;
+		private SerializedProperty _liveCatchFullTime;
+		private SerializedProperty _liveCatchInaccurateBounceSpeedMultiplier;
+		private SerializedProperty _liveCatchMinimumBounceSpeedMultiplier;
+
+		#endregion
 
 		protected override void OnEnable()
 		{
@@ -77,27 +84,27 @@ namespace VisualPinball.Unity.Editor
 			_scatterProperty = serializedObject.FindProperty(nameof(FlipperColliderComponent.Scatter));
 			_flipperCorrectionProperty = serializedObject.FindProperty(nameof(FlipperColliderComponent.FlipperCorrection));
 
-			#region FlipperTricks
+			#region Flipper Tricks
 			_useFlipperTricksPhysicsProperty = serializedObject.FindProperty(nameof(FlipperColliderComponent.useFlipperTricksPhysics));
-			_SOSRampUpProperty = serializedObject.FindProperty(nameof(FlipperColliderComponent.SOSRampUp));
-			_SOSEMProperty = serializedObject.FindProperty(nameof(FlipperColliderComponent.SOSEM));
-			_EOSReturnProperty = serializedObject.FindProperty(nameof(FlipperColliderComponent.EOSReturn));
-			_EOSTNewProperty = serializedObject.FindProperty(nameof(FlipperColliderComponent.EOSTNew));
-			_EOSANewProperty = serializedObject.FindProperty(nameof(FlipperColliderComponent.EOSANew));
-			_EOSRampupProperty = serializedObject.FindProperty(nameof(FlipperColliderComponent.EOSRampup));
-			_OvershootProperty = serializedObject.FindProperty(nameof(FlipperColliderComponent.Overshoot));
-			_BumpOnReleaseProperty = serializedObject.FindProperty(nameof(FlipperColliderComponent.BumpOnRelease));
+			_sosRampUpProperty = serializedObject.FindProperty(nameof(FlipperColliderComponent.SOSRampUp));
+			_sosEmProperty = serializedObject.FindProperty(nameof(FlipperColliderComponent.SOSEM));
+			_eosReturnProperty = serializedObject.FindProperty(nameof(FlipperColliderComponent.EOSReturn));
+			_eosTNewProperty = serializedObject.FindProperty(nameof(FlipperColliderComponent.EOSTNew));
+			_eosANewProperty = serializedObject.FindProperty(nameof(FlipperColliderComponent.EOSANew));
+			_eosRampUpProperty = serializedObject.FindProperty(nameof(FlipperColliderComponent.EOSRampup));
+			_overshootProperty = serializedObject.FindProperty(nameof(FlipperColliderComponent.Overshoot));
+			_bumpOnReleaseProperty = serializedObject.FindProperty(nameof(FlipperColliderComponent.BumpOnRelease));
 			#endregion
 
-			#region LiveCatch
-			_UseFlipperLiveCatch = serializedObject.FindProperty(nameof(FlipperColliderComponent.useFlipperLiveCatch));
-			_LiveCatchDistanceMin = serializedObject.FindProperty(nameof(FlipperColliderComponent.LiveCatchDistanceMin));
-			_LiveCatchDistanceMax = serializedObject.FindProperty(nameof(FlipperColliderComponent.LiveCatchDistanceMax));
-			_LiveCatchMinimalBallSpeed = serializedObject.FindProperty(nameof(FlipperColliderComponent.LiveCatchMinimalBallSpeed));
-			_LiveCatchPerfectTime = serializedObject.FindProperty(nameof(FlipperColliderComponent.LiveCatchPerfectTime));
-			_LiveCatchFullTime = serializedObject.FindProperty(nameof(FlipperColliderComponent.LiveCatchFullTime));
-			_LiveCatchInaccurateBounceSpeedMultiplier = serializedObject.FindProperty(nameof(FlipperColliderComponent.LiveCatchInaccurateBounceSpeedMultiplier));
-			_LiveCatchMinimumBounceSpeedMultiplier = serializedObject.FindProperty(nameof(FlipperColliderComponent.LiveCatchMinmalBounceSpeedMultiplier));
+			#region Live Catch
+			_useFlipperLiveCatch = serializedObject.FindProperty(nameof(FlipperColliderComponent.useFlipperLiveCatch));
+			_liveCatchDistanceMin = serializedObject.FindProperty(nameof(FlipperColliderComponent.LiveCatchDistanceMin));
+			_liveCatchDistanceMax = serializedObject.FindProperty(nameof(FlipperColliderComponent.LiveCatchDistanceMax));
+			_liveCatchMinimalBallSpeed = serializedObject.FindProperty(nameof(FlipperColliderComponent.LiveCatchMinimalBallSpeed));
+			_liveCatchPerfectTime = serializedObject.FindProperty(nameof(FlipperColliderComponent.LiveCatchPerfectTime));
+			_liveCatchFullTime = serializedObject.FindProperty(nameof(FlipperColliderComponent.LiveCatchFullTime));
+			_liveCatchInaccurateBounceSpeedMultiplier = serializedObject.FindProperty(nameof(FlipperColliderComponent.LiveCatchInaccurateBounceSpeedMultiplier));
+			_liveCatchMinimumBounceSpeedMultiplier = serializedObject.FindProperty(nameof(FlipperColliderComponent.LiveCatchMinmalBounceSpeedMultiplier));
 			#endregion
 		}
 
@@ -128,34 +135,36 @@ namespace VisualPinball.Unity.Editor
 			}
 			EditorGUILayout.EndFoldoutHeaderGroup();
 
-			if (_foldoutFlipperTricks = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutFlipperTricks, "Flipper Tricks"))
-			{
+			if (_foldoutFlipperTricks = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutFlipperTricks, "Flipper Tricks")) {
 
 				PropertyField(_useFlipperTricksPhysicsProperty, "Use Flipper Tricks");
 
 				EditorGUI.BeginDisabledGroup(!_useFlipperTricksPhysicsProperty.boolValue);
-				PropertyField(_SOSRampUpProperty, "SOSRampUP");
-				PropertyField(_SOSEMProperty, "SOSEM");
-				PropertyField(_EOSReturnProperty, "EOSReturn");
-				PropertyField(_EOSTNewProperty, "EOSTNew");
-				PropertyField(_EOSANewProperty, "EOSANew");
-				PropertyField(_EOSRampupProperty, "EOSRampup");
-				PropertyField(_OvershootProperty, "Overshoot Angle");
-				PropertyField(_BumpOnReleaseProperty, "Bump on Release");
+				PropertyField(_sosRampUpProperty, "SOSRampUP");
+				PropertyField(_sosEmProperty, "SOSEM");
+				PropertyField(_eosReturnProperty, "EOSReturn");
+				PropertyField(_eosTNewProperty, "EOSTNew");
+				PropertyField(_eosANewProperty, "EOSANew");
+				PropertyField(_eosRampUpProperty, "EOSRampup");
+				PropertyField(_overshootProperty, "Overshoot Angle");
+				PropertyField(_bumpOnReleaseProperty, "Bump on Release");
 				EditorGUI.EndDisabledGroup();
 
+			}
+			EditorGUILayout.EndFoldoutHeaderGroup();
 
-				PropertyField(_UseFlipperLiveCatch, "Use Live Catch");
+			if (_foldoutLiveCatch = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutLiveCatch, "Live Catch")) {
 
-				EditorGUI.BeginDisabledGroup(!_UseFlipperLiveCatch.boolValue);
-				PropertyField(_LiveCatchDistanceMin, "Min Distance");
-				PropertyField(_LiveCatchDistanceMax, "Max Distance");
-				PropertyField(_LiveCatchMinimalBallSpeed, "Min Ball Speed");
-				PropertyField(_LiveCatchPerfectTime, "Perfect Time");
-				PropertyField(_LiveCatchFullTime, "Full Time");
-				PropertyField(_LiveCatchMinimumBounceSpeedMultiplier, "Perfect Bounce");
-				PropertyField(_LiveCatchInaccurateBounceSpeedMultiplier, "Inaccurate Bounce");
+				PropertyField(_useFlipperLiveCatch, "Use Live Catch");
 
+				EditorGUI.BeginDisabledGroup(!_useFlipperLiveCatch.boolValue);
+				PropertyField(_liveCatchDistanceMin, "Min Distance");
+				PropertyField(_liveCatchDistanceMax, "Max Distance");
+				PropertyField(_liveCatchMinimalBallSpeed, "Min Ball Speed");
+				PropertyField(_liveCatchPerfectTime, "Perfect Time");
+				PropertyField(_liveCatchFullTime, "Full Time");
+				PropertyField(_liveCatchMinimumBounceSpeedMultiplier, "Perfect Bounce");
+				PropertyField(_liveCatchInaccurateBounceSpeedMultiplier, "Inaccurate Bounce");
 				EditorGUI.EndDisabledGroup();
 			}
 			EditorGUILayout.EndFoldoutHeaderGroup();
