@@ -16,7 +16,6 @@
 
 // ReSharper disable InconsistentNaming
 
-using System;
 using Unity.Entities;
 using UnityEngine;
 using VisualPinball.Engine.VPT.Flipper;
@@ -127,25 +126,27 @@ namespace VisualPinball.Unity
 		#endregion
 		[Tooltip("The nFozzy's LiveCatch Physics")]
 		public bool useFlipperLiveCatch = false;
-		
+
 		[Min(0f)]
 		[Tooltip("Minimum distance in vp units from flipper base live catch dampening will occur")]
 		public float LiveCatchDistanceMin = 40f;
 
 		[Min(0f)]
 		[Tooltip("Maxium distance in vp units from flipper base live catch dampening will occur")]
-		public float LiveCatchDistanceMax = 100f; 
+		public float LiveCatchDistanceMax = 100f;
 
 		[Min(0f)]
 		[Tooltip("Minimal ball speed for live catch")]
 		public float LiveCatchMinimalBallSpeed = 6f;
 
+		[Unit("ms")]
 		[Min(0f)]
-		[Tooltip("Maximum Time in msecs for (perfect or imperfect) live catch")]
+		[Tooltip("Maximum Time in for (perfect or imperfect) live catch")]
 		public float LiveCatchFullTime = 16;
 
+		[Unit("ms")]
 		[Min(0f)]
-		[Tooltip("Maximum Time in msecs for a perfect live catch")]
+		[Tooltip("Maximum Time for a perfect live catch")]
 		public float LiveCatchPerfectTime = 8;
 
 		[Min(0f)]
