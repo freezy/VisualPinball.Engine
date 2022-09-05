@@ -30,7 +30,7 @@ namespace VisualPinball.Unity
 	public delegate void ScoreMotorAddPointsCallback(float points);
 
 	[AddComponentMenu("Visual Pinball/Mechs/Score Motor")]
-	[HelpURL("https://docs.visualpinball.org/creators-guide/manual/mechanisms/score-motor.html")]
+	[HelpURL("https://docs.visualpinball.org/creators-guide/manual/mechanisms/score-motors.html")]
 	public class ScoreMotorComponent : MonoBehaviour, ISwitchDeviceComponent
 	{
 		public const int MaxIncrease = 5;
