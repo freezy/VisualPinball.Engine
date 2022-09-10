@@ -93,11 +93,10 @@ namespace VisualPinball.Engine.VPT.Rubber
 
 
 			// one ring for each Splinevertex
-			
+
 			var numRings = sv.VertexCount;
 			var numSegments = accuracy;
 
-			var up = new Vertex3D(0f, 0f, 1f);
 			var points = new Vertex3D[numRings]; // middlepoints of rings
 			var tangents = new Vertex3D[numRings]; // pointing into the direction of the spline, even first and last
 			var right = new Vertex3D[numRings]; // pointing right, looking into tangent direction
@@ -125,7 +124,7 @@ namespace VisualPinball.Engine.VPT.Rubber
 			accLength[0] = 0.0f;
 			for (int i = 1; i < numRings; i++)
 				accLength[i] = accLength[i - 1] + (points[i] - points[i - 1]).Length();
-			// add the lenth from the last ring to the first ring
+			// add the length from the last ring to the first ring
 			var totalLength = accLength[numRings - 1] + (points[0] - points[numRings - 1]).Length();  ;
 
 			var numVertices = (numRings + 1) * numSegments;
@@ -156,7 +155,7 @@ namespace VisualPinball.Engine.VPT.Rubber
 						X = points[currentRing].X + right[currentRing].X * ringsX[currentSegment] + down[currentRing].X * ringsY[currentSegment],
 						Y = points[currentRing].Y + right[currentRing].Y * ringsX[currentSegment] + down[currentRing].Y * ringsY[currentSegment],
 						Z = points[currentRing].Z + right[currentRing].Z * ringsX[currentSegment] + down[currentRing].Z * ringsY[currentSegment],
-						//normals seem to be somehow off, but are caculated again at the end of mesh creation.
+						//normals seem to be somehow off, but are calculated again at the end of mesh creation.
 						Nx = right[currentRing].X * ringsX[currentSegment] + down[currentRing].X * ringsY[currentSegment],
 						Ny = right[currentRing].Y * ringsX[currentSegment] + down[currentRing].Y * ringsY[currentSegment],
 						Nz = right[currentRing].Z * ringsX[currentSegment] + down[currentRing].Z * ringsY[currentSegment],
@@ -182,13 +181,13 @@ namespace VisualPinball.Engine.VPT.Rubber
 						mesh.Indices[indicesIndex++] = currentRing * numSegments + csp1;
 						mesh.Indices[indicesIndex++] = (currentRing - 1) * numSegments + csp1;
 					}
-				} 
+				}
 			}
 
 			// copy first ring into last ring
 			for (int currentSegment = 0; currentSegment < numSegments; currentSegment++)
 			{
-				mesh.Vertices[verticesIndex++] = new Vertex3DNoTex2 
+				mesh.Vertices[verticesIndex++] = new Vertex3DNoTex2
 				{
 					X = points[0].X + right[0].X * ringsX[currentSegment] + down[0].X * ringsY[currentSegment],
 					Y = points[0].Y + right[0].Y * ringsX[currentSegment] + down[0].Y * ringsY[currentSegment],

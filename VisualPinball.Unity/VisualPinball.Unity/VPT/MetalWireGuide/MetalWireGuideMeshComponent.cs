@@ -39,5 +39,30 @@ namespace VisualPinball.Unity
 			var mr = GetComponent<MeshRenderer>();
 			mr.localBounds = CalculateBounds(mwgComponent.DragPoints, 25f, mwgComponent._standheight);
 		}
+
+#if UNITY_EDITOR
+		[SerializeField] private bool _isInitialized;
+		private void Awake()
+		{
+			if (Application.isPlaying) {
+				return;
+			}
+
+			if (_isInitialized) {
+				return;
+			}
+
+			_isInitialized = true;
+
+			var mf = GetComponent<MeshFilter>();
+			if (mf == null) {
+				return;
+			}
+
+			mf.sharedMesh = null;
+			RebuildMeshes();
+			Debug.Log($"[{name}] mesh regenerated.");
+		}
+#endif
 	}
 }
