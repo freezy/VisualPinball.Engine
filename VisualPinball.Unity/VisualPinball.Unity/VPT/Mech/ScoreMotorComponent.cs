@@ -35,10 +35,6 @@ namespace VisualPinball.Unity
 	{
 		public const int MaxIncrease = 5;
 
-		[Unit("\u00B0")]
-		[Tooltip("The total number of degrees in one turn.")]
-		public int Degrees = 120;
-
 		[Unit("ms")]
 		[Tooltip("Amount of time, in milliseconds to move one turn.")]
 		public int Duration = 769;
@@ -80,8 +76,7 @@ namespace VisualPinball.Unity
 
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
-		private int DegreesPerStep => Degrees / Steps;
-		private float DegreesPerSecond => Degrees / (Duration / 1000f);
+		private float StepsPerSecond => Steps / (Duration / 1000f);
 
 		private bool _isRunning;
 
@@ -118,19 +113,17 @@ namespace VisualPinball.Unity
 
 			_time += Time.deltaTime;
 
-			var currentPos = (int)(DegreesPerSecond * _time);
+			var nextPos = (int)(StepsPerSecond * _time) + 1;
 
-			while (_pos <= currentPos && _pos < Degrees) {
+			while (_pos < nextPos && _pos < Steps) {
 				AdvanceMotor();
 			}
 
-			if (_pos >= Degrees) {
+			if (nextPos > Steps) {
 				if (_mode == ScoreMotorMode.Reset) {
 					if (_score > 0) {
 						_time = 0;
 						_pos = 0;
-
-						AdvanceMotor();
 
 						return;
 					}
@@ -207,23 +200,18 @@ namespace VisualPinball.Unity
 			_isRunning = true;
 
 			Switch(MotorRunningSwitchItem, true);
-
-			AdvanceMotor();
 		}
 
 		private void AdvanceMotor()
 		{
-			if (_pos % DegreesPerStep == 0) {
-				Switch(MotorStepSwitchItem, true);
+			Switch(MotorStepSwitchItem, true);
 
-				var step = _pos / DegreesPerStep;
-				var action = ScoreMotorTimingList[_increase - 1].Actions[step];
+			var action = ScoreMotorTimingList[_increase - 1].Actions[_pos];
 
-				Logger.Debug($"advance motor, pos={_pos}, time={_time}, increase={_increase}, step={step}, action={action}");
+			Logger.Debug($"advance motor, pos={_pos}, time={_time}, increase={_increase}, action={action}");
 
-				if (action == ScoreMotorAction.Increase) {
-					Increase();
-				}
+			if (action == ScoreMotorAction.Increase) {
+				Increase();
 			}
 
 			_pos++;
@@ -231,7 +219,7 @@ namespace VisualPinball.Unity
 
 		private void StopMotor()
 		{
-			Logger.Debug($"stop motor");
+			Logger.Debug($"stop motor: time={_time}");
 
 			_isRunning = false;
 
