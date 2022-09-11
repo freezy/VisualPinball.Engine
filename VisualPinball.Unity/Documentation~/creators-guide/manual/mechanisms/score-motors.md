@@ -23,7 +23,6 @@ Next, configure the score motor.
 The Score Motor inspector shows the following options:
 
 - **Steps** defines how many steps the score motor pulses for one turn.
-- **Degrees** sets the number of degrees the score motor rotates for one turn.
 - **Duration** defines the length of time (in milliseconds) it takes the score motor to rotate one turn.
 - **Block Scoring** defines if single point scoring is blocked while the score motor is running.
 
@@ -39,7 +38,6 @@ Reel timing by increase:
 By default, the score motor is configured to:
 
 - 6 Steps
-- 120&deg;
 - 769 ms
 
 Next, associate the score motor with the score reel display by selecting it in the Score Reel Display inspector:

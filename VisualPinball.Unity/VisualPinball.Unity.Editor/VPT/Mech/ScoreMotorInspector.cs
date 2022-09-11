@@ -40,7 +40,6 @@ namespace VisualPinball.Unity.Editor
 			base.OnEnable();
 
 			_stepsProperty = serializedObject.FindProperty(nameof(ScoreMotorComponent.Steps));
-			_degreesProperty = serializedObject.FindProperty(nameof(ScoreMotorComponent.Degrees));
 			_durationProperty = serializedObject.FindProperty(nameof(ScoreMotorComponent.Duration));
 			_blockScoringProperty = serializedObject.FindProperty(nameof(ScoreMotorComponent.BlockScoring));
 			_scoreMotorTimingListProperty = serializedObject.FindProperty(nameof(ScoreMotorComponent.ScoreMotorTimingList));
@@ -59,7 +58,6 @@ namespace VisualPinball.Unity.Editor
 
 			RecalcuteScoreMotorTimingActions();
 
-			PropertyField(_degreesProperty);
 			PropertyField(_durationProperty);
 			PropertyField(_blockScoringProperty);
 
