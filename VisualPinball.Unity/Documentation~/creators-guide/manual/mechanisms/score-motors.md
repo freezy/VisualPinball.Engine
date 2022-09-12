@@ -16,7 +16,7 @@ VPE comes with a score motor mechanism that simulates the behavior of a score mo
 
 To setup a score motor, select the table, click on *Add Component* in the inspector and select *Visual Pinball -> Mechs -> Score Motor*.
 
-<img src="score-motor-inspector.png" width="303" class="img-responsive pull-right" style="margin-left: 15px">
+<img src="score-motor-inspector-5.png" width="303" class="img-responsive pull-right" style="margin-left: 15px">
 
 Next, configure the score motor.
 
@@ -28,9 +28,11 @@ The Score Motor inspector shows the following options:
 
 Reel timing by increase:
 
-- **Increase by #** defines the behavior of the score motor for all of its the possible outputs.  This give the table author control over the timing and execution of `Wait` (pause) or `Increase` (add points) actions.  For example if the schematic shows that the table scores 30 points by pulsing on the first three actions of the score motor then the author can set the score motor like this.
+- **Increase by #** defines the behavior of the score motor for all of its the possible outputs.  This give the table author control over the timing and execution of `Wait` (pause) or `Increase` (add points) actions.  For example if the schematic shows that the table scores 30 points by pulsing on the first three actions of the score motor then the author can set the score motor like this:
 
-INSERT IMAGE OF SCORE MOTOR SET TO PULSE ON STEPS 1,2,3 AND WAIT ON STEPS 0,4,5
+<img src="score-motor-inspector-3.png" width="303" class="img-responsive">
+
+<br/>
 
 > [!NOTE]
 > The minimum amount of `Steps` for a score motor is `5`. `Increase by 5` will not be shown under `Reel timing by increase` if `Steps` is set to 5, as all actions would be `Increase`.  
