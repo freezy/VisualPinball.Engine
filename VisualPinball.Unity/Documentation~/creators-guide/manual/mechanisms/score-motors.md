@@ -6,7 +6,7 @@ description: Simulate EM reel timing during gameplay
 
 # Score Motors
 
-Score Motors are used in EM games to add multiple points to a players score. For example, if a player scores 50 points, the score motor runs and enables a 10 point relay five times. With each pulse of the 10 point relay, the 10s score reel coil fires which advances the score reel one position.  
+Score Motors are used in EM games to add multiple points to a player's score. For example, if a player scores 50 points, the score motor runs and enables a 10 point relay to pulse five times. With each pulse of the 10 point relay, the 10's score reel coil fires which advances the score reel one position.  
 
 For an in depth look at score motors, check out the fantastic article [Animated Score Motor circuits from EM Pinball Machines](https://www.funwithpinball.com/learn/animated-score-motor-circuits) at [Fun With Pinball](https://www.funwithpinball.com/).
 
@@ -23,12 +23,14 @@ Next, configure the score motor.
 The Score Motor inspector shows the following options:
 
 - **Steps** defines how many steps the score motor pulses for one turn.
-- **Duration** defines the length of time (in milliseconds) it takes the score motor to rotate one turn.
-- **Block Scoring** defines if single point scoring is blocked while the score motor is running.
+- **Duration** defines the length of time (in milliseconds) it takes the score motor to completely cycle.
+- **Block Scoring** defines if single point scoring is blocked while the score motor is running.  Please note that all multiple point scores are always blocked while the score motor is running.
 
 Reel timing by increase:
 
-- **Increase by #** defines the `Wait` (pause) or `Increase` (add points) actions to use based on 2, 3, 4, or 5 increases. 
+- **Increase by #** defines the behavior of the score motor for all of its the possible outputs.  This give the table author control over the timing and execution of `Wait` (pause) or `Increase` (add points) actions.  For example if the schematic shows that the table scores 30 points by pulsing on the first three actions of the score motor then the author can set the score motor like this.
+
+INSERT IMAGE OF SCORE MOTOR SET TO PULSE ON STEPS 1,2,3 AND WAIT ON STEPS 0,4,5
 
 > [!NOTE]
 > The minimum amount of `Steps` for a score motor is `5`. `Increase by 5` will not be shown under `Reel timing by increase` if `Steps` is set to 5, as all actions would be `Increase`.  
@@ -38,7 +40,7 @@ Reel timing by increase:
 By default, the score motor is configured to:
 
 - 6 Steps
-- 769 ms
+- 769 ms total run time
 
 Next, associate the score motor with the score reel display by selecting it in the Score Reel Display inspector:
 
