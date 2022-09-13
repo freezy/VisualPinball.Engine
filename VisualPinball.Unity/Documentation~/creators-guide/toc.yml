@@ -96,6 +96,8 @@
         href: manual/mechanisms/drop-target-banks.md
       - name: Rotators
         href: manual/mechanisms/rotators.md
+      - name: Score Reels
+        href: manual/mechanisms/score-reels.md
       - name: Score Motors
         href: manual/mechanisms/score-motors.md
       - name: Collision Switches

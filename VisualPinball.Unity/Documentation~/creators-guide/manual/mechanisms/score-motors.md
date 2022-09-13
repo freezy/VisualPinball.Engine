@@ -6,7 +6,7 @@ description: Simulate EM reel timing during gameplay
 
 # Score Motors
 
-Score Motors are used in electro-mechanical games to add points to a player's score. They consist of multiple cams that are stacked on top of each other. Each cam has different patterns around the edges, and switches sit a different positions in order to open or close at specific times when the motor runs and thus the cams rotate.
+Score Motors are used in electro-mechanical games to add points to a player's score. They consist of multiple cams that are stacked on top of each other. Each cam has different patterns around the edges, and switches sit at different positions in order to open or close at specific times when the motor runs and thus the cams rotate.
 
 ![Photo and schema of a score motor](score-motor-schema.jpg)
 <small>*A typical score motor, found in Gottlieb and early Bally machines.*</small>
