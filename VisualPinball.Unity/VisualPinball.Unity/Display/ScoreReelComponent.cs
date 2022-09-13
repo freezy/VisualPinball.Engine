@@ -17,11 +17,11 @@
 // ReSharper disable InconsistentNaming
 
 using System.Collections;
-using Unity.Mathematics;
 using UnityEngine;
 
 namespace VisualPinball.Unity
 {
+	[AddComponentMenu("Visual Pinball/Display/Score Reel")]
 	public class ScoreReelComponent : MonoBehaviour
 	{
 		public enum ScoreReelDirection

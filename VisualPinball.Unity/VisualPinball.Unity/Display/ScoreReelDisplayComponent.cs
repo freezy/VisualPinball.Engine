@@ -25,7 +25,7 @@ using Logger = NLog.Logger;
 
 namespace VisualPinball.Unity
 {
-	[AddComponentMenu("Visual Pinball/Display/Score Reel")]
+	[AddComponentMenu("Visual Pinball/Display/Score Reel Display")]
 	public class ScoreReelDisplayComponent : DisplayComponent
 	{
 		[SerializeField]
