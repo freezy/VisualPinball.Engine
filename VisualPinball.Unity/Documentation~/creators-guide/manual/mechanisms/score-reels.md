@@ -10,7 +10,7 @@ description: How to use EM-style reels to display the score.
 
 In electro-mechanical games, score reels are very common for displaying the player score. Typically, four to six units are mounted behind the backglass. Each reel is driven by a coil that advances the reel by one position when pulsed. The coils are driven by the playfield elements in the game, often through a score motor for multi-point scoring.
 
-VPE includes components that simulate the [score motor](xref:score-motors) and render the score reel animation. This page is about the score reel, which presents itself to the [GLE](xref:gamelogic-engine) as a [display](xref:displays) that takes in the "numerical" frame format (i.e. numbers only). The score motor is an optional component that provides accurate timing when animating the reels.
+VPE includes components that simulate the [score motor](xref:score-motors) and render the score reel animation. This page is about the score reel, which presents itself to the [GLE](xref:gamelogic_engine) as a [display](xref:displays) that takes in the "numerical" frame format (i.e. numbers only). The score motor is an optional component that provides accurate timing when animating the reels.
 
 ## Setup
 
@@ -23,7 +23,7 @@ A score reel display consists of two separate components.
 
 ### Model
 
-The best geometry for a score reel is a simple, open cylinder. Make sure the local origin is in the middle, and that it rotates on the Z-axis.
+The best geometry for a score reel is a simple, open cylinder. Make sure the local origin is in the middle, and that it rotates around the Z-axis.
 
 ![Score reel geometry](score-reels-geometry.jpg)
 
@@ -31,7 +31,7 @@ The texture should contain the numbers 0-9, each taking up 36°. The order (and 
 
 ### Scene
 
-In your scene, drop in your reel model and add the *Score Reel* component (not the *Score Reel Display* component) to the game object. You can find it under *Visual Pinball -> Display*. Since you'll need the same reel for each position, the best approach is to create a [prefab](https://docs.unity3d.com/Manual/Prefabs.html) for the reel and duplicate it. Then, parent them to a game object that acts as your display. To this object, add the *Score Reel* component (also under *Visual Pinball -> Display*).
+In your scene, drop in your reel model and add the *Score Reel* component (not the *Score Reel Display* component) to the game object. You can find it under *Visual Pinball -> Display*. Since you'll need the same reel for each position, the best approach is to create a [prefab](https://docs.unity3d.com/Manual/Prefabs.html) for the reel and instance it for each position. Then, parent them under a game object that acts as your display. To this object, add the *Score Reel* component (also under *Visual Pinball -> Display*).
 
 ![Score reel scene](score-reels-scene.png)
 
@@ -72,6 +72,6 @@ Next, add *Numeric* under *Supported Formats*.
 
 ### Visual Scripting
 
-In visual scripting, use the [Update Display](xref:uvs_node_reference#update-display) node to set a new score. It's up to whether to use a separate [event](xref:uvs_setup#events) or to subscribe to a [player variable](xref:uvs_variables) directly.
+In visual scripting, use the [Update Display](xref:uvs_node_reference#update-display) node to set a new score. It's up to you whether to use a separate [event](xref:uvs_setup#events) or to subscribe to a [player variable](xref:uvs_variables) directly.
 
 If you're using a score motor, read how to set it up correctly [here](xref:score-motors#usage).

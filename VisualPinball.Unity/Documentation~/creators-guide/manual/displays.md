@@ -1,5 +1,6 @@
 ---
-gui: displays
+uid: displays
+title: Displays
 description: How VPE handles dot matrix and segment displays.
 ---
 # Displays
