@@ -83,7 +83,7 @@ This setup allows you to:
 - Subscribe to the *Score* variable in order to trigger score-dependent game logic, while taking into consideration eventually blocked scores by the motor.
 
 > [!WARNING]
-> If you're working on an original EM game, make sure to only emit scores that a score motor can actually handle. For example,  it's impossible to score anything higher than five points at once. It's also impossible to score a combination of multiple points at once, like 150.
+> If you're working on an original EM game, make sure to only emit scores that a score motor can actually handle. For example,  it's impossible to score anything higher than five points (or 50, 500, ...) at once. It's also impossible to score a combination of multiple points at once, like 150.
 
 Finally, you might want to hook up other events to the score motor's behavior. For example, in Gottlieb's Volley, some lamps are toggled off while the motor is running. In order to achieve that, the score motor component exposes two switches:
 
