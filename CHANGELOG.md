@@ -7,6 +7,7 @@
 Built with Unity 2021.3.0
 
 ### Added
+- Documentation for score reels.
 - Score Motor Component ([#435](https://github.com/freezy/VisualPinball.Engine/pull/435), [Documentation](https://docs.visualpinball.org/creators-guide/manual/mechanisms/score-motors.html)).
 - Scale support for rubbers.
 - Slingarm coil arms can now be any game objects, not just primitives ([#432](https://github.com/freezy/VisualPinball.Engine/pull/432)).
