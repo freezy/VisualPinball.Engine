@@ -8,7 +8,7 @@ description: How to use EM-style reels to display the score.
 
 <img src="score-reels.jpg" width="350" alt="Score Reels a of a Gottlieb Volley" class="img-responsive pull-right" style="margin-left: 15px"/>
 
-In electro-mechanical games, score reels are very common for displaying the player score. Typically, four to six units are mounted behind the backglass. Each reel is driven by a coil that advances the reel by one position when pulsed. The coils are driven by the playfield elements in the game, often through a score motor for multi-point scoring.
+In electro-mechanical games, score reels are very common for displaying the player score. Typically, four to six units are mounted behind the backglass. Each reel is driven by a coil that advances the reel by one position when pulsed. The coils are driven by the playfield elements in the game, often indirectly through a score motor for multi-point scoring.
 
 VPE includes components that simulate the [score motor](xref:score-motors) and render the score reel animation. This page is about the score reel, which presents itself to the [GLE](xref:gamelogic_engine) as a [display](xref:displays) that takes in the "numerical" frame format (i.e. numbers only). The score motor is an optional component that provides accurate timing when animating the reels.
 
@@ -49,7 +49,7 @@ Internally, it also takes in the rotation speed, and how long it rests at the fi
 
 <img src="score-reel-display-inspector.png" width="362" alt="Score Reel Display Inspector" class="img-responsive pull-right" style="margin-left: 15px"/>
 
-This is the component on the parent game object that tells the reels to which position they need to turn. 
+This is the component on the parent game object that receives score numbers from the game and tells the individual reels to which position they need to turn to. 
 
 - **ID** defines the display ID. Remember that displays are [connected at runtime](xref:displays#setup), so this is the identifier that the GLE uses to send data to it.
 - **Speed** defines how quickly the reels should rotate.
@@ -64,7 +64,7 @@ This is the component on the parent game object that tells the reels to which po
 
 <img src="score-reel-uvs-display.png" width="362" alt="Score Reel Display Inspector" class="img-responsive pull-right" style="margin-left: 15px"/>
 
-Score reels are primarily used in EMs, so they are typically driven by the [Visual Scripting game logic engine](xref:uvs_index). As with every display, the first step is to define the display in the GLE component.
+Score reels are primarily used in EMs, so they are typically driven by [Visual Scripting](xref:uvs_index). As with every display, the first step is to define the display in the GLE component.
 
 Add a new display under *Displays* and set the same ID as you did in the display component. The *Width* and *Height* properties are ignored, since they are managed by the display component (contrarily to the other displays, where the size is given by the GLE).
 
@@ -72,6 +72,6 @@ Next, add *Numeric* under *Supported Formats*.
 
 ### Visual Scripting
 
-In visual scripting, use the [Update Display](xref:uvs_node_reference#update-display) node to set a new score. It's up to you whether to use a separate [event](xref:uvs_setup#events) or to subscribe to a [player variable](xref:uvs_variables) directly.
+In Visual Scripting, use the [Update Display](xref:uvs_node_reference#update-display) node to set a new score. It's up to you whether to use a separate [event](xref:uvs_setup#events) or to subscribe to a [player variable](xref:uvs_variables) directly.
 
 If you're using a score motor, read how to set it up correctly [here](xref:score-motors#usage).

@@ -6,7 +6,7 @@ description: Simulate EM reel timing during gameplay
 
 # Score Motors
 
-Score Motors are used in electro-mechanical games to add points to a player's score. They consist of multiple cams that are stacked on top of each other. Each cam has different patterns around the edges, and switches sit at different positions in order to open or close at specific times when the motor runs and thus the cams rotate.
+Score motors are used in electro-mechanical games to add points to a player's score. They consist of multiple cams that are stacked on top of each other. Each cam has different patterns around the edges, and switches sit at different positions in order to open or close at specific times when the motor runs and thus the cams rotate.
 
 ![Photo and schema of a score motor](score-motor-schema.jpg)
 <small>*A typical score motor, found in Gottlieb and early Bally machines.*</small>
@@ -27,20 +27,20 @@ Another property of a score motor is that it has no state, i.e. it doesn't know 
 
 ## Player Experience
 
-The way the scoring works results in a very particular timing of when exactly the score reels move during the game. Since in most games, chimes and bells are fired when the reel position changes, the player not only sees but also hears when points are scored. This means that accurate timing is essential for an authentic gaming experience.
+The way the scoring works results in a very particular timing of when exactly the score reels move during the game. Since in most games, chimes and bells are fired when the reel position changes, the player not only sees but also hears these patterns. This means that accurate timing is essential for an authentic gaming experience.
 
 # Setup
 
-VPE comes with a component that accurately simulates the behavior described above. It handles score resets and add points all while performing accurate timing that can be specified by the table author.
+VPE provides a component that accurately simulates the behavior described above. It handles score resets and add points, all while performing accurate timing that can be specified by the table author.
 
-To setup a score motor, select the table, click on *Add Component* in the inspector and select *Visual Pinball -> Mechs -> Score Motor*.
+To setup a score motor, select any game object, click on *Add Component* in the inspector and select *Visual Pinball -> Mechs -> Score Motor*.
 
 Next, configure the score motor. The inspector shows the following options:
 
 <img src="score-motor-inspector.png" width="363" class="img-responsive pull-right" style="margin-left: 15px">
 
 - **Steps** defines how many steps the score motor pulses for one turn.
-- **Duration** defines the length of time (in milliseconds) it takes the score motor to completely cycle.
+- **Duration** defines the length of time it takes the score motor to completely cycle.
 - **Block Scoring** defines if single point scoring is blocked *while the score motor is running*. As mentioned before, multiple point scores are always blocked while the score motor is running.
 - **Increase by #** defines the behavior of the score motor for all of its the possible outputs. This gives the table author control over the timing and execution of `Wait` (pause) or `Increase` (add points) actions. The example in the screenshot shows a motor where when the player scores 30 points, it pulses on the first three actions of the score motor.
 
@@ -58,9 +58,9 @@ Next, associate the score motor with the [score reel display](xref:score-reels) 
 
 # Usage
 
-Score motors are primarily used in EMs, so we'll focus on how to use them through the [Visual Scripting game logic engine](xref:uvs_index). Programming a game with a score motor is a bit more complicated than with traditional displays for one reason: Scores might get blocked due to the motor being active, so you cannot solely rely on a score variable being updated.
+Score motors are primarily used in EMs, so we'll focus on how to use them in [Visual Scripting](xref:uvs_index). Programming a game with a score motor is a bit more complicated than with traditional displays for one reason: Scores might get blocked due to the motor being active, so you cannot solely rely on a score variable being updated.
 
-To make this less cumbersome, we've added an [On Display Changed](xref:uvs_node_reference#on-display-changed) node that emits the actual value of the display when it has been updated.
+To make this less cumbersome, we've added an [On Display Changed](xref:uvs_node_reference#on-display-changed) node that emits the actual value of the display when it has been updated (after potentially blocking scores).
 
 Give you've already set up your [score reel display](xref:score-reels), the recommended approach is the following:
 
