@@ -18,12 +18,12 @@ The score motor assembly sits typically at the bottom of the cabinet. The produc
 There are two different modes of operation:
 
 1. The player scores **single points**, e.g. one, ten, hundred, and so on. In this case, a pulse is directly sent to the coil driving the corresponding score wheel, which increases its position by one.
-2. The player scores **multiple points**, like five, twenty, or 300. In this case, the score motor starts and the appropriate numbers of coil pulses are triggered by the switches around cams. For example, if a player scores fifty points, the score motor runs and enables a ten point relay to pulse five times. With each pulse of the ten point relay, the 10's score reel coil fires, which advances the score reel one position. 
+2. The player scores **multiple points**, like five, twenty, or 300. In this case, the score motor starts and the appropriate numbers of coil pulses are triggered by the switches around cams. For example, if a player scores fifty points, the score motor runs and enables the ten point relay to pulse five times. With each pulse of the ten point relay, the 10's score reel coil fires, which advances the score reel one position. 
 
 Another property of a score motor is that it has no state, i.e. it doesn't know the actual score. This means that while the motor is running and the player scores *multiple* points, they are ignored. For *single* points, it depends on the machine, some allow single-point scoring while the motor is running, some don't.
 
 > [!NOTE]
-> For an in depth look at score motors, check out the fantastic article [Animated Score Motor circuits from EM Pinball Machines](https://www.funwithpinball.com/learn/animated-score-motor-circuits) at [Fun With Pinball](https://www.funwithpinball.com/).
+> For an in-depth look at score motors, check out the fantastic article [Animated Score Motor circuits from EM Pinball Machines](https://www.funwithpinball.com/learn/animated-score-motor-circuits) at [Fun With Pinball](https://www.funwithpinball.com/).
 
 ## Player Experience
 
@@ -54,13 +54,13 @@ By default, the score motor is configured to:
 - 6 Steps
 - 769 ms total run time
 
-Next, associate the score motor with the [score reel display](xref:score-reels) by selecting it in [its inspector](xref:score-reels.html#score-reel-display).
+Next, associate the score motor with the [score reel display](xref:score-reels) by selecting it in [its inspector](xref:score-reels#score-reel-display).
 
 # Usage
 
 Score motors are primarily used in EMs, so we'll focus on how to use them through the [Visual Scripting game logic engine](xref:uvs_index). Programming a game with a score motor is a bit more complicated than with traditional displays for one reason: Scores might get blocked due to the motor being active, so you cannot solely rely on a score variable being updated.
 
-To make this less cumbersome, we've added an [On Display Changed](xref:uvs_node_reference#on-display-changed) node, that emits the actual value of the display when it has been updated.
+To make this less cumbersome, we've added an [On Display Changed](xref:uvs_node_reference#on-display-changed) node that emits the actual value of the display when it has been updated.
 
 Give you've already set up your [score reel display](xref:score-reels), the recommended approach is the following:
 
@@ -77,11 +77,13 @@ Give you've already set up your [score reel display](xref:score-reels), the reco
 6. Use the [Clear Display](xref:uvs_node_reference#clear-display) node when the game starts, in order to reset the score reels to zero.
    ![Reset Score](score-motor-uvs-reset-score.png)
 
-
 This setup allows you to:
 
-- Easily add scores in your game logic by triggering an *Add Score* event
+- Easily add scores in your game logic by triggering an *Add Score* event.
 - Subscribe to the *Score* variable in order to trigger score-dependent game logic, while taking into consideration eventually blocked scores by the motor.
+
+> [!WARNING]
+> If you're working on an original EM game, make sure to only emit scores that your score motor can actually handle. For example,  it's impossible to score anything higher than five points at once. It's also impossible to score a combination of multiple points at once, like 150.
 
 Finally, you might want to hook up other events to the score motor's behavior. For example, in Gottlieb's Volley, some lamps are toggled off while the motor is running. In order to achieve that, the score motor component exposes two switches:
 
