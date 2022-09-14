@@ -62,7 +62,7 @@ Score motors are primarily used in EMs, so we'll focus on how to use them throug
 
 To make this less cumbersome, we've added an [On Display Changed](xref:uvs_node_reference#on-display-changed) node, that emits the actual value of the display when it has been updated.
 
-The recommended approach is the following:
+Give you've already set up your [score reel display](xref:score-reels), the recommended approach is the following:
 
 1. Add an *Add Score* [event](xref:uvs_setup#events) in the Visual Scripting GLE's inspector.
    <img src="score-motor-score-event.png" width="357">
