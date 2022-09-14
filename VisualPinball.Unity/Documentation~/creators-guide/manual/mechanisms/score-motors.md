@@ -27,7 +27,7 @@ Another property of a score motor is that it has no state, i.e. it doesn't know 
 
 ## Player Experience
 
-The way the scoring works results in a very particular timing of when exactly the score reels move during the game. Since in most games, chimes and bells are fired when the reel position changes, the player not only sees but also hears these patterns. This means that accurate timing is essential for an authentic gaming experience.
+The way the scoring works results in a very particular timing of when exactly the score reels move during the game. Since in most games, chimes and bells are fired when the reel position changes, the player not only sees, but also hears these patterns. This means that accurate timing is essential for an authentic gaming experience.
 
 # Setup
 
@@ -41,7 +41,7 @@ Next, configure the score motor. The inspector shows the following options:
 
 - **Steps** defines how many steps the score motor pulses for one turn.
 - **Duration** defines the length of time it takes the score motor to completely cycle.
-- **Block Scoring** defines if single point scoring is blocked *while the score motor is running*. As mentioned before, multiple point scores are always blocked while the score motor is running.
+- **Block Scoring** defines if single point scoring is blocked **while the score motor is running**. As mentioned before, multiple point scores are always blocked while the score motor is running.
 - **Increase by #** defines the behavior of the score motor for all of its the possible outputs. This gives the table author control over the timing and execution of `Wait` (pause) or `Increase` (add points) actions. The example in the screenshot shows a motor where when the player scores 30 points, it pulses on the first three actions of the score motor.
 
 > [!NOTE]
