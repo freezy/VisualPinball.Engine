@@ -53,6 +53,9 @@ namespace VisualPinball.Unity
 		protected bool GetEnabled<T>() where T : Object
 		{
 			var comp = GetComponent<T>();
+			if (!comp) {
+				return false;
+			}
 			switch (comp) {
 				case Behaviour behaviourComp:
 					return behaviourComp.enabled;

@@ -144,5 +144,44 @@ namespace VisualPinball.Unity
 				mesh.ApplyToUnityMesh(unityMesh);
 			}
 		}
+
+#if UNITY_EDITOR
+		[SerializeField] private int _instanceID;
+		void Awake()
+		{
+			if (Application.isPlaying) {
+				return;
+			}
+
+			if (_instanceID == 0) {
+				SetInstanceID();
+				return;
+			}
+
+			if (_instanceID != GetInstanceID()) {
+				SetInstanceID();
+
+				var mf = GetComponent<MeshFilter>();
+				if (mf == null) {
+					return;
+				}
+
+				if (mf.sharedMesh != null) {
+					mf.sharedMesh = null;
+					RebuildMeshes();
+					Debug.Log($"[{name}] Mesh regenerated.");
+				}
+			}
+		}
+
+		private void SetInstanceID()
+		{
+			_instanceID = GetInstanceID();
+			var obj = new UnityEditor.SerializedObject(this);
+			obj.FindProperty(nameof(_instanceID)).intValue = _instanceID;
+			obj.ApplyModifiedPropertiesWithoutUndo();
+		}
+#endif
+
 	}
 }
