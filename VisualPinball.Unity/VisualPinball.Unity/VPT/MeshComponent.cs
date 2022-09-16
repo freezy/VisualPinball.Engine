@@ -73,6 +73,8 @@ namespace VisualPinball.Unity
 
 		protected abstract Mesh GetMesh(TData data);
 
+		protected virtual bool IsProcedural => true;
+
 		protected abstract PbrMaterial GetMaterial(TData data, Table table);
 
 		public void CreateMesh(TData data, Table table, ITextureProvider texProvider, IMaterialProvider matProvider)
@@ -153,7 +155,7 @@ namespace VisualPinball.Unity
 				return;
 			}
 
-			if (_instanceID == 0) {
+			if (_instanceID == 0 || !IsProcedural) {
 				SetInstanceID();
 				return;
 			}
