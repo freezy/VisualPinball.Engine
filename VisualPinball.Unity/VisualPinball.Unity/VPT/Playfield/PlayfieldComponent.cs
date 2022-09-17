@@ -81,6 +81,8 @@ namespace VisualPinball.Unity
 
 		public override bool CanBeTransformed => false;
 
+		public override bool HasProceduralMesh => true;
+
 		public override TableData InstantiateData() => new TableData();
 
 		protected override Type MeshComponentType => typeof(PlayfieldMeshComponent);

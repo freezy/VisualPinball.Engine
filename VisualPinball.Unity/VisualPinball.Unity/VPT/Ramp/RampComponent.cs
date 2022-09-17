@@ -111,6 +111,8 @@ namespace VisualPinball.Unity
 
 		public override RampData InstantiateData() => new RampData();
 
+		public override bool HasProceduralMesh => true;
+
 		protected override Type MeshComponentType { get; } = typeof(MeshComponent<RampData, RampComponent>);
 		protected override Type ColliderComponentType { get; } = typeof(ColliderComponent<RampData, RampComponent>);
 

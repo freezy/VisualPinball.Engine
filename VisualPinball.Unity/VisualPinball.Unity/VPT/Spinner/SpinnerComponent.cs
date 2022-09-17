@@ -81,6 +81,8 @@ namespace VisualPinball.Unity
 
 		public override SpinnerData InstantiateData() => new SpinnerData();
 
+		public override bool HasProceduralMesh => false;
+
 		protected override Type MeshComponentType { get; } = typeof(MeshComponent<SpinnerData, SpinnerComponent>);
 		protected override Type ColliderComponentType { get; } = typeof(ColliderComponent<SpinnerData, SpinnerComponent>);
 

@@ -88,6 +88,8 @@ namespace VisualPinball.Unity
 		public override ItemType ItemType => ItemType.Gate;
 		public override string ItemName => "Gate";
 
+		public override bool HasProceduralMesh => false;
+
 		public override GateData InstantiateData() => new GateData();
 
 		protected override Type MeshComponentType { get; } = typeof(MeshComponent<GateData, GateComponent>);

@@ -75,6 +75,8 @@ namespace VisualPinball.Unity
 
 		public override LightData InstantiateData() => new LightData();
 
+		public override bool HasProceduralMesh => false;
+
 		public override bool OverrideTransform => false;
 
 		protected override Type MeshComponentType { get; } = typeof(MeshComponent<LightData, LightComponent>);

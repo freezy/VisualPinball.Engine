@@ -68,6 +68,7 @@ namespace VisualPinball.Unity
 
 		public override ItemType ItemType => ItemType.Bumper;
 		public override string ItemName => "Bumper";
+		public override bool HasProceduralMesh => false;
 
 		public override BumperData InstantiateData() => new BumperData();
 		protected override Type MeshComponentType { get; } = typeof(MeshComponent<BumperData, BumperComponent>);

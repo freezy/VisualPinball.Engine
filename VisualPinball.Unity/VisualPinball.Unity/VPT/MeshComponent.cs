@@ -87,7 +87,7 @@ namespace VisualPinball.Unity
 			if (m == null) {
 				return;
 			}
-			var mesh = m.ToUnityMesh($"{name} Mesh ({gameObject.name})");
+			var mesh = m.ToUnityMesh($"{name} (Generated)");
 
 			// apply mesh to game object
 			var mf = gameObject.GetComponent<MeshFilter>();
@@ -140,7 +140,7 @@ namespace VisualPinball.Unity
 			if (mf != null) {
 				var unityMesh = mf.sharedMesh;
 				if (!unityMesh) {
-					mf.sharedMesh = new UnityEngine.Mesh() { name = $"{name} (Generated)" };
+					mf.sharedMesh = new UnityEngine.Mesh { name = $"{name} (Updated)" };
 					unityMesh = mf.sharedMesh;
 				}
 				mesh.ApplyToUnityMesh(unityMesh);

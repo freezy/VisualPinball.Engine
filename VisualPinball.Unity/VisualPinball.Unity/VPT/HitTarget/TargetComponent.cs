@@ -88,6 +88,7 @@ namespace VisualPinball.Unity
 		public override string ItemName => "Target";
 
 		public override HitTargetData InstantiateData() => new HitTargetData();
+		public override bool HasProceduralMesh => false;
 		protected override Type MeshComponentType { get; } = typeof(MeshComponent<HitTargetData, TargetComponent>);
 		protected override Type ColliderComponentType { get; } = typeof(ColliderComponent<HitTargetData, TargetComponent>);
 

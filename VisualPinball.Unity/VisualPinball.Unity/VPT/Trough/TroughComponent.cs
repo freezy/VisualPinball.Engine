@@ -93,6 +93,8 @@ namespace VisualPinball.Unity
 
 		public override TroughData InstantiateData() => new TroughData();
 
+		public override bool HasProceduralMesh => false;
+
 		#endregion
 
 		#region Wiring

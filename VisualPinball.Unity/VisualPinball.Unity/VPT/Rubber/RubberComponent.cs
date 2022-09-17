@@ -78,6 +78,8 @@ namespace VisualPinball.Unity
 
 		public override RubberData InstantiateData() => new RubberData();
 
+		public override bool HasProceduralMesh => true;
+
 		protected override Type MeshComponentType { get; } = typeof(MeshComponent<RubberData, RubberComponent>);
 		protected override Type ColliderComponentType { get; } = typeof(ColliderComponent<RubberData, RubberComponent>);
 

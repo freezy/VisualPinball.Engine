@@ -29,6 +29,8 @@ namespace VisualPinball.Unity
 	{
 		protected override float ZOffset => 0;
 
+		public override bool HasProceduralMesh => false;
+
 		#region Conversion
 
 		public void Convert(Entity entity, EntityManager dstManager, GameObjectConversionSystem conversionSystem)

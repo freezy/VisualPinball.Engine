@@ -63,6 +63,8 @@ namespace VisualPinball.Unity
 
 		public override PlungerData InstantiateData() => new PlungerData();
 
+		public override bool HasProceduralMesh => true;
+
 		protected override Type MeshComponentType { get; } = typeof(MeshComponent<PlungerData, PlungerComponent>);
 		protected override Type ColliderComponentType { get; } = typeof(ColliderComponent<PlungerData, PlungerComponent>);
 
