@@ -177,6 +177,13 @@ namespace VisualPinball.Unity.Editor
 			RebuildMeshes();
 		}
 
+		public void Reverse()
+		{
+			PrepareUndo("Reverse Drag Points");
+			DragPointsHandler.ReverseDragPoints();
+			RebuildMeshes();
+		}
+
 		/// <summary>
 		/// Sets an UNDO point before the next operation.
 		/// </summary>

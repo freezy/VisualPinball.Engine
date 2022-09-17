@@ -197,5 +197,16 @@ namespace VisualPinball.Unity.Editor
 
 			inspector.DragPointsHelper.FlipDragPoints(FlipAxis.Z);
 		}
+
+		[MenuItem(CurveTravellerMenuPath + "/Reverse", false, 501)]
+		[MenuItem(ControlPointsMenuPath + "/Reverse", false, 601)]
+		private static void Reverse(MenuCommand command)
+		{
+			if (!(command.context is IDragPointsInspector inspector)) {
+				return;
+			}
+
+			inspector.DragPointsHelper.Reverse();
+		}
 	}
 }

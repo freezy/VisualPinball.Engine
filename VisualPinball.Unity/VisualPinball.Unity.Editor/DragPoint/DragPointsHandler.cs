@@ -222,6 +222,14 @@ namespace VisualPinball.Unity.Editor
 			}
 		}
 
+		public void ReverseDragPoints()
+		{
+			var dragPoints = DragPointInspector.DragPoints.ToList();
+			dragPoints.Reverse(1, dragPoints.Count - 1);
+			DragPointInspector.DragPoints = dragPoints.ToArray();
+			RebuildControlPoints();
+		}
+
 		/// <summary>
 		/// Updates the lock status on all drag points to the given value.
 		/// </summary>
