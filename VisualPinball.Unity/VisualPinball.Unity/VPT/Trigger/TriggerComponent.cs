@@ -71,6 +71,8 @@ namespace VisualPinball.Unity
 
 		public override TriggerData InstantiateData() => new TriggerData();
 
+		public override bool HasProceduralMesh => true;
+
 		protected override Type MeshComponentType { get; } = typeof(MeshComponent<TriggerData, TriggerComponent>);
 		protected override Type ColliderComponentType { get; } = typeof(ColliderComponent<TriggerData, TriggerComponent>);
 

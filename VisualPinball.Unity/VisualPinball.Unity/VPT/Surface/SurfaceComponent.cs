@@ -57,6 +57,8 @@ namespace VisualPinball.Unity
 
 		public override SurfaceData InstantiateData() => new SurfaceData();
 
+		public override bool HasProceduralMesh => true;
+
 
 		protected override Type MeshComponentType { get; } = typeof(MeshComponent<SurfaceData, SurfaceComponent>);
 		protected override Type ColliderComponentType { get; } = typeof(ColliderComponent<SurfaceData, SurfaceComponent>);

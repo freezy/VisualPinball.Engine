@@ -74,6 +74,8 @@ namespace VisualPinball.Unity
 
 		public override KickerData InstantiateData() => new KickerData();
 
+		public override bool HasProceduralMesh => false;
+
 		protected override Type MeshComponentType { get; } = typeof(MeshComponent<KickerData, KickerComponent>);
 		protected override Type ColliderComponentType { get; } = typeof(ColliderComponent<KickerData, KickerComponent>);
 

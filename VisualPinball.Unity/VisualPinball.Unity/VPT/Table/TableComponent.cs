@@ -54,6 +54,8 @@ namespace VisualPinball.Unity
 
 		public override TableData InstantiateData() => new TableData();
 
+		public override bool HasProceduralMesh => true;
+
 		protected override Type MeshComponentType => null;
 		protected override Type ColliderComponentType => null;
 

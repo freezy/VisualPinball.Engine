@@ -111,6 +111,9 @@ namespace VisualPinball.Unity
 		public float _rubberWidth = 24.0f;
 		public float RubberWidth => _rubberWidth;
 
+		[HideInInspector]
+		public bool InstantiateAsPrefab;
+
 		#endregion
 
 		#region Overrides and Constants
@@ -119,6 +122,8 @@ namespace VisualPinball.Unity
 		public override string ItemName => "Flipper";
 
 		public override FlipperData InstantiateData() => new FlipperData();
+
+		public override bool HasProceduralMesh => !InstantiateAsPrefab;
 
 		protected override Type MeshComponentType { get; } = typeof(MeshComponent<FlipperData, FlipperComponent>);
 		protected override Type ColliderComponentType { get; } = typeof(ColliderComponent<FlipperData, FlipperComponent>);

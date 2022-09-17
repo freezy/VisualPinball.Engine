@@ -50,6 +50,8 @@ namespace VisualPinball.Unity
 		public abstract IEnumerable<MonoBehaviour> SetReferencedData(TData data, Table table, IMaterialProvider materialProvider, ITextureProvider textureProvider, Dictionary<string, IMainComponent> components);
 		public abstract TData CopyDataTo(TData data, string[] materialNames, string[] textureNames, bool forExport);
 
+		public abstract bool HasProceduralMesh { get; }
+
 		public abstract ItemType ItemType { get; }
 
 		protected T FindComponent<T>(Dictionary<string, IMainComponent> components, string surfaceName) where T : class

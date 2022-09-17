@@ -82,6 +82,8 @@ namespace VisualPinball.Unity
 
 		public override MetalWireGuideData InstantiateData() => new MetalWireGuideData();
 
+		public override bool HasProceduralMesh => true;
+
 		protected override Type MeshComponentType { get; } = typeof(MeshComponent<MetalWireGuideData, MetalWireGuideComponent>);
 		protected override Type ColliderComponentType { get; } = typeof(ColliderComponent<MetalWireGuideData, MetalWireGuideComponent>);
 
