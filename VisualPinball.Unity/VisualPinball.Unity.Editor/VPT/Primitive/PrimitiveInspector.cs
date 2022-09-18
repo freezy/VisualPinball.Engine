@@ -17,6 +17,7 @@
 // ReSharper disable AssignmentInConditionalExpression
 
 using System.Linq;
+using Unity.Entities;
 using UnityEditor;
 using UnityEngine;
 using VisualPinball.Engine.VPT.Primitive;
@@ -88,6 +89,36 @@ namespace VisualPinball.Unity.Editor
 
 				var cc = go.AddComponent<PrimitiveColliderComponent>();
 				cc.enabled = true;
+
+				var cte = go.AddComponent<ConvertToEntity>();
+				cte.ConversionMode = ConvertToEntity.Mode.ConvertAndInjectGameObject;
+			}
+		}
+
+		[MenuItem("GameObject/Visual Pinball/Make Collider", true, 21)]
+		public static bool MakeColliderValidation()
+		{
+			return Selection.gameObjects.All(gameObject => gameObject.GetComponent<IMainComponent>() == null && gameObject.GetComponent<MeshFilter>() != null);
+		}
+
+		[MenuItem("GameObject/Visual Pinball/Make Collider", false, 21)]
+		public static void MakeCollider()
+		{
+			foreach (var go in Selection.gameObjects) {
+				var pc = go.AddComponent<PrimitiveComponent>();
+				pc.Position = go.transform.localPosition;
+				pc.Rotation = go.transform.localEulerAngles;
+				pc.Size = go.transform.localScale;
+
+				var mc = go.AddComponent<PrimitiveMeshComponent>();
+				mc.UseLegacyMesh = false;
+				mc.enabled = false;
+
+				var cc = go.AddComponent<PrimitiveColliderComponent>();
+				cc.enabled = true;
+
+				var cte = go.AddComponent<ConvertToEntity>();
+				cte.ConversionMode = ConvertToEntity.Mode.ConvertAndInjectGameObject;
 			}
 		}
 	}
