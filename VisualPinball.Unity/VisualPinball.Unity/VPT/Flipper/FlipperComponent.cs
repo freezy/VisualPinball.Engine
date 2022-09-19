@@ -338,6 +338,32 @@ namespace VisualPinball.Unity
 			return data;
 		}
 
+		public override void CopyFromObject(GameObject go)
+		{
+			var flipperComponent = go.GetComponent<FlipperComponent>();
+			if (flipperComponent != null) {
+				Position = flipperComponent.Position;
+				_startAngle = flipperComponent._startAngle;
+				EndAngle = flipperComponent.EndAngle;
+				Surface = flipperComponent.Surface;
+				IsDualWound = flipperComponent.IsDualWound;
+				_height = flipperComponent._height;
+				_baseRadius = flipperComponent._baseRadius;
+				_endRadius = flipperComponent._endRadius;
+				FlipperRadiusMin = flipperComponent.FlipperRadiusMin;
+				FlipperRadiusMax = flipperComponent.FlipperRadiusMax;
+				_rubberThickness = flipperComponent._rubberThickness;
+				_rubberHeight = flipperComponent._rubberHeight;
+				_rubberWidth = flipperComponent._rubberWidth;
+
+			} else {
+				Position = go.transform.localPosition;
+				_startAngle = go.transform.localEulerAngles.z;
+			}
+
+			UpdateTransforms();
+		}
+
 		#endregion
 
 		#region Editor Tooling

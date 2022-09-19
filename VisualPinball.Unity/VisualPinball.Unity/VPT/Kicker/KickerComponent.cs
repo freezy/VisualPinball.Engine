@@ -269,6 +269,24 @@ namespace VisualPinball.Unity
 			return data;
 		}
 
+		public override void CopyFromObject(GameObject go)
+		{
+			var kickerComponent = go.GetComponent<KickerComponent>();
+			if (kickerComponent != null) {
+				Position = kickerComponent.Position;
+				Radius = kickerComponent.Radius;
+				Orientation = kickerComponent.Orientation;
+				Surface = kickerComponent.Surface;
+
+			} else {
+				Radius = go.transform.localScale.x;
+				Position = go.transform.localPosition;
+				Orientation = go.transform.localEulerAngles.z;
+			}
+
+			UpdateTransforms();
+		}
+
 		#endregion
 
 		#region Serialization

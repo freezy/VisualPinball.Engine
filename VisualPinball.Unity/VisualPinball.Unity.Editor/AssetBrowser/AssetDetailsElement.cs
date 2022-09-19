@@ -14,6 +14,8 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+using System.Collections.Generic;
+using System.Linq;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.UIElements;
@@ -56,6 +58,8 @@ namespace VisualPinball.Unity.Editor
 		private AssetResult _asset;
 		private UnityEditor.Editor _previewEditor;
 		private Object _object;
+		private readonly Button _replaceSelectedButton;
+		private readonly Toggle _replaceSelectedKeepName;
 		private readonly Label _categoryElement;
 		private readonly TextField _descriptionEditElement;
 		private readonly Label _descriptionViewElement;
@@ -92,6 +96,8 @@ namespace VisualPinball.Unity.Editor
 			_libraryLockElement = ui.Q<Image>("library-lock");
 			_categoryElement = ui.Q<Label>("category-name");
 			_dateElement = ui.Q<Label>("date-value");
+			_replaceSelectedButton = ui.Q<Button>("replace-selected");
+			_replaceSelectedKeepName = ui.Q<Toggle>("replace-selected-keep-name");
 			_descriptionTitleElement = ui.Q<Label>("description-title");
 			_descriptionViewElement = ui.Q<Label>("description-view");
 			_descriptionEditElement = ui.Q<TextField>("description-edit");
@@ -113,6 +119,7 @@ namespace VisualPinball.Unity.Editor
 			_addAttributeButton.clicked += OnAddAttribute;
 			_addLinkButton.clicked += OnAddLink;
 			_addTagButton.clicked += OnAddTag;
+			_replaceSelectedButton.clicked += OnReplaceSelected;
 
 			_previewEditorElement = ui.Q<IMGUIContainer>();
 			_previewEditorElement.onGUIHandler = OnGUI;
@@ -122,7 +129,6 @@ namespace VisualPinball.Unity.Editor
 			ui.Q<Image>("date-icon").image = Icons.Calendar(IconSize.Small);
 			ui.Q<Image>("category-icon").image = EditorGUIUtility.IconContent("d_Folder Icon").image;
 		}
-
 
 		private void OnGUI()
 		{
@@ -143,6 +149,53 @@ namespace VisualPinball.Unity.Editor
 				_previewEditor.OnInteractivePreviewGUI(rect, GUI.skin.box);
 				_previewEditorElement.style.height = _previewEditorElement.resolvedStyle.width;
 			}
+
+			_replaceSelectedButton.SetEnabled(Selection.count > 0);
+
+		}
+
+		private void OnReplaceSelected()
+		{
+			var prefab = _asset.Asset.Object;
+			var selection = Selection.gameObjects;
+			var newSelection = new List<GameObject>();
+			var keepName = _replaceSelectedKeepName.value;
+
+			for (var i = selection.Length - 1; i >= 0; --i)
+			{
+				var selected = selection[i];
+				var prefabType = PrefabUtility.GetPrefabAssetType(prefab);
+				GameObject newObject;
+				if (prefabType == PrefabAssetType.Regular || prefabType == PrefabAssetType.Variant) {
+					newObject = (GameObject)PrefabUtility.InstantiatePrefab(prefab);
+
+				} else {
+					newObject = Object.Instantiate(prefab) as GameObject;
+				}
+				if (newObject == null) {
+					Debug.LogError("Error instantiating prefab.");
+					break;
+				}
+				newObject.name = keepName ? selected.name : prefab.name;
+
+				Undo.RegisterCreatedObjectUndo(newObject, "Replace With Prefab");
+				newObject.transform.parent = selected.transform.parent;
+
+				if (newObject.GetComponent(typeof(IMainRenderableComponent)) is IMainRenderableComponent comp) {
+					comp.CopyFromObject(selected);
+
+				} else {
+					newObject.transform.localPosition = selected.transform.localPosition;
+					newObject.transform.localRotation = selected.transform.localRotation;
+					newObject.transform.localScale = selected.transform.localScale;
+				}
+				newObject.transform.SetSiblingIndex(selected.transform.GetSiblingIndex());
+				Undo.DestroyObjectImmediate(selected);
+
+				newSelection.Add(newObject);
+			}
+
+			Selection.objects = newSelection.Select(go => (Object)go).ToArray();
 		}
 
 		private void OnAddAttribute()

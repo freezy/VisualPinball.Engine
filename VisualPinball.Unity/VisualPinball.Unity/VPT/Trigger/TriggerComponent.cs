@@ -23,6 +23,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Unity.Entities;
 using Unity.Mathematics;
 using UnityEditor;
@@ -230,6 +231,27 @@ namespace VisualPinball.Unity
 			}
 
 			return data;
+		}
+
+		public override void CopyFromObject(GameObject go)
+		{
+			var triggerComponent = go.GetComponent<TriggerComponent>();
+			if (triggerComponent != null) {
+				Position = triggerComponent.Position;
+				Scale = triggerComponent.Scale;
+				Rotation = triggerComponent.Rotation;
+				Surface = triggerComponent.Surface;
+				_dragPoints = triggerComponent._dragPoints.Select(dp => dp.Clone()).ToArray();
+
+			} else {
+				var pos = go.transform.localPosition;
+				MoveDragPointsTo(_dragPoints, pos);
+				Position = pos;
+				Rotation = go.transform.localEulerAngles.z;
+			}
+
+			UpdateTransforms();
+			RebuildMeshes();
 		}
 
 		#endregion

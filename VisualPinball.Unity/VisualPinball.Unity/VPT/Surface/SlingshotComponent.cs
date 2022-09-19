@@ -291,5 +291,11 @@ namespace VisualPinball.Unity
 
 			return dp;
 		}
+
+		public void CopyFromObject(GameObject go)
+		{
+			// don't think we can do much here, since it's not a logical, not visible component, and the
+			// actual data lies in the children.
+		}
 	}
 }

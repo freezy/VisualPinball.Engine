@@ -161,5 +161,11 @@ namespace VisualPinball.Unity
 				}
 			}
 		}
+
+
+		public override void CopyFromObject(GameObject go)
+		{
+			throw new Exception("Copying object data is currently only used for replacing objects. Don't replace the table. Refactor this if necessary in the future.");
+		}
 	}
 }
