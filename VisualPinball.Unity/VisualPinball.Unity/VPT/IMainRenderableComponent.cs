@@ -60,6 +60,9 @@ namespace VisualPinball.Unity
 		void SetEditorScale(Vector3 pos);
 		void EditorStartScaling();
 		void EditorEndScaling();
+		
+		//void SetTransform(Vector3 position, Vector3 scale, Quaternion rotation);
+		void CopyFromObject(GameObject go);
 	}
 
 	public enum ItemDataTransformType

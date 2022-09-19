@@ -24,6 +24,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using Unity.Entities;
 using UnityEngine;
 using VisualPinball.Engine.Math;
@@ -344,6 +345,31 @@ namespace VisualPinball.Unity
 			}
 
 			return data;
+		}
+
+		public override void CopyFromObject(GameObject go)
+		{
+			var rampComponent = go.GetComponent<RampComponent>();
+			if (rampComponent != null) {
+				_type = rampComponent._type;
+				_heightBottom = rampComponent._heightBottom;
+				_heightTop = rampComponent._heightTop;
+				_imageAlignment = rampComponent._imageAlignment;
+				_leftWallHeightVisible = rampComponent._leftWallHeightVisible;
+				_rightWallHeightVisible = rampComponent._rightWallHeightVisible;
+				_widthBottom = rampComponent._widthBottom;
+				_widthTop = rampComponent._widthTop;
+				_wireDiameter = rampComponent._wireDiameter;
+				_wireDistanceX = rampComponent._wireDistanceX;
+				_wireDistanceY = rampComponent._wireDistanceY;
+				_dragPoints = rampComponent._dragPoints.Select(dp => dp.Clone()).ToArray();
+
+			} else {
+				MoveDragPointsTo(_dragPoints, go.transform.localPosition);
+			}
+
+			UpdateTransforms();
+			RebuildMeshes();
 		}
 
 		#endregion

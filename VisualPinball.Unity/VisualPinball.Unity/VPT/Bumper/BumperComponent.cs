@@ -71,6 +71,7 @@ namespace VisualPinball.Unity
 		public override bool HasProceduralMesh => false;
 
 		public override BumperData InstantiateData() => new BumperData();
+
 		protected override Type MeshComponentType { get; } = typeof(MeshComponent<BumperData, BumperComponent>);
 		protected override Type ColliderComponentType { get; } = typeof(ColliderComponent<BumperData, BumperComponent>);
 
@@ -311,6 +312,27 @@ namespace VisualPinball.Unity
 			}
 
 			return data;
+		}
+
+		public override void CopyFromObject(GameObject go)
+		{
+			var bumperComponent = go.GetComponent<BumperComponent>();
+			if (bumperComponent != null) {
+				Position = bumperComponent.Position;
+				Radius = bumperComponent.Radius;
+				HeightScale = bumperComponent.HeightScale;
+				Orientation = bumperComponent.Orientation;
+				Surface = bumperComponent.Surface;
+
+			} else {
+				var scale = go.transform.localScale;
+				Position = go.transform.localPosition;
+				Orientation = go.transform.localEulerAngles.z;
+				Radius = scale.x / 2 * PrefabMeshScale;
+				HeightScale = scale.z * PrefabMeshScale;
+			}
+
+			UpdateTransforms();
 		}
 
 		#endregion

@@ -187,6 +187,24 @@ namespace VisualPinball.Unity
 			return data;
 		}
 
+		public override void CopyFromObject(GameObject go)
+		{
+			var rubberComponent = go.GetComponent<RubberComponent>();
+			if (rubberComponent != null) {
+				_height = rubberComponent._height;
+				_thickness = rubberComponent._thickness;
+				Rotation = rubberComponent.Rotation;
+				_height = rubberComponent._height;
+				_dragPoints = rubberComponent._dragPoints.Select(dp => dp.Clone()).ToArray();
+
+			} else {
+				MoveDragPointsTo(_dragPoints, go.transform.localPosition);
+			}
+
+			UpdateTransforms();
+			RebuildMeshes();
+		}
+
 		#endregion
 
 		#region Editor Tooling

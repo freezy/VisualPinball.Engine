@@ -430,6 +430,23 @@ namespace VisualPinball.Unity
 			return data;
 		}
 
+		public override void CopyFromObject(GameObject go)
+		{
+			transform.localPosition = go.transform.localPosition;
+
+			var lightComponent = go.GetComponent<LightComponent>();
+			if (lightComponent != null) {
+				Surface = lightComponent.Surface;
+				BulbSize = lightComponent.BulbSize;
+				State = lightComponent.State;
+				BlinkPattern = lightComponent.BlinkPattern;
+				BlinkInterval = lightComponent.BlinkInterval;
+				FadeSpeedUp = lightComponent.FadeSpeedUp;
+				FadeSpeedDown = lightComponent.FadeSpeedDown;
+			}
+			UpdateTransforms();
+		}
+
 		#endregion
 	}
 }

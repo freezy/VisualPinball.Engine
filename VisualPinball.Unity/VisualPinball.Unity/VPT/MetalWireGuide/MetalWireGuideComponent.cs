@@ -23,6 +23,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Unity.Entities;
 using Unity.Mathematics;
 using UnityEngine;
@@ -192,6 +193,24 @@ namespace VisualPinball.Unity
 			}
 
 			return data;
+		}
+
+		public override void CopyFromObject(GameObject go)
+		{
+			var mwgComponent = go.GetComponent<MetalWireGuideComponent>();
+			if (mwgComponent != null) {
+				_height = mwgComponent._height;
+				_thickness = mwgComponent._thickness;
+				_standheight = mwgComponent._standheight;
+				Rotation = mwgComponent.Rotation;
+				_bendradius = mwgComponent._bendradius;
+				_dragPoints = mwgComponent._dragPoints.Select(dp => dp.Clone()).ToArray();
+
+			} else {
+				MoveDragPointsTo(_dragPoints, go.transform.localPosition);
+			}
+
+			UpdateTransforms();
 		}
 
 		#endregion

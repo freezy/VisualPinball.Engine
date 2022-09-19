@@ -212,5 +212,10 @@ namespace VisualPinball.Unity
 
 			return data;
 		}
+
+		public override void CopyFromObject(GameObject go)
+		{
+			throw new Exception("Copying object data is currently only used for replacing objects. Don't replace the playfield. Refactor this if necessary in the future.");
+		}
 	}
 }

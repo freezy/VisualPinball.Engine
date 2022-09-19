@@ -308,6 +308,23 @@ namespace VisualPinball.Unity
 			return data;
 		}
 
+		public override void CopyFromObject(GameObject go)
+		{
+			var plungerComponent = go.GetComponent<PlungerComponent>();
+			if (plungerComponent != null) {
+				Position = plungerComponent.Position;
+				Width = plungerComponent.Width;
+				Height = plungerComponent.Height;
+				ZAdjust = plungerComponent.ZAdjust;
+				Surface = plungerComponent.Surface;
+
+			} else {
+				Position = go.transform.localPosition;
+			}
+
+			UpdateTransforms();
+		}
+
 		#endregion
 
 		public void UpdateParkPosition(float pos)

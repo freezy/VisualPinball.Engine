@@ -19,6 +19,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Unity.Entities;
 using UnityEngine;
+using VisualPinball.Engine.Math;
 using VisualPinball.Engine.VPT;
 using Mesh = VisualPinball.Engine.VPT.Mesh;
 
@@ -31,6 +32,10 @@ namespace VisualPinball.Unity
 		public virtual bool CanBeTransformed => true;
 
 		public virtual bool OverrideTransform => true;
+
+		//public abstract void SetTransform(Vector3 position, Vector3 scale, Quaternion rotation);
+		public abstract void CopyFromObject(GameObject go);
+		//public virtual void SetTransform(Vector3 position, Vector3 scale, Quaternion rotation) { }
 
 		/// <summary>
 		/// Component type of the child class.
@@ -166,6 +171,20 @@ namespace VisualPinball.Unity
 		public virtual void SetEditorScale(Vector3 rot) { }
 		public virtual void EditorStartScaling() {}
 		public virtual void EditorEndScaling() {}
+
+		protected static void MoveDragPointsTo(DragPointData[] dragPoints, Vector3 destination)
+		{
+			var sum = Vertex3D.Zero;
+			foreach (var t in dragPoints) {
+				sum += t.Center;
+			}
+			var srcPos = sum / dragPoints.Length;
+			
+			var delta = (destination.ToVertex3D() - srcPos);
+			foreach (var dragPointData in dragPoints) {
+				dragPointData.Center += delta;
+			}
+		}
 
 		#endregion
 	}

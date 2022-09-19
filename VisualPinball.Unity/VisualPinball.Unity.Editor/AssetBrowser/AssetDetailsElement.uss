@@ -29,8 +29,23 @@
 	margin-right: 2px;
 }
 
+#details > #container-replace-selected {
+	flex-direction: row;
+	margin-top: 16px;
+}
+#details #replace-selected-keep-name {
+	margin-left: 8px;
+}
+#details #replace-selected-keep-name Label {
+	margin-left: 4px;
+}
+
 #details > #description-view, #details > #info-view {
 	white-space: normal;
+}
+
+#details > #attributes-replace-selected {
+	margin-top: 8px;
 }
 
 #details > #add {

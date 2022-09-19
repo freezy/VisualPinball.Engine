@@ -229,6 +229,26 @@ namespace VisualPinball.Unity
 			return data;
 		}
 
+		public override void CopyFromObject(GameObject go)
+		{
+			var primitiveComponent = go.GetComponent<PrimitiveComponent>();
+			if (primitiveComponent != null) {
+
+				Position = primitiveComponent.Position;
+				Rotation = primitiveComponent.Rotation;
+				Size = primitiveComponent.Size;
+				Translation = primitiveComponent.Translation;
+				ObjectRotation = primitiveComponent.ObjectRotation;
+
+			} else {
+				Position = go.transform.localPosition;
+				Rotation = go.transform.localEulerAngles;
+				Size = go.transform.localScale;
+			}
+
+			UpdateTransforms();
+		}
+
 		#endregion
 
 		#region Runtime

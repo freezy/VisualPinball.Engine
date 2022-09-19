@@ -87,6 +87,22 @@ namespace VisualPinball.Engine.Math
 			};
 		}
 
+		public DragPointData Clone()
+		{
+			return new DragPointData(Center) {
+				PosZ = PosZ,
+				IsSmooth = IsSmooth,
+				IsSlingshot = IsSlingshot,
+				HasAutoTexture = HasAutoTexture,
+				TextureCoord = TextureCoord,
+				IsLocked = IsLocked,
+				EditorLayer = EditorLayer,
+				EditorLayerName = EditorLayerName,
+				EditorLayerVisibility = EditorLayerVisibility,
+				CalcHeight = CalcHeight,
+			};
+		}
+
 		#region BIFF
 
 		static DragPointData()

@@ -23,6 +23,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Unity.Entities;
 using UnityEngine;
 using VisualPinball.Engine.Math;
@@ -188,6 +189,22 @@ namespace VisualPinball.Unity
 			}
 
 			return data;
+		}
+
+		public override void CopyFromObject(GameObject go)
+		{
+			var surfaceComponent = go.GetComponent<SurfaceComponent>();
+			if (surfaceComponent != null) {
+				HeightTop = surfaceComponent.HeightTop;
+				HeightBottom = surfaceComponent.HeightBottom;
+				_dragPoints = surfaceComponent._dragPoints.Select(dp => dp.Clone()).ToArray();
+
+			} else {
+				MoveDragPointsTo(_dragPoints, go.transform.localPosition);
+			}
+
+			UpdateTransforms();
+			RebuildMeshes();
 		}
 
 		#endregion
