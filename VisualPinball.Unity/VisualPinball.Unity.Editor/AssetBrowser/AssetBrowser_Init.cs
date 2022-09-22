@@ -17,6 +17,7 @@
 using System.IO;
 using UnityEditor;
 using UnityEditor.UIElements;
+using UnityEngine;
 using UnityEngine.UIElements;
 
 namespace VisualPinball.Unity.Editor
@@ -140,11 +141,18 @@ namespace VisualPinball.Unity.Editor
 		private VisualElement NewItem(AssetResult result)
 		{
 			var obj = result.Asset.Object;
-			var tex = AssetPreview.GetAssetPreview(obj);
 			var item = new VisualElement();
 			_assetTree.CloneTree(item);
 			item.Q<LibraryAssetElement>().Result = result;
-			item.Q<Image>("thumbnail").image = tex;
+
+			if (AssetDatabase.TryGetGUIDAndLocalFileIdentifier(obj, out var guid, out long _)) {
+				var thumbPath = $"{ThumbPath}/{guid}.png";
+				if (File.Exists(thumbPath)) {
+					var tex = new Texture2D(256, 256);
+					tex.LoadImage(File.ReadAllBytes(thumbPath));
+					item.Q<Image>("thumbnail").image = tex;
+				}
+			}
 			item.Q<Label>("label").text = result.Asset.Name;
 			item.RegisterCallback<MouseUpEvent>(evt => OnAssetClicked(evt, item));
 			item.Q<LibraryAssetElement>().RegisterDrag(this);
