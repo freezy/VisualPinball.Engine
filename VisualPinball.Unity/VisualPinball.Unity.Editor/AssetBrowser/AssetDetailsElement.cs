@@ -15,8 +15,10 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using UnityEditor;
+using UnityEditor.Presets;
 using UnityEngine;
 using UnityEngine.UIElements;
 
@@ -31,6 +33,13 @@ namespace VisualPinball.Unity.Editor
 		private readonly VisualElement _detailsElement;
 		private readonly Label _titleElement;
 		private readonly VisualElement _attributesElement;
+
+		private List<Preset> _thumbCameraPresets;
+		private Preset _thumbCameraDefaultPreset;
+
+		private AssetBrowser _assetBrowser => panel?.visualTree?.userData as AssetBrowser;
+
+		private static readonly string ThumbCameraPresetPrefix = "Asset Thumbcam - ";
 
 		public AssetResult Asset {
 			get => _asset;
@@ -78,11 +87,16 @@ namespace VisualPinball.Unity.Editor
 		private readonly Label _linksTitleElement;
 		private readonly Button _addLinkButton;
 		private readonly IMGUIContainer _previewEditorElement;
+		private readonly VisualElement _thumbCameraContainer;
+		private readonly DropdownField _thumbCameraPreset;
+		private readonly Label _thumbCameraTitle;
 
 		public new class UxmlFactory : UxmlFactory<AssetDetailsElement, UxmlTraits> { }
 
 		public AssetDetailsElement()
 		{
+			RefreshCameraPresets();
+
 			var visualTree = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>("Packages/org.visualpinball.engine.unity/VisualPinball.Unity/VisualPinball.Unity.Editor/AssetBrowser/AssetDetailsElement.uxml");
 			var ui = visualTree.CloneTree();
 			var styleSheet = AssetDatabase.LoadAssetAtPath<StyleSheet>("Packages/org.visualpinball.engine.unity/VisualPinball.Unity/VisualPinball.Unity.Editor/AssetBrowser/AssetDetailsElement.uss");
@@ -125,9 +139,18 @@ namespace VisualPinball.Unity.Editor
 			_previewEditorElement.onGUIHandler = OnGUI;
 			_previewEditorElement.style.height = _previewEditorElement.resolvedStyle.width;
 
+			// active library dropdown
+			_thumbCameraContainer = ui.Q<VisualElement>("thumbnail-config");
+			_thumbCameraTitle = ui.Q<Label>("thumbnail-title");
+			_thumbCameraPreset = new DropdownField(_thumbCameraPresets.Select(p => p.name[ThumbCameraPresetPrefix.Length..]).ToList(), 0, OnThumbCamPresetChanged) {
+				tooltip = "The camera preset used to generate the thumbnail."
+			};
+			_thumbCameraContainer.Add(_thumbCameraPreset);
+
 			ui.Q<Image>("library-icon").image = Icons.AssetLibrary(IconSize.Small);
 			ui.Q<Image>("date-icon").image = Icons.Calendar(IconSize.Small);
 			ui.Q<Image>("category-icon").image = EditorGUIUtility.IconContent("d_Folder Icon").image;
+
 		}
 
 		private void OnGUI()
@@ -241,7 +264,7 @@ namespace VisualPinball.Unity.Editor
 				return;
 			}
 
-			var browser = panel.visualTree.userData as AssetBrowser;
+			var browser = _assetBrowser;
 			_object = _asset.Asset.Object;
 			_titleElement.text = _asset.Asset.Name;
 			_libraryElement.text = _asset.Library.Name;
@@ -311,6 +334,39 @@ namespace VisualPinball.Unity.Editor
 				SetVisibility(_infoTitleElement, false);
 				SetVisibility(_infoElement, false);
 			}
+
+			SetVisibility(_thumbCameraTitle, !_asset.Library.IsLocked);
+			SetVisibility(_thumbCameraContainer, !_asset.Library.IsLocked);
+			if (!_asset.Library.IsLocked) {
+				var index = _thumbCameraPresets.IndexOf(_asset.Asset.ThumbCameraPreset);
+				_thumbCameraPreset.index = index >= 0 ? index : _thumbCameraPresets.IndexOf(_thumbCameraDefaultPreset);
+			}
+		}
+
+		private string OnThumbCamPresetChanged(string shortName)
+		{
+			if (_asset == null) {
+				return shortName;
+			}
+
+			var presetName = ThumbCameraPresetPrefix + shortName;
+			if (_asset.Asset.ThumbCameraPreset != null && _asset.Asset.ThumbCameraPreset.name == presetName) {
+				return shortName;
+			}
+			_asset.Asset.ThumbCameraPreset = _thumbCameraPresets
+				.FirstOrDefault(ps => ps.name == presetName) ?? _thumbCameraDefaultPreset;
+
+			_asset.Save();
+			Debug.Log($"Set preset of {_asset.Asset.Name} to {_asset.Asset.ThumbCameraPreset}.");
+			return shortName;
+		}
+
+		private void RefreshCameraPresets()
+		{
+			const string presetPath = "Packages/org.visualpinball.engine.unity/VisualPinball.Unity/Assets/Presets";;
+			var presets = Directory.GetFiles(presetPath).Where(p => p.Contains(ThumbCameraPresetPrefix) && !p.Contains(".meta"));
+			_thumbCameraPresets = presets.Select(filename => (Preset)AssetDatabase.LoadAssetAtPath(filename, typeof(Preset))).ToList();
+			_thumbCameraDefaultPreset = _thumbCameraPresets.First(p => p.name.Contains("Default"));
 		}
 
 		private static (int, int, int, int, int, int) CountVertices(GameObject go)

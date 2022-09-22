@@ -21,6 +21,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Unity.Mathematics;
 using UnityEditor;
+using UnityEditor.Presets;
 using UnityEditor.Search;
 using UnityEngine;
 using Object = UnityEngine.Object;
@@ -260,6 +261,11 @@ namespace VisualPinball.Unity.Editor
 		#endregion
 	}
 
+	public enum AssetScale
+	{
+		World, Table
+	}
+
 	[Serializable]
 	public class LibraryAsset
 	{
@@ -276,6 +282,12 @@ namespace VisualPinball.Unity.Editor
 		private string _addedAt;
 
 		public string Description;
+
+		[SerializeField]
+		public AssetScale Scale = AssetScale.World;
+
+		[SerializeReference]
+		public Preset ThumbCameraPreset;
 
 		[SerializeField]
 		private string _categoryId;
@@ -310,6 +322,8 @@ namespace VisualPinball.Unity.Editor
 	{
 		public string Id;
 		public string Name;
+
+		public override string ToString() => $"LibraryCategory: {Name} ({Id})";
 	}
 
 	[Serializable]

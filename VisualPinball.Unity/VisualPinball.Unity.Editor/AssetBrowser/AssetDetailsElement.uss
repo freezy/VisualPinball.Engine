@@ -85,3 +85,7 @@ KeyValueElement {
 	-unity-font-style: italic;
 	-unity-text-align: middle-center;
 }
+#thumbnail-config {
+	flex-direction: row;
+	justify-content: space-between;
+}
