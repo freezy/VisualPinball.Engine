@@ -36,6 +36,12 @@
 		<ui:VisualElement name="links"/>
 		<ui:Button name="links-add" text="New Link"/>
 
+
+		<ui:Label name="thumbnail-title" text="Thumbnail" class="subtitle"/>
+		<ui:VisualElement name="thumbnail-config" >
+			<ui:Label name="links-title" text="Camera Preset:" class="subtitle"/>
+		</ui:VisualElement>
+
 		<ui:Label name="info-title" text="Info" class="subtitle"/>
 		<ui:Label name="info-view"/>
 	</ui:ScrollView>
