@@ -14,13 +14,18 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+// ReSharper disable PossibleUnintendedReferenceComparison
+
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using UnityEditor;
 using UnityEditor.Presets;
+using UnityEditor.UIElements;
 using UnityEngine;
 using UnityEngine.UIElements;
+using Object = UnityEngine.Object;
 
 namespace VisualPinball.Unity.Editor
 {
@@ -37,7 +42,7 @@ namespace VisualPinball.Unity.Editor
 		private List<Preset> _thumbCameraPresets;
 		private Preset _thumbCameraDefaultPreset;
 
-		private AssetBrowser _assetBrowser => panel?.visualTree?.userData as AssetBrowser;
+		private AssetBrowser AssetBrowser => panel?.visualTree?.userData as AssetBrowser;
 
 		private static readonly string ThumbCameraPresetPrefix = "Asset Thumbcam - ";
 
@@ -90,6 +95,8 @@ namespace VisualPinball.Unity.Editor
 		private readonly VisualElement _thumbCameraContainer;
 		private readonly DropdownField _thumbCameraPreset;
 		private readonly Label _thumbCameraTitle;
+		private readonly VisualElement _assetScaleContainer;
+		private readonly EnumField _assetScale;
 
 		public new class UxmlFactory : UxmlFactory<AssetDetailsElement, UxmlTraits> { }
 
@@ -126,6 +133,8 @@ namespace VisualPinball.Unity.Editor
 			_addLinkButton = ui.Q<Button>("links-add");
 			_infoTitleElement = ui.Q<Label>("info-title");
 			_infoElement = ui.Q<Label>("info-view");
+			_assetScaleContainer = ui.Q<VisualElement>("asset-scale-container");
+			_assetScale = ui.Q<EnumField>("asset-scale");
 
 			_libraryLockElement.image = EditorGUIUtility.IconContent("InspectorLock").image;
 			_descriptionEditElement.RegisterCallback<FocusInEvent>(OnDescriptionStartEditing);
@@ -140,12 +149,14 @@ namespace VisualPinball.Unity.Editor
 			_previewEditorElement.style.height = _previewEditorElement.resolvedStyle.width;
 
 			// active library dropdown
-			_thumbCameraContainer = ui.Q<VisualElement>("thumbnail-config");
+			_thumbCameraContainer = ui.Q<VisualElement>("thumbnail-container");
 			_thumbCameraTitle = ui.Q<Label>("thumbnail-title");
 			_thumbCameraPreset = new DropdownField(_thumbCameraPresets.Select(p => p.name[ThumbCameraPresetPrefix.Length..]).ToList(), 0, OnThumbCamPresetChanged) {
 				tooltip = "The camera preset used to generate the thumbnail."
 			};
 			_thumbCameraContainer.Add(_thumbCameraPreset);
+
+			_assetScale.RegisterValueChangedCallback(OnScaleChanged);
 
 			ui.Q<Image>("library-icon").image = Icons.AssetLibrary(IconSize.Small);
 			ui.Q<Image>("date-icon").image = Icons.Calendar(IconSize.Small);
@@ -258,13 +269,19 @@ namespace VisualPinball.Unity.Editor
 			AssetDatabase.SaveAssetIfDirty(_asset.Library);
 		}
 
+		private void OnScaleChanged(ChangeEvent<Enum> changeEvent)
+		{
+			_asset.Asset.Scale = (AssetScale)changeEvent.newValue;
+			_asset.Save();
+		}
+
 		public void UpdateDetails()
 		{
 			if (_asset == null) {
 				return;
 			}
 
-			var browser = _assetBrowser;
+			var browser = AssetBrowser;
 			_object = _asset.Asset.Object;
 			_titleElement.text = _asset.Asset.Name;
 			_libraryElement.text = _asset.Library.Name;
@@ -341,6 +358,12 @@ namespace VisualPinball.Unity.Editor
 				var index = _thumbCameraPresets.IndexOf(_asset.Asset.ThumbCameraPreset);
 				_thumbCameraPreset.index = index >= 0 ? index : _thumbCameraPresets.IndexOf(_thumbCameraDefaultPreset);
 			}
+
+			// scale
+			SetVisibility(_assetScaleContainer, !_asset.Library.IsLocked);
+			if (!_asset.Library.IsLocked) {
+				_assetScale.SetValueWithoutNotify(_asset.Asset.Scale);
+			}
 		}
 
 		private string OnThumbCamPresetChanged(string shortName)
@@ -357,7 +380,6 @@ namespace VisualPinball.Unity.Editor
 				.FirstOrDefault(ps => ps.name == presetName) ?? _thumbCameraDefaultPreset;
 
 			_asset.Save();
-			Debug.Log($"Set preset of {_asset.Asset.Name} to {_asset.Asset.ThumbCameraPreset}.");
 			return shortName;
 		}
 

@@ -15,6 +15,11 @@
 		</ui:VisualElement>
 		<ui:IMGUIContainer/>
 
+		<ui:VisualElement name="asset-scale-container" >
+			<ui:Label text="Scale Transform:" class="subtitle"/>
+			<uie:EnumField name="asset-scale" type="VisualPinball.Unity.Editor.AssetScale, VisualPinball.Unity.Editor" />
+		</ui:VisualElement>
+
 		<ui:VisualElement name="container-replace-selected">
 			<ui:Button name="replace-selected" text="Replace Selected"/>
 			<ui:Toggle name="replace-selected-keep-name" text="Keep Name(s)"/>
@@ -36,10 +41,9 @@
 		<ui:VisualElement name="links"/>
 		<ui:Button name="links-add" text="New Link"/>
 
-
 		<ui:Label name="thumbnail-title" text="Thumbnail" class="subtitle"/>
-		<ui:VisualElement name="thumbnail-config" >
-			<ui:Label name="links-title" text="Camera Preset:" class="subtitle"/>
+		<ui:VisualElement name="thumbnail-container" >
+			<ui:Label text="Camera Preset:" class="subtitle"/>
 		</ui:VisualElement>
 
 		<ui:Label name="info-title" text="Info" class="subtitle"/>
