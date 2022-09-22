@@ -174,13 +174,6 @@ namespace VisualPinball.Unity.Editor
 			Library.SaveAsset(Asset);
 		}
 
-		public bool IsLoadingAssetPreview => AssetPreview.IsLoadingAssetPreview(Asset.Object.GetInstanceID());
-
-		public void RefreshPreviewImage(VisualElement visualElement)
-		{
-			visualElement.Q<Image>("thumbnail").image = AssetPreview.GetAssetPreview(Asset.Object);
-		}
-
 		#region IEquatable
 
 		public bool Equals(AssetResult other)

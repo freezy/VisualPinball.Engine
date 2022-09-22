@@ -385,7 +385,7 @@ namespace VisualPinball.Unity.Editor
 
 		private void RefreshCameraPresets()
 		{
-			const string presetPath = "Packages/org.visualpinball.engine.unity/VisualPinball.Unity/Assets/Presets";;
+			const string presetPath = "Packages/org.visualpinball.engine.unity/VisualPinball.Unity/Assets/Presets";
 			var presets = Directory.GetFiles(presetPath).Where(p => p.Contains(ThumbCameraPresetPrefix) && !p.Contains(".meta"));
 			_thumbCameraPresets = presets.Select(filename => (Preset)AssetDatabase.LoadAssetAtPath(filename, typeof(Preset))).ToList();
 			_thumbCameraDefaultPreset = _thumbCameraPresets.First(p => p.name.Contains("Default"));
