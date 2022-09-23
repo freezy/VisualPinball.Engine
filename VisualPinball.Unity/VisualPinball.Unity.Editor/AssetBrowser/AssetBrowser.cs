@@ -463,9 +463,6 @@ namespace VisualPinball.Unity.Editor
 				var img = e.Q<Image>();
 				img.style.width = _thumbnailSize;
 				img.style.height = _thumbnailSize;
-				// e.Q<Image>().style.width = _thumbnailSize;
-				// e.style.width = _thumbnailSize;
-				// e.style.height = _thumbnailSize;
 			}
 		}
 

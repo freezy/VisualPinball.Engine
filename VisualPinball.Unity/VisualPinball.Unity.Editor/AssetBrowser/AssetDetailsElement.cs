@@ -94,7 +94,7 @@ namespace VisualPinball.Unity.Editor
 		private readonly IMGUIContainer _previewEditorElement;
 		private readonly VisualElement _thumbCameraContainer;
 		private readonly DropdownField _thumbCameraPreset;
-		private readonly Label _thumbCameraTitle;
+		private readonly Label _geometryTitle;
 		private readonly VisualElement _assetScaleContainer;
 		private readonly EnumField _assetScale;
 
@@ -150,7 +150,7 @@ namespace VisualPinball.Unity.Editor
 
 			// active library dropdown
 			_thumbCameraContainer = ui.Q<VisualElement>("thumbnail-container");
-			_thumbCameraTitle = ui.Q<Label>("thumbnail-title");
+			_geometryTitle = ui.Q<Label>("geometry-title");
 			_thumbCameraPreset = new DropdownField(_thumbCameraPresets.Select(p => p.name[ThumbCameraPresetPrefix.Length..]).ToList(), 0, OnThumbCamPresetChanged) {
 				tooltip = "The camera preset used to generate the thumbnail."
 			};
@@ -352,7 +352,7 @@ namespace VisualPinball.Unity.Editor
 				SetVisibility(_infoElement, false);
 			}
 
-			SetVisibility(_thumbCameraTitle, !_asset.Library.IsLocked);
+			SetVisibility(_geometryTitle, !_asset.Library.IsLocked);
 			SetVisibility(_thumbCameraContainer, !_asset.Library.IsLocked);
 			if (!_asset.Library.IsLocked) {
 				var index = _thumbCameraPresets.IndexOf(_asset.Asset.ThumbCameraPreset);
