@@ -1,0 +1,38 @@
+﻿#title {
+	margin-bottom: 8px;
+	font-size: 18px;
+	white-space: normal;
+	-unity-font-style: bold;
+}
+
+#header1 {
+	flex-direction: row;
+	margin-bottom: 4px;
+}
+
+#header2 {
+	flex-direction: row;
+	margin-bottom: 16px;
+}
+
+#header2 Label {
+	margin-right: 8px;
+}
+
+#header1 Image, > #header2 Image {
+	width: 16px;
+	height: 16px;
+	margin-right: 2px;
+}
+
+#preview {
+	border-width: 1px;
+	border-color: black;
+	margin-bottom: 16px
+}
+
+.subtitle {
+	margin-bottom: 4px;
+	margin-top: 16px;
+	-unity-font-style: bold;
+}
