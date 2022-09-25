@@ -21,9 +21,8 @@ using System;
 namespace VisualPinball.Unity.Editor
 {
 	[Serializable]
-	public class AssetAttribute
+	public class AssetTag
 	{
-		public string Key;
-		public string Value;
+		public string TagName;
 	}
 }

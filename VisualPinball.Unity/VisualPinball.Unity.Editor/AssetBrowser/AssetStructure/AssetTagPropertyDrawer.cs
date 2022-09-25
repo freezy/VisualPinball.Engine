@@ -21,37 +21,40 @@ using UnityEngine.UIElements;
 
 namespace VisualPinball.Unity.Editor
 {
-	[CustomPropertyDrawer(typeof(AssetAttribute))]
-	public class AssetAttributePropertyDrawer : PropertyDrawer
+	[CustomPropertyDrawer(typeof(AssetTag))]
+	public class AssetTagPropertyDrawer : PropertyDrawer
 	{
 		// property drawers are recycled, so store those per path.
-		private readonly Dictionary<string, SuggestingTextField> _keyField = new();
-		private readonly Dictionary<string, SuggestingTextField> _valueField = new();
+		private readonly Dictionary<string, SuggestingTextField> _tagField = new();
 
 		private AssetLibrary _library;
 
 		public override VisualElement CreatePropertyGUI(SerializedProperty property)
 		{
 			var ui = new VisualElement();
-			var visualTree = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>("Packages/org.visualpinball.engine.unity/VisualPinball.Unity/VisualPinball.Unity.Editor/AssetBrowser/AssetStructure/AssetAttributePropertyDrawer.uxml");
+			var visualTree = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>("Packages/org.visualpinball.engine.unity/VisualPinball.Unity/VisualPinball.Unity.Editor/AssetBrowser/AssetStructure/AssetTagPropertyDrawer.uxml");
 			visualTree.CloneTree(ui);
 
-			_keyField[property.propertyPath] = ui.Q<SuggestingTextField>("key-field");
 			if (property.serializedObject.targetObject is Asset asset && asset.Library != null) {
 				_library = asset.Library;
-				_keyField[property.propertyPath].SuggestOptions = asset.Library.GetAttributeKeys().ToArray();
 			}
 
-			_valueField[property.propertyPath] = ui.Q<SuggestingTextField>("value-field");
-			_valueField[property.propertyPath].RegisterCallback<FocusInEvent>(evt => OnValueFocus(property.propertyPath));
+			_tagField[property.propertyPath] = ui.Q<SuggestingTextField>("tag-field");
+			_tagField[property.propertyPath].RegisterCallback<FocusInEvent>(evt => OnValueFocus(property.propertyPath));
 
 			return ui;
 		}
 
 		private void OnValueFocus(string propertyPath)
 		{
-			if (!string.IsNullOrEmpty(_keyField[propertyPath].Value) && _library != null) {
-				_valueField[propertyPath].SuggestOptions = _library.GetAttributeValues(_keyField[propertyPath].Value).ToArray();
+			if (_library != null) {
+				var tags = new HashSet<string>(_library.GetAllTags());
+				foreach (var otherField in _tagField.Values) {
+					if (!string.IsNullOrEmpty(otherField.Value) && tags.Contains(otherField.Value)) {
+						tags.Remove(otherField.Value);
+					}
+				}
+				_tagField[propertyPath].SuggestOptions = tags.ToArray();
 			}
 		}
 	}
