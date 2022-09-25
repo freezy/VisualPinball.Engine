@@ -1,0 +1,4 @@
+﻿<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" xmlns:uivpe="VisualPinball.Unity.Editor" editor-extension-mode="True">
+	<uivpe:SuggestingTextField name="name-field" label="Website Name" binding-path="Name" multivalue="false" tooltip="Name of the web site. Auto-completes with existing names." />
+	<ui:TextField label="URL" binding-path="Url" tooltip="URL, including https://"/>
+</ui:UXML>

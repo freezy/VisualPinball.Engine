@@ -183,7 +183,12 @@ namespace VisualPinball.Unity.Editor
 		#region Tags
 
 		public IEnumerable<string> GetAllTags() => Assets.Values
-			.SelectMany(a => a.Tags.Keys)
+			.SelectMany(a => a.Tags?.Keys ?? Array.Empty<string>())
+			.Distinct()
+			.OrderBy(a => a);
+
+		public IEnumerable<string> GetLinkNames() => Assets.Values
+			.SelectMany(a => a.Links != null ? a.Links.Select(l => l.Key) : Array.Empty<string>())
 			.Distinct()
 			.OrderBy(a => a);
 

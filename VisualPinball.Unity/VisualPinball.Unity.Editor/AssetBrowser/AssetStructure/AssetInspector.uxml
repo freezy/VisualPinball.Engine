@@ -29,4 +29,7 @@
 	<!-- Attributes -->
 	<uie:PropertyField binding-path="Tags" label="Tags" />
 
+	<!-- Tags -->
+	<uie:PropertyField binding-path="Links" label="Links" />
+
 </ui:UXML>
