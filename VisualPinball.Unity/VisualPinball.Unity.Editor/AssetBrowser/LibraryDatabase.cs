@@ -285,6 +285,7 @@ namespace VisualPinball.Unity.Editor
 		[SerializeField]
 		private string _addedAt;
 
+		[SerializeField]
 		public string Description;
 
 		[SerializeField]

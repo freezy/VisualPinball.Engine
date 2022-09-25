@@ -144,6 +144,7 @@ namespace VisualPinball.Unity.Editor
 
 		public IEnumerable<string> GetAttributeKeys() => _db?.GetAttributeKeys() ?? Array.Empty<string>();
 		public IEnumerable<string> GetAllTags() => _db?.GetAllTags() ?? Array.Empty<string>();
+		public IEnumerable<string> GetLinkNames() => _db?.GetLinkNames() ?? Array.Empty<string>();
 
 		public IEnumerable<string> GetAttributeValues(string key) => _db?.GetAttributeValues(key) ?? Array.Empty<string>();
 
