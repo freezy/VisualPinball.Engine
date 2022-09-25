@@ -142,10 +142,10 @@ namespace VisualPinball.Unity.Editor
 
 		#region Attribute
 
-		public IEnumerable<string> GetAttributeKeys() => _db.GetAttributeKeys();
-		public IEnumerable<string> GetAllTags() => _db.GetAllTags();
+		public IEnumerable<string> GetAttributeKeys() => _db?.GetAttributeKeys() ?? Array.Empty<string>();
+		public IEnumerable<string> GetAllTags() => _db?.GetAllTags() ?? Array.Empty<string>();
 
-		public IEnumerable<string> GetAttributeValues(string key) => _db.GetAttributeValues(key);
+		public IEnumerable<string> GetAttributeValues(string key) => _db?.GetAttributeValues(key) ?? Array.Empty<string>();
 
 		public LibraryKeyValue AddAttribute(LibraryAsset asset, string attributeName)
 		{
