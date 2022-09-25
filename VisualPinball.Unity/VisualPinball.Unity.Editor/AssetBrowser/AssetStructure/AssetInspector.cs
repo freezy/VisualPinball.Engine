@@ -40,9 +40,9 @@ namespace VisualPinball.Unity.Editor
 			InspectorXML.CloneTree(ui);
 			ui.styleSheets.Add(InspectorStyleSheet);
 
-			ui.Q<Label>("title").text = _asset.Object.name;
+			ui.Q<Label>("title").text = _asset.Name;
 			ui.Q<Image>("library-icon").image = Icons.AssetLibrary(IconSize.Small);
-			ui.Q<Label>("library-name").text = _asset.Library.Name;
+			ui.Q<Label>("library-name").text = _asset.Library != null ? _asset.Library.Name : "<no library>";
 
 			ui.Q<Image>("category-icon").image = EditorGUIUtility.IconContent("d_Folder Icon").image;
 			ui.Q<Label>("category-name").text = _asset.Category?.Name ?? "<no category>";

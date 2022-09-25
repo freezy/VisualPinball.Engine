@@ -1,4 +1,3 @@
 ﻿<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" xmlns:uivpe="VisualPinball.Unity.Editor" editor-extension-mode="True">
-	<uivpe:SuggestingTextField name="key-field" label="Name" binding-path="Key" multivalue="false" tooltip="Name of the attribute. Auto-completes with existing attributes." />
-	<uivpe:SuggestingTextField name="value-field" label="Value(s)" binding-path="Value" multivalue="true" tootip="You can put multiple, comma-separated values in here." />
+	<uivpe:SuggestingTextField name="tag-field" binding-path="TagName" multivalue="false" tooltip="Name of the tag. Auto-completes with existing tags." />
 </ui:UXML>

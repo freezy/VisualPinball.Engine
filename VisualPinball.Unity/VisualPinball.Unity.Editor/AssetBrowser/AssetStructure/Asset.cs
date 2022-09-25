@@ -36,10 +36,25 @@ namespace VisualPinball.Unity.Editor
 		public Object Object;
 
 		[SerializeField]
-		private string _addedAt;
+		private string _categoryId;
+
+		[SerializeField]
+		private string _addedAt = DateTime.Now.ToString("o");
 
 		[SerializeField]
 		public string Description;
+
+		[SerializeField]
+		public List<AssetAttribute> Attributes;
+
+		[SerializeField]
+		public AssetTag[] Tags;
+
+		[SerializeField]
+		public List<LibraryKeyValue> Links;
+
+		[SerializeField]
+		internal List<MaterialVariation> MaterialVariations;
 
 		[SerializeField]
 		public AssetScale Scale = AssetScale.World;
@@ -47,20 +62,6 @@ namespace VisualPinball.Unity.Editor
 		[SerializeReference]
 		public Preset ThumbCameraPreset;
 
-		[SerializeField]
-		private string _categoryId;
-
-		[SerializeField]
-		public List<AssetAttribute> Attributes;
-
-		[SerializeField]
-		public List<LibraryKeyValue> Links;
-
-		[SerializeField]
-		internal Tags Tags;
-
-		[SerializeField]
-		internal List<MaterialVariation> MaterialVariations;
 
 		[NonSerialized]
 		private LibraryCategory _category;
