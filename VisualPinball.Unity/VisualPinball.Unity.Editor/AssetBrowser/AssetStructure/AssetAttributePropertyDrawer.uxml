@@ -1,0 +1,4 @@
+﻿<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" xmlns:uivpe="VisualPinball.Unity.Editor" editor-extension-mode="True">
+	<uivpe:SuggestingTextField name="key-field" label="Name" binding-path="Key" multivalue="false" />
+	<uivpe:SuggestingTextField name="value-field" label="Values" binding-path="Value" multivalue="true" />
+</ui:UXML>
