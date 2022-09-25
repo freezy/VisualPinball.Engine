@@ -51,7 +51,7 @@ namespace VisualPinball.Unity.Editor
 		private string _categoryId;
 
 		[SerializeField]
-		public List<LibraryKeyValue> Attributes;
+		public List<AssetAttribute> Attributes;
 
 		[SerializeField]
 		public List<LibraryKeyValue> Links;
