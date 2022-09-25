@@ -35,4 +35,8 @@
 	<!-- Material Overrides -->
 	<uie:PropertyField binding-path="MaterialVariations" label="Material Variations" class="top-space" />
 
+	<!-- Geometry -->
+	<ui:Label name="geometry-title" text="Geometry" class="subtitle"/>
+	<uie:PropertyField binding-path="Scale" label="Scale Transform" />
+
 </ui:UXML>
