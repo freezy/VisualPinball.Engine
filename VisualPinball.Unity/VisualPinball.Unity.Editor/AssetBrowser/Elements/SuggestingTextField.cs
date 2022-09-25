@@ -49,6 +49,7 @@ namespace VisualPinball.Unity.Editor
 			private readonly UxmlStringAttributeDescription _label = new() { name = "label" };
 			private readonly UxmlStringAttributeDescription _value = new() { name = "value" };
 			private readonly UxmlStringAttributeDescription _bindingPath = new() { name = "binding-path" };
+			private readonly UxmlStringAttributeDescription _tooltip = new() { name = "tootip" };
 			private readonly UxmlBoolAttributeDescription _isMultiValue = new() { name = "multivalue", defaultValue = false };
 
 			public override IEnumerable<UxmlChildElementDescription> uxmlChildElementsDescription
@@ -65,6 +66,7 @@ namespace VisualPinball.Unity.Editor
 				ate!.Value = _value.GetValueFromBag(bag, cc);
 				ate!.IsMultiValue = _isMultiValue.GetValueFromBag(bag, cc);
 				ate!.BindingPath = _bindingPath.GetValueFromBag(bag, cc);
+				ate!.Tooltip = _tooltip.GetValueFromBag(bag, cc);
 			}
 		}
 
@@ -72,6 +74,7 @@ namespace VisualPinball.Unity.Editor
 		public string BindingPath { get => _textField.bindingPath; set => _textField.bindingPath = value; }
 		public string Value { get => _textField.value; set => _textField.value = value; }
 		public bool IsMultiValue;
+		public string Tooltip { get => _textField.tooltip; set => _textField.tooltip = value; }
 
 		#endregion
 
@@ -250,6 +253,7 @@ namespace VisualPinball.Unity.Editor
 						CurrentValue = suggestOption;
 						_hasFocus = false;
 						UpdateVisibility();
+						_textField.Focus();
 					}
 					return;
 
@@ -341,7 +345,9 @@ namespace VisualPinball.Unity.Editor
 				CreateNewWindow();
 				_showPopupNonFocus.Invoke(_popupWindow, _showValueArray);
 				PopupVisible = true;
-			} else Cleanup();
+			} else {
+				Cleanup();
+			}
 		}
 
 		private void Cleanup()
@@ -361,6 +367,7 @@ namespace VisualPinball.Unity.Editor
 			CurrentValue = suggestOption;
 			_hasFocus = false;
 			UpdateVisibility();
+			_textField.Focus();
 		}
 
 		private enum ShowMode
