@@ -14,22 +14,20 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEditor.UIElements;
 using UnityEngine;
 using UnityEngine.UIElements;
-using Object = UnityEngine.Object;
 
 namespace VisualPinball.Unity.Editor
 {
-	public class ObjectDropdownElement : VisualElement
+	public class MaterialSlotDropdownElement : VisualElement
 	{
 		private readonly DropdownField _dropdown;
-		private readonly ObjectField _objectPicker;
+		private readonly IntegerField _integerField;
 
-		public new class UxmlFactory : UxmlFactory<ObjectDropdownElement, UxmlTraits> { }
+		public new class UxmlFactory : UxmlFactory<MaterialSlotDropdownElement, UxmlTraits> { }
 
 		public new class UxmlTraits : VisualElement.UxmlTraits
 		{
@@ -45,7 +43,7 @@ namespace VisualPinball.Unity.Editor
 			public override void Init(VisualElement ve, IUxmlAttributes bag, CreationContext cc)
 			{
 				base.Init(ve, bag, cc);
-				var ate = ve as ObjectDropdownElement;
+				var ate = ve as MaterialSlotDropdownElement;
 
 				ate!.Label = _label.GetValueFromBag(bag, cc);
 				ate!.BindingPath = _bindingPath.GetValueFromBag(bag, cc);
@@ -54,19 +52,15 @@ namespace VisualPinball.Unity.Editor
 		}
 
 		public string Label { get => _dropdown.label; set => _dropdown.label = value; }
-		public string BindingPath { get => _objectPicker.bindingPath; set => _objectPicker.bindingPath = value; }
+		public string BindingPath { get => _integerField.bindingPath; set => _integerField.bindingPath = value; }
+		public string Value { get => _dropdown.value; set => _dropdown.value = value; }
 		public string Tooltip { get => _dropdown.tooltip; set => _dropdown.tooltip = value; }
 
-		public Object Value { get => _objectPicker.value; set => SetValue(value); }
-		public bool HasValue => _objectPicker.value as GameObject != null;
+		private readonly List<Material> _materials = new();
 
-		private readonly List<GameObject> _objects = new();
-		private Action<Object> _onValueChanged;
-
-		public ObjectDropdownElement()
+		public MaterialSlotDropdownElement()
 		{
-			_objectPicker = new ObjectField {
-				objectType = typeof(GameObject),
+			_integerField = new IntegerField {
 				style = {
 					display = DisplayStyle.None
 				}
@@ -74,44 +68,45 @@ namespace VisualPinball.Unity.Editor
 			_dropdown = new DropdownField();
 			_dropdown.RegisterValueChangedCallback(OnDropdownValueChanged);
 
-			Add(_objectPicker);
+			Add(_integerField);
 			Add(_dropdown);
 		}
 
-		public void RegisterValueChangedCallback(Action<Object> onValueChanged)
+		public void SetObject(GameObject obj)
 		{
-			_onValueChanged = onValueChanged;
-		}
-
-		public void SetParent<T>(Object parentObj) where T : Component
-		{
-			if (parentObj is not GameObject parentGo) {
+			var renderer = obj.GetComponent<Renderer>();
+			if (!renderer) {
 				return;
 			}
-			_objects.Clear();
-			_objects.AddRange(parentGo.GetComponentsInChildren<T>().Select(c => c.gameObject));
-			_dropdown.choices = _objects.Select(go => go.name).ToList();
-			if (_objectPicker.value) {
-				_dropdown.SetValueWithoutNotify(_objectPicker.value.name);
+
+			_materials.Clear();
+			_materials.AddRange(renderer.sharedMaterials);
+
+			_dropdown.choices = _materials.Select((mat, slot) => SlotName(slot, mat)).ToList();
+			if (_integerField.value >= 0 && _integerField.value < _materials.Count) {
+				_dropdown.SetValueWithoutNotify(SlotName(_integerField.value, _materials[_integerField.value]));
 			}
 		}
 
-		public void SetValue(Object obj)
+		private static string SlotName(int slot, Material material)
 		{
-			var selectedGo = _objects.FirstOrDefault(go => go.name == obj.name);
-			if (selectedGo != null) {
-				_dropdown.SetValueWithoutNotify(obj.name);
-				_objectPicker.value = selectedGo;
+			var materialName = material ? material.name : "<empty>";
+			return $"[Slot {slot}] {materialName}";
+		}
+
+		public void SetValue(int slot)
+		{
+			if (slot < 0 || slot >= _materials.Count) {
+				return;
 			}
+
+			_dropdown.SetValueWithoutNotify(SlotName(slot, _materials[slot]));
+			_integerField.value = slot;
 		}
 
 		private void OnDropdownValueChanged(ChangeEvent<string> evt)
 		{
-			var selectedGo = _objects.FirstOrDefault(go => go.name == evt.newValue);
-			if (selectedGo != null) {
-				_objectPicker.value = selectedGo;
-				_onValueChanged?.Invoke(selectedGo);
-			}
+			_integerField.value = _dropdown.index;
 		}
 	}
 }

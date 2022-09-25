@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using UnityEditor;
+using UnityEngine;
 using UnityEngine.UIElements;
 
 namespace VisualPinball.Unity.Editor
@@ -22,12 +23,40 @@ namespace VisualPinball.Unity.Editor
 	[CustomPropertyDrawer(typeof(AssetMaterialVariation))]
 	public class AssetMaterialVariationPropertyDrawer : PropertyDrawer
 	{
+		private MaterialSlotDropdownElement _slotField;
+
 		public override VisualElement CreatePropertyGUI(SerializedProperty property)
 		{
 			var ui = new VisualElement();
 			var visualTree = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>("Packages/org.visualpinball.engine.unity/VisualPinball.Unity/VisualPinball.Unity.Editor/AssetBrowser/AssetStructure/AssetMaterialVariationPropertyDrawer.uxml");
 			visualTree.CloneTree(ui);
+
+			if (property.serializedObject.targetObject is Asset asset) {
+
+				// object dropdown
+				var objField = ui.Q<ObjectDropdownElement>("object-field");
+				objField.SetParent<Renderer>(asset.Object);
+				objField.RegisterValueChangedCallback(OnObjectChanged);
+				var obj = property.FindPropertyRelative(nameof(AssetMaterialVariation.Object));
+				if (obj != null && obj.objectReferenceValue != null) {
+					objField.SetValue(obj.objectReferenceValue);
+				}
+
+				// material slot dropdown
+				_slotField = ui.Q<MaterialSlotDropdownElement>("slot-field");
+				if (objField.HasValue) {
+					_slotField.SetObject(objField.Value as GameObject);
+				}
+			}
+
 			return ui;
+		}
+
+		private void OnObjectChanged(Object obj)
+		{
+			if (_slotField != null && obj is GameObject go) {
+				_slotField.SetObject(go);
+			}
 		}
 	}
 }

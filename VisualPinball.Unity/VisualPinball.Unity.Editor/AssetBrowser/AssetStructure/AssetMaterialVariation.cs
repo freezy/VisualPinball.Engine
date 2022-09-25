@@ -18,6 +18,7 @@
 
 using System;
 using System.Collections.Generic;
+using UnityEngine;
 using Object = UnityEngine.Object;
 
 namespace VisualPinball.Unity.Editor
@@ -26,6 +27,7 @@ namespace VisualPinball.Unity.Editor
 	internal class AssetMaterialVariation
 	{
 		public string Name;
+		[SerializeReference]
 		public Object Object;
 		public int Slot;
 		public List<AssetMaterialOverride> Overrides;
