@@ -48,10 +48,10 @@ namespace VisualPinball.Unity.Editor
 		public List<AssetAttribute> Attributes;
 
 		[SerializeField]
-		public AssetTag[] Tags;
+		public List<AssetTag> Tags;
 
 		[SerializeField]
-		public List<LibraryKeyValue> Links;
+		public List<AssetLink> Links;
 
 		[SerializeField]
 		internal List<MaterialVariation> MaterialVariations;

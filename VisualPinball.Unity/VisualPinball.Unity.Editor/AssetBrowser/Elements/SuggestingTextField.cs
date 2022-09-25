@@ -109,7 +109,6 @@ namespace VisualPinball.Unity.Editor
 			_textField.AddToClassList("unity-base-field");
 			_textField.AddToClassList("unity-base-text-field");
 			_textField.AddToClassList("unity-text-field");
-			_textField.AddToClassList("unity-base-field__aligned");
 			_textField.AddToClassList("unity-base-field__inspector-field");
 
 			MatchedSuggestOption = new List<string>();
