@@ -54,7 +54,7 @@ namespace VisualPinball.Unity.Editor
 		public List<AssetLink> Links;
 
 		[SerializeField]
-		internal List<MaterialVariation> MaterialVariations;
+		internal List<AssetMaterialVariation> MaterialVariations;
 
 		[SerializeField]
 		public AssetScale Scale = AssetScale.World;

@@ -1,6 +1,0 @@
-<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" editor-extension-mode="True">
-    <ui:TextField picking-mode="Ignore" label="Variation Name" value="filler text" text="filler text" binding-path="Name" />
-    <uie:ObjectField label="Apply to (dropdown)" binding-path="Object" />
-    <uie:IntegerField label="Slot (dropdown)" value="42" binding-path="Slot" />
-    <uie:PropertyField binding-path="Overrides" label="Overrides" />
-</ui:UXML>

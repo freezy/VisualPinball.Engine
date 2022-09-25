@@ -1,0 +1,4 @@
+﻿<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" editor-extension-mode="True">
+	<uie:PropertyField binding-path="Name" label="Name" />
+	<uie:PropertyField binding-path="Material" label="Material" />
+</ui:UXML>
