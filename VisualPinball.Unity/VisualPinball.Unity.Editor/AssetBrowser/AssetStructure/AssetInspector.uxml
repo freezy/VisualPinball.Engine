@@ -36,7 +36,9 @@
 	<uie:PropertyField binding-path="MaterialVariations" label="Material Variations" class="top-space" />
 
 	<!-- Geometry -->
-	<ui:Label name="geometry-title" text="Geometry" class="subtitle"/>
-	<uie:PropertyField binding-path="Scale" label="Scale Transform" />
+	<ui:Foldout text="Geometry">
+		<uie:PropertyField binding-path="Scale" label="Scale Transform" />
+		<uivpe:PresetDropdownElement binding-path="ThumbCameraPreset" label="Thumbnail Camera" default-preset="Default" preset-path="Packages/org.visualpinball.engine.unity/VisualPinball.Unity/Assets/Presets/Asset Thumbcam" />
+	</ui:Foldout>
 
 </ui:UXML>
