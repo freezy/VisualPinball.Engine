@@ -39,7 +39,7 @@ namespace VisualPinball.Unity.Editor
 		private readonly Label _titleElement;
 		private readonly VisualElement _attributesElement;
 
-		private List<Preset> _thumbCameraPresets;
+		private List<Preset> _thumbCameraPresets = new();
 		private Preset _thumbCameraDefaultPreset;
 
 		private AssetBrowser AssetBrowser => panel?.visualTree?.userData as AssetBrowser;
@@ -102,7 +102,7 @@ namespace VisualPinball.Unity.Editor
 
 		public AssetDetailsElement()
 		{
-			RefreshCameraPresets();
+			//RefreshCameraPresets();
 
 			var visualTree = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>("Packages/org.visualpinball.engine.unity/VisualPinball.Unity/VisualPinball.Unity.Editor/AssetBrowser/AssetDetailsElement.uxml");
 			var ui = visualTree.CloneTree();
@@ -388,7 +388,7 @@ namespace VisualPinball.Unity.Editor
 			const string presetPath = "Packages/org.visualpinball.engine.unity/VisualPinball.Unity/Assets/Presets";
 			var presets = Directory.GetFiles(presetPath).Where(p => p.Contains(ThumbCameraPresetPrefix) && !p.Contains(".meta"));
 			_thumbCameraPresets = presets.Select(filename => (Preset)AssetDatabase.LoadAssetAtPath(filename, typeof(Preset))).ToList();
-			_thumbCameraDefaultPreset = _thumbCameraPresets.First(p => p.name.Contains("Default"));
+			_thumbCameraDefaultPreset = _thumbCameraPresets.FirstOrDefault(p => p.name.Contains("Default"));
 		}
 
 		private static (int, int, int, int, int, int) CountVertices(GameObject go)
