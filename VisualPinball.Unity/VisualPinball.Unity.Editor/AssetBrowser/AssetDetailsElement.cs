@@ -49,22 +49,25 @@ namespace VisualPinball.Unity.Editor
 		public AssetResult Asset {
 			get => _asset;
 			set {
+				Debug.Log($"Showing details for asset {value}");
 				if (_asset == value) {
 					return;
 				}
 				// toggle empty label
 				if (value != null && _asset == null) {
-					_previewEditorElement.style.height = _previewEditorElement.resolvedStyle.width;
-					_noSelectionElement.AddToClassList("hidden");
-					_detailsElement.RemoveFromClassList("hidden");
+					// _previewEditorElement.style.height = _previewEditorElement.resolvedStyle.width;
+					// _noSelectionElement.AddToClassList("hidden");
+					// _detailsElement.RemoveFromClassList("hidden");
 				}
 				if (value == null && _asset != null) {
-					_noSelectionElement.RemoveFromClassList("hidden");
-					_detailsElement.AddToClassList("hidden");
+					// _noSelectionElement.RemoveFromClassList("hidden");
+					// _detailsElement.AddToClassList("hidden");
 				}
 				_asset = value;
 				if (value != null) {
-					UpdateDetails();
+					var so = new SerializedObject(_asset.Asset);
+					_ui.Bind(so);
+					AssetInspector.Bind(_asset.Asset, _ui);
 				}
 			}
 		}
@@ -98,69 +101,72 @@ namespace VisualPinball.Unity.Editor
 		private readonly VisualElement _assetScaleContainer;
 		private readonly EnumField _assetScale;
 
+		private readonly TemplateContainer _ui;
+
 		public new class UxmlFactory : UxmlFactory<AssetDetailsElement, UxmlTraits> { }
 
 		public AssetDetailsElement()
 		{
 			//RefreshCameraPresets();
 
-			var visualTree = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>("Packages/org.visualpinball.engine.unity/VisualPinball.Unity/VisualPinball.Unity.Editor/AssetBrowser/AssetDetailsElement.uxml");
-			var ui = visualTree.CloneTree();
-			var styleSheet = AssetDatabase.LoadAssetAtPath<StyleSheet>("Packages/org.visualpinball.engine.unity/VisualPinball.Unity/VisualPinball.Unity.Editor/AssetBrowser/AssetDetailsElement.uss");
-			ui.styleSheets.Add(styleSheet);
-			Add(ui);
+			var visualTree = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>("Packages/org.visualpinball.engine.unity/VisualPinball.Unity/VisualPinball.Unity.Editor/AssetBrowser/AssetStructure/AssetInspector.uxml");
+			_ui = visualTree.CloneTree();
+			var styleSheet = AssetDatabase.LoadAssetAtPath<StyleSheet>("Packages/org.visualpinball.engine.unity/VisualPinball.Unity/VisualPinball.Unity.Editor/AssetBrowser/AssetStructure/AssetInspector.uss");
+			_ui.styleSheets.Add(styleSheet);
+			Add(_ui);
 
-			_noSelectionElement = ui.Q<Label>("nothing-selected");
-			_detailsElement = ui.Q<VisualElement>("details");
-			_titleElement = ui.Q<Label>("title");
-			_libraryElement = ui.Q<Label>("library-name");
-			_libraryLockElement = ui.Q<Image>("library-lock");
-			_categoryElement = ui.Q<Label>("category-name");
-			_dateElement = ui.Q<Label>("date-value");
-			_replaceSelectedButton = ui.Q<Button>("replace-selected");
-			_replaceSelectedKeepName = ui.Q<Toggle>("replace-selected-keep-name");
-			_descriptionTitleElement = ui.Q<Label>("description-title");
-			_descriptionViewElement = ui.Q<Label>("description-view");
-			_descriptionEditElement = ui.Q<TextField>("description-edit");
-			_attributesElement = ui.Q<VisualElement>("attributes");
-			_attributesTitleElement = ui.Q<Label>("attributes-title");
-			_addAttributeButton = ui.Q<Button>("attributes-add");
-			_tagsElement = ui.Q<VisualElement>("tags");
-			_tagsTitleElement = ui.Q<Label>("tags-title");
-			_addTagButton = ui.Q<Button>("tags-add");
-			_linksElement = ui.Q<VisualElement>("links");
-			_linksTitleElement = ui.Q<Label>("links-title");
-			_addLinkButton = ui.Q<Button>("links-add");
-			_infoTitleElement = ui.Q<Label>("info-title");
-			_infoElement = ui.Q<Label>("info-view");
-			_assetScaleContainer = ui.Q<VisualElement>("asset-scale-container");
-			_assetScale = ui.Q<EnumField>("asset-scale");
 
-			_libraryLockElement.image = EditorGUIUtility.IconContent("InspectorLock").image;
-			_descriptionEditElement.RegisterCallback<FocusInEvent>(OnDescriptionStartEditing);
-			_descriptionEditElement.RegisterCallback<FocusOutEvent>(OnDescriptionEndEditing);
-			_addAttributeButton.clicked += OnAddAttribute;
-			_addLinkButton.clicked += OnAddLink;
-			_addTagButton.clicked += OnAddTag;
-			_replaceSelectedButton.clicked += OnReplaceSelected;
-
-			_previewEditorElement = ui.Q<IMGUIContainer>();
-			_previewEditorElement.onGUIHandler = OnGUI;
-			_previewEditorElement.style.height = _previewEditorElement.resolvedStyle.width;
-
-			// active library dropdown
-			_thumbCameraContainer = ui.Q<VisualElement>("thumbnail-container");
-			_geometryTitle = ui.Q<Label>("geometry-title");
-			_thumbCameraPreset = new DropdownField(_thumbCameraPresets.Select(p => p.name[ThumbCameraPresetPrefix.Length..]).ToList(), 0, OnThumbCamPresetChanged) {
-				tooltip = "The camera preset used to generate the thumbnail."
-			};
-			_thumbCameraContainer.Add(_thumbCameraPreset);
-
-			_assetScale.RegisterValueChangedCallback(OnScaleChanged);
-
-			ui.Q<Image>("library-icon").image = Icons.AssetLibrary(IconSize.Small);
-			ui.Q<Image>("date-icon").image = Icons.Calendar(IconSize.Small);
-			ui.Q<Image>("category-icon").image = EditorGUIUtility.IconContent("d_Folder Icon").image;
+			// _noSelectionElement = ui.Q<Label>("nothing-selected");
+			// _detailsElement = ui.Q<VisualElement>("details");
+			// _titleElement = ui.Q<Label>("title");
+			// _libraryElement = ui.Q<Label>("library-name");
+			// _libraryLockElement = ui.Q<Image>("library-lock");
+			// _categoryElement = ui.Q<Label>("category-name");
+			// _dateElement = ui.Q<Label>("date-value");
+			// _replaceSelectedButton = ui.Q<Button>("replace-selected");
+			// _replaceSelectedKeepName = ui.Q<Toggle>("replace-selected-keep-name");
+			// _descriptionTitleElement = ui.Q<Label>("description-title");
+			// _descriptionViewElement = ui.Q<Label>("description-view");
+			// _descriptionEditElement = ui.Q<TextField>("description-edit");
+			// _attributesElement = ui.Q<VisualElement>("attributes");
+			// _attributesTitleElement = ui.Q<Label>("attributes-title");
+			// _addAttributeButton = ui.Q<Button>("attributes-add");
+			// _tagsElement = ui.Q<VisualElement>("tags");
+			// _tagsTitleElement = ui.Q<Label>("tags-title");
+			// _addTagButton = ui.Q<Button>("tags-add");
+			// _linksElement = ui.Q<VisualElement>("links");
+			// _linksTitleElement = ui.Q<Label>("links-title");
+			// _addLinkButton = ui.Q<Button>("links-add");
+			// _infoTitleElement = ui.Q<Label>("info-title");
+			// _infoElement = ui.Q<Label>("info-view");
+			// _assetScaleContainer = ui.Q<VisualElement>("asset-scale-container");
+			// _assetScale = ui.Q<EnumField>("asset-scale");
+			//
+			// _libraryLockElement.image = EditorGUIUtility.IconContent("InspectorLock").image;
+			// _descriptionEditElement.RegisterCallback<FocusInEvent>(OnDescriptionStartEditing);
+			// _descriptionEditElement.RegisterCallback<FocusOutEvent>(OnDescriptionEndEditing);
+			// _addAttributeButton.clicked += OnAddAttribute;
+			// _addLinkButton.clicked += OnAddLink;
+			// _addTagButton.clicked += OnAddTag;
+			// _replaceSelectedButton.clicked += OnReplaceSelected;
+			//
+			// _previewEditorElement = ui.Q<IMGUIContainer>();
+			// _previewEditorElement.onGUIHandler = OnGUI;
+			// _previewEditorElement.style.height = _previewEditorElement.resolvedStyle.width;
+			//
+			// // active library dropdown
+			// _thumbCameraContainer = ui.Q<VisualElement>("thumbnail-container");
+			// _geometryTitle = ui.Q<Label>("geometry-title");
+			// _thumbCameraPreset = new DropdownField(_thumbCameraPresets.Select(p => p.name[ThumbCameraPresetPrefix.Length..]).ToList(), 0, OnThumbCamPresetChanged) {
+			// 	tooltip = "The camera preset used to generate the thumbnail."
+			// };
+			// _thumbCameraContainer.Add(_thumbCameraPreset);
+			//
+			// _assetScale.RegisterValueChangedCallback(OnScaleChanged);
+			//
+			// ui.Q<Image>("library-icon").image = Icons.AssetLibrary(IconSize.Small);
+			// ui.Q<Image>("date-icon").image = Icons.Calendar(IconSize.Small);
+			// ui.Q<Image>("category-icon").image = EditorGUIUtility.IconContent("d_Folder Icon").image;
 
 		}
 
@@ -232,29 +238,29 @@ namespace VisualPinball.Unity.Editor
 			Selection.objects = newSelection.Select(go => (Object)go).ToArray();
 		}
 
-		private void OnAddAttribute()
-		{
-			var attribute = _asset.Library.AddAttribute(_asset.Asset, "New Attribute");
-			var attributeElement = new KeyValueElement(_asset, attribute, false);
-			_attributesElement.Add(attributeElement);
-			attributeElement.ToggleEdit();
-		}
-
-		private void OnAddLink()
-		{
-			var link = _asset.Library.AddLink(_asset.Asset, "New Link");
-			var linkElement = new KeyValueElement(_asset, link, true);
-			_linksElement.Add(linkElement);
-			linkElement.ToggleEdit();
-		}
-
-		private void OnAddTag()
-		{
-			var tag = _asset.Library.AddTag(_asset.Asset, "New Tag");
-			var tagElement = new TagElement(_asset, tag, _asset.Asset.Tags);
-			_tagsElement.Add(tagElement);
-			tagElement.ToggleEdit();
-		}
+		// private void OnAddAttribute()
+		// {
+		// 	var attribute = _asset.Library.AddAttribute(_asset.Asset, "New Attribute");
+		// 	var attributeElement = new KeyValueElement(_asset, attribute, false);
+		// 	_attributesElement.Add(attributeElement);
+		// 	attributeElement.ToggleEdit();
+		// }
+		//
+		// private void OnAddLink()
+		// {
+		// 	var link = _asset.Library.AddLink(_asset.Asset, "New Link");
+		// 	var linkElement = new KeyValueElement(_asset, link, true);
+		// 	_linksElement.Add(linkElement);
+		// 	linkElement.ToggleEdit();
+		// }
+		//
+		// private void OnAddTag()
+		// {
+		// 	var tag = _asset.Library.AddTag(_asset.Asset, "New Tag");
+		// 	var tagElement = new TagElement(_asset, tag, _asset.Asset.Tags);
+		// 	_tagsElement.Add(tagElement);
+		// 	tagElement.ToggleEdit();
+		// }
 
 		private void OnDescriptionStartEditing(FocusInEvent focusInEvent)
 		{
@@ -281,89 +287,89 @@ namespace VisualPinball.Unity.Editor
 				return;
 			}
 
-			var browser = AssetBrowser;
-			_object = _asset.Asset.Object;
-			_titleElement.text = _asset.Asset.Name;
-			_libraryElement.text = _asset.Library.Name;
-			_categoryElement.text = _asset.Asset.Category.Name;
-			_dateElement.text = _asset.Asset.AddedAt.ToLongDateString();
-			_descriptionViewElement.text = _asset.Asset.Description;
-			_descriptionEditElement.SetValueWithoutNotify(_asset.Asset.Description);
-
-			_attributesElement.Clear();
-			if (_asset.Asset.Attributes != null) {
-				SetVisibility(_attributesTitleElement, _asset.Asset.Attributes.Count > 0 || !_asset.Library.IsLocked);
-				foreach (var attr in _asset.Asset.Attributes) {
-					var attrElement = new KeyValueElement(_asset, attr, false);
-					_attributesElement.Add(attrElement);
-				}
-			} else {
-				SetVisibility(_attributesTitleElement, !_asset.Library.IsLocked);
-			}
-
-			_tagsElement.Clear();
-			if (_asset.Asset.Tags != null) {
-				SetVisibility(_tagsTitleElement, _asset.Asset.Tags.Count > 0 || !_asset.Library.IsLocked);
-				foreach (var tag in _asset.Asset.Tags) {
-					var tagElement = new TagElement(_asset, tag, _asset.Asset.Tags) {
-						IsActive = browser!.Query.HasTag(tag)
-					};
-					_tagsElement.Add(tagElement);
-				}
-			} else {
-				SetVisibility(_tagsTitleElement, !_asset.Library.IsLocked);
-			}
-
-			_linksElement.Clear();
-			if (_asset.Asset.Links != null) {
-				SetVisibility(_linksTitleElement, _asset.Asset.Links.Count > 0 || !_asset.Library.IsLocked);
-				foreach (var link in _asset.Asset.Links) {
-					var linkElement = new KeyValueElement(_asset, link, true);
-					_linksElement.Add(linkElement);
-				}
-			} else {
-				SetVisibility(_linksTitleElement, !_asset.Library.IsLocked);
-			}
-
-			SetVisibility(_libraryLockElement, _asset.Library.IsLocked);
-			SetVisibility(_descriptionTitleElement, !string.IsNullOrEmpty(_asset.Asset.Description) || !_asset.Library.IsLocked);
-			SetVisibility(_descriptionViewElement, !string.IsNullOrEmpty(_asset.Asset.Description) && _asset.Library.IsLocked);
-			SetVisibility(_descriptionEditElement, !_asset.Library.IsLocked);
-			SetVisibility(_addAttributeButton, !_asset.Library.IsLocked);
-			SetVisibility(_addTagButton, !_asset.Library.IsLocked);
-			SetVisibility(_addLinkButton, !_asset.Library.IsLocked);
-
-			// info
-			if (_object is GameObject go) {
-				SetVisibility(_infoTitleElement, true);
-				SetVisibility(_infoElement, true);
-				var (meshes, subMeshes, vertices, triangles, uvs, materials) = CountVertices(go);
-				const string separator = ", ";
-				_infoElement.text =
-					vertices + (vertices == 1 ? " vertex" : " vertices") + separator +
-					triangles + " triangle" + (triangles == 1 ? "" : "s") + separator +
-					uvs + " uv" + (uvs == 1 ? "" : "s") + separator +
-					meshes + " mesh" + (meshes == 1 ? "" : "es") + separator +
-					subMeshes + " sub mesh" + (subMeshes == 1 ? "" : "es") + separator +
-					materials + " material" + (materials == 1 ? "" : "s");
-
-			} else {
-				SetVisibility(_infoTitleElement, false);
-				SetVisibility(_infoElement, false);
-			}
-
-			SetVisibility(_geometryTitle, !_asset.Library.IsLocked);
-			SetVisibility(_thumbCameraContainer, !_asset.Library.IsLocked);
-			if (!_asset.Library.IsLocked) {
-				var index = _thumbCameraPresets.IndexOf(_asset.Asset.ThumbCameraPreset);
-				_thumbCameraPreset.index = index >= 0 ? index : _thumbCameraPresets.IndexOf(_thumbCameraDefaultPreset);
-			}
-
-			// scale
-			SetVisibility(_assetScaleContainer, !_asset.Library.IsLocked);
-			if (!_asset.Library.IsLocked) {
-				_assetScale.SetValueWithoutNotify(_asset.Asset.Scale);
-			}
+			// var browser = AssetBrowser;
+			// _object = _asset.Asset.Object;
+			// _titleElement.text = _asset.Asset.Name;
+			// _libraryElement.text = _asset.Library.Name;
+			// _categoryElement.text = _asset.Asset.Category.Name;
+			// _dateElement.text = _asset.Asset.AddedAt.ToLongDateString();
+			// _descriptionViewElement.text = _asset.Asset.Description;
+			// _descriptionEditElement.SetValueWithoutNotify(_asset.Asset.Description);
+			//
+			// _attributesElement.Clear();
+			// if (_asset.Asset.Attributes != null) {
+			// 	SetVisibility(_attributesTitleElement, _asset.Asset.Attributes.Count > 0 || !_asset.Library.IsLocked);
+			// 	foreach (var attr in _asset.Asset.Attributes) {
+			// 		var attrElement = new KeyValueElement(_asset, attr, false);
+			// 		_attributesElement.Add(attrElement);
+			// 	}
+			// } else {
+			// 	SetVisibility(_attributesTitleElement, !_asset.Library.IsLocked);
+			// }
+			//
+			// _tagsElement.Clear();
+			// if (_asset.Asset.Tags != null) {
+			// 	SetVisibility(_tagsTitleElement, _asset.Asset.Tags.Count > 0 || !_asset.Library.IsLocked);
+			// 	foreach (var tag in _asset.Asset.Tags) {
+			// 		var tagElement = new TagElement(_asset, tag, _asset.Asset.Tags) {
+			// 			IsActive = browser!.Query.HasTag(tag)
+			// 		};
+			// 		_tagsElement.Add(tagElement);
+			// 	}
+			// } else {
+			// 	SetVisibility(_tagsTitleElement, !_asset.Library.IsLocked);
+			// }
+			//
+			// _linksElement.Clear();
+			// if (_asset.Asset.Links != null) {
+			// 	SetVisibility(_linksTitleElement, _asset.Asset.Links.Count > 0 || !_asset.Library.IsLocked);
+			// 	foreach (var link in _asset.Asset.Links) {
+			// 		var linkElement = new KeyValueElement(_asset, link, true);
+			// 		_linksElement.Add(linkElement);
+			// 	}
+			// } else {
+			// 	SetVisibility(_linksTitleElement, !_asset.Library.IsLocked);
+			// }
+			//
+			// SetVisibility(_libraryLockElement, _asset.Library.IsLocked);
+			// SetVisibility(_descriptionTitleElement, !string.IsNullOrEmpty(_asset.Asset.Description) || !_asset.Library.IsLocked);
+			// SetVisibility(_descriptionViewElement, !string.IsNullOrEmpty(_asset.Asset.Description) && _asset.Library.IsLocked);
+			// SetVisibility(_descriptionEditElement, !_asset.Library.IsLocked);
+			// SetVisibility(_addAttributeButton, !_asset.Library.IsLocked);
+			// SetVisibility(_addTagButton, !_asset.Library.IsLocked);
+			// SetVisibility(_addLinkButton, !_asset.Library.IsLocked);
+			//
+			// // info
+			// if (_object is GameObject go) {
+			// 	SetVisibility(_infoTitleElement, true);
+			// 	SetVisibility(_infoElement, true);
+			// 	var (meshes, subMeshes, vertices, triangles, uvs, materials) = CountVertices(go);
+			// 	const string separator = ", ";
+			// 	_infoElement.text =
+			// 		vertices + (vertices == 1 ? " vertex" : " vertices") + separator +
+			// 		triangles + " triangle" + (triangles == 1 ? "" : "s") + separator +
+			// 		uvs + " uv" + (uvs == 1 ? "" : "s") + separator +
+			// 		meshes + " mesh" + (meshes == 1 ? "" : "es") + separator +
+			// 		subMeshes + " sub mesh" + (subMeshes == 1 ? "" : "es") + separator +
+			// 		materials + " material" + (materials == 1 ? "" : "s");
+			//
+			// } else {
+			// 	SetVisibility(_infoTitleElement, false);
+			// 	SetVisibility(_infoElement, false);
+			// }
+			//
+			// SetVisibility(_geometryTitle, !_asset.Library.IsLocked);
+			// SetVisibility(_thumbCameraContainer, !_asset.Library.IsLocked);
+			// if (!_asset.Library.IsLocked) {
+			// 	var index = _thumbCameraPresets.IndexOf(_asset.Asset.ThumbCameraPreset);
+			// 	_thumbCameraPreset.index = index >= 0 ? index : _thumbCameraPresets.IndexOf(_thumbCameraDefaultPreset);
+			// }
+			//
+			// // scale
+			// SetVisibility(_assetScaleContainer, !_asset.Library.IsLocked);
+			// if (!_asset.Library.IsLocked) {
+			// 	_assetScale.SetValueWithoutNotify(_asset.Asset.Scale);
+			// }
 		}
 
 		private string OnThumbCamPresetChanged(string shortName)

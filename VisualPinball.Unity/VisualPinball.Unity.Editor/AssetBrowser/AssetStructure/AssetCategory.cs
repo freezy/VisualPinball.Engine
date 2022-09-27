@@ -21,13 +21,11 @@ using System;
 namespace VisualPinball.Unity.Editor
 {
 	[Serializable]
-	public class AssetTag
+	public class AssetCategory
 	{
-		public string TagName;
+		public string Id;
+		public string Name;
 
-		public AssetTag(string tagName)
-		{
-			TagName = tagName;
-		}
+		public override string ToString() => $"AssetCategory: {Name} ({Id})";
 	}
 }

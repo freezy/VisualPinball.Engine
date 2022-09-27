@@ -18,18 +18,35 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using UnityEditor;
-using UnityEditor.Presets;
 using UnityEditor.Search;
 using UnityEngine;
 using Object = UnityEngine.Object;
 
 namespace VisualPinball.Unity.Editor
 {
+	/// <summary>
+	/// This class acts as the data layer for the asset library.
+	///
+	/// It's a separate class from <see cref="AssetLibrary"/>, because here we store the actual data.
+	/// This is also the layer that can be replaced with a different storage method, while keeping the same
+	/// API.
+	///
+	/// When we say "data", we mean the *meta data* that is associated with an actual asset (prefabs, materials,
+	/// etc). This data is stored in a ScriptableObject per asset, the <see cref="Asset"/> class. These "meta
+	/// assets" are stored in a separate "_database" folder, under the library root.
+	///
+	/// This class also contains the category definitions. Both categories and assets are stored as dictionaries,
+	/// so we can more quickly check if a given asset is already added, quickly delete them, etc. Basically
+	/// anything that accesses an asset or category by its ID.
+	/// </summary>
 	[Serializable]
 	public class LibraryDatabase
 	{
+		private const string DatabaseFolder = "_database";
+
 		[SerializeField] private Assets Assets = new();
 		[SerializeField] private Categories Categories = new();
 
@@ -42,7 +59,7 @@ namespace VisualPinball.Unity.Editor
 				results = results
 					.Select(result => {
 						FuzzySearch.FuzzyMatch(query.Keywords, result.Asset.Object.name, ref result.Score);
-						foreach (var tag in result.Asset.Tags) {
+						foreach (var tag in result.Asset.Tags.Select(t => t.TagName)) {
 							var score = 0L;
 							FuzzySearch.FuzzyMatch(query.Keywords, tag, ref score);
 							result.AddScore(score);
@@ -77,14 +94,14 @@ namespace VisualPinball.Unity.Editor
 			// tag filter
 			if (query.HasTags) {
 				foreach (var tag in query.Tags) {
-					results = results.Where(result => result.Asset.Tags != null && result.Asset.Tags.Contains(tag));
+					results = results.Where(result => result.Asset.Tags != null && result.Asset.Tags.Any(t => t.TagName == tag));
 				}
 			}
 
 			return results;
 		}
 
-		public bool AddAsset(Object obj, LibraryCategory category)
+		public bool AddAsset(Object obj, AssetCategory category, AssetLibrary lib)
 		{
 			if (Assets.Contains(obj)) {
 				var existingAsset = Assets.Get(obj);
@@ -92,31 +109,44 @@ namespace VisualPinball.Unity.Editor
 				return false;
 			}
 
-			var asset = new LibraryAsset {
-				Object = obj,
-				Category = category,
-				Attributes = new List<LibraryKeyValue>(),
-				AddedAt = DateTime.Now,
-			};
+			var asset = ScriptableObject.CreateInstance<Asset>();
+			asset.name = obj.name;
+			asset.Object = obj;
+			asset.Category = category;
+			asset.Attributes = new List<AssetAttribute>();
+			asset.Tags = new List<AssetTag>();
+			asset.Links = new List<AssetLink>();
+			asset.MaterialVariations = new List<AssetMaterialVariation>();
+			asset.AddedAt = DateTime.Now;
+
+			var assetMetaPath = AssetMetaPath(asset, lib);
+			var assetMetaFolder = Path.GetDirectoryName(assetMetaPath);
+			if (!Directory.Exists(assetMetaFolder)) {
+				Directory.CreateDirectory(assetMetaFolder!);
+			}
+			AssetDatabase.CreateAsset(asset, assetMetaPath);
 			Assets.Add(asset);
 
 			return true;
 		}
 
-		public void RemoveAsset(LibraryAsset asset)
+		public void RemoveAsset(Asset asset, AssetLibrary lib)
 		{
 			if (Assets.Contains(asset)) {
 				Assets.Remove(asset);
+				File.Delete(AssetMetaPath(asset, lib));
 			}
 		}
+
+		private string AssetMetaPath(Asset asset, AssetLibrary lib) => $"{lib.LibraryRoot}/{DatabaseFolder}/{asset.GUID}.asset";
 
 		#endregion
 
 		#region Category
 
-		public LibraryCategory AddCategory(string categoryName)
+		public AssetCategory AddCategory(string categoryName)
 		{
-			var category = new LibraryCategory {
+			var category = new AssetCategory {
 				Id = Guid.NewGuid().ToString(),
 				Name = categoryName
 			};
@@ -125,23 +155,23 @@ namespace VisualPinball.Unity.Editor
 			return category;
 		}
 
-		public void RenameCategory(LibraryCategory category, string newName)
+		public void RenameCategory(AssetCategory category, string newName)
 		{
 			category.Name = newName;
 		}
 
-		public LibraryCategory GetCategory(string id) => Categories[id];
+		public AssetCategory GetCategory(string id) => Categories[id];
 
-		public IEnumerable<LibraryCategory> GetCategories() => Categories.Values.OrderBy(c => c.Name).ToList();
+		public IEnumerable<AssetCategory> GetCategories() => Categories.Values.OrderBy(c => c.Name).ToList();
 
-		public void SetCategory(LibraryAsset asset, LibraryCategory category)
+		public void SetCategory(Asset asset, AssetCategory category)
 		{
 			asset.Category = category;
 		}
 
-		public int NumAssetsWithCategory(LibraryCategory category) => Assets.Values.Count(a => a.IsOfCategory(category));
+		public int NumAssetsWithCategory(AssetCategory category) => Assets.Values.Count(a => a.IsOfCategory(category));
 
-		public void DeleteCategory(LibraryCategory category)
+		public void DeleteCategory(AssetCategory category)
 		{
 			if (NumAssetsWithCategory(category) > 0) {
 				throw new InvalidOperationException("Cannot delete category when there are assigned assets.");
@@ -168,9 +198,9 @@ namespace VisualPinball.Unity.Editor
 			.Distinct()
 			.OrderBy(a => a);
 
-		public LibraryKeyValue AddAttribute(LibraryAsset asset, string attributeName)
+		public AssetAttribute AddAttribute(Asset asset, string attributeName)
 		{
-			var attribute = new LibraryKeyValue {
+			var attribute = new AssetAttribute {
 				Key = attributeName,
 				Value = string.Empty,
 			};
@@ -183,19 +213,22 @@ namespace VisualPinball.Unity.Editor
 		#region Tags
 
 		public IEnumerable<string> GetAllTags() => Assets.Values
-			.SelectMany(a => a.Tags?.Keys ?? Array.Empty<string>())
+			.SelectMany(a => a.Tags ?? new List<AssetTag>())
+			.Select(at => at.TagName)
 			.Distinct()
 			.OrderBy(a => a);
 
 		public IEnumerable<string> GetLinkNames() => Assets.Values
-			.SelectMany(a => a.Links != null ? a.Links.Select(l => l.Key) : Array.Empty<string>())
+			.SelectMany(a => a.Links ?? new List<AssetLink>())
+			.Select(al => al.Name)
 			.Distinct()
 			.OrderBy(a => a);
 
-		public string AddTag(LibraryAsset asset, string tag)
+		public string AddTag(Asset asset, string tag)
 		{
-			if (!asset.Tags.Contains(tag)) {
-				asset.Tags.Add(tag);
+			var existingTag = asset.Tags.FirstOrDefault(t => t.TagName == tag);
+			if (existingTag == null) {
+				asset.Tags.Add(new AssetTag(tag));
 			}
 			return tag;
 		}
@@ -205,62 +238,16 @@ namespace VisualPinball.Unity.Editor
 
 		#region Links
 
-		public LibraryKeyValue AddLink(LibraryAsset asset, string linkName)
+		public AssetLink AddLink(Asset asset, string linkName)
 		{
-			var link = new LibraryKeyValue {
-				Key = linkName,
-				Value = "https://",
+			var link = new AssetLink {
+				Name = linkName,
+				Url = "https://",
 			};
-			asset.Links ??= new List<LibraryKeyValue>();
+			asset.Links ??= new List<AssetLink>();
 			asset.Links.Add(link);
 			return link;
 		}
-
-		#endregion
-	}
-
-	public class LibraryQuery
-	{
-		#region Keywords
-
-		public string Keywords;
-		public bool HasKeywords => !string.IsNullOrEmpty(Keywords);
-
-		#endregion
-
-		#region Categories
-
-		public List<LibraryCategory> Categories
-		{
-			get => _categories;
-			set {
-				_categories = value;
-				_categoryIds = value == null
-					? new HashSet<string>()
-					: new HashSet<string>(value.Select(c => c.Id));
-			}
-		}
-
-		private List<LibraryCategory> _categories;
-		private HashSet<string> _categoryIds;
-		public bool HasCategories => Categories is { Count: > 0 };
-		public bool HasCategory(LibraryCategory category) => _categoryIds.Contains(category.Id);
-
-		#endregion
-
-		#region Attributes
-
-		public Dictionary<string, HashSet<string>> Attributes = new();
-
-		public bool HasAttributes => Attributes.Count > 0;
-
-		#endregion
-
-		#region Tags
-
-		public HashSet<string> Tags = new();
-
-		public bool HasTags => Tags.Count > 0;
 
 		#endregion
 	}
@@ -270,105 +257,24 @@ namespace VisualPinball.Unity.Editor
 		World, Table
 	}
 
-	[Serializable]
-	public class LibraryAsset
-	{
-		public string Name => Object != null ? Object.name : "<invalid ref>";
-
-		[SerializeReference]
-		public Object Object;
-
-		public DateTime AddedAt {
-			get => Convert.ToDateTime(_addedAt);
-			set => _addedAt = value.ToString("o");
-		}
-		[SerializeField]
-		private string _addedAt;
-
-		[SerializeField]
-		public string Description;
-
-		[SerializeField]
-		public AssetScale Scale = AssetScale.World;
-
-		[SerializeReference]
-		public Preset ThumbCameraPreset;
-
-		[SerializeField]
-		private string _categoryId;
-
-		public LibraryCategory Category {
-			get => _category;
-			set {
-				_category = value;
-				_categoryId = value.Id;
-			}
-		}
-		[NonSerialized]
-		private LibraryCategory _category;
-
-		public List<LibraryKeyValue> Attributes;
-		public LibraryAsset SetCategory(LibraryDatabase lib)
-		{
-			_category = lib.GetCategory(_categoryId);
-			return this;
-		}
-
-		public bool IsOfCategory(LibraryCategory category) => _categoryId == category.Id;
-
-		public List<LibraryKeyValue> Links;
-
-		[SerializeField]
-		internal Tags Tags;
-	}
 
 	[Serializable]
-	public class LibraryCategory
+	internal class Assets : SerializableDictionary<string, Asset>
 	{
-		public string Id;
-		public string Name;
-
-		public override string ToString() => $"LibraryCategory: {Name} ({Id})";
-	}
-
-	[Serializable]
-	public class LibraryKeyValue
-	{
-		public string Key;
-		public string Value;
-	}
-
-	[Serializable]
-	internal class Assets : SerializableDictionary<string, LibraryAsset>
-	{
-		public IEnumerable<LibraryAsset> All(LibraryDatabase lib) => Values.Select(v => v.SetCategory(lib));
-		public void Add(LibraryAsset asset)
-		{
-			if (AssetDatabase.TryGetGUIDAndLocalFileIdentifier(asset.Object, out var guid, out long _)) {
-				this[guid] = asset;
-			}
-		}
-		public bool Contains(LibraryAsset asset)
-		{
-			return AssetDatabase.TryGetGUIDAndLocalFileIdentifier(asset.Object, out var guid, out long _) && ContainsKey(guid);
-		}
-
+		public IEnumerable<Asset> All(LibraryDatabase lib) => Values.Select(v => v.SetCategory(lib));
+		public void Add(Asset asset) => this[asset.GUID] = asset;
+		public bool Contains(Asset asset) => ContainsKey(asset.GUID);
 		public bool Contains(string guid) => ContainsKey(guid);
-		public bool Remove(LibraryAsset asset)
-		{
-			return AssetDatabase.TryGetGUIDAndLocalFileIdentifier(asset.Object, out var guid, out long _) && Remove(guid);
-		}
-		public LibraryAsset Get(Object obj)
-		{
-			return AssetDatabase.TryGetGUIDAndLocalFileIdentifier(obj, out var guid, out long _) ? this[guid] : null;
-		}
+		public bool Contains(Object obj) => AssetDatabase.TryGetGUIDAndLocalFileIdentifier(obj, out var guid, out long _) && Contains(guid);
+		public bool Remove(Asset asset) => Remove(asset.GUID);
+		public Asset Get(Object obj) => AssetDatabase.TryGetGUIDAndLocalFileIdentifier(obj, out var guid, out long _) ? this[guid] : null;
 	}
 
 	[Serializable]
-	internal class Categories : SerializableDictionary<string, LibraryCategory>
+	internal class Categories : SerializableDictionary<string, AssetCategory>
 	{
-		public void Add(LibraryCategory category) => this[category.Id] = category;
-		public bool Remove(LibraryCategory category) => Remove(category.Id);
+		public void Add(AssetCategory category) => this[category.Id] = category;
+		public bool Remove(AssetCategory category) => Remove(category.Id);
 	}
 
 	[Serializable]

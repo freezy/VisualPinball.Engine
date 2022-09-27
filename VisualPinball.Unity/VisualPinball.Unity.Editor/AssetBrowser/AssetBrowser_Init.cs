@@ -140,18 +140,15 @@ namespace VisualPinball.Unity.Editor
 
 		private VisualElement NewItem(AssetResult result)
 		{
-			var obj = result.Asset.Object;
 			var item = new VisualElement();
 			_assetTree.CloneTree(item);
 			item.Q<LibraryAssetElement>().Result = result;
 
-			if (AssetDatabase.TryGetGUIDAndLocalFileIdentifier(obj, out var guid, out long _)) {
-				var thumbPath = $"{ThumbPath}/{guid}.png";
-				if (File.Exists(thumbPath)) {
-					var tex = new Texture2D(256, 256);
-					tex.LoadImage(File.ReadAllBytes(thumbPath));
-					item.Q<Image>("thumbnail").image = tex;
-				}
+			var thumbPath = $"{ThumbPath}/{result.Asset.GUID}.png";
+			if (File.Exists(thumbPath)) {
+				var tex = new Texture2D(256, 256);
+				tex.LoadImage(File.ReadAllBytes(thumbPath));
+				item.Q<Image>("thumbnail").image = tex;
 			}
 			item.Q<Label>("label").text = result.Asset.Name;
 			item.RegisterCallback<MouseUpEvent>(evt => OnAssetClicked(evt, item));

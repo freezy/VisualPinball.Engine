@@ -26,7 +26,10 @@ using Object = UnityEngine.Object;
 namespace VisualPinball.Unity.Editor
 {
 	/// <summary>
-	/// This class handles the data layer of one asset library.
+	/// This is the root node of the asset library.
+	///
+	/// The data itself is stored in a sub object, <see cref="_db"/>. This sub object contains
+	/// references to the asset meta data, as well as the categories.
 	/// </summary>
 	[CreateAssetMenu(fileName = "Library", menuName = "Visual Pinball/Asset Library", order = 300)]
 	public class AssetLibrary : ScriptableObject, ISerializationCallbackReceiver
@@ -50,20 +53,20 @@ namespace VisualPinball.Unity.Editor
 
 		#region Asset
 
-		public bool AddAsset(Object obj, LibraryCategory category)
+		public bool AddAsset(Object obj, AssetCategory category)
 		{
 			if (IsLocked) {
 				throw new InvalidOperationException($"Cannot add new asset because library {Name} is locked.");
 			}
 
 			RecordUndo("add asset to library");
-			var wasAdded = _db.AddAsset(obj, category);
+			var wasAdded = _db.AddAsset(obj, category, this);
 			SaveLibrary();
 
 			return wasAdded;
 		}
 
-		public void SaveAsset(LibraryAsset asset)
+		public void SaveAsset(Asset asset)
 		{
 			if (IsLocked) {
 				throw new InvalidOperationException($"Cannot update asset {asset.Name} because library {Name} is locked.");
@@ -73,14 +76,14 @@ namespace VisualPinball.Unity.Editor
 
 		public IEnumerable<AssetResult> GetAssets(LibraryQuery q) => _db.GetAssets(this, q);
 
-		public void RemoveAsset(LibraryAsset asset)
+		public void RemoveAsset(Asset asset)
 		{
 			if (IsLocked) {
 				throw new InvalidOperationException($"Cannot delete asset because library {Name} is locked.");
 			}
 
 			RecordUndo("remove asset from library");
-			_db.RemoveAsset(asset);
+			_db.RemoveAsset(asset, this);
 			SaveLibrary();
 		}
 
@@ -88,7 +91,7 @@ namespace VisualPinball.Unity.Editor
 
 		#region Category
 
-		public LibraryCategory AddCategory(string categoryName)
+		public AssetCategory AddCategory(string categoryName)
 		{
 			if (IsLocked) {
 				throw new InvalidOperationException($"Cannot add category {categoryName} because library {Name} is locked.");
@@ -101,7 +104,7 @@ namespace VisualPinball.Unity.Editor
 			return category;
 		}
 
-		public void RenameCategory(LibraryCategory category, string newName)
+		public void RenameCategory(AssetCategory category, string newName)
 		{
 			if (IsLocked) {
 				throw new InvalidOperationException($"Cannot rename category {category.Name} because library {Name} is locked.");
@@ -112,7 +115,7 @@ namespace VisualPinball.Unity.Editor
 			SaveLibrary();
 		}
 
-		public void SetCategory(LibraryAsset asset, LibraryCategory category)
+		public void SetCategory(Asset asset, AssetCategory category)
 		{
 			if (IsLocked) {
 				throw new InvalidOperationException($"Cannot assign category {category.Name} because library {Name} is locked.");
@@ -123,9 +126,9 @@ namespace VisualPinball.Unity.Editor
 			SaveLibrary();
 		}
 
-		public int NumAssetsWithCategory(LibraryCategory category) => _db.NumAssetsWithCategory(category);
+		public int NumAssetsWithCategory(AssetCategory category) => _db.NumAssetsWithCategory(category);
 
-		public void DeleteCategory(LibraryCategory category)
+		public void DeleteCategory(AssetCategory category)
 		{
 			if (IsLocked) {
 				throw new InvalidOperationException($"Cannot delete category {category.Name} because library {Name} is locked.");
@@ -136,7 +139,7 @@ namespace VisualPinball.Unity.Editor
 			SaveLibrary();
 		}
 
-		public IEnumerable<LibraryCategory> GetCategories() => _db.GetCategories();
+		public IEnumerable<AssetCategory> GetCategories() => _db.GetCategories();
 
 		#endregion
 
@@ -148,7 +151,7 @@ namespace VisualPinball.Unity.Editor
 
 		public IEnumerable<string> GetAttributeValues(string key) => _db?.GetAttributeValues(key) ?? Array.Empty<string>();
 
-		public LibraryKeyValue AddAttribute(LibraryAsset asset, string attributeName)
+		public AssetAttribute AddAttribute(Asset asset, string attributeName)
 		{
 			if (IsLocked) {
 				throw new InvalidOperationException($"Cannot add new attribute to asset {asset.Name} because library {Name} is locked.");
@@ -165,7 +168,7 @@ namespace VisualPinball.Unity.Editor
 
 		#region Links
 
-		public LibraryKeyValue AddLink(LibraryAsset asset, string linkName)
+		public AssetLink AddLink(Asset asset, string linkName)
 		{
 			if (IsLocked) {
 				throw new InvalidOperationException($"Cannot add new link to asset {asset.Name} because library {Name} is locked.");
@@ -178,7 +181,7 @@ namespace VisualPinball.Unity.Editor
 			return link;
 		}
 
-		public string AddTag(LibraryAsset asset, string tagName)
+		public string AddTag(Asset asset, string tagName)
 		{
 			if (IsLocked) {
 				throw new InvalidOperationException($"Cannot add new tag to asset {asset.Name} because library {Name} is locked.");

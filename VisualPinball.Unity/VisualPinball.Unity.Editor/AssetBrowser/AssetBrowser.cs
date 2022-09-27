@@ -57,7 +57,7 @@ namespace VisualPinball.Unity.Editor
 		private AssetResult _firstSelectedAsset;
 		private readonly HashSet<AssetResult> _selectedAssets = new();
 
-		private readonly Dictionary<LibraryAsset, VisualElement> _elementByAsset = new();
+		private readonly Dictionary<Asset, VisualElement> _elementByAsset = new();
 		private readonly Dictionary<VisualElement, AssetResult> _assetsByElement = new();
 
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
@@ -263,7 +263,7 @@ namespace VisualPinball.Unity.Editor
 			}
 		}
 
-		public void OnCategoriesUpdated(Dictionary<AssetLibrary, List<LibraryCategory>> categories) => Query.Filter(categories);
+		public void OnCategoriesUpdated(Dictionary<AssetLibrary, List<AssetCategory>> categories) => Query.Filter(categories);
 		private void OnSearchQueryChanged(ChangeEvent<string> evt) => Query.Search(evt.newValue);
 		private void OnLibraryToggled(AssetLibrary lib, bool enabled)
 		{
@@ -282,7 +282,7 @@ namespace VisualPinball.Unity.Editor
 			});
 		}
 
-		public void AddAssets(IEnumerable<string> paths, Func<AssetLibrary, LibraryCategory> getCategory)
+		public void AddAssets(IEnumerable<string> paths, Func<AssetLibrary, AssetCategory> getCategory)
 		{
 			var numAdded = 0;
 			var numUpdated = 0;
