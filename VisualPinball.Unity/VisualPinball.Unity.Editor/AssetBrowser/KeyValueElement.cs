@@ -22,211 +22,211 @@ using UnityEngine.UIElements;
 
 namespace VisualPinball.Unity.Editor
 {
-	public class KeyValueElement : VisualElement
-	{
-		private readonly AssetResult _assetResult;
-		private readonly LibraryKeyValue _keyValue;
-
-		private readonly Label _nameElement;
-		private readonly Label _linkElement;
-		private readonly VisualElement _valuesElement;
-		private readonly VisualElement _displayElement;
-		private readonly VisualElement _displayLinkElement;
-		private readonly VisualElement _editElement;
-		private readonly SearchSuggest _nameEditElement;
-		private readonly SearchSuggest _valuesEditElement;
-
-		private readonly bool _isLink;
-		private bool _isEditing;
-		private AssetBrowser _browser;
-
-		private VisualElement DisplayContainer => _isLink ? _displayLinkElement : _displayElement;
-		private Label DisplayElement => _isLink ? _linkElement : _nameElement;
-
-		public KeyValueElement(AssetResult result, LibraryKeyValue keyValue, bool isLink)
-		{
-			_assetResult = result;
-			_keyValue = keyValue;
-
-			var visualTree = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>("Packages/org.visualpinball.engine.unity/VisualPinball.Unity/VisualPinball.Unity.Editor/AssetBrowser/KeyValueElement.uxml");
-			var ui = visualTree.CloneTree();
-			var styleSheet = AssetDatabase.LoadAssetAtPath<StyleSheet>("Packages/org.visualpinball.engine.unity/VisualPinball.Unity/VisualPinball.Unity.Editor/AssetBrowser/KeyValueElement.uss");
-			ui.styleSheets.Add(styleSheet);
-			Add(ui);
-
-			_displayElement = ui.Q<VisualElement>("display");
-			_displayLinkElement = ui.Q<VisualElement>("display-link");
-			_editElement = ui.Q<VisualElement>("edit");
-			_nameElement = ui.Q<Label>("attribute-name");
-			_linkElement = ui.Q<Label>("attribute-link");
-			_valuesElement = ui.Q<VisualElement>("attribute-values");
-			_nameEditElement = ui.Q<SearchSuggest>("attribute-name-edit");
-			_valuesEditElement = ui.Q<SearchSuggest>("attribute-value-edit");
-
-			ui.Q<Button>("okButton").RegisterCallback<MouseUpEvent>(_ => CompleteEdit(true, _nameEditElement.Value, _valuesEditElement.Value));
-			ui.Q<Button>("cancelButton").RegisterCallback<MouseUpEvent>(_ => CompleteEdit(false));
-
-			_isLink = isLink;
-			DisplayContainer.RemoveFromClassList("hidden");
-			DisplayContainer.RegisterCallback<MouseDownEvent>(OnNameClicked);
-
-			if (!_assetResult.Library.IsLocked) {
-				_nameEditElement.RegisterKeyDownCallback(evt => OnKeyDown(evt, _nameEditElement));
-				_valuesEditElement.RegisterKeyDownCallback(evt => OnKeyDown(evt, _valuesEditElement));
-				if (!_isLink) {
-					_valuesEditElement.IsMultiValue = true;
-				}
-
-				// right-click menu
-				DisplayContainer.AddManipulator(new ContextualMenuManipulator(AddContextMenu));
-			}
-
-			RegisterCallback<AttachToPanelEvent>(OnAttached);
-		}
-
-		private void OnAttached(AttachToPanelEvent evt)
-		{
-			_browser = panel.visualTree.userData as AssetBrowser;
-			_valuesEditElement.RegisterCallback<FocusInEvent>(OnAttributeValueFocus);
-			Update();
-		}
-
-		private void OnNameClicked(MouseDownEvent evt)
-		{
-			// if it's a link, open it on first left click
-			if (_isLink && evt.button == 0 && evt.clickCount == 1) {
-				OpenLink(_keyValue.Value);
-			}
-
-			// on double click and lib isn't locked, toggle edit.
-			if (!_assetResult.Library.IsLocked && evt.button == 0 && evt.clickCount == 2) {
-				ToggleEdit();
-			}
-		}
-
-		public void ToggleEdit(DropdownMenuAction act = null)
-		{
-			if (_isEditing) {
-				DisplayContainer.RemoveFromClassList("hidden");
-				_editElement.AddToClassList("hidden");
-
-			} else {
-				DisplayContainer.AddToClassList("hidden");
-				_editElement.RemoveFromClassList("hidden");
-				StartEditing();
-			}
-
-			_isEditing = !_isEditing;
-		}
-
-		private void Update()
-		{
-			if (!string.IsNullOrEmpty(_keyValue.Value)) {
-				_valuesElement.Clear();
-				if (_isLink) {
-					var label = new Label(_keyValue.Value);
-					if (IsValidLink(_keyValue.Value)) {
-						label.RegisterCallback<MouseDownEvent>(_ => OpenLink(_keyValue.Value));
-					}
-					_valuesElement.Add(label);
-
-				} else {
-
-					var values = _keyValue.Value.Split(',').Select(s => s.Trim());
-					foreach (var value in values) {
-						var label = new Label(value);
-						label.RegisterCallback<MouseDownEvent>(_ => OnAttributeValueClicked(label, value));
-						_valuesElement.Add(label);
-						SetActive(label, _browser.Query.HasAttribute(_keyValue.Key, value));
-					}
-				}
-			}
-			DisplayElement.text = _keyValue.Key;
-		}
-
-		private void OnAttributeValueClicked(VisualElement label, string value)
-		{
-			if (IsActive(label)) {
-				_browser.FilterByAttribute(_keyValue.Key, value, true);
-
-			} else {
-				_browser.FilterByAttribute(_keyValue.Key, value);
-			}
-		}
-
-		private static void SetActive(VisualElement label, bool isActive)
-		{
-			var currentlyActive = label.ClassListContains("active");
-			switch (isActive) {
-				case true when !currentlyActive:
-					label.AddToClassList("active");
-					break;
-				case false:
-					label.RemoveFromClassList("active");
-					break;
-			}
-		}
-		private static bool IsActive(VisualElement label) => label.ClassListContains("active");
-
-		private void StartEditing()
-		{
-			_nameEditElement.Value = _keyValue.Key;
-			_nameEditElement.SuggestOptions = _browser!.Query.AttributeNames;
-			_valuesEditElement.Value = _keyValue.Value;
-			_nameEditElement.Focus();
-			_nameEditElement.SelectAll();
-		}
-
-		private void OnAttributeValueFocus(FocusInEvent focusInEvent)
-		{
-			_valuesEditElement.SuggestOptions = _browser!.Query.AttributeValues(_nameEditElement.Value);
-		}
-
-		public void CompleteEdit(bool success, string newName = null, string newValue = null)
-		{
-			if (success) {
-				_keyValue.Key = newName;
-				_keyValue.Value = newValue;
-				_assetResult.Save();
-				Update();
-			}
-			ToggleEdit();
-		}
-
-		private static bool IsValidLink(string link) => Uri.TryCreate(link, UriKind.Absolute, out var uriResult) && (uriResult.Scheme == Uri.UriSchemeHttp || uriResult.Scheme == Uri.UriSchemeHttps);
-
-		private static void OpenLink(string link) => Application.OpenURL(link);
-
-		private void OnKeyDown(KeyDownEvent evt, SearchSuggest ss)
-		{
-			if (ss.PopupVisible) {
-				return;
-			}
-			switch (evt.keyCode) {
-				case KeyCode.Return or KeyCode.KeypadEnter:
-					CompleteEdit(true, _nameEditElement.Value, _valuesEditElement.Value);
-					break;
-
-				case KeyCode.Escape:
-					CompleteEdit(false);
-					evt.StopImmediatePropagation();
-					break;
-			}
-		}
-
-		private void AddContextMenu(ContextualMenuPopulateEvent evt)
-		{
-			evt.menu.AppendAction("Edit", ToggleEdit);
-			evt.menu.AppendAction("Delete", Delete);
-		}
-
-		private void Delete(DropdownMenuAction obj)
-		{
-			if (_assetResult.Asset.Attributes.Contains(_keyValue)) {
-				_assetResult.Asset.Attributes.Remove(_keyValue);
-				_assetResult.Save();
-				parent.Remove(this);
-			}
-		}
-	}
+	// public class KeyValueElement : VisualElement
+	// {
+	// 	private readonly AssetResult _assetResult;
+	// 	private readonly LibraryKeyValue _keyValue;
+	//
+	// 	private readonly Label _nameElement;
+	// 	private readonly Label _linkElement;
+	// 	private readonly VisualElement _valuesElement;
+	// 	private readonly VisualElement _displayElement;
+	// 	private readonly VisualElement _displayLinkElement;
+	// 	private readonly VisualElement _editElement;
+	// 	private readonly SearchSuggest _nameEditElement;
+	// 	private readonly SearchSuggest _valuesEditElement;
+	//
+	// 	private readonly bool _isLink;
+	// 	private bool _isEditing;
+	// 	private AssetBrowser _browser;
+	//
+	// 	private VisualElement DisplayContainer => _isLink ? _displayLinkElement : _displayElement;
+	// 	private Label DisplayElement => _isLink ? _linkElement : _nameElement;
+	//
+	// 	public KeyValueElement(AssetResult result, LibraryKeyValue keyValue, bool isLink)
+	// 	{
+	// 		_assetResult = result;
+	// 		_keyValue = keyValue;
+	//
+	// 		var visualTree = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>("Packages/org.visualpinball.engine.unity/VisualPinball.Unity/VisualPinball.Unity.Editor/AssetBrowser/KeyValueElement.uxml");
+	// 		var ui = visualTree.CloneTree();
+	// 		var styleSheet = AssetDatabase.LoadAssetAtPath<StyleSheet>("Packages/org.visualpinball.engine.unity/VisualPinball.Unity/VisualPinball.Unity.Editor/AssetBrowser/KeyValueElement.uss");
+	// 		ui.styleSheets.Add(styleSheet);
+	// 		Add(ui);
+	//
+	// 		_displayElement = ui.Q<VisualElement>("display");
+	// 		_displayLinkElement = ui.Q<VisualElement>("display-link");
+	// 		_editElement = ui.Q<VisualElement>("edit");
+	// 		_nameElement = ui.Q<Label>("attribute-name");
+	// 		_linkElement = ui.Q<Label>("attribute-link");
+	// 		_valuesElement = ui.Q<VisualElement>("attribute-values");
+	// 		_nameEditElement = ui.Q<SearchSuggest>("attribute-name-edit");
+	// 		_valuesEditElement = ui.Q<SearchSuggest>("attribute-value-edit");
+	//
+	// 		ui.Q<Button>("okButton").RegisterCallback<MouseUpEvent>(_ => CompleteEdit(true, _nameEditElement.Value, _valuesEditElement.Value));
+	// 		ui.Q<Button>("cancelButton").RegisterCallback<MouseUpEvent>(_ => CompleteEdit(false));
+	//
+	// 		_isLink = isLink;
+	// 		DisplayContainer.RemoveFromClassList("hidden");
+	// 		DisplayContainer.RegisterCallback<MouseDownEvent>(OnNameClicked);
+	//
+	// 		if (!_assetResult.Library.IsLocked) {
+	// 			_nameEditElement.RegisterKeyDownCallback(evt => OnKeyDown(evt, _nameEditElement));
+	// 			_valuesEditElement.RegisterKeyDownCallback(evt => OnKeyDown(evt, _valuesEditElement));
+	// 			if (!_isLink) {
+	// 				_valuesEditElement.IsMultiValue = true;
+	// 			}
+	//
+	// 			// right-click menu
+	// 			DisplayContainer.AddManipulator(new ContextualMenuManipulator(AddContextMenu));
+	// 		}
+	//
+	// 		RegisterCallback<AttachToPanelEvent>(OnAttached);
+	// 	}
+	//
+	// 	private void OnAttached(AttachToPanelEvent evt)
+	// 	{
+	// 		_browser = panel.visualTree.userData as AssetBrowser;
+	// 		_valuesEditElement.RegisterCallback<FocusInEvent>(OnAttributeValueFocus);
+	// 		Update();
+	// 	}
+	//
+	// 	private void OnNameClicked(MouseDownEvent evt)
+	// 	{
+	// 		// if it's a link, open it on first left click
+	// 		if (_isLink && evt.button == 0 && evt.clickCount == 1) {
+	// 			OpenLink(_keyValue.Value);
+	// 		}
+	//
+	// 		// on double click and lib isn't locked, toggle edit.
+	// 		if (!_assetResult.Library.IsLocked && evt.button == 0 && evt.clickCount == 2) {
+	// 			ToggleEdit();
+	// 		}
+	// 	}
+	//
+	// 	public void ToggleEdit(DropdownMenuAction act = null)
+	// 	{
+	// 		if (_isEditing) {
+	// 			DisplayContainer.RemoveFromClassList("hidden");
+	// 			_editElement.AddToClassList("hidden");
+	//
+	// 		} else {
+	// 			DisplayContainer.AddToClassList("hidden");
+	// 			_editElement.RemoveFromClassList("hidden");
+	// 			StartEditing();
+	// 		}
+	//
+	// 		_isEditing = !_isEditing;
+	// 	}
+	//
+	// 	private void Update()
+	// 	{
+	// 		if (!string.IsNullOrEmpty(_keyValue.Value)) {
+	// 			_valuesElement.Clear();
+	// 			if (_isLink) {
+	// 				var label = new Label(_keyValue.Value);
+	// 				if (IsValidLink(_keyValue.Value)) {
+	// 					label.RegisterCallback<MouseDownEvent>(_ => OpenLink(_keyValue.Value));
+	// 				}
+	// 				_valuesElement.Add(label);
+	//
+	// 			} else {
+	//
+	// 				var values = _keyValue.Value.Split(',').Select(s => s.Trim());
+	// 				foreach (var value in values) {
+	// 					var label = new Label(value);
+	// 					label.RegisterCallback<MouseDownEvent>(_ => OnAttributeValueClicked(label, value));
+	// 					_valuesElement.Add(label);
+	// 					SetActive(label, _browser.Query.HasAttribute(_keyValue.Key, value));
+	// 				}
+	// 			}
+	// 		}
+	// 		DisplayElement.text = _keyValue.Key;
+	// 	}
+	//
+	// 	private void OnAttributeValueClicked(VisualElement label, string value)
+	// 	{
+	// 		if (IsActive(label)) {
+	// 			_browser.FilterByAttribute(_keyValue.Key, value, true);
+	//
+	// 		} else {
+	// 			_browser.FilterByAttribute(_keyValue.Key, value);
+	// 		}
+	// 	}
+	//
+	// 	private static void SetActive(VisualElement label, bool isActive)
+	// 	{
+	// 		var currentlyActive = label.ClassListContains("active");
+	// 		switch (isActive) {
+	// 			case true when !currentlyActive:
+	// 				label.AddToClassList("active");
+	// 				break;
+	// 			case false:
+	// 				label.RemoveFromClassList("active");
+	// 				break;
+	// 		}
+	// 	}
+	// 	private static bool IsActive(VisualElement label) => label.ClassListContains("active");
+	//
+	// 	private void StartEditing()
+	// 	{
+	// 		_nameEditElement.Value = _keyValue.Key;
+	// 		_nameEditElement.SuggestOptions = _browser!.Query.AttributeNames;
+	// 		_valuesEditElement.Value = _keyValue.Value;
+	// 		_nameEditElement.Focus();
+	// 		_nameEditElement.SelectAll();
+	// 	}
+	//
+	// 	private void OnAttributeValueFocus(FocusInEvent focusInEvent)
+	// 	{
+	// 		_valuesEditElement.SuggestOptions = _browser!.Query.AttributeValues(_nameEditElement.Value);
+	// 	}
+	//
+	// 	public void CompleteEdit(bool success, string newName = null, string newValue = null)
+	// 	{
+	// 		if (success) {
+	// 			_keyValue.Key = newName;
+	// 			_keyValue.Value = newValue;
+	// 			_assetResult.Save();
+	// 			Update();
+	// 		}
+	// 		ToggleEdit();
+	// 	}
+	//
+	// 	private static bool IsValidLink(string link) => Uri.TryCreate(link, UriKind.Absolute, out var uriResult) && (uriResult.Scheme == Uri.UriSchemeHttp || uriResult.Scheme == Uri.UriSchemeHttps);
+	//
+	// 	private static void OpenLink(string link) => Application.OpenURL(link);
+	//
+	// 	private void OnKeyDown(KeyDownEvent evt, SearchSuggest ss)
+	// 	{
+	// 		if (ss.PopupVisible) {
+	// 			return;
+	// 		}
+	// 		switch (evt.keyCode) {
+	// 			case KeyCode.Return or KeyCode.KeypadEnter:
+	// 				CompleteEdit(true, _nameEditElement.Value, _valuesEditElement.Value);
+	// 				break;
+	//
+	// 			case KeyCode.Escape:
+	// 				CompleteEdit(false);
+	// 				evt.StopImmediatePropagation();
+	// 				break;
+	// 		}
+	// 	}
+	//
+	// 	private void AddContextMenu(ContextualMenuPopulateEvent evt)
+	// 	{
+	// 		evt.menu.AppendAction("Edit", ToggleEdit);
+	// 		evt.menu.AppendAction("Delete", Delete);
+	// 	}
+	//
+	// 	private void Delete(DropdownMenuAction obj)
+	// 	{
+	// 		if (_assetResult.Asset.Attributes.Contains(_keyValue)) {
+	// 			_assetResult.Asset.Attributes.Remove(_keyValue);
+	// 			_assetResult.Save();
+	// 			parent.Remove(this);
+	// 		}
+	// 	}
+	// }
 }

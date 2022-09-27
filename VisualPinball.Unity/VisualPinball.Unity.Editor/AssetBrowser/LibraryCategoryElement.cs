@@ -27,7 +27,7 @@ namespace VisualPinball.Unity.Editor
 	/// </summary>
 	public class LibraryCategoryElement : VisualElement
 	{
-		public readonly (AssetLibrary, LibraryCategory)[] Categories;
+		public readonly (AssetLibrary, AssetCategory)[] Categories;
 
 		public string Name => _label.text;
 		public bool IsSelected {
@@ -68,7 +68,7 @@ namespace VisualPinball.Unity.Editor
 		/// </summary>
 		/// <param name="libraryCategoryView">Reference to parent</param>
 		/// <param name="categories">Category of each library</param>
-		public LibraryCategoryElement(LibraryCategoryView libraryCategoryView, IEnumerable<(AssetLibrary, LibraryCategory)> categories)
+		public LibraryCategoryElement(LibraryCategoryView libraryCategoryView, IEnumerable<(AssetLibrary, AssetCategory)> categories)
 		{
 			_libraryCategoryView = libraryCategoryView;
 			Categories = categories.ToArray();

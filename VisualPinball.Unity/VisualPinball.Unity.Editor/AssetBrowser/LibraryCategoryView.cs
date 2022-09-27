@@ -36,14 +36,14 @@ namespace VisualPinball.Unity.Editor
 
 		public AssetLibrary GetLibraryByPath(string path) => _browser.GetLibraryByPath(path);
 
-		public void AddAssets(IEnumerable<string> paths, Func<AssetLibrary, LibraryCategory> getCategory) => _browser.AddAssets(paths, getCategory);
+		public void AddAssets(IEnumerable<string> paths, Func<AssetLibrary, AssetCategory> getCategory) => _browser.AddAssets(paths, getCategory);
 
 		private AssetBrowser _browser;
 		private AssetLibrary _activeLibrary;
 
 		private readonly VisualElement _container;
 		private readonly HashSet<LibraryCategoryElement> _selectedCategoryElements = new();
-		private readonly Dictionary<AssetLibrary, List<LibraryCategory>> _selectedCategories = new();
+		private readonly Dictionary<AssetLibrary, List<AssetCategory>> _selectedCategories = new();
 		private readonly DropdownField _activeLibraryDropdown;
 		private readonly Label _noCategoriesLabel;
 		private readonly VisualElement _addContainer;
@@ -218,7 +218,7 @@ namespace VisualPinball.Unity.Editor
 			foreach (var selectedCategoryElement in _selectedCategoryElements) {
 				foreach (var (lib, category) in selectedCategoryElement.Categories) {
 					if (!_selectedCategories.ContainsKey(lib)) {
-						_selectedCategories[lib] = new List<LibraryCategory>();
+						_selectedCategories[lib] = new List<AssetCategory>();
 					}
 					_selectedCategories[lib].Add(category);
 				}
@@ -236,14 +236,14 @@ namespace VisualPinball.Unity.Editor
 			categoryElement.ToggleRename();
 		}
 
-		public LibraryCategory GetOrCreateSelected(AssetLibrary assetLibrary)
+		public AssetCategory GetOrCreateSelected(AssetLibrary assetLibrary)
 		{
 			if (_selectedCategories.ContainsKey(assetLibrary)) {
 				return _selectedCategories[assetLibrary].First();
 			}
 			var selectedElement = _selectedCategoryElements.First();
 			var addedCategory = assetLibrary.AddCategory(selectedElement.Name);
-			_selectedCategories[assetLibrary] = new List<LibraryCategory> { addedCategory };
+			_selectedCategories[assetLibrary] = new List<AssetCategory> { addedCategory };
 			return addedCategory;
 		}
 	}

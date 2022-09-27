@@ -24,14 +24,14 @@ namespace VisualPinball.Unity.Editor
 	[CustomEditor(typeof(Asset))]
 	public class AssetInspector : UnityEditor.Editor
 	{
-		private Asset _asset;
+		private Asset _assetMetadata;
 
 		public VisualTreeAsset InspectorXML;
 		public StyleSheet InspectorStyleSheet;
 
 		private void OnEnable()
 		{
-			_asset = target as Asset;
+			_assetMetadata = target as Asset;
 		}
 
 		public override VisualElement CreateInspectorGUI()
@@ -40,19 +40,24 @@ namespace VisualPinball.Unity.Editor
 			InspectorXML.CloneTree(ui);
 			ui.styleSheets.Add(InspectorStyleSheet);
 
-			ui.Q<Label>("title").text = _asset.Name;
-			ui.Q<Image>("library-icon").image = Icons.AssetLibrary(IconSize.Small);
-			ui.Q<Label>("library-name").text = _asset.Library != null ? _asset.Library.Name : "<no library>";
-
-			ui.Q<Image>("category-icon").image = EditorGUIUtility.IconContent("d_Folder Icon").image;
-			ui.Q<Label>("category-name").text = _asset.Category?.Name ?? "<no category>";
-			ui.Q<Image>("date-icon").image = Icons.Calendar(IconSize.Small);
-			ui.Q<Label>("date-value").text = _asset.AddedAt.ToLongDateString();
-
-			ui.Q<PreviewEditorElement>("preview").Object = _asset.Object;
-			ui.Q<PresetDropdownElement>("thumb-camera-preset").SetValue(_asset.ThumbCameraPreset);
+			Bind(_assetMetadata, ui);
 
 			return ui;
+		}
+
+		public static void Bind(Asset asset, VisualElement ui)
+		{
+			ui.Q<Label>("title").text = asset.Name;
+			ui.Q<Image>("library-icon").image = Icons.AssetLibrary(IconSize.Small);
+			ui.Q<Label>("library-name").text = asset.Library != null ? asset.Library.Name : "<no library>";
+
+			ui.Q<Image>("category-icon").image = EditorGUIUtility.IconContent("d_Folder Icon").image;
+			ui.Q<Label>("category-name").text = asset.Category?.Name ?? "<no category>";
+			ui.Q<Image>("date-icon").image = Icons.Calendar(IconSize.Small);
+			ui.Q<Label>("date-value").text = asset.AddedAt.ToLongDateString();
+
+			ui.Q<PreviewEditorElement>("preview").Object = asset.Object;
+			ui.Q<PresetDropdownElement>("thumb-camera-preset").SetValue(asset.ThumbCameraPreset);
 		}
 	}
 }

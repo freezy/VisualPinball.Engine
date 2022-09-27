@@ -37,7 +37,7 @@ namespace VisualPinball.Unity.Editor
 
 		private readonly List<AssetLibrary> _libraries;
 		private string _keywords;
-		private Dictionary<AssetLibrary, List<LibraryCategory>> _categories;
+		private Dictionary<AssetLibrary, List<AssetCategory>> _categories;
 		private readonly Dictionary<string, HashSet<string>> _attributes = new();
 		private readonly HashSet<string> _tags = new();
 
@@ -86,7 +86,7 @@ namespace VisualPinball.Unity.Editor
 			Run();
 		}
 
-		public void Filter(Dictionary<AssetLibrary, List<LibraryCategory>> categories)
+		public void Filter(Dictionary<AssetLibrary, List<AssetCategory>> categories)
 		{
 			_categories = categories;
 			Run();
@@ -152,10 +152,10 @@ namespace VisualPinball.Unity.Editor
 	public class AssetResult : IEquatable<AssetResult>
 	{
 		public readonly AssetLibrary Library;
-		public readonly LibraryAsset Asset;
+		public readonly Asset Asset;
 		public long Score;
 
-		public AssetResult(AssetLibrary library, LibraryAsset asset, long score)
+		public AssetResult(AssetLibrary library, Asset asset, long score)
 		{
 			Library = library;
 			Asset = asset;
@@ -172,6 +172,11 @@ namespace VisualPinball.Unity.Editor
 		public void Save()
 		{
 			Library.SaveAsset(Asset);
+		}
+
+		public override string ToString()
+		{
+			return $"[{Library.Name}] {Asset.Name}";
 		}
 
 		#region IEquatable

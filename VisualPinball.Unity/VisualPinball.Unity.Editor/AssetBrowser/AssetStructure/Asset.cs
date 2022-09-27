@@ -18,13 +18,18 @@
 
 using System;
 using System.Collections.Generic;
+using UnityEditor;
 using UnityEditor.Presets;
 using UnityEngine;
 using Object = UnityEngine.Object;
 
 namespace VisualPinball.Unity.Editor
 {
-	[CreateAssetMenu(fileName = "Asset", menuName = "Visual Pinball/Asset", order = 302)]
+	/// <summary>
+	/// This class describes the meta data of a library asset. It also references the actual
+	/// library asset. It's the entity you'll see in the asset browser, so anything library
+	/// related goes through that class.
+	/// </summary>
 	public class Asset : ScriptableObject
 	{
 		public string Name => Object != null ? Object.name : "<invalid ref>";
@@ -64,11 +69,20 @@ namespace VisualPinball.Unity.Editor
 
 
 		[NonSerialized]
-		private LibraryCategory _category;
+		private AssetCategory _category;
 
 		public DateTime AddedAt {
 			get => string.IsNullOrEmpty(_addedAt) ? DateTime.Now : Convert.ToDateTime(_addedAt);
 			set => _addedAt = value.ToString("o");
+		}
+
+		public string GUID {
+			get {
+				if (AssetDatabase.TryGetGUIDAndLocalFileIdentifier(Object, out var guid, out long _)) {
+					return guid;
+				}
+				throw new Exception($"Could not get GUID from {Object.name}");
+			}
 		}
 
 		public Asset SetCategory(LibraryDatabase lib)
@@ -77,7 +91,7 @@ namespace VisualPinball.Unity.Editor
 			return this;
 		}
 
-		public LibraryCategory Category {
+		public AssetCategory Category {
 			get => _category;
 			set {
 				_category = value;
@@ -85,7 +99,7 @@ namespace VisualPinball.Unity.Editor
 			}
 		}
 
-		public bool IsOfCategory(LibraryCategory category) => _categoryId == category.Id;
+		public bool IsOfCategory(AssetCategory category) => _categoryId == category.Id;
 
 	}
 }
