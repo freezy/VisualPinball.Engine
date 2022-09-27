@@ -20,8 +20,6 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using NLog;
 using Unity.Mathematics;
-using UnityEditor;
-using UnityEngine.UIElements;
 
 namespace VisualPinball.Unity.Editor
 {
@@ -151,13 +149,11 @@ namespace VisualPinball.Unity.Editor
 
 	public class AssetResult : IEquatable<AssetResult>
 	{
-		public readonly AssetLibrary Library;
 		public readonly Asset Asset;
 		public long Score;
 
-		public AssetResult(AssetLibrary library, Asset asset, long score)
+		public AssetResult(Asset asset, long score)
 		{
-			Library = library;
 			Asset = asset;
 			Score = score;
 		}
@@ -169,14 +165,9 @@ namespace VisualPinball.Unity.Editor
 				: math.max(Score, Score + score);
 		}
 
-		public void Save()
-		{
-			Library.SaveAsset(Asset);
-		}
-
 		public override string ToString()
 		{
-			return $"[{Library.Name}] {Asset.Name}";
+			return $"[{Asset.Library.Name}] {Asset.Name}";
 		}
 
 		#region IEquatable
@@ -187,7 +178,7 @@ namespace VisualPinball.Unity.Editor
 				return false;
 			if (ReferenceEquals(this, other))
 				return true;
-			return Equals(Library, other.Library) && Equals(Asset, other.Asset);
+			return Equals(Asset, other.Asset);
 		}
 
 		public override bool Equals(object obj)
@@ -201,7 +192,7 @@ namespace VisualPinball.Unity.Editor
 
 		public override int GetHashCode()
 		{
-			return HashCode.Combine(Library, Asset);
+			return HashCode.Combine(Asset);
 		}
 
 		#endregion

@@ -44,7 +44,7 @@ namespace VisualPinball.Unity.Editor
 
 		private AssetBrowser AssetBrowser => panel?.visualTree?.userData as AssetBrowser;
 
-		public AssetResult Asset {
+		public Asset Asset {
 			get => _asset;
 			set {
 				if (_asset == value) {
@@ -62,14 +62,14 @@ namespace VisualPinball.Unity.Editor
 				}
 				_asset = value;
 				if (value != null) {
-					var so = new SerializedObject(_asset.Asset);
+					var so = new SerializedObject(_asset);
 					_body.Bind(so);
-					Bind(_asset.Asset);
+					Bind(_asset);
 				}
 			}
 		}
 
-		private AssetResult _asset;
+		private Asset _asset;
 		private UnityEditor.Editor _previewEditor;
 		private Object _object;
 		private readonly Button _replaceSelectedButton;
@@ -203,7 +203,7 @@ namespace VisualPinball.Unity.Editor
 
 		private void OnReplaceSelected()
 		{
-			var prefab = _asset.Asset.Object;
+			var prefab = _asset.Object;
 			var selection = Selection.gameObjects;
 			var newSelection = new List<GameObject>();
 			var keepName = _replaceSelectedKeepName.value;
@@ -268,25 +268,6 @@ namespace VisualPinball.Unity.Editor
 		// 	_tagsElement.Add(tagElement);
 		// 	tagElement.ToggleEdit();
 		// }
-
-		private void OnDescriptionStartEditing(FocusInEvent focusInEvent)
-		{
-			Undo.RecordObject(_asset.Library, "edit description");
-		}
-
-		private void OnDescriptionEndEditing(FocusOutEvent focusOutEvent)
-		{
-			_asset.Asset.Description = _descriptionEditElement.value;
-			_asset.Save();
-			EditorUtility.SetDirty(_asset.Library);
-			AssetDatabase.SaveAssetIfDirty(_asset.Library);
-		}
-
-		private void OnScaleChanged(ChangeEvent<Enum> changeEvent)
-		{
-			_asset.Asset.Scale = (AssetScale)changeEvent.newValue;
-			_asset.Save();
-		}
 
 		public void UpdateDetails()
 		{
