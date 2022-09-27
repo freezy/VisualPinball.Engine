@@ -32,7 +32,7 @@ namespace VisualPinball.Unity.Editor
 	/// <summary>
 	/// What's rendered on the right panel.
 	/// </summary>
-	public class AssetDetailsElement : VisualElement
+	public class AssetDetails : VisualElement
 	{
 		private readonly Label _noSelectionElement;
 		private readonly VisualElement _detailsElement;
@@ -44,12 +44,9 @@ namespace VisualPinball.Unity.Editor
 
 		private AssetBrowser AssetBrowser => panel?.visualTree?.userData as AssetBrowser;
 
-		private static readonly string ThumbCameraPresetPrefix = "Asset Thumbcam - ";
-
 		public AssetResult Asset {
 			get => _asset;
 			set {
-				Debug.Log($"Showing details for asset {value}");
 				if (_asset == value) {
 					return;
 				}
@@ -66,8 +63,8 @@ namespace VisualPinball.Unity.Editor
 				_asset = value;
 				if (value != null) {
 					var so = new SerializedObject(_asset.Asset);
-					_ui.Bind(so);
-					AssetInspector.Bind(_asset.Asset, _ui);
+					_body.Bind(so);
+					Bind(_asset.Asset);
 				}
 			}
 		}
@@ -101,19 +98,31 @@ namespace VisualPinball.Unity.Editor
 		private readonly VisualElement _assetScaleContainer;
 		private readonly EnumField _assetScale;
 
-		private readonly TemplateContainer _ui;
+		private readonly TemplateContainer _header;
+		private readonly TemplateContainer _body;
+		private readonly TemplateContainer _bodyReadOnly;
+		private readonly TemplateContainer _footer;
 
-		public new class UxmlFactory : UxmlFactory<AssetDetailsElement, UxmlTraits> { }
+		public new class UxmlFactory : UxmlFactory<AssetDetails, UxmlTraits> { }
 
-		public AssetDetailsElement()
+		public AssetDetails()
 		{
 			//RefreshCameraPresets();
 
-			var visualTree = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>("Packages/org.visualpinball.engine.unity/VisualPinball.Unity/VisualPinball.Unity.Editor/AssetBrowser/AssetStructure/AssetInspector.uxml");
-			_ui = visualTree.CloneTree();
-			var styleSheet = AssetDatabase.LoadAssetAtPath<StyleSheet>("Packages/org.visualpinball.engine.unity/VisualPinball.Unity/VisualPinball.Unity.Editor/AssetBrowser/AssetStructure/AssetInspector.uss");
-			_ui.styleSheets.Add(styleSheet);
-			Add(_ui);
+			var header = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>("Packages/org.visualpinball.engine.unity/VisualPinball.Unity/VisualPinball.Unity.Editor/AssetBrowser/AssetStructure/AssetDetails_Header.uxml");
+			_header = header.CloneTree();
+			var body = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>("Packages/org.visualpinball.engine.unity/VisualPinball.Unity/VisualPinball.Unity.Editor/AssetBrowser/AssetStructure/AssetDetails_Body.uxml");
+			_body = body.CloneTree();
+			var bodyReadOnly = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>("Packages/org.visualpinball.engine.unity/VisualPinball.Unity/VisualPinball.Unity.Editor/AssetBrowser/AssetStructure/AssetDetails_Body_ReadOnly.uxml");
+			_bodyReadOnly = bodyReadOnly.CloneTree();
+			var footer = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>("Packages/org.visualpinball.engine.unity/VisualPinball.Unity/VisualPinball.Unity.Editor/AssetBrowser/AssetStructure/AssetDetails_Footer.uxml");
+			_footer = footer.CloneTree();
+			var styleSheet = AssetDatabase.LoadAssetAtPath<StyleSheet>("Packages/org.visualpinball.engine.unity/VisualPinball.Unity/VisualPinball.Unity.Editor/AssetBrowser/AssetStructure/AssetDetails.uss");
+			styleSheets.Add(styleSheet);
+			Add(_header);
+			Add(_bodyReadOnly);
+			Add(_body);
+			Add(_footer);
 
 
 			// _noSelectionElement = ui.Q<Label>("nothing-selected");
@@ -170,28 +179,26 @@ namespace VisualPinball.Unity.Editor
 
 		}
 
-		private void OnGUI()
+		public void Bind(Asset asset)
 		{
-			if (_asset == null) {
-				Object.DestroyImmediate(_previewEditor);
-				_previewEditor = null;
+			_header.Q<Label>("title").text = asset.Name;
+			_header.Q<Image>("library-icon").image = Icons.AssetLibrary(IconSize.Small);
+			_header.Q<Label>("library-name").text = asset.Library != null ? asset.Library.Name : "<no library>";
 
-			} else if (_previewEditor == null || _object != _previewEditor.target) {
-				if (_previewEditor != null) {
-					Object.DestroyImmediate(_previewEditor);
-				}
-				_previewEditor = UnityEditor.Editor.CreateEditor(_object);
-			}
+			_header.Q<Image>("category-icon").image = EditorGUIUtility.IconContent("d_Folder Icon").image;
+			_header.Q<Label>("category-name").text = asset.Category?.Name ?? "<no category>";
+			_header.Q<Image>("date-icon").image = Icons.Calendar(IconSize.Small);
+			_header.Q<Label>("date-value").text = asset.AddedAt.ToLongDateString();
 
-			if (_previewEditor) {
-				var previewSize = _detailsElement.resolvedStyle.width - _detailsElement.resolvedStyle.paddingLeft - _detailsElement.resolvedStyle.paddingRight;
-				var rect = EditorGUILayout.GetControlRect(false, previewSize, GUILayout.Width(previewSize));
-				_previewEditor.OnInteractivePreviewGUI(rect, GUI.skin.box);
-				_previewEditorElement.style.height = _previewEditorElement.resolvedStyle.width;
-			}
+			_header.Q<PreviewEditorElement>("preview").Object = asset.Object;
+			_body.Q<PresetDropdownElement>("thumb-camera-preset").SetValue(asset.ThumbCameraPreset);
 
-			_replaceSelectedButton.SetEnabled(Selection.count > 0);
-
+			var visibleBody = _asset.Library.IsLocked ? _bodyReadOnly : _body;
+			var hiddenBody = !_asset.Library.IsLocked ? _bodyReadOnly : _body;
+			visibleBody.style.display = DisplayStyle.Flex;
+			visibleBody.style.flexGrow = 1000000000;
+			hiddenBody.style.display = DisplayStyle.None;
+			hiddenBody.style.flexGrow = 1;
 		}
 
 		private void OnReplaceSelected()
@@ -370,31 +377,6 @@ namespace VisualPinball.Unity.Editor
 			// if (!_asset.Library.IsLocked) {
 			// 	_assetScale.SetValueWithoutNotify(_asset.Asset.Scale);
 			// }
-		}
-
-		private string OnThumbCamPresetChanged(string shortName)
-		{
-			if (_asset == null) {
-				return shortName;
-			}
-
-			var presetName = ThumbCameraPresetPrefix + shortName;
-			if (_asset.Asset.ThumbCameraPreset != null && _asset.Asset.ThumbCameraPreset.name == presetName) {
-				return shortName;
-			}
-			_asset.Asset.ThumbCameraPreset = _thumbCameraPresets
-				.FirstOrDefault(ps => ps.name == presetName) ?? _thumbCameraDefaultPreset;
-
-			_asset.Save();
-			return shortName;
-		}
-
-		private void RefreshCameraPresets()
-		{
-			const string presetPath = "Packages/org.visualpinball.engine.unity/VisualPinball.Unity/Assets/Presets";
-			var presets = Directory.GetFiles(presetPath).Where(p => p.Contains(ThumbCameraPresetPrefix) && !p.Contains(".meta"));
-			_thumbCameraPresets = presets.Select(filename => (Preset)AssetDatabase.LoadAssetAtPath(filename, typeof(Preset))).ToList();
-			_thumbCameraDefaultPreset = _thumbCameraPresets.FirstOrDefault(p => p.name.Contains("Default"));
 		}
 
 		private static (int, int, int, int, int, int) CountVertices(GameObject go)
