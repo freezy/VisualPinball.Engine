@@ -38,7 +38,6 @@ namespace VisualPinball.Unity.Editor
 			private readonly UxmlStringAttributeDescription _bindingPath = new() { name = "binding-path" };
 			private readonly UxmlStringAttributeDescription _tooltip = new() { name = "tootip" };
 			private readonly UxmlStringAttributeDescription _presetPath = new() { name = "preset-path" };
-			private readonly UxmlStringAttributeDescription _defaultPreset = new() { name = "default-preset" };
 
 			public override IEnumerable<UxmlChildElementDescription> uxmlChildElementsDescription
 			{
@@ -54,7 +53,6 @@ namespace VisualPinball.Unity.Editor
 				el!.BindingPath = _bindingPath.GetValueFromBag(bag, cc);
 				el!.Tooltip = _tooltip.GetValueFromBag(bag, cc);
 				el!.PresetPath = _presetPath.GetValueFromBag(bag, cc);
-				el!.DefaultPreset = _defaultPreset.GetValueFromBag(bag, cc);
 			}
 		}
 
@@ -63,31 +61,19 @@ namespace VisualPinball.Unity.Editor
 		private string Tooltip { set => _dropdown.tooltip = value; }
 
 		private string PresetPath {
-			get => _presetPath;
 			set {
-				_presetPath = value;
 				if (string.IsNullOrEmpty(value)) {
 					return;
 				}
+				_presetPath = value;
 				var presets = Directory.GetFiles(_presetPath).Where(p => !p.Contains(".meta"));
 				_presets = presets.Select(filename => (Preset)AssetDatabase.LoadAssetAtPath(filename, typeof(Preset))).ToList();
 				_dropdown.choices = _presets.Select(p => p.name).ToList();
 			}
 		}
-		private string DefaultPreset {
-			set {
-				_defaultPresetName = value;
-				if (_presets != null) {
-					_defaultPreset = _presets.FirstOrDefault(p => p.name == _defaultPresetName);
-				} else {
-					Debug.LogWarning("Presets is not set, ignoring default preset.");
-				}
-			}
-		}
 
 		private string _presetPath;
 		private string _defaultPresetName;
-		private Preset _defaultPreset;
 		private List<Preset> _presets;
 
 		public PresetDropdownElement()
@@ -98,7 +84,6 @@ namespace VisualPinball.Unity.Editor
 					display = DisplayStyle.None
 				}
 			};
-			_objectPicker.RegisterValueChangedCallback(OnObjectPickerSet);
 			_dropdown = new DropdownField();
 			_dropdown.RegisterValueChangedCallback(OnDropdownValueChanged);
 
@@ -106,24 +91,12 @@ namespace VisualPinball.Unity.Editor
 			Add(_dropdown);
 		}
 
-		private void OnObjectPickerSet(ChangeEvent<Object> evt)
+		public void SetValue(Preset preset)
 		{
-			if (evt.newValue == evt.previousValue) {
+			if (preset == null) {
 				return;
 			}
-			
-			if (evt.newValue == null) {
-				if (_defaultPreset != null) {
-					_objectPicker.value = _defaultPreset;
-					_dropdown.index = _presets.IndexOf(_defaultPreset);
-					Debug.Log("Set thumb cam to default.");
-
-				} else {
-					Debug.LogWarning("Default preset not set.");
-				}
-			} else {
-				_dropdown.index = _presets.IndexOf(evt.newValue as Preset);
-			}
+			_dropdown.value = preset.name;
 		}
 
 		private void OnDropdownValueChanged(ChangeEvent<string> evt)
@@ -133,7 +106,7 @@ namespace VisualPinball.Unity.Editor
 			}
 			var selectedPreset = _presets.FirstOrDefault(p => p.name == evt.newValue);
 			if (selectedPreset != null) {
-				_objectPicker.value = selectedPreset; // should also be SetValueWithoutNotify, but that doesn't apply the value. maybe a bug, to test with 2022.x
+				_objectPicker.value = selectedPreset;
 			} else {
 				Debug.LogWarning($"Cannot find new preset {evt.newValue} in loaded presets.");
 			}

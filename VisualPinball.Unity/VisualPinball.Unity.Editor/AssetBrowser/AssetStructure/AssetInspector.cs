@@ -50,6 +50,7 @@ namespace VisualPinball.Unity.Editor
 			ui.Q<Label>("date-value").text = _asset.AddedAt.ToLongDateString();
 
 			ui.Q<PreviewEditorElement>("preview").Object = _asset.Object;
+			ui.Q<PresetDropdownElement>("thumb-camera-preset").SetValue(_asset.ThumbCameraPreset);
 
 			return ui;
 		}
