@@ -83,7 +83,7 @@ namespace VisualPinball.Unity.Editor
 			}
 
 			RecordUndo("remove asset from library");
-			_db.RemoveAsset(asset, this);
+			_db.RemoveAsset(asset);
 			SaveLibrary();
 		}
 

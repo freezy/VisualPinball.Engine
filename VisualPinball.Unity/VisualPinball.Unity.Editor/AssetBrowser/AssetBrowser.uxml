@@ -48,7 +48,7 @@
 			</ui:VisualElement>
 
 			<!-- RIGHT COLUMN (details) -->
-			<VisualPinball.Unity.Editor.AssetDetailsElement/>
+			<VisualPinball.Unity.Editor.AssetDetails/>
 
 		</ui:TwoPaneSplitView>
 	</ui:TwoPaneSplitView>

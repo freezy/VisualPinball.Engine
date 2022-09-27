@@ -1,0 +1,23 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" xmlns:uivpe="VisualPinball.Unity.Editor" editor-extension-mode="True">
+
+	<ui:Label name="title" />
+
+	<!-- Library Header -->
+	<ui:VisualElement name="header1">
+		<ui:Image name="library-icon"/>
+		<ui:Label name="library-name"/>
+		<ui:Image name="library-lock"/>
+	</ui:VisualElement>
+
+	<!-- Category / Date Header -->
+	<ui:VisualElement name="header2">
+		<ui:Image name="category-icon"/>
+		<ui:Label name="category-name"/>
+		<ui:Image name="date-icon"/>
+		<ui:Label name="date-value"/>
+	</ui:VisualElement>
+
+	<!-- Interactive Preview -->
+	<uivpe:PreviewEditorElement name="preview"/>
+
+</ui:UXML>

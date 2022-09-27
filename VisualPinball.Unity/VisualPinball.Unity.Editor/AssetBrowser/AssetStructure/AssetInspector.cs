@@ -21,43 +21,22 @@ using UnityEngine.UIElements;
 
 namespace VisualPinball.Unity.Editor
 {
+	[CanEditMultipleObjects]
 	[CustomEditor(typeof(Asset))]
 	public class AssetInspector : UnityEditor.Editor
 	{
-		private Asset _assetMetadata;
-
-		public VisualTreeAsset InspectorXML;
-		public StyleSheet InspectorStyleSheet;
+		private Asset _asset;
 
 		private void OnEnable()
 		{
-			_assetMetadata = target as Asset;
+			_asset = target as Asset;
 		}
 
 		public override VisualElement CreateInspectorGUI()
 		{
-			var ui = new VisualElement();
-			InspectorXML.CloneTree(ui);
-			ui.styleSheets.Add(InspectorStyleSheet);
-
-			Bind(_assetMetadata, ui);
-
+			var ui = new AssetDetails();
+			ui.Bind(_asset);
 			return ui;
-		}
-
-		public static void Bind(Asset asset, VisualElement ui)
-		{
-			ui.Q<Label>("title").text = asset.Name;
-			ui.Q<Image>("library-icon").image = Icons.AssetLibrary(IconSize.Small);
-			ui.Q<Label>("library-name").text = asset.Library != null ? asset.Library.Name : "<no library>";
-
-			ui.Q<Image>("category-icon").image = EditorGUIUtility.IconContent("d_Folder Icon").image;
-			ui.Q<Label>("category-name").text = asset.Category?.Name ?? "<no category>";
-			ui.Q<Image>("date-icon").image = Icons.Calendar(IconSize.Small);
-			ui.Q<Label>("date-value").text = asset.AddedAt.ToLongDateString();
-
-			ui.Q<PreviewEditorElement>("preview").Object = asset.Object;
-			ui.Q<PresetDropdownElement>("thumb-camera-preset").SetValue(asset.ThumbCameraPreset);
 		}
 	}
 }

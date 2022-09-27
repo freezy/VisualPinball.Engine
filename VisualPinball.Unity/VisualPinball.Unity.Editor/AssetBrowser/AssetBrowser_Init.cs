@@ -36,7 +36,7 @@ namespace VisualPinball.Unity.Editor
 		private VisualElement _dragErrorContainerLeft;
 		private Label _dragErrorLabel;
 		private VisualElement _dragErrorContainer;
-		private AssetDetailsElement _detailsElement;
+		private AssetDetails _detailsElement;
 		private Label _statusLabel;
 		private Slider _sizeSlider;
 
@@ -94,7 +94,7 @@ namespace VisualPinball.Unity.Editor
 
 			_categoryView = ui.Q<LibraryCategoryView>();
 			_gridContent = ui.Q<VisualElement>("gridContent");
-			_detailsElement = ui.Q<AssetDetailsElement>();
+			_detailsElement = ui.Q<AssetDetails>();
 
 			_statusLabel = ui.Q<Label>("bottomLabel");
 			_sizeSlider = ui.Q<Slider>("sizeSlider");

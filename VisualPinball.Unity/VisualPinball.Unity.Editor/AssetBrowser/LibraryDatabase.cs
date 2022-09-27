@@ -111,6 +111,7 @@ namespace VisualPinball.Unity.Editor
 
 			var asset = ScriptableObject.CreateInstance<Asset>();
 			asset.name = obj.name;
+			asset.Library = lib;
 			asset.Object = obj;
 			asset.Category = category;
 			asset.Attributes = new List<AssetAttribute>();
@@ -130,11 +131,12 @@ namespace VisualPinball.Unity.Editor
 			return true;
 		}
 
-		public void RemoveAsset(Asset asset, AssetLibrary lib)
+		public void RemoveAsset(Asset asset)
 		{
 			if (Assets.Contains(asset)) {
 				Assets.Remove(asset);
-				File.Delete(AssetMetaPath(asset, lib));
+				File.Delete(AssetMetaPath(asset, asset.Library));
+				File.Delete(AssetMetaPath(asset, asset.Library) + ".meta");
 			}
 		}
 

@@ -1,0 +1,28 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" xmlns:uivpe="VisualPinball.Unity.Editor" editor-extension-mode="True">
+
+	<ui:ScrollView>
+
+		<!-- Description -->
+		<ui:TextField binding-path="Description" label="Description" multiline="true" class="top-space" />
+
+		<!-- Attributes -->
+		<uie:PropertyField binding-path="Attributes" label="Attributes" />
+
+		<!-- Attributes -->
+		<uie:PropertyField binding-path="Tags" label="Tags" class="top-space" />
+
+		<!-- Tags -->
+		<uie:PropertyField binding-path="Links" label="Links" class="top-space" />
+
+		<!-- Material Overrides -->
+		<uie:PropertyField binding-path="MaterialVariations" label="Material Variations" class="top-space" />
+
+		<!-- Geometry -->
+		<ui:Foldout text="Geometry">
+			<uie:PropertyField binding-path="Scale" label="Scale Transform" />
+			<uivpe:PresetDropdownElement name="thumb-camera-preset" binding-path="ThumbCameraPreset" label="Thumbnail Camera" preset-path="Packages/org.visualpinball.engine.unity/VisualPinball.Unity/Assets/Presets/Asset Thumbcam" />
+		</ui:Foldout>
+
+	</ui:ScrollView>
+
+</ui:UXML>

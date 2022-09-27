@@ -24,9 +24,9 @@
 	-unity-text-align: middle-center;
 }
 
-AssetDetailsElement > TemplateContainer {
+/*AssetDetails > TemplateContainer {
 	flex-grow: 1;
-}
+}*/
 
 #libraryList .library-item {
 	margin-left: 8px;
