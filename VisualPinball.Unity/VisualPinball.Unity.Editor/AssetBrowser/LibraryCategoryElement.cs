@@ -173,7 +173,7 @@ namespace VisualPinball.Unity.Editor
 			// drag from asset panel
 			if (DragAndDrop.GetGenericData("assets") is HashSet<AssetResult> data) {
 				foreach (var d in data) {
-					if (d.Library.IsLocked) {
+					if (d.Asset.Library.IsLocked) {
 						_libraryCategoryView.DragError = "Access Error. At least one of the assets you're dragging is part of a locked library.";
 						break;
 					}
@@ -217,8 +217,8 @@ namespace VisualPinball.Unity.Editor
 			// drop from asset panel
 			if (DragAndDrop.GetGenericData("assets") is HashSet<AssetResult> data) {
 				foreach (var d in data) {
-					var category = Categories.FirstOrDefault(i => i.Item1 == d.Library).Item2 ?? d.Library.AddCategory(Name);
-					d.Library.SetCategory(d.Asset, category);
+					var category = Categories.FirstOrDefault(i => i.Item1 == d.Asset.Library).Item2 ?? d.Asset.Library.AddCategory(Name);
+					d.Asset.Library.SetCategory(d.Asset, category);
 				}
 				_libraryCategoryView.Refresh();
 				AssetBrowser.StopDraggingAssets();

@@ -101,5 +101,11 @@ namespace VisualPinball.Unity.Editor
 
 		public bool IsOfCategory(AssetCategory category) => _categoryId == category.Id;
 
+		public void Save()
+		{
+			EditorUtility.SetDirty(this);
+			AssetDatabase.SaveAssetIfDirty(this);
+			Library.SaveAsset(this);
+		}
 	}
 }

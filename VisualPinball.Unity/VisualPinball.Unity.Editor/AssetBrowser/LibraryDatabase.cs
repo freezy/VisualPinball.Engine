@@ -54,7 +54,7 @@ namespace VisualPinball.Unity.Editor
 
 		public IEnumerable<AssetResult> GetAssets(AssetLibrary lib, LibraryQuery query)
 		{
-			var results = Assets.All(this).Select(asset => new AssetResult(lib, asset, 0L));
+			var results = Assets.All(this).Select(asset => new AssetResult(asset, 0L));
 			if (query.HasKeywords) {
 				results = results
 					.Select(result => {

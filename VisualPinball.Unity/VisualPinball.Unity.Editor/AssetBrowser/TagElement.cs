@@ -70,7 +70,7 @@ namespace VisualPinball.Unity.Editor
 
 			_displayElement.RegisterCallback<MouseDownEvent>(OnNameClicked);
 
-			if (!_assetResult.Library.IsLocked) {
+			if (!_assetResult.Asset.Library.IsLocked) {
 				_nameEditElement.RegisterKeyDownCallback(evt => OnKeyDown(evt, _nameEditElement));
 
 				// right-click menu
@@ -136,7 +136,7 @@ namespace VisualPinball.Unity.Editor
 					_values.Add(newName);
 				}
 				_value = newName;
-				_assetResult.Save();
+				_assetResult.Asset.Save();
 				Update();
 			}
 			ToggleEdit();
@@ -169,7 +169,7 @@ namespace VisualPinball.Unity.Editor
 		{
 			if (_values.Contains(_value)) {
 				_values.Remove(_value);
-				_assetResult.Save();
+				_assetResult.Asset.Save();
 				parent.Remove(this);
 			}
 		}

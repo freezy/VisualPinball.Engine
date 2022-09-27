@@ -43,22 +43,22 @@ namespace VisualPinball.Unity.Editor
 		private List<string> _selectedLibraries;
 
 		[NonSerialized]
-		private List<AssetResult> _assets;
+		private List<AssetResult> _assetResults;
 
 		public const string ThumbPath = "Packages/org.visualpinball.unity.assetlibrary/Editor/Thumbnails~";
 
 		[NonSerialized]
 		public AssetQuery Query;
 
-		private AssetResult LastSelectedAsset {
-			set => _detailsElement.Asset = value;
+		private AssetResult LastSelectedResult {
+			set => _detailsElement.Asset = value.Asset;
 		}
 
-		private AssetResult _firstSelectedAsset;
-		private readonly HashSet<AssetResult> _selectedAssets = new();
+		private AssetResult _firstSelectedResult;
+		private readonly HashSet<AssetResult> _selectedResults = new();
 
 		private readonly Dictionary<Asset, VisualElement> _elementByAsset = new();
-		private readonly Dictionary<VisualElement, AssetResult> _assetsByElement = new();
+		private readonly Dictionary<VisualElement, AssetResult> _resultByElement = new();
 
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
@@ -163,45 +163,45 @@ namespace VisualPinball.Unity.Editor
 			UpdateQueryResults(e.Rows);
 		}
 
-		private void UpdateQueryResults(List<AssetResult> assets)
+		private void UpdateQueryResults(List<AssetResult> results)
 		{
-			_statusLabel.text = $"Found {assets.Count} asset" + (assets.Count == 1 ? "" : "s") + ".";
-			_assets = assets;
+			_statusLabel.text = $"Found {results.Count} asset" + (results.Count == 1 ? "" : "s") + ".";
+			_assetResults = results;
 			_gridContent.Clear();
 			_elementByAsset.Clear();
-			_assetsByElement.Clear();
-			_selectedAssets.Clear();
+			_resultByElement.Clear();
+			_selectedResults.Clear();
 
-			LastSelectedAsset = null;
-			foreach (var row in assets) {
+			LastSelectedResult = null;
+			foreach (var row in results) {
 				var element = NewItem(row);
 				_elementByAsset[row.Asset] = element;
-				_assetsByElement[element] = row;
+				_resultByElement[element] = row;
 				_gridContent.Add(_elementByAsset[row.Asset]);
 			}
 
-			if (!assets.Contains(_firstSelectedAsset)) {
-				_firstSelectedAsset = null;
+			if (!results.Contains(_firstSelectedResult)) {
+				_firstSelectedResult = null;
 			} else {
-				SelectOnly(_firstSelectedAsset);
+				SelectOnly(_firstSelectedResult);
 			}
 		}
 
 		private void AddAssetContextMenu(ContextualMenuPopulateEvent evt)
 		{
-			if (evt.target is VisualElement ve && _assetsByElement.ContainsKey(ve)) {
-				var clickedAsset = _assetsByElement[ve];
-				var lib = _assetsByElement[ve].Library;
+			if (evt.target is VisualElement ve && _resultByElement.ContainsKey(ve)) {
+				var clickedAsset = _resultByElement[ve];
+				var lib = _resultByElement[ve].Asset.Library;
 				if (!lib.IsLocked) {
 					evt.menu.AppendAction("Remove from Library", _ => {
-						if (!_selectedAssets.Contains(clickedAsset)) {
-							_selectedAssets.Add(clickedAsset);
+						if (!_selectedResults.Contains(clickedAsset)) {
+							_selectedResults.Add(clickedAsset);
 							ToggleSelectionClass(_elementByAsset[clickedAsset.Asset]);
 						}
 						var numRemovedAssets = 0;
-						foreach (var asset in _selectedAssets.Where(a => !a.Library.IsLocked).ToList()) {
-							_selectedAssets.Remove(asset);
-							asset.Library.RemoveAsset(asset.Asset);
+						foreach (var asset in _selectedResults.Where(a => !a.Asset.Library.IsLocked).ToList()) {
+							_selectedResults.Remove(asset);
+							asset.Asset.Library.RemoveAsset(asset.Asset);
 							numRemovedAssets++;
 						}
 
@@ -224,13 +224,13 @@ namespace VisualPinball.Unity.Editor
 			if (evt.button != 0) {
 				return;
 			}
-			var clickedAsset = _assetsByElement[element];
+			var clickedAsset = _resultByElement[element];
 
 			// no modifier pressed
 			if (!evt.shiftKey && !evt.ctrlKey) {
 				// already selected?
-				if (_selectedAssets.Contains(clickedAsset)) {
-					if (_selectedAssets.Count != 1) {
+				if (_selectedResults.Contains(clickedAsset)) {
+					if (_selectedResults.Count != 1) {
 						SelectOnly(clickedAsset);
 					} // if count is 1, and user clicks on it, do nothing.
 				} else {
@@ -241,7 +241,7 @@ namespace VisualPinball.Unity.Editor
 			// only CTRL pressed
 			if (!evt.shiftKey && evt.ctrlKey) {
 				// already selected?
-				if (_selectedAssets.Contains(clickedAsset)) {
+				if (_selectedResults.Contains(clickedAsset)) {
 					UnSelect(clickedAsset);
 				} else {
 					Select(clickedAsset);
@@ -250,9 +250,9 @@ namespace VisualPinball.Unity.Editor
 
 			// only SHIFT pressed
 			if (evt.shiftKey && !evt.ctrlKey) {
-				var startIndex = _firstSelectedAsset != null ? _assets.IndexOf(_firstSelectedAsset) : 0;
-				var endIndex = _assets.IndexOf(clickedAsset);
-				LastSelectedAsset = clickedAsset;
+				var startIndex = _firstSelectedResult != null ? _assetResults.IndexOf(_firstSelectedResult) : 0;
+				var endIndex = _assetResults.IndexOf(clickedAsset);
+				LastSelectedResult = clickedAsset;
 				SelectRange(startIndex, endIndex);
 			}
 
@@ -327,15 +327,15 @@ namespace VisualPinball.Unity.Editor
 			if (start > end) {
 				(start, end) = (end, start);
 			}
-			for (var i = 0; i < _assets.Count; i++) {
-				var asset = _assets[i];
+			for (var i = 0; i < _assetResults.Count; i++) {
+				var asset = _assetResults[i];
 				if (i >= start && i <= end) {
-					if (!_selectedAssets.Contains(asset)) {
-						_selectedAssets.Add(asset);
+					if (!_selectedResults.Contains(asset)) {
+						_selectedResults.Add(asset);
 						ToggleSelectionClass(_elementByAsset[asset.Asset]);
 					}
-				} else if (_selectedAssets.Contains(asset)) {
-					_selectedAssets.Remove(asset);
+				} else if (_selectedResults.Contains(asset)) {
+					_selectedResults.Remove(asset);
 					ToggleSelectionClass(_elementByAsset[asset.Asset]);
 				}
 			}
@@ -343,47 +343,47 @@ namespace VisualPinball.Unity.Editor
 
 		private void SelectNone()
 		{
-			foreach (var selectedAsset in _selectedAssets) {
+			foreach (var selectedAsset in _selectedResults) {
 				ToggleSelectionClass(_elementByAsset[selectedAsset.Asset]);
 			}
-			_selectedAssets.Clear();
-			_firstSelectedAsset = null;
-			LastSelectedAsset = null;
+			_selectedResults.Clear();
+			_firstSelectedResult = null;
+			LastSelectedResult = null;
 		}
 
-		private void SelectOnly(AssetResult asset)
+		private void SelectOnly(AssetResult result)
 		{
 			var wasAlreadySelected = false;
-			foreach (var selectedAsset in _selectedAssets) {
-				if (selectedAsset != asset) {
+			foreach (var selectedAsset in _selectedResults) {
+				if (selectedAsset != result) {
 					ToggleSelectionClass(_elementByAsset[selectedAsset.Asset]);
 				} else {
 					wasAlreadySelected = true;
 				}
 			}
-			_selectedAssets.Clear();
-			_selectedAssets.Add(asset);
+			_selectedResults.Clear();
+			_selectedResults.Add(result);
 			if (!wasAlreadySelected) {
-				ToggleSelectionClass(_elementByAsset[asset.Asset]);
+				ToggleSelectionClass(_elementByAsset[result.Asset]);
 			}
-			_firstSelectedAsset = asset;
-			LastSelectedAsset = asset;
+			_firstSelectedResult = result;
+			LastSelectedResult = result;
 		}
 
-		private void UnSelect(AssetResult asset)
+		private void UnSelect(AssetResult result)
 		{
-			_selectedAssets.Remove(asset);
-			ToggleSelectionClass(_elementByAsset[asset.Asset]);
-			_firstSelectedAsset = _selectedAssets.Count > 0 ? _selectedAssets.FirstOrDefault() : null;
-			LastSelectedAsset = _selectedAssets.Count > 0 ? _selectedAssets.LastOrDefault() : null;
+			_selectedResults.Remove(result);
+			ToggleSelectionClass(_elementByAsset[result.Asset]);
+			_firstSelectedResult = _selectedResults.Count > 0 ? _selectedResults.FirstOrDefault() : null;
+			LastSelectedResult = _selectedResults.Count > 0 ? _selectedResults.LastOrDefault() : null;
 		}
 
 
-		private void Select(AssetResult asset)
+		private void Select(AssetResult result)
 		{
-			_selectedAssets.Add(asset);
-			ToggleSelectionClass(_elementByAsset[asset.Asset]);
-			LastSelectedAsset = asset;
+			_selectedResults.Add(result);
+			ToggleSelectionClass(_elementByAsset[result.Asset]);
+			LastSelectedResult = result;
 		}
 
 		private static void ToggleSelectionClass(VisualElement element) => element.ToggleInClassList("selected");
@@ -466,19 +466,19 @@ namespace VisualPinball.Unity.Editor
 			}
 		}
 
-		public void AttachData(AssetResult clickedAsset)
+		public void AttachData(AssetResult clickedResult)
 		{
-			if (!_selectedAssets.Contains(clickedAsset)) {
-				_selectedAssets.Add(clickedAsset);
+			if (!_selectedResults.Contains(clickedResult)) {
+				_selectedResults.Add(clickedResult);
 			}
-			DragAndDrop.objectReferences = _selectedAssets.Select(result => result.Asset.Object).ToArray();
-			StartDraggingAssets(_selectedAssets);
+			DragAndDrop.objectReferences = _selectedResults.Select(result => result.Asset.Object).ToArray();
+			StartDraggingAssets(_selectedResults);
 		}
 	}
 
 	public interface IDragHandler
 	{
-		void AttachData(AssetResult clickedAsset);
+		void AttachData(AssetResult clickedResult);
 	}
 
 }
