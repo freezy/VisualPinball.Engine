@@ -1,5 +1,11 @@
 <ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" xmlns:uivpe="VisualPinball.Unity.Editor" editor-extension-mode="True">
 
-	<ui:Label text="Read-only elements here" />
+	<!-- Description -->
+	<ui:Label binding-path="Description" class="top-space" />
+
+	<!-- Attributes -->
+	<ui:Foldout text="Attributes" name="attributes-container" class="subtitle">
+	</ui:Foldout>
+
 
 </ui:UXML>

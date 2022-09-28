@@ -38,9 +38,12 @@
 .subtitle {
 	margin-bottom: 4px;
 	margin-top: 16px;
-	-unity-font-style: bold;
 }
 
 .top-space {
 	margin-top: 8px;
+}
+
+#info-geo-stats {
+	white-space: normal;
 }

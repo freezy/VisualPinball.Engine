@@ -1,0 +1,16 @@
+﻿#attribute-row {
+	flex-direction: row;
+	margin-top: 2px;
+}
+
+#attribute-row #attribute-values {
+	flex-grow: 1;
+	flex-direction: row;
+	justify-content: flex-end;
+	flex-wrap: wrap;
+}
+
+#attribute-row #attribute-values > ToolbarToggle {
+	border-top-width: 1px;
+	border-bottom-width: 1px;
+}

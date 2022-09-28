@@ -1,5 +1,7 @@
 <ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" xmlns:uivpe="VisualPinball.Unity.Editor" editor-extension-mode="True">
 
-	<ui:Label name="title" text="I'm the footer!" />
+	<ui:Foldout text="Info" name="footer-info" class="subtitle">
+		<ui:Label name="info-geo-stats"/>
+	</ui:Foldout>
 
 </ui:UXML>

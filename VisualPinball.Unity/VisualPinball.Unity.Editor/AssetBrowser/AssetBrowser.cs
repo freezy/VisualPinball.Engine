@@ -51,7 +51,7 @@ namespace VisualPinball.Unity.Editor
 		public AssetQuery Query;
 
 		private AssetResult LastSelectedResult {
-			set => _detailsElement.Asset = value.Asset;
+			set => _detailsElement.Asset = value?.Asset;
 		}
 
 		private AssetResult _firstSelectedResult;
@@ -121,7 +121,6 @@ namespace VisualPinball.Unity.Editor
 		{
 			RefreshLibraries();
 			RefreshCategories();
-			_detailsElement.UpdateDetails();
 		}
 
 		public void FilterByAttribute(string attributeKey, string value, bool remove = false)
