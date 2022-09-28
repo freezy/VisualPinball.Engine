@@ -47,7 +47,7 @@ namespace VisualPinball.Unity.Editor
 			}
 
 			if (_previewEditor) {
-				var previewSize = parent.resolvedStyle.width - parent.resolvedStyle.paddingLeft - parent.resolvedStyle.paddingRight - 3;
+				var previewSize = parent.resolvedStyle.width - parent.resolvedStyle.paddingLeft - parent.resolvedStyle.paddingRight - 2 * EditorGUIUtility.pixelsPerPoint;
 				var rect = EditorGUILayout.GetControlRect(false, previewSize, GUILayout.Width(previewSize));
 				_previewEditor.OnInteractivePreviewGUI(rect, GUI.skin.box);
 				_container.style.height = _container.resolvedStyle.width;

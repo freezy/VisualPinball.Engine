@@ -45,25 +45,28 @@ namespace VisualPinball.Unity.Editor
 		private AssetBrowser AssetBrowser => panel?.visualTree?.userData as AssetBrowser;
 
 		public Asset Asset {
-			get => _asset;
 			set {
 				if (_asset == value) {
 					return;
 				}
 				// toggle empty label
 				if (value != null && _asset == null) {
-					// _previewEditorElement.style.height = _previewEditorElement.resolvedStyle.width;
-					// _noSelectionElement.AddToClassList("hidden");
-					// _detailsElement.RemoveFromClassList("hidden");
+					SetVisibility(_emptyLabel, false);
+					SetVisibility(_scrollView, true);
 				}
 				if (value == null && _asset != null) {
-					// _noSelectionElement.RemoveFromClassList("hidden");
-					// _detailsElement.AddToClassList("hidden");
+					SetVisibility(_emptyLabel, true);
+					SetVisibility(_scrollView, false);
 				}
 				_asset = value;
 				if (value != null) {
 					var so = new SerializedObject(_asset);
-					_body.Bind(so);
+					if (_asset.Library.IsLocked) {
+						_bodyReadOnly.Bind(so);
+						BindReadOnly(_asset);
+					} else {
+						_body.Bind(so);
+					}
 					Bind(_asset);
 				}
 			}
@@ -98,6 +101,9 @@ namespace VisualPinball.Unity.Editor
 		private readonly VisualElement _assetScaleContainer;
 		private readonly EnumField _assetScale;
 
+		private readonly ScrollView _scrollView;
+		private readonly Label _emptyLabel;
+
 		private readonly TemplateContainer _header;
 		private readonly TemplateContainer _body;
 		private readonly TemplateContainer _bodyReadOnly;
@@ -107,8 +113,6 @@ namespace VisualPinball.Unity.Editor
 
 		public AssetDetails()
 		{
-			//RefreshCameraPresets();
-
 			var header = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>("Packages/org.visualpinball.engine.unity/VisualPinball.Unity/VisualPinball.Unity.Editor/AssetBrowser/AssetStructure/AssetDetails_Header.uxml");
 			_header = header.CloneTree();
 			var body = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>("Packages/org.visualpinball.engine.unity/VisualPinball.Unity/VisualPinball.Unity.Editor/AssetBrowser/AssetStructure/AssetDetails_Body.uxml");
@@ -119,10 +123,27 @@ namespace VisualPinball.Unity.Editor
 			_footer = footer.CloneTree();
 			var styleSheet = AssetDatabase.LoadAssetAtPath<StyleSheet>("Packages/org.visualpinball.engine.unity/VisualPinball.Unity/VisualPinball.Unity.Editor/AssetBrowser/AssetStructure/AssetDetails.uss");
 			styleSheets.Add(styleSheet);
-			Add(_header);
-			Add(_bodyReadOnly);
-			Add(_body);
-			Add(_footer);
+
+			_scrollView = new ScrollView();
+			_scrollView.Add(_header);
+			_scrollView.Add(_bodyReadOnly);
+			_scrollView.Add(_body);
+			_scrollView.Add(_footer);
+
+			_emptyLabel = new Label("No item selected.") {
+				style = {
+					alignSelf = Align.Center,
+					marginTop = 24,
+					marginBottom = 24,
+					unityFontStyleAndWeight = FontStyle.Italic
+				}
+			};
+
+			Add(_emptyLabel);
+			Add(_scrollView);
+
+			SetVisibility(_emptyLabel, true);
+			SetVisibility(_scrollView, false);
 
 
 			// _noSelectionElement = ui.Q<Label>("nothing-selected");
@@ -192,13 +213,45 @@ namespace VisualPinball.Unity.Editor
 
 			_header.Q<PreviewEditorElement>("preview").Object = asset.Object;
 			_body.Q<PresetDropdownElement>("thumb-camera-preset").SetValue(asset.ThumbCameraPreset);
+			BindInfo(asset);
 
-			var visibleBody = _asset.Library.IsLocked ? _bodyReadOnly : _body;
-			var hiddenBody = !_asset.Library.IsLocked ? _bodyReadOnly : _body;
-			visibleBody.style.display = DisplayStyle.Flex;
-			visibleBody.style.flexGrow = 1000000000;
-			hiddenBody.style.display = DisplayStyle.None;
-			hiddenBody.style.flexGrow = 1;
+			SetVisibility(_bodyReadOnly, _asset.Library.IsLocked);
+			SetVisibility(_body, !_asset.Library.IsLocked);
+		}
+
+		private void BindInfo(Asset asset)
+		{
+			// info
+			if (asset.Object is GameObject go) {
+				SetVisibility(_footer.Q<Foldout>("footer-info"), true);
+				var (meshes, subMeshes, vertices, triangles, uvs, materials) = CountVertices(go);
+				const string separator = ", ";
+				_footer.Q<Label>("info-geo-stats").text =
+					vertices + (vertices == 1 ? " vertex" : " vertices") + separator +
+					triangles + " triangle" + (triangles == 1 ? "" : "s") + separator +
+					uvs + " uv" + (uvs == 1 ? "" : "s") + separator +
+					meshes + " mesh" + (meshes == 1 ? "" : "es") + separator +
+					subMeshes + " sub mesh" + (subMeshes == 1 ? "" : "es") + separator +
+					materials + " material" + (materials == 1 ? "" : "s");
+
+			} else {
+				SetVisibility(_footer.Q<Foldout>("footer-info"), false);
+			}
+		}
+
+		private void BindReadOnly(Asset asset)
+		{
+			var attributes = _bodyReadOnly.Q<Foldout>("attributes-container");
+			if (asset.Attributes is { Count: > 0 }) {
+				attributes.Clear();
+				foreach (var attribute in asset.Attributes) {
+					attributes.Add(new AssetAttributeElement(attribute));
+				}
+				SetVisibility(attributes, true);
+			} else {
+				SetVisibility(attributes, false);
+			}
+
 		}
 
 		private void OnReplaceSelected()
@@ -275,15 +328,6 @@ namespace VisualPinball.Unity.Editor
 				return;
 			}
 
-			// var browser = AssetBrowser;
-			// _object = _asset.Asset.Object;
-			// _titleElement.text = _asset.Asset.Name;
-			// _libraryElement.text = _asset.Library.Name;
-			// _categoryElement.text = _asset.Asset.Category.Name;
-			// _dateElement.text = _asset.Asset.AddedAt.ToLongDateString();
-			// _descriptionViewElement.text = _asset.Asset.Description;
-			// _descriptionEditElement.SetValueWithoutNotify(_asset.Asset.Description);
-			//
 			// _attributesElement.Clear();
 			// if (_asset.Asset.Attributes != null) {
 			// 	SetVisibility(_attributesTitleElement, _asset.Asset.Attributes.Count > 0 || !_asset.Library.IsLocked);
