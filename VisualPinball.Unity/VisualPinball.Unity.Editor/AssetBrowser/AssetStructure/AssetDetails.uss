@@ -35,15 +35,27 @@
 	margin-bottom: 16px
 }
 
-.subtitle {
-	margin-bottom: 4px;
-	margin-top: 16px;
-}
-
 .top-space {
 	margin-top: 8px;
 }
 
+.bottom-space {
+	margin-bottom: 8px;
+}
+
+Foldout > Toggle {
+	margin-top: 8px;
+	-unity-font-style: bold;
+}
+
 #info-geo-stats {
 	white-space: normal;
+}
+
+.foldout > VisualElement {
+	align-content: auto;
+	align-items: auto;
+	align-self: flex-start;
+	padding-left: 16px;
+	padding-top: 2px;
 }

@@ -14,19 +14,30 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-using System.Collections.Generic;
+using UnityEditor;
+using UnityEngine;
+using UnityEngine.UIElements;
 
 namespace VisualPinball.Unity.Editor
 {
-	public class AssetQueryResult
+	/// <summary>
+	/// The visual element for read-only presentation of a link. See also <see cref="AssetLinkPropertyDrawer"/>
+	/// for write-enabled presentation.
+	/// </summary>
+	public class AssetLinkElement : VisualElement
 	{
-		public readonly List<AssetResult> Rows;
-		public readonly long DurationMs;
-
-		public AssetQueryResult(List<AssetResult> rows, long duration)
+		public AssetLinkElement(AssetLink link)
 		{
-			Rows = rows;
-			DurationMs = duration;
+			var styleSheet = AssetDatabase.LoadAssetAtPath<StyleSheet>("Packages/org.visualpinball.engine.unity/VisualPinball.Unity/VisualPinball.Unity.Editor/AssetBrowser/AssetStructure/AssetLinkElement.uss");
+			styleSheets.Add(styleSheet);
+
+			var linkEl = new Label(link.Name);
+			linkEl.RegisterCallback<MouseDownEvent>(ev => OpenLink(link.Url));
+
+			Add(linkEl);
 		}
+
+		private static void OpenLink(string link) => Application.OpenURL(link);
+
 	}
 }

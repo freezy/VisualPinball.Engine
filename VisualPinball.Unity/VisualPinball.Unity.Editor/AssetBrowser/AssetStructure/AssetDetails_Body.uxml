@@ -4,10 +4,10 @@
 	<ui:TextField binding-path="Description" label="Description" multiline="true" class="top-space" />
 
 	<!-- Attributes -->
-	<uie:PropertyField binding-path="Attributes" label="Attributes" />
+	<uie:PropertyField binding-path="Tags" label="Tags" class="top-space" />
 
 	<!-- Attributes -->
-	<uie:PropertyField binding-path="Tags" label="Tags" class="top-space" />
+	<uie:PropertyField binding-path="Attributes" label="Attributes" />
 
 	<!-- Tags -->
 	<uie:PropertyField binding-path="Links" label="Links" class="top-space" />

@@ -16,6 +16,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text.RegularExpressions;
 using NLog;
@@ -40,6 +41,7 @@ namespace VisualPinball.Unity.Editor
 		private readonly HashSet<string> _tags = new();
 
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
+		private readonly Stopwatch _queryTime = new();
 
 		public AssetQuery(List<AssetLibrary> libraries)
 		{
@@ -48,6 +50,8 @@ namespace VisualPinball.Unity.Editor
 
 		public void Search(string q)
 		{
+			StartWatch();
+
 			// parse attributes
 			_attributes.Clear();
 			const string quoted = "\"([\\w\\d\\s_-]+)\"";
@@ -86,12 +90,14 @@ namespace VisualPinball.Unity.Editor
 
 		public void Filter(Dictionary<AssetLibrary, List<AssetCategory>> categories)
 		{
+			StartWatch();
 			_categories = categories;
 			Run();
 		}
 
 		public void Toggle(AssetLibrary lib)
 		{
+			StartWatch();
 			if (lib.IsActive && !_libraries.Contains(lib)) {
 				_libraries.Add(lib);
 			}
@@ -118,6 +124,11 @@ namespace VisualPinball.Unity.Editor
 			.Distinct()
 			.ToArray();
 
+		private void StartWatch()
+		{
+			_queryTime.Restart();
+		}
+
 		private void Run()
 		{
 			var assets = _libraries
@@ -143,7 +154,7 @@ namespace VisualPinball.Unity.Editor
 				.OrderBy(r => r.Score)
 				.ToList();
 
-			OnQueryUpdated?.Invoke(this, new AssetQueryResult(assets));
+			OnQueryUpdated?.Invoke(this, new AssetQueryResult(assets, _queryTime.ElapsedMilliseconds));
 		}
 	}
 

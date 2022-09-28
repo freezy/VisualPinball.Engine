@@ -1,11 +1,15 @@
 <ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" xmlns:uivpe="VisualPinball.Unity.Editor" editor-extension-mode="True">
 
 	<!-- Description -->
-	<ui:Label binding-path="Description" class="top-space" />
+	<ui:Label binding-path="Description" class="bottom-space"/>
+
+	<!-- Tags -->
+	<ui:Foldout text="Tags" name="tags-container" class="foldout"/>
+
+	<!-- Links -->
+	<ui:Foldout text="Links" name="links-container" class="foldout"/>
 
 	<!-- Attributes -->
-	<ui:Foldout text="Attributes" name="attributes-container" class="subtitle">
-	</ui:Foldout>
-
+	<ui:Foldout text="Attributes" name="attributes-container"/>
 
 </ui:UXML>

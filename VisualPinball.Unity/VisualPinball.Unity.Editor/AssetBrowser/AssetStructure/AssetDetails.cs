@@ -241,6 +241,19 @@ namespace VisualPinball.Unity.Editor
 
 		private void BindReadOnly(Asset asset)
 		{
+			// tags
+			var tags = _bodyReadOnly.Q<Foldout>("tags-container");
+			if (asset.Tags is { Count: > 0 }) {
+				tags.Clear();
+				foreach (var tag in asset.Tags) {
+					tags.Add(new AssetTagElement(tag));
+				}
+				SetVisibility(tags, true);
+			} else {
+				SetVisibility(tags, false);
+			}
+
+			// attributes
 			var attributes = _bodyReadOnly.Q<Foldout>("attributes-container");
 			if (asset.Attributes is { Count: > 0 }) {
 				attributes.Clear();
@@ -252,6 +265,17 @@ namespace VisualPinball.Unity.Editor
 				SetVisibility(attributes, false);
 			}
 
+			// links
+			var links = _bodyReadOnly.Q<Foldout>("links-container");
+			if (asset.Links is { Count: > 0 }) {
+				links.Clear();
+				foreach (var link in asset.Links) {
+					links.Add(new AssetLinkElement(link));
+				}
+				SetVisibility(links, true);
+			} else {
+				SetVisibility(links, false);
+			}
 		}
 
 		private void OnReplaceSelected()

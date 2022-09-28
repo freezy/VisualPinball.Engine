@@ -1,0 +1,8 @@
+﻿AssetLinkElement > Label {
+	padding: 1px 3px 1px 3px;
+	margin-left: -3px
+}
+
+AssetLinkElement > Label:hover {
+	background-color: #515151;
+}
