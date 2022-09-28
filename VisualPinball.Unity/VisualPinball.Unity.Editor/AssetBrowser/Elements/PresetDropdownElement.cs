@@ -68,7 +68,8 @@ namespace VisualPinball.Unity.Editor
 				_presetPath = value;
 				var presets = Directory.GetFiles(_presetPath).Where(p => !p.Contains(".meta"));
 				_presets = presets.Select(filename => (Preset)AssetDatabase.LoadAssetAtPath(filename, typeof(Preset))).ToList();
-				_dropdown.choices = _presets.Select(p => p.name).ToList();
+				_dropdown.choices = new List<string> { "<Default>" };
+				_dropdown.choices.AddRange(_presets.Select(p => p.name));
 			}
 		}
 
@@ -94,9 +95,10 @@ namespace VisualPinball.Unity.Editor
 		public void SetValue(Preset preset)
 		{
 			if (preset == null) {
-				return;
+				_dropdown.index = 0;
+			} else {
+				_dropdown.value = preset.name;
 			}
-			_dropdown.value = preset.name;
 		}
 
 		private void OnDropdownValueChanged(ChangeEvent<string> evt)
@@ -104,12 +106,7 @@ namespace VisualPinball.Unity.Editor
 			if (evt.newValue == evt.previousValue) {
 				return;
 			}
-			var selectedPreset = _presets.FirstOrDefault(p => p.name == evt.newValue);
-			if (selectedPreset != null) {
-				_objectPicker.value = selectedPreset;
-			} else {
-				Debug.LogWarning($"Cannot find new preset {evt.newValue} in loaded presets.");
-			}
+			_objectPicker.value = _presets.FirstOrDefault(p => p.name == evt.newValue);
 		}
 	}
 }

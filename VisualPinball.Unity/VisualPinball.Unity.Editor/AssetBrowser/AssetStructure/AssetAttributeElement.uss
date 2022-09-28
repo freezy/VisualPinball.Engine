@@ -14,4 +14,5 @@
 #attribute-row #attribute-values > ToolbarToggle {
 	border-top-width: 1px;
 	border-bottom-width: 1px;
+	margin-left: 4px;
 }
