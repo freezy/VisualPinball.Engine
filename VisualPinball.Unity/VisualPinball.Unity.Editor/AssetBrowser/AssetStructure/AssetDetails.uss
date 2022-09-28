@@ -43,19 +43,27 @@
 	margin-bottom: 8px;
 }
 
+.left-indent {
+	padding-left: 16px;
+	padding-top: 2px;
+}
+
 Foldout > Toggle {
 	margin-top: 8px;
 	-unity-font-style: bold;
 }
 
-#info-geo-stats {
-	white-space: normal;
-}
-
-.foldout > VisualElement {
+#tags-container {
+	flex-direction: row;
 	align-content: auto;
 	align-items: auto;
 	align-self: flex-start;
-	padding-left: 16px;
-	padding-top: 2px;
+}
+
+#links-container {
+	align-self: flex-start;
+}
+
+#info-geo-stats {
+	white-space: normal;
 }

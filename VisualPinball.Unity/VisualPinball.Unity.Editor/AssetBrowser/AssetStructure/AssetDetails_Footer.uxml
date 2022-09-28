@@ -1,7 +1,7 @@
 <ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" xmlns:uivpe="VisualPinball.Unity.Editor" editor-extension-mode="True">
 
-	<ui:Foldout text="Info" name="footer-info" class="foldout">
-		<ui:Label name="info-geo-stats"/>
+	<ui:Foldout text="Info" name="footer-info">
+		<ui:Label name="info-geo-stats" class="left-indent"/>
 	</ui:Foldout>
 
 </ui:UXML>
