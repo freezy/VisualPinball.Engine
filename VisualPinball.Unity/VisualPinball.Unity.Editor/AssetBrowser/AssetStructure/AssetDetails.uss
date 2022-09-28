@@ -67,3 +67,14 @@ Foldout > Toggle {
 #info-geo-stats {
 	white-space: normal;
 }
+
+#container-replace-selected {
+	flex-direction: row;
+	margin-bottom: 16px;
+}
+#replace-selected-keep-name {
+	margin-left: 8px;
+}
+#replace-selected-keep-name Label {
+	margin-left: 4px;
+}

@@ -20,6 +20,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using UnityEditor;
+using UnityEditor.Presets;
 using UnityEngine;
 using Object = UnityEngine.Object;
 
@@ -42,6 +43,8 @@ namespace VisualPinball.Unity.Editor
 		public string LibraryRoot;
 
 		public bool IsLocked;
+
+		public Preset DefaultThumbCameraPreset;
 
 		[SerializeField]
 		private LibraryDatabase _db;

@@ -20,4 +20,10 @@
 	<!-- Interactive Preview -->
 	<uivpe:PreviewEditorElement name="preview"/>
 
+	<!-- Action Buttons -->
+	<ui:VisualElement name="container-replace-selected">
+		<ui:Button name="replace-selected" text="Replace Selected"/>
+		<ui:Toggle name="replace-selected-keep-name" text="Keep Name(s)"/>
+	</ui:VisualElement>
+
 </ui:UXML>
