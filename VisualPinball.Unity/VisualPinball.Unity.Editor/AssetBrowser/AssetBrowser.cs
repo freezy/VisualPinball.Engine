@@ -45,10 +45,10 @@ namespace VisualPinball.Unity.Editor
 		[NonSerialized]
 		private List<AssetResult> _assetResults;
 
-		public const string ThumbPath = "Packages/org.visualpinball.unity.assetlibrary/Editor/Thumbnails~";
-
 		[NonSerialized]
 		public AssetQuery Query;
+
+		public const string ThumbPath = "Packages/org.visualpinball.unity.assetlibrary/Editor/Thumbnails~";
 
 		private AssetResult LastSelectedResult {
 			set => _detailsElement.Asset = value?.Asset;
@@ -159,12 +159,12 @@ namespace VisualPinball.Unity.Editor
 
 		private void OnQueryUpdated(object sender, AssetQueryResult e)
 		{
-			UpdateQueryResults(e.Rows);
+			UpdateQueryResults(e.Rows, e.DurationMs);
 		}
 
-		private void UpdateQueryResults(List<AssetResult> results)
+		private void UpdateQueryResults(List<AssetResult> results, long duration)
 		{
-			_statusLabel.text = $"Found {results.Count} asset" + (results.Count == 1 ? "" : "s") + ".";
+			_statusLabel.text = $"Found {results.Count} asset" + (results.Count == 1 ? "" : "s") + $" in {duration}ms.";
 			_assetResults = results;
 			_gridContent.Clear();
 			_elementByAsset.Clear();
