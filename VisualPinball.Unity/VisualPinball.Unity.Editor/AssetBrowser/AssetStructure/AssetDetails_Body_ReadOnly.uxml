@@ -4,12 +4,16 @@
 	<ui:Label binding-path="Description" class="bottom-space"/>
 
 	<!-- Tags -->
-	<ui:Foldout text="Tags" name="tags-container" class="foldout"/>
-
-	<!-- Links -->
-	<ui:Foldout text="Links" name="links-container" class="foldout"/>
+	<ui:Foldout text="Tags" name="tags-foldout">
+		<ui:VisualElement name="tags-container" class="left-indent"/>
+	</ui:Foldout>
 
 	<!-- Attributes -->
 	<ui:Foldout text="Attributes" name="attributes-container"/>
+
+	<!-- Links -->
+	<ui:Foldout text="Links" name="links-foldout">
+		<ui:VisualElement name="links-container" class="left-indent"/>
+	</ui:Foldout>
 
 </ui:UXML>

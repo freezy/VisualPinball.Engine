@@ -1,4 +1,5 @@
 ﻿AssetTagElement > ToolbarToggle {
 	border-top-width: 1px;
 	border-bottom-width: 1px;
+	margin-right: 4px;
 }

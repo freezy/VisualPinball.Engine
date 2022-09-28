@@ -242,11 +242,12 @@ namespace VisualPinball.Unity.Editor
 		private void BindReadOnly(Asset asset)
 		{
 			// tags
-			var tags = _bodyReadOnly.Q<Foldout>("tags-container");
+			var tags = _bodyReadOnly.Q<Foldout>("tags-foldout");
 			if (asset.Tags is { Count: > 0 }) {
-				tags.Clear();
+				var container = tags.Q<VisualElement>("tags-container");
+				container.Clear();
 				foreach (var tag in asset.Tags) {
-					tags.Add(new AssetTagElement(tag));
+					container.Add(new AssetTagElement(tag));
 				}
 				SetVisibility(tags, true);
 			} else {
@@ -266,11 +267,12 @@ namespace VisualPinball.Unity.Editor
 			}
 
 			// links
-			var links = _bodyReadOnly.Q<Foldout>("links-container");
+			var links = _bodyReadOnly.Q<Foldout>("links-foldout");
 			if (asset.Links is { Count: > 0 }) {
-				links.Clear();
+				var container = links.Q<VisualElement>("links-container");
+				container.Clear();
 				foreach (var link in asset.Links) {
-					links.Add(new AssetLinkElement(link));
+					container.Add(new AssetLinkElement(link));
 				}
 				SetVisibility(links, true);
 			} else {
