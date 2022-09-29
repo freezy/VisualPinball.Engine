@@ -22,7 +22,7 @@ using UnityEngine;
 namespace VisualPinball.Unity.Editor
 {
 	[Serializable]
-	internal class AssetMaterialOverride : ISerializationCallbackReceiver
+	public class AssetMaterialOverride : ISerializationCallbackReceiver
 	{
 		public string Name;
 		public Material Material;
@@ -37,7 +37,6 @@ namespace VisualPinball.Unity.Editor
 
 		public void OnAfterDeserialize()
 		{
-			throw new NotImplementedException();
 		}
 	}
 }
