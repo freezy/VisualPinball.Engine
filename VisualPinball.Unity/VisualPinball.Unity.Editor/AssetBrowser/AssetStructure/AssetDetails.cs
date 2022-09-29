@@ -151,6 +151,9 @@ namespace VisualPinball.Unity.Editor
 
 		private void BindReadOnly(Asset asset)
 		{
+			// description
+			SetVisibility(_bodyReadOnly.Q<Label>("description"), !string.IsNullOrEmpty(_asset.Description));
+
 			// tags
 			var tags = _bodyReadOnly.Q<Foldout>("tags-foldout");
 			if (asset.Tags is { Count: > 0 }) {

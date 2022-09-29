@@ -22,9 +22,22 @@ using UnityEngine;
 namespace VisualPinball.Unity.Editor
 {
 	[Serializable]
-	internal class AssetMaterialOverride
+	internal class AssetMaterialOverride : ISerializationCallbackReceiver
 	{
 		public string Name;
 		public Material Material;
+		public string Id;
+
+		public void OnBeforeSerialize()
+		{
+			if (string.IsNullOrEmpty(Id)) {
+				Id = Guid.NewGuid().ToString();
+			}
+		}
+
+		public void OnAfterDeserialize()
+		{
+			throw new NotImplementedException();
+		}
 	}
 }
