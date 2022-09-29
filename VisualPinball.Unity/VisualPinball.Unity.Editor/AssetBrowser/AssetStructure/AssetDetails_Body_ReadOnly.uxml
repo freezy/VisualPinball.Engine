@@ -1,5 +1,9 @@
 <ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" xmlns:uivpe="VisualPinball.Unity.Editor" editor-extension-mode="True">
 
+	<ui:Foldout name="materials-foldout" text="Material Variations">
+		<ui:ScrollView name="materials-container" mode="Horizontal"/>
+	</ui:Foldout>
+
 	<!-- Description -->
 	<ui:Label name="description" binding-path="Description" class="bottom-space"/>
 
