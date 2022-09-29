@@ -1,0 +1,6 @@
+﻿<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" editor-extension-mode="True">
+	<uie:ToolbarToggle>
+		<ui:Image name="thumbnail" />
+		<ui:Label name="label"/>
+	</uie:ToolbarToggle>
+</ui:UXML>

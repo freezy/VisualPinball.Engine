@@ -151,6 +151,22 @@ namespace VisualPinball.Unity.Editor
 
 		private void BindReadOnly(Asset asset)
 		{
+			// material variations
+			var materialsFoldout = _bodyReadOnly.Q<Foldout>("materials-foldout");
+			if (asset.MaterialVariations?.Count > 0) {
+				var materialsContainer = materialsFoldout.Q<VisualElement>("materials-container");
+				materialsContainer.Clear();
+				foreach (var materialVariation in asset.MaterialVariations) {
+					foreach (var materialOverride in materialVariation.Overrides) {
+						materialsContainer.Add(new AssetMaterialOverrideElement(materialVariation, materialOverride));
+					}
+				}
+				SetVisibility(materialsFoldout, true);
+
+			} else {
+				SetVisibility(materialsFoldout, false);
+			}
+
 			// description
 			SetVisibility(_bodyReadOnly.Q<Label>("description"), !string.IsNullOrEmpty(_asset.Description));
 

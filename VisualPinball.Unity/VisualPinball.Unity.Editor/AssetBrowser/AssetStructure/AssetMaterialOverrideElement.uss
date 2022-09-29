@@ -1,0 +1,13 @@
+﻿#thumbnail {
+	width: 96px;
+	height: 96px;
+}
+
+ToolbarToggle {
+	flex-direction: column;
+	margin-right: 4px;
+	margin-left: 1px;
+	padding: 16px;
+	border-width: 1px;
+	align-items: center;
+}
