@@ -3,6 +3,9 @@
 	<!-- Description -->
 	<ui:TextField binding-path="Description" label="Description" multiline="true" class="top-space" />
 
+	<!-- Material Overrides -->
+	<uie:PropertyField binding-path="MaterialVariations" label="Material Variations" class="top-space" />
+
 	<!-- Attributes -->
 	<uie:PropertyField binding-path="Tags" label="Tags" class="top-space" />
 
@@ -11,9 +14,6 @@
 
 	<!-- Tags -->
 	<uie:PropertyField binding-path="Links" label="Links" class="top-space" />
-
-	<!-- Material Overrides -->
-	<uie:PropertyField binding-path="MaterialVariations" label="Material Variations" class="top-space" />
 
 	<!-- Geometry -->
 	<ui:Foldout text="Geometry">
