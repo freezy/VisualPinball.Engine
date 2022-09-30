@@ -182,13 +182,20 @@ namespace VisualPinball.Unity.Editor
 				CreatePrefab<SlingshotComponent>("Slingshots", "Prefabs/Slingshot");
 			}
 
-			if (CreateButton("Metal Wire\nGuide", Icons.MetalWireGuide(color: iconColor), iconSize, buttonStyle))
-			{
+			if (CreateButton("Metal Wire\nGuide", Icons.MetalWireGuide(color: iconColor), iconSize, buttonStyle)) {
 				CreateItem(MetalWireGuide.GetDefault, "New MetalWireGuide");
 			}
 
-
 			GUILayout.EndHorizontal();
+
+			if (GUILayout.Button(
+				new GUIContent("Asset Browser", Icons.AssetLibrary(color: iconColor)),
+				buttonStyle,
+				GUILayout.Width(position.width - 6f),
+				GUILayout.Height(iconSize)
+			)) {
+				AssetBrowser.ShowWindow();
+			}
 		}
 
 		private static bool CreateButton(string label, Texture icon, float iconSize, GUIStyle buttonStyle)
