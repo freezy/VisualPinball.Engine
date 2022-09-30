@@ -27,7 +27,6 @@ namespace VisualPinball.Unity.Editor
 	/// </summary>
 	public class AssetAttributeElement : VisualElement
 	{
-
 		private readonly AssetAttribute _attribute;
 		private AssetBrowser _browser;
 

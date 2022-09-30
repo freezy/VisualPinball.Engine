@@ -49,7 +49,7 @@ namespace VisualPinball.Unity.Editor
 			private readonly UxmlStringAttributeDescription _label = new() { name = "label" };
 			private readonly UxmlStringAttributeDescription _value = new() { name = "value" };
 			private readonly UxmlStringAttributeDescription _bindingPath = new() { name = "binding-path" };
-			private readonly UxmlStringAttributeDescription _tooltip = new() { name = "tootip" };
+			private readonly UxmlStringAttributeDescription _tooltip = new() { name = "tooltip" };
 			private readonly UxmlBoolAttributeDescription _isMultiValue = new() { name = "multivalue", defaultValue = false };
 
 			public override IEnumerable<UxmlChildElementDescription> uxmlChildElementsDescription
