@@ -1,5 +1,15 @@
 <ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" xmlns:uivpe="VisualPinball.Unity.Editor" editor-extension-mode="True">
 
+	<!-- Action Buttons -->
+	<ui:VisualElement name="container-add-selected">
+		<ui:Button name="add-selected" text="Add Selected"/>
+	</ui:VisualElement>
+
+	<ui:VisualElement name="container-replace-selected">
+		<ui:Button name="replace-selected" text="Replace Selected"/>
+		<ui:Toggle name="replace-selected-keep-name" text="Keep Name(s)"/>
+	</ui:VisualElement>
+
 	<!-- Material Variations -->
 	<uivpe:AssetMaterialVariationsElement name="material-variations" text="Material Variations"/>
 
