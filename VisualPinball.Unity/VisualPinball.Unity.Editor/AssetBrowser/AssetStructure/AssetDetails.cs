@@ -18,10 +18,12 @@
 
 using System.Collections.Generic;
 using System.Linq;
+using NetVips;
 using UnityEditor;
 using UnityEditor.UIElements;
 using UnityEngine;
 using UnityEngine.UIElements;
+using Image = UnityEngine.UIElements.Image;
 
 namespace VisualPinball.Unity.Editor
 {
@@ -68,7 +70,7 @@ namespace VisualPinball.Unity.Editor
 		private readonly ScrollView _scrollView;
 		private readonly Label _emptyLabel;
 
-		private readonly Toggle _replaceSelectedKeepName;
+		private Toggle _replaceSelectedKeepName;
 
 		public new class UxmlFactory : UxmlFactory<AssetDetails, UxmlTraits> { }
 
@@ -100,8 +102,10 @@ namespace VisualPinball.Unity.Editor
 				}
 			};
 
-			_replaceSelectedKeepName = _header.Q<Toggle>("replace-selected-keep-name");
-			_header.Q<Button>("replace-selected").clicked += OnReplaceSelected;
+			// bind buttons
+			_bodyReadOnly.Q<Button>("add-selected").clicked += OnAddSelected;
+			_bodyReadOnly.Q<Button>("replace-selected").clicked += OnReplaceSelected;
+			_replaceSelectedKeepName = _bodyReadOnly.Q<Toggle>("replace-selected-keep-name");
 
 			Add(_emptyLabel);
 			Add(_scrollView);
@@ -196,48 +200,117 @@ namespace VisualPinball.Unity.Editor
 			}
 		}
 
+		private void OnAddSelected()
+		{
+			if (_asset.Scale == AssetScale.World) {
+				InstantiateAsset(); // should automatically land at 0/0, since the playfield is centered
+				return;
+			}
+
+			if (_asset.Scale == AssetScale.Table) {
+
+				// find parent
+				var (pf, parentTransform) = FindPlayfieldAndParent();
+				if (pf == null || parentTransform == null) {
+					return;
+				}
+
+				// instantiate
+				var go = InstantiateAsset(parentTransform);
+
+				// move to the middle of the playfield
+				if (go.GetComponent(typeof(IMainRenderableComponent)) is IMainRenderableComponent comp) {
+					comp.SetEditorPosition(new Vector3(pf.Width / 2, pf.Height / 2, 0));
+					comp.UpdateTransforms();
+				}
+			}
+		}
+
+		private static (PlayfieldComponent, Transform) FindPlayfieldAndParent()
+		{
+			// first, check selection in hierarchy.
+			if (Selection.activeGameObject != null) {
+				var pf = Selection.activeGameObject.GetComponentInParent<PlayfieldComponent>();
+				if (pf != null) {
+					return Selection.activeGameObject.GetComponent<PlayfieldComponent>() != null
+						? (pf, Selection.activeGameObject.transform)
+						: (pf, Selection.activeGameObject.transform.parent.transform);
+				}
+			}
+
+			// if nothing selected, put it under the playfield.
+			if (TableSelector.Instance.SelectedTable != null) {
+				var pf = TableSelector.Instance.SelectedTable.GetComponentInChildren<PlayfieldComponent>();
+				if (pf != null) {
+					return (pf, pf.transform);
+				}
+				Debug.LogError("Cannot find playfield. You'll need to have a playfield component so the asset can be scaled correctly.");
+			} else {
+				Debug.LogError("No table found. You'll need to have a table with a playfield so the asset can be scaled correctly.");
+			}
+
+			return (null, null);
+		}
+
 		private void OnReplaceSelected()
 		{
-			var prefab = _asset.Object;
 			var selection = Selection.gameObjects;
 			var newSelection = new List<GameObject>();
 			var keepName = _replaceSelectedKeepName.value;
 
-			for (var i = selection.Length - 1; i >= 0; --i)
-			{
+			for (var i = selection.Length - 1; i >= 0; --i) {
 				var selected = selection[i];
-				var prefabType = PrefabUtility.GetPrefabAssetType(prefab);
-				GameObject newObject;
-				if (prefabType == PrefabAssetType.Regular || prefabType == PrefabAssetType.Variant) {
-					newObject = (GameObject)PrefabUtility.InstantiatePrefab(prefab);
 
-				} else {
-					newObject = Object.Instantiate(prefab) as GameObject;
-				}
-				if (newObject == null) {
-					Debug.LogError("Error instantiating prefab.");
+				var go = InstantiateAsset();
+				if (go == null) {
 					break;
 				}
-				newObject.name = keepName ? selected.name : prefab.name;
 
-				Undo.RegisterCreatedObjectUndo(newObject, "Replace With Prefab");
-				newObject.transform.parent = selected.transform.parent;
+				if (keepName) {
+					go.name = selected.name;
+				}
 
-				if (newObject.GetComponent(typeof(IMainRenderableComponent)) is IMainRenderableComponent comp) {
+				Undo.RegisterCreatedObjectUndo(go, "replace object with asset");
+				go.transform.parent = selected.transform.parent;
+
+				if (go.GetComponent(typeof(IMainRenderableComponent)) is IMainRenderableComponent comp) {
 					comp.CopyFromObject(selected);
 
 				} else {
-					newObject.transform.localPosition = selected.transform.localPosition;
-					newObject.transform.localRotation = selected.transform.localRotation;
-					newObject.transform.localScale = selected.transform.localScale;
+					go.transform.localPosition = selected.transform.localPosition;
+					go.transform.localRotation = selected.transform.localRotation;
+					go.transform.localScale = selected.transform.localScale;
 				}
-				newObject.transform.SetSiblingIndex(selected.transform.GetSiblingIndex());
+				go.transform.SetSiblingIndex(selected.transform.GetSiblingIndex());
 				Undo.DestroyObjectImmediate(selected);
 
-				newSelection.Add(newObject);
+				newSelection.Add(go);
 			}
 
 			Selection.objects = newSelection.Select(go => (Object)go).ToArray();
+		}
+
+		private GameObject InstantiateAsset(Transform parentGo = null)
+		{
+			var prefab = _asset.Object;
+			var prefabType = PrefabUtility.GetPrefabAssetType(prefab);
+			GameObject go;
+			if (prefabType == PrefabAssetType.Regular || prefabType == PrefabAssetType.Variant) {
+				go = (GameObject)PrefabUtility.InstantiatePrefab(prefab, parentGo);
+
+			} else {
+				go = Object.Instantiate(prefab, parentGo) as GameObject;
+			}
+
+			if (go != null) {
+				go.name = prefab.name;
+			} else {
+				Debug.LogError("Error instantiating prefab.");
+			}
+
+			Undo.RegisterCreatedObjectUndo(go, "add asset to scene");
+
+			return go;
 		}
 
 		private static (int, int, int, int, int, int) CountVertices(GameObject go)

@@ -53,6 +53,10 @@ Foldout > Toggle {
 	-unity-font-style: bold;
 }
 
+PreviewEditorElement {
+	margin: 4px;
+}
+
 #tags-container {
 	flex-direction: row;
 	align-content: auto;
@@ -77,4 +81,8 @@ Foldout > Toggle {
 }
 #replace-selected-keep-name Label {
 	margin-left: 4px;
+}
+
+#add-selected, #replace-selected {
+	padding: 8px;
 }
