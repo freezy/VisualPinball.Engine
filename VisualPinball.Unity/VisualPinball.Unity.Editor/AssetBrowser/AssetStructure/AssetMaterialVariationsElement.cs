@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine.UIElements;
 
 namespace VisualPinball.Unity.Editor
@@ -48,6 +49,7 @@ namespace VisualPinball.Unity.Editor
 		#endregion
 
 		public List<AssetMaterialVariation> MaterialVariations { set => Update(value); }
+		public AssetMaterialOverrideElement EnabledVariation { get; private set; }
 
 		private readonly Foldout _foldout;
 		private readonly ScrollView _container;
@@ -68,10 +70,12 @@ namespace VisualPinball.Unity.Editor
 		{
 			// material variations
 			if (variations?.Count > 0) {
-				_container.Clear();
+				Clear();
 				foreach (var materialVariation in variations) {
 					foreach (var materialOverride in materialVariation.Overrides) {
-						_container.Add(new AssetMaterialOverrideElement(materialVariation, materialOverride));
+						var variation = new AssetMaterialOverrideElement(materialVariation, materialOverride);
+						variation.OnClicked += OnVariationClicked;
+						_container.Add(variation);
 					}
 				}
 				SetVisibility(_foldout, true);
@@ -79,6 +83,29 @@ namespace VisualPinball.Unity.Editor
 			} else {
 				SetVisibility(_foldout, false);
 			}
+		}
+
+		private void OnVariationClicked(object clickedVariation, bool enabled)
+		{
+			if (enabled) {
+				foreach (var variation in _container.Children().Select(c => c as AssetMaterialOverrideElement)) {
+					if (clickedVariation != variation) {
+						variation!.Enabled = false;
+					}
+				}
+				EnabledVariation = clickedVariation as AssetMaterialOverrideElement;
+
+			} else {
+				EnabledVariation = null;
+			}
+		}
+
+		private new void Clear()
+		{
+			foreach (var child in _container.Children()) {
+				(child as AssetMaterialOverrideElement)!.OnClicked -= OnVariationClicked;
+			}
+			_container.Clear();
 		}
 
 		private static void SetVisibility(VisualElement element, bool isVisible)
