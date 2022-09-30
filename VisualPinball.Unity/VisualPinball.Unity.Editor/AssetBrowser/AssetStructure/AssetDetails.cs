@@ -18,12 +18,10 @@
 
 using System.Collections.Generic;
 using System.Linq;
-using NetVips;
 using UnityEditor;
 using UnityEditor.UIElements;
 using UnityEngine;
 using UnityEngine.UIElements;
-using Image = UnityEngine.UIElements.Image;
 
 namespace VisualPinball.Unity.Editor
 {
@@ -70,7 +68,7 @@ namespace VisualPinball.Unity.Editor
 		private readonly ScrollView _scrollView;
 		private readonly Label _emptyLabel;
 
-		private Toggle _replaceSelectedKeepName;
+		private readonly Toggle _replaceSelectedKeepName;
 
 		public new class UxmlFactory : UxmlFactory<AssetDetails, UxmlTraits> { }
 
@@ -113,6 +111,8 @@ namespace VisualPinball.Unity.Editor
 			SetVisibility(_emptyLabel, true);
 			SetVisibility(_scrollView, false);
 		}
+
+		#region Bindings
 
 		public void Bind(Asset asset)
 		{
@@ -200,6 +200,10 @@ namespace VisualPinball.Unity.Editor
 			}
 		}
 
+		#endregion
+
+		#region Actions
+
 		private void OnAddSelected()
 		{
 			if (_asset.Scale == AssetScale.World) {
@@ -223,33 +227,20 @@ namespace VisualPinball.Unity.Editor
 					comp.SetEditorPosition(new Vector3(pf.Width / 2, pf.Height / 2, 0));
 					comp.UpdateTransforms();
 				}
+
+				ApplyMaterialVariation(go);
 			}
 		}
 
-		private static (PlayfieldComponent, Transform) FindPlayfieldAndParent()
+		private void ApplyMaterialVariation(GameObject go)
 		{
-			// first, check selection in hierarchy.
-			if (Selection.activeGameObject != null) {
-				var pf = Selection.activeGameObject.GetComponentInParent<PlayfieldComponent>();
-				if (pf != null) {
-					return Selection.activeGameObject.GetComponent<PlayfieldComponent>() != null
-						? (pf, Selection.activeGameObject.transform)
-						: (pf, Selection.activeGameObject.transform.parent.transform);
-				}
+			var el = _bodyReadOnly.Q<AssetMaterialVariationsElement>("material-variations");
+			if (el?.EnabledVariation != null) {
+				var obj = go!.transform.Find(el.EnabledVariation.MaterialVariation.Object.name);
+				var materials = obj.gameObject.GetComponent<MeshRenderer>().sharedMaterials;
+				materials[el.EnabledVariation.MaterialVariation.Slot] = el.EnabledVariation.MaterialOverride.Material;
+				obj.gameObject.GetComponent<MeshRenderer>().sharedMaterials = materials;
 			}
-
-			// if nothing selected, put it under the playfield.
-			if (TableSelector.Instance.SelectedTable != null) {
-				var pf = TableSelector.Instance.SelectedTable.GetComponentInChildren<PlayfieldComponent>();
-				if (pf != null) {
-					return (pf, pf.transform);
-				}
-				Debug.LogError("Cannot find playfield. You'll need to have a playfield component so the asset can be scaled correctly.");
-			} else {
-				Debug.LogError("No table found. You'll need to have a table with a playfield so the asset can be scaled correctly.");
-			}
-
-			return (null, null);
 		}
 
 		private void OnReplaceSelected()
@@ -313,6 +304,35 @@ namespace VisualPinball.Unity.Editor
 			return go;
 		}
 
+		#endregion
+
+		#region Tools
+
+		private static (PlayfieldComponent, Transform) FindPlayfieldAndParent()
+		{
+			// first, check selection in hierarchy.
+			if (Selection.activeGameObject != null) {
+				var pf = Selection.activeGameObject.GetComponentInParent<PlayfieldComponent>();
+				if (pf != null) {
+					return Selection.activeGameObject.GetComponent<PlayfieldComponent>() != null
+						? (pf, Selection.activeGameObject.transform)
+						: (pf, Selection.activeGameObject.transform.parent.transform);
+				}
+			}
+
+			// if nothing selected, put it under the playfield.
+			if (TableSelector.Instance.SelectedTable != null) {
+				var pf = TableSelector.Instance.SelectedTable.GetComponentInChildren<PlayfieldComponent>();
+				if (pf != null) {
+					return (pf, pf.transform);
+				}
+				Debug.LogError("Cannot find playfield. You'll need to have a playfield component so the asset can be scaled correctly.");
+			} else {
+				Debug.LogError("No table found. You'll need to have a table with a playfield so the asset can be scaled correctly.");
+			}
+			return (null, null);
+		}
+
 		private static (int, int, int, int, int, int) CountVertices(GameObject go)
 		{
 			var vertices = 0;
@@ -350,5 +370,7 @@ namespace VisualPinball.Unity.Editor
 					break;
 			}
 		}
+
+		#endregion
 	}
 }

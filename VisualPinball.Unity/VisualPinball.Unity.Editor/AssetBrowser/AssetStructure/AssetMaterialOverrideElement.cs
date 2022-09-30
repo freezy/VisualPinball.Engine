@@ -26,18 +26,18 @@ namespace VisualPinball.Unity.Editor
 	public class AssetMaterialOverrideElement: VisualElement
 	{
 		public bool Enabled { set => _toggle.SetValueWithoutNotify(value); }
-		public string Name => $"{_materialVariation.Name} {_materialOverride.Name}";
+		public string Name => $"{MaterialVariation.Name} {MaterialOverride.Name}";
 		public event EventHandler<bool> OnClicked;
 
 		private readonly ToolbarToggle _toggle;
 
-		private readonly AssetMaterialVariation _materialVariation;
-		private readonly AssetMaterialOverride _materialOverride;
+		public readonly AssetMaterialVariation MaterialVariation;
+		public readonly AssetMaterialOverride MaterialOverride;
 
 		public AssetMaterialOverrideElement(AssetMaterialVariation materialVariation, AssetMaterialOverride materialOverride)
 		{
-			_materialVariation = materialVariation;
-			_materialOverride = materialOverride;
+			MaterialVariation = materialVariation;
+			MaterialOverride = materialOverride;
 
 			var ui = new VisualElement();
 			var visualTree = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>("Packages/org.visualpinball.engine.unity/VisualPinball.Unity/VisualPinball.Unity.Editor/AssetBrowser/AssetStructure/AssetMaterialOverrideElement.uxml");
