@@ -14,8 +14,10 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+using System;
 using System.IO;
 using UnityEditor;
+using UnityEditor.UIElements;
 using UnityEngine;
 using UnityEngine.UIElements;
 
@@ -23,8 +25,20 @@ namespace VisualPinball.Unity.Editor
 {
 	public class AssetMaterialOverrideElement: VisualElement
 	{
+		public bool Enabled { set => _toggle.SetValueWithoutNotify(value); }
+		public string Name => $"{_materialVariation.Name} {_materialOverride.Name}";
+		public event EventHandler<bool> OnClicked;
+
+		private readonly ToolbarToggle _toggle;
+
+		private readonly AssetMaterialVariation _materialVariation;
+		private readonly AssetMaterialOverride _materialOverride;
+
 		public AssetMaterialOverrideElement(AssetMaterialVariation materialVariation, AssetMaterialOverride materialOverride)
 		{
+			_materialVariation = materialVariation;
+			_materialOverride = materialOverride;
+
 			var ui = new VisualElement();
 			var visualTree = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>("Packages/org.visualpinball.engine.unity/VisualPinball.Unity/VisualPinball.Unity.Editor/AssetBrowser/AssetStructure/AssetMaterialOverrideElement.uxml");
 			visualTree.CloneTree(ui);
@@ -32,7 +46,10 @@ namespace VisualPinball.Unity.Editor
 			var styleSheet = AssetDatabase.LoadAssetAtPath<StyleSheet>("Packages/org.visualpinball.engine.unity/VisualPinball.Unity/VisualPinball.Unity.Editor/AssetBrowser/AssetStructure/AssetMaterialOverrideElement.uss");
 			styleSheets.Add(styleSheet);
 
-			ui.Q<Label>("label").text = $"{materialVariation.Name} {materialOverride.Name}";
+			_toggle = ui.Q<ToolbarToggle>("toggle");
+			_toggle.RegisterValueChangedCallback(val => OnClicked?.Invoke(this, val.newValue));
+
+			ui.Q<Label>("label").text = Name;
 
 			var thumbPath = $"{AssetBrowser.ThumbPath}/{materialOverride.Id}.png";
 			if (File.Exists(thumbPath)) {
