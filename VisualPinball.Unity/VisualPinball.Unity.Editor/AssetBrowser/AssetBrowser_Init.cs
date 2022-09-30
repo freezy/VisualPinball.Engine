@@ -167,17 +167,38 @@ namespace VisualPinball.Unity.Editor
 			item.style.flexDirection = FlexDirection.Row;
 			item.Add(toggle);
 			item.Add(label);
+			var icon = new Image {
+				image = EditorGUIUtility.IconContent("InspectorLock").image
+			};
 			if (lib.IsLocked) {
-				var icon = new Image {
-					image = EditorGUIUtility.IconContent("InspectorLock").image
-				};
+				icon.RegisterCallback<MouseDownEvent>(evt => OnLibraryLockClicked(evt, lib, icon));
 				item.Add(icon);
+			} else {
+				icon.visible = false;
 			}
 
 			toggle.value = lib.IsActive;
 			toggle.RegisterValueChangedCallback(evt => OnLibraryToggled(lib, evt.newValue));
-			label.RegisterCallback<MouseDownEvent>(evt => toggle.value = !toggle.value);
+			label.RegisterCallback<MouseDownEvent>(evt => OnLibraryLabelClicked(evt, lib, toggle, icon));
 			return item;
+		}
+
+		private static void OnLibraryLabelClicked(IMouseEvent evt, AssetLibrary lib, Toggle toggle, VisualElement icon)
+		{
+			if (!lib.IsLocked && (evt.ctrlKey || evt.commandKey)) {
+				lib.IsLocked = true;
+				icon.visible = true;
+			} else {
+				toggle.value = !toggle.value;
+			}
+		}
+
+		private static void OnLibraryLockClicked(IMouseEvent evt, AssetLibrary lib, VisualElement icon)
+		{
+			if (evt.ctrlKey || evt.commandKey) {
+				lib.IsLocked = false;
+				icon.visible = false;
+			}
 		}
 	}
 }
