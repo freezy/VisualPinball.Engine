@@ -26,7 +26,6 @@ namespace VisualPinball.Unity.Editor
 	/// </summary>
 	public class AssetTagElement : VisualElement
 	{
-
 		private readonly AssetTag _tag;
 		private AssetBrowser _browser;
 
