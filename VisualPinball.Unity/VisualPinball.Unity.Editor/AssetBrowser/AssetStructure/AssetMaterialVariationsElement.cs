@@ -14,12 +14,17 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine.UIElements;
 
 namespace VisualPinball.Unity.Editor
 {
+	/// <summary>
+	/// The element that makes radio buttons out of the <see cref="AssetMaterialOverrideElement"/>s and
+	/// exposes which is selected.
+	/// </summary>
 	public class AssetMaterialVariationsElement : VisualElement
 	{
 		#region Uxml
@@ -50,6 +55,8 @@ namespace VisualPinball.Unity.Editor
 
 		public List<AssetMaterialVariation> MaterialVariations { set => Update(value); }
 		public AssetMaterialOverrideElement EnabledVariation { get; private set; }
+
+		public event EventHandler<AssetMaterialOverrideElement> OnSelected;
 
 		private readonly Foldout _foldout;
 		private readonly ScrollView _container;
@@ -94,9 +101,11 @@ namespace VisualPinball.Unity.Editor
 					}
 				}
 				EnabledVariation = clickedVariation as AssetMaterialOverrideElement;
+				OnSelected?.Invoke(this, EnabledVariation);
 
 			} else {
 				EnabledVariation = null;
+				OnSelected?.Invoke(this, null);
 			}
 		}
 

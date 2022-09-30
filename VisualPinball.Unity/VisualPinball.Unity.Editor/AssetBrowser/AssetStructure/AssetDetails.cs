@@ -69,6 +69,8 @@ namespace VisualPinball.Unity.Editor
 		private readonly Label _emptyLabel;
 
 		private readonly Toggle _replaceSelectedKeepName;
+		private readonly Button _addButton;
+		private readonly string _addButtonText;
 
 		public new class UxmlFactory : UxmlFactory<AssetDetails, UxmlTraits> { }
 
@@ -99,11 +101,14 @@ namespace VisualPinball.Unity.Editor
 					unityFontStyleAndWeight = FontStyle.Italic
 				}
 			};
-
-			// bind buttons
-			_bodyReadOnly.Q<Button>("add-selected").clicked += OnAddSelected;
-			_bodyReadOnly.Q<Button>("replace-selected").clicked += OnReplaceSelected;
+			_addButton = _bodyReadOnly.Q<Button>("add-selected");
+			_addButtonText = _addButton.text;
 			_replaceSelectedKeepName = _bodyReadOnly.Q<Toggle>("replace-selected-keep-name");
+
+			// setup events
+			_bodyReadOnly.Q<AssetMaterialVariationsElement>("material-variations").OnSelected += OnVariationSelected;
+			_bodyReadOnly.Q<Button>("replace-selected").clicked += OnReplaceSelected;
+			_addButton.clicked += OnAddSelected;
 
 			Add(_emptyLabel);
 			Add(_scrollView);
@@ -281,6 +286,17 @@ namespace VisualPinball.Unity.Editor
 			Selection.objects = newSelection.Select(go => (Object)go).ToArray();
 		}
 
+		private void OnVariationSelected(object sender, AssetMaterialOverrideElement el)
+		{
+			_addButton.text = el == null
+				? _addButtonText
+				: $"Add {el.Name}";
+		}
+
+		#endregion
+
+		#region Tools
+
 		private GameObject InstantiateAsset(Transform parentGo = null)
 		{
 			var prefab = _asset.Object;
@@ -303,10 +319,6 @@ namespace VisualPinball.Unity.Editor
 
 			return go;
 		}
-
-		#endregion
-
-		#region Tools
 
 		private static (PlayfieldComponent, Transform) FindPlayfieldAndParent()
 		{
