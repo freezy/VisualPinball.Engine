@@ -240,14 +240,7 @@ namespace VisualPinball.Unity.Editor
 		private void ApplyMaterialVariation(GameObject go)
 		{
 			var el = _bodyReadOnly.Q<AssetMaterialVariationsElement>("material-variations");
-			if (el?.SelectedMaterialCombination != null) {
-				foreach (var (materialVariation, materialOverride) in el.SelectedMaterialCombination.Combination.Variations) {
-					var obj = go!.transform.Find(materialVariation.Object.name);
-					var materials = obj.gameObject.GetComponent<MeshRenderer>().sharedMaterials;
-					materials[materialVariation.Slot] = materialOverride.Material;
-					obj.gameObject.GetComponent<MeshRenderer>().sharedMaterials = materials;
-				}
-			}
+			el?.SelectedMaterialCombination?.Combination.Apply(go);
 		}
 
 		private void OnReplaceSelected()
