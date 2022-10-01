@@ -45,8 +45,10 @@ namespace VisualPinball.Unity.Editor
 				// material slot dropdown
 				_slotField = ui.Q<MaterialSlotDropdownElement>("slot-field");
 				if (objField.HasValue) {
-					_slotField.SetObject(objField.Value as GameObject);
+					_slotField.PopulateChoices(objField.Value as GameObject);
 				}
+				var slot = property.FindPropertyRelative(nameof(AssetMaterialVariation.Slot));
+				_slotField.SetValue(slot.intValue);
 			}
 
 			return ui;
@@ -55,7 +57,7 @@ namespace VisualPinball.Unity.Editor
 		private void OnObjectChanged(Object obj)
 		{
 			if (_slotField != null && obj is GameObject go) {
-				_slotField.SetObject(go);
+				_slotField.PopulateChoices(go);
 			}
 		}
 	}

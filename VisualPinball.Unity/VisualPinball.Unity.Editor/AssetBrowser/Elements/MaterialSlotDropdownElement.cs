@@ -72,7 +72,7 @@ namespace VisualPinball.Unity.Editor
 			Add(_dropdown);
 		}
 
-		public void SetObject(GameObject obj)
+		public void PopulateChoices(GameObject obj)
 		{
 			var renderer = obj.GetComponent<Renderer>();
 			if (!renderer) {

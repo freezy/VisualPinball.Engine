@@ -29,6 +29,8 @@ namespace VisualPinball.Unity.Editor
 		private readonly DropdownField _dropdown;
 		private readonly ObjectField _objectPicker;
 
+		#region Uxml
+
 		public new class UxmlFactory : UxmlFactory<ObjectDropdownElement, UxmlTraits> { }
 
 		public new class UxmlTraits : VisualElement.UxmlTraits
@@ -53,9 +55,11 @@ namespace VisualPinball.Unity.Editor
 			}
 		}
 
-		public string Label { get => _dropdown.label; set => _dropdown.label = value; }
-		public string BindingPath { get => _objectPicker.bindingPath; set => _objectPicker.bindingPath = value; }
-		public string Tooltip { get => _dropdown.tooltip; set => _dropdown.tooltip = value; }
+		#endregion
+
+		private string Label { set => _dropdown.label = value; }
+		private string BindingPath { set => _objectPicker.bindingPath = value; }
+		private string Tooltip { set => _dropdown.tooltip = value; }
 
 		public Object Value { get => _objectPicker.value; set => SetValue(value); }
 		public bool HasValue => _objectPicker.value as GameObject != null;

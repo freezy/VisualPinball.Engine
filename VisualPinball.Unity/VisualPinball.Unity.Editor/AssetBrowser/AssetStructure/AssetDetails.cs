@@ -38,11 +38,11 @@ namespace VisualPinball.Unity.Editor
 				// toggle empty label
 				if (value != null && _asset == null) {
 					SetVisibility(_emptyLabel, false);
-					SetVisibility(_scrollView, true);
+					SetVisibility(_detailView, true);
 				}
 				if (value == null && _asset != null) {
 					SetVisibility(_emptyLabel, true);
-					SetVisibility(_scrollView, false);
+					SetVisibility(_detailView, false);
 				}
 				_asset = value;
 				if (value != null) {
@@ -65,7 +65,7 @@ namespace VisualPinball.Unity.Editor
 		private readonly TemplateContainer _bodyReadOnly;
 		private readonly TemplateContainer _footer;
 
-		private readonly ScrollView _scrollView;
+		private readonly VisualElement _detailView;
 		private readonly Label _emptyLabel;
 
 		private readonly Toggle _replaceSelectedKeepName;
@@ -87,11 +87,11 @@ namespace VisualPinball.Unity.Editor
 			var styleSheet = AssetDatabase.LoadAssetAtPath<StyleSheet>("Packages/org.visualpinball.engine.unity/VisualPinball.Unity/VisualPinball.Unity.Editor/AssetBrowser/AssetStructure/AssetDetails.uss");
 			styleSheets.Add(styleSheet);
 
-			_scrollView = new ScrollView();
-			_scrollView.Add(_header);
-			_scrollView.Add(_bodyReadOnly);
-			_scrollView.Add(_body);
-			_scrollView.Add(_footer);
+			_detailView = new VisualElement();
+			_detailView.Add(_header);
+			_detailView.Add(_bodyReadOnly);
+			_detailView.Add(_body);
+			_detailView.Add(_footer);
 
 			_emptyLabel = new Label("No item selected.") {
 				style = {
@@ -111,10 +111,10 @@ namespace VisualPinball.Unity.Editor
 			_addButton.clicked += OnAddSelected;
 
 			Add(_emptyLabel);
-			Add(_scrollView);
+			Add(_detailView);
 
 			SetVisibility(_emptyLabel, true);
-			SetVisibility(_scrollView, false);
+			SetVisibility(_detailView, false);
 		}
 
 		#region Bindings
@@ -134,8 +134,8 @@ namespace VisualPinball.Unity.Editor
 			_body.Q<PresetDropdownElement>("thumb-camera-preset").SetValue(asset.ThumbCameraPreset);
 			BindInfo(asset);
 
-			SetVisibility(_bodyReadOnly, _asset.Library.IsLocked);
-			SetVisibility(_body, !_asset.Library.IsLocked);
+			SetVisibility(_bodyReadOnly, asset.Library.IsLocked);
+			SetVisibility(_body, !asset.Library.IsLocked);
 		}
 
 		private void BindInfo(Asset asset)
@@ -164,7 +164,7 @@ namespace VisualPinball.Unity.Editor
 			_bodyReadOnly.Q<AssetMaterialVariationsElement>("material-variations").MaterialVariations = asset.MaterialVariations;
 
 			// description
-			SetVisibility(_bodyReadOnly.Q<Label>("description"), !string.IsNullOrEmpty(_asset.Description));
+			SetVisibility(_bodyReadOnly.Q<Label>("description"), !string.IsNullOrEmpty(asset.Description));
 
 			// tags
 			var tags = _bodyReadOnly.Q<Foldout>("tags-foldout");
