@@ -17,6 +17,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using UnityEngine;
 
 namespace VisualPinball.Unity.Editor
 {
@@ -49,11 +50,24 @@ namespace VisualPinball.Unity.Editor
 			}
 
 			var combinations = new List<AssetMaterialCombination>();
+			if (counters.Length == 0) {
+				return combinations;
+			}
 			do {
 				combinations.Add(new AssetMaterialCombination(asset, counters, variations));
 			} while (counters[0].Increase());
 
 			return combinations;
+		}
+
+		public void Apply(GameObject go)
+		{
+			foreach (var (materialVariation, materialOverride) in Variations) {
+				var obj = go!.transform.Find(materialVariation.Object.name);
+				var materials = obj.gameObject.GetComponent<MeshRenderer>().sharedMaterials;
+				materials[materialVariation.Slot] = materialOverride.Material;
+				obj.gameObject.GetComponent<MeshRenderer>().sharedMaterials = materials;
+			}
 		}
 
 		/// <summary>
