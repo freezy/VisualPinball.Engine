@@ -23,22 +23,23 @@ namespace VisualPinball.Unity.Editor
 {
 	public class AssetMaterialCombination
 	{
-		public string Name => string.Join(", ", Variations.Select(v => $"{v.Item2.Name} {v.Item1.Name}"));
+		public string Name => string.Join(", ", _variations.Select(v => $"{v.Item2.Name} {v.Item1.Name}"));
 
 		public string ThumbId => GenerateThumbID();
 
+		public bool IsOriginal => _variations.Length == 0;
+
 		public readonly Asset Asset;
-		public readonly (AssetMaterialVariation, AssetMaterialOverride)[] Variations;
+		private readonly (AssetMaterialVariation, AssetMaterialOverride)[] _variations;
 
 		private string _thumbId;
 
-
-		public AssetMaterialCombination(Asset asset)
-		{
-			Asset = asset;
-			Variations = Array.Empty<(AssetMaterialVariation, AssetMaterialOverride)>();
-		}
-
+		/// <summary>
+		/// So this is basically a counter where the positions are the variations, and the figures are the overrides.
+		/// When the last override of the last variation has counted up, we're done.
+		/// </summary>
+		/// <param name="asset"></param>
+		/// <returns></returns>
 		public static IEnumerable<AssetMaterialCombination> GetCombinations(Asset asset)
 		{
 			var variations = asset.MaterialVariations;
@@ -62,7 +63,7 @@ namespace VisualPinball.Unity.Editor
 
 		public void Apply(GameObject go)
 		{
-			foreach (var (materialVariation, materialOverride) in Variations) {
+			foreach (var (materialVariation, materialOverride) in _variations) {
 				var obj = go!.transform.Find(materialVariation.Object.name);
 				var materials = obj.gameObject.GetComponent<MeshRenderer>().sharedMaterials;
 				materials[materialVariation.Slot] = materialOverride.Material;
@@ -80,13 +81,13 @@ namespace VisualPinball.Unity.Editor
 				return _thumbId;
 			}
 
-			if (Variations.Length == 0) {
+			if (_variations.Length == 0) {
 				_thumbId = Asset.GUID;
 
 			} else {
 				const int byteCount = 16;
 				var guid1 = new Guid(Asset.GUID);
-				foreach (var (v, o) in Variations) {
+				foreach (var (v, o) in _variations) {
 					var guid2 = new Guid(o.Id);
 					var destByte = new byte[byteCount];
 					var guid1Byte = guid1.ToByteArray();
@@ -104,15 +105,15 @@ namespace VisualPinball.Unity.Editor
 		private AssetMaterialCombination(Asset asset, IReadOnlyList<Counter> counters, IReadOnlyList<AssetMaterialVariation> variations)
 		{
 			Asset = asset;
-			Variations = new (AssetMaterialVariation, AssetMaterialOverride)[counters.Count];
+			_variations = new (AssetMaterialVariation, AssetMaterialOverride)[counters.Count];
 			for (var i = 0; i < counters.Count; i++) {
 				var overrideIndex = counters[i].Value;
-				Variations[i] = (
+				_variations[i] = (
 					overrideIndex == 0 ? null : variations[i],
 					overrideIndex == 0 ? null : variations[i].Overrides[overrideIndex - 1]
 				);
 			}
-			Variations = Variations.Where(mv => mv.Item1 != null).ToArray();
+			_variations = _variations.Where(mv => mv.Item1 != null).ToArray();
 		}
 
 		private class Counter

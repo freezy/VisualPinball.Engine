@@ -79,7 +79,7 @@ namespace VisualPinball.Unity.Editor
 			if (asset.MaterialVariations?.Count > 0) {
 				Clear();
 
-				foreach (var combination in AssetMaterialCombination.GetCombinations(asset)) {
+				foreach (var combination in AssetMaterialCombination.GetCombinations(asset).Where(c => !c.IsOriginal)) {
 					var combinationEl = new AssetMaterialCombinationElement(combination);
 					combinationEl.OnClicked += OnVariationClicked;
 					_container.Add(combinationEl);
