@@ -48,7 +48,9 @@
 			</ui:VisualElement>
 
 			<!-- RIGHT COLUMN (details) -->
-			<VisualPinball.Unity.Editor.AssetDetails/>
+			<ui:ScrollView>
+				<VisualPinball.Unity.Editor.AssetDetails/>
+			</ui:ScrollView>
 
 		</ui:TwoPaneSplitView>
 	</ui:TwoPaneSplitView>
