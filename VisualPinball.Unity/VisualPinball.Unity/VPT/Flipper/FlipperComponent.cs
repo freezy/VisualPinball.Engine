@@ -358,7 +358,6 @@ namespace VisualPinball.Unity
 
 			} else {
 				Position = go.transform.localPosition;
-				_startAngle = go.transform.localEulerAngles.z;
 			}
 
 			UpdateTransforms();
