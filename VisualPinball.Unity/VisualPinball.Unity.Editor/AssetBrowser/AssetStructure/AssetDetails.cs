@@ -161,7 +161,7 @@ namespace VisualPinball.Unity.Editor
 		private void BindReadOnly(Asset asset)
 		{
 			// material variations
-			_bodyReadOnly.Q<AssetMaterialVariationsElement>("material-variations").MaterialVariations = asset.MaterialVariations;
+			_bodyReadOnly.Q<AssetMaterialVariationsElement>("material-variations").SetValue(asset);
 
 			// description
 			SetVisibility(_bodyReadOnly.Q<Label>("description"), !string.IsNullOrEmpty(asset.Description));
@@ -240,11 +240,13 @@ namespace VisualPinball.Unity.Editor
 		private void ApplyMaterialVariation(GameObject go)
 		{
 			var el = _bodyReadOnly.Q<AssetMaterialVariationsElement>("material-variations");
-			if (el?.EnabledVariation != null) {
-				var obj = go!.transform.Find(el.EnabledVariation.MaterialVariation.Object.name);
-				var materials = obj.gameObject.GetComponent<MeshRenderer>().sharedMaterials;
-				materials[el.EnabledVariation.MaterialVariation.Slot] = el.EnabledVariation.MaterialOverride.Material;
-				obj.gameObject.GetComponent<MeshRenderer>().sharedMaterials = materials;
+			if (el?.SelectedMaterialCombination != null) {
+				foreach (var (materialVariation, materialOverride) in el.SelectedMaterialCombination.Combination.Variations) {
+					var obj = go!.transform.Find(materialVariation.Object.name);
+					var materials = obj.gameObject.GetComponent<MeshRenderer>().sharedMaterials;
+					materials[materialVariation.Slot] = materialOverride.Material;
+					obj.gameObject.GetComponent<MeshRenderer>().sharedMaterials = materials;
+				}
 			}
 		}
 
@@ -286,7 +288,7 @@ namespace VisualPinball.Unity.Editor
 			Selection.objects = newSelection.Select(go => (Object)go).ToArray();
 		}
 
-		private void OnVariationSelected(object sender, AssetMaterialOverrideElement el)
+		private void OnVariationSelected(object sender, AssetMaterialCombinationElement el)
 		{
 			_addButton.text = el == null
 				? _addButtonText

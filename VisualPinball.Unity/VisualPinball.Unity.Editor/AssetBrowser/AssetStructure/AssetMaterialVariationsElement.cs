@@ -17,12 +17,13 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using UnityEngine;
 using UnityEngine.UIElements;
 
 namespace VisualPinball.Unity.Editor
 {
 	/// <summary>
-	/// The element that makes radio buttons out of the <see cref="AssetMaterialOverrideElement"/>s and
+	/// The element that makes radio buttons out of the <see cref="AssetMaterialCombinationElement"/>s and
 	/// exposes which is selected.
 	/// </summary>
 	public class AssetMaterialVariationsElement : VisualElement
@@ -53,10 +54,9 @@ namespace VisualPinball.Unity.Editor
 
 		#endregion
 
-		public List<AssetMaterialVariation> MaterialVariations { set => Update(value); }
-		public AssetMaterialOverrideElement EnabledVariation { get; private set; }
+		public AssetMaterialCombinationElement SelectedMaterialCombination { get; private set; }
 
-		public event EventHandler<AssetMaterialOverrideElement> OnSelected;
+		public event EventHandler<AssetMaterialCombinationElement> OnSelected;
 
 		private readonly Foldout _foldout;
 		private readonly ScrollView _container;
@@ -73,18 +73,18 @@ namespace VisualPinball.Unity.Editor
 			Add(_foldout);
 		}
 
-		private void Update(List<AssetMaterialVariation> variations)
+		public void SetValue(Asset asset)
 		{
 			// material variations
-			if (variations?.Count > 0) {
+			if (asset.MaterialVariations?.Count > 0) {
 				Clear();
-				foreach (var materialVariation in variations) {
-					foreach (var materialOverride in materialVariation.Overrides) {
-						var variation = new AssetMaterialOverrideElement(materialVariation, materialOverride);
-						variation.OnClicked += OnVariationClicked;
-						_container.Add(variation);
-					}
+
+				foreach (var combination in AssetMaterialCombination.GetCombinations(asset)) {
+					var combinationEl = new AssetMaterialCombinationElement(combination);
+					combinationEl.OnClicked += OnVariationClicked;
+					_container.Add(combinationEl);
 				}
+
 				SetVisibility(_foldout, true);
 
 			} else {
@@ -95,16 +95,16 @@ namespace VisualPinball.Unity.Editor
 		private void OnVariationClicked(object clickedVariation, bool enabled)
 		{
 			if (enabled) {
-				foreach (var variation in _container.Children().Select(c => c as AssetMaterialOverrideElement)) {
+				foreach (var variation in _container.Children().Select(c => c as AssetMaterialCombinationElement)) {
 					if (clickedVariation != variation) {
 						variation!.Enabled = false;
 					}
 				}
-				EnabledVariation = clickedVariation as AssetMaterialOverrideElement;
-				OnSelected?.Invoke(this, EnabledVariation);
+				SelectedMaterialCombination = clickedVariation as AssetMaterialCombinationElement;
+				OnSelected?.Invoke(this, SelectedMaterialCombination);
 
 			} else {
-				EnabledVariation = null;
+				SelectedMaterialCombination = null;
 				OnSelected?.Invoke(this, null);
 			}
 		}
@@ -112,7 +112,7 @@ namespace VisualPinball.Unity.Editor
 		private new void Clear()
 		{
 			foreach (var child in _container.Children()) {
-				(child as AssetMaterialOverrideElement)!.OnClicked -= OnVariationClicked;
+				(child as AssetMaterialCombinationElement)!.OnClicked -= OnVariationClicked;
 			}
 			_container.Clear();
 		}
