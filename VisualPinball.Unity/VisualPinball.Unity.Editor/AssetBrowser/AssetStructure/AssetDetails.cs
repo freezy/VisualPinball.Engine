@@ -245,6 +245,15 @@ namespace VisualPinball.Unity.Editor
 		private void OnReplaceSelected()
 		{
 			var selection = Selection.gameObjects;
+
+			// a few checks before we start..
+			foreach (var selected in selection) {
+				if (_asset.Scale == AssetScale.Table && !selected.GetComponentInParent<PlayfieldComponent>()) {
+					EditorUtility.DisplayDialog("Replace Asset", "Cannot replace a game object outside of the playfield with an asset that is scaled for playfield usage.", "Close");
+					return;
+				}
+			}
+
 			var newSelection = new List<GameObject>();
 			var keepName = _replaceSelectedKeepName.value;
 
@@ -259,14 +268,18 @@ namespace VisualPinball.Unity.Editor
 					go.name = selected.name;
 				}
 
-				Undo.RegisterCreatedObjectUndo(go, "replace object with asset");
-				go.transform.SetParent(selected.transform.parent, false);
+				var worldToPlayfield = _asset.Scale == AssetScale.World && selected.GetComponentInParent<PlayfieldComponent>();
 
+				Undo.RegisterCreatedObjectUndo(go, "replace object with asset");
+				go.transform.SetParent(selected.transform.parent, worldToPlayfield);
+
+				// if both are vpe components, just copy the data
 				if (go.GetComponent(typeof(IMainRenderableComponent)) is IMainRenderableComponent comp) {
 					comp.CopyFromObject(selected);
 
 				} else {
 					go.transform.localPosition = selected.transform.localPosition;
+					go.transform.localRotation = selected.transform.localRotation;
 				}
 				go.transform.SetSiblingIndex(selected.transform.GetSiblingIndex());
 				Undo.DestroyObjectImmediate(selected);
