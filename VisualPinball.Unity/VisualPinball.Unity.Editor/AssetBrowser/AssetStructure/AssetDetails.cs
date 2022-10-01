@@ -68,6 +68,7 @@ namespace VisualPinball.Unity.Editor
 		private readonly VisualElement _detailView;
 		private readonly Label _emptyLabel;
 
+		private readonly AssetMaterialVariationsElement _materialVariations;
 		private readonly Toggle _replaceSelectedKeepName;
 		private readonly Button _addButton;
 		private readonly string _addButtonText;
@@ -103,10 +104,11 @@ namespace VisualPinball.Unity.Editor
 			};
 			_addButton = _bodyReadOnly.Q<Button>("add-selected");
 			_addButtonText = _addButton.text;
+			_materialVariations = _bodyReadOnly.Q<AssetMaterialVariationsElement>("material-variations");
 			_replaceSelectedKeepName = _bodyReadOnly.Q<Toggle>("replace-selected-keep-name");
 
 			// setup events
-			_bodyReadOnly.Q<AssetMaterialVariationsElement>("material-variations").OnSelected += OnVariationSelected;
+			_materialVariations.OnSelected += OnVariationSelected;
 			_bodyReadOnly.Q<Button>("replace-selected").clicked += OnReplaceSelected;
 			_addButton.clicked += OnAddSelected;
 
@@ -161,7 +163,8 @@ namespace VisualPinball.Unity.Editor
 		private void BindReadOnly(Asset asset)
 		{
 			// material variations
-			_bodyReadOnly.Q<AssetMaterialVariationsElement>("material-variations").SetValue(asset);
+			_materialVariations.SetValue(asset);
+			_addButton.text = _addButtonText;
 
 			// description
 			SetVisibility(_bodyReadOnly.Q<Label>("description"), !string.IsNullOrEmpty(asset.Description));
@@ -233,14 +236,10 @@ namespace VisualPinball.Unity.Editor
 					comp.UpdateTransforms();
 				}
 
-				ApplyMaterialVariation(go);
-			}
-		}
+				ApplyVariation(go);
 
-		private void ApplyMaterialVariation(GameObject go)
-		{
-			var el = _bodyReadOnly.Q<AssetMaterialVariationsElement>("material-variations");
-			el?.SelectedMaterialCombination?.Combination.Apply(go);
+				Selection.objects = new Object[] { go };
+			}
 		}
 
 		private void OnReplaceSelected()
@@ -249,8 +248,7 @@ namespace VisualPinball.Unity.Editor
 			var newSelection = new List<GameObject>();
 			var keepName = _replaceSelectedKeepName.value;
 
-			for (var i = selection.Length - 1; i >= 0; --i) {
-				var selected = selection[i];
+			foreach (var selected in selection) {
 
 				var go = InstantiateAsset();
 				if (go == null) {
@@ -262,23 +260,28 @@ namespace VisualPinball.Unity.Editor
 				}
 
 				Undo.RegisterCreatedObjectUndo(go, "replace object with asset");
-				go.transform.parent = selected.transform.parent;
+				go.transform.SetParent(selected.transform.parent, false);
 
 				if (go.GetComponent(typeof(IMainRenderableComponent)) is IMainRenderableComponent comp) {
 					comp.CopyFromObject(selected);
 
 				} else {
 					go.transform.localPosition = selected.transform.localPosition;
-					go.transform.localRotation = selected.transform.localRotation;
-					go.transform.localScale = selected.transform.localScale;
 				}
 				go.transform.SetSiblingIndex(selected.transform.GetSiblingIndex());
 				Undo.DestroyObjectImmediate(selected);
+
+				ApplyVariation(go);
 
 				newSelection.Add(go);
 			}
 
 			Selection.objects = newSelection.Select(go => (Object)go).ToArray();
+		}
+
+		private void ApplyVariation(GameObject go)
+		{
+			_materialVariations.SelectedMaterialCombination?.Combination.Apply(go);
 		}
 
 		private void OnVariationSelected(object sender, AssetMaterialCombinationElement el)

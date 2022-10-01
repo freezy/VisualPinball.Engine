@@ -88,6 +88,7 @@ namespace VisualPinball.Unity.Editor
 				SetVisibility(_foldout, true);
 
 			} else {
+				SelectedMaterialCombination = null;
 				SetVisibility(_foldout, false);
 			}
 		}
