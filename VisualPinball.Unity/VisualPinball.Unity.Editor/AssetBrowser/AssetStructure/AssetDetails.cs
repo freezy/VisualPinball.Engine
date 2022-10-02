@@ -109,6 +109,7 @@ namespace VisualPinball.Unity.Editor
 
 			// setup events
 			_materialVariations.OnSelected += OnVariationSelected;
+			_body.Q<ListView>("variations").itemsAdded += OnNewMaterialVariation;
 			_bodyReadOnly.Q<Button>("replace-selected").clicked += OnReplaceSelected;
 			_addButton.clicked += OnAddSelected;
 
@@ -117,6 +118,15 @@ namespace VisualPinball.Unity.Editor
 
 			SetVisibility(_emptyLabel, true);
 			SetVisibility(_detailView, false);
+		}
+		private void OnNewMaterialVariation(IEnumerable<int> ints)
+		{
+			foreach (var i in ints) {
+				_asset.MaterialVariations[i].Name = string.Empty;
+				_asset.MaterialVariations[i].Object = null;
+				_asset.MaterialVariations[i].Slot = 0;
+				_asset.MaterialVariations[i].Overrides = new List<AssetMaterialOverride>();
+			}
 		}
 
 		#region Bindings
