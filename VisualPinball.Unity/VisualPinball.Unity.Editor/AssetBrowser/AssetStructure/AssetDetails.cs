@@ -223,7 +223,7 @@ namespace VisualPinball.Unity.Editor
 		private void OnAddSelected()
 		{
 			if (_asset.Scale == AssetScale.World) {
-				InstantiateAsset(); // should automatically land at 0/0, since the playfield is centered
+				ApplyVariation(InstantiateAsset()); // should automatically land at 0/0, since the playfield is centered
 				return;
 			}
 
