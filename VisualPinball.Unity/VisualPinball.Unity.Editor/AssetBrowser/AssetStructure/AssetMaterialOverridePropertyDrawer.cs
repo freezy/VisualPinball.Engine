@@ -29,6 +29,10 @@ namespace VisualPinball.Unity.Editor
 			var ui = new VisualElement();
 			var visualTree = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>("Packages/org.visualpinball.engine.unity/VisualPinball.Unity/VisualPinball.Unity.Editor/AssetBrowser/AssetStructure/AssetMaterialOverridePropertyDrawer.uxml");
 			visualTree.CloneTree(ui);
+
+			var styleSheet = AssetDatabase.LoadAssetAtPath<StyleSheet>("Packages/org.visualpinball.engine.unity/VisualPinball.Unity/VisualPinball.Unity.Editor/AssetBrowser/AssetStructure/AssetMaterialOverridePropertyDrawer.uss");
+			ui.styleSheets.Add(styleSheet);
+
 			return ui;
 		}
 	}
