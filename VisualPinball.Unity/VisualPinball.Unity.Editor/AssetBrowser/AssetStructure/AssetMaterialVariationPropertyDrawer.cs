@@ -14,9 +14,11 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+using System;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.UIElements;
+using Object = UnityEngine.Object;
 
 namespace VisualPinball.Unity.Editor
 {
@@ -38,7 +40,7 @@ namespace VisualPinball.Unity.Editor
 
 				// object dropdown
 				var objField = ui.Q<ObjectDropdownElement>("object-field");
-				objField.SetParent<Renderer>(asset.Object);
+				objField.AddObjectsToDropdown<Renderer>(asset.Object);
 				objField.RegisterValueChangedCallback(OnObjectChanged);
 				var obj = property.FindPropertyRelative(nameof(AssetMaterialVariation.Object));
 				if (obj != null && obj.objectReferenceValue != null) {
@@ -52,6 +54,24 @@ namespace VisualPinball.Unity.Editor
 				}
 				var slot = property.FindPropertyRelative(nameof(AssetMaterialVariation.Slot));
 				_slotField.SetValue(slot.intValue);
+
+				// overrides - unity tries to be "smart" and copies over the values of the last element when adding
+				//             a new element, which includes our unique Id, which only gets generated when it's not
+				//             set. so we reset it manually here, which is annoying and ugly AF, but the alternative
+				//             would be to re-implement the whole fucking ListView.
+				var overridesList = ui.Q<ListView>("overrides");
+				overridesList.itemsAdded += ints => {
+					foreach (var i in ints) {
+						var guid = Guid.NewGuid().ToString();
+						var idProp = property.FindPropertyRelative($"Overrides.Array.data[{i}].{nameof(AssetMaterialOverride.Id)}");
+						idProp.stringValue = guid;
+						var nameProp = property.FindPropertyRelative($"Overrides.Array.data[{i}].{nameof(AssetMaterialOverride.Name)}");
+						nameProp.stringValue = string.Empty;
+						var matProp = property.FindPropertyRelative($"Overrides.Array.data[{i}].{nameof(AssetMaterialOverride.Material)}");
+						matProp.objectReferenceValue = null;
+						idProp.serializedObject.ApplyModifiedPropertiesWithoutUndo();
+					}
+				};
 			}
 
 			return ui;

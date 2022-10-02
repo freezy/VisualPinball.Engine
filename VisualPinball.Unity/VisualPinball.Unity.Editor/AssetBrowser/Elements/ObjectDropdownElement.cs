@@ -87,7 +87,7 @@ namespace VisualPinball.Unity.Editor
 			_onValueChanged = onValueChanged;
 		}
 
-		public void SetParent<T>(Object parentObj) where T : Component
+		public void AddObjectsToDropdown<T>(Object parentObj) where T : Component
 		{
 			if (parentObj is not GameObject parentGo) {
 				return;
