@@ -31,6 +31,9 @@ namespace VisualPinball.Unity.Editor
 			var visualTree = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>("Packages/org.visualpinball.engine.unity/VisualPinball.Unity/VisualPinball.Unity.Editor/AssetBrowser/AssetStructure/AssetMaterialVariationPropertyDrawer.uxml");
 			visualTree.CloneTree(ui);
 
+			var styleSheet = AssetDatabase.LoadAssetAtPath<StyleSheet>("Packages/org.visualpinball.engine.unity/VisualPinball.Unity/VisualPinball.Unity.Editor/AssetBrowser/AssetStructure/AssetMaterialVariationPropertyDrawer.uss");
+			ui.styleSheets.Add(styleSheet);
+
 			if (property.serializedObject.targetObject is Asset asset) {
 
 				// object dropdown

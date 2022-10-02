@@ -1,5 +1,5 @@
 <ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" xmlns:uivpe="VisualPinball.Unity.Editor" editor-extension-mode="True">
-    <ui:TextField picking-mode="Ignore" label="Object Name" value="filler text" text="filler text" binding-path="Name" />
+    <ui:TextField picking-mode="Ignore" label="Material" value="filler text" text="filler text" binding-path="Name" />
     <uivpe:ObjectDropdownElement name="object-field" label="Apply to" binding-path="Object" tooltip="The game object to which the material will be applied" />
     <uivpe:MaterialSlotDropdownElement name="slot-field" label="Slot" binding-path="Slot" tooltip="The material slot on which the material will be applied."/>
     <uie:PropertyField binding-path="Overrides" label="Overrides" />
