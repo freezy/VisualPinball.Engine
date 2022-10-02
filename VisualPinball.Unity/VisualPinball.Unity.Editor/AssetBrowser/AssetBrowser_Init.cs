@@ -183,21 +183,23 @@ namespace VisualPinball.Unity.Editor
 			return item;
 		}
 
-		private static void OnLibraryLabelClicked(IMouseEvent evt, AssetLibrary lib, Toggle toggle, VisualElement icon)
+		private void OnLibraryLabelClicked(IMouseEvent evt, AssetLibrary lib, Toggle toggle, VisualElement icon)
 		{
 			if (!lib.IsLocked && (evt.ctrlKey || evt.commandKey)) {
 				lib.IsLocked = true;
 				icon.visible = true;
+				_detailsElement.Refresh();
 			} else {
 				toggle.value = !toggle.value;
 			}
 		}
 
-		private static void OnLibraryLockClicked(IMouseEvent evt, AssetLibrary lib, VisualElement icon)
+		private void OnLibraryLockClicked(IMouseEvent evt, AssetLibrary lib, VisualElement icon)
 		{
 			if (evt.ctrlKey || evt.commandKey) {
 				lib.IsLocked = false;
 				icon.visible = false;
+				_detailsElement.Refresh();
 			}
 		}
 	}

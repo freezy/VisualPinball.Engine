@@ -1,0 +1,3 @@
+﻿TextField > Label, ObjectField > Label {
+	min-width: 65px;
+}
