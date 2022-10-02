@@ -34,6 +34,12 @@ namespace VisualPinball.Unity.Editor
 
 		private string _thumbId;
 
+		public AssetMaterialCombination(Asset asset)
+		{
+			Asset = asset;
+			_variations = Array.Empty<(AssetMaterialVariation, AssetMaterialOverride)>();
+		}
+
 		/// <summary>
 		/// So this is basically a counter where the positions are the variations, and the figures are the overrides.
 		/// When the last override of the last variation has counted up, we're done.
@@ -52,6 +58,7 @@ namespace VisualPinball.Unity.Editor
 
 			var combinations = new List<AssetMaterialCombination>();
 			if (counters.Length == 0) {
+				combinations.Add(new AssetMaterialCombination(asset));
 				return combinations;
 			}
 			do {
