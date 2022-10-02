@@ -86,3 +86,11 @@ PreviewEditorElement {
 #add-selected, #replace-selected {
 	padding: 8px;
 }
+
+ListView#variations PropertyField {
+	padding: 4px 8px 8px 20px;
+}
+
+ListView#variations PropertyField ListView PropertyField {
+	padding: 0 !important;
+}

@@ -4,7 +4,16 @@
 	<ui:TextField binding-path="Description" label="Description" multiline="true" class="top-space" />
 
 	<!-- Material Overrides -->
-	<uie:PropertyField binding-path="MaterialVariations" label="Material Variations" class="top-space" />
+	<ui:ListView name="variations"
+				 reorderable="false"
+				 virtualization-method="DynamicHeight"
+				 binding-path="MaterialVariations"
+				 show-add-remove-footer="true"
+				 show-border="true"
+				 show-foldout-header="true"
+				 show-bound-collection-size="false"
+				 header-title="Material Variations"
+				 class="top-space"/>
 
 	<!-- Attributes -->
 	<uie:PropertyField binding-path="Tags" label="Tags" class="top-space" />

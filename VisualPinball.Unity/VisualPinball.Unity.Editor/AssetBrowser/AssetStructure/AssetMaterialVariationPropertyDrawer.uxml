@@ -8,6 +8,7 @@
 				 show-add-remove-footer="true"
 				 show-border="true"
 				 show-foldout-header="true"
+				 show-bound-collection-size="false"
 				 header-title="Overrides"
 				 fixed-item-height="45"
 				 tooltip="Add the different materials here."/>
