@@ -121,6 +121,14 @@ namespace VisualPinball.Unity.Editor
 
 		#region Bindings
 
+		public void Refresh()
+		{
+			if (_asset.Library.IsLocked) {
+				BindReadOnly(_asset);
+			}
+			Bind(_asset);
+		}
+
 		public void Bind(Asset asset)
 		{
 			_header.Q<Label>("title").text = asset.Name;
