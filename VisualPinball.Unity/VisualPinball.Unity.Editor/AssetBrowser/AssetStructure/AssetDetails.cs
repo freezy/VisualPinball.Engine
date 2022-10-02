@@ -133,7 +133,7 @@ namespace VisualPinball.Unity.Editor
 
 		public void Refresh()
 		{
-			if (_asset.Library.IsLocked) {
+			if (_asset != null && _asset.Library.IsLocked) {
 				BindReadOnly(_asset);
 			}
 			Bind(_asset);
