@@ -64,7 +64,9 @@ namespace VisualPinball.Unity.Editor
 		public void Apply(GameObject go)
 		{
 			foreach (var (materialVariation, materialOverride) in _variations) {
-				var obj = go!.transform.Find(materialVariation.Object.name);
+				var obj = go.name == materialVariation.Object.name
+					? go.transform
+					: go!.transform.Find(materialVariation.Object.name);
 				var materials = obj.gameObject.GetComponent<MeshRenderer>().sharedMaterials;
 				materials[materialVariation.Slot] = materialOverride.Material;
 				obj.gameObject.GetComponent<MeshRenderer>().sharedMaterials = materials;
