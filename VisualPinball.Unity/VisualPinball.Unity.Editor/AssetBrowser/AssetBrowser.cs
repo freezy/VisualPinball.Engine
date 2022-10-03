@@ -126,7 +126,8 @@ namespace VisualPinball.Unity.Editor
 		public void FilterByAttribute(string attributeKey, string value, bool remove = false)
 		{
 			var queryString = attributeKey.Contains(" ") ? $"\"{attributeKey}\":" : $"{attributeKey}:";
-			queryString += value.Contains(" ") ? $"\"{value}\"" : value;
+			var queryValue = value.Replace("\"", "");
+			queryString += value.Contains(" ") ? $"\"{queryValue}\"" : queryValue;
 
 			if (remove) {
 				_queryInput.value = _queryInput.value.Replace(queryString, "").Trim();

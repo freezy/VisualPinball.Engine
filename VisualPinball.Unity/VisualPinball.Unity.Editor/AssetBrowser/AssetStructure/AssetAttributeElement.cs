@@ -55,7 +55,7 @@ namespace VisualPinball.Unity.Editor
 			foreach (var attrText in _attribute.Value.Split(",").Select(s => s.Trim())) {
 				var attr = new ToolbarToggle {
 					text = attrText,
-					value = _browser.Query.HasAttribute(_attribute.Key, attrText)
+					value = _browser != null && _browser.Query.HasAttribute(_attribute.Key, attrText)
 				};
 				attr.RegisterValueChangedCallback(evt => OnToggle(_attribute.Key, attrText, evt.newValue));
 

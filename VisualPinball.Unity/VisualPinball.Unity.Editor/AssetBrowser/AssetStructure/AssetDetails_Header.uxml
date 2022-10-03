@@ -20,4 +20,7 @@
 	<!-- Interactive Preview -->
 	<uivpe:PreviewEditorElement name="preview"/>
 
+	<!-- Description -->
+	<ui:Label name="description" class="bottom-space text-wrap mx-3"/>
+
 </ui:UXML>
