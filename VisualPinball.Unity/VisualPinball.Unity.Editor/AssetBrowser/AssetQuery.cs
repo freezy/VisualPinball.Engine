@@ -32,7 +32,7 @@ namespace VisualPinball.Unity.Editor
 		public event EventHandler<AssetQueryResult> OnQueryUpdated;
 
 		public bool HasTag(string tag) => _tags.Contains(tag);
-		public bool HasAttribute(string attrKey, string attrValue) => _attributes.ContainsKey(attrKey) && _attributes[attrKey].Contains(attrValue.Replace("\"", ""));
+		public bool HasAttribute(string attrKey, string attrValue) => _attributes.ContainsKey(attrKey) && _attributes[attrKey].Contains(attrValue);
 
 		private readonly List<AssetLibrary> _libraries;
 		private string _keywords;
@@ -42,6 +42,10 @@ namespace VisualPinball.Unity.Editor
 
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 		private readonly Stopwatch _queryTime = new();
+
+		public static string ValueToQuery(string value) => value.Contains(" ") ? value.Replace("\"", "in") : value;
+
+		public static string QueryToValue(string query) => query.Contains(" ") ? query.Replace("in", "\"") : query;
 
 		public AssetQuery(List<AssetLibrary> libraries)
 		{
@@ -55,7 +59,7 @@ namespace VisualPinball.Unity.Editor
 			// parse attributes
 			_attributes.Clear();
 			const string quoted = "\"([\\w\\d\\s_/-]+)\"";
-			const string nonQuoted = "([\\w\\d_/-]+)";
+			const string nonQuoted = "([\\w\\d_/\"-]+)";
 			var regexes = new[] {
 				new Regex($"{nonQuoted}:{nonQuoted}"),
 				new Regex($"{quoted}:{nonQuoted}"),
@@ -68,7 +72,7 @@ namespace VisualPinball.Unity.Editor
 					if (!_attributes.ContainsKey(key)) {
 						_attributes[key] = new HashSet<string>();
 					}
-					_attributes[key].Add(match.Groups[2].Value);
+					_attributes[key].Add(QueryToValue(match.Groups[2].Value));
 					q = q.Replace(match.Value, "");
 				}
 			}
