@@ -148,9 +148,16 @@ namespace VisualPinball.Unity.Editor
 			if (File.Exists(thumbPath)) {
 				var tex = new Texture2D(256, 256);
 				tex.LoadImage(File.ReadAllBytes(thumbPath));
-				item.Q<Image>("thumbnail").image = tex;
+				var img = item.Q<Image>("thumbnail");
+				img.image = tex;
+				img.style.width = new StyleLength(new Length(100, LengthUnit.Percent));
+				img.style.height = new StyleLength(new Length(100, LengthUnit.Percent));
 			}
-			item.Q<Label>("label").text = result.Asset.Name;
+			item.style.width = _thumbnailSize;
+			item.style.height = _thumbnailSize;
+			var label = item.Q<Label>("label");
+			label.text = result.Asset.Name;
+			label.style.textOverflow = TextOverflow.Ellipsis;
 			item.RegisterCallback<MouseUpEvent>(evt => OnAssetClicked(evt, item));
 			item.Q<LibraryAssetElement>().RegisterDrag(this);
 			item.AddManipulator(new ContextualMenuManipulator(AddAssetContextMenu));
