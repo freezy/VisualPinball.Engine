@@ -13,9 +13,6 @@
 	<!-- Material Variations -->
 	<uivpe:AssetMaterialVariationsElement name="material-variations" text="Material Variations"/>
 
-	<!-- Description -->
-	<ui:Label name="description" binding-path="Description" class="bottom-space"/>
-
 	<!-- Tags -->
 	<ui:Foldout text="Tags" name="tags-foldout">
 		<ui:VisualElement name="tags-container" class="left-indent"/>

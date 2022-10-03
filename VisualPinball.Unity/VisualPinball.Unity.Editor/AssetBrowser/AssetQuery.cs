@@ -32,7 +32,7 @@ namespace VisualPinball.Unity.Editor
 		public event EventHandler<AssetQueryResult> OnQueryUpdated;
 
 		public bool HasTag(string tag) => _tags.Contains(tag);
-		public bool HasAttribute(string attrKey, string attrValue) => _attributes.ContainsKey(attrKey) && _attributes[attrKey].Contains(attrValue);
+		public bool HasAttribute(string attrKey, string attrValue) => _attributes.ContainsKey(attrKey) && _attributes[attrKey].Contains(attrValue.Replace("\"", ""));
 
 		private readonly List<AssetLibrary> _libraries;
 		private string _keywords;
@@ -54,8 +54,8 @@ namespace VisualPinball.Unity.Editor
 
 			// parse attributes
 			_attributes.Clear();
-			const string quoted = "\"([\\w\\d\\s_-]+)\"";
-			const string nonQuoted = "([\\w\\d_-]+)";
+			const string quoted = "\"([\\w\\d\\s_/-]+)\"";
+			const string nonQuoted = "([\\w\\d_/-]+)";
 			var regexes = new[] {
 				new Regex($"{nonQuoted}:{nonQuoted}"),
 				new Regex($"{quoted}:{nonQuoted}"),

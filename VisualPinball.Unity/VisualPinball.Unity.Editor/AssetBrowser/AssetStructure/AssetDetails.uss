@@ -2,6 +2,15 @@
 	padding: 8px;
 }
 
+.text-wrap {
+	white-space: normal;
+}
+
+.mx-3 {
+	margin-left: 4px;
+	margin-right: 4px;
+}
+
 #title {
 	margin-bottom: 8px;
 	font-size: 18px;
@@ -32,7 +41,7 @@
 #preview {
 	border-width: 1px;
 	border-color: black;
-	margin-bottom: 16px
+	margin-bottom: 8px
 }
 
 .top-space {

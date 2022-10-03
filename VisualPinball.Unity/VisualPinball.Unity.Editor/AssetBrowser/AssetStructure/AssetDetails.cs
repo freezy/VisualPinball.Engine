@@ -45,16 +45,14 @@ namespace VisualPinball.Unity.Editor
 					SetVisibility(_detailView, false);
 				}
 				_asset = value;
-				if (value != null) {
-					var so = new SerializedObject(_asset);
-					if (_asset.Library.IsLocked) {
-						_bodyReadOnly.Bind(so);
-						BindReadOnly(_asset);
-					} else {
-						_body.Bind(so);
-					}
-					Bind(_asset);
+				if (value == null) {
+					return;
 				}
+				var so = new SerializedObject(_asset);
+				_bodyReadOnly.Bind(so);
+				_body.Bind(so);
+				BindReadOnly(_asset);
+				Bind(_asset);
 			}
 		}
 
@@ -133,9 +131,10 @@ namespace VisualPinball.Unity.Editor
 
 		public void Refresh()
 		{
-			if (_asset != null && _asset.Library.IsLocked) {
-				BindReadOnly(_asset);
+			if (_asset == null) {
+				return;
 			}
+			BindReadOnly(_asset);
 			Bind(_asset);
 		}
 
@@ -156,6 +155,11 @@ namespace VisualPinball.Unity.Editor
 
 			SetVisibility(_bodyReadOnly, asset.Library.IsLocked);
 			SetVisibility(_body, !asset.Library.IsLocked);
+
+			var description = _header.Q<Label>("description");
+			description.text = asset.Description;
+			SetVisibility(description, asset.Library.IsLocked && !string.IsNullOrEmpty(asset.Description));
+
 		}
 
 		private void BindInfo(Asset asset)
@@ -183,9 +187,6 @@ namespace VisualPinball.Unity.Editor
 			// material variations
 			_materialVariations.SetValue(asset);
 			_addButton.text = _addButtonText;
-
-			// description
-			SetVisibility(_bodyReadOnly.Q<Label>("description"), !string.IsNullOrEmpty(asset.Description));
 
 			// tags
 			var tags = _bodyReadOnly.Q<Foldout>("tags-foldout");
