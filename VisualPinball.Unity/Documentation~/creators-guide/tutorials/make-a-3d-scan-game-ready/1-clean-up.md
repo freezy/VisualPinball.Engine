@@ -49,7 +49,7 @@ This step is optional, but 1.8mio triangles is hard to handle, so we'll decimate
 2. Go to the *Modifier* panel on the right hand side.
 3. Add a *Decimate* modifier.
 4. Set the *Ratio* to 0.1 (Blender will probably freeze for a few seconds).
-5. From the dropdown, select *Apply*.
+5. From the drop down, select *Apply*.
 
 Finally, export the mesh as *Wavefront (.obj)* and name it `hi-poly.obj`.
 
