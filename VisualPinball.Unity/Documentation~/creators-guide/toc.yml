@@ -72,6 +72,15 @@
         - name: Import into Unity
           href: xref:tutorial_backglass_3
 
+    - name: Make a 3D Scan Game-Ready
+      href: xref:tutorial_3d_scan
+      items:
+        - name: Clean Up the Mesh
+          href: xref:tutorial_3d_scan_1
+        - name: Retopologize
+          href: xref:tutorial_3d_scan_2
+        - name: Bake Texture Maps
+          href: xref:tutorial_3d_scan_3
 
 - name: Manual
   href: manual/manual.md
