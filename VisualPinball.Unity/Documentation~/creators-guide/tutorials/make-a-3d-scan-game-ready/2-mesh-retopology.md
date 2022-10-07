@@ -23,6 +23,10 @@ You're probably not going to rig and animate your playfield toy. However, retopo
 
 Our approach here is to let *Instant Meshes* handle most of the heavy work, and manually add more details where appropriate.
 
+If you want to dig deeper into topology, here is an extensive video on the topic:
+
+> [!Video https://www.youtube.com/embed/6Kt0gW3_kio]
+
 ## Base Topology
 
 Open up *Instant Meshes* and load `hi-poly.obj`. Now you need to decide the number of vertices you're aiming for. Since we're going to add more geometry later, we can aim pretty low. In our case, we're going for a thousand vertices.
@@ -73,6 +77,6 @@ Now, re-topo the parts that need more details. In our example, we've completely 
 >
 > In short, since we're not purists and are working on game assets, some triangles are fine.
 
-So you got your mesh. Spend some time fine-tuning it. Rotate, and check if there are any important angles that look too blocky. Add more geometry if needed, but also keep in mind the distance from which your toy will be typically rendered (probably no one will zoom-in fully on your model during game play).
+So you got your mesh. Spend some time fine-tuning it. Rotate, and check if there are any important angles where the silhouette looks jagged. Add more geometry if needed, but also keep in mind the distance from which your toy will be typically rendered (probably no one will zoom-in fully on your model during game play).
 
 Now let's [bring back the details of the original geometry](xref:tutorial_3d_scan_3).
