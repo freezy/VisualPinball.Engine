@@ -61,10 +61,10 @@ namespace VisualPinball.Unity.Editor
 			const string quoted = "\"([\\w\\d\\s_/-]+)\"";
 			const string nonQuoted = "([\\w\\d_/\"-]+)";
 			var regexes = new[] {
-				new Regex($"{nonQuoted}:{nonQuoted}"),
+				new Regex($"{quoted}:{quoted}"),
 				new Regex($"{quoted}:{nonQuoted}"),
 				new Regex($"{nonQuoted}:{quoted}"),
-				new Regex($"{quoted}:{quoted}")
+				new Regex($"{nonQuoted}:{nonQuoted}"),
 			};
 			foreach (var regex in regexes) {
 				foreach (Match match in regex.Matches(q)) {
