@@ -18,6 +18,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEditor;
 using UnityEditor.Presets;
 using UnityEngine;
@@ -107,6 +108,37 @@ namespace VisualPinball.Unity.Editor
 			EditorUtility.SetDirty(this);
 			AssetDatabase.SaveAssetIfDirty(this);
 			Library.SaveAsset(this);
+		}
+
+		public void AddAttribute(string key, string value)
+		{
+			var attr = Attributes.FirstOrDefault(a => a.Key == key);
+			if (attr == null) {
+				Attributes.Add(new AssetAttribute(key, value));
+			} else {
+				AddValuesToAttribute(attr, value);
+			}
+		}
+
+		public void ReplaceAttribute(string key, string value)
+		{
+			var attr = Attributes.FirstOrDefault(a => a.Key == key);
+			if (attr == null) {
+				Attributes.Add(new AssetAttribute(key, value));
+			} else {
+				attr.Value = value;
+			}
+		}
+
+		private static void AddValuesToAttribute(AssetAttribute attr, string values)
+		{
+			var destValues = new HashSet<string>(attr.Value.Split(",").Select(v => v.Trim().ToLowerInvariant()));
+			var srcValues = values.Split(",").Select(v => v.Trim());
+			foreach (var srcValue in srcValues) {
+				if (!destValues.Contains(srcValue.ToLowerInvariant())) {
+					attr.Value += $",{srcValue}";
+				}
+			}
 		}
 	}
 }

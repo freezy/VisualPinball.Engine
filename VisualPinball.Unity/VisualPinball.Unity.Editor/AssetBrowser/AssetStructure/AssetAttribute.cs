@@ -25,5 +25,15 @@ namespace VisualPinball.Unity.Editor
 	{
 		public string Key;
 		public string Value;
+
+		public AssetAttribute()
+		{
+		}
+
+		public AssetAttribute(string key, string value)
+		{
+			Key = key;
+			Value = value;
+		}
 	}
 }
