@@ -61,26 +61,28 @@ namespace VisualPinball.Unity.Editor
 			if (destinationAssetResults.Length > 0) {
 				var suffix = destinationAssetResults.Length == 1 ? "" : "s";
 
+				evt.menu.AppendSeparator();
+
 				// context menu: Add to selected
-				evt.menu.AppendAction($"Add to selected asset{suffix}", _ => {
+				evt.menu.AppendAction($"Add to Selected Asset{suffix}", _ => {
 					var attrKey = _keyField[property.propertyPath].Value;
 					var attrValue = _valueField[property.propertyPath].Value;
 					foreach (var destAsset in destinationAssetResults.Select(r => r.Asset)) {
 						destAsset.AddAttribute(attrKey, attrValue);
 						destAsset.Save();
 					}
-					EditorUtility.DisplayDialog($"Add to selected asset{suffix}", $"Added values of attribute \"{attrKey}\" to the {destinationAssetResults.Length} other selected asset{suffix}.", "OK");
+					EditorUtility.DisplayDialog($"Add to Selected Asset{suffix}", $"Added values of attribute \"{attrKey}\" to the {destinationAssetResults.Length} other selected asset{suffix}.", "OK");
 				});
 
 				// context menu: Replace in selected
-				evt.menu.AppendAction($"Replace in selected asset{suffix}", _ => {
+				evt.menu.AppendAction($"Replace in Selected Asset{suffix}", _ => {
 					var attrKey = _keyField[property.propertyPath].Value;
 					var attrValue = _valueField[property.propertyPath].Value;
 					foreach (var destAsset in destinationAssetResults.Select(r => r.Asset)) {
 						destAsset.ReplaceAttribute(attrKey, attrValue);
 						destAsset.Save();
 					}
-					EditorUtility.DisplayDialog($"Replace in selected asset{suffix}", $"Replaced values of attribute \"{attrKey}\" in the {destinationAssetResults.Length} other selected asset{suffix}.", "OK");
+					EditorUtility.DisplayDialog($"Replace in Selected Asset{suffix}", $"Replaced values of attribute \"{attrKey}\" in the {destinationAssetResults.Length} other selected asset{suffix}.", "OK");
 				});
 			}
 		}
