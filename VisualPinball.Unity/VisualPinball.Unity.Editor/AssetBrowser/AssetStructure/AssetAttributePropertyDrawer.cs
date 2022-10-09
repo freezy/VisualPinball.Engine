@@ -17,6 +17,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using UnityEditor;
+using UnityEngine;
 using UnityEngine.UIElements;
 
 namespace VisualPinball.Unity.Editor
@@ -45,7 +46,43 @@ namespace VisualPinball.Unity.Editor
 			_valueField[property.propertyPath] = ui.Q<SuggestingTextField>("value-field");
 			_valueField[property.propertyPath].RegisterCallback<FocusInEvent>(evt => OnValueFocus(property.propertyPath));
 
+			ui.AddManipulator(new ContextualMenuManipulator(evt => AddAssetContextMenu(
+				evt,
+				property,
+				ui.panel.visualTree.userData as AssetBrowser
+			)));
+
 			return ui;
+		}
+
+		private void AddAssetContextMenu(ContextualMenuPopulateEvent evt, SerializedProperty property, AssetBrowser browser)
+		{
+			var destinationAssetResults = browser.NonActiveSelection.ToArray();
+			if (destinationAssetResults.Length > 0) {
+				var suffix = destinationAssetResults.Length == 1 ? "" : "s";
+
+				// context menu: Add to selected
+				evt.menu.AppendAction($"Add to selected asset{suffix}", _ => {
+					var attrKey = _keyField[property.propertyPath].Value;
+					var attrValue = _valueField[property.propertyPath].Value;
+					foreach (var destAsset in destinationAssetResults.Select(r => r.Asset)) {
+						destAsset.AddAttribute(attrKey, attrValue);
+						destAsset.Save();
+					}
+					EditorUtility.DisplayDialog($"Add to selected asset{suffix}", $"Added values of attribute \"{attrKey}\" to the {destinationAssetResults.Length} other selected asset{suffix}.", "OK");
+				});
+
+				// context menu: Replace in selected
+				evt.menu.AppendAction($"Replace in selected asset{suffix}", _ => {
+					var attrKey = _keyField[property.propertyPath].Value;
+					var attrValue = _valueField[property.propertyPath].Value;
+					foreach (var destAsset in destinationAssetResults.Select(r => r.Asset)) {
+						destAsset.ReplaceAttribute(attrKey, attrValue);
+						destAsset.Save();
+					}
+					EditorUtility.DisplayDialog($"Replace in selected asset{suffix}", $"Replaced values of attribute \"{attrKey}\" in the {destinationAssetResults.Length} other selected asset{suffix}.", "OK");
+				});
+			}
 		}
 
 		private void OnValueFocus(string propertyPath)

@@ -31,6 +31,7 @@ namespace VisualPinball.Unity.Editor
 	public class AssetDetails : VisualElement
 	{
 		public Asset Asset {
+			get => _asset;
 			set {
 				if (_asset == value) {
 					return;
@@ -55,6 +56,8 @@ namespace VisualPinball.Unity.Editor
 				Bind(_asset);
 			}
 		}
+
+		public bool HasAsset => _asset != null;
 
 		private Asset _asset;
 

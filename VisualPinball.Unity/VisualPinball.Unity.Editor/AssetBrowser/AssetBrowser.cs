@@ -398,6 +398,9 @@ namespace VisualPinball.Unity.Editor
 		public static bool IsDraggingExistingAssets => DragAndDrop.GetGenericData("assets") is HashSet<AssetResult>;
 
 		public static bool IsDraggingNewAssets => DragAndDrop.paths is { Length: > 0 };
+		public IEnumerable<AssetResult> NonActiveSelection => !_detailsElement.HasAsset
+			? Array.Empty<AssetResult>()
+			: _selectedResults.Where(sr => sr.Asset.GUID != _detailsElement.Asset.GUID);
 
 		private void OnDragEnterEvent(DragEnterEvent evt)
 		{
