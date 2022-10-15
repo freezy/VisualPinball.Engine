@@ -42,7 +42,43 @@ namespace VisualPinball.Unity.Editor
 			_tagField[property.propertyPath] = ui.Q<SuggestingTextField>("tag-field");
 			_tagField[property.propertyPath].RegisterCallback<FocusInEvent>(evt => OnValueFocus(property.propertyPath));
 
+			ui.AddManipulator(new ContextualMenuManipulator(evt => AddAssetContextMenu(
+				evt,
+				property,
+				ui.panel.visualTree.userData as AssetBrowser
+			)));
+
 			return ui;
+		}
+
+		private void AddAssetContextMenu(ContextualMenuPopulateEvent evt, SerializedProperty property, AssetBrowser browser)
+		{
+			var destinationAssetResults = browser.NonActiveSelection.ToArray();
+			if (destinationAssetResults.Length > 0) {
+				var suffix = destinationAssetResults.Length == 1 ? "" : "s";
+
+				evt.menu.AppendSeparator();
+
+				// context menu: Add to selected
+				evt.menu.AppendAction($"Add to Selected Asset{suffix}", _ => {
+					var tagName = _tagField[property.propertyPath].Value;
+					foreach (var destAsset in destinationAssetResults.Select(r => r.Asset)) {
+						destAsset.AddTag(tagName);
+						destAsset.Save();
+					}
+					EditorUtility.DisplayDialog($"Add to Selected Asset{suffix}", $"Added tag \"{tagName}\" to the {destinationAssetResults.Length} other selected asset{suffix}.", "OK");
+				});
+
+				// context menu: Remove in selected
+				evt.menu.AppendAction($"Remove in Selected Asset{suffix}", _ => {
+					var tagName = _tagField[property.propertyPath].Value;
+					foreach (var destAsset in destinationAssetResults.Select(r => r.Asset)) {
+						destAsset.RemoveTag(tagName);
+						destAsset.Save();
+					}
+					EditorUtility.DisplayDialog($"Remove in Selected Asset{suffix}", $"Removed tag \"{tagName}\" from the {destinationAssetResults.Length} other selected asset{suffix}.", "OK");
+				});
+			}
 		}
 
 		private void OnValueFocus(string propertyPath)
