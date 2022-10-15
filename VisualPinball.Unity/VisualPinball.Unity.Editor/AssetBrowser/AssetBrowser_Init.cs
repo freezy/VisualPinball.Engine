@@ -14,7 +14,9 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using UnityEditor;
 using UnityEditor.UIElements;
 using UnityEngine;
@@ -41,6 +43,8 @@ namespace VisualPinball.Unity.Editor
 		private Slider _sizeSlider;
 
 		private VisualTreeAsset _assetTree;
+
+		private readonly Dictionary<string, Texture2D> _thumbCache = new();
 
 		public string DragErrorLeft {
 			get => _dragErrorContainerLeft.ClassListContains("hidden") ? null : _dragErrorLabelLeft.text;
@@ -144,15 +148,7 @@ namespace VisualPinball.Unity.Editor
 			_assetTree.CloneTree(item);
 			item.Q<LibraryAssetElement>().Result = result;
 
-			var thumbPath = $"{ThumbPath}/{result.Asset.GUID}.png";
-			if (File.Exists(thumbPath)) {
-				var tex = new Texture2D(256, 256);
-				tex.LoadImage(File.ReadAllBytes(thumbPath));
-				var img = item.Q<Image>("thumbnail");
-				img.image = tex;
-				img.style.width = new StyleLength(new Length(100, LengthUnit.Percent));
-				img.style.height = new StyleLength(new Length(100, LengthUnit.Percent));
-			}
+			LoadThumb(item, result.Asset);
 			item.style.width = _thumbnailSize;
 			item.style.height = _thumbnailSize;
 			var label = item.Q<Label>("label");
@@ -162,6 +158,26 @@ namespace VisualPinball.Unity.Editor
 			item.Q<LibraryAssetElement>().RegisterDrag(this);
 			item.AddManipulator(new ContextualMenuManipulator(AddAssetContextMenu));
 			return item;
+		}
+
+		private void LoadThumb(VisualElement el, Asset asset)
+		{
+			if (!_thumbCache.ContainsKey(asset.GUID)) {
+				var thumbPath = $"{ThumbPath}/{asset.GUID}.png";
+				if (File.Exists(thumbPath)) {
+					var tex = new Texture2D(256, 256);
+					tex.LoadImage(File.ReadAllBytes(thumbPath));
+
+					_thumbCache[asset.GUID] = tex;
+				}
+			}
+
+			if (_thumbCache.ContainsKey(asset.GUID)) {
+				var img = el.Q<Image>("thumbnail");
+				img.image = _thumbCache[asset.GUID];
+				img.style.width = new StyleLength(new Length(100, LengthUnit.Percent));
+				img.style.height = new StyleLength(new Length(100, LengthUnit.Percent));
+			}
 		}
 
 		private VisualElement NewAssetLibrary(AssetLibrary lib)
