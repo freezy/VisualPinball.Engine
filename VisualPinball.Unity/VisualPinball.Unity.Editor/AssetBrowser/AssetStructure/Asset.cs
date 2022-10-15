@@ -130,6 +130,22 @@ namespace VisualPinball.Unity.Editor
 			}
 		}
 
+		public void AddTag(string tagName)
+		{
+			var tag = Tags.FirstOrDefault(t => t.TagName == tagName);
+			if (tag == null) {
+				Tags.Add(new AssetTag(tagName));
+			}
+		}
+
+		public void RemoveTag(string tagName)
+		{
+			var tag = Tags.FirstOrDefault(t => t.TagName == tagName);
+			if (tag != null) {
+				Tags.Remove(tag);
+			}
+		}
+
 		private static void AddValuesToAttribute(AssetAttribute attr, string values)
 		{
 			var destValues = new HashSet<string>(attr.Value.Split(",").Select(v => v.Trim().ToLowerInvariant()));
