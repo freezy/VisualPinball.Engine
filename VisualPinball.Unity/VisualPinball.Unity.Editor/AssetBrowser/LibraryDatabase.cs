@@ -98,6 +98,10 @@ namespace VisualPinball.Unity.Editor
 				}
 			}
 
+			if (query.HasQuality && Enum.TryParse(query.Quality, out AssetQuality quality)) {
+				results = results.Where(result => result.Asset.Quality == quality);
+			}
+
 			return results;
 		}
 

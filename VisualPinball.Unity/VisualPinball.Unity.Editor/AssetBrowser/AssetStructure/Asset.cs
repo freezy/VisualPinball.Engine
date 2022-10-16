@@ -69,6 +69,11 @@ namespace VisualPinball.Unity.Editor
 		[SerializeReference]
 		public Preset ThumbCameraPreset;
 
+		[SerializeReference]
+		public bool UnpackPrefab;
+
+		[SerializeReference]
+		public AssetQuality Quality = AssetQuality.Measured;
 
 		[NonSerialized]
 		private AssetCategory _category;

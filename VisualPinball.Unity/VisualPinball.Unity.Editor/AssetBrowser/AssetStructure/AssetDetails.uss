@@ -77,6 +77,10 @@ PreviewEditorElement {
 	align-self: flex-start;
 }
 
+#quality-container {
+	align-self: flex-start;
+}
+
 #info-geo-stats {
 	white-space: normal;
 }

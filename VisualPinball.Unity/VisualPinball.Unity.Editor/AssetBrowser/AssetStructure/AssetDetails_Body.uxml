@@ -3,6 +3,9 @@
 	<!-- Description -->
 	<ui:TextField binding-path="Description" label="Description" multiline="true" class="top-space" />
 
+	<!-- Quality -->
+	<uie:PropertyField binding-path="Quality" label="Quality" class="top-space" />
+
 	<!-- Material Overrides -->
 	<ui:ListView name="variations"
 				 reorderable="false"
@@ -23,6 +26,9 @@
 
 	<!-- Tags -->
 	<uie:PropertyField binding-path="Links" label="Links" class="top-space" />
+
+	<!-- Unpack Prefab -->
+	<uie:PropertyField binding-path="UnpackPrefab" label="Unpack Prefab" class="top-space" />
 
 	<!-- Geometry -->
 	<ui:Foldout text="Geometry">

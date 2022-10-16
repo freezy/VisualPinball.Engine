@@ -1,0 +1,15 @@
+﻿AssetQualityElement {
+	align-items: flex-start;
+}
+
+AssetQualityElement > ToolbarToggle {
+	border-top-width: 1px;
+	border-bottom-width: 1px;
+	margin-right: 4px;
+}
+
+AssetQualityElement > Label {
+	white-space: normal;
+	margin-top: 4px;
+	margin-left: 4px;
+}

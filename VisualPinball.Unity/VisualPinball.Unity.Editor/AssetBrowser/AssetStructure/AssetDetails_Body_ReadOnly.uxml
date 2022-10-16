@@ -26,4 +26,10 @@
 		<ui:VisualElement name="links-container" class="left-indent"/>
 	</ui:Foldout>
 
+	<!-- Quality -->
+	<ui:Foldout text="Quality" name="quality-foldout">
+		<ui:VisualElement name="quality-container" class="left-indent"/>
+	</ui:Foldout>
+
+
 </ui:UXML>

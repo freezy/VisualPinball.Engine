@@ -67,5 +67,13 @@ namespace VisualPinball.Unity.Editor
 		public bool HasTags => Tags.Count > 0;
 
 		#endregion
+
+		#region Quality
+
+		public string Quality;
+
+		public bool HasQuality => !string.IsNullOrEmpty(Quality);
+
+		#endregion
 	}
 }
