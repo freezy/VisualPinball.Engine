@@ -26,7 +26,7 @@ namespace VisualPinball.Unity.Editor
 	public class AssetMaterialVariationPropertyDrawer : PropertyDrawer
 	{
 		// property drawers are recycled, so don't store anything in the members!
-		
+
 		public override VisualElement CreatePropertyGUI(SerializedProperty property)
 		{
 			var ui = new VisualElement();
