@@ -24,10 +24,7 @@ namespace VisualPinball.Unity.Editor
 	[CustomPropertyDrawer(typeof(AssetTag))]
 	public class AssetTagPropertyDrawer : PropertyDrawer
 	{
-		// property drawers are recycled, so store those per path.
-		private readonly Dictionary<string, SuggestingTextField> _tagField = new();
-
-		private AssetLibrary _library;
+		// property drawers are recycled, so don't store anything in the members!
 
 		public override VisualElement CreatePropertyGUI(SerializedProperty property)
 		{
@@ -36,22 +33,21 @@ namespace VisualPinball.Unity.Editor
 			visualTree.CloneTree(ui);
 
 			if (property.serializedObject.targetObject is Asset asset && asset.Library != null) {
-				_library = asset.Library;
+
+				var tagField = ui.Q<SuggestingTextField>("tag-field");
+				tagField.RegisterCallback<FocusInEvent>(evt => OnValueFocus(asset, tagField));
+
+				ui.AddManipulator(new ContextualMenuManipulator(evt => AddAssetContextMenu(
+					evt,
+					ui.panel.visualTree.userData as AssetBrowser,
+					tagField
+				)));
 			}
-
-			_tagField[property.propertyPath] = ui.Q<SuggestingTextField>("tag-field");
-			_tagField[property.propertyPath].RegisterCallback<FocusInEvent>(evt => OnValueFocus(property.propertyPath));
-
-			ui.AddManipulator(new ContextualMenuManipulator(evt => AddAssetContextMenu(
-				evt,
-				property,
-				ui.panel.visualTree.userData as AssetBrowser
-			)));
 
 			return ui;
 		}
 
-		private void AddAssetContextMenu(ContextualMenuPopulateEvent evt, SerializedProperty property, AssetBrowser browser)
+		private static void AddAssetContextMenu(ContextualMenuPopulateEvent evt, AssetBrowser browser, SuggestingTextField tagField)
 		{
 			var destinationAssetResults = browser.NonActiveSelection.ToArray();
 			if (destinationAssetResults.Length > 0) {
@@ -61,7 +57,7 @@ namespace VisualPinball.Unity.Editor
 
 				// context menu: Add to selected
 				evt.menu.AppendAction($"Add to Selected Asset{suffix}", _ => {
-					var tagName = _tagField[property.propertyPath].Value;
+					var tagName = tagField.Value;
 					foreach (var destAsset in destinationAssetResults.Select(r => r.Asset)) {
 						destAsset.AddTag(tagName);
 						destAsset.Save();
@@ -71,7 +67,7 @@ namespace VisualPinball.Unity.Editor
 
 				// context menu: Remove in selected
 				evt.menu.AppendAction($"Remove in Selected Asset{suffix}", _ => {
-					var tagName = _tagField[property.propertyPath].Value;
+					var tagName = tagField.Value;
 					foreach (var destAsset in destinationAssetResults.Select(r => r.Asset)) {
 						destAsset.RemoveTag(tagName);
 						destAsset.Save();
@@ -81,17 +77,15 @@ namespace VisualPinball.Unity.Editor
 			}
 		}
 
-		private void OnValueFocus(string propertyPath)
+		private static void OnValueFocus(Asset asset, SuggestingTextField tagField)
 		{
-			if (_library != null) {
-				var tags = new HashSet<string>(_library.GetAllTags());
-				foreach (var otherField in _tagField.Values) {
-					if (!string.IsNullOrEmpty(otherField.Value) && tags.Contains(otherField.Value)) {
-						tags.Remove(otherField.Value);
-					}
+			var tags = new HashSet<string>(asset.Library.GetAllTags());
+			foreach (var existingTag in asset.Tags) {
+				if (!string.IsNullOrEmpty(existingTag.TagName) && tags.Contains(existingTag.TagName)) {
+					tags.Remove(existingTag.TagName);
 				}
-				_tagField[propertyPath].SuggestOptions = tags.ToArray();
 			}
+			tagField.SuggestOptions = tags.ToArray();
 		}
 	}
 }
