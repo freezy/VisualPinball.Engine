@@ -34,11 +34,14 @@ namespace VisualPinball.Unity.Editor
 		public bool HasTag(string tag) => _tags.Contains(tag);
 		public bool HasAttribute(string attrKey, string attrValue) => _attributes.ContainsKey(attrKey) && _attributes[attrKey].Contains(attrValue);
 
+		public bool HasQuality(AssetQuality quality) => _quality == quality.ToString();
+
 		private readonly List<AssetLibrary> _libraries;
 		private string _keywords;
 		private Dictionary<AssetLibrary, List<AssetCategory>> _categories;
 		private readonly Dictionary<string, HashSet<string>> _attributes = new();
 		private readonly HashSet<string> _tags = new();
+		private string _quality = null;
 
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 		private readonly Stopwatch _queryTime = new();
@@ -84,6 +87,14 @@ namespace VisualPinball.Unity.Editor
 					_tags.Add(match.Groups[1].Value);
 				}
 				q = q.Replace(match.Value, "");
+			}
+
+			_quality = null;
+			var qualityRegex = new Regex(@"\(([^\]]+)\)");
+			foreach (Match match in qualityRegex.Matches(q)) {
+				_quality = match.Groups[1].Value;
+				q = q.Replace(match.Value, "");
+				break;
 			}
 
 			// clean white spaces
@@ -146,7 +157,8 @@ namespace VisualPinball.Unity.Editor
 							Keywords = _keywords,
 							Categories = _categories != null && _categories.ContainsKey(lib) ? _categories[lib] : null,
 							Attributes = _attributes,
-							Tags = _tags
+							Tags = _tags,
+							Quality = _quality
 						});
 
 					} catch (Exception e) {

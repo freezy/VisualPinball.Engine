@@ -140,12 +140,16 @@ namespace VisualPinball.Unity.Editor
 
 		public void FilterByTag(string tag, bool remove = false)
 		{
-			if (remove) {
-				_queryInput.value = _queryInput.value.Replace($"[{tag}]", "").Trim();
+			_queryInput.value = remove
+				? _queryInput.value.Replace($"[{tag}]", "").Trim()
+				: $"{_queryInput.value} [{tag}]".Trim();
+		}
 
-			} else {
-				_queryInput.value = $"{_queryInput.value} [{tag}]".Trim();
-			}
+		public void FilterByQuality(AssetQuality quality, bool remove = false)
+		{
+			_queryInput.value = remove
+				? _queryInput.value.Replace($"({quality.ToString()})", "").Trim()
+				: $"{_queryInput.value} ({quality.ToString()})".Trim();
 		}
 
 

@@ -16,12 +16,14 @@
 
 // ReSharper disable PossibleUnintendedReferenceComparison
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEditor;
 using UnityEditor.UIElements;
 using UnityEngine;
 using UnityEngine.UIElements;
+using Object = UnityEngine.Object;
 
 namespace VisualPinball.Unity.Editor
 {
@@ -228,6 +230,12 @@ namespace VisualPinball.Unity.Editor
 			} else {
 				SetVisibility(links, false);
 			}
+
+			// quality
+			var qualityContainer = _bodyReadOnly.Q<VisualElement>("quality-container");
+			qualityContainer.Clear();
+			qualityContainer.Add(new AssetQualityElement(asset.Quality));
+
 		}
 
 		#endregion
