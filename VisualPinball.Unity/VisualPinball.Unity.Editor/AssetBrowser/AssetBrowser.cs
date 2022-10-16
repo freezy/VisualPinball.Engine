@@ -76,6 +76,7 @@ namespace VisualPinball.Unity.Editor
 
 		private void Refresh()
 		{
+			_statusLabel.text = "Loading Assets...";
 			RefreshLibraries();
 			RefreshCategories();
 			RefreshAssets();
@@ -165,7 +166,6 @@ namespace VisualPinball.Unity.Editor
 
 		private void UpdateQueryResults(List<AssetResult> results, long duration)
 		{
-			_statusLabel.text = $"Found {results.Count} asset" + (results.Count == 1 ? "" : "s") + $" in {duration}ms.";
 			_assetResults = results;
 			_gridContent.Clear();
 			_elementByAsset.Clear();
@@ -185,6 +185,8 @@ namespace VisualPinball.Unity.Editor
 			} else {
 				SelectOnly(_firstSelectedResult);
 			}
+
+			_statusLabel.text = $"Found {results.Count} asset" + (results.Count == 1 ? "" : "s") + $" in {duration}ms.";
 		}
 
 		private void AddAssetContextMenu(ContextualMenuPopulateEvent evt)
