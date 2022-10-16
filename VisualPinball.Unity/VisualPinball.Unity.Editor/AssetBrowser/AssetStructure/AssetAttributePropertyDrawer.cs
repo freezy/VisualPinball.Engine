@@ -82,7 +82,7 @@ namespace VisualPinball.Unity.Editor
 
 		private static void OnValueFocus(AssetLibrary library, SuggestingTextField keyField, SuggestingTextField valueField)
 		{
-			if (!string.IsNullOrEmpty(keyField.Value) && library != null) {
+			if (!string.IsNullOrEmpty(keyField.Value)) {
 				valueField.SuggestOptions = library.GetAttributeValues(keyField.Value).ToArray();
 			}
 		}
