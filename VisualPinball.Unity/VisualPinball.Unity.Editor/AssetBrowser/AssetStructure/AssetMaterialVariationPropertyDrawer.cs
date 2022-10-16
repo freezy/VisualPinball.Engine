@@ -25,8 +25,8 @@ namespace VisualPinball.Unity.Editor
 	[CustomPropertyDrawer(typeof(AssetMaterialVariation))]
 	public class AssetMaterialVariationPropertyDrawer : PropertyDrawer
 	{
-		private MaterialSlotDropdownElement _slotField;
-
+		// property drawers are recycled, so don't store anything in the members!
+		
 		public override VisualElement CreatePropertyGUI(SerializedProperty property)
 		{
 			var ui = new VisualElement();
@@ -38,22 +38,23 @@ namespace VisualPinball.Unity.Editor
 
 			if (property.serializedObject.targetObject is Asset asset) {
 
-				// object dropdown
 				var objField = ui.Q<ObjectDropdownElement>("object-field");
+				var slotField = ui.Q<MaterialSlotDropdownElement>("slot-field");
+
+				// object dropdown
 				objField.AddObjectsToDropdown<Renderer>(asset.Object);
-				objField.RegisterValueChangedCallback(OnObjectChanged);
+				objField.RegisterValueChangedCallback(obj => OnObjectChanged(slotField, obj));
 				var obj = property.FindPropertyRelative(nameof(AssetMaterialVariation.Object));
 				if (obj != null && obj.objectReferenceValue != null) {
 					objField.SetValue(obj.objectReferenceValue);
 				}
 
 				// material slot dropdown
-				_slotField = ui.Q<MaterialSlotDropdownElement>("slot-field");
 				if (objField.HasValue) {
-					_slotField.PopulateChoices(objField.Value as GameObject);
+					slotField.PopulateChoices(objField.Value as GameObject);
 				}
 				var slot = property.FindPropertyRelative(nameof(AssetMaterialVariation.Slot));
-				_slotField.SetValue(slot.intValue);
+				slotField.SetValue(slot.intValue);
 
 				// overrides - unity tries to be "smart" and copies over the values of the last element when adding
 				//             a new element, which includes our unique Id, which only gets generated when it's not
@@ -77,10 +78,10 @@ namespace VisualPinball.Unity.Editor
 			return ui;
 		}
 
-		private void OnObjectChanged(Object obj)
+		private static void OnObjectChanged(MaterialSlotDropdownElement slotField, Object obj)
 		{
-			if (_slotField != null && obj is GameObject go) {
-				_slotField.PopulateChoices(go);
+			if (slotField != null && obj is GameObject go) {
+				slotField.PopulateChoices(go);
 			}
 		}
 	}
