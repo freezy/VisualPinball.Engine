@@ -14,10 +14,8 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-using System.Collections.Generic;
 using System.Linq;
 using UnityEditor;
-using UnityEngine;
 using UnityEngine.UIElements;
 
 namespace VisualPinball.Unity.Editor
@@ -25,11 +23,7 @@ namespace VisualPinball.Unity.Editor
 	[CustomPropertyDrawer(typeof(AssetAttribute))]
 	public class AssetAttributePropertyDrawer : PropertyDrawer
 	{
-		// property drawers are recycled, so store those per path.
-		private readonly Dictionary<string, SuggestingTextField> _keyField = new();
-		private readonly Dictionary<string, SuggestingTextField> _valueField = new();
-
-		private AssetLibrary _library;
+		// property drawers are recycled, so don't store anything in the members!
 
 		public override VisualElement CreatePropertyGUI(SerializedProperty property)
 		{
@@ -37,25 +31,24 @@ namespace VisualPinball.Unity.Editor
 			var visualTree = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>("Packages/org.visualpinball.engine.unity/VisualPinball.Unity/VisualPinball.Unity.Editor/AssetBrowser/AssetStructure/AssetAttributePropertyDrawer.uxml");
 			visualTree.CloneTree(ui);
 
-			_keyField[property.propertyPath] = ui.Q<SuggestingTextField>("key-field");
+			var keyField = ui.Q<SuggestingTextField>("key-field");
 			if (property.serializedObject.targetObject is Asset asset && asset.Library != null) {
-				_library = asset.Library;
-				_keyField[property.propertyPath].SuggestOptions = asset.Library.GetAttributeKeys().ToArray();
+				keyField.SuggestOptions = asset.Library.GetAttributeKeys().ToArray();
+
+				var valueField = ui.Q<SuggestingTextField>("value-field");
+				valueField.RegisterCallback<FocusInEvent>(evt => OnValueFocus(asset.Library, keyField, valueField));
+
+				ui.AddManipulator(new ContextualMenuManipulator(evt => AddAssetContextMenu(
+					evt,
+					ui.panel.visualTree.userData as AssetBrowser,
+					keyField,
+					valueField
+				)));
 			}
-
-			_valueField[property.propertyPath] = ui.Q<SuggestingTextField>("value-field");
-			_valueField[property.propertyPath].RegisterCallback<FocusInEvent>(evt => OnValueFocus(property.propertyPath));
-
-			ui.AddManipulator(new ContextualMenuManipulator(evt => AddAssetContextMenu(
-				evt,
-				property,
-				ui.panel.visualTree.userData as AssetBrowser
-			)));
-
 			return ui;
 		}
 
-		private void AddAssetContextMenu(ContextualMenuPopulateEvent evt, SerializedProperty property, AssetBrowser browser)
+		private void AddAssetContextMenu(ContextualMenuPopulateEvent evt, AssetBrowser browser, SuggestingTextField keyField, SuggestingTextField valueField)
 		{
 			var destinationAssetResults = browser.NonActiveSelection.ToArray();
 			if (destinationAssetResults.Length > 0) {
@@ -65,8 +58,8 @@ namespace VisualPinball.Unity.Editor
 
 				// context menu: Add to selected
 				evt.menu.AppendAction($"Add to Selected Asset{suffix}", _ => {
-					var attrKey = _keyField[property.propertyPath].Value;
-					var attrValue = _valueField[property.propertyPath].Value;
+					var attrKey = keyField.Value;
+					var attrValue = valueField.Value;
 					foreach (var destAsset in destinationAssetResults.Select(r => r.Asset)) {
 						destAsset.AddAttribute(attrKey, attrValue);
 						destAsset.Save();
@@ -76,8 +69,8 @@ namespace VisualPinball.Unity.Editor
 
 				// context menu: Replace in selected
 				evt.menu.AppendAction($"Replace in Selected Asset{suffix}", _ => {
-					var attrKey = _keyField[property.propertyPath].Value;
-					var attrValue = _valueField[property.propertyPath].Value;
+					var attrKey = keyField.Value;
+					var attrValue = valueField.Value;
 					foreach (var destAsset in destinationAssetResults.Select(r => r.Asset)) {
 						destAsset.ReplaceAttribute(attrKey, attrValue);
 						destAsset.Save();
@@ -87,10 +80,10 @@ namespace VisualPinball.Unity.Editor
 			}
 		}
 
-		private void OnValueFocus(string propertyPath)
+		private static void OnValueFocus(AssetLibrary library, SuggestingTextField keyField, SuggestingTextField valueField)
 		{
-			if (!string.IsNullOrEmpty(_keyField[propertyPath].Value) && _library != null) {
-				_valueField[propertyPath].SuggestOptions = _library.GetAttributeValues(_keyField[propertyPath].Value).ToArray();
+			if (!string.IsNullOrEmpty(keyField.Value) && library != null) {
+				valueField.SuggestOptions = library.GetAttributeValues(keyField.Value).ToArray();
 			}
 		}
 	}
