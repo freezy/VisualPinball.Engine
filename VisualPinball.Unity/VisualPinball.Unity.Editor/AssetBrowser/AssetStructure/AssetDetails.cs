@@ -16,14 +16,12 @@
 
 // ReSharper disable PossibleUnintendedReferenceComparison
 
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEditor;
 using UnityEditor.UIElements;
 using UnityEngine;
 using UnityEngine.UIElements;
-using Object = UnityEngine.Object;
 
 namespace VisualPinball.Unity.Editor
 {
@@ -245,7 +243,8 @@ namespace VisualPinball.Unity.Editor
 		private void OnAddSelected()
 		{
 			if (_asset.Scale == AssetScale.World) {
-				ApplyVariation(InstantiateAsset()); // should automatically land at 0/0, since the playfield is centered
+				var go = ApplyVariation(InstantiateAsset()); // should automatically land at 0/0, since the playfield is centered
+				Selection.objects = new Object[] { go };
 				return;
 			}
 
@@ -322,9 +321,10 @@ namespace VisualPinball.Unity.Editor
 			Selection.objects = newSelection.Select(go => (Object)go).ToArray();
 		}
 
-		private void ApplyVariation(GameObject go)
+		private GameObject ApplyVariation(GameObject go)
 		{
 			_materialVariations.SelectedMaterialCombination?.Combination.Apply(go);
+			return go;
 		}
 
 		private void OnVariationSelected(object sender, AssetMaterialCombinationElement el)
@@ -352,6 +352,12 @@ namespace VisualPinball.Unity.Editor
 
 			if (go != null) {
 				go.name = prefab.name;
+
+				// unpack?
+				if (_asset.UnpackPrefab) {
+					PrefabUtility.UnpackPrefabInstance(go, PrefabUnpackMode.OutermostRoot, InteractionMode.AutomatedAction);
+				}
+
 			} else {
 				Debug.LogError("Error instantiating prefab.");
 			}
