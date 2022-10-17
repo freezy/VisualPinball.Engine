@@ -221,9 +221,21 @@ namespace VisualPinball.Unity
 			}
 		}
 
+		/// <summary>
+		/// Assigns a lamp mapping with the lamp's ID, but also with an int-parsed ID,
+		/// so we can name them "01" and it still works with PinMAME.
+		/// </summary>
+		/// <param name="lampMapping"></param>
 		private void AssignLampMapping(LampMapping lampMapping)
 		{
-			var id = lampMapping.Id;
+			AssignLampMapping(lampMapping.Id, lampMapping);
+			if (int.TryParse(lampMapping.Id, out var id) && id.ToString() != lampMapping.Id) {
+				AssignLampMapping(id.ToString(), lampMapping);
+			}
+		}
+
+		private void AssignLampMapping(string id, LampMapping lampMapping)
+		{
 			if (!_lampAssignments.ContainsKey(id)) {
 				_lampAssignments[id] = new List<ILampDeviceComponent>();
 			}
