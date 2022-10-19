@@ -69,6 +69,9 @@ namespace VisualPinball.Unity.Editor
 		[SerializeReference]
 		public Preset ThumbCameraPreset;
 
+		[SerializeField]
+		public float ThumbCameraHeight;
+
 		[SerializeReference]
 		public bool UnpackPrefab;
 

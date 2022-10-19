@@ -51,7 +51,7 @@ namespace VisualPinball.Unity.Editor
 
 			var thumbPath = $"{AssetBrowser.ThumbPath}/{Combination.ThumbId}.png";
 			if (File.Exists(thumbPath)) {
-				var tex = new Texture2D(256, 256);
+				var tex = new Texture2D(AssetBrowser.ThumbSize, AssetBrowser.ThumbSize);
 				tex.LoadImage(File.ReadAllBytes(thumbPath));
 				ui.Q<Image>("thumbnail").image = tex;
 			}

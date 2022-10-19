@@ -323,7 +323,7 @@ namespace VisualPinball.Unity.Editor
 
 		private GameObject ApplyVariation(GameObject go)
 		{
-			_materialVariations.SelectedMaterialCombination?.Combination.Apply(go);
+			_materialVariations.SelectedMaterialCombination?.Combination.ApplyMaterial(go);
 			return go;
 		}
 

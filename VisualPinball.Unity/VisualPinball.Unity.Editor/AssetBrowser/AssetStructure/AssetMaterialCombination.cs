@@ -71,7 +71,14 @@ namespace VisualPinball.Unity.Editor
 			return combinations;
 		}
 
-		public void Apply(GameObject go)
+		public void ApplyObjectPos(GameObject go)
+		{
+			var pos = go.transform.position;
+			pos.y = Asset.ThumbCameraHeight;
+			go.transform.position = pos;
+		}
+
+		public void ApplyMaterial(GameObject go)
 		{
 			foreach (var (materialVariation, materialOverride) in _variations) {
 				var obj = go.name == materialVariation.Object.name

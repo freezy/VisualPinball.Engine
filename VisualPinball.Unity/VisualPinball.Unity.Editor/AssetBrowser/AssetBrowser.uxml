@@ -42,7 +42,7 @@
 				<!-- BOTTOM INFO BAR -->
 				<uie:Toolbar name="bottomToolbar">
 					<ui:Label name="bottomLabel" text="Label" display-tooltip-when-elided="true"/>
-					<ui:Slider name="sizeSlider" picking-mode="Ignore" value="42" low-value="50" high-value="300"/>
+					<ui:Slider name="sizeSlider" picking-mode="Ignore" value="42" low-value="50" high-value="256"/>
 				</uie:Toolbar>
 
 			</ui:VisualElement>
