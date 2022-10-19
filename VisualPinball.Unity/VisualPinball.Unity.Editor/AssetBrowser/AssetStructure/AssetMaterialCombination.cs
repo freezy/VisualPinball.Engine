@@ -16,6 +16,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using UnityEngine;
 
@@ -28,6 +29,8 @@ namespace VisualPinball.Unity.Editor
 		public string ThumbId => GenerateThumbID();
 
 		public bool IsOriginal => _variations.Length == 0;
+
+		public bool HasThumbnail => File.Exists($"{AssetBrowser.ThumbPath}/{ThumbId}.png");
 
 		public readonly Asset Asset;
 		private readonly (AssetMaterialVariation, AssetMaterialOverride)[] _variations;
