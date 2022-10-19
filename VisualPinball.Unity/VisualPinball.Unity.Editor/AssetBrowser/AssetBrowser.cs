@@ -51,6 +51,7 @@ namespace VisualPinball.Unity.Editor
 		public AssetQuery Query;
 
 		public const string ThumbPath = "Packages/org.visualpinball.unity.assetlibrary/Editor/Thumbnails~";
+		public const int ThumbSize = 256;
 
 		private AssetResult LastSelectedResult {
 			set => _detailsElement.Asset = value?.Asset;

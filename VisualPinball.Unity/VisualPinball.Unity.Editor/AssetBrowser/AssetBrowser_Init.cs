@@ -165,7 +165,7 @@ namespace VisualPinball.Unity.Editor
 			if (!_thumbCache.ContainsKey(asset.GUID)) {
 				var thumbPath = $"{ThumbPath}/{asset.GUID}.png";
 				if (File.Exists(thumbPath)) {
-					var tex = new Texture2D(256, 256);
+					var tex = new Texture2D(ThumbSize, ThumbSize);
 					tex.LoadImage(File.ReadAllBytes(thumbPath));
 
 					_thumbCache[asset.GUID] = tex;

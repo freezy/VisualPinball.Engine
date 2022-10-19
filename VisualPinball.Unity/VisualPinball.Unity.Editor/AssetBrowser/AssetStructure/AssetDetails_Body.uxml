@@ -35,6 +35,7 @@
 		<ui:VisualElement class="left-indent">
 			<uie:PropertyField binding-path="Scale" label="Scale Transform" />
 			<uivpe:PresetDropdownElement name="thumb-camera-preset" binding-path="ThumbCameraPreset" label="Thumbnail Camera" preset-path="Packages/org.visualpinball.engine.unity/VisualPinball.Unity/Assets/Presets/Asset Thumbcam" />
+			<uie:PropertyField binding-path="ThumbCameraHeight" label="Thumb Object Z-Pos" />
 		</ui:VisualElement>
 	</ui:Foldout>
 
