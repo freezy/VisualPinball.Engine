@@ -39,6 +39,8 @@ namespace VisualPinball.Unity.Editor
 		[NonSerialized]
 		public List<AssetLibrary> Libraries;
 
+		public IEnumerable<Asset> SelectedAssets => _selectedResults.Select(r => r.Asset);
+
 		[SerializeField]
 		private List<string> _selectedLibraries;
 
@@ -464,6 +466,17 @@ namespace VisualPinball.Unity.Editor
 		}
 
 		#endregion
+
+		public void RefreshThumb(Asset asset)
+		{
+			if (!_thumbCache.ContainsKey(asset.GUID)) {
+				return;
+			}
+			_thumbCache.Remove(asset.GUID);
+			if (_elementByAsset.ContainsKey(asset)) {
+				LoadThumb(_elementByAsset[asset], asset);
+			}
+		}
 
 		private void OnThumbSizeChanged(ChangeEvent<float> evt)
 		{
