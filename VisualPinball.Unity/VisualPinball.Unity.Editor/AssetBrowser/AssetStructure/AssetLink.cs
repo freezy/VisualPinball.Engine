@@ -25,5 +25,13 @@ namespace VisualPinball.Unity.Editor
 	{
 		public string Name;
 		public string Url;
+		public AssetLink()
+		{
+		}
+		public AssetLink(string name, string url)
+		{
+			Name = name;
+			Url = url;
+		}
 	}
 }

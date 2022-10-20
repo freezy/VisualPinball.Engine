@@ -198,28 +198,94 @@ namespace VisualPinball.Unity.Editor
 
 		private void AddAssetContextMenu(ContextualMenuPopulateEvent evt)
 		{
-			if (evt.target is VisualElement ve && _resultByElement.ContainsKey(ve)) {
-				var clickedAsset = _resultByElement[ve];
-				var lib = _resultByElement[ve].Asset.Library;
-				if (!lib.IsLocked) {
-					evt.menu.AppendAction("Remove from Library", _ => {
-						if (!_selectedResults.Contains(clickedAsset)) {
-							_selectedResults.Add(clickedAsset);
-							ToggleSelectionClass(_elementByAsset[clickedAsset.Asset]);
+			if (evt.target is not VisualElement ve || !_resultByElement.ContainsKey(ve)) {
+				return;
+			}
+
+			var clickedAsset = _resultByElement[ve];
+			var lib = _resultByElement[ve].Asset.Library;
+			if (lib.IsLocked) {
+				return;
+			}
+
+			// lib is not locked, and asset is known.
+			evt.menu.AppendAction("Remove from Library", _ => {
+				if (!_selectedResults.Contains(clickedAsset)) {
+					_selectedResults.Add(clickedAsset);
+					ToggleSelectionClass(_elementByAsset[clickedAsset.Asset]);
+				}
+				var numRemovedAssets = 0;
+				foreach (var asset in _selectedResults.Where(a => !a.Asset.Library.IsLocked).ToList()) {
+					_selectedResults.Remove(asset);
+					asset.Asset.Library.RemoveAsset(asset.Asset);
+					numRemovedAssets++;
+				}
+
+				RefreshCategories();
+				RefreshAssets();
+				_statusLabel.text = $"Removed {numRemovedAssets} assets from library.";
+			});
+
+			if (_selectedResults.Count > 1) {
+				evt.menu.AppendSeparator();
+				evt.menu.AppendAction("Add Attributes to Selected", _ => {
+					foreach (var assetResult in OtherSelected(clickedAsset)) {
+						foreach (var attr in clickedAsset.Asset.Attributes) {
+							assetResult.Asset.AddAttribute(attr.Key, attr.Value);
 						}
-						var numRemovedAssets = 0;
-						foreach (var asset in _selectedResults.Where(a => !a.Asset.Library.IsLocked).ToList()) {
-							_selectedResults.Remove(asset);
-							asset.Asset.Library.RemoveAsset(asset.Asset);
-							numRemovedAssets++;
+					}
+				});
+				evt.menu.AppendAction("Replace Attributes in Selected", _ => {
+					foreach (var assetResult in OtherSelected(clickedAsset)) {
+						foreach (var attr in clickedAsset.Asset.Attributes) {
+							assetResult.Asset.ReplaceAttribute(attr.Key, attr.Value);
+						}
+					}
+				});
+
+				evt.menu.AppendSeparator();
+				evt.menu.AppendAction("Add Tags to Selected", _ => {
+					foreach (var assetResult in OtherSelected(clickedAsset)) {
+						foreach (var tag in clickedAsset.Asset.Tags) {
+							assetResult.Asset.AddTag(tag.TagName);
+						}
+					}
+				});
+				evt.menu.AppendAction("Replace Tags in Selected", _ => {
+					foreach (var assetResult in OtherSelected(clickedAsset)) {
+						assetResult.Asset.Tags.Clear();
+						foreach (var tag in clickedAsset.Asset.Tags) {
+							assetResult.Asset.AddTag(tag.TagName);
+						}
+					}
+				});
+
+				evt.menu.AppendSeparator();
+				evt.menu.AppendAction("Copy All to Selected", _ => {
+					foreach (var assetResult in OtherSelected(clickedAsset)) {
+						if (string.IsNullOrEmpty(assetResult.Asset.Description)) {
+							assetResult.Asset.Description = clickedAsset.Asset.Description;
+						}
+						foreach (var tag in clickedAsset.Asset.Tags) {
+							assetResult.Asset.AddTag(tag.TagName);
+						}
+						foreach (var attr in clickedAsset.Asset.Attributes) {
+							assetResult.Asset.AddAttribute(attr.Key, attr.Value);
+						}
+						foreach (var link in clickedAsset.Asset.Links.Where(link => assetResult.Asset.Links.FirstOrDefault(l => l.Name == link.Name) != null)) {
+							assetResult.Asset.Links.Add(new AssetLink(link.Name, link.Url));
 						}
 
-						RefreshCategories();
-						RefreshAssets();
-						_statusLabel.text = $"Removed {numRemovedAssets} assets from library.";
-					});
-				}
+						assetResult.Asset.Scale = clickedAsset.Asset.Scale;
+						assetResult.Asset.Quality = clickedAsset.Asset.Quality;
+					}
+				});
 			}
+		}
+
+		private IEnumerable<AssetResult> OtherSelected(AssetResult src)
+		{
+			return _selectedResults.Where(a => !a.Asset.Library.IsLocked && a.Asset.GUID != src.Asset.GUID);
 		}
 
 		private void OnEmptyClicked(PointerUpEvent evt)
