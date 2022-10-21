@@ -95,6 +95,8 @@ namespace VisualPinball.Unity.Editor
 			}
 		}
 
+		public string ThumbPath => @$"{AssetBrowser.ThumbPath}/{GUID}.png";
+
 		public Asset SetCategory(LibraryDatabase lib)
 		{
 			_category = lib.GetCategory(_categoryId);

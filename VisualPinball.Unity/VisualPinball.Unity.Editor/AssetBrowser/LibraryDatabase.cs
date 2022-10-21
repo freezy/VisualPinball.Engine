@@ -139,6 +139,11 @@ namespace VisualPinball.Unity.Editor
 		{
 			if (Assets.Contains(asset)) {
 				Assets.Remove(asset);
+				foreach (var materialCombination in AssetMaterialCombination.GetCombinations(asset)) { // includes the original
+					if (File.Exists(materialCombination.ThumbPath)) {
+						File.Delete(materialCombination.ThumbPath);
+					}
+				}
 				File.Delete(AssetMetaPath(asset, asset.Library));
 				File.Delete(AssetMetaPath(asset, asset.Library) + ".meta");
 			}

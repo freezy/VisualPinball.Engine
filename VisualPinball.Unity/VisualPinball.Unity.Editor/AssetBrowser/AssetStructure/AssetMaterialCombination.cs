@@ -27,10 +27,11 @@ namespace VisualPinball.Unity.Editor
 		public string Name => string.Join(", ", _variations.Select(v => $"{v.Item2.Name} {v.Item1.Name}"));
 
 		public string ThumbId => GenerateThumbID();
+		public string ThumbPath => $"{AssetBrowser.ThumbPath}/{ThumbId}.png";
 
 		public bool IsOriginal => _variations.Length == 0;
 
-		public bool HasThumbnail => File.Exists($"{AssetBrowser.ThumbPath}/{ThumbId}.png");
+		public bool HasThumbnail => File.Exists(ThumbPath);
 
 		public readonly Asset Asset;
 		private readonly (AssetMaterialVariation, AssetMaterialOverride)[] _variations;
