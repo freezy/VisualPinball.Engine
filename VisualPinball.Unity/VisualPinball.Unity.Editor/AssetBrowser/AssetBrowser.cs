@@ -215,9 +215,13 @@ namespace VisualPinball.Unity.Editor
 					ToggleSelectionClass(_elementByAsset[clickedAsset.Asset]);
 				}
 				var numRemovedAssets = 0;
-				foreach (var asset in _selectedResults.Where(a => !a.Asset.Library.IsLocked).ToList()) {
-					_selectedResults.Remove(asset);
-					asset.Asset.Library.RemoveAsset(asset.Asset);
+				foreach (var assetResult in _selectedResults.Where(a => !a.Asset.Library.IsLocked).ToList()) {
+					_selectedResults.Remove(assetResult);
+					assetResult.Asset.Library.RemoveAsset(assetResult.Asset);
+					if (_thumbCache.ContainsKey(assetResult.Asset.GUID)) {
+						DestroyImmediate(_thumbCache[assetResult.Asset.GUID]);
+						_thumbCache.Remove(assetResult.Asset.GUID);
+					}
 					numRemovedAssets++;
 				}
 
@@ -227,65 +231,85 @@ namespace VisualPinball.Unity.Editor
 			});
 
 			if (_selectedResults.Count > 1) {
+				var srcAsset = clickedAsset.Asset;
 				evt.menu.AppendSeparator();
 				evt.menu.AppendAction("Add Attributes to Selected", _ => {
-					foreach (var assetResult in OtherSelected(clickedAsset)) {
-						foreach (var attr in clickedAsset.Asset.Attributes) {
-							assetResult.Asset.AddAttribute(attr.Key, attr.Value);
+					var destAssets = OtherSelected(clickedAsset).ToList();
+					foreach (var destAsset in destAssets) {
+						foreach (var attr in srcAsset.Attributes) {
+							destAsset.AddAttribute(attr.Key, attr.Value);
 						}
+						destAsset.Save();
 					}
+					EditorUtility.DisplayDialog("Add Attributes to Selected", $"Added {srcAsset.Attributes.Count} attributes to {destAssets.Count} other assets.", "OK");
+
 				});
 				evt.menu.AppendAction("Replace Attributes in Selected", _ => {
-					foreach (var assetResult in OtherSelected(clickedAsset)) {
-						foreach (var attr in clickedAsset.Asset.Attributes) {
-							assetResult.Asset.ReplaceAttribute(attr.Key, attr.Value);
+					var destAssets = OtherSelected(clickedAsset).ToList();
+					foreach (var destAsset in destAssets) {
+						foreach (var attr in srcAsset.Attributes) {
+							destAsset.ReplaceAttribute(attr.Key, attr.Value);
 						}
+						destAsset.Save();
 					}
+					EditorUtility.DisplayDialog("Replace Attributes to Selected", $"Replaced {srcAsset.Attributes.Count} attributes in {destAssets.Count} other assets.", "OK");
 				});
 
 				evt.menu.AppendSeparator();
 				evt.menu.AppendAction("Add Tags to Selected", _ => {
-					foreach (var assetResult in OtherSelected(clickedAsset)) {
-						foreach (var tag in clickedAsset.Asset.Tags) {
-							assetResult.Asset.AddTag(tag.TagName);
+					var destAssets = OtherSelected(clickedAsset).ToList();
+					foreach (var destAsset in destAssets) {
+						foreach (var tag in srcAsset.Tags) {
+							destAsset.AddTag(tag.TagName);
 						}
+						destAsset.Save();
 					}
+					EditorUtility.DisplayDialog("Add Tags to Selected", $"Added {srcAsset.Tags.Count} tags to {destAssets.Count} other assets.", "OK");
 				});
+
 				evt.menu.AppendAction("Replace Tags in Selected", _ => {
-					foreach (var assetResult in OtherSelected(clickedAsset)) {
-						assetResult.Asset.Tags.Clear();
-						foreach (var tag in clickedAsset.Asset.Tags) {
-							assetResult.Asset.AddTag(tag.TagName);
+					var destAssets = OtherSelected(clickedAsset).ToList();
+					foreach (var destAsset in destAssets) {
+						destAsset.Tags.Clear();
+						foreach (var tag in srcAsset.Tags) {
+							destAsset.AddTag(tag.TagName);
 						}
+						destAsset.Save();
 					}
+					EditorUtility.DisplayDialog("Replace Tags in Selected", $"Replaced {srcAsset.Tags.Count} tags in {destAssets.Count} other assets.", "OK");
 				});
 
 				evt.menu.AppendSeparator();
 				evt.menu.AppendAction("Copy All to Selected", _ => {
-					foreach (var assetResult in OtherSelected(clickedAsset)) {
-						if (string.IsNullOrEmpty(assetResult.Asset.Description)) {
-							assetResult.Asset.Description = clickedAsset.Asset.Description;
+					var destAssets = OtherSelected(clickedAsset).ToList();
+					foreach (var destAsset in destAssets) {
+						if (string.IsNullOrEmpty(destAsset.Description)) {
+							destAsset.Description = srcAsset.Description;
 						}
-						foreach (var tag in clickedAsset.Asset.Tags) {
-							assetResult.Asset.AddTag(tag.TagName);
+						foreach (var tag in srcAsset.Tags) {
+							destAsset.AddTag(tag.TagName);
 						}
-						foreach (var attr in clickedAsset.Asset.Attributes) {
-							assetResult.Asset.AddAttribute(attr.Key, attr.Value);
+						foreach (var attr in srcAsset.Attributes) {
+							destAsset.AddAttribute(attr.Key, attr.Value);
 						}
-						foreach (var link in clickedAsset.Asset.Links.Where(link => assetResult.Asset.Links.FirstOrDefault(l => l.Name == link.Name) != null)) {
-							assetResult.Asset.Links.Add(new AssetLink(link.Name, link.Url));
+						foreach (var link in srcAsset.Links.Where(link => destAsset.Links.FirstOrDefault(l => l.Name == link.Name) != null)) {
+							destAsset.Links.Add(new AssetLink(link.Name, link.Url));
 						}
 
-						assetResult.Asset.Scale = clickedAsset.Asset.Scale;
-						assetResult.Asset.Quality = clickedAsset.Asset.Quality;
+						destAsset.Scale = srcAsset.Scale;
+						destAsset.Quality = srcAsset.Quality;
+						destAsset.ThumbCameraPreset = srcAsset.ThumbCameraPreset;
+
+						destAsset.Save();
 					}
+					EditorUtility.DisplayDialog("Copy All to Selected", $"Copied data of to {destAssets.Count} other assets.", "OK");
 				});
 			}
 		}
 
-		private IEnumerable<AssetResult> OtherSelected(AssetResult src)
+		private IEnumerable<Asset> OtherSelected(AssetResult src)
 		{
-			return _selectedResults.Where(a => !a.Asset.Library.IsLocked && a.Asset.GUID != src.Asset.GUID);
+			return _selectedResults.Where(a => !a.Asset.Library.IsLocked && a.Asset.GUID != src.Asset.GUID).Select(ar => ar.Asset);
 		}
 
 		private void OnEmptyClicked(PointerUpEvent evt)
@@ -536,10 +560,10 @@ namespace VisualPinball.Unity.Editor
 
 		public void RefreshThumb(Asset asset)
 		{
-			if (!_thumbCache.ContainsKey(asset.GUID)) {
-				return;
+			if (_thumbCache.ContainsKey(asset.GUID)) {
+				DestroyImmediate(_thumbCache[asset.GUID]);
+				_thumbCache.Remove(asset.GUID);
 			}
-			_thumbCache.Remove(asset.GUID);
 			if (_elementByAsset.ContainsKey(asset)) {
 				LoadThumb(_elementByAsset[asset], asset);
 			}
