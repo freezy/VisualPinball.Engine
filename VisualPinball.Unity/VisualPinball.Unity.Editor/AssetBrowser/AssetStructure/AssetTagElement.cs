@@ -49,7 +49,7 @@ namespace VisualPinball.Unity.Editor
 		{
 			var tag = new ToolbarToggle {
 				text = _tag.TagName,
-				value = _browser.Query.HasTag(_tag.TagName)
+				value = _browser != null && _browser.Query.HasTag(_tag.TagName)
 			};
 			tag.RegisterValueChangedCallback(evt => OnToggle(_tag.TagName, evt.newValue));
 
