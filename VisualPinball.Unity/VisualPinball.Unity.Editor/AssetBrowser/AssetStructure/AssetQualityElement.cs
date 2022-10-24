@@ -50,7 +50,7 @@ namespace VisualPinball.Unity.Editor
 		{
 			var qualityToggle = new ToolbarToggle {
 				text = Name,
-				value = _browser.Query.HasQuality(_quality)
+				value = _browser != null && _browser.Query.HasQuality(_quality)
 			};
 			qualityToggle.RegisterValueChangedCallback(evt => OnToggle(_quality, evt.newValue));
 

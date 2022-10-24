@@ -168,6 +168,7 @@ namespace VisualPinball.Unity.Editor
 					}
 				})
 				.OrderBy(r => r.Score)
+				.ThenBy(r => r.Asset.Name)
 				.ToList();
 
 			OnQueryUpdated?.Invoke(this, new AssetQueryResult(assets, _queryTime.ElapsedMilliseconds));
