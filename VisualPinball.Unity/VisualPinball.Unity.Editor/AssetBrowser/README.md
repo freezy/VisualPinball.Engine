@@ -1,8 +1,8 @@
 ﻿# Asset Browser
 
-VPE ships with an asset browser that offers quick access to VPE's curated asset library. This library not only includes ready-to-use prefabs and materials, but also a meta data system that allows browsing by category and other attributes such as part number, author, manufacturer or era.
+VPE ships with an asset browser that offers quick access to VPE's curated asset library. This library not only includes ready-to-use prefabs and materials, but also a meta data system that allows browsing by category, quality, and custom attributes.
 
-The asset browser is accessible through the *Visual Pinball* menu under *Asset Browser*. 
+The asset browser is accessible through the *Visual Pinball* menu under *Asset Browser* or directly through the Toolbox.
 
 ## Overview
 
@@ -48,15 +48,26 @@ If you want to contribute to the asset package, you'll need you git clone the re
 
 You add assets by dragging them from the project window into the asset panel. You need to have one category selected before doing that, so we know to which category to assign the asset. Alternatively, you can directly drop it on a category in the left panel.
 
-You can edit the meta data in details panel when the asset is selected. Attributes are edited by right-clicking on them and selecting *Edit*, or by double-clicking on the attribute name. Deleting is equally done by right-clicking on the attribute name and choosing *Delete*.
+You can edit the meta data in details panel when the asset is selected. 
 
 When editing the attribute name, a list of already existing names is proposed, but you can also use your own. The same goes for the attribute values: If an attribute is found in the database, the values of that attribute are proposed as you type. This also works for comma-separated values (e.g. it only proposes to autocomplete the current value, not the entire string).
 
 When creating a new category, you'll need to specify in which library it should be created. There is a drop-down next to the *Add* button in the left panel under the category listing. You can also delete categories, but they must be empty. In order to move an asset to another category, you drag and drop it from the asset panel into the new category in the left panel. If the category doesn't exist in the asset's library, it'll be created.
 
+### Exporting Assets
+
+When adding new assets, make sure the models are correctly sized and oriented (Unity uses a left-handed, Y-Up coordinate system, while Blender is right-handed and Z-Up). Checklist:
+
+- Make sure that size and rotation is applied to all of your objects.
+- Check that the origin is at the correct position for each object.
+- When exporting, to FBX, make sure that:
+  - *Forward* is set to "Z-Forward"
+  - *Up* is set to "Y Up"
+  - *Apply Transform* is checked
+
 ## Locking
 
-When a library is locked, assets of that library are in read-only mode. Since the categories in the left panel are grouped together from multiple libraries, we indicate how you can edit them:
+When a library is locked, assets of that library are in read-only mode (you cannot edit their meta data through the Asset Library window). Since the categories in the left panel are grouped together from multiple libraries, we indicate how you can edit them:
 
 - If a lock is displayed next to the category, all of the libraries with that category are locked.
 - When at least one library is locked but others aren't, a small note is displayed which libraries the change will apply to.
@@ -68,4 +79,6 @@ Controls that cannot be used are usually hidden. For example, if all your librar
 
 ## Import and Export
 
-You import assets into your scene by dragging them from the asset panel into the scene. When exporting, the imported assets are bundled with your build. That means if at a later point the asset is updated in the package, you explicitly have to pull down the latest version of the package, and re-export your build.
+When exporting, the imported assets are bundled with your build. That means if at a later point the asset is updated in the package, you explicitly have to pull down the latest version of the package, and re-export your build.
+
+
