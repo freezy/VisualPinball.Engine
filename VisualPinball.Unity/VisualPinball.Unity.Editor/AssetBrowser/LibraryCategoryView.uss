@@ -10,3 +10,15 @@
 #addContainer > Label {
 	margin-top: 2px;
 }
+
+#categoryTagsContainer {
+	flex-direction: row;
+	flex-wrap: wrap;
+}
+
+ToolbarToggle {
+	border-top-width: 1px;
+	border-bottom-width: 1px;
+	margin-left: 4px;
+	margin-bottom: 4px;
+}

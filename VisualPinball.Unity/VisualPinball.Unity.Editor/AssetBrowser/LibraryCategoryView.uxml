@@ -8,6 +8,10 @@
 		<ui:Label text="to"/>
 		<ui:VisualElement name="activeLibrary"/>
 	</ui:VisualElement>
+
+	<ui:Label name="categoryTags" class="left-title"/>
+	<ui:VisualElement name="categoryTagsContainer"/>
+
 </ui:UXML>
 
 

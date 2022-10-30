@@ -57,7 +57,7 @@ namespace VisualPinball.Unity.Editor
 
 		public void Search(string q)
 		{
-			StartWatch();
+			StartTimer();
 
 			// parse attributes
 			_attributes.Clear();
@@ -105,14 +105,14 @@ namespace VisualPinball.Unity.Editor
 
 		public void Filter(Dictionary<AssetLibrary, List<AssetCategory>> categories)
 		{
-			StartWatch();
+			StartTimer();
 			_categories = categories;
 			Run();
 		}
 
 		public void Toggle(AssetLibrary lib)
 		{
-			StartWatch();
+			StartTimer();
 			if (lib.IsActive && !_libraries.Contains(lib)) {
 				_libraries.Add(lib);
 			}
@@ -139,7 +139,7 @@ namespace VisualPinball.Unity.Editor
 			.Distinct()
 			.ToArray();
 
-		private void StartWatch()
+		private void StartTimer()
 		{
 			_queryTime.Restart();
 		}
