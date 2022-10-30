@@ -169,6 +169,7 @@ namespace VisualPinball.Unity.Editor
 		private void OnQueryUpdated(object sender, AssetQueryResult e)
 		{
 			UpdateQueryResults(e.Rows, e.DurationMs);
+			_categoryView.UpdateCategoryTags();
 		}
 
 		private void UpdateQueryResults(List<AssetResult> results, long duration)
@@ -186,6 +187,8 @@ namespace VisualPinball.Unity.Editor
 				_resultByElement[element] = row;
 				_gridContent.Add(_elementByAsset[row.Asset]);
 			}
+
+			_gridContent.MarkDirtyRepaint(); // todo doesn't work, scrolling is still screwed.
 
 			if (!results.Contains(_firstSelectedResult)) {
 				_firstSelectedResult = null;

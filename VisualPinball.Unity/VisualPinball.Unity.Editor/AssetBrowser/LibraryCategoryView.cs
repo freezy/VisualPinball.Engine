@@ -18,6 +18,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEditor;
+using UnityEditor.UIElements;
 using UnityEngine.UIElements;
 
 namespace VisualPinball.Unity.Editor
@@ -46,7 +47,9 @@ namespace VisualPinball.Unity.Editor
 		private readonly Dictionary<AssetLibrary, List<AssetCategory>> _selectedCategories = new();
 		private readonly DropdownField _activeLibraryDropdown;
 		private readonly Label _noCategoriesLabel;
+		private readonly Label _tagsTitleLabel;
 		private readonly VisualElement _addContainer;
+		private readonly VisualElement _categoryTagsContainer;
 
 		public LibraryCategoryView()
 		{
@@ -62,7 +65,9 @@ namespace VisualPinball.Unity.Editor
 
 			_container = ui.Q<VisualElement>("container");
 			_noCategoriesLabel = ui.Q<Label>("noCategories");
+			_tagsTitleLabel = ui.Q<Label>("categoryTags");
 			_addContainer = ui.Q<VisualElement>("addContainer");
+			_categoryTagsContainer = ui.Q<VisualElement>("categoryTagsContainer");
 			ui.Q<Button>("add").clickable = new Clickable(Create);
 
 			// active library dropdown
@@ -100,7 +105,7 @@ namespace VisualPinball.Unity.Editor
 				.Select(c => c!.Name));
 
 			// update categories
-			_container.Clear();
+
 			var categories = _browser.Libraries
 				.Where(lib => lib.IsActive)
 				.SelectMany(lib => lib.GetCategories().Select(c => (lib, c)))
@@ -110,6 +115,7 @@ namespace VisualPinball.Unity.Editor
 			// update elements
 			_selectedCategoryElements.Clear();
 			NumCategories = 0;
+			_container.Clear();
 			foreach (var cat in categories) {
 				var categoryElement = new LibraryCategoryElement(this, cat);
 				_container.Add(categoryElement);
@@ -210,6 +216,7 @@ namespace VisualPinball.Unity.Editor
 
 			BuildSelectedCategories();
 			_browser.OnCategoriesUpdated(_selectedCategories);
+			SetCategoryTags();
 		}
 
 		private void BuildSelectedCategories()
@@ -222,6 +229,66 @@ namespace VisualPinball.Unity.Editor
 					}
 					_selectedCategories[lib].Add(category);
 				}
+			}
+		}
+
+		private void SetCategoryTags()
+		{
+			_categoryTagsContainer.Clear();
+
+			if (_selectedCategoryElements.Count != 1) {
+				_tagsTitleLabel.AddToClassList("hidden");
+				_categoryTagsContainer.AddToClassList("hidden");
+				return;
+			}
+
+			var categoryElement = _selectedCategoryElements.First();
+			_tagsTitleLabel.text = $"{categoryElement.Categories[0].Item2.Name} Tags";
+
+			// fetch tags
+			var tags = new HashSet<string>();
+			foreach (var (lib, category) in categoryElement.Categories) {
+				var query = new LibraryQuery {
+					Categories = new List<AssetCategory> { category }
+				};
+				foreach (var r in lib.GetAssets(query)) {
+					foreach (var tag in r.Asset.Tags) {
+						tags.Add(tag.TagName);
+					}
+				}
+			}
+
+			// render tags
+			foreach (var tag in tags.OrderBy(t => t)) {
+				var toggle = new ToolbarToggle {
+					text = tag,
+					value = _browser.Query.HasTag(tag)
+				};
+				toggle.RegisterValueChangedCallback(evt => OnTagToggle(tag, evt.newValue));
+
+				_categoryTagsContainer.Add(toggle);
+			}
+
+			_tagsTitleLabel.RemoveFromClassList("hidden");
+			_categoryTagsContainer.RemoveFromClassList("hidden");
+		}
+
+		public void UpdateCategoryTags()
+		{
+			foreach (var child in _categoryTagsContainer.contentContainer.Children()) {
+				if (child is ToolbarToggle toggle) {
+					toggle.SetValueWithoutNotify(_browser.Query.HasTag(toggle.text));
+				}
+			}
+		}
+
+		private void OnTagToggle(string tagName, bool isToggled)
+		{
+			if (!isToggled) {
+				_browser.FilterByTag(tagName, true);
+
+			} else {
+				_browser.FilterByTag(tagName);
 			}
 		}
 
