@@ -28,7 +28,9 @@ namespace VisualPinball.Unity
 	public class RubberMeshComponent : MeshComponent<RubberData, RubberComponent>
 	{
 		protected override Mesh GetMesh(RubberData data)
-			=> new RubberMeshGenerator(MainComponent).GetTransformedMesh(MainComponent.PlayfieldHeight, MainComponent.Height, MainComponent.PlayfieldDetailLevel);
+			=> new RubberMeshGenerator(MainComponent)
+				.GetTransformedMesh(MainComponent.PlayfieldHeight, MainComponent.Height, MainComponent.PlayfieldDetailLevel)
+				.TransformToWorld();
 
 		protected override PbrMaterial GetMaterial(RubberData data, Table table)
 			=> new RubberMeshGenerator(MainComponent).GetMaterial(table, data);

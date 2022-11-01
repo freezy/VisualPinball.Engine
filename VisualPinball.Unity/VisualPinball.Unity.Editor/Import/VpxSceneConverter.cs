@@ -595,7 +595,7 @@ namespace VisualPinball.Unity.Editor
 			_playfieldGo.AddComponent<PlayfieldMeshComponent>();
 			_playfieldGo.AddComponent<MeshFilter>();
 			_playfieldGo.transform.localRotation = PlayfieldComponent.GlobalRotation;
-			_playfieldGo.transform.localPosition = new Vector3(-_sourceTable.Width / 2 * PlayfieldComponent.GlobalScale, 0f, _sourceTable.Height / 2 * PlayfieldComponent.GlobalScale);
+			//_playfieldGo.transform.localPosition = new Vector3(-_sourceTable.Width / 2 * PlayfieldComponent.GlobalScale, 0f, _sourceTable.Height / 2 * PlayfieldComponent.GlobalScale);
 			_playfieldGo.transform.localScale = new Vector3(PlayfieldComponent.GlobalScale, PlayfieldComponent.GlobalScale, PlayfieldComponent.GlobalScale);
 			_playfieldComponent.SetData(_sourceTable.Data);
 		}

@@ -46,7 +46,7 @@ namespace VisualPinball.Unity
 			var meshGen = new SurfaceMeshGenerator(new LightInsertData(_dragPoints, InsertHeight));
 			var topMesh = meshGen.GetMesh(SurfaceMeshGenerator.Top, playfieldComponent.Width, playfieldComponent.Height, playfieldComponent.PlayfieldHeight, false);
 			var sideMesh = meshGen.GetMesh(SurfaceMeshGenerator.Side, playfieldComponent.Width, playfieldComponent.Height, playfieldComponent.PlayfieldHeight, false);
-			return topMesh.Merge(sideMesh);
+			return topMesh.Merge(sideMesh).TransformToWorld();
 		}
 
 		protected override PbrMaterial GetMaterial(LightData data, Table table)

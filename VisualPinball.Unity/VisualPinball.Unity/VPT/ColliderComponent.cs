@@ -120,7 +120,8 @@ namespace VisualPinball.Unity
 			var ltw = GetComponentInParent<PlayfieldComponent>().transform.localToWorldMatrix;
 			Gizmos.matrix = ltw;
 			UnityEditor.Handles.matrix = ltw;
-
+			
+			
 			var generateColliders = ShowAabbs || showColliders && !HasCachedColliders;
 			if (generateColliders) {
 				var api = InstantiateColliderApi(player, _colliderEntity);

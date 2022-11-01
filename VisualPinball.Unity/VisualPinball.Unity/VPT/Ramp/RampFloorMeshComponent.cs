@@ -30,7 +30,9 @@ namespace VisualPinball.Unity
 		protected override Mesh GetMesh(RampData _)
 		{
 			var playfieldComponent = GetComponentInParent<PlayfieldComponent>();
-			return new RampMeshGenerator(MainComponent).GetMesh(playfieldComponent.Width, playfieldComponent.Height, playfieldComponent.PlayfieldHeight, RampMeshGenerator.Floor);
+			return new RampMeshGenerator(MainComponent)
+				.GetMesh(playfieldComponent.Width, playfieldComponent.Height, playfieldComponent.PlayfieldHeight, RampMeshGenerator.Floor)
+				.TransformToWorld();
 		}
 
 		protected override PbrMaterial GetMaterial(RampData data, Table table)

@@ -81,6 +81,10 @@ namespace VisualPinball.Engine.VPT
 				return this;
 			}
 
+			if (Vertices == null || Vertices.Length == 0) {
+				return this;
+			}
+
 			// transform vertices
 			for (var i = 0; i < Vertices.Length; i++) {
 				var vert = new Vertex3D(Vertices[i].X, Vertices[i].Y, Vertices[i].Z).MultiplyMatrix(matrix);

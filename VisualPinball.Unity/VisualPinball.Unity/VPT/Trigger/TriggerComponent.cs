@@ -106,13 +106,13 @@ namespace VisualPinball.Unity
 			var t = transform;
 
 			// position
-			t.localPosition = new Vector3(Position.x, Position.y, PositionZ);
+			t.localPosition = Physics.TranslateToWorld(Position.x, Position.y, PositionZ);
 
 			// scale
-			t.localScale = new Vector3(Scale, Scale, Scale);
+			t.localScale = Physics.ScaleToWorld(Scale, Scale, Scale);
 
 			// rotation
-			t.localEulerAngles = new Vector3(0, 0, Rotation);
+			t.localEulerAngles = Physics.RotateToWorld(0, 0, Rotation);
 		}
 
 		#endregion
