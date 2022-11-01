@@ -95,8 +95,6 @@ namespace VisualPinball.Unity.Editor
 			}
 		}
 
-		public string ThumbPath => @$"{AssetBrowser.ThumbPath}/{GUID}.png";
-
 		public Asset SetCategory(LibraryDatabase lib)
 		{
 			_category = lib.GetCategory(_categoryId);
@@ -155,6 +153,13 @@ namespace VisualPinball.Unity.Editor
 				Tags.Remove(tag);
 			}
 		}
+
+		public IEnumerable<Asset> GetNestedAssets() => EditorUtility.CollectDependencies(new[] { Object })
+			.Where(o => o is GameObject)
+			.Select(g => AssetDatabase.TryGetGUIDAndLocalFileIdentifier(g, out var guid, out long _) ? guid : null)
+			.Where(guid => guid != null && guid != GUID && Library.HasAsset(guid))
+			.Distinct()
+			.Select(guid => Library.GetAsset(guid));
 
 		private static void AddValuesToAttribute(AssetAttribute attr, string values)
 		{

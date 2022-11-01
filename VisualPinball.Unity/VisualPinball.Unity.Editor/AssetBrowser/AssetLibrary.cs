@@ -90,6 +90,9 @@ namespace VisualPinball.Unity.Editor
 			SaveLibrary();
 		}
 
+		public bool HasAsset(string guid) => _db.HasAsset(guid);
+		public Asset GetAsset(string guid) => _db.GetAsset(guid);
+
 		#endregion
 
 		#region Category

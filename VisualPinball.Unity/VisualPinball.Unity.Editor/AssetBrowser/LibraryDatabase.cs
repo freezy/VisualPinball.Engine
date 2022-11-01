@@ -149,6 +149,8 @@ namespace VisualPinball.Unity.Editor
 			}
 		}
 
+		public bool HasAsset(string guid) => Assets.Contains(guid);
+		public Asset GetAsset(string guid) => Assets[guid];
 		private string AssetMetaPath(Asset asset, AssetLibrary lib) => $"{lib.LibraryRoot}/{DatabaseFolder}/{asset.GUID}.asset";
 
 		#endregion
