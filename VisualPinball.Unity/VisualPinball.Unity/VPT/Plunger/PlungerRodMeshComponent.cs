@@ -44,7 +44,9 @@ namespace VisualPinball.Unity
 		#endregion
 
 		protected override Mesh GetMesh(PlungerData data)
-			=> new PlungerMeshGenerator(data).GetMesh(MainComponent.PositionZ, PlungerMeshGenerator.Rod);
+			=> new PlungerMeshGenerator(data)
+				.GetMesh(MainComponent.PositionZ, PlungerMeshGenerator.Rod)
+				.TransformToWorld();
 
 		protected override PbrMaterial GetMaterial(PlungerData data, Table table)
 			=> new PlungerMeshGenerator(data).GetMaterial(table);

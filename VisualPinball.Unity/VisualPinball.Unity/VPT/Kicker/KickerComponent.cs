@@ -114,19 +114,19 @@ namespace VisualPinball.Unity
 			var t = transform;
 
 			// position
-			t.localPosition = new Vector3(Position.x, Position.y, PositionZ);
+			t.localPosition = Physics.TranslateToWorld(Position.x, Position.y, PositionZ);
 
 			if (KickerType == Engine.VPT.KickerType.KickerCup) {
-				t.localPosition += new Vector3(0, 0, -0.18f * Radius);
+				t.localPosition += Physics.TranslateToWorld(0, 0, -0.18f * Radius);
 			}
 
 			// scale
-			t.localScale = new Vector3(Radius, Radius, Radius);
+			t.localScale = Physics.ScaleToWorld(Radius, Radius, Radius);
 
 			// rotation
 			t.localEulerAngles = KickerType switch {
-				Engine.VPT.KickerType.KickerCup => new Vector3(0, 0, Orientation),
-				Engine.VPT.KickerType.KickerWilliams => new Vector3(0, 0, Orientation + 90f),
+				Engine.VPT.KickerType.KickerCup => Physics.RotateToWorld(0, 0, Orientation),
+				Engine.VPT.KickerType.KickerWilliams => Physics.RotateToWorld(0, 0, Orientation + 90f),
 				_ => t.localEulerAngles
 			};
 		}

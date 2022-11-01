@@ -28,7 +28,9 @@ namespace VisualPinball.Unity
 	public class PlungerFlatMeshComponent : PlungerMeshComponent
 	{
 		protected override Mesh GetMesh(PlungerData data)
-			=> new PlungerMeshGenerator(data).GetMesh(MainComponent.PositionZ, PlungerMeshGenerator.Flat);
+			=> new PlungerMeshGenerator(data)
+				.GetMesh(MainComponent.PositionZ, PlungerMeshGenerator.Flat)
+				.TransformToWorld();
 
 		protected override PbrMaterial GetMaterial(PlungerData data, Table table)
 			=> new PlungerMeshGenerator(data).GetMaterial(table);

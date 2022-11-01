@@ -44,7 +44,9 @@ namespace VisualPinball.Unity
 		protected override bool IsProcedural => UseLegacyMesh;
 
 		protected override Mesh GetMesh(PrimitiveData data)
-			=> new PrimitiveMeshGenerator(data).GetMesh(MainComponent.PlayfieldHeight, data.Mesh, Origin.Original, false);
+			=> new PrimitiveMeshGenerator(data)
+				.GetMesh(MainComponent.PlayfieldHeight, data.Mesh, Origin.Original, false)
+				.TransformToWorld();
 
 		protected override PbrMaterial GetMaterial(PrimitiveData data, Table table)
 			=> new PrimitiveMeshGenerator(data).GetMaterial(table);

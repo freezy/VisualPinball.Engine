@@ -32,7 +32,7 @@ namespace VisualPinball.Unity.Playfield
 		#endregion
 
 		protected override Mesh GetMesh(TableData data)
-			=> new TableMeshGenerator(data).GetMesh();
+			=> new TableMeshGenerator(data).GetMesh().TransformToWorld();
 
 		protected override PbrMaterial GetMaterial(TableData data, Table table)
 			=> new TableMeshGenerator(data).GetMaterial(table);

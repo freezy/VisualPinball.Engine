@@ -31,6 +31,8 @@ namespace VisualPinball.Unity
 			=> FlipperMeshGenerator.GetMaterial(FlipperMeshGenerator.Rubber, table, data);
 
 		protected override Mesh GetMesh(FlipperData _)
-			=> new FlipperMeshGenerator(MainComponent).GetMesh(FlipperMeshGenerator.Rubber, 0);
+			=> new FlipperMeshGenerator(MainComponent)
+				.GetMesh(FlipperMeshGenerator.Rubber, 0)
+				.TransformToWorld();
 	}
 }

@@ -128,7 +128,7 @@ namespace VisualPinball.Unity
 			localPos.z = Surface != null
 				? Surface.Height(((float3)localPos).xy) + localPos.z
 				: PlayfieldHeight + localPos.z;
-			transform.localPosition = localPos;
+			transform.localPosition = Physics.TranslateToWorld(localPos);
 
 			// bulb size
 			foreach (var mf in GetComponentsInChildren<MeshFilter>(true)) {
@@ -138,7 +138,7 @@ namespace VisualPinball.Unity
 				switch (mf.sharedMesh.name) {
 					case BulbMeshName:
 					case SocketMeshName:
-						mf.gameObject.transform.localScale = new Vector3(BulbSize, BulbSize, BulbSize);
+						mf.gameObject.transform.localScale = Physics.ScaleToWorld(BulbSize, BulbSize, BulbSize);
 						break;
 				}
 			}
@@ -147,8 +147,7 @@ namespace VisualPinball.Unity
 			var insertMeshComponent = GetComponentInChildren<LightInsertMeshComponent>();
 			if (insertMeshComponent) {
 				var t = insertMeshComponent.transform;
-				var pos = t.localPosition;
-				t.localPosition = new Vector3(-localPos.x, -localPos.y, insertMeshComponent.PositionZ);
+				t.localPosition = Physics.TranslateToWorld(-localPos.x, -localPos.y, insertMeshComponent.PositionZ);
 			}
 		}
 

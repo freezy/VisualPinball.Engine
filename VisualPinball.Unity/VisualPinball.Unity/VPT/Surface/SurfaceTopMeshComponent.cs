@@ -30,7 +30,9 @@ namespace VisualPinball.Unity
 		protected override Mesh GetMesh(SurfaceData data)
 		{
 			var playfieldComponent = GetComponentInParent<PlayfieldComponent>();
-			return new SurfaceMeshGenerator(data).GetMesh(SurfaceMeshGenerator.Top, playfieldComponent.Width, playfieldComponent.Height, playfieldComponent.PlayfieldHeight, false);
+			return new SurfaceMeshGenerator(data)
+				.GetMesh(SurfaceMeshGenerator.Top, playfieldComponent.Width, playfieldComponent.Height, playfieldComponent.PlayfieldHeight, false)
+				.TransformToWorld();
 		}
 
 		protected override PbrMaterial GetMaterial(SurfaceData data, Table table)
