@@ -52,7 +52,12 @@ namespace VisualPinball.Unity.Editor
 		/// <returns></returns>
 		public static IEnumerable<AssetMaterialCombination> GetCombinations(Asset asset)
 		{
-			var variations = asset.MaterialVariations;
+			var variations = new List<AssetMaterialVariation>();
+			foreach (var childAsset in asset.GetNestedAssets()) {
+				variations.AddRange(childAsset.MaterialVariations);
+			}
+
+			variations.AddRange(asset.MaterialVariations);
 			var counters = new Counter[variations.Count];
 			Counter nextCounter = null;
 			for (var i = variations.Count - 1; i >= 0; i--) {
@@ -82,9 +87,11 @@ namespace VisualPinball.Unity.Editor
 		public void ApplyMaterial(GameObject go)
 		{
 			foreach (var (materialVariation, materialOverride) in _variations) {
-				var obj = go.name == materialVariation.Object.name
-					? go.transform
-					: go!.transform.Find(materialVariation.Object.name);
+				var obj = materialVariation.Match(go);
+				if (obj == null) {
+					Debug.LogError("Unable to determine which to object the material needs to be applied to.");
+					return;
+				}
 				var materials = obj.gameObject.GetComponent<MeshRenderer>().sharedMaterials;
 				materials[materialVariation.Slot] = materialOverride.Material;
 				obj.gameObject.GetComponent<MeshRenderer>().sharedMaterials = materials;

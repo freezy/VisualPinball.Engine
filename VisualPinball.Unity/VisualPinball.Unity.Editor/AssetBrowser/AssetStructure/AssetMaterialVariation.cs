@@ -18,6 +18,7 @@
 
 using System;
 using System.Collections.Generic;
+using UnityEditor;
 using UnityEngine;
 using Object = UnityEngine.Object;
 
@@ -31,5 +32,49 @@ namespace VisualPinball.Unity.Editor
 		public Object Object;
 		public int Slot;
 		public List<AssetMaterialOverride> Overrides;
+		
+		public string GUID => AssetDatabase.TryGetGUIDAndLocalFileIdentifier(Object, out var guid, out long _) ? guid : null;
+
+		public GameObject Match(GameObject go)
+		{
+			var matchedGo = MatchByGuid(go);
+			if (matchedGo != null) {
+				return matchedGo;
+			}
+			return go.name == Object.name 
+				? go 
+				: go!.transform.Find(Object.name)?.gameObject;
+		}
+
+		/// <summary>
+		/// We want combinations of nested prefabs to work too, so we can't solely rely on the object name,
+		/// since it might be different when nested.
+		///
+		/// The idea is that we look up the prefab GUID for the object and match it against all prefab
+		/// GUIDs of the GameObject's children
+		/// </summary>
+		/// <param name="go">GameObject in which we look for <see cref="Object"/>.</param>
+		/// <returns>Matched GameObject, or null if no match.</returns>
+		private GameObject MatchByGuid(GameObject go)
+		{
+			var objectGuid = GUID;
+			if (objectGuid == null) {
+				return null;
+			}
+			foreach (var child in go.GetComponentsInChildren<Transform>()) {
+				// get reference to prefab
+				var prefab = PrefabUtility.GetCorrespondingObjectFromOriginalSource(child.gameObject);
+				if (prefab == null) {
+					continue;
+				}
+				// get GUID of prefab
+				if (AssetDatabase.TryGetGUIDAndLocalFileIdentifier(prefab, out var guid, out long _)) {
+					if (guid == objectGuid) {
+						return child.gameObject;
+					}
+				}
+			}
+			return null;
+		}
 	}
 }
