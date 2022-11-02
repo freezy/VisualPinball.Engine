@@ -116,11 +116,9 @@ namespace VisualPinball.Unity
 				Profiler.EndSample();
 				return;
 			}
-
-			var ltw = GetComponentInParent<PlayfieldComponent>().transform.localToWorldMatrix;
-			Gizmos.matrix = ltw;
-			UnityEditor.Handles.matrix = ltw;
 			
+			Gizmos.matrix = Physics.VpxToWorld;
+			UnityEditor.Handles.matrix = Physics.VpxToWorld;
 			
 			var generateColliders = ShowAabbs || showColliders && !HasCachedColliders;
 			if (generateColliders) {
@@ -129,7 +127,7 @@ namespace VisualPinball.Unity
 				api.CreateColliders(colliders, 0.1f);
 
 				if (showColliders) {
-					_colliderMesh = GenerateColliderMesh(colliders, ltw);
+					_colliderMesh = GenerateColliderMesh(colliders, Physics.VpxToWorld);
 					_collidersDirty = false;
 				}
 
@@ -142,6 +140,7 @@ namespace VisualPinball.Unity
 			}
 
 			if (showColliders) {
+				
 				var color = Color.green;
 				UnityEditor.Handles.color = color;
 				color.a = 0.3f;
@@ -153,6 +152,9 @@ namespace VisualPinball.Unity
 				Gizmos.DrawWireMesh(_colliderMesh);
 				DrawNonMeshColliders();
 			}
+			
+			Gizmos.matrix = Matrix4x4.identity;
+			UnityEditor.Handles.matrix = Matrix4x4.identity;
 
 			Profiler.EndSample();
 		}
@@ -411,9 +413,10 @@ namespace VisualPinball.Unity
 			}
 
 			var t = transform;
-			var ltp = Matrix4x4.TRS(t.localPosition, t.localRotation, t.localScale);
+			var ltp = Matrix4x4.TRS(t.localPosition.TranslateToVpx(), quaternion.Euler(0, 0, math.radians(flipperComponent.StartAngle)), t.localScale);
 			var startIdx = vertices.Count;
-			var mesh = new FlipperMeshGenerator(flipperComponent).GetMesh(FlipperMeshGenerator.Rubber, 0, 0.01f);
+			var mesh = new FlipperMeshGenerator(flipperComponent)
+				.GetMesh(FlipperMeshGenerator.Rubber, 0, 0.01f);
 			for (var i = 0; i < mesh.Vertices.Length; i++) {
 				var vertex = mesh.Vertices[i];
 				vertices.Add(ltp.MultiplyPoint(vertex.ToUnityFloat3()));

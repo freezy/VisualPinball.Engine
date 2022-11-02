@@ -77,7 +77,7 @@ namespace VisualPinball.Unity
 		public override void UpdateTransforms()
 		{
 			base.UpdateTransforms();
-			transform.SetFromMatrix(GetTransformationMatrix().ToUnityMatrix());
+			transform.SetFromMatrix(GetTransformationMatrix().ToUnityMatrix().ApplyVpxMatrix());
 		}
 
 		public float _originalRotateZ;

@@ -88,32 +88,34 @@ namespace VisualPinball.Unity.Editor
 			base.FinishEdit(label, dirtyMesh);
 		}
 
-
 		protected void OnSceneGUI()
 		{
-			if (target is IMainRenderableComponent editable) {
-				var position = editable.GetEditorPosition();
-				var transform = (target as MonoBehaviour).transform;
-				if (transform != null && transform.parent != null) {
-					position = transform.parent.TransformPoint(position);
-					var axis = transform.TransformDirection(-Vector3.up); //Local direction of the gate gameObject is -up
-					var worldScale = 0.5f * Unity.PlayfieldComponent.GlobalScale;
-					var scale = MainComponent.Length * worldScale;
-					Handles.color = Color.white;
-					Handles.DrawWireDisc(position, axis, scale);
-					Color col = Color.grey;
-					col.a = 0.25f;
-					Handles.color = col;
-					Handles.DrawSolidDisc(position, axis, scale);
+			if (target is not IMainRenderableComponent editable) {
+				return;
+			}
+			
+			var transform = (target as MonoBehaviour)?.transform;
+			if (transform == null || transform.parent == null) {
+				return;
+			}
+			
+			var position = editable.GetEditorPosition();
+			position = transform.parent.TransformPoint(position);
+			var axis = transform.TransformDirection(-Vector3.up); //Local direction of the gate gameObject is -up
+			var scale = MainComponent.Length / 5000;
+			Handles.color = Color.white;
+			Handles.DrawWireDisc(position, axis, scale);
+			var col = Color.grey;
+			col.a = 0.25f;
+			Handles.color = col;
+			Handles.DrawSolidDisc(position, axis, scale);
 
-					var arrowScale = worldScale * 100.0f;
-					Handles.color = Color.white;
-					Handles.ArrowHandleCap(-1, position, Quaternion.LookRotation(axis), arrowScale, EventType.Repaint);
-					var colliderComponent = MainComponent.GetComponent<GateColliderComponent>();
-					if (colliderComponent && colliderComponent.TwoWay) {
-						Handles.ArrowHandleCap(-1, position, Quaternion.LookRotation(-axis), arrowScale, EventType.Repaint);
-					}
-				}
+			const float arrowScale = 0.05f;
+			Handles.color = Color.white;
+			Handles.ArrowHandleCap(-1, position, Quaternion.LookRotation(axis), arrowScale, EventType.Repaint);
+			var colliderComponent = MainComponent.GetComponent<GateColliderComponent>();
+			if (colliderComponent && colliderComponent.TwoWay) {
+				Handles.ArrowHandleCap(-1, position, Quaternion.LookRotation(-axis), arrowScale, EventType.Repaint);
 			}
 		}
 	}
