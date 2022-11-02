@@ -16,6 +16,7 @@
 
 using Unity.Mathematics;
 using UnityEngine;
+using VisualPinball.Engine.Math;
 
 namespace VisualPinball.Unity
 {
@@ -41,11 +42,14 @@ namespace VisualPinball.Unity
 		);
 
 		public static float4x4 TransformToVpx(Matrix4x4 vpx) => math.mul(WorldToVpx, vpx);
+		public static Matrix3D TransformToVpx(this Matrix3D vpx) => WorldToVpx.ToVpMatrix().Multiply(vpx);
 		public static float4x4 TransformToWorld(Matrix4x4 world) => math.mul(VpxToWorld, world);
 
 		public static float3 TranslateToVpx(float3 worldVector) => math.transform(WorldToVpx, worldVector);
+		public static float3 TranslateToVpx(this Vector3 worldVector) => math.transform(WorldToVpx, worldVector);
 		public static float3 TranslateToVpx(float worldX, float worldY, float worldZ) => TranslateToVpx(new float3(worldX, worldY, worldZ));
 		public static float3 TranslateToWorld(float3 vpxVector) => math.transform(VpxToWorld, vpxVector);
+		public static float3 TranslateToWorld(this Vector3 vpxVector) => math.transform(VpxToWorld, vpxVector);
 		public static Vector3 TranslateToWorld(float vpxX, float vpxY, float vpxZ) => TranslateToWorld(new float3(vpxX, vpxY, vpxZ));
 		public static float ScaleToVpx(float worldSize) => worldSize * Scale;
 		public static float ScaleToWorld(float vpxSize) => vpxSize * ScaleInv;
@@ -61,5 +65,13 @@ namespace VisualPinball.Unity
 		public static float3 RotateToWorld(float3 vpxRotation) => ((Matrix4x4)math.mul(VpxToWorld, float4x4.Euler(math.radians(vpxRotation.x), math.radians(vpxRotation.y), math.radians(vpxRotation.z)))).rotation.eulerAngles;
 
 		public static VisualPinball.Engine.VPT.Mesh TransformToWorld(this VisualPinball.Engine.VPT.Mesh mesh) => mesh.Transform(VpxToWorld.ToVpMatrix());
+
+		/// <summary>
+		/// Use this on matrices that are generated for VPX-space transformations that you want to apply to a mesh that
+		/// has already been transformed to world-space. 
+		/// </summary>
+		/// <param name="m">VPX-space matrix that is supposed to be applied to a VPX-space mesh</param>
+		/// <returns>Matrix that with the same transformation to be applied to a mesh converted to world-space.</returns>
+		public static Matrix4x4 ApplyVpxMatrix(this Matrix4x4 m) => math.mul(math.mul(VpxToWorld, m), WorldToVpx);
 	}
 }

@@ -174,7 +174,7 @@ namespace VisualPinball.Unity
 			t.localPosition = Physics.TranslateToWorld(Position.x, Position.y, PositionZ);
 
 			// rotation
-			t.localEulerAngles = Physics.RotateToWorld(0, 0, _startAngle);
+			t.localEulerAngles = new Vector3(0, _startAngle, 0);
 		}
 
 		private FlipperApi _flipperApi;
@@ -388,6 +388,9 @@ namespace VisualPinball.Unity
 			if (poly == null) {
 				return;
 			}
+			
+			Gizmos.matrix = Matrix4x4.identity;
+			UnityEditor.Handles.matrix = Matrix4x4.identity;
 
 			// Draw enclosing polygon
 			Gizmos.color = Color.cyan;
@@ -395,7 +398,9 @@ namespace VisualPinball.Unity
 				Gizmos.color = new Color(Gizmos.color.g, Gizmos.color.b, Gizmos.color.r, Gizmos.color.a);
 			}
 			for (int i = 0, j = poly.Count - 1; i < poly.Count; j = i++) {
-				Gizmos.DrawLine(transform.TransformPoint(poly[j]), transform.TransformPoint(poly[i]));
+				var a0 = transform.TransformPoint(poly[j].TranslateToWorld());
+				var b0 = transform.TransformPoint(poly[i].TranslateToWorld());
+				Gizmos.DrawLine(a0, b0);
 			}
 
 			// Draw arc arrow
@@ -407,7 +412,7 @@ namespace VisualPinball.Unity
 			}
 			AddPolyArc(arrow, Vector3.zero, FlipperRadiusMax - 20F, start, end, height: height);
 			for (int i = 1, j = 0; i < arrow.Count; j = i++) {
-				Gizmos.DrawLine(transform.TransformPoint(arrow[j]), transform.TransformPoint(arrow[i]));
+				Gizmos.DrawLine(transform.TransformPoint(arrow[j].TranslateToWorld()), transform.TransformPoint(arrow[i].TranslateToWorld()));
 			}
 
 			if (start == end) {
@@ -417,8 +422,8 @@ namespace VisualPinball.Unity
 			var tmpA = IsLeft ? start + 90F + 3F : end +90F - 3F;
 			var a = Quaternion.Euler(0, 0, tmpA) * new Vector3(0, -FlipperRadiusMax + 15F, height);
 			var b = Quaternion.Euler(0, 0, tmpA) * new Vector3(0F, -FlipperRadiusMax + 25F, height);
-			Gizmos.DrawLine(transform.TransformPoint(last) , transform.TransformPoint(a));
-			Gizmos.DrawLine(transform.TransformPoint(last), transform.TransformPoint(b));
+			Gizmos.DrawLine(transform.TransformPoint(last.TranslateToWorld()), transform.TransformPoint(a.TranslateToWorld()));
+			Gizmos.DrawLine(transform.TransformPoint(last.TranslateToWorld()), transform.TransformPoint(b.TranslateToWorld()));
 			Gizmos.color = Color.white;
 		}
 

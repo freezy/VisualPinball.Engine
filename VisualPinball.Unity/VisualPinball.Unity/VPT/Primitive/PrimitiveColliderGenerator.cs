@@ -49,7 +49,7 @@ namespace VisualPinball.Unity
 				Logger.Warn($"Primitive {_meshGenerator.name} did not return a mesh for collider generation.");
 				return;
 			}
-			mesh = mesh.Transform(_meshGenerator.GetTransformationMatrix());
+			mesh = mesh.Transform(_meshGenerator.GetTransformationMatrix().TransformToVpx());
 
 			var reducedVertices = math.max(
 				(uint) MathF.Pow(mesh.Vertices.Length,
