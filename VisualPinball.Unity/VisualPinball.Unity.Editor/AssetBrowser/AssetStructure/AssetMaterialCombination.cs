@@ -54,7 +54,7 @@ namespace VisualPinball.Unity.Editor
 		{
 			var variations = new List<AssetMaterialVariation>();
 			foreach (var childAsset in asset.GetNestedAssets()) {
-				variations.AddRange(childAsset.MaterialVariations);
+				variations.AddRange(childAsset.MaterialVariations.Select(mv => mv.Nested));
 			}
 
 			variations.AddRange(asset.MaterialVariations);

@@ -33,17 +33,24 @@ namespace VisualPinball.Unity.Editor
 		public int Slot;
 		public List<AssetMaterialOverride> Overrides;
 		
+		[NonSerialized]
+		public bool IsNested;
+		
 		public string GUID => AssetDatabase.TryGetGUIDAndLocalFileIdentifier(Object, out var guid, out long _) ? guid : null;
+		
+		public AssetMaterialVariation Nested { get { IsNested = true; return this; }}
 
 		public GameObject Match(GameObject go)
 		{
-			var matchedGo = MatchByGuid(go);
+			var matchedGo = IsNested ? MatchByGuid(go) : null; // don't match non-nested objects by uuid, since it'll match the root GO.
 			if (matchedGo != null) {
 				return matchedGo;
 			}
+
 			return go.name == Object.name 
 				? go 
 				: go!.transform.Find(Object.name)?.gameObject;
+
 		}
 
 		/// <summary>
