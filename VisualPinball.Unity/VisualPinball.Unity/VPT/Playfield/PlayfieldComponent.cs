@@ -173,8 +173,8 @@ namespace VisualPinball.Unity
 				.GetTransformedMesh(table?.TableHeight ?? 0f, primitiveData.Mesh, Origin.Original, false)
 				.Transform(mg.TransformationMatrix(PlayfieldHeight)); // apply transformation to mesh, because this is the playfield
 			var material = new PbrMaterial(
-				table.GetMaterial(_playfieldMaterial),
-				table.GetTexture(_playfieldImage)
+				table?.GetMaterial(_playfieldMaterial),
+				table?.GetTexture(_playfieldImage)
 			);
 			MeshComponent<PrimitiveData, PrimitiveComponent>.CreateMesh(gameObject, mesh, material, "playfield_mesh", textureProvider, materialProvider);
 			playfieldMeshComponent.AutoGenerate = false;

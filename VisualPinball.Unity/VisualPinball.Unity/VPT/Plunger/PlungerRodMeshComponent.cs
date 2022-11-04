@@ -17,6 +17,7 @@
 // ReSharper disable InconsistentNaming
 
 using System;
+using Unity.Mathematics;
 using UnityEngine;
 using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Plunger;
@@ -45,8 +46,7 @@ namespace VisualPinball.Unity
 
 		protected override Mesh GetMesh(PlungerData data)
 			=> new PlungerMeshGenerator(data)
-				.GetMesh(MainComponent.PositionZ, PlungerMeshGenerator.Rod)
-				.TransformToWorld();
+				.GetMesh(MainComponent.PositionZ, PlungerMeshGenerator.Rod);
 
 		protected override PbrMaterial GetMaterial(PlungerData data, Table table)
 			=> new PlungerMeshGenerator(data).GetMaterial(table);
@@ -54,12 +54,18 @@ namespace VisualPinball.Unity
 		public override void RebuildMeshes()
 		{
 			base.RebuildMeshes();
+			CalculateBoundingBox();
+		}
+
+		public void CalculateBoundingBox()
+		{
 			var plungerComp = GetComponentInParent<PlungerComponent>();
 			var smr = GetComponent<SkinnedMeshRenderer>();
 			var bounds = smr.localBounds;
 			var ringOffset = (RingGap + RingWidth) / 2f;
-			bounds.center = new Vector3(plungerComp.Position.x, plungerComp.Position.y + ringOffset - 32, bounds.center.z);
-			bounds.extents = new Vector3(12f, 125f + ringOffset, 12f);
+			var radius = math.max(RodDiam, RingDiam) * plungerComp.Width / 2;
+			bounds.center = new Vector3(plungerComp.Position.x, plungerComp.Position.y + ringOffset - 40, 45);
+			bounds.extents = new Vector3(radius, 125f + ringOffset, radius);
 			smr.localBounds = bounds;
 		}
 	}

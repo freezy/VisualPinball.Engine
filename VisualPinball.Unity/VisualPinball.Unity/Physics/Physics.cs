@@ -41,14 +41,23 @@ namespace VisualPinball.Unity
 			new float4(-(float)(Translate.x / (double)Scale), 0, (float)(Translate.y / (double)Scale), 1f)
 		);
 
+		public static Vector3 ScaleInvVector = new(ScaleInv, ScaleInv, ScaleInv);
+		
 		public static float4x4 TransformToVpx(Matrix4x4 vpx) => math.mul(WorldToVpx, vpx);
 		public static Matrix3D TransformToVpx(this Matrix3D vpx) => WorldToVpx.ToVpMatrix().Multiply(vpx);
 		public static float4x4 TransformToWorld(Matrix4x4 world) => math.mul(VpxToWorld, world);
+		public static VisualPinball.Engine.VPT.Mesh TransformToWorld(this VisualPinball.Engine.VPT.Mesh mesh) => mesh.Transform(VpxToWorld.ToVpMatrix());
+		public static void TransformToWorld(this Transform transform)
+		{
+			transform.localPosition = transform.localPosition.TranslateToWorld();
+			transform.localScale = ScaleToWorld(transform.localScale);
+			transform.localRotation = Quaternion.Euler(RotateToWorld(transform.localRotation.eulerAngles));
+		}
 
 		public static float3 TranslateToVpx(float3 worldVector) => math.transform(WorldToVpx, worldVector);
 		public static float3 TranslateToVpx(this Vector3 worldVector) => math.transform(WorldToVpx, worldVector);
 		public static float3 TranslateToVpx(float worldX, float worldY, float worldZ) => TranslateToVpx(new float3(worldX, worldY, worldZ));
-		public static float3 TranslateToWorld(float3 vpxVector) => math.transform(VpxToWorld, vpxVector);
+		public static float3 TranslateToWorld(this float3 vpxVector) => math.transform(VpxToWorld, vpxVector);
 		public static float3 TranslateToWorld(this Vector3 vpxVector) => math.transform(VpxToWorld, vpxVector);
 		public static Vector3 TranslateToWorld(float vpxX, float vpxY, float vpxZ) => TranslateToWorld(new float3(vpxX, vpxY, vpxZ));
 		public static float ScaleToVpx(float worldSize) => worldSize * Scale;
@@ -63,8 +72,6 @@ namespace VisualPinball.Unity
 		public static float3 RotateToVpx(float3 worldRotation) => ((Matrix4x4)math.mul(WorldToVpx, float4x4.Euler(math.radians(worldRotation.x), math.radians(worldRotation.y), math.radians(worldRotation.z)))).rotation.eulerAngles;
 		public static float3 RotateToWorld(float vpxX, float vpxY, float vpxZ) => ((Matrix4x4)math.mul(VpxToWorld, float4x4.Euler(math.radians(vpxX), math.radians(vpxY), math.radians(vpxZ)))).rotation.eulerAngles;
 		public static float3 RotateToWorld(float3 vpxRotation) => ((Matrix4x4)math.mul(VpxToWorld, float4x4.Euler(math.radians(vpxRotation.x), math.radians(vpxRotation.y), math.radians(vpxRotation.z)))).rotation.eulerAngles;
-
-		public static VisualPinball.Engine.VPT.Mesh TransformToWorld(this VisualPinball.Engine.VPT.Mesh mesh) => mesh.Transform(VpxToWorld.ToVpMatrix());
 
 		/// <summary>
 		/// Use this on matrices that are generated for VPX-space transformations that you want to apply to a mesh that
