@@ -93,6 +93,16 @@ namespace VisualPinball.Unity
 		public override void OnPlayfieldHeightUpdated() => RebuildMeshes();
 
 		public float PositionZ => SurfaceHeight(Surface, Position);
+		
+		public override void UpdateTransforms()
+		{
+			base.UpdateTransforms();
+			transform.localScale = Physics.ScaleToWorld(1, 1, 1);
+			transform.localRotation = Quaternion.Euler(Physics.RotateToWorld(0f, 0f, 0f));
+			
+			GetComponent<PlungerRodMeshComponent>()?.CalculateBoundingBox();
+			GetComponent<PlungerSpringMeshComponent>()?.CalculateBoundingBox();
+		}
 
 		#endregion
 
@@ -245,12 +255,14 @@ namespace VisualPinball.Unity
 			var rodMesh = GetComponentInChildren<PlungerRodMeshComponent>(true);
 			if (rodMesh) {
 				rodMesh.CreateMesh(data, table, textureProvider, materialProvider);
+				rodMesh.CalculateBoundingBox();
 			}
 
 			// spring mesh
 			var springMesh = GetComponentInChildren<PlungerSpringMeshComponent>(true);
 			if (springMesh && data.Type == PlungerType.PlungerTypeCustom) {
 				springMesh.CreateMesh(data, table, textureProvider, materialProvider);
+				springMesh.CalculateBoundingBox();
 			}
 
 			return Array.Empty<MonoBehaviour>();
