@@ -26,7 +26,6 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using NLog;
-using Unity.Mathematics;
 using UnityEngine;
 using VisualPinball.Engine.Game.Engines;
 using VisualPinball.Engine.VPT;
@@ -122,13 +121,14 @@ namespace VisualPinball.Unity
 		{
 			base.UpdateTransforms();
 
-			var localPos = transform.localPosition;
+			var vpxPos = transform.localPosition.TranslateToVpx();
 
 			// position
-			localPos.z = Surface != null
-				? Surface.Height(((float3)localPos).xy) + localPos.z
-				: PlayfieldHeight + localPos.z;
-			transform.localPosition = Physics.TranslateToWorld(localPos);
+			vpxPos.z = Surface != null
+				? Surface.Height(vpxPos.xy) + vpxPos.z
+				: PlayfieldHeight + vpxPos.z;
+			
+			transform.localPosition = vpxPos.TranslateToWorld();
 
 			// bulb size
 			foreach (var mf in GetComponentsInChildren<MeshFilter>(true)) {
@@ -138,7 +138,7 @@ namespace VisualPinball.Unity
 				switch (mf.sharedMesh.name) {
 					case BulbMeshName:
 					case SocketMeshName:
-						mf.gameObject.transform.localScale = Physics.ScaleToWorld(BulbSize, BulbSize, BulbSize);
+						mf.gameObject.transform.localScale = new Vector3(BulbSize, BulbSize, BulbSize);
 						break;
 				}
 			}
@@ -147,7 +147,7 @@ namespace VisualPinball.Unity
 			var insertMeshComponent = GetComponentInChildren<LightInsertMeshComponent>();
 			if (insertMeshComponent) {
 				var t = insertMeshComponent.transform;
-				t.localPosition = Physics.TranslateToWorld(-localPos.x, -localPos.y, insertMeshComponent.PositionZ);
+				t.localPosition = Physics.TranslateToWorld(-vpxPos.x, -vpxPos.y, insertMeshComponent.PositionZ);
 			}
 		}
 
@@ -330,7 +330,10 @@ namespace VisualPinball.Unity
 			var updatedComponents = new List<MonoBehaviour> { this };
 
 			// transforms
-			transform.localPosition = new Vector3(data.Center.X, data.Center.Y, 0);
+			var tf = transform;
+			tf.localPosition = Physics.TranslateToWorld(data.Center.X, data.Center.Y, 0);
+			tf.localScale = Physics.ScaleInvVector;
+			tf.localRotation = Quaternion.Euler(new Vector3(-90, 0, 0));
 			BulbSize = data.MeshRadius;
 
 			// logical params
@@ -390,7 +393,7 @@ namespace VisualPinball.Unity
 
 		public override LightData CopyDataTo(LightData data, string[] materialNames, string[] textureNames, bool forExport)
 		{
-			var pos = transform.localPosition;
+			var pos = (Vector3)transform.localPosition.TranslateToVpx();
 
 			// name and position
 			data.Name = name;

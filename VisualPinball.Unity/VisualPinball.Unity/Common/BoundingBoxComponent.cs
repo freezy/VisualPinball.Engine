@@ -23,6 +23,7 @@ namespace VisualPinball.Unity.Editor
 
 		void OnDrawGizmosSelected()
 		{
+			Gizmos.matrix = Matrix4x4.identity;
 			Gizmos.color = Color.yellow;
 			var r = GetComponent<Renderer>();
 			if (r != null) {
