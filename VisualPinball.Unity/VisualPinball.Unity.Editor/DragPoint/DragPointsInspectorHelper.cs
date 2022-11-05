@@ -56,7 +56,7 @@ namespace VisualPinball.Unity.Editor
 			_mb = mainComponent as MonoBehaviour;
 			_mainComponent = mainComponent;
 			_dragPointsInspector = dragPointsInspector;
-			_playfieldComponent = mainComponent.gameObject.GetComponentInParent<PlayfieldComponent>();;
+			_playfieldComponent = mainComponent.gameObject.GetComponentInParent<PlayfieldComponent>();
 			DragPointsHandler = new DragPointsHandler(mainComponent, _dragPointsInspector);
 		}
 

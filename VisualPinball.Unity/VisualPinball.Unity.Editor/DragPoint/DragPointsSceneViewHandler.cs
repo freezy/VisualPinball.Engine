@@ -56,7 +56,7 @@ namespace VisualPinball.Unity.Editor
 			if (_handler == null) {
 				return;
 			}
-
+			
 			DisplayCurve();
 			DisplayControlPoints();
 		}
@@ -146,6 +146,7 @@ namespace VisualPinball.Unity.Editor
 					// Render Curve with correct color regarding drag point properties & find curve section where the curve traveller is
 					_handler.CurveTravellerControlPointIdx = -1;
 					var minDist = float.MaxValue;
+					Handles.matrix = Physics.VpxToWorld;
 					foreach (var controlPoint in _handler.ControlPoints) {
 						var segments = controlPointsSegments[controlPoint.Index].ToArray();
 						if (segments.Length > 1) {
@@ -175,6 +176,10 @@ namespace VisualPinball.Unity.Editor
 		{
 			// Render Control Points and check traveler distance from CP
 			var distToCPoint = Mathf.Infinity;
+			Handles.matrix = Matrix4x4.identity;
+			var style =  new GUIStyle {
+				alignment = TextAnchor.MiddleCenter,
+			};
 			for (var i = 0; i < _handler.ControlPoints.Count; ++i) {
 				var controlPoint = _handler.ControlPoints[i];
 				Handles.color = controlPoint.DragPoint.IsLocked
@@ -183,14 +188,10 @@ namespace VisualPinball.Unity.Editor
 						? Color.green
 						: Color.gray;
 
-				Handles.SphereHandleCap(-1,
-					controlPoint.WorldPos,
-					Quaternion.identity,
-					HandleUtility.GetHandleSize(controlPoint.WorldPos) * ControlPoint.ScreenRadius * ControlPointsSizeRatio,
-					EventType.Repaint
-				);
-				var decal = HandleUtility.GetHandleSize(controlPoint.WorldPos) * ControlPoint.ScreenRadius * ControlPointsSizeRatio * 0.1f;
-				Handles.Label(controlPoint.WorldPos - Vector3.right * decal + Vector3.forward * decal * 2.0f, $"{i}");
+				var pos = (Vector3)controlPoint.LocalPos.TranslateToWorld();
+				var handleSize = HandleUtility.GetHandleSize(pos) * ControlPoint.ScreenRadius * ControlPointsSizeRatio;
+				Handles.SphereHandleCap(-1, pos, Quaternion.identity, handleSize, EventType.Repaint);
+				Handles.Label(pos - (Vector3.right * handleSize - Vector3.forward * handleSize * 2f) * 0.1f, $"{i}", style);
 				var dist = Vector3.Distance(_handler.CurveTravellerPosition, controlPoint.WorldPos);
 				distToCPoint = Mathf.Min(distToCPoint, dist);
 			}
