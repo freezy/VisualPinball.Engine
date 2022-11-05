@@ -62,7 +62,13 @@ namespace VisualPinball.Unity.Editor
 		/// Drag points selection
 		/// </summary>
 		public List<ControlPoint> SelectedControlPoints { get; } = new List<ControlPoint>();
-		private Vector3 _positionHandlePosition = Vector3.zero;
+		
+		/// <summary>
+		/// Position of the tool handle. On the drag point when only one selected, otherwise in the geometric center of the selection.
+		///
+		/// VPX space. 
+		/// </summary>
+		private Vector3 _dragPointHandlePosition = Vector3.zero;
 
 		/// <summary>
 		/// Curve traveller handling
@@ -98,7 +104,6 @@ namespace VisualPinball.Unity.Editor
 				CurveWidth = 10.0f,
 				CurveColor = Color.blue,
 				CurveSlingShotColor = Color.red,
-				ControlPointsSizeRatio = 1.0f,
 				CurveTravellerSizeRatio = 0.75f
 			};
 		}
@@ -152,7 +157,7 @@ namespace VisualPinball.Unity.Editor
 
 			ControlPoints.Insert(newIdx,
 			new ControlPoint(
-					DragPointInspector.DragPoints[newIdx],
+					DragPointInspector,
 					GUIUtility.GetControlID(FocusType.Passive),
 					newIdx,
 					ratio
@@ -190,36 +195,36 @@ namespace VisualPinball.Unity.Editor
 		/// <param name="flipAxis">Axis to flip</param>
 		public void FlipDragPoints(FlipAxis flipAxis)
 		{
-			var axis = flipAxis == FlipAxis.X
-				? _flipAxis.x
-				: flipAxis == FlipAxis.Y ? _flipAxis.y : _flipAxis.z;
-
-			var offset = DragPointInspector.EditableOffset;
-			var wlMat = Transform.worldToLocalMatrix;
-
-			foreach (var controlPoint in ControlPoints) {
-				var coord = flipAxis == FlipAxis.X
-					? controlPoint.WorldPos.x
-					: flipAxis == FlipAxis.Y
-						? controlPoint.WorldPos.y
-						: controlPoint.WorldPos.z;
-
-				coord = axis + (axis - coord);
-				switch (flipAxis) {
-					case FlipAxis.X:
-						controlPoint.WorldPos.x = coord;
-						break;
-					case FlipAxis.Y:
-						controlPoint.WorldPos.y = coord;
-						break;
-					case FlipAxis.Z:
-						controlPoint.WorldPos.z = coord;
-						break;
-					default:
-						throw new ArgumentOutOfRangeException(nameof(flipAxis), flipAxis, null);
-				}
-				controlPoint.UpdateDragPoint(DragPointInspector, Transform);
-			}
+			// var axis = flipAxis == FlipAxis.X
+			// 	? _flipAxis.x
+			// 	: flipAxis == FlipAxis.Y ? _flipAxis.y : _flipAxis.z;
+			//
+			// var offset = DragPointInspector.EditableOffset;
+			// var wlMat = Transform.worldToLocalMatrix;
+			//
+			// foreach (var controlPoint in ControlPoints) {
+			// 	var coord = flipAxis == FlipAxis.X
+			// 		? controlPoint.WorldPos.x
+			// 		: flipAxis == FlipAxis.Y
+			// 			? controlPoint.WorldPos.y
+			// 			: controlPoint.WorldPos.z;
+			//
+			// 	coord = axis + (axis - coord);
+			// 	switch (flipAxis) {
+			// 		case FlipAxis.X:
+			// 			controlPoint.WorldPos.x = coord;
+			// 			break;
+			// 		case FlipAxis.Y:
+			// 			controlPoint.WorldPos.y = coord;
+			// 			break;
+			// 		case FlipAxis.Z:
+			// 			controlPoint.WorldPos.z = coord;
+			// 			break;
+			// 		default:
+			// 			throw new ArgumentOutOfRangeException(nameof(flipAxis), flipAxis, null);
+			// 	}
+			// 	controlPoint.UpdateDragPoint(DragPointInspector, Transform);
+			// }
 		}
 
 		public void ReverseDragPoints()
@@ -257,7 +262,7 @@ namespace VisualPinball.Unity.Editor
 			var dragPoints = DragPointInspector.DragPoints;
 			for (var i = 0; i < dragPoints.Length; ++i) {
 				var cp = new ControlPoint(
-					dragPoints[i],
+					DragPointInspector,
 					GUIUtility.GetControlID(FocusType.Passive),
 					i,
 					dragPoints.Length > 1
@@ -317,13 +322,12 @@ namespace VisualPinball.Unity.Editor
 					parentRot = Transform.parent.transform.rotation;
 				}
 				EditorGUI.BeginChangeCheck();
-				var newHandlePos = HandlesUtils.HandlePosition(_positionHandlePosition, DragPointInspector.HandleType, parentRot);
+				var newHandlePos = HandlesUtils.HandlePosition(_dragPointHandlePosition, DragPointInspector.HandleType, parentRot);
 				if (EditorGUI.EndChangeCheck()) {
 					onChange?.Invoke(newHandlePos);
-					var deltaPosition = newHandlePos - _positionHandlePosition;
+					var deltaPosition = newHandlePos - _dragPointHandlePosition;
 					foreach (var controlPoint in SelectedControlPoints) {
-						controlPoint.WorldPos += deltaPosition;
-						controlPoint.UpdateDragPoint(DragPointInspector, Transform);
+						controlPoint.VpxPosition += deltaPosition;
 					}
 				}
 			}
@@ -339,22 +343,23 @@ namespace VisualPinball.Unity.Editor
 
 			//Setup Screen positions & controlID for control points (in case of modification of drag points coordinates outside)
 			foreach (var controlPoint in ControlPoints) {
-				controlPoint.WorldPos = controlPoint.DragPoint.Center.ToUnityVector3();
-				controlPoint.WorldPos += DragPointInspector.EditableOffset;
-				controlPoint.WorldPos += DragPointInspector.GetDragPointOffset(controlPoint.IndexRatio);
-				controlPoint.WorldPos = Transform.localToWorldMatrix.MultiplyPoint(controlPoint.WorldPos);
-				_flipAxis += controlPoint.WorldPos;
-				controlPoint.LocalPos = Handles.matrix.MultiplyPoint(controlPoint.WorldPos);
-				if (controlPoint.IsSelected) {
-					if (!controlPoint.DragPoint.IsLocked) {
-						SelectedControlPoints.Add(controlPoint);
-					}
+				// controlPoint.WorldPos = controlPoint.DragPoint.Center.ToUnityVector3();
+				// controlPoint.WorldPos += DragPointInspector.EditableOffset;
+				// controlPoint.WorldPos += DragPointInspector.GetDragPointOffset(controlPoint.IndexRatio);
+				// controlPoint.WorldPos = Transform.localToWorldMatrix.MultiplyPoint(controlPoint.WorldPos);
+				// todo wtf is this _flipAxis += controlPoint.WorldPos;
+				//controlPoint.LocalPos = Handles.matrix.MultiplyPoint(controlPoint.WorldPos);
+				if (controlPoint.IsSelected && !controlPoint.DragPoint.IsLocked) {
+					SelectedControlPoints.Add(controlPoint);
 				}
-
-				HandleUtility.AddControl(controlPoint.ControlId,
-					HandleUtility.DistanceToCircle(controlPoint.LocalPos,
-						HandleUtility.GetHandleSize(controlPoint.WorldPos) * ControlPoint.ScreenRadius *
-						_sceneViewHandler.ControlPointsSizeRatio));
+				
+				HandleUtility.AddControl(
+					controlPoint.ControlId,
+					HandleUtility.DistanceToCircle(
+						controlPoint.Position,
+						controlPoint.HandleSize
+					)
+				);
 			}
 
 			if (ControlPoints.Count > 0) {
@@ -363,12 +368,11 @@ namespace VisualPinball.Unity.Editor
 
 			//Setup PositionHandle if some control points are selected
 			if (SelectedControlPoints.Count > 0) {
-				_positionHandlePosition = Vector3.zero;
+				_dragPointHandlePosition = Vector3.zero;
 				foreach (var sCp in SelectedControlPoints) {
-					_positionHandlePosition += sCp.WorldPos;
+					_dragPointHandlePosition += sCp.VpxPosition;
 				}
-
-				_positionHandlePosition /= SelectedControlPoints.Count;
+				_dragPointHandlePosition /= SelectedControlPoints.Count;
 			}
 
 			if (CurveTravellerVisible) {

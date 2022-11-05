@@ -332,15 +332,16 @@ namespace VisualPinball.Unity.Editor
 			}
 		}
 
-		private void FinishMove(Vector3 newPosition, bool isLocalPos = false)
+		/// <summary>
+		/// Applies the new translation to the item.
+		/// </summary>
+		/// <param name="newPosition">New position in VPX space.</param>
+		private void FinishMove(Vector3 newPosition)
 		{
 			var undoLabel = "Move " + _transform.gameObject.name;
 			Undo.RecordObjects(new[]{ _transform, _primaryItem as UnityEngine.Object }, undoLabel);
 			var finalPos = newPosition;
-
-			if (_transform.parent != null && !isLocalPos) {
-				finalPos = _transform.parent.InverseTransformPoint(newPosition);
-			}
+			
 			_primaryItem.SetEditorPosition(finalPos);
 			_primaryItem.UpdateTransforms();
 

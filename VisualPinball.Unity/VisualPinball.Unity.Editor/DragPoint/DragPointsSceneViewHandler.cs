@@ -39,7 +39,6 @@ namespace VisualPinball.Unity.Editor
 
 		public float CurveWidth { get; set; } = 10.0f;
 
-		public float ControlPointsSizeRatio { get; set; } = 1.0f;
 		public float CurveTravellerSizeRatio { get; set; } = 1.0f;
 
 		public Color CurveColor { get; set; } = Color.blue;
@@ -57,7 +56,7 @@ namespace VisualPinball.Unity.Editor
 				return;
 			}
 			
-			DisplayCurve();
+			//DisplayCurve();
 			DisplayControlPoints();
 		}
 
@@ -79,7 +78,7 @@ namespace VisualPinball.Unity.Editor
 				var transformedDPoints = new List<DragPointData>();
 				foreach (var controlPoint in _handler.ControlPoints) {
 					var newDp = new DragPointData(controlPoint.DragPoint) {
-						Center = controlPoint.WorldPos.ToVertex3D()
+						Center = controlPoint.VpxPosition.ToVertex3D()
 					};
 					transformedDPoints.Add(newDp);
 				}
@@ -100,7 +99,7 @@ namespace VisualPinball.Unity.Editor
 							if (currentControlPoint != null) {
 								controlPointsSegments[currentControlPoint.Index].Add(v.ToUnityVector3());
 							}
-							currentControlPoint = _handler.ControlPoints.Find(cp => cp.WorldPos == v.ToUnityVector3());
+							currentControlPoint = _handler.ControlPoints.Find(cp => cp.Position == v.ToUnityVector3());
 						}
 						if (currentControlPoint != null) {
 							controlPointsSegments[currentControlPoint.Index].Add(v.ToUnityVector3());
@@ -188,11 +187,11 @@ namespace VisualPinball.Unity.Editor
 						? Color.green
 						: Color.gray;
 
-				var pos = (Vector3)controlPoint.LocalPos.TranslateToWorld();
-				var handleSize = HandleUtility.GetHandleSize(pos) * ControlPoint.ScreenRadius * ControlPointsSizeRatio;
+				var pos = controlPoint.Position;
+				var handleSize = controlPoint.HandleSize;
 				Handles.SphereHandleCap(-1, pos, Quaternion.identity, handleSize, EventType.Repaint);
 				Handles.Label(pos - (Vector3.right * handleSize - Vector3.forward * handleSize * 2f) * 0.1f, $"{i}", style);
-				var dist = Vector3.Distance(_handler.CurveTravellerPosition, controlPoint.WorldPos);
+				var dist = Vector3.Distance(_handler.CurveTravellerPosition, controlPoint.Position);
 				distToCPoint = Mathf.Min(distToCPoint, dist);
 			}
 
@@ -202,7 +201,7 @@ namespace VisualPinball.Unity.Editor
 					Handles.color = Color.grey;
 					Handles.SphereHandleCap(_handler.CurveTravellerControlId, _handler.CurveTravellerPosition, Quaternion.identity, HandleUtility.GetHandleSize(_handler.CurveTravellerPosition) * ControlPoint.ScreenRadius * CurveTravellerSizeRatio, EventType.Repaint);
 					_handler.CurveTravellerVisible = true;
-					if (SceneView.mouseOverWindow && _curveTravellerMoved) {
+					if (EditorWindow.mouseOverWindow && _curveTravellerMoved) {
 						HandleUtility.Repaint();
 					}
 				}
