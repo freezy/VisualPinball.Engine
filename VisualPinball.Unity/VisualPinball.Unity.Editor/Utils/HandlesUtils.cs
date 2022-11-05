@@ -21,6 +21,13 @@ namespace VisualPinball.Unity.Editor
 {
 	public static class HandlesUtils
 	{
+		/// <summary>
+		/// Returns the position of the moved object in VPX space.
+		/// </summary>
+		/// <param name="position">Original position in VPX space</param>
+		/// <param name="type">Allowed position type</param>
+		/// <param name="rotation">Parent rotation</param>
+		/// <returns>Moved position in VPX space.</returns>
 		public static Vector3 HandlePosition(Vector3 position, ItemDataTransformType type, Quaternion rotation)
 		{
 			return HandlePosition(position, type, rotation, 0.2f, 0.0f);
@@ -28,11 +35,12 @@ namespace VisualPinball.Unity.Editor
 
 		private static Vector3 HandlePosition(Vector3 position, ItemDataTransformType type, Quaternion rotation, float handleSize, float snap)
 		{
-			var forward = rotation * Vector3.forward;
-			var right = rotation * Vector3.right;
-			var up = rotation * Vector3.up;
-			var newPos = position;
-
+			var forward = (Vector3)(rotation * Vector3.forward).TranslateToWorld();
+			var right = (Vector3)(rotation * Vector3.right).TranslateToWorld();
+			var up = (Vector3)(rotation * Vector3.up).TranslateToWorld();
+			var newPos = position.TranslateToWorld();
+			Handles.matrix = Matrix4x4.identity;
+			
 			switch (type) {
 				case ItemDataTransformType.TwoD: {
 
@@ -55,12 +63,11 @@ namespace VisualPinball.Unity.Editor
 				}
 
 				case ItemDataTransformType.ThreeD: {
-					newPos = Handles.PositionHandle(newPos, rotation);
+					newPos = Handles.PositionHandle(newPos, Quaternion.identity.RotateToWorld());
 					break;
 				}
 			}
-
-			return newPos;
+			return newPos.TranslateToVpx();
 		}
 
 	}

@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+using UnityEditor;
 using UnityEngine;
 using VisualPinball.Engine.Math;
 
@@ -38,14 +39,31 @@ namespace VisualPinball.Unity.Editor
 		public DragPointData DragPoint;
 
 		/// <summary>
-		/// Position in world space
-		/// </summary>
-		public Vector3 WorldPos = Vector3.zero;
-
-		/// <summary>
 		/// Position in local space
 		/// </summary>
-		public Vector3 LocalPos = Vector3.zero;
+		public Vector3 VpxPosition {
+			get => DragPoint.Center.ToUnityVector3()
+			       + _dragPointsInspector.EditableOffset
+			       + _dragPointsInspector.GetDragPointOffset(IndexRatio);
+			set => DragPoint.Center = value.ToVertex3D()
+			       - _dragPointsInspector.EditableOffset.ToVertex3D()
+			       - _dragPointsInspector.GetDragPointOffset(IndexRatio).ToVertex3D();
+		}
+
+		/// <summary>
+		/// Position in world space
+		/// </summary>
+		public Vector3 Position {
+			get => VpxPosition.TranslateToWorld();
+			set {
+				var vpxPos = (Vector3)value.TranslateToVpx()		                              
+				             - _dragPointsInspector.EditableOffset
+				             - _dragPointsInspector.GetDragPointOffset(IndexRatio);
+				DragPoint.Center = vpxPos.ToVertex3D();
+			}
+		}
+
+		public float HandleSize => HandleUtility.GetHandleSize(Position) * ScreenRadius;
 
 		/// <summary>
 		/// Currently selected or not?
@@ -66,21 +84,16 @@ namespace VisualPinball.Unity.Editor
 		/// Relative position on the curve, from 0.0 to 1.0.
 		/// </summary>
 		public readonly float IndexRatio;
+		
+		private readonly IDragPointsInspector _dragPointsInspector;
 
-		public ControlPoint(DragPointData dp, int controlId, int idx, float indexRatio)
+		public ControlPoint(IDragPointsInspector dragPointsInspector, int controlId, int idx, float indexRatio)
 		{
-			DragPoint = dp;
+			DragPoint = dragPointsInspector.DragPoints[idx];
+			_dragPointsInspector = dragPointsInspector;
 			ControlId = controlId;
 			Index = idx;
 			IndexRatio = indexRatio;
-		}
-
-		public void UpdateDragPoint(IDragPointsInspector editable, Transform transform)
-		{
-			var dragpointPos = transform.worldToLocalMatrix.MultiplyPoint(WorldPos);
-			dragpointPos -= editable.EditableOffset;
-			dragpointPos -= editable.GetDragPointOffset(IndexRatio);
-			DragPoint.Center = dragpointPos.ToVertex3D();
 		}
 	}
 }

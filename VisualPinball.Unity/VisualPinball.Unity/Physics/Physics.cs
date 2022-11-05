@@ -54,7 +54,7 @@ namespace VisualPinball.Unity
 			transform.localRotation = Quaternion.Euler(RotateToWorld(transform.localRotation.eulerAngles));
 		}
 
-		public static float3 TranslateToVpx(float3 worldVector) => math.transform(WorldToVpx, worldVector);
+		public static float3 TranslateToVpx(this float3 worldVector) => math.transform(WorldToVpx, worldVector);
 		public static float3 TranslateToVpx(this Vector3 worldVector) => math.transform(WorldToVpx, worldVector);
 		public static float3 TranslateToVpx(float worldX, float worldY, float worldZ) => TranslateToVpx(new float3(worldX, worldY, worldZ));
 		public static float3 TranslateToWorld(this float3 vpxVector) => math.transform(VpxToWorld, vpxVector);
@@ -68,8 +68,12 @@ namespace VisualPinball.Unity
 		public static float3 ScaleToWorld(float vpxX, float vpxY, float vpxZ) => new(ScaleToWorld(vpxX), ScaleToWorld(vpxY), ScaleToWorld(vpxZ));
 		public static float3 ScaleToWorld(float3 vpxSize) => new(ScaleToWorld(vpxSize.x), ScaleToWorld(vpxSize.y), ScaleToWorld(vpxSize.z));
 
+		public static Quaternion RotateToVpx(this Quaternion q) => Quaternion.Euler(RotateToVpx(q.eulerAngles));
 		public static float3 RotateToVpx(float worldX, float worldY, float worldZ) => ((Matrix4x4)math.mul(WorldToVpx, float4x4.Euler(math.radians(worldX), math.radians(worldY), math.radians(worldZ)))).rotation.eulerAngles;
 		public static float3 RotateToVpx(float3 worldRotation) => ((Matrix4x4)math.mul(WorldToVpx, float4x4.Euler(math.radians(worldRotation.x), math.radians(worldRotation.y), math.radians(worldRotation.z)))).rotation.eulerAngles;
+
+		public static Quaternion RotateToWorld(this Quaternion q) => Quaternion.Euler(RotateToWorld(q.eulerAngles));
+
 		public static float3 RotateToWorld(float vpxX, float vpxY, float vpxZ) => ((Matrix4x4)math.mul(VpxToWorld, float4x4.Euler(math.radians(vpxX), math.radians(vpxY), math.radians(vpxZ)))).rotation.eulerAngles;
 		public static float3 RotateToWorld(float3 vpxRotation) => ((Matrix4x4)math.mul(VpxToWorld, float4x4.Euler(math.radians(vpxRotation.x), math.radians(vpxRotation.y), math.radians(vpxRotation.z)))).rotation.eulerAngles;
 
