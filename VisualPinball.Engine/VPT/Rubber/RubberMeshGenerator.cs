@@ -225,12 +225,12 @@ namespace VisualPinball.Engine.VPT.Rubber
 			var minZ = Constants.FloatMax;
 			for (var i = 0; i < numVertices; i++)
 			{
-				MathF.Max(maxX, mesh.Vertices[i].X);
-				MathF.Max(maxY, mesh.Vertices[i].Y);
-				MathF.Max(maxZ, mesh.Vertices[i].Z);
-				MathF.Min(minX, mesh.Vertices[i].X);
-				MathF.Min(minY, mesh.Vertices[i].X);
-				MathF.Min(minZ, mesh.Vertices[i].X);
+				maxX = MathF.Max(maxX, mesh.Vertices[i].X);
+				maxY = MathF.Max(maxY, mesh.Vertices[i].Y);
+				maxZ = MathF.Max(maxZ, mesh.Vertices[i].Z);
+				minX = MathF.Min(minX, mesh.Vertices[i].X);
+				minY = MathF.Min(minY, mesh.Vertices[i].X);
+				minZ = MathF.Min(minZ, mesh.Vertices[i].X);
 			}
 
 			_middlePoint.X = (maxX + minX) * 0.5f;

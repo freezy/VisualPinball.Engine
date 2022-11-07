@@ -175,7 +175,8 @@ namespace VisualPinball.Unity.Editor
 
 		private void HandleLockedTool()
 		{
-			var handlePos = _primaryItem.GetEditorPosition();
+			Handles.matrix = Matrix4x4.identity;
+			var handlePos = (Vector3)_primaryItem.GetEditorPosition().TranslateToWorld();
 			if (_transform.parent != null) {
 				handlePos = _transform.parent.TransformPoint(handlePos);
 			}
@@ -193,7 +194,7 @@ namespace VisualPinball.Unity.Editor
 			if (_secondaryItems.Count > 0) {
 				return;
 			}
-			var handlePos = _primaryItem.GetEditorPosition();
+			var handlePos = _primaryItem.GetEditorPosition().TranslateToWorld();
 			if (_transform.parent != null) {
 				handlePos = _transform.parent.TransformPoint(handlePos);
 			}
