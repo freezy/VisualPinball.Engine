@@ -42,7 +42,7 @@ namespace VisualPinball.Unity
 				marker.Begin();
 
 				var localPos = _player.TriggerTransforms[entity].transform.localPosition;
-				_player.TriggerTransforms[entity].transform.localPosition= new Vector3(
+				_player.TriggerTransforms[entity].transform.localPosition = Physics.TranslateToWorld(
 				    localPos.x,
 				    localPos.y,
 				    data.HeightOffset
