@@ -41,7 +41,7 @@ namespace VisualPinball.Unity
 
 				marker.Begin();
 
-				_player.BumperSkirtTransforms[entity].localRotation = quaternion.EulerXYZ(math.radians(data.Rotation.x), math.radians(data.Rotation.y), 0f);
+				_player.BumperSkirtTransforms[entity].localRotation = quaternion.EulerXYZ(Physics.RotateToWorld(math.radians(data.Rotation.x), math.radians(data.Rotation.y), 0f));
 
 				marker.End();
 

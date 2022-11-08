@@ -51,7 +51,7 @@ namespace VisualPinball.Unity
 				var limit = data.DropOffset + data.HeightScale * 0.5f;
 				var localLimit = _initialOffset[entity] + limit;
 				var localOffset = localLimit / limit * data.Offset;
-				_player.BumperRingTransforms[entity].transform.localPosition = new Vector3(
+				_player.BumperRingTransforms[entity].transform.localPosition = Physics.TranslateToWorld(
 					localPos.x,
 					localPos.y,
 					_initialOffset[entity] + localOffset

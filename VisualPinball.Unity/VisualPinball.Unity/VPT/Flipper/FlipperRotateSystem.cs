@@ -42,7 +42,7 @@ namespace VisualPinball.Unity
 
 				marker.Begin();
 
-				_player.FlipperTransforms[entity].localRotation = quaternion.Euler(0, 0, movement.Angle);
+				_player.FlipperTransforms[entity].localRotation = quaternion.Euler(0, movement.Angle, 0);
 
 				marker.End();
 

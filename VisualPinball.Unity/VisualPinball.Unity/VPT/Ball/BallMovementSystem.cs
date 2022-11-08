@@ -59,7 +59,7 @@ namespace VisualPinball.Unity
 				// calculate/adapt height of ball
 				var zHeight = !ball.IsFrozen ? ball.Position.z : ball.Position.z - ball.Radius;
 				var ballTransform = _player.Balls[entity].transform;
-				ballTransform.localPosition = new Vector3(ball.Position.x, ball.Position.y, zHeight);
+				ballTransform.localPosition = Physics.TranslateToWorld(ball.Position.x, ball.Position.y, zHeight);
 
 				var or = ball.BallOrientationForUnity;
 
@@ -79,7 +79,7 @@ namespace VisualPinball.Unity
 				// flip Z axis
 				q = FlipZAxis(q);
 
-				ballTransform.localRotation = q;
+				ballTransform.localRotation = q.RotateToWorld();
 
 				marker.End();
 
