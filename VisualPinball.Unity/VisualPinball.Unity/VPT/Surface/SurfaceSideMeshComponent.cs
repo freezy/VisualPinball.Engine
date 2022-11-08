@@ -41,9 +41,9 @@ namespace VisualPinball.Unity
 		public override void RebuildMeshes()
 		{
 			base.RebuildMeshes();
-			var sc = GetComponentInParent<SurfaceComponent>();
 			var mr = GetComponent<MeshRenderer>();
-			mr.localBounds = CalculateBounds(sc.DragPoints, 0, sc.HeightTop - sc.HeightBottom, sc.HeightBottom);
+			mr.ResetBounds();
+			mr.ResetLocalBounds();
 		}
 	}
 }

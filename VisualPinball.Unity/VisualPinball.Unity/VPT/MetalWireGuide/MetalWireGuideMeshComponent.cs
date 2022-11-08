@@ -37,9 +37,9 @@ namespace VisualPinball.Unity
 		public override void RebuildMeshes()
 		{
 			base.RebuildMeshes();
-			var mwgComponent = GetComponentInParent<MetalWireGuideComponent>();
 			var mr = GetComponent<MeshRenderer>();
-			mr.localBounds = CalculateBounds(mwgComponent.DragPoints, 25f, mwgComponent._standheight);
+			mr.ResetBounds();
+			mr.ResetLocalBounds();
 		}
 	}
 }
