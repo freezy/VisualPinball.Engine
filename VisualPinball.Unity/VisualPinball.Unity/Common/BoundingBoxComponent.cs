@@ -14,26 +14,39 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+using System;
 using UnityEngine;
 
 namespace VisualPinball.Unity.Editor
 {
 	public class BoundingBoxComponent : MonoBehaviour
 	{
+		public bool ShowBounds = true;
+		public bool ShowLocalBounds = true;
 
 		void OnDrawGizmosSelected()
+		{
+			if (ShowBounds) {
+				DrawBounds(f => f.bounds);
+			}
+			if (ShowLocalBounds) {
+				DrawBounds(f => f.localBounds);
+			}
+		}
+
+		private void DrawBounds(Func<Renderer, Bounds> f)
 		{
 			Gizmos.matrix = Matrix4x4.identity;
 			Gizmos.color = Color.yellow;
 			var r = GetComponent<Renderer>();
-			if (r != null) {
-				var b = r.bounds;
+			if (r) {
+				var b = f(r);
 				Gizmos.DrawSphere(b.center, 0.001f); //center sphere
 				Gizmos.DrawWireCube(b.center, b.size);
 			} else {
 				var rs = GetComponentsInChildren<Renderer>();
 				foreach (var r2 in rs) {
-					var b = r2.bounds;
+					var b = f(r2);
 					Gizmos.DrawSphere(b.center, 0.001f); //center sphere
 					Gizmos.DrawWireCube(b.center, b.size);
 				}

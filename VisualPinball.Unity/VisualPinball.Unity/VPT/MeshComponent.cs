@@ -105,20 +105,23 @@ namespace VisualPinball.Unity
 			}
 		}
 
+		[Obsolete("Drag-point meshes should be auto-bound. So, use Renderer.ResetBounds() and Renderer.ResetLocalBounds().")]
 		protected static Bounds CalculateBounds(IEnumerable<DragPointData> dragPoints, float margin = 0, float sizeZ = 0, float posZ = 0)
 		{
 			var min = new float3(float.MaxValue, float.MaxValue, float.MaxValue);
 			var max = new float3(float.MinValue, float.MinValue, float.MinValue);
 			foreach (var t in dragPoints) {
-				var p = (float3)t.Center.ToUnityVector3();
+				var p = t.Center.ToUnityVector3().TranslateToWorld();
 				min = math.min(min, p);
 				max = math.max(max, p);
 			}
 			var middle = min + (max - min) / 2;
 			var size = max - min;
 			if (sizeZ > 0) {
-				middle.z = posZ + sizeZ / 2;
-				size.z = sizeZ;
+				var sizeY = Physics.ScaleToWorld(sizeZ);
+				var posY = Physics.ScaleToWorld(posZ);
+				middle.y = posY + sizeY / 2;
+				size.y = sizeY;
 			}
 
 			return new Bounds(middle, size + margin * new float3(1f, 1f, 1f));
