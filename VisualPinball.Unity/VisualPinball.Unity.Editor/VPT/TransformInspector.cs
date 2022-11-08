@@ -207,9 +207,9 @@ namespace VisualPinball.Unity.Editor
 						Handles.matrix = Matrix4x4.TRS(handlePos, _transform.parent.transform.rotation, Vector3.one);
 					}
 					Handles.color = Handles.zAxisColor;
-					var rot = Handles.Disc(Quaternion.AngleAxis(currentRot.x, Vector3.forward), Vector3.zero, Vector3.forward, handleSize, false, 10f);
+					var rot = Handles.Disc(Quaternion.AngleAxis(currentRot.x, Vector3.up), Vector3.zero, Vector3.up, handleSize, false, 10f);
 					if (EditorGUI.EndChangeCheck()) {
-						FinishRotate(new Vector3(rot.eulerAngles.z, 0f, 0f));
+						FinishRotate(new Vector3(rot.eulerAngles.y, 0f, 0f));
 					}
 					break;
 				}
@@ -287,11 +287,11 @@ namespace VisualPinball.Unity.Editor
 			if (_secondaryItems.Count > 0) {
 				return;
 			}
-			var handlePos = _primaryItem.GetEditorPosition();
+			var handlePos = _primaryItem.GetEditorPosition().TranslateToWorld();
 			if (_transform.parent != null) {
 				handlePos = _transform.parent.TransformPoint(handlePos);
 			}
-			var handleRot = _transform.rotation;
+			var handleRot = _transform.rotation.RotateToWorld();
 			var handleScale = HandleUtility.GetHandleSize(handlePos);
 
 			if (startScaling) {
@@ -300,6 +300,7 @@ namespace VisualPinball.Unity.Editor
 			if (endScaling) {
 				_primaryItem.EditorEndScaling();
 			}
+			Handles.matrix = Matrix4x4.identity;
 
 			switch (_primaryItem.EditorScaleType) {
 

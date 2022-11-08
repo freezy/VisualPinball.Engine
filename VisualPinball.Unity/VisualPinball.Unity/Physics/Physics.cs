@@ -45,7 +45,7 @@ namespace VisualPinball.Unity
 		
 		public static float4x4 TransformToVpx(Matrix4x4 vpx) => math.mul(WorldToVpx, vpx);
 		public static Matrix3D TransformToVpx(this Matrix3D vpx) => WorldToVpx.ToVpMatrix().Multiply(vpx);
-		public static float4x4 TransformToWorld(Matrix4x4 world) => math.mul(VpxToWorld, world);
+		public static Matrix4x4 TransformToWorld(this Matrix4x4 world) => math.mul(VpxToWorld, world);
 		public static VisualPinball.Engine.VPT.Mesh TransformToWorld(this VisualPinball.Engine.VPT.Mesh mesh) => mesh.Transform(VpxToWorld.ToVpMatrix());
 		public static void TransformToWorld(this Transform transform)
 		{
