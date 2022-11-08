@@ -300,6 +300,10 @@ namespace VisualPinball.Unity
 
 		public override ItemDataTransformType EditorPositionType => ItemDataTransformType.ThreeD;
 		public override void SetEditorPosition(Vector3 pos) => Position = pos;
+		public override Vector3 GetEditorPosition() => Surface != null
+			? new Vector3(Position.x, Position.y, Surface.Height(Position))
+			: new Vector3(Position.x, Position.y, 0);
+
 
 		public override ItemDataTransformType EditorRotationType => ItemDataTransformType.OneD;
 		public override Vector3 GetEditorRotation() => new Vector3(Rotation, 0f, 0f);
