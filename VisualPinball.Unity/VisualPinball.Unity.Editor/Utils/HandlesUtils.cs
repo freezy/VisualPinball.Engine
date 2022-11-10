@@ -56,7 +56,7 @@ namespace VisualPinball.Unity.Editor
 						forward,
 						right,
 						up,
-						HandleUtility.GetHandleSize(position) * handleSize,
+						HandleUtility.GetHandleSize(newPos) * handleSize,
 						Handles.RectangleHandleCap,
 						snap);
 					break;
