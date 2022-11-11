@@ -325,11 +325,10 @@ namespace VisualPinball.Unity
 		{
 			Profiler.BeginSample("TroughComponent.OnDrawGizmosSelected");
 			if (PlayfieldEntrySwitch != null && PlayfieldExitKicker != null) {
-				var ltw = GetComponentInParent<PlayfieldComponent>().transform;
 				var entryPos = EntryPos(0f);
 				var exitPos = ExitPos(0f);
-				var entryWorldPos = ltw.TransformPoint(entryPos);
-				var exitWorldPos = ltw.TransformPoint(exitPos);
+				var entryWorldPos = entryPos.TranslateToWorld();
+				var exitWorldPos = exitPos.TranslateToWorld();
 				DrawArrow(entryWorldPos, exitWorldPos - entryWorldPos);
 				//DrawArrow(pos, exitWorldPos - pos);
 			}
