@@ -56,7 +56,7 @@ namespace VisualPinball.Unity.Editor
 				return;
 			}
 			
-			//DisplayCurve();
+			DisplayCurve();
 			DisplayControlPoints();
 		}
 
@@ -99,7 +99,7 @@ namespace VisualPinball.Unity.Editor
 							if (currentControlPoint != null) {
 								controlPointsSegments[currentControlPoint.Index].Add(v.ToUnityVector3());
 							}
-							currentControlPoint = _handler.ControlPoints.Find(cp => cp.Position == v.ToUnityVector3());
+							currentControlPoint = _handler.ControlPoints.Find(cp => cp.VpxPosition == v.ToUnityVector3());
 						}
 						if (currentControlPoint != null) {
 							controlPointsSegments[currentControlPoint.Index].Add(v.ToUnityVector3());
