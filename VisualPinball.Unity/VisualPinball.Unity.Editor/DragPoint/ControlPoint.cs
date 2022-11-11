@@ -53,15 +53,7 @@ namespace VisualPinball.Unity.Editor
 		/// <summary>
 		/// Position in world space
 		/// </summary>
-		public Vector3 Position {
-			get => VpxPosition.TranslateToWorld();
-			set {
-				var vpxPos = (Vector3)value.TranslateToVpx()		                              
-				             - _dragPointsInspector.EditableOffset
-				             - _dragPointsInspector.GetDragPointOffset(IndexRatio);
-				DragPoint.Center = vpxPos.ToVertex3D();
-			}
-		}
+		public Vector3 Position => VpxPosition.TranslateToWorld();
 
 		public float HandleSize => HandleUtility.GetHandleSize(Position) * ScreenRadius;
 
