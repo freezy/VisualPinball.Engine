@@ -70,7 +70,7 @@ namespace VisualPinball.Unity
 			var ballPrefab = RenderPipeline.Current.BallConverter.CreateDefaultBall();
 			var ballGo = Object.Instantiate(ballPrefab, _playfield.transform);
 			ballGo.name = $"Ball{ballId}";
-			ballGo.transform.localScale = new Vector3(radius, radius, radius) * 2f;
+			ballGo.transform.localScale = Physics.ScaleToWorld(new Vector3(radius, radius, radius) * 2f);
 			ballGo.transform.localPosition = localPos;
 
 			// create ball entity
