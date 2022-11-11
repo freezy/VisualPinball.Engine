@@ -299,10 +299,12 @@ namespace VisualPinball.Unity
 		#region Editor Tooling
 
 		public override ItemDataTransformType EditorPositionType => ItemDataTransformType.ThreeD;
-		public override void SetEditorPosition(Vector3 pos) => Position = pos;
+		public override void SetEditorPosition(Vector3 pos) => Position = Surface != null 
+			? pos - new Vector3(0, 0, Surface.Height(Position))
+			: pos;
 		public override Vector3 GetEditorPosition() => Surface != null
-			? new Vector3(Position.x, Position.y, Surface.Height(Position))
-			: new Vector3(Position.x, Position.y, 0);
+			? new Vector3(Position.x, Position.y, Position.z + Surface.Height(Position))
+			: new Vector3(Position.x, Position.y, Position.z);
 
 
 		public override ItemDataTransformType EditorRotationType => ItemDataTransformType.OneD;
