@@ -39,8 +39,8 @@ namespace VisualPinball.Unity
 			_playfield = GetComponentInChildren<PlayfieldComponent>();
 
 			var playfieldTransform = _playfield.transform;
-			_ltw = playfieldTransform.localToWorldMatrix;
-			_wtl = playfieldTransform.worldToLocalMatrix;
+			_ltw = Physics.VpxToWorld;
+			_wtl = Physics.WorldToVpx;
 
 			var z = _playfield.PlayfieldHeight;
 			var p1 = _ltw.MultiplyPoint(new Vector3(-100f, 100f, z));
