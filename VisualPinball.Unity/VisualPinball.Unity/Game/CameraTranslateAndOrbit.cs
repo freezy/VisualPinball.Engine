@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.EnhancedTouch;
+using VisualPinball.Unity;
 using Touch = UnityEngine.InputSystem.EnhancedTouch.Touch;
 using TouchPhase = UnityEngine.InputSystem.TouchPhase;
 
@@ -48,6 +49,14 @@ public class CameraTranslateAndOrbit : MonoBehaviour
 
 	private void Start()
 	{
+		
+		var playfield = FindObjectOfType<PlayfieldComponent>();
+		var pfr = playfield.GetComponent<Renderer>();
+		if (pfr) {
+			positionOffset = pfr.bounds.center;
+		}
+		
+		
 		_radius = Vector3.Distance(Vector3.zero, transform.position);
 		transformCache = transform;
 		_focusPoint = transformCache.forward * -1f * _radius;
