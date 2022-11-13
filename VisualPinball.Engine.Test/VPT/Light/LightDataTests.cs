@@ -50,8 +50,8 @@ namespace VisualPinball.Engine.Test.VPT.Light
 			data.BlinkPattern.Should().Be("10011");
 			data.BulbHaloHeight.Should().Be(28.298f);
 			data.BulbModulateVsAdd.Should().Be(0.9723f);
-			data.Center.X.Should().Be(450.7777f);
-			data.Center.Y.Should().Be(109.552f);
+			data.Center.X.Should().BeApproximately(450.7777f, 0.001f);
+			data.Center.Y.Should().BeApproximately(109.552f, 0.001f);
 			data.Color.Red.Should().Be(151);
 			data.Color.Green.Should().Be(221);
 			data.Color.Blue.Should().Be(34);

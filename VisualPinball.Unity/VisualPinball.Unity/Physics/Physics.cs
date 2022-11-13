@@ -41,12 +41,15 @@ namespace VisualPinball.Unity
 			new float4(-(float)(Translate.x / (double)Scale), 0, (float)(Translate.y / (double)Scale), 1f)
 		);
 
+		public static Quaternion ToWorldRotation = ((Matrix4x4)VpxToWorld).rotation;
+		public static Quaternion ToVpxRotation = ((Matrix4x4)WorldToVpx).rotation;
+
 		public static Vector3 ScaleInvVector = new(ScaleInv, ScaleInv, ScaleInv);
 		
 		public static float4x4 TransformToVpx(Matrix4x4 vpx) => math.mul(WorldToVpx, vpx);
 		public static Matrix3D TransformToVpx(this Matrix3D vpx) => WorldToVpx.ToVpMatrix().Multiply(vpx);
 		public static Matrix4x4 TransformToWorld(this Matrix4x4 world) => math.mul(VpxToWorld, world);
-		public static VisualPinball.Engine.VPT.Mesh TransformToWorld(this VisualPinball.Engine.VPT.Mesh mesh) => mesh.Transform(VpxToWorld.ToVpMatrix());
+		public static VisualPinball.Engine.VPT.Mesh TransformToWorld(this VisualPinball.Engine.VPT.Mesh mesh) => mesh.Transform(VpxToWorld.ToVpMatrix(), Matrix4x4.Rotate(ToVpxRotation).ToVpMatrix());
 		public static void TransformToWorld(this Transform transform)
 		{
 			transform.localPosition = transform.localPosition.TranslateToWorld();
@@ -57,6 +60,7 @@ namespace VisualPinball.Unity
 		public static float3 TranslateToVpx(this float3 worldVector) => math.transform(WorldToVpx, worldVector);
 		public static float3 TranslateToVpx(this Vector3 worldVector) => math.transform(WorldToVpx, worldVector);
 		public static float3 TranslateToVpx(float worldX, float worldY, float worldZ) => TranslateToVpx(new float3(worldX, worldY, worldZ));
+		public static VisualPinball.Engine.VPT.Mesh TransformToVpx(this VisualPinball.Engine.VPT.Mesh mesh) => mesh.Transform(WorldToVpx.ToVpMatrix(), Matrix4x4.Rotate(ToWorldRotation).ToVpMatrix());
 		public static float3 TranslateToWorld(this float3 vpxVector) => math.transform(VpxToWorld, vpxVector);
 		public static float3 TranslateToWorld(this Vector3 vpxVector) => math.transform(VpxToWorld, vpxVector);
 		public static Vector3 TranslateToWorld(float vpxX, float vpxY, float vpxZ) => TranslateToWorld(new float3(vpxX, vpxY, vpxZ));

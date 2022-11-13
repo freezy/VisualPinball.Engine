@@ -53,6 +53,7 @@ using VisualPinball.Unity.Playfield;
 using Light = VisualPinball.Engine.VPT.Light.Light;
 using Material = UnityEngine.Material;
 using Mesh = UnityEngine.Mesh;
+using Object = UnityEngine.Object;
 using Texture = UnityEngine.Texture;
 
 namespace VisualPinball.Unity.Editor
@@ -251,14 +252,7 @@ namespace VisualPinball.Unity.Editor
 				// pause asset database refreshing
 				AssetDatabase.StartAssetEditing();
 
-				// thanks unity for not letting me pass the options to ModelExporter.ExportObject().
-				var modelExporter = typeof(ModelExporter);
-				var optionsProp = modelExporter.GetProperty("DefaultOptions", BindingFlags.Static | BindingFlags.NonPublic);
-				var optionsValue = optionsProp!.GetValue(null, null);
-				var optionsType = optionsValue.GetType();
-				var exportFormatField = optionsType.BaseType!.GetField("exportFormat", BindingFlags.Instance | BindingFlags.NonPublic);
-				exportFormatField!.SetValue(optionsValue, 1); // set to binary
-				var exportObject = modelExporter.GetMethod("ExportObjects", BindingFlags.NonPublic | BindingFlags.Static);
+				var fxbExporter = new FxbExporter();
 
 				// first loop: write fbx files
 				foreach (var prefab in prefabLookup.Values) {
@@ -275,8 +269,7 @@ namespace VisualPinball.Unity.Editor
 							AssetDatabase.DeleteAsset(meshPath);
 						}
 
-						// export via reflection, because we need binary.
-						exportObject!.Invoke(null, new[] { meshPath, new UnityEngine.Object[] {prefab.GameObject}, optionsValue, null });
+						fxbExporter.Export(prefab.GameObject, meshPath);
 					}
 				}
 
@@ -726,5 +719,41 @@ namespace VisualPinball.Unity.Editor
 			SkipExistingSounds = false,
 			SkipExistingTextures = false
 		};
+	}
+
+	public class FxbExporter
+	{
+		private readonly MethodInfo _exportObject;
+		private readonly object _optionsValue;
+
+		public FxbExporter()
+		{
+			// thanks unity for not letting me pass the options to ModelExporter.ExportObject().
+			var modelExporter = typeof(ModelExporter);
+			var optionsProp = modelExporter.GetProperty("DefaultOptions", BindingFlags.Static | BindingFlags.NonPublic);
+			_optionsValue = optionsProp!.GetValue(null, null);
+			var optionsType = _optionsValue.GetType();
+			var exportFormatField = optionsType.BaseType!.GetField("exportFormat", BindingFlags.Instance | BindingFlags.NonPublic);
+			exportFormatField!.SetValue(_optionsValue, 1); // set to binary
+			_exportObject = modelExporter.GetMethod("ExportObjects", BindingFlags.NonPublic | BindingFlags.Static);
+		}
+
+		public void Export(GameObject go, string path)
+		{
+			// export via reflection, because we need binary.
+			_exportObject!.Invoke(null, new[] { path, new UnityEngine.Object[] {go}, _optionsValue, null });
+		}
+
+		public void Export(Mesh mesh, string path)
+		{
+			var go = new GameObject(); 
+			go.AddComponent<MeshRenderer>();
+			var mf = go.AddComponent<MeshFilter>();
+
+			mf.sharedMesh = mesh;
+			Export(go, path);
+			
+			Object.DestroyImmediate(go);
+		}
 	}
 }

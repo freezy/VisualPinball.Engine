@@ -96,9 +96,9 @@ namespace VisualPinball.Engine.Test.VPT.Primitive
 			data.Mesh.Vertices[0].X.Should().Be(1f);
 			data.Mesh.Vertices[0].Y.Should().Be(1f);
 			data.Mesh.Vertices[0].Z.Should().Be(-1f);
-			data.Mesh.Vertices[0].Nx.Should().Be(0f);
-			data.Mesh.Vertices[0].Ny.Should().Be(1f);
-			data.Mesh.Vertices[0].Nz.Should().Be(0f);
+			data.Mesh.Vertices[0].Nx.Should().BeApproximately(0f, 0.0001f);
+			data.Mesh.Vertices[0].Ny.Should().BeApproximately(1f, 0.0001f);
+			data.Mesh.Vertices[0].Nz.Should().BeApproximately(0f, 0.0001f);
 			data.Mesh.Vertices[0].Tu.Should().Be(0.375f);
 			data.Mesh.Vertices[0].Tv.Should().Be(0f);
 		}
