@@ -1,6 +1,6 @@
 ﻿# Asset Browser
 
-When building pinball tables, be it in the real or digital world, parts are needed. And a surprisingly large percentage of parts used in pinball machines are standard parts.
+When building pinball tables, be it in the real or digital world, parts are needed. And a surprisingly large percentage of parts used in pinball machines are standard parts (i.e. parts found in multiple games).
 
 VPE ships with a collection of parts that we call the [Asset Library](https://github.com/VisualPinball/VisualPinball.Unity.AssetLibrary). It contains a curated, high-quality set of ready-to use assets that you can use to build your game.
 
@@ -81,9 +81,7 @@ If you want to contribute to the asset package, you'll need you git clone the re
 
 You add assets by dragging them from the project window into the asset panel. You need to have one category selected before doing that, so we know to which category to assign the asset. Alternatively, you can directly drop it on a category in the left panel.
 
-You can edit the meta data in details panel when the asset is selected. 
-
-When editing the attribute name, a list of already existing names is proposed, but you can also use your own. The same goes for the attribute values: If an attribute is found in the database, the values of that attribute are proposed as you type. This also works for comma-separated values (e.g. it only proposes to autocomplete the current value, not the entire string).
+You can edit the meta data in details panel when the asset is selected. When editing the attribute name, a list of already existing names is proposed, but you can also use your own. The same goes for the attribute values: If an attribute is found in the database, the values of that attribute are proposed as you type. This also works for comma-separated values (e.g. it only proposes to autocomplete the current value, not the entire string).
 
 When creating a new category, you'll need to specify in which library it should be created. There is a drop-down next to the *Add* button in the left panel under the category listing. You can also delete categories, but they must be empty. In order to move an asset to another category, you drag and drop it from the asset panel into the new category in the left panel. If the category doesn't exist in the asset's library, it'll be created.
 
@@ -118,18 +116,18 @@ When exporting, the imported assets are bundled with your build. That means if a
 
 So you're good with modeling and you'd like to contribute to VPE's asset library. Great! This guide should provide you with the necessary info to make your assets available in VPE.
 
-Note that we'll focus on 3D assets, i.e. textured models. In the future we will support other assets (materials, textures, etc), but 3D assets are the most common, and most difficult to get right.
+Note that we'll focus on 3D assets, i.e. textured models. In the future we will support other types of assets (materials, textures, etc), but 3D assets are the most common and most difficult to get right.
 
 ## Modeling
 
-We won't go into too much detail how to model your asset, but rather provide a checklist your model should comply with.
+We won't go into too much detail how to model your asset, but instead provide a checklist your model should comply with.
 
 - **Use real-world scale** - You should model your asset based on real-world units. This will avoid many scaling issues. 
 - **Verify origin** - The origin of your model should be where it makes sense. For example, items that sit typically on the playfield should have their origin where they touch the playfield. Note that we ignore where your object is in world space, what's important is the origin.
 - **Apply scale and rotation** - Your object shouldn't have any non-applied transformations. Everything should be baked into the mesh (in Blender: `CTRL+A` -> *Apply Scale and Rotation*).
 - **Add bevels to edges** - See *Baking* below.
 - **Use quads instead of triangles** - This is somewhat less relevant for game assets, but a quad topology will give you mush less headache in general, specially when beveling edges. Also check out our [tutorial about 3D scans](xref:tutorial_3d_scan).
-- **Make meshes watertight** - Close the holes, make sure your mesh has faces everywhere. This will avoid shadow and path tracing problems.
+- **Make meshes watertight** - Close the holes, make sure your mesh has faces everywhere. This will avoid shadow and path tracing issues.
 
 ### Baking
 
@@ -155,7 +153,7 @@ Note that HDRP packs AO, metallic and smoothness [into one single texture](https
 You'll probably run into a situation where your object has multiple materials. There are a couple of ways dealing with that. Keep in mind it's always better to keep the number of meshes and materials low.
 
 1. **Multiple meshes** - The most expensive way is to split your mesh into multiple meshes, one mesh per material. You should only do this if you're able to re-use the meshes in other assets. For example, a post and its rubber is a good use case, since both the post and the rubber can be paired with other objects.
-2. **Multiple materials** - Another way is to create multiple material slots, i.e. assign each vertex of the mesh to the appropriate material. This is appropriate when you want to be able to swap out materials individually, for example in a flipper. In this case, you'd have two separate materials for the rubber and the plastic, but only one mesh. This allows you to create material variations in the asset library, where you provide multiple materials for each slot, and the asset browser will show the combinations for all of them.
+2. **Multiple materials** - Another way is to create multiple material slots, i.e. assign each vertex of the mesh to the appropriate material. This is appropriate when you want to be able to swap out materials individually, for example in a flipper. In this case, you'd have two separate materials for the rubber and the plastic, but only one mesh. This allows you to create material variations in the asset library, where you provide multiple materials for each slot, and the asset browser will make the combinations available.
 3. **Single material** - The cheapest way is to merge multiple materials into one, and it's the recommended way when materials don't need to be easily changed. In Substance Painter, you would create a layer for each material and mask it out so it applies only to the desired region. Note that this only works when the [surface type](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@12.1/manual/Surface-Type.html) of the materials is the same, i.e. the only difference between the materials are their texture maps.
 
 It's also common to create materials made for multiple items. For example, in the library, all metal posts use the same material, so they share the same UV mapping. Grouping multiple items makes sense when it's likely that many of the items you're grouping will be used on the playfield.
@@ -168,9 +166,9 @@ When exporting, make sure the proper scaling is applied (Blender doesn't to that
 
   - *Forward* to "Z-Forward"
   - *Up* to "Y Up"
-  - *Apply Transform* is checked
+  - *Apply Transform* is checked (off per default)
 
-To test, drag your exported FBX into a Unity scene (*outside* the playfield), and make sure that scaling is one, rotation to zero, and that the size and orientation is correct.
+To test, drag your exported FBX into a Unity scene, and make sure that scaling is one, rotation to zero, and that the size and orientation is correct.
 
 ## Where to Put Stuff
 
@@ -182,7 +180,7 @@ Given you're contributing to VPE's [Asset Library](https://github.com/VisualPinb
 - Beside the FBX file, the FBX folder contains the textures, materials and prefabs of items in the FBX.
 - There is usually an `src~` folder (which is ignored by Unity due to the trailing `~`), which contains the `.blend` and other source files.
 
-We usually pack multiple items into an FBX file. Unity has its own, internal asset structure, so it's up to you how to split your files. For items ported over from [pinball-parts](https://github.com/vbousquet/pinball-parts), we use the same file structure.
+We usually pack multiple items into an FBX file. Unity has its own, optimized asset structure, so it's up to you how to split your files. For items ported over from [pinball-parts](https://github.com/vbousquet/pinball-parts), we use the same file structure.
 
 
 
@@ -192,7 +190,7 @@ What has been working well so far:
 - UV-map and export the low-polys into the FBX folder you're working in.
 - Export the hi-polys into the `src~` folder.
 - Open the low-poly into Substance Painter
-- Bake the mesh maps using the hi-poly. Disable *Average Normals*, and you might decrease the min distance to 0.001.
+- Bake the mesh maps using the hi-poly. Disable *Average Normals*, and you might need to decrease the min distance to 0.001.
 - Texture the model and export the maps to the FBX folder.
 
 ## Unity Setup
@@ -202,9 +200,3 @@ So you've exported your model and textures. Now it's time to create the asset in
 [Creating a prefab](https://docs.unity3d.com/Manual/CreatingPrefabs.html) is simply done by dragging a GameObject from the Hierarchy into the Project window. However, you'll need to get your model *into* the hierarchy before that. So the first step is to drag your FBX file into the scene.
 
 Now, FBX files are assets too, but what we want is to create an asset for *each* of the objects contained in the FBX file. That's why the next step is to unpack the FBX prefab that was just created. We can do that by right-clicking on the GameObject in the hierarchy and choose *Prefab -> Unpack*. Note that the GameObjects of the unpacked prefab still reference the meshes in the FBX file, it's just that now they can be placed individually where we want, as opposed to be a fixed part of the FBX hierarchy.
-
-### Coordinate Systems
-
-Since VPE's physics engine is a port of Visual Pinball, VPE uses the same coordinate system. Unfortunately, it's not the same as Unity's (or any other, existing system). In order to resolve that, the *Playfield* GameObject under your table has a transformation that we're hopefully going to be removing soon.
-
-
