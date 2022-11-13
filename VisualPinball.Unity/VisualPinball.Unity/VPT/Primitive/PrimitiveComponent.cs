@@ -197,7 +197,7 @@ namespace VisualPinball.Unity
 				if (forExport && !meshComponent.UseLegacyMesh) {
 					var mf = GetComponent<MeshFilter>();
 					if (mf) {
-						data.Mesh = mf.sharedMesh.ToVpMesh();
+						data.Mesh = mf.sharedMesh.ToVpMesh().TransformToVpx();
 						data.NumIndices = data.Mesh.Indices.Length;
 						data.NumVertices = data.Mesh.Vertices.Length;
 					}
