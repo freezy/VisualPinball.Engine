@@ -18,6 +18,7 @@
 
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using UnityEditor;
 using UnityEditor.UIElements;
 using UnityEngine;
@@ -242,52 +243,32 @@ namespace VisualPinball.Unity.Editor
 
 		private void OnAddSelected()
 		{
-			if (_asset.Scale == AssetScale.World) {
-				var go = ApplyVariation(InstantiateAsset()); // should automatically land at 0/0, since the playfield is centered
-				Selection.objects = new Object[] { go };
-				return;
+			// find parent
+			var (pf, parentTransform) = FindPlayfieldAndParent();
+
+			// instantiate
+			var go = InstantiateAsset(parentTransform);
+
+			// move to the middle of the playfield
+			if (pf != null && go.GetComponent(typeof(IMainRenderableComponent)) is IMainRenderableComponent comp) {
+				comp.SetEditorPosition(new Vector3(pf.Width / 2, pf.Height / 2, 0));
+				comp.UpdateTransforms();
 			}
 
-			if (_asset.Scale == AssetScale.Table) {
+			ApplyVariation(go);
 
-				// find parent
-				var (pf, parentTransform) = FindPlayfieldAndParent();
-				if (pf == null || parentTransform == null) {
-					return;
-				}
-
-				// instantiate
-				var go = InstantiateAsset(parentTransform);
-
-				// move to the middle of the playfield
-				if (go.GetComponent(typeof(IMainRenderableComponent)) is IMainRenderableComponent comp) {
-					comp.SetEditorPosition(new Vector3(pf.Width / 2, pf.Height / 2, 0));
-					comp.UpdateTransforms();
-				}
-
-				ApplyVariation(go);
-
-				Selection.objects = new Object[] { go };
-			}
+			Selection.objects = new Object[] { go };
 		}
 
 		private void OnReplaceSelected()
 		{
 			var selection = Selection.gameObjects;
-
-			// a few checks before we start..
-			foreach (var selected in selection) {
-				if (_asset.Scale == AssetScale.Table && !selected.GetComponentInParent<PlayfieldComponent>()) {
-					EditorUtility.DisplayDialog("Replace Asset", "Cannot replace a game object outside of the playfield with an asset that is scaled for playfield usage.", "Close");
-					return;
-				}
-			}
-
 			var newSelection = new List<GameObject>();
 			var keepName = _replaceSelectedKeepName.value;
 
 			foreach (var selected in selection) {
 
+				// 1. instantiate prefab
 				var go = InstantiateAsset();
 				if (go == null) {
 					break;
@@ -297,10 +278,8 @@ namespace VisualPinball.Unity.Editor
 					go.name = selected.name;
 				}
 
-				var worldToPlayfield = _asset.Scale == AssetScale.World && selected.GetComponentInParent<PlayfieldComponent>();
-
 				Undo.RegisterCreatedObjectUndo(go, "replace object with asset");
-				go.transform.SetParent(selected.transform.parent, worldToPlayfield);
+				go.transform.SetParent(selected.transform.parent);
 
 				// if both are vpe components, just copy the data
 				if (go.GetComponent(typeof(IMainRenderableComponent)) is IMainRenderableComponent comp) {

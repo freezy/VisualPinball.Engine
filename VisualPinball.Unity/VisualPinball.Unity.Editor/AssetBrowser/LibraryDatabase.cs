@@ -265,12 +265,6 @@ namespace VisualPinball.Unity.Editor
 		#endregion
 	}
 
-	public enum AssetScale
-	{
-		World, Table
-	}
-
-
 	[Serializable]
 	internal class Assets : SerializableDictionary<string, Asset>
 	{
