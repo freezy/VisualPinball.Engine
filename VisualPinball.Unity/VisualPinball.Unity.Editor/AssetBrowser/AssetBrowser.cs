@@ -299,7 +299,6 @@ namespace VisualPinball.Unity.Editor
 							destAsset.Links.Add(new AssetLink(link.Name, link.Url));
 						}
 
-						destAsset.Scale = srcAsset.Scale;
 						destAsset.Quality = srcAsset.Quality;
 						destAsset.ThumbCameraPreset = srcAsset.ThumbCameraPreset;
 
