@@ -104,7 +104,9 @@ namespace VisualPinball.Unity.Editor
 		private void OnRubberSizeUpdated()
 		{
 			var rubberMesh = MainComponent.GetComponentInChildren<FlipperRubberMeshComponent>(true);
-			rubberMesh.gameObject.SetActive(_rubberWidthProperty.floatValue > 0f && _rubberThicknessProperty.floatValue > 0f);
+			if (rubberMesh != null) {
+				rubberMesh.gameObject.SetActive(_rubberWidthProperty.floatValue > 0f && _rubberThicknessProperty.floatValue > 0f);
+			}
 		}
 	}
 }
