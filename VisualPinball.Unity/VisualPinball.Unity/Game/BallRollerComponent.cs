@@ -38,7 +38,6 @@ namespace VisualPinball.Unity
 		{
 			_playfield = GetComponentInChildren<PlayfieldComponent>();
 
-			var playfieldTransform = _playfield.transform;
 			_ltw = Physics.VpxToWorld;
 			_wtl = Physics.WorldToVpx;
 
