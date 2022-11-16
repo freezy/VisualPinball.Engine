@@ -16,13 +16,14 @@
 
 // ReSharper disable PossibleUnintendedReferenceComparison
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
 using UnityEditor;
 using UnityEditor.UIElements;
 using UnityEngine;
 using UnityEngine.UIElements;
+using Object = UnityEngine.Object;
 
 namespace VisualPinball.Unity.Editor
 {
@@ -268,16 +269,18 @@ namespace VisualPinball.Unity.Editor
 
 			foreach (var selected in selection) {
 
-				// 1. instantiate prefab
+				// instantiate prefab
 				var go = InstantiateAsset();
 				if (go == null) {
 					break;
 				}
 
+				// rename if desired
 				if (keepName) {
 					go.name = selected.name;
 				}
 
+				// enable undo
 				Undo.RegisterCreatedObjectUndo(go, "replace object with asset");
 				go.transform.SetParent(selected.transform.parent);
 
@@ -290,20 +293,57 @@ namespace VisualPinball.Unity.Editor
 					go.transform.localRotation = selected.transform.localRotation;
 				}
 				go.transform.SetSiblingIndex(selected.transform.GetSiblingIndex());
+				
+				// update references
+				UpdateReferences(selected, go);
+					
 				Undo.DestroyObjectImmediate(selected);
 
+				// apply variation materials
 				ApplyVariation(go);
-
+				
 				newSelection.Add(go);
 			}
 
 			Selection.objects = newSelection.Select(go => (Object)go).ToArray();
 		}
 
-		private GameObject ApplyVariation(GameObject go)
+		private static void UpdateReferences(GameObject srcGo, GameObject destGo)
+		{
+			var tc = srcGo.GetComponentInParent<TableComponent>();
+			if (tc == null) {
+				return;
+			}
+			
+			Undo.RecordObject(tc, "replace object with asset");
+
+			UpdateReferences(tc.MappingConfig.Coils, m => m.Device, (m, comp) => m.Device = comp, srcGo, destGo);
+			UpdateReferences(tc.MappingConfig.Switches, m => m.Device, (m, comp) => m.Device = comp, srcGo, destGo);
+			UpdateReferences(tc.MappingConfig.Lamps, m => m.Device, (m, comp) => m.Device = comp, srcGo, destGo);
+			UpdateReferences(tc.MappingConfig.Wires, m => m.SourceDevice, (m, comp) => m.SourceDevice = comp, srcGo, destGo);
+			UpdateReferences(tc.MappingConfig.Wires, m => m.DestinationDevice, (m, comp) => m.DestinationDevice = comp, srcGo, destGo);
+		}
+
+		private static void UpdateReferences<TMapping, TComponent>(List<TMapping> mappings, Func<TMapping, TComponent> getComp, Action<TMapping, TComponent> setComp, GameObject srcGo, GameObject destGo)
+		{
+			foreach (var mapping in mappings) {
+				var referencedComponent = getComp(mapping);
+				if (referencedComponent == null) {
+					continue;
+				}
+				foreach (var srcComponent in srcGo.GetComponents<TComponent>()) {
+					if (referencedComponent as MonoBehaviour == srcComponent as MonoBehaviour) {
+						if (destGo.GetComponent(srcComponent.GetType()) is TComponent destComponent) {
+							setComp(mapping, destComponent);
+						}
+					}
+				}
+			}
+		}
+
+		private void ApplyVariation(GameObject go)
 		{
 			_materialVariations.SelectedMaterialCombination?.Combination.ApplyMaterial(go);
-			return go;
 		}
 
 		private void OnVariationSelected(object sender, AssetMaterialCombinationElement el)
