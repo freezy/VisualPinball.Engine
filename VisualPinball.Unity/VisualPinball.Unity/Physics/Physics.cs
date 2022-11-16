@@ -54,7 +54,9 @@ namespace VisualPinball.Unity
 		#region Transformation
 
 		public static Matrix3D TransformToVpx(this Matrix3D vpx) => WorldToVpx.ToVpMatrix().Multiply(vpx);
-		public static Mesh TransformToWorld(this Mesh mesh) => mesh.Transform(VpxToWorld.ToVpMatrix(), Matrix4x4.Rotate(ToVpxRotation).ToVpMatrix());
+		public static Mesh TransformToWorld(this Mesh mesh) => mesh.Transform(VpxToWorld.ToVpMatrix());
+		public static Mesh TransformToVpx(this Mesh mesh) => mesh.Transform(WorldToVpx.ToVpMatrix());
+
 		
 		/// <summary>
 		/// Use this on matrices that are generated for VPX-space transformations that you want to apply to a mesh that
@@ -70,7 +72,6 @@ namespace VisualPinball.Unity
 
 		public static float3 TranslateToVpx(this float3 worldVector) => math.transform(WorldToVpx, worldVector);
 		public static float3 TranslateToVpx(this Vector3 worldVector) => math.transform(WorldToVpx, worldVector);
-		public static Mesh TransformToVpx(this Mesh mesh) => mesh.Transform(WorldToVpx.ToVpMatrix(), Matrix4x4.Rotate(ToWorldRotation).ToVpMatrix());
 		
 		public static float3 TranslateToWorld(this float3 vpxVector) => math.transform(VpxToWorld, vpxVector);
 		public static float3 TranslateToWorld(this Vector3 vpxVector) => math.transform(VpxToWorld, vpxVector);
