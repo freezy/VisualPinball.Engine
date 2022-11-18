@@ -16,6 +16,7 @@
 
 using System;
 using System.Collections.Generic;
+using UnityEngine.Profiling;
 
 namespace VisualPinball.Engine.Math
 {
@@ -24,6 +25,7 @@ namespace VisualPinball.Engine.Math
 		public static TVertex[] GetRgVertex<TVertex, TCatmullCurveFactory>(DragPointData[] dragPoints, bool loop = true, float accuracy = 4.0f) where TVertex : IRenderVertex, new() where TCatmullCurveFactory : ICatmullCurveFactory<TVertex>, new()
 		// 4 = maximum precision that we allow for
 		{
+			Profiler.BeginSample("GetRgVertex");
 			var vertices = new List<TVertex>();
 			var numPoints = dragPoints.Length;
 			var lastPoint = loop ? numPoints : numPoints - 1;
@@ -74,7 +76,11 @@ namespace VisualPinball.Engine.Math
 				vertices.Add(vertex2);
 			}
 
-			return vertices.ToArray();
+			var arr = vertices.ToArray();
+			
+			Profiler.EndSample();
+
+			return arr;
 		}
 
 		public static float[] GetTextureCoords(DragPointData[] dragPoints, IRenderVertex[] vv)
