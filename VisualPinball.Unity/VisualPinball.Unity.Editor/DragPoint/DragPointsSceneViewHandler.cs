@@ -19,6 +19,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.Profiling;
 using VisualPinball.Engine.Math;
 using Color = UnityEngine.Color;
 
@@ -32,7 +33,7 @@ namespace VisualPinball.Unity.Editor
 		private readonly DragPointsHandler _handler;
 
 		/// <summary>
-		/// Curve points
+		/// Curve points in world space
 		/// </summary>
 		private readonly List<Vector3> _pathPoints = new List<Vector3>();
 
@@ -72,27 +73,34 @@ namespace VisualPinball.Unity.Editor
 		/// </remarks>
 		private void DisplayCurve()
 		{
+			Profiler.BeginSample("DisplayCurve");
 			var controlPointsSegments = new List<Vector3>[_handler.ControlPoints.Count].Select(_ => new List<Vector3>()).ToArray();
-
+			
 			// Display Curve & handle curve traveller
 			if (_handler.ControlPoints.Count > 1) {
-				var transformedPoints = new List<DragPointData>();
-				foreach (var controlPoint in _handler.ControlPoints) {
-					var newDp = new DragPointData(controlPoint.DragPoint) {
-						Center = controlPoint.VpxPosition.ToVertex3D()
+				
+				Profiler.BeginSample("Transform Points");
+				var transformedPoints = new DragPointData[_handler.ControlPoints.Count];
+				for (var i = 0; i < _handler.ControlPoints.Count; i++) {
+					transformedPoints[i] = new DragPointData(_handler.ControlPoints[i].DragPoint) {
+						Center = _handler.ControlPoints[i].VpxPosition.ToVertex3D()
 					};
-					transformedPoints.Add(newDp);
 				}
-
+				Profiler.EndSample();
+			
+				Profiler.BeginSample("Create Vertices");
 				var vAccuracy = Vector3.one;
 				vAccuracy = _handler.Transform.localToWorldMatrix.MultiplyVector(vAccuracy);
 				var accuracy = Mathf.Abs(vAccuracy.x * vAccuracy.y * vAccuracy.z);
 				accuracy *= HandleUtility.GetHandleSize(_handler.CurveTravellerPosition) * ControlPoint.ScreenRadius;
 				var vVertex = DragPoint.GetRgVertex<RenderVertex3D, CatmullCurve3DCatmullCurveFactory>(
-					transformedPoints.ToArray(), _handler.DragPointInspector.PointsAreLooping, accuracy
+					transformedPoints, _handler.DragPointInspector.PointsAreLooping, accuracy
 				);
-
+				Profiler.EndSample();
+			
 				if (vVertex.Length > 0) {
+					
+					Profiler.BeginSample("Fill Control Points");
 					// Fill Control points paths
 					ControlPoint currentControlPoint = null;
 					foreach (var v in vVertex) {
@@ -106,13 +114,17 @@ namespace VisualPinball.Unity.Editor
 							controlPointsSegments[currentControlPoint.Index].Add(v.ToUnityVector3());
 						}
 					}
-
+					Profiler.EndSample();
+			
 					// close loop if needed
+					Profiler.BeginSample("Close Loops");
 					if (_handler.DragPointInspector.PointsAreLooping) {
 						controlPointsSegments[_handler.ControlPoints.Count - 1].Add(controlPointsSegments[0][0]);
 					}
-
+					Profiler.EndSample();
+			
 					// construct full path
+					Profiler.BeginSample("Construct full path");
 					_pathPoints.Clear();
 					const float splitRatio = 0.1f;
 					foreach (var controlPoint in _handler.ControlPoints) {
@@ -131,37 +143,61 @@ namespace VisualPinball.Unity.Editor
 							newPath.Add(segments[1]);
 							segments = newPath;
 						}
-						_pathPoints.AddRange(segments.Select(s => s.TranslateToWorld()).ToArray());
+						foreach (var segment in segments) {
+							_pathPoints.Add(segment.TranslateToWorld());
+						}
 					}
-
+					Profiler.EndSample();
+			
+					Profiler.BeginSample("Handle Traveller");
 					_curveTravellerMoved = false;
 					if (_pathPoints.Count > 1) {
-						var newPos = HandleUtility.ClosestPointToPolyLine(_pathPoints.ToArray());
+						Profiler.BeginSample("Convert Points");
+						var points = _pathPoints.ToArray();
+						Profiler.EndSample();
+						Profiler.BeginSample("Calculate closest");
+						var newPos = HandleUtility.ClosestPointToPolyLine(points);
+						Profiler.EndSample();
+						Profiler.BeginSample("Calculate if moved");
 						if ((newPos - _handler.CurveTravellerPosition).magnitude >= HandleUtility.GetHandleSize(_handler.CurveTravellerPosition) * ControlPoint.ScreenRadius * CurveTravellerSizeRatio * 0.1f) {
 							_handler.CurveTravellerPosition = newPos;
 							_curveTravellerMoved = true;
 						}
+						Profiler.EndSample();
 					}
-
+					Profiler.EndSample();
+			
+					Profiler.BeginSample("Draw Line");
 					// Render Curve with correct color regarding drag point properties & find curve section where the curve traveller is
 					_handler.CurveTravellerControlPointIdx = -1;
 					var minDist = float.MaxValue;
 					Handles.matrix = Matrix4x4.identity;
 					foreach (var controlPoint in _handler.ControlPoints) {
+						Profiler.BeginSample("Compute Segments");
 						var segments = controlPointsSegments[controlPoint.Index].Select(cp => cp.TranslateToWorld()).ToArray();
+						Profiler.EndSample();
 						if (segments.Length > 1) {
+							Profiler.BeginSample("Determine Color");
 							Handles.color = _handler.DragPointInspector.DragPointExposition.Contains(DragPointExposure.SlingShot) && controlPoint.DragPoint.IsSlingshot ? CurveSlingShotColor : CurveColor;
+							Profiler.EndSample();
+							Profiler.BeginSample("Handles.DrawAAPolyLine");
 							Handles.DrawAAPolyLine(CurveWidth, segments);
+							Profiler.EndSample();
+							Profiler.BeginSample("Calculate closes point");
 							var closestToPath = HandleUtility.ClosestPointToPolyLine(segments);
 							var dist = (closestToPath - _handler.CurveTravellerPosition).magnitude;
 							if (dist < minDist) {
 								minDist = dist;
 								_handler.CurveTravellerControlPointIdx = controlPoint.Index;
 							}
+							Profiler.EndSample();
 						}
 					}
+					Profiler.EndSample();
 				}
 			}
+			
+			Profiler.EndSample();
 		}
 
 		/// <summary>
@@ -174,6 +210,7 @@ namespace VisualPinball.Unity.Editor
 		/// </remarks>
 		private void DisplayControlPoints()
 		{
+			Profiler.BeginSample("DisplayControlPoints");
 			// Render Control Points and check traveler distance from CP
 			var distToCPoint = Mathf.Infinity;
 			Handles.matrix = Matrix4x4.identity;
@@ -207,6 +244,7 @@ namespace VisualPinball.Unity.Editor
 					}
 				}
 			}
+			Profiler.EndSample();
 		}
 	}
 }
