@@ -58,7 +58,11 @@ namespace VisualPinball.Unity.Editor
 
 			// find components
 			var go = comp.gameObject;
-			var ta = go.GetComponentInParent<TableComponent>();
+			var ta = go.GetComponentInParent<TableComponent>(true);
+			if (ta == null) {
+				EditorGUILayout.HelpBox("No parent table component found.", MessageType.Warning);
+				return;
+			}
 
 			var field = property.objectReferenceValue;
 			var indentedOffset = EditorGUI.indentLevel * 15f;
