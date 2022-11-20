@@ -143,6 +143,7 @@ namespace VisualPinball.Unity.Editor
 
 			PrepareUndo($"Flip-{flipAxis} Drag Points");
 			DragPointsHandler.FlipDragPoints(flipAxis);
+			DragPointsHandler.ReverseDragPoints();
 			RebuildMeshes();
 		}
 

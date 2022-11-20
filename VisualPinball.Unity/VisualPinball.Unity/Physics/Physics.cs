@@ -71,10 +71,10 @@ namespace VisualPinball.Unity
 		#region Translation
 
 		public static float3 TranslateToVpx(this float3 worldVector) => math.transform(WorldToVpx, worldVector);
-		public static float3 TranslateToVpx(this Vector3 worldVector) => math.transform(WorldToVpx, worldVector);
+		public static Vector3 TranslateToVpx(this Vector3 worldVector) => math.transform(WorldToVpx, worldVector);
 		
 		public static float3 TranslateToWorld(this float3 vpxVector) => math.transform(VpxToWorld, vpxVector);
-		public static float3 TranslateToWorld(this Vector3 vpxVector) => math.transform(VpxToWorld, vpxVector);
+		public static Vector3 TranslateToWorld(this Vector3 vpxVector) => math.transform(VpxToWorld, vpxVector);
 		public static Vector3 TranslateToWorld(float vpxX, float vpxY, float vpxZ) => TranslateToWorld(new float3(vpxX, vpxY, vpxZ));
 
 		#endregion

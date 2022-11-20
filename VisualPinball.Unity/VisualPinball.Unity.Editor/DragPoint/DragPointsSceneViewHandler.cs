@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEditor;
@@ -71,16 +72,16 @@ namespace VisualPinball.Unity.Editor
 		/// </remarks>
 		private void DisplayCurve()
 		{
-			List<Vector3>[] controlPointsSegments = new List<Vector3>[_handler.ControlPoints.Count].Select(item => new List<Vector3>()).ToArray();
+			var controlPointsSegments = new List<Vector3>[_handler.ControlPoints.Count].Select(_ => new List<Vector3>()).ToArray();
 
 			// Display Curve & handle curve traveller
 			if (_handler.ControlPoints.Count > 1) {
-				var transformedDPoints = new List<DragPointData>();
+				var transformedPoints = new List<DragPointData>();
 				foreach (var controlPoint in _handler.ControlPoints) {
 					var newDp = new DragPointData(controlPoint.DragPoint) {
 						Center = controlPoint.VpxPosition.ToVertex3D()
 					};
-					transformedDPoints.Add(newDp);
+					transformedPoints.Add(newDp);
 				}
 
 				var vAccuracy = Vector3.one;
@@ -88,7 +89,7 @@ namespace VisualPinball.Unity.Editor
 				var accuracy = Mathf.Abs(vAccuracy.x * vAccuracy.y * vAccuracy.z);
 				accuracy *= HandleUtility.GetHandleSize(_handler.CurveTravellerPosition) * ControlPoint.ScreenRadius;
 				var vVertex = DragPoint.GetRgVertex<RenderVertex3D, CatmullCurve3DCatmullCurveFactory>(
-					transformedDPoints.ToArray(), _handler.DragPointInspector.PointsAreLooping, accuracy
+					transformedPoints.ToArray(), _handler.DragPointInspector.PointsAreLooping, accuracy
 				);
 
 				if (vVertex.Length > 0) {
@@ -130,7 +131,7 @@ namespace VisualPinball.Unity.Editor
 							newPath.Add(segments[1]);
 							segments = newPath;
 						}
-						_pathPoints.AddRange(segments);
+						_pathPoints.AddRange(segments.Select(s => s.TranslateToWorld()).ToArray());
 					}
 
 					_curveTravellerMoved = false;
@@ -145,9 +146,9 @@ namespace VisualPinball.Unity.Editor
 					// Render Curve with correct color regarding drag point properties & find curve section where the curve traveller is
 					_handler.CurveTravellerControlPointIdx = -1;
 					var minDist = float.MaxValue;
-					Handles.matrix = Physics.VpxToWorld;
+					Handles.matrix = Matrix4x4.identity;
 					foreach (var controlPoint in _handler.ControlPoints) {
-						var segments = controlPointsSegments[controlPoint.Index].ToArray();
+						var segments = controlPointsSegments[controlPoint.Index].Select(cp => cp.TranslateToWorld()).ToArray();
 						if (segments.Length > 1) {
 							Handles.color = _handler.DragPointInspector.DragPointExposition.Contains(DragPointExposure.SlingShot) && controlPoint.DragPoint.IsSlingshot ? CurveSlingShotColor : CurveColor;
 							Handles.DrawAAPolyLine(CurveWidth, segments);
