@@ -333,7 +333,7 @@ namespace VisualPinball.Unity.Editor
 					parentRot = Transform.parent.transform.rotation;
 				}
 				EditorGUI.BeginChangeCheck();
-				var newHandlePos = HandlesUtils.HandlePosition(_dragPointHandlePosition, DragPointInspector.HandleType, parentRot);
+				var newHandlePos = HandlesUtils.HandlePosition(Transform.GetComponentInParent<PlayfieldComponent>(), _dragPointHandlePosition, DragPointInspector.HandleType, parentRot);
 				if (EditorGUI.EndChangeCheck()) {
 					onChange?.Invoke(newHandlePos);
 					var deltaPosition = newHandlePos - _dragPointHandlePosition;

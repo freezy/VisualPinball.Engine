@@ -176,13 +176,13 @@ namespace VisualPinball.Unity.Editor
 		private void HandleLockedTool()
 		{
 			Handles.matrix = Matrix4x4.identity;
-			var handlePos = (Vector3)_primaryItem.GetEditorPosition().TranslateToWorld();
+			var handlePos = _primaryItem.GetEditorPosition().TranslateToWorld();
 			if (_transform.parent != null) {
 				handlePos = _transform.parent.TransformPoint(handlePos);
 			}
 			Handles.color = Color.red;
 			Handles.Button(handlePos, Quaternion.identity, HandleUtility.GetHandleSize(handlePos) * 0.25f, HandleUtility.GetHandleSize(handlePos) * 0.25f, Handles.SphereHandleCap);
-			Handles.Label(handlePos + Vector3.right * HandleUtility.GetHandleSize(handlePos) * 0.3f, "LOCKED");
+			Handles.Label(handlePos + Vector3.right * (HandleUtility.GetHandleSize(handlePos) * 0.3f), "LOCKED");
 		}
 
 		private void HandleRotationTool()
@@ -253,23 +253,21 @@ namespace VisualPinball.Unity.Editor
 					}
 					break;
 				}
-				default:
-					break;
 			}
 		}
 
 		private void HandleMoveTool()
 		{
-			var parentRot = Quaternion.identity;
 			var handlePos = _primaryItem.GetEditorPosition();
-			if (_transform.parent != null) {
-				var pt = _transform.parent;
-				handlePos = pt.TransformPoint(handlePos);
-				parentRot = pt.transform.rotation;
-			}
+			var parentRot = Quaternion.identity;
+			// if (_transform.parent != null) {
+			// 	var pt = _transform.parent;
+			// 	handlePos = pt.TransformPoint(handlePos);
+			// 	parentRot = pt.transform.rotation;
+			// }
 
 			EditorGUI.BeginChangeCheck();
-			handlePos = HandlesUtils.HandlePosition(handlePos, _primaryItem.EditorPositionType, parentRot);
+			handlePos = HandlesUtils.HandlePosition(_transform.GetComponentInParent<PlayfieldComponent>(), handlePos, _primaryItem.EditorPositionType, parentRot);
 			if (EditorGUI.EndChangeCheck()) {
 				FinishMove(handlePos);
 			}
