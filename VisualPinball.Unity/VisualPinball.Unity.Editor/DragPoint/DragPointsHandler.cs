@@ -78,14 +78,19 @@ namespace VisualPinball.Unity.Editor
 		/// CurveTravellerPosition, CurveTravellerControlPointIdx & CurveTravellerVisible will be updated by the DragPointsSceneViewHandler
 		/// </remarks>
 		public int CurveTravellerControlId { get; private set; }
+		
+		/// <summary>
+		/// Traveller position in world space.
+		/// </summary>
 		public Vector3 CurveTravellerPosition { get; set; } = Vector3.zero;
+		
 		public bool CurveTravellerVisible { get; set; }
 		public int CurveTravellerControlPointIdx { get; set; } = -1;
 
 		/// <summary>
-		/// DragPoints flipping
+		/// The mid-point where points are flipped, in vpx space.
 		/// </summary>
-		private Vector3 _flipAxis = Vector3.zero;
+		private Vector3 _center = Vector3.zero;
 
 		/// <summary>
 		/// Every DragPointsInspector instantiates this to manage its curve handling.
@@ -147,7 +152,8 @@ namespace VisualPinball.Unity.Editor
 
 			var newIdx = CurveTravellerControlPointIdx + 1;
 			float ratio = (float)newIdx / DragPointInspector.DragPoints.Length;
-			var dragPointPosition = Transform.worldToLocalMatrix.MultiplyPoint(CurveTravellerPosition);
+			var dragPointPosition = CurveTravellerPosition.TranslateToVpx();
+			
 			dragPointPosition -= DragPointInspector.EditableOffset;
 			dragPointPosition -= DragPointInspector.GetDragPointOffset(ratio);
 			dragPoint.Center = dragPointPosition.ToVertex3D();
@@ -195,42 +201,47 @@ namespace VisualPinball.Unity.Editor
 		/// <param name="flipAxis">Axis to flip</param>
 		public void FlipDragPoints(FlipAxis flipAxis)
 		{
-			// var axis = flipAxis == FlipAxis.X
-			// 	? _flipAxis.x
-			// 	: flipAxis == FlipAxis.Y ? _flipAxis.y : _flipAxis.z;
-			//
-			// var offset = DragPointInspector.EditableOffset;
-			// var wlMat = Transform.worldToLocalMatrix;
-			//
-			// foreach (var controlPoint in ControlPoints) {
-			// 	var coord = flipAxis == FlipAxis.X
-			// 		? controlPoint.WorldPos.x
-			// 		: flipAxis == FlipAxis.Y
-			// 			? controlPoint.WorldPos.y
-			// 			: controlPoint.WorldPos.z;
-			//
-			// 	coord = axis + (axis - coord);
-			// 	switch (flipAxis) {
-			// 		case FlipAxis.X:
-			// 			controlPoint.WorldPos.x = coord;
-			// 			break;
-			// 		case FlipAxis.Y:
-			// 			controlPoint.WorldPos.y = coord;
-			// 			break;
-			// 		case FlipAxis.Z:
-			// 			controlPoint.WorldPos.z = coord;
-			// 			break;
-			// 		default:
-			// 			throw new ArgumentOutOfRangeException(nameof(flipAxis), flipAxis, null);
-			// 	}
-			// 	controlPoint.UpdateDragPoint(DragPointInspector, Transform);
-			// }
+			var axis = flipAxis == FlipAxis.X
+				? _center.x
+				: flipAxis == FlipAxis.Y ? _center.y : _center.z;
+			
+			foreach (var controlPoint in ControlPoints) {
+				var coord = flipAxis switch {
+					FlipAxis.X => controlPoint.VpxPosition.x,
+					FlipAxis.Y => controlPoint.Position.y,
+					_ => controlPoint.Position.z
+				};
+			
+				coord = axis + (axis - coord);
+				var pos = controlPoint.VpxPosition;
+				switch (flipAxis) {
+					case FlipAxis.X:
+						pos.x = coord;
+						break;
+					case FlipAxis.Y:
+						pos.y = coord;
+						break;
+					case FlipAxis.Z:
+						pos.z = coord;
+						break;
+					default:
+						throw new ArgumentOutOfRangeException(nameof(flipAxis), flipAxis, null);
+				}
+				controlPoint.VpxPosition = pos;
+			}
 		}
 
 		public void ReverseDragPoints()
 		{
 			var dragPoints = DragPointInspector.DragPoints.ToList();
 			dragPoints.Reverse(1, dragPoints.Count - 1);
+			
+			// rotate slingshot props
+			var isSling = dragPoints.Select(dp => dp.IsSlingshot).ToArray();
+			isSling = isSling.Skip(1).Concat(isSling.Take(1)).ToArray();
+			for (var i = 0; i < dragPoints.Count; i++) {
+				dragPoints[i].IsSlingshot = isSling[i];
+			}
 			DragPointInspector.DragPoints = dragPoints.ToArray();
 			RebuildControlPoints();
 		}
@@ -339,16 +350,11 @@ namespace VisualPinball.Unity.Editor
 		private void InitSceneGui()
 		{
 			SelectedControlPoints.Clear();
-			_flipAxis = Vector3.zero;
+			_center = Vector3.zero;
 
 			//Setup Screen positions & controlID for control points (in case of modification of drag points coordinates outside)
 			foreach (var controlPoint in ControlPoints) {
-				// controlPoint.WorldPos = controlPoint.DragPoint.Center.ToUnityVector3();
-				// controlPoint.WorldPos += DragPointInspector.EditableOffset;
-				// controlPoint.WorldPos += DragPointInspector.GetDragPointOffset(controlPoint.IndexRatio);
-				// controlPoint.WorldPos = Transform.localToWorldMatrix.MultiplyPoint(controlPoint.WorldPos);
-				// todo wtf is this _flipAxis += controlPoint.WorldPos;
-				//controlPoint.LocalPos = Handles.matrix.MultiplyPoint(controlPoint.WorldPos);
+				_center += controlPoint.VpxPosition;
 				if (controlPoint.IsSelected && !controlPoint.DragPoint.IsLocked) {
 					SelectedControlPoints.Add(controlPoint);
 				}
@@ -363,7 +369,7 @@ namespace VisualPinball.Unity.Editor
 			}
 
 			if (ControlPoints.Count > 0) {
-				_flipAxis /= ControlPoints.Count;
+				_center /= ControlPoints.Count;
 			}
 
 			//Setup PositionHandle if some control points are selected

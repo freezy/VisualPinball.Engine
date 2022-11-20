@@ -26,6 +26,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using NLog;
+using Unity.Mathematics;
 using UnityEngine;
 using VisualPinball.Engine.Game.Engines;
 using VisualPinball.Engine.VPT;
@@ -121,7 +122,7 @@ namespace VisualPinball.Unity
 		{
 			base.UpdateTransforms();
 
-			var vpxPos = transform.localPosition.TranslateToVpx();
+			var vpxPos = (float3)transform.localPosition.TranslateToVpx();
 
 			// position
 			vpxPos.z = Surface != null

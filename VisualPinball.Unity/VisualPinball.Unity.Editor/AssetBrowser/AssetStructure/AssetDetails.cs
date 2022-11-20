@@ -254,6 +254,8 @@ namespace VisualPinball.Unity.Editor
 			if (pf != null && go.GetComponent(typeof(IMainRenderableComponent)) is IMainRenderableComponent comp) {
 				comp.SetEditorPosition(new Vector3(pf.Width / 2, pf.Height / 2, 0));
 				comp.UpdateTransforms();
+			} else if (pf != null) {
+				go.transform.localPosition = new Vector3(Physics.ScaleToWorld(pf.Width / 2), 0, -Physics.ScaleToWorld(pf.Height / 2));
 			}
 
 			ApplyVariation(go);

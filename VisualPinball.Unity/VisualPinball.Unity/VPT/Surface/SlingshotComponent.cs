@@ -224,6 +224,7 @@ namespace VisualPinball.Unity
 
 			var mesh = MeshGenerator
 				.GetTransformedMesh(pf.PlayfieldHeight, r0.Height, pf.PlayfieldDetailLevel)
+				.TransformToWorld()
 				.ToUnityMesh();
 
 			mesh.name = $"{name} (Mesh)";

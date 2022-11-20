@@ -118,8 +118,16 @@ namespace VisualPinball.Unity
 
 		public Vector3 GetTableCenter()
 		{
-			var playfield = GetComponentInChildren<PlayfieldComponent>().gameObject;
-			return playfield.GetComponent<MeshRenderer>().bounds.center;
+			var playfield = GetComponentInChildren<PlayfieldComponent>();
+			var mr = playfield.GetComponent<MeshRenderer>();
+			if (mr) {
+				return mr.bounds.center;
+			}
+			return new Vector3(
+				Physics.ScaleToWorld(playfield.Width / 2),
+				0,
+				-Physics.ScaleToWorld(playfield.Height / 2)
+			);
 		}
 
 		public Bounds GetTableBounds()
