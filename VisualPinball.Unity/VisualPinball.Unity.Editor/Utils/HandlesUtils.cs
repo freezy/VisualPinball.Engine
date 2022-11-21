@@ -27,18 +27,17 @@ namespace VisualPinball.Unity.Editor
 		/// <param name="playfield">Reference to parent playfield</param>
 		/// <param name="position">Original position in VPX space</param>
 		/// <param name="type">Allowed position type</param>
-		/// <param name="rotation">Parent rotation</param>
 		/// <returns>Moved position in VPX space.</returns>
-		public static Vector3 HandlePosition(PlayfieldComponent playfield, Vector3 position, ItemDataTransformType type, Quaternion rotation)
+		public static Vector3 HandlePosition(PlayfieldComponent playfield, Vector3 position, ItemDataTransformType type)
 		{
-			return HandlePosition(playfield, position, type, rotation, 0.2f, 0.0f);
+			return HandlePosition(playfield, position, type, 0.2f, 0.0f);
 		}
 
-		private static Vector3 HandlePosition(PlayfieldComponent playfield, Vector3 position, ItemDataTransformType type, Quaternion rotation, float handleSize, float snap)
+		private static Vector3 HandlePosition(PlayfieldComponent playfield, Vector3 position, ItemDataTransformType type, float handleSize, float snap)
 		{
-			var forward = (Vector3)(rotation * Vector3.forward).TranslateToWorld();
-			var right = (Vector3)(rotation * Vector3.right).TranslateToWorld();
-			var up = (Vector3)(rotation * Vector3.up).TranslateToWorld();
+			var forward = Vector3.forward.TranslateToWorld();
+			var right = Vector3.right.TranslateToWorld();
+			var up = Vector3.up.TranslateToWorld();
 			var newPos = position.TranslateToWorld();
 			Handles.matrix = playfield == null ? Matrix4x4.identity : playfield.transform.localToWorldMatrix;
 			
