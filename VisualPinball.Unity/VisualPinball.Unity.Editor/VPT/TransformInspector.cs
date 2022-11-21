@@ -259,15 +259,8 @@ namespace VisualPinball.Unity.Editor
 		private void HandleMoveTool()
 		{
 			var handlePos = _primaryItem.GetEditorPosition();
-			var parentRot = Quaternion.identity;
-			// if (_transform.parent != null) {
-			// 	var pt = _transform.parent;
-			// 	handlePos = pt.TransformPoint(handlePos);
-			// 	parentRot = pt.transform.rotation;
-			// }
-
 			EditorGUI.BeginChangeCheck();
-			handlePos = HandlesUtils.HandlePosition(_transform.GetComponentInParent<PlayfieldComponent>(), handlePos, _primaryItem.EditorPositionType, parentRot);
+			handlePos = HandlesUtils.HandlePosition(_transform.GetComponentInParent<PlayfieldComponent>(), handlePos, _primaryItem.EditorPositionType);
 			if (EditorGUI.EndChangeCheck()) {
 				FinishMove(handlePos);
 			}

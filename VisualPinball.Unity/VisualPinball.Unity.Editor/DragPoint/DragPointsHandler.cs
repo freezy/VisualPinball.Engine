@@ -328,12 +328,8 @@ namespace VisualPinball.Unity.Editor
 
 			// Handle the common position handler for all selected control points
 			if (SelectedControlPoints.Count > 0) {
-				var parentRot = Quaternion.identity;
-				if (Transform.parent != null) {
-					parentRot = Transform.parent.transform.rotation;
-				}
 				EditorGUI.BeginChangeCheck();
-				var newHandlePos = HandlesUtils.HandlePosition(Transform.GetComponentInParent<PlayfieldComponent>(), _dragPointHandlePosition, DragPointInspector.HandleType, parentRot);
+				var newHandlePos = HandlesUtils.HandlePosition(Transform.GetComponentInParent<PlayfieldComponent>(), _dragPointHandlePosition, DragPointInspector.HandleType);
 				if (EditorGUI.EndChangeCheck()) {
 					onChange?.Invoke(newHandlePos);
 					var deltaPosition = newHandlePos - _dragPointHandlePosition;
