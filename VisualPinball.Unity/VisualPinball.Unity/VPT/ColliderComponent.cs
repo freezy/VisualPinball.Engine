@@ -87,7 +87,6 @@ namespace VisualPinball.Unity
 
 				return physicsMaterialData;
 			}
-			else 
 			return new PhysicsMaterialData {
 					Elasticity = elasticity,
 					ElasticityFalloff = elasticityFalloff,
@@ -116,9 +115,9 @@ namespace VisualPinball.Unity
 				Profiler.EndSample();
 				return;
 			}
-			
-			Gizmos.matrix = Physics.VpxToWorld;
-			UnityEditor.Handles.matrix = Physics.VpxToWorld;
+			var ltw = GetComponentInParent<PlayfieldComponent>().transform.localToWorldMatrix;
+			Gizmos.matrix = ltw * (Matrix4x4)Physics.VpxToWorld;
+			UnityEditor.Handles.matrix = Gizmos.matrix;
 			
 			var generateColliders = ShowAabbs || showColliders && !HasCachedColliders;
 			if (generateColliders) {
@@ -127,7 +126,7 @@ namespace VisualPinball.Unity
 				api.CreateColliders(colliders, 0.1f);
 
 				if (showColliders) {
-					_colliderMesh = GenerateColliderMesh(colliders, Physics.VpxToWorld);
+					_colliderMesh = GenerateColliderMesh(colliders);
 					_collidersDirty = false;
 				}
 
@@ -161,14 +160,12 @@ namespace VisualPinball.Unity
 
 		#region Collider Gizmos
 
-		private Mesh GenerateColliderMesh(List<ICollider> colliders, Matrix4x4 ltw)
+		private Mesh GenerateColliderMesh(List<ICollider> colliders)
 		{
 			var color = Color.green;
 			UnityEditor.Handles.color = color;
 			color.a = 0.3f;
 			Gizmos.color = color;
-			Gizmos.matrix = ltw;
-			UnityEditor.Handles.matrix = ltw;
 			var vertices = new List<Vector3>();
 			var normals = new List<Vector3>();
 			var indices = new List<int>();
