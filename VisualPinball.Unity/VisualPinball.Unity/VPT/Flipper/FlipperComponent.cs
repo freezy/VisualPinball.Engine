@@ -357,7 +357,7 @@ namespace VisualPinball.Unity
 				_rubberWidth = flipperComponent._rubberWidth;
 
 			} else {
-				Position = go.transform.localPosition;
+				Position = go.transform.localPosition.TranslateToVpx();
 			}
 
 			UpdateTransforms();

@@ -279,8 +279,8 @@ namespace VisualPinball.Unity
 				Surface = kickerComponent.Surface;
 
 			} else {
+				Position = go.transform.localPosition.TranslateToVpx();
 				Radius = go.transform.localScale.x;
-				Position = go.transform.localPosition;
 				Orientation = go.transform.localEulerAngles.z;
 			}
 

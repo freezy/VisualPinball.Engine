@@ -435,7 +435,7 @@ namespace VisualPinball.Unity
 
 		public override void CopyFromObject(GameObject go)
 		{
-			transform.localPosition = go.transform.localPosition;
+			transform.localPosition = go.transform.localPosition.TranslateToVpx();
 
 			var lightComponent = go.GetComponent<LightComponent>();
 			if (lightComponent != null) {

@@ -244,7 +244,7 @@ namespace VisualPinball.Unity
 				_dragPoints = triggerComponent._dragPoints.Select(dp => dp.Clone()).ToArray();
 
 			} else {
-				var pos = go.transform.localPosition;
+				var pos = go.transform.localPosition.TranslateToVpx();
 				MoveDragPointsTo(_dragPoints, pos);
 				Position = pos;
 				Rotation = go.transform.localEulerAngles.z;

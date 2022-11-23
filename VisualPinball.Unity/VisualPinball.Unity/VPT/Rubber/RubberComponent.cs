@@ -198,7 +198,7 @@ namespace VisualPinball.Unity
 				_dragPoints = rubberComponent._dragPoints.Select(dp => dp.Clone()).ToArray();
 
 			} else {
-				MoveDragPointsTo(_dragPoints, go.transform.localPosition);
+				MoveDragPointsTo(_dragPoints, go.transform.localPosition.TranslateToVpx());
 			}
 
 			UpdateTransforms();

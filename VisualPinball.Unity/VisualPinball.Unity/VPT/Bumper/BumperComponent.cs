@@ -326,7 +326,7 @@ namespace VisualPinball.Unity
 
 			} else {
 				var scale = go.transform.localScale;
-				Position = go.transform.localPosition;
+				Position = go.transform.localPosition.TranslateToVpx();
 				Orientation = go.transform.localEulerAngles.z;
 				Radius = scale.x / 2 * PrefabMeshScale;
 				HeightScale = scale.z * PrefabMeshScale;
