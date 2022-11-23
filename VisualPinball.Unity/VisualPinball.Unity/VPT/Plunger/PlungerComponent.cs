@@ -331,7 +331,7 @@ namespace VisualPinball.Unity
 				Surface = plungerComponent.Surface;
 
 			} else {
-				Position = go.transform.localPosition;
+				Position = go.transform.localPosition.TranslateToVpx();
 			}
 
 			UpdateTransforms();

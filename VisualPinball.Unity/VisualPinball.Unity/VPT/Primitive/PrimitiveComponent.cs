@@ -241,7 +241,7 @@ namespace VisualPinball.Unity
 				ObjectRotation = primitiveComponent.ObjectRotation;
 
 			} else {
-				Position = go.transform.localPosition;
+				Position = go.transform.localPosition.TranslateToVpx();
 				Rotation = go.transform.localEulerAngles;
 				Size = go.transform.localScale;
 			}

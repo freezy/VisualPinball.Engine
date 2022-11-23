@@ -254,7 +254,7 @@ namespace VisualPinball.Unity
 				Surface = spinnerComponent.Surface;
 
 			} else {
-				Position = go.transform.localPosition;
+				Position = go.transform.localPosition.TranslateToVpx();
 				Rotation = go.transform.localEulerAngles.z;
 			}
 

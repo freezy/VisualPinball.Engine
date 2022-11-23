@@ -287,7 +287,7 @@ namespace VisualPinball.Unity
 
 			} else {
 
-				Position = go.transform.localPosition;
+				Position = go.transform.localPosition.TranslateToVpx();
 				_rotation = go.transform.localEulerAngles.z;
 			}
 
