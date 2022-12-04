@@ -39,11 +39,11 @@ namespace VisualPinball.Unity
 			{
 				marker.Begin();
 
-				var localPos = _player.DropTargetTransforms[entity].transform.localPosition;
-				_player.DropTargetTransforms[entity].transform.localPosition = new Vector3(
+				var localPos = _player.DropTargetTransforms[entity].localPosition;
+				_player.DropTargetTransforms[entity].localPosition = new Vector3(
 					localPos.x,
-					localPos.y,
-					data.ZOffset
+					Physics.ScaleToWorld(data.ZOffset),
+					localPos.z
 				);
 
 				marker.End();
