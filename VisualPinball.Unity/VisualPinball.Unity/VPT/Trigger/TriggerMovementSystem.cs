@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+using System.Collections.Generic;
 using Unity.Entities;
 using Unity.Profiling;
 using UnityEngine;
@@ -26,6 +27,8 @@ namespace VisualPinball.Unity
 		private static readonly ProfilerMarker PerfMarker = new ProfilerMarker("TriggerMovementSystem");
 
 		private Player _player;
+		private readonly Dictionary<Entity, Vector3> _initialWorldPosition = new();
+		private readonly Dictionary<Entity, Matrix4x4> _wtl = new();
 
 		protected override void OnStartRunning()
 		{
@@ -40,13 +43,16 @@ namespace VisualPinball.Unity
 			Entities.WithoutBurst().WithName("TriggerMovementJob").ForEach((Entity entity, in TriggerMovementData data) => {
 
 				marker.Begin();
+				
+				var transform = _player.TriggerTransforms[entity];
+				if (!_initialWorldPosition.ContainsKey(entity)) {
+					_initialWorldPosition[entity] = transform.TransformPoint(transform.localPosition);
+					_wtl[entity] = transform.worldToLocalMatrix;
+				}
 
-				var localPos = _player.TriggerTransforms[entity].localPosition;
-				_player.TriggerTransforms[entity].localPosition = new Vector3(
-					localPos.x,
-					Physics.ScaleToWorld(data.HeightOffset),
-					localPos.z
-				);
+				var worldPos = _initialWorldPosition[entity];
+				worldPos.y += Physics.ScaleToWorld(data.HeightOffset);
+				transform.localPosition = _wtl[entity].MultiplyPoint(worldPos);
 
 				marker.End();
 
