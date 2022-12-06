@@ -27,8 +27,7 @@ namespace VisualPinball.Unity
 		private static readonly ProfilerMarker PerfMarker = new ProfilerMarker("TriggerMovementSystem");
 
 		private Player _player;
-		private readonly Dictionary<Entity, Vector3> _initialWorldPosition = new();
-		private readonly Dictionary<Entity, Matrix4x4> _wtl = new();
+		private readonly Dictionary<Entity, float> _initialOffset = new();
 
 		protected override void OnStartRunning()
 		{
@@ -45,14 +44,13 @@ namespace VisualPinball.Unity
 				marker.Begin();
 				
 				var transform = _player.TriggerTransforms[entity];
-				if (!_initialWorldPosition.ContainsKey(entity)) {
-					_initialWorldPosition[entity] = transform.TransformPoint(transform.localPosition);
-					_wtl[entity] = transform.worldToLocalMatrix;
+				if (!_initialOffset.ContainsKey(entity)) {
+					_initialOffset[entity] = transform.position.y;
 				}
 
-				var worldPos = _initialWorldPosition[entity];
-				worldPos.y += Physics.ScaleToWorld(data.HeightOffset);
-				transform.localPosition = _wtl[entity].MultiplyPoint(worldPos);
+				var worldPos = transform.position;
+				worldPos.y = _initialOffset[entity] + Physics.ScaleToWorld(data.HeightOffset);
+				transform.position = worldPos;
 
 				marker.End();
 
