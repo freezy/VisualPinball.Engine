@@ -42,19 +42,19 @@ namespace VisualPinball.Unity
 			Entities.WithoutBurst().WithName("BumperRingMovementJob").ForEach((Entity entity, in BumperRingAnimationData data) => {
 
 				marker.Begin();
-
+				
 				var transform = _player.BumperRingTransforms[entity];
-				var worldPos = transform.TransformPoint(transform.localPosition);
 				if (!_initialOffset.ContainsKey(entity)) {
-					_initialOffset[entity] = worldPos.y;
+					_initialOffset[entity] = transform.position.y;
 				}
-
+				
 				var limit = data.DropOffset + data.HeightScale * 0.5f;
 				var localLimit = _initialOffset[entity] + limit;
 				var localOffset = localLimit / limit * data.Offset;
-				
+
+				var worldPos = transform.position;
 				worldPos.y = _initialOffset[entity] + Physics.ScaleToWorld(localOffset);
-				transform.localPosition = transform.InverseTransformPoint(worldPos);
+				transform.position = worldPos;
 
 				marker.End();
 
