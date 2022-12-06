@@ -43,19 +43,18 @@ namespace VisualPinball.Unity
 
 				marker.Begin();
 
+				var transform = _player.BumperRingTransforms[entity];
+				var worldPos = transform.TransformPoint(transform.localPosition);
 				if (!_initialOffset.ContainsKey(entity)) {
-					_initialOffset[entity] = _player.BumperRingTransforms[entity].transform.localPosition.z;
+					_initialOffset[entity] = worldPos.y;
 				}
 
-				var localPos = _player.BumperRingTransforms[entity].transform.localPosition;
 				var limit = data.DropOffset + data.HeightScale * 0.5f;
 				var localLimit = _initialOffset[entity] + limit;
 				var localOffset = localLimit / limit * data.Offset;
-				_player.BumperRingTransforms[entity].transform.localPosition = Physics.TranslateToWorld(
-					localPos.x,
-					localPos.y,
-					_initialOffset[entity] + localOffset
-				);
+				
+				worldPos.y = _initialOffset[entity] + Physics.ScaleToWorld(localOffset);
+				transform.localPosition = transform.InverseTransformPoint(worldPos);
 
 				marker.End();
 
