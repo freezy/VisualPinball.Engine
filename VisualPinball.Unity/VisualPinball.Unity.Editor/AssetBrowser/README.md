@@ -112,19 +112,22 @@ Controls that cannot be used are usually hidden. For example, if all your librar
 
 When exporting, the imported assets are bundled with your build. That means if at a later point the asset is updated in the package, you explicitly have to pull down the latest version of the package, and re-export your build.
 
+
+
+
 # Asset Library Creation Guide
 
 So you're good with modeling and you'd like to contribute to VPE's asset library. Great! This guide should provide you with the necessary info to make your assets available in VPE.
 
-Note that we'll focus on 3D assets, i.e. textured models. In the future we will support other types of assets (materials, textures, etc), but 3D assets are the most common and most difficult to get right.
+Note that we'll focus on 3D assets, i.e. textured models. In the future we will support other types of assets (generic materials and textures, etc), but 3D assets are the most common and most difficult to get right.
 
 ## Modeling
 
 We won't go into too much detail how to model your asset, but instead provide a checklist your model should comply with.
 
 - **Use real-world scale** - You should model your asset based on real-world units. This will avoid many scaling issues. 
-- **Verify origin** - The origin of your model should be where it makes sense. For example, items that sit typically on the playfield should have their origin where they touch the playfield. Note that we ignore where your object is in world space, what's important is the origin.
 - **Apply scale and rotation** - Your object shouldn't have any non-applied transformations. Everything should be baked into the mesh (in Blender: `CTRL+A` -> *Apply Scale and Rotation*).
+- **Verify origin** - The origin of your model should be where it makes sense. For example, items that sit typically on the playfield should have their origin where they touch the playfield. Note that we ignore where your object is in world space, what's important is the origin.
 - **Add bevels to edges** - See *Baking* below.
 - **Use quads instead of triangles** - This is somewhat less relevant for game assets, but a quad topology will give you mush less headache in general, specially when beveling edges. Also check out our [tutorial about 3D scans](xref:tutorial_3d_scan).
 - **Make meshes watertight** - Close the holes, make sure your mesh has faces everywhere. This will avoid shadow and path tracing issues.
@@ -152,9 +155,9 @@ Note that HDRP packs AO, metallic and smoothness [into one single texture](https
 
 You'll probably run into a situation where your object has multiple materials. There are a couple of ways dealing with that. Keep in mind it's always better to keep the number of meshes and materials low.
 
-1. **Multiple meshes** - The most expensive way is to split your mesh into multiple meshes, one mesh per material. You should only do this if you're able to re-use the meshes in other assets. For example, a post and its rubber is a good use case, since both the post and the rubber can be paired with other objects.
+1. **Multiple meshes** - The most expensive way is to split your mesh into multiple meshes, one mesh per material. You should only do this if you want to be able to re-use the meshes in other assets. For example, a post and its rubber is a good use case, since both the post and the rubber can be paired with other objects.
 2. **Multiple materials** - Another way is to create multiple material slots, i.e. assign each vertex of the mesh to the appropriate material. This is appropriate when you want to be able to swap out materials individually, for example in a flipper. In this case, you'd have two separate materials for the rubber and the plastic, but only one mesh. This allows you to create material variations in the asset library, where you provide multiple materials for each slot, and the asset browser will make the combinations available.
-3. **Single material** - The cheapest way is to merge multiple materials into one, and it's the recommended way when materials don't need to be easily changed. In Substance Painter, you would create a layer for each material and mask it out so it applies only to the desired region. Note that this only works when the [surface type](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@12.1/manual/Surface-Type.html) of the materials is the same, i.e. the only difference between the materials are their texture maps.
+3. **Single material** - The cheapest way is to merge multiple materials into one, and it's the recommended way when materials don't need to be easily changed. In Substance Painter, you would create a layer for each material and mask it out so it applies only to the desired region. Note that this only works when the [surface type](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@12.1/manual/Surface-Type.html) of the materials is the same, i.e. the only difference between the materials are their texture maps. An example where that doesn't work if you have a transparent and a non-transparent material.
 
 It's also common to create materials made for multiple items. For example, in the library, all metal posts use the same material, so they share the same UV mapping. Grouping multiple items makes sense when it's likely that many of the items you're grouping will be used on the playfield.
 
