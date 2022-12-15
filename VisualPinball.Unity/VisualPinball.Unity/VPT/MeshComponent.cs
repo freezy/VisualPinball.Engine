@@ -147,6 +147,7 @@ namespace VisualPinball.Unity
 					unityMesh = mf.sharedMesh;
 				}
 				mesh.ApplyToUnityMesh(unityMesh);
+				unityMesh.RecalculateBounds();
 			}
 		}
 
