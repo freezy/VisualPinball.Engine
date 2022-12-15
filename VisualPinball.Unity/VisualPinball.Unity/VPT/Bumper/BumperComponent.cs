@@ -79,7 +79,7 @@ namespace VisualPinball.Unity
 		private const string BaseMeshName = "Bumper (Base)";
 		private const string CapMeshName = "Bumper (Cap)";
 		private const string RingMeshName = "Bumper (Ring)";
-		private const float PrefabMeshScale = 100f;
+		private const float DataMeshScale = 100f;
 
 		public const string SocketSwitchItem = "socket_switch";
 
@@ -124,10 +124,10 @@ namespace VisualPinball.Unity
 			t.localPosition = Physics.TranslateToWorld(Position.x, Position.y, PositionZ);
 
 			// scale
-			t.localScale = Physics.ScaleToWorld(Radius * 2f, Radius * 2f, HeightScale) / PrefabMeshScale;
+			t.localScale = new Vector3(Radius * 2f, HeightScale, Radius * 2f) / DataMeshScale;
 
 			// rotation
-			t.localEulerAngles = Physics.RotateToWorld(0, 0, Orientation);
+			t.localEulerAngles = new Vector3(0, Orientation, 0);
 		}
 
 		#endregion
@@ -328,8 +328,8 @@ namespace VisualPinball.Unity
 				var scale = go.transform.localScale;
 				Position = go.transform.localPosition.TranslateToVpx();
 				Orientation = go.transform.localEulerAngles.z;
-				Radius = scale.x / 2 * PrefabMeshScale;
-				HeightScale = scale.z * PrefabMeshScale;
+				Radius = scale.x / 2 * DataMeshScale;
+				HeightScale = scale.z * DataMeshScale;
 			}
 
 			UpdateTransforms();
