@@ -54,8 +54,8 @@ namespace VisualPinball.Unity
 		#region Transformation
 
 		public static Matrix3D TransformToVpx(this Matrix3D vpx) => WorldToVpx.ToVpMatrix().Multiply(vpx);
-		public static Mesh TransformToWorld(this Mesh mesh) => mesh.Transform(VpxToWorld.ToVpMatrix());
-		public static Mesh TransformToVpx(this Mesh mesh) => mesh.Transform(WorldToVpx.ToVpMatrix());
+		public static Mesh TransformToWorld(this Mesh mesh) => mesh?.Transform(VpxToWorld.ToVpMatrix());
+		public static Mesh TransformToVpx(this Mesh mesh) => mesh?.Transform(WorldToVpx.ToVpMatrix());
 
 		
 		/// <summary>
