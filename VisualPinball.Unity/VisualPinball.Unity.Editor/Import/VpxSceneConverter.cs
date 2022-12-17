@@ -676,7 +676,8 @@ namespace VisualPinball.Unity.Editor
 				return _physicalMaterials[name];
 			}
 
-			var material = _tableComponent.LegacyContainer.TableData.Materials.FirstOrDefault(m => string.Equals(m.Name, name, StringComparison.CurrentCultureIgnoreCase));
+			var material = _sourceContainer.Table.Data.Materials
+				.FirstOrDefault(m => string.Equals(m.Name, name, StringComparison.CurrentCultureIgnoreCase));
 			if (material != null) {
 				var path = SavePhysicsMaterial(material);
 				_physicalMaterials[material.Name] = AssetDatabase.LoadAssetAtPath<PhysicsMaterialAsset>(path);
