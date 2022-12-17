@@ -19,6 +19,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using NLog;
 using UnityEditor;
 using UnityEditor.Formats.Fbx.Exporter;
 using UnityEditor.SceneManagement;
@@ -51,6 +52,7 @@ using VisualPinball.Engine.VPT.Trough;
 using VisualPinball.Engine.VPT.MetalWireGuide;
 using VisualPinball.Unity.Playfield;
 using Light = VisualPinball.Engine.VPT.Light.Light;
+using Logger = NLog.Logger;
 using Material = UnityEngine.Material;
 using Mesh = UnityEngine.Mesh;
 using Object = UnityEngine.Object;
@@ -722,10 +724,12 @@ namespace VisualPinball.Unity.Editor
 		};
 	}
 
-	public class FxbExporter
+		public class FxbExporter
 	{
 		private readonly MethodInfo _exportObject;
 		private readonly object _optionsValue;
+		
+		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
 		public FxbExporter()
 		{
@@ -739,10 +743,37 @@ namespace VisualPinball.Unity.Editor
 			_exportObject = modelExporter.GetMethod("ExportObjects", BindingFlags.NonPublic | BindingFlags.Static);
 		}
 
-		public void Export(GameObject go, string path)
+		public void Export(GameObject go, string path, bool includeChildren = true)
 		{
+			var objectToExport = go;
+			if (!includeChildren) {
+				
+				// create a new gameobject and copy the original's mf and mr
+				var mfSrc = go.GetComponent<MeshFilter>();
+				var mrSrc = go.GetComponent<MeshRenderer>();
+				if (mfSrc && mrSrc) {
+					objectToExport = new GameObject(go.name);
+					var mfDest = objectToExport.AddComponent<MeshFilter>();
+					var mrDest = objectToExport.AddComponent<MeshRenderer>();
+
+					if (UnityEditorInternal.ComponentUtility.CopyComponent(mfSrc)) {
+						UnityEditorInternal.ComponentUtility.PasteComponentValues(mfDest);
+					}
+					if (UnityEditorInternal.ComponentUtility.CopyComponent(mrSrc)) {
+						UnityEditorInternal.ComponentUtility.PasteComponentValues(mrDest);
+					}
+				} else {
+					Logger.Error($"Cannot retrieve mesh filter or renderer from game object {go.name}.");
+					objectToExport = go;
+				}
+			}
+			
 			// export via reflection, because we need binary.
-			_exportObject!.Invoke(null, new[] { path, new UnityEngine.Object[] {go}, _optionsValue, null });
+			_exportObject!.Invoke(null, new[] { path, new Object[] {objectToExport}, _optionsValue, null });
+
+			if (!includeChildren) {
+				Object.DestroyImmediate(objectToExport);
+			}
 		}
 
 		public void Export(Mesh mesh, string path)
