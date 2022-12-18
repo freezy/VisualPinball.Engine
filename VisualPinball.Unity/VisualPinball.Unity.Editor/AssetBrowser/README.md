@@ -117,7 +117,7 @@ When exporting, the imported assets are bundled with your build. That means if a
 
 # Asset Library Creation Guide
 
-So you're good with modeling and you'd like to contribute to VPE's asset library. Great! This guide should provide you with the necessary info to make your assets available in VPE.
+So you're good with modeling and you'd like to contribute to VPE's asset library. Great! This guide should provide you with the necessary information to make your assets available in VPE.
 
 Note that we'll focus on 3D assets, i.e. textured models. In the future we will support other types of assets (generic materials and textures, etc), but 3D assets are the most common and most difficult to get right.
 
@@ -128,13 +128,13 @@ We won't go into too much detail how to model your asset, but instead provide a 
 - **Use real-world scale** - You should model your asset based on real-world units. This will avoid many scaling issues. 
 - **Apply scale and rotation** - Your object shouldn't have any non-applied transformations. Everything should be baked into the mesh (in Blender: `CTRL+A` -> *Apply Scale and Rotation*).
 - **Verify origin** - The origin of your model should be where it makes sense. For example, items that sit typically on the playfield should have their origin where they touch the playfield. Note that we ignore where your object is in world space, what's important is the origin.
-- **Add bevels to edges** - See *Baking* below.
 - **Use quads instead of triangles** - This is somewhat less relevant for game assets, but a quad topology will give you mush less headache in general, specially when beveling edges. Also check out our [tutorial about 3D scans](xref:tutorial_3d_scan).
 - **Make meshes watertight** - Close the holes, make sure your mesh has faces everywhere. This will avoid shadow and path tracing issues.
+- **Add bevels to edges** - See *Baking* below.
 
 ### Baking
 
-Using [normal maps](https://en.wikipedia.org/wiki/Normal_mapping), it's possible to bake geometric details into a texture, which is much cheaper to render than using actual mesh geometry. While the majority of your normal maps will be defined by the material you're applying, there are a few cases where it's worth baking actual geometry into your normal map.
+Using [normal maps](https://en.wikipedia.org/wiki/Normal_mapping), it's possible to bake geometric details into a texture, which is much cheaper to render than using actual mesh geometry. While the majority of your normal maps will be provided by the material you're applying, there are a few cases where it's worth baking actual geometry into your normal map.
 
 - **Bevels** - There are no sharp edges in the real world. Bevels are important because they reflect the light, and it's instantly noticeable when an edge has no bevel. Add a bevel modifier to your hi-poly meshes.
 - **Notches** - Anything that goes *into* a mesh, where you can't really see a silhouette, is probably worth baking.
@@ -143,23 +143,28 @@ Blender can easily bake normal maps. You'll need an UV-mapped low-poly mesh, and
 
 ### Materials
 
-Unity's HDRP uses a [physically based renderer](https://www.adobe.com/ie/products/substance3d/discover/pbr.html). This means that your materials should include at least the following maps:
+Unity's HDRP uses a [physically based renderer](https://www.adobe.com/ie/products/substance3d/discover/pbr.html). This means that your materials ideally include the following maps:
 
-- Albedo (a.k.a. color map, a.k.a. base map)
+- Albedo (a.k.a. *color map*, or *base map*)
 - Ambient occlusion
 - Normal map
 - Metallic map
 - Smoothness map
 
-Note that HDRP packs AO, metallic and smoothness [into one single texture](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@12.1/manual/Mask-Map-and-Detail-Map.html) called *Mask Map*. In Blender, you should be able to do this in the node editor, Substance Painter has a preset that does it automatically when exporting the textures.
+Note that HDRP packs AO, metallic and smoothness [into one single texture](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@12.1/manual/Mask-Map-and-Detail-Map.html) called *Mask Map*. In Blender, you should be able to do this in the node editor. Substance Painter has a preset that does it automatically when exporting the textures.
 
-You'll probably run into a situation where your object has multiple materials. There are a couple of ways dealing with that. Keep in mind it's always better to keep the number of meshes and materials low.
+You'll probably run into a situation where your object has multiple materials. There are a couple of ways dealing with that. Keep in mind it's more performant to keep the number of sub meshes and materials low.
 
 1. **Multiple meshes** - The most expensive way is to split your mesh into multiple meshes, one mesh per material. You should only do this if you want to be able to re-use the meshes in other assets. For example, a post and its rubber is a good use case, since both the post and the rubber can be paired with other objects.
-2. **Multiple materials** - Another way is to create multiple material slots, i.e. assign each vertex of the mesh to the appropriate material. This is appropriate when you want to be able to swap out materials individually, for example in a flipper. In this case, you'd have two separate materials for the rubber and the plastic, but only one mesh. This allows you to create material variations in the asset library, where you provide multiple materials for each slot, and the asset browser will make the combinations available.
+2. **Multiple materials** - Another way is to create multiple material slots, i.e. assign each vertex of the mesh to the appropriate material (resulting in multiple sub meshes). This is appropriate when you want to be able to swap out materials individually, for example in a flipper. In this case, you'd have two separate sub meshes for the rubber and the plastic, but only one main mesh. This allows you to create material variations in the asset library, where you provide multiple materials for each slot, and the asset browser will make the combinations available.
 3. **Single material** - The cheapest way is to merge multiple materials into one, and it's the recommended way when materials don't need to be easily changed. In Substance Painter, you would create a layer for each material and mask it out so it applies only to the desired region. Note that this only works when the [surface type](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@12.1/manual/Surface-Type.html) of the materials is the same, i.e. the only difference between the materials are their texture maps. An example where that doesn't work if you have a transparent and a non-transparent material.
 
 It's also common to create materials made for multiple items. For example, in the library, all metal posts use the same material, so they share the same UV mapping. Grouping multiple items makes sense when it's likely that many of the items you're grouping will be used on the playfield.
+
+> [!note]
+> Check the asset library for items that you might be able to re-use. For example, there are flipper variants where the screw head is visible. In this case it's recommended to rely on the library's existing screw models instead of including it in the flipper model. 
+>
+> Also note that existing models should be included at prefab level, e.g. the screw would be added in Unity when creating the asset, as opposed to copying the existing screw's geometry into the flipper model.
 
 ### Format
 
@@ -169,7 +174,7 @@ When exporting, make sure the proper scaling is applied (Blender doesn't to that
 
   - *Forward* to "Z-Forward"
   - *Up* to "Y Up"
-  - *Apply Transform* is checked (off per default)
+  - *Apply Transform* is checked (it's off per default)
 
 To test, drag your exported FBX into a Unity scene, and make sure that scaling is one, rotation to zero, and that the size and orientation is correct.
 
