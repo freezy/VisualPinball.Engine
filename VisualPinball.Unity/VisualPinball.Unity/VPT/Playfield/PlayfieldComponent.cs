@@ -171,7 +171,8 @@ namespace VisualPinball.Unity
 			var mg = new PrimitiveMeshGenerator(primitiveData);
 			var mesh = mg
 				.GetTransformedMesh(table?.TableHeight ?? 0f, primitiveData.Mesh, Origin.Original, false)
-				.Transform(mg.TransformationMatrix(PlayfieldHeight)); // apply transformation to mesh, because this is the playfield
+				.Transform(mg.TransformationMatrix(PlayfieldHeight)) // apply transformation to mesh, because this is the playfield
+				.TransformToWorld(); // also, transform this to world space.
 			var material = new PbrMaterial(
 				table?.GetMaterial(_playfieldMaterial),
 				table?.GetTexture(_playfieldImage)
