@@ -477,8 +477,12 @@ namespace VisualPinball.Unity
 						throw new ArgumentOutOfRangeException();
 				}
 
-				Logger.Info("Trough: Spawning new ball.");
 
+				if (_ejectKicker == null) {
+					Logger.Error("Trough: Cannot spawn ball without an exit kicker.");
+					return false;
+				}
+				Logger.Info("Trough: Spawning new ball.");
 				_ejectKicker.CreateBall();
 				_ejectCoil.OnCoil(true);
 
