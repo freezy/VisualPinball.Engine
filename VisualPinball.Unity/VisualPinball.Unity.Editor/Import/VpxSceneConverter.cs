@@ -271,7 +271,7 @@ namespace VisualPinball.Unity.Editor
 							AssetDatabase.DeleteAsset(meshPath);
 						}
 
-						fxbExporter.Export(prefab.GameObject, meshPath);
+						fxbExporter.Export(prefab.GameObject, meshPath, !prefab.SkipParenting);
 					}
 				}
 
@@ -724,7 +724,7 @@ namespace VisualPinball.Unity.Editor
 		};
 	}
 
-		public class FxbExporter
+	public class FxbExporter
 	{
 		private readonly MethodInfo _exportObject;
 		private readonly object _optionsValue;
