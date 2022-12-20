@@ -19,6 +19,7 @@ using System.Collections;
 using System.Linq;
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.Assertions;
 using VisualPinball.Engine.Math;
 
 namespace VisualPinball.Unity.Editor
@@ -53,6 +54,7 @@ namespace VisualPinball.Unity.Editor
 
 		public DragPointsInspectorHelper(IMainRenderableComponent mainComponent, IDragPointsInspector dragPointsInspector)
 		{
+			Assert.IsNotNull(mainComponent);
 			_mb = mainComponent as MonoBehaviour;
 			_mainComponent = mainComponent;
 			_dragPointsInspector = dragPointsInspector;
@@ -63,7 +65,11 @@ namespace VisualPinball.Unity.Editor
 		public void RebuildMeshes()
 		{
 			_mainComponent.RebuildMeshes();
-			WalkChildren(_playfieldComponent.transform, UpdateSurfaceReferences);
+			if (_playfieldComponent != null) {
+				WalkChildren(_playfieldComponent.transform, UpdateSurfaceReferences);
+			} else {
+				Debug.LogWarning($"{_mainComponent.name} doesn't seem to have a playfield parent.");
+			}
 		}
 
 		public void OnEnable()
