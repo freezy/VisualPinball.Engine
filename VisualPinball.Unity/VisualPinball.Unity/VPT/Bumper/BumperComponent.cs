@@ -74,11 +74,10 @@ namespace VisualPinball.Unity
 
 		protected override Type MeshComponentType { get; } = typeof(MeshComponent<BumperData, BumperComponent>);
 		protected override Type ColliderComponentType { get; } = typeof(ColliderComponent<BumperData, BumperComponent>);
-
-		private const string SkirtMeshName = "Bumper (Skirt)";
-		private const string BaseMeshName = "Bumper (Base)";
-		private const string CapMeshName = "Bumper (Cap)";
-		private const string RingMeshName = "Bumper (Ring)";
+		private const string SkirtMeshName = "bumper.skirt";
+		private const string BaseMeshName = "bumper.base";
+		private const string CapMeshName = "bumper.cap";
+		private const string RingMeshName = "bumper.ring";
 		private const float DataMeshScale = 100f;
 
 		public const string SocketSwitchItem = "socket_switch";
