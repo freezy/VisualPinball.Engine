@@ -118,3 +118,7 @@ ListView {
 .unity-two-pane-split-view__dragline-anchor {
 	background-color: #1d1d1d;
 }
+
+.unity-toolbar-toggle:checked, .unity-collection-view__item--selected {
+	background-color: #2C5D87; /* picked from list view */
+}
