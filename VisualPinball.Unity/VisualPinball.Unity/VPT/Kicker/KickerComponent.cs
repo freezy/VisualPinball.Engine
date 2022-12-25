@@ -123,12 +123,18 @@ namespace VisualPinball.Unity
 			// scale
 			t.localScale = Physics.ScaleToWorld(Radius, Radius, Radius);
 
-			// rotation
-			t.localEulerAngles = KickerType switch {
-				Engine.VPT.KickerType.KickerCup => Physics.RotateToWorld(0, 0, Orientation),
-				Engine.VPT.KickerType.KickerWilliams => Physics.RotateToWorld(0, 0, Orientation + 90f),
-				_ => t.localEulerAngles
-			};
+			switch (KickerType) {
+				// rotation
+				case Engine.VPT.KickerType.KickerCup:
+					t.localEulerAngles = Physics.RotateToWorld(0, 0, Orientation);
+					break;
+				case Engine.VPT.KickerType.KickerWilliams:
+					t.localEulerAngles = Physics.RotateToWorld(0, 0, Orientation + 90f);
+					break;
+				default:
+					t.localEulerAngles = Physics.RotateToWorld(0, 0, Orientation);
+					break;
+			}
 		}
 
 		private float _originalRotationZ;
