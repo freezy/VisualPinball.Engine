@@ -215,26 +215,42 @@ namespace VisualPinball.Unity.Editor
 		{
 			var files = Directory.GetFiles(meshFolder, "*.mesh")
 				.Select(Path.GetFileNameWithoutExtension)
+				.Concat(new[] { "Custom Mesh"})
 				.ToArray();
 
 			var selectedIndex = files.ToList().IndexOf(meshProp.stringValue);
 			EditorGUI.BeginChangeCheck();
 			var newIndex = EditorGUILayout.Popup(label, selectedIndex, files);
 			if (EditorGUI.EndChangeCheck() && newIndex >= 0 && newIndex < files.Length && go != null) {
+				var meshPath = Path.Combine(meshFolder, $"{files[newIndex]}.mesh");
 				var mf = go.GetComponent<MeshFilter>();
-				if (mf) {
-					var mesh = (Mesh)AssetDatabase.LoadAssetAtPath(Path.Combine(meshFolder, $"{files[newIndex]}.mesh"), typeof(Mesh));
-					mf.sharedMesh = mesh;
-					meshProp.stringValue = files[newIndex];
-					if (meshTypeMap.ContainsKey(files[newIndex])) {
-						typeProp.intValue = meshTypeMap[files[newIndex]];
+				var mr = go.GetComponent<MeshRenderer>();
+				if (File.Exists(meshPath)) {
+					if (!mf) {
+						mf = go.AddComponent<MeshFilter>();
 					}
-					meshProp.serializedObject.ApplyModifiedProperties();
-					if (target is MonoBehaviour mb) {
-						var colliderComponent = mb.GetComponent<IColliderComponent>();
-						if (colliderComponent != null) {
-							colliderComponent.CollidersDirty = true;
-						}
+					if (!mr) {
+						go.AddComponent<MeshRenderer>();
+					}
+					var mesh = (Mesh)AssetDatabase.LoadAssetAtPath(meshPath, typeof(Mesh));
+					mr.enabled = true;
+					mf.sharedMesh = mesh;
+					
+				} else {
+					if (mr) {
+						mr.enabled = false;
+					}
+				}
+					
+				meshProp.stringValue = files[newIndex];
+				if (meshTypeMap.ContainsKey(files[newIndex])) {
+					typeProp.intValue = meshTypeMap[files[newIndex]];
+				}
+				meshProp.serializedObject.ApplyModifiedProperties();
+				if (target is MonoBehaviour mb) {
+					var colliderComponent = mb.GetComponent<IColliderComponent>();
+					if (colliderComponent != null) {
+						colliderComponent.CollidersDirty = true;
 					}
 				}
 			}
