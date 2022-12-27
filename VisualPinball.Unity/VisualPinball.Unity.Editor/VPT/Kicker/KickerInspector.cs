@@ -38,6 +38,7 @@ namespace VisualPinball.Unity.Editor
 			{ "Hole", KickerType.KickerHole },
 			{ "Simple Hole", KickerType.KickerHoleSimple },
 			{ "Williams", KickerType.KickerWilliams },
+			{ CustomMeshLabel, KickerType.KickerInvisible },
 		};
 
 		private SerializedProperty _positionProperty;
