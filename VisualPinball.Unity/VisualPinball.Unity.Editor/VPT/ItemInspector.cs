@@ -39,6 +39,8 @@ namespace VisualPinball.Unity.Editor
 
 		private SerializedProperty _isLockedProperty;
 
+		internal const string CustomMeshLabel = "Custom Mesh";
+
 		#region Unity Events
 
 		protected virtual void OnEnable()
@@ -215,7 +217,7 @@ namespace VisualPinball.Unity.Editor
 		{
 			var files = Directory.GetFiles(meshFolder, "*.mesh")
 				.Select(Path.GetFileNameWithoutExtension)
-				.Concat(new[] { "Custom Mesh"})
+				.Concat(new[] { CustomMeshLabel })
 				.ToArray();
 
 			var selectedIndex = files.ToList().IndexOf(meshProp.stringValue);
@@ -240,6 +242,9 @@ namespace VisualPinball.Unity.Editor
 					if (mr) {
 						mr.enabled = false;
 					}
+					if (mf) {
+						mf.sharedMesh = null;
+					}
 				}
 					
 				meshProp.stringValue = files[newIndex];
@@ -252,6 +257,10 @@ namespace VisualPinball.Unity.Editor
 					if (colliderComponent != null) {
 						colliderComponent.CollidersDirty = true;
 					}
+				}
+
+				if (target is IMainRenderableComponent mrc) {
+					mrc.UpdateTransforms();
 				}
 			}
 		}

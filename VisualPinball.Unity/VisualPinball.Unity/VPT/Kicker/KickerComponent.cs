@@ -121,7 +121,9 @@ namespace VisualPinball.Unity
 			}
 
 			// scale
-			t.localScale = Physics.ScaleToWorld(Radius, Radius, Radius);
+			t.localScale = KickerType == Engine.VPT.KickerType.KickerInvisible
+				? Vector3.one
+				: Physics.ScaleToWorld(Radius, Radius, Radius);
 
 			switch (KickerType) {
 				// rotation
@@ -130,6 +132,9 @@ namespace VisualPinball.Unity
 					break;
 				case Engine.VPT.KickerType.KickerWilliams:
 					t.localEulerAngles = Physics.RotateToWorld(0, 0, Orientation + 90f);
+					break;
+				case Engine.VPT.KickerType.KickerInvisible:
+					t.localRotation = Quaternion.identity;
 					break;
 				default:
 					t.localEulerAngles = Physics.RotateToWorld(0, 0, Orientation);
