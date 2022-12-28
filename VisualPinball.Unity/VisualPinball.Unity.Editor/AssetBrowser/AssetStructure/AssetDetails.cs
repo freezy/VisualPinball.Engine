@@ -22,6 +22,7 @@ using System.Linq;
 using UnityEditor;
 using UnityEditor.UIElements;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using UnityEngine.UIElements;
 using Object = UnityEngine.Object;
 
@@ -165,6 +166,28 @@ namespace VisualPinball.Unity.Editor
 			description.text = asset.Description;
 			SetVisibility(description, asset.Library.IsLocked && !string.IsNullOrEmpty(asset.Description));
 
+			BindBackgroundObjects();
+		}
+
+		private void BindBackgroundObjects()
+		{
+			var bgo = _body.Q<ObjectDropdownElement>("background-object-field");
+			var bgParent = SceneManager.GetActiveScene().GetRootGameObjects()
+					.FirstOrDefault(go => go.name == "_BackgroundObjects");
+			
+			if (bgParent == null) {
+				bgo.visible = false;
+				return;
+			}
+			bgo.visible = true;
+			bgo.Value = _asset.ThumbBackgroundObjectName != null ? bgParent.transform.Find(_asset.ThumbBackgroundObjectName)?.gameObject : null;
+			bgo.AddObjectsToDropdown<MeshRenderer>(bgParent, true);
+			bgo.RegisterValueChangedCallback(OnThumbBackgroundObjectChanged);
+		}
+		
+		private void OnThumbBackgroundObjectChanged(Object obj)
+		{
+			_asset.ThumbBackgroundObjectName = obj.name;
 		}
 
 		private void BindInfo(Asset asset)
