@@ -87,13 +87,13 @@ namespace VisualPinball.Unity.Editor
 			_onValueChanged = onValueChanged;
 		}
 
-		public void AddObjectsToDropdown<T>(Object parentObj) where T : Component
+		public void AddObjectsToDropdown<T>(Object parentObj, bool includeInactive = false) where T : Component
 		{
 			if (parentObj is not GameObject parentGo) {
 				return;
 			}
 			_objects.Clear();
-			_objects.AddRange(parentGo.GetComponentsInChildren<T>().Select(c => c.gameObject));
+			_objects.AddRange(parentGo.GetComponentsInChildren<T>(includeInactive).Select(c => c.gameObject));
 			_dropdown.choices = _objects.Select(go => go.name).ToList();
 			if (_objectPicker.value) {
 				_dropdown.SetValueWithoutNotify(_objectPicker.value.name);
@@ -102,6 +102,11 @@ namespace VisualPinball.Unity.Editor
 
 		public void SetValue(Object obj)
 		{
+			if (obj == null) {
+				_dropdown.SetValueWithoutNotify(null);
+				_objectPicker.value = null;
+				return;
+			}
 			var selectedGo = _objects.FirstOrDefault(go => go.name == obj.name);
 			if (selectedGo != null) {
 				_dropdown.SetValueWithoutNotify(obj.name);

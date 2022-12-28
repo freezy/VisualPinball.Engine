@@ -31,11 +31,12 @@
 	<uie:PropertyField binding-path="Links" label="Links" class="top-space" />
 
 	<!-- Geometry -->
-	<ui:Foldout text="Geometry">
+	<ui:Foldout text="Thumbnail Settings">
 		<ui:VisualElement class="left-indent">
-			<uie:PropertyField binding-path="Scale" label="Scale Transform" />
-			<uivpe:PresetDropdownElement name="thumb-camera-preset" binding-path="ThumbCameraPreset" label="Thumbnail Camera" preset-path="Packages/org.visualpinball.engine.unity/VisualPinball.Unity/Assets/Presets/Asset Thumbcam" />
-			<uie:PropertyField binding-path="ThumbCameraHeight" label="Thumb Object Z-Pos" />
+			<uivpe:ObjectDropdownElement name="background-object-field" label="On Object" />
+			<uivpe:PresetDropdownElement name="thumb-camera-preset" binding-path="ThumbCameraPreset" label="Camera" preset-path="Packages/org.visualpinball.engine.unity/VisualPinball.Unity/Assets/Presets/Asset Thumbcam" />
+			<uie:PropertyField binding-path="ThumbCameraHeight" label="Z-Position" />
+			<uie:PropertyField binding-path="ThumbTopLight" label="Enable Top Light" />
 		</ui:VisualElement>
 	</ui:Foldout>
 

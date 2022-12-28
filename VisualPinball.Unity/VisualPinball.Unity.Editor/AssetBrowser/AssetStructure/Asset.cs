@@ -63,13 +63,19 @@ namespace VisualPinball.Unity.Editor
 		[NonReorderable] // see https://answers.unity.com/questions/1828499/nested-class-lists-inspector-overlapping-bug.html
 		public List<AssetMaterialVariation> MaterialVariations;
 
+		[SerializeField]
+		public string ThumbBackgroundObjectName;
+		
 		[SerializeReference]
 		public Preset ThumbCameraPreset;
 
 		[SerializeField]
 		public float ThumbCameraHeight;
 
-		[SerializeReference]
+		[SerializeField]
+		public bool ThumbTopLight;
+		
+		[SerializeField]
 		public bool UnpackPrefab;
 
 		[SerializeReference]
