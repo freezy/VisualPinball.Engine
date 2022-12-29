@@ -101,7 +101,7 @@ namespace VisualPinball.Unity.Editor
 			var localPos = MainComponent.GetEditorPosition();
 			localPos.z = MainComponent.PositionZ;
 
-			var worldPos = transform.parent.TransformPoint(localPos);
+			var worldPos = transform.parent == null ? localPos : transform.parent.TransformPoint(localPos);
 
 			foreach (var coil in MainComponent.Coils) {
 				var from = MainComponent.GetBallCreationPosition().ToUnityVector3();

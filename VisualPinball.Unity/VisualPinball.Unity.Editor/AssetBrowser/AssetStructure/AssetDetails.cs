@@ -171,7 +171,7 @@ namespace VisualPinball.Unity.Editor
 
 		private void BindBackgroundObjects()
 		{
-			var bgo = _body.Q<ObjectDropdownElement>("background-object-field");
+			var bgo = _body.Q<ObjectDropdownElement>("environment-field");
 			var bgParent = SceneManager.GetActiveScene().GetRootGameObjects()
 					.FirstOrDefault(go => go.name == "_BackgroundObjects");
 			
@@ -180,14 +180,14 @@ namespace VisualPinball.Unity.Editor
 				return;
 			}
 			bgo.visible = true;
-			bgo.Value = _asset.ThumbBackgroundObjectName != null ? bgParent.transform.Find(_asset.ThumbBackgroundObjectName)?.gameObject : null;
+			bgo.Value = _asset.EnvironmentGameObjectName != null ? bgParent.transform.Find(_asset.EnvironmentGameObjectName)?.gameObject : null;
 			bgo.AddObjectsToDropdown<MeshRenderer>(bgParent, true);
-			bgo.RegisterValueChangedCallback(OnThumbBackgroundObjectChanged);
+			bgo.RegisterValueChangedCallback(OnThumbEnvironmentChanged);
 		}
 		
-		private void OnThumbBackgroundObjectChanged(Object obj)
+		private void OnThumbEnvironmentChanged(Object obj)
 		{
-			_asset.ThumbBackgroundObjectName = obj.name;
+			_asset.EnvironmentGameObjectName = obj.name;
 		}
 
 		private void BindInfo(Asset asset)
