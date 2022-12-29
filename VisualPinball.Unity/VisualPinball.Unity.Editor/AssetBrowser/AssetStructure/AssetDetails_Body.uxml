@@ -33,10 +33,9 @@
 	<!-- Geometry -->
 	<ui:Foldout text="Thumbnail Settings">
 		<ui:VisualElement class="left-indent">
-			<uivpe:ObjectDropdownElement name="background-object-field" label="On Object" />
+			<uivpe:ObjectDropdownElement name="environment-field" label="Environment" />
 			<uivpe:PresetDropdownElement name="thumb-camera-preset" binding-path="ThumbCameraPreset" label="Camera" preset-path="Packages/org.visualpinball.engine.unity/VisualPinball.Unity/Assets/Presets/Asset Thumbcam" />
 			<uie:PropertyField binding-path="ThumbCameraHeight" label="Z-Position" />
-			<uie:PropertyField binding-path="ThumbTopLight" label="Enable Top Light" />
 		</ui:VisualElement>
 	</ui:Foldout>
 

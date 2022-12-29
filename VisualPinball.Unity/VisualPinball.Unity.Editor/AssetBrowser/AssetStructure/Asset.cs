@@ -64,7 +64,7 @@ namespace VisualPinball.Unity.Editor
 		public List<AssetMaterialVariation> MaterialVariations;
 
 		[SerializeField]
-		public string ThumbBackgroundObjectName;
+		public string EnvironmentGameObjectName;
 		
 		[SerializeReference]
 		public Preset ThumbCameraPreset;
@@ -72,9 +72,6 @@ namespace VisualPinball.Unity.Editor
 		[SerializeField]
 		public float ThumbCameraHeight;
 
-		[SerializeField]
-		public bool ThumbTopLight;
-		
 		[SerializeField]
 		public bool UnpackPrefab;
 
