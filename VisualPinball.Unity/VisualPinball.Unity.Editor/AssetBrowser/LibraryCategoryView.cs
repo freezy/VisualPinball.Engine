@@ -257,6 +257,7 @@ namespace VisualPinball.Unity.Editor
 					}
 				}
 			}
+			_tagsTitleLabel.visible = tags.Count > 0;
 
 			// render tags
 			foreach (var tag in tags.OrderBy(t => t)) {
