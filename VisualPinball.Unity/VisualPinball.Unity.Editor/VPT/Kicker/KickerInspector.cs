@@ -97,19 +97,20 @@ namespace VisualPinball.Unity.Editor
 			}
 
 			Handles.color = Color.cyan;
+			Handles.matrix = Matrix4x4.identity;
 			var transform = MainComponent.transform;
 			var localPos = MainComponent.GetEditorPosition();
 			localPos.z = MainComponent.PositionZ;
 
-			var worldPos = transform.parent == null ? localPos : transform.parent.TransformPoint(localPos);
+			var worldPos = transform.parent == null ? localPos : localPos.TranslateToWorld();
 
 			foreach (var coil in MainComponent.Coils) {
 				var from = MainComponent.GetBallCreationPosition().ToUnityVector3();
 				var l = coil.Speed == 0 ? 1f : 20f * coil.Speed;
 				var dir = new Vector3(
 					l * math.sin(math.radians(coil.Angle)),
-					-l * math.cos(math.radians(coil.Angle)),
-					l * math.sin(math.radians(coil.Inclination))
+					l * math.sin(math.radians(coil.Inclination)),
+					l * math.cos(math.radians(coil.Angle))
 				);
 				var to = from + dir;
 				var worldDir = transform.TransformDirection(math.normalize( to - from));
