@@ -8,7 +8,7 @@
 VPE is a toolkit with the goal of making it easy to create pinball machines 
 digitally. It uses [Unity's High Definition Render Pipeline](https://unity.com/srp/High-Definition-Render-Pipeline)
 and comes with extensive editor tooling that aims to provide all the features
-needed for such a task. It can read [Visual Pinball](https://github.com/vpinball/vpinball)'s
+needed for such a task. VPE can read [Visual Pinball](https://github.com/vpinball/vpinball)'s
 file format and uses Visual Pinball's physics code for the simulation during gameplay.
 
 ![image](.github/readme-editor.jpg)
@@ -35,8 +35,8 @@ a list of relevant posts that document the progress of VPE so far.
 - [March 2021](https://www.vpforums.org/index.php?showtopic=43651&page=32#entry470686) - Game logic
 - [April 2021](https://www.vpforums.org/index.php?showtopic=43651&page=34#entry476326) - Segment display shader
 - [June 2021](https://vpuniverse.com/forums/topic/5362-wip-visual-pinball-in-unity-2021-edition/) - Retrospect and the future
-- [September 2021](https://vpuniverse.com/forums/topic/5362-wip-visual-pinball-in-unity-2021-edition/?do=findComment&comment=55715) Prefabs, data, wiring, export and more
-- [December 2021](https://vpuniverse.com/forums/topic/5362-wip-visual-pinball-in-unity-2021-edition/?do=findComment&comment=57681) Insert lights rendering
+- [September 2021](https://vpuniverse.com/forums/topic/5362-wip-visual-pinball-in-unity-2021-edition/?do=findComment&comment=55715) - Prefabs, data, wiring, export and more
+- [December 2021](https://vpuniverse.com/forums/topic/5362-wip-visual-pinball-in-unity-2021-edition/?do=findComment&comment=57681) - Insert lights rendering
 - [December 2021](https://vpuniverse.com/forums/topic/5362-wip-visual-pinball-in-unity-2021-edition/?do=findComment&comment=58676) - Visual Scripting POC
 - [January 2022](https://vpuniverse.com/forums/topic/5362-wip-visual-pinball-in-unity-2021-edition/?do=findComment&comment=59658) - It runs on an iPad!
 - [February 2022](https://vpuniverse.com/forums/topic/5362-wip-visual-pinball-in-unity-2021-edition/?do=findComment&comment=60788) - Lighting
@@ -44,7 +44,7 @@ a list of relevant posts that document the progress of VPE so far.
 - [December 2022](https://vpuniverse.com/forums/topic/5362-wip-visual-pinball-in-unity-2021-edition/?do=findComment&comment=67277) - Asset library, world space, score motors
 
 
-If you're generally interested in virtual pinball, also check out [our guest article at thisweekinpinball.com](https://www.thisweekinpinball.com/a-peek-into-the-digital-creator-community/).
+During that time, we've also written [a guest article at thisweekinpinball.com](https://www.thisweekinpinball.com/a-peek-into-the-digital-creator-community/) about our community..
 
 
 ## VPE Repositories
@@ -53,7 +53,8 @@ The "core" of VPE (i.e. the `VisualPinball.Engine` project) is a pure C# port
 of the original Visual Pinball. It has no dependencies to any proprietary third
 parties, and provides the data layer.
 
-This repository is part of a number of packages. It is what we're referring to as the **main package**.
+This repository is part of a number of packages. It is what we're referring to as the **main package**, which
+also includes the core project.
 
 ![image](https://user-images.githubusercontent.com/70426/103706031-64db6080-4fac-11eb-837e-5e7cddd86d7b.png)
 
