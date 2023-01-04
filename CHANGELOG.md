@@ -7,6 +7,9 @@
 Built with Unity 2021.3.0
 
 ### Added
+
+- Flipper tricks by nFozzy ([#436](https://github.com/freezy/VisualPinball.Engine/pull/436))
+- Asset Library now has thumbnails.
 - Documentation for score reels.
 - Score Motor Component ([#435](https://github.com/freezy/VisualPinball.Engine/pull/435), [Documentation](https://docs.visualpinball.org/creators-guide/manual/mechanisms/score-motors.html)).
 - Scale support for rubbers.
@@ -42,6 +45,7 @@ Built with Unity 2021.3.0
 - Native trough component ([#229](https://github.com/freezy/VisualPinball.Engine/pull/229), [#248](https://github.com/freezy/VisualPinball.Engine/pull/248), [#256](https://github.com/freezy/VisualPinball.Engine/pull/256), [Documentation](https://docs.visualpinball.org/creators-guide/manual/mechanisms/troughs.html)).
 
 ### Changed
+- All geometry is now in world space.
 - Removed internal ID in gamelogic engine API ([#408](https://github.com/freezy/VisualPinball.Engine/pull/408))
 - When importing, meshes are now saved as easily editable `.fbx` files instead of Unity's internal format ([#387](https://github.com/freezy/VisualPinball.Engine/pull/387)).
 - Revised rubber mesh generation ([#384](https://github.com/freezy/VisualPinball.Engine/pull/384)).
