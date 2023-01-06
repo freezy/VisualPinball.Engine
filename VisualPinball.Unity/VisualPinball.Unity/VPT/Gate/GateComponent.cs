@@ -23,10 +23,10 @@
 
 using System;
 using System.Collections.Generic;
-using Unity.Entities;
+using System.IO;
 using Unity.Mathematics;
+using UnityEditor;
 using UnityEngine;
-using VisualPinball.Engine.Common;
 using VisualPinball.Engine.Game.Engines;
 using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Gate;
@@ -36,7 +36,7 @@ namespace VisualPinball.Unity
 {
 	[AddComponentMenu("Visual Pinball/Game Item/Gate")]
 	public class GateComponent : MainRenderableComponent<GateData>,
-		IGateData, ISwitchDeviceComponent, IOnSurfaceComponent, IConvertGameObjectToEntity
+		IGateData, ISwitchDeviceComponent, IOnSurfaceComponent
 	{
 		#region Data
 
@@ -141,39 +141,6 @@ namespace VisualPinball.Unity
 
 		#region Conversion
 
-		public void Convert(Entity entity, EntityManager dstManager, GameObjectConversionSystem conversionSystem)
-		{
-			Convert(entity, dstManager);
-
-			// collision
-			var colliderComponent = gameObject.GetComponent<GateColliderComponent>();
-			if (colliderComponent) {
-
-				dstManager.AddComponentData(entity, new GateStaticData {
-					AngleMin = math.radians(colliderComponent._angleMin),
-					AngleMax = math.radians(colliderComponent._angleMax),
-					Height = Position.z,
-					Damping = math.pow(colliderComponent.Damping, (float)PhysicsConstants.PhysFactor),
-					GravityFactor = colliderComponent.GravityFactor,
-					TwoWay = colliderComponent.TwoWay,
-				});
-
-				// movement data
-				if (GetComponentInChildren<GateWireAnimationComponent>()) {
-					dstManager.AddComponentData(entity, new GateMovementData {
-						Angle = math.radians(colliderComponent._angleMin),
-						AngleSpeed = 0,
-						ForcedMove = false,
-						IsOpen = false,
-						HitDirection = false
-					});
-				}
-			}
-
-			// register
-			transform.GetComponentInParent<Player>().RegisterGate(this, entity);
-		}
-
 		public override IEnumerable<MonoBehaviour> SetData(GateData data)
 		{
 			var updatedComponents = new List<MonoBehaviour> { this };
@@ -219,7 +186,7 @@ namespace VisualPinball.Unity
 						break;
 					case WireObjectName:
 						#if UNITY_EDITOR
-						_meshName = System.IO.Path.GetFileNameWithoutExtension(UnityEditor.AssetDatabase.GetAssetPath(mf.sharedMesh));
+						_meshName = Path.GetFileNameWithoutExtension(AssetDatabase.GetAssetPath(mf.sharedMesh));
 						#endif
 						mf.gameObject.SetActive(data.IsVisible);
 						break;

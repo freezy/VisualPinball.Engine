@@ -29,8 +29,8 @@ namespace VisualPinball.Unity
 		{
 			base.Bake(authoring);
 
-			var player = authoring.transform.GetComponentInParent<Player>();
-			var colliderComponent = authoring.gameObject.GetComponent<FlipperColliderComponent>();
+			var player = GetComponentInParent<Player>();
+			var colliderComponent = GetComponent<FlipperColliderComponent>();
 
 			// collision
 			if (colliderComponent) {
