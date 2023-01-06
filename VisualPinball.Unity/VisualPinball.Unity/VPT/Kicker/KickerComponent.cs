@@ -23,9 +23,10 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
-using Unity.Entities;
 using Unity.Mathematics;
+using UnityEditor;
 using UnityEngine;
 using VisualPinball.Engine.Game;
 using VisualPinball.Engine.Game.Engines;
@@ -39,7 +40,7 @@ namespace VisualPinball.Unity
 	[AddComponentMenu("Visual Pinball/Game Item/Kicker")]
 	public class KickerComponent : MainRenderableComponent<KickerData>,
 		ICoilDeviceComponent, ITriggerComponent, IBallCreationPosition, IOnSurfaceComponent,
-		IRotatableComponent, IConvertGameObjectToEntity, ISerializationCallbackReceiver
+		IRotatableComponent, ISerializationCallbackReceiver
 	{
 		#region Data
 
@@ -166,50 +167,6 @@ namespace VisualPinball.Unity
 
 		#region Conversion
 
-		public void Convert(Entity entity, EntityManager dstManager, GameObjectConversionSystem conversionSystem)
-		{
-			Convert(entity, dstManager);
-
-			// collision
-			var colliderComponent = gameObject.GetComponent<KickerColliderComponent>();
-			if (colliderComponent) {
-				dstManager.AddComponentData(entity, new KickerStaticData {
-					Center = Position,
-					FallIn = colliderComponent.FallIn,
-					FallThrough = colliderComponent.FallThrough,
-					HitAccuracy = colliderComponent.HitAccuracy,
-					Scatter = colliderComponent.Scatter,
-					LegacyMode = true, // todo colliderComponent.LegacyMode,
-					ZLow = Surface?.Height(Position) ?? PlayfieldHeight
-				});
-
-				dstManager.AddComponentData(entity, new KickerCollisionData {
-					BallEntity = Entity.Null,
-					LastCapturedBallEntity = Entity.Null
-				});
-
-				// if (!Data.LegacyMode) {
-				// 	// todo currently we don't allow non-legacy mode
-				// 	using (var blobBuilder = new BlobBuilder(Allocator.Temp)) {
-				// 		ref var blobAsset = ref blobBuilder.ConstructRoot<KickerMeshVertexBlobAsset>();
-				// 		var vertices = blobBuilder.Allocate(ref blobAsset.Vertices, Item.KickerHit.HitMesh.Length);
-				// 		var normals = blobBuilder.Allocate(ref blobAsset.Normals, Item.KickerHit.HitMesh.Length);
-				// 		for (var i = 0; i < Item.KickerHit.HitMesh.Length; i++) {
-				// 			var v = Item.KickerHit.HitMesh[i];
-				// 			vertices[i] = new KickerMeshVertex { Vertex = v.ToUnityFloat3() };
-				// 			normals[i] = new KickerMeshVertex { Vertex = new float3(KickerHitMesh.Vertices[i].Nx, KickerHitMesh.Vertices[i].Ny, KickerHitMesh.Vertices[i].Nz) };
-				// 		}
-				//
-				// 		var blobAssetReference = blobBuilder.CreateBlobAssetReference<KickerMeshVertexBlobAsset>(Allocator.Persistent);
-				// 		dstManager.AddComponentData(entity, new ColliderMeshData { Value = blobAssetReference });
-				// 	}
-				// }
-			}
-
-			// register
-			transform.GetComponentInParent<Player>().RegisterKicker(this, entity);
-		}
-
 		public override IEnumerable<MonoBehaviour> SetData(KickerData data)
 		{
 			var updatedComponents = new List<MonoBehaviour> { this };
@@ -223,7 +180,7 @@ namespace VisualPinball.Unity
 			#if UNITY_EDITOR
 			var mf = GetComponent<MeshFilter>();
 			if (mf) {
-				MeshName = System.IO.Path.GetFileNameWithoutExtension(UnityEditor.AssetDatabase.GetAssetPath(mf.sharedMesh));
+				MeshName = Path.GetFileNameWithoutExtension(AssetDatabase.GetAssetPath(mf.sharedMesh));
 			}
 			#endif
 
@@ -307,7 +264,7 @@ namespace VisualPinball.Unity
 			#if UNITY_EDITOR
 
 			// don't generate ids for prefabs, otherwise they'll show up in the instances.
-			if (UnityEditor.PrefabUtility.GetPrefabInstanceStatus(this) != UnityEditor.PrefabInstanceStatus.Connected) {
+			if (PrefabUtility.GetPrefabInstanceStatus(this) != PrefabInstanceStatus.Connected) {
 				return;
 			}
 			var coilIds = new HashSet<string>();
