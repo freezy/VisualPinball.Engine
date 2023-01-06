@@ -41,7 +41,7 @@ namespace VisualPinball.Unity
 	[HelpURL("https://docs.visualpinball.org/creators-guide/manual/mechanisms/flippers.html")]
 	public class FlipperComponent : MainRenderableComponent<FlipperData>,
 		IFlipperData, ISwitchDeviceComponent, ICoilDeviceComponent, IOnSurfaceComponent,
-		IRotatableComponent, IConvertGameObjectToEntity
+		IRotatableComponent
 	{
 		#region Data
 
@@ -200,35 +200,6 @@ namespace VisualPinball.Unity
 		#endregion
 
 		#region Conversion
-
-		public void Convert(Entity entity, EntityManager dstManager, GameObjectConversionSystem conversionSystem)
-		{
-			Convert(entity, dstManager);
-
-			var player = transform.GetComponentInParent<Player>();
-			var colliderComponent = gameObject.GetComponent<FlipperColliderComponent>();
-
-			// collision
-			if (colliderComponent) {
-
-				// vpx physics
-				var d = GetMaterialData(colliderComponent);
-				dstManager.AddComponentData(entity, d);
-				dstManager.AddComponentData(entity, GetMovementData(d));
-				dstManager.AddComponentData(entity, GetVelocityData(d));
-				dstManager.AddComponentData(entity, GetHitData());
-				dstManager.AddComponentData(entity, GetFlipperTricksData(colliderComponent, d));
-				dstManager.AddComponentData(entity, new SolenoidStateData { Value = false });
-
-				// flipper correction (nFozzy)
-				if (colliderComponent.FlipperCorrection) {
-					SetupFlipperCorrection(entity, dstManager, player, colliderComponent);
-				}
-			}
-
-			// register
-			player.RegisterFlipper(this, entity);
-		}
 
 		public override IEnumerable<MonoBehaviour> SetData(FlipperData data)
 		{
@@ -435,74 +406,6 @@ namespace VisualPinball.Unity
 
 		private bool IsLeft => EndAngle < _startAngle;
 
-		private void SetupFlipperCorrection(Entity entity, EntityManager dstManager, Player player, FlipperColliderComponent colliderComponent)
-		{
-			var fc = colliderComponent.FlipperCorrection;
-
-				// create trigger
-				var triggerData = CreateCorrectionTriggerData();
-				var triggerEntity = dstManager.CreateEntity(typeof(TriggerStaticData));
-				dstManager.AddComponentData(triggerEntity, new TriggerStaticData());
-				player.RegisterTrigger(triggerData, triggerEntity, gameObject);
-
-				using (var builder = new BlobBuilder(Allocator.Temp)) {
-
-					ref var root = ref builder.ConstructRoot<FlipperCorrectionBlob>();
-					root.FlipperEntity = entity;
-					root.TimeDelayMs = fc.TimeThresholdMs;
-
-					// Discretize the curves
-					var polarities = builder.Allocate(ref root.Polarities, fc.PolaritiesCurveSlicingCount + 1);
-					if (fc.Polarities != null)
-					{
-						var curve = fc.Polarities;
-						float stepP = (curve[curve.length - 1].time - curve[0].time) / fc.PolaritiesCurveSlicingCount;
-						int i = 0;
-						for (var t = curve[0].time; t <= curve[curve.length - 1].time; t += stepP)
-						{
-							polarities[i].x = t;
-							polarities[i++].y = curve.Evaluate(t);
-						}
-					}
-					else
-					{
-						for (int i = 0; i < fc.PolaritiesCurveSlicingCount + 1; i++)
-						{
-							polarities[i].x = i / (float)fc.PolaritiesCurveSlicingCount;
-							polarities[i].y = 0F;
-						}
-					}
-
-					var velocities = builder.Allocate(ref root.Velocities, fc.VelocitiesCurveSlicingCount + 1);
-					if (fc.Velocities != null)
-					{
-						var curve = fc.Velocities;
-						float stepP = (curve[curve.length - 1].time - curve[0].time) / fc.VelocitiesCurveSlicingCount;
-						int i = 0;
-						for (var t = curve[0].time; t <= curve[curve.length - 1].time; t += stepP)
-						{
-							velocities[i].x = t;
-							velocities[i++].y = curve.Evaluate(t);
-						}
-					}
-					else
-					{
-						for (int i = 0; i < fc.VelocitiesCurveSlicingCount + 1; i++)
-						{
-							velocities[i].x = i / (float)fc.PolaritiesCurveSlicingCount;
-							velocities[i].y = 1F;
-						}
-					}
-
-					var blobAssetRef = builder.CreateBlobAssetReference<FlipperCorrectionBlob>(Allocator.Persistent);
-
-					// add correction data
-					dstManager.AddComponentData(triggerEntity, new FlipperCorrectionData {
-						Value = blobAssetRef
-					});
-				}
-		}
-
 		//! Add a circle arc on a given polygon (used for enclosing poygon)
 		public static void AddPolyArc(List<Vector3> poly, Vector3 center, float radius, float angleFrom, float angleTo, float stepSize = 1F, float height = 0f)
 		{
@@ -571,29 +474,6 @@ namespace VisualPinball.Unity
 			return ret;
 		}
 
-		public TriggerData CreateCorrectionTriggerData()
-		{
-			// Get table reference
-			var ta = GetComponentInParent<TableComponent>();
-			if (ta != null) {
-
-				var localPos = transform.localPosition;
-				var data = new TriggerData(name + " (Correction Trigger)", localPos.x, localPos.y);
-				var poly = GetEnclosingPolygon(23, 12);
-				data.DragPoints = new DragPointData[poly.Count];
-				data.IsLocked = true;
-				data.HitHeight = 150F; // nFozzy's recommendation, but I think 50 should be ok
-
-				for (var i = 0; i < poly.Count; i++) {
-					// Poly points are expressed in flipper's frame: transpose to Table's frame as this is the basis uses for drag points
-					var p = ta.transform.InverseTransformPoint(transform.TransformPoint(poly[i]));
-					data.DragPoints[poly.Count - i - 1] = new DragPointData(p.x, p.y);
-				}
-				return data;
-			}
-			throw new InvalidOperationException("Cannot create correction trigger for flipper outside of the table hierarchy.");
-		}
-
 		#endregion
 
 		#region Runtime
@@ -612,7 +492,7 @@ namespace VisualPinball.Unity
 
 		#region DOTS Data
 
-		private FlipperTricksData GetFlipperTricksData(FlipperColliderComponent colliderComponent, FlipperStaticData staticData)
+		internal FlipperTricksData GetFlipperTricksData(FlipperColliderComponent colliderComponent, FlipperStaticData staticData)
 		{
 			return new FlipperTricksData
 			{
@@ -646,7 +526,7 @@ namespace VisualPinball.Unity
 			};
 		}
 
-		private FlipperStaticData GetMaterialData(FlipperColliderComponent colliderComponent)
+		internal FlipperStaticData GetMaterialData(FlipperColliderComponent colliderComponent)
 		{
 			float flipperRadius;
 			if (FlipperRadiusMin > 0 && FlipperRadiusMax > FlipperRadiusMin) {
@@ -687,7 +567,7 @@ namespace VisualPinball.Unity
 			};
 		}
 
-		private FlipperMovementData GetMovementData(FlipperStaticData d)
+		internal FlipperMovementData GetMovementData(FlipperStaticData d)
 		{
 			// store flipper base rotation without starting angle
 			var baseRotation = math.normalize(math.mul(
@@ -702,7 +582,7 @@ namespace VisualPinball.Unity
 			};
 		}
 
-		private static FlipperVelocityData GetVelocityData(FlipperStaticData d)
+		internal static FlipperVelocityData GetVelocityData(FlipperStaticData d)
 		{
 			return new FlipperVelocityData {
 				AngularAcceleration = 0f,
@@ -713,7 +593,7 @@ namespace VisualPinball.Unity
 			};
 		}
 
-		private FlipperHitData GetHitData()
+		internal FlipperHitData GetHitData()
 		{
 			var ratio = (math.max(_baseRadius, 0.01f) - math.max(_endRadius, 0.01f)) / math.max(FlipperRadiusMax, 0.01f);
 			var zeroAngNorm = new float2(
