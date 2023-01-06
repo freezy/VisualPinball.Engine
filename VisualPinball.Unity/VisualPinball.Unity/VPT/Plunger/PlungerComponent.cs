@@ -33,7 +33,7 @@ namespace VisualPinball.Unity
 {
 	[AddComponentMenu("Visual Pinball/Game Item/Plunger")]
 	public class PlungerComponent : MainRenderableComponent<PlungerData>,
-		ICoilDeviceComponent, IOnSurfaceComponent, IConvertGameObjectToEntity
+		ICoilDeviceComponent, IOnSurfaceComponent
 	{
 		#region Data
 
@@ -107,87 +107,6 @@ namespace VisualPinball.Unity
 		#endregion
 
 		#region Conversion
-
-		public void Convert(Entity entity, EntityManager dstManager, GameObjectConversionSystem conversionSystem)
-		{
-			Convert(entity, dstManager);
-			var go = gameObject;
-
-			var collComponent = GetComponent<PlungerColliderComponent>();
-			if (!collComponent) {
-				// without collider, the plunger is only a dead mesh.
-				return;
-			}
-
-			var zHeight = PositionZ;
-			var x = Position.x - Width;
-			var y = Position.y + Height;
-			var x2 = Position.x + Width;
-
-			var frameTop = Position.y - collComponent.Stroke;
-			var frameBottom = Position.y;
-			var frameLen = frameBottom - frameTop;
-			var restPos = collComponent.ParkPosition;
-			var position = frameTop + restPos * frameLen;
-
-			var info = new ColliderInfo {
-				Entity = entity,
-				FireEvents = true,
-				IsEnabled = true,
-				ItemType = ItemType.Plunger,
-			};
-
-			dstManager.AddComponentData(entity, new PlungerStaticData {
-				MomentumXfer = collComponent.MomentumXfer,
-				ScatterVelocity = collComponent.ScatterVelocity,
-				FrameStart = frameBottom,
-				FrameEnd = frameTop,
-				FrameLen = frameLen,
-				RestPosition = restPos,
-				IsAutoPlunger = collComponent.IsAutoPlunger,
-				IsMechPlunger = collComponent.IsMechPlunger,
-				SpeedFire = collComponent.SpeedFire,
-				NumFrames = (int)(collComponent.Stroke * (float)(PlungerMeshGenerator.PlungerFrameCount / 80.0f)) + 1, // 25 frames per 80 units travel
-			});
-
-			dstManager.AddComponentData(entity, new PlungerColliderData {
-				LineSegSide0 = new LineCollider(new float2(x + 0.0001f, position), new float2(x, y), zHeight, zHeight + Plunger.PlungerHeight, info),
-				LineSegSide1 = new LineCollider(new float2(x2, y), new float2(x2 + 0.0001f, position), zHeight, zHeight + Plunger.PlungerHeight, info),
-				LineSegEnd = new LineCollider(new float2(x2, position), new float2(x, position), zHeight, zHeight + Plunger.PlungerHeight, info),
-				JointEnd0 = new LineZCollider(new float2(x, position), zHeight, zHeight + Plunger.PlungerHeight, info),
-				JointEnd1 = new LineZCollider(new float2(x2, position), zHeight, zHeight + Plunger.PlungerHeight, info),
-			});
-
-			dstManager.AddComponentData(entity, new PlungerMovementData {
-				FireBounce = 0f,
-				Position = position,
-				RetractMotion = false,
-				ReverseImpulse = 0f,
-				Speed = 0f,
-				TravelLimit = frameTop,
-				FireSpeed = 0f,
-				FireTimer = 0
-			});
-
-			dstManager.AddComponentData(entity, new PlungerVelocityData {
-				Mech0 = 0f,
-				Mech1 = 0f,
-				Mech2 = 0f,
-				PullForce = 0f,
-				InitialSpeed = 0f,
-				AutoFireTimer = 0,
-				AddRetractMotion = false,
-				RetractWaitLoop = 0,
-				MechStrength = collComponent.MechStrength
-			});
-
-			dstManager.AddComponentData(entity, new PlungerAnimationData {
-				Position = collComponent.ParkPosition
-			});
-
-			// register at player
-			GetComponentInParent<Player>().RegisterPlunger(this, entity, analogPlungerAction);
-		}
 
 		public override IEnumerable<MonoBehaviour> SetData(PlungerData data)
 		{
