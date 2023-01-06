@@ -25,9 +25,9 @@ namespace VisualPinball.Unity
 		public float ElasticityFalloff;
 		public float Friction;
 		public float ScatterAngleRad;
-		public FixedListFloat512 ElasticityOverVelocityLUT;
+		public FixedList512Bytes<float> ElasticityOverVelocityLUT;
 		public bool UseElasticityOverVelocity;
-		public FixedListFloat512 FrictionOverVelocityLUT;
+		public FixedList512Bytes<float> FrictionOverVelocityLUT;
 		public bool UseFrictionOverVelocity;
 
 	}
