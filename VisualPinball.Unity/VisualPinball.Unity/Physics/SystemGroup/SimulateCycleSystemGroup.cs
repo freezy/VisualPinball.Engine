@@ -76,16 +76,16 @@ namespace VisualPinball.Unity
 			_flipperDataQuery = EntityManager.CreateEntityQuery(ComponentType.ReadOnly<FlipperMovementData>(), ComponentType.ReadOnly<FlipperStaticData>());
 			_collisionEventDataQuery = EntityManager.CreateEntityQuery(ComponentType.ReadOnly<CollisionEventData>());
 
-			_simulationSystemGroup = World.GetExistingSystem<VisualPinballSimulationSystemGroup>();
-			_staticBroadPhaseSystem = World.GetOrCreateSystem<StaticBroadPhaseSystem>();
-			_dynamicBroadPhaseSystem = World.GetOrCreateSystem<DynamicBroadPhaseSystem>();
-			_staticNarrowPhaseSystem = World.GetOrCreateSystem<StaticNarrowPhaseSystem>();
-			_dynamicNarrowPhaseSystem = World.GetOrCreateSystem<DynamicNarrowPhaseSystem>();
-			_displacementSystemGroup = World.GetOrCreateSystem<UpdateDisplacementSystemGroup>();
-			_staticCollisionSystem = World.GetOrCreateSystem<StaticCollisionSystem>();
-			_dynamicCollisionSystem = World.GetOrCreateSystem<DynamicCollisionSystem>();
-			_contactSystem = World.GetOrCreateSystem<ContactSystem>();
-			_ballSpinHackSystem = World.GetOrCreateSystem<BallSpinHackSystem>();
+			_simulationSystemGroup = World.GetExistingSystemManaged<VisualPinballSimulationSystemGroup>();
+			_staticBroadPhaseSystem = World.GetExistingSystemManaged<StaticBroadPhaseSystem>();
+			_dynamicBroadPhaseSystem = World.GetExistingSystemManaged<DynamicBroadPhaseSystem>();
+			_staticNarrowPhaseSystem = World.GetExistingSystemManaged<StaticNarrowPhaseSystem>();
+			_dynamicNarrowPhaseSystem = World.GetExistingSystemManaged<DynamicNarrowPhaseSystem>();
+			_displacementSystemGroup = World.GetExistingSystemManaged<UpdateDisplacementSystemGroup>();
+			_staticCollisionSystem = World.GetExistingSystemManaged<StaticCollisionSystem>();
+			_dynamicCollisionSystem = World.GetExistingSystemManaged<DynamicCollisionSystem>();
+			_contactSystem = World.GetExistingSystemManaged<ContactSystem>();
+			_ballSpinHackSystem = World.GetExistingSystemManaged<BallSpinHackSystem>();
 			_systemsToUpdate.Add(_staticBroadPhaseSystem);
 			_systemsToUpdate.Add(_dynamicBroadPhaseSystem);
 			_systemsToUpdate.Add(_staticNarrowPhaseSystem);

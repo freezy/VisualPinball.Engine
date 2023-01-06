@@ -38,11 +38,11 @@ namespace VisualPinball.Unity
 		public float ElasticityFalloff;
 		public AnimationCurve ElasticityOverVelocity;
 		public bool UseElasticictyOverVelocity;
-		public FixedListFloat512 ElasticityOverVelocityLUT;
+		public FixedList512Bytes<float> ElasticityOverVelocityLUT;
 		public float Friction;
 		public AnimationCurve FrictionOverVelocity;
 		public bool UseFrictionOverVelocity;
-		public FixedListFloat512 FrictionOverVelocityLUT;
+		public FixedList512Bytes<float> FrictionOverVelocityLUT;
 		// public AnimationCurve FrictionOverAngularMomentum;
 		public float ScatterAngle;
 
