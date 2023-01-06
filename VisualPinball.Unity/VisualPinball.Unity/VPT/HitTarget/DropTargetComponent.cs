@@ -27,7 +27,7 @@ using VisualPinball.Engine.VPT.Table;
 namespace VisualPinball.Unity
 {
 	[AddComponentMenu("Visual Pinball/Game Item/Drop Target")]
-	public class DropTargetComponent : TargetComponent, IConvertGameObjectToEntity
+	public class DropTargetComponent : TargetComponent
 	{
 		public override bool IsLegacy {
 			get {
@@ -49,25 +49,6 @@ namespace VisualPinball.Unity
 		{
 			Convert(entity, dstManager);
 
-			var colliderComponent = GetComponent<DropTargetColliderComponent>();
-			var animationComponent = GetComponentInChildren<DropTargetAnimationComponent>();
-			if (colliderComponent && animationComponent) {
-
-				dstManager.AddComponentData(entity, new DropTargetStaticData {
-					Speed = animationComponent.Speed,
-					RaiseDelay = animationComponent.RaiseDelay,
-					UseHitEvent = colliderComponent.UseHitEvent,
-				});
-
-				dstManager.AddComponentData(entity, new DropTargetAnimationData {
-					IsDropped = animationComponent.IsDropped,
-					MoveDown = !animationComponent.IsDropped,
-					ZOffset = animationComponent.IsDropped ? -DropTargetAnimationData.DropTargetLimit : 0f
-				});
-			}
-
-			// register
-			transform.GetComponentInParent<Player>().RegisterDropTarget(this, entity);
 		}
 
 		public override IEnumerable<MonoBehaviour> SetData(HitTargetData data)

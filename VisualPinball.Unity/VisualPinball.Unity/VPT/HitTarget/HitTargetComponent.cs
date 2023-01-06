@@ -17,7 +17,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Unity.Entities;
 using UnityEngine;
 using VisualPinball.Engine.VPT.HitTarget;
 using VisualPinball.Engine.VPT.Table;
@@ -25,35 +24,13 @@ using VisualPinball.Engine.VPT.Table;
 namespace VisualPinball.Unity
 {
 	[AddComponentMenu("Visual Pinball/Game Item/Hit Target")]
-	public class HitTargetComponent : TargetComponent, IConvertGameObjectToEntity
+	public class HitTargetComponent : TargetComponent
 	{
 		protected override float ZOffset => 0;
 
 		public override bool HasProceduralMesh => false;
 
 		#region Conversion
-
-		public void Convert(Entity entity, EntityManager dstManager, GameObjectConversionSystem conversionSystem)
-		{
-			Convert(entity, dstManager);
-
-			var hitTargetColliderComponent = GetComponent<HitTargetColliderComponent>();
-			var hitTargetAnimationComponent = GetComponentInChildren<HitTargetAnimationComponent>();
-			if (hitTargetColliderComponent && hitTargetAnimationComponent) {
-
-				dstManager.AddComponentData(entity, new HitTargetStaticData {
-					Speed = hitTargetAnimationComponent.Speed,
-					MaxAngle = hitTargetAnimationComponent.MaxAngle,
-				});
-
-				dstManager.AddComponentData(entity, new HitTargetAnimationData {
-					MoveDirection = true,
-				});
-			}
-
-			// register
-			transform.GetComponentInParent<Player>().RegisterHitTarget(this, entity);
-		}
 
 		public override IEnumerable<MonoBehaviour> SetData(HitTargetData data)
 		{
