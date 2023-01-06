@@ -24,8 +24,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Unity.Entities;
-using Unity.Mathematics;
 using UnityEngine;
 using VisualPinball.Engine.Math;
 using VisualPinball.Engine.VPT;
@@ -36,7 +34,7 @@ namespace VisualPinball.Unity
 {
 	[AddComponentMenu("Visual Pinball/Game Item/Metal Wire Guide")]
 	public class MetalWireGuideComponent : MainRenderableComponent<MetalWireGuideData>,
-		IMetalWireGuideData, IConvertGameObjectToEntity
+		IMetalWireGuideData
 	{
 		#region Data
 
@@ -97,14 +95,6 @@ namespace VisualPinball.Unity
 		#endregion
 
 		#region Conversion
-
-		public void Convert(Entity entity, EntityManager dstManager, GameObjectConversionSystem conversionSystem)
-		{
-			Convert(entity, dstManager);
-
-			// register
-			transform.GetComponentInParent<Player>().RegisterMetalWireGuide(this, entity);
-		}
 
 		public override IEnumerable<MonoBehaviour> SetData(MetalWireGuideData data)
 		{
