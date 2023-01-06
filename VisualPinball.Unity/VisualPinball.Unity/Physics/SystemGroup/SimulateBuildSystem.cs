@@ -44,7 +44,7 @@ namespace VisualPinball.Unity
 				return;
 			}
 			var ltw = _baseTransform;
-			Entities.WithName("SimulateBuildJob").ForEach((ref Translation translation, ref BallData ball) => {
+			Entities.WithName("SimulateBuildJob").ForEach((ref BallData ball) => {
 				ball.Position = math.transform(math.inverse(ltw), math.transform(ltw, float3.zero));
 			}).Run();
 		}
