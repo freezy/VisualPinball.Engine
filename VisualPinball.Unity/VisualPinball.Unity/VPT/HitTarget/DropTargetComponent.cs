@@ -19,7 +19,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Unity.Entities;
 using UnityEngine;
 using VisualPinball.Engine.VPT.HitTarget;
 using VisualPinball.Engine.VPT.Table;
@@ -44,12 +43,6 @@ namespace VisualPinball.Unity
 		}
 
 		#region Conversion
-
-		public void Convert(Entity entity, EntityManager dstManager, GameObjectConversionSystem conversionSystem)
-		{
-			Convert(entity, dstManager);
-
-		}
 
 		public override IEnumerable<MonoBehaviour> SetData(HitTargetData data)
 		{
