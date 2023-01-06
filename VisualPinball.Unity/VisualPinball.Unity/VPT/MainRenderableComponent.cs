@@ -25,7 +25,7 @@ using Mesh = VisualPinball.Engine.VPT.Mesh;
 
 namespace VisualPinball.Unity
 {
-	public abstract class  MainRenderableComponent<TData> : MainComponent<TData>,
+	public abstract class MainRenderableComponent<TData> : MainComponent<TData>,
 		IMainRenderableComponent, IOnPlayfieldComponent
 		where TData : ItemData
 	{
