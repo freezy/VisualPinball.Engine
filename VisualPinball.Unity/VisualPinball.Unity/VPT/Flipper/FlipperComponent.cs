@@ -23,17 +23,12 @@
 
 using System;
 using System.Collections.Generic;
-using Unity.Collections;
-using Unity.Entities;
 using Unity.Mathematics;
 using UnityEngine;
 using VisualPinball.Engine.Game.Engines;
-using VisualPinball.Engine.Math;
 using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Flipper;
 using VisualPinball.Engine.VPT.Table;
-using VisualPinball.Engine.VPT.Trigger;
-using Color = UnityEngine.Color;
 
 namespace VisualPinball.Unity
 {

@@ -23,7 +23,6 @@
 
 using System;
 using System.Collections.Generic;
-using Unity.Entities;
 using Unity.Mathematics;
 using UnityEngine;
 using VisualPinball.Engine.Game.Engines;
@@ -35,7 +34,7 @@ namespace VisualPinball.Unity
 {
 	[AddComponentMenu("Visual Pinball/Game Item/Bumper")]
 	public class BumperComponent : MainRenderableComponent<BumperData>,
-		ISwitchDeviceComponent, ICoilDeviceComponent, IOnSurfaceComponent, IConvertGameObjectToEntity
+		ISwitchDeviceComponent, ICoilDeviceComponent, IOnSurfaceComponent
 	{
 		#region Data
 
@@ -132,55 +131,6 @@ namespace VisualPinball.Unity
 		#endregion
 
 		#region Conversion
-
-		public void Convert(Entity entity, EntityManager dstManager, GameObjectConversionSystem conversionSystem)
-		{
-			Convert(entity, dstManager);
-
-			// physics collision data
-			var collComponent = GetComponentInChildren<BumperColliderComponent>();
-			if (collComponent) {
-				dstManager.AddComponentData(entity, new BumperStaticData {
-					Force = collComponent.Force,
-					HitEvent = collComponent.HitEvent,
-					Threshold = collComponent.Threshold
-				});
-			}
-
-			// skirt animation data
-			if (GetComponentInChildren<BumperSkirtAnimationComponent>()) {
-				dstManager.AddComponentData(entity, new BumperSkirtAnimationData {
-					BallPosition = default,
-					AnimationCounter = 0f,
-					DoAnimate = false,
-					DoUpdate = false,
-					EnableAnimation = true,
-					Rotation = new float2(0, 0),
-					Center = Position
-				});
-			}
-
-			// ring animation data
-			var ringAnimComponent = GetComponentInChildren<BumperRingAnimationComponent>();
-			if (ringAnimComponent) {
-				dstManager.AddComponentData(entity, new BumperRingAnimationData {
-
-					// dynamic
-					IsHit = false,
-					Offset = 0,
-					AnimateDown = false,
-					DoAnimate = false,
-
-					// static
-					DropOffset = ringAnimComponent.RingDropOffset,
-					HeightScale = HeightScale,
-					Speed = ringAnimComponent.RingSpeed,
-				});
-			}
-
-			// register at player
-			GetComponentInParent<Player>().RegisterBumper(this, entity);
-		}
 
 		public override IEnumerable<MonoBehaviour> SetData(BumperData data)
 		{
