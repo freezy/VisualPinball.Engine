@@ -36,7 +36,7 @@ namespace VisualPinball.Unity
 {
 	[AddComponentMenu("Visual Pinball/Game Item/Spinner")]
 	public class SpinnerComponent : MainRenderableComponent<SpinnerData>,
-		ISwitchDeviceComponent, IOnSurfaceComponent, IConvertGameObjectToEntity
+		ISwitchDeviceComponent, IOnSurfaceComponent
 	{
 		#region Data
 
@@ -128,35 +128,6 @@ namespace VisualPinball.Unity
 		#endregion
 
 		#region Conversion
-
-		public void Convert(Entity entity, EntityManager dstManager, GameObjectConversionSystem conversionSystem)
-		{
-			Convert(entity, dstManager);
-
-			// physics collision data
-			var collComponent = GetComponent<SpinnerColliderComponent>();
-			if (collComponent) {
-
-				dstManager.AddComponentData(entity, new SpinnerStaticData {
-					AngleMax = math.radians(AngleMax),
-					AngleMin = math.radians(AngleMin),
-					Damping = math.pow(Damping, (float)PhysicsConstants.PhysFactor),
-					Elasticity = collComponent.Elasticity,
-					Height = Height
-				});
-			}
-
-			// animation
-			if (GetComponentInChildren<SpinnerPlateAnimationComponent>()) {
-				dstManager.AddComponentData(entity, new SpinnerMovementData {
-					Angle = math.radians(math.clamp(0.0f, AngleMin, AngleMax)),
-					AngleSpeed = 0f
-				});
-			}
-
-			// register
-			transform.GetComponentInParent<Player>().RegisterSpinner(this, entity);
-		}
 
 		public override IEnumerable<MonoBehaviour> SetData(SpinnerData data)
 		{
