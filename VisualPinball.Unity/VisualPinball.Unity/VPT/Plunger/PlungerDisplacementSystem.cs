@@ -34,7 +34,7 @@ namespace VisualPinball.Unity
 		protected override void OnCreate()
 		{
 			_player = Object.FindObjectOfType<Player>();
-			_simulateCycleSystemGroup = World.GetOrCreateSystem<SimulateCycleSystemGroup>();
+			_simulateCycleSystemGroup = World.GetOrCreateSystemManaged<SimulateCycleSystemGroup>();
 			_eventQueue = new NativeQueue<EventData>(Allocator.Persistent);
 		}
 

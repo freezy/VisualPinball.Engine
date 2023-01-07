@@ -30,7 +30,7 @@ namespace VisualPinball.Unity
 
 		protected override void OnCreate()
 		{
-			_simulateCycleSystemGroup = World.GetOrCreateSystem<SimulateCycleSystemGroup>();
+			_simulateCycleSystemGroup = World.GetOrCreateSystemManaged<SimulateCycleSystemGroup>();
 		}
 
 		protected override void OnUpdate()

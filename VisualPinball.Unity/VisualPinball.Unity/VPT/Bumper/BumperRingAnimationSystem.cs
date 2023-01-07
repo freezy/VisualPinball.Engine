@@ -26,7 +26,7 @@ namespace VisualPinball.Unity
 
 		protected override void OnUpdate()
 		{
-			var dTime = Time.DeltaTime * 1000;
+			var dTime = SystemAPI.Time.DeltaTime * 1000;
 			var marker = PerfMarker;
 
 			Entities

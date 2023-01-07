@@ -26,7 +26,7 @@ namespace VisualPinball.Unity
 
 		protected override void OnUpdate()
 		{
-			var lastPositionBuffer = GetBufferFromEntity<BallLastPositionsBufferElement>();
+			var lastPositionBuffer = GetBufferLookup<BallLastPositionsBufferElement>();
 			Entities
 				.WithNativeDisableParallelForRestriction(lastPositionBuffer)
 				.ForEach((Entity entity, ref BallData ball) =>
