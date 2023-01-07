@@ -24,7 +24,7 @@ using UnityEngine;
 namespace VisualPinball.Unity
 {
 	[DisableAutoCreation]
-	internal class ContactSystem : SystemBase
+	internal partial class ContactSystem : SystemBase
 	{
 		private SimulateCycleSystemGroup _simulateCycleSystemGroup;
 
@@ -53,7 +53,7 @@ namespace VisualPinball.Unity
 			var collEntity = _collDataEntityQuery.GetSingletonEntity();
 			var collData = EntityManager.GetComponentData<ColliderData>(collEntity);
 			var contacts = _simulateCycleSystemGroup.Contacts;
-			var ballsLookup = GetComponentDataFromEntity<BallData>();
+			var ballsLookup = GetComponentLookup<BallData>();
 
 			var marker = PerfMarker;
 

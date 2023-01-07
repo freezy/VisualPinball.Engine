@@ -90,8 +90,8 @@ namespace VisualPinball.Unity.Editor
 				var cc = go.AddComponent<PrimitiveColliderComponent>();
 				cc.enabled = true;
 
-				var cte = go.AddComponent<ConvertToEntity>();
-				cte.ConversionMode = ConvertToEntity.Mode.ConvertAndInjectGameObject;
+				// var cte = go.AddComponent<ConvertToEntity>();
+				// cte.ConversionMode = ConvertToEntity.Mode.ConvertAndInjectGameObject;
 			}
 		}
 
@@ -117,8 +117,8 @@ namespace VisualPinball.Unity.Editor
 				var cc = go.AddComponent<PrimitiveColliderComponent>();
 				cc.enabled = true;
 
-				var cte = go.AddComponent<ConvertToEntity>();
-				cte.ConversionMode = ConvertToEntity.Mode.ConvertAndInjectGameObject;
+				// var cte = go.AddComponent<ConvertToEntity>();
+				// cte.ConversionMode = ConvertToEntity.Mode.ConvertAndInjectGameObject;
 			}
 		}
 	}

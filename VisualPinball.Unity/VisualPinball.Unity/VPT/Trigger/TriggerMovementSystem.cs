@@ -22,7 +22,7 @@ using UnityEngine;
 namespace VisualPinball.Unity
 {
 	[UpdateInGroup(typeof(TransformMeshesSystemGroup))]
-	internal class TriggerMovementSystem : SystemBase
+	internal partial class TriggerMovementSystem : SystemBase
 	{
 		private static readonly ProfilerMarker PerfMarker = new ProfilerMarker("TriggerMovementSystem");
 

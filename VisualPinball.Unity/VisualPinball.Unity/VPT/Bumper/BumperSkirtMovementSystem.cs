@@ -22,7 +22,7 @@ using UnityEngine;
 namespace VisualPinball.Unity
 {
 	[UpdateInGroup(typeof(TransformMeshesSystemGroup))]
-	internal class BumperSkirtMovementSystem : SystemBase
+	internal partial class BumperSkirtMovementSystem : SystemBase
 	{
 		private static readonly ProfilerMarker PerfMarker = new ProfilerMarker("BumperSkirtMovementSystem");
 

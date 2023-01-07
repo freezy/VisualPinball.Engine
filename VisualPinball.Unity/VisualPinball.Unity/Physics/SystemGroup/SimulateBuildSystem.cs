@@ -22,7 +22,7 @@ using UnityEngine;
 namespace VisualPinball.Unity
 {
 	[UpdateBefore(typeof(TransformMeshesSystemGroup))]
-	internal class SimulateBuildSystem : SystemBase
+	internal partial class SimulateBuildSystem : SystemBase
 	{
 		private float4x4 _baseTransform;
 

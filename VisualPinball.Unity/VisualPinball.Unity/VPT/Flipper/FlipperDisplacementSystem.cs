@@ -25,7 +25,7 @@ namespace VisualPinball.Unity
 {
 	[AlwaysSynchronizeSystem]
 	[UpdateInGroup(typeof(UpdateDisplacementSystemGroup))]
-	internal class FlipperDisplacementSystem : SystemBase
+	internal partial class FlipperDisplacementSystem : SystemBase
 	{
 		private Player _player;
 		private SimulateCycleSystemGroup _simulateCycleSystemGroup;

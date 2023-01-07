@@ -21,7 +21,7 @@ using Unity.Profiling;
 namespace VisualPinball.Unity
 {
 	[UpdateInGroup(typeof(UpdateAnimationsSystemGroup))]
-	internal class HitTargetAnimationSystem : SystemBase
+	internal partial class HitTargetAnimationSystem : SystemBase
 	{
 		private VisualPinballSimulationSystemGroup _visualPinballSimulationSystemGroup;
 		private NativeQueue<EventData> _eventQueue;

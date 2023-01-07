@@ -20,7 +20,7 @@ using Unity.Profiling;
 namespace VisualPinball.Unity
 {
 	[DisableAutoCreation]
-	internal class DynamicCollisionSystem : SystemBase
+	internal partial class DynamicCollisionSystem : SystemBase
 	{
 		private static readonly ProfilerMarker PerfMarker = new ProfilerMarker("DynamicCollisionSystem");
 		private SimulateCycleSystemGroup _simulateCycleSystemGroup;
@@ -35,8 +35,8 @@ namespace VisualPinball.Unity
 			var marker = PerfMarker;
 			var hitTime = _simulateCycleSystemGroup.HitTime;
 			var swapBallCollisionHandling = _simulateCycleSystemGroup.SwapBallCollisionHandling;
-			var balls = GetComponentDataFromEntity<BallData>();
-			var collEvents = GetComponentDataFromEntity<CollisionEventData>(true);
+			var balls = GetComponentLookup<BallData>();
+			var collEvents = GetComponentLookup<CollisionEventData>(true);
 
 			Entities
 				.WithName("DynamicCollisionJob")

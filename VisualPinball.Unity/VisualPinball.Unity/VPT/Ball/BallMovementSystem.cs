@@ -23,7 +23,7 @@ namespace VisualPinball.Unity
 {
 	[AlwaysSynchronizeSystem]
 	[UpdateInGroup(typeof(TransformMeshesSystemGroup))]
-	internal class BallMovementSystem : SystemBase
+	internal partial class BallMovementSystem : SystemBase
 	{
 		private float4x4 _baseTransform;
 		private Player _player;

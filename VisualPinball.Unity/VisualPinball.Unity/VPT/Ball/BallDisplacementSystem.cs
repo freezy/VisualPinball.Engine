@@ -22,7 +22,7 @@ using UnityEngine;
 namespace VisualPinball.Unity
 {
 	[UpdateInGroup(typeof(UpdateDisplacementSystemGroup))]
-	internal class BallDisplacementSystem : SystemBase
+	internal partial class BallDisplacementSystem : SystemBase
 	{
 		private SimulateCycleSystemGroup _simulateCycleSystemGroup;
 

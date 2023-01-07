@@ -25,7 +25,7 @@ using VisualPinball.Engine.Common;
 namespace VisualPinball.Unity
 {
 	[UpdateInGroup(typeof(UpdateVelocitiesSystemGroup))]
-	internal class BallVelocitySystem : SystemBase
+	internal partial class BallVelocitySystem : SystemBase
 	{
 		private float3 _gravity;
 		private static readonly ProfilerMarker PerfMarker = new ProfilerMarker("BallVelocitySystem");

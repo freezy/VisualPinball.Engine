@@ -24,7 +24,7 @@ using VisualPinball.Engine.Game;
 namespace VisualPinball.Unity
 {
 	[UpdateInGroup(typeof(UpdateDisplacementSystemGroup))]
-	internal class PlungerDisplacementSystem : SystemBase
+	internal partial class PlungerDisplacementSystem : SystemBase
 	{
 		private Player _player;
 		private SimulateCycleSystemGroup _simulateCycleSystemGroup;
