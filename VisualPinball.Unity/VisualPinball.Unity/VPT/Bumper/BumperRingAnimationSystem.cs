@@ -20,7 +20,7 @@ using Unity.Profiling;
 namespace VisualPinball.Unity
 {
 	[UpdateInGroup(typeof(UpdateAnimationsSystemGroup))]
-	internal class BumperRingAnimationSystem : SystemBase
+	internal partial class BumperRingAnimationSystem : SystemBase
 	{
 		private static readonly ProfilerMarker PerfMarker = new ProfilerMarker("BumperRingAnimationSystem");
 

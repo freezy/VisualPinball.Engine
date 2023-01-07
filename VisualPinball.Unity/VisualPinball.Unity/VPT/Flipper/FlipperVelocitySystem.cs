@@ -25,7 +25,7 @@ namespace VisualPinball.Unity
 {
 	[AlwaysSynchronizeSystem]
 	[UpdateInGroup(typeof(UpdateVelocitiesSystemGroup))]
-	internal class FlipperVelocitySystem : SystemBase
+	internal partial class FlipperVelocitySystem : SystemBase
 	{
 		private static readonly ProfilerMarker PerfMarker = new ProfilerMarker("FlipperVelocitySystem");
 

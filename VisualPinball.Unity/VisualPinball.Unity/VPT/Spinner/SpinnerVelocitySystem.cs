@@ -22,7 +22,7 @@ using VisualPinball.Engine.Common;
 namespace VisualPinball.Unity
 {
 	[UpdateInGroup(typeof(UpdateVelocitiesSystemGroup))]
-	internal class SpinnerVelocitySystem : SystemBase
+	internal partial class SpinnerVelocitySystem : SystemBase
 	{
 		private static readonly ProfilerMarker PerfMarker = new ProfilerMarker("SpinnerVelocitySystem");
 

@@ -20,7 +20,7 @@ using Unity.Profiling;
 namespace VisualPinball.Unity
 {
 	[DisableAutoCreation]
-	internal class StaticBroadPhaseSystem : SystemBase
+	internal partial class StaticBroadPhaseSystem : SystemBase
 	{
 		private EntityQuery _quadTreeEntityQuery;
 		private SimulateCycleSystemGroup _simulateCycleSystemGroup;

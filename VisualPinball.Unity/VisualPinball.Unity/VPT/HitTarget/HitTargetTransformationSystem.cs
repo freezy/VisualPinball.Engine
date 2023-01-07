@@ -21,7 +21,7 @@ using UnityEngine;
 namespace VisualPinball.Unity
 {
 	[UpdateInGroup(typeof(TransformMeshesSystemGroup))]
-	internal class HitTargetTransformationSystem : SystemBase
+	internal partial class HitTargetTransformationSystem : SystemBase
 	{
 		private static readonly ProfilerMarker PerfMarker = new ProfilerMarker(nameof(HitTargetTransformationSystem));
 		private Player _player;

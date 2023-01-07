@@ -23,7 +23,7 @@ using VisualPinball.Engine.Game;
 namespace VisualPinball.Unity
 {
 	[UpdateInGroup(typeof(UpdateAnimationsSystemGroup))]
-	internal class DropTargetAnimationSystem : SystemBase
+	internal partial class DropTargetAnimationSystem : SystemBase
 	{
 		private Player _player;
 		private VisualPinballSimulationSystemGroup _visualPinballSimulationSystemGroup;

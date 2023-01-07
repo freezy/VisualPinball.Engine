@@ -21,7 +21,7 @@ using Unity.Profiling;
 namespace VisualPinball.Unity
 {
 	[DisableAutoCreation]
-	internal class DynamicBroadPhaseSystem : SystemBase
+	internal partial class DynamicBroadPhaseSystem : SystemBase
 	{
 		private EntityQuery _ballQuery;
 		private static readonly ProfilerMarker PerfMarker1 = new ProfilerMarker("DynamicBroadPhaseSystem.CreateKdTree");
@@ -46,7 +46,7 @@ namespace VisualPinball.Unity
 
 			PerfMarker1.End();
 
-			var overlappingEntities = GetBufferFromEntity<OverlappingDynamicBufferElement>();
+			var overlappingEntities = GetBufferLookup<OverlappingDynamicBufferElement>();
 			var marker = PerfMarker2;
 
 			Entities

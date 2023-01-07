@@ -19,7 +19,7 @@ using Unity.Entities;
 namespace VisualPinball.Unity
 {
 	[DisableAutoCreation]
-	internal class UpdateAnimationsSystemGroup : ComponentSystemGroup
+	internal partial class UpdateAnimationsSystemGroup : ComponentSystemGroup
 	{
 
 	}
