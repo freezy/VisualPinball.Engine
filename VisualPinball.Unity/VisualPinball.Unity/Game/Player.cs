@@ -158,7 +158,7 @@ namespace VisualPinball.Unity
 			if (!string.IsNullOrEmpty(debugUiId)) {
 				EngineProvider<IDebugUI>.Set(debugUiId);
 			}
-			_simulationSystemGroup = World.DefaultGameObjectInjectionWorld.GetOrCreateSystem<VisualPinballSimulationSystemGroup>();
+			_simulationSystemGroup = World.DefaultGameObjectInjectionWorld.GetOrCreateSystemManaged<VisualPinballSimulationSystemGroup>();
 		}
 
 		private void Start()

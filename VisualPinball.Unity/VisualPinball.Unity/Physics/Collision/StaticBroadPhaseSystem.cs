@@ -30,7 +30,7 @@ namespace VisualPinball.Unity
 		protected override void OnCreate()
 		{
 			_quadTreeEntityQuery = EntityManager.CreateEntityQuery(typeof(QuadTreeData));
-			_simulateCycleSystemGroup = World.DefaultGameObjectInjectionWorld.GetOrCreateSystem<SimulateCycleSystemGroup>();
+			_simulateCycleSystemGroup = World.DefaultGameObjectInjectionWorld.GetOrCreateSystemManaged<SimulateCycleSystemGroup>();
 		}
 
 		protected override void OnUpdate()

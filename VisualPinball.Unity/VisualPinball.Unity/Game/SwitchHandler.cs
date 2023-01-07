@@ -58,7 +58,7 @@ namespace VisualPinball.Unity
 
 		private readonly Dictionary<string, IApiSwitchStatus> _switchStatuses = new Dictionary<string, IApiSwitchStatus>();
 
-		private static VisualPinballSimulationSystemGroup SimulationSystemGroup => World.DefaultGameObjectInjectionWorld.GetOrCreateSystem<VisualPinballSimulationSystemGroup>();
+		private static VisualPinballSimulationSystemGroup SimulationSystemGroup => World.DefaultGameObjectInjectionWorld.GetOrCreateSystemManaged<VisualPinballSimulationSystemGroup>();
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
 		public SwitchHandler(string name, Player player, bool isEnabled = false)

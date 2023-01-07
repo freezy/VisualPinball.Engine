@@ -30,7 +30,7 @@ namespace VisualPinball.Unity
 
 		protected override void OnCreate()
 		{
-			_visualPinballSimulationSystemGroup = World.GetOrCreateSystem<VisualPinballSimulationSystemGroup>();
+			_visualPinballSimulationSystemGroup = World.GetOrCreateSystemManaged<VisualPinballSimulationSystemGroup>();
 			_eventQueue = new NativeQueue<EventData>(Allocator.Persistent);
 		}
 

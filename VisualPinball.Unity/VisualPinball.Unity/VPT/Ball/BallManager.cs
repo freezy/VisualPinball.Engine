@@ -99,7 +99,7 @@ namespace VisualPinball.Unity
 			_player.Balls[entity] = ballGo;
 
 			var world = World.DefaultGameObjectInjectionWorld;
-			var ecbs = world.GetOrCreateSystem<CreateBallEntityCommandBufferSystem>();
+			var ecbs = world.GetOrCreateSystemManaged<CreateBallEntityCommandBufferSystem>();
 			var ecb = ecbs.CreateCommandBuffer();
 
 			ecb.AddBuffer<OverlappingStaticColliderBufferElement>(entity);
@@ -163,7 +163,7 @@ namespace VisualPinball.Unity
 
 			// destroy entity
 			World.DefaultGameObjectInjectionWorld
-				.GetOrCreateSystem<CreateBallEntityCommandBufferSystem>()
+				.GetOrCreateSystemManaged<CreateBallEntityCommandBufferSystem>()
 				.CreateCommandBuffer()
 				.DestroyEntity(ballEntity);
 

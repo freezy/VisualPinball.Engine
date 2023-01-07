@@ -43,7 +43,7 @@ namespace VisualPinball.Unity
 		{
 			_component = go.GetComponentInChildren<TeleporterComponent>();
 			_player = player;
-			_simulationSystemGroup = World.DefaultGameObjectInjectionWorld.GetOrCreateSystem<VisualPinballSimulationSystemGroup>();
+			_simulationSystemGroup = World.DefaultGameObjectInjectionWorld.GetOrCreateSystemManaged<VisualPinballSimulationSystemGroup>();
 		}
 
 		void IApi.OnInit(BallManager ballManager)

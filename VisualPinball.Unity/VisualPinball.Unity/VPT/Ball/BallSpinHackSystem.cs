@@ -25,7 +25,7 @@ namespace VisualPinball.Unity
 	{
 		protected override void OnUpdate()
 		{
-			var lastPositionBuffer = GetBufferFromEntity<BallLastPositionsBufferElement>(true);
+			var lastPositionBuffer = GetBufferLookup<BallLastPositionsBufferElement>(true);
 			Entities
 				.WithReadOnly(lastPositionBuffer)
 				.ForEach((Entity entity, ref BallData ball, in CollisionEventData collEvent) =>

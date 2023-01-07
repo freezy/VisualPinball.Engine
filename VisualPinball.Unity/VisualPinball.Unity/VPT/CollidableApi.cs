@@ -45,7 +45,7 @@ namespace VisualPinball.Unity
 		protected CollidableApi(GameObject go, Entity entity, Player player) : base(go, player)
 		{
 			if (World.DefaultGameObjectInjectionWorld != null) {
-				_simulateCycleSystemGroup = World.DefaultGameObjectInjectionWorld.GetOrCreateSystem<SimulateCycleSystemGroup>();
+				_simulateCycleSystemGroup = World.DefaultGameObjectInjectionWorld.GetOrCreateSystemManaged<SimulateCycleSystemGroup>();
 			}
 			EntityManager = World.DefaultGameObjectInjectionWorld != null ? World.DefaultGameObjectInjectionWorld.EntityManager : default;
 			Entity = entity;

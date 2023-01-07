@@ -53,8 +53,8 @@ namespace VisualPinball.Unity
 
 			_ballDataQuery = _entityManager.CreateEntityQuery(ComponentType.ReadOnly<BallData>());
 
-			_visualPinballSimulationSystemGroup = _entityManager.World.GetOrCreateSystem<VisualPinballSimulationSystemGroup>();
-			var simulateCycleSystemGroup = _entityManager.World.GetOrCreateSystem<SimulateCycleSystemGroup>();
+			_visualPinballSimulationSystemGroup = _entityManager.World.GetOrCreateSystemManaged<VisualPinballSimulationSystemGroup>();
+			var simulateCycleSystemGroup = _entityManager.World.GetOrCreateSystemManaged<SimulateCycleSystemGroup>();
 
 			_visualPinballSimulationSystemGroup.Enabled = true;
 			simulateCycleSystemGroup.PhysicsEngine = this; // needed for flipper status update we don't do in all engines
