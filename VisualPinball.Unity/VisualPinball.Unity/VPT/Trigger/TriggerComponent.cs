@@ -24,9 +24,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Unity.Entities;
 using Unity.Mathematics;
-using UnityEditor;
 using UnityEngine;
 using VisualPinball.Engine.Game.Engines;
 using VisualPinball.Engine.Math;
@@ -38,7 +36,7 @@ namespace VisualPinball.Unity
 {
 	[AddComponentMenu("Visual Pinball/Game Item/Trigger")]
 	public class TriggerComponent : MainRenderableComponent<TriggerData>,
-		ITriggerComponent, IOnSurfaceComponent, IConvertGameObjectToEntity
+		ITriggerComponent, IOnSurfaceComponent
 	{
 		#region Data
 
@@ -118,28 +116,6 @@ namespace VisualPinball.Unity
 		#endregion
 
 		#region Conversion
-
-		public void Convert(Entity entity, EntityManager dstManager, GameObjectConversionSystem conversionSystem)
-		{
-			Convert(entity, dstManager);
-
-			var collComponent = GetComponentInChildren<TriggerColliderComponent>();
-			var animComponent = GetComponentInChildren<TriggerAnimationComponent>();
-			var meshComponent = GetComponentInChildren<TriggerMeshComponent>();
-			if (collComponent && animComponent && meshComponent) {
-				dstManager.AddComponentData(entity, new TriggerAnimationData());
-				dstManager.AddComponentData(entity, new TriggerMovementData());
-				dstManager.AddComponentData(entity, new TriggerStaticData {
-					AnimSpeed = animComponent.AnimSpeed,
-					Radius = collComponent.HitCircleRadius,
-					Shape = meshComponent.Shape,
-					TableScaleZ = 1f
-				});
-			}
-
-			// register
-			transform.GetComponentInParent<Player>().RegisterTrigger(this, entity);
-		}
 
 		public override IEnumerable<MonoBehaviour> SetData(TriggerData data)
 		{
