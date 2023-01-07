@@ -25,19 +25,19 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using Unity.Entities;
 using UnityEngine;
 using VisualPinball.Engine.Math;
 using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Ramp;
 using VisualPinball.Engine.VPT.Table;
 using MathF = VisualPinball.Engine.Math.MathF;
+using Mesh = VisualPinball.Engine.VPT.Mesh;
 
 namespace VisualPinball.Unity
 {
 	[AddComponentMenu("Visual Pinball/Game Item/Ramp")]
 	public class RampComponent : MainRenderableComponent<RampData>,
-		IRampData, ISurfaceComponent, IConvertGameObjectToEntity
+		IRampData, ISurfaceComponent
 	{
 		#region Data
 
@@ -126,7 +126,7 @@ namespace VisualPinball.Unity
 		public float Height(Vector2 pos) {
 
 			var vVertex = new RampMeshGenerator(this).GetCentralCurve();
-			Engine.VPT.Mesh.ClosestPointOnPolygon(vVertex, new Vertex2D(pos.x, pos.y), false, out var vOut, out var iSeg);
+			Mesh.ClosestPointOnPolygon(vVertex, new Vertex2D(pos.x, pos.y), false, out var vOut, out var iSeg);
 
 			if (iSeg == -1) {
 				return 0.0f; // Object is not on ramp path
@@ -189,14 +189,6 @@ namespace VisualPinball.Unity
 		#endregion
 
 		#region Conversion
-
-		public void Convert(Entity entity, EntityManager dstManager, GameObjectConversionSystem conversionSystem)
-		{
-			Convert(entity, dstManager);
-
-			// register
-			transform.GetComponentInParent<Player>().RegisterRamp(this, entity);
-		}
 
 		public override IEnumerable<MonoBehaviour> SetData(RampData data)
 		{

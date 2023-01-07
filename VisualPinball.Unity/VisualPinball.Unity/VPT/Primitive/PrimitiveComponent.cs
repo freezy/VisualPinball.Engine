@@ -23,7 +23,6 @@
 
 using System;
 using System.Collections.Generic;
-using Unity.Entities;
 using Unity.Mathematics;
 using UnityEngine;
 using VisualPinball.Engine.Math;
@@ -37,7 +36,7 @@ namespace VisualPinball.Unity
 {
 	[AddComponentMenu("Visual Pinball/Game Item/Primitive")]
 	public class PrimitiveComponent : MainRenderableComponent<PrimitiveData>, IMeshGenerator,
-		IRotatableComponent, IConvertGameObjectToEntity
+		IRotatableComponent
 	{
 		#region Data
 
@@ -99,15 +98,6 @@ namespace VisualPinball.Unity
 		#endregion
 
 		#region Conversion
-
-		public void Convert(Entity entity, EntityManager dstManager, GameObjectConversionSystem conversionSystem)
-		{
-			Convert(entity, dstManager);
-
-			// register
-			transform.GetComponentInParent<Player>().RegisterPrimitive(this, entity);
-		}
-
 
 		public override IEnumerable<MonoBehaviour> SetData(PrimitiveData data)
 		{
