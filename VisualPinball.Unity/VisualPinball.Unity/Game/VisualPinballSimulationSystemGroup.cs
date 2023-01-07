@@ -27,7 +27,7 @@ namespace VisualPinball.Unity
 	/// Main physics simulation system, executed once per frame.
 	/// </summary>
 	[UpdateBefore(typeof(TransformSystemGroup))]
-	internal class VisualPinballSimulationSystemGroup : ComponentSystemGroup
+	internal partial class VisualPinballSimulationSystemGroup : ComponentSystemGroup
 	{
 		public double PhysicsDiffTime;
 		public double CurrentPhysicsTime => _currentPhysicsTime * (1.0 / PhysicsConstants.DefaultStepTime);
@@ -102,7 +102,7 @@ namespace VisualPinball.Unity
 
 			while (_currentPhysicsFrameTime < initialTimeUsec) {
 
-				TimeMsec = (uint) (Time.ElapsedTime * 1000);
+				TimeMsec = (uint) (SystemAPI.Time.ElapsedTime * 1000);
 				PhysicsDiffTime = (_nextPhysicsFrameTime - _currentPhysicsFrameTime) * (1.0 / PhysicsConstants.DefaultStepTime);
 
 				// update velocities
@@ -145,7 +145,7 @@ namespace VisualPinball.Unity
 
 			switch (Timing) {
 				case TimingMode.Atleast60:
-					var dt = (ulong)(Time.DeltaTime * 1000000);
+					var dt = (ulong)(SystemAPI.Time.DeltaTime * 1000000);
 					if (_currentPhysicsTime > 0 && dt > dt60fps) {
 						dt = dt60fps;
 					}
@@ -155,7 +155,7 @@ namespace VisualPinball.Unity
 					return _currentPhysicsTime + dt60fps;
 
 				case TimingMode.UnityTime:
-					return (ulong)(Time.ElapsedTime * 1000000);
+					return (ulong)(SystemAPI.Time.ElapsedTime * 1000000);
 
 				case TimingMode.SystemTime:
 					return (ulong) (_time.Elapsed.TotalMilliseconds * 1000);

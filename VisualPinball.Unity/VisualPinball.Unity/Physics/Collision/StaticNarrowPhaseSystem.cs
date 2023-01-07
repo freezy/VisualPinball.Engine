@@ -23,7 +23,7 @@ using VisualPinball.Engine.VPT;
 namespace VisualPinball.Unity
 {
 	[DisableAutoCreation]
-	internal class StaticNarrowPhaseSystem : SystemBase
+	internal partial class StaticNarrowPhaseSystem : SystemBase
 	{
 		public bool CollideAgainstPlayfieldPlane;
 		private SimulateCycleSystemGroup _simulateCycleSystemGroup;

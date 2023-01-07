@@ -20,7 +20,7 @@ using Unity.Profiling;
 namespace VisualPinball.Unity
 {
 	[DisableAutoCreation]
-	internal class DynamicNarrowPhaseSystem : SystemBase
+	internal partial class DynamicNarrowPhaseSystem : SystemBase
 	{
 		private static readonly ProfilerMarker PerfMarker = new ProfilerMarker("DynamicNarrowPhaseSystem");
 		private SimulateCycleSystemGroup _simulateCycleSystemGroup;
@@ -32,7 +32,7 @@ namespace VisualPinball.Unity
 
 		protected override void OnUpdate()
 		{
-			var ballsLookup = GetComponentDataFromEntity<BallData>();
+			var ballsLookup = GetComponentLookup<BallData>();
 			var contacts = _simulateCycleSystemGroup.Contacts;
 
 			var marker = PerfMarker;

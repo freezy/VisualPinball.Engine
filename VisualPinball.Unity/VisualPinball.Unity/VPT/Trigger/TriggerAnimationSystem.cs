@@ -21,7 +21,7 @@ using VisualPinball.Engine.VPT;
 namespace VisualPinball.Unity
 {
 	[UpdateInGroup(typeof(UpdateAnimationsSystemGroup))]
-	internal class TriggerAnimationSystem : SystemBase
+	internal partial class TriggerAnimationSystem : SystemBase
 	{
 		private static readonly ProfilerMarker PerfMarker = new ProfilerMarker("TriggerAnimationSystem");
 
