@@ -34,8 +34,7 @@ using VisualPinball.Engine.VPT.Table;
 namespace VisualPinball.Unity
 {
 	[AddComponentMenu("Visual Pinball/Game Item/Surface")]
-	public class SurfaceComponent : MainRenderableComponent<SurfaceData>,
-		IConvertGameObjectToEntity, ISurfaceComponent
+	public class SurfaceComponent : MainRenderableComponent<SurfaceData>, ISurfaceComponent
 	{
 		#region Data
 
@@ -75,22 +74,6 @@ namespace VisualPinball.Unity
 		#endregion
 
 		#region Conversion
-
-		public void Convert(Entity entity, EntityManager dstManager, GameObjectConversionSystem conversionSystem)
-		{
-			Convert(entity, dstManager);
-
-			// physics collision data
-			var collComponent = GetComponentInChildren<SurfaceColliderComponent>();
-			if (collComponent) {
-				dstManager.AddComponentData(entity, new LineSlingshotData {
-					IsDisabled = false,
-					Threshold = collComponent.SlingshotThreshold,
-				});
-			}
-
-			transform.GetComponentInParent<Player>().RegisterSurface(this, entity);
-		}
 
 		public override IEnumerable<MonoBehaviour> SetData(SurfaceData data)
 		{
