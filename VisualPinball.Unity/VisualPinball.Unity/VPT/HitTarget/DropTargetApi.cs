@@ -81,7 +81,7 @@ namespace VisualPinball.Unity
 				}
 				else {
 					data.MoveDown = false;
-					data.TimeStamp = World.DefaultGameObjectInjectionWorld.GetOrCreateSystem<VisualPinballSimulationSystemGroup>().TimeMsec;
+					data.TimeStamp = World.DefaultGameObjectInjectionWorld.GetOrCreateSystemManaged<VisualPinballSimulationSystemGroup>().TimeMsec;
 				}
 			} else {
 				data.IsDropped = isDropped;

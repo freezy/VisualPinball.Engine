@@ -32,7 +32,7 @@ namespace VisualPinball.Unity
 
 		protected override void OnCreate()
 		{
-			_simulateCycleSystemGroup = World.GetOrCreateSystem<SimulateCycleSystemGroup>();
+			_simulateCycleSystemGroup = World.GetOrCreateSystemManaged<SimulateCycleSystemGroup>();
 			_collDataEntityQuery = EntityManager.CreateEntityQuery(typeof(ColliderData));
 		}
 

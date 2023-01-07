@@ -61,12 +61,12 @@ namespace VisualPinball.Unity
 
 			_time.Start();
 
-			_createBallEntityCommandBufferSystem = World.GetOrCreateSystem<CreateBallEntityCommandBufferSystem>();
-			_velocitiesSystemGroup = World.GetOrCreateSystem<UpdateVelocitiesSystemGroup>();
-			_simulateCycleSystemGroup = World.GetOrCreateSystem<SimulateCycleSystemGroup>();
-			_ballRingCounterSystem = World.GetOrCreateSystem<BallRingCounterSystem>();
-			_updateAnimationsSystemGroup = World.GetOrCreateSystem<UpdateAnimationsSystemGroup>();
-			_transformMeshesSystemGroup = World.GetOrCreateSystem<TransformMeshesSystemGroup>();
+			_createBallEntityCommandBufferSystem = World.GetOrCreateSystemManaged<CreateBallEntityCommandBufferSystem>();
+			_velocitiesSystemGroup = World.GetOrCreateSystemManaged<UpdateVelocitiesSystemGroup>();
+			_simulateCycleSystemGroup = World.GetOrCreateSystemManaged<SimulateCycleSystemGroup>();
+			_ballRingCounterSystem = World.GetOrCreateSystemManaged<BallRingCounterSystem>();
+			_updateAnimationsSystemGroup = World.GetOrCreateSystemManaged<UpdateAnimationsSystemGroup>();
+			_transformMeshesSystemGroup = World.GetOrCreateSystemManaged<TransformMeshesSystemGroup>();
 
 			_systemsToUpdate.Add(_createBallEntityCommandBufferSystem);
 			_systemsToUpdate.Add(_velocitiesSystemGroup);

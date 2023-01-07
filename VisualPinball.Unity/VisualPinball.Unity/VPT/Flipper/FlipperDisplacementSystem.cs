@@ -36,7 +36,7 @@ namespace VisualPinball.Unity
 		protected override void OnCreate()
 		{
 			_player = Object.FindObjectOfType<Player>();
-			_simulateCycleSystemGroup = World.GetOrCreateSystem<SimulateCycleSystemGroup>();
+			_simulateCycleSystemGroup = World.GetOrCreateSystemManaged<SimulateCycleSystemGroup>();
 			_eventQueue = new NativeQueue<EventData>(Allocator.Persistent);
 		}
 
@@ -50,7 +50,7 @@ namespace VisualPinball.Unity
 			var dTime = _simulateCycleSystemGroup.HitTime;
 			var events = _eventQueue.AsParallelWriter();
 			var marker = PerfMarker;
-			var currentTime = Time.ElapsedTime;
+			var currentTime = SystemAPI.Time.ElapsedTime;
 
 			Entities.WithName("FlipperDisplacementJob").ForEach((Entity entity, ref FlipperMovementData state, ref FlipperTricksData tricks, in FlipperStaticData data) => {
 

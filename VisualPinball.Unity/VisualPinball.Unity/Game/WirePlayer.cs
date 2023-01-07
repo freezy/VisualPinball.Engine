@@ -45,7 +45,7 @@ namespace VisualPinball.Unity
 		private InputManager _inputManager;
 		private SwitchPlayer _switchPlayer;
 
-		private static VisualPinballSimulationSystemGroup SimulationSystemGroup => World.DefaultGameObjectInjectionWorld.GetOrCreateSystem<VisualPinballSimulationSystemGroup>();
+		private static VisualPinballSimulationSystemGroup SimulationSystemGroup => World.DefaultGameObjectInjectionWorld.GetOrCreateSystemManaged<VisualPinballSimulationSystemGroup>();
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 		internal Dictionary<string, (bool, float)> WireStatuses { get; } = new Dictionary<string, (bool, float)>();
 
