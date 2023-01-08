@@ -18,8 +18,10 @@ using System.Collections.Generic;
 using Unity.Entities;
 using Unity.Profiling;
 using UnityEngine;
+using VisualPinball.Unity;
+using Physics = UnityEngine.Physics;
 
-namespace VisualPinball.Unity
+namespace VisualPinballUnity
 {
 	[UpdateInGroup(typeof(TransformMeshesSystemGroup))]
 	internal partial class BumperRingMovementSystem : SystemBase
@@ -53,7 +55,7 @@ namespace VisualPinball.Unity
 				var localOffset = localLimit / limit * data.Offset;
 
 				var worldPos = transform.position;
-				worldPos.y = _initialOffset[entity] + Physics.ScaleToWorld(localOffset);
+				worldPos.y = _initialOffset[entity] + VisualPinball.Unity.Physics.ScaleToWorld(localOffset);
 				transform.position = worldPos;
 
 				marker.End();

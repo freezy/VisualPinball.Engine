@@ -28,6 +28,7 @@ using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Primitive;
 using VisualPinball.Engine.VPT.Table;
 using VisualPinball.Unity.Playfield;
+using VisualPinballUnity;
 
 namespace VisualPinball.Unity
 {

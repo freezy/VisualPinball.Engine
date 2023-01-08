@@ -20,8 +20,9 @@ using Unity.Mathematics;
 using Unity.Profiling;
 using UnityEngine;
 using VisualPinball.Engine.Game;
+using VisualPinball.Unity;
 
-namespace VisualPinball.Unity
+namespace VisualPinballUnity
 {
 	[UpdateInGroup(typeof(UpdateDisplacementSystemGroup))]
 	internal partial class GateDisplacementSystem : SystemBase

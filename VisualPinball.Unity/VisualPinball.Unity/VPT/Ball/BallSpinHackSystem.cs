@@ -17,8 +17,9 @@
 using Unity.Entities;
 using Unity.Mathematics;
 using VisualPinball.Engine.Common;
+using VisualPinball.Unity;
 
-namespace VisualPinball.Unity
+namespace VisualPinballUnity
 {
 	[DisableAutoCreation]
 	internal partial class BallSpinHackSystem : SystemBase

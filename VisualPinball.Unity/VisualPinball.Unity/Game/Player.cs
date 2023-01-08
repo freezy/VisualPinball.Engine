@@ -26,6 +26,7 @@ using VisualPinball.Engine.Common;
 using VisualPinball.Engine.Game;
 using VisualPinball.Engine.Game.Engines;
 using VisualPinball.Engine.VPT.Trigger;
+using VisualPinballUnity;
 using Logger = NLog.Logger;
 
 namespace VisualPinball.Unity

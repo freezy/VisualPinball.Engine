@@ -16,8 +16,9 @@
 
 using Unity.Entities;
 using Unity.Profiling;
+using VisualPinball.Unity;
 
-namespace VisualPinball.Unity
+namespace VisualPinballUnity
 {
 	[UpdateInGroup(typeof(UpdateVelocitiesSystemGroup))]
 	internal partial class PlungerVelocitySystem : SystemBase
@@ -148,7 +149,7 @@ namespace VisualPinball.Unity
 					// but we can elide the elapsed time factor because it's
 					// effectively a constant that's implicitly folded into the
 					// pull force value.
-					movementData.Speed += velocityData.PullForce / Engine.VPT.Plunger.Plunger.PlungerMass;
+					movementData.Speed += velocityData.PullForce / VisualPinball.Engine.VPT.Plunger.Plunger.PlungerMass;
 
 					if (!velocityData.AddRetractMotion) {
 						// this is the normal PullBack branch
@@ -311,10 +312,10 @@ namespace VisualPinball.Unity
 					// runs physics frames at roughly 10x the rate of VP 9, so the time
 					// per frame is about 1/10 the VP 9 time.
 					const float plungerFriction = 0.95f;
-					const float normalize = Engine.VPT.Plunger.Plunger.PlungerNormalize / 13.0f / 100.0f;
+					const float normalize = VisualPinball.Engine.VPT.Plunger.Plunger.PlungerNormalize / 13.0f / 100.0f;
 					const float dt = 0.1f;
 					movementData.Speed *= plungerFriction;
-					movementData.Speed += error * staticData.FrameLen * velocityData.MechStrength / Engine.VPT.Plunger.Plunger.PlungerMass * normalize * dt;
+					movementData.Speed += error * staticData.FrameLen * velocityData.MechStrength / VisualPinball.Engine.VPT.Plunger.Plunger.PlungerMass * normalize * dt;
 
 					// add any reverse impulse to the result
 					movementData.Speed += movementData.ReverseImpulse;

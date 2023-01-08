@@ -18,8 +18,10 @@ using System.Collections.Generic;
 using Unity.Entities;
 using Unity.Profiling;
 using UnityEngine;
+using VisualPinball.Unity;
+using Physics = UnityEngine.Physics;
 
-namespace VisualPinball.Unity
+namespace VisualPinballUnity
 {
 	[UpdateInGroup(typeof(TransformMeshesSystemGroup))]
 	internal partial class TriggerMovementSystem : SystemBase
@@ -49,7 +51,7 @@ namespace VisualPinball.Unity
 				}
 
 				var worldPos = transform.position;
-				worldPos.y = _initialOffset[entity] + Physics.ScaleToWorld(data.HeightOffset);
+				worldPos.y = _initialOffset[entity] + VisualPinball.Unity.Physics.ScaleToWorld(data.HeightOffset);
 				transform.position = worldPos;
 
 				marker.End();

@@ -19,6 +19,7 @@ using System.Collections.Generic;
 using NLog;
 using Unity.Entities;
 using UnityEngine;
+using VisualPinballUnity;
 using Logger = NLog.Logger;
 
 #if UNITY_EDITOR

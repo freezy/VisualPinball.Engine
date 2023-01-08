@@ -20,8 +20,9 @@ using Unity.Collections;
 using Unity.Entities;
 using UnityEngine;
 using VisualPinball.Engine.Common;
+using VisualPinball.Unity;
 
-namespace VisualPinball.Unity
+namespace VisualPinballUnity
 {
 	/// <summary>
 	/// The main simulation loop

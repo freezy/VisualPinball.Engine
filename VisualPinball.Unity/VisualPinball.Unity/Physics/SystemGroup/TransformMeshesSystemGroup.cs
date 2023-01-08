@@ -16,7 +16,7 @@
 
 using Unity.Entities;
 
-namespace VisualPinball.Unity
+namespace VisualPinballUnity
 {
 	internal partial class TransformMeshesSystemGroup : ComponentSystemGroup
 	{

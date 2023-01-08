@@ -17,8 +17,9 @@
 using Unity.Entities;
 using Unity.Profiling;
 using VisualPinball.Engine.VPT;
+using VisualPinball.Unity;
 
-namespace VisualPinball.Unity
+namespace VisualPinballUnity
 {
 	[UpdateInGroup(typeof(UpdateAnimationsSystemGroup))]
 	internal partial class TriggerAnimationSystem : SystemBase

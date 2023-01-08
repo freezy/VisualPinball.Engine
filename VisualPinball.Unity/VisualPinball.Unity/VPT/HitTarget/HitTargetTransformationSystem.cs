@@ -17,8 +17,9 @@
 using Unity.Entities;
 using Unity.Profiling;
 using UnityEngine;
+using VisualPinball.Unity;
 
-namespace VisualPinball.Unity
+namespace VisualPinballUnity
 {
 	[UpdateInGroup(typeof(TransformMeshesSystemGroup))]
 	internal partial class HitTargetTransformationSystem : SystemBase
