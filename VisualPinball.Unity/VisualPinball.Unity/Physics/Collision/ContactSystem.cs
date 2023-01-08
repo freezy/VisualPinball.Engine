@@ -20,8 +20,10 @@ using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Profiling;
 using UnityEngine;
+using VisualPinball.Unity;
+using Collider = UnityEngine.Collider;
 
-namespace VisualPinball.Unity
+namespace VisualPinballUnity
 {
 	[DisableAutoCreation]
 	internal partial class ContactSystem : SystemBase
@@ -76,7 +78,7 @@ namespace VisualPinball.Unity
 					if (collEvent.ColliderId > -1) { // collide with static collider
 						ref var coll = ref colliders[collEvent.ColliderId].Value;
 						unsafe {
-							fixed (Collider* collider = &coll) {
+							fixed (VisualPinball.Unity.Collider* collider = &coll) {
 
 								// flipper contact updates movement data
 								if (coll.Type == ColliderType.Flipper) {
@@ -90,7 +92,7 @@ namespace VisualPinball.Unity
 									SetComponent(coll.Entity, flipperMovementData);
 
 								} else {
-									Collider.Contact(ref coll, ref ball, in collEvent, hitTime, in gravity);
+									VisualPinball.Unity.Collider.Contact(ref coll, ref ball, in collEvent, hitTime, in gravity);
 								}
 							}
 						}

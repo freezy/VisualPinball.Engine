@@ -21,7 +21,7 @@ using Unity.Entities;
 using Unity.Transforms;
 using VisualPinball.Engine.Common;
 
-namespace VisualPinball.Unity
+namespace VisualPinballUnity
 {
 	/// <summary>
 	/// Main physics simulation system, executed once per frame.

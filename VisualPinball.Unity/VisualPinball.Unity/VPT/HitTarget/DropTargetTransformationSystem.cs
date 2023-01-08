@@ -17,8 +17,10 @@
 using Unity.Entities;
 using Unity.Profiling;
 using UnityEngine;
+using VisualPinball.Unity;
+using Physics = UnityEngine.Physics;
 
-namespace VisualPinball.Unity
+namespace VisualPinballUnity
 {
 	[UpdateInGroup(typeof(TransformMeshesSystemGroup))]
 	internal partial class DropTargetTransformationSystem : SystemBase
@@ -42,7 +44,7 @@ namespace VisualPinball.Unity
 				var localPos = _player.DropTargetTransforms[entity].localPosition;
 				_player.DropTargetTransforms[entity].localPosition = new Vector3(
 					localPos.x,
-					Physics.ScaleToWorld(data.ZOffset),
+					VisualPinball.Unity.Physics.ScaleToWorld(data.ZOffset),
 					localPos.z
 				);
 

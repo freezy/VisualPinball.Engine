@@ -18,8 +18,9 @@ using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Transforms;
 using UnityEngine;
+using VisualPinball.Unity;
 
-namespace VisualPinball.Unity
+namespace VisualPinballUnity
 {
 	[UpdateBefore(typeof(TransformMeshesSystemGroup))]
 	internal partial class SimulateBuildSystem : SystemBase
