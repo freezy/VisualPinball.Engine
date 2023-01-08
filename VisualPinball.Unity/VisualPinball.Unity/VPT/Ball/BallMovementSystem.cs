@@ -18,8 +18,10 @@ using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Profiling;
 using UnityEngine;
+using VisualPinball.Unity;
+using Physics = UnityEngine.Physics;
 
-namespace VisualPinball.Unity
+namespace VisualPinballUnity
 {
 	[AlwaysSynchronizeSystem]
 	[UpdateInGroup(typeof(TransformMeshesSystemGroup))]
@@ -59,7 +61,7 @@ namespace VisualPinball.Unity
 				// calculate/adapt height of ball
 				var zHeight = !ball.IsFrozen ? ball.Position.z : ball.Position.z - ball.Radius;
 				var ballTransform = _player.Balls[entity].transform;
-				ballTransform.localPosition = Physics.TranslateToWorld(ball.Position.x, ball.Position.y, zHeight);
+				ballTransform.localPosition = VisualPinball.Unity.Physics.TranslateToWorld(ball.Position.x, ball.Position.y, zHeight);
 
 				var or = ball.BallOrientationForUnity;
 

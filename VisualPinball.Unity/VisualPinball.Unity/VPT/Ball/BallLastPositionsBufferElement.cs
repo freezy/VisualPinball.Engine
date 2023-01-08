@@ -17,7 +17,7 @@
 using Unity.Entities;
 using Unity.Mathematics;
 
-namespace VisualPinball.Unity
+namespace VisualPinballUnity
 {
 	/// <summary>
 	/// The ball's last positions

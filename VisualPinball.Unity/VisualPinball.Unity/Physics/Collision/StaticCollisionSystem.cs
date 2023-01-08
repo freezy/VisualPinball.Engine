@@ -21,10 +21,11 @@ using Unity.Collections;
 using Unity.Entities;
 using Unity.Profiling;
 using VisualPinball.Engine.VPT;
+using VisualPinball.Unity;
 using Object = UnityEngine.Object;
 using Random = UnityEngine.Random;
 
-namespace VisualPinball.Unity
+namespace VisualPinballUnity
 {
 	[DisableAutoCreation]
 	internal partial class StaticCollisionSystem : SystemBase

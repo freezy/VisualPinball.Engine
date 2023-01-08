@@ -20,6 +20,7 @@ using Unity.Mathematics;
 using UnityEngine;
 using VisualPinball.Engine.Common;
 using VisualPinball.Engine.Game;
+using VisualPinballUnity;
 using Object = UnityEngine.Object;
 
 namespace VisualPinball.Unity

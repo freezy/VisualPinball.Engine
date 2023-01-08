@@ -19,8 +19,9 @@ using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Profiling;
 using VisualPinball.Engine.VPT;
+using VisualPinball.Unity;
 
-namespace VisualPinball.Unity
+namespace VisualPinballUnity
 {
 	[DisableAutoCreation]
 	internal partial class StaticNarrowPhaseSystem : SystemBase

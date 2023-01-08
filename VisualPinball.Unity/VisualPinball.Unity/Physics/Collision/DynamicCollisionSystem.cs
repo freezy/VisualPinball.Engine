@@ -16,8 +16,9 @@
 
 using Unity.Entities;
 using Unity.Profiling;
+using VisualPinball.Unity;
 
-namespace VisualPinball.Unity
+namespace VisualPinballUnity
 {
 	[DisableAutoCreation]
 	internal partial class DynamicCollisionSystem : SystemBase

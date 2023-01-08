@@ -17,8 +17,9 @@
 using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Profiling;
+using VisualPinball.Unity;
 
-namespace VisualPinball.Unity
+namespace VisualPinballUnity
 {
 	[UpdateInGroup(typeof(UpdateAnimationsSystemGroup))]
 	internal partial class PlungerAnimationSystem : SystemBase

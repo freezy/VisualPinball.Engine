@@ -17,8 +17,9 @@
 using Unity.Collections;
 using Unity.Entities;
 using Unity.Profiling;
+using VisualPinball.Unity;
 
-namespace VisualPinball.Unity
+namespace VisualPinballUnity
 {
 	[UpdateInGroup(typeof(UpdateAnimationsSystemGroup))]
 	internal partial class HitTargetAnimationSystem : SystemBase

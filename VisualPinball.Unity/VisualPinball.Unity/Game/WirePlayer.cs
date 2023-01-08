@@ -21,6 +21,7 @@ using Unity.Entities;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using NLog;
+using VisualPinballUnity;
 using Logger = NLog.Logger;
 
 #if UNITY_EDITOR
