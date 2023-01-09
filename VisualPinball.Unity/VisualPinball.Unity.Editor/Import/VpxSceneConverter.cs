@@ -20,6 +20,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using NLog;
+using Unity.Scenes;
 using UnityEditor;
 using UnityEditor.Formats.Fbx.Exporter;
 using UnityEditor.SceneManagement;
@@ -572,7 +573,23 @@ namespace VisualPinball.Unity.Editor
 					.Replace("%TABLENAME%", _sourceTable.Name)
 					.Replace("%INFONAME%", _sourceContainer.InfoName);
 			}
+			
+			// 1. generate table scene
+			var tableScene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Additive);
+			var scenePath = GetScenePath(tableName);
+			tableScene.name = tableName;
+			EditorSceneManager.SaveScene(tableScene, scenePath);
+			EditorSceneManager.CloseScene(tableScene, true);
 
+			// 2. link table scene as sub scene 
+			var subSceneGo = new GameObject(tableName);
+			var subSceneMb = subSceneGo.AddComponent<SubScene>();
+			var subSceneAsset = AssetDatabase.LoadAssetAtPath<SceneAsset>(scenePath);
+			subSceneMb.SceneAsset = subSceneAsset;
+			tableScene = EditorSceneManager.OpenScene(scenePath);
+			SceneManager.SetActiveScene(tableScene);
+
+			// 3. create game object hierarchy
 			_tableGo = new GameObject(tableName);
 			_playfieldGo = new GameObject("Playfield");
 			var backglassGo = new GameObject("Backglass");
@@ -585,14 +602,28 @@ namespace VisualPinball.Unity.Editor
 			backglassGo.transform.SetParent(_tableGo.transform, false);
 			cabinetGo.transform.SetParent(_tableGo.transform, false);
 
+			// 4. add components
 			_playfieldComponent = _playfieldGo.AddComponent<PlayfieldComponent>();
 			_playfieldGo.AddComponent<PlayfieldColliderComponent>();
 			_playfieldGo.AddComponent<PlayfieldMeshComponent>();
 			_playfieldGo.AddComponent<MeshFilter>();
-			//_playfieldGo.transform.localRotation = PlayfieldComponent.GlobalRotation;
-			//_playfieldGo.transform.localPosition = new Vector3(-_sourceTable.Width / 2 * PlayfieldComponent.GlobalScale, 0f, _sourceTable.Height / 2 * PlayfieldComponent.GlobalScale);
-			//_playfieldGo.transform.localScale = new Vector3(PlayfieldComponent.GlobalScale, PlayfieldComponent.GlobalScale, PlayfieldComponent.GlobalScale);
 			_playfieldComponent.SetData(_sourceTable.Data);
+		}
+
+		private static string GetScenePath(string tableName)
+		{
+			const string sceneRoot = "Assets/Tables/";
+			var i = -1;
+			do {
+				var suffix = i >= 0 ? "." + i.ToString("D3") : "";
+				var scenePath = $"{sceneRoot}{tableName}{suffix}.unity";
+				if (!File.Exists(scenePath)) {
+					return scenePath;
+				}
+				i++;
+			} while (i < 999);
+
+			return null;
 		}
 
 		private GameObject GetGroupParent(IItem item) => GetGroupParent(item.ItemGroupName);

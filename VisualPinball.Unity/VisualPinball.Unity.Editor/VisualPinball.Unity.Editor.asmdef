@@ -8,6 +8,7 @@
         "Unity.Mathematics",
         "Unity.Transforms",
         "Unity.InputSystem",
+        "Unity.Scenes",
         "VisualPinball.Engine",
         "VisualPinball.Unity",
         "VisualPinball.Unity.Patcher"
