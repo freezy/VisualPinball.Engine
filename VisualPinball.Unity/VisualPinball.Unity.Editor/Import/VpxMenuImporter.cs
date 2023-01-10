@@ -20,6 +20,8 @@
 
 using System.IO;
 using UnityEditor;
+using UnityEditor.SceneManagement;
+using UnityEngine.SceneManagement;
 
 namespace VisualPinball.Unity.Editor
 {
@@ -28,6 +30,11 @@ namespace VisualPinball.Unity.Editor
 		[MenuItem("Visual Pinball/Import VPX", false, 2)]
 		public static void ImportVpxIntoScene(MenuCommand menuCommand)
 		{
+			// if it's an untitled scene, save first.
+			if (!EnsureUntitledSceneHasBeenSaved("Before importing, you need to make your current scene an asset by saving it.")) {
+				return;
+			}
+			
 			// open file dialog
 			var vpxPath = EditorUtility.OpenFilePanelWithFilters("Import .VPX File", null, new[] { "Visual Pinball Table Files", "vpx" });
 			if (vpxPath.Length == 0) {
@@ -35,6 +42,26 @@ namespace VisualPinball.Unity.Editor
 			}
 
 			VpxImportEngine.ImportIntoScene(vpxPath, tableName: Path.GetFileNameWithoutExtension(vpxPath));
+		}
+		
+		private static bool EnsureUntitledSceneHasBeenSaved(string message)
+		{
+			if (string.IsNullOrEmpty(SceneManager.GetActiveScene().path)) {
+
+				if (!EditorUtility.DisplayDialog("Info", "Before importing, you need to make your current scene an asset by saving it.\nSave your current scene?", "Yes", "No")) {
+					return false;
+				}
+				
+				// Ask the user to save
+				EditorSceneManager.SaveOpenScenes();
+
+				// Check that the scene was saved
+				if (!string.IsNullOrEmpty(SceneManager.GetActiveScene().path)) {
+					return true;
+				}
+				return false;
+			}
+			return true;
 		}
 	}
 }

@@ -67,6 +67,7 @@ namespace VisualPinball.Unity.Editor
 		private readonly Table _sourceTable;
 		private readonly ConvertOptions _options;
 
+		private Scene _tableScene;
 		private GameObject _tableGo;
 		private TableComponent _tableComponent;
 		private PlayfieldComponent _playfieldComponent;
@@ -168,9 +169,8 @@ namespace VisualPinball.Unity.Editor
 				_patcher?.PostPatch(_tableGo);
 			}
 
-			return _tableGo;
+			return MakeSubScene();
 		}
-
 		private void SaveData()
 		{
 			foreach (var key in _sourceContainer.TableInfo.Keys) {
@@ -574,22 +574,12 @@ namespace VisualPinball.Unity.Editor
 					.Replace("%INFONAME%", _sourceContainer.InfoName);
 			}
 			
-			// 1. generate table scene
-			var tableScene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Additive);
-			var scenePath = GetScenePath(tableName);
-			tableScene.name = tableName;
-			EditorSceneManager.SaveScene(tableScene, scenePath);
-			EditorSceneManager.CloseScene(tableScene, true);
+			// 1. create table scene
+			_tableScene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Additive);
+			_tableScene.name = tableName;
+			SceneManager.SetActiveScene(_tableScene);
 
-			// 2. link table scene as sub scene 
-			var subSceneGo = new GameObject(tableName);
-			var subSceneMb = subSceneGo.AddComponent<SubScene>();
-			var subSceneAsset = AssetDatabase.LoadAssetAtPath<SceneAsset>(scenePath);
-			subSceneMb.SceneAsset = subSceneAsset;
-			tableScene = EditorSceneManager.OpenScene(scenePath);
-			SceneManager.SetActiveScene(tableScene);
-
-			// 3. create game object hierarchy
+			// 2. create game object hierarchy
 			_tableGo = new GameObject(tableName);
 			_playfieldGo = new GameObject("Playfield");
 			var backglassGo = new GameObject("Backglass");
@@ -602,12 +592,28 @@ namespace VisualPinball.Unity.Editor
 			backglassGo.transform.SetParent(_tableGo.transform, false);
 			cabinetGo.transform.SetParent(_tableGo.transform, false);
 
-			// 4. add components
+			// 3. add components
 			_playfieldComponent = _playfieldGo.AddComponent<PlayfieldComponent>();
 			_playfieldGo.AddComponent<PlayfieldColliderComponent>();
 			_playfieldGo.AddComponent<PlayfieldMeshComponent>();
 			_playfieldGo.AddComponent<MeshFilter>();
 			_playfieldComponent.SetData(_sourceTable.Data);
+		}
+		
+		private GameObject MakeSubScene()
+		{
+			var sceneName = _tableScene.name;
+			var scenePath = GetScenePath(sceneName);
+			EditorSceneManager.SaveScene(_tableScene, scenePath);
+			EditorSceneManager.CloseScene(_tableScene, true);
+
+			// link table scene as sub scene 
+			var subSceneGo = new GameObject(sceneName);
+			var subSceneMb = subSceneGo.AddComponent<SubScene>();
+			var subSceneAsset = AssetDatabase.LoadAssetAtPath<SceneAsset>(scenePath);
+			subSceneMb.SceneAsset = subSceneAsset;
+
+			return subSceneGo;
 		}
 
 		private static string GetScenePath(string tableName)
