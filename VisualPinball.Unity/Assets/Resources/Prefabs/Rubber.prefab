@@ -13,7 +13,6 @@ GameObject:
   - component: {fileID: -4932743686767062960}
   - component: {fileID: 3941825256112358932}
   - component: {fileID: 4392546155774236836}
-  - component: {fileID: 171621741425913877}
   m_Layer: 0
   m_Name: Rubber
   m_TagString: Untagged
@@ -31,6 +30,7 @@ Transform:
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
   m_RootOrder: 0
@@ -52,7 +52,6 @@ MonoBehaviour:
   _editorLayerName: 
   _editorLayerVisibility: 1
   _height: 25
-  _hitHeight: 25
   _thickness: 8
   Rotation: {x: 0, y: 0, z: 0}
   _dragPoints: []
@@ -72,6 +71,7 @@ MonoBehaviour:
   ShowColliderMesh: 1
   ShowAabbs: 0
   HitEvent: 0
+  HitHeight: 25
   OverwritePhysics: 0
   Elasticity: 0
   ElasticityFalloff: 0
@@ -89,6 +89,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bd020e551a441b14da4e1491aa555bac, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _instanceID: 46272
 --- !u!33 &4392546155774236836
 MeshFilter:
   m_ObjectHideFlags: 0
@@ -97,16 +98,3 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 5446999501863086646}
   m_Mesh: {fileID: 0}
---- !u!114 &171621741425913877
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5446999501863086646}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: ea7d7495833204790ba1d3a8755397f8, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  ConversionMode: 1

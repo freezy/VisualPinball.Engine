@@ -13,7 +13,6 @@ GameObject:
   - component: {fileID: 8623744740865740302}
   - component: {fileID: -1370878250268705008}
   - component: {fileID: 9164173217974165609}
-  - component: {fileID: 4695815590852492947}
   m_Layer: 0
   m_Name: Primitive
   m_TagString: Untagged
@@ -31,6 +30,7 @@ Transform:
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
   m_RootOrder: 0
@@ -47,80 +47,16 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 151fb873f4d60994e8bde3aff9af4ca2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _data:
-    StoragePrefix: 0
-    StorageIndex: -1
-    IsLocked: 0
-    EditorLayerName: 
-    EditorLayerVisibility: 1
-    Name: 
-    Position:
-      X: 0
-      Y: 0
-      Z: 0
-    Size:
-      X: 100
-      Y: 100
-      Z: 100
-    NumVertices: 0
-    CompressedVertices: 0
-    NumIndices: 0
-    CompressedIndices: 0
-    CompressedAnimationVertices: 
-    Mesh:
-      Name: 
-      Vertices: []
-      Indices: 
-      AnimationDefaultPosition: 0
-    RotAndTra:
-    - 0
-    - 0
-    - 0
-    - 0
-    - 0
-    - 0
-    - 0
-    - 0
-    - 0
-    Image: 
-    NormalMap: 
-    Sides: 4
-    Material: 
-    SideColor:
-      Red: 0
-      Green: 0
-      Blue: 0
-      Alpha: 0
-    IsVisible: 1
-    IsReflectionEnabled: 1
-    DrawTexturesInside: 0
-    HitEvent: 1
-    Threshold: 2
-    Elasticity: 0.3
-    ElasticityFalloff: 0.5
-    Friction: 0.3
-    Scatter: 0
-    EdgeFactorUi: 0.25
-    CollisionReductionFactor: 0
-    IsCollidable: 1
-    IsToy: 0
-    PhysicsMaterial: 
-    OverwritePhysics: 1
-    StaticRendering: 1
-    DisableLightingTop: 0
-    DisableLightingBelow: 0
-    Use3DMesh: 0
-    BackfacesEnabled: 0
-    DisplayTexture: 0
-    ObjectSpaceNormalMap: 0
-    MeshFileName: 
-    DepthBias: 0
+  _isLocked: 0
+  _editorLayer: 0
+  _editorLayerName: 
+  _editorLayerVisibility: 1
   Position: {x: 0, y: 0, z: 0}
   Rotation: {x: 0, y: 0, z: 0}
   Size: {x: 1, y: 1, z: 1}
   Translation: {x: 0, y: 0, z: 0}
   ObjectRotation: {x: 0, y: 0, z: 0}
-  StaticRendering: 1
+  _originalRotateZ: 0
 --- !u!114 &8623744740865740302
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -134,7 +70,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   PhysicsMaterial: {fileID: 0}
-  ShowColliderMesh: 0
+  ShowColliderMesh: 1
   ShowAabbs: 0
   HitEvent: 1
   Threshold: 2
@@ -156,7 +92,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 882edbbe53953ef4ab3b3f846c4a5d9a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _meshCreated: 1
+  _instanceID: 46174
   UseLegacyMesh: 0
   Sides: 4
 --- !u!33 &9164173217974165609
@@ -167,16 +103,3 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 5926445367393707725}
   m_Mesh: {fileID: 0}
---- !u!114 &4695815590852492947
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5926445367393707725}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: ea7d7495833204790ba1d3a8755397f8, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  ConversionMode: 1

@@ -28,6 +28,7 @@ Transform:
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 2261584146745169539}
   m_RootOrder: 1
@@ -44,6 +45,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ed6ad111d870e3b43a828b6086c08607, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _instanceID: 46404
 --- !u!33 &6530115296024031604
 MeshFilter:
   m_ObjectHideFlags: 0
@@ -63,7 +65,6 @@ GameObject:
   - component: {fileID: 2261584146745169539}
   - component: {fileID: 4363410533903828279}
   - component: {fileID: 7807490122124131058}
-  - component: {fileID: -3256406434667294810}
   m_Layer: 0
   m_Name: Surface
   m_TagString: Untagged
@@ -81,6 +82,7 @@ Transform:
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 7705994926884342426}
   - {fileID: 3323324628286901197}
@@ -131,19 +133,6 @@ MonoBehaviour:
   ElasticityFalloff: 0
   Friction: 0.3
   Scatter: 0
---- !u!114 &-3256406434667294810
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4322651706312387308}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: ea7d7495833204790ba1d3a8755397f8, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  ConversionMode: 1
 --- !u!1 &8320692886569796201
 GameObject:
   m_ObjectHideFlags: 0
@@ -172,6 +161,7 @@ Transform:
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 2261584146745169539}
   m_RootOrder: 0
@@ -188,6 +178,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 75abfb7d4ccc1b14bb10b53cb3f60574, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _instanceID: 46410
 --- !u!33 &6035808683100513115
 MeshFilter:
   m_ObjectHideFlags: 0
