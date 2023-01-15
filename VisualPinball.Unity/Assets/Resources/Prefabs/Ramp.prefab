@@ -28,6 +28,7 @@ Transform:
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 3438007474298596154}
   m_RootOrder: 0
@@ -44,7 +45,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 96191c0bd78913d4da1df786720fbffd, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _meshCreated: 1
+  _instanceID: 46210
 --- !u!33 &2139504653030743311
 MeshFilter:
   m_ObjectHideFlags: 0
@@ -64,7 +65,6 @@ GameObject:
   - component: {fileID: 3438007474298596154}
   - component: {fileID: -2655459220674085019}
   - component: {fileID: -7808509646302655205}
-  - component: {fileID: 1745434368933653034}
   m_Layer: 0
   m_Name: Ramp
   m_TagString: Untagged
@@ -82,6 +82,7 @@ Transform:
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 6727185824501835254}
   - {fileID: 424251909686763979}
@@ -101,56 +102,21 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a5ac226119aa7a6458cda67c68713b3a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _data:
-    StoragePrefix: 0
-    StorageIndex: -1
-    IsLocked: 0
-    EditorLayerName: 
-    EditorLayerVisibility: 1
-    Name: 
-    DepthBias: 0
-    DragPoints: []
-    Elasticity: 0
-    Friction: 0
-    HitEvent: 0
-    HeightBottom: 0
-    HeightTop: 50
-    ImageAlignment: 0
-    ImageWalls: 1
-    IsCollidable: 1
-    IsReflectionEnabled: 1
-    IsVisible: 1
-    LeftWallHeight: 62
-    LeftWallHeightVisible: 30
-    OverwritePhysics: 1
-    RampType: 0
-    RightWallHeight: 62
-    RightWallHeightVisible: 30
-    Scatter: 0
-    Image: 
-    Material: 
-    PhysicsMaterial: 
-    Threshold: 0
-    WidthBottom: 75
-    WidthTop: 60
-    WireDiameter: 8
-    WireDistanceX: 38
-    WireDistanceY: 88
-    IsTimerEnabled: 0
-    TimerInterval: 0
-    Points: 0
-  Type: 0
-  HeightBottom: 0
-  HeightTop: 50
-  ImageAlignment: 0
-  ImageWalls: 1
-  LeftWallHeightVisible: 30
-  RightWallHeightVisible: 30
-  WidthBottom: 75
-  WidthTop: 60
-  WireDiameter: 8
-  WireDistanceX: 38
-  WireDistanceY: 88
+  _isLocked: 0
+  _editorLayer: 0
+  _editorLayerName: 
+  _editorLayerVisibility: 1
+  _type: 0
+  _heightBottom: 0
+  _heightTop: 50
+  _imageAlignment: 0
+  _leftWallHeightVisible: 30
+  _rightWallHeightVisible: 30
+  _widthBottom: 75
+  _widthTop: 60
+  _wireDiameter: 8
+  _wireDistanceX: 38
+  _wireDistanceY: 88
   _dragPoints: []
 --- !u!114 &-7808509646302655205
 MonoBehaviour:
@@ -165,29 +131,16 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   PhysicsMaterial: {fileID: 0}
-  ShowColliderMesh: 0
+  ShowColliderMesh: 1
   ShowAabbs: 0
+  HitEvent: 0
+  Threshold: 0
   LeftWallHeight: 62
   RightWallHeight: 62
+  OverwritePhysics: 1
   Elasticity: 0
   Friction: 0
-  HitEvent: 0
-  OverwritePhysics: 1
   Scatter: 0
-  Threshold: 0
---- !u!114 &1745434368933653034
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 350393708356709200}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: ea7d7495833204790ba1d3a8755397f8, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  ConversionMode: 1
 --- !u!1 &378628362425001625
 GameObject:
   m_ObjectHideFlags: 0
@@ -216,6 +169,7 @@ Transform:
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 3438007474298596154}
   m_RootOrder: 1
@@ -232,7 +186,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4f415a8bce1d6404e914122b72e420ca, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _meshCreated: 1
+  _instanceID: 46220
 --- !u!33 &7529751573154737776
 MeshFilter:
   m_ObjectHideFlags: 0
@@ -269,6 +223,7 @@ Transform:
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 3438007474298596154}
   m_RootOrder: 2
@@ -285,7 +240,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fb775e2709cbb994e8b981aad06a08c2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _meshCreated: 1
+  _instanceID: 46218
 --- !u!33 &5184614959798449138
 MeshFilter:
   m_ObjectHideFlags: 0

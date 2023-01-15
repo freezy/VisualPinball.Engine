@@ -11,7 +11,6 @@ GameObject:
   - component: {fileID: 8936098568141045026}
   - component: {fileID: 197865258511769274}
   - component: {fileID: 1813312543483188556}
-  - component: {fileID: 558255656085877858}
   m_Layer: 0
   m_Name: Bumper (Builtin)
   m_TagString: Untagged
@@ -78,19 +77,6 @@ MonoBehaviour:
   Force: 15
   Scatter: 0
   HitEvent: 1
---- !u!114 &558255656085877858
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 642515788050218447}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: ea7d7495833204790ba1d3a8755397f8, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  ConversionMode: 1
 --- !u!1 &2782857395794746971
 GameObject:
   m_ObjectHideFlags: 0

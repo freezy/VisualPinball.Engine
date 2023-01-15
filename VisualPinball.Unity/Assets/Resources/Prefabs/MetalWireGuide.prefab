@@ -13,7 +13,6 @@ GameObject:
   - component: {fileID: 2107529826525245329}
   - component: {fileID: -3250516992663423584}
   - component: {fileID: 4392546155774236836}
-  - component: {fileID: 171621741425913877}
   m_Layer: 0
   m_Name: MetalWireGuide
   m_TagString: Untagged
@@ -54,7 +53,9 @@ MonoBehaviour:
   _editorLayerVisibility: 1
   _height: 25
   _thickness: 8
+  _standheight: 30
   Rotation: {x: 0, y: 0, z: 0}
+  _bendradius: 8
   _dragPoints: []
 --- !u!114 &2107529826525245329
 MonoBehaviour:
@@ -90,6 +91,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bcc8f0e761a7bc145abb5a6f918953aa, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _instanceID: 46096
 --- !u!33 &4392546155774236836
 MeshFilter:
   m_ObjectHideFlags: 0
@@ -98,16 +100,3 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 5446999501863086646}
   m_Mesh: {fileID: 0}
---- !u!114 &171621741425913877
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5446999501863086646}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: ea7d7495833204790ba1d3a8755397f8, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  ConversionMode: 1
