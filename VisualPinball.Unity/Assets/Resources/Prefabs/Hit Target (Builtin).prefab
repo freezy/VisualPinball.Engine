@@ -14,7 +14,6 @@ GameObject:
   - component: {fileID: 2121126026550932934}
   - component: {fileID: 8307013672536159350}
   - component: {fileID: 16544014384142367}
-  - component: {fileID: 531720702824142340}
   m_Layer: 0
   m_Name: Hit Target (Builtin)
   m_TagString: Untagged
@@ -32,6 +31,7 @@ Transform:
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
   m_RootOrder: 0
@@ -56,7 +56,7 @@ MonoBehaviour:
   Rotation: 0
   Size: {x: 32, y: 32, z: 32}
   _targetType: 1
-  MeshName: 
+  _meshName: 
 --- !u!114 &-1267520440965682989
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -76,10 +76,8 @@ MonoBehaviour:
   ElasticityFalloff: 0.5
   Friction: 0.2
   Scatter: 5
-  IsLegacy: 0
   OverwritePhysics: 1
   Threshold: 2
-  UseHitEvent: 1
 --- !u!114 &2121126026550932934
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -113,6 +111,7 @@ MeshRenderer:
   m_CastShadows: 1
   m_ReceiveShadows: 1
   m_DynamicOccludee: 1
+  m_StaticShadowCaster: 0
   m_MotionVectors: 1
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
@@ -143,16 +142,3 @@ MeshRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_AdditionalVertexStreams: {fileID: 0}
---- !u!114 &531720702824142340
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4811490838886355864}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: ea7d7495833204790ba1d3a8755397f8, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  ConversionMode: 1
