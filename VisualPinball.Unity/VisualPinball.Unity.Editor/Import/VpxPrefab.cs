@@ -45,9 +45,9 @@ namespace VisualPinball.Unity.Editor
 			GameObject = PrefabUtility.InstantiatePrefab(prefab) as GameObject;
 			GameObject!.name = item.Name;
 			_mainComponent = GameObject.GetComponent<TMainComponent>();
-			if (_mainComponent && _mainComponent.HasProceduralMesh) {
-				PrefabUtility.UnpackPrefabInstance(GameObject, PrefabUnpackMode.OutermostRoot, InteractionMode.AutomatedAction);
-			}
+			// if (_mainComponent && _mainComponent.HasProceduralMesh) {
+			// 	PrefabUtility.UnpackPrefabInstance(GameObject, PrefabUnpackMode.OutermostRoot, InteractionMode.AutomatedAction);
+			// }
 		}
 
 		public void SetData()
