@@ -575,9 +575,9 @@ namespace VisualPinball.Unity.Editor
 			}
 			
 			// 1. create table scene
-			_tableScene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Additive);
-			_tableScene.name = tableName;
-			SceneManager.SetActiveScene(_tableScene);
+			// _tableScene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Additive);
+			// _tableScene.name = tableName;
+			// SceneManager.SetActiveScene(_tableScene);
 
 			// 2. create game object hierarchy
 			_tableGo = new GameObject(tableName);
@@ -602,18 +602,20 @@ namespace VisualPinball.Unity.Editor
 		
 		private GameObject MakeSubScene()
 		{
-			var sceneName = _tableScene.name;
-			var scenePath = GetScenePath(sceneName);
-			EditorSceneManager.SaveScene(_tableScene, scenePath);
-			EditorSceneManager.CloseScene(_tableScene, true);
+			// var sceneName = _tableScene.name;
+			// var scenePath = GetScenePath(sceneName);
+			// EditorSceneManager.SaveScene(_tableScene, scenePath);
+			// EditorSceneManager.CloseScene(_tableScene, true);
+			//
+			// // link table scene as sub scene 
+			// var subSceneGo = new GameObject(sceneName);
+			// var subSceneMb = subSceneGo.AddComponent<SubScene>();
+			// var subSceneAsset = AssetDatabase.LoadAssetAtPath<SceneAsset>(scenePath);
+			// subSceneMb.SceneAsset = subSceneAsset;
+			//
+			// return subSceneGo;
 
-			// link table scene as sub scene 
-			var subSceneGo = new GameObject(sceneName);
-			var subSceneMb = subSceneGo.AddComponent<SubScene>();
-			var subSceneAsset = AssetDatabase.LoadAssetAtPath<SceneAsset>(scenePath);
-			subSceneMb.SceneAsset = subSceneAsset;
-
-			return subSceneGo;
+			return _tableGo;
 		}
 
 		private static string GetScenePath(string tableName)
