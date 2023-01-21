@@ -58,68 +58,69 @@ namespace VisualPinball.Unity
 		{
 			var fc = colliderComponent.FlipperCorrection;
 
-				// create trigger
-				var triggerData = CreateCorrectionTriggerData(authoring);
-				var triggerEntity = CreateAdditionalEntity();
-				AddComponent(triggerEntity, new TriggerStaticData());
-				player.RegisterTrigger(triggerData, triggerEntity, authoring.gameObject);
+			// create trigger
+			var triggerData = CreateCorrectionTriggerData(authoring);
+			var triggerEntity = CreateAdditionalEntity();
+			AddComponent(triggerEntity, new TriggerStaticData());
+			// todo add proper colliders
+			//player.RegisterTrigger(triggerData, triggerEntity, authoring.gameObject);
 
-				using (var builder = new BlobBuilder(Allocator.Temp)) {
+			using (var builder = new BlobBuilder(Allocator.Temp)) {
 
-					ref var root = ref builder.ConstructRoot<FlipperCorrectionBlob>();
-					root.FlipperEntity = GetEntity();
-					root.TimeDelayMs = fc.TimeThresholdMs;
+				ref var root = ref builder.ConstructRoot<FlipperCorrectionBlob>();
+				root.FlipperEntity = GetEntity();
+				root.TimeDelayMs = fc.TimeThresholdMs;
 
-					// Discretize the curves
-					var polarities = builder.Allocate(ref root.Polarities, fc.PolaritiesCurveSlicingCount + 1);
-					if (fc.Polarities != null)
+				// Discretize the curves
+				var polarities = builder.Allocate(ref root.Polarities, fc.PolaritiesCurveSlicingCount + 1);
+				if (fc.Polarities != null)
+				{
+					var curve = fc.Polarities;
+					float stepP = (curve[curve.length - 1].time - curve[0].time) / fc.PolaritiesCurveSlicingCount;
+					int i = 0;
+					for (var t = curve[0].time; t <= curve[curve.length - 1].time; t += stepP)
 					{
-						var curve = fc.Polarities;
-						float stepP = (curve[curve.length - 1].time - curve[0].time) / fc.PolaritiesCurveSlicingCount;
-						int i = 0;
-						for (var t = curve[0].time; t <= curve[curve.length - 1].time; t += stepP)
-						{
-							polarities[i].x = t;
-							polarities[i++].y = curve.Evaluate(t);
-						}
+						polarities[i].x = t;
+						polarities[i++].y = curve.Evaluate(t);
 					}
-					else
-					{
-						for (int i = 0; i < fc.PolaritiesCurveSlicingCount + 1; i++)
-						{
-							polarities[i].x = i / (float)fc.PolaritiesCurveSlicingCount;
-							polarities[i].y = 0F;
-						}
-					}
-
-					var velocities = builder.Allocate(ref root.Velocities, fc.VelocitiesCurveSlicingCount + 1);
-					if (fc.Velocities != null)
-					{
-						var curve = fc.Velocities;
-						float stepP = (curve[curve.length - 1].time - curve[0].time) / fc.VelocitiesCurveSlicingCount;
-						int i = 0;
-						for (var t = curve[0].time; t <= curve[curve.length - 1].time; t += stepP)
-						{
-							velocities[i].x = t;
-							velocities[i++].y = curve.Evaluate(t);
-						}
-					}
-					else
-					{
-						for (int i = 0; i < fc.VelocitiesCurveSlicingCount + 1; i++)
-						{
-							velocities[i].x = i / (float)fc.PolaritiesCurveSlicingCount;
-							velocities[i].y = 1F;
-						}
-					}
-
-					var blobAssetRef = builder.CreateBlobAssetReference<FlipperCorrectionBlob>(Allocator.Persistent);
-
-					// add correction data
-					AddComponent(triggerEntity, new FlipperCorrectionData {
-						Value = blobAssetRef
-					});
 				}
+				else
+				{
+					for (int i = 0; i < fc.PolaritiesCurveSlicingCount + 1; i++)
+					{
+						polarities[i].x = i / (float)fc.PolaritiesCurveSlicingCount;
+						polarities[i].y = 0F;
+					}
+				}
+
+				var velocities = builder.Allocate(ref root.Velocities, fc.VelocitiesCurveSlicingCount + 1);
+				if (fc.Velocities != null)
+				{
+					var curve = fc.Velocities;
+					float stepP = (curve[curve.length - 1].time - curve[0].time) / fc.VelocitiesCurveSlicingCount;
+					int i = 0;
+					for (var t = curve[0].time; t <= curve[curve.length - 1].time; t += stepP)
+					{
+						velocities[i].x = t;
+						velocities[i++].y = curve.Evaluate(t);
+					}
+				}
+				else
+				{
+					for (int i = 0; i < fc.VelocitiesCurveSlicingCount + 1; i++)
+					{
+						velocities[i].x = i / (float)fc.PolaritiesCurveSlicingCount;
+						velocities[i].y = 1F;
+					}
+				}
+
+				var blobAssetRef = builder.CreateBlobAssetReference<FlipperCorrectionBlob>(Allocator.Persistent);
+
+				// add correction data
+				AddComponent(triggerEntity, new FlipperCorrectionData {
+					Value = blobAssetRef
+				});
+			}
 		}
 		
 		public TriggerData CreateCorrectionTriggerData(FlipperComponent authoring)
