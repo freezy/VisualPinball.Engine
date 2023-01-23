@@ -19,12 +19,13 @@ using Unity.Entities;
 using Unity.Profiling;
 using UnityEngine;
 using VisualPinball.Unity;
+using VisualPinball.Unity.VisualPinball.Unity.Game;
 using Physics = UnityEngine.Physics;
 
 namespace VisualPinballUnity
 {
 	[UpdateInGroup(typeof(TransformMeshesSystemGroup))]
-	internal partial class TriggerMovementSystem : SystemBase
+	internal partial class TriggerMovementSystem : SystemBaseStub
 	{
 		private static readonly ProfilerMarker PerfMarker = new ProfilerMarker("TriggerMovementSystem");
 

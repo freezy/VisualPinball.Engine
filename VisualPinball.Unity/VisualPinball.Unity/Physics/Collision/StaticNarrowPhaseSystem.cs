@@ -20,11 +20,12 @@ using Unity.Mathematics;
 using Unity.Profiling;
 using VisualPinball.Engine.VPT;
 using VisualPinball.Unity;
+using VisualPinball.Unity.VisualPinball.Unity.Game;
 
 namespace VisualPinballUnity
 {
 	[DisableAutoCreation]
-	internal partial class StaticNarrowPhaseSystem : SystemBase
+	internal partial class StaticNarrowPhaseSystem : SystemBaseStub
 	{
 		public bool CollideAgainstPlayfieldPlane;
 		private SimulateCycleSystemGroup _simulateCycleSystemGroup;

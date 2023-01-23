@@ -19,11 +19,12 @@ using Unity.Mathematics;
 using Unity.Profiling;
 using UnityEngine;
 using VisualPinball.Unity;
+using VisualPinball.Unity.VisualPinball.Unity.Game;
 
 namespace VisualPinballUnity
 {
 	[UpdateInGroup(typeof(TransformMeshesSystemGroup))]
-	internal partial class BumperSkirtMovementSystem : SystemBase
+	internal partial class BumperSkirtMovementSystem : SystemBaseStub
 	{
 		private static readonly ProfilerMarker PerfMarker = new ProfilerMarker("BumperSkirtMovementSystem");
 

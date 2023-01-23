@@ -21,12 +21,13 @@ using Unity.Mathematics;
 using Unity.Profiling;
 using VisualPinball.Engine.Common;
 using VisualPinball.Unity;
+using VisualPinball.Unity.VisualPinball.Unity.Game;
 
 namespace VisualPinballUnity
 {
 	[AlwaysSynchronizeSystem]
 	[UpdateInGroup(typeof(UpdateVelocitiesSystemGroup))]
-	internal partial class FlipperVelocitySystem : SystemBase
+	internal partial class FlipperVelocitySystem : SystemBaseStub
 	{
 		private static readonly ProfilerMarker PerfMarker = new ProfilerMarker("FlipperVelocitySystem");
 

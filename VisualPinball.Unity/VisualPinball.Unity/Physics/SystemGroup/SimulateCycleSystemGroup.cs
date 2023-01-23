@@ -77,25 +77,26 @@ namespace VisualPinballUnity
 			_flipperDataQuery = EntityManager.CreateEntityQuery(ComponentType.ReadOnly<FlipperMovementData>(), ComponentType.ReadOnly<FlipperStaticData>());
 			_collisionEventDataQuery = EntityManager.CreateEntityQuery(ComponentType.ReadOnly<CollisionEventData>());
 
-			_simulationSystemGroup = World.GetExistingSystemManaged<VisualPinballSimulationSystemGroup>();
-			_staticBroadPhaseSystem = World.GetExistingSystemManaged<StaticBroadPhaseSystem>();
-			_dynamicBroadPhaseSystem = World.GetExistingSystemManaged<DynamicBroadPhaseSystem>();
-			_staticNarrowPhaseSystem = World.GetExistingSystemManaged<StaticNarrowPhaseSystem>();
-			_dynamicNarrowPhaseSystem = World.GetExistingSystemManaged<DynamicNarrowPhaseSystem>();
-			_displacementSystemGroup = World.GetExistingSystemManaged<UpdateDisplacementSystemGroup>();
-			_staticCollisionSystem = World.GetExistingSystemManaged<StaticCollisionSystem>();
-			_dynamicCollisionSystem = World.GetExistingSystemManaged<DynamicCollisionSystem>();
-			_contactSystem = World.GetExistingSystemManaged<ContactSystem>();
-			_ballSpinHackSystem = World.GetExistingSystemManaged<BallSpinHackSystem>();
-			_systemsToUpdate.Add(_staticBroadPhaseSystem);
-			_systemsToUpdate.Add(_dynamicBroadPhaseSystem);
-			_systemsToUpdate.Add(_staticNarrowPhaseSystem);
-			_systemsToUpdate.Add(_dynamicNarrowPhaseSystem);
-			_systemsToUpdate.Add(_displacementSystemGroup);
-			_systemsToUpdate.Add(_staticCollisionSystem);
-			_systemsToUpdate.Add(_dynamicCollisionSystem);
-			_systemsToUpdate.Add(_contactSystem);
-			_systemsToUpdate.Add(_ballSpinHackSystem);
+			// todo re-enable systems
+			// _simulationSystemGroup = World.GetExistingSystemManaged<VisualPinballSimulationSystemGroup>();
+			// _staticBroadPhaseSystem = World.GetExistingSystemManaged<StaticBroadPhaseSystem>();
+			// _dynamicBroadPhaseSystem = World.GetExistingSystemManaged<DynamicBroadPhaseSystem>();
+			// _staticNarrowPhaseSystem = World.GetExistingSystemManaged<StaticNarrowPhaseSystem>();
+			// _dynamicNarrowPhaseSystem = World.GetExistingSystemManaged<DynamicNarrowPhaseSystem>();
+			// _displacementSystemGroup = World.GetExistingSystemManaged<UpdateDisplacementSystemGroup>();
+			// _staticCollisionSystem = World.GetExistingSystemManaged<StaticCollisionSystem>();
+			// _dynamicCollisionSystem = World.GetExistingSystemManaged<DynamicCollisionSystem>();
+			// _contactSystem = World.GetExistingSystemManaged<ContactSystem>();
+			// _ballSpinHackSystem = World.GetExistingSystemManaged<BallSpinHackSystem>();
+			// _systemsToUpdate.Add(_staticBroadPhaseSystem);
+			// _systemsToUpdate.Add(_dynamicBroadPhaseSystem);
+			// _systemsToUpdate.Add(_staticNarrowPhaseSystem);
+			// _systemsToUpdate.Add(_dynamicNarrowPhaseSystem);
+			// _systemsToUpdate.Add(_displacementSystemGroup);
+			// _systemsToUpdate.Add(_staticCollisionSystem);
+			// _systemsToUpdate.Add(_dynamicCollisionSystem);
+			// _systemsToUpdate.Add(_contactSystem);
+			// _systemsToUpdate.Add(_ballSpinHackSystem);
 
 			Contacts = new NativeList<ContactBufferElement>(Allocator.Persistent);
 		}

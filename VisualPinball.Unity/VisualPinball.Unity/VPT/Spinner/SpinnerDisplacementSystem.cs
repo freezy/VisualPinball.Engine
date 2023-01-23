@@ -23,11 +23,12 @@ using Unity.Profiling;
 using UnityEngine;
 using VisualPinball.Engine.Game;
 using VisualPinball.Unity;
+using VisualPinball.Unity.VisualPinball.Unity.Game;
 
 namespace VisualPinballUnity
 {
 	[UpdateInGroup(typeof(UpdateDisplacementSystemGroup))]
-	internal partial class SpinnerDisplacementSystem : SystemBase
+	internal partial class SpinnerDisplacementSystem : SystemBaseStub
 	{
 		private Player _player;
 		private SimulateCycleSystemGroup _simulateCycleSystemGroup;

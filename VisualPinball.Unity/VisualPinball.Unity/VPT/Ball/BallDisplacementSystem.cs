@@ -19,11 +19,12 @@ using Unity.Mathematics;
 using Unity.Profiling;
 using UnityEngine;
 using VisualPinball.Unity;
+using VisualPinball.Unity.VisualPinball.Unity.Game;
 
 namespace VisualPinballUnity
 {
 	[UpdateInGroup(typeof(UpdateDisplacementSystemGroup))]
-	internal partial class BallDisplacementSystem : SystemBase
+	internal partial class BallDisplacementSystem : SystemBaseStub
 	{
 		private SimulateCycleSystemGroup _simulateCycleSystemGroup;
 

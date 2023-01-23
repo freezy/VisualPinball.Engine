@@ -20,11 +20,12 @@ using Unity.Profiling;
 using UnityEngine;
 using VisualPinball.Engine.Game;
 using VisualPinball.Unity;
+using VisualPinball.Unity.VisualPinball.Unity.Game;
 
 namespace VisualPinballUnity
 {
 	[UpdateInGroup(typeof(UpdateAnimationsSystemGroup))]
-	internal partial class DropTargetAnimationSystem : SystemBase
+	internal partial class DropTargetAnimationSystem : SystemBaseStub
 	{
 		private Player _player;
 		private VisualPinballSimulationSystemGroup _visualPinballSimulationSystemGroup;

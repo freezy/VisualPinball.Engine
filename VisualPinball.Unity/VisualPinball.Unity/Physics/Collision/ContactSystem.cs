@@ -21,12 +21,13 @@ using Unity.Mathematics;
 using Unity.Profiling;
 using UnityEngine;
 using VisualPinball.Unity;
+using VisualPinball.Unity.VisualPinball.Unity.Game;
 using Collider = UnityEngine.Collider;
 
 namespace VisualPinballUnity
 {
 	[DisableAutoCreation]
-	internal partial class ContactSystem : SystemBase
+	internal partial class ContactSystem : SystemBaseStub
 	{
 		private SimulateCycleSystemGroup _simulateCycleSystemGroup;
 

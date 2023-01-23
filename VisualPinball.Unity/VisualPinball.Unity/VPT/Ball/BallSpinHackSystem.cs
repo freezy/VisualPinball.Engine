@@ -18,11 +18,12 @@ using Unity.Entities;
 using Unity.Mathematics;
 using VisualPinball.Engine.Common;
 using VisualPinball.Unity;
+using VisualPinball.Unity.VisualPinball.Unity.Game;
 
 namespace VisualPinballUnity
 {
 	[DisableAutoCreation]
-	internal partial class BallSpinHackSystem : SystemBase
+	internal partial class BallSpinHackSystem : SystemBaseStub
 	{
 		protected override void OnUpdate()
 		{
