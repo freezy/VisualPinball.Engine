@@ -17,6 +17,7 @@
 using System;
 using Unity.Collections;
 using Unity.Entities;
+using UnityEngine;
 using VisualPinball.Engine.Math;
 using VisualPinball.Engine.VPT.Flipper;
 using VisualPinball.Engine.VPT.Trigger;
@@ -43,6 +44,7 @@ namespace VisualPinball.Unity
 				AddComponent(authoring.GetHitData());
 				AddComponent(authoring.GetFlipperTricksData(colliderComponent, d));
 				AddComponent(new SolenoidStateData { Value = false });
+				AddComponentObject(new GameObjectContainer { GameObject = authoring.gameObject });
 
 				// flipper correction (nFozzy)
 				if (colliderComponent.FlipperCorrection) {
@@ -145,6 +147,10 @@ namespace VisualPinball.Unity
 			}
 			throw new InvalidOperationException("Cannot create correction trigger for flipper outside of the table hierarchy.");
 		}
-
+		
+		internal class GameObjectContainer : IComponentData
+		{
+			public GameObject GameObject;
+		}
 	}
 }

@@ -22,13 +22,14 @@ using Unity.Entities;
 using Unity.Profiling;
 using VisualPinball.Engine.VPT;
 using VisualPinball.Unity;
+using VisualPinball.Unity.VisualPinball.Unity.Game;
 using Object = UnityEngine.Object;
 using Random = UnityEngine.Random;
 
 namespace VisualPinballUnity
 {
 	[DisableAutoCreation]
-	internal partial class StaticCollisionSystem : SystemBase
+	internal partial class StaticCollisionSystem : SystemBaseStub
 	{
 		private Player _player;
 		private VisualPinballSimulationSystemGroup _visualPinballSimulationSystemGroup;

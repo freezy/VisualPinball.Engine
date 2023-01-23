@@ -18,11 +18,12 @@ using Unity.Collections;
 using Unity.Entities;
 using Unity.Profiling;
 using VisualPinball.Unity;
+using VisualPinball.Unity.VisualPinball.Unity.Game;
 
 namespace VisualPinballUnity
 {
 	[DisableAutoCreation]
-	internal partial class DynamicBroadPhaseSystem : SystemBase
+	internal partial class DynamicBroadPhaseSystem : SystemBaseStub
 	{
 		private EntityQuery _ballQuery;
 		private static readonly ProfilerMarker PerfMarker1 = new ProfilerMarker("DynamicBroadPhaseSystem.CreateKdTree");

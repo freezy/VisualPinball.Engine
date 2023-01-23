@@ -18,11 +18,12 @@ using Unity.Entities;
 using Unity.Profiling;
 using VisualPinball.Engine.VPT;
 using VisualPinball.Unity;
+using VisualPinball.Unity.VisualPinball.Unity.Game;
 
 namespace VisualPinballUnity
 {
 	[UpdateInGroup(typeof(UpdateAnimationsSystemGroup))]
-	internal partial class TriggerAnimationSystem : SystemBase
+	internal partial class TriggerAnimationSystem : SystemBaseStub
 	{
 		private static readonly ProfilerMarker PerfMarker = new ProfilerMarker("TriggerAnimationSystem");
 
