@@ -17,11 +17,12 @@
 using Unity.Entities;
 using Unity.Profiling;
 using VisualPinball.Unity;
+using VisualPinball.Unity.VisualPinball.Unity.Game;
 
 namespace VisualPinballUnity
 {
 	[UpdateInGroup(typeof(UpdateAnimationsSystemGroup))]
-	internal partial class BumperRingAnimationSystem : SystemBase
+	internal partial class BumperRingAnimationSystem : SystemBaseStub
 	{
 		private static readonly ProfilerMarker PerfMarker = new ProfilerMarker("BumperRingAnimationSystem");
 

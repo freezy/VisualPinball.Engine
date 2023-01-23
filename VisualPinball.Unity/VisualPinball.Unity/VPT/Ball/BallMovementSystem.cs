@@ -19,13 +19,14 @@ using Unity.Mathematics;
 using Unity.Profiling;
 using UnityEngine;
 using VisualPinball.Unity;
+using VisualPinball.Unity.VisualPinball.Unity.Game;
 using Physics = UnityEngine.Physics;
 
 namespace VisualPinballUnity
 {
 	[AlwaysSynchronizeSystem]
 	[UpdateInGroup(typeof(TransformMeshesSystemGroup))]
-	internal partial class BallMovementSystem : SystemBase
+	internal partial class BallMovementSystem : SystemBaseStub
 	{
 		private float4x4 _baseTransform;
 		private Player _player;

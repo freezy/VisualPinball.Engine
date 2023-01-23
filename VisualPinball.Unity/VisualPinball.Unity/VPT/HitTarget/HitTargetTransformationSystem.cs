@@ -18,11 +18,12 @@ using Unity.Entities;
 using Unity.Profiling;
 using UnityEngine;
 using VisualPinball.Unity;
+using VisualPinball.Unity.VisualPinball.Unity.Game;
 
 namespace VisualPinballUnity
 {
 	[UpdateInGroup(typeof(TransformMeshesSystemGroup))]
-	internal partial class HitTargetTransformationSystem : SystemBase
+	internal partial class HitTargetTransformationSystem : SystemBaseStub
 	{
 		private static readonly ProfilerMarker PerfMarker = new ProfilerMarker(nameof(HitTargetTransformationSystem));
 		private Player _player;

@@ -22,11 +22,12 @@ using Unity.Profiling;
 using UnityEngine;
 using VisualPinball.Engine.Common;
 using VisualPinball.Unity;
+using VisualPinball.Unity.VisualPinball.Unity.Game;
 
 namespace VisualPinballUnity
 {
 	[UpdateInGroup(typeof(UpdateVelocitiesSystemGroup))]
-	internal partial class BallVelocitySystem : SystemBase
+	internal partial class BallVelocitySystem : SystemBaseStub
 	{
 		private float3 _gravity;
 		private static readonly ProfilerMarker PerfMarker = new ProfilerMarker("BallVelocitySystem");

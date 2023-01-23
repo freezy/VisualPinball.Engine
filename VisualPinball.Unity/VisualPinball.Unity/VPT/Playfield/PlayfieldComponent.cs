@@ -108,7 +108,8 @@ namespace VisualPinball.Unity
 			GetComponentInParent<Player>().RegisterPlayfield(gameObject);
 			var meshComp = GetComponentInChildren<PlayfieldMeshComponent>();
 			if (meshComp) {
-				World.DefaultGameObjectInjectionWorld.GetOrCreateSystemManaged<StaticNarrowPhaseSystem>().CollideAgainstPlayfieldPlane = meshComp.AutoGenerate;
+				// todo re-enable system
+				// World.DefaultGameObjectInjectionWorld.GetOrCreateSystemManaged<StaticNarrowPhaseSystem>().CollideAgainstPlayfieldPlane = meshComp.AutoGenerate;
 			}
 
 			transform.RotateAround(Vector3.zero, Vector3.right, -RenderSlope);

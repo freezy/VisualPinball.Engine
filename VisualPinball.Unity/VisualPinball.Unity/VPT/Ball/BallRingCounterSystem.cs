@@ -17,11 +17,12 @@
 using Unity.Entities;
 using VisualPinball.Engine.Common;
 using VisualPinball.Unity;
+using VisualPinball.Unity.VisualPinball.Unity.Game;
 
 namespace VisualPinballUnity
 {
 	[DisableAutoCreation]
-	internal partial class BallRingCounterSystem : SystemBase
+	internal partial class BallRingCounterSystem : SystemBaseStub
 	{
 		public const int MaxBallTrailPos = 10;
 

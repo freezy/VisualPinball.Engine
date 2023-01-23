@@ -18,11 +18,12 @@ using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Profiling;
 using VisualPinball.Unity;
+using VisualPinball.Unity.VisualPinball.Unity.Game;
 
 namespace VisualPinballUnity
 {
 	[UpdateInGroup(typeof(UpdateAnimationsSystemGroup))]
-	internal partial class PlungerAnimationSystem : SystemBase
+	internal partial class PlungerAnimationSystem : SystemBaseStub
 	{
 		private static readonly ProfilerMarker PerfMarker = new ProfilerMarker("PlungerAnimationSystem");
 

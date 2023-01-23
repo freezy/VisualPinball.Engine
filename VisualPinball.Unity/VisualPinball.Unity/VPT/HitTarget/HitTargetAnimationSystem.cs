@@ -18,11 +18,12 @@ using Unity.Collections;
 using Unity.Entities;
 using Unity.Profiling;
 using VisualPinball.Unity;
+using VisualPinball.Unity.VisualPinball.Unity.Game;
 
 namespace VisualPinballUnity
 {
 	[UpdateInGroup(typeof(UpdateAnimationsSystemGroup))]
-	internal partial class HitTargetAnimationSystem : SystemBase
+	internal partial class HitTargetAnimationSystem : SystemBaseStub
 	{
 		private VisualPinballSimulationSystemGroup _visualPinballSimulationSystemGroup;
 		private NativeQueue<EventData> _eventQueue;

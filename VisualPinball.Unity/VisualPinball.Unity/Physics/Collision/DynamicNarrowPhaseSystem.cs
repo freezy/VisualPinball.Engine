@@ -17,11 +17,12 @@
 using Unity.Entities;
 using Unity.Profiling;
 using VisualPinball.Unity;
+using VisualPinball.Unity.VisualPinball.Unity.Game;
 
 namespace VisualPinballUnity
 {
 	[DisableAutoCreation]
-	internal partial class DynamicNarrowPhaseSystem : SystemBase
+	internal partial class DynamicNarrowPhaseSystem : SystemBaseStub
 	{
 		private static readonly ProfilerMarker PerfMarker = new ProfilerMarker("DynamicNarrowPhaseSystem");
 		private SimulateCycleSystemGroup _simulateCycleSystemGroup;

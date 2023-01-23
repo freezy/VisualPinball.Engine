@@ -17,11 +17,12 @@
 using Unity.Entities;
 using Unity.Profiling;
 using VisualPinball.Unity;
+using VisualPinball.Unity.VisualPinball.Unity.Game;
 
 namespace VisualPinballUnity
 {
 	[DisableAutoCreation]
-	internal partial class StaticBroadPhaseSystem : SystemBase
+	internal partial class StaticBroadPhaseSystem : SystemBaseStub
 	{
 		private EntityQuery _quadTreeEntityQuery;
 		private SimulateCycleSystemGroup _simulateCycleSystemGroup;

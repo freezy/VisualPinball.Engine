@@ -19,11 +19,12 @@ using Unity.Mathematics;
 using Unity.Profiling;
 using VisualPinball.Engine.Common;
 using VisualPinball.Unity;
+using VisualPinball.Unity.VisualPinball.Unity.Game;
 
 namespace VisualPinballUnity
 {
 	[UpdateInGroup(typeof(UpdateVelocitiesSystemGroup))]
-	internal partial class SpinnerVelocitySystem : SystemBase
+	internal partial class SpinnerVelocitySystem : SystemBaseStub
 	{
 		private static readonly ProfilerMarker PerfMarker = new ProfilerMarker("SpinnerVelocitySystem");
 

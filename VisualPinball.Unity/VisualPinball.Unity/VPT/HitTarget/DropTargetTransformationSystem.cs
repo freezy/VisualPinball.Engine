@@ -18,12 +18,13 @@ using Unity.Entities;
 using Unity.Profiling;
 using UnityEngine;
 using VisualPinball.Unity;
+using VisualPinball.Unity.VisualPinball.Unity.Game;
 using Physics = UnityEngine.Physics;
 
 namespace VisualPinballUnity
 {
 	[UpdateInGroup(typeof(TransformMeshesSystemGroup))]
-	internal partial class DropTargetTransformationSystem : SystemBase
+	internal partial class DropTargetTransformationSystem : SystemBaseStub
 	{
 		private static readonly ProfilerMarker PerfMarker = new ProfilerMarker(nameof(DropTargetTransformationSystem));
 		private Player _player;
