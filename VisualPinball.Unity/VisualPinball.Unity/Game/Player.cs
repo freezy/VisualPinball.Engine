@@ -28,6 +28,7 @@ using VisualPinball.Engine.Game.Engines;
 using VisualPinball.Engine.VPT.Trigger;
 using VisualPinballUnity;
 using Logger = NLog.Logger;
+using Color = VisualPinball.Engine.Math.Color;
 
 namespace VisualPinball.Unity
 {
@@ -122,7 +123,7 @@ namespace VisualPinball.Unity
 
 		public void SetLamp(string lampId, float value) => _lampPlayer.HandleLampEvent(lampId, value);
 		public void SetLamp(string lampId, LampStatus status) => _lampPlayer.HandleLampEvent(lampId, status);
-		public void SetLamp(string lampId, VisualPinball.Engine.Math.Color color) => _lampPlayer.HandleLampEvent(lampId, color);
+		public void SetLamp(string lampId, Color color) => _lampPlayer.HandleLampEvent(lampId, color);
 
 		#endregion
 
