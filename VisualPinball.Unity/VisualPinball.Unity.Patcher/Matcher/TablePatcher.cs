@@ -15,7 +15,6 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using UnityEditor;
 using UnityEngine;
@@ -26,6 +25,7 @@ using VisualPinball.Engine.VPT.Trough;
 using VisualPinball.Unity.Editor;
 using Light = UnityEngine.Light;
 using Object = UnityEngine.Object;
+using VpeLight = VisualPinball.Engine.VPT.Light.Light;
 
 namespace VisualPinball.Unity.Patcher
 {
@@ -373,7 +373,7 @@ namespace VisualPinball.Unity.Patcher
 		/// <returns></returns>
 		protected static LightComponent CreateLight(string name, float x, float y, GameObject parentGo)
 		{
-			var light = Engine.VPT.Light.Light.GetDefault(name, x, y);
+			var light = VpeLight.GetDefault(name, x, y);
 			light.Data.ShowBulbMesh = false;
 
 			var prefab = RenderPipeline.Current.PrefabProvider.CreateLight();
@@ -401,7 +401,7 @@ namespace VisualPinball.Unity.Patcher
 			var name = lo.name;
 			var parent = lo.transform.parent.gameObject;
 			Object.DestroyImmediate(lo.gameObject);
-			return CreateInsertLight(TableContainer.Get<VisualPinball.Engine.VPT.Light.Light>(name).Data, parent);
+			return CreateInsertLight(TableContainer.Get<VpeLight>(name).Data, parent);
 		}
 
 		/// <summary>
