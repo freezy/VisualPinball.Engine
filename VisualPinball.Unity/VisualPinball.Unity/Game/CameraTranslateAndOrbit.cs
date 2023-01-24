@@ -51,11 +51,10 @@ public class CameraTranslateAndOrbit : MonoBehaviour
 	{
 		
 		var playfield = FindObjectOfType<PlayfieldComponent>();
-		var pfr = playfield.GetComponent<Renderer>();
-		if (pfr) {
+		var pfr = playfield == null ? null : playfield.GetComponent<Renderer>();
+		if (pfr != null) {
 			positionOffset = pfr.bounds.center;
 		}
-		
 		
 		_radius = Vector3.Distance(Vector3.zero, transform.position);
 		transformCache = transform;
