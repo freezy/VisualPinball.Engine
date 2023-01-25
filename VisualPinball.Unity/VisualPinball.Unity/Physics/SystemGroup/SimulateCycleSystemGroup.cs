@@ -103,8 +103,8 @@ namespace VisualPinballUnity
 
 		protected override void OnDestroy()
 		{
-			Contacts.Dispose();
-			ItemsColliding.Dispose();
+			// Contacts.Dispose();
+			// ItemsColliding.Dispose();
 		}
 
 		protected override void OnUpdate()
