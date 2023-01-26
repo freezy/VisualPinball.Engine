@@ -32,8 +32,8 @@ namespace VisualPinball.Unity
 		public BallManager _ballManager;
 
 		private EntityManager _entityManager;
-		private EntityQuery _flipperDataQuery;
-		private EntityQuery _ballDataQuery;
+		// private EntityQuery _flipperDataQuery;
+		// private EntityQuery _ballDataQuery;
 
 		private Matrix4x4 _worldToLocal;
 		private DebugFlipperState[] _flipperStates = new DebugFlipperState[0];
@@ -46,13 +46,13 @@ namespace VisualPinball.Unity
 		{
 			_ballManager = ballManager;
 			_entityManager = World.DefaultGameObjectInjectionWorld.EntityManager;
-			_flipperDataQuery = _entityManager.CreateEntityQuery(
-				ComponentType.ReadOnly<FlipperMovementData>(),
-				ComponentType.ReadOnly<FlipperStaticData>(),
-				ComponentType.ReadOnly<SolenoidStateData>()
-			);
-
-			_ballDataQuery = _entityManager.CreateEntityQuery(ComponentType.ReadOnly<BallData>());
+			// _flipperDataQuery = _entityManager.CreateEntityQuery(
+			// 	ComponentType.ReadOnly<FlipperMovementData>(),
+			// 	ComponentType.ReadOnly<FlipperStaticData>(),
+			// 	ComponentType.ReadOnly<SolenoidStateData>()
+			// );
+			//
+			// _ballDataQuery = _entityManager.CreateEntityQuery(ComponentType.ReadOnly<BallData>());
 
 			_visualPinballSimulationSystemGroup = _entityManager.World.GetOrCreateSystemManaged<VisualPinballSimulationSystemGroup>();
 			var simulateCycleSystemGroup = _entityManager.World.GetOrCreateSystemManaged<SimulateCycleSystemGroup>();
@@ -136,23 +136,23 @@ namespace VisualPinball.Unity
 
 		public void UpdateDebugFlipperStates()
 		{
-			// for each flipper
-			var entities = _flipperDataQuery.ToEntityArray(Allocator.TempJob);
-			if (_flipperStates.Length == 0) {
-				_flipperStates = new DebugFlipperState[entities.Length];
-			}
-			for (var i = 0; i < entities.Length; i++) {
-				var entity = entities[i];
-				var movementData = _entityManager.GetComponentData<FlipperMovementData>(entity);
-				var staticData = _entityManager.GetComponentData<FlipperStaticData>(entity);
-				var solenoidData = _entityManager.GetComponentData<SolenoidStateData>(entity);
-				_flipperStates[i] = new DebugFlipperState(
-					entity,
-					math.degrees(math.abs(movementData.Angle - staticData.AngleStart)),
-					solenoidData.Value
-				);
-			}
-			entities.Dispose();
+			// // for each flipper
+			// var entities = _flipperDataQuery.ToEntityArray(Allocator.TempJob);
+			// if (_flipperStates.Length == 0) {
+			// 	_flipperStates = new DebugFlipperState[entities.Length];
+			// }
+			// for (var i = 0; i < entities.Length; i++) {
+			// 	var entity = entities[i];
+			// 	var movementData = _entityManager.GetComponentData<FlipperMovementData>(entity);
+			// 	var staticData = _entityManager.GetComponentData<FlipperStaticData>(entity);
+			// 	var solenoidData = _entityManager.GetComponentData<SolenoidStateData>(entity);
+			// 	_flipperStates[i] = new DebugFlipperState(
+			// 		entity,
+			// 		math.degrees(math.abs(movementData.Angle - staticData.AngleStart)),
+			// 		solenoidData.Value
+			// 	);
+			// }
+			// entities.Dispose();
 		}
 
 		public void PushPendingCreateBallNotifications()
@@ -160,21 +160,21 @@ namespace VisualPinball.Unity
 			if (_nextBallIdToNotifyDebugUI == _ballManager.NumBallsCreated)
 				return; // nothing to report
 
-			var entities = _ballDataQuery.ToEntityArray(Allocator.TempJob);
-			int numBallsToReport = _ballManager.NumBallsCreated - _nextBallIdToNotifyDebugUI;
-			foreach (var entity in entities)
-			{
-				var ballData = _entityManager.GetComponentData<BallData>(entity);
-				if (ballData.Id >= _nextBallIdToNotifyDebugUI)
-				{
-					EngineProvider<IDebugUI>.Get().OnCreateBall(entity);
-					--numBallsToReport;
-				}
-			}
+			// var entities = _ballDataQuery.ToEntityArray(Allocator.TempJob);
+			// int numBallsToReport = _ballManager.NumBallsCreated - _nextBallIdToNotifyDebugUI;
+			// foreach (var entity in entities)
+			// {
+			// 	var ballData = _entityManager.GetComponentData<BallData>(entity);
+			// 	if (ballData.Id >= _nextBallIdToNotifyDebugUI)
+			// 	{
+			// 		EngineProvider<IDebugUI>.Get().OnCreateBall(entity);
+			// 		--numBallsToReport;
+			// 	}
+			// }
 
-			// error checking
-			Assert.AreEqual(0, numBallsToReport);
-			_nextBallIdToNotifyDebugUI = _ballManager.NumBallsCreated;
+			// // error checking
+			// Assert.AreEqual(0, numBallsToReport);
+			// _nextBallIdToNotifyDebugUI = _ballManager.NumBallsCreated;
 		}
 	}
 }
