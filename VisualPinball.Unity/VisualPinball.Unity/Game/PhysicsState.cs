@@ -14,24 +14,21 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-using UnityEngine;
-using VisualPinball.Unity.VisualPinball.Unity.Game;
+using VisualPinball.Engine.Common;
 
-namespace VisualPinball.Unity
+namespace VisualPinball.Unity.VisualPinball.Unity.Game
 {
-	public static class PhysicsCycle
+	public struct PhysicsState
 	{
+		public readonly ulong StartTimeUsec;
+		public ulong CurPhysicsFrameTime;
+		public ulong NextPhysicsFrameTime;
 
-		public static void Simulate(float dTime, ref PhysicsState state)
+		public PhysicsState(ulong startTimeUsec) : this()
 		{
-			while (dTime > 0)
-			{
-				var hitTime = dTime;       // begin time search from now ...  until delta ends
-				
-				Debug.Log("PhysicsCycle.Simulate");
-				
-				dTime -= hitTime;  
-			}
+			StartTimeUsec = startTimeUsec;
+			CurPhysicsFrameTime = StartTimeUsec;
+			NextPhysicsFrameTime = StartTimeUsec + PhysicsConstants.PhysicsStepTime;
 		}
 	}
 }
