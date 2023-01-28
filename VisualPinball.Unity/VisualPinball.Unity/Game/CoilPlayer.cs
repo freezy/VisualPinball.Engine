@@ -77,7 +77,7 @@ namespace VisualPinball.Unity
 
 							// check if device exists
 							if (!_coilDevices.ContainsKey(coilMapping.Device)) {
-								Logger.Error($"Unknown coil device \"{coilMapping.Device.name}\".");
+								Logger.Warn($"Unknown coil device \"{coilMapping.Device.name}\".");
 								break;
 							}
 

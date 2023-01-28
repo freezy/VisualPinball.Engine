@@ -41,12 +41,12 @@ namespace VisualPinballUnity
 		private ulong _nextPhysicsFrameTime;
 
 		private readonly List<ComponentSystemBase> _systemsToUpdate = new List<ComponentSystemBase>();
-		private CreateBallEntityCommandBufferSystem _createBallEntityCommandBufferSystem;
-		private UpdateVelocitiesSystemGroup _velocitiesSystemGroup;
-		private SimulateCycleSystemGroup _simulateCycleSystemGroup;
-		private BallRingCounterSystem _ballRingCounterSystem;
-		private UpdateAnimationsSystemGroup _updateAnimationsSystemGroup;
-		private TransformMeshesSystemGroup _transformMeshesSystemGroup;
+		// private CreateBallEntityCommandBufferSystem _createBallEntityCommandBufferSystem;
+		// private UpdateVelocitiesSystemGroup _velocitiesSystemGroup;
+		// private SimulateCycleSystemGroup _simulateCycleSystemGroup;
+		// private BallRingCounterSystem _ballRingCounterSystem;
+		// private UpdateAnimationsSystemGroup _updateAnimationsSystemGroup;
+		// private TransformMeshesSystemGroup _transformMeshesSystemGroup;
 
 		private readonly Queue<Action> _afterBallCreationQueue = new Queue<Action>();
 		private readonly Queue<Action> _beforeBallCreationQueue = new Queue<Action>();
@@ -60,22 +60,22 @@ namespace VisualPinballUnity
 			Enabled = false;
 
 			_time.Start();
-
-			_createBallEntityCommandBufferSystem = World.GetOrCreateSystemManaged<CreateBallEntityCommandBufferSystem>();
-			_velocitiesSystemGroup = World.GetOrCreateSystemManaged<UpdateVelocitiesSystemGroup>();
-			_simulateCycleSystemGroup = World.GetOrCreateSystemManaged<SimulateCycleSystemGroup>();
+			//
+			// _createBallEntityCommandBufferSystem = World.GetOrCreateSystemManaged<CreateBallEntityCommandBufferSystem>();
+			// _velocitiesSystemGroup = World.GetOrCreateSystemManaged<UpdateVelocitiesSystemGroup>();
+			// _simulateCycleSystemGroup = World.GetOrCreateSystemManaged<SimulateCycleSystemGroup>();
 			// todo re-enable system
 			// _ballRingCounterSystem = World.GetOrCreateSystemManaged<BallRingCounterSystem>();
-			_updateAnimationsSystemGroup = World.GetOrCreateSystemManaged<UpdateAnimationsSystemGroup>();
-			_transformMeshesSystemGroup = World.GetOrCreateSystemManaged<TransformMeshesSystemGroup>();
+			// _updateAnimationsSystemGroup = World.GetOrCreateSystemManaged<UpdateAnimationsSystemGroup>();
+			// _transformMeshesSystemGroup = World.GetOrCreateSystemManaged<TransformMeshesSystemGroup>();
 
-			_systemsToUpdate.Add(_createBallEntityCommandBufferSystem);
-			_systemsToUpdate.Add(_velocitiesSystemGroup);
-			_systemsToUpdate.Add(_simulateCycleSystemGroup);
+			// _systemsToUpdate.Add(_createBallEntityCommandBufferSystem);
+			// _systemsToUpdate.Add(_velocitiesSystemGroup);
+			// _systemsToUpdate.Add(_simulateCycleSystemGroup);
 			// todo re-enable system
 			// _systemsToUpdate.Add(_ballRingCounterSystem);
-			_systemsToUpdate.Add(_updateAnimationsSystemGroup);
-			_systemsToUpdate.Add(_transformMeshesSystemGroup);
+			// _systemsToUpdate.Add(_updateAnimationsSystemGroup);
+			// _systemsToUpdate.Add(_transformMeshesSystemGroup);
 			base.OnCreate();
 		}
 
@@ -92,33 +92,33 @@ namespace VisualPinballUnity
 					_beforeBallCreationQueue.Dequeue().Invoke();
 				}
 			}
-			_createBallEntityCommandBufferSystem.Update();
+			//_createBallEntityCommandBufferSystem.Update();
 			lock (_afterBallCreationQueue) {
 				while (_afterBallCreationQueue.Count > 0) {
 					_afterBallCreationQueue.Dequeue().Invoke();
 				}
 			}
-
+			
 			//const int startTimeUsec = 0;
 			var initialTimeUsec = GetTargetTime();
-
+			
 			while (_currentPhysicsFrameTime < initialTimeUsec) {
-
+			
 				TimeMsec = (uint) (SystemAPI.Time.ElapsedTime * 1000);
 				PhysicsDiffTime = (_nextPhysicsFrameTime - _currentPhysicsFrameTime) * (1.0 / PhysicsConstants.DefaultStepTime);
-
+			
 				// update velocities
-				_velocitiesSystemGroup.Update();
-
+				//_velocitiesSystemGroup.Update();
+			
 				// simulate cycle
-				_simulateCycleSystemGroup.Update();
-
+				//_simulateCycleSystemGroup.Update();
+			
 				// new cycle, on physics frame boundary
 				_currentPhysicsFrameTime = _nextPhysicsFrameTime;
-
+			
 				// advance physics position
 				_nextPhysicsFrameTime += PhysicsConstants.PhysicsStepTime;
-
+			
 				// run scheduled actions
 				lock (_scheduledActions) {
 					for (var i = _scheduledActions.Count - 1; i >= 0; i--) {
@@ -129,16 +129,16 @@ namespace VisualPinballUnity
 					}
 				}
 			}
-
-			_ballRingCounterSystem.Update();
-
+			
+			//_ballRingCounterSystem.Update();
+			
 			_currentPhysicsTime = _currentPhysicsFrameTime;
-
+			
 			// update animations
-			_updateAnimationsSystemGroup.Update();
-
+			//_updateAnimationsSystemGroup.Update();
+			
 			// transform all meshes
-			_transformMeshesSystemGroup.Update();
+			//_transformMeshesSystemGroup.Update();
 		}
 
 		private ulong GetTargetTime()
