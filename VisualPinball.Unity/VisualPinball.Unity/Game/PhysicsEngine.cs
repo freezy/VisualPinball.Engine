@@ -20,30 +20,28 @@ using Unity.Collections;
 using Unity.Jobs;
 using UnityEngine;
 using VisualPinball.Engine.Common;
+using VisualPinball.Unity.VisualPinball.Unity.Game;
 
 namespace VisualPinball.Unity
 {
 	public class PhysicsEngine : MonoBehaviour
 	{
 		[NonSerialized] 
-		private NativeArray<ulong> _uSecs;
+		private NativeArray<PhysicsState> _physicsState;
 		
 		private static ulong NowUsec => (ulong)(Time.timeAsDouble * 1000000);
 		
 		private void Start()
 		{
-			_uSecs = new NativeArray<ulong>(3, Allocator.Persistent);
-			_uSecs[0] = NowUsec;                                      // start time
-			_uSecs[1] = _uSecs[0];                                    // current time frame
-			_uSecs[2] = _uSecs[0] + PhysicsConstants.PhysicsStepTime; // next time frame
+			_physicsState = new NativeArray<PhysicsState>(1, Allocator.Persistent);
+			_physicsState[0] = new PhysicsState(NowUsec);
 		}
 
 		private void Update()
 		{
-			
 			var updatePhysics = new UpdatePhysicsJob {
 				InitialTimeUsec = NowUsec,
-				USecs = _uSecs,
+				PhysicsState = _physicsState,
 			};
 			
 			updatePhysics.Run();
@@ -51,7 +49,7 @@ namespace VisualPinball.Unity
 		
 		private void OnDestroy()
 		{
-			_uSecs.Dispose();
+			_physicsState.Dispose();
 		}
 	}
 
@@ -61,30 +59,27 @@ namespace VisualPinball.Unity
 		[ReadOnly] 
 		public ulong InitialTimeUsec;
 
-		public NativeArray<ulong> USecs;
+		public NativeArray<PhysicsState> PhysicsState;
 		
 		public void Execute()
 		{
 			var n = 0;
-			var startTimeUsec = USecs[0];
-			var curPhysicsFrameTime = USecs[1];
-			var nextPhysicsFrameTime = USecs[2];
+			var state = PhysicsState[0];
 			
-			while (curPhysicsFrameTime < InitialTimeUsec)
+			while (state.CurPhysicsFrameTime < InitialTimeUsec)
 			{
-				var timeMsec = (uint)((curPhysicsFrameTime - startTimeUsec) / 1000);
-				var physicsDiffTime = (float)((nextPhysicsFrameTime - curPhysicsFrameTime) * (1.0 / PhysicsConstants.DefaultStepTime));
+				var timeMsec = (uint)((state.CurPhysicsFrameTime - state.StartTimeUsec) / 1000);
+				var physicsDiffTime = (float)((state.NextPhysicsFrameTime - state.CurPhysicsFrameTime) * (1.0 / PhysicsConstants.DefaultStepTime));
 
-				PhysicsCycle.Simulate(physicsDiffTime);
+				PhysicsCycle.Simulate(physicsDiffTime, ref state);
 				
-				curPhysicsFrameTime = nextPhysicsFrameTime;
-				nextPhysicsFrameTime += PhysicsConstants.PhysicsStepTime;
+				state.CurPhysicsFrameTime = state.NextPhysicsFrameTime;
+				state.NextPhysicsFrameTime += PhysicsConstants.PhysicsStepTime;
 
 				n++;
 			}
 
-			USecs[1] = curPhysicsFrameTime;
-			USecs[2] = nextPhysicsFrameTime;
+			PhysicsState[0] = state;
 
 			//Debug.Log($"UpdatePhysic {n}x");
 		}
