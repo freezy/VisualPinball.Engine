@@ -293,7 +293,7 @@ namespace VisualPinball.Unity
 		private void Start()
 		{
 			_kickerApi = GetComponentInParent<Player>().TableApi.Kicker(this);
-			if (_kickerApi.KickerCoil != null) {
+			if (_kickerApi?.KickerCoil != null) {
 				_originalKickerAngle = _kickerApi.KickerCoil.Coil.Angle;
 			}
 		}

@@ -479,7 +479,7 @@ namespace VisualPinball.Unity
 
 
 				if (_ejectKicker == null) {
-					Logger.Error("Trough: Cannot spawn ball without an exit kicker.");
+					Logger.Warn("Trough: Cannot spawn ball without an exit kicker.");
 					return false;
 				}
 				Logger.Info("Trough: Spawning new ball.");
