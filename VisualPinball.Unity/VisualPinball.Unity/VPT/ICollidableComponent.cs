@@ -14,23 +14,12 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-using UnityEngine;
+using Unity.Collections;
 
 namespace VisualPinball.Unity
 {
-	public static class PhysicsCycle
+	public interface ICollidableComponent
 	{
-
-		public static void Simulate(float dTime, ref PhysicsState state)
-		{
-			while (dTime > 0)
-			{
-				var hitTime = dTime;       // begin time search from now ...  until delta ends
-				
-				//Debug.Log("PhysicsCycle.Simulate");
-				
-				dTime -= hitTime;  
-			}
-		}
+		internal void GetColliders(ref NativeList<PlaneCollider> colliders);
 	}
 }

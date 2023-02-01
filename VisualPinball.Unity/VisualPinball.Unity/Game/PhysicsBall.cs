@@ -14,23 +14,29 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+// ReSharper disable InconsistentNaming
+
+using Unity.Mathematics;
 using UnityEngine;
 
-namespace VisualPinball.Unity
+namespace VisualPinball.Unity.VisualPinball.Unity.Game
 {
-	public static class PhysicsCycle
+	public class PhysicsBall : MonoBehaviour
 	{
+		public float Radius = 25;
+		public float Mass = 1;
 
-		public static void Simulate(float dTime, ref PhysicsState state)
-		{
-			while (dTime > 0)
-			{
-				var hitTime = dTime;       // begin time search from now ...  until delta ends
-				
-				//Debug.Log("PhysicsCycle.Simulate");
-				
-				dTime -= hitTime;  
-			}
-		}
+		internal BallData Data => new BallData {
+			Id = 0,
+			IsFrozen = false,
+			Position = transform.localPosition.TranslateToVpx(),
+			Radius = Radius,
+			Mass = Mass,
+			Velocity = float3.zero,
+			BallOrientation = float3x3.identity,
+			BallOrientationForUnity = float3x3.identity,
+			RingCounterOldPos = 0,
+			AngularMomentum = float3.zero
+		};
 	}
 }

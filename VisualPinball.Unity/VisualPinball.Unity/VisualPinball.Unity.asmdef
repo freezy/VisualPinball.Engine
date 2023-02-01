@@ -10,7 +10,8 @@
         "Unity.Mathematics.Extensions",
         "Unity.Transforms",
         "Unity.InputSystem",
-        "VisualPinball.Engine"
+        "VisualPinball.Engine",
+        "com.bartofzo.nativetrees"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

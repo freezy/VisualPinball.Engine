@@ -92,6 +92,7 @@ namespace VisualPinball.Unity
 		protected override Type ColliderComponentType => typeof(PlayfieldColliderComponent);
 
 		public Rect3D BoundingBox => new Rect3D(Left, Right, Top, Bottom, TableHeight, GlassHeight);
+		public Aabb Bounds => new Aabb(Left, Right, Top, Bottom, TableHeight, GlassHeight);
 
 		public float3 Gravity {
 			get {

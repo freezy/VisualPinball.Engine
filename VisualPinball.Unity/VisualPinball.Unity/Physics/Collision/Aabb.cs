@@ -32,6 +32,9 @@ namespace VisualPinball.Unity
 		public float Height => math.abs(Top - Bottom);
 		public float Depth => math.abs(ZLow - ZHigh);
 
+		public Vector3 Min => new Vector3(Left, Top, ZLow);
+		public Vector3 Max => new Vector3(Right, Bottom, ZHigh);
+
 		public Vector3 Center => new Vector3(
 			(Right + Left) / 2f,
 			(Bottom + Top) / 2f,
@@ -92,6 +95,11 @@ namespace VisualPinball.Unity
 			       && Top <= rc.Bottom // 1036 <= 1044.273
 			       && ZLow <= rc.ZHigh // 0 <= -8.79384
 			       && ZHigh >= rc.ZLow; // 90 >= 58.79945
+		}
+		
+		public static implicit operator NativeTrees.AABB(Aabb aabb)
+		{
+			return new NativeTrees.AABB(aabb.Min, aabb.Max);
 		}
 
 		public override string ToString()

@@ -36,6 +36,8 @@ namespace VisualPinball.Unity
 			Aabb = aabb;
 		}
 
+		public static implicit operator NativeTrees.AABB(ColliderBounds b) => b.Aabb;
+
 		public override string ToString()
 		{
 			return $"{Aabb.ToString()} ({ColliderId}:{ColliderEntity})";
