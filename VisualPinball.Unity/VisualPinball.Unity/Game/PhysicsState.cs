@@ -16,7 +16,7 @@
 
 using VisualPinball.Engine.Common;
 
-namespace VisualPinball.Unity.VisualPinball.Unity.Game
+namespace VisualPinball.Unity
 {
 	public struct PhysicsState
 	{

@@ -17,6 +17,7 @@
 // ReSharper disable InconsistentNaming
 
 using System;
+using Unity.Collections;
 using Unity.Entities;
 using UnityEngine;
 using VisualPinball.Engine.VPT.Table;
@@ -24,7 +25,7 @@ using VisualPinball.Engine.VPT.Table;
 namespace VisualPinball.Unity
 {
 	[AddComponentMenu("Visual Pinball/Collision/Playfield Collider")]
-	public class PlayfieldColliderComponent : ColliderComponent<TableData, PlayfieldComponent>
+	public class PlayfieldColliderComponent : ColliderComponent<TableData, PlayfieldComponent>, ICollidableComponent
 	{
 		#region Data
 
@@ -56,5 +57,13 @@ namespace VisualPinball.Unity
 		public override PhysicsMaterialData PhysicsMaterialData => GetPhysicsMaterialData(0, 0);
 		protected override IApiColliderGenerator InstantiateColliderApi(Player player, Entity entity)
 			=> new PlayfieldApi(gameObject, player);
+
+		void ICollidableComponent.GetColliders(ref NativeList<PlaneCollider> colliders)
+		{
+			var api = new PlayfieldApi(gameObject, GetComponent<Player>());
+			var c = api.CreateColliders();
+			colliders.Add(c.Item1);
+			colliders.Add(c.Item2);
+		}
 	}
 }
