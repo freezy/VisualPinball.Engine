@@ -16,6 +16,7 @@
 
 // ReSharper disable InconsistentNaming
 
+using System;
 using Unity.Mathematics;
 using UnityEngine;
 
@@ -25,9 +26,20 @@ namespace VisualPinball.Unity.VisualPinball.Unity.Game
 	{
 		public float Radius = 25;
 		public float Mass = 1;
+		
+		[NonSerialized]
+		public int Id;
+
+		private void Awake()
+		{
+			var player = GetComponentInParent<Player>();
+			if (player) {
+				Id = player.NextBallId;
+			}
+		}
 
 		internal BallData Data => new BallData {
-			Id = 0,
+			Id = Id,
 			IsFrozen = false,
 			Position = transform.localPosition.TranslateToVpx(),
 			Radius = Radius,

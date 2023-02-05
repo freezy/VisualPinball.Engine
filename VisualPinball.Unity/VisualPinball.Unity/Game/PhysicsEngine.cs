@@ -16,40 +16,40 @@
 
 using System;
 using System.Diagnostics;
+using System.Linq;
 using NativeTrees;
 using Unity.Burst;
 using Unity.Collections;
 using Unity.Jobs;
 using UnityEngine;
 using VisualPinball.Engine.Common;
+using VisualPinball.Unity.VisualPinball.Unity.Game;
 using Debug = UnityEngine.Debug;
 
 namespace VisualPinball.Unity
 {
 	public class PhysicsEngine : MonoBehaviour
 	{
-		[NonSerialized] 
-		private NativeArray<PhysicsState> _physicsState;
-
-		[NonSerialized] 
-		private NativeList<PlaneCollider> _colliders;
-		[NonSerialized] 
-		private NativeOctree<PlaneCollider> _octree;
+		[NonSerialized] private NativeArray<PhysicsState> _physicsState;
+		[NonSerialized] private NativeOctree<PlaneCollider> _octree;
+		[NonSerialized] private NativeList<BallData> _balls;
 
 		private static ulong NowUsec => (ulong)(Time.timeAsDouble * 1000000);
 		
 		private void Start()
 		{
+			// init state
 			_physicsState = new NativeArray<PhysicsState>(1, Allocator.Persistent);
 			_physicsState[0] = new PhysicsState(NowUsec);
 
+			// create static octree
 			var sw = Stopwatch.StartNew();
 			var colliderItems = GetComponentsInChildren<ICollidableComponent>();
 
 			Debug.Log($"Found {colliderItems.Length} collider items.");
-			_colliders = new NativeList<PlaneCollider>(Allocator.Persistent);
+			var colliders = new NativeList<PlaneCollider>(Allocator.TempJob);
 			foreach (var colliderItem in colliderItems) {
-				colliderItem.GetColliders(ref _colliders);
+				colliderItem.GetColliders(ref colliders);
 			}
 
 			var elapsedMs = sw.Elapsed.TotalMilliseconds;
@@ -58,14 +58,20 @@ namespace VisualPinball.Unity
 			
 			sw.Restart();
 			var populateJob = new PopulatePhysicsJob {
-				Colliders = _colliders,
+				Colliders = colliders,
 				Octree = _octree, 
 			};
 			populateJob.Run();
-
 			_octree = populateJob.Octree;
-
-			Debug.Log($"Octree of {_colliders.Length} constructed (colliders: {elapsedMs}ms, tree: {sw.Elapsed.TotalMilliseconds}ms).");
+			Debug.Log($"Octree of {colliders.Length} constructed (colliders: {elapsedMs}ms, tree: {sw.Elapsed.TotalMilliseconds}ms).");
+			colliders.Dispose();
+			
+			// get balls
+			var balls = GetComponentsInChildren<PhysicsBall>();
+			_balls = new NativeList<BallData>(balls.Length, Allocator.Persistent);
+			foreach (var ball in balls) {
+				_balls.Add(ball.Data);
+			}
 		}
 
 		private void Update()
@@ -74,6 +80,7 @@ namespace VisualPinball.Unity
 				InitialTimeUsec = NowUsec,
 				PhysicsState = _physicsState,
 				Octree = _octree,
+				Balls = _balls,
 			};
 			
 			updatePhysics.Run();
@@ -82,7 +89,7 @@ namespace VisualPinball.Unity
 		private void OnDestroy()
 		{
 			_physicsState.Dispose();
-			_colliders.Dispose();
+			_balls.Dispose();
 		}
 	}
 
@@ -111,17 +118,20 @@ namespace VisualPinball.Unity
 
 		public NativeOctree<PlaneCollider> Octree;
 		
+		public NativeList<BallData> Balls;
+		
 		public void Execute()
 		{
 			var n = 0;
 			var state = PhysicsState[0];
+			var cycle = new PhysicsCycle(Allocator.Temp);
 			
 			while (state.CurPhysicsFrameTime < InitialTimeUsec)
 			{
 				var timeMsec = (uint)((state.CurPhysicsFrameTime - state.StartTimeUsec) / 1000);
 				var physicsDiffTime = (float)((state.NextPhysicsFrameTime - state.CurPhysicsFrameTime) * (1.0 / PhysicsConstants.DefaultStepTime));
 
-				PhysicsCycle.Simulate(physicsDiffTime, ref state);
+				cycle.Simulate(physicsDiffTime, ref state, ref Octree, ref Balls);
 				
 				state.CurPhysicsFrameTime = state.NextPhysicsFrameTime;
 				state.NextPhysicsFrameTime += PhysicsConstants.PhysicsStepTime;
@@ -130,6 +140,7 @@ namespace VisualPinball.Unity
 			}
 
 			PhysicsState[0] = state;
+			cycle.Dispose();
 
 			//Debug.Log($"UpdatePhysic {n}x");
 		}
