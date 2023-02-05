@@ -121,6 +121,9 @@ namespace VisualPinball.Unity
 		public Dictionary<string, (bool, float)> WireStatuses => _wirePlayer.WireStatuses;
 		public float3 Gravity => _playfieldComponent.Gravity;
 
+		public int NextBallId => ++_currentBallId;
+		private int _currentBallId;
+
 		public void SetLamp(string lampId, float value) => _lampPlayer.HandleLampEvent(lampId, value);
 		public void SetLamp(string lampId, LampStatus status) => _lampPlayer.HandleLampEvent(lampId, status);
 		public void SetLamp(string lampId, Color color) => _lampPlayer.HandleLampEvent(lampId, color);

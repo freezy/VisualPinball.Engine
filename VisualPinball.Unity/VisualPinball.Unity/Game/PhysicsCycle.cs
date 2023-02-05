@@ -14,23 +14,62 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-using UnityEngine;
+using System;
+using NativeTrees;
+using Unity.Collections;
 
 namespace VisualPinball.Unity
 {
-	public static class PhysicsCycle
+	public struct PhysicsCycle : IDisposable
 	{
+		private NativeList<ContactBufferElement> _contacts;
 
-		public static void Simulate(float dTime, ref PhysicsState state)
+		public PhysicsCycle(Allocator a)
 		{
-			while (dTime > 0)
-			{
+			_contacts = new NativeList<ContactBufferElement>(a);
+		}
+
+		internal void Simulate(float dTime, ref PhysicsState state, ref NativeOctree<PlaneCollider> octree, ref NativeList<BallData> balls)
+		{
+			while (dTime > 0) {
+				
 				var hitTime = dTime;       // begin time search from now ...  until delta ends
 				
-				//Debug.Log("PhysicsCycle.Simulate");
+				// todo apply flipper time
+				
+				// clear contacts
+				_contacts.Clear();
+
+				// todo dynamic broad phase
+				
+				// todo static broad phase
+				
+				// todo static narrow phase
+				
+				// todo dynamic narrow phase
+
+				// todo apply static time
+
+				// todo displacement
+				
+				// todo dynamic collision
+				
+				// todo static collision
+				
+				// todo handle contacts
+
+				// clear contacts
+				_contacts.Clear();
+
+				// todo ball spin hack
 				
 				dTime -= hitTime;  
 			}
+		}
+
+		public void Dispose()
+		{
+			_contacts.Dispose();
 		}
 	}
 }
