@@ -49,10 +49,10 @@ namespace VisualPinball.Unity
 
 		public void CreateBall(IBallCreationPosition ballCreator, float radius = 25f, float mass = 1f)
 		{
-			CreateBall(ballCreator, radius, mass, Entity.Null);
+			CreateBall(ballCreator, radius, mass, 0);
 		}
 
-		public void CreateBall(IBallCreationPosition ballCreator, float radius, float mass, in Entity kickerRef)
+		public void CreateBall(IBallCreationPosition ballCreator, float radius, float mass, int kickerId)
 		{
 			var localPos = ballCreator.GetBallCreationPosition().ToUnityFloat3();
 			var localVel = ballCreator.GetBallCreationVelocity().ToUnityFloat3();
@@ -77,11 +77,11 @@ namespace VisualPinball.Unity
 			// create ball entity
 			EngineProvider<IPhysicsEngine>
 				.Get()
-				.BallCreate(ballGo, ballId, worldPos, localPos, localVel, scale, mass, radius, in kickerRef);
+				.BallCreate(ballGo, ballId, worldPos, localPos, localVel, scale, mass, radius, kickerId);
 		}
 
 		public void CreateEntity(GameObject ballGo, int id, in float3 worldPos, in float3 localPos, in float3 localVel, in float scale,
-			in float mass, in float radius, in Entity kickerEntity)
+			in float mass, in float radius, in int kickerId)
 		{
 			// Efficiently instantiate a bunch of entities from the already converted entity prefab
 			var entity = EntityManager.CreateEntity(
@@ -97,7 +97,7 @@ namespace VisualPinball.Unity
 			EntityManager.SetName(entity, $"Ball{id}");
 #endif
 
-			_player.Balls[entity] = ballGo;
+			_player.Balls[kickerId] = ballGo;
 
 			var world = World.DefaultGameObjectInjectionWorld;
 			var ecbs = world.GetOrCreateSystemManaged<CreateBallEntityCommandBufferSystem>();
@@ -109,7 +109,7 @@ namespace VisualPinball.Unity
 
 			ecb.AddComponent(entity, new BallData {
 				Id = id,
-				IsFrozen = kickerEntity != Entity.Null,
+				IsFrozen = kickerId != 0,
 				Position = localPos,
 				Radius = radius,
 				Mass = mass,
@@ -136,16 +136,17 @@ namespace VisualPinball.Unity
 			}
 
 			// handle inside-kicker creation
-			if (kickerEntity != Entity.Null) {
-				var kickerData = EntityManager.GetComponentData<KickerStaticData>(kickerEntity);
-				if (!kickerData.FallThrough) {
-					var kickerCollData = EntityManager.GetComponentData<KickerCollisionData>(kickerEntity);
-					var inside = ecb.AddBuffer<BallInsideOfBufferElement>(entity);
-					BallData.SetInsideOf(ref inside, kickerEntity);
-					kickerCollData.BallEntity = entity;
-					kickerCollData.LastCapturedBallEntity = entity;
-					ecb.SetComponent(kickerEntity, kickerCollData);
-				}
+			if (kickerId != 0) {
+				// fixme job
+				// var kickerData = EntityManager.GetComponentData<KickerStaticData>(kickerEntity);
+				// if (!kickerData.FallThrough) {
+				// 	var kickerCollData = EntityManager.GetComponentData<KickerCollisionData>(kickerEntity);
+				// 	var inside = ecb.AddBuffer<BallInsideOfBufferElement>(entity);
+				// 	BallData.SetInsideOf(ref inside, kickerEntity);
+				// 	kickerCollData.BallId = entity;
+				// 	kickerCollData.LastCapturedBallId = entity;
+				// 	ecb.SetComponent(kickerEntity, kickerCollData);
+				// }
 			}
 
 			NumBalls++;
@@ -153,22 +154,23 @@ namespace VisualPinball.Unity
 			_player.BallCreated(entity, ballGo);
 		}
 
-		public void DestroyEntity(Entity ballEntity)
+		public void DestroyEntity(int ballId)
 		{
-			var ballGo = _player.Balls[ballEntity];
-			_player.BallDestroyed(ballEntity, ballGo);
-
-			// destroy game object
-			Object.DestroyImmediate(ballGo);
-			_player.Balls.Remove(ballEntity);
-
-			// destroy entity
-			World.DefaultGameObjectInjectionWorld
-				.GetOrCreateSystemManaged<CreateBallEntityCommandBufferSystem>()
-				.CreateCommandBuffer()
-				.DestroyEntity(ballEntity);
-
-			NumBalls--;
+			// fixme job
+			// var ballGo = _player.Balls[ballEntity];
+			// _player.BallDestroyed(ballEntity, ballGo);
+			//
+			// // destroy game object
+			// Object.DestroyImmediate(ballGo);
+			// _player.Balls.Remove(ballEntity);
+			//
+			// // destroy entity
+			// World.DefaultGameObjectInjectionWorld
+			// 	.GetOrCreateSystemManaged<CreateBallEntityCommandBufferSystem>()
+			// 	.CreateCommandBuffer()
+			// 	.DestroyEntity(ballEntity);
+			//
+			// NumBalls--;
 		}
 
 		/// <summary>

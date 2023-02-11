@@ -38,10 +38,7 @@ namespace VisualPinball.Unity
 					ZLow = authoring.Surface?.Height(authoring.Position) ?? authoring.PlayfieldHeight
 				});
 
-				AddComponent(new KickerCollisionData {
-					BallEntity = Entity.Null,
-					LastCapturedBallEntity = Entity.Null
-				});
+				AddComponent(new KickerCollisionData());
 
 				// if (!Data.LegacyMode) {
 				// 	// todo currently we don't allow non-legacy mode
@@ -62,7 +59,7 @@ namespace VisualPinball.Unity
 			}
 
 			// register
-			GetComponentInParent<Player>().RegisterKicker(authoring, GetEntity());
+			GetComponentInParent<Player>().RegisterKicker(authoring);
 		}
 	}
 }

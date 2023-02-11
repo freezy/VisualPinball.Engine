@@ -66,7 +66,7 @@ namespace VisualPinballUnity
 							newCollEvent.SetCollider(collBallEntity);
 							newCollEvent.HitTime = newTime;
 							if (newCollEvent.IsContact) {
-								contacts.Add(new ContactBufferElement(ballEntity, newCollEvent));
+								contacts.Add(new ContactBufferElement(ball.Id, newCollEvent));
 
 							} else { // if (validhit)
 								collEvent = newCollEvent;

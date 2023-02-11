@@ -67,7 +67,7 @@ namespace VisualPinball.Unity
 
 		private void OnHit(object sender, HitEventArgs e)
 		{
-			Switch?.Invoke(this, new SwitchEventArgs(true, e.BallEntity));
+			Switch?.Invoke(this, new SwitchEventArgs(true, e.BallId));
 			OnSwitch(true);
 		}
 

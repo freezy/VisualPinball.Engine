@@ -49,7 +49,7 @@ namespace VisualPinball.Unity
 			JointBase1 = new LineZCollider(new float2(x2, y), zHeight, zHeight + Plunger.PlungerHeight, info);
 
 			var frameEnd = comp.Position.y - collComp.Stroke;
-			Bounds = new ColliderBounds(_header.Entity, _header.Id, new Aabb(
+			Bounds = new ColliderBounds(_header.ItemId, _header.Id, new Aabb(
 				x - 0.1f,
 				x2 + 0.1f,
 				frameEnd - 0.1f,

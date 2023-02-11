@@ -50,7 +50,7 @@ namespace VisualPinball.Unity
 		/// <param name="radius">Radius in local space</param>
 		/// <param name="kickerRef">If created within a kicker, this is the kicker entity</param>
 		void BallCreate(GameObject ballGo, int id, in float3 worldPos, in float3 localPos, in float3 localVel,
-			in float scale, in float mass, in float radius, in Entity kickerRef);
+			in float scale, in float mass, in float radius, in int kickerId);
 
 		/// <summary>
 		/// Rolls the ball manually to a position on the playfield.
@@ -62,14 +62,14 @@ namespace VisualPinball.Unity
 		/// <summary>
 		/// Rotate the flipper "up" (button pressed)
 		/// </summary>
-		/// <param name="entity"></param>
-		void FlipperRotateToEnd(in Entity entity);
+		/// <param name="itemId"></param>
+		void FlipperRotateToEnd(in int itemId);
 
 		/// <summary>
 		/// Rotate the flipper "down" (button released)
 		/// </summary>
-		/// <param name="entity"></param>
-		void FlipperRotateToStart(in Entity entity);
+		/// <param name="itemId"></param>
+		void FlipperRotateToStart(in int itemId);
 
 		/// <summary>
 		/// Returns a simplified version of all flipper states for the

@@ -56,7 +56,7 @@ namespace VisualPinball.Unity
 
 		private Player _player;
 		private KickerApi[] _kickers;
-		private (KickerApi kicker, float distance, float angle, Entity ballEntity)[] _ballEntities;
+		private (KickerApi kicker, float distance, float angle, int ballId)[] _ballEntities;
 
 		private Dictionary<IRotatableComponent, (float, float)> _rotatingObjectDistances = new();
 		private static EntityManager EntityManager => World.DefaultGameObjectInjectionWorld.EntityManager;
@@ -89,7 +89,7 @@ namespace VisualPinball.Unity
 				k,
 				math.distance(pos, k.Position.xy),
 				math.sign(pos.x - k.Position.x) * Vector2.Angle(k.Position.xy - pos, new float2(0f, -1f)),
-				k.BallEntity)
+				ballId: k.BallId)
 			).ToArray();
 		}
 
@@ -109,22 +109,23 @@ namespace VisualPinball.Unity
 				);
 			}
 
-			// rotate ball(s) in kicker(s)
-			foreach (var (kicker, distance, angle, ballEntity) in _ballEntities) {
-				if (!kicker.HasBall()) {
-					return;
-				}
-				var ballData = EntityManager.GetComponentData<BallData>(ballEntity);
-				ballData.Position = new float3(
-					pos.x -distance * math.sin(math.radians(angleDeg + angle)),
-					pos.y -distance * math.cos(math.radians(angleDeg + angle)),
-					ballData.Position.z
-				);
-				ballData.Velocity = float3.zero;
-				ballData.AngularMomentum = float3.zero;
-
-				EntityManager.SetComponentData(ballEntity, ballData);
-			}
+			// fixme job
+			// // rotate ball(s) in kicker(s)
+			// foreach (var (kicker, distance, angle, ballEntity) in _ballEntities) {
+			// 	if (!kicker.HasBall()) {
+			// 		return;
+			// 	}
+			// 	var ballData = EntityManager.GetComponentData<BallData>(ballEntity);
+			// 	ballData.Position = new float3(
+			// 		pos.x -distance * math.sin(math.radians(angleDeg + angle)),
+			// 		pos.y -distance * math.cos(math.radians(angleDeg + angle)),
+			// 		ballData.Position.z
+			// 	);
+			// 	ballData.Velocity = float3.zero;
+			// 	ballData.AngularMomentum = float3.zero;
+			//
+			// 	EntityManager.SetComponentData(ballEntity, ballData);
+			// }
 		}
 
 		#endregion

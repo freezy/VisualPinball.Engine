@@ -37,21 +37,22 @@ namespace VisualPinballUnity
 
 		protected override void OnUpdate()
 		{
-			var marker = PerfMarker;
-			Entities.WithoutBurst().WithName("DropTargetTransformationJob").ForEach((Entity entity, in DropTargetAnimationData data) =>
-			{
-				marker.Begin();
-
-				var localPos = _player.DropTargetTransforms[entity].localPosition;
-				_player.DropTargetTransforms[entity].localPosition = new Vector3(
-					localPos.x,
-					VisualPinball.Unity.Physics.ScaleToWorld(data.ZOffset),
-					localPos.z
-				);
-
-				marker.End();
-
-			}).Run();
+			// fixme job
+			// var marker = PerfMarker;
+			// Entities.WithoutBurst().WithName("DropTargetTransformationJob").ForEach((Entity entity, in DropTargetAnimationData data) =>
+			// {
+			// 	marker.Begin();
+			//
+			// 	var localPos = _player.DropTargetTransforms[entity].localPosition;
+			// 	_player.DropTargetTransforms[entity].localPosition = new Vector3(
+			// 		localPos.x,
+			// 		VisualPinball.Unity.Physics.ScaleToWorld(data.ZOffset),
+			// 		localPos.z
+			// 	);
+			//
+			// 	marker.End();
+			//
+			// }).Run();
 		}
 	}
 }

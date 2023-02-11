@@ -67,7 +67,7 @@ namespace VisualPinball.Unity
 			}
 
 			// register at player
-			GetComponentInParent<Player>().RegisterBumper(authoring, GetEntity());
+			GetComponentInParent<Player>().RegisterBumper(authoring);
 		}
 	}
 }

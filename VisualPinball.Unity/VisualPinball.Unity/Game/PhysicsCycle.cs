@@ -23,10 +23,12 @@ namespace VisualPinball.Unity
 	public struct PhysicsCycle : IDisposable
 	{
 		private NativeList<ContactBufferElement> _contacts;
+		private NativeList<PlaneCollider> _overlappingColliders;
 
 		public PhysicsCycle(Allocator a)
 		{
 			_contacts = new NativeList<ContactBufferElement>(a);
+			_overlappingColliders = new NativeList<PlaneCollider>(a);
 		}
 
 		internal void Simulate(float dTime, ref PhysicsState state, ref NativeOctree<PlaneCollider> octree, ref NativeList<BallData> balls)
@@ -41,10 +43,24 @@ namespace VisualPinball.Unity
 				_contacts.Clear();
 
 				// todo dynamic broad phase
+
+				for (var i = 0; i < balls.Length; i++) {
+					var ball = balls[i];
+					
+					if (ball.IsFrozen) {
+						continue;
+					}
+					
+					// static broad phase
+					PhysicsStaticBroadPhase.FindOverlaps(in octree, in ball, ref _overlappingColliders);
+					
+					// static narrow phase
+					PhysicsStaticNarrowPhase.FindNextCollision(hitTime, ref ball, _overlappingColliders, ref _contacts);
+
+					// write ball back
+					balls[i] = ball;
+				}
 				
-				// todo static broad phase
-				
-				// todo static narrow phase
 				
 				// todo dynamic narrow phase
 
@@ -70,6 +86,7 @@ namespace VisualPinball.Unity
 		public void Dispose()
 		{
 			_contacts.Dispose();
+			_overlappingColliders.Dispose();
 		}
 	}
 }

@@ -53,7 +53,7 @@ namespace VisualPinball.Unity
 			}
 
 			// register
-			player.RegisterFlipper(authoring, GetEntity());
+			player.RegisterFlipper(authoring);
 		}
 		
 		private void SetupFlipperCorrection(FlipperComponent authoring, Player player, FlipperColliderComponent colliderComponent)

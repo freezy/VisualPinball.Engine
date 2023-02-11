@@ -52,87 +52,88 @@ namespace VisualPinballUnity
 			var marker = PerfMarker;
 			var events = _eventQueue.AsParallelWriter();
 
-			Entities
-				.WithName("GateDisplacementJob")
-				.ForEach((Entity entity, ref GateMovementData movementData, in GateStaticData data) => {
-
-				marker.Begin();
-
-				if (data.TwoWay) {
-					if (math.abs(movementData.Angle) > data.AngleMax) {
-						if (movementData.Angle < 0.0) {
-							movementData.Angle = -data.AngleMax;
-						} else {
-							movementData.Angle = data.AngleMax;
-						}
-
-						// send EOS event
-						events.Enqueue(new EventData(EventId.LimitEventsEos, entity, movementData.AngleSpeed));
-
-						if (!movementData.ForcedMove) {
-							movementData.AngleSpeed = -movementData.AngleSpeed;
-							movementData.AngleSpeed *= data.Damping * 0.8f;           // just some extra damping to reduce the angleSpeed a bit faster
-						} else if (movementData.AngleSpeed > 0.0) {
-							movementData.AngleSpeed = 0.0f;
-						}
-					}
-					if (math.abs(movementData.Angle) < data.AngleMin) {
-						if (movementData.Angle < 0.0) {
-							movementData.Angle = -data.AngleMin;
-						} else {
-							movementData.Angle = data.AngleMin;
-						}
-						if (!movementData.ForcedMove) {
-							movementData.AngleSpeed = -movementData.AngleSpeed;
-							movementData.AngleSpeed *= data.Damping * 0.8f;           // just some extra damping to reduce the angleSpeed a bit faster
-						} else if (movementData.AngleSpeed < 0.0) {
-							movementData.AngleSpeed = 0.0f;
-						}
-					}
-				} else {
-					var direction = movementData.HitDirection ? -1f : 1f;
-					if (direction * movementData.Angle > data.AngleMax) {
-						movementData.Angle = direction * data.AngleMax;
-
-						// send EOS event
-						events.Enqueue(new EventData(EventId.LimitEventsEos, entity, movementData.AngleSpeed));
-
-						if (!movementData.ForcedMove) {
-							movementData.AngleSpeed = -movementData.AngleSpeed;
-							movementData.AngleSpeed *= data.Damping * 0.8f;           // just some extra damping to reduce the angleSpeed a bit faster
-						} else if (movementData.AngleSpeed > 0.0) {
-							movementData.AngleSpeed = 0.0f;
-						}
-					}
-					if (direction * movementData.Angle < data.AngleMin) {
-						movementData.Angle = direction * data.AngleMin;
-
-						// send Park event
-						events.Enqueue(new EventData(EventId.LimitEventsBos, entity, movementData.AngleSpeed));
-
-						if (!movementData.ForcedMove) {
-							movementData.AngleSpeed = -movementData.AngleSpeed;
-							movementData.AngleSpeed *= data.Damping * 0.8f;           // just some extra damping to reduce the angleSpeed a bit faster
-						} else if (movementData.AngleSpeed < 0.0) {
-							movementData.AngleSpeed = 0.0f;
-						}
-					}
-				}
-				movementData.Angle += movementData.AngleSpeed * dTime;
-				
-				if (movementData.IsLifting) {
-					if (math.abs(movementData.Angle - movementData.LiftAngle) > 0.000001f) {
-						var direction = movementData.Angle < movementData.LiftAngle ? 1f : -1f;
-						movementData.Angle += direction * (movementData.LiftSpeed * dTime);
-
-					} else {
-						movementData.IsLifting = false;
-					}
-				}
-
-				marker.End();
-
-			}).Run();
+			// fixme job
+			// Entities
+			// 	.WithName("GateDisplacementJob")
+			// 	.ForEach((Entity entity, ref GateMovementData movementData, in GateStaticData data) => {
+			//
+			// 	marker.Begin();
+			//
+			// 	if (data.TwoWay) {
+			// 		if (math.abs(movementData.Angle) > data.AngleMax) {
+			// 			if (movementData.Angle < 0.0) {
+			// 				movementData.Angle = -data.AngleMax;
+			// 			} else {
+			// 				movementData.Angle = data.AngleMax;
+			// 			}
+			//
+			// 			// send EOS event
+			// 			events.Enqueue(new EventData(EventId.LimitEventsEos, entity, movementData.AngleSpeed));
+			//
+			// 			if (!movementData.ForcedMove) {
+			// 				movementData.AngleSpeed = -movementData.AngleSpeed;
+			// 				movementData.AngleSpeed *= data.Damping * 0.8f;           // just some extra damping to reduce the angleSpeed a bit faster
+			// 			} else if (movementData.AngleSpeed > 0.0) {
+			// 				movementData.AngleSpeed = 0.0f;
+			// 			}
+			// 		}
+			// 		if (math.abs(movementData.Angle) < data.AngleMin) {
+			// 			if (movementData.Angle < 0.0) {
+			// 				movementData.Angle = -data.AngleMin;
+			// 			} else {
+			// 				movementData.Angle = data.AngleMin;
+			// 			}
+			// 			if (!movementData.ForcedMove) {
+			// 				movementData.AngleSpeed = -movementData.AngleSpeed;
+			// 				movementData.AngleSpeed *= data.Damping * 0.8f;           // just some extra damping to reduce the angleSpeed a bit faster
+			// 			} else if (movementData.AngleSpeed < 0.0) {
+			// 				movementData.AngleSpeed = 0.0f;
+			// 			}
+			// 		}
+			// 	} else {
+			// 		var direction = movementData.HitDirection ? -1f : 1f;
+			// 		if (direction * movementData.Angle > data.AngleMax) {
+			// 			movementData.Angle = direction * data.AngleMax;
+			//
+			// 			// send EOS event
+			// 			events.Enqueue(new EventData(EventId.LimitEventsEos, entity, movementData.AngleSpeed));
+			//
+			// 			if (!movementData.ForcedMove) {
+			// 				movementData.AngleSpeed = -movementData.AngleSpeed;
+			// 				movementData.AngleSpeed *= data.Damping * 0.8f;           // just some extra damping to reduce the angleSpeed a bit faster
+			// 			} else if (movementData.AngleSpeed > 0.0) {
+			// 				movementData.AngleSpeed = 0.0f;
+			// 			}
+			// 		}
+			// 		if (direction * movementData.Angle < data.AngleMin) {
+			// 			movementData.Angle = direction * data.AngleMin;
+			//
+			// 			// send Park event
+			// 			events.Enqueue(new EventData(EventId.LimitEventsBos, entity, movementData.AngleSpeed));
+			//
+			// 			if (!movementData.ForcedMove) {
+			// 				movementData.AngleSpeed = -movementData.AngleSpeed;
+			// 				movementData.AngleSpeed *= data.Damping * 0.8f;           // just some extra damping to reduce the angleSpeed a bit faster
+			// 			} else if (movementData.AngleSpeed < 0.0) {
+			// 				movementData.AngleSpeed = 0.0f;
+			// 			}
+			// 		}
+			// 	}
+			// 	movementData.Angle += movementData.AngleSpeed * dTime;
+			// 	
+			// 	if (movementData.IsLifting) {
+			// 		if (math.abs(movementData.Angle - movementData.LiftAngle) > 0.000001f) {
+			// 			var direction = movementData.Angle < movementData.LiftAngle ? 1f : -1f;
+			// 			movementData.Angle += direction * (movementData.LiftSpeed * dTime);
+			//
+			// 		} else {
+			// 			movementData.IsLifting = false;
+			// 		}
+			// 	}
+			//
+			// 	marker.End();
+			//
+			// }).Run();
 
 			// dequeue events
 			while (_eventQueue.TryDequeue(out var eventData)) {

@@ -38,18 +38,19 @@ namespace VisualPinballUnity
 
 		protected override void OnUpdate()
 		{
-			var marker = PerfMarker;
-			Entities.WithoutBurst().WithName("BumperSkirtMovementJob").ForEach((Entity entity, in BumperSkirtAnimationData data) => {
-
-				marker.Begin();
-
-				var transform = _player.BumperSkirtTransforms[entity];
-				var parentRotation = transform.parent.rotation;
-				transform.rotation = Quaternion.Euler(data.Rotation.x, 0, -data.Rotation.y) * parentRotation;
-
-				marker.End();
-
-			}).Run();
+			// fixme job
+			// var marker = PerfMarker;
+			// Entities.WithoutBurst().WithName("BumperSkirtMovementJob").ForEach((Entity entity, in BumperSkirtAnimationData data) => {
+			//
+			// 	marker.Begin();
+			//
+			// 	var transform = _player.BumperSkirtTransforms[entity];
+			// 	var parentRotation = transform.parent.rotation;
+			// 	transform.rotation = Quaternion.Euler(data.Rotation.x, 0, -data.Rotation.y) * parentRotation;
+			//
+			// 	marker.End();
+			//
+			// }).Run();
 		}
 	}
 }

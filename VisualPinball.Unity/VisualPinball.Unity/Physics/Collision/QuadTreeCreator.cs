@@ -47,15 +47,16 @@ namespace VisualPinball.Unity
 			// 1. generate colliders
 			PerfMarkerGenerateColliders.Begin();
 			var colliderList = new List<ICollider>();
-			var (playfieldCollider, glassCollider) = player.PlayfieldApi.CreateColliders();
+			var (playfieldCollider, glassCollider) = player.PlayfieldApi.CreateColliders(0);
 			itemsColliding = new NativeHashMap<Entity, bool>(itemApis.Length, Allocator.Persistent);
 			foreach (var itemApi in itemApis) {
-				PerfMarkerCreateColliders.Begin();
-				if (itemApi.ColliderEntity != Entity.Null) {
-					itemsColliding.Add(itemApi.ColliderEntity, itemApi.IsColliderEnabled);
-				}
-				itemApi.CreateColliders(colliderList, 0);
-				PerfMarkerCreateColliders.End();
+				// fixme job
+				// PerfMarkerCreateColliders.Begin();
+				// if (itemApi.ColliderEntity != Entity.Null) {
+				// 	itemsColliding.Add(itemApi.ColliderEntity, itemApi.IsColliderEnabled);
+				// }
+				// itemApi.CreateColliders(colliderList, 0);
+				// PerfMarkerCreateColliders.End();
 			}
 			PerfMarkerGenerateColliders.End();
 

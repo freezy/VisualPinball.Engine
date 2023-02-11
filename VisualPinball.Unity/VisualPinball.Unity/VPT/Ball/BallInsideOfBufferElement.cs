@@ -25,6 +25,6 @@ namespace VisualPinball.Unity
 	[InternalBufferCapacity(0)]
 	internal struct BallInsideOfBufferElement : IBufferElementData
 	{
-		public Entity Value;
+		public int Value;
 	}
 }

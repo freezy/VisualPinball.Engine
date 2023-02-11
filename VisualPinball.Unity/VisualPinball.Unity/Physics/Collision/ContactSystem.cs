@@ -74,7 +74,7 @@ namespace VisualPinballUnity
 
 					var contact = contacts[i];
 					ref var collEvent = ref contact.CollEvent;
-					var ball = ballsLookup[contact.BallEntity];
+					var ball = ballsLookup[Entity.Null]; // fixme jobs ballsLookup[contact.BallId];
 
 					if (collEvent.ColliderId > -1) { // collide with static collider
 						ref var coll = ref colliders[collEvent.ColliderId].Value;
@@ -84,13 +84,13 @@ namespace VisualPinballUnity
 								// flipper contact updates movement data
 								if (coll.Type == ColliderType.Flipper) {
 
-									var flipperMovementData = GetComponent<FlipperMovementData>(coll.Entity);
-									var flipperMaterialData = GetComponent<FlipperStaticData>(coll.Entity);
-									var flipperVelocityData = GetComponent<FlipperVelocityData>(coll.Entity);
+									var flipperMovementData = GetComponent<FlipperMovementData>(coll.ItemId);
+									var flipperMaterialData = GetComponent<FlipperStaticData>(coll.ItemId);
+									var flipperVelocityData = GetComponent<FlipperVelocityData>(coll.ItemId);
 									((FlipperCollider*) collider)->Contact(
 										ref ball, ref flipperMovementData, in collEvent,
 										in flipperMaterialData, in flipperVelocityData, hitTime, in gravity);
-									SetComponent(coll.Entity, flipperMovementData);
+									SetComponent(coll.ItemId, flipperMovementData);
 
 								} else {
 									VisualPinball.Unity.Collider.Contact(ref coll, ref ball, in collEvent, hitTime, in gravity);
@@ -103,7 +103,7 @@ namespace VisualPinballUnity
 						BallCollider.HandleStaticContact(ref ball, in collEvent, 0.3f, hitTime, in gravity);
 					}
 
-					ballsLookup[contact.BallEntity] = ball;
+					ballsLookup[Entity.Null] = ball; // fixme jobs [contact.BallId] = ball;
 				}
 
 				marker.End();

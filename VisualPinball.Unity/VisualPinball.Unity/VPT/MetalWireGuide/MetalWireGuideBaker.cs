@@ -25,7 +25,7 @@ namespace VisualPinball.Unity
 			base.Bake(authoring);
 			
 			// register
-			GetComponentInParent<Player>().RegisterMetalWireGuide(authoring, GetEntity());
+			GetComponentInParent<Player>().RegisterMetalWireGuide(authoring);
 		}
 	}
 }

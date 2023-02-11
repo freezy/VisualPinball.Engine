@@ -22,11 +22,11 @@ namespace VisualPinball.Unity
 	internal struct ContactBufferElement : IBufferElementData
 	{
 		public CollisionEventData CollEvent;
-		public Entity BallEntity;
+		public int BallId;
 
-		public ContactBufferElement(Entity ballEntity, CollisionEventData collEvent)
+		public ContactBufferElement(int ballId, CollisionEventData collEvent)
 		{
-			BallEntity = ballEntity;
+			BallId = ballId;
 			CollEvent = collEvent;
 		}
 	}

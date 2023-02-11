@@ -40,7 +40,7 @@ namespace VisualPinball.Unity
 					var c = colliders[i].Value;
 					var bounds = colliders[i].Value.Bounds();
 					//Debug.Log("Adding aabb " + aabb + " (" + colliders[i].Value.Type + ")");
-					if (bounds.ColliderEntity == Entity.Null) {
+					if (bounds.ItemId == 0) {
 						throw new InvalidOperationException($"Entity of {bounds} must be set ({colliders[i].Value.ItemType}).");
 					}
 					if (bounds.ColliderId < 0) {
@@ -174,7 +174,7 @@ namespace VisualPinball.Unity
 			for (var i = 0; i < src.Count; i++) {
 				ref var bounds = ref builder.Allocate(ref boundsBlob[i]);
 				bounds.Aabb = src[i].Aabb;
-				bounds.ColliderEntity = src[i].ColliderEntity;
+				bounds.ItemId = src[i].ItemId;
 				bounds.ColliderId = src[i].ColliderId;
 			}
 		}
@@ -198,9 +198,9 @@ namespace VisualPinball.Unity
 
 			for (var i = 0; i < _bounds.Length; i++) {
 				ref var bounds = ref _bounds[i].Value;
-				if (itemsColliding[bounds.ColliderEntity] && bounds.Aabb.IntersectRect(ballAabb) && bounds.Aabb.IntersectSphere(ball.Position, collisionRadiusSqr)) {
-					matchedColliderIds.Add(new OverlappingStaticColliderBufferElement { Value = bounds.ColliderId });
-				}
+				// if (itemsColliding[bounds.ColliderEntity] && bounds.Aabb.IntersectRect(ballAabb) && bounds.Aabb.IntersectSphere(ball.Position, collisionRadiusSqr)) {
+				// 	matchedColliderIds.Add(new OverlappingStaticColliderBufferElement { Value = bounds.ColliderId });
+				// }
 			}
 
 			if (!_isLeaf) {

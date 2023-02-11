@@ -51,7 +51,7 @@ namespace VisualPinball.Unity
 		#endregion
 
 		public override PhysicsMaterialData PhysicsMaterialData => GetPhysicsMaterialData(scatterAngleDeg: Scatter);
-		protected override IApiColliderGenerator InstantiateColliderApi(Player player, Entity entity)
-			=> new KickerApi(gameObject, entity, player);
+		protected override IApiColliderGenerator InstantiateColliderApi(Player player)
+			=> new KickerApi(gameObject, player);
 	}
 }

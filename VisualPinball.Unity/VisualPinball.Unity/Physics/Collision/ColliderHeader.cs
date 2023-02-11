@@ -30,7 +30,7 @@ namespace VisualPinball.Unity
 		public ColliderType Type;
 		public ItemType ItemType;
 		public int Id;
-		public Entity Entity;
+		public int ItemId;
 		public PhysicsMaterialData Material;
 
 		public float Threshold;
@@ -54,13 +54,13 @@ namespace VisualPinball.Unity
 
 		public void Init(ColliderInfo info, ColliderType colliderType)
 		{
-			if (info.Entity == Entity.Null) {
+			if (info.ItemId == 0) {
 				throw new InvalidOperationException("Entity of " + info.ItemType + " " + colliderType + " not set!");
 			}
 			Type = colliderType;
 			ItemType = info.ItemType;
 			Id = info.Id;
-			Entity = info.Entity;
+			ItemId = info.ItemId;
 			Material = info.Material;
 			Threshold = info.HitThreshold;
 			FireEvents = info.FireEvents;

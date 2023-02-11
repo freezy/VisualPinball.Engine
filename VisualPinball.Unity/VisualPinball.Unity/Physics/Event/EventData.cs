@@ -26,42 +26,42 @@ namespace VisualPinball.Unity
 	public readonly struct EventData
 	{
 		public readonly EventId eventId;
-		public readonly Entity ItemEntity;
-		public readonly Entity BallEntity;
+		public readonly int ItemId;
+		public readonly int BallId;
 		public readonly float FloatParam;
 		public readonly bool GroupEvent;
 
-		public EventData(EventId eventId, Entity itemEntity, Entity ballEntity, bool groupEvent = false) : this()
+		public EventData(EventId eventId, int itemId, int ballId, bool groupEvent = false) : this()
 		{
 			this.eventId = eventId;
-			ItemEntity = itemEntity;
-			BallEntity = ballEntity;
+			ItemId = itemId;
+			BallId = ballId;
 			GroupEvent = groupEvent;
 		}
 
-		public EventData(EventId eventId, Entity itemEntity, Entity ballEntity, float floatParam, bool groupEvent = false) : this()
+		public EventData(EventId eventId, int itemId, int ballId, float floatParam, bool groupEvent = false) : this()
 		{
 			this.eventId = eventId;
-			ItemEntity = itemEntity;
-			BallEntity = ballEntity;
+			ItemId = itemId;
+			BallId = ballId;
 			FloatParam = floatParam;
 			GroupEvent = groupEvent;
 		}
 
 
-		public EventData(EventId eventId, Entity itemEntity, bool groupEvent = false) : this()
+		public EventData(EventId eventId, int itemId, bool groupEvent = false) : this()
 		{
 			this.eventId = eventId;
-			ItemEntity = itemEntity;
-			BallEntity = Entity.Null;
+			ItemId = itemId;
+			BallId = 0;
 			GroupEvent = groupEvent;
 		}
 
-		public EventData(EventId eventId, Entity itemEntity, float floatParam, bool groupEvent = false) : this()
+		public EventData(EventId eventId, int itemId, float floatParam, bool groupEvent = false) : this()
 		{
 			this.eventId = eventId;
-			ItemEntity = itemEntity;
-			BallEntity = Entity.Null;
+			ItemId = itemId;
+			BallId = 0;
 			FloatParam = floatParam;
 			GroupEvent = groupEvent;
 		}

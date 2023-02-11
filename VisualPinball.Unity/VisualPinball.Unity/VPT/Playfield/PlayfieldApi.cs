@@ -25,7 +25,7 @@ namespace VisualPinball.Unity
 {
 	public class PlayfieldApi : CollidableApi<PlayfieldComponent, PlayfieldColliderComponent, TableData>
 	{
-		internal PlayfieldApi(GameObject go, Player player) : base(go, Player.PlayfieldEntity, player)
+		internal PlayfieldApi(GameObject go, Player player) : base(go, player)
 		{
 		}
 
@@ -89,11 +89,11 @@ namespace VisualPinball.Unity
 			ColliderUtils.Generate3DPolyColliders(rgv3D, info, colliders);
 		}
 
-		internal (PlaneCollider, PlaneCollider) CreateColliders()
+		internal (PlaneCollider, PlaneCollider) CreateColliders(int instanceId)
 		{
 			var info = new ColliderInfo {
+				ItemId = instanceId,
 				ItemType = ItemType.Table,
-				Entity = Player.PlayfieldEntity,
 				FireEvents = false,
 				IsEnabled = true,
 				Material = new PhysicsMaterialData {

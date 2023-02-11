@@ -50,43 +50,44 @@ namespace VisualPinballUnity
 		{
 			var ltw = _baseTransform;
 			var marker = PerfMarker;
-			Entities.WithoutBurst().WithName("BallMovementJob").ForEach((Entity entity, in BallData ball) => {
-
-				marker.Begin();
-
-				if (!_player.Balls.ContainsKey(entity)) {
-					marker.End();
-					return;
-				}
-
-				// calculate/adapt height of ball
-				var zHeight = !ball.IsFrozen ? ball.Position.z : ball.Position.z - ball.Radius;
-				var ballTransform = _player.Balls[entity].transform;
-				ballTransform.localPosition = VisualPinball.Unity.Physics.TranslateToWorld(ball.Position.x, ball.Position.y, zHeight);
-
-				var or = ball.BallOrientationForUnity;
-
-				var VPX = new Vector3(or.c0.x, or.c1.x, or.c2.x);
-				var VPY = new Vector3(or.c0.y, or.c1.y, or.c2.y);
-				var VPZ = new Vector3(or.c0.z, or.c1.z, or.c2.z);
-
-				// Debug.Log("c0: (" + or.c0.x + ", " + or.c0.y + ", " + or.c0.z + ")");
-				// Debug.Log("c1: (" + or.c1.x + ", " + or.c1.y + ", " + or.c1.z + ")");
-				// Debug.Log("c2: (" + or.c2.x + ", " + or.c2.y + ", " + or.c2.z + ")");
-
-				// for security reasons, so that we don't get NaN, NaN, NaN, NaN erroro, when vectors are not fully orthonormalized because of skewMatrix operation
-				Vector3.OrthoNormalize(ref VPZ, ref VPY, ref VPX);
-
-				Quaternion q = Quaternion.LookRotation(VPZ, VPY);
-
-				// flip Z axis
-				q = FlipZAxis(q);
-
-				ballTransform.localRotation = q.RotateToWorld();
-
-				marker.End();
-
-			}).Run();
+			// fixme job
+			// Entities.WithoutBurst().WithName("BallMovementJob").ForEach((Entity entity, in BallData ball) => {
+			//
+			// 	marker.Begin();
+			//
+			// 	if (!_player.Balls.ContainsKey(entity)) {
+			// 		marker.End();
+			// 		return;
+			// 	}
+			//
+			// 	// calculate/adapt height of ball
+			// 	var zHeight = !ball.IsFrozen ? ball.Position.z : ball.Position.z - ball.Radius;
+			// 	var ballTransform = _player.Balls[entity].transform;
+			// 	ballTransform.localPosition = VisualPinball.Unity.Physics.TranslateToWorld(ball.Position.x, ball.Position.y, zHeight);
+			//
+			// 	var or = ball.BallOrientationForUnity;
+			//
+			// 	var VPX = new Vector3(or.c0.x, or.c1.x, or.c2.x);
+			// 	var VPY = new Vector3(or.c0.y, or.c1.y, or.c2.y);
+			// 	var VPZ = new Vector3(or.c0.z, or.c1.z, or.c2.z);
+			//
+			// 	// Debug.Log("c0: (" + or.c0.x + ", " + or.c0.y + ", " + or.c0.z + ")");
+			// 	// Debug.Log("c1: (" + or.c1.x + ", " + or.c1.y + ", " + or.c1.z + ")");
+			// 	// Debug.Log("c2: (" + or.c2.x + ", " + or.c2.y + ", " + or.c2.z + ")");
+			//
+			// 	// for security reasons, so that we don't get NaN, NaN, NaN, NaN erroro, when vectors are not fully orthonormalized because of skewMatrix operation
+			// 	Vector3.OrthoNormalize(ref VPZ, ref VPY, ref VPX);
+			//
+			// 	Quaternion q = Quaternion.LookRotation(VPZ, VPY);
+			//
+			// 	// flip Z axis
+			// 	q = FlipZAxis(q);
+			//
+			// 	ballTransform.localRotation = q.RotateToWorld();
+			//
+			// 	marker.End();
+			//
+			// }).Run();
 
 
 			static Quaternion FlipZAxis(Quaternion q)

@@ -38,9 +38,9 @@ namespace VisualPinball.Unity
 		/// <summary>
 		/// Called when a flipper has been converted to an entity.
 		/// </summary>
-		/// <param name="entity">Flipper entity</param>
+		/// <param name="itemId">Flipper entity</param>
 		/// <param name="name">Name of the flipper</param>
-		void OnRegisterFlipper(Entity entity, string name);
+		void OnRegisterFlipper(int itemId, string name);
 
 		/// <summary>
 		/// Called when a new ball has been created.

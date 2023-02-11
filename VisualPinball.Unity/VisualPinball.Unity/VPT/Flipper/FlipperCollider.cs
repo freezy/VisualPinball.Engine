@@ -69,7 +69,7 @@ namespace VisualPinball.Unity
 			aabb = ExtendBoundsAtExtreme(aabb, c, flipperRadius, r2, r3, a0, a1, 90f);
 			aabb = ExtendBoundsAtExtreme(aabb, c, flipperRadius, r2, r3, a0, a1, 180f);
 
-			Bounds = new ColliderBounds(_header.Entity, _header.Id, aabb);
+			Bounds = new ColliderBounds(_header.ItemId, _header.Id, aabb);
 		}
 
 		private static Aabb ExtendBoundsAtExtreme(Aabb aabb, float2 c, float length, float endRadius, float startRadius, float startAngle, float endAngle, float angle)
@@ -777,7 +777,7 @@ namespace VisualPinball.Unity
 		#region Collision
 
 		public void Collide(ref BallData ball, ref CollisionEventData collEvent, ref FlipperMovementData movementData,
-			ref NativeQueue<EventData>.ParallelWriter events, in Entity ballEntity, in FlipperTricksData tricks, in FlipperStaticData matData,
+			ref NativeQueue<EventData>.ParallelWriter events, in int ballId, in FlipperTricksData tricks, in FlipperStaticData matData,
 			in FlipperVelocityData velData, in FlipperHitData hitData, uint timeMsec)
 		{
 			var normal = collEvent.HitNormal;
@@ -915,11 +915,11 @@ namespace VisualPinball.Unity
 				var flipperHit = hitData.HitMomentBit ? -1.0f : -bnv; // move event processing to end of collision handler...
 				if (flipperHit < 0f) {
 					// simple hit event
-					events.Enqueue(new EventData(EventId.HitEventsHit, _header.Entity, ballEntity, true));
+					events.Enqueue(new EventData(EventId.HitEventsHit, _header.ItemId, ballId, true));
 
 				} else {
 					// collision velocity (normal to face)
-					events.Enqueue(new EventData(EventId.FlipperEventsCollide, _header.Entity, ballEntity, flipperHit));
+					events.Enqueue(new EventData(EventId.FlipperEventsCollide, _header.ItemId, ballId, flipperHit));
 				}
 			}
 			movementData.LastHitTime = timeMsec; // keep resetting until idle for 250 milliseconds

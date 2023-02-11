@@ -35,7 +35,7 @@ namespace VisualPinball.Unity
 		private readonly float _zHigh;
 		private readonly float _zLow;
 
-		public ColliderBounds Bounds => new ColliderBounds(_header.Entity, _header.Id, new Aabb(
+		public ColliderBounds Bounds => new ColliderBounds(_header.ItemId, _header.Id, new Aabb(
 			Center.x - Radius,
 			Center.x + Radius,
 			Center.y - Radius,
@@ -129,7 +129,7 @@ namespace VisualPinball.Unity
 
 			// Kicker is special.. handle ball stalled on kicker, commonly hit while receding, knocking back into kicker pocket
 			if (isKicker && bnd <= 0 && bnd >= -Radius && a < PhysicsConstants.ContactVel * PhysicsConstants.ContactVel/* && ball.Hit.IsRealBall()*/) {
-				BallData.SetOutsideOf(ref insideOfs, _header.Entity);
+				BallData.SetOutsideOf(ref insideOfs, _header.ItemId);
 			}
 
 			// contact positive possible in future ... objects Negative in contact now
@@ -149,13 +149,13 @@ namespace VisualPinball.Unity
 					hitTime = math.max(0.0f, (float) (-bnd / bnv));
 				}
 
-			} else if (isKickerOrTrigger /*&& ball.Hit.IsRealBall()*/ && bnd < 0 == BallData.IsOutsideOf(in insideOfs, in _header.Entity)) {
+			} else if (isKickerOrTrigger /*&& ball.Hit.IsRealBall()*/ && bnd < 0 == BallData.IsOutsideOf(in insideOfs, in _header.ItemId)) {
 				// triggers & kickers
 
 				// here if ... ball inside and no hit set .... or ... ball outside and hit set
 				if (math.abs(bnd - Radius) < 0.05) {
 					// if ball appears in center of trigger, then assumed it was gen"ed there
-					BallData.SetInsideOf(ref insideOfs, _header.Entity); // special case for trigger overlaying a kicker
+					BallData.SetInsideOf(ref insideOfs, _header.ItemId); // special case for trigger overlaying a kicker
 
 				} else {
 					// this will add the ball to the trigger space without a Hit

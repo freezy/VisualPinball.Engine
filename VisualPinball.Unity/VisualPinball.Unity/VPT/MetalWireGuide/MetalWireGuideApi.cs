@@ -16,7 +16,6 @@
 
 using System;
 using System.Collections.Generic;
-using Unity.Entities;
 using UnityEngine;
 using VisualPinball.Engine.VPT.MetalWireGuide;
 
@@ -35,7 +34,7 @@ namespace VisualPinball.Unity
 		/// </summary>
 		public event EventHandler<HitEventArgs> Hit;
 
-		internal MetalWireGuideApi(GameObject go, Entity entity, Player player) : base(go, entity, player)
+		internal MetalWireGuideApi(GameObject go, Player player) : base(go, player)
 		{
 		}
 
@@ -64,9 +63,9 @@ namespace VisualPinball.Unity
 		{
 		}
 
-		void IApiHittable.OnHit(Entity ballEntity, bool _)
+		void IApiHittable.OnHit(int ballId, bool _)
 		{
-			Hit?.Invoke(this, new HitEventArgs(ballEntity));
+			Hit?.Invoke(this, new HitEventArgs(ballId));
 		}
 
 		#endregion

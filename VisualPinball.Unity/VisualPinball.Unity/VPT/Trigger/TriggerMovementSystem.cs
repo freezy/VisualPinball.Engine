@@ -42,22 +42,23 @@ namespace VisualPinballUnity
 		{
 			var marker = PerfMarker;
 
-			Entities.WithoutBurst().WithName("TriggerMovementJob").ForEach((Entity entity, in TriggerMovementData data) => {
-
-				marker.Begin();
-				
-				var transform = _player.TriggerTransforms[entity];
-				if (!_initialOffset.ContainsKey(entity)) {
-					_initialOffset[entity] = transform.position.y;
-				}
-
-				var worldPos = transform.position;
-				worldPos.y = _initialOffset[entity] + VisualPinball.Unity.Physics.ScaleToWorld(data.HeightOffset);
-				transform.position = worldPos;
-
-				marker.End();
-
-			}).Run();
+			// fixme job
+			// Entities.WithoutBurst().WithName("TriggerMovementJob").ForEach((Entity entity, in TriggerMovementData data) => {
+			//
+			// 	marker.Begin();
+			// 	
+			// 	var transform = _player.TriggerTransforms[entity];
+			// 	if (!_initialOffset.ContainsKey(entity)) {
+			// 		_initialOffset[entity] = transform.position.y;
+			// 	}
+			//
+			// 	var worldPos = transform.position;
+			// 	worldPos.y = _initialOffset[entity] + VisualPinball.Unity.Physics.ScaleToWorld(data.HeightOffset);
+			// 	transform.position = worldPos;
+			//
+			// 	marker.End();
+			//
+			// }).Run();
 		}
 	}
 }

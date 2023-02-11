@@ -65,10 +65,10 @@ namespace VisualPinball.Unity
 		}
 
 		public void BallCreate(GameObject ballGo, int id, in float3 worldPos, in float3 localPos,
-			in float3 localVel, in float scale, in float mass, in float radius, in Entity kickerRef)
+			in float3 localVel, in float scale, in float mass, in float radius, in int kickerId)
 		{
 			_ballManager.CreateEntity(ballGo, id, in worldPos, in localPos, in localVel,scale * radius * 2,
-				in mass, in radius, in kickerRef);
+				in mass, in radius, in kickerId);
 		}
 
 		public void BallManualRoll(in Entity entity, in float3 targetWorldPosition)
@@ -96,22 +96,24 @@ namespace VisualPinball.Unity
 			}
 		}
 
-		public void FlipperRotateToEnd(in Entity entity)
+		public void FlipperRotateToEnd(in int itemId)
 		{
-			var mData = _entityManager.GetComponentData<FlipperMovementData>(entity);
-			mData.EnableRotateEvent = 1;
-			mData.StartRotateToEndTime = _visualPinballSimulationSystemGroup.TimeMsec;
-			mData.AngleAtRotateToEnd = mData.Angle;
-			_entityManager.SetComponentData(entity, mData);
-			_entityManager.SetComponentData(entity, new SolenoidStateData { Value = true });
+			// fixme job
+			// var mData = _entityManager.GetComponentData<FlipperMovementData>(entity);
+			// mData.EnableRotateEvent = 1;
+			// mData.StartRotateToEndTime = _visualPinballSimulationSystemGroup.TimeMsec;
+			// mData.AngleAtRotateToEnd = mData.Angle;
+			// _entityManager.SetComponentData(entity, mData);
+			// _entityManager.SetComponentData(entity, new SolenoidStateData { Value = true });
 		}
 
-		public void FlipperRotateToStart(in Entity entity)
+		public void FlipperRotateToStart(in int itemId)
 		{
-			var mData = _entityManager.GetComponentData<FlipperMovementData>(entity);
-			mData.EnableRotateEvent = -1;
-			_entityManager.SetComponentData(entity, mData);
-			_entityManager.SetComponentData(entity, new SolenoidStateData { Value = false });
+			// fixme job
+			// var mData = _entityManager.GetComponentData<FlipperMovementData>(entity);
+			// mData.EnableRotateEvent = -1;
+			// _entityManager.SetComponentData(entity, mData);
+			// _entityManager.SetComponentData(entity, new SolenoidStateData { Value = false });
 		}
 
 		public DebugFlipperState[] FlipperGetDebugStates()

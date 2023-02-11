@@ -65,8 +65,7 @@ namespace VisualPinball.Unity
 		/// </summary>
 		public event EventHandler<SwitchEventArgs> Switch;
 
-		public SpinnerApi(GameObject go, Entity entity, Player player)
-			: base(go, entity, player)
+		public SpinnerApi(GameObject go, Player player) : base(go, player)
 		{
 		}
 
@@ -108,7 +107,7 @@ namespace VisualPinball.Unity
 		void IApiSpinnable.OnSpin()
 		{
 			Spin?.Invoke(this, EventArgs.Empty);
-			Switch?.Invoke(this, new SwitchEventArgs(true, Entity.Null));
+			Switch?.Invoke(this, new SwitchEventArgs(true));
 			OnSwitch(true);
 		}
 

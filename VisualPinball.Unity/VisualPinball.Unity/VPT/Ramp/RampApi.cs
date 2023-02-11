@@ -16,12 +16,12 @@
 
 using System;
 using System.Collections.Generic;
-using Unity.Entities;
 using UnityEngine;
+using VisualPinball.Engine.VPT.Ramp;
 
 namespace VisualPinball.Unity
 {
-	public class RampApi : CollidableApi<RampComponent, RampColliderComponent, Engine.VPT.Ramp.RampData>, IApi, IApiHittable
+	public class RampApi : CollidableApi<RampComponent, RampColliderComponent, RampData>, IApi, IApiHittable
 	{
 		/// <summary>
 		/// Event emitted when the table is started.
@@ -33,7 +33,7 @@ namespace VisualPinball.Unity
 		/// </summary>
 		public event EventHandler<HitEventArgs> Hit;
 
-		internal RampApi(GameObject go, Entity entity, Player player) : base(go, entity, player)
+		internal RampApi(GameObject go, Player player) : base(go, player)
 		{
 		}
 
@@ -45,9 +45,9 @@ namespace VisualPinball.Unity
 			Init?.Invoke(this, EventArgs.Empty);
 		}
 
-		public void OnHit(Entity ballEntity, bool isUnHit = false)
+		public void OnHit(int ballId, bool isUnHit = false)
 		{
-			Hit?.Invoke(this, new HitEventArgs(ballEntity));
+			Hit?.Invoke(this, new HitEventArgs(ballId));
 		}
 
 		void IApi.OnDestroy()

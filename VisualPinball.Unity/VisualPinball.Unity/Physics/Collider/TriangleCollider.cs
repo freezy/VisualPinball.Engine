@@ -36,7 +36,7 @@ namespace VisualPinball.Unity
 
 		public float3 Normal() => _normal;
 
-		public ColliderBounds Bounds => new ColliderBounds(_header.Entity, _header.Id, new Aabb(
+		public ColliderBounds Bounds => new ColliderBounds(_header.ItemId, _header.Id, new Aabb(
 			math.min(Rgv0.x, math.min(Rgv1.x, Rgv2.x)),
 			math.max(Rgv0.x, math.max(Rgv1.x, Rgv2.x)),
 			math.min(Rgv0.y, math.min(Rgv1.y, Rgv2.y)),
@@ -155,7 +155,7 @@ namespace VisualPinball.Unity
 
 			if (pointInTriangle) {
 
-				if (_header.ItemType == ItemType.Trigger && bnd < 0 == BallData.IsOutsideOf(in insideOfs, in _header.Entity)) {
+				if (_header.ItemType == ItemType.Trigger && bnd < 0 == BallData.IsOutsideOf(in insideOfs, in _header.ItemId)) {
 					collEvent.HitFlag = bnd > 0;
 				}
 
@@ -178,14 +178,14 @@ namespace VisualPinball.Unity
 		#region Collision
 
 		public void Collide(ref BallData ball, ref NativeQueue<EventData>.ParallelWriter hitEvents,
-			in Entity ballEntity, in CollisionEventData collEvent, ref Random random)
+			in int ballId, in CollisionEventData collEvent, ref Random random)
 		{
 			var dot = -math.dot(collEvent.HitNormal, ball.Velocity);
 			BallCollider.Collide3DWall(ref ball, in _header.Material, in collEvent, in _normal, ref random);
 
 			if (_header.FireEvents && dot >= _header.Threshold && _header.IsPrimitive) {
 				// todo m_obj->m_currentHitThreshold = dot;
-				Collider.FireHitEvent(ref ball, ref hitEvents, in ballEntity, in _header);
+				Collider.FireHitEvent(ref ball, ref hitEvents, in ballId, in _header);
 			}
 		}
 

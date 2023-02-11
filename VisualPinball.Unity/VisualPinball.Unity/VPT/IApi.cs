@@ -53,11 +53,6 @@ namespace VisualPinball.Unity
 		ColliderInfo GetColliderInfo();
 
 		/// <summary>
-		/// The entity of the game item
-		/// </summary>
-		Entity ColliderEntity { get; }
-
-		/// <summary>
 		/// If false, this will be included in the quad tree but marked as inactive.
 		/// </summary>
 		bool IsColliderEnabled { get; }
@@ -78,7 +73,7 @@ namespace VisualPinball.Unity
 		/// </summary>
 		/// <param name="ballEntity">Which ball</param>
 		/// <param name="isUnHit">Whether it exited the hittable area</param>
-		void OnHit(Entity ballEntity, bool isUnHit = false);
+		void OnHit(int ballId, bool isUnHit = false);
 
 		/// <summary>
 		/// Public event to subscribe to for hits.
@@ -104,7 +99,7 @@ namespace VisualPinball.Unity
 	/// </summary>
 	internal interface IApiCollidable
 	{
-		void OnCollide(Entity ballEntity, float hit);
+		void OnCollide(int ballId, float hit);
 	}
 
 	/// <summary>
@@ -120,7 +115,7 @@ namespace VisualPinball.Unity
 	/// </summary>
 	internal interface IApiSlingshot
 	{
-		void OnSlingshot(Entity ballEntity);
+		void OnSlingshot(int ballId);
 	}
 
 	/// <summary>
@@ -128,7 +123,7 @@ namespace VisualPinball.Unity
 	/// </summary>
 	internal interface IApiDroppable
 	{
-		void OnDropStatusChanged(bool isDropped, Entity ballEntity);
+		void OnDropStatusChanged(bool isDropped, int ballId);
 	}
 
 	/// <summary>

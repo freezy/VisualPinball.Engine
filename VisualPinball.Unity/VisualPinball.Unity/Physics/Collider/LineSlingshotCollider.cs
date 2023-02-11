@@ -38,7 +38,7 @@ namespace VisualPinball.Unity
 
 		private readonly float _force;
 
-		public ColliderBounds Bounds => new ColliderBounds(_header.Entity, _header.Id, new Aabb(
+		public ColliderBounds Bounds => new ColliderBounds(_header.ItemId, _header.Id, new Aabb(
 			math.min(V1.x, V2.x),
 			math.max(V1.x, V2.x),
 			math.min(V1.y, V2.y),
@@ -98,7 +98,7 @@ namespace VisualPinball.Unity
 
 		#region Collision
 
-		public void Collide(ref BallData ball, ref NativeQueue<EventData>.ParallelWriter events, in Entity ballEntity, in LineSlingshotData slingshotData, in CollisionEventData collEvent, ref Random random)
+		public void Collide(ref BallData ball, ref NativeQueue<EventData>.ParallelWriter events, in int ballId, in LineSlingshotData slingshotData, in CollisionEventData collEvent, ref Random random)
 		{
 			var hitNormal = collEvent.HitNormal;
 
@@ -143,7 +143,7 @@ namespace VisualPinball.Unity
 
 				// !! magic distance, must be a new place if only by a little
 				if (distLs > 0.25f) {
-					events.Enqueue(new EventData(EventId.SurfaceEventsSlingshot, _header.Entity, ballEntity, true));
+					events.Enqueue(new EventData(EventId.SurfaceEventsSlingshot, _header.ItemId, ballId, true));
 
 					// todo slingshot animation
 					// m_slingshotanim.m_TimeReset = g_pplayer->m_time_msec + 100;

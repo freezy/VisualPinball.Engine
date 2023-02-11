@@ -33,7 +33,7 @@ namespace VisualPinball.Unity
 				});
 			}
 
-			GetComponentInParent<Player>().RegisterSurface(authoring, GetEntity());
+			GetComponentInParent<Player>().RegisterSurface(authoring);
 		}
 	}
 }

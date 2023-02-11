@@ -39,16 +39,17 @@ namespace VisualPinballUnity
 		{
 			var marker = PerfMarker;
 
-			Entities.WithoutBurst().WithName("PlungerTransformationJob").ForEach((Entity entity, in PlungerAnimationData animationData) => {
-
-				marker.Begin();
-
-				foreach (var skinnedMeshRenderer in _player.PlungerSkinnedMeshRenderers[entity]) {
-					skinnedMeshRenderer.SetBlendShapeWeight(0, animationData.Position);
-				}
-				marker.End();
-
-			}).Run();
+			// fixme job
+			// Entities.WithoutBurst().WithName("PlungerTransformationJob").ForEach((Entity entity, in PlungerAnimationData animationData) => {
+			//
+			// 	marker.Begin();
+			//
+			// 	foreach (var skinnedMeshRenderer in _player.PlungerSkinnedMeshRenderers[entity]) {
+			// 		skinnedMeshRenderer.SetBlendShapeWeight(0, animationData.Position);
+			// 	}
+			// 	marker.End();
+			//
+			// }).Run();
 		}
 	}
 }

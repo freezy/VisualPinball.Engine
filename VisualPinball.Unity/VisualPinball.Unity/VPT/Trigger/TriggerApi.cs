@@ -16,7 +16,6 @@
 
 using System;
 using System.Collections.Generic;
-using Unity.Entities;
 using UnityEngine;
 using VisualPinball.Engine.VPT.Trigger;
 
@@ -45,8 +44,8 @@ namespace VisualPinball.Unity
 		/// </summary>
 		public event EventHandler<SwitchEventArgs> Switch;
 
-		internal TriggerApi(GameObject go, Entity entity, Player player)
-			: base(go, entity, player)
+		internal TriggerApi(GameObject go, Player player)
+			: base(go, player)
 		{
 		}
 
@@ -88,16 +87,16 @@ namespace VisualPinball.Unity
 		{
 		}
 
-		void IApiHittable.OnHit(Entity ballEntity, bool isUnHit)
+		void IApiHittable.OnHit(int ballId, bool isUnHit)
 		{
 			if (isUnHit) {
-				UnHit?.Invoke(this, new HitEventArgs(ballEntity));
-				Switch?.Invoke(this, new SwitchEventArgs(false, ballEntity));
+				UnHit?.Invoke(this, new HitEventArgs(ballId));
+				Switch?.Invoke(this, new SwitchEventArgs(false, ballId));
 				OnSwitch(false);
 
 			} else {
-				Hit?.Invoke(this, new HitEventArgs(ballEntity));
-				Switch?.Invoke(this, new SwitchEventArgs(true, ballEntity));
+				Hit?.Invoke(this, new HitEventArgs(ballId));
+				Switch?.Invoke(this, new SwitchEventArgs(true, ballId));
 				OnSwitch(true);
 			}
 		}

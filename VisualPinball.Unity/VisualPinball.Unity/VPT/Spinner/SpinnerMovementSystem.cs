@@ -38,16 +38,17 @@ namespace VisualPinballUnity
 
 		protected override void OnUpdate()
 		{
-			var marker = PerfMarker;
-			Entities.WithoutBurst().WithName("SpinnerMovementJob").ForEach((Entity entity, in SpinnerMovementData movementData) => {
-
-				marker.Begin();
-
-				_player.SpinnerPlateTransforms[entity].localRotation = quaternion.RotateX(-movementData.Angle);
-
-				marker.End();
-
-			}).Run();
+			// fixme job
+			// var marker = PerfMarker;
+			// Entities.WithoutBurst().WithName("SpinnerMovementJob").ForEach((Entity entity, in SpinnerMovementData movementData) => {
+			//
+			// 	marker.Begin();
+			//
+			// 	_player.SpinnerPlateTransforms[entity].localRotation = quaternion.RotateX(-movementData.Angle);
+			//
+			// 	marker.End();
+			//
+			// }).Run();
 		}
 	}
 }

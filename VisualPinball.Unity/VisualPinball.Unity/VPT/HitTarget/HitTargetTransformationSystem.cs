@@ -36,22 +36,23 @@ namespace VisualPinballUnity
 
 		protected override void OnUpdate()
 		{
-			var marker = PerfMarker;
-			Entities.WithoutBurst().WithName("HitTargetTransformationJob").ForEach((Entity entity,
-				in HitTargetAnimationData data, in HitTargetStaticData staticData) =>
-			{
-				marker.Begin();
-
-				var localRot = _player.HitTargetTransforms[entity].transform.localEulerAngles;
-				_player.HitTargetTransforms[entity].transform.localEulerAngles = new Vector3(
-					data.XRotation,
-					localRot.y,
-					localRot.z
-				);
-
-				marker.End();
-
-			}).Run();
+			// fixme job
+			// var marker = PerfMarker;
+			// Entities.WithoutBurst().WithName("HitTargetTransformationJob").ForEach((Entity entity,
+			// 	in HitTargetAnimationData data, in HitTargetStaticData staticData) =>
+			// {
+			// 	marker.Begin();
+			//
+			// 	var localRot = _player.HitTargetTransforms[entity].transform.localEulerAngles;
+			// 	_player.HitTargetTransforms[entity].transform.localEulerAngles = new Vector3(
+			// 		data.XRotation,
+			// 		localRot.y,
+			// 		localRot.z
+			// 	);
+			//
+			// 	marker.End();
+			//
+			// }).Run();
 		}
 	}
 }

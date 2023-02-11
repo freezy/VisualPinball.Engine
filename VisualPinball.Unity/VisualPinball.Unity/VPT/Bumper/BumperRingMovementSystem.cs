@@ -41,27 +41,28 @@ namespace VisualPinballUnity
 
 		protected override void OnUpdate()
 		{
-			var marker = PerfMarker;
-			Entities.WithoutBurst().WithName("BumperRingMovementJob").ForEach((Entity entity, in BumperRingAnimationData data) => {
-
-				marker.Begin();
-				
-				var transform = _player.BumperRingTransforms[entity];
-				if (!_initialOffset.ContainsKey(entity)) {
-					_initialOffset[entity] = transform.position.y;
-				}
-				
-				var limit = data.DropOffset + data.HeightScale * 0.5f;
-				var localLimit = _initialOffset[entity] + limit;
-				var localOffset = localLimit / limit * data.Offset;
-
-				var worldPos = transform.position;
-				worldPos.y = _initialOffset[entity] + VisualPinball.Unity.Physics.ScaleToWorld(localOffset);
-				transform.position = worldPos;
-
-				marker.End();
-
-			}).Run();
+			// fixme job
+			// var marker = PerfMarker;
+			// Entities.WithoutBurst().WithName("BumperRingMovementJob").ForEach((Entity entity, in BumperRingAnimationData data) => {
+			//
+			// 	marker.Begin();
+			// 	
+			// 	var transform = _player.BumperRingTransforms[entity];
+			// 	if (!_initialOffset.ContainsKey(entity)) {
+			// 		_initialOffset[entity] = transform.position.y;
+			// 	}
+			// 	
+			// 	var limit = data.DropOffset + data.HeightScale * 0.5f;
+			// 	var localLimit = _initialOffset[entity] + limit;
+			// 	var localOffset = localLimit / limit * data.Offset;
+			//
+			// 	var worldPos = transform.position;
+			// 	worldPos.y = _initialOffset[entity] + VisualPinball.Unity.Physics.ScaleToWorld(localOffset);
+			// 	transform.position = worldPos;
+			//
+			// 	marker.End();
+			//
+			// }).Run();
 		}
 	}
 }
