@@ -21,17 +21,17 @@ namespace VisualPinball.Unity
 {
 	public struct ColliderBounds
 	{
-		public Entity ColliderEntity;
+		public int ItemId;
 		public int ColliderId;
 		public Aabb Aabb;
 
-		public ColliderBounds(Entity colliderEntity, int colliderId, Aabb aabb)
+		public ColliderBounds(int itemId, int colliderId, Aabb aabb)
 		{
-			if (colliderEntity == Entity.Null) {
-				throw new ArgumentException("Entity must not be null.");
+			if (itemId == 0) {
+				throw new ArgumentException("Item ID must not be null.");
 			}
 
-			ColliderEntity = colliderEntity;
+			ItemId = itemId;
 			ColliderId = colliderId;
 			Aabb = aabb;
 		}
@@ -40,7 +40,7 @@ namespace VisualPinball.Unity
 
 		public override string ToString()
 		{
-			return $"{Aabb.ToString()} ({ColliderId}:{ColliderEntity})";
+			return $"{Aabb.ToString()} ({ItemId}:{ColliderId})";
 		}
 	}
 }

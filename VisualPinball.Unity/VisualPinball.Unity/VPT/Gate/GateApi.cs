@@ -16,8 +16,6 @@
 
 using System;
 using System.Collections.Generic;
-using Unity.Entities;
-using Unity.Mathematics;
 using UnityEngine;
 using VisualPinball.Engine.VPT.Gate;
 
@@ -74,18 +72,18 @@ namespace VisualPinball.Unity
 		// todo
 		public event EventHandler Timer;
 
-		public GateApi(GameObject go, Entity entity, Player player)
-			: base(go, entity, player)
+		public GateApi(GameObject go, Player player) : base(go, player)
 		{
 		}
 
 		public void Lift(float speed, float angleDeg)
 		{
-			var data = EntityManager.GetComponentData<GateMovementData>(Entity);
-			data.IsLifting = true;
-			data.LiftSpeed = speed;
-			data.LiftAngle = math.radians(angleDeg);
-			EntityManager.SetComponentData(Entity, data);
+			// fixme job
+			// var data = EntityManager.GetComponentData<GateMovementData>(Entity);
+			// data.IsLifting = true;
+			// data.LiftSpeed = speed;
+			// data.LiftAngle = math.radians(angleDeg);
+			// EntityManager.SetComponentData(Entity, data);
 		}
 
 		#region Wiring
@@ -121,10 +119,10 @@ namespace VisualPinball.Unity
 		{
 		}
 
-		void IApiHittable.OnHit(Entity ballEntity, bool _)
+		void IApiHittable.OnHit(int ballId, bool _)
 		{
-			Hit?.Invoke(this, new HitEventArgs(ballEntity));
-			Switch?.Invoke(this, new SwitchEventArgs(true, ballEntity));
+			Hit?.Invoke(this, new HitEventArgs(ballId));
+			Switch?.Invoke(this, new SwitchEventArgs(true, ballId));
 			OnSwitch(true);
 		}
 

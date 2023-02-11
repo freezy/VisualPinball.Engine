@@ -28,28 +28,30 @@ namespace VisualPinball.Unity
 		where TCollidableComponent : ColliderComponent<TData, TComponent>
 		where TData : ItemData
 	{
-		public bool IsCollidable {
-			get => _simulateCycleSystemGroup != null && _simulateCycleSystemGroup.ItemsColliding[Entity];
+		public bool IsCollidable
+		{
+			get => true; // fixme job _simulateCycleSystemGroup != null && _simulateCycleSystemGroup.ItemsColliding[Entity];
 			set {
-				if (_simulateCycleSystemGroup != null) {
-					_simulateCycleSystemGroup.ItemsColliding[Entity] = value;
-				}
+				// fixme job
+				// if (_simulateCycleSystemGroup != null) {
+				// 	_simulateCycleSystemGroup.ItemsColliding[Entity] = value;
+				// }
 			}
 		}
 
-		protected readonly Entity Entity;
+		protected readonly int ItemId;
 		protected readonly TCollidableComponent ColliderComponent;
 
 		private protected EntityManager EntityManager;
 		private readonly SimulateCycleSystemGroup _simulateCycleSystemGroup;
 
-		protected CollidableApi(GameObject go, Entity entity, Player player) : base(go, player)
+		protected CollidableApi(GameObject go, Player player) : base(go, player)
 		{
 			if (World.DefaultGameObjectInjectionWorld != null) {
 				_simulateCycleSystemGroup = World.DefaultGameObjectInjectionWorld.GetOrCreateSystemManaged<SimulateCycleSystemGroup>();
 			}
 			EntityManager = World.DefaultGameObjectInjectionWorld != null ? World.DefaultGameObjectInjectionWorld.EntityManager : default;
-			Entity = entity;
+			ItemId = go.GetInstanceID();
 
 			ColliderComponent = go.GetComponent<TCollidableComponent>();
 		}
@@ -58,7 +60,6 @@ namespace VisualPinball.Unity
 
 		bool IApiColliderGenerator.IsColliderAvailable => ColliderComponent;
 		bool IApiColliderGenerator.IsColliderEnabled => ColliderComponent && ColliderComponent.isActiveAndEnabled;
-		Entity IApiColliderGenerator.ColliderEntity => Entity;
 
 		protected virtual bool FireHitEvents => false;
 		protected virtual float HitThreshold => 0;
@@ -82,7 +83,7 @@ namespace VisualPinball.Unity
 			return new ColliderInfo {
 				Id = -1,
 				ItemType = itemType,
-				Entity = Entity,
+				ItemId = ItemId,
 				FireEvents = FireHitEvents,
 				IsEnabled = ColliderComponent && ColliderComponent.isActiveAndEnabled,
 				Material = ColliderComponent.PhysicsMaterialData,

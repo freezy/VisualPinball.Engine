@@ -24,7 +24,7 @@ namespace VisualPinball.Unity
 		{
 			base.Bake(authoring);
 			
-			GetComponentInParent<Player>().RegisterRamp(authoring, GetEntity());
+			GetComponentInParent<Player>().RegisterRamp(authoring);
 		}
 	}
 }

@@ -39,7 +39,7 @@ namespace VisualPinball.Unity
 		#endregion
 
 		public override PhysicsMaterialData PhysicsMaterialData => GetPhysicsMaterialData();
-		protected override IApiColliderGenerator InstantiateColliderApi(Player player, Entity entity)
-			=> new TriggerApi(gameObject, entity, player);
+		protected override IApiColliderGenerator InstantiateColliderApi(Player player)
+			=> new TriggerApi(gameObject, player);
 	}
 }

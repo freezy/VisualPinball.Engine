@@ -73,7 +73,7 @@ namespace VisualPinball.Unity
 			_zLow = math.min(trans1.z, trans2Z);
 			_zHigh = math.max(trans1.z, trans2Z);
 
-			Bounds = new ColliderBounds(_header.Entity, _header.Id, new Aabb(
+			Bounds = new ColliderBounds(_header.ItemId, _header.Id, new Aabb(
 				math.min(v1.x, v2.x),
 				math.max(v1.x, v2.x),
 				math.min(v1.y, v2.y),
@@ -132,14 +132,14 @@ namespace VisualPinball.Unity
 		#endregion
 
 		public void Collide(ref BallData ball, ref NativeQueue<EventData>.ParallelWriter hitEvents,
-			in Entity ballEntity, in CollisionEventData collEvent, ref Random random)
+			in int ballId, in CollisionEventData collEvent, ref Random random)
 		{
 			var dot = math.dot(collEvent.HitNormal, ball.Velocity);
 			BallCollider.Collide3DWall(ref ball, in _header.Material, in collEvent, in collEvent.HitNormal, ref random);
 
 			if (_header.FireEvents && dot >= _header.Threshold && _header.IsPrimitive) {
 				// todo m_obj->m_currentHitThreshold = dot;
-				Collider.FireHitEvent(ref ball, ref hitEvents, in ballEntity, in _header);
+				Collider.FireHitEvent(ref ball, ref hitEvents, in ballId, in _header);
 			}
 		}
 	}

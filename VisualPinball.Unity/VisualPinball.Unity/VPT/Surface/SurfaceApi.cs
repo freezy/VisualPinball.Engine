@@ -16,12 +16,12 @@
 
 using System;
 using System.Collections.Generic;
-using Unity.Entities;
 using UnityEngine;
+using VisualPinball.Engine.VPT.Surface;
 
 namespace VisualPinball.Unity
 {
-	public class SurfaceApi : CollidableApi<SurfaceComponent, SurfaceColliderComponent, Engine.VPT.Surface.SurfaceData>,
+	public class SurfaceApi : CollidableApi<SurfaceComponent, SurfaceColliderComponent, SurfaceData>,
 		IApi, IApiHittable, IApiSlingshot
 	{
 		/// <summary>
@@ -39,7 +39,7 @@ namespace VisualPinball.Unity
 		/// </summary>
 		public event EventHandler Slingshot;
 
-		internal SurfaceApi(GameObject go, Entity entity, Player player) : base(go, entity, player)
+		internal SurfaceApi(GameObject go, Player player) : base(go, player)
 		{
 		}
 
@@ -70,12 +70,12 @@ namespace VisualPinball.Unity
 		{
 		}
 
-		void IApiHittable.OnHit(Entity ballEntity, bool _)
+		void IApiHittable.OnHit(int ballId, bool _)
 		{
-			Hit?.Invoke(this, new HitEventArgs(ballEntity));
+			Hit?.Invoke(this, new HitEventArgs(ballId));
 		}
 
-		public void OnSlingshot(Entity ballEntity)
+		public void OnSlingshot(int ballId)
 		{
 			Slingshot?.Invoke(this, EventArgs.Empty);
 		}

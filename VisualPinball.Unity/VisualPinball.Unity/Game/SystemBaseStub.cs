@@ -23,10 +23,14 @@ namespace VisualPinball.Unity.VisualPinball.Unity.Game
 		protected internal LambdaSingleJobDescription Job => new LambdaSingleJobDescription();
 		
 		protected internal T GetComponent<T>(Entity entity) where T : unmanaged, IComponentData => EntityManager.GetComponentData<T>(entity);
+		protected internal T GetComponent<T>(int itemId) where T : unmanaged, IComponentData => default;
 
 		protected internal void SetComponent<T>(Entity entity, T component) where T : unmanaged, IComponentData => EntityManager.SetComponentData(entity, component);
 
+		protected internal void SetComponent<T>(int itemId, T component) where T : unmanaged, IComponentData { }
+
 		protected internal bool HasComponent<T>(Entity entity) where T : unmanaged, IComponentData => false;
+		protected internal bool HasComponent<T>(int itemId) where T : unmanaged, IComponentData => false;
 
 		protected internal EntityQuery GetEntityQuery(params ComponentType[] componentTypes) => default;
 		

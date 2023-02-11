@@ -1,4 +1,4 @@
-// Visual Pinball Engine
+﻿// Visual Pinball Engine
 // Copyright (C) 2023 freezy and VPE Team
 //
 // This program is free software: you can redistribute it and/or modify
@@ -14,42 +14,22 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-using Unity.Entities;
+using NativeTrees;
+using Unity.Collections;
+using Unity.Profiling;
 
 namespace VisualPinball.Unity
 {
-
-	/// <summary>
-	/// Event data when the game item either reaches resting or end
-	/// position.
-	/// </summary>
-	public struct RotationEventArgs
+	public static class PhysicsStaticBroadPhase
 	{
-		/// <summary>
-		/// Angle speed with which the new position was reached.
-		/// </summary>
-		public float AngleSpeed;
-	}
-
-	public struct HitEventArgs
-	{
-		public int BallId;
-
-		public HitEventArgs(int ballId)
+		private static readonly ProfilerMarker PerfMarker = new ProfilerMarker("StaticBroadPhase");
+		
+		internal static void FindOverlaps(in NativeOctree<PlaneCollider> octree, in BallData ball, ref NativeList<PlaneCollider> overlappingColliders)
 		{
-			BallId = ballId;
-		}
-	}
-
-	public readonly struct SwitchEventArgs
-	{
-		public readonly bool IsEnabled;
-		public readonly int BallId;
-
-		public SwitchEventArgs(bool isEnabled, int ballId = 0)
-		{
-			IsEnabled = isEnabled;
-			BallId = ballId;
+			PerfMarker.Begin();
+			overlappingColliders.Clear();
+			octree.RangeAABB(ball.Aabb, overlappingColliders);
+			PerfMarker.End();
 		}
 	}
 }

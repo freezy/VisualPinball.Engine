@@ -40,8 +40,7 @@ namespace VisualPinball.Unity
 		/// </summary>
 		public event EventHandler<SwitchEventArgs> Switch;
 
-		public BumperApi(GameObject go, Entity entity, Player player)
-			: base(go, entity, player)
+		public BumperApi(GameObject go, Player player) : base(go, player)
 		{
 		}
 
@@ -58,11 +57,12 @@ namespace VisualPinball.Unity
 		void IApiSwitch.RemoveWireDest(string destId) => RemoveWireDest(destId);
 		void IApiCoil.OnCoil(bool enabled)
 		{
-			if (enabled) {
-				var ringAnimation = EntityManager.GetComponentData<BumperRingAnimationData>(Entity);
-				ringAnimation.IsHit = true;
-				EntityManager.SetComponentData(Entity, ringAnimation);
-			}
+			// fixme job
+			// if (enabled) {
+			// 	var ringAnimation = EntityManager.GetComponentData<BumperRingAnimationData>(Entity);
+			// 	ringAnimation.IsHit = true;
+			// 	EntityManager.SetComponentData(Entity, ringAnimation);
+			// }
 		}
 
 		void IApiWireDest.OnChange(bool enabled) => (this as IApiCoil).OnCoil(enabled);
@@ -95,10 +95,10 @@ namespace VisualPinball.Unity
 		{
 		}
 
-		void IApiHittable.OnHit(Entity ballEntity, bool isUnHit)
+		void IApiHittable.OnHit(int ballId, bool isUnHit)
 		{
-			Hit?.Invoke(this, new HitEventArgs(ballEntity));
-			Switch?.Invoke(this, new SwitchEventArgs(!isUnHit, ballEntity));
+			Hit?.Invoke(this, new HitEventArgs(ballId));
+			Switch?.Invoke(this, new SwitchEventArgs(!isUnHit, ballId));
 			OnSwitch(true);
 		}
 

@@ -71,8 +71,7 @@ namespace VisualPinball.Unity
 
 		private bool _isEos;
 
-		internal FlipperApi(GameObject go, Entity entity, Player player)
-			: base(go, entity, player)
+		internal FlipperApi(GameObject go, Player player) : base(go, player)
 		{
 		}
 
@@ -95,7 +94,7 @@ namespace VisualPinball.Unity
 		/// </summary>
 		public void RotateToEnd()
 		{
-			EngineProvider<IPhysicsEngine>.Get().FlipperRotateToEnd(Entity);
+			EngineProvider<IPhysicsEngine>.Get().FlipperRotateToEnd(ItemId);
 		}
 
 		/// <summary>
@@ -104,15 +103,16 @@ namespace VisualPinball.Unity
 		/// </summary>
 		public void RotateToStart()
 		{
-			EngineProvider<IPhysicsEngine>.Get().FlipperRotateToStart(Entity);
+			EngineProvider<IPhysicsEngine>.Get().FlipperRotateToStart(ItemId);
 		}
 
 		internal float StartAngle
 		{
 			set {
-				var staticData = EntityManager.GetComponentData<FlipperStaticData>(Entity);
-				staticData.AngleStart = value;
-				EntityManager.SetComponentData(Entity, staticData);
+				// fixme job
+				// var staticData = EntityManager.GetComponentData<FlipperStaticData>(Entity);
+				// staticData.AngleStart = value;
+				// EntityManager.SetComponentData(Entity, staticData);
 			}
 		}
 
@@ -165,7 +165,7 @@ namespace VisualPinball.Unity
 			} else {
 				if (_isEos && isHoldCoil) {
 					_isEos = false;
-					Switch?.Invoke(this, new SwitchEventArgs(false, Entity.Null));
+					Switch?.Invoke(this, new SwitchEventArgs(false));
 					OnSwitch(false);
 					RotateToStart();
 				}
@@ -191,9 +191,9 @@ namespace VisualPinball.Unity
 
 		#region Events
 
-		void IApiHittable.OnHit(Entity ballEntity, bool _)
+		void IApiHittable.OnHit(int ballId, bool _)
 		{
-			Hit?.Invoke(this, new HitEventArgs(ballEntity));
+			Hit?.Invoke(this, new HitEventArgs(ballId));
 		}
 
 		void IApiRotatable.OnRotate(float speed, bool direction)
@@ -201,7 +201,7 @@ namespace VisualPinball.Unity
 			if (direction) {
 				_isEos = true;
 				LimitEos?.Invoke(this, new RotationEventArgs { AngleSpeed = speed });
-				Switch?.Invoke(this, new SwitchEventArgs(true, Entity.Null));
+				Switch?.Invoke(this, new SwitchEventArgs(true));
 				OnSwitch(true);
 
 			} else {
@@ -209,7 +209,7 @@ namespace VisualPinball.Unity
 			}
 		}
 
-		void IApiCollidable.OnCollide(Entity ballEntity, float hit)
+		void IApiCollidable.OnCollide(int ballId, float hit)
 		{
 			Collide?.Invoke(this, new CollideEventArgs { FlipperHit = hit });
 		}

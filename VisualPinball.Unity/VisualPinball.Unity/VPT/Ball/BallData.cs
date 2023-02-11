@@ -14,6 +14,8 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+using System;
+using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
 
@@ -59,6 +61,8 @@ namespace VisualPinball.Unity
 		public float2 ManualPosition;
 
 		public float3 OldVelocity;
+
+		public CollisionEventData CollisionEvent;
 
 		public Aabb Aabb {
 			get {
@@ -147,30 +151,30 @@ namespace VisualPinball.Unity
 			*/
 		}
 
-		public static void SetOutsideOf(ref DynamicBuffer<BallInsideOfBufferElement> insideOfs, in Entity entity)
+		public static void SetOutsideOf(ref DynamicBuffer<BallInsideOfBufferElement> insideOfs, in int itemId)
 		{
 			for (var i = 0; i < insideOfs.Length; i++) {
-				if (insideOfs[i].Value == entity) {
+				if (insideOfs[i].Value == itemId) {
 					insideOfs.RemoveAt(i);
 					return;
 				}
 			}
 		}
 
-		public static void SetInsideOf(ref DynamicBuffer<BallInsideOfBufferElement> insideOfs, Entity entity)
+		public static void SetInsideOf(ref DynamicBuffer<BallInsideOfBufferElement> insideOfs, int itemId)
 		{
-			insideOfs.Add(new BallInsideOfBufferElement { Value = entity });
+			insideOfs.Add(new BallInsideOfBufferElement { Value = itemId });
 		}
 
-		public static bool IsOutsideOf(in DynamicBuffer<BallInsideOfBufferElement> insideOfs, in Entity entity)
+		public static bool IsOutsideOf(in DynamicBuffer<BallInsideOfBufferElement> insideOfs, in int itemId)
 		{
-			return !IsInsideOf(in insideOfs, in entity);
+			return !IsInsideOf(in insideOfs, in itemId);
 		}
 
-		public static bool IsInsideOf(in DynamicBuffer<BallInsideOfBufferElement> insideOfs, in Entity entity)
+		public static bool IsInsideOf(in DynamicBuffer<BallInsideOfBufferElement> insideOfs, in int itemId)
 		{
 			for (var i = 0; i < insideOfs.Length; i++) {
-				if (insideOfs[i].Value == entity) {
+				if (insideOfs[i].Value == itemId) {
 					return true;
 				}
 			}

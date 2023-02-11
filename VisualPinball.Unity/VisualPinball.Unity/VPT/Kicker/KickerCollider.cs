@@ -34,7 +34,7 @@ namespace VisualPinball.Unity
 		public static void Collide(ref BallData ball, ref NativeQueue<EventData>.ParallelWriter events,
 			ref DynamicBuffer<BallInsideOfBufferElement> insideOfs, ref KickerCollisionData collData,
 			in KickerStaticData staticData, in ColliderMeshData meshData, in CollisionEventData collEvent,
-			in Entity collEntity, in Entity ballEntity)
+			in int itemId, in int ballId)
 		{
 			// a previous ball already in kicker?
 			if (collData.HasBall) {
@@ -47,7 +47,7 @@ namespace VisualPinball.Unity
 			var hitBit = collEvent.HitFlag;
 
 			// check if kicker in ball's volume set
-			var isBallInside = BallData.IsInsideOf(in insideOfs, collEntity);
+			var isBallInside = BallData.IsInsideOf(in insideOfs, itemId);
 
 			// New or (Hit && !Vol || UnHit && Vol)
 			if (hitBit == isBallInside) {
@@ -83,13 +83,13 @@ namespace VisualPinball.Unity
 
 						ball.IsFrozen = !staticData.FallThrough;
 						if (ball.IsFrozen) {
-							BallData.SetInsideOf(ref insideOfs, collEntity); // add kicker to ball's volume set
-							collData.BallEntity = ballEntity;
-							collData.LastCapturedBallEntity = ballEntity;
+							BallData.SetInsideOf(ref insideOfs, itemId); // add kicker to ball's volume set
+							collData.BallId = ballId;
+							collData.LastCapturedBallId = ballId;
 						}
 
 						// Fire the event before changing ball attributes, so scripters can get a useful ball state
-						events.Enqueue(new EventData(EventId.HitEventsHit, collEntity, ballEntity, true));
+						events.Enqueue(new EventData(EventId.HitEventsHit, itemId, ballId, true));
 
 						if (ball.IsFrozen || staticData.FallThrough) { // script may have unfrozen the ball
 
@@ -108,15 +108,15 @@ namespace VisualPinball.Unity
 							ball.Position = new float3(staticData.Center.x, staticData.Center.y, posZ);
 
 						} else {
-							collData.BallEntity = Entity.Null; // make sure
+							collData.BallId = 0; // make sure
 						}
 					}
 
 
 				} else { // exiting kickers volume
 					// remove kicker to ball's volume set
-					BallData.SetOutsideOf(ref insideOfs, collEntity);
-					events.Enqueue(new EventData(EventId.HitEventsUnhit, collEntity, ballEntity, true));
+					BallData.SetOutsideOf(ref insideOfs, itemId);
+					events.Enqueue(new EventData(EventId.HitEventsUnhit, itemId, ballId, true));
 				}
 			}
 		}

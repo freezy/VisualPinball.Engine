@@ -29,8 +29,8 @@ namespace VisualPinball.Unity
 	public struct ColliderInfo
 	{
 		public int Id;
+		public int ItemId;
 		public ItemType ItemType;
-		public Entity Entity;
 		public PhysicsMaterialData Material;
 		public float HitThreshold;
 		public bool FireEvents;

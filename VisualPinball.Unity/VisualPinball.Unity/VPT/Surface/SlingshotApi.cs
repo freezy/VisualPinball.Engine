@@ -15,10 +15,9 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using System;
-using Logger = NLog.Logger;
 using NLog;
 using UnityEngine;
-using Unity.Entities;
+using Logger = NLog.Logger;
 
 namespace VisualPinball.Unity
 {
@@ -64,7 +63,7 @@ namespace VisualPinball.Unity
 
 		private void OnSlingshot(object sender, EventArgs e)
 		{
-			Switch?.Invoke(this, new SwitchEventArgs(true, Entity.Null));
+			Switch?.Invoke(this, new SwitchEventArgs(true));
 			OnSwitch(true);
 		}
 

@@ -74,6 +74,7 @@ namespace VisualPinballUnity
 				.ForEach((Entity ballEntity, ref BallData ballData, ref CollisionEventData collEvent,
 					ref DynamicBuffer<BallInsideOfBufferElement> insideOfs) => {
 
+				var ballId = 0;
 				// find balls with hit objects and minimum time
 				if (collEvent.ColliderId < 0 || collEvent.HitTime > hitTime) {
 					return;
@@ -96,95 +97,95 @@ namespace VisualPinballUnity
 
 						switch (coll.Type) {
 							case ColliderType.Bumper: {
-								var bumperStaticData = GetComponent<BumperStaticData>(coll.Entity);
-								var animateRing = HasComponent<BumperRingAnimationData>(coll.Entity);
-								var animateSkirt = HasComponent<BumperSkirtAnimationData>(coll.Entity);
-								var ringData = animateRing ? GetComponent<BumperRingAnimationData>(coll.Entity) : default;
-								var skirtData = animateSkirt ? GetComponent<BumperSkirtAnimationData>(coll.Entity): default;
+								var bumperStaticData = GetComponent<BumperStaticData>(coll.ItemId);
+								var animateRing = HasComponent<BumperRingAnimationData>(coll.ItemId);
+								var animateSkirt = HasComponent<BumperSkirtAnimationData>(coll.ItemId);
+								var ringData = animateRing ? GetComponent<BumperRingAnimationData>(coll.ItemId) : default;
+								var skirtData = animateSkirt ? GetComponent<BumperSkirtAnimationData>(coll.ItemId): default;
 								BumperCollider.Collide(ref ballData, ref events, ref collEvent, ref ringData, ref skirtData,
-									in ballEntity, in coll, bumperStaticData, ref random);
+									in ballId, in coll, bumperStaticData, ref random);
 								if (animateRing) {
-									SetComponent(coll.Entity, ringData);
+									SetComponent(coll.ItemId, ringData);
 								}
 								if (animateSkirt) {
-									SetComponent(coll.Entity, skirtData);
+									SetComponent(coll.ItemId, skirtData);
 								}
 								break;
 							}
 
 							case ColliderType.Flipper: {
-								var flipperVelocityData = GetComponent<FlipperVelocityData>(coll.Entity);
-								var flipperMovementData = GetComponent<FlipperMovementData>(coll.Entity);
-								var flipperMaterialData = GetComponent<FlipperStaticData>(coll.Entity);
-								var flipperHitData = GetComponent<FlipperHitData>(coll.Entity);
-								var flipperTricksData = GetComponent<FlipperTricksData>(coll.Entity);
+								var flipperVelocityData = GetComponent<FlipperVelocityData>(coll.ItemId);
+								var flipperMovementData = GetComponent<FlipperMovementData>(coll.ItemId);
+								var flipperMaterialData = GetComponent<FlipperStaticData>(coll.ItemId);
+								var flipperHitData = GetComponent<FlipperHitData>(coll.ItemId);
+								var flipperTricksData = GetComponent<FlipperTricksData>(coll.ItemId);
 								// do liveCatch - check before collision
 								FlipperCollider.LiveCatch(
 									ref ballData, ref collEvent, ref flipperTricksData, in flipperMaterialData, timeMsec
 								);
 								((FlipperCollider*)collider)->Collide(
 									ref ballData, ref collEvent, ref flipperMovementData, ref events,
-									in ballEntity, in flipperTricksData,in flipperMaterialData, in flipperVelocityData, in flipperHitData, timeMsec
+									in ballId, in flipperTricksData,in flipperMaterialData, in flipperVelocityData, in flipperHitData, timeMsec
 								);
-								SetComponent(coll.Entity, flipperMovementData);
+								SetComponent(coll.ItemId, flipperMovementData);
 								break;
 							}
 
 							case ColliderType.Gate: {
-								var gateStaticData = GetComponent<GateStaticData>(coll.Entity);
-								var gateMovementData = GetComponent<GateMovementData>(coll.Entity);
+								var gateStaticData = GetComponent<GateStaticData>(coll.ItemId);
+								var gateMovementData = GetComponent<GateMovementData>(coll.ItemId);
 								GateCollider.Collide(
 									ref ballData, ref collEvent, ref gateMovementData, ref events,
-									in ballEntity, in coll, in gateStaticData
+									in ballId, in coll, in gateStaticData
 								);
-								SetComponent(coll.Entity, gateMovementData);
+								SetComponent(coll.ItemId, gateMovementData);
 								break;
 							}
 
 							case ColliderType.LineSlingShot: {
-								var slingshotData = GetComponent<LineSlingshotData>(coll.Entity);
+								var slingshotData = GetComponent<LineSlingshotData>(coll.ItemId);
 								((LineSlingshotCollider*)collider)->Collide(
 									ref ballData, ref events,
-									in ballEntity, in slingshotData, in collEvent, ref random);
+									in ballId, in slingshotData, in collEvent, ref random);
 								break;
 							}
 
 							case ColliderType.Plunger: {
-								var plungerMovementData = GetComponent<PlungerMovementData>(coll.Entity);
-								var plungerStaticData = GetComponent<PlungerStaticData>(coll.Entity);
+								var plungerMovementData = GetComponent<PlungerMovementData>(coll.ItemId);
+								var plungerStaticData = GetComponent<PlungerStaticData>(coll.ItemId);
 								PlungerCollider.Collide(
 									ref ballData, ref collEvent, ref plungerMovementData,
 									in plungerStaticData, ref random);
-								SetComponent(coll.Entity, plungerMovementData);
+								SetComponent(coll.ItemId, plungerMovementData);
 								break;
 							}
 
 							case ColliderType.Spinner: {
-								var spinnerStaticData = GetComponent<SpinnerStaticData>(coll.Entity);
-								var spinnerMovementData = GetComponent<SpinnerMovementData>(coll.Entity);
+								var spinnerStaticData = GetComponent<SpinnerStaticData>(coll.ItemId);
+								var spinnerMovementData = GetComponent<SpinnerMovementData>(coll.ItemId);
 								SpinnerCollider.Collide(
 									in ballData, ref collEvent, ref spinnerMovementData,
 									in spinnerStaticData
 								);
-								SetComponent(coll.Entity, spinnerMovementData);
+								SetComponent(coll.ItemId, spinnerMovementData);
 								break;
 							}
 
 							case ColliderType.TriggerCircle:
 							case ColliderType.TriggerLine: {
 
-								var triggerAnimationData = HasComponent<TriggerAnimationData>(coll.Entity)
-									? GetComponent<TriggerAnimationData>(coll.Entity)
+								var triggerAnimationData = HasComponent<TriggerAnimationData>(coll.ItemId)
+									? GetComponent<TriggerAnimationData>(coll.ItemId)
 									: new TriggerAnimationData();
 
 								TriggerCollider.Collide(
 									ref ballData, ref events, ref collEvent, ref insideOfs, ref triggerAnimationData,
-									in ballEntity, in coll
+									in ballId, in coll
 								);
 
-								if (HasComponent<FlipperCorrectionData>(coll.Entity)) {
+								if (HasComponent<FlipperCorrectionData>(coll.ItemId)) {
 									if (triggerAnimationData.UnHitEvent) {
-										var flipperCorrectionData = GetComponent<FlipperCorrectionData>(coll.Entity);
+										var flipperCorrectionData = GetComponent<FlipperCorrectionData>(coll.ItemId);
 										ref var flipperCorrectionBlob = ref flipperCorrectionData.Value.Value;
 										var flipperMovementData = GetComponent<FlipperMovementData>(flipperCorrectionBlob.FlipperEntity);
 										var flipperStaticData = GetComponent<FlipperStaticData>(flipperCorrectionBlob.FlipperEntity);
@@ -195,22 +196,22 @@ namespace VisualPinballUnity
 									}
 
 								} else {
-									SetComponent(coll.Entity, triggerAnimationData);
+									SetComponent(coll.ItemId, triggerAnimationData);
 								}
 								break;
 							}
 
 							case ColliderType.KickerCircle: {
-								var kickerCollisionData = GetComponent<KickerCollisionData>(coll.Entity);
-								var kickerStaticData = GetComponent<KickerStaticData>(coll.Entity);
+								var kickerCollisionData = GetComponent<KickerCollisionData>(coll.ItemId);
+								var kickerStaticData = GetComponent<KickerStaticData>(coll.ItemId);
 								// ReSharper disable once ConditionIsAlwaysTrueOrFalse
 								var legacyMode = KickerCollider.ForceLegacyMode || kickerStaticData.LegacyMode;
 								// ReSharper disable once ConditionIsAlwaysTrueOrFalse
-								var kickerMeshData = !legacyMode ? GetComponent<ColliderMeshData>(coll.Entity) : default;
+								var kickerMeshData = !legacyMode ? GetComponent<ColliderMeshData>(coll.ItemId) : default;
 								KickerCollider.Collide(ref ballData, ref events, ref insideOfs, ref kickerCollisionData,
-									in kickerStaticData, in kickerMeshData, in collEvent, coll.Entity, in ballEntity
+									in kickerStaticData, in kickerMeshData, in collEvent, coll.ItemId, in ballId
 								);
-								SetComponent(coll.Entity, kickerCollisionData);
+								SetComponent(coll.ItemId, kickerCollisionData);
 								break;
 							}
 
@@ -229,35 +230,35 @@ namespace VisualPinballUnity
 										? ((TriangleCollider*) collider)->Normal()
 										: collEvent.HitNormal;
 
-									if (HasComponent<DropTargetAnimationData>(coll.Entity)) {
-										var dropTargetAnimationData = GetComponent<DropTargetAnimationData>(coll.Entity);
+									if (HasComponent<DropTargetAnimationData>(coll.ItemId)) {
+										var dropTargetAnimationData = GetComponent<DropTargetAnimationData>(coll.ItemId);
 										TargetCollider.DropTargetCollide(ref ballData, ref events, ref dropTargetAnimationData,
-											in normal, in ballEntity, in collEvent, in coll, ref random);
-										SetComponent(coll.Entity, dropTargetAnimationData);
+											in normal, in ballId, in collEvent, in coll, ref random);
+										SetComponent(coll.ItemId, dropTargetAnimationData);
 									}
 
-									if (HasComponent<HitTargetAnimationData>(coll.Entity)) {
-										var hitTargetAnimationData = GetComponent<HitTargetAnimationData>(coll.Entity);
+									if (HasComponent<HitTargetAnimationData>(coll.ItemId)) {
+										var hitTargetAnimationData = GetComponent<HitTargetAnimationData>(coll.ItemId);
 										TargetCollider.HitTargetCollide(ref ballData, ref events, ref hitTargetAnimationData,
-											in normal, in ballEntity, in collEvent, in coll, ref random);
-										SetComponent(coll.Entity, hitTargetAnimationData);
+											in normal, in ballId, in collEvent, in coll, ref random);
+										SetComponent(coll.ItemId, hitTargetAnimationData);
 									}
 
 								// trigger
 								} else if (coll.Header.ItemType == ItemType.Trigger) {
 
-									var triggerAnimationData = HasComponent<TriggerAnimationData>(coll.Entity)
-										? GetComponent<TriggerAnimationData>(coll.Entity)
+									var triggerAnimationData = HasComponent<TriggerAnimationData>(coll.ItemId)
+										? GetComponent<TriggerAnimationData>(coll.ItemId)
 										: new TriggerAnimationData();
 
 									TriggerCollider.Collide(
 										ref ballData, ref events, ref collEvent, ref insideOfs, ref triggerAnimationData,
-										in ballEntity, in coll
+										in ballId, in coll
 									);
 
-									if (HasComponent<FlipperCorrectionData>(coll.Entity)) {
+									if (HasComponent<FlipperCorrectionData>(coll.ItemId)) {
 										if (triggerAnimationData.UnHitEvent) {
-											var flipperCorrectionData = GetComponent<FlipperCorrectionData>(coll.Entity);
+											var flipperCorrectionData = GetComponent<FlipperCorrectionData>(coll.ItemId);
 											ref var flipperCorrectionBlob = ref flipperCorrectionData.Value.Value;
 											var flipperMovementData = GetComponent<FlipperMovementData>(flipperCorrectionBlob.FlipperEntity);
 											var flipperStaticData = GetComponent<FlipperStaticData>(flipperCorrectionBlob.FlipperEntity);
@@ -268,11 +269,11 @@ namespace VisualPinballUnity
 										}
 
 									} else {
-										SetComponent(coll.Entity, triggerAnimationData);
+										SetComponent(coll.ItemId, triggerAnimationData);
 									}
 
 								} else {
-									Collider.Collide(ref coll, ref ballData, ref events, in ballEntity, in collEvent, ref random);
+									Collider.Collide(ref coll, ref ballData, ref events, in ballId, in collEvent, ref random);
 								}
 								break;
 

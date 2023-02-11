@@ -157,8 +157,8 @@ namespace VisualPinball.Unity
 		[Tooltip("Maximum bounce speed multiplier for an inaccurate live catch")]
 		public float LiveCatchInaccurateBounceSpeedMultiplier = 1.0f;
 
-		protected override IApiColliderGenerator InstantiateColliderApi(Player player, Entity entity)
-			=> new FlipperApi(gameObject, entity, player);
+		protected override IApiColliderGenerator InstantiateColliderApi(Player player)
+			=> new FlipperApi(gameObject, player);
 
 	}
 }

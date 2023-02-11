@@ -51,63 +51,64 @@ namespace VisualPinballUnity
 			var events = _eventQueue.AsParallelWriter();
 			var marker = PerfMarker;
 
-			Entities
-				.WithName("HitTargetAnimationJob")
-				.ForEach((Entity entity, ref DropTargetAnimationData data, in DropTargetStaticData staticData) =>
-			{
-				marker.Begin();
-
-				var oldTimeMsec = data.TimeMsec < timeMsec ? data.TimeMsec : timeMsec;
-				data.TimeMsec = timeMsec;
-				var diffTimeMsec = (float)(timeMsec - oldTimeMsec);
-
-				if (data.HitEvent) {
-					if (!data.IsDropped) {
-						data.MoveDown = true;
-					}
-
-					data.MoveAnimation = true;
-					data.HitEvent = false;
-				}
-
-				if (data.MoveAnimation) {
-					var step = staticData.Speed;
-
-					if (data.MoveDown) {
-						step = -step;
-
-					} else if (data.TimeMsec - data.TimeStamp < (uint) staticData.RaiseDelay) {
-						step = 0.0f;
-					}
-
-					data.ZOffset += step * diffTimeMsec;
-					if (data.MoveDown) {
-						if (data.ZOffset <= -DropTargetAnimationData.DropTargetLimit) {
-							data.ZOffset = -DropTargetAnimationData.DropTargetLimit;
-							data.MoveDown = false;
-							data.IsDropped = true;
-							data.MoveAnimation = false;
-							data.TimeStamp = 0;
-							if (staticData.UseHitEvent) {
-								events.Enqueue(new EventData(EventId.TargetEventsDropped, entity));
-							}
-						}
-
-					} else {
-						if (data.ZOffset >= 0.0f) {
-							data.ZOffset = 0.0f;
-							data.MoveAnimation = false;
-							data.IsDropped = false;
-							if (staticData.UseHitEvent) {
-								events.Enqueue(new EventData(EventId.TargetEventsRaised, entity));
-							}
-						}
-					}
-				}
-
-				marker.End();
-
-			}).Run();
+			// fixme job
+			// Entities
+			// 	.WithName("HitTargetAnimationJob")
+			// 	.ForEach((Entity entity, ref DropTargetAnimationData data, in DropTargetStaticData staticData) =>
+			// {
+			// 	marker.Begin();
+			//
+			// 	var oldTimeMsec = data.TimeMsec < timeMsec ? data.TimeMsec : timeMsec;
+			// 	data.TimeMsec = timeMsec;
+			// 	var diffTimeMsec = (float)(timeMsec - oldTimeMsec);
+			//
+			// 	if (data.HitEvent) {
+			// 		if (!data.IsDropped) {
+			// 			data.MoveDown = true;
+			// 		}
+			//
+			// 		data.MoveAnimation = true;
+			// 		data.HitEvent = false;
+			// 	}
+			//
+			// 	if (data.MoveAnimation) {
+			// 		var step = staticData.Speed;
+			//
+			// 		if (data.MoveDown) {
+			// 			step = -step;
+			//
+			// 		} else if (data.TimeMsec - data.TimeStamp < (uint) staticData.RaiseDelay) {
+			// 			step = 0.0f;
+			// 		}
+			//
+			// 		data.ZOffset += step * diffTimeMsec;
+			// 		if (data.MoveDown) {
+			// 			if (data.ZOffset <= -DropTargetAnimationData.DropTargetLimit) {
+			// 				data.ZOffset = -DropTargetAnimationData.DropTargetLimit;
+			// 				data.MoveDown = false;
+			// 				data.IsDropped = true;
+			// 				data.MoveAnimation = false;
+			// 				data.TimeStamp = 0;
+			// 				if (staticData.UseHitEvent) {
+			// 					events.Enqueue(new EventData(EventId.TargetEventsDropped, entity));
+			// 				}
+			// 			}
+			//
+			// 		} else {
+			// 			if (data.ZOffset >= 0.0f) {
+			// 				data.ZOffset = 0.0f;
+			// 				data.MoveAnimation = false;
+			// 				data.IsDropped = false;
+			// 				if (staticData.UseHitEvent) {
+			// 					events.Enqueue(new EventData(EventId.TargetEventsRaised, entity));
+			// 				}
+			// 			}
+			// 		}
+			// 	}
+			//
+			// 	marker.End();
+			//
+			// }).Run();
 
 			// dequeue events
 			while (_eventQueue.TryDequeue(out var eventData)) {

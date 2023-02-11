@@ -72,10 +72,10 @@ namespace VisualPinballUnity
 				// check playfield and glass first
 				if (collideAgainstPlayfieldPlane) {
 					ref var playfieldCollider = ref colliders[collData.Value.Value.PlayfieldColliderId].Value;
-					HitTest(ref playfieldCollider, ref collEvent, ref contacts, ref insideOfs, in ballEntity, in ballData);
+					HitTest(ref playfieldCollider, ref collEvent, ref contacts, ref insideOfs, in ballData.Id, in ballData);
 				}
 				ref var glassCollider = ref colliders[collData.Value.Value.GlassColliderId].Value;
-				HitTest(ref glassCollider, ref collEvent, ref contacts, ref insideOfs, in ballEntity, in ballData);
+				HitTest(ref glassCollider, ref collEvent, ref contacts, ref insideOfs, in ballData.Id, in ballData);
 
 				var traversalOrder = false; //random.NextBool();
 				var start = traversalOrder ? 0 : colliderIds.Length - 1;
@@ -98,37 +98,37 @@ namespace VisualPinballUnity
 									break;
 
 								case ColliderType.Flipper:
-									if (HasComponent<FlipperHitData>(coll.Entity) &&
-									    HasComponent<FlipperMovementData>(coll.Entity) &&
-									    HasComponent<FlipperStaticData>(coll.Entity))
+									if (HasComponent<FlipperHitData>(coll.ItemId) &&
+									    HasComponent<FlipperMovementData>(coll.ItemId) &&
+									    HasComponent<FlipperStaticData>(coll.ItemId))
 									{
-										var flipperHitData = GetComponent<FlipperHitData>(coll.Entity);
-										var flipperMovementData = GetComponent<FlipperMovementData>(coll.Entity);
-										var flipperMaterialData = GetComponent<FlipperStaticData>(coll.Entity);
-										var flipperTricksData = GetComponent<FlipperTricksData>(coll.Entity);
+										var flipperHitData = GetComponent<FlipperHitData>(coll.ItemId);
+										var flipperMovementData = GetComponent<FlipperMovementData>(coll.ItemId);
+										var flipperMaterialData = GetComponent<FlipperStaticData>(coll.ItemId);
+										var flipperTricksData = GetComponent<FlipperTricksData>(coll.ItemId);
 										newTime = ((FlipperCollider*)collider)->HitTest(
 											ref newCollEvent, ref insideOfs, ref flipperHitData,
 											in flipperMovementData, in flipperTricksData, in flipperMaterialData, in ballData, collEvent.HitTime
 										);
 
-										SetComponent(coll.Entity, flipperHitData);
+										SetComponent(coll.ItemId, flipperHitData);
 									}
 									break;
 
 								case ColliderType.Plunger:
-									if (HasComponent<PlungerColliderData>(coll.Entity) &&
-									    HasComponent<PlungerStaticData>(coll.Entity) &&
-									    HasComponent<PlungerMovementData>(coll.Entity))
+									if (HasComponent<PlungerColliderData>(coll.ItemId) &&
+									    HasComponent<PlungerStaticData>(coll.ItemId) &&
+									    HasComponent<PlungerMovementData>(coll.ItemId))
 									{
-										var plungerColliderData = GetComponent<PlungerColliderData>(coll.Entity);
-										var plungerStaticData = GetComponent<PlungerStaticData>(coll.Entity);
-										var plungerMovementData = GetComponent<PlungerMovementData>(coll.Entity);
+										var plungerColliderData = GetComponent<PlungerColliderData>(coll.ItemId);
+										var plungerStaticData = GetComponent<PlungerStaticData>(coll.ItemId);
+										var plungerMovementData = GetComponent<PlungerMovementData>(coll.ItemId);
 										newTime = ((PlungerCollider*)collider)->HitTest(
 											ref newCollEvent, ref insideOfs, ref plungerMovementData,
 											in plungerColliderData, in plungerStaticData, in ballData, collEvent.HitTime
 										);
 
-										SetComponent(coll.Entity, plungerMovementData);
+										SetComponent(coll.ItemId, plungerMovementData);
 									}
 									break;
 								case ColliderType.Line:
@@ -140,8 +140,8 @@ namespace VisualPinballUnity
 								case ColliderType.Triangle:
 									// hit target
 									if (coll.Header.ItemType == ItemType.HitTarget) {
-										if (HasComponent<DropTargetAnimationData>(coll.Entity)) {
-											var dropTargetAnimationData = GetComponent<DropTargetAnimationData>(coll.Entity);
+										if (HasComponent<DropTargetAnimationData>(coll.ItemId)) {
+											var dropTargetAnimationData = GetComponent<DropTargetAnimationData>(coll.ItemId);
 											if (dropTargetAnimationData.IsDropped || dropTargetAnimationData.MoveAnimation) {  // QUICKFIX so that DT is not triggered twice
 												saveCollision = false;
 											}
@@ -149,7 +149,7 @@ namespace VisualPinballUnity
 												newTime = Collider.HitTest(ref coll, ref newCollEvent, ref insideOfs, in ballData, collEvent.HitTime);
 											}
 										}
-										if (HasComponent<HitTargetAnimationData>(coll.Entity)) {
+										if (HasComponent<HitTargetAnimationData>(coll.ItemId)) {
 											newTime = Collider.HitTest(ref coll, ref newCollEvent, ref insideOfs, in ballData, collEvent.HitTime);
 										}
 									}
@@ -164,7 +164,7 @@ namespace VisualPinballUnity
 						}
 					}
 					if (saveCollision) {
-						SaveCollisions(ref collEvent, ref newCollEvent, ref contacts, in ballEntity, in coll, newTime);
+						SaveCollisions(ref collEvent, ref newCollEvent, ref contacts, in ballData.Id, in coll, newTime);
 					}
 				}
 
@@ -180,7 +180,7 @@ namespace VisualPinballUnity
 
 		private static void HitTest(ref Collider coll, ref CollisionEventData collEvent,
 			ref NativeList<ContactBufferElement> contacts, ref DynamicBuffer<BallInsideOfBufferElement> insideOfs,
-			in Entity ballEntity, in BallData ballData) {
+			in int ballId, in BallData ballData) {
 
 			// todo
 			// if (collider.obj && collider.obj.abortHitTest && collider.obj.abortHitTest()) {
@@ -190,11 +190,11 @@ namespace VisualPinballUnity
 			var newCollEvent = new CollisionEventData();
 			var newTime = Collider.HitTest(ref coll, ref newCollEvent, ref insideOfs, in ballData, collEvent.HitTime);
 
-			SaveCollisions(ref collEvent, ref newCollEvent, ref contacts, in ballEntity, in coll, newTime);
+			SaveCollisions(ref collEvent, ref newCollEvent, ref contacts, in ballId, in coll, newTime);
 		}
 
 		private static void SaveCollisions(ref CollisionEventData collEvent, ref CollisionEventData newCollEvent,
-			ref NativeList<ContactBufferElement> contacts, in Entity ballEntity, in Collider coll, float newTime)
+			ref NativeList<ContactBufferElement> contacts, in int ballId, in Collider coll, float newTime)
 		{
 			var validHit = newTime >= 0f && !Math.Sign(newTime) && newTime <= collEvent.HitTime;
 
@@ -202,7 +202,7 @@ namespace VisualPinballUnity
 				newCollEvent.SetCollider(coll.Id);
 				newCollEvent.HitTime = newTime;
 				if (newCollEvent.IsContact) {
-					contacts.Add(new ContactBufferElement(ballEntity, newCollEvent));
+					contacts.Add(new ContactBufferElement(ballId, newCollEvent));
 
 				} else { // if (validhit)
 					collEvent = newCollEvent;

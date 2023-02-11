@@ -38,12 +38,12 @@ namespace VisualPinball.Unity
 		private float _length;
 
 		private ItemType ItemType => _header.ItemType;
-		private Entity Entity => _header.Entity;
+		private int ItemId => _header.ItemId;
 
 		public float V1y { set => V1.y = value; }
 		public float V2y { set => V2.y = value; }
 
-		public ColliderBounds Bounds => new ColliderBounds(_header.Entity, _header.Id, new Aabb(
+		public ColliderBounds Bounds => new ColliderBounds(_header.ItemId, _header.Id, new Aabb(
 			math.min(V1.x, V2.x),
 			math.max(V1.x, V2.x),
 			math.min(V1.y, V2.y),
@@ -171,7 +171,7 @@ namespace VisualPinball.Unity
 					    /*todo   || !ball.m_vpVolObjs*/
 					    // it's a trigger, so test:
 					    || math.abs(bnd) >= ball.Radius * 0.5f          // not too close ... nor too far away
-					    || inside == BallData.IsInsideOf(in insideOfs, coll.Entity))   // ...ball outside and hit set or ball inside and no hit set
+					    || inside == BallData.IsInsideOf(in insideOfs, coll.ItemId))   // ...ball outside and hit set or ball inside and no hit set
 					{
 						return -1.0f;
 					}
@@ -230,13 +230,13 @@ namespace VisualPinball.Unity
 		#region Collision
 
 		public void Collide(ref BallData ball, ref NativeQueue<EventData>.ParallelWriter hitEvents,
-			in Entity ballEntity, in CollisionEventData collEvent, ref Random random)
+			in int ballId, in CollisionEventData collEvent, ref Random random)
 		{
 			var dot = math.dot(collEvent.HitNormal, ball.Velocity);
 			BallCollider.Collide3DWall(ref ball, in _header.Material, in collEvent, in collEvent.HitNormal, ref random);
 
 			if (dot <= -_header.Threshold) {
-				Collider.FireHitEvent(ref ball, ref hitEvents, in ballEntity, in _header);
+				Collider.FireHitEvent(ref ball, ref hitEvents, in ballId, in _header);
 			}
 		}
 

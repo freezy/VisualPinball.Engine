@@ -291,7 +291,7 @@ namespace VisualPinball.Unity
 				if (_drainSwitch is KickerApi kickerApi) {
 					kickerApi.DestroyBall();
 				} else {
-					BallManager.DestroyEntity(args.BallEntity);
+					BallManager.DestroyEntity(args.BallId);
 				}
 				DrainBall();
 

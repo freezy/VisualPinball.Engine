@@ -15,7 +15,6 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using System;
-using Unity.Entities;
 
 namespace VisualPinball.Unity
 {
@@ -71,7 +70,7 @@ namespace VisualPinball.Unity
 		public void SetSwitch(bool enabled)
 		{
 			_switchHandler.OnSwitch(enabled);
-			Switch?.Invoke(this, new SwitchEventArgs(enabled, Entity.Null));
+			Switch?.Invoke(this, new SwitchEventArgs(enabled));
 		}
 
 		/// <summary>
@@ -85,7 +84,7 @@ namespace VisualPinball.Unity
 				SetSwitch(enabled);
 			} else {
 				_switchHandler.ScheduleSwitch(enabled, delay, isEnabled => {
-					Switch?.Invoke(this, new SwitchEventArgs(isEnabled, Entity.Null));
+					Switch?.Invoke(this, new SwitchEventArgs(isEnabled));
 				});
 			}
 		}

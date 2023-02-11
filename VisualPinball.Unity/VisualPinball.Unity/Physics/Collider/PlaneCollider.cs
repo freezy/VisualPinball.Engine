@@ -30,7 +30,7 @@ namespace VisualPinball.Unity
 		private readonly float3 _normal;
 		private readonly float _distance;
 
-		public ColliderBounds Bounds => new ColliderBounds(_header.Entity, _header.Id, new Aabb(float.MinValue, float.MaxValue, float.MinValue, float.MaxValue, float.MinValue, float.MaxValue));
+		public ColliderBounds Bounds => new ColliderBounds(_header.ItemId, _header.Id, new Aabb(float.MinValue, float.MaxValue, float.MinValue, float.MaxValue, float.MinValue, float.MaxValue));
 
 		public PlaneCollider(float3 normal, float distance, ColliderInfo info) : this()
 		{
@@ -53,7 +53,7 @@ namespace VisualPinball.Unity
 
 		public override string ToString()
 		{
-			return $"PlaneCollider[{_header.Entity}] {_distance} at ({_normal.x}/{_normal.y}/{_normal.z})";
+			return $"PlaneCollider[{_header.ItemId}] {_distance} at ({_normal.x}/{_normal.y}/{_normal.z})";
 		}
 
 		#region Narrowphase

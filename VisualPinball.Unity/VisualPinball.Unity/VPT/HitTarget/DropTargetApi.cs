@@ -16,10 +16,8 @@
 
 using System;
 using System.Collections.Generic;
-using Unity.Entities;
 using UnityEngine;
 using VisualPinball.Engine.VPT.HitTarget;
-using VisualPinballUnity;
 
 namespace VisualPinball.Unity
 {
@@ -52,19 +50,18 @@ namespace VisualPinball.Unity
 		/// <exception cref="InvalidOperationException">Thrown if target is not a drop target (but a hit target, which can't be dropped)</exception>
 		public bool IsDropped
 		{
-			get => EntityManager.GetComponentData<DropTargetAnimationData>(Entity).IsDropped;
+			get => false; // fixme job EntityManager.GetComponentData<DropTargetAnimationData>(Entity).IsDropped;
 			set => SetIsDropped(value);
 		}
 
-		internal DropTargetApi(GameObject go, Entity entity, Player player)
-			: base(go, entity, player)
+		internal DropTargetApi(GameObject go, Player player) : base(go, player)
 		{
 		}
 
-		public void OnDropStatusChanged(bool isDropped, Entity ballEntity)
+		public void OnDropStatusChanged(bool isDropped, int ballId)
 		{
 			OnSwitch(isDropped);
-			Switch?.Invoke(this, new SwitchEventArgs(isDropped, ballEntity));
+			Switch?.Invoke(this, new SwitchEventArgs(isDropped, ballId));
 		}
 
 		/// <summary>
@@ -74,21 +71,22 @@ namespace VisualPinball.Unity
 		/// <exception cref="InvalidOperationException"></exception>
 		private void SetIsDropped(bool isDropped)
 		{
-			var data = EntityManager.GetComponentData<DropTargetAnimationData>(Entity);
-			if (data.IsDropped != isDropped) {
-				data.MoveAnimation = true;
-				if (isDropped) {
-					data.MoveDown = true;
-				}
-				else {
-					data.MoveDown = false;
-					data.TimeStamp = World.DefaultGameObjectInjectionWorld.GetOrCreateSystemManaged<VisualPinballSimulationSystemGroup>().TimeMsec;
-				}
-			} else {
-				data.IsDropped = isDropped;
-			}
-
-			EntityManager.SetComponentData(Entity, data);
+			// fixme job
+			// var data = EntityManager.GetComponentData<DropTargetAnimationData>(Entity);
+			// if (data.IsDropped != isDropped) {
+			// 	data.MoveAnimation = true;
+			// 	if (isDropped) {
+			// 		data.MoveDown = true;
+			// 	}
+			// 	else {
+			// 		data.MoveDown = false;
+			// 		data.TimeStamp = World.DefaultGameObjectInjectionWorld.GetOrCreateSystemManaged<VisualPinballSimulationSystemGroup>().TimeMsec;
+			// 	}
+			// } else {
+			// 	data.IsDropped = isDropped;
+			// }
+			//
+			// EntityManager.SetComponentData(Entity, data);
 		}
 
 		#region Wiring
@@ -127,9 +125,9 @@ namespace VisualPinball.Unity
 		{
 		}
 
-		void IApiHittable.OnHit(Entity ballEntity, bool _)
+		void IApiHittable.OnHit(int ballId, bool _)
 		{
-			Hit?.Invoke(this, new HitEventArgs(ballEntity));
+			Hit?.Invoke(this, new HitEventArgs(ballId));
 		}
 
 		#endregion

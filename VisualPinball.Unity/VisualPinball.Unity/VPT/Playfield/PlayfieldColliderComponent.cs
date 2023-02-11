@@ -55,13 +55,13 @@ namespace VisualPinball.Unity
 		[NonSerialized] public bool ShowAllColliderMeshes = false;
 
 		public override PhysicsMaterialData PhysicsMaterialData => GetPhysicsMaterialData(0, 0);
-		protected override IApiColliderGenerator InstantiateColliderApi(Player player, Entity entity)
+		protected override IApiColliderGenerator InstantiateColliderApi(Player player)
 			=> new PlayfieldApi(gameObject, player);
 
 		void ICollidableComponent.GetColliders(ref NativeList<PlaneCollider> colliders)
 		{
 			var api = new PlayfieldApi(gameObject, GetComponent<Player>());
-			var c = api.CreateColliders();
+			var c = api.CreateColliders(GetInstanceID());
 			colliders.Add(c.Item1);
 			colliders.Add(c.Item2);
 		}

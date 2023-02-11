@@ -44,7 +44,7 @@ namespace VisualPinball.Unity
 			var position = frameTop + restPos * frameLen;
 
 			var info = new ColliderInfo {
-				Entity = GetEntity(),
+				ItemId = authoring.GetInstanceID(),
 				FireEvents = true,
 				IsEnabled = true,
 				ItemType = ItemType.Plunger,
@@ -99,7 +99,7 @@ namespace VisualPinball.Unity
 			});
 
 			// register at player
-			GetComponentInParent<Player>().RegisterPlunger(authoring, GetEntity(), authoring.analogPlungerAction);
+			GetComponentInParent<Player>().RegisterPlunger(authoring, authoring.analogPlungerAction);
 
 		}
 	}
