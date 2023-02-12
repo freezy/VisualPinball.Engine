@@ -39,48 +39,49 @@ namespace VisualPinballUnity
 
 			var marker = PerfMarker;
 
-			Entities
-				.WithName("DynamicNarrowPhaseJob")
-				.WithReadOnly(contacts)
-				.WithNativeDisableParallelForRestriction(ballsLookup)
-				.ForEach((Entity ballEntity, ref BallData ball, ref CollisionEventData collEvent,
-					in DynamicBuffer<OverlappingDynamicBufferElement> overlappingEntities) =>
-				{
-					// don't play with frozen balls
-					if (ball.IsFrozen) {
-						return;
-					}
-
-					marker.Begin();
-
-					//var contacts = contactsLookup[collDataEntity];
-					for (var k = 0; k < overlappingEntities.Length; k++) {
-						var collBallEntity = overlappingEntities[k].Value;
-						var collBall = ballsLookup[collBallEntity];
-
-						var newCollEvent = new CollisionEventData();
-						var newTime = BallCollider.HitTest(ref newCollEvent, ref ball, in collBall, collEvent.HitTime);
-						var validHit = newTime >= 0 && !Math.Sign(newTime) && newTime <= collEvent.HitTime;
-
-						if (newCollEvent.IsContact || validHit) {
-							newCollEvent.SetCollider(collBallEntity);
-							newCollEvent.HitTime = newTime;
-							if (newCollEvent.IsContact) {
-								contacts.Add(new ContactBufferElement(ball.Id, newCollEvent));
-
-							} else { // if (validhit)
-								collEvent = newCollEvent;
-							}
-						}
-
-						// write back
-						ballsLookup[collBallEntity] = collBall;
-					}
-
-					marker.End();
-
-				}
-			).Run();
+			// fixme job
+			// Entities
+			// 	.WithName("DynamicNarrowPhaseJob")
+			// 	.WithReadOnly(contacts)
+			// 	.WithNativeDisableParallelForRestriction(ballsLookup)
+			// 	.ForEach((Entity ballEntity, ref BallData ball, ref CollisionEventData collEvent,
+			// 		in DynamicBuffer<OverlappingDynamicBufferElement> overlappingEntities) =>
+			// 	{
+			// 		// don't play with frozen balls
+			// 		if (ball.IsFrozen) {
+			// 			return;
+			// 		}
+			//
+			// 		marker.Begin();
+			//
+			// 		//var contacts = contactsLookup[collDataEntity];
+			// 		for (var k = 0; k < overlappingEntities.Length; k++) {
+			// 			var collBallEntity = overlappingEntities[k].Value;
+			// 			var collBall = ballsLookup[collBallEntity];
+			//
+			// 			var newCollEvent = new CollisionEventData();
+			// 			var newTime = BallCollider.HitTest(ref newCollEvent, ref ball, in collBall, collEvent.HitTime);
+			// 			var validHit = newTime >= 0 && !Math.Sign(newTime) && newTime <= collEvent.HitTime;
+			//
+			// 			if (newCollEvent.IsContact || validHit) {
+			// 				newCollEvent.SetCollider(collBallEntity);
+			// 				newCollEvent.HitTime = newTime;
+			// 				if (newCollEvent.IsContact) {
+			// 					contacts.Add(new ContactBufferElement(ball.Id, newCollEvent));
+			//
+			// 				} else { // if (validhit)
+			// 					collEvent = newCollEvent;
+			// 				}
+			// 			}
+			//
+			// 			// write back
+			// 			ballsLookup[collBallEntity] = collBall;
+			// 		}
+			//
+			// 		marker.End();
+			//
+			// 	}
+			// ).Run();
 		}
 	}
 }
