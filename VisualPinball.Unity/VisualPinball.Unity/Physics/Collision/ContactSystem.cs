@@ -98,7 +98,7 @@ namespace VisualPinballUnity
 							}
 						}
 
-					} else if (collEvent.ColliderEntity != Entity.Null) { // collide with ball
+					} else if (collEvent.BallId != 0) { // collide with ball
 						// todo move ball friction into some data component
 						BallCollider.HandleStaticContact(ref ball, in collEvent, 0.3f, hitTime, in gravity);
 					}

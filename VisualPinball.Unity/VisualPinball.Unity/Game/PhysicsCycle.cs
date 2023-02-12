@@ -17,6 +17,7 @@
 using System;
 using NativeTrees;
 using Unity.Collections;
+using VisualPinball.Engine.Common;
 
 namespace VisualPinball.Unity
 {
@@ -33,6 +34,9 @@ namespace VisualPinball.Unity
 
 		internal void Simulate(float dTime, ref PhysicsState state, ref NativeOctree<PlaneCollider> octree, ref NativeList<BallData> balls)
 		{
+			
+			var staticCounts = PhysicsConstants.StaticCnts;
+			
 			while (dTime > 0) {
 				
 				var hitTime = dTime;       // begin time search from now ...  until delta ends
@@ -59,12 +63,15 @@ namespace VisualPinball.Unity
 
 					// write ball back
 					balls[i] = ball;
+					
+					// todo dynamic narrow phase
+
+					// apply static time
+					ApplyStaticTime(ref hitTime, ref staticCounts, in ball);
+
 				}
 				
 				
-				// todo dynamic narrow phase
-
-				// todo apply static time
 
 				// todo displacement
 				
@@ -80,6 +87,21 @@ namespace VisualPinball.Unity
 				// todo ball spin hack
 				
 				dTime -= hitTime;  
+			}
+		}
+		
+		private static void ApplyStaticTime(ref float hitTime, ref float staticCounts, in BallData ball)
+		{
+			// for each collision event
+			var collEvent = ball.CollisionEvent;
+			if (collEvent.HasCollider() && collEvent.HitTime <= hitTime) {       // smaller hit time??
+				hitTime = collEvent.HitTime;                                     // record actual event time
+				if (collEvent.HitTime < PhysicsConstants.StaticTime) {           // less than static time interval
+					if (--staticCounts < 0) {
+						staticCounts = 0;                                       // keep from wrapping
+						hitTime = PhysicsConstants.StaticTime;
+					}
+				}
 			}
 		}
 

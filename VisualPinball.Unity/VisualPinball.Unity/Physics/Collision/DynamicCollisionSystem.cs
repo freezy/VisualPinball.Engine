@@ -40,37 +40,39 @@ namespace VisualPinballUnity
 			var balls = GetComponentLookup<BallData>();
 			var collEvents = GetComponentLookup<CollisionEventData>(true);
 
-			Entities
-				.WithName("DynamicCollisionJob")
-				.WithNativeDisableParallelForRestriction(balls)
-				.WithReadOnly(collEvents)
-				.ForEach((ref BallData ball, ref CollisionEventData collEvent) => {
-
-					// pick "other" ball
-					ref var otherEntity = ref collEvent.ColliderEntity;
-
-					// find balls with hit objects and minimum time
-					if (otherEntity != Entity.Null && collEvent.HitTime <= hitTime) {
-
-						marker.Begin();
-
-						var otherBall = balls[otherEntity];
-						var otherCollEvent = collEvents[otherEntity];
-
-						// now collision, contact and script reactions on active ball (object)+++++++++
-
-						//this.activeBall = ball;                         // For script that wants the ball doing the collision
-
-						if (BallCollider.Collide(ref otherBall, ref ball,in otherCollEvent, in collEvent, swapBallCollisionHandling)) {
-							balls[otherEntity] = otherBall;
-						}
-
-						// remove trial hit object pointer
-						collEvent.ClearCollider();
-
-						marker.End();
-					}
-				}).Run();
+			// fixme job
+			// Entities
+			// 	.WithName("DynamicCollisionJob")
+			// 	.WithNativeDisableParallelForRestriction(balls)
+			// 	.WithReadOnly(collEvents)
+			// 	.ForEach((ref BallData ball, ref CollisionEventData collEvent) => {
+			//
+			// 		
+			// 		// pick "other" ball
+			// 		ref var otherId = ref collEvent.BallId;
+			// 		
+			// 		// find balls with hit objects and minimum time
+			// 		if (otherId != 0 && collEvent.HitTime <= hitTime) {
+			// 		
+			// 			marker.Begin();
+			// 		
+			// 			var otherBall = balls[otherId];
+			// 			var otherCollEvent = collEvents[otherId];
+			// 		
+			// 			// now collision, contact and script reactions on active ball (object)+++++++++
+			// 		
+			// 			//this.activeBall = ball;                         // For script that wants the ball doing the collision
+			// 		
+			// 			if (BallCollider.Collide(ref otherBall, ref ball,in otherCollEvent, in collEvent, swapBallCollisionHandling)) {
+			// 				balls[otherId] = otherBall;
+			// 			}
+			// 		
+			// 			// remove trial hit object pointer
+			// 			collEvent.ClearCollider();
+			// 		
+			// 			marker.End();
+			// 		}
+			// 	}).Run();
 		}
 	}
 }

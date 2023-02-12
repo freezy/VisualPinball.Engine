@@ -30,37 +30,37 @@ namespace VisualPinball.Unity
 		public bool IsContact;
 
 		public int ColliderId;
-		public Entity ColliderEntity;
+		public int BallId;
 
 		public void SetCollider(int colliderId)
 		{
 			ColliderId = colliderId;
-			ColliderEntity = Entity.Null;
+			BallId = 0;
 		}
 
-		public void SetCollider(Entity colliderEntity)
+		public void SetBallItem(int ballId)
 		{
 			ColliderId = -1;
-			ColliderEntity = colliderEntity;
+			BallId = ballId;
 		}
 
 		public void ClearCollider(float hitTime)
 		{
 			HitTime = hitTime;
 			ColliderId = -1;
-			ColliderEntity = Entity.Null;
+			BallId = 0;
 		}
 
 
 		public void ClearCollider()
 		{
 			ColliderId = -1;
-			ColliderEntity = Entity.Null;
+			BallId = 0;
 		}
 
 		public bool HasCollider()
 		{
-			return ColliderId > -1 || ColliderEntity != Entity.Null;
+			return ColliderId > -1 || BallId != 0;
 		}
 	}
 }

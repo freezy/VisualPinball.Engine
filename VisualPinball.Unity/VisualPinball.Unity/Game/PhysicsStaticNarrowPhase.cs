@@ -16,7 +16,6 @@
 
 using Unity.Collections;
 using Unity.Profiling;
-using UnityEngine;
 
 namespace VisualPinball.Unity
 {
@@ -32,8 +31,7 @@ namespace VisualPinball.Unity
 			// init contacts and event
 			ball.CollisionEvent.ClearCollider(hitTime); // search upto current hit time
 
-			foreach (var coll in overlappingColliders)
-			{
+			foreach (var coll in overlappingColliders) {
 				var newCollEvent = new CollisionEventData();
 				float newTime = 0;
 				
