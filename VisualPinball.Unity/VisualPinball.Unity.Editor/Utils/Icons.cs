@@ -80,9 +80,11 @@ namespace VisualPinball.Unity.Editor
 		private const string KickerName = "kicker";
 		private const string LightGroupName = "light_group";
 		private const string LightName = "light";
+		private const string LoopButtonName = "player";
 		private const string MechName = "mech";
 		private const string MechPinMameName = "mech_pinmame";
 		private const string PlayfieldName = "playfield";
+		private const string PlayButtonName = "player";
 		private const string PlugName = "plug";
 		private const string PlungerName = "plunger";
 		private const string PrimitiveName = "primitive";
@@ -94,6 +96,7 @@ namespace VisualPinball.Unity.Editor
 		private const string ScoreReelSingleName = "score_reel_single";
 		private const string SlingshotName = "slingshot";
 		private const string SpinnerName = "spinner";
+		private const string StopButtonName = "kicker";
 		private const string SurfaceName = "surface";
 		private const string SwitchNcName = "switch_nc";
 		private const string SwitchNoName = "switch_no";
@@ -117,8 +120,8 @@ namespace VisualPinball.Unity.Editor
 
 		private static readonly string[] Names = {
 			AssetLibraryName, BallRollerName, BallName, BoltName, BumperName, CalendarName, CannonName, CoilName, DropTargetBankName, DropTargetName, FlasherName,
-			FlipperName, GateName, GateLifterName, HitTargetName, KeyName, KickerName, LightGroupName, LightName, MechName, MechPinMameName, PlayfieldName, PlugName,
-			PhysicsName, PlungerName, PrimitiveName, RampName, RotatorName, RubberName, ScoreReelName, ScoreReelSingleName, SlingshotName, SpinnerName, SurfaceName,
+			FlipperName, GateName, GateLifterName, HitTargetName, KeyName, KickerName, LightGroupName, LightName, LoopButtonName, MechName, MechPinMameName, PlayfieldName, PlayButtonName, PlugName,
+			PhysicsName, PlungerName, PrimitiveName, RampName, RotatorName, RubberName, ScoreReelName, ScoreReelSingleName, SlingshotName, SpinnerName, StopButtonName, SurfaceName,
 			SwitchNcName, SwitchNoName, TableName, TeleporterName, TriggerName, TroughName,
 			CoilEventName, SwitchEventName, LampEventName, LampSeqName, MetalWireGuideName,
 			PlayerVariableName, PlayerVariableEventName, TableVariableName, TableVariableEventName, UpdateDisplayName, DisplayEventName
@@ -182,12 +185,14 @@ namespace VisualPinball.Unity.Editor
 		public static Texture2D Key(IconSize size = IconSize.Large, IconColor color = IconColor.Gray) => Instance.GetItem(KeyName, size, color);
 		public static Texture2D Kicker(IconSize size = IconSize.Large, IconColor color = IconColor.Gray) => Instance.GetItem(KickerName, size, color);
 		public static Texture2D Light(IconSize size = IconSize.Large, IconColor color = IconColor.Gray) => Instance.GetItem(LightName, size, color);
+		public static Texture2D LoopButton(IconSize size = IconSize.Large, IconColor color = IconColor.Gray) => Instance.GetItem(LoopButtonName, size, color);
 		public static Texture2D LightGroup(IconSize size = IconSize.Large, IconColor color = IconColor.Gray) => Instance.GetItem(LightGroupName, size, color);
 		public static Texture2D Mech(IconSize size = IconSize.Large, IconColor color = IconColor.Gray) => Instance.GetItem(MechName, size, color);
 		public static Texture2D MechPinMame(IconSize size = IconSize.Large, IconColor color = IconColor.Gray) => Instance.GetItem(MechPinMameName, size, color);
 		public static Texture2D MetalWireGuide(IconSize size = IconSize.Large, IconColor color = IconColor.Gray) => Instance.GetItem(MetalWireGuideName, size, color);
 		public static Texture2D Physics(IconSize size = IconSize.Small, IconColor color = IconColor.Gray) => Instance.GetItem(PhysicsName, size, color);
 		public static Texture2D Playfield(IconSize size = IconSize.Large, IconColor color = IconColor.Gray) => Instance.GetItem(PlayfieldName, size, color);
+		public static Texture2D PlayButton(IconSize size = IconSize.Large, IconColor color = IconColor.Gray) => Instance.GetItem(PlayButtonName, size, color);
 		public static Texture2D Plug(IconSize size = IconSize.Large, IconColor color = IconColor.Gray) => Instance.GetItem(PlugName, size, color);
 		public static Texture2D Plunger(IconSize size = IconSize.Large, IconColor color = IconColor.Gray) => Instance.GetItem(PlungerName, size, color);
 		public static Texture2D Primitive(IconSize size = IconSize.Large, IconColor color = IconColor.Gray) => Instance.GetItem(PrimitiveName, size, color);
@@ -198,6 +203,7 @@ namespace VisualPinball.Unity.Editor
 		public static Texture2D ScoreReelSingle(IconSize size = IconSize.Large, IconColor color = IconColor.Gray) => Instance.GetItem(ScoreReelSingleName, size, color);
 		public static Texture2D Slingshot(IconSize size = IconSize.Large, IconColor color = IconColor.Gray) => Instance.GetItem(SlingshotName, size, color);
 		public static Texture2D Spinner(IconSize size = IconSize.Large, IconColor color = IconColor.Gray) => Instance.GetItem(SpinnerName, size, color);
+		public static Texture2D StopButton(IconSize size = IconSize.Large, IconColor color = IconColor.Gray) => Instance.GetItem(StopButtonName, size, color);
 		public static Texture2D Surface(IconSize size = IconSize.Large, IconColor color = IconColor.Gray) => Instance.GetItem(SurfaceName, size, color);
 		public static Texture2D Switch(bool isClosed, IconSize size = IconSize.Large, IconColor color = IconColor.Gray) => Instance.GetItem(isClosed ? SwitchNcName : SwitchNoName, size, color);
 		public static Texture2D Table(IconSize size = IconSize.Large, IconColor color = IconColor.Gray) => Instance.GetItem(TableName, size, color);
