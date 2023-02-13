@@ -17,6 +17,7 @@
 // ReSharper disable EventNeverSubscribedTo.Global
 #pragma warning disable 67
 
+using Codice.CM.SEIDInfo;
 using System;
 using System.Collections.Generic;
 using Unity.Entities;
@@ -38,7 +39,6 @@ namespace VisualPinball.Unity
 		/// Event emitted when the table is started.
 		/// </summary>
 		public event EventHandler Init;
-
 		/// <summary>
 		/// Event emitted when the flipper was touched by the ball, but did
 		/// not collide.

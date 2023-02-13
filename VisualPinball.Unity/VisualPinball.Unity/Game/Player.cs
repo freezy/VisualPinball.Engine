@@ -25,6 +25,8 @@ using UnityEngine.InputSystem;
 using VisualPinball.Engine.Common;
 using VisualPinball.Engine.Game;
 using VisualPinball.Engine.Game.Engines;
+using VisualPinball.Engine.VPT.Flipper;
+using VisualPinball.Engine.VPT.MechSounds;
 using VisualPinball.Engine.VPT.Trigger;
 using Logger = NLog.Logger;
 
@@ -182,6 +184,7 @@ namespace VisualPinball.Unity
 			if (EngineProvider<IDebugUI>.Exists) {
 				EngineProvider<IDebugUI>.Get().Init(_tableComponent);
 			}
+
 		}
 
 		private void Update()
@@ -264,6 +267,11 @@ namespace VisualPinball.Unity
 		public void RegisterLampGroup(LightGroupComponent component)
 		{
 			Register(component.GetApi(this), component);
+		}
+
+		public void RegisterMechSound(MechSoundsComponent component)
+		{
+			
 		}
 
 		public void RegisterStepRotator(StepRotatorMechComponent component)
@@ -608,4 +616,6 @@ namespace VisualPinball.Unity
 			Ball = ball;
 		}
 	}
+
+	
 }
