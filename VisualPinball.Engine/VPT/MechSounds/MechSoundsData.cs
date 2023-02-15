@@ -36,30 +36,8 @@ namespace VisualPinball.Engine.VPT.MechSounds
 		public SoundTrigger SelectedTrigger;
 		public VolumeEmitter[] AvailableEmitters;
 
-		[Serializable]
-		public class MechSound 
-		{
-			public int Trigger;
-			public ScriptableObject Sound;
-			public int Volume;
-			public float VolumeValue = 1;
-			public actionType Action = actionType.PlayOnce;
-			public float Fade = 50;
+		
 
-		}
-
-		void AddNew()
-		{
-			SoundList.Add(new MechSound());
-		}
-
-		void Remove(int index)
-		{
-			SoundList.RemoveAt(index);
-		}
-
-		public List<MechSound> SoundList;
-		public enum actionType { PlayOnce, Loop };
 
 		#region BIFF
 
