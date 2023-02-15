@@ -19,191 +19,43 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 using VisualPinball.Engine.VPT;
-using VisualPinball.Engine.VPT.MechSounds;
-using VisualPinball.Engine.VPT.Table;
-
 
 namespace VisualPinball.Unity
 {
 
 	[AddComponentMenu("Visual Pinball/Sounds/Mechanical Sounds")]
-	public class MechSoundsComponent : MainComponent<MechSoundsData>, ISoundEmitter
+	public class MechSoundsComponent : MonoBehaviour
 	{
 		#region Data
 
-		public List<MechSoundsData.MechSound> SoundList; 
-
-		[SerializeField]
-		private SoundTrigger[] _availableTriggers;
-		public SoundTrigger[] AvailableTriggers
+		[Serializable]
+		public class MechSound
 		{
-			get { return _availableTriggers; }
-			set { _availableTriggers = value; }
+			public int Trigger;
+			public ScriptableObject Sound;
+			public int Volume;
+			public float VolumeValue = 1;
+			public actionType Action = actionType.PlayOnce;
+			public float Fade = 50;
+
 		}
 
-		public SoundTrigger SelectedTrigger;
-
-		[SerializeField]
-		private VolumeEmitter[] _availableEmitters;
-		public VolumeEmitter[] AvailableEmitters
+		void AddNew()
 		{
-
-			get
-			{
-				_availableEmitters = GetVolumeEmitters(SelectedTrigger);
-				return _availableEmitters;
-			}
-			set { _availableEmitters = value; }
+			SoundList.Add(new MechSound());
 		}
 
-		public VolumeEmitter[] GetVolumeEmitters(SoundTrigger trigger)
+		void Remove(int index)
 		{
-
-			string Id;
-			string Name;
-			string[] Ids;
-			string[] Names;
-
-			switch (trigger.Name)
-			{
-				case "Coil On":
-					Ids = new string[1];
-					Names = new string[1];
-					Id = "fixed";
-					Name = "Fixed";
-					Ids[0] = Id;
-					Names[0] = Name;
-					break;
-				case "Coil Off":
-					Ids = new string[1];
-					Names = new string[1];
-					Id = "fixed";
-					Name = "Fixed";
-					Ids[0] = Id;
-					Names[0] = Name;
-					break;
-				case "Ball Collision":
-					Ids = new string[1];
-					Names = new string[1];
-					Id = "ball_velocity";
-					Name = "Ball Velocity";
-					Ids[0] = Id;
-					Names[0] = Name;
-					break;
-				default:
-					Ids = new string[1];
-					Names = new string[1];
-					Id = "fixed";
-					Name = "Fixed";
-					Ids[0] = Id;
-					Names[0] = Name;
-					break;
-			}
-
-			int index = Ids.Length;
-			VolumeEmitter volEmitter;
-			VolumeEmitter[] volEmitters = new VolumeEmitter[index];
-
-			for (int i = 0; i < index; i++)
-			{
-				volEmitter = new VolumeEmitter();
-				volEmitter.Id = Ids[i];
-				volEmitter.Name = Names[i];
-				volEmitters[i] = volEmitter;
-			}
-
-			return volEmitters;
-		}
-		#endregion
-
-		#region ISoundEmitter
-		[SerializeField]
-		public event EventHandler<SoundEventArgs> OnSound;
-
-		private void _OnSound(object sender, SwitchEventArgs e)
-		{
-			OnSound?.Invoke(this, new SoundEventArgs { Trigger = SelectedTrigger, Volume = SoundList[0].Volume });
-		}
-
-		#endregion
-
-		#region Overrides and Constants
-
-		public override ItemType ItemType => ItemType.Sound;
-		public override string ItemName => "Mechanical Sounds";
-
-		public override MechSoundsData InstantiateData() => new MechSoundsData();
-
-		public override bool HasProceduralMesh => false;
-
-		#endregion
-		
-
-		#region Conversion
-
-		public override IEnumerable<MonoBehaviour> SetData(MechSoundsData data)
-		{
-			var updatedComponents = new List<MonoBehaviour> { this };
-
-			SoundList = data.SoundList;
-			AvailableTriggers = data.AvailableTriggers;
-			SelectedTrigger = data.SelectedTrigger;
-			AvailableEmitters = data.AvailableEmitters;
-
-			return updatedComponents;
+			SoundList.RemoveAt(index);
 		}
 
 		
-		public override MechSoundsData CopyDataTo(MechSoundsData data, string[] materialNames, string[] textureNames, bool forExport)
-		{
-			data.Name = name;
-			data.SoundList= SoundList;
-			data.AvailableTriggers = AvailableTriggers;
-			data.SelectedTrigger = SelectedTrigger;
-			data.AvailableEmitters = AvailableEmitters;
-			
-			return data;
-		}
-
-
-		public override IEnumerable<MonoBehaviour> SetReferencedData(MechSoundsData data, Table table, IMaterialProvider materialProvider, ITextureProvider textureProvider, Dictionary<string, IMainComponent> components)
-		{
-		
-			return Array.Empty<MonoBehaviour>();
-		}
-
+		public List<MechSound> SoundList = new List<MechSound>(1);
+		public enum actionType { PlayOnce, Loop };
 
 		#endregion
 
-		#region Runtime
-
-		private FlipperApi _flipperApi;
-
-		private void Awake()
-		{
-			GetComponentInParent<Player>().RegisterMechSound(this);
-		}
-
-		private void Start()
-		{
-			_flipperApi = GetComponentInParent<Player>().TableApi.Flipper(this);
-			_flipperApi.Switch += _OnSound;
-
-
-		}
-
-		private void Update()
-		{
-			
-		}
-
-		#endregion
-
-		#region Editor Tools
-
-
-
-		#endregion
 	}
 }
 
