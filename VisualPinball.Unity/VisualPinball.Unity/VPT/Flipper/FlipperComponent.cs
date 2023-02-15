@@ -41,7 +41,7 @@ namespace VisualPinball.Unity
 	[HelpURL("https://docs.visualpinball.org/creators-guide/manual/mechanisms/flippers.html")]
 	public class FlipperComponent : MainRenderableComponent<FlipperData>,
 		IFlipperData, ISwitchDeviceComponent, ICoilDeviceComponent, IOnSurfaceComponent,
-		IRotatableComponent, IConvertGameObjectToEntity
+		IRotatableComponent, IConvertGameObjectToEntity, ISoundEmitter
 	{
 		#region Data
 
@@ -128,11 +128,45 @@ namespace VisualPinball.Unity
 		protected override Type MeshComponentType { get; } = typeof(MeshComponent<FlipperData, FlipperComponent>);
 		protected override Type ColliderComponentType { get; } = typeof(ColliderComponent<FlipperData, FlipperComponent>);
 
+		
 		public const string MainCoilItem = "main_coil";
 		public const string HoldCoilItem = "hold_coil";
 		public const string EosSwitchItem = "eos_switch";
+		//ISoundEmitter SoundTrigger Ids
+		private const string SoundCoilOn = "coil_on";
+		private const string SoundCoilOff = "coil_off";
+		private const string SoundCoilCollision = "ball_collision";
+		//ISoundEmitter SoundTrigger Names
+		private const string SoundCoilOnName = "Coil On";
+		private const string SoundCoilOffName = "Coil Off";
+		private const string SoundCoilCollisionName = "Ball Collision";
+		//ISoundEmitter VolumeEmitter Ids
+		private const string VolumeBallVelocity = "ball_velocity";
+		//ISoundEmitter VolumeEmitter Names
+		private const string VolumeBallVelocityName = "Ball Velocity";
 
 		#endregion
+
+		#region ISoundEmitter
+		public SoundTrigger[] AvailableTriggers => new[] {
+			new SoundTrigger { Id = SoundCoilOn, Name = SoundCoilOnName },
+			new SoundTrigger { Id = SoundCoilOff, Name = SoundCoilOffName},
+			new SoundTrigger { Id = SoundCoilCollision, Name = SoundCoilCollisionName },
+		};
+
+		public VolumeEmitter[] GetVolumeEmitters(SoundTrigger trigger)
+		{
+			switch (trigger.Id)
+			{
+				case SoundCoilCollision:
+					return new[] { new VolumeEmitter { Id = VolumeBallVelocity, Name = VolumeBallVelocityName } };
+			}
+			return null; // null means only "Fixed" will be shown in the volume dropdown.
+		}
+
+		public event EventHandler<SoundEventArgs> OnSound;
+		#endregion
+
 
 		#region Wiring
 
