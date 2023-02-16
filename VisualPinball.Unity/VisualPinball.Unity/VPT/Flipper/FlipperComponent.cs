@@ -160,6 +160,7 @@ namespace VisualPinball.Unity
 		}
 
 		public event EventHandler<SoundEventArgs> OnSound;
+
 		#endregion
 
 
