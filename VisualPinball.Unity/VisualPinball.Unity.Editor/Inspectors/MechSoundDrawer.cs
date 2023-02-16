@@ -37,6 +37,7 @@ namespace VisualPinball.Unity.Editor
 		{
 			MechSoundsComponent ob = (MechSoundsComponent)property.serializedObject.targetObject;
 			GameObject go = ob.gameObject;
+			ISoundEmitter component = ob.GetComponent<ISoundEmitter>();
 
 			EditorGUI.BeginProperty(position, label, property);
 
@@ -49,11 +50,11 @@ namespace VisualPinball.Unity.Editor
 			var _actionSelectionProperty = property.FindPropertyRelative("Action");
 			var _fadeProperty = property.FindPropertyRelative("Fade");
 
-			_availiableTriggers = go.GetComponent<FlipperComponent>().AvailableTriggers;
+			_availiableTriggers = component.AvailableTriggers;
 			_triggerProperty.intValue = EditorGUILayout.Popup("Trigger", _triggerProperty.intValue, GetTriggerOptions(_availiableTriggers));
 			
 			_selectedTrigger = GetSelectedTrigger(_triggerProperty.intValue);
-			_availableEmitters = go.GetComponent<FlipperComponent>().GetVolumeEmitters(_selectedTrigger);
+			_availableEmitters = component.GetVolumeEmitters(_selectedTrigger);
 			
 			EditorGUILayout.Space(5);
 			_soundProperty.objectReferenceValue = EditorGUILayout.ObjectField("Sound", _soundProperty.objectReferenceValue, typeof(SoundAsset), true);
