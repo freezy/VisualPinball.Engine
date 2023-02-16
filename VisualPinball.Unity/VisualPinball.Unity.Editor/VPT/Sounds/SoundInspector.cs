@@ -40,15 +40,15 @@ namespace VisualPinball.Unity.Editor
 		private const string _stopButtonText = "Stop";
 		private const float  _buttonHeight = 30;
 		private const float  _buttonWidth = 50;
-		private const float _clipDelayModifier = 0.2f;//helps set the time between playing audio clips, if the current clip is less than 1 second in length
+		private const float _clipDelayModifier = 1f;//helps set the time between playing audio clips, if the current clip is less than 1 second in length
 		private int _clipIndex;
 		private bool _loop = false;
 		private AudioClip[] _clipArray;
-		private GameObject[] _soundObjects;
-		private int _soundObjectsLength = 0;
 		private float _nextStartTime = (float)AudioSettings.dspTime + _clipDelayModifier;
 		private int _nextClip = 0;
 		private bool _clipPlaying = false;
+		private GameObject _flipper;
+		private AudioSource _audioSource;
 
 
 		private void OnEnable()
@@ -61,6 +61,13 @@ namespace VisualPinball.Unity.Editor
 			RandomizePitch = serializedObject.FindProperty(nameof(SoundAsset.RandomizePitch));
 			RandomizeSpeed = serializedObject.FindProperty(nameof(SoundAsset.RandomizeSpeed));
 			RandomizeVolume = serializedObject.FindProperty(nameof(SoundAsset.RandomizeVolume));
+
+			//get a gameobject with a mechsounds component attached, to play sounds from
+			_flipper = GameObject.Find("Left Flipper");
+			_audioSource = _flipper.GetComponent<AudioSource>();
+			SetAudioProperties();
+
+			EditorApplication.update += Update;
 
 		}
 
@@ -76,7 +83,6 @@ namespace VisualPinball.Unity.Editor
 		public override void OnInspectorGUI()
 		{
 
-			EditorApplication.update += Update;
 			serializedObject.Update();
 
 			EditorGUILayout.PropertyField(Name, true);
@@ -88,8 +94,8 @@ namespace VisualPinball.Unity.Editor
 			}
 			
 			EditorGUILayout.PropertyField(VolumeCorrection, true);
-			EditorGUILayout.PropertyField(Clips, true);
-			EditorGUILayout.PropertyField(ClipSelection, true);
+		    EditorGUILayout.PropertyField(Clips);
+		    EditorGUILayout.PropertyField(ClipSelection, true);
 			EditorGUILayout.PropertyField(RandomizePitch, true);
 			EditorGUILayout.PropertyField(RandomizeSpeed, true);
 			EditorGUILayout.PropertyField(RandomizeVolume, true);
@@ -114,18 +120,16 @@ namespace VisualPinball.Unity.Editor
 					if (ClipSelection.intValue == 0)
 					{ PlayRoundRobin(_clipArray); }
 					else { PlayRandom(_clipArray); }
-
-
 				}
 			}
 
 			if (GUILayout.Button(new GUIContent(_loopButtonText, Icons.PlayButton(IconSize.Small, _loopButtonColor)), GUILayout.Height(_buttonHeight), GUILayout.Width(_buttonWidth)))
 			{
-				//if loop then sound objects are setup in the Update method
+				
 				if (_loop)
 				{
 					_loopButtonColor = IconColor.Gray;
-					Destroy();//destroy temporary game objects then set loop toggle to false
+					Stop();
 				}
 				else
 				{
@@ -143,152 +147,27 @@ namespace VisualPinball.Unity.Editor
 
 			GUILayout.EndHorizontal();
 
+			SetAudioProperties();
+
 			serializedObject.ApplyModifiedProperties();
 
 		}
 
-
-		private void Stop()
-		{
-			if (_loop)
-			{
-				for (int i = 0; i < _clipArray.Length; i++)
-				{
-					if (GameObject.Find($"Sound{i}") != null)
-					{
-						AudioSource source = GameObject.Find($"Sound{i}").GetComponent<AudioSource>();
-						source.Stop();
-						Destroy();//destroy temporary game objects then set loop toggle to false
-					}
-				}
-			}
-			else
-			{
-				GameObject ob = GameObject.Find("Sound");
-
-				if (ob != null)
-				{
-
-					AudioSource source = ob.GetComponent<AudioSource>();
-					source.Stop();
-					Destroy();
-				}
-
-			}
-		}
-
-		private void Destroy()
-		{
-			if (_loop)
-			{
-				for (int i = 0; i < _clipArray.Length; i++)
-				{
-					GameObject ob = GameObject.Find($"Sound{i}");
-					DestroyImmediate(ob);
-
-				}
-
-				_soundObjectsLength = 0;
-				_nextStartTime = (float)AudioSettings.dspTime + _clipDelayModifier;
-				_loop = false;
-
-			}
-			else
-			{
-				_clipPlaying = false;
-				GameObject ob = GameObject.Find("Sound");
-				DestroyImmediate(ob);
-			}
-			
-
-
-		}
-		private void PlayRoundRobin(AudioClip[] _clipArray)
-		{
-			if (_clipIndex < _clipArray.Length)
-			{
-				PlayClip(_clipArray[_clipIndex]);
-				_clipIndex++;
-			}
-
-			else
-			{
-				_clipIndex = 0;
-				PlayClip(_clipArray[_clipIndex]);
-				_clipIndex++;
-			}
-		}
-
-
-
-		private void PlayRandom(AudioClip[] _clipArray)
-		{
-			if (_clipIndex == _clipArray.Length)
-			{
-				_clipIndex = 0;
-			}
-
-			if (_clipArray.Length > 1)//randomize clip to play only if more than one clip
-			{
-				_clipIndex = Random.Range(0, _clipArray.Length);
-				PlayClip(_clipArray[_clipIndex]);
-			}
-			else 
-			{ PlayClip(_clipArray[_clipIndex]); }
-
-		}
-
-		
-		private void PlayClip(AudioClip clip)
-		{
-			GameObject tempGameObject = new GameObject("Sound");
-			tempGameObject = GetTempGameObject(tempGameObject);
-			AudioSource audioSource = tempGameObject.GetComponent<AudioSource>();
-			audioSource.clip = clip;
-			_clipPlaying = true;
-			audioSource.Play();
-			
-
-		}
-		private  GameObject[] GetSoundObjects()
-		{
-			GameObject[] objects = new GameObject[_clipArray.Length];
-
-			for (int i = 0; i < _clipArray.Length; i++)
-			{
-				GameObject tempGameObject = new GameObject($"Sound{i}");
-				tempGameObject = GetTempGameObject(tempGameObject);
-				AudioSource audioSource = tempGameObject.GetComponent<AudioSource>();
-				audioSource.clip = _clipArray[i];
-				objects[i] = tempGameObject;
-			}
-
-			_soundObjectsLength = objects.Length;
-
-			return objects;
-			
-
-		}
-
-		// Create a temporary gameobject so that a temporary audiosource can be attached to it, in order to play audioclips
-		private GameObject GetTempGameObject(GameObject tempGameObject)
+		private void SetAudioProperties()
 		{
 
-			Vector3 position = new Vector3(5, 1, 2);
 			float volume = VolumeCorrection.floatValue;
 			float pitchModifier = RandomizePitch.floatValue;
 			float speedModifier = RandomizeSpeed.floatValue;
 			float volumeModifier = RandomizeVolume.floatValue;
-			
+
 			if (volumeModifier != 1)
 			{ volume = volumeModifier; }
 
-			tempGameObject.transform.position = position;
-			//_tempGameObject.hideFlags = HideFlags.HideAndDontSave; //dont save object in editor and dont show in heirarchy
-			AudioSource tempAudioSource = (AudioSource)tempGameObject.AddComponent(typeof(AudioSource));
-			tempAudioSource.spatialBlend = 1f;
-			tempAudioSource.pitch =  pitchModifier;
-			tempAudioSource.volume = volume;
+			_audioSource.spatialBlend = 1f;
+			_audioSource.pitch = pitchModifier;
+			_audioSource.volume = volume;
+
 			float value;
 
 			AudioMixer audioMixer = Resources.Load<AudioMixer>("SoundMixer");
@@ -296,27 +175,57 @@ namespace VisualPinball.Unity.Editor
 			audioMixGroup[0].audioMixer.SetFloat("pitchShifter", speedModifier);
 			//audioMixGroup[0].audioMixer.GetFloat("pitchShifter", out value);
 			//Debug.Log(value.ToString());
-			tempAudioSource.outputAudioMixerGroup = audioMixGroup[0];
-
-			return tempGameObject;
+			_audioSource.outputAudioMixerGroup = audioMixGroup[0];
 
 		}
-		
+		private void Stop()
+		{
+
+			if (_flipper != null)
+			{
+				_audioSource.Stop();
+
+				if (_loop)
+				{
+					_nextStartTime = (float)AudioSettings.dspTime + _clipDelayModifier;
+					_loop = false;
+				}
+				else
+				{
+					_clipPlaying = false;
+				}
+			}
+		}
+		private void PlayRoundRobin(AudioClip[] _clipArray)
+		{
+			var nextIndex = _clipIndex + 1 == _clipArray.Length ? 0 : _clipIndex + 1;
+			PlayClip(_clipArray[nextIndex]);
+			_clipIndex = nextIndex;
+
+		}
+
+		private void PlayRandom(AudioClip[] _clipArray)
+		{
+			PlayClip(_clipArray[Random.Range(0, _clipArray.Length)]);
+		}
+
+		private void PlayClip(AudioClip clip)
+		{
+			_audioSource.clip = clip;
+			_clipPlaying = true;
+			_audioSource.Play();
+		}		
 		private void Update()
 		{
 			
 			if (_loop)
 			{
-				//set up new array of gameobjects based on most current number of audioclips, if new loop is initiated
-				if (_soundObjects == null || _soundObjectsLength == 0) 
-				{ _soundObjects = GetSoundObjects();}
-
 					if (AudioSettings.dspTime > _nextStartTime - 1)
 					{
-					    int index = ClipSelection.intValue == 0 ? _nextClip : Random.Range(0, _soundObjects.Length);
-						AudioSource source = _soundObjects[index].GetComponent<AudioSource>();
-						AudioClip clipToPlay = source.clip;
-						source.PlayScheduled(_nextStartTime);
+					    int index = ClipSelection.intValue == 0 ? _nextClip : Random.Range(0, _clipArray.Length);
+					    _audioSource.clip = _clipArray[index];
+					     AudioClip clipToPlay = _audioSource.clip;
+					    _audioSource.PlayScheduled(_nextStartTime);
 
 						// Checks how long the Clip will last and updates the Next Start Time with a new value
 						float duration = clipToPlay.samples / clipToPlay.frequency;
@@ -328,25 +237,20 @@ namespace VisualPinball.Unity.Editor
 						_nextStartTime = _nextStartTime + clipLength;
 
 						// Increase the clip index number, reset if it runs out of clips
-						_nextClip = _nextClip < _soundObjects.Length - 1 ? _nextClip + 1 : 0;
+						_nextClip = _nextClip < _clipArray.Length - 1 ? _nextClip + 1 : 0;
 						}
 				
 			   }
 			
 			else
 			{
-				GameObject ob = GameObject.Find("Sound");
-				if (ob != null)
+				if (_flipper != null)
 				{
-
-					AudioSource source = ob.GetComponent<AudioSource>();
-					if (source.isPlaying == false)
+					if (_audioSource.isPlaying == false)
 					{
-						Destroy();
+						Stop();
 
 					}
-
-
 				}
 
 			}
