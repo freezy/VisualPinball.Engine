@@ -17,6 +17,7 @@
 using UnityEngine;
 using UnityEditor;
 using static VisualPinball.Unity.MechSoundsComponent;
+using VisualPinball.Engine.VPT;
 
 namespace VisualPinball.Unity.Editor
 {
@@ -38,7 +39,18 @@ namespace VisualPinball.Unity.Editor
 
 		public override void OnInspectorGUI()
 		{
-			
+
+			MechSoundsComponent ob = (MechSoundsComponent)serializedObject.targetObject;
+			GameObject go = ob.gameObject;
+
+			ISoundEmitter component = ob.GetComponent<ISoundEmitter>();
+			if (component == null)
+			{
+				if(EditorUtility.DisplayDialog("Error", "No component attached to this game object implements ISoundEmitter interface.", "ok"))
+				{ return; }
+				
+			}
+
 			serializedObject.Update();
 
 			EditorGUILayout.LabelField("Current Sounds");
