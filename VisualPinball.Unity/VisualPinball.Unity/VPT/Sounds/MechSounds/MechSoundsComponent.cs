@@ -24,16 +24,18 @@ namespace VisualPinball.Unity
 {
 
 	[AddComponentMenu("Visual Pinball/Sounds/Mechanical Sounds")]
+	[RequireComponent(typeof(AudioSource))]
 	public class MechSoundsComponent : MonoBehaviour
 	{
 		#region Data
 
+		public SoundTrigger SelectedTrigger;
+		public float Volume;
+
 		[Serializable]
 		public class MechSound
 		{
-			public int Trigger;
 			public ScriptableObject Sound;
-			public int Volume;
 			public float VolumeValue = 1;
 			public actionType Action = actionType.PlayOnce;
 			public float Fade = 50;
