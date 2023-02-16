@@ -15,9 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 // ReSharper disable EventNeverSubscribedTo.Global
-#pragma warning disable 67
 
-using Codice.CM.SEIDInfo;
 using System;
 using System.Collections.Generic;
 using Unity.Entities;

@@ -25,10 +25,9 @@ namespace VisualPinball.Unity.Editor
 	[CustomPropertyDrawer(typeof(MechSound))]
 	public class MechSoundDrawer : PropertyDrawer
 	{
-		private SoundTrigger _selectedTrigger;
 		private const float _buttonWidth = 150;
-
 		private SoundTrigger[] _availiableTriggers;
+		private int _selTrigger;
 		private VolumeEmitter[] _availableEmitters;
 		private const string _volEmitter = "fixed";
 		private const string _volEmitterName = "Fixed";
@@ -43,24 +42,22 @@ namespace VisualPinball.Unity.Editor
 
 			EditorGUI.LabelField(position, label);
 
-			var _triggerProperty = property.FindPropertyRelative("Trigger");
 			var _soundProperty = property.FindPropertyRelative("Sound");
-			var _volumeSelectionProperty = property.FindPropertyRelative("Volume");
 			var _volumeProperty = property.FindPropertyRelative("VolumeValue");
 			var _actionSelectionProperty = property.FindPropertyRelative("Action");
 			var _fadeProperty = property.FindPropertyRelative("Fade");
 
 			_availiableTriggers = component.AvailableTriggers;
-			_triggerProperty.intValue = EditorGUILayout.Popup("Trigger", _triggerProperty.intValue, GetTriggerOptions(_availiableTriggers));
-			
-			_selectedTrigger = GetSelectedTrigger(_triggerProperty.intValue);
-			_availableEmitters = component.GetVolumeEmitters(_selectedTrigger);
+			_selTrigger = EditorGUILayout.Popup("Trigger", _selTrigger, GetTriggerOptions(_availiableTriggers));
+
+			ob.SelectedTrigger = GetSelectedTrigger(_selTrigger);
+			_availableEmitters = component.GetVolumeEmitters(ob.SelectedTrigger);
 			
 			EditorGUILayout.Space(5);
 			_soundProperty.objectReferenceValue = EditorGUILayout.ObjectField("Sound", _soundProperty.objectReferenceValue, typeof(SoundAsset), true);
 
 			EditorGUILayout.Space(5);
-			_volumeSelectionProperty.intValue = EditorGUILayout.Popup(new GUIContent("Volume", "Depends on trigger selected: \n 'Fixed'-Not dependent on any playfield action. \n 'Ball Velocity'- Gameplay-related (collision)."), _volumeSelectionProperty.intValue, GetEmitterOptions(_availableEmitters));
+			EditorGUILayout.Popup(new GUIContent("Volume", "Depends on trigger selected: \n 'Fixed'-Not dependent on any playfield action. \n 'Ball Velocity'- Gameplay-related (collision)."), 0, GetEmitterOptions(_availableEmitters));
 
 			EditorGUILayout.Space(5);
 			EditorGUILayout.BeginHorizontal();
