@@ -18,6 +18,7 @@ using System;
 using NativeTrees;
 using Unity.Collections;
 using VisualPinball.Engine.Common;
+using VisualPinballUnity;
 
 namespace VisualPinball.Unity
 {
@@ -70,8 +71,12 @@ namespace VisualPinball.Unity
 					ApplyStaticTime(ref hitTime, ref staticCounts, in ball);
 
 				}
-				
-				
+
+				for (var i = 0; i < balls.Length; i++) { // todo loop through all "movers", not just balls
+					var ball = balls[i];
+					ball.UpdateDisplacements(hitTime);
+					balls[i] = ball;
+				}
 
 				// todo displacement
 				
