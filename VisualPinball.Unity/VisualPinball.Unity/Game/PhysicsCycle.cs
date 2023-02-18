@@ -72,17 +72,24 @@ namespace VisualPinball.Unity
 
 				}
 
+				// displacement
 				for (var i = 0; i < balls.Length; i++) { // todo loop through all "movers", not just balls
 					var ball = balls[i];
 					ball.UpdateDisplacements(hitTime);
 					balls[i] = ball;
 				}
 
-				// todo displacement
+				for (var i = 0; i < balls.Length; i++) {
+					var ball = balls[i];
+					
+					// todo dynamic collision
 				
-				// todo dynamic collision
-				
-				// todo static collision
+					// static collision
+					PhysicsStaticCollision.Collide(hitTime, ref ball, ref state.Random);
+					
+					balls[i] = ball;
+				}
+
 				
 				// todo handle contacts
 

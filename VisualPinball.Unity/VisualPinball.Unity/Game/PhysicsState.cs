@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+using Unity.Mathematics;
 using VisualPinball.Engine.Common;
 
 namespace VisualPinball.Unity
@@ -24,11 +25,14 @@ namespace VisualPinball.Unity
 		public ulong CurPhysicsFrameTime;
 		public ulong NextPhysicsFrameTime;
 
+		public Random Random;
+
 		public PhysicsState(ulong startTimeUsec) : this()
 		{
 			StartTimeUsec = startTimeUsec;
 			CurPhysicsFrameTime = StartTimeUsec;
 			NextPhysicsFrameTime = StartTimeUsec + PhysicsConstants.PhysicsStepTime;
+			Random = new Random((uint)UnityEngine.Random.Range(1, 100000));
 		}
 	}
 }
