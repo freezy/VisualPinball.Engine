@@ -61,7 +61,7 @@ namespace VisualPinball.Unity
 			var validHit = newTime >= 0f && !Math.Sign(newTime) && newTime <= ball.CollisionEvent.HitTime;
 
 			if (newCollEvent.IsContact || validHit) {
-				newCollEvent.SetCollider(coll.Id);
+				newCollEvent.SetCollider(coll);
 				newCollEvent.HitTime = newTime;
 				if (newCollEvent.IsContact) {
 					contacts.Add(new ContactBufferElement(ball.Id, newCollEvent));
