@@ -17,6 +17,7 @@
 using UnityEngine;
 using UnityEditor;
 using UnityEngine.Audio;
+using System.Threading.Tasks;
 
 namespace VisualPinball.Unity.Editor
 {
@@ -65,7 +66,6 @@ namespace VisualPinball.Unity.Editor
 			//get a gameobject with a mechsounds component attached, to play sounds from
 			_flipper = GameObject.Find("Left Flipper");
 			_audioSource = _flipper.GetComponent<AudioSource>();
-			SetAudioProperties();
 
 			EditorApplication.update += Update;
 
@@ -75,6 +75,7 @@ namespace VisualPinball.Unity.Editor
 		{
 			EditorApplication.update -= Update;
 		}
+
 
 		private void OnDestroy()
 		{
@@ -147,12 +148,19 @@ namespace VisualPinball.Unity.Editor
 
 			GUILayout.EndHorizontal();
 
-			SetAudioProperties();
+			//SetAudioProperties();
+			DelayedUpdateAudio();
 
 			serializedObject.ApplyModifiedProperties();
 
 		}
 
+		//attempt to update audiomixer pitch shifter value
+		async void DelayedUpdateAudio()
+		{
+			await Task.Delay(1000);
+			SetAudioProperties();
+		}
 		private void SetAudioProperties()
 		{
 
@@ -170,12 +178,12 @@ namespace VisualPinball.Unity.Editor
 
 			float value;
 
-			AudioMixer audioMixer = Resources.Load<AudioMixer>("SoundMixer");
-			AudioMixerGroup[] audioMixGroup = audioMixer.FindMatchingGroups("Master");
-			audioMixGroup[0].audioMixer.SetFloat("pitchShifter", speedModifier);
-			//audioMixGroup[0].audioMixer.GetFloat("pitchShifter", out value);
-			//Debug.Log(value.ToString());
-			_audioSource.outputAudioMixerGroup = audioMixGroup[0];
+			//AudioMixer audioMixer = Resources.Load<AudioMixer>("SoundMixer");
+			AudioMixerGroup audioMixGroup = _audioSource.outputAudioMixerGroup;//audioMixer.FindMatchingGroups("Master");
+			audioMixGroup.audioMixer.SetFloat("pitchShifter", speedModifier);//speedModifier);//speedModifier);
+			audioMixGroup.audioMixer.GetFloat("pitchShifter", out value);
+			Debug.Log(value.ToString());
+			//_audioSource.outputAudioMixerGroup = audioMixGroup[0];
 
 		}
 		private void Stop()
