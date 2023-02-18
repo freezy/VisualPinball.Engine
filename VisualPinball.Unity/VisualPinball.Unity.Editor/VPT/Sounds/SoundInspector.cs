@@ -14,256 +14,144 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-using UnityEngine;
+using System.Linq;
 using UnityEditor;
-using UnityEngine.Audio;
-using System.Threading.Tasks;
+using UnityEngine;
+using UnityEngine.SceneManagement;
 
 namespace VisualPinball.Unity.Editor
 {
 
-	
 	[CustomEditor(typeof(SoundAsset)), CanEditMultipleObjects]
 	public class SoundsInspector : UnityEditor.Editor
 	{
-		SerializedProperty Name;
-		SerializedProperty Description;
-		SerializedProperty VolumeCorrection;
-		SerializedProperty Clips;
-		SerializedProperty ClipSelection;
-		SerializedProperty RandomizePitch;
-		SerializedProperty RandomizeSpeed;
-		SerializedProperty RandomizeVolume;
-
-		private const string _playButtonText = "Play";
-		private const string _loopButtonText = "Loop";
-		private IconColor _loopButtonColor = IconColor.Gray;
-		private const string _stopButtonText = "Stop";
-		private const float  _buttonHeight = 30;
-		private const float  _buttonWidth = 50;
-		private const float _clipDelayModifier = 1f;//helps set the time between playing audio clips, if the current clip is less than 1 second in length
-		private int _clipIndex;
-		private bool _loop = false;
-		private AudioClip[] _clipArray;
-		private float _nextStartTime = (float)AudioSettings.dspTime + _clipDelayModifier;
-		private int _nextClip = 0;
-		private bool _clipPlaying = false;
-		private GameObject _flipper;
-		private AudioSource _audioSource;
-
-
+		private SerializedProperty _nameProperty;
+		private SerializedProperty _descriptionProperty;
+		private SerializedProperty _volumeCorrectionProperty;
+		private SerializedProperty _clipsProperty;
+		private SerializedProperty _clipSelectionProperty;
+		private SerializedProperty _randomizePitchProperty;
+		private SerializedProperty _randomizeVolumeProperty;
+		private SerializedProperty _loopProperty;
+		
+		private SoundAsset _soundAsset;
+		
+		private AudioSource _editorAudioSource;
+		//private AudioMixer _editorAudioMixer;
+		
+		private const float ButtonHeight = 30;
+		private const float ButtonWidth = 50;
+		
 		private void OnEnable()
 		{
-			Name = serializedObject.FindProperty(nameof(SoundAsset.Name));
-			Description = serializedObject.FindProperty(nameof(SoundAsset.Description));
-			VolumeCorrection = serializedObject.FindProperty(nameof(SoundAsset.VolumeCorrection));
-			Clips = serializedObject.FindProperty(nameof(SoundAsset.Clips));
-			ClipSelection = serializedObject.FindProperty(nameof(SoundAsset.ClipSelection));
-			RandomizePitch = serializedObject.FindProperty(nameof(SoundAsset.RandomizePitch));
-			RandomizeSpeed = serializedObject.FindProperty(nameof(SoundAsset.RandomizeSpeed));
-			RandomizeVolume = serializedObject.FindProperty(nameof(SoundAsset.RandomizeVolume));
+			_nameProperty = serializedObject.FindProperty(nameof(SoundAsset.Name));
+			_descriptionProperty = serializedObject.FindProperty(nameof(SoundAsset.Description));
+			_volumeCorrectionProperty = serializedObject.FindProperty(nameof(SoundAsset.VolumeCorrection));
+			_clipsProperty = serializedObject.FindProperty(nameof(SoundAsset.Clips));
+			_clipSelectionProperty = serializedObject.FindProperty(nameof(SoundAsset.ClipSelection));
+			_randomizePitchProperty = serializedObject.FindProperty(nameof(SoundAsset.RandomizePitch));
+			_randomizeVolumeProperty = serializedObject.FindProperty(nameof(SoundAsset.RandomizeVolume));
+			_loopProperty = serializedObject.FindProperty(nameof(SoundAsset.Loop));
 
-			//get a gameobject with a mechsounds component attached, to play sounds from
-			_flipper = GameObject.Find("Left Flipper");
-			_audioSource = _flipper.GetComponent<AudioSource>();
-
-			EditorApplication.update += Update;
-
-		}
-
-		private void OnDisable()
-		{
-			EditorApplication.update -= Update;
-		}
-
-
-		private void OnDestroy()
-		{
+			_editorAudioSource = GetOrCreateAudioSource();
+			//_editorAudioMixer = AssetDatabase.LoadAssetAtPath<AudioMixer>("Packages/org.visualpinball.engine.unity/VisualPinball.Unity/Assets/Resources/EditorMixer.mixer");
+			//_editorAudioSource.outputAudioMixerGroup = _editorAudioMixer.outputAudioMixerGroup;
+			
+			_soundAsset = target as SoundAsset;
 		}
 
 		public override void OnInspectorGUI()
 		{
-
 			serializedObject.Update();
 
-			EditorGUILayout.PropertyField(Name, true);
+			EditorGUILayout.PropertyField(_nameProperty, true);
 
 			using (var horizontalScope = new GUILayout.HorizontalScope())
 			{
-				
-				EditorGUILayout.PropertyField(Description, GUILayout.Height(100));
+				EditorGUILayout.PropertyField(_descriptionProperty, GUILayout.Height(100));
 			}
 			
-			EditorGUILayout.PropertyField(VolumeCorrection, true);
-		    EditorGUILayout.PropertyField(Clips);
-		    EditorGUILayout.PropertyField(ClipSelection, true);
-			EditorGUILayout.PropertyField(RandomizePitch, true);
-			EditorGUILayout.PropertyField(RandomizeSpeed, true);
-			EditorGUILayout.PropertyField(RandomizeVolume, true);
-
-			EditorGUILayout.LabelField("", GUI.skin.horizontalSlider);
-
-
-			GUILayout.BeginHorizontal();
-			GUILayout.Space(100);
-
-			_clipArray = new AudioClip[Clips.arraySize];
-			for (int i = 0; i < Clips.arraySize; i++)
-			{
-				_clipArray[i] = (AudioClip)Clips.GetArrayElementAtIndex(i).objectReferenceValue;
-			}
-
-
-			if (GUILayout.Button(new GUIContent(_playButtonText, Icons.PlayButton(IconSize.Small, IconColor.Orange)), GUILayout.Height(_buttonHeight), GUILayout.Width(_buttonWidth)))
-			{
-				if (_loop == false && _clipPlaying == false) //play single clip only when loop of clips not playing and current single clip is not already playing
-				{
-					if (ClipSelection.intValue == 0)
-					{ PlayRoundRobin(_clipArray); }
-					else { PlayRandom(_clipArray); }
-				}
-			}
-
-			if (GUILayout.Button(new GUIContent(_loopButtonText, Icons.PlayButton(IconSize.Small, _loopButtonColor)), GUILayout.Height(_buttonHeight), GUILayout.Width(_buttonWidth)))
-			{
-				
-				if (_loop)
-				{
-					_loopButtonColor = IconColor.Gray;
-					Stop();
-				}
-				else
-				{
-					_loop = true;
-					_loopButtonColor = IconColor.Orange;
-				}
-			}
-
-			if (GUILayout.Button(new GUIContent(_stopButtonText, Icons.StopButton(IconSize.Small, IconColor.Orange)), GUILayout.Height(_buttonHeight), GUILayout.Width(_buttonWidth)))
-			{
-				Stop();
-				_loopButtonColor = IconColor.Gray;
-			}
-
-
-			GUILayout.EndHorizontal();
-
-			//SetAudioProperties();
-			DelayedUpdateAudio();
-
+			EditorGUILayout.PropertyField(_volumeCorrectionProperty, true);
+			EditorGUILayout.PropertyField(_clipsProperty);
+			EditorGUILayout.PropertyField(_clipSelectionProperty, true);
+			EditorGUILayout.PropertyField(_randomizePitchProperty, true);
+			EditorGUILayout.PropertyField(_randomizeVolumeProperty, true);
+			EditorGUILayout.PropertyField(_loopProperty);
+			
 			serializedObject.ApplyModifiedProperties();
 
-		}
-
-		//attempt to update audiomixer pitch shifter value
-		async void DelayedUpdateAudio()
-		{
-			await Task.Delay(1000);
-			SetAudioProperties();
-		}
-		private void SetAudioProperties()
-		{
-
-			float volume = VolumeCorrection.floatValue;
-			float pitchModifier = RandomizePitch.floatValue;
-			float speedModifier = RandomizeSpeed.floatValue;
-			float volumeModifier = RandomizeVolume.floatValue;
-
-			if (volumeModifier != 1)
-			{ volume = volumeModifier; }
-
-			_audioSource.spatialBlend = 1f;
-			_audioSource.pitch = pitchModifier;
-			_audioSource.volume = volume;
-
-			float value;
-
-			//AudioMixer audioMixer = Resources.Load<AudioMixer>("SoundMixer");
-			AudioMixerGroup audioMixGroup = _audioSource.outputAudioMixerGroup;//audioMixer.FindMatchingGroups("Master");
-			audioMixGroup.audioMixer.SetFloat("pitchShifter", speedModifier);//speedModifier);//speedModifier);
-			audioMixGroup.audioMixer.GetFloat("pitchShifter", out value);
-			Debug.Log(value.ToString());
-			//_audioSource.outputAudioMixerGroup = audioMixGroup[0];
-
-		}
-		private void Stop()
-		{
-
-			if (_flipper != null)
-			{
-				_audioSource.Stop();
-
-				if (_loop)
-				{
-					_nextStartTime = (float)AudioSettings.dspTime + _clipDelayModifier;
-					_loop = false;
-				}
-				else
-				{
-					_clipPlaying = false;
-				}
+			// center button
+			GUILayout.BeginHorizontal();
+			GUILayout.FlexibleSpace();
+			if (PlayStopButton()) {
+				PlayStop();
 			}
-		}
-		private void PlayRoundRobin(AudioClip[] _clipArray)
-		{
-			var nextIndex = _clipIndex + 1 == _clipArray.Length ? 0 : _clipIndex + 1;
-			PlayClip(_clipArray[nextIndex]);
-			_clipIndex = nextIndex;
-
+			GUILayout.FlexibleSpace();
+			GUILayout.EndHorizontal();
 		}
 
-		private void PlayRandom(AudioClip[] _clipArray)
+		private bool PlayStopButton()
 		{
-			PlayClip(_clipArray[Random.Range(0, _clipArray.Length)]);
+			return _editorAudioSource.isPlaying
+				? GUILayout.Button(new GUIContent("Stop", Icons.StopButton(IconSize.Small, IconColor.Orange)),
+					GUILayout.Height(ButtonHeight), GUILayout.Width(ButtonWidth))
+				: GUILayout.Button(new GUIContent("Play", Icons.PlayButton(IconSize.Small, IconColor.Orange)),
+					GUILayout.Height(ButtonHeight), GUILayout.Width(ButtonWidth));
 		}
 
-		private void PlayClip(AudioClip clip)
+		private void PlayStop()
 		{
-			_audioSource.clip = clip;
-			_clipPlaying = true;
-			_audioSource.Play();
-		}		
-		private void Update()
-		{
-			
-			if (_loop)
-			{
-					if (AudioSettings.dspTime > _nextStartTime - 1)
-					{
-					    int index = ClipSelection.intValue == 0 ? _nextClip : Random.Range(0, _clipArray.Length);
-					    _audioSource.clip = _clipArray[index];
-					     AudioClip clipToPlay = _audioSource.clip;
-					    _audioSource.PlayScheduled(_nextStartTime);
-
-						// Checks how long the Clip will last and updates the Next Start Time with a new value
-						float duration = clipToPlay.samples / clipToPlay.frequency;
-						float clipLength = clipToPlay.length;
-
-						if (clipLength < 1)
-						{ clipLength = clipLength + _clipDelayModifier; }
-
-						_nextStartTime = _nextStartTime + clipLength;
-
-						// Increase the clip index number, reset if it runs out of clips
-						_nextClip = _nextClip < _clipArray.Length - 1 ? _nextClip + 1 : 0;
-						}
-				
-			   }
-			
-			else
-			{
-				if (_flipper != null)
-				{
-					if (_audioSource.isPlaying == false)
-					{
-						Stop();
-
-					}
-				}
-
+			if (_editorAudioSource.isPlaying) {
+				_soundAsset.Stop(_editorAudioSource);
+			} else {
+				_soundAsset.Play(_editorAudioSource);
 			}
 		}
 
+		/// <summary>
+		/// Gets or creates the editor GameObject for playing sounds in the editor.
+		///
+		/// The hierarchy looks like that:
+		///
+		///  [scene root]
+		///    |
+		///    -- EditorScene
+		///      |
+		///       -- EditorAudio (with AudioSource component)
+		/// </summary>
+		/// <returns>AudioSource of the editor GameObject for test playing audio.</returns>
+		private static AudioSource GetOrCreateAudioSource()
+		{
+			// todo check whether we'll instantiate those live in the future or rely on a provided prefab
+			var editorSceneGo = SceneManager.GetActiveScene().GetRootGameObjects()
+				.FirstOrDefault(go => go.name == "EditorScene");
+
+			if (editorSceneGo == null) {
+				editorSceneGo = new GameObject("EditorScene");
+			}
+
+			GameObject editorAudioGo = null;
+			for (var i = 0; i < editorSceneGo.transform.childCount; i++) {
+				var go = editorSceneGo.transform.GetChild(i).gameObject;
+				if (go.name != "EditorAudio") {
+					continue;
+				}
+				editorAudioGo = go;
+				break;
+			}
+
+			if (editorAudioGo == null) {
+				editorAudioGo = new GameObject("EditorAudio");
+				editorAudioGo.transform.SetParent(editorSceneGo.transform);
+			}
+
+			var audioSource = editorAudioGo.GetComponent<AudioSource>();
+			if (!audioSource) {
+				audioSource = editorAudioGo.AddComponent<AudioSource>();
+			}
+
+			return audioSource;
+		}
 	}
 }
 
