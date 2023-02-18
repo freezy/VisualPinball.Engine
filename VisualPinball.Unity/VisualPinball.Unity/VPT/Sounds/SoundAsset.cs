@@ -14,29 +14,26 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+// ReSharper disable InconsistentNaming
 
-using UnityEngine;
 using System;
-using System.Collections.Generic;
+using UnityEngine;
+using Random = UnityEngine.Random;
 
 namespace VisualPinball.Unity
 {
-	/// <summary>
-
-	/// </summary>
 	[CreateAssetMenu(fileName = "Sound", menuName = "Visual Pinball/Sound", order = 102)]
 	public class SoundAsset : ScriptableObject
 	{
 
+		#region Properties
+
 		public string Name;
-		[Space(15)]
 		public string Description;
 
-		[Range(0,1)]
-		[Space(15)]
+		[Range(0, 1)]
 		public float VolumeCorrection = 1; //audio clips in unity have a volume range of 0 to 1
 
-		[Space(15)]
 		public AudioClip[] Clips;
 
 		public enum Selection
@@ -45,28 +42,63 @@ namespace VisualPinball.Unity
 			Random
 		}
 
-		[Space(15)]
 		public Selection ClipSelection;
 
-		[Range(0.1f, 2f)]
-		[Space(15)]
-		public float RandomizePitch = 1;
+		[Range(0, 0.3f)]
+		public float RandomizePitch;
 
-		[Range(0.1f, 2f)]
-		[Space(15)]
-		public float RandomizeSpeed = 1;
+		// todo needs to go through the mixer
+		// [Range(0, 0.3f)]
+		// public float RandomizeSpeed;
 
-		[Range(0, 1f)]
-		[Space(15)]
-		public float RandomizeVolume = 1;
+		[Range(0, 0.5f)]
+		public float RandomizeVolume;
 
-		void OnValidate()
+		public bool Loop;
+
+		#endregion
+
+		#region Runtime
+
+		private int _clipIndex;
+
+		#endregion
+		
+		public void Play(AudioSource audioSource)
 		{
-
+			if (Clips.Length == 0) {
+				return;
+			}
+			audioSource.volume = Volume;
+			audioSource.pitch = Pitch;
+			audioSource.loop = Loop;
+			audioSource.clip = GetClip();
+			audioSource.Play();
+		}
+		
+		
+		public void Stop(AudioSource audioSource)
+		{
+			audioSource.Stop();
 		}
 
-		
+		private float Pitch => 1f + Random.Range(-RandomizePitch / 2, RandomizePitch / 2);
+		private float Volume => VolumeCorrection - Random.Range(0, RandomizeVolume);
 
+		private AudioClip GetClip()
+		{
+			switch (ClipSelection) {
+				case Selection.RoundRobin:
+					var clip = Clips[_clipIndex];
+					_clipIndex = (_clipIndex + 1) % Clips.Length;
+					return clip;
+				
+				case Selection.Random:
+					return Clips[Random.Range(0, Clips.Length)];
+				
+				default:
+					throw new ArgumentOutOfRangeException();
+			}
+		}
 	}
-		
 }
