@@ -20,11 +20,13 @@ using System.Linq;
 using NLog;
 using Unity.Entities;
 using Unity.Mathematics;
+using UnityEditor;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using VisualPinball.Engine.Common;
 using VisualPinball.Engine.Game;
 using VisualPinball.Engine.Game.Engines;
+using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Trigger;
 using Logger = NLog.Logger;
 
@@ -182,6 +184,13 @@ namespace VisualPinball.Unity
 			if (EngineProvider<IDebugUI>.Exists) {
 				EngineProvider<IDebugUI>.Get().Init(_tableComponent);
 			}
+
+		}
+
+		private void Component_OnSound(object sender, SoundEventArgs e)
+		{
+			//throw new NotImplementedException();
+			Debug.Log("test");
 
 		}
 
