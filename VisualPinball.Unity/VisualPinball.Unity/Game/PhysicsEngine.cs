@@ -39,7 +39,7 @@ namespace VisualPinball.Unity
 		{
 			// init state
 			_physicsState = new NativeArray<PhysicsState>(1, Allocator.Persistent);
-			_physicsState[0] = new PhysicsState(NowUsec);
+			_physicsState[0] = new PhysicsState(NowUsec, GetComponent<Player>());
 
 			// create static octree
 			var sw = Stopwatch.StartNew();
