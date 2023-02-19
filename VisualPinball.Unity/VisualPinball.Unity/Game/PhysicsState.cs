@@ -21,18 +21,20 @@ namespace VisualPinball.Unity
 {
 	public struct PhysicsState
 	{
+		public readonly float3 Gravity;
 		public readonly ulong StartTimeUsec;
 		public ulong CurPhysicsFrameTime;
 		public ulong NextPhysicsFrameTime;
 
 		public Random Random;
 
-		public PhysicsState(ulong startTimeUsec) : this()
+		public PhysicsState(ulong startTimeUsec, Player player) : this()
 		{
 			StartTimeUsec = startTimeUsec;
 			CurPhysicsFrameTime = StartTimeUsec;
 			NextPhysicsFrameTime = StartTimeUsec + PhysicsConstants.PhysicsStepTime;
 			Random = new Random((uint)UnityEngine.Random.Range(1, 100000));
+			Gravity = player.Gravity;
 		}
 	}
 }

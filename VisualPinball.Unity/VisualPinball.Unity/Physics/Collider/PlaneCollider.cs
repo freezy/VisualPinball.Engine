@@ -24,6 +24,8 @@ namespace VisualPinball.Unity
 	internal struct PlaneCollider : ICollider
 	{
 		public int Id => _header.Id;
+		public PhysicsMaterialData Material => _header.Material;
+			
 
 		private ColliderHeader _header;
 

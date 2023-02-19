@@ -89,9 +89,13 @@ namespace VisualPinball.Unity
 					
 					balls[i] = ball;
 				}
-
 				
-				// todo handle contacts
+				// handle contacts
+				var b = balls[0];
+				foreach (var contact in _contacts) {
+					BallCollider.HandleStaticContact(ref b, in contact.CollEvent, contact.CollEvent.Collider.Material.Friction, hitTime, state.Gravity);
+				}
+				balls[0] = b;
 
 				// clear contacts
 				_contacts.Clear();
