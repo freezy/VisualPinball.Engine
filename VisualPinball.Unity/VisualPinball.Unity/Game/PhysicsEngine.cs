@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using NativeTrees;
 using Unity.Burst;
@@ -23,6 +24,7 @@ using Unity.Jobs;
 using UnityEngine;
 using VisualPinball.Engine.Common;
 using VisualPinball.Unity.VisualPinball.Unity.Game;
+using VisualPinballUnity;
 using Debug = UnityEngine.Debug;
 
 namespace VisualPinball.Unity
@@ -32,6 +34,8 @@ namespace VisualPinball.Unity
 		[NonSerialized] private NativeArray<PhysicsState> _physicsState;
 		[NonSerialized] private NativeOctree<PlaneCollider> _octree;
 		[NonSerialized] private NativeList<BallData> _balls;
+
+		[NonSerialized] private Dictionary<int, PhysicsBall> _ballLookup = new();
 
 		private static ulong NowUsec => (ulong)(Time.timeAsDouble * 1000000);
 		
@@ -70,6 +74,7 @@ namespace VisualPinball.Unity
 			_balls = new NativeList<BallData>(balls.Length, Allocator.Persistent);
 			foreach (var ball in balls) {
 				_balls.Add(ball.Data);
+				_ballLookup[ball.Id] = ball;
 			}
 		}
 
@@ -83,6 +88,14 @@ namespace VisualPinball.Unity
 			};
 			
 			updatePhysics.Run();
+
+			_balls = updatePhysics.Balls;
+			_physicsState = updatePhysics.PhysicsState;
+
+			foreach (var ballData in _balls) {
+				var ball = _ballLookup[ballData.Id];
+				BallMovementPhysics.Move(ballData, _ballLookup[ball.Id].transform);
+			}
 		}
 		
 		private void OnDestroy()
