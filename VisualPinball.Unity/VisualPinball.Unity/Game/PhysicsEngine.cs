@@ -143,6 +143,14 @@ namespace VisualPinball.Unity
 				var timeMsec = (uint)((state.CurPhysicsFrameTime - state.StartTimeUsec) / 1000);
 				var physicsDiffTime = (float)((state.NextPhysicsFrameTime - state.CurPhysicsFrameTime) * (1.0 / PhysicsConstants.DefaultStepTime));
 
+				// update velocities
+				for (var i = 0; i < Balls.Length; i++) {
+					var ball = Balls[i];
+					BallVelocityPhysics.UpdateVelocities(state.Gravity, ref ball);
+					Balls[i] = ball;
+				}
+				
+				// simulate cycle
 				cycle.Simulate(physicsDiffTime, ref state, ref Octree, ref Balls);
 				
 				state.CurPhysicsFrameTime = state.NextPhysicsFrameTime;
