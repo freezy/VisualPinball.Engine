@@ -33,9 +33,7 @@ namespace VisualPinball.Unity
 
 			foreach (var coll in overlappingColliders) {
 				var newCollEvent = new CollisionEventData();
-				float newTime = 0;
-				
-				HitTest(ref ball, in coll, ref contacts);
+				var newTime = HitTest(ref ball, in coll, ref contacts);
 				SaveCollisions(ref ball, ref newCollEvent, ref contacts, in coll, newTime);
 			}
 
@@ -47,12 +45,14 @@ namespace VisualPinball.Unity
 			PerfMarker.End();
 		}
 		
-		private static void HitTest(ref BallData ball, in PlaneCollider coll, ref NativeList<ContactBufferElement> contacts) {
+		private static float HitTest(ref BallData ball, in PlaneCollider coll, ref NativeList<ContactBufferElement> contacts) {
 
 			var newCollEvent = new CollisionEventData();
 			var newTime = Collider.HitTest(ref ball, in coll, ball.CollisionEvent.HitTime);
 
 			SaveCollisions(ref ball, ref newCollEvent, ref contacts, in coll, newTime);
+
+			return newTime;
 		}
 
 		private static void SaveCollisions(ref BallData ball, ref CollisionEventData newCollEvent,
