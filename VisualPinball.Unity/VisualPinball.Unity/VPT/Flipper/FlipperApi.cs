@@ -94,6 +94,7 @@ namespace VisualPinball.Unity
 		public void RotateToEnd()
 		{
 			EngineProvider<IPhysicsEngine>.Get().FlipperRotateToEnd(Entity);
+			MainComponent.EmitSound(FlipperComponent.SoundCoilOn, MainComponent.RotatePosition);
 		}
 
 		/// <summary>
@@ -103,6 +104,7 @@ namespace VisualPinball.Unity
 		public void RotateToStart()
 		{
 			EngineProvider<IPhysicsEngine>.Get().FlipperRotateToStart(Entity);
+			MainComponent.EmitSound(FlipperComponent.SoundCoilOff);
 		}
 
 		internal float StartAngle

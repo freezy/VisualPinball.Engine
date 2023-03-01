@@ -25,7 +25,6 @@ namespace VisualPinball.Unity
 	[CreateAssetMenu(fileName = "Sound", menuName = "Visual Pinball/Sound", order = 102)]
 	public class SoundAsset : ScriptableObject
 	{
-
 		#region Properties
 
 		public string Name;
@@ -60,16 +59,17 @@ namespace VisualPinball.Unity
 
 		#region Runtime
 
+		[NonSerialized]
 		private int _clipIndex;
 
 		#endregion
 		
-		public void Play(AudioSource audioSource)
+		public void Play(AudioSource audioSource, float volume = 1)
 		{
 			if (Clips.Length == 0) {
 				return;
 			}
-			audioSource.volume = Volume;
+			audioSource.volume = Volume * volume;
 			audioSource.pitch = Pitch;
 			audioSource.loop = Loop;
 			audioSource.clip = GetClip();
