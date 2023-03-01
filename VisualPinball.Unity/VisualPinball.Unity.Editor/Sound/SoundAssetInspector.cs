@@ -21,7 +21,6 @@ using UnityEngine.SceneManagement;
 
 namespace VisualPinball.Unity.Editor
 {
-
 	[CustomEditor(typeof(SoundAsset)), CanEditMultipleObjects]
 	public class SoundAssetInspector : UnityEditor.Editor
 	{
@@ -90,15 +89,6 @@ namespace VisualPinball.Unity.Editor
 			GUILayout.EndHorizontal();
 		}
 
-		private bool PlayStopButton()
-		{
-			return _editorAudioSource.isPlaying
-				? GUILayout.Button(new GUIContent("Stop", Icons.StopButton(IconSize.Small, IconColor.Orange)),
-					GUILayout.Height(ButtonHeight), GUILayout.Width(ButtonWidth))
-				: GUILayout.Button(new GUIContent("Play", Icons.PlayButton(IconSize.Small, IconColor.Orange)),
-					GUILayout.Height(ButtonHeight), GUILayout.Width(ButtonWidth));
-		}
-
 		private void PlayStop()
 		{
 			if (_editorAudioSource.isPlaying) {
@@ -106,6 +96,15 @@ namespace VisualPinball.Unity.Editor
 			} else {
 				_soundAsset.Play(_editorAudioSource);
 			}
+		}
+		
+		private bool PlayStopButton()
+		{
+			return _editorAudioSource.isPlaying
+				? GUILayout.Button(new GUIContent("Stop", Icons.StopButton(IconSize.Small, IconColor.Orange)),
+					GUILayout.Height(ButtonHeight), GUILayout.Width(ButtonWidth))
+				: GUILayout.Button(new GUIContent("Play", Icons.PlayButton(IconSize.Small, IconColor.Orange)),
+					GUILayout.Height(ButtonHeight), GUILayout.Width(ButtonWidth));
 		}
 
 		/// <summary>
