@@ -47,11 +47,8 @@ namespace VisualPinball.Unity.Editor
 				if (triggerIndex == -1) { // pre-select first trigger in list, if none set.
 					triggerIndex = 0;
 				}
-				EditorGUI.BeginChangeCheck();
 				triggerIndex = EditorGUI.Popup(position, "Trigger on", triggerIndex, triggers.Select(t => t.Name).ToArray());
-				if (EditorGUI.EndChangeCheck()) {
-					triggerIdProperty.stringValue = triggers[triggerIndex].Id;
-				}
+				triggerIdProperty.stringValue = triggers[triggerIndex].Id;
 			} else {
 				EditorGUI.LabelField(position, "No Triggers found.");
 			}
