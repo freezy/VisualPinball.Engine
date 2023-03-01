@@ -17,7 +17,7 @@
 namespace VisualPinball.Unity
 {
 	/// <summary>
-	/// A sound trigger is describes how a mechanical sound is triggered.
+	/// A sound trigger describes how a mechanical sound is triggered.
 	///
 	/// During edit time, sound triggers are declared by game items so they
 	/// can be linked to a <see cref="SoundAsset"/>. During runtime, they
