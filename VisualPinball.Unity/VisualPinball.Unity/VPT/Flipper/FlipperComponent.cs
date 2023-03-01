@@ -23,7 +23,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using Unity.Collections;
 using Unity.Mathematics;
 using UnityEngine;
@@ -127,49 +126,37 @@ namespace VisualPinball.Unity
 		protected override Type MeshComponentType { get; } = typeof(MeshComponent<FlipperData, FlipperComponent>);
 		protected override Type ColliderComponentType { get; } = typeof(ColliderComponent<FlipperData, FlipperComponent>);
 
-
 		public const string MainCoilItem = "main_coil";
 		public const string HoldCoilItem = "hold_coil";
 		public const string EosSwitchItem = "eos_switch";
-		//ISoundEmitter SoundTrigger Ids
-		private const string SoundCoilOn = "coil_on";
-		private const string SoundCoilOff = "coil_off";
-		private const string SoundCoilCollision = "ball_collision";
-		//ISoundEmitter SoundTrigger Names
-		private const string SoundCoilOnName = "Coil On";
-		private const string SoundCoilOffName = "Coil Off";
-		private const string SoundCoilCollisionName = "Ball Collision";
-		//ISoundEmitter VolumeEmitter Ids
-		private const string VolumeBallVelocity = "ball_velocity";
-		//ISoundEmitter VolumeEmitter Names
-		private const string VolumeBallVelocityName = "Ball Velocity";
+
+		public const string SoundCoilOn = "sound_coil_on";
+		public const string SoundCoilOff = "sound_coil_off";
+		public const string SoundCoilCollision = "sound_ball_collision";
 
 		#endregion
 
 		#region ISoundEmitter
 
 		public SoundTrigger[] AvailableTriggers => new[] {
-			new SoundTrigger { Id = SoundCoilOn, Name = SoundCoilOnName },
-			new SoundTrigger { Id = SoundCoilOff, Name = SoundCoilOffName},
-			new SoundTrigger { Id = SoundCoilCollision, Name = SoundCoilCollisionName },
+			new SoundTrigger { Id = SoundCoilOn, Name = "Coil On" },
+			new SoundTrigger { Id = SoundCoilOff, Name = "Coil Off"},
+			new SoundTrigger { Id = SoundCoilCollision, Name = "Ball Collision" },
 		};
-
-		public VolumeEmitter GetVolumeEmitter(string triggerId)
-		{
-			switch (triggerId)
-			{
-				case SoundCoilCollision:
-					return new VolumeEmitter { Id = VolumeBallVelocity, Name = VolumeBallVelocityName };
-			}
-			return VolumeEmitter.Static;
-		}
 
 		public event EventHandler<SoundEventArgs> OnSound;
 
-		public void PlaySound(SoundTrigger trigger, float volume)
+		internal void EmitSound(string triggerId, float volume = 1)
 		{
-			var msc = GetComponent<MechSoundsComponent>();
-			var sa = msc.Sounds.First(s => s.TriggerId == trigger.Id);
+			OnSound?.Invoke(this, new SoundEventArgs(triggerId, volume));
+		}
+
+		public float RotatePosition {
+			get {
+				var start = (_startAngle + 360) % 360;
+				var end = (EndAngle + 360) % 360;
+				return 1 - (transform.localEulerAngles.y - start) / (end - start);
+			}
 		}
 
 		#endregion

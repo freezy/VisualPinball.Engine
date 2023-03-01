@@ -16,8 +16,12 @@
 
 // ReSharper disable InconsistentNaming
 
+using System;
 using System.Collections.Generic;
+using System.Linq;
+using NLog;
 using UnityEngine;
+using Logger = NLog.Logger;
 
 namespace VisualPinball.Unity
 {
@@ -25,7 +29,53 @@ namespace VisualPinball.Unity
 	[RequireComponent(typeof(AudioSource))]
 	public class MechSoundsComponent : MonoBehaviour
 	{
+		[SerializeField]
 		public List<MechSound> Sounds = new();
+		
+		[NonSerialized]
+		private ISoundEmitter _soundEmitter;
+		[NonSerialized]
+		private AudioSource _audioSource;
+		[NonSerialized]
+		private Dictionary<string, MechSound> _sounds = new();
+		
+		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
+
+		private void Awake()
+		{
+			_soundEmitter = GetComponent<ISoundEmitter>();
+			_audioSource = GetComponent<AudioSource>();
+			
+			_sounds = Sounds.ToDictionary(s => s.TriggerId, s => s);
+		}
+
+		private void Start()
+		{
+			if (_soundEmitter != null && _audioSource) {
+				_soundEmitter.OnSound += EmitSound;
+
+			} else {
+				Logger.Warn($"Cannot initialize mech sound for {name} due to missing ISoundEmitter or AudioSource.");
+			}
+		}
+
+		private void OnDestroy()
+		{
+			if (_soundEmitter != null) {
+				_soundEmitter.OnSound -= EmitSound;
+			}
+		}
+
+		private void EmitSound(object sender, SoundEventArgs e)
+		{
+			if (_sounds.ContainsKey(e.TriggerId)) {
+				_sounds[e.TriggerId].Sound.Play(_audioSource, e.Volume);
+				Debug.Log($"Playing sound {e.TriggerId} for {name}");
+				
+			} else {
+				Debug.LogError($"Unknown trigger {e.TriggerId} for {name}");
+			}
+		}
 	}
 }
 
