@@ -25,7 +25,7 @@ namespace VisualPinball.Unity
 	public class MechSound
 	{
 		[SerializeReference]
-		public ScriptableObject Sound;
+		public SoundAsset Sound;
 
 		public string TriggerId;
 

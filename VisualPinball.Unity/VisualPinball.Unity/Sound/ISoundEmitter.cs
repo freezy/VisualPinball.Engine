@@ -29,14 +29,6 @@ namespace VisualPinball.Unity
 		SoundTrigger[] AvailableTriggers { get; }
 		
 		/// <summary>
-		/// For each <see cref="AvailableTriggers"/>, returns whether their
-		/// sound is volume-dependent on the triggering event.
-		/// </summary>
-		/// <param name="triggerId">Sound trigger ID</param>
-		/// <returns>Assigned volume emitter. <c>null</c> if fixed volume</returns>
-		VolumeEmitter GetVolumeEmitter(string triggerId);
-		
-		/// <summary>
 		/// The sound event, to which the <see cref="Player"/> subscribes to.
 		/// </summary>
 		event EventHandler<SoundEventArgs> OnSound;
@@ -44,18 +36,12 @@ namespace VisualPinball.Unity
 
 	public readonly struct SoundEventArgs
 	{
-		public readonly SoundTrigger Trigger;
+		public readonly string TriggerId;
 		public readonly float Volume;
-
-		public SoundEventArgs(SoundTrigger trigger)
-		{
-			Trigger = trigger;
-			Volume = 1f;
-		}
 		
-		public SoundEventArgs(SoundTrigger trigger, float volume)
+		public SoundEventArgs(string triggerId, float volume)
 		{
-			Trigger = trigger;
+			TriggerId = triggerId;
 			Volume = volume;
 		}
 	}
