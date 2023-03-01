@@ -23,8 +23,9 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using Unity.Collections;
 using Unity.Mathematics;
-using UnityEditor;
 using UnityEngine;
 using VisualPinball.Engine.Game.Engines;
 using VisualPinball.Engine.Math;
@@ -146,23 +147,30 @@ namespace VisualPinball.Unity
 		#endregion
 
 		#region ISoundEmitter
+
 		public SoundTrigger[] AvailableTriggers => new[] {
 			new SoundTrigger { Id = SoundCoilOn, Name = SoundCoilOnName },
 			new SoundTrigger { Id = SoundCoilOff, Name = SoundCoilOffName},
 			new SoundTrigger { Id = SoundCoilCollision, Name = SoundCoilCollisionName },
 		};
 
-		public VolumeEmitter[] GetVolumeEmitters(SoundTrigger trigger)
+		public VolumeEmitter GetVolumeEmitter(string triggerId)
 		{
-			switch (trigger.Id)
+			switch (triggerId)
 			{
 				case SoundCoilCollision:
-					return new[] { new VolumeEmitter { Id = VolumeBallVelocity, Name = VolumeBallVelocityName } };
+					return new VolumeEmitter { Id = VolumeBallVelocity, Name = VolumeBallVelocityName };
 			}
-			return null; // null means only "Fixed" will be shown in the volume dropdown.
+			return VolumeEmitter.Static;
 		}
 
 		public event EventHandler<SoundEventArgs> OnSound;
+
+		public void PlaySound(SoundTrigger trigger, float volume)
+		{
+			var msc = GetComponent<MechSoundsComponent>();
+			var sa = msc.Sounds.First(s => s.TriggerId == trigger.Id);
+		}
 
 		#endregion
 
