@@ -20,13 +20,11 @@ using System.Linq;
 using NLog;
 using Unity.Entities;
 using Unity.Mathematics;
-using UnityEditor;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using VisualPinball.Engine.Common;
 using VisualPinball.Engine.Game;
 using VisualPinball.Engine.Game.Engines;
-using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Trigger;
 using Logger = NLog.Logger;
 
@@ -187,13 +185,6 @@ namespace VisualPinball.Unity
 
 		}
 
-		private void Component_OnSound(object sender, SoundEventArgs e)
-		{
-			//throw new NotImplementedException();
-			Debug.Log("test");
-
-		}
-
 		private void Update()
 		{
 			OnUpdate?.Invoke(this, EventArgs.Empty);
@@ -274,11 +265,6 @@ namespace VisualPinball.Unity
 		public void RegisterLampGroup(LightGroupComponent component)
 		{
 			Register(component.GetApi(this), component);
-		}
-
-		public void RegisterMechSound(MechSoundsComponent component)
-		{
-			
 		}
 
 		public void RegisterStepRotator(StepRotatorMechComponent component)
@@ -623,6 +609,4 @@ namespace VisualPinball.Unity
 			Ball = ball;
 		}
 	}
-
-	
 }
