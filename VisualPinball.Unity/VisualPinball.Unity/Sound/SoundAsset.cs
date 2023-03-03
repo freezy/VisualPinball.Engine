@@ -60,7 +60,7 @@ namespace VisualPinball.Unity
 		#region Runtime
 
 		[NonSerialized]
-		private int _clipIndex;
+		private int _clipIndex = 0;
 
 		#endregion
 		
