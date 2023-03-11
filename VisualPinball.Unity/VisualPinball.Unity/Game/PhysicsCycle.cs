@@ -69,7 +69,6 @@ namespace VisualPinball.Unity
 
 					// apply static time
 					ApplyStaticTime(ref hitTime, ref staticCounts, in ball);
-
 				}
 
 				// displacement

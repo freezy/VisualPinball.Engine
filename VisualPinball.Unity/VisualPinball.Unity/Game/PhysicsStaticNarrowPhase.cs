@@ -45,9 +45,9 @@ namespace VisualPinball.Unity
 			PerfMarker.End();
 		}
 		
-		private static float HitTest(ref BallData ball, in PlaneCollider coll, ref NativeList<ContactBufferElement> contacts) {
-
-			var newCollEvent = new CollisionEventData();
+		private static float HitTest(ref BallData ball, in PlaneCollider coll, ref NativeList<ContactBufferElement> contacts)
+		{
+			var newCollEvent = new CollisionEventData { HitTime = -1 };
 			var newTime = Collider.HitTest(ref ball, in coll, ball.CollisionEvent.HitTime);
 
 			SaveCollisions(ref ball, ref newCollEvent, ref contacts, in coll, newTime);
