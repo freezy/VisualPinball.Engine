@@ -74,7 +74,7 @@ namespace VisualPinball.Unity
 				// displacement
 				for (var i = 0; i < balls.Length; i++) { // todo loop through all "movers", not just balls
 					var ball = balls[i];
-					ball.UpdateDisplacements(hitTime); // use static method instead of member
+					BallDisplacementPhysics.UpdateDisplacements(ref ball, hitTime); // use static method instead of member
 					balls[i] = ball;
 				}
 
