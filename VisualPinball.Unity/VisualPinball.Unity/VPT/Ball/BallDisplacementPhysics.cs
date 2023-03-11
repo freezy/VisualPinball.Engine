@@ -27,7 +27,7 @@ namespace VisualPinballUnity
 	{
 		private static readonly ProfilerMarker PerfMarker = new ProfilerMarker("BallDisplacementPhysics");
 		
-		internal static void UpdateDisplacements(this BallData ball, float dTime)
+		internal static void UpdateDisplacements(ref BallData ball, float dTime)
 		{
 			PerfMarker.Begin();
 
