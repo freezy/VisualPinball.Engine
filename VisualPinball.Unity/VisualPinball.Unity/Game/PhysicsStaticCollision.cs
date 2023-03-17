@@ -36,11 +36,12 @@ namespace VisualPinballUnity
 
 			PerfMarker.Begin();
 
-			ball.CollisionEvent.Collider.Collide(ref ball, in ball.CollisionEvent, ref random);
+			var collEvent = ball.CollisionEvent;
+			ball.CollisionEvent.Collider.Collide(ref ball, in collEvent, ref random);
+			ball.CollisionEvent = collEvent;
 
 			// remove trial hit object pointer
 			ball.CollisionEvent.ClearCollider();
-
 
 			PerfMarker.End();
 		}
