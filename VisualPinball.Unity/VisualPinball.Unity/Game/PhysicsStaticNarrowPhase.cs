@@ -47,12 +47,12 @@ namespace VisualPinball.Unity
 		
 		private static float HitTest(ref BallData ball, in PlaneCollider coll, ref NativeList<ContactBufferElement> contacts)
 		{
-			var newCollEvent = new CollisionEventData { HitTime = -1 };
-			var newTime = Collider.HitTest(ref ball, in coll, ball.CollisionEvent.HitTime);
+			// var newCollEvent = new CollisionEventData { HitTime = -1 };
+			return Collider.HitTest(ref ball, in coll, ball.CollisionEvent.HitTime);
 
-			SaveCollisions(ref ball, ref newCollEvent, ref contacts, in coll, newTime);
-
-			return newTime;
+			// SaveCollisions(ref ball, ref newCollEvent, ref contacts, in coll, newTime);
+			//
+			// return newTime;
 		}
 
 		private static void SaveCollisions(ref BallData ball, ref CollisionEventData newCollEvent,
