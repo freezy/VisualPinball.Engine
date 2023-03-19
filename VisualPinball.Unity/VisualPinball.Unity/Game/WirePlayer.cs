@@ -262,7 +262,7 @@ namespace VisualPinball.Unity
 					var action = (InputAction)obj;
 					if (_keyWireAssignments != null && _keyWireAssignments.ContainsKey(action.name)) {
 						foreach (var wireConfig in _keyWireAssignments[action.name]) {
-							if (!_wireDevices.ContainsKey(wireConfig.Device)) {
+							if (wireConfig.Device == null || !_wireDevices.ContainsKey(wireConfig.Device)) {
 								continue;
 							}
 

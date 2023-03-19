@@ -95,6 +95,7 @@ namespace VisualPinball.Unity
 		public void Dispose()
 		{
 			_bounds.Dispose();
+			_nodes.Dispose();
 			OrgIdx.Dispose();
 			Indices.Dispose();
 		}
