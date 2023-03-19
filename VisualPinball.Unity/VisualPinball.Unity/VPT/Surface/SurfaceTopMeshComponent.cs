@@ -41,8 +41,10 @@ namespace VisualPinball.Unity
 		{
 			base.RebuildMeshes();
 			var mr = GetComponent<MeshRenderer>();
-			mr.ResetBounds();
-			mr.ResetLocalBounds();
+			if (mr) {
+				mr.ResetBounds();
+				mr.ResetLocalBounds();
+			}
 		}
 	}
 }
