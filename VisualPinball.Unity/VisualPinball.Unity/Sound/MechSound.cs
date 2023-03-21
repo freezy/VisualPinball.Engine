@@ -29,7 +29,7 @@ namespace VisualPinball.Unity
 
 		public string TriggerId;
 
-		[Range(0, 1)]
+		[Range(0.0001f, 1)]
 		public float Volume = 1;
 		
 		public MechSoundAction Action = MechSoundAction.Play;

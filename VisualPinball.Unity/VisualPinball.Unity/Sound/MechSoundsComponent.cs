@@ -21,6 +21,7 @@ using System.Collections.Generic;
 using System.Linq;
 using NLog;
 using UnityEngine;
+using UnityEngine.Audio;
 using Logger = NLog.Logger;
 
 namespace VisualPinball.Unity
@@ -40,6 +41,7 @@ namespace VisualPinball.Unity
 		private Dictionary<string, MechSound> _sounds = new();
 		
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
+		private Coroutine _co;
 
 		private void Awake()
 		{
@@ -68,8 +70,46 @@ namespace VisualPinball.Unity
 
 		private void EmitSound(object sender, SoundEventArgs e)
 		{
+
 			if (_sounds.ContainsKey(e.TriggerId)) {
-				_sounds[e.TriggerId].Sound.Play(_audioSource, e.Volume);
+
+				float fade = e.Fade;
+				bool fadeVolume = false;
+
+				//convert fade duration from milliseconds to seconds for use with StartFade method
+				if (fade > 0)
+				{ 
+				    fade = fade / 1000;
+					fadeVolume = true;
+				}
+
+				float volume = e.Volume;
+
+				AudioMixer audioMixer = GetComponent<AudioSource>().outputAudioMixerGroup.audioMixer;
+				_sounds[e.TriggerId].Sound.Play(_audioSource, volume);
+
+				/* set audio mixer volume to decibel equivalent of volume slider value
+				   mixer volume is set at 0 dB when added to audiosource
+				   volume of 1 in slider is equivalent to 0 dB
+				*/
+				string exposedParameter = "vol1";
+				float sliderDBVolume = Mathf.Log10(volume) * 20;
+				float mixerVolume;
+				
+				audioMixer.GetFloat(exposedParameter, out mixerVolume);
+
+				//current coroutine is still fading the audio clip and needs to be stopped and volume reset
+				if (mixerVolume < sliderDBVolume)
+				{
+					StopCoroutine(_co);
+					audioMixer.SetFloat(exposedParameter, sliderDBVolume);
+
+				}
+
+				if (fadeVolume)
+				{ _co = StartCoroutine(FadeMixerGroup.StartFade(audioMixer, exposedParameter, fade, 0)); }
+				
+
 				Debug.Log($"Playing sound {e.TriggerId} for {name}");
 				
 			} else {
