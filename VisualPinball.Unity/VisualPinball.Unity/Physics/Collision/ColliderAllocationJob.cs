@@ -77,7 +77,7 @@ namespace VisualPinball.Unity
 			_triangleColliders = new NativeList<TriangleCollider>(Allocator.TempJob);
 			_planeColliders = new NativeList<PlaneCollider>(Allocator.TempJob);
 
-			BlobAsset = new NativeArray<BlobAssetReference<ColliderBlob>>(1, Allocator.TempJob);
+			BlobAsset = new NativeArray<BlobAssetReference<ColliderBlob>>(1, Allocator.Persistent);
 
 			// separate created colliders per type
 			foreach (var collider in colliderList) {
@@ -166,7 +166,6 @@ namespace VisualPinball.Unity
 			_pointColliders.Dispose();
 			_spinnerColliders.Dispose();
 			_triangleColliders.Dispose();
-			BlobAsset.Dispose();
 		}
 	}
 }

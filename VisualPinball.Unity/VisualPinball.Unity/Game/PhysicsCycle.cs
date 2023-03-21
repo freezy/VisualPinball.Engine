@@ -17,6 +17,7 @@
 using System;
 using NativeTrees;
 using Unity.Collections;
+using Unity.Entities;
 using VisualPinball.Engine.Common;
 using VisualPinballUnity;
 
@@ -25,18 +26,18 @@ namespace VisualPinball.Unity
 	public struct PhysicsCycle : IDisposable
 	{
 		private NativeList<ContactBufferElement> _contacts;
-		private NativeList<Collider> _overlappingColliders;
+		private NativeList<int> _overlappingColliders;
 
 		public PhysicsCycle(Allocator a)
 		{
 			_contacts = new NativeList<ContactBufferElement>(a);
-			_overlappingColliders = new NativeList<Collider>(a);
+			_overlappingColliders = new NativeList<int>(a);
 		}
 
-		internal void Simulate(float dTime, ref PhysicsState state, ref NativeOctree<Collider> octree, 
-			ref NativeList<BallData> balls, ref NativeQueue<EventData>.ParallelWriter events)
+		internal void Simulate(float dTime, ref PhysicsState state, in NativeOctree<int> octree, 
+			ref BlobAssetReference<ColliderBlob> colliders, ref NativeList<BallData> balls, ref NativeQueue<EventData>.ParallelWriter events)
 		{
-			
+
 			var staticCounts = PhysicsConstants.StaticCnts;
 			
 			while (dTime > 0) {
@@ -61,7 +62,7 @@ namespace VisualPinball.Unity
 					PhysicsStaticBroadPhase.FindOverlaps(in octree, in ball, ref _overlappingColliders);
 					
 					// static narrow phase
-					PhysicsStaticNarrowPhase.FindNextCollision(hitTime, ref ball, _overlappingColliders, ref _contacts);
+					PhysicsStaticNarrowPhase.FindNextCollision(hitTime, ref ball, in _overlappingColliders, ref colliders, ref _contacts);
 
 					// write ball back
 					balls[i] = ball;
@@ -85,7 +86,7 @@ namespace VisualPinball.Unity
 					// todo dynamic collision
 				
 					// static collision
-					PhysicsStaticCollision.Collide(hitTime, ref ball, ref state.Random, ref events);
+					PhysicsStaticCollision.Collide(hitTime, ref ball, ref colliders, ref state.Random, ref events);
 					
 					balls[i] = ball;
 				}
@@ -93,7 +94,7 @@ namespace VisualPinball.Unity
 				// handle contacts
 				var b = balls[0];
 				foreach (var contact in _contacts) {
-					BallCollider.HandleStaticContact(ref b, in contact.CollEvent, contact.CollEvent.Collider.Material.Friction, hitTime, state.Gravity);
+					BallCollider.HandleStaticContact(ref b, in contact.CollEvent, colliders.GetFriction(contact.CollEvent.ColliderId), hitTime, state.Gravity);
 				}
 				balls[0] = b;
 
