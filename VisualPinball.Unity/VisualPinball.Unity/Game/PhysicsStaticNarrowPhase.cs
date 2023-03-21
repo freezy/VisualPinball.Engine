@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using Unity.Collections;
+using Unity.Entities;
 using Unity.Profiling;
 
 namespace VisualPinball.Unity
@@ -23,18 +24,18 @@ namespace VisualPinball.Unity
 	{
 		private static readonly ProfilerMarker PerfMarker = new("PhysicsStaticNarrowPhase");
 		
-		internal static void FindNextCollision(float hitTime, ref BallData ball, in NativeList<Collider> overlappingColliders, 
-			ref NativeList<ContactBufferElement> contacts)
+		internal static void FindNextCollision(float hitTime, ref BallData ball, in NativeList<int> overlappingColliders, 
+			ref BlobAssetReference<ColliderBlob> colliders, ref NativeList<ContactBufferElement> contacts)
 		{
 			PerfMarker.Begin();
 
 			// init contacts and event
 			ball.CollisionEvent.ClearCollider(hitTime); // search upto current hit time
 
-			foreach (var collider in overlappingColliders) {
+			foreach (var colliderId in overlappingColliders) {
 				var newCollEvent = new CollisionEventData();
-				var newTime = HitTest(ref ball, in collider, ref contacts);
-				SaveCollisions(ref ball, ref newCollEvent, ref contacts, in collider, newTime);
+				var newTime = HitTest(ref ball, colliderId, ref colliders, ref contacts);
+				SaveCollisions(ref ball, ref newCollEvent, ref contacts, colliderId, newTime);
 			}
 
 			// no negative time allowed
@@ -43,6 +44,19 @@ namespace VisualPinball.Unity
 			}
 
 			PerfMarker.End();
+		}
+		
+		private static float HitTest(ref BallData ball, int colliderId, ref BlobAssetReference<ColliderBlob> colliders, ref NativeList<ContactBufferElement> contacts)
+		{
+			ref var collEvent = ref ball.CollisionEvent;
+			var hitTime = -1f;
+			switch (colliders.GetType(colliderId)) {
+				case ColliderType.Plane:
+					hitTime = PlaneCollider.HitTest(in colliders.GetPlaneCollider(colliderId), ref collEvent, in ball, ball.CollisionEvent.HitTime);
+					break;
+			}
+			ball.CollisionEvent = collEvent;
+			return hitTime;
 		}
 		
 		private static float HitTest(ref BallData ball, in Collider collider, ref NativeList<ContactBufferElement> contacts)
@@ -54,12 +68,12 @@ namespace VisualPinball.Unity
 		}
 
 		private static void SaveCollisions(ref BallData ball, ref CollisionEventData newCollEvent,
-			ref NativeList<ContactBufferElement> contacts, in Collider coll, float newTime)
+			ref NativeList<ContactBufferElement> contacts, int colliderId, float newTime)
 		{
 			var validHit = newTime >= 0f && !Math.Sign(newTime) && newTime <= ball.CollisionEvent.HitTime;
 
 			if (newCollEvent.IsContact || validHit) {
-				newCollEvent.SetCollider(coll);
+				newCollEvent.SetCollider(colliderId, ball.Id);
 				newCollEvent.HitTime = newTime;
 				if (newCollEvent.IsContact) {
 					contacts.Add(new ContactBufferElement(ball.Id, newCollEvent));

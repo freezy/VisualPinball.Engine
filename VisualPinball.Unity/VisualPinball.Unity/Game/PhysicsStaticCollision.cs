@@ -17,6 +17,7 @@
 // ReSharper disable ConvertIfStatementToSwitchStatement
 
 using Unity.Collections;
+using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Profiling;
 using VisualPinball.Unity;
@@ -27,7 +28,7 @@ namespace VisualPinballUnity
 	{
 		private static readonly ProfilerMarker PerfMarker = new("PhysicsStaticCollision");
 
-		internal static void Collide(float hitTime, ref BallData ball, ref Random random, ref NativeQueue<EventData>.ParallelWriter events)
+		internal static void Collide(float hitTime, ref BallData ball, ref BlobAssetReference<ColliderBlob> colliders, ref Random random, ref NativeQueue<EventData>.ParallelWriter events)
 		{
 			
 			// find balls with hit objects and minimum time
@@ -38,14 +39,22 @@ namespace VisualPinballUnity
 			PerfMarker.Begin();
 
 			var collEvent = ball.CollisionEvent;
-			ref var collider = ref ball.CollisionEvent.Collider;
-			Collider.Collide(in collider, ref ball, ref events, ball.Id, in ball.CollisionEvent, ref random);
+			Collide(ref ball, ref colliders, ref random, ref events);
 			ball.CollisionEvent = collEvent;
 
 			// remove trial hit object pointer
 			ball.CollisionEvent.ClearCollider();
 
 			PerfMarker.End();
+		}
+
+		private static void Collide(ref BallData ball, ref BlobAssetReference<ColliderBlob> colliders, ref Random random, ref NativeQueue<EventData>.ParallelWriter events)
+		{
+			switch (colliders.GetType(ball.CollisionEvent.ColliderId)) {
+				case ColliderType.Plane:
+					PlaneCollider.Collide(colliders.GetPlaneCollider(ball.CollisionEvent.ColliderId), ref ball, in ball.CollisionEvent, ref random);
+					break;
+			}
 		}
 	}
 }

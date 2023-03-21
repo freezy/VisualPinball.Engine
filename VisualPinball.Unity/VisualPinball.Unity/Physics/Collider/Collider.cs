@@ -169,15 +169,6 @@ namespace VisualPinball.Unity
 				}
 			}
 		}
-		
-		internal static float HitTest(ref BallData ball, in PlaneCollider coll, float dTime)
-		{
-			ref var collEvent = ref ball.CollisionEvent;
-			var hitTime = coll.HitTest(ref collEvent, in ball, dTime);
-			ball.CollisionEvent = collEvent;
-		
-			return hitTime;
-		}
 
 		/// <summary>
 		/// Most colliders use the standard Collide3DWall routine, only overrides
