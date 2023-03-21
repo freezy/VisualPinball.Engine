@@ -46,7 +46,7 @@ namespace VisualPinball.Unity
 		[NonSerialized]
 		public BallManager BallManager;
 
-		public event EventHandler OnPlayerStarted;
+		public event EventHandler OnPlayeStarted;
 
 		public List<SwitchMapping> SwitchMapping => _tableComponent.MappingConfig.Switches;
 		public List<CoilMapping> CoilMapping => _tableComponent.MappingConfig.Coils;

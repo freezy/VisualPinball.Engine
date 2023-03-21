@@ -14,12 +14,12 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-using Unity.Collections;
+using System.Collections.Generic;
 
 namespace VisualPinball.Unity
 {
 	public interface ICollidableComponent
 	{
-		internal void GetColliders(ref NativeList<PlaneCollider> colliders);
+		internal void GetColliders(List<ICollider> colliders);
 	}
 }

@@ -273,7 +273,7 @@ namespace VisualPinballUnity
 									}
 
 								} else {
-									Collider.Collide(ref coll, ref ballData, ref events, in ballId, in collEvent, ref random);
+									Collider.Collide(in coll, ref ballData, ref events, in ballId, in collEvent, ref random);
 								}
 								break;
 

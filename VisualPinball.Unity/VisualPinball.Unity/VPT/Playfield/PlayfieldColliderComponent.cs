@@ -17,7 +17,9 @@
 // ReSharper disable InconsistentNaming
 
 using System;
+using System.Collections.Generic;
 using Unity.Collections;
+using Unity.Collections.LowLevel.Unsafe;
 using Unity.Entities;
 using UnityEngine;
 using VisualPinball.Engine.VPT.Table;
@@ -58,12 +60,12 @@ namespace VisualPinball.Unity
 		protected override IApiColliderGenerator InstantiateColliderApi(Player player)
 			=> new PlayfieldApi(gameObject, player);
 
-		void ICollidableComponent.GetColliders(ref NativeList<PlaneCollider> colliders)
+		void ICollidableComponent.GetColliders(List<ICollider> colliders)
 		{
 			var api = new PlayfieldApi(gameObject, GetComponent<Player>());
 			var c = api.CreateColliders(GetInstanceID());
 			colliders.Add(c.Item1);
-			colliders.Add(c.Item2);
+			//colliders.Add(c.Item2);
 		}
 	}
 }

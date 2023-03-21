@@ -62,7 +62,7 @@ namespace VisualPinball.Unity
 
 			// 2. allocate created colliders
 			PerfMarkerCreateBlobAsset.Begin();
-			var allocateColliderJob = new ColliderAllocationJob(colliderList, playfieldCollider, glassCollider);
+			var allocateColliderJob = new ColliderAllocationJob(colliderList/*, playfieldCollider, glassCollider*/);
 			allocateColliderJob.Run();
 
 			// retrieve result and dispose

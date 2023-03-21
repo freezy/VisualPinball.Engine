@@ -25,15 +25,16 @@ namespace VisualPinball.Unity
 	public struct PhysicsCycle : IDisposable
 	{
 		private NativeList<ContactBufferElement> _contacts;
-		private NativeList<PlaneCollider> _overlappingColliders;
+		private NativeList<Collider> _overlappingColliders;
 
 		public PhysicsCycle(Allocator a)
 		{
 			_contacts = new NativeList<ContactBufferElement>(a);
-			_overlappingColliders = new NativeList<PlaneCollider>(a);
+			_overlappingColliders = new NativeList<Collider>(a);
 		}
 
-		internal void Simulate(float dTime, ref PhysicsState state, ref NativeOctree<PlaneCollider> octree, ref NativeList<BallData> balls)
+		internal void Simulate(float dTime, ref PhysicsState state, ref NativeOctree<Collider> octree, 
+			ref NativeList<BallData> balls, ref NativeQueue<EventData>.ParallelWriter events)
 		{
 			
 			var staticCounts = PhysicsConstants.StaticCnts;
@@ -84,7 +85,7 @@ namespace VisualPinball.Unity
 					// todo dynamic collision
 				
 					// static collision
-					PhysicsStaticCollision.Collide(hitTime, ref ball, ref state.Random);
+					PhysicsStaticCollision.Collide(hitTime, ref ball, ref state.Random, ref events);
 					
 					balls[i] = ball;
 				}
