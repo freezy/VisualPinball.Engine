@@ -24,7 +24,7 @@ namespace VisualPinball.Unity
 	{
 		private static readonly ProfilerMarker PerfMarker = new ProfilerMarker("StaticBroadPhase");
 		
-		internal static void FindOverlaps(in NativeOctree<PlaneCollider> octree, in BallData ball, ref NativeList<PlaneCollider> overlappingColliders)
+		internal static void FindOverlaps(in NativeOctree<Collider> octree, in BallData ball, ref NativeList<Collider> overlappingColliders)
 		{
 			PerfMarker.Begin();
 			overlappingColliders.Clear();

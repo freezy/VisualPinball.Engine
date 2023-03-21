@@ -16,6 +16,7 @@
 
 // ReSharper disable ConvertIfStatementToSwitchStatement
 
+using Unity.Collections;
 using Unity.Mathematics;
 using Unity.Profiling;
 using VisualPinball.Unity;
@@ -26,7 +27,7 @@ namespace VisualPinballUnity
 	{
 		private static readonly ProfilerMarker PerfMarker = new("PhysicsStaticCollision");
 
-		internal static void Collide(float hitTime, ref BallData ball, ref Random random)
+		internal static void Collide(float hitTime, ref BallData ball, ref Random random, ref NativeQueue<EventData>.ParallelWriter events)
 		{
 			
 			// find balls with hit objects and minimum time
@@ -37,7 +38,8 @@ namespace VisualPinballUnity
 			PerfMarker.Begin();
 
 			var collEvent = ball.CollisionEvent;
-			ball.CollisionEvent.Collider.Collide(ref ball, in collEvent, ref random);
+			ref var collider = ref ball.CollisionEvent.Collider;
+			Collider.Collide(in collider, ref ball, ref events, ball.Id, in ball.CollisionEvent, ref random);
 			ball.CollisionEvent = collEvent;
 
 			// remove trial hit object pointer

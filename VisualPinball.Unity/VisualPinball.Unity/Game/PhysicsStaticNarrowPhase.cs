@@ -21,9 +21,9 @@ namespace VisualPinball.Unity
 {
 	public static class PhysicsStaticNarrowPhase
 	{
-		private static readonly ProfilerMarker PerfMarker = new ProfilerMarker("StaticNarrowPhase");
+		private static readonly ProfilerMarker PerfMarker = new("PhysicsStaticNarrowPhase");
 		
-		internal static void FindNextCollision(float hitTime, ref BallData ball, in NativeList<PlaneCollider> overlappingColliders, 
+		internal static void FindNextCollision(float hitTime, ref BallData ball, in NativeList<Collider> overlappingColliders, 
 			ref NativeList<ContactBufferElement> contacts)
 		{
 			PerfMarker.Begin();
@@ -31,10 +31,10 @@ namespace VisualPinball.Unity
 			// init contacts and event
 			ball.CollisionEvent.ClearCollider(hitTime); // search upto current hit time
 
-			foreach (var coll in overlappingColliders) {
+			foreach (var collider in overlappingColliders) {
 				var newCollEvent = new CollisionEventData();
-				var newTime = HitTest(ref ball, in coll, ref contacts);
-				SaveCollisions(ref ball, ref newCollEvent, ref contacts, in coll, newTime);
+				var newTime = HitTest(ref ball, in collider, ref contacts);
+				SaveCollisions(ref ball, ref newCollEvent, ref contacts, in collider, newTime);
 			}
 
 			// no negative time allowed
@@ -45,18 +45,16 @@ namespace VisualPinball.Unity
 			PerfMarker.End();
 		}
 		
-		private static float HitTest(ref BallData ball, in PlaneCollider coll, ref NativeList<ContactBufferElement> contacts)
+		private static float HitTest(ref BallData ball, in Collider collider, ref NativeList<ContactBufferElement> contacts)
 		{
-			// var newCollEvent = new CollisionEventData { HitTime = -1 };
-			return Collider.HitTest(ref ball, in coll, ball.CollisionEvent.HitTime);
-
-			// SaveCollisions(ref ball, ref newCollEvent, ref contacts, in coll, newTime);
-			//
-			// return newTime;
+			ref var collEvent = ref ball.CollisionEvent;
+			var hitTime = Collider.HitTest(in collider, ref collEvent, in ball, ball.CollisionEvent.HitTime);
+			ball.CollisionEvent = collEvent;
+			return hitTime;
 		}
 
 		private static void SaveCollisions(ref BallData ball, ref CollisionEventData newCollEvent,
-			ref NativeList<ContactBufferElement> contacts, in PlaneCollider coll, float newTime)
+			ref NativeList<ContactBufferElement> contacts, in Collider coll, float newTime)
 		{
 			var validHit = newTime >= 0f && !Math.Sign(newTime) && newTime <= ball.CollisionEvent.HitTime;
 

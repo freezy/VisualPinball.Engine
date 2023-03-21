@@ -67,6 +67,8 @@ namespace VisualPinball.Unity
 						return ((LineZCollider*) collider)->Bounds;
 					case ColliderType.Point:
 						return ((PointCollider*) collider)->Bounds;
+					case ColliderType.Plane:
+						return ((PlaneCollider*) collider)->Bounds;
 					case ColliderType.Plunger:
 						return ((PlungerCollider*) collider)->Bounds;
 					case ColliderType.Spinner:
@@ -74,7 +76,7 @@ namespace VisualPinball.Unity
 					case ColliderType.Triangle:
 						return ((TriangleCollider*) collider)->Bounds;
 					default:
-						throw new InvalidOperationException("Cannot compute AABBs for collider " + Type);
+						throw new InvalidOperationException();
 				}
 			}
 		}
@@ -124,12 +126,56 @@ namespace VisualPinball.Unity
 			}
 		}
 		
+		internal static unsafe float HitTest(in Collider coll, ref CollisionEventData collEvent, in BallData ball, float dTime)
+		{
+			fixed (Collider* collider = &coll)
+			{
+				switch (collider->Type)
+				{
+					case ColliderType.Bumper:
+					// case ColliderType.Circle:
+					// 	return ((CircleCollider*) collider)->HitTest(ref collEvent, ref insideOf, in ball, dTime);
+					// case ColliderType.Gate:
+					// 	return ((GateCollider*) collider)->HitTest(ref collEvent, ref insideOf, in ball, dTime);
+					// case ColliderType.Line:
+					// 	return ((LineCollider*) collider)->HitTest(ref collEvent, ref insideOf, in ball, dTime);
+					case ColliderType.LineZ:
+						return ((LineZCollider*) collider)->HitTest(ref collEvent, in ball, dTime);
+					case ColliderType.Line3D:
+						return ((Line3DCollider*) collider)->HitTest(ref collEvent, in ball, dTime);
+					case ColliderType.Point:
+						return ((PointCollider*) collider)->HitTest(ref collEvent, in ball, dTime);
+					case ColliderType.Plane:
+						return ((PlaneCollider*) collider)->HitTest(ref collEvent, in ball, dTime);
+					// case ColliderType.Spinner:
+					// 	return ((SpinnerCollider*) collider)->HitTest(ref collEvent, ref insideOf, in ball, dTime);
+					// case ColliderType.Triangle:
+					// 	return ((TriangleCollider*) collider)->HitTest(ref collEvent, in insideOf, in ball, dTime);
+					// case ColliderType.KickerCircle:
+					// case ColliderType.TriggerCircle:
+					// 	return ((CircleCollider*) collider)->HitTestBasicRadius(ref collEvent, ref insideOf, in ball, dTime, false, false, false);
+					// case ColliderType.TriggerLine:
+					// 	return ((LineCollider*) collider)->HitTestBasic(ref collEvent, ref insideOf, in ball, dTime, false, false, false);
+
+					case ColliderType.Plunger:
+						throw new InvalidOperationException("ColliderType.Plunger must be hit-tested separately!");
+					case ColliderType.Flipper:
+						throw new InvalidOperationException("ColliderType.Flipper must be hit-tested separately!");
+					case ColliderType.LineSlingShot:
+						throw new InvalidOperationException("ColliderType.LineSlingShot must be hit-tested separately!");
+
+					default:
+						return -1;
+				}
+			}
+		}
+		
 		internal static float HitTest(ref BallData ball, in PlaneCollider coll, float dTime)
 		{
 			ref var collEvent = ref ball.CollisionEvent;
 			var hitTime = coll.HitTest(ref collEvent, in ball, dTime);
 			ball.CollisionEvent = collEvent;
-
+		
 			return hitTime;
 		}
 
@@ -137,7 +183,7 @@ namespace VisualPinball.Unity
 		/// Most colliders use the standard Collide3DWall routine, only overrides
 		/// are cast and dispatched to their respective implementation.
 		/// </summary>
-		internal static unsafe void Collide(ref Collider coll, ref BallData ballData,
+		internal static unsafe void Collide(in Collider coll, ref BallData ballData,
 			ref NativeQueue<EventData>.ParallelWriter events, in int ballId,
 			in CollisionEventData collEvent, ref Random random)
 		{

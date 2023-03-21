@@ -29,11 +29,11 @@ namespace VisualPinball.Unity
 		public float HitOrgNormalVelocity;
 		public bool IsContact;
 
-		public PlaneCollider Collider;
+		public Collider Collider;
 		public int ColliderId;
 		public int BallId;
 
-		public void SetCollider(PlaneCollider collider)
+		public void SetCollider(Collider collider)
 		{
 			Collider = collider;
 			ColliderId = collider.Id;

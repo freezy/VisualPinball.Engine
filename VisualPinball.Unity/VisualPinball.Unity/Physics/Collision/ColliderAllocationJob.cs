@@ -24,6 +24,19 @@ using Unity.Profiling;
 
 namespace VisualPinball.Unity
 {
+	/// <summary>
+	/// This job converts a list of managed ICollider objects into unmanaged Collider structs.<br/>
+	///
+	/// However, the output is not a list, but a NativeArray of length of 1, containing a BlobAssetReference
+	/// of ColliderBlob, which contains a BlobArray of BlobPtr of Collider.
+	/// </summary>
+	/// <example>
+	/// <code>
+	/// for (var i = 0; i &lt; BlobAsset[0].Value.Colliders.Length; i++) {
+	///		var collider = BlobAsset[0].Value.Colliders[i].Value;
+	/// }
+	/// </code>
+	/// </example>
 	[BurstCompile]
 	internal struct ColliderAllocationJob : IJob, IDisposable
 	{
@@ -38,11 +51,15 @@ namespace VisualPinball.Unity
 		[ReadOnly] private NativeList<PointCollider> _pointColliders;
 		[ReadOnly] private NativeList<SpinnerCollider> _spinnerColliders;
 		[ReadOnly] private NativeList<TriangleCollider> _triangleColliders;
-		[ReadOnly] private NativeArray<PlaneCollider> _planeColliders;
+		[ReadOnly] private NativeList<PlaneCollider> _planeColliders;
 
+		/// <summary>
+		/// The result: A blob asset of allocated Collider structs that can be casted to
+		/// their respective type.
+		/// </summary>
 		public NativeArray<BlobAssetReference<ColliderBlob>> BlobAsset;
 
-		public ColliderAllocationJob(IEnumerable<ICollider> colliderList,  PlaneCollider playfieldCollider,  PlaneCollider glassCollider) : this()
+		public ColliderAllocationJob(IEnumerable<ICollider> colliderList) : this()
 		{
 			var perfMarker = new ProfilerMarker("ColliderAllocationJob.ctr");
 			perfMarker.Begin();
@@ -58,10 +75,7 @@ namespace VisualPinball.Unity
 			_pointColliders = new NativeList<PointCollider>(Allocator.TempJob);
 			_spinnerColliders = new NativeList<SpinnerCollider>(Allocator.TempJob);
 			_triangleColliders = new NativeList<TriangleCollider>(Allocator.TempJob);
-			_planeColliders = new NativeArray<PlaneCollider>(2, Allocator.TempJob) {
-				[0] = playfieldCollider,
-				[1] = glassCollider
-			};
+			_planeColliders = new NativeList<PlaneCollider>(Allocator.TempJob);
 
 			BlobAsset = new NativeArray<BlobAssetReference<ColliderBlob>>(1, Allocator.TempJob);
 
@@ -75,6 +89,7 @@ namespace VisualPinball.Unity
 					case Line3DCollider line3DCollider: _line3DColliders.Add(line3DCollider); break;
 					case LineSlingshotCollider lineSlingshotCollider: _lineSlingshotColliders.Add(lineSlingshotCollider); break;
 					case LineZCollider lineZCollider: _lineZColliders.Add(lineZCollider); break;
+					case PlaneCollider planeCollider: _planeColliders.Add(planeCollider); break;
 					case PlungerCollider plungerCollider: _plungerColliders.Add(plungerCollider); break;
 					case PointCollider pointCollider: _pointColliders.Add(pointCollider); break;
 					case SpinnerCollider spinnerCollider: _spinnerColliders.Add(spinnerCollider); break;
@@ -94,12 +109,6 @@ namespace VisualPinball.Unity
 			            + _pointColliders.Length + _spinnerColliders.Length + _triangleColliders.Length + _planeColliders.Length;
 
 			var colliders = builder.Allocate(ref root.Colliders, count);
-
-			_planeColliders[0].Allocate(builder, ref colliders, colliderId++);
-			_planeColliders[1].Allocate(builder, ref colliders, colliderId++);
-
-			root.PlayfieldColliderId = _planeColliders[0].Id;
-			root.GlassColliderId = _planeColliders[1].Id;
 
 			// copy generated colliders into blob array
 			for (var i = 0; i < _circleColliders.Length; i++) {
@@ -122,6 +131,9 @@ namespace VisualPinball.Unity
 			}
 			for (var i = 0; i < _lineZColliders.Length; i++) {
 				_lineZColliders[i].Allocate(builder, ref colliders, colliderId++);
+			}
+			for (var i = 0; i < _planeColliders.Length; i++) {
+				_planeColliders[i].Allocate(builder, ref colliders, colliderId++);
 			}
 			for (var i = 0; i < _plungerColliders.Length; i++) {
 				_plungerColliders[i].Allocate(builder, ref colliders, colliderId++);
@@ -149,11 +161,11 @@ namespace VisualPinball.Unity
 			_lineSlingshotColliders.Dispose();
 			_lineColliders.Dispose();
 			_lineZColliders.Dispose();
+			_planeColliders.Dispose();
 			_plungerColliders.Dispose();
 			_pointColliders.Dispose();
 			_spinnerColliders.Dispose();
 			_triangleColliders.Dispose();
-			_planeColliders.Dispose();
 			BlobAsset.Dispose();
 		}
 	}
