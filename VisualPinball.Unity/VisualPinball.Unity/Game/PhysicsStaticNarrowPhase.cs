@@ -52,7 +52,7 @@ namespace VisualPinball.Unity
 			var hitTime = -1f;
 			switch (colliders.GetType(colliderId)) {
 				case ColliderType.Plane:
-					hitTime = PlaneCollider.HitTest(in colliders.GetPlaneCollider(colliderId), ref collEvent, in ball, ball.CollisionEvent.HitTime);
+					hitTime = colliders.GetPlaneCollider(colliderId).HitTest(ref collEvent, in ball, ball.CollisionEvent.HitTime);
 					break;
 			}
 			ball.CollisionEvent = collEvent;
