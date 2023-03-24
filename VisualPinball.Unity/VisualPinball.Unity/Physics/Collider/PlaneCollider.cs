@@ -29,16 +29,16 @@ namespace VisualPinball.Unity
 
 		private ColliderHeader _header;
 
-		public readonly float3 Normal;
-		public readonly float Distance;
+		private readonly float3 _normal;
+		private readonly float _distance;
 
 		public ColliderBounds Bounds => new ColliderBounds(_header.ItemId, _header.Id, new Aabb(float.MinValue, float.MaxValue, float.MinValue, float.MaxValue, float.MinValue, float.MaxValue));
 
 		public PlaneCollider(float3 normal, float distance, ColliderInfo info) : this()
 		{
 			_header.Init(info, ColliderType.Plane);
-			Normal = normal;
-			Distance = distance;
+			_normal = normal;
+			_distance = distance;
 		}
 
 		public unsafe void Allocate(BlobBuilder builder, ref BlobBuilderArray<BlobPtr<Collider>> colliders, int colliderId)
@@ -55,15 +55,15 @@ namespace VisualPinball.Unity
 
 		public override string ToString()
 		{
-			return $"PlaneCollider[{_header.ItemId}] {Distance} at ({Normal.x}/{Normal.y}/{Normal.z})";
+			return $"PlaneCollider[{_header.ItemId}] {_distance} at ({_normal.x}/{_normal.y}/{_normal.z})";
 		}
 
 		#region Narrowphase
 
-		public static float HitTest(in PlaneCollider planeColl, ref CollisionEventData collEvent, in BallData ball, float dTime)
+		public float HitTest(ref CollisionEventData collEvent, in BallData ball, float dTime)
 		{
 			// speed in normal direction
-			var bnv = math.dot(planeColl.Normal, ball.Velocity);
+			var bnv = math.dot(_normal, ball.Velocity);
 
 			// return if clearly ball is receding from object
 			if (bnv > PhysicsConstants.ContactVel) {
@@ -71,7 +71,7 @@ namespace VisualPinball.Unity
 			}
 
 			// distance from plane to ball surface
-			var bnd = math.dot(planeColl.Normal, ball.Position) - ball.Radius - planeColl.Distance;
+			var bnd = math.dot(_normal, ball.Position) - ball.Radius - _distance;
 
 			//!! solely responsible for ball through playfield?? check other places, too (radius*2??)
 			if (bnd < ball.Radius * -2.0) {
@@ -82,7 +82,7 @@ namespace VisualPinball.Unity
 			if (math.abs(bnv) <= PhysicsConstants.ContactVel) {
 				if (math.abs(bnd) <= PhysicsConstants.PhysTouch) {
 					collEvent.IsContact = true;
-					collEvent.HitNormal = planeColl.Normal;
+					collEvent.HitNormal = _normal;
 					collEvent.HitOrgNormalVelocity = bnv; // remember original normal velocity
 					collEvent.HitDistance = bnd;
 
@@ -106,31 +106,27 @@ namespace VisualPinball.Unity
 				return -1.0f;
 			}
 
-			collEvent.HitNormal = planeColl.Normal;
+			collEvent.HitNormal = _normal;
 			collEvent.HitDistance = bnd; // actual contact distance
 
 			return hitTime;
 		}
 
-		public float HitTest(ref CollisionEventData collEvent, in BallData ball, float dTime) => HitTest(this, ref collEvent, ball, dTime);
-
 		#endregion
 
 		#region Collision
 
-		public static void Collide(in PlaneCollider planeColl, ref BallData ball, in CollisionEventData collEvent, ref Random random)
+		public void Collide(ref BallData ball, in CollisionEventData collEvent, ref Random random)
 		{
-			BallCollider.Collide3DWall(ref ball, in planeColl._header.Material, in collEvent, in collEvent.HitNormal, ref random);
+			BallCollider.Collide3DWall(ref ball, in _header.Material, in collEvent, in collEvent.HitNormal, ref random);
 
 			// distance from plane to ball surface
-			var bnd = math.dot(planeColl.Normal, ball.Position) - ball.Radius - planeColl.Distance;
+			var bnd = math.dot(_normal, ball.Position) - ball.Radius - _distance;
 			if (bnd < 0) {
 				// if ball has penetrated, push it out of the plane
-				ball.Position -= planeColl.Normal * bnd;
+				ball.Position -= _normal * bnd;
 			}
 		}
-
-		public void Collide(ref BallData ball, in CollisionEventData collEvent, ref Random random) => Collide(this, ref ball, in collEvent, ref random);
 
 		#endregion
 	}

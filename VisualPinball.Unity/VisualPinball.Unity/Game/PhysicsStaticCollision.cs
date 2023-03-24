@@ -52,7 +52,7 @@ namespace VisualPinballUnity
 		{
 			switch (colliders.GetType(ball.CollisionEvent.ColliderId)) {
 				case ColliderType.Plane:
-					PlaneCollider.Collide(colliders.GetPlaneCollider(ball.CollisionEvent.ColliderId), ref ball, in ball.CollisionEvent, ref random);
+					colliders.GetPlaneCollider(ball.CollisionEvent.ColliderId).Collide(ref ball, in ball.CollisionEvent, ref random);
 					break;
 			}
 		}
