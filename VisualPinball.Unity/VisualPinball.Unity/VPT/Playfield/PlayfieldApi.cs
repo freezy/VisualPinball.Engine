@@ -34,14 +34,37 @@ namespace VisualPinball.Unity
 		protected override void CreateColliders(List<ICollider> colliders, float margin)
 		{
 			var info = ((IApiColliderGenerator)this).GetColliderInfo();
+			var planeColliderInfo = new ColliderInfo {
+				Id = -1, // is set during allocation
+				ItemId = ItemId,
+				ItemType = ItemType.Table,
+				FireEvents = false,
+				IsEnabled = true,
+				Material = new PhysicsMaterialData {
+					Elasticity = ColliderComponent.Elasticity,
+					ElasticityFalloff = ColliderComponent.ElasticityFalloff,
+					Friction = ColliderComponent.Friction,
+					ScatterAngleRad = ColliderComponent.Scatter
+				},
+				HitThreshold = 0
+			};
 
+			// do we have a playfield mesh?
 			var meshComp = GameObject.GetComponent<PlayfieldMeshComponent>();
 			if (meshComp && !meshComp.AutoGenerate) {
 				var mf = GameObject.GetComponent<MeshFilter>();
 				if (mf && mf.sharedMesh) {
 					ColliderUtils.GenerateCollidersFromMesh(mf.sharedMesh.ToVpMesh(), info, colliders);
+					
+				} else {
+					Debug.LogWarning($"Could not find mesh filter on playfield {GameObject.name}");
+					colliders.Add(new PlaneCollider(new float3(0, 0, 1), MainComponent.TableHeight, planeColliderInfo));
 				}
+			} else {
+				colliders.Add(new PlaneCollider(new float3(0, 0, 1), MainComponent.TableHeight, planeColliderInfo));
 			}
+			// add playfield glass collider
+			colliders.Add(new PlaneCollider(new float3(0, 0, -1), MainComponent.GlassHeight, planeColliderInfo));
 
 			if (ColliderComponent.CollideWithBounds) {
 
@@ -87,28 +110,6 @@ namespace VisualPinball.Unity
 				new float3(MainComponent.Left, MainComponent.Bottom, MainComponent.GlassHeight)
 			};
 			ColliderUtils.Generate3DPolyColliders(rgv3D, info, colliders);
-		}
-
-		internal (PlaneCollider, PlaneCollider) CreateColliders(int instanceId)
-		{
-			var info = new ColliderInfo {
-				ItemId = instanceId,
-				ItemType = ItemType.Table,
-				FireEvents = false,
-				IsEnabled = true,
-				Material = new PhysicsMaterialData {
-					Elasticity = ColliderComponent.Elasticity,
-					ElasticityFalloff = ColliderComponent.ElasticityFalloff,
-					Friction = ColliderComponent.Friction,
-					ScatterAngleRad = ColliderComponent.Scatter
-				},
-				HitThreshold = 0
-			};
-
-			return (
-				new PlaneCollider(new float3(0, 0, 1), MainComponent.TableHeight, info),
-				new PlaneCollider(new float3(0, 0, -1), MainComponent.GlassHeight, info)
-			);
 		}
 
 		#endregion

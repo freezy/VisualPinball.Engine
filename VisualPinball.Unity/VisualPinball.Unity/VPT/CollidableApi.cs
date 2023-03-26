@@ -81,9 +81,9 @@ namespace VisualPinball.Unity
 		public ColliderInfo GetColliderInfo(ItemType itemType)
 		{
 			return new ColliderInfo {
-				Id = -1,
-				ItemType = itemType,
+				Id = -1, // is set during allocation
 				ItemId = ItemId,
+				ItemType = itemType,
 				FireEvents = FireHitEvents,
 				IsEnabled = ColliderComponent && ColliderComponent.isActiveAndEnabled,
 				Material = ColliderComponent.PhysicsMaterialData,

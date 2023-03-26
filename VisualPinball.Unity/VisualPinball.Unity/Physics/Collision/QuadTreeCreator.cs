@@ -47,7 +47,7 @@ namespace VisualPinball.Unity
 			// 1. generate colliders
 			PerfMarkerGenerateColliders.Begin();
 			var colliderList = new List<ICollider>();
-			var (playfieldCollider, glassCollider) = player.PlayfieldApi.CreateColliders(0);
+			//var (playfieldCollider, glassCollider) = player.PlayfieldApi.CreateColliders(0);
 			itemsColliding = new NativeHashMap<Entity, bool>(itemApis.Length, Allocator.Persistent);
 			foreach (var itemApi in itemApis) {
 				// fixme job

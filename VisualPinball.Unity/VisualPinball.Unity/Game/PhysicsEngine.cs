@@ -44,6 +44,8 @@ namespace VisualPinball.Unity
 		
 		private void Start()
 		{
+			var player = GetComponent<Player>();
+			
 			// init state
 			_physicsState = new NativeArray<PhysicsState>(1, Allocator.Persistent);
 			_physicsState[0] = new PhysicsState(NowUsec, GetComponent<Player>());
@@ -55,7 +57,7 @@ namespace VisualPinball.Unity
 			Debug.Log($"Found {colliderItems.Length} collider items.");
 			var managedColliders = new List<ICollider>();
 			foreach (var colliderItem in colliderItems) {
-				colliderItem.GetColliders(managedColliders);
+				colliderItem.GetColliders(player, managedColliders, 0);
 			}
 			
 			// allocate colliders
