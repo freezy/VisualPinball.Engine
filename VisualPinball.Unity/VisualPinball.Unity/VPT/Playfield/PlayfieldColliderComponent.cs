@@ -18,9 +18,6 @@
 
 using System;
 using System.Collections.Generic;
-using Unity.Collections;
-using Unity.Collections.LowLevel.Unsafe;
-using Unity.Entities;
 using UnityEngine;
 using VisualPinball.Engine.VPT.Table;
 
@@ -60,12 +57,9 @@ namespace VisualPinball.Unity
 		protected override IApiColliderGenerator InstantiateColliderApi(Player player)
 			=> new PlayfieldApi(gameObject, player);
 
-		void ICollidableComponent.GetColliders(List<ICollider> colliders)
+		void ICollidableComponent.GetColliders(Player player, List<ICollider> colliders, float margin)
 		{
-			var api = new PlayfieldApi(gameObject, GetComponent<Player>());
-			var c = api.CreateColliders(GetInstanceID());
-			colliders.Add(c.Item1);
-			//colliders.Add(c.Item2);
+			InstantiateColliderApi(player).CreateColliders(colliders, margin);
 		}
 	}
 }
