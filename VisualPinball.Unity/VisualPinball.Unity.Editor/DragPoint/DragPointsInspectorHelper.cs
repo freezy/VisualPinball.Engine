@@ -115,6 +115,7 @@ namespace VisualPinball.Unity.Editor
 			if (dp != null) {
 				PrepareUndo($"Paste drag point {controlId}");
 				dp.Center = _storedControlPoint.ToVertex3D();
+				RebuildMeshes();
 			}
 		}
 
