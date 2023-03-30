@@ -143,9 +143,9 @@ namespace VisualPinball.Unity
 
 		public event EventHandler<SoundEventArgs> OnSound;
 
-		internal void EmitSound(string triggerId, float volume = 1, float fade = 5)
+		internal void EmitSound(string triggerId, float volume = 1)
 		{
-			OnSound?.Invoke(this, new SoundEventArgs(triggerId, volume, fade));
+			OnSound?.Invoke(this, new SoundEventArgs(triggerId, volume));
 		}
 
 		/// <summary>

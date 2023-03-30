@@ -20,6 +20,7 @@ using UnityEngine.Audio;
 using UnityEngine;
 public static class FadeMixerGroup
 {
+	//note: fade duration below 1 second causes a breakdown of this method
 	public static IEnumerator StartFade(AudioMixer audioMixer, string exposedParam, float duration, float targetVolume)
 	{
 		float currentTime = 0;

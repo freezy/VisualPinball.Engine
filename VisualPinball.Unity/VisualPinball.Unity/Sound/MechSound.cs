@@ -33,7 +33,8 @@ namespace VisualPinball.Unity
 		public float Volume = 1;
 		
 		public MechSoundAction Action = MechSoundAction.Play;
-		
+
+		[Tooltip("Increments of 1000")]
 		[Min(0)]
 		[Unit("ms")]
 		public float Fade;
