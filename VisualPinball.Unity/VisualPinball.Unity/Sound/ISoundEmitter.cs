@@ -38,13 +38,11 @@ namespace VisualPinball.Unity
 	{
 		public readonly string TriggerId;
 		public readonly float Volume;
-		public readonly float Fade;
 
-		public SoundEventArgs(string triggerId, float volume, float fade)
+		public SoundEventArgs(string triggerId, float volume)
 		{
 			TriggerId = triggerId;
 			Volume = volume;
-			Fade = fade;
 		}
 	}
 }
