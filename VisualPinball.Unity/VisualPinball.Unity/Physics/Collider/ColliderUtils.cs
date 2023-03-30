@@ -47,7 +47,6 @@ namespace VisualPinball.Unity
 		public static void GenerateCollidersFromMesh(Mesh mesh, ColliderInfo info, ICollection<ICollider> colliders, bool onlyTriangles = false)
 		{
 			var addedEdges = EdgeSet.Get();
-			var collCount = colliders.Count;
 
 			// add collision triangles and edges
 			for (var i = 0; i < mesh.Indices.Length; i += 3) {
