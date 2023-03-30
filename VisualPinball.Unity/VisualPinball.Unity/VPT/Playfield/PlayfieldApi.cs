@@ -54,7 +54,7 @@ namespace VisualPinball.Unity
 			if (meshComp && !meshComp.AutoGenerate) {
 				var mf = GameObject.GetComponent<MeshFilter>();
 				if (mf && mf.sharedMesh) {
-					ColliderUtils.GenerateCollidersFromMesh(mf.sharedMesh.ToVpMesh(), info, colliders);
+					ColliderUtils.GenerateCollidersFromMesh(mf.sharedMesh.ToVpMesh().TransformToVpx(), info, colliders);
 					
 				} else {
 					Debug.LogWarning($"Could not find mesh filter on playfield {GameObject.name}");
