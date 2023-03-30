@@ -35,7 +35,7 @@ using VisualPinball.Engine.VPT.Table;
 namespace VisualPinball.Unity
 {
 	[AddComponentMenu("Visual Pinball/Game Item/Bumper")]
-	public class BumperComponent : MainRenderableComponent<BumperData>, ISwitchDeviceComponent, ICoilDeviceComponent
+	public class BumperComponent : MainRenderableComponent<BumperData>, ISwitchDeviceComponent, ICoilDeviceComponent, ISoundEmitter
 	{
 		#region Data
 
@@ -81,6 +81,22 @@ namespace VisualPinball.Unity
 		public const float DataMeshScale = 100f;
 
 		public const string SocketSwitchItem = "socket_switch";
+		public const string SoundBumperHit = "sound_bumper_hit";
+
+		#endregion
+
+		#region ISoundEmitter
+
+		public SoundTrigger[] AvailableTriggers => new[] {
+			new SoundTrigger { Id = SoundBumperHit, Name = "Bumper Hit" }
+		};
+
+		public event EventHandler<SoundEventArgs> OnSound;
+
+		internal void EmitSound(string triggerId, float volume = 1)
+		{
+			OnSound?.Invoke(this, new SoundEventArgs(triggerId, volume));
+		}
 
 		#endregion
 

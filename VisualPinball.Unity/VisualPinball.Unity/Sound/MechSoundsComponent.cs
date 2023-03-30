@@ -73,12 +73,17 @@ namespace VisualPinball.Unity
 
 			if (_sounds.ContainsKey(e.TriggerId)) {
 
-				float fade = e.Fade;
+				float fade = _sounds[e.TriggerId].Fade;
 				bool fadeVolume = false;
 
 				//convert fade duration from milliseconds to seconds for use with StartFade method
 				if (fade > 0)
-				{ 
+				{
+					//dont have a fade minimum of less than 1 second, if there is a fade. Less than 1 second fade,
+					//and the underlying method 'FadeMixerGroup.StartFade' will break down and not work correctly
+					if (fade < 1000)
+					{ fade = 1000; }
+
 				    fade = fade / 1000;
 					fadeVolume = true;
 				}
@@ -103,11 +108,10 @@ namespace VisualPinball.Unity
 				{
 					StopCoroutine(_co);
 					audioMixer.SetFloat(exposedParameter, sliderDBVolume);
-
 				}
 
 				if (fadeVolume)
-				{ _co = StartCoroutine(FadeMixerGroup.StartFade(audioMixer, exposedParameter, fade, 0)); }
+				{ _co = StartCoroutine(FadeMixerGroup.StartFade(audioMixer, exposedParameter, 1, 0)); }
 				
 
 				Debug.Log($"Playing sound {e.TriggerId} for {name}");
