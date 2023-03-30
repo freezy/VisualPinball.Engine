@@ -170,6 +170,8 @@ namespace VisualPinball.Unity
 				kickerCollisionData.BallEntity = Entity.Null;
 				entityManager.SetComponentData(Entity, kickerCollisionData);
 			}
+
+			MainComponent.EmitSound(KickerComponent.SoundKickerDrain);
 		}
 
 		#endregion

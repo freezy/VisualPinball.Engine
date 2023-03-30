@@ -105,6 +105,8 @@ namespace VisualPinball.Unity
 
 			EntityManager.SetComponentData(Entity, movementData);
 			EntityManager.SetComponentData(Entity, velocityData);
+
+			MainComponent.EmitSound(PlungerComponent.SoundPlungerPull);
 		}
 
 		public void Fire()
@@ -138,6 +140,8 @@ namespace VisualPinball.Unity
 
 			EntityManager.SetComponentData(Entity, movementData);
 			EntityManager.SetComponentData(Entity, velocityData);
+
+			MainComponent.EmitSound(PlungerComponent.SoundPlungerRelease);
 		}
 
 		IApiCoil IApiCoilDevice.Coil(string deviceItem) => Coil(deviceItem);
