@@ -17,6 +17,7 @@
 // ReSharper disable AssignmentInConditionalExpression
 
 using System.Collections.Generic;
+using System.Linq;
 using UnityEditor;
 using UnityEngine;
 using VisualPinball.Engine.Math;
@@ -79,7 +80,9 @@ namespace VisualPinball.Unity.Editor
 
 		public DragPointData[] DragPoints { get => MeshComponent.DragPoints; set => MeshComponent.DragPoints = value; }
 		public Vector3 EditableOffset => new Vector3(-MeshComponent.MainComponent.transform.localPosition.x, -MeshComponent.MainComponent.transform.localPosition.y, MeshComponent.PositionZ);
-		public Vector3 GetDragPointOffset(float ratio) => Vector3.zero;
+		public Vector3 GetDragPointBaseHeight(float ratio) => Vector3.zero;
+		public Dictionary<string, float> GetDragPointBaseHeight(ISet<string> ids, float diffX, float diffY) => DragPoints.Select(dp => dp.AssertId()).ToDictionary(dp => dp.Id, dp => dp.CalcHeight);
+
 		public bool PointsAreLooping => true;
 		public IEnumerable<DragPointExposure> DragPointExposition => new[] { DragPointExposure.Smooth, DragPointExposure.Texture };
 		public ItemDataTransformType HandleType => ItemDataTransformType.TwoD;

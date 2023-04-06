@@ -59,9 +59,11 @@ namespace VisualPinball.Engine.Math
 				vertex1.Smooth = pdp1.IsSmooth;
 				vertex1.IsSlingshot = pdp1.IsSlingshot;
 				vertex1.IsControlPoint = true;
+				vertex1.Id = pdp1.Id;
 
 				// Properties of last point don't matter, because it won't be added to the list on this pass (it'll get added as the first point of the next curve)
 				vertex2.Set(pdp2.Center);
+				vertex2.Id = pdp2.Id;
 
 				vertices = RecurseSmoothLine(vertices, cc, 0.0f, 1.0f, vertex1, vertex2, accuracy);
 			}

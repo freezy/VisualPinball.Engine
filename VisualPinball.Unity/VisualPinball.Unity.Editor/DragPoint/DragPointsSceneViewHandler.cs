@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEditor;
@@ -22,6 +21,9 @@ using UnityEngine;
 using UnityEngine.Profiling;
 using VisualPinball.Engine.Math;
 using Color = UnityEngine.Color;
+using Matrix4x4 = UnityEngine.Matrix4x4;
+using Quaternion = UnityEngine.Quaternion;
+using Vector3 = UnityEngine.Vector3;
 
 namespace VisualPinball.Unity.Editor
 {
@@ -74,44 +76,47 @@ namespace VisualPinball.Unity.Editor
 		private void DisplayCurve()
 		{
 			Profiler.BeginSample("DisplayCurve");
-			var controlPointsSegments = new List<Vector3>[_handler.ControlPoints.Count].Select(_ => new List<Vector3>()).ToArray();
 			
 			// Display Curve & handle curve traveller
 			if (_handler.ControlPoints.Count > 1) {
 				
 				Profiler.BeginSample("Transform Points");
-				var transformedPoints = new DragPointData[_handler.ControlPoints.Count];
+				var dragPointsVpx = new DragPointData[_handler.ControlPoints.Count];
 				for (var i = 0; i < _handler.ControlPoints.Count; i++) {
-					transformedPoints[i] = new DragPointData(_handler.ControlPoints[i].DragPoint) {
-						Center = _handler.ControlPoints[i].VpxPosition.ToVertex3D()
+					dragPointsVpx[i] = new DragPointData(_handler.ControlPoints[i].DragPoint) {
+						Center = _handler.ControlPoints[i].AbsolutePosition.ToVertex3D()
 					};
+					Handles.DrawWireCube(dragPointsVpx[i].Center.ToUnityVector3().TranslateToWorld(), Vector3.one * 0.01f);
 				}
 				Profiler.EndSample();
 			
-				Profiler.BeginSample("Create Vertices");
+				Profiler.BeginSample("Create Curve Vertices");
 				var vAccuracy = Vector3.one;
 				vAccuracy = _handler.Transform.localToWorldMatrix.MultiplyVector(vAccuracy);
 				var accuracy = Mathf.Abs(vAccuracy.x * vAccuracy.y * vAccuracy.z);
 				accuracy *= HandleUtility.GetHandleSize(_handler.CurveTravellerPosition) * ControlPoint.ScreenRadius;
-				var vVertex = DragPoint.GetRgVertex<RenderVertex3D, CatmullCurve3DCatmullCurveFactory>(
-					transformedPoints, _handler.DragPointInspector.PointsAreLooping, accuracy
+				var curveVerticesVpx = DragPoint.GetRgVertex<RenderVertex3D, CatmullCurve3DCatmullCurveFactory>(
+					dragPointsVpx, _handler.DragPointInspector.PointsAreLooping, accuracy
 				);
 				Profiler.EndSample();
 			
-				if (vVertex.Length > 0) {
+				if (curveVerticesVpx.Length > 0) {
 					
+					var curveVerticesByDragPoint = new List<Vector3>[_handler.ControlPoints.Count].Select(_ => new List<Vector3>()).ToArray();
+
 					Profiler.BeginSample("Fill Control Points");
 					// Fill Control points paths
 					ControlPoint currentControlPoint = null;
-					foreach (var v in vVertex) {
-						if (v.IsControlPoint) {
+					foreach (var curveVertex in curveVerticesVpx) {
+//						Handles.DrawWireCube(curveVertex.ToUnityVector3().TranslateToWorld(), Vector3.one * 0.005f);
+						if (curveVertex.IsControlPoint) {
 							if (currentControlPoint != null) {
-								controlPointsSegments[currentControlPoint.Index].Add(v.ToUnityVector3());
+								curveVerticesByDragPoint[currentControlPoint.Index].Add(curveVertex.ToUnityVector3());
 							}
-							currentControlPoint = _handler.ControlPoints.Find(cp => cp.VpxPosition == v.ToUnityVector3());
+							currentControlPoint = _handler.ControlPoints.Find(cp => cp.AbsolutePosition == curveVertex.ToUnityVector3());
 						}
 						if (currentControlPoint != null) {
-							controlPointsSegments[currentControlPoint.Index].Add(v.ToUnityVector3());
+							curveVerticesByDragPoint[currentControlPoint.Index].Add(curveVertex.ToUnityVector3());
 						}
 					}
 					Profiler.EndSample();
@@ -119,7 +124,7 @@ namespace VisualPinball.Unity.Editor
 					// close loop if needed
 					Profiler.BeginSample("Close Loops");
 					if (_handler.DragPointInspector.PointsAreLooping) {
-						controlPointsSegments[_handler.ControlPoints.Count - 1].Add(controlPointsSegments[0][0]);
+						curveVerticesByDragPoint[_handler.ControlPoints.Count - 1].Add(curveVerticesByDragPoint[0][0]);
 					}
 					Profiler.EndSample();
 			
@@ -129,7 +134,7 @@ namespace VisualPinball.Unity.Editor
 					const float splitRatio = 0.1f;
 					foreach (var controlPoint in _handler.ControlPoints) {
 						// Split straight segments to avoid HandleUtility.ClosestPointToPolyLine issues
-						ref var segments = ref controlPointsSegments[controlPoint.Index];
+						ref var segments = ref curveVerticesByDragPoint[controlPoint.Index];
 						if (segments.Count == 2) {
 							var dir = segments[1] - segments[0];
 							var dist = dir.magnitude;
@@ -174,11 +179,13 @@ namespace VisualPinball.Unity.Editor
 					Handles.matrix = Matrix4x4.identity;
 					foreach (var controlPoint in _handler.ControlPoints) {
 						Profiler.BeginSample("Compute Segments");
-						var segments = controlPointsSegments[controlPoint.Index].Select(cp => cp.TranslateToWorld()).ToArray();
+						var segments = curveVerticesByDragPoint[controlPoint.Index].Select(cp => cp.TranslateToWorld()).ToArray();
 						Profiler.EndSample();
 						if (segments.Length > 1) {
 							Profiler.BeginSample("Determine Color");
-							Handles.color = _handler.DragPointInspector.DragPointExposition.Contains(DragPointExposure.SlingShot) && controlPoint.DragPoint.IsSlingshot ? CurveSlingShotColor : CurveColor;
+							Handles.color = _handler.DragPointInspector.DragPointExposition.Contains(DragPointExposure.SlingShot) && controlPoint.DragPoint.IsSlingshot 
+								? CurveSlingShotColor 
+								: CurveColor;
 							Profiler.EndSample();
 							Profiler.BeginSample("Handles.DrawAAPolyLine");
 							Handles.DrawAAPolyLine(CurveWidth, segments);

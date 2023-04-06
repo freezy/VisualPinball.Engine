@@ -62,17 +62,14 @@ namespace VisualPinball.Unity
 		bool DragPointsActive { get; }
 
 		/// <summary>
-		/// Returns the global offset applied on all drag points.
-		/// </summary>
-		Vector3 EditableOffset { get; }
-
-		/// <summary>
-		/// Returns the height offset regarding a given position along the curve.
+		/// Returns the base height regarding a given position along the curve.
 		/// </summary>
 		/// <param name="ratio">Position on the curve, from 0.0 to 1.0.</param>
-		/// <returns></returns>
-		Vector3 GetDragPointOffset(float ratio);
+		/// <returns>Height of the curve at given position.</returns>
+		Vector3 GetDragPointBaseHeight(float ratio);
 
+		Dictionary<string, float> GetDragPointBaseHeight(ISet<string> ids, float diffX, float diffY);
+		
 		/// <summary>
 		/// Returns whether the drag points are looping or not.
 		/// </summary>

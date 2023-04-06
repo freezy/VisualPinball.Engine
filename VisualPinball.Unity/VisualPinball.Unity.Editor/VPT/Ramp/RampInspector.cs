@@ -17,6 +17,7 @@
 // ReSharper disable AssignmentInConditionalExpression
 
 using System.Collections.Generic;
+using System.Linq;
 using UnityEditor;
 using UnityEngine;
 using VisualPinball.Engine.Math;
@@ -152,11 +153,28 @@ namespace VisualPinball.Unity.Editor
 		public bool DragPointsActive => true;
 		public DragPointData[] DragPoints { get => MainComponent.DragPoints; set => MainComponent.DragPoints = value; }
 		public Vector3 EditableOffset => Vector3.zero;
-		public Vector3 GetDragPointOffset(float ratio) => new Vector3(0.0f, 0.0f, (MainComponent.HeightTop - MainComponent.HeightBottom) * ratio);
+		public Vector3 GetDragPointBaseHeight(float ratio) => new Vector3(0.0f, 0.0f, (MainComponent.HeightTop - MainComponent.HeightBottom) * ratio);
 		public bool PointsAreLooping => false;
 		public IEnumerable<DragPointExposure> DragPointExposition => new[] { DragPointExposure.Smooth, DragPointExposure.SlingShot };
 		public ItemDataTransformType HandleType => ItemDataTransformType.ThreeD;
 		public DragPointsInspectorHelper DragPointsHelper { get; private set; }
+		public Dictionary<string, float> GetDragPointBaseHeight(ISet<string> ids, float diffX, float diffY)
+		{
+			var dragPoints = MainComponent.DragPoints.Select(dp => dp.AssertId().CloneWithId()).ToArray();
+			foreach (var dp in dragPoints.Where(dp => ids.Contains(dp.Id))) {
+				dp.Move(diffX, diffY);
+			}
+			var rampClone = new RampData {
+				DragPoints = dragPoints,
+				RampType = MainComponent.Type,
+				HeightTop = MainComponent.HeightTop,
+				HeightBottom = MainComponent.HeightBottom,
+				WidthTop = MainComponent.WidthTop,
+				WidthBottom = MainComponent.WidthBottom
+			};
+			new RampMeshGenerator(rampClone).GetRampVertex(0, -1, true);
+			return rampClone.DragPoints.ToDictionary(dp => dp.Id, dp => dp.CalcHeight);
+		}
 
 		#endregion
 	}

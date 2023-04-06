@@ -15,13 +15,13 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 #region ReSharper
-// ReSharper disable CompareOfFloatsByEqualityOperator
 // ReSharper disable LoopCanBeConvertedToQuery
 // ReSharper disable CommentTypo
 #endregion
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using VisualPinball.Engine.Game;
 using VisualPinball.Engine.Math;
 using MathF = VisualPinball.Engine.Math.MathF;
@@ -511,9 +511,9 @@ namespace VisualPinball.Engine.VPT.Ramp
 			var result = new RampVertex();
 
 			// vvertex are the 2D vertices forming the central curve of the ramp as seen from above
-			var vertex = GetCentralCurve(accuracy);
+			var vertices = GetCentralCurve(accuracy);
 
-			var numVertices = vertex.Length;
+			var numVertices = vertices.Length;
 
 			result.VertexCount = numVertices;
 			result.PointHeights = new float[numVertices];
@@ -529,8 +529,8 @@ namespace VisualPinball.Engine.VPT.Ramp
 			var topHeight = _data.HeightTop + tableHeight;
 
 			for (var i = 0; i < numVertices - 1; i++) {
-				var v1 = vertex[i];
-				var v2 = vertex[i + 1];
+				var v1 = vertices[i];
+				var v2 = vertices[i + 1];
 
 				var dx = v1.X - v2.X;
 				var dy = v1.Y - v2.Y;
@@ -542,9 +542,9 @@ namespace VisualPinball.Engine.VPT.Ramp
 			var currentLength = 0f;
 			for (var i = 0; i < numVertices; i++) {
 				// clamp next and prev as ramps do not loop
-				var prev = vertex[i > 0 ? i - 1 : i];
-				var next = vertex[i < numVertices - 1 ? i + 1 : i];
-				var middle = vertex[i];
+				var prev = vertices[i > 0 ? i - 1 : i];
+				var next = vertices[i < numVertices - 1 ? i + 1 : i];
+				var middle = vertices[i];
 
 				result.Cross[i] = middle.IsControlPoint;
 
@@ -612,7 +612,7 @@ namespace VisualPinball.Engine.VPT.Ramp
 				var currentWidth = percentage * (_data.WidthTop - _data.WidthBottom) + _data.WidthBottom;
 				result.PointHeights[i] = middle.Z + percentage * (topHeight - bottomHeight) + bottomHeight;
 
-				AssignHeightToControlPoint(new Vertex2D(vertex[i].X, vertex[i].Y), middle.Z + percentage * (topHeight - bottomHeight) + bottomHeight);
+				AssignHeightToControlPoint(vertices[i].Id, middle.Z + percentage * (topHeight - bottomHeight) + bottomHeight);
 				result.PointRatios[i] = 1.0f - percentage;
 
 				// only change the width if we want to create vertices for rendering or for the editor
@@ -638,6 +638,13 @@ namespace VisualPinball.Engine.VPT.Ramp
 		public RenderVertex3D[] GetCentralCurve(float acc = -1.0f)
 		{
 			float accuracy;
+
+			// todo might be able to remove in the future
+			if (_data.DragPoints.Length > 0 && _data.DragPoints[0].Id == null) {
+				foreach (var dp in _data.DragPoints) {
+					dp.AssertId();
+				}
+			}
 
 			// as solid ramps are rendered into the static buffer, always use maximum precision
 			if (acc != -1.0) {
@@ -667,12 +674,11 @@ namespace VisualPinball.Engine.VPT.Ramp
 			    || _data.Type == RampType.RampType3WireRight;
 		}
 
-		private void AssignHeightToControlPoint(Vertex2D v, float height)
+		private void AssignHeightToControlPoint(string id, float height)
 		{
-			foreach (var dragPoint in _data.DragPoints) {
-				if (dragPoint.Center.X == v.X && dragPoint.Center.Y == v.Y) {
-					dragPoint.CalcHeight = height;
-				}
+			var dp = _data.DragPoints.FirstOrDefault(dp => dp.Id == id);
+			if (dp != null) {
+				dp.CalcHeight = height;
 			}
 		}
 	}
