@@ -15,7 +15,6 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using System.Collections.Generic;
-using UnityEngine;
 using VisualPinball.Engine.Math;
 using VisualPinball.Unity.Editor;
 
@@ -61,15 +60,6 @@ namespace VisualPinball.Unity
 		/// </summary>
 		bool DragPointsActive { get; }
 
-		/// <summary>
-		/// Returns the base height regarding a given position along the curve.
-		/// </summary>
-		/// <param name="ratio">Position on the curve, from 0.0 to 1.0.</param>
-		/// <returns>Height of the curve at given position.</returns>
-		Vector3 GetDragPointBaseHeight(float ratio);
-
-		Dictionary<string, float> GetDragPointBaseHeight(ISet<string> ids, float diffX, float diffY);
-		
 		/// <summary>
 		/// Returns whether the drag points are looping or not.
 		/// </summary>

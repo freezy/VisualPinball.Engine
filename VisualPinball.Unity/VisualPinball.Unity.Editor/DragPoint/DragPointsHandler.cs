@@ -17,7 +17,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Unity.Mathematics;
 using UnityEditor;
 using UnityEngine;
 using VisualPinball.Engine.Math;
@@ -26,7 +25,7 @@ using Object = UnityEngine.Object;
 
 namespace VisualPinball.Unity.Editor
 {
-	public delegate void OnDragPointPositionChange();
+	public delegate void DragPointPositionChange();
 
 	public class DragPointsHandler
 	{
@@ -293,7 +292,7 @@ namespace VisualPinball.Unity.Editor
 		///
 		/// <param name="evt">Event from the inspector</param>
 		/// <param name="onChange"></param>
-		public void OnSceneGUI(Event evt, OnDragPointPositionChange onChange = null)
+		public void OnSceneGUI(Event evt, DragPointPositionChange onChange = null)
 		{
 			switch (evt.type) {
 				case EventType.Layout:
@@ -309,8 +308,9 @@ namespace VisualPinball.Unity.Editor
 					break;
 			}
 
-			// Handle the common position handler for all selected control points
 			if (SelectedControlPoints.Count > 0) {
+				
+				// set start positions since clicked
 				if (evt.type == EventType.MouseDown) {
 					_startPos = _centerSelected;
 					_startPosZ.Clear();
@@ -318,21 +318,17 @@ namespace VisualPinball.Unity.Editor
 						_startPosZ[cp.DragPointId] = cp.DragPoint.Center.Z;
 					}
 				}
-				EditorGUI.BeginChangeCheck();
+				
 				// get new pos since last frame
+				EditorGUI.BeginChangeCheck();
 				var newHandlePos = HandlesUtils.HandlePosition(Transform.GetComponentInParent<PlayfieldComponent>(), _centerSelected, DragPointInspector.HandleType);
 				if (EditorGUI.EndChangeCheck()) {
-					var deltaPos = newHandlePos - _centerSelected;
-					
-					// get heights of new position(s)
-					var selectedIds = new HashSet<string>(SelectedControlPoints.Select(cp => cp.DragPointId));
-					var dragPointsPosZ = DragPointInspector.GetDragPointBaseHeight(selectedIds, deltaPos.x, deltaPos.y);
+					var delta = newHandlePos - _centerSelected;
 					var deltaZ = newHandlePos.z - _startPos.z;
-					
 					foreach (var controlPoint in SelectedControlPoints) {
 						controlPoint.DragPoint.Center = new Vertex3D(
-							controlPoint.DragPoint.Center.X + deltaPos.x,
-							controlPoint.DragPoint.Center.Y + deltaPos.y,
+							controlPoint.DragPoint.Center.X + delta.x,
+							controlPoint.DragPoint.Center.Y + delta.y,
 							_startPosZ[controlPoint.DragPointId] + deltaZ
 						);
 					}
