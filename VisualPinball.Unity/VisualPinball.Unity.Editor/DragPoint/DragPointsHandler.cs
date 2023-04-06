@@ -17,6 +17,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Unity.Mathematics;
 using UnityEditor;
 using UnityEngine;
 using VisualPinball.Engine.Math;
@@ -25,7 +26,7 @@ using Object = UnityEngine.Object;
 
 namespace VisualPinball.Unity.Editor
 {
-	public delegate void OnDragPointPositionChange(Vector3 newPosition);
+	public delegate void OnDragPointPositionChange();
 
 	public class DragPointsHandler
 	{
@@ -47,7 +48,7 @@ namespace VisualPinball.Unity.Editor
 		/// <summary>
 		/// Control points storing & rendering
 		/// </summary>
-		public List<ControlPoint> ControlPoints { get; } = new List<ControlPoint>();
+		public List<ControlPoint> ControlPoints { get; } = new();
 
 		/// <summary>
 		/// Scene view handler
@@ -61,14 +62,14 @@ namespace VisualPinball.Unity.Editor
 		/// <summary>
 		/// Drag points selection
 		/// </summary>
-		public List<ControlPoint> SelectedControlPoints { get; } = new List<ControlPoint>();
+		public List<ControlPoint> SelectedControlPoints { get; } = new();
 		
 		/// <summary>
 		/// Position of the tool handle. On the drag point when only one selected, otherwise in the geometric center of the selection.
 		///
 		/// VPX space. 
 		/// </summary>
-		private Vector3 _dragPointHandlePosition = Vector3.zero;
+		private Vector3 _centerSelected = Vector3.zero;
 
 		/// <summary>
 		/// Curve traveller handling
@@ -88,9 +89,12 @@ namespace VisualPinball.Unity.Editor
 		public int CurveTravellerControlPointIdx { get; set; } = -1;
 
 		/// <summary>
-		/// The mid-point where points are flipped, in vpx space.
+		/// The center of all drag points, in VPX space.
 		/// </summary>
 		private Vector3 _center = Vector3.zero;
+
+		private Vector3 _startPos;
+		private Dictionary<string, float> _startPosZ = new();
 
 		/// <summary>
 		/// Every DragPointsInspector instantiates this to manage its curve handling.
@@ -133,8 +137,7 @@ namespace VisualPinball.Unity.Editor
 		}
 
 		public DragPointData GetDragPoint(int controlId) => GetControlPoint(controlId)?.DragPoint;
-		private ControlPoint GetControlPoint(int controlId)
-			=> ControlPoints.Find(cp => cp.ControlId == controlId);
+		private ControlPoint GetControlPoint(int controlId) => ControlPoints.Find(cp => cp.ControlId == controlId);
 
 		/// <summary>
 		/// Adds a new control point to the scene view and its drag point data
@@ -151,11 +154,8 @@ namespace VisualPinball.Unity.Editor
 			};
 
 			var newIdx = CurveTravellerControlPointIdx + 1;
-			float ratio = (float)newIdx / DragPointInspector.DragPoints.Length;
 			var dragPointPosition = CurveTravellerPosition.TranslateToVpx();
-			
-			dragPointPosition -= DragPointInspector.EditableOffset;
-			dragPointPosition -= DragPointInspector.GetDragPointOffset(ratio);
+			dragPointPosition.z = 0;
 			dragPoint.Center = dragPointPosition.ToVertex3D();
 			var dragPoints = DragPointInspector.DragPoints.ToList();
 			dragPoints.Insert(newIdx, dragPoint);
@@ -163,10 +163,9 @@ namespace VisualPinball.Unity.Editor
 
 			ControlPoints.Insert(newIdx,
 			new ControlPoint(
-					DragPointInspector,
-					GUIUtility.GetControlID(FocusType.Passive),
-					newIdx,
-					ratio
+				DragPointInspector,
+				GUIUtility.GetControlID(FocusType.Passive),
+				newIdx
 			));
 			RebuildControlPoints();
 		}
@@ -201,33 +200,20 @@ namespace VisualPinball.Unity.Editor
 		/// <param name="flipAxis">Axis to flip</param>
 		public void FlipDragPoints(FlipAxis flipAxis)
 		{
-			var axis = flipAxis == FlipAxis.X
-				? _center.x
-				: flipAxis == FlipAxis.Y ? _center.y : _center.z;
-			
 			foreach (var controlPoint in ControlPoints) {
-				var coord = flipAxis switch {
-					FlipAxis.X => controlPoint.VpxPosition.x,
-					FlipAxis.Y => controlPoint.Position.y,
-					_ => controlPoint.Position.z
-				};
-			
-				coord = axis + (axis - coord);
-				var pos = controlPoint.VpxPosition;
 				switch (flipAxis) {
 					case FlipAxis.X:
-						pos.x = coord;
+						controlPoint.DragPoint.Center.X =  _center.x + (_center.x - controlPoint.DragPoint.Center.X);
 						break;
 					case FlipAxis.Y:
-						pos.y = coord;
+						controlPoint.DragPoint.Center.Y = _center.y + (_center.y - controlPoint.DragPoint.Center.Y);
 						break;
 					case FlipAxis.Z:
-						pos.z = coord;
+						controlPoint.DragPoint.Center.Z *= -1;
 						break;
 					default:
 						throw new ArgumentOutOfRangeException(nameof(flipAxis), flipAxis, null);
 				}
-				controlPoint.VpxPosition = pos;
 			}
 		}
 
@@ -272,13 +258,11 @@ namespace VisualPinball.Unity.Editor
 			ControlPoints.Clear();
 			var dragPoints = DragPointInspector.DragPoints;
 			for (var i = 0; i < dragPoints.Length; ++i) {
+				dragPoints[i].AssertId();
 				var cp = new ControlPoint(
 					DragPointInspector,
 					GUIUtility.GetControlID(FocusType.Passive),
-					i,
-					dragPoints.Length > 1
-						? (float)i / (dragPoints.Length - 1)
-						: 0.0f
+					i
 				);
 				ControlPoints.Add(cp);
 			}
@@ -312,9 +296,8 @@ namespace VisualPinball.Unity.Editor
 		public void OnSceneGUI(Event evt, OnDragPointPositionChange onChange = null)
 		{
 			switch (evt.type) {
-
 				case EventType.Layout:
-					InitSceneGui();
+					OnSceneLayout();
 					break;
 
 				case EventType.MouseDown:
@@ -328,14 +311,32 @@ namespace VisualPinball.Unity.Editor
 
 			// Handle the common position handler for all selected control points
 			if (SelectedControlPoints.Count > 0) {
-				EditorGUI.BeginChangeCheck();
-				var newHandlePos = HandlesUtils.HandlePosition(Transform.GetComponentInParent<PlayfieldComponent>(), _dragPointHandlePosition, DragPointInspector.HandleType);
-				if (EditorGUI.EndChangeCheck()) {
-					onChange?.Invoke(newHandlePos);
-					var deltaPosition = newHandlePos - _dragPointHandlePosition;
-					foreach (var controlPoint in SelectedControlPoints) {
-						controlPoint.VpxPosition += deltaPosition;
+				if (evt.type == EventType.MouseDown) {
+					_startPos = _centerSelected;
+					_startPosZ.Clear();
+					foreach (var cp in SelectedControlPoints) {
+						_startPosZ[cp.DragPointId] = cp.DragPoint.Center.Z;
 					}
+				}
+				EditorGUI.BeginChangeCheck();
+				// get new pos since last frame
+				var newHandlePos = HandlesUtils.HandlePosition(Transform.GetComponentInParent<PlayfieldComponent>(), _centerSelected, DragPointInspector.HandleType);
+				if (EditorGUI.EndChangeCheck()) {
+					var deltaPos = newHandlePos - _centerSelected;
+					
+					// get heights of new position(s)
+					var selectedIds = new HashSet<string>(SelectedControlPoints.Select(cp => cp.DragPointId));
+					var dragPointsPosZ = DragPointInspector.GetDragPointBaseHeight(selectedIds, deltaPos.x, deltaPos.y);
+					var deltaZ = newHandlePos.z - _startPos.z;
+					
+					foreach (var controlPoint in SelectedControlPoints) {
+						controlPoint.DragPoint.Center = new Vertex3D(
+							controlPoint.DragPoint.Center.X + deltaPos.x,
+							controlPoint.DragPoint.Center.Y + deltaPos.y,
+							_startPosZ[controlPoint.DragPointId] + deltaZ
+						);
+					}
+					onChange?.Invoke();
 				}
 			}
 
@@ -343,14 +344,14 @@ namespace VisualPinball.Unity.Editor
 			_sceneViewHandler.OnSceneGUI();
 		}
 
-		private void InitSceneGui()
+		private void OnSceneLayout()
 		{
 			SelectedControlPoints.Clear();
 			_center = Vector3.zero;
 
 			//Setup Screen positions & controlID for control points (in case of modification of drag points coordinates outside)
 			foreach (var controlPoint in ControlPoints) {
-				_center += controlPoint.VpxPosition;
+				_center += controlPoint.AbsolutePosition;
 				if (controlPoint.IsSelected && !controlPoint.DragPoint.IsLocked) {
 					SelectedControlPoints.Add(controlPoint);
 				}
@@ -370,11 +371,11 @@ namespace VisualPinball.Unity.Editor
 
 			//Setup PositionHandle if some control points are selected
 			if (SelectedControlPoints.Count > 0) {
-				_dragPointHandlePosition = Vector3.zero;
+				_centerSelected = Vector3.zero;
 				foreach (var sCp in SelectedControlPoints) {
-					_dragPointHandlePosition += sCp.VpxPosition;
+					_centerSelected += sCp.AbsolutePosition;
 				}
-				_dragPointHandlePosition /= SelectedControlPoints.Count;
+				_centerSelected /= SelectedControlPoints.Count;
 			}
 
 			if (CurveTravellerVisible) {

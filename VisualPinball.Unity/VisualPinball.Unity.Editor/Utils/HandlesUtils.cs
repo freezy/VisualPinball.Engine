@@ -27,47 +27,45 @@ namespace VisualPinball.Unity.Editor
 		/// <param name="playfield">Reference to parent playfield</param>
 		/// <param name="position">Original position in VPX space</param>
 		/// <param name="type">Allowed position type</param>
+		/// <param name="handleSize"></param>
+		/// <param name="snap"></param>
 		/// <returns>Moved position in VPX space.</returns>
-		public static Vector3 HandlePosition(PlayfieldComponent playfield, Vector3 position, ItemDataTransformType type)
+		public static Vector3 HandlePosition(PlayfieldComponent playfield, Vector3 position, ItemDataTransformType type, float handleSize = 0.2f, float snap = 0.0f)
 		{
-			return HandlePosition(playfield, position, type, 0.2f, 0.0f);
-		}
-
-		private static Vector3 HandlePosition(PlayfieldComponent playfield, Vector3 position, ItemDataTransformType type, float handleSize, float snap)
-		{
-			var forward = Vector3.forward.TranslateToWorld();
-			var right = Vector3.right.TranslateToWorld();
-			var up = Vector3.up.TranslateToWorld();
-			var newPos = position.TranslateToWorld();
+			var pos = position.TranslateToWorld();
 			Handles.matrix = playfield == null ? Matrix4x4.identity : playfield.transform.localToWorldMatrix;
 			
 			switch (type) {
 				case ItemDataTransformType.TwoD: {
 
+					var forward = Vector3.forward.TranslateToWorld().normalized;
+					var right = Vector3.right.TranslateToWorld().normalized;
+					var up = Vector3.up.TranslateToWorld().normalized;
+
 					Handles.color = Handles.xAxisColor;
-					newPos = Handles.Slider(newPos, right);
+					pos = Handles.Slider(pos, right);
 
 					Handles.color = Handles.yAxisColor;
-					newPos = Handles.Slider(newPos, up);
+					pos = Handles.Slider(pos, up);
 
 					Handles.color = Handles.zAxisColor;
-					newPos = Handles.Slider2D(
-						newPos,
+					pos = Handles.Slider2D(
+						pos,
 						forward,
 						right,
 						up,
-						HandleUtility.GetHandleSize(newPos) * handleSize,
+						HandleUtility.GetHandleSize(pos) * handleSize,
 						Handles.RectangleHandleCap,
 						snap);
 					break;
 				}
 
 				case ItemDataTransformType.ThreeD: {
-					newPos = Handles.PositionHandle(newPos, Quaternion.identity.RotateToWorld());
+					pos = Handles.PositionHandle(pos, Quaternion.identity.RotateToWorld());
 					break;
 				}
 			}
-			return newPos.TranslateToVpx();
+			return pos.TranslateToVpx();
 		}
 
 	}

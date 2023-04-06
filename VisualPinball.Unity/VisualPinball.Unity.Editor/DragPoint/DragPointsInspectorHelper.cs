@@ -65,7 +65,7 @@ namespace VisualPinball.Unity.Editor
 		public void RebuildMeshes()
 		{
 			_mainComponent.RebuildMeshes();
-			if (_playfieldComponent != null) {
+			if (_playfieldComponent) {
 				WalkChildren(_playfieldComponent.transform, UpdateSurfaceReferences);
 			} else {
 				Debug.LogWarning($"{_mainComponent.name} doesn't seem to have a playfield parent.");
@@ -172,6 +172,7 @@ namespace VisualPinball.Unity.Editor
 		{
 			PrepareUndo($"Add drag point at position {DragPointsHandler.CurveTravellerPosition}");
 			DragPointsHandler.AddDragPointOnTraveller();
+			RebuildMeshes();
 		}
 
 		/// <summary>
@@ -247,7 +248,7 @@ namespace VisualPinball.Unity.Editor
 			}
 		}
 
-		private void OnDragPointPositionChange(Vector3 newPos)
+		private void OnDragPointPositionChange()
 		{
 			RebuildMeshes();
 			PrepareUndo("Change Drag Point Position");

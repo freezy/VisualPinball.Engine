@@ -35,6 +35,8 @@ namespace VisualPinball.Engine.Math
 	[Serializable]
 	public class DragPointData : BiffData
 	{
+		public string Id;
+		
 		[BiffVertex("VCEN", Pos = 1, WriteAsVertex2D = true)]
 		public Vertex3D Center;
 
@@ -64,13 +66,19 @@ namespace VisualPinball.Engine.Math
 
 		[BiffBool("LVIS", Pos = 10, WasAddedInVp107 = true)]
 		public bool EditorLayerVisibility = true;
-
+		
 		public float CalcHeight;
 
 		[ExcludeFromCodeCoverage]
 		public override string ToString()
 		{
 			return $"DragPoint({Center.X}/{Center.Y}/{Center.Z}, {(IsSmooth ? "S" : "")}{(IsSlingshot ? "SS" : "")}{(HasAutoTexture ? "A" : "")})";
+		}
+
+		public DragPointData AssertId()
+		{
+			Id ??= GenerateId();
+			return this;
 		}
 
 		public DragPointData Lerp(DragPointData dp, float pos)
@@ -103,6 +111,26 @@ namespace VisualPinball.Engine.Math
 			};
 		}
 
+		public DragPointData Move(float x, float y)
+		{
+			Center.X += x;
+			Center.Y += y;
+			return this;
+		}
+
+		public DragPointData CloneWithId()
+		{
+			var clone = Clone();
+			clone.Id = Id;
+			return clone;
+		}
+
+		public DragPointData ResetZ()
+		{
+			PosZ = 0;
+			return this;
+		}
+
 		#region BIFF
 
 		static DragPointData()
@@ -112,18 +140,21 @@ namespace VisualPinball.Engine.Math
 
 		public DragPointData(Vertex3D center) : base(null)
 		{
+			Id = GenerateId();
 			Center = center;
 			HasAutoTexture = true;
 		}
 
 		public DragPointData(float x, float y) : base(null)
 		{
+			Id = GenerateId();
 			Center = new Vertex3D(x, y, 0f);
 			HasAutoTexture = true;
 		}
 
 		public DragPointData(DragPointData rf) : base(null)
 		{
+			Id = GenerateId();
 			Center = rf.Center;
 			PosZ = rf.PosZ;
 			IsSmooth = rf.IsSmooth;
@@ -138,6 +169,7 @@ namespace VisualPinball.Engine.Math
 		public DragPointData(BinaryReader reader) : base(null)
 		{
 			Load(this, reader, Attributes);
+			Id = GenerateId();
 		}
 
 		public override void Write(BinaryWriter writer, HashWriter hashWriter)
@@ -147,6 +179,8 @@ namespace VisualPinball.Engine.Math
 		}
 
 		private static readonly Dictionary<string, List<BiffAttribute>> Attributes = new Dictionary<string, List<BiffAttribute>>();
+		
+		private static string GenerateId() => Guid.NewGuid().ToString()[..8];
 
 		#endregion
 

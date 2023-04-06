@@ -37,23 +37,16 @@ namespace VisualPinball.Unity.Editor
 		/// Reference to the drag point data
 		/// </summary>
 		public DragPointData DragPoint;
-
+		
 		/// <summary>
-		/// Position in local space
+		/// Position in VPX space
 		/// </summary>
-		public Vector3 VpxPosition {
-			get => DragPoint.Center.ToUnityVector3()
-			       + _dragPointsInspector.EditableOffset
-			       + _dragPointsInspector.GetDragPointOffset(IndexRatio);
-			set => DragPoint.Center = value.ToVertex3D()
-			       - _dragPointsInspector.EditableOffset.ToVertex3D()
-			       - _dragPointsInspector.GetDragPointOffset(IndexRatio).ToVertex3D();
-		}
+		public Vector3 AbsolutePosition => new(DragPoint.Center.X, DragPoint.Center.Y, DragPoint.CalcHeight);
 
 		/// <summary>
 		/// Position in world space
 		/// </summary>
-		public Vector3 Position => VpxPosition.TranslateToWorld();
+		public Vector3 Position => AbsolutePosition.TranslateToWorld();
 
 		public float HandleSize => HandleUtility.GetHandleSize(Position) * ScreenRadius;
 
@@ -68,24 +61,20 @@ namespace VisualPinball.Unity.Editor
 		public readonly int ControlId;
 
 		/// <summary>
+		/// The DragPoint ID that is saved within the drag point.
+		/// </summary>
+		public string DragPointId => DragPoint.Id;
+
+		/// <summary>
 		/// Index of the drag point within the game item's drag point array.
 		/// </summary>
 		public readonly int Index;
-
-		/// <summary>
-		/// Relative position on the curve, from 0.0 to 1.0.
-		/// </summary>
-		public readonly float IndexRatio;
 		
-		private readonly IDragPointsInspector _dragPointsInspector;
-
-		public ControlPoint(IDragPointsInspector dragPointsInspector, int controlId, int idx, float indexRatio)
+		public ControlPoint(IDragPointsInspector dragPointsInspector, int controlId, int idx)
 		{
 			DragPoint = dragPointsInspector.DragPoints[idx];
-			_dragPointsInspector = dragPointsInspector;
 			ControlId = controlId;
 			Index = idx;
-			IndexRatio = indexRatio;
 		}
 	}
 }

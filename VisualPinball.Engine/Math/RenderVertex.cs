@@ -20,6 +20,8 @@ namespace VisualPinball.Engine.Math
 	{
 		public float X;
 		public float Y;
+		
+		public string Id { get; set; }
 
 		public float GetX() => X;
 		public float GetY() => Y;
@@ -53,6 +55,8 @@ namespace VisualPinball.Engine.Math
 		public float X;
 		public float Y;
 		public float Z;
+		
+		public string Id { get; set; }
 
 		public float GetX() => X;
 		public float GetY() => Y;
@@ -89,8 +93,9 @@ namespace VisualPinball.Engine.Math
 
 	public interface IRenderVertex
 	{
+		string Id { get; set; }
+		
 		void Set(Vertex3D v);
-
 		float GetX();
 		float GetY();
 

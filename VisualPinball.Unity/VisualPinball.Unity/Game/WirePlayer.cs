@@ -364,7 +364,7 @@ namespace VisualPinball.Unity
 				return;
 			}
 			foreach (var wireConfig in _gleDestAssignments[id]) {
-				if (!_wireDevices.ContainsKey(wireConfig.Device)) {
+				if (wireConfig.Device == null || !_wireDevices.ContainsKey(wireConfig.Device)) {
 					continue;
 				}
 				var now = Time.realtimeSinceStartup;
