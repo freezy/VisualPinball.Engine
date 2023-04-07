@@ -77,5 +77,10 @@ namespace VisualPinball.Unity
 		ItemDataTransformType HandleType { get; }
 
 		DragPointsInspectorHelper DragPointsHelper { get; }
+		
+		/// <summary>
+		/// The global z-offset of all drag points, to render properly in editor.
+		/// </summary>
+		float ZOffset { get; }
 	}
 }

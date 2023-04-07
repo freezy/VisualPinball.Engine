@@ -136,6 +136,7 @@ namespace VisualPinball.Unity.Editor
 		}
 
 		public DragPointData GetDragPoint(int controlId) => GetControlPoint(controlId)?.DragPoint;
+		public ControlPoint GetControlPoint(string dragPointId) => ControlPoints.Find(cp => cp.DragPointId == dragPointId);
 		private ControlPoint GetControlPoint(int controlId) => ControlPoints.Find(cp => cp.ControlId == controlId);
 
 		/// <summary>
@@ -355,7 +356,7 @@ namespace VisualPinball.Unity.Editor
 				HandleUtility.AddControl(
 					controlPoint.ControlId,
 					HandleUtility.DistanceToCircle(
-						controlPoint.Position,
+						controlPoint.EditorPositionWorld,
 						controlPoint.HandleSize
 					)
 				);
@@ -369,7 +370,7 @@ namespace VisualPinball.Unity.Editor
 			if (SelectedControlPoints.Count > 0) {
 				_centerSelected = Vector3.zero;
 				foreach (var sCp in SelectedControlPoints) {
-					_centerSelected += sCp.AbsolutePosition;
+					_centerSelected += sCp.EditorPositionVpx;
 				}
 				_centerSelected /= SelectedControlPoints.Count;
 			}
