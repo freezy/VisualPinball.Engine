@@ -83,10 +83,11 @@ namespace VisualPinball.Unity.Editor
 				Profiler.BeginSample("Transform Points");
 				var dragPointsVpx = new DragPointData[_handler.ControlPoints.Count];
 				for (var i = 0; i < _handler.ControlPoints.Count; i++) {
+					var pos = _handler.ControlPoints[i].AbsolutePosition.ToVertex3D();
 					dragPointsVpx[i] = new DragPointData(_handler.ControlPoints[i].DragPoint) {
-						Center = _handler.ControlPoints[i].AbsolutePosition.ToVertex3D()
+						Center = new Vertex3D(pos.X, pos.Y, _handler.DragPointInspector.ZOffset),
+						Id = _handler.ControlPoints[i].DragPoint.Id
 					};
-					Handles.DrawWireCube(dragPointsVpx[i].Center.ToUnityVector3().TranslateToWorld(), Vector3.one * 0.01f);
 				}
 				Profiler.EndSample();
 			
@@ -108,12 +109,12 @@ namespace VisualPinball.Unity.Editor
 					// Fill Control points paths
 					ControlPoint currentControlPoint = null;
 					foreach (var curveVertex in curveVerticesVpx) {
-//						Handles.DrawWireCube(curveVertex.ToUnityVector3().TranslateToWorld(), Vector3.one * 0.005f);
 						if (curveVertex.IsControlPoint) {
 							if (currentControlPoint != null) {
 								curveVerticesByDragPoint[currentControlPoint.Index].Add(curveVertex.ToUnityVector3());
 							}
-							currentControlPoint = _handler.ControlPoints.Find(cp => cp.AbsolutePosition == curveVertex.ToUnityVector3());
+
+							currentControlPoint = _handler.GetControlPoint(curveVertex.Id);
 						}
 						if (currentControlPoint != null) {
 							curveVerticesByDragPoint[currentControlPoint.Index].Add(curveVertex.ToUnityVector3());
@@ -232,11 +233,11 @@ namespace VisualPinball.Unity.Editor
 						? Color.green
 						: Color.gray;
 
-				var pos = controlPoint.Position;
+				var pos = controlPoint.EditorPositionWorld;
 				var handleSize = controlPoint.HandleSize;
 				Handles.SphereHandleCap(-1, pos, Quaternion.identity, handleSize, EventType.Repaint);
 				Handles.Label(pos - (Vector3.right * handleSize - Vector3.forward * handleSize * 2f) * 0.1f, $"{i}", style);
-				var dist = Vector3.Distance(_handler.CurveTravellerPosition, controlPoint.Position);
+				var dist = Vector3.Distance(_handler.CurveTravellerPosition, controlPoint.EditorPositionWorld);
 				distToCPoint = Mathf.Min(distToCPoint, dist);
 			}
 

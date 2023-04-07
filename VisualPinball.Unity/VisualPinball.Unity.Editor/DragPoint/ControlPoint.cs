@@ -43,12 +43,14 @@ namespace VisualPinball.Unity.Editor
 		/// </summary>
 		public Vector3 AbsolutePosition => new(DragPoint.Center.X, DragPoint.Center.Y, DragPoint.CalcHeight);
 
+		public Vector3 EditorPositionVpx => AbsolutePosition + new Vector3(0, 0, _dragPointsInspector.ZOffset);
+
 		/// <summary>
 		/// Position in world space
 		/// </summary>
-		public Vector3 Position => AbsolutePosition.TranslateToWorld();
+		public Vector3 EditorPositionWorld => EditorPositionVpx.TranslateToWorld();
 
-		public float HandleSize => HandleUtility.GetHandleSize(Position) * ScreenRadius;
+		public float HandleSize => HandleUtility.GetHandleSize(EditorPositionWorld) * ScreenRadius;
 
 		/// <summary>
 		/// Currently selected or not?
@@ -69,12 +71,15 @@ namespace VisualPinball.Unity.Editor
 		/// Index of the drag point within the game item's drag point array.
 		/// </summary>
 		public readonly int Index;
+
+		private readonly IDragPointsInspector _dragPointsInspector;
 		
 		public ControlPoint(IDragPointsInspector dragPointsInspector, int controlId, int idx)
 		{
 			DragPoint = dragPointsInspector.DragPoints[idx];
 			ControlId = controlId;
 			Index = idx;
+			_dragPointsInspector = dragPointsInspector;
 		}
 	}
 }
