@@ -94,7 +94,7 @@ namespace VisualPinball.Unity.Editor
 		public IEnumerable<DragPointExposure> DragPointExposition => new[] { DragPointExposure.Smooth, DragPointExposure.SlingShot };
 		public ItemDataTransformType HandleType => ItemDataTransformType.TwoD;
 		public DragPointsInspectorHelper DragPointsHelper { get; private set; }
-		public float ZOffset => 0f;
+		public float ZOffset => MainComponent.PositionZ;
 
 		#endregion
 	}
