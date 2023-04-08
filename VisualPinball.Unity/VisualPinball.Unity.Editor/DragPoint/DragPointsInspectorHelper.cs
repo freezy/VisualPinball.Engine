@@ -36,7 +36,7 @@ namespace VisualPinball.Unity.Editor
 		/// <summary>
 		/// If true, a list of the drag points is displayed in the inspector.
 		/// </summary>
-		private bool _foldoutControlPoints;
+		private bool _foldoutControlPoints = true;
 
 		/// <summary>
 		/// stored vector during the copy/paste process
@@ -215,7 +215,7 @@ namespace VisualPinball.Unity.Editor
 				for (var i = 0; i < DragPointsHandler.ControlPoints.Count; ++i) {
 					var controlPoint = DragPointsHandler.ControlPoints[i];
 					EditorGUILayout.BeginHorizontal();
-					EditorGUILayout.LabelField($"#{i} ({controlPoint.DragPoint.Center.X},{controlPoint.DragPoint.Center.Y},{controlPoint.DragPoint.Center.Z})");
+					EditorGUILayout.LabelField($"Drag Point #{i}");
 					if (GUILayout.Button("Copy")) {
 						CopyDragPoint(controlPoint.ControlId);
 					}
@@ -224,6 +224,22 @@ namespace VisualPinball.Unity.Editor
 					}
 					EditorGUILayout.EndHorizontal();
 					EditorGUI.indentLevel++;
+					EditorGUI.BeginChangeCheck();
+					if (_dragPointsInspector.HandleType == ItemDataTransformType.TwoD) {
+						var pos = EditorGUILayout.Vector2Field("Position", controlPoint.DragPoint.Center.ToUnityVector2());
+						if (EditorGUI.EndChangeCheck()) {
+							controlPoint.DragPoint.Center.X = pos.x;
+							controlPoint.DragPoint.Center.Y = pos.y;
+							RebuildMeshes();
+						}
+					} else {
+						var pos = EditorGUILayout.Vector3Field("Position", controlPoint.DragPoint.Center.ToUnityVector3());
+						if (EditorGUI.EndChangeCheck()) {
+							controlPoint.DragPoint.Center = pos.ToVertex3D();
+							RebuildMeshes();
+						}
+					}
+
 					if (HasDragPointExposure(DragPointExposure.SlingShot)) {
 						inspector.ItemDataField("Slingshot", ref controlPoint.DragPoint.IsSlingshot);
 					}
