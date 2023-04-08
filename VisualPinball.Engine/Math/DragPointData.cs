@@ -111,26 +111,6 @@ namespace VisualPinball.Engine.Math
 			};
 		}
 
-		public DragPointData Move(float x, float y)
-		{
-			Center.X += x;
-			Center.Y += y;
-			return this;
-		}
-
-		public DragPointData CloneWithId()
-		{
-			var clone = Clone();
-			clone.Id = Id;
-			return clone;
-		}
-
-		public DragPointData ResetZ()
-		{
-			PosZ = 0;
-			return this;
-		}
-
 		#region BIFF
 
 		static DragPointData()

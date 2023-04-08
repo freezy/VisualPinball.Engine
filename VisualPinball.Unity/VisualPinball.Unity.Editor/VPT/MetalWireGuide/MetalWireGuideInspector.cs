@@ -87,7 +87,6 @@ namespace VisualPinball.Unity.Editor
 
 		public bool DragPointsActive => true;
 		public DragPointData[] DragPoints { get => MainComponent.DragPoints; set => MainComponent.DragPoints = value; }
-		public Vector3 EditableOffset => new Vector3(0.0f, 0.0f, MainComponent._height);
 		public bool PointsAreLooping => false;
 		public IEnumerable<DragPointExposure> DragPointExposition => new[] { DragPointExposure.Smooth };
 		public ItemDataTransformType HandleType => ItemDataTransformType.TwoD;
