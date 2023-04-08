@@ -113,7 +113,7 @@ namespace VisualPinball.Unity.Editor
 		{
 			var dp = GetDragPoint(controlId);
 			if (dp != null) {
-				PrepareUndo($"Paste drag point {controlId}");
+				PrepareUndo($"Paste Drag Point {controlId}");
 				dp.Center = _storedControlPoint.ToVertex3D();
 				RebuildMeshes();
 			}
@@ -150,7 +150,9 @@ namespace VisualPinball.Unity.Editor
 
 			PrepareUndo($"Flip-{flipAxis} Drag Points");
 			DragPointsHandler.FlipDragPoints(flipAxis);
-			DragPointsHandler.ReverseDragPoints();
+			if (_dragPointsInspector.PointsAreLooping) {
+				DragPointsHandler.ReverseDragPoints(); // keep counter-clockwise orientation
+			}
 			RebuildMeshes();
 		}
 

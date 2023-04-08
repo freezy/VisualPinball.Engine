@@ -326,6 +326,8 @@ namespace VisualPinball.Unity.Editor
 				if (EditorGUI.EndChangeCheck()) {
 					var delta = newHandlePos - _centerSelected;
 					var deltaZ = newHandlePos.z - _startPos.z;
+					
+					Undo.RecordObject(MainComponent as MonoBehaviour, "move Drag Points");
 					foreach (var controlPoint in SelectedControlPoints) {
 						controlPoint.DragPoint.Center = new Vertex3D(
 							controlPoint.DragPoint.Center.X + delta.x,
