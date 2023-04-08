@@ -73,6 +73,11 @@ namespace VisualPinball.Unity
 			return new Vector3(vertex.X, vertex.Y, vertex.Z);
 		}
 
+		public static Vector3 ToUnityVector2(this Vertex3D vertex)
+		{
+			return new Vector2(vertex.X, vertex.Y);
+		}
+
 		public static Vector3 ToUnityVector3(this RenderVertex3D vertex)
 		{
 			return new Vector3(vertex.X, vertex.Y, vertex.Z);
