@@ -82,5 +82,16 @@ namespace VisualPinball.Unity
 		/// The global z-offset of all drag points, to render properly in editor.
 		/// </summary>
 		float ZOffset { get; }
+
+		float[] TopBottomZ { get; }
+
+		/// <summary>
+		/// Sets the drag point position
+		/// </summary>
+		/// <param name="dragPoint">Drag point to which the new position is applied to</param>
+		/// <param name="value">The new value, where Z is the z-offset for ramps (and irrelevant for other items)</param>
+		/// <param name="numSelectedDragPoints">How many other drag points are selected</param>
+		/// <param name="topBottomZ">Only used for ramps, so top and bottom height can be adapted instead of the drag point's z.</param>
+		void SetDragPointPosition(DragPointData dragPoint, Vertex3D value, int numSelectedDragPoints = 1, float[] topBottomZ = null);
 	}
 }

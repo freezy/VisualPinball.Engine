@@ -156,6 +156,28 @@ namespace VisualPinball.Unity.Editor
 		public ItemDataTransformType HandleType => ItemDataTransformType.ThreeD;
 		public DragPointsInspectorHelper DragPointsHelper { get; private set; }
 		public float ZOffset => 0f;
+		public float[] TopBottomZ => new[] { MainComponent._heightBottom, MainComponent._heightTop };
+
+		public void SetDragPointPosition(DragPointData dragPoint, Vertex3D value, int numSelectedDragPoints, float[] topBottomZ)
+		{
+			var isFirst = MainComponent.DragPoints[0].Id == dragPoint.Id;
+			var isLast = MainComponent.DragPoints[^1].Id == dragPoint.Id;
+			var zDiff = value.Z - dragPoint.Center.Z;
+			
+			if (isFirst && numSelectedDragPoints == 1) {
+				MainComponent._heightBottom = topBottomZ[0] + zDiff;
+				dragPoint.Center.X = value.X;
+				dragPoint.Center.Y = value.Y;
+
+			} else if (isLast && numSelectedDragPoints == 1) {
+				MainComponent._heightTop = topBottomZ[1] + zDiff;
+				dragPoint.Center.X = value.X;
+				dragPoint.Center.Y = value.Y;
+				
+			} else {
+				dragPoint.Center = value;
+			}
+		}
 
 		#endregion
 	}

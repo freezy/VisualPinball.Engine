@@ -93,7 +93,8 @@ namespace VisualPinball.Unity.Editor
 		private Vector3 _center = Vector3.zero;
 
 		private Vector3 _startPos;
-		private Dictionary<string, float> _startPosZ = new();
+		private readonly Dictionary<string, float> _startPosZ = new();
+		private float[] _startTopBottomZ;
 
 		/// <summary>
 		/// Every DragPointsInspector instantiates this to manage its curve handling.
@@ -314,6 +315,7 @@ namespace VisualPinball.Unity.Editor
 				// set start positions since clicked
 				if (evt.type == EventType.MouseDown) {
 					_startPos = _centerSelected;
+					_startTopBottomZ = DragPointInspector.TopBottomZ;
 					_startPosZ.Clear();
 					foreach (var cp in SelectedControlPoints) {
 						_startPosZ[cp.DragPointId] = cp.DragPoint.Center.Z;
@@ -329,11 +331,11 @@ namespace VisualPinball.Unity.Editor
 					
 					Undo.RecordObject(MainComponent as MonoBehaviour, "move Drag Points");
 					foreach (var controlPoint in SelectedControlPoints) {
-						controlPoint.DragPoint.Center = new Vertex3D(
+						DragPointInspector.SetDragPointPosition(controlPoint.DragPoint, new Vertex3D(
 							controlPoint.DragPoint.Center.X + delta.x,
 							controlPoint.DragPoint.Center.Y + delta.y,
 							_startPosZ[controlPoint.DragPointId] + deltaZ
-						);
+						), SelectedControlPoints.Count, _startTopBottomZ);
 					}
 					onChange?.Invoke();
 				}

@@ -85,6 +85,9 @@ namespace VisualPinball.Unity.Editor
 		public ItemDataTransformType HandleType => ItemDataTransformType.TwoD;
 		public DragPointsInspectorHelper DragPointsHelper { get; private set; }
 		public float ZOffset => MainComponent.HeightTop + MainComponent.PlayfieldHeight;
+		public float[] TopBottomZ => null;
+		public void SetDragPointPosition(DragPointData dragPoint, Vertex3D value, int numSelectedDragPoints,
+			float[] topBottomZ) => dragPoint.Center = value;
 
 		#endregion
 	}
