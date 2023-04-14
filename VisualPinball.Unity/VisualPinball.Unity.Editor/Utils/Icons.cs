@@ -273,6 +273,7 @@ namespace VisualPinball.Unity.Editor
 		public Texture2D Lookup<T>(T mb, IconSize size = IconSize.Large, IconColor color = IconColor.Gray) where T : class
 		{
 			switch (mb) {
+				case DebugShotComponent _: return Icons.BallRoller(size, color);
 				case BallRollerComponent _: return Icons.BallRoller(size, color);
 				case BumperComponent _: return Icons.Bumper(size, color);
 				case CannonRotatorComponent _: return Icons.Cannon(size, color);
@@ -309,6 +310,7 @@ namespace VisualPinball.Unity.Editor
 
 		public void DisableGizmoIcons()
 		{
+			Icons.DisableGizmo<DebugShotComponent>();
 			Icons.DisableGizmo<BallRollerComponent>();
 			Icons.DisableGizmo<BumperComponent>();
 			Icons.DisableGizmo<BumperColliderComponent>();
