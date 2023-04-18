@@ -15,7 +15,6 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 // ReSharper disable EventNeverSubscribedTo.Global
-#pragma warning disable 67
 
 using System;
 using System.Collections.Generic;
@@ -38,7 +37,6 @@ namespace VisualPinball.Unity
 		/// Event emitted when the table is started.
 		/// </summary>
 		public event EventHandler Init;
-
 		/// <summary>
 		/// Event emitted when the flipper was touched by the ball, but did
 		/// not collide.
@@ -96,6 +94,7 @@ namespace VisualPinball.Unity
 		public void RotateToEnd()
 		{
 			EngineProvider<IPhysicsEngine>.Get().FlipperRotateToEnd(Entity);
+			MainComponent.EmitSound(FlipperComponent.SoundCoilOn, MainComponent.RotatePosition);
 		}
 
 		/// <summary>
@@ -105,6 +104,7 @@ namespace VisualPinball.Unity
 		public void RotateToStart()
 		{
 			EngineProvider<IPhysicsEngine>.Get().FlipperRotateToStart(Entity);
+			MainComponent.EmitSound(FlipperComponent.SoundCoilOff);
 		}
 
 		internal float StartAngle

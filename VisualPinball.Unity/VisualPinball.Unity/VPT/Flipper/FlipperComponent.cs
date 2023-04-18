@@ -41,7 +41,7 @@ namespace VisualPinball.Unity
 	[HelpURL("https://docs.visualpinball.org/creators-guide/manual/mechanisms/flippers.html")]
 	public class FlipperComponent : MainRenderableComponent<FlipperData>,
 		IFlipperData, ISwitchDeviceComponent, ICoilDeviceComponent, IOnSurfaceComponent,
-		IRotatableComponent, IConvertGameObjectToEntity
+		IRotatableComponent, IConvertGameObjectToEntity, ISoundEmitter
 	{
 		#region Data
 
@@ -131,8 +131,42 @@ namespace VisualPinball.Unity
 		public const string MainCoilItem = "main_coil";
 		public const string HoldCoilItem = "hold_coil";
 		public const string EosSwitchItem = "eos_switch";
+		
+		public const string SoundCoilOn = "sound_coil_on";
+		public const string SoundCoilOff = "sound_coil_off";
+		public const string SoundCoilCollision = "sound_ball_collision";
 
 		#endregion
+
+		#region ISoundEmitter
+		
+		public SoundTrigger[] AvailableTriggers => new[] {
+			new SoundTrigger { Id = SoundCoilOn, Name = "Coil On" },
+			new SoundTrigger { Id = SoundCoilOff, Name = "Coil Off"},
+			new SoundTrigger { Id = SoundCoilCollision, Name = "Ball Collision" },
+		};
+
+		public event EventHandler<SoundEventArgs> OnSound;
+
+		internal void EmitSound(string triggerId, float volume = 1)
+		{
+			OnSound?.Invoke(this, new SoundEventArgs(triggerId, volume));
+		}
+		
+		/// <summary>
+		/// Returns the current position of the flipper between 0 and 1, where 0 is the
+		/// start position, and 1 the end position.
+		/// </summary>
+		public float RotatePosition {
+			get {
+				var start = (_startAngle + 360) % 360;
+				var end = (EndAngle + 360) % 360;
+				return 1 - (transform.localEulerAngles.y - start) / (end - start);
+			}
+		}
+
+		#endregion
+
 
 		#region Wiring
 

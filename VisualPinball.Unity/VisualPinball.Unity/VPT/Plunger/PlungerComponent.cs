@@ -33,7 +33,7 @@ namespace VisualPinball.Unity
 {
 	[AddComponentMenu("Visual Pinball/Game Item/Plunger")]
 	public class PlungerComponent : MainRenderableComponent<PlungerData>,
-		ICoilDeviceComponent, IOnSurfaceComponent, IConvertGameObjectToEntity
+		ICoilDeviceComponent, IOnSurfaceComponent, IConvertGameObjectToEntity, ISoundEmitter
 	{
 		#region Data
 
@@ -70,6 +70,25 @@ namespace VisualPinball.Unity
 
 		public const string PullCoilId = "c_pull";
 		public const string FireCoilId = "c_autofire";
+
+		public const string SoundPlungerPull = "sound_plunger_pull";
+		public const string SoundPlungerRelease = "sound_plunger_release";
+
+		#endregion
+
+		#region ISoundEmitter
+
+		public SoundTrigger[] AvailableTriggers => new[] {
+			new SoundTrigger { Id = SoundPlungerPull, Name = "Plunger Pull" },
+			new SoundTrigger { Id = SoundPlungerRelease, Name = "Plunger Release"}
+		};
+
+		public event EventHandler<SoundEventArgs> OnSound;
+
+		internal void EmitSound(string triggerId, float volume = 1)
+		{
+			OnSound?.Invoke(this, new SoundEventArgs(triggerId, volume));
+		}
 
 		#endregion
 
