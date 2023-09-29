@@ -26,6 +26,8 @@ namespace VisualPinball.Unity
 	public struct PhysicsCycle : IDisposable
 	{
 		private NativeList<ContactBufferElement> _contacts;
+
+		[NativeDisableParallelForRestriction]
 		private NativeList<int> _overlappingColliders;
 
 		public PhysicsCycle(Allocator a)
@@ -34,8 +36,10 @@ namespace VisualPinball.Unity
 			_overlappingColliders = new NativeList<int>(a);
 		}
 
-		internal void Simulate(float dTime, ref PhysicsState state, in NativeOctree<int> octree, 
-			ref BlobAssetReference<ColliderBlob> colliders, ref NativeList<BallData> balls, ref NativeQueue<EventData>.ParallelWriter events)
+		internal void Simulate(float dTime, ref PhysicsState state, in NativeOctree<int> octree,
+			ref BlobAssetReference<ColliderBlob> colliders, ref NativeList<BallData> balls,
+			ref InsideOfs insideOfs,
+			ref NativeQueue<EventData>.ParallelWriter events)
 		{
 
 			var staticCounts = PhysicsConstants.StaticCnts;
@@ -62,7 +66,8 @@ namespace VisualPinball.Unity
 					PhysicsStaticBroadPhase.FindOverlaps(in octree, in ball, ref _overlappingColliders);
 					
 					// static narrow phase
-					PhysicsStaticNarrowPhase.FindNextCollision(hitTime, ref ball, in _overlappingColliders, ref colliders, ref _contacts);
+					PhysicsStaticNarrowPhase.FindNextCollision(hitTime, ref ball, in _overlappingColliders, ref colliders,
+						ref insideOfs, ref _contacts);
 
 					// write ball back
 					balls[i] = ball;

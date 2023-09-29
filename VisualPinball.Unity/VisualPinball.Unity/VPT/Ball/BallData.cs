@@ -151,36 +151,6 @@ namespace VisualPinball.Unity
 			*/
 		}
 
-		public static void SetOutsideOf(ref DynamicBuffer<BallInsideOfBufferElement> insideOfs, in int itemId)
-		{
-			for (var i = 0; i < insideOfs.Length; i++) {
-				if (insideOfs[i].Value == itemId) {
-					insideOfs.RemoveAt(i);
-					return;
-				}
-			}
-		}
-
-		public static void SetInsideOf(ref DynamicBuffer<BallInsideOfBufferElement> insideOfs, int itemId)
-		{
-			insideOfs.Add(new BallInsideOfBufferElement { Value = itemId });
-		}
-
-		public static bool IsOutsideOf(in DynamicBuffer<BallInsideOfBufferElement> insideOfs, in int itemId)
-		{
-			return !IsInsideOf(in insideOfs, in itemId);
-		}
-
-		public static bool IsInsideOf(in DynamicBuffer<BallInsideOfBufferElement> insideOfs, in int itemId)
-		{
-			for (var i = 0; i < insideOfs.Length; i++) {
-				if (insideOfs[i].Value == itemId) {
-					return true;
-				}
-			}
-			return false;
-		}
-
 		public override string ToString()
 		{
 			return $"Ball{Id} ({Position.x}/{Position.y})";

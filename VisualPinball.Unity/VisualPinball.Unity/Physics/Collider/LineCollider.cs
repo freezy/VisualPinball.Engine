@@ -18,8 +18,10 @@ using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
 using Unity.Entities;
 using Unity.Mathematics;
+using UnityEngine;
 using VisualPinball.Engine.Common;
 using VisualPinball.Engine.VPT;
+using Random = Unity.Mathematics.Random;
 
 namespace VisualPinball.Unity
 {
@@ -42,6 +44,8 @@ namespace VisualPinball.Unity
 
 		public float V1y { set => V1.y = value; }
 		public float V2y { set => V2.y = value; }
+		
+		public override string ToString() => $"LineCollider[{_header.ItemId}] ({V1.x}/{V1.y}@{ZLow}) -> ({V2.x}/{V2.y}@{ZHigh}) at ({Normal.x}/{Normal.y}), len: {_length}";
 
 		public ColliderBounds Bounds => new ColliderBounds(_header.ItemId, _header.Id, new Aabb(
 			math.min(V1.x, V2.x),
@@ -88,29 +92,25 @@ namespace VisualPinball.Unity
 		#region Narrowphase
 
 		public static float HitTest(ref CollisionEventData collEvent,
-			ref DynamicBuffer<BallInsideOfBufferElement> insideOfs, in LineCollider coll, in BallData ball, float dTime)
+			ref InsideOfs insideOfs, in LineCollider coll, ref BallData ball, float dTime)
 		{
-			return HitTestBasic(ref collEvent, ref insideOfs, in coll, ball, dTime, true, true, true); // normal face, lateral, rigid
+			return HitTestBasic(ref collEvent, ref insideOfs, in coll, ref ball, dTime, true, true, true); // normal face, lateral, rigid
 		}
 
 		public float HitTest(ref CollisionEventData collEvent,
-			ref DynamicBuffer<BallInsideOfBufferElement> insideOfs, in BallData ball, float dTime)
+			ref InsideOfs insideOfs, ref BallData ball, float dTime)
 		{
-			return HitTestBasic(ref collEvent, ref insideOfs, in this, ball, dTime, true, true, true); // normal face, lateral, rigid
+			return HitTestBasic(ref collEvent, ref insideOfs, in this, ref ball, dTime, true, true, true); // normal face, lateral, rigid
 		}
 
-		public float HitTestBasic(ref CollisionEventData collEvent, ref DynamicBuffer<BallInsideOfBufferElement> insideOfs, in BallData ball, float dTime,
+		public float HitTestBasic(ref CollisionEventData collEvent, ref InsideOfs insideOfs, ref BallData ball, float dTime,
 			bool direction, bool lateral, bool rigid)
 		{
-			return HitTestBasic(ref collEvent, ref insideOfs, in this, ball, dTime, direction, lateral, rigid);
+			return HitTestBasic(ref collEvent, ref insideOfs, in this, ref ball, dTime, direction, lateral, rigid);
 		}
 
-		public static float HitTestBasic(ref CollisionEventData collEvent, ref DynamicBuffer<BallInsideOfBufferElement> insideOfs, in LineCollider coll, in BallData ball, float dTime, bool direction, bool lateral, bool rigid)
+		public static float HitTestBasic(ref CollisionEventData collEvent, ref InsideOfs insideOfs, in LineCollider coll, ref BallData ball, float dTime, bool direction, bool lateral, bool rigid)
 		{
-			// if (!IsEnabled || ball.State.IsFrozen) {
-			// 	return -1.0f;
-			// }
-
 			// ball velocity
 			var ballVx = ball.Velocity.x;
 			var ballVy = ball.Velocity.y;
@@ -171,7 +171,7 @@ namespace VisualPinball.Unity
 					    /*todo   || !ball.m_vpVolObjs*/
 					    // it's a trigger, so test:
 					    || math.abs(bnd) >= ball.Radius * 0.5f          // not too close ... nor too far away
-					    || inside == BallData.IsInsideOf(in insideOfs, coll.ItemId))   // ...ball outside and hit set or ball inside and no hit set
+					    || inside == insideOfs.IsInsideOf(coll.ItemId, ball.Id))   // ...ball outside and hit set or ball inside and no hit set
 					{
 						return -1.0f;
 					}
@@ -215,6 +215,10 @@ namespace VisualPinball.Unity
 			collEvent.HitNormal.y = coll.Normal.y;
 			collEvent.HitNormal.z = 0f;
 			collEvent.HitDistance = bnd; // actual contact distance ...
+
+			if (collEvent.HitNormal is { x: 0, y: 0, z: 0 }) {
+				Debug.Log("Hit normal set to zero by line collider.");
+			}
 
 			// check for contact
 			collEvent.IsContact = math.abs(bnv) <= PhysicsConstants.ContactVel &&

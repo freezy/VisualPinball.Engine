@@ -19,9 +19,11 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using NativeTrees;
 using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Collections;
+using Unity.Jobs;
 using UnityEngine;
 using UnityEngine.Profiling;
 using VisualPinball.Engine.VPT;
@@ -44,6 +46,9 @@ namespace VisualPinball.Unity
 
 		[SerializeField]
 		public bool ShowColliderMesh;
+
+		[SerializeField]
+		public bool ShowColliderOctree;
 
 		[SerializeField]
 		public bool ShowAabbs;
@@ -105,7 +110,7 @@ namespace VisualPinball.Unity
 			var overrideColliderMesh = playfieldColliderComponent && playfieldColliderComponent.ShowAllColliderMeshes;
 			var showColliders = ShowColliderMesh || overrideColliderMesh;
 
-			if (!(ShowGizmos || overrideColliderMesh) || !ShowAabbs && !showColliders) {
+			if (!(ShowGizmos || overrideColliderMesh) || !ShowAabbs && !showColliders && !ShowColliderOctree) {
 				Profiler.EndSample();
 				return;
 			}
@@ -136,6 +141,28 @@ namespace VisualPinball.Unity
 						DrawAabb(col.Bounds.Aabb, i == SelectedCollider);
 					}
 				}
+			}
+			if (ShowColliderOctree) {
+				
+				var api = InstantiateColliderApi(player);
+				var colliders = new List<ICollider>();
+				api.CreateColliders(colliders, 0.1f);
+				
+				var playfieldBounds = GetComponentInChildren<PlayfieldComponent>().Bounds;
+				var octree = new NativeOctree<int>(playfieldBounds, 32, 10, Allocator.Persistent);
+				
+				var allocateColliderJob = new ColliderAllocationJob(colliders);
+				allocateColliderJob.Run();
+				var colliderBlob = allocateColliderJob.BlobAsset[0];
+				allocateColliderJob.Dispose();
+		
+				var populateJob = new PopulatePhysicsJob {
+					Colliders = colliderBlob,
+					Octree = octree, 
+				};
+				populateJob.Run();
+				Gizmos.color = Color.yellow;
+				octree.DrawGizmos();
 			}
 
 			if (showColliders) {

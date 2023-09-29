@@ -17,7 +17,9 @@
 using Unity.Collections.LowLevel.Unsafe;
 using Unity.Entities;
 using Unity.Mathematics;
+using UnityEngine;
 using VisualPinball.Engine.Common;
+using Random = Unity.Mathematics.Random;
 
 namespace VisualPinball.Unity
 {
@@ -32,7 +34,8 @@ namespace VisualPinball.Unity
 		private readonly float3 _normal;
 		private readonly float _distance;
 
-		public ColliderBounds Bounds => new ColliderBounds(_header.ItemId, _header.Id, new Aabb(float.MinValue, float.MaxValue, float.MinValue, float.MaxValue, float.MinValue, float.MaxValue));
+		//public ColliderBounds Bounds => new ColliderBounds(_header.ItemId, _header.Id, new Aabb(0, 1500f, 3000, 0, -50, 1000));
+		public ColliderBounds Bounds => new(_header.ItemId, _header.Id, new Aabb(float.MinValue, float.MaxValue, float.MinValue, float.MaxValue, float.MinValue, float.MaxValue));
 
 		public PlaneCollider(float3 normal, float distance, ColliderInfo info) : this()
 		{
@@ -52,11 +55,8 @@ namespace VisualPinball.Unity
 				sizeof(PlaneCollider)
 			);
 		}
-
-		public override string ToString()
-		{
-			return $"PlaneCollider[{_header.ItemId}] {_distance} at ({_normal.x}/{_normal.y}/{_normal.z})";
-		}
+		
+		public override string ToString() => $"PlaneCollider[{_header.ItemId}] {_distance} at ({_normal.x}/{_normal.y}/{_normal.z})";
 
 		#region Narrowphase
 
@@ -85,6 +85,10 @@ namespace VisualPinball.Unity
 					collEvent.HitNormal = _normal;
 					collEvent.HitOrgNormalVelocity = bnv; // remember original normal velocity
 					collEvent.HitDistance = bnd;
+					
+					if (collEvent.HitNormal is { x: 0, y: 0, z: 0 }) {
+						Debug.Log("Hit normal set to zero by plane collider.");
+					}
 
 					// hit time is ignored for contacts
 					return 0.0f;
@@ -108,7 +112,11 @@ namespace VisualPinball.Unity
 
 			collEvent.HitNormal = _normal;
 			collEvent.HitDistance = bnd; // actual contact distance
-
+			
+			if (collEvent.HitNormal is { x: 0, y: 0, z: 0 }) {
+				Debug.Log("Hit normal set to zero by plane collider.");
+			}
+			
 			return hitTime;
 		}
 

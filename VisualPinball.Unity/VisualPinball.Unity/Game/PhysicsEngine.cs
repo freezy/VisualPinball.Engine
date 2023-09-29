@@ -37,7 +37,7 @@ namespace VisualPinball.Unity
 		[NonSerialized] private NativeList<BallData> _balls;
 		[NonSerialized] private NativeQueue<EventData> _eventQueue;
 		[NonSerialized] private BlobAssetReference<ColliderBlob> _colliders;
-
+		[NonSerialized] private InsideOfs _insideOfs;
 		[NonSerialized] private readonly Dictionary<int, PhysicsBall> _ballLookup = new();
 
 		private static ulong NowUsec => (ulong)(Time.timeAsDouble * 1000000);
@@ -49,12 +49,13 @@ namespace VisualPinball.Unity
 			// init state
 			_physicsState = new NativeArray<PhysicsState>(1, Allocator.Persistent);
 			_physicsState[0] = new PhysicsState(NowUsec, GetComponent<Player>());
+			_insideOfs = new InsideOfs(Allocator.Persistent);
 
 			// create static octree
 			var sw = Stopwatch.StartNew();
 			var colliderItems = GetComponentsInChildren<ICollidableComponent>();
 
-			Debug.Log($"Found {colliderItems.Length} collider items.");
+			Debug.Log($"Found {colliderItems.Length} collidable items.");
 			var managedColliders = new List<ICollider>();
 			foreach (var colliderItem in colliderItems) {
 				colliderItem.GetColliders(player, managedColliders, 0);
@@ -100,6 +101,7 @@ namespace VisualPinball.Unity
 				Octree = _octree,
 				Colliders = _colliders,
 				Balls = _balls,
+				InsideOfs = _insideOfs,
 				Events = events,
 			};
 			
@@ -120,6 +122,7 @@ namespace VisualPinball.Unity
 			_eventQueue.Dispose();
 			_balls.Dispose();
 			_colliders.Dispose();
+			_insideOfs.Dispose();
 		}
 	}
 
@@ -147,6 +150,7 @@ namespace VisualPinball.Unity
 		public NativeOctree<int> Octree;
 		public BlobAssetReference<ColliderBlob> Colliders;
 		public NativeList<BallData> Balls;
+		public InsideOfs InsideOfs;
 		public NativeQueue<EventData>.ParallelWriter Events;
 
 		public void Execute()
@@ -154,7 +158,6 @@ namespace VisualPinball.Unity
 			var n = 0;
 			var state = PhysicsState[0];
 			var cycle = new PhysicsCycle(Allocator.Temp);
-			
 			
 			while (state.CurPhysicsFrameTime < InitialTimeUsec)
 			{
@@ -169,7 +172,7 @@ namespace VisualPinball.Unity
 				}
 				
 				// simulate cycle
-				cycle.Simulate(physicsDiffTime, ref state, in Octree, ref Colliders, ref Balls, ref Events);
+				cycle.Simulate(physicsDiffTime, ref state, in Octree, ref Colliders, ref Balls, ref InsideOfs, ref Events);
 				
 				state.CurPhysicsFrameTime = state.NextPhysicsFrameTime;
 				state.NextPhysicsFrameTime += PhysicsConstants.PhysicsStepTime;

@@ -19,7 +19,7 @@ using Unity.Entities;
 
 namespace VisualPinball.Unity
 {
-	public static class PhysicsColliderExtensions
+	public static partial class PhysicsColliderExtensions
 	{
 		internal static int GetId(this BlobAssetReference<ColliderBlob> colliders, int index) 
 			=> colliders.Value.Colliders[index].Value.Id;
@@ -39,6 +39,15 @@ namespace VisualPinball.Unity
 			fixed (Collider* cPtr = &coll) {
 				var planeCollider = (PlaneCollider*) cPtr;
 				return ref UnsafeUtility.AsRef<PlaneCollider>(planeCollider);
+			}
+		}
+		
+		internal static unsafe ref LineCollider GetLineCollider(this ref BlobAssetReference<ColliderBlob> colliders, int index)
+		{
+			ref var coll = ref colliders.Value.Colliders[index].Value;
+			fixed (Collider* cPtr = &coll) {
+				var lineCollider = (LineCollider*) cPtr;
+				return ref UnsafeUtility.AsRef<LineCollider>(lineCollider);
 			}
 		}
 	}

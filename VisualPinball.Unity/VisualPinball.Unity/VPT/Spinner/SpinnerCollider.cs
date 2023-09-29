@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
 using Unity.Entities;
 using Unity.Mathematics;
@@ -74,19 +75,19 @@ namespace VisualPinball.Unity
 
 		#region Narrowphase
 
-		public float HitTest(ref CollisionEventData collEvent, ref DynamicBuffer<BallInsideOfBufferElement> insideOfs, in BallData ball, float dTime)
+		public float HitTest(ref CollisionEventData collEvent, ref InsideOfs insideOfs, ref BallData ball, float dTime)
 		{
 			// todo
 			// if (!m_enabled) return -1.0f;
 
-			var hitTime = LineCollider.HitTestBasic(ref collEvent, ref insideOfs, in LineSeg0, in ball, dTime, false, true, false); // any face, lateral, non-rigid
+			var hitTime = LineCollider.HitTestBasic(ref collEvent, ref insideOfs, in LineSeg0, ref ball, dTime, false, true, false); // any face, lateral, non-rigid
 			if (hitTime >= 0.0f) {
 				// signal the Collide() function that the hit is on the front or back side
 				collEvent.HitFlag = true;
 				return hitTime;
 			}
 
-			hitTime = LineCollider.HitTestBasic(ref collEvent, ref insideOfs, in LineSeg1, in ball, dTime, false, true, false); // any face, lateral, non-rigid
+			hitTime = LineCollider.HitTestBasic(ref collEvent, ref insideOfs, in LineSeg1, ref ball, dTime, false, true, false); // any face, lateral, non-rigid
 			if (hitTime >= 0.0f) {
 				// signal the Collide() function that the hit is on the front or back side
 				collEvent.HitFlag = false;

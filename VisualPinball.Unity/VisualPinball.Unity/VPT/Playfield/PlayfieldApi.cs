@@ -102,14 +102,14 @@ namespace VisualPinball.Unity
 				));
 			}
 
-			// glass:
-			var rgv3D = new[] {
-				new float3(MainComponent.Left, MainComponent.Top, MainComponent.GlassHeight),
-				new float3(MainComponent.Right, MainComponent.Top, MainComponent.GlassHeight),
-				new float3(MainComponent.Right, MainComponent.Bottom, MainComponent.GlassHeight),
-				new float3(MainComponent.Left, MainComponent.Bottom, MainComponent.GlassHeight)
-			};
-			ColliderUtils.Generate3DPolyColliders(rgv3D, info, colliders);
+			// glass (it's handled by the plane)
+			// var rgv3D = new[] {
+			// 	new float3(MainComponent.Left, MainComponent.Top, MainComponent.GlassHeight),
+			// 	new float3(MainComponent.Right, MainComponent.Top, MainComponent.GlassHeight),
+			// 	new float3(MainComponent.Right, MainComponent.Bottom, MainComponent.GlassHeight),
+			// 	new float3(MainComponent.Left, MainComponent.Bottom, MainComponent.GlassHeight)
+			// };
+			// ColliderUtils.Generate3DPolyColliders(rgv3D, info, colliders);
 		}
 
 		#endregion

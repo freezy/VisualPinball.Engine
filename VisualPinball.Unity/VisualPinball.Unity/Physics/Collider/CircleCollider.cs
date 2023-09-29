@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
 using Unity.Entities;
 using Unity.Mathematics;
@@ -67,13 +68,13 @@ namespace VisualPinball.Unity
 
 		#region Narrowphase
 
-		public float HitTest(ref CollisionEventData collEvent, ref DynamicBuffer<BallInsideOfBufferElement> insideOfs, in BallData ball, float dTime)
+		public float HitTest(ref CollisionEventData collEvent, ref InsideOfs insideOfs, in BallData ball, float dTime)
 		{
 			// normal face, lateral, rigid
 			return HitTestBasicRadius(ref collEvent, ref insideOfs, ball, dTime, true, true, true);
 		}
 
-		public float HitTestBasicRadius(ref CollisionEventData collEvent, ref DynamicBuffer<BallInsideOfBufferElement> insideOfs, in BallData ball, float dTime, bool direction, bool lateral, bool rigid)
+		public float HitTestBasicRadius(ref CollisionEventData collEvent, ref InsideOfs insideOfs, in BallData ball, float dTime, bool direction, bool lateral, bool rigid)
 		{
 			// todo IsEnabled
 			if (/*!IsEnabled || */ball.IsFrozen) {
@@ -129,7 +130,7 @@ namespace VisualPinball.Unity
 
 			// Kicker is special.. handle ball stalled on kicker, commonly hit while receding, knocking back into kicker pocket
 			if (isKicker && bnd <= 0 && bnd >= -Radius && a < PhysicsConstants.ContactVel * PhysicsConstants.ContactVel/* && ball.Hit.IsRealBall()*/) {
-				BallData.SetOutsideOf(ref insideOfs, _header.ItemId);
+				insideOfs.SetOutsideOf(_header.ItemId, ball.Id);
 			}
 
 			// contact positive possible in future ... objects Negative in contact now
@@ -149,13 +150,13 @@ namespace VisualPinball.Unity
 					hitTime = math.max(0.0f, (float) (-bnd / bnv));
 				}
 
-			} else if (isKickerOrTrigger /*&& ball.Hit.IsRealBall()*/ && bnd < 0 == BallData.IsOutsideOf(in insideOfs, in _header.ItemId)) {
+			} else if (isKickerOrTrigger /*&& ball.Hit.IsRealBall()*/ && bnd < 0 == insideOfs.IsOutsideOf(_header.ItemId, ball.Id)) {
 				// triggers & kickers
 
 				// here if ... ball inside and no hit set .... or ... ball outside and hit set
 				if (math.abs(bnd - Radius) < 0.05) {
 					// if ball appears in center of trigger, then assumed it was gen"ed there
-					BallData.SetInsideOf(ref insideOfs, _header.ItemId); // special case for trigger overlaying a kicker
+					insideOfs.SetInsideOf(_header.ItemId, ball.Id); // special case for trigger overlaying a kicker
 
 				} else {
 					// this will add the ball to the trigger space without a Hit

@@ -15,7 +15,6 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using Unity.Collections;
-using Unity.Entities;
 using VisualPinball.Engine.Common;
 using VisualPinball.Engine.Game;
 
@@ -24,23 +23,23 @@ namespace VisualPinball.Unity
 	internal static class TriggerCollider
 	{
 		public static void Collide(ref BallData ball, ref NativeQueue<EventData>.ParallelWriter events,
-			ref CollisionEventData collEvent, ref DynamicBuffer<BallInsideOfBufferElement> insideOfs,
-			ref TriggerAnimationData animationData, in int ballId, in Collider coll)
+			ref CollisionEventData collEvent, ref InsideOfs insideOfs,
+			ref TriggerAnimationData animationData, in Collider coll)
 		{
-			var insideOf = BallData.IsInsideOf(in insideOfs, coll.ItemId);
+			var insideOf = insideOfs.IsInsideOf(coll.ItemId, ball.Id);
 			if (collEvent.HitFlag == insideOf) {                                         // Hit == NotAlreadyHit
 				ball.Position += PhysicsConstants.StaticTime * ball.Velocity;            // move ball slightly forward
 				if (!insideOf) {
-					BallData.SetInsideOf(ref insideOfs, coll.ItemId);
+					insideOfs.SetInsideOf(coll.ItemId, ball.Id);
 					animationData.HitEvent = true;
 
-					events.Enqueue(new EventData(EventId.HitEventsHit, coll.ItemId,  ballId, true));
+					events.Enqueue(new EventData(EventId.HitEventsHit, coll.ItemId, ball.Id, true));
 
 				} else {
-					BallData.SetOutsideOf(ref insideOfs, coll.ItemId);
+					insideOfs.SetOutsideOf(coll.ItemId, ball.Id);
 					animationData.UnHitEvent = true;
 
-					events.Enqueue(new EventData(EventId.HitEventsUnhit, coll.ItemId, ballId, true));
+					events.Enqueue(new EventData(EventId.HitEventsUnhit, coll.ItemId, ball.Id, true));
 				}
 			}
 		}

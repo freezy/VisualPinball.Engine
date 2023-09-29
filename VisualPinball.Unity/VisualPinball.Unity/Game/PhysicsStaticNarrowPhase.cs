@@ -14,6 +14,8 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+// ReSharper disable ForCanBeConvertedToForeach
+
 using Unity.Collections;
 using Unity.Entities;
 using Unity.Profiling;
@@ -24,17 +26,23 @@ namespace VisualPinball.Unity
 	{
 		private static readonly ProfilerMarker PerfMarker = new("PhysicsStaticNarrowPhase");
 		
-		internal static void FindNextCollision(float hitTime, ref BallData ball, in NativeList<int> overlappingColliders, 
-			ref BlobAssetReference<ColliderBlob> colliders, ref NativeList<ContactBufferElement> contacts)
+		internal static void FindNextCollision(
+			float hitTime,
+			ref BallData ball,
+			in NativeList<int> overlappingColliders,
+			ref BlobAssetReference<ColliderBlob> colliders,
+			ref InsideOfs insideOfs,
+			ref NativeList<ContactBufferElement> contacts)
 		{
 			PerfMarker.Begin();
 
 			// init contacts and event
 			ball.CollisionEvent.ClearCollider(hitTime); // search upto current hit time
 
-			foreach (var colliderId in overlappingColliders) {
+			for (var i = 0; i < overlappingColliders.Length; i++) {
+				var colliderId = overlappingColliders[i];
 				var newCollEvent = new CollisionEventData();
-				var newTime = HitTest(ref ball, colliderId, ref colliders, ref contacts);
+				var newTime = HitTest(ref ball, ref newCollEvent, colliderId, ref colliders, ref insideOfs, ref contacts);
 				SaveCollisions(ref ball, ref newCollEvent, ref contacts, colliderId, newTime);
 			}
 
@@ -46,13 +54,17 @@ namespace VisualPinball.Unity
 			PerfMarker.End();
 		}
 		
-		private static float HitTest(ref BallData ball, int colliderId, ref BlobAssetReference<ColliderBlob> colliders, ref NativeList<ContactBufferElement> contacts)
+		private static float HitTest(ref BallData ball, ref CollisionEventData collEvent, int colliderId, ref BlobAssetReference<ColliderBlob> colliders,
+			ref InsideOfs insideOfs,
+			ref NativeList<ContactBufferElement> contacts)
 		{
-			ref var collEvent = ref ball.CollisionEvent;
 			var hitTime = -1f;
 			switch (colliders.GetType(colliderId)) {
 				case ColliderType.Plane:
 					hitTime = colliders.GetPlaneCollider(colliderId).HitTest(ref collEvent, in ball, ball.CollisionEvent.HitTime);
+					break;
+				case ColliderType.Line:
+					hitTime = colliders.GetLineCollider(colliderId).HitTest(ref collEvent, ref insideOfs, ref ball, ball.CollisionEvent.HitTime);
 					break;
 			}
 			ball.CollisionEvent = collEvent;

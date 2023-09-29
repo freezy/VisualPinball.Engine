@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
 using Unity.Entities;
 using Unity.Mathematics;
@@ -76,8 +77,8 @@ namespace VisualPinball.Unity
 
 		#region Narrowphase
 
-		public float HitTest(ref CollisionEventData collEvent, ref DynamicBuffer<BallInsideOfBufferElement> insideOfs,
-			ref PlungerMovementData movementData, in PlungerColliderData colliderData, in PlungerStaticData staticData, in BallData ball, float dTime)
+		public float HitTest(ref CollisionEventData collEvent, ref InsideOfs insideOfs,
+			ref PlungerMovementData movementData, in PlungerColliderData colliderData, in PlungerStaticData staticData, ref BallData ball, float dTime)
 		{
 			var hitTime = dTime; //start time
 			var isHit = false;
@@ -94,16 +95,16 @@ namespace VisualPinball.Unity
 			// Check for hits on the non-moving parts, like the side of back
 			// of the plunger.  These are just like hitting a wall.
 			// Check all and find the nearest collision.
-			var newTime = LineSegBase.HitTest(ref newCollEvent, ref insideOfs, in ball, dTime);
+			var newTime = LineSegBase.HitTest(ref newCollEvent, ref insideOfs, ref ball, dTime);
 			UpdateCollision(ref collEvent, ref newCollEvent, ref isHit, ref hitTime, in newTime);
 
-			newTime = LineCollider.HitTest(ref newCollEvent, ref insideOfs, in colliderData.LineSegSide0, in ball, hitTime);
+			newTime = LineCollider.HitTest(ref newCollEvent, ref insideOfs, in colliderData.LineSegSide0, ref ball, hitTime);
 			UpdateCollision(ref collEvent, ref newCollEvent, ref isHit, ref hitTime, in newTime);
 
 			newTime = JointBase0.HitTest(ref newCollEvent, in ball, hitTime);
 			UpdateCollision(ref collEvent, ref newCollEvent, ref isHit, ref hitTime, in newTime);
 
-			newTime = LineCollider.HitTest(ref newCollEvent, ref insideOfs, in colliderData.LineSegSide1, in ball, hitTime);
+			newTime = LineCollider.HitTest(ref newCollEvent, ref insideOfs, in colliderData.LineSegSide1, ref ball, hitTime);
 			UpdateCollision(ref collEvent, ref newCollEvent, ref isHit, ref hitTime, in newTime);
 
 			newTime = JointBase1.HitTest(ref newCollEvent, in ball, hitTime);
@@ -152,7 +153,7 @@ namespace VisualPinball.Unity
 			var deltaY = movementData.Speed * xferRatio;
 
 			// check the moving bits
-			newTime = LineCollider.HitTest(ref newCollEvent, ref insideOfs, in colliderData.LineSegEnd, in ballTmp, hitTime);
+			newTime = LineCollider.HitTest(ref newCollEvent, ref insideOfs, in colliderData.LineSegEnd, ref ballTmp, hitTime);
 			UpdateCollision(ref collEvent, ref newCollEvent, ref isHit, ref hitTime, in newTime, deltaY);
 
 			newTime = LineZCollider.HitTest(ref newCollEvent, in colliderData.JointEnd0, in ballTmp, hitTime);
