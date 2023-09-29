@@ -90,11 +90,11 @@ namespace VisualPinball.Unity
 				{
 					case ColliderType.Bumper:
 					case ColliderType.Circle:
-						return ((CircleCollider*) collider)->HitTest(ref collEvent, ref insideOf, in ball, dTime);
+//						return ((CircleCollider*) collider)->HitTest(ref collEvent, ref insideOf, in ball, dTime);
 					case ColliderType.Gate:
-						return ((GateCollider*) collider)->HitTest(ref collEvent, ref insideOf, in ball, dTime);
+//						return ((GateCollider*) collider)->HitTest(ref collEvent, ref insideOf, in ball, dTime);
 					case ColliderType.Line:
-						return ((LineCollider*) collider)->HitTest(ref collEvent, ref insideOf, in ball, dTime);
+//						return ((LineCollider*) collider)->HitTest(ref collEvent, ref insideOf, in ball, dTime);
 					case ColliderType.LineZ:
 						return ((LineZCollider*) collider)->HitTest(ref collEvent, in ball, dTime);
 					case ColliderType.Line3D:
@@ -104,14 +104,14 @@ namespace VisualPinball.Unity
 					case ColliderType.Plane:
 						return ((PlaneCollider*) collider)->HitTest(ref collEvent, in ball, dTime);
 					case ColliderType.Spinner:
-						return ((SpinnerCollider*) collider)->HitTest(ref collEvent, ref insideOf, in ball, dTime);
+//						return ((SpinnerCollider*) collider)->HitTest(ref collEvent, ref insideOf, in ball, dTime);
 					case ColliderType.Triangle:
-						return ((TriangleCollider*) collider)->HitTest(ref collEvent, in insideOf, in ball, dTime);
+//						return ((TriangleCollider*) collider)->HitTest(ref collEvent, in insideOf, in ball, dTime);
 					case ColliderType.KickerCircle:
 					case ColliderType.TriggerCircle:
-						return ((CircleCollider*) collider)->HitTestBasicRadius(ref collEvent, ref insideOf, in ball, dTime, false, false, false);
+//						return ((CircleCollider*) collider)->HitTestBasicRadius(ref collEvent, ref insideOf, in ball, dTime, false, false, false);
 					case ColliderType.TriggerLine:
-						return ((LineCollider*) collider)->HitTestBasic(ref collEvent, ref insideOf, in ball, dTime, false, false, false);
+//						return ((LineCollider*) collider)->HitTestBasic(ref collEvent, ref insideOf, in ball, dTime, false, false, false);
 
 					case ColliderType.Plunger:
 						throw new InvalidOperationException("ColliderType.Plunger must be hit-tested separately!");

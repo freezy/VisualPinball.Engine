@@ -32,7 +32,7 @@ namespace VisualPinball.Unity
 		public const bool ForceLegacyMode = true;
 
 		public static void Collide(ref BallData ball, ref NativeQueue<EventData>.ParallelWriter events,
-			ref DynamicBuffer<BallInsideOfBufferElement> insideOfs, ref KickerCollisionData collData,
+			ref InsideOfs insideOfs, ref KickerCollisionData collData,
 			in KickerStaticData staticData, in ColliderMeshData meshData, in CollisionEventData collEvent,
 			in int itemId, in int ballId)
 		{
@@ -47,7 +47,7 @@ namespace VisualPinball.Unity
 			var hitBit = collEvent.HitFlag;
 
 			// check if kicker in ball's volume set
-			var isBallInside = BallData.IsInsideOf(in insideOfs, itemId);
+			var isBallInside = insideOfs.IsInsideOf(itemId, ballId);
 
 			// New or (Hit && !Vol || UnHit && Vol)
 			if (hitBit == isBallInside) {
@@ -83,7 +83,7 @@ namespace VisualPinball.Unity
 
 						ball.IsFrozen = !staticData.FallThrough;
 						if (ball.IsFrozen) {
-							BallData.SetInsideOf(ref insideOfs, itemId); // add kicker to ball's volume set
+							insideOfs.SetInsideOf(itemId, ball.Id); // add kicker to ball's volume set
 							collData.BallId = ballId;
 							collData.LastCapturedBallId = ballId;
 						}
@@ -115,7 +115,7 @@ namespace VisualPinball.Unity
 
 				} else { // exiting kickers volume
 					// remove kicker to ball's volume set
-					BallData.SetOutsideOf(ref insideOfs, itemId);
+					insideOfs.SetOutsideOf(itemId, ball.Id);
 					events.Enqueue(new EventData(EventId.HitEventsUnhit, itemId, ballId, true));
 				}
 			}

@@ -35,6 +35,8 @@ namespace VisualPinball.Unity
 		private readonly float3 _normal;
 
 		public float3 Normal() => _normal;
+		
+		public override string ToString() => $"TriangleCollider[{_header.ItemId}] ({Rgv0.x}/{Rgv0.y}/{Rgv0.z}), ({Rgv1.x}/{Rgv1.y}/{Rgv1.z}), ({Rgv2.x}/{Rgv2.y}/{Rgv2.z}) at ({_normal.x}/{_normal.y/_normal.z})";
 
 		public ColliderBounds Bounds => new ColliderBounds(_header.ItemId, _header.Id, new Aabb(
 			math.min(Rgv0.x, math.min(Rgv1.x, Rgv2.x)),
@@ -80,7 +82,7 @@ namespace VisualPinball.Unity
 
 		#region Narrowphase
 
-		public float HitTest(ref CollisionEventData collEvent, in DynamicBuffer<BallInsideOfBufferElement> insideOfs, in BallData ball, float dTime)
+		public float HitTest(ref CollisionEventData collEvent, in InsideOfs insideOfs, in BallData ball, float dTime)
 		{
 			// if (!this.isEnabled) {
 			// 	return -1.0;
@@ -155,7 +157,7 @@ namespace VisualPinball.Unity
 
 			if (pointInTriangle) {
 
-				if (_header.ItemType == ItemType.Trigger && bnd < 0 == BallData.IsOutsideOf(in insideOfs, in _header.ItemId)) {
+				if (_header.ItemType == ItemType.Trigger && bnd < 0 == insideOfs.IsOutsideOf(_header.ItemId, ball.Id)) {
 					collEvent.HitFlag = bnd > 0;
 				}
 

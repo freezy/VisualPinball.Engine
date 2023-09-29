@@ -38,9 +38,7 @@ namespace VisualPinballUnity
 
 			PerfMarker.Begin();
 
-			var collEvent = ball.CollisionEvent;
 			Collide(ref ball, ref colliders, ref random, ref events);
-			ball.CollisionEvent = collEvent;
 
 			// remove trial hit object pointer
 			ball.CollisionEvent.ClearCollider();
@@ -53,6 +51,9 @@ namespace VisualPinballUnity
 			switch (colliders.GetType(ball.CollisionEvent.ColliderId)) {
 				case ColliderType.Plane:
 					colliders.GetPlaneCollider(ball.CollisionEvent.ColliderId).Collide(ref ball, in ball.CollisionEvent, ref random);
+					break;
+				case ColliderType.Line:
+					colliders.GetLineCollider(ball.CollisionEvent.ColliderId).Collide(ref ball, ref events, ball.Id, in ball.CollisionEvent, ref random);
 					break;
 			}
 		}

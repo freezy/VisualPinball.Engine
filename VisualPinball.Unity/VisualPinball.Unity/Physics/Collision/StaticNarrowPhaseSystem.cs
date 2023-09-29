@@ -94,7 +94,7 @@ namespace VisualPinballUnity
 							switch (coll.Type) {
 
 								case ColliderType.LineSlingShot:
-									newTime = ((LineSlingshotCollider*) collider)->HitTest(ref newCollEvent, ref insideOfs, in ballData, collEvent.HitTime);
+//									newTime = ((LineSlingshotCollider*) collider)->HitTest(ref newCollEvent, ref insideOfs, in ballData, collEvent.HitTime);
 									break;
 
 								case ColliderType.Flipper:
@@ -106,10 +106,10 @@ namespace VisualPinballUnity
 										var flipperMovementData = GetComponent<FlipperMovementData>(coll.ItemId);
 										var flipperMaterialData = GetComponent<FlipperStaticData>(coll.ItemId);
 										var flipperTricksData = GetComponent<FlipperTricksData>(coll.ItemId);
-										newTime = ((FlipperCollider*)collider)->HitTest(
-											ref newCollEvent, ref insideOfs, ref flipperHitData,
-											in flipperMovementData, in flipperTricksData, in flipperMaterialData, in ballData, collEvent.HitTime
-										);
+										// newTime = ((FlipperCollider*)collider)->HitTest(
+										// 	ref newCollEvent, ref insideOfs, ref flipperHitData,
+										// 	in flipperMovementData, in flipperTricksData, in flipperMaterialData, in ballData, collEvent.HitTime
+										// );
 
 										SetComponent(coll.ItemId, flipperHitData);
 									}
@@ -123,10 +123,10 @@ namespace VisualPinballUnity
 										var plungerColliderData = GetComponent<PlungerColliderData>(coll.ItemId);
 										var plungerStaticData = GetComponent<PlungerStaticData>(coll.ItemId);
 										var plungerMovementData = GetComponent<PlungerMovementData>(coll.ItemId);
-										newTime = ((PlungerCollider*)collider)->HitTest(
-											ref newCollEvent, ref insideOfs, ref plungerMovementData,
-											in plungerColliderData, in plungerStaticData, in ballData, collEvent.HitTime
-										);
+										// newTime = ((PlungerCollider*)collider)->HitTest(
+										// 	ref newCollEvent, ref insideOfs, ref plungerMovementData,
+										// 	in plungerColliderData, in plungerStaticData, in ballData, collEvent.HitTime
+										// );
 
 										SetComponent(coll.ItemId, plungerMovementData);
 									}

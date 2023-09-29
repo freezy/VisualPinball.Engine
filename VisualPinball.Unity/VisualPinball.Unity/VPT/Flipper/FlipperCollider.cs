@@ -152,7 +152,7 @@ namespace VisualPinball.Unity
 
 		#region Narrowphase
 
-		public float HitTest(ref CollisionEventData collEvent, ref DynamicBuffer<BallInsideOfBufferElement> insideOfs,
+		public float HitTest(ref CollisionEventData collEvent, ref InsideOfs insideOfs,
 			ref FlipperHitData hitData,
 			in FlipperMovementData movementData, in FlipperTricksData tricks, in FlipperStaticData matData, in BallData ball, float dTime)
 		{

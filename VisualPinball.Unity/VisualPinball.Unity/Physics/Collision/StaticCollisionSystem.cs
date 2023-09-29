@@ -178,10 +178,10 @@ namespace VisualPinballUnity
 									? GetComponent<TriggerAnimationData>(coll.ItemId)
 									: new TriggerAnimationData();
 
-								TriggerCollider.Collide(
-									ref ballData, ref events, ref collEvent, ref insideOfs, ref triggerAnimationData,
-									in ballId, in coll
-								);
+								// TriggerCollider.Collide(
+								// 	ref ballData, ref events, ref collEvent, ref insideOfs, ref triggerAnimationData,
+								// 	in ballId, in coll
+								// );
 
 								if (HasComponent<FlipperCorrectionData>(coll.ItemId)) {
 									if (triggerAnimationData.UnHitEvent) {
@@ -208,9 +208,9 @@ namespace VisualPinballUnity
 								var legacyMode = KickerCollider.ForceLegacyMode || kickerStaticData.LegacyMode;
 								// ReSharper disable once ConditionIsAlwaysTrueOrFalse
 								var kickerMeshData = !legacyMode ? GetComponent<ColliderMeshData>(coll.ItemId) : default;
-								KickerCollider.Collide(ref ballData, ref events, ref insideOfs, ref kickerCollisionData,
-									in kickerStaticData, in kickerMeshData, in collEvent, coll.ItemId, in ballId
-								);
+								// KickerCollider.Collide(ref ballData, ref events, ref insideOfs, ref kickerCollisionData,
+								// 	in kickerStaticData, in kickerMeshData, in collEvent, coll.ItemId, in ballId
+								// );
 								SetComponent(coll.ItemId, kickerCollisionData);
 								break;
 							}
@@ -251,10 +251,10 @@ namespace VisualPinballUnity
 										? GetComponent<TriggerAnimationData>(coll.ItemId)
 										: new TriggerAnimationData();
 
-									TriggerCollider.Collide(
-										ref ballData, ref events, ref collEvent, ref insideOfs, ref triggerAnimationData,
-										in ballId, in coll
-									);
+									// TriggerCollider.Collide(
+									// 	ref ballData, ref events, ref collEvent, ref insideOfs, ref triggerAnimationData,
+									// 	in ballId, in coll
+									// );
 
 									if (HasComponent<FlipperCorrectionData>(coll.ItemId)) {
 										if (triggerAnimationData.UnHitEvent) {
