@@ -33,7 +33,7 @@ namespace VisualPinball.Unity
 		internal static Aabb GetAabb(this BlobAssetReference<ColliderBlob> colliders, int index) 
 			=> colliders.Value.Colliders[index].Value.Bounds().Aabb;
 
-		internal static unsafe ref PlaneCollider GetPlaneCollider(this ref BlobAssetReference<ColliderBlob> colliders, int index)
+		internal static unsafe ref PlaneCollider GetPlaneCollider(this in BlobAssetReference<ColliderBlob> colliders, int index)
 		{
 			ref var coll = ref colliders.Value.Colliders[index].Value;
 			fixed (Collider* cPtr = &coll) {
@@ -42,7 +42,7 @@ namespace VisualPinball.Unity
 			}
 		}
 		
-		internal static unsafe ref LineCollider GetLineCollider(this ref BlobAssetReference<ColliderBlob> colliders, int index)
+		internal static unsafe ref LineCollider GetLineCollider(this in BlobAssetReference<ColliderBlob> colliders, int index)
 		{
 			ref var coll = ref colliders.Value.Colliders[index].Value;
 			fixed (Collider* cPtr = &coll) {
@@ -50,14 +50,5 @@ namespace VisualPinball.Unity
 				return ref UnsafeUtility.AsRef<LineCollider>(lineCollider);
 			}
 		}
-
-		// internal static unsafe ref T GetCollider<T>(this ref BlobAssetReference<ColliderBlob> colliders, int index) where T : struct
-		// {
-		// 	ref var coll = ref colliders.Value.Colliders[index].Value;
-		// 	fixed (Collider* cPtr = &coll) {
-		// 		var collider = (T*) cPtr;
-		// 		return ref UnsafeUtility.AsRef<T>(collider);
-		// 	}
-		// }
 	}
 }

@@ -40,10 +40,10 @@ namespace VisualPinball.Unity
 			ball.CollisionEvent.ClearCollider(hitTime); // search upto current hit time
 
 			for (var i = 0; i < overlappingColliders.Length; i++) {
-				var colliderId = overlappingColliders[i];
 				var newCollEvent = new CollisionEventData();
-				var newTime = HitTest(ref ball, ref newCollEvent, colliderId, ref colliders, ref insideOfs, ref contacts);
-				SaveCollisions(ref ball, ref newCollEvent, ref contacts, colliderId, newTime);
+				var colliderRef = new ColliderRef(overlappingColliders[i], ref colliders);
+				var newTime = colliderRef.HitTest(ref ball, ref newCollEvent, ref insideOfs, ref contacts);
+				SaveCollisions(ref ball, ref newCollEvent, ref contacts, colliderRef.Id, newTime);
 			}
 
 			// no negative time allowed
@@ -54,22 +54,6 @@ namespace VisualPinball.Unity
 			PerfMarker.End();
 		}
 
-		private static float HitTest(ref BallData ball, ref CollisionEventData collEvent, int colliderId, ref BlobAssetReference<ColliderBlob> colliders,
-			ref InsideOfs insideOfs,
-			ref NativeList<ContactBufferElement> contacts)
-		{
-			var hitTime = -1f;
-			switch (colliders.GetType(colliderId)) {
-				case ColliderType.Plane:
-					hitTime = colliders.GetPlaneCollider(colliderId).HitTest(ref collEvent, in ball, ball.CollisionEvent.HitTime);
-					break;
-				case ColliderType.Line:
-					hitTime = colliders.GetLineCollider(colliderId).HitTest(ref collEvent, ref insideOfs, ref ball, ball.CollisionEvent.HitTime);
-					break;
-			}
-			return hitTime;
-		}
-		
 		private static float HitTest(ref BallData ball, in Collider collider, ref NativeList<ContactBufferElement> contacts)
 		{
 			ref var collEvent = ref ball.CollisionEvent;
