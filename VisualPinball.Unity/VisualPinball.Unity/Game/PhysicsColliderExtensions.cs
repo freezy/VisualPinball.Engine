@@ -50,5 +50,14 @@ namespace VisualPinball.Unity
 				return ref UnsafeUtility.AsRef<LineCollider>(lineCollider);
 			}
 		}
+
+		// internal static unsafe ref T GetCollider<T>(this ref BlobAssetReference<ColliderBlob> colliders, int index) where T : struct
+		// {
+		// 	ref var coll = ref colliders.Value.Colliders[index].Value;
+		// 	fixed (Collider* cPtr = &coll) {
+		// 		var collider = (T*) cPtr;
+		// 		return ref UnsafeUtility.AsRef<T>(collider);
+		// 	}
+		// }
 	}
 }

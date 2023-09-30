@@ -31,6 +31,10 @@ namespace VisualPinballUnity
 		{
 			PerfMarker.Begin();
 
+			if (ball.IsFrozen) {
+				return;
+			}
+
 			if (ball.ManualControl) {
 				ball.Velocity *= 0.5f; // Null out most of the X/Y velocity, want a little bit so the ball can sort of find its way out of obstacles.
 				ball.Velocity += new float3(
@@ -39,7 +43,7 @@ namespace VisualPinballUnity
 					-2.0f
 				);
 			} else {
-				ball.Velocity += gravity * (float)PhysicsConstants.PhysFactor;
+				ball.Velocity += (float)PhysicsConstants.PhysFactor * gravity;
 			}
 
 			PerfMarker.End();
