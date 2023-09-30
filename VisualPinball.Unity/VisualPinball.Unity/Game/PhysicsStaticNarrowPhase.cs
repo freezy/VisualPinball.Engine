@@ -53,7 +53,7 @@ namespace VisualPinball.Unity
 
 			PerfMarker.End();
 		}
-		
+
 		private static float HitTest(ref BallData ball, ref CollisionEventData collEvent, int colliderId, ref BlobAssetReference<ColliderBlob> colliders,
 			ref InsideOfs insideOfs,
 			ref NativeList<ContactBufferElement> contacts)
@@ -67,7 +67,6 @@ namespace VisualPinball.Unity
 					hitTime = colliders.GetLineCollider(colliderId).HitTest(ref collEvent, ref insideOfs, ref ball, ball.CollisionEvent.HitTime);
 					break;
 			}
-			ball.CollisionEvent = collEvent;
 			return hitTime;
 		}
 		

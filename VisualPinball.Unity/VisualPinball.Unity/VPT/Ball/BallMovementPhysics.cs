@@ -14,13 +14,10 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-using Unity.Entities;
-using Unity.Mathematics;
 using Unity.Profiling;
 using UnityEngine;
 using VisualPinball.Unity;
-using VisualPinball.Unity.VisualPinball.Unity.Game;
-using Physics = UnityEngine.Physics;
+using Physics = VisualPinball.Unity.Physics;
 
 namespace VisualPinballUnity
 {
@@ -48,7 +45,7 @@ namespace VisualPinballUnity
 			
 			// calculate/adapt height of ball
 			var zHeight = !ball.IsFrozen ? ball.Position.z : ball.Position.z - ball.Radius;
-			ballTransform.localPosition = VisualPinball.Unity.Physics.TranslateToWorld(ball.Position.x, ball.Position.y, zHeight);
+			ballTransform.localPosition = Physics.TranslateToWorld(ball.Position.x, ball.Position.y, zHeight);
 		
 			var or = ball.BallOrientationForUnity;
 		

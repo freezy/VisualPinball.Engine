@@ -139,6 +139,7 @@ namespace VisualPinball.Unity
 
 		private void Awake()
 		{
+			DebugLogger.ClearLog();
 			_tableComponent = GetComponent<TableComponent>();
 			_playfieldComponent = GetComponentInChildren<PlayfieldComponent>();
 			var engineComponent = GetComponent<IGamelogicEngine>();

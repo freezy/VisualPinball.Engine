@@ -60,13 +60,10 @@ namespace VisualPinball.Unity
 			foreach (var colliderItem in colliderItems) {
 				colliderItem.GetColliders(player, managedColliders, 0);
 			}
-			
+
 			// allocate colliders
-			var allocateColliderJob = new ColliderAllocationJob(managedColliders);
-			allocateColliderJob.Run();
-			_colliders = allocateColliderJob.BlobAsset[0];
-			allocateColliderJob.Dispose();
-			
+			_colliders = AllocateColliders(managedColliders);
+
 			// create octree
 			var elapsedMs = sw.Elapsed.TotalMilliseconds;
 			var playfieldBounds = GetComponentInChildren<PlayfieldComponent>().Bounds;
@@ -75,7 +72,7 @@ namespace VisualPinball.Unity
 			sw.Restart();
 			var populateJob = new PopulatePhysicsJob {
 				Colliders = _colliders,
-				Octree = _octree, 
+				Octree = _octree,
 			};
 			populateJob.Run();
 			_octree = populateJob.Octree;
@@ -90,6 +87,15 @@ namespace VisualPinball.Unity
 			}
 			
 			_eventQueue = new NativeQueue<EventData>(Allocator.Persistent);
+		}
+
+		private static BlobAssetReference<ColliderBlob> AllocateColliders(IEnumerable<ICollider> managedColliders)
+		{
+			var allocateColliderJob = new ColliderAllocationJob(managedColliders);
+			allocateColliderJob.Run();
+			var colliders = allocateColliderJob.BlobAsset[0];
+			allocateColliderJob.Dispose();
+			return colliders;
 		}
 
 		private void Update()
@@ -159,19 +165,19 @@ namespace VisualPinball.Unity
 			var state = PhysicsState[0];
 			var cycle = new PhysicsCycle(Allocator.Temp);
 			
-			while (state.CurPhysicsFrameTime < InitialTimeUsec)
+			while (state.CurPhysicsFrameTime < InitialTimeUsec)  // loop here until current (real) time matches the physics (simulated) time
 			{
 				var timeMsec = (uint)((state.CurPhysicsFrameTime - state.StartTimeUsec) / 1000);
 				var physicsDiffTime = (float)((state.NextPhysicsFrameTime - state.CurPhysicsFrameTime) * (1.0 / PhysicsConstants.DefaultStepTime));
 
-				// update velocities
+				// update velocities - always on integral physics frame boundary (spinner, gate, flipper, plunger, ball)
 				for (var i = 0; i < Balls.Length; i++) {
 					var ball = Balls[i];
 					BallVelocityPhysics.UpdateVelocities(state.Gravity, ref ball);
 					Balls[i] = ball;
 				}
 				
-				// simulate cycle
+				// primary physics loop
 				cycle.Simulate(physicsDiffTime, ref state, in Octree, ref Colliders, ref Balls, ref InsideOfs, ref Events);
 				
 				state.CurPhysicsFrameTime = state.NextPhysicsFrameTime;
