@@ -27,7 +27,7 @@ namespace VisualPinballUnity
 	{
 		private static readonly ProfilerMarker PerfMarker = new ProfilerMarker("BallVelocityPhysics");
 
-		public static void UpdateVelocities(float3 gravity, ref BallData ball)
+		public static void UpdateVelocities(ref BallData ball, float3 gravity)
 		{
 			PerfMarker.Begin();
 

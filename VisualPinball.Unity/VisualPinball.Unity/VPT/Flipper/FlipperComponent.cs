@@ -476,6 +476,7 @@ namespace VisualPinball.Unity
 		private void Awake()
 		{
 			_originalRotateZ = _startAngle;
+			GetComponentInParent<PhysicsEngine>().FlipperLookup.Add(gameObject.GetInstanceID(), gameObject);
 		}
 
 		private void Start()
@@ -486,6 +487,32 @@ namespace VisualPinball.Unity
 		#endregion
 
 		#region DOTS Data
+
+		internal FlipperState NewState()
+		{
+			var colliderComponent = gameObject.GetComponent<FlipperColliderComponent>();
+			// collision
+			if (colliderComponent) {
+
+				// vpx physics
+				var d = GetMaterialData(colliderComponent);
+				return new FlipperState(
+					gameObject.GetInstanceID(),
+					d,
+					GetMovementData(d),
+					GetVelocityData(d),
+					GetHitData(),
+					GetFlipperTricksData(colliderComponent, d),
+					new SolenoidStateData { Value = false }
+				);
+
+				// flipper correction (nFozzy)
+				// if (colliderComponent.FlipperCorrection) {
+				// 	SetupFlipperCorrection(entity, dstManager, player, colliderComponent);
+				// }
+			}
+			return default;
+		}
 
 		internal FlipperTricksData GetFlipperTricksData(FlipperColliderComponent colliderComponent, FlipperStaticData staticData)
 		{

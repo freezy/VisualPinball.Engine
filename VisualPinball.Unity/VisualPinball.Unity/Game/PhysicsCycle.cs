@@ -37,9 +37,8 @@ namespace VisualPinball.Unity
 		}
 
 		internal void Simulate(float dTime, ref PhysicsState state, in NativeOctree<int> octree,
-			ref BlobAssetReference<ColliderBlob> colliders, ref NativeList<BallData> balls,
-			ref InsideOfs insideOfs,
-			ref NativeQueue<EventData>.ParallelWriter events)
+			ref BlobAssetReference<ColliderBlob> colliders, ref NativeList<BallData> balls, ref NativeHashMap<int, FlipperState> flipperStates,
+			ref InsideOfs insideOfs, ref NativeQueue<EventData>.ParallelWriter events, uint timeMs)
 		{
 
 			var staticCounts = PhysicsConstants.StaticCnts;
@@ -67,7 +66,7 @@ namespace VisualPinball.Unity
 					
 					// static narrow phase
 					PhysicsStaticNarrowPhase.FindNextCollision(hitTime, ref ball, in _overlappingColliders, ref colliders,
-						ref insideOfs, ref _contacts);
+						ref insideOfs, ref _contacts, ref flipperStates);
 
 					// write ball back
 					balls[i] = ball;
@@ -85,13 +84,19 @@ namespace VisualPinball.Unity
 					balls[i] = ball;
 				}
 
+				foreach (var i in flipperStates.GetKeyArray(Allocator.Temp)) {
+					var flipperState = flipperStates[i];
+					FlipperDisplacementPhysics.UpdateDisplacement(flipperState.ItemId, ref flipperState.Movement, ref flipperState.Tricks, in flipperState.Static, hitTime, ref events);
+					flipperStates[i] = flipperState;
+				}
+
 				for (var i = 0; i < balls.Length; i++) {
 					var ball = balls[i];
 					
 					// todo dynamic collision
 				
 					// static collision
-					PhysicsStaticCollision.Collide(hitTime, ref ball, ref colliders, ref state.Random, ref events);
+					PhysicsStaticCollision.Collide(hitTime, ref ball, ref colliders, ref flipperStates, ref state.Random, ref events, timeMs);
 					
 					balls[i] = ball;
 				}

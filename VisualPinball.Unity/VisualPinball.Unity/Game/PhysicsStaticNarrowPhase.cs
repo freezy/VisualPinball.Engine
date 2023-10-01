@@ -32,7 +32,8 @@ namespace VisualPinball.Unity
 			in NativeList<int> overlappingColliders,
 			ref BlobAssetReference<ColliderBlob> colliders,
 			ref InsideOfs insideOfs,
-			ref NativeList<ContactBufferElement> contacts)
+			ref NativeList<ContactBufferElement> contacts, ref NativeHashMap<int, FlipperState> flipperStates
+			)
 		{
 			PerfMarker.Begin();
 
@@ -42,7 +43,7 @@ namespace VisualPinball.Unity
 			for (var i = 0; i < overlappingColliders.Length; i++) {
 				var newCollEvent = new CollisionEventData();
 				var colliderRef = new ColliderRef(overlappingColliders[i], ref colliders);
-				var newTime = colliderRef.HitTest(ref ball, ref newCollEvent, ref insideOfs, ref contacts);
+				var newTime = colliderRef.HitTest(ref ball, ref newCollEvent, ref insideOfs, ref contacts, ref colliders, ref flipperStates);
 				SaveCollisions(ref ball, ref newCollEvent, ref contacts, colliderRef.Id, newTime);
 			}
 

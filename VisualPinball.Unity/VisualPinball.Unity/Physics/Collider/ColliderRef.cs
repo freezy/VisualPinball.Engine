@@ -1,4 +1,20 @@
-﻿using Unity.Collections;
+﻿// Visual Pinball Engine
+// Copyright (C) 2023 freezy and VPE Team
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+using Unity.Collections;
 using Unity.Entities;
 
 namespace VisualPinball.Unity
@@ -15,7 +31,7 @@ namespace VisualPinball.Unity
 		}
 
 		internal float HitTest(ref BallData ball, ref CollisionEventData collEvent, ref InsideOfs insideOfs,
-			ref NativeList<ContactBufferElement> contacts)
+			ref NativeList<ContactBufferElement> contacts,  ref BlobAssetReference<ColliderBlob> colliders, ref NativeHashMap<int, FlipperState> flipperStates)
 		{
 			var hitTime = -1f;
 			switch (_colliders.GetType(Id)) {
@@ -33,6 +49,14 @@ namespace VisualPinball.Unity
 					break;
 				case ColliderType.Point:
 					hitTime = _colliders.GetPointCollider(Id).HitTest(ref collEvent, in ball, ball.CollisionEvent.HitTime);
+					break;
+				case ColliderType.Flipper:
+					var collider = colliders.Value.Colliders[collEvent.ColliderId].Value;
+					var flipperState = flipperStates[collider.ItemId];
+					hitTime = _colliders.GetFlipperCollider(Id).HitTest(
+						ref collEvent, ref insideOfs, ref flipperState.Hit,
+						in flipperState.Movement, in flipperState.Tricks, in flipperState.Static, in ball, collEvent.HitTime
+					);
 					break;
 			}
 			return hitTime;

@@ -14,12 +14,14 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+using System;
 using Unity.Mathematics;
 using VisualPinball.Engine.Common;
+using Random = Unity.Mathematics.Random;
 
 namespace VisualPinball.Unity
 {
-	public struct PhysicsState
+	public struct PhysicsState : IDisposable
 	{
 		public readonly float3 Gravity;
 		public readonly ulong StartTimeUsec;
@@ -35,6 +37,10 @@ namespace VisualPinball.Unity
 			NextPhysicsFrameTime = StartTimeUsec + PhysicsConstants.PhysicsStepTime;
 			Random = new Random((uint)UnityEngine.Random.Range(1, 100000));
 			Gravity = player.Gravity;
+		}
+
+		public void Dispose()
+		{
 		}
 	}
 }

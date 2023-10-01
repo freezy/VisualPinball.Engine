@@ -14,19 +14,21 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+using System;
 using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Profiling;
-using UnityEngine;
 using VisualPinball.Engine.Game;
 using VisualPinball.Unity;
 using VisualPinball.Unity.VisualPinball.Unity.Game;
+using Object = UnityEngine.Object;
 
 namespace VisualPinballUnity
 {
 	[AlwaysSynchronizeSystem]
 	[UpdateInGroup(typeof(UpdateDisplacementSystemGroup))]
+	[Obsolete("Use FlipperDisplacementPhysics instead.")]
 	internal partial class FlipperDisplacementSystem : SystemBaseStub
 	{
 		private Player _player;

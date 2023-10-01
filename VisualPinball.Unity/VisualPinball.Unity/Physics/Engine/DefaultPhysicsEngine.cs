@@ -41,9 +41,11 @@ namespace VisualPinball.Unity
 		private int _nextBallIdToNotifyDebugUI;
 
 		private VisualPinballSimulationSystemGroup _visualPinballSimulationSystemGroup;
+		private TableComponent _tableComponent;
 
 		public void Init(TableComponent tableComponent, BallManager ballManager)
 		{
+			_tableComponent = tableComponent;
 			_ballManager = ballManager;
 			_entityManager = World.DefaultGameObjectInjectionWorld.EntityManager;
 			// _flipperDataQuery = _entityManager.CreateEntityQuery(
@@ -98,22 +100,21 @@ namespace VisualPinball.Unity
 
 		public void FlipperRotateToEnd(in int itemId)
 		{
-			// fixme job
-			// var mData = _entityManager.GetComponentData<FlipperMovementData>(entity);
-			// mData.EnableRotateEvent = 1;
-			// mData.StartRotateToEndTime = _visualPinballSimulationSystemGroup.TimeMsec;
-			// mData.AngleAtRotateToEnd = mData.Angle;
-			// _entityManager.SetComponentData(entity, mData);
-			// _entityManager.SetComponentData(entity, new SolenoidStateData { Value = true });
+			var physicsEngine = _tableComponent.GetComponent<PhysicsEngine>();
+			var mData = _entityManager.GetComponentData<FlipperMovementData>(entity);
+			mData.EnableRotateEvent = 1;
+			mData.StartRotateToEndTime = _visualPinballSimulationSystemGroup.TimeMsec;
+			mData.AngleAtRotateToEnd = mData.Angle;
+			_entityManager.SetComponentData(entity, mData);
+			_entityManager.SetComponentData(entity, new SolenoidStateData { Value = true });
 		}
 
 		public void FlipperRotateToStart(in int itemId)
 		{
-			// fixme job
-			// var mData = _entityManager.GetComponentData<FlipperMovementData>(entity);
-			// mData.EnableRotateEvent = -1;
-			// _entityManager.SetComponentData(entity, mData);
-			// _entityManager.SetComponentData(entity, new SolenoidStateData { Value = false });
+			var mData = _entityManager.GetComponentData<FlipperMovementData>(entity);
+			mData.EnableRotateEvent = -1;
+			_entityManager.SetComponentData(entity, mData);
+			_entityManager.SetComponentData(entity, new SolenoidStateData { Value = false });
 		}
 
 		public DebugFlipperState[] FlipperGetDebugStates()

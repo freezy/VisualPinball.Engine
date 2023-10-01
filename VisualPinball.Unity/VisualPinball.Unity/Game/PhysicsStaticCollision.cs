@@ -28,7 +28,9 @@ namespace VisualPinballUnity
 	{
 		private static readonly ProfilerMarker PerfMarker = new("PhysicsStaticCollision");
 
-		internal static void Collide(float hitTime, ref BallData ball, ref BlobAssetReference<ColliderBlob> colliders, ref Random random, ref NativeQueue<EventData>.ParallelWriter events)
+		internal static void Collide(float hitTime, ref BallData ball, ref BlobAssetReference<ColliderBlob> colliders,
+			ref NativeHashMap<int, FlipperState> flipperStates,
+			ref Random random, ref NativeQueue<EventData>.ParallelWriter events, uint timeMs)
 		{
 			
 			// find balls with hit objects and minimum time
@@ -38,7 +40,7 @@ namespace VisualPinballUnity
 
 			PerfMarker.Begin();
 
-			Collide(ref ball, ref colliders, ref random, ref events);
+			Collide(ref ball, ref colliders, ref flipperStates, ref random, ref events, timeMs);
 
 			// remove trial hit object pointer
 			ball.CollisionEvent.ClearCollider();
@@ -46,7 +48,8 @@ namespace VisualPinballUnity
 			PerfMarker.End();
 		}
 
-		private static void Collide(ref BallData ball, ref BlobAssetReference<ColliderBlob> colliders, ref Random random, ref NativeQueue<EventData>.ParallelWriter events)
+		private static void Collide(ref BallData ball, ref BlobAssetReference<ColliderBlob> colliders, ref NativeHashMap<int, FlipperState> flipperStates,
+			ref Random random, ref NativeQueue<EventData>.ParallelWriter events, uint timeMs)
 		{
 			switch (colliders.GetType(ball.CollisionEvent.ColliderId)) {
 				case ColliderType.Plane:
@@ -63,6 +66,13 @@ namespace VisualPinballUnity
 					break;
 				case ColliderType.Point:
 					colliders.GetPointCollider(ball.CollisionEvent.ColliderId).Collide(ref ball, ref events, ball.Id, in ball.CollisionEvent, ref random);
+					break;
+				case ColliderType.Flipper:
+					var collider = colliders.Value.Colliders[ball.CollisionEvent.ColliderId].Value;
+					var flipperState = flipperStates[collider.ItemId];
+					colliders.GetFlipperCollider(ball.CollisionEvent.ColliderId).Collide(ref ball, ref ball.CollisionEvent, ref flipperState.Movement,
+						ref  events, in ball.Id, in flipperState.Tricks, in flipperState.Static,
+						in flipperState.Velocity, in flipperState.Hit, timeMs);
 					break;
 			}
 		}
