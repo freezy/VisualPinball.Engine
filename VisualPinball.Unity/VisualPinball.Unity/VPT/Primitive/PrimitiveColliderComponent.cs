@@ -16,15 +16,14 @@
 
 // ReSharper disable InconsistentNaming
 
-using System;
-using Unity.Entities;
+using System.Collections.Generic;
 using UnityEngine;
 using VisualPinball.Engine.VPT.Primitive;
 
 namespace VisualPinball.Unity
 {
 	[AddComponentMenu("Visual Pinball/Collision/Primitive Collider")]
-	public class PrimitiveColliderComponent : ColliderComponent<PrimitiveData, PrimitiveComponent>
+	public class PrimitiveColliderComponent : ColliderComponent<PrimitiveData, PrimitiveComponent>, ICollidableComponent
 	{
 		#region Data
 
@@ -63,5 +62,10 @@ namespace VisualPinball.Unity
 		public override PhysicsMaterialData PhysicsMaterialData => GetPhysicsMaterialData(Elasticity, ElasticityFalloff, Friction, Scatter, OverwritePhysics);
 		protected override IApiColliderGenerator InstantiateColliderApi(Player player)
 			=> new PrimitiveApi(gameObject, player);
+
+		void ICollidableComponent.GetColliders(Player player, List<ICollider> colliders, float margin)
+		{
+			InstantiateColliderApi(player).CreateColliders(colliders, margin);
+		}
 	}
 }

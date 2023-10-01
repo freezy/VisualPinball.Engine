@@ -55,6 +55,15 @@ namespace VisualPinballUnity
 				case ColliderType.Line:
 					colliders.GetLineCollider(ball.CollisionEvent.ColliderId).Collide(ref ball, ref events, ball.Id, in ball.CollisionEvent, ref random);
 					break;
+				case ColliderType.Triangle:
+					colliders.GetTriangleCollider(ball.CollisionEvent.ColliderId).Collide(ref ball, ref events, ball.Id, in ball.CollisionEvent, ref random);
+					break;
+				case ColliderType.Line3D:
+					colliders.GetLine3DCollider(ball.CollisionEvent.ColliderId).Collide(ref ball, ref events, ball.Id, in ball.CollisionEvent, ref random);
+					break;
+				case ColliderType.Point:
+					colliders.GetPointCollider(ball.CollisionEvent.ColliderId).Collide(ref ball, ref events, ball.Id, in ball.CollisionEvent, ref random);
+					break;
 			}
 		}
 	}

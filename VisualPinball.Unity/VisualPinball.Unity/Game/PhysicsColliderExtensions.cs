@@ -50,5 +50,32 @@ namespace VisualPinball.Unity
 				return ref UnsafeUtility.AsRef<LineCollider>(lineCollider);
 			}
 		}
+
+		internal static unsafe ref TriangleCollider GetTriangleCollider(this in BlobAssetReference<ColliderBlob> colliders, int index)
+		{
+			ref var coll = ref colliders.Value.Colliders[index].Value;
+			fixed (Collider* cPtr = &coll) {
+				var triangleCollider = (TriangleCollider*) cPtr;
+				return ref UnsafeUtility.AsRef<TriangleCollider>(triangleCollider);
+			}
+		}
+
+		internal static unsafe ref Line3DCollider GetLine3DCollider(this in BlobAssetReference<ColliderBlob> colliders, int index)
+		{
+			ref var coll = ref colliders.Value.Colliders[index].Value;
+			fixed (Collider* cPtr = &coll) {
+				var line3DCollider = (Line3DCollider*) cPtr;
+				return ref UnsafeUtility.AsRef<Line3DCollider>(line3DCollider);
+			}
+		}
+
+		internal static unsafe ref PointCollider GetPointCollider(this in BlobAssetReference<ColliderBlob> colliders, int index)
+		{
+			ref var coll = ref colliders.Value.Colliders[index].Value;
+			fixed (Collider* cPtr = &coll) {
+				var pointCollider = (PointCollider*) cPtr;
+				return ref UnsafeUtility.AsRef<PointCollider>(pointCollider);
+			}
+		}
 	}
 }

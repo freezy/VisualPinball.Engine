@@ -216,10 +216,6 @@ namespace VisualPinball.Unity
 			collEvent.HitNormal.z = 0f;
 			collEvent.HitDistance = bnd; // actual contact distance ...
 
-			if (collEvent.HitNormal is { x: 0, y: 0, z: 0 }) {
-				Debug.Log("Hit normal set to zero by line collider.");
-			}
-
 			// check for contact
 			collEvent.IsContact = math.abs(bnv) <= PhysicsConstants.ContactVel &&
 			                      math.abs(bnd) <= PhysicsConstants.PhysTouch;
