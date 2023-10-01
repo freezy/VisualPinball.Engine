@@ -16,6 +16,7 @@
 
 using Unity.Entities;
 using Unity.Mathematics;
+using VisualPinballUnity;
 
 namespace VisualPinball.Unity
 {
@@ -148,6 +149,8 @@ namespace VisualPinball.Unity
 				the angular velocity used here is not the angular velocity that the ball has (which is more like an angular impulse which is added to the angMom).
 			*/
 		}
+
+		public void UpdateVelocities(float3 gravity) => BallVelocityPhysics.UpdateVelocities(ref this, gravity);
 
 		public override string ToString()
 		{

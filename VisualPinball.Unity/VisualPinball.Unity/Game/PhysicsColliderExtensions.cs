@@ -77,5 +77,14 @@ namespace VisualPinball.Unity
 				return ref UnsafeUtility.AsRef<PointCollider>(pointCollider);
 			}
 		}
+
+		internal static unsafe ref FlipperCollider GetFlipperCollider(this in BlobAssetReference<ColliderBlob> colliders, int index)
+		{
+			ref var coll = ref colliders.Value.Colliders[index].Value;
+			fixed (Collider* cPtr = &coll) {
+				var flipperCollider = (FlipperCollider*) cPtr;
+				return ref UnsafeUtility.AsRef<FlipperCollider>(flipperCollider);
+			}
+		}
 	}
 }

@@ -16,6 +16,7 @@
 
 // ReSharper disable CompareOfFloatsByEqualityOperator
 
+using System;
 using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Profiling;
@@ -27,6 +28,7 @@ namespace VisualPinballUnity
 {
 	[AlwaysSynchronizeSystem]
 	[UpdateInGroup(typeof(UpdateVelocitiesSystemGroup))]
+	[Obsolete("Use FlipperVelocityPhysics instead.")]
 	internal partial class FlipperVelocitySystem : SystemBaseStub
 	{
 		private static readonly ProfilerMarker PerfMarker = new ProfilerMarker("FlipperVelocitySystem");

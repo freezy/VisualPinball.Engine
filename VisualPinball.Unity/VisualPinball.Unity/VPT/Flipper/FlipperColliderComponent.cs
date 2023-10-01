@@ -16,6 +16,7 @@
 
 // ReSharper disable InconsistentNaming
 
+using System.Collections.Generic;
 using Unity.Entities;
 using UnityEngine;
 using VisualPinball.Engine.VPT.Flipper;
@@ -24,7 +25,7 @@ namespace VisualPinball.Unity
 {
 	[AddComponentMenu("Visual Pinball/Collision/Flipper Collider")]
 	[HelpURL("https://docs.visualpinball.org/creators-guide/manual/mechanisms/flippers.html")]
-	public class FlipperColliderComponent : ColliderComponent<FlipperData, FlipperComponent>
+	public class FlipperColliderComponent : ColliderComponent<FlipperData, FlipperComponent>, ICollidableComponent
 	{
 		#region Data
 
@@ -123,7 +124,7 @@ namespace VisualPinball.Unity
 		/// <summary>
 		/// If set, apply Live Catch (nFozzy/RothBauerW)
 		/// </summary>
-		#endregion
+
 		[Tooltip("The nFozzy's LiveCatch Physics")]
 		public bool useFlipperLiveCatch = false;
 
@@ -157,8 +158,14 @@ namespace VisualPinball.Unity
 		[Tooltip("Maximum bounce speed multiplier for an inaccurate live catch")]
 		public float LiveCatchInaccurateBounceSpeedMultiplier = 1.0f;
 
+		#endregion
+
 		protected override IApiColliderGenerator InstantiateColliderApi(Player player)
 			=> new FlipperApi(gameObject, player);
 
+		void ICollidableComponent.GetColliders(Player player, List<ICollider> colliders, float margin)
+		{
+			InstantiateColliderApi(player).CreateColliders(colliders, margin);
+		}
 	}
 }
