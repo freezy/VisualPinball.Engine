@@ -25,6 +25,15 @@ namespace VisualPinball.Unity
 				case ColliderType.Line:
 					hitTime = _colliders.GetLineCollider(Id).HitTest(ref collEvent, ref insideOfs, ref ball, ball.CollisionEvent.HitTime);
 					break;
+				case ColliderType.Triangle:
+					hitTime = _colliders.GetTriangleCollider(Id).HitTest(ref collEvent, in insideOfs, in ball, ball.CollisionEvent.HitTime);
+					break;
+				case ColliderType.Line3D:
+					hitTime = _colliders.GetLine3DCollider(Id).HitTest(ref collEvent, in ball, ball.CollisionEvent.HitTime);
+					break;
+				case ColliderType.Point:
+					hitTime = _colliders.GetPointCollider(Id).HitTest(ref collEvent, in ball, ball.CollisionEvent.HitTime);
+					break;
 			}
 			return hitTime;
 		}
