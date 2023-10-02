@@ -46,6 +46,8 @@ namespace VisualPinball.Unity
 
 		[NonSerialized] public Dictionary<int, GameObject> FlipperLookup = new();
 
+		[NonSerialized] internal Queue<Action<NativeHashMap<int, FlipperState>, PhysicsState>> Actions = new();
+
 		private static ulong NowUsec => (ulong)(Time.timeAsDouble * 1000000);
 		
 		private void Start()
@@ -125,7 +127,10 @@ namespace VisualPinball.Unity
 				Balls = _balls,
 				FlipperStates = _flipperStates,
 			};
-			
+
+			foreach (var action in Actions) {
+				action(_flipperStates, _physicsState[0]);
+			}
 			updatePhysics.Run();
 
 			_balls = updatePhysics.Balls;

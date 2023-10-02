@@ -476,6 +476,7 @@ namespace VisualPinball.Unity
 		private void Awake()
 		{
 			_originalRotateZ = _startAngle;
+			GetComponentInParent<Player>().RegisterFlipper(this);
 			GetComponentInParent<PhysicsEngine>().FlipperLookup.Add(gameObject.GetInstanceID(), gameObject);
 		}
 
