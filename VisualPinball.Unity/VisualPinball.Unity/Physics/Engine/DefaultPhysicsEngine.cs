@@ -102,14 +102,14 @@ namespace VisualPinball.Unity
 		{
 			var id = itemId;
 			var physicsEngine = _tableComponent.GetComponent<PhysicsEngine>();
-			physicsEngine.Actions.Enqueue((flipperStates, state) => {
-				var timeMsec = (uint)((state.CurPhysicsFrameTime - state.StartTimeUsec) / 1000);
-				var flipperState = flipperStates[id];
+			physicsEngine.InputActions.Enqueue((ref PhysicsState state) => {
+				var timeMsec = (uint)((state.Env.CurPhysicsFrameTime - state.Env.StartTimeUsec) / 1000);
+				var flipperState = state.FlipperStates[id];
 				flipperState.Movement.EnableRotateEvent = 1;
 				flipperState.Movement.StartRotateToEndTime = timeMsec;
 				flipperState.Movement.AngleAtRotateToEnd = flipperState.Movement.Angle;
 				flipperState.Solenoid.Value = true;
-				flipperStates[id] = flipperState;
+				state.FlipperStates[id] = flipperState;
 			});
 		}
 
@@ -117,12 +117,12 @@ namespace VisualPinball.Unity
 		{
 			var id = itemId;
 			var physicsEngine = _tableComponent.GetComponent<PhysicsEngine>();
-			physicsEngine.Actions.Enqueue((flipperStates, state) => {
-				var timeMsec = (uint)((state.CurPhysicsFrameTime - state.StartTimeUsec) / 1000);
-				var flipperState = flipperStates[id];
+			physicsEngine.InputActions.Enqueue((ref PhysicsState state) => {
+				var timeMsec = (uint)((state.Env.CurPhysicsFrameTime - state.Env.StartTimeUsec) / 1000);
+				var flipperState = state.FlipperStates[id];
 				flipperState.Movement.EnableRotateEvent = -1;
 				flipperState.Solenoid.Value = false;
-				flipperStates[id] = flipperState;
+				state.FlipperStates[id] = flipperState;
 			});
 		}
 
