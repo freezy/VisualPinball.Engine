@@ -42,9 +42,10 @@ namespace VisualPinball.Unity
 		[NonSerialized] private NativeHashMap<int, FlipperState> _flipperStates;
 
 		[NonSerialized] private readonly Dictionary<int, PhysicsBall> _ballLookup = new();
-		[NonSerialized] public Dictionary<int, GameObject> FlipperLookup = new();
+		[NonSerialized] public readonly Dictionary<int, GameObject> FlipperLookup = new();
 
-		[NonSerialized] internal Queue<Action<NativeHashMap<int, FlipperState>, PhysicsEnv>> Actions = new();
+		[NonSerialized] internal readonly Queue<InputAction> InputActions = new();
+		internal delegate void InputAction(ref PhysicsState state);
 
 		private static ulong NowUsec => (ulong)(Time.timeAsDouble * 1000000);
 		
@@ -53,7 +54,7 @@ namespace VisualPinball.Unity
 			var player = GetComponent<Player>();
 			
 			// init state
-			var physicsState = new PhysicsEnv(NowUsec, GetComponent<Player>());
+			var env = new PhysicsEnv(NowUsec, GetComponent<Player>());
 			_insideOfs = new InsideOfs(Allocator.Persistent);
 
 			// create static octree
@@ -80,7 +81,7 @@ namespace VisualPinball.Unity
 			var elapsedMs = sw.Elapsed.TotalMilliseconds;
 			var playfieldBounds = GetComponentInChildren<PlayfieldComponent>().Bounds;
 			_octree = new NativeOctree<int>(playfieldBounds, 32, 10, Allocator.Persistent);
-			
+
 			sw.Restart();
 			var populateJob = new PopulatePhysicsJob {
 				Colliders = _colliders,
@@ -89,7 +90,7 @@ namespace VisualPinball.Unity
 			populateJob.Run();
 			_octree = populateJob.Octree;
 			Debug.Log($"Octree of {_colliders.Value.Colliders.Length} constructed (colliders: {elapsedMs}ms, tree: {sw.Elapsed.TotalMilliseconds}ms).");
-			
+
 			// get balls
 			var balls = GetComponentsInChildren<PhysicsBall>();
 			_balls = new NativeList<BallData>(balls.Length, Allocator.Persistent);
@@ -97,10 +98,10 @@ namespace VisualPinball.Unity
 				_balls.Add(ball.Data);
 				_ballLookup[ball.Id] = ball;
 			}
-			
+
 			_eventQueue = new NativeQueue<EventData>(Allocator.Persistent);
 			_physicsEnv = new NativeArray<PhysicsEnv>(1, Allocator.Persistent);
-			_physicsEnv[0] = physicsState;
+			_physicsEnv[0] = env;
 		}
 
 		private static BlobAssetReference<ColliderBlob> AllocateColliders(IEnumerable<ICollider> managedColliders)
@@ -126,8 +127,11 @@ namespace VisualPinball.Unity
 				FlipperStates = _flipperStates,
 			};
 
-			foreach (var action in Actions) {
-				action(_flipperStates, _physicsEnv[0]);
+			var env = _physicsEnv[0];
+			var state = new PhysicsState(ref env, ref _octree, ref _colliders, ref events, ref _insideOfs, ref _balls, ref _flipperStates);
+
+			foreach (var action in InputActions) {
+				action(ref state);
 			}
 			updatePhysics.Run();
 
