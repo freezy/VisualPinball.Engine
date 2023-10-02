@@ -14,34 +14,33 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+using System;
+using Unity.Mathematics;
+using VisualPinball.Engine.Common;
+using Random = Unity.Mathematics.Random;
+
 namespace VisualPinball.Unity
 {
-	internal interface IMovableStruct
+	public struct PhysicsEnv : IDisposable
 	{
-		void UpdateVelocities();
-	}
+		public readonly float3 Gravity;
+		public readonly ulong StartTimeUsec;
+		public ulong CurPhysicsFrameTime;
+		public ulong NextPhysicsFrameTime;
 
-	internal struct FlipperState
-	{
-		internal readonly int ItemId;
-		internal FlipperStaticData Static;
-		internal FlipperMovementData Movement;
-		internal FlipperVelocityData Velocity;
-		internal FlipperHitData Hit;
-		internal FlipperTricksData Tricks;
-		internal SolenoidStateData Solenoid;
+		public Random Random;
 
-		public FlipperState(int itemId, FlipperStaticData @static, FlipperMovementData movement,
-			FlipperVelocityData velocity, FlipperHitData hit, FlipperTricksData tricks,
-			SolenoidStateData solenoid)
+		public PhysicsEnv(ulong startTimeUsec, Player player) : this()
 		{
-			ItemId = itemId;
-			Static = @static;
-			Movement = movement;
-			Velocity = velocity;
-			Hit = hit;
-			Tricks = tricks;
-			Solenoid = solenoid;
+			StartTimeUsec = startTimeUsec;
+			CurPhysicsFrameTime = StartTimeUsec;
+			NextPhysicsFrameTime = StartTimeUsec + PhysicsConstants.PhysicsStepTime;
+			Random = new Random((uint)UnityEngine.Random.Range(1, 100000));
+			Gravity = player.Gravity;
+		}
+
+		public void Dispose()
+		{
 		}
 	}
 }

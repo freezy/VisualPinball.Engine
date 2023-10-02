@@ -30,8 +30,7 @@ namespace VisualPinball.Unity
 			Id = id;
 		}
 
-		internal float HitTest(ref BallData ball, ref CollisionEventData collEvent, ref InsideOfs insideOfs,
-			ref NativeList<ContactBufferElement> contacts,  ref BlobAssetReference<ColliderBlob> colliders, ref NativeHashMap<int, FlipperState> flipperStates)
+		internal float HitTest(ref BallData ball, ref CollisionEventData collEvent, ref NativeList<ContactBufferElement> contacts, ref PhysicsState state)
 		{
 			var hitTime = -1f;
 			switch (_colliders.GetType(Id)) {
@@ -39,10 +38,10 @@ namespace VisualPinball.Unity
 					hitTime = _colliders.GetPlaneCollider(Id).HitTest(ref collEvent, in ball, ball.CollisionEvent.HitTime);
 					break;
 				case ColliderType.Line:
-					hitTime = _colliders.GetLineCollider(Id).HitTest(ref collEvent, ref insideOfs, ref ball, ball.CollisionEvent.HitTime);
+					hitTime = _colliders.GetLineCollider(Id).HitTest(ref collEvent, ref state.InsideOfs, ref ball, ball.CollisionEvent.HitTime);
 					break;
 				case ColliderType.Triangle:
-					hitTime = _colliders.GetTriangleCollider(Id).HitTest(ref collEvent, in insideOfs, in ball, ball.CollisionEvent.HitTime);
+					hitTime = _colliders.GetTriangleCollider(Id).HitTest(ref collEvent, in state.InsideOfs, in ball, ball.CollisionEvent.HitTime);
 					break;
 				case ColliderType.Line3D:
 					hitTime = _colliders.GetLine3DCollider(Id).HitTest(ref collEvent, in ball, ball.CollisionEvent.HitTime);
@@ -51,12 +50,13 @@ namespace VisualPinball.Unity
 					hitTime = _colliders.GetPointCollider(Id).HitTest(ref collEvent, in ball, ball.CollisionEvent.HitTime);
 					break;
 				case ColliderType.Flipper:
-					var collider = colliders.Value.Colliders[collEvent.ColliderId].Value;
-					var flipperState = flipperStates[collider.ItemId];
+					var flipperState = state.GetFlipperState(collEvent.ColliderId);
 					hitTime = _colliders.GetFlipperCollider(Id).HitTest(
-						ref collEvent, ref insideOfs, ref flipperState.Hit,
-						in flipperState.Movement, in flipperState.Tricks, in flipperState.Static, in ball, collEvent.HitTime
+						ref collEvent, ref state.InsideOfs, ref flipperState.Hit,
+						in flipperState.Movement, in flipperState.Tricks, in flipperState.Static,
+						in ball, collEvent.HitTime
 					);
+					state.SetFlipperState(collEvent.ColliderId, flipperState);
 					break;
 			}
 			return hitTime;
