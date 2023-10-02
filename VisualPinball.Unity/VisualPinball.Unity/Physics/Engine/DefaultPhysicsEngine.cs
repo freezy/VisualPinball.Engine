@@ -100,21 +100,30 @@ namespace VisualPinball.Unity
 
 		public void FlipperRotateToEnd(in int itemId)
 		{
+			var id = itemId;
 			var physicsEngine = _tableComponent.GetComponent<PhysicsEngine>();
-			var mData = _entityManager.GetComponentData<FlipperMovementData>(entity);
-			mData.EnableRotateEvent = 1;
-			mData.StartRotateToEndTime = _visualPinballSimulationSystemGroup.TimeMsec;
-			mData.AngleAtRotateToEnd = mData.Angle;
-			_entityManager.SetComponentData(entity, mData);
-			_entityManager.SetComponentData(entity, new SolenoidStateData { Value = true });
+			physicsEngine.Actions.Enqueue((flipperStates, state) => {
+				var timeMsec = (uint)((state.CurPhysicsFrameTime - state.StartTimeUsec) / 1000);
+				var flipperState = flipperStates[id];
+				flipperState.Movement.EnableRotateEvent = 1;
+				flipperState.Movement.StartRotateToEndTime = timeMsec;
+				flipperState.Movement.AngleAtRotateToEnd = flipperState.Movement.Angle;
+				flipperState.Solenoid.Value = true;
+				flipperStates[id] = flipperState;
+			});
 		}
 
 		public void FlipperRotateToStart(in int itemId)
 		{
-			var mData = _entityManager.GetComponentData<FlipperMovementData>(entity);
-			mData.EnableRotateEvent = -1;
-			_entityManager.SetComponentData(entity, mData);
-			_entityManager.SetComponentData(entity, new SolenoidStateData { Value = false });
+			var id = itemId;
+			var physicsEngine = _tableComponent.GetComponent<PhysicsEngine>();
+			physicsEngine.Actions.Enqueue((flipperStates, state) => {
+				var timeMsec = (uint)((state.CurPhysicsFrameTime - state.StartTimeUsec) / 1000);
+				var flipperState = flipperStates[id];
+				flipperState.Movement.EnableRotateEvent = -1;
+				flipperState.Solenoid.Value = false;
+				flipperStates[id] = flipperState;
+			});
 		}
 
 		public DebugFlipperState[] FlipperGetDebugStates()
