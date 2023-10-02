@@ -14,33 +14,45 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-using System;
-using Unity.Mathematics;
-using VisualPinball.Engine.Common;
-using Random = Unity.Mathematics.Random;
+using NativeTrees;
+using Unity.Collections;
+using Unity.Entities;
 
 namespace VisualPinball.Unity
 {
-	public struct PhysicsState : IDisposable
+	internal struct PhysicsState
 	{
-		public readonly float3 Gravity;
-		public readonly ulong StartTimeUsec;
-		public ulong CurPhysicsFrameTime;
-		public ulong NextPhysicsFrameTime;
+		internal PhysicsEnv Env;
+		internal NativeOctree<int> Octree;
+		internal BlobAssetReference<ColliderBlob> Colliders;
+		internal NativeQueue<EventData>.ParallelWriter EventQueue;
+		internal InsideOfs InsideOfs;
+		internal NativeList<BallData> Balls;
+		internal NativeHashMap<int, FlipperState> FlipperStates;
 
-		public Random Random;
-
-		public PhysicsState(ulong startTimeUsec, Player player) : this()
+		public PhysicsState(ref PhysicsEnv env, ref NativeOctree<int> octree, ref BlobAssetReference<ColliderBlob> colliders,
+			ref NativeQueue<EventData>.ParallelWriter eventQueue, ref InsideOfs insideOfs, ref NativeList<BallData> balls,
+			ref NativeHashMap<int, FlipperState> flipperStates)
 		{
-			StartTimeUsec = startTimeUsec;
-			CurPhysicsFrameTime = StartTimeUsec;
-			NextPhysicsFrameTime = StartTimeUsec + PhysicsConstants.PhysicsStepTime;
-			Random = new Random((uint)UnityEngine.Random.Range(1, 100000));
-			Gravity = player.Gravity;
+			Env = env;
+			Octree = octree;
+			Colliders = colliders;
+			EventQueue = eventQueue;
+			InsideOfs = insideOfs;
+			Balls = balls;
+			FlipperStates = flipperStates;
 		}
 
-		public void Dispose()
+		internal FlipperState GetFlipperState(int colliderId)
 		{
+			var collider = Colliders.Value.Colliders[colliderId].Value;
+			return FlipperStates[collider.ItemId];
+		}
+
+		internal void SetFlipperState(int colliderId, FlipperState state)
+		{
+			var collider = Colliders.Value.Colliders[colliderId].Value;
+			FlipperStates[collider.ItemId] = state;
 		}
 	}
 }

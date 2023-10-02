@@ -17,7 +17,6 @@
 // ReSharper disable ForCanBeConvertedToForeach
 
 using Unity.Collections;
-using Unity.Entities;
 using Unity.Profiling;
 
 namespace VisualPinball.Unity
@@ -30,10 +29,9 @@ namespace VisualPinball.Unity
 			float hitTime,
 			ref BallData ball,
 			in NativeList<int> overlappingColliders,
-			ref BlobAssetReference<ColliderBlob> colliders,
-			ref InsideOfs insideOfs,
-			ref NativeList<ContactBufferElement> contacts, ref NativeHashMap<int, FlipperState> flipperStates
-			)
+			ref NativeList<ContactBufferElement> contacts,
+			ref PhysicsState state
+		)
 		{
 			PerfMarker.Begin();
 
@@ -42,8 +40,8 @@ namespace VisualPinball.Unity
 
 			for (var i = 0; i < overlappingColliders.Length; i++) {
 				var newCollEvent = new CollisionEventData();
-				var colliderRef = new ColliderRef(overlappingColliders[i], ref colliders);
-				var newTime = colliderRef.HitTest(ref ball, ref newCollEvent, ref insideOfs, ref contacts, ref colliders, ref flipperStates);
+				var colliderRef = new ColliderRef(overlappingColliders[i], ref state.Colliders);
+				var newTime = colliderRef.HitTest(ref ball, ref newCollEvent, ref contacts, ref state);
 				SaveCollisions(ref ball, ref newCollEvent, ref contacts, colliderRef.Id, newTime);
 			}
 

@@ -15,9 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using System;
-using NativeTrees;
 using Unity.Collections;
-using Unity.Entities;
 using VisualPinball.Engine.Common;
 using VisualPinballUnity;
 
@@ -36,11 +34,8 @@ namespace VisualPinball.Unity
 			_overlappingColliders = new NativeList<int>(a);
 		}
 
-		internal void Simulate(float dTime, ref PhysicsState state, in NativeOctree<int> octree,
-			ref BlobAssetReference<ColliderBlob> colliders, ref NativeList<BallData> balls, ref NativeHashMap<int, FlipperState> flipperStates,
-			ref InsideOfs insideOfs, ref NativeQueue<EventData>.ParallelWriter events, uint timeMs)
+		internal void Simulate(ref PhysicsState state, float dTime, uint timeMs)
 		{
-
 			var staticCounts = PhysicsConstants.StaticCnts;
 			
 			while (dTime > 0) {
@@ -54,22 +49,21 @@ namespace VisualPinball.Unity
 
 				// todo dynamic broad phase
 
-				for (var i = 0; i < balls.Length; i++) {
-					var ball = balls[i];
+				for (var i = 0; i < state.Balls.Length; i++) {
+					var ball = state.Balls[i];
 					
 					if (ball.IsFrozen) {
 						continue;
 					}
 					
 					// static broad phase
-					PhysicsStaticBroadPhase.FindOverlaps(in octree, in ball, ref _overlappingColliders);
+					PhysicsStaticBroadPhase.FindOverlaps(in state.Octree, in ball, ref _overlappingColliders);
 					
 					// static narrow phase
-					PhysicsStaticNarrowPhase.FindNextCollision(hitTime, ref ball, in _overlappingColliders, ref colliders,
-						ref insideOfs, ref _contacts, ref flipperStates);
+					PhysicsStaticNarrowPhase.FindNextCollision(hitTime, ref ball, in _overlappingColliders, ref _contacts, ref state);
 
 					// write ball back
-					balls[i] = ball;
+					state.Balls[i] = ball;
 					
 					// todo dynamic narrow phase
 
@@ -78,35 +72,34 @@ namespace VisualPinball.Unity
 				}
 
 				// displacement
-				for (var i = 0; i < balls.Length; i++) { // todo loop through all "movers", not just balls
-					var ball = balls[i];
+				for (var i = 0; i < state.Balls.Length; i++) { // todo loop through all "movers", not just balls
+					var ball = state.Balls[i];
 					BallDisplacementPhysics.UpdateDisplacements(ref ball, hitTime); // use static method instead of member
-					balls[i] = ball;
+					state.Balls[i] = ball;
+				}
+				foreach (var i in state.FlipperStates.GetKeyArray(Allocator.Temp)) {
+					var flipperState = state.FlipperStates[i];
+					FlipperDisplacementPhysics.UpdateDisplacement(flipperState.ItemId, ref flipperState.Movement, ref flipperState.Tricks, in flipperState.Static, hitTime, ref state.EventQueue);
+					state.FlipperStates[i] = flipperState;
 				}
 
-				foreach (var i in flipperStates.GetKeyArray(Allocator.Temp)) {
-					var flipperState = flipperStates[i];
-					FlipperDisplacementPhysics.UpdateDisplacement(flipperState.ItemId, ref flipperState.Movement, ref flipperState.Tricks, in flipperState.Static, hitTime, ref events);
-					flipperStates[i] = flipperState;
-				}
-
-				for (var i = 0; i < balls.Length; i++) {
-					var ball = balls[i];
+				for (var i = 0; i < state.Balls.Length; i++) {
+					var ball = state.Balls[i];
 					
 					// todo dynamic collision
 				
 					// static collision
-					PhysicsStaticCollision.Collide(hitTime, ref ball, ref colliders, ref flipperStates, ref state.Random, ref events, timeMs);
+					PhysicsStaticCollision.Collide(hitTime, ref ball, timeMs, ref state);
 					
-					balls[i] = ball;
+					state.Balls[i] = ball;
 				}
 				
 				// handle contacts
-				var b = balls[0];
+				var b = state.Balls[0];
 				foreach (var contact in _contacts) {
-					BallCollider.HandleStaticContact(ref b, in contact.CollEvent, colliders.GetFriction(contact.CollEvent.ColliderId), hitTime, state.Gravity);
+					BallCollider.HandleStaticContact(ref b, in contact.CollEvent, state.Colliders.GetFriction(contact.CollEvent.ColliderId), hitTime, state.Env.Gravity);
 				}
-				balls[0] = b;
+				state.Balls[0] = b;
 
 				// clear contacts
 				_contacts.Clear();

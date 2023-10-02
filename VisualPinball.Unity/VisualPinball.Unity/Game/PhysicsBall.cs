@@ -20,7 +20,7 @@ using System;
 using Unity.Mathematics;
 using UnityEngine;
 
-namespace VisualPinball.Unity.VisualPinball.Unity.Game
+namespace VisualPinball.Unity
 {
 	public class PhysicsBall : MonoBehaviour
 	{

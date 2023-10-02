@@ -16,9 +16,6 @@
 
 // ReSharper disable ConvertIfStatementToSwitchStatement
 
-using Unity.Collections;
-using Unity.Entities;
-using Unity.Mathematics;
 using Unity.Profiling;
 using VisualPinball.Unity;
 
@@ -28,9 +25,7 @@ namespace VisualPinballUnity
 	{
 		private static readonly ProfilerMarker PerfMarker = new("PhysicsStaticCollision");
 
-		internal static void Collide(float hitTime, ref BallData ball, ref BlobAssetReference<ColliderBlob> colliders,
-			ref NativeHashMap<int, FlipperState> flipperStates,
-			ref Random random, ref NativeQueue<EventData>.ParallelWriter events, uint timeMs)
+		internal static void Collide(float hitTime, ref BallData ball, uint timeMs, ref PhysicsState state)
 		{
 			
 			// find balls with hit objects and minimum time
@@ -40,7 +35,7 @@ namespace VisualPinballUnity
 
 			PerfMarker.Begin();
 
-			Collide(ref ball, ref colliders, ref flipperStates, ref random, ref events, timeMs);
+			Collide(ref ball, timeMs, ref state);
 
 			// remove trial hit object pointer
 			ball.CollisionEvent.ClearCollider();
@@ -48,31 +43,30 @@ namespace VisualPinballUnity
 			PerfMarker.End();
 		}
 
-		private static void Collide(ref BallData ball, ref BlobAssetReference<ColliderBlob> colliders, ref NativeHashMap<int, FlipperState> flipperStates,
-			ref Random random, ref NativeQueue<EventData>.ParallelWriter events, uint timeMs)
+		private static void Collide(ref BallData ball, uint timeMs, ref PhysicsState state)
 		{
-			switch (colliders.GetType(ball.CollisionEvent.ColliderId)) {
+			switch (state.Colliders.GetType(ball.CollisionEvent.ColliderId)) {
 				case ColliderType.Plane:
-					colliders.GetPlaneCollider(ball.CollisionEvent.ColliderId).Collide(ref ball, in ball.CollisionEvent, ref random);
+					state.Colliders.GetPlaneCollider(ball.CollisionEvent.ColliderId).Collide(ref ball, in ball.CollisionEvent, ref state.Env.Random);
 					break;
 				case ColliderType.Line:
-					colliders.GetLineCollider(ball.CollisionEvent.ColliderId).Collide(ref ball, ref events, ball.Id, in ball.CollisionEvent, ref random);
+					state.Colliders.GetLineCollider(ball.CollisionEvent.ColliderId).Collide(ref ball, ref state.EventQueue, ball.Id, in ball.CollisionEvent, ref state.Env.Random);
 					break;
 				case ColliderType.Triangle:
-					colliders.GetTriangleCollider(ball.CollisionEvent.ColliderId).Collide(ref ball, ref events, ball.Id, in ball.CollisionEvent, ref random);
+					state.Colliders.GetTriangleCollider(ball.CollisionEvent.ColliderId).Collide(ref ball, ref state.EventQueue, ball.Id, in ball.CollisionEvent, ref state.Env.Random);
 					break;
 				case ColliderType.Line3D:
-					colliders.GetLine3DCollider(ball.CollisionEvent.ColliderId).Collide(ref ball, ref events, ball.Id, in ball.CollisionEvent, ref random);
+					state.Colliders.GetLine3DCollider(ball.CollisionEvent.ColliderId).Collide(ref ball, ref state.EventQueue, ball.Id, in ball.CollisionEvent, ref state.Env.Random);
 					break;
 				case ColliderType.Point:
-					colliders.GetPointCollider(ball.CollisionEvent.ColliderId).Collide(ref ball, ref events, ball.Id, in ball.CollisionEvent, ref random);
+					state.Colliders.GetPointCollider(ball.CollisionEvent.ColliderId).Collide(ref ball, ref state.EventQueue, ball.Id, in ball.CollisionEvent, ref state.Env.Random);
 					break;
 				case ColliderType.Flipper:
-					var collider = colliders.Value.Colliders[ball.CollisionEvent.ColliderId].Value;
-					var flipperState = flipperStates[collider.ItemId];
-					colliders.GetFlipperCollider(ball.CollisionEvent.ColliderId).Collide(ref ball, ref ball.CollisionEvent, ref flipperState.Movement,
-						ref  events, in ball.Id, in flipperState.Tricks, in flipperState.Static,
+					var flipperState = state.GetFlipperState(ball.CollisionEvent.ColliderId);
+					state.Colliders.GetFlipperCollider(ball.CollisionEvent.ColliderId).Collide(ref ball, ref ball.CollisionEvent, ref flipperState.Movement,
+						ref state.EventQueue, in ball.Id, in flipperState.Tricks, in flipperState.Static,
 						in flipperState.Velocity, in flipperState.Hit, timeMs);
+					state.SetFlipperState(ball.CollisionEvent.ColliderId, flipperState);
 					break;
 			}
 		}

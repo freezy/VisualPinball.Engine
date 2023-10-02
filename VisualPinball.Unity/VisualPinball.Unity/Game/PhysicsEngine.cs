@@ -24,8 +24,8 @@ using Unity.Entities;
 using Unity.Jobs;
 using Unity.Mathematics;
 using UnityEngine;
+using UnityEngine.Serialization;
 using VisualPinball.Engine.Common;
-using VisualPinball.Unity.VisualPinball.Unity.Game;
 using VisualPinballUnity;
 using Debug = UnityEngine.Debug;
 
@@ -33,20 +33,18 @@ namespace VisualPinball.Unity
 {
 	public class PhysicsEngine : MonoBehaviour
 	{
-		[NonSerialized] private NativeArray<PhysicsState> _physicsState;
+		[NonSerialized] private NativeArray<PhysicsEnv> _physicsEnv;
 		[NonSerialized] private NativeOctree<int> _octree;
 		[NonSerialized] private BlobAssetReference<ColliderBlob> _colliders;
 		[NonSerialized] private NativeQueue<EventData> _eventQueue;
 		[NonSerialized] private InsideOfs _insideOfs;
-
 		[NonSerialized] private NativeList<BallData> _balls;
-		[NonSerialized] private readonly Dictionary<int, PhysicsBall> _ballLookup = new();
-
 		[NonSerialized] private NativeHashMap<int, FlipperState> _flipperStates;
 
+		[NonSerialized] private readonly Dictionary<int, PhysicsBall> _ballLookup = new();
 		[NonSerialized] public Dictionary<int, GameObject> FlipperLookup = new();
 
-		[NonSerialized] internal Queue<Action<NativeHashMap<int, FlipperState>, PhysicsState>> Actions = new();
+		[NonSerialized] internal Queue<Action<NativeHashMap<int, FlipperState>, PhysicsEnv>> Actions = new();
 
 		private static ulong NowUsec => (ulong)(Time.timeAsDouble * 1000000);
 		
@@ -55,7 +53,7 @@ namespace VisualPinball.Unity
 			var player = GetComponent<Player>();
 			
 			// init state
-			var physicsState = new PhysicsState(NowUsec, GetComponent<Player>());
+			var physicsState = new PhysicsEnv(NowUsec, GetComponent<Player>());
 			_insideOfs = new InsideOfs(Allocator.Persistent);
 
 			// create static octree
@@ -101,8 +99,8 @@ namespace VisualPinball.Unity
 			}
 			
 			_eventQueue = new NativeQueue<EventData>(Allocator.Persistent);
-			_physicsState = new NativeArray<PhysicsState>(1, Allocator.Persistent);
-			_physicsState[0] = physicsState;
+			_physicsEnv = new NativeArray<PhysicsEnv>(1, Allocator.Persistent);
+			_physicsEnv[0] = physicsState;
 		}
 
 		private static BlobAssetReference<ColliderBlob> AllocateColliders(IEnumerable<ICollider> managedColliders)
@@ -119,7 +117,7 @@ namespace VisualPinball.Unity
 			var events = _eventQueue.AsParallelWriter();
 			var updatePhysics = new UpdatePhysicsJob {
 				InitialTimeUsec = NowUsec,
-				PhysicsState = _physicsState,
+				PhysicsEnv = _physicsEnv,
 				Octree = _octree,
 				Colliders = _colliders,
 				InsideOfs = _insideOfs,
@@ -129,12 +127,12 @@ namespace VisualPinball.Unity
 			};
 
 			foreach (var action in Actions) {
-				action(_flipperStates, _physicsState[0]);
+				action(_flipperStates, _physicsEnv[0]);
 			}
 			updatePhysics.Run();
 
 			_balls = updatePhysics.Balls;
-			_physicsState = updatePhysics.PhysicsState;
+			_physicsEnv = updatePhysics.PhysicsEnv;
 			_flipperStates = updatePhysics.FlipperStates;
 
 			foreach (var ballData in _balls) {
@@ -149,7 +147,7 @@ namespace VisualPinball.Unity
 		
 		private void OnDestroy()
 		{
-			_physicsState.Dispose();
+			_physicsEnv.Dispose();
 			_eventQueue.Dispose();
 			_balls.Dispose();
 			_colliders.Dispose();
@@ -177,7 +175,7 @@ namespace VisualPinball.Unity
 	{
 		[ReadOnly] 
 		public ulong InitialTimeUsec;
-		public NativeArray<PhysicsState> PhysicsState;
+		[FormerlySerializedAs("PhysicsState")] public NativeArray<PhysicsEnv> PhysicsEnv;
 		public NativeOctree<int> Octree;
 		public BlobAssetReference<ColliderBlob> Colliders;
 		public InsideOfs InsideOfs;
@@ -188,19 +186,22 @@ namespace VisualPinball.Unity
 
 		public void Execute()
 		{
-			var n = 0;
-			var state = PhysicsState[0];
+			var env = PhysicsEnv[0];
+			var state = new PhysicsState(ref env, ref Octree, ref Colliders, ref Events, ref InsideOfs, ref Balls, ref FlipperStates);
 			var cycle = new PhysicsCycle(Allocator.Temp);
-			
-			while (state.CurPhysicsFrameTime < InitialTimeUsec)  // loop here until current (real) time matches the physics (simulated) time
+			var n = 0;
+
+			while (env.CurPhysicsFrameTime < InitialTimeUsec)  // loop here until current (real) time matches the physics (simulated) time
 			{
-				var timeMsec = (uint)((state.CurPhysicsFrameTime - state.StartTimeUsec) / 1000);
-				var physicsDiffTime = (float)((state.NextPhysicsFrameTime - state.CurPhysicsFrameTime) * (1.0 / PhysicsConstants.DefaultStepTime));
+				var timeMsec = (uint)((env.CurPhysicsFrameTime - env.StartTimeUsec) / 1000);
+				var physicsDiffTime = (float)((env.NextPhysicsFrameTime - env.CurPhysicsFrameTime) * (1.0 / PhysicsConstants.DefaultStepTime));
+
+				#region Update Velocities
 
 				// update velocities - always on integral physics frame boundary (spinner, gate, flipper, plunger, ball)
 				for (var i = 0; i < Balls.Length; i++) {
 					var ball = Balls[i];
-					BallVelocityPhysics.UpdateVelocities(ref ball, state.Gravity);
+					BallVelocityPhysics.UpdateVelocities(ref ball, env.Gravity);
 					Balls[i] = ball;
 				}
 
@@ -208,19 +209,20 @@ namespace VisualPinball.Unity
 					var flipper = FlipperStates[i];
 					FlipperVelocityPhysics.UpdateVelocities(ref flipper);
 					FlipperStates[i] = flipper;
-
 				}
 
+				#endregion
+
 				// primary physics loop
-				cycle.Simulate(physicsDiffTime, ref state, in Octree, ref Colliders, ref Balls, ref FlipperStates, ref InsideOfs, ref Events, timeMsec);
-				
-				state.CurPhysicsFrameTime = state.NextPhysicsFrameTime;
-				state.NextPhysicsFrameTime += PhysicsConstants.PhysicsStepTime;
+				cycle.Simulate(ref state, physicsDiffTime, timeMsec);
+
+				env.CurPhysicsFrameTime = env.NextPhysicsFrameTime;
+				env.NextPhysicsFrameTime += PhysicsConstants.PhysicsStepTime;
 
 				n++;
 			}
 
-			PhysicsState[0] = state;
+			PhysicsEnv[0] = env;
 			cycle.Dispose();
 		}
 	}
