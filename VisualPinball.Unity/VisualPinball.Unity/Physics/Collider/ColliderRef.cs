@@ -56,7 +56,6 @@ namespace VisualPinball.Unity
 						in flipperState.Movement, in flipperState.Tricks, in flipperState.Static,
 						in ball, collEvent.HitTime
 					);
-					state.SetFlipperState(collEvent.ColliderId, flipperState);
 					break;
 			}
 			return hitTime;

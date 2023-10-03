@@ -66,7 +66,6 @@ namespace VisualPinballUnity
 					state.Colliders.GetFlipperCollider(ball.CollisionEvent.ColliderId).Collide(ref ball, ref ball.CollisionEvent, ref flipperState.Movement,
 						ref state.EventQueue, in ball.Id, in flipperState.Tricks, in flipperState.Static,
 						in flipperState.Velocity, in flipperState.Hit, timeMs);
-					state.SetFlipperState(ball.CollisionEvent.ColliderId, flipperState);
 					break;
 			}
 		}
