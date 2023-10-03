@@ -16,11 +16,6 @@
 
 namespace VisualPinball.Unity
 {
-	internal interface IMovableStruct
-	{
-		void UpdateVelocities();
-	}
-
 	internal struct FlipperState
 	{
 		internal readonly int ItemId;

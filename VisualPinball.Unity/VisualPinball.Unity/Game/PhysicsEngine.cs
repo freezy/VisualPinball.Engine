@@ -39,7 +39,7 @@ namespace VisualPinball.Unity
 		[NonSerialized] private NativeQueue<EventData> _eventQueue;
 		[NonSerialized] private InsideOfs _insideOfs;
 		[NonSerialized] private NativeList<BallData> _balls;
-		[NonSerialized] private NativeHashMap<int, FlipperState> _flipperStates;
+		[NonSerialized] private NativeParallelHashMap<int, FlipperState> _flipperStates;
 
 		[NonSerialized] private readonly Dictionary<int, PhysicsBall> _ballLookup = new();
 		[NonSerialized] public readonly Dictionary<int, GameObject> FlipperLookup = new();
@@ -68,7 +68,7 @@ namespace VisualPinball.Unity
 
 			// data: flippers
 			var flippers = GetComponentsInChildren<FlipperComponent>();
-			_flipperStates = new NativeHashMap<int, FlipperState>(flippers.Length, Allocator.Persistent);
+			_flipperStates = new NativeParallelHashMap<int, FlipperState>(flippers.Length, Allocator.Persistent);
 			foreach (var flipper in flippers) {
 				var flipperState = flipper.NewState();
 				_flipperStates[flipperState.ItemId] = flipperState;
@@ -186,7 +186,7 @@ namespace VisualPinball.Unity
 		public NativeQueue<EventData>.ParallelWriter Events;
 
 		public NativeList<BallData> Balls;
-		public NativeHashMap<int, FlipperState> FlipperStates;
+		public NativeParallelHashMap<int, FlipperState> FlipperStates;
 
 		public void Execute()
 		{
