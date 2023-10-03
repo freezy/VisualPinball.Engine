@@ -24,8 +24,6 @@ namespace VisualPinballUnity
 	internal static class BallMovementPhysics
 	{
 
-		private static readonly ProfilerMarker PerfMarker = new ProfilerMarker("BallMovementSystem");
-
 		// protected override void OnStartRunning()
 		// {
 		// 	var root = Object.FindObjectOfType<PlayfieldComponent>();
@@ -41,8 +39,6 @@ namespace VisualPinballUnity
 
 		public static void Move(BallData ball, Transform ballTransform)
 		{
-			PerfMarker.Begin();
-			
 			// calculate/adapt height of ball
 			var zHeight = !ball.IsFrozen ? ball.Position.z : ball.Position.z - ball.Radius;
 			ballTransform.localPosition = Physics.TranslateToWorld(ball.Position.x, ball.Position.y, zHeight);
@@ -66,9 +62,6 @@ namespace VisualPinballUnity
 			q = FlipZAxis(q);
 		
 			ballTransform.localRotation = q.RotateToWorld();
-		
-			PerfMarker.End();
-
 
 			static Quaternion FlipZAxis(Quaternion q)
 			{

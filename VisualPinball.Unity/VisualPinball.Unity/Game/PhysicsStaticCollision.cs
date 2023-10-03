@@ -16,15 +16,12 @@
 
 // ReSharper disable ConvertIfStatementToSwitchStatement
 
-using Unity.Profiling;
 using VisualPinball.Unity;
 
 namespace VisualPinballUnity
 {
 	internal static class PhysicsStaticCollision
 	{
-		private static readonly ProfilerMarker PerfMarker = new("PhysicsStaticCollision");
-
 		internal static void Collide(float hitTime, ref BallData ball, uint timeMs, ref PhysicsState state)
 		{
 			
@@ -33,14 +30,10 @@ namespace VisualPinballUnity
 				return;
 			}
 
-			PerfMarker.Begin();
-
 			Collide(ref ball, timeMs, ref state);
 
 			// remove trial hit object pointer
 			ball.CollisionEvent.ClearCollider();
-
-			PerfMarker.End();
 		}
 
 		private static void Collide(ref BallData ball, uint timeMs, ref PhysicsState state)

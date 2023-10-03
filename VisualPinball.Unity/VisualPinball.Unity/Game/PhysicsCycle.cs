@@ -16,6 +16,7 @@
 
 using System;
 using Unity.Collections;
+using Unity.Profiling;
 using VisualPinball.Engine.Common;
 using VisualPinball.Unity.Collections;
 using VisualPinballUnity;
@@ -29,6 +30,13 @@ namespace VisualPinball.Unity
 		[NativeDisableParallelForRestriction]
 		private NativeList<int> _overlappingColliders;
 
+		private static readonly ProfilerMarker PerfMarker = new("PhysicsCycle");
+		private static readonly ProfilerMarker PerfMarkerBroadPhase = new("BroadPhase");
+		private static readonly ProfilerMarker PerfMarkerNarrowPhase = new("NarrowPhase");
+		private static readonly ProfilerMarker PerfMarkerDisplacement = new("Displacement");
+		private static readonly ProfilerMarker PerfMarkerCollision = new("Collision");
+		private static readonly ProfilerMarker PerfMarkerContacts = new("Contacts");
+
 		public PhysicsCycle(Allocator a)
 		{
 			_contacts = new NativeList<ContactBufferElement>(a);
@@ -37,6 +45,7 @@ namespace VisualPinball.Unity
 
 		internal void Simulate(ref PhysicsState state, float dTime, uint timeMs)
 		{
+			PerfMarker.Begin();
 			var staticCounts = PhysicsConstants.StaticCnts;
 			
 			while (dTime > 0) {
@@ -49,6 +58,7 @@ namespace VisualPinball.Unity
 				_contacts.Clear();
 
 				// todo dynamic broad phase
+
 				using (var enumerator = state.Balls.GetEnumerator()) {
 					while (enumerator.MoveNext()) {
 						ref var ball = ref enumerator.Current.Value;
@@ -58,10 +68,14 @@ namespace VisualPinball.Unity
 						}
 
 						// static broad phase
+						PerfMarkerBroadPhase.Begin();
 						PhysicsStaticBroadPhase.FindOverlaps(in state.Octree, in ball, ref _overlappingColliders);
+						PerfMarkerBroadPhase.End();
 
 						// static narrow phase
+						PerfMarkerNarrowPhase.Begin();
 						PhysicsStaticNarrowPhase.FindNextCollision(hitTime, ref ball, in _overlappingColliders, ref _contacts, ref state);
+						PerfMarkerNarrowPhase.End();
 
 						// todo dynamic narrow phase
 
@@ -71,6 +85,7 @@ namespace VisualPinball.Unity
 				}
 
 				#region Displacement
+				PerfMarkerDisplacement.Begin();
 
 				// displacement
 				using (var enumerator = state.Balls.GetEnumerator()) {
@@ -86,8 +101,11 @@ namespace VisualPinball.Unity
 					}
 				}
 
+				PerfMarkerDisplacement.End();
 				#endregion
 
+				// collision
+				PerfMarkerCollision.Begin();
 				using (var enumerator = state.Balls.GetEnumerator()) {
 					while (enumerator.MoveNext()) {
 						ref var ball = ref enumerator.Current.Value;
@@ -98,13 +116,16 @@ namespace VisualPinball.Unity
 						PhysicsStaticCollision.Collide(hitTime, ref ball, timeMs, ref state);
 					}
 				}
+				PerfMarkerCollision.End();
 
 				// handle contacts
+				PerfMarkerContacts.Begin();
 				for (var i = 0; i < _contacts.Length; i++) {
 					ref var contact = ref _contacts.GetElementAsRef(i);
 					ref var ball = ref state.Balls.GetValueByRef(contact.BallId);
 					BallCollider.HandleStaticContact(ref ball, in contact.CollEvent, state.Colliders.GetFriction(contact.CollEvent.ColliderId), hitTime, state.Env.Gravity);
 				}
+				PerfMarkerContacts.End();
 
 				// clear contacts
 				_contacts.Clear();
@@ -113,6 +134,7 @@ namespace VisualPinball.Unity
 				
 				dTime -= hitTime;  
 			}
+			PerfMarker.End();
 		}
 		
 		private static void ApplyStaticTime(ref float hitTime, ref float staticCounts, in BallData ball)

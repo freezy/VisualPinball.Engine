@@ -17,14 +17,11 @@
 // ReSharper disable ForCanBeConvertedToForeach
 
 using Unity.Collections;
-using Unity.Profiling;
 
 namespace VisualPinball.Unity
 {
 	public static class PhysicsStaticNarrowPhase
 	{
-		private static readonly ProfilerMarker PerfMarker = new("PhysicsStaticNarrowPhase");
-		
 		internal static void FindNextCollision(
 			float hitTime,
 			ref BallData ball,
@@ -33,8 +30,6 @@ namespace VisualPinball.Unity
 			ref PhysicsState state
 		)
 		{
-			PerfMarker.Begin();
-
 			// init contacts and event
 			ball.CollisionEvent.ClearCollider(hitTime); // search upto current hit time
 
@@ -49,8 +44,6 @@ namespace VisualPinball.Unity
 			if (ball.CollisionEvent.HitTime < 0) {
 				ball.CollisionEvent.ClearCollider();
 			}
-
-			PerfMarker.End();
 		}
 
 		private static float HitTest(ref BallData ball, in Collider collider, ref NativeList<ContactBufferElement> contacts)

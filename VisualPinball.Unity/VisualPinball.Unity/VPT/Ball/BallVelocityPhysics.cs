@@ -17,7 +17,6 @@
 // ReSharper disable CompareOfFloatsByEqualityOperator
 
 using Unity.Mathematics;
-using Unity.Profiling;
 using VisualPinball.Engine.Common;
 using VisualPinball.Unity;
 
@@ -25,12 +24,8 @@ namespace VisualPinballUnity
 {
 	internal static class BallVelocityPhysics
 	{
-		private static readonly ProfilerMarker PerfMarker = new ProfilerMarker("BallVelocityPhysics");
-
 		public static void UpdateVelocities(ref BallData ball, float3 gravity)
 		{
-			PerfMarker.Begin();
-
 			if (ball.IsFrozen) {
 				return;
 			}
@@ -45,8 +40,6 @@ namespace VisualPinballUnity
 			} else {
 				ball.Velocity += (float)PhysicsConstants.PhysFactor * gravity;
 			}
-
-			PerfMarker.End();
 		}
 	}
 }
