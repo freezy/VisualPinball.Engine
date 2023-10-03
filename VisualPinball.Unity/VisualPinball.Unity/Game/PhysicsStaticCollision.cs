@@ -62,7 +62,7 @@ namespace VisualPinballUnity
 					state.Colliders.GetPointCollider(ball.CollisionEvent.ColliderId).Collide(ref ball, ref state.EventQueue, ball.Id, in ball.CollisionEvent, ref state.Env.Random);
 					break;
 				case ColliderType.Flipper:
-					var flipperState = state.GetFlipperState(ball.CollisionEvent.ColliderId);
+					ref var flipperState = ref state.GetFlipperState(in ball.CollisionEvent);
 					state.Colliders.GetFlipperCollider(ball.CollisionEvent.ColliderId).Collide(ref ball, ref ball.CollisionEvent, ref flipperState.Movement,
 						ref state.EventQueue, in ball.Id, in flipperState.Tricks, in flipperState.Static,
 						in flipperState.Velocity, in flipperState.Hit, timeMs);

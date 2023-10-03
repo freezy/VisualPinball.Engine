@@ -28,11 +28,11 @@ namespace VisualPinball.Unity
 		internal BlobAssetReference<ColliderBlob> Colliders;
 		internal NativeQueue<EventData>.ParallelWriter EventQueue;
 		internal InsideOfs InsideOfs;
-		internal NativeList<BallData> Balls;
+		internal NativeParallelHashMap<int, BallData> Balls;
 		internal NativeParallelHashMap<int, FlipperState> FlipperStates;
 
 		public PhysicsState(ref PhysicsEnv env, ref NativeOctree<int> octree, ref BlobAssetReference<ColliderBlob> colliders,
-			ref NativeQueue<EventData>.ParallelWriter eventQueue, ref InsideOfs insideOfs, ref NativeList<BallData> balls,
+			ref NativeQueue<EventData>.ParallelWriter eventQueue, ref InsideOfs insideOfs, ref NativeParallelHashMap<int, BallData> balls,
 			ref NativeParallelHashMap<int, FlipperState> flipperStates)
 		{
 			Env = env;
@@ -44,16 +44,10 @@ namespace VisualPinball.Unity
 			FlipperStates = flipperStates;
 		}
 
-		internal unsafe ref FlipperState GetFlipperState(int colliderId)
+		internal ref FlipperState GetFlipperState(in CollisionEventData collisionEvent)
 		{
-			var collider = Colliders.Value.Colliders[colliderId].Value;
+			var collider = Colliders.Value.Colliders[collisionEvent.ColliderId].Value;
 			return ref FlipperStates.GetValueByRef(collider.ItemId);
 		}
-
-		// internal void SetFlipperState(int colliderId, FlipperState state)
-		// {
-		// 	var collider = Colliders.Value.Colliders[colliderId].Value;
-		// 	FlipperStates[collider.ItemId] = state;
-		// }
 	}
 }
