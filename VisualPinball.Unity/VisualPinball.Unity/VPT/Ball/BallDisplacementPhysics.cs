@@ -15,7 +15,6 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using Unity.Mathematics;
-using Unity.Profiling;
 using UnityEngine;
 using VisualPinball.Unity;
 
@@ -23,12 +22,8 @@ namespace VisualPinballUnity
 {
 	internal static class BallDisplacementPhysics
 	{
-		private static readonly ProfilerMarker PerfMarker = new ProfilerMarker("BallDisplacementPhysics");
-		
 		internal static void UpdateDisplacements(ref BallData ball, float dTime)
 		{
-			PerfMarker.Begin();
-
 			ball.Position += ball.Velocity * dTime;
 
 			var inertia = ball.Inertia;
@@ -50,8 +45,6 @@ namespace VisualPinballUnity
 
 			VPOrthonormalize(ref ball.BallOrientation);
 			VPOrthonormalize(ref ball.BallOrientationForUnity);
-
-			PerfMarker.End();
 		}
 
 		private static void VPOrthonormalize(ref float3x3 orientation) 

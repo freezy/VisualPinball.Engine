@@ -48,7 +48,7 @@ namespace VisualPinball.Unity
 		internal delegate void InputAction(ref PhysicsState state);
 
 		private static ulong NowUsec => (ulong)(Time.timeAsDouble * 1000000);
-		
+
 		private void Start()
 		{
 			var player = GetComponent<Player>();
