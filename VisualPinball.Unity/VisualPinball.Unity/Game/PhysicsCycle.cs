@@ -17,6 +17,7 @@
 using System;
 using Unity.Collections;
 using VisualPinball.Engine.Common;
+using VisualPinball.Unity.Collections;
 using VisualPinballUnity;
 
 namespace VisualPinball.Unity
@@ -48,58 +49,62 @@ namespace VisualPinball.Unity
 				_contacts.Clear();
 
 				// todo dynamic broad phase
+				using (var enumerator = state.Balls.GetEnumerator()) {
+					while (enumerator.MoveNext()) {
+						ref var ball = ref enumerator.Current.Value;
 
-				for (var i = 0; i < state.Balls.Length; i++) {
-					var ball = state.Balls[i];
-					
-					if (ball.IsFrozen) {
-						continue;
+						if (ball.IsFrozen) {
+							continue;
+						}
+
+						// static broad phase
+						PhysicsStaticBroadPhase.FindOverlaps(in state.Octree, in ball, ref _overlappingColliders);
+
+						// static narrow phase
+						PhysicsStaticNarrowPhase.FindNextCollision(hitTime, ref ball, in _overlappingColliders, ref _contacts, ref state);
+
+						// todo dynamic narrow phase
+
+						// apply static time
+						ApplyStaticTime(ref hitTime, ref staticCounts, in ball);
 					}
-					
-					// static broad phase
-					PhysicsStaticBroadPhase.FindOverlaps(in state.Octree, in ball, ref _overlappingColliders);
-					
-					// static narrow phase
-					PhysicsStaticNarrowPhase.FindNextCollision(hitTime, ref ball, in _overlappingColliders, ref _contacts, ref state);
-
-					// write ball back
-					state.Balls[i] = ball;
-					
-					// todo dynamic narrow phase
-
-					// apply static time
-					ApplyStaticTime(ref hitTime, ref staticCounts, in ball);
 				}
+
+				#region Displacement
 
 				// displacement
-				for (var i = 0; i < state.Balls.Length; i++) { // todo loop through all "movers", not just balls
-					var ball = state.Balls[i];
-					BallDisplacementPhysics.UpdateDisplacements(ref ball, hitTime); // use static method instead of member
-					state.Balls[i] = ball;
-				}
-				foreach (var i in state.FlipperStates.GetKeyArray(Allocator.Temp)) {
-					var flipperState = state.FlipperStates[i];
-					FlipperDisplacementPhysics.UpdateDisplacement(flipperState.ItemId, ref flipperState.Movement, ref flipperState.Tricks, in flipperState.Static, hitTime, ref state.EventQueue);
-					state.FlipperStates[i] = flipperState;
+				using (var enumerator = state.Balls.GetEnumerator()) {
+					while (enumerator.MoveNext()) {
+						BallDisplacementPhysics.UpdateDisplacements(ref enumerator.Current.Value, hitTime); // use static method instead of member
+					}
 				}
 
-				for (var i = 0; i < state.Balls.Length; i++) {
-					var ball = state.Balls[i];
-					
-					// todo dynamic collision
-				
-					// static collision
-					PhysicsStaticCollision.Collide(hitTime, ref ball, timeMs, ref state);
-					
-					state.Balls[i] = ball;
+				using (var enumerator = state.FlipperStates.GetEnumerator()) {
+					while (enumerator.MoveNext()) {
+						ref var flipperState = ref enumerator.Current.Value;
+						FlipperDisplacementPhysics.UpdateDisplacement(flipperState.ItemId, ref flipperState.Movement, ref flipperState.Tricks, in flipperState.Static, hitTime, ref state.EventQueue);
+					}
 				}
-				
+
+				#endregion
+
+				using (var enumerator = state.Balls.GetEnumerator()) {
+					while (enumerator.MoveNext()) {
+						ref var ball = ref enumerator.Current.Value;
+
+						// todo dynamic collision
+
+						// static collision
+						PhysicsStaticCollision.Collide(hitTime, ref ball, timeMs, ref state);
+					}
+				}
+
 				// handle contacts
-				var b = state.Balls[0];
-				foreach (var contact in _contacts) {
-					BallCollider.HandleStaticContact(ref b, in contact.CollEvent, state.Colliders.GetFriction(contact.CollEvent.ColliderId), hitTime, state.Env.Gravity);
+				for (var i = 0; i < _contacts.Length; i++) {
+					ref var contact = ref _contacts.GetElementAsRef(i);
+					ref var ball = ref state.Balls.GetValueByRef(contact.BallId);
+					BallCollider.HandleStaticContact(ref ball, in contact.CollEvent, state.Colliders.GetFriction(contact.CollEvent.ColliderId), hitTime, state.Env.Gravity);
 				}
-				state.Balls[0] = b;
 
 				// clear contacts
 				_contacts.Clear();

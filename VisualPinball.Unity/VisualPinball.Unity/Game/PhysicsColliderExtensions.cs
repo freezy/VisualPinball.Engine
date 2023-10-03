@@ -19,7 +19,7 @@ using Unity.Entities;
 
 namespace VisualPinball.Unity
 {
-	public static partial class PhysicsColliderExtensions
+	public static class PhysicsColliderExtensions
 	{
 		internal static int GetId(this BlobAssetReference<ColliderBlob> colliders, int index) 
 			=> colliders.Value.Colliders[index].Value.Id;

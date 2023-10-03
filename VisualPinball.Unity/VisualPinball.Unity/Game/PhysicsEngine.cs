@@ -38,7 +38,7 @@ namespace VisualPinball.Unity
 		[NonSerialized] private BlobAssetReference<ColliderBlob> _colliders;
 		[NonSerialized] private NativeQueue<EventData> _eventQueue;
 		[NonSerialized] private InsideOfs _insideOfs;
-		[NonSerialized] private NativeList<BallData> _balls;
+		[NonSerialized] private NativeParallelHashMap<int, BallData> _balls;
 		[NonSerialized] private NativeParallelHashMap<int, FlipperState> _flipperStates;
 
 		[NonSerialized] private readonly Dictionary<int, PhysicsBall> _ballLookup = new();
@@ -93,9 +93,9 @@ namespace VisualPinball.Unity
 
 			// get balls
 			var balls = GetComponentsInChildren<PhysicsBall>();
-			_balls = new NativeList<BallData>(balls.Length, Allocator.Persistent);
+			_balls = new NativeParallelHashMap<int, BallData>(balls.Length, Allocator.Persistent);
 			foreach (var ball in balls) {
-				_balls.Add(ball.Data);
+				_balls.Add(ball.Id, ball.Data);
 				_ballLookup[ball.Id] = ball;
 			}
 
@@ -139,13 +139,17 @@ namespace VisualPinball.Unity
 			_physicsEnv = updatePhysics.PhysicsEnv;
 			_flipperStates = updatePhysics.FlipperStates;
 
-			foreach (var ballData in _balls) {
-				var ball = _ballLookup[ballData.Id];
-				BallMovementPhysics.Move(ballData, _ballLookup[ball.Id].transform);
+			using (var enumerator = state.Balls.GetEnumerator()) {
+				while (enumerator.MoveNext()) {
+					ref var ball = ref enumerator.Current.Value;
+					BallMovementPhysics.Move(ball, _ballLookup[ball.Id].transform);
+				}
 			}
-			foreach (var itemId in _flipperStates.GetKeyArray(Allocator.Temp)) {
-				var flipper = FlipperLookup[itemId];
-				flipper.transform.localRotation = quaternion.Euler(0, _flipperStates[itemId].Movement.Angle, 0);
+			using (var enumerator = _flipperStates.GetEnumerator()) {
+				while (enumerator.MoveNext()) {
+					var flipper = FlipperLookup[enumerator.Current.Key];
+					flipper.transform.localRotation = quaternion.Euler(0, _flipperStates[enumerator.Current.Key].Movement.Angle, 0);
+				}
 			}
 		}
 		
@@ -185,7 +189,7 @@ namespace VisualPinball.Unity
 		public InsideOfs InsideOfs;
 		public NativeQueue<EventData>.ParallelWriter Events;
 
-		public NativeList<BallData> Balls;
+		public NativeParallelHashMap<int, BallData> Balls;
 		public NativeParallelHashMap<int, FlipperState> FlipperStates;
 
 		public void Execute()
@@ -203,16 +207,16 @@ namespace VisualPinball.Unity
 				#region Update Velocities
 
 				// update velocities - always on integral physics frame boundary (spinner, gate, flipper, plunger, ball)
-				for (var i = 0; i < Balls.Length; i++) {
-					var ball = Balls[i];
-					BallVelocityPhysics.UpdateVelocities(ref ball, env.Gravity);
-					Balls[i] = ball;
-				}
 
-				foreach (var i in FlipperStates.GetKeyArray(Allocator.Temp)) {
-					var flipper = FlipperStates[i];
-					FlipperVelocityPhysics.UpdateVelocities(ref flipper);
-					FlipperStates[i] = flipper;
+				using (var enumerator = state.Balls.GetEnumerator()) {
+					while (enumerator.MoveNext()) {
+						BallVelocityPhysics.UpdateVelocities(ref enumerator.Current.Value, env.Gravity);
+					}
+				}
+				using (var enumerator = FlipperStates.GetEnumerator()) {
+					while (enumerator.MoveNext()) {
+						FlipperVelocityPhysics.UpdateVelocities(ref enumerator.Current.Value);
+					}
 				}
 
 				#endregion

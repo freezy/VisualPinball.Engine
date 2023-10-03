@@ -50,7 +50,7 @@ namespace VisualPinball.Unity
 					hitTime = _colliders.GetPointCollider(Id).HitTest(ref collEvent, in ball, ball.CollisionEvent.HitTime);
 					break;
 				case ColliderType.Flipper:
-					var flipperState = state.GetFlipperState(collEvent.ColliderId);
+					var flipperState = state.GetFlipperState(in collEvent);
 					hitTime = _colliders.GetFlipperCollider(Id).HitTest(
 						ref collEvent, ref state.InsideOfs, ref flipperState.Hit,
 						in flipperState.Movement, in flipperState.Tricks, in flipperState.Static,
