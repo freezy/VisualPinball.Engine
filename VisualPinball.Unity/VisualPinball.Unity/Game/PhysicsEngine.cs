@@ -32,6 +32,8 @@ namespace VisualPinball.Unity
 {
 	public class PhysicsEngine : MonoBehaviour
 	{
+		internal delegate void InputAction(ref PhysicsState state);
+
 		[NonSerialized] private NativeArray<PhysicsEnv> _physicsEnv;
 		[NonSerialized] private NativeOctree<int> _octree;
 		[NonSerialized] private BlobAssetReference<ColliderBlob> _colliders;
@@ -44,8 +46,7 @@ namespace VisualPinball.Unity
 		[NonSerialized] private readonly Dictionary<int, PhysicsBall> _ballLookup = new();
 		[NonSerialized] private readonly Dictionary<int, Transform> _transforms = new();
 
-		[NonSerialized] internal readonly Queue<InputAction> InputActions = new();
-		internal delegate void InputAction(ref PhysicsState state);
+		[NonSerialized] private readonly Queue<InputAction> _inputActions = new();
 
 		private static ulong NowUsec => (ulong)(Time.timeAsDouble * 1000000);
 
@@ -53,6 +54,11 @@ namespace VisualPinball.Unity
 		{
 			var go = item.gameObject;
 			_transforms.Add(go.GetInstanceID(), go.transform);
+		}
+
+		internal void Schedule(InputAction action)
+		{
+			_inputActions.Enqueue(action);
 		}
 
 		private void Start()
@@ -153,8 +159,8 @@ namespace VisualPinball.Unity
 			var state = new PhysicsState(ref env, ref _octree, ref _colliders, ref events, ref _insideOfs, ref _balls, ref _flipperStates, ref _bumperStates);
 
 			// process input
-			while (InputActions.Count > 0) {
-				var action = InputActions.Dequeue();
+			while (_inputActions.Count > 0) {
+				var action = _inputActions.Dequeue();
 				action(ref state);
 			}
 
@@ -189,10 +195,10 @@ namespace VisualPinball.Unity
 				while (enumerator.MoveNext()) {
 					ref var bumperState = ref enumerator.Current.Value;
 					if (bumperState.SkirtItemId != 0) {
-						BumperTransformation.UpdateSkirt(in bumperState.SkirtAnimation, _transforms[bumperState.SkirtItemId]);
+						BumperTransform.UpdateSkirt(in bumperState.SkirtAnimation, _transforms[bumperState.SkirtItemId]);
 					}
 					if (bumperState.RingItemId != 0) {
-						BumperTransformation.UpdateRing(bumperState.RingItemId, in bumperState.RingAnimation, _transforms[bumperState.RingItemId]);
+						BumperTransform.UpdateRing(bumperState.RingItemId, in bumperState.RingAnimation, _transforms[bumperState.RingItemId]);
 					}
 				}
 			}

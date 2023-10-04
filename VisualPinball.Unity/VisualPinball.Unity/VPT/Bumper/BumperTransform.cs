@@ -15,16 +15,14 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using System.Collections.Generic;
-using Unity.Entities;
-using Unity.Profiling;
 using UnityEngine;
-using VisualPinball.Unity;
-using VisualPinball.Unity.VisualPinball.Unity.Game;
-using Physics = UnityEngine.Physics;
 
-namespace VisualPinballUnity
+namespace VisualPinball.Unity
 {
-	internal static class BumperTransformation
+	/// <summary>
+	/// Applies the state to the scene, aka the transform of the game objects.
+	/// </summary>
+	internal static class BumperTransform
 	{
 		private static readonly Dictionary<int, float> InitialOffset = new();
 
@@ -37,7 +35,7 @@ namespace VisualPinballUnity
 			var localLimit = InitialOffset[itemId] + limit;
 			var localOffset = localLimit / limit * data.Offset;
 
-			worldPos.y = InitialOffset[itemId] + VisualPinball.Unity.Physics.ScaleToWorld(localOffset);
+			worldPos.y = InitialOffset[itemId] + Physics.ScaleToWorld(localOffset);
 			transform.position = worldPos;
 		}
 
