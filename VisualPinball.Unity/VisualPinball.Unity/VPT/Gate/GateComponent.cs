@@ -27,9 +27,12 @@ using System.IO;
 using Unity.Mathematics;
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.UIElements;
+using VisualPinball.Engine.Common;
 using VisualPinball.Engine.Game.Engines;
 using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Gate;
+using VisualPinball.Engine.VPT.Surface;
 using VisualPinball.Engine.VPT.Table;
 
 namespace VisualPinball.Unity
@@ -99,6 +102,19 @@ namespace VisualPinball.Unity
 		public const string WireObjectName = "Wire";
 
 		public const string MainSwitchItem = "gate_switch";
+
+		#endregion
+
+		#region Runtime
+
+		private void Awake()
+		{
+			// register at player
+			GetComponentInParent<Player>().RegisterGate(this);
+			if (GetComponent<GateColliderComponent>()) {
+				GetComponentInParent<PhysicsEngine>().Register(this);
+			}
+		}
 
 		#endregion
 
@@ -259,6 +275,42 @@ namespace VisualPinball.Unity
 			}
 
 			UpdateTransforms();
+		}
+
+		#endregion
+
+		#region State
+
+		internal GateState CreateState()
+		{
+			// collision
+			var collComponent = GetComponent<GateColliderComponent>();
+			var staticData = collComponent
+				? new GateStaticData {
+					AngleMin = math.radians(collComponent._angleMin),
+					AngleMax = math.radians(collComponent._angleMax),
+					Height = Position.z,
+					Damping = math.pow(collComponent.Damping, (float)PhysicsConstants.PhysFactor),
+					GravityFactor = collComponent.GravityFactor,
+					TwoWay = collComponent.TwoWay,
+				} : default;
+
+			var wireComponent = GetComponentInChildren<GateWireAnimationComponent>();
+			var movementData = collComponent && wireComponent
+				? new GateMovementData {
+					Angle = math.radians(collComponent._angleMin),
+					AngleSpeed = 0,
+					ForcedMove = false,
+					IsOpen = false,
+					HitDirection = false
+				} : default;
+
+			return new GateState(
+				collComponent ? gameObject.GetInstanceID() : 0,
+				wireComponent ? wireComponent.gameObject.GetInstanceID() : 0,
+				staticData,
+				movementData
+			);
 		}
 
 		#endregion

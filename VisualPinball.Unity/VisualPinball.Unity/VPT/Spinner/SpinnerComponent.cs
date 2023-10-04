@@ -23,7 +23,9 @@
 
 using System;
 using System.Collections.Generic;
+using Unity.Mathematics;
 using UnityEngine;
+using VisualPinball.Engine.Common;
 using VisualPinball.Engine.Game.Engines;
 using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Spinner;
@@ -85,6 +87,17 @@ namespace VisualPinball.Unity
 
 		private const string BracketMeshName = "Spinner (Bracket)";
 		public const string SwitchItem = "spinner_switch";
+
+		#endregion
+
+		#region Runtime
+
+		private void Awake()
+		{
+			// register at player
+			GetComponentInParent<Player>().RegisterSpinner(this);
+			GetComponentInParent<PhysicsEngine>().Register(this);
+		}
 
 		#endregion
 
@@ -227,6 +240,39 @@ namespace VisualPinball.Unity
 			}
 
 			UpdateTransforms();
+		}
+
+		#endregion
+
+		#region State
+
+		internal SpinnerState CreateState()
+		{
+			// physics collision data
+			var collComponent = GetComponent<SpinnerColliderComponent>();
+			var staticData = collComponent
+				? new SpinnerStaticData {
+					AngleMax = math.radians(AngleMax),
+					AngleMin = math.radians(AngleMin),
+					Damping = math.pow(Damping, (float)PhysicsConstants.PhysFactor),
+					Elasticity = collComponent.Elasticity,
+					Height = Height
+				} : default;
+
+			// animation
+			var animComponent = GetComponentInChildren<SpinnerPlateAnimationComponent>();
+			var movementData = animComponent
+				? new SpinnerMovementData {
+					Angle = math.radians(math.clamp(0.0f, AngleMin, AngleMax)),
+					AngleSpeed = 0f
+				} : default;
+
+			return new SpinnerState(
+				collComponent ? gameObject.GetInstanceID() : 0,
+				animComponent ? animComponent.gameObject.GetInstanceID() : 0,
+				staticData,
+				movementData
+			);
 		}
 
 		#endregion

@@ -79,6 +79,20 @@ namespace VisualPinball.Unity
 
 		#endregion
 
+		#region Runtime
+
+		private void Awake()
+		{
+			// register at player
+			GetComponentInParent<Player>().RegisterTrigger(this);
+
+			if (GetComponentInChildren<TriggerColliderComponent>() && GetComponentInChildren<TriggerAnimationComponent>() && GetComponentInChildren<TriggerMeshComponent>()) {
+				GetComponentInParent<PhysicsEngine>().Register(this);
+			}
+		}
+
+		#endregion
+
 		#region Wiring
 
 		public IEnumerable<GamelogicEngineSwitch> AvailableSwitches => new[] {
@@ -228,6 +242,29 @@ namespace VisualPinball.Unity
 
 			UpdateTransforms();
 			RebuildMeshes();
+		}
+
+		#endregion
+
+		#region State
+
+		internal TriggerState CreateState()
+		{
+			var collComponent = GetComponentInChildren<TriggerColliderComponent>();
+			var animComponent = GetComponentInChildren<TriggerAnimationComponent>();
+			var meshComponent = GetComponentInChildren<TriggerMeshComponent>();
+			return new TriggerState(
+				gameObject.GetInstanceID(),
+				animComponent ? animComponent.gameObject.GetInstanceID() : 0,
+				new TriggerStaticData {
+					AnimSpeed = animComponent.AnimSpeed,
+					Radius = collComponent.HitCircleRadius,
+					Shape = meshComponent.Shape,
+					TableScaleZ = 1f
+				},
+				new TriggerMovementData(),
+				new TriggerAnimationData()
+			);
 		}
 
 		#endregion

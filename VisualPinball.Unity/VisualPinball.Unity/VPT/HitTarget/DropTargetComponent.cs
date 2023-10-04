@@ -127,5 +127,49 @@ namespace VisualPinball.Unity
 		}
 
 		#endregion
+
+		#region Runtime
+
+		private void Awake()
+		{
+			// register at player
+			GetComponentInParent<Player>().RegisterDropTarget(this);
+			if (GetComponent<DropTargetColliderComponent>() && GetComponentInChildren<DropTargetAnimationComponent>()) {
+				GetComponentInParent<PhysicsEngine>().Register(this);
+			}
+		}
+
+		#endregion
+
+		#region State
+
+		internal DropTargetState CreateState()
+		{
+			var colliderComponent = GetComponent<DropTargetColliderComponent>();
+			var animationComponent = GetComponentInChildren<DropTargetAnimationComponent>();
+
+			var staticData = colliderComponent && animationComponent
+				? new DropTargetStaticData {
+					Speed = animationComponent.Speed,
+					RaiseDelay = animationComponent.RaiseDelay,
+					UseHitEvent = colliderComponent.UseHitEvent,
+				} : default;
+
+			var animationData = colliderComponent && animationComponent
+				? new DropTargetAnimationData {
+					IsDropped = animationComponent.IsDropped,
+					MoveDown = !animationComponent.IsDropped,
+					ZOffset = animationComponent.IsDropped ? -DropTargetAnimationData.DropTargetLimit : 0f
+				} : default;
+
+			return new DropTargetState(
+				colliderComponent && animationComponent ? gameObject.GetInstanceID() : 0,
+				animationComponent ? animationComponent.gameObject.GetInstanceID() : 0,
+				staticData,
+				animationData
+			);
+		}
+
+		#endregion
 	}
 }

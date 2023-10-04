@@ -89,7 +89,9 @@ namespace VisualPinball.Unity
 		{
 			// register at player
 			GetComponentInParent<Player>().RegisterBumper(this);
-			GetComponentInParent<PhysicsEngine>().Register(this);
+			if (GetComponentInChildren<BumperColliderComponent>()) {
+				GetComponentInParent<PhysicsEngine>().Register(this);
+			}
 		}
 
 		#endregion
@@ -294,6 +296,10 @@ namespace VisualPinball.Unity
 
 			UpdateTransforms();
 		}
+
+		#endregion
+
+		#region State
 
 		internal BumperState CreateState()
 		{

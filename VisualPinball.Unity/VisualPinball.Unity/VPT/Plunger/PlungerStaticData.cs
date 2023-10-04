@@ -14,11 +14,9 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-using Unity.Entities;
-
 namespace VisualPinball.Unity
 {
-	internal struct PlungerStaticData : IComponentData
+	internal struct PlungerStaticData
 	{
 		// collision
 		public float MomentumXfer;

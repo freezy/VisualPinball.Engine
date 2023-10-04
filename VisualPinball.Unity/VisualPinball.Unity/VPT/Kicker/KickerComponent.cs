@@ -257,6 +257,51 @@ namespace VisualPinball.Unity
 
 		#endregion
 
+		#region State
+
+		internal bool HasState => GetComponent<KickerColliderComponent>();
+
+		internal KickerState CreateState()
+		{
+			// collision
+			var colliderComponent = GetComponent<KickerColliderComponent>();
+			var staticData = colliderComponent
+				? new KickerStaticData {
+					Center = Position,
+					FallIn = colliderComponent.FallIn,
+					FallThrough = colliderComponent.FallThrough,
+					HitAccuracy = colliderComponent.HitAccuracy,
+					Scatter = colliderComponent.Scatter,
+					LegacyMode = true, // todo colliderComponent.LegacyMode,
+					ZLow = Surface?.Height(Position) ?? PlayfieldHeight
+				} : default;
+
+			// if (!Data.LegacyMode) {
+			// 	// todo currently we don't allow non-legacy mode
+			// 	using (var blobBuilder = new BlobBuilder(Allocator.Temp)) {
+			// 		ref var blobAsset = ref blobBuilder.ConstructRoot<KickerMeshVertexBlobAsset>();
+			// 		var vertices = blobBuilder.Allocate(ref blobAsset.Vertices, Item.KickerHit.HitMesh.Length);
+			// 		var normals = blobBuilder.Allocate(ref blobAsset.Normals, Item.KickerHit.HitMesh.Length);
+			// 		for (var i = 0; i < Item.KickerHit.HitMesh.Length; i++) {
+			// 			var v = Item.KickerHit.HitMesh[i];
+			// 			vertices[i] = new KickerMeshVertex { Vertex = v.ToUnityFloat3() };
+			// 			normals[i] = new KickerMeshVertex { Vertex = new float3(KickerHitMesh.Vertices[i].Nx, KickerHitMesh.Vertices[i].Ny, KickerHitMesh.Vertices[i].Nz) };
+			// 		}
+			//
+			// 		var blobAssetReference = blobBuilder.CreateBlobAssetReference<KickerMeshVertexBlobAsset>(Allocator.Persistent);
+			// 		dstManager.AddComponentData(entity, new ColliderMeshData { Value = blobAssetReference });
+			// 	}
+			// }
+
+			return new KickerState(
+				colliderComponent ? colliderComponent.gameObject.GetInstanceID() : 0,
+				staticData,
+				new KickerCollisionData()
+			);
+		}
+
+		#endregion
+
 		#region Serialization
 
 		public void OnBeforeSerialize()
@@ -288,6 +333,12 @@ namespace VisualPinball.Unity
 		private void Awake()
 		{
 			_originalRotationZ = Orientation;
+
+			// register at player
+			GetComponentInParent<Player>().RegisterKicker(this);
+			if (GetComponent<KickerColliderComponent>()) {
+				GetComponentInParent<PhysicsEngine>().Register(this);
+			}
 		}
 
 		private void Start()

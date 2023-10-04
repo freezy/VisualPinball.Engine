@@ -64,6 +64,19 @@ namespace VisualPinball.Unity
 
 		#endregion
 
+		#region Runtime
+
+		private void Awake()
+		{
+			// register at player
+			GetComponentInParent<Player>().RegisterSurface(this);
+			if (GetComponentInChildren<SurfaceColliderComponent>()) {
+				GetComponentInParent<PhysicsEngine>().Register(this);
+			}
+		}
+
+		#endregion
+
 		#region Transformation
 
 		public float Height(Vector2 _) => HeightTop + PlayfieldHeight;
@@ -187,6 +200,24 @@ namespace VisualPinball.Unity
 
 			UpdateTransforms();
 			RebuildMeshes();
+		}
+
+		#endregion
+
+		#region State
+
+		internal SurfaceState CreateState()
+		{
+			// physics collision data
+			var collComponent = GetComponentInChildren<SurfaceColliderComponent>();
+			if (!collComponent) {
+				return default;
+			}
+
+			return new SurfaceState(gameObject.GetInstanceID(), new LineSlingshotData {
+				IsDisabled = false,
+				Threshold = collComponent.SlingshotThreshold,
+			});
 		}
 
 		#endregion
