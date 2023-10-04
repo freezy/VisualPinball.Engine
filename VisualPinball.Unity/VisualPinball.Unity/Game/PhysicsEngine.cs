@@ -40,8 +40,15 @@ namespace VisualPinball.Unity
 		[NonSerialized] private NativeQueue<EventData> _eventQueue;
 		[NonSerialized] private InsideOfs _insideOfs;
 		[NonSerialized] private NativeParallelHashMap<int, BallData> _balls;
-		[NonSerialized] private NativeParallelHashMap<int, FlipperState> _flipperStates;
-		[NonSerialized] private NativeParallelHashMap<int, BumperState> _bumperStates;
+		[NonSerialized] private NativeParallelHashMap<int, BumperState> _bumperStates = new(0, Allocator.Persistent);
+		[NonSerialized] private NativeParallelHashMap<int, FlipperState> _flipperStates = new(0, Allocator.Persistent);
+		[NonSerialized] private NativeParallelHashMap<int, GateState> _gateStates = new(0, Allocator.Persistent);
+		[NonSerialized] private NativeParallelHashMap<int, DropTargetState> _dropTargetStates = new(0, Allocator.Persistent);
+		[NonSerialized] private NativeParallelHashMap<int, HitTargetState> _hitTargetStates = new(0, Allocator.Persistent);
+		[NonSerialized] private NativeParallelHashMap<int, KickerState> _kickerStates = new(0, Allocator.Persistent);
+		[NonSerialized] private NativeParallelHashMap<int, PlungerState> _plungerStates = new(0, Allocator.Persistent);
+		[NonSerialized] private NativeParallelHashMap<int, SpinnerState> _spinnerStates = new(0, Allocator.Persistent);
+		[NonSerialized] private NativeParallelHashMap<int, SurfaceState> _surfaceStates = new(0, Allocator.Persistent);
 
 		[NonSerialized] private readonly Dictionary<int, PhysicsBall> _ballLookup = new();
 		[NonSerialized] private readonly Dictionary<int, Transform> _transforms = new();
@@ -50,10 +57,23 @@ namespace VisualPinball.Unity
 
 		private static ulong NowUsec => (ulong)(Time.timeAsDouble * 1000000);
 
-		public void Register<T>(T item) where T : MonoBehaviour
+		internal void Register<T>(T item) where T : MonoBehaviour
 		{
 			var go = item.gameObject;
-			_transforms.Add(go.GetInstanceID(), go.transform);
+			var itemId = go.GetInstanceID();
+			_transforms.Add(itemId, go.transform);
+
+			switch (item) {
+				case BumperComponent c: _bumperStates[itemId] = c.CreateState(); break;
+				case FlipperComponent c: _flipperStates[itemId] = c.CreateState(); break;
+				case GateComponent c: _gateStates[itemId] = c.CreateState(); break;
+				case DropTargetComponent c: _dropTargetStates[itemId] = c.CreateState(); break;
+				case HitTargetComponent c: _hitTargetStates[itemId] = c.CreateState(); break;
+				case KickerComponent c: _kickerStates[itemId] = c.CreateState(); break;
+				case PlungerComponent c: _plungerStates[itemId] = c.CreateState(); break;
+				case SpinnerComponent c: _spinnerStates[itemId] = c.CreateState(); break;
+				case SurfaceComponent c: _surfaceStates[itemId] = c.CreateState(); break;
+			}
 		}
 
 		internal void Schedule(InputAction action)
@@ -78,26 +98,6 @@ namespace VisualPinball.Unity
 				// todo bring GC allocations down
 				colliderItem.GetColliders(player, managedColliders, 0);
 			}
-
-			#region Item Data
-
-			// bumpers
-			var bumpers = GetComponentsInChildren<BumperComponent>();
-			_bumperStates = new NativeParallelHashMap<int, BumperState>(bumpers.Length, Allocator.Persistent);
-			foreach (var bumper in bumpers) {
-				var bumperState = bumper.CreateState();
-				_bumperStates[bumperState.ItemId] = bumperState;
-			}
-
-			// flippers
-			var flippers = GetComponentsInChildren<FlipperComponent>();
-			_flipperStates = new NativeParallelHashMap<int, FlipperState>(flippers.Length, Allocator.Persistent);
-			foreach (var flipper in flippers) {
-				var flipperState = flipper.CreateState();
-				_flipperStates[flipperState.ItemId] = flipperState;
-			}
-
-			#endregion
 
 			// allocate colliders
 			_colliders = AllocateColliders(managedColliders);

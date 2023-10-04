@@ -107,5 +107,45 @@ namespace VisualPinball.Unity
 		}
 
 		#endregion
+
+		#region Runtime
+
+		private void Awake()
+		{
+			// register at player
+			GetComponentInParent<Player>().RegisterHitTarget(this);
+			if (GetComponent<HitTargetColliderComponent>() && GetComponentInChildren<HitTargetAnimationComponent>()) {
+				GetComponentInParent<PhysicsEngine>().Register(this);
+			}
+		}
+
+		#endregion
+
+		#region State
+
+		internal HitTargetState CreateState()
+		{
+			var hitTargetColliderComponent = GetComponent<HitTargetColliderComponent>();
+			var hitTargetAnimationComponent = GetComponentInChildren<HitTargetAnimationComponent>();
+			var staticData = hitTargetColliderComponent && hitTargetAnimationComponent
+				? new HitTargetStaticData {
+					Speed = hitTargetAnimationComponent.Speed,
+					MaxAngle = hitTargetAnimationComponent.MaxAngle,
+				} : default;
+
+			var animationData = hitTargetColliderComponent && hitTargetAnimationComponent
+				? new HitTargetAnimationData {
+					MoveDirection = true,
+				} : default;
+
+			return new HitTargetState(
+				hitTargetColliderComponent && hitTargetAnimationComponent ? gameObject.GetInstanceID() : 0,
+				hitTargetAnimationComponent ? hitTargetAnimationComponent.gameObject.GetInstanceID() : 0,
+				staticData,
+				animationData
+			);
+		}
+
+		#endregion
 	}
 }
