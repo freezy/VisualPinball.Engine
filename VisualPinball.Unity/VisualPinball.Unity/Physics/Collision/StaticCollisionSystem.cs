@@ -97,19 +97,19 @@ namespace VisualPinballUnity
 
 						switch (coll.Type) {
 							case ColliderType.Bumper: {
-								var bumperStaticData = GetComponent<BumperStaticData>(coll.ItemId);
-								var animateRing = HasComponent<BumperRingAnimationData>(coll.ItemId);
-								var animateSkirt = HasComponent<BumperSkirtAnimationData>(coll.ItemId);
-								var ringData = animateRing ? GetComponent<BumperRingAnimationData>(coll.ItemId) : default;
-								var skirtData = animateSkirt ? GetComponent<BumperSkirtAnimationData>(coll.ItemId): default;
-								BumperCollider.Collide(ref ballData, ref events, ref collEvent, ref ringData, ref skirtData,
-									in coll, bumperStaticData, ref random);
-								if (animateRing) {
-									SetComponent(coll.ItemId, ringData);
-								}
-								if (animateSkirt) {
-									SetComponent(coll.ItemId, skirtData);
-								}
+								// var bumperStaticData = GetComponent<BumperStaticData>(coll.ItemId);
+								// var animateRing = HasComponent<BumperRingAnimationData>(coll.ItemId);
+								// var animateSkirt = HasComponent<BumperSkirtAnimationData>(coll.ItemId);
+								// var ringData = animateRing ? GetComponent<BumperRingAnimationData>(coll.ItemId) : default;
+								// var skirtData = animateSkirt ? GetComponent<BumperSkirtAnimationData>(coll.ItemId): default;
+								// BumperCollider.Collide(ref ballData, ref events, ref collEvent, ref ringData, ref skirtData,
+								// 	in coll, bumperStaticData, ref random);
+								// if (animateRing) {
+								// 	SetComponent(coll.ItemId, ringData);
+								// }
+								// if (animateSkirt) {
+								// 	SetComponent(coll.ItemId, skirtData);
+								// }
 								break;
 							}
 

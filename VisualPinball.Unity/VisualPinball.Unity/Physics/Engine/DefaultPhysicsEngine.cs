@@ -103,7 +103,7 @@ namespace VisualPinball.Unity
 		{
 			var id = itemId;
 			var physicsEngine = _tableComponent.GetComponent<PhysicsEngine>();
-			physicsEngine.InputActions.Enqueue((ref PhysicsState state) => {
+			physicsEngine.Schedule((ref PhysicsState state) => {
 				var timeMsec = (uint)((state.Env.CurPhysicsFrameTime - state.Env.StartTimeUsec) / 1000);
 				ref var flipperState = ref state.FlipperStates.GetValueByRef(id);
 				flipperState.Movement.EnableRotateEvent = 1;
@@ -117,8 +117,7 @@ namespace VisualPinball.Unity
 		{
 			var id = itemId;
 			var physicsEngine = _tableComponent.GetComponent<PhysicsEngine>();
-			physicsEngine.InputActions.Enqueue((ref PhysicsState state) => {
-				var timeMsec = (uint)((state.Env.CurPhysicsFrameTime - state.Env.StartTimeUsec) / 1000);
+			physicsEngine.Schedule((ref PhysicsState state) => {
 				ref var flipperState = ref state.FlipperStates.GetValueByRef(id);
 				flipperState.Movement.EnableRotateEvent = -1;
 				flipperState.Solenoid.Value = false;
