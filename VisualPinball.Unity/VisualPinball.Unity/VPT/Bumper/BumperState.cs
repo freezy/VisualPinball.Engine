@@ -14,32 +14,26 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-using System;
-using Unity.Entities;
-using VisualPinball.Engine.VPT;
-
 namespace VisualPinball.Unity
 {
-	public abstract class AnimationComponent<TData, TMainComponent> : SubComponent<TData, TMainComponent>,
-		IAnimationComponent
-		where TData : ItemData
-		where TMainComponent : MainRenderableComponent<TData>
+	internal struct BumperState
 	{
-		public void UpdateTransforms() => MainComponent.UpdateTransforms();
+		internal readonly int ItemId;
+		internal readonly int SkirtItemId;
+		internal int RingItemId;
+		internal BumperStaticData Static;
+		internal BumperRingAnimationData RingAnimation;
+		internal BumperSkirtAnimationData SkirtAnimation;
 
-		private void Awake()
+		public BumperState(int itemId, int skirtItemId, int ringItemId, BumperStaticData @static,
+			BumperRingAnimationData ringAnimation, BumperSkirtAnimationData skirtAnimation)
 		{
-			GetComponentInParent<PhysicsEngine>().Register(this);
-		}
-
-		private Entity MainEntity {
-			get {
-				var ma = MainComponent;
-				if (ma == null) {
-					throw new InvalidOperationException("Cannot find main component of " + name + ".");
-				}
-				return ma.Entity;
-			}
+			ItemId = itemId;
+			SkirtItemId = skirtItemId;
+			RingItemId = ringItemId;
+			Static = @static;
+			RingAnimation = ringAnimation;
+			SkirtAnimation = skirtAnimation;
 		}
 	}
 }

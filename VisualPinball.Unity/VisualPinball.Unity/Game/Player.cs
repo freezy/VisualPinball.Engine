@@ -227,7 +227,7 @@ namespace VisualPinball.Unity
 		public void RegisterFlipper(FlipperComponent component)
 		{
 			Register(new FlipperApi(component.gameObject, this), component);
-			FlipperTransforms[component.GetInstanceID()] = component.gameObject.transform;
+			FlipperTransforms[component.gameObject.GetInstanceID()] = component.gameObject.transform;
 
 			if (EngineProvider<IDebugUI>.Exists) {
 				EngineProvider<IDebugUI>.Get().OnRegisterFlipper(component.GetInstanceID(), component.gameObject.name);

@@ -83,6 +83,17 @@ namespace VisualPinball.Unity
 
 		#endregion
 
+		#region Runtime
+
+		private void Awake()
+		{
+			// register at player
+			GetComponentInParent<Player>().RegisterBumper(this);
+			GetComponentInParent<PhysicsEngine>().Register(this);
+		}
+
+		#endregion
+
 		#region Wiring
 
 		public IEnumerable<GamelogicEngineSwitch> AvailableSwitches => new[] {
@@ -282,6 +293,57 @@ namespace VisualPinball.Unity
 			}
 
 			UpdateTransforms();
+		}
+
+		internal BumperState CreateState()
+		{
+			// physics collision data
+			var collComponent = GetComponentInChildren<BumperColliderComponent>();
+			var staticData = collComponent
+				? new BumperStaticData {
+					Force = collComponent.Force,
+					HitEvent = collComponent.HitEvent,
+					Threshold = collComponent.Threshold
+				} : default;
+
+			// skirt animation data
+			var skirtAnimComponent = GetComponentInChildren<BumperRingAnimationComponent>();
+			var skirtAnimation = skirtAnimComponent
+				? new BumperSkirtAnimationData {
+					BallPosition = default,
+					AnimationCounter = 0f,
+					DoAnimate = false,
+					DoUpdate = false,
+					EnableAnimation = true,
+					Rotation = new float2(0, 0),
+					Center = Position
+				} : default;
+
+			// ring animation data
+			var ringAnimComponent = GetComponentInChildren<BumperRingAnimationComponent>();
+			var ringAnimation = ringAnimComponent
+				? new BumperRingAnimationData {
+
+					// dynamic
+					IsHit = false,
+					Offset = 0,
+					AnimateDown = false,
+					DoAnimate = false,
+
+					// static
+					DropOffset = ringAnimComponent.RingDropOffset,
+					HeightScale = HeightScale,
+					Speed = ringAnimComponent.RingSpeed,
+				} : default;
+
+			return new BumperState(
+				collComponent ? gameObject.GetInstanceID() : 0,
+				skirtAnimComponent ? skirtAnimComponent.gameObject.GetInstanceID() : 0,
+				ringAnimComponent ? ringAnimComponent.gameObject.GetInstanceID() : 0,
+				staticData,
+				ringAnimation,
+				skirtAnimation
+			);
 		}
 
 		#endregion

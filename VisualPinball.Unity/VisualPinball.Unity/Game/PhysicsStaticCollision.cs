@@ -38,7 +38,11 @@ namespace VisualPinballUnity
 
 		private static void Collide(ref BallData ball, uint timeMs, ref PhysicsState state)
 		{
+			var collider = state.GetCollider(ball.CollisionEvent.ColliderId);
 			switch (state.Colliders.GetType(ball.CollisionEvent.ColliderId)) {
+				case ColliderType.Circle:
+					state.Colliders.GetCircleCollider(ball.CollisionEvent.ColliderId).Collide(ref ball, in ball.CollisionEvent, ref state.Env.Random);
+					break;
 				case ColliderType.Plane:
 					state.Colliders.GetPlaneCollider(ball.CollisionEvent.ColliderId).Collide(ref ball, in ball.CollisionEvent, ref state.Env.Random);
 					break;
@@ -54,8 +58,13 @@ namespace VisualPinballUnity
 				case ColliderType.Point:
 					state.Colliders.GetPointCollider(ball.CollisionEvent.ColliderId).Collide(ref ball, ref state.EventQueue, ball.Id, in ball.CollisionEvent, ref state.Env.Random);
 					break;
+				case ColliderType.Bumper:
+					ref var bumperState = ref state.GetBumperState(ball.CollisionEvent.ColliderId);
+					BumperCollider.Collide(ref ball, ref state.EventQueue, ref ball.CollisionEvent, ref bumperState.RingAnimation, ref bumperState.SkirtAnimation,
+						in collider, in bumperState.Static, ref state.Env.Random);
+					break;
 				case ColliderType.Flipper:
-					ref var flipperState = ref state.GetFlipperState(in ball.CollisionEvent);
+					ref var flipperState = ref state.GetFlipperState(ball.CollisionEvent.ColliderId);
 					state.Colliders.GetFlipperCollider(ball.CollisionEvent.ColliderId).Collide(ref ball, ref ball.CollisionEvent, ref flipperState.Movement,
 						ref state.EventQueue, in ball.Id, in flipperState.Tricks, in flipperState.Static,
 						in flipperState.Velocity, in flipperState.Hit, timeMs);

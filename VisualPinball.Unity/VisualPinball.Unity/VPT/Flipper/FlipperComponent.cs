@@ -477,7 +477,7 @@ namespace VisualPinball.Unity
 		{
 			_originalRotateZ = _startAngle;
 			GetComponentInParent<Player>().RegisterFlipper(this);
-			GetComponentInParent<PhysicsEngine>().FlipperLookup.Add(gameObject.GetInstanceID(), gameObject);
+			GetComponentInParent<PhysicsEngine>().Register(this);
 		}
 
 		private void Start()
@@ -489,7 +489,7 @@ namespace VisualPinball.Unity
 
 		#region DOTS Data
 
-		internal FlipperState NewState()
+		internal FlipperState CreateState()
 		{
 			var colliderComponent = gameObject.GetComponent<FlipperColliderComponent>();
 			// collision

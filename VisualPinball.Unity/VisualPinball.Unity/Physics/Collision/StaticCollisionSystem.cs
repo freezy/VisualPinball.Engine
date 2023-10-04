@@ -103,7 +103,7 @@ namespace VisualPinballUnity
 								var ringData = animateRing ? GetComponent<BumperRingAnimationData>(coll.ItemId) : default;
 								var skirtData = animateSkirt ? GetComponent<BumperSkirtAnimationData>(coll.ItemId): default;
 								BumperCollider.Collide(ref ballData, ref events, ref collEvent, ref ringData, ref skirtData,
-									in ballId, in coll, bumperStaticData, ref random);
+									in coll, bumperStaticData, ref random);
 								if (animateRing) {
 									SetComponent(coll.ItemId, ringData);
 								}
