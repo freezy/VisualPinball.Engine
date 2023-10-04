@@ -21,6 +21,7 @@ using Unity.Entities;
 using Unity.Mathematics;
 using UnityEngine;
 using VisualPinball.Engine.Common;
+using VisualPinball.Unity.Collections;
 using VisualPinballUnity;
 
 namespace VisualPinball.Unity
@@ -104,12 +105,11 @@ namespace VisualPinball.Unity
 			var physicsEngine = _tableComponent.GetComponent<PhysicsEngine>();
 			physicsEngine.InputActions.Enqueue((ref PhysicsState state) => {
 				var timeMsec = (uint)((state.Env.CurPhysicsFrameTime - state.Env.StartTimeUsec) / 1000);
-				var flipperState = state.FlipperStates[id];
+				ref var flipperState = ref state.FlipperStates.GetValueByRef(id);
 				flipperState.Movement.EnableRotateEvent = 1;
 				flipperState.Movement.StartRotateToEndTime = timeMsec;
 				flipperState.Movement.AngleAtRotateToEnd = flipperState.Movement.Angle;
 				flipperState.Solenoid.Value = true;
-				state.FlipperStates[id] = flipperState;
 			});
 		}
 
@@ -119,10 +119,9 @@ namespace VisualPinball.Unity
 			var physicsEngine = _tableComponent.GetComponent<PhysicsEngine>();
 			physicsEngine.InputActions.Enqueue((ref PhysicsState state) => {
 				var timeMsec = (uint)((state.Env.CurPhysicsFrameTime - state.Env.StartTimeUsec) / 1000);
-				var flipperState = state.FlipperStates[id];
+				ref var flipperState = ref state.FlipperStates.GetValueByRef(id);
 				flipperState.Movement.EnableRotateEvent = -1;
 				flipperState.Solenoid.Value = false;
-				state.FlipperStates[id] = flipperState;
 			});
 		}
 

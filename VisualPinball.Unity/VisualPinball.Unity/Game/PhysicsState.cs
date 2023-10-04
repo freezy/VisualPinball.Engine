@@ -17,6 +17,7 @@
 using NativeTrees;
 using Unity.Collections;
 using Unity.Entities;
+using UnityEngine;
 using VisualPinball.Unity.Collections;
 
 namespace VisualPinball.Unity
@@ -30,10 +31,11 @@ namespace VisualPinball.Unity
 		internal InsideOfs InsideOfs;
 		internal NativeParallelHashMap<int, BallData> Balls;
 		internal NativeParallelHashMap<int, FlipperState> FlipperStates;
+		internal NativeParallelHashMap<int, BumperState> BumperStates;
 
 		public PhysicsState(ref PhysicsEnv env, ref NativeOctree<int> octree, ref BlobAssetReference<ColliderBlob> colliders,
 			ref NativeQueue<EventData>.ParallelWriter eventQueue, ref InsideOfs insideOfs, ref NativeParallelHashMap<int, BallData> balls,
-			ref NativeParallelHashMap<int, FlipperState> flipperStates)
+			ref NativeParallelHashMap<int, FlipperState> flipperStates, ref NativeParallelHashMap<int, BumperState> bumperStates)
 		{
 			Env = env;
 			Octree = octree;
@@ -42,12 +44,21 @@ namespace VisualPinball.Unity
 			InsideOfs = insideOfs;
 			Balls = balls;
 			FlipperStates = flipperStates;
+			BumperStates = bumperStates;
 		}
 
-		internal ref FlipperState GetFlipperState(in CollisionEventData collisionEvent)
+		internal Collider GetCollider(int colliderId) => Colliders.Value.Colliders[colliderId].Value;
+
+		internal ref FlipperState GetFlipperState(int colliderId)
 		{
-			var collider = Colliders.Value.Colliders[collisionEvent.ColliderId].Value;
+			var collider = Colliders.Value.Colliders[colliderId].Value;
 			return ref FlipperStates.GetValueByRef(collider.ItemId);
+		}
+
+		internal ref BumperState GetBumperState(int colliderId)
+		{
+			var collider = Colliders.Value.Colliders[colliderId].Value;
+			return ref BumperStates.GetValueByRef(collider.ItemId);
 		}
 	}
 }

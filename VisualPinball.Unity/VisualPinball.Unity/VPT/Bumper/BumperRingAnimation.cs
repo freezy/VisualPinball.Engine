@@ -14,31 +14,37 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-using System;
-using Unity.Entities;
-using VisualPinball.Engine.VPT;
-
 namespace VisualPinball.Unity
 {
-	public abstract class AnimationComponent<TData, TMainComponent> : SubComponent<TData, TMainComponent>,
-		IAnimationComponent
-		where TData : ItemData
-		where TMainComponent : MainRenderableComponent<TData>
+	internal static class BumperRingAnimation
 	{
-		public void UpdateTransforms() => MainComponent.UpdateTransforms();
-
-		private void Awake()
+		internal static void Update(ref BumperRingAnimationData data, float dTime)
 		{
-			GetComponentInParent<PhysicsEngine>().Register(this);
-		}
+			// todo visibility - skip if invisible
 
-		private Entity MainEntity {
-			get {
-				var ma = MainComponent;
-				if (ma == null) {
-					throw new InvalidOperationException("Cannot find main component of " + name + ".");
+			var limit = data.DropOffset + data.HeightScale * 0.5f;
+			if (data.IsHit) {
+				data.DoAnimate = true;
+				data.AnimateDown = true;
+				data.IsHit = false;
+			}
+			if (data.DoAnimate) {
+				var step = data.Speed;
+				if (data.AnimateDown) {
+					step = -step;
 				}
-				return ma.Entity;
+				data.Offset += step * dTime;
+				if (data.AnimateDown) {
+					if (data.Offset <= -limit) {
+						data.Offset = -limit;
+						data.AnimateDown = false;
+					}
+				} else {
+					if (data.Offset >= 0.0f) {
+						data.Offset = 0.0f;
+						data.DoAnimate = false;
+					}
+				}
 			}
 		}
 	}

@@ -14,56 +14,36 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-using Unity.Entities;
 using Unity.Mathematics;
-using Unity.Profiling;
-using VisualPinball.Unity;
-using VisualPinball.Unity.VisualPinball.Unity.Game;
 
-namespace VisualPinballUnity
+namespace VisualPinball.Unity
 {
-	[UpdateInGroup(typeof(UpdateAnimationsSystemGroup))]
-	internal partial class BumperSkirtAnimationSystem : SystemBaseStub
+	internal static class BumperSkirtAnimation
 	{
-		private static readonly ProfilerMarker PerfMarker = new ProfilerMarker("BumperSkirtAnimationSystem");
-
-		protected override void OnUpdate()
+		internal static void Update(ref BumperSkirtAnimationData data, float dTime)
 		{
-			var dTime = SystemAPI.Time.DeltaTime * 1000;
-			var marker = PerfMarker;
+			// todo visibility - skip if invisible
 
-			Entities
-				.WithName("BumperSkirtAnimationJob")
-				.ForEach((ref BumperSkirtAnimationData data) => {
+			var isHit = data.HitEvent;
+			data.HitEvent = false;
 
-					// todo visibility - skip if invisible
-
-					marker.Begin();
-
-					var isHit = data.HitEvent;
-					data.HitEvent = false;
-
-					if (data.EnableAnimation) {
-						if (isHit) {
-							data.DoAnimate = true;
-							UpdateSkirt(ref data);
-							data.AnimationCounter = 0.0f;
-						}
-						if (data.DoAnimate) {
-							data.AnimationCounter += dTime;
-							if (data.AnimationCounter > 160.0f) {
-								data.DoAnimate = false;
-								ResetSkirt(ref data);
-							}
-						}
-					} else if (data.DoUpdate) { // do a single update if the animation was turned off via script
-						data.DoUpdate = false;
+			if (data.EnableAnimation) {
+				if (isHit) {
+					data.DoAnimate = true;
+					UpdateSkirt(ref data);
+					data.AnimationCounter = 0.0f;
+				}
+				if (data.DoAnimate) {
+					data.AnimationCounter += dTime;
+					if (data.AnimationCounter > 160.0f) {
+						data.DoAnimate = false;
 						ResetSkirt(ref data);
 					}
-
-					marker.End();
-
-				}).Run();
+				}
+			} else if (data.DoUpdate) { // do a single update if the animation was turned off via script
+				data.DoUpdate = false;
+				ResetSkirt(ref data);
+			}
 		}
 
 		private static void UpdateSkirt(ref BumperSkirtAnimationData data)

@@ -74,7 +74,7 @@ namespace VisualPinball.Unity.Collections
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
 				if ((entryIdx < 0) || (entryIdx >= data.keyCapacity))
 				{
-					throw new KeyNotFoundException();
+					throw new KeyNotFoundException("Cannot find key " + key);
 				}
 #endif
 			}

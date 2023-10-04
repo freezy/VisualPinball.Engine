@@ -34,6 +34,10 @@ namespace VisualPinball.Unity
 		{
 			var hitTime = -1f;
 			switch (_colliders.GetType(Id)) {
+				case ColliderType.Bumper:
+				case ColliderType.Circle:
+					hitTime = _colliders.GetCircleCollider(Id).HitTest(ref collEvent, ref state.InsideOfs, in ball, ball.CollisionEvent.HitTime);
+					break;
 				case ColliderType.Plane:
 					hitTime = _colliders.GetPlaneCollider(Id).HitTest(ref collEvent, in ball, ball.CollisionEvent.HitTime);
 					break;
@@ -50,7 +54,7 @@ namespace VisualPinball.Unity
 					hitTime = _colliders.GetPointCollider(Id).HitTest(ref collEvent, in ball, ball.CollisionEvent.HitTime);
 					break;
 				case ColliderType.Flipper:
-					var flipperState = state.GetFlipperState(in collEvent);
+					ref var flipperState = ref state.GetFlipperState(Id);
 					hitTime = _colliders.GetFlipperCollider(Id).HitTest(
 						ref collEvent, ref state.InsideOfs, ref flipperState.Hit,
 						in flipperState.Movement, in flipperState.Tricks, in flipperState.Static,

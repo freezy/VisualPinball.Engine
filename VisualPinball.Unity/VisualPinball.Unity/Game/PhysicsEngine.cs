@@ -24,7 +24,6 @@ using Unity.Entities;
 using Unity.Jobs;
 using Unity.Mathematics;
 using UnityEngine;
-using UnityEngine.Serialization;
 using VisualPinball.Engine.Common;
 using VisualPinballUnity;
 using Debug = UnityEngine.Debug;
@@ -40,14 +39,21 @@ namespace VisualPinball.Unity
 		[NonSerialized] private InsideOfs _insideOfs;
 		[NonSerialized] private NativeParallelHashMap<int, BallData> _balls;
 		[NonSerialized] private NativeParallelHashMap<int, FlipperState> _flipperStates;
+		[NonSerialized] private NativeParallelHashMap<int, BumperState> _bumperStates;
 
 		[NonSerialized] private readonly Dictionary<int, PhysicsBall> _ballLookup = new();
-		[NonSerialized] public readonly Dictionary<int, GameObject> FlipperLookup = new();
+		[NonSerialized] private readonly Dictionary<int, Transform> _transforms = new();
 
 		[NonSerialized] internal readonly Queue<InputAction> InputActions = new();
 		internal delegate void InputAction(ref PhysicsState state);
 
 		private static ulong NowUsec => (ulong)(Time.timeAsDouble * 1000000);
+
+		public void Register<T>(T item) where T : MonoBehaviour
+		{
+			var go = item.gameObject;
+			_transforms.Add(go.GetInstanceID(), go.transform);
+		}
 
 		private void Start()
 		{
@@ -63,16 +69,29 @@ namespace VisualPinball.Unity
 			Debug.Log($"Found {colliderItems.Length} collidable items.");
 			var managedColliders = new List<ICollider>();
 			foreach (var colliderItem in colliderItems) {
+				// todo bring GC allocations down
 				colliderItem.GetColliders(player, managedColliders, 0);
 			}
 
-			// data: flippers
+			#region Item Data
+
+			// bumpers
+			var bumpers = GetComponentsInChildren<BumperComponent>();
+			_bumperStates = new NativeParallelHashMap<int, BumperState>(bumpers.Length, Allocator.Persistent);
+			foreach (var bumper in bumpers) {
+				var bumperState = bumper.CreateState();
+				_bumperStates[bumperState.ItemId] = bumperState;
+			}
+
+			// flippers
 			var flippers = GetComponentsInChildren<FlipperComponent>();
 			_flipperStates = new NativeParallelHashMap<int, FlipperState>(flippers.Length, Allocator.Persistent);
 			foreach (var flipper in flippers) {
-				var flipperState = flipper.NewState();
+				var flipperState = flipper.CreateState();
 				_flipperStates[flipperState.ItemId] = flipperState;
 			}
+
+			#endregion
 
 			// allocate colliders
 			_colliders = AllocateColliders(managedColliders);
@@ -115,9 +134,11 @@ namespace VisualPinball.Unity
 
 		private void Update()
 		{
+			// prepare job
 			var events = _eventQueue.AsParallelWriter();
 			var updatePhysics = new UpdatePhysicsJob {
 				InitialTimeUsec = NowUsec,
+				DeltaTime = Time.deltaTime * 1000,
 				PhysicsEnv = _physicsEnv,
 				Octree = _octree,
 				Colliders = _colliders,
@@ -125,32 +146,58 @@ namespace VisualPinball.Unity
 				Events = events,
 				Balls = _balls,
 				FlipperStates = _flipperStates,
+				BumperStates = _bumperStates,
 			};
 
 			var env = _physicsEnv[0];
-			var state = new PhysicsState(ref env, ref _octree, ref _colliders, ref events, ref _insideOfs, ref _balls, ref _flipperStates);
+			var state = new PhysicsState(ref env, ref _octree, ref _colliders, ref events, ref _insideOfs, ref _balls, ref _flipperStates, ref _bumperStates);
 
-			foreach (var action in InputActions) {
+			// process input
+			while (InputActions.Count > 0) {
+				var action = InputActions.Dequeue();
 				action(ref state);
 			}
+
+			// run physics loop
 			updatePhysics.Run();
 
+			// retrieve updated data
 			_balls = updatePhysics.Balls;
 			_physicsEnv = updatePhysics.PhysicsEnv;
 			_flipperStates = updatePhysics.FlipperStates;
 
+			#region Movements
+
+			// balls
 			using (var enumerator = state.Balls.GetEnumerator()) {
 				while (enumerator.MoveNext()) {
 					ref var ball = ref enumerator.Current.Value;
 					BallMovementPhysics.Move(ball, _ballLookup[ball.Id].transform);
 				}
 			}
+
+			// flippers
 			using (var enumerator = _flipperStates.GetEnumerator()) {
 				while (enumerator.MoveNext()) {
-					var flipper = FlipperLookup[enumerator.Current.Key];
-					flipper.transform.localRotation = quaternion.Euler(0, _flipperStates[enumerator.Current.Key].Movement.Angle, 0);
+					var flipperTransform = _transforms[enumerator.Current.Key];
+					flipperTransform.localRotation = quaternion.Euler(0, _flipperStates[enumerator.Current.Key].Movement.Angle, 0);
 				}
 			}
+
+			// bumpers
+			using (var enumerator = _bumperStates.GetEnumerator()) {
+				while (enumerator.MoveNext()) {
+					ref var bumperState = ref enumerator.Current.Value;
+					if (bumperState.SkirtItemId != 0) {
+						BumperTransformation.UpdateSkirt(in bumperState.SkirtAnimation, _transforms[bumperState.SkirtItemId]);
+					}
+					if (bumperState.RingItemId != 0) {
+						BumperTransformation.UpdateRing(bumperState.RingItemId, in bumperState.RingAnimation, _transforms[bumperState.RingItemId]);
+					}
+				}
+			}
+
+			#endregion
 		}
 		
 		private void OnDestroy()
@@ -183,7 +230,11 @@ namespace VisualPinball.Unity
 	{
 		[ReadOnly] 
 		public ulong InitialTimeUsec;
-		[FormerlySerializedAs("PhysicsState")] public NativeArray<PhysicsEnv> PhysicsEnv;
+
+		[ReadOnly]
+		public float DeltaTime;
+
+		public NativeArray<PhysicsEnv> PhysicsEnv;
 		public NativeOctree<int> Octree;
 		public BlobAssetReference<ColliderBlob> Colliders;
 		public InsideOfs InsideOfs;
@@ -191,13 +242,13 @@ namespace VisualPinball.Unity
 
 		public NativeParallelHashMap<int, BallData> Balls;
 		public NativeParallelHashMap<int, FlipperState> FlipperStates;
+		public NativeParallelHashMap<int, BumperState> BumperStates;
 
 		public void Execute()
 		{
 			var env = PhysicsEnv[0];
-			var state = new PhysicsState(ref env, ref Octree, ref Colliders, ref Events, ref InsideOfs, ref Balls, ref FlipperStates);
+			var state = new PhysicsState(ref env, ref Octree, ref Colliders, ref Events, ref InsideOfs, ref Balls, ref FlipperStates, ref BumperStates);
 			var cycle = new PhysicsCycle(Allocator.Temp);
-			var n = 0;
 
 			while (env.CurPhysicsFrameTime < InitialTimeUsec)  // loop here until current (real) time matches the physics (simulated) time
 			{
@@ -207,7 +258,6 @@ namespace VisualPinball.Unity
 				#region Update Velocities
 
 				// update velocities - always on integral physics frame boundary (spinner, gate, flipper, plunger, ball)
-
 				using (var enumerator = state.Balls.GetEnumerator()) {
 					while (enumerator.MoveNext()) {
 						BallVelocityPhysics.UpdateVelocities(ref enumerator.Current.Value, env.Gravity);
@@ -224,10 +274,25 @@ namespace VisualPinball.Unity
 				// primary physics loop
 				cycle.Simulate(ref state, physicsDiffTime, timeMsec);
 
+				#region Animation
+
+				// bumper
+				using (var enumerator = BumperStates.GetEnumerator()) {
+					while (enumerator.MoveNext()) {
+						ref var bumperState = ref enumerator.Current.Value;
+						if (bumperState.RingItemId != 0) {
+							BumperRingAnimation.Update(ref bumperState.RingAnimation, DeltaTime);
+						}
+						if (bumperState.SkirtItemId != 0) {
+							BumperSkirtAnimation.Update(ref bumperState.SkirtAnimation, DeltaTime);
+						}
+					}
+				}
+
+				#endregion
+
 				env.CurPhysicsFrameTime = env.NextPhysicsFrameTime;
 				env.NextPhysicsFrameTime += PhysicsConstants.PhysicsStepTime;
-
-				n++;
 			}
 
 			PhysicsEnv[0] = env;

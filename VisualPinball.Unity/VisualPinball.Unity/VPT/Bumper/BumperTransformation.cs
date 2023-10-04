@@ -14,43 +14,37 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+using System.Collections.Generic;
 using Unity.Entities;
-using Unity.Mathematics;
 using Unity.Profiling;
 using UnityEngine;
 using VisualPinball.Unity;
 using VisualPinball.Unity.VisualPinball.Unity.Game;
+using Physics = UnityEngine.Physics;
 
 namespace VisualPinballUnity
 {
-	[UpdateInGroup(typeof(TransformMeshesSystemGroup))]
-	internal partial class BumperSkirtMovementSystem : SystemBaseStub
+	internal static class BumperTransformation
 	{
-		private static readonly ProfilerMarker PerfMarker = new ProfilerMarker("BumperSkirtMovementSystem");
+		private static readonly Dictionary<int, float> InitialOffset = new();
 
-		private Player _player;
-
-		protected override void OnStartRunning()
+		internal static void UpdateRing(int itemId, in BumperRingAnimationData data, Transform transform)
 		{
-			base.OnStartRunning();
-			_player = Object.FindObjectOfType<Player>();
+			var worldPos = transform.position;
+			InitialOffset.TryAdd(itemId, worldPos.y);
+
+			var limit = data.DropOffset + data.HeightScale * 0.5f;
+			var localLimit = InitialOffset[itemId] + limit;
+			var localOffset = localLimit / limit * data.Offset;
+
+			worldPos.y = InitialOffset[itemId] + VisualPinball.Unity.Physics.ScaleToWorld(localOffset);
+			transform.position = worldPos;
 		}
 
-		protected override void OnUpdate()
+		internal static void UpdateSkirt(in BumperSkirtAnimationData data, Transform transform)
 		{
-			// fixme job
-			// var marker = PerfMarker;
-			// Entities.WithoutBurst().WithName("BumperSkirtMovementJob").ForEach((Entity entity, in BumperSkirtAnimationData data) => {
-			//
-			// 	marker.Begin();
-			//
-			// 	var transform = _player.BumperSkirtTransforms[entity];
-			// 	var parentRotation = transform.parent.rotation;
-			// 	transform.rotation = Quaternion.Euler(data.Rotation.x, 0, -data.Rotation.y) * parentRotation;
-			//
-			// 	marker.End();
-			//
-			// }).Run();
+			var parentRotation = transform.parent.rotation;
+			transform.rotation = Quaternion.Euler(data.Rotation.x, 0, -data.Rotation.y) * parentRotation;
 		}
 	}
 }
