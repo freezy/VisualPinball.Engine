@@ -96,11 +96,11 @@ namespace VisualPinball.Unity
 					case ColliderType.Line:
 //						return ((LineCollider*) collider)->HitTest(ref collEvent, ref insideOf, in ball, dTime);
 					case ColliderType.LineZ:
-						return ((LineZCollider*) collider)->HitTest(ref collEvent, in ball, dTime);
+						// return ((LineZCollider*) collider)->HitTest(ref collEvent, in ball, dTime);
 					case ColliderType.Line3D:
-						return ((Line3DCollider*) collider)->HitTest(ref collEvent, in ball, dTime);
+						// return ((Line3DCollider*) collider)->HitTest(ref collEvent, in ball, dTime);
 					case ColliderType.Point:
-						return ((PointCollider*) collider)->HitTest(ref collEvent, in ball, dTime);
+						// return ((PointCollider*) collider)->HitTest(ref collEvent, in ball, dTime);
 					case ColliderType.Plane:
 						return ((PlaneCollider*) collider)->HitTest(ref collEvent, in ball, dTime);
 					case ColliderType.Spinner:
