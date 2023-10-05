@@ -15,7 +15,6 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using Unity.Collections;
-using Unity.Entities;
 using Unity.Mathematics;
 
 namespace VisualPinball.Unity
@@ -23,7 +22,7 @@ namespace VisualPinball.Unity
 	internal static class TargetCollider
 	{
 		public static void DropTargetCollide(ref BallData ball, ref NativeQueue<EventData>.ParallelWriter hitEvents,
-			ref DropTargetAnimationData animationData, in float3 normal, in int ballId, in CollisionEventData collEvent,
+			ref DropTargetAnimationData animationData, in float3 normal, in CollisionEventData collEvent,
 			in Collider coll, ref Random random)
 		{
 			if (animationData.IsDropped) {
@@ -36,12 +35,12 @@ namespace VisualPinball.Unity
 			if (coll.FireEvents && dot >= coll.Threshold && !animationData.IsDropped) {
 				animationData.HitEvent = true;
 				//todo m_obj->m_currentHitThreshold = dot;
-				Collider.FireHitEvent(ref ball, ref hitEvents, in ballId, in coll.Header);
+				Collider.FireHitEvent(ref ball, ref hitEvents, in coll.Header);
 			}
 		}
 
 		public static void HitTargetCollide(ref BallData ball, ref NativeQueue<EventData>.ParallelWriter hitEvents,
-			ref HitTargetAnimationData animationData, in float3 normal, in int ballId, in CollisionEventData collEvent,
+			ref HitTargetAnimationData animationData, in float3 normal, in CollisionEventData collEvent,
 			in Collider coll, ref Random random)
 		{
 			var dot = -math.dot(collEvent.HitNormal, ball.Velocity);
@@ -50,7 +49,7 @@ namespace VisualPinball.Unity
 			if (coll.FireEvents && dot >= coll.Threshold) {
 				animationData.HitEvent = true;
 				//todo m_obj->m_currentHitThreshold = dot;
-				Collider.FireHitEvent(ref ball, ref hitEvents, in ballId, in coll.Header);
+				Collider.FireHitEvent(ref ball, ref hitEvents, in coll.Header);
 			}
 		}
 	}

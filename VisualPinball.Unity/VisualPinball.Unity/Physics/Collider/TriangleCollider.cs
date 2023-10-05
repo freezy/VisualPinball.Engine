@@ -187,7 +187,7 @@ namespace VisualPinball.Unity
 
 			if (_header.FireEvents && dot >= _header.Threshold && _header.IsPrimitive) {
 				// todo m_obj->m_currentHitThreshold = dot;
-				Collider.FireHitEvent(ref ball, ref hitEvents, in ballId, in _header);
+				Collider.FireHitEvent(ref ball, ref hitEvents, in _header);
 			}
 		}
 

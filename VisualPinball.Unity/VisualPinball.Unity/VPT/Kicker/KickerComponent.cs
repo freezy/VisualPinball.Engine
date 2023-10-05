@@ -25,6 +25,8 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using Unity.Collections;
+using Unity.Entities;
 using Unity.Mathematics;
 using UnityEditor;
 using UnityEngine;
@@ -272,31 +274,20 @@ namespace VisualPinball.Unity
 					FallThrough = colliderComponent.FallThrough,
 					HitAccuracy = colliderComponent.HitAccuracy,
 					Scatter = colliderComponent.Scatter,
-					LegacyMode = true, // todo colliderComponent.LegacyMode,
+					LegacyMode = colliderComponent.LegacyMode,
 					ZLow = Surface?.Height(Position) ?? PlayfieldHeight
 				} : default;
 
-			// if (!Data.LegacyMode) {
-			// 	// todo currently we don't allow non-legacy mode
-			// 	using (var blobBuilder = new BlobBuilder(Allocator.Temp)) {
-			// 		ref var blobAsset = ref blobBuilder.ConstructRoot<KickerMeshVertexBlobAsset>();
-			// 		var vertices = blobBuilder.Allocate(ref blobAsset.Vertices, Item.KickerHit.HitMesh.Length);
-			// 		var normals = blobBuilder.Allocate(ref blobAsset.Normals, Item.KickerHit.HitMesh.Length);
-			// 		for (var i = 0; i < Item.KickerHit.HitMesh.Length; i++) {
-			// 			var v = Item.KickerHit.HitMesh[i];
-			// 			vertices[i] = new KickerMeshVertex { Vertex = v.ToUnityFloat3() };
-			// 			normals[i] = new KickerMeshVertex { Vertex = new float3(KickerHitMesh.Vertices[i].Nx, KickerHitMesh.Vertices[i].Ny, KickerHitMesh.Vertices[i].Nz) };
-			// 		}
-			//
-			// 		var blobAssetReference = blobBuilder.CreateBlobAssetReference<KickerMeshVertexBlobAsset>(Allocator.Persistent);
-			// 		dstManager.AddComponentData(entity, new ColliderMeshData { Value = blobAssetReference });
-			// 	}
-			// }
+			var height = SurfaceHeight(Surface, Position);
+			var meshData = colliderComponent.LegacyMode
+				? new ColliderMeshData(Array.Empty<Vertex3DNoTex2>(), 0, float3.zero)
+				: new ColliderMeshData(KickerHitMesh.Vertices, Radius, new float3(Center.x, Center.y, height));
 
 			return new KickerState(
 				colliderComponent ? colliderComponent.gameObject.GetInstanceID() : 0,
 				staticData,
-				new KickerCollisionData()
+				new KickerCollisionData(),
+				meshData
 			);
 		}
 

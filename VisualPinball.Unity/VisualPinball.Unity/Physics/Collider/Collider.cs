@@ -210,7 +210,7 @@ namespace VisualPinball.Unity
 			}
 		}
 
-		internal static void FireHitEvent(ref BallData ball, ref NativeQueue<EventData>.ParallelWriter events, in int ballId, in ColliderHeader collHeader)
+		internal static void FireHitEvent(ref BallData ball, ref NativeQueue<EventData>.ParallelWriter events, in ColliderHeader collHeader)
 		{
 			if (collHeader.FireEvents/* && collHeader.IsEnabled*/) { // todo enabled
 
@@ -226,7 +226,7 @@ namespace VisualPinball.Unity
 
 				// must be a new place if only by a little
 				if (distLs > normalDist) {
-					events.Enqueue(new EventData(EventId.HitEventsHit, collHeader.ItemId, ballId, true));
+					events.Enqueue(new EventData(EventId.HitEventsHit, collHeader.ItemId, ball.Id, true));
 				}
 			}
 		}

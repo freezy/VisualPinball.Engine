@@ -85,6 +85,11 @@ namespace VisualPinball.Unity.Collections
 
 		#region Own stuff
 
+		public static ref T GetElementAsRef<T>(this NativeArray<T> array, int index) where T : unmanaged
+		{
+			return ref UnsafeUtility.ArrayElementAsRef<T>(array.GetUnsafePtr(), index);
+		}
+
 		public static ref T GetElementAsRef<T>(this NativeList<T> list, int index) where T : unmanaged
 		{
 			return ref UnsafeUtility.ArrayElementAsRef<T>(list.GetUnsafePtr(), index);

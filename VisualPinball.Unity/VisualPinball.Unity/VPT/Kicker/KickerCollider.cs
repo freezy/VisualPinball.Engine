@@ -19,6 +19,7 @@ using Unity.Entities;
 using Unity.Mathematics;
 using VisualPinball.Engine.Common;
 using VisualPinball.Engine.Game;
+using VisualPinball.Unity.Collections;
 
 namespace VisualPinball.Unity
 {
@@ -29,12 +30,11 @@ namespace VisualPinball.Unity
 		/// resulting in stutter. Disabling this until we find another
 		/// solution.
 		/// </summary>
-		public const bool ForceLegacyMode = true;
+		public const bool ForceLegacyMode = false;
 
 		public static void Collide(ref BallData ball, ref NativeQueue<EventData>.ParallelWriter events,
-			ref InsideOfs insideOfs, ref KickerCollisionData collData,
-			in KickerStaticData staticData, in ColliderMeshData meshData, in CollisionEventData collEvent,
-			in int itemId, in int ballId)
+			ref InsideOfs insideOfs, ref KickerCollisionData collData, in KickerStaticData staticData,
+			in ColliderMeshData meshData, in CollisionEventData collEvent, in int itemId)
 		{
 			// a previous ball already in kicker?
 			if (collData.HasBall) {
@@ -47,7 +47,7 @@ namespace VisualPinball.Unity
 			var hitBit = collEvent.HitFlag;
 
 			// check if kicker in ball's volume set
-			var isBallInside = insideOfs.IsInsideOf(itemId, ballId);
+			var isBallInside = insideOfs.IsInsideOf(itemId, ball.Id);
 
 			// New or (Hit && !Vol || UnHit && Vol)
 			if (hitBit == isBallInside) {
@@ -84,12 +84,12 @@ namespace VisualPinball.Unity
 						ball.IsFrozen = !staticData.FallThrough;
 						if (ball.IsFrozen) {
 							insideOfs.SetInsideOf(itemId, ball.Id); // add kicker to ball's volume set
-							collData.BallId = ballId;
-							collData.LastCapturedBallId = ballId;
+							collData.BallId = ball.Id;
+							collData.LastCapturedBallId = ball.Id;
 						}
 
 						// Fire the event before changing ball attributes, so scripters can get a useful ball state
-						events.Enqueue(new EventData(EventId.HitEventsHit, itemId, ballId, true));
+						events.Enqueue(new EventData(EventId.HitEventsHit, itemId, ball.Id, true));
 
 						if (ball.IsFrozen || staticData.FallThrough) { // script may have unfrozen the ball
 
@@ -116,7 +116,7 @@ namespace VisualPinball.Unity
 				} else { // exiting kickers volume
 					// remove kicker to ball's volume set
 					insideOfs.SetOutsideOf(itemId, ball.Id);
-					events.Enqueue(new EventData(EventId.HitEventsUnhit, itemId, ballId, true));
+					events.Enqueue(new EventData(EventId.HitEventsUnhit, itemId, ball.Id, true));
 				}
 			}
 		}
@@ -129,7 +129,7 @@ namespace VisualPinball.Unity
 			ref var hitMeshNormals = ref meshData.Value.Value.Normals;
 			for (var t = 0; t < hitMesh.Length; t++) {
 				// find the right normal by calculating the distance from current ball position to vertex of the kicker mesh
-				ref var vertex = ref hitMesh[t].Vertex;
+				ref var vertex = ref hitMesh[t];
 				var lengthSqr = math.lengthsq(ball.Position - vertex);
 				if (lengthSqr < minDistSqr) {
 					minDistSqr = lengthSqr;
@@ -140,7 +140,7 @@ namespace VisualPinball.Unity
 			if (idx != ~0u) {
 
 				// we have the nearest vertex now use the normal and damp it so it doesn't speed up the ball velocity too much
-				ref var hitNorm = ref hitMeshNormals[(int)idx].Vertex;
+				ref var hitNorm = ref hitMeshNormals[(int)idx];
 				var dot = -math.dot(ball.Velocity, hitNorm);
 				var reactionImpulse = ball.Mass * math.abs(dot);
 
