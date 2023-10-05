@@ -62,11 +62,7 @@ namespace VisualPinball.Unity
 		{
 			var go = item.gameObject;
 			var itemId = go.GetInstanceID();
-			if (_transforms.ContainsKey(itemId)) {
-				// animation components are always added, sometimes they overlap with the main component (i.e. triggers)
-				return;
-			}
-			_transforms.Add(itemId, go.transform);
+			_transforms.TryAdd(itemId, go.transform);
 
 			switch (item) {
 				case BumperComponent c: _bumperStates[itemId] = c.CreateState(); break;
