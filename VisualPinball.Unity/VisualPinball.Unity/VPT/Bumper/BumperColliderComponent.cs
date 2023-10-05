@@ -16,14 +16,13 @@
 
 // ReSharper disable InconsistentNaming
 
-using System.Collections.Generic;
 using UnityEngine;
 using VisualPinball.Engine.VPT.Bumper;
 
 namespace VisualPinball.Unity
 {
 	[AddComponentMenu("Visual Pinball/Collision/Bumper Collider")]
-	public class BumperColliderComponent : ColliderComponent<BumperData, BumperComponent>, ICollidableComponent
+	public class BumperColliderComponent : ColliderComponent<BumperData, BumperComponent>
 	{
 		#region Data
 
@@ -46,12 +45,6 @@ namespace VisualPinball.Unity
 
 		protected override IApiColliderGenerator InstantiateColliderApi(Player player)
 			=> new BumperApi(gameObject, player);
-
-
-		void ICollidableComponent.GetColliders(Player player, List<ICollider> colliders, float margin)
-		{
-			InstantiateColliderApi(player).CreateColliders(colliders, margin);
-		}
 
 		public override PhysicsMaterialData PhysicsMaterialData => GetPhysicsMaterialData(scatterAngleDeg: Scatter);
 	}

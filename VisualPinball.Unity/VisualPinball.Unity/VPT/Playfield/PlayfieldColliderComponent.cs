@@ -24,7 +24,7 @@ using VisualPinball.Engine.VPT.Table;
 namespace VisualPinball.Unity
 {
 	[AddComponentMenu("Visual Pinball/Collision/Playfield Collider")]
-	public class PlayfieldColliderComponent : ColliderComponent<TableData, PlayfieldComponent>, ICollidableComponent
+	public class PlayfieldColliderComponent : ColliderComponent<TableData, PlayfieldComponent>
 	{
 		#region Data
 
@@ -56,10 +56,5 @@ namespace VisualPinball.Unity
 		public override PhysicsMaterialData PhysicsMaterialData => GetPhysicsMaterialData(0, 0);
 		protected override IApiColliderGenerator InstantiateColliderApi(Player player)
 			=> new PlayfieldApi(gameObject, player);
-
-		void ICollidableComponent.GetColliders(Player player, List<ICollider> colliders, float margin)
-		{
-			InstantiateColliderApi(player).CreateColliders(colliders, margin);
-		}
 	}
 }

@@ -50,7 +50,7 @@ namespace VisualPinball.Unity
 
 		private void ClearBitIndex(int ballId)
 		{
-			var maps = _insideOfs.GetValueArray(Allocator.TempJob);
+			var maps = _insideOfs.GetValueArray(Allocator.Temp);
 			var index = GetBitIndex(ballId);
 			foreach (var ballIndices in maps) {
 				if (!ballIndices.IsSet(index)) {
@@ -68,7 +68,7 @@ namespace VisualPinball.Unity
 				return _bitLookup[ballId];
 			}
 
-			var indices = _bitLookup.GetValueArray(Allocator.TempJob);
+			var indices = _bitLookup.GetValueArray(Allocator.Temp);
 			for (var i = 0; i < 64; i++) {
 				if (indices.Contains(i)) {
 					continue;

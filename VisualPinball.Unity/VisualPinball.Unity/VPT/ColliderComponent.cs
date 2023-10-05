@@ -34,7 +34,7 @@ namespace VisualPinball.Unity
 {
 	[DisallowMultipleComponent]
 	public abstract class ColliderComponent<TData, TMainComponent> : SubComponent<TData, TMainComponent>,
-		IColliderComponent
+		IColliderComponent, ICollidableComponent
 		where TData : ItemData
 		where TMainComponent : MainComponent<TData>
 	{
@@ -457,6 +457,10 @@ namespace VisualPinball.Unity
 
 		#endregion
 
+		void ICollidableComponent.GetColliders(Player player, List<ICollider> colliders, float margin)
+		{
+			InstantiateColliderApi(player).CreateColliders(colliders, margin);
+		}
 		#endif
 	}
 
