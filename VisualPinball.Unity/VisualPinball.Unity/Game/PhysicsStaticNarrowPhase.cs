@@ -37,8 +37,8 @@ namespace VisualPinball.Unity
 				var newCollEvent = new CollisionEventData();
 				var colliderRef = new ColliderRef(overlappingColliders[i], ref state.Colliders);
 				var newTime = colliderRef.HitTest(ref ball, ref newCollEvent, ref contacts, ref state);
-				SaveCollisions(ref ball, ref newCollEvent, ref contacts, colliderRef.Id, newTime);
-			}
+					SaveCollisions(ref ball, ref newCollEvent, ref contacts, colliderRef.Id, newTime);
+				}
 
 			// no negative time allowed
 			if (ball.CollisionEvent.HitTime < 0) {
@@ -59,10 +59,10 @@ namespace VisualPinball.Unity
 		{
 			var validHit = newTime >= 0f && !Math.Sign(newTime) && newTime <= ball.CollisionEvent.HitTime;
 
-			if (newCollEvent.IsContact || validHit) {
+			if (newCollEvent.IsContact || validHit) { // todo why newCollEvent.IsContact? it's not in vpx source
 				newCollEvent.SetCollider(colliderId, ball.Id);
 				newCollEvent.HitTime = newTime;
-				if (newCollEvent.IsContact) {
+				if (newCollEvent.IsContact) { // remember all contacts?
 					contacts.Add(new ContactBufferElement(ball.Id, newCollEvent));
 
 				} else { // if (validhit)

@@ -30,12 +30,23 @@ namespace VisualPinball.Unity
 		internal NativeQueue<EventData>.ParallelWriter EventQueue;
 		internal InsideOfs InsideOfs;
 		internal NativeParallelHashMap<int, BallData> Balls;
-		internal NativeParallelHashMap<int, FlipperState> FlipperStates;
 		internal NativeParallelHashMap<int, BumperState> BumperStates;
+		internal NativeParallelHashMap<int, DropTargetState> DropTargetStates;
+		internal NativeParallelHashMap<int, FlipperState> FlipperStates;
+		internal NativeParallelHashMap<int, GateState> GateStates;
+		internal NativeParallelHashMap<int, HitTargetState> HitTargetStates;
+		internal NativeParallelHashMap<int, KickerState> KickerStates;
+		internal NativeParallelHashMap<int, PlungerState> PlungerStates;
+		internal NativeParallelHashMap<int, SpinnerState> SpinnerStates;
+		internal NativeParallelHashMap<int, SurfaceState> SurfaceStates;
 
 		public PhysicsState(ref PhysicsEnv env, ref NativeOctree<int> octree, ref BlobAssetReference<ColliderBlob> colliders,
 			ref NativeQueue<EventData>.ParallelWriter eventQueue, ref InsideOfs insideOfs, ref NativeParallelHashMap<int, BallData> balls,
-			ref NativeParallelHashMap<int, FlipperState> flipperStates, ref NativeParallelHashMap<int, BumperState> bumperStates)
+			ref NativeParallelHashMap<int, BumperState> bumperStates, ref NativeParallelHashMap<int, DropTargetState> dropTargetStates,
+			ref NativeParallelHashMap<int, FlipperState> flipperStates, ref NativeParallelHashMap<int, GateState> gateStates,
+			ref NativeParallelHashMap<int, HitTargetState> hitTargetStates, ref NativeParallelHashMap<int, KickerState> kickerStates,
+			ref NativeParallelHashMap<int, PlungerState> plungerStates, ref NativeParallelHashMap<int, SpinnerState> spinnerStates,
+			ref NativeParallelHashMap<int, SurfaceState> surfaceStates)
 		{
 			Env = env;
 			Octree = octree;
@@ -43,8 +54,15 @@ namespace VisualPinball.Unity
 			EventQueue = eventQueue;
 			InsideOfs = insideOfs;
 			Balls = balls;
-			FlipperStates = flipperStates;
 			BumperStates = bumperStates;
+			DropTargetStates = dropTargetStates;
+			FlipperStates = flipperStates;
+			GateStates = gateStates;
+			HitTargetStates = hitTargetStates;
+			KickerStates = kickerStates;
+			PlungerStates = plungerStates;
+			SpinnerStates = spinnerStates;
+			SurfaceStates = surfaceStates;
 		}
 
 		internal Collider GetCollider(int colliderId) => Colliders.Value.Colliders[colliderId].Value;
@@ -53,6 +71,24 @@ namespace VisualPinball.Unity
 		{
 			var collider = Colliders.Value.Colliders[colliderId].Value;
 			return ref FlipperStates.GetValueByRef(collider.ItemId);
+		}
+
+		internal ref PlungerState GetPlungerState(int colliderId)
+		{
+			var collider = Colliders.Value.Colliders[colliderId].Value;
+			return ref PlungerStates.GetValueByRef(collider.ItemId);
+		}
+
+		internal bool HasDropTargetState(int colliderId)
+		{
+			var collider = Colliders.Value.Colliders[colliderId].Value;
+			return DropTargetStates.ContainsKey(collider.ItemId);
+		}
+
+		internal ref DropTargetState GetDropTargetState(int colliderId)
+		{
+			var collider = Colliders.Value.Colliders[colliderId].Value;
+			return ref DropTargetStates.GetValueByRef(collider.ItemId);
 		}
 
 		internal ref BumperState GetBumperState(int colliderId)

@@ -61,6 +61,10 @@ namespace VisualPinball.Unity
 		{
 			var go = item.gameObject;
 			var itemId = go.GetInstanceID();
+			if (_transforms.ContainsKey(itemId)) {
+				// animation components are always added, sometimes they overlap with the main component (i.e. triggers)
+				return;
+			}
 			_transforms.Add(itemId, go.transform);
 
 			switch (item) {
@@ -151,12 +155,22 @@ namespace VisualPinball.Unity
 				InsideOfs = _insideOfs,
 				Events = events,
 				Balls = _balls,
-				FlipperStates = _flipperStates,
 				BumperStates = _bumperStates,
+				DropTargetStates = _dropTargetStates,
+				FlipperStates = _flipperStates,
+				GateStates = _gateStates,
+				HitTargetStates = _hitTargetStates,
+				KickerStates = _kickerStates,
+				PlungerStates = _plungerStates,
+				SpinnerStates = _spinnerStates,
+				SurfaceStates = _surfaceStates,
 			};
 
 			var env = _physicsEnv[0];
-			var state = new PhysicsState(ref env, ref _octree, ref _colliders, ref events, ref _insideOfs, ref _balls, ref _flipperStates, ref _bumperStates);
+			var state = new PhysicsState(ref env, ref _octree, ref _colliders, ref events, ref _insideOfs, ref _balls,
+				ref _bumperStates, ref _dropTargetStates, ref _flipperStates, ref _gateStates,
+				ref _hitTargetStates, ref _kickerStates, ref _plungerStates, ref _spinnerStates,
+				ref _surfaceStates);
 
 			// process input
 			while (_inputActions.Count > 0) {
@@ -247,13 +261,23 @@ namespace VisualPinball.Unity
 		public NativeQueue<EventData>.ParallelWriter Events;
 
 		public NativeParallelHashMap<int, BallData> Balls;
-		public NativeParallelHashMap<int, FlipperState> FlipperStates;
 		public NativeParallelHashMap<int, BumperState> BumperStates;
+		public NativeParallelHashMap<int, DropTargetState> DropTargetStates;
+		public NativeParallelHashMap<int, FlipperState> FlipperStates;
+		public NativeParallelHashMap<int, GateState> GateStates;
+		public NativeParallelHashMap<int, HitTargetState> HitTargetStates;
+		public NativeParallelHashMap<int, KickerState> KickerStates;
+		public NativeParallelHashMap<int, PlungerState> PlungerStates;
+		public NativeParallelHashMap<int, SpinnerState> SpinnerStates;
+		public NativeParallelHashMap<int, SurfaceState> SurfaceStates;
 
 		public void Execute()
 		{
 			var env = PhysicsEnv[0];
-			var state = new PhysicsState(ref env, ref Octree, ref Colliders, ref Events, ref InsideOfs, ref Balls, ref FlipperStates, ref BumperStates);
+			var state = new PhysicsState(ref env, ref Octree, ref Colliders, ref Events, ref InsideOfs, ref Balls,
+				ref BumperStates, ref DropTargetStates, ref FlipperStates, ref GateStates,
+				ref HitTargetStates, ref KickerStates, ref PlungerStates, ref SpinnerStates,
+				ref SurfaceStates);
 			var cycle = new PhysicsCycle(Allocator.Temp);
 
 			while (env.CurPhysicsFrameTime < InitialTimeUsec)  // loop here until current (real) time matches the physics (simulated) time

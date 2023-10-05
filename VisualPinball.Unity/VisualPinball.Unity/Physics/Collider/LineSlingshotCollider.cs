@@ -83,15 +83,15 @@ namespace VisualPinball.Unity
 
 		#region Narrowphase
 
-		public float HitTest(ref CollisionEventData collEvent, ref InsideOfs insideOfs, ref BallData ball, float dTime)
+		public float HitTest(ref CollisionEventData collEvent, ref InsideOfs insideOfs, in BallData ball, float dTime)
 		{
-			return HitTest(ref collEvent, ref this, ref insideOfs, ref ball, dTime);
+			return HitTest(ref collEvent, ref this, ref insideOfs, in ball, dTime);
 		}
 
-		private static float HitTest(ref CollisionEventData collEvent, ref LineSlingshotCollider coll, ref InsideOfs insideOfs, ref BallData ball, float dTime)
+		private static float HitTest(ref CollisionEventData collEvent, ref LineSlingshotCollider coll, ref InsideOfs insideOfs, in BallData ball, float dTime)
 		{
 			ref var lineColl = ref UnsafeUtility.As<LineSlingshotCollider, LineCollider>(ref coll);
-			return LineCollider.HitTestBasic(ref collEvent, ref insideOfs, in lineColl, ref ball, dTime, true, true, true);
+			return LineCollider.HitTestBasic(ref collEvent, ref insideOfs, in lineColl, in ball, dTime, true, true, true);
 		}
 
 		#endregion

@@ -116,20 +116,20 @@ namespace VisualPinballUnity
 									break;
 
 								case ColliderType.Plunger:
-									if (HasComponent<PlungerColliderData>(coll.ItemId) &&
-									    HasComponent<PlungerStaticData>(coll.ItemId) &&
-									    HasComponent<PlungerMovementData>(coll.ItemId))
-									{
-										var plungerColliderData = GetComponent<PlungerColliderData>(coll.ItemId);
-										var plungerStaticData = GetComponent<PlungerStaticData>(coll.ItemId);
-										var plungerMovementData = GetComponent<PlungerMovementData>(coll.ItemId);
-										// newTime = ((PlungerCollider*)collider)->HitTest(
-										// 	ref newCollEvent, ref insideOfs, ref plungerMovementData,
-										// 	in plungerColliderData, in plungerStaticData, in ballData, collEvent.HitTime
-										// );
-
-										SetComponent(coll.ItemId, plungerMovementData);
-									}
+									// if (HasComponent<PlungerColliderData>(coll.ItemId) &&
+									//     HasComponent<PlungerStaticData>(coll.ItemId) &&
+									//     HasComponent<PlungerMovementData>(coll.ItemId))
+									// {
+									// 	var plungerColliderData = GetComponent<PlungerColliderData>(coll.ItemId);
+									// 	var plungerStaticData = GetComponent<PlungerStaticData>(coll.ItemId);
+									// 	var plungerMovementData = GetComponent<PlungerMovementData>(coll.ItemId);
+									// 	// newTime = ((PlungerCollider*)collider)->HitTest(
+									// 	// 	ref newCollEvent, ref insideOfs, ref plungerMovementData,
+									// 	// 	in plungerColliderData, in plungerStaticData, in ballData, collEvent.HitTime
+									// 	// );
+									//
+									// 	SetComponent(coll.ItemId, plungerMovementData);
+									// }
 									break;
 								case ColliderType.Line:
 								case ColliderType.Line3D:
@@ -138,23 +138,23 @@ namespace VisualPinballUnity
 								case ColliderType.Plane:
 								case ColliderType.Point:
 								case ColliderType.Triangle:
-									// hit target
-									if (coll.Header.ItemType == ItemType.HitTarget) {
-										if (HasComponent<DropTargetAnimationData>(coll.ItemId)) {
-											var dropTargetAnimationData = GetComponent<DropTargetAnimationData>(coll.ItemId);
-											if (dropTargetAnimationData.IsDropped || dropTargetAnimationData.MoveAnimation) {  // QUICKFIX so that DT is not triggered twice
-												saveCollision = false;
-											}
-											else {
-												newTime = Collider.HitTest(ref coll, ref newCollEvent, ref insideOfs, in ballData, collEvent.HitTime);
-											}
-										}
-										if (HasComponent<HitTargetAnimationData>(coll.ItemId)) {
-											newTime = Collider.HitTest(ref coll, ref newCollEvent, ref insideOfs, in ballData, collEvent.HitTime);
-										}
-									}
-									else
-										newTime = Collider.HitTest(ref coll, ref newCollEvent, ref insideOfs, in ballData, collEvent.HitTime);
+									// // hit target
+									// if (coll.Header.ItemType == ItemType.HitTarget) {
+									// 	if (HasComponent<DropTargetAnimationData>(coll.ItemId)) {
+									// 		var dropTargetAnimationData = GetComponent<DropTargetAnimationData>(coll.ItemId);
+									// 		if (dropTargetAnimationData.IsDropped || dropTargetAnimationData.MoveAnimation) {  // QUICKFIX so that DT is not triggered twice
+									// 			saveCollision = false;
+									// 		}
+									// 		else {
+									// 			newTime = Collider.HitTest(ref coll, ref newCollEvent, ref insideOfs, in ballData, collEvent.HitTime);
+									// 		}
+									// 	}
+									// 	if (HasComponent<HitTargetAnimationData>(coll.ItemId)) {
+									// 		newTime = Collider.HitTest(ref coll, ref newCollEvent, ref insideOfs, in ballData, collEvent.HitTime);
+									// 	}
+									// }
+									// else
+									// 	newTime = Collider.HitTest(ref coll, ref newCollEvent, ref insideOfs, in ballData, collEvent.HitTime);
 									break;
 
 								default:

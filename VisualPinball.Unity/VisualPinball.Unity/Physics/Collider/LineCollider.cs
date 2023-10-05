@@ -39,7 +39,7 @@ namespace VisualPinball.Unity
 		public readonly float ZHigh;
 		private float _length;
 
-		private ItemType ItemType => _header.ItemType;
+		internal ItemType ItemType => _header.ItemType;
 		private int ItemId => _header.ItemId;
 
 		public float V1y { set => V1.y = value; }
@@ -92,24 +92,24 @@ namespace VisualPinball.Unity
 		#region Narrowphase
 
 		public static float HitTest(ref CollisionEventData collEvent,
-			ref InsideOfs insideOfs, in LineCollider coll, ref BallData ball, float dTime)
+			ref InsideOfs insideOfs, in LineCollider coll, in BallData ball, float dTime)
 		{
-			return HitTestBasic(ref collEvent, ref insideOfs, in coll, ref ball, dTime, true, true, true); // normal face, lateral, rigid
+			return HitTestBasic(ref collEvent, ref insideOfs, in coll, in ball, dTime, true, true, true); // normal face, lateral, rigid
 		}
 
 		public float HitTest(ref CollisionEventData collEvent,
-			ref InsideOfs insideOfs, ref BallData ball, float dTime)
+			ref InsideOfs insideOfs, in BallData ball, float dTime)
 		{
-			return HitTestBasic(ref collEvent, ref insideOfs, in this, ref ball, dTime, true, true, true); // normal face, lateral, rigid
+			return HitTestBasic(ref collEvent, ref insideOfs, in this, in ball, dTime, true, true, true); // normal face, lateral, rigid
 		}
 
-		public float HitTestBasic(ref CollisionEventData collEvent, ref InsideOfs insideOfs, ref BallData ball, float dTime,
+		public float HitTestBasic(ref CollisionEventData collEvent, ref InsideOfs insideOfs, in BallData ball, float dTime,
 			bool direction, bool lateral, bool rigid)
 		{
-			return HitTestBasic(ref collEvent, ref insideOfs, in this, ref ball, dTime, direction, lateral, rigid);
+			return HitTestBasic(ref collEvent, ref insideOfs, in this, in ball, dTime, direction, lateral, rigid);
 		}
 
-		public static float HitTestBasic(ref CollisionEventData collEvent, ref InsideOfs insideOfs, in LineCollider coll, ref BallData ball, float dTime, bool direction, bool lateral, bool rigid)
+		public static float HitTestBasic(ref CollisionEventData collEvent, ref InsideOfs insideOfs, in LineCollider coll, in BallData ball, float dTime, bool direction, bool lateral, bool rigid)
 		{
 			// ball velocity
 			var ballVx = ball.Velocity.x;
