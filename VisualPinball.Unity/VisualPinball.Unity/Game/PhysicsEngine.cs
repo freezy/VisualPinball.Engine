@@ -49,6 +49,7 @@ namespace VisualPinball.Unity
 		[NonSerialized] private NativeParallelHashMap<int, PlungerState> _plungerStates = new(0, Allocator.Persistent);
 		[NonSerialized] private NativeParallelHashMap<int, SpinnerState> _spinnerStates = new(0, Allocator.Persistent);
 		[NonSerialized] private NativeParallelHashMap<int, SurfaceState> _surfaceStates = new(0, Allocator.Persistent);
+		[NonSerialized] private NativeParallelHashMap<int, TriggerState> _triggerStates = new(0, Allocator.Persistent);
 
 		[NonSerialized] private readonly Dictionary<int, PhysicsBall> _ballLookup = new();
 		[NonSerialized] private readonly Dictionary<int, Transform> _transforms = new();
@@ -77,6 +78,7 @@ namespace VisualPinball.Unity
 				case PlungerComponent c: _plungerStates[itemId] = c.CreateState(); break;
 				case SpinnerComponent c: _spinnerStates[itemId] = c.CreateState(); break;
 				case SurfaceComponent c: _surfaceStates[itemId] = c.CreateState(); break;
+				case TriggerComponent c: _triggerStates[itemId] = c.CreateState(); break;
 			}
 		}
 
@@ -164,13 +166,14 @@ namespace VisualPinball.Unity
 				PlungerStates = _plungerStates,
 				SpinnerStates = _spinnerStates,
 				SurfaceStates = _surfaceStates,
+				TriggerStates = _triggerStates,
 			};
 
 			var env = _physicsEnv[0];
 			var state = new PhysicsState(ref env, ref _octree, ref _colliders, ref events, ref _insideOfs, ref _balls,
 				ref _bumperStates, ref _dropTargetStates, ref _flipperStates, ref _gateStates,
 				ref _hitTargetStates, ref _kickerStates, ref _plungerStates, ref _spinnerStates,
-				ref _surfaceStates);
+				ref _surfaceStates, ref _triggerStates);
 
 			// process input
 			while (_inputActions.Count > 0) {
@@ -270,6 +273,7 @@ namespace VisualPinball.Unity
 		public NativeParallelHashMap<int, PlungerState> PlungerStates;
 		public NativeParallelHashMap<int, SpinnerState> SpinnerStates;
 		public NativeParallelHashMap<int, SurfaceState> SurfaceStates;
+		public NativeParallelHashMap<int, TriggerState> TriggerStates;
 
 		public void Execute()
 		{
@@ -277,7 +281,7 @@ namespace VisualPinball.Unity
 			var state = new PhysicsState(ref env, ref Octree, ref Colliders, ref Events, ref InsideOfs, ref Balls,
 				ref BumperStates, ref DropTargetStates, ref FlipperStates, ref GateStates,
 				ref HitTargetStates, ref KickerStates, ref PlungerStates, ref SpinnerStates,
-				ref SurfaceStates);
+				ref SurfaceStates, ref TriggerStates);
 			var cycle = new PhysicsCycle(Allocator.Temp);
 
 			while (env.CurPhysicsFrameTime < InitialTimeUsec)  // loop here until current (real) time matches the physics (simulated) time

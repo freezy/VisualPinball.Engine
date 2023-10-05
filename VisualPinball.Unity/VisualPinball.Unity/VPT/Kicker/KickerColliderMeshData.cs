@@ -14,24 +14,40 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+using System.Collections.Generic;
+using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
+using VisualPinball.Engine.Math;
 
 namespace VisualPinball.Unity
 {
-	internal struct ColliderMeshData : IComponentData
-	{
-		public BlobAssetReference<KickerMeshVertexBlobAsset> Value;
-	}
-
 	public struct KickerMeshVertexBlobAsset
 	{
-		public BlobArray<KickerMeshVertex> Vertices;
-		public BlobArray<KickerMeshVertex> Normals;
+		public BlobArray<float3> Vertices;
+		public BlobArray<float3> Normals;
 	}
 
-	public struct KickerMeshVertex
+	internal struct ColliderMeshData
 	{
-		public float3 Vertex;
+		public BlobAssetReference<KickerMeshVertexBlobAsset> Value;
+
+		public ColliderMeshData(IList<Vertex3DNoTex2> vertices, float radius, float3 position)
+		{
+			var rad = radius * 0.8f;
+			using var blobBuilder = new BlobBuilder(Allocator.Temp);
+			ref var blobAsset = ref blobBuilder.ConstructRoot<KickerMeshVertexBlobAsset>();
+			var blobVertices = blobBuilder.Allocate(ref blobAsset.Vertices, vertices.Count);
+			var blobNormals = blobBuilder.Allocate(ref blobAsset.Normals, vertices.Count);
+			for (var i = 0; i < vertices.Count; i++) {
+				blobVertices[i] = new float3(
+					vertices[i].X * rad + position.x,
+					vertices[i].Y * rad + position.y,
+					vertices[i].Z * rad + position.z
+				);
+				blobNormals[i] = new float3(vertices[i].Nx, vertices[i].Ny, vertices[i].Nz);
+			}
+			Value = blobBuilder.CreateBlobAssetReference<KickerMeshVertexBlobAsset>(Allocator.Persistent);
+		}
 	}
 }

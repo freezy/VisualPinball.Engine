@@ -21,12 +21,14 @@ namespace VisualPinball.Unity
 		internal readonly int ItemId;
 		internal KickerStaticData Static;
 		internal KickerCollisionData Collision;
+		internal ColliderMeshData CollisionMesh;
 
-		public KickerState(int itemId, KickerStaticData @static, KickerCollisionData collision)
+		public KickerState(int itemId, KickerStaticData @static, KickerCollisionData collision, ColliderMeshData collisionMesh)
 		{
 			ItemId = itemId;
 			Static = @static;
 			Collision = collision;
+			CollisionMesh = collisionMesh;
 		}
 	}
 }
