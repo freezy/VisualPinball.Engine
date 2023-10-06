@@ -107,7 +107,7 @@ namespace VisualPinball.Unity
 			// create octree
 			var elapsedMs = sw.Elapsed.TotalMilliseconds;
 			var playfieldBounds = GetComponentInChildren<PlayfieldComponent>().Bounds;
-			_octree = new NativeOctree<int>(playfieldBounds, 32, 10, Allocator.Persistent);
+			_octree = new NativeOctree<int>(playfieldBounds, 1024, 10, Allocator.Persistent);
 
 			sw.Restart();
 			var populateJob = new PopulatePhysicsJob {
