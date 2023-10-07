@@ -30,15 +30,15 @@ namespace VisualPinball.Unity
 			_component = component;
 		}
 
-		internal void GenerateColliders(float height, List<ICollider> colliders)
+		internal void GenerateColliders(float height, ref ColliderReference colliders)
 		{
 			colliders.Add(new SpinnerCollider(_component, height - _component.Height, _api.GetColliderInfo()));
 			if (_component.ShowBracket) {
-				GenerateBracketColliders(height, colliders);
+				GenerateBracketColliders(height, ref colliders);
 			}
 		}
 
-		private void GenerateBracketColliders(float height, ICollection<ICollider> colliders)
+		private void GenerateBracketColliders(float height, ref ColliderReference colliders)
 		{
 			const float h = 30.0f;
 

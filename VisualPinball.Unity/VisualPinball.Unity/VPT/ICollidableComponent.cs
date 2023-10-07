@@ -20,6 +20,6 @@ namespace VisualPinball.Unity
 {
 	public interface ICollidableComponent
 	{
-		internal void GetColliders(Player player, List<ICollider> colliders, float margin);
+		internal void GetColliders(Player player, ref ColliderReference colliders, float margin);
 	}
 }

@@ -31,7 +31,7 @@ namespace VisualPinball.Unity
 
 		#region Collider Generation
 
-		protected override void CreateColliders(List<ICollider> colliders, float margin)
+		protected override void CreateColliders(ref ColliderReference colliders, float margin)
 		{
 			var info = ((IApiColliderGenerator)this).GetColliderInfo();
 			var planeColliderInfo = new ColliderInfo {
@@ -54,7 +54,7 @@ namespace VisualPinball.Unity
 			if (meshComp && !meshComp.AutoGenerate) {
 				var mf = GameObject.GetComponent<MeshFilter>();
 				if (mf && mf.sharedMesh) {
-					ColliderUtils.GenerateCollidersFromMesh(mf.sharedMesh.ToVpMesh().TransformToVpx(), info, colliders);
+					ColliderUtils.GenerateCollidersFromMesh(mf.sharedMesh.ToVpMesh().TransformToVpx(), info, ref colliders);
 					
 				} else {
 					Debug.LogWarning($"Could not find mesh filter on playfield {GameObject.name}");

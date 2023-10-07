@@ -31,7 +31,7 @@ namespace VisualPinball.Unity
 			_meshGenerator = meshGenerator;
 		}
 
-		internal void GenerateColliders(float playfieldHeight, float hitHeight, float bendradius, int detailLevel, List<ICollider> colliders, float margin)
+		internal void GenerateColliders(float playfieldHeight, float hitHeight, float bendradius, int detailLevel, ref ColliderReference colliders, float margin)
 		{
 			var mesh = _meshGenerator.GetTransformedMesh(playfieldHeight, hitHeight, detailLevel, bendradius, 6, true, margin); //!! adapt hacky code in the function if changing the "6" here
 			var addedEdges = EdgeSet.Get();
@@ -45,9 +45,9 @@ namespace VisualPinball.Unity
 
 				colliders.Add(new TriangleCollider(rg0, rg1, rg2, _api.GetColliderInfo()));
 
-				GenerateHitEdge(mesh, addedEdges, mesh.Indices[i], mesh.Indices[i + 2], colliders);
-				GenerateHitEdge(mesh, addedEdges, mesh.Indices[i + 2], mesh.Indices[i + 1], colliders);
-				GenerateHitEdge(mesh, addedEdges, mesh.Indices[i + 1], mesh.Indices[i], colliders);
+				GenerateHitEdge(mesh, addedEdges, mesh.Indices[i], mesh.Indices[i + 2], ref colliders);
+				GenerateHitEdge(mesh, addedEdges, mesh.Indices[i + 2], mesh.Indices[i + 1], ref colliders);
+				GenerateHitEdge(mesh, addedEdges, mesh.Indices[i + 1], mesh.Indices[i], ref colliders);
 			}
 
 			// add collision vertices
@@ -57,7 +57,7 @@ namespace VisualPinball.Unity
 		}
 
 		private void GenerateHitEdge(Mesh mesh, EdgeSet addedEdges, int i, int j,
-			ICollection<ICollider> colliders)
+			ref ColliderReference colliders)
 		{
 			if (addedEdges.ShouldAddHitEdge(i, j)) {
 				var v1 = mesh.Vertices[i].ToUnityFloat3();

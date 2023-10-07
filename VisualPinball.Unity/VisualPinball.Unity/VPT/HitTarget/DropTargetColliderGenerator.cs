@@ -28,7 +28,7 @@ namespace VisualPinball.Unity
 		{
 		}
 
-		internal void GenerateColliders(float playfieldHeight, ICollection<ICollider> colliders)
+		internal void GenerateColliders(float playfieldHeight, ref ColliderReference colliders)
 		{
 			var localToPlayfield = MeshGenerator.GetTransformationMatrix();
 

@@ -35,7 +35,7 @@ namespace VisualPinball.Unity
 			_collData = collData;
 		}
 
-		internal void GenerateColliders(float height, List<ICollider> colliders) // var height = table.GetSurfaceHeight(_data.Surface, _data.Center.X, _data.Center.Y);
+		internal void GenerateColliders(float height, ref ColliderReference colliders) // var height = table.GetSurfaceHeight(_data.Surface, _data.Center.X, _data.Center.Y);
 		{
 			var angleMin = math.min(_collData.AngleMin, _collData.AngleMax); // correct angle inversions
 			var angleMax = math.max(_collData.AngleMin, _collData.AngleMax);
@@ -47,14 +47,14 @@ namespace VisualPinball.Unity
 			var radAngle = math.radians(_data.Rotation);
 			var tangent = new float2(math.cos(radAngle), math.sin(radAngle));
 
-			GenerateGateCollider(colliders, height, radAngle);
-			GenerateLineCollider(colliders, height, tangent);
+			GenerateGateCollider(ref colliders, height, radAngle);
+			GenerateLineCollider(ref colliders, height, tangent);
 			if (_data.ShowBracket) {
-				GenerateBracketColliders(colliders, height, tangent);
+				GenerateBracketColliders(ref colliders, height, tangent);
 			}
 		}
 
-		private void GenerateGateCollider(ICollection<ICollider> colliders, float height, float radAngle)
+		private void GenerateGateCollider(ref ColliderReference colliders, float height, float radAngle)
 		{
 			var halfLength = _data.Length * 0.5f;
 			var sn = math.sin(radAngle);
@@ -74,7 +74,7 @@ namespace VisualPinball.Unity
 			colliders.Add(new GateCollider(in lineSeg0, in lineSeg1, _api.GetColliderInfo()));
 		}
 
-		private void GenerateLineCollider(ICollection<ICollider> colliders, float height, float2 tangent)
+		private void GenerateLineCollider(ref ColliderReference colliders, float height, float2 tangent)
 		{
 			if (_collData.TwoWay) {
 				return;
@@ -90,7 +90,7 @@ namespace VisualPinball.Unity
 			colliders.Add(new LineCollider(rgv0, rgv1, height, height + 2.0f * PhysicsConstants.PhysSkin, info)); //!! = ball diameter
 		}
 
-		private void GenerateBracketColliders(ICollection<ICollider> colliders, float height, float2 tangent)
+		private void GenerateBracketColliders(ref ColliderReference colliders, float height, float2 tangent)
 		{
 			var center = new float2(_data.PosX, _data.PosY);
 			var halfLength = _data.Length * 0.5f;

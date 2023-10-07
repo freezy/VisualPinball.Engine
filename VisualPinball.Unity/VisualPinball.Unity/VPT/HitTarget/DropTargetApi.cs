@@ -105,10 +105,10 @@ namespace VisualPinball.Unity
 		protected override bool FireHitEvents => true;
 		protected override float HitThreshold => ColliderComponent.Threshold;
 
-		protected override void CreateColliders(List<ICollider> colliders, float margin)
+		protected override void CreateColliders(ref ColliderReference colliders, float margin)
 		{
 			var colliderGenerator = new DropTargetColliderGenerator(this, MainComponent, MainComponent);
-			colliderGenerator.GenerateColliders(MainComponent.PlayfieldHeight, colliders);
+			colliderGenerator.GenerateColliders(MainComponent.PlayfieldHeight, ref colliders);
 		}
 
 		#endregion

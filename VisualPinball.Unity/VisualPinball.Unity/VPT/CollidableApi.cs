@@ -64,14 +64,14 @@ namespace VisualPinball.Unity
 		protected virtual bool FireHitEvents => false;
 		protected virtual float HitThreshold => 0;
 
-		protected abstract void CreateColliders(List<ICollider> colliders, float margin);
+		protected abstract void CreateColliders(ref ColliderReference colliders, float margin);
 
-		void IApiColliderGenerator.CreateColliders(List<ICollider> colliders, float margin)
+		void IApiColliderGenerator.CreateColliders(ref ColliderReference colliders, float margin)
 		{
 			if (!ColliderComponent) {
 				return;
 			}
-			CreateColliders(colliders, margin);
+			CreateColliders(ref colliders, margin);
 		}
 
 		ColliderInfo IApiColliderGenerator.GetColliderInfo() => GetColliderInfo(MainComponent.ItemType);
