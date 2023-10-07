@@ -16,11 +16,11 @@
 
 using Unity.Collections;
 using Unity.Entities;
-using Unity.Mathematics;
 using Unity.Profiling;
-using VisualPinball.Engine.VPT;
+using UnityEngine;
 using VisualPinball.Unity;
 using VisualPinball.Unity.VisualPinball.Unity.Game;
+using Collider = VisualPinball.Unity.Collider;
 
 namespace VisualPinballUnity
 {
@@ -46,7 +46,7 @@ namespace VisualPinballUnity
 			var collData = EntityManager.GetComponentData<ColliderData>(collEntity);
 			var contacts = _simulateCycleSystemGroup.Contacts;
 			var hitTime = _simulateCycleSystemGroup.HitTime;
-			var random = new Random((uint)UnityEngine.Random.Range(1, 100000));
+			var random = new Unity.Mathematics.Random((uint)Random.Range(1, 100000));
 			var marker = PerfMarker;
 
 			Entities

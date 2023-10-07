@@ -80,6 +80,15 @@ namespace VisualPinball.Unity
 			return null;
 		}
 
+		public UnityEngine.Mesh GetUnityMesh()
+		{
+			var mf = GetComponent<MeshFilter>();
+			if (mf && mf.sharedMesh) {
+				return mf.sharedMesh;
+			}
+			return null;
+		}
+
 		public virtual void OnPlayfieldHeightUpdated() => UpdateTransforms();
 
 		public virtual void UpdateTransforms()

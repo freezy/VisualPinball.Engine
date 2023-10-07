@@ -45,7 +45,7 @@ namespace VisualPinball.Unity
 
 		protected override void CreateColliders(List<ICollider> colliders, float margin)
 		{
-			var colliderGenerator = new PrimitiveColliderGenerator(this, MainComponent);
+			var colliderGenerator = new PrimitiveColliderGenerator(this, MainComponent, MainComponent);
 			colliderGenerator.GenerateColliders(ColliderComponent.CollisionReductionFactor, colliders);
 		}
 
