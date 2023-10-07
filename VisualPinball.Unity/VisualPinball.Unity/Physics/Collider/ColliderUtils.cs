@@ -15,14 +15,19 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using System.Collections.Generic;
+using Unity.Collections;
 using Unity.Mathematics;
+using Unity.Profiling;
+using UnityEngine;
 using VisualPinball.Engine.Math;
-using VisualPinball.Engine.VPT;
+using Mesh = VisualPinball.Engine.VPT.Mesh;
 
 namespace VisualPinball.Unity
 {
 	public static class ColliderUtils
 	{
+		private static readonly ProfilerMarker PerfMarker1 = new("ColliderUtils.GenerateCollidersFromMesh");
+
 		public static void Generate3DPolyColliders(in float3[] rgv, ColliderInfo info, ICollection<ICollider> colliders)
 		{
 			var inputVerts = new float2[rgv.Length];
@@ -46,6 +51,7 @@ namespace VisualPinball.Unity
 
 		public static void GenerateCollidersFromMesh(Mesh mesh, ColliderInfo info, ICollection<ICollider> colliders, bool onlyTriangles = false)
 		{
+			PerfMarker1.Begin();
 			var addedEdges = EdgeSet.Get();
 
 			// add collision triangles and edges
@@ -82,6 +88,48 @@ namespace VisualPinball.Unity
 					colliders.Add(new PointCollider(vertex.ToUnityFloat3(), info));
 				}
 			}
+			PerfMarker1.End();
+		}
+
+		public static void GenerateCollidersFromMesh(in NativeArray<Vector3> vertices, in NativeArray<int> indices, ref Matrix4x4 matrix, ColliderInfo info, ICollection<ICollider> colliders, bool onlyTriangles = false)
+		{
+			PerfMarker1.Begin();
+			var addedEdges = EdgeSet.Get();
+
+			// add collision triangles and edges
+			for (var i = 0; i < indices.Length; i += 3) {
+				var i0 = indices[i];
+				var i1 = indices[i + 1];
+				var i2 = indices[i + 2];
+
+				// NB: HitTriangle wants CCW vertices, but for rendering we have them in CW order
+				var rgv0 = matrix.MultiplyPoint(vertices[i0]);
+				var rgv1 = matrix.MultiplyPoint(vertices[i1]);
+				var rgv2 = matrix.MultiplyPoint(vertices[i2]);
+
+				colliders.Add(new TriangleCollider(rgv0, rgv2, rgv1, info));
+
+				if (!onlyTriangles) {
+
+					if (addedEdges.ShouldAddHitEdge(i0, i1)) {
+						colliders.Add(new Line3DCollider(rgv0, rgv2, info));
+					}
+					if (addedEdges.ShouldAddHitEdge(i1, i2)) {
+						colliders.Add(new Line3DCollider(rgv2, rgv1, info));
+					}
+					if (addedEdges.ShouldAddHitEdge(i2, i0)) {
+						colliders.Add(new Line3DCollider(rgv1, rgv0, info));
+					}
+				}
+			}
+
+			// add collision vertices
+			if (!onlyTriangles) {
+				foreach (var vertex in vertices) {
+					colliders.Add(new PointCollider(matrix.MultiplyPoint(vertex), info));
+				}
+			}
+			PerfMarker1.End();
 		}
 	}
 }

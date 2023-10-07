@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using System;
+using Unity.Collections;
 using UnityEngine;
 using UnityEngine.Rendering;
 using VisualPinball.Engine.Math;
@@ -28,19 +29,21 @@ namespace VisualPinball.Unity
 
 		public static Mesh ToVpMesh(this UnityEngine.Mesh unityMesh)
 		{
+			using var meshDataArray = UnityEngine.Mesh.AcquireReadOnlyMeshData(unityMesh);
+			var meshData = meshDataArray[0];
 			var vpMesh = new Mesh(unityMesh.name) {
-				Vertices = new Vertex3DNoTex2[unityMesh.vertexCount]
+				Vertices = new Vertex3DNoTex2[meshData.vertexCount]
 			};
-			var unityVertices = unityMesh.vertices;
-			var unityNormals = unityMesh.normals;
+			var unityVertices = new NativeArray<Vector3>(meshData.vertexCount, Allocator.TempJob);
+			var unityNormals = new NativeArray<Vector3>(meshData.vertexCount, Allocator.TempJob);
+			meshData.GetVertices(unityVertices);
+			meshData.GetNormals(unityNormals);
 
 			for (var i = 0; i < vpMesh.Vertices.Length; i++) {
-				var unityVertex = unityVertices[i];
-				var unityNormal = unityNormals[i];
 				var unityUv = unityMesh.uv[i];
 				vpMesh.Vertices[i] = new Vertex3DNoTex2(
-					unityVertex.x, unityVertex.y, unityVertex.z,
-					unityNormal.x, unityNormal.y, unityNormal.z,
+					unityVertices[i].x, unityVertices[i].y, unityVertices[i].z,
+					unityNormals[i].x, unityNormals[i].y, unityNormals[i].z,
 					unityUv.x, -unityUv.y );
 			}
 			vpMesh.Indices = unityMesh.triangles;
@@ -62,16 +65,17 @@ namespace VisualPinball.Unity
 
 					var frameData = new Mesh.VertData[unityMesh.vertexCount];
 					for (var j = 0; j < unityMesh.vertexCount; j++) {
-						var vertex = deltaVertices[j] + unityVertices[j];
-						var normal = deltaNormals[j] + unityNormals[j];
 						frameData[j] = new Mesh.VertData(
-							vertex.x, vertex.y, vertex.z,
-							normal.x, normal.y, normal.z);
+							deltaVertices[j].x + unityVertices[j].x, deltaVertices[j].y + unityVertices[j].y, deltaVertices[j].z + unityVertices[j].z,
+							deltaNormals[j].x + unityNormals[j].x, deltaNormals[j].y + unityNormals[j].y, deltaNormals[j].z + unityNormals[j].z);
 					}
 
 					vpMesh.AnimationFrames.Add(frameData);
 				}
 			}
+
+			unityVertices.Dispose();
+			unityNormals.Dispose();
 
 			return vpMesh;
 		}
@@ -152,4 +156,3 @@ namespace VisualPinball.Unity
 		}
 	}
 }
-
