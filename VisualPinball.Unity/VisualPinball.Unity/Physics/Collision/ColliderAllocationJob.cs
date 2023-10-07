@@ -15,7 +15,6 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using System;
-using System.Collections.Generic;
 using Unity.Burst;
 using Unity.Collections;
 using Unity.Entities;
@@ -59,43 +58,25 @@ namespace VisualPinball.Unity
 		/// </summary>
 		public NativeArray<BlobAssetReference<ColliderBlob>> BlobAsset;
 
-		public ColliderAllocationJob(IEnumerable<ICollider> colliderList) : this()
+		public ColliderAllocationJob(ref ColliderReference colliderList) : this()
 		{
 			var perfMarker = new ProfilerMarker("ColliderAllocationJob.ctr");
 			perfMarker.Begin();
 
-			_circleColliders = new NativeList<CircleCollider>(Allocator.TempJob);
-			_flipperColliders = new NativeList<FlipperCollider>(Allocator.TempJob);
-			_gateColliders = new NativeList<GateCollider>(Allocator.TempJob);
-			_line3DColliders = new NativeList<Line3DCollider>(Allocator.TempJob);
-			_lineSlingshotColliders = new NativeList<LineSlingshotCollider>(Allocator.TempJob);
-			_lineColliders = new NativeList<LineCollider>(Allocator.TempJob);
-			_lineZColliders = new NativeList<LineZCollider>(Allocator.TempJob);
-			_plungerColliders = new NativeList<PlungerCollider>(Allocator.TempJob);
-			_pointColliders = new NativeList<PointCollider>(Allocator.TempJob);
-			_spinnerColliders = new NativeList<SpinnerCollider>(Allocator.TempJob);
-			_triangleColliders = new NativeList<TriangleCollider>(Allocator.TempJob);
-			_planeColliders = new NativeList<PlaneCollider>(Allocator.TempJob);
+			_circleColliders = colliderList.CircleColliders;
+			_flipperColliders = colliderList.FlipperColliders;
+			_gateColliders = colliderList.GateColliders;
+			_line3DColliders = colliderList.Line3DColliders;
+			_lineSlingshotColliders = colliderList.LineSlingshotColliders;
+			_lineColliders = colliderList.LineColliders;
+			_lineZColliders = colliderList.LineZColliders;
+			_plungerColliders = colliderList.PlungerColliders;
+			_pointColliders = colliderList.PointColliders;
+			_spinnerColliders = colliderList.SpinnerColliders;
+			_triangleColliders = colliderList.TriangleColliders;
+			_planeColliders = colliderList.PlaneColliders;
 
 			BlobAsset = new NativeArray<BlobAssetReference<ColliderBlob>>(1, Allocator.Persistent);
-
-			// separate created colliders per type
-			foreach (var collider in colliderList) {
-				switch (collider) {
-					case CircleCollider circleCollider: _circleColliders.Add(circleCollider); break;
-					case FlipperCollider flipperCollider: _flipperColliders.Add(flipperCollider); break;
-					case GateCollider gateCollider: _gateColliders.Add(gateCollider); break;
-					case LineCollider lineCollider: _lineColliders.Add(lineCollider); break;
-					case Line3DCollider line3DCollider: _line3DColliders.Add(line3DCollider); break;
-					case LineSlingshotCollider lineSlingshotCollider: _lineSlingshotColliders.Add(lineSlingshotCollider); break;
-					case LineZCollider lineZCollider: _lineZColliders.Add(lineZCollider); break;
-					case PlaneCollider planeCollider: _planeColliders.Add(planeCollider); break;
-					case PlungerCollider plungerCollider: _plungerColliders.Add(plungerCollider); break;
-					case PointCollider pointCollider: _pointColliders.Add(pointCollider); break;
-					case SpinnerCollider spinnerCollider: _spinnerColliders.Add(spinnerCollider); break;
-					case TriangleCollider triangleCollider: _triangleColliders.Add(triangleCollider); break;
-				}
-			}
 
 			perfMarker.End();
 		}

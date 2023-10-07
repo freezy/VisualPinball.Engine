@@ -26,7 +26,7 @@ namespace VisualPinball.Unity
 		{
 		}
 
-		internal void GenerateColliders(List<ICollider> colliders)
+		internal void GenerateColliders(ref ColliderReference colliders)
 		{
 			var localToPlayfield = MeshGenerator.GetTransformationMatrix();
 			var hitMesh = MeshGenerator.GetMesh();
@@ -34,7 +34,7 @@ namespace VisualPinball.Unity
 				hitMesh.Vertices[i].MultiplyMatrix(localToPlayfield);
 			}
 			var addedEdges = EdgeSet.Get();
-			GenerateCollidables(hitMesh, addedEdges, true, colliders);
+			GenerateCollidables(hitMesh, addedEdges, true, ref colliders);
 		}
 	}
 }

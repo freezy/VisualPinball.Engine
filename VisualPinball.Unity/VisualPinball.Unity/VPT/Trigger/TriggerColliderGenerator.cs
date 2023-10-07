@@ -39,24 +39,24 @@ namespace VisualPinball.Unity
 			_colliderComponent = colliderComponent;
 		}
 
-		internal void GenerateColliders(List<ICollider> colliders)
+		internal void GenerateColliders(ref ColliderReference colliders)
 		{
 			if (IsRound) {
-				GenerateRoundHitObjects(colliders);
+				GenerateRoundHitObjects(ref colliders);
 
 			} else {
-				GenerateCurvedHitObjects(colliders);
+				GenerateCurvedHitObjects(ref colliders);
 			}
 		}
 
-		private void GenerateRoundHitObjects(ICollection<ICollider> colliders)
+		private void GenerateRoundHitObjects(ref ColliderReference colliders)
 		{
 			var height = _component.PositionZ;
 			colliders.Add(new CircleCollider(_component.Center, _colliderComponent.HitCircleRadius, height, height + _colliderComponent.HitHeight,
 				_api.GetColliderInfo(), ColliderType.TriggerCircle));
 		}
 
-		private void GenerateCurvedHitObjects(ICollection<ICollider> colliders)
+		private void GenerateCurvedHitObjects(ref ColliderReference colliders)
 		{
 			var height = _component.PositionZ;
 			var vVertex = DragPoint.GetRgVertex<RenderVertex2D, CatmullCurve2DCatmullCurveFactory>(_component.DragPoints);
@@ -69,16 +69,16 @@ namespace VisualPinball.Unity
 				rgv[i] = vVertex[i];
 				rgv3D[i] = new float3(rgv[i].X, rgv[i].Y, height + (float)(PhysicsConstants.PhysSkin * 2.0));
 			}
-			ColliderUtils.Generate3DPolyColliders(rgv3D, _api.GetColliderInfo(), colliders);
+			ColliderUtils.Generate3DPolyColliders(rgv3D, _api.GetColliderInfo(), ref colliders);
 
 			for (var i = 0; i < count; i++) {
 				var pv2 = rgv[i < count - 1 ? i + 1 : 0];
 				var pv3 = rgv[i < count - 2 ? i + 2 : i + 2 - count];
-				AddLineSeg(pv2.ToUnityFloat2(), pv3.ToUnityFloat2(), height, colliders);
+				AddLineSeg(pv2.ToUnityFloat2(), pv3.ToUnityFloat2(), height, ref colliders);
 			}
 		}
 
-		private void AddLineSeg(float2 pv1, float2 pv2, float height, ICollection<ICollider> colliders) {
+		private void AddLineSeg(float2 pv1, float2 pv2, float height, ref ColliderReference colliders) {
 			colliders.Add(new LineCollider(pv1, pv2, height, height + math.max(_colliderComponent.HitHeight - 8.0f, 0f),
 				_api.GetColliderInfo(), ColliderType.TriggerLine));
 		}

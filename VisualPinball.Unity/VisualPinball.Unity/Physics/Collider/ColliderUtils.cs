@@ -28,7 +28,7 @@ namespace VisualPinball.Unity
 	{
 		private static readonly ProfilerMarker PerfMarker1 = new("ColliderUtils.GenerateCollidersFromMesh");
 
-		public static void Generate3DPolyColliders(in float3[] rgv, ColliderInfo info, ICollection<ICollider> colliders)
+		public static void Generate3DPolyColliders(in float3[] rgv, ColliderInfo info, ref ColliderReference colliders)
 		{
 			var inputVerts = new float2[rgv.Length];
 
@@ -46,10 +46,10 @@ namespace VisualPinball.Unity
 			}
 			var mesh = new Mesh(triangulatedVerts, outputIndices);
 
-			GenerateCollidersFromMesh(mesh, info, colliders, true);
+			GenerateCollidersFromMesh(mesh, info, ref colliders, true);
 		}
 
-		public static void GenerateCollidersFromMesh(Mesh mesh, ColliderInfo info, ICollection<ICollider> colliders, bool onlyTriangles = false)
+		public static void GenerateCollidersFromMesh(Mesh mesh, ColliderInfo info, ref ColliderReference colliders, bool onlyTriangles = false)
 		{
 			PerfMarker1.Begin();
 			var addedEdges = EdgeSet.Get();
@@ -91,7 +91,7 @@ namespace VisualPinball.Unity
 			PerfMarker1.End();
 		}
 
-		public static void GenerateCollidersFromMesh(in NativeArray<Vector3> vertices, in NativeArray<int> indices, ref Matrix4x4 matrix, ColliderInfo info, ICollection<ICollider> colliders, bool onlyTriangles = false)
+		public static void GenerateCollidersFromMesh(in NativeArray<Vector3> vertices, in NativeArray<int> indices, ref Matrix4x4 matrix, ColliderInfo info, ref ColliderReference colliders, bool onlyTriangles = false)
 		{
 			PerfMarker1.Begin();
 			var addedEdges = EdgeSet.Get();

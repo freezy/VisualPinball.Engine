@@ -95,14 +95,13 @@ namespace VisualPinball.Unity
 			var sw = Stopwatch.StartNew();
 			var colliderItems = GetComponentsInChildren<ICollidableComponent>();
 			Debug.Log($"Found {colliderItems.Length} collidable items.");
-			var managedColliders = new List<ICollider>();
+			var colliders = new ColliderReference(Allocator.TempJob);
 			foreach (var colliderItem in colliderItems) {
-				// todo bring GC allocations down
-				colliderItem.GetColliders(player, managedColliders, 0);
+				colliderItem.GetColliders(player, ref colliders, 0);
 			}
 
 			// allocate colliders
-			_colliders = AllocateColliders(managedColliders);
+			_colliders = AllocateColliders(ref colliders);
 
 			// create octree
 			var elapsedMs = sw.Elapsed.TotalMilliseconds;
@@ -131,9 +130,9 @@ namespace VisualPinball.Unity
 			_physicsEnv[0] = env;
 		}
 
-		private static BlobAssetReference<ColliderBlob> AllocateColliders(IEnumerable<ICollider> managedColliders)
+		private static BlobAssetReference<ColliderBlob> AllocateColliders(ref ColliderReference managedColliders)
 		{
-			var allocateColliderJob = new ColliderAllocationJob(managedColliders);
+			var allocateColliderJob = new ColliderAllocationJob(ref managedColliders);
 			allocateColliderJob.Run();
 			var colliders = allocateColliderJob.BlobAsset[0];
 			allocateColliderJob.Dispose();

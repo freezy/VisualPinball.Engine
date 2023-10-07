@@ -51,7 +51,7 @@ namespace VisualPinball.Unity
 			_primitiveComponent = primitiveComponent;
 		}
 
-		internal void GenerateColliders(float collisionReductionFactor, List<ICollider> colliders)
+		internal void GenerateColliders(float collisionReductionFactor, ref ColliderReference colliders)
 		{
 			PerfMarker1.Begin();
 			//var mesh = _meshGenerator.GetMesh();
@@ -92,7 +92,7 @@ namespace VisualPinball.Unity
 
 			PerfMarker3.Begin();
 			var worldToVpx = _meshGenerator.GetTransformationMatrix().TransformToVpx().ToUnityMatrix();
-			ColliderUtils.GenerateCollidersFromMesh(in unityVertices, in unityIndices, ref worldToVpx, _api.GetColliderInfo(), colliders);
+			ColliderUtils.GenerateCollidersFromMesh(in unityVertices, in unityIndices, ref worldToVpx, _api.GetColliderInfo(), ref colliders);
 			PerfMarker3.End();
 			PerfMarker1.End();
 

@@ -40,57 +40,58 @@ namespace VisualPinball.Unity
 		{
 			PerfMarkerTotal.Begin();
 
-			var player = Object.FindObjectOfType<Player>();
-			var playfieldComponent = player.GetComponentInChildren<PlayfieldComponent>();
-			var itemApis = player.ColliderGenerators.ToArray();
-
-			// 1. generate colliders
-			PerfMarkerGenerateColliders.Begin();
-			var colliderList = new List<ICollider>();
-			//var (playfieldCollider, glassCollider) = player.PlayfieldApi.CreateColliders(0);
-			itemsColliding = new NativeHashMap<Entity, bool>(itemApis.Length, Allocator.Persistent);
-			foreach (var itemApi in itemApis) {
-				// fixme job
-				// PerfMarkerCreateColliders.Begin();
-				// if (itemApi.ColliderEntity != Entity.Null) {
-				// 	itemsColliding.Add(itemApi.ColliderEntity, itemApi.IsColliderEnabled);
-				// }
-				// itemApi.CreateColliders(colliderList, 0);
-				// PerfMarkerCreateColliders.End();
-			}
-			PerfMarkerGenerateColliders.End();
-
-			// 2. allocate created colliders
-			PerfMarkerCreateBlobAsset.Begin();
-			var allocateColliderJob = new ColliderAllocationJob(colliderList/*, playfieldCollider, glassCollider*/);
-			allocateColliderJob.Run();
-
-			// retrieve result and dispose
-			var colliderBlobAssetRef = allocateColliderJob.BlobAsset[0];
-			allocateColliderJob.Dispose();
-			PerfMarkerCreateBlobAsset.End();
-
-			// 3. Create quadtree blob (BlobAssetReference<QuadTreeBlob>) from AABBs
-			PerfMarkerCreateQuadTree.Begin();
-			BlobAssetReference<QuadTreeBlob> quadTreeBlobAssetRef;
-			using (var builder = new BlobBuilder(Allocator.Temp)) {
-				ref var rootQuadTree = ref builder.ConstructRoot<QuadTreeBlob>();
-				QuadTree.Create(builder, ref colliderBlobAssetRef.Value.Colliders, ref rootQuadTree.QuadTree,
-					playfieldComponent.BoundingBox.ToAabb());
-
-				quadTreeBlobAssetRef = builder.CreateBlobAssetReference<QuadTreeBlob>(Allocator.Persistent);
-			}
-			PerfMarkerCreateQuadTree.End();
-
-			// save it to entity
-			PerfMarkerSaveToEntity.Begin();
-			//Debug.Log(quadTreeBlobAssetRef.Value.QuadTree.ToString(0));
-			var collEntity = entityManager.CreateEntity(ComponentType.ReadOnly<QuadTreeData>(), ComponentType.ReadOnly<ColliderData>());
-			entityManager.SetComponentData(collEntity, new QuadTreeData { Value = quadTreeBlobAssetRef });
-			entityManager.SetComponentData(collEntity, new ColliderData { Value = colliderBlobAssetRef });
-			PerfMarkerSaveToEntity.End();
-
-			Logger.Info("Static QuadTree initialized.");
+			// var player = Object.FindObjectOfType<Player>();
+			// var playfieldComponent = player.GetComponentInChildren<PlayfieldComponent>();
+			// var itemApis = player.ColliderGenerators.ToArray();
+			//
+			// // 1. generate colliders
+			// PerfMarkerGenerateColliders.Begin();
+			// var colliderList = new List<ICollider>();
+			// //var (playfieldCollider, glassCollider) = player.PlayfieldApi.CreateColliders(0);
+			// itemsColliding = new NativeHashMap<Entity, bool>(itemApis.Length, Allocator.Persistent);
+			itemsColliding = new NativeHashMap<Entity, bool>(0, Allocator.Persistent);
+			// foreach (var itemApi in itemApis) {
+			// 	// fixme job
+			// 	// PerfMarkerCreateColliders.Begin();
+			// 	// if (itemApi.ColliderEntity != Entity.Null) {
+			// 	// 	itemsColliding.Add(itemApi.ColliderEntity, itemApi.IsColliderEnabled);
+			// 	// }
+			// 	// itemApi.CreateColliders(colliderList, 0);
+			// 	// PerfMarkerCreateColliders.End();
+			// }
+			// PerfMarkerGenerateColliders.End();
+			//
+			// // 2. allocate created colliders
+			// PerfMarkerCreateBlobAsset.Begin();
+			// var allocateColliderJob = new ColliderAllocationJob(colliderList/*, playfieldCollider, glassCollider*/);
+			// allocateColliderJob.Run();
+			//
+			// // retrieve result and dispose
+			// var colliderBlobAssetRef = allocateColliderJob.BlobAsset[0];
+			// allocateColliderJob.Dispose();
+			// PerfMarkerCreateBlobAsset.End();
+			//
+			// // 3. Create quadtree blob (BlobAssetReference<QuadTreeBlob>) from AABBs
+			// PerfMarkerCreateQuadTree.Begin();
+			// BlobAssetReference<QuadTreeBlob> quadTreeBlobAssetRef;
+			// using (var builder = new BlobBuilder(Allocator.Temp)) {
+			// 	ref var rootQuadTree = ref builder.ConstructRoot<QuadTreeBlob>();
+			// 	QuadTree.Create(builder, ref colliderBlobAssetRef.Value.Colliders, ref rootQuadTree.QuadTree,
+			// 		playfieldComponent.BoundingBox.ToAabb());
+			//
+			// 	quadTreeBlobAssetRef = builder.CreateBlobAssetReference<QuadTreeBlob>(Allocator.Persistent);
+			// }
+			// PerfMarkerCreateQuadTree.End();
+			//
+			// // save it to entity
+			// PerfMarkerSaveToEntity.Begin();
+			// //Debug.Log(quadTreeBlobAssetRef.Value.QuadTree.ToString(0));
+			// var collEntity = entityManager.CreateEntity(ComponentType.ReadOnly<QuadTreeData>(), ComponentType.ReadOnly<ColliderData>());
+			// entityManager.SetComponentData(collEntity, new QuadTreeData { Value = quadTreeBlobAssetRef });
+			// entityManager.SetComponentData(collEntity, new ColliderData { Value = colliderBlobAssetRef });
+			// PerfMarkerSaveToEntity.End();
+			//
+			// Logger.Info("Static QuadTree initialized.");
 
 			PerfMarkerTotal.End();
 		}
