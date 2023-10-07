@@ -17,8 +17,7 @@
 using NativeTrees;
 using Unity.Collections;
 using Unity.Entities;
-using UnityEngine;
-using VisualPinball.Engine.VPT.Surface;
+using VisualPinball.Engine.VPT;
 using VisualPinball.Unity.Collections;
 
 namespace VisualPinball.Unity
@@ -69,6 +68,8 @@ namespace VisualPinball.Unity
 		}
 
 		internal Collider GetCollider(int colliderId) => Colliders.Value.Colliders[colliderId].Value;
+
+		#region States
 
 		internal ref FlipperState GetFlipperState(int colliderId)
 		{
@@ -141,5 +142,87 @@ namespace VisualPinball.Unity
 			var collider = Colliders.Value.Colliders[colliderId].Value;
 			return ref SurfaceStates.GetValueByRef(collider.ItemId);
 		}
+
+		#endregion
+
+		#region Hit Test
+
+		internal float HitTest(int colliderId, ref BallData ball, ref CollisionEventData collEvent, ref NativeList<ContactBufferElement> contacts, ref PhysicsState state)
+		{
+			if (IsInactiveDropTarget(colliderId)) {
+				return -1f;
+			}
+			switch (Colliders.GetType(colliderId)) {
+				case ColliderType.Bumper:
+				case ColliderType.Circle:
+					return Colliders.GetCircleCollider(colliderId).HitTest(ref collEvent, ref state.InsideOfs, in ball,
+						ball.CollisionEvent.HitTime);
+
+				case ColliderType.Gate:
+					return Colliders.GetGateCollider(colliderId).HitTest(ref collEvent, ref state.InsideOfs, in ball,
+						ball.CollisionEvent.HitTime);
+
+				case ColliderType.Line:
+					return Colliders.GetLineCollider(colliderId).HitTest(ref collEvent, ref state.InsideOfs, in ball,
+						ball.CollisionEvent.HitTime);
+
+				case ColliderType.LineZ:
+					return Colliders.GetLineZCollider(colliderId).HitTest(ref collEvent, in ball, ball.CollisionEvent.HitTime);
+
+				case ColliderType.Line3D:
+					return Colliders.GetLine3DCollider(colliderId).HitTest(ref collEvent, in ball, ball.CollisionEvent.HitTime);
+
+				case ColliderType.LineSlingShot:
+					return Colliders.GetLineSlingshotCollider(colliderId).HitTest(ref collEvent, ref state.InsideOfs, in ball, ball.CollisionEvent.HitTime);
+
+				case ColliderType.Point:
+					return Colliders.GetPointCollider(colliderId).HitTest(ref collEvent, in ball, ball.CollisionEvent.HitTime);
+
+				case ColliderType.Plane:
+					return Colliders.GetPlaneCollider(colliderId).HitTest(ref collEvent, in ball, ball.CollisionEvent.HitTime);
+
+				case ColliderType.Spinner:
+					return Colliders.GetSpinnerCollider(colliderId).HitTest(ref collEvent, ref state.InsideOfs, in ball,
+						ball.CollisionEvent.HitTime);
+
+				case ColliderType.Triangle:
+					return Colliders.GetTriangleCollider(colliderId).HitTest(ref collEvent, in state.InsideOfs, in ball,
+						ball.CollisionEvent.HitTime);
+
+				case ColliderType.KickerCircle:
+				case ColliderType.TriggerCircle:
+					return Colliders.GetCircleCollider(colliderId).HitTestBasicRadius(ref collEvent, ref state.InsideOfs, in ball,
+						ball.CollisionEvent.HitTime, false, false, false);
+
+				case ColliderType.TriggerLine:
+					return Colliders.GetLineCollider(colliderId).HitTestBasic(ref collEvent, ref state.InsideOfs, in ball,
+						ball.CollisionEvent.HitTime, false, false, false);
+
+				case ColliderType.Flipper:
+					ref var flipperState = ref state.GetFlipperState(colliderId);
+					return Colliders.GetFlipperCollider(colliderId).HitTest(ref collEvent, ref state.InsideOfs, ref flipperState.Hit,
+						in flipperState.Movement, in flipperState.Tricks, in flipperState.Static, in ball, collEvent.HitTime);
+
+				case ColliderType.Plunger:
+					ref var plungerState = ref state.GetPlungerState(colliderId);
+					return Colliders.GetPlungerCollider(colliderId).HitTest(ref collEvent, ref state.InsideOfs, ref plungerState.Movement,
+						in plungerState.Collider, in plungerState.Static, in ball, collEvent.HitTime);
+			}
+			return -1f;
+		}
+
+		private bool IsInactiveDropTarget(int colliderId)
+		{
+			ref var coll = ref Colliders.Value.Colliders[colliderId].Value;
+			if (coll.ItemType == ItemType.HitTarget && HasDropTargetState(colliderId)) {
+				ref var dropTargetState = ref GetDropTargetState(colliderId);
+				if (dropTargetState.Animation.IsDropped || dropTargetState.Animation.MoveAnimation) {  // QUICKFIX so that DT is not triggered twice
+					return true;
+				}
+			}
+			return false;
+		}
+
+		#endregion
 	}
 }

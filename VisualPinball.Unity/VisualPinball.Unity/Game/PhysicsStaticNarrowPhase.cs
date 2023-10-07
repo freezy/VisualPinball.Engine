@@ -35,10 +35,9 @@ namespace VisualPinball.Unity
 
 			for (var i = 0; i < overlappingColliders.Length; i++) {
 				var newCollEvent = new CollisionEventData();
-				var colliderRef = new ColliderRef(overlappingColliders[i], ref state.Colliders);
-				var newTime = colliderRef.HitTest(ref ball, ref newCollEvent, ref contacts, ref state);
-					SaveCollisions(ref ball, ref newCollEvent, ref contacts, colliderRef.Id, newTime);
-				}
+				var newTime = state.HitTest(overlappingColliders[i], ref ball, ref newCollEvent, ref contacts, ref state);
+				SaveCollisions(ref ball, ref newCollEvent, ref contacts, overlappingColliders[i], newTime);
+			}
 
 			// no negative time allowed
 			if (ball.CollisionEvent.HitTime < 0) {
