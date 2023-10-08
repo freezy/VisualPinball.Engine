@@ -235,6 +235,15 @@ namespace VisualPinball.Unity
 				}
 			}
 
+			// triggers
+			using (var enumerator = _triggerStates.GetEnumerator()) {
+				while (enumerator.MoveNext()) {
+					ref var triggerState = ref enumerator.Current.Value;
+					var triggerTransform = _transforms[triggerState.AnimatedItemId];
+					TriggerTransform.Update(triggerState.AnimatedItemId, in triggerState.Movement, triggerTransform);
+				}
+			}
+
 			#endregion
 		}
 		
