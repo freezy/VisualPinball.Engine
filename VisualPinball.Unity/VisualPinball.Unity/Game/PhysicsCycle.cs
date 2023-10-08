@@ -87,17 +87,26 @@ namespace VisualPinball.Unity
 				#region Displacement
 				PerfMarkerDisplacement.Begin();
 
-				// displacement
+				// balls
 				using (var enumerator = state.Balls.GetEnumerator()) {
 					while (enumerator.MoveNext()) {
 						BallDisplacementPhysics.UpdateDisplacements(ref enumerator.Current.Value, hitTime); // use static method instead of member
 					}
 				}
-
+				// flippers
 				using (var enumerator = state.FlipperStates.GetEnumerator()) {
 					while (enumerator.MoveNext()) {
 						ref var flipperState = ref enumerator.Current.Value;
-						FlipperDisplacementPhysics.UpdateDisplacement(flipperState.ItemId, ref flipperState.Movement, ref flipperState.Tricks, in flipperState.Static, hitTime, ref state.EventQueue);
+						FlipperDisplacementPhysics.UpdateDisplacement(flipperState.ItemId, ref flipperState.Movement,
+							ref flipperState.Tricks, in flipperState.Static, hitTime, ref state.EventQueue);
+					}
+				}
+				// gates
+				using (var enumerator = state.GateStates.GetEnumerator()) {
+					while (enumerator.MoveNext()) {
+						ref var gateState = ref enumerator.Current.Value;
+						GateDisplacementPhysics.UpdateDisplacement(gateState.ItemId, ref gateState.Movement, in gateState.Static,
+							hitTime, ref state.EventQueue);
 					}
 				}
 
