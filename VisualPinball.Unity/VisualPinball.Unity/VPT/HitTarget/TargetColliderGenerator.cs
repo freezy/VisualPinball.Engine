@@ -33,7 +33,7 @@ namespace VisualPinball.Unity
 			MeshGenerator = meshGenerator;
 		}
 
-		private protected void GenerateCollidables(Mesh hitMesh, EdgeSet addedEdges, bool setHitObject, ref ColliderReference colliders)  {
+		private protected void GenerateCollidables(Mesh hitMesh, ref EdgeSet addedEdges, bool setHitObject, ref ColliderReference colliders)  {
 
 			// add the normal drop target as collidable but without hit event
 			for (var i = 0; i < hitMesh.Indices.Length; i += 3) {

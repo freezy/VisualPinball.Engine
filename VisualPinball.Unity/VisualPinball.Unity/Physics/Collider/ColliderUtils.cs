@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-using System.Collections.Generic;
 using Unity.Collections;
 using Unity.Mathematics;
 using Unity.Profiling;
@@ -26,7 +25,8 @@ namespace VisualPinball.Unity
 {
 	public static class ColliderUtils
 	{
-		private static readonly ProfilerMarker PerfMarker1 = new("ColliderUtils.GenerateCollidersFromMesh");
+		private static readonly ProfilerMarker PerfMarker1 = new("ColliderUtils.GenerateCollidersFromMesh.ICollider");
+		private static readonly ProfilerMarker PerfMarker2 = new("ColliderUtils.GenerateCollidersFromMesh.NativeArray");
 
 		public static void Generate3DPolyColliders(in float3[] rgv, ColliderInfo info, ref ColliderReference colliders)
 		{
@@ -52,7 +52,7 @@ namespace VisualPinball.Unity
 		public static void GenerateCollidersFromMesh(Mesh mesh, ColliderInfo info, ref ColliderReference colliders, bool onlyTriangles = false)
 		{
 			PerfMarker1.Begin();
-			var addedEdges = EdgeSet.Get();
+			var addedEdges = EdgeSet.Get(Allocator.TempJob);
 
 			// add collision triangles and edges
 			for (var i = 0; i < mesh.Indices.Length; i += 3) {
@@ -81,6 +81,7 @@ namespace VisualPinball.Unity
 					}
 				}
 			}
+			addedEdges.Dispose();
 
 			// add collision vertices
 			if (!onlyTriangles) {
@@ -93,8 +94,8 @@ namespace VisualPinball.Unity
 
 		public static void GenerateCollidersFromMesh(in NativeArray<Vector3> vertices, in NativeArray<int> indices, ref Matrix4x4 matrix, ColliderInfo info, ref ColliderReference colliders, bool onlyTriangles = false)
 		{
-			PerfMarker1.Begin();
-			var addedEdges = EdgeSet.Get();
+			PerfMarker2.Begin();
+			var addedEdges = EdgeSet.Get(Allocator.TempJob);
 
 			// add collision triangles and edges
 			for (var i = 0; i < indices.Length; i += 3) {
@@ -129,7 +130,9 @@ namespace VisualPinball.Unity
 					colliders.Add(new PointCollider(matrix.MultiplyPoint(vertex), info));
 				}
 			}
-			PerfMarker1.End();
+
+			addedEdges.Dispose();
+			PerfMarker2.End();
 		}
 	}
 }

@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using System.Collections.Generic;
+using Unity.Collections;
 using Unity.Mathematics;
 using VisualPinball.Engine.Math;
 using VisualPinball.Engine.VPT;
@@ -43,7 +44,7 @@ namespace VisualPinball.Unity
 			
 			GenerateCollidables(hitMesh, addedEdges, Data.IsLegacy, colliders);
 			*/
-			var addedEdges = EdgeSet.Get();
+			var addedEdges = EdgeSet.Get(Allocator.TempJob);
 
 			var tempMatrix = new Matrix3D().RotateZMatrix(MathF.DegToRad(Data.RotZ));
 			var fullMatrix = new Matrix3D().Multiply(tempMatrix);
@@ -108,6 +109,8 @@ namespace VisualPinball.Unity
 					colliders.Add(new PointCollider(rgv3D[i].ToUnityFloat3(), GetColliderInfo(true)));
 				}
 			}
+
+			addedEdges.Dispose();
 		}
 
 		private static readonly float3[] DropTargetHitPlaneVertices = {
