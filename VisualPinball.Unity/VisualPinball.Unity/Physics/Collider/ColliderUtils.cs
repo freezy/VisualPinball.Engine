@@ -95,7 +95,7 @@ namespace VisualPinball.Unity
 		public static void GenerateCollidersFromMesh(in NativeArray<Vector3> vertices, in NativeArray<int> indices, ref Matrix4x4 matrix, ColliderInfo info, ref ColliderReference colliders, bool onlyTriangles = false)
 		{
 			PerfMarker2.Begin();
-			var addedEdges = EdgeSet.Get(Allocator.TempJob);
+			var addedEdges = EdgeSet.Get(Allocator.TempJob, vertices.Length);
 
 			// add collision triangles and edges
 			for (var i = 0; i < indices.Length; i += 3) {
