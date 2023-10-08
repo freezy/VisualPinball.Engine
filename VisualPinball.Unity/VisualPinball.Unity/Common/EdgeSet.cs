@@ -24,14 +24,14 @@ namespace VisualPinball.Unity
 	{
 		private NativeParallelHashSet<long> _edges;
 
-		internal static EdgeSet Get(Allocator allocator)
+		internal static EdgeSet Get(Allocator allocator, int capacity = 1024)
 		{
-			return new EdgeSet(allocator);
+			return new EdgeSet(allocator, capacity);
 		}
 
-		private EdgeSet(Allocator allocator)
+		private EdgeSet(Allocator allocator, int capacity)
 		{
-			_edges = new NativeParallelHashSet<long>(64, allocator);
+			_edges = new NativeParallelHashSet<long>(capacity, allocator);
 		}
 
 		private void Add(int i, int j) {
