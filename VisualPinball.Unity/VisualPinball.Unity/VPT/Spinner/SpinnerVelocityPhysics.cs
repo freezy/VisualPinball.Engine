@@ -23,27 +23,13 @@ using VisualPinball.Unity.VisualPinball.Unity.Game;
 
 namespace VisualPinballUnity
 {
-	[UpdateInGroup(typeof(UpdateVelocitiesSystemGroup))]
-	internal partial class SpinnerVelocitySystem : SystemBaseStub
+	internal partial class SpinnerVelocityPhysics
 	{
-		private static readonly ProfilerMarker PerfMarker = new ProfilerMarker("SpinnerVelocitySystem");
-
-		protected override void OnUpdate()
+		internal static void UpdateVelocities(ref SpinnerMovementData movementData, in SpinnerStaticData data)
 		{
-			var marker = PerfMarker;
-			Entities
-				.WithName("SpinnerVelocityJob")
-				.ForEach((ref SpinnerMovementData movementData, in SpinnerStaticData data) => {
-
-				marker.Begin();
-
-				// Center of gravity towards bottom of object, makes it stop vertical
-				movementData.AngleSpeed -= math.sin(movementData.Angle) * (float)(0.0025 * PhysicsConstants.PhysFactor);
-				movementData.AngleSpeed *= data.Damping;
-
-				marker.End();
-
-			}).Run();
+			// Center of gravity towards bottom of object, makes it stop vertical
+			movementData.AngleSpeed -= math.sin(movementData.Angle) * (float)(0.0025 * PhysicsConstants.PhysFactor);
+			movementData.AngleSpeed *= data.Damping;
 		}
 	}
 }

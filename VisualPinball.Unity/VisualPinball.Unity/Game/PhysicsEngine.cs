@@ -304,17 +304,33 @@ namespace VisualPinball.Unity
 				var timeMsec = (uint)((env.CurPhysicsFrameTime - env.StartTimeUsec) / 1000);
 				var physicsDiffTime = (float)((env.NextPhysicsFrameTime - env.CurPhysicsFrameTime) * (1.0 / PhysicsConstants.DefaultStepTime));
 
+				// update velocities - always on integral physics frame boundary (spinner, gate, flipper, plunger, ball)
 				#region Update Velocities
 
-				// update velocities - always on integral physics frame boundary (spinner, gate, flipper, plunger, ball)
+				// balls
 				using (var enumerator = state.Balls.GetEnumerator()) {
 					while (enumerator.MoveNext()) {
 						BallVelocityPhysics.UpdateVelocities(ref enumerator.Current.Value, env.Gravity);
 					}
 				}
+				// flippers
 				using (var enumerator = FlipperStates.GetEnumerator()) {
 					while (enumerator.MoveNext()) {
 						FlipperVelocityPhysics.UpdateVelocities(ref enumerator.Current.Value);
+					}
+				}
+				// gates
+				using (var enumerator = GateStates.GetEnumerator()) {
+					while (enumerator.MoveNext()) {
+						ref var gateState = ref enumerator.Current.Value;
+						GateVelocityPhysics.UpdateVelocities(ref gateState.Movement, in gateState.Static);
+					}
+				}
+				// spinners
+				using (var enumerator = SpinnerStates.GetEnumerator()) {
+					while (enumerator.MoveNext()) {
+						ref var spinnerState = ref enumerator.Current.Value;
+						SpinnerVelocityPhysics.UpdateVelocities(ref spinnerState.Movement, in spinnerState.Static);
 					}
 				}
 
