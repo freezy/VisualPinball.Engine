@@ -226,6 +226,15 @@ namespace VisualPinball.Unity
 				}
 			}
 
+			// spinners
+			using (var enumerator = _spinnerStates.GetEnumerator()) {
+				while (enumerator.MoveNext()) {
+					ref var spinnerState = ref enumerator.Current.Value;
+					var spinnerTransform = _transforms[spinnerState.AnimationItemId];
+					spinnerTransform.localRotation = quaternion.RotateX(-spinnerState.Movement.Angle);
+				}
+			}
+
 			#endregion
 		}
 		
