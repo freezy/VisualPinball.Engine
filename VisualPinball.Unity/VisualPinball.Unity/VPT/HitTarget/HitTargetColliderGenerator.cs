@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using System.Collections.Generic;
+using Unity.Collections;
 using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.HitTarget;
 
@@ -33,8 +34,9 @@ namespace VisualPinball.Unity
 			for (var i = 0; i < hitMesh.Vertices.Length; i++) {
 				hitMesh.Vertices[i].MultiplyMatrix(localToPlayfield);
 			}
-			var addedEdges = EdgeSet.Get();
-			GenerateCollidables(hitMesh, addedEdges, true, ref colliders);
+			var addedEdges = EdgeSet.Get(Allocator.TempJob);
+			GenerateCollidables(hitMesh, ref addedEdges, true, ref colliders);
+			addedEdges.Dispose();
 		}
 	}
 }

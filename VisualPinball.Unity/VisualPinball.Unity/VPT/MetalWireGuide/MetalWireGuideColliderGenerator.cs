@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using System.Collections.Generic;
+using Unity.Collections;
 using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.MetalWireGuide;
 
@@ -34,7 +35,7 @@ namespace VisualPinball.Unity
 		internal void GenerateColliders(float playfieldHeight, float hitHeight, float bendradius, int detailLevel, ref ColliderReference colliders, float margin)
 		{
 			var mesh = _meshGenerator.GetTransformedMesh(playfieldHeight, hitHeight, detailLevel, bendradius, 6, true, margin); //!! adapt hacky code in the function if changing the "6" here
-			var addedEdges = EdgeSet.Get();
+			var addedEdges = EdgeSet.Get(Allocator.TempJob);
 
 			// add collision triangles and edges
 			for (var i = 0; i < mesh.Indices.Length; i += 3) {
@@ -45,18 +46,20 @@ namespace VisualPinball.Unity
 
 				colliders.Add(new TriangleCollider(rg0, rg1, rg2, _api.GetColliderInfo()));
 
-				GenerateHitEdge(mesh, addedEdges, mesh.Indices[i], mesh.Indices[i + 2], ref colliders);
-				GenerateHitEdge(mesh, addedEdges, mesh.Indices[i + 2], mesh.Indices[i + 1], ref colliders);
-				GenerateHitEdge(mesh, addedEdges, mesh.Indices[i + 1], mesh.Indices[i], ref colliders);
+				GenerateHitEdge(mesh, ref addedEdges, mesh.Indices[i], mesh.Indices[i + 2], ref colliders);
+				GenerateHitEdge(mesh, ref addedEdges, mesh.Indices[i + 2], mesh.Indices[i + 1], ref colliders);
+				GenerateHitEdge(mesh, ref addedEdges, mesh.Indices[i + 1], mesh.Indices[i], ref colliders);
 			}
 
 			// add collision vertices
 			foreach (var mv in mesh.Vertices) {
 				colliders.Add(new PointCollider(mv.ToUnityFloat3(), _api.GetColliderInfo()));
 			}
+
+			addedEdges.Dispose();
 		}
 
-		private void GenerateHitEdge(Mesh mesh, EdgeSet addedEdges, int i, int j,
+		private void GenerateHitEdge(Mesh mesh, ref EdgeSet addedEdges, int i, int j,
 			ref ColliderReference colliders)
 		{
 			if (addedEdges.ShouldAddHitEdge(i, j)) {

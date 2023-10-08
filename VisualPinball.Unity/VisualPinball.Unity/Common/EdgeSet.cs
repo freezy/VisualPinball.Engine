@@ -14,22 +14,24 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-using System.Collections.Generic;
+using System;
+using Unity.Collections;
+using Unity.Mathematics;
 
 namespace VisualPinball.Unity
 {
-	internal class EdgeSet
+	internal struct EdgeSet : IDisposable
 	{
-		private readonly HashSet<long> _edges;
+		private NativeParallelHashSet<long> _edges;
 
-		internal static EdgeSet Get()
+		internal static EdgeSet Get(Allocator allocator)
 		{
-			return new EdgeSet();
+			return new EdgeSet(allocator);
 		}
 
-		private EdgeSet()
+		private EdgeSet(Allocator allocator)
 		{
-			_edges = new HashSet<long>();
+			_edges = new NativeParallelHashSet<long>(64, allocator);
 		}
 
 		private void Add(int i, int j) {
@@ -48,9 +50,11 @@ namespace VisualPinball.Unity
 			return false;
 		}
 
-		private static long GetKey(int i, int j)
+		private static long GetKey(int i, int j) => ((long) math.min(i, j) << 32) + math.max(i, j);
+
+		public void Dispose()
 		{
-			return ((long) System.Math.Min(i, j) << 32) + System.Math.Max(i, j);
+			_edges.Dispose();
 		}
 	}
 }
