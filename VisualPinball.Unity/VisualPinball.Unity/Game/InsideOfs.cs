@@ -1,5 +1,6 @@
 ﻿using System;
 using Unity.Collections;
+using VisualPinball.Unity.Collections;
 
 namespace VisualPinball.Unity
 {
@@ -19,8 +20,9 @@ namespace VisualPinball.Unity
 			if (!_insideOfs.ContainsKey(itemId)) {
 				_insideOfs.Add(itemId, new BitField64());
 			}
-			
-			_insideOfs[itemId].SetBits(GetBitIndex(ballId), true);
+
+			ref var bits = ref _insideOfs.GetValueByRef(itemId);
+			bits.SetBits(GetBitIndex(ballId), true);
 		}
 		
 		internal void SetOutsideOf(int itemId, int ballId)
@@ -28,8 +30,9 @@ namespace VisualPinball.Unity
 			if (!_insideOfs.ContainsKey(itemId)) {
 				return;
 			}
-			
-			_insideOfs[itemId].SetBits(GetBitIndex(ballId), false);
+
+			ref var bits = ref _insideOfs.GetValueByRef(itemId);
+			bits.SetBits(GetBitIndex(ballId), false);
 			ClearBitIndex(ballId);
 			ClearItems(itemId);
 		}
