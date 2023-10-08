@@ -109,6 +109,14 @@ namespace VisualPinball.Unity
 							hitTime, ref state.EventQueue);
 					}
 				}
+				// spinners
+				using (var enumerator = state.SpinnerStates.GetEnumerator()) {
+					while (enumerator.MoveNext()) {
+						ref var spinnerState = ref enumerator.Current.Value;
+						SpinnerDisplacementPhysics.UpdateDisplacement(spinnerState.ItemId, ref spinnerState.Movement, in spinnerState.Static,
+							hitTime, ref state.EventQueue);
+					}
+				}
 
 				PerfMarkerDisplacement.End();
 				#endregion
