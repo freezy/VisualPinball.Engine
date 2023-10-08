@@ -1,5 +1,4 @@
-﻿// Visual Pinball Engine
-// Copyright (C) 2023 freezy and VPE Team
+﻿// Copyright (C) 2023 freezy and VPE Team
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -25,7 +24,6 @@ using Unity.Jobs;
 using Unity.Mathematics;
 using UnityEngine;
 using VisualPinball.Engine.Common;
-using VisualPinball.Unity.Collections;
 using VisualPinballUnity;
 using Debug = UnityEngine.Debug;
 
@@ -57,6 +55,8 @@ namespace VisualPinball.Unity
 
 		[NonSerialized] private readonly Queue<InputAction> _inputActions = new();
 
+		[NonSerialized] private Player _player;
+
 		private static ulong NowUsec => (ulong)(Time.timeAsDouble * 1000000);
 
 		internal void Register<T>(T item) where T : MonoBehaviour
@@ -84,10 +84,13 @@ namespace VisualPinball.Unity
 			_inputActions.Enqueue(action);
 		}
 
+		private void Awake()
+		{
+			_player = GetComponent<Player>();
+		}
+
 		private void Start()
 		{
-			var player = GetComponent<Player>();
-			
 			// init state
 			var env = new PhysicsEnv(NowUsec, GetComponent<Player>());
 			_insideOfs = new InsideOfs(Allocator.Persistent);
@@ -98,7 +101,7 @@ namespace VisualPinball.Unity
 			Debug.Log($"Found {colliderItems.Length} collidable items.");
 			var colliders = new ColliderReference(Allocator.TempJob);
 			foreach (var colliderItem in colliderItems) {
-				colliderItem.GetColliders(player, ref colliders, 0);
+				colliderItem.GetColliders(_player, ref colliders, 0);
 			}
 
 			// allocate colliders
@@ -146,7 +149,7 @@ namespace VisualPinball.Unity
 			var events = _eventQueue.AsParallelWriter();
 			var updatePhysics = new UpdatePhysicsJob {
 				InitialTimeUsec = NowUsec,
-				DeltaTime = Time.deltaTime * 1000,
+				DeltaTimeMs = Time.deltaTime * 1000,
 				PhysicsEnv = _physicsEnv,
 				Octree = _octree,
 				Colliders = _colliders,
@@ -179,6 +182,11 @@ namespace VisualPinball.Unity
 
 			// run physics loop
 			updatePhysics.Run();
+
+			// dequeue events
+			while (_eventQueue.TryDequeue(out var eventData)) {
+				_player.OnEvent(in eventData);
+			}
 
 			// retrieve updated data
 			_balls = updatePhysics.Balls;
@@ -278,8 +286,7 @@ namespace VisualPinball.Unity
 		[ReadOnly] 
 		public ulong InitialTimeUsec;
 
-		[ReadOnly]
-		public float DeltaTime;
+		public float DeltaTimeMs;
 
 		public NativeArray<PhysicsEnv> PhysicsEnv;
 		public NativeOctree<int> Octree;
@@ -355,11 +362,19 @@ namespace VisualPinball.Unity
 					while (enumerator.MoveNext()) {
 						ref var bumperState = ref enumerator.Current.Value;
 						if (bumperState.RingItemId != 0) {
-							BumperRingAnimation.Update(ref bumperState.RingAnimation, DeltaTime);
+							BumperRingAnimation.Update(ref bumperState.RingAnimation, DeltaTimeMs);
 						}
 						if (bumperState.SkirtItemId != 0) {
-							BumperSkirtAnimation.Update(ref bumperState.SkirtAnimation, DeltaTime);
+							BumperSkirtAnimation.Update(ref bumperState.SkirtAnimation, DeltaTimeMs);
 						}
+					}
+				}
+
+				// trigger
+				using (var enumerator = TriggerStates.GetEnumerator()) {
+					while (enumerator.MoveNext()) {
+						ref var triggerState = ref enumerator.Current.Value;
+						TriggerAnimation.Update(ref triggerState.Animation, ref triggerState.Movement, in triggerState.Static, DeltaTimeMs);
 					}
 				}
 

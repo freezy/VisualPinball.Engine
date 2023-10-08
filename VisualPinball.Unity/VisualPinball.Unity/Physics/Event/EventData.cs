@@ -65,5 +65,7 @@ namespace VisualPinball.Unity
 			FloatParam = floatParam;
 			GroupEvent = groupEvent;
 		}
+
+		public override string ToString() => $"Event {eventId} for item {ItemId} by ball {BallId} ({FloatParam})";
 	}
 }

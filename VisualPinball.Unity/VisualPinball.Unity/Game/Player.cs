@@ -454,49 +454,51 @@ namespace VisualPinball.Unity
 
 		public void OnEvent(in EventData eventData)
 		{
-			switch (eventData.eventId) {
-				case EventId.HitEventsHit:
-					if (!_hittables.ContainsKey(eventData.ItemId)) {
-						Debug.LogError($"Cannot find entity {eventData.ItemId} in hittables.");
-					}
-					_hittables[eventData.ItemId].OnHit(eventData.BallId);
-					break;
-
-				case EventId.HitEventsUnhit:
-					_hittables[eventData.ItemId].OnHit(eventData.BallId, true);
-					break;
-
-				case EventId.LimitEventsBos:
-					_rotatables[eventData.ItemId].OnRotate(eventData.FloatParam, false);
-					break;
-
-				case EventId.LimitEventsEos:
-					_rotatables[eventData.ItemId].OnRotate(eventData.FloatParam, true);
-					break;
-
-				case EventId.SpinnerEventsSpin:
-					_spinnables[eventData.ItemId].OnSpin();
-					break;
-
-				case EventId.FlipperEventsCollide:
-					_collidables[eventData.ItemId].OnCollide(eventData.BallId, eventData.FloatParam);
-					break;
-
-				case EventId.SurfaceEventsSlingshot:
-					_slingshots[eventData.ItemId].OnSlingshot(eventData.BallId);
-					break;
-
-				case EventId.TargetEventsDropped:
-					_droppables[eventData.ItemId].OnDropStatusChanged(true, eventData.BallId);
-					break;
-
-				case EventId.TargetEventsRaised:
-					_droppables[eventData.ItemId].OnDropStatusChanged(false, eventData.BallId);
-					break;
-
-				default:
-					throw new InvalidOperationException($"Unknown event {eventData.eventId} for entity {eventData.ItemId}");
-			}
+			Debug.Log(eventData);
+			// todo re-enable
+			// switch (eventData.eventId) {
+			// 	case EventId.HitEventsHit:
+			// 		if (!_hittables.ContainsKey(eventData.ItemId)) {
+			// 			Debug.LogError($"Cannot find item {eventData.ItemId} in hittables.");
+			// 		}
+			// 		_hittables[eventData.ItemId].OnHit(eventData.BallId);
+			// 		break;
+			//
+			// 	case EventId.HitEventsUnhit:
+			// 		_hittables[eventData.ItemId].OnHit(eventData.BallId, true);
+			// 		break;
+			//
+			// 	case EventId.LimitEventsBos:
+			// 		_rotatables[eventData.ItemId].OnRotate(eventData.FloatParam, false);
+			// 		break;
+			//
+			// 	case EventId.LimitEventsEos:
+			// 		_rotatables[eventData.ItemId].OnRotate(eventData.FloatParam, true);
+			// 		break;
+			//
+			// 	case EventId.SpinnerEventsSpin:
+			// 		_spinnables[eventData.ItemId].OnSpin();
+			// 		break;
+			//
+			// 	case EventId.FlipperEventsCollide:
+			// 		_collidables[eventData.ItemId].OnCollide(eventData.BallId, eventData.FloatParam);
+			// 		break;
+			//
+			// 	case EventId.SurfaceEventsSlingshot:
+			// 		_slingshots[eventData.ItemId].OnSlingshot(eventData.BallId);
+			// 		break;
+			//
+			// 	case EventId.TargetEventsDropped:
+			// 		_droppables[eventData.ItemId].OnDropStatusChanged(true, eventData.BallId);
+			// 		break;
+			//
+			// 	case EventId.TargetEventsRaised:
+			// 		_droppables[eventData.ItemId].OnDropStatusChanged(false, eventData.BallId);
+			// 		break;
+			//
+			// 	default:
+			// 		throw new InvalidOperationException($"Unknown event {eventData.eventId} for entity {eventData.ItemId}");
+			// }
 		}
 
 		internal void BallCreated(Entity ballEntity, GameObject ball)
