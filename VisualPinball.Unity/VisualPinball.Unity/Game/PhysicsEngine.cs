@@ -25,6 +25,7 @@ using Unity.Jobs;
 using Unity.Mathematics;
 using UnityEngine;
 using VisualPinball.Engine.Common;
+using VisualPinball.Unity.Collections;
 using VisualPinballUnity;
 using Debug = UnityEngine.Debug;
 
@@ -197,8 +198,9 @@ namespace VisualPinball.Unity
 			// flippers
 			using (var enumerator = _flipperStates.GetEnumerator()) {
 				while (enumerator.MoveNext()) {
+					ref var flipperState = ref enumerator.Current.Value;
 					var flipperTransform = _transforms[enumerator.Current.Key];
-					flipperTransform.localRotation = quaternion.Euler(0, _flipperStates[enumerator.Current.Key].Movement.Angle, 0);
+					flipperTransform.localRotation = quaternion.Euler(0, flipperState.Movement.Angle, 0);
 				}
 			}
 
@@ -212,6 +214,15 @@ namespace VisualPinball.Unity
 					if (bumperState.RingItemId != 0) {
 						BumperTransform.UpdateRing(bumperState.RingItemId, in bumperState.RingAnimation, _transforms[bumperState.RingItemId]);
 					}
+				}
+			}
+
+			// gates
+			using (var enumerator = _gateStates.GetEnumerator()) {
+				while (enumerator.MoveNext()) {
+					ref var gateState = ref enumerator.Current.Value;
+					var gateTransform = _transforms[gateState.WireItemId];
+					gateTransform.localRotation = quaternion.RotateX(-gateState.Movement.Angle);
 				}
 			}
 

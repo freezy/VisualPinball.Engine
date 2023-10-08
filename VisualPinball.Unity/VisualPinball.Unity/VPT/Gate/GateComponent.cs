@@ -290,10 +290,11 @@ namespace VisualPinball.Unity
 					AngleMin = math.radians(collComponent._angleMin),
 					AngleMax = math.radians(collComponent._angleMax),
 					Height = Position.z,
-					Damping = math.pow(collComponent.Damping, (float)PhysicsConstants.PhysFactor),
+					Damping = math.pow(math.clamp(collComponent.Damping, 0, 1), (float)PhysicsConstants.PhysFactor),
 					GravityFactor = collComponent.GravityFactor,
 					TwoWay = collComponent.TwoWay,
 				} : default;
+			Debug.Log($"Damping = {staticData.Damping}");
 
 			var wireComponent = GetComponentInChildren<GateWireAnimationComponent>();
 			var movementData = collComponent && wireComponent
