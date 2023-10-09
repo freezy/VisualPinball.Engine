@@ -23,7 +23,6 @@ using VisualPinball.Unity.VisualPinball.Unity.Game;
 
 namespace VisualPinballUnity
 {
-	[UpdateBefore(typeof(TransformMeshesSystemGroup))]
 	internal partial class SimulateBuildSystem : SystemBaseStub
 	{
 		private float4x4 _baseTransform;

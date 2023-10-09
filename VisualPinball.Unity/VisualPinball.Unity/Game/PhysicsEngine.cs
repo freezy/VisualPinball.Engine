@@ -229,6 +229,34 @@ namespace VisualPinball.Unity
 				}
 			}
 
+			// drop targets
+			using (var enumerator = _dropTargetStates.GetEnumerator()) {
+				while (enumerator.MoveNext()) {
+					ref var dropTargetState = ref enumerator.Current.Value;
+					var dropTargetTransform = _transforms[dropTargetState.AnimatedItemId];
+					var localPos = dropTargetTransform.localPosition;
+					dropTargetTransform.localPosition = new Vector3(
+						localPos.x,
+						Physics.ScaleToWorld(dropTargetState.Animation.ZOffset),
+						localPos.z
+					);
+				}
+			}
+
+			// hit targets
+			using (var enumerator = _hitTargetStates.GetEnumerator()) {
+				while (enumerator.MoveNext()) {
+					ref var hitTargetState = ref enumerator.Current.Value;
+					var hitTargetTransform = _transforms[hitTargetState.AnimatedItemId];
+					var localRot = hitTargetTransform.localEulerAngles;
+					hitTargetTransform.localEulerAngles = new Vector3(
+						hitTargetState.Animation.XRotation,
+						localRot.y,
+						localRot.z
+					);
+				}
+			}
+
 			// gates
 			using (var enumerator = _gateStates.GetEnumerator()) {
 				while (enumerator.MoveNext()) {
@@ -395,6 +423,22 @@ namespace VisualPinball.Unity
 						if (bumperState.SkirtItemId != 0) {
 							BumperSkirtAnimation.Update(ref bumperState.SkirtAnimation, DeltaTimeMs);
 						}
+					}
+				}
+
+				// drop target
+				using (var enumerator = DropTargetStates.GetEnumerator()) {
+					while (enumerator.MoveNext()) {
+						ref var dropTargetState = ref enumerator.Current.Value;
+						DropTargetAnimation.Update(enumerator.Current.Key, ref dropTargetState.Animation, in dropTargetState.Static, ref state, timeMsec);
+					}
+				}
+
+				// hit target
+				using (var enumerator = HitTargetStates.GetEnumerator()) {
+					while (enumerator.MoveNext()) {
+						ref var hitTargetState = ref enumerator.Current.Value;
+						HitTargetAnimation.Update(ref hitTargetState.Animation, in hitTargetState.Static, timeMsec);
 					}
 				}
 
