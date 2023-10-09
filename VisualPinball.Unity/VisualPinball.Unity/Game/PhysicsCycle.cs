@@ -155,9 +155,14 @@ namespace VisualPinball.Unity
 				// clear contacts
 				_contacts.Clear();
 
-				// todo ball spin hack
-				
-				dTime -= hitTime;  
+				using (var enumerator = state.Balls.GetEnumerator()) {
+					while (enumerator.MoveNext()) {
+						ref var ball = ref enumerator.Current.Value;
+						BallSpinHackPhysics.Update(ref ball);
+					}
+				}
+
+				dTime -= hitTime;
 			}
 			PerfMarker.End();
 		}

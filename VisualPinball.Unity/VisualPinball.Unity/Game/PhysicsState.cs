@@ -17,8 +17,10 @@
 using NativeTrees;
 using Unity.Collections;
 using Unity.Entities;
+using Unity.Mathematics;
 using VisualPinball.Engine.VPT;
 using VisualPinball.Unity.Collections;
+using VisualPinballUnity;
 
 namespace VisualPinball.Unity
 {
