@@ -23,7 +23,6 @@ using Unity.Mathematics;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using VisualPinball.Engine.Common;
-using VisualPinball.Engine.Game;
 using VisualPinball.Engine.Game.Engines;
 using VisualPinball.Engine.VPT.Trigger;
 using VisualPinballUnity;
@@ -81,7 +80,6 @@ namespace VisualPinball.Unity
 		internal readonly Dictionary<int, Transform> DropTargetTransforms = new Dictionary<int, Transform>();
 		internal readonly Dictionary<int, Transform> SpinnerPlateTransforms = new Dictionary<int, Transform>();
 		internal readonly Dictionary<int, Transform> TriggerTransforms = new Dictionary<int, Transform>();
-		internal readonly Dictionary<int, SkinnedMeshRenderer[]> PlungerSkinnedMeshRenderers = new Dictionary<int, SkinnedMeshRenderer[]>();
 		internal readonly Dictionary<int, GameObject> Balls = new Dictionary<int, GameObject>();
 
 		internal IEnumerable<IApiColliderGenerator> ColliderGenerators => _colliderGenerators;
@@ -306,8 +304,6 @@ namespace VisualPinball.Unity
 				actionRef.action.performed += plungerApi.OnAnalogPlunge;
 				_actions.Add((actionRef.action, plungerApi.OnAnalogPlunge));
 			}
-
-			PlungerSkinnedMeshRenderers[component.GetInstanceID()] = component.gameObject.GetComponentsInChildren<SkinnedMeshRenderer>();
 		}
 
 		public void RegisterPlayfield(GameObject go)

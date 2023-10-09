@@ -52,6 +52,7 @@ namespace VisualPinball.Unity
 
 		[NonSerialized] private readonly Dictionary<int, PhysicsBall> _ballLookup = new();
 		[NonSerialized] private readonly Dictionary<int, Transform> _transforms = new();
+		[NonSerialized] private readonly Dictionary<int, SkinnedMeshRenderer[]> _skinnedMeshRenderers = new();
 
 		[NonSerialized] private readonly Queue<InputAction> _inputActions = new();
 
@@ -72,7 +73,10 @@ namespace VisualPinball.Unity
 				case DropTargetComponent c: _dropTargetStates[itemId] = c.CreateState(); break;
 				case HitTargetComponent c: _hitTargetStates[itemId] = c.CreateState(); break;
 				case KickerComponent c: _kickerStates[itemId] = c.CreateState(); break;
-				case PlungerComponent c: _plungerStates[itemId] = c.CreateState(); break;
+				case PlungerComponent c:
+					_plungerStates[itemId] = c.CreateState();
+					_skinnedMeshRenderers[itemId] = c.GetComponentsInChildren<SkinnedMeshRenderer>();
+					break;
 				case SpinnerComponent c: _spinnerStates[itemId] = c.CreateState(); break;
 				case SurfaceComponent c: _surfaceStates[itemId] = c.CreateState(); break;
 				case TriggerComponent c: _triggerStates[itemId] = c.CreateState(); break;
@@ -234,6 +238,16 @@ namespace VisualPinball.Unity
 				}
 			}
 
+			// plungers
+			using (var enumerator = _plungerStates.GetEnumerator()) {
+				while (enumerator.MoveNext()) {
+					ref var plungerState = ref enumerator.Current.Value;
+					foreach (var skinnedMeshRenderer in _skinnedMeshRenderers[enumerator.Current.Key]) {
+						skinnedMeshRenderer.SetBlendShapeWeight(0, plungerState.Animation.Position);
+					}
+				}
+			}
+
 			// spinners
 			using (var enumerator = _spinnerStates.GetEnumerator()) {
 				while (enumerator.MoveNext()) {
@@ -342,6 +356,13 @@ namespace VisualPinball.Unity
 						GateVelocityPhysics.UpdateVelocities(ref gateState.Movement, in gateState.Static);
 					}
 				}
+				// plungers
+				using (var enumerator = PlungerStates.GetEnumerator()) {
+					while (enumerator.MoveNext()) {
+						ref var plungerState = ref enumerator.Current.Value;
+						PlungerVelocityPhysics.UpdateVelocities(ref plungerState.Movement, ref plungerState.Velocity, in plungerState.Static);
+					}
+				}
 				// spinners
 				using (var enumerator = SpinnerStates.GetEnumerator()) {
 					while (enumerator.MoveNext()) {
@@ -367,6 +388,14 @@ namespace VisualPinball.Unity
 						if (bumperState.SkirtItemId != 0) {
 							BumperSkirtAnimation.Update(ref bumperState.SkirtAnimation, DeltaTimeMs);
 						}
+					}
+				}
+
+				// plunger
+				using (var enumerator = PlungerStates.GetEnumerator()) {
+					while (enumerator.MoveNext()) {
+						ref var plungerState = ref enumerator.Current.Value;
+						PlungerAnimation.Update(ref plungerState.Animation, in plungerState.Movement, in plungerState.Static);
 					}
 				}
 
