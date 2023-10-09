@@ -49,12 +49,12 @@ namespace VisualPinballUnity
 
 		private readonly List<ComponentSystemBase> _systemsToUpdate = new List<ComponentSystemBase>();
 
-		private StaticBroadPhaseSystem _staticBroadPhaseSystem;
+		//private StaticBroadPhaseSystem _staticBroadPhaseSystem;
 		private DynamicBroadPhaseSystem _dynamicBroadPhaseSystem;
-		private StaticNarrowPhaseSystem _staticNarrowPhaseSystem;
+		//private StaticNarrowPhaseSystem _staticNarrowPhaseSystem;
 		private DynamicNarrowPhaseSystem _dynamicNarrowPhaseSystem;
-		private UpdateDisplacementSystemGroup _displacementSystemGroup;
-		private StaticCollisionSystem _staticCollisionSystem;
+		//private UpdateDisplacementSystemGroup _displacementSystemGroup;
+		//private StaticCollisionSystem _staticCollisionSystem;
 		private DynamicCollisionSystem _dynamicCollisionSystem;
 		//private ContactSystem _contactSystem;
 		//private BallSpinHackPhysics _ballSpinHackPhysics;
@@ -134,15 +134,15 @@ namespace VisualPinballUnity
 				ClearContacts();
 
 				_dynamicBroadPhaseSystem.Update();
-				_staticBroadPhaseSystem.Update();
-				_staticNarrowPhaseSystem.Update();
+				// _staticBroadPhaseSystem.Update();
+				// _staticNarrowPhaseSystem.Update();
 				_dynamicNarrowPhaseSystem.Update();
 
 				ApplyStaticTime();
 
-				_displacementSystemGroup.Update();
+				//_displacementSystemGroup.Update();
 				_dynamicCollisionSystem.Update();
-				_staticCollisionSystem.Update();
+				//_staticCollisionSystem.Update();
 				//_contactSystem.Update();
 
 				ClearContacts();

@@ -100,34 +100,34 @@ namespace VisualPinball.Unity
 			_player.Balls[kickerId] = ballGo;
 
 			var world = World.DefaultGameObjectInjectionWorld;
-			var ecbs = world.GetOrCreateSystemManaged<CreateBallEntityCommandBufferSystem>();
-			var ecb = ecbs.CreateCommandBuffer();
-
-			ecb.AddBuffer<OverlappingStaticColliderBufferElement>(entity);
-			ecb.AddBuffer<OverlappingDynamicBufferElement>(entity);
-			ecb.AddBuffer<BallInsideOfBufferElement>(entity);
-
-			ecb.AddComponent(entity, new BallData {
-				Id = id,
-				IsFrozen = kickerId != 0,
-				Position = localPos,
-				Radius = radius,
-				Mass = mass,
-				Velocity = localVel,
-				BallOrientation = float3x3.identity,
-				BallOrientationForUnity = float3x3.identity,
-				RingCounterOldPos = 0,
-				AngularMomentum = float3.zero,
-				LastPositions = new BallPositions(new float3(float.MaxValue, float.MaxValue, float.MaxValue))
-			});
-
-			ecb.AddComponent(entity, new CollisionEventData {
-				HitTime = -1,
-				HitDistance = 0,
-				HitFlag = false,
-				IsContact = false,
-				HitNormal = new float3(0, 0, 0),
-			});
+			// var ecbs = world.GetOrCreateSystemManaged<CreateBallEntityCommandBufferSystem>();
+			// var ecb = ecbs.CreateCommandBuffer();
+			//
+			// ecb.AddBuffer<OverlappingStaticColliderBufferElement>(entity);
+			// ecb.AddBuffer<OverlappingDynamicBufferElement>(entity);
+			// ecb.AddBuffer<BallInsideOfBufferElement>(entity);
+			//
+			// ecb.AddComponent(entity, new BallData {
+			// 	Id = id,
+			// 	IsFrozen = kickerId != 0,
+			// 	Position = localPos,
+			// 	Radius = radius,
+			// 	Mass = mass,
+			// 	Velocity = localVel,
+			// 	BallOrientation = float3x3.identity,
+			// 	BallOrientationForUnity = float3x3.identity,
+			// 	RingCounterOldPos = 0,
+			// 	AngularMomentum = float3.zero,
+			// 	LastPositions = new BallPositions(new float3(float.MaxValue, float.MaxValue, float.MaxValue))
+			// });
+			//
+			// ecb.AddComponent(entity, new CollisionEventData {
+			// 	HitTime = -1,
+			// 	HitDistance = 0,
+			// 	HitFlag = false,
+			// 	IsContact = false,
+			// 	HitNormal = new float3(0, 0, 0),
+			// });
 			//
 			// var lastBallPostBuffer = ecb.AddBuffer<BallLastPositionsBufferElement>(entity);
 			// for (var i = 0; i < BallRingCounterPhysics.MaxBallTrailPos; i++) {
