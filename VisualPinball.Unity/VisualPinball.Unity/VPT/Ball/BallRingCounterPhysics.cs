@@ -14,17 +14,20 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-using Unity.Entities;
-using Unity.Mathematics;
+using VisualPinball.Engine.Common;
 
-namespace VisualPinballUnity
+namespace VisualPinball.Unity
 {
-	/// <summary>
-	/// The ball's last positions
-	/// </summary>
-	[InternalBufferCapacity(BallRingCounterSystem.MaxBallTrailPos)]
-	internal struct BallLastPositionsBufferElement : IBufferElementData
+	internal static class BallRingCounterPhysics
 	{
-		public float3 Value;
+		internal static void Update(ref BallData ball)
+		{
+			var idx = ball.RingCounterOldPos / (10000 / PhysicsConstants.PhysicsStepTime);
+			ball.LastPositions[idx] = ball.Position;
+			ball.RingCounterOldPos++;
+			if (ball.RingCounterOldPos == BallPositions.Count * (10000 / PhysicsConstants.PhysicsStepTime)) {
+				ball.RingCounterOldPos = 0;
+			}
+		}
 	}
 }

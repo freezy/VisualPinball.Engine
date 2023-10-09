@@ -88,7 +88,7 @@ namespace VisualPinball.Unity
 				typeof(OverlappingStaticColliderBufferElement),
 				typeof(OverlappingDynamicBufferElement),
 				typeof(BallInsideOfBufferElement),
-				typeof(BallLastPositionsBufferElement),
+				//typeof(BallLastPositionsBufferElement),
 				typeof(BallData),
 				typeof(CollisionEventData)
 			);
@@ -117,7 +117,8 @@ namespace VisualPinball.Unity
 				BallOrientation = float3x3.identity,
 				BallOrientationForUnity = float3x3.identity,
 				RingCounterOldPos = 0,
-				AngularMomentum = float3.zero
+				AngularMomentum = float3.zero,
+				LastPositions = new BallPositions(new float3(float.MaxValue, float.MaxValue, float.MaxValue))
 			});
 
 			ecb.AddComponent(entity, new CollisionEventData {
@@ -127,13 +128,13 @@ namespace VisualPinball.Unity
 				IsContact = false,
 				HitNormal = new float3(0, 0, 0),
 			});
-
-			var lastBallPostBuffer = ecb.AddBuffer<BallLastPositionsBufferElement>(entity);
-			for (var i = 0; i < BallRingCounterSystem.MaxBallTrailPos; i++) {
-				lastBallPostBuffer.Add(new BallLastPositionsBufferElement
-					{ Value = new float3(float.MaxValue, float.MaxValue, float.MaxValue) }
-				);
-			}
+			//
+			// var lastBallPostBuffer = ecb.AddBuffer<BallLastPositionsBufferElement>(entity);
+			// for (var i = 0; i < BallRingCounterPhysics.MaxBallTrailPos; i++) {
+			// 	lastBallPostBuffer.Add(new BallLastPositionsBufferElement
+			// 		{ Value = new float3(float.MaxValue, float.MaxValue, float.MaxValue) }
+			// 	);
+			// }
 
 			// handle inside-kicker creation
 			if (kickerId != 0) {

@@ -376,6 +376,13 @@ namespace VisualPinball.Unity
 				// primary physics loop
 				cycle.Simulate(ref state, physicsDiffTime, timeMsec);
 
+				// ball trail, keep old pos of balls
+				using (var enumerator = state.Balls.GetEnumerator()) {
+					while (enumerator.MoveNext()) {
+						BallRingCounterPhysics.Update(ref enumerator.Current.Value);
+					}
+				}
+
 				#region Animation
 
 				// bumper

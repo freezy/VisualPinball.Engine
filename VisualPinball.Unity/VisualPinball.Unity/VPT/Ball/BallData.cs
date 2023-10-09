@@ -63,6 +63,8 @@ namespace VisualPinball.Unity
 
 		public CollisionEventData CollisionEvent;
 
+		public BallPositions LastPositions;
+
 		public Aabb Aabb {
 			get {
 				var vl = math.length(Velocity) + Radius + 0.05f; // 0.05f = paranoia

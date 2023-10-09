@@ -57,7 +57,7 @@ namespace VisualPinballUnity
 		private StaticCollisionSystem _staticCollisionSystem;
 		private DynamicCollisionSystem _dynamicCollisionSystem;
 		//private ContactSystem _contactSystem;
-		private BallSpinHackSystem _ballSpinHackSystem;
+		//private BallSpinHackPhysics _ballSpinHackPhysics;
 
 		private float _staticCounts;
 		private EntityQuery _flipperDataQuery;
@@ -147,7 +147,7 @@ namespace VisualPinballUnity
 
 				ClearContacts();
 
-				_ballSpinHackSystem.Update();
+				//_ballSpinHackPhysics.Update();
 
 				dTime -= HitTime;
 
