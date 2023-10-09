@@ -56,7 +56,7 @@ namespace VisualPinballUnity
 		private UpdateDisplacementSystemGroup _displacementSystemGroup;
 		private StaticCollisionSystem _staticCollisionSystem;
 		private DynamicCollisionSystem _dynamicCollisionSystem;
-		private ContactSystem _contactSystem;
+		//private ContactSystem _contactSystem;
 		private BallSpinHackSystem _ballSpinHackSystem;
 
 		private float _staticCounts;
@@ -143,7 +143,7 @@ namespace VisualPinballUnity
 				_displacementSystemGroup.Update();
 				_dynamicCollisionSystem.Update();
 				_staticCollisionSystem.Update();
-				_contactSystem.Update();
+				//_contactSystem.Update();
 
 				ClearContacts();
 

@@ -148,7 +148,7 @@ namespace VisualPinball.Unity
 				for (var i = 0; i < _contacts.Length; i++) {
 					ref var contact = ref _contacts.GetElementAsRef(i);
 					ref var ball = ref state.Balls.GetValueByRef(contact.BallId);
-					BallCollider.HandleStaticContact(ref ball, in contact.CollEvent, state.Colliders.GetFriction(contact.CollEvent.ColliderId), hitTime, state.Env.Gravity);
+					ContactPhysics.Update(ref contact, ref ball, ref state, hitTime);
 				}
 				PerfMarkerContacts.End();
 
