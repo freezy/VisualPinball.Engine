@@ -21,7 +21,7 @@ namespace VisualPinball.Unity
 {
 	public struct FlipperCorrectionBlob
 	{
-		public Entity FlipperEntity;
+		public int FlipperItemId;
 		public BlobArray<float2> Polarities;
 		public BlobArray<float2> Velocities;
 		public uint TimeDelayMs;

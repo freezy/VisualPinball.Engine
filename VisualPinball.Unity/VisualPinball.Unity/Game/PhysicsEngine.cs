@@ -289,6 +289,9 @@ namespace VisualPinball.Unity
 			using (var enumerator = _triggerStates.GetEnumerator()) {
 				while (enumerator.MoveNext()) {
 					ref var triggerState = ref enumerator.Current.Value;
+					if (triggerState.AnimatedItemId == 0) {
+						continue;
+					}
 					var triggerTransform = _transforms[triggerState.AnimatedItemId];
 					TriggerTransform.Update(triggerState.AnimatedItemId, in triggerState.Movement, triggerTransform);
 				}
