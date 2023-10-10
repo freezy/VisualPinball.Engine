@@ -24,11 +24,14 @@
 using System;
 using System.Collections.Generic;
 using Unity.Mathematics;
+using UnityEditor;
 using UnityEngine;
 using VisualPinball.Engine.Game.Engines;
+using VisualPinball.Engine.Math;
 using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Flipper;
 using VisualPinball.Engine.VPT.Table;
+using Color = UnityEngine.Color;
 
 namespace VisualPinball.Unity
 {
@@ -356,7 +359,7 @@ namespace VisualPinball.Unity
 			}
 			
 			Gizmos.matrix = Matrix4x4.identity;
-			UnityEditor.Handles.matrix = Matrix4x4.identity;
+			Handles.matrix = Matrix4x4.identity;
 
 			// Draw enclosing polygon
 			Gizmos.color = Color.cyan;
@@ -487,17 +490,16 @@ namespace VisualPinball.Unity
 
 		#endregion
 
-		#region DOTS Data
+		#region State
 
 		internal FlipperState CreateState()
 		{
 			var colliderComponent = gameObject.GetComponent<FlipperColliderComponent>();
-			// collision
 			if (colliderComponent) {
 
 				// vpx physics
 				var d = GetMaterialData(colliderComponent);
-				return new FlipperState(
+				var state = new FlipperState(
 					gameObject.GetInstanceID(),
 					d,
 					GetMovementData(d),
@@ -508,9 +510,11 @@ namespace VisualPinball.Unity
 				);
 
 				// flipper correction (nFozzy)
-				// if (colliderComponent.FlipperCorrection) {
-				// 	SetupFlipperCorrection(entity, dstManager, player, colliderComponent);
-				// }
+				if (colliderComponent.FlipperCorrection) {
+					SetupFlipperCorrection(colliderComponent);
+				}
+
+				return state;
 			}
 			return default;
 		}
@@ -630,6 +634,90 @@ namespace VisualPinball.Unity
 				HitVelocity = new float2(),
 				LastHitFace = false,
 			};
+		}
+
+		private void SetupFlipperCorrection(FlipperColliderComponent colliderComponent)
+		{
+			var fc = colliderComponent.FlipperCorrection;
+			var ta = GetComponentInParent<TableComponent>();
+
+			if (!ta) {
+				throw new InvalidOperationException("Cannot create correction trigger for flipper outside of the table hierarchy.");
+			}
+
+			// create new gameobject with the correct components, the gameobject will handle itself after that.
+			var go = new GameObject {
+				name = $"{name} (Flipper Correction)",
+			};
+			go.transform.SetParent(gameObject.transform.parent, false);
+			var triggerComponent = go.AddComponent<TriggerComponent>();
+			var triggerCollider = go.AddComponent<TriggerColliderComponent>();
+
+			triggerCollider.ForFlipper = this;
+			triggerCollider.TimeThresholdMs = fc.TimeThresholdMs;
+
+			var localPos = transform.localPosition.TranslateToVpx();
+			triggerComponent.Position = new Vector2(localPos.x, localPos.y);
+
+			var poly = GetEnclosingPolygon(23, 12);
+			triggerComponent.DragPoints = new DragPointData[poly.Count];
+			triggerComponent.IsLocked = true;
+			triggerCollider.HitHeight = 150F; // nFozzy's recommendation, but I think 50 should be ok
+			var flipperRotation = Matrix4x4.Rotate(quaternion.Euler(new float3(0, 0, -_startAngle)));
+
+			for (var i = 0; i < poly.Count; i++) {
+				// Poly points are expressed in flipper's frame: rotate to get it to the correct position.
+				var p = flipperRotation.MultiplyPoint(poly[i]);
+				triggerComponent.DragPoints[poly.Count - i - 1] = new DragPointData(localPos.x - p.x, localPos.y - p.y);
+			}
+
+			// create polarities and velocities curves
+			var polarities = new float2[fc.PolaritiesCurveSlicingCount + 1];
+			if (fc.Polarities != null)
+			{
+				var curve = fc.Polarities;
+				float stepP = (curve[curve.length - 1].time - curve[0].time) / fc.PolaritiesCurveSlicingCount;
+				int i = 0;
+				for (var t = curve[0].time; t <= curve[curve.length - 1].time; t += stepP)
+				{
+					polarities[i].x = t;
+					polarities[i++].y = curve.Evaluate(t);
+				}
+			}
+			else
+			{
+				for (int i = 0; i < fc.PolaritiesCurveSlicingCount + 1; i++)
+				{
+					polarities[i].x = i / (float)fc.PolaritiesCurveSlicingCount;
+					polarities[i].y = 0F;
+				}
+			}
+			triggerCollider.FlipperPolarities = polarities;
+
+			var velocities = new float2[fc.VelocitiesCurveSlicingCount + 1];
+			if (fc.Velocities != null)
+			{
+				var curve = fc.Velocities;
+				float stepP = (curve[curve.length - 1].time - curve[0].time) / fc.VelocitiesCurveSlicingCount;
+				int i = 0;
+				for (var t = curve[0].time; t <= curve[curve.length - 1].time; t += stepP)
+				{
+					velocities[i].x = t;
+					velocities[i++].y = curve.Evaluate(t);
+				}
+			}
+			else
+			{
+				for (int i = 0; i < fc.VelocitiesCurveSlicingCount + 1; i++)
+				{
+					velocities[i].x = i / (float)fc.PolaritiesCurveSlicingCount;
+					velocities[i].y = 1F;
+				}
+			}
+			triggerCollider.FlipperVelocities = velocities;
+
+			// need to explicitly register, since awake was called before the components were added.
+			GetComponentInParent<PhysicsEngine>().Register(triggerComponent);
 		}
 
 		#endregion

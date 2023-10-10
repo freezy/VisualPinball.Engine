@@ -18,6 +18,7 @@
 
 using System;
 using Unity.Entities;
+using Unity.Mathematics;
 using UnityEngine;
 using VisualPinball.Engine.VPT.Trigger;
 
@@ -35,6 +36,18 @@ namespace VisualPinball.Unity
 		[Min(0)]
 		[Tooltip("Radius of the trigger.")]
 		public float HitCircleRadius = 25f;
+
+		[NonSerialized]
+		internal FlipperComponent ForFlipper;
+
+		[NonSerialized]
+		internal float2[] FlipperPolarities;
+
+		[NonSerialized]
+		internal float2[] FlipperVelocities;
+
+		[NonSerialized]
+		internal uint TimeThresholdMs;
 
 		#endregion
 

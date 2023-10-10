@@ -20,6 +20,7 @@ namespace VisualPinball.Unity
 {
 	public struct FlipperCorrectionData : IComponentData
 	{
+		public bool IsEnabled;
 		public BlobAssetReference<FlipperCorrectionBlob> Value;
 	}
 }
