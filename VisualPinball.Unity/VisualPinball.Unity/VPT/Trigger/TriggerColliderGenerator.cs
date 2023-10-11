@@ -29,7 +29,7 @@ namespace VisualPinball.Unity
 		private readonly TriggerMeshComponent _meshComponent;
 		private readonly TriggerColliderComponent _colliderComponent;
 
-		private bool IsRound => _meshComponent.Shape == TriggerShape.TriggerStar || _meshComponent.Shape == TriggerShape.TriggerButton;
+		private bool IsRound => _meshComponent && _meshComponent.Shape is TriggerShape.TriggerStar or TriggerShape.TriggerButton;
 
 		public TriggerColliderGenerator(TriggerApi triggerApi, TriggerComponent component, TriggerColliderComponent colliderComponent, TriggerMeshComponent meshComponent)
 		{

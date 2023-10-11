@@ -104,6 +104,10 @@ namespace VisualPinball.Unity
 		{
 			var stopWatch = Stopwatch.StartNew();
 			Clear();
+			if (!_tableComponent.LegacyContainer) {
+				_tableComponent.LegacyContainer = ScriptableObject.CreateInstance<LegacyContainer>();
+				_tableComponent.LegacyContainer.TableData = new TableData();
+			}
 			WalkChildren(_tableComponent.transform, node => RefreshChild(node, forExport));
 
 			_tableComponent.CopyDataTo(_tableComponent.LegacyContainer.TableData, MaterialNames, TextureNames, forExport);

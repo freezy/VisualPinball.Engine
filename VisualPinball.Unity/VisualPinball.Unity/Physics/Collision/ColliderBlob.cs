@@ -21,7 +21,5 @@ namespace VisualPinball.Unity
 	internal struct ColliderBlob : IComponentData
 	{
 		public BlobArray<BlobPtr<Collider>> Colliders;
-		public int PlayfieldColliderId;
-		public int GlassColliderId;
 	}
 }

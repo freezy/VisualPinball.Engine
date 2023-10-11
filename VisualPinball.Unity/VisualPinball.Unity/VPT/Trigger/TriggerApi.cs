@@ -67,10 +67,8 @@ namespace VisualPinball.Unity
 		protected override void CreateColliders(ref ColliderReference colliders, float margin)
 		{
 			var meshComponent = GameObject.GetComponent<TriggerMeshComponent>();
-			if (meshComponent) {
-				var colliderGenerator = new TriggerColliderGenerator(this, MainComponent, ColliderComponent, meshComponent);
-				colliderGenerator.GenerateColliders(ref colliders);
-			}
+			var colliderGenerator = new TriggerColliderGenerator(this, MainComponent, ColliderComponent, meshComponent);
+			colliderGenerator.GenerateColliders(ref colliders);
 		}
 
 		#endregion
