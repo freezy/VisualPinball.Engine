@@ -39,7 +39,7 @@ namespace VisualPinball.Unity
 		/// </summary>
 		public event EventHandler<SwitchEventArgs> Switch;
 
-		internal HitTargetApi(GameObject go, Player player) : base(go, player)
+		internal HitTargetApi(GameObject go, Player player, PhysicsEngine physicsEngine) : base(go, player, physicsEngine)
 		{
 		}
 

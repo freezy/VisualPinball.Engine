@@ -54,7 +54,7 @@ namespace VisualPinball.Unity
 			set => SetIsDropped(value);
 		}
 
-		internal DropTargetApi(GameObject go, Player player) : base(go, player)
+		internal DropTargetApi(GameObject go, Player player, PhysicsEngine physicsEngine) : base(go, player, physicsEngine)
 		{
 		}
 

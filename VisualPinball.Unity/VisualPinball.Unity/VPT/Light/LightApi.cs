@@ -91,7 +91,7 @@ namespace VisualPinball.Unity
 
 		IApiWireDest IApiWireDeviceDest.Wire(string deviceItem) => this;
 
-		internal LightApi(GameObject go, Player player) : base(go, player)
+		internal LightApi(GameObject go, Player player, PhysicsEngine physicsEngine) : base(go, player, physicsEngine)
 		{
 			_lightComponent = go.GetComponentInChildren<LightComponent>();
 			_status = _lightComponent.State;

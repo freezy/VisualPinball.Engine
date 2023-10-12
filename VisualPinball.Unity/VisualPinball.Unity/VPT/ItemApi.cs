@@ -42,19 +42,19 @@ namespace VisualPinball.Unity
 
 		private protected TableApi TableApi => Player.TableApi;
 
-		internal VisualPinballSimulationSystemGroup SimulationSystemGroup => World.DefaultGameObjectInjectionWorld.GetOrCreateSystemManaged<VisualPinballSimulationSystemGroup>();
-
 		private protected readonly Player Player;
+		private protected readonly PhysicsEngine PhysicsEngine;
 		private protected readonly SwitchHandler SwitchHandler;
 		private protected BallManager BallManager;
 		private protected TableComponent TableComponent;
 
-		protected ItemApi(GameObject go, Player player)
+		protected ItemApi(GameObject go, Player player, PhysicsEngine physicsEngine)
 		{
 			GameObject = go;
 			MainComponent = go.GetComponent<TComponent>();
 			Player = player;
 			SwitchHandler = new SwitchHandler(Name, player);
+			PhysicsEngine = physicsEngine;
 		}
 
 		protected void OnInit(BallManager ballManager)

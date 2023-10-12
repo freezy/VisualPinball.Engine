@@ -93,6 +93,7 @@ namespace VisualPinball.Unity
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 		private TableComponent _tableComponent;
 		private PlayfieldComponent _playfieldComponent;
+		private PhysicsEngine _physicsEngine;
 
 		internal static readonly Entity PlayfieldEntity = new() {Index = -3, Version = 0}; // a fake entity we just use for reference
 
@@ -131,6 +132,7 @@ namespace VisualPinball.Unity
 			DebugLogger.ClearLog();
 			_tableComponent = GetComponent<TableComponent>();
 			_playfieldComponent = GetComponentInChildren<PlayfieldComponent>();
+			_physicsEngine = GetComponent<PhysicsEngine>();
 			var engineComponent = GetComponent<IGamelogicEngine>();
 
 			_apis.Add(TableApi);
@@ -208,12 +210,12 @@ namespace VisualPinball.Unity
 
 		public void RegisterBumper(BumperComponent component)
 		{
-			Register(new BumperApi(component.gameObject, this), component);
+			Register(new BumperApi(component.gameObject, this, _physicsEngine), component);
 		}
 
 		public void RegisterFlipper(FlipperComponent component)
 		{
-			Register(new FlipperApi(component.gameObject, this), component);
+			Register(new FlipperApi(component.gameObject, this, _physicsEngine), component);
 			if (EngineProvider<IDebugUI>.Exists) {
 				EngineProvider<IDebugUI>.Get().OnRegisterFlipper(component.GetInstanceID(), component.gameObject.name);
 			}
@@ -221,12 +223,12 @@ namespace VisualPinball.Unity
 
 		public void RegisterDropTarget(DropTargetComponent component)
 		{
-			Register(new DropTargetApi(component.gameObject, this), component);
+			Register(new DropTargetApi(component.gameObject, this, _physicsEngine), component);
 		}
 
 		public void RegisterGate(GateComponent component)
 		{
-			Register(new GateApi(component.gameObject, this), component);
+			Register(new GateApi(component.gameObject, this, _physicsEngine), component);
 		}
 
 		public void RegisterGateLifter(GateLifterComponent component)
@@ -236,12 +238,12 @@ namespace VisualPinball.Unity
 
 		public void RegisterHitTarget(HitTargetComponent component)
 		{
-			Register(new HitTargetApi(component.gameObject, this), component);
+			Register(new HitTargetApi(component.gameObject, this, _physicsEngine), component);
 		}
 
 		public void RegisterKicker(KickerComponent component)
 		{
-			Register(new KickerApi(component.gameObject, this), component);
+			Register(new KickerApi(component.gameObject, this, _physicsEngine), component);
 		}
 
 		public void RegisterLamp(LightComponent component)
@@ -281,7 +283,7 @@ namespace VisualPinball.Unity
 
 		public void RegisterPlunger(PlungerComponent component, InputActionReference actionRef)
 		{
-			var plungerApi = new PlungerApi(component.gameObject, this);
+			var plungerApi = new PlungerApi(component.gameObject, this, _physicsEngine);
 			Register(plungerApi, component);
 
 			if (actionRef != null) {
@@ -292,33 +294,33 @@ namespace VisualPinball.Unity
 
 		public void RegisterPlayfield(GameObject go)
 		{
-			PlayfieldApi = new PlayfieldApi(go, this);
+			PlayfieldApi = new PlayfieldApi(go, this, _physicsEngine);
 			_colliderGenerators.Add(PlayfieldApi);
 		}
 
 		public void RegisterPrimitive(PrimitiveComponent component)
 		{
-			Register(new PrimitiveApi(component.gameObject, this), component);
+			Register(new PrimitiveApi(component.gameObject, this, _physicsEngine), component);
 		}
 
 		public void RegisterRamp(RampComponent component)
 		{
-			Register(new RampApi(component.gameObject, this), component);
+			Register(new RampApi(component.gameObject, this, _physicsEngine), component);
 		}
 
 		public void RegisterRubber(RubberComponent component)
 		{
-			Register(new RubberApi(component.gameObject, this), component);
+			Register(new RubberApi(component.gameObject, this, _physicsEngine), component);
 		}
 
 		public void RegisterSpinner(SpinnerComponent component)
 		{
-			Register(new SpinnerApi(component.gameObject, this), component);
+			Register(new SpinnerApi(component.gameObject, this, _physicsEngine), component);
 		}
 
 		public void RegisterSurface(SurfaceComponent component)
 		{
-			Register(new SurfaceApi(component.gameObject, this), component);
+			Register(new SurfaceApi(component.gameObject, this, _physicsEngine), component);
 		}
 
 		public void RegisterTeleporter(TeleporterComponent component)
@@ -328,24 +330,24 @@ namespace VisualPinball.Unity
 
 		public void RegisterTrigger(TriggerComponent component)
 		{
-			Register(new TriggerApi(component.gameObject, this), component);
+			Register(new TriggerApi(component.gameObject, this, _physicsEngine), component);
 		}
 
 		public void RegisterTrigger(TriggerData data, GameObject go)
 		{
 			var component = go.AddComponent<TriggerComponent>();
 			component.SetData(data);
-			Register(new TriggerApi(go, this), component);
+			Register(new TriggerApi(go, this, _physicsEngine), component);
 		}
 
 		public void RegisterTrough(TroughComponent component)
 		{
-			Register(new TroughApi(component.gameObject, this), component);
+			Register(new TroughApi(component.gameObject, this, _physicsEngine), component);
 		}
 
 		public void RegisterMetalWireGuide(MetalWireGuideComponent component)
 		{
-			Register(new MetalWireGuideApi(component.gameObject, this), component);
+			Register(new MetalWireGuideApi(component.gameObject, this, _physicsEngine), component);
 		}
 
 		private void Register<TApi>(TApi api, MonoBehaviour component) where TApi : IApi

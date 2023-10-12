@@ -45,7 +45,7 @@ namespace VisualPinball.Unity
 		private protected EntityManager EntityManager;
 		private readonly SimulateCycleSystemGroup _simulateCycleSystemGroup;
 
-		protected CollidableApi(GameObject go, Player player) : base(go, player)
+		protected CollidableApi(GameObject go, Player player, PhysicsEngine physicsEngine) : base(go, player, physicsEngine)
 		{
 			if (World.DefaultGameObjectInjectionWorld != null) {
 				_simulateCycleSystemGroup = World.DefaultGameObjectInjectionWorld.GetOrCreateSystemManaged<SimulateCycleSystemGroup>();

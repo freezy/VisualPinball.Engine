@@ -77,7 +77,7 @@ namespace VisualPinball.Unity
 			}
 		}
 
-		public void DestroyEntity(int ballId)
+		public void DestroyBall(int ballId)
 		{
 			// fixme job
 			// var ballGo = _player.Balls[ballEntity];

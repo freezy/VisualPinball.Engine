@@ -25,7 +25,7 @@ namespace VisualPinball.Unity
 {
 	public class PlayfieldApi : CollidableApi<PlayfieldComponent, PlayfieldColliderComponent, TableData>
 	{
-		internal PlayfieldApi(GameObject go, Player player) : base(go, player)
+		internal PlayfieldApi(GameObject go, Player player, PhysicsEngine physicsEngine) : base(go, player, physicsEngine)
 		{
 		}
 

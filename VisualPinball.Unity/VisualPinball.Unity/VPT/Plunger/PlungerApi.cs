@@ -61,7 +61,7 @@ namespace VisualPinball.Unity
 
 		public bool DoRetract { get; set; } = true;
 
-		internal PlungerApi(GameObject go, Player player) : base(go, player)
+		internal PlungerApi(GameObject go, Player player, PhysicsEngine physicsEngine) : base(go, player, physicsEngine)
 		{
 		}
 
