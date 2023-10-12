@@ -144,7 +144,7 @@ namespace VisualPinball.Unity
 
 			_apis.Add(TableApi);
 
-			BallManager = new BallManager(this);
+			BallManager = new BallManager(GetComponentInChildren<PhysicsEngine>(), this, Playfield.transform);
 			_inputManager = new InputManager();
 			_inputManager.Enable(HandleInput);
 
@@ -497,14 +497,9 @@ namespace VisualPinball.Unity
 			// }
 		}
 
-		internal void BallCreated(Entity ballEntity, GameObject ball)
-		{
-			OnBallCreated?.Invoke(this, new BallEvent(ballEntity, ball));
-		}
-		internal void BallDestroyed(Entity ballEntity, GameObject ball)
-		{
-			OnBallDestroyed?.Invoke(this, new BallEvent(ballEntity, ball));
-		}
+		internal void BallCreated(int ballId, GameObject ball) => OnBallCreated?.Invoke(this, new BallEvent(ballId, ball));
+
+		internal void BallDestroyed(int ballId, GameObject ball) => OnBallDestroyed?.Invoke(this, new BallEvent(ballId, ball));
 
 		#endregion
 
@@ -603,12 +598,12 @@ namespace VisualPinball.Unity
 
 	public readonly struct BallEvent
 	{
-		public readonly Entity BallEntity;
+		public readonly int BallId;
 		public readonly GameObject Ball;
 
-		public BallEvent(Entity ballEntity, GameObject ball)
+		public BallEvent(int ballId, GameObject ball)
 		{
-			BallEntity = ballEntity;
+			BallId = ballId;
 			Ball = ball;
 		}
 	}

@@ -16,7 +16,6 @@
 
 using Unity.Entities;
 using Unity.Mathematics;
-using UnityEngine;
 using VisualPinball.Engine.Common;
 
 namespace VisualPinball.Unity
@@ -49,8 +48,8 @@ namespace VisualPinball.Unity
 		/// <param name="mass">Physics mass</param>
 		/// <param name="radius">Radius in local space</param>
 		/// <param name="kickerRef">If created within a kicker, this is the kicker entity</param>
-		void BallCreate(GameObject ballGo, int id, in float3 worldPos, in float3 localPos, in float3 localVel,
-			in float scale, in float mass, in float radius, in int kickerId);
+		// void BallCreate(GameObject ballGo, int id, in float3 worldPos, in float3 localPos, in float3 localVel,
+		// 	in float scale, in float mass, in float radius, in int kickerId);
 
 		/// <summary>
 		/// Rolls the ball manually to a position on the playfield.

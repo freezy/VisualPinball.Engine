@@ -24,6 +24,7 @@ using Unity.Jobs;
 using Unity.Mathematics;
 using UnityEngine;
 using VisualPinball.Engine.Common;
+using VisualPinball.Unity.Collections;
 using VisualPinballUnity;
 using Debug = UnityEngine.Debug;
 
@@ -31,14 +32,15 @@ namespace VisualPinball.Unity
 {
 	public class PhysicsEngine : MonoBehaviour
 	{
-		internal delegate void InputAction(ref PhysicsState state);
+		#region States
 
+		[NonSerialized] private InsideOfs _insideOfs;
 		[NonSerialized] private NativeArray<PhysicsEnv> _physicsEnv;
 		[NonSerialized] private NativeOctree<int> _octree;
-		[NonSerialized] private BlobAssetReference<ColliderBlob> _colliders;
 		[NonSerialized] private NativeQueue<EventData> _eventQueue;
-		[NonSerialized] private InsideOfs _insideOfs;
-		[NonSerialized] private NativeParallelHashMap<int, BallData> _balls;
+		[NonSerialized] private BlobAssetReference<ColliderBlob> _colliders;
+
+		[NonSerialized] private NativeParallelHashMap<int, BallData> _ballStates = new(0, Allocator.Persistent);
 		[NonSerialized] private NativeParallelHashMap<int, BumperState> _bumperStates = new(0, Allocator.Persistent);
 		[NonSerialized] private NativeParallelHashMap<int, FlipperState> _flipperStates = new(0, Allocator.Persistent);
 		[NonSerialized] private NativeParallelHashMap<int, GateState> _gateStates = new(0, Allocator.Persistent);
@@ -50,15 +52,28 @@ namespace VisualPinball.Unity
 		[NonSerialized] private NativeParallelHashMap<int, SurfaceState> _surfaceStates = new(0, Allocator.Persistent);
 		[NonSerialized] private NativeParallelHashMap<int, TriggerState> _triggerStates = new(0, Allocator.Persistent);
 
-		[NonSerialized] private readonly Dictionary<int, PhysicsBall> _ballLookup = new();
+		#endregion
+
+		#region Transforms
+
 		[NonSerialized] private readonly Dictionary<int, Transform> _transforms = new();
 		[NonSerialized] private readonly Dictionary<int, SkinnedMeshRenderer[]> _skinnedMeshRenderers = new();
+
+		#endregion
 
 		[NonSerialized] private readonly Queue<InputAction> _inputActions = new();
 
 		[NonSerialized] private Player _player;
 
 		private static ulong NowUsec => (ulong)(Time.timeAsDouble * 1000000);
+
+		#region API
+
+		internal delegate void InputAction(ref PhysicsState state);
+
+		internal void Schedule(InputAction action) => _inputActions.Enqueue(action);
+		internal ref KickerState KickerState(int itemId) => ref _kickerStates.GetValueByRef(itemId);
+		internal void SetBallInsideOf(int ballId, int itemId) => _insideOfs.SetInsideOf(itemId, ballId);
 
 		internal void Register<T>(T item) where T : MonoBehaviour
 		{
@@ -67,6 +82,11 @@ namespace VisualPinball.Unity
 			_transforms.TryAdd(itemId, go.transform);
 
 			switch (item) {
+				case BallComponent c:
+					if (!_ballStates.ContainsKey(itemId)) {
+						_ballStates[itemId] = c.CreateState();
+					}
+					break;
 				case BumperComponent c: _bumperStates[itemId] = c.CreateState(); break;
 				case FlipperComponent c: _flipperStates[itemId] = c.CreateState(); break;
 				case GateComponent c: _gateStates[itemId] = c.CreateState(); break;
@@ -83,21 +103,20 @@ namespace VisualPinball.Unity
 			}
 		}
 
-		internal void Schedule(InputAction action)
-		{
-			_inputActions.Enqueue(action);
-		}
+		#endregion
+
+		#region Event Functions
 
 		private void Awake()
 		{
 			_player = GetComponent<Player>();
+			_insideOfs = new InsideOfs(Allocator.Persistent);
 		}
 
 		private void Start()
 		{
 			// init state
 			var env = new PhysicsEnv(NowUsec, GetComponent<Player>());
-			_insideOfs = new InsideOfs(Allocator.Persistent);
 
 			// create static octree
 			var sw = Stopwatch.StartNew();
@@ -126,25 +145,14 @@ namespace VisualPinball.Unity
 			Debug.Log($"Octree of {_colliders.Value.Colliders.Length} constructed (colliders: {elapsedMs}ms, tree: {sw.Elapsed.TotalMilliseconds}ms).");
 
 			// get balls
-			var balls = GetComponentsInChildren<PhysicsBall>();
-			_balls = new NativeParallelHashMap<int, BallData>(balls.Length, Allocator.Persistent);
+			var balls = GetComponentsInChildren<BallComponent>();
 			foreach (var ball in balls) {
-				_balls.Add(ball.Id, ball.Data);
-				_ballLookup[ball.Id] = ball;
+				Register(ball);
 			}
 
 			_eventQueue = new NativeQueue<EventData>(Allocator.Persistent);
 			_physicsEnv = new NativeArray<PhysicsEnv>(1, Allocator.Persistent);
 			_physicsEnv[0] = env;
-		}
-
-		private static BlobAssetReference<ColliderBlob> AllocateColliders(ref ColliderReference managedColliders)
-		{
-			var allocateColliderJob = new ColliderAllocationJob(ref managedColliders);
-			allocateColliderJob.Run();
-			var colliders = allocateColliderJob.BlobAsset[0];
-			allocateColliderJob.Dispose();
-			return colliders;
 		}
 
 		private void Update()
@@ -159,7 +167,7 @@ namespace VisualPinball.Unity
 				Colliders = _colliders,
 				InsideOfs = _insideOfs,
 				Events = events,
-				Balls = _balls,
+				Balls = _ballStates,
 				BumperStates = _bumperStates,
 				DropTargetStates = _dropTargetStates,
 				FlipperStates = _flipperStates,
@@ -173,7 +181,7 @@ namespace VisualPinball.Unity
 			};
 
 			var env = _physicsEnv[0];
-			var state = new PhysicsState(ref env, ref _octree, ref _colliders, ref events, ref _insideOfs, ref _balls,
+			var state = new PhysicsState(ref env, ref _octree, ref _colliders, ref events, ref _insideOfs, ref _ballStates,
 				ref _bumperStates, ref _dropTargetStates, ref _flipperStates, ref _gateStates,
 				ref _hitTargetStates, ref _kickerStates, ref _plungerStates, ref _spinnerStates,
 				ref _surfaceStates, ref _triggerStates);
@@ -193,7 +201,7 @@ namespace VisualPinball.Unity
 			}
 
 			// retrieve updated data
-			_balls = updatePhysics.Balls;
+			_ballStates = updatePhysics.Balls;
 			_physicsEnv = updatePhysics.PhysicsEnv;
 			_flipperStates = updatePhysics.FlipperStates;
 
@@ -203,7 +211,7 @@ namespace VisualPinball.Unity
 			using (var enumerator = state.Balls.GetEnumerator()) {
 				while (enumerator.MoveNext()) {
 					ref var ball = ref enumerator.Current.Value;
-					BallMovementPhysics.Move(ball, _ballLookup[ball.Id].transform);
+					BallMovementPhysics.Move(ball, _transforms[ball.Id]);
 				}
 			}
 
@@ -304,10 +312,25 @@ namespace VisualPinball.Unity
 		{
 			_physicsEnv.Dispose();
 			_eventQueue.Dispose();
-			_balls.Dispose();
+			_ballStates.Dispose();
 			_colliders.Dispose();
 			_insideOfs.Dispose();
 		}
+
+		#endregion
+
+		#region Helpers
+
+		private static BlobAssetReference<ColliderBlob> AllocateColliders(ref ColliderReference managedColliders)
+		{
+			var allocateColliderJob = new ColliderAllocationJob(ref managedColliders);
+			allocateColliderJob.Run();
+			var colliders = allocateColliderJob.BlobAsset[0];
+			allocateColliderJob.Dispose();
+			return colliders;
+		}
+
+		#endregion
 	}
 
 	[BurstCompile(CompileSynchronously = true)]

@@ -24,6 +24,10 @@ namespace VisualPinballUnity
 	{
 		internal static void UpdateDisplacements(ref BallData ball, float dTime)
 		{
+			if (ball.IsFrozen) {
+				return;
+			}
+
 			ball.Position += ball.Velocity * dTime;
 
 			var inertia = ball.Inertia;
