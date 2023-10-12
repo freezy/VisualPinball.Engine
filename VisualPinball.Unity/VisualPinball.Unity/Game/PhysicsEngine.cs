@@ -72,6 +72,7 @@ namespace VisualPinball.Unity
 		internal delegate void InputAction(ref PhysicsState state);
 
 		internal void Schedule(InputAction action) => _inputActions.Enqueue(action);
+		internal ref BallData BallState(int itemId) => ref _ballStates.GetValueByRef(itemId);
 		internal ref KickerState KickerState(int itemId) => ref _kickerStates.GetValueByRef(itemId);
 		internal void SetBallInsideOf(int ballId, int itemId) => _insideOfs.SetInsideOf(itemId, ballId);
 

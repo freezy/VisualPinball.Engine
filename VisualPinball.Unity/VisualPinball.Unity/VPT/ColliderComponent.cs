@@ -64,7 +64,7 @@ namespace VisualPinball.Unity
 		[NonSerialized] private readonly List<ICollider> _nonMeshColliders = new List<ICollider>();
 		[NonSerialized] private bool _collidersDirty;
 
-		protected abstract IApiColliderGenerator InstantiateColliderApi(Player player);
+		protected abstract IApiColliderGenerator InstantiateColliderApi(Player player, PhysicsEngine physicsEngine);
 
 		public abstract PhysicsMaterialData PhysicsMaterialData { get; }
 
@@ -126,7 +126,7 @@ namespace VisualPinball.Unity
 			
 			var generateColliders = ShowAabbs || showColliders && !HasCachedColliders;
 			if (generateColliders) {
-				var api = InstantiateColliderApi(player);
+				var api = InstantiateColliderApi(player, null);
 				var colliders = new ColliderReference(Allocator.TempJob);
 				api.CreateColliders(ref colliders, 0.1f);
 
@@ -146,7 +146,7 @@ namespace VisualPinball.Unity
 			}
 			if (ShowColliderOctree) {
 				
-				var api = InstantiateColliderApi(player);
+				var api = InstantiateColliderApi(player, null);
 				var colliders = new ColliderReference(Allocator.TempJob);
 				api.CreateColliders(ref colliders, 0.1f);
 				
@@ -432,7 +432,7 @@ namespace VisualPinball.Unity
 
 		void ICollidableComponent.GetColliders(Player player, ref ColliderReference colliders, float margin)
 		{
-			InstantiateColliderApi(player).CreateColliders(ref colliders, margin);
+			InstantiateColliderApi(player, null).CreateColliders(ref colliders, margin);
 		}
 		#endif
 	}

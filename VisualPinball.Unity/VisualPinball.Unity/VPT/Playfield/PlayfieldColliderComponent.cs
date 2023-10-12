@@ -54,7 +54,7 @@ namespace VisualPinball.Unity
 		[NonSerialized] public bool ShowAllColliderMeshes = false;
 
 		public override PhysicsMaterialData PhysicsMaterialData => GetPhysicsMaterialData(0, 0);
-		protected override IApiColliderGenerator InstantiateColliderApi(Player player)
-			=> new PlayfieldApi(gameObject, player);
+		protected override IApiColliderGenerator InstantiateColliderApi(Player player, PhysicsEngine physicsEngine)
+			=> new PlayfieldApi(gameObject, player, physicsEngine);
 	}
 }

@@ -16,9 +16,7 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
-using Unity.Entities;
 using Unity.Mathematics;
 using UnityEngine;
 using VisualPinball.Engine.VPT.Kicker;
@@ -55,7 +53,7 @@ namespace VisualPinball.Unity
 
 		private readonly Dictionary<string, KickerDeviceCoil> _coils = new Dictionary<string, KickerDeviceCoil>();
 
-		public KickerApi(GameObject go, Player player) : base(go, player)
+		public KickerApi(GameObject go, Player player, PhysicsEngine physicsEngine) : base(go, player, physicsEngine)
 		{
 			foreach (var coil in MainComponent.Coils) {
 				_coils[coil.Id] = new KickerDeviceCoil(player, coil, this);
@@ -89,7 +87,7 @@ namespace VisualPinball.Unity
 
 		public void Kick(float angle, float speed, float inclination = 0)
 		{
-			SimulationSystemGroup.QueueAfterBallCreation(() => KickXYZ(ItemId, angle, speed, inclination, 0, 0, 0));
+			KickXYZ(angle, speed, inclination, 0, 0, 0);
 		}
 
 		/// <summary>
@@ -101,14 +99,11 @@ namespace VisualPinball.Unity
 		/// </remarks>
 		public void DestroyBall()
 		{
-			// fixme job
-			// var entityManager = World.DefaultGameObjectInjectionWorld.EntityManager;
-			// var kickerCollisionData = entityManager.GetComponentData<KickerCollisionData>(Entity);
-			// var ballEntity = kickerCollisionData.BallId;
-			// if (ballEntity != Entity.Null) {
-			// 	BallManager.DestroyEntity(ballEntity);
-			// 	SimulationSystemGroup.QueueAfterBallCreation(OnBallDestroyed);
-			// }
+			ref var kickerState = ref PhysicsEngine.KickerState(ItemId);
+			if (kickerState.Collision.HasBall) {
+				BallManager.DestroyBall(kickerState.Collision.BallId);
+				OnBallDestroyed();
+			}
 		}
 
 		/// <summary>
@@ -117,33 +112,20 @@ namespace VisualPinball.Unity
 		/// <returns>True if there is a ball in the kicker, false otherwise.</returns>
 		public bool HasBall()
 		{
-			// fixme job
-			// var entityManager = World.DefaultGameObjectInjectionWorld.EntityManager;
-			// var kickerCollisionData = entityManager.GetComponentData<KickerCollisionData>(Entity);
-			// return kickerCollisionData.HasBall;
-			return false;
+			ref var kickerState = ref PhysicsEngine.KickerState(ItemId);
+			return kickerState.Collision.HasBall;
 		}
 
-		internal BallData GetBallData()
+		internal ref BallData GetBallData()
 		{
-			// fixme job
-			// var entityManager = World.DefaultGameObjectInjectionWorld.EntityManager;
-			// var kickerCollisionData = entityManager.GetComponentData<KickerCollisionData>(Entity);
-			// return kickerCollisionData.HasBall
-			// 	? entityManager.GetComponentData<BallData>(kickerCollisionData.BallId)
-			// 	: default;
-			return default;
+			ref var kickerState = ref PhysicsEngine.KickerState(ItemId);
+			return ref PhysicsEngine.BallState(kickerState.Collision.BallId);
 		}
 
-		internal int BallId
-		{
-			get
-			{
-				return 0;
-				// fixme job
-				// var entityManager = World.DefaultGameObjectInjectionWorld.EntityManager;
-				// var kickerCollisionData = entityManager.GetComponentData<KickerCollisionData>(Entity);
-				// return kickerCollisionData.BallId;
+		internal int BallId {
+			get {
+				ref var kickerState = ref PhysicsEngine.KickerState(ItemId);
+				return kickerState.Collision.BallId;
 			}
 		}
 
@@ -169,79 +151,68 @@ namespace VisualPinball.Unity
 
 		private void OnBallDestroyed()
 		{
-			// fixme job
-			// var entityManager = World.DefaultGameObjectInjectionWorld.EntityManager;
-			// var kickerCollisionData = entityManager.GetComponentData<KickerCollisionData>(Entity);
-			// if (kickerCollisionData.BallId != 0) {
-			//
-			// 	// update kicker status
-			// 	kickerCollisionData.BallId = kickerCollisionData.BallId;
-			// 	entityManager.SetComponentData(Entity, kickerCollisionData);
-			// }
+			ref var kickerState = ref PhysicsEngine.KickerState(ItemId);
+			if (kickerState.Collision.HasBall) {
+				kickerState.Collision.BallId = 0;
+			}
 		}
 
 		#endregion
 
-		private void KickXYZ(int kickerId, float angle, float speed, float inclination, float x, float y, float z)
+		private void KickXYZ(float angle, float speed, float inclination, float x, float y, float z)
 		{
-			// fixme jobs
-			// var entityManager = World.DefaultGameObjectInjectionWorld.EntityManager;
-			// var kickerCollisionData = entityManager.GetComponentData<KickerCollisionData>(kickerEntity);
-			// var kickerStaticData = entityManager.GetComponentData<KickerStaticData>(kickerEntity);
-			// var ballEntity = kickerCollisionData.BallId;
-			// if (ballEntity != Entity.Null) {
-			// 	var angleRad = math.radians(angle); // yaw angle, zero is along -Y axis
-			//
-			// 	if (math.abs(inclination) > (float) (System.Math.PI / 2.0)) {
-			// 		// radians or degrees?  if greater PI/2 assume degrees
-			// 		inclination *= (float) (System.Math.PI / 180.0); // convert to radians
-			// 	}
-			//
-			// 	// if < 0 use global value
-			// 	var scatterAngle = kickerStaticData.Scatter < 0.0f ? 0.0f : math.radians(kickerStaticData.Scatter);
-			// 	scatterAngle *= TableComponent.GlobalDifficulty; // apply difficulty weighting
-			//
-			// 	if (scatterAngle > 1.0e-5f) { // ignore near zero angles
-			// 		var scatter = new Random().NextFloat(-1f, 1f); // -1.0f..1.0f
-			// 		scatter *= (1.0f - scatter * scatter) * 2.59808f * scatterAngle; // shape quadratic distribution and scale
-			// 		angleRad += scatter;
-			// 	}
-			//
-			// 	var speedZ = math.sin(inclination) * speed;
-			// 	if (speedZ > 0.0f) {
-			// 		speed *= math.cos(inclination);
-			// 	}
-			//
-			// 	// update ball data
-			// 	var ballData = entityManager.GetComponentData<BallData>(ballEntity);
-			// 	ballData.Position = new float3(
-			// 		ballData.Position.x + x,
-			// 		ballData.Position.y + y,
-			// 		ballData.Position.z + z
-			// 	);
-			// 	ballData.Velocity = new float3(
-			// 		math.sin(angleRad) * speed,
-			// 		-math.cos(angleRad) * speed,
-			// 		speedZ
-			// 	);
-			// 	ballData.IsFrozen = false;
-			// 	ballData.AngularMomentum = float3.zero;
-			// 	entityManager.SetComponentData(ballEntity, ballData);
-			//
-			// 	// update collision event
-			// 	var collEvent = entityManager.GetComponentData<CollisionEventData>(ballEntity);
-			// 	collEvent.HitDistance = 0.0f;
-			// 	collEvent.HitTime = -1.0f;
-			// 	collEvent.HitNormal = float3.zero;
-			// 	collEvent.HitVelocity = float2.zero;
-			// 	collEvent.HitFlag = false;
-			// 	collEvent.IsContact = false;
-			// 	entityManager.SetComponentData(ballEntity, collEvent);
-			//
-			// 	// update kicker status
-			// 	kickerCollisionData.BallId = Entity.Null;
-			// 	entityManager.SetComponentData(kickerEntity, kickerCollisionData);
-			// }
+			ref var kickerState = ref PhysicsEngine.KickerState(ItemId);
+			var ballId = kickerState.Collision.BallId;
+			if (ballId != 0) {
+				var angleRad = math.radians(angle); // yaw angle, zero is along -Y axis
+
+				if (math.abs(inclination) > (float) (System.Math.PI / 2.0)) {
+					// radians or degrees?  if greater PI/2 assume degrees
+					inclination *= (float) (System.Math.PI / 180.0); // convert to radians
+				}
+
+				// if < 0 use global value
+				var scatterAngle = kickerState.Static.Scatter < 0.0f ? 0.0f : math.radians(kickerState.Static.Scatter);
+				scatterAngle *= TableComponent.GlobalDifficulty; // apply difficulty weighting
+
+				if (scatterAngle > 1.0e-5f) { // ignore near zero angles
+					var scatter = new Random().NextFloat(-1f, 1f); // -1.0f..1.0f
+					scatter *= (1.0f - scatter * scatter) * 2.59808f * scatterAngle; // shape quadratic distribution and scale
+					angleRad += scatter;
+				}
+
+				var speedZ = math.sin(inclination) * speed;
+				if (speedZ > 0.0f) {
+					speed *= math.cos(inclination);
+				}
+
+				// update ball data
+				ref var ballData = ref PhysicsEngine.BallState(ballId);
+				ballData.Position = new float3(
+					ballData.Position.x + x,
+					ballData.Position.y + y,
+					ballData.Position.z + z
+				);
+				ballData.Velocity = new float3(
+					math.sin(angleRad) * speed,
+					-math.cos(angleRad) * speed,
+					speedZ
+				);
+				ballData.IsFrozen = false;
+				ballData.AngularMomentum = float3.zero;
+
+				// update collision event
+				ref var collEvent = ref ballData.CollisionEvent;
+				collEvent.HitDistance = 0.0f;
+				collEvent.HitTime = -1.0f;
+				collEvent.HitNormal = float3.zero;
+				collEvent.HitVelocity = float2.zero;
+				collEvent.HitFlag = false;
+				collEvent.IsContact = false;
+
+				// update kicker status
+				kickerState.Collision.BallId = 0;
+			}
 		}
 
 		IApiSwitchStatus IApiSwitch.AddSwitchDest(SwitchConfig switchConfig, IApiSwitchStatus switchStatus) => AddSwitchDest(switchConfig.WithPulse(false), switchStatus);

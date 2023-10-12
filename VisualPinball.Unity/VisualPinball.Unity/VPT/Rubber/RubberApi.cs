@@ -34,7 +34,7 @@ namespace VisualPinball.Unity
 		/// </summary>
 		public event EventHandler<HitEventArgs> Hit;
 
-		internal RubberApi(GameObject go, Player player) : base(go, player)
+		internal RubberApi(GameObject go, Player player, PhysicsEngine physicsEngine) : base(go, player, physicsEngine)
 		{
 		}
 

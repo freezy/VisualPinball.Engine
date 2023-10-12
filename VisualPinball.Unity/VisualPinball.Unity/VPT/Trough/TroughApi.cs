@@ -165,7 +165,7 @@ namespace VisualPinball.Unity
 		/// </summary>
 		public event EventHandler Init;
 
-		internal TroughApi(GameObject go, Player player) : base(go, player)
+		internal TroughApi(GameObject go, Player player, PhysicsEngine physicsEngine) : base(go, player, physicsEngine)
 		{
 		}
 
@@ -291,7 +291,7 @@ namespace VisualPinball.Unity
 				if (_drainSwitch is KickerApi kickerApi) {
 					kickerApi.DestroyBall();
 				} else {
-					BallManager.DestroyEntity(args.BallId);
+					BallManager.DestroyBall(args.BallId);
 				}
 				DrainBall();
 

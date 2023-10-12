@@ -71,7 +71,7 @@ namespace VisualPinball.Unity
 
 		private bool _isEos;
 
-		internal FlipperApi(GameObject go, Player player) : base(go, player)
+		internal FlipperApi(GameObject go, Player player, PhysicsEngine physicsEngine) : base(go, player, physicsEngine)
 		{
 		}
 
