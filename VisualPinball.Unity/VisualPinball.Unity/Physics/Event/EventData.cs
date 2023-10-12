@@ -25,7 +25,7 @@ namespace VisualPinball.Unity
 	/// </summary>
 	public readonly struct EventData
 	{
-		public readonly EventId eventId;
+		public readonly EventId EventId;
 		public readonly int ItemId;
 		public readonly int BallId;
 		public readonly float FloatParam;
@@ -33,7 +33,7 @@ namespace VisualPinball.Unity
 
 		public EventData(EventId eventId, int itemId, int ballId, bool groupEvent = false) : this()
 		{
-			this.eventId = eventId;
+			EventId = eventId;
 			ItemId = itemId;
 			BallId = ballId;
 			GroupEvent = groupEvent;
@@ -41,7 +41,7 @@ namespace VisualPinball.Unity
 
 		public EventData(EventId eventId, int itemId, int ballId, float floatParam, bool groupEvent = false) : this()
 		{
-			this.eventId = eventId;
+			EventId = eventId;
 			ItemId = itemId;
 			BallId = ballId;
 			FloatParam = floatParam;
@@ -51,7 +51,7 @@ namespace VisualPinball.Unity
 
 		public EventData(EventId eventId, int itemId, bool groupEvent = false) : this()
 		{
-			this.eventId = eventId;
+			this.EventId = eventId;
 			ItemId = itemId;
 			BallId = 0;
 			GroupEvent = groupEvent;
@@ -59,13 +59,13 @@ namespace VisualPinball.Unity
 
 		public EventData(EventId eventId, int itemId, float floatParam, bool groupEvent = false) : this()
 		{
-			this.eventId = eventId;
+			this.EventId = eventId;
 			ItemId = itemId;
 			BallId = 0;
 			FloatParam = floatParam;
 			GroupEvent = groupEvent;
 		}
 
-		public override string ToString() => $"Event {eventId} for item {ItemId} by ball {BallId} ({FloatParam})";
+		public override string ToString() => $"Event {EventId} for item {ItemId} by ball {BallId} ({FloatParam})";
 	}
 }

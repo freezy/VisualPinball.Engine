@@ -23,6 +23,7 @@ using Unity.Mathematics;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using VisualPinball.Engine.Common;
+using VisualPinball.Engine.Game;
 using VisualPinball.Engine.Game.Engines;
 using VisualPinball.Engine.VPT.Trigger;
 using VisualPinballUnity;
@@ -63,38 +64,28 @@ namespace VisualPinball.Unity
 		public bool UpdateDuringGamplay = true;
 
 		// table related
-		private readonly List<IApi> _apis = new List<IApi>();
-		private readonly List<IApiColliderGenerator> _colliderGenerators = new List<IApiColliderGenerator>();
-		private readonly Dictionary<int, IApiHittable> _hittables = new Dictionary<int, IApiHittable>();
-		private readonly Dictionary<int, IApiRotatable> _rotatables = new Dictionary<int, IApiRotatable>();
-		private readonly Dictionary<int, IApiCollidable> _collidables = new Dictionary<int, IApiCollidable>();
-		private readonly Dictionary<int, IApiSpinnable> _spinnables = new Dictionary<int, IApiSpinnable>();
-		private readonly Dictionary<int, IApiSlingshot> _slingshots = new Dictionary<int, IApiSlingshot>();
-		private readonly Dictionary<int, IApiDroppable> _droppables = new Dictionary<int, IApiDroppable>();
-
-		internal readonly Dictionary<int, Transform> FlipperTransforms = new Dictionary<int, Transform>();
-		internal readonly Dictionary<int, Transform> BumperSkirtTransforms = new Dictionary<int, Transform>();
-		internal readonly Dictionary<int, Transform> BumperRingTransforms = new Dictionary<int, Transform>();
-		internal readonly Dictionary<int, Transform> GateWireTransforms = new Dictionary<int, Transform>();
-		internal readonly Dictionary<int, Transform> HitTargetTransforms = new Dictionary<int, Transform>();
-		internal readonly Dictionary<int, Transform> DropTargetTransforms = new Dictionary<int, Transform>();
-		internal readonly Dictionary<int, Transform> SpinnerPlateTransforms = new Dictionary<int, Transform>();
-		internal readonly Dictionary<int, Transform> TriggerTransforms = new Dictionary<int, Transform>();
-		internal readonly Dictionary<int, GameObject> Balls = new Dictionary<int, GameObject>();
+		private readonly List<IApi> _apis = new();
+		private readonly List<IApiColliderGenerator> _colliderGenerators = new();
+		private readonly Dictionary<int, IApiHittable> _hittables = new();
+		private readonly Dictionary<int, IApiRotatable> _rotatables = new();
+		private readonly Dictionary<int, IApiCollidable> _collidables = new();
+		private readonly Dictionary<int, IApiSpinnable> _spinnables = new();
+		private readonly Dictionary<int, IApiSlingshot> _slingshots = new();
+		private readonly Dictionary<int, IApiDroppable> _droppables = new();
 
 		internal IEnumerable<IApiColliderGenerator> ColliderGenerators => _colliderGenerators;
 
 		// input related
 		[NonSerialized] private InputManager _inputManager;
 		[NonSerialized] private VisualPinballSimulationSystemGroup _simulationSystemGroup;
-		[NonSerialized] private readonly List<(InputAction, Action<InputAction.CallbackContext>)> _actions = new List<(InputAction, Action<InputAction.CallbackContext>)>();
+		[NonSerialized] private readonly List<(InputAction, Action<InputAction.CallbackContext>)> _actions = new();
 
 		// players
-		[NonSerialized] private readonly LampPlayer _lampPlayer = new LampPlayer();
-		[NonSerialized] private readonly CoilPlayer _coilPlayer = new CoilPlayer();
-		[NonSerialized] private readonly SwitchPlayer _switchPlayer = new SwitchPlayer();
-		[NonSerialized] private readonly WirePlayer _wirePlayer = new WirePlayer();
-		[NonSerialized] private readonly DisplayPlayer _displayPlayer = new DisplayPlayer();
+		[NonSerialized] private readonly LampPlayer _lampPlayer = new();
+		[NonSerialized] private readonly CoilPlayer _coilPlayer = new();
+		[NonSerialized] private readonly SwitchPlayer _switchPlayer = new();
+		[NonSerialized] private readonly WirePlayer _wirePlayer = new();
+		[NonSerialized] private readonly DisplayPlayer _displayPlayer = new();
 
 		private const float SlowMotionMax = 0.1f;
 		private const float TimeLapseMax = 2.5f;
@@ -103,7 +94,7 @@ namespace VisualPinball.Unity
 		private TableComponent _tableComponent;
 		private PlayfieldComponent _playfieldComponent;
 
-		internal static readonly Entity PlayfieldEntity = new Entity {Index = -3, Version = 0}; // a fake entity we just use for reference
+		internal static readonly Entity PlayfieldEntity = new() {Index = -3, Version = 0}; // a fake entity we just use for reference
 
 		#region Access
 
@@ -218,15 +209,11 @@ namespace VisualPinball.Unity
 		public void RegisterBumper(BumperComponent component)
 		{
 			Register(new BumperApi(component.gameObject, this), component);
-			RegisterTransform<BumperRingAnimationComponent>(BumperRingTransforms, component);
-			RegisterTransform<BumperSkirtAnimationComponent>(BumperSkirtTransforms, component);
 		}
 
 		public void RegisterFlipper(FlipperComponent component)
 		{
 			Register(new FlipperApi(component.gameObject, this), component);
-			FlipperTransforms[component.gameObject.GetInstanceID()] = component.gameObject.transform;
-
 			if (EngineProvider<IDebugUI>.Exists) {
 				EngineProvider<IDebugUI>.Get().OnRegisterFlipper(component.GetInstanceID(), component.gameObject.name);
 			}
@@ -235,13 +222,11 @@ namespace VisualPinball.Unity
 		public void RegisterDropTarget(DropTargetComponent component)
 		{
 			Register(new DropTargetApi(component.gameObject, this), component);
-			RegisterTransform<DropTargetAnimationComponent>(DropTargetTransforms, component);
 		}
 
 		public void RegisterGate(GateComponent component)
 		{
 			Register(new GateApi(component.gameObject, this), component);
-			RegisterTransform<GateWireAnimationComponent>(GateWireTransforms, component);
 		}
 
 		public void RegisterGateLifter(GateLifterComponent component)
@@ -252,7 +237,6 @@ namespace VisualPinball.Unity
 		public void RegisterHitTarget(HitTargetComponent component)
 		{
 			Register(new HitTargetApi(component.gameObject, this), component);
-			RegisterTransform<HitTargetAnimationComponent>(HitTargetTransforms, component);
 		}
 
 		public void RegisterKicker(KickerComponent component)
@@ -314,7 +298,7 @@ namespace VisualPinball.Unity
 
 		public void RegisterPrimitive(PrimitiveComponent component)
 		{
-			Register(new PrimitiveApi(component.gameObject, this), component, component.gameObject.GetInstanceID());
+			Register(new PrimitiveApi(component.gameObject, this), component);
 		}
 
 		public void RegisterRamp(RampComponent component)
@@ -330,7 +314,6 @@ namespace VisualPinball.Unity
 		public void RegisterSpinner(SpinnerComponent component)
 		{
 			Register(new SpinnerApi(component.gameObject, this), component);
-			RegisterTransform<SpinnerPlateAnimationComponent>(SpinnerPlateTransforms, component);
 		}
 
 		public void RegisterSurface(SurfaceComponent component)
@@ -346,7 +329,6 @@ namespace VisualPinball.Unity
 		public void RegisterTrigger(TriggerComponent component)
 		{
 			Register(new TriggerApi(component.gameObject, this), component);
-			TriggerTransforms[component.GetInstanceID()] = component.gameObject.transform;
 		}
 
 		public void RegisterTrigger(TriggerData data, GameObject go)
@@ -366,10 +348,11 @@ namespace VisualPinball.Unity
 			Register(new MetalWireGuideApi(component.gameObject, this), component);
 		}
 
-		private void Register<TApi>(TApi api, MonoBehaviour component, int itemId = 0) where TApi : IApi
+		private void Register<TApi>(TApi api, MonoBehaviour component) where TApi : IApi
 		{
 			TableApi.Register(component, api);
 			_apis.Add(api);
+			var itemId = component.gameObject.GetInstanceID();
 			if (api is IApiRotatable rotatable) {
 				_rotatables[itemId] = rotatable;
 			}
@@ -451,50 +434,49 @@ namespace VisualPinball.Unity
 		public void OnEvent(in EventData eventData)
 		{
 			Debug.Log(eventData);
-			// todo re-enable
-			// switch (eventData.eventId) {
-			// 	case EventId.HitEventsHit:
-			// 		if (!_hittables.ContainsKey(eventData.ItemId)) {
-			// 			Debug.LogError($"Cannot find item {eventData.ItemId} in hittables.");
-			// 		}
-			// 		_hittables[eventData.ItemId].OnHit(eventData.BallId);
-			// 		break;
-			//
-			// 	case EventId.HitEventsUnhit:
-			// 		_hittables[eventData.ItemId].OnHit(eventData.BallId, true);
-			// 		break;
-			//
-			// 	case EventId.LimitEventsBos:
-			// 		_rotatables[eventData.ItemId].OnRotate(eventData.FloatParam, false);
-			// 		break;
-			//
-			// 	case EventId.LimitEventsEos:
-			// 		_rotatables[eventData.ItemId].OnRotate(eventData.FloatParam, true);
-			// 		break;
-			//
-			// 	case EventId.SpinnerEventsSpin:
-			// 		_spinnables[eventData.ItemId].OnSpin();
-			// 		break;
-			//
-			// 	case EventId.FlipperEventsCollide:
-			// 		_collidables[eventData.ItemId].OnCollide(eventData.BallId, eventData.FloatParam);
-			// 		break;
-			//
-			// 	case EventId.SurfaceEventsSlingshot:
-			// 		_slingshots[eventData.ItemId].OnSlingshot(eventData.BallId);
-			// 		break;
-			//
-			// 	case EventId.TargetEventsDropped:
-			// 		_droppables[eventData.ItemId].OnDropStatusChanged(true, eventData.BallId);
-			// 		break;
-			//
-			// 	case EventId.TargetEventsRaised:
-			// 		_droppables[eventData.ItemId].OnDropStatusChanged(false, eventData.BallId);
-			// 		break;
-			//
-			// 	default:
-			// 		throw new InvalidOperationException($"Unknown event {eventData.eventId} for entity {eventData.ItemId}");
-			// }
+			switch (eventData.EventId) {
+				case EventId.HitEventsHit:
+					if (!_hittables.ContainsKey(eventData.ItemId)) {
+						Debug.LogError($"Cannot find item {eventData.ItemId} in hittables.");
+					}
+					_hittables[eventData.ItemId].OnHit(eventData.BallId);
+					break;
+
+				case EventId.HitEventsUnhit:
+					_hittables[eventData.ItemId].OnHit(eventData.BallId, true);
+					break;
+
+				case EventId.LimitEventsBos:
+					_rotatables[eventData.ItemId].OnRotate(eventData.FloatParam, false);
+					break;
+
+				case EventId.LimitEventsEos:
+					_rotatables[eventData.ItemId].OnRotate(eventData.FloatParam, true);
+					break;
+
+				case EventId.SpinnerEventsSpin:
+					_spinnables[eventData.ItemId].OnSpin();
+					break;
+
+				case EventId.FlipperEventsCollide:
+					_collidables[eventData.ItemId].OnCollide(eventData.BallId, eventData.FloatParam);
+					break;
+
+				case EventId.SurfaceEventsSlingshot:
+					_slingshots[eventData.ItemId].OnSlingshot(eventData.BallId);
+					break;
+
+				case EventId.TargetEventsDropped:
+					_droppables[eventData.ItemId].OnDropStatusChanged(true, eventData.BallId);
+					break;
+
+				case EventId.TargetEventsRaised:
+					_droppables[eventData.ItemId].OnDropStatusChanged(false, eventData.BallId);
+					break;
+
+				default:
+					throw new InvalidOperationException($"Unknown event {eventData.EventId} for entity {eventData.ItemId}");
+			}
 		}
 
 		internal void BallCreated(int ballId, GameObject ball) => OnBallCreated?.Invoke(this, new BallEvent(ballId, ball));

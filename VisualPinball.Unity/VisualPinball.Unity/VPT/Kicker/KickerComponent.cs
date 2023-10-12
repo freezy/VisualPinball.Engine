@@ -25,8 +25,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using Unity.Collections;
-using Unity.Entities;
 using Unity.Mathematics;
 using UnityEditor;
 using UnityEngine;
@@ -260,8 +258,6 @@ namespace VisualPinball.Unity
 		#endregion
 
 		#region State
-
-		internal bool HasState => GetComponent<KickerColliderComponent>();
 
 		internal KickerState CreateState()
 		{
