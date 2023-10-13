@@ -84,6 +84,17 @@ namespace VisualPinball.Unity
 
 		#endregion
 
+		#region Runtime
+
+		private void Awake()
+		{
+			// register at player
+			GetComponentInParent<Player>().RegisterRubber(this);
+			GetComponentInParent<PhysicsEngine>().Register(this);
+		}
+
+		#endregion
+
 		#region Transformation
 
 		public override void OnPlayfieldHeightUpdated() => RebuildMeshes();

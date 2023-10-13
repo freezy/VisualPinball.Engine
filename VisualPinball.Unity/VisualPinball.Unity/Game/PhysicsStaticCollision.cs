@@ -17,6 +17,7 @@
 // ReSharper disable ConvertIfStatementToSwitchStatement
 
 using VisualPinball.Engine.VPT;
+using VisualPinball.Unity.Collections;
 
 namespace VisualPinball.Unity
 {
@@ -166,7 +167,7 @@ namespace VisualPinball.Unity
 			if (triggerState.FlipperCorrection.IsEnabled) {
 				if (triggerState.Animation.UnHitEvent) {
 					ref var flipperCorrectionBlob = ref triggerState.FlipperCorrection.Value.Value;
-					ref var fs = ref state.GetFlipperState(flipperCorrectionBlob.FlipperItemId);
+					ref var fs = ref state.FlipperStates.GetValueByRef(flipperCorrectionBlob.FlipperItemId);
 					FlipperCorrection.OnBallLeaveFlipper(ref ball, ref flipperCorrectionBlob, in fs.Movement, in fs.Tricks, in fs.Static, timeMs);
 				}
 			}

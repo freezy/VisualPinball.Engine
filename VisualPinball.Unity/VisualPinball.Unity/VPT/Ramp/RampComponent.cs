@@ -121,6 +121,17 @@ namespace VisualPinball.Unity
 
 		#endregion
 
+		#region Runtime
+
+		private void Awake()
+		{
+			// register at player
+			GetComponentInParent<Player>().RegisterRamp(this);
+			GetComponentInParent<PhysicsEngine>().Register(this);
+		}
+
+		#endregion
+
 		#region Transformation
 
 		public float Height(Vector2 pos) {
