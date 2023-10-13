@@ -18,7 +18,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using NLog;
-using Unity.Entities;
 using Unity.Mathematics;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -26,9 +25,8 @@ using VisualPinball.Engine.Common;
 using VisualPinball.Engine.Game;
 using VisualPinball.Engine.Game.Engines;
 using VisualPinball.Engine.VPT.Trigger;
-using VisualPinballUnity;
-using Logger = NLog.Logger;
 using Color = VisualPinball.Engine.Math.Color;
+using Logger = NLog.Logger;
 
 namespace VisualPinball.Unity
 {
@@ -76,7 +74,6 @@ namespace VisualPinball.Unity
 
 		// input related
 		[NonSerialized] private InputManager _inputManager;
-		[NonSerialized] private VisualPinballSimulationSystemGroup _simulationSystemGroup;
 		[NonSerialized] private readonly List<(InputAction, Action<InputAction.CallbackContext>)> _actions = new();
 
 		// players
@@ -93,8 +90,6 @@ namespace VisualPinball.Unity
 		private TableComponent _tableComponent;
 		private PlayfieldComponent _playfieldComponent;
 		private PhysicsEngine _physicsEngine;
-
-		internal static readonly Entity PlayfieldEntity = new() {Index = -3, Version = 0}; // a fake entity we just use for reference
 
 		#region Access
 
@@ -148,11 +143,6 @@ namespace VisualPinball.Unity
 				_wirePlayer.Awake(_tableComponent, _inputManager, _switchPlayer, this);
 				_displayPlayer.Awake(GamelogicEngine);
 			}
-
-			if (!string.IsNullOrEmpty(debugUiId)) {
-				EngineProvider<IDebugUI>.Set(debugUiId);
-			}
-			_simulationSystemGroup = World.DefaultGameObjectInjectionWorld.GetOrCreateSystemManaged<VisualPinballSimulationSystemGroup>();
 		}
 
 		private void Start()
@@ -172,10 +162,6 @@ namespace VisualPinball.Unity
 			_wirePlayer.OnStart();
 
 			GamelogicEngine?.OnInit(this, TableApi, BallManager);
-
-			if (EngineProvider<IDebugUI>.Exists) {
-				EngineProvider<IDebugUI>.Get().Init(_tableComponent);
-			}
 		}
 
 		private void Update()
@@ -213,9 +199,6 @@ namespace VisualPinball.Unity
 		public void RegisterFlipper(FlipperComponent component)
 		{
 			Register(new FlipperApi(component.gameObject, this, _physicsEngine), component);
-			if (EngineProvider<IDebugUI>.Exists) {
-				EngineProvider<IDebugUI>.Get().OnRegisterFlipper(component.GetInstanceID(), component.gameObject.name);
-			}
 		}
 
 		public void RegisterDropTarget(DropTargetComponent component)
@@ -426,9 +409,8 @@ namespace VisualPinball.Unity
 
 		#region Events
 
-		public void Queue(Action action) => _simulationSystemGroup.QueueBeforeBallCreation(action);
-		public void ScheduleAction(int timeMs, Action action) => _simulationSystemGroup.ScheduleAction(timeMs, action);
-		public void ScheduleAction(uint timeMs, Action action) => _simulationSystemGroup.ScheduleAction(timeMs, action);
+		public void ScheduleAction(int timeMs, Action action) => _physicsEngine.ScheduleAction(timeMs, action);
+		public void ScheduleAction(uint timeMs, Action action) => _physicsEngine.ScheduleAction(timeMs, action);
 
 		public void OnEvent(in EventData eventData)
 		{

@@ -74,7 +74,7 @@ namespace VisualPinball.Unity
 		private const string SwMotorEnd = "s_motor_end";
 
 		public GamelogicEngineSwitch[] RequestedSwitches => _availableSwitches.ToArray();
-		private readonly List<GamelogicEngineSwitch> _availableSwitches = new List<GamelogicEngineSwitch> {
+		private readonly List<GamelogicEngineSwitch> _availableSwitches = new() {
 			new GamelogicEngineSwitch(SwLeftFlipper) { Description = "Left Flipper (Button)", InputActionHint = InputConstants.ActionLeftFlipper },
 			new GamelogicEngineSwitch(SwRightFlipper) { Description = "Right Flipper (Button)", InputActionHint = InputConstants.ActionRightFlipper },
 			new GamelogicEngineSwitch(SwTroughDrain) { Description = "Trough Drain", DeviceHint = "^Trough\\s*\\d?", DeviceItemHint = TroughComponent.EntrySwitchId },
@@ -102,7 +102,8 @@ namespace VisualPinball.Unity
 		public DisplayConfig[] RequiredDisplays => new[] { new DisplayConfig(DisplayDmd, DmdWidth, DmdHeight) };
 
 		public GamelogicEngineCoil[] RequestedCoils => _availableCoils.ToArray();
-		private readonly List<GamelogicEngineCoil> _availableCoils = new List<GamelogicEngineCoil> {
+		private readonly List<GamelogicEngineCoil> _availableCoils = new()
+		{
 			new GamelogicEngineCoil(CoilLeftFlipperMain) { Description = "Left Flipper (Main)", DeviceHint = "^(LeftFlipper|LFlipper|FlipperLeft|FlipperL)$", DeviceItemHint = FlipperComponent.MainCoilItem },
 			new GamelogicEngineCoil(CoilLeftFlipperHold) { Description = "Left Flipper (Hold)", DeviceHint = "^(LeftFlipper|LFlipper|FlipperLeft|FlipperL)$", DeviceItemHint = FlipperComponent.HoldCoilItem },
 			new GamelogicEngineCoil(CoilRightFlipperMain) { Description = "Right Flipper (Main)", DeviceHint = "^(RightFlipper|RFlipper|FlipperRight|FlipperR)$", DeviceItemHint = FlipperComponent.MainCoilItem },
@@ -113,8 +114,8 @@ namespace VisualPinball.Unity
 		};
 
 		public GamelogicEngineWire[] AvailableWires { get; } = {
-			new GamelogicEngineWire(SwLeftFlipper, CoilLeftFlipperMain, DestinationType.Coil, "Left Flipper"),
-			new GamelogicEngineWire(SwRightFlipper, CoilRightFlipperMain, DestinationType.Coil, "Right Flipper"),
+			new(SwLeftFlipper, CoilLeftFlipperMain, DestinationType.Coil, "Left Flipper"),
+			new(SwRightFlipper, CoilRightFlipperMain, DestinationType.Coil, "Right Flipper"),
 		};
 
 		private const string GiSlingshotRightLower = "gi_1";
@@ -137,23 +138,23 @@ namespace VisualPinball.Unity
 		private const string LampRedBumper = "l_bumper";
 
 		public GamelogicEngineLamp[] RequestedLamps { get; } = {
-			new GamelogicEngineLamp(GiSlingshotRightLower) { Description = "Right Slingshot (lower)", DeviceHint = "gi1$" },
-			new GamelogicEngineLamp(GiSlingshotRightUpper) { Description = "Right Slingshot (upper)", DeviceHint = "gi2$" },
-			new GamelogicEngineLamp(GiSlingshotLeftLower) { Description = "Left Slingshot (lower)", DeviceHint = "gi3$" },
-			new GamelogicEngineLamp(GiSlingshotLeftUpper) { Description = "Left Slingshot (upper)", DeviceHint = "gi4$" },
-			new GamelogicEngineLamp(GiDropTargetsRightLower) { Description = "Right Drop Targets (lower)", DeviceHint = "gi5$" },
-			new GamelogicEngineLamp(GiDropTargetsRightUpper) { Description = "Right Drop Targets (upper)", DeviceHint = "gi8$" },
-			new GamelogicEngineLamp(GiDropTargetsLeftLower) { Description = "Left Drop Targets (lower)", DeviceHint = "gi6$" },
-			new GamelogicEngineLamp(GiDropTargetsLeftUpper) { Description = "Left Drop Targets (upper)", DeviceHint = "gi7$" },
-			new GamelogicEngineLamp(GiTop1) { Description = "Top 1 (left)", DeviceHint = "gi13$" },
-			new GamelogicEngineLamp(GiTop2) { Description = "Top 2", DeviceHint = "gi10$" },
-			new GamelogicEngineLamp(GiTop3) { Description = "Top 3", DeviceHint = "gi9$" },
-			new GamelogicEngineLamp(GiTop4) { Description = "Top 4", DeviceHint = "gi11$" },
-			new GamelogicEngineLamp(GiTop5) { Description = "Top 5 (right)", DeviceHint = "gi12$" },
-			new GamelogicEngineLamp(GiLowerRamp) { Description = "Ramp (lower)", DeviceHint = "gi14$" },
-			new GamelogicEngineLamp(GiUpperRamp) { Description = "Ramp (upper)", DeviceHint = "gi15$" },
-			new GamelogicEngineLamp(GiTopLeftPlastic) { Description = "Top Left Plastics", DeviceHint = "gi16$" },
-			new GamelogicEngineLamp(LampRedBumper) { Description = "Red Bumper", DeviceHint = "^b1l2$" }
+			new(GiSlingshotRightLower) { Description = "Right Slingshot (lower)", DeviceHint = "gi1$" },
+			new(GiSlingshotRightUpper) { Description = "Right Slingshot (upper)", DeviceHint = "gi2$" },
+			new(GiSlingshotLeftLower) { Description = "Left Slingshot (lower)", DeviceHint = "gi3$" },
+			new(GiSlingshotLeftUpper) { Description = "Left Slingshot (upper)", DeviceHint = "gi4$" },
+			new(GiDropTargetsRightLower) { Description = "Right Drop Targets (lower)", DeviceHint = "gi5$" },
+			new(GiDropTargetsRightUpper) { Description = "Right Drop Targets (upper)", DeviceHint = "gi8$" },
+			new(GiDropTargetsLeftLower) { Description = "Left Drop Targets (lower)", DeviceHint = "gi6$" },
+			new(GiDropTargetsLeftUpper) { Description = "Left Drop Targets (upper)", DeviceHint = "gi7$" },
+			new(GiTop1) { Description = "Top 1 (left)", DeviceHint = "gi13$" },
+			new(GiTop2) { Description = "Top 2", DeviceHint = "gi10$" },
+			new(GiTop3) { Description = "Top 3", DeviceHint = "gi9$" },
+			new(GiTop4) { Description = "Top 4", DeviceHint = "gi11$" },
+			new(GiTop5) { Description = "Top 5 (right)", DeviceHint = "gi12$" },
+			new(GiLowerRamp) { Description = "Ramp (lower)", DeviceHint = "gi14$" },
+			new(GiUpperRamp) { Description = "Ramp (upper)", DeviceHint = "gi15$" },
+			new(GiTopLeftPlastic) { Description = "Top Left Plastics", DeviceHint = "gi16$" },
+			new(LampRedBumper) { Description = "Red Bumper", DeviceHint = "^b1l2$" }
 		};
 
 		private Player _player;
@@ -162,7 +163,7 @@ namespace VisualPinball.Unity
 		private PlayfieldComponent _playfieldComponent;
 		private const float FlipperLag = 0.5f;
 
-		private readonly Dictionary<string, Stopwatch> _switchTime = new Dictionary<string, Stopwatch>();
+		private readonly Dictionary<string, Stopwatch> _switchTime = new();
 
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
