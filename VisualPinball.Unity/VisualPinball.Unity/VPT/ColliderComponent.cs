@@ -20,10 +20,10 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using NativeTrees;
-using Unity.Entities;
-using Unity.Mathematics;
 using Unity.Collections;
 using Unity.Jobs;
+using Unity.Mathematics;
+using UnityEditor;
 using UnityEngine;
 using UnityEngine.Profiling;
 using VisualPinball.Engine.VPT;
@@ -57,8 +57,6 @@ namespace VisualPinball.Unity
 		public int SelectedCollider = -1;
 
 		public bool CollidersDirty { set => _collidersDirty = value; }
-
-		private readonly Entity _colliderEntity = Player.PlayfieldEntity;
 
 		[NonSerialized] private Mesh _colliderMesh;
 		[NonSerialized] private readonly List<ICollider> _nonMeshColliders = new List<ICollider>();
@@ -122,7 +120,7 @@ namespace VisualPinball.Unity
 			}
 			var ltw = GetComponentInParent<PlayfieldComponent>().transform.localToWorldMatrix;
 			Gizmos.matrix = ltw * (Matrix4x4)Physics.VpxToWorld;
-			UnityEditor.Handles.matrix = Gizmos.matrix;
+			Handles.matrix = Gizmos.matrix;
 			
 			var generateColliders = ShowAabbs || showColliders && !HasCachedColliders;
 			if (generateColliders) {
@@ -171,7 +169,7 @@ namespace VisualPinball.Unity
 			if (showColliders) {
 				
 				var color = Color.green;
-				UnityEditor.Handles.color = color;
+				Handles.color = color;
 				color.a = 0.3f;
 				Gizmos.color = color;
 				Gizmos.DrawMesh(_colliderMesh);
@@ -183,7 +181,7 @@ namespace VisualPinball.Unity
 			}
 			
 			Gizmos.matrix = Matrix4x4.identity;
-			UnityEditor.Handles.matrix = Matrix4x4.identity;
+			Handles.matrix = Matrix4x4.identity;
 
 			Profiler.EndSample();
 		}
@@ -193,7 +191,7 @@ namespace VisualPinball.Unity
 		private Mesh GenerateColliderMesh(ref ColliderReference colliders)
 		{
 			var color = Color.green;
-			UnityEditor.Handles.color = color;
+			Handles.color = color;
 			color.a = 0.3f;
 			Gizmos.color = color;
 			var vertices = new List<Vector3>();
@@ -313,7 +311,7 @@ namespace VisualPinball.Unity
 		private static void DrawLine(Vector3 p1, Vector3 p2)
 		{
 			const int thickness = 10;
-			UnityEditor.Handles.DrawAAPolyLine(thickness, p1, p2);
+			Handles.DrawAAPolyLine(thickness, p1, p2);
 		}
 
 		private static void AddCollider(LineZCollider lineZCol, ICollection<Vector3> vertices, ICollection<Vector3> normals, ICollection<int> indices)

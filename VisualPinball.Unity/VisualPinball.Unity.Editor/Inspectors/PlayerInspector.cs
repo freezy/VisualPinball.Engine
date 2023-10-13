@@ -28,7 +28,6 @@ namespace VisualPinball.Unity.Editor
 		private string[] _physicsEngineNames;
 		private int _physicsEngineIndex;
 
-		private IDebugUI[] _debugUIs;
 		private string[] _debugUINames;
 		private int _debugUIIndex;
 
@@ -49,7 +48,6 @@ namespace VisualPinball.Unity.Editor
 			if (player == null) {
 				return;
 			}
-			DrawEngineSelector("Debug UI", ref player.debugUiId, ref _debugUIs, ref _debugUINames, ref _debugUIIndex);
 
 			if (_toggleDebug = EditorGUILayout.BeginFoldoutHeaderGroup(_toggleDebug, "Debug"))
 			{

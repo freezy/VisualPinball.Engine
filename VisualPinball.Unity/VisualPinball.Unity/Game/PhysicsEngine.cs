@@ -61,12 +61,21 @@ namespace VisualPinball.Unity
 		#endregion
 
 		[NonSerialized] private readonly Queue<InputAction> _inputActions = new();
+		[NonSerialized] private readonly List<ScheduledAction> _scheduledActions = new();
 
 		[NonSerialized] private Player _player;
 
 		private static ulong NowUsec => (ulong)(Time.timeAsDouble * 1000000);
 
 		#region API
+
+		public void ScheduleAction(int timeoutMs, Action action) => ScheduleAction((uint)timeoutMs, action);
+		public void ScheduleAction(uint timeoutMs, Action action)
+		{
+			lock (_scheduledActions) {
+				_scheduledActions.Add(new ScheduledAction(_physicsEnv[0].CurPhysicsFrameTime + (ulong)timeoutMs * 1000, action));
+			}
+		}
 
 		internal delegate void InputAction(ref PhysicsState state);
 
@@ -201,6 +210,16 @@ namespace VisualPinball.Unity
 				_player.OnEvent(in eventData);
 			}
 
+			// process scheduled events from managed land
+			lock (_scheduledActions) {
+				for (var i = _scheduledActions.Count - 1; i >= 0; i--) {
+					if (_physicsEnv[0].CurPhysicsFrameTime > _scheduledActions[i].ScheduleAt) {
+						_scheduledActions[i].Action();
+						_scheduledActions.RemoveAt(i);
+					}
+				}
+			}
+
 			// retrieve updated data
 			_ballStates = updatePhysics.Balls;
 			_physicsEnv = updatePhysics.PhysicsEnv;
@@ -332,5 +351,17 @@ namespace VisualPinball.Unity
 		}
 
 		#endregion
+
+		private class ScheduledAction
+		{
+			public readonly ulong ScheduleAt;
+			public readonly Action Action;
+
+			public ScheduledAction(ulong scheduleAt, Action action)
+			{
+				ScheduleAt = scheduleAt;
+				Action = action;
+			}
+		}
 	}
 }
