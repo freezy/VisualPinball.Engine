@@ -25,7 +25,6 @@ namespace VisualPinball.Unity.Editor
 	[CanEditMultipleObjects]
 	public class PlayerInspector : UnityEditor.Editor
 	{
-		private IPhysicsEngine[] _physicsEngines;
 		private string[] _physicsEngineNames;
 		private int _physicsEngineIndex;
 
@@ -50,7 +49,6 @@ namespace VisualPinball.Unity.Editor
 			if (player == null) {
 				return;
 			}
-			DrawEngineSelector("Physics Engine", ref player.physicsEngineId, ref _physicsEngines, ref _physicsEngineNames, ref _physicsEngineIndex);
 			DrawEngineSelector("Debug UI", ref player.debugUiId, ref _debugUIs, ref _debugUINames, ref _debugUIIndex);
 
 			if (_toggleDebug = EditorGUILayout.BeginFoldoutHeaderGroup(_toggleDebug, "Debug"))

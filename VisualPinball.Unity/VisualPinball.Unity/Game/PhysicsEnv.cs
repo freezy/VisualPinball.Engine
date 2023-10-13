@@ -27,6 +27,7 @@ namespace VisualPinball.Unity
 		public readonly ulong StartTimeUsec;
 		public ulong CurPhysicsFrameTime;
 		public ulong NextPhysicsFrameTime;
+		public uint TimeMsec;
 
 		public Random Random;
 

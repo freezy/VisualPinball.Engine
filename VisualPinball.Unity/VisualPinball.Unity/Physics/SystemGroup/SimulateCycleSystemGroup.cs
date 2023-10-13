@@ -42,8 +42,6 @@ namespace VisualPinballUnity
 
 		public NativeHashMap<Entity, bool> ItemsColliding;
 
-		public DefaultPhysicsEngine PhysicsEngine;
-
 		public override IReadOnlyList<ComponentSystemBase> Systems => _systemsToUpdate;
 		public NativeList<ContactBufferElement> Contacts;
 
@@ -153,13 +151,6 @@ namespace VisualPinballUnity
 
 				SwapBallCollisionHandling = !SwapBallCollisionHandling;
 				++numSteps;
-			}
-
-			// debug ui update
-			if (EngineProvider<IDebugUI>.Exists) {
-				PhysicsEngine.UpdateDebugFlipperStates();
-				PhysicsEngine.PushPendingCreateBallNotifications();
-				EngineProvider<IDebugUI>.Get().OnPhysicsUpdate(_simulationSystemGroup.CurrentPhysicsTime, numSteps, (float)_simulationTime.Elapsed.TotalMilliseconds);
 			}
 		}
 
