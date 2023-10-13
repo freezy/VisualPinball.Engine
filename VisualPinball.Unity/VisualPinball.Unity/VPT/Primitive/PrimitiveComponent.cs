@@ -246,6 +246,8 @@ namespace VisualPinball.Unity
 		private void Awake()
 		{
 			_originalRotateZ = ObjectRotation.z;
+			GetComponentInParent<Player>().RegisterPrimitive(this);
+			GetComponentInParent<PhysicsEngine>().Register(this);
 		}
 
 		#endregion

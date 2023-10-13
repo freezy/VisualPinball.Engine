@@ -313,13 +313,6 @@ namespace VisualPinball.Unity
 			Register(new TriggerApi(component.gameObject, this, _physicsEngine), component);
 		}
 
-		public void RegisterTrigger(TriggerData data, GameObject go)
-		{
-			var component = go.AddComponent<TriggerComponent>();
-			component.SetData(data);
-			Register(new TriggerApi(go, this, _physicsEngine), component);
-		}
-
 		public void RegisterTrough(TroughComponent component)
 		{
 			Register(new TroughApi(component.gameObject, this, _physicsEngine), component);
@@ -418,7 +411,7 @@ namespace VisualPinball.Unity
 			switch (eventData.EventId) {
 				case EventId.HitEventsHit:
 					if (!_hittables.ContainsKey(eventData.ItemId)) {
-						Debug.LogError($"Cannot find item {eventData.ItemId} in hittables.");
+						Debug.LogError($"Cannot find {eventData.ItemId} in hittables.");
 					}
 					_hittables[eventData.ItemId].OnHit(eventData.BallId);
 					break;

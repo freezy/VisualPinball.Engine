@@ -718,6 +718,7 @@ namespace VisualPinball.Unity
 
 			// need to explicitly register, since awake was called before the components were added.
 			GetComponentInParent<PhysicsEngine>().Register(triggerComponent);
+			GetComponentInParent<Player>().RegisterTrigger(triggerComponent);
 		}
 
 		#endregion

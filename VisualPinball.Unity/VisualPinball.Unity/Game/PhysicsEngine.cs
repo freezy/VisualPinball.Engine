@@ -33,10 +33,10 @@ namespace VisualPinball.Unity
 		#region States
 
 		[NonSerialized] private InsideOfs _insideOfs;
-		[NonSerialized] private NativeArray<PhysicsEnv> _physicsEnv;
 		[NonSerialized] private NativeOctree<int> _octree;
-		[NonSerialized] private NativeQueue<EventData> _eventQueue;
 		[NonSerialized] private BlobAssetReference<ColliderBlob> _colliders;
+		[NonSerialized] private NativeArray<PhysicsEnv> _physicsEnv = new(1, Allocator.Persistent);
+		[NonSerialized] private NativeQueue<EventData> _eventQueue = new(Allocator.Persistent);
 
 		[NonSerialized] private NativeParallelHashMap<int, BallData> _ballStates = new(0, Allocator.Persistent);
 		[NonSerialized] private NativeParallelHashMap<int, BumperState> _bumperStates = new(0, Allocator.Persistent);
@@ -121,13 +121,11 @@ namespace VisualPinball.Unity
 		{
 			_player = GetComponent<Player>();
 			_insideOfs = new InsideOfs(Allocator.Persistent);
+			_physicsEnv[0] = new PhysicsEnv(NowUsec, GetComponent<Player>());
 		}
 
 		private void Start()
 		{
-			// init state
-			var env = new PhysicsEnv(NowUsec, GetComponent<Player>());
-
 			// create static octree
 			var sw = Stopwatch.StartNew();
 			var colliderItems = GetComponentsInChildren<ICollidableComponent>();
@@ -159,10 +157,6 @@ namespace VisualPinball.Unity
 			foreach (var ball in balls) {
 				Register(ball);
 			}
-
-			_eventQueue = new NativeQueue<EventData>(Allocator.Persistent);
-			_physicsEnv = new NativeArray<PhysicsEnv>(1, Allocator.Persistent);
-			_physicsEnv[0] = env;
 		}
 
 		private void Update()
