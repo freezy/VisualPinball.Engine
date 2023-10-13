@@ -14,11 +14,8 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-using System.Collections.Generic;
-using Unity.Entities;
 using UnityEngine;
 using VisualPinball.Engine.VPT;
-using VisualPinballUnity;
 
 namespace VisualPinball.Unity
 {
@@ -42,17 +39,9 @@ namespace VisualPinball.Unity
 		protected readonly int ItemId;
 		protected readonly TCollidableComponent ColliderComponent;
 
-		private protected EntityManager EntityManager;
-		private readonly SimulateCycleSystemGroup _simulateCycleSystemGroup;
-
 		protected CollidableApi(GameObject go, Player player, PhysicsEngine physicsEngine) : base(go, player, physicsEngine)
 		{
-			if (World.DefaultGameObjectInjectionWorld != null) {
-				_simulateCycleSystemGroup = World.DefaultGameObjectInjectionWorld.GetOrCreateSystemManaged<SimulateCycleSystemGroup>();
-			}
-			EntityManager = World.DefaultGameObjectInjectionWorld != null ? World.DefaultGameObjectInjectionWorld.EntityManager : default;
 			ItemId = go.GetInstanceID();
-
 			ColliderComponent = go.GetComponent<TCollidableComponent>();
 		}
 

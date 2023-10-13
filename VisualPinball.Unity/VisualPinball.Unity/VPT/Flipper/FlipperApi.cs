@@ -112,6 +112,8 @@ namespace VisualPinball.Unity
 			state.Solenoid.Value = false;
 		}
 
+		internal ref FlipperState State => ref PhysicsEngine.FlipperState(ItemId);
+
 		internal float StartAngle
 		{
 			set {
