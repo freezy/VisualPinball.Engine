@@ -94,7 +94,11 @@ namespace VisualPinball.Unity
 		/// </summary>
 		public void RotateToEnd()
 		{
-			EngineProvider<IPhysicsEngine>.Get().FlipperRotateToEnd(ItemId);
+			ref var state = ref PhysicsEngine.FlipperState(ItemId);
+			state.Movement.EnableRotateEvent = 1;
+			state.Movement.StartRotateToEndTime =  PhysicsEngine.TimeMsec;
+			state.Movement.AngleAtRotateToEnd = state.Movement.Angle;
+			state.Solenoid.Value = true;
 		}
 
 		/// <summary>
@@ -103,7 +107,9 @@ namespace VisualPinball.Unity
 		/// </summary>
 		public void RotateToStart()
 		{
-			EngineProvider<IPhysicsEngine>.Get().FlipperRotateToStart(ItemId);
+			ref var state = ref PhysicsEngine.FlipperState(ItemId);
+			state.Movement.EnableRotateEvent = -1;
+			state.Solenoid.Value = false;
 		}
 
 		internal float StartAngle

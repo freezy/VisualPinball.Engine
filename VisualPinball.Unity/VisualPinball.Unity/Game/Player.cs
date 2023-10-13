@@ -58,7 +58,6 @@ namespace VisualPinball.Unity
 		public event EventHandler<BallEvent> OnBallDestroyed;
 
 		[HideInInspector] [SerializeField] public string debugUiId;
-		[HideInInspector] [SerializeField] public string physicsEngineId;
 
 		[Tooltip("When enabled, update the switch, coil, lamp and wire manager windows in the editor (slower performance)")]
 		public bool UpdateDuringGamplay = true;
@@ -150,8 +149,6 @@ namespace VisualPinball.Unity
 				_displayPlayer.Awake(GamelogicEngine);
 			}
 
-			EngineProvider<IPhysicsEngine>.Set(physicsEngineId);
-			EngineProvider<IPhysicsEngine>.Get().Init(_tableComponent, BallManager);
 			if (!string.IsNullOrEmpty(debugUiId)) {
 				EngineProvider<IDebugUI>.Set(debugUiId);
 			}
