@@ -158,7 +158,7 @@ namespace VisualPinball.Unity
 				var colliderBlob = allocateColliderJob.BlobAsset[0];
 				allocateColliderJob.Dispose();
 		
-				var populateJob = new PopulatePhysicsJob {
+				var populateJob = new PhysicsPopulateJob {
 					Colliders = colliderBlob,
 					Octree = octree, 
 				};
