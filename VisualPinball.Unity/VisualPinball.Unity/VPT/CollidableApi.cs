@@ -41,7 +41,7 @@ namespace VisualPinball.Unity
 
 		protected CollidableApi(GameObject go, Player player, PhysicsEngine physicsEngine) : base(go, player, physicsEngine)
 		{
-			ItemId = go.GetInstanceID();
+			ItemId = MainComponent.gameObject.GetInstanceID();
 			ColliderComponent = go.GetComponent<TCollidableComponent>();
 		}
 
@@ -74,7 +74,6 @@ namespace VisualPinball.Unity
 				ItemId = ItemId,
 				ItemType = itemType,
 				FireEvents = FireHitEvents,
-				IsEnabled = ColliderComponent && ColliderComponent.isActiveAndEnabled,
 				Material = ColliderComponent.PhysicsMaterialData,
 				HitThreshold = HitThreshold,
 			};

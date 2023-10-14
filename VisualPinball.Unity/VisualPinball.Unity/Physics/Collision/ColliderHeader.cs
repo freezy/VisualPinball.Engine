@@ -35,7 +35,6 @@ namespace VisualPinball.Unity
 
 		public float Threshold;
 		public bool FireEvents;
-		public bool IsEnabled;
 
 		/// <summary>
 		/// Some colliders only collide with "primitives", which aren't only
@@ -64,7 +63,6 @@ namespace VisualPinball.Unity
 			Material = info.Material;
 			Threshold = info.HitThreshold;
 			FireEvents = info.FireEvents;
-			IsEnabled = info.IsEnabled;
 		}
 	}
 }

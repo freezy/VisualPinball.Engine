@@ -34,6 +34,9 @@ namespace VisualPinball.Unity
 			ball.CollisionEvent.ClearCollider(hitTime); // search upto current hit time
 
 			for (var i = 0; i < overlappingColliders.Length; i++) {
+				if (!state.IsColliderActive(overlappingColliders[i])) {
+					continue;
+				}
 				var newCollEvent = new CollisionEventData();
 				var newTime = state.HitTest(overlappingColliders[i], ref ball, ref newCollEvent, ref contacts, ref state);
 				SaveCollisions(ref ball, ref newCollEvent, ref contacts, overlappingColliders[i], newTime);

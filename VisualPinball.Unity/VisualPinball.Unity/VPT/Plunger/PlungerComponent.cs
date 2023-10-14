@@ -294,7 +294,6 @@ namespace VisualPinball.Unity
 			var info = new ColliderInfo {
 				ItemId = GetInstanceID(),
 				FireEvents = true,
-				IsEnabled = true,
 				ItemType = ItemType.Plunger,
 			};
 
