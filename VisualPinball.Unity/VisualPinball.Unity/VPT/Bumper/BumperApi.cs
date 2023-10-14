@@ -56,12 +56,11 @@ namespace VisualPinball.Unity
 		void IApiSwitch.RemoveWireDest(string destId) => RemoveWireDest(destId);
 		void IApiCoil.OnCoil(bool enabled)
 		{
-			// fixme job
-			// if (enabled) {
-			// 	var ringAnimation = EntityManager.GetComponentData<BumperRingAnimationData>(Entity);
-			// 	ringAnimation.IsHit = true;
-			// 	EntityManager.SetComponentData(Entity, ringAnimation);
-			// }
+			if (!enabled) {
+				return;
+			}
+			ref var bumperState = ref PhysicsEngine.BumperState(ItemId);
+			bumperState.RingAnimation.IsHit = true;
 		}
 
 		void IApiWireDest.OnChange(bool enabled) => (this as IApiCoil).OnCoil(enabled);

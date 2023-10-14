@@ -25,17 +25,6 @@ namespace VisualPinball.Unity
 		where TCollidableComponent : ColliderComponent<TData, TComponent>
 		where TData : ItemData
 	{
-		public bool IsCollidable
-		{
-			get => true; // fixme job _simulateCycleSystemGroup != null && _simulateCycleSystemGroup.ItemsColliding[Entity];
-			set {
-				// fixme job
-				// if (_simulateCycleSystemGroup != null) {
-				// 	_simulateCycleSystemGroup.ItemsColliding[Entity] = value;
-				// }
-			}
-		}
-
 		protected readonly int ItemId;
 		protected readonly TCollidableComponent ColliderComponent;
 

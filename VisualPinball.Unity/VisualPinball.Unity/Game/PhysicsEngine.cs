@@ -81,9 +81,16 @@ namespace VisualPinball.Unity
 
 		internal void Schedule(InputAction action) => _inputActions.Enqueue(action);
 		internal ref BallData BallState(int itemId) => ref _ballStates.GetValueByRef(itemId);
+		internal ref BumperState BumperState(int itemId) => ref _bumperStates.GetValueByRef(itemId);
 		internal ref FlipperState FlipperState(int itemId) => ref _flipperStates.GetValueByRef(itemId);
+		internal ref GateState GateState(int itemId) => ref _gateStates.GetValueByRef(itemId);
+		internal ref DropTargetState DropTargetState(int itemId) => ref _dropTargetStates.GetValueByRef(itemId);
+		internal ref HitTargetState HitTargetState(int itemId) => ref _hitTargetStates.GetValueByRef(itemId);
 		internal ref KickerState KickerState(int itemId) => ref _kickerStates.GetValueByRef(itemId);
 		internal ref PlungerState PlungerState(int itemId) => ref _plungerStates.GetValueByRef(itemId);
+		internal ref SpinnerState SpinnerState(int itemId) => ref _spinnerStates.GetValueByRef(itemId);
+		internal ref SurfaceState SurfaceState(int itemId) => ref _surfaceStates.GetValueByRef(itemId);
+		internal ref TriggerState TriggerState(int itemId) => ref _triggerStates.GetValueByRef(itemId);
 		internal void SetBallInsideOf(int ballId, int itemId) => _insideOfs.SetInsideOf(itemId, ballId);
 		internal uint TimeMsec => _physicsEnv[0].TimeMsec;
 		internal void Register<T>(T item) where T : MonoBehaviour

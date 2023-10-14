@@ -220,7 +220,7 @@ namespace VisualPinball.Unity
 
 		public void RegisterGateLifter(GateLifterComponent component)
 		{
-			Register(new GateLifterApi(component.gameObject, this), component);
+			Register(new GateLifterApi(component.gameObject, this, PhysicsEngine), component);
 		}
 
 		public void RegisterHitTarget(HitTargetComponent component)
