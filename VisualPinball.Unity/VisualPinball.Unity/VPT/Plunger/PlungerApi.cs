@@ -15,8 +15,6 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using System;
-using System.Collections.Generic;
-using Unity.Entities;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using VisualPinball.Engine.VPT.Plunger;
@@ -67,11 +65,9 @@ namespace VisualPinball.Unity
 
 		internal void OnAnalogPlunge(InputAction.CallbackContext ctx)
 		{
-			// fixme job
-			// var pos = ctx.ReadValue<float>(); // 0 = resting pos, 1 = pulled back
-			// var movementData = EntityManager.GetComponentData<PlungerMovementData>(Entity);
-			// movementData.AnalogPosition = pos;
-			// EntityManager.SetComponentData(Entity, movementData);
+			var pos = ctx.ReadValue<float>(); // 0 = resting pos, 1 = pulled back
+			ref var plungerState = ref PhysicsEngine.PlungerState(ItemId);
+			plungerState.Movement.AnalogPosition = pos;
 		}
 
 		void IApi.OnInit(BallManager ballManager)
@@ -89,57 +85,46 @@ namespace VisualPinball.Unity
 
 		public void PullBack()
 		{
-			// fixme job
-			// var collComponent = GameObject.GetComponent<PlungerColliderComponent>();
-			// if (!collComponent) {
-			// 	return;
-			// }
-			// var movementData = EntityManager.GetComponentData<PlungerMovementData>(Entity);
-			// var velocityData = EntityManager.GetComponentData<PlungerVelocityData>(Entity);
-			//
-			// if (DoRetract) {
-			// 	PlungerCommands.PullBackAndRetract(collComponent.SpeedPull, ref velocityData, ref movementData);
-			//
-			// } else {
-			// 	PlungerCommands.PullBack(collComponent.SpeedPull, ref velocityData, ref movementData);
-			// }
-			//
-			// EntityManager.SetComponentData(Entity, movementData);
-			// EntityManager.SetComponentData(Entity, velocityData);
+			var collComponent = GameObject.GetComponent<PlungerColliderComponent>();
+			if (!collComponent) {
+				return;
+			}
+
+			ref var plungerState = ref PhysicsEngine.PlungerState(ItemId);
+			if (DoRetract) {
+				PlungerCommands.PullBackAndRetract(collComponent.SpeedPull, ref plungerState.Velocity, ref plungerState.Movement);
+
+			} else {
+				PlungerCommands.PullBack(collComponent.SpeedPull, ref plungerState.Velocity, ref plungerState.Movement);
+			}
 		}
 
 		public void Fire()
 		{
-			// fixme job
-			// var collComponent = GameObject.GetComponent<PlungerColliderComponent>();
-			// if (!collComponent) {
-			// 	return;
-			// }
-			// var movementData = EntityManager.GetComponentData<PlungerMovementData>(Entity);
-			// var velocityData = EntityManager.GetComponentData<PlungerVelocityData>(Entity);
-			// var staticData = EntityManager.GetComponentData<PlungerStaticData>(Entity);
-			//
-			// // check for an auto plunger
-			// if (collComponent.IsAutoPlunger) {
-			// 	// Auto Plunger - this models a "Launch Ball" button or a
-			// 	// ROM-controlled launcher, rather than a player-operated
-			// 	// spring plunger.  In a physical machine, this would be
-			// 	// implemented as a solenoid kicker, so the amount of force
-			// 	// is constant (modulo some mechanical randomness).  Simulate
-			// 	// this by triggering a release from the maximum retracted
-			// 	// position.
-			// 	PlungerCommands.Fire(1f, ref velocityData, ref movementData, in staticData);
-			//
-			// } else {
-			// 	// Regular plunger - trigger a release from the current
-			// 	// position, using the keyboard firing strength.
-			//
-			// 	var pos = (movementData.Position - staticData.FrameEnd) / (staticData.FrameStart - staticData.FrameEnd);
-			// 	PlungerCommands.Fire(pos, ref velocityData, ref movementData, in staticData);
-			// }
-			//
-			// EntityManager.SetComponentData(Entity, movementData);
-			// EntityManager.SetComponentData(Entity, velocityData);
+			var collComponent = GameObject.GetComponent<PlungerColliderComponent>();
+			if (!collComponent) {
+				return;
+			}
+			ref var plungerState = ref PhysicsEngine.PlungerState(ItemId);
+
+			// check for an auto plunger
+			if (collComponent.IsAutoPlunger) {
+				// Auto Plunger - this models a "Launch Ball" button or a
+				// ROM-controlled launcher, rather than a player-operated
+				// spring plunger.  In a physical machine, this would be
+				// implemented as a solenoid kicker, so the amount of force
+				// is constant (modulo some mechanical randomness).  Simulate
+				// this by triggering a release from the maximum retracted
+				// position.
+				PlungerCommands.Fire(1f, ref plungerState.Velocity, ref plungerState.Movement, in plungerState.Static);
+
+			} else {
+				// Regular plunger - trigger a release from the current
+				// position, using the keyboard firing strength.
+
+				var pos = (plungerState.Movement.Position - plungerState.Static.FrameEnd) / (plungerState.Static.FrameStart - plungerState.Static.FrameEnd);
+				PlungerCommands.Fire(pos, ref plungerState.Velocity, ref plungerState.Movement, in plungerState.Static);
+			}
 		}
 
 		IApiCoil IApiCoilDevice.Coil(string deviceItem) => Coil(deviceItem);
