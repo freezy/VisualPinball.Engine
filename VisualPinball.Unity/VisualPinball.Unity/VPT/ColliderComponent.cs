@@ -73,6 +73,16 @@ namespace VisualPinball.Unity
 			// make enable checkbox visible
 		}
 
+		private void OnEnable()
+		{
+			GetComponentInParent<PhysicsEngine>()?.EnableCollider(MainComponent.gameObject.GetInstanceID());
+		}
+
+		private void OnDisable()
+		{
+			GetComponentInParent<PhysicsEngine>()?.DisableCollider(MainComponent.gameObject.GetInstanceID());
+		}
+
 		protected PhysicsMaterialData GetPhysicsMaterialData(float elasticity = 1f, float elasticityFalloff = 1f,
 			float friction = 0f, float scatterAngleDeg = 0f, bool overwrite = true)
 		{
