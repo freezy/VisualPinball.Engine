@@ -113,6 +113,15 @@ namespace VisualPinball.Unity
 				case TriggerComponent c: _triggerStates[itemId] = c.CreateState(); break;
 			}
 		}
+
+		internal Transform UnregisterBall(int ballId)
+		{
+			var transform = _transforms[ballId];
+			_transforms.Remove(ballId);
+			_ballStates.Remove(ballId);
+			return transform;
+		}
+
 		internal void EnableCollider(int itemId)
 		{
 			if (_disabledCollisionItems.Contains(itemId)) {

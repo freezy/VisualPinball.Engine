@@ -79,21 +79,11 @@ namespace VisualPinball.Unity
 
 		public void DestroyBall(int ballId)
 		{
-			// fixme job
-			// var ballGo = _player.Balls[ballEntity];
-			// _player.BallDestroyed(ballEntity, ballGo);
-			//
-			// // destroy game object
-			// Object.DestroyImmediate(ballGo);
-			// _player.Balls.Remove(ballEntity);
-			//
-			// // destroy entity
-			// World.DefaultGameObjectInjectionWorld
-			// 	.GetOrCreateSystemManaged<CreateBallEntityCommandBufferSystem>()
-			// 	.CreateCommandBuffer()
-			// 	.DestroyEntity(ballEntity);
-			//
-			// NumBalls--;
+			var ballTransform = _physicsEngine.UnregisterBall(ballId);
+			_player.BallDestroyed(ballId, ballTransform.gameObject);
+
+			// destroy game object
+			Object.DestroyImmediate(ballTransform.gameObject);
 		}
 	}
 }
