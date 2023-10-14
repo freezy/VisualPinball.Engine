@@ -112,6 +112,18 @@ namespace VisualPinball.Unity
 				case TriggerComponent c: _triggerStates[itemId] = c.CreateState(); break;
 			}
 		}
+		internal void EnableCollider(int itemId)
+		{
+			if (_disabledCollisionItems.Contains(itemId)) {
+				_disabledCollisionItems.Remove(itemId);
+			}
+		}
+		internal void DisableCollider(int itemId)
+		{
+			if (!_disabledCollisionItems.Contains(itemId)) {
+				_disabledCollisionItems.Add(itemId);
+			}
+		}
 
 		#endregion
 
