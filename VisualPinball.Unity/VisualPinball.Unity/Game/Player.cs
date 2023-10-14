@@ -328,6 +328,7 @@ namespace VisualPinball.Unity
 			TableApi.Register(component, api);
 			_apis.Add(api);
 			var itemId = component.gameObject.GetInstanceID();
+			Debug.Log($"Registering {component.GetType()} {component.name} with ID {itemId}.");
 			if (api is IApiRotatable rotatable) {
 				_rotatables[itemId] = rotatable;
 			}
@@ -372,14 +373,6 @@ namespace VisualPinball.Unity
 
 			if (api is IApiColliderGenerator colliderGenerator) {
 				RegisterCollider(itemId, colliderGenerator);
-			}
-		}
-
-		private void RegisterTransform<T>(Dictionary<int, Transform> transforms, MonoBehaviour component) where T : MonoBehaviour
-		{
-			var comp = component.gameObject.GetComponentInChildren<T>();
-			if (comp) {
-				transforms[component.GetInstanceID()] = comp.gameObject.transform;
 			}
 		}
 

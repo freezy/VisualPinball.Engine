@@ -48,6 +48,8 @@ namespace VisualPinball.Unity
 		public NativeParallelHashMap<int, SpinnerState> SpinnerStates;
 		public NativeParallelHashMap<int, SurfaceState> SurfaceStates;
 		public NativeParallelHashMap<int, TriggerState> TriggerStates;
+		public NativeParallelHashSet<int> DisabledCollisionItems;
+
 
 		public void Execute()
 		{
@@ -55,7 +57,7 @@ namespace VisualPinball.Unity
 			var state = new PhysicsState(ref env, ref Octree, ref Colliders, ref Events, ref InsideOfs, ref Balls,
 				ref BumperStates, ref DropTargetStates, ref FlipperStates, ref GateStates,
 				ref HitTargetStates, ref KickerStates, ref PlungerStates, ref SpinnerStates,
-				ref SurfaceStates, ref TriggerStates);
+				ref SurfaceStates, ref TriggerStates, ref DisabledCollisionItems);
 			var cycle = new PhysicsCycle(Allocator.Temp);
 
 			while (env.CurPhysicsFrameTime < InitialTimeUsec)  // loop here until current (real) time matches the physics (simulated) time

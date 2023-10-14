@@ -39,7 +39,6 @@ namespace VisualPinball.Unity
 				ItemId = ItemId,
 				ItemType = ItemType.Table,
 				FireEvents = false,
-				IsEnabled = true,
 				Material = new PhysicsMaterialData {
 					Elasticity = ColliderComponent.Elasticity,
 					ElasticityFalloff = ColliderComponent.ElasticityFalloff,

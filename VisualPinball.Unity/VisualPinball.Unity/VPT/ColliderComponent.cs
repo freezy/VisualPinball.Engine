@@ -432,7 +432,9 @@ namespace VisualPinball.Unity
 		{
 			InstantiateColliderApi(player, null).CreateColliders(ref colliders, margin);
 		}
-		#endif
+		int ICollidableComponent.ItemId => MainComponent.gameObject.GetInstanceID();
+		bool ICollidableComponent.IsCollidable => isActiveAndEnabled;
+#endif
 	}
 
 	internal static class ColliderColor

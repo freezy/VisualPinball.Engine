@@ -49,7 +49,7 @@ namespace VisualPinball.Unity
 		[NonSerialized] private NativeParallelHashMap<int, SpinnerState> _spinnerStates = new(0, Allocator.Persistent);
 		[NonSerialized] private NativeParallelHashMap<int, SurfaceState> _surfaceStates = new(0, Allocator.Persistent);
 		[NonSerialized] private NativeParallelHashMap<int, TriggerState> _triggerStates = new(0, Allocator.Persistent);
-		[NonSerialized] private NativeParallelHashSet<int> _nonCollidableItems = new(0, Allocator.Persistent);
+		[NonSerialized] private NativeParallelHashSet<int> _disabledCollisionItems = new(0, Allocator.Persistent);
 
 		#endregion
 
@@ -132,6 +132,9 @@ namespace VisualPinball.Unity
 			Debug.Log($"Found {colliderItems.Length} collidable items.");
 			var colliders = new ColliderReference(Allocator.TempJob);
 			foreach (var colliderItem in colliderItems) {
+				if (!colliderItem.IsCollidable) {
+					_disabledCollisionItems.Add(colliderItem.ItemId);
+				}
 				colliderItem.GetColliders(_player, ref colliders, 0);
 			}
 
@@ -182,13 +185,14 @@ namespace VisualPinball.Unity
 				SpinnerStates = _spinnerStates,
 				SurfaceStates = _surfaceStates,
 				TriggerStates = _triggerStates,
+				DisabledCollisionItems = _disabledCollisionItems,
 			};
 
 			var env = _physicsEnv[0];
 			var state = new PhysicsState(ref env, ref _octree, ref _colliders, ref events, ref _insideOfs, ref _ballStates,
 				ref _bumperStates, ref _dropTargetStates, ref _flipperStates, ref _gateStates,
 				ref _hitTargetStates, ref _kickerStates, ref _plungerStates, ref _spinnerStates,
-				ref _surfaceStates, ref _triggerStates);
+				ref _surfaceStates, ref _triggerStates, ref _disabledCollisionItems);
 
 			// process input
 			while (_inputActions.Count > 0) {
