@@ -102,6 +102,11 @@ namespace VisualPinball.Unity
 			return new NativeTrees.AABB(aabb.Min, aabb.Max);
 		}
 
+		public static implicit operator NativeTrees.AABB2D(Aabb aabb)
+		{
+			return new NativeTrees.AABB2D(new float2(aabb.Min.x, aabb.Min.y), new float2(aabb.Min.x, aabb.Max.y));
+		}
+
 		public override string ToString()
 		{
 			return $"Aabb {Left} → {Right} | {Top} ↘ {Bottom} | {ZLow} ↑ {ZHigh}";

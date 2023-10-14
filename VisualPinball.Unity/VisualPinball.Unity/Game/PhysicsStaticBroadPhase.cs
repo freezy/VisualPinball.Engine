@@ -21,10 +21,10 @@ namespace VisualPinball.Unity
 {
 	public static class PhysicsStaticBroadPhase
 	{
-		internal static void FindOverlaps(in NativeOctree<int> octree, in BallData ball, ref NativeList<int> overlappingColliders)
+		internal static void FindOverlaps(in NativeOctree<int> octree, in BallData ball, ref NativeParallelHashSet<int> overlappingColliders)
 		{
 			overlappingColliders.Clear();
-			octree.RangeAABB(ball.Aabb, overlappingColliders);
+			octree.RangeAABBUnique(ball.Aabb, overlappingColliders);
 		}
 	}
 }

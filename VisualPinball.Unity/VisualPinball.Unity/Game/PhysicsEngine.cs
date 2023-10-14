@@ -24,6 +24,7 @@ using Unity.Mathematics;
 using UnityEngine;
 using VisualPinball.Unity.Collections;
 using VisualPinballUnity;
+using AABB = NativeTrees.AABB;
 using Debug = UnityEngine.Debug;
 
 namespace VisualPinball.Unity
@@ -32,6 +33,7 @@ namespace VisualPinball.Unity
 	{
 		#region States
 
+		[NonSerialized] private AABB _playfieldBounds;
 		[NonSerialized] private InsideOfs _insideOfs;
 		[NonSerialized] private NativeOctree<int> _octree;
 		[NonSerialized] private BlobAssetReference<ColliderBlob> _colliders;
@@ -173,6 +175,7 @@ namespace VisualPinball.Unity
 			// create octree
 			var elapsedMs = sw.Elapsed.TotalMilliseconds;
 			var playfieldBounds = GetComponentInChildren<PlayfieldComponent>().Bounds;
+			_playfieldBounds = GetComponentInChildren<PlayfieldComponent>().Bounds;
 			_octree = new NativeOctree<int>(playfieldBounds, 1024, 10, Allocator.Persistent);
 
 			sw.Restart();
@@ -215,6 +218,8 @@ namespace VisualPinball.Unity
 				SurfaceStates = _surfaceStates,
 				TriggerStates = _triggerStates,
 				DisabledCollisionItems = _disabledCollisionItems,
+				PlayfieldBounds = _playfieldBounds,
+				OverlappingColliders = new NativeParallelHashSet<int>(0, Allocator.TempJob)
 			};
 
 			var env = _physicsEnv[0];

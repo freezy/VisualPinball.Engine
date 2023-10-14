@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using System;
+using NativeTrees;
 using Unity.Collections;
 using Unity.Profiling;
 using VisualPinball.Engine.Common;
@@ -27,37 +28,38 @@ namespace VisualPinball.Unity
 	{
 		private NativeList<ContactBufferElement> _contacts;
 
-		[NativeDisableParallelForRestriction]
-		private NativeList<int> _overlappingColliders;
-
 		private static readonly ProfilerMarker PerfMarker = new("PhysicsCycle");
 		private static readonly ProfilerMarker PerfMarkerBroadPhase = new("BroadPhase");
 		private static readonly ProfilerMarker PerfMarkerNarrowPhase = new("NarrowPhase");
 		private static readonly ProfilerMarker PerfMarkerDisplacement = new("Displacement");
 		private static readonly ProfilerMarker PerfMarkerCollision = new("Collision");
 		private static readonly ProfilerMarker PerfMarkerContacts = new("Contacts");
+		private static readonly ProfilerMarker PerfMarkerBallOctree = new("CreateBallOctree");
+		private static readonly ProfilerMarker PerfMarkerDynamicBroadPhase = new("DynamicBroadPhase");
+		private static readonly ProfilerMarker PerfMarkerDynamicNarrowPhase = new("DynamicNarrowPhase");
 
 		public PhysicsCycle(Allocator a)
 		{
 			_contacts = new NativeList<ContactBufferElement>(a);
-			_overlappingColliders = new NativeList<int>(a);
 		}
 
-		internal void Simulate(ref PhysicsState state, float dTime, uint timeMs)
+		internal void Simulate(ref PhysicsState state, in AABB playfieldBounds, ref NativeParallelHashSet<int> overlappingColliders, float dTime, uint timeMs)
 		{
 			PerfMarker.Begin();
 			var staticCounts = PhysicsConstants.StaticCnts;
-			
+
 			while (dTime > 0) {
-				
+
 				var hitTime = dTime;       // begin time search from now ...  until delta ends
-				
+
 				// todo apply flipper time
-				
+
 				// clear contacts
 				_contacts.Clear();
 
-				// todo dynamic broad phase
+				PerfMarkerBallOctree.Begin();
+				var ballOctree = PhysicsDynamicBroadPhase.CreateOctree(ref state.Balls, in playfieldBounds);
+				PerfMarkerBallOctree.End();
 
 				using (var enumerator = state.Balls.GetEnumerator()) {
 					while (enumerator.MoveNext()) {
@@ -67,14 +69,19 @@ namespace VisualPinball.Unity
 							continue;
 						}
 
+						// dynamic broad phase
+						PerfMarkerDynamicBroadPhase.Begin();
+						PhysicsDynamicBroadPhase.FindOverlaps(in ballOctree, in ball, ref overlappingColliders, ref state.Balls);
+						PerfMarkerDynamicBroadPhase.End();
+
 						// static broad phase
 						PerfMarkerBroadPhase.Begin();
-						PhysicsStaticBroadPhase.FindOverlaps(in state.Octree, in ball, ref _overlappingColliders);
+						PhysicsStaticBroadPhase.FindOverlaps(in state.Octree, in ball, ref overlappingColliders);
 						PerfMarkerBroadPhase.End();
 
 						// static narrow phase
 						PerfMarkerNarrowPhase.Begin();
-						PhysicsStaticNarrowPhase.FindNextCollision(hitTime, ref ball, in _overlappingColliders, ref _contacts, ref state);
+						PhysicsStaticNarrowPhase.FindNextCollision(hitTime, ref ball, ref overlappingColliders, ref _contacts, ref state);
 						PerfMarkerNarrowPhase.End();
 
 						// todo dynamic narrow phase
@@ -185,7 +192,6 @@ namespace VisualPinball.Unity
 		public void Dispose()
 		{
 			_contacts.Dispose();
-			_overlappingColliders.Dispose();
 		}
 	}
 }
