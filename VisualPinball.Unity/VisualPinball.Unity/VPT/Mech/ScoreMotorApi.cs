@@ -27,6 +27,7 @@ namespace VisualPinball.Unity
 
 		private readonly ScoreMotorComponent _scoreMotorComponent;
 		private readonly Player _player;
+		private readonly PhysicsEngine _physicsEngine;
 
 		public event EventHandler Init;
 
@@ -47,18 +48,19 @@ namespace VisualPinball.Unity
 			};
 		}
 
-		internal ScoreMotorApi(GameObject go, Player player)
+		internal ScoreMotorApi(GameObject go, Player player, PhysicsEngine physicsEngine)
 		{
 			_scoreMotorComponent = go.GetComponentInChildren<ScoreMotorComponent>();
 			_player = player;
+			_physicsEngine = physicsEngine;
 
 			_scoreMotorComponent.OnSwitchChanged += HandleSwitchChanged;
 		}
 
 		void IApi.OnInit(BallManager ballManager)
 		{
-			_motorRunningSwitch = new DeviceSwitch(ScoreMotorComponent.MotorRunningSwitchItem, false, SwitchDefault.NormallyOpen, _player);
-			_motorStepSwitch = new DeviceSwitch(ScoreMotorComponent.MotorStepSwitchItem, true, SwitchDefault.NormallyOpen, _player);
+			_motorRunningSwitch = new DeviceSwitch(ScoreMotorComponent.MotorRunningSwitchItem, false, SwitchDefault.NormallyOpen, _player, _physicsEngine);
+			_motorStepSwitch = new DeviceSwitch(ScoreMotorComponent.MotorStepSwitchItem, true, SwitchDefault.NormallyOpen, _player, _physicsEngine);
 
 			Init?.Invoke(this, EventArgs.Empty);
 		}
@@ -76,4 +78,3 @@ namespace VisualPinball.Unity
 		}
 	}
 }
-

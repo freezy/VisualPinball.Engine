@@ -51,11 +51,11 @@ namespace VisualPinball.Unity
 		private readonly SwitchDefault _switchDefault;
 		private readonly SwitchHandler _switchHandler;
 
-		public DeviceSwitch(string name, bool isPulseSwitch, SwitchDefault switchDefault, Player player)
+		public DeviceSwitch(string name, bool isPulseSwitch, SwitchDefault switchDefault, Player player, PhysicsEngine physicsEngine)
 		{
 			_isPulseSwitch = isPulseSwitch;
 			_switchDefault = switchDefault;
-			_switchHandler = new SwitchHandler(name, player);
+			_switchHandler = new SwitchHandler(name, player, physicsEngine);
 		}
 
 		IApiSwitchStatus IApiSwitch.AddSwitchDest(SwitchConfig switchConfig, IApiSwitchStatus switchStatus) =>

@@ -45,6 +45,8 @@ namespace VisualPinball.Unity
 
 		public readonly string Name;
 		private readonly Player _player;
+		private readonly PhysicsEngine _physicsEngine;
+
 		private IGamelogicEngine Engine => _player.GamelogicEngine;
 
 		/// <summary>
@@ -59,13 +61,13 @@ namespace VisualPinball.Unity
 
 		private readonly Dictionary<string, IApiSwitchStatus> _switchStatuses = new Dictionary<string, IApiSwitchStatus>();
 
-		private static VisualPinballSimulationSystemGroup SimulationSystemGroup => World.DefaultGameObjectInjectionWorld.GetOrCreateSystemManaged<VisualPinballSimulationSystemGroup>();
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
-		public SwitchHandler(string name, Player player, bool isEnabled = false)
+		public SwitchHandler(string name, Player player, PhysicsEngine physicsEngine, bool isEnabled = false)
 		{
 			Name = name;
 			_player = player;
+			_physicsEngine = physicsEngine;
 			IsEnabled = isEnabled;
 		}
 
@@ -130,7 +132,7 @@ namespace VisualPinball.Unity
 
 					// if it's pulse, schedule to re-open
 					if (enabled && switchConfig.IsPulseSwitch) {
-						SimulationSystemGroup.ScheduleAction(switchConfig.PulseDelay,
+						_physicsEngine.ScheduleAction(switchConfig.PulseDelay,
 							() => {
 								_switchStatuses[switchConfig.SwitchId].IsSwitchEnabled = false;
 								Engine.Switch(switchConfig.SwitchId, switchConfig.IsNormallyClosed);
@@ -163,7 +165,7 @@ namespace VisualPinball.Unity
 			// handle switch -> gamelogic engine
 			if (Engine != null && _switches != null) {
 				foreach (var switchConfig in _switches) {
-					SimulationSystemGroup.ScheduleAction(delay,
+					_physicsEngine.ScheduleAction(delay,
 						() => Engine.Switch(switchConfig.SwitchId, switchConfig.IsNormallyClosed ? !enabled : enabled));
 				}
 			} else {
@@ -176,7 +178,7 @@ namespace VisualPinball.Unity
 					var device = _player.WireDevice(wireConfig.Device);
 					if (device != null) {
 						var dest = device.Wire(wireConfig.DeviceItem);
-						SimulationSystemGroup.ScheduleAction(delay, () => dest.OnChange(enabled));
+						_physicsEngine.ScheduleAction(delay, () => dest.OnChange(enabled));
 
 					} else {
 						Logger.Warn($"Cannot find wire device \"{wireConfig.Device}\".");
@@ -185,7 +187,7 @@ namespace VisualPinball.Unity
 			}
 
 			// handle own status
-			SimulationSystemGroup.ScheduleAction(delay, () => {
+			_physicsEngine.ScheduleAction(delay, () => {
 				Debug.Log($"Setting scheduled switch {Name} to {enabled}.");
 				IsEnabled = enabled;
 

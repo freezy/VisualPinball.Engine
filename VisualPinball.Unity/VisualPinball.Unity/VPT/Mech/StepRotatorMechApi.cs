@@ -36,6 +36,7 @@ namespace VisualPinball.Unity
 		}
 
 		private readonly Player _player;
+		private readonly PhysicsEngine _physicsEngine;
 		private readonly StepRotatorMechComponent _component;
 
 		private DeviceCoil _motorCoil;
@@ -46,12 +47,12 @@ namespace VisualPinball.Unity
 		private Dictionary<string, DeviceSwitch> _switches;
 		private Dictionary<string, MechMark> _marks;
 
-		internal StepRotatorMechApi(GameObject go, Player player)
+		internal StepRotatorMechApi(GameObject go, Player player, PhysicsEngine physicsEngine)
 		{
 			_component = go.GetComponentInChildren<StepRotatorMechComponent>();
 			_player = player;
+			_physicsEngine = physicsEngine;
 		}
-
 
 		void IApi.OnInit(BallManager ballManager)
 		{
@@ -62,7 +63,7 @@ namespace VisualPinball.Unity
 			_motorCoil = new DeviceCoil(_player, OnMotorCoilEnabled, OnMotorCoilDisabled);
 
 			_marks = _component.Marks.ToDictionary(m => m.SwitchId, m => m);
-			_switches = _component.Marks.ToDictionary(m => m.SwitchId, m => new DeviceSwitch(m.SwitchId, false, SwitchDefault.NormallyOpen, _player));
+			_switches = _component.Marks.ToDictionary(m => m.SwitchId, m => new DeviceSwitch(m.SwitchId, false, SwitchDefault.NormallyOpen, _player, _physicsEngine));
 			var i = 0;
 			foreach (var sw in _switches.Values) {
 				sw.SetSwitch(i == 0);
@@ -161,4 +162,3 @@ namespace VisualPinball.Unity
 		}
 	}
 }
-

@@ -28,6 +28,7 @@ namespace VisualPinball.Unity
 
 		private readonly DropTargetBankComponent _dropTargetBankComponent;
 		private readonly Player _player;
+		private readonly PhysicsEngine _physicsEngine;
 
 		private readonly List<DropTargetApi> _dropTargetApis = new List<DropTargetApi>();
 		public DeviceSwitch SequenceCompletedSwitch;
@@ -56,15 +57,16 @@ namespace VisualPinball.Unity
 			};
 		}
 
-		internal DropTargetBankApi(GameObject go, Player player)
+		internal DropTargetBankApi(GameObject go, Player player, PhysicsEngine physicsEngine)
 		{
 			_dropTargetBankComponent = go.GetComponentInChildren<DropTargetBankComponent>();
 			_player = player;
+			_physicsEngine = physicsEngine;
 		}
 
 		void IApi.OnInit(BallManager ballManager)
 		{
-			SequenceCompletedSwitch = new DeviceSwitch(DropTargetBankComponent.SequenceCompletedSwitchItem, false, SwitchDefault.NormallyOpen, _player);
+			SequenceCompletedSwitch = new DeviceSwitch(DropTargetBankComponent.SequenceCompletedSwitchItem, false, SwitchDefault.NormallyOpen, _player, _physicsEngine);
 			ResetCoil = new DeviceCoil(_player, OnResetCoilEnabled);
 
 			for (var index = 0; index < _dropTargetBankComponent.BankSize; index++) {
@@ -112,4 +114,3 @@ namespace VisualPinball.Unity
 		}
 	}
 }
-

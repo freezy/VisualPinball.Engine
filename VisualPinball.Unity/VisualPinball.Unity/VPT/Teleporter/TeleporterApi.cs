@@ -32,19 +32,19 @@ namespace VisualPinball.Unity
 
 		private readonly TeleporterComponent _component;
 		private readonly Player _player;
+		private readonly PhysicsEngine _physicsEngine;
 
 		private DeviceCoil _teleporterCoil;
 		private KickerApi _fromKicker;
 		private KickerApi _toKicker;
-		private readonly VisualPinballSimulationSystemGroup _simulationSystemGroup;
 
 		public event EventHandler Init;
 
-		internal TeleporterApi(GameObject go, Player player)
+		internal TeleporterApi(GameObject go, Player player, PhysicsEngine physicsEngine)
 		{
 			_component = go.GetComponentInChildren<TeleporterComponent>();
 			_player = player;
-			_simulationSystemGroup = World.DefaultGameObjectInjectionWorld.GetOrCreateSystemManaged<VisualPinballSimulationSystemGroup>();
+			_physicsEngine = physicsEngine;
 		}
 
 		void IApi.OnInit(BallManager ballManager)
@@ -92,7 +92,7 @@ namespace VisualPinball.Unity
 		private void Eject()
 		{
 			if (_component.EjectDelay > 0) {
-				_simulationSystemGroup.ScheduleAction((int)math.round(_component.EjectDelay * 1000f), TriggerEjectCoil);
+				_physicsEngine.ScheduleAction((int)math.round(_component.EjectDelay * 1000f), TriggerEjectCoil);
 
 			} else {
 				TriggerEjectCoil();
@@ -112,4 +112,3 @@ namespace VisualPinball.Unity
 		}
 	}
 }
-
