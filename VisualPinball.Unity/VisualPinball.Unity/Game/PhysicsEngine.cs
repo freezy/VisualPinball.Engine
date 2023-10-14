@@ -83,6 +83,7 @@ namespace VisualPinball.Unity
 		internal ref BallData BallState(int itemId) => ref _ballStates.GetValueByRef(itemId);
 		internal ref FlipperState FlipperState(int itemId) => ref _flipperStates.GetValueByRef(itemId);
 		internal ref KickerState KickerState(int itemId) => ref _kickerStates.GetValueByRef(itemId);
+		internal ref PlungerState PlungerState(int itemId) => ref _plungerStates.GetValueByRef(itemId);
 		internal void SetBallInsideOf(int ballId, int itemId) => _insideOfs.SetInsideOf(itemId, ballId);
 		internal uint TimeMsec => _physicsEnv[0].TimeMsec;
 		internal void Register<T>(T item) where T : MonoBehaviour
