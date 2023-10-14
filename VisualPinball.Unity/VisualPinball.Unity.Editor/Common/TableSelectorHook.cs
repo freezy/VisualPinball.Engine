@@ -50,7 +50,7 @@ namespace VisualPinball.Unity.Editor
 
 			// find parent in hierarchy
 			var selectedTable = Selection.activeGameObject.GetComponentInParent<TableComponent>();
-			if (selectedTable != null) {
+			if (selectedTable != null && Selection.activeGameObject.activeInHierarchy) {
 				TableSelector.Instance.SelectedTable = selectedTable;
 			}
 		}
@@ -67,7 +67,7 @@ namespace VisualPinball.Unity.Editor
 			// try root objects first
 			foreach (var go in rootObjects) {
 				var ta = go.GetComponent<TableComponent>();
-				if (ta != null) {
+				if (ta != null && ta.isActiveAndEnabled) {
 					return ta;
 				}
 			}
