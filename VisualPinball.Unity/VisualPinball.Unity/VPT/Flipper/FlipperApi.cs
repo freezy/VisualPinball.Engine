@@ -117,10 +117,8 @@ namespace VisualPinball.Unity
 		internal float StartAngle
 		{
 			set {
-				// fixme job
-				// var staticData = EntityManager.GetComponentData<FlipperStaticData>(Entity);
-				// staticData.AngleStart = value;
-				// EntityManager.SetComponentData(Entity, staticData);
+				ref var flipperState = ref PhysicsEngine.FlipperState(ItemId);
+				flipperState.Static.AngleStart = value;
 			}
 		}
 

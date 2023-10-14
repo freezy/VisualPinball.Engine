@@ -16,6 +16,8 @@
 
 using System;
 using System.Collections.Generic;
+using Unity.Entities;
+using Unity.Mathematics;
 using UnityEngine;
 using VisualPinball.Engine.VPT.Gate;
 
@@ -78,12 +80,10 @@ namespace VisualPinball.Unity
 
 		public void Lift(float speed, float angleDeg)
 		{
-			// fixme job
-			// var data = EntityManager.GetComponentData<GateMovementData>(Entity);
-			// data.IsLifting = true;
-			// data.LiftSpeed = speed;
-			// data.LiftAngle = math.radians(angleDeg);
-			// EntityManager.SetComponentData(Entity, data);
+			ref var gateState = ref PhysicsEngine.GateState(ItemId);
+			gateState.Movement.IsLifting = true;
+			gateState.Movement.LiftSpeed = speed;
+			gateState.Movement.LiftAngle = math.radians(angleDeg);
 		}
 
 		#region Wiring

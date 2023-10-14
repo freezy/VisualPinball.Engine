@@ -50,7 +50,7 @@ namespace VisualPinball.Unity
 		/// <exception cref="InvalidOperationException">Thrown if target is not a drop target (but a hit target, which can't be dropped)</exception>
 		public bool IsDropped
 		{
-			get => false; // fixme job EntityManager.GetComponentData<DropTargetAnimationData>(Entity).IsDropped;
+			get => PhysicsEngine.DropTargetState(ItemId).Animation.IsDropped;
 			set => SetIsDropped(value);
 		}
 
@@ -71,22 +71,19 @@ namespace VisualPinball.Unity
 		/// <exception cref="InvalidOperationException"></exception>
 		private void SetIsDropped(bool isDropped)
 		{
-			// fixme job
-			// var data = EntityManager.GetComponentData<DropTargetAnimationData>(Entity);
-			// if (data.IsDropped != isDropped) {
-			// 	data.MoveAnimation = true;
-			// 	if (isDropped) {
-			// 		data.MoveDown = true;
-			// 	}
-			// 	else {
-			// 		data.MoveDown = false;
-			// 		data.TimeStamp = World.DefaultGameObjectInjectionWorld.GetOrCreateSystemManaged<VisualPinballSimulationSystemGroup>().TimeMsec;
-			// 	}
-			// } else {
-			// 	data.IsDropped = isDropped;
-			// }
-			//
-			// EntityManager.SetComponentData(Entity, data);
+			ref var state = ref PhysicsEngine.DropTargetState(ItemId);
+			if (state.Animation.IsDropped != isDropped) {
+				state.Animation.MoveAnimation = true;
+				if (isDropped) {
+					state.Animation.MoveDown = true;
+				}
+				else {
+					state.Animation.MoveDown = false;
+					state.Animation.TimeStamp = PhysicsEngine.TimeMsec;
+				}
+			} else {
+				state.Animation.IsDropped = isDropped;
+			}
 		}
 
 		#region Wiring

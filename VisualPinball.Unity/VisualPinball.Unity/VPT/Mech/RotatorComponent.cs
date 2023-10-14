@@ -56,7 +56,7 @@ namespace VisualPinball.Unity
 
 		private Player _player;
 		private KickerApi[] _kickers;
-		private (KickerApi kicker, float distance, float angle, int ballId)[] _ballEntities;
+		private (KickerApi kicker, float distance, float angle, int ballId)[] _balls;
 
 		private Dictionary<IRotatableComponent, (float, float)> _rotatingObjectDistances = new();
 		private static EntityManager EntityManager => World.DefaultGameObjectInjectionWorld.EntityManager;
@@ -85,7 +85,7 @@ namespace VisualPinball.Unity
 		public void StartRotating()
 		{
 			var pos = Target.RotatedPosition;
-			_ballEntities = _kickers.Where(k => k.HasBall()).Select(k => (
+			_balls = _kickers.Where(k => k.HasBall()).Select(k => (
 				k,
 				math.distance(pos, k.Position.xy),
 				math.sign(pos.x - k.Position.x) * Vector2.Angle(k.Position.xy - pos, new float2(0f, -1f)),
@@ -109,23 +109,20 @@ namespace VisualPinball.Unity
 				);
 			}
 
-			// fixme job
-			// // rotate ball(s) in kicker(s)
-			// foreach (var (kicker, distance, angle, ballEntity) in _ballEntities) {
-			// 	if (!kicker.HasBall()) {
-			// 		return;
-			// 	}
-			// 	var ballData = EntityManager.GetComponentData<BallData>(ballEntity);
-			// 	ballData.Position = new float3(
-			// 		pos.x -distance * math.sin(math.radians(angleDeg + angle)),
-			// 		pos.y -distance * math.cos(math.radians(angleDeg + angle)),
-			// 		ballData.Position.z
-			// 	);
-			// 	ballData.Velocity = float3.zero;
-			// 	ballData.AngularMomentum = float3.zero;
-			//
-			// 	EntityManager.SetComponentData(ballEntity, ballData);
-			// }
+			// rotate ball(s) in kicker(s)
+			foreach (var (kicker, distance, angle, ballId) in _balls) {
+				if (!kicker.HasBall()) {
+					return;
+				}
+				ref var ballData = ref GetComponentInParent<PhysicsEngine>().BallState(ballId);
+				ballData.Position = new float3(
+					pos.x -distance * math.sin(math.radians(angleDeg + angle)),
+					pos.y -distance * math.cos(math.radians(angleDeg + angle)),
+					ballData.Position.z
+				);
+				ballData.Velocity = float3.zero;
+				ballData.AngularMomentum = float3.zero;
+			}
 		}
 
 		#endregion

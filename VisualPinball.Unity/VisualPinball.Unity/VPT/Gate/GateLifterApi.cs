@@ -28,6 +28,7 @@ namespace VisualPinball.Unity
 		public event EventHandler Init;
 
 		private readonly Player _player;
+		private readonly PhysicsEngine _physicsEngine;
 		private readonly GateComponent _gateComponent;
 		private readonly GateLifterComponent _gateLifterComponent;
 		private readonly GateColliderComponent _gateColliderComponent;
@@ -35,12 +36,13 @@ namespace VisualPinball.Unity
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 		private GateApi _gateApi;
 
-		internal GateLifterApi(GameObject go, Player player)
+		internal GateLifterApi(GameObject go, Player player, PhysicsEngine physicsEngine)
 		{
 			_gateComponent = go.GetComponent<GateComponent>();
 			_gateColliderComponent = go.GetComponent<GateColliderComponent>();
 			_gateLifterComponent = go.GetComponent<GateLifterComponent>();
 			_player = player;
+			_physicsEngine = physicsEngine;
 		}
 
 		void IApi.OnInit(BallManager ballManager)
@@ -72,8 +74,7 @@ namespace VisualPinball.Unity
 				Logger.Warn("Lifter coil enabled, but gate collider not found.");
 				return;
 			}
-
-			_gateApi.IsCollidable = false;
+			_physicsEngine.DisableCollider(((ICollidableComponent)_gateColliderComponent).ItemId);
 			_gateApi.Lift(_gateLifterComponent.AnimationSpeed, _gateLifterComponent.LiftedAngleDeg);
 		}
 
@@ -84,7 +85,7 @@ namespace VisualPinball.Unity
 				return;
 			}
 
-			_gateApi.IsCollidable = true;
+			_physicsEngine.EnableCollider(((ICollidableComponent)_gateColliderComponent).ItemId);
 			_gateApi.Lift(_gateLifterComponent.AnimationSpeed, 0f);
 		}
 
