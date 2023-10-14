@@ -42,12 +42,12 @@ namespace VisualPinball.Unity
 
 		private void OnSwitch(bool closed) => _switchHandler.OnSwitch(closed);
 
-		internal SlingshotApi(GameObject go, Player player)
+		internal SlingshotApi(GameObject go, Player player, PhysicsEngine physicsEngine)
 		{
 			_slingshotComponent = go.GetComponentInChildren<SlingshotComponent>();
 			_player = player;
 
-			_switchHandler = new SwitchHandler(go.name, player);
+			_switchHandler = new SwitchHandler(go.name, player, physicsEngine);
 		}
 
 		void IApi.OnInit(BallManager ballManager)
@@ -77,4 +77,3 @@ namespace VisualPinball.Unity
 		}
 	}
 }
-

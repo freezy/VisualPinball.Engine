@@ -2,6 +2,7 @@
     "name": "VisualPinball.Unity.Editor",
     "rootNamespace": "",
     "references": [
+        "Unity.Collections",
         "Unity.Entities",
         "Unity.Entities.Hybrid",
         "Unity.Formats.Fbx.Editor",

@@ -14,10 +14,8 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-using Unity.Entities;
 using UnityEngine;
 using VisualPinball.Engine.VPT;
-using VisualPinballUnity;
 
 namespace VisualPinball.Unity
 {
@@ -53,7 +51,7 @@ namespace VisualPinball.Unity
 			GameObject = go;
 			MainComponent = go.GetComponent<TComponent>();
 			Player = player;
-			SwitchHandler = new SwitchHandler(Name, player);
+			SwitchHandler = new SwitchHandler(Name, player, physicsEngine);
 			PhysicsEngine = physicsEngine;
 		}
 
@@ -65,7 +63,7 @@ namespace VisualPinball.Unity
 
 		#region IApiSwitchable
 
-		private protected DeviceSwitch CreateSwitch(string name, bool isPulseSwitch, SwitchDefault switchDefault = SwitchDefault.Configurable) => new DeviceSwitch(name, isPulseSwitch, switchDefault, Player);
+		private protected DeviceSwitch CreateSwitch(string name, bool isPulseSwitch, SwitchDefault switchDefault = SwitchDefault.Configurable) => new DeviceSwitch(name, isPulseSwitch, switchDefault, Player, PhysicsEngine);
 
 		private protected IApiSwitchStatus AddSwitchDest(SwitchConfig switchConfig,IApiSwitchStatus switchStatus) => SwitchHandler.AddSwitchDest(switchConfig, switchStatus);
 

@@ -43,12 +43,12 @@ namespace VisualPinball.Unity
 
 		public bool IsHittable => _hittable != null;
 
-		internal CollisionSwitchApi(GameObject go, Player player)
+		internal CollisionSwitchApi(GameObject go, Player player, PhysicsEngine physicsEngine)
 		{
 			_collisionSwitchComponent = go.GetComponentInChildren<CollisionSwitchComponent>();
 			_player = player;
 
-			_switchHandler = new SwitchHandler(go.name, player);
+			_switchHandler = new SwitchHandler(go.name, player, physicsEngine);
 		}
 
 		void IApi.OnInit(BallManager ballManager)
@@ -81,4 +81,3 @@ namespace VisualPinball.Unity
 		}
 	}
 }
-

@@ -17,13 +17,10 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Unity.Entities;
+using NLog;
 using UnityEngine;
 using UnityEngine.InputSystem;
-using NLog;
-using VisualPinballUnity;
 using Logger = NLog.Logger;
-
 #if UNITY_EDITOR
 using UnityEditor;
 #endif
@@ -42,11 +39,11 @@ namespace VisualPinball.Unity
 		private readonly Dictionary<WireDestConfig, Dictionary<bool, Queue<float>>> _gleSignals = new Dictionary<WireDestConfig, Dictionary<bool, Queue<float>>>();
 
 		private Player _player;
+		private PhysicsEngine _physicsEngine;
 		private TableComponent _tableComponent;
 		private InputManager _inputManager;
 		private SwitchPlayer _switchPlayer;
 
-		private static VisualPinballSimulationSystemGroup SimulationSystemGroup => World.DefaultGameObjectInjectionWorld.GetOrCreateSystemManaged<VisualPinballSimulationSystemGroup>();
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 		internal Dictionary<string, (bool, float)> WireStatuses { get; } = new Dictionary<string, (bool, float)>();
 
@@ -55,12 +52,13 @@ namespace VisualPinball.Unity
 
 		#region Lifecycle
 
-		public void Awake(TableComponent tableComponent, InputManager inputManager, SwitchPlayer switchPlayer, Player player)
+		public void Awake(TableComponent tableComponent, InputManager inputManager, SwitchPlayer switchPlayer, Player player, PhysicsEngine physicsEngine)
 		{
 			_tableComponent = tableComponent;
 			_inputManager = inputManager;
 			_switchPlayer = switchPlayer;
 			_player = player;
+			_physicsEngine = physicsEngine;
 		}
 
 		public void OnStart()
@@ -312,7 +310,7 @@ namespace VisualPinball.Unity
 
 						// if it's pulse, schedule to re-open
 						if (isEnabled && wireConfig.IsPulseSource) {
-							SimulationSystemGroup.ScheduleAction(wireConfig.PulseDelay, () => {
+							_physicsEngine.ScheduleAction(wireConfig.PulseDelay, () => {
 								wire.OnChange(false);
 								WireStatuses[wireConfig.Id] = (false, 0);
 #if UNITY_EDITOR
@@ -330,7 +328,7 @@ namespace VisualPinball.Unity
 
 							// if it's pulse, schedule to re-open
 							if (isEnabled && wireConfig.IsPulseSource) {
-								SimulationSystemGroup.ScheduleAction(wireConfig.PulseDelay, () => {
+								_physicsEngine.ScheduleAction(wireConfig.PulseDelay, () => {
 									wire.OnChange(false);
 									WireStatuses[wireConfig.Id] = (false, -2);
 #if UNITY_EDITOR
@@ -517,7 +515,7 @@ namespace VisualPinball.Unity
 		internal bool IsActive;
 
 		/// <summary>
-		/// Status flag for dynamic wires. Timestamp (<see cref="Time.realtimeSinceStartup"/>)
+		/// Status flag for dynamic wires. Timestamp (<see cref="UnityEngine.Time.realtimeSinceStartup"/>)
 		/// when the wire became active.
 		/// </summary>
 		internal float ActiveSince;

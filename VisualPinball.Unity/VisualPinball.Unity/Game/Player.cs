@@ -24,7 +24,6 @@ using UnityEngine.InputSystem;
 using VisualPinball.Engine.Common;
 using VisualPinball.Engine.Game;
 using VisualPinball.Engine.Game.Engines;
-using VisualPinball.Engine.VPT.Trigger;
 using Color = VisualPinball.Engine.Math.Color;
 using Logger = NLog.Logger;
 
@@ -140,7 +139,7 @@ namespace VisualPinball.Unity
 				_lampPlayer.Awake(this, _tableComponent, GamelogicEngine);
 				_coilPlayer.Awake(this, _tableComponent, GamelogicEngine, _lampPlayer, _wirePlayer);
 				_switchPlayer.Awake(_tableComponent, GamelogicEngine, _inputManager);
-				_wirePlayer.Awake(_tableComponent, _inputManager, _switchPlayer, this);
+				_wirePlayer.Awake(_tableComponent, _inputManager, _switchPlayer, this, _physicsEngine);
 				_displayPlayer.Awake(GamelogicEngine);
 			}
 		}
@@ -238,27 +237,27 @@ namespace VisualPinball.Unity
 
 		public void RegisterStepRotator(StepRotatorMechComponent component)
 		{
-			Register(new StepRotatorMechApi(component.gameObject, this), component);
+			Register(new StepRotatorMechApi(component.gameObject, this, _physicsEngine), component);
 		}
 
 		public void RegisterScoreMotorComponent(ScoreMotorComponent component)
 		{
-			Register(new ScoreMotorApi(component.gameObject, this), component);
+			Register(new ScoreMotorApi(component.gameObject, this, _physicsEngine), component);
 		}
 
 		public void RegisterDropTargetBankComponent(DropTargetBankComponent component)
 		{
-			Register(new DropTargetBankApi(component.gameObject, this), component);
+			Register(new DropTargetBankApi(component.gameObject, this, _physicsEngine), component);
 		}
 
 		public void RegisterCollisionSwitchComponent(CollisionSwitchComponent component)
 		{
-			Register(new CollisionSwitchApi(component.gameObject, this), component);
+			Register(new CollisionSwitchApi(component.gameObject, this, _physicsEngine), component);
 		}
 
 		public void RegisterSlingshotComponent(SlingshotComponent component)
 		{
-			Register(new SlingshotApi(component.gameObject, this), component);
+			Register(new SlingshotApi(component.gameObject, this, _physicsEngine), component);
 		}
 
 		public void RegisterPlunger(PlungerComponent component, InputActionReference actionRef)
@@ -305,7 +304,7 @@ namespace VisualPinball.Unity
 
 		public void RegisterTeleporter(TeleporterComponent component)
 		{
-			Register(new TeleporterApi(component.gameObject, this), component);
+			Register(new TeleporterApi(component.gameObject, this, _physicsEngine), component);
 		}
 
 		public void RegisterTrigger(TriggerComponent component)
