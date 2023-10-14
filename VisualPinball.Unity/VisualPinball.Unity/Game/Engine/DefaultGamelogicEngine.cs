@@ -161,7 +161,7 @@ namespace VisualPinball.Unity
 		private BallManager _ballManager;
 		private bool _frameSent;
 		private PlayfieldComponent _playfieldComponent;
-		private const float FlipperLag = 0.5f;
+		private const float FlipperLag = 0f;
 
 		private readonly Dictionary<string, Stopwatch> _switchTime = new();
 
