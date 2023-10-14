@@ -31,11 +31,14 @@ namespace VisualPinball.Unity
 
 		public float DeltaTimeMs;
 
+		[NativeDisableParallelForRestriction]
+		public NativeParallelHashSet<int> OverlappingColliders;
 		public NativeArray<PhysicsEnv> PhysicsEnv;
 		public NativeOctree<int> Octree;
 		public BlobAssetReference<ColliderBlob> Colliders;
 		public InsideOfs InsideOfs;
 		public NativeQueue<EventData>.ParallelWriter Events;
+		public AABB PlayfieldBounds;
 
 		public NativeParallelHashMap<int, BallData> Balls;
 		public NativeParallelHashMap<int, BumperState> BumperStates;
@@ -49,7 +52,6 @@ namespace VisualPinball.Unity
 		public NativeParallelHashMap<int, SurfaceState> SurfaceStates;
 		public NativeParallelHashMap<int, TriggerState> TriggerStates;
 		public NativeParallelHashSet<int> DisabledCollisionItems;
-
 
 		public void Execute()
 		{
@@ -105,7 +107,7 @@ namespace VisualPinball.Unity
 				#endregion
 
 				// primary physics loop
-				cycle.Simulate(ref state, physicsDiffTime, timeMsec);
+				cycle.Simulate(ref state, in PlayfieldBounds, ref OverlappingColliders, physicsDiffTime, timeMsec);
 
 				// ball trail, keep old pos of balls
 				using (var enumerator = state.Balls.GetEnumerator()) {

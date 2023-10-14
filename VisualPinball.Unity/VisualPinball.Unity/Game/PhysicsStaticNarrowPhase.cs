@@ -25,7 +25,7 @@ namespace VisualPinball.Unity
 		internal static void FindNextCollision(
 			float hitTime,
 			ref BallData ball,
-			in NativeList<int> overlappingColliders,
+			ref NativeParallelHashSet<int> overlappingColliders,
 			ref NativeList<ContactBufferElement> contacts,
 			ref PhysicsState state
 		)
@@ -33,13 +33,16 @@ namespace VisualPinball.Unity
 			// init contacts and event
 			ball.CollisionEvent.ClearCollider(hitTime); // search upto current hit time
 
-			for (var i = 0; i < overlappingColliders.Length; i++) {
-				if (!state.IsColliderActive(overlappingColliders[i])) {
-					continue;
+			using (var enumerator = overlappingColliders.GetEnumerator()) {
+				while (enumerator.MoveNext()) {
+					var overlappingColliderId = enumerator.Current;
+					if (!state.IsColliderActive(overlappingColliderId)) {
+						continue;
+					}
+					var newCollEvent = new CollisionEventData();
+					var newTime = state.HitTest(overlappingColliderId, ref ball, ref newCollEvent, ref contacts, ref state);
+					SaveCollisions(ref ball, ref newCollEvent, ref contacts, overlappingColliderId, newTime);
 				}
-				var newCollEvent = new CollisionEventData();
-				var newTime = state.HitTest(overlappingColliders[i], ref ball, ref newCollEvent, ref contacts, ref state);
-				SaveCollisions(ref ball, ref newCollEvent, ref contacts, overlappingColliders[i], newTime);
 			}
 
 			// no negative time allowed

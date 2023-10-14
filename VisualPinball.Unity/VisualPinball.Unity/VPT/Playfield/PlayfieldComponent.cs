@@ -18,6 +18,7 @@
 
 using System;
 using System.Collections.Generic;
+using NativeTrees;
 using Unity.Entities;
 using Unity.Mathematics;
 using UnityEngine;
@@ -93,6 +94,7 @@ namespace VisualPinball.Unity
 
 		public Rect3D BoundingBox => new Rect3D(Left, Right, Top, Bottom, TableHeight, GlassHeight);
 		public Aabb Bounds => new Aabb(Left, Right, Top, Bottom, TableHeight, GlassHeight);
+		public AABB2D Bounds2D => new AABB2D(new float2(Left, Top), new float2(Right, Bottom));
 
 		public float3 Gravity {
 			get {
