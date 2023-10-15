@@ -38,7 +38,7 @@ namespace VisualPinball.Unity
 		protected override float ZOffset {
 			get {
 				var animationComponent = GetComponentInChildren<DropTargetAnimationComponent>();
-				return animationComponent && animationComponent.IsDropped ? -DropTargetAnimationData.DropTargetLimit : 0f;
+				return animationComponent && animationComponent.IsDropped ? -DropTargetAnimationState.DropTargetLimit : 0f;
 			}
 		}
 
@@ -149,17 +149,17 @@ namespace VisualPinball.Unity
 			var animationComponent = GetComponentInChildren<DropTargetAnimationComponent>();
 
 			var staticData = colliderComponent && animationComponent
-				? new DropTargetStaticData {
+				? new DropTargetStaticState {
 					Speed = animationComponent.Speed,
 					RaiseDelay = animationComponent.RaiseDelay,
 					UseHitEvent = colliderComponent.UseHitEvent,
 				} : default;
 
 			var animationData = colliderComponent && animationComponent
-				? new DropTargetAnimationData {
+				? new DropTargetAnimationState {
 					IsDropped = animationComponent.IsDropped,
 					MoveDown = !animationComponent.IsDropped,
-					ZOffset = animationComponent.IsDropped ? -DropTargetAnimationData.DropTargetLimit : 0f
+					ZOffset = animationComponent.IsDropped ? -DropTargetAnimationState.DropTargetLimit : 0f
 				} : default;
 
 			return new DropTargetState(

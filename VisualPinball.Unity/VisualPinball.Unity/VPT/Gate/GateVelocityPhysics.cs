@@ -24,17 +24,17 @@ namespace VisualPinballUnity
 {
 	internal static class GateVelocityPhysics
 	{
-		internal static void UpdateVelocities(ref GateMovementData movementData, in GateStaticData data)
+		internal static void UpdateVelocities(ref GateMovementState movementState, in GateStaticState state)
 		{
-			if (!movementData.IsOpen) {
-				if (math.abs(movementData.Angle) < data.AngleMin + 0.01f && math.abs(movementData.AngleSpeed) < 0.01f) {
+			if (!movementState.IsOpen) {
+				if (math.abs(movementState.Angle) < state.AngleMin + 0.01f && math.abs(movementState.AngleSpeed) < 0.01f) {
 					// stop a bit earlier to prevent a nearly endless animation (especially for slow balls)
-					movementData.Angle = data.AngleMin;
-					movementData.AngleSpeed = 0.0f;
+					movementState.Angle = state.AngleMin;
+					movementState.AngleSpeed = 0.0f;
 				}
-				if (math.abs(movementData.AngleSpeed) != 0.0f && movementData.Angle != data.AngleMin) {
-					movementData.AngleSpeed -= math.sin(movementData.Angle) * data.GravityFactor * (float)(PhysicsConstants.PhysFactor / 100.0); // Center of gravity towards bottom of object, makes it stop vertical
-					movementData.AngleSpeed *= data.Damping;
+				if (math.abs(movementState.AngleSpeed) != 0.0f && movementState.Angle != state.AngleMin) {
+					movementState.AngleSpeed -= math.sin(movementState.Angle) * state.GravityFactor * (float)(PhysicsConstants.PhysFactor / 100.0); // Center of gravity towards bottom of object, makes it stop vertical
+					movementState.AngleSpeed *= state.Damping;
 				}
 			}
 		}

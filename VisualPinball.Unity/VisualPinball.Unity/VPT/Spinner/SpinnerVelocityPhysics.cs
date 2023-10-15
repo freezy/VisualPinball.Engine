@@ -22,11 +22,11 @@ namespace VisualPinballUnity
 {
 	internal static class SpinnerVelocityPhysics
 	{
-		internal static void UpdateVelocities(ref SpinnerMovementData movementData, in SpinnerStaticData data)
+		internal static void UpdateVelocities(ref SpinnerMovementState movement, in SpinnerStaticState state)
 		{
 			// Center of gravity towards bottom of object, makes it stop vertical
-			movementData.AngleSpeed -= math.sin(movementData.Angle) * (float)(0.0025 * PhysicsConstants.PhysFactor);
-			movementData.AngleSpeed *= data.Damping;
+			movement.AngleSpeed -= math.sin(movement.Angle) * (float)(0.0025 * PhysicsConstants.PhysFactor);
+			movement.AngleSpeed *= state.Damping;
 		}
 	}
 }

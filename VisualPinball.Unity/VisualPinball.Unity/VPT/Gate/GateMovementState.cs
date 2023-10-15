@@ -1,4 +1,4 @@
-﻿// Visual Pinball Engine
+// Visual Pinball Engine
 // Copyright (C) 2023 freezy and VPE Team
 //
 // This program is free software: you can redistribute it and/or modify
@@ -16,12 +16,16 @@
 
 namespace VisualPinball.Unity
 {
-	internal struct PlungerColliderData
+	internal struct GateMovementState
 	{
-		public LineCollider LineSegSide0;
-		public LineCollider LineSegSide1;
-		public LineCollider LineSegEnd;
-		public LineZCollider JointEnd0;
-		public LineZCollider JointEnd1;
+		public float Angle;
+		public float AngleSpeed;
+		public bool ForcedMove;
+		public bool IsOpen;
+		public bool HitDirection;
+
+		public bool IsLifting;
+		public float LiftAngle;
+		public float LiftSpeed;
 	}
 }

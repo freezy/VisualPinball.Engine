@@ -23,97 +23,97 @@ namespace VisualPinballUnity
 {
 	internal static class PlungerDisplacementPhysics
 	{
-		internal static void UpdateDisplacement(int itemId, ref PlungerMovementData movementData,
-			ref PlungerColliderData colliderData, in PlungerStaticData staticData, float dTime,
+		internal static void UpdateDisplacement(int itemId, ref PlungerMovementState movement,
+			ref PlungerColliderState colliderState, in PlungerStaticState staticState, float dTime,
 			ref NativeQueue<EventData>.ParallelWriter events)
 		{
 			// figure the travel distance
-			var dx = dTime * movementData.Speed;
+			var dx = dTime * movement.Speed;
 
 			// figure the position change
-			movementData.Position += dx;
+			movement.Position += dx;
 
 			// apply the travel limit
-			if (movementData.Position < movementData.TravelLimit) {
-				movementData.Position = movementData.TravelLimit;
+			if (movement.Position < movement.TravelLimit) {
+				movement.Position = movement.TravelLimit;
 			}
 
 			// if we're in firing mode and we've crossed the bounce position, reverse course
-			var relPos = (movementData.Position - staticData.FrameEnd) / staticData.FrameLen;
-			var bouncePos = staticData.RestPosition + movementData.FireBounce;
-			if (movementData.FireTimer != 0 && dTime != 0.0f &&
-			    (movementData.FireSpeed < 0.0f ? relPos <= bouncePos : relPos >= bouncePos))
+			var relPos = (movement.Position - staticState.FrameEnd) / staticState.FrameLen;
+			var bouncePos = staticState.RestPosition + movement.FireBounce;
+			if (movement.FireTimer != 0 && dTime != 0.0f &&
+			    (movement.FireSpeed < 0.0f ? relPos <= bouncePos : relPos >= bouncePos))
 			{
 				// stop at the bounce position
-				movementData.Position = staticData.FrameEnd + bouncePos * staticData.FrameLen;
+				movement.Position = staticState.FrameEnd + bouncePos * staticState.FrameLen;
 
 				// reverse course at reduced speed
-				movementData.FireSpeed = -movementData.FireSpeed * 0.4f;
+				movement.FireSpeed = -movement.FireSpeed * 0.4f;
 
 				// figure the new bounce as a fraction of the previous bounce
-				movementData.FireBounce *= -0.4f;
+				movement.FireBounce *= -0.4f;
 			}
 
 			// apply the travel limit (again)
-			if (movementData.Position < movementData.TravelLimit) {
-				movementData.Position = movementData.TravelLimit;
+			if (movement.Position < movement.TravelLimit) {
+				movement.Position = movement.TravelLimit;
 			}
 
 			// limit motion to the valid range
 			if (dTime != 0.0f) {
 
-				if (movementData.Position < staticData.FrameEnd) {
-					movementData.Speed = 0.0f;
-					movementData.Position = staticData.FrameEnd;
+				if (movement.Position < staticState.FrameEnd) {
+					movement.Speed = 0.0f;
+					movement.Position = staticState.FrameEnd;
 
-				} else if (movementData.Position > staticData.FrameStart) {
-					movementData.Speed = 0.0f;
-					movementData.Position = staticData.FrameStart;
+				} else if (movement.Position > staticState.FrameStart) {
+					movement.Speed = 0.0f;
+					movement.Position = staticState.FrameStart;
 				}
 
 				// apply the travel limit (yet again)
-				if (movementData.Position < movementData.TravelLimit) {
-					movementData.Position = movementData.TravelLimit;
+				if (movement.Position < movement.TravelLimit) {
+					movement.Position = movement.TravelLimit;
 				}
 			}
 
 			// the travel limit applies to one displacement update only - reset it
-			movementData.TravelLimit = staticData.FrameEnd;
+			movement.TravelLimit = staticState.FrameEnd;
 
 			// fire an Start/End of Stroke events, as appropriate
-			var strokeEventLimit = staticData.FrameLen / 50.0f;
+			var strokeEventLimit = staticState.FrameLen / 50.0f;
 			var strokeEventHysteresis = strokeEventLimit * 2.0f;
-			if (movementData.StrokeEventsArmed && movementData.Position + dx > staticData.FrameStart - strokeEventLimit) {
-				events.Enqueue(new EventData(EventId.LimitEventsBos, itemId, math.abs(movementData.Speed)));
-				movementData.StrokeEventsArmed = false;
+			if (movement.StrokeEventsArmed && movement.Position + dx > staticState.FrameStart - strokeEventLimit) {
+				events.Enqueue(new EventData(EventId.LimitEventsBos, itemId, math.abs(movement.Speed)));
+				movement.StrokeEventsArmed = false;
 
-			} else if (movementData.StrokeEventsArmed && movementData.Position + dx < staticData.FrameEnd + strokeEventLimit) {
-				events.Enqueue(new EventData(EventId.LimitEventsEos, itemId, math.abs(movementData.Speed)));
-				movementData.StrokeEventsArmed = false;
+			} else if (movement.StrokeEventsArmed && movement.Position + dx < staticState.FrameEnd + strokeEventLimit) {
+				events.Enqueue(new EventData(EventId.LimitEventsEos, itemId, math.abs(movement.Speed)));
+				movement.StrokeEventsArmed = false;
 
-			} else if (movementData.Position > staticData.FrameEnd + strokeEventHysteresis && movementData.Position < staticData.FrameStart - strokeEventHysteresis) {
+			} else if (movement.Position > staticState.FrameEnd + strokeEventHysteresis && movement.Position < staticState.FrameStart - strokeEventHysteresis) {
 				// away from the limits - arm the stroke events
-				movementData.StrokeEventsArmed = true;
+				movement.StrokeEventsArmed = true;
 			}
 
 			// update the display
-			UpdateCollider(movementData.Position, ref colliderData);
+			UpdateCollider(movement.Position, ref colliderState);
 		}
 
-		private static void UpdateCollider(float len, ref PlungerColliderData colliderData)
+		private static void UpdateCollider(float len, ref PlungerColliderState colliderState)
 		{
-			colliderData.LineSegSide0.V1y = len;
-			colliderData.LineSegSide1.V2y = len;
+			colliderState.LineSegSide0.V1y = len;
+			colliderState.LineSegSide1.V2y = len;
 
-			colliderData.LineSegEnd.V2y = len;
-			colliderData.LineSegEnd.V1y = len; // + 0.0001f;
+			colliderState.LineSegEnd.V2y = len;
+			colliderState.LineSegEnd.V1y = len; // + 0.0001f;
 
-			colliderData.JointEnd0.XyY = len;
-			colliderData.JointEnd1.XyY = len; // + 0.0001f;
+			colliderState.JointEnd0.XyY = len;
+			colliderState.JointEnd1.XyY = len; // + 0.0001f;
 
-			colliderData.LineSegSide0.CalcNormal();
-			colliderData.LineSegSide1.CalcNormal();
-			colliderData.LineSegEnd.CalcNormal();
+			colliderState.LineSegSide0.CalcNormal();
+			colliderState.LineSegSide1.CalcNormal();
+			colliderState.LineSegEnd.CalcNormal();
 		}
 	}
 }

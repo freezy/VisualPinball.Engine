@@ -20,60 +20,60 @@ namespace VisualPinball.Unity
 {
 	internal static class TriggerAnimation
 	{
-		internal static void Update(ref TriggerAnimationData data, ref TriggerMovementData movementData, in TriggerStaticData staticData,
+		internal static void Update(ref TriggerAnimationState animation, ref TriggerMovementState movement, in TriggerStaticState staticState,
 			float dTimeMs)
 		{
-			var oldTimeMsec = data.TimeMsec < dTimeMs ? data.TimeMsec : dTimeMs;
-			data.TimeMsec = dTimeMs;
+			var oldTimeMsec = animation.TimeMsec < dTimeMs ? animation.TimeMsec : dTimeMs;
+			animation.TimeMsec = dTimeMs;
 			var diffTimeMsec = dTimeMs - oldTimeMsec;
 
-			var animLimit = staticData.Shape == TriggerShape.TriggerStar ? staticData.Radius * (float)(1.0 / 5.0) : 32.0f;
-			if (staticData.Shape == TriggerShape.TriggerButton) {
-				animLimit = staticData.Radius * (float)(1.0 / 10.0);
+			var animLimit = staticState.Shape == TriggerShape.TriggerStar ? staticState.Radius * (float)(1.0 / 5.0) : 32.0f;
+			if (staticState.Shape == TriggerShape.TriggerButton) {
+				animLimit = staticState.Radius * (float)(1.0 / 10.0);
 			}
-			if (staticData.Shape == TriggerShape.TriggerWireC) {
+			if (staticState.Shape == TriggerShape.TriggerWireC) {
 				animLimit = 60.0f;
 			}
-			if (staticData.Shape == TriggerShape.TriggerWireD) {
+			if (staticState.Shape == TriggerShape.TriggerWireD) {
 				animLimit = 25.0f;
 			}
 
-			var limit = animLimit * staticData.TableScaleZ;
+			var limit = animLimit * staticState.TableScaleZ;
 
-			if (data.HitEvent) {
-				data.DoAnimation = true;
-				data.HitEvent = false;
+			if (animation.HitEvent) {
+				animation.DoAnimation = true;
+				animation.HitEvent = false;
 				// unhitEvent = false;   // Bugfix: If HitEvent and unhitEvent happen at the same time, you want to favor the unhit, otherwise the switch gets stuck down.
-				movementData.HeightOffset = 0.0f;
-				data.MoveDown = true;
+				movement.HeightOffset = 0.0f;
+				animation.MoveDown = true;
 			}
-			if (data.UnHitEvent) {
-				data.DoAnimation = true;
-				data.UnHitEvent = false;
-				data.HitEvent = false;
-				movementData.HeightOffset = limit;
-				data.MoveDown = false;
+			if (animation.UnHitEvent) {
+				animation.DoAnimation = true;
+				animation.UnHitEvent = false;
+				animation.HitEvent = false;
+				movement.HeightOffset = limit;
+				animation.MoveDown = false;
 			}
 
-			if (data.DoAnimation) {
-				var step = diffTimeMsec * staticData.AnimSpeed * staticData.TableScaleZ;
-				if (data.MoveDown) {
+			if (animation.DoAnimation) {
+				var step = diffTimeMsec * staticState.AnimSpeed * staticState.TableScaleZ;
+				if (animation.MoveDown) {
 					step = -step;
 				}
-				movementData.HeightOffset += step;
+				movement.HeightOffset += step;
 
-				if (data.MoveDown) {
-					if (movementData.HeightOffset <= -limit) {
-						movementData.HeightOffset = -limit;
-						data.DoAnimation = false;
-						data.MoveDown = false;
+				if (animation.MoveDown) {
+					if (movement.HeightOffset <= -limit) {
+						movement.HeightOffset = -limit;
+						animation.DoAnimation = false;
+						animation.MoveDown = false;
 					}
 
 				} else {
-					if (movementData.HeightOffset >= 0.0f) {
-						movementData.HeightOffset = 0.0f;
-						data.DoAnimation = false;
-						data.MoveDown = true;
+					if (movement.HeightOffset >= 0.0f) {
+						movement.HeightOffset = 0.0f;
+						animation.DoAnimation = false;
+						animation.MoveDown = true;
 					}
 				}
 			}

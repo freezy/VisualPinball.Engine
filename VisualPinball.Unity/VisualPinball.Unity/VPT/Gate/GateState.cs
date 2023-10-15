@@ -20,10 +20,10 @@ namespace VisualPinball.Unity
 	{
 		internal readonly int ItemId;
 		internal readonly int WireItemId;
-		internal GateStaticData Static;
-		internal GateMovementData Movement;
+		internal GateStaticState Static;
+		internal GateMovementState Movement;
 
-		public GateState(int itemId, int wireItemId, GateStaticData @static, GateMovementData movement)
+		public GateState(int itemId, int wireItemId, GateStaticState @static, GateMovementState movement)
 		{
 			ItemId = itemId;
 			WireItemId = wireItemId;

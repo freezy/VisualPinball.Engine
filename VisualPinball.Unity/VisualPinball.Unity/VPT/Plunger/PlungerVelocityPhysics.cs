@@ -21,18 +21,18 @@ namespace VisualPinballUnity
 {
 	internal static class PlungerVelocityPhysics
 	{
-		internal static void UpdateVelocities(ref PlungerMovementData movementData, ref PlungerVelocityData velocityData,
-			in PlungerStaticData staticData)
+		internal static void UpdateVelocities(ref PlungerMovementState movement, ref PlungerVelocityState velocity,
+			in PlungerStaticState staticState)
 		{
 			// figure our current position in relative coordinates (0.0-1.0,
 			// where 0.0 is the maximum forward position and 1.0 is the
 			// maximum retracted position)
-			var pos = (movementData.Position - staticData.FrameEnd) / staticData.FrameLen;
+			var pos = (movement.Position - staticState.FrameEnd) / staticState.FrameLen;
 
-			var mech = staticData.IsMechPlunger ? movementData.AnalogPosition : 0.0f;
+			var mech = staticState.IsMechPlunger ? movement.AnalogPosition : 0.0f;
 
 			// calculate the delta from the last reading
-			var dMech = velocityData.Mech0 - mech;
+			var dMech = velocity.Mech0 - mech;
 
 			// Frame-to-frame mech movement threshold for detecting a release
 			// motion.  1.0 is the full range of travel, which corresponds
@@ -54,10 +54,10 @@ namespace VisualPinballUnity
 			const float releaseThreshold = 0.2f;
 
 			// note if we're acting as an auto plunger
-			var autoPlunger = staticData.IsAutoPlunger;
+			var autoPlunger = staticState.IsAutoPlunger;
 
 			// check which forces are acting on us
-			if (movementData.FireTimer > 0) {
+			if (movement.FireTimer > 0) {
 				// Fire mode.  In this mode, we're moving freely under the spring
 				// forces at the speed we calculated when we initiated the release.
 				// Simply leave the speed unchanged.
@@ -68,17 +68,17 @@ namespace VisualPinballUnity
 				// mode, and also allows us to sync up again with the real
 				// plunger after a respectable pause if the user is just
 				// moving it around a lot.
-				movementData.Speed = movementData.FireSpeed;
-				--movementData.FireTimer;
+				movement.Speed = movement.FireSpeed;
+				--movement.FireTimer;
 
-			} else if (velocityData.AutoFireTimer > 0) {
+			} else if (velocity.AutoFireTimer > 0) {
 				// The Auto Fire timer is running.  We start this timer when we
 				// send a synthetic KeyDown(Return) event to the script to simulate
 				// a Launch Ball event when the user pulls back and releases the
 				// mechanical plunger and we're operating as an auto plunger.
 				// When the timer reaches zero, we'll send the corresponding
 				// KeyUp event and cancel the timer.
-				if (--velocityData.AutoFireTimer == 0) {
+				if (--velocity.AutoFireTimer == 0) {
 					// todo event
 					// if (g_pplayer != 0) {
 					// 	g_pplayer->m_ptable->FireKeyEvent(DISPID_GameEvents_KeyUp, g_pplayer->m_rgKeys[ePlungerKey]);
@@ -126,9 +126,9 @@ namespace VisualPinballUnity
 				// }
 
 				// start the timer to send the corresponding KeyUp in 100ms
-				velocityData.AutoFireTimer = 101;
+				velocity.AutoFireTimer = 101;
 
-			} else if (velocityData.PullForce != 0.0f) {
+			} else if (velocity.PullForce != 0.0f) {
 				// A "pull" force is in effect.  This is a *simulated* pull, so
 				// it overrides the real physical plunger position.
 				//
@@ -140,21 +140,21 @@ namespace VisualPinballUnity
 				// but we can elide the elapsed time factor because it's
 				// effectively a constant that's implicitly folded into the
 				// pull force value.
-				movementData.Speed += velocityData.PullForce / Plunger.PlungerMass;
+				movement.Speed += velocity.PullForce / Plunger.PlungerMass;
 
-				if (!velocityData.AddRetractMotion) {
+				if (!velocity.AddRetractMotion) {
 					// this is the normal PullBack branch
 
 					// if we're already at the maximum retracted position, stop
-					if (movementData.Position > staticData.FrameStart) {
-						movementData.Speed = 0.0f;
-						movementData.Position = staticData.FrameStart;
+					if (movement.Position > staticState.FrameStart) {
+						movement.Speed = 0.0f;
+						movement.Position = staticState.FrameStart;
 					}
 
 					// if we're already at the minimum retracted position, stop
-					if (movementData.Position < staticData.FrameEnd + staticData.RestPosition * staticData.FrameLen) {
-						movementData.Speed = 0.0f;
-						movementData.Position = staticData.FrameEnd + staticData.RestPosition * staticData.FrameLen;
+					if (movement.Position < staticState.FrameEnd + staticState.RestPosition * staticState.FrameLen) {
+						movement.Speed = 0.0f;
+						movement.Position = staticState.FrameEnd + staticState.RestPosition * staticState.FrameLen;
 					}
 
 				} else {
@@ -162,30 +162,30 @@ namespace VisualPinballUnity
 
 					// after reaching the max. position the plunger should retract until it reaches the min. position and then start again
 					// if we're already at the maximum retracted position, reverse
-					if (movementData.Position >= staticData.FrameStart && velocityData.PullForce > 0) {
-						movementData.Speed = 0.0f;
-						movementData.Position = staticData.FrameStart;
-						velocityData.RetractWaitLoop++;
-						if (velocityData.RetractWaitLoop > 1000) { // 1 sec, related to PHYSICS_STEPTIME
-							velocityData.PullForce = -velocityData.InitialSpeed;
-							movementData.Position = staticData.FrameStart;
-							movementData.RetractMotion = true;
-							velocityData.RetractWaitLoop = 0;
+					if (movement.Position >= staticState.FrameStart && velocity.PullForce > 0) {
+						movement.Speed = 0.0f;
+						movement.Position = staticState.FrameStart;
+						velocity.RetractWaitLoop++;
+						if (velocity.RetractWaitLoop > 1000) { // 1 sec, related to PHYSICS_STEPTIME
+							velocity.PullForce = -velocity.InitialSpeed;
+							movement.Position = staticState.FrameStart;
+							movement.RetractMotion = true;
+							velocity.RetractWaitLoop = 0;
 						}
 					}
 
 					// if we're already at the minimum retracted position, start again
-					if (movementData.Position <= staticData.FrameEnd + staticData.RestPosition * staticData.FrameLen && velocityData.PullForce <= 0) {
-						movementData.Speed = 0.0f;
-						velocityData.PullForce = velocityData.InitialSpeed;
-						movementData.Position = staticData.FrameEnd + staticData.RestPosition * staticData.FrameLen;
+					if (movement.Position <= staticState.FrameEnd + staticState.RestPosition * staticState.FrameLen && velocity.PullForce <= 0) {
+						movement.Speed = 0.0f;
+						velocity.PullForce = velocity.InitialSpeed;
+						movement.Position = staticState.FrameEnd + staticState.RestPosition * staticState.FrameLen;
 					}
 
 					// reset retract motion indicator only after the rest position has been left, to avoid ball interactions
 					// use a linear pullback motion
-					if (movementData.Position > 1.0f + staticData.FrameEnd + staticData.RestPosition * staticData.FrameLen && velocityData.PullForce > 0) {
-						movementData.RetractMotion = false;
-						movementData.Speed = 3.0f * velocityData.PullForce; // 3 = magic
+					if (movement.Position > 1.0f + staticState.FrameEnd + staticState.RestPosition * staticState.FrameLen && velocity.PullForce > 0) {
+						movement.RetractMotion = false;
+						movement.Speed = 3.0f * velocity.PullForce; // 3 = magic
 					}
 				}
 
@@ -242,16 +242,16 @@ namespace VisualPinballUnity
 				// started.  Scan the history for monotonically ascending values,
 				// and take the highest one we find.  That's probably where the
 				// user actually released the plunger.
-				var apex = velocityData.Mech0;
-				if (velocityData.Mech1 > apex) {
-					apex = velocityData.Mech1;
-					if (velocityData.Mech2 > apex) {
-						apex = velocityData.Mech2;
+				var apex = velocity.Mech0;
+				if (velocity.Mech1 > apex) {
+					apex = velocity.Mech1;
+					if (velocity.Mech2 > apex) {
+						apex = velocity.Mech2;
 					}
 				}
 
 				// trigger a release from the apex position
-				PlungerCommands.Fire(apex, ref velocityData, ref movementData, in staticData);
+				PlungerCommands.Fire(apex, ref velocity, ref movement, in staticState);
 
 			} else {
 				// Normal mode, and NOT firing the plunger.  In this mode, we
@@ -272,7 +272,7 @@ namespace VisualPinballUnity
 
 				// for a normal plunger, sync to the mech plunger; otherwise
 				// just go to the rest position
-				var target = autoPlunger ? staticData.RestPosition : mech;
+				var target = autoPlunger ? staticState.RestPosition : mech;
 
 				// figure the current difference in positions
 				var error = target - pos;
@@ -305,24 +305,24 @@ namespace VisualPinballUnity
 				const float plungerFriction = 0.95f;
 				const float normalize = Plunger.PlungerNormalize / 13.0f / 100.0f;
 				const float dt = 0.1f;
-				movementData.Speed *= plungerFriction;
-				movementData.Speed += error * staticData.FrameLen * velocityData.MechStrength / Plunger.PlungerMass * normalize * dt;
+				movement.Speed *= plungerFriction;
+				movement.Speed += error * staticState.FrameLen * velocity.MechStrength / Plunger.PlungerMass * normalize * dt;
 
 				// add any reverse impulse to the result
-				movementData.Speed += movementData.ReverseImpulse;
+				movement.Speed += movement.ReverseImpulse;
 			}
 
 			// cancel any reverse impulse
-			movementData.ReverseImpulse = 0.0f;
+			movement.ReverseImpulse = 0.0f;
 
 			// Shift the current mech reading into the history list, if it's
 			// different from the last reading.  Only keep distinct readings;
 			// the physics loop tends to run faster than the USB reporting
 			// rate, so we might see the same USB report several times here.
-			if (mech != velocityData.Mech0) {
-				velocityData.Mech2 = velocityData.Mech1;
-				velocityData.Mech1 = velocityData.Mech0;
-				velocityData.Mech0 = mech;
+			if (mech != velocity.Mech0) {
+				velocity.Mech2 = velocity.Mech1;
+				velocity.Mech1 = velocity.Mech0;
+				velocity.Mech0 = mech;
 			}
 		}
 	}

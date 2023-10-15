@@ -1,4 +1,4 @@
-﻿// Visual Pinball Engine
+// Visual Pinball Engine
 // Copyright (C) 2023 freezy and VPE Team
 //
 // This program is free software: you can redistribute it and/or modify
@@ -16,9 +16,17 @@
 
 namespace VisualPinball.Unity
 {
-	internal struct LineSlingshotData
+	internal struct DropTargetAnimationState
 	{
-		public bool IsDisabled;
-		public float Threshold;
+		public const float DropTargetLimit = 52.0f;
+
+		public float ZOffset;
+		public bool HitEvent;
+		public uint TimeMsec;
+		public uint TimeStamp;
+
+		public bool MoveDown;
+		public bool IsDropped;
+		public bool MoveAnimation;
 	}
 }

@@ -594,14 +594,14 @@ namespace VisualPinball.Unity
 			};
 		}
 
-		internal FlipperMovementData GetMovementData(FlipperStaticData d)
+		internal FlipperMovementState GetMovementData(FlipperStaticData d)
 		{
 			// store flipper base rotation without starting angle
 			var baseRotation = math.normalize(math.mul(
 				math.normalize(transform.rotation),
 				quaternion.EulerXYZ(0, 0, -d.AngleStart)
 			));
-			return new FlipperMovementData {
+			return new FlipperMovementState {
 				Angle = d.AngleStart,
 				AngleSpeed = 0f,
 				AngularMomentum = 0f,

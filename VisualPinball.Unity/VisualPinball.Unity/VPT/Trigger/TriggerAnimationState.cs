@@ -16,16 +16,13 @@
 
 namespace VisualPinball.Unity
 {
-	internal struct GateMovementData
+	internal struct TriggerAnimationState
 	{
-		public float Angle;
-		public float AngleSpeed;
-		public bool ForcedMove;
-		public bool IsOpen;
-		public bool HitDirection;
+		public bool HitEvent;
+		public bool UnHitEvent;
 
-		public bool IsLifting;
-		public float LiftAngle;
-		public float LiftSpeed;
+		public float TimeMsec;
+		public bool DoAnimation;
+		public bool MoveDown;
 	}
 }

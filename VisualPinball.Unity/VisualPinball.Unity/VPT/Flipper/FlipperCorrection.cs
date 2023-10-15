@@ -22,10 +22,10 @@ namespace VisualPinball.Unity
 	internal static class FlipperCorrection
 	{
 		public static void OnBallLeaveFlipper(ref BallState ballState, ref FlipperCorrectionBlob flipperCorrectionBlob,
-			in FlipperMovementData flipperMovementData, in FlipperTricksData tricks, in FlipperStaticData flipperStaticData, uint timeMs)
+			in FlipperMovementState flipperMovementState, in FlipperTricksData tricks, in FlipperStaticData flipperStaticData, uint timeMs)
 		{
 
-			var timeSinceFlipperStartedRotatingToEndMs = timeMs - flipperMovementData.StartRotateToEndTime;
+			var timeSinceFlipperStartedRotatingToEndMs = timeMs - flipperMovementState.StartRotateToEndTime;
 
 			// Time delay overrun test
 			if (timeSinceFlipperStartedRotatingToEndMs > flipperCorrectionBlob.TimeDelayMs)
@@ -33,7 +33,7 @@ namespace VisualPinball.Unity
 
 			ref var velocities = ref flipperCorrectionBlob.Velocities;
 			ref var polarities = ref flipperCorrectionBlob.Polarities;
-			var angleCur = flipperMovementData.Angle;
+			var angleCur = flipperMovementState.Angle;
 
 			var ballPosition = ballState.Position;
 			var ballVelocity = ballState.Velocity;
@@ -43,7 +43,7 @@ namespace VisualPinball.Unity
 				return;
 			}
 
-			var angleAtFire = flipperMovementData.AngleAtRotateToEnd;
+			var angleAtFire = flipperMovementState.AngleAtRotateToEnd;
 			var angleStart = flipperStaticData.AngleStart;
 			var angleEnd = tricks.AngleEnd;
 

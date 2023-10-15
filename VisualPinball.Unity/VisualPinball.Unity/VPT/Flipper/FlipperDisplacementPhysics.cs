@@ -23,26 +23,26 @@ namespace VisualPinballUnity
 {
 	internal static class FlipperDisplacementPhysics
 	{
-		internal static void UpdateDisplacement(int itemId, ref FlipperMovementData state, ref FlipperTricksData tricks, in FlipperStaticData data,
+		internal static void UpdateDisplacement(int itemId, ref FlipperMovementState movementState, ref FlipperTricksData tricks, in FlipperStaticData staticState,
 			float dTime, ref NativeQueue<EventData>.ParallelWriter events)
 		{
 			//var dTime = _simulateCycleSystemGroup.HitTime;
 			var currentTime = 0;// todo SystemAPI.Time.ElapsedTime;
 
-			state.Angle += state.AngleSpeed * dTime; // move flipper angle
+			movementState.Angle += movementState.AngleSpeed * dTime; // move flipper angle
 
-			var angleMin = math.min(data.AngleStart, tricks.AngleEnd);
-			var angleMax = math.max(data.AngleStart, tricks.AngleEnd);
+			var angleMin = math.min(staticState.AngleStart, tricks.AngleEnd);
+			var angleMax = math.max(staticState.AngleStart, tricks.AngleEnd);
 
-			if (state.Angle > angleMax) {
-				state.Angle = angleMax;
+			if (movementState.Angle > angleMax) {
+				movementState.Angle = angleMax;
 			}
 
-			if (state.Angle < angleMin) {
-				state.Angle = angleMin;
+			if (movementState.Angle < angleMin) {
+				movementState.Angle = angleMin;
 			}
 
-			if (math.abs(state.AngleSpeed) < 0.0005f) {
+			if (math.abs(movementState.AngleSpeed) < 0.0005f) {
 				// avoids "jumping balls" when two or more balls held on flipper (and more other balls are in play) //!! make dependent on physics update rate
 				return;
 			}
@@ -50,39 +50,39 @@ namespace VisualPinballUnity
 			var handleEvent = false;
 
 			// ReSharper disable once CompareOfFloatsByEqualityOperator
-			if (state.Angle == tricks.AngleEnd) {
+			if (movementState.Angle == tricks.AngleEnd) {
 				tricks.FlipperAngleEndTime = currentTime;
 			}
 
-			if (state.Angle >= angleMax) {
+			if (movementState.Angle >= angleMax) {
 				// hit stop?
-				if (state.AngleSpeed > 0) {
+				if (movementState.AngleSpeed > 0) {
 					handleEvent = true;
 				}
 
-			} else if (state.Angle <= angleMin) {
-				if (state.AngleSpeed < 0) {
+			} else if (movementState.Angle <= angleMin) {
+				if (movementState.AngleSpeed < 0) {
 					handleEvent = true;
 				}
 			}
 
 			if (handleEvent) {
-				var angleSpeed = math.abs(math.degrees(state.AngleSpeed));
-				state.AngularMomentum *= -0.3f; // make configurable?
-				state.AngleSpeed = state.AngularMomentum / data.Inertia;
+				var angleSpeed = math.abs(math.degrees(movementState.AngleSpeed));
+				movementState.AngularMomentum *= -0.3f; // make configurable?
+				movementState.AngleSpeed = movementState.AngularMomentum / staticState.Inertia;
 
-				if (state.EnableRotateEvent > 0) {
+				if (movementState.EnableRotateEvent > 0) {
 
 					// send EOS event
 					events.Enqueue(new EventData(EventId.LimitEventsEos, itemId, angleSpeed));
 
-				} else if (state.EnableRotateEvent < 0) {
+				} else if (movementState.EnableRotateEvent < 0) {
 
 					// send BOS event
 					events.Enqueue(new EventData(EventId.LimitEventsBos, itemId, angleSpeed));
 				}
 
-				state.EnableRotateEvent = 0;
+				movementState.EnableRotateEvent = 0;
 			}
 		}
 	}

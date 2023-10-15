@@ -19,7 +19,7 @@ using Unity.Mathematics;
 
 namespace VisualPinball.Unity
 {
-	internal struct FlipperMovementData : IComponentData
+	internal struct FlipperMovementState : IComponentData
 	{
 		public float Angle;
 		public float AngleSpeed;
@@ -40,21 +40,21 @@ namespace VisualPinball.Unity
 			AngleSpeed = AngularMomentum / inertia;       // figure TODO out moment of inertia
 		}
 
-		public static float3 SurfaceAcceleration(in FlipperMovementData data, in FlipperVelocityData velData, in float3 surfP)
+		public static float3 SurfaceAcceleration(in FlipperMovementState movement, in FlipperVelocityData velData, in float3 surfP)
 		{
 			// tangential acceleration = (0, 0, omega) x surfP
 			var tangAcc = Math.CrossZ(velData.AngularAcceleration, surfP);
 
 			// centripetal acceleration = (0,0,omega) x ( (0,0,omega) x surfP )
-			var av2 = data.AngleSpeed * data.AngleSpeed;
+			var av2 = movement.AngleSpeed * movement.AngleSpeed;
 			var centrAcc = new float3(-av2 * surfP.x, -av2 * surfP.y, 0);
 
 			return tangAcc + centrAcc;
 		}
 
-		public static float3 SurfaceVelocity(in FlipperMovementData data, in float3 surfP)
+		public static float3 SurfaceVelocity(in FlipperMovementState movementState, in float3 surfP)
 		{
-			return Math.CrossZ(data.AngleSpeed, in surfP);
+			return Math.CrossZ(movementState.AngleSpeed, in surfP);
 		}
 
 		public float GetHitTime(float angleStart, float angleEnd)

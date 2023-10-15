@@ -20,15 +20,15 @@ namespace VisualPinball.Unity
 	{
 		internal readonly int ItemId;
 		internal readonly int AnimatedItemId;
-		internal TriggerStaticData Static;
-		internal TriggerMovementData Movement;
-		internal TriggerAnimationData Animation;
-		internal FlipperCorrectionData FlipperCorrection;
+		internal TriggerStaticState Static;
+		internal TriggerMovementState Movement;
+		internal TriggerAnimationState Animation;
+		internal FlipperCorrectionState FlipperCorrection;
 
 		/// <summary>
 		/// Default trigger usage.
 		/// </summary>
-		public TriggerState(int itemId, int animatedItemId, TriggerStaticData @static, TriggerMovementData movement, TriggerAnimationData animation)
+		public TriggerState(int itemId, int animatedItemId, TriggerStaticState @static, TriggerMovementState movement, TriggerAnimationState animation)
 		{
 			ItemId = itemId;
 			AnimatedItemId = animatedItemId;
@@ -41,7 +41,7 @@ namespace VisualPinball.Unity
 		/// <summary>
 		/// Flipper correction usage.
 		/// </summary>
-		public TriggerState(int itemId, TriggerStaticData @static, FlipperCorrectionData flipperCorrection)
+		public TriggerState(int itemId, TriggerStaticState @static, FlipperCorrectionState flipperCorrection)
 		{
 			ItemId = itemId;
 			AnimatedItemId = 0;

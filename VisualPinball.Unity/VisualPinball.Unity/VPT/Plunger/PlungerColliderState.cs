@@ -1,4 +1,4 @@
-// Visual Pinball Engine
+﻿// Visual Pinball Engine
 // Copyright (C) 2023 freezy and VPE Team
 //
 // This program is free software: you can redistribute it and/or modify
@@ -16,8 +16,12 @@
 
 namespace VisualPinball.Unity
 {
-	internal struct TriggerMovementData
+	internal struct PlungerColliderState
 	{
-		public float HeightOffset;
+		public LineCollider LineSegSide0;
+		public LineCollider LineSegSide1;
+		public LineCollider LineSegEnd;
+		public LineZCollider JointEnd0;
+		public LineZCollider JointEnd1;
 	}
 }

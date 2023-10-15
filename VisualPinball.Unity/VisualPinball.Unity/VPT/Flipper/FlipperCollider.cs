@@ -153,7 +153,7 @@ namespace VisualPinball.Unity
 		#region Narrowphase
 
 		public float HitTest(ref CollisionEventData collEvent, ref InsideOfs insideOfs, ref FlipperHitData hitData,
-			in FlipperMovementData movementData, in FlipperTricksData tricks, in FlipperStaticData matData, in BallState ball,
+			in FlipperMovementState movementState, in FlipperTricksData tricks, in FlipperStaticData matData, in BallState ball,
 			float dTime)
 		{
 			// todo
@@ -170,20 +170,20 @@ namespace VisualPinball.Unity
 			// endRadius is more likely than baseRadius ... so check it first
 
 			// first face
-			var hitTime = HitTestFlipperFace(ref collEvent, ref hitData, movementData, tricks, matData, ball, dTime, lastFace);
+			var hitTime = HitTestFlipperFace(ref collEvent, ref hitData, movementState, tricks, matData, ball, dTime, lastFace);
 			if (hitTime >= 0) {
 				return hitTime;
 			}
 
 			// second face
-			hitTime = HitTestFlipperFace(ref collEvent, ref hitData, movementData, tricks, matData, ball, dTime, !lastFace);
+			hitTime = HitTestFlipperFace(ref collEvent, ref hitData, movementState, tricks, matData, ball, dTime, !lastFace);
 			if (hitTime >= 0) {
 				hitData.LastHitFace = !lastFace; // change this face to check first // HACK
 				return hitTime;
 			}
 
 			// end radius
-			hitTime = HitTestFlipperEnd(ref collEvent, ref hitData, movementData, tricks, matData, ball, dTime);
+			hitTime = HitTestFlipperEnd(ref collEvent, ref hitData, movementState, tricks, matData, ball, dTime);
 			if (hitTime >= 0) {
 				return hitTime;
 			}
@@ -200,11 +200,11 @@ namespace VisualPinball.Unity
 		}
 
 		private float HitTestFlipperFace(ref CollisionEventData collEvent, ref FlipperHitData hitData,
-			in FlipperMovementData movementData, in FlipperTricksData tricks, in FlipperStaticData matData, in BallState ball,
+			in FlipperMovementState movementState, in FlipperTricksData tricks, in FlipperStaticData matData, in BallState ball,
 			float dTime, bool face1)
 		{
-			var angleCur = movementData.Angle;
-			var angleSpeed = movementData.AngleSpeed; // rotation rate
+			var angleCur = movementState.Angle;
+			var angleSpeed = movementState.AngleSpeed; // rotation rate
 
 			var flipperBase = _hitCircleBase.Center;
 			var feRadius = matData.EndRadius;
@@ -420,10 +420,10 @@ namespace VisualPinball.Unity
 		}
 
 		private float HitTestFlipperEnd(ref CollisionEventData collEvent, ref FlipperHitData hitData,
-			in FlipperMovementData movementData, in FlipperTricksData tricks, in FlipperStaticData matData, in BallState ball, float dTime)
+			in FlipperMovementState movementState, in FlipperTricksData tricks, in FlipperStaticData matData, in BallState ball, float dTime)
 		{
-			var angleCur = movementData.Angle;
-			var angleSpeed = movementData.AngleSpeed; // rotation rate
+			var angleCur = movementState.Angle;
+			var angleSpeed = movementState.AngleSpeed; // rotation rate
 
 			var flipperBase = _hitCircleBase.Center;
 
@@ -617,7 +617,7 @@ namespace VisualPinball.Unity
 
 		#region Contact
 
-		public void Contact(ref BallState ball, ref FlipperMovementData movementData, in CollisionEventData collEvent,
+		public void Contact(ref BallState ball, ref FlipperMovementState movementState, in CollisionEventData collEvent,
 			in FlipperStaticData matData, in FlipperVelocityData velData, float dTime, in float3 gravity)
 		{
 			var normal = collEvent.HitNormal;
@@ -627,7 +627,7 @@ namespace VisualPinball.Unity
 				ball.Velocity += 0.1f * normal;
 			}
 
-			GetRelativeVelocity(normal, ball, in movementData, out var vRel, out var rB, out var rF);
+			GetRelativeVelocity(normal, ball, in movementState, out var vRel, out var rB, out var rF);
 
 			// this should be zero, but only up to +/- C_CONTACTVEL
 			var normVel = math.dot(vRel, normal);
@@ -636,11 +636,11 @@ namespace VisualPinball.Unity
 			if (normVel <= PhysicsConstants.ContactVel) {
 				// compute accelerations of point on ball and flipper
 				var aB = BallState.SurfaceAcceleration(in ball, in rB, in gravity);
-				var aF = FlipperMovementData.SurfaceAcceleration(in movementData, in velData, in rF);
+				var aF = FlipperMovementState.SurfaceAcceleration(in movementState, in velData, in rF);
 				var aRel = aB - aF;
 
 				// time derivative of the normal vector
-				var normalDeriv = Math.CrossZ(movementData.AngleSpeed, normal);
+				var normalDeriv = Math.CrossZ(movementState.AngleSpeed, normal);
 
 				// relative acceleration in the normal direction
 				var normAcc = math.dot(aRel, normal) + 2.0f * math.dot(normalDeriv, vRel);
@@ -660,7 +660,7 @@ namespace VisualPinball.Unity
 
 				// kill any existing normal velocity
 				ball.Velocity += (j * dTime * ball.InvMass - collEvent.HitOrgNormalVelocity) * normal;
-				movementData.ApplyImpulse(j * dTime * cross, matData.Inertia);
+				movementState.ApplyImpulse(j * dTime * cross, matData.Inertia);
 
 				// apply friction
 
@@ -701,11 +701,11 @@ namespace VisualPinball.Unity
 				var friction = math.clamp(numer / (denomB + denomF), -maxFriction, maxFriction);
 
 				ball.ApplySurfaceImpulse(dTime * friction * crossB, dTime * friction * slipDir);
-				movementData.ApplyImpulse(-dTime * friction * crossF, matData.Inertia);
+				movementState.ApplyImpulse(-dTime * friction * crossF, matData.Inertia);
 			}
 		}
 
-		private void GetRelativeVelocity(in float3 normal, in BallState ball, in FlipperMovementData movementData, out float3 vRel, out float3 rB, out float3 rF)
+		private void GetRelativeVelocity(in float3 normal, in BallState ball, in FlipperMovementState movementState, out float3 vRel, out float3 rB, out float3 rF)
 		{
 			rB = -ball.Radius * normal;
 			var hitPos = ball.Position + rB;
@@ -718,7 +718,7 @@ namespace VisualPinball.Unity
 
 			rF = hitPos - cF; // displacement relative to flipper center
 			var vB = BallState.SurfaceVelocity(in ball, in rB);
-			var vF = FlipperMovementData.SurfaceVelocity(in movementData, in rF);
+			var vF = FlipperMovementState.SurfaceVelocity(in movementState, in rF);
 			vRel = vB - vF;
 		}
 
@@ -776,12 +776,12 @@ namespace VisualPinball.Unity
 
 		#region Collision
 
-		public void Collide(ref BallState ball, ref CollisionEventData collEvent, ref FlipperMovementData movementData,
+		public void Collide(ref BallState ball, ref CollisionEventData collEvent, ref FlipperMovementState movementState,
 			ref NativeQueue<EventData>.ParallelWriter events, in int ballId, in FlipperTricksData tricks, in FlipperStaticData matData,
 			in FlipperVelocityData velData, in FlipperHitData hitData, uint timeMsec)
 		{
 			var normal = collEvent.HitNormal;
-			GetRelativeVelocity(normal, ball, movementData, out var vRel, out var rB, out var rF);
+			GetRelativeVelocity(normal, ball, movementState, out var vRel, out var rB, out var rF);
 
 			var bnv = math.dot(normal, vRel); // relative normal velocity
 
@@ -879,7 +879,7 @@ namespace VisualPinball.Unity
 			}
 
 			ball.Velocity += impulse * ball.InvMass * normal; // new velocity for ball after impact
-			movementData.ApplyImpulse(rotI, matData.Inertia);
+			movementState.ApplyImpulse(rotI, matData.Inertia);
 
 			// apply friction
 			var tangent = vRel - math.dot(vRel, normal) * normal; // calc the tangential velocity
@@ -906,11 +906,11 @@ namespace VisualPinball.Unity
 					jt * crossB,
 					jt * tangent
 				);
-				movementData.ApplyImpulse(-jt * crossF, matData.Inertia);
+				movementState.ApplyImpulse(-jt * crossF, matData.Inertia);
 			}
 
 			// event
-			if (bnv < -0.25f && timeMsec - movementData.LastHitTime > 250) {
+			if (bnv < -0.25f && timeMsec - movementState.LastHitTime > 250) {
 				// limit rate to 250 milliseconds per event
 				var flipperHit = hitData.HitMomentBit ? -1.0f : -bnv; // move event processing to end of collision handler...
 				if (flipperHit < 0f) {
@@ -922,7 +922,7 @@ namespace VisualPinball.Unity
 					events.Enqueue(new EventData(EventId.FlipperEventsCollide, _header.ItemId, ballId, flipperHit));
 				}
 			}
-			movementData.LastHitTime = timeMsec; // keep resetting until idle for 250 milliseconds
+			movementState.LastHitTime = timeMsec; // keep resetting until idle for 250 milliseconds
 		}
 
 		#endregion

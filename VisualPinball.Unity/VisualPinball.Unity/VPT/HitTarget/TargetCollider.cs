@@ -22,18 +22,18 @@ namespace VisualPinball.Unity
 	internal static class TargetCollider
 	{
 		public static void DropTargetCollide(ref BallState ball, ref NativeQueue<EventData>.ParallelWriter hitEvents,
-			ref DropTargetAnimationData animationData, in float3 normal, in CollisionEventData collEvent,
+			ref DropTargetAnimationState animation, in float3 normal, in CollisionEventData collEvent,
 			in Collider coll, ref Random random)
 		{
-			if (animationData.IsDropped) {
+			if (animation.IsDropped) {
 				return;
 			}
 
 			var dot = -math.dot(collEvent.HitNormal, ball.Velocity);
 			BallCollider.Collide3DWall(ref ball, in coll.Header.Material, in collEvent, in normal, ref random);
 
-			if (coll.FireEvents && dot >= coll.Threshold && !animationData.IsDropped) {
-				animationData.HitEvent = true;
+			if (coll.FireEvents && dot >= coll.Threshold && !animation.IsDropped) {
+				animation.HitEvent = true;
 				//todo m_obj->m_currentHitThreshold = dot;
 				Collider.FireHitEvent(ref ball, ref hitEvents, in coll.Header);
 			}

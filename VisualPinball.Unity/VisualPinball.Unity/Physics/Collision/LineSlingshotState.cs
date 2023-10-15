@@ -16,24 +16,9 @@
 
 namespace VisualPinball.Unity
 {
-	internal struct PlungerStaticData
+	internal struct LineSlingshotState
 	{
-		// collision
-		public float MomentumXfer;
-		public float ScatterVelocity;
-
-		// displacement
-		public float FrameStart;
-		public float FrameEnd;
-		public float FrameLen;
-		public float RestPosition;
-
-		// velocity
-		public bool IsAutoPlunger;
-		public float SpeedFire;
-		public bool IsMechPlunger;
-
-		// mesh frame calc
-		public int NumFrames;
+		public bool IsDisabled;
+		public float Threshold;
 	}
 }

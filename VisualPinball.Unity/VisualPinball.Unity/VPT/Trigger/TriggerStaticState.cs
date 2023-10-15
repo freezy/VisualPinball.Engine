@@ -16,10 +16,13 @@
 
 namespace VisualPinball.Unity
 {
-	internal struct DropTargetStaticData
+	internal struct TriggerStaticState
 	{
-		public float Speed;
-		public float RaiseDelay;
-		public bool UseHitEvent;
+		public int Shape;
+		public float Radius;
+		public float AnimSpeed;
+
+		// table data
+		public float TableScaleZ;
 	}
 }

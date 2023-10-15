@@ -23,79 +23,79 @@ namespace VisualPinballUnity
 {
 	internal static class GateDisplacementPhysics
 	{
-		internal static void UpdateDisplacement(int itemId, ref GateMovementData movementData, in GateStaticData data,
+		internal static void UpdateDisplacement(int itemId, ref GateMovementState movementState, in GateStaticState state,
 			float dTime, ref NativeQueue<EventData>.ParallelWriter events)
 		{
-			if (data.TwoWay) {
-				if (math.abs(movementData.Angle) > data.AngleMax) {
-					if (movementData.Angle < 0.0) {
-						movementData.Angle = -data.AngleMax;
+			if (state.TwoWay) {
+				if (math.abs(movementState.Angle) > state.AngleMax) {
+					if (movementState.Angle < 0.0) {
+						movementState.Angle = -state.AngleMax;
 					} else {
-						movementData.Angle = data.AngleMax;
+						movementState.Angle = state.AngleMax;
 					}
 
 					// send EOS event
-					events.Enqueue(new EventData(EventId.LimitEventsEos, itemId, movementData.AngleSpeed));
+					events.Enqueue(new EventData(EventId.LimitEventsEos, itemId, movementState.AngleSpeed));
 
-					if (!movementData.ForcedMove) {
-						movementData.AngleSpeed = -movementData.AngleSpeed;
-						movementData.AngleSpeed *= data.Damping * 0.8f;           // just some extra damping to reduce the angleSpeed a bit faster
-					} else if (movementData.AngleSpeed > 0.0) {
-						movementData.AngleSpeed = 0.0f;
+					if (!movementState.ForcedMove) {
+						movementState.AngleSpeed = -movementState.AngleSpeed;
+						movementState.AngleSpeed *= state.Damping * 0.8f;           // just some extra damping to reduce the angleSpeed a bit faster
+					} else if (movementState.AngleSpeed > 0.0) {
+						movementState.AngleSpeed = 0.0f;
 					}
 				}
-				if (math.abs(movementData.Angle) < data.AngleMin) {
-					if (movementData.Angle < 0.0) {
-						movementData.Angle = -data.AngleMin;
+				if (math.abs(movementState.Angle) < state.AngleMin) {
+					if (movementState.Angle < 0.0) {
+						movementState.Angle = -state.AngleMin;
 					} else {
-						movementData.Angle = data.AngleMin;
+						movementState.Angle = state.AngleMin;
 					}
-					if (!movementData.ForcedMove) {
-						movementData.AngleSpeed = -movementData.AngleSpeed;
-						movementData.AngleSpeed *= data.Damping * 0.8f;           // just some extra damping to reduce the angleSpeed a bit faster
-					} else if (movementData.AngleSpeed < 0.0) {
-						movementData.AngleSpeed = 0.0f;
+					if (!movementState.ForcedMove) {
+						movementState.AngleSpeed = -movementState.AngleSpeed;
+						movementState.AngleSpeed *= state.Damping * 0.8f;           // just some extra damping to reduce the angleSpeed a bit faster
+					} else if (movementState.AngleSpeed < 0.0) {
+						movementState.AngleSpeed = 0.0f;
 					}
 				}
 			} else {
-				var direction = movementData.HitDirection ? -1f : 1f;
-				if (direction * movementData.Angle > data.AngleMax) {
-					movementData.Angle = direction * data.AngleMax;
+				var direction = movementState.HitDirection ? -1f : 1f;
+				if (direction * movementState.Angle > state.AngleMax) {
+					movementState.Angle = direction * state.AngleMax;
 
 					// send EOS event
-					events.Enqueue(new EventData(EventId.LimitEventsEos, itemId, movementData.AngleSpeed));
+					events.Enqueue(new EventData(EventId.LimitEventsEos, itemId, movementState.AngleSpeed));
 
-					if (!movementData.ForcedMove) {
-						movementData.AngleSpeed = -movementData.AngleSpeed;
-						movementData.AngleSpeed *= data.Damping * 0.8f;           // just some extra damping to reduce the angleSpeed a bit faster
-					} else if (movementData.AngleSpeed > 0.0) {
-						movementData.AngleSpeed = 0.0f;
+					if (!movementState.ForcedMove) {
+						movementState.AngleSpeed = -movementState.AngleSpeed;
+						movementState.AngleSpeed *= state.Damping * 0.8f;           // just some extra damping to reduce the angleSpeed a bit faster
+					} else if (movementState.AngleSpeed > 0.0) {
+						movementState.AngleSpeed = 0.0f;
 					}
 				}
-				if (direction * movementData.Angle < data.AngleMin) {
-					movementData.Angle = direction * data.AngleMin;
+				if (direction * movementState.Angle < state.AngleMin) {
+					movementState.Angle = direction * state.AngleMin;
 
 					// send Park event
-					events.Enqueue(new EventData(EventId.LimitEventsBos, itemId, movementData.AngleSpeed));
+					events.Enqueue(new EventData(EventId.LimitEventsBos, itemId, movementState.AngleSpeed));
 
-					if (!movementData.ForcedMove) {
-						movementData.AngleSpeed = -movementData.AngleSpeed;
-						movementData.AngleSpeed *= data.Damping * 0.8f;           // just some extra damping to reduce the angleSpeed a bit faster
-					} else if (movementData.AngleSpeed < 0.0) {
-						movementData.AngleSpeed = 0.0f;
+					if (!movementState.ForcedMove) {
+						movementState.AngleSpeed = -movementState.AngleSpeed;
+						movementState.AngleSpeed *= state.Damping * 0.8f;           // just some extra damping to reduce the angleSpeed a bit faster
+					} else if (movementState.AngleSpeed < 0.0) {
+						movementState.AngleSpeed = 0.0f;
 					}
 				}
 			}
 
-			movementData.Angle += movementData.AngleSpeed * dTime;
+			movementState.Angle += movementState.AngleSpeed * dTime;
 
-			if (movementData.IsLifting) {
-				if (math.abs(movementData.Angle - movementData.LiftAngle) > 0.000001f) {
-					var direction = movementData.Angle < movementData.LiftAngle ? 1f : -1f;
-					movementData.Angle += direction * (movementData.LiftSpeed * dTime);
+			if (movementState.IsLifting) {
+				if (math.abs(movementState.Angle - movementState.LiftAngle) > 0.000001f) {
+					var direction = movementState.Angle < movementState.LiftAngle ? 1f : -1f;
+					movementState.Angle += direction * (movementState.LiftSpeed * dTime);
 
 				} else {
-					movementData.IsLifting = false;
+					movementState.IsLifting = false;
 				}
 			}
 		}

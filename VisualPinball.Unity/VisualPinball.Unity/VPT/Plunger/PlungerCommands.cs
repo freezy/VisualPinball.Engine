@@ -19,47 +19,47 @@ namespace VisualPinball.Unity
 	internal static class PlungerCommands
 	{
 
-		public static void PullBack(float speed, ref PlungerVelocityData velocityData, ref PlungerMovementData movementData)
+		public static void PullBack(float speed, ref PlungerVelocityState velocity, ref PlungerMovementState movement)
 		{
-			movementData.Speed = 0.0f;
-			velocityData.PullForce = speed;
+			movement.Speed = 0.0f;
+			velocity.PullForce = speed;
 
 			// deactivate the retract code
-			velocityData.AddRetractMotion = false;
+			velocity.AddRetractMotion = false;
 		}
 
-		public static void PullBackAndRetract(float speedPull, ref PlungerVelocityData velocityData, ref PlungerMovementData movementData)
+		public static void PullBackAndRetract(float speedPull, ref PlungerVelocityState velocity, ref PlungerMovementState movement)
 		{
-			movementData.Speed = 0.0f;
-			velocityData.PullForce = speedPull;
+			movement.Speed = 0.0f;
+			velocity.PullForce = speedPull;
 
 			// deactivate the retract code
-			velocityData.AddRetractMotion = false;
-			movementData.RetractMotion = false;
-			velocityData.InitialSpeed = speedPull;
+			velocity.AddRetractMotion = false;
+			movement.RetractMotion = false;
+			velocity.InitialSpeed = speedPull;
 		}
 
-		public static void Fire(float startPos, ref PlungerVelocityData velocityData, ref PlungerMovementData movementData, in PlungerStaticData staticData)
+		public static void Fire(float startPos, ref PlungerVelocityState velocity, ref PlungerMovementState movement, in PlungerStaticState staticState)
 		{
 			// cancel any pull force
-			velocityData.PullForce = 0.0f;
+			velocity.PullForce = 0.0f;
 
 			// make sure the starting point is behind the park position
-			if (startPos < staticData.RestPosition) {
-				startPos = staticData.RestPosition;
+			if (startPos < staticState.RestPosition) {
+				startPos = staticState.RestPosition;
 			}
 
 			// move immediately to the starting position
-			movementData.Position = staticData.FrameEnd + startPos * staticData.FrameLen;
+			movement.Position = staticState.FrameEnd + startPos * staticState.FrameLen;
 
 			// Figure the release speed as a fraction of the
 			// fire speed property, linearly proportional to the
 			// starting distance.  Note that the release motion
 			// is upwards, so the speed is negative.
-			var dx = startPos - staticData.RestPosition;
+			var dx = startPos - staticState.RestPosition;
 			const float normalize = Engine.VPT.Plunger.Plunger.PlungerNormalize / 13.0f / 100.0f;
-			movementData.FireSpeed = -staticData.SpeedFire
-			              * dx * staticData.FrameLen / Engine.VPT.Plunger.Plunger.PlungerMass
+			movement.FireSpeed = -staticState.SpeedFire
+			              * dx * staticState.FrameLen / Engine.VPT.Plunger.Plunger.PlungerMass
 			              * normalize;
 
 			// Figure the target stopping position for the
@@ -74,12 +74,12 @@ namespace VisualPinball.Unity
 			// the initial bounce will be negative, since we're moving upwards,
 			// and we calculated it as a fraction of the forward travel distance
 			// (which is the part between 0 and the rest position)
-			movementData.FireBounce = -bounceDist * staticData.RestPosition;
+			movement.FireBounce = -bounceDist * staticState.RestPosition;
 
 			// enter Fire mode for long enough for the process to complete
-			movementData.FireTimer = 200;
+			movement.FireTimer = 200;
 
-			movementData.RetractMotion = false;
+			movement.RetractMotion = false;
 		}
 	}
 }
