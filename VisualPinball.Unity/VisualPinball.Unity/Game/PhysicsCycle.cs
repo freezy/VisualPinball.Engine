@@ -47,7 +47,7 @@ namespace VisualPinball.Unity
 
 				var hitTime = dTime;       // begin time search from now ...  until delta ends
 
-				// todo apply flipper time
+				ApplyFlipperTime(ref hitTime, ref state);
 
 				// clear contacts
 				_contacts.Clear();
@@ -170,6 +170,22 @@ namespace VisualPinball.Unity
 					if (--staticCounts < 0) {
 						staticCounts = 0;                                       // keep from wrapping
 						hitTime = PhysicsConstants.StaticTime;
+					}
+				}
+			}
+		}
+
+		private void ApplyFlipperTime(ref float hitTime, ref PhysicsState state)
+		{
+			// for each flipper
+			using (var enumerator = state.FlipperStates.GetEnumerator()) {
+				while (enumerator.MoveNext()) {
+					ref var flipperState = ref enumerator.Current.Value;
+					var flipperHitTime = flipperState.Movement.GetHitTime(flipperState.Static.AngleStart, flipperState.Tricks.AngleEnd);
+
+					// if flipper comes to a rest before the end of the cycle, advance to that time
+					if (flipperHitTime > 0 && flipperHitTime < hitTime) { //!! >= 0.f causes infinite loop
+						hitTime = flipperHitTime;
 					}
 				}
 			}
