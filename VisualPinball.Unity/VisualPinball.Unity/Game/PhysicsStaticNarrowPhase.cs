@@ -17,11 +17,14 @@
 // ReSharper disable ForCanBeConvertedToForeach
 
 using Unity.Collections;
+using Unity.Profiling;
 
 namespace VisualPinball.Unity
 {
 	public static class PhysicsStaticNarrowPhase
 	{
+		private static readonly ProfilerMarker PerfMarkerNarrowPhase = new("NarrowPhase");
+
 		internal static void FindNextCollision(
 			float hitTime,
 			ref BallData ball,
@@ -30,6 +33,8 @@ namespace VisualPinball.Unity
 			ref PhysicsState state
 		)
 		{
+			PerfMarkerNarrowPhase.Begin();
+
 			// init contacts and event
 			ball.CollisionEvent.ClearCollider(hitTime); // search upto current hit time
 
@@ -49,6 +54,7 @@ namespace VisualPinball.Unity
 			if (ball.CollisionEvent.HitTime < 0) {
 				ball.CollisionEvent.ClearCollider();
 			}
+			PerfMarkerNarrowPhase.End();
 		}
 
 		private static float HitTest(ref BallData ball, in Collider collider, ref NativeList<ContactBufferElement> contacts)
@@ -65,7 +71,7 @@ namespace VisualPinball.Unity
 			var validHit = newTime >= 0f && !Math.Sign(newTime) && newTime <= ball.CollisionEvent.HitTime;
 
 			if (newCollEvent.IsContact || validHit) { // todo why newCollEvent.IsContact? it's not in vpx source
-				newCollEvent.SetCollider(colliderId, ball.Id);
+				newCollEvent.SetCollider(colliderId);
 				newCollEvent.HitTime = newTime;
 				if (newCollEvent.IsContact) { // remember all contacts?
 					contacts.Add(new ContactBufferElement(ball.Id, newCollEvent));

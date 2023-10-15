@@ -41,6 +41,7 @@ namespace VisualPinball.Unity
 		internal NativeParallelHashMap<int, SurfaceState> SurfaceStates;
 		internal NativeParallelHashMap<int, TriggerState> TriggerStates;
 		internal NativeParallelHashSet<int> DisabledCollisionItems;
+		internal bool SwapBallCollisionHandling;
 
 		public PhysicsState(ref PhysicsEnv env, ref NativeOctree<int> octree, ref BlobAssetReference<ColliderBlob> colliders,
 			ref NativeQueue<EventData>.ParallelWriter eventQueue, ref InsideOfs insideOfs, ref NativeParallelHashMap<int, BallData> balls,
@@ -49,7 +50,7 @@ namespace VisualPinball.Unity
 			ref NativeParallelHashMap<int, HitTargetState> hitTargetStates, ref NativeParallelHashMap<int, KickerState> kickerStates,
 			ref NativeParallelHashMap<int, PlungerState> plungerStates, ref NativeParallelHashMap<int, SpinnerState> spinnerStates,
 			ref NativeParallelHashMap<int, SurfaceState> surfaceStates, ref NativeParallelHashMap<int, TriggerState> triggerStates,
-			ref NativeParallelHashSet<int> disabledCollisionItems)
+			ref NativeParallelHashSet<int> disabledCollisionItems, ref bool swapBallCollisionHandling)
 		{
 			Env = env;
 			Octree = octree;
@@ -68,6 +69,7 @@ namespace VisualPinball.Unity
 			SurfaceStates = surfaceStates;
 			TriggerStates = triggerStates;
 			DisabledCollisionItems = disabledCollisionItems;
+			SwapBallCollisionHandling = swapBallCollisionHandling;
 		}
 
 		internal Collider GetCollider(int colliderId) => Colliders.Value.Colliders[colliderId].Value;

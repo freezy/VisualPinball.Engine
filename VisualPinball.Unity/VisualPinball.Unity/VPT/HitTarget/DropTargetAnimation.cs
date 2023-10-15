@@ -22,11 +22,11 @@ namespace VisualPinballUnity
 	internal static class DropTargetAnimation
 	{
 		internal static void Update(int itemId, ref DropTargetAnimationData data, in DropTargetStaticData staticData,
-			ref PhysicsState state, uint timeMsec)
+			ref PhysicsState state)
 		{
-			var oldTimeMsec = data.TimeMsec < timeMsec ? data.TimeMsec : timeMsec;
-			data.TimeMsec = timeMsec;
-			var diffTimeMsec = (float)(timeMsec - oldTimeMsec);
+			var oldTimeMsec = data.TimeMsec < state.Env.TimeMsec ? data.TimeMsec : state.Env.TimeMsec;
+			data.TimeMsec = state.Env.TimeMsec;
+			var diffTimeMsec = (float)(state.Env.TimeMsec - oldTimeMsec);
 
 			if (data.HitEvent) {
 				if (!data.IsDropped) {
