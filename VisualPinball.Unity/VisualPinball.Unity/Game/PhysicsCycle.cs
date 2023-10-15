@@ -69,11 +69,6 @@ namespace VisualPinball.Unity
 							continue;
 						}
 
-						// dynamic broad phase
-						PerfMarkerDynamicBroadPhase.Begin();
-						PhysicsDynamicBroadPhase.FindOverlaps(in ballOctree, in ball, ref overlappingColliders, ref state.Balls);
-						PerfMarkerDynamicBroadPhase.End();
-
 						// static broad phase
 						PerfMarkerBroadPhase.Begin();
 						PhysicsStaticBroadPhase.FindOverlaps(in state.Octree, in ball, ref overlappingColliders);
@@ -84,7 +79,15 @@ namespace VisualPinball.Unity
 						PhysicsStaticNarrowPhase.FindNextCollision(hitTime, ref ball, ref overlappingColliders, ref _contacts, ref state);
 						PerfMarkerNarrowPhase.End();
 
-						// todo dynamic narrow phase
+						// dynamic broad phase
+						PerfMarkerDynamicBroadPhase.Begin();
+						PhysicsDynamicBroadPhase.FindOverlaps(in ballOctree, in ball, ref overlappingColliders, ref state.Balls);
+						PerfMarkerDynamicBroadPhase.End();
+						
+						// dynamic narrow phase
+						PerfMarkerDynamicNarrowPhase.Begin();
+						PhysicsDynamicNarrowPhase.FindNextCollision(ref ball, ref overlappingColliders, ref _contacts, ref state);
+						PerfMarkerDynamicNarrowPhase.End();
 
 						// apply static time
 						ApplyStaticTime(ref hitTime, ref staticCounts, in ball);
