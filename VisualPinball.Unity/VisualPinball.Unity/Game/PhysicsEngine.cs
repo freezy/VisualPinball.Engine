@@ -52,6 +52,7 @@ namespace VisualPinball.Unity
 		[NonSerialized] private NativeParallelHashMap<int, SurfaceState> _surfaceStates = new(0, Allocator.Persistent);
 		[NonSerialized] private NativeParallelHashMap<int, TriggerState> _triggerStates = new(0, Allocator.Persistent);
 		[NonSerialized] private NativeParallelHashSet<int> _disabledCollisionItems = new(0, Allocator.Persistent);
+		[NonSerialized] private bool _swapBallCollisionHandling;
 
 		#endregion
 
@@ -226,7 +227,7 @@ namespace VisualPinball.Unity
 			var state = new PhysicsState(ref env, ref _octree, ref _colliders, ref events, ref _insideOfs, ref _ballStates,
 				ref _bumperStates, ref _dropTargetStates, ref _flipperStates, ref _gateStates,
 				ref _hitTargetStates, ref _kickerStates, ref _plungerStates, ref _spinnerStates,
-				ref _surfaceStates, ref _triggerStates, ref _disabledCollisionItems);
+				ref _surfaceStates, ref _triggerStates, ref _disabledCollisionItems, ref _swapBallCollisionHandling);
 
 			// process input
 			while (_inputActions.Count > 0) {

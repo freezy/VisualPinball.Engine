@@ -23,7 +23,7 @@ namespace VisualPinball.Unity
 {
 	internal static class PhysicsStaticCollision
 	{
-		internal static void Collide(float hitTime, ref BallData ball, uint timeMs, ref PhysicsState state)
+		internal static void Collide(float hitTime, ref BallData ball, ref PhysicsState state)
 		{
 			
 			// find balls with hit objects and minimum time
@@ -31,17 +31,17 @@ namespace VisualPinball.Unity
 				return;
 			}
 
-			Collide(ref ball, timeMs, ref state);
+			Collide(ref ball, ref state);
 
 			// remove trial hit object pointer
 			ball.CollisionEvent.ClearCollider();
 		}
 
-		private static void Collide(ref BallData ball, uint timeMs, ref PhysicsState state)
+		private static void Collide(ref BallData ball, ref PhysicsState state)
 		{
 			var colliderId = ball.CollisionEvent.ColliderId;
 			var collider = state.GetCollider(colliderId);
-			if (CollidesWithItem(ref collider, ref ball, ref state, timeMs)) {
+			if (CollidesWithItem(ref collider, ref ball, ref state)) {
 				return;
 			}
 
@@ -88,7 +88,7 @@ namespace VisualPinball.Unity
 					ref var flipperCollider = ref state.Colliders.GetFlipperCollider(colliderId);
 					flipperCollider.Collide(ref ball, ref ball.CollisionEvent, ref flipperState.Movement,
 						ref state.EventQueue, in ball.Id, in flipperState.Tricks, in flipperState.Static,
-						in flipperState.Velocity, in flipperState.Hit, timeMs
+						in flipperState.Velocity, in flipperState.Hit, state.Env.TimeMsec
 					);
 					break;
 
@@ -117,7 +117,7 @@ namespace VisualPinball.Unity
 
 				case ColliderType.TriggerCircle:
 				case ColliderType.TriggerLine:
-					TriggerCollide(ref ball, ref state, in collider, timeMs);
+					TriggerCollide(ref ball, ref state, in collider);
 					break;
 
 				case ColliderType.KickerCircle:
@@ -128,7 +128,7 @@ namespace VisualPinball.Unity
 			}
 		}
 
-		private static bool CollidesWithItem(ref Collider collider, ref BallData ball, ref PhysicsState state, uint timeMs)
+		private static bool CollidesWithItem(ref Collider collider, ref BallData ball, ref PhysicsState state)
 		{
 			// hit target
 			var colliderId = ball.CollisionEvent.ColliderId;
@@ -152,14 +152,14 @@ namespace VisualPinball.Unity
 
 			// trigger
 			} else if (collider.Header.ItemType == ItemType.Trigger) {
-				TriggerCollide(ref ball, ref state, in collider, timeMs);
+				TriggerCollide(ref ball, ref state, in collider);
 				return true;
 			}
 
 			return false;
 		}
 
-		private static void TriggerCollide(ref BallData ball, ref PhysicsState state, in Collider collider, uint timeMs)
+		private static void TriggerCollide(ref BallData ball, ref PhysicsState state, in Collider collider)
 		{
 			ref var triggerState = ref state.GetTriggerState(collider.Id);
 			TriggerCollider.Collide(ref ball, ref state.EventQueue, ref ball.CollisionEvent, ref state.InsideOfs, ref triggerState.Animation, in collider);
@@ -168,7 +168,7 @@ namespace VisualPinball.Unity
 				if (triggerState.Animation.UnHitEvent) {
 					ref var flipperCorrectionBlob = ref triggerState.FlipperCorrection.Value.Value;
 					ref var fs = ref state.FlipperStates.GetValueByRef(flipperCorrectionBlob.FlipperItemId);
-					FlipperCorrection.OnBallLeaveFlipper(ref ball, ref flipperCorrectionBlob, in fs.Movement, in fs.Tricks, in fs.Static, timeMs);
+					FlipperCorrection.OnBallLeaveFlipper(ref ball, ref flipperCorrectionBlob, in fs.Movement, in fs.Tricks, in fs.Static, state.Env.TimeMsec);
 				}
 			}
 		}

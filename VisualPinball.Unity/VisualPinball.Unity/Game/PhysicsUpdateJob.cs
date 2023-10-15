@@ -52,6 +52,7 @@ namespace VisualPinball.Unity
 		public NativeParallelHashMap<int, SurfaceState> SurfaceStates;
 		public NativeParallelHashMap<int, TriggerState> TriggerStates;
 		public NativeParallelHashSet<int> DisabledCollisionItems;
+		public bool SwapBallCollisionHandling;
 
 		public void Execute()
 		{
@@ -59,12 +60,12 @@ namespace VisualPinball.Unity
 			var state = new PhysicsState(ref env, ref Octree, ref Colliders, ref Events, ref InsideOfs, ref Balls,
 				ref BumperStates, ref DropTargetStates, ref FlipperStates, ref GateStates,
 				ref HitTargetStates, ref KickerStates, ref PlungerStates, ref SpinnerStates,
-				ref SurfaceStates, ref TriggerStates, ref DisabledCollisionItems);
+				ref SurfaceStates, ref TriggerStates, ref DisabledCollisionItems, ref SwapBallCollisionHandling);
 			var cycle = new PhysicsCycle(Allocator.Temp);
 
 			while (env.CurPhysicsFrameTime < InitialTimeUsec)  // loop here until current (real) time matches the physics (simulated) time
 			{
-				var timeMsec = (uint)((env.CurPhysicsFrameTime - env.StartTimeUsec) / 1000);
+				env.TimeMsec = (uint)((env.CurPhysicsFrameTime - env.StartTimeUsec) / 1000);
 				var physicsDiffTime = (float)((env.NextPhysicsFrameTime - env.CurPhysicsFrameTime) * (1.0 / PhysicsConstants.DefaultStepTime));
 
 				// update velocities - always on integral physics frame boundary (spinner, gate, flipper, plunger, ball)
@@ -107,7 +108,7 @@ namespace VisualPinball.Unity
 				#endregion
 
 				// primary physics loop
-				cycle.Simulate(ref state, in PlayfieldBounds, ref OverlappingColliders, physicsDiffTime, timeMsec);
+				cycle.Simulate(ref state, in PlayfieldBounds, ref OverlappingColliders, physicsDiffTime);
 
 				// ball trail, keep old pos of balls
 				using (var enumerator = state.Balls.GetEnumerator()) {
@@ -135,7 +136,7 @@ namespace VisualPinball.Unity
 				using (var enumerator = DropTargetStates.GetEnumerator()) {
 					while (enumerator.MoveNext()) {
 						ref var dropTargetState = ref enumerator.Current.Value;
-						DropTargetAnimation.Update(enumerator.Current.Key, ref dropTargetState.Animation, in dropTargetState.Static, ref state, timeMsec);
+						DropTargetAnimation.Update(enumerator.Current.Key, ref dropTargetState.Animation, in dropTargetState.Static, ref state);
 					}
 				}
 
@@ -143,7 +144,7 @@ namespace VisualPinball.Unity
 				using (var enumerator = HitTargetStates.GetEnumerator()) {
 					while (enumerator.MoveNext()) {
 						ref var hitTargetState = ref enumerator.Current.Value;
-						HitTargetAnimation.Update(ref hitTargetState.Animation, in hitTargetState.Static, timeMsec);
+						HitTargetAnimation.Update(ref hitTargetState.Animation, in hitTargetState.Static, env.TimeMsec);
 					}
 				}
 
@@ -167,7 +168,6 @@ namespace VisualPinball.Unity
 
 				env.CurPhysicsFrameTime = env.NextPhysicsFrameTime;
 				env.NextPhysicsFrameTime += PhysicsConstants.PhysicsStepTime;
-				env.TimeMsec = timeMsec;
 			}
 
 			PhysicsEnv[0] = env;

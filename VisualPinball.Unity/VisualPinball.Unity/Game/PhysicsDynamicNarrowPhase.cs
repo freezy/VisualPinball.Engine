@@ -15,12 +15,14 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using Unity.Collections;
+using Unity.Profiling;
 using VisualPinball.Unity.Collections;
 
 namespace VisualPinball.Unity
 {
 	internal static class PhysicsDynamicNarrowPhase
 	{
+		private static readonly ProfilerMarker PerfMarkerDynamicNarrowPhase = new("DynamicNarrowPhase");
 
 		internal static void FindNextCollision(ref BallData ball, ref NativeParallelHashSet<int> collidingBalls,
 			ref NativeList<ContactBufferElement> contacts, ref PhysicsState state)
@@ -29,6 +31,7 @@ namespace VisualPinball.Unity
 			if (ball.IsFrozen) {
 				return;
 			}
+			PerfMarkerDynamicNarrowPhase.Begin();
 
 			ref var collEvent = ref ball.CollisionEvent;
 			using var enumerator = collidingBalls.GetEnumerator();
@@ -41,7 +44,7 @@ namespace VisualPinball.Unity
 				var validHit = newTime >= 0 && !Math.Sign(newTime) && newTime <= collEvent.HitTime;
 
 				if (newCollEvent.IsContact || validHit) {
-					newCollEvent.SetCollider(collidingBallId, ball.Id);
+					newCollEvent.SetBallItem(collidingBallId);
 					newCollEvent.HitTime = newTime;
 					if (newCollEvent.IsContact) {
 						contacts.Add(new ContactBufferElement(ball.Id, newCollEvent));
@@ -51,6 +54,7 @@ namespace VisualPinball.Unity
 					}
 				}
 			}
+			PerfMarkerDynamicNarrowPhase.End();
 		}
 	}
 }

@@ -32,10 +32,10 @@ namespace VisualPinball.Unity
 		public int ColliderId;
 		public int BallId;
 		
-		public void SetCollider(int colliderId, int ballId = 0)
+		public void SetCollider(int colliderId)
 		{
 			ColliderId = colliderId;
-			BallId = ballId;
+			BallId = 0;
 		}
 
 		public void SetBallItem(int ballId)
@@ -47,8 +47,7 @@ namespace VisualPinball.Unity
 		public void ClearCollider(float hitTime)
 		{
 			HitTime = hitTime;
-			ColliderId = -1;
-			BallId = 0;
+			ClearCollider();
 		}
 
 

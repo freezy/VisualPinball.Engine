@@ -16,25 +16,32 @@
 
 using NativeTrees;
 using Unity.Collections;
+using Unity.Profiling;
 using VisualPinball.Unity.Collections;
 
 namespace VisualPinball.Unity
 {
 	public static class PhysicsDynamicBroadPhase
 	{
+		private static readonly ProfilerMarker PerfMarkerBallOctree = new("CreateBallOctree");
+		private static readonly ProfilerMarker PerfMarkerDynamicBroadPhase = new("DynamicBroadPhase");
+
 		internal static NativeOctree<int> CreateOctree(ref NativeParallelHashMap<int, BallData> balls, in AABB playfieldBounds)
 		{
+			PerfMarkerBallOctree.Begin();
 			var octree = new NativeOctree<int>(playfieldBounds, 16, 10, Allocator.TempJob);
 			using var enumerator = balls.GetEnumerator();
 			while (enumerator.MoveNext()) {
 				ref var ball = ref enumerator.Current.Value;
 				octree.Insert(ball.Id, ball.Aabb);
 			}
+			PerfMarkerBallOctree.End();
 			return octree;
 		}
 
 		internal static void FindOverlaps(in NativeOctree<int> octree, in BallData ball, ref NativeParallelHashSet<int> overlappingBalls, ref NativeParallelHashMap<int, BallData> balls)
 		{
+			PerfMarkerDynamicBroadPhase.Begin();
 			overlappingBalls.Clear();
 			octree.RangeAABBUnique(ball.Aabb, overlappingBalls);
 			using var ob = overlappingBalls.ToNativeArray(Allocator.Temp);
@@ -45,6 +52,7 @@ namespace VisualPinball.Unity
 					overlappingBalls.Remove(overlappingBallId);
 				}
 			}
+			PerfMarkerDynamicBroadPhase.End();
 		}
 	}
 }

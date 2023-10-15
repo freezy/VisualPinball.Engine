@@ -16,15 +16,20 @@
 
 using NativeTrees;
 using Unity.Collections;
+using Unity.Profiling;
 
 namespace VisualPinball.Unity
 {
 	public static class PhysicsStaticBroadPhase
 	{
+		private static readonly ProfilerMarker PerfMarkerBroadPhase = new("BroadPhase");
+
 		internal static void FindOverlaps(in NativeOctree<int> octree, in BallData ball, ref NativeParallelHashSet<int> overlappingColliders)
 		{
+			PerfMarkerBroadPhase.Begin();
 			overlappingColliders.Clear();
 			octree.RangeAABBUnique(ball.Aabb, overlappingColliders);
+			PerfMarkerBroadPhase.End();
 		}
 	}
 }
