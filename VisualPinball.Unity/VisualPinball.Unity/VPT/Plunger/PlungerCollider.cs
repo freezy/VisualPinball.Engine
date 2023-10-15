@@ -78,7 +78,7 @@ namespace VisualPinball.Unity
 		#region Narrowphase
 
 		public float HitTest(ref CollisionEventData collEvent, ref InsideOfs insideOfs,
-			ref PlungerMovementData movementData, in PlungerColliderData colliderData, in PlungerStaticData staticData, in BallState ball, float dTime)
+			ref PlungerMovementState movement, in PlungerColliderState colliderState, in PlungerStaticState staticState, in BallState ball, float dTime)
 		{
 			var hitTime = dTime; //start time
 			var isHit = false;
@@ -98,13 +98,13 @@ namespace VisualPinball.Unity
 			var newTime = LineSegBase.HitTest(ref newCollEvent, ref insideOfs, in ball, dTime);
 			UpdateCollision(ref collEvent, ref newCollEvent, ref isHit, ref hitTime, in newTime);
 
-			newTime = LineCollider.HitTest(ref newCollEvent, ref insideOfs, in colliderData.LineSegSide0, in ball, hitTime);
+			newTime = LineCollider.HitTest(ref newCollEvent, ref insideOfs, in colliderState.LineSegSide0, in ball, hitTime);
 			UpdateCollision(ref collEvent, ref newCollEvent, ref isHit, ref hitTime, in newTime);
 
 			newTime = JointBase0.HitTest(ref newCollEvent, in ball, hitTime);
 			UpdateCollision(ref collEvent, ref newCollEvent, ref isHit, ref hitTime, in newTime);
 
-			newTime = LineCollider.HitTest(ref newCollEvent, ref insideOfs, in colliderData.LineSegSide1, in ball, hitTime);
+			newTime = LineCollider.HitTest(ref newCollEvent, ref insideOfs, in colliderState.LineSegSide1, in ball, hitTime);
 			UpdateCollision(ref collEvent, ref newCollEvent, ref isHit, ref hitTime, in newTime);
 
 			newTime = JointBase1.HitTest(ref newCollEvent, in ball, hitTime);
@@ -121,7 +121,7 @@ namespace VisualPinball.Unity
 			// do this, just adjust the ball speed to what it looks like in the
 			// tip's rest frame.
 			var ballTmp = ball;
-			ballTmp.Velocity.y -= movementData.Speed;
+			ballTmp.Velocity.y -= movement.Speed;
 
 			// Figure the impulse from hitting the moving end.
 			// Calculate this as the product of the plunger speed and the
@@ -149,22 +149,22 @@ namespace VisualPinball.Unity
 			// arbitrary lower bound to prevent division by zero and/or crazy
 			// physics.)
 			var ballMass = ball.Mass > 0.05f ? ball.Mass : 0.05f;
-			var xferRatio = staticData.MomentumXfer / ballMass;
-			var deltaY = movementData.Speed * xferRatio;
+			var xferRatio = staticState.MomentumXfer / ballMass;
+			var deltaY = movement.Speed * xferRatio;
 
 			// check the moving bits
-			newTime = LineCollider.HitTest(ref newCollEvent, ref insideOfs, in colliderData.LineSegEnd, in ballTmp, hitTime);
+			newTime = LineCollider.HitTest(ref newCollEvent, ref insideOfs, in colliderState.LineSegEnd, in ballTmp, hitTime);
 			UpdateCollision(ref collEvent, ref newCollEvent, ref isHit, ref hitTime, in newTime, deltaY);
 
-			newTime = LineZCollider.HitTest(ref newCollEvent, in colliderData.JointEnd0, in ballTmp, hitTime);
+			newTime = LineZCollider.HitTest(ref newCollEvent, in colliderState.JointEnd0, in ballTmp, hitTime);
 			UpdateCollision(ref collEvent, ref newCollEvent, ref isHit, ref hitTime, in newTime, deltaY);
 
-			newTime = LineZCollider.HitTest(ref newCollEvent, in colliderData.JointEnd1, in ballTmp, hitTime);
+			newTime = LineZCollider.HitTest(ref newCollEvent, in colliderState.JointEnd1, in ballTmp, hitTime);
 			UpdateCollision(ref collEvent, ref newCollEvent, ref isHit, ref hitTime, in newTime, deltaY);
 
 			// check only if the plunger is not in a controlled retract motion
 			// and check for a hit
-			if (isHit && !movementData.RetractMotion) {
+			if (isHit && !movement.RetractMotion) {
 				// We hit the ball.  Set a travel limit to freeze the plunger at
 				// its current position for the next displacement update.  This
 				// is necessary in case we have a relatively heavy ball with a
@@ -192,8 +192,8 @@ namespace VisualPinball.Unity
 				// enough to let the ball move a little bit, so that there's a
 				// non-zero time to the next collision with the plunger.  We'll
 				// then catch up again and push it along a little further.
-				if (movementData.TravelLimit < movementData.Position) {
-					movementData.TravelLimit = movementData.Position;
+				if (movement.TravelLimit < movement.Position) {
+					movement.TravelLimit = movement.Position;
 				}
 
 				// If the distance is negative, it means the objects are
@@ -230,7 +230,7 @@ namespace VisualPinball.Unity
 		#region Collision
 
 		public static void Collide(ref BallState ball, ref CollisionEventData collEvent,
-			ref PlungerMovementData movementData, in PlungerStaticData staticData, ref Random random)
+			ref PlungerMovementState movement, in PlungerStaticState staticState, ref Random random)
 		{
 			var dot = (ball.Velocity.x - collEvent.HitVelocity.x) * collEvent.HitNormal.x
 			          + (ball.Velocity.y - collEvent.HitVelocity.y) * collEvent.HitNormal.y;
@@ -277,7 +277,7 @@ namespace VisualPinball.Unity
 			// for a Fire event.  Real plungers bounce quite a bit when fired without
 			// hitting anything, but bounce much less when they hit something, since
 			// most of the momentum gets transferred out of the plunger and to the ball.
-			movementData.FireBounce *= 0.6f;
+			movement.FireBounce *= 0.6f;
 
 			// Check for a downward collision with the tip.  This is the moving
 			// part of the plunger, so it has some special handling.
@@ -299,7 +299,7 @@ namespace VisualPinball.Unity
 				// isn't entirely unreasonable physically - you could look at it as
 				// accounting for the spring tension and friction.
 				const float reverseImpulseFudgeFactor = .22f;
-				movementData.ReverseImpulse = ball.Velocity.y * impulse
+				movement.ReverseImpulse = ball.Velocity.y * impulse
 					* (ball.Mass / Plunger.PlungerMass)
 					* reverseImpulseFudgeFactor;
 			}
@@ -309,7 +309,7 @@ namespace VisualPinball.Unity
 			ball.Velocity *= 0.999f; //friction all axiz     //!! TODO: fix this
 
 			var scatterVel =
-				staticData.ScatterVelocity *
+				staticState.ScatterVelocity *
 				0.2f; // todo g_pplayer->m_ptable->m_globalDifficulty;// apply dificulty weighting
 
 			// skip if low velocity

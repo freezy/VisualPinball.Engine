@@ -25,12 +25,12 @@ namespace VisualPinballUnity
 	{
 		private static readonly Dictionary<int, float> _initialOffset = new();
 
-		internal static void Update(int itemId, in TriggerMovementData data, Transform transform)
+		internal static void Update(int itemId, in TriggerMovementState movement, Transform transform)
 		{
 			var worldPos = transform.position;
 			_initialOffset.TryAdd(itemId, worldPos.y);
 
-			worldPos.y = _initialOffset[itemId] + Physics.ScaleToWorld(data.HeightOffset);
+			worldPos.y = _initialOffset[itemId] + Physics.ScaleToWorld(movement.HeightOffset);
 			transform.position = worldPos;
 		}
 	}

@@ -16,7 +16,7 @@
 
 namespace VisualPinball.Unity
 {
-	internal struct PlungerVelocityData
+	internal struct PlungerVelocityState
 	{
 		/// <summary>
 		/// Recent history of mechanical plunger readings.  We keep the

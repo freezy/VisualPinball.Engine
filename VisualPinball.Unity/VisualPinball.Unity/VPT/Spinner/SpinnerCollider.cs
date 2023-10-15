@@ -101,7 +101,7 @@ namespace VisualPinball.Unity
 
 		#region Collision
 
-		public static void Collide(in BallState ball, ref CollisionEventData collEvent, ref SpinnerMovementData movementData, in SpinnerStaticData data)
+		public static void Collide(in BallState ball, ref CollisionEventData collEvent, ref SpinnerMovementState movement, in SpinnerStaticState state)
 		{
 			var dot = math.dot(collEvent.HitNormal, ball.Velocity);
 
@@ -110,7 +110,7 @@ namespace VisualPinball.Unity
 				return;
 			}
 
-			var h = data.Height * 0.5f;
+			var h = state.Height * 0.5f;
 			// linear speed = ball speed
 			// angular speed = linear/radius (height of hit)
 
@@ -119,18 +119,18 @@ namespace VisualPinball.Unity
 			// h -coll.m_radius will be moving a at linear rate of
 			// 'speed'. We can calculate the angular speed from that.
 
-			movementData.AngleSpeed = math.abs(dot); // use this until a better value comes along
+			movement.AngleSpeed = math.abs(dot); // use this until a better value comes along
 
 			if (math.abs(h) > 1.0f) {
 				// avoid divide by zero
-				movementData.AngleSpeed /= h;
+				movement.AngleSpeed /= h;
 			}
 
-			movementData.AngleSpeed *= data.Damping;
+			movement.AngleSpeed *= state.Damping;
 
 			// We encoded which side of the spinner the ball hit
 			if (collEvent.HitFlag) {
-				movementData.AngleSpeed = -movementData.AngleSpeed;
+				movement.AngleSpeed = -movement.AngleSpeed;
 			}
 		}
 

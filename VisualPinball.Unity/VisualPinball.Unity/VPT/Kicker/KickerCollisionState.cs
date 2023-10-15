@@ -14,11 +14,15 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+using Unity.Entities;
+
 namespace VisualPinball.Unity
 {
-	internal struct SpinnerMovementData
+	internal struct KickerCollisionState : IComponentData
 	{
-		public float Angle;
-		public float AngleSpeed;
+		public int BallId;
+		public int LastCapturedBallId;
+		public bool HasBall => BallId != 0;
+
 	}
 }

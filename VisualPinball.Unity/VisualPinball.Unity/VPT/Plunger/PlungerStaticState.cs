@@ -1,4 +1,4 @@
-// Visual Pinball Engine
+﻿// Visual Pinball Engine
 // Copyright (C) 2023 freezy and VPE Team
 //
 // This program is free software: you can redistribute it and/or modify
@@ -16,13 +16,24 @@
 
 namespace VisualPinball.Unity
 {
-	internal struct TriggerStaticData
+	internal struct PlungerStaticState
 	{
-		public int Shape;
-		public float Radius;
-		public float AnimSpeed;
+		// collision
+		public float MomentumXfer;
+		public float ScatterVelocity;
 
-		// table data
-		public float TableScaleZ;
+		// displacement
+		public float FrameStart;
+		public float FrameEnd;
+		public float FrameLen;
+		public float RestPosition;
+
+		// velocity
+		public bool IsAutoPlunger;
+		public float SpeedFire;
+		public bool IsMechPlunger;
+
+		// mesh frame calc
+		public int NumFrames;
 	}
 }

@@ -21,13 +21,13 @@ namespace VisualPinballUnity
 {
 	internal static class PlungerAnimation
 	{
-		internal static void Update(ref PlungerAnimationData animationData, in PlungerMovementData movementData,
-			in PlungerStaticData staticData)
+		internal static void Update(ref PlungerAnimationState animation, in PlungerMovementState movement,
+			in PlungerStaticState staticState)
 		{
-			var frame0 = (int)((movementData.Position - staticData.FrameStart) / (staticData.FrameEnd - staticData.FrameStart) * (staticData.NumFrames - 1) + 0.5f);
-			var frame = frame0 < 0 ? 0 : frame0 >= staticData.NumFrames ? staticData.NumFrames - 1 : frame0;
+			var frame0 = (int)((movement.Position - staticState.FrameStart) / (staticState.FrameEnd - staticState.FrameStart) * (staticState.NumFrames - 1) + 0.5f);
+			var frame = frame0 < 0 ? 0 : frame0 >= staticState.NumFrames ? staticState.NumFrames - 1 : frame0;
 
-			animationData.Position = math.clamp((float)frame / staticData.NumFrames, 0, 1);
+			animation.Position = math.clamp((float)frame / staticState.NumFrames, 0, 1);
 		}
 	}
 }

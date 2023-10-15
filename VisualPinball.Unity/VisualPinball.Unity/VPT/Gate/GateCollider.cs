@@ -85,11 +85,11 @@ namespace VisualPinball.Unity
 
 		#region Collision
 
-		public static void Collide(ref BallState ball, ref CollisionEventData collEvent, ref GateMovementData movementData,
-			ref NativeQueue<EventData>.ParallelWriter events, in Collider coll, in GateStaticData data)
+		public static void Collide(ref BallState ball, ref CollisionEventData collEvent, ref GateMovementState movementState,
+			ref NativeQueue<EventData>.ParallelWriter events, in Collider coll, in GateStaticState state)
 		{
 			var dot = math.dot(collEvent.HitNormal, ball.Velocity);
-			var h = data.Height * 0.5f;
+			var h = state.Height * 0.5f;
 
 			// linear speed = ball speed
 			// angular speed = linear/radius (height of hit)
@@ -99,19 +99,19 @@ namespace VisualPinball.Unity
 				speed /= h;
 			}
 
-			movementData.AngleSpeed = speed;
-			if (!collEvent.HitFlag && !data.TwoWay) {
-				movementData.HitDirection = dot > 0;
-				movementData.AngleSpeed *= (float)(1.0 / 8.0); // Give a little bounce-back.
+			movementState.AngleSpeed = speed;
+			if (!collEvent.HitFlag && !state.TwoWay) {
+				movementState.HitDirection = dot > 0;
+				movementState.AngleSpeed *= (float)(1.0 / 8.0); // Give a little bounce-back.
 				return;                                        // hit from back doesn't count if not two-way
 			}
 
-			movementData.HitDirection = false;
+			movementState.HitDirection = false;
 
 			// We encoded which side of the spinner the ball hit
-			if (collEvent.HitFlag && data.TwoWay) {
+			if (collEvent.HitFlag && state.TwoWay) {
 
-				movementData.AngleSpeed = -movementData.AngleSpeed;
+				movementState.AngleSpeed = -movementState.AngleSpeed;
 			}
 
 			Collider.FireHitEvent(ref ball, ref events, in coll.Header);

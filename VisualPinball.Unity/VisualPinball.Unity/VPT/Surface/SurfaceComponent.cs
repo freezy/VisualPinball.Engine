@@ -214,7 +214,7 @@ namespace VisualPinball.Unity
 				return default;
 			}
 
-			return new SurfaceState(gameObject.GetInstanceID(), new LineSlingshotData {
+			return new SurfaceState(gameObject.GetInstanceID(), new LineSlingshotState {
 				IsDisabled = false,
 				Threshold = collComponent.SlingshotThreshold,
 			});

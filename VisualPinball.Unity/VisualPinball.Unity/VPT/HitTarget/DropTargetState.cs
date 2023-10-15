@@ -20,10 +20,10 @@ namespace VisualPinball.Unity
 	{
 		internal readonly int ItemId;
 		internal readonly int AnimatedItemId;
-		internal DropTargetStaticData Static;
-		internal DropTargetAnimationData Animation;
+		internal DropTargetStaticState Static;
+		internal DropTargetAnimationState Animation;
 
-		public DropTargetState(int itemId, int animatedItemId, DropTargetStaticData @static, DropTargetAnimationData animation)
+		public DropTargetState(int itemId, int animatedItemId, DropTargetStaticState @static, DropTargetAnimationState animation)
 		{
 			ItemId = itemId;
 			AnimatedItemId = animatedItemId;

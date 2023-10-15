@@ -25,67 +25,67 @@ namespace VisualPinballUnity
 {
 	internal static class SpinnerDisplacementPhysics
 	{
-		internal static void UpdateDisplacement(int itemId, ref SpinnerMovementData movementData, in SpinnerStaticData data,
+		internal static void UpdateDisplacement(int itemId, ref SpinnerMovementState movement, in SpinnerStaticState state,
 			float dTime, ref NativeQueue<EventData>.ParallelWriter events)
 		{
 
 			// those are already converted to radian during authoring.
-			var angleMin = data.AngleMin;
-			var angleMax = data.AngleMax;
+			var angleMin = state.AngleMin;
+			var angleMax = state.AngleMax;
 
 			// blocked spinner, limited motion spinner
-			if (data.AngleMin != data.AngleMax) {
+			if (state.AngleMin != state.AngleMax) {
 
-				movementData.Angle += movementData.AngleSpeed * dTime;
+				movement.Angle += movement.AngleSpeed * dTime;
 
-				if (movementData.Angle > angleMax) {
-					movementData.Angle = angleMax;
+				if (movement.Angle > angleMax) {
+					movement.Angle = angleMax;
 
 					// send EOS event
-					events.Enqueue(new EventData(EventId.LimitEventsEos, itemId, math.abs(math.degrees(movementData.AngleSpeed))));
+					events.Enqueue(new EventData(EventId.LimitEventsEos, itemId, math.abs(math.degrees(movement.AngleSpeed))));
 
-					if (movementData.AngleSpeed > 0.0f) {
-						movementData.AngleSpeed *= -0.005f - data.Elasticity;
+					if (movement.AngleSpeed > 0.0f) {
+						movement.AngleSpeed *= -0.005f - state.Elasticity;
 					}
 				}
 
-				if (movementData.Angle < angleMin) {
-					movementData.Angle = angleMin;
+				if (movement.Angle < angleMin) {
+					movement.Angle = angleMin;
 
 					// send Park event
-					events.Enqueue(new EventData(EventId.LimitEventsBos, itemId, math.abs(math.degrees(movementData.AngleSpeed))));
+					events.Enqueue(new EventData(EventId.LimitEventsBos, itemId, math.abs(math.degrees(movement.AngleSpeed))));
 
-					if (movementData.AngleSpeed < 0.0f) {
-						movementData.AngleSpeed *= -0.005f - data.Elasticity;
+					if (movement.AngleSpeed < 0.0f) {
+						movement.AngleSpeed *= -0.005f - state.Elasticity;
 					}
 				}
 
 			} else {
 
-				var target = movementData.AngleSpeed > 0.0f
-					? movementData.Angle < math.PI ? math.PI : 3.0f * math.PI
-					: movementData.Angle < math.PI ? -math.PI : math.PI;
+				var target = movement.AngleSpeed > 0.0f
+					? movement.Angle < math.PI ? math.PI : 3.0f * math.PI
+					: movement.Angle < math.PI ? -math.PI : math.PI;
 
-				movementData.Angle += movementData.AngleSpeed * dTime;
+				movement.Angle += movement.AngleSpeed * dTime;
 
-				if (movementData.AngleSpeed > 0.0f) {
+				if (movement.AngleSpeed > 0.0f) {
 
-					if (movementData.Angle > target) {
+					if (movement.Angle > target) {
 						events.Enqueue(new EventData(EventId.SpinnerEventsSpin, itemId, true));
 					}
 
 				} else {
-					if (movementData.Angle < target) {
+					if (movement.Angle < target) {
 						events.Enqueue(new EventData(EventId.SpinnerEventsSpin, itemId, true));
 					}
 				}
 
-				while (movementData.Angle > 2.0f * math.PI) {
-					movementData.Angle -= 2.0f * math.PI;
+				while (movement.Angle > 2.0f * math.PI) {
+					movement.Angle -= 2.0f * math.PI;
 				}
 
-				while (movementData.Angle < 0.0f) {
-					movementData.Angle += 2.0f * math.PI;
+				while (movement.Angle < 0.0f) {
+					movement.Angle += 2.0f * math.PI;
 				}
 			}
 		}

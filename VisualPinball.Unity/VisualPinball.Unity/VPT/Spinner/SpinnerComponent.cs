@@ -251,7 +251,7 @@ namespace VisualPinball.Unity
 			// physics collision data
 			var collComponent = GetComponent<SpinnerColliderComponent>();
 			var staticData = collComponent
-				? new SpinnerStaticData {
+				? new SpinnerStaticState {
 					AngleMax = math.radians(AngleMax),
 					AngleMin = math.radians(AngleMin),
 					Damping = math.pow(Damping, (float)PhysicsConstants.PhysFactor),
@@ -262,7 +262,7 @@ namespace VisualPinball.Unity
 			// animation
 			var animComponent = GetComponentInChildren<SpinnerPlateAnimationComponent>();
 			var movementData = animComponent
-				? new SpinnerMovementData {
+				? new SpinnerMovementState {
 					Angle = math.radians(math.clamp(0.0f, AngleMin, AngleMax)),
 					AngleSpeed = 0f
 				} : default;

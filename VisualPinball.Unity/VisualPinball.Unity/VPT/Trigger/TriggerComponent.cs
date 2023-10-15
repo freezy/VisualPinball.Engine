@@ -260,14 +260,14 @@ namespace VisualPinball.Unity
 				return new TriggerState(
 					gameObject.GetInstanceID(),
 					animComponent ? animComponent.gameObject.GetInstanceID() : 0,
-					new TriggerStaticData {
+					new TriggerStaticState {
 						AnimSpeed = animComponent.AnimSpeed,
 						Radius = collComponent.HitCircleRadius,
 						Shape = meshComponent.Shape,
 						TableScaleZ = 1f
 					},
-					new TriggerMovementData(),
-					new TriggerAnimationData()
+					new TriggerMovementState(),
+					new TriggerAnimationState()
 				);
 			}
 
@@ -292,13 +292,13 @@ namespace VisualPinball.Unity
 
 			return new TriggerState(
 				gameObject.GetInstanceID(),
-				new TriggerStaticData {
+				new TriggerStaticState {
 					AnimSpeed = 0,
 					Radius = collComponent.HitCircleRadius,
 					Shape = TriggerShape.TriggerNone,
 					TableScaleZ = 1f
 				},
-				new FlipperCorrectionData {
+				new FlipperCorrectionState {
 					IsEnabled = true,
 					Value = blobAssetRef
 				}

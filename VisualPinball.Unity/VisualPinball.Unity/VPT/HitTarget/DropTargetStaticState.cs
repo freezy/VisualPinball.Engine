@@ -16,8 +16,10 @@
 
 namespace VisualPinball.Unity
 {
-	internal struct PlungerAnimationData
+	internal struct DropTargetStaticState
 	{
-		public float Position;
+		public float Speed;
+		public float RaiseDelay;
+		public bool UseHitEvent;
 	}
 }

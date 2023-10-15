@@ -1,4 +1,4 @@
-// Visual Pinball Engine
+﻿// Visual Pinball Engine
 // Copyright (C) 2023 freezy and VPE Team
 //
 // This program is free software: you can redistribute it and/or modify
@@ -16,13 +16,13 @@
 
 namespace VisualPinball.Unity
 {
-	internal struct TriggerAnimationData
+	internal struct SpinnerStaticState
 	{
-		public bool HitEvent;
-		public bool UnHitEvent;
-
-		public float TimeMsec;
-		public bool DoAnimation;
-		public bool MoveDown;
+		public float AngleMin;
+		public float AngleMax;
+		public float Height;
+		public float Damping;
+		public float Elasticity;
+		//public Entity PlateEntity;
 	}
 }

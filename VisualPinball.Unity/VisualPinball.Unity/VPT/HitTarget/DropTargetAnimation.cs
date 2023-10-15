@@ -21,51 +21,51 @@ namespace VisualPinballUnity
 {
 	internal static class DropTargetAnimation
 	{
-		internal static void Update(int itemId, ref DropTargetAnimationData data, in DropTargetStaticData staticData,
+		internal static void Update(int itemId, ref DropTargetAnimationState animation, in DropTargetStaticState staticState,
 			ref PhysicsState state)
 		{
-			var oldTimeMsec = data.TimeMsec < state.Env.TimeMsec ? data.TimeMsec : state.Env.TimeMsec;
-			data.TimeMsec = state.Env.TimeMsec;
+			var oldTimeMsec = animation.TimeMsec < state.Env.TimeMsec ? animation.TimeMsec : state.Env.TimeMsec;
+			animation.TimeMsec = state.Env.TimeMsec;
 			var diffTimeMsec = (float)(state.Env.TimeMsec - oldTimeMsec);
 
-			if (data.HitEvent) {
-				if (!data.IsDropped) {
-					data.MoveDown = true;
+			if (animation.HitEvent) {
+				if (!animation.IsDropped) {
+					animation.MoveDown = true;
 				}
 
-				data.MoveAnimation = true;
-				data.HitEvent = false;
+				animation.MoveAnimation = true;
+				animation.HitEvent = false;
 			}
 
-			if (data.MoveAnimation) {
-				var step = staticData.Speed;
+			if (animation.MoveAnimation) {
+				var step = staticState.Speed;
 
-				if (data.MoveDown) {
+				if (animation.MoveDown) {
 					step = -step;
 
-				} else if (data.TimeMsec - data.TimeStamp < (uint) staticData.RaiseDelay) {
+				} else if (animation.TimeMsec - animation.TimeStamp < (uint) staticState.RaiseDelay) {
 					step = 0.0f;
 				}
 
-				data.ZOffset += step * diffTimeMsec;
-				if (data.MoveDown) {
-					if (data.ZOffset <= -DropTargetAnimationData.DropTargetLimit) {
-						data.ZOffset = -DropTargetAnimationData.DropTargetLimit;
-						data.MoveDown = false;
-						data.IsDropped = true;
-						data.MoveAnimation = false;
-						data.TimeStamp = 0;
-						if (staticData.UseHitEvent) {
+				animation.ZOffset += step * diffTimeMsec;
+				if (animation.MoveDown) {
+					if (animation.ZOffset <= -DropTargetAnimationState.DropTargetLimit) {
+						animation.ZOffset = -DropTargetAnimationState.DropTargetLimit;
+						animation.MoveDown = false;
+						animation.IsDropped = true;
+						animation.MoveAnimation = false;
+						animation.TimeStamp = 0;
+						if (staticState.UseHitEvent) {
 							state.EventQueue.Enqueue(new EventData(EventId.TargetEventsDropped, itemId));
 						}
 					}
 
 				} else {
-					if (data.ZOffset >= 0.0f) {
-						data.ZOffset = 0.0f;
-						data.MoveAnimation = false;
-						data.IsDropped = false;
-						if (staticData.UseHitEvent) {
+					if (animation.ZOffset >= 0.0f) {
+						animation.ZOffset = 0.0f;
+						animation.MoveAnimation = false;
+						animation.IsDropped = false;
+						if (staticState.UseHitEvent) {
 							state.EventQueue.Enqueue(new EventData(EventId.TargetEventsRaised, itemId));
 						}
 					}

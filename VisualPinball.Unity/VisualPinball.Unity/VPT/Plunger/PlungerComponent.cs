@@ -299,7 +299,7 @@ namespace VisualPinball.Unity
 
 			return new PlungerState(
 				gameObject.GetInstanceID(),
-				new PlungerStaticData {
+				new PlungerStaticState {
 					MomentumXfer = collComponent.MomentumXfer,
 					ScatterVelocity = collComponent.ScatterVelocity,
 					FrameStart = frameBottom,
@@ -311,14 +311,14 @@ namespace VisualPinball.Unity
 					SpeedFire = collComponent.SpeedFire,
 					NumFrames = (int)(collComponent.Stroke * (float)(PlungerMeshGenerator.PlungerFrameCount / 80.0f)) + 1, // 25 frames per 80 units travel
 				},
-				new PlungerColliderData {
+				new PlungerColliderState {
 					LineSegSide0 = new LineCollider(new float2(x + 0.0001f, position), new float2(x, y), zHeight, zHeight + Plunger.PlungerHeight, info),
 					LineSegSide1 = new LineCollider(new float2(x2, y), new float2(x2 + 0.0001f, position), zHeight, zHeight + Plunger.PlungerHeight, info),
 					LineSegEnd = new LineCollider(new float2(x2, position), new float2(x, position), zHeight, zHeight + Plunger.PlungerHeight, info),
 					JointEnd0 = new LineZCollider(new float2(x, position), zHeight, zHeight + Plunger.PlungerHeight, info),
 					JointEnd1 = new LineZCollider(new float2(x2, position), zHeight, zHeight + Plunger.PlungerHeight, info),
 				},
-				new PlungerMovementData {
+				new PlungerMovementState {
 					FireBounce = 0f,
 					Position = position,
 					RetractMotion = false,
@@ -328,7 +328,7 @@ namespace VisualPinball.Unity
 					FireSpeed = 0f,
 					FireTimer = 0
 				},
-				new PlungerVelocityData {
+				new PlungerVelocityState {
 					Mech0 = 0f,
 					Mech1 = 0f,
 					Mech2 = 0f,
@@ -339,7 +339,7 @@ namespace VisualPinball.Unity
 					RetractWaitLoop = 0,
 					MechStrength = collComponent.MechStrength
 				},
-				new PlungerAnimationData {
+				new PlungerAnimationState {
 					Position = collComponent.ParkPosition
 				}
 			);

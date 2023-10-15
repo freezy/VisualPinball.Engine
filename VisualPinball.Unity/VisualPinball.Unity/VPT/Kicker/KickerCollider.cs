@@ -33,16 +33,16 @@ namespace VisualPinball.Unity
 		public const bool ForceLegacyMode = false;
 
 		public static void Collide(ref BallState ball, ref NativeQueue<EventData>.ParallelWriter events,
-			ref InsideOfs insideOfs, ref KickerCollisionData collData, in KickerStaticData staticData,
+			ref InsideOfs insideOfs, ref KickerCollisionState collState, in KickerStaticState staticState,
 			in ColliderMeshData meshData, in CollisionEventData collEvent, in int itemId)
 		{
 			// a previous ball already in kicker?
-			if (collData.HasBall) {
+			if (collState.HasBall) {
 				return;
 			}
 
 			// ReSharper disable once ConditionIsAlwaysTrueOrFalse
-			var legacyMode = ForceLegacyMode || staticData.LegacyMode;
+			var legacyMode = ForceLegacyMode || staticState.LegacyMode;
 			var hitNormal = collEvent.HitNormal;
 			var hitBit = collEvent.HitFlag;
 
@@ -58,7 +58,7 @@ namespace VisualPinball.Unity
 
 				// entering Kickers volume
 				if (!isBallInside) {
-					var grabHeight = (staticData.ZLow + ball.Radius) * staticData.HitAccuracy;
+					var grabHeight = (staticState.ZLow + ball.Radius) * staticState.HitAccuracy;
 
 					// early out here if the ball is slow and we are near the kicker center
 					var hitEvent = ball.Position.z < grabHeight || legacyMode;
@@ -81,17 +81,17 @@ namespace VisualPinball.Unity
 
 					} else {
 
-						ball.IsFrozen = !staticData.FallThrough;
+						ball.IsFrozen = !staticState.FallThrough;
 						if (ball.IsFrozen) {
 							insideOfs.SetInsideOf(itemId, ball.Id); // add kicker to ball's volume set
-							collData.BallId = ball.Id;
-							collData.LastCapturedBallId = ball.Id;
+							collState.BallId = ball.Id;
+							collState.LastCapturedBallId = ball.Id;
 						}
 
 						// Fire the event before changing ball attributes, so scripters can get a useful ball state
 						events.Enqueue(new EventData(EventId.HitEventsHit, itemId, ball.Id, true));
 
-						if (ball.IsFrozen || staticData.FallThrough) { // script may have unfrozen the ball
+						if (ball.IsFrozen || staticState.FallThrough) { // script may have unfrozen the ball
 
 							// if ball falls through hole, we fake the collision algo by changing the ball height
 							// in HitTestBasicRadius() the z-position of the ball is checked if it is >= to the hit cylinder
@@ -100,15 +100,15 @@ namespace VisualPinball.Unity
 							// Only mess with variables if ball was not kicked during event
 							ball.Velocity = float3.zero;
 							ball.AngularMomentum = float3.zero;
-							var posZ = !staticData.FallIn
-								? staticData.ZLow + ball.Radius * 2
-								: staticData.FallThrough
-									? staticData.ZLow - ball.Radius - 5.0f
-									: staticData.ZLow + ball.Radius;
-							ball.Position = new float3(staticData.Center.x, staticData.Center.y, posZ);
+							var posZ = !staticState.FallIn
+								? staticState.ZLow + ball.Radius * 2
+								: staticState.FallThrough
+									? staticState.ZLow - ball.Radius - 5.0f
+									: staticState.ZLow + ball.Radius;
+							ball.Position = new float3(staticState.Center.x, staticState.Center.y, posZ);
 
 						} else {
-							collData.BallId = 0; // make sure
+							collState.BallId = 0; // make sure
 						}
 					}
 

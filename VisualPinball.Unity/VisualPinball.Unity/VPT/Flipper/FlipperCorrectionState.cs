@@ -1,4 +1,4 @@
-// Visual Pinball Engine
+﻿// Visual Pinball Engine
 // Copyright (C) 2023 freezy and VPE Team
 //
 // This program is free software: you can redistribute it and/or modify
@@ -14,15 +14,13 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+using Unity.Entities;
+
 namespace VisualPinball.Unity
 {
-	internal struct GateStaticData
+	public struct FlipperCorrectionState : IComponentData
 	{
-		public float AngleMin;
-		public float AngleMax;
-		public float Height;
-		public float GravityFactor;
-		public float Damping;
-		public bool TwoWay;
+		public bool IsEnabled;
+		public BlobAssetReference<FlipperCorrectionBlob> Value;
 	}
 }

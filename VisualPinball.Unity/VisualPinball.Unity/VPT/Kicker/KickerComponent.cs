@@ -264,7 +264,7 @@ namespace VisualPinball.Unity
 			// collision
 			var colliderComponent = GetComponent<KickerColliderComponent>();
 			var staticData = colliderComponent
-				? new KickerStaticData {
+				? new KickerStaticState {
 					Center = Position,
 					FallIn = colliderComponent.FallIn,
 					FallThrough = colliderComponent.FallThrough,
@@ -282,7 +282,7 @@ namespace VisualPinball.Unity
 			return new KickerState(
 				colliderComponent ? colliderComponent.gameObject.GetInstanceID() : 0,
 				staticData,
-				new KickerCollisionData(),
+				new KickerCollisionState(),
 				meshData
 			);
 		}

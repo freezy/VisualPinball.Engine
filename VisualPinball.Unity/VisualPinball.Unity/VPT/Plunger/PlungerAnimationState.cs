@@ -16,17 +16,8 @@
 
 namespace VisualPinball.Unity
 {
-	internal struct DropTargetAnimationData
+	internal struct PlungerAnimationState
 	{
-		public const float DropTargetLimit = 52.0f;
-
-		public float ZOffset;
-		public bool HitEvent;
-		public uint TimeMsec;
-		public uint TimeStamp;
-
-		public bool MoveDown;
-		public bool IsDropped;
-		public bool MoveAnimation;
+		public float Position;
 	}
 }

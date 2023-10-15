@@ -20,10 +20,10 @@ namespace VisualPinball.Unity
 	{
 		internal readonly int ItemId;
 		internal readonly int AnimationItemId;
-		internal SpinnerStaticData Static;
-		internal SpinnerMovementData Movement;
+		internal SpinnerStaticState Static;
+		internal SpinnerMovementState Movement;
 
-		public SpinnerState(int itemId, int animationItemId, SpinnerStaticData @static, SpinnerMovementData movement)
+		public SpinnerState(int itemId, int animationItemId, SpinnerStaticState @static, SpinnerMovementState movement)
 		{
 			ItemId = itemId;
 			AnimationItemId = animationItemId;

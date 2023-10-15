@@ -286,7 +286,7 @@ namespace VisualPinball.Unity
 			// collision
 			var collComponent = GetComponent<GateColliderComponent>();
 			var staticData = collComponent
-				? new GateStaticData {
+				? new GateStaticState {
 					AngleMin = math.radians(collComponent._angleMin),
 					AngleMax = math.radians(collComponent._angleMax),
 					Height = Position.z,
@@ -298,7 +298,7 @@ namespace VisualPinball.Unity
 
 			var wireComponent = GetComponentInChildren<GateWireAnimationComponent>();
 			var movementData = collComponent && wireComponent
-				? new GateMovementData {
+				? new GateMovementState {
 					Angle = math.radians(collComponent._angleMin),
 					AngleSpeed = 0,
 					ForcedMove = false,

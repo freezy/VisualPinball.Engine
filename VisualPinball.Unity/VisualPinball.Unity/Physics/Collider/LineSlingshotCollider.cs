@@ -98,7 +98,7 @@ namespace VisualPinball.Unity
 
 		#region Collision
 
-		public void Collide(ref BallState ball, ref NativeQueue<EventData>.ParallelWriter events, in LineSlingshotData slingshotData, in CollisionEventData collEvent, ref Random random)
+		public void Collide(ref BallState ball, ref NativeQueue<EventData>.ParallelWriter events, in LineSlingshotState slingshotState, in CollisionEventData collEvent, ref Random random)
 		{
 			var hitNormal = collEvent.HitNormal;
 
@@ -106,9 +106,9 @@ namespace VisualPinball.Unity
 			var dot = math.dot(collEvent.HitNormal, ball.Velocity);
 
 			// normal greater than threshold?
-			var threshold = dot <= -slingshotData.Threshold;
+			var threshold = dot <= -slingshotState.Threshold;
 
-			if (!slingshotData.IsDisabled && threshold) { // enabled and if velocity greater than threshold level
+			if (!slingshotState.IsDisabled && threshold) { // enabled and if velocity greater than threshold level
 
 				// length of segment, Unit TAN points from V1 to V2
 				var len = (V2.x - V1.x) * hitNormal.y - (V2.y - V1.y) * hitNormal.x;
