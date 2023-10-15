@@ -108,7 +108,9 @@ namespace VisualPinball.Unity
 				};
 		}
 
-		#if UNITY_EDITOR
+		#region Collider Gizmos
+
+#if UNITY_EDITOR
 
 		private void OnDrawGizmos()
 		{
@@ -195,8 +197,6 @@ namespace VisualPinball.Unity
 
 			Profiler.EndSample();
 		}
-
-		#region Collider Gizmos
 
 		private Mesh GenerateColliderMesh(ref ColliderReference colliders)
 		{
@@ -436,6 +436,8 @@ namespace VisualPinball.Unity
 			Gizmos.DrawWireCube(aabb.Center, aabb.Size);
 		}
 
+#endif
+
 		#endregion
 
 		void ICollidableComponent.GetColliders(Player player, ref ColliderReference colliders, float margin)
@@ -444,7 +446,7 @@ namespace VisualPinball.Unity
 		}
 		int ICollidableComponent.ItemId => MainComponent.gameObject.GetInstanceID();
 		bool ICollidableComponent.IsCollidable => isActiveAndEnabled;
-#endif
+
 	}
 
 	internal static class ColliderColor
