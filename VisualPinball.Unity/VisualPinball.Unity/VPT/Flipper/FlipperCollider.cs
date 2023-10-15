@@ -153,7 +153,7 @@ namespace VisualPinball.Unity
 		#region Narrowphase
 
 		public float HitTest(ref CollisionEventData collEvent, ref InsideOfs insideOfs, ref FlipperHitData hitData,
-			in FlipperMovementData movementData, in FlipperTricksData tricks, in FlipperStaticData matData, in BallData ball,
+			in FlipperMovementData movementData, in FlipperTricksData tricks, in FlipperStaticData matData, in BallState ball,
 			float dTime)
 		{
 			// todo
@@ -200,7 +200,7 @@ namespace VisualPinball.Unity
 		}
 
 		private float HitTestFlipperFace(ref CollisionEventData collEvent, ref FlipperHitData hitData,
-			in FlipperMovementData movementData, in FlipperTricksData tricks, in FlipperStaticData matData, in BallData ball,
+			in FlipperMovementData movementData, in FlipperTricksData tricks, in FlipperStaticData matData, in BallState ball,
 			float dTime, bool face1)
 		{
 			var angleCur = movementData.Angle;
@@ -420,7 +420,7 @@ namespace VisualPinball.Unity
 		}
 
 		private float HitTestFlipperEnd(ref CollisionEventData collEvent, ref FlipperHitData hitData,
-			in FlipperMovementData movementData, in FlipperTricksData tricks, in FlipperStaticData matData, in BallData ball, float dTime)
+			in FlipperMovementData movementData, in FlipperTricksData tricks, in FlipperStaticData matData, in BallState ball, float dTime)
 		{
 			var angleCur = movementData.Angle;
 			var angleSpeed = movementData.AngleSpeed; // rotation rate
@@ -617,7 +617,7 @@ namespace VisualPinball.Unity
 
 		#region Contact
 
-		public void Contact(ref BallData ball, ref FlipperMovementData movementData, in CollisionEventData collEvent,
+		public void Contact(ref BallState ball, ref FlipperMovementData movementData, in CollisionEventData collEvent,
 			in FlipperStaticData matData, in FlipperVelocityData velData, float dTime, in float3 gravity)
 		{
 			var normal = collEvent.HitNormal;
@@ -635,7 +635,7 @@ namespace VisualPinball.Unity
 			// If some collision has changed the ball's velocity, we may not have to do anything.
 			if (normVel <= PhysicsConstants.ContactVel) {
 				// compute accelerations of point on ball and flipper
-				var aB = BallData.SurfaceAcceleration(in ball, in rB, in gravity);
+				var aB = BallState.SurfaceAcceleration(in ball, in rB, in gravity);
 				var aF = FlipperMovementData.SurfaceAcceleration(in movementData, in velData, in rF);
 				var aRel = aB - aF;
 
@@ -705,7 +705,7 @@ namespace VisualPinball.Unity
 			}
 		}
 
-		private void GetRelativeVelocity(in float3 normal, in BallData ball, in FlipperMovementData movementData, out float3 vRel, out float3 rB, out float3 rF)
+		private void GetRelativeVelocity(in float3 normal, in BallState ball, in FlipperMovementData movementData, out float3 vRel, out float3 rB, out float3 rF)
 		{
 			rB = -ball.Radius * normal;
 			var hitPos = ball.Position + rB;
@@ -717,7 +717,7 @@ namespace VisualPinball.Unity
 			);
 
 			rF = hitPos - cF; // displacement relative to flipper center
-			var vB = BallData.SurfaceVelocity(in ball, in rB);
+			var vB = BallState.SurfaceVelocity(in ball, in rB);
 			var vF = FlipperMovementData.SurfaceVelocity(in movementData, in rF);
 			vRel = vB - vF;
 		}
@@ -726,7 +726,7 @@ namespace VisualPinball.Unity
 
 		#region LiveCatch
 
-		public static void LiveCatch(ref BallData ball, ref CollisionEventData collEvent, ref FlipperTricksData tricks, in FlipperStaticData matData, uint msec ) {
+		public static void LiveCatch(ref BallState ball, ref CollisionEventData collEvent, ref FlipperTricksData tricks, in FlipperStaticData matData, uint msec ) {
 			if (!tricks.UseFlipperLiveCatch)
 				return;
 			var normalSpeed = math.dot(collEvent.HitNormal, ball.Velocity) * -1f;
@@ -776,7 +776,7 @@ namespace VisualPinball.Unity
 
 		#region Collision
 
-		public void Collide(ref BallData ball, ref CollisionEventData collEvent, ref FlipperMovementData movementData,
+		public void Collide(ref BallState ball, ref CollisionEventData collEvent, ref FlipperMovementData movementData,
 			ref NativeQueue<EventData>.ParallelWriter events, in int ballId, in FlipperTricksData tricks, in FlipperStaticData matData,
 			in FlipperVelocityData velData, in FlipperHitData hitData, uint timeMsec)
 		{

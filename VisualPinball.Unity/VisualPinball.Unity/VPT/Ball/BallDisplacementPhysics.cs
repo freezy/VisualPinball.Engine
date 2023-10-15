@@ -22,7 +22,7 @@ namespace VisualPinballUnity
 {
 	internal static class BallDisplacementPhysics
 	{
-		internal static void UpdateDisplacements(ref BallData ball, float dTime)
+		internal static void UpdateDisplacements(ref BallState ball, float dTime)
 		{
 			if (ball.IsFrozen) {
 				return;

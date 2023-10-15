@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-using NativeTrees;
 using Unity.Entities;
 using Unity.Mathematics;
 using VisualPinballUnity;
@@ -22,7 +21,7 @@ using VisualPinballUnity;
 namespace VisualPinball.Unity
 {
 	// todo split this into at least 2 components
-	internal struct BallData : IComponentData
+	internal struct BallState : IComponentData
 	{
 		public int Id;
 		public float3 Position;
@@ -114,7 +113,7 @@ namespace VisualPinball.Unity
 			AngularMomentum += rotI;
 		}
 
-		public static float3 SurfaceVelocity(in BallData ball, in float3 surfP)
+		public static float3 SurfaceVelocity(in BallState ball, in float3 surfP)
 		{
 			// linear velocity plus tangential velocity due to rotation
 			return ball.Velocity + math.cross(ball.AngularMomentum / ball.Inertia, surfP);
@@ -132,7 +131,7 @@ namespace VisualPinball.Unity
 			*/
 		}
 
-		public static float3 SurfaceAcceleration(in BallData ball, in float3 surfP, in float3 gravity)
+		public static float3 SurfaceAcceleration(in BallState ball, in float3 surfP, in float3 gravity)
 		{
 			var currentAngularVelocity = ball.AngularMomentum / ball.Inertia;
 

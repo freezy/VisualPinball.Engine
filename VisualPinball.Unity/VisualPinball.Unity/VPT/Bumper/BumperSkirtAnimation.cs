@@ -20,59 +20,59 @@ namespace VisualPinball.Unity
 {
 	internal static class BumperSkirtAnimation
 	{
-		internal static void Update(ref BumperSkirtAnimationData data, float dTime)
+		internal static void Update(ref BumperSkirtAnimationState state, float dTime)
 		{
 			// todo visibility - skip if invisible
 
-			var isHit = data.HitEvent;
-			data.HitEvent = false;
+			var isHit = state.HitEvent;
+			state.HitEvent = false;
 
-			if (data.EnableAnimation) {
+			if (state.EnableAnimation) {
 				if (isHit) {
-					data.DoAnimate = true;
-					UpdateSkirt(ref data);
-					data.AnimationCounter = 0.0f;
+					state.DoAnimate = true;
+					UpdateSkirt(ref state);
+					state.AnimationCounter = 0.0f;
 				}
-				if (data.DoAnimate) {
-					data.AnimationCounter += dTime;
-					if (data.AnimationCounter > 160.0f) {
-						data.DoAnimate = false;
-						ResetSkirt(ref data);
+				if (state.DoAnimate) {
+					state.AnimationCounter += dTime;
+					if (state.AnimationCounter > 160.0f) {
+						state.DoAnimate = false;
+						ResetSkirt(ref state);
 					}
 				}
-			} else if (data.DoUpdate) { // do a single update if the animation was turned off via script
-				data.DoUpdate = false;
-				ResetSkirt(ref data);
+			} else if (state.DoUpdate) { // do a single update if the animation was turned off via script
+				state.DoUpdate = false;
+				ResetSkirt(ref state);
 			}
 		}
 
-		private static void UpdateSkirt(ref BumperSkirtAnimationData data)
+		private static void UpdateSkirt(ref BumperSkirtAnimationState state)
 		{
 			const float skirtTilt = 5.0f;
 
-			var hitX = data.BallPosition.x;
-			var hitY = data.BallPosition.y;
-			var dy = math.abs(hitY - data.Center.y);
+			var hitX = state.BallPosition.x;
+			var hitY = state.BallPosition.y;
+			var dy = math.abs(hitY - state.Center.y);
 			if (dy == 0.0f) {
 				dy = 0.000001f;
 			}
 
-			var dx = math.abs(hitX - data.Center.x);
+			var dx = math.abs(hitX - state.Center.x);
 			var skirtA = math.atan(dx / dy);
-			data.Rotation.x = math.cos(skirtA) * skirtTilt;
-			data.Rotation.y = math.sin(skirtA) * skirtTilt;
-			if (data.Center.y < hitY) {
-				data.Rotation.x = -data.Rotation.x;
+			state.Rotation.x = math.cos(skirtA) * skirtTilt;
+			state.Rotation.y = math.sin(skirtA) * skirtTilt;
+			if (state.Center.y < hitY) {
+				state.Rotation.x = -state.Rotation.x;
 			}
 
-			if (data.Center.x > hitX) {
-				data.Rotation.y = -data.Rotation.y;
+			if (state.Center.x > hitX) {
+				state.Rotation.y = -state.Rotation.y;
 			}
 		}
 
-		private static void ResetSkirt(ref BumperSkirtAnimationData data)
+		private static void ResetSkirt(ref BumperSkirtAnimationState state)
 		{
-			data.Rotation = new float2(0, 0);
+			state.Rotation = new float2(0, 0);
 		}
 	}
 }

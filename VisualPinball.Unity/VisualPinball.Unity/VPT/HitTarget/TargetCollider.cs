@@ -21,7 +21,7 @@ namespace VisualPinball.Unity
 {
 	internal static class TargetCollider
 	{
-		public static void DropTargetCollide(ref BallData ball, ref NativeQueue<EventData>.ParallelWriter hitEvents,
+		public static void DropTargetCollide(ref BallState ball, ref NativeQueue<EventData>.ParallelWriter hitEvents,
 			ref DropTargetAnimationData animationData, in float3 normal, in CollisionEventData collEvent,
 			in Collider coll, ref Random random)
 		{
@@ -39,7 +39,7 @@ namespace VisualPinball.Unity
 			}
 		}
 
-		public static void HitTargetCollide(ref BallData ball, ref NativeQueue<EventData>.ParallelWriter hitEvents,
+		public static void HitTargetCollide(ref BallState ball, ref NativeQueue<EventData>.ParallelWriter hitEvents,
 			ref HitTargetAnimationData animationData, in float3 normal, in CollisionEventData collEvent,
 			in Collider coll, ref Random random)
 		{

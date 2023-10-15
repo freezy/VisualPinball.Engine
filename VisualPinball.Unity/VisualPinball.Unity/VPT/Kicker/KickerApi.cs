@@ -116,7 +116,7 @@ namespace VisualPinball.Unity
 			return kickerState.Collision.HasBall;
 		}
 
-		internal ref BallData GetBallData()
+		internal ref BallState GetBallData()
 		{
 			ref var kickerState = ref PhysicsEngine.KickerState(ItemId);
 			return ref PhysicsEngine.BallState(kickerState.Collision.BallId);

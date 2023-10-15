@@ -20,7 +20,7 @@ namespace VisualPinball.Unity
 {
 	internal static class BallRingCounterPhysics
 	{
-		internal static void Update(ref BallData ball)
+		internal static void Update(ref BallState ball)
 		{
 			var idx = ball.RingCounterOldPos / (10000 / PhysicsConstants.PhysicsStepTime);
 			ball.LastPositions[idx] = ball.Position;

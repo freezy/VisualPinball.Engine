@@ -20,7 +20,7 @@ namespace VisualPinballUnity
 {
 	internal static class ContactPhysics
 	{
-		internal static void Update(ref ContactBufferElement contact, ref BallData ball, ref PhysicsState state, float hitTime)
+		internal static void Update(ref ContactBufferElement contact, ref BallState ball, ref PhysicsState state, float hitTime)
 		{
 			ref var collEvent = ref contact.CollEvent;
 			if (collEvent.ColliderId > -1) { // collide with static collider

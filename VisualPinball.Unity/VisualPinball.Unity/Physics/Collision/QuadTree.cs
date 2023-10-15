@@ -191,7 +191,7 @@ namespace VisualPinball.Unity
 			};
 		}
 
-		public void GetAabbOverlaps(in BallData ball, in NativeHashMap<Entity, bool> itemsColliding, ref DynamicBuffer<OverlappingStaticColliderBufferElement> matchedColliderIds)
+		public void GetAabbOverlaps(in BallState ball, in NativeHashMap<Entity, bool> itemsColliding, ref DynamicBuffer<OverlappingStaticColliderBufferElement> matchedColliderIds)
 		{
 			var ballAabb = ball.Aabb;
 			var collisionRadiusSqr = ball.CollisionRadiusSqr;

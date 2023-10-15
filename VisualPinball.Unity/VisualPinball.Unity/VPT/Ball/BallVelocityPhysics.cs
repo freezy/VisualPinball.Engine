@@ -24,7 +24,7 @@ namespace VisualPinballUnity
 {
 	internal static class BallVelocityPhysics
 	{
-		public static void UpdateVelocities(ref BallData ball, float3 gravity)
+		public static void UpdateVelocities(ref BallState ball, float3 gravity)
 		{
 			if (ball.IsFrozen) {
 				return;

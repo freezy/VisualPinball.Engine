@@ -27,7 +27,7 @@ namespace VisualPinball.Unity
 
 		internal static void FindNextCollision(
 			float hitTime,
-			ref BallData ball,
+			ref BallState ball,
 			ref NativeParallelHashSet<int> overlappingColliders,
 			ref NativeList<ContactBufferElement> contacts,
 			ref PhysicsState state
@@ -57,7 +57,7 @@ namespace VisualPinball.Unity
 			PerfMarkerNarrowPhase.End();
 		}
 
-		private static float HitTest(ref BallData ball, in Collider collider, ref NativeList<ContactBufferElement> contacts)
+		private static float HitTest(ref BallState ball, in Collider collider, ref NativeList<ContactBufferElement> contacts)
 		{
 			ref var collEvent = ref ball.CollisionEvent;
 			var hitTime = Collider.HitTest(in collider, ref collEvent, in ball, ball.CollisionEvent.HitTime);
@@ -65,7 +65,7 @@ namespace VisualPinball.Unity
 			return hitTime;
 		}
 
-		private static void SaveCollisions(ref BallData ball, ref CollisionEventData newCollEvent,
+		private static void SaveCollisions(ref BallState ball, ref CollisionEventData newCollEvent,
 			ref NativeList<ContactBufferElement> contacts, int colliderId, float newTime)
 		{
 			var validHit = newTime >= 0f && !Math.Sign(newTime) && newTime <= ball.CollisionEvent.HitTime;

@@ -23,7 +23,7 @@ namespace VisualPinball.Unity
 	{
 		private static readonly ProfilerMarker PerfMarker = new("DynamicCollision");
 
-		internal static void Collide(float hitTime, ref BallData ball, ref PhysicsState state)
+		internal static void Collide(float hitTime, ref BallState ball, ref PhysicsState state)
 		{
 			// pick "other" ball
 			ref var collEvent = ref ball.CollisionEvent;

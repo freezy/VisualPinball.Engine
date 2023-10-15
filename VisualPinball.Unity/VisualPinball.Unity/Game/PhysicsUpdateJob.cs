@@ -40,7 +40,7 @@ namespace VisualPinball.Unity
 		public NativeQueue<EventData>.ParallelWriter Events;
 		public AABB PlayfieldBounds;
 
-		public NativeParallelHashMap<int, BallData> Balls;
+		public NativeParallelHashMap<int, BallState> Balls;
 		public NativeParallelHashMap<int, BumperState> BumperStates;
 		public NativeParallelHashMap<int, DropTargetState> DropTargetStates;
 		public NativeParallelHashMap<int, FlipperState> FlipperStates;

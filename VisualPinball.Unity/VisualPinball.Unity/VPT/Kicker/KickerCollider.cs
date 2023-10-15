@@ -32,7 +32,7 @@ namespace VisualPinball.Unity
 		/// </summary>
 		public const bool ForceLegacyMode = false;
 
-		public static void Collide(ref BallData ball, ref NativeQueue<EventData>.ParallelWriter events,
+		public static void Collide(ref BallState ball, ref NativeQueue<EventData>.ParallelWriter events,
 			ref InsideOfs insideOfs, ref KickerCollisionData collData, in KickerStaticData staticData,
 			in ColliderMeshData meshData, in CollisionEventData collEvent, in int itemId)
 		{
@@ -121,7 +121,7 @@ namespace VisualPinball.Unity
 			}
 		}
 
-		private static void DoChangeBallVelocity(ref BallData ball, in float3 hitNormal, in ColliderMeshData meshData)
+		private static void DoChangeBallVelocity(ref BallState ball, in float3 hitNormal, in ColliderMeshData meshData)
 		{
 			var minDistSqr = Constants.FloatMax;
 			var idx = 0u;
@@ -145,7 +145,7 @@ namespace VisualPinball.Unity
 				var reactionImpulse = ball.Mass * math.abs(dot);
 
 				var surfP = -ball.Radius * hitNormal;                                    // surface contact point relative to center of mass
-				var surfVel = BallData.SurfaceVelocity(in ball, surfP);                  // velocity at impact point
+				var surfVel = BallState.SurfaceVelocity(in ball, surfP);                  // velocity at impact point
 				var tangent = surfVel - math.dot(surfVel, hitNormal) * hitNorm;    // calc the tangential velocity
 
 				// apply collision impulse (along normal, so no torque)

@@ -26,23 +26,23 @@ namespace VisualPinball.Unity
 	{
 		private static readonly Dictionary<int, float> InitialOffset = new();
 
-		internal static void UpdateRing(int itemId, in BumperRingAnimationData data, Transform transform)
+		internal static void UpdateRing(int itemId, in BumperRingAnimationState state, Transform transform)
 		{
 			var worldPos = transform.position;
 			InitialOffset.TryAdd(itemId, worldPos.y);
 
-			var limit = data.DropOffset + data.HeightScale * 0.5f;
+			var limit = state.DropOffset + state.HeightScale * 0.5f;
 			var localLimit = InitialOffset[itemId] + limit;
-			var localOffset = localLimit / limit * data.Offset;
+			var localOffset = localLimit / limit * state.Offset;
 
 			worldPos.y = InitialOffset[itemId] + Physics.ScaleToWorld(localOffset);
 			transform.position = worldPos;
 		}
 
-		internal static void UpdateSkirt(in BumperSkirtAnimationData data, Transform transform)
+		internal static void UpdateSkirt(in BumperSkirtAnimationState state, Transform transform)
 		{
 			var parentRotation = transform.parent.rotation;
-			transform.rotation = Quaternion.Euler(data.Rotation.x, 0, -data.Rotation.y) * parentRotation;
+			transform.rotation = Quaternion.Euler(state.Rotation.x, 0, -state.Rotation.y) * parentRotation;
 		}
 	}
 }

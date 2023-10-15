@@ -68,13 +68,13 @@ namespace VisualPinball.Unity
 
 		#region Narrowphase
 
-		public float HitTest(ref CollisionEventData collEvent, ref InsideOfs insideOfs, in BallData ball, float dTime)
+		public float HitTest(ref CollisionEventData collEvent, ref InsideOfs insideOfs, in BallState ball, float dTime)
 		{
 			// normal face, lateral, rigid
 			return HitTestBasicRadius(ref collEvent, ref insideOfs, ball, dTime, true, true, true);
 		}
 
-		public float HitTestBasicRadius(ref CollisionEventData collEvent, ref InsideOfs insideOfs, in BallData ball, float dTime, bool direction, bool lateral, bool rigid)
+		public float HitTestBasicRadius(ref CollisionEventData collEvent, ref InsideOfs insideOfs, in BallState ball, float dTime, bool direction, bool lateral, bool rigid)
 		{
 			// todo IsEnabled
 			if (/*!IsEnabled || */ball.IsFrozen) {
@@ -229,7 +229,7 @@ namespace VisualPinball.Unity
 
 		#endregion
 
-		public void Collide(ref BallData ball, in CollisionEventData collEvent, ref Random random)
+		public void Collide(ref BallState ball, in CollisionEventData collEvent, ref Random random)
 		{
 			BallCollider.Collide3DWall(ref ball, in _header.Material, in collEvent, in collEvent.HitNormal, ref random);
 		}

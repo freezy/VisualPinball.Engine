@@ -48,7 +48,7 @@ namespace VisualPinball.Unity
 			_playfieldPlane.Set3Points(p1, p2, p3);
 
 			_entityManager = World.DefaultGameObjectInjectionWorld.EntityManager;
-			_ballEntityQuery = _entityManager.CreateEntityQuery(typeof(BallData));
+			_ballEntityQuery = _entityManager.CreateEntityQuery(typeof(BallState));
 		}
 
 		private void Update()
@@ -62,10 +62,10 @@ namespace VisualPinball.Unity
 				if (GetCursorPositionOnPlayfield(out var mousePosition)) {
 					var ballEntities = _ballEntityQuery.ToEntityArray(Allocator.Temp);
 					var nearestDistance = float.PositiveInfinity;
-					BallData nearestBall = default;
+					BallState nearestBall = default;
 					var ballFound = false;
 					foreach (var ballEntity in ballEntities) {
-						var ballData = _entityManager.GetComponentData<BallData>(ballEntity);
+						var ballData = _entityManager.GetComponentData<BallState>(ballEntity);
 						if (ballData.IsFrozen) {
 							continue;
 						}
@@ -85,24 +85,24 @@ namespace VisualPinball.Unity
 
 			} else if (Mouse.current.middleButton.isPressed && _ballEntity != Entity.Null) {
 				if (GetCursorPositionOnPlayfield(out var mousePosition)) {
-					var ballData = _entityManager.GetComponentData<BallData>(_ballEntity);
+					var ballData = _entityManager.GetComponentData<BallState>(_ballEntity);
 					UpdateBall(ref ballData, mousePosition);
 				}
 			}
 
 			if (Mouse.current.middleButton.wasReleasedThisFrame && _ballEntity != Entity.Null) {
-				var ballData = _entityManager.GetComponentData<BallData>(_ballEntity);
+				var ballData = _entityManager.GetComponentData<BallState>(_ballEntity);
 				ballData.ManualControl = false;
 				_entityManager.SetComponentData(_ballEntity, ballData);
 				_ballEntity = Entity.Null;
 			}
 		}
 
-		private void UpdateBall(ref BallData ballData, float2 position)
+		private void UpdateBall(ref BallState ballState, float2 position)
 		{
-			ballData.ManualControl = true;
-			ballData.ManualPosition = position;
-			_entityManager.SetComponentData(_ballEntity, ballData);
+			ballState.ManualControl = true;
+			ballState.ManualPosition = position;
+			_entityManager.SetComponentData(_ballEntity, ballState);
 		}
 
 		private bool GetCursorPositionOnPlayfield(out float2 position)

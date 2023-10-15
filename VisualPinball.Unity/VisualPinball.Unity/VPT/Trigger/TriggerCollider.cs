@@ -23,7 +23,7 @@ namespace VisualPinball.Unity
 {
 	internal static class TriggerCollider
 	{
-		public static void Collide(ref BallData ball, ref NativeQueue<EventData>.ParallelWriter events,
+		public static void Collide(ref BallState ball, ref NativeQueue<EventData>.ParallelWriter events,
 			ref CollisionEventData collEvent, ref InsideOfs insideOfs,
 			ref TriggerAnimationData animationData, in Collider coll)
 		{
