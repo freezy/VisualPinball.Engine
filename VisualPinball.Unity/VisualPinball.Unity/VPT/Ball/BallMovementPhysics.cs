@@ -37,7 +37,7 @@ namespace VisualPinballUnity
 		// 	_player = Object.FindObjectOfType<Player>();
 		// }
 
-		public static void Move(BallData ball, Transform ballTransform)
+		public static void Move(BallState ball, Transform ballTransform)
 		{
 			// calculate/adapt height of ball
 			var zHeight = !ball.IsFrozen ? ball.Position.z : ball.Position.z - ball.Radius;

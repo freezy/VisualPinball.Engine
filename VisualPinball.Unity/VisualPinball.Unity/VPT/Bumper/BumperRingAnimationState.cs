@@ -14,22 +14,16 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-using Unity.Mathematics;
-
 namespace VisualPinball.Unity
 {
-	internal struct BumperSkirtAnimationData
+	internal struct BumperRingAnimationState
 	{
-		// dynamic
-		public bool HitEvent;
-		public float3 BallPosition;
-		public bool EnableAnimation;
-		public float AnimationCounter;
+		public bool IsHit;
+		public float DropOffset;
+		public float HeightScale;
 		public bool DoAnimate;
-		public bool DoUpdate;
-		public float2 Rotation;
-
-		// static
-		public float2 Center;
+		public bool AnimateDown;
+		public float Speed;
+		public float Offset;
 	}
 }

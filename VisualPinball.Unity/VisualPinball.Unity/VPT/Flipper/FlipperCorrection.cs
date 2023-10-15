@@ -21,7 +21,7 @@ namespace VisualPinball.Unity
 {
 	internal static class FlipperCorrection
 	{
-		public static void OnBallLeaveFlipper(ref BallData ballData, ref FlipperCorrectionBlob flipperCorrectionBlob,
+		public static void OnBallLeaveFlipper(ref BallState ballState, ref FlipperCorrectionBlob flipperCorrectionBlob,
 			in FlipperMovementData flipperMovementData, in FlipperTricksData tricks, in FlipperStaticData flipperStaticData, uint timeMs)
 		{
 
@@ -35,8 +35,8 @@ namespace VisualPinball.Unity
 			ref var polarities = ref flipperCorrectionBlob.Polarities;
 			var angleCur = flipperMovementData.Angle;
 
-			var ballPosition = ballData.Position;
-			var ballVelocity = ballData.Velocity;
+			var ballPosition = ballState.Position;
+			var ballVelocity = ballState.Velocity;
 			var uncorrectedVel = ballVelocity;
 			if (ballVelocity.y > -8F) // ball going down
 			{
@@ -85,7 +85,7 @@ namespace VisualPinball.Unity
 
 
 			// Apply all corrections
-			ballData.Velocity = ballVelocity;
+			ballState.Velocity = ballVelocity;
 		}
 
 		// awful linear interpolations : TODO: replace by AnimationCurve equivalent...

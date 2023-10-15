@@ -62,7 +62,7 @@ namespace VisualPinball.Unity
 			_rootNode.CreateNextLevel(0, 0, this);
 		}
 
-		public void GetAabbOverlaps(in Entity entity, in BallData ball, ref DynamicBuffer<OverlappingDynamicBufferElement> overlappingEntities)
+		public void GetAabbOverlaps(in Entity entity, in BallState ball, ref DynamicBuffer<OverlappingDynamicBufferElement> overlappingEntities)
 		{
 			_rootNode.GetAabbOverlaps(ref this, in entity, in ball, ref overlappingEntities);
 		}

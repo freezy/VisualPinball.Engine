@@ -23,7 +23,7 @@ namespace VisualPinball.Unity
 {
 	internal static class PhysicsStaticCollision
 	{
-		internal static void Collide(float hitTime, ref BallData ball, ref PhysicsState state)
+		internal static void Collide(float hitTime, ref BallState ball, ref PhysicsState state)
 		{
 			
 			// find balls with hit objects and minimum time
@@ -37,7 +37,7 @@ namespace VisualPinball.Unity
 			ball.CollisionEvent.ClearCollider();
 		}
 
-		private static void Collide(ref BallData ball, ref PhysicsState state)
+		private static void Collide(ref BallState ball, ref PhysicsState state)
 		{
 			var colliderId = ball.CollisionEvent.ColliderId;
 			var collider = state.GetCollider(colliderId);
@@ -128,7 +128,7 @@ namespace VisualPinball.Unity
 			}
 		}
 
-		private static bool CollidesWithItem(ref Collider collider, ref BallData ball, ref PhysicsState state)
+		private static bool CollidesWithItem(ref Collider collider, ref BallState ball, ref PhysicsState state)
 		{
 			// hit target
 			var colliderId = ball.CollisionEvent.ColliderId;
@@ -159,7 +159,7 @@ namespace VisualPinball.Unity
 			return false;
 		}
 
-		private static void TriggerCollide(ref BallData ball, ref PhysicsState state, in Collider collider)
+		private static void TriggerCollide(ref BallState ball, ref PhysicsState state, in Collider collider)
 		{
 			ref var triggerState = ref state.GetTriggerState(collider.Id);
 			TriggerCollider.Collide(ref ball, ref state.EventQueue, ref ball.CollisionEvent, ref state.InsideOfs, ref triggerState.Animation, in collider);

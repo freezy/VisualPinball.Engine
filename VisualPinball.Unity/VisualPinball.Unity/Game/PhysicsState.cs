@@ -29,7 +29,7 @@ namespace VisualPinball.Unity
 		internal BlobAssetReference<ColliderBlob> Colliders;
 		internal NativeQueue<EventData>.ParallelWriter EventQueue;
 		internal InsideOfs InsideOfs;
-		internal NativeParallelHashMap<int, BallData> Balls;
+		internal NativeParallelHashMap<int, BallState> Balls;
 		internal NativeParallelHashMap<int, BumperState> BumperStates;
 		internal NativeParallelHashMap<int, DropTargetState> DropTargetStates;
 		internal NativeParallelHashMap<int, FlipperState> FlipperStates;
@@ -44,7 +44,7 @@ namespace VisualPinball.Unity
 		internal bool SwapBallCollisionHandling;
 
 		public PhysicsState(ref PhysicsEnv env, ref NativeOctree<int> octree, ref BlobAssetReference<ColliderBlob> colliders,
-			ref NativeQueue<EventData>.ParallelWriter eventQueue, ref InsideOfs insideOfs, ref NativeParallelHashMap<int, BallData> balls,
+			ref NativeQueue<EventData>.ParallelWriter eventQueue, ref InsideOfs insideOfs, ref NativeParallelHashMap<int, BallState> balls,
 			ref NativeParallelHashMap<int, BumperState> bumperStates, ref NativeParallelHashMap<int, DropTargetState> dropTargetStates,
 			ref NativeParallelHashMap<int, FlipperState> flipperStates, ref NativeParallelHashMap<int, GateState> gateStates,
 			ref NativeParallelHashMap<int, HitTargetState> hitTargetStates, ref NativeParallelHashMap<int, KickerState> kickerStates,
@@ -158,7 +158,7 @@ namespace VisualPinball.Unity
 
 		#region Hit Test
 
-		internal float HitTest(int colliderId, ref BallData ball, ref CollisionEventData collEvent, ref NativeList<ContactBufferElement> contacts, ref PhysicsState state)
+		internal float HitTest(int colliderId, ref BallState ball, ref CollisionEventData collEvent, ref NativeList<ContactBufferElement> contacts, ref PhysicsState state)
 		{
 			if (IsInactiveDropTarget(colliderId)) {
 				return -1f;

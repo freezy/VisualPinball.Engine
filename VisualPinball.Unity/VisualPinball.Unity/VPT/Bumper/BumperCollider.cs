@@ -22,9 +22,9 @@ namespace VisualPinball.Unity
 {
 	internal static class BumperCollider
 	{
-		public static void Collide(ref BallData ball, ref NativeQueue<EventData>.ParallelWriter events,
-			ref CollisionEventData collEvent, ref BumperRingAnimationData ringData, ref BumperSkirtAnimationData skirtData,
-			in Collider collider, in BumperStaticData data, ref Random random)
+		public static void Collide(ref BallState ball, ref NativeQueue<EventData>.ParallelWriter events,
+			ref CollisionEventData collEvent, ref BumperRingAnimationState ringState, ref BumperSkirtAnimationState skirtState,
+			in Collider collider, in BumperStaticState state, ref Random random)
 		{
 			// todo
 			// if (!m_enabled) return;
@@ -33,13 +33,13 @@ namespace VisualPinball.Unity
 			var material = collider.Material;
 			BallCollider.Collide3DWall(ref ball, in material, in collEvent, in collEvent.HitNormal, ref random); // reflect ball from wall
 
-			if (data.HitEvent && dot <= -data.Threshold) { // if velocity greater than threshold level
+			if (state.HitEvent && dot <= -state.Threshold) { // if velocity greater than threshold level
 
-				ball.Velocity += collEvent.HitNormal * data.Force; // add a chunk of velocity to drive ball away
+				ball.Velocity += collEvent.HitNormal * state.Force; // add a chunk of velocity to drive ball away
 
-				ringData.IsHit = true;
-				skirtData.HitEvent = true;
-				skirtData.BallPosition = ball.Position;
+				ringState.IsHit = true;
+				skirtState.HitEvent = true;
+				skirtState.BallPosition = ball.Position;
 
 				events.Enqueue(new EventData(EventId.HitEventsHit, collider.ItemId, ball.Id, true));
 			}

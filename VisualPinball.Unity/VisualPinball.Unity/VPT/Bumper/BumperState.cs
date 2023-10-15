@@ -21,12 +21,12 @@ namespace VisualPinball.Unity
 		internal readonly int ItemId;
 		internal readonly int SkirtItemId;
 		internal int RingItemId;
-		internal BumperStaticData Static;
-		internal BumperRingAnimationData RingAnimation;
-		internal BumperSkirtAnimationData SkirtAnimation;
+		internal BumperStaticState Static;
+		internal BumperRingAnimationState RingAnimation;
+		internal BumperSkirtAnimationState SkirtAnimation;
 
-		public BumperState(int itemId, int skirtItemId, int ringItemId, BumperStaticData @static,
-			BumperRingAnimationData ringAnimation, BumperSkirtAnimationData skirtAnimation)
+		public BumperState(int itemId, int skirtItemId, int ringItemId, BumperStaticState @static,
+			BumperRingAnimationState ringAnimation, BumperSkirtAnimationState skirtAnimation)
 		{
 			ItemId = itemId;
 			SkirtItemId = skirtItemId;

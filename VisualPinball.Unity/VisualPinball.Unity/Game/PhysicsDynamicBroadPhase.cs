@@ -26,7 +26,7 @@ namespace VisualPinball.Unity
 		private static readonly ProfilerMarker PerfMarkerBallOctree = new("CreateBallOctree");
 		private static readonly ProfilerMarker PerfMarkerDynamicBroadPhase = new("DynamicBroadPhase");
 
-		internal static NativeOctree<int> CreateOctree(ref NativeParallelHashMap<int, BallData> balls, in AABB playfieldBounds)
+		internal static NativeOctree<int> CreateOctree(ref NativeParallelHashMap<int, BallState> balls, in AABB playfieldBounds)
 		{
 			PerfMarkerBallOctree.Begin();
 			var octree = new NativeOctree<int>(playfieldBounds, 16, 10, Allocator.TempJob);
@@ -39,7 +39,7 @@ namespace VisualPinball.Unity
 			return octree;
 		}
 
-		internal static void FindOverlaps(in NativeOctree<int> octree, in BallData ball, ref NativeParallelHashSet<int> overlappingBalls, ref NativeParallelHashMap<int, BallData> balls)
+		internal static void FindOverlaps(in NativeOctree<int> octree, in BallState ball, ref NativeParallelHashSet<int> overlappingBalls, ref NativeParallelHashMap<int, BallState> balls)
 		{
 			PerfMarkerDynamicBroadPhase.Begin();
 			overlappingBalls.Clear();

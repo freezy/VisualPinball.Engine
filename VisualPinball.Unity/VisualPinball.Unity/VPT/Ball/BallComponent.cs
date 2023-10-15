@@ -30,7 +30,7 @@ namespace VisualPinball.Unity
 		public bool IsFrozen;
 
 
-		internal BallData CreateState() => new BallData {
+		internal BallState CreateState() => new BallState {
 			Id = Id,
 			IsFrozen = IsFrozen,
 			Position = transform.localPosition.TranslateToVpx(),

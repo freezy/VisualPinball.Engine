@@ -160,7 +160,7 @@ namespace VisualPinball.Unity
 			PerfMarker.End();
 		}
 		
-		private static void ApplyStaticTime(ref float hitTime, ref float staticCounts, in BallData ball)
+		private static void ApplyStaticTime(ref float hitTime, ref float staticCounts, in BallState ball)
 		{
 			// for each collision event
 			var collEvent = ball.CollisionEvent;

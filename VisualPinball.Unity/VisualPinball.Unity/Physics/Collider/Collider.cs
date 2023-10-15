@@ -82,7 +82,7 @@ namespace VisualPinball.Unity
 		}
 
 		internal static unsafe float HitTest(ref Collider coll, ref CollisionEventData collEvent,
-			ref DynamicBuffer<BallInsideOfBufferElement> insideOf, in BallData ball, float dTime)
+			ref DynamicBuffer<BallInsideOfBufferElement> insideOf, in BallState ball, float dTime)
 		{
 			fixed (Collider* collider = &coll)
 			{
@@ -126,7 +126,7 @@ namespace VisualPinball.Unity
 			}
 		}
 		
-		internal static unsafe float HitTest(in Collider coll, ref CollisionEventData collEvent, in BallData ball, float dTime)
+		internal static unsafe float HitTest(in Collider coll, ref CollisionEventData collEvent, in BallState ball, float dTime)
 		{
 			fixed (Collider* collider = &coll)
 			{
@@ -174,7 +174,7 @@ namespace VisualPinball.Unity
 		/// Most colliders use the standard Collide3DWall routine, only overrides
 		/// are cast and dispatched to their respective implementation.
 		/// </summary>
-		internal static unsafe void Collide(in Collider coll, ref BallData ballData,
+		internal static unsafe void Collide(in Collider coll, ref BallState ballState,
 			ref NativeQueue<EventData>.ParallelWriter events, in int ballId,
 			in CollisionEventData collEvent, ref Random random)
 		{
@@ -183,25 +183,25 @@ namespace VisualPinball.Unity
 				switch (collider->Type)
 				{
 					case ColliderType.Circle:
-						((CircleCollider*) collider)->Collide(ref ballData, in collEvent, ref random);
+						((CircleCollider*) collider)->Collide(ref ballState, in collEvent, ref random);
 						break;
 					case ColliderType.Line:
-						((LineCollider*) collider)->Collide(ref ballData, ref events, in ballId, in collEvent, ref random);
+						((LineCollider*) collider)->Collide(ref ballState, ref events, in ballId, in collEvent, ref random);
 						break;
 					case ColliderType.Line3D:
-						((Line3DCollider*) collider)->Collide(ref ballData, ref events, in ballId, in collEvent, ref random);
+						((Line3DCollider*) collider)->Collide(ref ballState, ref events, in ballId, in collEvent, ref random);
 						break;
 					case ColliderType.LineZ:
-						((LineZCollider*) collider)->Collide(ref ballData, ref events, in ballId, in collEvent, ref random);
+						((LineZCollider*) collider)->Collide(ref ballState, ref events, in ballId, in collEvent, ref random);
 						break;
 					case ColliderType.Plane:
-						((PlaneCollider*) collider)->Collide(ref ballData, in collEvent, ref random);
+						((PlaneCollider*) collider)->Collide(ref ballState, in collEvent, ref random);
 						break;
 					case ColliderType.Point:
-						((PointCollider*) collider)->Collide(ref ballData, ref events, in ballId, in collEvent, ref random);
+						((PointCollider*) collider)->Collide(ref ballState, ref events, in ballId, in collEvent, ref random);
 						break;
 					case ColliderType.Triangle:
-						((TriangleCollider*) collider)->Collide(ref ballData, ref events, in ballId, in collEvent, ref random);
+						((TriangleCollider*) collider)->Collide(ref ballState, ref events, in ballId, in collEvent, ref random);
 						break;
 
 					default:
@@ -210,7 +210,7 @@ namespace VisualPinball.Unity
 			}
 		}
 
-		internal static void FireHitEvent(ref BallData ball, ref NativeQueue<EventData>.ParallelWriter events, in ColliderHeader collHeader)
+		internal static void FireHitEvent(ref BallState ball, ref NativeQueue<EventData>.ParallelWriter events, in ColliderHeader collHeader)
 		{
 			if (collHeader.FireEvents/* && collHeader.IsEnabled*/) { // todo enabled
 
@@ -231,7 +231,7 @@ namespace VisualPinball.Unity
 			}
 		}
 
-		internal static void Contact(ref Collider coll, ref BallData ball, in CollisionEventData collEvent, double hitTime, in float3 gravity)
+		internal static void Contact(ref Collider coll, ref BallState ball, in CollisionEventData collEvent, double hitTime, in float3 gravity)
 		{
 			BallCollider.HandleStaticContact(ref ball, in collEvent, coll.Header.Material.Friction, (float)hitTime, gravity);
 		}

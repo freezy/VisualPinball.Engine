@@ -18,31 +18,31 @@ namespace VisualPinball.Unity
 {
 	internal static class BumperRingAnimation
 	{
-		internal static void Update(ref BumperRingAnimationData data, float dTime)
+		internal static void Update(ref BumperRingAnimationState state, float dTime)
 		{
 			// todo visibility - skip if invisible
 
-			var limit = data.DropOffset + data.HeightScale * 0.5f;
-			if (data.IsHit) {
-				data.DoAnimate = true;
-				data.AnimateDown = true;
-				data.IsHit = false;
+			var limit = state.DropOffset + state.HeightScale * 0.5f;
+			if (state.IsHit) {
+				state.DoAnimate = true;
+				state.AnimateDown = true;
+				state.IsHit = false;
 			}
-			if (data.DoAnimate) {
-				var step = data.Speed;
-				if (data.AnimateDown) {
+			if (state.DoAnimate) {
+				var step = state.Speed;
+				if (state.AnimateDown) {
 					step = -step;
 				}
-				data.Offset += step * dTime;
-				if (data.AnimateDown) {
-					if (data.Offset <= -limit) {
-						data.Offset = -limit;
-						data.AnimateDown = false;
+				state.Offset += step * dTime;
+				if (state.AnimateDown) {
+					if (state.Offset <= -limit) {
+						state.Offset = -limit;
+						state.AnimateDown = false;
 					}
 				} else {
-					if (data.Offset >= 0.0f) {
-						data.Offset = 0.0f;
-						data.DoAnimate = false;
+					if (state.Offset >= 0.0f) {
+						state.Offset = 0.0f;
+						state.DoAnimate = false;
 					}
 				}
 			}

@@ -26,7 +26,7 @@ namespace VisualPinballUnity
 	[DisableAutoCreation]
 	internal static class BallSpinHackPhysics
 	{
-		internal static void Update(ref BallData ball)
+		internal static void Update(ref BallState ball)
 		{
 			var p0 = (ball.RingCounterOldPos / (10000 / PhysicsConstants.PhysicsStepTime) + 1) % BallPositions.Count;
 			var p1 = (ball.RingCounterOldPos / (10000 / PhysicsConstants.PhysicsStepTime) + 2) % BallPositions.Count;

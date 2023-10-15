@@ -24,7 +24,7 @@ namespace VisualPinball.Unity
 	{
 		private static readonly ProfilerMarker PerfMarkerDynamicNarrowPhase = new("DynamicNarrowPhase");
 
-		internal static void FindNextCollision(ref BallData ball, ref NativeParallelHashSet<int> collidingBalls,
+		internal static void FindNextCollision(ref BallState ball, ref NativeParallelHashSet<int> collidingBalls,
 			ref NativeList<ContactBufferElement> contacts, ref PhysicsState state)
 		{
 			// don't play with frozen balls

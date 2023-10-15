@@ -276,7 +276,7 @@ namespace VisualPinball.Unity
 			childB.CreateNextLevel(level + 1, levelEmpty, hitOct);
 		}
 
-		public void GetAabbOverlaps(ref KdRoot hitOct, in Entity entity, in BallData ball, ref DynamicBuffer<OverlappingDynamicBufferElement> overlappingEntities) {
+		public void GetAabbOverlaps(ref KdRoot hitOct, in Entity entity, in BallState ball, ref DynamicBuffer<OverlappingDynamicBufferElement> overlappingEntities) {
 
 			var orgItems = Items & 0x3FFFFFFF;
 			var axis = Items >> 30;

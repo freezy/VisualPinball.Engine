@@ -59,7 +59,7 @@ namespace VisualPinball.Unity
 
 		#region Narrowphase
 
-		public float HitTest(ref CollisionEventData collEvent, in BallData ball, float dTime)
+		public float HitTest(ref CollisionEventData collEvent, in BallState ball, float dTime)
 		{
 			// speed in normal direction
 			var bnv = math.dot(_normal, ball.Velocity);
@@ -123,7 +123,7 @@ namespace VisualPinball.Unity
 
 		#region Collision
 
-		public void Collide(ref BallData ball, in CollisionEventData collEvent, ref Random random)
+		public void Collide(ref BallState ball, in CollisionEventData collEvent, ref Random random)
 		{
 			BallCollider.Collide3DWall(ref ball, in _header.Material, in collEvent, in collEvent.HitNormal, ref random);
 

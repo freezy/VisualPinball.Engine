@@ -306,7 +306,7 @@ namespace VisualPinball.Unity
 			// physics collision data
 			var collComponent = GetComponentInChildren<BumperColliderComponent>();
 			var staticData = collComponent
-				? new BumperStaticData {
+				? new BumperStaticState {
 					Force = collComponent.Force,
 					HitEvent = collComponent.HitEvent,
 					Threshold = collComponent.Threshold
@@ -315,7 +315,7 @@ namespace VisualPinball.Unity
 			// skirt animation data
 			var skirtAnimComponent = GetComponentInChildren<BumperRingAnimationComponent>();
 			var skirtAnimation = skirtAnimComponent
-				? new BumperSkirtAnimationData {
+				? new BumperSkirtAnimationState {
 					BallPosition = default,
 					AnimationCounter = 0f,
 					DoAnimate = false,
@@ -328,7 +328,7 @@ namespace VisualPinball.Unity
 			// ring animation data
 			var ringAnimComponent = GetComponentInChildren<BumperRingAnimationComponent>();
 			var ringAnimation = ringAnimComponent
-				? new BumperRingAnimationData {
+				? new BumperRingAnimationState {
 
 					// dynamic
 					IsHit = false,

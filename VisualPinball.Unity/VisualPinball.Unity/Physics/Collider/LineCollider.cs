@@ -92,24 +92,24 @@ namespace VisualPinball.Unity
 		#region Narrowphase
 
 		public static float HitTest(ref CollisionEventData collEvent,
-			ref InsideOfs insideOfs, in LineCollider coll, in BallData ball, float dTime)
+			ref InsideOfs insideOfs, in LineCollider coll, in BallState ball, float dTime)
 		{
 			return HitTestBasic(ref collEvent, ref insideOfs, in coll, in ball, dTime, true, true, true); // normal face, lateral, rigid
 		}
 
 		public float HitTest(ref CollisionEventData collEvent,
-			ref InsideOfs insideOfs, in BallData ball, float dTime)
+			ref InsideOfs insideOfs, in BallState ball, float dTime)
 		{
 			return HitTestBasic(ref collEvent, ref insideOfs, in this, in ball, dTime, true, true, true); // normal face, lateral, rigid
 		}
 
-		public float HitTestBasic(ref CollisionEventData collEvent, ref InsideOfs insideOfs, in BallData ball, float dTime,
+		public float HitTestBasic(ref CollisionEventData collEvent, ref InsideOfs insideOfs, in BallState ball, float dTime,
 			bool direction, bool lateral, bool rigid)
 		{
 			return HitTestBasic(ref collEvent, ref insideOfs, in this, in ball, dTime, direction, lateral, rigid);
 		}
 
-		public static float HitTestBasic(ref CollisionEventData collEvent, ref InsideOfs insideOfs, in LineCollider coll, in BallData ball, float dTime, bool direction, bool lateral, bool rigid)
+		public static float HitTestBasic(ref CollisionEventData collEvent, ref InsideOfs insideOfs, in LineCollider coll, in BallState ball, float dTime, bool direction, bool lateral, bool rigid)
 		{
 			// ball velocity
 			var ballVx = ball.Velocity.x;
@@ -229,7 +229,7 @@ namespace VisualPinball.Unity
 
 		#region Collision
 
-		public void Collide(ref BallData ball, ref NativeQueue<EventData>.ParallelWriter hitEvents,
+		public void Collide(ref BallState ball, ref NativeQueue<EventData>.ParallelWriter hitEvents,
 			in int ballId, in CollisionEventData collEvent, ref Random random)
 		{
 			var dot = math.dot(collEvent.HitNormal, ball.Velocity);

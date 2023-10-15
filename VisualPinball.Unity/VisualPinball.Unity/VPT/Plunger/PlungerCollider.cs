@@ -78,7 +78,7 @@ namespace VisualPinball.Unity
 		#region Narrowphase
 
 		public float HitTest(ref CollisionEventData collEvent, ref InsideOfs insideOfs,
-			ref PlungerMovementData movementData, in PlungerColliderData colliderData, in PlungerStaticData staticData, in BallData ball, float dTime)
+			ref PlungerMovementData movementData, in PlungerColliderData colliderData, in PlungerStaticData staticData, in BallState ball, float dTime)
 		{
 			var hitTime = dTime; //start time
 			var isHit = false;
@@ -229,7 +229,7 @@ namespace VisualPinball.Unity
 
 		#region Collision
 
-		public static void Collide(ref BallData ball, ref CollisionEventData collEvent,
+		public static void Collide(ref BallState ball, ref CollisionEventData collEvent,
 			ref PlungerMovementData movementData, in PlungerStaticData staticData, ref Random random)
 		{
 			var dot = (ball.Velocity.x - collEvent.HitVelocity.x) * collEvent.HitNormal.x

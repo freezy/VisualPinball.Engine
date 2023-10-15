@@ -65,12 +65,12 @@ namespace VisualPinball.Unity
 
 		#region Narrowphase
 
-		public float HitTest(ref CollisionEventData collEvent, in BallData ball, float dTime)
+		public float HitTest(ref CollisionEventData collEvent, in BallState ball, float dTime)
 		{
 			return HitTest(ref collEvent, in this, in ball, dTime);
 		}
 
-		public static float HitTest(ref CollisionEventData collEvent, in LineZCollider coll, in BallData ball, float dTime)
+		public static float HitTest(ref CollisionEventData collEvent, in LineZCollider coll, in BallState ball, float dTime)
 		{
 			// todo
 			// if (!IsEnabled) {
@@ -164,7 +164,7 @@ namespace VisualPinball.Unity
 
 		#region Collision
 
-		public void Collide(ref BallData ball, ref NativeQueue<EventData>.ParallelWriter hitEvents,
+		public void Collide(ref BallState ball, ref NativeQueue<EventData>.ParallelWriter hitEvents,
 			in int ballId, in CollisionEventData collEvent, ref Random random)
 		{
 			var dot = math.dot(collEvent.HitNormal, ball.Velocity);

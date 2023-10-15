@@ -40,7 +40,7 @@ namespace VisualPinball.Unity
 		[NonSerialized] private NativeArray<PhysicsEnv> _physicsEnv = new(1, Allocator.Persistent);
 		[NonSerialized] private NativeQueue<EventData> _eventQueue = new(Allocator.Persistent);
 
-		[NonSerialized] private NativeParallelHashMap<int, BallData> _ballStates = new(0, Allocator.Persistent);
+		[NonSerialized] private NativeParallelHashMap<int, BallState> _ballStates = new(0, Allocator.Persistent);
 		[NonSerialized] private NativeParallelHashMap<int, BumperState> _bumperStates = new(0, Allocator.Persistent);
 		[NonSerialized] private NativeParallelHashMap<int, FlipperState> _flipperStates = new(0, Allocator.Persistent);
 		[NonSerialized] private NativeParallelHashMap<int, GateState> _gateStates = new(0, Allocator.Persistent);
@@ -83,7 +83,7 @@ namespace VisualPinball.Unity
 		internal delegate void InputAction(ref PhysicsState state);
 
 		internal void Schedule(InputAction action) => _inputActions.Enqueue(action);
-		internal ref BallData BallState(int itemId) => ref _ballStates.GetValueByRef(itemId);
+		internal ref BallState BallState(int itemId) => ref _ballStates.GetValueByRef(itemId);
 		internal ref BumperState BumperState(int itemId) => ref _bumperStates.GetValueByRef(itemId);
 		internal ref FlipperState FlipperState(int itemId) => ref _flipperStates.GetValueByRef(itemId);
 		internal ref GateState GateState(int itemId) => ref _gateStates.GetValueByRef(itemId);
