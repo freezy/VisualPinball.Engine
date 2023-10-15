@@ -82,6 +82,7 @@ namespace VisualPinball.Unity
 
 		internal delegate void InputAction(ref PhysicsState state);
 
+		internal ref NativeParallelHashMap<int, BallState> Balls => ref _ballStates;
 		internal void Schedule(InputAction action) => _inputActions.Enqueue(action);
 		internal ref BallState BallState(int itemId) => ref _ballStates.GetValueByRef(itemId);
 		internal ref BumperState BumperState(int itemId) => ref _bumperStates.GetValueByRef(itemId);

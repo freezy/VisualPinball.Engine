@@ -14,8 +14,6 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-using Unity.Collections;
-using Unity.Entities;
 using Unity.Mathematics;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -24,15 +22,14 @@ namespace VisualPinball.Unity
 {
 	public class BallRollerComponent : MonoBehaviour
 	{
+		private PhysicsEngine _physicsEngine;
 		private PlayfieldComponent _playfield;
 		private Matrix4x4 _ltw;
 		private Matrix4x4 _wtl;
 
 		private Plane _playfieldPlane;
 
-		private EntityManager _entityManager;
-		private Entity _ballEntity = Entity.Null;
-		private EntityQuery _ballEntityQuery;
+		private int _ballId = 0;
 
 		private void Awake()
 		{
@@ -46,9 +43,7 @@ namespace VisualPinball.Unity
 			var p2 = _ltw.MultiplyPoint(new Vector3(100f, 100f, z));
 			var p3 = _ltw.MultiplyPoint(new Vector3(100f, -100f, z));
 			_playfieldPlane.Set3Points(p1, p2, p3);
-
-			_entityManager = World.DefaultGameObjectInjectionWorld.EntityManager;
-			_ballEntityQuery = _entityManager.CreateEntityQuery(typeof(BallState));
+			_physicsEngine = GetComponentInParent<PhysicsEngine>();
 		}
 
 		private void Update()
@@ -60,21 +55,24 @@ namespace VisualPinball.Unity
 			// find nearest ball
 			if (Mouse.current.middleButton.wasPressedThisFrame) {
 				if (GetCursorPositionOnPlayfield(out var mousePosition)) {
-					var ballEntities = _ballEntityQuery.ToEntityArray(Allocator.Temp);
 					var nearestDistance = float.PositiveInfinity;
 					BallState nearestBall = default;
 					var ballFound = false;
-					foreach (var ballEntity in ballEntities) {
-						var ballData = _entityManager.GetComponentData<BallState>(ballEntity);
-						if (ballData.IsFrozen) {
-							continue;
-						}
-						var distance = math.distance(mousePosition, ballData.Position.xy);
-						if (distance < nearestDistance) {
-							nearestDistance = distance;
-							nearestBall = ballData;
-							ballFound = true;
-							_ballEntity = ballEntity;
+
+					using (var enumerator = _physicsEngine.Balls.GetEnumerator()) {
+						while (enumerator.MoveNext()) {
+							var ball = enumerator.Current.Value;
+
+							if (ball.IsFrozen) {
+								continue;
+							}
+							var distance = math.distance(mousePosition, ball.Position.xy);
+							if (distance < nearestDistance) {
+								nearestDistance = distance;
+								nearestBall = ball;
+								ballFound = true;
+								_ballId = ball.Id;
+							}
 						}
 					}
 
@@ -83,18 +81,17 @@ namespace VisualPinball.Unity
 					}
 				}
 
-			} else if (Mouse.current.middleButton.isPressed && _ballEntity != Entity.Null) {
+			} else if (Mouse.current.middleButton.isPressed && _ballId != 0) {
 				if (GetCursorPositionOnPlayfield(out var mousePosition)) {
-					var ballData = _entityManager.GetComponentData<BallState>(_ballEntity);
-					UpdateBall(ref ballData, mousePosition);
+					ref var ball = ref _physicsEngine.BallState(_ballId);
+					UpdateBall(ref ball, mousePosition);
 				}
 			}
 
-			if (Mouse.current.middleButton.wasReleasedThisFrame && _ballEntity != Entity.Null) {
-				var ballData = _entityManager.GetComponentData<BallState>(_ballEntity);
+			if (Mouse.current.middleButton.wasReleasedThisFrame && _ballId != 0) {
+				ref var ballData = ref _physicsEngine.BallState(_ballId);
 				ballData.ManualControl = false;
-				_entityManager.SetComponentData(_ballEntity, ballData);
-				_ballEntity = Entity.Null;
+				_ballId = 0;
 			}
 		}
 
@@ -102,7 +99,6 @@ namespace VisualPinball.Unity
 		{
 			ballState.ManualControl = true;
 			ballState.ManualPosition = position;
-			_entityManager.SetComponentData(_ballEntity, ballState);
 		}
 
 		private bool GetCursorPositionOnPlayfield(out float2 position)
