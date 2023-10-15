@@ -11,6 +11,7 @@ jobs:
         uses: game-ci/unity-request-activation-file@v2
         with:
           unityVersion: 2022.3.10f1
+          customImage: "unityci/editor:ubuntu-2022.3.10f1-linux-il2cpp-2"
       - uses: actions/upload-artifact@v2
         with:
           name: ${{ steps.license.outputs.filePath }}
