@@ -35,7 +35,7 @@ namespace VisualPinball.Unity
 		public PlayfieldApi PlayfieldApi { get; private set; }
 
 		// shortcuts
-		public GameObject Playfield => _playfieldComponent.gameObject;
+		public GameObject Playfield => PlayfieldComponent.gameObject;
 
 		[NonSerialized]
 		public IGamelogicEngine GamelogicEngine;
@@ -90,6 +90,15 @@ namespace VisualPinball.Unity
 		private PlayfieldComponent _playfieldComponent;
 		private PhysicsEngine _physicsEngine;
 
+		private PlayfieldComponent PlayfieldComponent {
+			get {
+				if (_playfieldComponent == null) {
+					_playfieldComponent = GetComponentInChildren<PlayfieldComponent>();
+				}
+				return _playfieldComponent;
+			}
+		}
+
 		private PhysicsEngine PhysicsEngine {
 			get {
 				if (_physicsEngine == null) {
@@ -111,7 +120,7 @@ namespace VisualPinball.Unity
 		public Dictionary<string, bool> CoilStatuses => _coilPlayer.CoilStatuses;
 		public Dictionary<string, LampState> LampStatuses => _lampPlayer.LampStates;
 		public Dictionary<string, (bool, float)> WireStatuses => _wirePlayer.WireStatuses;
-		public float3 Gravity => _playfieldComponent.Gravity;
+		public float3 Gravity => PlayfieldComponent.Gravity;
 
 		public int NextBallId => ++_currentBallId;
 		private int _currentBallId;
@@ -133,7 +142,6 @@ namespace VisualPinball.Unity
 		{
 			DebugLogger.ClearLog();
 			_tableComponent = GetComponent<TableComponent>();
-			_playfieldComponent = GetComponentInChildren<PlayfieldComponent>();
 			var engineComponent = GetComponent<IGamelogicEngine>();
 
 			_apis.Add(TableApi);
