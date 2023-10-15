@@ -16,9 +16,8 @@
 
 using Unity.Mathematics;
 using UnityEngine;
-using VisualPinball.Unity;
 
-namespace VisualPinballUnity
+namespace VisualPinball.Unity
 {
 	internal static class BallDisplacementPhysics
 	{

@@ -18,7 +18,7 @@ using Unity.Entities;
 
 namespace VisualPinball.Unity
 {
-	public struct FlipperCorrectionState : IComponentData
+	public struct FlipperCorrectionState
 	{
 		public bool IsEnabled;
 		public BlobAssetReference<FlipperCorrectionBlob> Value;

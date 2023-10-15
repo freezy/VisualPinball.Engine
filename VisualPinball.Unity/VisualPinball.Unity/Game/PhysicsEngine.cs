@@ -23,7 +23,6 @@ using Unity.Jobs;
 using Unity.Mathematics;
 using UnityEngine;
 using VisualPinball.Unity.Collections;
-using VisualPinballUnity;
 using AABB = NativeTrees.AABB;
 using Debug = UnityEngine.Debug;
 

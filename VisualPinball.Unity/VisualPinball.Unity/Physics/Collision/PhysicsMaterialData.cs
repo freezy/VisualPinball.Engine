@@ -15,11 +15,10 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using Unity.Collections;
-using Unity.Entities;
 
 namespace VisualPinball.Unity
 {
-	public struct PhysicsMaterialData : IComponentData
+	public struct PhysicsMaterialData
 	{
 		public float Elasticity;
 		public float ElasticityFalloff;

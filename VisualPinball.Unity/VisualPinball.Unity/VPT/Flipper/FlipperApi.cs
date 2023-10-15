@@ -18,11 +18,8 @@
 #pragma warning disable 67
 
 using System;
-using System.Collections.Generic;
-using Unity.Entities;
 using Unity.Mathematics;
 using UnityEngine;
-using VisualPinball.Engine.Common;
 using VisualPinball.Engine.VPT.Flipper;
 
 namespace VisualPinball.Unity

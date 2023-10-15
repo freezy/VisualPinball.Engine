@@ -28,7 +28,7 @@ namespace VisualPinball.Unity
 	/// Base struct common to all colliders.
 	/// Dispatches the interface methods to appropriate implementations for the collider type.
 	/// </summary>
-	public struct Collider : IComponentData
+	public struct Collider
 	{
 		public ColliderHeader Header;
 
@@ -81,51 +81,6 @@ namespace VisualPinball.Unity
 			}
 		}
 
-		internal static unsafe float HitTest(ref Collider coll, ref CollisionEventData collEvent,
-			ref DynamicBuffer<BallInsideOfBufferElement> insideOf, in BallState ball, float dTime)
-		{
-			fixed (Collider* collider = &coll)
-			{
-				switch (collider->Type)
-				{
-					case ColliderType.Bumper:
-					case ColliderType.Circle:
-//						return ((CircleCollider*) collider)->HitTest(ref collEvent, ref insideOf, in ball, dTime);
-					case ColliderType.Gate:
-//						return ((GateCollider*) collider)->HitTest(ref collEvent, ref insideOf, in ball, dTime);
-					case ColliderType.Line:
-//						return ((LineCollider*) collider)->HitTest(ref collEvent, ref insideOf, in ball, dTime);
-					case ColliderType.LineZ:
-						// return ((LineZCollider*) collider)->HitTest(ref collEvent, in ball, dTime);
-					case ColliderType.Line3D:
-						// return ((Line3DCollider*) collider)->HitTest(ref collEvent, in ball, dTime);
-					case ColliderType.Point:
-						// return ((PointCollider*) collider)->HitTest(ref collEvent, in ball, dTime);
-					case ColliderType.Plane:
-						return ((PlaneCollider*) collider)->HitTest(ref collEvent, in ball, dTime);
-					case ColliderType.Spinner:
-//						return ((SpinnerCollider*) collider)->HitTest(ref collEvent, ref insideOf, in ball, dTime);
-					case ColliderType.Triangle:
-//						return ((TriangleCollider*) collider)->HitTest(ref collEvent, in insideOf, in ball, dTime);
-					case ColliderType.KickerCircle:
-					case ColliderType.TriggerCircle:
-//						return ((CircleCollider*) collider)->HitTestBasicRadius(ref collEvent, ref insideOf, in ball, dTime, false, false, false);
-					case ColliderType.TriggerLine:
-//						return ((LineCollider*) collider)->HitTestBasic(ref collEvent, ref insideOf, in ball, dTime, false, false, false);
-
-					case ColliderType.Plunger:
-						throw new InvalidOperationException("ColliderType.Plunger must be hit-tested separately!");
-					case ColliderType.Flipper:
-						throw new InvalidOperationException("ColliderType.Flipper must be hit-tested separately!");
-					case ColliderType.LineSlingShot:
-						throw new InvalidOperationException("ColliderType.LineSlingShot must be hit-tested separately!");
-
-					default:
-						return -1;
-				}
-			}
-		}
-		
 		internal static unsafe float HitTest(in Collider coll, ref CollisionEventData collEvent, in BallState ball, float dTime)
 		{
 			fixed (Collider* collider = &coll)

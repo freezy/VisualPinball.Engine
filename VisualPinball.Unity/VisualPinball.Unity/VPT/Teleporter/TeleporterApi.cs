@@ -17,12 +17,10 @@
 // ReSharper disable ConvertIfStatementToSwitchStatement
 
 using System;
-using Logger = NLog.Logger;
 using NLog;
-using Unity.Entities;
 using Unity.Mathematics;
 using UnityEngine;
-using VisualPinballUnity;
+using Logger = NLog.Logger;
 
 namespace VisualPinball.Unity
 {

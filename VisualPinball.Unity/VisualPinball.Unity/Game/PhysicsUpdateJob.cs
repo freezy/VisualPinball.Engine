@@ -19,7 +19,6 @@ using Unity.Collections;
 using Unity.Entities;
 using Unity.Jobs;
 using VisualPinball.Engine.Common;
-using VisualPinballUnity;
 
 namespace VisualPinball.Unity
 {

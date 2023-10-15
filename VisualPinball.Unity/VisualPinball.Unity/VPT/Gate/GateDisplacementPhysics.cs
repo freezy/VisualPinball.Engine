@@ -17,9 +17,8 @@
 using Unity.Collections;
 using Unity.Mathematics;
 using VisualPinball.Engine.Game;
-using VisualPinball.Unity;
 
-namespace VisualPinballUnity
+namespace VisualPinball.Unity
 {
 	internal static class GateDisplacementPhysics
 	{

@@ -14,14 +14,11 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-using Unity.Entities;
 using Unity.Mathematics;
-using VisualPinballUnity;
 
 namespace VisualPinball.Unity
 {
-	// todo split this into at least 2 components
-	internal struct BallState : IComponentData
+	internal struct BallState
 	{
 		public int Id;
 		public float3 Position;
@@ -77,19 +74,6 @@ namespace VisualPinball.Unity
 					Position.z + vl
 				);
 			}
-		}
-
-		public BallColliderBounds Bounds(Entity entity)
-		{
-			var vl = math.length(Velocity) + Radius + 0.05f; // 0.05f = paranoia
-			return new BallColliderBounds(entity, new Aabb(
-				Position.x - vl,
-				Position.x + vl,
-				Position.y - vl,
-				Position.y + vl,
-				Position.z - vl,
-				Position.z + vl
-			));
 		}
 
 		public float CollisionRadiusSqr {

@@ -16,8 +16,6 @@
 
 // ReSharper disable InconsistentNaming
 
-using System;
-using Unity.Entities;
 using UnityEngine;
 using VisualPinball.Engine.VPT.Kicker;
 

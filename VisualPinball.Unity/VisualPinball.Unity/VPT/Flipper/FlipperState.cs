@@ -24,11 +24,11 @@ namespace VisualPinball.Unity
 		internal FlipperVelocityData Velocity;
 		internal FlipperHitData Hit;
 		internal FlipperTricksData Tricks;
-		internal SolenoidStateData Solenoid;
+		internal SolenoidState Solenoid;
 
 		public FlipperState(int itemId, FlipperStaticData @static, FlipperMovementState movement,
 			FlipperVelocityData velocity, FlipperHitData hit, FlipperTricksData tricks,
-			SolenoidStateData solenoid)
+			SolenoidState solenoid)
 		{
 			ItemId = itemId;
 			Static = @static;

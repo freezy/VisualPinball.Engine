@@ -16,9 +16,7 @@
 
 // ReSharper disable InconsistentNaming
 
-using System;
 using System.ComponentModel;
-using Unity.Entities;
 using UnityEngine;
 using VisualPinball.Engine.VPT.Gate;
 

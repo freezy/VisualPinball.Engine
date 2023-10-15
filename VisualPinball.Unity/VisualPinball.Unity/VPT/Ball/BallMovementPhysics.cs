@@ -14,12 +14,9 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-using Unity.Profiling;
 using UnityEngine;
-using VisualPinball.Unity;
-using Physics = VisualPinball.Unity.Physics;
 
-namespace VisualPinballUnity
+namespace VisualPinball.Unity
 {
 	internal static class BallMovementPhysics
 	{
