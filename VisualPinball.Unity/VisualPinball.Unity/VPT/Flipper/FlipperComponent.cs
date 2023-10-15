@@ -506,7 +506,7 @@ namespace VisualPinball.Unity
 					GetVelocityData(d),
 					GetHitData(),
 					GetFlipperTricksData(colliderComponent, d),
-					new SolenoidStateData { Value = false }
+					new SolenoidState { Value = false }
 				);
 
 				// flipper correction (nFozzy)

@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using System;
-using Unity.Entities;
+using NativeTrees;
 
 namespace VisualPinball.Unity
 {
@@ -36,7 +36,7 @@ namespace VisualPinball.Unity
 			Aabb = aabb;
 		}
 
-		public static implicit operator NativeTrees.AABB(ColliderBounds b) => b.Aabb;
+		public static implicit operator AABB(ColliderBounds b) => b.Aabb;
 
 		public override string ToString()
 		{

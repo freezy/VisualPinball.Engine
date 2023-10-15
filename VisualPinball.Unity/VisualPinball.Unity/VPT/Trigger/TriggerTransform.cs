@@ -16,10 +16,8 @@
 
 using System.Collections.Generic;
 using UnityEngine;
-using VisualPinball.Unity;
-using Physics = VisualPinball.Unity.Physics;
 
-namespace VisualPinballUnity
+namespace VisualPinball.Unity
 {
 	internal static class TriggerTransform
 	{

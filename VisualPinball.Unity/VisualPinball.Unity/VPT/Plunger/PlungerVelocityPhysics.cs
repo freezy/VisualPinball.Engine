@@ -15,9 +15,8 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using VisualPinball.Engine.VPT.Plunger;
-using VisualPinball.Unity;
 
-namespace VisualPinballUnity
+namespace VisualPinball.Unity
 {
 	internal static class PlungerVelocityPhysics
 	{

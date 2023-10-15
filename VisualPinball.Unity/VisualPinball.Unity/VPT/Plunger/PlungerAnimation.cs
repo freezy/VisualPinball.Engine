@@ -15,9 +15,8 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using Unity.Mathematics;
-using VisualPinball.Unity;
 
-namespace VisualPinballUnity
+namespace VisualPinball.Unity
 {
 	internal static class PlungerAnimation
 	{

@@ -14,16 +14,13 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-using Unity.Entities;
 using Unity.Mathematics;
 using VisualPinball.Engine.Common;
-using VisualPinball.Unity;
 
 // ReSharper disable CompareOfFloatsByEqualityOperator
 
-namespace VisualPinballUnity
+namespace VisualPinball.Unity
 {
-	[DisableAutoCreation]
 	internal static class BallSpinHackPhysics
 	{
 		internal static void Update(ref BallState ball)

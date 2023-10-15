@@ -18,10 +18,8 @@ using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
 using Unity.Entities;
 using Unity.Mathematics;
-using UnityEngine;
 using VisualPinball.Engine.Common;
 using VisualPinball.Engine.VPT;
-using Random = Unity.Mathematics.Random;
 
 namespace VisualPinball.Unity
 {
@@ -72,7 +70,7 @@ namespace VisualPinball.Unity
 			ref var ptr = ref UnsafeUtility.As<BlobPtr<Collider>, BlobPtr<LineCollider>>(ref colliders[_header.Id]);
 			ref var collider = ref builder.Allocate(ref ptr);
 			UnsafeUtility.MemCpy(
-				UnsafeUtility.AddressOf(ref collider),
+				UnsafeUtility.AddressOf<LineCollider>(ref collider),
 				UnsafeUtility.AddressOf(ref this),
 				sizeof(LineCollider)
 			);
