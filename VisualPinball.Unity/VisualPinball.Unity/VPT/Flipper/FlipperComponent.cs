@@ -663,55 +663,45 @@ namespace VisualPinball.Unity
 			triggerComponent.DragPoints = new DragPointData[poly.Count];
 			triggerComponent.IsLocked = true;
 			triggerCollider.HitHeight = 150F; // nFozzy's recommendation, but I think 50 should be ok
-			var flipperRotation = Matrix4x4.Rotate(quaternion.Euler(new float3(0, 0, -_startAngle)));
+
+			// this was taken from the 2021 code when we had the playfield transformed to vpx world:
+			// p = ta.transform.InverseTransformPoint(transform.TransformPoint(poly[i]))
+			// this is basically (ta.transform.worldToLocalMatrix * transform.localToWorldMatrix)
+			// but I couldn't get this transformation correctly from our current transforms.
+			// using Matrix4x4.Rotate(quaternion.Euler(new float3(0, 0, -_startAngle))) and transforming
+			// to localPos was close, but not close enough.
+			var flipperToPlayfield = new Matrix4x4(
+				new Vector4(-0.50754f, 0.86163f, 0, 0),
+				new Vector4(-0.86163f, -0.50754f, 0, 0),
+				new Vector4(0, 0, 1f, 0),
+				new Vector4(278.21380f, 1803.27200f, 0, 1f)
+			);
 
 			for (var i = 0; i < poly.Count; i++) {
 				// Poly points are expressed in flipper's frame: rotate to get it to the correct position.
-				var p = flipperRotation.MultiplyPoint(poly[i]);
-				triggerComponent.DragPoints[poly.Count - i - 1] = new DragPointData(localPos.x - p.x, localPos.y - p.y);
+				var p = flipperToPlayfield.MultiplyPoint3x4(poly[i]);
+				triggerComponent.DragPoints[poly.Count - i - 1] = new DragPointData(p.x, p.y);
 			}
 
 			// create polarities and velocities curves
 			var polarities = new float2[fc.PolaritiesCurveSlicingCount + 1];
-			if (fc.Polarities != null)
-			{
-				var curve = fc.Polarities;
-				float stepP = (curve[curve.length - 1].time - curve[0].time) / fc.PolaritiesCurveSlicingCount;
-				int i = 0;
-				for (var t = curve[0].time; t <= curve[curve.length - 1].time; t += stepP)
-				{
-					polarities[i].x = t;
-					polarities[i++].y = curve.Evaluate(t);
-				}
-			}
-			else
-			{
-				for (int i = 0; i < fc.PolaritiesCurveSlicingCount + 1; i++)
-				{
-					polarities[i].x = i / (float)fc.PolaritiesCurveSlicingCount;
-					polarities[i].y = 0F;
+			if (fc.Polarities != null) {
+				Discretize(fc.Polarities, polarities);
+
+			} else {
+				for (var i = 0; i < fc.PolaritiesCurveSlicingCount + 1; i++) {
+					polarities[i++] = new float2(i / (float)fc.PolaritiesCurveSlicingCount, 0);
 				}
 			}
 			triggerCollider.FlipperPolarities = polarities;
 
 			var velocities = new float2[fc.VelocitiesCurveSlicingCount + 1];
-			if (fc.Velocities != null)
-			{
-				var curve = fc.Velocities;
-				float stepP = (curve[curve.length - 1].time - curve[0].time) / fc.VelocitiesCurveSlicingCount;
-				int i = 0;
-				for (var t = curve[0].time; t <= curve[curve.length - 1].time; t += stepP)
-				{
-					velocities[i].x = t;
-					velocities[i++].y = curve.Evaluate(t);
-				}
-			}
-			else
-			{
-				for (int i = 0; i < fc.VelocitiesCurveSlicingCount + 1; i++)
-				{
-					velocities[i].x = i / (float)fc.PolaritiesCurveSlicingCount;
-					velocities[i].y = 1F;
+			if (fc.Velocities != null) {
+				Discretize(fc.Velocities, velocities);
+
+			} else {
+				for (var i = 0; i < fc.VelocitiesCurveSlicingCount + 1; i++) {
+					velocities[i++] = new float2(i / (float)fc.PolaritiesCurveSlicingCount, 1f);
 				}
 			}
 			triggerCollider.FlipperVelocities = velocities;
@@ -719,6 +709,15 @@ namespace VisualPinball.Unity
 			// need to explicitly register, since awake was called before the components were added.
 			GetComponentInParent<PhysicsEngine>().Register(triggerComponent);
 			GetComponentInParent<Player>().RegisterTrigger(triggerComponent);
+		}
+
+		private static void Discretize(AnimationCurve curve, IList<float2> outArray)
+		{
+			var stepP = (curve[curve.length - 1].time - curve[0].time) / (outArray.Count - 1);
+			var i = 0;
+			for (var t = curve[0].time; t <= curve[curve.length - 1].time; t += stepP) {
+				outArray[i++] = new float2(t, curve.Evaluate(t));
+			}
 		}
 
 		#endregion
