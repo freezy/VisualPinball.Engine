@@ -68,8 +68,6 @@ namespace VisualPinball.Unity
 
 		public int PlayfieldDetailLevel = 10;
 
-		public float GravityStrength = 1.762985f;
-
 		[SerializeField] private string _playfieldImage;
 		[SerializeField] private string _playfieldMaterial;
 
@@ -94,14 +92,11 @@ namespace VisualPinball.Unity
 		public Aabb Bounds => new Aabb(Left, Right, Top, Bottom, TableHeight, GlassHeight);
 		public AABB2D Bounds2D => new AABB2D(new float2(Left, Top), new float2(Right, Bottom));
 
-		public float3 Gravity {
-			get {
-				var tableComponent = GetComponentInParent<TableComponent>();
-				var difficulty = tableComponent ? tableComponent.GlobalDifficulty : 0.2f;
-				var slope = AngleTiltMin + (AngleTiltMax - AngleTiltMin) * difficulty;
-				var strength = tableComponent.OverridePhysics != 0 ? PhysicsConstants.DefaultTableGravity : GravityStrength;
-				return new float3(0, math.sin(math.radians(slope)) * strength, -math.cos(math.radians(slope)) * strength);
-			}
+		public float3 PlayfieldGravity(float strength) {
+			var tableComponent = GetComponentInParent<TableComponent>();
+			var difficulty = tableComponent ? tableComponent.GlobalDifficulty : 0.2f;
+			var slope = AngleTiltMin + (AngleTiltMax - AngleTiltMin) * difficulty;
+			return new float3(0, math.sin(math.radians(slope)) * strength, -math.cos(math.radians(slope)) * strength);
 		}
 
 		private void Awake()
@@ -118,6 +113,7 @@ namespace VisualPinball.Unity
 
 		public override IEnumerable<MonoBehaviour> SetData(TableData data)
 		{
+			var physicsEngine = GetComponentInParent<PhysicsEngine>();
 			var updatedComponents = new List<MonoBehaviour> { this };
 
 			// position
@@ -131,7 +127,9 @@ namespace VisualPinball.Unity
 			Bottom = data.Bottom;
 			AngleTiltMax = data.AngleTiltMax;
 			AngleTiltMin = data.AngleTiltMin;
-			GravityStrength = data.Gravity;
+			if (physicsEngine) {
+				physicsEngine.GravityStrength = data.Gravity;
+			}
 
 			// playfield material
 			_playfieldImage = data.Image;
@@ -190,6 +188,8 @@ namespace VisualPinball.Unity
 
 		public override TableData CopyDataTo(TableData data, string[] materialNames, string[] textureNames, bool forExport)
 		{
+			var physicsEngine = GetComponentInParent<PhysicsEngine>();
+
 			// position
 			data.TableHeight = TableHeight;
 			data.GlassHeight = GlassHeight;
@@ -199,7 +199,9 @@ namespace VisualPinball.Unity
 			data.Bottom = Bottom;
 			data.AngleTiltMax = AngleTiltMax;
 			data.AngleTiltMin = AngleTiltMin;
-			data.Gravity = GravityStrength;
+			if (physicsEngine) {
+				data.Gravity = physicsEngine.GravityStrength;
+			}
 
 			// playfield material
 			data.Image = _playfieldImage;

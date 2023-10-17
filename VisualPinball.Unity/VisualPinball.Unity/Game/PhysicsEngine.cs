@@ -13,6 +13,8 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+// ReSharper disable InconsistentNaming
+
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -30,6 +32,13 @@ namespace VisualPinball.Unity
 {
 	public class PhysicsEngine : MonoBehaviour
 	{
+		#region Configuration
+
+		[Tooltip("Gravity constant, in VPX units.")]
+		public float GravityStrength = 1.762985f;
+
+		#endregion
+
 		#region States
 
 		[NonSerialized] private AABB _playfieldBounds;
@@ -151,9 +160,9 @@ namespace VisualPinball.Unity
 
 		private void Awake()
 		{
-			_player = GetComponent<Player>();
+			_player = GetComponentInParent<Player>();
 			_insideOfs = new InsideOfs(Allocator.Persistent);
-			_physicsEnv[0] = new PhysicsEnv(NowUsec, GetComponent<Player>());
+			_physicsEnv[0] = new PhysicsEnv(NowUsec, GetComponentInChildren<PlayfieldComponent>(), GravityStrength);
 		}
 
 		private void Start()

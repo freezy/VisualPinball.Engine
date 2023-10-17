@@ -14,10 +14,10 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-using System.Linq;
+// ReSharper disable AssignmentInConditionalExpression
+
 using UnityEditor;
 using UnityEngine;
-using VisualPinball.Engine.Common;
 
 namespace VisualPinball.Unity.Editor
 {
@@ -25,21 +25,13 @@ namespace VisualPinball.Unity.Editor
 	[CanEditMultipleObjects]
 	public class PlayerInspector : UnityEditor.Editor
 	{
-		private string[] _physicsEngineNames;
-		private int _physicsEngineIndex;
-
-		private string[] _debugUINames;
-		private int _debugUIIndex;
-
 		private bool _toggleDebug = true;
 
 		private SerializedProperty _updateDuringGameplayProperty;
 
 		private void OnEnable()
 		{
-			var player = (Player)target;
-
-			_updateDuringGameplayProperty = serializedObject.FindProperty(nameof(player.UpdateDuringGamplay));
+			_updateDuringGameplayProperty = serializedObject.FindProperty(nameof(Player.UpdateDuringGamplay));
 		}
 
 		public override void OnInspectorGUI()
@@ -66,36 +58,6 @@ namespace VisualPinball.Unity.Editor
 			}
 
 			EditorGUILayout.EndFoldoutHeaderGroup();
-		}
-
-		private void DrawEngineSelector<T>(string engineName, ref string engineId, ref T[] instances, ref string[] names, ref int index) where T : IEngine
-		{
-			if (instances == null) {
-				// get all instances
-				instances = EngineProvider<T>.GetAll().ToArray();
-				names = instances.Select(x => x.Name).ToArray();
-
-				// set the current index based on the table's ID
-				index = -1;
-				for (var i = 0; i < instances.Length; i++) {
-					if (EngineProvider<T>.GetId(instances[i]) == engineId) {
-						index = i;
-						break;
-					}
-				}
-				if (instances.Length > 0 && index < 0) {
-					index = 0;
-					engineId = EngineProvider<T>.GetId(instances[index]);
-				}
-			}
-			if (names.Length == 0) {
-				return;
-			}
-			var newIndex = EditorGUILayout.Popup(engineName, index, names);
-			if (index != newIndex) {
-				index = newIndex;
-				engineId = EngineProvider<T>.GetId(instances[newIndex]);
-			}
 		}
 	}
 }

@@ -43,7 +43,7 @@ namespace VisualPinball.Unity
 			var p2 = _ltw.MultiplyPoint(new Vector3(100f, 100f, z));
 			var p3 = _ltw.MultiplyPoint(new Vector3(100f, -100f, z));
 			_playfieldPlane.Set3Points(p1, p2, p3);
-			_physicsEngine = GetComponentInParent<PhysicsEngine>();
+			_physicsEngine = GetComponentInChildren<PhysicsEngine>();
 		}
 
 		private void Update()
