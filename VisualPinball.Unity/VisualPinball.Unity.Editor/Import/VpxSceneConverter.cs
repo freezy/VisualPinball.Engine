@@ -573,13 +573,8 @@ namespace VisualPinball.Unity.Editor
 					.Replace("%TABLENAME%", _sourceTable.Name)
 					.Replace("%INFONAME%", _sourceContainer.InfoName);
 			}
-			
-			// 1. create table scene
-			// _tableScene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Additive);
-			// _tableScene.name = tableName;
-			// SceneManager.SetActiveScene(_tableScene);
 
-			// 2. create game object hierarchy
+			// 1. create game object hierarchy
 			_tableGo = new GameObject(tableName);
 			_playfieldGo = new GameObject("Playfield");
 			var backglassGo = new GameObject("Backglass");
@@ -592,7 +587,8 @@ namespace VisualPinball.Unity.Editor
 			backglassGo.transform.SetParent(_tableGo.transform, false);
 			cabinetGo.transform.SetParent(_tableGo.transform, false);
 
-			// 3. add components
+			// 2. add components
+			_playfieldGo.AddComponent<PhysicsEngine>();
 			_playfieldComponent = _playfieldGo.AddComponent<PlayfieldComponent>();
 			_playfieldGo.AddComponent<PlayfieldColliderComponent>();
 			_playfieldGo.AddComponent<PlayfieldMeshComponent>();
