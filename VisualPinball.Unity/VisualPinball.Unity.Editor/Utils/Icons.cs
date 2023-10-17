@@ -62,6 +62,7 @@ namespace VisualPinball.Unity.Editor
 		}
 
 		private const string AssetLibraryName = "asset_library";
+		private const string BallName = "ball";
 		private const string BallRollerName = "ball_roller";
 		private const string BoltName = "bolt";
 		private const string BumperName = "bumper";
@@ -85,6 +86,7 @@ namespace VisualPinball.Unity.Editor
 		private const string PlugName = "plug";
 		private const string PlungerName = "plunger";
 		private const string PrimitiveName = "primitive";
+		private const string PhysicsName = "physics";
 		private const string RampName = "ramp";
 		private const string RotatorName = "rotator";
 		private const string RubberName = "rubber";
@@ -114,9 +116,9 @@ namespace VisualPinball.Unity.Editor
 		private const string DisplayEventName = "display_event";
 
 		private static readonly string[] Names = {
-			AssetLibraryName, BallRollerName, BoltName, BumperName, CalendarName, CannonName, CoilName, DropTargetBankName, DropTargetName, FlasherName,
+			AssetLibraryName, BallRollerName, BallName, BoltName, BumperName, CalendarName, CannonName, CoilName, DropTargetBankName, DropTargetName, FlasherName,
 			FlipperName, GateName, GateLifterName, HitTargetName, KeyName, KickerName, LightGroupName, LightName, MechName, MechPinMameName, PlayfieldName, PlugName,
-			PlungerName, PrimitiveName, RampName, RotatorName, RubberName, ScoreReelName, ScoreReelSingleName, SlingshotName, SpinnerName, SurfaceName,
+			PhysicsName, PlungerName, PrimitiveName, RampName, RotatorName, RubberName, ScoreReelName, ScoreReelSingleName, SlingshotName, SpinnerName, SurfaceName,
 			SwitchNcName, SwitchNoName, TableName, TeleporterName, TriggerName, TroughName,
 			CoilEventName, SwitchEventName, LampEventName, LampSeqName, MetalWireGuideName,
 			PlayerVariableName, PlayerVariableEventName, TableVariableName, TableVariableEventName, UpdateDisplayName, DisplayEventName
@@ -163,6 +165,7 @@ namespace VisualPinball.Unity.Editor
 		}
 
 		public static Texture2D AssetLibrary(IconSize size = IconSize.Large, IconColor color = IconColor.Gray) => Instance.GetItem(AssetLibraryName, size, color);
+		public static Texture2D Ball(IconSize size = IconSize.Small, IconColor color = IconColor.Gray) => Instance.GetItem(BallName, size, color);
 		public static Texture2D BallRoller(IconSize size = IconSize.Large, IconColor color = IconColor.Gray) => Instance.GetItem(BallRollerName, size, color);
 		public static Texture2D Bolt(IconSize size = IconSize.Large, IconColor color = IconColor.Gray) => Instance.GetItem(BoltName, size, color);
 		public static Texture2D Bumper(IconSize size = IconSize.Large, IconColor color = IconColor.Gray) => Instance.GetItem(BumperName, size, color);
@@ -183,6 +186,7 @@ namespace VisualPinball.Unity.Editor
 		public static Texture2D Mech(IconSize size = IconSize.Large, IconColor color = IconColor.Gray) => Instance.GetItem(MechName, size, color);
 		public static Texture2D MechPinMame(IconSize size = IconSize.Large, IconColor color = IconColor.Gray) => Instance.GetItem(MechPinMameName, size, color);
 		public static Texture2D MetalWireGuide(IconSize size = IconSize.Large, IconColor color = IconColor.Gray) => Instance.GetItem(MetalWireGuideName, size, color);
+		public static Texture2D Physics(IconSize size = IconSize.Small, IconColor color = IconColor.Gray) => Instance.GetItem(PhysicsName, size, color);
 		public static Texture2D Playfield(IconSize size = IconSize.Large, IconColor color = IconColor.Gray) => Instance.GetItem(PlayfieldName, size, color);
 		public static Texture2D Plug(IconSize size = IconSize.Large, IconColor color = IconColor.Gray) => Instance.GetItem(PlugName, size, color);
 		public static Texture2D Plunger(IconSize size = IconSize.Large, IconColor color = IconColor.Gray) => Instance.GetItem(PlungerName, size, color);
@@ -273,6 +277,7 @@ namespace VisualPinball.Unity.Editor
 		public Texture2D Lookup<T>(T mb, IconSize size = IconSize.Large, IconColor color = IconColor.Gray) where T : class
 		{
 			switch (mb) {
+				case BallComponent _: return Icons.Ball(size, color);
 				case BallRollerComponent _: return Icons.BallRoller(size, color);
 				case BumperComponent _: return Icons.Bumper(size, color);
 				case CannonRotatorComponent _: return Icons.Cannon(size, color);
@@ -285,6 +290,7 @@ namespace VisualPinball.Unity.Editor
 				case KickerComponent _: return Icons.Kicker(size, color);
 				case LightComponent _: return Icons.Light(size, color);
 				case LightGroupComponent _: return Icons.LightGroup(size, color);
+				case PhysicsEngine _: return Icons.Physics(size, color);
 				case PlungerComponent _: return Icons.Plunger(size, color);
 				case PlayfieldComponent _: return Icons.Playfield(size, color);
 				case PrimitiveComponent _: return Icons.Primitive(size, color);
@@ -309,6 +315,7 @@ namespace VisualPinball.Unity.Editor
 
 		public void DisableGizmoIcons()
 		{
+			Icons.DisableGizmo<BallComponent>();
 			Icons.DisableGizmo<BallRollerComponent>();
 			Icons.DisableGizmo<BumperComponent>();
 			Icons.DisableGizmo<BumperColliderComponent>();
@@ -337,6 +344,7 @@ namespace VisualPinball.Unity.Editor
 			Icons.DisableGizmo<KickerColliderComponent>();
 			Icons.DisableGizmo<LightComponent>();
 			Icons.DisableGizmo<LightGroupComponent>();
+			Icons.DisableGizmo<PhysicsEngine>();
 			Icons.DisableGizmo<PlayfieldComponent>();
 			Icons.DisableGizmo<PlayfieldColliderComponent>();
 			Icons.DisableGizmo<PlayfieldMeshComponent>();
