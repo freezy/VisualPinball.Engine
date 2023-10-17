@@ -31,13 +31,13 @@ namespace VisualPinball.Unity
 
 		public Random Random;
 
-		public PhysicsEnv(ulong startTimeUsec, Player player) : this()
+		public PhysicsEnv(ulong startTimeUsec, PlayfieldComponent playfield, float gravityStrength) : this()
 		{
 			StartTimeUsec = startTimeUsec;
 			CurPhysicsFrameTime = StartTimeUsec;
 			NextPhysicsFrameTime = StartTimeUsec + PhysicsConstants.PhysicsStepTime;
 			Random = new Random((uint)UnityEngine.Random.Range(1, 100000));
-			Gravity = player.Gravity;
+			Gravity = playfield.PlayfieldGravity(gravityStrength);
 		}
 
 		public void Dispose()

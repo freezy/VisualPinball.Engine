@@ -102,7 +102,7 @@ namespace VisualPinball.Unity
 		private PhysicsEngine PhysicsEngine {
 			get {
 				if (_physicsEngine == null) {
-					_physicsEngine = GetComponent<PhysicsEngine>();
+					_physicsEngine = GetComponentInChildren<PhysicsEngine>();
 				}
 				return _physicsEngine;
 			}
@@ -120,7 +120,6 @@ namespace VisualPinball.Unity
 		public Dictionary<string, bool> CoilStatuses => _coilPlayer.CoilStatuses;
 		public Dictionary<string, LampState> LampStatuses => _lampPlayer.LampStates;
 		public Dictionary<string, (bool, float)> WireStatuses => _wirePlayer.WireStatuses;
-		public float3 Gravity => PlayfieldComponent.Gravity;
 
 		public int NextBallId => ++_currentBallId;
 		private int _currentBallId;
