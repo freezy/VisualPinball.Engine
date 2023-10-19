@@ -1,8 +1,11 @@
-﻿html,
+html,
 body {
 	font-family: Inter, 'Segoe UI', Tahoma, Helvetica, sans-serif;
-    font-size: 100%;
+	font-size: 100%;
+}
 
+header .btn:hover {
+	background-color: #fff;
 }
 
 .btn.btn-default.active, .btn.btn-default:active {
@@ -31,7 +34,7 @@ body {
 }
 
 #sidetoc .sidetoc.shiftup {
-  bottom: 0;
+	bottom: 0;
 }
 
 img[alt="Visual Pinball Engine"] {
@@ -42,7 +45,7 @@ h1, h2 {
 	font-weight: bold;
 }
 
-.table-bordered, 
+.table-bordered,
 .table-bordered>tbody>tr>td,
 .table-bordered>tbody>tr>th,
 .table-bordered>tfoot>tr>td,
@@ -52,5 +55,5 @@ h1, h2 {
 	border-color: rgba(1,1,1,0.15);
 }
 .table-striped > tbody > tr:nth-of-type(odd) {
-    background-color: rgba(1,1,1,0.03)
+	background-color: rgba(1,1,1,0.03)
 }
