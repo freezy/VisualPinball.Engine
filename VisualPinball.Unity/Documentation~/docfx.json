@@ -46,8 +46,8 @@
 			"_appFaviconPath": "favicon.png",
 			"_gitContribute": {
 				"branch": "master"
-			}
-
+			},
+			"_enableSearch": true
 		},
 		"sitemap":{
 			"baseUrl": "https://docs.visualpinball.org/",
