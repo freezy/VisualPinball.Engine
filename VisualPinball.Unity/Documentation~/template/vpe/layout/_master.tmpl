@@ -77,7 +77,7 @@
   <body class="tex2jax_ignore" data-layout="{{_layout}}{{layout}}" data-yaml-mime="{{yamlmime}}">
     <header class="bg-body border-bottom" data-bs-theme="dark">
       <nav id="autocollapse" class="navbar navbar-expand-md" role="navigation">
-        <div class="container-xxl flex-nowrap">
+        <div class="container flex-nowrap">
           <a class="navbar-brand" href="{{_appLogoUrl}}{{^_appLogoUrl}}{{_rel}}index.html{{/_appLogoUrl}}">
             <img id="logo" class="svg" src="{{_rel}}{{{_appLogoPath}}}{{^_appLogoPath}}logo.svg{{/_appLogoPath}}" alt="{{_appName}}" >
             {{_appName}}
@@ -102,7 +102,7 @@
       </nav>
     </header>
 
-    <main class="container-xxl">
+    <main class="container">
       <div class="toc-offcanvas">
         <div class="offcanvas-md offcanvas-start" tabindex="-1" id="tocOffcanvas" aria-labelledby="tocOffcanvasLabel">
           <div class="offcanvas-header">
@@ -130,17 +130,6 @@
           {{!body}}
         </article>
 
-        {{^_disableContribution}}
-        <div class="contribution d-print-none">
-          {{#sourceurl}}
-          <a href="{{sourceurl}}" class="edit-link">{{__global.improveThisDoc}}</a>
-          {{/sourceurl}}
-          {{^sourceurl}}{{#docurl}}
-          <a href="{{docurl}}" class="edit-link">{{__global.improveThisDoc}}</a>
-          {{/docurl}}{{/sourceurl}}
-        </div>
-        {{/_disableContribution}}
-
         {{^_disableNextArticle}}
         <div class="next-article d-print-none border-top" id="nextArticle"></div>
         {{/_disableNextArticle}}
@@ -149,15 +138,26 @@
 
       <div class="affix">
         <nav id="affix"></nav>
+
+        {{^_disableContribution}}
+          <div class="contribution d-print-none">
+            {{#sourceurl}}
+            <a href="{{sourceurl}}" class="btn btn-outline-secondary btn-sm">{{__global.improveThisDoc}}</a>
+            {{/sourceurl}}
+            {{^sourceurl}}{{#docurl}}
+            <a href="{{docurl}}" class="btn btn-outline-secondary btn-sm">{{__global.improveThisDoc}}</a>
+            {{/docurl}}{{/sourceurl}}
+          </div>
+          {{/_disableContribution}}
       </div>
     </main>
 
     {{#_enableSearch}}
-    <div class="container-xxl search-results" id="search-results"></div>
+    <div class="container search-results" id="search-results"></div>
     {{/_enableSearch}}
 
     <footer class="border-top">
-      <div class="container-xxl">
+      <div class="container">
         <div class="flex-fill">
           {{{_appFooter}}}{{^_appFooter}}<span>Made with <a href="https://dotnet.github.io/docfx">docfx</a></span>{{/_appFooter}}
         </div>
