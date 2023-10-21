@@ -37,50 +37,50 @@
   href: tutorials/index.md
   items:
     - name: Create a Playfield
-      href: xref:tutorial_playfield
+      uid: tutorial_playfield
       items:
         - name: Albedo Texture and Masks
-          href: xref:tutorial_playfield_1
+          uid: tutorial_playfield_1
         - name: Playfield Mesh
-          href: xref:tutorial_playfield_2
+          uid: tutorial_playfield_2
         - name: Texturing
-          href: xref:tutorial_playfield_3
+          uid: tutorial_playfield_3
         - name: Texturing (details)
-          href: xref:tutorial_playfield_3b
+          uid: tutorial_playfield_3b
         - name: Import Into Unity
-          href: xref:tutorial_playfield_4
+          uid: tutorial_playfield_4
 
     - name: Create Realistic Looking Plastics
-      href: xref:tutorial_plastics
+      uid: tutorial_plastics
       items:
         - name: Prepare Artwork
-          href: xref:tutorial_plastics_1
+          uid: tutorial_plastics_1
         - name: Create Mesh
-          href: xref:tutorial_plastics_2
+          uid: tutorial_plastics_2
         - name: UV-Map Mesh
-          href: xref:tutorial_plastics_3
+          uid: tutorial_plastics_3
         - name: Import Into Unity
-          href: xref:tutorial_plastics_4
+          uid: tutorial_plastics_4
 
     - name: Create a Backglass
-      href: xref:tutorial_backglass
+      uid: tutorial_backglass
       items:
         - name: Prepare Artwork
-          href: xref:tutorial_backglass_1
+          uid: tutorial_backglass_1
         - name: Create Mesh
-          href: xref:tutorial_backglass_2
+          uid: tutorial_backglass_2
         - name: Import into Unity
-          href: xref:tutorial_backglass_3
+          uid: tutorial_backglass_3
 
     - name: Make a 3D Scan Game-Ready
-      href: xref:tutorial_3d_scan
+      uid: tutorial_3d_scan
       items:
         - name: Clean Up the Mesh
-          href: xref:tutorial_3d_scan_1
+          uid: tutorial_3d_scan_1
         - name: Retopologize
-          href: xref:tutorial_3d_scan_2
+          uid: tutorial_3d_scan_2
         - name: Bake Texture Maps
-          href: xref:tutorial_3d_scan_3
+          uid: tutorial_3d_scan_3
 
 - name: Manual
   href: manual/manual.md

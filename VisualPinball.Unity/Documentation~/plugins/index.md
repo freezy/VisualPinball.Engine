@@ -14,7 +14,7 @@ VPE has a plug-in system that allows other software to integrate with it. Plugin
 
 ## [Visual Scripting](xref:uvs_index)
 
-For original games or EM machines, we recommend using our visual scripting package which extends [Unity's visual scripting](https://unity.com/products/unity-visual-scripting).
+For original games or EM machines, we recommend using our visual scripting package which extends [Unity's Visual Scripting](https://unity.com/products/unity-visual-scripting).
 
 ## [Mission Pinball Framework](xref:mpf_index)
 
