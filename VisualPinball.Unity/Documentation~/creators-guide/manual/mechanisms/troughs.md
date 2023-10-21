@@ -46,7 +46,7 @@ In this section we'll again link to the excellent MPF documentation explaining e
 
 <img src="trough-mechanical.gif" width="348" class="img-responsive pull-right" style="margin-left: 15px">
 
-[Modern troughs with mechanical switches](https://docs.missionpinball.org/en/latest/mechs/troughs/#option-2-modern-trough-with-mechanical-switches) are covered by this type.
+[Modern troughs with mechanical switches](https://missionpinball.org/mechs/troughs/#option-2-modern-trough-with-mechanical-switches) are covered by this type.
 
 The ball drains from the playfield directly into the ball stack, and every ball slot has an associated switch. When a ball gets ejected, the remaining balls move down simultaneously to the next position. During that movement, their switches get first opened and then closed again when they reach the next position. The time of this movement is defined by *Roll Time*.
 
@@ -56,7 +56,7 @@ The ball drains from the playfield directly into the ball stack, and every ball 
 
 <img src="trough-opto.gif" width="348" class="img-responsive pull-right" style="margin-left: 15px">
 
-[Modern troughs with optical switches](https://docs.missionpinball.org/en/latest/mechs/troughs/#option-1-modern-trough-with-opto-sensors) work similar similar to their mechanical counterparts. However there are two differences:
+[Modern troughs with optical switches](https://missionpinball.org/mechs/troughs/#option-1-modern-trough-with-opto-sensors) work similar similar to their mechanical counterparts. However there are two differences:
 
 1. Opto switches have the inverse value of mechanical switches. That means per default, an opto switch is *closed*, and when a ball rolls through, it opens. It's kind of logical, because the ball *blocks* the beam of light thus *opening* the circuit, while a mechanical switch gets *closed* by the ball's weight.
 2. Timings are different. When a ball approaches an opto switch, the switch gets triggered as soon as the ball's *front* hits the beam, while a mechanical switch gets triggered when the ball's *center* is over it. This results in very short closing times when the ball stack moves to the next position after a ball eject.
@@ -72,7 +72,7 @@ We call this closing time the *transition time* - it's the time during stack tra
 
 <img src="trough-2cns.gif" width="348" class="img-responsive pull-right" style="margin-left: 15px">
 
-[Troughs of this type](https://docs.missionpinball.org/en/latest/mechs/troughs/#option-3-older-style-with-two-coils-and-switches-for-each-ball) can be found in older machines from the 80s and early 90s. They consist of two parts:
+[Troughs of this type](https://missionpinball.org/mechs/troughs/#option-3-older-style-with-two-coils-and-switches-for-each-ball) can be found in older machines from the 80s and early 90s. They consist of two parts:
 
 1. A drain, the ball rolls into when leaving the playfield
 2. A ball stack, where the out of play balls are held.
@@ -85,7 +85,7 @@ In terms of switches, they still include a switch per ball in the stack, but als
 
 <img src="trough-2c1s.gif" width="348" class="img-responsive pull-right" style="margin-left: 15px">
 
-A trough can also have [only one switch](https://docs.missionpinball.org/en/latest/mechs/troughs/#option-4-older-style-with-two-coils-and-only-one-ball-switch) in the ball stack.
+A trough can also have [only one switch](https://missionpinball.org/mechs/troughs/#option-4-older-style-with-two-coils-and-only-one-ball-switch) in the ball stack.
 
 Instead of a *Switch Count* like the previous types, you select a *Switch Position*, which is the position in the ball stack at which the ball farthest away from the eject coil sits.
 
@@ -95,7 +95,7 @@ Instead of a *Switch Count* like the previous types, you select a *Switch Positi
 
 <img src="trough-single-ball.gif" width="348" class="img-responsive pull-right" style="margin-left: 15px">
 
-A single ball trough may work [with](https://docs.missionpinball.org/en/latest/mechs/troughs/#option-5-classic-single-ball-single-coil) or [without](https://docs.missionpinball.org/en/latest/mechs/troughs/#option-6-classic-single-ball-single-coil-no-shooter-lane) a shooter lane. The principle is simple: After draining, the ball is kept on the drain coil, which ejects the ball either directly into the plunger lane or back onto the playfield.
+A single ball trough may work [with](https://missionpinball.org/mechs/troughs/#option-5-classic-single-ball-single-coil) or [without](https://missionpinball.org/mechs/troughs/#option-6-classic-single-ball-single-coil-no-shooter-lane) a shooter lane. The principle is simple: After draining, the ball is kept on the drain coil, which ejects the ball either directly into the plunger lane or back onto the playfield.
 
 *The animation shows single ball trough that ejects a ball and drains it a few seconds later.*
 

@@ -71,7 +71,7 @@ However, by design, there are two caveats:
 
 
 > [!note]
-> [MPF](xref:mpf_index) has a similar feature called [Hardware Rules](https://docs.missionpinball.org/en/dev/hardware/hw_rules.html#the-solution-hardware-rules). This is the preferred way, because the gamelogic engine explicitly notifies VPE about which wires to add and remove during gameplay.
+> [MPF](xref:mpf_index) has a similar feature called [Hardware Rules](https://missionpinball.org/hardware/hw_rules/#the-solution-hardware-rules). This is the preferred way, because the gamelogic engine explicitly notifies VPE about which wires to add and remove during gameplay.
 >
 > However, other gamelogic engines like PinMAME don't have this feature, that's why VPE comes with the *dynamic wire* feature that guesses when wire is active and when not.
 
