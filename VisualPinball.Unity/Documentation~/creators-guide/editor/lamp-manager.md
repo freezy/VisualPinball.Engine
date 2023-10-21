@@ -20,7 +20,7 @@ To link each of the playfield lamps to the gamelogic engine and configure how th
 
 Physical machines have many different implementations when it comes to lighting. The vast majority of solid state machines from the 1970s until the early 2010s used a **lamp matrix**, where lamps were addressed by row/column, and each individual lamp could only be fully on or off. Historically, incandescent light bulbs were used, which resulted in a brief warm-up period until they reached full brightness (and a cool-down period when turned off). To simulate this, VPE adopted the fade-in and fade-out properties for lights from Visual Pinball.
 
-Later machines used single colored **LEDs** that were each directly connected to a controller board (see also: [Lights vs LEDs](https://docs.missionpinball.org/en/latest/mechs/lights/lights_versus_leds.html)). Unlike matrix lamps, the intensity of LEDs could be finely controlled by the game software.
+Later machines used single colored **LEDs** that were each directly connected to a controller board (see also: [Lights vs LEDs](https://missionpinball.org/mechs/lights/lights_versus_leds/)). Unlike matrix lamps, the intensity of LEDs could be finely controlled by the game software.
 
 More recently, games started using **RGB-LEDs** that can change color as well as brightness during gameplay. In VPE, these can be handled in two different ways:
 - As three single connections from the gamelogic engine, one for each color channel (this is what PinMAME provides, for example.)
