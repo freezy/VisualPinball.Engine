@@ -1,9 +1,4 @@
-html,
-body {
-	font-family: Inter, 'Segoe UI', Tahoma, Helvetica, sans-serif;
-	font-size: 100%;
-}
-
+/* layout */
 .navbar-github {
 	order: 100;
 	margin-left: 10px;
@@ -12,6 +7,28 @@ body {
 .navbar-github > svg {
 	fill: #ccc;
 }
+
+body > main {
+	padding-top: 0;
+}
+
+article {
+	margin-top: 20px;
+}
+
+main > .toc-offcanvas {
+	background-color: #efefef;
+	padding: 15px;
+	top: calc(35px + 1.6rem) !important;
+}
+
+/* fonts */
+html,
+body {
+	font-family: Inter, 'Segoe UI', Tahoma, Helvetica, sans-serif;
+	font-size: 100%;
+}
+
 
 h1, h2 {
 	font-weight: bold;
