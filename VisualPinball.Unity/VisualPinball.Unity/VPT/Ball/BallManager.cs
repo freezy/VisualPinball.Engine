@@ -45,13 +45,15 @@ namespace VisualPinball.Unity
 			CreateBall(ballCreator, radius, mass, 0);
 		}
 
-		public void CreateBall(IBallCreationPosition ballCreator, float radius, float mass, int kickerId)
+		public void CreateBall(IBallCreationPosition ballCreator, float radius, float mass, int kickerId, GameObject ballPrefab = null)
 		{
 			var localPos = ballCreator.GetBallCreationPosition().ToUnityFloat3();
 			localPos.z += radius;
 
 			var ballId = NumBallsCreated++;
-			var ballPrefab = RenderPipeline.Current.BallConverter.CreateDefaultBall();
+			if (!ballPrefab) {
+				ballPrefab = RenderPipeline.Current.BallConverter.CreateDefaultBall();
+			}
 			var ballGo = Object.Instantiate(ballPrefab, _parent);
 			var ballComp = ballGo.GetComponent<BallComponent>();
 			ballGo.name = $"Ball {ballId}";
