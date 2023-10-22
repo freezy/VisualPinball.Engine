@@ -25,7 +25,7 @@ body[data-layout=landing]>main { /* landing page full width */
 	--bs-body-font-family: var(--bs-font-sans-serif);
 	--bs-link-color-rgb: 214, 99, 22 !important;
 	--bs-link-hover-color-rgb: 183, 74, 0 !important;
-	--bs-code-color: #d6b933;
+	--bs-code-color: rgb(var(--bs-link-color-rgb), 1);
 	--vpe-body-bg-secondary: #f3f3f3;
 	--vpe-link-secondary: #00000080;
 	--vpe-link-secondary-hover: #000000aa;
@@ -70,7 +70,7 @@ a {
 	color: var(--vpe-link-secondary-hover) !important;
 }
 #search-results > .sr-items .sr-item > .item-href { /* search result colors */
-	color: rgba(var(--bs-link-color-rgb), var(--bs-link-opacity, 1));
+	color: rgba(var(--bs-link-color-rgb), 0.6);
 }
 
 /* landing svg art colors */
@@ -115,4 +115,11 @@ table.table.table-bordered > thead > tr > th { /* separate column header */
 table.table.table-bordered > * > tr > *:nth-child(1) { /* separate row header */
 	border-right-width: 3px;
 	font-style: italic;
+}
+
+/* code colors */
+code {
+	background-color: rgb(var(--bs-link-color-rgb), 0.15);
+	padding: 1px 3px;
+	border-radius: 3px;
 }
