@@ -15,7 +15,7 @@ VPE does provide a slingshot component that implements the rubber animation duri
 
 # Setup
 
-<img src="slingshot-inspector.png" width="310" alt="Slingshot Inspector" class="img-responsive pull-right" style="margin-left: 15px"/>
+<img src="slingshot-inspector.png" width="310" alt="Slingshot Inspector" class="img-fluid float-end" style="margin-left: 15px"/>
 
 ### Slingshot Wall
 
@@ -34,7 +34,7 @@ To set the start and end positions of the control points, we reference two rubbe
 
 On physical machines, the rubber is moved by an arm attached to the coil. VPE can simulate the movement of that arm by rotating a primitive across the X-axis. In the *Coil Arm* field, a reference to the primive can be set, and the total angle of rotation under *Arm Angle*.
 
-<img src="slingshot-curve.png" width="310" alt="Slingshot Animation Curve" class="img-responsive pull-right" style="margin-left: 15px"/>
+<img src="slingshot-curve.png" width="310" alt="Slingshot Animation Curve" class="img-fluid float-end" style="margin-left: 15px"/>
 
 ### Animation
 

@@ -14,7 +14,7 @@ In this case, we'd like to keep PinMAME as the driving GLE, but add a visual scr
 
 ## Setup
 
-<img src="bridge-component.png" width="248" alt="Visual Scripting Bridge" class="img-responsive pull-right" style="margin-left: 15px"/>
+<img src="bridge-component.png" width="248" alt="Visual Scripting Bridge" class="img-fluid float-end" style="margin-left: 15px"/>
 
 In order to give VPE's visual scripting nodes access to your game logic engine, we provide what we call a *Visual Scripting Bridge*. It's a component that you'll need to add to your table's game object, along with your original gamelogic engine. You can do that by selecting the game object, clicking *Add Component* in the inspector, and choosing *Visual Pinball -> Gamelogic Engine -> Visual Scripting Game Logic*.
 

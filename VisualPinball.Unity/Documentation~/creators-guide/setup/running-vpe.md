@@ -19,7 +19,7 @@ Now that we have the camera of the scene view somewhat aligned, we still can't s
 
 ![Imported blank table](unity-imported-table-ugly-gizmos.png)
 
-<img src="unity-gizmo-size.png" width="350" alt="Gizmo Size" class="img-responsive pull-right" style="margin-left: 15px"/>
+<img src="unity-gizmo-size.png" width="350" alt="Gizmo Size" class="img-fluid float-end" style="margin-left: 15px"/>
 
 These orange artifacts are what Unity calls [Gizmo Icons](https://docs.unity3d.com/Manual/GizmosMenu.html). They are enabled by default, and since VPE uses icons for its playfield elements, they are all over the place. Unity's default gizmo size is adapted for rather large scenes and we're dealing with a pinball table, let's make them smaller by clicking on the gizmo icon in the *Scene* view, and pull the size *3D Icons* slider down until you're happy. You can additionally hide the VPE icons by clicking on *Visual Pinball -> Editor -> Disable Gizmo Icons*. 
 

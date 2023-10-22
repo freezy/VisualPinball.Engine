@@ -13,7 +13,7 @@ The camera controller is setup to orbit around a focal point. While doing this i
 
 ## Usage
 
-<img src="camera-settings.png" width="364" class="img-responsive pull-right" style="margin-left: 15px">
+<img src="camera-settings.png" width="364" class="img-fluid float-end" style="margin-left: 15px">
 
 To use the camera controller, select the `Camera` scene object, which is at the very top of the hierarchy. In the inspector you will find a few sliders:
 

@@ -6,7 +6,7 @@ description: This component makes your gate toggelable by a coil. It works by li
 
 # Lifting Gates
 
-<div class="img-responsive pull-right" style="margin-left: 15px">
+<div class="img-fluid float-end" style="margin-left: 15px">
 	<img src="lifting-gate.jpg" width="300" >
 	<br>
 	<small><i>Photo © 2022 by bord</i></small>
@@ -18,7 +18,7 @@ VPE provides a component that you can add to your existing gate. By doing that, 
 
 ## Setup
 
-<img src="lifting-gate-inspector.png" width="322" class="img-responsive pull-right" style="margin-left: 15px">
+<img src="lifting-gate-inspector.png" width="322" class="img-fluid float-end" style="margin-left: 15px">
 
 In order to add the lifting gate feature to a gate, select the game object of the gate and click on *Add Component* in the inspector. Select it by searching or navigating to *Visual Pinball -> Mechs -> Gate Lifter*. 
 

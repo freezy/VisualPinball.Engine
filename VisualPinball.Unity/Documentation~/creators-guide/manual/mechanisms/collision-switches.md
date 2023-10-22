@@ -14,7 +14,7 @@ To create a Collision Switch:
 
 - Add the collision switch directly to a hittable game object. Select the game object you want to add it to, click on *Add Component* in the inspector and select *Visual Pinball -> Mechs -> Collision Switch*. 
 
-<img src="collision-switch-inspector.png" width="323" class="img-responsive pull-right" style="margin-left: 15px">
+<img src="collision-switch-inspector.png" width="323" class="img-fluid float-end" style="margin-left: 15px">
 
 To associate the collision switch with a game logic engine switch, use the [Switch Manager](xref:switch_manager) and select the switch in the *Element* column:
 

@@ -10,7 +10,7 @@ In this first step, we'll go through how to create the various textures that we 
 
 ## Texture Layout
 
-<img src="texture-layout.png" width="280" class="img-responsive pull-right" style="margin-left: 15px">
+<img src="texture-layout.png" width="280" class="img-fluid float-end" style="margin-left: 15px">
 
 The geometry of the playfield has three different areas:
 

@@ -12,7 +12,7 @@ Sometimes during gameplay, you might need to rotate objects in order to recreate
 
 ## Setup
 
-<img src="rotator-inspector.png" width="369" alt="Rotator Inspector" class="img-responsive pull-right" style="margin-left: 15px"/>
+<img src="rotator-inspector.png" width="369" alt="Rotator Inspector" class="img-fluid float-end" style="margin-left: 15px"/>
 
 In order to create a rotator, add the **Rotator** component to a game object by clicking *Add Component* in the inspector, then choosing *Visual Pinball -> Game Item -> Rotator*. You can use any game object, although we recommend adding it to the target that you want to rotate.
 

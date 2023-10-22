@@ -34,7 +34,7 @@ This page is about approach #2 and describes how you can configure and use PinMA
 
 ## Setup
 
-<img src="mech-inspector.png" width="359" alt="PinMAME Mech Inspector" class="img-responsive pull-right" style="margin-left: 15px"/>
+<img src="mech-inspector.png" width="359" alt="PinMAME Mech Inspector" class="img-fluid float-end" style="margin-left: 15px"/>
 
 PinMAME can simulate up to five custom mechs. You create one by adding the *PinMAME Mech* component onto a game object. 
 

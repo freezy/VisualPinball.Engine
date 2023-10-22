@@ -11,7 +11,7 @@ description: How to UV-map the texture onto your mesh in Blender
 
  We need three material slots, for the top and bottom faces, as well as for the edges. We'll split the vertices by firstly assigning everything to an "edge" slot, and then re-assigning the top and bottom faces to their own slots.
 
-<img src="blender-material-slots.png" width="235" class="img-responsive pull-right" style="margin-left: 15px">
+<img src="blender-material-slots.png" width="235" class="img-fluid float-end" style="margin-left: 15px">
 
 In object mode, open *Materials* properties and remove the current material slot (hit `-`). Add three new slots (press 3× `+`), and for each slot, create a new material by hitting the *New* button when the slot is selected. Name them "top", "bottom" and "edge" and set their base color to red, green, and blue respectively. Your slots should now look like in the screenshot.
 
@@ -21,7 +21,7 @@ Then, press `7` on the numpad to switch to top view, zoom in a bit so you can cl
 
 ![Triangle selected](blender-triangle-selected-2.png)
 
-<img src="blender-select-coplanar.png" width="280" class="img-responsive pull-right" style="margin-left: 15px">
+<img src="blender-select-coplanar.png" width="280" class="img-fluid float-end" style="margin-left: 15px">
 
 Click on *Select -> Select Similar -> Coplanar*, which should result in all top faces of all plastics being selected (but *not* the bottoms ones). However, you might get the bottom faces selected too, because there's a threshold that might be too large. You can check it by rotating the camera and verify that the bottom faces are not selected. If they are, expand the parameters and set the threshold to a small enough value. Then, select the "top" material slot and hit *Assign*. The top surfaces should turn red.
 

@@ -20,7 +20,7 @@ It's possible to provide a custom mesh for the flipper by replacing the game obj
 
 ### Physics
 
-<img src="flipper-collider-inspector.png" width="438" alt="Flipper Collider" class="img-responsive pull-right" style="margin-left: 15px"/>
+<img src="flipper-collider-inspector.png" width="438" alt="Flipper Collider" class="img-fluid float-end" style="margin-left: 15px"/>
 
 Adding the *Flipper Collider* component to the flipper makes it part of the physics simulation. Here you can tweak the various parameters. Most of the following is taken directly from [Mukuste's Wiki](https://github.com/c-f-h/vpinball/wiki/VP10-Physics#flipper-parameters).
 
