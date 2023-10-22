@@ -6,7 +6,7 @@ description: How to use EM-style reels to display the score.
 
 # Score Reel Displays
 
-<img src="score-reels.jpg" width="350" alt="Score Reels a of a Gottlieb Volley" class="img-responsive pull-right" style="margin-left: 15px"/>
+<img src="score-reels.jpg" width="350" alt="Score Reels a of a Gottlieb Volley" class="img-fluid float-end" style="margin-left: 15px"/>
 
 In electro-mechanical games, score reels are very common for displaying the player score. Typically, four to six units are mounted behind the backglass. Each reel is driven by a coil that advances the reel by one position when pulsed. The coils are driven by the playfield elements in the game, often indirectly through a score motor for multi-point scoring.
 
@@ -39,7 +39,7 @@ In your scene, drop in your reel model and add the *Score Reel* component (not t
 
 #### Score Reel
 
-<img src="score-reel-inspector.png" width="362" alt="Score Reel Inspector" class="img-responsive pull-right" style="margin-left: 15px"/>
+<img src="score-reel-inspector.png" width="362" alt="Score Reel Inspector" class="img-fluid float-end" style="margin-left: 15px"/>
 
 The *Score Reel* component is quick to set up. There is only one option, which is the *rotation direction*. What the score reel component gets from the display component is "turn to position X", where X is between 0 and 9, and the component's job is to animate the reel to that position.
 
@@ -47,7 +47,7 @@ Internally, it also takes in the rotation speed, and how long it rests at the fi
 
 #### Score Reel Display
 
-<img src="score-reel-display-inspector.png" width="362" alt="Score Reel Display Inspector" class="img-responsive pull-right" style="margin-left: 15px"/>
+<img src="score-reel-display-inspector.png" width="362" alt="Score Reel Display Inspector" class="img-fluid float-end" style="margin-left: 15px"/>
 
 This is the component on the parent game object that receives score numbers from the game and tells the individual reels to which position they need to turn to. 
 
@@ -62,7 +62,7 @@ This is the component on the parent game object that receives score numbers from
 
 ### Gamelogic Engine
 
-<img src="score-reel-uvs-display.png" width="362" alt="Score Reel Display Inspector" class="img-responsive pull-right" style="margin-left: 15px"/>
+<img src="score-reel-uvs-display.png" width="362" alt="Score Reel Display Inspector" class="img-fluid float-end" style="margin-left: 15px"/>
 
 Score reels are primarily used in EMs, so they are typically driven by [Visual Scripting](xref:uvs_index). As with every display, the first step is to define the display in the GLE component.
 

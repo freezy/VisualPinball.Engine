@@ -37,7 +37,7 @@ To setup a score motor, select any game object, click on *Add Component* in the 
 
 Next, configure the score motor. The inspector shows the following options:
 
-<img src="score-motor-inspector.png" width="363" class="img-responsive pull-right" style="margin-left: 15px">
+<img src="score-motor-inspector.png" width="363" class="img-fluid float-end" style="margin-left: 15px">
 
 - **Steps** defines how many steps the score motor pulses for one turn.
 - **Duration** defines the length of time it takes the score motor to completely cycle.
@@ -47,7 +47,7 @@ Next, configure the score motor. The inspector shows the following options:
 > [!NOTE]
 > The minimum amount of `Steps` for a score motor is `5`. `Increase by 5` will not be shown under `Reel timing by increase` if `Steps` is set to 5, as all actions would be `Increase`.  
 
-<img src="score-motor-gottlieb.png" width="335" class="img-responsive pull-right" style="margin-left: 15px">
+<img src="score-motor-gottlieb.png" width="335" class="img-fluid float-end" style="margin-left: 15px">
 
 By default, the score motor is configured to:
 

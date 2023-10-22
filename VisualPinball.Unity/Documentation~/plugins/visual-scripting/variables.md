@@ -32,7 +32,7 @@ If you're testing gameplay in the editor, the current values of both player and 
 
 ### Setup
 
-<img src="variables-gle-inspector.png" width="407" alt="Variable Definitions" class="img-responsive pull-right" style="margin-left: 15px"/>
+<img src="variables-gle-inspector.png" width="407" alt="Variable Definitions" class="img-fluid float-end" style="margin-left: 15px"/>
 
 In the hierarchy, select the GameObject where you added the visual scripting GLE (usually the root node of the table). In there, you'll find two sections, *Player Variables* and *Table Variables*. 
 

@@ -15,7 +15,7 @@ First, let's bring our files into the Unity project. There are four files that g
 
 While the import options for the FBX file are fine, we need to adjust them for the textures.
 
-<img src="unity-maps.png" width="360" class="img-responsive pull-right" style="margin-left: 15px">
+<img src="unity-maps.png" width="360" class="img-fluid float-end" style="margin-left: 15px">
 
 Select the base texture and change the following options in the *Inspector*:
 

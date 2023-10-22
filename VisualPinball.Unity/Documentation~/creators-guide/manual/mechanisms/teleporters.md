@@ -15,7 +15,7 @@ Sometimes it's easier to teleport the ball from one place to another instead of 
 ## Setup
 
 
-<img src="teleporter-inspector.png" width="371" alt="Teleporter Inspector" class="img-responsive pull-right" style="margin-left: 15px"/>
+<img src="teleporter-inspector.png" width="371" alt="Teleporter Inspector" class="img-fluid float-end" style="margin-left: 15px"/>
 
 In order to create a new teleporter, select the GameObject you want to add it to, click on *Add Component* and select *Visual Pinball -> Game Item -> Teleporter*. You can choose any GameObject, although we recommend putting it on same GameObject as the source kicker.
 

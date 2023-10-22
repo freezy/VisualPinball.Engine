@@ -63,7 +63,7 @@ Note the *Links* toolbox that shows the individual plastic files. Also note the 
 
 ## Step 3: Export Texture and Outlines
 
-<img src="illustrator-export-texture.png" width="350" class="img-responsive pull-right" style="margin-left: 15px">
+<img src="illustrator-export-texture.png" width="350" class="img-fluid float-end" style="margin-left: 15px">
 
 We'll first export the texture. In Illustrator, click on *File -> Export -> Export As...*, and make sure *Use Artboards* is checked. As type, select *PNG*. Then, enter `Plastics.png` as file name and click on *Export*, which will result in the dialog seen in the screenshot.
 
@@ -87,7 +87,7 @@ Your document should now look like this:
 
 Don't worry about the color, it just needs to be filled in any color. I'm using magenta because it gives a good contrast to the rest of the artwork. 
 
-<img src="illustrator-export-svg.png" width="470" class="img-responsive pull-right" style="margin-left: 15px">
+<img src="illustrator-export-svg.png" width="470" class="img-fluid float-end" style="margin-left: 15px">
 
 Click on *File -> Save a Copy...*, enter `Plastics.svg` as file name, save as type *SVG* and make sure *Use Artboards* is unchecked this time. Click on *Save*. In the options panel, click on *More Options* and make sure all the options are disabled as shown in the screenshot.
 

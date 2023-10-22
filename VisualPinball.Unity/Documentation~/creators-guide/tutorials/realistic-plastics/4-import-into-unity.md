@@ -23,7 +23,7 @@ We recommend unpacking the prefab. Unpacking will still reference the meshes of 
 
 First, let's configure how the texture is imported. In the *Project* window, navigate to `Assets/<Table Name>/Textures` where you saved `Plastics.png`, and select it. In the *Inspector* window, check the option *Alpha Is Transparent*. Depending on how large you've exported it, you might need to update *Max Size* as well, in our case we'll use 4096 × 4096. When you're done, hit *Apply* at the bottom.
 
-<img src="unity-decal-material-preview.png" width="350" class="img-responsive pull-right" style="margin-left: 15px">
+<img src="unity-decal-material-preview.png" width="350" class="img-fluid float-end" style="margin-left: 15px">
 
 Next, we'll create a material of our bottom surface. In the *Project* window, navigate to `Packages/Visual Pinball Engine (HDRP)/Assets/Art/Materials/Default/Plastic`, select `Plastics Decal`, hit `Ctrl`+`C`. Navigate to your project's `Assets/<Table Name>/Materials` folder, and press `Ctrl`+`V`.
 

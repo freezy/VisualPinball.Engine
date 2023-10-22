@@ -16,7 +16,7 @@ Once you have your artwork secured save this as a PNG file. We'll name it `Backg
 
 ## Create the Thickness Mask
 
-<img src="photo-backside.jpg" width="300" class="img-responsive pull-right" style="margin-left: 15px">
+<img src="photo-backside.jpg" width="300" class="img-fluid float-end" style="margin-left: 15px">
 
 To block the passage of light through the backglass we need to make a thickness map layer. This layer consists of pure white for the areas that are opaque and pure black for the areas that are transparent. If you have physical access to the backglass then you can scan the backside to get this mask. Otherwise, you'll have to trace what's visible on the front, and try to reconstruct elements that aren't. 
 
