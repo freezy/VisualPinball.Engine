@@ -324,7 +324,7 @@ namespace VisualPinball.Unity
 			// register at player
 			GetComponentInParent<Player>().RegisterKicker(this);
 			if (GetComponent<KickerColliderComponent>()) {
-				GetComponentInParent<PhysicsEngine>().Register(this);
+				RegisterPhysics();
 			}
 		}
 

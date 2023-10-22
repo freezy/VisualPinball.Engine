@@ -90,7 +90,7 @@ namespace VisualPinball.Unity
 		{
 			// register at player
 			GetComponentInParent<Player>().RegisterRubber(this);
-			GetComponentInParent<PhysicsEngine>().Register(this);
+			RegisterPhysics();
 		}
 
 		#endregion

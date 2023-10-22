@@ -480,7 +480,7 @@ namespace VisualPinball.Unity
 		{
 			_originalRotateZ = _startAngle;
 			GetComponentInParent<Player>().RegisterFlipper(this);
-			GetComponentInParent<PhysicsEngine>().Register(this);
+			RegisterPhysics();
 		}
 
 		private void Start()

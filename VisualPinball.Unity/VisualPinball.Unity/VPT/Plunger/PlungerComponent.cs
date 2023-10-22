@@ -79,7 +79,7 @@ namespace VisualPinball.Unity
 			// register at player
 			GetComponentInParent<Player>().RegisterPlunger(this, analogPlungerAction);
 			if (GetComponent<PlungerColliderComponent>()) {
-				GetComponentInParent<PhysicsEngine>().Register(this);
+				RegisterPhysics();
 			}
 		}
 

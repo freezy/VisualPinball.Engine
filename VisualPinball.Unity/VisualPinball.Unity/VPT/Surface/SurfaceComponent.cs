@@ -71,7 +71,7 @@ namespace VisualPinball.Unity
 			// register at player
 			GetComponentInParent<Player>().RegisterSurface(this);
 			if (GetComponentInChildren<SurfaceColliderComponent>()) {
-				GetComponentInParent<PhysicsEngine>().Register(this);
+				RegisterPhysics();
 			}
 		}
 
