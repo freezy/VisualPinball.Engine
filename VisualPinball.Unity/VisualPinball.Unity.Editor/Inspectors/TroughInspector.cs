@@ -47,6 +47,7 @@ namespace VisualPinball.Unity.Editor
 		private SerializedProperty _playfieldEntrySwitchProperty;
 		private SerializedProperty _playfieldExitKickerProperty;
 		private SerializedProperty _ballCountProperty;
+		private SerializedProperty _ballProperty;
 		private SerializedProperty _switchCountProperty;
 		private SerializedProperty _jamSwitchProperty;
 		private SerializedProperty _rollTimeProperty;
@@ -60,6 +61,7 @@ namespace VisualPinball.Unity.Editor
 			_typeProperty = serializedObject.FindProperty(nameof(TroughComponent.Type));
 			_playfieldEntrySwitchProperty = serializedObject.FindProperty(nameof(TroughComponent._playfieldEntrySwitch));
 			_playfieldExitKickerProperty = serializedObject.FindProperty(nameof(TroughComponent.PlayfieldExitKicker));
+			_ballProperty = serializedObject.FindProperty(nameof(TroughComponent.Ball));
 			_ballCountProperty = serializedObject.FindProperty(nameof(TroughComponent.BallCount));
 			_switchCountProperty = serializedObject.FindProperty(nameof(TroughComponent.SwitchCount));
 			_jamSwitchProperty = serializedObject.FindProperty(nameof(TroughComponent.JamSwitch));
@@ -77,6 +79,11 @@ namespace VisualPinball.Unity.Editor
 			serializedObject.Update();
 
 			DropDownProperty("Type", _typeProperty, TypeLabels, TypeValues);
+
+			PropertyField(_ballProperty, "Ball Prefab");
+			if (MainComponent.Ball && !MainComponent.Ball.GetComponent<BallComponent>()) {
+				EditorGUILayout.HelpBox("Ball prefab must contain a ball component.", MessageType.Error);
+			}
 
 			if (MainComponent.Type != TroughType.ClassicSingleBall) {
 				PropertyField(_ballCountProperty);

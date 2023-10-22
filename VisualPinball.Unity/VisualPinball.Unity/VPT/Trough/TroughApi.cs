@@ -483,7 +483,7 @@ namespace VisualPinball.Unity
 					return false;
 				}
 				Logger.Info("Trough: Spawning new ball.");
-				_ejectKicker.CreateBall();
+				_ejectKicker.CreateBall(MainComponent.Ball);
 				_ejectCoil.OnCoil(true);
 
 				// open the switch of the ejected ball immediately

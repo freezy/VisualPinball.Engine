@@ -70,9 +70,9 @@ namespace VisualPinball.Unity
 		{
 		}
 
-		public void CreateBall()
+		public void CreateBall(GameObject ballPrefab = null)
 		{
-			BallManager.CreateBall(MainComponent, 25f, 1f, ItemId);
+			BallManager.CreateBall(MainComponent, 25f, 1f, ItemId, ballPrefab);
 		}
 
 		public void CreateSizedBallWithMass(float radius, float mass)
