@@ -73,6 +73,10 @@ a {
 	color: rgba(var(--bs-link-color-rgb), 0.6);
 }
 
+[data-bs-theme=light] i.bi.bi-search { /* search icon color */
+	color: white;
+}
+
 /* landing svg art colors */
 svg .cls-1 {  /* visual pinball engine */
 	fill: var(--bs-body-color);
