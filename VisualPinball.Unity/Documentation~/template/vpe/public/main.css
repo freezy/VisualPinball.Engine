@@ -1,5 +1,5 @@
 @import url("fonts.css");
-@import url("zephyr.css");
+@import url("https://github.com/thomaspark/bootswatch/raw/v5/dist/zephyr/bootstrap.min.css");
 
 /* layout */
 .navbar-github { /* align github link to the right */
@@ -23,14 +23,14 @@ body[data-layout=landing]>main { /* landing page full width */
 [data-bs-theme=light] {
 	--bs-font-sans-serif: Inter, 'Segoe UI', Tahoma, Helvetica, sans-serif;
 	--bs-body-font-family: var(--bs-font-sans-serif);
-	--bs-link-color-rgb: 214, 99, 22;
-	--bs-link-hover-color-rgb: 183, 74, 0;
+	--bs-link-color-rgb: 214, 99, 22 !important;
+	--bs-link-hover-color-rgb: 183, 74, 0 !important;
 	--vpe-body-bg-secondary: #f3f3f3;
 	--vpe-link-secondary: #00000080;
 	--vpe-link-secondary-hover: #000000aa;
 }
 [data-bs-theme=dark] {
-	--bs-link-color-rgb: 236, 132, 61;
+	--bs-link-color-rgb: 236, 132, 61 !important;
 	--vpe-body-bg-secondary: #292e33;
 	--vpe-link-secondary: #ffffff80;
 	--vpe-link-secondary-hover: #ffffffaa;
@@ -40,7 +40,15 @@ body[data-layout=landing]>main { /* landing page full width */
 	background-color: var(--vpe-body-bg-secondary) !important;
 }
 
-/* don't underline links */
+[data-bs-theme=light] header .dropdown a:hover,
+[data-bs-theme=light] header .dropdown a:active,
+[data-bs-theme=light] header .dropdown a:focus-visible,
+[data-bs-theme=light] header .dropdown a:focus,
+[data-bs-theme=light] header .btn.show {
+	color: white !important;
+}
+
+	/* don't underline links */
 a {
 	text-decoration: none !important;
 }
@@ -76,7 +84,7 @@ svg .cls-2, .cls-3, .cls-4 { /* outer */
 svg .cls-3 { /* logo */
 	fill: var(--bs-body-color);
 }
-svg .cls-4 {
+svg .cls-4 { /* inner */
 	fill: var(--vpe-body-bg-secondary);
 }
 
