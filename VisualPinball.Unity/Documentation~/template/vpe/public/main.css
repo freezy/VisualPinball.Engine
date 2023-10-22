@@ -1,5 +1,5 @@
 @import url("fonts.css");
-@import url("https://github.com/thomaspark/bootswatch/raw/v5/dist/zephyr/bootstrap.min.css");
+@import url("https://raw.githubusercontent.com/thomaspark/bootswatch/v5/dist/zephyr/bootstrap.min.css");
 
 /* layout */
 .navbar-github { /* align github link to the right */
@@ -122,4 +122,9 @@ code {
 	background-color: rgb(var(--bs-link-color-rgb), 0.15);
 	padding: 1px 3px;
 	border-radius: 3px;
+}
+
+/* image hover cursor */
+img:not(#logo):hover {
+	cursor: zoom-in;
 }
