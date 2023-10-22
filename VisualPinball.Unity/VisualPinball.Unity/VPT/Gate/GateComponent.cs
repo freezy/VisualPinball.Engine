@@ -112,7 +112,7 @@ namespace VisualPinball.Unity
 			// register at player
 			GetComponentInParent<Player>().RegisterGate(this);
 			if (GetComponent<GateColliderComponent>()) {
-				GetComponentInParent<PhysicsEngine>().Register(this);
+				RegisterPhysics();
 			}
 		}
 

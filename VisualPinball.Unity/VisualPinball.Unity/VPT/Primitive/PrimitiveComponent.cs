@@ -247,7 +247,7 @@ namespace VisualPinball.Unity
 		{
 			_originalRotateZ = ObjectRotation.z;
 			GetComponentInParent<Player>().RegisterPrimitive(this);
-			GetComponentInParent<PhysicsEngine>().Register(this);
+			RegisterPhysics();
 		}
 
 		#endregion

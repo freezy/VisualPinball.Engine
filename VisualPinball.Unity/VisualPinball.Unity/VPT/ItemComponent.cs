@@ -16,7 +16,9 @@
 
 // ReSharper disable InconsistentNaming
 
+using NLog;
 using UnityEngine;
+using Logger = NLog.Logger;
 
 namespace VisualPinball.Unity
 {
@@ -26,6 +28,18 @@ namespace VisualPinball.Unity
 	public abstract class ItemComponent : MonoBehaviour
 	{
 		public abstract string ItemName { get; }
+
+		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
+
+		protected void RegisterPhysics()
+		{
+			var physicsEngine = GetComponentInParent<PhysicsEngine>();
+			if (physicsEngine) {
+				physicsEngine.Register(this);
+			} else {
+				Logger.Error("No physics engine found in parent hierarchy.");
+			}
+		}
 
 		protected static void DrawArrow(Vector3 pos, Vector3 direction, float arrowHeadLength = 0.025f, float arrowHeadAngle = 20.0f)
 		{

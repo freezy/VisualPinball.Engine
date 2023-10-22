@@ -115,7 +115,7 @@ namespace VisualPinball.Unity
 			// register at player
 			GetComponentInParent<Player>().RegisterHitTarget(this);
 			if (GetComponent<HitTargetColliderComponent>() && GetComponentInChildren<HitTargetAnimationComponent>()) {
-				GetComponentInParent<PhysicsEngine>().Register(this);
+				RegisterPhysics();
 			}
 		}
 

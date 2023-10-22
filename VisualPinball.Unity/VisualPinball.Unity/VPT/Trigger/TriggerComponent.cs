@@ -89,7 +89,7 @@ namespace VisualPinball.Unity
 			GetComponentInParent<Player>().RegisterTrigger(this);
 
 			if (GetComponentInChildren<TriggerColliderComponent>()) {
-				GetComponentInParent<PhysicsEngine>().Register(this);
+				RegisterPhysics();
 			}
 		}
 

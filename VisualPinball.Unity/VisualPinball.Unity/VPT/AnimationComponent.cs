@@ -29,7 +29,7 @@ namespace VisualPinball.Unity
 
 		private void Awake()
 		{
-			GetComponentInParent<PhysicsEngine>().Register(this);
+			RegisterPhysics();
 		}
 
 		private Entity MainEntity {
