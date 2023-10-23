@@ -51,11 +51,6 @@ namespace VisualPinball.Unity
 		ColliderInfo GetColliderInfo();
 
 		/// <summary>
-		/// If false, this will be included in the quad tree but marked as inactive.
-		/// </summary>
-		bool IsColliderEnabled { get; }
-
-		/// <summary>
 		/// If false, this won't be included in the quad tree.
 		/// </summary>
 		bool IsColliderAvailable { get; }

@@ -37,7 +37,6 @@ namespace VisualPinball.Unity
 		#region Collider
 
 		bool IApiColliderGenerator.IsColliderAvailable => ColliderComponent;
-		bool IApiColliderGenerator.IsColliderEnabled => ColliderComponent && ColliderComponent.isActiveAndEnabled;
 
 		protected virtual bool FireHitEvents => false;
 		protected virtual float HitThreshold => 0;
