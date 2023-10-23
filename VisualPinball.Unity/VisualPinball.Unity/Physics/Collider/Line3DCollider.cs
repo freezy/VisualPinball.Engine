@@ -107,11 +107,6 @@ namespace VisualPinball.Unity
 
 		private static float HitTest(ref CollisionEventData collEvent, ref Line3DCollider coll, in BallState ball, float dTime)
 		{
-			// todo
-			// if (!IsEnabled) {
-			// 	return -1.0f;
-			// }
-
 			var hitTestBall = ball;
 
 			// transform ball to cylinder coordinate system
@@ -132,7 +127,7 @@ namespace VisualPinball.Unity
 		#endregion
 
 		public void Collide(ref BallState ball, ref NativeQueue<EventData>.ParallelWriter hitEvents,
-			in int ballId, in CollisionEventData collEvent, ref Random random)
+			in CollisionEventData collEvent, ref Random random)
 		{
 			var dot = math.dot(collEvent.HitNormal, ball.Velocity);
 			BallCollider.Collide3DWall(ref ball, in _header.Material, in collEvent, in collEvent.HitNormal, ref random);

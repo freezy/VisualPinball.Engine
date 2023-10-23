@@ -57,14 +57,6 @@ namespace VisualPinball.Unity
 			PerfMarkerNarrowPhase.End();
 		}
 
-		private static float HitTest(ref BallState ball, in Collider collider, ref NativeList<ContactBufferElement> contacts)
-		{
-			ref var collEvent = ref ball.CollisionEvent;
-			var hitTime = Collider.HitTest(in collider, ref collEvent, in ball, ball.CollisionEvent.HitTime);
-			ball.CollisionEvent = collEvent;
-			return hitTime;
-		}
-
 		private static void SaveCollisions(ref BallState ball, ref CollisionEventData newCollEvent,
 			ref NativeList<ContactBufferElement> contacts, int colliderId, float newTime)
 		{

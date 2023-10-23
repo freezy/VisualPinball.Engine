@@ -68,6 +68,11 @@ namespace VisualPinball.Unity
 			PlaneColliders.Dispose();
 		}
 
+		public int Count => CircleColliders.Length + FlipperColliders.Length + GateColliders.Length
+			+ Line3DColliders.Length + LineSlingshotColliders.Length + LineColliders.Length + LineZColliders.Length
+			+ PlungerColliders.Length + PointColliders.Length + SpinnerColliders.Length + TriangleColliders.Length
+			+ PlaneColliders.Length;
+
 		internal List<ICollider> All {
 			get {
 				var list = new List<ICollider>();

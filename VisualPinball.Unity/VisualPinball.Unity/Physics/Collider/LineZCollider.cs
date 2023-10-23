@@ -72,11 +72,6 @@ namespace VisualPinball.Unity
 
 		public static float HitTest(ref CollisionEventData collEvent, in LineZCollider coll, in BallState ball, float dTime)
 		{
-			// todo
-			// if (!IsEnabled) {
-			// 	return -1.0f;
-			// }
-
 			var bp2d = new float2(ball.Position.x, ball.Position.y);
 			var dist = bp2d - coll.XY;                                       // relative ball position
 			var dv = new float2(ball.Velocity.x, ball.Velocity.y);
