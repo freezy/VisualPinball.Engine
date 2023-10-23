@@ -101,7 +101,9 @@ namespace VisualPinball.Unity.Editor
 			var lamp = player.Lamp(data.Device);
 			lamp?.OnChange(pressedDown);
 			if (player.LampStatuses.ContainsKey(data.Id)) {
-				player.LampStatuses[data.Id].IsOn = pressedDown;
+				var status = player.LampStatuses[data.Id];
+				status.IsOn = pressedDown;
+				player.LampStatuses[data.Id] = status;
 			}
 		}
 
