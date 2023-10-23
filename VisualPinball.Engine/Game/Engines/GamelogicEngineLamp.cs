@@ -78,12 +78,12 @@ namespace VisualPinball.Engine.Game.Engines
 
 		public GamelogicEngineLamp(string id)
 		{
-			Id = id;
+			_id = id;
 		}
 
 		public GamelogicEngineLamp(int id)
 		{
-			Id = id.ToString();
+			_id = id.ToString();
 		}
 	}
 
@@ -108,7 +108,7 @@ namespace VisualPinball.Engine.Game.Engines
 		Blinking = 2,
 	}
 
-	public class LampState
+	public struct LampState
 	{
 		public LampStatus Status {
 			get => _status;
@@ -133,11 +133,12 @@ namespace VisualPinball.Engine.Game.Engines
 		public Color Color;
 
 		private LampStatus _status;
-		private LampStatus _lastOnStatus = LampStatus.On;
+		private LampStatus _lastOnStatus;
 
 		public LampState(LampStatus status, Color color)
 		{
-			Status = status;
+			_lastOnStatus = status != LampStatus.Off ? status : LampStatus.On;
+			_status = status;
 			Color = color;
 		}
 
@@ -151,12 +152,14 @@ namespace VisualPinball.Engine.Game.Engines
 				_status = LampStatus.On;
 				Color = new Color(255, 255, 255, (int)(intensity * 255));
 			}
+			_lastOnStatus = LampStatus.On;
 		}
 
 		public LampState(Color color)
 		{
 			_status = color.A > 0 ? LampStatus.On : LampStatus.Off;
 			Color = color;
+			_lastOnStatus = LampStatus.On;
 		}
 
 		public void SetChannel(ColorChannel channel, float value)

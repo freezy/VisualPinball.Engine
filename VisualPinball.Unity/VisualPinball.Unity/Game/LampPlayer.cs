@@ -98,38 +98,57 @@ namespace VisualPinball.Unity
 
 		private void HandleLampsEvent(object sender, LampsEventArgs lampsEvent)
 		{
+			LampAction action = default;
 			foreach (var lampEvent in lampsEvent.LampsChanged) {
-				Apply(lampEvent.Id, lampEvent.Source, lampEvent.IsCoil, (state, lamp, mapping) => ApplyValue(lampEvent.Id, lampEvent.Value, state, lamp, mapping));
+				if (Apply(lampEvent.Id, lampEvent.Source, lampEvent.IsCoil, ref action)) {
+					ApplyValue(lampEvent.Id, lampEvent.Value, action.State, action.Lamp, action.Mapping);
+				}
 			}
 		}
 
 		private void HandleLampEvent(object sender, LampEventArgs lampEvent)
 		{
-			Apply(lampEvent.Id, lampEvent.Source, lampEvent.IsCoil, (state, lamp, mapping) => ApplyValue(lampEvent.Id, lampEvent.Value, state, lamp, mapping));
+			LampAction action = default;
+			if (Apply(lampEvent.Id, lampEvent.Source, lampEvent.IsCoil, ref action)) {
+				ApplyValue(lampEvent.Id, lampEvent.Value, action.State, action.Lamp, action.Mapping);
+			}
 		}
 
 		public void HandleLampEvent(string id, float value)
 		{
-			Apply(id, LampSource.Lamp, false, (state, lamp, mapping) => ApplyValue(id, value, state, lamp, mapping));
+			LampAction action = default;
+			if (Apply(id, LampSource.Lamp, false, ref action)) {
+				ApplyValue(id, value, action.State, action.Lamp, action.Mapping);
+			}
 		}
 
 		public void HandleLampEvent(string id, LampStatus status)
 		{
-			Apply(id, LampSource.Lamp, false, (state, lamp, _) => ApplyStatus(id, status, state, lamp));
+			LampAction action = default;
+			if (Apply(id, LampSource.Lamp, false, ref action)) {
+				ApplyStatus(id, status, action.State, action.Lamp);
+			}
 		}
 
 		public void HandleLampEvent(string id, Color color)
 		{
-			Apply(id, LampSource.Lamp, false, (state, lamp, _) => ApplyColor(id, color, state, lamp));
+			LampAction action = default;
+			if (Apply(id, LampSource.Lamp, false, ref action)) {
+				ApplyColor(id, color, action.State, action.Lamp);
+			}
 		}
 
 		public void HandleCoilEvent(string id, bool isEnabled)
 		{
-			Apply(id, LampSource.Lamp, true, (state, lamp, _) => ApplyStatus(id, isEnabled ? LampStatus.On : LampStatus.Off, state, lamp));
+			LampAction action = default;
+			if (Apply(id, LampSource.Lamp, true, ref action)) {
+				ApplyStatus(id, isEnabled ? LampStatus.On : LampStatus.Off, action.State, action.Lamp);
+			}
 		}
 
-		private void Apply(string id, LampSource lampSource, bool isCoil, Action<LampState, IApiLamp?, LampMapping?> action)
+		private bool Apply(string id, LampSource lampSource, bool isCoil, ref LampAction action)
 		{
+			var hasChanged = false;
 			if (_lampAssignments.ContainsKey(id)) {
 				foreach (var component in _lampAssignments[id]) {
 					var mapping = _lampMappings[id][component];
@@ -141,20 +160,21 @@ namespace VisualPinball.Unity
 					if (_lamps.ContainsKey(component)) {
 						var lamp = _lamps[component];
 						var state = LampStates[id];
-						action(state, lamp, mapping);
+						action = new LampAction(state, lamp, mapping);
+						hasChanged = true;
 					}
 				}
 
 #if UNITY_EDITOR
 				RefreshUI();
 #endif
+			} else {
+				LampStates.TryAdd(id, LampState.Default);
+				action = new LampAction(LampStates[id]);
+				hasChanged = true;
 			}
-			else {
-				if (!LampStates.ContainsKey(id)) {
-					LampStates[id] = LampState.Default;
-				}
-				action(LampStates[id], null, null);
-			}
+
+			return hasChanged;
 		}
 
 		private void ApplyStatus(string id, LampStatus status, LampState state, IApiLamp? lamp)
@@ -247,14 +267,43 @@ namespace VisualPinball.Unity
 			LampStates[id] = new LampState(lampMapping.Device.LampStatus, lampMapping.Device.LampColor.ToEngineColor());
 		}
 
+		private readonly struct LampAction
+		{
+			public readonly LampState State;
+			public readonly IApiLamp Lamp;
+			public readonly LampMapping Mapping;
+
+			public LampAction(LampState state)
+			{
+				State = state;
+				Lamp = null;
+				Mapping = null;
+			}
+			public LampAction(LampState state, IApiLamp lamp, LampMapping mapping)
+			{
+				State = state;
+				Lamp = lamp;
+				Mapping = mapping;
+			}
+		}
+
 #if UNITY_EDITOR
+
+		private UnityEditor.EditorWindow[] _lampManagerWindows;
+		private bool _lampManagerWindowsInitialized;
+
 		private void RefreshUI()
 		{
 			if (!_player!.UpdateDuringGamplay) {
 				return;
 			}
 
-			foreach (var manager in (UnityEditor.EditorWindow[])Resources.FindObjectsOfTypeAll(Type.GetType("VisualPinball.Unity.Editor.LampManager, VisualPinball.Unity.Editor"))) {
+			if (!_lampManagerWindowsInitialized) {
+				_lampManagerWindows = (UnityEditor.EditorWindow[])Resources.FindObjectsOfTypeAll(Type.GetType("VisualPinball.Unity.Editor.LampManager, VisualPinball.Unity.Editor"));
+				_lampManagerWindowsInitialized = true;
+			}
+
+			foreach (var manager in _lampManagerWindows) {
 				manager.Repaint();
 			}
 		}

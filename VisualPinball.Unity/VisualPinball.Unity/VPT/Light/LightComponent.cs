@@ -156,7 +156,15 @@ namespace VisualPinball.Unity
 
 		#region Runtime
 
+		/// <summary>
+		/// The current light intensity, between 0 and 1.
+		/// </summary>
 		private float _value;
+		private float _newValue;
+		private float _oldValue;
+		private float _newValueAt;
+		private float _oldValueAt;
+
 		private Color _color;
 		private bool _hasLights;
 		private readonly List<(Light, float)> _lights = new();
@@ -165,9 +173,8 @@ namespace VisualPinball.Unity
 
 		public bool Enabled {
 			set {
-				StopAllCoroutines();
-				SetLightIntensity(value ? 1 : 0);
-				SetMaterialIntensity(value ? 1 : 0);
+				SetLightIntensity(value ? _value : 0);
+				SetMaterialIntensity(value ? _value : 0);
 			}
 		}
 
@@ -224,16 +231,37 @@ namespace VisualPinball.Unity
 			_hasLights = _lights.Count > 0 || _materials.Count > 0;
 		}
 
+		private void Update()
+		{
+			if (_value == _newValue) {
+				return;
+			}
+			var durationSeconds = _newValueAt - _oldValueAt;
+			var position = durationSeconds == 0
+				? 1
+				: (Time.fixedTime - _oldValueAt) / durationSeconds;
+			_value = position >= 1  // done?
+				? _newValue
+				: math.lerp(_oldValue, _newValue, position);
+			SetLightIntensity(_value);
+			SetMaterialIntensity(_value);
+		}
+
 		public void FadeTo(float value)
 		{
 			if (!_hasLights) {
 				return;
 			}
 			if (FadeEnabled) {
-				StopAllCoroutines();
-				StartCoroutine(nameof(Fade), value);
+				_oldValue = _value;
+				_oldValueAt = Time.fixedTime;
+				_newValue = value;
+				_newValueAt = Time.fixedTime + (_value < value
+					? FadeSpeedUp * (1 - _value)
+					: FadeSpeedDown * _value);
 
 			} else {
+				_newValue = value;
 				_value = value;
 				SetLightIntensity(value);
 				SetMaterialIntensity(value);
@@ -273,19 +301,19 @@ namespace VisualPinball.Unity
 		private IEnumerator Fade(float value)
 		{
 			var counter = 0f;
-			var duration = _value < value
+			var durationSeconds = _value < value
 				? FadeSpeedUp * (1 - _value)
 				: FadeSpeedDown * _value;
 
-			if (duration == 0) {
+			if (durationSeconds == 0) {
 				_value = value;
 				SetLightIntensity(value);
 				SetMaterialIntensity(value);
 
 			} else {
-				while (counter <= duration) {
+				while (counter <= durationSeconds) {
 					counter += Time.deltaTime;
-					var position = counter / duration;
+					var position = counter / durationSeconds;
 					var newValue = Mathf.Lerp(_value, value, position);
 					yield return SetIntensity(newValue);
 				}
