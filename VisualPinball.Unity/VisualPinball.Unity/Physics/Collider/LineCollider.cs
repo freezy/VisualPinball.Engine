@@ -228,7 +228,7 @@ namespace VisualPinball.Unity
 		#region Collision
 
 		public void Collide(ref BallState ball, ref NativeQueue<EventData>.ParallelWriter hitEvents,
-			in int ballId, in CollisionEventData collEvent, ref Random random)
+			in CollisionEventData collEvent, ref Random random)
 		{
 			var dot = math.dot(collEvent.HitNormal, ball.Velocity);
 			BallCollider.Collide3DWall(ref ball, in _header.Material, in collEvent, in collEvent.HitNormal, ref random);

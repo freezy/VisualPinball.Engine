@@ -59,22 +59,22 @@ namespace VisualPinball.Unity
 
 				case ColliderType.Line:
 					ref var lineCollider = ref state.Colliders.GetLineCollider(colliderId);
-					lineCollider.Collide(ref ball, ref state.EventQueue, ball.Id, in ball.CollisionEvent, ref state.Env.Random);
+					lineCollider.Collide(ref ball, ref state.EventQueue, in ball.CollisionEvent, ref state.Env.Random);
 					break;
 
 				case ColliderType.Triangle:
 					ref var triangleCollider = ref state.Colliders.GetTriangleCollider(colliderId);
-					triangleCollider.Collide(ref ball, ref state.EventQueue, ball.Id, in ball.CollisionEvent, ref state.Env.Random);
+					triangleCollider.Collide(ref ball, ref state.EventQueue, in ball.CollisionEvent, ref state.Env.Random);
 					break;
 
 				case ColliderType.Line3D:
 					ref var line3DCollider = ref state.Colliders.GetLine3DCollider(colliderId);
-					line3DCollider.Collide(ref ball, ref state.EventQueue, ball.Id, in ball.CollisionEvent, ref state.Env.Random);
+					line3DCollider.Collide(ref ball, ref state.EventQueue, in ball.CollisionEvent, ref state.Env.Random);
 					break;
 
 				case ColliderType.Point:
 					ref var pointCollider = ref state.Colliders.GetPointCollider(colliderId);
-					pointCollider.Collide(ref ball, ref state.EventQueue, ball.Id, in ball.CollisionEvent, ref state.Env.Random);
+					pointCollider.Collide(ref ball, ref state.EventQueue, in ball.CollisionEvent, ref state.Env.Random);
 					break;
 
 				case ColliderType.Bumper:
