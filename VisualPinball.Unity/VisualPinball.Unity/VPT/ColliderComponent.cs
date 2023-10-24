@@ -146,9 +146,8 @@ namespace VisualPinball.Unity
 				}
 
 				if (ShowAabbs) {
-					var colliderList = colliders.All;
-					for (var i = 0; i < colliderList.Count; i++) {
-						var col = colliderList[i];
+					for (var i = 0; i < colliders.Count; i++) {
+						var col = colliders[i];
 						DrawAabb(col.Bounds.Aabb, i == SelectedCollider);
 					}
 				}
