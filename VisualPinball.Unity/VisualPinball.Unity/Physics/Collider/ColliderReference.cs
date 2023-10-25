@@ -35,8 +35,7 @@ namespace VisualPinball.Unity
 		internal NativeList<TriangleCollider> TriangleColliders;
 		internal NativeList<PlaneCollider> PlaneColliders;
 
-		private NativeHashMap<int, Lookup> _lookup;
-		private int _currentIndex;
+		public NativeList<ColliderLookup> Lookup;
 
 		public ColliderReference(Allocator allocator)
 		{
@@ -52,8 +51,7 @@ namespace VisualPinball.Unity
 			SpinnerColliders = new NativeList<SpinnerCollider>(allocator);
 			TriangleColliders = new NativeList<TriangleCollider>(allocator);
 			PlaneColliders = new NativeList<PlaneCollider>(allocator);
-			_currentIndex = 0;
-			_lookup = new NativeHashMap<int, Lookup>(8192, allocator);
+			Lookup = new NativeList<ColliderLookup>(allocator);
 		}
 
 		public void Dispose()
@@ -72,17 +70,17 @@ namespace VisualPinball.Unity
 			PlaneColliders.Dispose();
 		}
 
-		public int Count => _lookup.Count;
+		public int Count => Lookup.Length;
 
 		public ICollider this[int i] => LookupCollider(i);
 
 		private ICollider LookupCollider(int i)
 		{
-			if (_lookup.ContainsKey(i)) {
+			if (i < 0 || i >= Lookup.Length) {
 				throw new IndexOutOfRangeException($"Invalid index {i} when looking up collider.");
 			}
 
-			var lookup = _lookup[i];
+			var lookup = Lookup[i];
 			switch (lookup.Type) {
 				case ColliderType.Circle: return CircleColliders.GetElementAsRef(lookup.Index);
 				case ColliderType.Flipper: return FlipperColliders.GetElementAsRef(lookup.Index);
@@ -104,89 +102,88 @@ namespace VisualPinball.Unity
 
 		internal void Add(CircleCollider collider)
 		{
-			_lookup[_currentIndex++] = new Lookup(ColliderType.Circle, CircleColliders.Length);
+			Lookup.Add(new ColliderLookup(ColliderType.Circle, CircleColliders.Length));
 			CircleColliders.Add(collider);
 		}
 
 		internal void Add(FlipperCollider collider)
 		{
-			_lookup[_currentIndex++] = new Lookup(ColliderType.Flipper, FlipperColliders.Length);
+			Lookup.Add(new ColliderLookup(ColliderType.Flipper, FlipperColliders.Length));
 			FlipperColliders.Add(collider);
 		}
 
 		internal void Add(GateCollider collider)
 		{
-			_lookup[_currentIndex++] = new Lookup(ColliderType.Gate, GateColliders.Length);
+			Lookup.Add(new ColliderLookup(ColliderType.Gate, GateColliders.Length));
 			GateColliders.Add(collider);
 		}
 
 		internal void Add(Line3DCollider collider)
 		{
-			_lookup[_currentIndex++] = new Lookup(ColliderType.Line3D, Line3DColliders.Length);
+			Lookup.Add(new ColliderLookup(ColliderType.Line3D, Line3DColliders.Length));
 			Line3DColliders.Add(collider);
 		}
 
 		internal void Add(LineSlingshotCollider collider)
 		{
-			_lookup[_currentIndex++] = new Lookup(ColliderType.LineSlingShot, LineSlingshotColliders.Length);
+			Lookup.Add(new ColliderLookup(ColliderType.LineSlingShot, LineSlingshotColliders.Length));
 			LineSlingshotColliders.Add(collider);
 		}
 
 		internal void Add(LineCollider collider)
 		{
-			_lookup[_currentIndex++] = new Lookup(ColliderType.Line, LineColliders.Length);
+			Lookup.Add(new ColliderLookup(ColliderType.Line, LineColliders.Length));
 			LineColliders.Add(collider);
 		}
 
 		internal void Add(LineZCollider collider)
 		{
-			_lookup[_currentIndex++] = new Lookup(ColliderType.LineZ, LineZColliders.Length);
+			Lookup.Add(new ColliderLookup(ColliderType.LineZ, LineZColliders.Length));
 			LineZColliders.Add(collider);
 		}
 
 		internal void Add(PlungerCollider collider)
 		{
-			_lookup[_currentIndex++] = new Lookup(ColliderType.Plunger, PlungerColliders.Length);
+			Lookup.Add(new ColliderLookup(ColliderType.Plunger, PlungerColliders.Length));
 			PlungerColliders.Add(collider);
 		}
 
 		internal void Add(PointCollider collider)
 		{
-			_lookup[_currentIndex++] = new Lookup(ColliderType.Point, PointColliders.Length);
+			Lookup.Add(new ColliderLookup(ColliderType.Point, PointColliders.Length));
 			PointColliders.Add(collider);
 		}
 
 		internal void Add(SpinnerCollider collider)
 		{
-			_lookup[_currentIndex++] = new Lookup(ColliderType.Spinner, SpinnerColliders.Length);
+			Lookup.Add(new ColliderLookup(ColliderType.Spinner, SpinnerColliders.Length));
 			SpinnerColliders.Add(collider);
 		}
 
 		internal void Add(TriangleCollider collider)
 		{
-			_lookup[_currentIndex++] = new Lookup(ColliderType.Triangle, TriangleColliders.Length);
+			Lookup.Add(new ColliderLookup(ColliderType.Triangle, TriangleColliders.Length));
 			TriangleColliders.Add(collider);
 		}
 
 		internal void Add(PlaneCollider collider)
 		{
-			_lookup[_currentIndex++] = new Lookup(ColliderType.Plane, PlaneColliders.Length);
+			Lookup.Add(new ColliderLookup(ColliderType.Plane, PlaneColliders.Length));
 			PlaneColliders.Add(collider);
 		}
 
 		#endregion
 
-		private readonly struct Lookup
+		public readonly struct ColliderLookup
 		{
 			public readonly ColliderType Type;
 			public readonly int Index;
 
-			public Lookup(ColliderType type, int index)
+			public ColliderLookup(ColliderType type, int index)
 			{
 				Type = type;
 				Index = index;
 			}
 		}
-
 	}
 }
