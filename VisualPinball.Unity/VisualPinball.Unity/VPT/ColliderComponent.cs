@@ -161,14 +161,9 @@ namespace VisualPinball.Unity
 				
 				var playfieldBounds = GetComponentInChildren<PlayfieldComponent>().Bounds;
 				var octree = new NativeOctree<int>(playfieldBounds, 32, 10, Allocator.Persistent);
-				
-				var allocateColliderJob = new ColliderAllocationJob(ref colliders);
-				allocateColliderJob.Run();
-				var colliderBlob = allocateColliderJob.BlobAsset[0];
-				allocateColliderJob.Dispose();
-		
+				var nativeColliders = new NativeColliders(ref colliders, Allocator.TempJob);
 				var populateJob = new PhysicsPopulateJob {
-					Colliders = colliderBlob,
+					Colliders = nativeColliders,
 					Octree = octree, 
 				};
 				populateJob.Run();

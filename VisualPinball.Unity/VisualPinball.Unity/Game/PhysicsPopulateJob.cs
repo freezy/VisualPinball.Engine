@@ -10,13 +10,13 @@ namespace VisualPinball.Unity
 	internal struct PhysicsPopulateJob : IJob
 	{
 		[ReadOnly]
-		public BlobAssetReference<ColliderBlob> Colliders;
+		public NativeColliders Colliders;
 		public NativeOctree<int> Octree;
 
 		public void Execute()
 		{
-			for (var i = 0; i < Colliders.Value.Colliders.Length; i++) {
-				Octree.Insert(Colliders.GetId(i), Colliders.GetAabb(i));
+			for (var i = 0; i < Colliders.Length; i++) {
+				Octree.Insert(i, Colliders.GetAabb(i));
 			}
 		}
 	}

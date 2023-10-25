@@ -34,7 +34,7 @@ namespace VisualPinball.Unity
 		public NativeParallelHashSet<int> OverlappingColliders;
 		public NativeArray<PhysicsEnv> PhysicsEnv;
 		public NativeOctree<int> Octree;
-		public BlobAssetReference<ColliderBlob> Colliders;
+		public NativeColliders Colliders;
 		public InsideOfs InsideOfs;
 		public NativeQueue<EventData>.ParallelWriter Events;
 		public AABB PlayfieldBounds;

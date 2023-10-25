@@ -44,7 +44,7 @@ namespace VisualPinball.Unity
 		[NonSerialized] private AABB _playfieldBounds;
 		[NonSerialized] private InsideOfs _insideOfs;
 		[NonSerialized] private NativeOctree<int> _octree;
-		[NonSerialized] private BlobAssetReference<ColliderBlob> _colliders;
+		[NonSerialized] private NativeColliders _colliders;
 		[NonSerialized] private NativeArray<PhysicsEnv> _physicsEnv = new(1, Allocator.Persistent);
 		[NonSerialized] private NativeQueue<EventData> _eventQueue = new(Allocator.Persistent);
 
@@ -180,7 +180,7 @@ namespace VisualPinball.Unity
 			}
 
 			// allocate colliders
-			_colliders = AllocateColliders(ref colliders);
+			_colliders = new NativeColliders(ref colliders, Allocator.Persistent);
 
 			// create octree
 			var elapsedMs = sw.Elapsed.TotalMilliseconds;
@@ -195,7 +195,7 @@ namespace VisualPinball.Unity
 			};
 			populateJob.Run();
 			_octree = populateJob.Octree;
-			Debug.Log($"Octree of {_colliders.Value.Colliders.Length} constructed (colliders: {elapsedMs}ms, tree: {sw.Elapsed.TotalMilliseconds}ms).");
+			Debug.Log($"Octree of {_colliders.Length} constructed (colliders: {elapsedMs}ms, tree: {sw.Elapsed.TotalMilliseconds}ms).");
 
 			// get balls
 			var balls = GetComponentsInChildren<BallComponent>();
@@ -377,19 +377,6 @@ namespace VisualPinball.Unity
 			_ballStates.Dispose();
 			_colliders.Dispose();
 			_insideOfs.Dispose();
-		}
-
-		#endregion
-
-		#region Helpers
-
-		private static BlobAssetReference<ColliderBlob> AllocateColliders(ref ColliderReference managedColliders)
-		{
-			var allocateColliderJob = new ColliderAllocationJob(ref managedColliders);
-			allocateColliderJob.Run();
-			var colliders = allocateColliderJob.BlobAsset[0];
-			allocateColliderJob.Dispose();
-			return colliders;
 		}
 
 		#endregion
