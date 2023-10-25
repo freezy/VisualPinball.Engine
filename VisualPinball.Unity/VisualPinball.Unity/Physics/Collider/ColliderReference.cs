@@ -102,72 +102,99 @@ namespace VisualPinball.Unity
 
 		internal void Add(CircleCollider collider)
 		{
+			collider.Header.Id = Lookup.Length;
 			Lookup.Add(new ColliderLookup(ColliderType.Circle, CircleColliders.Length));
 			CircleColliders.Add(collider);
 		}
 
 		internal void Add(FlipperCollider collider)
 		{
+			collider.Header.Id = Lookup.Length;
+			var bounds = collider.Bounds;
+			bounds.ColliderId = collider.Header.Id;
+			collider.Bounds = bounds;
 			Lookup.Add(new ColliderLookup(ColliderType.Flipper, FlipperColliders.Length));
 			FlipperColliders.Add(collider);
 		}
 
 		internal void Add(GateCollider collider)
 		{
+			collider.Header.Id = Lookup.Length;
+			var bounds = collider.Bounds;
+			bounds.ColliderId = collider.Header.Id;
+			collider.Bounds = bounds;
 			Lookup.Add(new ColliderLookup(ColliderType.Gate, GateColliders.Length));
 			GateColliders.Add(collider);
 		}
 
 		internal void Add(Line3DCollider collider)
 		{
+			collider.Header.Id = Lookup.Length;
+			var bounds = collider.Bounds;
+			bounds.ColliderId = collider.Header.Id;
+			collider.Bounds = bounds;
 			Lookup.Add(new ColliderLookup(ColliderType.Line3D, Line3DColliders.Length));
 			Line3DColliders.Add(collider);
 		}
 
 		internal void Add(LineSlingshotCollider collider)
 		{
+			collider.Header.Id = Lookup.Length;
 			Lookup.Add(new ColliderLookup(ColliderType.LineSlingShot, LineSlingshotColliders.Length));
 			LineSlingshotColliders.Add(collider);
 		}
 
 		internal void Add(LineCollider collider)
 		{
+			collider.Header.Id = Lookup.Length;
 			Lookup.Add(new ColliderLookup(ColliderType.Line, LineColliders.Length));
 			LineColliders.Add(collider);
 		}
 
 		internal void Add(LineZCollider collider)
 		{
+			collider.Header.Id = Lookup.Length;
 			Lookup.Add(new ColliderLookup(ColliderType.LineZ, LineZColliders.Length));
 			LineZColliders.Add(collider);
 		}
 
 		internal void Add(PlungerCollider collider)
 		{
+			collider.Header.Id = Lookup.Length;
+			var bounds = collider.Bounds;
+			bounds.ColliderId = collider.Header.Id;
+			collider.Bounds = bounds;
 			Lookup.Add(new ColliderLookup(ColliderType.Plunger, PlungerColliders.Length));
 			PlungerColliders.Add(collider);
 		}
 
 		internal void Add(PointCollider collider)
 		{
+			collider.Header.Id = Lookup.Length;
 			Lookup.Add(new ColliderLookup(ColliderType.Point, PointColliders.Length));
 			PointColliders.Add(collider);
 		}
 
 		internal void Add(SpinnerCollider collider)
 		{
+			collider.Header.Id = Lookup.Length;
+			var bounds = collider.Bounds;
+			bounds.ColliderId = collider.Header.Id;
+			collider.Bounds = bounds;
 			Lookup.Add(new ColliderLookup(ColliderType.Spinner, SpinnerColliders.Length));
 			SpinnerColliders.Add(collider);
 		}
 
 		internal void Add(TriangleCollider collider)
 		{
+			collider.Header.Id = Lookup.Length;
 			Lookup.Add(new ColliderLookup(ColliderType.Triangle, TriangleColliders.Length));
 			TriangleColliders.Add(collider);
 		}
 
 		internal void Add(PlaneCollider collider)
 		{
+			collider.Header.Id = Lookup.Length;
 			Lookup.Add(new ColliderLookup(ColliderType.Plane, PlaneColliders.Length));
 			PlaneColliders.Add(collider);
 		}

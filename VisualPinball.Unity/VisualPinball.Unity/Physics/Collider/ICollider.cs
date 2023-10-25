@@ -21,7 +21,7 @@ namespace VisualPinball.Unity
 	public interface ICollider
 	{
 		int Id { get; }
-		void Allocate(BlobBuilder builder, ref BlobBuilderArray<BlobPtr<Collider>> colliders, int index);
+		void Allocate(BlobBuilder builder, ref BlobBuilderArray<BlobPtr<Collider>> colliders);
 		ColliderBounds Bounds { get; }
 	}
 }

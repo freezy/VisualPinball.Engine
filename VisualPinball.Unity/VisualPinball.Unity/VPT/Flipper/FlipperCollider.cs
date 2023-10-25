@@ -34,7 +34,7 @@ namespace VisualPinball.Unity
 		private readonly float _zLow;
 		private readonly float _zHigh;
 
-		public ColliderBounds Bounds { get; private set; }
+		public ColliderBounds Bounds { get; set; }
 
 		public static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
@@ -133,11 +133,10 @@ namespace VisualPinball.Unity
 			return deg > 180 ? deg - 360 : deg;
 		}
 
-		public unsafe void Allocate(BlobBuilder builder, ref BlobBuilderArray<BlobPtr<Collider>> colliders, int colliderId)
+		public unsafe void Allocate(BlobBuilder builder, ref BlobBuilderArray<BlobPtr<Collider>> colliders)
 		{
-			Header.Id = colliderId;
 			var bounds = Bounds;
-			bounds.ColliderId = colliderId;
+			bounds.ColliderId = Header.Id;
 			Bounds = bounds;
 			ref var ptr = ref UnsafeUtility.As<BlobPtr<Collider>, BlobPtr<FlipperCollider>>(ref colliders[Header.Id]);
 			ref var collider = ref builder.Allocate(ref ptr);

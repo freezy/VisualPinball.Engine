@@ -33,7 +33,7 @@ namespace VisualPinball.Unity
 		public LineZCollider JointBase0;
 		public LineZCollider JointBase1;
 
-		public ColliderBounds Bounds { get; private set; }
+		public ColliderBounds Bounds { get; set; }
 
 		public PlungerCollider(PlungerComponent comp, PlungerColliderComponent collComp, ColliderInfo info) : this()
 		{
@@ -60,12 +60,8 @@ namespace VisualPinball.Unity
 			));
 		}
 
-		public unsafe void Allocate(BlobBuilder builder, ref BlobBuilderArray<BlobPtr<Collider>> colliders, int colliderId)
+		public unsafe void Allocate(BlobBuilder builder, ref BlobBuilderArray<BlobPtr<Collider>> colliders)
 		{
-			var bounds = Bounds;
-			bounds.ColliderId = colliderId;
-			Bounds = bounds;
-			Header.Id = colliderId;
 			ref var ptr = ref UnsafeUtility.As<BlobPtr<Collider>, BlobPtr<PlungerCollider>>(ref colliders[Header.Id]);
 			ref var collider = ref builder.Allocate(ref ptr);
 			UnsafeUtility.MemCpy(
