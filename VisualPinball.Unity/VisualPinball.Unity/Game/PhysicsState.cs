@@ -72,12 +72,12 @@ namespace VisualPinball.Unity
 			SwapBallCollisionHandling = swapBallCollisionHandling;
 		}
 
-		internal Collider GetCollider(int colliderId) => Colliders.Value.Colliders[colliderId].Value;
+		internal ColliderHeader GetColliderHeader(int colliderId) => Colliders.Value.Colliders[colliderId].Value.Header;
 
 		internal bool IsColliderActive(int colliderId)
 		{
-			var collider = GetCollider(colliderId);
-			return !DisabledCollisionItems.Contains(collider.ItemId);
+			var collHeader = GetColliderHeader(colliderId);
+			return !DisabledCollisionItems.Contains(collHeader.ItemId);
 		}
 
 		#region States

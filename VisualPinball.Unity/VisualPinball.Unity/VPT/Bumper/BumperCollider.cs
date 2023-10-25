@@ -24,13 +24,13 @@ namespace VisualPinball.Unity
 	{
 		public static void Collide(ref BallState ball, ref NativeQueue<EventData>.ParallelWriter events,
 			ref CollisionEventData collEvent, ref BumperRingAnimationState ringState, ref BumperSkirtAnimationState skirtState,
-			in Collider collider, in BumperStaticState state, ref Random random)
+			in ColliderHeader collHeader, in BumperStaticState state, ref Random random)
 		{
 			// todo
 			// if (!m_enabled) return;
 
 			var dot = math.dot(collEvent.HitNormal, ball.Velocity); // needs to be computed before Collide3DWall()!
-			var material = collider.Material;
+			var material = collHeader.Material;
 			BallCollider.Collide3DWall(ref ball, in material, in collEvent, in collEvent.HitNormal, ref random); // reflect ball from wall
 
 			if (state.HitEvent && dot <= -state.Threshold) { // if velocity greater than threshold level
@@ -41,7 +41,7 @@ namespace VisualPinball.Unity
 				skirtState.HitEvent = true;
 				skirtState.BallPosition = ball.Position;
 
-				events.Enqueue(new EventData(EventId.HitEventsHit, collider.ItemId, ball.Id, true));
+				events.Enqueue(new EventData(EventId.HitEventsHit, collHeader.ItemId, ball.Id, true));
 			}
 		}
 	}

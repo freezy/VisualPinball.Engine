@@ -23,33 +23,33 @@ namespace VisualPinball.Unity
 	{
 		public static void DropTargetCollide(ref BallState ball, ref NativeQueue<EventData>.ParallelWriter hitEvents,
 			ref DropTargetAnimationState animation, in float3 normal, in CollisionEventData collEvent,
-			in Collider coll, ref Random random)
+			in ColliderHeader collHeader, ref Random random)
 		{
 			if (animation.IsDropped) {
 				return;
 			}
 
 			var dot = -math.dot(collEvent.HitNormal, ball.Velocity);
-			BallCollider.Collide3DWall(ref ball, in coll.Header.Material, in collEvent, in normal, ref random);
+			BallCollider.Collide3DWall(ref ball, in collHeader.Material, in collEvent, in normal, ref random);
 
-			if (coll.FireEvents && dot >= coll.Threshold && !animation.IsDropped) {
+			if (collHeader.FireEvents && dot >= collHeader.Threshold && !animation.IsDropped) {
 				animation.HitEvent = true;
 				//todo m_obj->m_currentHitThreshold = dot;
-				Collider.FireHitEvent(ref ball, ref hitEvents, in coll.Header);
+				Collider.FireHitEvent(ref ball, ref hitEvents, in collHeader);
 			}
 		}
 
 		public static void HitTargetCollide(ref BallState ball, ref NativeQueue<EventData>.ParallelWriter hitEvents,
 			ref HitTargetAnimationData animationData, in float3 normal, in CollisionEventData collEvent,
-			in Collider coll, ref Random random)
+			in ColliderHeader collHeader, ref Random random)
 		{
 			var dot = -math.dot(collEvent.HitNormal, ball.Velocity);
-			BallCollider.Collide3DWall(ref ball, in coll.Header.Material, in collEvent, in normal, ref random);
+			BallCollider.Collide3DWall(ref ball, in collHeader.Material, in collEvent, in normal, ref random);
 
-			if (coll.FireEvents && dot >= coll.Threshold) {
+			if (collHeader.FireEvents && dot >= collHeader.Threshold) {
 				animationData.HitEvent = true;
 				//todo m_obj->m_currentHitThreshold = dot;
-				Collider.FireHitEvent(ref ball, ref hitEvents, in coll.Header);
+				Collider.FireHitEvent(ref ball, ref hitEvents, in collHeader);
 			}
 		}
 	}

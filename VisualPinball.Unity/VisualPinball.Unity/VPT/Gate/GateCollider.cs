@@ -23,9 +23,9 @@ namespace VisualPinball.Unity
 {
 	internal struct GateCollider : ICollider
 	{
-		public int Id => _header.Id;
+		public int Id => Header.Id;
 
-		private ColliderHeader _header;
+		public ColliderHeader Header;
 
 		public readonly LineCollider LineSeg0;
 		public readonly LineCollider LineSeg1;
@@ -34,7 +34,7 @@ namespace VisualPinball.Unity
 
 		public GateCollider(in LineCollider lineSeg0, in LineCollider lineSeg1, ColliderInfo info) : this()
 		{
-			_header.Init(info, ColliderType.Gate);
+			Header.Init(info, ColliderType.Gate);
 			LineSeg0 = lineSeg0;
 			LineSeg1 = lineSeg1;
 
@@ -43,11 +43,11 @@ namespace VisualPinball.Unity
 
 		public unsafe void Allocate(BlobBuilder builder, ref BlobBuilderArray<BlobPtr<Collider>> colliders, int colliderId)
 		{
-			_header.Id = colliderId;
+			Header.Id = colliderId;
 			var bounds = Bounds;
 			bounds.ColliderId = colliderId;
 			Bounds = bounds;
-			ref var ptr = ref UnsafeUtility.As<BlobPtr<Collider>, BlobPtr<GateCollider>>(ref colliders[_header.Id]);
+			ref var ptr = ref UnsafeUtility.As<BlobPtr<Collider>, BlobPtr<GateCollider>>(ref colliders[Header.Id]);
 			ref var collider = ref builder.Allocate(ref ptr);
 			UnsafeUtility.MemCpy(
 				UnsafeUtility.AddressOf(ref collider),
@@ -86,7 +86,7 @@ namespace VisualPinball.Unity
 		#region Collision
 
 		public static void Collide(ref BallState ball, ref CollisionEventData collEvent, ref GateMovementState movementState,
-			ref NativeQueue<EventData>.ParallelWriter events, in Collider coll, in GateStaticState state)
+			ref NativeQueue<EventData>.ParallelWriter events, in ColliderHeader collHeader, in GateStaticState state)
 		{
 			var dot = math.dot(collEvent.HitNormal, ball.Velocity);
 			var h = state.Height * 0.5f;
@@ -114,7 +114,7 @@ namespace VisualPinball.Unity
 				movementState.AngleSpeed = -movementState.AngleSpeed;
 			}
 
-			Collider.FireHitEvent(ref ball, ref events, in coll.Header);
+			Collider.FireHitEvent(ref ball, ref events, in collHeader);
 		}
 
 		#endregion

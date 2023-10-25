@@ -24,9 +24,9 @@ namespace VisualPinball.Unity
 {
 	internal struct SpinnerCollider : ICollider
 	{
-		public int Id => _header.Id;
+		public int Id => Header.Id;
 
-		private ColliderHeader _header;
+		public ColliderHeader Header;
 
 		public readonly LineCollider LineSeg0;
 		public readonly LineCollider LineSeg1;
@@ -35,7 +35,7 @@ namespace VisualPinball.Unity
 
 		public SpinnerCollider(SpinnerComponent component, float height, ColliderInfo info) : this()
 		{
-			_header.Init(info, ColliderType.Spinner);
+			Header.Init(info, ColliderType.Spinner);
 
 			var halfLength = component.Length * 0.5f;
 
@@ -60,11 +60,11 @@ namespace VisualPinball.Unity
 
 		public unsafe void Allocate(BlobBuilder builder, ref BlobBuilderArray<BlobPtr<Collider>> colliders, int colliderId)
 		{
-			_header.Id = colliderId;
+			Header.Id = colliderId;
 			var bounds = Bounds;
 			bounds.ColliderId = colliderId;
 			Bounds = bounds;
-			ref var ptr = ref UnsafeUtility.As<BlobPtr<Collider>, BlobPtr<SpinnerCollider>>(ref colliders[_header.Id]);
+			ref var ptr = ref UnsafeUtility.As<BlobPtr<Collider>, BlobPtr<SpinnerCollider>>(ref colliders[Header.Id]);
 			ref var collider = ref builder.Allocate(ref ptr);
 			UnsafeUtility.MemCpy(
 				UnsafeUtility.AddressOf(ref collider),

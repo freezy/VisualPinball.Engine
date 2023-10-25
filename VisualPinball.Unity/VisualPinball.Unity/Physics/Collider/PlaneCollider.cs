@@ -25,28 +25,28 @@ namespace VisualPinball.Unity
 {
 	internal struct PlaneCollider : ICollider
 	{
-		public int Id => _header.Id;
-		public PhysicsMaterialData Material => _header.Material;
-			
+		public int Id => Header.Id;
+		public PhysicsMaterialData Material => Header.Material;
 
-		private ColliderHeader _header;
+
+		public ColliderHeader Header;
 
 		private readonly float3 _normal;
 		private readonly float _distance;
 
-		public ColliderBounds Bounds => new(_header.ItemId, _header.Id, new Aabb(float.MinValue, float.MaxValue, float.MinValue, float.MaxValue, float.MinValue, float.MaxValue));
+		public ColliderBounds Bounds => new(Header.ItemId, Header.Id, new Aabb(float.MinValue, float.MaxValue, float.MinValue, float.MaxValue, float.MinValue, float.MaxValue));
 
 		public PlaneCollider(float3 normal, float distance, ColliderInfo info) : this()
 		{
-			_header.Init(info, ColliderType.Plane);
+			Header.Init(info, ColliderType.Plane);
 			_normal = normal;
 			_distance = distance;
 		}
 
 		public unsafe void Allocate(BlobBuilder builder, ref BlobBuilderArray<BlobPtr<Collider>> colliders, int colliderId)
 		{
-			_header.Id = colliderId;
-			ref var ptr = ref UnsafeUtility.As<BlobPtr<Collider>, BlobPtr<PlaneCollider>>(ref colliders[_header.Id]);
+			Header.Id = colliderId;
+			ref var ptr = ref UnsafeUtility.As<BlobPtr<Collider>, BlobPtr<PlaneCollider>>(ref colliders[Header.Id]);
 			ref var collider = ref builder.Allocate(ref ptr);
 			UnsafeUtility.MemCpy(
 				UnsafeUtility.AddressOf(ref collider),
@@ -55,7 +55,7 @@ namespace VisualPinball.Unity
 			);
 		}
 		
-		public override string ToString() => $"PlaneCollider[{_header.ItemId}] {_distance} at ({_normal.x}/{_normal.y}/{_normal.z})";
+		public override string ToString() => $"PlaneCollider[{Header.ItemId}] {_distance} at ({_normal.x}/{_normal.y}/{_normal.z})";
 
 		#region Narrowphase
 
@@ -125,7 +125,7 @@ namespace VisualPinball.Unity
 
 		public void Collide(ref BallState ball, in CollisionEventData collEvent, ref Random random)
 		{
-			BallCollider.Collide3DWall(ref ball, in _header.Material, in collEvent, in collEvent.HitNormal, ref random);
+			BallCollider.Collide3DWall(ref ball, in Header.Material, in collEvent, in collEvent.HitNormal, ref random);
 
 			// distance from plane to ball surface
 			var bnd = math.dot(_normal, ball.Position) - ball.Radius - _distance;
