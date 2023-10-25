@@ -83,12 +83,8 @@ namespace VisualPinball.Unity
 			));
 		}
 
-		public unsafe void Allocate(BlobBuilder builder, ref BlobBuilderArray<BlobPtr<Collider>> colliders, int colliderId)
+		public unsafe void Allocate(BlobBuilder builder, ref BlobBuilderArray<BlobPtr<Collider>> colliders)
 		{
-			Header.Id = colliderId;
-			var bounds = Bounds;
-			bounds.ColliderId = colliderId;
-			Bounds = bounds;
 			ref var ptr = ref UnsafeUtility.As<BlobPtr<Collider>, BlobPtr<Line3DCollider>>(ref colliders[Header.Id]);
 			ref var collider = ref builder.Allocate(ref ptr);
 			UnsafeUtility.MemCpy(

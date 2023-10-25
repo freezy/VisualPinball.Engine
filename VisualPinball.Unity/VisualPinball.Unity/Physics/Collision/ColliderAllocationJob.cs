@@ -83,7 +83,6 @@ namespace VisualPinball.Unity
 		public void Execute()
 		{
 			var builder = new BlobBuilder(Allocator.Temp);
-			var colliderId = 0;
 			ref var root = ref builder.ConstructRoot<ColliderBlob>();
 			var count = _circleColliders.Length + _flipperColliders.Length + _gateColliders.Length + _line3DColliders.Length
 			            + _lineSlingshotColliders.Length + _lineColliders.Length + _lineZColliders.Length + _plungerColliders.Length
@@ -93,40 +92,40 @@ namespace VisualPinball.Unity
 
 			// copy generated colliders into blob array
 			for (var i = 0; i < _circleColliders.Length; i++) {
-				_circleColliders[i].Allocate(builder, ref colliders, colliderId++);
+				_circleColliders[i].Allocate(builder, ref colliders);
 			}
 			for (var i = 0; i < _flipperColliders.Length; i++) {
-				_flipperColliders[i].Allocate(builder, ref colliders, colliderId++);
+				_flipperColliders[i].Allocate(builder, ref colliders);
 			}
 			for (var i = 0; i < _gateColliders.Length; i++) {
-				_gateColliders[i].Allocate(builder, ref colliders, colliderId++);
+				_gateColliders[i].Allocate(builder, ref colliders);
 			}
 			for (var i = 0; i < _line3DColliders.Length; i++) {
-				_line3DColliders[i].Allocate(builder, ref colliders, colliderId++);
+				_line3DColliders[i].Allocate(builder, ref colliders);
 			}
 			for (var i = 0; i < _lineSlingshotColliders.Length; i++) {
-				_lineSlingshotColliders[i].Allocate(builder, ref colliders, colliderId++);
+				_lineSlingshotColliders[i].Allocate(builder, ref colliders);
 			}
 			for (var i = 0; i < _lineColliders.Length; i++) {
-				_lineColliders[i].Allocate(builder, ref colliders, colliderId++);
+				_lineColliders[i].Allocate(builder, ref colliders);
 			}
 			for (var i = 0; i < _lineZColliders.Length; i++) {
-				_lineZColliders[i].Allocate(builder, ref colliders, colliderId++);
+				_lineZColliders[i].Allocate(builder, ref colliders);
 			}
 			for (var i = 0; i < _planeColliders.Length; i++) {
-				_planeColliders[i].Allocate(builder, ref colliders, colliderId++);
+				_planeColliders[i].Allocate(builder, ref colliders);
 			}
 			for (var i = 0; i < _plungerColliders.Length; i++) {
-				_plungerColliders[i].Allocate(builder, ref colliders, colliderId++);
+				_plungerColliders[i].Allocate(builder, ref colliders);
 			}
 			for (var i = 0; i < _pointColliders.Length; i++) {
-				_pointColliders[i].Allocate(builder, ref colliders, colliderId++);
+				_pointColliders[i].Allocate(builder, ref colliders);
 			}
 			for (var i = 0; i < _spinnerColliders.Length; i++) {
-				_spinnerColliders[i].Allocate(builder, ref colliders, colliderId++);
+				_spinnerColliders[i].Allocate(builder, ref colliders);
 			}
 			for (var i = 0; i < _triangleColliders.Length; i++) {
-				_triangleColliders[i].Allocate(builder, ref colliders, colliderId++);
+				_triangleColliders[i].Allocate(builder, ref colliders);
 			}
 
 			BlobAsset[0] = builder.CreateBlobAssetReference<ColliderBlob>(Allocator.Persistent);
