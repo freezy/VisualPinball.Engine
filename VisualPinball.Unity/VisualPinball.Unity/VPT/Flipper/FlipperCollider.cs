@@ -26,9 +26,9 @@ namespace VisualPinball.Unity
 {
 	internal struct FlipperCollider : ICollider
 	{
-		public int Id => _header.Id;
+		public int Id => Header.Id;
 
-		private ColliderHeader _header;
+		public ColliderHeader Header;
 
 		private readonly CircleCollider _hitCircleBase;
 		private readonly float _zLow;
@@ -43,7 +43,7 @@ namespace VisualPinball.Unity
 		public FlipperCollider(CircleCollider hitCircleBase, float flipperRadius, float startRadius, float endRadius, float startAngle, float endAngle, ColliderInfo info) : this()
 		{
 			var bounds = hitCircleBase.Bounds;
-			_header.Init(info, ColliderType.Flipper);
+			Header.Init(info, ColliderType.Flipper);
 			_hitCircleBase = hitCircleBase;
 			_zLow = bounds.Aabb.ZLow;
 			_zHigh = bounds.Aabb.ZHigh;
@@ -69,7 +69,7 @@ namespace VisualPinball.Unity
 			aabb = ExtendBoundsAtExtreme(aabb, c, flipperRadius, r2, r3, a0, a1, 90f);
 			aabb = ExtendBoundsAtExtreme(aabb, c, flipperRadius, r2, r3, a0, a1, 180f);
 
-			Bounds = new ColliderBounds(_header.ItemId, _header.Id, aabb);
+			Bounds = new ColliderBounds(Header.ItemId, Header.Id, aabb);
 		}
 
 		private static Aabb ExtendBoundsAtExtreme(Aabb aabb, float2 c, float length, float endRadius, float startRadius, float startAngle, float endAngle, float angle)
@@ -135,11 +135,11 @@ namespace VisualPinball.Unity
 
 		public unsafe void Allocate(BlobBuilder builder, ref BlobBuilderArray<BlobPtr<Collider>> colliders, int colliderId)
 		{
-			_header.Id = colliderId;
+			Header.Id = colliderId;
 			var bounds = Bounds;
 			bounds.ColliderId = colliderId;
 			Bounds = bounds;
-			ref var ptr = ref UnsafeUtility.As<BlobPtr<Collider>, BlobPtr<FlipperCollider>>(ref colliders[_header.Id]);
+			ref var ptr = ref UnsafeUtility.As<BlobPtr<Collider>, BlobPtr<FlipperCollider>>(ref colliders[Header.Id]);
 			ref var collider = ref builder.Allocate(ref ptr);
 			UnsafeUtility.MemCpy(
 				UnsafeUtility.AddressOf(ref collider),
@@ -666,7 +666,7 @@ namespace VisualPinball.Unity
 
 				// first check for slippage
 				var slip = vRel - normVel * normal; // calc the tangential slip velocity
-				var maxFriction = j * _header.Material.Friction;
+				var maxFriction = j * Header.Material.Friction;
 				var slipSpeed = math.length(slip);
 				float3 slipDir;
 				float3 crossF;
@@ -842,7 +842,7 @@ namespace VisualPinball.Unity
 			 * We use a heuristic model which decreases the COR according to a falloff parameter:
 			 * 0 = no falloff, 1 = half the COR at 1 m/s (18.53 speed units)
 			 */
-			var epsilon = Math.ElasticityWithFalloff(_header.Material.Elasticity, _header.Material.ElasticityFalloff, bnv);
+			var epsilon = Math.ElasticityWithFalloff(Header.Material.Elasticity, Header.Material.ElasticityFalloff, bnv);
 			if (tricks.UseFlipperTricksPhysics)
 				epsilon *= tricks.ElasticityMultiplier;
 
@@ -899,7 +899,7 @@ namespace VisualPinball.Unity
 				kt += math.dot(tangent, math.cross(pv13, rF)); // flipper only has angular response
 
 				// friction impulse can't be greater than coefficient of friction times collision impulse (Coulomb friction cone)
-				var maxFriction = _header.Material.Friction * impulse;
+				var maxFriction = Header.Material.Friction * impulse;
 				var jt = math.clamp(-vt / kt, -maxFriction, maxFriction);
 
 				ball.ApplySurfaceImpulse(
@@ -915,11 +915,11 @@ namespace VisualPinball.Unity
 				var flipperHit = hitData.HitMomentBit ? -1.0f : -bnv; // move event processing to end of collision handler...
 				if (flipperHit < 0f) {
 					// simple hit event
-					events.Enqueue(new EventData(EventId.HitEventsHit, _header.ItemId, ballId, true));
+					events.Enqueue(new EventData(EventId.HitEventsHit, Header.ItemId, ballId, true));
 
 				} else {
 					// collision velocity (normal to face)
-					events.Enqueue(new EventData(EventId.FlipperEventsCollide, _header.ItemId, ballId, flipperHit));
+					events.Enqueue(new EventData(EventId.FlipperEventsCollide, Header.ItemId, ballId, flipperHit));
 				}
 			}
 			movementState.LastHitTime = timeMsec; // keep resetting until idle for 250 milliseconds

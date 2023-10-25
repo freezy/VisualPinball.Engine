@@ -25,22 +25,22 @@ namespace VisualPinball.Unity
 	{
 		public static void Collide(ref BallState ball, ref NativeQueue<EventData>.ParallelWriter events,
 			ref CollisionEventData collEvent, ref InsideOfs insideOfs,
-			ref TriggerAnimationState animation, in Collider coll)
+			ref TriggerAnimationState animation, in ColliderHeader collHeader)
 		{
-			var insideOf = insideOfs.IsInsideOf(coll.ItemId, ball.Id);
+			var insideOf = insideOfs.IsInsideOf(collHeader.ItemId, ball.Id);
 			if (collEvent.HitFlag == insideOf) {                                         // Hit == NotAlreadyHit
 				ball.Position += PhysicsConstants.StaticTime * ball.Velocity;            // move ball slightly forward
 				if (!insideOf) {
-					insideOfs.SetInsideOf(coll.ItemId, ball.Id);
+					insideOfs.SetInsideOf(collHeader.ItemId, ball.Id);
 					animation.HitEvent = true;
 
-					events.Enqueue(new EventData(EventId.HitEventsHit, coll.ItemId, ball.Id, true));
+					events.Enqueue(new EventData(EventId.HitEventsHit, collHeader.ItemId, ball.Id, true));
 
 				} else {
-					insideOfs.SetOutsideOf(coll.ItemId, ball.Id);
+					insideOfs.SetOutsideOf(collHeader.ItemId, ball.Id);
 					animation.UnHitEvent = true;
 
-					events.Enqueue(new EventData(EventId.HitEventsUnhit, coll.ItemId, ball.Id, true));
+					events.Enqueue(new EventData(EventId.HitEventsUnhit, collHeader.ItemId, ball.Id, true));
 				}
 			}
 		}

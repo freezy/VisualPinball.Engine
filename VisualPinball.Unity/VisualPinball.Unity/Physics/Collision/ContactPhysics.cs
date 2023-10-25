@@ -22,14 +22,14 @@ namespace VisualPinball.Unity
 		{
 			ref var collEvent = ref contact.CollEvent;
 			if (collEvent.ColliderId > -1) { // collide with static collider
-				var coll = state.GetCollider(collEvent.ColliderId);
-				if (coll.Type == ColliderType.Flipper) {
+				var collHeader = state.GetColliderHeader(collEvent.ColliderId);
+				if (collHeader.Type == ColliderType.Flipper) {
 					ref var flipperCollider = ref state.Colliders.GetFlipperCollider(collEvent.ColliderId);
 					ref var flipperState = ref state.GetFlipperState(collEvent.ColliderId);
 					flipperCollider.Contact(ref ball, ref flipperState.Movement, in collEvent,
 						in flipperState.Static, in flipperState.Velocity, hitTime, in state.Env.Gravity);
 				} else {
-					Collider.Contact(ref coll, ref ball, in collEvent, hitTime, in state.Env.Gravity);
+					Collider.Contact(in collHeader, ref ball, in collEvent, hitTime, in state.Env.Gravity);
 				}
 			} else if (collEvent.BallId != 0) { // collide with ball
 				BallCollider.HandleStaticContact(ref ball, in collEvent, state.Colliders.GetFriction(contact.CollEvent.ColliderId), hitTime, state.Env.Gravity);

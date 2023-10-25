@@ -24,9 +24,9 @@ namespace VisualPinball.Unity
 {
 	internal struct LineSlingshotCollider : ICollider
 	{
-		public int Id => _header.Id;
+		public int Id => Header.Id;
 
-		private ColliderHeader _header;
+		public ColliderHeader Header;
 
 		public readonly float2 V1;
 		public readonly float2 V2;
@@ -38,7 +38,7 @@ namespace VisualPinball.Unity
 
 		private readonly float _force;
 
-		public ColliderBounds Bounds => new ColliderBounds(_header.ItemId, _header.Id, new Aabb(
+		public ColliderBounds Bounds => new ColliderBounds(Header.ItemId, Header.Id, new Aabb(
 			math.min(V1.x, V2.x),
 			math.max(V1.x, V2.x),
 			math.min(V1.y, V2.y),
@@ -49,7 +49,7 @@ namespace VisualPinball.Unity
 
 		public LineSlingshotCollider(float force, float2 v1, float2 v2, float zLow, float zHigh, ColliderInfo info) : this()
 		{
-			_header.Init(info, ColliderType.LineSlingShot);
+			Header.Init(info, ColliderType.LineSlingShot);
 			_force = force;
 			V1 = v1;
 			V2 = v2;
@@ -60,8 +60,8 @@ namespace VisualPinball.Unity
 
 		public unsafe void Allocate(BlobBuilder builder, ref BlobBuilderArray<BlobPtr<Collider>> colliders, int colliderId)
 		{
-			_header.Id = colliderId;
-			ref var ptr = ref UnsafeUtility.As<BlobPtr<Collider>, BlobPtr<LineSlingshotCollider>>(ref colliders[_header.Id]);
+			Header.Id = colliderId;
+			ref var ptr = ref UnsafeUtility.As<BlobPtr<Collider>, BlobPtr<LineSlingshotCollider>>(ref colliders[Header.Id]);
 			ref var collider = ref builder.Allocate(ref ptr);
 			UnsafeUtility.MemCpy(
 				UnsafeUtility.AddressOf(ref collider),
@@ -133,9 +133,9 @@ namespace VisualPinball.Unity
 				ball.Velocity -= hitNormal * force;
 			}
 
-			BallCollider.Collide3DWall(ref ball, in _header.Material, in collEvent, in hitNormal, ref random);
+			BallCollider.Collide3DWall(ref ball, in Header.Material, in collEvent, in hitNormal, ref random);
 
-			if (/*m_obj &&*/ _header.FireEvents /*&& !m_psurface->m_disabled*/ && threshold) { // todo enabled
+			if (/*m_obj &&*/ Header.FireEvents /*&& !m_psurface->m_disabled*/ && threshold) { // todo enabled
 
 				// is this the same place as last event? if same then ignore it
 				var distLs = math.lengthsq(ball.EventPosition - ball.Position);
@@ -143,7 +143,7 @@ namespace VisualPinball.Unity
 
 				// !! magic distance, must be a new place if only by a little
 				if (distLs > 0.25f) {
-					events.Enqueue(new EventData(EventId.SurfaceEventsSlingshot, _header.ItemId, ball.Id, true));
+					events.Enqueue(new EventData(EventId.SurfaceEventsSlingshot, Header.ItemId, ball.Id, true));
 
 					// todo slingshot animation
 					// m_slingshotanim.m_TimeReset = g_pplayer->m_time_msec + 100;

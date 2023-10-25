@@ -25,9 +25,9 @@ namespace VisualPinball.Unity
 {
 	internal struct LineCollider : ICollider
 	{
-		public int Id => _header.Id;
+		public int Id => Header.Id;
 
-		private ColliderHeader _header;
+		public ColliderHeader Header;
 
 		public float2 V1;
 		public float2 V2;
@@ -37,15 +37,15 @@ namespace VisualPinball.Unity
 		public readonly float ZHigh;
 		private float _length;
 
-		internal ItemType ItemType => _header.ItemType;
-		private int ItemId => _header.ItemId;
+		internal ItemType ItemType => Header.ItemType;
+		private int ItemId => Header.ItemId;
 
 		public float V1y { set => V1.y = value; }
 		public float V2y { set => V2.y = value; }
 		
-		public override string ToString() => $"LineCollider[{_header.ItemId}] ({V1.x}/{V1.y}@{ZLow}) -> ({V2.x}/{V2.y}@{ZHigh}) at ({Normal.x}/{Normal.y}), len: {_length}";
+		public override string ToString() => $"LineCollider[{Header.ItemId}] ({V1.x}/{V1.y}@{ZLow}) -> ({V2.x}/{V2.y}@{ZHigh}) at ({Normal.x}/{Normal.y}), len: {_length}";
 
-		public ColliderBounds Bounds => new ColliderBounds(_header.ItemId, _header.Id, new Aabb(
+		public ColliderBounds Bounds => new ColliderBounds(Header.ItemId, Header.Id, new Aabb(
 			math.min(V1.x, V2.x),
 			math.max(V1.x, V2.x),
 			math.min(V1.y, V2.y),
@@ -56,7 +56,7 @@ namespace VisualPinball.Unity
 
 		public LineCollider(float2 v1, float2 v2, float zLow, float zHigh, ColliderInfo info, ColliderType type = ColliderType.Line) : this()
 		{
-			_header.Init(info, type);
+			Header.Init(info, type);
 			V1 = v1;
 			V2 = v2;
 			ZLow = zLow;
@@ -66,8 +66,8 @@ namespace VisualPinball.Unity
 
 		public unsafe void Allocate(BlobBuilder builder, ref BlobBuilderArray<BlobPtr<Collider>> colliders, int colliderId)
 		{
-			_header.Id = colliderId;
-			ref var ptr = ref UnsafeUtility.As<BlobPtr<Collider>, BlobPtr<LineCollider>>(ref colliders[_header.Id]);
+			Header.Id = colliderId;
+			ref var ptr = ref UnsafeUtility.As<BlobPtr<Collider>, BlobPtr<LineCollider>>(ref colliders[Header.Id]);
 			ref var collider = ref builder.Allocate(ref ptr);
 			UnsafeUtility.MemCpy(
 				UnsafeUtility.AddressOf<LineCollider>(ref collider),
@@ -231,10 +231,10 @@ namespace VisualPinball.Unity
 			in CollisionEventData collEvent, ref Random random)
 		{
 			var dot = math.dot(collEvent.HitNormal, ball.Velocity);
-			BallCollider.Collide3DWall(ref ball, in _header.Material, in collEvent, in collEvent.HitNormal, ref random);
+			BallCollider.Collide3DWall(ref ball, in Header.Material, in collEvent, in collEvent.HitNormal, ref random);
 
-			if (dot <= -_header.Threshold) {
-				Collider.FireHitEvent(ref ball, ref hitEvents, in _header);
+			if (dot <= -Header.Threshold) {
+				Collider.FireHitEvent(ref ball, ref hitEvents, in Header);
 			}
 		}
 

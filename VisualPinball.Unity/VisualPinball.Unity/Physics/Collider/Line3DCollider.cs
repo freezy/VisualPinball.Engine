@@ -23,9 +23,9 @@ namespace VisualPinball.Unity
 {
 	internal struct Line3DCollider : ICollider
 	{
-		public int Id => _header.Id;
+		public int Id => Header.Id;
 
-		private ColliderHeader _header;
+		public ColliderHeader Header;
 
 		// these are all used when casting this to LineZCollider,
 		// so the order is important too.
@@ -41,7 +41,7 @@ namespace VisualPinball.Unity
 
 		public Line3DCollider(float3 v1, float3 v2, ColliderInfo info) : this()
 		{
-			_header.Init(info, ColliderType.Line3D);
+			Header.Init(info, ColliderType.Line3D);
 
 			var vLine = math.normalize(v2 - v1);
 
@@ -73,7 +73,7 @@ namespace VisualPinball.Unity
 			_zLow = math.min(trans1.z, trans2Z);
 			_zHigh = math.max(trans1.z, trans2Z);
 
-			Bounds = new ColliderBounds(_header.ItemId, _header.Id, new Aabb(
+			Bounds = new ColliderBounds(Header.ItemId, Header.Id, new Aabb(
 				math.min(v1.x, v2.x),
 				math.max(v1.x, v2.x),
 				math.min(v1.y, v2.y),
@@ -85,11 +85,11 @@ namespace VisualPinball.Unity
 
 		public unsafe void Allocate(BlobBuilder builder, ref BlobBuilderArray<BlobPtr<Collider>> colliders, int colliderId)
 		{
-			_header.Id = colliderId;
+			Header.Id = colliderId;
 			var bounds = Bounds;
 			bounds.ColliderId = colliderId;
 			Bounds = bounds;
-			ref var ptr = ref UnsafeUtility.As<BlobPtr<Collider>, BlobPtr<Line3DCollider>>(ref colliders[_header.Id]);
+			ref var ptr = ref UnsafeUtility.As<BlobPtr<Collider>, BlobPtr<Line3DCollider>>(ref colliders[Header.Id]);
 			ref var collider = ref builder.Allocate(ref ptr);
 			UnsafeUtility.MemCpy(
 				UnsafeUtility.AddressOf(ref collider),
@@ -130,11 +130,11 @@ namespace VisualPinball.Unity
 			in CollisionEventData collEvent, ref Random random)
 		{
 			var dot = math.dot(collEvent.HitNormal, ball.Velocity);
-			BallCollider.Collide3DWall(ref ball, in _header.Material, in collEvent, in collEvent.HitNormal, ref random);
+			BallCollider.Collide3DWall(ref ball, in Header.Material, in collEvent, in collEvent.HitNormal, ref random);
 
-			if (_header.FireEvents && dot >= _header.Threshold && _header.IsPrimitive) {
+			if (Header.FireEvents && dot >= Header.Threshold && Header.IsPrimitive) {
 				// todo m_obj->m_currentHitThreshold = dot;
-				Collider.FireHitEvent(ref ball, ref hitEvents, in _header);
+				Collider.FireHitEvent(ref ball, ref hitEvents, in Header);
 			}
 		}
 	}

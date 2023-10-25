@@ -25,9 +25,9 @@ namespace VisualPinball.Unity
 {
 	internal struct TriangleCollider : ICollider
 	{
-		public int Id => _header.Id;
+		public int Id => Header.Id;
 
-		private ColliderHeader _header;
+		public ColliderHeader Header;
 
 		public readonly float3 Rgv0;
 		public readonly float3 Rgv1;
@@ -36,9 +36,9 @@ namespace VisualPinball.Unity
 
 		public float3 Normal() => _normal;
 		
-		public override string ToString() => $"TriangleCollider[{_header.ItemId}] ({Rgv0.x}/{Rgv0.y}/{Rgv0.z}), ({Rgv1.x}/{Rgv1.y}/{Rgv1.z}), ({Rgv2.x}/{Rgv2.y}/{Rgv2.z}) at ({_normal.x}/{_normal.y/_normal.z})";
+		public override string ToString() => $"TriangleCollider[{Header.ItemId}] ({Rgv0.x}/{Rgv0.y}/{Rgv0.z}), ({Rgv1.x}/{Rgv1.y}/{Rgv1.z}), ({Rgv2.x}/{Rgv2.y}/{Rgv2.z}) at ({_normal.x}/{_normal.y/_normal.z})";
 
-		public ColliderBounds Bounds => new ColliderBounds(_header.ItemId, _header.Id, new Aabb(
+		public ColliderBounds Bounds => new ColliderBounds(Header.ItemId, Header.Id, new Aabb(
 			math.min(Rgv0.x, math.min(Rgv1.x, Rgv2.x)),
 			math.max(Rgv0.x, math.max(Rgv1.x, Rgv2.x)),
 			math.min(Rgv0.y, math.min(Rgv1.y, Rgv2.y)),
@@ -49,7 +49,7 @@ namespace VisualPinball.Unity
 
 		public TriangleCollider(float3 rgv0, float3 rgv1, float3 rgv2, ColliderInfo info) : this()
 		{
-			_header.Init(info, ColliderType.Triangle);
+			Header.Init(info, ColliderType.Triangle);
 			Rgv0 = rgv0;
 			Rgv1 = rgv1;
 			Rgv2 = rgv2;
@@ -61,8 +61,8 @@ namespace VisualPinball.Unity
 
 		public unsafe void Allocate(BlobBuilder builder, ref BlobBuilderArray<BlobPtr<Collider>> colliders, int colliderId)
 		{
-			_header.Id = colliderId;
-			ref var ptr = ref UnsafeUtility.As<BlobPtr<Collider>, BlobPtr<TriangleCollider>>(ref colliders[_header.Id]);
+			Header.Id = colliderId;
+			ref var ptr = ref UnsafeUtility.As<BlobPtr<Collider>, BlobPtr<TriangleCollider>>(ref colliders[Header.Id]);
 			ref var collider = ref builder.Allocate(ref ptr);
 			UnsafeUtility.MemCpy(
 				UnsafeUtility.AddressOf(ref collider),
@@ -157,7 +157,7 @@ namespace VisualPinball.Unity
 
 			if (pointInTriangle) {
 
-				if (_header.ItemType == ItemType.Trigger && bnd < 0 == insideOfs.IsOutsideOf(_header.ItemId, ball.Id)) {
+				if (Header.ItemType == ItemType.Trigger && bnd < 0 == insideOfs.IsOutsideOf(Header.ItemId, ball.Id)) {
 					collEvent.HitFlag = bnd > 0;
 				}
 
@@ -183,11 +183,11 @@ namespace VisualPinball.Unity
 			in CollisionEventData collEvent, ref Random random)
 		{
 			var dot = -math.dot(collEvent.HitNormal, ball.Velocity);
-			BallCollider.Collide3DWall(ref ball, in _header.Material, in collEvent, in _normal, ref random);
+			BallCollider.Collide3DWall(ref ball, in Header.Material, in collEvent, in _normal, ref random);
 
-			if (_header.FireEvents && dot >= _header.Threshold && _header.IsPrimitive) {
+			if (Header.FireEvents && dot >= Header.Threshold && Header.IsPrimitive) {
 				// todo m_obj->m_currentHitThreshold = dot;
-				Collider.FireHitEvent(ref ball, ref hitEvents, in _header);
+				Collider.FireHitEvent(ref ball, ref hitEvents, in Header);
 			}
 		}
 

@@ -25,9 +25,9 @@ namespace VisualPinball.Unity
 {
 	internal struct PlungerCollider : ICollider
 	{
-		public int Id => _header.Id;
+		public int Id => Header.Id;
 
-		private ColliderHeader _header;
+		public ColliderHeader Header;
 
 		public LineCollider LineSegBase;
 		public LineZCollider JointBase0;
@@ -37,7 +37,7 @@ namespace VisualPinball.Unity
 
 		public PlungerCollider(PlungerComponent comp, PlungerColliderComponent collComp, ColliderInfo info) : this()
 		{
-			_header.Init(info, ColliderType.Plunger);
+			Header.Init(info, ColliderType.Plunger);
 
 			var zHeight = comp.PositionZ;
 			var x = comp.Position.x - comp.Width;
@@ -50,7 +50,7 @@ namespace VisualPinball.Unity
 			JointBase1 = new LineZCollider(new float2(x2, y), zHeight, zHeight + Plunger.PlungerHeight, info);
 
 			var frameEnd = comp.Position.y - collComp.Stroke;
-			Bounds = new ColliderBounds(_header.ItemId, _header.Id, new Aabb(
+			Bounds = new ColliderBounds(Header.ItemId, Header.Id, new Aabb(
 				x - 0.1f,
 				x2 + 0.1f,
 				frameEnd - 0.1f,
@@ -65,8 +65,8 @@ namespace VisualPinball.Unity
 			var bounds = Bounds;
 			bounds.ColliderId = colliderId;
 			Bounds = bounds;
-			_header.Id = colliderId;
-			ref var ptr = ref UnsafeUtility.As<BlobPtr<Collider>, BlobPtr<PlungerCollider>>(ref colliders[_header.Id]);
+			Header.Id = colliderId;
+			ref var ptr = ref UnsafeUtility.As<BlobPtr<Collider>, BlobPtr<PlungerCollider>>(ref colliders[Header.Id]);
 			ref var collider = ref builder.Allocate(ref ptr);
 			UnsafeUtility.MemCpy(
 				UnsafeUtility.AddressOf(ref collider),

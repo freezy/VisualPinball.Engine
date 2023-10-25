@@ -24,9 +24,9 @@ namespace VisualPinball.Unity
 {
 	internal struct LineZCollider : ICollider
 	{
-		public int Id => _header.Id;
+		public int Id => Header.Id;
 
-		private ColliderHeader _header;
+		public ColliderHeader Header;
 
 		public float2 XY;
 		private readonly float _zLow;
@@ -34,7 +34,7 @@ namespace VisualPinball.Unity
 
 		public float XyY { set => XY.y = value; }
 
-		public ColliderBounds Bounds => new ColliderBounds(_header.ItemId, _header.Id, new Aabb (
+		public ColliderBounds Bounds => new ColliderBounds(Header.ItemId, Header.Id, new Aabb (
 			XY.x,
 			XY.x,
 			XY.y,
@@ -45,8 +45,8 @@ namespace VisualPinball.Unity
 
 		public unsafe void Allocate(BlobBuilder builder, ref BlobBuilderArray<BlobPtr<Collider>> colliders, int colliderId)
 		{
-			_header.Id = colliderId;
-			ref var ptr = ref UnsafeUtility.As<BlobPtr<Collider>, BlobPtr<LineZCollider>>(ref colliders[_header.Id]);
+			Header.Id = colliderId;
+			ref var ptr = ref UnsafeUtility.As<BlobPtr<Collider>, BlobPtr<LineZCollider>>(ref colliders[Header.Id]);
 			ref var collider = ref builder.Allocate(ref ptr);
 			UnsafeUtility.MemCpy(
 				UnsafeUtility.AddressOf(ref collider),
@@ -57,7 +57,7 @@ namespace VisualPinball.Unity
 
 		public LineZCollider(float2 xy, float zLow, float zHigh, ColliderInfo info) : this()
 		{
-			_header.Init(info, ColliderType.LineZ);
+			Header.Init(info, ColliderType.LineZ);
 			XY = xy;
 			_zLow = zLow;
 			_zHigh = zHigh;
@@ -163,10 +163,10 @@ namespace VisualPinball.Unity
 			in int ballId, in CollisionEventData collEvent, ref Random random)
 		{
 			var dot = math.dot(collEvent.HitNormal, ball.Velocity);
-			BallCollider.Collide3DWall(ref ball, in _header.Material, in collEvent, in collEvent.HitNormal, ref random);
+			BallCollider.Collide3DWall(ref ball, in Header.Material, in collEvent, in collEvent.HitNormal, ref random);
 
-			if (dot <= -_header.Threshold) {
-				Collider.FireHitEvent(ref ball, ref hitEvents, in _header);
+			if (dot <= -Header.Threshold) {
+				Collider.FireHitEvent(ref ball, ref hitEvents, in Header);
 			}
 		}
 

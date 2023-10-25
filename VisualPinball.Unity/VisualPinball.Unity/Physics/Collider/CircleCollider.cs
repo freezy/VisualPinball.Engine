@@ -24,9 +24,9 @@ namespace VisualPinball.Unity
 {
 	internal struct CircleCollider : ICollider
 	{
-		public int Id => _header.Id;
+		public int Id => Header.Id;
 
-		private ColliderHeader _header;
+		public ColliderHeader Header;
 
 		public readonly float2 Center;
 		public readonly float Radius;
@@ -34,7 +34,7 @@ namespace VisualPinball.Unity
 		private readonly float _zHigh;
 		private readonly float _zLow;
 
-		public ColliderBounds Bounds => new ColliderBounds(_header.ItemId, _header.Id, new Aabb(
+		public ColliderBounds Bounds => new ColliderBounds(Header.ItemId, Header.Id, new Aabb(
 			Center.x - Radius,
 			Center.x + Radius,
 			Center.y - Radius,
@@ -45,7 +45,7 @@ namespace VisualPinball.Unity
 
 		public CircleCollider(float2 center, float radius, float zLow, float zHigh, ColliderInfo info, ColliderType type = ColliderType.Circle) : this()
 		{
-			_header.Init(info, type);
+			Header.Init(info, type);
 			Center = center;
 			Radius = radius;
 			_zHigh = zHigh;
@@ -54,7 +54,7 @@ namespace VisualPinball.Unity
 
 		public unsafe void Allocate(BlobBuilder builder, ref BlobBuilderArray<BlobPtr<Collider>> colliders, int colliderId)
 		{
-			_header.Id = colliderId;
+			Header.Id = colliderId;
 			ref var ptr = ref UnsafeUtility.As<BlobPtr<Collider>, BlobPtr<CircleCollider>>(ref colliders[colliderId]);
 			ref var collider = ref builder.Allocate(ref ptr);
 			UnsafeUtility.MemCpy(
@@ -84,8 +84,8 @@ namespace VisualPinball.Unity
 			var dv = ball.Velocity;
 
 			var capsule3D = !lateral && ball.Position.z > _zHigh;
-			var isKicker = _header.ItemType == ItemType.Kicker;
-			var isKickerOrTrigger = _header.ItemType == ItemType.Trigger || _header.ItemType == ItemType.Kicker;
+			var isKicker = Header.ItemType == ItemType.Kicker;
+			var isKickerOrTrigger = Header.ItemType == ItemType.Trigger || Header.ItemType == ItemType.Kicker;
 
 			float targetRadius;
 			if (capsule3D) {
@@ -128,7 +128,7 @@ namespace VisualPinball.Unity
 
 			// Kicker is special.. handle ball stalled on kicker, commonly hit while receding, knocking back into kicker pocket
 			if (isKicker && bnd <= 0 && bnd >= -Radius && a < PhysicsConstants.ContactVel * PhysicsConstants.ContactVel/* && ball.Hit.IsRealBall()*/) {
-				insideOfs.SetOutsideOf(_header.ItemId, ball.Id);
+				insideOfs.SetOutsideOf(Header.ItemId, ball.Id);
 			}
 
 			// contact positive possible in future ... objects Negative in contact now
@@ -148,13 +148,13 @@ namespace VisualPinball.Unity
 					hitTime = math.max(0.0f, (float) (-bnd / bnv));
 				}
 
-			} else if (isKickerOrTrigger /*&& ball.Hit.IsRealBall()*/ && bnd < 0 == insideOfs.IsOutsideOf(_header.ItemId, ball.Id)) {
+			} else if (isKickerOrTrigger /*&& ball.Hit.IsRealBall()*/ && bnd < 0 == insideOfs.IsOutsideOf(Header.ItemId, ball.Id)) {
 				// triggers & kickers
 
 				// here if ... ball inside and no hit set .... or ... ball outside and hit set
 				if (math.abs(bnd - Radius) < 0.05) {
 					// if ball appears in center of trigger, then assumed it was gen"ed there
-					insideOfs.SetInsideOf(_header.ItemId, ball.Id); // special case for trigger overlaying a kicker
+					insideOfs.SetInsideOf(Header.ItemId, ball.Id); // special case for trigger overlaying a kicker
 
 				} else {
 					// this will add the ball to the trigger space without a Hit
@@ -229,7 +229,7 @@ namespace VisualPinball.Unity
 
 		public void Collide(ref BallState ball, in CollisionEventData collEvent, ref Random random)
 		{
-			BallCollider.Collide3DWall(ref ball, in _header.Material, in collEvent, in collEvent.HitNormal, ref random);
+			BallCollider.Collide3DWall(ref ball, in Header.Material, in collEvent, in collEvent.HitNormal, ref random);
 		}
 	}
 }
