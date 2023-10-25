@@ -201,16 +201,51 @@ namespace VisualPinball.Unity
 
 		#endregion
 
-		public readonly struct ColliderLookup
+		public ICollider[] ToArray()
 		{
-			public readonly ColliderType Type;
-			public readonly int Index;
-
-			public ColliderLookup(ColliderType type, int index)
-			{
-				Type = type;
-				Index = index;
+			var array = new ICollider[Lookup.Length];
+			for (var i = 0; i < Lookup.Length; i++) {
+				var lookup = Lookup[i];
+				switch (lookup.Type) {
+					case ColliderType.Circle:
+						array[i] = CircleColliders[lookup.Index];
+						break;
+					case ColliderType.Flipper:
+						array[i] = FlipperColliders[lookup.Index];
+						break;
+					case ColliderType.Gate:
+						array[i] = GateColliders[lookup.Index];
+						break;
+					case ColliderType.Line3D:
+						array[i] = Line3DColliders[lookup.Index];
+						break;
+					case ColliderType.LineSlingShot:
+						array[i] = LineSlingshotColliders[lookup.Index];
+						break;
+					case ColliderType.Line:
+						array[i] = LineColliders[lookup.Index];
+						break;
+					case ColliderType.LineZ:
+						array[i] = LineZColliders[lookup.Index];
+						break;
+					case ColliderType.Plunger:
+						array[i] = PlungerColliders[lookup.Index];
+						break;
+					case ColliderType.Point:
+						array[i] = PointColliders[lookup.Index];
+						break;
+					case ColliderType.Spinner:
+						array[i] = SpinnerColliders[lookup.Index];
+						break;
+					case ColliderType.Triangle:
+						array[i] = TriangleColliders[lookup.Index];
+						break;
+					case ColliderType.Plane:
+						array[i] = PlaneColliders[lookup.Index];
+						break;
+				}
 			}
+			return array;
 		}
 	}
 }
