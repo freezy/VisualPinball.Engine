@@ -33,7 +33,7 @@ namespace VisualPinball.Unity
 		internal static Aabb GetAabb(this BlobAssetReference<ColliderBlob> colliders, int index) 
 			=> colliders.Value.Colliders[index].Value.Bounds().Aabb;
 
-		internal static unsafe ref CircleCollider GetCircleCollider(this in BlobAssetReference<ColliderBlob> colliders, int index)
+		internal static unsafe ref CircleCollider Circle(this in BlobAssetReference<ColliderBlob> colliders, int index)
 		{
 			ref var coll = ref colliders.Value.Colliders[index].Value;
 			fixed (Collider* cPtr = &coll) {
@@ -42,7 +42,7 @@ namespace VisualPinball.Unity
 			}
 		}
 		
-		internal static unsafe ref PlaneCollider GetPlaneCollider(this in BlobAssetReference<ColliderBlob> colliders, int index)
+		internal static unsafe ref PlaneCollider Plane(this in BlobAssetReference<ColliderBlob> colliders, int index)
 		{
 			ref var coll = ref colliders.Value.Colliders[index].Value;
 			fixed (Collider* cPtr = &coll) {
@@ -51,7 +51,7 @@ namespace VisualPinball.Unity
 			}
 		}
 
-		internal static unsafe ref SpinnerCollider GetSpinnerCollider(this in BlobAssetReference<ColliderBlob> colliders, int index)
+		internal static unsafe ref SpinnerCollider Spinner(this in BlobAssetReference<ColliderBlob> colliders, int index)
 		{
 			ref var coll = ref colliders.Value.Colliders[index].Value;
 			fixed (Collider* cPtr = &coll) {
@@ -60,7 +60,7 @@ namespace VisualPinball.Unity
 			}
 		}
 
-		internal static unsafe ref GateCollider GetGateCollider(this in BlobAssetReference<ColliderBlob> colliders, int index)
+		internal static unsafe ref GateCollider Gate(this in BlobAssetReference<ColliderBlob> colliders, int index)
 		{
 			ref var coll = ref colliders.Value.Colliders[index].Value;
 			fixed (Collider* cPtr = &coll) {
@@ -69,7 +69,7 @@ namespace VisualPinball.Unity
 			}
 		}
 
-		internal static unsafe ref LineCollider GetLineCollider(this in BlobAssetReference<ColliderBlob> colliders, int index)
+		internal static unsafe ref LineCollider Line(this in BlobAssetReference<ColliderBlob> colliders, int index)
 		{
 			ref var coll = ref colliders.Value.Colliders[index].Value;
 			fixed (Collider* cPtr = &coll) {
@@ -78,7 +78,7 @@ namespace VisualPinball.Unity
 			}
 		}
 
-		internal static unsafe ref TriangleCollider GetTriangleCollider(this in BlobAssetReference<ColliderBlob> colliders, int index)
+		internal static unsafe ref TriangleCollider Triangle(this in BlobAssetReference<ColliderBlob> colliders, int index)
 		{
 			ref var coll = ref colliders.Value.Colliders[index].Value;
 			fixed (Collider* cPtr = &coll) {
@@ -87,7 +87,7 @@ namespace VisualPinball.Unity
 			}
 		}
 
-		internal static unsafe ref Line3DCollider GetLine3DCollider(this in BlobAssetReference<ColliderBlob> colliders, int index)
+		internal static unsafe ref Line3DCollider Line3D(this in BlobAssetReference<ColliderBlob> colliders, int index)
 		{
 			ref var coll = ref colliders.Value.Colliders[index].Value;
 			fixed (Collider* cPtr = &coll) {
@@ -96,7 +96,7 @@ namespace VisualPinball.Unity
 			}
 		}
 
-		internal static unsafe ref LineSlingshotCollider GetLineSlingshotCollider(this in BlobAssetReference<ColliderBlob> colliders, int index)
+		internal static unsafe ref LineSlingshotCollider LineSlingShot(this in BlobAssetReference<ColliderBlob> colliders, int index)
 		{
 			ref var coll = ref colliders.Value.Colliders[index].Value;
 			fixed (Collider* cPtr = &coll) {
@@ -105,7 +105,7 @@ namespace VisualPinball.Unity
 			}
 		}
 
-		internal static unsafe ref PointCollider GetPointCollider(this in BlobAssetReference<ColliderBlob> colliders, int index)
+		internal static unsafe ref PointCollider Point(this in BlobAssetReference<ColliderBlob> colliders, int index)
 		{
 			ref var coll = ref colliders.Value.Colliders[index].Value;
 			fixed (Collider* cPtr = &coll) {
@@ -114,7 +114,7 @@ namespace VisualPinball.Unity
 			}
 		}
 
-		internal static unsafe ref LineZCollider GetLineZCollider(this in BlobAssetReference<ColliderBlob> colliders, int index)
+		internal static unsafe ref LineZCollider LineZ(this in BlobAssetReference<ColliderBlob> colliders, int index)
 		{
 			ref var coll = ref colliders.Value.Colliders[index].Value;
 			fixed (Collider* cPtr = &coll) {
@@ -123,7 +123,7 @@ namespace VisualPinball.Unity
 			}
 		}
 
-		internal static unsafe ref FlipperCollider GetFlipperCollider(this in BlobAssetReference<ColliderBlob> colliders, int index)
+		internal static unsafe ref FlipperCollider Flipper(this in BlobAssetReference<ColliderBlob> colliders, int index)
 		{
 			ref var coll = ref colliders.Value.Colliders[index].Value;
 			fixed (Collider* cPtr = &coll) {
@@ -132,7 +132,7 @@ namespace VisualPinball.Unity
 			}
 		}
 
-		internal static unsafe ref PlungerCollider GetPlungerCollider(this in BlobAssetReference<ColliderBlob> colliders, int index)
+		internal static unsafe ref PlungerCollider Plunger(this in BlobAssetReference<ColliderBlob> colliders, int index)
 		{
 			ref var coll = ref colliders.Value.Colliders[index].Value;
 			fixed (Collider* cPtr = &coll) {
