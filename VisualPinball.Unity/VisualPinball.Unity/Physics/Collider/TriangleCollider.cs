@@ -25,7 +25,11 @@ namespace VisualPinball.Unity
 {
 	internal struct TriangleCollider : ICollider
 	{
-		public int Id => Header.Id;
+		public int Id
+		{
+			get => Header.Id;
+			set => Header.Id = value;
+		}
 
 		public ColliderHeader Header;
 
