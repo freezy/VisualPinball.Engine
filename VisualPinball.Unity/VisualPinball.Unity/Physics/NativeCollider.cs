@@ -478,57 +478,17 @@ namespace VisualPinball.Unity
 			throw new ArgumentException($"Unknown lookup type.");
 		}
 
-		public int GetItemId(int index)
-		{
-			if (index < 0 || index >= m_Length) {
-				throw new IndexOutOfRangeException($"Invalid index {index} when looking up collider.");
-			}
-			ref var lookup = ref UnsafeUtility.ArrayElementAsRef<ColliderLookup>(m_LookupBuffer, index);
-			switch (lookup.Type) {
-				case ColliderType.Circle: return UnsafeUtility.ArrayElementAsRef<CircleCollider>(m_CircleColliderBuffer, lookup.Index).Header.ItemId;
-				case ColliderType.Flipper: return UnsafeUtility.ArrayElementAsRef<FlipperCollider>(m_FlipperColliderBuffer, lookup.Index).Header.ItemId;
-				case ColliderType.Gate: return UnsafeUtility.ArrayElementAsRef<GateCollider>(m_GateColliderBuffer, lookup.Index).Header.ItemId;
-				case ColliderType.Line3D: return UnsafeUtility.ArrayElementAsRef<Line3DCollider>(m_Line3DColliderBuffer, lookup.Index).Header.ItemId;
-				case ColliderType.LineSlingShot: return UnsafeUtility.ArrayElementAsRef<LineSlingshotCollider>(m_LineSlingshotColliderBuffer, lookup.Index).Header.ItemId;
-				case ColliderType.Line: return UnsafeUtility.ArrayElementAsRef<LineCollider>(m_LineColliderBuffer, lookup.Index).Header.ItemId;
-				case ColliderType.LineZ: return UnsafeUtility.ArrayElementAsRef<LineZCollider>(m_LineZColliderBuffer, lookup.Index).Header.ItemId;
-				case ColliderType.Plunger: return UnsafeUtility.ArrayElementAsRef<PlungerCollider>(m_PlungerColliderBuffer, lookup.Index).Header.ItemId;
-				case ColliderType.Point: return UnsafeUtility.ArrayElementAsRef<PointCollider>(m_PointColliderBuffer, lookup.Index).Header.ItemId;
-				case ColliderType.Spinner: return UnsafeUtility.ArrayElementAsRef<SpinnerCollider>(m_SpinnerColliderBuffer, lookup.Index).Header.ItemId;
-				case ColliderType.Triangle: return UnsafeUtility.ArrayElementAsRef<TriangleCollider>(m_TriangleColliderBuffer, lookup.Index).Header.ItemId;
-				case ColliderType.Plane: return UnsafeUtility.ArrayElementAsRef<PlaneCollider>(m_PlaneColliderBuffer, lookup.Index).Header.ItemId;
-			}
-			throw new ArgumentException($"Unknown lookup type.");
-		}
+		public int GetItemId(int index) => GetHeader(index).ItemId;
 
-		public ItemType GetItemType(int index)
-		{
-			if (index < 0 || index >= m_Length) {
-				throw new IndexOutOfRangeException($"Invalid index {index} when looking up collider.");
-			}
-			ref var lookup = ref UnsafeUtility.ArrayElementAsRef<ColliderLookup>(m_LookupBuffer, index);
-			switch (lookup.Type) {
-				case ColliderType.Circle: return UnsafeUtility.ArrayElementAsRef<CircleCollider>(m_CircleColliderBuffer, lookup.Index).Header.ItemType;
-				case ColliderType.Flipper: return UnsafeUtility.ArrayElementAsRef<FlipperCollider>(m_FlipperColliderBuffer, lookup.Index).Header.ItemType;
-				case ColliderType.Gate: return UnsafeUtility.ArrayElementAsRef<GateCollider>(m_GateColliderBuffer, lookup.Index).Header.ItemType;
-				case ColliderType.Line3D: return UnsafeUtility.ArrayElementAsRef<Line3DCollider>(m_Line3DColliderBuffer, lookup.Index).Header.ItemType;
-				case ColliderType.LineSlingShot: return UnsafeUtility.ArrayElementAsRef<LineSlingshotCollider>(m_LineSlingshotColliderBuffer, lookup.Index).Header.ItemType;
-				case ColliderType.Line: return UnsafeUtility.ArrayElementAsRef<LineCollider>(m_LineColliderBuffer, lookup.Index).ItemType;
-				case ColliderType.LineZ: return UnsafeUtility.ArrayElementAsRef<LineZCollider>(m_LineZColliderBuffer, lookup.Index).Header.ItemType;
-				case ColliderType.Plunger: return UnsafeUtility.ArrayElementAsRef<PlungerCollider>(m_PlungerColliderBuffer, lookup.Index).Header.ItemType;
-				case ColliderType.Point: return UnsafeUtility.ArrayElementAsRef<PointCollider>(m_PointColliderBuffer, lookup.Index).Header.ItemType;
-				case ColliderType.Spinner: return UnsafeUtility.ArrayElementAsRef<SpinnerCollider>(m_SpinnerColliderBuffer, lookup.Index).Header.ItemType;
-				case ColliderType.Triangle: return UnsafeUtility.ArrayElementAsRef<TriangleCollider>(m_TriangleColliderBuffer, lookup.Index).Header.ItemType;
-				case ColliderType.Plane: return UnsafeUtility.ArrayElementAsRef<PlaneCollider>(m_PlaneColliderBuffer, lookup.Index).Header.ItemType;
-			}
-			throw new ArgumentException($"Unknown lookup type.");
-		}
+		public ItemType GetItemType(int index) => GetHeader(index).ItemType;
 
 		public ref ColliderHeader GetHeader(int index)
 		{
+#if ENABLE_UNITY_COLLECTIONS_CHECKS
 			if (index < 0 || index >= m_Length) {
 				throw new IndexOutOfRangeException($"Invalid index {index} when looking up collider.");
 			}
+#endif
 			ref var lookup = ref UnsafeUtility.ArrayElementAsRef<ColliderLookup>(m_LookupBuffer, index);
 			switch (lookup.Type) {
 				case ColliderType.Circle: return ref UnsafeUtility.ArrayElementAsRef<CircleCollider>(m_CircleColliderBuffer, lookup.Index).Header;
