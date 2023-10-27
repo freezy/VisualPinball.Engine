@@ -16,7 +16,6 @@
 
 using NativeTrees;
 using Unity.Collections;
-using Unity.Entities;
 using VisualPinball.Engine.VPT;
 using VisualPinball.Unity.Collections;
 
@@ -73,6 +72,7 @@ namespace VisualPinball.Unity
 		}
 
 		internal ref ColliderHeader GetColliderHeader(int colliderId) => ref Colliders.GetHeader(colliderId);
+		internal ColliderType GetColliderType(int colliderId) => Colliders.GetHeader(colliderId).Type;
 
 		internal bool IsColliderActive(int colliderId) => !DisabledCollisionItems.Contains(Colliders.GetItemId(colliderId));
 
@@ -112,7 +112,7 @@ namespace VisualPinball.Unity
 			if (IsInactiveDropTarget(colliderId)) {
 				return -1f;
 			}
-			switch (Colliders.GetType(colliderId)) {
+			switch (GetColliderType(colliderId)) {
 				case ColliderType.Bumper:
 				case ColliderType.Circle:
 					return Colliders.Circle(colliderId).HitTest(ref collEvent, ref state.InsideOfs, in ball,
