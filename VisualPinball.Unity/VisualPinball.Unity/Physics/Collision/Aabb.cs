@@ -107,6 +107,21 @@ namespace VisualPinball.Unity
 			return new NativeTrees.AABB2D(new float2(aabb.Min.x, aabb.Min.y), new float2(aabb.Min.x, aabb.Max.y));
 		}
 
+		public static bool operator == (Aabb a, Aabb b) => a.Equals(b);
+
+		public static bool operator != (Aabb a, Aabb b) => !a.Equals(b);
+
+		private bool Equals(Aabb a)
+		{
+			return
+				a.Right == Left &&
+				a.Left == Left &&
+				a.Bottom == Bottom &&
+				a.Top == Top &&
+				a.ZLow == ZLow &&
+				a.ZHigh == ZHigh;
+		}
+
 		public override string ToString()
 		{
 			return $"Aabb {Left} → {Right} | {Top} ↘ {Bottom} | {ZLow} ↑ {ZHigh}";

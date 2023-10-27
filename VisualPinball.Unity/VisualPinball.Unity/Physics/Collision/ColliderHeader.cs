@@ -63,5 +63,20 @@ namespace VisualPinball.Unity
 			Threshold = info.HitThreshold;
 			FireEvents = info.FireEvents;
 		}
+
+		public static bool operator == (ColliderHeader a, ColliderHeader b) => a.Equals(b);
+		public static bool operator != (ColliderHeader a, ColliderHeader b) => !a.Equals(b);
+
+		public bool Equals(ColliderHeader other)
+		{
+			return
+				Type == other.Type &&
+				ItemType == other.ItemType &&
+				Id == other.Id &&
+				ItemId == other.ItemId &&
+				Material == other.Material &&
+				Threshold == other.Threshold &&
+				FireEvents == other.FireEvents;
+		}
 	}
 }
