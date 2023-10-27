@@ -29,5 +29,18 @@ namespace VisualPinball.Unity
 		public FixedList512Bytes<float> FrictionOverVelocityLUT;
 		public bool UseFrictionOverVelocity;
 
+		public static bool operator == (PhysicsMaterialData a, PhysicsMaterialData b) => a.Equals(b);
+		public static bool operator != (PhysicsMaterialData a, PhysicsMaterialData b) => !a.Equals(b);
+
+		public bool Equals(PhysicsMaterialData other)
+		{
+			return
+				Elasticity == other.Elasticity &&
+				ElasticityFalloff == other.ElasticityFalloff &&
+				Friction == other.Friction &&
+				ScatterAngleRad == other.ScatterAngleRad &&
+				UseElasticityOverVelocity == other.UseElasticityOverVelocity &&
+				UseFrictionOverVelocity == other.UseFrictionOverVelocity;
+		}
 	}
 }
