@@ -446,15 +446,6 @@ namespace VisualPinball.Unity
 
 		#region Collider Data
 
-		public ColliderType GetType(int index)
-		{
-			if (index < 0 || index >= m_Length) {
-				throw new IndexOutOfRangeException($"Invalid index {index} when looking up collider.");
-			}
-			var lookup = UnsafeUtility.ReadArrayElement<ColliderLookup>(m_LookupBuffer, index);
-			return lookup.Type;
-		}
-
 		public Aabb GetAabb(int index)
 		{
 			if (index < 0 || index >= m_Length) {
