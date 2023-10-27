@@ -24,14 +24,23 @@ namespace VisualPinball.Unity
 {
 	internal struct SpinnerCollider : ICollider
 	{
-		public int Id => Header.Id;
+		public int Id
+		{
+			get => Header.Id;
+			set {
+				Header.Id = value;
+				var bounds = Bounds;
+				bounds.ColliderId = value;
+				Bounds = bounds;
+			}
+		}
 
 		public ColliderHeader Header;
 
 		public readonly LineCollider LineSeg0;
 		public readonly LineCollider LineSeg1;
 
-		public ColliderBounds Bounds { get; set; }
+		public ColliderBounds Bounds { get; private set; }
 
 		public SpinnerCollider(SpinnerComponent component, float height, ColliderInfo info) : this()
 		{

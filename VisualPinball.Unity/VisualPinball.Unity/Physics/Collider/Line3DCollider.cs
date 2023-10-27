@@ -23,7 +23,16 @@ namespace VisualPinball.Unity
 {
 	internal struct Line3DCollider : ICollider
 	{
-		public int Id => Header.Id;
+		public int Id
+		{
+			get => Header.Id;
+			set {
+				Header.Id = value;
+				var bounds = Bounds;
+				bounds.ColliderId = value;
+				Bounds = bounds;
+			}
+		}
 
 		public ColliderHeader Header;
 
@@ -37,7 +46,7 @@ namespace VisualPinball.Unity
 		private readonly float _zHigh;
 		private readonly float3x3 _matrix;
 
-		public ColliderBounds Bounds { get; set; }
+		public ColliderBounds Bounds { get; private set; }
 
 		public Line3DCollider(float3 v1, float3 v2, ColliderInfo info) : this()
 		{

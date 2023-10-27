@@ -25,7 +25,16 @@ namespace VisualPinball.Unity
 {
 	internal struct PlungerCollider : ICollider
 	{
-		public int Id => Header.Id;
+		public int Id
+		{
+			get => Header.Id;
+			set {
+				Header.Id = value;
+				var bounds = Bounds;
+				bounds.ColliderId = value;
+				Bounds = bounds;
+			}
+		}
 
 		public ColliderHeader Header;
 
@@ -33,7 +42,7 @@ namespace VisualPinball.Unity
 		public LineZCollider JointBase0;
 		public LineZCollider JointBase1;
 
-		public ColliderBounds Bounds { get; set; }
+		public ColliderBounds Bounds { get; private set; }
 
 		public PlungerCollider(PlungerComponent comp, PlungerColliderComponent collComp, ColliderInfo info) : this()
 		{
