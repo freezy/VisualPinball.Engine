@@ -78,20 +78,17 @@ a {
 }
 
 /* landing svg art colors */
-svg .cls-1 {  /* visual pinball engine */
+svg #text {  /* visual pinball engine */
 	fill: var(--bs-body-color);
-	font-family: Asgalt-Regular, Asgalt;
-	font-size: 34.4px;
-	letter-spacing: .19em;
 }
-svg .cls-2, .cls-3, .cls-4 { /* outer */
+svg #bg1 { /* outer */
 	stroke-width: 0;
 	fill: var(--bs-body-bg)
 }
-svg .cls-3 { /* logo */
+svg #logo { /* logo */
 	fill: var(--bs-body-color);
 }
-svg .cls-4 { /* inner */
+svg #bg2 { /* inner */
 	fill: var(--vpe-body-bg-secondary);
 }
 
