@@ -21,7 +21,6 @@ using VisualPinball.Engine.Test.Test;
 using VisualPinball.Engine.Test.VPT.Primitive;
 using VisualPinball.Engine.VPT.Table;
 using VisualPinball.Unity.Editor;
-using Assert = Unity.Assertions.Assert;
 
 namespace VisualPinball.Unity.Test
 {

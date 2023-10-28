@@ -15,8 +15,6 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using Unity.Collections;
-using Unity.Collections.LowLevel.Unsafe;
-using Unity.Entities;
 using Unity.Mathematics;
 
 namespace VisualPinball.Unity
@@ -48,17 +46,6 @@ namespace VisualPinball.Unity
 			LineSeg1 = lineSeg1;
 
 			Bounds = LineSeg0.Bounds;
-		}
-
-		public unsafe void Allocate(BlobBuilder builder, ref BlobBuilderArray<BlobPtr<Collider>> colliders)
-		{
-			ref var ptr = ref UnsafeUtility.As<BlobPtr<Collider>, BlobPtr<GateCollider>>(ref colliders[Header.Id]);
-			ref var collider = ref builder.Allocate(ref ptr);
-			UnsafeUtility.MemCpy(
-				UnsafeUtility.AddressOf(ref collider),
-				UnsafeUtility.AddressOf(ref this),
-				sizeof(GateCollider)
-			);
 		}
 
 		#region Narrowphase

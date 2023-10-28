@@ -14,8 +14,6 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-using Unity.Collections.LowLevel.Unsafe;
-using Unity.Entities;
 using Unity.Mathematics;
 using UnityEngine;
 using VisualPinball.Engine.Common;
@@ -45,17 +43,6 @@ namespace VisualPinball.Unity
 			_distance = distance;
 		}
 
-		public unsafe void Allocate(BlobBuilder builder, ref BlobBuilderArray<BlobPtr<Collider>> colliders)
-		{
-			ref var ptr = ref UnsafeUtility.As<BlobPtr<Collider>, BlobPtr<PlaneCollider>>(ref colliders[Header.Id]);
-			ref var collider = ref builder.Allocate(ref ptr);
-			UnsafeUtility.MemCpy(
-				UnsafeUtility.AddressOf(ref collider),
-				UnsafeUtility.AddressOf(ref this),
-				sizeof(PlaneCollider)
-			);
-		}
-		
 		public override string ToString() => $"PlaneCollider[{Header.ItemId}] {_distance} at ({_normal.x}/{_normal.y}/{_normal.z})";
 
 		#region Narrowphase

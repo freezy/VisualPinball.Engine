@@ -14,8 +14,6 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-using System;
-using Unity.Entities;
 using VisualPinball.Engine.VPT;
 
 namespace VisualPinball.Unity
@@ -30,16 +28,6 @@ namespace VisualPinball.Unity
 		private void Awake()
 		{
 			RegisterPhysics();
-		}
-
-		private Entity MainEntity {
-			get {
-				var ma = MainComponent;
-				if (ma == null) {
-					throw new InvalidOperationException("Cannot find main component of " + name + ".");
-				}
-				return ma.Entity;
-			}
 		}
 	}
 }

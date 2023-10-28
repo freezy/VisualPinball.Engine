@@ -17,7 +17,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Unity.Entities;
 using UnityEngine;
 using VisualPinball.Engine.Math;
 using VisualPinball.Engine.VPT;
@@ -43,8 +42,6 @@ namespace VisualPinball.Unity
 		protected abstract Type MeshComponentType { get; }
 
 		protected abstract Type ColliderComponentType { get; }
-
-		public Entity Entity { get; set; }
 
 		/// <summary>
 		/// Returns all child mesh components linked to this data.
@@ -100,11 +97,6 @@ namespace VisualPinball.Unity
 
 		public virtual void UpdateVisibility()
 		{
-		}
-
-		protected void Convert(Entity entity, EntityManager dstManager)
-		{
-			Entity = entity;
 		}
 
 		protected float SurfaceHeight(ISurfaceComponent surface, Vector2 position)

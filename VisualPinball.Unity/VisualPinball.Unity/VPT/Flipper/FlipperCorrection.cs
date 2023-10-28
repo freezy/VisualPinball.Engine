@@ -14,25 +14,22 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-using Unity.Entities;
 using Unity.Mathematics;
 
 namespace VisualPinball.Unity
 {
 	internal static class FlipperCorrection
 	{
-		public static void OnBallLeaveFlipper(ref BallState ballState, ref FlipperCorrectionBlob flipperCorrectionBlob,
+		public static void OnBallLeaveFlipper(ref BallState ballState, ref FlipperCorrectionState flipperCorrectionState,
 			in FlipperMovementState flipperMovementState, in FlipperTricksData tricks, in FlipperStaticData flipperStaticData, uint timeMs)
 		{
 
 			var timeSinceFlipperStartedRotatingToEndMs = timeMs - flipperMovementState.StartRotateToEndTime;
 
 			// Time delay overrun test
-			if (timeSinceFlipperStartedRotatingToEndMs > flipperCorrectionBlob.TimeDelayMs)
+			if (timeSinceFlipperStartedRotatingToEndMs > flipperCorrectionState.TimeDelayMs)
 				return;
 
-			ref var velocities = ref flipperCorrectionBlob.Velocities;
-			ref var polarities = ref flipperCorrectionBlob.Polarities;
 			var angleCur = flipperMovementState.Angle;
 
 			var ballPosition = ballState.Position;
@@ -65,7 +62,7 @@ namespace VisualPinball.Unity
 			partialFlipCoef = math.abs(partialFlipCoef - 1F);
 
 			// Velocity correction
-			var velCoef = LinearEnvelopeEven(ballPos, ref velocities);
+			var velCoef = LinearEnvelopeEven(ballPos, flipperCorrectionState.Velocities);
 			var velCoefInit = velCoef;
 			if (partialFlipCoef < 1)
 			{
@@ -76,7 +73,7 @@ namespace VisualPinball.Unity
 			// Polarity Correction
 			bool isLeft = angleEnd < angleStart; // TODO: better if not classic flippers (trigonometry problems)
 
-			float AddX = LinearEnvelopeEven(ballPos, ref polarities, 0F);
+			float AddX = LinearEnvelopeEven(ballPos, flipperCorrectionState.Polarities, 0F);
 			if(!isLeft) {
 				AddX = -AddX;
 			}
@@ -96,7 +93,7 @@ namespace VisualPinball.Unity
 			return m * x + b;
 		}
 
-		private static float LinearEnvelope(float xInput, ref BlobArray<float2> curve, float defaultValue = 1F)
+		private static float LinearEnvelope(float xInput, ref UnmanagedArray<float2> curve, float defaultValue = 1F)
 		{
 			if (curve.Length <= 0)
 				return defaultValue;
@@ -126,7 +123,7 @@ namespace VisualPinball.Unity
 		}
 
 		// if segments are even on x axis, no need to iterate: faster
-		private static float LinearEnvelopeEven(float xInput, ref BlobArray<float2> curve, float defaultValue = 1F)
+		private static float LinearEnvelopeEven(float xInput, UnmanagedArray<float2> curve, float defaultValue = 1F)
 		{
 			if (curve.Length <= 0)
 				return defaultValue;

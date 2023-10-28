@@ -14,13 +14,60 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-using Unity.Entities;
+using System;
+using Unity.Collections;
+using Unity.Collections.LowLevel.Unsafe;
+using Unity.Mathematics;
 
 namespace VisualPinball.Unity
 {
-	public struct FlipperCorrectionState
+	public unsafe struct FlipperCorrectionState : IDisposable
 	{
-		public bool IsEnabled;
-		public BlobAssetReference<FlipperCorrectionBlob> Value;
+		public readonly bool IsEnabled;
+		public readonly int FlipperItemId;
+		public readonly uint TimeDelayMs;
+
+		[NativeDisableUnsafePtrRestriction] private void* _polarities;
+		[NativeDisableUnsafePtrRestriction] private void* _velocities;
+
+		private readonly int _numPolarities;
+		private readonly int _numVelocities;
+
+		private readonly Allocator _allocator;
+
+		public FlipperCorrectionState(bool isEnabled, int flipperItemId, uint timeDelayMs, float2[] polarities, float2[] velocities, Allocator allocator)
+		{
+			IsEnabled = isEnabled;
+			FlipperItemId = flipperItemId;
+			TimeDelayMs = timeDelayMs;
+			_polarities = Allocate(polarities, allocator);
+			_velocities = Allocate(velocities, allocator);
+			_allocator = allocator;
+			_numPolarities = polarities.Length;
+			_numVelocities = velocities.Length;
+		}
+
+		public UnmanagedArray<float2> Velocities => new(_velocities, _numVelocities);
+		public UnmanagedArray<float2> Polarities => new(_polarities, _numPolarities);
+
+		private static void* Allocate(float2[] src, Allocator allocator)
+		{
+			var na = new NativeArray<float2>(src, Allocator.Temp);
+			var size = UnsafeUtility.SizeOf<float2>() * src.Length;
+			var dest = UnsafeUtility.Malloc(size, UnsafeUtility.AlignOf<float2>(), allocator);
+			UnsafeUtility.MemCpy(dest, na.GetUnsafeReadOnlyPtr(), size);
+			na.Dispose();
+
+			return dest;
+		}
+
+		public void Dispose()
+		{
+			UnsafeUtility.Free(_velocities, _allocator);
+			UnsafeUtility.Free(_polarities, _allocator);
+
+			_polarities = null;
+			_velocities = null;
+		}
 	}
 }

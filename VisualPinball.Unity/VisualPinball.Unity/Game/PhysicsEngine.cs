@@ -20,7 +20,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using NativeTrees;
 using Unity.Collections;
-using Unity.Entities;
 using Unity.Jobs;
 using Unity.Mathematics;
 using UnityEngine;

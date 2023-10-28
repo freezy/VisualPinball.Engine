@@ -15,8 +15,6 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using Unity.Collections;
-using Unity.Collections.LowLevel.Unsafe;
-using Unity.Entities;
 using Unity.Mathematics;
 using VisualPinball.Engine.Common;
 using VisualPinball.Engine.VPT;
@@ -66,17 +64,6 @@ namespace VisualPinball.Unity
 			ZLow = zLow;
 			ZHigh = zHigh;
 			CalcNormal();
-		}
-
-		public unsafe void Allocate(BlobBuilder builder, ref BlobBuilderArray<BlobPtr<Collider>> colliders)
-		{
-			ref var ptr = ref UnsafeUtility.As<BlobPtr<Collider>, BlobPtr<LineCollider>>(ref colliders[Header.Id]);
-			ref var collider = ref builder.Allocate(ref ptr);
-			UnsafeUtility.MemCpy(
-				UnsafeUtility.AddressOf<LineCollider>(ref collider),
-				UnsafeUtility.AddressOf(ref this),
-				sizeof(LineCollider)
-			);
 		}
 
 		public void CalcNormal()
