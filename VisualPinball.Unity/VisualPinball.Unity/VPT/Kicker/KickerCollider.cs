@@ -123,11 +123,11 @@ namespace VisualPinball.Unity
 		{
 			var minDistSqr = Constants.FloatMax;
 			var idx = 0u;
-			ref var hitMesh = ref meshData.Value.Value.Vertices;
-			ref var hitMeshNormals = ref meshData.Value.Value.Normals;
+			var hitMesh = meshData.Vertices;
+			var hitMeshNormals = meshData.Normals;
 			for (var t = 0; t < hitMesh.Length; t++) {
 				// find the right normal by calculating the distance from current ball position to vertex of the kicker mesh
-				ref var vertex = ref hitMesh[t];
+				ref var vertex = ref hitMesh.GetAsRef(t);
 				var lengthSqr = math.lengthsq(ball.Position - vertex);
 				if (lengthSqr < minDistSqr) {
 					minDistSqr = lengthSqr;
@@ -138,7 +138,7 @@ namespace VisualPinball.Unity
 			if (idx != ~0u) {
 
 				// we have the nearest vertex now use the normal and damp it so it doesn't speed up the ball velocity too much
-				ref var hitNorm = ref hitMeshNormals[(int)idx];
+				ref var hitNorm = ref hitMeshNormals.GetAsRef((int)idx);
 				var dot = -math.dot(ball.Velocity, hitNorm);
 				var reactionImpulse = ball.Mass * math.abs(dot);
 

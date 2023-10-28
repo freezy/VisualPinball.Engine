@@ -168,9 +168,9 @@ namespace VisualPinball.Unity
 
 			if (triggerState.FlipperCorrection.IsEnabled) {
 				if (triggerState.Animation.UnHitEvent) {
-					ref var flipperCorrectionBlob = ref triggerState.FlipperCorrection.Value.Value;
-					ref var fs = ref state.FlipperStates.GetValueByRef(flipperCorrectionBlob.FlipperItemId);
-					FlipperCorrection.OnBallLeaveFlipper(ref ball, ref flipperCorrectionBlob, in fs.Movement, in fs.Tricks, in fs.Static, state.Env.TimeMsec);
+					ref var flipperCorrectionState = ref triggerState.FlipperCorrection;
+					ref var fs = ref state.FlipperStates.GetValueByRef(flipperCorrectionState.FlipperItemId);
+					FlipperCorrection.OnBallLeaveFlipper(ref ball, ref flipperCorrectionState, in fs.Movement, in fs.Tricks, in fs.Static, state.Env.TimeMsec);
 				}
 			}
 		}

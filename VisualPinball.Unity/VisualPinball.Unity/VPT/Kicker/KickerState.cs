@@ -14,9 +14,11 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+using System;
+
 namespace VisualPinball.Unity
 {
-	internal struct KickerState
+	internal struct KickerState : IDisposable
 	{
 		internal readonly int ItemId;
 		internal KickerStaticState Static;
@@ -29,6 +31,11 @@ namespace VisualPinball.Unity
 			Static = @static;
 			Collision = collision;
 			CollisionMesh = collisionMesh;
+		}
+
+		public void Dispose()
+		{
+			CollisionMesh.Dispose();
 		}
 	}
 }

@@ -20,7 +20,6 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using NLog;
-using Unity.Scenes;
 using UnityEditor;
 using UnityEditor.Formats.Fbx.Exporter;
 using UnityEditor.SceneManagement;

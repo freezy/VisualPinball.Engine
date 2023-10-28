@@ -19,7 +19,6 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using Unity.Entities;
 using Unity.Mathematics;
 using UnityEngine;
 using UnityEngine.Serialization;
@@ -241,7 +240,6 @@ namespace VisualPinball.Unity
 		public bool CanBeTransformed => false;
 		public bool OverrideTransform => false;
 		public string ItemName => "Slingshot";
-		public Entity Entity { get; set; }
 
 		public void UpdateTransforms() { }
 		public void UpdateVisibility() { }

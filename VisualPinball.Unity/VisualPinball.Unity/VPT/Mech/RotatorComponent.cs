@@ -18,7 +18,6 @@
 
 using System.Collections.Generic;
 using System.Linq;
-using Unity.Entities;
 using Unity.Mathematics;
 using UnityEngine;
 
@@ -59,7 +58,6 @@ namespace VisualPinball.Unity
 		private (KickerApi kicker, float distance, float angle, int ballId)[] _balls;
 
 		private Dictionary<IRotatableComponent, (float, float)> _rotatingObjectDistances = new();
-		private static EntityManager EntityManager => World.DefaultGameObjectInjectionWorld.EntityManager;
 
 		private void Awake()
 		{

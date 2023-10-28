@@ -25,7 +25,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Unity.Collections;
-using Unity.Entities;
 using Unity.Mathematics;
 using UnityEngine;
 using VisualPinball.Engine.Game.Engines;
@@ -271,25 +270,6 @@ namespace VisualPinball.Unity
 				);
 			}
 
-			// flipper correction trigger has additional data
-			using var builder = new BlobBuilder(Allocator.Temp);
-			ref var root = ref builder.ConstructRoot<FlipperCorrectionBlob>();
-
-			root.FlipperItemId = collComponent.ForFlipper.gameObject.GetInstanceID();
-			root.TimeDelayMs = collComponent.TimeThresholdMs;
-
-			var polarities = builder.Allocate(ref root.Polarities, collComponent.FlipperPolarities.Length);
-			for (var i = 0; i < collComponent.FlipperPolarities.Length; i++) {
-				polarities[i] = collComponent.FlipperPolarities[i];
-			}
-
-			var velocities = builder.Allocate(ref root.Velocities, collComponent.FlipperVelocities.Length);
-			for (var i = 0; i < collComponent.FlipperVelocities.Length; i++) {
-				velocities[i] = collComponent.FlipperVelocities[i];
-			}
-
-			var blobAssetRef = builder.CreateBlobAssetReference<FlipperCorrectionBlob>(Allocator.Persistent);
-
 			return new TriggerState(
 				gameObject.GetInstanceID(),
 				new TriggerStaticState {
@@ -298,10 +278,14 @@ namespace VisualPinball.Unity
 					Shape = TriggerShape.TriggerNone,
 					TableScaleZ = 1f
 				},
-				new FlipperCorrectionState {
-					IsEnabled = true,
-					Value = blobAssetRef
-				}
+				new FlipperCorrectionState(
+					true,
+					collComponent.ForFlipper.gameObject.GetInstanceID(),
+					collComponent.TimeThresholdMs,
+					collComponent.FlipperPolarities,
+					collComponent.FlipperVelocities,
+					Allocator.Persistent
+				)
 			);
 		}
 

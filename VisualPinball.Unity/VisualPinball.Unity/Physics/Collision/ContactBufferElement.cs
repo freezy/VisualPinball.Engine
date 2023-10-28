@@ -14,12 +14,9 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-using Unity.Entities;
-
 namespace VisualPinball.Unity
 {
-	[InternalBufferCapacity(8)]
-	internal struct ContactBufferElement : IBufferElementData
+	internal struct ContactBufferElement
 	{
 		public CollisionEventData CollEvent;
 		public int BallId;

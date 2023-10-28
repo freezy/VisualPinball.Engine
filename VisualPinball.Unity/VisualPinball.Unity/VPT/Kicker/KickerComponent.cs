@@ -25,6 +25,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using Unity.Collections;
 using Unity.Mathematics;
 using UnityEditor;
 using UnityEngine;
@@ -276,8 +277,8 @@ namespace VisualPinball.Unity
 
 			var height = SurfaceHeight(Surface, Position);
 			var meshData = colliderComponent.LegacyMode
-				? new ColliderMeshData(Array.Empty<Vertex3DNoTex2>(), 0, float3.zero)
-				: new ColliderMeshData(KickerHitMesh.Vertices, Radius, new float3(Center.x, Center.y, height));
+				? new ColliderMeshData(Array.Empty<Vertex3DNoTex2>(), 0, float3.zero, Allocator.Persistent)
+				: new ColliderMeshData(KickerHitMesh.Vertices, Radius, new float3(Center.x, Center.y, height), Allocator.Persistent);
 
 			return new KickerState(
 				colliderComponent ? colliderComponent.gameObject.GetInstanceID() : 0,

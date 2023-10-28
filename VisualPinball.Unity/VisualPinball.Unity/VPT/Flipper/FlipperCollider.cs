@@ -16,8 +16,6 @@
 
 using NLog;
 using Unity.Collections;
-using Unity.Collections.LowLevel.Unsafe;
-using Unity.Entities;
 using Unity.Mathematics;
 using VisualPinball.Engine.Common;
 using VisualPinball.Engine.Game;
@@ -140,20 +138,6 @@ namespace VisualPinball.Unity
 		{
 			var deg = angle % 360;
 			return deg > 180 ? deg - 360 : deg;
-		}
-
-		public unsafe void Allocate(BlobBuilder builder, ref BlobBuilderArray<BlobPtr<Collider>> colliders)
-		{
-			var bounds = Bounds;
-			bounds.ColliderId = Header.Id;
-			Bounds = bounds;
-			ref var ptr = ref UnsafeUtility.As<BlobPtr<Collider>, BlobPtr<FlipperCollider>>(ref colliders[Header.Id]);
-			ref var collider = ref builder.Allocate(ref ptr);
-			UnsafeUtility.MemCpy(
-				UnsafeUtility.AddressOf(ref collider),
-				UnsafeUtility.AddressOf(ref this),
-				sizeof(FlipperCollider)
-			);
 		}
 
 		#endregion

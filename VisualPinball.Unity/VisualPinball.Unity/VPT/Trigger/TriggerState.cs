@@ -14,9 +14,11 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+using System;
+
 namespace VisualPinball.Unity
 {
-	internal struct TriggerState
+	internal struct TriggerState : IDisposable
 	{
 		internal readonly int ItemId;
 		internal readonly int AnimatedItemId;
@@ -49,6 +51,11 @@ namespace VisualPinball.Unity
 			Movement = default;
 			Animation = default;
 			FlipperCorrection = flipperCorrection;
+		}
+
+		public void Dispose()
+		{
+			FlipperCorrection.Dispose();
 		}
 	}
 }

@@ -16,7 +16,6 @@
 
 using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
-using Unity.Entities;
 using Unity.Mathematics;
 
 namespace VisualPinball.Unity
@@ -90,17 +89,6 @@ namespace VisualPinball.Unity
 				math.min(v1.z, v2.z),
 				math.max(v1.z, v2.z)
 			));
-		}
-
-		public unsafe void Allocate(BlobBuilder builder, ref BlobBuilderArray<BlobPtr<Collider>> colliders)
-		{
-			ref var ptr = ref UnsafeUtility.As<BlobPtr<Collider>, BlobPtr<Line3DCollider>>(ref colliders[Header.Id]);
-			ref var collider = ref builder.Allocate(ref ptr);
-			UnsafeUtility.MemCpy(
-				UnsafeUtility.AddressOf(ref collider),
-				UnsafeUtility.AddressOf(ref this),
-				sizeof(Line3DCollider)
-			);
 		}
 
 		#region Narrowphase

@@ -15,8 +15,6 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using Unity.Collections;
-using Unity.Collections.LowLevel.Unsafe;
-using Unity.Entities;
 using Unity.Mathematics;
 using VisualPinball.Engine.Common;
 using VisualPinball.Engine.VPT;
@@ -61,17 +59,6 @@ namespace VisualPinball.Unity
 			var e0 = rgv2 - rgv0;
 			var e1 = rgv1 - rgv0;
 			_normal = math.normalizesafe(math.cross(e0, e1));
-		}
-
-		public unsafe void Allocate(BlobBuilder builder, ref BlobBuilderArray<BlobPtr<Collider>> colliders)
-		{
-			ref var ptr = ref UnsafeUtility.As<BlobPtr<Collider>, BlobPtr<TriangleCollider>>(ref colliders[Header.Id]);
-			ref var collider = ref builder.Allocate(ref ptr);
-			UnsafeUtility.MemCpy(
-				UnsafeUtility.AddressOf(ref collider),
-				UnsafeUtility.AddressOf(ref this),
-				sizeof(TriangleCollider)
-			);
 		}
 
 		public static bool IsDegenerate(float3 rg0, float3 rg1, float3 rg2)
