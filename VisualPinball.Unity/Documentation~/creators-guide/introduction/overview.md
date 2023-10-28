@@ -7,22 +7,16 @@ description: VPE, the Visual Pinball Engine, is a modern, open source pinball si
 
 # Overview
 
-The Visual Pinball Engine (which we call "VPE") is an open source pinball simulator that you can use to create pinball games for Windows, macOS, and Linux. It's based on the famous [Visual Pinball](https://sourceforge.net/projects/vpinball/) (often abbreviated "VP", or "VPX" for its latest version 10) meaning VPE's physics simulation matches that in VPX, and it can read and write the same file format.
+The Visual Pinball Engine (which we call "VPE") is an open-source pinball simulator that you can use to create pinball games for Windows, macOS, and Linux. It's based on the famous [Visual Pinball](https://github.com/vpinball/vpinball) (often abbreviated "VP" or "VPX" for its latest version 10), meaning VPE's physics simulation matches that in VPX, and it can read and write the same file format.
 
-VPE uses [Unity](https://unity.com/) for its underlying game architecture. Unity is one of the leading cross-platform game engines and provides VPE with an advanced render pipeline that produces high-quality visuals and is continuously maintained and updated to work with new hardware features. Unity also comes with an amazing editor, which VPE extends to make the table creation process as easy as possible.
+VPE uses [Unity](https://unity.com/) for its underlying game architecture. Unity is one of the leading cross-platform game engines and provides VPE with an advanced render pipeline that produces high-quality visuals and is continuously maintained and updated to work with new hardware features. Unity also comes with a fantastic editor, which VPE extends to make the table creation process as easy as possible.
 
 > [!Video https://www.youtube.com/embed/JxjdZ6mohfA]
 <small>*An imported .vpx file in VPE, using Unitys' High Definition Render Pipeline.*</small>
 
-> [!Video https://www.youtube.com/embed/wHcKd_FExsE]
+> [!Video https://www.youtube.com/embed/_CfZImFl1ME]
 <small>Gottlieb's *Volley*, remodeled and retextured in Unity</small>
-
-
-> [!NOTE] 
-> Technically, VPE is what we call a "library". A library is not executable per se, because it needs a host application. 
->
-> We will provide such a host application in the future, but for now you will need to create a new Unity project and add VPE as a package in order to run it.
 
 ## Audience
 
-This documentation is mainly aimed at table creators ("authors"). VPE is currently not in a state where it is usable by the general public ("players"). Documentation about how to setup VPE to play will follow at a later stage.
+This documentation is mainly aimed at table creators ("authors"). VPE is currently not in a state where it is usable by the general public ("players"). Documentation about how to set up VPE to play will follow at a later stage.
