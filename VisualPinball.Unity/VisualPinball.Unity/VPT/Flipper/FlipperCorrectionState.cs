@@ -40,9 +40,9 @@ namespace VisualPinball.Unity
 			IsEnabled = isEnabled;
 			FlipperItemId = flipperItemId;
 			TimeDelayMs = timeDelayMs;
-			_polarities = Allocate(polarities, allocator);
-			_velocities = Allocate(velocities, allocator);
 			_allocator = allocator;
+			_polarities = Allocate(polarities, _allocator);
+			_velocities = Allocate(velocities, _allocator);
 			_numPolarities = polarities.Length;
 			_numVelocities = velocities.Length;
 		}
@@ -63,8 +63,8 @@ namespace VisualPinball.Unity
 
 		public void Dispose()
 		{
-			UnsafeUtility.Free(_velocities, _allocator);
-			UnsafeUtility.Free(_polarities, _allocator);
+			UnsafeUtility.Free(_velocities, Allocator.None);
+			UnsafeUtility.Free(_polarities, Allocator.Temp);
 
 			_polarities = null;
 			_velocities = null;

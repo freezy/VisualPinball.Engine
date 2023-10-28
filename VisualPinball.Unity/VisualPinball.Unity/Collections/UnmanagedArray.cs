@@ -53,5 +53,14 @@ namespace VisualPinball.Unity
 			}
 			return ref UnsafeUtility.ArrayElementAsRef<T>(_buffer, index);
 		}
+
+		public T[] ToArray()
+		{
+			var array = new T[Length];
+			for (var i = 0; i < Length; i++) {
+				array[i] = UnsafeUtility.ReadArrayElement<T>(_buffer, i);
+			}
+			return array;
+		}
 	}
 }
