@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-using System;
 using NativeTrees;
 using Unity.Collections;
 using VisualPinball.Engine.VPT;
@@ -22,7 +21,7 @@ using VisualPinball.Unity.Collections;
 
 namespace VisualPinball.Unity
 {
-	internal struct PhysicsState : IDisposable
+	internal struct PhysicsState
 	{
 		internal PhysicsEnv Env;
 		internal NativeOctree<int> Octree;
@@ -184,35 +183,5 @@ namespace VisualPinball.Unity
 		}
 
 		#endregion
-
-		public void Dispose()
-		{
-			Env.Dispose();
-			Octree.Dispose();
-			Colliders.Dispose();
-			InsideOfs.Dispose();
-			Balls.Dispose();
-			BumperStates.Dispose();
-			DropTargetStates.Dispose();
-			FlipperStates.Dispose();
-			GateStates.Dispose();
-			HitTargetStates.Dispose();
-			using (var enumerator = KickerStates.GetEnumerator()) {
-				while (enumerator.MoveNext()) {
-					enumerator.Current.Value.Dispose();
-				}
-			}
-			KickerStates.Dispose();
-			PlungerStates.Dispose();
-			SpinnerStates.Dispose();
-			SurfaceStates.Dispose();
-			using (var enumerator = TriggerStates.GetEnumerator()) {
-				while (enumerator.MoveNext()) {
-					enumerator.Current.Value.Dispose();
-				}
-			}
-			TriggerStates.Dispose();
-			DisabledCollisionItems.Dispose();
-		}
 	}
 }

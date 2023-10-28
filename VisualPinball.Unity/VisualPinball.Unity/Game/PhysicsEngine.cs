@@ -376,6 +376,28 @@ namespace VisualPinball.Unity
 			_ballStates.Dispose();
 			_colliders.Dispose();
 			_insideOfs.Dispose();
+			_octree.Dispose();
+			_bumperStates.Dispose();
+			_dropTargetStates.Dispose();
+			_flipperStates.Dispose();
+			_gateStates.Dispose();
+			_hitTargetStates.Dispose();
+			using (var enumerator = _kickerStates.GetEnumerator()) {
+				while (enumerator.MoveNext()) {
+					enumerator.Current.Value.Dispose();
+				}
+			}
+			_kickerStates.Dispose();
+			_plungerStates.Dispose();
+			_spinnerStates.Dispose();
+			_surfaceStates.Dispose();
+			using (var enumerator = _triggerStates.GetEnumerator()) {
+				while (enumerator.MoveNext()) {
+					enumerator.Current.Value.Dispose();
+				}
+			}
+			_triggerStates.Dispose();
+			_disabledCollisionItems.Dispose();
 		}
 
 		#endregion
