@@ -67,6 +67,6 @@ namespace VisualPinball.Unity
 		public override PhysicsMaterialData PhysicsMaterialData => GetPhysicsMaterialData(Elasticity, friction: Friction);
 
 		protected override IApiColliderGenerator InstantiateColliderApi(Player player, PhysicsEngine physicsEngine)
-			=> new GateApi(gameObject, player, physicsEngine);
+			=> MainComponent.GateApi ?? new GateApi(gameObject, player, physicsEngine);
 	}
 }

@@ -71,6 +71,8 @@ namespace VisualPinball.Unity
 
 		#region Runtime
 
+		public TeleporterApi TeleporterApi { get; private set; }
+
 		private void Awake()
 		{
 			var player = GetComponentInParent<Player>();
@@ -84,7 +86,10 @@ namespace VisualPinball.Unity
 				ToKicker.GetComponent<KickerColliderComponent>().enabled = false;
 			}
 
-			player.RegisterTeleporter(this);
+			var physicsEngine = GetComponentInParent<PhysicsEngine>();
+			TeleporterApi = new TeleporterApi(gameObject, player, physicsEngine);
+
+			player.Register(TeleporterApi, this);
 		}
 
 		#endregion

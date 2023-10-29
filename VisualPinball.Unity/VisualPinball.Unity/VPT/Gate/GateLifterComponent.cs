@@ -49,9 +49,15 @@ namespace VisualPinball.Unity
 
 		#endregion
 
+		public GateLifterApi GateLifterApi { get; private set; }
+
 		private void Awake()
 		{
-			GetComponentInParent<Player>().RegisterGateLifter(this);
+			var player = GetComponentInParent<Player>();
+			var physicsEngine = GetComponentInParent<PhysicsEngine>();
+			GateLifterApi = new GateLifterApi(gameObject, player, physicsEngine);
+
+			player.Register(GateLifterApi, this);
 		}
 	}
 }

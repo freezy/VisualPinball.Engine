@@ -85,12 +85,17 @@ namespace VisualPinball.Unity
 
 		#region Runtime
 
+		public BumperApi BumperApi { get; private set; }
+
 		private void Awake()
 		{
-			// register at player
-			GetComponentInParent<Player>().RegisterBumper(this);
+			var player = GetComponentInParent<Player>();
+			var physicsEngine = GetComponentInParent<PhysicsEngine>();
+			BumperApi = new BumperApi(gameObject, player, physicsEngine);
+
+			player.Register(BumperApi, this);
 			if (GetComponentInChildren<BumperColliderComponent>()) {
-				RegisterPhysics();
+				RegisterPhysics(physicsEngine);
 			}
 		}
 

@@ -303,9 +303,14 @@ namespace VisualPinball.Unity
 
 		#region Runtime
 
+		public TroughApi TroughApi { get; private set; }
+
 		private void Awake()
 		{
-			GetComponentInParent<Player>().RegisterTrough(this);
+			var player = GetComponentInParent<Player>();
+			var physicsEngine = GetComponentInParent<PhysicsEngine>();
+			TroughApi = new TroughApi(gameObject, player, physicsEngine);
+			player.Register(TroughApi, this);
 		}
 
 		#endregion

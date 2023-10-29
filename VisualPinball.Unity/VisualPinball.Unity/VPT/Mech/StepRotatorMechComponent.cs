@@ -70,6 +70,8 @@ namespace VisualPinball.Unity
 
 		public event EventHandler<MechEventArgs> OnMechUpdate;
 
+		public StepRotatorMechApi StepRotatorMechApi { get; private set; }
+
 		private void Awake()
 		{
 			var player = GetComponentInParent<Player>();
@@ -78,7 +80,10 @@ namespace VisualPinball.Unity
 				return;
 			}
 
-			player.RegisterStepRotator(this);
+			var physicsEngine = GetComponentInParent<PhysicsEngine>();
+			StepRotatorMechApi = new StepRotatorMechApi(gameObject, player, physicsEngine);
+
+			player.Register(StepRotatorMechApi, this);
 		}
 
 		public void UpdateRotation(float speed, float position)

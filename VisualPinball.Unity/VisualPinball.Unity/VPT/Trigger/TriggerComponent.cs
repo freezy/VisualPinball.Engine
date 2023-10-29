@@ -82,13 +82,17 @@ namespace VisualPinball.Unity
 
 		#region Runtime
 
+		public TriggerApi TriggerApi { get; set; }
+
 		private void Awake()
 		{
-			// register at player
-			GetComponentInParent<Player>().RegisterTrigger(this);
+			var player = GetComponentInParent<Player>();
+			var physicsEngine = GetComponentInParent<PhysicsEngine>();
+			TriggerApi = new TriggerApi(gameObject, player, physicsEngine);
 
+			player.Register(TriggerApi, this);
 			if (GetComponentInChildren<TriggerColliderComponent>()) {
-				RegisterPhysics();
+				RegisterPhysics(physicsEngine);
 			}
 		}
 

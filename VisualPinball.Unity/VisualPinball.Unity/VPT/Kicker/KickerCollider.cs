@@ -32,7 +32,7 @@ namespace VisualPinball.Unity
 
 		public static void Collide(ref BallState ball, ref NativeQueue<EventData>.ParallelWriter events,
 			ref InsideOfs insideOfs, ref KickerCollisionState collState, in KickerStaticState staticState,
-			in ColliderMeshData meshData, in CollisionEventData collEvent, in int itemId)
+			in ColliderMeshData meshData, in CollisionEventData collEvent, in int itemId, bool newBall)
 		{
 			// a previous ball already in kicker?
 			if (collState.HasBall) {
@@ -47,75 +47,75 @@ namespace VisualPinball.Unity
 			// check if kicker in ball's volume set
 			var isBallInside = insideOfs.IsInsideOf(itemId, ball.Id);
 
-			// New or (Hit && !Vol || UnHit && Vol)
-			if (hitBit == isBallInside) {
+			// if "New or (Hit && !Vol || UnHit && Vol)", continue.
+			if (!newBall && hitBit != isBallInside) {
+				return;
+			}
+			if (legacyMode) {
+				ball.Position += PhysicsConstants.StaticTime * ball.Velocity; // move ball slightly forward
+			}
 
-				if (legacyMode) {
-					ball.Position += PhysicsConstants.StaticTime * ball.Velocity; // move ball slightly forward
-				}
+			// entering Kickers volume
+			if (!isBallInside) {
+				var grabHeight = (staticState.ZLow + ball.Radius) * staticState.HitAccuracy;
 
-				// entering Kickers volume
-				if (!isBallInside) {
-					var grabHeight = (staticState.ZLow + ball.Radius) * staticState.HitAccuracy;
+				// early out here if the ball is slow and we are near the kicker center
+				var hitEvent = ball.Position.z < grabHeight || legacyMode;
 
-					// early out here if the ball is slow and we are near the kicker center
-					var hitEvent = ball.Position.z < grabHeight || legacyMode;
+				if (!hitEvent) {
 
-					if (!hitEvent) {
+					DoChangeBallVelocity(ref ball, in hitNormal, in meshData);
 
-						DoChangeBallVelocity(ref ball, in hitNormal, in meshData);
-
-						// this is an ugly hack to prevent the ball stopping rapidly at the kicker bevel
-						// something with the friction calculation is wrong in the physics engine
-						// so we monitor the ball velocity if it drop under a length value of 0.2
-						// if so we take the last "good" velocity to help the ball moving over the critical spot at the kicker bevel
-						// this hack seems to work only if the kicker is on the playfield, a kicker attached to a wall has still problems
-						// because the friction calculation for a wall is also different
-						if (math.lengthsq(ball.Velocity) < (float) (0.2 * 0.2)) {
-							ball.Velocity = ball.OldVelocity;
-						}
-
-						ball.OldVelocity = ball.Velocity;
-
-					} else {
-
-						ball.IsFrozen = !staticState.FallThrough;
-						if (ball.IsFrozen) {
-							insideOfs.SetInsideOf(itemId, ball.Id); // add kicker to ball's volume set
-							collState.BallId = ball.Id;
-							collState.LastCapturedBallId = ball.Id;
-						}
-
-						// Fire the event before changing ball attributes, so scripters can get a useful ball state
-						events.Enqueue(new EventData(EventId.HitEventsHit, itemId, ball.Id, true));
-
-						if (ball.IsFrozen || staticState.FallThrough) { // script may have unfrozen the ball
-
-							// if ball falls through hole, we fake the collision algo by changing the ball height
-							// in HitTestBasicRadius() the z-position of the ball is checked if it is >= to the hit cylinder
-							// if we don't change the height of the ball we get a lot of hit events while the ball is falling!!
-
-							// Only mess with variables if ball was not kicked during event
-							ball.Velocity = float3.zero;
-							ball.AngularMomentum = float3.zero;
-							var posZ = !staticState.FallIn
-								? staticState.ZLow + ball.Radius * 2
-								: staticState.FallThrough
-									? staticState.ZLow - ball.Radius - 5.0f
-									: staticState.ZLow + ball.Radius;
-							ball.Position = new float3(staticState.Center.x, staticState.Center.y, posZ);
-
-						} else {
-							collState.BallId = 0; // make sure
-						}
+					// this is an ugly hack to prevent the ball stopping rapidly at the kicker bevel
+					// something with the friction calculation is wrong in the physics engine
+					// so we monitor the ball velocity if it drop under a length value of 0.2
+					// if so we take the last "good" velocity to help the ball moving over the critical spot at the kicker bevel
+					// this hack seems to work only if the kicker is on the playfield, a kicker attached to a wall has still problems
+					// because the friction calculation for a wall is also different
+					if (math.lengthsq(ball.Velocity) < (float) (0.2 * 0.2)) {
+						ball.Velocity = ball.OldVelocity;
 					}
 
+					ball.OldVelocity = ball.Velocity;
 
-				} else { // exiting kickers volume
-					// remove kicker to ball's volume set
-					insideOfs.SetOutsideOf(itemId, ball.Id);
-					events.Enqueue(new EventData(EventId.HitEventsUnhit, itemId, ball.Id, true));
+				} else {
+
+					ball.IsFrozen = !staticState.FallThrough;
+					if (ball.IsFrozen) {
+						insideOfs.SetInsideOf(itemId, ball.Id); // add kicker to ball's volume set
+						collState.BallId = ball.Id;
+						collState.LastCapturedBallId = ball.Id;
+					}
+
+					// Fire the event before changing ball attributes, so scripters can get a useful ball state
+					events.Enqueue(new EventData(EventId.HitEventsHit, itemId, ball.Id, true));
+
+					if (ball.IsFrozen || staticState.FallThrough) { // script may have unfrozen the ball
+
+						// if ball falls through hole, we fake the collision algo by changing the ball height
+						// in HitTestBasicRadius() the z-position of the ball is checked if it is >= to the hit cylinder
+						// if we don't change the height of the ball we get a lot of hit events while the ball is falling!!
+
+						// Only mess with variables if ball was not kicked during event
+						ball.Velocity = float3.zero;
+						ball.AngularMomentum = float3.zero;
+						var posZ = !staticState.FallIn
+							? staticState.ZLow + ball.Radius * 2
+							: staticState.FallThrough
+								? staticState.ZLow - ball.Radius - 5.0f
+								: staticState.ZLow + ball.Radius;
+						ball.Position = new float3(staticState.Center.x, staticState.Center.y, posZ);
+
+					} else {
+						collState.BallId = 0; // make sure
+					}
 				}
+
+
+			} else { // exiting kickers volume
+				// remove kicker to ball's volume set
+				insideOfs.SetOutsideOf(itemId, ball.Id);
+				events.Enqueue(new EventData(EventId.HitEventsUnhit, itemId, ball.Id, true));
 			}
 		}
 

@@ -60,9 +60,14 @@ namespace VisualPinball.Unity
 
 		#region Runtime
 
+		public DropTargetBankApi DropTargetBankApi { get; private set; }
+
 		private void Awake()
 		{
-			GetComponentInParent<Player>().RegisterDropTargetBankComponent(this);
+			var player = GetComponentInParent<Player>();
+			var physicsEngine = GetComponentInParent<PhysicsEngine>();
+			DropTargetBankApi = new DropTargetBankApi(gameObject, player, physicsEngine);
+			player.Register(DropTargetBankApi, this);
 		}
 
 		#endregion

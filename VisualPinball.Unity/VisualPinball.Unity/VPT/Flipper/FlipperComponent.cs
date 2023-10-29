@@ -476,11 +476,17 @@ namespace VisualPinball.Unity
 
 		#region Runtime
 
+		public FlipperApi FlipperApi { get; private set; }
+
 		private void Awake()
 		{
 			_originalRotateZ = _startAngle;
-			GetComponentInParent<Player>().RegisterFlipper(this);
-			RegisterPhysics();
+			var player = GetComponentInParent<Player>();
+			var physicsEngine = GetComponentInParent<PhysicsEngine>();
+			FlipperApi = new FlipperApi(gameObject, player, physicsEngine);
+
+			player.Register(FlipperApi, this);
+			RegisterPhysics(physicsEngine);
 		}
 
 		private void Start()
@@ -707,8 +713,11 @@ namespace VisualPinball.Unity
 			triggerCollider.FlipperVelocities = velocities;
 
 			// need to explicitly register, since awake was called before the components were added.
-			GetComponentInParent<PhysicsEngine>().Register(triggerComponent);
-			GetComponentInParent<Player>().RegisterTrigger(triggerComponent);
+			var player = GetComponentInParent<Player>();
+			var physicsEngine = GetComponentInParent<PhysicsEngine>();
+			triggerComponent.TriggerApi = new TriggerApi(triggerComponent.gameObject, player, physicsEngine);
+			player.Register(triggerComponent.TriggerApi, triggerComponent);
+			physicsEngine.Register(triggerComponent);
 		}
 
 		private static void Discretize(AnimationCurve curve, IList<float2> outArray)

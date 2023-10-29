@@ -74,12 +74,17 @@ namespace VisualPinball.Unity
 
 		#region Runtime
 
+		public PlungerApi PlungerApi { get; private set; }
+
 		private void Awake()
 		{
-			// register at player
-			GetComponentInParent<Player>().RegisterPlunger(this, analogPlungerAction);
+			var player = GetComponentInParent<Player>();
+			var physicsEngine = GetComponentInParent<PhysicsEngine>();
+			PlungerApi = new PlungerApi(gameObject, player, physicsEngine);
+
+			player.Register(PlungerApi, this, analogPlungerAction);
 			if (GetComponent<PlungerColliderComponent>()) {
-				RegisterPhysics();
+				RegisterPhysics(physicsEngine);
 			}
 		}
 

@@ -71,7 +71,7 @@ namespace VisualPinball.Unity
 				return;
 			}
 
-			player.RegisterLampGroup(this);
+			player.Register(GetApi(player), this);
 		}
 
 		#endregion

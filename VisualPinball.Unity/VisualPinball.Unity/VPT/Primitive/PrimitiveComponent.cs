@@ -243,11 +243,18 @@ namespace VisualPinball.Unity
 
 		#region Runtime
 
+		public PrimitiveApi PrimitiveApi { get; private set; }
+
 		private void Awake()
 		{
 			_originalRotateZ = ObjectRotation.z;
-			GetComponentInParent<Player>().RegisterPrimitive(this);
-			RegisterPhysics();
+
+			var player = GetComponentInParent<Player>();
+			var physicsEngine = GetComponentInParent<PhysicsEngine>();
+			PrimitiveApi = new PrimitiveApi(gameObject, player, physicsEngine);
+
+			player.Register(PrimitiveApi, this);
+			RegisterPhysics(physicsEngine);
 		}
 
 		#endregion

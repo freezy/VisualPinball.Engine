@@ -91,12 +91,17 @@ namespace VisualPinball.Unity
 
 		IEnumerable<GamelogicEngineSwitch> IDeviceComponent<GamelogicEngineSwitch>.AvailableDeviceItems => AvailableSwitches;
 
-
 		#region Runtime
+
+		public SlingshotApi SlingshotApi { get; private set; }
 
 		private void Awake()
 		{
-			GetComponentInParent<Player>().RegisterSlingshotComponent(this);
+			var player = GetComponentInParent<Player>();
+			var physicsEngine = GetComponentInParent<PhysicsEngine>();
+			SlingshotApi = new SlingshotApi(gameObject, player, physicsEngine);
+
+			player.Register(SlingshotApi, this);
 		}
 
 		private void Start()

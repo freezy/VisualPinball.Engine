@@ -200,8 +200,8 @@ namespace VisualPinball.Unity
 				Logger.Error($"Cannot find player for lamp {name}.");
 				return;
 			}
+			player.Register(GetApi(player), this);
 
-			player.RegisterLamp(this);
 			var lights = GetComponentsInChildren<Light>();
 			_value = 0;
 			_color = lights.FirstOrDefault()?.color ?? Color.white;

@@ -99,14 +99,14 @@ namespace VisualPinball.Unity
 			return new float3(0, math.sin(math.radians(slope)) * strength, -math.cos(math.radians(slope)) * strength);
 		}
 
+		public PlayfieldApi PlayfieldApi { get; private set; }
+
 		private void Awake()
 		{
-			GetComponentInParent<Player>().RegisterPlayfield(gameObject);
-			var meshComp = GetComponentInChildren<PlayfieldMeshComponent>();
-			if (meshComp) {
-				// todo re-enable system
-				// World.DefaultGameObjectInjectionWorld.GetOrCreateSystemManaged<StaticNarrowPhaseSystem>().CollideAgainstPlayfieldPlane = meshComp.AutoGenerate;
-			}
+			var player = GetComponentInParent<Player>();
+			var physicsEngine = GetComponentInParent<PhysicsEngine>();
+			PlayfieldApi = new PlayfieldApi(gameObject, player, physicsEngine);
+			player.Register(PlayfieldApi);
 
 			transform.RotateAround(Vector3.zero, Vector3.right, -RenderSlope);
 		}
