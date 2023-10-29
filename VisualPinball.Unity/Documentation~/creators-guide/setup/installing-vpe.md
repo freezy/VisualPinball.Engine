@@ -13,16 +13,11 @@ In order to start creating or modifying tables with VPE, the first thing you'll 
 
 Unity uses an application called *Unity Hub* to update itself, create new projects and provide quick access to them. The install process is straight-forward and documented [here](https://docs.unity3d.com/Manual/GettingStartedInstallingHub.html) if you run into troubles.
 
-**2021.3.0** is the latest version supported by VPE so click on *Skip Installation* in the first dialog to avoid installing the newest version of the Editor. After accepting the license agreement you will have access to Unity Hub.
-
-> [!NOTE]
-> To install the supported version of the editor you can either
->	* Paste this direct link into your browser: unityhub://2021.3.0f1/6eacc8284459 
->	* Find the correct version from the [Unity release archive](https://unity3d.com/get-unity/download/archive)
+**2022.3** is the recommended Unity version at the moment. Once 2023 is officially out, we'll be updating the dependencies and the documentation.
 
 You can leave all the other options unchecked during install.
 
-Once Unity is downloaded and installed, you're ready to create a new VPE project. Click on *New Project*, be sure to have selected the 2021.3.0f1 version at the top, and you'll see the following choices:
+Once Unity is downloaded and installed, you're ready to create a new VPE project. Click on *New Project*, be sure to have selected the 2022.3 version at the top, and you'll see the following choices:
 
 ![New Unity Project](unity-create-new-project.png)
 
