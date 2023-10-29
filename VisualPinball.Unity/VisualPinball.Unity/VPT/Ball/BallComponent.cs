@@ -30,17 +30,22 @@ namespace VisualPinball.Unity
 		public bool IsFrozen;
 
 
-		internal BallState CreateState() => new BallState {
-			Id = Id,
-			IsFrozen = IsFrozen,
-			Position = transform.localPosition.TranslateToVpx(),
-			Radius = Radius,
-			Mass = Mass,
-			Velocity = Velocity,
-			BallOrientation = float3x3.identity,
-			BallOrientationForUnity = float3x3.identity,
-			RingCounterOldPos = 0,
-			AngularMomentum = float3.zero
-		};
+		internal BallState CreateState()
+		{
+			var pos = transform.localPosition.TranslateToVpx();
+			return new BallState
+			{
+				Id = Id,
+				IsFrozen = IsFrozen,
+				Position = new float3(pos.x, pos.y, math.round(pos.z*100000) / 100000),
+				Radius = Radius,
+				Mass = Mass,
+				Velocity = Velocity,
+				BallOrientation = float3x3.identity,
+				BallOrientationForUnity = float3x3.identity,
+				RingCounterOldPos = 0,
+				AngularMomentum = float3.zero
+			};
+		}
 	}
 }

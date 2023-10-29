@@ -40,12 +40,12 @@ namespace VisualPinball.Unity
 			_parent = parent;
 		}
 
-		public void CreateBall(IBallCreationPosition ballCreator, float radius = 25f, float mass = 1f)
+		public int CreateBall(IBallCreationPosition ballCreator, float radius = 25f, float mass = 1f)
 		{
-			CreateBall(ballCreator, radius, mass, 0);
+			return CreateBall(ballCreator, radius, mass, 0);
 		}
 
-		public void CreateBall(IBallCreationPosition ballCreator, float radius, float mass, int kickerId, GameObject ballPrefab = null)
+		public int CreateBall(IBallCreationPosition ballCreator, float radius, float mass, int kickerId, GameObject ballPrefab = null)
 		{
 			var localPos = ballCreator.GetBallCreationPosition().ToUnityFloat3();
 			localPos.z += radius;
@@ -77,6 +77,8 @@ namespace VisualPinball.Unity
 					kickerData.Collision.LastCapturedBallId = ballComp.Id;
 				}
 			}
+
+			return ballComp.Id;
 		}
 
 		public void DestroyBall(int ballId)

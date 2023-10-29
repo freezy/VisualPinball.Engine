@@ -99,11 +99,7 @@ namespace VisualPinball.Unity
 
 			collEvent.HitNormal = _normal;
 			collEvent.HitDistance = bnd; // actual contact distance
-			
-			if (collEvent.HitNormal is { x: 0, y: 0, z: 0 }) {
-				Debug.Log("Hit normal set to zero by plane collider.");
-			}
-			
+
 			return hitTime;
 		}
 
