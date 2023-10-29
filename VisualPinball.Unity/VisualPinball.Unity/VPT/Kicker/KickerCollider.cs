@@ -51,7 +51,7 @@ namespace VisualPinball.Unity
 			if (!newBall && hitBit != isBallInside) {
 				return;
 			}
-			if (legacyMode) {
+			if (legacyMode || newBall) {
 				ball.Position += PhysicsConstants.StaticTime * ball.Velocity; // move ball slightly forward
 			}
 
@@ -60,7 +60,7 @@ namespace VisualPinball.Unity
 				var grabHeight = (staticState.ZLow + ball.Radius) * staticState.HitAccuracy;
 
 				// early out here if the ball is slow and we are near the kicker center
-				var hitEvent = ball.Position.z < grabHeight || legacyMode;
+				var hitEvent = ball.Position.z < grabHeight || legacyMode || newBall;
 
 				if (!hitEvent) {
 
@@ -88,7 +88,9 @@ namespace VisualPinball.Unity
 					}
 
 					// Fire the event before changing ball attributes, so scripters can get a useful ball state
-					events.Enqueue(new EventData(EventId.HitEventsHit, itemId, ball.Id, true));
+					if (!newBall) {
+						events.Enqueue(new EventData(EventId.HitEventsHit, itemId, ball.Id, true));
+					}
 
 					if (ball.IsFrozen || staticState.FallThrough) { // script may have unfrozen the ball
 
