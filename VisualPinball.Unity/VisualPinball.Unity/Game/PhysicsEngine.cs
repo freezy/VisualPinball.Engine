@@ -23,6 +23,7 @@ using Unity.Collections;
 using Unity.Jobs;
 using Unity.Mathematics;
 using UnityEngine;
+using VisualPinball.Engine.Common;
 using VisualPinball.Unity.Collections;
 using AABB = NativeTrees.AABB;
 using Debug = UnityEngine.Debug;
@@ -34,7 +35,7 @@ namespace VisualPinball.Unity
 		#region Configuration
 
 		[Tooltip("Gravity constant, in VPX units.")]
-		public float GravityStrength = 1.762985f;
+		public float GravityStrength = PhysicsConstants.GravityConst * PhysicsConstants.DefaultTableGravity;
 
 		#endregion
 

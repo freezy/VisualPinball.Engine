@@ -165,7 +165,7 @@ namespace VisualPinball.Unity
 			var collEvent = ball.CollisionEvent;
 			if (collEvent.HasCollider() && collEvent.HitTime <= hitTime) {       // smaller hit time??
 				hitTime = collEvent.HitTime;                                     // record actual event time
-				if (collEvent.HitTime < PhysicsConstants.StaticTime) {           // less than static time interval
+				if (hitTime < PhysicsConstants.StaticTime) {           // less than static time interval
 					if (--staticCounts < 0) {
 						staticCounts = 0;                                       // keep from wrapping
 						hitTime = PhysicsConstants.StaticTime;

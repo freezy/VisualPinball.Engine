@@ -86,10 +86,12 @@ namespace VisualPinball.Engine.Common
 		public const float DefaultTableMaxSlope = 6.0f;                        // DEFAULT_TABLE_MAX_SLOPE
 		public const float DefaultTableGravity = 0.97f;                        // DEFAULT_TABLE_GRAVITY
 
+		public const float GravityConst = 1.81751f;                            // GRAVITYCONST
+
 		/// <summary>
 		/// trigger/kicker boundary crossing hysterisis
 		/// </summary>
-		public const float StaticTime = 0.005f;                                // STATICTIME
+		public const float StaticTime = 0.02f;                                 // STATICTIME
 		public const float StaticCnts = 10f;                                   // STATICCNTS
 
 		/// <summary>
