@@ -70,15 +70,14 @@ namespace VisualPinball.Unity
 		{
 		}
 
-		public void CreateBall(GameObject ballPrefab = null)
+		public void CreateBall(GameObject ballPrefab = null, float radius = 25f, float mass = 1f)
 		{
-			var ballId = BallManager.CreateBall(MainComponent, 25f, 1f, ItemId, ballPrefab);
-			PhysicsEngine.SetBallInsideOf(ballId, ItemId);
+			var ballId = BallManager.CreateBall(MainComponent, radius, mass, ballPrefab);
 
 			ref var ball = ref PhysicsEngine.BallState(ballId);
 			ref var kickerState = ref PhysicsEngine.KickerState(ItemId);
 			var events = PhysicsEngine.EventQueue;
-			ball.CollisionEvent.HitFlag = true;
+			ball.CollisionEvent.HitFlag = true; // HACK: avoid capture leaving kicker
 
 			KickerCollider.Collide(ref ball, ref events, ref PhysicsEngine.InsideOfs, ref kickerState.Collision,
 				in kickerState.Static, in kickerState.CollisionMesh, in ball.CollisionEvent, ItemId, true);
@@ -86,8 +85,7 @@ namespace VisualPinball.Unity
 
 		public void CreateSizedBallWithMass(float radius, float mass)
 		{
-			var ballId = BallManager.CreateBall(MainComponent, radius, mass, ItemId);
-			PhysicsEngine.SetBallInsideOf(ballId, ItemId);
+			BallManager.CreateBall(MainComponent, radius, mass);
 		}
 
 		public void Kick(float angle, float speed, float inclination = 0)

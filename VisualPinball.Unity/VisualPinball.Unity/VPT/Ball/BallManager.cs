@@ -40,43 +40,27 @@ namespace VisualPinball.Unity
 			_parent = parent;
 		}
 
-		public int CreateBall(IBallCreationPosition ballCreator, float radius = 25f, float mass = 1f)
-		{
-			return CreateBall(ballCreator, radius, mass, 0);
-		}
-
-		public int CreateBall(IBallCreationPosition ballCreator, float radius, float mass, int kickerId, GameObject ballPrefab = null)
+		public int CreateBall(IBallCreationPosition ballCreator, float radius = 25f, float mass = 1f, GameObject ballPrefab = null)
 		{
 			var localPos = ballCreator.GetBallCreationPosition().ToUnityFloat3();
 			localPos.z += radius;
 
-			var ballId = NumBallsCreated++;
 			if (!ballPrefab) {
 				ballPrefab = RenderPipeline.Current.BallConverter.CreateDefaultBall();
 			}
 			var ballGo = Object.Instantiate(ballPrefab, _parent);
 			var ballComp = ballGo.GetComponent<BallComponent>();
-			ballGo.name = $"Ball {ballId}";
+			ballGo.name = $"Ball {NumBallsCreated++}";
 			ballGo.transform.localScale = Physics.ScaleToWorld(new Vector3(radius, radius, radius) * 2f);
 			ballGo.transform.localPosition = localPos.TranslateToWorld();
 			ballComp.Radius = radius;
 			ballComp.Mass = mass;
 			ballComp.Velocity = ballCreator.GetBallCreationVelocity().ToUnityFloat3();
-			ballComp.IsFrozen = kickerId != 0;
+			ballComp.IsFrozen = false;
 
 			// register ball
 			_physicsEngine.Register(ballComp);
 			_player.BallCreated(ballGo.GetInstanceID(), ballGo);
-
-			// handle inside-kicker creation
-			if (kickerId != 0) {
-				ref var kickerData = ref _physicsEngine.KickerState(kickerId);
-				if (!kickerData.Static.FallThrough) {
-					_physicsEngine.SetBallInsideOf(ballComp.Id, kickerId);
-					kickerData.Collision.BallId = ballComp.Id;
-					kickerData.Collision.LastCapturedBallId = ballComp.Id;
-				}
-			}
 
 			return ballComp.Id;
 		}
