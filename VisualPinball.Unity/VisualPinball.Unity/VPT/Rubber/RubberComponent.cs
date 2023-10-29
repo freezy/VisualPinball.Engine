@@ -86,11 +86,16 @@ namespace VisualPinball.Unity
 
 		#region Runtime
 
+		public RubberApi RubberApi { get; private set; }
+
 		private void Awake()
 		{
-			// register at player
-			GetComponentInParent<Player>().RegisterRubber(this);
-			RegisterPhysics();
+			var player = GetComponentInParent<Player>();
+			var physicsEngine = GetComponentInParent<PhysicsEngine>();
+			RubberApi = new RubberApi(gameObject, player, physicsEngine);
+
+			player.Register(RubberApi, this);
+			RegisterPhysics(physicsEngine);
 		}
 
 		#endregion

@@ -37,9 +37,14 @@ namespace VisualPinball.Unity
 
 		#region Runtime
 
+		public CollisionSwitchApi CollisionSwitchApi { get; private set; }
+
 		private void Awake()
 		{
-			GetComponentInParent<Player>().RegisterCollisionSwitchComponent(this);
+			var player = GetComponentInParent<Player>();
+			var physicsEngine = GetComponentInParent<PhysicsEngine>();
+			CollisionSwitchApi = new CollisionSwitchApi(gameObject, player, physicsEngine);
+			player.Register(CollisionSwitchApi, this);
 		}
 
 		#endregion

@@ -123,7 +123,7 @@ namespace VisualPinball.Unity
 				case ColliderType.KickerCircle:
 					ref var kickerState = ref state.GetKickerState(colliderId);
 					KickerCollider.Collide(ref ball, ref state.EventQueue, ref state.InsideOfs, ref kickerState.Collision,
-						in kickerState.Static, in kickerState.CollisionMesh, in ball.CollisionEvent, collHeader.ItemId);
+						in kickerState.Static, in kickerState.CollisionMesh, in ball.CollisionEvent, collHeader.ItemId, false);
 					break;
 			}
 		}

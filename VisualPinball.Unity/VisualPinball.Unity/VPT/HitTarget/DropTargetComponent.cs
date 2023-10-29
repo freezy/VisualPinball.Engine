@@ -130,12 +130,17 @@ namespace VisualPinball.Unity
 
 		#region Runtime
 
+		public DropTargetApi DropTargetApi { get; private set; }
+
 		private void Awake()
 		{
-			// register at player
-			GetComponentInParent<Player>().RegisterDropTarget(this);
+			var player = GetComponentInParent<Player>();
+			var physicsEngine = GetComponentInParent<PhysicsEngine>();
+			DropTargetApi = new DropTargetApi(gameObject, player, physicsEngine);
+
+			player.Register(DropTargetApi, this);
 			if (GetComponent<DropTargetColliderComponent>() && GetComponentInChildren<DropTargetAnimationComponent>()) {
-				RegisterPhysics();
+				RegisterPhysics(physicsEngine);
 			}
 		}
 

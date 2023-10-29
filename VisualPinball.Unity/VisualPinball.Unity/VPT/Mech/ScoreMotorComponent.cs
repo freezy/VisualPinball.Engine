@@ -95,9 +95,15 @@ namespace VisualPinball.Unity
 
 		#region Runtime
 
+		public ScoreMotorApi ScoreMotorApi { get; private set; }
+
 		private void Awake()
 		{
-			GetComponentInParent<Player>().RegisterScoreMotorComponent(this);
+			var player = GetComponentInParent<Player>();
+			var physicsEngine = GetComponentInParent<PhysicsEngine>();
+			ScoreMotorApi = new ScoreMotorApi(gameObject, player, physicsEngine);
+
+			player.Register(ScoreMotorApi, this);
 		}
 
 		private void Switch(string id, bool isClosed)

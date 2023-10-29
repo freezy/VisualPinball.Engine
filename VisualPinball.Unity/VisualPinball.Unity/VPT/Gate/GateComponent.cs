@@ -107,12 +107,17 @@ namespace VisualPinball.Unity
 
 		#region Runtime
 
+		public GateApi GateApi { get; private set; }
+
 		private void Awake()
 		{
-			// register at player
-			GetComponentInParent<Player>().RegisterGate(this);
+			var player = GetComponentInParent<Player>();
+			var physicsEngine = GetComponentInParent<PhysicsEngine>();
+			GateApi = new GateApi(gameObject, player, physicsEngine);
+
+			player.Register(GateApi, this);
 			if (GetComponent<GateColliderComponent>()) {
-				RegisterPhysics();
+				RegisterPhysics(physicsEngine);
 			}
 		}
 

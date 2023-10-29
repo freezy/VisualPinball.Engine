@@ -123,11 +123,16 @@ namespace VisualPinball.Unity
 
 		#region Runtime
 
+		public RampApi RampApi { get; private set; }
+
 		private void Awake()
 		{
-			// register at player
-			GetComponentInParent<Player>().RegisterRamp(this);
-			RegisterPhysics();
+			var player = GetComponentInParent<Player>();
+			var physicsEngine = GetComponentInParent<PhysicsEngine>();
+			RampApi = new RampApi(gameObject, player, physicsEngine);
+
+			player.Register(RampApi, this);
+			RegisterPhysics(physicsEngine);
 		}
 
 		#endregion

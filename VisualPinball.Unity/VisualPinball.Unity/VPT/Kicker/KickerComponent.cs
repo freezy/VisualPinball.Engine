@@ -146,12 +146,11 @@ namespace VisualPinball.Unity
 
 		private float _originalRotationZ;
 		private float _originalKickerAngle;
-		private KickerApi _kickerApi;
 
 		public float RotateZ {
 			set {
 				Orientation = _originalRotationZ + value;
-				_kickerApi.KickerCoil.Coil.Angle = _originalKickerAngle + value;
+				KickerApi.KickerCoil.Coil.Angle = _originalKickerAngle + value;
 			}
 		}
 
@@ -318,22 +317,26 @@ namespace VisualPinball.Unity
 
 		#region Runtime
 
+		public KickerApi KickerApi { get; private set; }
+
 		private void Awake()
 		{
 			_originalRotationZ = Orientation;
 
-			// register at player
-			GetComponentInParent<Player>().RegisterKicker(this);
+			var player = GetComponentInParent<Player>();
+			var physicsEngine = GetComponentInParent<PhysicsEngine>();
+			KickerApi = new KickerApi(gameObject, player, physicsEngine);
+
+			player.Register(KickerApi, this);
 			if (GetComponent<KickerColliderComponent>()) {
-				RegisterPhysics();
+				RegisterPhysics(physicsEngine);
 			}
 		}
 
 		private void Start()
 		{
-			_kickerApi = GetComponentInParent<Player>().TableApi.Kicker(this);
-			if (_kickerApi?.KickerCoil != null) {
-				_originalKickerAngle = _kickerApi.KickerCoil.Coil.Angle;
+			if (KickerApi?.KickerCoil != null) {
+				_originalKickerAngle = KickerApi.KickerCoil.Coil.Angle;
 			}
 		}
 

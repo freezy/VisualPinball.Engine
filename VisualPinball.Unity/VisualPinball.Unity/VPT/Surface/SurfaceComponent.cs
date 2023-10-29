@@ -66,12 +66,17 @@ namespace VisualPinball.Unity
 
 		#region Runtime
 
+		public SurfaceApi SurfaceApi { get; private set; }
+
 		private void Awake()
 		{
-			// register at player
-			GetComponentInParent<Player>().RegisterSurface(this);
+			var player = GetComponentInParent<Player>();
+			var physicsEngine = GetComponentInParent<PhysicsEngine>();
+			SurfaceApi = new SurfaceApi(gameObject, player, physicsEngine);
+
+			player.Register(SurfaceApi, this);
 			if (GetComponentInChildren<SurfaceColliderComponent>()) {
-				RegisterPhysics();
+				RegisterPhysics(physicsEngine);
 			}
 		}
 

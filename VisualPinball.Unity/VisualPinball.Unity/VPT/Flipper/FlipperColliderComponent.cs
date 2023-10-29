@@ -159,6 +159,6 @@ namespace VisualPinball.Unity
 		#endregion
 
 		protected override IApiColliderGenerator InstantiateColliderApi(Player player, PhysicsEngine physicsEngine)
-			=> new FlipperApi(gameObject, player, physicsEngine);
+			=> MainComponent.FlipperApi ?? new FlipperApi(gameObject, player, physicsEngine);
 	}
 }

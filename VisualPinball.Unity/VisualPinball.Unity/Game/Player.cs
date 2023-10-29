@@ -201,143 +201,26 @@ namespace VisualPinball.Unity
 			}
 		}
 
-#endregion
+		#endregion
 
 		#region Registrations
 
-		public void RegisterBumper(BumperComponent component)
+		public void Register(PlungerApi plungerApi, PlungerComponent component, InputActionReference actionRef)
 		{
-			Register(new BumperApi(component.gameObject, this, PhysicsEngine), component);
-		}
-
-		public void RegisterFlipper(FlipperComponent component)
-		{
-			Register(new FlipperApi(component.gameObject, this, PhysicsEngine), component);
-		}
-
-		public void RegisterDropTarget(DropTargetComponent component)
-		{
-			Register(new DropTargetApi(component.gameObject, this, PhysicsEngine), component);
-		}
-
-		public void RegisterGate(GateComponent component)
-		{
-			Register(new GateApi(component.gameObject, this, PhysicsEngine), component);
-		}
-
-		public void RegisterGateLifter(GateLifterComponent component)
-		{
-			Register(new GateLifterApi(component.gameObject, this, PhysicsEngine), component);
-		}
-
-		public void RegisterHitTarget(HitTargetComponent component)
-		{
-			Register(new HitTargetApi(component.gameObject, this, PhysicsEngine), component);
-		}
-
-		public void RegisterKicker(KickerComponent component)
-		{
-			Register(new KickerApi(component.gameObject, this, PhysicsEngine), component);
-		}
-
-		public void RegisterLamp(LightComponent component)
-		{
-			Register(component.GetApi(this), component);
-		}
-
-		public void RegisterLampGroup(LightGroupComponent component)
-		{
-			Register(component.GetApi(this), component);
-		}
-
-		public void RegisterStepRotator(StepRotatorMechComponent component)
-		{
-			Register(new StepRotatorMechApi(component.gameObject, this, PhysicsEngine), component);
-		}
-
-		public void RegisterScoreMotorComponent(ScoreMotorComponent component)
-		{
-			Register(new ScoreMotorApi(component.gameObject, this, PhysicsEngine), component);
-		}
-
-		public void RegisterDropTargetBankComponent(DropTargetBankComponent component)
-		{
-			Register(new DropTargetBankApi(component.gameObject, this, PhysicsEngine), component);
-		}
-
-		public void RegisterCollisionSwitchComponent(CollisionSwitchComponent component)
-		{
-			Register(new CollisionSwitchApi(component.gameObject, this, PhysicsEngine), component);
-		}
-
-		public void RegisterSlingshotComponent(SlingshotComponent component)
-		{
-			Register(new SlingshotApi(component.gameObject, this, PhysicsEngine), component);
-		}
-
-		public void RegisterPlunger(PlungerComponent component, InputActionReference actionRef)
-		{
-			var plungerApi = new PlungerApi(component.gameObject, this, PhysicsEngine);
 			Register(plungerApi, component);
-
 			if (actionRef != null) {
 				actionRef.action.performed += plungerApi.OnAnalogPlunge;
 				_actions.Add((actionRef.action, plungerApi.OnAnalogPlunge));
 			}
 		}
 
-		public void RegisterPlayfield(GameObject go)
+		public void Register(PlayfieldApi playfieldApi)
 		{
-			PlayfieldApi = new PlayfieldApi(go, this, PhysicsEngine);
-			_colliderGenerators.Add(PlayfieldApi);
+			PlayfieldApi = playfieldApi;
+			_colliderGenerators.Add(playfieldApi);
 		}
 
-		public void RegisterPrimitive(PrimitiveComponent component)
-		{
-			Register(new PrimitiveApi(component.gameObject, this, PhysicsEngine), component);
-		}
-
-		public void RegisterRamp(RampComponent component)
-		{
-			Register(new RampApi(component.gameObject, this, PhysicsEngine), component);
-		}
-
-		public void RegisterRubber(RubberComponent component)
-		{
-			Register(new RubberApi(component.gameObject, this, PhysicsEngine), component);
-		}
-
-		public void RegisterSpinner(SpinnerComponent component)
-		{
-			Register(new SpinnerApi(component.gameObject, this, PhysicsEngine), component);
-		}
-
-		public void RegisterSurface(SurfaceComponent component)
-		{
-			Register(new SurfaceApi(component.gameObject, this, PhysicsEngine), component);
-		}
-
-		public void RegisterTeleporter(TeleporterComponent component)
-		{
-			Register(new TeleporterApi(component.gameObject, this, PhysicsEngine), component);
-		}
-
-		public void RegisterTrigger(TriggerComponent component)
-		{
-			Register(new TriggerApi(component.gameObject, this, PhysicsEngine), component);
-		}
-
-		public void RegisterTrough(TroughComponent component)
-		{
-			Register(new TroughApi(component.gameObject, this, PhysicsEngine), component);
-		}
-
-		public void RegisterMetalWireGuide(MetalWireGuideComponent component)
-		{
-			Register(new MetalWireGuideApi(component.gameObject, this, PhysicsEngine), component);
-		}
-
-		private void Register<TApi>(TApi api, MonoBehaviour component) where TApi : IApi
+		public void Register<TApi>(TApi api, MonoBehaviour component) where TApi : IApi
 		{
 			TableApi.Register(component, api);
 			_apis.Add(api);

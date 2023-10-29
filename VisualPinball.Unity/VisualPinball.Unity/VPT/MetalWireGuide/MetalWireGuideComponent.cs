@@ -90,11 +90,16 @@ namespace VisualPinball.Unity
 
 		#region Runtime
 
+		public MetalWireGuideApi MetalWireGuideApi { get; private set; }
+
 		private void Awake()
 		{
-			// register at player
-			GetComponentInParent<Player>().RegisterMetalWireGuide(this);
-			RegisterPhysics();
+			var player = GetComponentInParent<Player>();
+			var physicsEngine = GetComponentInParent<PhysicsEngine>();
+			MetalWireGuideApi = new MetalWireGuideApi(gameObject, player, physicsEngine);
+
+			player.Register(MetalWireGuideApi, this);
+			RegisterPhysics(physicsEngine);
 		}
 
 		#endregion

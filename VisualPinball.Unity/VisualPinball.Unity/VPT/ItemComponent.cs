@@ -31,15 +31,16 @@ namespace VisualPinball.Unity
 
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
-		protected void RegisterPhysics()
+		protected void RegisterPhysics(PhysicsEngine physicsEngine)
 		{
-			var physicsEngine = GetComponentInParent<PhysicsEngine>();
 			if (physicsEngine) {
 				physicsEngine.Register(this);
 			} else {
 				Logger.Error("No physics engine found in parent hierarchy.");
 			}
 		}
+
+		protected void RegisterPhysics() => RegisterPhysics(GetComponentInParent<PhysicsEngine>());
 
 		protected static void DrawArrow(Vector3 pos, Vector3 direction, float arrowHeadLength = 0.025f, float arrowHeadAngle = 20.0f)
 		{
