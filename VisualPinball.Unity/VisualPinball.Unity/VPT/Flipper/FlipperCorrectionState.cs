@@ -64,7 +64,7 @@ namespace VisualPinball.Unity
 		public void Dispose()
 		{
 			UnsafeUtility.Free(_velocities, Allocator.None);
-			UnsafeUtility.Free(_polarities, Allocator.Temp);
+			UnsafeUtility.Free(_polarities, Allocator.None);
 
 			_polarities = null;
 			_velocities = null;
