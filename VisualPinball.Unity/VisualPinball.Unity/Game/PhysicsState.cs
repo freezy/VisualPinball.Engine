@@ -107,7 +107,7 @@ namespace VisualPinball.Unity
 
 		#region Hit Test
 
-		internal float HitTest(int colliderId, ref BallState ball, ref CollisionEventData collEvent, ref NativeList<ContactBufferElement> contacts, ref PhysicsState state)
+		internal float HitTest(int colliderId, ref BallState ball, ref CollisionEventData newCollEvent, ref NativeList<ContactBufferElement> contacts, ref PhysicsState state)
 		{
 			if (IsInactiveDropTarget(colliderId)) {
 				return -1f;
@@ -115,58 +115,58 @@ namespace VisualPinball.Unity
 			switch (GetColliderType(colliderId)) {
 				case ColliderType.Bumper:
 				case ColliderType.Circle:
-					return Colliders.Circle(colliderId).HitTest(ref collEvent, ref state.InsideOfs, in ball,
+					return Colliders.Circle(colliderId).HitTest(ref newCollEvent, ref state.InsideOfs, in ball,
 						ball.CollisionEvent.HitTime);
 
 				case ColliderType.Gate:
-					return Colliders.Gate(colliderId).HitTest(ref collEvent, ref state.InsideOfs, in ball,
+					return Colliders.Gate(colliderId).HitTest(ref newCollEvent, ref state.InsideOfs, in ball,
 						ball.CollisionEvent.HitTime);
 
 				case ColliderType.Line:
-					return Colliders.Line(colliderId).HitTest(ref collEvent, ref state.InsideOfs, in ball,
+					return Colliders.Line(colliderId).HitTest(ref newCollEvent, ref state.InsideOfs, in ball,
 						ball.CollisionEvent.HitTime);
 
 				case ColliderType.LineZ:
-					return Colliders.LineZ(colliderId).HitTest(ref collEvent, in ball, ball.CollisionEvent.HitTime);
+					return Colliders.LineZ(colliderId).HitTest(ref newCollEvent, in ball, ball.CollisionEvent.HitTime);
 
 				case ColliderType.Line3D:
-					return Colliders.Line3D(colliderId).HitTest(ref collEvent, in ball, ball.CollisionEvent.HitTime);
+					return Colliders.Line3D(colliderId).HitTest(ref newCollEvent, in ball, ball.CollisionEvent.HitTime);
 
 				case ColliderType.LineSlingShot:
-					return Colliders.LineSlingShot(colliderId).HitTest(ref collEvent, ref state.InsideOfs, in ball, ball.CollisionEvent.HitTime);
+					return Colliders.LineSlingShot(colliderId).HitTest(ref newCollEvent, ref state.InsideOfs, in ball, ball.CollisionEvent.HitTime);
 
 				case ColliderType.Point:
-					return Colliders.Point(colliderId).HitTest(ref collEvent, in ball, ball.CollisionEvent.HitTime);
+					return Colliders.Point(colliderId).HitTest(ref newCollEvent, in ball, ball.CollisionEvent.HitTime);
 
 				case ColliderType.Plane:
-					return Colliders.Plane(colliderId).HitTest(ref collEvent, in ball, ball.CollisionEvent.HitTime);
+					return Colliders.Plane(colliderId).HitTest(ref newCollEvent, in ball, ball.CollisionEvent.HitTime);
 
 				case ColliderType.Spinner:
-					return Colliders.Spinner(colliderId).HitTest(ref collEvent, ref state.InsideOfs, in ball,
+					return Colliders.Spinner(colliderId).HitTest(ref newCollEvent, ref state.InsideOfs, in ball,
 						ball.CollisionEvent.HitTime);
 
 				case ColliderType.Triangle:
-					return Colliders.Triangle(colliderId).HitTest(ref collEvent, in state.InsideOfs, in ball,
+					return Colliders.Triangle(colliderId).HitTest(ref newCollEvent, in state.InsideOfs, in ball,
 						ball.CollisionEvent.HitTime);
 
 				case ColliderType.KickerCircle:
 				case ColliderType.TriggerCircle:
-					return Colliders.Circle(colliderId).HitTestBasicRadius(ref collEvent, ref state.InsideOfs, in ball,
+					return Colliders.Circle(colliderId).HitTestBasicRadius(ref newCollEvent, ref state.InsideOfs, in ball,
 						ball.CollisionEvent.HitTime, false, false, false);
 
 				case ColliderType.TriggerLine:
-					return Colliders.Line(colliderId).HitTestBasic(ref collEvent, ref state.InsideOfs, in ball,
+					return Colliders.Line(colliderId).HitTestBasic(ref newCollEvent, ref state.InsideOfs, in ball,
 						ball.CollisionEvent.HitTime, false, false, false);
 
 				case ColliderType.Flipper:
 					ref var flipperState = ref state.GetFlipperState(colliderId);
-					return Colliders.Flipper(colliderId).HitTest(ref collEvent, ref state.InsideOfs, ref flipperState.Hit,
-						in flipperState.Movement, in flipperState.Tricks, in flipperState.Static, in ball, collEvent.HitTime);
+					return Colliders.Flipper(colliderId).HitTest(ref newCollEvent, ref state.InsideOfs, ref flipperState.Hit,
+						in flipperState.Movement, in flipperState.Tricks, in flipperState.Static, in ball, ball.CollisionEvent.HitTime);
 
 				case ColliderType.Plunger:
 					ref var plungerState = ref state.GetPlungerState(colliderId);
-					return Colliders.Plunger(colliderId).HitTest(ref collEvent, ref state.InsideOfs, ref plungerState.Movement,
-						in plungerState.Collider, in plungerState.Static, in ball, collEvent.HitTime);
+					return Colliders.Plunger(colliderId).HitTest(ref newCollEvent, ref state.InsideOfs, ref plungerState.Movement,
+						in plungerState.Collider, in plungerState.Static, in ball, ball.CollisionEvent.HitTime);
 			}
 			return -1f;
 		}

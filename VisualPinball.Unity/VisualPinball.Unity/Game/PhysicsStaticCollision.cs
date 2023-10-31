@@ -31,14 +31,6 @@ namespace VisualPinball.Unity
 				return;
 			}
 
-			Collide(ref ball, ref state);
-
-			// remove trial hit object pointer
-			ball.CollisionEvent.ClearCollider();
-		}
-
-		private static void Collide(ref BallState ball, ref PhysicsState state)
-		{
 			var colliderId = ball.CollisionEvent.ColliderId;
 			var collHeader = state.GetColliderHeader(colliderId);
 			if (CollidesWithItem(ref collHeader, ref ball, ref state)) {
@@ -126,6 +118,9 @@ namespace VisualPinball.Unity
 						in kickerState.Static, in kickerState.CollisionMesh, in ball.CollisionEvent, collHeader.ItemId, false);
 					break;
 			}
+
+			// remove trial hit object pointer
+			ball.CollisionEvent.ClearCollider();
 		}
 
 		private static bool CollidesWithItem(ref ColliderHeader collHeader, ref BallState ball, ref PhysicsState state)

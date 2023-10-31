@@ -255,8 +255,10 @@ namespace VisualPinball.Unity
 				var radSin = math.sin(contactAng); // Green's transform matrix... rotate angle delta
 				var radCos = math.cos(contactAng); // rotational transform from current position to position at time t
 
-				faceNormal.x = ffnx * radCos - ffny * radSin; // rotate to time t, norm and face offset point
-				faceNormal.y = ffny * radCos + ffnx * radSin;
+				faceNormal = new float2(
+					(float)(ffnx * radCos) - (float)(ffny * radSin), // rotate to time t, norm and face offset point
+					(float)ffny * (float)radCos + (float)ffnx * (float)radSin
+				);
 
 				// rotate and translate to world position
 				var vt = new float2(

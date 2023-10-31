@@ -42,6 +42,10 @@ namespace VisualPinball.Unity
 			PerfMarker.Begin();
 			var staticCounts = PhysicsConstants.StaticCnts;
 
+			// create octree of ball-to-ball collision
+			// it's okay to have this code outside of the inner loop, as the ball hitrects already include the maximum distance they can travel in that timespan
+			var ballOctree = PhysicsDynamicBroadPhase.CreateOctree(ref state.Balls, in playfieldBounds);
+
 			while (dTime > 0) {
 
 				var hitTime = dTime;       // begin time search from now ...  until delta ends
@@ -50,9 +54,6 @@ namespace VisualPinball.Unity
 
 				// clear contacts
 				_contacts.Clear();
-
-				// create octree of ball-to-ball collision
-				var ballOctree = PhysicsDynamicBroadPhase.CreateOctree(ref state.Balls, in playfieldBounds);
 
 				using (var enumerator = state.Balls.GetEnumerator()) {
 					while (enumerator.MoveNext()) {
