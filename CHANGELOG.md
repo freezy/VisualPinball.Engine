@@ -4,7 +4,7 @@
 
 ## Unreleased
 
-Built with Unity 2021.3.0
+Built with Unity 2022.3.0
 
 ### Added
 
@@ -45,6 +45,7 @@ Built with Unity 2021.3.0
 - Native trough component ([#229](https://github.com/freezy/VisualPinball.Engine/pull/229), [#248](https://github.com/freezy/VisualPinball.Engine/pull/248), [#256](https://github.com/freezy/VisualPinball.Engine/pull/256), [Documentation](https://docs.visualpinball.org/creators-guide/manual/mechanisms/troughs.html)).
 
 ### Changed
+- Removed DOTS in favor of Jobs with Burst ([#459](https://github.com/freezy/VisualPinball.Engine/pull/459))
 - All geometry is now in world space.
 - Removed internal ID in gamelogic engine API ([#408](https://github.com/freezy/VisualPinball.Engine/pull/408))
 - When importing, meshes are now saved as easily editable `.fbx` files instead of Unity's internal format ([#387](https://github.com/freezy/VisualPinball.Engine/pull/387)).
