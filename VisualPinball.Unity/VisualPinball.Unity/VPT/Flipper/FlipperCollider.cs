@@ -182,8 +182,8 @@ namespace VisualPinball.Unity
 
 			hitTime = _hitCircleBase.HitTest(ref collEvent, ref insideOfs, in ball, dTime);
 			if (hitTime >= 0) {
-				hitData.HitVelocity.x = 0;  // Tangent velocity of contact point (rotate Normal right)
-				hitData.HitVelocity.y = 0;  // rad units*d/t (Radians*diameter/time)
+				collEvent.HitVelocity.x = 0;  // Tangent velocity of contact point (rotate Normal right)
+				collEvent.HitVelocity.y = 0;  // rad units*d/t (Radians*diameter/time)
 				hitData.HitMomentBit = true;
 				return hitTime;
 			}
@@ -270,7 +270,7 @@ namespace VisualPinball.Unity
 				ballVtx = ball.Position.x + ballVx * t - vt.x;
 				ballVty = ball.Position.y + ballVy * t - vt.y;
 
-				bffnd = ballVtx * faceNormal.x+ ballVty * faceNormal.y - ballRadius; // normal distance to segment
+				bffnd = ballVtx * faceNormal.x + ballVty * faceNormal.y - ballRadius; // normal distance to segment
 
 				if (math.abs(bffnd) <= PhysicsConstants.Precision) {
 					break;
@@ -381,9 +381,9 @@ namespace VisualPinball.Unity
 			var distance = math.sqrt(dist.x * dist.x + dist.y * dist.y); // distance from base center to contact point
 			var invDist = 1.0f / distance;
 
-			hitData.HitVelocity.x = -dist.y * invDist;
-			hitData.HitVelocity.y = dist.x * invDist; // Unit Tangent velocity of contact point(rotate Normal clockwise)
-			//coll.Hitvelocity.Z = 0.0f; // used as normal velocity so far, only if isContact is set, see below
+			collEvent.HitVelocity.x = -dist.y * invDist;
+			collEvent.HitVelocity.y = dist.x * invDist; // Unit Tangent velocity of contact point(rotate Normal clockwise)
+			//collEvent.Hitvelocity.Z = 0.0f; // used as normal velocity so far, only if isContact is set, see below
 
 			if (contactAng >= angleMax && angleSpeed > 0 || contactAng <= angleMin && angleSpeed < 0) {
 				// hit limits ???
@@ -393,8 +393,8 @@ namespace VisualPinball.Unity
 			hitData.HitMomentBit = distance == 0;
 
 			var dv = new float2( // delta velocity ball to face
-				ballVx - hitData.HitVelocity.x * angleSpeed * distance,
-				ballVy - hitData.HitVelocity.y * angleSpeed * distance
+				ballVx - collEvent.HitVelocity.x * angleSpeed * distance,
+				ballVy - collEvent.HitVelocity.y * angleSpeed * distance
 			);
 
 			var bnv = dv.x * collEvent.HitNormal.x + dv.y * collEvent.HitNormal.y; // dot Normal to delta v
@@ -580,14 +580,14 @@ namespace VisualPinball.Unity
 
 			// Unit Tangent vector velocity of contact point(rotate normal right)
 			var invDistance = 1.0f / distance;
-			hitData.HitVelocity.x = -dist.y * invDistance;
-			hitData.HitVelocity.y = dist.x * invDistance;
+			collEvent.HitVelocity.x = -dist.y * invDistance;
+			collEvent.HitVelocity.y = dist.x * invDistance;
 			hitData.HitMomentBit = distance == 0;
 
 			// recheck using actual contact angle of velocity direction
 			var dv = new float2(
-				ballVx - hitData.HitVelocity.x * angleSpeed * distance, // delta velocity ball to face
-				ballVy - hitData.HitVelocity.y * angleSpeed * distance
+				ballVx - collEvent.HitVelocity.x * angleSpeed * distance, // delta velocity ball to face
+				ballVy - collEvent.HitVelocity.y * angleSpeed * distance
 			);
 
 			var bnv = dv.x * collEvent.HitNormal.x + dv.y * collEvent.HitNormal.y; // dot Normal to delta v
