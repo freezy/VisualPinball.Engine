@@ -33,12 +33,14 @@ namespace VisualPinball.Unity
 		
 		public void SetCollider(int colliderId)
 		{
+			// it's either collider id (for static colliders) or ball id (for dynamic colliders)
 			ColliderId = colliderId;
 			BallId = 0;
 		}
 
 		public void SetBallItem(int ballId)
 		{
+			// it's either collider id (for static colliders) or ball id (for dynamic colliders)
 			ColliderId = -1;
 			BallId = ballId;
 		}

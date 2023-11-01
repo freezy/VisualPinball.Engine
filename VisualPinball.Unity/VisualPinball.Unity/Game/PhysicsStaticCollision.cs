@@ -54,6 +54,11 @@ namespace VisualPinball.Unity
 					lineCollider.Collide(ref ball, ref state.EventQueue, in ball.CollisionEvent, ref state.Env.Random);
 					break;
 
+				case ColliderType.LineZ:
+					ref var lineZCollider = ref cols.LineZ(colliderId);
+					lineZCollider.Collide(ref ball, ref state.EventQueue, in ball.CollisionEvent, ref state.Env.Random);
+					break;
+
 				case ColliderType.Triangle:
 					ref var triangleCollider = ref cols.Triangle(colliderId);
 					triangleCollider.Collide(ref ball, ref state.EventQueue, in ball.CollisionEvent, ref state.Env.Random);
