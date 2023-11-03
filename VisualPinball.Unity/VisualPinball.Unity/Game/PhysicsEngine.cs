@@ -195,6 +195,7 @@ namespace VisualPinball.Unity
 			// allocate colliders
 			_colliders = new NativeColliders(ref colliders, Allocator.Persistent);
 			_kinematicColliders = new NativeColliders(ref kinematicColliders, Allocator.Persistent);
+			// todo make them actually at identity by reverse-applying their matrices
 			_kinematicCollidersAtIdentity = new NativeColliders(ref kinematicColliders, Allocator.Persistent);
 
 			// create octree
@@ -229,7 +230,7 @@ namespace VisualPinball.Unity
 			// check for updated kinematic transforms
 			_updatedKinematicTransforms.Clear();
 			foreach (var coll in _kinematicColliderComponents) {
-				if (!coll.IsKinematic) {
+				if (!coll.IsKinematic) { // kinematic enabled?
 					continue;
 				}
 				var lastTransformationMatrix = _kinematicTransforms[coll.ItemId];
@@ -269,8 +270,8 @@ namespace VisualPinball.Unity
 			};
 
 			var env = _physicsEnv[0];
-			var state = new PhysicsState(ref env, ref _octree, ref _colliders, ref _kinematicColliders, ref _updatedKinematicTransforms,
-				ref events, ref _insideOfs, ref _ballStates,
+			var state = new PhysicsState(ref env, ref _octree, ref _colliders, ref _kinematicColliders,
+				ref _kinematicCollidersAtIdentity, ref _updatedKinematicTransforms, ref events, ref _insideOfs, ref _ballStates,
 				ref _bumperStates, ref _dropTargetStates, ref _flipperStates, ref _gateStates,
 				ref _hitTargetStates, ref _kickerStates, ref _plungerStates, ref _spinnerStates,
 				ref _surfaceStates, ref _triggerStates, ref _disabledCollisionItems, ref _swapBallCollisionHandling);

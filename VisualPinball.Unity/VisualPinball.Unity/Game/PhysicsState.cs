@@ -28,6 +28,7 @@ namespace VisualPinball.Unity
 		internal NativeOctree<int> Octree;
 		internal NativeColliders Colliders;
 		internal NativeColliders KinematicColliders;
+		internal NativeColliders KinematicCollidersAtIdentity;
 		internal NativeParallelHashMap<int, float4x4> UpdatedKinematicTransforms;
 		internal NativeQueue<EventData>.ParallelWriter EventQueue;
 		internal InsideOfs InsideOfs;
@@ -45,9 +46,10 @@ namespace VisualPinball.Unity
 		internal NativeParallelHashSet<int> DisabledCollisionItems;
 		internal bool SwapBallCollisionHandling;
 
-		public PhysicsState(ref PhysicsEnv env, ref NativeOctree<int> octree, ref NativeColliders colliders, ref NativeColliders kinematicColliders,
-			ref NativeParallelHashMap<int, float4x4> updatedKinematicTransforms,
-			ref NativeQueue<EventData>.ParallelWriter eventQueue, ref InsideOfs insideOfs, ref NativeParallelHashMap<int, BallState> balls,
+		public PhysicsState(ref PhysicsEnv env, ref NativeOctree<int> octree, ref NativeColliders colliders,
+			ref NativeColliders kinematicColliders, ref NativeColliders kinematicCollidersAtIdentity,
+			ref NativeParallelHashMap<int, float4x4> updatedKinematicTransforms, ref NativeQueue<EventData>.ParallelWriter eventQueue,
+			ref InsideOfs insideOfs, ref NativeParallelHashMap<int, BallState> balls,
 			ref NativeParallelHashMap<int, BumperState> bumperStates, ref NativeParallelHashMap<int, DropTargetState> dropTargetStates,
 			ref NativeParallelHashMap<int, FlipperState> flipperStates, ref NativeParallelHashMap<int, GateState> gateStates,
 			ref NativeParallelHashMap<int, HitTargetState> hitTargetStates, ref NativeParallelHashMap<int, KickerState> kickerStates,
@@ -59,6 +61,7 @@ namespace VisualPinball.Unity
 			Octree = octree;
 			Colliders = colliders;
 			KinematicColliders = kinematicColliders;
+			KinematicCollidersAtIdentity = kinematicCollidersAtIdentity;
 			UpdatedKinematicTransforms = updatedKinematicTransforms;
 			EventQueue = eventQueue;
 			InsideOfs = insideOfs;
