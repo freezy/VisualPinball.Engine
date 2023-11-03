@@ -264,9 +264,9 @@ namespace VisualPinball.Unity
 					gameObject.GetInstanceID(),
 					animComponent ? animComponent.gameObject.GetInstanceID() : 0,
 					new TriggerStaticState {
-						AnimSpeed = animComponent.AnimSpeed,
+						AnimSpeed = animComponent ? animComponent.AnimSpeed : 0,
 						Radius = collComponent.HitCircleRadius,
-						Shape = meshComponent.Shape,
+						Shape = meshComponent ? meshComponent.Shape : 0,
 						TableScaleZ = 1f
 					},
 					new TriggerMovementState(),
