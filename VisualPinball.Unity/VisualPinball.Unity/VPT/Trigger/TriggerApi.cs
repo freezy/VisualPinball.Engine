@@ -63,7 +63,8 @@ namespace VisualPinball.Unity
 
 		protected override bool FireHitEvents => true;
 
-		protected override void CreateColliders(ref ColliderReference colliders, float margin)
+		protected override void CreateColliders(ref ColliderReference colliders,
+			ref ColliderReference kinematicColliders, float margin)
 		{
 			var meshComponent = GameObject.GetComponent<TriggerMeshComponent>();
 			var colliderGenerator = new TriggerColliderGenerator(this, MainComponent, ColliderComponent, meshComponent);

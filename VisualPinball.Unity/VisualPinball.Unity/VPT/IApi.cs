@@ -41,8 +41,9 @@ namespace VisualPinball.Unity
 		/// Create colliders and add them to the provided list.
 		/// </summary>
 		/// <param name="colliders">List to add colliders to.</param>
+		/// <param name="kinematicColliders">List to add kinematic colliders to.</param>
 		/// <param name="margin"></param>
-		void CreateColliders(ref ColliderReference colliders, float margin);
+		void CreateColliders(ref ColliderReference colliders, ref ColliderReference kinematicColliders, float margin);
 
 		/// <summary>
 		/// Computes collider info based on the component data.

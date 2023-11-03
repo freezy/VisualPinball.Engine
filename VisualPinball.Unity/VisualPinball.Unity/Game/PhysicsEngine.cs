@@ -62,6 +62,9 @@ namespace VisualPinball.Unity
 		[NonSerialized] private NativeParallelHashSet<int> _disabledCollisionItems = new(0, Allocator.Persistent);
 		[NonSerialized] private bool _swapBallCollisionHandling;
 
+		[NonSerialized] private NativeParallelHashMap<int, float4x4> _itemTransforms = new(0, Allocator.Persistent);
+		[NonSerialized] private NativeParallelHashMap<int, NativeColliderIds> _colliderLookup = new(0, Allocator.Persistent);
+
 		#endregion
 
 		#region Transforms
@@ -175,11 +178,12 @@ namespace VisualPinball.Unity
 			var colliderItems = GetComponentsInChildren<ICollidableComponent>();
 			Debug.Log($"Found {colliderItems.Length} collidable items.");
 			var colliders = new ColliderReference(Allocator.TempJob);
+			var kinematicColliders = new ColliderReference(Allocator.TempJob, true);
 			foreach (var colliderItem in colliderItems) {
 				if (!colliderItem.IsCollidable) {
 					_disabledCollisionItems.Add(colliderItem.ItemId);
 				}
-				colliderItem.GetColliders(_player, ref colliders, 0);
+				colliderItem.GetColliders(_player, ref colliders, ref kinematicColliders, 0);
 			}
 
 			// allocate colliders

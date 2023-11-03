@@ -47,7 +47,8 @@ namespace VisualPinball.Unity
 
 		protected override bool FireHitEvents => true;
 		protected override float HitThreshold => ColliderComponent.Threshold;
-		protected override void CreateColliders(ref ColliderReference colliders, float margin)
+		protected override void CreateColliders(ref ColliderReference colliders,
+			ref ColliderReference kinematicColliders, float margin)
 		{
 			if (MainComponent.DragPoints.Length == 0) {
 				return;
