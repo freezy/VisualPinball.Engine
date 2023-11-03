@@ -59,7 +59,8 @@ namespace VisualPinball.Unity
 		public void Execute()
 		{
 			var env = PhysicsEnv[0];
-			var state = new PhysicsState(ref env, ref Octree, ref Colliders, ref KinematicColliders, ref UpdatedKinematicTransforms, ref Events, ref InsideOfs, ref Balls,
+			var state = new PhysicsState(ref env, ref Octree, ref Colliders, ref KinematicColliders,
+				ref KinematicCollidersAtIdentity, ref UpdatedKinematicTransforms, ref Events, ref InsideOfs, ref Balls,
 				ref BumperStates, ref DropTargetStates, ref FlipperStates, ref GateStates,
 				ref HitTargetStates, ref KickerStates, ref PlungerStates, ref SpinnerStates,
 				ref SurfaceStates, ref TriggerStates, ref DisabledCollisionItems, ref SwapBallCollisionHandling);
