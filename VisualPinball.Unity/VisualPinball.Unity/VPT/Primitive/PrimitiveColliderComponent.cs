@@ -16,7 +16,6 @@
 
 // ReSharper disable InconsistentNaming
 
-using System.Collections.Generic;
 using UnityEngine;
 using VisualPinball.Engine.VPT.Primitive;
 
@@ -56,6 +55,9 @@ namespace VisualPinball.Unity
 
 		[Tooltip("Ignore the assigned physics material above and use the value below.")]
 		public bool OverwritePhysics = true;
+
+		[Tooltip("If set, transforming this object will transform the colliders as well.")]
+		public bool IsKinematic;
 
 		#endregion
 

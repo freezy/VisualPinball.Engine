@@ -138,7 +138,8 @@ namespace VisualPinball.Unity
 			if (generateColliders) {
 				var api = InstantiateColliderApi(player, null);
 				var colliders = new ColliderReference(Allocator.TempJob);
-				api.CreateColliders(ref colliders, 0.1f);
+				var kinematicColliders = new ColliderReference(Allocator.TempJob, true);
+				api.CreateColliders(ref colliders, ref kinematicColliders, 0.1f);
 
 				if (showColliders) {
 					_colliderMesh = GenerateColliderMesh(ref colliders);
@@ -157,7 +158,8 @@ namespace VisualPinball.Unity
 				
 				var api = InstantiateColliderApi(player, null);
 				var colliders = new ColliderReference(Allocator.TempJob);
-				api.CreateColliders(ref colliders, 0.1f);
+				var kinematicColliders = new ColliderReference(Allocator.TempJob, true);
+				api.CreateColliders(ref colliders, ref kinematicColliders, 0.1f);
 				
 				var playfieldBounds = GetComponentInChildren<PlayfieldComponent>().Bounds;
 				var octree = new NativeOctree<int>(playfieldBounds, 32, 10, Allocator.Persistent);
@@ -434,10 +436,11 @@ namespace VisualPinball.Unity
 
 		#endregion
 
-		void ICollidableComponent.GetColliders(Player player, ref ColliderReference colliders, float margin)
-		{
-			InstantiateColliderApi(player, null).CreateColliders(ref colliders, margin);
-		}
+		void ICollidableComponent.GetColliders(Player player, ref ColliderReference colliders,
+			ref ColliderReference kinematicColliders, float margin)
+			=> InstantiateColliderApi(player, null)
+				.CreateColliders(ref colliders, ref kinematicColliders, margin);
+
 		int ICollidableComponent.ItemId => MainComponent.gameObject.GetInstanceID();
 		bool ICollidableComponent.IsCollidable => isActiveAndEnabled;
 

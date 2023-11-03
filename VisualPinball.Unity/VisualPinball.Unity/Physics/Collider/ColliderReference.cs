@@ -37,7 +37,11 @@ namespace VisualPinball.Unity
 
 		public NativeList<ColliderLookup> Lookup;
 
-		public ColliderReference(Allocator allocator)
+		private bool _trackReferences;
+		private NativeParallelHashMap<int, NativeList<int>> _references;
+
+
+		public ColliderReference(Allocator allocator, bool trackReferences = false)
 		{
 			CircleColliders = new NativeList<CircleCollider>(allocator);
 			FlipperColliders = new NativeList<FlipperCollider>(allocator);
@@ -52,6 +56,9 @@ namespace VisualPinball.Unity
 			TriangleColliders = new NativeList<TriangleCollider>(allocator);
 			PlaneColliders = new NativeList<PlaneCollider>(allocator);
 			Lookup = new NativeList<ColliderLookup>(allocator);
+
+			_trackReferences = trackReferences;
+			_references = new NativeParallelHashMap<int, NativeList<int>>(0, allocator);
 		}
 
 		public void Dispose()
@@ -68,6 +75,12 @@ namespace VisualPinball.Unity
 			SpinnerColliders.Dispose();
 			TriangleColliders.Dispose();
 			PlaneColliders.Dispose();
+			using (var enumerator = _references.GetEnumerator()) {
+				while (enumerator.MoveNext()) {
+					enumerator.Current.Value.Dispose();
+				}
+			}
+			_references.Dispose();
 		}
 
 		public int Count => Lookup.Length;
@@ -100,9 +113,22 @@ namespace VisualPinball.Unity
 
 		#region Add
 
+		private void TrackReference(int itemId, int colliderId)
+		{
+			if (!_trackReferences) {
+				return;
+			}
+
+			if (!_references.ContainsKey(itemId)) {
+				_references[itemId] = new NativeList<int>(Allocator.Temp);
+			}
+			_references[itemId].Add(colliderId);
+		}
+
 		internal int Add(CircleCollider collider)
 		{
 			collider.Id = Lookup.Length;
+			TrackReference(collider.Header.ItemId, collider.Header.Id);
 			Lookup.Add(new ColliderLookup(ColliderType.Circle, CircleColliders.Length));
 			CircleColliders.Add(collider);
 			return collider.Id;
@@ -111,6 +137,7 @@ namespace VisualPinball.Unity
 		internal int Add(FlipperCollider collider)
 		{
 			collider.Id = Lookup.Length;
+			TrackReference(collider.Header.ItemId, collider.Header.Id);
 			Lookup.Add(new ColliderLookup(ColliderType.Flipper, FlipperColliders.Length));
 			FlipperColliders.Add(collider);
 			return collider.Id;
@@ -119,6 +146,7 @@ namespace VisualPinball.Unity
 		internal int Add(GateCollider collider)
 		{
 			collider.Id = Lookup.Length;
+			TrackReference(collider.Header.ItemId, collider.Header.Id);
 			Lookup.Add(new ColliderLookup(ColliderType.Gate, GateColliders.Length));
 			GateColliders.Add(collider);
 			return collider.Id;
@@ -127,6 +155,7 @@ namespace VisualPinball.Unity
 		internal int Add(Line3DCollider collider)
 		{
 			collider.Id = Lookup.Length;
+			TrackReference(collider.Header.ItemId, collider.Header.Id);
 			Lookup.Add(new ColliderLookup(ColliderType.Line3D, Line3DColliders.Length));
 			Line3DColliders.Add(collider);
 			return collider.Id;
@@ -135,6 +164,7 @@ namespace VisualPinball.Unity
 		internal int Add(LineSlingshotCollider collider)
 		{
 			collider.Id = Lookup.Length;
+			TrackReference(collider.Header.ItemId, collider.Header.Id);
 			Lookup.Add(new ColliderLookup(ColliderType.LineSlingShot, LineSlingshotColliders.Length));
 			LineSlingshotColliders.Add(collider);
 			return collider.Id;
@@ -143,6 +173,7 @@ namespace VisualPinball.Unity
 		internal int Add(LineCollider collider)
 		{
 			collider.Id = Lookup.Length;
+			TrackReference(collider.Header.ItemId, collider.Header.Id);
 			Lookup.Add(new ColliderLookup(ColliderType.Line, LineColliders.Length));
 			LineColliders.Add(collider);
 			return collider.Id;
@@ -151,6 +182,7 @@ namespace VisualPinball.Unity
 		internal int Add(LineZCollider collider)
 		{
 			collider.Id = Lookup.Length;
+			TrackReference(collider.Header.ItemId, collider.Header.Id);
 			Lookup.Add(new ColliderLookup(ColliderType.LineZ, LineZColliders.Length));
 			LineZColliders.Add(collider);
 			return collider.Id;
@@ -159,6 +191,7 @@ namespace VisualPinball.Unity
 		internal int Add(PlungerCollider collider)
 		{
 			collider.Id = Lookup.Length;
+			TrackReference(collider.Header.ItemId, collider.Header.Id);
 			Lookup.Add(new ColliderLookup(ColliderType.Plunger, PlungerColliders.Length));
 			PlungerColliders.Add(collider);
 			return collider.Id;
@@ -167,6 +200,7 @@ namespace VisualPinball.Unity
 		internal int Add(PointCollider collider)
 		{
 			collider.Id = Lookup.Length;
+			TrackReference(collider.Header.ItemId, collider.Header.Id);
 			Lookup.Add(new ColliderLookup(ColliderType.Point, PointColliders.Length));
 			PointColliders.Add(collider);
 			return collider.Id;
@@ -175,6 +209,7 @@ namespace VisualPinball.Unity
 		internal int Add(SpinnerCollider collider)
 		{
 			collider.Id = Lookup.Length;
+			TrackReference(collider.Header.ItemId, collider.Header.Id);
 			Lookup.Add(new ColliderLookup(ColliderType.Spinner, SpinnerColliders.Length));
 			SpinnerColliders.Add(collider);
 			return collider.Id;
@@ -183,6 +218,7 @@ namespace VisualPinball.Unity
 		internal int Add(TriangleCollider collider)
 		{
 			collider.Id = Lookup.Length;
+			TrackReference(collider.Header.ItemId, collider.Header.Id);
 			Lookup.Add(new ColliderLookup(ColliderType.Triangle, TriangleColliders.Length));
 			TriangleColliders.Add(collider);
 			return collider.Id;
@@ -191,6 +227,7 @@ namespace VisualPinball.Unity
 		internal int Add(PlaneCollider collider)
 		{
 			collider.Id = Lookup.Length;
+			TrackReference(collider.Header.ItemId, collider.Header.Id);
 			Lookup.Add(new ColliderLookup(ColliderType.Plane, PlaneColliders.Length));
 			PlaneColliders.Add(collider);
 			return collider.Id;
