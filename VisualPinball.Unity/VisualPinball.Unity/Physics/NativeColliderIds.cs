@@ -1,6 +1,6 @@
 ﻿namespace VisualPinball.Unity
 {
-	public enum NativeColliderIds
+	public struct NativeColliderIds
 	{
 		
 	}

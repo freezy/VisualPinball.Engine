@@ -45,6 +45,8 @@ namespace VisualPinball.Unity
 		[NonSerialized] private InsideOfs _insideOfs;
 		[NonSerialized] private NativeOctree<int> _octree;
 		[NonSerialized] private NativeColliders _colliders;
+		[NonSerialized] private NativeColliders _kinematicColliders;
+		[NonSerialized] private NativeColliders _kinematicCollidersAtIdentity;
 		[NonSerialized] private NativeArray<PhysicsEnv> _physicsEnv = new(1, Allocator.Persistent);
 		[NonSerialized] private NativeQueue<EventData> _eventQueue = new(Allocator.Persistent);
 
@@ -188,6 +190,8 @@ namespace VisualPinball.Unity
 
 			// allocate colliders
 			_colliders = new NativeColliders(ref colliders, Allocator.Persistent);
+			_kinematicColliders = new NativeColliders(ref kinematicColliders, Allocator.Persistent);
+			_kinematicCollidersAtIdentity = new NativeColliders(ref kinematicColliders, Allocator.Persistent);
 
 			// create octree
 			var elapsedMs = sw.Elapsed.TotalMilliseconds;
@@ -221,6 +225,8 @@ namespace VisualPinball.Unity
 				PhysicsEnv = _physicsEnv,
 				Octree = _octree,
 				Colliders = _colliders,
+				KinematicColliders = _kinematicColliders,
+				KinematicCollidersAtIdentity = _kinematicCollidersAtIdentity,
 				InsideOfs = _insideOfs,
 				Events = events,
 				Balls = _ballStates,
@@ -240,7 +246,7 @@ namespace VisualPinball.Unity
 			};
 
 			var env = _physicsEnv[0];
-			var state = new PhysicsState(ref env, ref _octree, ref _colliders, ref events, ref _insideOfs, ref _ballStates,
+			var state = new PhysicsState(ref env, ref _octree, ref _colliders, ref _kinematicColliders, ref events, ref _insideOfs, ref _ballStates,
 				ref _bumperStates, ref _dropTargetStates, ref _flipperStates, ref _gateStates,
 				ref _hitTargetStates, ref _kickerStates, ref _plungerStates, ref _spinnerStates,
 				ref _surfaceStates, ref _triggerStates, ref _disabledCollisionItems, ref _swapBallCollisionHandling);

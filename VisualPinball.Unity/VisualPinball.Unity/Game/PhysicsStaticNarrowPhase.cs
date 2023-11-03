@@ -26,6 +26,7 @@ namespace VisualPinball.Unity
 		private static readonly ProfilerMarker PerfMarkerNarrowPhase = new("NarrowPhase");
 
 		internal static void FindNextCollision(
+			ref NativeColliders colliders,
 			float hitTime,
 			ref BallState ball,
 			ref NativeParallelHashSet<int> overlappingColliders,
@@ -35,25 +36,18 @@ namespace VisualPinball.Unity
 		{
 			PerfMarkerNarrowPhase.Begin();
 
-			// init contacts and event
-			ball.CollisionEvent.ClearCollider(hitTime); // search upto current hit time
-
 			using (var enumerator = overlappingColliders.GetEnumerator()) {
 				while (enumerator.MoveNext()) {
 					var overlappingColliderId = enumerator.Current;
-					if (!state.IsColliderActive(overlappingColliderId)) {
+					if (!state.IsColliderActive(ref colliders, overlappingColliderId)) {
 						continue;
 					}
 					var newCollEvent = new CollisionEventData();
-					var newTime = state.HitTest(overlappingColliderId, ref ball, ref newCollEvent, ref contacts, ref state);
+					var newTime = state.HitTest(ref colliders, overlappingColliderId, ref ball, ref newCollEvent, ref contacts);
 					SaveCollisions(ref ball, ref newCollEvent, ref contacts, overlappingColliderId, newTime);
 				}
 			}
 
-			// no negative time allowed
-			if (ball.CollisionEvent.HitTime < 0) {
-				ball.CollisionEvent.ClearCollider();
-			}
 			PerfMarkerNarrowPhase.End();
 		}
 

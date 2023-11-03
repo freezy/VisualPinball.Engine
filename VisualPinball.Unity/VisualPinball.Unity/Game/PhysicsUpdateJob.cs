@@ -34,6 +34,8 @@ namespace VisualPinball.Unity
 		public NativeArray<PhysicsEnv> PhysicsEnv;
 		public NativeOctree<int> Octree;
 		public NativeColliders Colliders;
+		public NativeColliders KinematicColliders;
+		public NativeColliders KinematicCollidersAtIdentity;
 		public InsideOfs InsideOfs;
 		public NativeQueue<EventData>.ParallelWriter Events;
 		public AABB PlayfieldBounds;
@@ -55,7 +57,7 @@ namespace VisualPinball.Unity
 		public void Execute()
 		{
 			var env = PhysicsEnv[0];
-			var state = new PhysicsState(ref env, ref Octree, ref Colliders, ref Events, ref InsideOfs, ref Balls,
+			var state = new PhysicsState(ref env, ref Octree, ref Colliders, ref KinematicColliders, ref Events, ref InsideOfs, ref Balls,
 				ref BumperStates, ref DropTargetStates, ref FlipperStates, ref GateStates,
 				ref HitTargetStates, ref KickerStates, ref PlungerStates, ref SpinnerStates,
 				ref SurfaceStates, ref TriggerStates, ref DisabledCollisionItems, ref SwapBallCollisionHandling);
