@@ -45,6 +45,7 @@ namespace VisualPinball.Unity
 			// create octree of ball-to-ball collision
 			// it's okay to have this code outside of the inner loop, as the ball hitrects already include the maximum distance they can travel in that timespan
 			var ballOctree = PhysicsDynamicBroadPhase.CreateOctree(ref state.Balls, in playfieldBounds);
+			var kineticOctree = PhysicsKinematicBroadPhase.CreateOctree(ref state.KinematicColliders, in playfieldBounds);
 
 			while (dTime > 0) {
 
@@ -63,9 +64,21 @@ namespace VisualPinball.Unity
 							continue;
 						}
 
-						// hit testing
+						// init contacts and event
+						ball.CollisionEvent.ClearCollider(hitTime); // search upto current hit time
+
+						// hit testing (overlappingColliders is cleared in broad phase)
 						PhysicsStaticBroadPhase.FindOverlaps(in state.Octree, in ball, ref overlappingColliders);
-						PhysicsStaticNarrowPhase.FindNextCollision(hitTime, ref ball, ref overlappingColliders, ref _contacts, ref state);
+						PhysicsStaticNarrowPhase.FindNextCollision(ref state.Colliders, hitTime, ref ball, ref overlappingColliders, ref _contacts, ref state);
+
+						PhysicsStaticBroadPhase.FindOverlaps(in kineticOctree, in ball, ref overlappingColliders);
+						PhysicsStaticNarrowPhase.FindNextCollision(ref state.KinematicColliders, hitTime, ref ball, ref overlappingColliders, ref _contacts, ref state);
+
+						// no negative time allowed
+						if (ball.CollisionEvent.HitTime < 0) {
+							ball.CollisionEvent.ClearCollider();
+						}
+
 						PhysicsDynamicBroadPhase.FindOverlaps(in ballOctree, in ball, ref overlappingColliders, ref state.Balls);
 						PhysicsDynamicNarrowPhase.FindNextCollision(ref ball, ref overlappingColliders, ref _contacts, ref state);
 
