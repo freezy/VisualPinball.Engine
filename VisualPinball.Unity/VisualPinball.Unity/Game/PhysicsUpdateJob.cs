@@ -17,6 +17,7 @@ using NativeTrees;
 using Unity.Burst;
 using Unity.Collections;
 using Unity.Jobs;
+using Unity.Mathematics;
 using VisualPinball.Engine.Common;
 
 namespace VisualPinball.Unity
@@ -36,6 +37,7 @@ namespace VisualPinball.Unity
 		public NativeColliders Colliders;
 		public NativeColliders KinematicColliders;
 		public NativeColliders KinematicCollidersAtIdentity;
+		public NativeParallelHashMap<int, float4x4> UpdatedKinematicTransforms;
 		public InsideOfs InsideOfs;
 		public NativeQueue<EventData>.ParallelWriter Events;
 		public AABB PlayfieldBounds;
@@ -57,7 +59,7 @@ namespace VisualPinball.Unity
 		public void Execute()
 		{
 			var env = PhysicsEnv[0];
-			var state = new PhysicsState(ref env, ref Octree, ref Colliders, ref KinematicColliders, ref Events, ref InsideOfs, ref Balls,
+			var state = new PhysicsState(ref env, ref Octree, ref Colliders, ref KinematicColliders, ref UpdatedKinematicTransforms, ref Events, ref InsideOfs, ref Balls,
 				ref BumperStates, ref DropTargetStates, ref FlipperStates, ref GateStates,
 				ref HitTargetStates, ref KickerStates, ref PlungerStates, ref SpinnerStates,
 				ref SurfaceStates, ref TriggerStates, ref DisabledCollisionItems, ref SwapBallCollisionHandling);

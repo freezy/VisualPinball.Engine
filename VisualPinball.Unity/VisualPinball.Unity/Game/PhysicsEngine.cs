@@ -64,7 +64,6 @@ namespace VisualPinball.Unity
 		[NonSerialized] private NativeParallelHashSet<int> _disabledCollisionItems = new(0, Allocator.Persistent);
 		[NonSerialized] private bool _swapBallCollisionHandling;
 
-		[NonSerialized] private NativeParallelHashMap<int, float4x4> _itemTransforms = new(0, Allocator.Persistent);
 		[NonSerialized] private NativeParallelHashMap<int, NativeColliderIds> _colliderLookup = new(0, Allocator.Persistent);
 
 		#endregion
@@ -72,6 +71,8 @@ namespace VisualPinball.Unity
 		#region Transforms
 
 		[NonSerialized] private readonly Dictionary<int, Transform> _transforms = new();
+		[NonSerialized] private NativeParallelHashMap<int, float4x4> _kinematicTransforms = new(0, Allocator.Persistent);
+		[NonSerialized] private NativeParallelHashMap<int, float4x4> _updatedKinematicTransforms = new(0, Allocator.Persistent);
 		[NonSerialized] private readonly Dictionary<int, SkinnedMeshRenderer[]> _skinnedMeshRenderers = new();
 
 		#endregion
@@ -80,6 +81,8 @@ namespace VisualPinball.Unity
 		[NonSerialized] private readonly List<ScheduledAction> _scheduledActions = new();
 
 		[NonSerialized] private Player _player;
+		[NonSerialized] private IKinematicColliderComponent[] _kinematicColliderComponents;
+
 
 		private static ulong NowUsec => (ulong)(Time.timeAsDouble * 1000000);
 
@@ -171,6 +174,7 @@ namespace VisualPinball.Unity
 			_player = GetComponentInParent<Player>();
 			_insideOfs = new InsideOfs(Allocator.Persistent);
 			_physicsEnv[0] = new PhysicsEnv(NowUsec, GetComponentInChildren<PlayfieldComponent>(), GravityStrength);
+			_kinematicColliderComponents = GetComponentsInChildren<IKinematicColliderComponent>();
 		}
 
 		private void Start()
@@ -213,10 +217,28 @@ namespace VisualPinball.Unity
 			foreach (var ball in balls) {
 				Register(ball);
 			}
+
+			// get kinetic collider matrices
+			foreach (var coll in _kinematicColliderComponents) {
+				_kinematicTransforms[coll.ItemId] = coll.GetTransformationMatrix().ToUnityMatrix();
+			}
 		}
 
 		private void Update()
 		{
+			// check for updated kinematic transforms
+			_updatedKinematicTransforms.Clear();
+			foreach (var coll in _kinematicColliderComponents) {
+				if (!coll.IsKinematic) {
+					continue;
+				}
+				var lastTransformationMatrix = _kinematicTransforms[coll.ItemId];
+				var currTransformationMatrix = (float4x4)coll.GetTransformationMatrix().ToUnityMatrix();
+				if (!lastTransformationMatrix.Equals(currTransformationMatrix)) {
+					_updatedKinematicTransforms.Add(coll.ItemId, currTransformationMatrix);
+				}
+			}
+
 			// prepare job
 			var events = _eventQueue.AsParallelWriter();
 			var updatePhysics = new PhysicsUpdateJob {
@@ -227,6 +249,7 @@ namespace VisualPinball.Unity
 				Colliders = _colliders,
 				KinematicColliders = _kinematicColliders,
 				KinematicCollidersAtIdentity = _kinematicCollidersAtIdentity,
+				UpdatedKinematicTransforms = _updatedKinematicTransforms,
 				InsideOfs = _insideOfs,
 				Events = events,
 				Balls = _ballStates,
@@ -246,7 +269,8 @@ namespace VisualPinball.Unity
 			};
 
 			var env = _physicsEnv[0];
-			var state = new PhysicsState(ref env, ref _octree, ref _colliders, ref _kinematicColliders, ref events, ref _insideOfs, ref _ballStates,
+			var state = new PhysicsState(ref env, ref _octree, ref _colliders, ref _kinematicColliders, ref _updatedKinematicTransforms,
+				ref events, ref _insideOfs, ref _ballStates,
 				ref _bumperStates, ref _dropTargetStates, ref _flipperStates, ref _gateStates,
 				ref _hitTargetStates, ref _kickerStates, ref _plungerStates, ref _spinnerStates,
 				ref _surfaceStates, ref _triggerStates, ref _disabledCollisionItems, ref _swapBallCollisionHandling);
@@ -412,6 +436,9 @@ namespace VisualPinball.Unity
 			}
 			_triggerStates.Dispose();
 			_disabledCollisionItems.Dispose();
+			_kinematicTransforms.Dispose();
+			_updatedKinematicTransforms.Dispose();
+			_colliderLookup.Dispose();
 		}
 
 		#endregion
