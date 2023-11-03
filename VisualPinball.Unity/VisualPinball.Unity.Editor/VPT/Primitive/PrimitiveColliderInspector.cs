@@ -51,7 +51,7 @@ namespace VisualPinball.Unity.Editor
 			_elasticityFalloffProperty = serializedObject.FindProperty(nameof(PrimitiveColliderComponent.ElasticityFalloff));
 			_frictionProperty = serializedObject.FindProperty(nameof(PrimitiveColliderComponent.Friction));
 			_scatterProperty = serializedObject.FindProperty(nameof(PrimitiveColliderComponent.Scatter));
-			_isKinematicProperty = serializedObject.FindProperty(nameof(PrimitiveColliderComponent.IsKinematic));
+			_isKinematicProperty = serializedObject.FindProperty(nameof(PrimitiveColliderComponent._isKinematic));
 		}
 
 		public override void OnInspectorGUI()

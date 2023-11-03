@@ -17,12 +17,14 @@
 // ReSharper disable InconsistentNaming
 
 using UnityEngine;
+using UnityEngine.Serialization;
+using VisualPinball.Engine.Math;
 using VisualPinball.Engine.VPT.Primitive;
 
 namespace VisualPinball.Unity
 {
 	[AddComponentMenu("Visual Pinball/Collision/Primitive Collider")]
-	public class PrimitiveColliderComponent : ColliderComponent<PrimitiveData, PrimitiveComponent>
+	public class PrimitiveColliderComponent : ColliderComponent<PrimitiveData, PrimitiveComponent>, IKinematicColliderComponent
 	{
 		#region Data
 
@@ -57,7 +59,11 @@ namespace VisualPinball.Unity
 		public bool OverwritePhysics = true;
 
 		[Tooltip("If set, transforming this object will transform the colliders as well.")]
-		public bool IsKinematic;
+		public bool _isKinematic;
+
+		public bool IsKinematic => _isKinematic;
+		public int ItemId => MainComponent.gameObject.GetInstanceID();
+		public Matrix3D GetTransformationMatrix() => MainComponent.GetTransformationMatrix();
 
 		#endregion
 

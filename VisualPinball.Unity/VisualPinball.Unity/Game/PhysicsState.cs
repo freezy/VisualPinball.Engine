@@ -16,6 +16,7 @@
 
 using NativeTrees;
 using Unity.Collections;
+using Unity.Mathematics;
 using VisualPinball.Engine.VPT;
 using VisualPinball.Unity.Collections;
 
@@ -27,6 +28,7 @@ namespace VisualPinball.Unity
 		internal NativeOctree<int> Octree;
 		internal NativeColliders Colliders;
 		internal NativeColliders KinematicColliders;
+		internal NativeParallelHashMap<int, float4x4> UpdatedKinematicTransforms;
 		internal NativeQueue<EventData>.ParallelWriter EventQueue;
 		internal InsideOfs InsideOfs;
 		internal NativeParallelHashMap<int, BallState> Balls;
@@ -44,6 +46,7 @@ namespace VisualPinball.Unity
 		internal bool SwapBallCollisionHandling;
 
 		public PhysicsState(ref PhysicsEnv env, ref NativeOctree<int> octree, ref NativeColliders colliders, ref NativeColliders kinematicColliders,
+			ref NativeParallelHashMap<int, float4x4> updatedKinematicTransforms,
 			ref NativeQueue<EventData>.ParallelWriter eventQueue, ref InsideOfs insideOfs, ref NativeParallelHashMap<int, BallState> balls,
 			ref NativeParallelHashMap<int, BumperState> bumperStates, ref NativeParallelHashMap<int, DropTargetState> dropTargetStates,
 			ref NativeParallelHashMap<int, FlipperState> flipperStates, ref NativeParallelHashMap<int, GateState> gateStates,
@@ -56,6 +59,7 @@ namespace VisualPinball.Unity
 			Octree = octree;
 			Colliders = colliders;
 			KinematicColliders = kinematicColliders;
+			UpdatedKinematicTransforms = updatedKinematicTransforms;
 			EventQueue = eventQueue;
 			InsideOfs = insideOfs;
 			Balls = balls;
