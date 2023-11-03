@@ -73,8 +73,8 @@ namespace VisualPinball.Unity
 			SwapBallCollisionHandling = swapBallCollisionHandling;
 		}
 
-		internal ref ColliderHeader GetColliderHeader(int colliderId) => ref Colliders.GetHeader(colliderId);
-		internal ColliderType GetColliderType(int colliderId) => Colliders.GetHeader(colliderId).Type;
+		internal ref ColliderHeader GetColliderHeader(ref NativeColliders colliders, int colliderId) => ref colliders.GetHeader(colliderId);
+		internal ColliderType GetColliderType(ref NativeColliders colliders, int colliderId) => colliders.GetHeader(colliderId).Type;
 
 		internal bool IsColliderActive(ref NativeColliders colliders, int colliderId) => !DisabledCollisionItems.Contains(colliders.GetItemId(colliderId));
 
@@ -114,7 +114,7 @@ namespace VisualPinball.Unity
 			if (IsInactiveDropTarget(ref colliders, colliderId)) {
 				return -1f;
 			}
-			switch (GetColliderType(colliderId)) {
+			switch (GetColliderType(ref colliders, colliderId)) {
 				case ColliderType.Bumper:
 				case ColliderType.Circle:
 					return colliders.Circle(colliderId).HitTest(ref newCollEvent, ref InsideOfs, in ball,

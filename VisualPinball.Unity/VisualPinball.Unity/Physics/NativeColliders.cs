@@ -37,6 +37,7 @@ namespace VisualPinball.Unity
 		private static readonly ProfilerMarker PerfMarker = new("NativeColliders Allocation");
 
 		public int Length => m_Length;
+		public bool KinematicColliders => m_KinematicColliders;
 
 		/// <summary>
 		/// An array that links the collider IDs (the key) to the position in the respective collider buffer.
@@ -56,6 +57,7 @@ namespace VisualPinball.Unity
 		[NativeDisableUnsafePtrRestriction] private void* m_PlaneColliderBuffer;
 
 		private readonly Allocator m_AllocatorLabel;
+		private readonly bool m_KinematicColliders;
 
 		private int m_Length; // must be here, and called like that.
 
@@ -81,6 +83,7 @@ namespace VisualPinball.Unity
 			PerfMarker.Begin();
 
 			m_Length = colRef.Lookup.Length;
+			m_KinematicColliders = colRef.KinematicColliders;
 
 			long size = UnsafeUtility.SizeOf<ColliderLookup>() * colRef.Lookup.Length;
 			m_LookupBuffer = UnsafeUtility.Malloc(size, UnsafeUtility.AlignOf<ColliderLookup>(), allocator);

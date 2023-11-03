@@ -37,11 +37,11 @@ namespace VisualPinball.Unity
 
 		public NativeList<ColliderLookup> Lookup;
 
-		private bool _trackReferences;
+		public readonly bool KinematicColliders;
 		private NativeParallelHashMap<int, NativeList<int>> _references;
 
 
-		public ColliderReference(Allocator allocator, bool trackReferences = false)
+		public ColliderReference(Allocator allocator, bool kinematicColliders = false)
 		{
 			CircleColliders = new NativeList<CircleCollider>(allocator);
 			FlipperColliders = new NativeList<FlipperCollider>(allocator);
@@ -57,7 +57,7 @@ namespace VisualPinball.Unity
 			PlaneColliders = new NativeList<PlaneCollider>(allocator);
 			Lookup = new NativeList<ColliderLookup>(allocator);
 
-			_trackReferences = trackReferences;
+			KinematicColliders = kinematicColliders;
 			_references = new NativeParallelHashMap<int, NativeList<int>>(0, allocator);
 		}
 
@@ -115,7 +115,7 @@ namespace VisualPinball.Unity
 
 		private void TrackReference(int itemId, int colliderId)
 		{
-			if (!_trackReferences) {
+			if (!KinematicColliders) {
 				return;
 			}
 

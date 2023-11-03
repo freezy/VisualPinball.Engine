@@ -29,12 +29,14 @@ namespace VisualPinball.Unity
 		public bool IsContact;
 
 		public int ColliderId;
+		public bool IsKinematic;
 		public int BallId;
 		
-		public void SetCollider(int colliderId)
+		public void SetCollider(int colliderId, bool isKinematic)
 		{
 			// it's either collider id (for static colliders) or ball id (for dynamic colliders)
 			ColliderId = colliderId;
+			IsKinematic = isKinematic;
 			BallId = 0;
 		}
 
