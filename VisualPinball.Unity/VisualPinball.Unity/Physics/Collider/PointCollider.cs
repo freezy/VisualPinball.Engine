@@ -30,7 +30,7 @@ namespace VisualPinball.Unity
 
 		public ColliderHeader Header;
 
-		public readonly float3 P;
+		public float3 P;
 
 		public ColliderBounds Bounds => new ColliderBounds(Header.ItemId, Header.Id, new Aabb(
 			P.x,
@@ -142,7 +142,7 @@ namespace VisualPinball.Unity
 
 		public void Transform(PointCollider point, float4x4 matrix)
 		{
-			
+			P = math.mul(matrix, new float4(point.P, 1f)).xyz;
 		}
 	}
 }

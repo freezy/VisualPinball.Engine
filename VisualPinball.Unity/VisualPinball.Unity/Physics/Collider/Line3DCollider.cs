@@ -37,20 +37,25 @@ namespace VisualPinball.Unity
 
 		// these are all used when casting this to LineZCollider,
 		// so the order is important too.
-		// ReSharper disable once NotAccessedField.Local
-		private readonly float2 _xy;
-		// ReSharper disable once NotAccessedField.Local
-		private readonly float _zLow;
-		// ReSharper disable once NotAccessedField.Local
-		private readonly float _zHigh;
-		private readonly float3x3 _matrix;
+		private float2 _xy;
+		private float _zLow;
+		private float _zHigh;
+		private float3x3 _matrix;
+
+		// these are just so we can recompute the matrix when the collider is transformed.
+		private float3 _v1;
+		private float3 _v2;
 
 		public ColliderBounds Bounds { get; private set; }
 
 		public Line3DCollider(float3 v1, float3 v2, ColliderInfo info) : this()
 		{
 			Header.Init(info, ColliderType.Line3D);
+			SetByVectors(v1, v2);
+		}
 
+		private void SetByVectors(float3 v1, float3 v2)
+		{
 			var vLine = math.normalize(v2 - v1);
 
 			// Axis of rotation to make 3D cylinder a cylinder along the z-axis
@@ -89,6 +94,9 @@ namespace VisualPinball.Unity
 				math.min(v1.z, v2.z),
 				math.max(v1.z, v2.z)
 			));
+
+			_v1 = v1;
+			_v2 = v2;
 		}
 
 		#region Narrowphase
@@ -135,6 +143,10 @@ namespace VisualPinball.Unity
 
 		public void Transform(Line3DCollider line3D, float4x4 matrix)
 		{
+			SetByVectors(
+				math.mul(matrix, new float4(line3D._v1, 1f)).xyz,
+				math.mul(matrix, new float4(line3D._v2, 1f)).xyz
+			);
 		}
 	}
 }

@@ -16,6 +16,7 @@
 
 using System;
 using Unity.Collections;
+using Unity.Mathematics;
 using VisualPinball.Unity.Collections;
 
 namespace VisualPinball.Unity
@@ -35,11 +36,10 @@ namespace VisualPinball.Unity
 		internal NativeList<TriangleCollider> TriangleColliders;
 		internal NativeList<PlaneCollider> PlaneColliders;
 
-		public NativeList<ColliderLookup> Lookup;
+		public NativeList<ColliderLookup> Lookups; // collider id -> collider type + index within collider type list
 
-		public readonly bool KinematicColliders;
-		private NativeParallelHashMap<int, NativeList<int>> _references;
-
+		public readonly bool KinematicColliders; // if set, populate _itemIdToColliderIds
+		private NativeParallelHashMap<int, NativeList<int>> _itemIdToColliderIds;
 
 		public ColliderReference(Allocator allocator, bool kinematicColliders = false)
 		{
@@ -55,10 +55,10 @@ namespace VisualPinball.Unity
 			SpinnerColliders = new NativeList<SpinnerCollider>(allocator);
 			TriangleColliders = new NativeList<TriangleCollider>(allocator);
 			PlaneColliders = new NativeList<PlaneCollider>(allocator);
-			Lookup = new NativeList<ColliderLookup>(allocator);
+			Lookups = new NativeList<ColliderLookup>(allocator);
 
 			KinematicColliders = kinematicColliders;
-			_references = new NativeParallelHashMap<int, NativeList<int>>(0, allocator);
+			_itemIdToColliderIds = new NativeParallelHashMap<int, NativeList<int>>(0, allocator);
 		}
 
 		public void Dispose()
@@ -75,25 +75,52 @@ namespace VisualPinball.Unity
 			SpinnerColliders.Dispose();
 			TriangleColliders.Dispose();
 			PlaneColliders.Dispose();
-			using (var enumerator = _references.GetEnumerator()) {
+			using (var enumerator = _itemIdToColliderIds.GetEnumerator()) {
 				while (enumerator.MoveNext()) {
 					enumerator.Current.Value.Dispose();
 				}
 			}
-			_references.Dispose();
+			_itemIdToColliderIds.Dispose();
 		}
 
-		public int Count => Lookup.Length;
+		public int Count => Lookups.Length;
 
 		public ICollider this[int i] => LookupCollider(i);
 
+		public void TransformToIdentity(NativeParallelHashMap<int, float4x4> itemIdToTransformationMatrix)
+		{
+			using var enumerator = _itemIdToColliderIds.GetEnumerator();
+			while (enumerator.MoveNext()) {
+				var itemId = enumerator.Current.Key;
+				ref var colliderIds = ref enumerator.Current.Value;
+				foreach (var colliderId in colliderIds) {
+					var matrix = itemIdToTransformationMatrix[itemId];
+					var lookup = Lookups[colliderId];
+					switch (lookup.Type) {
+						case ColliderType.Point:
+							ref var pointCollider = ref PointColliders.GetElementAsRef(lookup.Index);
+							pointCollider.Transform(PointColliders[lookup.Index], math.inverse(matrix));
+							break;
+						case ColliderType.Line3D:
+							ref var line3DCollider = ref Line3DColliders.GetElementAsRef(lookup.Index);
+							line3DCollider.Transform(Line3DColliders[lookup.Index], math.inverse(matrix));
+							break;
+						case ColliderType.Triangle:
+							ref var triangleCollider = ref TriangleColliders.GetElementAsRef(lookup.Index);
+							triangleCollider.Transform(TriangleColliders[lookup.Index], math.inverse(matrix));
+							break;
+					}
+				}
+			}
+		}
+
 		private ICollider LookupCollider(int i)
 		{
-			if (i < 0 || i >= Lookup.Length) {
+			if (i < 0 || i >= Lookups.Length) {
 				throw new IndexOutOfRangeException($"Invalid index {i} when looking up collider.");
 			}
 
-			ref var lookup = ref Lookup.GetElementAsRef(i);
+			ref var lookup = ref Lookups.GetElementAsRef(i);
 			switch (lookup.Type) {
 				case ColliderType.Circle: return CircleColliders.GetElementAsRef(lookup.Index);
 				case ColliderType.Flipper: return FlipperColliders.GetElementAsRef(lookup.Index);
@@ -119,116 +146,116 @@ namespace VisualPinball.Unity
 				return;
 			}
 
-			if (!_references.ContainsKey(itemId)) {
-				_references[itemId] = new NativeList<int>(Allocator.Temp);
+			if (!_itemIdToColliderIds.ContainsKey(itemId)) {
+				_itemIdToColliderIds[itemId] = new NativeList<int>(Allocator.Temp);
 			}
-			_references[itemId].Add(colliderId);
+			_itemIdToColliderIds[itemId].Add(colliderId);
 		}
 
 		internal int Add(CircleCollider collider)
 		{
-			collider.Id = Lookup.Length;
+			collider.Id = Lookups.Length;
 			TrackReference(collider.Header.ItemId, collider.Header.Id);
-			Lookup.Add(new ColliderLookup(ColliderType.Circle, CircleColliders.Length));
+			Lookups.Add(new ColliderLookup(ColliderType.Circle, CircleColliders.Length));
 			CircleColliders.Add(collider);
 			return collider.Id;
 		}
 
 		internal int Add(FlipperCollider collider)
 		{
-			collider.Id = Lookup.Length;
+			collider.Id = Lookups.Length;
 			TrackReference(collider.Header.ItemId, collider.Header.Id);
-			Lookup.Add(new ColliderLookup(ColliderType.Flipper, FlipperColliders.Length));
+			Lookups.Add(new ColliderLookup(ColliderType.Flipper, FlipperColliders.Length));
 			FlipperColliders.Add(collider);
 			return collider.Id;
 		}
 
 		internal int Add(GateCollider collider)
 		{
-			collider.Id = Lookup.Length;
+			collider.Id = Lookups.Length;
 			TrackReference(collider.Header.ItemId, collider.Header.Id);
-			Lookup.Add(new ColliderLookup(ColliderType.Gate, GateColliders.Length));
+			Lookups.Add(new ColliderLookup(ColliderType.Gate, GateColliders.Length));
 			GateColliders.Add(collider);
 			return collider.Id;
 		}
 
 		internal int Add(Line3DCollider collider)
 		{
-			collider.Id = Lookup.Length;
+			collider.Id = Lookups.Length;
 			TrackReference(collider.Header.ItemId, collider.Header.Id);
-			Lookup.Add(new ColliderLookup(ColliderType.Line3D, Line3DColliders.Length));
+			Lookups.Add(new ColliderLookup(ColliderType.Line3D, Line3DColliders.Length));
 			Line3DColliders.Add(collider);
 			return collider.Id;
 		}
 
 		internal int Add(LineSlingshotCollider collider)
 		{
-			collider.Id = Lookup.Length;
+			collider.Id = Lookups.Length;
 			TrackReference(collider.Header.ItemId, collider.Header.Id);
-			Lookup.Add(new ColliderLookup(ColliderType.LineSlingShot, LineSlingshotColliders.Length));
+			Lookups.Add(new ColliderLookup(ColliderType.LineSlingShot, LineSlingshotColliders.Length));
 			LineSlingshotColliders.Add(collider);
 			return collider.Id;
 		}
 
 		internal int Add(LineCollider collider)
 		{
-			collider.Id = Lookup.Length;
+			collider.Id = Lookups.Length;
 			TrackReference(collider.Header.ItemId, collider.Header.Id);
-			Lookup.Add(new ColliderLookup(ColliderType.Line, LineColliders.Length));
+			Lookups.Add(new ColliderLookup(ColliderType.Line, LineColliders.Length));
 			LineColliders.Add(collider);
 			return collider.Id;
 		}
 
 		internal int Add(LineZCollider collider)
 		{
-			collider.Id = Lookup.Length;
+			collider.Id = Lookups.Length;
 			TrackReference(collider.Header.ItemId, collider.Header.Id);
-			Lookup.Add(new ColliderLookup(ColliderType.LineZ, LineZColliders.Length));
+			Lookups.Add(new ColliderLookup(ColliderType.LineZ, LineZColliders.Length));
 			LineZColliders.Add(collider);
 			return collider.Id;
 		}
 
 		internal int Add(PlungerCollider collider)
 		{
-			collider.Id = Lookup.Length;
+			collider.Id = Lookups.Length;
 			TrackReference(collider.Header.ItemId, collider.Header.Id);
-			Lookup.Add(new ColliderLookup(ColliderType.Plunger, PlungerColliders.Length));
+			Lookups.Add(new ColliderLookup(ColliderType.Plunger, PlungerColliders.Length));
 			PlungerColliders.Add(collider);
 			return collider.Id;
 		}
 
 		internal int Add(PointCollider collider)
 		{
-			collider.Id = Lookup.Length;
+			collider.Id = Lookups.Length;
 			TrackReference(collider.Header.ItemId, collider.Header.Id);
-			Lookup.Add(new ColliderLookup(ColliderType.Point, PointColliders.Length));
+			Lookups.Add(new ColliderLookup(ColliderType.Point, PointColliders.Length));
 			PointColliders.Add(collider);
 			return collider.Id;
 		}
 
 		internal int Add(SpinnerCollider collider)
 		{
-			collider.Id = Lookup.Length;
+			collider.Id = Lookups.Length;
 			TrackReference(collider.Header.ItemId, collider.Header.Id);
-			Lookup.Add(new ColliderLookup(ColliderType.Spinner, SpinnerColliders.Length));
+			Lookups.Add(new ColliderLookup(ColliderType.Spinner, SpinnerColliders.Length));
 			SpinnerColliders.Add(collider);
 			return collider.Id;
 		}
 
 		internal int Add(TriangleCollider collider)
 		{
-			collider.Id = Lookup.Length;
+			collider.Id = Lookups.Length;
 			TrackReference(collider.Header.ItemId, collider.Header.Id);
-			Lookup.Add(new ColliderLookup(ColliderType.Triangle, TriangleColliders.Length));
+			Lookups.Add(new ColliderLookup(ColliderType.Triangle, TriangleColliders.Length));
 			TriangleColliders.Add(collider);
 			return collider.Id;
 		}
 
 		internal int Add(PlaneCollider collider)
 		{
-			collider.Id = Lookup.Length;
+			collider.Id = Lookups.Length;
 			TrackReference(collider.Header.ItemId, collider.Header.Id);
-			Lookup.Add(new ColliderLookup(ColliderType.Plane, PlaneColliders.Length));
+			Lookups.Add(new ColliderLookup(ColliderType.Plane, PlaneColliders.Length));
 			PlaneColliders.Add(collider);
 			return collider.Id;
 		}
@@ -237,9 +264,9 @@ namespace VisualPinball.Unity
 
 		public ICollider[] ToArray()
 		{
-			var array = new ICollider[Lookup.Length];
-			for (var i = 0; i < Lookup.Length; i++) {
-				var lookup = Lookup[i];
+			var array = new ICollider[Lookups.Length];
+			for (var i = 0; i < Lookups.Length; i++) {
+				var lookup = Lookups[i];
 				switch (lookup.Type) {
 					case ColliderType.Circle:
 						array[i] = CircleColliders[lookup.Index];
@@ -284,8 +311,8 @@ namespace VisualPinball.Unity
 
 		public NativeParallelHashMap<int, NativeColliderIds> CreateLookup(Allocator allocator)
 		{
-			var lookup = new NativeParallelHashMap<int, NativeColliderIds>(_references.Count(), allocator);
-			using var enumerator = _references.GetEnumerator();
+			var lookup = new NativeParallelHashMap<int, NativeColliderIds>(_itemIdToColliderIds.Count(), allocator);
+			using var enumerator = _itemIdToColliderIds.GetEnumerator();
 			while (enumerator.MoveNext()) {
 				lookup.Add(enumerator.Current.Key, new NativeColliderIds(enumerator.Current.Value, allocator));
 			}

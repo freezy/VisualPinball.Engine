@@ -194,9 +194,16 @@ namespace VisualPinball.Unity
 			// allocate colliders
 			_colliders = new NativeColliders(ref colliders, Allocator.Persistent);
 			_kinematicColliders = new NativeColliders(ref kinematicColliders, Allocator.Persistent);
-			// todo make them actually at identity by reverse-applying their matrices
-			_kinematicCollidersAtIdentity = new NativeColliders(ref kinematicColliders, Allocator.Persistent);
+
+			// get kinetic collider matrices
+			foreach (var coll in _kinematicColliderComponents) {
+				_kinematicTransforms[coll.ItemId] = coll.GetTransformationMatrix().ToUnityMatrix();
+			}
 			_kinematicColliderLookups = kinematicColliders.CreateLookup(Allocator.Persistent);
+
+			// create identity kinematic colliders
+			kinematicColliders.TransformToIdentity(_kinematicTransforms);
+			_kinematicCollidersAtIdentity = new NativeColliders(ref kinematicColliders, Allocator.Persistent);
 
 			// create octree
 			var elapsedMs = sw.Elapsed.TotalMilliseconds;
@@ -217,11 +224,6 @@ namespace VisualPinball.Unity
 			var balls = GetComponentsInChildren<BallComponent>();
 			foreach (var ball in balls) {
 				Register(ball);
-			}
-
-			// get kinetic collider matrices
-			foreach (var coll in _kinematicColliderComponents) {
-				_kinematicTransforms[coll.ItemId] = coll.GetTransformationMatrix().ToUnityMatrix();
 			}
 		}
 
