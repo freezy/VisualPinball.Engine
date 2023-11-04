@@ -46,8 +46,11 @@ namespace VisualPinball.Unity
 		protected override void CreateColliders(ref ColliderReference colliders, ref ColliderReference kinematicColliders, float margin)
 		{
 			var colliderGenerator = new PrimitiveColliderGenerator(this, MainComponent, MainComponent);
-			var colls = ColliderComponent._isKinematic ? kinematicColliders : colliders;
-			colliderGenerator.GenerateColliders(ColliderComponent.CollisionReductionFactor, ref colls);
+			if (ColliderComponent._isKinematic) {
+				colliderGenerator.GenerateColliders(ColliderComponent.CollisionReductionFactor, ref kinematicColliders);
+			} else {
+				colliderGenerator.GenerateColliders(ColliderComponent.CollisionReductionFactor, ref colliders);
+			}
 		}
 
 		#endregion
