@@ -31,10 +31,10 @@ namespace VisualPinball.Unity
 
 		public ColliderHeader Header;
 
-		public readonly float3 Rgv0;
-		public readonly float3 Rgv1;
-		public readonly float3 Rgv2;
-		private readonly float3 _normal;
+		public float3 Rgv0;
+		public float3 Rgv1;
+		public float3 Rgv2;
+		private float3 _normal;
 
 		public float3 Normal() => _normal;
 		
@@ -182,5 +182,10 @@ namespace VisualPinball.Unity
 		}
 
 		#endregion
+
+		public void Transform(TriangleCollider triangle, float4x4 matrix)
+		{
+			//Rgv0 = math.mul(matrix, triangle.Rgv0);
+		}
 	}
 }

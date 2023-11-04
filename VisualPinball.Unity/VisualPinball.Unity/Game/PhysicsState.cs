@@ -30,6 +30,8 @@ namespace VisualPinball.Unity
 		internal NativeColliders KinematicColliders;
 		internal NativeColliders KinematicCollidersAtIdentity;
 		internal NativeParallelHashMap<int, float4x4> UpdatedKinematicTransforms;
+		internal NativeParallelHashMap<int, NativeColliderIds> KinematicColliderLookups;
+
 		internal NativeQueue<EventData>.ParallelWriter EventQueue;
 		internal InsideOfs InsideOfs;
 		internal NativeParallelHashMap<int, BallState> Balls;
@@ -48,7 +50,8 @@ namespace VisualPinball.Unity
 
 		public PhysicsState(ref PhysicsEnv env, ref NativeOctree<int> octree, ref NativeColliders colliders,
 			ref NativeColliders kinematicColliders, ref NativeColliders kinematicCollidersAtIdentity,
-			ref NativeParallelHashMap<int, float4x4> updatedKinematicTransforms, ref NativeQueue<EventData>.ParallelWriter eventQueue,
+			ref NativeParallelHashMap<int, float4x4> updatedKinematicTransforms,
+			ref NativeParallelHashMap<int, NativeColliderIds> kinematicColliderLookups, ref NativeQueue<EventData>.ParallelWriter eventQueue,
 			ref InsideOfs insideOfs, ref NativeParallelHashMap<int, BallState> balls,
 			ref NativeParallelHashMap<int, BumperState> bumperStates, ref NativeParallelHashMap<int, DropTargetState> dropTargetStates,
 			ref NativeParallelHashMap<int, FlipperState> flipperStates, ref NativeParallelHashMap<int, GateState> gateStates,
@@ -63,6 +66,7 @@ namespace VisualPinball.Unity
 			KinematicColliders = kinematicColliders;
 			KinematicCollidersAtIdentity = kinematicCollidersAtIdentity;
 			UpdatedKinematicTransforms = updatedKinematicTransforms;
+			KinematicColliderLookups = kinematicColliderLookups;
 			EventQueue = eventQueue;
 			InsideOfs = insideOfs;
 			Balls = balls;
@@ -111,6 +115,26 @@ namespace VisualPinball.Unity
 		internal ref GateState GetGateState(int colliderId) => ref GateStates.GetValueByRef(Colliders.GetItemId(colliderId));
 
 		internal ref SurfaceState GetSurfaceState(int colliderId) => ref SurfaceStates.GetValueByRef(Colliders.GetItemId(colliderId));
+
+		#endregion
+
+		#region Transform
+
+		internal void Transform(int colliderId, float4x4 matrix)
+		{
+			switch (GetColliderType(ref KinematicColliders, colliderId))
+			{
+				case ColliderType.Point:
+					KinematicColliders.Point(colliderId).Transform(KinematicCollidersAtIdentity.Point(colliderId), matrix);
+					break;
+				case ColliderType.Line3D:
+					KinematicColliders.Line3D(colliderId).Transform(KinematicCollidersAtIdentity.Line3D(colliderId), matrix);
+					break;
+				case ColliderType.Triangle:
+					KinematicColliders.Triangle(colliderId).Transform(KinematicCollidersAtIdentity.Triangle(colliderId), matrix);
+					break;
+			}
+		}
 
 		#endregion
 

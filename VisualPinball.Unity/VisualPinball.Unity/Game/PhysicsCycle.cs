@@ -47,6 +47,7 @@ namespace VisualPinball.Unity
 			var ballOctree = PhysicsDynamicBroadPhase.CreateOctree(ref state.Balls, in playfieldBounds);
 
 			// create octree of kinematic-to-ball collision
+			PhysicsKinematicBroadPhase.TransformColliders(ref state);
 			var kineticOctree = PhysicsKinematicBroadPhase.CreateOctree(ref state.KinematicColliders, in playfieldBounds);
 
 			while (dTime > 0) {

@@ -25,6 +25,20 @@ namespace VisualPinball.Unity
 	{
 		private static readonly ProfilerMarker PerfMarkerBallOctree = new("CreateKinematicOctree");
 
+		internal static void TransformColliders(ref PhysicsState state)
+		{
+			using var enumerator = state.UpdatedKinematicTransforms.GetEnumerator();
+			while (enumerator.MoveNext()) {
+				ref var matrix = ref enumerator.Current.Value;
+				var itemId = enumerator.Current.Key;
+
+				ref var colliderLookups = ref state.KinematicColliderLookups.GetValueByRef(itemId);
+				for (var i = 0; i < colliderLookups.Length; i++) {
+					state.Transform(colliderLookups[i], matrix);
+				}
+			}
+		}
+
 		internal static NativeOctree<int> CreateOctree(ref NativeColliders kinematicColliders, in AABB playfieldBounds)
 		{
 			PerfMarkerBallOctree.Begin();

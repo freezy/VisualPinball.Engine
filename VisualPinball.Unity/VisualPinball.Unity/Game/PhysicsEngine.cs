@@ -47,6 +47,7 @@ namespace VisualPinball.Unity
 		[NonSerialized] private NativeColliders _colliders;
 		[NonSerialized] private NativeColliders _kinematicColliders;
 		[NonSerialized] private NativeColliders _kinematicCollidersAtIdentity;
+		[NonSerialized] private NativeParallelHashMap<int, NativeColliderIds> _kinematicColliderLookups;
 		[NonSerialized] private NativeArray<PhysicsEnv> _physicsEnv = new(1, Allocator.Persistent);
 		[NonSerialized] private NativeQueue<EventData> _eventQueue = new(Allocator.Persistent);
 
@@ -63,8 +64,6 @@ namespace VisualPinball.Unity
 		[NonSerialized] private NativeParallelHashMap<int, TriggerState> _triggerStates = new(0, Allocator.Persistent);
 		[NonSerialized] private NativeParallelHashSet<int> _disabledCollisionItems = new(0, Allocator.Persistent);
 		[NonSerialized] private bool _swapBallCollisionHandling;
-
-		[NonSerialized] private NativeParallelHashMap<int, NativeColliderIds> _colliderLookup = new(0, Allocator.Persistent);
 
 		#endregion
 
@@ -197,6 +196,7 @@ namespace VisualPinball.Unity
 			_kinematicColliders = new NativeColliders(ref kinematicColliders, Allocator.Persistent);
 			// todo make them actually at identity by reverse-applying their matrices
 			_kinematicCollidersAtIdentity = new NativeColliders(ref kinematicColliders, Allocator.Persistent);
+			_kinematicColliderLookups = kinematicColliders.CreateLookup(Allocator.Persistent);
 
 			// create octree
 			var elapsedMs = sw.Elapsed.TotalMilliseconds;
@@ -250,6 +250,7 @@ namespace VisualPinball.Unity
 				Colliders = _colliders,
 				KinematicColliders = _kinematicColliders,
 				KinematicCollidersAtIdentity = _kinematicCollidersAtIdentity,
+				KinematicColliderLookups = _kinematicColliderLookups,
 				UpdatedKinematicTransforms = _updatedKinematicTransforms,
 				InsideOfs = _insideOfs,
 				Events = events,
@@ -271,8 +272,8 @@ namespace VisualPinball.Unity
 
 			var env = _physicsEnv[0];
 			var state = new PhysicsState(ref env, ref _octree, ref _colliders, ref _kinematicColliders,
-				ref _kinematicCollidersAtIdentity, ref _updatedKinematicTransforms, ref events, ref _insideOfs, ref _ballStates,
-				ref _bumperStates, ref _dropTargetStates, ref _flipperStates, ref _gateStates,
+				ref _kinematicCollidersAtIdentity, ref _updatedKinematicTransforms, ref _kinematicColliderLookups, ref events,
+				ref _insideOfs, ref _ballStates, ref _bumperStates, ref _dropTargetStates, ref _flipperStates, ref _gateStates,
 				ref _hitTargetStates, ref _kickerStates, ref _plungerStates, ref _spinnerStates,
 				ref _surfaceStates, ref _triggerStates, ref _disabledCollisionItems, ref _swapBallCollisionHandling);
 
@@ -439,7 +440,13 @@ namespace VisualPinball.Unity
 			_disabledCollisionItems.Dispose();
 			_kinematicTransforms.Dispose();
 			_updatedKinematicTransforms.Dispose();
-			_colliderLookup.Dispose();
+			using (var enumerator = _kinematicColliderLookups.GetEnumerator()) {
+				while (enumerator.MoveNext()) {
+					enumerator.Current.Value.Dispose();
+				}
+			}
+			_kinematicColliderLookups.Dispose();
+
 		}
 
 		#endregion

@@ -281,5 +281,15 @@ namespace VisualPinball.Unity
 			}
 			return array;
 		}
+
+		public NativeParallelHashMap<int, NativeColliderIds> CreateLookup(Allocator allocator)
+		{
+			var lookup = new NativeParallelHashMap<int, NativeColliderIds>(_references.Count(), allocator);
+			using var enumerator = _references.GetEnumerator();
+			while (enumerator.MoveNext()) {
+				lookup.Add(enumerator.Current.Key, new NativeColliderIds(enumerator.Current.Value, allocator));
+			}
+			return lookup;
+		}
 	}
 }
