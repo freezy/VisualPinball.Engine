@@ -142,7 +142,9 @@ namespace VisualPinball.Unity
 				api.CreateColliders(ref colliders, ref kinematicColliders, 0.1f);
 
 				if (showColliders) {
-					_colliderMesh = GenerateColliderMesh(ref colliders);
+					_colliderMesh = this is IKinematicColliderComponent { IsKinematic: true }
+						? GenerateColliderMesh(ref kinematicColliders)
+						: GenerateColliderMesh(ref colliders);
 					_collidersDirty = false;
 				}
 
