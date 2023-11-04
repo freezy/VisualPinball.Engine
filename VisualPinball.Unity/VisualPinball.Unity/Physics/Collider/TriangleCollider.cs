@@ -185,7 +185,10 @@ namespace VisualPinball.Unity
 
 		public void Transform(TriangleCollider triangle, float4x4 matrix)
 		{
-			//Rgv0 = math.mul(matrix, triangle.Rgv0);
+			Rgv0 = math.mul(matrix, new float4(triangle.Rgv0, 1f)).xyz;
+			Rgv1 = math.mul(matrix, new float4(triangle.Rgv1, 1f)).xyz;
+			Rgv2 = math.mul(matrix, new float4(triangle.Rgv2, 1f)).xyz;
+			_normal = math.normalizesafe(math.cross(Rgv2 - Rgv0, Rgv1 - Rgv0));
 		}
 	}
 }

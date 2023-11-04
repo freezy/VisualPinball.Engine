@@ -82,12 +82,12 @@ namespace VisualPinball.Unity
 #endif
 			PerfMarker.Begin();
 
-			m_Length = colRef.Lookup.Length;
+			m_Length = colRef.Lookups.Length;
 			m_KinematicColliders = colRef.KinematicColliders;
 
-			long size = UnsafeUtility.SizeOf<ColliderLookup>() * colRef.Lookup.Length;
+			long size = UnsafeUtility.SizeOf<ColliderLookup>() * colRef.Lookups.Length;
 			m_LookupBuffer = UnsafeUtility.Malloc(size, UnsafeUtility.AlignOf<ColliderLookup>(), allocator);
-			UnsafeUtility.MemCpy(m_LookupBuffer, colRef.Lookup.GetUnsafePtr(), size);
+			UnsafeUtility.MemCpy(m_LookupBuffer, colRef.Lookups.GetUnsafePtr(), size);
 
 			size = UnsafeUtility.SizeOf<FlipperCollider>() * colRef.FlipperColliders.Length;
 			m_FlipperColliderBuffer = UnsafeUtility.Malloc(size, UnsafeUtility.AlignOf<FlipperCollider>(), allocator);
