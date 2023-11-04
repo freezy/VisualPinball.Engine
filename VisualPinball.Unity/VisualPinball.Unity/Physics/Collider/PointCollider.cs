@@ -139,5 +139,10 @@ namespace VisualPinball.Unity
 		#endregion
 
 		public override string ToString() => $"PointCollider[{Header.ItemId}] ({P.x}/{P.y}/{P.z})";
+
+		public void Transform(PointCollider point, float4x4 matrix)
+		{
+			
+		}
 	}
 }

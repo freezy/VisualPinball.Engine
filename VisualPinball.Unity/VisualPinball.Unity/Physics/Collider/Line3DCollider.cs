@@ -132,5 +132,9 @@ namespace VisualPinball.Unity
 		}
 
 		public override string ToString() => $"Line3DCollider[{Header.ItemId}] ({_xy.x}/{_xy.y} | {_zLow} -> {_zHigh})";
+
+		public void Transform(Line3DCollider line3D, float4x4 matrix)
+		{
+		}
 	}
 }
