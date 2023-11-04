@@ -26,6 +26,7 @@ using Unity.Mathematics;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.Profiling;
+using UnityEngine.UIElements;
 using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Flipper;
 using Mesh = UnityEngine.Mesh;
@@ -70,6 +71,8 @@ namespace VisualPinball.Unity
 
 		private void Start()
 		{
+			_colliderMesh = null;
+			_collidersDirty = true;
 			// make enable checkbox visible
 		}
 
@@ -112,6 +115,9 @@ namespace VisualPinball.Unity
 
 #if UNITY_EDITOR
 
+		private PhysicsEngine _physicsEngine;
+		private bool IsKinematic => this is IKinematicColliderComponent { IsKinematic: true };
+
 		private void OnDrawGizmos()
 		{
 			Profiler.BeginSample("ItemColliderComponent.OnDrawGizmosSelected");
@@ -136,25 +142,41 @@ namespace VisualPinball.Unity
 			
 			var generateColliders = ShowAabbs || showColliders && !HasCachedColliders;
 			if (generateColliders) {
-				var api = InstantiateColliderApi(player, null);
-				var colliders = new ColliderReference(Allocator.TempJob);
-				var kinematicColliders = new ColliderReference(Allocator.TempJob, true);
-				api.CreateColliders(ref colliders, ref kinematicColliders, 0.1f);
 
-				if (showColliders) {
-					_colliderMesh = this is IKinematicColliderComponent { IsKinematic: true }
-						? GenerateColliderMesh(ref kinematicColliders)
-						: GenerateColliderMesh(ref colliders);
-					_collidersDirty = false;
-				}
+				if (Application.isPlaying && IsKinematic) {
 
-				if (ShowAabbs) {
-					for (var i = 0; i < colliders.Count; i++) {
-						var col = colliders[i];
-						DrawAabb(col.Bounds.Aabb, i == SelectedCollider);
+					if (!_physicsEngine) {
+						_physicsEngine = GetComponentInParent<PhysicsEngine>();
 					}
+
+					var colliders = _physicsEngine.GetKinematicColliders(MainComponent.gameObject.GetInstanceID());
+					if (showColliders) {
+						_colliderMesh = GenerateColliderMesh(colliders);
+						_collidersDirty = false;
+					}
+
+				} else {
+					var api = InstantiateColliderApi(player, null);
+					var colliders = new ColliderReference(Allocator.TempJob);
+					var kinematicColliders = new ColliderReference(Allocator.TempJob, true);
+					api.CreateColliders(ref colliders, ref kinematicColliders, 0.1f);
+
+					if (showColliders) {
+						_colliderMesh = IsKinematic
+							? GenerateColliderMesh(ref kinematicColliders)
+							: GenerateColliderMesh(ref colliders);
+						_collidersDirty = false;
+					}
+
+					if (ShowAabbs) {
+						for (var i = 0; i < colliders.Count; i++) {
+							var col = colliders[i];
+							DrawAabb(col.Bounds.Aabb, i == SelectedCollider);
+						}
+					}
+					colliders.Dispose();
+
 				}
-				colliders.Dispose();
 			}
 			if (ShowColliderOctree) {
 				
@@ -178,7 +200,9 @@ namespace VisualPinball.Unity
 
 			if (showColliders) {
 				
-				var color = Color.green;
+				var color = Application.isPlaying && IsKinematic
+					? Color.magenta
+					: IsKinematic ? new Color(0, 1, 1) : Color.green;
 				Handles.color = color;
 				color.a = 0.3f;
 				Gizmos.color = color;
@@ -236,6 +260,70 @@ namespace VisualPinball.Unity
 			}
 			foreach (var col in colliders.TriangleColliders) {
 				AddCollider(col, vertices, normals, indices);
+			}
+
+			// todo Line3DCollider
+
+			return new Mesh {
+				name = $"{name} (debug collider)",
+				vertices = vertices.ToArray(),
+				triangles = indices.ToArray(),
+				normals = normals.ToArray()
+			};
+		}
+
+		private Mesh GenerateColliderMesh(IEnumerable<ICollider> colliders)
+		{
+			var color = Color.magenta;
+			Handles.color = color;
+			color.a = 0.3f;
+			Gizmos.color = color;
+			var vertices = new List<Vector3>();
+			var normals = new List<Vector3>();
+			var indices = new List<int>();
+			_nonMeshColliders.Clear();
+
+			foreach (var coll in colliders) {
+
+				if (coll is CircleCollider circleCollider) {
+					AddCollider(circleCollider, vertices, normals, indices);
+				}
+
+				if (coll is FlipperCollider) {
+					AddFlipperCollider(vertices, normals, indices);
+				}
+
+				if (coll is GateCollider gateCollider) {
+					AddCollider(gateCollider.LineSeg0, vertices, normals, indices);
+					AddCollider(gateCollider.LineSeg1, vertices, normals, indices);
+				}
+
+				if (coll is LineCollider lineCollider) {
+					AddCollider(lineCollider, vertices, normals, indices);
+				}
+
+				if (coll is LineSlingshotCollider lineSlingshotCollider) {
+					AddCollider(lineSlingshotCollider, vertices, normals, indices);
+				}
+
+				if (coll is LineZCollider lineZCollider) {
+					_nonMeshColliders.Add(lineZCollider);
+				}
+
+				if (coll is PlungerCollider plungerCollider) {
+					AddCollider(plungerCollider.LineSegBase, vertices, normals, indices);
+					AddCollider(plungerCollider.JointBase0, vertices, normals, indices);
+					AddCollider(plungerCollider.JointBase1, vertices, normals, indices);
+				}
+
+				if (coll is SpinnerCollider spinnerCollider) {
+					AddCollider(spinnerCollider.LineSeg0, vertices, normals, indices);
+					AddCollider(spinnerCollider.LineSeg1, vertices, normals, indices);
+				}
+
+				if (coll is TriangleCollider triangleCollider) {
+					AddCollider(triangleCollider, vertices, normals, indices);
+				}
 			}
 
 			// todo Line3DCollider
