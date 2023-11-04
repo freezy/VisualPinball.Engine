@@ -197,7 +197,7 @@ namespace VisualPinball.Unity
 
 			// get kinetic collider matrices
 			foreach (var coll in _kinematicColliderComponents) {
-				_kinematicTransforms[coll.ItemId] = coll.GetTransformationMatrix().ToUnityMatrix();
+				_kinematicTransforms[coll.ItemId] = coll.TransformationMatrix;
 			}
 			_kinematicColliderLookups = kinematicColliders.CreateLookup(Allocator.Persistent);
 
@@ -236,7 +236,7 @@ namespace VisualPinball.Unity
 					continue;
 				}
 				var lastTransformationMatrix = _kinematicTransforms[coll.ItemId];
-				var currTransformationMatrix = (float4x4)coll.GetTransformationMatrix().ToUnityMatrix();
+				var currTransformationMatrix = coll.TransformationMatrix;
 				if (!lastTransformationMatrix.Equals(currTransformationMatrix)) {
 					_updatedKinematicTransforms.Add(coll.ItemId, currTransformationMatrix);
 				}

@@ -43,8 +43,7 @@ namespace VisualPinball.Unity
 
 		protected abstract void CreateColliders(ref ColliderReference colliders, ref ColliderReference kinematicColliders, float margin);
 
-		void IApiColliderGenerator.CreateColliders(ref ColliderReference colliders, ref ColliderReference kinematicColliders,
-			float margin)
+		void IApiColliderGenerator.CreateColliders(ref ColliderReference colliders, ref ColliderReference kinematicColliders, float margin)
 		{
 			if (!ColliderComponent) {
 				return;

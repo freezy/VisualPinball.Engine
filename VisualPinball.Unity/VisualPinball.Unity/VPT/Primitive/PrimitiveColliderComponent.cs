@@ -16,9 +16,8 @@
 
 // ReSharper disable InconsistentNaming
 
+using Unity.Mathematics;
 using UnityEngine;
-using UnityEngine.Serialization;
-using VisualPinball.Engine.Math;
 using VisualPinball.Engine.VPT.Primitive;
 
 namespace VisualPinball.Unity
@@ -61,9 +60,13 @@ namespace VisualPinball.Unity
 		[Tooltip("If set, transforming this object will transform the colliders as well.")]
 		public bool _isKinematic;
 
+		#endregion
+
+		#region IKinematicColliderComponent
+
 		public bool IsKinematic => _isKinematic;
 		public int ItemId => MainComponent.gameObject.GetInstanceID();
-		public Matrix3D GetTransformationMatrix() => MainComponent.GetTransformationMatrix();
+		public float4x4 TransformationMatrix => MainComponent.TransformationMatrix;
 
 		#endregion
 

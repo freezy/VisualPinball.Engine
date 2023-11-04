@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-using VisualPinball.Engine.Math;
+using Unity.Mathematics;
 
 namespace VisualPinball.Unity
 {
@@ -22,6 +22,6 @@ namespace VisualPinball.Unity
 	{
 		public bool IsKinematic { get; }
 		public int ItemId { get; }
-		public Matrix3D GetTransformationMatrix();
+		public float4x4 TransformationMatrix { get; }
 	}
 }
