@@ -95,6 +95,22 @@ namespace VisualPinball.Unity
 			}
 		}
 
+		public float4x4 TransformationMatrix {
+			get {
+				var scaleMatrix = float4x4.Scale(Size);
+				var transMatrix = float4x4.Translate(new float3(Position.x, Position.y, Position.z + PlayfieldHeight));
+				var rotTransMatrix = math.mul(
+					float4x4.EulerZYX(math.radians(Rotation)),
+					float4x4.Translate(Translation)
+				);
+				rotTransMatrix = math.mul(
+					float4x4.EulerZYX(math.radians(ObjectRotation)),
+					rotTransMatrix
+				);
+				return math.mul(transMatrix, math.mul(rotTransMatrix, scaleMatrix));
+			}
+		}
+
 		#endregion
 
 		#region Conversion
