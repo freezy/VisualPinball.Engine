@@ -101,7 +101,6 @@ namespace VisualPinball.Unity
 
 		internal ref KickerState GetKickerState(int colliderId) => ref KickerStates.GetValueByRef(Colliders.GetItemId(colliderId));
 
-
 		internal bool HasDropTargetState(int colliderId) => DropTargetStates.ContainsKey(Colliders.GetItemId(colliderId));
 
 		internal bool HasHitTargetState(int colliderId) => HitTargetStates.ContainsKey(Colliders.GetItemId(colliderId));
@@ -110,7 +109,7 @@ namespace VisualPinball.Unity
 
 		internal ref HitTargetState GetHitTargetState(int colliderId) => ref HitTargetStates.GetValueByRef(Colliders.GetItemId(colliderId));
 
-		internal ref BumperState GetBumperState(int colliderId) => ref BumperStates.GetValueByRef(Colliders.GetItemId(colliderId));
+		internal ref BumperState GetBumperState(int colliderId, ref NativeColliders col) => ref BumperStates.GetValueByRef(col.GetItemId(colliderId));
 
 		internal ref GateState GetGateState(int colliderId) => ref GateStates.GetValueByRef(Colliders.GetItemId(colliderId));
 
@@ -124,6 +123,10 @@ namespace VisualPinball.Unity
 		{
 			switch (GetColliderType(ref KinematicColliders, colliderId))
 			{
+				case ColliderType.Bumper:
+				case ColliderType.Circle:
+					KinematicColliders.Circle(colliderId).Transform(KinematicCollidersAtIdentity.Circle(colliderId), matrix);
+					break;
 				case ColliderType.Point:
 					KinematicColliders.Point(colliderId).Transform(KinematicCollidersAtIdentity.Point(colliderId), matrix);
 					break;

@@ -28,6 +28,7 @@ namespace VisualPinball.Unity.Editor
 		private SerializedProperty _thresholdProperty;
 		private SerializedProperty _forceProperty;
 		private SerializedProperty _scatterProperty;
+		private SerializedProperty _isKinematicProperty;
 
 		protected override void OnEnable()
 		{
@@ -37,6 +38,7 @@ namespace VisualPinball.Unity.Editor
 			_forceProperty = serializedObject.FindProperty(nameof(BumperColliderComponent.Force));
 			_scatterProperty = serializedObject.FindProperty(nameof(BumperColliderComponent.Scatter));
 			_hitEventProperty = serializedObject.FindProperty(nameof(BumperColliderComponent.HitEvent));
+			_isKinematicProperty = serializedObject.FindProperty(nameof(BumperColliderComponent._isKinematic));
 		}
 
 		public override void OnInspectorGUI()
@@ -47,6 +49,7 @@ namespace VisualPinball.Unity.Editor
 
 			BeginEditing();
 
+			PropertyField(_isKinematicProperty, "Movable");
 			PropertyField(_hitEventProperty, "Has Hit Event");
 			PropertyField(_forceProperty);
 			PropertyField(_thresholdProperty, "Hit Threshold");

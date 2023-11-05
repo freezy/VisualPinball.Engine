@@ -26,9 +26,6 @@ namespace VisualPinball.Unity
 			ref CollisionEventData collEvent, ref BumperRingAnimationState ringState, ref BumperSkirtAnimationState skirtState,
 			in ColliderHeader collHeader, in BumperStaticState state, ref Random random)
 		{
-			// todo
-			// if (!m_enabled) return;
-
 			var dot = math.dot(collEvent.HitNormal, ball.Velocity); // needs to be computed before Collide3DWall()!
 			var material = collHeader.Material;
 			BallCollider.Collide3DWall(ref ball, in material, in collEvent, in collEvent.HitNormal, ref random); // reflect ball from wall

@@ -30,8 +30,8 @@ namespace VisualPinball.Unity
 
 		public ColliderHeader Header;
 
-		public readonly float2 Center;
-		public readonly float Radius;
+		public float2 Center;
+		public float Radius;
 
 		private readonly float _zHigh;
 		private readonly float _zLow;
@@ -220,6 +220,13 @@ namespace VisualPinball.Unity
 		public void Collide(ref BallState ball, in CollisionEventData collEvent, ref Random random)
 		{
 			BallCollider.Collide3DWall(ref ball, in Header.Material, in collEvent, in collEvent.HitNormal, ref random);
+		}
+
+		public void Transform(CircleCollider circle, float4x4 matrix)
+		{
+			var size = matrix.GetScale();
+			Center = math.mul(matrix, new float4(circle.Center, 0f, 1f)).xy;
+			Radius = size.x / 2 * BumperComponent.DataMeshScale;
 		}
 	}
 }

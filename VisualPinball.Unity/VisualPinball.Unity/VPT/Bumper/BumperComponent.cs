@@ -77,7 +77,8 @@ namespace VisualPinball.Unity
 		private const string BaseMeshName = "bumper.base";
 		private const string CapMeshName = "bumper.cap";
 		private const string RingMeshName = "bumper.ring";
-		private const float DataMeshScale = 100f;
+
+		public const float DataMeshScale = 100f;
 
 		public const string SocketSwitchItem = "socket_switch";
 
@@ -144,6 +145,15 @@ namespace VisualPinball.Unity
 
 			// rotation
 			t.localEulerAngles = new Vector3(0, Orientation, 0);
+		}
+
+		public float4x4 TransformationMatrix {
+			get {
+				var scaleMatrix = float4x4.Scale(new float3(Radius * 2f, Radius * 2f, HeightScale) / DataMeshScale);
+				var transMatrix = float4x4.Translate(new float3(Position.x, Position.y, PositionZ));
+				var rotMatrix = float4x4.RotateZ(math.radians(Orientation));
+				return math.mul(transMatrix, math.mul(rotMatrix, scaleMatrix));
+			}
 		}
 
 		#endregion

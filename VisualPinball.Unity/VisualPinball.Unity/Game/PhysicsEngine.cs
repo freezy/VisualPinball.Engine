@@ -237,9 +237,11 @@ namespace VisualPinball.Unity
 				}
 				var lastTransformationMatrix = _kinematicTransforms[coll.ItemId];
 				var currTransformationMatrix = coll.TransformationMatrix;
-				if (!lastTransformationMatrix.Equals(currTransformationMatrix)) {
-					_updatedKinematicTransforms.Add(coll.ItemId, currTransformationMatrix);
+				if (lastTransformationMatrix.Equals(currTransformationMatrix)) {
+					continue;
 				}
+				_updatedKinematicTransforms.Add(coll.ItemId, currTransformationMatrix);
+				_kinematicTransforms[coll.ItemId] = currTransformationMatrix;
 			}
 
 			// prepare job
@@ -463,6 +465,17 @@ namespace VisualPinball.Unity
 				ScheduleAt = scheduleAt;
 				Action = action;
 			}
+		}
+
+		public ICollider[] GetKinematicColliders(int itemId)
+		{
+			ref var colliderIds = ref _kinematicColliderLookups.GetValueByRef(itemId);
+			var colliders = new ICollider[colliderIds.Length];
+			for (var i = 0; i < colliderIds.Length; i++) {
+				var colliderId = colliderIds[i];
+				colliders[i] = _kinematicColliders[colliderId];
+			}
+			return colliders;
 		}
 	}
 }

@@ -58,6 +58,15 @@ namespace VisualPinball.Unity
 			m.c2.z = axis.z * axis.z + rCos * (1.0f - axis.z * axis.z);
 		}
 
+		public static float3 GetScale(this float4x4 m)
+		{
+			return new float3(
+				math.length(new float3(m.c0.x, m.c1.x, m.c2.x)),
+				math.length(new float3(m.c0.y, m.c1.y, m.c2.y)),
+				math.length(new float3(m.c0.z, m.c1.z, m.c2.z))
+			);
+		}
+
 		public static Vertex3D ToVertex3D(this Vector3 vector)
 		{
 			return new Vertex3D(vector.x, vector.y, vector.z);
