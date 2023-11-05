@@ -16,6 +16,7 @@
 
 using System;
 using System.Collections.Generic;
+using Unity.Mathematics;
 using UnityEngine;
 using VisualPinball.Engine.VPT.Rubber;
 
@@ -46,7 +47,12 @@ namespace VisualPinball.Unity
 		protected override void CreateColliders(ref ColliderReference colliders,
 			ref ColliderReference kinematicColliders, float margin)
 		{
-			var colliderGenerator = new RubberColliderGenerator(this, new RubberMeshGenerator(MainComponent));
+			var worldToLocal = (float4x4)MainComponent.transform.worldToLocalMatrix;
+			var colliderGenerator = new RubberColliderGenerator(
+				this,
+				new RubberMeshGenerator(MainComponent),
+				math.mul(math.mul(Physics.WorldToVpx, math.inverse(worldToLocal)), Physics.VpxToWorld)
+			);
 			colliderGenerator.GenerateColliders(MainComponent.PlayfieldHeight, ColliderComponent.HitHeight, MainComponent.PlayfieldDetailLevel, ref colliders, margin);
 		}
 
