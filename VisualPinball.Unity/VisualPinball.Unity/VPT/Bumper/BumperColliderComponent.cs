@@ -16,13 +16,14 @@
 
 // ReSharper disable InconsistentNaming
 
+using Unity.Mathematics;
 using UnityEngine;
 using VisualPinball.Engine.VPT.Bumper;
 
 namespace VisualPinball.Unity
 {
 	[AddComponentMenu("Visual Pinball/Collision/Bumper Collider")]
-	public class BumperColliderComponent : ColliderComponent<BumperData, BumperComponent>
+	public class BumperColliderComponent : ColliderComponent<BumperData, BumperComponent>, IKinematicColliderComponent
 	{
 		#region Data
 
@@ -40,6 +41,17 @@ namespace VisualPinball.Unity
 
 		[Tooltip("If set, a hit event is triggered.")]
 		public bool HitEvent = true;
+
+		[Tooltip("If set, transforming this object will transform the colliders as well.")]
+		public bool _isKinematic;
+
+		#endregion
+
+		#region IKinematicColliderComponent
+
+		public bool IsKinematic => _isKinematic;
+		public int ItemId => MainComponent.gameObject.GetInstanceID();
+		public float4x4 TransformationMatrix => MainComponent.TransformationMatrix;
 
 		#endregion
 

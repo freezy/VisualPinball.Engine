@@ -97,6 +97,11 @@ namespace VisualPinball.Unity
 					var matrix = itemIdToTransformationMatrix[itemId];
 					var lookup = Lookups[colliderId];
 					switch (lookup.Type) {
+						case ColliderType.Bumper:
+						case ColliderType.Circle:
+							ref var circleCollider = ref CircleColliders.GetElementAsRef(lookup.Index);
+							circleCollider.Transform(CircleColliders[lookup.Index], math.inverse(matrix));
+							break;
 						case ColliderType.Point:
 							ref var pointCollider = ref PointColliders.GetElementAsRef(lookup.Index);
 							pointCollider.Transform(PointColliders[lookup.Index], math.inverse(matrix));

@@ -15,7 +15,6 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using System;
-using System.Collections.Generic;
 using UnityEngine;
 using VisualPinball.Engine.VPT.Bumper;
 
@@ -76,8 +75,13 @@ namespace VisualPinball.Unity
 			ref ColliderReference kinematicColliders, float margin)
 		{
 			var height = MainComponent.PositionZ;
-			colliders.Add(new CircleCollider(MainComponent.Position, MainComponent.Radius, height,
-				height + MainComponent.HeightScale, GetColliderInfo(), ColliderType.Bumper));
+			if (ColliderComponent.IsKinematic) {
+				kinematicColliders.Add(new CircleCollider(MainComponent.Position, MainComponent.Radius, height,
+					height + MainComponent.HeightScale, GetColliderInfo(), ColliderType.Bumper));
+			} else {
+				colliders.Add(new CircleCollider(MainComponent.Position, MainComponent.Radius, height,
+					height + MainComponent.HeightScale, GetColliderInfo(), ColliderType.Bumper));
+			}
 		}
 
 		#endregion
