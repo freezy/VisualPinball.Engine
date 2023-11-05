@@ -18,12 +18,10 @@ namespace VisualPinball.Unity
 {
 	internal struct SurfaceState
 	{
-		internal readonly int ItemId;
 		internal LineSlingshotState Slingshot;
 
-		public SurfaceState(int itemId, LineSlingshotState slingshot)
+		public SurfaceState(LineSlingshotState slingshot)
 		{
-			ItemId = itemId;
 			Slingshot = slingshot;
 		}
 	}

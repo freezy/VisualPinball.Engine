@@ -358,7 +358,6 @@ namespace VisualPinball.Unity
 				} : default;
 
 			return new BumperState(
-				collComponent ? gameObject.GetInstanceID() : 0,
 				skirtAnimComponent ? skirtAnimComponent.gameObject.GetInstanceID() : 0,
 				ringAnimComponent ? ringAnimComponent.gameObject.GetInstanceID() : 0,
 				staticData,

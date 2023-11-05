@@ -18,14 +18,12 @@ namespace VisualPinball.Unity
 {
 	internal struct SpinnerState
 	{
-		internal readonly int ItemId;
 		internal readonly int AnimationItemId;
 		internal SpinnerStaticState Static;
 		internal SpinnerMovementState Movement;
 
-		public SpinnerState(int itemId, int animationItemId, SpinnerStaticState @static, SpinnerMovementState movement)
+		public SpinnerState(int animationItemId, SpinnerStaticState @static, SpinnerMovementState movement)
 		{
-			ItemId = itemId;
 			AnimationItemId = animationItemId;
 			Static = @static;
 			Movement = movement;

@@ -103,7 +103,7 @@ namespace VisualPinball.Unity
 				using (var enumerator = state.FlipperStates.GetEnumerator()) {
 					while (enumerator.MoveNext()) {
 						ref var flipperState = ref enumerator.Current.Value;
-						FlipperDisplacementPhysics.UpdateDisplacement(flipperState.ItemId, ref flipperState.Movement,
+						FlipperDisplacementPhysics.UpdateDisplacement(enumerator.Current.Key, ref flipperState.Movement,
 							ref flipperState.Tricks, in flipperState.Static, hitTime, ref state.EventQueue);
 					}
 				}
@@ -111,7 +111,7 @@ namespace VisualPinball.Unity
 				using (var enumerator = state.GateStates.GetEnumerator()) {
 					while (enumerator.MoveNext()) {
 						ref var gateState = ref enumerator.Current.Value;
-						GateDisplacementPhysics.UpdateDisplacement(gateState.ItemId, ref gateState.Movement, in gateState.Static,
+						GateDisplacementPhysics.UpdateDisplacement(enumerator.Current.Key, ref gateState.Movement, in gateState.Static,
 							hitTime, ref state.EventQueue);
 					}
 				}
@@ -119,7 +119,7 @@ namespace VisualPinball.Unity
 				using (var enumerator = state.PlungerStates.GetEnumerator()) {
 					while (enumerator.MoveNext()) {
 						ref var plungerState = ref enumerator.Current.Value;
-						PlungerDisplacementPhysics.UpdateDisplacement(plungerState.ItemId, ref plungerState.Movement, ref plungerState.Collider,
+						PlungerDisplacementPhysics.UpdateDisplacement(enumerator.Current.Key, ref plungerState.Movement, ref plungerState.Collider,
 							in plungerState.Static, hitTime, ref state.EventQueue);
 					}
 				}
@@ -127,7 +127,7 @@ namespace VisualPinball.Unity
 				using (var enumerator = state.SpinnerStates.GetEnumerator()) {
 					while (enumerator.MoveNext()) {
 						ref var spinnerState = ref enumerator.Current.Value;
-						SpinnerDisplacementPhysics.UpdateDisplacement(spinnerState.ItemId, ref spinnerState.Movement, in spinnerState.Static,
+						SpinnerDisplacementPhysics.UpdateDisplacement(enumerator.Current.Key, ref spinnerState.Movement, in spinnerState.Static,
 							hitTime, ref state.EventQueue);
 					}
 				}

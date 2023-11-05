@@ -18,17 +18,15 @@ namespace VisualPinball.Unity
 {
 	internal struct BumperState
 	{
-		internal readonly int ItemId;
 		internal readonly int SkirtItemId;
 		internal int RingItemId;
 		internal BumperStaticState Static;
 		internal BumperRingAnimationState RingAnimation;
 		internal BumperSkirtAnimationState SkirtAnimation;
 
-		public BumperState(int itemId, int skirtItemId, int ringItemId, BumperStaticState @static,
+		public BumperState(int skirtItemId, int ringItemId, BumperStaticState @static,
 			BumperRingAnimationState ringAnimation, BumperSkirtAnimationState skirtAnimation)
 		{
-			ItemId = itemId;
 			SkirtItemId = skirtItemId;
 			RingItemId = ringItemId;
 			Static = @static;
