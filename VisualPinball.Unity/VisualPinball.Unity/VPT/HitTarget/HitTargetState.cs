@@ -18,14 +18,12 @@ namespace VisualPinball.Unity
 {
 	internal struct HitTargetState
 	{
-		internal readonly int ItemId;
 		internal readonly int AnimatedItemId;
 		internal HitTargetStaticData Static;
 		internal HitTargetAnimationData Animation;
 
-		public HitTargetState(int itemId, int animatedItemId, HitTargetStaticData @static, HitTargetAnimationData animation)
+		public HitTargetState(int animatedItemId, HitTargetStaticData @static, HitTargetAnimationData animation)
 		{
-			ItemId = itemId;
 			AnimatedItemId = animatedItemId;
 			Static = @static;
 			Animation = animation;

@@ -280,7 +280,6 @@ namespace VisualPinball.Unity
 				: new ColliderMeshData(KickerHitMesh.Vertices, Radius, new float3(Center.x, Center.y, height), Allocator.Persistent);
 
 			return new KickerState(
-				colliderComponent ? colliderComponent.gameObject.GetInstanceID() : 0,
 				staticData,
 				new KickerCollisionState(),
 				meshData

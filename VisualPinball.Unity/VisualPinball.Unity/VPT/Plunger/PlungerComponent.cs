@@ -303,7 +303,6 @@ namespace VisualPinball.Unity
 			};
 
 			return new PlungerState(
-				gameObject.GetInstanceID(),
 				new PlungerStaticState {
 					MomentumXfer = collComponent.MomentumXfer,
 					ScatterVelocity = collComponent.ScatterVelocity,

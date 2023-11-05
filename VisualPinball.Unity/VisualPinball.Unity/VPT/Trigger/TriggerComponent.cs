@@ -261,7 +261,6 @@ namespace VisualPinball.Unity
 
 			if (collComponent.ForFlipper == null) {
 				return new TriggerState(
-					gameObject.GetInstanceID(),
 					animComponent ? animComponent.gameObject.GetInstanceID() : 0,
 					new TriggerStaticState {
 						AnimSpeed = animComponent ? animComponent.AnimSpeed : 0,
@@ -275,7 +274,6 @@ namespace VisualPinball.Unity
 			}
 
 			return new TriggerState(
-				gameObject.GetInstanceID(),
 				new TriggerStaticState {
 					AnimSpeed = 0,
 					Radius = collComponent.HitCircleRadius,

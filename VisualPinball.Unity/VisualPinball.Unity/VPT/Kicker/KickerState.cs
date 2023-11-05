@@ -20,14 +20,12 @@ namespace VisualPinball.Unity
 {
 	internal struct KickerState : IDisposable
 	{
-		internal readonly int ItemId;
 		internal KickerStaticState Static;
 		internal KickerCollisionState Collision;
 		internal ColliderMeshData CollisionMesh;
 
-		public KickerState(int itemId, KickerStaticState @static, KickerCollisionState collision, ColliderMeshData collisionMesh)
+		public KickerState(KickerStaticState @static, KickerCollisionState collision, ColliderMeshData collisionMesh)
 		{
-			ItemId = itemId;
 			Static = @static;
 			Collision = collision;
 			CollisionMesh = collisionMesh;

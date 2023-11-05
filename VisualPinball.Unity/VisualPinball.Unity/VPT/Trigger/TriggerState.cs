@@ -20,7 +20,6 @@ namespace VisualPinball.Unity
 {
 	internal struct TriggerState : IDisposable
 	{
-		internal readonly int ItemId;
 		internal readonly int AnimatedItemId;
 		internal TriggerStaticState Static;
 		internal TriggerMovementState Movement;
@@ -30,9 +29,8 @@ namespace VisualPinball.Unity
 		/// <summary>
 		/// Default trigger usage.
 		/// </summary>
-		public TriggerState(int itemId, int animatedItemId, TriggerStaticState @static, TriggerMovementState movement, TriggerAnimationState animation)
+		public TriggerState(int animatedItemId, TriggerStaticState @static, TriggerMovementState movement, TriggerAnimationState animation)
 		{
-			ItemId = itemId;
 			AnimatedItemId = animatedItemId;
 			Static = @static;
 			Movement = movement;
@@ -43,9 +41,8 @@ namespace VisualPinball.Unity
 		/// <summary>
 		/// Flipper correction usage.
 		/// </summary>
-		public TriggerState(int itemId, TriggerStaticState @static, FlipperCorrectionState flipperCorrection)
+		public TriggerState(TriggerStaticState @static, FlipperCorrectionState flipperCorrection)
 		{
-			ItemId = itemId;
 			AnimatedItemId = 0;
 			Static = @static;
 			Movement = default;

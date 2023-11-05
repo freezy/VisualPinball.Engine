@@ -168,7 +168,6 @@ namespace VisualPinball.Unity
 				} : default;
 
 			return new DropTargetState(
-				colliderComponent && animationComponent ? gameObject.GetInstanceID() : 0,
 				animationComponent ? animationComponent.gameObject.GetInstanceID() : 0,
 				staticData,
 				animationData

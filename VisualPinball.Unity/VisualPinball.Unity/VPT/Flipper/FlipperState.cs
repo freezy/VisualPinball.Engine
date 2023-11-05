@@ -18,7 +18,6 @@ namespace VisualPinball.Unity
 {
 	internal struct FlipperState
 	{
-		internal readonly int ItemId;
 		internal FlipperStaticData Static;
 		internal FlipperMovementState Movement;
 		internal FlipperVelocityData Velocity;
@@ -26,11 +25,10 @@ namespace VisualPinball.Unity
 		internal FlipperTricksData Tricks;
 		internal SolenoidState Solenoid;
 
-		public FlipperState(int itemId, FlipperStaticData @static, FlipperMovementState movement,
+		public FlipperState(FlipperStaticData @static, FlipperMovementState movement,
 			FlipperVelocityData velocity, FlipperHitData hit, FlipperTricksData tricks,
 			SolenoidState solenoid)
 		{
-			ItemId = itemId;
 			Static = @static;
 			Movement = movement;
 			Velocity = velocity;

@@ -18,14 +18,12 @@ namespace VisualPinball.Unity
 {
 	internal struct GateState
 	{
-		internal readonly int ItemId;
 		internal readonly int WireItemId;
 		internal GateStaticState Static;
 		internal GateMovementState Movement;
 
-		public GateState(int itemId, int wireItemId, GateStaticState @static, GateMovementState movement)
+		public GateState(int wireItemId, GateStaticState @static, GateMovementState movement)
 		{
-			ItemId = itemId;
 			WireItemId = wireItemId;
 			Static = @static;
 			Movement = movement;

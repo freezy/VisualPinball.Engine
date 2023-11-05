@@ -506,7 +506,6 @@ namespace VisualPinball.Unity
 				// vpx physics
 				var d = GetMaterialData(colliderComponent);
 				var state = new FlipperState(
-					gameObject.GetInstanceID(),
 					d,
 					GetMovementData(d),
 					GetVelocityData(d),
