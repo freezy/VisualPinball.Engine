@@ -4,10 +4,11 @@
 
 ## Unreleased
 
-Built with Unity 2022.3.0
+Built with Unity 2022.3.x
 
 ### Added
 
+- Kinematic collisions ([#460](https://github.com/freezy/VisualPinball.Engine/pull/460))
 - Flipper tricks by nFozzy ([#436](https://github.com/freezy/VisualPinball.Engine/pull/436))
 - Asset Library now has thumbnails.
 - Documentation for score reels.
