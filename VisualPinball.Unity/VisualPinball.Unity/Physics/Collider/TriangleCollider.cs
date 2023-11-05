@@ -190,5 +190,11 @@ namespace VisualPinball.Unity
 			Rgv2 = math.mul(matrix, new float4(triangle.Rgv2, 1f)).xyz;
 			_normal = math.normalizesafe(math.cross(Rgv2 - Rgv0, Rgv1 - Rgv0));
 		}
+
+		public TriangleCollider Transform(float4x4 matrix)
+		{
+			Transform(this, matrix);
+			return this;
+		}
 	}
 }

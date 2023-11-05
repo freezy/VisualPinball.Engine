@@ -144,5 +144,11 @@ namespace VisualPinball.Unity
 		{
 			P = math.mul(matrix, new float4(point.P, 1f)).xyz;
 		}
+
+		public PointCollider Transform(float4x4 matrix)
+		{
+			Transform(this, matrix);
+			return this;
+		}
 	}
 }

@@ -148,5 +148,11 @@ namespace VisualPinball.Unity
 				math.mul(matrix, new float4(line3D._v2, 1f)).xyz
 			);
 		}
+
+		public Line3DCollider Transform(float4x4 matrix)
+		{
+			Transform(this, matrix);
+			return this;
+		}
 	}
 }
