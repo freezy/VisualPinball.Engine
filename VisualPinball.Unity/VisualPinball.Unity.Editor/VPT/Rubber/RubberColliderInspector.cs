@@ -33,6 +33,7 @@ namespace VisualPinball.Unity.Editor
 		private SerializedProperty _elasticityFalloffProperty;
 		private SerializedProperty _frictionProperty;
 		private SerializedProperty _scatterProperty;
+		private SerializedProperty _isKinematicProperty;
 
 		protected override void OnEnable()
 		{
@@ -47,6 +48,7 @@ namespace VisualPinball.Unity.Editor
 			_elasticityFalloffProperty = serializedObject.FindProperty(nameof(RubberColliderComponent.ElasticityFalloff));
 			_frictionProperty = serializedObject.FindProperty(nameof(RubberColliderComponent.Friction));
 			_scatterProperty = serializedObject.FindProperty(nameof(RubberColliderComponent.Scatter));
+			_isKinematicProperty = serializedObject.FindProperty(nameof(RubberColliderComponent._isKinematic));
 		}
 
 		public override void OnInspectorGUI()
@@ -60,6 +62,7 @@ namespace VisualPinball.Unity.Editor
 
 			OnPreInspectorGUI();
 
+			PropertyField(_isKinematicProperty, "Movable");
 			PropertyField(_hitEventProperty, "Has Hit Event");
 			PropertyField(_hitHeightProperty, "Hit Height", updateColliders: true);
 

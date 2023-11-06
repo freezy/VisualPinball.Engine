@@ -53,7 +53,12 @@ namespace VisualPinball.Unity
 				new RubberMeshGenerator(MainComponent),
 				math.mul(math.mul(Physics.WorldToVpx, math.inverse(worldToLocal)), Physics.VpxToWorld)
 			);
-			colliderGenerator.GenerateColliders(MainComponent.PlayfieldHeight, ColliderComponent.HitHeight, MainComponent.PlayfieldDetailLevel, ref colliders, margin);
+			if (ColliderComponent.IsKinematic) {
+				colliderGenerator.GenerateColliders(MainComponent.PlayfieldHeight, ColliderComponent.HitHeight, MainComponent.PlayfieldDetailLevel, ref kinematicColliders, margin);
+			} else {
+				colliderGenerator.GenerateColliders(MainComponent.PlayfieldHeight, ColliderComponent.HitHeight, MainComponent.PlayfieldDetailLevel, ref colliders, margin);
+			}
+
 		}
 
 		#endregion

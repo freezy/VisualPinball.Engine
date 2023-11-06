@@ -16,12 +16,12 @@
 
 using System.Collections.Generic;
 using System.Linq;
+using Unity.Mathematics;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.Profiling;
 using VisualPinball.Engine.Math;
 using Color = UnityEngine.Color;
-using Matrix4x4 = UnityEngine.Matrix4x4;
 using Quaternion = UnityEngine.Quaternion;
 using Vector3 = UnityEngine.Vector3;
 
@@ -49,6 +49,8 @@ namespace VisualPinball.Unity.Editor
 
 		public Color CurveSlingShotColor { get; set; } = Color.red;
 
+		private float4x4 _matrix;
+
 		public DragPointsSceneViewHandler(DragPointsHandler handler)
 		{
 			_handler = handler;
@@ -59,6 +61,8 @@ namespace VisualPinball.Unity.Editor
 			if (_handler == null) {
 				return;
 			}
+
+			_matrix = math.inverse(_handler.MainComponent.gameObject.transform.worldToLocalMatrix);
 			
 			DisplayCurve();
 			DisplayControlPoints();
@@ -121,14 +125,14 @@ namespace VisualPinball.Unity.Editor
 						}
 					}
 					Profiler.EndSample();
-			
+
 					// close loop if needed
 					Profiler.BeginSample("Close Loops");
 					if (_handler.DragPointInspector.PointsAreLooping) {
 						curveVerticesByDragPoint[_handler.ControlPoints.Count - 1].Add(curveVerticesByDragPoint[0][0]);
 					}
 					Profiler.EndSample();
-			
+
 					// construct full path
 					Profiler.BeginSample("Construct full path");
 					_pathPoints.Clear();
@@ -177,7 +181,7 @@ namespace VisualPinball.Unity.Editor
 					// Render Curve with correct color regarding drag point properties & find curve section where the curve traveller is
 					_handler.CurveTravellerControlPointIdx = -1;
 					var minDist = float.MaxValue;
-					Handles.matrix = Matrix4x4.identity;
+					Handles.matrix = _matrix;
 					foreach (var controlPoint in _handler.ControlPoints) {
 						Profiler.BeginSample("Compute Segments");
 						var segments = curveVerticesByDragPoint[controlPoint.Index].Select(cp => cp.TranslateToWorld()).ToArray();
@@ -218,10 +222,11 @@ namespace VisualPinball.Unity.Editor
 		/// </remarks>
 		private void DisplayControlPoints()
 		{
+			var matrix = math.mul(math.mul(Physics.WorldToVpx,math.inverse(_handler.MainComponent.gameObject.transform.worldToLocalMatrix)), Physics.VpxToWorld);
 			Profiler.BeginSample("DisplayControlPoints");
 			// Render Control Points and check traveler distance from CP
 			var distToCPoint = Mathf.Infinity;
-			Handles.matrix = Matrix4x4.identity;
+			Handles.matrix = _matrix;
 			var style =  new GUIStyle {
 				alignment = TextAnchor.MiddleCenter,
 			};
