@@ -119,7 +119,8 @@ namespace VisualPinball.Unity
 				indices.Dispose();
 				return i;
 			}
-			throw new IndexOutOfRangeException();
+			using var ballIds = _bitLookup.GetKeyArray(Allocator.Temp);
+			throw new IndexOutOfRangeException($"Bit index in InsideOfs is full, currently stored ball IDs: {string.Join(", ", ballIds)}");
 		}
 
 		private bool TryGetBallId(int bitIndex, out int ballId)
