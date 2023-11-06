@@ -36,7 +36,6 @@ namespace VisualPinball.Unity.Editor
 		{
 			base.OnEnable();
 
-
 			DragPointsHelper = new DragPointsInspectorHelper(MainComponent, this);
 			DragPointsHelper.OnEnable();
 
@@ -64,6 +63,10 @@ namespace VisualPinball.Unity.Editor
 			PropertyField(_rotationProperty, rebuildMesh: true);
 			PropertyField(_heightProperty, rebuildMesh: true);
 			PropertyField(_thicknessProperty, rebuildMesh: true);
+
+			// GUILayout.Space(10);
+			// if (GUILayout.Button("Center Origin")) {
+			// }
 
 			DragPointsHelper.OnInspectorGUI(this);
 

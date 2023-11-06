@@ -24,7 +24,9 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Unity.Mathematics;
 using UnityEngine;
+using UnityEngine.UIElements;
 using VisualPinball.Engine.Math;
 using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Rubber;
@@ -103,6 +105,10 @@ namespace VisualPinball.Unity
 		#region Transformation
 
 		public override void OnPlayfieldHeightUpdated() => RebuildMeshes();
+
+		public float4x4 TransformationMatrix
+			=> math.mul(math.mul(Physics.WorldToVpx, math.inverse(transform.worldToLocalMatrix)), Physics.VpxToWorld);
+
 
 		#endregion
 
