@@ -47,11 +47,13 @@ namespace VisualPinball.Unity
 		protected override void CreateColliders(ref ColliderReference colliders,
 			ref ColliderReference kinematicColliders, float margin)
 		{
-			var worldToLocal = (float4x4)MainComponent.transform.worldToLocalMatrix;
+			var playfield = MainComponent.GetComponentInParent<PlayfieldComponent>();
+			var playfieldToWorld = (float4x4)playfield.transform.localToWorldMatrix;
+			var localToPlayfield = math.inverse(math.mul(MainComponent.transform.worldToLocalMatrix, playfieldToWorld));
 			var colliderGenerator = new RubberColliderGenerator(
 				this,
 				new RubberMeshGenerator(MainComponent),
-				math.mul(math.mul(Physics.WorldToVpx, math.inverse(worldToLocal)), Physics.VpxToWorld)
+				math.mul(math.mul(Physics.WorldToVpx, localToPlayfield), Physics.VpxToWorld)
 			);
 			if (ColliderComponent.IsKinematic) {
 				colliderGenerator.GenerateColliders(MainComponent.PlayfieldHeight, ColliderComponent.HitHeight, MainComponent.PlayfieldDetailLevel, ref kinematicColliders, margin);

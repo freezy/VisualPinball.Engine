@@ -59,6 +59,9 @@ namespace VisualPinball.Unity
 		[NonSerialized]
 		private Vertex3D[] _scalingDragPoints;
 
+		[NonSerialized]
+		private float4x4 _playfieldToWorld;
+
 		#endregion
 
 		#region IRubberData
@@ -100,15 +103,23 @@ namespace VisualPinball.Unity
 			RegisterPhysics(physicsEngine);
 		}
 
+		private void Start()
+		{
+			var playfield = GetComponentInParent<PlayfieldComponent>();
+			_playfieldToWorld = playfield.transform.localToWorldMatrix;
+		}
+
 		#endregion
 
 		#region Transformation
 
 		public override void OnPlayfieldHeightUpdated() => RebuildMeshes();
 
-		public float4x4 TransformationMatrix
-			=> math.mul(math.mul(Physics.WorldToVpx, math.inverse(transform.worldToLocalMatrix)), Physics.VpxToWorld);
-
+		public float4x4 TransformationMatrix => math.mul(
+			math.mul(Physics.WorldToVpx,
+				math.inverse(math.mul(transform.worldToLocalMatrix, _playfieldToWorld))
+			),
+			Physics.VpxToWorld);
 
 		#endregion
 
