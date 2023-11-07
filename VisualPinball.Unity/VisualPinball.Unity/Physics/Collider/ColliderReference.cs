@@ -81,6 +81,7 @@ namespace VisualPinball.Unity
 				}
 			}
 			_itemIdToColliderIds.Dispose();
+			Lookups.Dispose();
 		}
 
 		public int Count => Lookups.Length;

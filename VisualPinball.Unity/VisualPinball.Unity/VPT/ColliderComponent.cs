@@ -178,7 +178,6 @@ namespace VisualPinball.Unity
 						colliders.Dispose();
 						kinematicColliders.Dispose();
 					}
-
 				}
 			}
 			if (ShowColliderOctree) {
