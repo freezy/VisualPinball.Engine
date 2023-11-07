@@ -21,12 +21,14 @@ using VisualPinball.Unity.Collections;
 
 namespace VisualPinball.Unity
 {
-	public static class PhysicsKinematicBroadPhase
+	public static class PhysicsKinematics
 	{
+		private static readonly ProfilerMarker PerfMarkerTransform = new("TransformColliders");
 		private static readonly ProfilerMarker PerfMarkerBallOctree = new("CreateKinematicOctree");
 
 		internal static void TransformColliders(ref PhysicsState state)
 		{
+			PerfMarkerTransform.Begin();
 			using var enumerator = state.UpdatedKinematicTransforms.GetEnumerator();
 			while (enumerator.MoveNext()) {
 				ref var matrix = ref enumerator.Current.Value;
@@ -37,6 +39,7 @@ namespace VisualPinball.Unity
 					state.Transform(colliderLookups[i], matrix);
 				}
 			}
+			PerfMarkerTransform.End();
 		}
 
 		internal static NativeOctree<int> CreateOctree(ref NativeColliders kinematicColliders, in AABB playfieldBounds)

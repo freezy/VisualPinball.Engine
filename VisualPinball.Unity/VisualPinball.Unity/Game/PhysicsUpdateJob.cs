@@ -67,6 +67,10 @@ namespace VisualPinball.Unity
 				ref SurfaceStates, ref TriggerStates, ref DisabledCollisionItems, ref SwapBallCollisionHandling);
 			using var cycle = new PhysicsCycle(Allocator.Temp);
 
+			// create octree of kinematic-to-ball collision. should be okay here, since static colliders don't transform more than once per frame.
+			PhysicsKinematics.TransformColliders(ref state);
+			var kineticOctree = PhysicsKinematics.CreateOctree(ref state.KinematicColliders, in PlayfieldBounds);
+
 			while (env.CurPhysicsFrameTime < InitialTimeUsec)  // loop here until current (real) time matches the physics (simulated) time
 			{
 				env.TimeMsec = (uint)((env.CurPhysicsFrameTime - env.StartTimeUsec) / 1000);
@@ -112,7 +116,7 @@ namespace VisualPinball.Unity
 				#endregion
 
 				// primary physics loop
-				cycle.Simulate(ref state, in PlayfieldBounds, ref OverlappingColliders, physicsDiffTime);
+				cycle.Simulate(ref state, in PlayfieldBounds, ref OverlappingColliders, ref kineticOctree, physicsDiffTime);
 
 				// ball trail, keep old pos of balls
 				using (var enumerator = state.Balls.GetEnumerator()) {
@@ -122,6 +126,8 @@ namespace VisualPinball.Unity
 				}
 
 				#region Animation
+
+				// todo it should be enough to calculate animations only once per frame
 
 				// bumper
 				using (var enumerator = BumperStates.GetEnumerator()) {
