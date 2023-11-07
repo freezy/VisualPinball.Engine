@@ -149,6 +149,7 @@ namespace VisualPinball.Unity
 			var transform = _transforms[ballId];
 			_transforms.Remove(ballId);
 			_ballStates.Ref.Remove(ballId);
+			_insideOfs.SetOutsideOfAll(ballId);
 			return transform;
 		}
 

@@ -8,13 +8,26 @@ namespace VisualPinball.Unity
 {
 	internal struct InsideOfs : IDisposable
 	{
+		/**
+		 * Stores at which position in the bit array(s) a ball is tracked. <br/>
+		 *
+		 * Key:   Ball ID
+		 * Value: Index in the bit array
+		 */
 		private NativeParallelHashMap<int, int> _bitLookup;
+
+		/**
+		 * Stores which balls are inside of an item. <br/>
+		 *
+		 * Key:   Item ID
+		 * Value: A bit array of ball IDs, up to 64 balls.
+		 */
 		private NativeParallelHashMap<int, BitField64> _insideOfs;
 
 		public InsideOfs(Allocator allocator)
 		{
-			_bitLookup = new NativeParallelHashMap<int, int>(64, allocator);
-			_insideOfs = new NativeParallelHashMap<int, BitField64>(64, allocator);
+			_bitLookup = new NativeParallelHashMap<int, int>(8, allocator);
+			_insideOfs = new NativeParallelHashMap<int, BitField64>(16, allocator);
 		}
 
 		internal void SetInsideOf(int itemId, int ballId)
@@ -25,6 +38,22 @@ namespace VisualPinball.Unity
 
 			ref var bits = ref _insideOfs.GetValueByRef(itemId);
 			bits.SetBits(GetBitIndex(ballId), true);
+		}
+
+		internal void SetOutsideOfAll(int ballId) // aka ball destroyed
+		{
+			if (!_bitLookup.ContainsKey(ballId)) {
+				return;
+			}
+			var bitIndex = _bitLookup[ballId];
+			using (var enumerator = _insideOfs.GetEnumerator()) {
+				while (enumerator.MoveNext()) {
+					ref var ballIndices = ref enumerator.Current.Value;
+					ballIndices.SetBits(bitIndex, false);
+				}
+			}
+
+			_bitLookup.Remove(ballId);
 		}
 
 		internal void SetOutsideOf(int itemId, int ballId)
@@ -92,14 +121,16 @@ namespace VisualPinball.Unity
 
 		private void ClearBitIndex(int ballId)
 		{
-			var maps = _insideOfs.GetValueArray(Allocator.Temp);
 			var index = GetBitIndex(ballId);
-			foreach (var ballIndices in maps) {
-				if (!ballIndices.IsSet(index)) {
-					continue;
+			// for each item bitfield, check if the ball is in there. if not, remove the bit index
+			using (var enumerator = _insideOfs.GetEnumerator()) {
+				while (enumerator.MoveNext()) {
+					ref var ballIndices = ref enumerator.Current.Value;
+					if (!ballIndices.IsSet(index)) {
+						continue;
+					}
+					return;
 				}
-				maps.Dispose();
-				return;
 			}
 			_bitLookup.Remove(ballId);
 		}
@@ -110,15 +141,16 @@ namespace VisualPinball.Unity
 				return _bitLookup[ballId];
 			}
 
-			var indices = _bitLookup.GetValueArray(Allocator.Temp);
+			var bitArrayIndices = _bitLookup.GetValueArray(Allocator.Temp); // todo don't copy but ref
 			for (var i = 0; i < 64; i++) {
-				if (indices.Contains(i)) {
+				if (bitArrayIndices.Contains(i)) {
 					continue;
 				}
 				_bitLookup[ballId] = i;
-				indices.Dispose();
+				bitArrayIndices.Dispose();
 				return i;
 			}
+			bitArrayIndices.Dispose();
 			using var ballIds = _bitLookup.GetKeyArray(Allocator.Temp);
 			throw new IndexOutOfRangeException($"Bit index in InsideOfs is full, currently stored ball IDs: {string.Join(", ", ballIds)}");
 		}
