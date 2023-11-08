@@ -142,7 +142,7 @@ namespace VisualPinball.Unity
 
 		public void Transform(PointCollider point, float4x4 matrix)
 		{
-			P = math.mul(matrix, new float4(point.P, 1f)).xyz;
+			P = matrix.MultiplyPoint(point.P);
 		}
 
 		public PointCollider Transform(float4x4 matrix)

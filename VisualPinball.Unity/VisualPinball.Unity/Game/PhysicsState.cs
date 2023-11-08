@@ -29,7 +29,7 @@ namespace VisualPinball.Unity
 		internal NativeColliders Colliders;
 		internal NativeColliders KinematicColliders;
 		internal NativeColliders KinematicCollidersAtIdentity;
-		internal NativeParallelHashMap<int, float4x4> UpdatedKinematicTransforms;
+		internal NativeParallelHashMap<int, float4x4> UpdatedKinematicTransforms; // transformations of the items, in vpx space.
 		internal NativeParallelHashMap<int, NativeColliderIds> KinematicColliderLookups;
 
 		internal NativeQueue<EventData>.ParallelWriter EventQueue;

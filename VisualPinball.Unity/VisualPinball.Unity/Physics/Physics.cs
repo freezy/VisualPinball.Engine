@@ -60,11 +60,29 @@ namespace VisualPinball.Unity
 		
 		/// <summary>
 		/// Use this on matrices that are generated for VPX-space transformations that you want to apply to a mesh that
-		/// has already been transformed to world-space. 
+		/// has already been transformed to world-space.
 		/// </summary>
 		/// <param name="m">VPX-space matrix that is supposed to be applied to a VPX-space mesh</param>
 		/// <returns>Matrix that with the same transformation to be applied to a mesh converted to world-space.</returns>
 		public static Matrix4x4 TransformVpxInWorld(this Matrix4x4 m) => math.mul(math.mul(VpxToWorld, m), WorldToVpx);
+
+		//public static float3 MultiplyPoint(this float4x4 matrix, float3 p) => math.mul(matrix, new float4(p, 1f)).xyz;
+		public static float3 MultiplyPoint(this float4x4 matrix, float3 p) => math.transform(matrix, p);
+
+		/// <summary>
+		/// Returns the transformation matrix of an item in VPX space.<br/>
+		///
+		/// You basically give the world-to-local transformation matrix of the item, and you'll get the
+		/// transformation in VPX space (i.e. relative to the playfield, however it's transformed).
+		/// </summary>
+		/// <param name="worldToLocal">World-to-local transformation matrix of the item.</param>
+		/// <param name="playfieldToWorld">Local-to-World transformation matrix of the playfield.</param>
+		/// <returns>Transformation matrix of the item in VPX space.</returns>
+		public static float4x4 WorldToLocalTranslateWithinPlayfield(this Matrix4x4 worldToLocal, float4x4 playfieldToWorld) => math.mul(
+			math.mul(Physics.WorldToVpx,
+				math.inverse(math.mul(worldToLocal, playfieldToWorld))
+			),
+			Physics.VpxToWorld);
 
 		#endregion
 

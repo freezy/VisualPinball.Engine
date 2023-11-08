@@ -115,11 +115,7 @@ namespace VisualPinball.Unity
 
 		public override void OnPlayfieldHeightUpdated() => RebuildMeshes();
 
-		public float4x4 TransformationMatrix => math.mul(
-			math.mul(Physics.WorldToVpx,
-				math.inverse(math.mul(transform.worldToLocalMatrix, _playfieldToWorld))
-			),
-			Physics.VpxToWorld);
+		public float4x4 TransformationMatrix => transform.worldToLocalMatrix.WorldToLocalTranslateWithinPlayfield(_playfieldToWorld);
 
 		#endregion
 

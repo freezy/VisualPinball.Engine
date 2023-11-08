@@ -17,6 +17,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Unity.Mathematics;
 using UnityEditor;
 using UnityEngine;
 using VisualPinball.Engine.Math;
@@ -95,6 +96,7 @@ namespace VisualPinball.Unity.Editor
 		private Vector3 _startPos;
 		private readonly Dictionary<string, float> _startPosZ = new();
 		private float[] _startTopBottomZ;
+		private readonly Matrix4x4 _playfieldToWorld;
 
 		/// <summary>
 		/// Every DragPointsInspector instantiates this to manage its curve handling.
@@ -106,6 +108,8 @@ namespace VisualPinball.Unity.Editor
 		{
 			MainComponent = mainComponent;
 			DragPointInspector = dragPointsInspector;
+			var playfield = mainComponent.gameObject.GetComponentInParent<PlayfieldComponent>();
+			_playfieldToWorld = playfield ? playfield.transform.localToWorldMatrix : Matrix4x4.identity;
 
 			Transform = mainComponent.gameObject.transform;
 
@@ -311,7 +315,7 @@ namespace VisualPinball.Unity.Editor
 			}
 
 			if (SelectedControlPoints.Count > 0) {
-				
+
 				// set start positions since clicked
 				if (evt.type == EventType.MouseDown) {
 					_startPos = _centerSelected;
@@ -321,13 +325,18 @@ namespace VisualPinball.Unity.Editor
 						_startPosZ[cp.DragPointId] = cp.DragPoint.Center.Z;
 					}
 				}
-				
+
+				// convert from vpx space to vpx space transformed
+				var matrix = MainComponent.gameObject.transform.worldToLocalMatrix.WorldToLocalTranslateWithinPlayfield(_playfieldToWorld);
+				var centerSelected = matrix.MultiplyPoint(_centerSelected);
+				var startPos = matrix.MultiplyPoint(_startPos);
+
 				// get new pos since last frame
 				EditorGUI.BeginChangeCheck();
-				var newHandlePos = HandlesUtils.HandlePosition(Transform.GetComponentInParent<PlayfieldComponent>(), _centerSelected, DragPointInspector.HandleType);
+				var newHandlePos = (float3)HandlesUtils.HandlePosition(Transform.GetComponentInParent<PlayfieldComponent>(), centerSelected, DragPointInspector.HandleType);
 				if (EditorGUI.EndChangeCheck()) {
-					var delta = newHandlePos - _centerSelected;
-					var deltaZ = newHandlePos.z - _startPos.z;
+					var delta = newHandlePos - centerSelected;
+					var deltaZ = newHandlePos.z - startPos.z;
 					
 					Undo.RecordObject(MainComponent as MonoBehaviour, "move Drag Points");
 					foreach (var controlPoint in SelectedControlPoints) {
@@ -356,11 +365,11 @@ namespace VisualPinball.Unity.Editor
 				if (controlPoint.IsSelected && !controlPoint.DragPoint.IsLocked) {
 					SelectedControlPoints.Add(controlPoint);
 				}
-				
+
 				HandleUtility.AddControl(
 					controlPoint.ControlId,
 					HandleUtility.DistanceToCircle(
-						controlPoint.EditorPositionWorld,
+						MainComponent.gameObject.transform.localToWorldMatrix.MultiplyPoint(controlPoint.EditorPositionWorld),
 						controlPoint.HandleSize
 					)
 				);
@@ -373,8 +382,8 @@ namespace VisualPinball.Unity.Editor
 			//Setup PositionHandle if some control points are selected
 			if (SelectedControlPoints.Count > 0) {
 				_centerSelected = Vector3.zero;
-				foreach (var sCp in SelectedControlPoints) {
-					_centerSelected += sCp.EditorPositionVpx;
+				foreach (var controlPoint in SelectedControlPoints) {
+					_centerSelected += controlPoint.EditorPositionVpx;
 				}
 				_centerSelected /= SelectedControlPoints.Count;
 			}

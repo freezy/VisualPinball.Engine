@@ -22,8 +22,6 @@ using UnityEngine;
 using UnityEngine.Profiling;
 using VisualPinball.Engine.Math;
 using Color = UnityEngine.Color;
-using Quaternion = UnityEngine.Quaternion;
-using Vector3 = UnityEngine.Vector3;
 
 namespace VisualPinball.Unity.Editor
 {
@@ -83,7 +81,7 @@ namespace VisualPinball.Unity.Editor
 			
 			// Display Curve & handle curve traveller
 			if (_handler.ControlPoints.Count > 1) {
-				
+
 				Profiler.BeginSample("Transform Points");
 				var dragPointsVpx = new DragPointData[_handler.ControlPoints.Count];
 				for (var i = 0; i < _handler.ControlPoints.Count; i++) {
@@ -163,14 +161,14 @@ namespace VisualPinball.Unity.Editor
 					_curveTravellerMoved = false;
 					if (_pathPoints.Count > 1) {
 						Profiler.BeginSample("Convert Points");
-						var points = _pathPoints.ToArray();
+						var points = _pathPoints.Select(p => (Vector3)_matrix.MultiplyPoint(p)).ToArray();
 						Profiler.EndSample();
 						Profiler.BeginSample("Calculate closest");
 						var newPos = HandleUtility.ClosestPointToPolyLine(points);
 						Profiler.EndSample();
 						Profiler.BeginSample("Calculate if moved");
 						if ((newPos - _handler.CurveTravellerPosition).magnitude >= HandleUtility.GetHandleSize(_handler.CurveTravellerPosition) * ControlPoint.ScreenRadius * CurveTravellerSizeRatio * 0.1f) {
-							_handler.CurveTravellerPosition = newPos;
+							_handler.CurveTravellerPosition = math.inverse(_matrix).MultiplyPoint(newPos);
 							_curveTravellerMoved = true;
 						}
 						Profiler.EndSample();
@@ -250,7 +248,13 @@ namespace VisualPinball.Unity.Editor
 				// curve traveller is not overlapping a control point, we can draw it.
 				if (distToCPoint > HandleUtility.GetHandleSize(_handler.CurveTravellerPosition) * ControlPoint.ScreenRadius) {
 					Handles.color = Color.grey;
-					Handles.SphereHandleCap(_handler.CurveTravellerControlId, _handler.CurveTravellerPosition, Quaternion.identity, HandleUtility.GetHandleSize(_handler.CurveTravellerPosition) * ControlPoint.ScreenRadius * CurveTravellerSizeRatio, EventType.Repaint);
+					Handles.SphereHandleCap(
+						_handler.CurveTravellerControlId,
+						_handler.CurveTravellerPosition,
+						Quaternion.identity,
+						HandleUtility.GetHandleSize(_handler.CurveTravellerPosition) * ControlPoint.ScreenRadius * CurveTravellerSizeRatio,
+						EventType.Repaint
+					);
 					_handler.CurveTravellerVisible = true;
 					if (EditorWindow.mouseOverWindow && _curveTravellerMoved) {
 						HandleUtility.Repaint();
