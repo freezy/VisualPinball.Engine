@@ -60,7 +60,6 @@ namespace VisualPinball.Unity
 			} else {
 				colliderGenerator.GenerateColliders(MainComponent.PlayfieldHeight, ColliderComponent.HitHeight, MainComponent.PlayfieldDetailLevel, ref colliders, margin);
 			}
-
 		}
 
 		#endregion

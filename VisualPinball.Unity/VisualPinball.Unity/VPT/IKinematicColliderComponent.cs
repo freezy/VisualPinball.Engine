@@ -22,6 +22,10 @@ namespace VisualPinball.Unity
 	{
 		public bool IsKinematic { get; }
 		public int ItemId { get; }
+
+		/// <summary>
+		/// Transformation matrix of the collider in the scene, in VPX space.
+		/// </summary>
 		public float4x4 TransformationMatrix { get; }
 	}
 }
