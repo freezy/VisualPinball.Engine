@@ -181,6 +181,7 @@ namespace VisualPinball.Unity
 			}
 
 			PhysicsEnv[0] = env;
+			kineticOctree.Dispose();
 		}
 	}
 }

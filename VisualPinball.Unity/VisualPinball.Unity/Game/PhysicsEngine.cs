@@ -410,6 +410,8 @@ namespace VisualPinball.Unity
 			}
 
 			#endregion
+
+			overlappingColliders.Dispose();
 		}
 		
 		private void OnDestroy()

@@ -21,7 +21,7 @@ using Random = Unity.Mathematics.Random;
 
 namespace VisualPinball.Unity
 {
-	public struct PhysicsEnv : IDisposable
+	public struct PhysicsEnv
 	{
 		public readonly float3 Gravity;
 		public readonly ulong StartTimeUsec;
@@ -38,10 +38,6 @@ namespace VisualPinball.Unity
 			NextPhysicsFrameTime = StartTimeUsec + PhysicsConstants.PhysicsStepTime;
 			Random = new Random((uint)UnityEngine.Random.Range(1, 100000));
 			Gravity = playfield.PlayfieldGravity(gravityStrength);
-		}
-
-		public void Dispose()
-		{
 		}
 	}
 }
