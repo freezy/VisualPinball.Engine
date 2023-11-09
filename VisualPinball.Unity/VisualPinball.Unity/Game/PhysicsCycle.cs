@@ -169,6 +169,9 @@ namespace VisualPinball.Unity
 
 				state.SwapBallCollisionHandling = !state.SwapBallCollisionHandling;
 			}
+
+			ballOctree.Dispose();
+
 			PerfMarker.End();
 		}
 		
