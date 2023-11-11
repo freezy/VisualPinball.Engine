@@ -79,10 +79,10 @@ namespace VisualPinball.Unity
 		/// <param name="playfieldToWorld">Local-to-World transformation matrix of the playfield.</param>
 		/// <returns>Transformation matrix of the item in VPX space.</returns>
 		public static float4x4 WorldToLocalTranslateWithinPlayfield(this Matrix4x4 worldToLocal, float4x4 playfieldToWorld) => math.mul(
-			math.mul(Physics.WorldToVpx,
+			math.mul(WorldToVpx,
 				math.inverse(math.mul(worldToLocal, playfieldToWorld))
 			),
-			Physics.VpxToWorld);
+			VpxToWorld);
 
 		#endregion
 

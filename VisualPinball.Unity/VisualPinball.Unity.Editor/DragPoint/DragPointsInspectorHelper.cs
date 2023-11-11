@@ -290,6 +290,7 @@ namespace VisualPinball.Unity.Editor
 			DragPointsHandler.OnSceneGUI(Event.current, OnDragPointPositionChange);
 
 			// right mouse button clicked?
+			Handles.matrix = Matrix4x4.identity;
 			if (Event.current.type == EventType.MouseDown && Event.current.button == 1) {
 				var nearestControlPoint = DragPointsHandler.ControlPoints.Find(cp => cp.ControlId == HandleUtility.nearestControl);
 
