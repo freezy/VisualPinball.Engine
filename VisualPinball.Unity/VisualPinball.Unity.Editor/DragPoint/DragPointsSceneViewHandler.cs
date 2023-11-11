@@ -47,7 +47,7 @@ namespace VisualPinball.Unity.Editor
 
 		public Color CurveSlingShotColor { get; set; } = Color.red;
 
-		private float4x4 _matrix;
+		private float4x4 _worldToLocalMatrix;
 
 		public DragPointsSceneViewHandler(DragPointsHandler handler)
 		{
@@ -60,7 +60,7 @@ namespace VisualPinball.Unity.Editor
 				return;
 			}
 
-			_matrix = math.inverse(_handler.MainComponent.gameObject.transform.worldToLocalMatrix);
+			_worldToLocalMatrix = math.inverse(_handler.MainComponent.gameObject.transform.worldToLocalMatrix);
 			
 			DisplayCurve();
 			DisplayControlPoints();
@@ -160,15 +160,16 @@ namespace VisualPinball.Unity.Editor
 					Profiler.BeginSample("Handle Traveller");
 					_curveTravellerMoved = false;
 					if (_pathPoints.Count > 1) {
+						Handles.matrix = Matrix4x4.identity;
 						Profiler.BeginSample("Convert Points");
-						var points = _pathPoints.Select(p => (Vector3)_matrix.MultiplyPoint(p)).ToArray();
+						var points = _pathPoints.Select(p => (Vector3)_worldToLocalMatrix.MultiplyPoint(p)).ToArray();
 						Profiler.EndSample();
 						Profiler.BeginSample("Calculate closest");
 						var newPos = HandleUtility.ClosestPointToPolyLine(points);
 						Profiler.EndSample();
 						Profiler.BeginSample("Calculate if moved");
 						if ((newPos - _handler.CurveTravellerPosition).magnitude >= HandleUtility.GetHandleSize(_handler.CurveTravellerPosition) * ControlPoint.ScreenRadius * CurveTravellerSizeRatio * 0.1f) {
-							_handler.CurveTravellerPosition = math.inverse(_matrix).MultiplyPoint(newPos);
+							_handler.CurveTravellerPosition = math.inverse(_worldToLocalMatrix).MultiplyPoint(newPos);
 							_curveTravellerMoved = true;
 						}
 						Profiler.EndSample();
@@ -179,7 +180,7 @@ namespace VisualPinball.Unity.Editor
 					// Render Curve with correct color regarding drag point properties & find curve section where the curve traveller is
 					_handler.CurveTravellerControlPointIdx = -1;
 					var minDist = float.MaxValue;
-					Handles.matrix = _matrix;
+					Handles.matrix = _worldToLocalMatrix;
 					foreach (var controlPoint in _handler.ControlPoints) {
 						Profiler.BeginSample("Compute Segments");
 						var segments = curveVerticesByDragPoint[controlPoint.Index].Select(cp => cp.TranslateToWorld()).ToArray();
@@ -224,7 +225,7 @@ namespace VisualPinball.Unity.Editor
 			Profiler.BeginSample("DisplayControlPoints");
 			// Render Control Points and check traveler distance from CP
 			var distToCPoint = Mathf.Infinity;
-			Handles.matrix = _matrix;
+			Handles.matrix = _worldToLocalMatrix;
 			var style =  new GUIStyle {
 				alignment = TextAnchor.MiddleCenter,
 			};

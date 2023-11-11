@@ -96,7 +96,6 @@ namespace VisualPinball.Unity.Editor
 		private Vector3 _startPos;
 		private readonly Dictionary<string, float> _startPosZ = new();
 		private float[] _startTopBottomZ;
-		private readonly Matrix4x4 _playfieldToWorld;
 
 		/// <summary>
 		/// Every DragPointsInspector instantiates this to manage its curve handling.
@@ -108,8 +107,6 @@ namespace VisualPinball.Unity.Editor
 		{
 			MainComponent = mainComponent;
 			DragPointInspector = dragPointsInspector;
-			var playfield = mainComponent.gameObject.GetComponentInParent<PlayfieldComponent>();
-			_playfieldToWorld = playfield ? playfield.transform.localToWorldMatrix : Matrix4x4.identity;
 
 			Transform = mainComponent.gameObject.transform;
 
@@ -326,17 +323,16 @@ namespace VisualPinball.Unity.Editor
 					}
 				}
 
-				// convert from vpx space to vpx space transformed
-				var matrix = MainComponent.gameObject.transform.worldToLocalMatrix.WorldToLocalTranslateWithinPlayfield(_playfieldToWorld);
-				var centerSelected = matrix.MultiplyPoint(_centerSelected);
-				var startPos = matrix.MultiplyPoint(_startPos);
-
 				// get new pos since last frame
 				EditorGUI.BeginChangeCheck();
-				var newHandlePos = (float3)HandlesUtils.HandlePosition(Transform.GetComponentInParent<PlayfieldComponent>(), centerSelected, DragPointInspector.HandleType);
+				var newHandlePos = HandlesUtils.HandlePosition(
+					_centerSelected,
+					Transform.localToWorldMatrix,
+					DragPointInspector.HandleType
+				);
 				if (EditorGUI.EndChangeCheck()) {
-					var delta = newHandlePos - centerSelected;
-					var deltaZ = newHandlePos.z - startPos.z;
+					var delta = newHandlePos - _centerSelected;
+					var deltaZ = newHandlePos.z - _startPos.z;
 					
 					Undo.RecordObject(MainComponent as MonoBehaviour, "move Drag Points");
 					foreach (var controlPoint in SelectedControlPoints) {
@@ -388,11 +384,13 @@ namespace VisualPinball.Unity.Editor
 				_centerSelected /= SelectedControlPoints.Count;
 			}
 
+			Handles.matrix = Matrix4x4.identity;
 			if (CurveTravellerVisible) {
-				HandleUtility.AddControl(CurveTravellerControlId,
-					HandleUtility.DistanceToCircle(Handles.matrix.MultiplyPoint(CurveTravellerPosition),
-						HandleUtility.GetHandleSize(CurveTravellerPosition) * ControlPoint.ScreenRadius *
-						_sceneViewHandler.CurveTravellerSizeRatio * 0.5f));
+				HandleUtility.AddControl(
+					CurveTravellerControlId,
+					HandleUtility.DistanceToCircle(
+						CurveTravellerPosition,
+						HandleUtility.GetHandleSize(CurveTravellerPosition) * ControlPoint.ScreenRadius * _sceneViewHandler.CurveTravellerSizeRatio * 0.5f));
 			}
 		}
 
