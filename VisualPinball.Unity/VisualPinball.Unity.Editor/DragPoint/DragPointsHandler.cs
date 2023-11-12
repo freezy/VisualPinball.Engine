@@ -233,6 +233,24 @@ namespace VisualPinball.Unity.Editor
 			RebuildControlPoints();
 		}
 
+		public void CenterPivot()
+		{
+			var transform = Transform;
+			var centerVpx = Vector3.zero;
+			foreach (var dragPoint in DragPointInspector.DragPoints) {
+				centerVpx += dragPoint.Center.ToUnityVector3();
+			}
+			centerVpx /= DragPointInspector.DragPoints.Length;
+
+			Undo.RecordObjects(new[] { MainComponent as Object, transform }, $"Center pivot point of {MainComponent.name}");
+			transform.Translate(centerVpx.TranslateToWorld(transform) - transform.position);
+			foreach (var dragPoint in DragPointInspector.DragPoints) {
+				dragPoint.Center -= centerVpx.ToVertex3D();
+			}
+
+			MainComponent.RebuildMeshes();
+		}
+
 		/// <summary>
 		/// Updates the lock status on all drag points to the given value.
 		/// </summary>
