@@ -35,7 +35,7 @@ namespace VisualPinball.Unity.Editor
 		/// <summary>
 		/// Curve points in world space
 		/// </summary>
-		private readonly List<Vector3> _pathPoints = new List<Vector3>();
+		private readonly List<Vector3> _pathPoints = new();
 
 		private bool _curveTravellerMoved = false;
 
@@ -47,7 +47,7 @@ namespace VisualPinball.Unity.Editor
 
 		public Color CurveSlingShotColor { get; set; } = Color.red;
 
-		private float4x4 _worldToLocalMatrix;
+		private Transform Transform => _handler.MainComponent.gameObject.transform;
 
 		public DragPointsSceneViewHandler(DragPointsHandler handler)
 		{
@@ -60,8 +60,6 @@ namespace VisualPinball.Unity.Editor
 				return;
 			}
 
-			_worldToLocalMatrix = math.inverse(_handler.MainComponent.gameObject.transform.worldToLocalMatrix);
-			
 			DisplayCurve();
 			DisplayControlPoints();
 		}
@@ -152,7 +150,7 @@ namespace VisualPinball.Unity.Editor
 							segments = newPath;
 						}
 						foreach (var segment in segments) {
-							_pathPoints.Add(segment.TranslateToWorld());
+							_pathPoints.Add(segment.TranslateToWorld(Transform));
 						}
 					}
 					Profiler.EndSample();
@@ -161,15 +159,12 @@ namespace VisualPinball.Unity.Editor
 					_curveTravellerMoved = false;
 					if (_pathPoints.Count > 1) {
 						Handles.matrix = Matrix4x4.identity;
-						Profiler.BeginSample("Convert Points");
-						var points = _pathPoints.Select(p => (Vector3)_worldToLocalMatrix.MultiplyPoint(p)).ToArray();
-						Profiler.EndSample();
 						Profiler.BeginSample("Calculate closest");
-						var newPos = HandleUtility.ClosestPointToPolyLine(points);
+						var newPos = HandleUtility.ClosestPointToPolyLine(_pathPoints.ToArray());
 						Profiler.EndSample();
 						Profiler.BeginSample("Calculate if moved");
 						if ((newPos - _handler.CurveTravellerPosition).magnitude >= HandleUtility.GetHandleSize(_handler.CurveTravellerPosition) * ControlPoint.ScreenRadius * CurveTravellerSizeRatio * 0.1f) {
-							_handler.CurveTravellerPosition = math.inverse(_worldToLocalMatrix).MultiplyPoint(newPos);
+							_handler.CurveTravellerPosition = newPos;
 							_curveTravellerMoved = true;
 						}
 						Profiler.EndSample();
@@ -180,7 +175,7 @@ namespace VisualPinball.Unity.Editor
 					// Render Curve with correct color regarding drag point properties & find curve section where the curve traveller is
 					_handler.CurveTravellerControlPointIdx = -1;
 					var minDist = float.MaxValue;
-					Handles.matrix = _worldToLocalMatrix;
+					Handles.matrix = Transform.localToWorldMatrix;
 					foreach (var controlPoint in _handler.ControlPoints) {
 						Profiler.BeginSample("Compute Segments");
 						var segments = curveVerticesByDragPoint[controlPoint.Index].Select(cp => cp.TranslateToWorld()).ToArray();
@@ -196,7 +191,7 @@ namespace VisualPinball.Unity.Editor
 							Profiler.EndSample();
 							Profiler.BeginSample("Calculate closes point");
 							var closestToPath = HandleUtility.ClosestPointToPolyLine(segments);
-							var dist = (closestToPath - _handler.CurveTravellerPosition).magnitude;
+							var dist = (closestToPath - (Vector3)math.inverse(Transform.localToWorldMatrix).MultiplyPoint(_handler.CurveTravellerPosition)).magnitude;
 							if (dist < minDist) {
 								minDist = dist;
 								_handler.CurveTravellerControlPointIdx = controlPoint.Index;
@@ -224,8 +219,8 @@ namespace VisualPinball.Unity.Editor
 			var matrix = math.mul(math.mul(Physics.WorldToVpx,math.inverse(_handler.MainComponent.gameObject.transform.worldToLocalMatrix)), Physics.VpxToWorld);
 			Profiler.BeginSample("DisplayControlPoints");
 			// Render Control Points and check traveler distance from CP
-			var distToCPoint = Mathf.Infinity;
-			Handles.matrix = _worldToLocalMatrix;
+			var distToControlPoint = Mathf.Infinity;
+			Handles.matrix = Transform.localToWorldMatrix;
 			var style =  new GUIStyle {
 				alignment = TextAnchor.MiddleCenter,
 			};
@@ -240,14 +235,15 @@ namespace VisualPinball.Unity.Editor
 				var pos = controlPoint.EditorPositionWorld;
 				var handleSize = controlPoint.HandleSize;
 				Handles.SphereHandleCap(-1, pos, Quaternion.identity, handleSize, EventType.Repaint);
-				Handles.Label(pos - (Vector3.right * handleSize - Vector3.forward * handleSize * 2f) * 0.1f, $"{i}", style);
-				var dist = Vector3.Distance(_handler.CurveTravellerPosition, controlPoint.EditorPositionWorld);
-				distToCPoint = Mathf.Min(distToCPoint, dist);
+				Handles.Label(pos, $"{i}", style);
+				var dist = Vector3.Distance(_handler.CurveTravellerPosition, Handles.matrix.MultiplyPoint(controlPoint.EditorPositionWorld));
+				distToControlPoint = Mathf.Min(distToControlPoint, dist);
 			}
 
+			Handles.matrix = Matrix4x4.identity;
 			if (!_handler.MainComponent.IsLocked) {
 				// curve traveller is not overlapping a control point, we can draw it.
-				if (distToCPoint > HandleUtility.GetHandleSize(_handler.CurveTravellerPosition) * ControlPoint.ScreenRadius) {
+				if (distToControlPoint > HandleUtility.GetHandleSize(_handler.CurveTravellerPosition) * ControlPoint.ScreenRadius) {
 					Handles.color = Color.grey;
 					Handles.SphereHandleCap(
 						_handler.CurveTravellerControlId,
