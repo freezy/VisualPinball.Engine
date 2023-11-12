@@ -28,6 +28,8 @@ namespace VisualPinball.Unity.Editor
 	public class SurfaceInspector : MainInspector<SurfaceData, SurfaceComponent>, IDragPointsInspector
 	{
 
+		public Transform Transform => MainComponent.transform;
+
 		private SerializedProperty _heightTopProperty;
 		private SerializedProperty _heightBottomProperty;
 

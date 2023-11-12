@@ -366,7 +366,7 @@ namespace VisualPinball.Unity.Editor
 				HandleUtility.AddControl(
 					controlPoint.ControlId,
 					HandleUtility.DistanceToCircle(
-						MainComponent.gameObject.transform.localToWorldMatrix.MultiplyPoint(controlPoint.EditorPositionWorld),
+						controlPoint.EditorPositionWorld,
 						controlPoint.HandleSize
 					)
 				);

@@ -28,6 +28,8 @@ namespace VisualPinball.Unity.Editor
 	public class MetalWireGuideInspector : MainInspector<MetalWireGuideData, MetalWireGuideComponent>, IDragPointsInspector
 	{
 
+		public Transform Transform => MainComponent.transform;
+
 		private SerializedProperty _heightProperty;
 		private SerializedProperty _thicknessProperty;
 		private SerializedProperty _rotationProperty;

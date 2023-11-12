@@ -220,7 +220,7 @@ namespace VisualPinball.Unity.Editor
 			Profiler.BeginSample("DisplayControlPoints");
 			// Render Control Points and check traveler distance from CP
 			var distToControlPoint = Mathf.Infinity;
-			Handles.matrix = Transform.localToWorldMatrix;
+			Handles.matrix = Matrix4x4.identity;
 			var style =  new GUIStyle {
 				alignment = TextAnchor.MiddleCenter,
 			};
@@ -236,7 +236,7 @@ namespace VisualPinball.Unity.Editor
 				var handleSize = controlPoint.HandleSize;
 				Handles.SphereHandleCap(-1, pos, Quaternion.identity, handleSize, EventType.Repaint);
 				Handles.Label(pos, $"{i}", style);
-				var dist = Vector3.Distance(_handler.CurveTravellerPosition, Handles.matrix.MultiplyPoint(controlPoint.EditorPositionWorld));
+				var dist = Vector3.Distance(_handler.CurveTravellerPosition, controlPoint.EditorPositionWorld);
 				distToControlPoint = Mathf.Min(distToControlPoint, dist);
 			}
 

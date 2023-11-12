@@ -27,6 +27,7 @@ namespace VisualPinball.Unity.Editor
 	[CustomEditor(typeof(LightInsertMeshComponent)), CanEditMultipleObjects]
 	public class LightInsertMeshInspector : MeshInspector<LightData, LightComponent, LightInsertMeshComponent>, IDragPointsInspector
 	{
+		public Transform Transform => null; // not needed for lights, IDragpointInspector will probably be removed.
 
 		private SerializedProperty _insertHeightProperty;
 		private SerializedProperty _positionZProperty;
