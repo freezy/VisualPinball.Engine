@@ -17,7 +17,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Unity.Mathematics;
 using UnityEditor;
 using UnityEngine;
 using VisualPinball.Engine.Math;
@@ -156,7 +155,7 @@ namespace VisualPinball.Unity.Editor
 			};
 
 			var newIdx = CurveTravellerControlPointIdx + 1;
-			var dragPointPosition = CurveTravellerPosition.TranslateToVpx();
+			var dragPointPosition = CurveTravellerPosition.TranslateToVpx(Transform);
 			dragPointPosition.z = 0;
 			dragPoint.Center = dragPointPosition.ToVertex3D();
 			var dragPoints = DragPointInspector.DragPoints.ToList();
@@ -355,6 +354,8 @@ namespace VisualPinball.Unity.Editor
 			SelectedControlPoints.Clear();
 			_center = Vector3.zero;
 
+			Handles.matrix = Matrix4x4.identity;
+
 			//Setup Screen positions & controlID for control points (in case of modification of drag points coordinates outside)
 			foreach (var controlPoint in ControlPoints) {
 				_center += controlPoint.AbsolutePosition;
@@ -384,7 +385,6 @@ namespace VisualPinball.Unity.Editor
 				_centerSelected /= SelectedControlPoints.Count;
 			}
 
-			Handles.matrix = Matrix4x4.identity;
 			if (CurveTravellerVisible) {
 				HandleUtility.AddControl(
 					CurveTravellerControlId,

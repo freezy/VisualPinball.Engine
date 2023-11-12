@@ -90,9 +90,29 @@ namespace VisualPinball.Unity
 
 		public static float3 TranslateToVpx(this float3 worldVector) => math.transform(WorldToVpx, worldVector);
 		public static Vector3 TranslateToVpx(this Vector3 worldVector) => math.transform(WorldToVpx, worldVector);
-		
+
+		/// <summary>
+		/// Translates a world vector with a given transformation into VPX space, independent of the playfield's transform.
+		///
+		/// This is useful in the editor.
+		/// </summary>
+		/// <param name="worldVector">World position</param>
+		/// <param name="transform">Transformation of the item.</param>
+		/// <returns>Transformed position in VPX space.</returns>
+		public static Vector3 TranslateToVpx(this Vector3 worldVector, Transform transform) => transform.worldToLocalMatrix.MultiplyPoint(worldVector).TranslateToVpx();
+
 		public static float3 TranslateToWorld(this float3 vpxVector) => math.transform(VpxToWorld, vpxVector);
 		public static Vector3 TranslateToWorld(this Vector3 vpxVector) => math.transform(VpxToWorld, vpxVector);
+
+		/// <summary>
+		/// Translates a VPX vector with a given world transformation into world space, independent of the playfield's transform.
+		///
+		/// This is useful in the editor.
+		/// </summary>
+		/// <param name="vpxVector">VPX position</param>
+		/// <param name="transform">Transformation of the item.</param>
+		/// <returns>Transformed position in world space.</returns>
+		public static Vector3 TranslateToWorld(this Vector3 vpxVector, Transform transform) => transform.localToWorldMatrix.MultiplyPoint(vpxVector.TranslateToWorld());
 		public static Vector3 TranslateToWorld(float vpxX, float vpxY, float vpxZ) => TranslateToWorld(new float3(vpxX, vpxY, vpxZ));
 
 		#endregion
