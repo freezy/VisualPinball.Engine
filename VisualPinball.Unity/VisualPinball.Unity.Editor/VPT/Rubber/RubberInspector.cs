@@ -28,6 +28,8 @@ namespace VisualPinball.Unity.Editor
 	public class RubberInspector : MainInspector<RubberData, RubberComponent>, IDragPointsInspector
 	{
 
+		public Transform Transform => MainComponent.transform;
+
 		private SerializedProperty _heightProperty;
 		private SerializedProperty _thicknessProperty;
 		private SerializedProperty _rotationProperty;

@@ -28,6 +28,8 @@ namespace VisualPinball.Unity.Editor
 	[CustomEditor(typeof(RampComponent)), CanEditMultipleObjects]
 	public class RampInspector : MainInspector<RampData, RampComponent>, IDragPointsInspector
 	{
+		public Transform Transform => MainComponent.transform;
+
 		private bool _foldoutGeometry = true;
 
 		private static readonly string[] RampTypeLabels = {

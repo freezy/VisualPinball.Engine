@@ -27,6 +27,7 @@ namespace VisualPinball.Unity.Editor
 	[CustomEditor(typeof(TriggerComponent)), CanEditMultipleObjects]
 	public class TriggerInspector : MainInspector<TriggerData, TriggerComponent>, IDragPointsInspector
 	{
+		public Transform Transform => MainComponent.transform;
 
 		private SerializedProperty _positionProperty;
 		private SerializedProperty _scaleProperty;
