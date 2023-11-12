@@ -36,7 +36,7 @@ namespace VisualPinball.Unity.Editor
 		/// <summary>
 		/// If true, a list of the drag points is displayed in the inspector.
 		/// </summary>
-		private bool _foldoutControlPoints = true;
+		private bool _foldoutControlPoints;
 
 		/// <summary>
 		/// stored vector during the copy/paste process
@@ -209,6 +209,11 @@ namespace VisualPinball.Unity.Editor
 			if (_mainComponent.IsLocked) {
 				EditorGUILayout.LabelField("Drag Points are Locked");
 				return;
+			}
+
+			GUILayout.Space(10);
+			if (GUILayout.Button("Center Origin")) {
+				DragPointsHandler.CenterPivot();
 			}
 
 			_foldoutControlPoints = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutControlPoints, "Drag Points");

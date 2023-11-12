@@ -66,10 +66,6 @@ namespace VisualPinball.Unity.Editor
 			PropertyField(_heightProperty, rebuildMesh: true);
 			PropertyField(_thicknessProperty, rebuildMesh: true);
 
-			// GUILayout.Space(10);
-			// if (GUILayout.Button("Center Origin")) {
-			// }
-
 			DragPointsHelper.OnInspectorGUI(this);
 
 			base.OnInspectorGUI();
