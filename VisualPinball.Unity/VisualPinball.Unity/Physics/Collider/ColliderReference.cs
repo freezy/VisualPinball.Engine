@@ -185,6 +185,8 @@ namespace VisualPinball.Unity
 			return collider.Id;
 		}
 
+		internal int Add(Line3DCollider collider, float4x4 matrix) => Add(collider.Transform(matrix));
+
 		internal int Add(Line3DCollider collider)
 		{
 			collider.Id = Lookups.Length;
@@ -248,6 +250,7 @@ namespace VisualPinball.Unity
 			return collider.Id;
 		}
 
+		internal int Add(TriangleCollider collider, float4x4 matrix) => Add(collider.Transform(matrix));
 		internal int Add(TriangleCollider collider)
 		{
 			collider.Id = Lookups.Length;
@@ -267,6 +270,38 @@ namespace VisualPinball.Unity
 		}
 
 		#endregion
+
+		#region Add non-transformable
+
+		internal void AddLineZ(float2 xy, float zLow, float zHigh, ColliderInfo info, float4x4 matrix)
+		{
+			if (KinematicColliders || !matrix.IsPureTranslationMatrix()) {
+				Add(new Line3DCollider(new float3(xy.xy, zLow), new float3(xy.xy, zHigh), info).Transform(matrix));
+			} else {
+				Add(new LineZCollider(xy, zLow, zHigh, info));
+			}
+
+		}
+
+		internal void AddLine(float2 v1, float2 v2, float zLow, float zHigh, ColliderInfo info, float4x4 matrix, ColliderType type = ColliderType.Line)
+		{
+			if (KinematicColliders || !matrix.IsPureTranslationMatrix()) {
+				var p1 = new float3(v1.xy, zLow);
+				var p2 = new float3(v1.xy, zHigh);
+				var p3 = new float3(v2.xy, zLow);
+				var p4 = new float3(v2.xy, zHigh);
+
+				// todo check orientation.
+				Add(new TriangleCollider(p1, p2, p3, info).Transform(matrix));
+				Add(new TriangleCollider(p3, p2, p4, info).Transform(matrix));
+
+			} else {
+				Add(new LineCollider(v1, v2, zLow, zHigh, info, type));
+			}
+		}
+
+		#endregion
+
 
 		public ICollider[] ToArray()
 		{

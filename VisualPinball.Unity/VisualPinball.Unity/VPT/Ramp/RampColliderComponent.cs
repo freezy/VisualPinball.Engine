@@ -16,13 +16,14 @@
 
 // ReSharper disable InconsistentNaming
 
+using Unity.Mathematics;
 using UnityEngine;
 using VisualPinball.Engine.VPT.Ramp;
 
 namespace VisualPinball.Unity
 {
 	[AddComponentMenu("Visual Pinball/Collision/Ramp Collider")]
-	public class RampColliderComponent : ColliderComponent<RampData, RampComponent>
+	public class RampColliderComponent : ColliderComponent<RampData, RampComponent>, IKinematicColliderComponent
 	{
 		#region Data
 
@@ -55,6 +56,17 @@ namespace VisualPinball.Unity
 		[Range(-90f, 90f)]
 		[Tooltip("When hit, add a random angle between 0 and this value to the trajectory.")]
 		public float Scatter;
+
+		[Tooltip("If set, transforming this object will transform the colliders as well.")]
+		public bool _isKinematic;
+
+		#endregion
+
+		#region IKinematicColliderComponent
+
+		public bool IsKinematic => _isKinematic;
+		public int ItemId => MainComponent.gameObject.GetInstanceID();
+		public float4x4 TransformationMatrix => MainComponent.TransformationMatrix;
 
 		#endregion
 

@@ -26,7 +26,6 @@ using System.Collections.Generic;
 using System.Linq;
 using Unity.Mathematics;
 using UnityEngine;
-using UnityEngine.UIElements;
 using VisualPinball.Engine.Math;
 using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Rubber;
@@ -106,7 +105,7 @@ namespace VisualPinball.Unity
 		private void Start()
 		{
 			var playfield = GetComponentInParent<PlayfieldComponent>();
-			_playfieldToWorld = playfield.transform.localToWorldMatrix;
+			_playfieldToWorld = playfield ? playfield.transform.localToWorldMatrix : float4x4.identity;
 		}
 
 		#endregion

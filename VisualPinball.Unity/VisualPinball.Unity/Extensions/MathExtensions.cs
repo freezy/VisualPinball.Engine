@@ -67,6 +67,27 @@ namespace VisualPinball.Unity
 			);
 		}
 
+		public static bool IsPureTranslationMatrix(this float4x4 matrix)
+		{
+			// check scaling (diagonal elements)
+			if (matrix.c0.x != 1.0f || matrix.c1.y != 1.0f || matrix.c2.z != 1.0f) {
+				return false;
+			}
+
+			// Check rotation (non-diagonal elements)
+			if (matrix.c0.y != 0.0f || matrix.c0.z != 0.0f || matrix.c1.x != 0.0f ||
+			    matrix.c1.z != 0.0f || matrix.c2.x != 0.0f || matrix.c2.y != 0.0f) {
+				return false;
+			}
+
+			// Check translation (last column)
+			if (matrix.c3 is { x: 0.0f, y: 0.0f, z: 0.0f, w: 1.0f }) {
+				return true;
+			}
+
+			return false;
+		}
+
 		public static Vertex3D ToVertex3D(this Vector3 vector)
 		{
 			return new Vertex3D(vector.x, vector.y, vector.z);
