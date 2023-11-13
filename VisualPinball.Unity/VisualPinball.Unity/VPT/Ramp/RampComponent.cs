@@ -25,6 +25,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using Unity.Mathematics;
 using UnityEngine;
 using VisualPinball.Engine.Math;
 using VisualPinball.Engine.VPT;
@@ -84,6 +85,9 @@ namespace VisualPinball.Unity
 		[SerializeField]
 		private DragPointData[] _dragPoints;
 
+		[NonSerialized]
+		private float4x4 _playfieldToWorld;
+
 		#endregion
 
 		#region IRampData
@@ -133,6 +137,12 @@ namespace VisualPinball.Unity
 
 			player.Register(RampApi, this);
 			RegisterPhysics(physicsEngine);
+		}
+
+		private void Start()
+		{
+			var playfield = GetComponentInParent<PlayfieldComponent>();
+			_playfieldToWorld = playfield ? playfield.transform.localToWorldMatrix : float4x4.identity;
 		}
 
 		#endregion
@@ -201,6 +211,8 @@ namespace VisualPinball.Unity
 				if (wallComponent) wallComponent.gameObject.SetActive(isVisible && (_leftWallHeightVisible > 0 || _rightWallHeightVisible > 0));
 			}
 		}
+
+		public float4x4 TransformationMatrix => transform.worldToLocalMatrix.WorldToLocalTranslateWithinPlayfield(_playfieldToWorld);
 
 		#endregion
 

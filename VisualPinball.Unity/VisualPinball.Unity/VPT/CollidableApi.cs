@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+using Unity.Mathematics;
 using UnityEngine;
 using VisualPinball.Engine.VPT;
 
@@ -65,6 +66,13 @@ namespace VisualPinball.Unity
 				Material = ColliderComponent.PhysicsMaterialData,
 				HitThreshold = HitThreshold,
 			};
+		}
+
+		protected float4x4 GetTransformationWithinPlayfield()
+		{
+			var playfield = MainComponent.GetComponentInParent<PlayfieldComponent>();
+			var playfieldToWorld = playfield ? (float4x4)playfield.transform.localToWorldMatrix : float4x4.identity;
+			return MainComponent.transform.worldToLocalMatrix.WorldToLocalTranslateWithinPlayfield(playfieldToWorld);
 		}
 
 		#endregion
