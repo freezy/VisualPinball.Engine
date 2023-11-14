@@ -35,8 +35,8 @@ namespace VisualPinball.Unity
 		public float2 V2;
 
 		public float2 Normal;
-		public readonly float ZLow;
-		public readonly float ZHigh;
+		public float ZLow;
+		public float ZHigh;
 		private float _length;
 
 		internal ItemType ItemType => Header.ItemType;
@@ -229,5 +229,17 @@ namespace VisualPinball.Unity
 		}
 
 		#endregion
+
+		public LineCollider Transform(float4x4 matrix)
+		{
+			var t = matrix.GetTranslation();
+
+			V1 += t.xy;
+			V2 += t.xy;
+			ZLow += t.z;
+			ZHigh += t.z;
+
+			return this;
+		}
 	}
 }

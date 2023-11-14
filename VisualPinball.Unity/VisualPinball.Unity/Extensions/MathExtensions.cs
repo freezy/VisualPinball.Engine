@@ -67,6 +67,8 @@ namespace VisualPinball.Unity
 			);
 		}
 
+		public static float3 GetTranslation(this float4x4 m) => new(m.c3.x, m.c3.y, m.c3.z);
+
 		public static bool IsPureTranslationMatrix(this float4x4 matrix)
 		{
 			// check scaling (diagonal elements)
@@ -80,12 +82,7 @@ namespace VisualPinball.Unity
 				return false;
 			}
 
-			// Check translation (last column)
-			if (matrix.c3 is { x: 0.0f, y: 0.0f, z: 0.0f, w: 1.0f }) {
-				return true;
-			}
-
-			return false;
+			return true;
 		}
 
 		public static Vertex3D ToVertex3D(this Vector3 vector)
