@@ -43,6 +43,9 @@ namespace VisualPinball.Unity
 
 		protected abstract Type ColliderComponentType { get; }
 
+		[NonSerialized]
+		public Player Player;
+
 		/// <summary>
 		/// Returns all child mesh components linked to this data.
 		/// </summary>
