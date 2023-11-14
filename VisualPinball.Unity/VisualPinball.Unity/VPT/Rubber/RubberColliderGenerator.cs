@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-using System.Collections.Generic;
 using Unity.Collections;
 using Unity.Mathematics;
 using VisualPinball.Engine.VPT;
@@ -47,7 +46,7 @@ namespace VisualPinball.Unity
 				var rg1 = mesh.Vertices[mesh.Indices[i + 2]].ToUnityFloat3();
 				var rg2 = mesh.Vertices[mesh.Indices[i + 1]].ToUnityFloat3();
 
-				colliders.Add(new TriangleCollider(rg0, rg1, rg2, _api.GetColliderInfo()).Transform(_matrix));
+				colliders.Add(new TriangleCollider(rg0, rg1, rg2, _api.GetColliderInfo()), _matrix);
 
 				GenerateHitEdge(mesh, ref addedEdges, mesh.Indices[i], mesh.Indices[i + 2], ref colliders);
 				GenerateHitEdge(mesh, ref addedEdges, mesh.Indices[i + 2], mesh.Indices[i + 1], ref colliders);
@@ -56,7 +55,7 @@ namespace VisualPinball.Unity
 
 			// add collision vertices
 			foreach (var mv in mesh.Vertices) {
-				colliders.Add(new PointCollider(mv.ToUnityFloat3(), _api.GetColliderInfo()).Transform(_matrix));
+				colliders.Add(new PointCollider(mv.ToUnityFloat3(), _api.GetColliderInfo()), _matrix);
 			}
 
 			addedEdges.Dispose();
@@ -67,7 +66,7 @@ namespace VisualPinball.Unity
 			if (addedEdges.ShouldAddHitEdge(i, j)) {
 				var v1 = mesh.Vertices[i].ToUnityFloat3();
 				var v2 = mesh.Vertices[j].ToUnityFloat3();
-				colliders.Add(new Line3DCollider(v1, v2, _api.GetColliderInfo()).Transform(_matrix));
+				colliders.Add(new Line3DCollider(v1, v2, _api.GetColliderInfo()), _matrix);
 			}
 		}
 	}

@@ -232,6 +232,7 @@ namespace VisualPinball.Unity
 			return collider.Id;
 		}
 
+		internal int Add(PointCollider collider, float4x4 matrix) => Add(collider.Transform(matrix));
 		internal int Add(PointCollider collider)
 		{
 			collider.Id = Lookups.Length;
