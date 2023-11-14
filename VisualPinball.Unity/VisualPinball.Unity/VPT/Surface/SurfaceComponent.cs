@@ -24,6 +24,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Unity.Mathematics;
 using UnityEngine;
 using VisualPinball.Engine.Math;
 using VisualPinball.Engine.VPT;
@@ -70,23 +71,34 @@ namespace VisualPinball.Unity
 
 		private void Awake()
 		{
-			var player = GetComponentInParent<Player>();
+			Player = GetComponentInParent<Player>();
 			var physicsEngine = GetComponentInParent<PhysicsEngine>();
-			SurfaceApi = new SurfaceApi(gameObject, player, physicsEngine);
+			SurfaceApi = new SurfaceApi(gameObject, Player, physicsEngine);
 
-			player.Register(SurfaceApi, this);
+			Player.Register(SurfaceApi, this);
 			if (GetComponentInChildren<SurfaceColliderComponent>()) {
 				RegisterPhysics(physicsEngine);
 			}
+		}
+
+		private void Start()
+		{
+			_playfieldToWorld = Player.PlayfieldToWorldMatrix;
 		}
 
 		#endregion
 
 		#region Transformation
 
+		[NonSerialized]
+		private float4x4 _playfieldToWorld;
+
 		public float Height(Vector2 _) => HeightTop + PlayfieldHeight;
 
 		public override void OnPlayfieldHeightUpdated() => RebuildMeshes();
+
+		public float4x4 TransformationMatrix => transform.worldToLocalMatrix.WorldToLocalTranslateWithinPlayfield(_playfieldToWorld);
+
 
 		#endregion
 

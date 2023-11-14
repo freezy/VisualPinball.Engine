@@ -28,7 +28,7 @@ namespace VisualPinball.Unity
 		private static readonly ProfilerMarker PerfMarker1 = new("ColliderUtils.GenerateCollidersFromMesh.ICollider");
 		private static readonly ProfilerMarker PerfMarker2 = new("ColliderUtils.GenerateCollidersFromMesh.NativeArray");
 
-		public static void Generate3DPolyColliders(in float3[] rgv, ColliderInfo info, ref ColliderReference colliders)
+		public static void Generate3DPolyColliders(in float3[] rgv, ColliderInfo info, ref ColliderReference colliders, float4x4 matrix)
 		{
 			var inputVerts = new float2[rgv.Length];
 
@@ -46,10 +46,10 @@ namespace VisualPinball.Unity
 			}
 			var mesh = new Mesh(triangulatedVerts, outputIndices);
 
-			GenerateCollidersFromMesh(mesh, info, ref colliders, true);
+			GenerateCollidersFromMesh(mesh, info, ref colliders, matrix, true);
 		}
 
-		public static void GenerateCollidersFromMesh(Mesh mesh, ColliderInfo info, ref ColliderReference colliders, bool onlyTriangles = false)
+		public static void GenerateCollidersFromMesh(Mesh mesh, ColliderInfo info, ref ColliderReference colliders, float4x4 matrix, bool onlyTriangles = false)
 		{
 			PerfMarker1.Begin();
 			var addedEdges = EdgeSet.Get(Allocator.TempJob);
@@ -66,18 +66,18 @@ namespace VisualPinball.Unity
 				var rgv1 = mesh.Vertices[i1].GetVertex().ToUnityFloat3();
 				var rgv2 = mesh.Vertices[i2].GetVertex().ToUnityFloat3();
 
-				colliders.Add(new TriangleCollider(rgv0, rgv2, rgv1, info));
+				colliders.Add(new TriangleCollider(rgv0, rgv2, rgv1, info), matrix);
 
 				if (!onlyTriangles) {
 
 					if (addedEdges.ShouldAddHitEdge(i0, i1)) {
-						colliders.Add(new Line3DCollider(rgv0, rgv2, info));
+						colliders.Add(new Line3DCollider(rgv0, rgv2, info), matrix);
 					}
 					if (addedEdges.ShouldAddHitEdge(i1, i2)) {
-						colliders.Add(new Line3DCollider(rgv2, rgv1, info));
+						colliders.Add(new Line3DCollider(rgv2, rgv1, info), matrix);
 					}
 					if (addedEdges.ShouldAddHitEdge(i2, i0)) {
-						colliders.Add(new Line3DCollider(rgv1, rgv0, info));
+						colliders.Add(new Line3DCollider(rgv1, rgv0, info), matrix);
 					}
 				}
 			}
@@ -86,7 +86,7 @@ namespace VisualPinball.Unity
 			// add collision vertices
 			if (!onlyTriangles) {
 				foreach (var vertex in mesh.Vertices) {
-					colliders.Add(new PointCollider(vertex.ToUnityFloat3(), info));
+					colliders.Add(new PointCollider(vertex.ToUnityFloat3(), info), matrix);
 				}
 			}
 			PerfMarker1.End();

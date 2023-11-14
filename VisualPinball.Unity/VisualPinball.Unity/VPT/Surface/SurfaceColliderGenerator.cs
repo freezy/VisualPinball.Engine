@@ -27,12 +27,14 @@ namespace VisualPinball.Unity
 		private readonly IApiColliderGenerator _api;
 		private readonly SurfaceComponent _component;
 		private readonly SurfaceColliderComponent _colliderComponent;
+		private readonly float4x4 _matrix;
 
-		public SurfaceColliderGenerator(SurfaceApi surfaceApi, SurfaceComponent component, SurfaceColliderComponent colliderComponent)
+		public SurfaceColliderGenerator(SurfaceApi surfaceApi, SurfaceComponent component, SurfaceColliderComponent colliderComponent, float4x4 matrix)
 		{
 			_api = surfaceApi;
 			_component = component;
 			_colliderComponent = colliderComponent;
+			_matrix = matrix;
 		}
 
 		internal void GenerateColliders(float playfieldHeight, ref ColliderReference colliders, float margin = 0f)
@@ -59,10 +61,10 @@ namespace VisualPinball.Unity
 				GenerateLinePolys(pv2, pv3, playfieldHeight, ref colliders);
 			}
 
-			ColliderUtils.Generate3DPolyColliders(in rgv3Dt, _api.GetColliderInfo(), ref colliders);
+			ColliderUtils.Generate3DPolyColliders(in rgv3Dt, _api.GetColliderInfo(), ref colliders, _matrix);
 
 			if (rgv3Db != null) {
-				ColliderUtils.Generate3DPolyColliders(in rgv3Db, _api.GetColliderInfo(), ref colliders);
+				ColliderUtils.Generate3DPolyColliders(in rgv3Db, _api.GetColliderInfo(), ref colliders, _matrix);
 			}
 		}
 
@@ -75,29 +77,30 @@ namespace VisualPinball.Unity
 			var top = _component.HeightTop + playfieldHeight;
 
 			if (!pv1.IsSlingshot) {
-				colliders.Add(new LineCollider(pv1.ToUnityFloat2(), pv2.ToUnityFloat2(), bottom, top, _api.GetColliderInfo()));
+				colliders.AddLine(pv1.ToUnityFloat2(), pv2.ToUnityFloat2(), bottom, top, _api.GetColliderInfo(), _matrix);
 
 			} else {
+				// todo
 				colliders.Add(new LineSlingshotCollider(_colliderComponent.SlingshotForce, pv1.ToUnityFloat2(), pv2.ToUnityFloat2(), bottom, top, _api.GetColliderInfo()));
 			}
 
 			if (_component.HeightBottom != 0) {
 				// add lower edge as a line
-				colliders.Add(new Line3DCollider(new float3(pv1.X, pv1.Y, bottom), new float3(pv2.X, pv2.Y, bottom), _api.GetColliderInfo()));
+				colliders.Add(new Line3DCollider(new float3(pv1.X, pv1.Y, bottom), new float3(pv2.X, pv2.Y, bottom), _api.GetColliderInfo()), _matrix);
 			}
 
 			// add upper edge as a line
-			colliders.Add(new Line3DCollider(new float3(pv1.X, pv1.Y, top), new float3(pv2.X, pv2.Y, top), _api.GetColliderInfo()));
+			colliders.Add(new Line3DCollider(new float3(pv1.X, pv1.Y, top), new float3(pv2.X, pv2.Y, top), _api.GetColliderInfo()), _matrix);
 
 			// create vertical joint between the two line segments
-			colliders.Add(new LineZCollider(pv1.ToUnityFloat2(), bottom, top, _api.GetColliderInfo()));
+			colliders.AddLineZ(pv1.ToUnityFloat2(), bottom, top, _api.GetColliderInfo(), _matrix);
 
 			// add upper and lower end points of line
 			if (_component.HeightBottom != 0) {
-				colliders.Add(new PointCollider(new float3(pv1.X, pv1.Y, bottom), _api.GetColliderInfo()));
+				colliders.Add(new PointCollider(new float3(pv1.X, pv1.Y, bottom), _api.GetColliderInfo()), _matrix);
 			}
 
-			colliders.Add(new PointCollider(new float3(pv1.X, pv1.Y, top), _api.GetColliderInfo()));
+			colliders.Add(new PointCollider(new float3(pv1.X, pv1.Y, top), _api.GetColliderInfo()), _matrix);
 		}
 	}
 }

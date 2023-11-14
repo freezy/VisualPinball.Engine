@@ -47,14 +47,18 @@ namespace VisualPinball.Unity
 
 		protected override bool FireHitEvents => ColliderComponent.HitEvent;
 		protected override float HitThreshold => ColliderComponent.Threshold;
-		protected override void CreateColliders(ref ColliderReference colliders,
-			ref ColliderReference kinematicColliders, float margin)
+		protected override void CreateColliders(ref ColliderReference colliders, ref ColliderReference kinematicColliders, float margin)
 		{
 			if (MainComponent.DragPoints.Length == 0) {
 				return;
 			}
-			var colliderGenerator = new SurfaceColliderGenerator(this, MainComponent, ColliderComponent);
-			colliderGenerator.GenerateColliders(MainComponent.PlayfieldHeight, ref colliders, margin);
+			var colliderGenerator = new SurfaceColliderGenerator(this, MainComponent, ColliderComponent, GetTransformationWithinPlayfield());
+			if (ColliderComponent.IsKinematic) {
+				colliderGenerator.GenerateColliders(MainComponent.PlayfieldHeight, ref kinematicColliders, margin);
+
+			} else {
+				colliderGenerator.GenerateColliders(MainComponent.PlayfieldHeight, ref colliders, margin);
+			}
 		}
 
 		#endregion
