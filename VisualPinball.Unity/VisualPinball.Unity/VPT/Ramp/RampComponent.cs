@@ -85,9 +85,6 @@ namespace VisualPinball.Unity
 		[SerializeField]
 		private DragPointData[] _dragPoints;
 
-		[NonSerialized]
-		private float4x4 _playfieldToWorld;
-
 		#endregion
 
 		#region IRampData
@@ -131,23 +128,25 @@ namespace VisualPinball.Unity
 
 		private void Awake()
 		{
-			var player = GetComponentInParent<Player>();
+			Player = GetComponentInParent<Player>();
 			var physicsEngine = GetComponentInParent<PhysicsEngine>();
-			RampApi = new RampApi(gameObject, player, physicsEngine);
+			RampApi = new RampApi(gameObject, Player, physicsEngine);
 
-			player.Register(RampApi, this);
+			Player.Register(RampApi, this);
 			RegisterPhysics(physicsEngine);
 		}
 
 		private void Start()
 		{
-			var playfield = GetComponentInParent<PlayfieldComponent>();
-			_playfieldToWorld = playfield ? playfield.transform.localToWorldMatrix : float4x4.identity;
+			_playfieldToWorld = Player.PlayfieldToWorldMatrix;
 		}
 
 		#endregion
 
 		#region Transformation
+
+		[NonSerialized]
+		private float4x4 _playfieldToWorld;
 
 		public float Height(Vector2 pos) {
 

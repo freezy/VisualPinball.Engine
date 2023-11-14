@@ -68,12 +68,7 @@ namespace VisualPinball.Unity
 			};
 		}
 
-		protected float4x4 GetTransformationWithinPlayfield()
-		{
-			var playfield = MainComponent.GetComponentInParent<PlayfieldComponent>();
-			var playfieldToWorld = playfield ? (float4x4)playfield.transform.localToWorldMatrix : float4x4.identity;
-			return MainComponent.transform.worldToLocalMatrix.WorldToLocalTranslateWithinPlayfield(playfieldToWorld);
-		}
+		protected float4x4 GetTransformationWithinPlayfield() => MainComponent.transform.worldToLocalMatrix.WorldToLocalTranslateWithinPlayfield(Player.PlayfieldToWorldMatrix);
 
 		#endregion
 	}
