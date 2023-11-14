@@ -292,9 +292,8 @@ namespace VisualPinball.Unity
 				var p3 = new float3(v2.xy, zLow);
 				var p4 = new float3(v2.xy, zHigh);
 
-				// todo check orientation.
-				Add(new TriangleCollider(p1, p2, p3, info).Transform(matrix));
-				Add(new TriangleCollider(p3, p2, p4, info).Transform(matrix));
+				Add(new TriangleCollider(p1, p3, p2, info).Transform(matrix));
+				Add(new TriangleCollider(p3, p4, p2, info).Transform(matrix));
 
 			} else {
 				Add(new LineCollider(v1, v2, zLow, zHigh, info, type));
