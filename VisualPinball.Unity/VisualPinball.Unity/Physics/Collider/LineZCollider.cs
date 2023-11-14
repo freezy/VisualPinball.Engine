@@ -31,8 +31,8 @@ namespace VisualPinball.Unity
 		public ColliderHeader Header;
 
 		public float2 XY;
-		private readonly float _zLow;
-		private readonly float _zHigh;
+		private float _zLow;
+		private float _zHigh;
 
 		public float XyY { set => XY.y = value; }
 
@@ -161,5 +161,16 @@ namespace VisualPinball.Unity
 		}
 
 		#endregion
+
+		public LineZCollider Transform(float4x4 matrix)
+		{
+			var t = matrix.GetTranslation();
+
+			XY += t.xy;
+			_zLow += t.z;
+			_zHigh += t.z;
+
+			return this;
+		}
 	}
 }

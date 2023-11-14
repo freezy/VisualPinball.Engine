@@ -279,7 +279,7 @@ namespace VisualPinball.Unity
 			if (KinematicColliders || !matrix.IsPureTranslationMatrix()) {
 				Add(new Line3DCollider(new float3(xy.xy, zLow), new float3(xy.xy, zHigh), info).Transform(matrix));
 			} else {
-				Add(new LineZCollider(xy, zLow, zHigh, info));
+				Add(new LineZCollider(xy, zLow, zHigh, info).Transform(matrix));
 			}
 
 		}
@@ -296,7 +296,7 @@ namespace VisualPinball.Unity
 				Add(new TriangleCollider(p3, p4, p2, info).Transform(matrix));
 
 			} else {
-				Add(new LineCollider(v1, v2, zLow, zHigh, info, type));
+				Add(new LineCollider(v1, v2, zLow, zHigh, info, type).Transform(matrix));
 			}
 		}
 
