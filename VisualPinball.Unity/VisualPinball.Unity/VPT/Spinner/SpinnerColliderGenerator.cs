@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-using System.Collections.Generic;
 using Unity.Mathematics;
+using VisualPinball.Engine.Common;
 
 namespace VisualPinball.Unity
 {
@@ -23,46 +23,56 @@ namespace VisualPinball.Unity
 	{
 		private readonly SpinnerApi _api;
 		private readonly SpinnerComponent _component;
+		private readonly float4x4 _matrix;
 
-		public SpinnerColliderGenerator(SpinnerApi spinnerApi, SpinnerComponent component)
+		public SpinnerColliderGenerator(SpinnerApi spinnerApi, SpinnerComponent component, float4x4 matrix)
 		{
 			_api = spinnerApi;
 			_component = component;
+			_matrix = matrix;
 		}
 
-		internal void GenerateColliders(float height, ref ColliderReference colliders)
+		internal void GenerateColliders(ref ColliderReference colliders)
 		{
-			colliders.Add(new SpinnerCollider(_component, height - _component.Height, _api.GetColliderInfo()));
+			colliders.Add(new SpinnerCollider(_api.GetColliderInfo()), _matrix);
 			if (_component.ShowBracket) {
-				GenerateBracketColliders(height, ref colliders);
+				GenerateBracketColliders(ref colliders);
 			}
 		}
 
-		private void GenerateBracketColliders(float height, ref ColliderReference colliders)
+		private void GenerateBracketColliders(ref ColliderReference colliders)
 		{
 			const float h = 30.0f;
 
+			var t = _matrix.GetTranslation();
+			var r = _matrix.GetRotationVector();
+			var s = _matrix.GetScale();
+
+			// extract dimensions from translation matrix
+			var length = s.x * 80f; // 80 = size at scale 1
+			var rotationRad = r.z;
+			var height = t.z - PhysicsConstants.PhysSkin;
+
 			/*add a hit shape for the bracket if shown, just in case if the bracket spinner height is low enough so the ball can hit it*/
-			var halfLength = _component.Length * 0.5f + _component.Length * 0.1875f;
-			var radAngle = math.radians(_component.Rotation);
-			var sn = math.sin(radAngle);
-			var cs = math.cos(radAngle);
+			var halfLength = length * 0.5f + length * 0.1875f;
+			var sn = math.sin(rotationRad);
+			var cs = math.cos(rotationRad);
 
 			colliders.Add(new CircleCollider(
-				new float2(_component.Position.x + cs * halfLength, _component.Position.y + sn * halfLength),
-				_component.Length * 0.075f,
+				new float2(cs * halfLength, sn * halfLength),
+				length * 0.075f,
 				height,
 				height + h,
 				_api.GetColliderInfo()
-			));
+			), _matrix);
 
 			colliders.Add(new CircleCollider(
-				new float2(_component.Position.x - cs * halfLength, _component.Position.y - sn * halfLength),
-				_component.Length * 0.075f,
+				new float2( - cs * halfLength,  - sn * halfLength),
+				length * 0.075f,
 				height,
 				height + h,
 				_api.GetColliderInfo()
-			));
+			), _matrix);
 		}
 	}
 }

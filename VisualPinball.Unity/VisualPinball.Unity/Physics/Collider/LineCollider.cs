@@ -234,8 +234,8 @@ namespace VisualPinball.Unity
 		{
 			var t = matrix.GetTranslation();
 
-			V1 += t.xy;
-			V2 += t.xy;
+			V1 = matrix.MultiplyPoint(new float3(V1, 0)).xy;
+			V2 = matrix.MultiplyPoint(new float3(V2, 0)).xy;
 			ZLow += t.z;
 			ZHigh += t.z;
 

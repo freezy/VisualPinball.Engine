@@ -95,7 +95,7 @@ namespace VisualPinball.Unity
 
 		internal ref PlungerState GetPlungerState(int colliderId) => ref PlungerStates.GetValueByRef(Colliders.GetItemId(colliderId));
 
-		internal ref SpinnerState GetSpinnerState(int colliderId) => ref SpinnerStates.GetValueByRef(Colliders.GetItemId(colliderId));
+		internal ref SpinnerState GetSpinnerState(int colliderId, ref NativeColliders colliders) => ref SpinnerStates.GetValueByRef(colliders.GetItemId(colliderId));
 
 		internal ref TriggerState GetTriggerState(int colliderId) => ref TriggerStates.GetValueByRef(Colliders.GetItemId(colliderId));
 
@@ -135,6 +135,9 @@ namespace VisualPinball.Unity
 					break;
 				case ColliderType.Triangle:
 					KinematicColliders.Triangle(colliderId).Transform(KinematicCollidersAtIdentity.Triangle(colliderId), matrix);
+					break;
+				case ColliderType.Spinner:
+					KinematicColliders.Spinner(colliderId).Transform(KinematicCollidersAtIdentity.Spinner(colliderId), matrix);
 					break;
 			}
 		}

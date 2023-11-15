@@ -16,13 +16,14 @@
 
 // ReSharper disable InconsistentNaming
 
+using Unity.Mathematics;
 using UnityEngine;
 using VisualPinball.Engine.VPT.Spinner;
 
 namespace VisualPinball.Unity
 {
 	[AddComponentMenu("Visual Pinball/Collision/Spinner Collider")]
-	public class SpinnerColliderComponent : ColliderComponent<SpinnerData, SpinnerComponent>
+	public class SpinnerColliderComponent : ColliderComponent<SpinnerData, SpinnerComponent>, IKinematicColliderComponent
 	{
 		#region Data
 
@@ -35,5 +36,16 @@ namespace VisualPinball.Unity
 		public override PhysicsMaterialData PhysicsMaterialData => GetPhysicsMaterialData(Elasticity);
 		protected override IApiColliderGenerator InstantiateColliderApi(Player player, PhysicsEngine physicsEngine)
 			=> MainComponent.SpinnerApi ?? new SpinnerApi(gameObject, player, physicsEngine);
+
+		#region IKinematicColliderComponent
+
+		[Tooltip("If set, transforming this object will transform the colliders as well.")]
+		public bool _isKinematic;
+
+		public bool IsKinematic => _isKinematic;
+		public int ItemId => MainComponent.gameObject.GetInstanceID();
+		public float4x4 TransformationWithinPlayfield => MainComponent.TransformationWithinPlayfield;
+
+		#endregion
 	}
 }

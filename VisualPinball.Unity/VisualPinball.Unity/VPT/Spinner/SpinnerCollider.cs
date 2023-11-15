@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-using Unity.Collections;
 using Unity.Mathematics;
+using UnityEngine;
 using VisualPinball.Engine.Common;
 
 namespace VisualPinball.Unity
@@ -35,32 +35,31 @@ namespace VisualPinball.Unity
 
 		public ColliderHeader Header;
 
-		public readonly LineCollider LineSeg0;
-		public readonly LineCollider LineSeg1;
+		public LineCollider LineSeg0;
+		public LineCollider LineSeg1;
 
 		public ColliderBounds Bounds { get; private set; }
 
-		public SpinnerCollider(SpinnerComponent component, float height, ColliderInfo info) : this()
+		public SpinnerCollider(ColliderInfo info) : this()
 		{
 			Header.Init(info, ColliderType.Spinner);
 
-			var halfLength = component.Length * 0.5f;
+			const float halfLength = 40f;
 
-			var radAngle = math.radians(component.Rotation);
-			var sn = math.sin(radAngle);
-			var cs = math.cos(radAngle);
-
+			// note: this has diverged a bit from the vpx code: instead of generating the colliders at the correct
+			// position, we generate them at the origin and then transform them later.
 			var v1 = new float2(
-				component.Position.x - cs * (halfLength + PhysicsConstants.PhysSkin), // through the edge of the
-				component.Position.y - sn * (halfLength + PhysicsConstants.PhysSkin)  // spinner
+				- (halfLength + PhysicsConstants.PhysSkin), // through the edge of the
+				0  // spinner
 			);
 			var v2 = new float2(
-				component.Position.x + cs * (halfLength + PhysicsConstants.PhysSkin), // oversize by the ball radius
-				component.Position.y + sn * (halfLength + PhysicsConstants.PhysSkin)  // this will prevent clipping
+				halfLength + PhysicsConstants.PhysSkin, // oversize by the ball radius
+				0  // this will prevent clipping
 			);
 
-			LineSeg0 = new LineCollider(v1, v2, height, height + 2.0f * PhysicsConstants.PhysSkin, info);
-			LineSeg1 = new LineCollider(v2, v1, height, height + 2.0f * PhysicsConstants.PhysSkin, info);
+			// todo probably broke surface
+			LineSeg0 = new LineCollider(v1, v2, -2f * PhysicsConstants.PhysSkin, 0, info);
+			LineSeg1 = new LineCollider(v2, v1, -2f * PhysicsConstants.PhysSkin, 0, info);
 
 			Bounds = LineSeg0.Bounds;
 		}
@@ -69,9 +68,6 @@ namespace VisualPinball.Unity
 
 		public float HitTest(ref CollisionEventData collEvent, ref InsideOfs insideOfs, in BallState ball, float dTime)
 		{
-			// todo
-			// if (!m_enabled) return -1.0f;
-
 			var hitTime = LineCollider.HitTestBasic(ref collEvent, ref insideOfs, in LineSeg0, in ball, dTime, false, true, false); // any face, lateral, non-rigid
 			if (hitTime >= 0.0f) {
 				// signal the Collide() function that the hit is on the front or back side
@@ -127,5 +123,18 @@ namespace VisualPinball.Unity
 		}
 
 		#endregion
+
+		public void Transform(SpinnerCollider collider, float4x4 matrix)
+		{
+			LineSeg0 = collider.LineSeg0.Transform(matrix);
+			LineSeg1 = collider.LineSeg1.Transform(matrix);
+			Bounds = collider.LineSeg0.Bounds;
+		}
+
+		public SpinnerCollider Transform(float4x4 matrix)
+		{
+			Transform(this, matrix);
+			return this;
+		}
 	}
 }

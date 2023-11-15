@@ -33,10 +33,10 @@ namespace VisualPinball.Unity
 		public float2 Center;
 		public float Radius;
 
-		private readonly float _zHigh;
-		private readonly float _zLow;
+		private float _zHigh;
+		private float _zLow;
 
-		public ColliderBounds Bounds => new ColliderBounds(Header.ItemId, Header.Id, new Aabb(
+		public ColliderBounds Bounds => new(Header.ItemId, Header.Id, new Aabb(
 			Center.x - Radius,
 			Center.x + Radius,
 			Center.y - Radius,
@@ -224,9 +224,23 @@ namespace VisualPinball.Unity
 
 		public void Transform(CircleCollider circle, float4x4 matrix)
 		{
-			var size = matrix.GetScale();
-			Center = math.mul(matrix, new float4(circle.Center, 0f, 1f)).xy;
-			Radius = size.x / 2 * BumperComponent.DataMeshScale;
+			var s = matrix.GetScale();
+			var t = matrix.GetTranslation();
+			//
+			Center = circle.Center + t.xy;
+			Radius = circle.Radius * s.x;
+			_zHigh = circle._zHigh * s.z;
+			_zLow = circle._zLow * s.z;
+
+			// var size = matrix.GetScale();
+			// Center = math.mul(matrix, new float4(circle.Center, 0f, 1f)).xy;
+			// Radius = size.x / 2 * BumperComponent.DataMeshScale;
+		}
+
+		public CircleCollider Transform(float4x4 matrix)
+		{
+			Transform(this, matrix);
+			return this;
 		}
 	}
 }
