@@ -95,7 +95,7 @@ namespace VisualPinball.Unity
 			}
 		}
 
-		public float4x4 TransformationMatrix {
+		public float4x4 TransformationWithinPlayfield {
 			get {
 				var scaleMatrix = float4x4.Scale(Size);
 				var transMatrix = float4x4.Translate(new float3(Position.x, Position.y, Position.z + PlayfieldHeight));

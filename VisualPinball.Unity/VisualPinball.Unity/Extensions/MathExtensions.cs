@@ -69,6 +69,8 @@ namespace VisualPinball.Unity
 
 		public static float3 GetTranslation(this float4x4 m) => new(m.c3.x, m.c3.y, m.c3.z);
 
+		public static float3 GetRotationVector(this float4x4 matrix) => new quaternion(matrix).ToEuler();
+
 		public static bool IsPureTranslationMatrix(this float4x4 matrix)
 		{
 			// check scaling (diagonal elements)

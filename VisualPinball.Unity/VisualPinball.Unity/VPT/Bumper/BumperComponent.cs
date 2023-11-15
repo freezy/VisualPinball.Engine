@@ -146,10 +146,10 @@ namespace VisualPinball.Unity
 			t.localEulerAngles = new Vector3(0, Orientation, 0);
 		}
 
-		public float4x4 TransformationMatrix {
+		public float4x4 TransformationWithinPlayfield {
 			get {
-				var scaleMatrix = float4x4.Scale(new float3(Radius * 2f, Radius * 2f, HeightScale) / DataMeshScale);
 				var transMatrix = float4x4.Translate(new float3(Position.x, Position.y, PositionZ));
+				var scaleMatrix = float4x4.Scale(new float3(Radius * 2f, Radius * 2f, HeightScale) / DataMeshScale);
 				var rotMatrix = float4x4.RotateZ(math.radians(Orientation));
 				return math.mul(transMatrix, math.mul(rotMatrix, scaleMatrix));
 			}

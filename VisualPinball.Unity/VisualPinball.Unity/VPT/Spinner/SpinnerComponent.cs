@@ -96,12 +96,17 @@ namespace VisualPinball.Unity
 
 		private void Awake()
 		{
-			var player = GetComponentInParent<Player>();
+			Player = GetComponentInParent<Player>();
 			var physicsEngine = GetComponentInParent<PhysicsEngine>();
-			SpinnerApi = new SpinnerApi(gameObject, player, physicsEngine);
+			SpinnerApi = new SpinnerApi(gameObject, Player, physicsEngine);
 
-			player.Register(SpinnerApi, this);
+			Player.Register(SpinnerApi, this);
 			RegisterPhysics(physicsEngine);
+		}
+
+		private void Start()
+		{
+			_playfieldToWorld = Player.PlayfieldToWorldMatrix;
 		}
 
 		#endregion
@@ -120,6 +125,9 @@ namespace VisualPinball.Unity
 
 		#region Transformation
 
+		[NonSerialized]
+		private float4x4 _playfieldToWorld;
+
 		public void OnSurfaceUpdated() => UpdateTransforms();
 		public float PositionZ => SurfaceHeight(Surface, Position);
 
@@ -134,11 +142,13 @@ namespace VisualPinball.Unity
 			t.localPosition = Physics.TranslateToWorld(Position.x, Position.y, HeightOnPlayfield);
 
 			// scale
-			t.localScale = Physics.ScaleToWorld(Length, Length, Length);
+			t.localScale = new float3(Length / 80f);
 
 			// rotation
-			t.localEulerAngles = Physics.RotateToWorld(0, 0, Rotation);
+			t.localRotation = quaternion.RotateY(math.radians(Rotation));
 		}
+
+		public float4x4 TransformationWithinPlayfield => transform.worldToLocalMatrix.WorldToLocalTranslateWithinPlayfield(_playfieldToWorld);
 
 		#endregion
 

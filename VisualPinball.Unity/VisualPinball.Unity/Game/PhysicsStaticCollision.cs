@@ -115,7 +115,7 @@ namespace VisualPinball.Unity
 					break;
 
 				case ColliderType.Spinner:
-					ref var spinnerState = ref state.GetSpinnerState(colliderId);
+					ref var spinnerState = ref state.GetSpinnerState(colliderId, ref colliders);
 					SpinnerCollider.Collide(in ball, ref ball.CollisionEvent, ref spinnerState.Movement, in spinnerState.Static);
 					break;
 

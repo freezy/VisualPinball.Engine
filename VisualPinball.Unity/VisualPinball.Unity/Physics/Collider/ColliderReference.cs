@@ -115,6 +115,10 @@ namespace VisualPinball.Unity
 							ref var triangleCollider = ref TriangleColliders.GetElementAsRef(lookup.Index);
 							triangleCollider.Transform(TriangleColliders[lookup.Index], math.inverse(matrix));
 							break;
+						case ColliderType.Spinner:
+							ref var spinnerCollider = ref SpinnerColliders.GetElementAsRef(lookup.Index);
+							spinnerCollider.Transform(SpinnerColliders[lookup.Index], math.inverse(matrix));
+							break;
 					}
 				}
 			}
@@ -157,6 +161,8 @@ namespace VisualPinball.Unity
 			}
 			_itemIdToColliderIds[itemId].Add(colliderId);
 		}
+
+		internal int Add(CircleCollider collider, float4x4 matrix) => Add(collider.Transform(matrix));
 
 		internal int Add(CircleCollider collider)
 		{
@@ -242,6 +248,7 @@ namespace VisualPinball.Unity
 			return collider.Id;
 		}
 
+		internal int Add(SpinnerCollider collider, float4x4 matrix) => Add(collider.Transform(matrix));
 		internal int Add(SpinnerCollider collider)
 		{
 			collider.Id = Lookups.Length;
