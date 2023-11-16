@@ -225,9 +225,8 @@ namespace VisualPinball.Unity
 		public void Transform(CircleCollider circle, float4x4 matrix)
 		{
 			var s = matrix.GetScale();
-			var t = matrix.GetTranslation();
-			//
-			Center = circle.Center + t.xy;
+
+			Center = matrix.MultiplyPoint(new float3(circle.Center, 0)).xy;
 			Radius = circle.Radius * s.x;
 			_zHigh = circle._zHigh * s.z;
 			_zLow = circle._zLow * s.z;
