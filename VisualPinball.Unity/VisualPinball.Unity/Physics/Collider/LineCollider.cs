@@ -239,6 +239,8 @@ namespace VisualPinball.Unity
 			ZLow += t.z;
 			ZHigh += t.z;
 
+			CalcNormal();
+
 			return this;
 		}
 	}
