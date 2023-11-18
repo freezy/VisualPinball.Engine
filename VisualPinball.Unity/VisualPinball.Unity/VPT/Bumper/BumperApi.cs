@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using System;
+using Unity.Mathematics;
 using UnityEngine;
 using VisualPinball.Engine.VPT.Bumper;
 using System.Collections.Generic;
@@ -117,17 +118,18 @@ namespace VisualPinball.Unity
 		protected override void CreateColliders(ref ColliderReference colliders,
 			ref ColliderReference kinematicColliders, float margin)
 		{
+			var matrix = MainComponent.transform.worldToLocalMatrix.WorldToLocalTranslateWithinPlayfield(Player.PlayfieldToWorldMatrix);
 			var height = MainComponent.PositionZ;
-			var switchCollider = new CircleCollider(MainComponent.Position, MainComponent.Radius, height,
-					height + MainComponent.HeightScale, GetColliderInfo(), ColliderType.Bumper);			
-			var rigidCollider = new CircleCollider(MainComponent.Position, MainComponent.Radius * 0.5f, height,
-					height + MainComponent.HeightScale, GetColliderInfo(), ColliderType.Circle);
+			var switchCollider = new CircleCollider(new float2(0), MainComponent.Radius, height,
+					height + 100f, GetColliderInfo(), ColliderType.Bumper);
+			var rigidCollider = new CircleCollider(new float2(0), MainComponent.Radius * 0.5f, height,
+					height + 100f, GetColliderInfo(), ColliderType.Circle);
 			if (ColliderComponent.IsKinematic) {
-				switchColliderId = kinematicColliders.Add(switchCollider);
-				kinematicColliders.Add(rigidCollider);
+				switchColliderId = kinematicColliders.Add(switchCollider, matrix);
+				kinematicColliders.Add(rigidCollider, matrix);
 			} else {
-				switchColliderId = colliders.Add(switchCollider);
-				colliders.Add(rigidCollider);
+				switchColliderId = colliders.Add(switchCollider, matrix);
+				colliders.Add(rigidCollider, matrix);
 			}
 		}
 
