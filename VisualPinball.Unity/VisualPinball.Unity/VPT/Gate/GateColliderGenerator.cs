@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-using System.Collections.Generic;
 using Unity.Mathematics;
 using VisualPinball.Engine.Common;
 using VisualPinball.Engine.VPT;
@@ -27,12 +26,14 @@ namespace VisualPinball.Unity
 		private readonly IGateData _data;
 		private readonly IGateColliderData _collData;
 		private readonly GateApi _api;
+		private readonly float4x4 _matrix;
 
-		internal GateColliderGenerator(GateApi gateApi, IGateData data, IGateColliderData collData)
+		internal GateColliderGenerator(GateApi gateApi, IGateData data, IGateColliderData collData, float4x4 matrix)
 		{
 			_api = gateApi;
 			_data = data;
 			_collData = collData;
+			_matrix = matrix;
 		}
 
 		internal void GenerateColliders(float height, ref ColliderReference colliders) // var height = table.GetSurfaceHeight(_data.Surface, _data.Center.X, _data.Center.Y);
@@ -47,47 +48,47 @@ namespace VisualPinball.Unity
 			var radAngle = math.radians(_data.Rotation);
 			var tangent = new float2(math.cos(radAngle), math.sin(radAngle));
 
-			GenerateGateCollider(ref colliders, height, radAngle);
-			GenerateLineCollider(ref colliders, height, tangent);
+			GenerateGateCollider(ref colliders, height);
+			GenerateLineCollider(ref colliders, height);
 			if (_data.ShowBracket) {
 				GenerateBracketColliders(ref colliders, height, tangent);
 			}
 		}
 
-		private void GenerateGateCollider(ref ColliderReference colliders, float height, float radAngle)
+		private void GenerateGateCollider(ref ColliderReference colliders, float height)
 		{
-			var halfLength = _data.Length * 0.5f;
-			var sn = math.sin(radAngle);
-			var cs = math.cos(radAngle);
+			// note: this has diverged a bit from the vpx code: instead of generating the colliders at the correct
+			// position, we generate them at the origin and then transform them later.
+
+			const float halfLength = 50f;
 			var v1 = new float2(
-				_data.PosX - cs * (halfLength + PhysicsConstants.PhysSkin),
-				_data.PosY - sn * (halfLength + PhysicsConstants.PhysSkin)
+				-(halfLength + PhysicsConstants.PhysSkin),
+				0
 			);
 			var v2 = new float2(
-				_data.PosX + cs * (halfLength + PhysicsConstants.PhysSkin),
-				_data.PosY + sn * (halfLength + PhysicsConstants.PhysSkin)
+				halfLength + PhysicsConstants.PhysSkin,
+				0
 			);
 
-			var lineSeg0 = new LineCollider(v1, v2, height, height + 2.0f * PhysicsConstants.PhysSkin, _api.GetColliderInfo());
-			var lineSeg1 = new LineCollider(v2, v1, height, height + 2.0f * PhysicsConstants.PhysSkin, _api.GetColliderInfo());
+			var lineSeg0 = new LineCollider(v1, v2, -2f * PhysicsConstants.PhysSkin, 0, _api.GetColliderInfo());
+			var lineSeg1 = new LineCollider(v2, v1, -2f * PhysicsConstants.PhysSkin, 0, _api.GetColliderInfo());
 
-			colliders.Add(new GateCollider(in lineSeg0, in lineSeg1, _api.GetColliderInfo()));
+			colliders.Add(new GateCollider(in lineSeg0, in lineSeg1, _api.GetColliderInfo()), _matrix);
 		}
 
-		private void GenerateLineCollider(ref ColliderReference colliders, float height, float2 tangent)
+		private void GenerateLineCollider(ref ColliderReference colliders, float height)
 		{
 			if (_collData.TwoWay) {
 				return;
 			}
 
 			// oversize by the ball's radius to prevent the ball from clipping through
-			var halfLength = _data.Length * 0.5f;
-			var center = new float2(_data.PosX, _data.PosY);
-			var rgv0 = center + (halfLength + PhysicsConstants.PhysSkin) * tangent;
-			var rgv1 = center - (halfLength + PhysicsConstants.PhysSkin) * tangent;
+			const float halfLength = 50f;
+			var rgv0 = new float2(halfLength + PhysicsConstants.PhysSkin, 0f);
+			var rgv1 = new float2(-halfLength + PhysicsConstants.PhysSkin, 0f);
 
 			var info = _api.GetColliderInfo(ItemType.Invalid); // hack to not treat this line seg as gate
-			colliders.Add(new LineCollider(rgv0, rgv1, height, height + 2.0f * PhysicsConstants.PhysSkin, info)); //!! = ball diameter
+			colliders.AddLine(rgv0, rgv1, -2f * PhysicsConstants.PhysSkin, 0, info, _matrix); //!! = ball diameter
 		}
 
 		private void GenerateBracketColliders(ref ColliderReference colliders, float height, float2 tangent)

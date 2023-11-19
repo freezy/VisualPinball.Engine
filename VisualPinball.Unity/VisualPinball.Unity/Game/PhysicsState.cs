@@ -111,7 +111,7 @@ namespace VisualPinball.Unity
 
 		internal ref BumperState GetBumperState(int colliderId, ref NativeColliders col) => ref BumperStates.GetValueByRef(col.GetItemId(colliderId));
 
-		internal ref GateState GetGateState(int colliderId) => ref GateStates.GetValueByRef(Colliders.GetItemId(colliderId));
+		internal ref GateState GetGateState(int colliderId, ref NativeColliders colliders) => ref GateStates.GetValueByRef(colliders.GetItemId(colliderId));
 
 		internal ref SurfaceState GetSurfaceState(int colliderId) => ref SurfaceStates.GetValueByRef(Colliders.GetItemId(colliderId));
 
@@ -138,6 +138,9 @@ namespace VisualPinball.Unity
 					break;
 				case ColliderType.Spinner:
 					KinematicColliders.Spinner(colliderId).Transform(KinematicCollidersAtIdentity.Spinner(colliderId), matrix);
+					break;
+				case ColliderType.Gate:
+					KinematicColliders.Gate(colliderId).Transform(KinematicCollidersAtIdentity.Gate(colliderId), matrix);
 					break;
 			}
 		}

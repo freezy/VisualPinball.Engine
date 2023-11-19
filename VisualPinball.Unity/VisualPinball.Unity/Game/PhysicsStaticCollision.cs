@@ -97,7 +97,7 @@ namespace VisualPinball.Unity
 					break;
 
 				case ColliderType.Gate:
-					ref var gateState = ref state.GetGateState(colliderId);
+					ref var gateState = ref state.GetGateState(colliderId, ref colliders);
 					GateCollider.Collide(ref ball, ref ball.CollisionEvent, ref gateState.Movement, ref state.EventQueue,
 						in collHeader, in gateState.Static);
 					break;

@@ -34,8 +34,8 @@ namespace VisualPinball.Unity
 
 		public ColliderHeader Header;
 
-		public readonly LineCollider LineSeg0;
-		public readonly LineCollider LineSeg1;
+		public LineCollider LineSeg0;
+		public LineCollider LineSeg1;
 
 		public ColliderBounds Bounds { get; private set; }
 
@@ -46,6 +46,19 @@ namespace VisualPinball.Unity
 			LineSeg1 = lineSeg1;
 
 			Bounds = LineSeg0.Bounds;
+		}
+
+		public void Transform(GateCollider collider, float4x4 matrix)
+		{
+			LineSeg0 = collider.LineSeg0.Transform(matrix);
+			LineSeg1 = collider.LineSeg1.Transform(matrix);
+			Bounds = collider.LineSeg0.Bounds;
+		}
+
+		public GateCollider Transform(float4x4 matrix)
+		{
+			Transform(this, matrix);
+			return this;
 		}
 
 		#region Narrowphase

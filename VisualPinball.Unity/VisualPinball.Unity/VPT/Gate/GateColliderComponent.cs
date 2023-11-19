@@ -17,13 +17,14 @@
 // ReSharper disable InconsistentNaming
 
 using System.ComponentModel;
+using Unity.Mathematics;
 using UnityEngine;
 using VisualPinball.Engine.VPT.Gate;
 
 namespace VisualPinball.Unity
 {
 	[AddComponentMenu("Visual Pinball/Collision/Gate Collider")]
-	public class GateColliderComponent : ColliderComponent<GateData, GateComponent>, IGateColliderData
+	public class GateColliderComponent : ColliderComponent<GateData, GateComponent>, IGateColliderData, IKinematicColliderComponent
 	{
 		#region Data
 
@@ -68,5 +69,16 @@ namespace VisualPinball.Unity
 
 		protected override IApiColliderGenerator InstantiateColliderApi(Player player, PhysicsEngine physicsEngine)
 			=> MainComponent.GateApi ?? new GateApi(gameObject, player, physicsEngine);
+
+		#region IKinematicColliderComponent
+
+		[Tooltip("If set, transforming this object will transform the colliders as well.")]
+		public bool _isKinematic;
+
+		public bool IsKinematic => _isKinematic;
+		public int ItemId => MainComponent.gameObject.GetInstanceID();
+		public float4x4 TransformationWithinPlayfield => MainComponent.TransformationWithinPlayfield;
+
+		#endregion
 	}
 }

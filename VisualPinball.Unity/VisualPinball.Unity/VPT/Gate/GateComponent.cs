@@ -111,14 +111,19 @@ namespace VisualPinball.Unity
 
 		private void Awake()
 		{
-			var player = GetComponentInParent<Player>();
+			Player = GetComponentInParent<Player>();
 			var physicsEngine = GetComponentInParent<PhysicsEngine>();
-			GateApi = new GateApi(gameObject, player, physicsEngine);
+			GateApi = new GateApi(gameObject, Player, physicsEngine);
 
-			player.Register(GateApi, this);
+			Player.Register(GateApi, this);
 			if (GetComponent<GateColliderComponent>()) {
 				RegisterPhysics(physicsEngine);
 			}
+		}
+
+		private void Start()
+		{
+			_playfieldToWorld = Player.PlayfieldToWorldMatrix;
 		}
 
 		#endregion
@@ -139,6 +144,9 @@ namespace VisualPinball.Unity
 
 		#region Transformation
 
+		[NonSerialized]
+		private float4x4 _playfieldToWorld;
+
 		public void OnSurfaceUpdated() => UpdateTransforms();
 
 		public float PositionZ => SurfaceHeight(Surface, Position);
@@ -152,11 +160,14 @@ namespace VisualPinball.Unity
 			t.localPosition = Physics.TranslateToWorld(Position.x, Position.y, Position.z + PositionZ);
 
 			// scale
-			t.localScale = Physics.ScaleToWorld(Length, Length, Length);
+			t.localScale = new float3(Length * 0.01f);
 
 			// rotation
-			t.localEulerAngles = Physics.RotateToWorld(0, 0, Rotation);
+			t.localRotation = quaternion.RotateY(math.radians(Rotation));
 		}
+
+		public float4x4 TransformationWithinPlayfield => transform.worldToLocalMatrix.WorldToLocalTranslateWithinPlayfield(_playfieldToWorld);
+
 
 		#endregion
 
