@@ -117,5 +117,3 @@ The only dynamic collision in Visual Pinball is collision between balls. For
 this, another KD-Tree is re-created on each physics cycle. Then, during phase
 3.1, balls are not only checked against static objects, but also against other
 balls.
-
-
