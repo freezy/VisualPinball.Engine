@@ -24,22 +24,21 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using Unity.Mathematics;
 using UnityEditor;
 using UnityEngine;
-using UnityEngine.UIElements;
 using VisualPinball.Engine.Common;
 using VisualPinball.Engine.Game.Engines;
 using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Gate;
-using VisualPinball.Engine.VPT.Surface;
 using VisualPinball.Engine.VPT.Table;
 
 namespace VisualPinball.Unity
 {
 	[AddComponentMenu("Visual Pinball/Game Item/Gate")]
 	public class GateComponent : MainRenderableComponent<GateData>,
-		IGateData, ISwitchDeviceComponent, IOnSurfaceComponent
+		IGateData, ISwitchDeviceComponent, IOnSurfaceComponent, IRotatableAnimationComponent
 	{
 		#region Data
 
@@ -107,6 +106,9 @@ namespace VisualPinball.Unity
 
 		#region Runtime
 
+		[NonSerialized]
+		private IRotatableAnimationComponent[] _animatedComponents;
+
 		public GateApi GateApi { get; private set; }
 
 		private void Awake()
@@ -119,6 +121,10 @@ namespace VisualPinball.Unity
 			if (GetComponent<GateColliderComponent>()) {
 				RegisterPhysics(physicsEngine);
 			}
+
+			_animatedComponents = GetComponentsInChildren<GateWireAnimationComponent>()
+				.Select(gwa => gwa as IRotatableAnimationComponent)
+				.ToArray();
 		}
 
 		private void Start()
@@ -349,6 +355,17 @@ namespace VisualPinball.Unity
 		public override ItemDataTransformType EditorScaleType => ItemDataTransformType.OneD;
 		public override Vector3 GetEditorScale() => new Vector3(Length, 0f, 0f);
 		public override void SetEditorScale(Vector3 scale) => _length = scale.x;
+
+		#endregion
+
+		#region IRotatableAnimationComponent
+
+		public void OnRotationUpdated(float angleRad)
+		{
+			foreach (var animatedComponent in _animatedComponents) {
+				animatedComponent.OnRotationUpdated(angleRad);
+			}
+		}
 
 		#endregion
 	}
