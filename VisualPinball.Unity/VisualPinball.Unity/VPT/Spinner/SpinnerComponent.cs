@@ -23,6 +23,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Unity.Mathematics;
 using UnityEngine;
 using VisualPinball.Engine.Common;
@@ -35,7 +36,7 @@ namespace VisualPinball.Unity
 {
 	[AddComponentMenu("Visual Pinball/Game Item/Spinner")]
 	public class SpinnerComponent : MainRenderableComponent<SpinnerData>,
-		ISwitchDeviceComponent, IOnSurfaceComponent
+		ISwitchDeviceComponent, IOnSurfaceComponent, IRotatableAnimationComponent
 	{
 		#region Data
 
@@ -92,6 +93,9 @@ namespace VisualPinball.Unity
 
 		#region Runtime
 
+		[NonSerialized]
+		private IRotatableAnimationComponent[] _animatedComponents;
+
 		public SpinnerApi SpinnerApi { get; private set; }
 
 		private void Awake()
@@ -102,6 +106,11 @@ namespace VisualPinball.Unity
 
 			Player.Register(SpinnerApi, this);
 			RegisterPhysics(physicsEngine);
+
+			_animatedComponents = GetComponentsInChildren<SpinnerPlateAnimationComponent>()
+				.Select(gwa => gwa as IRotatableAnimationComponent)
+				.Concat(GetComponentsInChildren<SpinnerLeverAnimationComponent>().Select(gwa => gwa as IRotatableAnimationComponent))
+				.ToArray();
 		}
 
 		private void Start()
@@ -324,6 +333,17 @@ namespace VisualPinball.Unity
 
 		public override Vector3 GetEditorScale() => new Vector3(Length, 0f, 0f);
 		public override void SetEditorScale(Vector3 scale) => Length = scale.x;
+
+		#endregion
+
+		#region IRotatableAnimationComponent
+
+		public void OnRotationUpdated(float angleRad)
+		{
+			foreach (var animatedComponent in _animatedComponents) {
+				animatedComponent.OnRotationUpdated(angleRad);
+			}
+		}
 
 		#endregion
 	}
