@@ -383,8 +383,6 @@ namespace VisualPinball.Unity
 					ref var gateState = ref enumerator.Current.Value;
 					var component = _rotatableComponent[enumerator.Current.Key];
 					component.OnRotationUpdated(gateState.Movement.Angle);
-//					var gateTransform = _transforms[gateState.WireItemId];
-//					gateTransform.localRotation = quaternion.RotateX(-gateState.Movement.Angle);
 				}
 			}
 
@@ -402,8 +400,8 @@ namespace VisualPinball.Unity
 			using (var enumerator = _spinnerStates.Ref.GetEnumerator()) {
 				while (enumerator.MoveNext()) {
 					ref var spinnerState = ref enumerator.Current.Value;
-					var spinnerTransform = _transforms[spinnerState.AnimationItemId];
-					spinnerTransform.localRotation = quaternion.RotateX(-spinnerState.Movement.Angle);
+					var component = _rotatableComponent[enumerator.Current.Key];
+					component.OnRotationUpdated(spinnerState.Movement.Angle);
 				}
 			}
 

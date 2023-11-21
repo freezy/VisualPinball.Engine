@@ -15,7 +15,6 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using Unity.Mathematics;
-using UnityEngine;
 using VisualPinball.Engine.VPT.Gate;
 
 namespace VisualPinball.Unity
@@ -30,7 +29,7 @@ namespace VisualPinball.Unity
 			min = math.min(angleRad, min);
 			max = math.max(angleRad, max);
 
-			Debug.Log($"Rotate: {angleRad} ({math.degrees(angleRad)}) [{math.degrees(min)} - {math.degrees(max)}]");
+			// Debug.Log($"Rotate: {angleRad} ({math.degrees(angleRad)}) [{math.degrees(min)} - {math.degrees(max)}]");
 
 			transform.localRotation = quaternion.RotateX(-angleRad);
 		}

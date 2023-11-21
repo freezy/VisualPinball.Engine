@@ -14,16 +14,35 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+// ReSharper disable InconsistentNaming
+
 using Unity.Mathematics;
+using UnityEngine;
 using VisualPinball.Engine.VPT.Spinner;
 
 namespace VisualPinball.Unity
 {
-	public class SpinnerPlateAnimationComponent : AnimationComponent<SpinnerData, SpinnerComponent>, IRotatableAnimationComponent
+	public class SpinnerLeverAnimationComponent : AnimationComponent<SpinnerData, SpinnerComponent>, IRotatableAnimationComponent
 	{
+		[Tooltip("Shifts the lever angle by the given amount of degrees.")]
+		[Range(-90f, 90f)]
+		public float Shift = 15f;
+
+		[Tooltip("Start angle of the movement")]
+		[Range(-90f, 90f)]
+		public float MinAngle = -1.56f;
+
+		[Tooltip("End angle of the movement")]
+		[Range(-90f, 90f)]
+		public float MaxAngle = 13.83f;
+
 		public void OnRotationUpdated(float angleRad)
 		{
-			transform.localRotation = quaternion.RotateX(-angleRad);
+			angleRad = math.radians((math.degrees(angleRad) + Shift) % 360f);
+			var a = math.abs(angleRad - math.PI);
+			var pos = math.sin(math.smoothstep(0, math.PI, a));
+			var leverAngleDeg = math.lerp(MinAngle, MaxAngle, pos);
+			transform.localRotation = quaternion.RotateX(math.radians(leverAngleDeg));
 		}
 	}
 }
