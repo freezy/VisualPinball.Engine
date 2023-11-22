@@ -201,8 +201,11 @@ namespace VisualPinball.Unity
 			var sinYCosP = +2.0 * (q.w * q.z + q.x * q.y);
 			var cosYCosP = +1.0 - 2.0 * (q.y * q.y + q.z * q.z);
 			res.z = math.atan2(sinYCosP, cosYCosP);
-
 			return (float3) res;
 		}
+
+		public static string ToDebugString(this float4x4 m) => $"{((Matrix4x4)m).ToString()}\nt: {m.GetTranslation()}\nr: {math.degrees(m.GetRotationVector())}\ns: {m.GetScale()}";
+
+		public static string ToDebugString(this Matrix4x4 m) => ((float4x4)m).ToDebugString();
 	}
 }
