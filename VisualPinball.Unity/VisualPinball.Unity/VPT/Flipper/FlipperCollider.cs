@@ -27,27 +27,25 @@ namespace VisualPinball.Unity
 		public int Id
 		{
 			get => Header.Id;
-			set {
-				Header.Id = value;
-				var bounds = Bounds;
-				bounds.ColliderId = value;
-				Bounds = bounds;
-			}
+			set => Header.Id = value;
 		}
 
 		public ColliderHeader Header;
 
+		public float4x4 Matrix;
 		private readonly CircleCollider _hitCircleBase;
 		private readonly float _zLow;
 		private readonly float _zHigh;
 
-		public ColliderBounds Bounds { get; set; }
+		public ColliderBounds Bounds => new ColliderBounds(Header.ItemId, Header.Id, _bounds.Transform(Matrix));
 
 		public static readonly Logger Logger = LogManager.GetCurrentClassLogger();
+		private readonly Aabb _bounds;
 
 		#region Setup
 
-		public FlipperCollider(CircleCollider hitCircleBase, float flipperRadius, float startRadius, float endRadius, float startAngle, float endAngle, ColliderInfo info) : this()
+		public FlipperCollider(CircleCollider hitCircleBase, float flipperRadius, float startRadius, float endRadius,
+			float startAngle, float endAngle, ColliderInfo info, float4x4 matrix) : this()
 		{
 			var bounds = hitCircleBase.Bounds;
 			Header.Init(info, ColliderType.Flipper);
@@ -76,7 +74,10 @@ namespace VisualPinball.Unity
 			aabb = ExtendBoundsAtExtreme(aabb, c, flipperRadius, r2, r3, a0, a1, 90f);
 			aabb = ExtendBoundsAtExtreme(aabb, c, flipperRadius, r2, r3, a0, a1, 180f);
 
-			Bounds = new ColliderBounds(Header.ItemId, Header.Id, aabb);
+			var l = flipperRadius * 1.2f;
+			_bounds = new Aabb(-l, l, -l, l, -l, l);
+
+			Matrix = matrix;
 		}
 
 		private static Aabb ExtendBoundsAtExtreme(Aabb aabb, float2 c, float length, float endRadius, float startRadius, float startAngle, float endAngle, float angle)
@@ -148,11 +149,6 @@ namespace VisualPinball.Unity
 			in FlipperMovementState movementState, in FlipperTricksData tricks, in FlipperStaticData matData, in BallState ball,
 			float dTime)
 		{
-			// todo
-			// if (!_data.IsEnabled) {
-			// 	return -1.0f;
-			// }
-
 			var lastFace = hitData.LastHitFace;
 
 			// for effective computing, adding a last face hit value to speed calculations

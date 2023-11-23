@@ -142,5 +142,19 @@ namespace VisualPinball.Unity
 		{
 			return $"Ball{Id} ({Position.x}/{Position.y})";
 		}
+
+		public void Transform(float4x4 matrix)
+		{
+			Position = matrix.MultiplyPoint(Position);
+			EventPosition = matrix.MultiplyPoint(EventPosition);
+			Velocity = matrix.MultiplyVector(Velocity);
+			AngularMomentum = matrix.MultiplyVector(AngularMomentum);
+
+			//BallOrientation = math.mul(matrix, BallOrientation)
+			//BallOrientationForUnity;
+
+			OldVelocity = matrix.MultiplyVector(OldVelocity);
+			//CollisionEvent.Transform(matrix);
+		}
 	}
 }

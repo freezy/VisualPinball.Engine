@@ -123,19 +123,63 @@ namespace VisualPinball.Unity
 				a.ZHigh == ZHigh;
 		}
 
-		public override readonly bool Equals(object obj)
+		public Aabb Transform(float4x4 m)
+		{
+			var t = m.GetTranslation();
+			var translateOnly = float4x4.Translate(new float3(t.x, t.y, 0));
+			var p1 = translateOnly.MultiplyPoint(new float3(Left, Top, ZHigh));
+			var p2 = translateOnly.MultiplyPoint(new float3(Right, Top, ZHigh));
+			var p3 = translateOnly.MultiplyPoint(new float3(Left, Bottom, ZHigh));
+			var p4 = translateOnly.MultiplyPoint(new float3(Right, Bottom, ZHigh));
+			var p5 = translateOnly.MultiplyPoint(new float3(Left, Top, ZLow));
+			var p6 = translateOnly.MultiplyPoint(new float3(Right, Top, ZLow));
+			var p7 = translateOnly.MultiplyPoint(new float3(Left, Bottom, ZLow));
+			var p8 = translateOnly.MultiplyPoint(new float3(Right, Bottom, ZLow));
+
+			//return new Aabb(Left, Right, Top, Bottom, ZLow, ZHigh);
+			//return new Aabb(Left, Right, Top, Bottom, ZLow, ZHigh);
+			// todo optimize, use min(float3) instead of min(float)
+			return new Aabb(
+				min(p1.x, p2.x, p3.x, p4.x, p5.x, p6.x, p7.x, p8.x),
+				max(p1.x, p2.x, p3.x, p4.x, p5.x, p6.x, p7.x, p8.x),
+				min(p1.y, p2.y, p3.y, p4.y, p5.y, p6.y, p7.y, p8.y),
+				max(p1.y, p2.y, p3.y, p4.y, p5.y, p6.y, p7.y, p8.y),
+				min(p1.z, p2.z, p3.z, p4.z, p5.z, p6.z, p7.z, p8.z),
+				max(p1.z, p2.z, p3.z, p4.z, p5.z, p6.z, p7.z, p8.z)
+			);
+		}
+
+		private static float min(params float[] values)
+		{
+			var min = float.MaxValue;
+			foreach (var value in values) {
+				min = math.min(min, value);
+			}
+			return min;
+		}
+
+		private static float max(params float[] values)
+		{
+			var max = float.MinValue;
+			foreach (var value in values) {
+				max = math.max(max, value);
+			}
+			return max;
+		}
+
+		public readonly override bool Equals(object obj)
 		{
 			if (obj is Aabb)
 				return Equals(obj);
 			return false;
 		}
 
-		public override readonly string ToString()
+		public readonly override string ToString()
 		{
 			return $"Aabb {Left} → {Right} | {Top} ↘ {Bottom} | {ZLow} ↑ {ZHigh}";
 		}
 
-		public override readonly int GetHashCode()
+		public readonly override int GetHashCode()
 		{
 			return HashCode.Combine(Right, Left, Bottom, Top, ZLow, ZHigh);
 		}
