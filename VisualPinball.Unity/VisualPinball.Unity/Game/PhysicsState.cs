@@ -205,8 +205,19 @@ namespace VisualPinball.Unity
 
 				case ColliderType.Flipper:
 					ref var flipperState = ref GetFlipperState(colliderId);
-					return colliders.Flipper(colliderId).HitTest(ref newCollEvent, ref InsideOfs, ref flipperState.Hit,
-						in flipperState.Movement, in flipperState.Tricks, in flipperState.Static, in ball, ball.CollisionEvent.HitTime);
+					ref var flipperCollider = ref colliders.Flipper(colliderId);
+					var ballTransformed = ball;
+					ballTransformed.Transform(math.inverse(flipperCollider.Matrix));
+
+					var hitTime = flipperCollider.HitTest(ref newCollEvent, ref InsideOfs, ref flipperState.Hit,
+						in flipperState.Movement, in flipperState.Tricks, in flipperState.Static, in ballTransformed, ball.CollisionEvent.HitTime);
+
+					if (hitTime > 0) {
+						// transform hit normal back to world space
+						newCollEvent.Transform(flipperCollider.Matrix);
+					}
+
+					return hitTime;
 
 				case ColliderType.Plunger:
 					ref var plungerState = ref GetPlungerState(colliderId);

@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+using System;
 using Unity.Mathematics;
 using UnityEngine;
 using VisualPinball.Engine.Math;
@@ -68,6 +69,8 @@ namespace VisualPinball.Unity
 
 		//public static float3 MultiplyPoint(this float4x4 matrix, float3 p) => math.mul(matrix, new float4(p, 1f)).xyz;
 		public static float3 MultiplyPoint(this float4x4 matrix, float3 p) => math.transform(matrix, p);
+		// todo optimize
+		public static float3 MultiplyVector(this float4x4 matrix, float3 p) => ((Matrix4x4)matrix).MultiplyVector(p);
 
 		/// <summary>
 		/// Returns the transformation matrix of an item in VPX space.<br/>
@@ -78,11 +81,22 @@ namespace VisualPinball.Unity
 		/// <param name="worldToLocal">World-to-local transformation matrix of the item.</param>
 		/// <param name="playfieldToWorld">Local-to-World transformation matrix of the playfield.</param>
 		/// <returns>Transformation matrix of the item in VPX space.</returns>
-		public static float4x4 WorldToLocalTranslateWithinPlayfield(this Matrix4x4 worldToLocal, float4x4 playfieldToWorld) => math.mul(
-			math.mul(WorldToVpx,
-				math.inverse(math.mul(worldToLocal, playfieldToWorld))
-			),
+		[Obsolete("use (and test) LocalToWorldTranslateWithinPlayfield()")]
+		public static float4x4 WorldToLocalTranslateWithinPlayfield(this Matrix4x4 worldToLocal, float4x4 playfieldToWorld)
+			=> math.mul(
+				math.mul(WorldToVpx,
+					math.inverse(math.mul(worldToLocal, playfieldToWorld))
+				),
 			VpxToWorld);
+
+		public static float4x4 LocalToWorldTranslateWithinPlayfield(this Matrix4x4 localToWorldMatrix, float4x4 worldToPlayfield)
+			=> math.mul(
+				math.mul(WorldToVpx,
+					math.mul(worldToPlayfield, localToWorldMatrix)
+				),
+				VpxToWorld
+			);
+
 
 		#endregion
 

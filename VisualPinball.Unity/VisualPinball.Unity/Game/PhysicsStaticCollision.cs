@@ -16,6 +16,7 @@
 
 // ReSharper disable ConvertIfStatementToSwitchStatement
 
+using Unity.Mathematics;
 using VisualPinball.Engine.VPT;
 using VisualPinball.Unity.Collections;
 
@@ -90,10 +91,23 @@ namespace VisualPinball.Unity
 				case ColliderType.Flipper:
 					ref var flipperState = ref state.GetFlipperState(colliderId);
 					ref var flipperCollider = ref colliders.Flipper(colliderId);
-					flipperCollider.Collide(ref ball, ref ball.CollisionEvent, ref flipperState.Movement,
+
+					var ballTransformed = ball;
+					ballTransformed.Transform(math.inverse(flipperCollider.Matrix));
+
+					var colEventTransformed = ball.CollisionEvent;
+					colEventTransformed.Transform(math.inverse(flipperCollider.Matrix));
+
+					flipperCollider.Collide(ref ballTransformed, ref colEventTransformed, ref flipperState.Movement,
 						ref state.EventQueue, in ball.Id, in flipperState.Tricks, in flipperState.Static,
 						in flipperState.Velocity, in flipperState.Hit, state.Env.TimeMsec
 					);
+
+					colEventTransformed.Transform(flipperCollider.Matrix);
+					ballTransformed.Transform(flipperCollider.Matrix);
+					ball = ballTransformed;
+					ball.CollisionEvent = colEventTransformed;
+
 					break;
 
 				case ColliderType.Gate:

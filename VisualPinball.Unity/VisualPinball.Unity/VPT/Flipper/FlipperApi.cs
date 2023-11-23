@@ -227,17 +227,21 @@ namespace VisualPinball.Unity
 			var height = MainComponent.PositionZ;
 			var baseRadius = math.max(MainComponent.BaseRadius, 0.01f);
 			var hitCircleBase = new CircleCollider(
-				MainComponent.Position,
+				float2.zero, // flipper collision is always done through the center and a matrix
 				baseRadius,
 				height,
 				height + MainComponent.Height,
 				GetColliderInfo()
 			);
+			var playfield = MainComponent.GetComponentInParent<PlayfieldComponent>();
+			var worldToPlayfield = playfield ? playfield.transform.worldToLocalMatrix : Matrix4x4.identity;
 
 			// check which side we are at
 			var multiplicator = 0.0f;
-			if (ColliderComponent.useFlipperTricksPhysics)
-				multiplicator = MainComponent.StartAngle > MainComponent.EndAngle ? -1f : 1f; // usually: -1f = left flipper
+			if (ColliderComponent.useFlipperTricksPhysics) {
+				multiplicator =
+					MainComponent.StartAngle > MainComponent.EndAngle ? -1f : 1f; // usually: -1f = left flipper
+			}
 
 			// and add ColliderComponent.Overshoot to the endangle so that the bounding box is correctly calculated
 			colliders.Add(
@@ -248,7 +252,8 @@ namespace VisualPinball.Unity
 					MainComponent.EndRadius,
 					MainComponent.StartAngle,
 					MainComponent.EndAngle + ColliderComponent.Overshoot * multiplicator,
-					GetColliderInfo()
+					GetColliderInfo(),
+					MainComponent.transform.localToWorldMatrix.LocalToWorldTranslateWithinPlayfield(worldToPlayfield)
 				)
 			);
 		}
