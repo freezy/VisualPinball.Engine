@@ -169,10 +169,22 @@ namespace VisualPinball.Unity
 			var t = transform;
 
 			// position
-			t.localPosition = Physics.TranslateToWorld(Position.x, Position.y, PositionZ);
+			//t.localPosition = Physics.TranslateToWorld(Position.x, Position.y, PositionZ);
 
 			// rotation
 			t.localEulerAngles = new Vector3(0, _startAngle, 0);
+		}
+
+		public float4x4 LocalToWorldPhysicsMatrix
+		{
+			get
+			{
+				var t = transform;
+				var m = t.localToWorldMatrix;
+				var r = t.localRotation.eulerAngles;
+				//return float4x4.TRS(t.position, quaternion.identity, ((float4x4)m).GetScale());
+				return math.mul(m, math.inverse(float4x4.RotateY(math.radians(r.y))));
+			}
 		}
 
 		private FlipperApi _flipperApi;
