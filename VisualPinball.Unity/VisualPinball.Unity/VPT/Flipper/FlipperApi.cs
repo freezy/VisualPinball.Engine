@@ -253,7 +253,7 @@ namespace VisualPinball.Unity
 					MainComponent.StartAngle,
 					MainComponent.EndAngle + ColliderComponent.Overshoot * multiplicator,
 					GetColliderInfo(),
-					MainComponent.transform.localToWorldMatrix.LocalToWorldTranslateWithinPlayfield(worldToPlayfield)
+					MainComponent.LocalToWorldPhysicsMatrix.LocalToWorldTranslateWithinPlayfield(worldToPlayfield)
 				)
 			);
 		}
