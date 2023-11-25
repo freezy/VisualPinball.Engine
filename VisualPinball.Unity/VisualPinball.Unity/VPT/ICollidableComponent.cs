@@ -18,8 +18,24 @@ namespace VisualPinball.Unity
 {
 	public interface ICollidableComponent
 	{
+		/// <summary>
+		/// Generates the colliders.
+		/// </summary>
+		/// <param name="player"></param>
+		/// <param name="colliders"></param>
+		/// <param name="kinematicColliders"></param>
+		/// <param name="margin"></param>
 		internal void GetColliders(Player player, ref ColliderReference colliders, ref ColliderReference kinematicColliders, float margin);
+
+		/// <summary>
+		/// The unique identifier of the main item.
+		/// </summary>
 		internal int ItemId { get; }
+
+		/// <summary>
+		/// Returns whether this specific item is set to collidable, i.e. whether can it ever be
+		/// collided with during gameplay.
+		/// </summary>
 		internal bool IsCollidable { get; }
 	}
 }
