@@ -16,6 +16,7 @@
 
 // ReSharper disable InconsistentNaming
 
+using Unity.Mathematics;
 using UnityEngine;
 using VisualPinball.Engine.VPT.Flipper;
 
@@ -23,7 +24,7 @@ namespace VisualPinball.Unity
 {
 	[AddComponentMenu("Visual Pinball/Collision/Flipper Collider")]
 	[HelpURL("https://docs.visualpinball.org/creators-guide/manual/mechanisms/flippers.html")]
-	public class FlipperColliderComponent : ColliderComponent<FlipperData, FlipperComponent>
+	public class FlipperColliderComponent : ColliderComponent<FlipperData, FlipperComponent>, ICollidableNonTransformableComponent
 	{
 		#region Data
 
@@ -160,5 +161,14 @@ namespace VisualPinball.Unity
 
 		protected override IApiColliderGenerator InstantiateColliderApi(Player player, PhysicsEngine physicsEngine)
 			=> MainComponent.FlipperApi ?? new FlipperApi(gameObject, player, physicsEngine);
+
+		float4x4 ICollidableNonTransformableComponent.TranslateWithinPlayfieldMatrix(float4x4 worldToPlayfield)
+			=> MainComponent.LocalToWorldPhysicsMatrix.LocalToWorldTranslateWithinPlayfield(worldToPlayfield);
+
+		void ICollidableNonTransformableComponent.GetColliders(Player player, ref ColliderReference colliders, ref ColliderReference kinematicColliders,
+			float4x4 translateWithinPlayfieldMatrix, float margin)
+		{
+			InstantiateColliderApi(player, null).CreateColliders(ref colliders, ref kinematicColliders, margin);
+		}
 	}
 }
