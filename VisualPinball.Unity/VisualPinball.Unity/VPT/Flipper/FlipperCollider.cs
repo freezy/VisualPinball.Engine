@@ -32,12 +32,11 @@ namespace VisualPinball.Unity
 
 		public ColliderHeader Header;
 
-		public float4x4 Matrix;
 		private readonly CircleCollider _hitCircleBase;
 		private readonly float _zLow;
 		private readonly float _zHigh;
 
-		public ColliderBounds Bounds => new ColliderBounds(Header.ItemId, Header.Id, _bounds.Transform(Matrix));
+		public ColliderBounds Bounds { get; private set; }
 
 		public static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 		private readonly Aabb _bounds;
@@ -77,7 +76,7 @@ namespace VisualPinball.Unity
 			var l = flipperRadius * 1.2f;
 			_bounds = new Aabb(-l, l, -l, l, -l, l);
 
-			Matrix = matrix;
+			Bounds = new ColliderBounds(Header.ItemId, Header.Id, _bounds.Transform(matrix));
 		}
 
 		private static Aabb ExtendBoundsAtExtreme(Aabb aabb, float2 c, float length, float endRadius, float startRadius, float startAngle, float endAngle, float angle)

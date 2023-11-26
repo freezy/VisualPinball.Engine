@@ -182,7 +182,6 @@ namespace VisualPinball.Unity
 				var t = transform;
 				var m = t.localToWorldMatrix;
 				var r = t.localRotation.eulerAngles;
-				//return float4x4.TRS(t.position, quaternion.identity, ((float4x4)m).GetScale());
 				return math.mul(m, math.inverse(float4x4.RotateY(math.radians(r.y))));
 			}
 		}

@@ -26,7 +26,6 @@ using Unity.Mathematics;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.Profiling;
-using UnityEngine.UIElements;
 using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Flipper;
 using Mesh = UnityEngine.Mesh;
@@ -67,7 +66,7 @@ namespace VisualPinball.Unity
 
 		public abstract PhysicsMaterialData PhysicsMaterialData { get; }
 
-		private bool HasCachedColliders => _colliderMesh != null && !_collidersDirty;
+		private bool HasCachedColliders => false;// _colliderMesh != null && !_collidersDirty;
 
 		private void Start()
 		{
@@ -139,27 +138,32 @@ namespace VisualPinball.Unity
 			Gizmos.matrix = ltw * (Matrix4x4)Physics.VpxToWorld;
 			Handles.matrix = Gizmos.matrix;
 
+			var translateWithinPlayfieldMatrix = this is ICollidableNonTransformableComponent nonTransformableColliderItem
+				? nonTransformableColliderItem.TranslateWithinPlayfieldMatrix(math.inverse(ltw))
+				: float4x4.identity;
+
 			var generateColliders = ShowAabbs || showColliders && !HasCachedColliders;
 			if (generateColliders) {
 
 				if (Application.isPlaying && IsKinematic) {
 
 					if (!_physicsEngine) {
-						_physicsEngine = GetComponentInParent<PhysicsEngine>();
+						_physicsEngine = GetComponentInParent<PhysicsEngine>(); // todo cache
 					}
 
 					var colliders = _physicsEngine.GetKinematicColliders(MainComponent.gameObject.GetInstanceID());
 					if (showColliders) {
 						_colliderMesh = GenerateColliderMesh(colliders);
-						_collidersDirty = false;
+						//_collidersDirty = false;
 					}
 
 				} else {
+
 					var api = InstantiateColliderApi(player, null);
 					var colliders = new ColliderReference(Allocator.Temp);
 					var kinematicColliders = new ColliderReference(Allocator.Temp, true);
 					try {
-						api.CreateColliders(ref colliders, ref kinematicColliders, 0.1f);
+						api.CreateColliders(ref colliders, ref kinematicColliders, translateWithinPlayfieldMatrix, 0.1f);
 
 						if (showColliders) {
 							_colliderMesh = IsKinematic
@@ -186,9 +190,9 @@ namespace VisualPinball.Unity
 				var colliders = new ColliderReference(Allocator.TempJob);
 				var kinematicColliders = new ColliderReference(Allocator.TempJob, true);
 				try {
-					api.CreateColliders(ref colliders, ref kinematicColliders, 0.1f);
+					api.CreateColliders(ref colliders, ref kinematicColliders, translateWithinPlayfieldMatrix, 0.1f);
 
-					var playfieldBounds = GetComponentInChildren<PlayfieldComponent>().Bounds;
+				var playfieldBounds = GetComponentInParent<PlayfieldComponent>().Bounds;
 					var octree = new NativeOctree<int>(playfieldBounds, 32, 10, Allocator.Persistent);
 					var nativeColliders = new NativeColliders(ref colliders, Allocator.TempJob);
 					var populateJob = new PhysicsPopulateJob {
@@ -532,10 +536,10 @@ namespace VisualPinball.Unity
 
 		#endregion
 
-		void ICollidableComponent.GetColliders(Player player, ref ColliderReference colliders,
-			ref ColliderReference kinematicColliders, float margin)
-			=> InstantiateColliderApi(player, null)
-				.CreateColliders(ref colliders, ref kinematicColliders, margin);
+		void ICollidableComponent.GetColliders(Player player, PhysicsEngine physicsEngine, ref ColliderReference colliders,
+			ref ColliderReference kinematicColliders, float4x4 translateWithinPlayfieldMatrix, float margin)
+			=> InstantiateColliderApi(player, physicsEngine)
+				.CreateColliders(ref colliders, ref kinematicColliders, translateWithinPlayfieldMatrix, margin);
 
 		int ICollidableComponent.ItemId => MainComponent.gameObject.GetInstanceID();
 		bool ICollidableComponent.IsCollidable => isActiveAndEnabled;

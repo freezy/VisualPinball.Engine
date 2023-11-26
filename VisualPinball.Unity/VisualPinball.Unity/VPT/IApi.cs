@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using System;
+using Unity.Mathematics;
 using UnityEngine;
 using VisualPinball.Engine.Game.Engines;
 
@@ -42,8 +43,10 @@ namespace VisualPinball.Unity
 		/// </summary>
 		/// <param name="colliders">List to add colliders to.</param>
 		/// <param name="kinematicColliders">List to add kinematic colliders to.</param>
+		/// <param name="translateWithinPlayfieldMatrix"></param>
 		/// <param name="margin"></param>
-		void CreateColliders(ref ColliderReference colliders, ref ColliderReference kinematicColliders, float margin);
+		void CreateColliders(ref ColliderReference colliders, ref ColliderReference kinematicColliders,
+			float4x4 translateWithinPlayfieldMatrix, float margin);
 
 		/// <summary>
 		/// Computes collider info based on the component data.

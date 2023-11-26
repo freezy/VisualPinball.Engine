@@ -42,14 +42,16 @@ namespace VisualPinball.Unity
 		protected virtual bool FireHitEvents => false;
 		protected virtual float HitThreshold => 0;
 
-		protected abstract void CreateColliders(ref ColliderReference colliders, ref ColliderReference kinematicColliders, float margin);
+		protected abstract void CreateColliders(ref ColliderReference colliders,
+			ref ColliderReference kinematicColliders, float4x4 translateWithinPlayfieldMatrix, float margin);
 
-		void IApiColliderGenerator.CreateColliders(ref ColliderReference colliders, ref ColliderReference kinematicColliders, float margin)
+		void IApiColliderGenerator.CreateColliders(ref ColliderReference colliders,
+			ref ColliderReference kinematicColliders, float4x4 translateWithinPlayfieldMatrix, float margin)
 		{
 			if (!ColliderComponent) {
 				return;
 			}
-			CreateColliders(ref colliders, ref kinematicColliders, margin);
+			CreateColliders(ref colliders, ref kinematicColliders, translateWithinPlayfieldMatrix, margin);
 		}
 
 		ColliderInfo IApiColliderGenerator.GetColliderInfo() => GetColliderInfo(MainComponent.ItemType);

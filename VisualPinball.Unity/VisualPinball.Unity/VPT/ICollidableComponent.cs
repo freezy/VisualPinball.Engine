@@ -14,6 +14,8 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+using Unity.Mathematics;
+
 namespace VisualPinball.Unity
 {
 	public interface ICollidableComponent
@@ -22,10 +24,13 @@ namespace VisualPinball.Unity
 		/// Generates the colliders.
 		/// </summary>
 		/// <param name="player"></param>
+		/// <param name="physicsEngine"></param>
 		/// <param name="colliders"></param>
 		/// <param name="kinematicColliders"></param>
+		/// <param name="translateWithinPlayfieldMatrix"></param>
 		/// <param name="margin"></param>
-		internal void GetColliders(Player player, ref ColliderReference colliders, ref ColliderReference kinematicColliders, float margin);
+		internal void GetColliders(Player player, PhysicsEngine physicsEngine, ref ColliderReference colliders,
+			ref ColliderReference kinematicColliders, float4x4 translateWithinPlayfieldMatrix, float margin);
 
 		/// <summary>
 		/// The unique identifier of the main item.

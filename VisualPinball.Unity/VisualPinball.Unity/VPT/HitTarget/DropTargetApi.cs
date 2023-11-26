@@ -16,6 +16,7 @@
 
 using System;
 using System.Collections.Generic;
+using Unity.Mathematics;
 using UnityEngine;
 using VisualPinball.Engine.VPT.HitTarget;
 
@@ -103,7 +104,7 @@ namespace VisualPinball.Unity
 		protected override float HitThreshold => ColliderComponent.Threshold;
 
 		protected override void CreateColliders(ref ColliderReference colliders,
-			ref ColliderReference kinematicColliders, float margin)
+			ref ColliderReference kinematicColliders, float4x4 translateWithinPlayfieldMatrix, float margin)
 		{
 			var colliderGenerator = new DropTargetColliderGenerator(this, MainComponent, MainComponent);
 			colliderGenerator.GenerateColliders(MainComponent.PlayfieldHeight, ref colliders);

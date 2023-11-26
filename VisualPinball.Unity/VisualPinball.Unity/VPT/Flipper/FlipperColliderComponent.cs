@@ -164,11 +164,5 @@ namespace VisualPinball.Unity
 
 		float4x4 ICollidableNonTransformableComponent.TranslateWithinPlayfieldMatrix(float4x4 worldToPlayfield)
 			=> MainComponent.LocalToWorldPhysicsMatrix.LocalToWorldTranslateWithinPlayfield(worldToPlayfield);
-
-		void ICollidableNonTransformableComponent.GetColliders(Player player, ref ColliderReference colliders, ref ColliderReference kinematicColliders,
-			float4x4 translateWithinPlayfieldMatrix, float margin)
-		{
-			InstantiateColliderApi(player, null).CreateColliders(ref colliders, ref kinematicColliders, margin);
-		}
 	}
 }

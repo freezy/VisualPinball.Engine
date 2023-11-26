@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using System;
+using Unity.Mathematics;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using VisualPinball.Engine.VPT.Plunger;
@@ -143,7 +144,7 @@ namespace VisualPinball.Unity
 		#region Collider Generation
 
 		protected override void CreateColliders(ref ColliderReference colliders,
-			ref ColliderReference kinematicColliders, float margin)
+			ref ColliderReference kinematicColliders, float4x4 translateWithinPlayfieldMatrix, float margin)
 		{
 			colliders.Add(new PlungerCollider(MainComponent, ColliderComponent, GetColliderInfo()));
 		}

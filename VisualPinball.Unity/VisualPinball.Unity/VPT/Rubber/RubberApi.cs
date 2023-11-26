@@ -45,7 +45,7 @@ namespace VisualPinball.Unity
 		protected override float HitThreshold => 2.0f; // hard coded threshold for now
 
 		protected override void CreateColliders(ref ColliderReference colliders,
-			ref ColliderReference kinematicColliders, float margin)
+			ref ColliderReference kinematicColliders, float4x4 translateWithinPlayfieldMatrix, float margin)
 		{
 			var colliderGenerator = new RubberColliderGenerator(
 				this,
