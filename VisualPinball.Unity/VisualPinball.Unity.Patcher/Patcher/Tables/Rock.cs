@@ -257,9 +257,8 @@ namespace VisualPinball.Unity.Patcher
 			PatcherUtil.Reparent(go, parent);
 			PatcherUtil.Hide(go.GetComponentInChildren<FlipperRubberMeshComponent>().gameObject);
 
-			flipper.Position.x = 0;
-			flipper.Position.y = 0;
-			flipper._startAngle = 0;
+			flipper.Position = Vector2.zero;
+			flipper.StartAngle = 0;
 		}
 
 		[NameMatch("sw40")]
