@@ -43,15 +43,33 @@ namespace VisualPinball.Unity
 	{
 		#region Data
 
-		[Tooltip("Position of the flipper on the playfield.")]
-		public Vector2 Position;
+		public Vector2 Position {
+			get
+			{
+				var pos = transform.localPosition;
+				var posVpx = pos.TranslateToVpx();
+				return new Vector2(posVpx.x, posVpx.y);
+			}
+			set
+			{
+				var posVpx = new Vector3(value.x, value.y, 0);
+				var pos = posVpx.TranslateToWorld();
+				var t = transform;
+				t.localPosition = new Vector3(pos.x, t.localPosition.y, pos.z);
+			}
+		}
+
 		public float PosX => Position.x;
 		public float PosY => Position.y;
 
-		[Range(-180f, 180f)]
-		[Tooltip("Angle of the flipper in start position (not flipped)")]
-		public float _startAngle = 121.0f;
-		public float StartAngle => _startAngle;
+		public float StartAngle {
+			get => transform.localEulerAngles.y;
+			set {
+				var t = transform;
+				var e = t.localEulerAngles;
+				t.localEulerAngles = new Vector3(e.x, value, e.z);
+			}
+		}
 
 		[Range(-180f, 180f)]
 		[Tooltip("Angle of the flipper in end position (flipped)")]
@@ -172,7 +190,7 @@ namespace VisualPinball.Unity
 			//t.localPosition = Physics.TranslateToWorld(Position.x, Position.y, PositionZ);
 
 			// rotation
-			t.localEulerAngles = new Vector3(0, _startAngle, 0);
+			t.localEulerAngles = new Vector3(0, StartAngle, 0);
 		}
 
 		public float4x4 LocalToWorldPhysicsMatrix
@@ -191,7 +209,7 @@ namespace VisualPinball.Unity
 
 		public float RotateZ {
 			set {
-				_startAngle = _originalRotateZ + value;
+				StartAngle = _originalRotateZ + value;
 				_flipperApi.StartAngle = _originalRotateZ + value;
 				UpdateTransforms();
 			}
@@ -200,8 +218,7 @@ namespace VisualPinball.Unity
 		public float2 RotatedPosition {
 			get => new(Position.x, Position.y);
 			set {
-				Position.x = value.x;
-				Position.y = value.y;
+				Position = value;
 				UpdateTransforms();
 			}
 		}
@@ -216,7 +233,7 @@ namespace VisualPinball.Unity
 
 			// transforms
 			Position = data.Center.ToUnityVector2();
-			_startAngle = data.StartAngle > 180f ? data.StartAngle - 360f : data.StartAngle;
+			StartAngle = data.StartAngle > 180f ? data.StartAngle - 360f : data.StartAngle;
 
 			// geometry
 			_height = data.Height;
@@ -278,7 +295,7 @@ namespace VisualPinball.Unity
 			// name and transforms
 			data.Name = name;
 			data.Center = Position.ToVertex2D();
-			data.StartAngle = _startAngle;
+			data.StartAngle = StartAngle;
 			data.Surface = Surface != null ? Surface.name : string.Empty;
 
 			// geometry
@@ -323,7 +340,7 @@ namespace VisualPinball.Unity
 			var flipperComponent = go.GetComponent<FlipperComponent>();
 			if (flipperComponent != null) {
 				Position = flipperComponent.Position;
-				_startAngle = flipperComponent._startAngle;
+				StartAngle = flipperComponent.StartAngle;
 				EndAngle = flipperComponent.EndAngle;
 				Surface = flipperComponent.Surface;
 				IsDualWound = flipperComponent.IsDualWound;
@@ -354,8 +371,8 @@ namespace VisualPinball.Unity
 		public override void SetEditorPosition(Vector3 pos) => Position = ((float3)pos).xy;
 
 		public override ItemDataTransformType EditorRotationType => ItemDataTransformType.OneD;
-		public override Vector3 GetEditorRotation() => new Vector3(_startAngle, 0f, 0f);
-		public override void SetEditorRotation(Vector3 rot) => _startAngle = ClampDegrees(rot.x);
+		public override Vector3 GetEditorRotation() => new Vector3(StartAngle, 0f, 0f);
+		public override void SetEditorRotation(Vector3 rot) => StartAngle = ClampDegrees(rot.x);
 
 		public override ItemDataTransformType EditorScaleType => ItemDataTransformType.None;
 
@@ -386,7 +403,7 @@ namespace VisualPinball.Unity
 			// Draw arc arrow
 			List<Vector3> arrow = new List<Vector3>();
 			float start = -90F;
-			float end = -90F + EndAngle - _startAngle;
+			float end = -90F + EndAngle - StartAngle;
 			if (IsLeft) {
 				(start, end) = (end, start);
 			}
@@ -413,7 +430,7 @@ namespace VisualPinball.Unity
 
 		#region Flipper Correction
 
-		private bool IsLeft => EndAngle < _startAngle;
+		private bool IsLeft => EndAngle < StartAngle;
 
 		//! Add a circle arc on a given polygon (used for enclosing poygon)
 		public static void AddPolyArc(List<Vector3> poly, Vector3 center, float radius, float angleFrom, float angleTo, float stepSize = 1F, float height = 0f)
@@ -448,7 +465,7 @@ namespace VisualPinball.Unity
 
 		public List<Vector3> GetEnclosingPolygon(float margin = 0.0F, float stepSize = 5F, float height = 0f)
 		{
-			var swing = EndAngle - _startAngle;
+			var swing = EndAngle - StartAngle;
 			swing = Mathf.Abs(swing);
 
 			List<Vector3> ret = new List<Vector3>(); // TODO: caching
@@ -491,7 +508,7 @@ namespace VisualPinball.Unity
 
 		private void Awake()
 		{
-			_originalRotateZ = _startAngle;
+			_originalRotateZ = StartAngle;
 			var player = GetComponentInParent<Player>();
 			var physicsEngine = GetComponentInParent<PhysicsEngine>();
 			FlipperApi = new FlipperApi(gameObject, player, physicsEngine);
@@ -582,7 +599,7 @@ namespace VisualPinball.Unity
 
 			var endRadius = math.max(_endRadius, 0.01f); // radius of flipper end
 			flipperRadius = math.max(flipperRadius, 0.01f); // radius of flipper arc, center-to-center radius
-			var angleStart = math.radians(_startAngle);
+			var angleStart = math.radians(StartAngle);
 			var angleEnd = math.radians(EndAngle);
 
 			if (angleEnd == angleStart) {
@@ -683,7 +700,7 @@ namespace VisualPinball.Unity
 			// p = ta.transform.InverseTransformPoint(transform.TransformPoint(poly[i]))
 			// this is basically (ta.transform.worldToLocalMatrix * transform.localToWorldMatrix)
 			// but I couldn't get this transformation correctly from our current transforms.
-			// using Matrix4x4.Rotate(quaternion.Euler(new float3(0, 0, -_startAngle))) and transforming
+			// using Matrix4x4.Rotate(quaternion.Euler(new float3(0, 0, -StartAngle))) and transforming
 			// to localPos was close, but not close enough.
 			var flipperToPlayfield = new Matrix4x4(
 				new Vector4(-0.50754f, 0.86163f, 0, 0),
