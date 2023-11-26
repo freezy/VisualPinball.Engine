@@ -151,7 +151,11 @@ namespace VisualPinball.Unity
 				for (var i = 0; i < _contacts.Length; i++) {
 					ref var contact = ref _contacts.GetElementAsRef(i);
 					ref var ball = ref state.Balls.GetValueByRef(contact.BallId);
-					ContactPhysics.Update(ref contact, ref ball, ref state, hitTime);
+					if (contact.CollEvent.IsKinematic) {
+						ContactPhysics.Update(ref contact, ref ball, ref state, ref state.KinematicColliders, hitTime);
+					} else {
+						ContactPhysics.Update(ref contact, ref ball, ref state, ref state.Colliders, hitTime);
+					}
 				}
 				PerfMarkerContacts.End();
 
