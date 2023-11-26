@@ -17,6 +17,7 @@
 // ReSharper disable ForCanBeConvertedToForeach
 
 using Unity.Collections;
+using Unity.Mathematics;
 using Unity.Profiling;
 
 namespace VisualPinball.Unity
@@ -41,8 +42,26 @@ namespace VisualPinball.Unity
 					if (!state.IsColliderActive(ref colliders, overlappingColliderId)) {
 						continue;
 					}
+
+					float newTime;
 					var newCollEvent = new CollisionEventData();
-					var newTime = state.HitTest(ref colliders, overlappingColliderId, ref ball, ref newCollEvent, ref contacts);
+
+					if (state.HasNonTransformableColliderMatrix(overlappingColliderId, ref colliders)) {
+						ref var matrix = ref state.GetNonTransformableColliderMatrix(overlappingColliderId, ref colliders);
+						var ballTransformed = ball;
+						ballTransformed.Transform(math.inverse(matrix));
+
+						newTime = state.HitTest(ref colliders, overlappingColliderId, ref ballTransformed, ref newCollEvent, ref contacts);
+
+						if (newTime > 0) {
+							// transform hit normal back to world space
+							newCollEvent.Transform(matrix);
+						}
+
+					} else {
+						newTime = state.HitTest(ref colliders, overlappingColliderId, ref ball, ref newCollEvent, ref contacts);
+					}
+
 					SaveCollisions(ref ball, ref newCollEvent, ref contacts, overlappingColliderId, newTime, colliders.KinematicColliders);
 				}
 			}

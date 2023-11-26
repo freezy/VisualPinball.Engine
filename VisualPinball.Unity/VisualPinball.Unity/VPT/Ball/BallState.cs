@@ -154,7 +154,7 @@ namespace VisualPinball.Unity
 			//BallOrientationForUnity;
 
 			OldVelocity = matrix.MultiplyVector(OldVelocity);
-			//CollisionEvent.Transform(matrix);
+			CollisionEvent.Transform(matrix);
 		}
 	}
 }

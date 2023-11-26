@@ -45,6 +45,12 @@ namespace VisualPinball.Unity
 			if (CollidesWithItem(ref colliders, ref collHeader, ref ball, ref state)) {
 				return;
 			}
+
+			if (state.HasNonTransformableColliderMatrix(colliderId, ref colliders)) {
+				ref var matrix = ref state.GetNonTransformableColliderMatrix(colliderId, ref colliders);
+				ball.Transform(math.inverse(matrix));
+			}
+
 			switch (state.GetColliderType(ref colliders, colliderId)) {
 
 				case ColliderType.Circle:
@@ -91,25 +97,10 @@ namespace VisualPinball.Unity
 				case ColliderType.Flipper:
 					ref var flipperState = ref state.GetFlipperState(colliderId);
 					ref var flipperCollider = ref colliders.Flipper(colliderId);
-					ref var matrix = ref state.GetNonTransformableColliderMatrix(colliderId);
-					var matrixInv = math.inverse(matrix);
-
-					var ballTransformed = ball;
-					ballTransformed.Transform(matrixInv);
-
-					var colEventTransformed = ball.CollisionEvent;
-					colEventTransformed.Transform(matrixInv);
-
-					flipperCollider.Collide(ref ballTransformed, ref colEventTransformed, ref flipperState.Movement,
+					flipperCollider.Collide(ref ball, ref ball.CollisionEvent, ref flipperState.Movement,
 						ref state.EventQueue, in ball.Id, in flipperState.Tricks, in flipperState.Static,
 						in flipperState.Velocity, in flipperState.Hit, state.Env.TimeMsec
 					);
-
-					colEventTransformed.Transform(matrix);
-					ballTransformed.Transform(matrix);
-					ball = ballTransformed;
-					ball.CollisionEvent = colEventTransformed;
-
 					break;
 
 				case ColliderType.Gate:
@@ -145,6 +136,11 @@ namespace VisualPinball.Unity
 					KickerCollider.Collide(ref ball, ref state.EventQueue, ref state.InsideOfs, ref kickerState.Collision,
 						in kickerState.Static, in kickerState.CollisionMesh, in ball.CollisionEvent, collHeader.ItemId, false);
 					break;
+			}
+
+			if (state.HasNonTransformableColliderMatrix(colliderId, ref colliders)) {
+				ref var matrix = ref state.GetNonTransformableColliderMatrix(colliderId, ref colliders);
+				ball.Transform(matrix);
 			}
 
 			// remove trial hit object pointer

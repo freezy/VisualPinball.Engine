@@ -122,7 +122,8 @@ namespace VisualPinball.Unity
 
 		#region Transform
 
-		internal ref float4x4 GetNonTransformableColliderMatrix(int colliderId) => ref NonTransformableColliderMatrices.GetValueByRef(Colliders.GetItemId(colliderId));
+		internal bool HasNonTransformableColliderMatrix(int colliderId, ref NativeColliders colliders) => NonTransformableColliderMatrices.ContainsKey(colliders.GetItemId(colliderId));
+		internal ref float4x4 GetNonTransformableColliderMatrix(int colliderId, ref NativeColliders colliders) => ref NonTransformableColliderMatrices.GetValueByRef(colliders.GetItemId(colliderId));
 
 		internal void Transform(int colliderId, float4x4 matrix)
 		{
@@ -211,19 +212,8 @@ namespace VisualPinball.Unity
 				case ColliderType.Flipper:
 					ref var flipperState = ref GetFlipperState(colliderId);
 					ref var flipperCollider = ref colliders.Flipper(colliderId);
-					ref var matrix = ref GetNonTransformableColliderMatrix(colliderId);
-					var ballTransformed = ball;
-					ballTransformed.Transform(math.inverse(matrix));
-
-					var hitTime = flipperCollider.HitTest(ref newCollEvent, ref InsideOfs, ref flipperState.Hit,
-						in flipperState.Movement, in flipperState.Tricks, in flipperState.Static, in ballTransformed, ball.CollisionEvent.HitTime);
-
-					if (hitTime > 0) {
-						// transform hit normal back to world space
-						newCollEvent.Transform(matrix);
-					}
-
-					return hitTime;
+					return flipperCollider.HitTest(ref newCollEvent, ref InsideOfs, ref flipperState.Hit,
+						in flipperState.Movement, in flipperState.Tricks, in flipperState.Static, in ball, ball.CollisionEvent.HitTime);
 
 				case ColliderType.Plunger:
 					ref var plungerState = ref GetPlungerState(colliderId);
