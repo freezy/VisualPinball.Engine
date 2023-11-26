@@ -91,20 +91,22 @@ namespace VisualPinball.Unity
 				case ColliderType.Flipper:
 					ref var flipperState = ref state.GetFlipperState(colliderId);
 					ref var flipperCollider = ref colliders.Flipper(colliderId);
+					ref var matrix = ref state.GetNonTransformableColliderMatrix(colliderId);
+					var matrixInv = math.inverse(matrix);
 
 					var ballTransformed = ball;
-					ballTransformed.Transform(math.inverse(flipperCollider.Matrix));
+					ballTransformed.Transform(matrixInv);
 
 					var colEventTransformed = ball.CollisionEvent;
-					colEventTransformed.Transform(math.inverse(flipperCollider.Matrix));
+					colEventTransformed.Transform(matrixInv);
 
 					flipperCollider.Collide(ref ballTransformed, ref colEventTransformed, ref flipperState.Movement,
 						ref state.EventQueue, in ball.Id, in flipperState.Tricks, in flipperState.Static,
 						in flipperState.Velocity, in flipperState.Hit, state.Env.TimeMsec
 					);
 
-					colEventTransformed.Transform(flipperCollider.Matrix);
-					ballTransformed.Transform(flipperCollider.Matrix);
+					colEventTransformed.Transform(matrix);
+					ballTransformed.Transform(matrix);
 					ball = ballTransformed;
 					ball.CollisionEvent = colEventTransformed;
 

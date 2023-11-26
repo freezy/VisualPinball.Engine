@@ -222,7 +222,7 @@ namespace VisualPinball.Unity
 		#region Collider Generation
 
 		protected override void CreateColliders(ref ColliderReference colliders,
-			ref ColliderReference kinematicColliders, float margin)
+			ref ColliderReference kinematicColliders, float4x4 translateWithinPlayfieldMatrix, float margin)
 		{
 			var height = MainComponent.PositionZ;
 			var baseRadius = math.max(MainComponent.BaseRadius, 0.01f);
@@ -233,8 +233,6 @@ namespace VisualPinball.Unity
 				height + MainComponent.Height,
 				GetColliderInfo()
 			);
-			var playfield = MainComponent.GetComponentInParent<PlayfieldComponent>();
-			var worldToPlayfield = playfield ? playfield.transform.worldToLocalMatrix : Matrix4x4.identity;
 
 			// check which side we are at
 			var multiplicator = 0.0f;
@@ -253,7 +251,7 @@ namespace VisualPinball.Unity
 					MainComponent.StartAngle,
 					MainComponent.EndAngle + ColliderComponent.Overshoot * multiplicator,
 					GetColliderInfo(),
-					MainComponent.LocalToWorldPhysicsMatrix.LocalToWorldTranslateWithinPlayfield(worldToPlayfield)
+					translateWithinPlayfieldMatrix
 				)
 			);
 		}

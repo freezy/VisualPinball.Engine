@@ -24,7 +24,7 @@ using UnityEngine;
 
 namespace VisualPinball.Unity.Editor
 {
-	[CustomEditor(typeof(Transform))]
+	//[CustomEditor(typeof(Transform))]
 	[CanEditMultipleObjects]
 	public class TransformInspector : UnityEditor.Editor
 	{
@@ -258,12 +258,12 @@ namespace VisualPinball.Unity.Editor
 
 		private void HandleMoveTool()
 		{
-			var handlePos = _primaryItem.GetEditorPosition();
-			EditorGUI.BeginChangeCheck();
-			handlePos = HandlesUtils.HandlePosition(_transform.GetComponentInParent<PlayfieldComponent>(), handlePos, _primaryItem.EditorPositionType);
-			if (EditorGUI.EndChangeCheck()) {
-				FinishMove(handlePos);
-			}
+			// var handlePos = _primaryItem.GetEditorPosition();
+			// EditorGUI.BeginChangeCheck();
+			// handlePos = HandlesUtils.HandlePosition(_transform.GetComponentInParent<PlayfieldComponent>(), handlePos, _primaryItem.EditorPositionType);
+			// if (EditorGUI.EndChangeCheck()) {
+			// 	FinishMove(handlePos);
+			// }
 		}
 
 		private void HandleScaleTool()

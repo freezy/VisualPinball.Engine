@@ -30,6 +30,7 @@ namespace VisualPinball.Unity
 		internal NativeColliders KinematicColliders;
 		internal NativeColliders KinematicCollidersAtIdentity;
 		internal NativeParallelHashMap<int, float4x4> UpdatedKinematicTransforms; // transformations of the items, in vpx space.
+		internal NativeParallelHashMap<int, float4x4> NonTransformableColliderMatrices;
 		internal NativeParallelHashMap<int, NativeColliderIds> KinematicColliderLookups;
 
 		internal NativeQueue<EventData>.ParallelWriter EventQueue;
@@ -51,6 +52,7 @@ namespace VisualPinball.Unity
 		public PhysicsState(ref PhysicsEnv env, ref NativeOctree<int> octree, ref NativeColliders colliders,
 			ref NativeColliders kinematicColliders, ref NativeColliders kinematicCollidersAtIdentity,
 			ref NativeParallelHashMap<int, float4x4> updatedKinematicTransforms,
+			ref NativeParallelHashMap<int, float4x4> nonTransformableColliderMatrices,
 			ref NativeParallelHashMap<int, NativeColliderIds> kinematicColliderLookups, ref NativeQueue<EventData>.ParallelWriter eventQueue,
 			ref InsideOfs insideOfs, ref NativeParallelHashMap<int, BallState> balls,
 			ref NativeParallelHashMap<int, BumperState> bumperStates, ref NativeParallelHashMap<int, DropTargetState> dropTargetStates,
@@ -66,6 +68,7 @@ namespace VisualPinball.Unity
 			KinematicColliders = kinematicColliders;
 			KinematicCollidersAtIdentity = kinematicCollidersAtIdentity;
 			UpdatedKinematicTransforms = updatedKinematicTransforms;
+			NonTransformableColliderMatrices = nonTransformableColliderMatrices;
 			KinematicColliderLookups = kinematicColliderLookups;
 			EventQueue = eventQueue;
 			InsideOfs = insideOfs;
@@ -118,6 +121,8 @@ namespace VisualPinball.Unity
 		#endregion
 
 		#region Transform
+
+		internal ref float4x4 GetNonTransformableColliderMatrix(int colliderId) => ref NonTransformableColliderMatrices.GetValueByRef(Colliders.GetItemId(colliderId));
 
 		internal void Transform(int colliderId, float4x4 matrix)
 		{
@@ -206,15 +211,16 @@ namespace VisualPinball.Unity
 				case ColliderType.Flipper:
 					ref var flipperState = ref GetFlipperState(colliderId);
 					ref var flipperCollider = ref colliders.Flipper(colliderId);
+					ref var matrix = ref GetNonTransformableColliderMatrix(colliderId);
 					var ballTransformed = ball;
-					ballTransformed.Transform(math.inverse(flipperCollider.Matrix));
+					ballTransformed.Transform(math.inverse(matrix));
 
 					var hitTime = flipperCollider.HitTest(ref newCollEvent, ref InsideOfs, ref flipperState.Hit,
 						in flipperState.Movement, in flipperState.Tricks, in flipperState.Static, in ballTransformed, ball.CollisionEvent.HitTime);
 
 					if (hitTime > 0) {
 						// transform hit normal back to world space
-						newCollEvent.Transform(flipperCollider.Matrix);
+						newCollEvent.Transform(matrix);
 					}
 
 					return hitTime;

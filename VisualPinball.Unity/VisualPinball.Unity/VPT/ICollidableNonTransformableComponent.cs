@@ -27,7 +27,5 @@ namespace VisualPinball.Unity
 		/// <param name="worldToPlayfield">The playfield's worldToLocal matrix.</param>
 		/// <returns></returns>
 		internal float4x4 TranslateWithinPlayfieldMatrix(float4x4 worldToPlayfield);
-
-		internal void GetColliders(Player player, ref ColliderReference colliders, ref ColliderReference kinematicColliders, float4x4 translateWithinPlayfieldMatrix, float margin);
 	}
 }

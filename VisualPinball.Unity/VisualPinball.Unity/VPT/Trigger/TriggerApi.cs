@@ -16,6 +16,7 @@
 
 using System;
 using System.Collections.Generic;
+using Unity.Mathematics;
 using UnityEngine;
 using VisualPinball.Engine.VPT.Trigger;
 
@@ -64,7 +65,7 @@ namespace VisualPinball.Unity
 		protected override bool FireHitEvents => true;
 
 		protected override void CreateColliders(ref ColliderReference colliders,
-			ref ColliderReference kinematicColliders, float margin)
+			ref ColliderReference kinematicColliders, float4x4 translateWithinPlayfieldMatrix, float margin)
 		{
 			var meshComponent = GameObject.GetComponent<TriggerMeshComponent>();
 			var colliderGenerator = new TriggerColliderGenerator(this, MainComponent, ColliderComponent, meshComponent);

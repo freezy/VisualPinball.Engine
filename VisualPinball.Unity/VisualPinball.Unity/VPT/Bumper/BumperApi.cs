@@ -116,7 +116,7 @@ namespace VisualPinball.Unity
 		protected override float HitThreshold => ColliderComponent.Threshold;
 
 		protected override void CreateColliders(ref ColliderReference colliders,
-			ref ColliderReference kinematicColliders, float margin)
+			ref ColliderReference kinematicColliders, float4x4 translateWithinPlayfieldMatrix, float margin)
 		{
 			var matrix = MainComponent.transform.worldToLocalMatrix.WorldToLocalTranslateWithinPlayfield(Player.PlayfieldToWorldMatrix);
 			var height = MainComponent.PositionZ;

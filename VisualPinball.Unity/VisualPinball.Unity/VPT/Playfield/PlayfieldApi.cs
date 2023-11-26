@@ -30,7 +30,7 @@ namespace VisualPinball.Unity
 		#region Collider Generation
 
 		protected override void CreateColliders(ref ColliderReference colliders,
-			ref ColliderReference kinematicColliders, float margin)
+			ref ColliderReference kinematicColliders, float4x4 translateWithinPlayfieldMatrix, float margin)
 		{
 			var info = ((IApiColliderGenerator)this).GetColliderInfo();
 
