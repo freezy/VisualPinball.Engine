@@ -40,7 +40,7 @@ namespace VisualPinball.Unity
 					ref var flipperState = ref state.GetFlipperState(collEvent.ColliderId);
 					flipperCollider.Contact(ref ball, ref flipperState.Movement, in collEvent, in flipperState.Static, in flipperState.Velocity, hitTime, in gravity);
 				} else {
-					Collider.Contact(in collHeader, ref ball, in collEvent, hitTime, in state.Env.Gravity);
+					Collider.Contact(in collHeader, ref ball, in collEvent, hitTime, in gravity);
 				}
 
 				if (state.HasNonTransformableColliderMatrix(collEvent.ColliderId, ref colliders)) {
