@@ -68,7 +68,7 @@ namespace VisualPinball.Unity
 			ref ColliderReference kinematicColliders, float4x4 translateWithinPlayfieldMatrix, float margin)
 		{
 			var meshComponent = GameObject.GetComponent<TriggerMeshComponent>();
-			var colliderGenerator = new TriggerColliderGenerator(this, MainComponent, ColliderComponent, meshComponent);
+			var colliderGenerator = new TriggerColliderGenerator(this, MainComponent, ColliderComponent, meshComponent, GetTransformationWithinPlayfield());
 			colliderGenerator.GenerateColliders(ref colliders);
 		}
 

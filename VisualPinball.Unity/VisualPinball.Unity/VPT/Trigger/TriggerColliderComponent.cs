@@ -24,7 +24,7 @@ using VisualPinball.Engine.VPT.Trigger;
 namespace VisualPinball.Unity
 {
 	[AddComponentMenu("Visual Pinball/Collision/Trigger Collider")]
-	public class TriggerColliderComponent : ColliderComponent<TriggerData, TriggerComponent>
+	public class TriggerColliderComponent : ColliderComponent<TriggerData, TriggerComponent>, IKinematicColliderComponent
 	{
 		#region Data
 
@@ -48,10 +48,22 @@ namespace VisualPinball.Unity
 		[NonSerialized]
 		internal uint TimeThresholdMs;
 
+		[Tooltip("If set, transforming this object will transform the colliders as well.")]
+		public bool _isKinematic;
+
 		#endregion
 
 		public override PhysicsMaterialData PhysicsMaterialData => GetPhysicsMaterialData();
 		protected override IApiColliderGenerator InstantiateColliderApi(Player player, PhysicsEngine physicsEngine)
 			=> MainComponent.TriggerApi ?? new TriggerApi(gameObject, player, physicsEngine);
+
+
+		#region IKinematicColliderComponent
+
+		public bool IsKinematic => _isKinematic;
+		public int ItemId => MainComponent.gameObject.GetInstanceID();
+		public float4x4 TransformationWithinPlayfield => MainComponent.TransformationMatrix;
+
+		#endregion
 	}
 }
