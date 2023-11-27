@@ -179,6 +179,7 @@ namespace VisualPinball.Unity
 						}
 
 						if (ShowAabbs) {
+						Gizmos.matrix = playfieldToWorld * (Matrix4x4)Physics.VpxToWorld;
 							for (var i = 0; i < colliders.Count; i++) {
 								var col = colliders[i];
 								DrawAabb(col.Bounds.Aabb, i == SelectedCollider);
@@ -215,6 +216,9 @@ namespace VisualPinball.Unity
 			}
 
 			if (showColliders) {
+
+				Gizmos.matrix = playfieldToWorld * (Matrix4x4)Physics.VpxToWorld * (Matrix4x4)translateFullyWithinPlayfieldMatrix;
+				Handles.matrix = Gizmos.matrix;
 
 				var color = Application.isPlaying && IsKinematic
 					? Color.magenta

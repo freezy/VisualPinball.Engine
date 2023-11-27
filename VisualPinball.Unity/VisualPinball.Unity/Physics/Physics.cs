@@ -89,6 +89,9 @@ namespace VisualPinball.Unity
 				),
 			VpxToWorld);
 
+		public static float4x4 LocalToWorldTranslateWithinPlayfield(this Matrix4x4 localToWorldMatrix, float4x4 worldToPlayfield)
+			=> LocalToWorldTranslateWithinPlayfield((float4x4)localToWorldMatrix, worldToPlayfield);
+
 		public static float4x4 LocalToWorldTranslateWithinPlayfield(this float4x4 localToWorldMatrix, float4x4 worldToPlayfield)
 			=> math.mul(
 				math.mul(WorldToVpx,
