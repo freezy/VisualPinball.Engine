@@ -38,17 +38,34 @@ namespace VisualPinball.Unity
 			}
 		}
 
+		private static void TransformBallIntoColliderSpace(ref NativeColliders colliders, ref BallState ball, ref PhysicsState state, int colliderId)
+		{
+			if (!state.HasNonTransformableColliderMatrix(colliderId, ref colliders)) {
+				return;
+			}
+			ref var matrix = ref state.GetNonTransformableColliderMatrix(colliderId, ref colliders);
+			ball.Transform(math.inverse(matrix));
+		}
+
+		private static void TransformBallFromColliderSpace(ref NativeColliders colliders, ref BallState ball, ref PhysicsState state, int colliderId)
+		{
+			if (!state.HasNonTransformableColliderMatrix(colliderId, ref colliders)) {
+				return;
+			}
+			ref var matrix = ref state.GetNonTransformableColliderMatrix(colliderId, ref colliders);
+			ball.Transform(matrix);
+		}
+
 		private static void Collide(ref NativeColliders colliders, ref BallState ball, ref PhysicsState state)
 		{
 			var colliderId = ball.CollisionEvent.ColliderId;
 			var collHeader = state.GetColliderHeader(ref colliders, colliderId);
-			if (CollidesWithItem(ref colliders, ref collHeader, ref ball, ref state)) {
-				return;
-			}
 
-			if (state.HasNonTransformableColliderMatrix(colliderId, ref colliders)) {
-				ref var matrix = ref state.GetNonTransformableColliderMatrix(colliderId, ref colliders);
-				ball.Transform(math.inverse(matrix));
+			TransformBallIntoColliderSpace(ref colliders, ref ball, ref state, colliderId);
+
+			if (CollidesWithItem(ref colliders, ref collHeader, ref ball, ref state)) {
+				TransformBallFromColliderSpace(ref colliders, ref ball, ref state, colliderId);
+				return;
 			}
 
 			switch (state.GetColliderType(ref colliders, colliderId)) {
@@ -138,10 +155,7 @@ namespace VisualPinball.Unity
 					break;
 			}
 
-			if (state.HasNonTransformableColliderMatrix(colliderId, ref colliders)) {
-				ref var matrix = ref state.GetNonTransformableColliderMatrix(colliderId, ref colliders);
-				ball.Transform(matrix);
-			}
+			TransformBallFromColliderSpace(ref colliders, ref ball, ref state, colliderId);
 
 			// remove trial hit object pointer
 			ball.CollisionEvent.ClearCollider();
