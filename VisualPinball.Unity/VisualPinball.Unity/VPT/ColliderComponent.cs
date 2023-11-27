@@ -134,13 +134,19 @@ namespace VisualPinball.Unity
 				Profiler.EndSample();
 				return;
 			}
-			var ltw = GetComponentInParent<PlayfieldComponent>().transform.localToWorldMatrix;
-			Gizmos.matrix = ltw * (Matrix4x4)Physics.VpxToWorld;
-			Handles.matrix = Gizmos.matrix;
+			var playfieldToWorld = GetComponentInParent<PlayfieldComponent>().transform.localToWorldMatrix;
 
+			// todo optimize
 			var translateWithinPlayfieldMatrix = this is ICollidableNonTransformableComponent nonTransformableColliderItem
-				? nonTransformableColliderItem.TranslateWithinPlayfieldMatrix(math.inverse(ltw))
+				? nonTransformableColliderItem.TranslateWithinPlayfieldMatrix(math.inverse(playfieldToWorld))
 				: float4x4.identity;
+
+			var translateFullyWithinPlayfieldMatrix = this is ICollidableNonTransformableComponent
+				? ((float4x4)MainComponent.transform.localToWorldMatrix).LocalToWorldTranslateWithinPlayfield(math.inverse(playfieldToWorld))
+				: float4x4.identity;
+
+			Gizmos.matrix = playfieldToWorld * (Matrix4x4)Physics.VpxToWorld * (Matrix4x4)translateFullyWithinPlayfieldMatrix;
+			Handles.matrix = Gizmos.matrix;
 
 			var generateColliders = ShowAabbs || showColliders && !HasCachedColliders;
 			if (generateColliders) {
@@ -513,15 +519,16 @@ namespace VisualPinball.Unity
 				return;
 			}
 
-			var t = transform;
-			var ltp = Matrix4x4.TRS(t.localPosition.TranslateToVpx(), quaternion.Euler(0, 0, math.radians(flipperComponent.StartAngle)), t.localScale);
+//			var t = transform;
+//			var ltp = Matrix4x4.TRS(t.localPosition.TranslateToVpx(), quaternion.Euler(0, 0, math.radians(flipperComponent.StartAngle)), t.localScale);
 			var startIdx = vertices.Count;
-			var mesh = new FlipperMeshGenerator(flipperComponent)
-				.GetMesh(FlipperMeshGenerator.Rubber, 0, 0.01f);
+			var mesh = new FlipperMeshGenerator(flipperComponent).GetMesh(FlipperMeshGenerator.Rubber, 0, 0.01f);
 			for (var i = 0; i < mesh.Vertices.Length; i++) {
 				var vertex = mesh.Vertices[i];
-				vertices.Add(ltp.MultiplyPoint(vertex.ToUnityFloat3()));
-				normals.Add(ltp.MultiplyPoint(vertex.ToUnityNormalVector3()));
+				// vertices.Add(ltp.MultiplyPoint(vertex.ToUnityFloat3()));
+				// normals.Add(ltp.MultiplyVector(vertex.ToUnityNormalVector3()));
+				vertices.Add(vertex.ToUnityFloat3());
+				normals.Add(vertex.ToUnityNormalVector3());
 			}
 			indices.AddRange(mesh.Indices.Select(n => startIdx + n));
 		}
