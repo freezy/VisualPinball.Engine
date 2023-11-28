@@ -29,12 +29,10 @@ namespace VisualPinball.Unity
 		public float3 Velocity;
 		public bool IsFrozen;
 
-
 		internal BallState CreateState()
 		{
 			var pos = transform.localPosition.TranslateToVpx();
-			return new BallState
-			{
+			return new BallState {
 				Id = Id,
 				IsFrozen = IsFrozen,
 				Position = new float3(pos.x, pos.y, math.round(pos.z*100000) / 100000),
@@ -47,5 +45,42 @@ namespace VisualPinball.Unity
 				AngularMomentum = float3.zero
 			};
 		}
+
+#if UNITY_EDITOR
+		private PhysicsEngine _physicsEngine;
+		private float4x4 _playfieldToWorld;
+
+		private void Awake()
+		{
+			_physicsEngine = GetComponentInParent<PhysicsEngine>();
+			_playfieldToWorld = GetComponentInParent<PlayfieldComponent>().transform.localToWorldMatrix;
+			UnityEditor.SceneView.duringSceneGui += DrawPhysicsDebug;
+		}
+
+		private void OnDestroy()
+		{
+			UnityEditor.SceneView.duringSceneGui -= DrawPhysicsDebug;
+		}
+
+		private void DrawPhysicsDebug(UnityEditor.SceneView sceneView)
+		{
+			ref var ballState = ref _physicsEngine.BallState(Id);
+			DrawArrow(
+				_playfieldToWorld.MultiplyPoint(ballState.Position.TranslateToWorld()),
+				_playfieldToWorld.MultiplyVector((ballState.Velocity * 10).TranslateToWorld()),
+				Color.white,
+				0.01f
+			);
+		}
+
+		private static void DrawArrow(Vector3 pos, Vector3 direction, Color color, float arrowHeadLength = 0.025f, float arrowHeadAngle = 20.0f)
+		{
+			Debug.DrawRay(pos, direction);
+			var right = Quaternion.LookRotation(direction) * Quaternion.Euler(0,180+arrowHeadAngle,0) * new Vector3(0,0,1);
+			var left = Quaternion.LookRotation(direction) * Quaternion.Euler(0,180-arrowHeadAngle,0) * new Vector3(0,0,1);
+			Debug.DrawRay(pos + direction, right * arrowHeadLength, color);
+			Debug.DrawRay(pos + direction, left * arrowHeadLength, color);
+		}
+#endif
 	}
 }
