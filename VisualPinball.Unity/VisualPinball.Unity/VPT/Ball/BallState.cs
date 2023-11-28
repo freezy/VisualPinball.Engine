@@ -18,7 +18,7 @@ using Unity.Mathematics;
 
 namespace VisualPinball.Unity
 {
-	internal struct BallState
+	public struct BallState
 	{
 		public int Id;
 		public float3 Position;
