@@ -914,5 +914,7 @@ namespace VisualPinball.Unity
 		}
 
 		#endregion
+
+		public override string ToString() => $"FlipperCollider[{Header.ItemId}] ({_hitCircleBase.Center.x}/{_hitCircleBase.Center.y}) {_zLow} -> {_zHigh}";
 	}
 }

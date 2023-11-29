@@ -172,5 +172,7 @@ namespace VisualPinball.Unity
 
 			return this;
 		}
+
+		public override string ToString() => $"LineZCollider[{Header.ItemId}] ({XY.x}/{XY.y}) {_zLow} -> {_zHigh}";
 	}
 }
