@@ -236,5 +236,7 @@ namespace VisualPinball.Unity
 			Transform(this, matrix);
 			return this;
 		}
+
+		public override string ToString() => $"CircleCollider[{Header.ItemId}] ({Center.x}/{Center.y}) {_zLow} -> {_zHigh}";
 	}
 }

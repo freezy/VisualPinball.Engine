@@ -136,5 +136,7 @@ namespace VisualPinball.Unity
 			Transform(this, matrix);
 			return this;
 		}
+
+		public override string ToString() => $"SpinnerCollider[{Header.ItemId}] {LineSeg0.ToString()} | {LineSeg1.ToString()}";
 	}
 }

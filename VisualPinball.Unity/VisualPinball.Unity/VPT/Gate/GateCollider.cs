@@ -123,5 +123,8 @@ namespace VisualPinball.Unity
 		}
 
 		#endregion
+
+		public override string ToString() => $"GateCollider[{Header.ItemId}] {LineSeg0.ToString()} | {LineSeg1.ToString()}";
+
 	}
 }

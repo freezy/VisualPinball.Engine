@@ -314,5 +314,7 @@ namespace VisualPinball.Unity
 		}
 
 		#endregion
+
+		public override string ToString() => $"LineSlingshotCollider[{Header.ItemId}] {LineSegBase.ToString()} | {JointBase0.ToString()} | {JointBase1.ToString()}";
 	}
 }
