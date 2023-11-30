@@ -43,7 +43,7 @@ namespace VisualPinball.Unity
 			}
 		}
 
-		public static void RotationAroundAxis(this float3x3 m, float3 axis, float rSin, float rCos)
+		public static void RotationAroundAxis(ref this float3x3 m, float3 axis, float rSin, float rCos)
 		{
 			m.c0.x = axis.x * axis.x + rCos * (1.0f - axis.x * axis.x);
 			m.c0.y = axis.x * axis.y * (1.0f - rCos) - axis.z * rSin;
