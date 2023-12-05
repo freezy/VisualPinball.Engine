@@ -144,7 +144,6 @@ namespace VisualPinball.Unity
 					break;
 
 				case ColliderType.TriggerCircle:
-				case ColliderType.TriggerLine:
 					TriggerCollide(ref ball, ref state, in collHeader);
 					break;
 

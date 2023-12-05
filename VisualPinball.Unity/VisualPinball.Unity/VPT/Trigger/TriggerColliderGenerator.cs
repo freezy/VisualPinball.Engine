@@ -81,7 +81,7 @@ namespace VisualPinball.Unity
 
 		private void AddLineSeg(float2 pv1, float2 pv2, float height, ref ColliderReference colliders) {
 			colliders.AddLine(pv1, pv2, height, height + math.max(_colliderComponent.HitHeight - 8.0f, 0f),
-				_api.GetColliderInfo(), _matrix, ColliderType.TriggerLine);
+				_api.GetColliderInfo(), _matrix);
 		}
 	}
 }

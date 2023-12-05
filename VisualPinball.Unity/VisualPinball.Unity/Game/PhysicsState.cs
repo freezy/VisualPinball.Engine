@@ -174,6 +174,11 @@ namespace VisualPinball.Unity
 						ball.CollisionEvent.HitTime);
 
 				case ColliderType.Line:
+					ref var lineCollider = ref colliders.Line(colliderId);
+					if (lineCollider.ItemType == ItemType.Trigger) {
+						return colliders.Line(colliderId).HitTestBasic(ref newCollEvent, ref InsideOfs, in ball,
+							ball.CollisionEvent.HitTime, false, false, false);
+					}
 					return colliders.Line(colliderId).HitTest(ref newCollEvent, ref InsideOfs, in ball,
 						ball.CollisionEvent.HitTime);
 
@@ -203,10 +208,6 @@ namespace VisualPinball.Unity
 				case ColliderType.KickerCircle:
 				case ColliderType.TriggerCircle:
 					return colliders.Circle(colliderId).HitTestBasicRadius(ref newCollEvent, ref InsideOfs, in ball,
-						ball.CollisionEvent.HitTime, false, false, false);
-
-				case ColliderType.TriggerLine:
-					return colliders.Line(colliderId).HitTestBasic(ref newCollEvent, ref InsideOfs, in ball,
 						ball.CollisionEvent.HitTime, false, false, false);
 
 				case ColliderType.Flipper:

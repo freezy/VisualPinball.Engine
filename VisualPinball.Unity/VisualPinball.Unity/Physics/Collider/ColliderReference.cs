@@ -293,10 +293,10 @@ namespace VisualPinball.Unity
 			} else {
 				Add(new LineZCollider(xy, zLow, zHigh, info).Transform(matrix));
 			}
-
 		}
 
-		internal void AddLine(float2 v1, float2 v2, float zLow, float zHigh, ColliderInfo info, float4x4 matrix, ColliderType type = ColliderType.Line)
+		internal void AddLine(float2 v1, float2 v2, float zLow, float zHigh, ColliderInfo info, float4x4 matrix
+		)
 		{
 			if (KinematicColliders || !matrix.IsPureTranslationMatrix()) {
 				var p1 = new float3(v1.xy, zLow);
@@ -308,7 +308,7 @@ namespace VisualPinball.Unity
 				Add(new TriangleCollider(p3, p4, p2, info).Transform(matrix));
 
 			} else {
-				Add(new LineCollider(v1, v2, zLow, zHigh, info, type).Transform(matrix));
+				Add(new LineCollider(v1, v2, zLow, zHigh, info).Transform(matrix));
 			}
 		}
 
