@@ -32,19 +32,13 @@ namespace VisualPinball.Unity
 
 		public float3 P;
 
-		public ColliderBounds Bounds => new ColliderBounds(Header.ItemId, Header.Id, new Aabb(
-			P.x,
-			P.x,
-			P.y,
-			P.y,
-			P.z,
-			P.z
-		));
+		public ColliderBounds Bounds { get; private set; }
 
 		public PointCollider(float3 p, ColliderInfo info) : this()
 		{
 			Header.Init(info, ColliderType.Point);
 			P = p;
+			Bounds = new ColliderBounds(Header.ItemId, Header.Id, new Aabb(P, P));
 		}
 
 		#region Narrowphase
@@ -143,11 +137,19 @@ namespace VisualPinball.Unity
 		public void Transform(PointCollider point, float4x4 matrix)
 		{
 			P = matrix.MultiplyPoint(point.P);
+			Bounds = new ColliderBounds(Header.ItemId, Header.Id, new Aabb(P, P));
 		}
 
 		public PointCollider Transform(float4x4 matrix)
 		{
 			Transform(this, matrix);
+			return this;
+		}
+
+		public PointCollider TransformAabb(float4x4 matrix)
+		{
+			var p = matrix.MultiplyPoint(P);
+			Bounds = new ColliderBounds(Header.ItemId, Header.Id, new Aabb(p, p));
 			return this;
 		}
 	}

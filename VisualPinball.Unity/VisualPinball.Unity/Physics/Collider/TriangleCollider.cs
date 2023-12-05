@@ -40,14 +40,7 @@ namespace VisualPinball.Unity
 		
 		public override string ToString() => $"TriangleCollider[{Header.ItemId}] ({Rgv0.x}/{Rgv0.y}/{Rgv0.z}), ({Rgv1.x}/{Rgv1.y}/{Rgv1.z}), ({Rgv2.x}/{Rgv2.y}/{Rgv2.z}) at ({_normal.x}/{_normal.y/_normal.z})";
 
-		public ColliderBounds Bounds => new ColliderBounds(Header.ItemId, Header.Id, new Aabb(
-			math.min(Rgv0.x, math.min(Rgv1.x, Rgv2.x)),
-			math.max(Rgv0.x, math.max(Rgv1.x, Rgv2.x)),
-			math.min(Rgv0.y, math.min(Rgv1.y, Rgv2.y)),
-			math.max(Rgv0.y, math.max(Rgv1.y, Rgv2.y)),
-			math.min(Rgv0.z, math.min(Rgv1.z, Rgv2.z)),
-			math.max(Rgv0.z, math.max(Rgv1.z, Rgv2.z))
-		));
+		public ColliderBounds Bounds { get; private set; }
 
 		public TriangleCollider(float3 rgv0, float3 rgv1, float3 rgv2, ColliderInfo info) : this()
 		{
@@ -55,6 +48,7 @@ namespace VisualPinball.Unity
 			Rgv0 = rgv0;
 			Rgv1 = rgv1;
 			Rgv2 = rgv2;
+			CalculateBounds();
 
 			var e0 = rgv2 - rgv0;
 			var e1 = rgv1 - rgv0;
@@ -189,12 +183,39 @@ namespace VisualPinball.Unity
 			Rgv1 = math.mul(matrix, new float4(triangle.Rgv1, 1f)).xyz;
 			Rgv2 = math.mul(matrix, new float4(triangle.Rgv2, 1f)).xyz;
 			_normal = math.normalizesafe(math.cross(Rgv2 - Rgv0, Rgv1 - Rgv0));
+			CalculateBounds();
 		}
 
 		public TriangleCollider Transform(float4x4 matrix)
 		{
 			Transform(this, matrix);
 			return this;
+		}
+
+		public TriangleCollider TransformAabb(float4x4 matrix)
+		{
+			var p1 = matrix.MultiplyPoint(Rgv0);
+			var p2 = matrix.MultiplyPoint(Rgv1);
+			var p3 = matrix.MultiplyPoint(Rgv2);
+
+			var min = math.min(p1, math.min(p2, p3));
+			var max = math.max(p1, math.max(p2, p3));
+
+			Bounds = new ColliderBounds(Header.ItemId, Header.Id, new Aabb(min, max));
+
+			return this;
+		}
+
+		private void CalculateBounds()
+		{
+			Bounds = new ColliderBounds(Header.ItemId, Header.Id, new Aabb(
+				math.min(Rgv0.x, math.min(Rgv1.x, Rgv2.x)),
+				math.max(Rgv0.x, math.max(Rgv1.x, Rgv2.x)),
+				math.min(Rgv0.y, math.min(Rgv1.y, Rgv2.y)),
+				math.max(Rgv0.y, math.max(Rgv1.y, Rgv2.y)),
+				math.min(Rgv0.z, math.min(Rgv1.z, Rgv2.z)),
+				math.max(Rgv0.z, math.max(Rgv1.z, Rgv2.z))
+			));
 		}
 	}
 }

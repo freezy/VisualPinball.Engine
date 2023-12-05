@@ -23,7 +23,7 @@ using VisualPinball.Engine.VPT.Surface;
 namespace VisualPinball.Unity
 {
 	[AddComponentMenu("Visual Pinball/Collision/Surface Collider")]
-	public class SurfaceColliderComponent : ColliderComponent<SurfaceData, SurfaceComponent>, IKinematicColliderComponent
+	public class SurfaceColliderComponent : ColliderComponent<SurfaceData, SurfaceComponent>, IKinematicColliderComponent, ICollidableNonTransformableComponent
 	{
 		#region Data
 
@@ -77,6 +77,10 @@ namespace VisualPinball.Unity
 
 		public bool IsKinematic => _isKinematic;
 		public int ItemId => MainComponent.gameObject.GetInstanceID();
+
+		float4x4 ICollidableNonTransformableComponent.TranslateWithinPlayfieldMatrix(float4x4 worldToPlayfield)
+			=> MainComponent.transform.localToWorldMatrix.LocalToWorldTranslateWithinPlayfield(worldToPlayfield);
+
 		public float4x4 TransformationWithinPlayfield => MainComponent.TransformationWithinPlayfield;
 
 		#endregion

@@ -42,19 +42,23 @@ namespace VisualPinball.Unity
 		internal ItemType ItemType => Header.ItemType;
 		private int ItemId => Header.ItemId;
 
-		public float V1y { set => V1.y = value; }
-		public float V2y { set => V2.y = value; }
-		
+		public float V1y {
+			set {
+				V1.y = value;
+				CalculateBounds();
+			}
+		}
+
+		public float V2y {
+			set {
+				V2.y = value;
+				CalculateBounds();
+			}
+		}
+
 		public override string ToString() => $"LineCollider[{Header.ItemId}] ({V1.x}/{V1.y}@{ZLow}) -> ({V2.x}/{V2.y}@{ZHigh}) at ({Normal.x}/{Normal.y}), len: {_length}";
 
-		public ColliderBounds Bounds => new ColliderBounds(Header.ItemId, Header.Id, new Aabb(
-			math.min(V1.x, V2.x),
-			math.max(V1.x, V2.x),
-			math.min(V1.y, V2.y),
-			math.max(V1.y, V2.y),
-			ZLow,
-			ZHigh
-		));
+		public ColliderBounds Bounds { get; private set; }
 
 		public LineCollider(float2 v1, float2 v2, float zLow, float zHigh, ColliderInfo info) : this()
 		{
@@ -64,6 +68,7 @@ namespace VisualPinball.Unity
 			ZLow = zLow;
 			ZHigh = zHigh;
 			CalcNormal();
+			CalculateBounds();
 		}
 
 		public void CalcNormal()
@@ -240,8 +245,36 @@ namespace VisualPinball.Unity
 			ZHigh += t.z;
 
 			CalcNormal();
+			CalculateBounds();
 
 			return this;
+		}
+
+		public LineCollider TransformAabb(float4x4 matrix)
+		{
+			var p1 = matrix.MultiplyPoint(new float3(V1, ZLow));
+			var p2 = matrix.MultiplyPoint(new float3(V1, ZHigh));
+			var p3 = matrix.MultiplyPoint(new float3(V2, ZLow));
+			var p4 = matrix.MultiplyPoint(new float3(V2, ZHigh));
+
+			var min = math.min(p1, math.min(p2, math.min(p3, p4)));
+			var max = math.max(p1, math.max(p2, math.max(p3, p4)));
+
+			Bounds = new ColliderBounds(Header.ItemId, Header.Id, new Aabb(min, max));
+
+			return this;
+		}
+
+		private void CalculateBounds()
+		{
+			Bounds = new ColliderBounds(Header.ItemId, Header.Id, new Aabb(
+				math.min(V1.x, V2.x),
+				math.max(V1.x, V2.x),
+				math.min(V1.y, V2.y),
+				math.max(V1.y, V2.y),
+				ZLow,
+				ZHigh
+			));
 		}
 	}
 }

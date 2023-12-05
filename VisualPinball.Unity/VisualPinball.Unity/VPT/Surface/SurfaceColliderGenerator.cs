@@ -61,10 +61,10 @@ namespace VisualPinball.Unity
 				GenerateLinePolys(pv2, pv3, playfieldHeight, ref colliders);
 			}
 
-			ColliderUtils.Generate3DPolyColliders(in rgv3Dt, _api.GetColliderInfo(), ref colliders, _matrix);
+			ColliderUtils.Generate3DPolyColliders(in rgv3Dt, _api.GetColliderInfo(), ref colliders, _matrix, true);
 
 			if (rgv3Db != null) {
-				ColliderUtils.Generate3DPolyColliders(in rgv3Db, _api.GetColliderInfo(), ref colliders, _matrix);
+				ColliderUtils.Generate3DPolyColliders(in rgv3Db, _api.GetColliderInfo(), ref colliders, _matrix, true);
 			}
 		}
 
@@ -77,7 +77,7 @@ namespace VisualPinball.Unity
 			var top = _component.HeightTop + playfieldHeight;
 
 			if (!pv1.IsSlingshot) {
-				colliders.AddLine(pv1.ToUnityFloat2(), pv2.ToUnityFloat2(), bottom, top, _api.GetColliderInfo(), _matrix);
+				colliders.AddNonTransformableLine(pv1.ToUnityFloat2(), pv2.ToUnityFloat2(), bottom, top, _api.GetColliderInfo(), _matrix);
 
 			} else {
 				// todo
@@ -86,21 +86,21 @@ namespace VisualPinball.Unity
 
 			if (_component.HeightBottom != 0) {
 				// add lower edge as a line
-				colliders.Add(new Line3DCollider(new float3(pv1.X, pv1.Y, bottom), new float3(pv2.X, pv2.Y, bottom), _api.GetColliderInfo()), _matrix);
+				colliders.AddNonTransformable(new Line3DCollider(new float3(pv1.X, pv1.Y, bottom), new float3(pv2.X, pv2.Y, bottom), _api.GetColliderInfo()), _matrix);
 			}
 
 			// add upper edge as a line
-			colliders.Add(new Line3DCollider(new float3(pv1.X, pv1.Y, top), new float3(pv2.X, pv2.Y, top), _api.GetColliderInfo()), _matrix);
+			colliders.AddNonTransformable(new Line3DCollider(new float3(pv1.X, pv1.Y, top), new float3(pv2.X, pv2.Y, top), _api.GetColliderInfo()), _matrix);
 
 			// create vertical joint between the two line segments
-			colliders.AddLineZ(pv1.ToUnityFloat2(), bottom, top, _api.GetColliderInfo(), _matrix);
+			colliders.AddNonTransformableLineZ(pv1.ToUnityFloat2(), bottom, top, _api.GetColliderInfo(), _matrix);
 
 			// add upper and lower end points of line
 			if (_component.HeightBottom != 0) {
-				colliders.Add(new PointCollider(new float3(pv1.X, pv1.Y, bottom), _api.GetColliderInfo()), _matrix);
+				colliders.AddNonTransformable(new PointCollider(new float3(pv1.X, pv1.Y, bottom), _api.GetColliderInfo()), _matrix);
 			}
 
-			colliders.Add(new PointCollider(new float3(pv1.X, pv1.Y, top), _api.GetColliderInfo()), _matrix);
+			colliders.AddNonTransformable(new PointCollider(new float3(pv1.X, pv1.Y, top), _api.GetColliderInfo()), _matrix);
 		}
 	}
 }

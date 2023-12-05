@@ -34,16 +34,14 @@ namespace VisualPinball.Unity
 		private float _zLow;
 		private float _zHigh;
 
-		public float XyY { set => XY.y = value; }
+		public float XyY {
+			set {
+				XY.y = value;
+				CalculateBounds();
+			}
+		}
 
-		public ColliderBounds Bounds => new ColliderBounds(Header.ItemId, Header.Id, new Aabb (
-			XY.x,
-			XY.x,
-			XY.y,
-			XY.y,
-			_zLow,
-			_zHigh
-		));
+		public ColliderBounds Bounds { get; private set; }
 
 		public LineZCollider(float2 xy, float zLow, float zHigh, ColliderInfo info) : this()
 		{
@@ -51,6 +49,7 @@ namespace VisualPinball.Unity
 			XY = xy;
 			_zLow = zLow;
 			_zHigh = zHigh;
+			CalculateBounds();
 		}
 
 		#region Narrowphase
@@ -169,8 +168,31 @@ namespace VisualPinball.Unity
 			XY += t.xy;
 			_zLow += t.z;
 			_zHigh += t.z;
+			CalculateBounds();
 
 			return this;
+		}
+
+		public LineZCollider TransformAabb(float4x4 matrix)
+		{
+			var p1 = matrix.MultiplyPoint(new float3(XY, _zLow));
+			var p2 = matrix.MultiplyPoint(new float3(XY, _zHigh));
+
+			Bounds = new ColliderBounds(Header.ItemId, Header.Id, new Aabb(math.min(p1, p2), math.max(p1, p2)));
+
+			return this;
+		}
+
+		private void CalculateBounds()
+		{
+			Bounds = new ColliderBounds(Header.ItemId, Header.Id, new Aabb (
+				XY.x,
+				XY.x,
+				XY.y,
+				XY.y,
+				_zLow,
+				_zHigh
+			));
 		}
 
 		public override string ToString() => $"LineZCollider[{Header.ItemId}] ({XY.x}/{XY.y}) {_zLow} -> {_zHigh}";

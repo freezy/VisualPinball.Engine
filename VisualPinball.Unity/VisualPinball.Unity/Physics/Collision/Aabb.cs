@@ -50,9 +50,18 @@ namespace VisualPinball.Unity
 			Right = right;
 			Top = top;
 			Bottom = bottom;
-			ZLow = 0;
 			ZLow = zLow;
 			ZHigh = zHigh;
+		}
+
+		public Aabb(float3 min, float3 max)
+		{
+			Left = min.x;
+			Right = max.x;
+			Top = min.y;
+			Bottom = max.y;
+			ZLow = min.z;
+			ZHigh = max.z;
 		}
 
 		public void Clear()
