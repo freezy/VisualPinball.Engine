@@ -196,6 +196,7 @@ namespace VisualPinball.Unity
 			return collider.Id;
 		}
 
+		internal int AddNonTransformable(Line3DCollider collider, float4x4 matrix) => Add(collider.TransformAabb(matrix));
 		internal int Add(Line3DCollider collider, float4x4 matrix) => Add(collider.Transform(matrix));
 
 		internal int Add(Line3DCollider collider)
@@ -243,6 +244,7 @@ namespace VisualPinball.Unity
 			return collider.Id;
 		}
 
+		internal int AddNonTransformable(PointCollider collider, float4x4 matrix) => Add(collider.TransformAabb(matrix));
 		internal int Add(PointCollider collider, float4x4 matrix) => Add(collider.Transform(matrix));
 		internal int Add(PointCollider collider)
 		{
@@ -263,6 +265,7 @@ namespace VisualPinball.Unity
 			return collider.Id;
 		}
 
+		internal int AddNonTransformable(TriangleCollider collider, float4x4 matrix) => Add(collider.TransformAabb(matrix));
 		internal int Add(TriangleCollider collider, float4x4 matrix) => Add(collider.Transform(matrix));
 		internal int Add(TriangleCollider collider)
 		{
@@ -295,8 +298,17 @@ namespace VisualPinball.Unity
 			}
 		}
 
-		internal void AddLine(float2 v1, float2 v2, float zLow, float zHigh, ColliderInfo info, float4x4 matrix
-		)
+		internal void AddNonTransformableLineZ(float2 xy, float zLow, float zHigh, ColliderInfo info, float4x4 matrix)
+		{
+			Add(new LineZCollider(xy, zLow, zHigh, info).TransformAabb(matrix));
+		}
+
+		internal void AddNonTransformableLine(float2 v1, float2 v2, float zLow, float zHigh, ColliderInfo info, float4x4 matrix)
+		{
+			Add(new LineCollider(v1, v2, zLow, zHigh, info).TransformAabb(matrix));
+		}
+
+		internal void AddLine(float2 v1, float2 v2, float zLow, float zHigh, ColliderInfo info, float4x4 matrix)
 		{
 			if (KinematicColliders || !matrix.IsPureTranslationMatrix()) {
 				var p1 = new float3(v1.xy, zLow);

@@ -35,7 +35,7 @@ namespace VisualPinball.Unity
 		/// <summary>
 		/// The unique identifier of the main item.
 		/// </summary>
-		internal int ItemId { get; }
+		public int ItemId { get; }
 
 		/// <summary>
 		/// Returns whether this specific item is set to collidable, i.e. whether can it ever be

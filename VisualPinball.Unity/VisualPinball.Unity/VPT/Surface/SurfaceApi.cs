@@ -54,7 +54,7 @@ namespace VisualPinball.Unity
 			if (MainComponent.DragPoints.Length == 0) {
 				return;
 			}
-			var colliderGenerator = new SurfaceColliderGenerator(this, MainComponent, ColliderComponent, GetTransformationWithinPlayfield());
+			var colliderGenerator = new SurfaceColliderGenerator(this, MainComponent, ColliderComponent, translateWithinPlayfieldMatrix);
 			if (ColliderComponent.IsKinematic) {
 				colliderGenerator.GenerateColliders(MainComponent.PlayfieldHeight, ref kinematicColliders, margin);
 

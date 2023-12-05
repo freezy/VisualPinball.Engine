@@ -54,7 +54,6 @@ namespace VisualPinball.Unity
 						return ((FlipperCollider*) collider)->Bounds;
 					case ColliderType.Gate:
 						return ((GateCollider*) collider)->Bounds;
-					case ColliderType.TriggerLine:
 					case ColliderType.Line:
 						return ((LineCollider*) collider)->Bounds;
 					case ColliderType.Line3D:

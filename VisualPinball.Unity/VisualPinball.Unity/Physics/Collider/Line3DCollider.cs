@@ -154,5 +154,15 @@ namespace VisualPinball.Unity
 			Transform(this, matrix);
 			return this;
 		}
+
+		public Line3DCollider TransformAabb(float4x4 matrix)
+		{
+			var p1 = matrix.MultiplyPoint(_v1);
+			var p2 = matrix.MultiplyPoint(_v2);
+
+			Bounds = new ColliderBounds(Header.ItemId, Header.Id, new Aabb(math.min(p1, p2), math.max(p1, p2)));
+
+			return this;
+		}
 	}
 }
