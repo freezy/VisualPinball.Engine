@@ -56,9 +56,9 @@ namespace VisualPinball.Unity
 			ZHigh
 		));
 
-		public LineCollider(float2 v1, float2 v2, float zLow, float zHigh, ColliderInfo info, ColliderType type = ColliderType.Line) : this()
+		public LineCollider(float2 v1, float2 v2, float zLow, float zHigh, ColliderInfo info) : this()
 		{
-			Header.Init(info, type);
+			Header.Init(info, ColliderType.Line);
 			V1 = v1;
 			V2 = v2;
 			ZLow = zLow;
