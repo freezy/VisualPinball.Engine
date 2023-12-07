@@ -253,10 +253,8 @@ namespace VisualPinball.Unity.Patcher
 		{
 			PatcherUtil.Reparent(gameObject, parent);
 
-			flipper.Position.x = 0;
-			flipper.Position.y = 0;
-
-			flipper.ObjectRotation.z = 0;
+			flipper.Position = Vector2.zero;
+			// flipper.ObjectRotation.z = 0;
 		}
 
 		[NameMatch("LeftFlipper")]
@@ -432,7 +430,7 @@ namespace VisualPinball.Unity.Patcher
 				new MechMark(MechMarkSwitchType.EnableBetween, "Gun Mark", "gun_mark_switch", 98, 105),
 			};
 
-			rotatorComp.Target = cannonComp;
+			//rotatorComp.Target = cannonComp;
 			rotatorComp.RotateWith = new IRotatableComponent[] {
 				playfieldGo.transform.Find("Kickers/sw31").GetComponent<KickerComponent>(),
 			};

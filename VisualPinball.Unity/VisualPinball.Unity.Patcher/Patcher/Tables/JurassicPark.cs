@@ -66,7 +66,7 @@ namespace VisualPinball.Unity.Patcher
 		{
 			PatcherUtil.Reparent(gameObject, parent);
 			primitive.Position = Vector3.zero;
-			primitive.ObjectRotation.z = 0;
+			// primitive.ObjectRotation.z = 0;
 		}
 
 		[NameMatch("PLeftFlipper")]

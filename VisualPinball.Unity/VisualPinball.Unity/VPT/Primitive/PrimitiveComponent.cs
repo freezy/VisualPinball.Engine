@@ -29,31 +29,19 @@ using VisualPinball.Engine.Math;
 using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Primitive;
 using VisualPinball.Engine.VPT.Table;
-using MathF = VisualPinball.Engine.Math.MathF;
 using Mesh = VisualPinball.Engine.VPT.Mesh;
 
 namespace VisualPinball.Unity
 {
 	[AddComponentMenu("Visual Pinball/Game Item/Primitive")]
-	public class PrimitiveComponent : MainRenderableComponent<PrimitiveData>, IMeshGenerator,
-		IRotatableComponent
+	public class PrimitiveComponent : MainRenderableComponent<PrimitiveData>, IMeshGenerator
 	{
 		#region Data
 
-		[Tooltip("Position of the primitive on the playfield.")]
-		public Vector3 Position = Vector3.zero;
-
-		[Tooltip("Rotation of the primitive in the playfield coordinate system.")]
-		public Vector3 Rotation = Vector3.zero;
-
-		[Tooltip("Scaling of the primitive.")]
-		public Vector3 Size = Vector3.one;
-
-		[Tooltip("Translation of the primitive.")]
-		public Vector3 Translation = Vector3.zero;
-
-		[Tooltip("Rotation of the primitive after being translated.")]
-		public Vector3 ObjectRotation = Vector3.zero;
+		public Vector3 Position {
+			get => transform.localPosition.TranslateToVpx();
+			set => transform.localPosition = value.TranslateToWorld();
+		}
 
 		#endregion
 
@@ -62,7 +50,7 @@ namespace VisualPinball.Unity
 		public override ItemType ItemType => ItemType.Primitive;
 		public override string ItemName => "Primitive";
 
-		public override PrimitiveData InstantiateData() => new PrimitiveData();
+		public override PrimitiveData InstantiateData() => new();
 
 		public override bool HasProceduralMesh => false;
 
@@ -73,43 +61,7 @@ namespace VisualPinball.Unity
 
 		#region Transformation
 
-		public override void UpdateTransforms()
-		{
-			base.UpdateTransforms();
-			transform.SetFromMatrix(GetTransformationMatrix().ToUnityMatrix().TransformVpxInWorld());
-		}
-
-		public float _originalRotateZ;
-		public float RotateZ {
-			set {
-				ObjectRotation.z = _originalRotateZ + value;
-				UpdateTransforms();
-			}
-		}
-		public float2 RotatedPosition {
-			get => new(Position.x, Position.y);
-			set {
-				Position.x = value.x;
-				Position.y = value.y;
-				UpdateTransforms();
-			}
-		}
-
-		public float4x4 TransformationWithinPlayfield {
-			get {
-				var scaleMatrix = float4x4.Scale(Size);
-				var transMatrix = float4x4.Translate(new float3(Position.x, Position.y, Position.z + PlayfieldHeight));
-				var rotTransMatrix = math.mul(
-					float4x4.EulerZYX(math.radians(Rotation)),
-					float4x4.Translate(Translation)
-				);
-				rotTransMatrix = math.mul(
-					float4x4.EulerZYX(math.radians(ObjectRotation)),
-					rotTransMatrix
-				);
-				return math.mul(transMatrix, math.mul(rotTransMatrix, scaleMatrix));
-			}
-		}
+		public float4x4 TransformationWithinPlayfield => transform.worldToLocalMatrix.TransformWorldInVpx();
 
 		#endregion
 
@@ -120,11 +72,22 @@ namespace VisualPinball.Unity
 			var updatedComponents = new List<MonoBehaviour> { this };
 
 			// transforms
-			Position = data.Position.ToUnityVector3();
-			Size = data.Size.ToUnityFloat3();
-			Rotation = new Vector3(data.RotAndTra[0], data.RotAndTra[1], data.RotAndTra[2]);
-			Translation = new Vector3(data.RotAndTra[3], data.RotAndTra[4], data.RotAndTra[5]);
-			ObjectRotation = new Vector3(data.RotAndTra[6], data.RotAndTra[7], data.RotAndTra[8]);
+			var position = data.Position.ToUnityVector3();
+			var size = data.Size.ToUnityFloat3();
+			var rotation = new Vector3(data.RotAndTra[0], data.RotAndTra[1], data.RotAndTra[2]);
+			var translation = new Vector3(data.RotAndTra[3], data.RotAndTra[4], data.RotAndTra[5]);
+			var objectRotation = new Vector3(data.RotAndTra[6], data.RotAndTra[7], data.RotAndTra[8]);
+
+			var scaleMatrix = float4x4.Scale(size);
+			var transMatrix = float4x4.Translate(new float3(position.x, position.y, position.z + PlayfieldHeight));
+			var rotTransMatrix = math.mul(
+				float4x4.EulerZYX(math.radians(objectRotation)),
+				math.mul(
+					float4x4.EulerZYX(math.radians(rotation)),
+					float4x4.Translate(translation)
+				));
+			var transformationWithinPlayfieldMatrix = math.mul(transMatrix, math.mul(rotTransMatrix, scaleMatrix));
+			transform.SetFromMatrix(((Matrix4x4)transformationWithinPlayfieldMatrix).TransformVpxInWorld());
 
 			// mesh
 			var meshComponent = GetComponent<PrimitiveMeshComponent>();
@@ -178,13 +141,15 @@ namespace VisualPinball.Unity
 		public override PrimitiveData CopyDataTo(PrimitiveData data, string[] materialNames, string[] textureNames, bool forExport)
 		{
 			// name and transforms
+			var t = transform;
 			data.Name = name;
 			data.Position = Position.ToVertex3D();
-			data.Size = Size.ToVertex3D();
+			data.Size = t.localScale.ToVertex3D();
+			var vpxRotation = t.localEulerAngles.TranslateToVpx();
 			data.RotAndTra = new[] {
-				Rotation.x, Rotation.y, Rotation.z,
-				Translation.x, Translation.y, Translation.z,
-				ObjectRotation.x, ObjectRotation.y, ObjectRotation.z,
+				vpxRotation.x, vpxRotation.y, vpxRotation.z,
+				0, 0, 0,
+				0, 0, 0,
 			};
 
 			// materials
@@ -238,19 +203,12 @@ namespace VisualPinball.Unity
 		public override void CopyFromObject(GameObject go)
 		{
 			var primitiveComponent = go.GetComponent<PrimitiveComponent>();
-			if (primitiveComponent != null) {
+			var targetTransform = transform;
+			var sourceTransform = primitiveComponent != null ? primitiveComponent.transform : go.transform;
 
-				Position = primitiveComponent.Position;
-				Rotation = primitiveComponent.Rotation;
-				Size = primitiveComponent.Size;
-				Translation = primitiveComponent.Translation;
-				ObjectRotation = primitiveComponent.ObjectRotation;
-
-			} else {
-				Position = go.transform.localPosition.TranslateToVpx();
-				Rotation = go.transform.localEulerAngles;
-				Size = go.transform.localScale;
-			}
+			targetTransform.localPosition = sourceTransform.localPosition;
+			targetTransform.localRotation = sourceTransform.localRotation;
+			targetTransform.localScale = sourceTransform.localScale;
 
 			UpdateTransforms();
 		}
@@ -263,8 +221,6 @@ namespace VisualPinball.Unity
 
 		private void Awake()
 		{
-			_originalRotateZ = ObjectRotation.z;
-
 			var player = GetComponentInParent<Player>();
 			var physicsEngine = GetComponentInParent<PhysicsEngine>();
 			PrimitiveApi = new PrimitiveApi(gameObject, player, physicsEngine);
@@ -281,58 +237,8 @@ namespace VisualPinball.Unity
 
 		public Matrix3D GetTransformationMatrix()
 		{
-			// scale matrix
-			var scaleMatrix = new Matrix3D();
-			scaleMatrix.SetScaling(Size.x, Size.y, Size.z);
-
-			// translation matrix
-			var tableHeight = PlayfieldHeight;
-			var transMatrix = new Matrix3D();
-			transMatrix.SetTranslation(Position.x, Position.y, Position.z + tableHeight);
-
-			// translation + rotation matrix
-			var rotTransMatrix = new Matrix3D();
-			rotTransMatrix.SetTranslation(Translation.x, Translation.y, Translation.z);
-
-			var tempMatrix = new Matrix3D();
-			tempMatrix.RotateZMatrix(MathF.DegToRad(Rotation.z));
-			rotTransMatrix.Multiply(tempMatrix);
-			tempMatrix.RotateYMatrix(MathF.DegToRad(Rotation.y));
-			rotTransMatrix.Multiply(tempMatrix);
-			tempMatrix.RotateXMatrix(MathF.DegToRad(Rotation.x));
-			rotTransMatrix.Multiply(tempMatrix);
-
-			tempMatrix.RotateZMatrix(MathF.DegToRad(ObjectRotation.z));
-			rotTransMatrix.Multiply(tempMatrix);
-			tempMatrix.RotateYMatrix(MathF.DegToRad(ObjectRotation.y));
-			rotTransMatrix.Multiply(tempMatrix);
-			tempMatrix.RotateXMatrix(MathF.DegToRad(ObjectRotation.x));
-			rotTransMatrix.Multiply(tempMatrix);
-
-			var fullMatrix = scaleMatrix.Clone();
-			fullMatrix.Multiply(rotTransMatrix);
-			fullMatrix.Multiply(transMatrix); // fullMatrix = Smatrix * RTmatrix * Tmatrix
-			scaleMatrix.SetScaling(1.0f, 1.0f, 1.0f);
-			fullMatrix.Multiply(scaleMatrix);
-
-			return fullMatrix;
+			throw new Exception("deprecated");
 		}
-
-		#endregion
-
-		#region Editor Tooling
-
-		public override ItemDataTransformType EditorPositionType => ItemDataTransformType.ThreeD;
-		public override Vector3 GetEditorPosition() => Position;
-		public override void SetEditorPosition(Vector3 pos) => Position = pos;
-
-		public override ItemDataTransformType EditorRotationType => ItemDataTransformType.ThreeD;
-		public override Vector3 GetEditorRotation() => Rotation;
-		public override void SetEditorRotation(Vector3 rot) => Rotation = rot;
-
-		public override ItemDataTransformType EditorScaleType => ItemDataTransformType.ThreeD;
-		public override Vector3 GetEditorScale() => Size;
-		public override void SetEditorScale(Vector3 scale) => Size = scale;
 
 		#endregion
 	}
