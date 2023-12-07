@@ -31,11 +31,10 @@ namespace VisualPinball.Unity.Patcher
 		{
 			PatcherUtil.Reparent(gameObject, parent);
 
-			flipper.Position.x = 0;
-			flipper.Position.y = 0;
+			flipper.Position = Vector2.zero;
 
-			// // rotation is set in the original data, reparenting caused the flippers to be rotated wrong => fixing the rotation
-			flipper.Rotation.y = 0;
+			// rotation is set in the original data, reparenting caused the flippers to be rotated wrong => fixing the rotation
+			// flipper.Rotation.y = 0;
 
 		}
 	}

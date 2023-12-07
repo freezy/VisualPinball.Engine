@@ -31,10 +31,8 @@ namespace VisualPinball.Unity.Patcher
 		{
 			PatcherUtil.Reparent(gameObject, parent);
 
-			flipper.Position.x = 0;
-			flipper.Position.y = 0;
-
-			flipper.ObjectRotation.z = 0;
+			flipper.Position = Vector2.zero;
+			// flipper.ObjectRotation.z = 0;
 		}
 
 		[NameMatch("batleftshadow")]

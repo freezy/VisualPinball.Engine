@@ -26,42 +26,15 @@ namespace VisualPinball.Unity.Editor
 	[CustomEditor(typeof(PrimitiveComponent)), CanEditMultipleObjects]
 	public class PrimitiveInspector : MainInspector<PrimitiveData, PrimitiveComponent>
 	{
-		private SerializedProperty _positionProperty;
-		private SerializedProperty _rotationProperty;
-		private SerializedProperty _sizeProperty;
-		private SerializedProperty _translationProperty;
-		private SerializedProperty _objectRotationProperty;
-
-		protected override void OnEnable()
-		{
-			base.OnEnable();
-
-			_positionProperty = serializedObject.FindProperty(nameof(PrimitiveComponent.Position));
-			_rotationProperty = serializedObject.FindProperty(nameof(PrimitiveComponent.Rotation));
-			_sizeProperty = serializedObject.FindProperty(nameof(PrimitiveComponent.Size));
-			_translationProperty = serializedObject.FindProperty(nameof(PrimitiveComponent.Translation));
-			_objectRotationProperty = serializedObject.FindProperty(nameof(PrimitiveComponent.ObjectRotation));
-		}
-
 		public override void OnInspectorGUI()
 		{
-			if (HasErrors()) {
-				return;
+			// position
+			EditorGUI.BeginChangeCheck();
+			var newPos = EditorGUILayout.Vector3Field(new GUIContent("Position", "Position of the primitive on the playfield, relative to its parent."), MainComponent.Position);
+			if (EditorGUI.EndChangeCheck()) {
+				Undo.RecordObject(MainComponent.transform, "Change Primitive Position");
+				MainComponent.Position = newPos;
 			}
-
-			BeginEditing();
-
-			OnPreInspectorGUI();
-
-			PropertyField(_positionProperty, updateTransforms: true);
-			PropertyField(_rotationProperty, updateTransforms: true);
-			PropertyField(_sizeProperty, updateTransforms: true);
-			PropertyField(_translationProperty, updateTransforms: true);
-			PropertyField(_objectRotationProperty, updateTransforms: true);
-
-			base.OnInspectorGUI();
-
-			EndEditing();
 		}
 
 		[MenuItem("GameObject/Visual Pinball/Make Primitive", true, 20)]
@@ -78,19 +51,12 @@ namespace VisualPinball.Unity.Editor
 				if (!mf) {
 					continue;
 				}
-				var pc = go.AddComponent<PrimitiveComponent>();
-				pc.Position = go.transform.localPosition;
-				pc.Rotation = go.transform.localEulerAngles;
-				pc.Size = go.transform.localScale;
 
 				var mc = go.AddComponent<PrimitiveMeshComponent>();
 				mc.UseLegacyMesh = false;
 
 				var cc = go.AddComponent<PrimitiveColliderComponent>();
 				cc.enabled = true;
-
-				// var cte = go.AddComponent<ConvertToEntity>();
-				// cte.ConversionMode = ConvertToEntity.Mode.ConvertAndInjectGameObject;
 			}
 		}
 
@@ -104,10 +70,7 @@ namespace VisualPinball.Unity.Editor
 		public static void MakeCollider()
 		{
 			foreach (var go in Selection.gameObjects) {
-				var pc = go.AddComponent<PrimitiveComponent>();
-				pc.Position = go.transform.localPosition;
-				pc.Rotation = go.transform.localEulerAngles;
-				pc.Size = go.transform.localScale;
+				go.AddComponent<PrimitiveComponent>();
 
 				var mc = go.AddComponent<PrimitiveMeshComponent>();
 				mc.UseLegacyMesh = false;
@@ -115,9 +78,6 @@ namespace VisualPinball.Unity.Editor
 
 				var cc = go.AddComponent<PrimitiveColliderComponent>();
 				cc.enabled = true;
-
-				// var cte = go.AddComponent<ConvertToEntity>();
-				// cte.ConversionMode = ConvertToEntity.Mode.ConvertAndInjectGameObject;
 			}
 		}
 	}
