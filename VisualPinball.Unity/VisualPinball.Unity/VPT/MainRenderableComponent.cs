@@ -46,6 +46,10 @@ namespace VisualPinball.Unity
 		[NonSerialized]
 		public Player Player;
 
+		[NonSerialized]
+		private PlayfieldComponent _playfield;
+		protected PlayfieldComponent Playfield => _playfield ? _playfield : _playfield = GetComponentInParent<PlayfieldComponent>();
+
 		/// <summary>
 		/// Returns all child mesh components linked to this data.
 		/// </summary>
