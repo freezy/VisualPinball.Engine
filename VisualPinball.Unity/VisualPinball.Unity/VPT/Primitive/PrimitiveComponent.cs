@@ -61,7 +61,7 @@ namespace VisualPinball.Unity
 
 		#region Transformation
 
-		public float4x4 TransformationWithinPlayfield => transform.worldToLocalMatrix.TransformWorldInVpx();
+		public float4x4 TransformationWithinPlayfield => transform.worldToLocalMatrix.WorldToLocalTranslateWithinPlayfield(Playfield.transform.localToWorldMatrix);
 
 		#endregion
 
@@ -235,10 +235,8 @@ namespace VisualPinball.Unity
 
 		public Mesh GetMesh() => GetDefaultMesh();
 
-		public Matrix3D GetTransformationMatrix()
-		{
-			throw new Exception("deprecated");
-		}
+		public Matrix3D GetTransformationMatrix() =>
+			transform.worldToLocalMatrix.WorldToLocalTranslateWithinPlayfield(Playfield.transform.localToWorldMatrix).ToVpMatrix();
 
 		#endregion
 	}

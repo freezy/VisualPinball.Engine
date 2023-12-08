@@ -91,7 +91,7 @@ namespace VisualPinball.Unity
 			PerfMarker2.End();
 
 			PerfMarker3.Begin();
-			var worldToVpx = _meshGenerator.GetTransformationMatrix().TransformToVpx().ToUnityMatrix();
+			var worldToVpx = (Matrix4x4)_primitiveComponent.TransformationWithinPlayfield.TransformToVpx();
 			ColliderUtils.GenerateCollidersFromMesh(in unityVertices, in unityIndices, ref worldToVpx, _api.GetColliderInfo(), ref colliders);
 			PerfMarker3.End();
 			PerfMarker1.End();
