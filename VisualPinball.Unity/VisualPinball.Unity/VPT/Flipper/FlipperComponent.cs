@@ -63,7 +63,7 @@ namespace VisualPinball.Unity
 		public float PosY => Position.y;
 
 		public float StartAngle {
-			get => transform.localEulerAngles.y;
+			get => transform.localEulerAngles.y > 180 ? transform.localEulerAngles.y - 360 : transform.localEulerAngles.y;
 			set {
 				var t = transform;
 				var e = t.localEulerAngles;
