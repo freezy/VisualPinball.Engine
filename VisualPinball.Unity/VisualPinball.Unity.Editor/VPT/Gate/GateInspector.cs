@@ -36,8 +36,6 @@ namespace VisualPinball.Unity.Editor
 			{ "Wire W", GateType.GateWireW },
 		};
 
-		private SerializedProperty _positionProperty;
-		private SerializedProperty _rotationProperty;
 		private SerializedProperty _lengthProperty;
 		private SerializedProperty _surfaceProperty;
 		private SerializedProperty _meshProperty;
@@ -49,8 +47,6 @@ namespace VisualPinball.Unity.Editor
 		{
 			base.OnEnable();
 
-			_positionProperty = serializedObject.FindProperty(nameof(GateComponent.Position));
-			_rotationProperty = serializedObject.FindProperty(nameof(GateComponent._rotation));
 			_lengthProperty = serializedObject.FindProperty(nameof(GateComponent._length));
 			_surfaceProperty = serializedObject.FindProperty(nameof(GateComponent._surface));
 			_meshProperty = serializedObject.FindProperty(nameof(GateComponent._meshName));
@@ -67,8 +63,22 @@ namespace VisualPinball.Unity.Editor
 
 			OnPreInspectorGUI();
 
-			PropertyField(_positionProperty, updateTransforms: true);
-			PropertyField(_rotationProperty, updateTransforms: true);
+			// position
+			EditorGUI.BeginChangeCheck();
+			var newPos = EditorGUILayout.Vector3Field(new GUIContent("Position", "Position of the gate on the playfield, relative to its parent."), MainComponent.Position);
+			if (EditorGUI.EndChangeCheck()) {
+				Undo.RecordObject(MainComponent.transform, "Change Gate Position");
+				MainComponent.Position = newPos;
+			}
+
+			// start angle
+			EditorGUI.BeginChangeCheck();
+			var newAngle = EditorGUILayout.Slider(new GUIContent("Rotation", "Angle of the gate on the playfield (z-axis rotation)"), MainComponent.Rotation, -180f, 180f);
+			if (EditorGUI.EndChangeCheck()) {
+				Undo.RecordObject(MainComponent.transform, "Change Flipper Start Angle");
+				MainComponent.Rotation = newAngle;
+			}
+
 			PropertyField(_lengthProperty, updateTransforms: true);
 			PropertyField(_surfaceProperty);
 

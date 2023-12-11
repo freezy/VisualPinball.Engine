@@ -42,12 +42,19 @@ namespace VisualPinball.Unity
 	{
 		#region Data
 
-		[Tooltip("Position of the gate on the playfield.")]
-		public Vector3 Position;
+		public Vector3 Position {
+			get => transform.localPosition.TranslateToVpx();
+			set => transform.localPosition = value.TranslateToWorld();
+		}
 
-		[Range(-180f, 180f)]
-		[Tooltip("Angle of the gate on the playfield (z-axis rotation)")]
-		public float _rotation;
+		public float Rotation {
+			get => transform.localEulerAngles.y;
+			set {
+				var t = transform;
+				var e = t.localEulerAngles;
+				t.localEulerAngles = new Vector3(e.x, value, e.z);
+			}
+		}
 
 		[Range(10f, 250f)]
 		[Tooltip("How much the gate is scaled, in percent.")]
@@ -70,7 +77,6 @@ namespace VisualPinball.Unity
 		public float PosY => Position.y;
 		public float Height => Position.z;
 
-		public float Rotation => _rotation;
 		public float Length => _length;
 
 		public bool ShowBracket { get {
@@ -185,7 +191,7 @@ namespace VisualPinball.Unity
 
 			// transforms
 			Position = data.Center.ToUnityVector3(data.Height);
-			_rotation = data.Rotation > 180f ? data.Rotation - 360f : data.Rotation;
+			Rotation = data.Rotation > 180f ? data.Rotation - 360f : data.Rotation;
 			_length = data.Length;
 			_type = data.GateType;
 
@@ -240,8 +246,8 @@ namespace VisualPinball.Unity
 		public override GateData CopyDataTo(GateData data, string[] materialNames, string[] textureNames, bool forExport)
 		{
 			// name and transforms
-			data.Name = name;
 			data.Center = Position.ToVertex2Dxy();
+			data.Name = name;
 			data.Rotation = Rotation;
 			data.Height = Position.z;
 			data.Length = Length;
@@ -286,14 +292,14 @@ namespace VisualPinball.Unity
 			var gateComponent = go.GetComponent<GateComponent>();
 			if (gateComponent != null) {
 				Position = gateComponent.Position;
-				_rotation = gateComponent._rotation;
+				Rotation = gateComponent.Rotation;
 				_length = gateComponent._length;
 				Surface = gateComponent.Surface;
 
 			} else {
 
 				Position = go.transform.localPosition.TranslateToVpx();
-				_rotation = go.transform.localEulerAngles.z;
+				Rotation = go.transform.localEulerAngles.z;
 			}
 
 			UpdateTransforms();
@@ -350,7 +356,7 @@ namespace VisualPinball.Unity
 
 		public override ItemDataTransformType EditorRotationType => ItemDataTransformType.OneD;
 		public override Vector3 GetEditorRotation() => new Vector3(Rotation, 0f, 0f);
-		public override void SetEditorRotation(Vector3 rot) => _rotation = ClampDegrees(rot.x);
+		public override void SetEditorRotation(Vector3 rot) => Rotation = ClampDegrees(rot.x);
 
 		public override ItemDataTransformType EditorScaleType => ItemDataTransformType.OneD;
 		public override Vector3 GetEditorScale() => new Vector3(Length, 0f, 0f);
