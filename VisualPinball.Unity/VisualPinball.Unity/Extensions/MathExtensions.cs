@@ -92,7 +92,7 @@ namespace VisualPinball.Unity
 			return new Vertex3D(vector.x, vector.y, vector.z);
 		}
 
-		public static Vertex2D ToVertex2Dxy(this ref Vector3 vector)
+		public static Vertex2D ToVertex2Dxy(this Vector3 vector)
 		{
 			return new Vertex2D(vector.x, vector.y);
 		}
