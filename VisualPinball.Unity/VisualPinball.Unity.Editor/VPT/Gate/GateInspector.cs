@@ -27,9 +27,9 @@ namespace VisualPinball.Unity.Editor
 	[CustomEditor(typeof(GateComponent)), CanEditMultipleObjects]
 	public class GateInspector : MainInspector<GateData, GateComponent>
 	{
-		private const string MeshFolder = "Packages/org.visualpinball.engine.unity/VisualPinball.Unity/Assets/Art/Meshes/Gate/Wire";
+		private const string MeshFbx = "Packages/org.visualpinball.engine.unity/VisualPinball.Unity/Assets/Art/Meshes/Gate/Gate Meshes.fbx";
 
-		private static readonly Dictionary<string, int> TypeMap = new Dictionary<string, int> {
+		private static readonly Dictionary<string, int> WireTypeMap = new Dictionary<string, int> {
 			{ "Long Plate", GateType.GateLongPlate },
 			{ "Plate", GateType.GatePlate },
 			{ "Wire Rectangle", GateType.GateWireRectangle },
@@ -84,7 +84,7 @@ namespace VisualPinball.Unity.Editor
 
 			var wire = MainComponent.transform.Find(GateComponent.WireObjectName);
 			if (wire != null) {
-				MeshDropdownProperty("Mesh", _meshProperty, MeshFolder, wire.gameObject, _typeProperty, TypeMap);
+				MeshDropdownPropertyFbx("Mesh", _meshProperty, MeshFbx, wire.gameObject, _typeProperty, WireTypeMap, "Wire.");
 			}
 
 			EndEditing();
@@ -100,19 +100,20 @@ namespace VisualPinball.Unity.Editor
 
 		protected void OnSceneGUI()
 		{
-			if (target is not IMainRenderableComponent editable) {
+			if (target is not GateComponent gateComponent) {
 				return;
 			}
-			
-			var transform = (target as MonoBehaviour)?.transform;
+
+			var transform = gateComponent.transform;
 			if (transform == null || transform.parent == null) {
 				return;
 			}
-			
-			var position = editable.GetEditorPosition();
-			position = transform.parent.TransformPoint(position);
-			var axis = transform.TransformDirection(-Vector3.up); //Local direction of the gate gameObject is -up
-			var scale = MainComponent.Length / 5000;
+
+			var position = transform.position;
+			var axis = transform.TransformDirection(Vector3.forward); //Local direction of the gate gameObject is -up
+			var scale = gateComponent.Length / 5000;
+
+			Handles.matrix = Matrix4x4.identity;
 			Handles.color = Color.white;
 			Handles.DrawWireDisc(position, axis, scale);
 			var col = Color.grey;
@@ -123,7 +124,7 @@ namespace VisualPinball.Unity.Editor
 			const float arrowScale = 0.05f;
 			Handles.color = Color.white;
 			Handles.ArrowHandleCap(-1, position, Quaternion.LookRotation(axis), arrowScale, EventType.Repaint);
-			var colliderComponent = MainComponent.GetComponent<GateColliderComponent>();
+			var colliderComponent = gateComponent.GetComponent<GateColliderComponent>();
 			if (colliderComponent && colliderComponent.TwoWay) {
 				Handles.ArrowHandleCap(-1, position, Quaternion.LookRotation(-axis), arrowScale, EventType.Repaint);
 			}

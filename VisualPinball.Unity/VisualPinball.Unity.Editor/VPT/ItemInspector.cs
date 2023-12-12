@@ -212,6 +212,75 @@ namespace VisualPinball.Unity.Editor
 			}
 		}
 
+		/// <summary>
+		/// Shows a dropdown for selecting a mesh from an FBX file. The selected mesh will be assigned to the
+		/// MeshFilter of the given GameObject. It also updates another property based on the selected mesh.
+		/// </summary>
+		/// <param name="label">Label of the dropdown in the editor</param>
+		/// <param name="meshProp">Serialized property of the mesh</param>
+		/// <param name="fbxPath">Path to the FBX file</param>
+		/// <param name="go">GameObject to apply the mesh to</param>
+		/// <param name="typeProp">Serialized property of the mesh type</param>
+		/// <param name="meshTypeMap">Map of the type based on the name of the mesh</param>
+		/// <param name="prefix">Prefix to filter out non-selectable meshes in the FBX file</param>
+		protected void MeshDropdownPropertyFbx(string label, SerializedProperty meshProp, string fbxPath, GameObject go,
+			SerializedProperty typeProp, Dictionary<string, int> meshTypeMap, string prefix)
+		{
+			var allObjects = AssetDatabase.LoadAllAssetRepresentationsAtPath(fbxPath);
+			var meshObjects = allObjects
+				.Where(o => o is Mesh)
+				.Cast<Mesh>()
+				.Where(o => o.name.StartsWith(prefix))
+				.ToArray();
+			var meshNames = meshObjects
+				.Select(o => o.name[prefix.Length..])
+				.Concat(new[] { CustomMeshLabel })
+				.ToArray();
+
+			var selectedIndex = meshNames.ToList().IndexOf(meshProp.stringValue);
+			EditorGUI.BeginChangeCheck();
+			var newIndex = EditorGUILayout.Popup(label, selectedIndex, meshNames);
+			if (EditorGUI.EndChangeCheck() && newIndex >= 0 && newIndex < meshNames.Length && go != null) {
+				var mf = go.GetComponent<MeshFilter>();
+				var mr = go.GetComponent<MeshRenderer>();
+				if (newIndex < meshObjects.Length) {
+					if (!mf) {
+						mf = go.AddComponent<MeshFilter>();
+					}
+					if (!mr) {
+						go.AddComponent<MeshRenderer>();
+					}
+					var mesh = meshObjects[newIndex];
+					mr.enabled = true;
+					mf.sharedMesh = mesh;
+
+				} else {
+					if (mr) {
+						mr.enabled = false;
+					}
+					if (mf) {
+						mf.sharedMesh = null;
+					}
+				}
+
+				meshProp.stringValue = meshNames[newIndex];
+				if (meshTypeMap.ContainsKey(meshNames[newIndex])) {
+					typeProp.intValue = meshTypeMap[meshNames[newIndex]];
+				}
+				meshProp.serializedObject.ApplyModifiedProperties();
+				if (target is MonoBehaviour mb) {
+					var colliderComponent = mb.GetComponent<IColliderComponent>();
+					if (colliderComponent != null) {
+						colliderComponent.CollidersDirty = true;
+					}
+				}
+
+				if (target is IMainRenderableComponent mrc) {
+					mrc.UpdateTransforms();
+				}
+			}
+		}
+
 		protected void MeshDropdownProperty(string label, SerializedProperty meshProp, string meshFolder, GameObject go,
 			SerializedProperty typeProp, Dictionary<string, int> meshTypeMap)
 		{
