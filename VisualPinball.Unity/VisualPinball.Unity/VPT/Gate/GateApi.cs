@@ -105,9 +105,9 @@ namespace VisualPinball.Unity
 			var matrix = MainComponent.transform.worldToLocalMatrix.WorldToLocalTranslateWithinPlayfield(Player.PlayfieldToWorldMatrix);
 			var colliderGenerator = new GateColliderGenerator(this, MainComponent, ColliderComponent, matrix);
 			if (ColliderComponent._isKinematic) {
-				colliderGenerator.GenerateColliders(MainComponent.PositionZ, ref kinematicColliders);
+				colliderGenerator.GenerateColliders(ref kinematicColliders);
 			} else {
-				colliderGenerator.GenerateColliders(MainComponent.PositionZ, ref colliders);
+				colliderGenerator.GenerateColliders(ref colliders);
 			}
 		}
 
