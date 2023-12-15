@@ -28,6 +28,9 @@ namespace VisualPinball.Unity
 		private readonly GateApi _api;
 		private readonly float4x4 _matrix;
 
+		private const float ZLow = -2f * PhysicsConstants.PhysSkin;
+		private const float ZHigh = 0;
+
 		internal GateColliderGenerator(GateApi gateApi, IGateData data, IGateColliderData collData, float4x4 matrix)
 		{
 			_api = gateApi;
@@ -36,7 +39,7 @@ namespace VisualPinball.Unity
 			_matrix = matrix;
 		}
 
-		internal void GenerateColliders(float height, ref ColliderReference colliders) // var height = table.GetSurfaceHeight(_data.Surface, _data.Center.X, _data.Center.Y);
+		internal void GenerateColliders(ref ColliderReference colliders) // var height = table.GetSurfaceHeight(_data.Surface, _data.Center.X, _data.Center.Y);
 		{
 			var angleMin = math.min(_collData.AngleMin, _collData.AngleMax); // correct angle inversions
 			var angleMax = math.max(_collData.AngleMin, _collData.AngleMax);
@@ -51,31 +54,33 @@ namespace VisualPinball.Unity
 			GenerateGateCollider(ref colliders);
 			GenerateLineCollider(ref colliders);
 			if (_data.ShowBracket) {
-				GenerateBracketColliders(ref colliders, height);
+				GenerateBracketColliders(ref colliders);
 			}
 		}
 
+		/// <summary>
+		/// The collider that triggers the animation
+		/// </summary>
+		/// <param name="colliders"></param>
 		private void GenerateGateCollider(ref ColliderReference colliders)
 		{
 			// note: this has diverged a bit from the vpx code: instead of generating the colliders at the correct
 			// position, we generate them at the origin and then transform them later.
 
-			const float halfLength = 50f;
-			var v1 = new float2(
-				-(halfLength + PhysicsConstants.PhysSkin),
-				0
-			);
-			var v2 = new float2(
-				halfLength + PhysicsConstants.PhysSkin,
-				0
-			);
+			const float halfLength = 10f;
+			var v1 = new float2(-(halfLength + PhysicsConstants.PhysSkin), 0);
+			var v2 = new float2(halfLength + PhysicsConstants.PhysSkin, 0);
 
-			var lineSeg0 = new LineCollider(v1, v2, 0, 2f * PhysicsConstants.PhysSkin, _api.GetColliderInfo());
-			var lineSeg1 = new LineCollider(v2, v1, 0, 2f * PhysicsConstants.PhysSkin, _api.GetColliderInfo());
+			var lineSeg0 = new LineCollider(v1, v2, ZLow, ZHigh, _api.GetColliderInfo());
+			var lineSeg1 = new LineCollider(v2, v1, ZLow, ZHigh, _api.GetColliderInfo());
 
 			colliders.Add(new GateCollider(in lineSeg0, in lineSeg1, _api.GetColliderInfo()), _matrix);
 		}
 
+		/// <summary>
+		/// The collider the blocks the ball, if not two-way
+		/// </summary>
+		/// <param name="colliders"></param>
 		private void GenerateLineCollider(ref ColliderReference colliders)
 		{
 			if (_collData.TwoWay) {
@@ -83,32 +88,43 @@ namespace VisualPinball.Unity
 			}
 
 			// oversize by the ball's radius to prevent the ball from clipping through
-			const float halfLength = 50f;
+			const float halfLength = 10f;
 			var rgv0 = new float2(halfLength + PhysicsConstants.PhysSkin, 0f);
-			var rgv1 = new float2(-halfLength + PhysicsConstants.PhysSkin, 0f);
+			var rgv1 = new float2(-(halfLength + PhysicsConstants.PhysSkin), 0f);
 
 			var info = _api.GetColliderInfo(ItemType.Invalid); // hack to not treat this line seg as gate
 			colliders.AddLine(rgv0, rgv1, -2f * PhysicsConstants.PhysSkin, 0, info, _matrix); //!! = ball diameter
 		}
 
-		private void GenerateBracketColliders(ref ColliderReference colliders, float height)
+		/// <summary>
+		/// The colliders left and right to the other colliders, in case the bracket is shown.
+		/// </summary>
+		/// <param name="colliders"></param>
+		/// <param name="height"></param>
+		private void GenerateBracketColliders(ref ColliderReference colliders)
 		{
-			var halfLength = 50f;
+			const float halfLength = 45f;
+			var scale = _matrix.GetScale().x;
+			var height = 2f * PhysicsConstants.PhysSkin / scale;
+			var zPos = _matrix.GetTranslation().z / scale;
+			var zLow = zPos - height;
+			var zHigh = zPos;
+
 			colliders.Add(new CircleCollider(
 				new float2(halfLength, 0),
 				1f,
-				0,
-				2f * PhysicsConstants.PhysSkin,
+				zLow,
+				zHigh,
 				_api.GetColliderInfo(ItemType.Invalid) // hack to not treat this hit circle as gate
-			));
+			), _matrix);
 
 			colliders.Add(new CircleCollider(
 				new float2(-halfLength, 0),
 				1f,
-				0,
-				2f * PhysicsConstants.PhysSkin,
+				zLow,
+				zHigh,
 				_api.GetColliderInfo(ItemType.Invalid) // hack to not treat this hit circle as gate
-			));
+			), _matrix);
 		}
 	}
 }
