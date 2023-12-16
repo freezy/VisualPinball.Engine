@@ -283,6 +283,8 @@ namespace VisualPinball.Unity
 				updatedComponents.Add(collComponent);
 			}
 
+			CenterPivot();
+
 			return updatedComponents;
 		}
 
@@ -389,6 +391,18 @@ namespace VisualPinball.Unity
 			}
 
 			UpdateTransforms();
+			RebuildMeshes();
+		}
+
+		private void CenterPivot()
+		{
+			var centerVpx = DragPoints.Aggregate(Vector3.zero, (current, dragPoint) => current + dragPoint.Center.ToUnityVector3());
+			centerVpx /= DragPoints.Length;
+
+			transform.Translate(centerVpx.TranslateToWorld(transform) - transform.position);
+			foreach (var dragPoint in DragPoints) {
+				dragPoint.Center -= centerVpx.ToVertex3D();
+			}
 			RebuildMeshes();
 		}
 
