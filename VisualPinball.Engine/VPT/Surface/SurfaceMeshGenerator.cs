@@ -270,7 +270,7 @@ namespace VisualPinball.Engine.VPT.Surface
 				offset2 += 4;
 			}
 
-			return  sideMesh;
+			return sideMesh;
 		}
 	}
 }
