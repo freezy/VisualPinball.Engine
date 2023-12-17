@@ -361,8 +361,7 @@ namespace VisualPinball.Unity
 			foreach (var col in _nonMeshColliders) {
 				switch (col) {
 					case LineZCollider lineZCol: {
-							var aabb = lineZCol.Bounds.Aabb;
-							DrawLine(lineZCol.XY.ToFloat3(aabb.ZLow), lineZCol.XY.ToFloat3(aabb.ZHigh));
+						DrawLine(lineZCol.XY.ToFloat3(lineZCol.ZLow), lineZCol.XY.ToFloat3(lineZCol.ZHigh));
 							break;
 						}
 				}

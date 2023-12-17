@@ -31,8 +31,8 @@ namespace VisualPinball.Unity
 		public ColliderHeader Header;
 
 		public float2 XY;
-		private float _zLow;
-		private float _zHigh;
+		public float ZLow;
+		public float ZHigh;
 
 		public float XyY {
 			set {
@@ -47,8 +47,8 @@ namespace VisualPinball.Unity
 		{
 			Header.Init(info, ColliderType.LineZ);
 			XY = xy;
-			_zLow = zLow;
-			_zHigh = zHigh;
+			ZLow = zLow;
+			ZHigh = zHigh;
 			CalculateBounds();
 		}
 
@@ -120,7 +120,7 @@ namespace VisualPinball.Unity
 
 			var hitZ = ball.Position.z + hitTime * ball.Velocity.z;            // ball z position at hit time
 
-			if (hitZ < coll._zLow || hitZ > coll._zHigh) {
+			if (hitZ < coll.ZLow || hitZ > coll.ZHigh) {
 				// check z coordinate
 				return -1.0f;
 			}
@@ -166,8 +166,8 @@ namespace VisualPinball.Unity
 			var t = matrix.GetTranslation();
 
 			XY += t.xy;
-			_zLow += t.z;
-			_zHigh += t.z;
+			ZLow += t.z;
+			ZHigh += t.z;
 			CalculateBounds();
 
 			return this;
@@ -175,8 +175,8 @@ namespace VisualPinball.Unity
 
 		public LineZCollider TransformAabb(float4x4 matrix)
 		{
-			var p1 = matrix.MultiplyPoint(new float3(XY, _zLow));
-			var p2 = matrix.MultiplyPoint(new float3(XY, _zHigh));
+			var p1 = matrix.MultiplyPoint(new float3(XY, ZLow));
+			var p2 = matrix.MultiplyPoint(new float3(XY, ZHigh));
 
 			Bounds = new ColliderBounds(Header.ItemId, Header.Id, new Aabb(math.min(p1, p2), math.max(p1, p2)));
 
@@ -190,11 +190,11 @@ namespace VisualPinball.Unity
 				XY.x,
 				XY.y,
 				XY.y,
-				_zLow,
-				_zHigh
+				ZLow,
+				ZHigh
 			));
 		}
 
-		public override string ToString() => $"LineZCollider[{Header.ItemId}] ({XY.x}/{XY.y}) {_zLow} -> {_zHigh}";
+		public override string ToString() => $"LineZCollider[{Header.ItemId}] ({XY.x}/{XY.y}) {ZLow} -> {ZHigh}";
 	}
 }
