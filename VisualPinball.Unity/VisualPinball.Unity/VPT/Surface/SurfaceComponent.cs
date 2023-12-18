@@ -135,6 +135,8 @@ namespace VisualPinball.Unity
 				updatedComponents.Add(collComponent);
 			}
 
+			CenterPivot();
+
 			return updatedComponents;
 		}
 
@@ -217,6 +219,25 @@ namespace VisualPinball.Unity
 			}
 
 			UpdateTransforms();
+			RebuildMeshes();
+		}
+
+		private void CenterPivot()
+		{
+			// TODO move origin to the top.
+			// in order to do that, we'll need to treat top and bottom height differently:
+			// - top height is at local z = 0
+			// - changing top height will both transform on local z and change the height of the object
+			// - changing bottom height will just change the height
+			// - change mesh and collider creation to create top-down instead of bottom-up.
+
+			var centerVpx = DragPoints.Aggregate(Vector3.zero, (current, dragPoint) => current + dragPoint.Center.ToUnityVector3());
+			centerVpx /= DragPoints.Length;
+
+			transform.Translate(centerVpx.TranslateToWorld(transform) - transform.position);
+			foreach (var dragPoint in DragPoints) {
+				dragPoint.Center -= centerVpx.ToVertex3D();
+			}
 			RebuildMeshes();
 		}
 
