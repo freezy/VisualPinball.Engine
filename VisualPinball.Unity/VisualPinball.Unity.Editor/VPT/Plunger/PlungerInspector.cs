@@ -17,6 +17,7 @@
 // ReSharper disable AssignmentInConditionalExpression
 
 using UnityEditor;
+using UnityEngine;
 using VisualPinball.Engine.VPT.Plunger;
 
 namespace VisualPinball.Unity.Editor
@@ -24,7 +25,6 @@ namespace VisualPinball.Unity.Editor
 	[CustomEditor(typeof(PlungerComponent)), CanEditMultipleObjects]
 	public class PlungerInspector : MainInspector<PlungerData, PlungerComponent>
 	{
-		private SerializedProperty _positionProperty;
 		private SerializedProperty _widthProperty;
 		private SerializedProperty _heightProperty;
 		private SerializedProperty _zAdjustProperty;
@@ -34,7 +34,6 @@ namespace VisualPinball.Unity.Editor
 		{
 			base.OnEnable();
 
-			_positionProperty = serializedObject.FindProperty(nameof(PlungerComponent.Position));
 			_widthProperty = serializedObject.FindProperty(nameof(PlungerComponent.Width));
 			_heightProperty = serializedObject.FindProperty(nameof(PlungerComponent.Height));
 			_zAdjustProperty = serializedObject.FindProperty(nameof(PlungerComponent.ZAdjust));
@@ -51,7 +50,14 @@ namespace VisualPinball.Unity.Editor
 
 			OnPreInspectorGUI();
 
-			PropertyField(_positionProperty, rebuildMesh: true);
+			// position
+			EditorGUI.BeginChangeCheck();
+			var newPos = EditorGUILayout.Vector2Field(new GUIContent("Position", "The position of the plunger on the playfield."), MainComponent.Position);
+			if (EditorGUI.EndChangeCheck()) {
+				Undo.RecordObject(MainComponent.transform, "Change Plunger Position");
+				MainComponent.Position = newPos;
+			}
+
 			PropertyField(_widthProperty, rebuildMesh: true);
 			PropertyField(_heightProperty, rebuildMesh: true);
 			PropertyField(_zAdjustProperty, rebuildMesh: true);

@@ -116,8 +116,8 @@ namespace VisualPinball.Engine.VPT.Plunger
 		private void Init(float height)
 		{
 			var stroke = _data.Stroke;
-			_beginY = _data.Center.Y;
-			_endY = _data.Center.Y - stroke;
+			_beginY = 0;
+			_endY =  -stroke;
 			NumFrames = (int)(stroke * (float)(PlungerFrameCount / 80.0)) + 1; // 25 frames per 80 units travel
 			_invScale = NumFrames > 1 ? 1.0f / (NumFrames - 1) : 0.0f;
 			_dyPerFrame = (_endY - _beginY) * _invScale;
@@ -228,8 +228,8 @@ namespace VisualPinball.Engine.VPT.Plunger
 			// for the current frame.  (The 0th frame is the most retracted position;
 			// the cframe-1'th frame is the most forward position.)  The base is at
 			// the nominal y position plus m_d.m_height.
-			var xLt = _data.Center.X - _data.Width;
-			var xRt = _data.Center.X + _data.Width;
+			var xLt = -_data.Width;
+			var xRt = _data.Width;
 			var yTop = _beginY + _dyPerFrame * frame;
 			var yBot = _beginY + _data.Height;
 
@@ -372,7 +372,7 @@ namespace VisualPinball.Engine.VPT.Plunger
 					}
 
 					vertices[i++] = new Vertex3DNoTex2 {
-						X = r * (sn * _data.Width) + _data.Center.X,
+						X = r * (sn * _data.Width),
 						Y = y,
 						Z = (r * (cs * _data.Width) + _data.Width + _zHeight) * _zScale,
 						Nx = c.nx * sn,
@@ -511,7 +511,7 @@ namespace VisualPinball.Engine.VPT.Plunger
 
 				// set the point on the front spiral
 				vertices[pm++] = new Vertex3DNoTex2 {
-					X = _springRadius * (sn * _data.Width) + _data.Center.X,
+					X = _springRadius * (sn * _data.Width),
 					Y = y - _springGauge,
 					Z = (_springRadius * (cs * _data.Width) + _data.Width + _zHeight) * _zScale,
 					Nx = 0.0f,
@@ -523,7 +523,7 @@ namespace VisualPinball.Engine.VPT.Plunger
 
 				// set the point on the top spiral
 				vertices[pm++] = new Vertex3DNoTex2 {
-					X = (_springRadius + springGaugeRel / 1.5f) * (sn * _data.Width) + _data.Center.X,
+					X = (_springRadius + springGaugeRel / 1.5f) * (sn * _data.Width),
 					Y = y,
 					Z = ((_springRadius + springGaugeRel / 1.5f) * (cs * _data.Width) + _data.Width + _zHeight) *
 					    _zScale,
@@ -536,7 +536,7 @@ namespace VisualPinball.Engine.VPT.Plunger
 
 				// set the point on the back spiral
 				vertices[pm++] = new Vertex3DNoTex2 {
-					X = _springRadius * (sn * _data.Width) + _data.Center.X,
+					X = _springRadius * (sn * _data.Width),
 					Y = y + _springGauge,
 					Z = (_springRadius * (cs * _data.Width) + _data.Width + _zHeight) * _zScale,
 					Nx = 0.0f,

@@ -36,8 +36,19 @@ namespace VisualPinball.Unity
 	{
 		#region Data
 
-		[Tooltip("The position of the plunger on the playfield.")]
-		public Vector2 Position;
+		public Vector2 Position {
+			get {
+				var pos = transform.localPosition;
+				var posVpx = pos.TranslateToVpx();
+				return new Vector2(posVpx.x, posVpx.y);
+			}
+			set {
+				var posVpx = new Vector3(value.x, value.y, 0);
+				var pos = posVpx.TranslateToWorld();
+				var t = transform;
+				t.localPosition = new Vector3(pos.x, t.localPosition.y, pos.z);
+			}
+		}
 
 		public float Width = 25f;
 
