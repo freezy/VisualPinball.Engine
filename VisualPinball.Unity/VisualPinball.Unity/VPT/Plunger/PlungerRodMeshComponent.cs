@@ -64,7 +64,7 @@ namespace VisualPinball.Unity
 			var bounds = smr.localBounds;
 			var ringOffset = (RingGap + RingWidth) / 2f;
 			var radius = math.max(RodDiam, RingDiam) * plungerComp.Width / 2;
-			bounds.center = new Vector3(plungerComp.Position.x, plungerComp.Position.y + ringOffset - 40, 45);
+			bounds.center = new Vector3(0, ringOffset - 40, 45);
 			bounds.extents = new Vector3(radius, 125f + ringOffset, radius);
 			smr.localBounds = bounds;
 		}
