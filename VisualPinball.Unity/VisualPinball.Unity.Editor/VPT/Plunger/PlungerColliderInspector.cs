@@ -24,6 +24,7 @@ namespace VisualPinball.Unity.Editor
 	[CustomEditor(typeof(PlungerColliderComponent)), CanEditMultipleObjects]
 	public class PlungerColliderInspector : ColliderInspector<PlungerData, PlungerComponent, PlungerColliderComponent>
 	{
+		private SerializedProperty _isKinematicProperty;
 		private SerializedProperty _speedPullProperty;
 		private SerializedProperty _speedFireProperty;
 		private SerializedProperty _strokeProperty;
@@ -37,6 +38,7 @@ namespace VisualPinball.Unity.Editor
 		protected override void OnEnable()
 		{
 			base.OnEnable();
+			_isKinematicProperty = serializedObject.FindProperty(nameof(PlungerColliderComponent._isKinematic));
 			_speedPullProperty = serializedObject.FindProperty(nameof(PlungerColliderComponent.SpeedPull));
 			_speedFireProperty = serializedObject.FindProperty(nameof(PlungerColliderComponent.SpeedFire));
 			_strokeProperty = serializedObject.FindProperty(nameof(PlungerColliderComponent.Stroke));
@@ -58,6 +60,7 @@ namespace VisualPinball.Unity.Editor
 
 			OnPreInspectorGUI();
 
+			PropertyField(_isKinematicProperty, "Movable");
 			PropertyField(_speedPullProperty, "Pull Speed");
 			PropertyField(_speedFireProperty, "Release Speed");
 			PropertyField(_strokeProperty, "Stroke Length");

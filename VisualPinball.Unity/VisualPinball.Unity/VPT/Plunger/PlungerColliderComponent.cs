@@ -16,13 +16,14 @@
 
 // ReSharper disable InconsistentNaming
 
+using Unity.Mathematics;
 using UnityEngine;
 using VisualPinball.Engine.VPT.Plunger;
 
 namespace VisualPinball.Unity
 {
 	[AddComponentMenu("Visual Pinball/Collision/Plunger Collider")]
-	public class PlungerColliderComponent : ColliderComponent<PlungerData, PlungerComponent>
+	public class PlungerColliderComponent : ColliderComponent<PlungerData, PlungerComponent>, IKinematicColliderComponent, ICollidableNonTransformableComponent
 	{
 		#region Data
 
@@ -52,10 +53,25 @@ namespace VisualPinball.Unity
 		[Tooltip("At which position the plunger rests.")]
 		public float ParkPosition = 0.5f / 3.0f;
 
+		[Tooltip("If set, transforming this object will transform the colliders as well.")]
+		public bool _isKinematic;
+
 		#endregion
 
 		public override PhysicsMaterialData PhysicsMaterialData => GetPhysicsMaterialData();
 		protected override IApiColliderGenerator InstantiateColliderApi(Player player, PhysicsEngine physicsEngine)
 			=> MainComponent.PlungerApi ?? new PlungerApi(gameObject, player, physicsEngine);
+
+		#region IKinematicColliderComponent
+
+		public bool IsKinematic => _isKinematic;
+		public int ItemId => MainComponent.gameObject.GetInstanceID();
+
+		float4x4 ICollidableNonTransformableComponent.TranslateWithinPlayfieldMatrix(float4x4 worldToPlayfield)
+			=> MainComponent.transform.localToWorldMatrix.LocalToWorldTranslateWithinPlayfield(worldToPlayfield);
+
+		public float4x4 TransformationWithinPlayfield => MainComponent.TransformationWithinPlayfield;
+
+		#endregion
 	}
 }

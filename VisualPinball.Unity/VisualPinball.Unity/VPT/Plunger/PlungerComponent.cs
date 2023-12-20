@@ -99,6 +99,9 @@ namespace VisualPinball.Unity
 			}
 		}
 
+		public float4x4 TransformationWithinPlayfield
+			=> transform.worldToLocalMatrix.WorldToLocalTranslateWithinPlayfield(_playfieldToWorld);
+
 		#endregion
 
 		#region Wiring
@@ -116,6 +119,9 @@ namespace VisualPinball.Unity
 
 		#region Transformation
 
+		[NonSerialized]
+		private float4x4 _playfieldToWorld;
+
 		public void OnSurfaceUpdated() => RebuildMeshes();
 
 		public override void OnPlayfieldHeightUpdated() => RebuildMeshes();
@@ -130,6 +136,11 @@ namespace VisualPinball.Unity
 			
 			GetComponent<PlungerRodMeshComponent>()?.CalculateBoundingBox();
 			GetComponent<PlungerSpringMeshComponent>()?.CalculateBoundingBox();
+		}
+
+		private void Start()
+		{
+			_playfieldToWorld = Player.PlayfieldToWorldMatrix;
 		}
 
 		#endregion

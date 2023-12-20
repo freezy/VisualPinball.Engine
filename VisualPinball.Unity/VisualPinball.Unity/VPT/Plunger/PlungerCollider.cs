@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-using Unity.Collections;
 using Unity.Mathematics;
 using VisualPinball.Engine.Common;
 using VisualPinball.Engine.VPT.Plunger;
@@ -40,6 +39,10 @@ namespace VisualPinball.Unity
 		public LineZCollider JointBase0;
 		public LineZCollider JointBase1;
 
+		private float3 _pos;
+		private float2 _size;
+		private float _stroke;
+
 		public ColliderBounds Bounds { get; private set; }
 
 		public PlungerCollider(PlungerComponent comp, PlungerColliderComponent collComp, ColliderInfo info) : this()
@@ -50,6 +53,10 @@ namespace VisualPinball.Unity
 			var x = comp.Position.x - comp.Width;
 			var y = comp.Position.y + comp.Height;
 			var x2 = comp.Position.x + comp.Width;
+
+			_pos = new float3(comp.Position.x, comp.Position.y, comp.PositionZ);
+			_size = new float2(comp.Width, comp.Height);
+			_stroke = collComp.Stroke;
 
 			// static
 			LineSegBase = new LineCollider(new float2(x, y), new float2(x2, y), zHeight, zHeight + Plunger.PlungerHeight, info);
@@ -65,6 +72,25 @@ namespace VisualPinball.Unity
 				zHeight,
 				zHeight + Plunger.PlungerHeight
 			));
+		}
+
+		public PlungerCollider TransformAabb(float4x4 matrix)
+		{
+			var zHeight = _pos.z;
+			var x = _pos.x - _size.x;
+			var y = _pos.y + _size.y;
+			var x2 = _pos.x + _size.x;
+			var frameEnd = _pos.y - _stroke;
+
+			var min = new float3(x - 0.1f, frameEnd - 0.1f, zHeight);
+			var max = new float3(x2 + 0.1f, y + 0.1f, zHeight + Plunger.PlungerHeight);
+
+			var p1 = matrix.MultiplyPoint(min);
+			var p2 = matrix.MultiplyPoint(max);
+
+			Bounds = new ColliderBounds(Header.ItemId, Header.Id, new Aabb(math.min(p1, p2), math.max(p1, p2)));
+
+			return this;
 		}
 
 		#region Narrowphase
@@ -315,6 +341,6 @@ namespace VisualPinball.Unity
 
 		#endregion
 
-		public override string ToString() => $"LineSlingshotCollider[{Header.ItemId}] {LineSegBase.ToString()} | {JointBase0.ToString()} | {JointBase1.ToString()}";
+		public override string ToString() => $"PlungerCollider[{Header.ItemId}] {LineSegBase.ToString()} | {JointBase0.ToString()} | {JointBase1.ToString()}";
 	}
 }
