@@ -56,6 +56,7 @@ To do that, go to *Edit -> Project Settings*, and select the *Package Manager* p
 - Name: `Visual Pinball Engine`
 - URL: `https://registry.visualpinball.org/`
 - Scope(s): `org.visualpinball`
+- Scope(s): `com.bartofzo`
 
 Also check *Enable Pre-release Packages* (and confirm), as well as *Show dependencies*. Your settings page should now look like this:
 
