@@ -393,7 +393,7 @@ namespace VisualPinball.Unity
 			}
 			
 			Gizmos.matrix = Matrix4x4.identity;
-			Handles.matrix = Matrix4x4.identity;
+			UnityEditor.Handles.matrix = Matrix4x4.identity;
 
 			// Draw enclosing polygon
 			Gizmos.color = Color.cyan;
