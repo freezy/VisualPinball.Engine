@@ -22,17 +22,15 @@ namespace VisualPinball.Unity.Editor
 	[CustomEditor(typeof(MechSoundsComponent)), CanEditMultipleObjects]
 	public class MechanicalSoundInspector : UnityEditor.Editor
 	{
+		private SerializedProperty _audioMixerProperty;
 		private SerializedProperty _soundsProperty;
 
 		private void OnEnable()
 		{
+			_audioMixerProperty = serializedObject.FindProperty(nameof(MechSoundsComponent.AudioMixer));
 			_soundsProperty = serializedObject.FindProperty(nameof(MechSoundsComponent.Sounds));
 			
 			var comp = target as MechSoundsComponent;
-			var audioSource = comp!.GetComponent<AudioSource>();
-			if (audioSource != null) {
-				audioSource.playOnAwake = false;
-			}
 		}
 
 		public override void OnInspectorGUI()
@@ -45,13 +43,9 @@ namespace VisualPinball.Unity.Editor
 				return;
 			}
 
-			var audioSource = comp.GetComponent<AudioSource>();
-			if (audioSource == null) {
-				EditorGUILayout.HelpBox("Cannot find audio source. This component only works with an audio source on the same GameObject.", MessageType.Error);
-				return;
-			}
-
 			serializedObject.Update();
+
+			EditorGUILayout.PropertyField(_audioMixerProperty);
 			
 			EditorGUILayout.PropertyField(_soundsProperty);
 
