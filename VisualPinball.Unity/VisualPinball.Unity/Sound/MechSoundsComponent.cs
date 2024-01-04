@@ -72,7 +72,17 @@ namespace VisualPinball.Unity
 		{
 
 			if (_sounds.ContainsKey(e.TriggerId)) {
+				MechSound sound = _sounds[e.TriggerId];
 
+				if (sound.Action == MechSoundAction.Stop)
+				{
+					sound.Sound.Stop(_audioSource);
+					Debug.Log($"Stopping sound {e.TriggerId} for {name}");
+					// we're done
+					return;
+				}
+
+				// else sound.Action == MechSoundAction.Play
 				float fade = _sounds[e.TriggerId].Fade;
 				bool fadeVolume = false;
 
@@ -91,7 +101,7 @@ namespace VisualPinball.Unity
 				float volume = e.Volume;
 
 				AudioMixer audioMixer = GetComponent<AudioSource>().outputAudioMixerGroup.audioMixer;
-				_sounds[e.TriggerId].Sound.Play(_audioSource, volume);
+				sound.Sound.Play(_audioSource, volume);
 
 				/* set audio mixer volume to decibel equivalent of volume slider value
 				   mixer volume is set at 0 dB when added to audiosource
@@ -117,6 +127,7 @@ namespace VisualPinball.Unity
 				Debug.Log($"Playing sound {e.TriggerId} for {name}");
 				
 			} else {
+				// JL: doenst need to be an error, change to Debug.Log?
 				Debug.LogError($"Unknown trigger {e.TriggerId} for {name}");
 			}
 		}
