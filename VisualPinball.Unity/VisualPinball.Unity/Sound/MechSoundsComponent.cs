@@ -27,18 +27,19 @@ using Logger = NLog.Logger;
 namespace VisualPinball.Unity
 {
 	[AddComponentMenu("Visual Pinball/Sounds/Mechanical Sounds")]
-	[RequireComponent(typeof(AudioSource))]
+	//[RequireComponent(typeof(AudioSource))]
 	public class MechSoundsComponent : MonoBehaviour
 	{
+		[SerializeField]
+		public AudioMixerGroup AudioMixer;
+
 		[SerializeField]
 		public List<MechSound> Sounds = new();
 		
 		[NonSerialized]
 		private ISoundEmitter _soundEmitter;
 		[NonSerialized]
-		private AudioSource _audioSource;
-		[NonSerialized]
-		private Dictionary<string, MechSound> _sounds = new();
+		private SerializableDictionary<SoundAsset, AudioSource> _audioSources = new SerializableDictionary<SoundAsset, AudioSource>();
 		
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 		private Coroutine _co;
@@ -46,14 +47,11 @@ namespace VisualPinball.Unity
 		private void Awake()
 		{
 			_soundEmitter = GetComponent<ISoundEmitter>();
-			_audioSource = GetComponent<AudioSource>();
-			
-			_sounds = Sounds.ToDictionary(s => s.TriggerId, s => s);
 		}
 
 		private void Start()
 		{
-			if (_soundEmitter != null && _audioSource) {
+			if (_soundEmitter != null) {
 				_soundEmitter.OnSound += EmitSound;
 
 			} else {
@@ -70,20 +68,36 @@ namespace VisualPinball.Unity
 
 		private void EmitSound(object sender, SoundEventArgs e)
 		{
+			int clipCount = 0;
 
-			if (_sounds.ContainsKey(e.TriggerId)) {
-				MechSound sound = _sounds[e.TriggerId];
+			foreach(MechSound sound in Sounds)
+			{
+				// filter for the TriggerId
+				if (sound.TriggerId != e.TriggerId) continue;
+
+				// get or create the AudioSource
+				AudioSource audioSource;
+				if (_audioSources.ContainsKey(sound.Sound))
+				{
+					audioSource = _audioSources[sound.Sound];
+				}
+				else
+				{
+					audioSource = gameObject.AddComponent<AudioSource>();
+					audioSource.outputAudioMixerGroup = AudioMixer;
+					_audioSources.Add(sound.Sound, audioSource);
+				}
 
 				if (sound.Action == MechSoundAction.Stop)
 				{
-					sound.Sound.Stop(_audioSource);
+					sound.Sound.Stop(audioSource);
 					Debug.Log($"Stopping sound {e.TriggerId} for {name}");
 					// we're done
-					return;
+					continue;
 				}
 
 				// else sound.Action == MechSoundAction.Play
-				float fade = _sounds[e.TriggerId].Fade;
+				float fade = sound.Fade;
 				bool fadeVolume = false;
 
 				//convert fade duration from milliseconds to seconds for use with StartFade method
@@ -101,7 +115,7 @@ namespace VisualPinball.Unity
 				float volume = e.Volume;
 
 				AudioMixer audioMixer = GetComponent<AudioSource>().outputAudioMixerGroup.audioMixer;
-				sound.Sound.Play(_audioSource, volume);
+				sound.Sound.Play(audioSource, volume);
 
 				/* set audio mixer volume to decibel equivalent of volume slider value
 				   mixer volume is set at 0 dB when added to audiosource
@@ -125,10 +139,6 @@ namespace VisualPinball.Unity
 				
 
 				Debug.Log($"Playing sound {e.TriggerId} for {name}");
-				
-			} else {
-				// JL: doenst need to be an error, change to Debug.Log?
-				Debug.LogError($"Unknown trigger {e.TriggerId} for {name}");
 			}
 		}
 	}
