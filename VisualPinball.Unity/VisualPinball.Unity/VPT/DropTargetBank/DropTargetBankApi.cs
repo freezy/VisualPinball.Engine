@@ -102,6 +102,10 @@ namespace VisualPinball.Unity
 			foreach (var dropTargetApi in _dropTargetApis) {
 				dropTargetApi.IsDropped = false;
 			}
+
+			// ? is this where this goes?
+			// ! MainComponent local var is not exposed in (from ItemApi?)
+			//MainComponent.EmitSound(DropTargetBankComponent.SoundTargetBankReset);
 		}
 
 		void IApi.OnDestroy()
