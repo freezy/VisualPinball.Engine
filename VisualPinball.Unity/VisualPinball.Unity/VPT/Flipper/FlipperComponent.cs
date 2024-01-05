@@ -148,19 +148,9 @@ namespace VisualPinball.Unity
 			OnSound?.Invoke(this, new SoundEventArgs(triggerId, volume));
 		}
 
-		/// <summary>
-		/// Returns the current position of the flipper between 0 and 1, where 0 is the
-		/// start position, and 1 the end position.
-		/// </summary>
-		public float RotatePosition {
-			get {
-				var start = (_startAngle + 360) % 360;
-				var end = (EndAngle + 360) % 360;
-				return 1 - (transform.localEulerAngles.y - start) / (end - start);
-			}
-		}
-
 		#endregion
+
+
 
 
 		#region Wiring
@@ -220,6 +210,18 @@ namespace VisualPinball.Unity
 			set {
 				Position = new Vector3(value.x, value.y, Position.z);
 				UpdateTransforms();
+			}
+		}
+
+		/// <summary>
+		/// Returns the current position of the flipper between 0 and 1, where 0 is the
+		/// start position, and 1 the end position.
+		/// </summary>
+		public float RotatePosition {
+			get {
+				var start = (_startAngle + 360) % 360;
+				var end = (EndAngle + 360) % 360;
+				return 1 - (transform.localEulerAngles.y - start) / (end - start);
 			}
 		}
 
