@@ -126,6 +126,8 @@ namespace VisualPinball.Unity
 		void IApiHittable.OnHit(int ballId, bool _)
 		{
 			Hit?.Invoke(this, new HitEventArgs(ballId));
+
+			MainComponent.EmitSound(TargetComponent.SoundTargetHit);
 		}
 
 		#endregion
