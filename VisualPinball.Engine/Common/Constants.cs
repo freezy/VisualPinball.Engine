@@ -160,5 +160,6 @@ namespace VisualPinball.Engine.Common
 		public const string ActionSelfTest = "Self Test";
 		public const string ActionLeftAdvance = "Left Advance";
 		public const string ActionRightAdvance = "Right Advance";
+		public const string ActionExitTable = "Exit Table";
 	}
 }
