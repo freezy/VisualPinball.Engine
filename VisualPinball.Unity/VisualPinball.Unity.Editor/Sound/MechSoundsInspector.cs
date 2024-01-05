@@ -44,10 +44,10 @@ namespace VisualPinball.Unity.Editor
 			}
 
 			serializedObject.Update();
-
-			EditorGUILayout.PropertyField(_audioMixerProperty);
 			
 			EditorGUILayout.PropertyField(_soundsProperty);
+
+			EditorGUILayout.PropertyField(_audioMixerProperty);
 
 			serializedObject.ApplyModifiedProperties();
 		}
