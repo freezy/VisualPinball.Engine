@@ -27,19 +27,19 @@ using Logger = NLog.Logger;
 namespace VisualPinball.Unity
 {
 	[AddComponentMenu("Visual Pinball/Sounds/Mechanical Sounds")]
-	//[RequireComponent(typeof(AudioSource))]
 	public class MechSoundsComponent : MonoBehaviour
 	{
 		[SerializeField]
-		public AudioMixerGroup AudioMixer;
+		public List<MechSound> Sounds = new();
 
 		[SerializeField]
-		public List<MechSound> Sounds = new();
-		
+		[Tooltip("If left blank, looks for an Audio Mixer in closest parent up the hierarchy.")]
+		public AudioMixerGroup AudioMixer;
+
 		[NonSerialized]
 		private ISoundEmitter _soundEmitter;
 		[NonSerialized]
-		private SerializableDictionary<SoundAsset, AudioSource> _audioSources = new SerializableDictionary<SoundAsset, AudioSource>();
+		private SerializableDictionary<SoundAsset, AudioSource> _audioSources = new SerializableDictionary<SoundAsset, AudioSource>(); 
 		
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 		private Coroutine _co;
@@ -51,10 +51,25 @@ namespace VisualPinball.Unity
 
 		private void Start()
 		{
+			if (AudioMixer == null)
+			{
+				// find an Audio Mixer by searching up the hierarchy
+				AudioSource audioSource = GetComponentInParent<AudioSource>();
+				if (audioSource != null)
+				{
+					AudioMixer = audioSource.outputAudioMixerGroup;
+				}
+				else
+				{
+					Logger.Warn($"Sounds will not play without an Audio Mixer.");
+				}
+			}
+
 			if (_soundEmitter != null) {
 				_soundEmitter.OnSound += EmitSound;
 
 			} else {
+				// ? is AudioSource really a dependency here??
 				Logger.Warn($"Cannot initialize mech sound for {name} due to missing ISoundEmitter or AudioSource.");
 			}
 		}
