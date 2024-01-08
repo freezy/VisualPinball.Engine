@@ -198,7 +198,7 @@ namespace VisualPinball.Unity
 
 		#region ISoundEmitter
 
-		public SoundTrigger[] AvailableTriggers => new[] {
+		public virtual SoundTrigger[] AvailableTriggers => new[] {
 			new SoundTrigger { Id = SoundTargetHit, Name = "Target Hit" },
 		};
 
