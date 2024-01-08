@@ -129,6 +129,13 @@ namespace VisualPinball.Unity
 
 			MainComponent.EmitSound(TargetComponent.SoundTargetHit);
 		}
+		void IApiDroppable.OnDropStatusChanged(bool isDropped, int ballId)
+		{
+			if (!isDropped)
+			{
+				MainComponent.EmitSound(DropTargetComponent.SoundTargetReset);
+			}
+		}
 
 		#endregion
 	}
