@@ -18,11 +18,12 @@ using System;
 using Logger = NLog.Logger;
 using NLog;
 using UnityEngine;
+using VisualPinball.Engine.VPT;
 using System.Collections.Generic;
 
 namespace VisualPinball.Unity
 {
-	public class DropTargetBankApi : IApi, IApiCoilDevice, IApiSwitchDevice
+	public class DropTargetBankApi : ItemApi<DropTargetBankComponent, ItemData>, IApi, IApiCoilDevice, IApiSwitchDevice
 	{
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
@@ -57,7 +58,7 @@ namespace VisualPinball.Unity
 			};
 		}
 
-		internal DropTargetBankApi(GameObject go, Player player, PhysicsEngine physicsEngine)
+		internal DropTargetBankApi(GameObject go, Player player, PhysicsEngine physicsEngine) : base(go, player, physicsEngine)
 		{
 			_dropTargetBankComponent = go.GetComponentInChildren<DropTargetBankComponent>();
 			_player = player;
@@ -104,8 +105,7 @@ namespace VisualPinball.Unity
 			}
 
 			// ? is this where this goes?
-			// ! MainComponent local var is not exposed in (from ItemApi?)
-			//MainComponent.EmitSound(DropTargetBankComponent.SoundTargetBankReset);
+			MainComponent.EmitSound(DropTargetBankComponent.SoundTargetBankReset);
 		}
 
 		void IApi.OnDestroy()
