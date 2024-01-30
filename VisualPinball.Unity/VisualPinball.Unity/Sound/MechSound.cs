@@ -30,6 +30,7 @@ namespace VisualPinball.Unity
 		public string TriggerId;
 
 		[Range(0.0001f, 1)]
+		// this initialization doesnt work in inspector https://www.reddit.com/r/Unity3D/comments/j5i6cj/inspector_struct_default_values/
 		public float Volume = 1;
 		
 		public MechSoundAction Action = MechSoundAction.Play;

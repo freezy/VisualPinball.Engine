@@ -17,10 +17,12 @@
 using System;
 using NLog;
 using UnityEngine;
+using VisualPinball.Engine.VPT;
 using Logger = NLog.Logger;
 
 namespace VisualPinball.Unity
 {
+	// public class ScoreMotorApi :  ItemApi<ScoreMotorComponent, ItemData>, IApi, IApiSwitchDevice
 	public class ScoreMotorApi : IApi, IApiSwitchDevice
 	{
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
@@ -48,6 +50,7 @@ namespace VisualPinball.Unity
 			};
 		}
 
+		// internal ScoreMotorApi(GameObject go, Player player, PhysicsEngine physicsEngine) : base(go, player, physicsEngine)
 		internal ScoreMotorApi(GameObject go, Player player, PhysicsEngine physicsEngine)
 		{
 			_scoreMotorComponent = go.GetComponentInChildren<ScoreMotorComponent>();
@@ -56,6 +59,8 @@ namespace VisualPinball.Unity
 
 			_scoreMotorComponent.OnSwitchChanged += HandleSwitchChanged;
 		}
+
+		#region Events
 
 		void IApi.OnInit(BallManager ballManager)
 		{
@@ -68,6 +73,11 @@ namespace VisualPinball.Unity
 		private void HandleSwitchChanged(object sender, SwitchEventArgs2 e)
 		{
 			((DeviceSwitch)Switch(e.Id)).SetSwitch(e.IsEnabled);
+
+			//if (e.IsEnabled)
+			//{
+			//	MainComponent.EmitSound(ScoreMotorComponent.SoundScoreClear);
+			//}
 		}
 
 		void IApi.OnDestroy()
@@ -76,5 +86,7 @@ namespace VisualPinball.Unity
 
 			Logger.Info($"Destroying {_scoreMotorComponent.name}");
 		}
+
+		#endregion
 	}
 }
