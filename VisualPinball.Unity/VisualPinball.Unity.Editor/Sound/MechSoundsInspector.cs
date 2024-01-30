@@ -47,6 +47,13 @@ namespace VisualPinball.Unity.Editor
 			
 			EditorGUILayout.PropertyField(_soundsProperty);
 
+			// unity doesnt use default values when adding items in a list so force it (Volume=1)
+			if (GUILayout.Button("Add New MechSound"))
+			{
+				comp.Sounds.Add(new MechSound());
+				EditorUtility.SetDirty(comp);
+			}
+
 			EditorGUILayout.PropertyField(_audioMixerProperty);
 
 			serializedObject.ApplyModifiedProperties();
