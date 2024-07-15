@@ -36,11 +36,11 @@ namespace VisualPinball.Engine.Game.Engines
 		/// </summary>
 		public bool IsUnused;
 
-		private string _description;
-		private string _id;
-		private string _deviceHint;
-		private string _deviceItemHint;
-		private int _numMatches = 1;
+		protected string _description;
+		protected string _id;
+		protected string _deviceHint;
+		protected string _deviceItemHint;
+		protected int _numMatches = 1;
 
 		public GamelogicEngineCoil(string id)
 		{
