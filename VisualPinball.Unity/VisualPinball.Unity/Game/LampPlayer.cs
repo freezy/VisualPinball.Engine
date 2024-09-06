@@ -270,8 +270,8 @@ namespace VisualPinball.Unity
 		private readonly struct LampAction
 		{
 			public readonly LampState State;
-			public readonly IApiLamp Lamp;
-			public readonly LampMapping Mapping;
+			public readonly IApiLamp? Lamp;
+			public readonly LampMapping? Mapping;
 
 			public LampAction(LampState state)
 			{
