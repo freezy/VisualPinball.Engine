@@ -178,7 +178,7 @@ namespace VisualPinball.Unity
 				}
 				_gleDestAssignments[destId].Add(wireDest);
 
-				Logger.Warn($"Added dynamic wire \"{wireMapping.Description}\" ({srcId} -> {destId}).");
+				Logger.Info($"Added dynamic wire \"{wireMapping.Description}\" ({srcId} -> {destId}).");
 
 			} else {
 				Logger.Warn($"GLE IDs not found for dynamic wire {wireMapping.Description} ({srcId} -> {destId}).");
