@@ -197,32 +197,34 @@ namespace VisualPinball.Unity
 
 			// children visibility
 			foreach (var mf in GetComponentsInChildren<MeshFilter>()) {
-				var mr = mf.GetComponent<MeshRenderer>();
-				switch (mf.sharedMesh.name) {
-					case SkirtMeshName:
-						mf.gameObject.SetActive(data.IsSocketVisible);
-						if (!string.IsNullOrEmpty(data.SocketMaterial)) {
-							mr.sharedMaterial = materialProvider.MergeMaterials(data.SocketMaterial, mr.sharedMaterial);
-						}
-						break;
-					case BaseMeshName:
-						mf.gameObject.SetActive(data.IsBaseVisible);
-						if (!string.IsNullOrEmpty(data.BaseMaterial)) {
-							mr.sharedMaterial = materialProvider.MergeMaterials(data.BaseMaterial, mr.sharedMaterial);
-						}
-						break;
-					case CapMeshName:
-						mf.gameObject.SetActive(data.IsCapVisible);
-						if (!string.IsNullOrEmpty(data.CapMaterial)) {
-							mr.sharedMaterial = materialProvider.MergeMaterials(data.CapMaterial, mr.sharedMaterial);
-						}
-						break;
-					case RingMeshName:
-						mf.gameObject.SetActive(data.IsRingVisible);
-						if (!string.IsNullOrEmpty(data.RingMaterial)) {
-							mr.sharedMaterial = materialProvider.MergeMaterials(data.RingMaterial, mr.sharedMaterial);
-						}
-						break;
+				if (mf.sharedMesh) {
+					var mr = mf.GetComponent<MeshRenderer>();
+					switch (mf.sharedMesh.name) {
+						case SkirtMeshName:
+							mf.gameObject.SetActive(data.IsSocketVisible);
+							if (!string.IsNullOrEmpty(data.SocketMaterial)) {
+								mr.sharedMaterial = materialProvider.MergeMaterials(data.SocketMaterial, mr.sharedMaterial);
+							}
+							break;
+						case BaseMeshName:
+							mf.gameObject.SetActive(data.IsBaseVisible);
+							if (!string.IsNullOrEmpty(data.BaseMaterial)) {
+								mr.sharedMaterial = materialProvider.MergeMaterials(data.BaseMaterial, mr.sharedMaterial);
+							}
+							break;
+						case CapMeshName:
+							mf.gameObject.SetActive(data.IsCapVisible);
+							if (!string.IsNullOrEmpty(data.CapMaterial)) {
+								mr.sharedMaterial = materialProvider.MergeMaterials(data.CapMaterial, mr.sharedMaterial);
+							}
+							break;
+						case RingMeshName:
+							mf.gameObject.SetActive(data.IsRingVisible);
+							if (!string.IsNullOrEmpty(data.RingMaterial)) {
+								mr.sharedMaterial = materialProvider.MergeMaterials(data.RingMaterial, mr.sharedMaterial);
+							}
+							break;
+					}
 				}
 			}
 
@@ -248,24 +250,26 @@ namespace VisualPinball.Unity
 			data.IsRingVisible = false;
 			data.IsSocketVisible = false;
 			foreach (var mf in GetComponentsInChildren<MeshFilter>(true)) {
-				var mr = mf.gameObject.GetComponent<MeshRenderer>();
-				switch (mf.sharedMesh.name) {
-					case SkirtMeshName:
-						data.IsSocketVisible = mf.gameObject.activeInHierarchy;
-						CopyMaterialName(mr, materialNames, textureNames, ref data.SocketMaterial);
-						break;
-					case BaseMeshName:
-						data.IsBaseVisible = mf.gameObject.activeInHierarchy;
-						CopyMaterialName(mr, materialNames, textureNames, ref data.BaseMaterial);
-						break;
-					case CapMeshName:
-						data.IsCapVisible = mf.gameObject.activeInHierarchy;
-						CopyMaterialName(mr, materialNames, textureNames, ref data.CapMaterial);
-						break;
-					case RingMeshName:
-						data.IsRingVisible = mf.gameObject.activeInHierarchy;
-						CopyMaterialName(mr, materialNames, textureNames, ref data.RingMaterial);
-						break;
+				if (mf.sharedMesh) {
+					var mr = mf.gameObject.GetComponent<MeshRenderer>();
+					switch (mf.sharedMesh.name) {
+						case SkirtMeshName:
+							data.IsSocketVisible = mf.gameObject.activeInHierarchy;
+							CopyMaterialName(mr, materialNames, textureNames, ref data.SocketMaterial);
+							break;
+						case BaseMeshName:
+							data.IsBaseVisible = mf.gameObject.activeInHierarchy;
+							CopyMaterialName(mr, materialNames, textureNames, ref data.BaseMaterial);
+							break;
+						case CapMeshName:
+							data.IsCapVisible = mf.gameObject.activeInHierarchy;
+							CopyMaterialName(mr, materialNames, textureNames, ref data.CapMaterial);
+							break;
+						case RingMeshName:
+							data.IsRingVisible = mf.gameObject.activeInHierarchy;
+							CopyMaterialName(mr, materialNames, textureNames, ref data.RingMaterial);
+							break;
+					}
 				}
 			}
 
