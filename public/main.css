@@ -1,0 +1,131 @@
+@import url("fonts.css");
+@import url("https://raw.githubusercontent.com/thomaspark/bootswatch/v5/dist/zephyr/bootstrap.min.css");
+
+/* layout */
+.navbar-github { /* align github link to the right */
+	order: 100;
+	margin-left: 10px;
+	margin-top: 4px;
+}
+.navbar-github > svg { /* github logo color */
+	fill: #ccc;
+}
+body[data-layout=landing]>main { /* landing page full width */
+	display: block;
+}
+#vpe-halftone { /* landing page logo width */
+	max-width: 720px;
+	display: block;
+}
+
+/* color overrides */
+:root,
+[data-bs-theme=light] {
+	--bs-font-sans-serif: Inter, 'Segoe UI', Tahoma, Helvetica, sans-serif;
+	--bs-body-font-family: var(--bs-font-sans-serif);
+	--bs-link-color-rgb: 214, 99, 22 !important;
+	--bs-link-hover-color-rgb: 183, 74, 0 !important;
+	--bs-code-color: rgb(var(--bs-link-color-rgb), 1);
+	--vpe-body-bg-secondary: #f3f3f3;
+	--vpe-link-secondary: #00000080;
+	--vpe-link-secondary-hover: #000000aa;
+	--vpe-body-color-less-contrast: rgba(33, 37, 41, 0.5)
+}
+[data-bs-theme=dark] {
+	--bs-link-color-rgb: 236, 132, 61 !important;
+	--vpe-body-bg-secondary: #292e33;
+	--vpe-link-secondary: #ffffff80;
+	--vpe-link-secondary-hover: #ffffffaa;
+	--vpe-body-color-less-contrast: rgba(222, 226, 230, 0.5)
+}
+[data-bs-theme=dark] header { /* header slightly lighter in dark mode */
+	background-color: var(--vpe-body-bg-secondary) !important;
+}
+
+/* fix theme toggle button color */
+[data-bs-theme=light] header .dropdown a:hover,
+[data-bs-theme=light] header .dropdown a:active,
+[data-bs-theme=light] header .dropdown a:focus-visible,
+[data-bs-theme=light] header .dropdown a:focus,
+[data-bs-theme=light] header .btn.show {
+	color: white !important;
+}
+
+/* don't underline links */
+a {
+	text-decoration: none !important;
+}
+
+/* zephyr fixes */
+.btn-outline-secondary { /* outline button */
+	color: var(--bs-secondary-color) !important;
+}
+[data-bs-theme=dark] .btn-outline-secondary:hover { /* outline button hover */
+	color: var(--bs-body-bg) !important;
+}
+.link-secondary { /* TOC links on the left */
+	color: var(--vpe-link-secondary) !important;
+}
+.link-secondary:hover {
+	color: var(--vpe-link-secondary-hover) !important;
+}
+#search-results > .sr-items .sr-item > .item-href { /* search result colors */
+	color: rgba(var(--bs-link-color-rgb), 0.6);
+}
+
+[data-bs-theme=light] i.bi.bi-search { /* search icon color */
+	color: white;
+}
+
+/* landing svg art colors */
+svg #text {  /* visual pinball engine */
+	fill: var(--bs-body-color);
+}
+svg #bg1 { /* outer */
+	stroke-width: 0;
+	fill: var(--bs-body-bg)
+}
+svg #logo { /* logo */
+	fill: var(--bs-body-color);
+}
+svg #bg2 { /* inner */
+	fill: var(--vpe-body-bg-secondary);
+}
+
+/* footer customization */
+body>footer, body[data-layout=landing]>footer { /* footer height */
+	color: var(--vpe-body-color-less-contrast) !important;
+	background-color: var(--vpe-body-bg-secondary);
+	font-size: 0.8rem !important;
+	height: 52px;
+	padding-left: 10px;
+}
+
+/* make titles bold */
+h1, h2 {
+	font-weight: bold;
+}
+
+/* make tables striped */
+table.table.table-bordered > tbody > tr:nth-of-type(odd) > td {
+	background-color: var(--vpe-body-bg-secondary);
+}
+table.table.table-bordered > thead > tr > th { /* separate column header */
+	border-bottom-width: 3px;
+}
+table.table.table-bordered > * > tr > *:nth-child(1) { /* separate row header */
+	border-right-width: 3px;
+	font-style: italic;
+}
+
+/* code colors */
+code {
+	background-color: rgb(var(--bs-link-color-rgb), 0.15);
+	padding: 1px 3px;
+	border-radius: 3px;
+}
+
+/* image hover cursor */
+img:not(#logo):hover {
+	cursor: zoom-in;
+}
