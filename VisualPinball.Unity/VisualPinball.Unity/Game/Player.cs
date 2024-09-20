@@ -404,7 +404,7 @@ namespace VisualPinball.Unity
 
 		private static void HandleInput(object obj, InputActionChange change)
 		{
-			if (obj is InputAction action && action.actionMap.name == InputConstants.MapDebug) {
+			if (obj is InputAction action && action.actionMap != null && action.actionMap.name == InputConstants.MapDebug) {
 				var value = action.ReadValue<float>();
 				switch (action.name) {
 					case InputConstants.ActionSlowMotion: {
