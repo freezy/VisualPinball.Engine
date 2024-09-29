@@ -44,6 +44,24 @@ namespace VisualPinball.Unity
 		
 		internal bool IsOutsideOf(int itemId, int ballId) => !IsInsideOf(itemId, ballId);
 
+		internal int GetInsideCount(int itemId)
+		{
+			if (!_insideOfs.ContainsKey(itemId)) {
+				return 0;
+			}
+
+			return _insideOfs[itemId].CountBits();
+		}
+
+		internal bool IsEmpty(int itemId)
+		{
+			if (!_insideOfs.ContainsKey(itemId)) {
+				return true;
+			}
+
+			return !_insideOfs[itemId].TestAny(0, 64);
+		}
+
 		private void ClearItems(int itemId)
 		{
 			if (_insideOfs[itemId].GetBits(0, 64) == 0L) {

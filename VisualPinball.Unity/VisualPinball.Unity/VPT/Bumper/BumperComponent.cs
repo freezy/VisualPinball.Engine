@@ -107,7 +107,6 @@ namespace VisualPinball.Unity
 		public IEnumerable<GamelogicEngineSwitch> AvailableSwitches => new[] {
 			new GamelogicEngineSwitch(SocketSwitchItem) {
 				Description = "Socket Switch",
-				IsPulseSwitch = true,
 			}
 		};
 
