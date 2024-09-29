@@ -17,6 +17,7 @@
 using System;
 using UnityEngine;
 using VisualPinball.Engine.VPT.Bumper;
+using static UnityEngine.UI.CanvasScaler;
 
 namespace VisualPinball.Unity
 {
@@ -29,29 +30,37 @@ namespace VisualPinball.Unity
 		public event EventHandler Init;
 
 		/// <summary>
-		/// Event emitted when the ball hits the bumper.
+		/// Event emitted when the ball enters the bumper area.
 		/// </summary>
 		public event EventHandler<HitEventArgs> Hit;
+
+		/// <summary>
+		/// Event emitted when the ball leaves the bumper area.
+		/// </summary>
+		public event EventHandler<HitEventArgs> UnHit;
 
 		/// <summary>
 		/// Event emitted when the trigger is switched on or off.
 		/// </summary>
 		public event EventHandler<SwitchEventArgs> Switch;
 
+		private readonly PhysicsEngine _physicsEngine;
+
 		public BumperApi(GameObject go, Player player, PhysicsEngine physicsEngine) : base(go, player, physicsEngine)
 		{
+			_physicsEngine = physicsEngine;
 		}
 
 		#region Wiring
 
 		public bool IsSwitchEnabled => SwitchHandler.IsEnabled;
-		IApiSwitchStatus IApiSwitch.AddSwitchDest(SwitchConfig switchConfig, IApiSwitchStatus switchStatus) => AddSwitchDest(switchConfig.WithPulse(true), switchStatus);
+		IApiSwitchStatus IApiSwitch.AddSwitchDest(SwitchConfig switchConfig, IApiSwitchStatus switchStatus) => AddSwitchDest(switchConfig, switchStatus);
 		IApiSwitch IApiSwitchDevice.Switch(string deviceItem) => this;
 
 		IApiCoil IApiCoilDevice.Coil(string deviceItem) => this;
 		IApiWireDest IApiWireDeviceDest.Wire(string deviceItem) => this;
 
-		void IApiSwitch.AddWireDest(WireDestConfig wireConfig) => AddWireDest(wireConfig.WithPulse(true));
+		void IApiSwitch.AddWireDest(WireDestConfig wireConfig) => AddWireDest(wireConfig);
 		void IApiSwitch.RemoveWireDest(string destId) => RemoveWireDest(destId);
 		void IApiCoil.OnCoil(bool enabled)
 		{
@@ -100,9 +109,20 @@ namespace VisualPinball.Unity
 
 		void IApiHittable.OnHit(int ballId, bool isUnHit)
 		{
-			Hit?.Invoke(this, new HitEventArgs(ballId));
-			Switch?.Invoke(this, new SwitchEventArgs(!isUnHit, ballId));
-			OnSwitch(true);
+			ref var insideOfs = ref _physicsEngine.InsideOfs;
+			if (isUnHit) {
+				UnHit?.Invoke(this, new HitEventArgs(ballId));
+				if (insideOfs.IsEmpty(ItemId)) { // Last ball just left
+					Switch?.Invoke(this, new SwitchEventArgs(false, ballId));
+					OnSwitch(false);
+				}
+			} else {
+				Hit?.Invoke(this, new HitEventArgs(ballId));
+				if (insideOfs.GetInsideCount(ItemId) == 1) { // Must've been empty before
+					Switch?.Invoke(this, new SwitchEventArgs(true, ballId));
+					OnSwitch(true);
+				}
+			}
 		}
 
 		#endregion
