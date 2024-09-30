@@ -151,7 +151,7 @@ namespace VisualPinball.Unity
 			switch (GetColliderType(ref colliders, colliderId)) {
 				case ColliderType.Bumper:
 					return colliders.Circle(colliderId).HitTestBasicRadius(ref newCollEvent, ref InsideOfs, in ball,
-						ball.CollisionEvent.HitTime, false, false, false);
+						ball.CollisionEvent.HitTime, direction:false, lateral:true, rigid:false);
 
 				case ColliderType.Circle:
 					return colliders.Circle(colliderId).HitTest(ref newCollEvent, ref InsideOfs, in ball,
