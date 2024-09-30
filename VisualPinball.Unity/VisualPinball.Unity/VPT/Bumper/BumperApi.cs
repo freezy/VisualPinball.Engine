@@ -75,30 +75,28 @@ namespace VisualPinball.Unity
 			}
 			ref var bumperState = ref PhysicsEngine.BumperState(ItemId);
 			bumperState.RingAnimation.IsHit = true;
-			bumperState.SkirtAnimation.HitEvent = true;
 			ref var insideOfs = ref PhysicsEngine.InsideOfs;
 			List<int> idsOfBallsInColl = insideOfs.GetIdsOfBallsInsideItem(ItemId);
 			foreach (var ballId in idsOfBallsInColl) {
 				if (PhysicsEngine.Balls.ContainsKey(ballId)) {
 					ref var ballState = ref PhysicsEngine.BallState(ballId);
-					bumperState.SkirtAnimation.BallPosition = ballState.Position;
 					float3 bumperPos = new(MainComponent.Position.x, MainComponent.Position.y, MainComponent.PositionZ);
 					float3 ballPos = ballState.Position;
 					var bumpDirection = ballPos - bumperPos;
 					bumpDirection.z = 0f;
 					bumpDirection = math.normalize(bumpDirection);
-					var collEvent = new CollisionEventData();
-					collEvent.HitTime = 0f;
-					collEvent.HitNormal = bumpDirection;
-					collEvent.HitVelocity.x = bumpDirection.x * ColliderComponent.Force;
-					collEvent.HitVelocity.y = bumpDirection.y * ColliderComponent.Force;
-					collEvent.HitDistance = 0f;
-					collEvent.HitFlag = false;
-					collEvent.HitOrgNormalVelocity = math.dot(bumpDirection, math.normalize(ballState.Velocity));
-					collEvent.IsContact = true;
-					collEvent.ColliderId = switchColliderId;
-					collEvent.IsKinematic = false;
-					collEvent.BallId = ballId;
+					var collEvent = new CollisionEventData {
+						HitTime = 0f,
+						HitNormal = bumpDirection,
+						HitVelocity = new float2(bumpDirection.x, bumpDirection.y) * ColliderComponent.Force,
+						HitDistance = 0f,
+						HitFlag = false,
+						HitOrgNormalVelocity = math.dot(bumpDirection, math.normalize(ballState.Velocity)),
+						IsContact = true,
+						ColliderId = switchColliderId,
+						IsKinematic = false,
+						BallId = ballId
+					};
 					var physicsMaterialData = ColliderComponent.PhysicsMaterialData;
 					var random = PhysicsEngine.Random;
 					BallCollider.Collide3DWall(ref ballState, in physicsMaterialData, in collEvent, in bumpDirection, ref random);
@@ -159,6 +157,10 @@ namespace VisualPinball.Unity
 			} else {
 				Hit?.Invoke(this, new HitEventArgs(ballId));
 				if (insideOfs.GetInsideCount(ItemId) == 1) { // Must've been empty before
+					ref var bumperState = ref PhysicsEngine.BumperState(ItemId);
+					bumperState.SkirtAnimation.HitEvent = true;
+					ref var ballState = ref PhysicsEngine.BallState(ballId);
+					bumperState.SkirtAnimation.BallPosition = ballState.Position;
 					Switch?.Invoke(this, new SwitchEventArgs(true, ballId));
 					OnSwitch(true);
 				}
