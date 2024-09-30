@@ -50,7 +50,7 @@ namespace VisualPinball.Unity
 		public event EventHandler<SwitchEventArgs> Switch;
 
 		private readonly PhysicsEngine _physicsEngine;
-		private int colliderId;
+		private int switchColliderId;
 
 		public BumperApi(GameObject go, Player player, PhysicsEngine physicsEngine) : base(go, player, physicsEngine)
 		{
@@ -96,7 +96,7 @@ namespace VisualPinball.Unity
 					collEvent.HitFlag = false;
 					collEvent.HitOrgNormalVelocity = math.dot(bumpDirection, math.normalize(ballState.Velocity));
 					collEvent.IsContact = true;
-					collEvent.ColliderId = colliderId;
+					collEvent.ColliderId = switchColliderId;
 					collEvent.IsKinematic = false;
 					collEvent.BallId = ballId;
 					var physicsMaterialData = ColliderComponent.PhysicsMaterialData;
@@ -120,12 +120,16 @@ namespace VisualPinball.Unity
 			ref ColliderReference kinematicColliders, float margin)
 		{
 			var height = MainComponent.PositionZ;
+			var switchCollider = new CircleCollider(MainComponent.Position, MainComponent.Radius, height,
+					height + MainComponent.HeightScale, GetColliderInfo(), ColliderType.Bumper);			
+			var rigidCollider = new CircleCollider(MainComponent.Position, MainComponent.Radius * 0.5f, height,
+					height + MainComponent.HeightScale, GetColliderInfo(), ColliderType.Circle);
 			if (ColliderComponent.IsKinematic) {
-				colliderId = kinematicColliders.Add(new CircleCollider(MainComponent.Position, MainComponent.Radius, height,
-					height + MainComponent.HeightScale, GetColliderInfo(), ColliderType.Bumper));
+				switchColliderId = kinematicColliders.Add(switchCollider);
+				kinematicColliders.Add(rigidCollider);
 			} else {
-				colliderId = colliders.Add(new CircleCollider(MainComponent.Position, MainComponent.Radius, height,
-					height + MainComponent.HeightScale, GetColliderInfo(), ColliderType.Bumper));
+				switchColliderId = colliders.Add(switchCollider);
+				colliders.Add(rigidCollider);
 			}
 		}
 
