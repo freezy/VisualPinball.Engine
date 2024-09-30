@@ -17,6 +17,12 @@
 using System;
 using UnityEngine;
 using VisualPinball.Engine.VPT.Bumper;
+using System.Collections.Generic;
+using Unity.Mathematics;
+using static UnityEngine.UI.Scrollbar;
+using VisualPinball.Engine.PinMAME.MPUs;
+using VisualPinball.Engine.VPT;
+using JetBrains.Annotations;
 
 namespace VisualPinball.Unity
 {
@@ -29,29 +35,38 @@ namespace VisualPinball.Unity
 		public event EventHandler Init;
 
 		/// <summary>
-		/// Event emitted when the ball hits the bumper.
+		/// Event emitted when the ball enters the bumper area.
 		/// </summary>
 		public event EventHandler<HitEventArgs> Hit;
+
+		/// <summary>
+		/// Event emitted when the ball leaves the bumper area.
+		/// </summary>
+		public event EventHandler<HitEventArgs> UnHit;
 
 		/// <summary>
 		/// Event emitted when the trigger is switched on or off.
 		/// </summary>
 		public event EventHandler<SwitchEventArgs> Switch;
 
+		private readonly PhysicsEngine _physicsEngine;
+		private int switchColliderId;
+
 		public BumperApi(GameObject go, Player player, PhysicsEngine physicsEngine) : base(go, player, physicsEngine)
 		{
+			_physicsEngine = physicsEngine;
 		}
 
 		#region Wiring
 
 		public bool IsSwitchEnabled => SwitchHandler.IsEnabled;
-		IApiSwitchStatus IApiSwitch.AddSwitchDest(SwitchConfig switchConfig, IApiSwitchStatus switchStatus) => AddSwitchDest(switchConfig.WithPulse(true), switchStatus);
+		IApiSwitchStatus IApiSwitch.AddSwitchDest(SwitchConfig switchConfig, IApiSwitchStatus switchStatus) => AddSwitchDest(switchConfig, switchStatus);
 		IApiSwitch IApiSwitchDevice.Switch(string deviceItem) => this;
 
 		IApiCoil IApiCoilDevice.Coil(string deviceItem) => this;
 		IApiWireDest IApiWireDeviceDest.Wire(string deviceItem) => this;
 
-		void IApiSwitch.AddWireDest(WireDestConfig wireConfig) => AddWireDest(wireConfig.WithPulse(true));
+		void IApiSwitch.AddWireDest(WireDestConfig wireConfig) => AddWireDest(wireConfig);
 		void IApiSwitch.RemoveWireDest(string destId) => RemoveWireDest(destId);
 		void IApiCoil.OnCoil(bool enabled)
 		{
@@ -60,6 +75,34 @@ namespace VisualPinball.Unity
 			}
 			ref var bumperState = ref PhysicsEngine.BumperState(ItemId);
 			bumperState.RingAnimation.IsHit = true;
+			ref var insideOfs = ref PhysicsEngine.InsideOfs;
+			List<int> idsOfBallsInColl = insideOfs.GetIdsOfBallsInsideItem(ItemId);
+			foreach (var ballId in idsOfBallsInColl) {
+				if (PhysicsEngine.Balls.ContainsKey(ballId)) {
+					ref var ballState = ref PhysicsEngine.BallState(ballId);
+					float3 bumperPos = new(MainComponent.Position.x, MainComponent.Position.y, MainComponent.PositionZ);
+					float3 ballPos = ballState.Position;
+					var bumpDirection = ballPos - bumperPos;
+					bumpDirection.z = 0f;
+					bumpDirection = math.normalize(bumpDirection);
+					var collEvent = new CollisionEventData {
+						HitTime = 0f,
+						HitNormal = bumpDirection,
+						HitVelocity = new float2(bumpDirection.x, bumpDirection.y) * ColliderComponent.Force,
+						HitDistance = 0f,
+						HitFlag = false,
+						HitOrgNormalVelocity = math.dot(bumpDirection, math.normalize(ballState.Velocity)),
+						IsContact = true,
+						ColliderId = switchColliderId,
+						IsKinematic = false,
+						BallId = ballId
+					};
+					var physicsMaterialData = ColliderComponent.PhysicsMaterialData;
+					var random = PhysicsEngine.Random;
+					BallCollider.Collide3DWall(ref ballState, in physicsMaterialData, in collEvent, in bumpDirection, ref random);
+					ballState.Velocity += bumpDirection * ColliderComponent.Force;
+				}
+			}
 		}
 
 		void IApiWireDest.OnChange(bool enabled) => (this as IApiCoil).OnCoil(enabled);
@@ -75,12 +118,16 @@ namespace VisualPinball.Unity
 			ref ColliderReference kinematicColliders, float margin)
 		{
 			var height = MainComponent.PositionZ;
+			var switchCollider = new CircleCollider(MainComponent.Position, MainComponent.Radius, height,
+					height + MainComponent.HeightScale, GetColliderInfo(), ColliderType.Bumper);			
+			var rigidCollider = new CircleCollider(MainComponent.Position, MainComponent.Radius * 0.5f, height,
+					height + MainComponent.HeightScale, GetColliderInfo(), ColliderType.Circle);
 			if (ColliderComponent.IsKinematic) {
-				kinematicColliders.Add(new CircleCollider(MainComponent.Position, MainComponent.Radius, height,
-					height + MainComponent.HeightScale, GetColliderInfo(), ColliderType.Bumper));
+				switchColliderId = kinematicColliders.Add(switchCollider);
+				kinematicColliders.Add(rigidCollider);
 			} else {
-				colliders.Add(new CircleCollider(MainComponent.Position, MainComponent.Radius, height,
-					height + MainComponent.HeightScale, GetColliderInfo(), ColliderType.Bumper));
+				switchColliderId = colliders.Add(switchCollider);
+				colliders.Add(rigidCollider);
 			}
 		}
 
@@ -100,9 +147,24 @@ namespace VisualPinball.Unity
 
 		void IApiHittable.OnHit(int ballId, bool isUnHit)
 		{
-			Hit?.Invoke(this, new HitEventArgs(ballId));
-			Switch?.Invoke(this, new SwitchEventArgs(!isUnHit, ballId));
-			OnSwitch(true);
+			ref var insideOfs = ref _physicsEngine.InsideOfs;
+			if (isUnHit) {
+				UnHit?.Invoke(this, new HitEventArgs(ballId));
+				if (insideOfs.IsEmpty(ItemId)) { // Last ball just left
+					Switch?.Invoke(this, new SwitchEventArgs(false, ballId));
+					OnSwitch(false);
+				}
+			} else {
+				Hit?.Invoke(this, new HitEventArgs(ballId));
+				if (insideOfs.GetInsideCount(ItemId) == 1) { // Must've been empty before
+					ref var bumperState = ref PhysicsEngine.BumperState(ItemId);
+					bumperState.SkirtAnimation.HitEvent = true;
+					ref var ballState = ref PhysicsEngine.BallState(ballId);
+					bumperState.SkirtAnimation.BallPosition = ballState.Position;
+					Switch?.Invoke(this, new SwitchEventArgs(true, ballId));
+					OnSwitch(true);
+				}
+			}
 		}
 
 		#endregion

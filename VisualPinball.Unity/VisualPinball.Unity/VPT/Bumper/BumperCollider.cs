@@ -17,6 +17,7 @@
 using Unity.Collections;
 using Unity.Mathematics;
 using VisualPinball.Engine.Game;
+using VisualPinball.Engine.Common;
 
 namespace VisualPinball.Unity
 {
@@ -24,21 +25,19 @@ namespace VisualPinball.Unity
 	{
 		public static void Collide(ref BallState ball, ref NativeQueue<EventData>.ParallelWriter events,
 			ref CollisionEventData collEvent, ref BumperRingAnimationState ringState, ref BumperSkirtAnimationState skirtState,
-			in ColliderHeader collHeader, in BumperStaticState state, ref Random random)
+			in ColliderHeader collHeader, in BumperStaticState state, ref Random random, ref InsideOfs insideOfs)
 		{
-			var dot = math.dot(collEvent.HitNormal, ball.Velocity); // needs to be computed before Collide3DWall()!
-			var material = collHeader.Material;
-			BallCollider.Collide3DWall(ref ball, in material, in collEvent, in collEvent.HitNormal, ref random); // reflect ball from wall
-
-			if (state.HitEvent && dot <= -state.Threshold) { // if velocity greater than threshold level
-
-				ball.Velocity += collEvent.HitNormal * state.Force; // add a chunk of velocity to drive ball away
-
-				ringState.IsHit = true;
-				skirtState.HitEvent = true;
-				skirtState.BallPosition = ball.Position;
-
-				events.Enqueue(new EventData(EventId.HitEventsHit, collHeader.ItemId, ball.Id, true));
+			var wasBallInside = insideOfs.IsInsideOf(collHeader.ItemId, ball.Id);
+			var isBallInside = !collEvent.HitFlag;
+			if (isBallInside != wasBallInside) {
+				ball.Position += ball.Velocity * PhysicsConstants.StaticTime;
+				if (isBallInside) {
+					insideOfs.SetInsideOf(collHeader.ItemId, ball.Id);
+					events.Enqueue(new EventData(EventId.HitEventsHit, collHeader.ItemId, ball.Id, true));
+				} else {
+					insideOfs.SetOutsideOf(collHeader.ItemId, ball.Id);
+					events.Enqueue(new EventData(EventId.HitEventsUnhit, collHeader.ItemId, ball.Id, true));
+				}
 			}
 		}
 	}
