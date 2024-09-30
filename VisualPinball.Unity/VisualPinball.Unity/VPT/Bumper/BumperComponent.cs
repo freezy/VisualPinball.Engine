@@ -332,7 +332,7 @@ namespace VisualPinball.Unity
 				} : default;
 
 			// skirt animation data
-			var skirtAnimComponent = GetComponentInChildren<BumperRingAnimationComponent>();
+			var skirtAnimComponent = GetComponentInChildren<BumperSkirtAnimationComponent>();
 			var skirtAnimation = skirtAnimComponent
 				? new BumperSkirtAnimationState {
 					BallPosition = default,
