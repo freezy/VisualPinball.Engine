@@ -27,6 +27,7 @@ using VisualPinball.Engine.Common;
 using VisualPinball.Unity.Collections;
 using AABB = NativeTrees.AABB;
 using Debug = UnityEngine.Debug;
+using Random = Unity.Mathematics.Random;
 
 namespace VisualPinball.Unity
 {
@@ -115,6 +116,7 @@ namespace VisualPinball.Unity
 		internal ref TriggerState TriggerState(int itemId) => ref _triggerStates.GetValueByRef(itemId);
 		internal void SetBallInsideOf(int ballId, int itemId) => _insideOfs.SetInsideOf(itemId, ballId);
 		internal uint TimeMsec => _physicsEnv[0].TimeMsec;
+		internal Random Random => _physicsEnv[0].Random;
 		internal void Register<T>(T item) where T : MonoBehaviour
 		{
 			var go = item.gameObject;

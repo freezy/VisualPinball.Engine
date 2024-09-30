@@ -1,6 +1,8 @@
 ﻿using System;
 using Unity.Collections;
 using VisualPinball.Unity.Collections;
+using System.Collections.Generic;
+using UnityEngine;
 
 namespace VisualPinball.Unity
 {
@@ -14,7 +16,7 @@ namespace VisualPinball.Unity
 			_bitLookup = new NativeParallelHashMap<int, int>(64, allocator);
 			_insideOfs = new NativeParallelHashMap<int, BitField64>(64, allocator);
 		}
-		
+
 		internal void SetInsideOf(int itemId, int ballId)
 		{
 			if (!_insideOfs.ContainsKey(itemId)) {
@@ -24,7 +26,7 @@ namespace VisualPinball.Unity
 			ref var bits = ref _insideOfs.GetValueByRef(itemId);
 			bits.SetBits(GetBitIndex(ballId), true);
 		}
-		
+
 		internal void SetOutsideOf(int itemId, int ballId)
 		{
 			if (!_insideOfs.ContainsKey(itemId)) {
@@ -36,12 +38,12 @@ namespace VisualPinball.Unity
 			ClearBitIndex(ballId);
 			ClearItems(itemId);
 		}
-		
+
 		internal bool IsInsideOf(int itemId, int ballId)
 		{
 			return _insideOfs.ContainsKey(itemId) && _insideOfs[itemId].IsSet(GetBitIndex(ballId));
 		}
-		
+
 		internal bool IsOutsideOf(int itemId, int ballId) => !IsInsideOf(itemId, ballId);
 
 		internal int GetInsideCount(int itemId)
@@ -60,6 +62,25 @@ namespace VisualPinball.Unity
 			}
 
 			return !_insideOfs[itemId].TestAny(0, 64);
+		}
+
+		internal List<int> GetIdsOfBallsInsideItem(int itemId)
+		{
+			var ballIds = new List<int>();
+			if (!_insideOfs.ContainsKey(itemId)) {
+				return ballIds;
+			}
+
+			ref var bits = ref _insideOfs.GetValueByRef(itemId);
+			for (int i = 0; i < 64; i++) {
+				if (bits.IsSet(i)) {
+					if (TryGetBallId(i, out var ballId)) {
+						ballIds.Add(ballId);
+					}
+				}
+			}
+
+			return ballIds;
 		}
 
 		private void ClearItems(int itemId)
@@ -99,6 +120,18 @@ namespace VisualPinball.Unity
 				return i;
 			}
 			throw new IndexOutOfRangeException();
+		}
+
+		private bool TryGetBallId(int bitIndex, out int ballId)
+		{
+			foreach (var kvp in _bitLookup) {
+				if (kvp.Value == bitIndex) {
+					ballId = kvp.Key;
+					return true;
+				}
+			}
+			ballId = -1;
+			return false;
 		}
 
 

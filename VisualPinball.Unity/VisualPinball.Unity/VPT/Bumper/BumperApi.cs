@@ -17,7 +17,12 @@
 using System;
 using UnityEngine;
 using VisualPinball.Engine.VPT.Bumper;
-using static UnityEngine.UI.CanvasScaler;
+using System.Collections.Generic;
+using Unity.Mathematics;
+using static UnityEngine.UI.Scrollbar;
+using VisualPinball.Engine.PinMAME.MPUs;
+using VisualPinball.Engine.VPT;
+using JetBrains.Annotations;
 
 namespace VisualPinball.Unity
 {
@@ -45,6 +50,7 @@ namespace VisualPinball.Unity
 		public event EventHandler<SwitchEventArgs> Switch;
 
 		private readonly PhysicsEngine _physicsEngine;
+		private int colliderId;
 
 		public BumperApi(GameObject go, Player player, PhysicsEngine physicsEngine) : base(go, player, physicsEngine)
 		{
@@ -69,6 +75,36 @@ namespace VisualPinball.Unity
 			}
 			ref var bumperState = ref PhysicsEngine.BumperState(ItemId);
 			bumperState.RingAnimation.IsHit = true;
+			bumperState.SkirtAnimation.HitEvent = true;
+			ref var insideOfs = ref PhysicsEngine.InsideOfs;
+			List<int> idsOfBallsInColl = insideOfs.GetIdsOfBallsInsideItem(ItemId);
+			foreach (var ballId in idsOfBallsInColl) {
+				if (PhysicsEngine.Balls.ContainsKey(ballId)) {
+					ref var ballState = ref PhysicsEngine.BallState(ballId);
+					bumperState.SkirtAnimation.BallPosition = ballState.Position;
+					float3 bumperPos = new(MainComponent.Position.x, MainComponent.Position.y, MainComponent.PositionZ);
+					float3 ballPos = ballState.Position;
+					var bumpDirection = ballPos - bumperPos;
+					bumpDirection.z = 0f;
+					bumpDirection = math.normalize(bumpDirection);
+					var collEvent = new CollisionEventData();
+					collEvent.HitTime = 0f;
+					collEvent.HitNormal = bumpDirection;
+					collEvent.HitVelocity.x = bumpDirection.x * ColliderComponent.Force;
+					collEvent.HitVelocity.y = bumpDirection.y * ColliderComponent.Force;
+					collEvent.HitDistance = 0f;
+					collEvent.HitFlag = false;
+					collEvent.HitOrgNormalVelocity = math.dot(bumpDirection, math.normalize(ballState.Velocity));
+					collEvent.IsContact = true;
+					collEvent.ColliderId = colliderId;
+					collEvent.IsKinematic = false;
+					collEvent.BallId = ballId;
+					var physicsMaterialData = ColliderComponent.PhysicsMaterialData;
+					var random = PhysicsEngine.Random;
+					BallCollider.Collide3DWall(ref ballState, in physicsMaterialData, in collEvent, in bumpDirection, ref random);
+					ballState.Velocity += bumpDirection * ColliderComponent.Force;
+				}
+			}
 		}
 
 		void IApiWireDest.OnChange(bool enabled) => (this as IApiCoil).OnCoil(enabled);
@@ -85,10 +121,10 @@ namespace VisualPinball.Unity
 		{
 			var height = MainComponent.PositionZ;
 			if (ColliderComponent.IsKinematic) {
-				kinematicColliders.Add(new CircleCollider(MainComponent.Position, MainComponent.Radius, height,
+				colliderId = kinematicColliders.Add(new CircleCollider(MainComponent.Position, MainComponent.Radius, height,
 					height + MainComponent.HeightScale, GetColliderInfo(), ColliderType.Bumper));
 			} else {
-				colliders.Add(new CircleCollider(MainComponent.Position, MainComponent.Radius, height,
+				colliderId = colliders.Add(new CircleCollider(MainComponent.Position, MainComponent.Radius, height,
 					height + MainComponent.HeightScale, GetColliderInfo(), ColliderType.Bumper));
 			}
 		}
