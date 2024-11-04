@@ -44,11 +44,11 @@ namespace VisualPinball.Unity
 
 			// create octree of ball-to-ball collision
 			// it's okay to have this code outside of the inner loop, as the ball hitrects already include the maximum distance they can travel in that timespan
-			var ballOctree = PhysicsDynamicBroadPhase.CreateOctree(ref state.Balls, in playfieldBounds);
+			using var ballOctree = PhysicsDynamicBroadPhase.CreateOctree(ref state.Balls, in playfieldBounds);
 
 			// create octree of kinematic-to-ball collision
 			PhysicsKinematicBroadPhase.TransformColliders(ref state);
-			var kineticOctree = PhysicsKinematicBroadPhase.CreateOctree(ref state.KinematicColliders, in playfieldBounds);
+			using var kineticOctree = PhysicsKinematicBroadPhase.CreateOctree(ref state.KinematicColliders, in playfieldBounds);
 
 			while (dTime > 0) {
 

@@ -89,8 +89,7 @@ namespace VisualPinball.Unity
 		protected PhysicsMaterialData GetPhysicsMaterialData(float elasticity = 1f, float elasticityFalloff = 1f,
 			float friction = 0f, float scatterAngleDeg = 0f, bool overwrite = true)
 		{
-			if (!overwrite && PhysicsMaterial != null)
-			{
+			if (!overwrite && PhysicsMaterial != null) {
 				//Debug.Log("load special Physics Material Data:" + PhysicsMaterial.name);
 				PhysicsMaterialData physicsMaterialData = new PhysicsMaterialData();
 				physicsMaterialData.Elasticity = PhysicsMaterial.Elasticity;
@@ -104,11 +103,11 @@ namespace VisualPinball.Unity
 				return physicsMaterialData;
 			}
 			return new PhysicsMaterialData {
-					Elasticity = elasticity,
-					ElasticityFalloff = elasticityFalloff,
-					Friction = friction,
-					ScatterAngleRad = math.radians(scatterAngleDeg)
-				};
+				Elasticity = elasticity,
+				ElasticityFalloff = elasticityFalloff,
+				Friction = friction,
+				ScatterAngleRad = math.radians(scatterAngleDeg)
+			};
 		}
 
 		#region Collider Gizmos
@@ -139,7 +138,7 @@ namespace VisualPinball.Unity
 			var ltw = GetComponentInParent<PlayfieldComponent>().transform.localToWorldMatrix;
 			Gizmos.matrix = ltw * (Matrix4x4)Physics.VpxToWorld;
 			Handles.matrix = Gizmos.matrix;
-			
+
 			var generateColliders = ShowAabbs || showColliders && !HasCachedColliders;
 			if (generateColliders) {
 
@@ -159,47 +158,55 @@ namespace VisualPinball.Unity
 					var api = InstantiateColliderApi(player, null);
 					var colliders = new ColliderReference(Allocator.TempJob);
 					var kinematicColliders = new ColliderReference(Allocator.TempJob, true);
-					api.CreateColliders(ref colliders, ref kinematicColliders, 0.1f);
+					try {
+						api.CreateColliders(ref colliders, ref kinematicColliders, 0.1f);
 
-					if (showColliders) {
-						_colliderMesh = IsKinematic
-							? GenerateColliderMesh(ref kinematicColliders)
-							: GenerateColliderMesh(ref colliders);
-						_collidersDirty = false;
-					}
-
-					if (ShowAabbs) {
-						for (var i = 0; i < colliders.Count; i++) {
-							var col = colliders[i];
-							DrawAabb(col.Bounds.Aabb, i == SelectedCollider);
+						if (showColliders) {
+							_colliderMesh = IsKinematic
+								? GenerateColliderMesh(ref kinematicColliders)
+								: GenerateColliderMesh(ref colliders);
+							_collidersDirty = false;
 						}
+
+						if (ShowAabbs) {
+							for (var i = 0; i < colliders.Count; i++) {
+								var col = colliders[i];
+								DrawAabb(col.Bounds.Aabb, i == SelectedCollider);
+							}
+						}
+					} finally {
+						colliders.Dispose();
+						kinematicColliders.Dispose();
 					}
-					colliders.Dispose();
 
 				}
 			}
 			if (ShowColliderOctree) {
-				
+
 				var api = InstantiateColliderApi(player, null);
 				var colliders = new ColliderReference(Allocator.TempJob);
 				var kinematicColliders = new ColliderReference(Allocator.TempJob, true);
-				api.CreateColliders(ref colliders, ref kinematicColliders, 0.1f);
-				
-				var playfieldBounds = GetComponentInChildren<PlayfieldComponent>().Bounds;
-				var octree = new NativeOctree<int>(playfieldBounds, 32, 10, Allocator.Persistent);
-				var nativeColliders = new NativeColliders(ref colliders, Allocator.TempJob);
-				var populateJob = new PhysicsPopulateJob {
-					Colliders = nativeColliders,
-					Octree = octree, 
-				};
-				populateJob.Run();
-				Gizmos.color = Color.yellow;
-				octree.DrawGizmos();
-				colliders.Dispose();
+				try {
+					api.CreateColliders(ref colliders, ref kinematicColliders, 0.1f);
+
+					var playfieldBounds = GetComponentInChildren<PlayfieldComponent>().Bounds;
+					var octree = new NativeOctree<int>(playfieldBounds, 32, 10, Allocator.Persistent);
+					var nativeColliders = new NativeColliders(ref colliders, Allocator.TempJob);
+					var populateJob = new PhysicsPopulateJob {
+						Colliders = nativeColliders,
+						Octree = octree,
+					};
+					populateJob.Run();
+					Gizmos.color = Color.yellow;
+					octree.DrawGizmos();
+				} finally {
+					colliders.Dispose();
+					kinematicColliders.Dispose();
+				}
 			}
 
 			if (showColliders) {
-				
+
 				var color = Application.isPlaying && IsKinematic
 					? Color.magenta
 					: IsKinematic ? new Color(0, 1, 1) : Color.green;
@@ -213,7 +220,7 @@ namespace VisualPinball.Unity
 				Gizmos.DrawWireMesh(_colliderMesh);
 				DrawNonMeshColliders();
 			}
-			
+
 			Gizmos.matrix = Matrix4x4.identity;
 			Handles.matrix = Matrix4x4.identity;
 
@@ -341,10 +348,10 @@ namespace VisualPinball.Unity
 			foreach (var col in _nonMeshColliders) {
 				switch (col) {
 					case LineZCollider lineZCol: {
-						var aabb = lineZCol.Bounds.Aabb;
-						DrawLine(lineZCol.XY.ToFloat3(aabb.ZLow), lineZCol.XY.ToFloat3(aabb.ZHigh));
-						break;
-					}
+							var aabb = lineZCol.Bounds.Aabb;
+							DrawLine(lineZCol.XY.ToFloat3(aabb.ZLow), lineZCol.XY.ToFloat3(aabb.ZHigh));
+							break;
+						}
 				}
 			}
 		}
@@ -430,11 +437,11 @@ namespace VisualPinball.Unity
 			normals.Add(normal);
 			normals.Add(normal);
 
-			indices.Add(i+0);
-			indices.Add(i+2);
-			indices.Add(i+1);
-			indices.Add(i+3);
-			indices.Add(i+2);
+			indices.Add(i + 0);
+			indices.Add(i + 2);
+			indices.Add(i + 1);
+			indices.Add(i + 3);
+			indices.Add(i + 2);
 			indices.Add(i);
 		}
 
@@ -471,11 +478,11 @@ namespace VisualPinball.Unity
 			normals.Add(normal);
 
 			indices.Add(i);
-			indices.Add(i+2);
-			indices.Add(i+1);
-			indices.Add(i+2);
-			indices.Add(i+3);
-			indices.Add(i+1);
+			indices.Add(i + 2);
+			indices.Add(i + 1);
+			indices.Add(i + 2);
+			indices.Add(i + 3);
+			indices.Add(i + 1);
 		}
 
 		private static void AddCollider(TriangleCollider triangleCol, ICollection<Vector3> vertices, ICollection<Vector3> normals, ICollection<int> indices)
@@ -491,8 +498,8 @@ namespace VisualPinball.Unity
 			normals.Add(triangleCol.Normal());
 
 			indices.Add(i);
-			indices.Add(i+2);
-			indices.Add(i+1);
+			indices.Add(i + 2);
+			indices.Add(i + 1);
 		}
 
 		private void AddFlipperCollider(List<Vector3> vertices, List<Vector3> normals, List<int> indices)
