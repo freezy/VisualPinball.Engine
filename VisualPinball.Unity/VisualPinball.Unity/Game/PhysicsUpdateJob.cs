@@ -65,7 +65,7 @@ namespace VisualPinball.Unity
 				ref InsideOfs, ref Balls, ref BumperStates, ref DropTargetStates, ref FlipperStates, ref GateStates,
 				ref HitTargetStates, ref KickerStates, ref PlungerStates, ref SpinnerStates,
 				ref SurfaceStates, ref TriggerStates, ref DisabledCollisionItems, ref SwapBallCollisionHandling);
-			var cycle = new PhysicsCycle(Allocator.Temp);
+			using var cycle = new PhysicsCycle(Allocator.Temp);
 
 			while (env.CurPhysicsFrameTime < InitialTimeUsec)  // loop here until current (real) time matches the physics (simulated) time
 			{
@@ -175,7 +175,6 @@ namespace VisualPinball.Unity
 			}
 
 			PhysicsEnv[0] = env;
-			cycle.Dispose();
 		}
 	}
 }

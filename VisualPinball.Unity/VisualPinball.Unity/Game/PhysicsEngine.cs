@@ -49,21 +49,20 @@ namespace VisualPinball.Unity
 		[NonSerialized] private NativeColliders _kinematicColliders;
 		[NonSerialized] private NativeColliders _kinematicCollidersAtIdentity;
 		[NonSerialized] private NativeParallelHashMap<int, NativeColliderIds> _kinematicColliderLookups;
-		[NonSerialized] private NativeArray<PhysicsEnv> _physicsEnv = new(1, Allocator.Persistent);
-		[NonSerialized] private NativeQueue<EventData> _eventQueue = new(Allocator.Persistent);
-
-		[NonSerialized] private NativeParallelHashMap<int, BallState> _ballStates = new(0, Allocator.Persistent);
-		[NonSerialized] private NativeParallelHashMap<int, BumperState> _bumperStates = new(0, Allocator.Persistent);
-		[NonSerialized] private NativeParallelHashMap<int, FlipperState> _flipperStates = new(0, Allocator.Persistent);
-		[NonSerialized] private NativeParallelHashMap<int, GateState> _gateStates = new(0, Allocator.Persistent);
-		[NonSerialized] private NativeParallelHashMap<int, DropTargetState> _dropTargetStates = new(0, Allocator.Persistent);
-		[NonSerialized] private NativeParallelHashMap<int, HitTargetState> _hitTargetStates = new(0, Allocator.Persistent);
-		[NonSerialized] private NativeParallelHashMap<int, KickerState> _kickerStates = new(0, Allocator.Persistent);
-		[NonSerialized] private NativeParallelHashMap<int, PlungerState> _plungerStates = new(0, Allocator.Persistent);
-		[NonSerialized] private NativeParallelHashMap<int, SpinnerState> _spinnerStates = new(0, Allocator.Persistent);
-		[NonSerialized] private NativeParallelHashMap<int, SurfaceState> _surfaceStates = new(0, Allocator.Persistent);
-		[NonSerialized] private NativeParallelHashMap<int, TriggerState> _triggerStates = new(0, Allocator.Persistent);
-		[NonSerialized] private NativeParallelHashSet<int> _disabledCollisionItems = new(0, Allocator.Persistent);
+		[NonSerialized] private readonly LazyInit<NativeArray<PhysicsEnv>> _physicsEnv = new(() =>new(1, Allocator.Persistent));
+		[NonSerialized] private readonly LazyInit<NativeQueue<EventData>> _eventQueue = new(() => new(Allocator.Persistent));
+		[NonSerialized] private readonly LazyInit<NativeParallelHashMap<int, BallState>> _ballStates = new(() => new (0, Allocator.Persistent));
+		[NonSerialized] private readonly LazyInit<NativeParallelHashMap<int, BumperState>> _bumperStates = new(() => new(0, Allocator.Persistent));
+		[NonSerialized] private readonly LazyInit<NativeParallelHashMap<int, FlipperState>> _flipperStates = new(() => new(0, Allocator.Persistent));
+		[NonSerialized] private readonly LazyInit<NativeParallelHashMap<int, GateState>> _gateStates = new(() => new(0, Allocator.Persistent));
+		[NonSerialized] private readonly LazyInit<NativeParallelHashMap<int, DropTargetState>>_dropTargetStates = new(() => new(0, Allocator.Persistent));
+		[NonSerialized] private readonly LazyInit<NativeParallelHashMap<int, HitTargetState>> _hitTargetStates = new(() => new(0, Allocator.Persistent));
+		[NonSerialized] private readonly LazyInit<NativeParallelHashMap<int, KickerState>> _kickerStates = new(() => new(0, Allocator.Persistent));
+		[NonSerialized] private readonly LazyInit<NativeParallelHashMap<int, PlungerState>> _plungerStates = new(() => new(0, Allocator.Persistent));
+		[NonSerialized] private readonly LazyInit<NativeParallelHashMap<int, SpinnerState>> _spinnerStates = new(() => new(0, Allocator.Persistent));
+		[NonSerialized] private readonly LazyInit<NativeParallelHashMap<int, SurfaceState>> _surfaceStates = new(() => new(0, Allocator.Persistent));
+		[NonSerialized] private readonly LazyInit<NativeParallelHashMap<int, TriggerState>> _triggerStates = new(() => new(0, Allocator.Persistent));
+		[NonSerialized] private readonly LazyInit<NativeParallelHashSet<int>> _disabledCollisionItems = new(() => new(0, Allocator.Persistent));
 		[NonSerialized] private bool _swapBallCollisionHandling;
 
 		#endregion
@@ -71,8 +70,8 @@ namespace VisualPinball.Unity
 		#region Transforms
 
 		[NonSerialized] private readonly Dictionary<int, Transform> _transforms = new();
-		[NonSerialized] private NativeParallelHashMap<int, float4x4> _kinematicTransforms = new(0, Allocator.Persistent);
-		[NonSerialized] private NativeParallelHashMap<int, float4x4> _updatedKinematicTransforms = new(0, Allocator.Persistent);
+		[NonSerialized] private LazyInit<NativeParallelHashMap<int, float4x4>> _kinematicTransforms = new(() => new(0, Allocator.Persistent));
+		[NonSerialized] private LazyInit<NativeParallelHashMap<int, float4x4>> _updatedKinematicTransforms = new(() => new(0, Allocator.Persistent));
 		[NonSerialized] private readonly Dictionary<int, SkinnedMeshRenderer[]> _skinnedMeshRenderers = new();
 
 		#endregion
@@ -92,31 +91,31 @@ namespace VisualPinball.Unity
 		public void ScheduleAction(uint timeoutMs, Action action)
 		{
 			lock (_scheduledActions) {
-				_scheduledActions.Add(new ScheduledAction(_physicsEnv[0].CurPhysicsFrameTime + (ulong)timeoutMs * 1000, action));
+				_scheduledActions.Add(new ScheduledAction(_physicsEnv.Ref[0].CurPhysicsFrameTime + (ulong)timeoutMs * 1000, action));
 			}
 		}
 
 		internal delegate void InputAction(ref PhysicsState state);
 
-		internal ref NativeParallelHashMap<int, BallState> Balls => ref _ballStates;
+		internal ref NativeParallelHashMap<int, BallState> Balls => ref _ballStates.Ref;
 		internal ref InsideOfs InsideOfs => ref _insideOfs;
-		internal NativeQueue<EventData>.ParallelWriter EventQueue => _eventQueue.AsParallelWriter();
+		internal NativeQueue<EventData>.ParallelWriter EventQueue => _eventQueue.Ref.AsParallelWriter();
 
 		internal void Schedule(InputAction action) => _inputActions.Enqueue(action);
-		internal ref BallState BallState(int ballId) => ref _ballStates.GetValueByRef(ballId);
-		internal ref BumperState BumperState(int itemId) => ref _bumperStates.GetValueByRef(itemId);
-		internal ref FlipperState FlipperState(int itemId) => ref _flipperStates.GetValueByRef(itemId);
-		internal ref GateState GateState(int itemId) => ref _gateStates.GetValueByRef(itemId);
-		internal ref DropTargetState DropTargetState(int itemId) => ref _dropTargetStates.GetValueByRef(itemId);
-		internal ref HitTargetState HitTargetState(int itemId) => ref _hitTargetStates.GetValueByRef(itemId);
-		internal ref KickerState KickerState(int itemId) => ref _kickerStates.GetValueByRef(itemId);
-		internal ref PlungerState PlungerState(int itemId) => ref _plungerStates.GetValueByRef(itemId);
-		internal ref SpinnerState SpinnerState(int itemId) => ref _spinnerStates.GetValueByRef(itemId);
-		internal ref SurfaceState SurfaceState(int itemId) => ref _surfaceStates.GetValueByRef(itemId);
-		internal ref TriggerState TriggerState(int itemId) => ref _triggerStates.GetValueByRef(itemId);
+		internal ref BallState BallState(int ballId) => ref _ballStates.Ref.GetValueByRef(ballId);
+		internal ref BumperState BumperState(int itemId) => ref _bumperStates.Ref.GetValueByRef(itemId);
+		internal ref FlipperState FlipperState(int itemId) => ref _flipperStates.Ref.GetValueByRef(itemId);
+		internal ref GateState GateState(int itemId) => ref _gateStates.Ref.GetValueByRef(itemId);
+		internal ref DropTargetState DropTargetState(int itemId) => ref _dropTargetStates.Ref.GetValueByRef(itemId);
+		internal ref HitTargetState HitTargetState(int itemId) => ref _hitTargetStates.Ref.GetValueByRef(itemId);
+		internal ref KickerState KickerState(int itemId) => ref _kickerStates.Ref.GetValueByRef(itemId);
+		internal ref PlungerState PlungerState(int itemId) => ref _plungerStates.Ref.GetValueByRef(itemId);
+		internal ref SpinnerState SpinnerState(int itemId) => ref _spinnerStates.Ref.GetValueByRef(itemId);
+		internal ref SurfaceState SurfaceState(int itemId) => ref _surfaceStates.Ref.GetValueByRef(itemId);
+		internal ref TriggerState TriggerState(int itemId) => ref _triggerStates.Ref.GetValueByRef(itemId);
 		internal void SetBallInsideOf(int ballId, int itemId) => _insideOfs.SetInsideOf(itemId, ballId);
-		internal uint TimeMsec => _physicsEnv[0].TimeMsec;
-		internal Random Random => _physicsEnv[0].Random;
+		internal uint TimeMsec => _physicsEnv.Ref[0].TimeMsec;
+		internal Random Random => _physicsEnv.Ref[0].Random;
 		internal void Register<T>(T item) where T : MonoBehaviour
 		{
 			var go = item.gameObject;
@@ -125,23 +124,23 @@ namespace VisualPinball.Unity
 
 			switch (item) {
 				case BallComponent c:
-					if (!_ballStates.ContainsKey(itemId)) {
-						_ballStates[itemId] = c.CreateState();
+					if (!_ballStates.Ref.ContainsKey(itemId)) {
+						_ballStates.Ref[itemId] = c.CreateState();
 					}
 					break;
-				case BumperComponent c: _bumperStates[itemId] = c.CreateState(); break;
-				case FlipperComponent c: _flipperStates[itemId] = c.CreateState(); break;
-				case GateComponent c: _gateStates[itemId] = c.CreateState(); break;
-				case DropTargetComponent c: _dropTargetStates[itemId] = c.CreateState(); break;
-				case HitTargetComponent c: _hitTargetStates[itemId] = c.CreateState(); break;
-				case KickerComponent c: _kickerStates[itemId] = c.CreateState(); break;
+				case BumperComponent c: _bumperStates.Ref[itemId] = c.CreateState(); break;
+				case FlipperComponent c: _flipperStates.Ref[itemId] = c.CreateState(); break;
+				case GateComponent c: _gateStates.Ref[itemId] = c.CreateState(); break;
+				case DropTargetComponent c: _dropTargetStates.Ref[itemId] = c.CreateState(); break;
+				case HitTargetComponent c: _hitTargetStates.Ref[itemId] = c.CreateState(); break;
+				case KickerComponent c: _kickerStates.Ref[itemId] = c.CreateState(); break;
 				case PlungerComponent c:
-					_plungerStates[itemId] = c.CreateState();
+					_plungerStates.Ref[itemId] = c.CreateState();
 					_skinnedMeshRenderers[itemId] = c.GetComponentsInChildren<SkinnedMeshRenderer>();
 					break;
-				case SpinnerComponent c: _spinnerStates[itemId] = c.CreateState(); break;
-				case SurfaceComponent c: _surfaceStates[itemId] = c.CreateState(); break;
-				case TriggerComponent c: _triggerStates[itemId] = c.CreateState(); break;
+				case SpinnerComponent c: _spinnerStates.Ref[itemId] = c.CreateState(); break;
+				case SurfaceComponent c: _surfaceStates.Ref[itemId] = c.CreateState(); break;
+				case TriggerComponent c: _triggerStates.Ref[itemId] = c.CreateState(); break;
 			}
 		}
 
@@ -149,20 +148,20 @@ namespace VisualPinball.Unity
 		{
 			var transform = _transforms[ballId];
 			_transforms.Remove(ballId);
-			_ballStates.Remove(ballId);
+			_ballStates.Ref.Remove(ballId);
 			return transform;
 		}
 
 		internal void EnableCollider(int itemId)
 		{
-			if (_disabledCollisionItems.Contains(itemId)) {
-				_disabledCollisionItems.Remove(itemId);
+			if (_disabledCollisionItems.Ref.Contains(itemId)) {
+				_disabledCollisionItems.Ref.Remove(itemId);
 			}
 		}
 		internal void DisableCollider(int itemId)
 		{
-			if (!_disabledCollisionItems.Contains(itemId)) {
-				_disabledCollisionItems.Add(itemId);
+			if (!_disabledCollisionItems.Ref.Contains(itemId)) {
+				_disabledCollisionItems.Ref.Add(itemId);
 			}
 		}
 
@@ -174,7 +173,7 @@ namespace VisualPinball.Unity
 		{
 			_player = GetComponentInParent<Player>();
 			_insideOfs = new InsideOfs(Allocator.Persistent);
-			_physicsEnv[0] = new PhysicsEnv(NowUsec, GetComponentInChildren<PlayfieldComponent>(), GravityStrength);
+			_physicsEnv.Ref[0] = new PhysicsEnv(NowUsec, GetComponentInChildren<PlayfieldComponent>(), GravityStrength);
 			_kinematicColliderComponents = GetComponentsInChildren<IKinematicColliderComponent>();
 		}
 
@@ -184,11 +183,11 @@ namespace VisualPinball.Unity
 			var sw = Stopwatch.StartNew();
 			var colliderItems = GetComponentsInChildren<ICollidableComponent>();
 			Debug.Log($"Found {colliderItems.Length} collidable items.");
-			var colliders = new ColliderReference(Allocator.TempJob);
-			var kinematicColliders = new ColliderReference(Allocator.TempJob, true);
+			var colliders = new ColliderReference(Allocator.Temp);
+			var kinematicColliders = new ColliderReference(Allocator.Temp, true);
 			foreach (var colliderItem in colliderItems) {
 				if (!colliderItem.IsCollidable) {
-					_disabledCollisionItems.Add(colliderItem.ItemId);
+					_disabledCollisionItems.Ref.Add(colliderItem.ItemId);
 				}
 				colliderItem.GetColliders(_player, ref colliders, ref kinematicColliders, 0);
 			}
@@ -199,12 +198,12 @@ namespace VisualPinball.Unity
 
 			// get kinetic collider matrices
 			foreach (var coll in _kinematicColliderComponents) {
-				_kinematicTransforms[coll.ItemId] = coll.TransformationMatrix;
+				_kinematicTransforms.Ref[coll.ItemId] = coll.TransformationMatrix;
 			}
 			_kinematicColliderLookups = kinematicColliders.CreateLookup(Allocator.Persistent);
 
 			// create identity kinematic colliders
-			kinematicColliders.TransformToIdentity(_kinematicTransforms);
+			kinematicColliders.TransformToIdentity(_kinematicTransforms.Ref);
 			_kinematicCollidersAtIdentity = new NativeColliders(ref kinematicColliders, Allocator.Persistent);
 
 			// create octree
@@ -232,56 +231,58 @@ namespace VisualPinball.Unity
 		private void Update()
 		{
 			// check for updated kinematic transforms
-			_updatedKinematicTransforms.Clear();
+			_updatedKinematicTransforms.Ref.Clear();
 			foreach (var coll in _kinematicColliderComponents) {
 				if (!coll.IsKinematic) { // kinematic enabled?
 					continue;
 				}
-				var lastTransformationMatrix = _kinematicTransforms[coll.ItemId];
+				var lastTransformationMatrix = _kinematicTransforms.Ref[coll.ItemId];
 				var currTransformationMatrix = coll.TransformationMatrix;
 				if (lastTransformationMatrix.Equals(currTransformationMatrix)) {
 					continue;
 				}
-				_updatedKinematicTransforms.Add(coll.ItemId, currTransformationMatrix);
-				_kinematicTransforms[coll.ItemId] = currTransformationMatrix;
+				_updatedKinematicTransforms.Ref.Add(coll.ItemId, currTransformationMatrix);
+				_kinematicTransforms.Ref[coll.ItemId] = currTransformationMatrix;
 			}
 
 			// prepare job
-			var events = _eventQueue.AsParallelWriter();
+			var events = _eventQueue.Ref.AsParallelWriter();
+			using var overlappingColliders = new NativeParallelHashSet<int>(0, Allocator.TempJob);
+
 			var updatePhysics = new PhysicsUpdateJob {
 				InitialTimeUsec = NowUsec,
 				DeltaTimeMs = Time.deltaTime * 1000,
-				PhysicsEnv = _physicsEnv,
+				PhysicsEnv = _physicsEnv.Ref,
 				Octree = _octree,
 				Colliders = _colliders,
 				KinematicColliders = _kinematicColliders,
 				KinematicCollidersAtIdentity = _kinematicCollidersAtIdentity,
 				KinematicColliderLookups = _kinematicColliderLookups,
-				UpdatedKinematicTransforms = _updatedKinematicTransforms,
+				UpdatedKinematicTransforms = _updatedKinematicTransforms.Ref,
 				InsideOfs = _insideOfs,
 				Events = events,
-				Balls = _ballStates,
-				BumperStates = _bumperStates,
-				DropTargetStates = _dropTargetStates,
-				FlipperStates = _flipperStates,
-				GateStates = _gateStates,
-				HitTargetStates = _hitTargetStates,
-				KickerStates = _kickerStates,
-				PlungerStates = _plungerStates,
-				SpinnerStates = _spinnerStates,
-				SurfaceStates = _surfaceStates,
-				TriggerStates = _triggerStates,
-				DisabledCollisionItems = _disabledCollisionItems,
+				Balls = _ballStates.Ref,
+				BumperStates = _bumperStates.Ref,
+				DropTargetStates = _dropTargetStates.Ref,
+				FlipperStates = _flipperStates.Ref,
+				GateStates = _gateStates.Ref,
+				HitTargetStates = _hitTargetStates.Ref,
+				KickerStates = _kickerStates.Ref,
+				PlungerStates = _plungerStates.Ref,
+				SpinnerStates = _spinnerStates.Ref,
+				SurfaceStates = _surfaceStates.Ref,
+				TriggerStates = _triggerStates.Ref,
+				DisabledCollisionItems = _disabledCollisionItems.Ref,
 				PlayfieldBounds = _playfieldBounds,
-				OverlappingColliders = new NativeParallelHashSet<int>(0, Allocator.TempJob)
+				OverlappingColliders = overlappingColliders,
 			};
 
-			var env = _physicsEnv[0];
+			var env = _physicsEnv.Ref[0];
 			var state = new PhysicsState(ref env, ref _octree, ref _colliders, ref _kinematicColliders,
-				ref _kinematicCollidersAtIdentity, ref _updatedKinematicTransforms, ref _kinematicColliderLookups, ref events,
-				ref _insideOfs, ref _ballStates, ref _bumperStates, ref _dropTargetStates, ref _flipperStates, ref _gateStates,
-				ref _hitTargetStates, ref _kickerStates, ref _plungerStates, ref _spinnerStates,
-				ref _surfaceStates, ref _triggerStates, ref _disabledCollisionItems, ref _swapBallCollisionHandling);
+				ref _kinematicCollidersAtIdentity, ref _updatedKinematicTransforms.Ref, ref _kinematicColliderLookups, ref events,
+				ref _insideOfs, ref _ballStates.Ref, ref _bumperStates.Ref, ref _dropTargetStates.Ref, ref _flipperStates.Ref, ref _gateStates.Ref,
+				ref _hitTargetStates.Ref, ref _kickerStates.Ref, ref _plungerStates.Ref, ref _spinnerStates.Ref,
+				ref _surfaceStates.Ref, ref _triggerStates.Ref, ref _disabledCollisionItems.Ref, ref _swapBallCollisionHandling);
 
 			// process input
 			while (_inputActions.Count > 0) {
@@ -293,24 +294,19 @@ namespace VisualPinball.Unity
 			updatePhysics.Run();
 
 			// dequeue events
-			while (_eventQueue.TryDequeue(out var eventData)) {
+			while (_eventQueue.Ref.TryDequeue(out var eventData)) {
 				_player.OnEvent(in eventData);
 			}
 
 			// process scheduled events from managed land
 			lock (_scheduledActions) {
 				for (var i = _scheduledActions.Count - 1; i >= 0; i--) {
-					if (_physicsEnv[0].CurPhysicsFrameTime > _scheduledActions[i].ScheduleAt) {
+					if (_physicsEnv.Ref[0].CurPhysicsFrameTime > _scheduledActions[i].ScheduleAt) {
 						_scheduledActions[i].Action();
 						_scheduledActions.RemoveAt(i);
 					}
 				}
 			}
-
-			// retrieve updated data
-			_ballStates = updatePhysics.Balls;
-			_physicsEnv = updatePhysics.PhysicsEnv;
-			_flipperStates = updatePhysics.FlipperStates;
 
 			#region Movements
 
@@ -323,7 +319,7 @@ namespace VisualPinball.Unity
 			}
 
 			// flippers
-			using (var enumerator = _flipperStates.GetEnumerator()) {
+			using (var enumerator = _flipperStates.Ref.GetEnumerator()) {
 				while (enumerator.MoveNext()) {
 					ref var flipperState = ref enumerator.Current.Value;
 					var flipperTransform = _transforms[enumerator.Current.Key];
@@ -332,7 +328,7 @@ namespace VisualPinball.Unity
 			}
 
 			// bumpers
-			using (var enumerator = _bumperStates.GetEnumerator()) {
+			using (var enumerator = _bumperStates.Ref.GetEnumerator()) {
 				while (enumerator.MoveNext()) {
 					ref var bumperState = ref enumerator.Current.Value;
 					if (bumperState.SkirtItemId != 0) {
@@ -345,7 +341,7 @@ namespace VisualPinball.Unity
 			}
 
 			// drop targets
-			using (var enumerator = _dropTargetStates.GetEnumerator()) {
+			using (var enumerator = _dropTargetStates.Ref.GetEnumerator()) {
 				while (enumerator.MoveNext()) {
 					ref var dropTargetState = ref enumerator.Current.Value;
 					var dropTargetTransform = _transforms[dropTargetState.AnimatedItemId];
@@ -359,7 +355,7 @@ namespace VisualPinball.Unity
 			}
 
 			// hit targets
-			using (var enumerator = _hitTargetStates.GetEnumerator()) {
+			using (var enumerator = _hitTargetStates.Ref.GetEnumerator()) {
 				while (enumerator.MoveNext()) {
 					ref var hitTargetState = ref enumerator.Current.Value;
 					var hitTargetTransform = _transforms[hitTargetState.AnimatedItemId];
@@ -373,7 +369,7 @@ namespace VisualPinball.Unity
 			}
 
 			// gates
-			using (var enumerator = _gateStates.GetEnumerator()) {
+			using (var enumerator = _gateStates.Ref.GetEnumerator()) {
 				while (enumerator.MoveNext()) {
 					ref var gateState = ref enumerator.Current.Value;
 					var gateTransform = _transforms[gateState.WireItemId];
@@ -382,7 +378,7 @@ namespace VisualPinball.Unity
 			}
 
 			// plungers
-			using (var enumerator = _plungerStates.GetEnumerator()) {
+			using (var enumerator = _plungerStates.Ref.GetEnumerator()) {
 				while (enumerator.MoveNext()) {
 					ref var plungerState = ref enumerator.Current.Value;
 					foreach (var skinnedMeshRenderer in _skinnedMeshRenderers[enumerator.Current.Key]) {
@@ -392,7 +388,7 @@ namespace VisualPinball.Unity
 			}
 
 			// spinners
-			using (var enumerator = _spinnerStates.GetEnumerator()) {
+			using (var enumerator = _spinnerStates.Ref.GetEnumerator()) {
 				while (enumerator.MoveNext()) {
 					ref var spinnerState = ref enumerator.Current.Value;
 					var spinnerTransform = _transforms[spinnerState.AnimationItemId];
@@ -401,7 +397,7 @@ namespace VisualPinball.Unity
 			}
 
 			// triggers
-			using (var enumerator = _triggerStates.GetEnumerator()) {
+			using (var enumerator = _triggerStates.Ref.GetEnumerator()) {
 				while (enumerator.MoveNext()) {
 					ref var triggerState = ref enumerator.Current.Value;
 					if (triggerState.AnimatedItemId == 0) {
@@ -417,35 +413,36 @@ namespace VisualPinball.Unity
 		
 		private void OnDestroy()
 		{
-			_physicsEnv.Dispose();
-			_eventQueue.Dispose();
-			_ballStates.Dispose();
+			_physicsEnv.Ref.Dispose();
+			_eventQueue.Ref.Dispose();
+			_ballStates.Ref.Dispose();
 			_colliders.Dispose();
+			_kinematicColliders.Dispose();
 			_insideOfs.Dispose();
 			_octree.Dispose();
-			_bumperStates.Dispose();
-			_dropTargetStates.Dispose();
-			_flipperStates.Dispose();
-			_gateStates.Dispose();
-			_hitTargetStates.Dispose();
-			using (var enumerator = _kickerStates.GetEnumerator()) {
+			_bumperStates.Ref.Dispose();
+			_dropTargetStates.Ref.Dispose();
+			_flipperStates.Ref.Dispose();
+			_gateStates.Ref.Dispose();
+			_hitTargetStates.Ref.Dispose();
+			using (var enumerator = _kickerStates.Ref.GetEnumerator()) {
 				while (enumerator.MoveNext()) {
 					enumerator.Current.Value.Dispose();
 				}
 			}
-			_kickerStates.Dispose();
-			_plungerStates.Dispose();
-			_spinnerStates.Dispose();
-			_surfaceStates.Dispose();
-			using (var enumerator = _triggerStates.GetEnumerator()) {
+			_kickerStates.Ref.Dispose();
+			_plungerStates.Ref.Dispose();
+			_spinnerStates.Ref.Dispose();
+			_surfaceStates.Ref.Dispose();
+			using (var enumerator = _triggerStates.Ref.GetEnumerator()) {
 				while (enumerator.MoveNext()) {
 					enumerator.Current.Value.Dispose();
 				}
 			}
-			_triggerStates.Dispose();
-			_disabledCollisionItems.Dispose();
-			_kinematicTransforms.Dispose();
-			_updatedKinematicTransforms.Dispose();
+			_triggerStates.Ref.Dispose();
+			_disabledCollisionItems.Ref.Dispose();
+			_kinematicTransforms.Ref.Dispose();
+			_updatedKinematicTransforms.Ref.Dispose();
 			using (var enumerator = _kinematicColliderLookups.GetEnumerator()) {
 				while (enumerator.MoveNext()) {
 					enumerator.Current.Value.Dispose();
