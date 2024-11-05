@@ -24,7 +24,7 @@ namespace VisualPinball.Unity
 	///
 	/// These are all read-only.
 	/// </summary>
-	public struct ColliderHeader
+	public struct ColliderHeader : IEquatable<ColliderHeader>
 	{
 		public ColliderType Type;
 		public ItemType ItemType;
@@ -48,7 +48,11 @@ namespace VisualPinball.Unity
 		/// <see cref="HitLine3D"/> check this in order to know whether to emit
 		/// the hit event.
 		/// </remarks>
-		public bool IsPrimitive => ItemType == ItemType.Primitive || ItemType == ItemType.Ramp || ItemType == ItemType.Rubber || ItemType == ItemType.MetalWireGuide;
+		public readonly bool IsPrimitive
+			=> ItemType == ItemType.Primitive
+			|| ItemType == ItemType.Ramp
+			|| ItemType == ItemType.Rubber
+			|| ItemType == ItemType.MetalWireGuide;
 
 		public void Init(ColliderInfo info, ColliderType colliderType)
 		{
@@ -64,19 +68,26 @@ namespace VisualPinball.Unity
 			FireEvents = info.FireEvents;
 		}
 
-		public static bool operator == (ColliderHeader a, ColliderHeader b) => a.Equals(b);
-		public static bool operator != (ColliderHeader a, ColliderHeader b) => !a.Equals(b);
+		public static bool operator ==(ColliderHeader a, ColliderHeader b) => a.Equals(b);
+		public static bool operator !=(ColliderHeader a, ColliderHeader b) => !a.Equals(b);
 
-		public bool Equals(ColliderHeader other)
+		public readonly bool Equals(ColliderHeader other)
+			=> Type == other.Type
+			&& ItemType == other.ItemType
+			&& Id == other.Id
+			&& ItemId == other.ItemId
+			&& Material == other.Material
+			&& Threshold == other.Threshold
+			&& FireEvents == other.FireEvents;
+
+		public override readonly bool Equals(object obj)
 		{
-			return
-				Type == other.Type &&
-				ItemType == other.ItemType &&
-				Id == other.Id &&
-				ItemId == other.ItemId &&
-				Material == other.Material &&
-				Threshold == other.Threshold &&
-				FireEvents == other.FireEvents;
+			if (obj is ColliderHeader)
+				return Equals(obj);
+			return false;
 		}
+
+		public override readonly int GetHashCode() => HashCode.Combine(
+			Type, ItemType, Id, ItemId, Material, Threshold, FireEvents);
 	}
 }

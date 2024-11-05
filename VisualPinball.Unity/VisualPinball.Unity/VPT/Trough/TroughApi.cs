@@ -363,7 +363,6 @@ namespace VisualPinball.Unity
 
 				case TroughType.ClassicSingleBall:
 					throw new InvalidOperationException("Single ball trough does not have an entry coil.");
-					break;
 
 				default:
 					throw new ArgumentOutOfRangeException();

@@ -44,6 +44,7 @@ namespace VisualPinball.Unity
 	{
 		public string Name => "Default Game Engine";
 
+#pragma warning disable CS0067
 		public event EventHandler<CoilEventArgs> OnCoilChanged;
 		public event EventHandler<LampEventArgs> OnLampChanged;
 		public event EventHandler<LampsEventArgs> OnLampsChanged;
@@ -52,6 +53,7 @@ namespace VisualPinball.Unity
 		public event EventHandler<string> OnDisplayClear;
 		public event EventHandler<DisplayFrameData> OnDisplayUpdateFrame;
 		public event EventHandler<EventArgs> OnStarted;
+#pragma warning restore CS0067
 
 		private const int DmdWidth = 128;
 		private const int DmdHeight = 32;

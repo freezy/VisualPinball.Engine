@@ -15,10 +15,11 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using Unity.Collections;
+using System;
 
 namespace VisualPinball.Unity
 {
-	public struct PhysicsMaterialData
+	public struct PhysicsMaterialData : IEquatable<PhysicsMaterialData>
 	{
 		public float Elasticity;
 		public float ElasticityFalloff;
@@ -29,10 +30,10 @@ namespace VisualPinball.Unity
 		public FixedList512Bytes<float> FrictionOverVelocityLUT;
 		public bool UseFrictionOverVelocity;
 
-		public static bool operator == (PhysicsMaterialData a, PhysicsMaterialData b) => a.Equals(b);
-		public static bool operator != (PhysicsMaterialData a, PhysicsMaterialData b) => !a.Equals(b);
+		public static bool operator ==(PhysicsMaterialData a, PhysicsMaterialData b) => a.Equals(b);
+		public static bool operator !=(PhysicsMaterialData a, PhysicsMaterialData b) => !a.Equals(b);
 
-		public bool Equals(PhysicsMaterialData other)
+		public readonly bool Equals(PhysicsMaterialData other)
 		{
 			return
 				Elasticity == other.Elasticity &&
@@ -41,6 +42,19 @@ namespace VisualPinball.Unity
 				ScatterAngleRad == other.ScatterAngleRad &&
 				UseElasticityOverVelocity == other.UseElasticityOverVelocity &&
 				UseFrictionOverVelocity == other.UseFrictionOverVelocity;
+		}
+
+		public override readonly bool Equals(object obj)
+		{
+			if (obj is PhysicsMaterialData other) {
+				return Equals(other);
+			}
+			return false;
+		}
+
+		public override readonly int GetHashCode()
+		{
+			return HashCode.Combine(Elasticity, ElasticityFalloff, Friction, ScatterAngleRad, UseElasticityOverVelocity, UseFrictionOverVelocity);
 		}
 	}
 }
