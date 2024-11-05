@@ -14,12 +14,13 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+using System;
 using Unity.Mathematics;
 using UnityEngine;
 
 namespace VisualPinball.Unity
 {
-	public struct Aabb
+	public struct Aabb : IEquatable<Aabb>
 	{
 		public float Left;
 		public float Top;
@@ -28,20 +29,20 @@ namespace VisualPinball.Unity
 		public float ZLow;
 		public float ZHigh;
 
-		public float Width => math.abs(Left - Right);
-		public float Height => math.abs(Top - Bottom);
-		public float Depth => math.abs(ZLow - ZHigh);
+		public readonly float Width => math.abs(Left - Right);
+		public readonly float Height => math.abs(Top - Bottom);
+		public readonly float Depth => math.abs(ZLow - ZHigh);
 
-		public Vector3 Min => new Vector3(Left, Top, ZLow);
-		public Vector3 Max => new Vector3(Right, Bottom, ZHigh);
+		public readonly Vector3 Min => new Vector3(Left, Top, ZLow);
+		public readonly Vector3 Max => new Vector3(Right, Bottom, ZHigh);
 
-		public Vector3 Center => new Vector3(
+		public readonly Vector3 Center => new Vector3(
 			(Right + Left) / 2f,
 			(Bottom + Top) / 2f,
 			(ZHigh + ZLow) / 2f
 		);
 
-		public Vector3 Size => new Vector3(Width, Height, Depth);
+		public readonly Vector3 Size => new Vector3(Width, Height, Depth);
 
 		public Aabb(float left, float right, float top, float bottom, float zLow, float zHigh)
 		{
@@ -74,7 +75,7 @@ namespace VisualPinball.Unity
 			ZHigh = math.max(ZHigh, other.ZHigh);
 		}
 
-		public bool IntersectSphere(float3 sphereP, float sphereRsqr)
+		public readonly bool IntersectSphere(float3 sphereP, float sphereRsqr)
 		{
 			var ex = math.max(Left - sphereP.x, 0) + math.max(sphereP.x - Right, 0);
 			var ey = math.max(Top - sphereP.y, 0) + math.max(sphereP.y - Bottom, 0);
@@ -87,16 +88,16 @@ namespace VisualPinball.Unity
 
 		// Checking Aabb 442.2034 → 509.7966 | 976.6798 ↘ 1044.273 | -8.79384 ↑ 58.79945 against Aabb 431 → 521 | 1036 ↘ 1126 | 90 ↑ 0 (2)
 
-		public bool IntersectRect(Aabb rc)
+		public readonly bool IntersectRect(Aabb rc)
 		{
 			return Right >= rc.Left  // 521 >= 442.2034
-			       && Bottom >= rc.Top // 1126 >= 976.6798
-			       && Left <= rc.Right // 431 <= 509.7966
-			       && Top <= rc.Bottom // 1036 <= 1044.273
-			       && ZLow <= rc.ZHigh // 0 <= -8.79384
-			       && ZHigh >= rc.ZLow; // 90 >= 58.79945
+				   && Bottom >= rc.Top // 1126 >= 976.6798
+				   && Left <= rc.Right // 431 <= 509.7966
+				   && Top <= rc.Bottom // 1036 <= 1044.273
+				   && ZLow <= rc.ZHigh // 0 <= -8.79384
+				   && ZHigh >= rc.ZLow; // 90 >= 58.79945
 		}
-		
+
 		public static implicit operator NativeTrees.AABB(Aabb aabb)
 		{
 			return new NativeTrees.AABB(aabb.Min, aabb.Max);
@@ -107,11 +108,11 @@ namespace VisualPinball.Unity
 			return new NativeTrees.AABB2D(new float2(aabb.Min.x, aabb.Min.y), new float2(aabb.Min.x, aabb.Max.y));
 		}
 
-		public static bool operator == (Aabb a, Aabb b) => a.Equals(b);
+		public static bool operator ==(Aabb a, Aabb b) => a.Equals(b);
 
-		public static bool operator != (Aabb a, Aabb b) => !a.Equals(b);
+		public static bool operator !=(Aabb a, Aabb b) => !a.Equals(b);
 
-		private bool Equals(Aabb a)
+		public readonly bool Equals(Aabb a)
 		{
 			return
 				a.Right == Left &&
@@ -122,9 +123,21 @@ namespace VisualPinball.Unity
 				a.ZHigh == ZHigh;
 		}
 
-		public override string ToString()
+		public override readonly bool Equals(object obj)
+		{
+			if (obj is Aabb)
+				return Equals(obj);
+			return false;
+		}
+
+		public override readonly string ToString()
 		{
 			return $"Aabb {Left} → {Right} | {Top} ↘ {Bottom} | {ZLow} ↑ {ZHigh}";
+		}
+
+		public override readonly int GetHashCode()
+		{
+			return HashCode.Combine(Right, Left, Bottom, Top, ZLow, ZHigh);
 		}
 	}
 }

@@ -66,7 +66,7 @@ namespace VisualPinball.Unity
 		[Tooltip("How much the playfield should be rotated during runtime (in edit time, we keep it horizontal)")]
 		public float RenderSlope = 3.6f;
 
-		public int PlayfieldDetailLevel = 10;
+		public new int PlayfieldDetailLevel = 10;
 
 		[SerializeField] private string _playfieldImage;
 		[SerializeField] private string _playfieldMaterial;
