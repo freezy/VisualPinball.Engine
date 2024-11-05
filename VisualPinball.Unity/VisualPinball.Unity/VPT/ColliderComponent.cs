@@ -156,8 +156,8 @@ namespace VisualPinball.Unity
 
 				} else {
 					var api = InstantiateColliderApi(player, null);
-					var colliders = new ColliderReference(Allocator.TempJob);
-					var kinematicColliders = new ColliderReference(Allocator.TempJob, true);
+					var colliders = new ColliderReference(Allocator.Temp);
+					var kinematicColliders = new ColliderReference(Allocator.Temp, true);
 					try {
 						api.CreateColliders(ref colliders, ref kinematicColliders, 0.1f);
 
