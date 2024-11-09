@@ -379,8 +379,8 @@ namespace VisualPinball.Unity
 			var pos = new Vector3(circleCol.Center.x, circleCol.Center.y, 0);
 
 			// Make first side.
-			vertices.Add(rotation * new Vector3(circleCol.Radius, 0f, aabb.ZHigh) + pos);   // tr
-			vertices.Add(rotation * new Vector3(circleCol.Radius, 0f, aabb.ZLow) + pos);    // bl
+			vertices.Add(rotation * new Vector3(circleCol.Radius, 0f, circleCol.ZHigh) + pos);   // tr
+			vertices.Add(rotation * new Vector3(circleCol.Radius, 0f, circleCol.ZLow) + pos);    // bl
 			vertices.Add(rotation * (vertices[vertices.Count - 1] - pos) + pos); // br
 			vertices.Add(rotation * (vertices[vertices.Count - 3] - pos) + pos); // tl
 
