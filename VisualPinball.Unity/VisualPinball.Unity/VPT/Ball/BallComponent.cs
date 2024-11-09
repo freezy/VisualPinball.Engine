@@ -74,13 +74,13 @@ namespace VisualPinball.Unity
 				0.01f
 			);
 
-			// hit hormal
-			DrawArrow(
-				_playfieldToWorld.MultiplyPoint(ballState.Position.TranslateToWorld()),
-				_playfieldToWorld.MultiplyVector((ballState.CollisionEvent.HitNormal * 100).TranslateToWorld()),
-				ballState.CollisionEvent.HitFlag ? Color.red : Color.yellow,
-				0.01f
-			);
+			// hit normal
+			// DrawArrow(
+			// 	_playfieldToWorld.MultiplyPoint(ballState.Position.TranslateToWorld()),
+			// 	_playfieldToWorld.MultiplyVector((ballState.CollisionEvent.HitNormal * 100).TranslateToWorld()),
+			// 	ballState.CollisionEvent.HitFlag ? Color.red : Color.yellow,
+			// 	0.01f
+			// );
 		}
 
 		private static void DrawArrow(Vector3 pos, Vector3 direction, Color color, float arrowHeadLength = 0.025f, float arrowHeadAngle = 20.0f)

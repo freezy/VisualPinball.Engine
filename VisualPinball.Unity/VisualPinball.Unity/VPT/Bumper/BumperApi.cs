@@ -15,15 +15,10 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using System;
+using System.Collections.Generic;
 using Unity.Mathematics;
 using UnityEngine;
 using VisualPinball.Engine.VPT.Bumper;
-using System.Collections.Generic;
-using Unity.Mathematics;
-using static UnityEngine.UI.Scrollbar;
-using VisualPinball.Engine.PinMAME.MPUs;
-using VisualPinball.Engine.VPT;
-using JetBrains.Annotations;
 
 namespace VisualPinball.Unity
 {
@@ -120,11 +115,9 @@ namespace VisualPinball.Unity
 		{
 			var matrix = MainComponent.transform.worldToLocalMatrix.WorldToLocalTranslateWithinPlayfield(Player.PlayfieldToWorldMatrix);
 			var height = MainComponent.PositionZ;
-			var switchCollider = new CircleCollider(new float2(0), MainComponent.Radius, height,
-					height + 100f, GetColliderInfo(), ColliderType.Bumper);
-			var rigidCollider = new CircleCollider(new float2(0), MainComponent.Radius * 0.5f, height,
-					height + 100f, GetColliderInfo(), ColliderType.Circle);
-			if (ColliderComponent.IsKinematic) {
+			var switchCollider = new CircleCollider(new float2(0), MainComponent.Radius, height, height + 100f, GetColliderInfo(), ColliderType.Bumper);
+			var rigidCollider = new CircleCollider(new float2(0), MainComponent.Radius * 0.5f, height, height + 100f, GetColliderInfo(), ColliderType.Circle);
+			if (ColliderComponent._isKinematic) {
 				switchColliderId = kinematicColliders.Add(switchCollider, matrix);
 				kinematicColliders.Add(rigidCollider, matrix);
 			} else {
