@@ -68,7 +68,9 @@ namespace VisualPinball.Unity
 		public int ItemId => MainComponent.gameObject.GetInstanceID();
 
 		float4x4 ICollidableNonTransformableComponent.TranslateWithinPlayfieldMatrix(float4x4 worldToPlayfield)
-			=> MainComponent.transform.localToWorldMatrix.LocalToWorldTranslateWithinPlayfield(worldToPlayfield);
+//			=> MainComponent.transform.localToWorldMatrix.LocalToWorldTranslateWithinPlayfield(worldToPlayfield);
+			=> MainComponent.LocalToWorldPhysicsMatrix.LocalToWorldTranslateWithinPlayfield(worldToPlayfield);
+
 
 		public float4x4 TransformationWithinPlayfield => MainComponent.TransformationWithinPlayfield;
 

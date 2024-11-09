@@ -179,7 +179,7 @@ namespace VisualPinball.Unity
 						}
 
 						if (ShowAabbs) {
-						Gizmos.matrix = playfieldToWorld * (Matrix4x4)Physics.VpxToWorld;
+							Gizmos.matrix = playfieldToWorld * (Matrix4x4)Physics.VpxToWorld;
 							for (var i = 0; i < colliders.Count; i++) {
 								var col = colliders[i];
 								DrawAabb(col.Bounds.Aabb, i == SelectedCollider);

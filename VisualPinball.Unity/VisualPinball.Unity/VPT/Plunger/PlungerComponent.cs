@@ -99,6 +99,8 @@ namespace VisualPinball.Unity
 			}
 		}
 
+		// public float4x4 TransformationWithinPlayfield
+		// 	=> math.mul(Physics.VpxToWorld, transform.worldToLocalMatrix.WorldToLocalTranslateWithinPlayfield(_playfieldToWorld));
 		public float4x4 TransformationWithinPlayfield
 			=> transform.worldToLocalMatrix.WorldToLocalTranslateWithinPlayfield(_playfieldToWorld);
 
@@ -141,6 +143,19 @@ namespace VisualPinball.Unity
 		private void Start()
 		{
 			_playfieldToWorld = Player.PlayfieldToWorldMatrix;
+		}
+
+		public float4x4 LocalToWorldPhysicsMatrix
+		{
+			get
+			{
+				return float4x4.Translate(transform.localPosition);
+				return float4x4.identity;
+				// var t = transform;
+				// var m = t.localToWorldMatrix;
+				// var r = t.localRotation.eulerAngles;
+				// return math.mul(m, math.inverse(float4x4.RotateY(math.radians(r.y))));
+			}
 		}
 
 		#endregion
@@ -308,12 +323,12 @@ namespace VisualPinball.Unity
 			}
 
 			var zHeight = PositionZ;
-			var x = Position.x - Width;
-			var y = Position.y + Height;
-			var x2 = Position.x + Width;
+			var x = -Width;
+			var x2 = Width;
+			var y = Height;
 
-			var frameTop = Position.y - collComponent.Stroke;
-			var frameBottom = Position.y;
+			var frameTop = -collComponent.Stroke;
+			var frameBottom = 0;
 			var frameLen = frameBottom - frameTop;
 			var restPos = collComponent.ParkPosition;
 			var position = frameTop + restPos * frameLen;
