@@ -30,28 +30,30 @@ namespace VisualPinball.Unity
 
 		public ColliderHeader Header;
 
-		public float2 Center;
+		public float2 Center; // todo remove and assume float2.zero
 		public float Radius;
 
-		private float _zHigh;
-		private float _zLow;
+		public float ZHigh;
+		public float ZLow;
 
-		public ColliderBounds Bounds => new(Header.ItemId, Header.Id, new Aabb(
-			Center.x - Radius,
-			Center.x + Radius,
-			Center.y - Radius,
-			Center.y + Radius,
-			_zLow,
-			_zHigh
-		));
+		public ColliderBounds Bounds { get; private set; }
 
 		public CircleCollider(float2 center, float radius, float zLow, float zHigh, ColliderInfo info, ColliderType type = ColliderType.Circle) : this()
 		{
 			Header.Init(info, type);
 			Center = center;
 			Radius = radius;
-			_zHigh = zHigh;
-			_zLow = zLow;
+			ZHigh = zHigh;
+			ZLow = zLow;
+
+			Bounds = new ColliderBounds(Header.ItemId, Header.Id, new Aabb(
+				Center.x - Radius,
+				Center.x + Radius,
+				Center.y - Radius,
+				Center.y + Radius,
+				ZLow,
+				ZHigh
+			));
 		}
 
 		#region Narrowphase
@@ -73,14 +75,14 @@ namespace VisualPinball.Unity
 			var dist = ball.Position - c; // relative ball position
 			var dv = ball.Velocity;
 
-			var capsule3D = !lateral && ball.Position.z > _zHigh;
+			var capsule3D = !lateral && ball.Position.z > ZHigh;
 			var isKicker = Header.ItemType == ItemType.Kicker;
 			var isKickerOrTrigger = Header.ItemType == ItemType.Trigger || Header.ItemType == ItemType.Kicker;
 
 			float targetRadius;
 			if (capsule3D) {
 				targetRadius = Radius * (float) (13.0 / 5.0);
-				c.z = _zHigh - Radius * (float) (12.0 / 5.0);
+				c.z = ZHigh - Radius * (float) (12.0 / 5.0);
 				dist.z = ball.Position.z - c.z; // ball rolling point - capsule center height
 			}
 			else {
@@ -174,9 +176,9 @@ namespace VisualPinball.Unity
 			}
 
 			var hitZ = ball.Position.z + ball.Velocity.z * hitTime; // rolling point
-			if (hitZ + ball.Radius * 0.5 < _zLow
-			    || !capsule3D && hitZ - ball.Radius * 0.5 > _zHigh
-			    || capsule3D && hitZ < _zHigh) {
+			if (hitZ + ball.Radius * 0.5 < ZLow
+			    || !capsule3D && hitZ - ball.Radius * 0.5 > ZHigh
+			    || capsule3D && hitZ < ZHigh) {
 				return -1.0f;
 			}
 
@@ -227,8 +229,8 @@ namespace VisualPinball.Unity
 			var s = matrix.GetScale();
 			Center = matrix.MultiplyPoint(new float3(circle.Center, 0)).xy;
 			Radius = circle.Radius * s.x;
-			_zHigh = circle._zHigh * s.z;
-			_zLow = circle._zLow * s.z;
+			ZHigh = circle.ZHigh * s.z;
+			ZLow = circle.ZLow * s.z;
 		}
 
 		public CircleCollider Transform(float4x4 matrix)
@@ -237,6 +239,25 @@ namespace VisualPinball.Unity
 			return this;
 		}
 
-		public override string ToString() => $"CircleCollider[{Header.ItemId}] ({Center.x}/{Center.y}) {_zLow} -> {_zHigh}";
+		public CircleCollider TransformAabb(float4x4 matrix)
+		{
+			var p1 = matrix.MultiplyPoint(new float3( Radius,  Radius, ZLow));
+			var p2 = matrix.MultiplyPoint(new float3( Radius, -Radius, ZLow));
+			var p3 = matrix.MultiplyPoint(new float3(-Radius,  Radius, ZLow));
+			var p4 = matrix.MultiplyPoint(new float3(-Radius, -Radius, ZLow));
+			var p5 = matrix.MultiplyPoint(new float3( Radius,  Radius, ZHigh));
+			var p6 = matrix.MultiplyPoint(new float3( Radius, -Radius, ZHigh));
+			var p7 = matrix.MultiplyPoint(new float3(-Radius,  Radius, ZHigh));
+			var p8 = matrix.MultiplyPoint(new float3(-Radius, -Radius, ZHigh));
+
+			var min = math.min(p1, math.min(p2, math.min(p3, math.min(p4, math.min(p5, math.min(p6, math.min(p7, p8)))))));
+			var max = math.max(p1, math.max(p2, math.max(p3, math.max(p4, math.max(p5, math.max(p6, math.max(p7, p8)))))));
+
+			Bounds = new ColliderBounds(Header.ItemId, Header.Id, new Aabb(min, max));
+
+			return this;
+		}
+
+		public override string ToString() => $"CircleCollider[{Header.ItemId}] ({Center.x}/{Center.y}) {ZLow} -> {ZHigh}";
 	}
 }

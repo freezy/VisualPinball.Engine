@@ -334,6 +334,9 @@ namespace VisualPinball.Unity
 		internal int AddNonTransformable(TriangleCollider collider, float4x4 matrix)
 			=> Add(collider.TransformAabb(matrix));
 
+		internal int AddNonTransformable(CircleCollider collider, float4x4 matrix)
+			=> Add(collider.TransformAabb(matrix));
+
 		#endregion
 
 		public ICollider[] ToArray()
