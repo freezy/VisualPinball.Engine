@@ -117,3 +117,128 @@ The only dynamic collision in Visual Pinball is collision between balls. For
 this, another KD-Tree is re-created on each physics cycle. Then, during phase
 3.1, balls are not only checked against static objects, but also against other
 balls.
+
+# VPE Physics
+
+While VPE uses the same formulas and heuristics to resolve collisions and simulate 
+behavior as VPX, we've made some changes to make it more flexible. Here's a quick
+overview.
+
+- **Kinematic Objects**: As described above, the only objects that can be freely
+  transformed are the balls, all other objects are static. In VPE, you can mark
+  any object as kinematic, which means it can be moved freely at runtime.
+- **Unrestricted Transformations**: In VPX, every type of object has its limitations
+  how it can be transformed. For example a flipper must always be parallel to the
+  playfield. In VPE, you can rotate, move and scale objects freely.
+- **World Space**: VPX defines its own way of measuring units. It defines a unit as
+  50th of the diameter of a ball (1 VP unit = 0.02125" = 0.53975mm). VPE uses real 
+  world units (meters) and converts them to VP units at runtime for the physics
+  simulation only. This means we get the advantages of real world units, but can still
+  rely on the heuristics of the physics engine that has been tuned over the years.
+
+> [!NOTE]  
+> We don't use the term *Hit Object* in VPE. We call them *Colliders*.
+
+## Unrestricted Transformations
+
+The key to transforming objects lies in how their transformations are stored. In
+VPX, due to its restrictions, transformations are generally stored as separate
+values. In Unity (and game engines in general), transformations are stored as 
+matrices. Instead of converting between the transformations that the physics 
+engine understands and the transformation matrix — and thereby restricting the 
+editor's transformation tools to those limitations — we decided to rely exclusively
+on the transformation matrix. This approach allows complete freedom in transforming
+objects.
+
+It also enables VPE to support parenting objects to others, allowing 
+transformations of parent objects without disrupting the physics simulation.
+
+So, how can the VPX physics code handle arbitrary transformations? The solution is a 
+simple trick: rather than transforming the colliders, we 
+transform the balls: To resolve a collision between a ball and a collider that 
+is transformed in a non-supported way, we temporarily move the ball into the 
+collider's local space, resolve the collision, and then return the ball to the 
+playfield space.
+
+### Collider Data
+
+Our colliders don't and won't know about our transformation matrices, i.e. the
+data used to calculate the simulation is still the same as in VPX. So, we need to
+get this data from the transformation matrices into the colliders. The chosen
+approach is the following:
+
+- Each collider gets a `Transform(float4x4)` method that transforms the collider
+  in VPX space. Transforming means updating the collider's position, rotation, and 
+  scale, whatever is supported. That's the data the VPX physics code uses.
+- Obviously this has flaws. For example, a Line collider, by definition, is 
+  aligned parallel and orthogonally to the playfield. In this case we'd transform
+  its two points and retrieve their new xy position. This works for translate and scale,  
+  but rotating around anything else than the z-axis would still result in a rectangle
+  parallel and orthogonal to the playfield, which wouldn't be desired.
+- But more on that problem later. What's important is that for transformations 
+  *supported by the VPX physics code*, we have a method that allows to transform  
+  each collider.
+- Additionally, colliders don't take in a transformation matrix. That means by default,
+  they are placed at the origin and have no rotation or scale.
+- Finally, each collider gets a `TransformAABBs(float4x4)` method that only transforms
+  the collider's axis-aligned bounding boxes.
+  
+So, with all of the above, we do the following when the game starts:
+
+1. We retrieve the overall world-to-local matrix of an item.
+2. Using the playfield's world-to-local matrix, we calculate the playfield-to-local matrix
+   of the item.
+3. We check which kind of transformation the VPX physics code supports for this type of
+   item and compare it to the transformation of playfield-to-local matrix.
+   - If all transformations are supported, we simply transform the collider with the item's
+	 transformation matrix (let's call this Plan A).
+   - If not, we check whether this collider might be replaceable by another type of collider
+     that supports the transformation. For example, a line collider can be replaced by two 
+     triangle colliders, which then are 100% transformable. That's our Plan B.
+   - If neither Plan A nor Plan B is possible, we fall back to our trick explained above,
+     which is to transform the ball during collision resolution. Note that the AABBs of the
+     object still need to be transformed, so the broad phase can correctly sort out the 
+     items that are out of range.
+
+This relatively simple approach gives us an incredible amount of flexibility. We now have a
+true 3D physics engine that can handle any kind of transformation, including parenting, while
+still being able to rely on the heuristics of the VPX physics code that has been tuned over 
+the years.
+
+### Code Changes
+
+Let's dive into the code. We'll need to more methods for each collider:
+
+1. `Transform(float4x4)`: This method transforms the collider in VPX space.
+2. `TransformAABBs(float4x4)`: This method transforms the collider's axis-aligned bounding boxes.
+
+In our `ColliderReference` class, we'll add a `float4x4` to each `Add()` method, 
+which transforms the collider and its AABBs.
+
+> [!IMPORTANT]  
+> Remove the overload that doesn't need the matrix once all collider generators have been updated.
+
+We'll also have a `AddNonTransformable()` method which only transforms tha AABBs and marks
+the collider as non-transformable, so we can do the ball transformation trick during collision
+later. In order to know whether to do that, we'll need a flag in the collider. Let's call it
+`IsTransformed`.
+
+In order to transform the ball, we need to also store the transformation matrix of the item. However,
+while the `IsTransformed` flag is collider-specific, the transformation matrix is item-specific.
+
+## Coordinate Systems
+
+Give the above, we'll be transforming between multiple coordinate systems, or *spaces*:
+
+- **World Space**: This is the space in which the game objects are defined. It's also the
+  space in which you should model your assets.
+- **Playfield Space**  (or VPX space): This is the space in which the physics engine operates.
+- **Local Space**: This is the space of the collider. For elements that are transformed in a way
+  not supported by the physics engine, we'll move the ball into this space to resolve the collision.
+
+## Kinematic Objects
+
+Kinematic objects need to be enabled manually.
+
+> [!NOTE]  
+> Maybe, in the future, we could leverage Unity's "static" flag for this.
