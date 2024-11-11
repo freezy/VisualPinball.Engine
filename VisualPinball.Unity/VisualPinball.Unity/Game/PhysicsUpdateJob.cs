@@ -19,6 +19,7 @@ using Unity.Collections;
 using Unity.Jobs;
 using Unity.Mathematics;
 using VisualPinball.Engine.Common;
+using UnityEngine;
 
 namespace VisualPinball.Unity
 {
@@ -137,10 +138,10 @@ namespace VisualPinball.Unity
 					while (enumerator.MoveNext()) {
 						ref var bumperState = ref enumerator.Current.Value;
 						if (bumperState.RingItemId != 0) {
-							BumperRingAnimation.Update(ref bumperState.RingAnimation, DeltaTimeMs);
+							BumperRingAnimation.Update(ref bumperState.RingAnimation, PhysicsConstants.PhysicsStepTime / 1000f);
 						}
 						if (bumperState.SkirtItemId != 0) {
-							BumperSkirtAnimation.Update(ref bumperState.SkirtAnimation, DeltaTimeMs);
+							BumperSkirtAnimation.Update(ref bumperState.SkirtAnimation, PhysicsConstants.PhysicsStepTime / 1000f);
 						}
 					}
 				}
@@ -173,7 +174,7 @@ namespace VisualPinball.Unity
 				using (var enumerator = TriggerStates.GetEnumerator()) {
 					while (enumerator.MoveNext()) {
 						ref var triggerState = ref enumerator.Current.Value;
-						TriggerAnimation.Update(ref triggerState.Animation, ref triggerState.Movement, in triggerState.Static, DeltaTimeMs);
+						TriggerAnimation.Update(ref triggerState.Animation, ref triggerState.Movement, in triggerState.Static, PhysicsConstants.PhysicsStepTime / 1000f);
 					}
 				}
 
