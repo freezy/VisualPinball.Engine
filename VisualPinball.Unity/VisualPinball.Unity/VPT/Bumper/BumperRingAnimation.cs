@@ -18,7 +18,7 @@ namespace VisualPinball.Unity
 {
 	internal static class BumperRingAnimation
 	{
-		internal static void Update(ref BumperRingAnimationState state, float dTime)
+		internal static void Update(ref BumperRingAnimationState state, float dTimeMs)
 		{
 			// todo visibility - skip if invisible
 
@@ -33,7 +33,7 @@ namespace VisualPinball.Unity
 				if (state.AnimateDown) {
 					step = -step;
 				}
-				state.Offset += step * dTime;
+				state.Offset += step * dTimeMs;
 				if (state.AnimateDown) {
 					if (state.Offset <= -limit) {
 						state.Offset = -limit;
