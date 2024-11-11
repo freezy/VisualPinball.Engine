@@ -18,6 +18,8 @@ using System;
 using Unity.Mathematics;
 using UnityEngine;
 using VisualPinball.Engine.VPT.Bumper;
+using System.Collections.Generic;
+using Unity.Mathematics;
 
 namespace VisualPinball.Unity
 {
@@ -93,17 +95,15 @@ namespace VisualPinball.Unity
 						HitOrgNormalVelocity = math.dot(bumpDirection, math.normalize(ballState.Velocity)),
 						IsContact = true,
 						ColliderId = _switchColliderId,
-						IsKinematic = false,
-						BallId = ballId
+								IsKinematic = false,
+								BallId = ballId
 					};
-					//var physicsMaterialData = ColliderComponent.PhysicsMaterialData;
-					//var random = PhysicsEngine.;
-					//BallCollider.Collide3DWall(ref ballState, in physicsMaterialData, in collEvent, in bumpDirection, ref state);
+					var physicsMaterialData = ColliderComponent.PhysicsMaterialData;
+					var random = PhysicsEngine.Random;
+					BallCollider.Collide3DWall(ref ballState, in physicsMaterialData, in collEvent, in bumpDirection, ref random);
 					ballState.Velocity += bumpDirection * ColliderComponent.Force;
 				}
 			}
-
-			CoilStatusChanged?.Invoke(this, new NoIdCoilEventArgs(enabled));
 		}
 
 		void IApiWireDest.OnChange(bool enabled) => (this as IApiCoil).OnCoil(enabled);
