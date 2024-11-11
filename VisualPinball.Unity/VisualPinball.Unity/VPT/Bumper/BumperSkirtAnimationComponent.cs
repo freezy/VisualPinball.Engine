@@ -22,5 +22,9 @@ namespace VisualPinball.Unity
 	[AddComponentMenu("Visual Pinball/Animation/Bumper Skirt Animation")]
 	public class BumperSkirtAnimationComponent : AnimationComponent<BumperData, BumperComponent>
 	{
+		#region Data
+		[Tooltip("How long the skirt is pushed down when hit by a ball in seconds")]
+		public float duration = 0.1f;
+		#endregion
 	}
 }

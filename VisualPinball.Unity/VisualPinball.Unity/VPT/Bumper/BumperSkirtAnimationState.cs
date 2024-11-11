@@ -31,5 +31,6 @@ namespace VisualPinball.Unity
 
 		// static
 		public float2 Center;
+		public float Duration;
 	}
 }
