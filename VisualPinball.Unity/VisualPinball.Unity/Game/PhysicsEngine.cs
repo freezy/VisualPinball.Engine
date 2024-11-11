@@ -74,12 +74,12 @@ namespace VisualPinball.Unity
 		/// <summary>
 		/// Last transforms of kinematic items, so we can detect changes.
 		/// </summary>
-		[NonSerialized] private readonly LazyInit<NativeParallelHashMap<int, float4x4>> _kinematicTransforms = new(() => new(0, Allocator.Persistent));
+		[NonSerialized] private readonly LazyInit<NativeParallelHashMap<int, float4x4>> _kinematicTransforms = new(() => new NativeParallelHashMap<int, float4x4>(0, Allocator.Persistent));
 
 		/// <summary>
 		/// The transforms of the kinematic items that have changes since the last frame.
 		/// </summary>
-		[NonSerialized] private readonly LazyInit<NativeParallelHashMap<int, float4x4>> _updatedKinematicTransforms = new(() => new(0, Allocator.Persistent));
+		[NonSerialized] private readonly LazyInit<NativeParallelHashMap<int, float4x4>> _updatedKinematicTransforms = new(() => new NativeParallelHashMap<int, float4x4>(0, Allocator.Persistent));
 
 		/// <summary>
 		/// The current matrix to the ball will be transformed to, if it collides with a non-transformable collider.
@@ -88,7 +88,7 @@ namespace VisualPinball.Unity
 		///
 		/// todo save inverse matrix, too
 		/// </summary>
-		[NonSerialized] private readonly LazyInit<NativeParallelHashMap<int, float4x4>> _nonTransformableColliderMatrices = new(() => new(0, Allocator.Persistent));
+		[NonSerialized] private readonly LazyInit<NativeParallelHashMap<int, float4x4>> _nonTransformableColliderMatrices = new(() => new NativeParallelHashMap<int, float4x4>(0, Allocator.Persistent));
 		[NonSerialized] private readonly Dictionary<int, SkinnedMeshRenderer[]> _skinnedMeshRenderers = new();
 
 		[NonSerialized] private readonly Dictionary<int, IRotatableAnimationComponent> _rotatableComponent = new();

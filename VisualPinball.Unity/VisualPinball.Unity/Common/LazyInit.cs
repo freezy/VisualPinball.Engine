@@ -4,25 +4,24 @@ namespace VisualPinball.Unity
 {
 	public class LazyInit<T>
 	{
-		private bool isInitialized = false;
-		private T value;
-		public ref T Ref
-		{
-			get
-			{
-				if (!isInitialized) {
-					isInitialized = true;
-					value = constructor();
+		private readonly Func<T> _constructor;
+		private bool _isInitialized;
+		private T _value;
+
+		public ref T Ref {
+			get {
+				if (_isInitialized) {
+					return ref _value;
 				}
-				return ref value;
+				_isInitialized = true;
+				_value = _constructor();
+				return ref _value;
 			}
 		}
 
-		private readonly Func<T> constructor;
-
 		public LazyInit(Func<T> constructor)
 		{
-			this.constructor = constructor;
+			_constructor = constructor;
 		}
 	}
 }
