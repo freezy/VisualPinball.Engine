@@ -58,7 +58,9 @@ namespace VisualPinball.Unity
 
 		public bool CollidersDirty { set => _collidersDirty = value; }
 
-		[NonSerialized] private Mesh _colliderMesh;
+		[NonSerialized] private Mesh _staticColliderMesh;
+		[NonSerialized] private Mesh _kinematicColliderMesh;
+		[NonSerialized] private Mesh _nonTransformableColliderMesh;
 		[NonSerialized] private readonly List<ICollider> _nonMeshColliders = new List<ICollider>();
 		[NonSerialized] private bool _collidersDirty;
 
@@ -70,7 +72,9 @@ namespace VisualPinball.Unity
 
 		private void Start()
 		{
-			_colliderMesh = null;
+			_staticColliderMesh = null;
+			_kinematicColliderMesh = null;
+			_nonTransformableColliderMesh = null;
 			_collidersDirty = true;
 			// make enable checkbox visible
 		}
@@ -145,6 +149,8 @@ namespace VisualPinball.Unity
 				? ((float4x4)MainComponent.transform.localToWorldMatrix).LocalToWorldTranslateWithinPlayfield(math.inverse(playfieldToWorld))
 				: float4x4.identity;
 
+			var nonTransformableColliderMatrices = new NativeParallelHashMap<int, float4x4>();
+
 			Gizmos.matrix = playfieldToWorld * (Matrix4x4)Physics.VpxToWorld * (Matrix4x4)translateFullyWithinPlayfieldMatrix;
 			Handles.matrix = Gizmos.matrix;
 
@@ -159,22 +165,23 @@ namespace VisualPinball.Unity
 
 					var colliders = _physicsEngine.GetKinematicColliders(MainComponent.gameObject.GetInstanceID());
 					if (showColliders) {
-						_colliderMesh = GenerateColliderMesh(colliders);
+						GenerateColliderMesh(colliders);
 						//_collidersDirty = false;
 					}
 
 				} else {
-
 					var api = InstantiateColliderApi(player, null);
-					var colliders = new ColliderReference(Allocator.Temp);
-					var kinematicColliders = new ColliderReference(Allocator.Temp, true);
+					var colliders = new ColliderReference(ref nonTransformableColliderMatrices, Allocator.Temp);
+					var kinematicColliders = new ColliderReference(ref nonTransformableColliderMatrices, Allocator.Temp, true);
 					try {
 						api.CreateColliders(ref colliders, ref kinematicColliders, translateWithinPlayfieldMatrix, 0.1f);
 
 						if (showColliders) {
-							_colliderMesh = IsKinematic
-								? GenerateColliderMesh(ref kinematicColliders)
-								: GenerateColliderMesh(ref colliders);
+							if (IsKinematic) {
+								GenerateColliderMesh(ref kinematicColliders);
+							} else {
+								GenerateColliderMesh(ref colliders);
+							}
 							_collidersDirty = false;
 						}
 
@@ -194,8 +201,8 @@ namespace VisualPinball.Unity
 			if (ShowColliderOctree) {
 
 				var api = InstantiateColliderApi(player, null);
-				var colliders = new ColliderReference(Allocator.TempJob);
-				var kinematicColliders = new ColliderReference(Allocator.TempJob, true);
+				var colliders = new ColliderReference(ref nonTransformableColliderMatrices, Allocator.TempJob);
+				var kinematicColliders = new ColliderReference(ref nonTransformableColliderMatrices, Allocator.TempJob, true);
 				try {
 					api.CreateColliders(ref colliders, ref kinematicColliders, translateWithinPlayfieldMatrix, 0.1f);
 
@@ -220,17 +227,34 @@ namespace VisualPinball.Unity
 				Gizmos.matrix = playfieldToWorld * (Matrix4x4)Physics.VpxToWorld * (Matrix4x4)translateFullyWithinPlayfieldMatrix;
 				Handles.matrix = Gizmos.matrix;
 
-				var color = Application.isPlaying && IsKinematic
-					? Color.magenta
-					: IsKinematic ? new Color(0, 1, 1) : Color.green;
-				Handles.color = color;
+				// var color = Application.isPlaying && IsKinematic
+				// 	? Color.magenta
+				// 	: IsKinematic ? new Color(0, 1, 1) : Color.green;
+				// Handles.color = color;
+				// color.a = 0.3f;
+				// Gizmos.color = color;
+				// Gizmos.DrawMesh(_colliderMesh);
+				// color = Color.white;
+				// color.a = 0.01f;
+				// Gizmos.color = color;
+				// Gizmos.DrawWireMesh(_colliderMesh);
+
+				var color = new Color(0, 1, 1);
+				Handles.color = Color.cyan;
 				color.a = 0.3f;
+
 				Gizmos.color = color;
-				Gizmos.DrawMesh(_colliderMesh);
+				Gizmos.DrawMesh(_nonTransformableColliderMesh);
+
+				Gizmos.color = Color.green;
+				Gizmos.DrawMesh(_staticColliderMesh);
+
 				color = Color.white;
 				color.a = 0.01f;
 				Gizmos.color = color;
-				Gizmos.DrawWireMesh(_colliderMesh);
+				Gizmos.DrawWireMesh(_staticColliderMesh);
+				Gizmos.DrawWireMesh(_nonTransformableColliderMesh);
+
 				DrawNonMeshColliders();
 			}
 
@@ -240,18 +264,25 @@ namespace VisualPinball.Unity
 			Profiler.EndSample();
 		}
 
-		private Mesh GenerateColliderMesh(ref ColliderReference colliders)
+		private void GenerateColliderMesh(ref ColliderReference colliders)
 		{
 			var color = Color.green;
 			Handles.color = color;
 			color.a = 0.3f;
 			Gizmos.color = color;
 			var vertices = new List<Vector3>();
+			var verticesNonTransformable = new List<Vector3>();
 			var normals = new List<Vector3>();
+			var normalsNonTransformable = new List<Vector3>();
 			var indices = new List<int>();
+			var indicesNonTransformable = new List<int>();
 			_nonMeshColliders.Clear();
 			foreach (var col in colliders.CircleColliders) {
-				AddCollider(col, vertices, normals, indices);
+				if (col.Header.IsTransformed) {
+					AddCollider(col, vertices, normals, indices);
+				} else {
+					AddCollider(col, verticesNonTransformable, normalsNonTransformable, indicesNonTransformable);
+				}
 			}
 			foreach (var _ in colliders.FlipperColliders) {
 				AddFlipperCollider(vertices, normals, indices);
@@ -284,75 +315,88 @@ namespace VisualPinball.Unity
 
 			// todo Line3DCollider
 
-			return new Mesh {
-				name = $"{name} (debug collider)",
+			_staticColliderMesh = new Mesh {
+				name = $"{name} (static collider)",
+				vertices = vertices.ToArray(),
+				triangles = indices.ToArray(),
+				normals = normals.ToArray()
+			};
+			_nonTransformableColliderMesh = new Mesh {
+				name = $"{name} (non-transformable colliders)",
 				vertices = vertices.ToArray(),
 				triangles = indices.ToArray(),
 				normals = normals.ToArray()
 			};
 		}
 
-		private Mesh GenerateColliderMesh(IEnumerable<ICollider> colliders)
+		private void GenerateColliderMesh(IEnumerable<ICollider> colliders)
 		{
 			var color = Color.magenta;
 			Handles.color = color;
 			color.a = 0.3f;
 			Gizmos.color = color;
 			var vertices = new List<Vector3>();
+			var verticesNonTransformable = new List<Vector3>();
 			var normals = new List<Vector3>();
+			var normalsNonTransformable = new List<Vector3>();
 			var indices = new List<int>();
+			var indicesNonTransformable = new List<int>();
 			_nonMeshColliders.Clear();
 
 			foreach (var coll in colliders) {
 
-				if (coll is CircleCollider circleCollider) {
-					AddCollider(circleCollider, vertices, normals, indices);
-				}
-
-				if (coll is FlipperCollider) {
-					AddFlipperCollider(vertices, normals, indices);
-				}
-
-				if (coll is GateCollider gateCollider) {
-					AddCollider(gateCollider.LineSeg0, vertices, normals, indices);
-					AddCollider(gateCollider.LineSeg1, vertices, normals, indices);
-				}
-
-				if (coll is LineCollider lineCollider) {
-					AddCollider(lineCollider, vertices, normals, indices);
-				}
-
-				if (coll is LineSlingshotCollider lineSlingshotCollider) {
-					AddCollider(lineSlingshotCollider, vertices, normals, indices);
-				}
-
-				if (coll is LineZCollider lineZCollider) {
-					_nonMeshColliders.Add(lineZCollider);
-				}
-
-				if (coll is PlungerCollider plungerCollider) {
-					AddCollider(plungerCollider.LineSegBase, vertices, normals, indices);
-					AddCollider(plungerCollider.JointBase0, vertices, normals, indices);
-					AddCollider(plungerCollider.JointBase1, vertices, normals, indices);
-				}
-
-				if (coll is SpinnerCollider spinnerCollider) {
-					AddCollider(spinnerCollider.LineSeg0, vertices, normals, indices);
-					AddCollider(spinnerCollider.LineSeg1, vertices, normals, indices);
-				}
-
-				if (coll is TriangleCollider triangleCollider) {
-					AddCollider(triangleCollider, vertices, normals, indices);
+				switch (coll) {
+					case CircleCollider { Header: { IsTransformed: true } } circleCollider:
+						AddCollider(circleCollider, vertices, normals, indices);
+						break;
+					case CircleCollider circleCollider:
+						AddCollider(circleCollider, verticesNonTransformable, normalsNonTransformable, indicesNonTransformable);
+						break;
+					case FlipperCollider:
+						AddFlipperCollider(vertices, normals, indices);
+						break;
+					case GateCollider gateCollider:
+						AddCollider(gateCollider.LineSeg0, vertices, normals, indices);
+						AddCollider(gateCollider.LineSeg1, vertices, normals, indices);
+						break;
+					case LineCollider lineCollider:
+						AddCollider(lineCollider, vertices, normals, indices);
+						break;
+					case LineSlingshotCollider lineSlingshotCollider:
+						AddCollider(lineSlingshotCollider, vertices, normals, indices);
+						break;
+					case LineZCollider lineZCollider:
+						_nonMeshColliders.Add(lineZCollider);
+						break;
+					case PlungerCollider plungerCollider:
+						AddCollider(plungerCollider.LineSegBase, vertices, normals, indices);
+						AddCollider(plungerCollider.JointBase0, vertices, normals, indices);
+						AddCollider(plungerCollider.JointBase1, vertices, normals, indices);
+						break;
+					case SpinnerCollider spinnerCollider:
+						AddCollider(spinnerCollider.LineSeg0, vertices, normals, indices);
+						AddCollider(spinnerCollider.LineSeg1, vertices, normals, indices);
+						break;
+					case TriangleCollider triangleCollider:
+						AddCollider(triangleCollider, vertices, normals, indices);
+						break;
 				}
 			}
 
 			// todo Line3DCollider
 
-			return new Mesh {
-				name = $"{name} (debug collider)",
+			_staticColliderMesh = new Mesh {
+				name = $"{name} (static collider)",
 				vertices = vertices.ToArray(),
 				triangles = indices.ToArray(),
 				normals = normals.ToArray()
+			};
+
+			_nonTransformableColliderMesh = new Mesh {
+				name = $"{name} (static collider)",
+				vertices = verticesNonTransformable.ToArray(),
+				triangles = indicesNonTransformable.ToArray(),
+				normals = normalsNonTransformable.ToArray()
 			};
 		}
 
@@ -372,7 +416,6 @@ namespace VisualPinball.Unity
 		{
 			var startIdx = vertices.Count;
 			const int m_Sides = 32;
-			var aabb = circleCol.Bounds.Aabb;
 			const float angleStep = 360.0f / m_Sides;
 			var rotation = Quaternion.Euler(0.0f, 0.0f, angleStep);
 			const int max = m_Sides - 1;
@@ -431,11 +474,10 @@ namespace VisualPinball.Unity
 
 		private static void AddCollider(LineZCollider lineZCol, ICollection<Vector3> vertices, ICollection<Vector3> normals, ICollection<int> indices)
 		{
-			var aabb = lineZCol.Bounds.Aabb;
 			const float width = 10f;
 
-			var bottom = lineZCol.XY.ToFloat3(aabb.ZLow);
-			var top = lineZCol.XY.ToFloat3(aabb.ZHigh);
+			var bottom = lineZCol.XY.ToFloat3(lineZCol.ZLow);
+			var top = lineZCol.XY.ToFloat3(lineZCol.ZHigh);
 
 			var i = vertices.Count;
 			vertices.Add(bottom + new float3(width, 0, 0));

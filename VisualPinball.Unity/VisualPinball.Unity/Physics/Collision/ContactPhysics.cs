@@ -26,7 +26,7 @@ namespace VisualPinball.Unity
 			if (collEvent.ColliderId > -1) { // collide with static collider
 
 				var gravity = state.Env.Gravity;
-				if (state.HasNonTransformableColliderMatrix(collEvent.ColliderId, ref colliders)) {
+				if (!colliders.IsTransformed(collEvent.ColliderId)) {
 					ref var matrix = ref state.GetNonTransformableColliderMatrix(collEvent.ColliderId, ref colliders);
 					var matrixInv = math.inverse(matrix);
 					ball.Transform(matrixInv);
@@ -43,7 +43,7 @@ namespace VisualPinball.Unity
 					Collider.Contact(in collHeader, ref ball, in collEvent, hitTime, in gravity);
 				}
 
-				if (state.HasNonTransformableColliderMatrix(collEvent.ColliderId, ref colliders)) {
+				if (!colliders.IsTransformed(collEvent.ColliderId)) {
 					ref var matrix = ref state.GetNonTransformableColliderMatrix(collEvent.ColliderId, ref colliders);
 					ball.Transform(matrix);
 					collEvent.Transform(matrix);

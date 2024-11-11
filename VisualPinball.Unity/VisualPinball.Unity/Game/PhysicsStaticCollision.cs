@@ -16,6 +16,7 @@
 
 // ReSharper disable ConvertIfStatementToSwitchStatement
 
+using System;
 using Unity.Mathematics;
 using VisualPinball.Engine.VPT;
 using VisualPinball.Unity.Collections;
@@ -40,7 +41,7 @@ namespace VisualPinball.Unity
 
 		private static void TransformBallIntoColliderSpace(ref NativeColliders colliders, ref BallState ball, ref PhysicsState state, int colliderId)
 		{
-			if (!state.HasNonTransformableColliderMatrix(colliderId, ref colliders)) {
+			if (colliders.IsTransformed(colliderId)) {
 				return;
 			}
 			ref var matrix = ref state.GetNonTransformableColliderMatrix(colliderId, ref colliders);
@@ -49,7 +50,7 @@ namespace VisualPinball.Unity
 
 		private static void TransformBallFromColliderSpace(ref NativeColliders colliders, ref BallState ball, ref PhysicsState state, int colliderId)
 		{
-			if (!state.HasNonTransformableColliderMatrix(colliderId, ref colliders)) {
+			if (colliders.IsTransformed(colliderId)) {
 				return;
 			}
 			ref var matrix = ref state.GetNonTransformableColliderMatrix(colliderId, ref colliders);

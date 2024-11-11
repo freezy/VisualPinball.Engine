@@ -30,7 +30,7 @@ namespace VisualPinball.Unity
 
 		public ColliderHeader Header;
 
-		public float2 Center; // todo remove and assume float2.zero
+		public float2 Center;
 		public float Radius;
 
 		public float ZHigh;
@@ -231,6 +231,8 @@ namespace VisualPinball.Unity
 			Radius = circle.Radius * s.x;
 			ZHigh = circle.ZHigh * s.z;
 			ZLow = circle.ZLow * s.z;
+
+			TransformAabb(matrix);
 		}
 
 		public CircleCollider Transform(float4x4 matrix)
