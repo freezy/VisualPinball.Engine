@@ -344,7 +344,8 @@ namespace VisualPinball.Unity
 					DoUpdate = false,
 					EnableAnimation = true,
 					Rotation = new float2(0, 0),
-					Center = Position
+					Center = Position,
+					Duration = skirtAnimComponent.duration,
 				} : default;
 
 			// ring animation data
