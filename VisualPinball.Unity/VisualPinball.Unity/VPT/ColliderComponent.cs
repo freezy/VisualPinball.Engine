@@ -23,6 +23,7 @@ using NativeTrees;
 using Unity.Collections;
 using Unity.Jobs;
 using Unity.Mathematics;
+using Unity.VisualScripting.YamlDotNet.Serialization.NodeDeserializers;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.Profiling;
@@ -149,7 +150,7 @@ namespace VisualPinball.Unity
 				? ((float4x4)MainComponent.transform.localToWorldMatrix).LocalToWorldTranslateWithinPlayfield(math.inverse(playfieldToWorld))
 				: float4x4.identity;
 
-			var nonTransformableColliderMatrices = new NativeParallelHashMap<int, float4x4>();
+			var nonTransformableColliderMatrices = new NativeParallelHashMap<int, float4x4>(0, Allocator.Temp);
 
 			Gizmos.matrix = playfieldToWorld * (Matrix4x4)Physics.VpxToWorld * (Matrix4x4)translateFullyWithinPlayfieldMatrix;
 			Handles.matrix = Gizmos.matrix;
@@ -224,7 +225,8 @@ namespace VisualPinball.Unity
 
 			if (showColliders) {
 
-				Gizmos.matrix = playfieldToWorld * (Matrix4x4)Physics.VpxToWorld * (Matrix4x4)translateFullyWithinPlayfieldMatrix;
+				//Gizmos.matrix = playfieldToWorld * (Matrix4x4)Physics.VpxToWorld * (Matrix4x4)translateFullyWithinPlayfieldMatrix;
+				Gizmos.matrix = playfieldToWorld * (Matrix4x4)Physics.VpxToWorld;
 				Handles.matrix = Gizmos.matrix;
 
 				// var color = Application.isPlaying && IsKinematic
@@ -239,21 +241,30 @@ namespace VisualPinball.Unity
 				// Gizmos.color = color;
 				// Gizmos.DrawWireMesh(_colliderMesh);
 
-				var color = new Color(0, 1, 1);
-				Handles.color = Color.cyan;
-				color.a = 0.3f;
+				var white = Color.white;
+				var blue = new Color(0, 1, 1);
+				var green = Color.green;
+				green.a = 0.3f;
+				blue.a = 0.3f;
+				white.a = 0.01f;
 
-				Gizmos.color = color;
-				Gizmos.DrawMesh(_nonTransformableColliderMesh);
+				if (_nonTransformableColliderMesh) {
+					var m = ((float4x4)MainComponent.transform.localToWorldMatrix).LocalToWorldTranslateWithinPlayfield(math.inverse(playfieldToWorld));
+					Gizmos.matrix = playfieldToWorld * (Matrix4x4)Physics.VpxToWorld * (Matrix4x4)m;
+					Handles.matrix = Gizmos.matrix;
+					Handles.color = blue;
+					Gizmos.color = blue;
+					Gizmos.DrawMesh(_nonTransformableColliderMesh);
+				}
 
-				Gizmos.color = Color.green;
-				Gizmos.DrawMesh(_staticColliderMesh);
+				if (_staticColliderMesh) {
+					Gizmos.color = green;
+					Gizmos.DrawMesh(_staticColliderMesh);
 
-				color = Color.white;
-				color.a = 0.01f;
-				Gizmos.color = color;
-				Gizmos.DrawWireMesh(_staticColliderMesh);
-				Gizmos.DrawWireMesh(_nonTransformableColliderMesh);
+					Gizmos.color = white;
+					Gizmos.DrawWireMesh(_staticColliderMesh);
+					Gizmos.DrawWireMesh(_nonTransformableColliderMesh);
+				}
 
 				DrawNonMeshColliders();
 			}
@@ -315,18 +326,27 @@ namespace VisualPinball.Unity
 
 			// todo Line3DCollider
 
-			_staticColliderMesh = new Mesh {
-				name = $"{name} (static collider)",
-				vertices = vertices.ToArray(),
-				triangles = indices.ToArray(),
-				normals = normals.ToArray()
-			};
-			_nonTransformableColliderMesh = new Mesh {
-				name = $"{name} (non-transformable colliders)",
-				vertices = vertices.ToArray(),
-				triangles = indices.ToArray(),
-				normals = normals.ToArray()
-			};
+			if (vertices.Count > 0) {
+				_staticColliderMesh = new Mesh {
+					name = $"{name} (static collider)",
+					vertices = vertices.ToArray(),
+					triangles = indices.ToArray(),
+					normals = normals.ToArray()
+				};
+			} else {
+				_staticColliderMesh = null;
+			}
+
+			if (verticesNonTransformable.Count > 0) {
+				_nonTransformableColliderMesh = new Mesh {
+					name = $"{name} (non-transformable colliders)",
+					vertices = verticesNonTransformable.ToArray(),
+					triangles = indicesNonTransformable.ToArray(),
+					normals = normalsNonTransformable.ToArray()
+				};
+			} else {
+				_nonTransformableColliderMesh = null;
+			}
 		}
 
 		private void GenerateColliderMesh(IEnumerable<ICollider> colliders)
