@@ -17,12 +17,19 @@
 using System;
 using Unity.Collections;
 using Unity.Mathematics;
+using UnityEngine;
 using VisualPinball.Unity.Collections;
 
 namespace VisualPinball.Unity
 {
+	/// <summary>
+	/// A wrapper class used to pass around colliders during collider generation.
+	/// This isn't used during the physics runtime, where it's copied into NativeColliders.
+	/// </summary>
 	public struct ColliderReference : IDisposable
 	{
+		private const float Tolerance = 1e-7f; // 1e-9f;
+
 		internal NativeList<CircleCollider> CircleColliders;
 		internal NativeList<FlipperCollider> FlipperColliders;
 		internal NativeList<GateCollider> GateColliders;
@@ -40,8 +47,9 @@ namespace VisualPinball.Unity
 
 		public readonly bool KinematicColliders; // if set, populate _itemIdToColliderIds
 		private NativeParallelHashMap<int, NativeList<int>> _itemIdToColliderIds;
+		private NativeParallelHashMap<int, float4x4> _nonTransformableColliderMatrices;
 
-		public ColliderReference(Allocator allocator, bool kinematicColliders = false)
+		public ColliderReference(ref NativeParallelHashMap<int, float4x4> nonTransformableColliderMatrices, Allocator allocator, bool kinematicColliders = false)
 		{
 			CircleColliders = new NativeList<CircleCollider>(allocator);
 			FlipperColliders = new NativeList<FlipperCollider>(allocator);
@@ -55,10 +63,12 @@ namespace VisualPinball.Unity
 			SpinnerColliders = new NativeList<SpinnerCollider>(allocator);
 			TriangleColliders = new NativeList<TriangleCollider>(allocator);
 			PlaneColliders = new NativeList<PlaneCollider>(allocator);
+
 			Lookups = new NativeList<ColliderLookup>(allocator);
 
 			KinematicColliders = kinematicColliders;
 			_itemIdToColliderIds = new NativeParallelHashMap<int, NativeList<int>>(0, allocator);
+			_nonTransformableColliderMatrices = nonTransformableColliderMatrices;
 		}
 
 		public void Dispose()
@@ -166,8 +176,39 @@ namespace VisualPinball.Unity
 			_itemIdToColliderIds[itemId].Add(colliderId);
 		}
 
-		internal int Add(CircleCollider collider, float4x4 matrix) => Add(collider.Transform(matrix));
+		internal int Add(CircleCollider collider, float4x4 matrix)
+		{
+			// position: fully transformable: 3d (center + ZLow)
+			// scale: x+y must be equal, z applies to zHigh
+			// rotation: can be z-rotated, since it's a cylinder. x/y rotation is not supported.
 
+			var scale = matrix.GetScale();
+			var rotation = matrix.GetRotationVector();
+
+			// if xy-scale is not uniform or x/y rotation is not zero, we can't transform the collider
+			if (math.abs(scale.x - scale.y) > Tolerance || math.abs(rotation.x) > Tolerance || math.abs(rotation.y) > Tolerance) {
+				// save matrix for use during runtime
+				if (!_nonTransformableColliderMatrices.ContainsKey(collider.Header.ItemId)) {
+					_nonTransformableColliderMatrices.Add(collider.Header.ItemId, matrix);
+				}
+
+				collider.Header.IsTransformed = false;
+				collider.TransformAabb(matrix);
+			} else {
+
+				collider.Header.IsTransformed = true;
+				collider.Transform(matrix);
+			}
+
+			collider.Id = Lookups.Length;
+			TrackReference(collider.Header.ItemId, collider.Header.Id);
+			Lookups.Add(new ColliderLookup(ColliderType.Circle, CircleColliders.Length));
+			CircleColliders.Add(collider);
+
+			return collider.Id;
+		}
+
+		[Obsolete("Add with matrix only.")]
 		internal int Add(CircleCollider collider)
 		{
 			collider.Id = Lookups.Length;
@@ -319,21 +360,27 @@ namespace VisualPinball.Unity
 		// matrix of the collider, which is the case if the component implements ICollidableNonTransformableComponent
 		// (see PhysicsEngine.Start())
 
+		[Obsolete("Just add with matrix and it'll figure out whether to make it non-transformable.")]
 		internal void AddNonTransformableLineZ(float2 xy, float zLow, float zHigh, ColliderInfo info, float4x4 matrix)
 			=> Add(new LineZCollider(xy, zLow, zHigh, info).TransformAabb(matrix));
 
+		[Obsolete("Just add with matrix and it'll figure out whether to make it non-transformable.")]
 		internal void AddNonTransformableLine(float2 v1, float2 v2, float zLow, float zHigh, ColliderInfo info, float4x4 matrix)
 			=> Add(new LineCollider(v1, v2, zLow, zHigh, info).TransformAabb(matrix));
 
+		[Obsolete("Just add with matrix and it'll figure out whether to make it non-transformable.")]
 		internal int AddNonTransformable(Line3DCollider collider, float4x4 matrix)
 			=> Add(collider.TransformAabb(matrix));
 
+		[Obsolete("Just add with matrix and it'll figure out whether to make it non-transformable.")]
 		internal int AddNonTransformable(PointCollider collider, float4x4 matrix)
 			=> Add(collider.TransformAabb(matrix));
 
+		[Obsolete("Just add with matrix and it'll figure out whether to make it non-transformable.")]
 		internal int AddNonTransformable(TriangleCollider collider, float4x4 matrix)
 			=> Add(collider.TransformAabb(matrix));
 
+		[Obsolete("Just add with matrix and it'll figure out whether to make it non-transformable.")]
 		internal int AddNonTransformable(CircleCollider collider, float4x4 matrix)
 			=> Add(collider.TransformAabb(matrix));
 

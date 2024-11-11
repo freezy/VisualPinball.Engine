@@ -74,12 +74,12 @@ namespace VisualPinball.Unity
 		/// <summary>
 		/// Last transforms of kinematic items, so we can detect changes.
 		/// </summary>
-		[NonSerialized] private LazyInit<NativeParallelHashMap<int, float4x4>> _kinematicTransforms = new(() => new(0, Allocator.Persistent));
+		[NonSerialized] private readonly LazyInit<NativeParallelHashMap<int, float4x4>> _kinematicTransforms = new(() => new(0, Allocator.Persistent));
 
 		/// <summary>
 		/// The transforms of the kinematic items that have changes since the last frame.
 		/// </summary>
-		[NonSerialized] private LazyInit<NativeParallelHashMap<int, float4x4>> _updatedKinematicTransforms = new(() => new(0, Allocator.Persistent));
+		[NonSerialized] private readonly LazyInit<NativeParallelHashMap<int, float4x4>> _updatedKinematicTransforms = new(() => new(0, Allocator.Persistent));
 
 		/// <summary>
 		/// The current matrix to the ball will be transformed to, if it collides with a non-transformable collider.
@@ -88,7 +88,7 @@ namespace VisualPinball.Unity
 		///
 		/// todo save inverse matrix, too
 		/// </summary>
-		[NonSerialized] private LazyInit<NativeParallelHashMap<int, float4x4>> _nonTransformableColliderMatrices = new(() => new(0, Allocator.Persistent));
+		[NonSerialized] private readonly LazyInit<NativeParallelHashMap<int, float4x4>> _nonTransformableColliderMatrices = new(() => new(0, Allocator.Persistent));
 		[NonSerialized] private readonly Dictionary<int, SkinnedMeshRenderer[]> _skinnedMeshRenderers = new();
 
 		[NonSerialized] private readonly Dictionary<int, IRotatableAnimationComponent> _rotatableComponent = new();
@@ -211,8 +211,8 @@ namespace VisualPinball.Unity
 
 			var colliderItems = GetComponentsInChildren<ICollidableComponent>();
 			Debug.Log($"Found {colliderItems.Length} collidable items.");
-			var colliders = new ColliderReference(Allocator.Temp);
-			var kinematicColliders = new ColliderReference(Allocator.Temp, true);
+			var colliders = new ColliderReference(ref _nonTransformableColliderMatrices.Ref, Allocator.Temp);
+			var kinematicColliders = new ColliderReference(ref _nonTransformableColliderMatrices.Ref, Allocator.Temp, true);
 			foreach (var colliderItem in colliderItems) {
 				if (!colliderItem.IsCollidable) {
 					_disabledCollisionItems.Ref.Add(colliderItem.ItemId);

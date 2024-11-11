@@ -118,11 +118,11 @@ namespace VisualPinball.Unity
 			var switchCollider = new CircleCollider(new float2(0), MainComponent.Radius, height, height + 100f, GetColliderInfo(), ColliderType.Bumper);
 			var rigidCollider = new CircleCollider(new float2(0), MainComponent.Radius * 0.5f, height, height + 100f, GetColliderInfo(), ColliderType.Circle);
 			if (ColliderComponent._isKinematic) {
-				_switchColliderId = kinematicColliders.AddNonTransformable(switchCollider, matrix);
-				kinematicColliders.AddNonTransformable(rigidCollider, matrix);
+				_switchColliderId = kinematicColliders.Add(switchCollider, matrix);
+				kinematicColliders.Add(rigidCollider, matrix);
 			} else {
-				_switchColliderId = colliders.AddNonTransformable(switchCollider, matrix);
-				colliders.AddNonTransformable(rigidCollider, matrix);
+				_switchColliderId = colliders.Add(switchCollider, matrix);
+				colliders.Add(rigidCollider, matrix);
 			}
 		}
 

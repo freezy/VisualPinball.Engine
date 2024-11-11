@@ -43,6 +43,7 @@ namespace VisualPinball.Unity
 		/// An array that links the collider IDs (the key) to the position in the respective collider buffer.
 		/// </summary>
 		[NativeDisableUnsafePtrRestriction] private void* m_LookupBuffer;
+
 		[NativeDisableUnsafePtrRestriction] private void* m_CircleColliderBuffer;
 		[NativeDisableUnsafePtrRestriction] private void* m_FlipperColliderBuffer;
 		[NativeDisableUnsafePtrRestriction] private void* m_GateColliderBuffer;
@@ -472,8 +473,8 @@ namespace VisualPinball.Unity
 			throw new ArgumentException($"Unknown lookup type.");
 		}
 
+		public bool IsTransformed(int index) => GetHeader(index).IsTransformed;
 		public int GetItemId(int index) => GetHeader(index).ItemId;
-
 		public ItemType GetItemType(int index) => GetHeader(index).ItemType;
 
 		public ref ColliderHeader GetHeader(int index)

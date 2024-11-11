@@ -46,7 +46,8 @@ namespace VisualPinball.Unity
 					float newTime;
 					var newCollEvent = new CollisionEventData();
 
-					if (state.HasNonTransformableColliderMatrix(overlappingColliderId, ref colliders)) {
+					if (!colliders.IsTransformed(overlappingColliderId)) {
+
 						ref var matrix = ref state.GetNonTransformableColliderMatrix(overlappingColliderId, ref colliders);
 						var ballTransformed = ball;
 						ballTransformed.Transform(math.inverse(matrix));
