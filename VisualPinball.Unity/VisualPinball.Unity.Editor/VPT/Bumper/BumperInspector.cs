@@ -29,6 +29,7 @@ namespace VisualPinball.Unity.Editor
 		private SerializedProperty _heightScaleProperty;
 		private SerializedProperty _orientationProperty;
 		private SerializedProperty _surfaceProperty;
+		private SerializedProperty _isHardwiredProperty;
 
 		protected override void OnEnable()
 		{
@@ -39,6 +40,7 @@ namespace VisualPinball.Unity.Editor
 			_heightScaleProperty = serializedObject.FindProperty(nameof(BumperComponent.HeightScale));
 			_orientationProperty = serializedObject.FindProperty(nameof(BumperComponent.Orientation));
 			_surfaceProperty = serializedObject.FindProperty(nameof(BumperComponent._surface));
+			_isHardwiredProperty = serializedObject.FindProperty(nameof(BumperComponent.IsHardwired));
 		}
 
 		public override void OnInspectorGUI()
@@ -56,6 +58,7 @@ namespace VisualPinball.Unity.Editor
 			PropertyField(_heightScaleProperty, updateTransforms: true);
 			PropertyField(_orientationProperty, updateTransforms: true);
 			PropertyField(_surfaceProperty, updateTransforms: true);
+			PropertyField(_isHardwiredProperty, updateTransforms: false);
 
 			base.OnInspectorGUI();
 
