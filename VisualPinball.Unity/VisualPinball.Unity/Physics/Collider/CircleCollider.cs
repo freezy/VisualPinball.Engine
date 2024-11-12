@@ -226,13 +226,13 @@ namespace VisualPinball.Unity
 
 		public void Transform(CircleCollider circle, float4x4 matrix)
 		{
+			TransformAabb(matrix);
+
 			var s = matrix.GetScale();
 			Center = matrix.MultiplyPoint(new float3(circle.Center, 0)).xy;
 			Radius = circle.Radius * s.x;
 			ZHigh = circle.ZHigh * s.z;
 			ZLow = circle.ZLow * s.z;
-
-			TransformAabb(matrix);
 		}
 
 		public CircleCollider Transform(float4x4 matrix)
