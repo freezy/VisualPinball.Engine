@@ -23,6 +23,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Unity.Mathematics;
 using UnityEngine;
 using VisualPinball.Engine.Game.Engines;
@@ -52,6 +53,9 @@ namespace VisualPinball.Unity
 		[Range(-180f, 180f)]
 		[Tooltip("Orientation angle. Updates z rotation.")]
 		public float Orientation;
+
+		[Tooltip("Should the bumper coil always activate when touched by a ball? Disable to give game logic engine full control")]
+		public bool IsHardwired = true;
 
 		public ISurfaceComponent Surface { get => _surface as ISurfaceComponent; set => _surface = value as MonoBehaviour; }
 
@@ -97,6 +101,23 @@ namespace VisualPinball.Unity
 			player.Register(BumperApi, this);
 			if (GetComponentInChildren<BumperColliderComponent>()) {
 				RegisterPhysics(physicsEngine);
+			}
+		}
+
+		private void Start()
+		{
+			if (IsHardwired) {
+				WireMapping wireMapping = new() {
+					Description = $"Hardwired bumper '{name}'",
+					Source = SwitchSource.Playfield,
+					SourceDevice = this,
+					SourceDeviceItem = AvailableSwitches.FirstOrDefault().Id,
+					DestinationDevice = this,
+					DestinationDeviceItem = AvailableCoils.FirstOrDefault().Id,
+					IsDynamic = false,
+				};
+				WireDestConfig wireDestConfig = new(wireMapping.WithId());
+				BumperApi.AddWireDest(wireDestConfig);
 			}
 		}
 
