@@ -170,6 +170,37 @@ namespace VisualPinball.Unity.Editor
 			}
 		}
 
+		protected void PropertyField(SerializedProperty serializedProperty, string label, ref bool isUpdating,
+			Action<Transform> onStartChanging, Action onChanging, bool updateTransforms = false)
+		{
+			var controlName = "__detectFinished_" + serializedProperty.name;
+			GUI.SetNextControlName(controlName);
+			EditorGUI.BeginChangeCheck();
+
+			EditorGUILayout.PropertyField(serializedProperty, string.IsNullOrEmpty(serializedProperty.tooltip)
+					? new GUIContent(label)
+					: new GUIContent(label, serializedProperty.tooltip)
+			);
+			var hasFocus = GUI.GetNameOfFocusedControl() == controlName;
+
+			switch (hasFocus) {
+				case true when !isUpdating:
+					isUpdating = true;
+					onStartChanging.Invoke(((MonoBehaviour)target).transform);
+					break;
+
+				case false when isUpdating:
+					isUpdating = false;
+					break;
+			}
+
+			if (EditorGUI.EndChangeCheck()) {
+				GUI.changed = true;
+				_transformsDirty = updateTransforms;
+				onChanging?.Invoke();
+			}
+		}
+
 		protected void DropDownProperty(string label, SerializedProperty prop, string[] optionStrings, int[] optionValues,
 			bool rebuildMesh = false, bool updateVisibility = false)
 		{
