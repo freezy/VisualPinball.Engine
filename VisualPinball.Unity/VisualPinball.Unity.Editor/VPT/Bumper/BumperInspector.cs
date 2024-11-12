@@ -30,6 +30,7 @@ namespace VisualPinball.Unity.Editor
 		private SerializedProperty _heightScaleProperty;
 		private SerializedProperty _orientationProperty;
 		private SerializedProperty _surfaceProperty;
+		private SerializedProperty _isHardwiredProperty;
 
 		private bool _isChangingYRotation;
 		private Quaternion _initialXZRotation;
@@ -43,6 +44,7 @@ namespace VisualPinball.Unity.Editor
 			_heightScaleProperty = serializedObject.FindProperty(nameof(BumperComponent.HeightScale));
 			_orientationProperty = serializedObject.FindProperty(nameof(BumperComponent.Orientation));
 			_surfaceProperty = serializedObject.FindProperty(nameof(BumperComponent._surface));
+			_isHardwiredProperty = serializedObject.FindProperty(nameof(BumperComponent.IsHardwired));
 
 			_initialXZRotation = Quaternion.identity;
 		}
@@ -64,6 +66,7 @@ namespace VisualPinball.Unity.Editor
 				before => _initialXZRotation = Quaternion.Euler(before.eulerAngles.x, 0, before.eulerAngles.z),
 				() => MainComponent.UpdateTransforms(_initialXZRotation), updateTransforms: true);
 			PropertyField(_surfaceProperty, updateTransforms: true);
+			PropertyField(_isHardwiredProperty, updateTransforms: false);
 
 			base.OnInspectorGUI();
 
