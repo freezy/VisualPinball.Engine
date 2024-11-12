@@ -17,6 +17,7 @@
 // ReSharper disable AssignmentInConditionalExpression
 
 using UnityEditor;
+using UnityEngine;
 using VisualPinball.Engine.VPT.Bumper;
 
 namespace VisualPinball.Unity.Editor
@@ -30,6 +31,9 @@ namespace VisualPinball.Unity.Editor
 		private SerializedProperty _orientationProperty;
 		private SerializedProperty _surfaceProperty;
 
+		private bool _isChangingYRotation;
+		private Quaternion _initialXZRotation;
+
 		protected override void OnEnable()
 		{
 			base.OnEnable();
@@ -39,6 +43,8 @@ namespace VisualPinball.Unity.Editor
 			_heightScaleProperty = serializedObject.FindProperty(nameof(BumperComponent.HeightScale));
 			_orientationProperty = serializedObject.FindProperty(nameof(BumperComponent.Orientation));
 			_surfaceProperty = serializedObject.FindProperty(nameof(BumperComponent._surface));
+
+			_initialXZRotation = Quaternion.identity;
 		}
 
 		public override void OnInspectorGUI()
@@ -54,7 +60,9 @@ namespace VisualPinball.Unity.Editor
 			PropertyField(_positionProperty, updateTransforms: true);
 			PropertyField(_radiusProperty, updateTransforms: true);
 			PropertyField(_heightScaleProperty, updateTransforms: true);
-			PropertyField(_orientationProperty, updateTransforms: true);
+			PropertyField(_orientationProperty, "Orientation", ref _isChangingYRotation,
+				before => _initialXZRotation = Quaternion.Euler(before.eulerAngles.x, 0, before.eulerAngles.z),
+				() => MainComponent.UpdateTransforms(_initialXZRotation), updateTransforms: true);
 			PropertyField(_surfaceProperty, updateTransforms: true);
 
 			base.OnInspectorGUI();
