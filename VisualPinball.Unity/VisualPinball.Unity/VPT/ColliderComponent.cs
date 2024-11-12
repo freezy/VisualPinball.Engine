@@ -146,14 +146,7 @@ namespace VisualPinball.Unity
 				? nonTransformableColliderItem.TranslateWithinPlayfieldMatrix(math.inverse(playfieldToWorld))
 				: float4x4.identity;
 
-			var translateFullyWithinPlayfieldMatrix = this is ICollidableNonTransformableComponent
-				? ((float4x4)MainComponent.transform.localToWorldMatrix).LocalToWorldTranslateWithinPlayfield(math.inverse(playfieldToWorld))
-				: float4x4.identity;
-
 			var nonTransformableColliderMatrices = new NativeParallelHashMap<int, float4x4>(0, Allocator.Temp);
-
-			Gizmos.matrix = playfieldToWorld * (Matrix4x4)Physics.VpxToWorld * (Matrix4x4)translateFullyWithinPlayfieldMatrix;
-			Handles.matrix = Gizmos.matrix;
 
 			var generateColliders = ShowAabbs || showColliders && !HasCachedColliders;
 			if (generateColliders) {
