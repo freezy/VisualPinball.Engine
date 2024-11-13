@@ -134,28 +134,19 @@ namespace VisualPinball.Unity
 
 		public Aabb Transform(float4x4 m)
 		{
-			var t = m.GetTranslation();
-			var translateOnly = float4x4.Translate(new float3(t.x, t.y, 0));
-			var p1 = translateOnly.MultiplyPoint(new float3(Left, Top, ZHigh));
-			var p2 = translateOnly.MultiplyPoint(new float3(Right, Top, ZHigh));
-			var p3 = translateOnly.MultiplyPoint(new float3(Left, Bottom, ZHigh));
-			var p4 = translateOnly.MultiplyPoint(new float3(Right, Bottom, ZHigh));
-			var p5 = translateOnly.MultiplyPoint(new float3(Left, Top, ZLow));
-			var p6 = translateOnly.MultiplyPoint(new float3(Right, Top, ZLow));
-			var p7 = translateOnly.MultiplyPoint(new float3(Left, Bottom, ZLow));
-			var p8 = translateOnly.MultiplyPoint(new float3(Right, Bottom, ZLow));
+			var p1 = m.MultiplyPoint(new float3(Left, Top, ZHigh));
+			var p2 = m.MultiplyPoint(new float3(Right, Top, ZHigh));
+			var p3 = m.MultiplyPoint(new float3(Left, Bottom, ZHigh));
+			var p4 = m.MultiplyPoint(new float3(Right, Bottom, ZHigh));
+			var p5 = m.MultiplyPoint(new float3(Left, Top, ZLow));
+			var p6 = m.MultiplyPoint(new float3(Right, Top, ZLow));
+			var p7 = m.MultiplyPoint(new float3(Left, Bottom, ZLow));
+			var p8 = m.MultiplyPoint(new float3(Right, Bottom, ZLow));
 
-			//return new Aabb(Left, Right, Top, Bottom, ZLow, ZHigh);
-			//return new Aabb(Left, Right, Top, Bottom, ZLow, ZHigh);
-			// todo optimize, use min(float3) instead of min(float)
-			return new Aabb(
-				min(p1.x, p2.x, p3.x, p4.x, p5.x, p6.x, p7.x, p8.x),
-				max(p1.x, p2.x, p3.x, p4.x, p5.x, p6.x, p7.x, p8.x),
-				min(p1.y, p2.y, p3.y, p4.y, p5.y, p6.y, p7.y, p8.y),
-				max(p1.y, p2.y, p3.y, p4.y, p5.y, p6.y, p7.y, p8.y),
-				min(p1.z, p2.z, p3.z, p4.z, p5.z, p6.z, p7.z, p8.z),
-				max(p1.z, p2.z, p3.z, p4.z, p5.z, p6.z, p7.z, p8.z)
-			);
+			var min = math.min(p1, math.min(p2, math.min(p3, math.min(p4, math.min(p5, math.min(p6, math.min(p7, p8)))))));
+			var max = math.max(p1, math.max(p2, math.max(p3, math.max(p4, math.max(p5, math.max(p6, math.max(p7, p8)))))));
+
+			return new Aabb(min, max);
 		}
 
 		private static float min(params float[] values)

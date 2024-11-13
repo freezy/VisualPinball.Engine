@@ -532,13 +532,13 @@ namespace VisualPinball.Unity
 			if (colliderComponent) {
 
 				// vpx physics
-				var d = GetMaterialData(colliderComponent);
+				var staticData = GetStaticData(colliderComponent);
 				var state = new FlipperState(
-					d,
-					GetMovementData(d),
-					GetVelocityData(d),
+					staticData,
+					GetMovementData(staticData),
+					GetVelocityData(staticData),
 					GetHitData(),
-					GetFlipperTricksData(colliderComponent, d),
+					GetFlipperTricksData(colliderComponent, staticData),
 					new SolenoidState { Value = false }
 				);
 
@@ -586,7 +586,7 @@ namespace VisualPinball.Unity
 			};
 		}
 
-		internal FlipperStaticData GetMaterialData(FlipperColliderComponent colliderComponent)
+		internal FlipperStaticData GetStaticData(FlipperColliderComponent colliderComponent)
 		{
 			float flipperRadius;
 			if (FlipperRadiusMin > 0 && FlipperRadiusMax > FlipperRadiusMin) {
@@ -609,10 +609,8 @@ namespace VisualPinball.Unity
 
 			// model inertia of flipper as that of rod of length flipper around its end
 			var inertia = (float) (1.0 / 3.0) * colliderComponent.Mass * (flipperRadius * flipperRadius);
-			var localPos = transform.localPosition;
 
 			return new FlipperStaticData {
-				Position = new float3(localPos.x, localPos.y, 0F), // TODO: surface height?
 				Inertia = inertia,
 				AngleStart = angleStart,
 				AngleEnd = angleEnd,

@@ -20,7 +20,6 @@ namespace VisualPinball.Unity
 {
 	internal struct FlipperStaticData
 	{
-		public float3 Position;
 		public float Inertia;
 		public float AngleStart;
 		public float Strength;

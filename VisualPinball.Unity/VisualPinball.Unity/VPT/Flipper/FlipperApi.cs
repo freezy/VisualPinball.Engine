@@ -66,6 +66,8 @@ namespace VisualPinball.Unity
 		// todo
 		public event EventHandler Timer;
 
+		public int ColliderId { get; private set; }
+
 		private bool _isEos;
 
 		internal FlipperApi(GameObject go, Player player, PhysicsEngine physicsEngine) : base(go, player, physicsEngine)
@@ -224,35 +226,25 @@ namespace VisualPinball.Unity
 		protected override void CreateColliders(ref ColliderReference colliders,
 			ref ColliderReference kinematicColliders, float4x4 translateWithinPlayfieldMatrix, float margin)
 		{
-			var height = MainComponent.PositionZ;
-			var baseRadius = math.max(MainComponent.BaseRadius, 0.01f);
-			var hitCircleBase = new CircleCollider(
-				float2.zero, // flipper collision is always done through the center and a matrix
-				baseRadius,
-				height,
-				height + MainComponent.Height,
-				GetColliderInfo()
-			);
-
 			// check which side we are at
 			var multiplicator = 0.0f;
 			if (ColliderComponent.useFlipperTricksPhysics) {
-				multiplicator =
-					MainComponent.StartAngle > MainComponent.EndAngle ? -1f : 1f; // usually: -1f = left flipper
+				multiplicator = MainComponent.StartAngle > MainComponent.EndAngle ? -1f : 1f; // usually: -1f = left flipper
 			}
 
 			// and add ColliderComponent.Overshoot to the endangle so that the bounding box is correctly calculated
-			colliders.Add(
+			ColliderId = colliders.Add(
 				new FlipperCollider(
-					hitCircleBase,
+					MainComponent.PositionZ,
+					MainComponent.Height,
 					MainComponent.FlipperRadiusMax,
 					MainComponent.BaseRadius,
 					MainComponent.EndRadius,
 					MainComponent.StartAngle,
 					MainComponent.EndAngle + ColliderComponent.Overshoot * multiplicator,
-					GetColliderInfo(),
-					translateWithinPlayfieldMatrix
-				)
+					GetColliderInfo()
+				),
+				translateWithinPlayfieldMatrix
 			);
 		}
 

@@ -219,10 +219,13 @@ namespace VisualPinball.Unity
 
 		#endregion
 
+
 		public void Collide(ref BallState ball, in CollisionEventData collEvent, ref Random random)
 		{
 			BallCollider.Collide3DWall(ref ball, in Header.Material, in collEvent, in collEvent.HitNormal, ref random);
 		}
+
+		#region Transformation
 
 		public void Transform(CircleCollider circle, float4x4 matrix)
 		{
@@ -259,6 +262,8 @@ namespace VisualPinball.Unity
 
 			return this;
 		}
+
+		#endregion
 
 		public override string ToString() => $"CircleCollider[{Header.ItemId}] ({Center.x}/{Center.y}) {ZLow} -> {ZHigh}";
 	}

@@ -31,8 +31,9 @@ namespace VisualPinball.Unity
 		}
 
 		public ColliderHeader Header;
+		public float3 Position;
 
-		private readonly CircleCollider _hitCircleBase;
+		private CircleCollider _hitCircleBase;
 		private readonly float _zLow;
 		private readonly float _zHigh;
 
@@ -42,12 +43,22 @@ namespace VisualPinball.Unity
 
 		#region Setup
 
-		public FlipperCollider(CircleCollider hitCircleBase, float flipperRadius, float startRadius, float endRadius,
-			float startAngle, float endAngle, ColliderInfo info, float4x4 matrix) : this()
+		public FlipperCollider(float posZ, float height, float flipperRadius, float startRadius, float endRadius,
+			float startAngle, float endAngle, ColliderInfo info) : this()
 		{
-			var bounds = hitCircleBase.Bounds;
+			var baseRadius = math.max(startRadius, 0.01f);
+			_hitCircleBase = new CircleCollider(
+				float2.zero, // flipper collision is always done through the center and a matrix
+				baseRadius,
+				posZ,
+				posZ + height,
+				info
+			);
+
 			Header.Init(info, ColliderType.Flipper);
-			_hitCircleBase = hitCircleBase;
+			Position = float3.zero;
+
+			var bounds = _hitCircleBase.Bounds;
 			_zLow = bounds.Aabb.ZLow;
 			_zHigh = bounds.Aabb.ZHigh;
 
@@ -72,10 +83,10 @@ namespace VisualPinball.Unity
 			aabb = ExtendBoundsAtExtreme(aabb, c, flipperRadius, r2, r3, a0, a1, 90f);
 			aabb = ExtendBoundsAtExtreme(aabb, c, flipperRadius, r2, r3, a0, a1, 180f);
 
-			var l = flipperRadius * 1.2f;
-			aabb = new Aabb(-l, l, -l, l, -l, l);
+			// var l = flipperRadius * 1.2f;
+			// aabb = new Aabb(-l, l, -l, l, -l, l);
 
-			Bounds = new ColliderBounds(Header.ItemId, Header.Id, aabb.Transform(matrix));
+			Bounds = new ColliderBounds(Header.ItemId, Header.Id, aabb);
 		}
 
 		private static Aabb ExtendBoundsAtExtreme(Aabb aabb, float2 c, float length, float endRadius, float startRadius, float startAngle, float endAngle, float angle)
@@ -714,12 +725,12 @@ namespace VisualPinball.Unity
 
 		#region LiveCatch
 
-		public static void LiveCatch(ref BallState ball, ref CollisionEventData collEvent, ref FlipperTricksData tricks, in FlipperStaticData matData, uint msec ) {
+		public static void LiveCatch(ref BallState ball, ref CollisionEventData collEvent, ref FlipperTricksData tricks, float3 flipperPos, in FlipperStaticData matData, uint msec) {
 			if (!tricks.UseFlipperLiveCatch)
 				return;
 			var normalSpeed = math.dot(collEvent.HitNormal, ball.Velocity) * -1f;
 			// Vector from position of the flipper ball to ball
-			var flipperToBall = ball.Position - matData.Position;
+			var flipperToBall = ball.Position - flipperPos;
 			var hitTangent = Math.CrossZ(1f, collEvent.HitNormal);
 			var ballPosition = math.dot(hitTangent, flipperToBall);
 			//Logger.Info("BallPosition = {0}", ballPosition);
@@ -911,6 +922,31 @@ namespace VisualPinball.Unity
 				}
 			}
 			movementState.LastHitTime = timeMsec; // keep resetting until idle for 250 milliseconds
+		}
+
+		#endregion
+
+		#region Transformation
+
+		public void Transform(FlipperCollider flipperCollider, float4x4 matrix)
+		{
+			TransformAabb(matrix);
+
+			var s = matrix.GetScale();
+			_hitCircleBase = _hitCircleBase.Transform(matrix);
+			Position = matrix.MultiplyPoint(flipperCollider.Position);
+		}
+
+		public FlipperCollider Transform(float4x4 matrix)
+		{
+			Transform(this, matrix);
+			return this;
+		}
+
+		public FlipperCollider TransformAabb(float4x4 matrix)
+		{
+			Bounds = new ColliderBounds(Header.ItemId, Header.Id, Bounds.Aabb.Transform(matrix));
+			return this;
 		}
 
 		#endregion
