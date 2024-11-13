@@ -28,8 +28,6 @@ namespace VisualPinball.Unity
 	/// </summary>
 	public struct ColliderReference : IDisposable
 	{
-		private const float Tolerance = 1e-7f; // 1e-9f;
-
 		internal NativeList<CircleCollider> CircleColliders;
 		internal NativeList<FlipperCollider> FlipperColliders;
 		internal NativeList<GateCollider> GateColliders;
@@ -178,26 +176,17 @@ namespace VisualPinball.Unity
 
 		internal int Add(CircleCollider collider, float4x4 matrix)
 		{
-			// position: fully transformable: 3d (center + ZLow)
-			// scale: x+y must be equal, z applies to zHigh
-			// rotation: can be z-rotated, since it's a cylinder. x/y rotation is not supported.
+			if (CircleCollider.IsTransformable(matrix)) {
+				collider.Header.IsTransformed = true;
+				collider.Transform(matrix);
 
-			var scale = matrix.GetScale();
-			var rotation = matrix.GetRotationVector();
-
-			// if xy-scale is not uniform or x/y rotation is not zero, we can't transform the collider
-			if (math.abs(scale.x - scale.y) > Tolerance || math.abs(rotation.x) > Tolerance || math.abs(rotation.y) > Tolerance) {
+			} else {
 				// save matrix for use during runtime
 				if (!_nonTransformableColliderMatrices.ContainsKey(collider.Header.ItemId)) {
 					_nonTransformableColliderMatrices.Add(collider.Header.ItemId, matrix);
 				}
-
 				collider.Header.IsTransformed = false;
 				collider.TransformAabb(matrix);
-			} else {
-
-				collider.Header.IsTransformed = true;
-				collider.Transform(matrix);
 			}
 
 			collider.Id = Lookups.Length;
@@ -220,27 +209,17 @@ namespace VisualPinball.Unity
 
 		internal int Add(FlipperCollider collider, float4x4 matrix)
 		{
-			// position: fully transformable: 3d (center + ZLow)
-			// scale: none
-			// rotation: none (maybe, in the future: z-rotation should update start- and end angle)
+			if (FlipperCollider.IsTransformable(matrix)) {
+				collider.Header.IsTransformed = true;
+				collider.Transform(matrix);
 
-			var scale = matrix.GetScale();
-			var rotation = matrix.GetRotationVector();
-			var rotated = math.abs(rotation.x - 1) > Tolerance || math.abs(rotation.y - 1) > Tolerance || math.abs(rotation.z - 1) > Tolerance;
-			var scaled = math.abs(scale.x - 1) > Tolerance || math.abs(scale.y - 1) > Tolerance || math.abs(scale.z - 1) > Tolerance;
-
-			if (scaled || rotated) {
+			} else {
 				// save matrix for use during runtime
 				if (!_nonTransformableColliderMatrices.ContainsKey(collider.Header.ItemId)) {
 					_nonTransformableColliderMatrices.Add(collider.Header.ItemId, matrix);
 				}
-
 				collider.Header.IsTransformed = false;
 				collider.TransformAabb(matrix);
-
-			} else {
-				collider.Header.IsTransformed = true;
-				collider.Transform(matrix);
 			}
 
 			collider.Id = Lookups.Length;
