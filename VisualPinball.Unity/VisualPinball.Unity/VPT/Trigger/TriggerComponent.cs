@@ -294,6 +294,7 @@ namespace VisualPinball.Unity
 				new FlipperCorrectionState(
 					true,
 					collComponent.ForFlipper.gameObject.GetInstanceID(),
+					collComponent.ForFlipper.FlipperApi.ColliderId, // todo fixme this is not yet set
 					collComponent.TimeThresholdMs,
 					collComponent.FlipperPolarities,
 					collComponent.FlipperVelocities,

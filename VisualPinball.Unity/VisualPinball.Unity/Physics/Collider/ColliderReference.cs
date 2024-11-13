@@ -218,8 +218,31 @@ namespace VisualPinball.Unity
 			return collider.Id;
 		}
 
-		internal int Add(FlipperCollider collider)
+		internal int Add(FlipperCollider collider, float4x4 matrix)
 		{
+			// position: fully transformable: 3d (center + ZLow)
+			// scale: none
+			// rotation: none (maybe, in the future: z-rotation should update start- and end angle)
+
+			var scale = matrix.GetScale();
+			var rotation = matrix.GetRotationVector();
+			var rotated = math.abs(rotation.x - 1) > Tolerance || math.abs(rotation.y - 1) > Tolerance || math.abs(rotation.z - 1) > Tolerance;
+			var scaled = math.abs(scale.x - 1) > Tolerance || math.abs(scale.y - 1) > Tolerance || math.abs(scale.z - 1) > Tolerance;
+
+			if (scaled || rotated) {
+				// save matrix for use during runtime
+				if (!_nonTransformableColliderMatrices.ContainsKey(collider.Header.ItemId)) {
+					_nonTransformableColliderMatrices.Add(collider.Header.ItemId, matrix);
+				}
+
+				collider.Header.IsTransformed = false;
+				collider.TransformAabb(matrix);
+
+			} else {
+				collider.Header.IsTransformed = true;
+				collider.Transform(matrix);
+			}
+
 			collider.Id = Lookups.Length;
 			TrackReference(collider.Header.ItemId, collider.Header.Id);
 			Lookups.Add(new ColliderLookup(ColliderType.Flipper, FlipperColliders.Length));

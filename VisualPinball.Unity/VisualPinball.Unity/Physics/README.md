@@ -154,11 +154,10 @@ It also enables VPE to support parenting objects to others, allowing
 transformations of parent objects without disrupting the physics simulation.
 
 So, how can the VPX physics code handle arbitrary transformations? The solution is a 
-simple trick: rather than transforming the colliders, we 
-transform the balls: To resolve a collision between a ball and a collider that 
-is transformed in a non-supported way, we temporarily move the ball into the 
-collider's local space, resolve the collision, and then return the ball to the 
-playfield space.
+simple trick: rather than transforming the colliders, we transform the balls: To 
+resolve a collision between a ball and a collider that is transformed in a 
+non-supported way, we temporarily move the ball into the collider's local space, 
+resolve the collision, and then return the ball to the playfield space.
 
 ### Collider Data
 
