@@ -288,8 +288,12 @@ namespace VisualPinball.Unity
 					AddCollider(col, verticesNonTransformable, normalsNonTransformable, indicesNonTransformable);
 				}
 			}
-			foreach (var _ in colliders.FlipperColliders) {
-				AddFlipperCollider(vertices, normals, indices);
+			foreach (var col in colliders.FlipperColliders) {
+				if (col.Header.IsTransformed) {
+					AddFlipperCollider(vertices, normals, indices);
+				} else {
+					AddFlipperCollider(verticesNonTransformable, normalsNonTransformable, indicesNonTransformable);
+				}
 			}
 			foreach (var col in colliders.GateColliders) {
 				AddCollider(col.LineSeg0, vertices, normals, indices);

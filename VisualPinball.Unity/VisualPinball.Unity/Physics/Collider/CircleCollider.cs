@@ -227,8 +227,30 @@ namespace VisualPinball.Unity
 
 		#region Transformation
 
+		public static bool IsTransformable(float4x4 matrix)
+		{
+			// position: fully transformable: 3d (center + ZLow)
+			// scale: x+y must be equal, z applies to zHigh
+			// rotation: can be z-rotated, since it's a cylinder. x/y rotation is not supported.
+
+			var scale = matrix.GetScale();
+			var rotation = matrix.GetRotationVector();
+
+			// if xy-scale is not uniform or x/y rotation is not zero, we can't transform the collider
+			var uniformScale = math.abs(scale.x - scale.y) < Collider.Tolerance;
+			var xyRotated = math.abs(rotation.x) > Collider.Tolerance || math.abs(rotation.y) > Collider.Tolerance;
+
+			return uniformScale && !xyRotated;
+		}
+
 		public void Transform(CircleCollider circle, float4x4 matrix)
 		{
+			#if UNITY_EDITOR
+			if (!IsTransformable(matrix)) {
+				throw new System.InvalidOperationException($"Matrix {matrix} cannot transform flipper.");
+			}
+			#endif
+
 			TransformAabb(matrix);
 
 			var s = matrix.GetScale();
