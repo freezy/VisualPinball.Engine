@@ -124,9 +124,10 @@ While VPE uses the same formulas and heuristics to resolve collisions and simula
 behavior as VPX, we've made some changes to make it more flexible. Here's a quick
 overview.
 
-- **Kinematic Objects**: As described above, the only objects that can be freely
-  transformed are the balls, all other objects are static. In VPE, you can mark
-  any object as kinematic, which means it can be moved freely at runtime.
+- **Kinematic Objects**: In VPX, as described above, the only objects that can be 
+  freely transformed within the physics world are the balls, all other objects are
+  static. In VPE, you can mark any object as kinematic, which means it can be moved
+  freely at runtime.
 - **Unrestricted Transformations**: In VPX, every type of object has its limitations
   how it can be transformed. For example a flipper must always be parallel to the
   playfield. In VPE, you can rotate, move and scale objects freely.
@@ -137,7 +138,7 @@ overview.
   rely on the heuristics of the physics engine that has been tuned over the years.
 
 > [!NOTE]  
-> We don't use the term *Hit Object* in VPE. We call them *Colliders*.
+> In VPE, we don't use the term *Hit Object*. We call them *Colliders*.
 
 ## Unrestricted Transformations
 
@@ -167,18 +168,20 @@ get this data from the transformation matrices into the colliders. The chosen
 approach is the following:
 
 - Each collider gets a `Transform(float4x4)` method that transforms the collider
-  in VPX space. Transforming means updating the collider's position, rotation, and 
-  scale, whatever is supported. That's the data the VPX physics code uses.
-- Obviously this has flaws. For example, a Line collider, by definition, is 
-  aligned parallel and orthogonally to the playfield. In this case we'd transform
-  its two points and retrieve their new xy position. This works for translate and scale,  
-  but rotating around anything else than the z-axis would still result in a rectangle
-  parallel and orthogonal to the playfield, which wouldn't be desired.
+  in the playfield space. Transforming means updating the collider's position, 
+  rotation, and scale, whatever is supported. That's the data the VPX physics code 
+  uses.
+- This comes with restrictions as mentioned above. For example, a Line collider, 
+  by definition, is aligned parallel and orthogonally to the playfield. In this case 
+  we'd transform its two points and retrieve their new xy position. This works for 
+  translate and scale, but rotating around anything else than the z-axis would still
+  result in a rectangle parallel and orthogonal to the playfield, which wouldn't be 
+  desired.
 - But more on that problem later. What's important is that for transformations 
   *supported by the VPX physics code*, we have a method that allows to transform  
-  each collider.
-- Additionally, colliders don't take in a transformation matrix. That means by default,
-  they are placed at the origin and have no rotation or scale.
+  each collider, based on a matrix.
+- Additionally, colliders are instantiated without a transformation matrix. That means  
+  by default, they are placed at the origin and have no rotation or scale.
 - Finally, each collider gets a `TransformAABBs(float4x4)` method that only transforms
   the collider's axis-aligned bounding boxes.
   
@@ -187,14 +190,14 @@ So, with all of the above, we do the following when the game starts:
 1. We retrieve the overall world-to-local matrix of an item.
 2. Using the playfield's world-to-local matrix, we calculate the playfield-to-local matrix
    of the item.
-3. We check which kind of transformation the VPX physics code supports for this type of
-   item and compare it to the transformation of playfield-to-local matrix.
+3. We check which kind of transformation the VPX physics code supports for the type of
+   collider and compare it to the transformation of playfield-to-local matrix.
    - If all transformations are supported, we simply transform the collider with the item's
-	 transformation matrix (let's call this Plan A).
+	 transformation matrix.
    - If not, we check whether this collider might be replaceable by another type of collider
      that supports the transformation. For example, a line collider can be replaced by two 
-     triangle colliders, which then are 100% transformable. That's our Plan B.
-   - If neither Plan A nor Plan B is possible, we fall back to our trick explained above,
+     triangle colliders, which then are 100% transformable.
+   - If neither of the above is possible, we fall back to ball transformation trick,
      which is to transform the ball during collision resolution. Note that the AABBs of the
      object still need to be transformed, so the broad phase can correctly sort out the 
      items that are out of range.
@@ -206,24 +209,22 @@ the years.
 
 ### Code Changes
 
-Let's dive into the code. We'll need to more methods for each collider:
+Let's dive into the code. We'll need three more methods for each collider:
 
-1. `Transform(float4x4)`: This method transforms the collider in VPX space.
-2. `TransformAABBs(float4x4)`: This method transforms the collider's axis-aligned bounding boxes.
+1. `IsTransformable(float4x4)`: This method checks whether the collider can be transformed
+   with the given matrix, i.e. if the physics code supports the transformation natively.
+2. `Transform(float4x4)`: This method transforms the collider in VPX space.
+3. `TransformAABBs(float4x4)`: This method transforms the collider's axis-aligned bounding boxes.
 
-In our `ColliderReference` class, we'll add a `float4x4` to each `Add()` method, 
-which transforms the collider and its AABBs.
-
-> [!IMPORTANT]  
-> Remove the overload that doesn't need the matrix once all collider generators have been updated.
-
-We'll also have a `AddNonTransformable()` method which only transforms tha AABBs and marks
-the collider as non-transformable, so we can do the ball transformation trick during collision
-later. In order to know whether to do that, we'll need a flag in the collider. Let's call it
-`IsTransformed`.
-
-In order to transform the ball, we need to also store the transformation matrix of the item. However,
-while the `IsTransformed` flag is collider-specific, the transformation matrix is item-specific.
+In our `ColliderReference` class, we'll add a `float4x4` to each `Add()` method. This method goes
+through the three use cases described above.
+   - Using `IsTransformable(float4x4)`, it'll determine whether the collider can be transformed
+     natively and uses `Transform(float4x4)` if that's the case.
+   - Otherwise, it'll check whether the collider can be replaced by another collider, converts it
+     and transforms the converted collider(s) instead.
+   - Otherwise, it only transforms its AABBs and marks the collider as non-transformable by
+     setting the `IsTransformed` of the collider to `false`. It also stores the transformation 
+     matrix so it can be used during runtime for the ball transformation trick.
 
 ## Coordinate Systems
 
