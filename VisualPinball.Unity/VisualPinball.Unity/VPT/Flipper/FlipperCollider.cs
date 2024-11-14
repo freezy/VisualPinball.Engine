@@ -935,7 +935,7 @@ namespace VisualPinball.Unity
 
 			var scale = matrix.GetScale();
 			var rotation = matrix.GetRotationVector();
-			var rotated = math.abs(rotation.x - 1) > Collider.Tolerance || math.abs(rotation.y - 1) > Collider.Tolerance;
+			var rotated = math.abs(rotation.x) > Collider.Tolerance || math.abs(rotation.y) > Collider.Tolerance;
 			var scaled = math.abs(scale.x - 1) > Collider.Tolerance || math.abs(scale.y - 1) > Collider.Tolerance || math.abs(scale.z - 1) > Collider.Tolerance;
 
 			return !rotated && !scaled;
