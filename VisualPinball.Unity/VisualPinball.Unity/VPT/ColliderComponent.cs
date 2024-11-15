@@ -27,6 +27,7 @@ using Unity.VisualScripting.YamlDotNet.Serialization.NodeDeserializers;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.Profiling;
+using VisualPinball.Engine.Game;
 using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Flipper;
 using Mesh = UnityEngine.Mesh;
@@ -120,6 +121,12 @@ namespace VisualPinball.Unity
 
 		private PhysicsEngine _physicsEngine;
 		private bool IsKinematic => this is IKinematicColliderComponent { IsKinematic: true };
+
+		private float4x4 TransformWithinPlayfieldMatrix { get {
+			var playfieldToWorld = GetComponentInParent<PlayfieldComponent>().transform.localToWorldMatrix;
+			var m = ((float4x4)MainComponent.transform.localToWorldMatrix).LocalToWorldTranslateWithinPlayfield(math.inverse(playfieldToWorld));
+			return playfieldToWorld * (Matrix4x4)Physics.VpxToWorld * (Matrix4x4)m;
+		}}
 
 		private void OnDrawGizmos()
 		{
@@ -290,9 +297,9 @@ namespace VisualPinball.Unity
 			}
 			foreach (var col in colliders.FlipperColliders) {
 				if (col.Header.IsTransformed) {
-					AddFlipperCollider(vertices, normals, indices);
+					AddFlipperCollider(vertices, normals, indices, float4x4.identity);
 				} else {
-					AddFlipperCollider(verticesNonTransformable, normalsNonTransformable, indicesNonTransformable);
+					AddFlipperCollider(verticesNonTransformable, normalsNonTransformable, indicesNonTransformable, float4x4.identity); // TODO fix
 				}
 			}
 			foreach (var col in colliders.GateColliders) {
@@ -369,8 +376,11 @@ namespace VisualPinball.Unity
 					case CircleCollider circleCollider:
 						AddCollider(circleCollider, verticesNonTransformable, normalsNonTransformable, indicesNonTransformable);
 						break;
+					case FlipperCollider { Header: { IsTransformed: true } }:
+						AddFlipperCollider(vertices, normals, indices, float4x4.identity);
+						break;
 					case FlipperCollider:
-						AddFlipperCollider(vertices, normals, indices);
+						AddFlipperCollider(verticesNonTransformable, normalsNonTransformable, indicesNonTransformable, TransformWithinPlayfieldMatrix);
 						break;
 					case GateCollider gateCollider:
 						AddCollider(gateCollider.LineSeg0, vertices, normals, indices);
@@ -573,7 +583,7 @@ namespace VisualPinball.Unity
 			indices.Add(i + 1);
 		}
 
-		private void AddFlipperCollider(List<Vector3> vertices, List<Vector3> normals, List<int> indices)
+		private void AddFlipperCollider(List<Vector3> vertices, List<Vector3> normals, List<int> indices, float4x4 matrix)
 		{
 			// first see if we already have a mesh
 			var flipperComponent = GetComponentInChildren<FlipperComponent>();
@@ -581,16 +591,12 @@ namespace VisualPinball.Unity
 				return;
 			}
 
-//			var t = transform;
-//			var ltp = Matrix4x4.TRS(t.localPosition.TranslateToVpx(), quaternion.Euler(0, 0, math.radians(flipperComponent.StartAngle)), t.localScale);
 			var startIdx = vertices.Count;
-			var mesh = new FlipperMeshGenerator(flipperComponent).GetMesh(FlipperMeshGenerator.Rubber, 0, 0.01f);
+			var mesh = new FlipperMeshGenerator(flipperComponent).GetMesh(FlipperMeshGenerator.Rubber, 0, 0.01f, Origin.Global, false, 0.2f);
 			for (var i = 0; i < mesh.Vertices.Length; i++) {
 				var vertex = mesh.Vertices[i];
-				// vertices.Add(ltp.MultiplyPoint(vertex.ToUnityFloat3()));
-				// normals.Add(ltp.MultiplyVector(vertex.ToUnityNormalVector3()));
-				vertices.Add(vertex.ToUnityFloat3());
-				normals.Add(vertex.ToUnityNormalVector3());
+				vertices.Add(matrix.MultiplyPoint(vertex.ToUnityFloat3()));
+				normals.Add(matrix.MultiplyVector(vertex.ToUnityNormalVector3()));
 			}
 			indices.AddRange(mesh.Indices.Select(n => startIdx + n));
 		}
