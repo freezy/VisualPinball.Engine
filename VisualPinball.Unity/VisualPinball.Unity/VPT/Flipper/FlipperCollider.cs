@@ -19,6 +19,7 @@ using Unity.Collections;
 using Unity.Mathematics;
 using VisualPinball.Engine.Common;
 using VisualPinball.Engine.Game;
+using Logger = NLog.Logger;
 
 namespace VisualPinball.Unity
 {

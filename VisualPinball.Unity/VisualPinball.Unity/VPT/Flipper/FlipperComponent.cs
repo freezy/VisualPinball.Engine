@@ -190,9 +190,14 @@ namespace VisualPinball.Unity
 			//t.localPosition = Physics.TranslateToWorld(Position.x, Position.y, PositionZ);
 
 			// rotation
-			t.localEulerAngles = new Vector3(0, StartAngle, 0);
+			// var currentRotation = transform.localEulerAngles;
+			// currentRotation.y = math.degrees(StartAngle);
+			// t.localEulerAngles = currentRotation;
 		}
 
+		/// <summary>
+		/// Returns the local-to-world matrix of the flipper, but without the rotation around the Y-axis.
+		/// </summary>
 		public float4x4 LocalToWorldPhysicsMatrix
 		{
 			get
