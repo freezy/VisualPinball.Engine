@@ -347,103 +347,15 @@ namespace VisualPinball.Unity
 
 			#region Movements
 
-			// balls
-			using (var enumerator = state.Balls.GetEnumerator()) {
-				while (enumerator.MoveNext()) {
-					ref var ball = ref enumerator.Current.Value;
-					BallMovementPhysics.Move(ball, _transforms[ball.Id]);
-				}
-			}
-
-			// flippers
-			using (var enumerator = _flipperStates.Ref.GetEnumerator()) {
-				while (enumerator.MoveNext()) {
-					ref var flipperState = ref enumerator.Current.Value;
-					var flipperTransform = _transforms[enumerator.Current.Key];
-					flipperTransform.localRotation = quaternion.Euler(0, flipperState.Movement.Angle, 0);
-				}
-			}
-
-			// bumpers
-			using (var enumerator = _bumperStates.Ref.GetEnumerator()) {
-				while (enumerator.MoveNext()) {
-					ref var bumperState = ref enumerator.Current.Value;
-					if (bumperState.SkirtItemId != 0) {
-						BumperTransform.UpdateSkirt(in bumperState.SkirtAnimation, _transforms[bumperState.SkirtItemId]);
-					}
-					if (bumperState.RingItemId != 0) {
-						BumperTransform.UpdateRing(bumperState.RingItemId, in bumperState.RingAnimation, _transforms[bumperState.RingItemId]);
-					}
-				}
-			}
-
-			// drop targets
-			using (var enumerator = _dropTargetStates.Ref.GetEnumerator()) {
-				while (enumerator.MoveNext()) {
-					ref var dropTargetState = ref enumerator.Current.Value;
-					var dropTargetTransform = _transforms[dropTargetState.AnimatedItemId];
-					var localPos = dropTargetTransform.localPosition;
-					dropTargetTransform.localPosition = new Vector3(
-						localPos.x,
-						Physics.ScaleToWorld(dropTargetState.Animation.ZOffset),
-						localPos.z
-					);
-				}
-			}
-
-			// hit targets
-			using (var enumerator = _hitTargetStates.Ref.GetEnumerator()) {
-				while (enumerator.MoveNext()) {
-					ref var hitTargetState = ref enumerator.Current.Value;
-					var hitTargetTransform = _transforms[hitTargetState.AnimatedItemId];
-					var localRot = hitTargetTransform.localEulerAngles;
-					hitTargetTransform.localEulerAngles = new Vector3(
-						hitTargetState.Animation.XRotation,
-						localRot.y,
-						localRot.z
-					);
-				}
-			}
-
-			// gates
-			using (var enumerator = _gateStates.Ref.GetEnumerator()) {
-				while (enumerator.MoveNext()) {
-					ref var gateState = ref enumerator.Current.Value;
-					var component = _rotatableComponent[enumerator.Current.Key];
-					component.OnRotationUpdated(gateState.Movement.Angle);
-				}
-			}
-
-			// plungers
-			using (var enumerator = _plungerStates.Ref.GetEnumerator()) {
-				while (enumerator.MoveNext()) {
-					ref var plungerState = ref enumerator.Current.Value;
-					foreach (var skinnedMeshRenderer in _skinnedMeshRenderers[enumerator.Current.Key]) {
-						skinnedMeshRenderer.SetBlendShapeWeight(0, plungerState.Animation.Position);
-					}
-				}
-			}
-
-			// spinners
-			using (var enumerator = _spinnerStates.Ref.GetEnumerator()) {
-				while (enumerator.MoveNext()) {
-					ref var spinnerState = ref enumerator.Current.Value;
-					var component = _rotatableComponent[enumerator.Current.Key];
-					component.OnRotationUpdated(spinnerState.Movement.Angle);
-				}
-			}
-
-			// triggers
-			using (var enumerator = _triggerStates.Ref.GetEnumerator()) {
-				while (enumerator.MoveNext()) {
-					ref var triggerState = ref enumerator.Current.Value;
-					if (triggerState.AnimatedItemId == 0) {
-						continue;
-					}
-					var triggerTransform = _transforms[triggerState.AnimatedItemId];
-					TriggerTransform.Update(triggerState.AnimatedItemId, in triggerState.Movement, triggerTransform);
-				}
-			}
+			PhysicsMovements.ApplyBallMovement(ref state, _transforms);
+			PhysicsMovements.ApplyFlipperMovement(ref _flipperStates.Ref, transform, _transforms);
+			PhysicsMovements.ApplyBumperMovement(ref _bumperStates.Ref, _transforms);
+			PhysicsMovements.ApplyDropTargetMovement(ref _dropTargetStates.Ref, _transforms);
+			PhysicsMovements.ApplyHitTargetMovement(ref _hitTargetStates.Ref, _transforms);
+			PhysicsMovements.ApplyGateMovement(ref _gateStates.Ref, _rotatableComponent);
+			PhysicsMovements.ApplyPlungerMovement(ref _plungerStates.Ref, _skinnedMeshRenderers);
+			PhysicsMovements.ApplySpinnerMovement(ref _spinnerStates.Ref, _rotatableComponent);
+			PhysicsMovements.ApplyTriggerMovement(ref _triggerStates.Ref, _transforms);
 
 			#endregion
 		}
