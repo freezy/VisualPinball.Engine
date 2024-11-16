@@ -122,12 +122,6 @@ namespace VisualPinball.Unity
 		private PhysicsEngine _physicsEngine;
 		private bool IsKinematic => this is IKinematicColliderComponent { IsKinematic: true };
 
-		private float4x4 TransformWithinPlayfieldMatrix { get {
-			var playfieldToWorld = GetComponentInParent<PlayfieldComponent>().transform.localToWorldMatrix;
-			var m = ((float4x4)MainComponent.transform.localToWorldMatrix).LocalToWorldTranslateWithinPlayfield(math.inverse(playfieldToWorld));
-			return playfieldToWorld * (Matrix4x4)Physics.VpxToWorld * (Matrix4x4)m;
-		}}
-
 		private void OnDrawGizmos()
 		{
 			Profiler.BeginSample("ItemColliderComponent.OnDrawGizmosSelected");
@@ -297,9 +291,9 @@ namespace VisualPinball.Unity
 			}
 			foreach (var col in colliders.FlipperColliders) {
 				if (col.Header.IsTransformed) {
-					AddFlipperCollider(vertices, normals, indices, float4x4.identity);
+					AddFlipperCollider(vertices, normals, indices, Origin.Global);
 				} else {
-					AddFlipperCollider(verticesNonTransformable, normalsNonTransformable, indicesNonTransformable, float4x4.identity); // TODO fix
+					AddFlipperCollider(verticesNonTransformable, normalsNonTransformable, indicesNonTransformable, Origin.Original);
 				}
 			}
 			foreach (var col in colliders.GateColliders) {
@@ -377,10 +371,10 @@ namespace VisualPinball.Unity
 						AddCollider(circleCollider, verticesNonTransformable, normalsNonTransformable, indicesNonTransformable);
 						break;
 					case FlipperCollider { Header: { IsTransformed: true } }:
-						AddFlipperCollider(vertices, normals, indices, float4x4.identity);
+						AddFlipperCollider(vertices, normals, indices, Origin.Global);
 						break;
 					case FlipperCollider:
-						AddFlipperCollider(verticesNonTransformable, normalsNonTransformable, indicesNonTransformable, TransformWithinPlayfieldMatrix);
+						AddFlipperCollider(verticesNonTransformable, normalsNonTransformable, indicesNonTransformable, Origin.Global);
 						break;
 					case GateCollider gateCollider:
 						AddCollider(gateCollider.LineSeg0, vertices, normals, indices);
@@ -583,7 +577,7 @@ namespace VisualPinball.Unity
 			indices.Add(i + 1);
 		}
 
-		private void AddFlipperCollider(List<Vector3> vertices, List<Vector3> normals, List<int> indices, float4x4 matrix)
+		private void AddFlipperCollider(List<Vector3> vertices, List<Vector3> normals, List<int> indices, Origin origin)
 		{
 			// first see if we already have a mesh
 			var flipperComponent = GetComponentInChildren<FlipperComponent>();
@@ -592,11 +586,11 @@ namespace VisualPinball.Unity
 			}
 
 			var startIdx = vertices.Count;
-			var mesh = new FlipperMeshGenerator(flipperComponent).GetMesh(FlipperMeshGenerator.Rubber, 0, 0.01f, Origin.Global, false, 0.2f);
+			var mesh = new FlipperMeshGenerator(flipperComponent).GetMesh(FlipperMeshGenerator.Rubber, 0, 0.01f, origin, false, 0.2f);
 			for (var i = 0; i < mesh.Vertices.Length; i++) {
 				var vertex = mesh.Vertices[i];
-				vertices.Add(matrix.MultiplyPoint(vertex.ToUnityFloat3()));
-				normals.Add(matrix.MultiplyVector(vertex.ToUnityNormalVector3()));
+				vertices.Add(vertex.ToUnityFloat3());
+				normals.Add(vertex.ToUnityNormalVector3());
 			}
 			indices.AddRange(mesh.Indices.Select(n => startIdx + n));
 		}

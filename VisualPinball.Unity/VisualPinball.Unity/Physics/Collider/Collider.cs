@@ -28,7 +28,7 @@ namespace VisualPinball.Unity
 	/// </summary>
 	public struct Collider
 	{
-		public const float Tolerance = 1e-7f; // 1e-9f;
+		public const float Tolerance = 1e-6f; // 1e-9f;
 
 		public ColliderHeader Header;
 
