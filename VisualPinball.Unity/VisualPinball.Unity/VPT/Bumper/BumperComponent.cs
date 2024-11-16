@@ -171,7 +171,7 @@ namespace VisualPinball.Unity
 		public void UpdateTransforms(Quaternion xz)
 		{
 			var y = Quaternion.Euler(0, Orientation, 0);
-			transform.rotation = xz * y;
+			transform.rotation = xz * y; // localRotation?
 		}
 
 		public float4x4 TransformationWithinPlayfield => transform.worldToLocalMatrix.WorldToLocalTranslateWithinPlayfield(_playfieldToWorld);

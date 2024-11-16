@@ -18,15 +18,18 @@ namespace VisualPinball.Unity
 		}
 
 		internal static void ApplyFlipperMovement(ref NativeParallelHashMap<int, FlipperState> flipperStates,
-			in Transform transform, Dictionary<int, Transform> transforms)
+			Dictionary<int, Transform> transforms, Dictionary<int, Quaternion> rotations)
 		{
 			using var enumerator = flipperStates.GetEnumerator();
 			while (enumerator.MoveNext()) {
 				ref var flipperState = ref enumerator.Current.Value;
 				var flipperTransform = transforms[enumerator.Current.Key];
-				var currentRotation = transform.localEulerAngles;
-				currentRotation.y = math.degrees(flipperState.Movement.Angle);
-				flipperTransform.localEulerAngles = currentRotation;
+				var flipperInitialRotation = rotations[enumerator.Current.Key];
+
+				// todo fix, and when done, optimize, i.e. just transform y for IsTransformed colliders
+				var xzRotation = Quaternion.Euler(flipperInitialRotation.eulerAngles.x, 0, flipperInitialRotation.eulerAngles.z);
+				var xRotation = Quaternion.Euler(0, math.degrees(flipperState.Movement.Angle), 0);
+				flipperTransform.rotation = xzRotation * xRotation;
 			}
 		}
 
