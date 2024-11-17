@@ -70,7 +70,6 @@ namespace VisualPinball.Unity
 		#region Transforms
 
 		[NonSerialized] private readonly Dictionary<int, Transform> _transforms = new();
-		[NonSerialized] private readonly Dictionary<int, Quaternion> _rotations = new();
 
 		/// <summary>
 		/// Last transforms of kinematic items, so we can detect changes.
@@ -152,7 +151,6 @@ namespace VisualPinball.Unity
 				case BumperComponent c: _bumperStates.Ref[itemId] = c.CreateState(); break;
 				case FlipperComponent c:
 					_flipperStates.Ref[itemId] = c.CreateState();
-					_rotations.TryAdd(itemId, go.transform.rotation);
 					break;
 				case GateComponent c: _gateStates.Ref[itemId] = c.CreateState(); break;
 				case DropTargetComponent c: _dropTargetStates.Ref[itemId] = c.CreateState(); break;
@@ -352,7 +350,7 @@ namespace VisualPinball.Unity
 			#region Movements
 
 			PhysicsMovements.ApplyBallMovement(ref state, _transforms);
-			PhysicsMovements.ApplyFlipperMovement(ref _flipperStates.Ref, _transforms, _rotations);
+			PhysicsMovements.ApplyFlipperMovement(ref _flipperStates.Ref, _transforms);
 			PhysicsMovements.ApplyBumperMovement(ref _bumperStates.Ref, _transforms);
 			PhysicsMovements.ApplyDropTargetMovement(ref _dropTargetStates.Ref, _transforms);
 			PhysicsMovements.ApplyHitTargetMovement(ref _hitTargetStates.Ref, _transforms);
