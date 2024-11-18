@@ -64,11 +64,7 @@ namespace VisualPinball.Unity
 
 		public float StartAngle {
 			get => transform.localEulerAngles.y > 180 ? transform.localEulerAngles.y - 360 : transform.localEulerAngles.y;
-			set {
-				var t = transform;
-				var e = t.localEulerAngles;
-				t.localEulerAngles = new Vector3(e.x, value, e.z);
-			}
+			set => transform.SetLocalYRotation(math.radians(value));
 		}
 
 		[Range(-180f, 180f)]
@@ -190,7 +186,7 @@ namespace VisualPinball.Unity
 			//t.localPosition = Physics.TranslateToWorld(Position.x, Position.y, PositionZ);
 
 			// rotation
-			t.SetLocalYRotation(math.radians(StartAngle));
+			//t.SetLocalYRotation(math.radians(StartAngle));
 		}
 
 		/// <summary>
