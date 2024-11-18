@@ -347,12 +347,15 @@ namespace VisualPinball.Unity
 					Speed = ringAnimComponent.RingSpeed,
 				} : default;
 
+			bool isSwitchWiredToCoil = BumperApi.HasWireDest(this, AvailableCoils.FirstOrDefault().Id);
+
 			return new BumperState(
 				skirtAnimComponent ? skirtAnimComponent.gameObject.GetInstanceID() : 0,
 				ringAnimComponent ? ringAnimComponent.gameObject.GetInstanceID() : 0,
 				staticData,
 				ringAnimation,
-				skirtAnimation
+				skirtAnimation,
+				isSwitchWiredToCoil
 			);
 		}
 
