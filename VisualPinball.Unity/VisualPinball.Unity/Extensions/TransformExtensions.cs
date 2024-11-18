@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+using Unity.Mathematics;
 using UnityEngine;
 
 namespace VisualPinball.Unity
@@ -32,6 +33,21 @@ namespace VisualPinball.Unity
 				trs.GetColumn(2),
 				trs.GetColumn(1)
 			);
+		}
+
+		public static void SetLocalYRotation(this Transform transform, float angleRad)
+		{
+			var localToWorldMatrix = transform.localToWorldMatrix;
+			var localRotationY = transform.localRotation.eulerAngles.y;
+			var inverseYRotation = math.inverse(float4x4.RotateY(math.radians(localRotationY)));
+
+			var localToWorldPhysicsMatrix = math.mul(localToWorldMatrix, inverseYRotation);
+			var rotatedMatrix = math.mul(localToWorldPhysicsMatrix, float4x4.RotateY(angleRad));
+
+			var newUp = localToWorldMatrix.MultiplyVector(Vector3.up);
+			var newForward = rotatedMatrix.c2.xyz; // Extract forward direction from the matrix
+
+			transform.rotation = Quaternion.LookRotation(newForward, newUp);
 		}
 	}
 }
