@@ -30,6 +30,10 @@ namespace VisualPinball.Unity
 
 		public ColliderHeader Header;
 
+		/// <summary>
+		/// This is the center relative to the origin. For a bumper, the origin is at (0,0),
+		/// but for a gate it's at (45,0), for example.
+		/// </summary>
 		public float2 Center;
 		public float Radius;
 
@@ -268,14 +272,14 @@ namespace VisualPinball.Unity
 
 		public CircleCollider TransformAabb(float4x4 matrix)
 		{
-			var p1 = matrix.MultiplyPoint(new float3( Radius,  Radius, ZLow));
-			var p2 = matrix.MultiplyPoint(new float3( Radius, -Radius, ZLow));
-			var p3 = matrix.MultiplyPoint(new float3(-Radius,  Radius, ZLow));
-			var p4 = matrix.MultiplyPoint(new float3(-Radius, -Radius, ZLow));
-			var p5 = matrix.MultiplyPoint(new float3( Radius,  Radius, ZHigh));
-			var p6 = matrix.MultiplyPoint(new float3( Radius, -Radius, ZHigh));
-			var p7 = matrix.MultiplyPoint(new float3(-Radius,  Radius, ZHigh));
-			var p8 = matrix.MultiplyPoint(new float3(-Radius, -Radius, ZHigh));
+			var p1 = matrix.MultiplyPoint(new float3(Center.x + Radius, Center.y + Radius, ZLow));
+			var p2 = matrix.MultiplyPoint(new float3(Center.x + Radius, Center.y - Radius, ZLow));
+			var p3 = matrix.MultiplyPoint(new float3(Center.x - Radius, Center.y + Radius, ZLow));
+			var p4 = matrix.MultiplyPoint(new float3(Center.x - Radius, Center.y - Radius, ZLow));
+			var p5 = matrix.MultiplyPoint(new float3(Center.x + Radius, Center.y + Radius, ZHigh));
+			var p6 = matrix.MultiplyPoint(new float3(Center.x + Radius, Center.y - Radius, ZHigh));
+			var p7 = matrix.MultiplyPoint(new float3(Center.x - Radius, Center.y + Radius, ZHigh));
+			var p8 = matrix.MultiplyPoint(new float3(Center.x - Radius, Center.y - Radius, ZHigh));
 
 			var min = math.min(p1, math.min(p2, math.min(p3, math.min(p4, math.min(p5, math.min(p6, math.min(p7, p8)))))));
 			var max = math.max(p1, math.max(p2, math.max(p3, math.max(p4, math.max(p5, math.max(p6, math.max(p7, p8)))))));

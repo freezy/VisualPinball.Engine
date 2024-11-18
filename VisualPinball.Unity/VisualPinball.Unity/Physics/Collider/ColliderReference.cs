@@ -229,9 +229,22 @@ namespace VisualPinball.Unity
 			return collider.Id;
 		}
 
-		internal int Add(GateCollider collider, float4x4 matrix) => Add(collider.Transform(matrix));
-		internal int Add(GateCollider collider)
+		internal int Add(GateCollider collider, float4x4 matrix)
 		{
+			if (GateCollider.IsTransformable(matrix)) {
+				collider.Header.IsTransformed = true;
+				collider.Transform(matrix);
+
+			} else {
+				// save matrix for use during runtime
+				if (!_nonTransformableColliderMatrices.ContainsKey(collider.Header.ItemId)) {
+					_nonTransformableColliderMatrices.Add(collider.Header.ItemId, matrix);
+				}
+
+				collider.Header.IsTransformed = false;
+				collider.TransformAabb(matrix);
+			}
+
 			collider.Id = Lookups.Length;
 			TrackReference(collider.Header.ItemId, collider.Header.Id);
 			Lookups.Add(new ColliderLookup(ColliderType.Gate, GateColliders.Length));
@@ -380,10 +393,6 @@ namespace VisualPinball.Unity
 
 		[Obsolete("Just add with matrix and it'll figure out whether to make it non-transformable.")]
 		internal int AddNonTransformable(TriangleCollider collider, float4x4 matrix)
-			=> Add(collider.TransformAabb(matrix));
-
-		[Obsolete("Just add with matrix and it'll figure out whether to make it non-transformable.")]
-		internal int AddNonTransformable(CircleCollider collider, float4x4 matrix)
 			=> Add(collider.TransformAabb(matrix));
 
 		#endregion

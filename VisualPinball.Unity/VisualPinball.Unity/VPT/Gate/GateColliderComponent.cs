@@ -70,6 +70,9 @@ namespace VisualPinball.Unity
 		protected override IApiColliderGenerator InstantiateColliderApi(Player player, PhysicsEngine physicsEngine)
 			=> MainComponent.GateApi ?? new GateApi(gameObject, player, physicsEngine);
 
+		public override float4x4 TranslateWithinPlayfieldMatrix(float4x4 worldToPlayfield)
+			=> MainComponent.transform.localToWorldMatrix.LocalToWorldTranslateWithinPlayfield(worldToPlayfield);
+
 		#region IKinematicColliderComponent
 
 		[Tooltip("If set, transforming this object will transform the colliders as well.")]

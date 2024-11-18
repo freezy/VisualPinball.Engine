@@ -296,8 +296,13 @@ namespace VisualPinball.Unity
 				}
 			}
 			foreach (var col in colliders.GateColliders) {
+				if (col.Header.IsTransformed) {
 					AddCollider(col.LineSeg0, vertices, normals, indices);
 					AddCollider(col.LineSeg1, vertices, normals, indices);
+				} else {
+					AddCollider(col.LineSeg0, verticesNonTransformable, normalsNonTransformable, indicesNonTransformable);
+					AddCollider(col.LineSeg1, verticesNonTransformable, normalsNonTransformable, indicesNonTransformable);
+				}
 			}
 			foreach (var col in colliders.LineColliders) {
 				AddCollider(col, vertices, normals, indices);
@@ -375,9 +380,13 @@ namespace VisualPinball.Unity
 					case FlipperCollider:
 						AddFlipperCollider(verticesNonTransformable, normalsNonTransformable, indicesNonTransformable, Origin.Global);
 						break;
-					case GateCollider gateCollider:
+					case GateCollider { Header: { IsTransformed: true } } gateCollider:
 						AddCollider(gateCollider.LineSeg0, vertices, normals, indices);
 						AddCollider(gateCollider.LineSeg1, vertices, normals, indices);
+						break;
+					case GateCollider gateCollider:
+						AddCollider(gateCollider.LineSeg0, verticesNonTransformable, normalsNonTransformable, indicesNonTransformable);
+						AddCollider(gateCollider.LineSeg1, verticesNonTransformable, normalsNonTransformable, indicesNonTransformable);
 						break;
 					case LineCollider lineCollider:
 						AddCollider(lineCollider, vertices, normals, indices);
