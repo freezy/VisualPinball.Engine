@@ -18,6 +18,7 @@
 
 using System;
 using System.Collections.Generic;
+using Unity.Mathematics;
 using UnityEngine;
 using VisualPinball.Engine.VPT.Table;
 
@@ -56,5 +57,7 @@ namespace VisualPinball.Unity
 		public override PhysicsMaterialData PhysicsMaterialData => GetPhysicsMaterialData(Elasticity, ElasticityFalloff, Friction, Scatter);
 		protected override IApiColliderGenerator InstantiateColliderApi(Player player, PhysicsEngine physicsEngine)
 			=> MainComponent.PlayfieldApi ?? new PlayfieldApi(gameObject, player, physicsEngine);
+
+		public override float4x4 TranslateWithinPlayfieldMatrix(float4x4 worldToPlayfield) => float4x4.identity;
 	}
 }

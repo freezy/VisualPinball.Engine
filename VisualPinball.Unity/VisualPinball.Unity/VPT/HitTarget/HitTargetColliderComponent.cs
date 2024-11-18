@@ -16,6 +16,7 @@
 
 // ReSharper disable InconsistentNaming
 
+using Unity.Mathematics;
 using UnityEngine;
 using VisualPinball.Engine.VPT.HitTarget;
 
@@ -56,5 +57,8 @@ namespace VisualPinball.Unity
 
 		protected override IApiColliderGenerator InstantiateColliderApi(Player player, PhysicsEngine physicsEngine)
 			=> (MainComponent as HitTargetComponent)?.HitTargetApi ?? new HitTargetApi(gameObject, player, physicsEngine);
+
+		public override float4x4 TranslateWithinPlayfieldMatrix(float4x4 worldToPlayfield)
+			=> MainComponent.transform.localToWorldMatrix.LocalToWorldTranslateWithinPlayfield(worldToPlayfield);
 	}
 }

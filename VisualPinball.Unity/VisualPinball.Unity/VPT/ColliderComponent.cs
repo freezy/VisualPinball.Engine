@@ -23,7 +23,6 @@ using NativeTrees;
 using Unity.Collections;
 using Unity.Jobs;
 using Unity.Mathematics;
-using Unity.VisualScripting.YamlDotNet.Serialization.NodeDeserializers;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.Profiling;
@@ -67,6 +66,8 @@ namespace VisualPinball.Unity
 		[NonSerialized] private bool _collidersDirty;
 
 		protected abstract IApiColliderGenerator InstantiateColliderApi(Player player, PhysicsEngine physicsEngine);
+
+		public abstract float4x4 TranslateWithinPlayfieldMatrix(float4x4 worldToPlayfield);
 
 		public abstract PhysicsMaterialData PhysicsMaterialData { get; }
 
@@ -143,9 +144,7 @@ namespace VisualPinball.Unity
 			var playfieldToWorld = GetComponentInParent<PlayfieldComponent>().transform.localToWorldMatrix;
 
 			// todo optimize
-			var translateWithinPlayfieldMatrix = this is ICollidableNonTransformableComponent nonTransformableColliderItem
-				? nonTransformableColliderItem.TranslateWithinPlayfieldMatrix(math.inverse(playfieldToWorld))
-				: float4x4.identity;
+			var translateWithinPlayfieldMatrix = TranslateWithinPlayfieldMatrix(math.inverse(playfieldToWorld));
 
 			var nonTransformableColliderMatrices = new NativeParallelHashMap<int, float4x4>(0, Allocator.Temp);
 
@@ -297,8 +296,8 @@ namespace VisualPinball.Unity
 				}
 			}
 			foreach (var col in colliders.GateColliders) {
-				AddCollider(col.LineSeg0, vertices, normals, indices);
-				AddCollider(col.LineSeg1, vertices, normals, indices);
+					AddCollider(col.LineSeg0, vertices, normals, indices);
+					AddCollider(col.LineSeg1, vertices, normals, indices);
 			}
 			foreach (var col in colliders.LineColliders) {
 				AddCollider(col, vertices, normals, indices);
@@ -612,7 +611,6 @@ namespace VisualPinball.Unity
 
 		int ICollidableComponent.ItemId => MainComponent.gameObject.GetInstanceID();
 		bool ICollidableComponent.IsCollidable => isActiveAndEnabled;
-
 	}
 
 	internal static class ColliderColor

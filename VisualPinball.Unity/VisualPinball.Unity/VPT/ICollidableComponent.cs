@@ -42,5 +42,13 @@ namespace VisualPinball.Unity
 		/// collided with during gameplay.
 		/// </summary>
 		internal bool IsCollidable { get; }
+
+		/// <summary>
+		/// The translation matrix, that will be applied in reverse to the ball
+		/// for hit testing and collision.
+		/// </summary>
+		/// <param name="worldToPlayfield">The playfield's worldToLocal matrix.</param>
+		/// <returns></returns>
+		public float4x4 TranslateWithinPlayfieldMatrix(float4x4 worldToPlayfield);
 	}
 }
