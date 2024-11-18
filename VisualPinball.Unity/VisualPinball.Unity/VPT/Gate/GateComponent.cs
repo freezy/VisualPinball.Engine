@@ -166,16 +166,16 @@ namespace VisualPinball.Unity
 		public override void UpdateTransforms()
 		{
 			base.UpdateTransforms();
-			var t = transform;
-
-			// position
-			t.localPosition = Physics.TranslateToWorld(Position.x, Position.y, Position.z + PositionZ);
-
-			// scale
-			t.localScale = new float3(Length * 0.01f);
-
-			// rotation
-			t.localRotation = quaternion.RotateY(math.radians(Rotation));
+			// var t = transform;
+			//
+			// // position
+			// t.localPosition = Physics.TranslateToWorld(Position.x, Position.y, Position.z + PositionZ);
+			//
+			// // scale
+			// t.localScale = new float3(Length * 0.01f);
+			//
+			// // rotation
+			// t.localRotation = quaternion.RotateY(math.radians(Rotation));
 		}
 
 		public float4x4 TransformationWithinPlayfield => transform.worldToLocalMatrix.WorldToLocalTranslateWithinPlayfield(_playfieldToWorld);

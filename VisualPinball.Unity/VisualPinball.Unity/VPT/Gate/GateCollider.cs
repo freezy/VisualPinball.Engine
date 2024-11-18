@@ -48,19 +48,6 @@ namespace VisualPinball.Unity
 			Bounds = LineSeg0.Bounds;
 		}
 
-		public void Transform(GateCollider collider, float4x4 matrix)
-		{
-			LineSeg0 = collider.LineSeg0.Transform(matrix);
-			LineSeg1 = collider.LineSeg1.Transform(matrix);
-			Bounds = collider.LineSeg0.Bounds;
-		}
-
-		public GateCollider Transform(float4x4 matrix)
-		{
-			Transform(this, matrix);
-			return this;
-		}
-
 		#region Narrowphase
 
 		public float HitTest(ref CollisionEventData collEvent, ref InsideOfs insideOfs, in BallState ball, float dTime)
@@ -110,7 +97,6 @@ namespace VisualPinball.Unity
 
 			// We encoded which side of the spinner the ball hit
 			if (collEvent.HitFlag && state.TwoWay) {
-
 				movementState.AngleSpeed = -movementState.AngleSpeed;
 			}
 
@@ -119,7 +105,48 @@ namespace VisualPinball.Unity
 
 		#endregion
 
-		public override string ToString() => $"GateCollider[{Header.ItemId}] {LineSeg0.ToString()} | {LineSeg1.ToString()}";
+		#region Transformation
 
+		public static bool IsTransformable(float4x4 matrix)
+		{
+			// position: fully transformable
+			// scale: only uniform scale ("length")
+			// rotation: only around Z axis ("rotation")
+
+			var scale = matrix.GetScale();
+			var rotation = matrix.GetRotationVector();
+			var rotated = math.abs(rotation.x) > Collider.Tolerance || math.abs(rotation.y) > Collider.Tolerance;
+			var uniformlyScaled = math.abs(scale.x - scale.y) < Collider.Tolerance && math.abs(scale.x - scale.z) < Collider.Tolerance && math.abs(scale.y -  scale.z) < Collider.Tolerance;
+
+			return !rotated && uniformlyScaled;
+		}
+
+		public void Transform(GateCollider collider, float4x4 matrix)
+		{
+			#if UNITY_EDITOR
+			if (!IsTransformable(matrix)) {
+				throw new System.InvalidOperationException($"Matrix {matrix} cannot transform gate.");
+			}
+			#endif
+
+			LineSeg0 = collider.LineSeg0.Transform(matrix);
+			LineSeg1 = collider.LineSeg1.Transform(matrix);
+			Bounds = collider.LineSeg0.Bounds;
+		}
+
+		public GateCollider Transform(float4x4 matrix)
+		{
+			Transform(this, matrix);
+			return this;
+		}
+
+		public GateCollider TransformAabb(float4x4 matrix)
+		{
+			Bounds = new ColliderBounds(Header.ItemId, Header.Id, Bounds.Aabb.Transform(matrix));
+			return this;
+		}
+
+		#endregion
+		public override string ToString() => $"GateCollider[{Header.ItemId}] {LineSeg0.ToString()} | {LineSeg1.ToString()}";
 	}
 }

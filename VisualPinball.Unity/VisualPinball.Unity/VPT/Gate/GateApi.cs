@@ -24,6 +24,9 @@ namespace VisualPinball.Unity
 	public class GateApi : CollidableApi<GateComponent, GateColliderComponent, GateData>,
 		IApi, IApiHittable, IApiRotatable, IApiSwitch, IApiSwitchDevice
 	{
+
+		#region Members
+
 		/// <summary>
 		/// Event emitted when the table is started.
 		/// </summary>
@@ -72,6 +75,8 @@ namespace VisualPinball.Unity
 		// todo
 		public event EventHandler Timer;
 
+		#endregion
+
 		public GateApi(GameObject go, Player player, PhysicsEngine physicsEngine) : base(go, player, physicsEngine)
 		{
 		}
@@ -102,8 +107,7 @@ namespace VisualPinball.Unity
 		protected override void CreateColliders(ref ColliderReference colliders,
 			ref ColliderReference kinematicColliders, float4x4 translateWithinPlayfieldMatrix, float margin)
 		{
-			var matrix = MainComponent.transform.worldToLocalMatrix.WorldToLocalTranslateWithinPlayfield(Player.PlayfieldToWorldMatrix);
-			var colliderGenerator = new GateColliderGenerator(this, MainComponent, ColliderComponent, matrix);
+			var colliderGenerator = new GateColliderGenerator(this, MainComponent, ColliderComponent, translateWithinPlayfieldMatrix);
 			if (ColliderComponent._isKinematic) {
 				colliderGenerator.GenerateColliders(ref kinematicColliders);
 			} else {
