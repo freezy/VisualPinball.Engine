@@ -16,6 +16,7 @@
 
 // ReSharper disable InconsistentNaming
 
+using Unity.Mathematics;
 using UnityEngine;
 using VisualPinball.Engine.VPT.MetalWireGuide;
 
@@ -56,5 +57,8 @@ namespace VisualPinball.Unity
 		public override PhysicsMaterialData PhysicsMaterialData => GetPhysicsMaterialData(Elasticity, ElasticityFalloff, Friction, Scatter, OverwritePhysics);
 		protected override IApiColliderGenerator InstantiateColliderApi(Player player, PhysicsEngine physicsEngine)
 			=> MainComponent.MetalWireGuideApi ?? new MetalWireGuideApi(gameObject, player, physicsEngine);
+
+		public override float4x4 TranslateWithinPlayfieldMatrix(float4x4 worldToPlayfield)
+			=> MainComponent.transform.localToWorldMatrix.LocalToWorldTranslateWithinPlayfield(worldToPlayfield);
 	}
 }

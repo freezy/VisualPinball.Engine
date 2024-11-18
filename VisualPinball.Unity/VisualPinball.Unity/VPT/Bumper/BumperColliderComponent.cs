@@ -23,7 +23,7 @@ using VisualPinball.Engine.VPT.Bumper;
 namespace VisualPinball.Unity
 {
 	[AddComponentMenu("Visual Pinball/Collision/Bumper Collider")]
-	public class BumperColliderComponent : ColliderComponent<BumperData, BumperComponent>, IKinematicColliderComponent, ICollidableNonTransformableComponent
+	public class BumperColliderComponent : ColliderComponent<BumperData, BumperComponent>, IKinematicColliderComponent
 	{
 		#region Data
 
@@ -53,7 +53,7 @@ namespace VisualPinball.Unity
 		public int ItemId => MainComponent.gameObject.GetInstanceID();
 		public float4x4 TransformationWithinPlayfield => MainComponent.TransformationWithinPlayfield;
 
-		float4x4 ICollidableNonTransformableComponent.TranslateWithinPlayfieldMatrix(float4x4 worldToPlayfield)
+		public override float4x4 TranslateWithinPlayfieldMatrix(float4x4 worldToPlayfield)
 			=> MainComponent.transform.localToWorldMatrix.LocalToWorldTranslateWithinPlayfield(worldToPlayfield);
 
 		#endregion

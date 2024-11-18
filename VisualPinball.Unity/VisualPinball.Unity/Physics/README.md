@@ -226,6 +226,12 @@ through the three use cases described above.
      setting the `IsTransformed` of the collider to `false`. It also stores the transformation 
      matrix so it can be used during runtime for the ball transformation trick.
 
+> [!NOTE]  
+> For already fully transformable items like primitives, the above checks are not necessary, and we
+> transform the collider with its AABBs directly without checking the actual transformation.
+
+
+
 ## Coordinate Systems
 
 Give the above, we'll be transforming between multiple coordinate systems, or *spaces*:

@@ -24,7 +24,7 @@ namespace VisualPinball.Unity
 {
 	[AddComponentMenu("Visual Pinball/Collision/Flipper Collider")]
 	[HelpURL("https://docs.visualpinball.org/creators-guide/manual/mechanisms/flippers.html")]
-	public class FlipperColliderComponent : ColliderComponent<FlipperData, FlipperComponent>, ICollidableNonTransformableComponent
+	public class FlipperColliderComponent : ColliderComponent<FlipperData, FlipperComponent>
 	{
 		#region Data
 
@@ -162,7 +162,7 @@ namespace VisualPinball.Unity
 		protected override IApiColliderGenerator InstantiateColliderApi(Player player, PhysicsEngine physicsEngine)
 			=> MainComponent.FlipperApi ?? new FlipperApi(gameObject, player, physicsEngine);
 
-		float4x4 ICollidableNonTransformableComponent.TranslateWithinPlayfieldMatrix(float4x4 worldToPlayfield)
+		public override float4x4 TranslateWithinPlayfieldMatrix(float4x4 worldToPlayfield)
 			=> MainComponent.LocalToWorldPhysicsMatrix.LocalToWorldTranslateWithinPlayfield(worldToPlayfield);
 	}
 }

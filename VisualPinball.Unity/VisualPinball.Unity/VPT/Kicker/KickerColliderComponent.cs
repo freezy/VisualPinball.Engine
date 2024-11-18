@@ -16,6 +16,7 @@
 
 // ReSharper disable InconsistentNaming
 
+using Unity.Mathematics;
 using UnityEngine;
 using VisualPinball.Engine.VPT.Kicker;
 
@@ -51,5 +52,8 @@ namespace VisualPinball.Unity
 		public override PhysicsMaterialData PhysicsMaterialData => GetPhysicsMaterialData(scatterAngleDeg: Scatter);
 		protected override IApiColliderGenerator InstantiateColliderApi(Player player, PhysicsEngine physicsEngine) =>
 			MainComponent.KickerApi ?? new KickerApi(gameObject, player, physicsEngine);
+
+		public override float4x4 TranslateWithinPlayfieldMatrix(float4x4 worldToPlayfield)
+			=> MainComponent.transform.localToWorldMatrix.LocalToWorldTranslateWithinPlayfield(worldToPlayfield);
 	}
 }

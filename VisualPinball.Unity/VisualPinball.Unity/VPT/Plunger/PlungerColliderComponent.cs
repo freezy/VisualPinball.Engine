@@ -23,7 +23,7 @@ using VisualPinball.Engine.VPT.Plunger;
 namespace VisualPinball.Unity
 {
 	[AddComponentMenu("Visual Pinball/Collision/Plunger Collider")]
-	public class PlungerColliderComponent : ColliderComponent<PlungerData, PlungerComponent>, IKinematicColliderComponent, ICollidableNonTransformableComponent
+	public class PlungerColliderComponent : ColliderComponent<PlungerData, PlungerComponent>, IKinematicColliderComponent
 	{
 		#region Data
 
@@ -67,10 +67,8 @@ namespace VisualPinball.Unity
 		public bool IsKinematic => _isKinematic;
 		public int ItemId => MainComponent.gameObject.GetInstanceID();
 
-		float4x4 ICollidableNonTransformableComponent.TranslateWithinPlayfieldMatrix(float4x4 worldToPlayfield)
-//			=> MainComponent.transform.localToWorldMatrix.LocalToWorldTranslateWithinPlayfield(worldToPlayfield);
+		public override float4x4 TranslateWithinPlayfieldMatrix(float4x4 worldToPlayfield)
 			=> MainComponent.LocalToWorldPhysicsMatrix.LocalToWorldTranslateWithinPlayfield(worldToPlayfield);
-
 
 		public float4x4 TransformationWithinPlayfield => MainComponent.TransformationWithinPlayfield;
 

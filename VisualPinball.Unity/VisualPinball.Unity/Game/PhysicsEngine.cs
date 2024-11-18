@@ -220,12 +220,9 @@ namespace VisualPinball.Unity
 					_disabledCollisionItems.Ref.Add(colliderItem.ItemId);
 				}
 
-				var translateWithinPlayfieldMatrix = colliderItem is ICollidableNonTransformableComponent nonTransformableColliderItem
-					? nonTransformableColliderItem.TranslateWithinPlayfieldMatrix(playfield.transform.worldToLocalMatrix)
-					: float4x4.identity;
-				if (colliderItem is ICollidableNonTransformableComponent) {
-					_nonTransformableColliderMatrices.Ref[colliderItem.ItemId] = translateWithinPlayfieldMatrix;
-				}
+				var translateWithinPlayfieldMatrix = colliderItem.TranslateWithinPlayfieldMatrix(playfield.transform.worldToLocalMatrix);
+				// todo check if we cannot only add those that are actually non-transformable
+				_nonTransformableColliderMatrices.Ref[colliderItem.ItemId] = translateWithinPlayfieldMatrix;
 
 				colliderItem.GetColliders(_player, this, ref colliders, ref kinematicColliders, translateWithinPlayfieldMatrix, 0);
 			}

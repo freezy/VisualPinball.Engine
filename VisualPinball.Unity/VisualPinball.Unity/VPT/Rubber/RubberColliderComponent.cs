@@ -68,5 +68,8 @@ namespace VisualPinball.Unity
 		public float4x4 TransformationWithinPlayfield => MainComponent.TransformationWithinPlayfield;
 
 		#endregion
+
+		public override float4x4 TranslateWithinPlayfieldMatrix(float4x4 worldToPlayfield)
+			=> MainComponent.transform.localToWorldMatrix.LocalToWorldTranslateWithinPlayfield(worldToPlayfield);
 	}
 }
