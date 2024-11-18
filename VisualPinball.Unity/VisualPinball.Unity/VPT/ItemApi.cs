@@ -67,8 +67,9 @@ namespace VisualPinball.Unity
 
 		private protected IApiSwitchStatus AddSwitchDest(SwitchConfig switchConfig,IApiSwitchStatus switchStatus) => SwitchHandler.AddSwitchDest(switchConfig, switchStatus);
 
-		internal void AddWireDest(WireDestConfig wireConfig) => SwitchHandler.AddWireDest(wireConfig);
-		internal void RemoveWireDest(string destId) => SwitchHandler.RemoveWireDest(destId);
+		internal virtual void AddWireDest(WireDestConfig wireConfig) => SwitchHandler.AddWireDest(wireConfig);
+		internal virtual void RemoveWireDest(string destId) => SwitchHandler.RemoveWireDest(destId);
+		internal bool HasWireDest(IWireableComponent device, string deviceItem) => SwitchHandler.HasWireDest(device, deviceItem);
 
 		private protected void OnSwitch(bool closed) => SwitchHandler.OnSwitch(closed);
 

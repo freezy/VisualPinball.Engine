@@ -110,6 +110,17 @@ namespace VisualPinball.Unity
 			}
 		}
 
+		public bool HasWireDest(IWireableComponent device, string deviceItem)
+		{
+			if (_wires == null)
+				return false;
+			foreach (var wire in _wires) {
+				if (wire.Device == device && wire.DeviceItem == deviceItem)
+					return true;
+			}
+			return false;
+		}
+
 		/// <summary>
 		/// Sends the switch element to the gamelogic engine and linked wires.
 		/// </summary>

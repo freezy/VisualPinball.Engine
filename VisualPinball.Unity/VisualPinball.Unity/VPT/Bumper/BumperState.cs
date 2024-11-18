@@ -23,15 +23,17 @@ namespace VisualPinball.Unity
 		internal BumperStaticState Static;
 		internal BumperRingAnimationState RingAnimation;
 		internal BumperSkirtAnimationState SkirtAnimation;
+		internal bool IsSwitchWiredToCoil;
 
 		public BumperState(int skirtItemId, int ringItemId, BumperStaticState @static,
-			BumperRingAnimationState ringAnimation, BumperSkirtAnimationState skirtAnimation)
+			BumperRingAnimationState ringAnimation, BumperSkirtAnimationState skirtAnimation, bool isSwitchWiredToCoil)
 		{
 			SkirtItemId = skirtItemId;
 			RingItemId = ringItemId;
 			Static = @static;
 			RingAnimation = ringAnimation;
 			SkirtAnimation = skirtAnimation;
+			IsSwitchWiredToCoil = isSwitchWiredToCoil;
 		}
 	}
 }
