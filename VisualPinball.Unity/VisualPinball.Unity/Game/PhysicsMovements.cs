@@ -24,16 +24,7 @@ namespace VisualPinball.Unity
 				ref var flipperState = ref enumerator.Current.Value;
 				var transform = transforms[enumerator.Current.Key];
 
-				var m = transform.localToWorldMatrix;
-				var r = transform.localRotation.eulerAngles;
-				var localToWorldPhysicsMatrix = math.mul(m, math.inverse(float4x4.RotateY(math.radians(r.y))));
-				var localToWorldPhysicsRotatedMatrix = math.mul(localToWorldPhysicsMatrix, float4x4.RotateY(flipperState.Movement.Angle));
-
-				var newUp = transform.localToWorldMatrix.MultiplyVector(Vector3.up);
-				var newForward = localToWorldPhysicsRotatedMatrix.MultiplyVector(Vector3.forward);
-
-				var targetRotation = Quaternion.LookRotation(newForward, newUp);
-				transform.rotation = targetRotation;
+				transform.SetLocalYRotation(flipperState.Movement.Angle);
 			}
 		}
 

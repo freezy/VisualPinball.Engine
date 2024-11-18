@@ -190,9 +190,7 @@ namespace VisualPinball.Unity
 			//t.localPosition = Physics.TranslateToWorld(Position.x, Position.y, PositionZ);
 
 			// rotation
-			// var currentRotation = transform.localEulerAngles;
-			// currentRotation.y = math.degrees(StartAngle);
-			// t.localEulerAngles = currentRotation;
+			t.SetLocalYRotation(math.radians(StartAngle));
 		}
 
 		/// <summary>
