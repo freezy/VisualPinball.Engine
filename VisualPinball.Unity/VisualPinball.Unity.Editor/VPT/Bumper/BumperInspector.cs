@@ -32,9 +32,6 @@ namespace VisualPinball.Unity.Editor
 		private SerializedProperty _surfaceProperty;
 		private SerializedProperty _isHardwiredProperty;
 
-		private bool _isChangingYRotation;
-		private Quaternion _initialXZRotation;
-
 		protected override void OnEnable()
 		{
 			base.OnEnable();
@@ -45,8 +42,6 @@ namespace VisualPinball.Unity.Editor
 			_orientationProperty = serializedObject.FindProperty(nameof(BumperComponent.Orientation));
 			_surfaceProperty = serializedObject.FindProperty(nameof(BumperComponent._surface));
 			_isHardwiredProperty = serializedObject.FindProperty(nameof(BumperComponent.IsHardwired));
-
-			_initialXZRotation = Quaternion.identity;
 		}
 
 		public override void OnInspectorGUI()
@@ -69,9 +64,15 @@ namespace VisualPinball.Unity.Editor
 
 			PropertyField(_radiusProperty, updateTransforms: true);
 			PropertyField(_heightScaleProperty, updateTransforms: true);
-			PropertyField(_orientationProperty, "Orientation", ref _isChangingYRotation,
-				before => _initialXZRotation = Quaternion.Euler(before.eulerAngles.x, 0, before.eulerAngles.z),
-				() => MainComponent.UpdateTransforms(_initialXZRotation), updateTransforms: true);
+
+			// orientation
+			EditorGUI.BeginChangeCheck();
+			var newAngle = EditorGUILayout.Slider(new GUIContent("Orientation", "Orientation angle. Updates z rotation"), MainComponent.Orientation, -180f, 180f);
+			if (EditorGUI.EndChangeCheck()) {
+				Undo.RecordObject(MainComponent.transform, "Change Bumper Orientation");
+				MainComponent.Orientation = newAngle;
+			}
+
 			PropertyField(_surfaceProperty, updateTransforms: true);
 			PropertyField(_isHardwiredProperty, updateTransforms: false);
 
