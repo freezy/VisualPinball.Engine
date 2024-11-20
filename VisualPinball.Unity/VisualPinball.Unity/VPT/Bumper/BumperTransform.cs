@@ -24,7 +24,7 @@ namespace VisualPinball.Unity
 	/// </summary>
 	internal static class BumperTransform
 	{
-		private static readonly Dictionary<int, float> InitialOffset = new();
+		internal static readonly Dictionary<int, float> InitialOffset = new();
 
 		internal static void UpdateRing(int itemId, in BumperRingAnimationState state, Transform transform)
 		{
