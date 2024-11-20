@@ -99,8 +99,8 @@ namespace VisualPinball.Unity
 		[NonSerialized] private readonly List<ScheduledAction> _scheduledActions = new();
 
 		[NonSerialized] private Player _player;
+		[NonSerialized] private PhysicsMovements _physicsMovements;
 		[NonSerialized] private IKinematicColliderComponent[] _kinematicColliderComponents;
-
 
 		private static ulong NowUsec => (ulong)(Time.timeAsDouble * 1000000);
 
@@ -200,6 +200,7 @@ namespace VisualPinball.Unity
 		private void Awake()
 		{
 			_player = GetComponentInParent<Player>();
+			_physicsMovements = new PhysicsMovements();
 			_insideOfs = new InsideOfs(Allocator.Persistent);
 			_physicsEnv.Ref[0] = new PhysicsEnv(NowUsec, GetComponentInChildren<PlayfieldComponent>(), GravityStrength);
 			_kinematicColliderComponents = GetComponentsInChildren<IKinematicColliderComponent>();
@@ -346,15 +347,15 @@ namespace VisualPinball.Unity
 
 			#region Movements
 
-			PhysicsMovements.ApplyBallMovement(ref state, _transforms);
-			PhysicsMovements.ApplyFlipperMovement(ref _flipperStates.Ref, _transforms);
-			PhysicsMovements.ApplyBumperMovement(ref _bumperStates.Ref, _transforms);
-			PhysicsMovements.ApplyDropTargetMovement(ref _dropTargetStates.Ref, _transforms);
-			PhysicsMovements.ApplyHitTargetMovement(ref _hitTargetStates.Ref, _transforms);
-			PhysicsMovements.ApplyGateMovement(ref _gateStates.Ref, _rotatableComponent);
-			PhysicsMovements.ApplyPlungerMovement(ref _plungerStates.Ref, _skinnedMeshRenderers);
-			PhysicsMovements.ApplySpinnerMovement(ref _spinnerStates.Ref, _rotatableComponent);
-			PhysicsMovements.ApplyTriggerMovement(ref _triggerStates.Ref, _transforms);
+			_physicsMovements.ApplyBallMovement(ref state, _transforms);
+			_physicsMovements.ApplyFlipperMovement(ref _flipperStates.Ref, _transforms);
+			_physicsMovements.ApplyBumperMovement(ref _bumperStates.Ref, _transforms);
+			_physicsMovements.ApplyDropTargetMovement(ref _dropTargetStates.Ref, _transforms);
+			_physicsMovements.ApplyHitTargetMovement(ref _hitTargetStates.Ref, _transforms);
+			_physicsMovements.ApplyGateMovement(ref _gateStates.Ref, _rotatableComponent);
+			_physicsMovements.ApplyPlungerMovement(ref _plungerStates.Ref, _skinnedMeshRenderers);
+			_physicsMovements.ApplySpinnerMovement(ref _spinnerStates.Ref, _rotatableComponent);
+			_physicsMovements.ApplyTriggerMovement(ref _triggerStates.Ref, _transforms);
 
 			#endregion
 		}
