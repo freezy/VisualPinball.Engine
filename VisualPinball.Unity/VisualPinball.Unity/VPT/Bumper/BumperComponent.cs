@@ -40,7 +40,21 @@ namespace VisualPinball.Unity
 		#region Data
 
 		[Tooltip("Position of the bumper on the playfield.")]
-		public Vector2 Position;
+		public Vector2 Position {
+			get
+			{
+				var pos = transform.localPosition;
+				var posVpx = pos.TranslateToVpx();
+				return new Vector2(posVpx.x, posVpx.y);
+			}
+			set
+			{
+				var posVpx = new Vector3(value.x, value.y, 0);
+				var pos = posVpx.TranslateToWorld();
+				var t = transform;
+				t.localPosition = new Vector3(pos.x, t.localPosition.y, t.localPosition.z);
+			}
+		}
 
 		[Range(20f, 250f)]
 		[Tooltip("Radius of the bumper. Updates xy scaling. 50 = Original size.")]
