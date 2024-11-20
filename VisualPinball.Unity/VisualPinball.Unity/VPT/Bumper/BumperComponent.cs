@@ -120,7 +120,6 @@ namespace VisualPinball.Unity
 
 		private void Start()
 		{
-			BumperTransform.InitialOffset.Clear();
 			_playfieldToWorld = Player.PlayfieldToWorldMatrix;
 			if (IsHardwired) {
 				WireMapping wireMapping = new() {

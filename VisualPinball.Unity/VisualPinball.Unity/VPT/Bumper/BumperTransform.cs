@@ -22,24 +22,24 @@ namespace VisualPinball.Unity
 	/// <summary>
 	/// Applies the state to the scene, aka the transform of the game objects.
 	/// </summary>
-	internal static class BumperTransform
+	internal class BumperTransform
 	{
-		internal static readonly Dictionary<int, float> InitialOffset = new();
+		private readonly Dictionary<int, float> _initialOffset = new();
 
-		internal static void UpdateRing(int itemId, in BumperRingAnimationState state, Transform transform)
+		internal void UpdateRing(int itemId, in BumperRingAnimationState state, Transform transform)
 		{
 			var worldPos = transform.position;
-			InitialOffset.TryAdd(itemId, worldPos.y);
+			_initialOffset.TryAdd(itemId, worldPos.y);
 
 			var limit = state.DropOffset + state.HeightScale * 0.5f;
-			var localLimit = InitialOffset[itemId] + limit;
+			var localLimit = _initialOffset[itemId] + limit;
 			var localOffset = localLimit / limit * state.Offset;
 
-			worldPos.y = InitialOffset[itemId] + Physics.ScaleToWorld(localOffset);
+			worldPos.y = _initialOffset[itemId] + Physics.ScaleToWorld(localOffset);
 			transform.position = worldPos;
 		}
 
-		internal static void UpdateSkirt(in BumperSkirtAnimationState state, Transform transform)
+		internal void UpdateSkirt(in BumperSkirtAnimationState state, Transform transform)
 		{
 			var parentRotation = transform.parent.rotation;
 			transform.rotation = Quaternion.Euler(state.Rotation.x, 0, -state.Rotation.y) * parentRotation;
