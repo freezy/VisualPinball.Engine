@@ -47,8 +47,8 @@ namespace VisualPinball.Unity
 			Header.Init(info, type);
 			Center = center;
 			Radius = radius;
-			ZHigh = zHigh;
 			ZLow = zLow;
+			ZHigh = zHigh;
 
 			Bounds = new ColliderBounds(Header.ItemId, Header.Id, new Aabb(
 				Center.x - Radius,
@@ -247,6 +247,12 @@ namespace VisualPinball.Unity
 			return uniformScale && !xyRotated;
 		}
 
+		public CircleCollider Transform(float4x4 matrix)
+		{
+			Transform(this, matrix);
+			return this;
+		}
+
 		public void Transform(CircleCollider circle, float4x4 matrix)
 		{
 			#if UNITY_EDITOR
@@ -258,16 +264,11 @@ namespace VisualPinball.Unity
 			TransformAabb(matrix);
 
 			var s = matrix.GetScale();
+			var t = matrix.GetTranslation();
 			Center = matrix.MultiplyPoint(new float3(circle.Center, 0)).xy;
 			Radius = circle.Radius * s.x;
-			ZHigh = circle.ZHigh * s.z;
-			ZLow = circle.ZLow * s.z;
-		}
-
-		public CircleCollider Transform(float4x4 matrix)
-		{
-			Transform(this, matrix);
-			return this;
+			ZHigh = t.z + circle.ZHigh * s.z;
+			ZLow = t.z + circle.ZLow * s.z;
 		}
 
 		public CircleCollider TransformAabb(float4x4 matrix)
