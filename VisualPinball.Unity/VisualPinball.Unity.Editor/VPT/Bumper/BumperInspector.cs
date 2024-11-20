@@ -59,7 +59,14 @@ namespace VisualPinball.Unity.Editor
 
 			OnPreInspectorGUI();
 
-			PropertyField(_positionProperty, updateTransforms: true);
+			// position
+			EditorGUI.BeginChangeCheck();
+			var newPos = EditorGUILayout.Vector2Field(new GUIContent("Position", "Position of the bumper on the playfield, relative to its parent."), MainComponent.Position);
+			if (EditorGUI.EndChangeCheck()) {
+				Undo.RecordObject(MainComponent.transform, "Change Bumper Position");
+				MainComponent.Position = newPos;
+			}
+
 			PropertyField(_radiusProperty, updateTransforms: true);
 			PropertyField(_heightScaleProperty, updateTransforms: true);
 			PropertyField(_orientationProperty, "Orientation", ref _isChangingYRotation,
