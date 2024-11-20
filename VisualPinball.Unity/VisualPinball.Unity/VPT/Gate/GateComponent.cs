@@ -49,11 +49,7 @@ namespace VisualPinball.Unity
 
 		public float Rotation {
 			get => transform.localEulerAngles.y > 180 ? transform.localEulerAngles.y - 360 : transform.localEulerAngles.y;
-			set {
-				var t = transform;
-				var e = t.localEulerAngles;
-				t.localEulerAngles = new Vector3(e.x, value, e.z);
-			}
+			set => transform.SetLocalYRotation(math.radians(value));
 		}
 
 		[Range(10f, 250f)]
