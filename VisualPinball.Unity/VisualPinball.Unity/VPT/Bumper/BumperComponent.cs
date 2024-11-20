@@ -39,7 +39,6 @@ namespace VisualPinball.Unity
 	{
 		#region Data
 
-		[Tooltip("Position of the bumper on the playfield.")]
 		public Vector2 Position {
 			get
 			{
@@ -64,9 +63,10 @@ namespace VisualPinball.Unity
 		[Tooltip("Height of the bumper. Updates z scaling. 100 = Original size.")]
 		public float HeightScale = 45f;
 
-		[Range(-180f, 180f)]
-		[Tooltip("Orientation angle. Updates z rotation.")]
-		public float Orientation;
+		public float Orientation {
+			get => transform.localEulerAngles.y > 180 ? transform.localEulerAngles.y - 360 : transform.localEulerAngles.y;
+			set => transform.SetLocalYRotation(math.radians(value));
+		}
 
 		[Tooltip("Should the bumper coil always activate when touched by a ball? Disable to give game logic engine full control")]
 		public bool IsHardwired = true;
