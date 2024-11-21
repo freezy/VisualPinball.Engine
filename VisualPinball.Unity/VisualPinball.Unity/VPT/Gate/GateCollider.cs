@@ -121,6 +121,12 @@ namespace VisualPinball.Unity
 			return !rotated && uniformlyScaled;
 		}
 
+		public GateCollider Transform(float4x4 matrix)
+		{
+			Transform(this, matrix);
+			return this;
+		}
+
 		public void Transform(GateCollider collider, float4x4 matrix)
 		{
 			#if UNITY_EDITOR
@@ -132,12 +138,6 @@ namespace VisualPinball.Unity
 			LineSeg0 = collider.LineSeg0.Transform(matrix);
 			LineSeg1 = collider.LineSeg1.Transform(matrix);
 			Bounds = collider.LineSeg0.Bounds;
-		}
-
-		public GateCollider Transform(float4x4 matrix)
-		{
-			Transform(this, matrix);
-			return this;
 		}
 
 		public GateCollider TransformAabb(float4x4 matrix)
