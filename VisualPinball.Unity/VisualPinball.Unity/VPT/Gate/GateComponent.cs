@@ -53,8 +53,24 @@ namespace VisualPinball.Unity
 		}
 
 		[Range(10f, 250f)]
-		[Tooltip("How much the gate is scaled, in percent.")]
 		public float _length = 100f;
+
+		public float Length
+		{
+			get {
+				var scale = transform.localScale;
+				if (math.abs(scale.x - scale.y) < Collider.Tolerance && math.abs(scale.x - scale.z) < Collider.Tolerance && math.abs(scale.y - scale.z) < Collider.Tolerance) {
+					return scale.x * 100f;
+				}
+				return _length;
+			}
+			set {
+				_length = value;
+				var s = value / 100f;
+				transform.localScale = new Vector3(s, s, s);
+			}
+		}
+
 
 		public ISurfaceComponent Surface { get => _surface as ISurfaceComponent; set => _surface = value as MonoBehaviour; }
 		[SerializeField]
@@ -72,8 +88,6 @@ namespace VisualPinball.Unity
 		public float PosX => Position.x;
 		public float PosY => Position.y;
 		public float Height => Position.z;
-
-		public float Length => _length;
 
 		public bool ShowBracket { get {
 			foreach (var mf in GetComponentsInChildren<MeshFilter>()) {
@@ -157,22 +171,7 @@ namespace VisualPinball.Unity
 
 		public void OnSurfaceUpdated() => UpdateTransforms();
 
-		public float PositionZ => SurfaceHeight(Surface, Position);
-
-		public override void UpdateTransforms()
-		{
-			base.UpdateTransforms();
-			// var t = transform;
-			//
-			// // position
-			// t.localPosition = Physics.TranslateToWorld(Position.x, Position.y, Position.z + PositionZ);
-			//
-			// // scale
-			// t.localScale = new float3(Length * 0.01f);
-			//
-			// // rotation
-			// t.localRotation = quaternion.RotateY(math.radians(Rotation));
-		}
+		public float PositionZ => SurfaceHeight(Surface, Position); // todo handle surface
 
 		public float4x4 TransformationWithinPlayfield => transform.worldToLocalMatrix.WorldToLocalTranslateWithinPlayfield(_playfieldToWorld);
 
