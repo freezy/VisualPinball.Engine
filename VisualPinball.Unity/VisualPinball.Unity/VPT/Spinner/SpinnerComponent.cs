@@ -40,15 +40,28 @@ namespace VisualPinball.Unity
 	{
 		#region Data
 
-		[Tooltip("Position of the spinner on the playfield.")]
-		public Vector2 Position;
+		private Vector3 _position {
+			get => transform.localPosition.TranslateToVpx();
+			set => transform.localPosition = value.TranslateToWorld();
+		}
 
-		[Tooltip("Z-Position on the playfield.")]
-		public float Height = 60f;
+		public Vector2 Position {
+			get => _position.XY();
+			set => _position = new Vector3(value.x, value.y, Height);
+		}
 
-		[Range(-180f, 180f)]
-		[Tooltip("Z-Axis rotation of the spinner on the playfield.")]
-		public float Rotation;
+		public float Height {
+			get => _position.z;
+			set {
+				var pos = _position;
+				_position = new Vector3(pos.x, pos.y, value);
+			}
+		}
+
+		public float Rotation {
+			get => transform.localEulerAngles.y > 180 ? transform.localEulerAngles.y - 360 : transform.localEulerAngles.y;
+			set => transform.SetLocalYRotation(math.radians(value));
+		}
 
 		[Min(0)]
 		[Tooltip("Overall scaling of the spinner")]
