@@ -69,10 +69,7 @@ namespace VisualPinball.Unity
 		private void GenerateBracketColliders(ref ColliderReference colliders)
 		{
 			const float h = 30.0f + PhysicsConstants.PhysSkin;
-
-			// extract dimensions from translation matrix
 			const float length = 80f; // 80 = size at scale 1
-			var height = 0;
 
 			/*add a hit shape for the bracket if shown, just in case if the bracket spinner height is low enough so the ball can hit it*/
 			const float halfLength = length * 0.5f + length * 0.1875f;
@@ -80,16 +77,16 @@ namespace VisualPinball.Unity
 			colliders.Add(new CircleCollider(
 				new float2(halfLength, 0),
 				length * 0.075f,
-				height,
-				height + h,
+				-h,
+				0,
 				_api.GetColliderInfo()
 			), _matrix);
 
 			colliders.Add(new CircleCollider(
 				new float2( -halfLength, 0),
 				length * 0.075f,
-				height,
-				height + h,
+				-h,
+				0,
 				_api.GetColliderInfo()
 			), _matrix);
 		}
