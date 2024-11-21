@@ -39,26 +39,11 @@ namespace VisualPinball.Unity
 
 		public ColliderBounds Bounds { get; private set; }
 
-		public SpinnerCollider(ColliderInfo info) : this()
+		public SpinnerCollider(in LineCollider lineSeg0, in LineCollider lineSeg1, ColliderInfo info) : this()
 		{
 			Header.Init(info, ColliderType.Spinner);
-
-			const float halfLength = 40f;
-
-			// note: this has diverged a bit from the vpx code: instead of generating the colliders at the correct
-			// position, we generate them at the origin and then transform them later.
-			var v1 = new float2(
-				- (halfLength + PhysicsConstants.PhysSkin), // through the edge of the
-				0  // spinner
-			);
-			var v2 = new float2(
-				halfLength + PhysicsConstants.PhysSkin, // oversize by the ball radius
-				0  // this will prevent clipping
-			);
-
-			// todo probably broke surface
-			LineSeg0 = new LineCollider(v1, v2, -2f * PhysicsConstants.PhysSkin, 0, info);
-			LineSeg1 = new LineCollider(v2, v1, -2f * PhysicsConstants.PhysSkin, 0, info);
+			LineSeg0 = lineSeg0;
+			LineSeg1 = lineSeg1;
 
 			Bounds = LineSeg0.Bounds;
 		}

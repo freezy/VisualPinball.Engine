@@ -34,10 +34,36 @@ namespace VisualPinball.Unity
 
 		internal void GenerateColliders(ref ColliderReference colliders)
 		{
-			colliders.Add(new SpinnerCollider(_api.GetColliderInfo()), _matrix);
+			GenerateSpinnerCollider(ref colliders);
 			if (_component.ShowBracket) {
 				GenerateBracketColliders(ref colliders);
 			}
+		}
+
+		/// <summary>
+		/// The collider that triggers the animation
+		/// </summary>
+		/// <param name="colliders"></param>
+		private void GenerateSpinnerCollider(ref ColliderReference colliders)
+		{
+			const float halfLength = 40f;
+
+			// note: this has diverged a bit from the vpx code: instead of generating the colliders at the correct
+			// position, we generate them relative to the origin and then transform them later.
+			var v1 = new float2(
+				- (halfLength + PhysicsConstants.PhysSkin), // through the edge of the
+				0  // spinner
+			);
+			var v2 = new float2(
+				halfLength + PhysicsConstants.PhysSkin, // oversize by the ball radius
+				0  // this will prevent clipping
+			);
+
+			// todo probably broke surface
+			var lineSeg0 = new LineCollider(v1, v2, -2f * PhysicsConstants.PhysSkin, 0, _api.GetColliderInfo());
+			var lineSeg1 = new LineCollider(v2, v1, -2f * PhysicsConstants.PhysSkin, 0, _api.GetColliderInfo());
+
+			colliders.Add(new SpinnerCollider(in lineSeg0, in lineSeg1, _api.GetColliderInfo()), _matrix);
 		}
 
 		private void GenerateBracketColliders(ref ColliderReference colliders)

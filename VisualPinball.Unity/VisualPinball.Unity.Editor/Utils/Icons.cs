@@ -373,6 +373,7 @@ namespace VisualPinball.Unity.Editor
 			Icons.DisableGizmo<SpinnerComponent>();
 			Icons.DisableGizmo<SpinnerColliderComponent>();
 			Icons.DisableGizmo<SpinnerPlateAnimationComponent>();
+			Icons.DisableGizmo<SpinnerBracketColliderComponent>();
 			Icons.DisableGizmo<SurfaceComponent>();
 			Icons.DisableGizmo<SurfaceColliderComponent>();
 			Icons.DisableGizmo<SurfaceSideMeshComponent>();
