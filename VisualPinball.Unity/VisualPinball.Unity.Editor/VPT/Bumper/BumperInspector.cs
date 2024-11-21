@@ -25,10 +25,7 @@ namespace VisualPinball.Unity.Editor
 	[CustomEditor(typeof(BumperComponent)), CanEditMultipleObjects]
 	public class BumperInspector : MainInspector<BumperData, BumperComponent>
 	{
-		private SerializedProperty _positionProperty;
 		private SerializedProperty _radiusProperty;
-		private SerializedProperty _heightScaleProperty;
-		private SerializedProperty _orientationProperty;
 		private SerializedProperty _surfaceProperty;
 		private SerializedProperty _isHardwiredProperty;
 
@@ -36,10 +33,7 @@ namespace VisualPinball.Unity.Editor
 		{
 			base.OnEnable();
 
-			_positionProperty = serializedObject.FindProperty(nameof(BumperComponent.Position));
 			_radiusProperty = serializedObject.FindProperty(nameof(BumperComponent.Radius));
-			_heightScaleProperty = serializedObject.FindProperty(nameof(BumperComponent.HeightScale));
-			_orientationProperty = serializedObject.FindProperty(nameof(BumperComponent.Orientation));
 			_surfaceProperty = serializedObject.FindProperty(nameof(BumperComponent._surface));
 			_isHardwiredProperty = serializedObject.FindProperty(nameof(BumperComponent.IsHardwired));
 		}
@@ -63,7 +57,14 @@ namespace VisualPinball.Unity.Editor
 			}
 
 			PropertyField(_radiusProperty, updateTransforms: true);
-			PropertyField(_heightScaleProperty, updateTransforms: true);
+
+			// height scale
+			EditorGUI.BeginChangeCheck();
+			var newHeightScale = EditorGUILayout.Slider(new GUIContent("Height Scale", "Height of the bumper. Updates z scaling. 100 = Original size."), MainComponent.HeightScale, 50f, 300f);
+			if (EditorGUI.EndChangeCheck()) {
+				Undo.RecordObject(MainComponent.transform, "Change Bumper Height Scale");
+				MainComponent.HeightScale = newHeightScale;
+			}
 
 			// orientation
 			EditorGUI.BeginChangeCheck();

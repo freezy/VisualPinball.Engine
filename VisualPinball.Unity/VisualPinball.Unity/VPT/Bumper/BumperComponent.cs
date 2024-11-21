@@ -39,29 +39,26 @@ namespace VisualPinball.Unity
 	{
 		#region Data
 
+		private Vector3 _position {
+			get => transform.localPosition.TranslateToVpx();
+			set => transform.localPosition = value.TranslateToWorld();
+		}
+
 		public Vector2 Position {
-			get
-			{
-				var pos = transform.localPosition;
-				var posVpx = pos.TranslateToVpx();
-				return new Vector2(posVpx.x, posVpx.y);
-			}
-			set
-			{
-				var posVpx = new Vector3(value.x, value.y, 0);
-				var pos = posVpx.TranslateToWorld();
-				var t = transform;
-				t.localPosition = new Vector3(pos.x, t.localPosition.y, t.localPosition.z);
-			}
+			get => _position.XY();
+			set => _position = new Vector3(value.x, value.y, _position.z);
 		}
 
 		[Range(20f, 250f)]
 		[Tooltip("Radius of the bumper. Updates xy scaling. 50 = Original size.")]
 		public float Radius = 45f;
 
-		[Range(50f, 300f)]
-		[Tooltip("Height of the bumper. Updates z scaling. 100 = Original size.")]
-		public float HeightScale = 45f;
+		public float HeightScale
+		{
+			get => transform.localScale.y * DataMeshScale;
+			set => transform.localScale = new Vector3(transform.localScale.x, value / DataMeshScale, transform.localScale.z);
+
+		}
 
 		public float Orientation {
 			get => transform.localEulerAngles.y > 180 ? transform.localEulerAngles.y - 360 : transform.localEulerAngles.y;
@@ -173,13 +170,8 @@ namespace VisualPinball.Unity
 		public override void UpdateTransforms()
 		{
 			base.UpdateTransforms();
-			 var t = transform;
-
-			 // position
-			 t.localPosition = Physics.TranslateToWorld(Position.x, Position.y, PositionZ);
-
-			 // scale
-			 t.localScale = new Vector3(Radius * 2f, HeightScale, Radius * 2f) / DataMeshScale;
+			 // this is for when the radius is changed, in this case we syn x/z scale
+			 transform.localScale = new Vector3(Radius * 2f, HeightScale, Radius * 2f) / DataMeshScale;
 		}
 
 		public void UpdateTransforms(Quaternion xz)
