@@ -63,9 +63,23 @@ namespace VisualPinball.Unity
 			set => transform.SetLocalYRotation(math.radians(value));
 		}
 
-		[Min(0)]
-		[Tooltip("Overall scaling of the spinner")]
-		public float Length = 80f;
+		public float Length
+		{
+			get {
+				var scale = transform.localScale;
+				if (math.abs(scale.x - scale.y) < Collider.Tolerance && math.abs(scale.x - scale.z) < Collider.Tolerance && math.abs(scale.y - scale.z) < Collider.Tolerance) {
+					return scale.x * 80f;
+				}
+				return _length;
+			}
+			set {
+				_length = value;
+				var s = value / 80f;
+				transform.localScale = new Vector3(s, s, s);
+			}
+		}
+
+		private float _length = 80f;
 
 		[Range(0, 1f)]
 		[Tooltip("Damping on each turn while moving.")]
@@ -158,16 +172,16 @@ namespace VisualPinball.Unity
 		public override void UpdateTransforms()
 		{
 			base.UpdateTransforms();
-			var t = transform;
+			// var t = transform;
 
-			// position
-			t.localPosition = Physics.TranslateToWorld(Position.x, Position.y, HeightOnPlayfield);
-
-			// scale
-			t.localScale = new float3(Length / 80f);
-
-			// rotation
-			t.localRotation = quaternion.RotateY(math.radians(Rotation));
+			// // position
+			// t.localPosition = Physics.TranslateToWorld(Position.x, Position.y, HeightOnPlayfield);
+			//
+			// // scale
+			// t.localScale = new float3(Length / 80f);
+			//
+			// // rotation
+			// t.localRotation = quaternion.RotateY(math.radians(Rotation));
 		}
 
 		public float4x4 TransformationWithinPlayfield => transform.worldToLocalMatrix.WorldToLocalTranslateWithinPlayfield(_playfieldToWorld);

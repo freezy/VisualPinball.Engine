@@ -27,7 +27,6 @@ namespace VisualPinball.Unity.Editor
 	{
 		private bool _foldoutPhysics = true;
 
-		private SerializedProperty _lengthProperty;
 		private SerializedProperty _dampingProperty;
 		private SerializedProperty _angleMaxProperty;
 		private SerializedProperty _angleMinProperty;
@@ -37,7 +36,6 @@ namespace VisualPinball.Unity.Editor
 		{
 			base.OnEnable();
 
-			_lengthProperty = serializedObject.FindProperty(nameof(SpinnerComponent.Length));
 			_surfaceProperty = serializedObject.FindProperty(nameof(SpinnerComponent._surface));
 			_dampingProperty = serializedObject.FindProperty(nameof(SpinnerComponent.Damping));
 			_angleMaxProperty = serializedObject.FindProperty(nameof(SpinnerComponent.AngleMax));
@@ -69,7 +67,12 @@ namespace VisualPinball.Unity.Editor
 				MainComponent.Height = newHeight;
 			}
 
-			PropertyField(_lengthProperty, updateTransforms: true);
+			EditorGUI.BeginChangeCheck();
+			var newLength = EditorGUILayout.FloatField(new GUIContent("Length", "Overall scaling of the spinner, 80 = original size."), MainComponent.Length);
+			if (EditorGUI.EndChangeCheck()) {
+				Undo.RecordObject(MainComponent.transform, "Change Spinner Length");
+				MainComponent.Length = newLength;
+			}
 
 			EditorGUI.BeginChangeCheck();
 			var newRotation = EditorGUILayout.Slider(new GUIContent("Rotation", "Z-Axis rotation of the spinner on the playfield."), MainComponent.Rotation, -180f, 180f);
