@@ -65,7 +65,7 @@ namespace VisualPinball.Unity
 		private void GenerateGateCollider(ref ColliderReference colliders)
 		{
 			// note: this has diverged a bit from the vpx code: instead of generating the colliders at the correct
-			// position, we generate them at the origin and then transform them later.
+			// position, we generate them relative to the origin and then transform them.
 
 			const float halfLength = 10f;
 			var v1 = new float2(-(halfLength + PhysicsConstants.PhysSkin), 0);

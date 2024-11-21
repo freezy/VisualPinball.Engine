@@ -167,22 +167,7 @@ namespace VisualPinball.Unity
 		public void OnSurfaceUpdated() => UpdateTransforms();
 		public float PositionZ => SurfaceHeight(Surface, Position);
 
-		public float HeightOnPlayfield => Height + PositionZ;
-
-		public override void UpdateTransforms()
-		{
-			base.UpdateTransforms();
-			// var t = transform;
-
-			// // position
-			// t.localPosition = Physics.TranslateToWorld(Position.x, Position.y, HeightOnPlayfield);
-			//
-			// // scale
-			// t.localScale = new float3(Length / 80f);
-			//
-			// // rotation
-			// t.localRotation = quaternion.RotateY(math.radians(Rotation));
-		}
+		public float HeightOnPlayfield => Height + PositionZ; // todo handle surface
 
 		public float4x4 TransformationWithinPlayfield => transform.worldToLocalMatrix.WorldToLocalTranslateWithinPlayfield(_playfieldToWorld);
 
@@ -346,17 +331,7 @@ namespace VisualPinball.Unity
 
 		public override ItemDataTransformType EditorScaleType => ItemDataTransformType.OneD;
 
-		public bool ShowBracket {
-			get {
-				foreach (var mf in GetComponentsInChildren<MeshFilter>()) {
-					switch (mf.sharedMesh.name) {
-						case BracketMeshName:
-							return mf.gameObject.activeInHierarchy;
-					}
-				}
-				return false;
-			}
-		}
+		public bool ShowBracket => GetComponentsInChildren<SpinnerBracketColliderComponent>().Any();
 
 		public override Vector3 GetEditorScale() => new Vector3(Length, 0f, 0f);
 		public override void SetEditorScale(Vector3 scale) => Length = scale.x;
