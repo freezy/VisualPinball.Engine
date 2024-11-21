@@ -15,7 +15,6 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using Unity.Mathematics;
-using UnityEngine;
 using VisualPinball.Engine.Common;
 
 namespace VisualPinball.Unity
@@ -124,11 +123,20 @@ namespace VisualPinball.Unity
 
 		#endregion
 
-		public void Transform(SpinnerCollider collider, float4x4 matrix)
+		#region Transformation
+
+		public static bool IsTransformable(float4x4 matrix)
 		{
-			LineSeg0 = collider.LineSeg0.Transform(matrix);
-			LineSeg1 = collider.LineSeg1.Transform(matrix);
-			Bounds = collider.LineSeg0.Bounds;
+			// position: fully transformable
+			// scale: only uniform scale ("length")
+			// rotation: only around Z axis ("rotation")
+
+			var scale = matrix.GetScale();
+			var rotation = matrix.GetRotationVector();
+			var rotated = math.abs(rotation.x) > Collider.Tolerance || math.abs(rotation.y) > Collider.Tolerance;
+			var uniformlyScaled = math.abs(scale.x - scale.y) < Collider.Tolerance && math.abs(scale.x - scale.z) < Collider.Tolerance && math.abs(scale.y -  scale.z) < Collider.Tolerance;
+
+			return !rotated && uniformlyScaled;
 		}
 
 		public SpinnerCollider Transform(float4x4 matrix)
@@ -136,6 +144,27 @@ namespace VisualPinball.Unity
 			Transform(this, matrix);
 			return this;
 		}
+
+		public void Transform(SpinnerCollider collider, float4x4 matrix)
+		{
+			#if UNITY_EDITOR
+			if (!IsTransformable(matrix)) {
+				throw new System.InvalidOperationException($"Matrix {matrix} cannot transform spinner.");
+			}
+			#endif
+
+			LineSeg0 = collider.LineSeg0.Transform(matrix);
+			LineSeg1 = collider.LineSeg1.Transform(matrix);
+			Bounds = collider.LineSeg0.Bounds;
+		}
+
+		public SpinnerCollider TransformAabb(float4x4 matrix)
+		{
+			Bounds = new ColliderBounds(Header.ItemId, Header.Id, Bounds.Aabb.Transform(matrix));
+			return this;
+		}
+
+		#endregion
 
 		public override string ToString() => $"SpinnerCollider[{Header.ItemId}] {LineSeg0.ToString()} | {LineSeg1.ToString()}";
 	}
