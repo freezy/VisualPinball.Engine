@@ -147,9 +147,9 @@ namespace VisualPinball.Unity
 			ref ColliderReference kinematicColliders, float4x4 translateWithinPlayfieldMatrix, float margin)
 		{
 			if (ColliderComponent._isKinematic) {
-				kinematicColliders.Add(new PlungerCollider(MainComponent, ColliderComponent, GetColliderInfo()).TransformAabb(translateWithinPlayfieldMatrix));
+				kinematicColliders.Add(new PlungerCollider(MainComponent, ColliderComponent, GetColliderInfo()), translateWithinPlayfieldMatrix);
 			} else {
-				colliders.Add(new PlungerCollider(MainComponent, ColliderComponent, GetColliderInfo()).TransformAabb(translateWithinPlayfieldMatrix));
+				colliders.Add(new PlungerCollider(MainComponent, ColliderComponent, GetColliderInfo()), translateWithinPlayfieldMatrix);
 			}
 		}
 
