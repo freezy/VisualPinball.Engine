@@ -257,7 +257,7 @@ namespace VisualPinball.Unity
 		{
 			#if UNITY_EDITOR
 			if (!IsTransformable(matrix)) {
-				throw new System.InvalidOperationException($"Matrix {matrix} cannot transform flipper.");
+				throw new System.InvalidOperationException($"Matrix {matrix} cannot transform circle collider.");
 			}
 			#endif
 

@@ -67,9 +67,6 @@ namespace VisualPinball.Unity
 		public bool IsKinematic => _isKinematic;
 		public int ItemId => MainComponent.gameObject.GetInstanceID();
 
-		public override float4x4 TranslateWithinPlayfieldMatrix(float4x4 worldToPlayfield)
-			=> MainComponent.LocalToWorldPhysicsMatrix.LocalToWorldTranslateWithinPlayfield(worldToPlayfield);
-
 		public float4x4 TransformationWithinPlayfield => MainComponent.TransformationWithinPlayfield;
 
 		#endregion

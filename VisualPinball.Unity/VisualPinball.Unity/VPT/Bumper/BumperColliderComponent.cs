@@ -53,9 +53,6 @@ namespace VisualPinball.Unity
 		public int ItemId => MainComponent.gameObject.GetInstanceID();
 		public float4x4 TransformationWithinPlayfield => MainComponent.TransformationWithinPlayfield;
 
-		public override float4x4 TranslateWithinPlayfieldMatrix(float4x4 worldToPlayfield)
-			=> MainComponent.transform.localToWorldMatrix.LocalToWorldTranslateWithinPlayfield(worldToPlayfield);
-
 		#endregion
 
 		protected override IApiColliderGenerator InstantiateColliderApi(Player player, PhysicsEngine physicsEngine)

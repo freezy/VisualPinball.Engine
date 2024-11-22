@@ -135,7 +135,7 @@ namespace VisualPinball.Unity
 		public override void UpdateTransforms()
 		{
 			base.UpdateTransforms();
-			
+
 			GetComponent<PlungerRodMeshComponent>()?.CalculateBoundingBox();
 			GetComponent<PlungerSpringMeshComponent>()?.CalculateBoundingBox();
 		}
@@ -143,19 +143,6 @@ namespace VisualPinball.Unity
 		private void Start()
 		{
 			_playfieldToWorld = Player.PlayfieldToWorldMatrix;
-		}
-
-		public float4x4 LocalToWorldPhysicsMatrix
-		{
-			get
-			{
-				return float4x4.Translate(transform.localPosition);
-				return float4x4.identity;
-				// var t = transform;
-				// var m = t.localToWorldMatrix;
-				// var r = t.localRotation.eulerAngles;
-				// return math.mul(m, math.inverse(float4x4.RotateY(math.radians(r.y))));
-			}
 		}
 
 		#endregion
