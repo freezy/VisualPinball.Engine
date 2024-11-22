@@ -45,11 +45,32 @@ namespace VisualPinball.Unity
 	{
 		#region Data
 
-		[Tooltip("Position of the kicker on the playfield.")]
-		public Vector2 Position;
+		private Vector3 _position {
+			get => transform.localPosition.TranslateToVpx();
+			set => transform.localPosition = value.TranslateToWorld();
+		}
 
-		[Tooltip("Kicker radius. Scales the mesh accordingly.")]
-		public float Radius = 25f;
+		public Vector2 Position {
+			get => _position.XY();
+			set => _position = new Vector3(value.x, value.y, _position.z);
+		}
+
+		public float Radius {
+			get {
+				var scale = transform.localScale;
+				if (math.abs(scale.x - scale.y) < Collider.Tolerance && math.abs(scale.x - scale.z) < Collider.Tolerance && math.abs(scale.y - scale.z) < Collider.Tolerance) {
+					return scale.x * 25f;
+				}
+				return _radius;
+			}
+			set {
+				_radius = value;
+				var s = value / 25f;
+				transform.localScale = new Vector3(s, s, s);
+			}
+		}
+
+		private float _radius = 25f;
 
 		[Tooltip("R-Rotation of the kicker")]
 		public float Orientation;
@@ -157,8 +178,7 @@ namespace VisualPinball.Unity
 		public float2 RotatedPosition {
 			get => new(Position.x, Position.y);
 			set {
-				Position.x = value.x;
-				Position.y = value.y;
+				Position = new Vector2(value.x, value.y);
 				UpdateTransforms();
 			}
 		}

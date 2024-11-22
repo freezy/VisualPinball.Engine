@@ -197,16 +197,6 @@ namespace VisualPinball.Unity
 			return collider.Id;
 		}
 
-		[Obsolete("Add with matrix only.")]
-		internal int Add(CircleCollider collider)
-		{
-			collider.Id = Lookups.Length;
-			TrackReference(collider.Header.ItemId, collider.Header.Id);
-			Lookups.Add(new ColliderLookup(ColliderType.Circle, CircleColliders.Length));
-			CircleColliders.Add(collider);
-			return collider.Id;
-		}
-
 		internal int Add(FlipperCollider collider, float4x4 matrix)
 		{
 			if (FlipperCollider.IsTransformable(matrix)) {
