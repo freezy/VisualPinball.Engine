@@ -63,7 +63,10 @@ namespace VisualPinball.Unity
 			JointBase0 = new LineZCollider(new float2(x, y), zHeight, zHeight + Plunger.PlungerHeight, info);
 			JointBase1 = new LineZCollider(new float2(x2, y), zHeight, zHeight + Plunger.PlungerHeight, info);
 
-			// Debug.Log($"Initial bounds: {Bounds}");
+			Bounds = new ColliderBounds(Header.ItemId, Header.Id, new Aabb(
+				new float3(-comp.Width - 10, comp.Height, 0),
+				new float3(comp.Width + 10, -100, 50)
+			));
 		}
 
 		#region Transformation
@@ -89,7 +92,7 @@ namespace VisualPinball.Unity
 			return this;
 		}
 
-		public void Transform(PlungerCollider collider, float4x4 matrix)
+		private void Transform(PlungerCollider collider, float4x4 matrix)
 		{
 			#if UNITY_EDITOR
 			if (!IsTransformable(matrix)) {
@@ -97,40 +100,16 @@ namespace VisualPinball.Unity
 			}
 			#endif
 
+			TransformAabb(matrix);
+
 			LineSegBase = collider.LineSegBase.Transform(matrix);
 			JointBase0 = collider.JointBase0.Transform(matrix);
 			JointBase1 = collider.JointBase1.Transform(matrix);
-
-			//Bounds = collider.LineSeg0.Bounds;
 		}
-
-		// public PlungerCollider TransformAabb(float4x4 matrix)
-		// {
-		// 	Bounds = new ColliderBounds(Header.ItemId, Header.Id, Bounds.Aabb.Transform(matrix));
-		// 	return this;
-		// }
 
 		public PlungerCollider TransformAabb(float4x4 matrix)
 		{
-			var x = -_size.x;
-			var x2 = _size.x;
-			var y = _size.y;
-			var frameEnd = -_stroke;
-
-			var min = new float3(x - 0.1f, frameEnd - 0.1f, 0);
-			var max = new float3(x2 + 0.1f, y + 0.1f, Plunger.PlungerHeight);
-
-			var p1 = matrix.MultiplyPoint(min);
-			var p2 = matrix.MultiplyPoint(max);
-
-			var aabb = new Aabb(math.min(p1, p2), math.max(p1, p2));
-
-			Bounds = new ColliderBounds(Header.ItemId, Header.Id, aabb);
-			// Debug.Log($"pos: {matrix.GetTranslation()}");
-			// Debug.Log($"rot: {matrix.GetRotationVector()}");
-			// Debug.Log($"scale: {matrix.GetScale()}");
-			// Debug.Log($"Transformed bounds: {Bounds}");
-
+			Bounds = new ColliderBounds(Header.ItemId, Header.Id, Bounds.Aabb.Transform(matrix));
 			return this;
 		}
 
