@@ -27,7 +27,6 @@ namespace VisualPinball.Unity.Editor
 	{
 		private SerializedProperty _widthProperty;
 		private SerializedProperty _heightProperty;
-		private SerializedProperty _zAdjustProperty;
 		private SerializedProperty _surfaceProperty;
 
 		protected override void OnEnable()
@@ -36,7 +35,6 @@ namespace VisualPinball.Unity.Editor
 
 			_widthProperty = serializedObject.FindProperty(nameof(PlungerComponent.Width));
 			_heightProperty = serializedObject.FindProperty(nameof(PlungerComponent.Height));
-			_zAdjustProperty = serializedObject.FindProperty(nameof(PlungerComponent.ZAdjust));
 			_surfaceProperty = serializedObject.FindProperty(nameof(PlungerComponent._surface));
 		}
 
@@ -60,7 +58,15 @@ namespace VisualPinball.Unity.Editor
 
 			PropertyField(_widthProperty, rebuildMesh: true);
 			PropertyField(_heightProperty, rebuildMesh: true);
-			PropertyField(_zAdjustProperty, rebuildMesh: true);
+
+			// z-adjust
+			EditorGUI.BeginChangeCheck();
+			var newZAdjust = EditorGUILayout.FloatField(new GUIContent("Z Adjustment", "The Z-Position of the plunger. VPX calls it like that."), MainComponent.ZAdjust);
+			if (EditorGUI.EndChangeCheck()) {
+				Undo.RecordObject(MainComponent.transform, "Change Plunger Z Adjustment");
+				MainComponent.ZAdjust = newZAdjust;
+			}
+
 			PropertyField(_surfaceProperty, rebuildMesh: true);
 
 			base.OnInspectorGUI();
