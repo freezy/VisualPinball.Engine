@@ -32,7 +32,7 @@ namespace VisualPinball.Unity
 		#region Definitions
 
 		private const float Scale = 1852.71f;
-		private const float ScaleInv = (float)(1 / (double)Scale);
+		public const float ScaleInv = (float)(1 / (double)Scale);
 
 		private static readonly float2 Translate = new(0, 0);
 

@@ -60,8 +60,8 @@ namespace VisualPinball.Unity
 			var bounds = smr.localBounds;
 			var ringOffset = rodComp != null ? rodComp.RingGap + rodComp.RingWidth : 0f;
 			var radius = plungerComp.Width / 2 * SpringDiam + 2f;
-			bounds.center = new Vector3(0, ringOffset - 25, 45);
-			bounds.extents = new Vector3(radius, 110f, radius);
+			bounds.center = new Vector3(0, 25f, -(ringOffset - 25)) * Physics.ScaleInv;
+			bounds.extents = new Vector3(radius, radius, -110f) * Physics.ScaleInv;
 			smr.localBounds = bounds;
 		}
 	}

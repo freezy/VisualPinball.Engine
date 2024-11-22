@@ -18,14 +18,18 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using NLog;
+using UnityEngine;
 using VisualPinball.Engine.Game;
 using VisualPinball.Engine.Math;
+using Logger = NLog.Logger;
 using MathF = VisualPinball.Engine.Math.MathF;
 
 namespace VisualPinball.Engine.VPT.Plunger
 {
 	public class PlungerMeshGenerator
 	{
+		private const float Scale = 1852.71f;
+		private const float ScaleInv = (float)(1 / (double)Scale);
 		public const string Flat = "Flat";
 		public const string Rod = "Rod";
 		public const string Spring = "Spring";
@@ -371,13 +375,14 @@ namespace VisualPinball.Engine.VPT.Plunger
 						tv = vertices[m - 1].Tv + (tv - vertices[m - 1].Tv) * ratio;
 					}
 
+					// we swap yz and scale to move it to world space
 					vertices[i++] = new Vertex3DNoTex2 {
-						X = r * (sn * _data.Width),
-						Y = y,
-						Z = (r * (cs * _data.Width) + _data.Width + _zHeight) * _zScale,
+						X = r * (sn * _data.Width) * ScaleInv,
+						Y = ((r * (cs * _data.Width) + _data.Width + _zHeight) * _zScale) * ScaleInv,
+						Z = -y * ScaleInv,
 						Nx = c.nx * sn,
-						Ny = c.ny,
-						Nz = c.nx * cs,
+						Ny = c.nx * cs,
+						Nz = -c.ny,
 						Tu = tu,
 						Tv = tv
 					};
@@ -511,37 +516,36 @@ namespace VisualPinball.Engine.VPT.Plunger
 
 				// set the point on the front spiral
 				vertices[pm++] = new Vertex3DNoTex2 {
-					X = _springRadius * (sn * _data.Width),
-					Y = y - _springGauge,
-					Z = (_springRadius * (cs * _data.Width) + _data.Width + _zHeight) * _zScale,
+					X = _springRadius * (sn * _data.Width) * ScaleInv,
+					Y = (_springRadius * (cs * _data.Width) + _data.Width + _zHeight) * _zScale * ScaleInv,
+					Z = -(y - _springGauge) * ScaleInv,
 					Nx = 0.0f,
-					Ny = -1.0f,
-					Nz = 0.0f,
+					Ny = 0.0f,
+					Nz = 1.0f,
 					Tu = (sn + 1.0f) * 0.5f,
 					Tv = 0.76f
 				};
 
 				// set the point on the top spiral
 				vertices[pm++] = new Vertex3DNoTex2 {
-					X = (_springRadius + springGaugeRel / 1.5f) * (sn * _data.Width),
-					Y = y,
-					Z = ((_springRadius + springGaugeRel / 1.5f) * (cs * _data.Width) + _data.Width + _zHeight) *
-					    _zScale,
+					X = (_springRadius + springGaugeRel / 1.5f) * (sn * _data.Width) * ScaleInv,
+					Y = ((_springRadius + springGaugeRel / 1.5f) * (cs * _data.Width) + _data.Width + _zHeight) * _zScale * ScaleInv,
+					Z = -y * ScaleInv,
 					Nx = sn,
-					Ny = 0.0f,
-					Nz = cs,
+					Ny = cs,
+					Nz = 0.0f,
 					Tu = (sn + 1.0f) * 0.5f,
 					Tv = 0.85f
 				};
 
 				// set the point on the back spiral
 				vertices[pm++] = new Vertex3DNoTex2 {
-					X = _springRadius * (sn * _data.Width),
-					Y = y + _springGauge,
-					Z = (_springRadius * (cs * _data.Width) + _data.Width + _zHeight) * _zScale,
+					X = _springRadius * (sn * _data.Width) * ScaleInv,
+					Y = (_springRadius * (cs * _data.Width) + _data.Width + _zHeight) * _zScale * ScaleInv,
+					Z = -(y + _springGauge) * ScaleInv,
 					Nx = 0.0f,
-					Ny = 1.0f,
-					Nz = 0.0f,
+					Ny = 0.0f,
+					Nz = -1.0f,
 					Tu = (sn + 1.0f) * 0.5f,
 					Tv = 0.98f
 				};
