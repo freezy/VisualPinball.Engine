@@ -28,7 +28,7 @@ namespace VisualPinball.Unity
 		private static readonly ProfilerMarker PerfMarker1 = new("ColliderUtils.GenerateCollidersFromMesh.ICollider");
 		private static readonly ProfilerMarker PerfMarker2 = new("ColliderUtils.GenerateCollidersFromMesh.NativeArray");
 
-		public static void Generate3DPolyColliders(in float3[] rgv, ColliderInfo info, ref ColliderReference colliders, float4x4 matrix, bool isNonTransformableParent)
+		public static void Generate3DPolyColliders(in float3[] rgv, ColliderInfo info, ref ColliderReference colliders, float4x4 matrix)
 		{
 			var inputVerts = new float2[rgv.Length];
 
@@ -46,10 +46,10 @@ namespace VisualPinball.Unity
 			}
 			var mesh = new Mesh(triangulatedVerts, outputIndices);
 
-			GenerateCollidersFromMesh(mesh, info, ref colliders, matrix, false, isNonTransformableParent);
+			GenerateCollidersFromMesh(mesh, info, ref colliders, matrix, false);
 		}
 
-		public static void GenerateCollidersFromMesh(Mesh mesh, ColliderInfo info, ref ColliderReference colliders, float4x4 matrix, bool onlyTriangles = false, bool isNonTransformableParent = false)
+		public static void GenerateCollidersFromMesh(Mesh mesh, ColliderInfo info, ref ColliderReference colliders, float4x4 matrix, bool onlyTriangles = false)
 		{
 			PerfMarker1.Begin();
 			var addedEdges = EdgeSet.Get(Allocator.TempJob);
@@ -66,33 +66,17 @@ namespace VisualPinball.Unity
 				var rgv1 = mesh.Vertices[i1].GetVertex().ToUnityFloat3();
 				var rgv2 = mesh.Vertices[i2].GetVertex().ToUnityFloat3();
 
-				if (isNonTransformableParent) {
-					colliders.AddNonTransformable(new TriangleCollider(rgv0, rgv2, rgv1, info), matrix);
-				} else {
-					colliders.Add(new TriangleCollider(rgv0, rgv2, rgv1, info), matrix);
-				}
+				colliders.Add(new TriangleCollider(rgv0, rgv2, rgv1, info), matrix);
 
 				if (!onlyTriangles) {
 					if (addedEdges.ShouldAddHitEdge(i0, i1)) {
-						if (isNonTransformableParent) {
-							colliders.AddNonTransformable(new Line3DCollider(rgv0, rgv2, info), matrix);
-						} else {
-							colliders.Add(new Line3DCollider(rgv0, rgv2, info), matrix);
-						}
+						colliders.Add(new Line3DCollider(rgv0, rgv2, info), matrix);
 					}
 					if (addedEdges.ShouldAddHitEdge(i1, i2)) {
-						if (isNonTransformableParent) {
-							colliders.AddNonTransformable(new Line3DCollider(rgv2, rgv1, info), matrix);
-						} else {
-							colliders.Add(new Line3DCollider(rgv2, rgv1, info), matrix);
-						}
+						colliders.Add(new Line3DCollider(rgv2, rgv1, info), matrix);
 					}
 					if (addedEdges.ShouldAddHitEdge(i2, i0)) {
-						if (isNonTransformableParent) {
-							colliders.AddNonTransformable(new Line3DCollider(rgv1, rgv0, info), matrix);
-						} else {
-							colliders.Add(new Line3DCollider(rgv1, rgv0, info), matrix);
-						}
+						colliders.Add(new Line3DCollider(rgv1, rgv0, info), matrix);
 					}
 				}
 			}
@@ -101,17 +85,13 @@ namespace VisualPinball.Unity
 			// add collision vertices
 			if (!onlyTriangles) {
 				foreach (var vertex in mesh.Vertices) {
-					if (isNonTransformableParent) {
-						colliders.AddNonTransformable(new PointCollider(vertex.ToUnityFloat3(), info), matrix);
-					} else {
-						colliders.Add(new PointCollider(vertex.ToUnityFloat3(), info), matrix);
-					}
+					colliders.Add(new PointCollider(vertex.ToUnityFloat3(), info), matrix);
 				}
 			}
 			PerfMarker1.End();
 		}
 
-		public static void GenerateCollidersFromMesh(in NativeArray<Vector3> vertices, in NativeArray<int> indices, ref Matrix4x4 matrix, ColliderInfo info, ref ColliderReference colliders, bool onlyTriangles = false)
+		public static void GenerateCollidersFromMesh(in NativeArray<Vector3> vertices, in NativeArray<int> indices, float4x4 matrix, ColliderInfo info, ref ColliderReference colliders, bool onlyTriangles = false)
 		{
 			PerfMarker2.Begin();
 			var addedEdges = EdgeSet.Get(Allocator.TempJob, vertices.Length);
@@ -123,22 +103,22 @@ namespace VisualPinball.Unity
 				var i2 = indices[i + 2];
 
 				// NB: HitTriangle wants CCW vertices, but for rendering we have them in CW order
-				var rgv0 = matrix.MultiplyPoint(vertices[i0]);
-				var rgv1 = matrix.MultiplyPoint(vertices[i1]);
-				var rgv2 = matrix.MultiplyPoint(vertices[i2]);
+				var rgv0 = vertices[i0];
+				var rgv1 = vertices[i1];
+				var rgv2 = vertices[i2];
 
-				colliders.Add(new TriangleCollider(rgv0, rgv2, rgv1, info));
+				colliders.Add(new TriangleCollider(rgv0, rgv2, rgv1, info), matrix);
 
 				if (!onlyTriangles) {
 
 					if (addedEdges.ShouldAddHitEdge(i0, i1)) {
-						colliders.Add(new Line3DCollider(rgv0, rgv2, info));
+						colliders.Add(new Line3DCollider(rgv0, rgv2, info), matrix);
 					}
 					if (addedEdges.ShouldAddHitEdge(i1, i2)) {
-						colliders.Add(new Line3DCollider(rgv2, rgv1, info));
+						colliders.Add(new Line3DCollider(rgv2, rgv1, info), matrix);
 					}
 					if (addedEdges.ShouldAddHitEdge(i2, i0)) {
-						colliders.Add(new Line3DCollider(rgv1, rgv0, info));
+						colliders.Add(new Line3DCollider(rgv1, rgv0, info), matrix);
 					}
 				}
 			}
@@ -146,7 +126,7 @@ namespace VisualPinball.Unity
 			// add collision vertices
 			if (!onlyTriangles) {
 				foreach (var vertex in vertices) {
-					colliders.Add(new PointCollider(matrix.MultiplyPoint(vertex), info));
+					colliders.Add(new PointCollider(vertex, info), matrix);
 				}
 			}
 

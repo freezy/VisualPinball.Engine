@@ -252,8 +252,19 @@ namespace VisualPinball.Unity
 			return collider.Id;
 		}
 
-		internal int Add(Line3DCollider collider, float4x4 matrix) => Add(collider.Transform(matrix));
+		internal int Add(Line3DCollider collider, float4x4 matrix)
+		{
+			collider.Header.IsTransformed = true;
+			collider.Transform(matrix);
 
+			collider.Id = Lookups.Length;
+			TrackReference(collider.Header.ItemId, collider.Header.Id);
+			Lookups.Add(new ColliderLookup(ColliderType.Line3D, Line3DColliders.Length));
+			Line3DColliders.Add(collider);
+			return collider.Id;
+		}
+
+		[Obsolete("Add with matrix only.")]
 		internal int Add(Line3DCollider collider)
 		{
 			collider.Id = Lookups.Length;
@@ -313,7 +324,19 @@ namespace VisualPinball.Unity
 			return collider.Id;
 		}
 
-		internal int Add(PointCollider collider, float4x4 matrix) => Add(collider.Transform(matrix));
+		internal int Add(PointCollider collider, float4x4 matrix)
+		{
+			collider.Header.IsTransformed = true;
+			collider.Transform(matrix);
+
+			collider.Id = Lookups.Length;
+			TrackReference(collider.Header.ItemId, collider.Header.Id);
+			Lookups.Add(new ColliderLookup(ColliderType.Point, PointColliders.Length));
+			PointColliders.Add(collider);
+			return collider.Id;
+		}
+
+		[Obsolete("Add with matrix only.")]
 		internal int Add(PointCollider collider)
 		{
 			collider.Id = Lookups.Length;
@@ -346,7 +369,19 @@ namespace VisualPinball.Unity
 			return collider.Id;
 		}
 
-		internal int Add(TriangleCollider collider, float4x4 matrix) => Add(collider.Transform(matrix));
+		internal int Add(TriangleCollider collider, float4x4 matrix)
+		{
+			collider.Header.IsTransformed = true;
+			collider.Transform(matrix);
+
+			collider.Id = Lookups.Length;
+			TrackReference(collider.Header.ItemId, collider.Header.Id);
+			Lookups.Add(new ColliderLookup(ColliderType.Triangle, TriangleColliders.Length));
+			TriangleColliders.Add(collider);
+			return collider.Id;
+		}
+
+		[Obsolete("Add with matrix only.")]
 		internal int Add(TriangleCollider collider)
 		{
 			collider.Id = Lookups.Length;
@@ -389,38 +424,6 @@ namespace VisualPinball.Unity
 				Add(new LineZCollider(xy, zLow, zHigh, info).Transform(matrix));
 			}
 		}
-
-		#endregion
-
-		#region Add non-transformable
-
-		// Non-transformable items are collider components that implement ICollidableNonTransformableComponent.
-		// Colliders of these components are not transformed by the matrix of the parent component (only their
-		// AABBs are, in order not to break the broad phase). When colliding, it's the ball that is transformed
-		// to the local space of the collider.
-		// The physics engine will do this transformation automatically if the state has a non-transformable
-		// matrix of the collider, which is the case if the component implements ICollidableNonTransformableComponent
-		// (see PhysicsEngine.Start())
-
-		[Obsolete("Just add with matrix and it'll figure out whether to make it non-transformable.")]
-		internal void AddNonTransformableLineZ(float2 xy, float zLow, float zHigh, ColliderInfo info, float4x4 matrix)
-			=> Add(new LineZCollider(xy, zLow, zHigh, info).TransformAabb(matrix));
-
-		[Obsolete("Just add with matrix and it'll figure out whether to make it non-transformable.")]
-		internal void AddNonTransformableLine(float2 v1, float2 v2, float zLow, float zHigh, ColliderInfo info, float4x4 matrix)
-			=> Add(new LineCollider(v1, v2, zLow, zHigh, info).TransformAabb(matrix));
-
-		[Obsolete("Just add with matrix and it'll figure out whether to make it non-transformable.")]
-		internal int AddNonTransformable(Line3DCollider collider, float4x4 matrix)
-			=> Add(collider.TransformAabb(matrix));
-
-		[Obsolete("Just add with matrix and it'll figure out whether to make it non-transformable.")]
-		internal int AddNonTransformable(PointCollider collider, float4x4 matrix)
-			=> Add(collider.TransformAabb(matrix));
-
-		[Obsolete("Just add with matrix and it'll figure out whether to make it non-transformable.")]
-		internal int AddNonTransformable(TriangleCollider collider, float4x4 matrix)
-			=> Add(collider.TransformAabb(matrix));
 
 		#endregion
 

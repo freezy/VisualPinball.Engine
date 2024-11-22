@@ -177,6 +177,14 @@ namespace VisualPinball.Unity
 
 		#endregion
 
+		#region Transformation
+
+		public TriangleCollider Transform(float4x4 matrix)
+		{
+			Transform(this, matrix);
+			return this;
+		}
+
 		public void Transform(TriangleCollider triangle, float4x4 matrix)
 		{
 			Rgv0 = math.mul(matrix, new float4(triangle.Rgv0, 1f)).xyz;
@@ -184,12 +192,6 @@ namespace VisualPinball.Unity
 			Rgv2 = math.mul(matrix, new float4(triangle.Rgv2, 1f)).xyz;
 			_normal = math.normalizesafe(math.cross(Rgv2 - Rgv0, Rgv1 - Rgv0));
 			CalculateBounds();
-		}
-
-		public TriangleCollider Transform(float4x4 matrix)
-		{
-			Transform(this, matrix);
-			return this;
 		}
 
 		public TriangleCollider TransformAabb(float4x4 matrix)
@@ -217,5 +219,7 @@ namespace VisualPinball.Unity
 				math.max(Rgv0.z, math.max(Rgv1.z, Rgv2.z))
 			));
 		}
+
+		#endregion
 	}
 }

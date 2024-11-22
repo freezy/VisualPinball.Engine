@@ -134,16 +134,18 @@ namespace VisualPinball.Unity
 
 		public override string ToString() => $"PointCollider[{Header.ItemId}] ({P.x}/{P.y}/{P.z})";
 
-		public void Transform(PointCollider point, float4x4 matrix)
-		{
-			P = matrix.MultiplyPoint(point.P);
-			Bounds = new ColliderBounds(Header.ItemId, Header.Id, new Aabb(P, P));
-		}
+		#region Transformation
 
 		public PointCollider Transform(float4x4 matrix)
 		{
 			Transform(this, matrix);
 			return this;
+		}
+
+		public void Transform(PointCollider point, float4x4 matrix)
+		{
+			P = matrix.MultiplyPoint(point.P);
+			TransformAabb(matrix);
 		}
 
 		public PointCollider TransformAabb(float4x4 matrix)
@@ -152,5 +154,7 @@ namespace VisualPinball.Unity
 			Bounds = new ColliderBounds(Header.ItemId, Header.Id, new Aabb(p, p));
 			return this;
 		}
+
+		#endregion
 	}
 }

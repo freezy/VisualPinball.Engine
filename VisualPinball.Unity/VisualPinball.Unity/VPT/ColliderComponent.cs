@@ -306,10 +306,18 @@ namespace VisualPinball.Unity
 				}
 			}
 			foreach (var col in colliders.LineColliders) {
-				AddCollider(col, vertices, normals, indices);
+				if (col.Header.IsTransformed) {
+					AddCollider(col, vertices, normals, indices);
+				} else {
+					AddCollider(col, verticesNonTransformable, normalsNonTransformable, indicesNonTransformable);
+				}
 			}
 			foreach (var col in colliders.LineSlingshotColliders) {
-				AddCollider(col, vertices, normals, indices);
+				if (col.Header.IsTransformed) {
+					AddCollider(col, vertices, normals, indices);
+				} else {
+					AddCollider(col, verticesNonTransformable, normalsNonTransformable, indicesNonTransformable);
+				}
 			}
 			foreach (var col in colliders.LineZColliders) {
 				_nonMeshColliders.Add(col);
@@ -326,11 +334,20 @@ namespace VisualPinball.Unity
 				}
 			}
 			foreach (var col in colliders.SpinnerColliders) {
-				AddCollider(col.LineSeg0, vertices, normals, indices);
-				AddCollider(col.LineSeg1, vertices, normals, indices);
+				if (col.Header.IsTransformed) {
+					AddCollider(col.LineSeg0, vertices, normals, indices);
+					AddCollider(col.LineSeg1, vertices, normals, indices);
+				} else {
+					AddCollider(col.LineSeg0, verticesNonTransformable, normalsNonTransformable, indicesNonTransformable);
+					AddCollider(col.LineSeg1, verticesNonTransformable, normalsNonTransformable, indicesNonTransformable);
+				}
 			}
 			foreach (var col in colliders.TriangleColliders) {
-				AddCollider(col, vertices, normals, indices);
+				if (col.Header.IsTransformed) {
+					AddCollider(col, vertices, normals, indices);
+				} else {
+					AddCollider(col, verticesNonTransformable, normalsNonTransformable, indicesNonTransformable);
+				}
 			}
 
 			// todo Line3DCollider
@@ -375,18 +392,24 @@ namespace VisualPinball.Unity
 			foreach (var coll in colliders) {
 
 				switch (coll) {
+
+					// circle collider
 					case CircleCollider { Header: { IsTransformed: true } } circleCollider:
 						AddCollider(circleCollider, vertices, normals, indices);
 						break;
 					case CircleCollider circleCollider:
 						AddCollider(circleCollider, verticesNonTransformable, normalsNonTransformable, indicesNonTransformable);
 						break;
+
+					// flipper collider
 					case FlipperCollider { Header: { IsTransformed: true } }:
 						AddFlipperCollider(vertices, normals, indices, Origin.Global);
 						break;
 					case FlipperCollider:
 						AddFlipperCollider(verticesNonTransformable, normalsNonTransformable, indicesNonTransformable, Origin.Global);
 						break;
+
+					// gate collider
 					case GateCollider { Header: { IsTransformed: true } } gateCollider:
 						AddCollider(gateCollider.LineSeg0, vertices, normals, indices);
 						AddCollider(gateCollider.LineSeg1, vertices, normals, indices);
@@ -395,15 +418,29 @@ namespace VisualPinball.Unity
 						AddCollider(gateCollider.LineSeg0, verticesNonTransformable, normalsNonTransformable, indicesNonTransformable);
 						AddCollider(gateCollider.LineSeg1, verticesNonTransformable, normalsNonTransformable, indicesNonTransformable);
 						break;
-					case LineCollider lineCollider:
+
+					// line collider
+					case LineCollider { Header: { IsTransformed: true } } lineCollider:
 						AddCollider(lineCollider, vertices, normals, indices);
 						break;
-					case LineSlingshotCollider lineSlingshotCollider:
+					case LineCollider lineCollider:
+						AddCollider(lineCollider, verticesNonTransformable, normalsNonTransformable, indicesNonTransformable);
+						break;
+
+					// line slingshot collider
+					case LineSlingshotCollider { Header: { IsTransformed: true } } lineSlingshotCollider:
 						AddCollider(lineSlingshotCollider, vertices, normals, indices);
 						break;
+					case LineSlingshotCollider lineSlingshotCollider:
+						AddCollider(lineSlingshotCollider, verticesNonTransformable, normalsNonTransformable, indicesNonTransformable);
+						break;
+
+					// line z collider
 					case LineZCollider lineZCollider:
 						_nonMeshColliders.Add(lineZCollider);
 						break;
+
+					// plunger collider
 					case PlungerCollider { Header: { IsTransformed: true } } plungerCollider:
 						AddCollider(plungerCollider.LineSegBase, vertices, normals, indices);
 						AddCollider(plungerCollider.JointBase0, vertices, normals, indices);
@@ -414,12 +451,23 @@ namespace VisualPinball.Unity
 						AddCollider(plungerCollider.JointBase0, verticesNonTransformable, normalsNonTransformable, indicesNonTransformable);
 						AddCollider(plungerCollider.JointBase1, verticesNonTransformable, normalsNonTransformable, indicesNonTransformable);
 						break;
-					case SpinnerCollider spinnerCollider:
+
+					// spinner collider
+					case SpinnerCollider { Header: { IsTransformed: true } } spinnerCollider:
 						AddCollider(spinnerCollider.LineSeg0, vertices, normals, indices);
 						AddCollider(spinnerCollider.LineSeg1, vertices, normals, indices);
 						break;
-					case TriangleCollider triangleCollider:
+					case SpinnerCollider spinnerCollider:
+						AddCollider(spinnerCollider.LineSeg0, verticesNonTransformable, normalsNonTransformable, indicesNonTransformable);
+						AddCollider(spinnerCollider.LineSeg1, verticesNonTransformable, normalsNonTransformable, indicesNonTransformable);
+						break;
+
+					// triangle collider
+					case TriangleCollider { Header: { IsTransformed: true } } triangleCollider:
 						AddCollider(triangleCollider, vertices, normals, indices);
+						break;
+					case TriangleCollider triangleCollider:
+						AddCollider(triangleCollider, verticesNonTransformable, normalsNonTransformable, indicesNonTransformable);
 						break;
 				}
 			}

@@ -139,7 +139,13 @@ namespace VisualPinball.Unity
 			}
 		}
 
-		public override string ToString() => $"Line3DCollider[{Header.ItemId}] ({_xy.x}/{_xy.y} | {_zLow} -> {_zHigh})";
+		#region Transformation
+
+		public Line3DCollider Transform(float4x4 matrix)
+		{
+			Transform(this, matrix);
+			return this;
+		}
 
 		public void Transform(Line3DCollider line3D, float4x4 matrix)
 		{
@@ -147,12 +153,7 @@ namespace VisualPinball.Unity
 				math.mul(matrix, new float4(line3D._v1, 1f)).xyz,
 				math.mul(matrix, new float4(line3D._v2, 1f)).xyz
 			);
-		}
-
-		public Line3DCollider Transform(float4x4 matrix)
-		{
-			Transform(this, matrix);
-			return this;
+			// the above also transforms the aabbs.
 		}
 
 		public Line3DCollider TransformAabb(float4x4 matrix)
@@ -161,8 +162,11 @@ namespace VisualPinball.Unity
 			var p2 = matrix.MultiplyPoint(_v2);
 
 			Bounds = new ColliderBounds(Header.ItemId, Header.Id, new Aabb(math.min(p1, p2), math.max(p1, p2)));
-
 			return this;
 		}
+
+		#endregion
+
+		public override string ToString() => $"Line3DCollider[{Header.ItemId}] ({_xy.x}/{_xy.y} | {_zLow} -> {_zHigh})";
 	}
 }

@@ -38,17 +38,20 @@ namespace VisualPinball.Unity
 		private readonly IApiColliderGenerator _api;
 		private readonly IMeshGenerator _meshGenerator;
 		private readonly PrimitiveComponent _primitiveComponent;
+		private readonly float4x4 _matrix;
 
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 		private static readonly ProfilerMarker PerfMarker1 = new("PrimitiveColliderGenerator");
 		private static readonly ProfilerMarker PerfMarker2 = new("PrimitiveColliderGenerator.reduce");
 		private static readonly ProfilerMarker PerfMarker3 = new("PrimitiveColliderGenerator.generate");
 
-		public PrimitiveColliderGenerator(IApiColliderGenerator primitiveApi, IMeshGenerator meshGenerator, PrimitiveComponent primitiveComponent)
+		public PrimitiveColliderGenerator(IApiColliderGenerator primitiveApi, IMeshGenerator meshGenerator,
+			PrimitiveComponent primitiveComponent, float4x4 translateWithinPlayfieldMatrix)
 		{
 			_api = primitiveApi;
 			_meshGenerator = meshGenerator;
 			_primitiveComponent = primitiveComponent;
+			_matrix = translateWithinPlayfieldMatrix;
 		}
 
 		internal void GenerateColliders(float collisionReductionFactor, ref ColliderReference colliders)
@@ -74,7 +77,7 @@ namespace VisualPinball.Unity
 
 			var reducedVertices = math.max(
 				(uint) math.pow(meshData.vertexCount,
-					math.clamp(1f - collisionReductionFactor, 0f, 1f) * 0.25f + 0.75f),
+				math.clamp(1f - collisionReductionFactor, 0f, 1f) * 0.25f + 0.75f),
 				420u //!! 420 = magic
 			);
 
@@ -91,8 +94,7 @@ namespace VisualPinball.Unity
 			PerfMarker2.End();
 
 			PerfMarker3.Begin();
-			var worldToVpx = (Matrix4x4)_primitiveComponent.TransformationWithinPlayfield.TransformToVpx();
-			ColliderUtils.GenerateCollidersFromMesh(in unityVertices, in unityIndices, ref worldToVpx, _api.GetColliderInfo(), ref colliders);
+			ColliderUtils.GenerateCollidersFromMesh(in unityVertices, in unityIndices, _matrix, _api.GetColliderInfo(), ref colliders);
 			PerfMarker3.End();
 			PerfMarker1.End();
 
