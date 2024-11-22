@@ -315,9 +315,15 @@ namespace VisualPinball.Unity
 				_nonMeshColliders.Add(col);
 			}
 			foreach (var col in colliders.PlungerColliders) {
-				AddCollider(col.LineSegBase, vertices, normals, indices);
-				AddCollider(col.JointBase0, vertices, normals, indices);
-				AddCollider(col.JointBase1, vertices, normals, indices);
+				if (col.Header.IsTransformed) {
+					AddCollider(col.LineSegBase, vertices, normals, indices);
+					AddCollider(col.JointBase0, vertices, normals, indices);
+					AddCollider(col.JointBase1, vertices, normals, indices);
+				} else {
+					AddCollider(col.LineSegBase, verticesNonTransformable, normalsNonTransformable, indicesNonTransformable);
+					AddCollider(col.JointBase0, verticesNonTransformable, normalsNonTransformable, indicesNonTransformable);
+					AddCollider(col.JointBase1, verticesNonTransformable, normalsNonTransformable, indicesNonTransformable);
+				}
 			}
 			foreach (var col in colliders.SpinnerColliders) {
 				AddCollider(col.LineSeg0, vertices, normals, indices);
@@ -398,10 +404,15 @@ namespace VisualPinball.Unity
 					case LineZCollider lineZCollider:
 						_nonMeshColliders.Add(lineZCollider);
 						break;
-					case PlungerCollider plungerCollider:
+					case PlungerCollider { Header: { IsTransformed: true } } plungerCollider:
 						AddCollider(plungerCollider.LineSegBase, vertices, normals, indices);
 						AddCollider(plungerCollider.JointBase0, vertices, normals, indices);
 						AddCollider(plungerCollider.JointBase1, vertices, normals, indices);
+						break;
+					case PlungerCollider plungerCollider:
+						AddCollider(plungerCollider.LineSegBase, verticesNonTransformable, normalsNonTransformable, indicesNonTransformable);
+						AddCollider(plungerCollider.JointBase0, verticesNonTransformable, normalsNonTransformable, indicesNonTransformable);
+						AddCollider(plungerCollider.JointBase1, verticesNonTransformable, normalsNonTransformable, indicesNonTransformable);
 						break;
 					case SpinnerCollider spinnerCollider:
 						AddCollider(spinnerCollider.LineSeg0, vertices, normals, indices);

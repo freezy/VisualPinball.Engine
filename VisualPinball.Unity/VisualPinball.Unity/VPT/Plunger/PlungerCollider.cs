@@ -63,9 +63,52 @@ namespace VisualPinball.Unity
 			JointBase0 = new LineZCollider(new float2(x, y), zHeight, zHeight + Plunger.PlungerHeight, info);
 			JointBase1 = new LineZCollider(new float2(x2, y), zHeight, zHeight + Plunger.PlungerHeight, info);
 
-			TransformAabb(float4x4.identity);
 			// Debug.Log($"Initial bounds: {Bounds}");
 		}
+
+		#region Transformation
+
+		public static bool IsTransformable(float4x4 matrix)
+		{
+			// position: fully transformable
+			// scale: none
+			// rotation: none
+
+			var scale = matrix.GetScale();
+			var rotation = matrix.GetRotationVector();
+
+			var rotated = math.abs(rotation.x) > Collider.Tolerance || math.abs(rotation.y) > Collider.Tolerance || math.abs(rotation.z) > Collider.Tolerance;
+			var scaled = math.abs(1 - scale.x) > Collider.Tolerance || math.abs(1 - scale.y) > Collider.Tolerance || math.abs(1 - scale.z) > Collider.Tolerance;
+
+			return !rotated && !scaled;
+		}
+
+		public PlungerCollider Transform(float4x4 matrix)
+		{
+			Transform(this, matrix);
+			return this;
+		}
+
+		public void Transform(PlungerCollider collider, float4x4 matrix)
+		{
+			#if UNITY_EDITOR
+			if (!IsTransformable(matrix)) {
+				throw new System.InvalidOperationException($"Matrix {matrix} cannot transform plunger.");
+			}
+			#endif
+
+			LineSegBase = collider.LineSegBase.Transform(matrix);
+			JointBase0 = collider.JointBase0.Transform(matrix);
+			JointBase1 = collider.JointBase1.Transform(matrix);
+
+			//Bounds = collider.LineSeg0.Bounds;
+		}
+
+		// public PlungerCollider TransformAabb(float4x4 matrix)
+		// {
+		// 	Bounds = new ColliderBounds(Header.ItemId, Header.Id, Bounds.Aabb.Transform(matrix));
+		// 	return this;
+		// }
 
 		public PlungerCollider TransformAabb(float4x4 matrix)
 		{
@@ -90,6 +133,8 @@ namespace VisualPinball.Unity
 
 			return this;
 		}
+
+		#endregion
 
 		#region Narrowphase
 
