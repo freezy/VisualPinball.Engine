@@ -36,25 +36,27 @@ namespace VisualPinball.Unity
 	{
 		#region Data
 
+		private Vector3 _position {
+			get => transform.localPosition.TranslateToVpx();
+			set => transform.localPosition = value.TranslateToWorld();
+		}
+
 		public Vector2 Position {
-			get {
-				var pos = transform.localPosition;
-				var posVpx = pos.TranslateToVpx();
-				return new Vector2(posVpx.x, posVpx.y);
-			}
-			set {
-				var posVpx = new Vector3(value.x, value.y, 0);
-				var pos = posVpx.TranslateToWorld();
-				var t = transform;
-				t.localPosition = new Vector3(pos.x, t.localPosition.y, pos.z);
-			}
+			get => _position.XY();
+			set => _position = new Vector3(value.x, value.y, Height);
 		}
 
 		public float Width = 25f;
 
 		public float Height = 20f;
 
-		public float ZAdjust;
+		public float ZAdjust {
+			get => _position.z;
+			set {
+				var pos = _position;
+				_position = new Vector3(pos.x, pos.y, value);
+			}
+		}
 
 		public ISurfaceComponent Surface { get => _surface as ISurfaceComponent; set => _surface = value as MonoBehaviour; }
 		[SerializeField]
@@ -133,8 +135,6 @@ namespace VisualPinball.Unity
 		public override void UpdateTransforms()
 		{
 			base.UpdateTransforms();
-			transform.localScale = Physics.ScaleToWorld(1, 1, 1);
-			transform.localRotation = Quaternion.Euler(Physics.RotateToWorld(0f, 0f, 0f));
 			
 			GetComponent<PlungerRodMeshComponent>()?.CalculateBoundingBox();
 			GetComponent<PlungerSpringMeshComponent>()?.CalculateBoundingBox();
