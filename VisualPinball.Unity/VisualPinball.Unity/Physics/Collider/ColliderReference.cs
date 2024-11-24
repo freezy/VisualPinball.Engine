@@ -273,8 +273,23 @@ namespace VisualPinball.Unity
 			return collider.Id;
 		}
 
-		internal int Add(LineCollider collider)
+		internal int Add(LineCollider collider) => Add(collider, float4x4.identity);
+
+		internal int Add(LineCollider collider, float4x4 matrix)
 		{
+			if (LineCollider.IsTransformable(matrix)) {
+				collider.Header.IsTransformed = true;
+				collider.Transform(matrix);
+
+			} else {
+				// save matrix for use during runtime
+				if (!_nonTransformableColliderMatrices.ContainsKey(collider.Header.ItemId)) {
+					_nonTransformableColliderMatrices.Add(collider.Header.ItemId, matrix);
+				}
+				collider.Header.IsTransformed = false;
+				collider.TransformAabb(matrix);
+			}
+
 			collider.Id = Lookups.Length;
 			TrackReference(collider.Header.ItemId, collider.Header.Id);
 			Lookups.Add(new ColliderLookup(ColliderType.Line, LineColliders.Length));
@@ -392,17 +407,27 @@ namespace VisualPinball.Unity
 
 		internal void AddLine(float2 v1, float2 v2, float zLow, float zHigh, ColliderInfo info, float4x4 matrix)
 		{
-			if (KinematicColliders || !matrix.IsPureTranslationMatrix()) {
+			if (!KinematicColliders && LineCollider.IsTransformable(matrix)) {
+				var collider = new LineCollider(v1, v2, zLow, zHigh, info);
+				collider.Header.IsTransformed = true;
+				Add(collider, matrix);
+
+			} else {
+
+				// convert line collider to two triangle colliders
 				var p1 = new float3(v1.xy, zLow);
 				var p2 = new float3(v1.xy, zHigh);
 				var p3 = new float3(v2.xy, zLow);
 				var p4 = new float3(v2.xy, zHigh);
 
-				Add(new TriangleCollider(p1, p3, p2, info).Transform(matrix));
-				Add(new TriangleCollider(p3, p4, p2, info).Transform(matrix));
+				var t1 = new TriangleCollider(p1, p3, p2, info);
+				var t2 = new TriangleCollider(p3, p4, p2, info);
 
-			} else {
-				Add(new LineCollider(v1, v2, zLow, zHigh, info).Transform(matrix));
+				t1.Header.IsTransformed = true;
+				t2.Header.IsTransformed = true;
+
+				Add(t1, matrix);
+				Add(t2, matrix);
 			}
 		}
 

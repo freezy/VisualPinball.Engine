@@ -235,19 +235,43 @@ namespace VisualPinball.Unity
 
 		#endregion
 
+		#region Transformation
+
+		public static bool IsTransformable(float4x4 matrix)
+		{
+			// position: fully transformable: 3d (center + ZLow)
+			// scale: fully scalable
+			// rotation: can be z-rotated, x/y rotation is not supported.
+
+			var rotation = matrix.GetRotationVector();
+			var xyRotated = math.abs(rotation.x) > Collider.Tolerance || math.abs(rotation.y) > Collider.Tolerance;
+
+			return !xyRotated;
+		}
+
 		public LineCollider Transform(float4x4 matrix)
 		{
-			var t = matrix.GetTranslation();
+			Transform(this, matrix);
+			return this;
+		}
 
-			V1 = matrix.MultiplyPoint(new float3(V1, 0)).xy;
-			V2 = matrix.MultiplyPoint(new float3(V2, 0)).xy;
-			ZLow += t.z;
-			ZHigh += t.z;
+		public void Transform(LineCollider lineCollider, float4x4 matrix)
+		{
+			#if UNITY_EDITOR
+			if (!IsTransformable(matrix)) {
+				throw new System.InvalidOperationException($"Matrix {matrix} cannot transform line collider.");
+			}
+			#endif
+
+			var s = matrix.GetScale();
+			var t = matrix.GetTranslation();
+			V1 = matrix.MultiplyPoint(new float3(lineCollider.V1, 0)).xy;
+			V2 = matrix.MultiplyPoint(new float3(lineCollider.V2, 0)).xy;
+			ZHigh = t.z + lineCollider.ZHigh * s.z;
+			ZLow = t.z + lineCollider.ZLow * s.z;
 
 			CalcNormal();
 			CalculateBounds();
-
-			return this;
 		}
 
 		public LineCollider TransformAabb(float4x4 matrix)
@@ -265,8 +289,11 @@ namespace VisualPinball.Unity
 			return this;
 		}
 
+		#endregion
+
 		private void CalculateBounds()
 		{
+			// TransformAabb() takes in a matrix, this is faster if the matrix has been applied to the collider already.
 			Bounds = new ColliderBounds(Header.ItemId, Header.Id, new Aabb(
 				math.min(V1.x, V2.x),
 				math.max(V1.x, V2.x),
