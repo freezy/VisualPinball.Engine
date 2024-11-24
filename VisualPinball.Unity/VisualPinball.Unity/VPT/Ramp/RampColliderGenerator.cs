@@ -122,7 +122,7 @@ namespace VisualPinball.Unity
 				}
 
 				// add joint for left edge
-				colliders.Add(new Line3DCollider(rg0, rg2, _api.GetColliderInfo()));
+				colliders.Add(new Line3DCollider(rg0, rg2, _api.GetColliderInfo()), _matrix);
 
 				// degenerate triangles happen if width is 0 at some point
 				if (!TriangleCollider.IsDegenerate(rg0, rg1, rg2)) {
