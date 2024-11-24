@@ -264,8 +264,21 @@ namespace VisualPinball.Unity
 			return collider.Id;
 		}
 
-		internal int Add(LineSlingshotCollider collider)
+		internal int Add(LineSlingshotCollider collider, float4x4 matrix)
 		{
+			if (LineSlingshotCollider.IsTransformable(matrix)) {
+				collider.Header.IsTransformed = true;
+				collider.Transform(matrix);
+
+			} else {
+				// save matrix for use during runtime
+				if (!_nonTransformableColliderMatrices.ContainsKey(collider.Header.ItemId)) {
+					_nonTransformableColliderMatrices.Add(collider.Header.ItemId, matrix);
+				}
+				collider.Header.IsTransformed = false;
+				collider.TransformAabb(matrix);
+			}
+
 			collider.Id = Lookups.Length;
 			TrackReference(collider.Header.ItemId, collider.Header.Id);
 			Lookups.Add(new ColliderLookup(ColliderType.LineSlingShot, LineSlingshotColliders.Length));

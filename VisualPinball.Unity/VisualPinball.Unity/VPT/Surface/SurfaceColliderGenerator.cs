@@ -80,8 +80,7 @@ namespace VisualPinball.Unity
 				colliders.AddLine(pv1.ToUnityFloat2(), pv2.ToUnityFloat2(), bottom, top, _api.GetColliderInfo(), _matrix);
 
 			} else {
-				// todo
-				colliders.Add(new LineSlingshotCollider(_colliderComponent.SlingshotForce, pv1.ToUnityFloat2(), pv2.ToUnityFloat2(), bottom, top, _api.GetColliderInfo()));
+				colliders.Add(new LineSlingshotCollider(_colliderComponent.SlingshotForce, pv1.ToUnityFloat2(), pv2.ToUnityFloat2(), bottom, top, _api.GetColliderInfo()), _matrix);
 			}
 
 			if (_component.HeightBottom != 0) {
