@@ -74,13 +74,13 @@ namespace VisualPinball.Unity
 		public static bool IsPureTranslationMatrix(this float4x4 matrix)
 		{
 			// check scaling (diagonal elements)
-			if (matrix.c0.x != 1.0f || matrix.c1.y != 1.0f || matrix.c2.z != 1.0f) {
+			if (math.abs(matrix.c0.x - 1.0f) > Collider.Tolerance || math.abs(matrix.c1.y - 1.0f) > Collider.Tolerance || math.abs(matrix.c2.z - 1.0f) > Collider.Tolerance) {
 				return false;
 			}
 
 			// Check rotation (non-diagonal elements)
-			if (matrix.c0.y != 0.0f || matrix.c0.z != 0.0f || matrix.c1.x != 0.0f ||
-			    matrix.c1.z != 0.0f || matrix.c2.x != 0.0f || matrix.c2.y != 0.0f) {
+			if (math.abs(matrix.c0.y) > Collider.Tolerance || math.abs(matrix.c0.z)  > Collider.Tolerance || math.abs(matrix.c1.x)  > Collider.Tolerance ||
+			    math.abs(matrix.c1.z)  > Collider.Tolerance || math.abs(matrix.c2.x)  > Collider.Tolerance || math.abs(matrix.c2.y)  > Collider.Tolerance) {
 				return false;
 			}
 
