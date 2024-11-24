@@ -409,7 +409,7 @@ namespace VisualPinball.Unity
 		internal void AddLineZ(float2 xy, float zLow, float zHigh, ColliderInfo info, float4x4 matrix)
 		{
 			if (KinematicColliders || !matrix.IsPureTranslationMatrix()) {
-				Add(new Line3DCollider(new float3(xy.xy, zLow), new float3(xy.xy, zHigh), info).Transform(matrix));
+				Add(new Line3DCollider(new float3(xy.xy, zLow), new float3(xy.xy, zHigh), info), matrix);
 			} else {
 				Add(new LineZCollider(xy, zLow, zHigh, info).Transform(matrix));
 			}
