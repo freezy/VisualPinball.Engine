@@ -249,15 +249,15 @@ namespace VisualPinball.Unity
 					Handles.color = blue;
 					Gizmos.color = blue;
 					Gizmos.DrawMesh(_nonTransformableColliderMesh);
+					Gizmos.color = white;
+					Gizmos.DrawWireMesh(_nonTransformableColliderMesh);
 				}
 
 				if (_staticColliderMesh) {
 					Gizmos.color = green;
 					Gizmos.DrawMesh(_staticColliderMesh);
-
 					Gizmos.color = white;
 					Gizmos.DrawWireMesh(_staticColliderMesh);
-					Gizmos.DrawWireMesh(_nonTransformableColliderMesh);
 				}
 
 				DrawNonMeshColliders();
@@ -474,19 +474,28 @@ namespace VisualPinball.Unity
 
 			// todo Line3DCollider
 
-			_staticColliderMesh = new Mesh {
-				name = $"{name} (static collider)",
-				vertices = vertices.ToArray(),
-				triangles = indices.ToArray(),
-				normals = normals.ToArray()
-			};
+			if (vertices.Count > 0) {
+				_staticColliderMesh = new Mesh {
+					name = $"{name} (static collider)",
+					vertices = vertices.ToArray(),
+					triangles = indices.ToArray(),
+					normals = normals.ToArray()
+				};
+			} else {
+				_staticColliderMesh = null;
+			}
 
-			_nonTransformableColliderMesh = new Mesh {
-				name = $"{name} (static collider)",
-				vertices = verticesNonTransformable.ToArray(),
-				triangles = indicesNonTransformable.ToArray(),
-				normals = normalsNonTransformable.ToArray()
-			};
+			if (verticesNonTransformable.Count > 0) {
+				_nonTransformableColliderMesh = new Mesh {
+					name = $"{name} (static collider)",
+					vertices = verticesNonTransformable.ToArray(),
+					triangles = indicesNonTransformable.ToArray(),
+					normals = normalsNonTransformable.ToArray()
+				};
+			} else {
+				_nonTransformableColliderMesh = null;
+			}
+
 		}
 
 		private void DrawNonMeshColliders()
