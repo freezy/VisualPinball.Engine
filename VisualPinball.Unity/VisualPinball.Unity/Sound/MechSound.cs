@@ -22,7 +22,7 @@ using UnityEngine;
 namespace VisualPinball.Unity
 {
 	[Serializable]
-	public class MechSound
+	public class MechSound : ISerializationCallbackReceiver
 	{
 		[SerializeReference]
 		public SoundAsset Sound;
@@ -30,16 +30,36 @@ namespace VisualPinball.Unity
 		public string TriggerId;
 
 		[Range(0.0001f, 1)]
-		// this initialization doesnt work in inspector https://www.reddit.com/r/Unity3D/comments/j5i6cj/inspector_struct_default_values/
+		// This initialization doesnt work in inspector 
 		public float Volume = 1;
-		
+
 		public MechSoundAction Action = MechSoundAction.Play;
 
 		[Tooltip("Increments of 1000")]
 		[Min(0)]
 		[Unit("ms")]
 		public float Fade;
+
+		#region DefaultValuesWorkaround
+		// When an instance is created by pressing the + icon on a list in the inspector,
+		// Unity does not apply default values (such as Volume = 1) and no constructor is called.
+		// See https://www.reddit.com/r/Unity3D/comments/j5i6cj/inspector_struct_default_values/.
+		// This workaround applies default values the first time the struct is serialized instead.
+		// It only works for the first instance in the list, because for any subsequent instance Unity
+		// clones the field values of the previous instance, including the areDefaultsApplied flag.
+		[SerializeField]
+		private bool areDefaultsApplied = false;
+
+		public void OnAfterDeserialize() { }
+		public void OnBeforeSerialize()
+		{
+			if (!areDefaultsApplied) {
+				Volume = 1;
+				areDefaultsApplied = true;
+			}
+		}
+		#endregion
 	}
-	
+
 	public enum MechSoundAction { Play, Stop };
 }
