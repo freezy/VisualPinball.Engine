@@ -16,6 +16,7 @@
 
 using System.Collections.Generic;
 using Unity.Collections;
+using Unity.Mathematics;
 using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.MetalWireGuide;
 
@@ -25,11 +26,13 @@ namespace VisualPinball.Unity
 	{
 		private readonly IApiColliderGenerator _api;
 		private readonly MetalWireGuideMeshGenerator _meshGenerator;
+		private readonly float4x4 _matrix;
 
-		public MetalWireGuideColliderGenerator(MetalWireGuideApi metalWireGuideApi, MetalWireGuideMeshGenerator meshGenerator)
+		public MetalWireGuideColliderGenerator(MetalWireGuideApi metalWireGuideApi, MetalWireGuideMeshGenerator meshGenerator, float4x4 matrix)
 		{
 			_api = metalWireGuideApi;
 			_meshGenerator = meshGenerator;
+			_matrix = matrix;
 		}
 
 		internal void GenerateColliders(float playfieldHeight, float hitHeight, float bendradius, int detailLevel, ref ColliderReference colliders, float margin)
@@ -44,7 +47,7 @@ namespace VisualPinball.Unity
 				var rg1 = mesh.Vertices[mesh.Indices[i + 2]].ToUnityFloat3();
 				var rg2 = mesh.Vertices[mesh.Indices[i + 1]].ToUnityFloat3();
 
-				colliders.Add(new TriangleCollider(rg0, rg1, rg2, _api.GetColliderInfo()));
+				colliders.Add(new TriangleCollider(rg0, rg1, rg2, _api.GetColliderInfo()), _matrix);
 
 				GenerateHitEdge(mesh, ref addedEdges, mesh.Indices[i], mesh.Indices[i + 2], ref colliders);
 				GenerateHitEdge(mesh, ref addedEdges, mesh.Indices[i + 2], mesh.Indices[i + 1], ref colliders);
@@ -53,19 +56,18 @@ namespace VisualPinball.Unity
 
 			// add collision vertices
 			foreach (var mv in mesh.Vertices) {
-				colliders.Add(new PointCollider(mv.ToUnityFloat3(), _api.GetColliderInfo()));
+				colliders.Add(new PointCollider(mv.ToUnityFloat3(), _api.GetColliderInfo()), _matrix);
 			}
 
 			addedEdges.Dispose();
 		}
 
-		private void GenerateHitEdge(Mesh mesh, ref EdgeSet addedEdges, int i, int j,
-			ref ColliderReference colliders)
+		private void GenerateHitEdge(Mesh mesh, ref EdgeSet addedEdges, int i, int j, ref ColliderReference colliders)
 		{
 			if (addedEdges.ShouldAddHitEdge(i, j)) {
 				var v1 = mesh.Vertices[i].ToUnityFloat3();
 				var v2 = mesh.Vertices[j].ToUnityFloat3();
-				colliders.Add(new Line3DCollider(v1, v2, _api.GetColliderInfo()));
+				colliders.Add(new Line3DCollider(v1, v2, _api.GetColliderInfo()), _matrix);
 			}
 		}
 	}
