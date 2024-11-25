@@ -16,6 +16,7 @@
 
 using System.Collections.Generic;
 using Unity.Collections;
+using Unity.Mathematics;
 using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.HitTarget;
 
@@ -23,9 +24,8 @@ namespace VisualPinball.Unity
 {
 	public class HitTargetColliderGenerator : TargetColliderGenerator
 	{
-		public HitTargetColliderGenerator(IApiColliderGenerator api, ITargetData data, IMeshGenerator meshProvider) : base(api, data, meshProvider)
-		{
-		}
+		public HitTargetColliderGenerator(IApiColliderGenerator api, ITargetData data, IMeshGenerator meshProvider, float4x4 matrix)
+			: base(api, data, meshProvider, matrix) { }
 
 		internal void GenerateColliders(ref ColliderReference colliders)
 		{

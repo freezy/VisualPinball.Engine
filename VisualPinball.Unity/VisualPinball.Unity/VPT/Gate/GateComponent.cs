@@ -52,7 +52,6 @@ namespace VisualPinball.Unity
 			set => transform.SetLocalYRotation(math.radians(value));
 		}
 
-		[Range(10f, 250f)]
 		public float _length = 100f;
 
 		public float Length

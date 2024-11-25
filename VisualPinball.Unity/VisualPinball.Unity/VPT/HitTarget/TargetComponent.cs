@@ -24,6 +24,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using Unity.Mathematics;
 using UnityEditor;
 using UnityEngine;
 using VisualPinball.Engine.Game.Engines;
@@ -39,15 +40,20 @@ namespace VisualPinball.Unity
 	{
 		#region Data
 
-		[Tooltip("Position of the target on the playfield.")]
-		public Vector3 Position;
+		public Vector3 Position {
+			get => transform.localPosition.TranslateToVpx();
+			set => transform.localPosition = value.TranslateToWorld();
+		}
 
-		[Range(-180f, 180f)]
-		[Tooltip("Z-Axis rotation of the target.")]
-		public float Rotation;
+		public float Rotation {
+			get => transform.localEulerAngles.y > 180 ? transform.localEulerAngles.y - 360 : transform.localEulerAngles.y;
+			set => transform.SetLocalYRotation(math.radians(value));
+		}
 
-		[Tooltip("Overall scaling of the target.")]
-		public Vector3 Size = new Vector3(32f, 32f, 32f);
+		public float3 Size {
+			get => transform.localScale * 32f;
+			set => transform.localScale = value / 32f;
+		}
 
 		public int _targetType = Engine.VPT.TargetType.DropTargetBeveled;
 		public string _meshName;
@@ -59,14 +65,6 @@ namespace VisualPinball.Unity
 		public virtual bool IsLegacy => false;
 
 		public int TargetType => _targetType;
-
-		public float RotZ => Rotation;
-		public float ScaleX => Size.x;
-		public float ScaleY => Size.y;
-		public float ScaleZ => Size.z;
-		public float PositionX => Position.x;
-		public float PositionY => Position.y;
-		public float PositionZ => Position.z;
 
 		#endregion
 
@@ -111,16 +109,6 @@ namespace VisualPinball.Unity
 
 		protected abstract float ZOffset { get; }
 
-		public override void UpdateTransforms()
-		{
-			base.UpdateTransforms();
-
-			var t = transform;
-			t.localPosition = Physics.TranslateToWorld(Position.x, Position.y, Position.z + PlayfieldHeight + ZOffset);
-			t.localScale = Physics.ScaleToWorld(Size);
-			t.localEulerAngles = Physics.RotateToWorld(0, 0, Rotation);
-		}
-
 		#endregion
 
 		#region Conversion
@@ -151,7 +139,7 @@ namespace VisualPinball.Unity
 			data.Name = name;
 			data.Position = Position.ToVertex3D();
 			data.RotZ = Rotation;
-			data.Size = Size.ToVertex3D();
+			data.Size = ((Vector3)Size).ToVertex3D();
 
 			data.TargetType = _targetType;
 			data.IsVisible = GetEnabled<Renderer>();
