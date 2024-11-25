@@ -18,12 +18,11 @@ using System;
 using Logger = NLog.Logger;
 using NLog;
 using UnityEngine;
-using VisualPinball.Engine.VPT;
 using System.Collections.Generic;
 
 namespace VisualPinball.Unity
 {
-	public class DropTargetBankApi : ItemApi<DropTargetBankComponent, ItemData>, IApi, IApiCoilDevice, IApiSwitchDevice
+	public class DropTargetBankApi : IApi, IApiCoilDevice, IApiSwitchDevice
 	{
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
@@ -58,7 +57,7 @@ namespace VisualPinball.Unity
 			};
 		}
 
-		internal DropTargetBankApi(GameObject go, Player player, PhysicsEngine physicsEngine) : base(go, player, physicsEngine)
+		internal DropTargetBankApi(GameObject go, Player player, PhysicsEngine physicsEngine)
 		{
 			_dropTargetBankComponent = go.GetComponentInChildren<DropTargetBankComponent>();
 			_player = player;
@@ -104,8 +103,7 @@ namespace VisualPinball.Unity
 				dropTargetApi.IsDropped = false;
 			}
 
-			// ? is this where this goes?
-			MainComponent.EmitSound(DropTargetBankComponent.SoundTargetBankReset);
+			_dropTargetBankComponent.EmitSound(DropTargetBankComponent.SoundTargetBankReset);
 		}
 
 		void IApi.OnDestroy()
