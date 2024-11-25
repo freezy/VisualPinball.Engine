@@ -36,9 +36,7 @@ namespace VisualPinball.Unity.Editor
 		public override void OnInspectorGUI()
 		{
 			var comp = target as MechSoundsComponent;
-			
-			var soundEmitter = comp!.GetComponent<ISoundEmitter>();
-			if (soundEmitter == null) {
+			if (!comp!.TryGetComponent<ISoundEmitter>(out _)) {
 				EditorGUILayout.HelpBox("Cannot find sound emitter. This component only works with a sound emitter on the same GameObject.", MessageType.Error);
 				return;
 			}
