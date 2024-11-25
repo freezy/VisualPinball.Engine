@@ -17,18 +17,14 @@
 using System.Collections.Generic;
 using UnityEngine;
 using VisualPinball.Engine.Game.Engines;
-using VisualPinball.Engine.VPT;
 using System.ComponentModel;
 using System;
-using VisualPinball.Engine.VPT.HitTarget;
-using VisualPinball.Engine.IO;
-using VisualPinball.Engine.VPT.Table;
 
 namespace VisualPinball.Unity
 {
 	[AddComponentMenu("Visual Pinball/Mechs/Drop Target Bank")]
 	[HelpURL("https://docs.visualpinball.org/creators-guide/manual/mechanisms/drop-target-banks.html")]
-	public class DropTargetBankComponent : MainRenderableComponent<ItemData>, ICoilDeviceComponent, ISwitchDeviceComponent, ISoundEmitter
+	public class DropTargetBankComponent : MonoBehaviour, ICoilDeviceComponent, ISwitchDeviceComponent, ISoundEmitter
 	{
 		public const string ResetCoilItem = "reset_coil";
 
@@ -84,46 +80,11 @@ namespace VisualPinball.Unity
 			new SoundTrigger { Id = SoundTargetBankReset, Name = "Sound Target Bank Reset" }
 		};
 
-		protected override Type MeshComponentType => throw new NotImplementedException();
-
-		protected override Type ColliderComponentType => throw new NotImplementedException();
-
-		public override bool HasProceduralMesh => throw new NotImplementedException();
-
-		public override ItemType ItemType => throw new NotImplementedException();
-
-		public override string ItemName => throw new NotImplementedException();
-
 		public event EventHandler<SoundEventArgs> OnSound;
 
 		internal void EmitSound(string triggerId, float volume = 1)
 		{
 			OnSound?.Invoke(this, new SoundEventArgs(triggerId, volume));
-		}
-
-		public override void CopyFromObject(GameObject go)
-		{
-			throw new NotImplementedException();
-		}
-
-		public override IEnumerable<MonoBehaviour> SetData(ItemData data)
-		{
-			throw new NotImplementedException();
-		}
-
-		public override IEnumerable<MonoBehaviour> SetReferencedData(ItemData data, Table table, IMaterialProvider materialProvider, ITextureProvider textureProvider, Dictionary<string, IMainComponent> components)
-		{
-			throw new NotImplementedException();
-		}
-
-		public override ItemData CopyDataTo(ItemData data, string[] materialNames, string[] textureNames, bool forExport)
-		{
-			throw new NotImplementedException();
-		}
-
-		public override ItemData InstantiateData()
-		{
-			throw new NotImplementedException();
 		}
 
 		#endregion
