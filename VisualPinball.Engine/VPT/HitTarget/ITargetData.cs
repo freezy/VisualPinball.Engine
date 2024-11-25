@@ -19,13 +19,7 @@ namespace VisualPinball.Engine.VPT.HitTarget
 	public interface ITargetData
 	{
 		bool IsLegacy { get; }
-		float RotZ { get; }
+
 		int TargetType { get; }
-		float ScaleX { get; }
-		float ScaleY { get; }
-		float ScaleZ { get; }
-		float PositionX { get; }
-		float PositionY { get; }
-		float PositionZ { get; }
 	}
 }

@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-using System.Collections.Generic;
+using Unity.Mathematics;
 using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.HitTarget;
 
@@ -25,12 +25,14 @@ namespace VisualPinball.Unity
 		private readonly IApiColliderGenerator _api;
 		protected readonly ITargetData Data;
 		protected readonly IMeshGenerator MeshGenerator;
+		protected readonly float4x4 _matrix;
 
-		protected TargetColliderGenerator(IApiColliderGenerator api, ITargetData data, IMeshGenerator meshGenerator)
+		protected TargetColliderGenerator(IApiColliderGenerator api, ITargetData data, IMeshGenerator meshGenerator, float4x4 matrix)
 		{
 			_api = api;
 			Data = data;
 			MeshGenerator = meshGenerator;
+			_matrix = matrix;
 		}
 
 		private protected void GenerateCollidables(Mesh hitMesh, ref EdgeSet addedEdges, bool setHitObject, ref ColliderReference colliders)  {

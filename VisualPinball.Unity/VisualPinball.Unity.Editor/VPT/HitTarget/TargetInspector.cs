@@ -25,9 +25,6 @@ namespace VisualPinball.Unity.Editor
 {
 	public abstract class TargetInspector : MainInspector<HitTargetData, TargetComponent>
 	{
-		private SerializedProperty _positionProperty;
-		private SerializedProperty _rotationProperty;
-		private SerializedProperty _sizeProperty;
 		private SerializedProperty _meshNameProperty;
 		private SerializedProperty _typeNameProperty;
 
@@ -38,9 +35,6 @@ namespace VisualPinball.Unity.Editor
 		{
 			base.OnEnable();
 
-			_positionProperty = serializedObject.FindProperty(nameof(TargetComponent.Position));
-			_rotationProperty = serializedObject.FindProperty(nameof(TargetComponent.Rotation));
-			_sizeProperty = serializedObject.FindProperty(nameof(TargetComponent.Size));
 			_meshNameProperty = serializedObject.FindProperty(nameof(TargetComponent._meshName));
 			_typeNameProperty = serializedObject.FindProperty(nameof(TargetComponent._targetType));
 		}
@@ -55,9 +49,29 @@ namespace VisualPinball.Unity.Editor
 
 			OnPreInspectorGUI();
 
-			PropertyField(_positionProperty, updateTransforms: true);
-			PropertyField(_rotationProperty, updateTransforms: true);
-			PropertyField(_sizeProperty, updateTransforms: true);
+			// position
+			EditorGUI.BeginChangeCheck();
+			var newPos = EditorGUILayout.Vector3Field(new GUIContent("Position", "Position of the target on the playfield, relative to its parent."), MainComponent.Position);
+			if (EditorGUI.EndChangeCheck()) {
+				Undo.RecordObject(MainComponent.transform, "Change Target Position");
+				MainComponent.Position = newPos;
+			}
+
+			// rotation
+			EditorGUI.BeginChangeCheck();
+			var newAngle = EditorGUILayout.Slider(new GUIContent("Rotation", "Z-Axis rotation of the target."), MainComponent.Rotation, -180f, 180f);
+			if (EditorGUI.EndChangeCheck()) {
+				Undo.RecordObject(MainComponent.transform, "Change Target Rotation");
+				MainComponent.Rotation = newAngle;
+			}
+
+			// size
+			EditorGUI.BeginChangeCheck();
+			var newSize = EditorGUILayout.Vector3Field(new GUIContent("Size", "Overall scaling of the target. 32 equals 100%."), MainComponent.Size);
+			if (EditorGUI.EndChangeCheck()) {
+				Undo.RecordObject(MainComponent.transform, "Change Gate Length");
+				MainComponent.Size = newSize;
+			}
 
 			MeshDropdownProperty("Mesh", _meshNameProperty, MeshAssetFolder, MainComponent.gameObject, _typeNameProperty, MeshTypeMapping);
 
