@@ -16,6 +16,7 @@
 
 using System.Linq;
 using UnityEditor;
+using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -108,48 +109,49 @@ namespace VisualPinball.Unity.Editor
 		}
 
 		/// <summary>
-		/// Gets or creates the editor GameObject for playing sounds in the editor.
-		///
-		/// The hierarchy looks like that:
-		///
-		///  [scene root]
-		///    |
-		///    -- EditorScene
-		///      |
-		///       -- EditorAudio (with AudioSource component)
+		/// Gets or creates the AudioSource for playing sounds in the editor.
+		/// The object containing the AudioSource is created in a new, additively loaded scene
+		/// to avoid making changes to the user's currently open scene.
 		/// </summary>
-		/// <returns>AudioSource of the editor GameObject for test playing audio.</returns>
+		/// <returns>AudioSource for previewing audio assets in the editor</returns>
 		private static AudioSource GetOrCreateAudioSource()
 		{
-			// todo check whether we'll instantiate those live in the future or rely on a provided prefab
-			var editorSceneGo = SceneManager.GetActiveScene().GetRootGameObjects()
-				.FirstOrDefault(go => go.name == "EditorScene");
-
-			if (editorSceneGo == null) {
-				editorSceneGo = new GameObject("EditorScene");
+			Scene editorScene = GetOrCreatePreviewScene();
+			GameObject editorAudio = GetOrCreatePreviewAudioObject(editorScene);
+			if (!editorAudio.TryGetComponent<AudioSource>(out var audioSource)) {
+				audioSource = editorAudio.AddComponent<AudioSource>();
 			}
-
-			GameObject editorAudioGo = null;
-			for (var i = 0; i < editorSceneGo.transform.childCount; i++) {
-				var go = editorSceneGo.transform.GetChild(i).gameObject;
-				if (go.name != "EditorAudio") {
-					continue;
-				}
-				editorAudioGo = go;
-				break;
-			}
-
-			if (editorAudioGo == null) {
-				editorAudioGo = new GameObject("EditorAudio");
-				editorAudioGo.transform.SetParent(editorSceneGo.transform);
-			}
-
-			var audioSource = editorAudioGo.GetComponent<AudioSource>();
-			if (!audioSource) {
-				audioSource = editorAudioGo.AddComponent<AudioSource>();
-			}
-
 			return audioSource;
+		}
+
+		private static Scene GetOrCreatePreviewScene()
+		{
+			const string sceneName = "VpeEditorScene";
+
+			for (int i = 0; i < SceneManager.loadedSceneCount; i++) {
+				Scene scene = SceneManager.GetSceneAt(i);
+				if (scene.name == sceneName)
+					return scene;
+			}
+
+			Scene previewScene = EditorSceneManager.NewPreviewScene();
+			previewScene.name = sceneName;
+			return previewScene;
+		}
+
+		private static GameObject GetOrCreatePreviewAudioObject(Scene previewScene)
+		{
+			const string audioObjName = "AudioPreview";
+
+			var audioObj = previewScene.GetRootGameObjects()
+				.FirstOrDefault(go => go.name == audioObjName);
+
+			if (audioObj == null) {
+				audioObj = new GameObject(audioObjName);
+				SceneManager.MoveGameObjectToScene(audioObj, previewScene);
+			}
+
+			return audioObj;
 		}
 	}
 }
