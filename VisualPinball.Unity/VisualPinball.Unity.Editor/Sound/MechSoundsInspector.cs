@@ -29,8 +29,6 @@ namespace VisualPinball.Unity.Editor
 		{
 			_audioMixerProperty = serializedObject.FindProperty(nameof(MechSoundsComponent.AudioMixer));
 			_soundsProperty = serializedObject.FindProperty(nameof(MechSoundsComponent.Sounds));
-			
-			var comp = target as MechSoundsComponent;
 		}
 
 		public override void OnInspectorGUI()
