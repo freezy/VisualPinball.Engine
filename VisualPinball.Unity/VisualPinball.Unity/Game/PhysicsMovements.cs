@@ -65,12 +65,13 @@ namespace VisualPinball.Unity
 			while (enumerator.MoveNext()) {
 				ref var dropTargetState = ref enumerator.Current.Value;
 				var dropTargetTransform = transforms[dropTargetState.AnimatedItemId];
-				var localPos = dropTargetTransform.localPosition;
-				dropTargetTransform.localPosition = new Vector3(
-					localPos.x,
-					Physics.ScaleToWorld(dropTargetState.Animation.ZOffset),
-					localPos.z
-				);
+				var localYDirection = dropTargetTransform.up;
+
+				// Compute the new position by moving along the local Y-axis
+				var newPosition = (Vector3)dropTargetState.Static.InitialPosition + localYDirection * Physics.ScaleToWorld(dropTargetState.Animation.ZOffset);
+
+				// Apply the new position
+				dropTargetTransform.position = newPosition;
 			}
 		}
 

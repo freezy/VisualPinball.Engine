@@ -158,6 +158,7 @@ namespace VisualPinball.Unity
 					Speed = animationComponent.Speed,
 					RaiseDelay = animationComponent.RaiseDelay,
 					UseHitEvent = colliderComponent.UseHitEvent,
+					InitialPosition = transform.position
 				} : default;
 
 			var animationData = colliderComponent && animationComponent
