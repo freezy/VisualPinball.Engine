@@ -18,6 +18,9 @@ namespace VisualPinball.Unity
 {
 	internal struct HitTargetAnimationData
 	{
+		/// <summary>
+		/// Current X-rotation, in degrees.
+		/// </summary>
 		public float XRotation;
 		public bool HitEvent;
 		public uint TimeMsec;

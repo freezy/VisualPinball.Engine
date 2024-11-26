@@ -49,5 +49,27 @@ namespace VisualPinball.Unity
 
 			transform.rotation = Quaternion.LookRotation(newForward, newUp);
 		}
+
+		public static void SetLocalXRotation(this Transform transform, float angleRad)
+		{
+			var localToWorldMatrix = transform.localToWorldMatrix;
+
+			// Get the current local X rotation and calculate its inverse
+			var localRotationX = transform.localRotation.eulerAngles.x;
+			var inverseXRotation = math.inverse(float4x4.RotateX(math.radians(localRotationX)));
+
+			// Remove the current X rotation
+			var localToWorldPhysicsMatrix = math.mul(localToWorldMatrix, inverseXRotation);
+
+			// Apply the new X rotation
+			var rotatedMatrix = math.mul(localToWorldPhysicsMatrix, float4x4.RotateX(angleRad));
+
+			// Extract the updated forward and up directions from the rotated matrix
+			var newForward = rotatedMatrix.c2.xyz; // Correct forward vector after rotation
+			var newUp = rotatedMatrix.c1.xyz;      // Correct up vector after rotation
+
+			// Set the object's rotation using the new forward and up directions
+			transform.rotation = Quaternion.LookRotation(newForward, newUp);
+		}
 	}
 }

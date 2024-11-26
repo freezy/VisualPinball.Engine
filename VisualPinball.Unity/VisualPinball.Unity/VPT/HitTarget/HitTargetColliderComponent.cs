@@ -28,6 +28,9 @@ namespace VisualPinball.Unity
 	{
 		#region Data
 
+		[Tooltip("The mesh that will be used for the collider.")]
+		public Mesh ColliderMesh;
+
 		[Min(0f)]
 		[Tooltip("Bounciness, also known as coefficient of restitution. Higher is more bouncy.")]
 		public float Elasticity = 0.35f;
@@ -57,5 +60,9 @@ namespace VisualPinball.Unity
 
 		protected override IApiColliderGenerator InstantiateColliderApi(Player player, PhysicsEngine physicsEngine)
 			=> (MainComponent as HitTargetComponent)?.HitTargetApi ?? new HitTargetApi(gameObject, player, physicsEngine);
+
+		public override float4x4 TranslateWithinPlayfieldMatrix(float4x4 worldToPlayfield)
+			=> MainComponent.TransformationWithinPlayfield.TransformToVpx();
+
 	}
 }

@@ -16,6 +16,7 @@
 
 using System.Collections.Generic;
 using Unity.Collections;
+using Unity.Mathematics;
 using UnityEngine;
 
 namespace VisualPinball.Unity
@@ -78,13 +79,8 @@ namespace VisualPinball.Unity
 			using var enumerator = hitTargetStates.GetEnumerator();
 			while (enumerator.MoveNext()) {
 				ref var hitTargetState = ref enumerator.Current.Value;
-				var hitTargetTransform = transforms[hitTargetState.AnimatedItemId];
-				var localRot = hitTargetTransform.localEulerAngles;
-				hitTargetTransform.localEulerAngles = new Vector3(
-					hitTargetState.Animation.XRotation,
-					localRot.y,
-					localRot.z
-				);
+				var transform = transforms[enumerator.Current.Key];
+				transform.SetLocalXRotation(math.radians(hitTargetState.Animation.XRotation + hitTargetState.Static.InitialXRotation));
 			}
 		}
 

@@ -63,7 +63,7 @@ namespace VisualPinball.Unity
 		protected override void CreateColliders(ref ColliderReference colliders,
 			ref ColliderReference kinematicColliders, float4x4 translateWithinPlayfieldMatrix, float margin)
 		{
-			var colliderGenerator = new HitTargetColliderGenerator(this, MainComponent, MainComponent, translateWithinPlayfieldMatrix);
+			var colliderGenerator = new HitTargetColliderGenerator(ColliderComponent.ColliderMesh, this, MainComponent, MainComponent, translateWithinPlayfieldMatrix);
 			colliderGenerator.GenerateColliders(ref colliders);
 		}
 

@@ -38,7 +38,7 @@ namespace VisualPinball.Unity
 
 		public float3 Normal() => _normal;
 		
-		public override string ToString() => $"TriangleCollider[{Header.ItemId}] ({Rgv0.x}/{Rgv0.y}/{Rgv0.z}), ({Rgv1.x}/{Rgv1.y}/{Rgv1.z}), ({Rgv2.x}/{Rgv2.y}/{Rgv2.z}) at ({_normal.x}/{_normal.y/_normal.z})";
+		public override string ToString() => $"TriangleCollider[{Header.ItemId}] ({Rgv0.x}/{Rgv0.y}/{Rgv0.z}), ({Rgv1.x}/{Rgv1.y}/{Rgv1.z}), ({Rgv2.x}/{Rgv2.y}/{Rgv2.z}) at ({_normal.x}/{_normal.y}/{_normal.z})";
 
 		public ColliderBounds Bounds { get; private set; }
 

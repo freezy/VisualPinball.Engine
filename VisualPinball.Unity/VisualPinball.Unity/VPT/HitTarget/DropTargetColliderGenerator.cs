@@ -75,22 +75,22 @@ namespace VisualPinball.Unity
 					var rgv1 = rgv3D[i1].ToUnityFloat3();
 					var rgv2 = rgv3D[i2].ToUnityFloat3();
 
-					colliders.Add(new TriangleCollider(rgv0, rgv2, rgv1, GetColliderInfo(true)), _matrix);
+					colliders.Add(new TriangleCollider(rgv0, rgv2, rgv1, GetColliderInfo(true)), Matrix);
 
 					if (addedEdges.ShouldAddHitEdge(i0, i1)) {
-						colliders.Add(new Line3DCollider(rgv0, rgv2, GetColliderInfo(true)), _matrix);
+						colliders.Add(new Line3DCollider(rgv0, rgv2, GetColliderInfo(true)), Matrix);
 					}
 					if (addedEdges.ShouldAddHitEdge(i1, i2)) {
-						colliders.Add(new Line3DCollider(rgv2, rgv1, GetColliderInfo(true)), _matrix);
+						colliders.Add(new Line3DCollider(rgv2, rgv1, GetColliderInfo(true)), Matrix);
 					}
 					if (addedEdges.ShouldAddHitEdge(i2, i0)) {
-						colliders.Add(new Line3DCollider(rgv1, rgv0, GetColliderInfo(true)), _matrix);
+						colliders.Add(new Line3DCollider(rgv1, rgv0, GetColliderInfo(true)), Matrix);
 					}
 				}
 
 				// add collision vertices
 				for (var i = 0; i < DropTargetHitPlaneVertices.Length; ++i) {
-					colliders.Add(new PointCollider(rgv3D[i].ToUnityFloat3(), GetColliderInfo(true)), _matrix);
+					colliders.Add(new PointCollider(rgv3D[i].ToUnityFloat3(), GetColliderInfo(true)), Matrix);
 				}
 			}
 

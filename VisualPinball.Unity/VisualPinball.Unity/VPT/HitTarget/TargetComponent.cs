@@ -109,6 +109,8 @@ namespace VisualPinball.Unity
 
 		protected abstract float ZOffset { get; }
 
+		public float4x4 TransformationWithinPlayfield => transform.worldToLocalMatrix.WorldToLocalTranslateWithinPlayfield(Playfield.transform.localToWorldMatrix);
+
 		#endregion
 
 		#region Conversion
@@ -177,6 +179,7 @@ namespace VisualPinball.Unity
 		public override void SetEditorRotation(Vector3 rot) => Rotation = ClampDegrees(rot.x);
 
 		public override ItemDataTransformType EditorScaleType => ItemDataTransformType.ThreeD;
+
 		public override Vector3 GetEditorScale() => Size;
 		public override void SetEditorScale(Vector3 scale) => Size = scale;
 
