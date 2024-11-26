@@ -17,12 +17,10 @@
 using System;
 using NLog;
 using UnityEngine;
-using VisualPinball.Engine.VPT;
 using Logger = NLog.Logger;
 
 namespace VisualPinball.Unity
 {
-	// public class ScoreMotorApi :  ItemApi<ScoreMotorComponent, ItemData>, IApi, IApiSwitchDevice
 	public class ScoreMotorApi : IApi, IApiSwitchDevice
 	{
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
@@ -45,12 +43,11 @@ namespace VisualPinball.Unity
 				ScoreMotorComponent.MotorRunningSwitchItem => _motorRunningSwitch,
 				ScoreMotorComponent.MotorStepSwitchItem => _motorStepSwitch,
 				_ => throw new ArgumentException($"Unknown switch \"{deviceItem}\". "
-					+ "Valid names are \"{ScoreReelDisplayComponent.MotorRunningSwitchItem}\", and "
-					+ "\"{ScoreReelDisplayComponent.MotorStepSwitchItem}\".")
+					+ $"Valid names are \"{ScoreMotorComponent.MotorRunningSwitchItem}\", and "
+					+ $"\"{ScoreMotorComponent.MotorStepSwitchItem}\".")
 			};
 		}
 
-		// internal ScoreMotorApi(GameObject go, Player player, PhysicsEngine physicsEngine) : base(go, player, physicsEngine)
 		internal ScoreMotorApi(GameObject go, Player player, PhysicsEngine physicsEngine)
 		{
 			_scoreMotorComponent = go.GetComponentInChildren<ScoreMotorComponent>();
@@ -72,12 +69,17 @@ namespace VisualPinball.Unity
 
 		private void HandleSwitchChanged(object sender, SwitchEventArgs2 e)
 		{
-			((DeviceSwitch)Switch(e.Id)).SetSwitch(e.IsEnabled);
+			var deviceSwitch = (DeviceSwitch)Switch(e.Id);
+			deviceSwitch.SetSwitch(e.IsEnabled);
 
-			//if (e.IsEnabled)
-			//{
-			//	MainComponent.EmitSound(ScoreMotorComponent.SoundScoreClear);
-			//}
+			if (deviceSwitch == _motorStepSwitch && e.IsEnabled) { 
+				_scoreMotorComponent.EmitSound(ScoreMotorComponent.SoundScoreMotorStep);
+			} else if (deviceSwitch == _motorRunningSwitch) {
+				if (e.IsEnabled)
+					_scoreMotorComponent.EmitSound(ScoreMotorComponent.SoundScoreMotorStart);
+				else
+					_scoreMotorComponent.EmitSound(ScoreMotorComponent.SoundScoreMotorStop);
+			}
 		}
 
 		void IApi.OnDestroy()
