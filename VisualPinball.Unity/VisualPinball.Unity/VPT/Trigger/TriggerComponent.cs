@@ -41,16 +41,36 @@ namespace VisualPinball.Unity
 	{
 		#region Data
 
-		[Tooltip("Position on the playfield.")]
-		public Vector2 Position;
+		private Vector3 _position {
+			get => transform.localPosition.TranslateToVpx();
+			set => transform.localPosition = value.TranslateToWorld();
+		}
 
-		[Tooltip("Scales the trigger mesh by this value.")]
-		[Range(0.5f, 1.5f)]
-		public float Scale = 1;
+		public Vector2 Position {
+			get => _position.XY();
+			set => _position = new Vector3(value.x, value.y, _position.z);
+		}
 
-		[Tooltip("Rotation of the trigger.")]
-		[Range(-180f, 180f)]
-		public float Rotation;
+		public float _scale = 1f;
+		public float Scale
+		{
+			get {
+				var scale = transform.localScale;
+				if (math.abs(scale.x - scale.y) < Collider.Tolerance && math.abs(scale.x - scale.z) < Collider.Tolerance && math.abs(scale.y - scale.z) < Collider.Tolerance) {
+					return scale.x;
+				}
+				return _scale;
+			}
+			set {
+				_scale = value;
+				transform.localScale = new Vector3(value, value, value);
+			}
+		}
+
+		public float Rotation {
+			get => transform.localEulerAngles.y > 180 ? transform.localEulerAngles.y - 360 : transform.localEulerAngles.y;
+			set => transform.SetLocalYRotation(math.radians(value));
+		}
 
 		[SerializeField]
 		[TypeRestriction(typeof(ISurfaceComponent), PickerLabel = "Walls & Ramps", UpdateTransforms = true)]
