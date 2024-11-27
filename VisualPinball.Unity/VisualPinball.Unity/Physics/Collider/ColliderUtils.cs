@@ -28,6 +28,13 @@ namespace VisualPinball.Unity
 		private static readonly ProfilerMarker PerfMarker1 = new("ColliderUtils.GenerateCollidersFromMesh.ICollider");
 		private static readonly ProfilerMarker PerfMarker2 = new("ColliderUtils.GenerateCollidersFromMesh.NativeArray");
 
+		/// <summary>
+		/// Creates a 3D polygon collider from a list of vertices by triangulating them.
+		/// </summary>
+		/// <param name="rgv">Vertices, in VPX space</param>
+		/// <param name="info">Collider info</param>
+		/// <param name="colliders">Colliders to write to</param>
+		/// <param name="matrix">Transformation matrix to supply when adding colliders.</param>
 		public static void Generate3DPolyColliders(in float3[] rgv, ColliderInfo info, ref ColliderReference colliders, float4x4 matrix)
 		{
 			var inputVerts = new float2[rgv.Length];

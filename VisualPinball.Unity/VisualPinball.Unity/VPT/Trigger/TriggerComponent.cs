@@ -141,7 +141,7 @@ namespace VisualPinball.Unity
 		[NonSerialized]
 		private float4x4 _playfieldToWorld;
 
-		public Vector2 Center => Position;
+		public Vector2 Center => Position; // todo remove?
 
 		public void OnSurfaceUpdated() => UpdateTransforms();
 		public float PositionZ => SurfaceHeight(Surface, Position);
@@ -176,7 +176,7 @@ namespace VisualPinball.Unity
 			Rotation = data.Rotation;
 
 			// geometry
-			DragPoints = data.DragPoints;
+			DragPoints = data.DragPoints.Select(dp => dp.Translate((-transform.localPosition).TranslateToVpx().ToVertex3D())).ToArray();
 
 			// mesh
 			var meshComponent = GetComponent<TriggerMeshComponent>();
