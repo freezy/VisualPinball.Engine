@@ -29,9 +29,6 @@ namespace VisualPinball.Unity.Editor
 	{
 		public Transform Transform => MainComponent.transform;
 
-		private SerializedProperty _positionProperty;
-		private SerializedProperty _scaleProperty;
-		private SerializedProperty _rotationProperty;
 		private SerializedProperty _surfaceProperty;
 
 		protected override void OnEnable()
@@ -41,9 +38,6 @@ namespace VisualPinball.Unity.Editor
 			DragPointsHelper = new DragPointsInspectorHelper(MainComponent, this);
 			DragPointsHelper.OnEnable();
 
-			_positionProperty = serializedObject.FindProperty(nameof(TriggerComponent.Position));
-			_scaleProperty = serializedObject.FindProperty(nameof(TriggerComponent.Scale));
-			_rotationProperty = serializedObject.FindProperty(nameof(TriggerComponent.Rotation));
 			_surfaceProperty = serializedObject.FindProperty(nameof(TriggerComponent._surface));
 		}
 
@@ -63,9 +57,30 @@ namespace VisualPinball.Unity.Editor
 
 			OnPreInspectorGUI();
 
-			PropertyField(_positionProperty, updateTransforms: true);
-			PropertyField(_scaleProperty, updateTransforms: true);
-			PropertyField(_rotationProperty, updateTransforms: true);
+			// position
+			EditorGUI.BeginChangeCheck();
+			var newPos = EditorGUILayout.Vector2Field(new GUIContent("Position", "Position of the trigger on the playfield, relative to its parent."), MainComponent.Position);
+			if (EditorGUI.EndChangeCheck()) {
+				Undo.RecordObject(MainComponent.transform, "Change Trigger Position");
+				MainComponent.Position = newPos;
+			}
+
+			// scale
+			EditorGUI.BeginChangeCheck();
+			var newScale = EditorGUILayout.Slider(new GUIContent("Scale", "Scales the trigger mesh by this value."), MainComponent.Scale, 0.5f, 1.5f);
+			if (EditorGUI.EndChangeCheck()) {
+				Undo.RecordObject(MainComponent.transform, "Change Trigger Scale");
+				MainComponent.Scale = newScale;
+			}
+
+			// rotation
+			EditorGUI.BeginChangeCheck();
+			var newRotation = EditorGUILayout.Slider(new GUIContent("Rotation", "Orientation angle. Updates z rotation."), MainComponent.Rotation, -180f, 180f);
+			if (EditorGUI.EndChangeCheck()) {
+				Undo.RecordObject(MainComponent.transform, "Change Trigger Rotation");
+				MainComponent.Rotation = newRotation;
+			}
+
 			PropertyField(_surfaceProperty, updateTransforms: true);
 
 			DragPointsHelper.OnInspectorGUI(this);
