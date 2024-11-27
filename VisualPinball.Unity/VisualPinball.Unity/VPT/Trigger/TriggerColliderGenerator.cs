@@ -53,7 +53,7 @@ namespace VisualPinball.Unity
 		private void GenerateRoundHitObjects(ref ColliderReference colliders)
 		{
 			var height = _component.PositionZ;
-			colliders.Add(new CircleCollider(_component.Center, _colliderComponent.HitCircleRadius, height, height + _colliderComponent.HitHeight,
+			colliders.Add(new CircleCollider(new float2(0), _colliderComponent.HitCircleRadius, height, height + _colliderComponent.HitHeight,
 				_api.GetColliderInfo(), ColliderType.TriggerCircle), _matrix);
 		}
 
