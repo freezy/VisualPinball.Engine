@@ -220,8 +220,7 @@ namespace VisualPinball.Unity
 			if (showColliders) {
 
 				//Gizmos.matrix = playfieldToWorld * (Matrix4x4)Physics.VpxToWorld * (Matrix4x4)translateFullyWithinPlayfieldMatrix;
-				Gizmos.matrix = playfieldToWorld * (Matrix4x4)Physics.VpxToWorld;
-				Handles.matrix = Gizmos.matrix;
+
 
 				// var color = Application.isPlaying && IsKinematic
 				// 	? Color.magenta
@@ -254,6 +253,8 @@ namespace VisualPinball.Unity
 				}
 
 				if (_staticColliderMesh) {
+					Gizmos.matrix = playfieldToWorld * (Matrix4x4)Physics.VpxToWorld;
+					Handles.matrix = Gizmos.matrix;
 					Gizmos.color = green;
 					Gizmos.DrawMesh(_staticColliderMesh);
 					Gizmos.color = white;
