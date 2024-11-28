@@ -53,7 +53,7 @@ namespace VisualPinball.Unity
 			}
 			var mesh = new Mesh(triangulatedVerts, outputIndices);
 
-			GenerateCollidersFromMesh(mesh, info, ref colliders, matrix, false);
+			GenerateCollidersFromMesh(mesh, info, ref colliders, matrix);
 		}
 
 		public static void GenerateCollidersFromMesh(Mesh mesh, ColliderInfo info, ref ColliderReference colliders, float4x4 matrix, bool onlyTriangles = false)

@@ -140,7 +140,7 @@ namespace VisualPinball.Unity
 
 		public override string ToString()
 		{
-			return $"Ball{Id} ({Position.x}/{Position.y})";
+			return $"Ball{Id} ({Position.x}/{Position.y}/{Position.z})";
 		}
 
 		public void Transform(float4x4 matrix)

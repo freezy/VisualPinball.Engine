@@ -146,21 +146,6 @@ namespace VisualPinball.Unity
 		public void OnSurfaceUpdated() => UpdateTransforms();
 		public float PositionZ => SurfaceHeight(Surface, Position);
 
-		public override void UpdateTransforms()
-		{
-			base.UpdateTransforms();
-			var t = transform;
-
-			// position
-			t.localPosition = Physics.TranslateToWorld(Position.x, Position.y, PositionZ);
-
-			// scale
-			t.localScale = new Vector3(Scale, Scale, Scale);
-
-			// rotation
-			t.localEulerAngles = new Vector3(0, Rotation, 0);
-		}
-
 		public float4x4 TransformationMatrix => transform.worldToLocalMatrix.WorldToLocalTranslateWithinPlayfield(_playfieldToWorld);
 
 		#endregion
