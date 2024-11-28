@@ -129,7 +129,14 @@ namespace VisualPinball.Unity
 					continue;
 				}
 				var triggerTransform = transforms[triggerState.AnimatedItemId];
-				TriggerTransform.Update(triggerState.AnimatedItemId, in triggerState.Movement, triggerTransform);
+
+				var localYDirection = triggerTransform.up;
+
+				// Compute the new position by moving along the local Y-axis
+				var newPosition = (Vector3)triggerState.Static.InitialPosition + localYDirection * Physics.ScaleToWorld(triggerState.Movement.HeightOffset);
+
+				// Apply the new position
+				triggerTransform.localPosition = newPosition;
 			}
 		}
 	}
