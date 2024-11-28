@@ -23,9 +23,9 @@ namespace VisualPinball.Unity
 		internal static void Update(ref TriggerAnimationState animation, ref TriggerMovementState movement, in TriggerStaticState staticState,
 			float dTimeMs)
 		{
-			var oldTimeMsec = animation.TimeMsec < dTimeMs ? animation.TimeMsec : dTimeMs;
-			animation.TimeMsec = dTimeMs;
-			var diffTimeMsec = dTimeMs - oldTimeMsec;
+			// var oldTimeMsec = animation.TimeMsec < dTimeMs ? animation.TimeMsec : dTimeMs;
+			// animation.TimeMsec = dTimeMs;
+			// var diffTimeMsec = dTimeMs - oldTimeMsec;
 
 			var animLimit = staticState.Shape == TriggerShape.TriggerStar ? staticState.Radius * (float)(1.0 / 5.0) : 32.0f;
 			if (staticState.Shape == TriggerShape.TriggerButton) {
@@ -51,12 +51,12 @@ namespace VisualPinball.Unity
 				animation.DoAnimation = true;
 				animation.UnHitEvent = false;
 				animation.HitEvent = false;
-				movement.HeightOffset = limit;
+				//movement.HeightOffset = limit;
 				animation.MoveDown = false;
 			}
 
 			if (animation.DoAnimation) {
-				var step = diffTimeMsec * staticState.AnimSpeed * staticState.TableScaleZ;
+				var step = dTimeMs * staticState.AnimSpeed * staticState.TableScaleZ;
 				if (animation.MoveDown) {
 					step = -step;
 				}

@@ -297,7 +297,8 @@ namespace VisualPinball.Unity
 						AnimSpeed = animComponent ? animComponent.AnimSpeed : 0,
 						Radius = collComponent.HitCircleRadius,
 						Shape = meshComponent ? meshComponent.Shape : 0,
-						TableScaleZ = 1f
+						TableScaleZ = 1f,
+						InitialPosition = transform.localPosition
 					},
 					new TriggerMovementState(),
 					new TriggerAnimationState()
@@ -309,7 +310,8 @@ namespace VisualPinball.Unity
 					AnimSpeed = 0,
 					Radius = collComponent.HitCircleRadius,
 					Shape = TriggerShape.TriggerNone,
-					TableScaleZ = 1f
+					TableScaleZ = 1f,
+					InitialPosition = transform.position
 				},
 				new FlipperCorrectionState(
 					true,
