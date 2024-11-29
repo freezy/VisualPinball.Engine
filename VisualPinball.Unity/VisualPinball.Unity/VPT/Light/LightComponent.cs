@@ -42,12 +42,6 @@ namespace VisualPinball.Unity
 	{
 		#region Data
 
-		public ISurfaceComponent Surface { get => _surface as ISurfaceComponent; set => _surface = value as MonoBehaviour; }
-		[SerializeField]
-		[TypeRestriction(typeof(ISurfaceComponent), PickerLabel = "Walls & Ramps", UpdateTransforms = true)]
-		[Tooltip("On which surface this light is attached to. Updates Z-translation.")]
-		public MonoBehaviour _surface;
-
 		[Min(0)]
 		[Tooltip("The radius of the bulb mesh")]
 		public float BulbSize = 20f;
@@ -124,11 +118,6 @@ namespace VisualPinball.Unity
 
 			var vpxPos = (float3)transform.localPosition.TranslateToVpx();
 
-			// position
-			vpxPos.z = Surface != null
-				? Surface.Height(vpxPos.xy) + vpxPos.z
-				: PlayfieldHeight + vpxPos.z;
-			
 			transform.localPosition = vpxPos.TranslateToWorld();
 
 			// bulb size
@@ -390,8 +379,6 @@ namespace VisualPinball.Unity
 
 		public override IEnumerable<MonoBehaviour> SetReferencedData(LightData data, Table table, IMaterialProvider materialProvider, ITextureProvider textureProvider, Dictionary<string, IMainComponent> components)
 		{
-			Surface = FindComponent<ISurfaceComponent>(components, data.Surface);
-
 			// visibility
 			if (!data.ShowBulbMesh) {
 				foreach (var mf in GetComponentsInChildren<MeshFilter>()) {
@@ -427,7 +414,6 @@ namespace VisualPinball.Unity
 			// name and position
 			data.Name = name;
 			data.Center = pos.ToVertex2Dxy();
-			data.Surface = Surface != null ? Surface.name : string.Empty;
 			data.MeshRadius = BulbSize;
 
 			// logical params
@@ -467,7 +453,6 @@ namespace VisualPinball.Unity
 
 			var lightComponent = go.GetComponent<LightComponent>();
 			if (lightComponent != null) {
-				Surface = lightComponent.Surface;
 				BulbSize = lightComponent.BulbSize;
 				State = lightComponent.State;
 				BlinkPattern = lightComponent.BlinkPattern;

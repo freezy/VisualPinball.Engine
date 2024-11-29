@@ -64,12 +64,12 @@ namespace VisualPinball.Unity.Editor
 				case IMeshComponent meshItem:
 					meshItem.MainRenderableComponent.RebuildMeshes();
 					meshItem.MainRenderableComponent.UpdateTransforms();
-					meshItem.MainRenderableComponent.UpdateVisibility();
+					// meshItem.MainRenderableComponent.UpdateVisibility();
 					break;
 				case IMainRenderableComponent mainItem:
 					mainItem.RebuildMeshes();
 					mainItem.UpdateTransforms();
-					mainItem.UpdateVisibility();
+					// mainItem.UpdateVisibility();
 					break;
 			}
 		}
@@ -106,7 +106,7 @@ namespace VisualPinball.Unity.Editor
 						meshItem.MainRenderableComponent.UpdateTransforms();
 					}
 					if (_visibilityDirty) {
-						meshItem.MainRenderableComponent.UpdateVisibility();
+						// meshItem.MainRenderableComponent.UpdateVisibility();
 					}
 					break;
 
@@ -118,7 +118,7 @@ namespace VisualPinball.Unity.Editor
 						mainItem.UpdateTransforms();
 					}
 					if (_visibilityDirty) {
-						mainItem.UpdateVisibility();
+						// mainItem.UpdateVisibility();
 					}
 					break;
 
@@ -227,7 +227,7 @@ namespace VisualPinball.Unity.Editor
 							meshItem.MainRenderableComponent.RebuildMeshes();
 						}
 						if (updateVisibility) {
-							meshItem.MainRenderableComponent.UpdateVisibility();
+							// meshItem.MainRenderableComponent.UpdateVisibility();
 						}
 						break;
 
@@ -236,7 +236,7 @@ namespace VisualPinball.Unity.Editor
 							mainItem.RebuildMeshes();
 						}
 						if (updateVisibility) {
-							mainItem.UpdateVisibility();
+							// mainItem.UpdateVisibility();
 						}
 						break;
 				}

@@ -79,7 +79,7 @@ namespace VisualPinball.Unity
 			var objectRotation = new Vector3(data.RotAndTra[6], data.RotAndTra[7], data.RotAndTra[8]);
 
 			var scaleMatrix = float4x4.Scale(size);
-			var transMatrix = float4x4.Translate(new float3(position.x, position.y, position.z + PlayfieldHeight));
+			var transMatrix = float4x4.Translate(position);
 			var rotTransMatrix = math.mul(
 				float4x4.EulerZYX(math.radians(objectRotation)),
 				math.mul(

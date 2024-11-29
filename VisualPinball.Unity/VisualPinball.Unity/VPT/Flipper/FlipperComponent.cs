@@ -38,7 +38,7 @@ namespace VisualPinball.Unity
 	[AddComponentMenu("Visual Pinball/Game Item/Flipper")]
 	[HelpURL("https://docs.visualpinball.org/creators-guide/manual/mechanisms/flippers.html")]
 	public class FlipperComponent : MainRenderableComponent<FlipperData>,
-		IFlipperData, ISwitchDeviceComponent, ICoilDeviceComponent, IOnSurfaceComponent,
+		IFlipperData, ISwitchDeviceComponent, ICoilDeviceComponent,
 		IRotatableComponent
 	{
 		#region Data
@@ -70,12 +70,6 @@ namespace VisualPinball.Unity
 		[Range(-180f, 180f)]
 		[Tooltip("Angle of the flipper in end position (flipped)")]
 		public float EndAngle = 70.0f;
-
-		public ISurfaceComponent Surface { get => _surface as ISurfaceComponent; set => _surface = value as MonoBehaviour; }
-		[SerializeField]
-		[TypeRestriction(typeof(ISurfaceComponent), PickerLabel = "Walls & Ramps", UpdateTransforms = true)]
-		[Tooltip("On which surface this flipper is attached to. Updates Z-translation.")]
-		public MonoBehaviour _surface;
 
 		// todo implement
 		[Tooltip("This does nothing yet!")]
@@ -173,22 +167,6 @@ namespace VisualPinball.Unity
 
 		#region Transformation
 
-		public void OnSurfaceUpdated() => UpdateTransforms();
-
-		public float PositionZ => SurfaceHeight(Surface, Position);
-
-		public override void UpdateTransforms()
-		{
-			base.UpdateTransforms();
-			var t = transform;
-
-			// position
-			//t.localPosition = Physics.TranslateToWorld(Position.x, Position.y, PositionZ);
-
-			// rotation
-			//t.SetLocalYRotation(math.radians(StartAngle));
-		}
-
 		/// <summary>
 		/// Returns the local-to-world matrix of the flipper, but without the rotation around the Y-axis.
 		/// </summary>
@@ -270,7 +248,6 @@ namespace VisualPinball.Unity
 
 		public override IEnumerable<MonoBehaviour> SetReferencedData(FlipperData data, Table table, IMaterialProvider materialProvider, ITextureProvider textureProvider, Dictionary<string, IMainComponent> components)
 		{
-			Surface = FindComponent<ISurfaceComponent>(components, data.Surface);
 			UpdateTransforms();
 
 			// children mesh creation and visibility
@@ -295,7 +272,6 @@ namespace VisualPinball.Unity
 			data.Name = name;
 			data.Center = Position.ToVertex2D();
 			data.StartAngle = StartAngle;
-			data.Surface = Surface != null ? Surface.name : string.Empty;
 
 			// geometry
 			data.Height = _height;
@@ -341,7 +317,6 @@ namespace VisualPinball.Unity
 				Position = flipperComponent.Position;
 				StartAngle = flipperComponent.StartAngle;
 				EndAngle = flipperComponent.EndAngle;
-				Surface = flipperComponent.Surface;
 				IsDualWound = flipperComponent.IsDualWound;
 				_height = flipperComponent._height;
 				_baseRadius = flipperComponent._baseRadius;
@@ -362,18 +337,6 @@ namespace VisualPinball.Unity
 		#endregion
 
 		#region Editor Tooling
-
-		public override ItemDataTransformType EditorPositionType => ItemDataTransformType.TwoD;
-		public override Vector3 GetEditorPosition() => Surface != null
-			? new Vector3(Position.x, Position.y, Surface.Height(Position))
-			: new Vector3(Position.x, Position.y, 0);
-		public override void SetEditorPosition(Vector3 pos) => Position = ((float3)pos).xy;
-
-		public override ItemDataTransformType EditorRotationType => ItemDataTransformType.OneD;
-		public override Vector3 GetEditorRotation() => new Vector3(StartAngle, 0f, 0f);
-		public override void SetEditorRotation(Vector3 rot) => StartAngle = ClampDegrees(rot.x);
-
-		public override ItemDataTransformType EditorScaleType => ItemDataTransformType.None;
 
 		#if UNITY_EDITOR
 

@@ -27,6 +27,7 @@ using System.Linq;
 using Unity.Mathematics;
 using UnityEngine;
 using VisualPinball.Engine.Game.Engines;
+using VisualPinball.Engine.Math;
 using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Bumper;
 using VisualPinball.Engine.VPT.Table;
@@ -34,19 +35,13 @@ using VisualPinball.Engine.VPT.Table;
 namespace VisualPinball.Unity
 {
 	[AddComponentMenu("Visual Pinball/Game Item/Bumper")]
-	public class BumperComponent : MainRenderableComponent<BumperData>,
-		ISwitchDeviceComponent, ICoilDeviceComponent, IOnSurfaceComponent
+	public class BumperComponent : MainRenderableComponent<BumperData>, ISwitchDeviceComponent, ICoilDeviceComponent
 	{
 		#region Data
 
-		private Vector3 _position {
+		public Vector3 Position {
 			get => transform.localPosition.TranslateToVpx();
 			set => transform.localPosition = value.TranslateToWorld();
-		}
-
-		public Vector2 Position {
-			get => _position.XY();
-			set => _position = new Vector3(value.x, value.y, _position.z);
 		}
 
 		[Range(20f, 250f)]
@@ -68,12 +63,6 @@ namespace VisualPinball.Unity
 		[Tooltip("Should the bumper coil always activate when touched by a ball? Disable to give game logic engine full control")]
 		public bool IsHardwired = true;
 
-		public ISurfaceComponent Surface { get => _surface as ISurfaceComponent; set => _surface = value as MonoBehaviour; }
-
-		[SerializeField]
-		[TypeRestriction(typeof(ISurfaceComponent), PickerLabel = "Walls & Ramps", UpdateTransforms = true)]
-		[Tooltip("On which surface this bumper is attached to. Updates Z-translation.")]
-		public MonoBehaviour _surface;
 		private IEnumerable<GamelogicEngineCoil> _availableDeviceItems;
 
 		#endregion
@@ -165,8 +154,6 @@ namespace VisualPinball.Unity
 
 		public void OnSurfaceUpdated() => UpdateTransforms();
 
-		public float PositionZ => SurfaceHeight(Surface, Position);
-
 		public override void UpdateTransforms()
 		{
 			base.UpdateTransforms();
@@ -191,7 +178,7 @@ namespace VisualPinball.Unity
 			var updatedComponents = new List<MonoBehaviour> { this };
 
 			// transforms
-			Position = data.Center.ToUnityFloat2();
+			Position = data.Center.ToUnityVector3(0);
 			Radius = data.Radius;
 			HeightScale = data.HeightScale;
 			Orientation = data.Orientation;
@@ -218,7 +205,6 @@ namespace VisualPinball.Unity
 
 		public override IEnumerable<MonoBehaviour> SetReferencedData(BumperData data, Table table, IMaterialProvider materialProvider, ITextureProvider textureProvider, Dictionary<string, IMainComponent> components)
 		{
-			Surface = FindComponent<ISurfaceComponent>(components, data.Surface);
 			UpdateTransforms();
 
 			// children visibility
@@ -262,13 +248,10 @@ namespace VisualPinball.Unity
 		{
 			// name and transforms
 			data.Name = name;
-			data.Center = Position.ToVertex2D();
+			data.Center = new Vertex2D(Position.x, Position.y);
 			data.Radius = Radius;
 			data.HeightScale = HeightScale;
 			data.Orientation = Orientation;
-
-			// surface
-			data.Surface = Surface != null ? Surface.name : string.Empty;
 
 			// children visibility
 			data.IsBaseVisible = false;
@@ -329,7 +312,6 @@ namespace VisualPinball.Unity
 				Radius = bumperComponent.Radius;
 				HeightScale = bumperComponent.HeightScale;
 				Orientation = bumperComponent.Orientation;
-				Surface = bumperComponent.Surface;
 
 			} else {
 				var scale = go.transform.localScale;
@@ -396,24 +378,6 @@ namespace VisualPinball.Unity
 				skirtAnimation
 			);
 		}
-
-		#endregion
-
-		#region Editor Tooling
-
-		public override ItemDataTransformType EditorPositionType => ItemDataTransformType.TwoD;
-		public override Vector3 GetEditorPosition() => Surface != null
-			? new Vector3(Position.x, Position.y, Surface.Height(Position))
-			: new Vector3(Position.x, Position.y, 0);
-		public override void SetEditorPosition(Vector3 pos) => Position = ((float3)pos).xy;
-
-		public override ItemDataTransformType EditorRotationType => ItemDataTransformType.OneD;
-		public override Vector3 GetEditorRotation() => new Vector3(Orientation, 0, 0);
-		public override void SetEditorRotation(Vector3 rot) => Orientation = ClampDegrees(rot.x);
-
-		public override ItemDataTransformType EditorScaleType => ItemDataTransformType.OneD;
-		public override Vector3 GetEditorScale() => new Vector3(Radius * 2f, 0f, 0f);
-		public override void SetEditorScale(Vector3 scale) => Radius = scale.x / 2f;
 
 		#endregion
 	}

@@ -44,15 +44,15 @@ namespace VisualPinball.Unity
 
 		#region Setup
 
-		public FlipperCollider(float posZ, float height, float flipperRadius, float startRadius, float endRadius,
+		public FlipperCollider(float height, float flipperRadius, float startRadius, float endRadius,
 			float startAngle, float endAngle, ColliderInfo info) : this()
 		{
 			var baseRadius = math.max(startRadius, 0.01f);
 			_hitCircleBase = new CircleCollider(
 				float2.zero, // flipper collision is always done through the center and a matrix
 				baseRadius,
-				posZ,
-				posZ + height,
+				0,
+				height,
 				info
 			);
 

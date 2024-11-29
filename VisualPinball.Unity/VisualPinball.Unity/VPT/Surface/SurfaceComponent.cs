@@ -34,7 +34,7 @@ using VisualPinball.Engine.VPT.Table;
 namespace VisualPinball.Unity
 {
 	[AddComponentMenu("Visual Pinball/Game Item/Surface")]
-	public class SurfaceComponent : MainRenderableComponent<SurfaceData>, ISurfaceComponent
+	public class SurfaceComponent : MainRenderableComponent<SurfaceData>
 	{
 		#region Data
 
@@ -93,7 +93,7 @@ namespace VisualPinball.Unity
 		[NonSerialized]
 		private float4x4 _playfieldToWorld;
 
-		public float Height(Vector2 _) => HeightTop + PlayfieldHeight;
+		public float Height(Vector2 _) => HeightTop;
 
 		public override void OnPlayfieldHeightUpdated() => RebuildMeshes();
 
@@ -256,35 +256,6 @@ namespace VisualPinball.Unity
 				IsDisabled = false,
 				Threshold = collComponent.SlingshotThreshold,
 			});
-		}
-
-		#endregion
-
-		#region Editor Tooling
-
-		private Vector3 DragPointCenter {
-			get {
-				var sum = Vertex3D.Zero;
-				foreach (var t in DragPoints) {
-					sum += t.Center;
-				}
-				var center = sum / DragPoints.Length;
-				return new Vector3(center.X, center.Y, HeightTop);
-			}
-		}
-
-		public override ItemDataTransformType EditorPositionType => ItemDataTransformType.TwoD;
-		public override Vector3 GetEditorPosition() => DragPoints.Length == 0 ? Vector3.zero : DragPointCenter;
-		public override void SetEditorPosition(Vector3 pos) {
-			if (DragPoints.Length == 0) {
-				return;
-			}
-			var diff = (pos - DragPointCenter).ToVertex3D();
-			diff.Z = 0f;
-			foreach (var pt in DragPoints) {
-				pt.Center += diff;
-			}
-			RebuildMeshes();
 		}
 
 		#endregion

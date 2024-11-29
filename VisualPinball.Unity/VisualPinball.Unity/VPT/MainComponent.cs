@@ -32,13 +32,6 @@ namespace VisualPinball.Unity
 
 		[SerializeField] private bool _isLocked;
 
-		public float PlayfieldHeight {
-			get {
-				var playfieldComponent = GetComponentInParent<PlayfieldComponent>();
-				return playfieldComponent ? playfieldComponent.TableHeight : 0f;
-			}
-		}
-
 		public int PlayfieldDetailLevel {
 			get {
 				var playfieldComponent = GetComponentInParent<PlayfieldComponent>();

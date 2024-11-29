@@ -30,13 +30,11 @@ namespace VisualPinball.Unity.Editor
 		private SerializedProperty _dampingProperty;
 		private SerializedProperty _angleMaxProperty;
 		private SerializedProperty _angleMinProperty;
-		private SerializedProperty _surfaceProperty;
 
 		protected override void OnEnable()
 		{
 			base.OnEnable();
 
-			_surfaceProperty = serializedObject.FindProperty(nameof(SpinnerComponent._surface));
 			_dampingProperty = serializedObject.FindProperty(nameof(SpinnerComponent.Damping));
 			_angleMaxProperty = serializedObject.FindProperty(nameof(SpinnerComponent.AngleMax));
 			_angleMinProperty = serializedObject.FindProperty(nameof(SpinnerComponent.AngleMin));
@@ -61,10 +59,10 @@ namespace VisualPinball.Unity.Editor
 			}
 
 			EditorGUI.BeginChangeCheck();
-			var newHeight = EditorGUILayout.FloatField(new GUIContent("Height", "Z-Position on the playfield, relative to its parent."), MainComponent.Height);
+			var newHeight = EditorGUILayout.FloatField(new GUIContent("Height", "Z-Position on the playfield, relative to its parent."), MainComponent.Position.z);
 			if (EditorGUI.EndChangeCheck()) {
 				Undo.RecordObject(MainComponent.transform, "Change Spinner Height");
-				MainComponent.Height = newHeight;
+				MainComponent.Position = new Vector3(MainComponent.Position.x, MainComponent.Position.y, newHeight);
 			}
 
 			EditorGUI.BeginChangeCheck();
@@ -80,8 +78,6 @@ namespace VisualPinball.Unity.Editor
 				Undo.RecordObject(MainComponent.transform, "Change Spinner Rotation");
 				MainComponent.Rotation = newRotation;
 			}
-
-			PropertyField(_surfaceProperty, updateTransforms: true);
 
 			if (_foldoutPhysics = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutPhysics, "Physics")) {
 				PropertyField(_dampingProperty);

@@ -167,22 +167,5 @@ namespace VisualPinball.Unity
 		}
 
 		#endregion
-
-		#region Editor Tooling
-
-		public override ItemDataTransformType EditorPositionType => ItemDataTransformType.ThreeD;
-		public override Vector3 GetEditorPosition() => Position;
-		public override void SetEditorPosition(Vector3 pos) => Position = pos;
-
-		public override ItemDataTransformType EditorRotationType => ItemDataTransformType.OneD;
-		public override Vector3 GetEditorRotation() => new Vector3(Rotation, 0f, 0f);
-		public override void SetEditorRotation(Vector3 rot) => Rotation = ClampDegrees(rot.x);
-
-		public override ItemDataTransformType EditorScaleType => ItemDataTransformType.ThreeD;
-
-		public override Vector3 GetEditorScale() => Size;
-		public override void SetEditorScale(Vector3 scale) => Size = scale;
-
-		#endregion
 	}
 }

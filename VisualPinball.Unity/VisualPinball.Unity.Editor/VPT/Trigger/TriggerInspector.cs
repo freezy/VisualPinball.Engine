@@ -29,16 +29,12 @@ namespace VisualPinball.Unity.Editor
 	{
 		public Transform Transform => MainComponent.transform;
 
-		private SerializedProperty _surfaceProperty;
-
 		protected override void OnEnable()
 		{
 			base.OnEnable();
 
 			DragPointsHelper = new DragPointsInspectorHelper(MainComponent, this);
 			DragPointsHelper.OnEnable();
-
-			_surfaceProperty = serializedObject.FindProperty(nameof(TriggerComponent._surface));
 		}
 
 		protected override void OnDisable()
@@ -81,8 +77,6 @@ namespace VisualPinball.Unity.Editor
 				MainComponent.Rotation = newRotation;
 			}
 
-			PropertyField(_surfaceProperty, updateTransforms: true);
-
 			DragPointsHelper.OnInspectorGUI(this);
 
 			base.OnInspectorGUI();
@@ -107,9 +101,9 @@ namespace VisualPinball.Unity.Editor
 		public DragPointData[] DragPoints { get => MainComponent.DragPoints; set => MainComponent.DragPoints = value; }
 		public bool PointsAreLooping => true;
 		public IEnumerable<DragPointExposure> DragPointExposition => new[] { DragPointExposure.Smooth, DragPointExposure.SlingShot };
-		public ItemDataTransformType HandleType => ItemDataTransformType.TwoD;
+		public DragPointTransformType HandleType => DragPointTransformType.TwoD;
 		public DragPointsInspectorHelper DragPointsHelper { get; private set; }
-		public float ZOffset => MainComponent.PositionZ;
+		public float ZOffset => MainComponent.Position.z;
 		public float[] TopBottomZ => null;
 		public void SetDragPointPosition(DragPointData dragPoint, Vertex3D value, int numSelectedDragPoints,
 			float[] topBottomZ) => dragPoint.Center = value;

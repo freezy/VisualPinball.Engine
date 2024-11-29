@@ -24,8 +24,7 @@ using Mesh = VisualPinball.Engine.VPT.Mesh;
 
 namespace VisualPinball.Unity
 {
-	public abstract class MainRenderableComponent<TData> : MainComponent<TData>,
-		IMainRenderableComponent, IOnPlayfieldComponent
+	public abstract class MainRenderableComponent<TData> : MainComponent<TData>, IMainRenderableComponent
 		where TData : ItemData
 	{
 		public virtual bool CanBeTransformed => true;
@@ -102,15 +101,6 @@ namespace VisualPinball.Unity
 			}
 		}
 
-		public virtual void UpdateVisibility()
-		{
-		}
-
-		protected float SurfaceHeight(ISurfaceComponent surface, Vector2 position)
-		{
-			return surface?.Height(position) ?? PlayfieldHeight;
-		}
-
 		protected static void CopyMaterialName(MeshRenderer mr, string[] materialNames, string[] textureNames,
 			ref string materialName)
 		{
@@ -165,20 +155,6 @@ namespace VisualPinball.Unity
 		}
 
 		#region Tools
-
-		public virtual ItemDataTransformType EditorPositionType => ItemDataTransformType.None;
-		public virtual Vector3 GetEditorPosition() => transform.localPosition;
-		public virtual void SetEditorPosition(Vector3 pos) { }
-
-		public virtual ItemDataTransformType EditorRotationType => ItemDataTransformType.None;
-		public virtual Vector3 GetEditorRotation() => Vector3.zero;
-		public virtual void SetEditorRotation(Vector3 rot) { }
-
-		public virtual ItemDataTransformType EditorScaleType => ItemDataTransformType.None;
-		public virtual Vector3 GetEditorScale() => Vector3.zero;
-		public virtual void SetEditorScale(Vector3 rot) { }
-		public virtual void EditorStartScaling() {}
-		public virtual void EditorEndScaling() {}
 
 		protected static void MoveDragPointsTo(DragPointData[] dragPoints, Vector3 destination)
 		{

@@ -46,6 +46,12 @@ namespace VisualPinball.Unity
 		Texture
 	}
 
+	public enum DragPointTransformType
+	{
+		TwoD,
+		ThreeD,
+	}
+
 	/// <summary>
 	/// Abstraction inspectors that support drag points.
 	/// </summary>
@@ -77,7 +83,7 @@ namespace VisualPinball.Unity
 		/// Returns the applied constrains to drag points position edition.
 		/// </summary>
 		/// <returns></returns>
-		ItemDataTransformType HandleType { get; }
+		DragPointTransformType HandleType { get; }
 
 		DragPointsInspectorHelper DragPointsHelper { get; }
 		

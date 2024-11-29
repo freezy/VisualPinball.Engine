@@ -34,15 +34,7 @@ namespace VisualPinball.Unity
 	[AddComponentMenu("Visual Pinball/Game Item/Playfield")]
 	public class PlayfieldComponent : MainRenderableComponent<TableData>
 	{
-		//public static readonly Quaternion GlobalRotation = Quaternion.Euler(-90, 0, 0);
-		//public const float GlobalScale = 0.00053975f; // see: https://github.com/freezy/VisualPinball.Engine/issues/151
-		//public static readonly Quaternion GlobalRotation = Quaternion.Euler(0, 0, 0);
-		//public const float GlobalScale = 1f; // see: https://github.com/freezy/VisualPinball.Engine/issues/151
-
 		#region Data
-
-		[Tooltip("Height of the table. Translates all elements along the Z-axis.")]
-		public float TableHeight;
 
 		[Tooltip("Height of the glass above the playfield. Serves as outer collision bounds of the Z-axis.")]
 		public float GlassHeight;
@@ -88,8 +80,8 @@ namespace VisualPinball.Unity
 		protected override Type MeshComponentType => typeof(PlayfieldMeshComponent);
 		protected override Type ColliderComponentType => typeof(PlayfieldColliderComponent);
 
-		public Rect3D BoundingBox => new Rect3D(Left, Right, Top, Bottom, TableHeight, GlassHeight);
-		public Aabb Bounds => new Aabb(Left, Right, Top, Bottom, TableHeight, GlassHeight);
+		public Rect3D BoundingBox => new Rect3D(Left, Right, Top, Bottom, 0, GlassHeight);
+		public Aabb Bounds => new Aabb(Left, Right, Top, Bottom, 0, GlassHeight);
 		public AABB2D Bounds2D => new AABB2D(new float2(Left, Top), new float2(Right, Bottom));
 
 		public float3 PlayfieldGravity(float strength) {
@@ -117,7 +109,6 @@ namespace VisualPinball.Unity
 			var updatedComponents = new List<MonoBehaviour> { this };
 
 			// position
-			TableHeight = data.TableHeight;
 			GlassHeight = data.GlassHeight;
 			Left = data.Left;
 			Left = data.Left;
@@ -172,7 +163,7 @@ namespace VisualPinball.Unity
 			var mg = new PrimitiveMeshGenerator(primitiveData);
 			var mesh = mg
 				.GetTransformedMesh(table?.TableHeight ?? 0f, primitiveData.Mesh, Origin.Original, false)
-				.Transform(mg.TransformationMatrix(PlayfieldHeight)) // apply transformation to mesh, because this is the playfield
+				.Transform(mg.TransformationMatrix(0)) // apply transformation to mesh, because this is the playfield
 				.TransformToWorld(); // also, transform this to world space.
 			var material = new PbrMaterial(
 				table?.GetMaterial(_playfieldMaterial),
@@ -191,7 +182,7 @@ namespace VisualPinball.Unity
 			var physicsEngine = GetComponentInParent<PhysicsEngine>();
 
 			// position
-			data.TableHeight = TableHeight;
+			data.TableHeight = 0;
 			data.GlassHeight = GlassHeight;
 			data.Left = Left;
 			data.Right = Right;

@@ -31,7 +31,7 @@ namespace VisualPinball.Unity
 		{
 			var playfieldComponent = GetComponentInParent<PlayfieldComponent>();
 			return new RampMeshGenerator(MainComponent)
-				.GetMesh(playfieldComponent.Width, playfieldComponent.Height, playfieldComponent.PlayfieldHeight, RampMeshGenerator.Wall)
+				.GetMesh(playfieldComponent.Width, playfieldComponent.Height, 0, RampMeshGenerator.Wall)
 				.TransformToWorld();
 		}
 

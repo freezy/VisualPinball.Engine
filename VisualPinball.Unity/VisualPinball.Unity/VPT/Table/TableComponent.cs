@@ -107,7 +107,7 @@ namespace VisualPinball.Unity
 
 		public override TableData CopyDataTo(TableData data, string[] materialNames, string[] textureNames, bool forExport)
 		{
-			data.TableHeight = PlayfieldHeight;
+			data.TableHeight = 0;
 			data.GlobalDifficulty = GlobalDifficulty;
 			data.OverridePhysics = OverridePhysics;
 

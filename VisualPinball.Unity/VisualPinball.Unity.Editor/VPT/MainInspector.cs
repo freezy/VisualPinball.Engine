@@ -36,19 +36,5 @@ namespace VisualPinball.Unity.Editor
 		}
 
 		protected bool HasErrors() => false;
-
-		protected void UpdateSurfaceReferences(Transform obj)
-		{
-			var surfaceComponent = obj.gameObject.GetComponent<IOnSurfaceComponent>();
-			if (surfaceComponent != null && surfaceComponent.Surface == MainComponent) {
-				surfaceComponent.OnSurfaceUpdated();
-			}
-		}
-
-		protected void UpdateTableHeightReferences(Transform obj)
-		{
-			var onPlayfieldComponent = obj.gameObject.GetComponent<IOnPlayfieldComponent>();
-			onPlayfieldComponent?.OnPlayfieldHeightUpdated();
-		}
 	}
 }

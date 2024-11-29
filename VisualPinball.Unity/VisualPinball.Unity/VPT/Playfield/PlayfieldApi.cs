@@ -43,10 +43,10 @@ namespace VisualPinball.Unity
 
 				} else {
 					Debug.LogWarning($"Could not find mesh filter on playfield {GameObject.name}");
-					colliders.Add(new PlaneCollider(new float3(0, 0, 1), MainComponent.TableHeight, info));
+					colliders.Add(new PlaneCollider(new float3(0, 0, 1), 0, info));
 				}
 			} else {
-				colliders.Add(new PlaneCollider(new float3(0, 0, 1), MainComponent.TableHeight, info));
+				colliders.Add(new PlaneCollider(new float3(0, 0, 1), 0, info));
 			}
 			// add playfield glass collider
 			colliders.Add(new PlaneCollider(new float3(0, 0, -1), MainComponent.GlassHeight, info));
@@ -57,7 +57,7 @@ namespace VisualPinball.Unity
 				colliders.Add(new LineCollider(
 					new float2(MainComponent.Right, MainComponent.Top),
 					new float2(MainComponent.Right, MainComponent.Bottom),
-					MainComponent.TableHeight,
+					0,
 					MainComponent.GlassHeight,
 					info
 				));
@@ -65,7 +65,7 @@ namespace VisualPinball.Unity
 				colliders.Add(new LineCollider(
 					new float2(MainComponent.Left, MainComponent.Bottom),
 					new float2(MainComponent.Left, MainComponent.Top),
-					MainComponent.TableHeight,
+					0,
 					MainComponent.GlassHeight,
 					info
 				));
@@ -73,7 +73,7 @@ namespace VisualPinball.Unity
 				colliders.Add(new LineCollider(
 					new float2(MainComponent.Right, MainComponent.Bottom),
 					new float2(MainComponent.Left, MainComponent.Bottom),
-					MainComponent.TableHeight,
+					0,
 					MainComponent.GlassHeight,
 					info
 				));
@@ -81,7 +81,7 @@ namespace VisualPinball.Unity
 				colliders.Add(new LineCollider(
 					new float2(MainComponent.Left, MainComponent.Top),
 					new float2(MainComponent.Right, MainComponent.Top),
-					MainComponent.TableHeight,
+					0,
 					MainComponent.GlassHeight,
 					info
 				));

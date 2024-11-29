@@ -271,7 +271,7 @@ namespace VisualPinball.Unity
 
 				case SwCreateBall: {
 					if (isClosed) {
-						_ballManager.CreateBall(new DebugBallCreator(630, _playfieldComponent.Height / 2f, _playfieldComponent.TableHeight));
+						_ballManager.CreateBall(new DebugBallCreator(630, _playfieldComponent.Height / 2f));
 					}
 					break;
 				}

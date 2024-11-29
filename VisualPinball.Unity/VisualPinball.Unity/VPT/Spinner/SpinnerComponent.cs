@@ -28,6 +28,7 @@ using Unity.Mathematics;
 using UnityEngine;
 using VisualPinball.Engine.Common;
 using VisualPinball.Engine.Game.Engines;
+using VisualPinball.Engine.Math;
 using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Spinner;
 using VisualPinball.Engine.VPT.Table;
@@ -36,26 +37,13 @@ namespace VisualPinball.Unity
 {
 	[AddComponentMenu("Visual Pinball/Game Item/Spinner")]
 	public class SpinnerComponent : MainRenderableComponent<SpinnerData>,
-		ISwitchDeviceComponent, IOnSurfaceComponent, IRotatableAnimationComponent
+		ISwitchDeviceComponent, IRotatableAnimationComponent
 	{
 		#region Data
 
-		private Vector3 _position {
+		public Vector3 Position {
 			get => transform.localPosition.TranslateToVpx();
 			set => transform.localPosition = value.TranslateToWorld();
-		}
-
-		public Vector2 Position {
-			get => _position.XY();
-			set => _position = new Vector3(value.x, value.y, Height);
-		}
-
-		public float Height {
-			get => _position.z;
-			set {
-				var pos = _position;
-				_position = new Vector3(pos.x, pos.y, value);
-			}
 		}
 
 		public float Rotation {
@@ -93,11 +81,18 @@ namespace VisualPinball.Unity
 		[Tooltip("Minimal angle. This allows the spinner to bounce back instead of executing a 360° rotation.")]
 		public float AngleMin;
 
-		public ISurfaceComponent Surface { get => _surface as ISurfaceComponent; set => _surface = value as MonoBehaviour; }
-		[SerializeField]
-		[TypeRestriction(typeof(ISurfaceComponent), PickerLabel = "Walls & Ramps", UpdateTransforms = true)]
-		[Tooltip("On which surface this spinner is attached to. Updates Z-translation.")]
-		public MonoBehaviour _surface;
+		public bool ShowBracket {
+			get {
+				foreach (var mf in GetComponentsInChildren<MeshFilter>()) {
+					// todo use a component instead of relying on mesh names
+					switch (mf.sharedMesh.name) {
+						case BracketMeshName:
+							return mf.gameObject.activeInHierarchy;
+					}
+				}
+				return false;
+			}
+		}
 
 		#endregion
 
@@ -106,7 +101,7 @@ namespace VisualPinball.Unity
 		public override ItemType ItemType => ItemType.Spinner;
 		public override string ItemName => "Spinner";
 
-		public override SpinnerData InstantiateData() => new SpinnerData();
+		public override SpinnerData InstantiateData() => new();
 
 		public override bool HasProceduralMesh => false;
 
@@ -164,11 +159,6 @@ namespace VisualPinball.Unity
 		[NonSerialized]
 		private float4x4 _playfieldToWorld;
 
-		public void OnSurfaceUpdated() => UpdateTransforms();
-		public float PositionZ => SurfaceHeight(Surface, Position);
-
-		public float HeightOnPlayfield => Height + PositionZ; // todo handle surface
-
 		public float4x4 TransformationWithinPlayfield => transform.worldToLocalMatrix.WorldToLocalTranslateWithinPlayfield(_playfieldToWorld);
 
 		#endregion
@@ -180,8 +170,7 @@ namespace VisualPinball.Unity
 			var updatedComponents = new List<MonoBehaviour> { this };
 
 			// transforms
-			Position = data.Center.ToUnityFloat2();
-			Height = data.Height;
+			Position = new Vector3(data.Center.X, data.Center.Y, data.Height);
 			Length = data.Length;
 			Rotation = data.Rotation;
 
@@ -214,7 +203,6 @@ namespace VisualPinball.Unity
 
 		public override IEnumerable<MonoBehaviour> SetReferencedData(SpinnerData data, Table table, IMaterialProvider materialProvider, ITextureProvider textureProvider, Dictionary<string, IMainComponent> components)
 		{
-			Surface = FindComponent<ISurfaceComponent>(components, data.Surface);
 			return Array.Empty<MonoBehaviour>();
 		}
 
@@ -222,11 +210,10 @@ namespace VisualPinball.Unity
 		{
 			// name and transforms
 			data.Name = name;
-			data.Center = Position.ToVertex2D();
-			data.Height = Height;
+			data.Center = new Vertex2D(Position.x, Position.y);
+			data.Height = Position.z;
 			data.Length = Length;
 			data.Rotation = Rotation;
-			data.Surface = Surface != null ? Surface.name : string.Empty;
 
 			// spinner props
 			data.Damping = Damping;
@@ -262,13 +249,11 @@ namespace VisualPinball.Unity
 			var spinnerComponent = go.GetComponent<SpinnerComponent>();
 			if (spinnerComponent != null) {
 				Position = spinnerComponent.Position;
-				Height = spinnerComponent.Height;
 				Rotation = spinnerComponent.Rotation;
 				Length = spinnerComponent.Length;
 				Damping = spinnerComponent.Damping;
 				AngleMax = spinnerComponent.AngleMax;
 				AngleMin = spinnerComponent.AngleMin;
-				Surface = spinnerComponent.Surface;
 
 			} else {
 				Position = go.transform.localPosition.TranslateToVpx();
@@ -292,7 +277,7 @@ namespace VisualPinball.Unity
 					AngleMin = math.radians(AngleMin),
 					Damping = math.pow(Damping, (float)PhysicsConstants.PhysFactor),
 					Elasticity = collComponent.Elasticity,
-					Height = Height
+					Height = Position.z
 				} : default;
 
 			// animation
@@ -309,32 +294,6 @@ namespace VisualPinball.Unity
 				movementData
 			);
 		}
-
-		#endregion
-
-		#region Editor Tooling
-
-		public override ItemDataTransformType EditorPositionType => ItemDataTransformType.ThreeD;
-		public override Vector3 GetEditorPosition()
-		{
-			return new Vector3(Position.x, Position.y, Height);
-		}
-		public override void SetEditorPosition(Vector3 pos)
-		{
-			Position = pos;
-			Height = pos.z;
-		}
-
-		public override ItemDataTransformType EditorRotationType => ItemDataTransformType.OneD;
-		public override Vector3 GetEditorRotation() => new Vector3(Rotation, 0f, 0f);
-		public override void SetEditorRotation(Vector3 rot) => Rotation = ClampDegrees(rot.x);
-
-		public override ItemDataTransformType EditorScaleType => ItemDataTransformType.OneD;
-
-		public bool ShowBracket => GetComponentsInChildren<SpinnerBracketColliderComponent>().Any();
-
-		public override Vector3 GetEditorScale() => new Vector3(Length, 0f, 0f);
-		public override void SetEditorScale(Vector3 scale) => Length = scale.x;
 
 		#endregion
 

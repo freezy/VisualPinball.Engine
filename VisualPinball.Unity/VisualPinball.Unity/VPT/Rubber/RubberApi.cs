@@ -53,9 +53,9 @@ namespace VisualPinball.Unity
 				translateWithinPlayfieldMatrix
 			);
 			if (ColliderComponent._isKinematic) {
-				colliderGenerator.GenerateColliders(MainComponent.PlayfieldHeight, ColliderComponent.HitHeight, MainComponent.PlayfieldDetailLevel, ref kinematicColliders, margin);
+				colliderGenerator.GenerateColliders(0, ColliderComponent.HitHeight, MainComponent.PlayfieldDetailLevel, ref kinematicColliders, margin);
 			} else {
-				colliderGenerator.GenerateColliders(MainComponent.PlayfieldHeight, ColliderComponent.HitHeight, MainComponent.PlayfieldDetailLevel, ref colliders, margin);
+				colliderGenerator.GenerateColliders(0, ColliderComponent.HitHeight, MainComponent.PlayfieldDetailLevel, ref colliders, margin);
 			}
 		}
 

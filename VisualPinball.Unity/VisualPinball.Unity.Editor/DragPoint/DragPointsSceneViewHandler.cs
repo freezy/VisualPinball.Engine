@@ -241,7 +241,7 @@ namespace VisualPinball.Unity.Editor
 			}
 
 			Handles.matrix = Matrix4x4.identity;
-			if (!_handler.MainComponent.IsLocked) {
+			// if (!_handler.MainComponent.IsLocked) {
 				// curve traveller is not overlapping a control point, we can draw it.
 				if (distToControlPoint > HandleUtility.GetHandleSize(_handler.CurveTravellerPosition) * ControlPoint.ScreenRadius) {
 					Handles.color = Color.grey;
@@ -257,7 +257,7 @@ namespace VisualPinball.Unity.Editor
 						HandleUtility.Repaint();
 					}
 				}
-			}
+			// }
 			Profiler.EndSample();
 		}
 	}

@@ -29,7 +29,6 @@ namespace VisualPinball.Unity.Editor
 		private bool _foldoutRubberGeometry = true;
 
 		private SerializedProperty _endAngleProperty;
-		private SerializedProperty _surfaceProperty;
 		private SerializedProperty _isEnabledProperty;
 		private SerializedProperty _isDualWoundProperty;
 		private SerializedProperty _heightProperty;
@@ -46,7 +45,6 @@ namespace VisualPinball.Unity.Editor
 			base.OnEnable();
 
 			_endAngleProperty = serializedObject.FindProperty(nameof(FlipperComponent.EndAngle));
-			_surfaceProperty = serializedObject.FindProperty(nameof(FlipperComponent._surface));
 			_isEnabledProperty = serializedObject.FindProperty(nameof(FlipperComponent.IsEnabled));
 			_isDualWoundProperty = serializedObject.FindProperty(nameof(FlipperComponent.IsDualWound));
 			_heightProperty = serializedObject.FindProperty(nameof(FlipperComponent._height));
@@ -86,7 +84,6 @@ namespace VisualPinball.Unity.Editor
 			}
 
 			PropertyField(_endAngleProperty);
-			PropertyField(_surfaceProperty);
 			PropertyField(_isEnabledProperty);
 			PropertyField(_isDualWoundProperty);
 

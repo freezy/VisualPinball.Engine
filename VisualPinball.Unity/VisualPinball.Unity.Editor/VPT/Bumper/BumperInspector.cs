@@ -26,7 +26,6 @@ namespace VisualPinball.Unity.Editor
 	public class BumperInspector : MainInspector<BumperData, BumperComponent>
 	{
 		private SerializedProperty _radiusProperty;
-		private SerializedProperty _surfaceProperty;
 		private SerializedProperty _isHardwiredProperty;
 
 		protected override void OnEnable()
@@ -34,7 +33,6 @@ namespace VisualPinball.Unity.Editor
 			base.OnEnable();
 
 			_radiusProperty = serializedObject.FindProperty(nameof(BumperComponent.Radius));
-			_surfaceProperty = serializedObject.FindProperty(nameof(BumperComponent._surface));
 			_isHardwiredProperty = serializedObject.FindProperty(nameof(BumperComponent.IsHardwired));
 		}
 
@@ -50,7 +48,7 @@ namespace VisualPinball.Unity.Editor
 
 			// position
 			EditorGUI.BeginChangeCheck();
-			var newPos = EditorGUILayout.Vector2Field(new GUIContent("Position", "Position of the bumper on the playfield, relative to its parent."), MainComponent.Position);
+			var newPos = EditorGUILayout.Vector3Field(new GUIContent("Position", "Position of the bumper on the playfield, relative to its parent."), MainComponent.Position);
 			if (EditorGUI.EndChangeCheck()) {
 				Undo.RecordObject(MainComponent.transform, "Change Bumper Position");
 				MainComponent.Position = newPos;
@@ -74,7 +72,6 @@ namespace VisualPinball.Unity.Editor
 				MainComponent.Orientation = newAngle;
 			}
 
-			PropertyField(_surfaceProperty, updateTransforms: true);
 			PropertyField(_isHardwiredProperty, updateTransforms: false);
 
 			base.OnInspectorGUI();

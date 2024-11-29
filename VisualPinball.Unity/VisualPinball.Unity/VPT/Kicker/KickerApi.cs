@@ -47,7 +47,7 @@ namespace VisualPinball.Unity
 		/// </summary>
 		public event EventHandler<SwitchEventArgs> Switch;
 
-		internal float3 Position => new(MainComponent.Position.x, MainComponent.Position.y, MainComponent.PositionZ);
+		internal float3 Position => MainComponent.Position;
 
 		public KickerDeviceCoil KickerCoil => _coils.Values.FirstOrDefault();
 
@@ -227,13 +227,11 @@ namespace VisualPinball.Unity
 		protected override void CreateColliders(ref ColliderReference colliders,
 			ref ColliderReference kinematicColliders, float4x4 translateWithinPlayfieldMatrix, float margin)
 		{
-			var height = MainComponent.PositionZ;
-
 			// reduce the hit circle radius because only the inner circle of the kicker should start a hit event
 			var radius = MainComponent.Radius * (ColliderComponent.LegacyMode ? ColliderComponent.FallThrough ? 0.75f : 0.6f : 1f);
 
-			colliders.Add(new CircleCollider(float2.zero, radius, height,
-				height + ColliderComponent.HitHeight, GetColliderInfo(), ColliderType.KickerCircle), translateWithinPlayfieldMatrix);
+			colliders.Add(new CircleCollider(float2.zero, radius, MainComponent.Position.z,
+				MainComponent.Position.z + ColliderComponent.HitHeight, GetColliderInfo(), ColliderType.KickerCircle), translateWithinPlayfieldMatrix);
 		}
 
 		#endregion
