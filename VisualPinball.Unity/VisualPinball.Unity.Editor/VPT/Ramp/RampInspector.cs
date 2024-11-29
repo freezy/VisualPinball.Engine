@@ -155,7 +155,7 @@ namespace VisualPinball.Unity.Editor
 		public DragPointData[] DragPoints { get => MainComponent.DragPoints; set => MainComponent.DragPoints = value; }
 		public bool PointsAreLooping => false;
 		public IEnumerable<DragPointExposure> DragPointExposition => new[] { DragPointExposure.Smooth, DragPointExposure.SlingShot };
-		public ItemDataTransformType HandleType => ItemDataTransformType.ThreeD;
+		public DragPointTransformType HandleType => DragPointTransformType.ThreeD;
 		public DragPointsInspectorHelper DragPointsHelper { get; private set; }
 		public float ZOffset => 0f;
 		public float[] TopBottomZ => new[] { MainComponent._heightBottom, MainComponent._heightTop };

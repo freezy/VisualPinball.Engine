@@ -77,7 +77,7 @@ namespace VisualPinball.Unity
 					continue;
 				}
 				ref var ballState = ref PhysicsEngine.BallState(ballId);
-				float3 bumperPos = new(MainComponent.Position.x, MainComponent.Position.y, MainComponent.PositionZ);
+				float3 bumperPos = MainComponent.Position;
 				float3 ballPos = ballState.Position;
 				var bumpDirection = ballPos - bumperPos;
 				bumpDirection.z = 0f;
@@ -114,7 +114,7 @@ namespace VisualPinball.Unity
 			ref ColliderReference kinematicColliders, float4x4 translateWithinPlayfieldMatrix, float margin)
 		{
 			var matrix = MainComponent.transform.worldToLocalMatrix.WorldToLocalTranslateWithinPlayfield(Player.PlayfieldToWorldMatrix);
-			var height = MainComponent.PositionZ;
+			var height = MainComponent.Position.z;
 			var switchCollider = new CircleCollider(new float2(0), MainComponent.Radius, height, height + 100f, GetColliderInfo(), ColliderType.Bumper);
 			var rigidCollider = new CircleCollider(new float2(0), MainComponent.Radius * 0.5f, height, height + 100f, GetColliderInfo(), ColliderType.Circle);
 			if (ColliderComponent._isKinematic) {

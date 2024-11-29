@@ -16,7 +16,6 @@
 
 // ReSharper disable InconsistentNaming
 
-using System;
 using UnityEngine;
 using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Table;
@@ -44,7 +43,7 @@ namespace VisualPinball.Unity
 
 		protected override Mesh GetMesh(TriggerData data)
 			=> new TriggerMeshGenerator(data)
-				.GetMesh(MainComponent.PlayfieldHeight)
+				.GetMesh(0)
 				.TransformToWorld();
 
 		protected override PbrMaterial GetMaterial(TriggerData data, Table table)

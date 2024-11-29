@@ -42,7 +42,6 @@ namespace VisualPinball.Unity.Editor
 		};
 
 		private SerializedProperty _orientationProperty;
-		private SerializedProperty _surfaceProperty;
 		private SerializedProperty _kickerTypeProperty;
 		private SerializedProperty _meshNameProperty;
 		private SerializedProperty _coilsProperty;
@@ -52,7 +51,6 @@ namespace VisualPinball.Unity.Editor
 			base.OnEnable();
 
 			_orientationProperty = serializedObject.FindProperty(nameof(KickerComponent.Orientation));
-			_surfaceProperty = serializedObject.FindProperty(nameof(KickerComponent._surface));
 			_kickerTypeProperty = serializedObject.FindProperty(nameof(KickerComponent.KickerType));
 			_meshNameProperty = serializedObject.FindProperty(nameof(KickerComponent.MeshName));
 			_coilsProperty = serializedObject.FindProperty(nameof(KickerComponent.Coils));
@@ -70,7 +68,7 @@ namespace VisualPinball.Unity.Editor
 
 			// position
 			EditorGUI.BeginChangeCheck();
-			var newPos = EditorGUILayout.Vector2Field(new GUIContent("Position", "Position of the kicker on the playfield, relative to its parent."), MainComponent.Position);
+			var newPos = EditorGUILayout.Vector3Field(new GUIContent("Position", "Position of the kicker on the playfield, relative to its parent."), MainComponent.Position);
 			if (EditorGUI.EndChangeCheck()) {
 				Undo.RecordObject(MainComponent.transform, "Change Kicker Position");
 				MainComponent.Position = newPos;
@@ -88,7 +86,6 @@ namespace VisualPinball.Unity.Editor
 			    MainComponent.KickerType == KickerType.KickerWilliams) {
 				PropertyField(_orientationProperty, updateTransforms: true);
 			}
-			PropertyField(_surfaceProperty, updateTransforms: true);
 
 			MeshDropdownProperty("Mesh", _meshNameProperty, MeshFolder, MainComponent.gameObject, _kickerTypeProperty, TypeMap);
 
@@ -108,9 +105,7 @@ namespace VisualPinball.Unity.Editor
 			Handles.color = Color.cyan;
 			Handles.matrix = Matrix4x4.identity;
 			var transform = MainComponent.transform;
-			var localPos = MainComponent.GetEditorPosition();
-			localPos.z = MainComponent.PositionZ;
-
+			var localPos = MainComponent.Position;
 			var worldPos = transform.parent == null ? localPos : localPos.TranslateToWorld();
 
 			foreach (var coil in MainComponent.Coils) {

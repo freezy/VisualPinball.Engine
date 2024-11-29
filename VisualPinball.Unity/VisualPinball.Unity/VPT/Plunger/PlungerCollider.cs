@@ -50,7 +50,7 @@ namespace VisualPinball.Unity
 		{
 			Header.Init(info, ColliderType.Plunger);
 
-			var zHeight = comp.PositionZ;
+			var zHeight = comp.Position.z;
 			var x = -comp.Width;
 			var x2 = comp.Width;
 			var y = comp.Height;

@@ -235,7 +235,6 @@ namespace VisualPinball.Unity
 			// and add ColliderComponent.Overshoot to the endangle so that the bounding box is correctly calculated
 			ColliderId = colliders.Add(
 				new FlipperCollider(
-					MainComponent.PositionZ,
 					MainComponent.Height,
 					MainComponent.FlipperRadiusMax,
 					MainComponent.BaseRadius,

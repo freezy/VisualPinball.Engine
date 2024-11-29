@@ -38,7 +38,7 @@ namespace VisualPinball.Unity
 {
 	[AddComponentMenu("Visual Pinball/Game Item/Gate")]
 	public class GateComponent : MainRenderableComponent<GateData>,
-		IGateData, ISwitchDeviceComponent, IOnSurfaceComponent, IRotatableAnimationComponent
+		IGateData, ISwitchDeviceComponent, IRotatableAnimationComponent
 	{
 		#region Data
 
@@ -69,13 +69,6 @@ namespace VisualPinball.Unity
 				transform.localScale = new Vector3(s, s, s);
 			}
 		}
-
-
-		public ISurfaceComponent Surface { get => _surface as ISurfaceComponent; set => _surface = value as MonoBehaviour; }
-		[SerializeField]
-		[TypeRestriction(typeof(ISurfaceComponent), PickerLabel = "Walls & Ramps", UpdateTransforms = true)]
-		[Tooltip("On which surface this flipper is attached to. Updates Z-translation.")]
-		public MonoBehaviour _surface;
 
 		public int _type;
 		public string _meshName;
@@ -168,12 +161,7 @@ namespace VisualPinball.Unity
 		[NonSerialized]
 		private float4x4 _playfieldToWorld;
 
-		public void OnSurfaceUpdated() => UpdateTransforms();
-
-		public float PositionZ => SurfaceHeight(Surface, Position); // todo handle surface
-
 		public float4x4 TransformationWithinPlayfield => transform.worldToLocalMatrix.WorldToLocalTranslateWithinPlayfield(_playfieldToWorld);
-
 
 		#endregion
 
@@ -214,8 +202,6 @@ namespace VisualPinball.Unity
 
 		public override IEnumerable<MonoBehaviour> SetReferencedData(GateData data, Table table, IMaterialProvider materialProvider, ITextureProvider textureProvider, Dictionary<string, IMainComponent> components)
 		{
-			Surface = FindComponent<ISurfaceComponent>(components, data.Surface);
-
 			// visibility
 			foreach (var mf in GetComponentsInChildren<MeshFilter>()) {
 				switch (mf.gameObject.name) {
@@ -245,7 +231,6 @@ namespace VisualPinball.Unity
 			data.Rotation = Rotation;
 			data.Height = Position.z;
 			data.Length = Length;
-			data.Surface = Surface != null ? Surface.name : string.Empty;
 
 			data.GateType = _type;
 
@@ -288,7 +273,6 @@ namespace VisualPinball.Unity
 				Position = gateComponent.Position;
 				Rotation = gateComponent.Rotation;
 				_length = gateComponent._length;
-				Surface = gateComponent.Surface;
 
 			} else {
 
@@ -334,27 +318,6 @@ namespace VisualPinball.Unity
 				movementData
 			);
 		}
-
-		#endregion
-
-		#region Editor Tooling
-
-		public override ItemDataTransformType EditorPositionType => ItemDataTransformType.ThreeD;
-		public override void SetEditorPosition(Vector3 pos) => Position = Surface != null 
-			? pos - new Vector3(0, 0, Surface.Height(Position))
-			: pos;
-		public override Vector3 GetEditorPosition() => Surface != null
-			? new Vector3(Position.x, Position.y, Position.z + Surface.Height(Position))
-			: new Vector3(Position.x, Position.y, Position.z);
-
-
-		public override ItemDataTransformType EditorRotationType => ItemDataTransformType.OneD;
-		public override Vector3 GetEditorRotation() => new Vector3(Rotation, 0f, 0f);
-		public override void SetEditorRotation(Vector3 rot) => Rotation = ClampDegrees(rot.x);
-
-		public override ItemDataTransformType EditorScaleType => ItemDataTransformType.OneD;
-		public override Vector3 GetEditorScale() => new Vector3(Length, 0f, 0f);
-		public override void SetEditorScale(Vector3 scale) => _length = scale.x;
 
 		#endregion
 

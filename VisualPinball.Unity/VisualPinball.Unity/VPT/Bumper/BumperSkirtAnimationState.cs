@@ -30,7 +30,7 @@ namespace VisualPinball.Unity
 		public float2 Rotation;
 
 		// static
-		public float2 Center;
+		public float3 Center;
 		public float Duration;
 	}
 }

@@ -164,9 +164,8 @@ namespace VisualPinball.Unity
 
 		#endregion
 
-		#region IMeshComponent
-
 		public IMainRenderableComponent MainRenderableComponent => this;
+		public void UpdateTransforms() { }
 
 		public void RebuildMeshes()
 		{
@@ -227,7 +226,7 @@ namespace VisualPinball.Unity
 			Debug.Log($"Generating new mesh at {pos}");
 
 			var mesh = MeshGenerator
-				.GetTransformedMesh(pf.PlayfieldHeight, r0.Height, pf.PlayfieldDetailLevel)
+				.GetTransformedMesh(0, r0.Height, pf.PlayfieldDetailLevel)
 				.TransformToWorld()
 				.ToUnityMesh();
 
@@ -236,34 +235,6 @@ namespace VisualPinball.Unity
 
 			return mesh;
 		}
-
-		#endregion
-
-		#region IMainRenderableComponent
-
-		public bool IsLocked { get => _isLocked; set => _isLocked = value; }
-		public bool CanBeTransformed => false;
-		public bool OverrideTransform => false;
-		public string ItemName => "Slingshot";
-
-		public void UpdateTransforms() { }
-		public void UpdateVisibility() { }
-
-		public ItemDataTransformType EditorPositionType => ItemDataTransformType.None;
-		public Vector3 GetEditorPosition() => Vector3.zero;
-		public void SetEditorPosition(Vector3 pos) { }
-
-		public ItemDataTransformType EditorRotationType => ItemDataTransformType.None;
-		public Vector3 GetEditorRotation() => Vector3.zero;
-		public void SetEditorRotation(Vector3 pos) { }
-
-		public ItemDataTransformType EditorScaleType => ItemDataTransformType.None;
-		public Vector3 GetEditorScale() => Vector3.one;
-		public void SetEditorScale(Vector3 pos) { }
-		public void EditorStartScaling() { }
-		public void EditorEndScaling() { }
-
-		#endregion
 
 		public static GameObject LoadPrefab() => Resources.Load<GameObject>("Prefabs/Slingshot");
 

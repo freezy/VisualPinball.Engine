@@ -38,10 +38,9 @@ namespace VisualPinball.Unity
 			_ltw = Physics.VpxToWorld;
 			_wtl = Physics.WorldToVpx;
 
-			var z = _playfield.PlayfieldHeight;
-			var p1 = _ltw.MultiplyPoint(new Vector3(-100f, 100f, z));
-			var p2 = _ltw.MultiplyPoint(new Vector3(100f, 100f, z));
-			var p3 = _ltw.MultiplyPoint(new Vector3(100f, -100f, z));
+			var p1 = _ltw.MultiplyPoint(new Vector3(-100f, 100f, 0));
+			var p2 = _ltw.MultiplyPoint(new Vector3(100f, 100f, 0));
+			var p3 = _ltw.MultiplyPoint(new Vector3(100f, -100f, 0));
 			_playfieldPlane.Set3Points(p1, p2, p3);
 			_physicsEngine = GetComponentInChildren<PhysicsEngine>();
 		}

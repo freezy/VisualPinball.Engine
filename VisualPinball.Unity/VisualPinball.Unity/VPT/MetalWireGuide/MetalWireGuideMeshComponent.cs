@@ -28,7 +28,7 @@ namespace VisualPinball.Unity
 	{
 		protected override Mesh GetMesh(MetalWireGuideData data)
 			=> new MetalWireGuideMeshGenerator(MainComponent)
-				.GetTransformedMesh(MainComponent.PlayfieldHeight, MainComponent.Height, MainComponent.PlayfieldDetailLevel, MainComponent.Bendradius)
+				.GetTransformedMesh(0, MainComponent.Height, MainComponent.PlayfieldDetailLevel, MainComponent.Bendradius)
 				.TransformToWorld();
 
 		protected override PbrMaterial GetMaterial(MetalWireGuideData data, Table table)

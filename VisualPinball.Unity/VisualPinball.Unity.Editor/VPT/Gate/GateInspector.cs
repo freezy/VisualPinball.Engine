@@ -36,7 +36,6 @@ namespace VisualPinball.Unity.Editor
 			{ "Wire W", GateType.GateWireW },
 		};
 
-		private SerializedProperty _surfaceProperty;
 		private SerializedProperty _meshProperty;
 		private SerializedProperty _typeProperty;
 
@@ -46,7 +45,6 @@ namespace VisualPinball.Unity.Editor
 		{
 			base.OnEnable();
 
-			_surfaceProperty = serializedObject.FindProperty(nameof(GateComponent._surface));
 			_meshProperty = serializedObject.FindProperty(nameof(GateComponent._meshName));
 			_typeProperty = serializedObject.FindProperty(nameof(GateComponent._type));
 		}
@@ -84,8 +82,6 @@ namespace VisualPinball.Unity.Editor
 				Undo.RecordObject(MainComponent.transform, "Change Gate Length");
 				MainComponent.Length = newLength;
 			}
-
-			PropertyField(_surfaceProperty);
 
 			var wire = MainComponent.transform.Find(GateComponent.WireObjectName);
 			if (wire != null) {

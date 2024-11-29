@@ -82,7 +82,7 @@ namespace VisualPinball.Unity.Editor
 
 		public bool PointsAreLooping => true;
 		public IEnumerable<DragPointExposure> DragPointExposition => new[] { DragPointExposure.Smooth, DragPointExposure.Texture };
-		public ItemDataTransformType HandleType => ItemDataTransformType.TwoD;
+		public DragPointTransformType HandleType => DragPointTransformType.TwoD;
 		public DragPointsInspectorHelper DragPointsHelper { get; private set; }
 		public float ZOffset => MeshComponent.PositionZ;
 		public float[] TopBottomZ => null;

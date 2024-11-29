@@ -53,14 +53,14 @@ namespace VisualPinball.Unity
 
 		private void GenerateRoundHitObjects(ref ColliderReference colliders)
 		{
-			var height = _component.PositionZ;
-			colliders.Add(new CircleCollider(new float2(0), _colliderComponent.HitCircleRadius, height, height + _colliderComponent.HitHeight,
+			var height = _component.Position.z;
+			colliders.Add(new CircleCollider(new float2(0), _colliderComponent.HitCircleRadius, 0, height + _colliderComponent.HitHeight,
 				_api.GetColliderInfo(), ColliderType.TriggerCircle), _matrix);
 		}
 
 		private void GenerateCurvedHitObjects(ref ColliderReference colliders)
 		{
-			var height = _component.PositionZ;
+			var height = _component.Position.z;
 			var vVertex = DragPoint.GetRgVertex<RenderVertex2D, CatmullCurve2DCatmullCurveFactory>(_component.DragPoints);
 
 			var count = vVertex.Length;

@@ -22,7 +22,6 @@
 #endregion
 
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using Unity.Mathematics;
@@ -37,8 +36,7 @@ using Mesh = VisualPinball.Engine.VPT.Mesh;
 namespace VisualPinball.Unity
 {
 	[AddComponentMenu("Visual Pinball/Game Item/Ramp")]
-	public class RampComponent : MainRenderableComponent<RampData>,
-		IRampData, ISurfaceComponent
+	public class RampComponent : MainRenderableComponent<RampData>, IRampData
 	{
 		#region Data
 
@@ -177,39 +175,40 @@ namespace VisualPinball.Unity
 			var len = MathF.Sqrt(dx * dx + dy * dy);
 			startLength += len; // Add the distance the object is between the two closest polyline segments.  Matters mostly for straight edges. Z does not respect that yet!
 
-			var topHeight = _heightTop + PlayfieldHeight;
-			var bottomHeight = _heightBottom + PlayfieldHeight;
+			var topHeight = _heightTop;
+			var bottomHeight = _heightBottom;
 
 			return vVertex[iSeg].Z + startLength / totalLength * (topHeight - bottomHeight) + bottomHeight;
 		}
 
-		public override void UpdateVisibility()
-		{
-			// visibility
-			var wallComponent = GetComponentInChildren<RampWallMeshComponent>(true);
-			var floorComponent = GetComponentInChildren<RampFloorMeshComponent>(true);
-			var wireComponent = GetComponentInChildren<RampWireMeshComponent>(true);
-			var isVisible = wireComponent && wireComponent.gameObject.activeInHierarchy ||
-			                floorComponent && floorComponent.gameObject.activeInHierarchy;
-			if (IsWireRamp) {
-				if (wireComponent) wireComponent.gameObject.SetActive(isVisible);
-				if (floorComponent) {
-					floorComponent.gameObject.SetActive(false);
-					floorComponent.ClearMeshVertices();
-				}
-				if (wallComponent) {
-					wallComponent.gameObject.SetActive(false);
-					wallComponent.ClearMeshVertices();
-				}
-			} else {
-				if (wireComponent) {
-					wireComponent.gameObject.SetActive(false);
-					wireComponent.ClearMeshVertices();
-				}
-				if (floorComponent) floorComponent.gameObject.SetActive(isVisible);
-				if (wallComponent) wallComponent.gameObject.SetActive(isVisible && (_leftWallHeightVisible > 0 || _rightWallHeightVisible > 0));
-			}
-		}
+		// todo revisit
+		// public override void UpdateVisibility()
+		// {
+		// 	// visibility
+		// 	var wallComponent = GetComponentInChildren<RampWallMeshComponent>(true);
+		// 	var floorComponent = GetComponentInChildren<RampFloorMeshComponent>(true);
+		// 	var wireComponent = GetComponentInChildren<RampWireMeshComponent>(true);
+		// 	var isVisible = wireComponent && wireComponent.gameObject.activeInHierarchy ||
+		// 	                floorComponent && floorComponent.gameObject.activeInHierarchy;
+		// 	if (IsWireRamp) {
+		// 		if (wireComponent) wireComponent.gameObject.SetActive(isVisible);
+		// 		if (floorComponent) {
+		// 			floorComponent.gameObject.SetActive(false);
+		// 			floorComponent.ClearMeshVertices();
+		// 		}
+		// 		if (wallComponent) {
+		// 			wallComponent.gameObject.SetActive(false);
+		// 			wallComponent.ClearMeshVertices();
+		// 		}
+		// 	} else {
+		// 		if (wireComponent) {
+		// 			wireComponent.gameObject.SetActive(false);
+		// 			wireComponent.ClearMeshVertices();
+		// 		}
+		// 		if (floorComponent) floorComponent.gameObject.SetActive(isVisible);
+		// 		if (wallComponent) wallComponent.gameObject.SetActive(isVisible && (_leftWallHeightVisible > 0 || _rightWallHeightVisible > 0));
+		// 	}
+		// }
 
 		public float4x4 TransformationWithinPlayfield
 			=> transform.worldToLocalMatrix.WorldToLocalTranslateWithinPlayfield(_playfieldToWorld);
@@ -408,59 +407,5 @@ namespace VisualPinball.Unity
 
 		#endregion
 
-		#region Editor Tooling
-
-		private Vector3 DragPointCenter {
-			get {
-				var sum = Vertex3D.Zero;
-				foreach (var t in DragPoints) {
-					sum += t.Center;
-				}
-				var center = sum / DragPoints.Length;
-				return new Vector3(center.X, center.Y, _heightTop);
-			}
-		}
-
-		public override ItemDataTransformType EditorPositionType => ItemDataTransformType.TwoD;
-		public override Vector3 GetEditorPosition()
-		{
-			return DragPoints.Length == 0 ? Vector3.zero : DragPointCenter;
-		}
-
-		public override void SetEditorPosition(Vector3 pos)
-		{
-			if (DragPoints.Length == 0) {
-				return;
-			}
-			var diff = (pos - DragPointCenter).ToVertex3D();
-			diff.Z = 0f;
-			foreach (var pt in DragPoints) {
-				pt.Center += diff;
-			}
-			RebuildMeshes();
-			var playfieldComponent = GetComponentInParent<PlayfieldComponent>();
-			if (playfieldComponent) {
-				WalkChildren(playfieldComponent.transform, UpdateSurfaceReferences);
-			}
-		}
-
-		protected static void WalkChildren(IEnumerable node, Action<Transform> action)
-		{
-			foreach (Transform childTransform in node) {
-				action(childTransform);
-				WalkChildren(childTransform, action);
-			}
-		}
-
-		protected void UpdateSurfaceReferences(Transform obj)
-		{
-			var surfaceComponent = obj.gameObject.GetComponent<IOnSurfaceComponent>();
-			if (surfaceComponent != null && ReferenceEquals(surfaceComponent.Surface, this))
-			{
-				surfaceComponent.OnSurfaceUpdated();
-			}
-		}
-
-		#endregion
 	}
 }

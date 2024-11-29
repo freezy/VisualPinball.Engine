@@ -29,7 +29,7 @@ namespace VisualPinball.Unity
 	{
 		protected override Mesh GetMesh(PlungerData data)
 			=> new PlungerMeshGenerator(data)
-				.GetMesh(MainComponent.PositionZ, PlungerMeshGenerator.Flat)
+				.GetMesh(MainComponent.Position.z, PlungerMeshGenerator.Flat)
 				.TransformToWorld();
 
 		protected override PbrMaterial GetMaterial(PlungerData data, Table table)

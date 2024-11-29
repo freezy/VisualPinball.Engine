@@ -220,46 +220,5 @@ namespace VisualPinball.Unity
 		}
 
 		#endregion
-
-		#region Editor Tooling
-
-		internal Vector3 DragPointCenter {
-			get {
-				var sum = Vertex3D.Zero;
-				foreach (var t in DragPoints) {
-					sum += t.Center;
-				}
-				var center = sum / DragPoints.Length;
-				return center.ToUnityVector3();
-			}
-		}
-
-		public override ItemDataTransformType EditorPositionType => ItemDataTransformType.ThreeD;
-		public override Vector3 GetEditorPosition()
-		{
-			var pos = DragPoints.Length == 0 ? Vector3.zero : DragPointCenter;
-			return new Vector3(pos.x, pos.y, _height);
-		}
-		public override void SetEditorPosition(Vector3 pos) {
-			if (DragPoints.Length == 0) {
-				return;
-			}
-			var diff = (pos - DragPointCenter).ToVertex3D();
-			diff.Z = 0f;
-			foreach (var pt in DragPoints) {
-				pt.Center += diff;
-			}
-			_height = pos.z;
-			RebuildMeshes();
-		}
-
-		public override ItemDataTransformType EditorRotationType => ItemDataTransformType.ThreeD;
-		public override Vector3 GetEditorRotation() => Rotation;
-		public override void SetEditorRotation(Vector3 rot) {
-			Rotation = rot;
-			RebuildMeshes();
-		}
-
-		#endregion
 	}
 }

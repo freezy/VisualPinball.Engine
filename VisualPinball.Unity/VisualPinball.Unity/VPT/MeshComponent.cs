@@ -186,15 +186,6 @@ public static class MeshMenu
 		var comps = UnityEditor.Selection.activeGameObject.GetComponentsInChildren<IMeshComponent>();
 		return comps.Length != 0;
 	}
-		
-	[UnityEditor.MenuItem("GameObject/Visual Pinball/Rebuild Meshes", false, 40)]
-	public static void ApplyChildrenTransforms()
-	{
-		var comps = UnityEditor.Selection.activeGameObject.GetComponentsInChildren<IMeshComponent>();
-		foreach (var comp in comps) {
-			comp.MainRenderableComponent.RebuildMeshes();
-		}
-	}
 }
 
 #endif

@@ -56,10 +56,10 @@ namespace VisualPinball.Unity
 			}
 			var colliderGenerator = new SurfaceColliderGenerator(this, MainComponent, ColliderComponent, translateWithinPlayfieldMatrix);
 			if (ColliderComponent._isKinematic) {
-				colliderGenerator.GenerateColliders(MainComponent.PlayfieldHeight, ref kinematicColliders, margin);
+				colliderGenerator.GenerateColliders(0, ref kinematicColliders, margin);
 
 			} else {
-				colliderGenerator.GenerateColliders(MainComponent.PlayfieldHeight, ref colliders, margin);
+				colliderGenerator.GenerateColliders(0, ref colliders, margin);
 			}
 		}
 

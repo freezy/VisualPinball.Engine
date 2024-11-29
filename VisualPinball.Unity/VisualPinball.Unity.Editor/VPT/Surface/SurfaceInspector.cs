@@ -62,9 +62,7 @@ namespace VisualPinball.Unity.Editor
 
 			OnPreInspectorGUI();
 
-			PropertyField(_heightTopProperty, "Top Height", true, onChanged: () => {
-				WalkChildren(PlayfieldComponent.transform, UpdateSurfaceReferences);
-			});
+			PropertyField(_heightTopProperty, "Top Height", true);
 			PropertyField(_heightBottomProperty, "Bottom Height", true);
 
 			DragPointsHelper.OnInspectorGUI(this);
@@ -84,9 +82,9 @@ namespace VisualPinball.Unity.Editor
 		public DragPointData[] DragPoints { get => MainComponent.DragPoints; set => MainComponent.DragPoints = value; }
 		public bool PointsAreLooping => true;
 		public IEnumerable<DragPointExposure> DragPointExposition => new[] { DragPointExposure.Smooth, DragPointExposure.SlingShot, DragPointExposure.Texture };
-		public ItemDataTransformType HandleType => ItemDataTransformType.TwoD;
+		public DragPointTransformType HandleType => DragPointTransformType.TwoD;
 		public DragPointsInspectorHelper DragPointsHelper { get; private set; }
-		public float ZOffset => MainComponent.HeightTop + MainComponent.PlayfieldHeight;
+		public float ZOffset => MainComponent.HeightTop;
 		public float[] TopBottomZ => null;
 		public void SetDragPointPosition(DragPointData dragPoint, Vertex3D value, int numSelectedDragPoints,
 			float[] topBottomZ) => dragPoint.Center = value;

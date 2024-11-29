@@ -44,8 +44,8 @@ namespace VisualPinball.Unity
 		{
 			var playfieldComponent = GetComponentInParent<PlayfieldComponent>();
 			var meshGen = new SurfaceMeshGenerator(new LightInsertData(_dragPoints, InsertHeight));
-			var topMesh = meshGen.GetMesh(SurfaceMeshGenerator.Top, playfieldComponent.Width, playfieldComponent.Height, playfieldComponent.PlayfieldHeight, false);
-			var sideMesh = meshGen.GetMesh(SurfaceMeshGenerator.Side, playfieldComponent.Width, playfieldComponent.Height, playfieldComponent.PlayfieldHeight, false);
+			var topMesh = meshGen.GetMesh(SurfaceMeshGenerator.Top, playfieldComponent.Width, playfieldComponent.Height, 0, false);
+			var sideMesh = meshGen.GetMesh(SurfaceMeshGenerator.Side, playfieldComponent.Width, playfieldComponent.Height, 0, false);
 			return topMesh.Merge(sideMesh).TransformToWorld();
 		}
 

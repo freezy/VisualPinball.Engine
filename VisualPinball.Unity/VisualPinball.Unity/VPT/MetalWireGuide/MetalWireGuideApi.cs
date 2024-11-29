@@ -15,7 +15,6 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using System;
-using System.Collections.Generic;
 using Unity.Mathematics;
 using UnityEngine;
 using VisualPinball.Engine.VPT.MetalWireGuide;
@@ -48,7 +47,7 @@ namespace VisualPinball.Unity
 			ref ColliderReference kinematicColliders, float4x4 translateWithinPlayfieldMatrix, float margin)
 		{
 			var colliderGenerator = new MetalWireGuideColliderGenerator(this, new MetalWireGuideMeshGenerator(MainComponent), translateWithinPlayfieldMatrix);
-			colliderGenerator.GenerateColliders(MainComponent.PlayfieldHeight, ColliderComponent.HitHeight, MainComponent.Bendradius, MainComponent.PlayfieldDetailLevel, ref colliders, margin);
+			colliderGenerator.GenerateColliders(0, ColliderComponent.HitHeight, MainComponent.Bendradius, MainComponent.PlayfieldDetailLevel, ref colliders, margin);
 		}
 
 		#endregion

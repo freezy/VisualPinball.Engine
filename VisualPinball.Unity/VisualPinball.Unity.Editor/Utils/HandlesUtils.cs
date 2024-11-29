@@ -30,14 +30,14 @@ namespace VisualPinball.Unity.Editor
 		/// <param name="handleSize"></param>
 		/// <param name="snap"></param>
 		/// <returns>Moved position in VPX space.</returns>
-		public static Vector3 HandlePosition(Vector3 position, Matrix4x4 localToWorld, ItemDataTransformType type, float handleSize = 0.2f, float snap = 0.0f)
+		public static Vector3 HandlePosition(Vector3 position, Matrix4x4 localToWorld, DragPointTransformType type, float handleSize = 0.2f, float snap = 0.0f)
 		{
 
 			var pos = position.TranslateToWorld();
 			Handles.matrix = localToWorld;
 
 			switch (type) {
-				case ItemDataTransformType.TwoD: {
+				case DragPointTransformType.TwoD: {
 
 					var forward = Vector3.forward.TranslateToWorld().normalized;
 					var right = Vector3.right.TranslateToWorld().normalized;
@@ -61,7 +61,7 @@ namespace VisualPinball.Unity.Editor
 					break;
 				}
 
-				case ItemDataTransformType.ThreeD: {
+				case DragPointTransformType.ThreeD: {
 					pos = Handles.PositionHandle(pos, Quaternion.identity.RotateToWorld());
 					break;
 				}
