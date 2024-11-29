@@ -38,6 +38,7 @@ namespace VisualPinball.Unity
 			_meshComponent = meshComponent;
 			_colliderComponent = colliderComponent;
 			_matrix = matrix;
+
 		}
 
 		internal void GenerateColliders(ref ColliderReference colliders)
@@ -75,13 +76,13 @@ namespace VisualPinball.Unity
 			for (var i = 0; i < count; i++) {
 				var pv2 = rgv[i < count - 1 ? i + 1 : 0];
 				var pv3 = rgv[i < count - 2 ? i + 2 : i + 2 - count];
-				AddLineSeg(pv2.ToUnityFloat2(), pv3.ToUnityFloat2(), height, ref colliders);
+				colliders.Add(new LineCollider(
+					pv2.ToUnityFloat2(),
+					pv3.ToUnityFloat2(),
+					height,
+					height + math.max(_colliderComponent.HitHeight - 8.0f, 0f),
+					_api.GetColliderInfo()), _matrix);
 			}
-		}
-
-		private void AddLineSeg(float2 pv1, float2 pv2, float height, ref ColliderReference colliders) {
-			colliders.AddLine(pv1, pv2, height, height + math.max(_colliderComponent.HitHeight - 8.0f, 0f),
-				_api.GetColliderInfo(), _matrix);
 		}
 	}
 }

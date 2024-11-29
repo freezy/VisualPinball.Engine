@@ -277,7 +277,7 @@ namespace VisualPinball.Unity
 		}
 
 		internal int Add(LineCollider collider) => Add(collider, float4x4.identity); // used for the playfield only
-		private int Add(LineCollider collider, float4x4 matrix)
+		internal int Add(LineCollider collider, float4x4 matrix)
 		{
 			if (LineCollider.IsTransformable(matrix)) {
 				collider.Header.IsTransformed = true;
