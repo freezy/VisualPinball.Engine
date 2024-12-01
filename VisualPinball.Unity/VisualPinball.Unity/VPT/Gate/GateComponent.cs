@@ -174,7 +174,7 @@ namespace VisualPinball.Unity
 			// transforms
 			Position = data.Center.ToUnityVector3(data.Height);
 			Rotation = data.Rotation > 180f ? data.Rotation - 360f : data.Rotation;
-			_length = data.Length;
+			Length = data.Length;
 			_type = data.GateType;
 
 			// collider data
