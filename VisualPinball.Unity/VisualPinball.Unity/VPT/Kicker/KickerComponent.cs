@@ -116,38 +116,6 @@ namespace VisualPinball.Unity
 
 		#region Transformation
 
-		public override void UpdateTransforms()
-		{
-			base.UpdateTransforms();
-			var t = transform;
-
-			// todo move this to import
-			if (KickerType == Engine.VPT.KickerType.KickerCup) {
-				t.localPosition += Physics.TranslateToWorld(0, 0, -0.18f * Radius);
-			}
-
-			// scale
-			t.localScale = KickerType == Engine.VPT.KickerType.KickerInvisible
-				? Vector3.one
-				: Physics.ScaleToWorld(Radius, Radius, Radius);
-
-			switch (KickerType) {
-				// rotation
-				case Engine.VPT.KickerType.KickerCup:
-					t.localEulerAngles = Physics.RotateToWorld(0, 0, Orientation);
-					break;
-				case Engine.VPT.KickerType.KickerWilliams:
-					t.localEulerAngles = Physics.RotateToWorld(0, 0, Orientation + 90f);
-					break;
-				case Engine.VPT.KickerType.KickerInvisible:
-					t.localRotation = Quaternion.identity;
-					break;
-				default:
-					t.localEulerAngles = Physics.RotateToWorld(0, 0, Orientation);
-					break;
-			}
-		}
-
 		private float _originalRotationZ;
 		private float _originalKickerAngle;
 
