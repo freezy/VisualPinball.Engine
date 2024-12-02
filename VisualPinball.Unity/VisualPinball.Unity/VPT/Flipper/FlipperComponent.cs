@@ -43,20 +43,9 @@ namespace VisualPinball.Unity
 	{
 		#region Data
 
-		public Vector2 Position {
-			get
-			{
-				var pos = transform.localPosition;
-				var posVpx = pos.TranslateToVpx();
-				return new Vector2(posVpx.x, posVpx.y);
-			}
-			set
-			{
-				var posVpx = new Vector3(value.x, value.y, 0);
-				var pos = posVpx.TranslateToWorld();
-				var t = transform;
-				t.localPosition = new Vector3(pos.x, t.localPosition.y, pos.z);
-			}
+		public Vector3 Position {
+			get => transform.localPosition.TranslateToVpx();
+			set => transform.localPosition = value.TranslateToWorld();
 		}
 
 		public float PosX => Position.x;
@@ -195,7 +184,7 @@ namespace VisualPinball.Unity
 		public float2 RotatedPosition {
 			get => new(Position.x, Position.y);
 			set {
-				Position = value;
+				Position = new Vector3(value.x, value.y, Position.z);
 				UpdateTransforms();
 			}
 		}
@@ -209,7 +198,8 @@ namespace VisualPinball.Unity
 			var updatedComponents = new List<MonoBehaviour> { this };
 
 			// transforms
-			Position = data.Center.ToUnityVector2();
+			Position = new Vector3(data.Center.X, data.Center.Y, 0);
+			transform.localEulerAngles = Vector3.zero;
 			StartAngle = data.StartAngle > 180f ? data.StartAngle - 360f : data.StartAngle;
 
 			// geometry
@@ -270,7 +260,7 @@ namespace VisualPinball.Unity
 		{
 			// name and transforms
 			data.Name = name;
-			data.Center = Position.ToVertex2D();
+			data.Center = new Vertex2D(Position.x, Position.y);
 			data.StartAngle = StartAngle;
 
 			// geometry
