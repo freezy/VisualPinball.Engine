@@ -202,6 +202,9 @@ namespace VisualPinball.Unity
 
 		public override IEnumerable<MonoBehaviour> SetReferencedData(GateData data, Table table, IMaterialProvider materialProvider, ITextureProvider textureProvider, Dictionary<string, IMainComponent> components)
 		{
+			// surface
+			ParentToSurface(data.Surface, data.Center, components);
+
 			// visibility
 			foreach (var mf in GetComponentsInChildren<MeshFilter>()) {
 				switch (mf.gameObject.name) {

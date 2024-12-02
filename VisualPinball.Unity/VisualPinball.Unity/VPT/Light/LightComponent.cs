@@ -379,6 +379,9 @@ namespace VisualPinball.Unity
 
 		public override IEnumerable<MonoBehaviour> SetReferencedData(LightData data, Table table, IMaterialProvider materialProvider, ITextureProvider textureProvider, Dictionary<string, IMainComponent> components)
 		{
+			// surface
+			ParentToSurface(data.Surface, data.Center, components);
+
 			// visibility
 			if (!data.ShowBulbMesh) {
 				foreach (var mf in GetComponentsInChildren<MeshFilter>()) {

@@ -36,7 +36,7 @@ using Mesh = VisualPinball.Engine.VPT.Mesh;
 namespace VisualPinball.Unity
 {
 	[AddComponentMenu("Visual Pinball/Game Item/Ramp")]
-	public class RampComponent : MainRenderableComponent<RampData>, IRampData
+	public class RampComponent : MainRenderableComponent<RampData>, IRampData, ISurfaceComponent
 	{
 		#region Data
 
@@ -149,7 +149,8 @@ namespace VisualPinball.Unity
 		public float Height(Vector2 pos) {
 
 			var vVertex = new RampMeshGenerator(this).GetCentralCurve();
-			Mesh.ClosestPointOnPolygon(vVertex, new Vertex2D(pos.x, pos.y), false, out var vOut, out var iSeg);
+			var t = transform.localPosition.TranslateToVpx();
+			Mesh.ClosestPointOnPolygon(vVertex, new Vertex2D(pos.x - t.x, pos.y - t.y), false, out var vOut, out var iSeg);
 
 			if (iSeg == -1) {
 				return 0.0f; // Object is not on ramp path

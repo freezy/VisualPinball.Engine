@@ -35,6 +35,13 @@ namespace VisualPinball.Unity
 			);
 		}
 
+		public static void SetZPosition(this Transform transform, float pos)
+		{
+			var position = transform.position;
+			position.y = Physics.ScaleToWorld(pos); // we're in z here
+			transform.position = position;
+		}
+
 		public static void SetLocalYRotation(this Transform transform, float angleRad)
 		{
 			var localToWorldMatrix = transform.localToWorldMatrix;
