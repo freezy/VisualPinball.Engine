@@ -94,6 +94,15 @@ namespace VisualPinball.Unity
 
 		public virtual void OnPlayfieldHeightUpdated() => UpdateTransforms();
 
+		protected void ParentToSurface(string surfaceName, Vertex2D center, Dictionary<string, IMainComponent> components)
+		{
+			if (!string.IsNullOrEmpty(surfaceName)) {
+				var surface = FindComponent<ISurfaceComponent>(components, surfaceName);
+				transform.SetZPosition(surface.Height(center.ToUnityVector2()));
+				transform.SetParent(surface.transform, true);
+			}
+		}
+
 		public virtual void UpdateTransforms()
 		{
 			foreach (var colliderComponent in ColliderComponents) {

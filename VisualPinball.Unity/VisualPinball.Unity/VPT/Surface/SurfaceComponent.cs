@@ -34,7 +34,7 @@ using VisualPinball.Engine.VPT.Table;
 namespace VisualPinball.Unity
 {
 	[AddComponentMenu("Visual Pinball/Game Item/Surface")]
-	public class SurfaceComponent : MainRenderableComponent<SurfaceData>
+	public class SurfaceComponent : MainRenderableComponent<SurfaceData>, ISurfaceComponent
 	{
 		#region Data
 
@@ -58,7 +58,6 @@ namespace VisualPinball.Unity
 		public override SurfaceData InstantiateData() => new SurfaceData();
 
 		public override bool HasProceduralMesh => true;
-
 
 		protected override Type MeshComponentType { get; } = typeof(MeshComponent<SurfaceData, SurfaceComponent>);
 		protected override Type ColliderComponentType { get; } = typeof(ColliderComponent<SurfaceData, SurfaceComponent>);

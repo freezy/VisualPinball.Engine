@@ -238,6 +238,9 @@ namespace VisualPinball.Unity
 
 		public override IEnumerable<MonoBehaviour> SetReferencedData(FlipperData data, Table table, IMaterialProvider materialProvider, ITextureProvider textureProvider, Dictionary<string, IMainComponent> components)
 		{
+			// surface
+			ParentToSurface(data.Surface, data.Center, components);
+
 			UpdateTransforms();
 
 			// children mesh creation and visibility

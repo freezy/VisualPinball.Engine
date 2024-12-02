@@ -183,6 +183,9 @@ namespace VisualPinball.Unity
 
 		public override IEnumerable<MonoBehaviour> SetReferencedData(PlungerData data, Table table, IMaterialProvider materialProvider, ITextureProvider textureProvider, Dictionary<string, IMainComponent> components)
 		{
+			// surface
+			ParentToSurface(data.Surface, data.Center, components);
+
 			// rod mesh
 			var rodMesh = GetComponentInChildren<PlungerRodMeshComponent>(true);
 			if (rodMesh) {

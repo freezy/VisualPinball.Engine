@@ -178,6 +178,9 @@ namespace VisualPinball.Unity
 
 		public override IEnumerable<MonoBehaviour> SetReferencedData(TriggerData data, Table table, IMaterialProvider materialProvider, ITextureProvider textureProvider, Dictionary<string, IMainComponent> components)
 		{
+			// surface
+			ParentToSurface(data.Surface, data.Center, components);
+
 			// mesh
 			var meshComponent = GetComponent<TriggerMeshComponent>();
 			if (meshComponent) {
