@@ -69,7 +69,7 @@ namespace VisualPinball.Unity.Editor
 
 			// position
 			EditorGUI.BeginChangeCheck();
-			var newPos = EditorGUILayout.Vector2Field(new GUIContent("Position", "Position of the flipper on the playfield, relative to its parent."), MainComponent.Position);
+			var newPos = EditorGUILayout.Vector3Field(new GUIContent("Position", "Position of the flipper on the playfield, relative to its parent."), MainComponent.Position);
 			if (EditorGUI.EndChangeCheck()) {
 				Undo.RecordObject(MainComponent.transform, "Change Flipper Position");
 				MainComponent.Position = newPos;
