@@ -31,7 +31,7 @@ namespace VisualPinball.Unity
 		public string Description;
 
 		[Range(0, 1)]
-		public float VolumeCorrection = 1; //audio clips in unity have a volume range of 0 to 1
+		public float VolumeCorrection = 1;
 
 		public AudioClip[] Clips;
 
@@ -45,10 +45,6 @@ namespace VisualPinball.Unity
 
 		[Range(0, 0.3f)]
 		public float RandomizePitch;
-
-		// todo needs to go through the mixer
-		// [Range(0, 0.3f)]
-		// public float RandomizeSpeed;
 
 		[Range(0, 0.5f)]
 		public float RandomizeVolume;

@@ -14,71 +14,99 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+using System;
 using System.Linq;
 using UnityEditor;
-using UnityEngine;
+using UnityEditor.UIElements;
+using UnityEngine.UIElements;
 
 namespace VisualPinball.Unity.Editor
 {
 	[CustomPropertyDrawer(typeof(MechSound))]
 	public class MechSoundDrawer : PropertyDrawer
 	{
-		public override float GetPropertyHeight(SerializedProperty property, GUIContent label)
+		public override VisualElement CreatePropertyGUI(SerializedProperty property)
 		{
-			return (EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing) * 5 + 4f;
+			var container = new VisualElement();
+			var treeAsset = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>(
+				"Packages/org.visualpinball.engine.unity/VisualPinball.Unity/VisualPinball.Unity.Editor/Sound/SoundDrawer.uxml");
+			treeAsset.CloneTree(container);
+			var triggerDropdown = container.Q<DropdownField>("trigger-id");
+			var stopTriggerDropdown = container.Q<DropdownField>("stop-trigger-id");
+			var hasStopTriggerToggle = container.Q<Toggle>("has-stop-trigger");
+			var availableTriggers = GetAvailableTriggers(property);
+			if (availableTriggers.Length > 0) {
+				var triggerIdProp = property.FindPropertyRelative("TriggerId");
+				var stopTriggerIdProp = property.FindPropertyRelative("StopTriggerId");				
+				ConfigureTriggerDropdown(triggerIdProp, triggerDropdown, availableTriggers);
+				ConfigureTriggerDropdown(stopTriggerIdProp, stopTriggerDropdown, availableTriggers);
+				hasStopTriggerToggle.RegisterValueChangedCallback(
+					e => stopTriggerDropdown.style.display = e.newValue ? DisplayStyle.Flex : DisplayStyle.None);
+				var hasStopTriggerProp = property.FindPropertyRelative("HasStopTrigger");
+				ConfigureInfiniteLoopHelpBox(property, container, hasStopTriggerToggle, hasStopTriggerProp);
+			} else {
+				AddNoTriggersHelpBox(container, triggerDropdown, stopTriggerDropdown, hasStopTriggerToggle);
+			}
+			property.serializedObject.ApplyModifiedProperties();
+			return container;
 		}
 
-		public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
+        private static void ConfigureTriggerDropdown(SerializedProperty triggerIdProp, DropdownField triggerDropdown, SoundTrigger[] availableTriggers)
+        {
+            var availableTriggerNames = availableTriggers.Select(t => t.Name).ToList();
+            triggerDropdown.choices = availableTriggerNames;
+
+            var isSelectedTriggerValid = availableTriggers.Any(t => t.Id == triggerIdProp.stringValue);
+            if (isSelectedTriggerValid) {
+                triggerDropdown.value = availableTriggers.First(t => t.Id == triggerIdProp.stringValue).Name;
+            } else {
+                triggerDropdown.value = availableTriggerNames[0];
+                triggerIdProp.stringValue = availableTriggers[0].Id;
+            }
+
+            triggerDropdown.RegisterValueChangedCallback(
+                e => {
+					triggerIdProp.stringValue = availableTriggers.FirstOrDefault(t => t.Name == e.newValue).Id;
+					triggerIdProp.serializedObject.ApplyModifiedProperties();
+				});
+        }
+
+		private static void AddNoTriggersHelpBox(VisualElement container, DropdownField triggerDropdown, DropdownField stopTriggerDropdown, Toggle hasStopTriggerToggle)
 		{
-			// retrieve reference to GO and component
+			container.Insert(0, new HelpBox("There are no triggers to choose from", HelpBoxMessageType.Info));
+			triggerDropdown.style.display = DisplayStyle.None;
+			stopTriggerDropdown.style.display = DisplayStyle.None;
+			hasStopTriggerToggle.style.display = DisplayStyle.None;
+		}
+
+		private static void ConfigureInfiniteLoopHelpBox(SerializedProperty rootProp, VisualElement container, Toggle hasStopTriggerToggle, SerializedProperty hasStopTriggerProp)
+		{
+			var soundAssetProp = rootProp.FindPropertyRelative("Sound");
+			var infiniteLoopHelpBox = new HelpBox("The selected sound asset loops and no stop trigger is set, so the sound will loop forever once started.", HelpBoxMessageType.Warning);
+			infiniteLoopHelpBox.style.display = DisplayStyle.None;
+			container.Insert(0, infiniteLoopHelpBox);
+			var soundAssetField = container.Q<ObjectField>("sound-asset");
+			soundAssetField.RegisterValueChangedCallback(
+				e => UpdateInfiniteLoopHelpBoxVisbility(soundAssetProp.objectReferenceValue as SoundAsset, hasStopTriggerProp.boolValue, infiniteLoopHelpBox));
+			hasStopTriggerToggle.RegisterValueChangedCallback(
+				e => UpdateInfiniteLoopHelpBoxVisbility(soundAssetProp.objectReferenceValue as SoundAsset, hasStopTriggerProp.boolValue, infiniteLoopHelpBox));
+		}
+
+		private static void UpdateInfiniteLoopHelpBoxVisbility(SoundAsset soundAsset, bool hasStopTrigger, VisualElement box)
+		{
+			if (soundAsset && soundAsset.Loop && !hasStopTrigger)
+				box.style.display = DisplayStyle.Flex;
+			else
+				box.style.display = DisplayStyle.None;
+		}
+
+		private static SoundTrigger[] GetAvailableTriggers(SerializedProperty property)
+		{
 			var mechSoundsComponent = (MechSoundsComponent)property.serializedObject.targetObject;
-			var soundEmitter = mechSoundsComponent.GetComponent<ISoundEmitter>();
-
-			EditorGUI.BeginProperty(position, label, property);
-			
-			// init height
-			position.height = EditorGUIUtility.singleLineHeight;
-
-			// trigger drop-down
-			var triggerIdProperty = property.FindPropertyRelative(nameof(MechSound.TriggerId));
-			var triggers = soundEmitter.AvailableTriggers;
-			if (triggers.Length > 0) {
-				var triggerIndex = triggers.ToList().FindIndex(t => t.Id == triggerIdProperty.stringValue);
-				if (triggerIndex == -1) { // pre-select first trigger in list, if none set.
-					triggerIndex = 0;
-				}
-				triggerIndex = EditorGUI.Popup(position, "Trigger on", triggerIndex, triggers.Select(t => t.Name).ToArray());
-				triggerIdProperty.stringValue = triggers[triggerIndex].Id;
-			} else {
-				EditorGUI.LabelField(position, "No Triggers found.");
-			}
-			position.y += EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing;
-			
-			// sound object picker
-			var soundProperty = property.FindPropertyRelative(nameof(MechSound.Sound));
-			EditorGUI.BeginChangeCheck();
-			var soundValue = EditorGUI.ObjectField(position, "Sound", soundProperty.objectReferenceValue, typeof(SoundAsset), true);
-			if (EditorGUI.EndChangeCheck()) {
-				soundProperty.objectReferenceValue = soundValue;
-			}
-			position.y += EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing;
-
-			// volume
-			var volumeProperty = property.FindPropertyRelative(nameof(MechSound.Volume));
-			EditorGUI.PropertyField(position, volumeProperty);
-			position.y += EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing;
-			
-			// action
-			var actionProperty = property.FindPropertyRelative(nameof(MechSound.Action));
-			EditorGUI.PropertyField(position, actionProperty);
-			position.y += EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing;
-			
-			// fade
-			var fadeProperty = property.FindPropertyRelative(nameof(MechSound.Fade));
-			EditorGUI.PropertyField(position, fadeProperty);
-			position.y += EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing;
-
-			EditorGUI.EndProperty();
+			if (mechSoundsComponent.TryGetComponent<ISoundEmitter>(out var emitter))
+				return emitter.AvailableTriggers;
+			else
+				return Array.Empty<SoundTrigger>();
 		}
 	}
 }
