@@ -28,16 +28,15 @@ namespace VisualPinball.Unity
 		public SoundAsset Sound;
 
 		public string TriggerId;
+		public bool HasStopTrigger;
+		public string StopTriggerId;
 
 		[Range(0.0001f, 1)]
 		// This initialization doesnt work in inspector 
-		public float Volume = 1;
-
-		public MechSoundAction Action = MechSoundAction.Play;
+		public float Volume = 1;		
 
 		[Tooltip("Increments of 1000")]
 		[Min(0)]
-		[Unit("ms")]
 		public float Fade;
 
 		#region DefaultValuesWorkaround
@@ -60,6 +59,4 @@ namespace VisualPinball.Unity
 		}
 		#endregion
 	}
-
-	public enum MechSoundAction { Play, Stop };
 }
