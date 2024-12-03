@@ -1,0 +1,5 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" xsi="http://www.w3.org/2001/XMLSchema-instance" engine="UnityEngine.UIElements" editor="UnityEditor.UIElements" noNamespaceSchemaLocation="../../../../../UIElementsSchema/UIElements.xsd" editor-extension-mode="True">
+    <Style src="project://database/Packages/org.visualpinball.engine.unity/VisualPinball.Unity/VisualPinball.Unity.Editor/Sound/SoundsComponentInspector.uss?fileID=7433441132597879392&amp;guid=30f22b4450bbae84eb18d9bc7f656e8c&amp;type=3#SoundsComponentInspector" />
+    <uie:PropertyField binding-path="_sounds" label="Sounds" name="Sounds" class="unity-base-field__aligned" />
+    <uie:ObjectField label="Audio Mixer Group" binding-path="_audioMixerGroup" focusable="false" name="AudioMixerGroup" class="unity-base-field__aligned" />
+</ui:UXML>
