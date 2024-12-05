@@ -16,7 +16,6 @@
 
 // ReSharper disable InconsistentNaming
 
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -70,22 +69,37 @@ namespace VisualPinball.Unity
 
 		private async Task Play(MechSound sound, CancellationToken ct)
 		{
-			var audioSource = gameObject.AddComponent<AudioSource>();
+			AudioSource audioSource = null;
+			CancellationTokenSource fadeCts = null;
+
 			try {
-				sound.Sound.Play(audioSource, sound.Volume);
+				audioSource = gameObject.AddComponent<AudioSource>();
+				sound.Sound.ConfigureAudioSource(audioSource, sound.Volume);
+				audioSource.Play();
 				_soundEmitter.OnSound += SoundEmitter_OnSound;
-				while (audioSource.isPlaying && !ct.IsCancellationRequested)
+				if (sound.Sound.Loop && sound.Sound.FadeInTime > 0f) {
+					fadeCts = CancellationTokenSource.CreateLinkedTokenSource(ct);
+					await SoundUtils.Fade(audioSource, 0f, audioSource.volume, sound.Sound.FadeInTime, fadeCts.Token);
+				}
+				while (!ct.IsCancellationRequested && audioSource.isPlaying)
 					await Task.Yield();
 			} finally {
-				if (audioSource)
-					Destroy(audioSource);
 				_soundEmitter.OnSound -= SoundEmitter_OnSound;
+				fadeCts?.Dispose();
+				if (audioSource != null)
+					Destroy(audioSource);
 			}
 
-			void SoundEmitter_OnSound(object sender, SoundEventArgs eventArgs)
+			async void SoundEmitter_OnSound(object sender, SoundEventArgs eventArgs)
 			{
-				if (sound.HasStopTrigger && eventArgs.TriggerId == sound.StopTriggerId)
-					audioSource.Stop();
+				if (sound.HasStopTrigger && eventArgs.TriggerId == sound.StopTriggerId) {
+					_soundEmitter.OnSound -= SoundEmitter_OnSound;
+					fadeCts?.Cancel();
+					if (sound.Sound.Loop && sound.Sound.FadeOutTime > 0f)
+						await SoundUtils.Fade(audioSource, audioSource.volume, 0f, sound.Sound.FadeOutTime, ct);
+					if (audioSource != null)
+						audioSource.Stop();
+				}
 			}
 		}
 	}
