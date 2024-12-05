@@ -340,6 +340,10 @@ namespace VisualPinball.Unity.Editor
 		{
 			var prefab = InstantiatePrefab(item);
 
+			if (prefab == null)	{
+				throw new Exception($"Could not instantiate prefab for item {item.Name} of type {item.GetType()}.");
+			}
+
 			if (prefab.SkipParenting) {
 				return prefab;
 			}
