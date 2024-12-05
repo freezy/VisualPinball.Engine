@@ -33,11 +33,7 @@ namespace VisualPinball.Unity
 
 		[Range(0.0001f, 1)]
 		// This initialization doesnt work in inspector 
-		public float Volume = 1;		
-
-		[Tooltip("Increments of 1000")]
-		[Min(0)]
-		public float Fade;
+		public float Volume = 1;
 
 		#region DefaultValuesWorkaround
 		// When an instance is created by pressing the + icon on a list in the inspector,
