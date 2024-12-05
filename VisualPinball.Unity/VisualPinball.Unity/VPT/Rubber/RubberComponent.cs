@@ -112,8 +112,6 @@ namespace VisualPinball.Unity
 
 		#region Transformation
 
-		public override void OnPlayfieldHeightUpdated() => RebuildMeshes();
-
 		public float4x4 TransformationWithinPlayfield => transform.worldToLocalMatrix.WorldToLocalTranslateWithinPlayfield(_playfieldToWorld);
 
 		#endregion

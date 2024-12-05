@@ -71,8 +71,6 @@ namespace VisualPinball.Unity
 
 		public override bool HasProceduralMesh => false;
 
-		public override bool OverrideTransform => false;
-
 		protected override Type MeshComponentType { get; } = typeof(MeshComponent<LightData, LightComponent>);
 		protected override Type ColliderComponentType { get; } = null;
 
