@@ -230,8 +230,8 @@ namespace VisualPinball.Unity
 			// reduce the hit circle radius because only the inner circle of the kicker should start a hit event
 			var radius = MainComponent.Radius * (ColliderComponent.LegacyMode ? ColliderComponent.FallThrough ? 0.75f : 0.6f : 1f);
 
-			colliders.Add(new CircleCollider(float2.zero, radius, MainComponent.Position.z,
-				MainComponent.Position.z + ColliderComponent.HitHeight, GetColliderInfo(), ColliderType.KickerCircle), translateWithinPlayfieldMatrix);
+			colliders.Add(new CircleCollider(float2.zero, radius, 0,
+				ColliderComponent.HitHeight, GetColliderInfo(), ColliderType.KickerCircle), translateWithinPlayfieldMatrix);
 		}
 
 		#endregion
