@@ -17,6 +17,8 @@
 // ReSharper disable InconsistentNaming
 
 using System;
+using System.Threading;
+using System.Threading.Tasks;
 using UnityEngine;
 using Random = UnityEngine.Random;
 
@@ -50,6 +52,10 @@ namespace VisualPinball.Unity
 		public float RandomizeVolume;
 
 		public bool Loop;
+		[Range(0, 10f)]
+		public float FadeInTime;
+		[Range(0, 10f)]
+		public float FadeOutTime;
 
 		#endregion
 
@@ -59,8 +65,8 @@ namespace VisualPinball.Unity
 		private int _clipIndex = 0;
 
 		#endregion
-		
-		public void Play(AudioSource audioSource, float volume = 1)
+
+		public void ConfigureAudioSource(AudioSource audioSource, float volume = 1)
 		{
 			if (Clips.Length == 0) {
 				return;
@@ -69,13 +75,16 @@ namespace VisualPinball.Unity
 			audioSource.pitch = Pitch;
 			audioSource.loop = Loop;
 			audioSource.clip = GetClip();
-			audioSource.Play();
 		}
-		
-		
-		public void Stop(AudioSource audioSource)
+
+		public bool IsValid()
 		{
-			audioSource.Stop();
+			foreach (var clip in Clips) {
+				if (clip != null)
+					return true;
+			}
+
+			return false;
 		}
 
 		private float Pitch => 1f + Random.Range(-RandomizePitch / 2, RandomizePitch / 2);
@@ -88,10 +97,10 @@ namespace VisualPinball.Unity
 					var clip = Clips[_clipIndex];
 					_clipIndex = (_clipIndex + 1) % Clips.Length;
 					return clip;
-				
+
 				case Selection.Random:
 					return Clips[Random.Range(0, Clips.Length)];
-				
+
 				default:
 					throw new ArgumentOutOfRangeException();
 			}

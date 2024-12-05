@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using System.Linq;
+using System.Threading;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
@@ -33,7 +34,9 @@ namespace VisualPinball.Unity.Editor
 		private SerializedProperty _randomizePitchProperty;
 		private SerializedProperty _randomizeVolumeProperty;
 		private SerializedProperty _loopProperty;
-		
+		private SerializedProperty _fadeInDurationProperty;
+		private SerializedProperty _fadeOutDurationProperty;
+
 		private SoundAsset _soundAsset;
 		
 		private AudioSource _editorAudioSource;
@@ -41,6 +44,8 @@ namespace VisualPinball.Unity.Editor
 		
 		private const float ButtonHeight = 30;
 		private const float ButtonWidth = 50;
+
+		private CancellationTokenSource fadeCts;
 		
 		private void OnEnable()
 		{
@@ -52,12 +57,21 @@ namespace VisualPinball.Unity.Editor
 			_randomizePitchProperty = serializedObject.FindProperty(nameof(SoundAsset.RandomizePitch));
 			_randomizeVolumeProperty = serializedObject.FindProperty(nameof(SoundAsset.RandomizeVolume));
 			_loopProperty = serializedObject.FindProperty(nameof(SoundAsset.Loop));
+			_fadeInDurationProperty = serializedObject.FindProperty(nameof(SoundAsset.FadeInTime));
+			_fadeOutDurationProperty = serializedObject.FindProperty(nameof(SoundAsset.FadeOutTime));
 
 			_editorAudioSource = GetOrCreateAudioSource();
 			//_editorAudioMixer = AssetDatabase.LoadAssetAtPath<AudioMixer>("Packages/org.visualpinball.engine.unity/VisualPinball.Unity/Assets/Resources/EditorMixer.mixer");
 			//_editorAudioSource.outputAudioMixerGroup = _editorAudioMixer.outputAudioMixerGroup;
 			
 			_soundAsset = target as SoundAsset;
+		}
+
+		private void OnDisable()
+		{
+			fadeCts?.Cancel();
+			fadeCts?.Dispose();
+			fadeCts = null;
 		}
 
 		public override void OnInspectorGUI()
@@ -77,7 +91,9 @@ namespace VisualPinball.Unity.Editor
 			EditorGUILayout.PropertyField(_randomizePitchProperty, true);
 			EditorGUILayout.PropertyField(_randomizeVolumeProperty, true);
 			EditorGUILayout.PropertyField(_loopProperty);
-			
+			EditorGUILayout.PropertyField(_fadeInDurationProperty);
+			EditorGUILayout.PropertyField(_fadeOutDurationProperty);
+
 			serializedObject.ApplyModifiedProperties();
 
 			// center button
@@ -92,10 +108,24 @@ namespace VisualPinball.Unity.Editor
 
 		private void PlayStop()
 		{
+			fadeCts?.Cancel();
+			fadeCts?.Dispose();
+			fadeCts = null;
+
 			if (_editorAudioSource.isPlaying) {
-				_soundAsset.Stop(_editorAudioSource);
+				if (_soundAsset.Loop && _soundAsset.FadeOutTime > 0f) {
+					fadeCts = new CancellationTokenSource();
+					var fadeTask = SoundUtils.Fade(_editorAudioSource, _editorAudioSource.volume, 0f, _soundAsset.FadeOutTime, fadeCts.Token);
+					fadeTask.ContinueWith((t) => _editorAudioSource.Stop());
+				} else
+					_editorAudioSource.Stop();
 			} else {
-				_soundAsset.Play(_editorAudioSource);
+				_soundAsset.ConfigureAudioSource(_editorAudioSource);
+				_editorAudioSource.Play();
+				if (_soundAsset.Loop && _soundAsset.FadeInTime > 0f) {
+					fadeCts = new CancellationTokenSource();
+					_ = SoundUtils.Fade(_editorAudioSource, 0f, _editorAudioSource.volume, _soundAsset.FadeInTime, fadeCts.Token);
+				}
 			}
 		}
 		
