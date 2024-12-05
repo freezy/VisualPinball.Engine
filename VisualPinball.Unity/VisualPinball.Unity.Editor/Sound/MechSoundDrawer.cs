@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using System;
+using System.ComponentModel;
 using System.Linq;
 using UnityEditor;
 using UnityEditor.UIElements;
@@ -43,10 +44,11 @@ namespace VisualPinball.Unity.Editor
 				hasStopTriggerToggle.RegisterValueChangedCallback(
 					e => stopTriggerDropdown.style.display = e.newValue ? DisplayStyle.Flex : DisplayStyle.None);
 				var hasStopTriggerProp = property.FindPropertyRelative("HasStopTrigger");
-				ConfigureInfiniteLoopHelpBox(property, container, hasStopTriggerToggle, hasStopTriggerProp);
+				InfiniteLoopHelpBox(property, container, hasStopTriggerToggle, hasStopTriggerProp);
 			} else {
 				AddNoTriggersHelpBox(container, triggerDropdown, stopTriggerDropdown, hasStopTriggerToggle);
 			}
+			InvalidSoundAssetHelpBox(property, container);
 			property.serializedObject.ApplyModifiedProperties();
 			return container;
 		}
@@ -79,25 +81,46 @@ namespace VisualPinball.Unity.Editor
 			hasStopTriggerToggle.style.display = DisplayStyle.None;
 		}
 
-		private static void ConfigureInfiniteLoopHelpBox(SerializedProperty rootProp, VisualElement container, Toggle hasStopTriggerToggle, SerializedProperty hasStopTriggerProp)
+		private static void InfiniteLoopHelpBox(SerializedProperty rootProp, VisualElement container, Toggle hasStopTriggerToggle, SerializedProperty hasStopTriggerProp)
 		{
 			var soundAssetProp = rootProp.FindPropertyRelative("Sound");
 			var infiniteLoopHelpBox = new HelpBox("The selected sound asset loops and no stop trigger is set, so the sound will loop forever once started.", HelpBoxMessageType.Warning);
-			infiniteLoopHelpBox.style.display = DisplayStyle.None;
+			UpdateVisbility();
 			container.Insert(0, infiniteLoopHelpBox);
 			var soundAssetField = container.Q<ObjectField>("sound-asset");
 			soundAssetField.RegisterValueChangedCallback(
-				e => UpdateInfiniteLoopHelpBoxVisbility(soundAssetProp.objectReferenceValue as SoundAsset, hasStopTriggerProp.boolValue, infiniteLoopHelpBox));
+				e => UpdateVisbility());
 			hasStopTriggerToggle.RegisterValueChangedCallback(
-				e => UpdateInfiniteLoopHelpBoxVisbility(soundAssetProp.objectReferenceValue as SoundAsset, hasStopTriggerProp.boolValue, infiniteLoopHelpBox));
+				e => UpdateVisbility());
+
+			void UpdateVisbility()
+			{
+				var soundAsset = soundAssetProp.objectReferenceValue as SoundAsset;
+				if (soundAsset && soundAsset.Loop && !hasStopTriggerProp.boolValue)
+					infiniteLoopHelpBox.style.display = DisplayStyle.Flex;
+				else
+					infiniteLoopHelpBox.style.display = DisplayStyle.None;
+			}
 		}
 
-		private static void UpdateInfiniteLoopHelpBoxVisbility(SoundAsset soundAsset, bool hasStopTrigger, VisualElement box)
+		private static void InvalidSoundAssetHelpBox(SerializedProperty rootProp, VisualElement container)
 		{
-			if (soundAsset && soundAsset.Loop && !hasStopTrigger)
-				box.style.display = DisplayStyle.Flex;
-			else
-				box.style.display = DisplayStyle.None;
+			var soundAssetProp = rootProp.FindPropertyRelative("Sound");
+			var infiniteLoopHelpBox = new HelpBox("The selected sound asset is invalid. Make sure it has at least one audio clip", HelpBoxMessageType.Warning);
+			UpdateVisibility();
+			container.Insert(0, infiniteLoopHelpBox);
+			var soundAssetField = container.Q<ObjectField>("sound-asset");
+			soundAssetField.RegisterValueChangedCallback(
+				e => UpdateVisibility());
+
+			void UpdateVisibility()
+			{
+				var soundAsset = soundAssetProp.objectReferenceValue as SoundAsset;
+				if (soundAsset == null || soundAsset.IsValid())
+					infiniteLoopHelpBox.style.display = DisplayStyle.None;
+				else
+					infiniteLoopHelpBox.style.display = DisplayStyle.Flex;
+			}
 		}
 
 		private static SoundTrigger[] GetAvailableTriggers(SerializedProperty property)
