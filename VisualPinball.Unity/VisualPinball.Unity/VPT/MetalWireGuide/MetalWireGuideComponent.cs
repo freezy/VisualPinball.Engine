@@ -104,12 +104,6 @@ namespace VisualPinball.Unity
 
 		#endregion
 
-		#region Transformation
-
-		public override void OnPlayfieldHeightUpdated() => RebuildMeshes();
-
-		#endregion
-
 		#region Conversion
 
 		public override IEnumerable<MonoBehaviour> SetData(MetalWireGuideData data)

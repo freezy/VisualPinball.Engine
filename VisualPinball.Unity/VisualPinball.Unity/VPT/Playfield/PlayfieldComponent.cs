@@ -71,8 +71,6 @@ namespace VisualPinball.Unity
 		public override ItemType ItemType => ItemType.Playfield;
 		public override string ItemName => "Playfield";
 
-		public override bool CanBeTransformed => false;
-
 		public override bool HasProceduralMesh => true;
 
 		public override TableData InstantiateData() => new TableData();

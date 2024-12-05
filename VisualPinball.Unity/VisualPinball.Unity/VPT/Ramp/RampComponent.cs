@@ -116,8 +116,6 @@ namespace VisualPinball.Unity
 		protected override Type MeshComponentType { get; } = typeof(MeshComponent<RampData, RampComponent>);
 		protected override Type ColliderComponentType { get; } = typeof(ColliderComponent<RampData, RampComponent>);
 
-		public override void OnPlayfieldHeightUpdated() => RebuildMeshes();
-
 		#endregion
 
 		#region Runtime
@@ -146,11 +144,18 @@ namespace VisualPinball.Unity
 		[NonSerialized]
 		private float4x4 _playfieldToWorld;
 
-		public float Height(Vector2 pos) {
+		public override void UpdateTransforms()
+		{
+			base.UpdateTransforms();
+			SetChildrenZPosition(center => Height(center, Vector3.zero));
+		}
 
+		public float Height(Vector2 pos) => Height(pos, transform.localPosition.TranslateToVpx());
+
+		public float Height(Vector2 pos, Vector3 diff) {
 			var vVertex = new RampMeshGenerator(this).GetCentralCurve();
 			var t = transform.localPosition.TranslateToVpx();
-			Mesh.ClosestPointOnPolygon(vVertex, new Vertex2D(pos.x - t.x, pos.y - t.y), false, out var vOut, out var iSeg);
+			Mesh.ClosestPointOnPolygon(vVertex, new Vertex2D(pos.x - diff.x, pos.y - diff.y), false, out var vOut, out var iSeg);
 
 			if (iSeg == -1) {
 				return 0.0f; // Object is not on ramp path
@@ -213,6 +218,17 @@ namespace VisualPinball.Unity
 
 		public float4x4 TransformationWithinPlayfield
 			=> transform.worldToLocalMatrix.WorldToLocalTranslateWithinPlayfield(_playfieldToWorld);
+
+		public void UpdateChildrenTransforms()
+		{
+			var children = GetComponentsInChildren<IMainRenderableComponent>();
+			foreach (var child in children) {
+				if (ReferenceEquals(child, this)) {
+					continue;
+				}
+				child.transform.SetZPosition(HeightTop);
+			}
+		}
 
 		#endregion
 

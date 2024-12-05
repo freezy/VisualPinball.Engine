@@ -105,8 +105,6 @@ namespace VisualPinball.Unity
 		[NonSerialized]
 		private float4x4 _playfieldToWorld;
 
-		public override void OnPlayfieldHeightUpdated() => RebuildMeshes();
-
 		public override void UpdateTransforms()
 		{
 			base.UpdateTransforms();

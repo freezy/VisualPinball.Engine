@@ -17,6 +17,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using FluentAssertions.Specialized;
 using UnityEngine;
 using VisualPinball.Engine.Math;
 using VisualPinball.Engine.VPT;
@@ -27,13 +28,7 @@ namespace VisualPinball.Unity
 	public abstract class MainRenderableComponent<TData> : MainComponent<TData>, IMainRenderableComponent
 		where TData : ItemData
 	{
-		public virtual bool CanBeTransformed => true;
-
-		public virtual bool OverrideTransform => true;
-
-		//public abstract void SetTransform(Vector3 position, Vector3 scale, Quaternion rotation);
 		public abstract void CopyFromObject(GameObject go);
-		//public virtual void SetTransform(Vector3 position, Vector3 scale, Quaternion rotation) { }
 
 		/// <summary>
 		/// Component type of the child class.
@@ -91,8 +86,6 @@ namespace VisualPinball.Unity
 			}
 			return null;
 		}
-
-		public virtual void OnPlayfieldHeightUpdated() => UpdateTransforms();
 
 		protected void ParentToSurface(string surfaceName, Vertex2D center, Dictionary<string, IMainComponent> components)
 		{
@@ -160,6 +153,17 @@ namespace VisualPinball.Unity
 			}
 			if (envMapName != null && !string.IsNullOrEmpty(result[3])) {
 				envMapName = result[3];
+			}
+		}
+
+		protected void SetChildrenZPosition(Func<Vector3, float> getHeight)
+		{
+			var children = GetComponentsInChildren<IMainRenderableComponent>();
+			foreach (var child in children) {
+				if (ReferenceEquals(child, this)) {
+					continue;
+				}
+				child.transform.SetZPosition(getHeight(child.transform.localPosition.TranslateToVpx()));
 			}
 		}
 

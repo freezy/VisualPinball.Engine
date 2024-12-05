@@ -94,10 +94,14 @@ namespace VisualPinball.Unity
 
 		public float Height(Vector2 _) => HeightTop;
 
-		public override void OnPlayfieldHeightUpdated() => RebuildMeshes();
-
 		public float4x4 TransformationWithinPlayfield
 			=> transform.worldToLocalMatrix.WorldToLocalTranslateWithinPlayfield(_playfieldToWorld);
+
+		public override void UpdateTransforms()
+		{
+			base.UpdateTransforms();
+			SetChildrenZPosition(_ => HeightTop);
+		}
 
 		#endregion
 

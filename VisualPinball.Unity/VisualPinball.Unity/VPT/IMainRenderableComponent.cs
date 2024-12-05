@@ -27,6 +27,8 @@ namespace VisualPinball.Unity
 		void UpdateTransforms();
 
 		void CopyFromObject(GameObject go);
+
+		Transform transform { get; }
 	}
 
 
