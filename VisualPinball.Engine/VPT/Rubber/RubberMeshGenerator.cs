@@ -80,7 +80,7 @@ namespace VisualPinball.Engine.VPT.Rubber
 		{
 			var mesh = new Mesh();
 			// i dont understand the calculation of splineaccuracy here /cupiii
-			var accuracy = (int)(10.0f * 1.2f);
+			var accuracy = (int)(10.0f * 1.3f);
 			if (acc != -1)
 			{ // hit shapes and UI display have the same, static, precision
 				accuracy = acc;
@@ -137,8 +137,8 @@ namespace VisualPinball.Engine.VPT.Rubber
 			var ringsY = new float[numSegments];
 			for (int i = 0; i < numSegments; i++)
 			{
-				ringsX[i] = -1.0f * (float)System.Math.Sin(System.Math.PI * 2 * i / numSegments) * _data.Thickness;
-				ringsY[i] = -1.0f * (float)System.Math.Cos(System.Math.PI + System.Math.PI * 2 * i / numSegments) * _data.Thickness;
+				ringsX[i] = -1.0f * (float)System.Math.Sin(System.Math.PI * 2 * i / numSegments) * _data.Thickness * 0.5f;
+				ringsY[i] = -1.0f * (float)System.Math.Cos(System.Math.PI + System.Math.PI * 2 * i / numSegments) * _data.Thickness * 0.5f;
 			}
 
 			var verticesIndex = 0;
