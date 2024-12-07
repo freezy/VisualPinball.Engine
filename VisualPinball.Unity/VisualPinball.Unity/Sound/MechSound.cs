@@ -17,6 +17,7 @@
 // ReSharper disable InconsistentNaming
 
 using System;
+using System.Threading;
 using UnityEngine;
 
 namespace VisualPinball.Unity
@@ -34,6 +35,44 @@ namespace VisualPinball.Unity
 		[Range(0.0001f, 1)]
 		// This initialization doesnt work in inspector 
 		public float Volume = 1;
+
+		private ISoundEmitter emitter;
+		private GameObject audioObject;
+		private CancellationToken instantCt;
+		private CancellationTokenSource allowFadeCts;
+
+		public void Enable(ISoundEmitter emitter, GameObject audioObject, CancellationToken ct)
+		{
+			this.emitter = emitter;
+			this.emitter.OnSound += Emitter_OnSound;
+			this.audioObject = audioObject;
+			allowFadeCts = new();
+		}
+
+		public void Disable()
+		{
+			emitter.OnSound -= Emitter_OnSound;
+			emitter = null;
+			audioObject = null;
+			allowFadeCts?.Dispose();
+			allowFadeCts = null;
+		}
+
+		private async void Emitter_OnSound(object sender, SoundEventArgs e)
+		{
+			if (HasStopTrigger && e.TriggerId == StopTriggerId) {
+				allowFadeCts?.Cancel();
+				allowFadeCts?.Dispose();
+				allowFadeCts = new();
+			}
+
+			if (e.TriggerId == TriggerId) {
+				try {
+					await SoundUtils.Play(Sound, audioObject, allowFadeCts.Token, instantCt);
+				} catch (OperationCanceledException) { }
+			}
+		}
+
 
 		#region DefaultValuesWorkaround
 		// When an instance is created by pressing the + icon on a list in the inspector,
