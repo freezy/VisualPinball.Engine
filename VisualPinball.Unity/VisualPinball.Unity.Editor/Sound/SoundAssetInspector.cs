@@ -14,12 +14,11 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-using System.Linq;
+using System;
 using System.Threading;
+using System.Threading.Tasks;
 using UnityEditor;
-using UnityEditor.SceneManagement;
 using UnityEngine;
-using UnityEngine.SceneManagement;
 
 namespace VisualPinball.Unity.Editor
 {
@@ -37,16 +36,16 @@ namespace VisualPinball.Unity.Editor
 		private SerializedProperty _fadeInDurationProperty;
 		private SerializedProperty _fadeOutDurationProperty;
 
-		private SoundAsset _soundAsset;
-		
-		private AudioSource _editorAudioSource;
-		//private AudioMixer _editorAudioMixer;
+		private SoundAsset _soundAsset;	
 		
 		private const float ButtonHeight = 30;
 		private const float ButtonWidth = 50;
 
-		private CancellationTokenSource fadeCts;
-		
+		private CancellationTokenSource allowFadeCts;
+		private CancellationTokenSource instantCts;
+		private Task playTask;
+		private bool isPlaying;
+
 		private void OnEnable()
 		{
 			_nameProperty = serializedObject.FindProperty(nameof(SoundAsset.Name));
@@ -60,18 +59,16 @@ namespace VisualPinball.Unity.Editor
 			_fadeInDurationProperty = serializedObject.FindProperty(nameof(SoundAsset.FadeInTime));
 			_fadeOutDurationProperty = serializedObject.FindProperty(nameof(SoundAsset.FadeOutTime));
 
-			_editorAudioSource = GetOrCreateAudioSource();
 			//_editorAudioMixer = AssetDatabase.LoadAssetAtPath<AudioMixer>("Packages/org.visualpinball.engine.unity/VisualPinball.Unity/Assets/Resources/EditorMixer.mixer");
 			//_editorAudioSource.outputAudioMixerGroup = _editorAudioMixer.outputAudioMixerGroup;
 			
 			_soundAsset = target as SoundAsset;
 		}
 
-		private void OnDisable()
+		private async void OnDisable()
 		{
-			fadeCts?.Cancel();
-			fadeCts?.Dispose();
-			fadeCts = null;
+			if (isPlaying)
+				await Stop(allowFadeOut: false);
 		}
 
 		public override void OnInspectorGUI()
@@ -100,88 +97,51 @@ namespace VisualPinball.Unity.Editor
 			GUILayout.BeginHorizontal();
 			GUILayout.FlexibleSpace();
 			if (PlayStopButton()) {
-				PlayStop();
+				if (isPlaying)
+					_ = Stop(allowFadeOut: true);
+				else
+					playTask = Play();
+
 			}
 			GUILayout.FlexibleSpace();
 			GUILayout.EndHorizontal();
 		}
 
-		private void PlayStop()
+		private async Task Play()
 		{
-			fadeCts?.Cancel();
-			fadeCts?.Dispose();
-			fadeCts = null;
+			try {
+				isPlaying = true;
+				allowFadeCts = new();
+				instantCts = new();
+				await SoundUtils.PlayInEditorPreviewScene(_soundAsset, allowFadeCts.Token, instantCts.Token);
+			} catch (OperationCanceledException) { }
+			finally {
+				allowFadeCts.Dispose();
+				allowFadeCts = null;
+				instantCts.Dispose();
+				instantCts = null;
+				isPlaying = false;
+			}
+		}
 
-			if (_editorAudioSource.isPlaying) {
-				if (_soundAsset.Loop && _soundAsset.FadeOutTime > 0f) {
-					fadeCts = new CancellationTokenSource();
-					var fadeTask = SoundUtils.Fade(_editorAudioSource, _editorAudioSource.volume, 0f, _soundAsset.FadeOutTime, fadeCts.Token);
-					fadeTask.ContinueWith((t) => _editorAudioSource.Stop());
-				} else
-					_editorAudioSource.Stop();
-			} else {
-				_soundAsset.ConfigureAudioSource(_editorAudioSource);
-				_editorAudioSource.Play();
-				if (_soundAsset.Loop && _soundAsset.FadeInTime > 0f) {
-					fadeCts = new CancellationTokenSource();
-					_ = SoundUtils.Fade(_editorAudioSource, 0f, _editorAudioSource.volume, _soundAsset.FadeInTime, fadeCts.Token);
-				}
+		private async Task Stop(bool allowFadeOut)
+		{
+			if (isPlaying) {
+				if (allowFadeOut)
+					allowFadeCts.Cancel();
+				else
+					instantCts.Cancel();
+				await playTask;
 			}
 		}
 		
 		private bool PlayStopButton()
 		{
-			return _editorAudioSource.isPlaying
+			return isPlaying
 				? GUILayout.Button(new GUIContent("Stop", Icons.StopButton(IconSize.Small, IconColor.Orange)),
 					GUILayout.Height(ButtonHeight), GUILayout.Width(ButtonWidth))
 				: GUILayout.Button(new GUIContent("Play", Icons.PlayButton(IconSize.Small, IconColor.Orange)),
 					GUILayout.Height(ButtonHeight), GUILayout.Width(ButtonWidth));
-		}
-
-		/// <summary>
-		/// Gets or creates the AudioSource for playing sounds in the editor.
-		/// The object containing the AudioSource is created in a new, additively loaded scene
-		/// to avoid making changes to the user's currently open scene.
-		/// </summary>
-		/// <returns>AudioSource for previewing audio assets in the editor</returns>
-		private static AudioSource GetOrCreateAudioSource()
-		{
-			Scene editorScene = GetOrCreatePreviewScene();
-			GameObject editorAudio = GetOrCreatePreviewAudioObject(editorScene);
-			if (!editorAudio.TryGetComponent<AudioSource>(out var audioSource)) {
-				audioSource = editorAudio.AddComponent<AudioSource>();
-			}
-			return audioSource;
-		}
-
-		private static Scene GetOrCreatePreviewScene()
-		{
-			const string sceneName = "VpeEditorScene";
-
-			for (int i = 0; i < SceneManager.loadedSceneCount; i++) {
-				Scene scene = SceneManager.GetSceneAt(i);
-				if (scene.name == sceneName)
-					return scene;
-			}
-
-			Scene previewScene = EditorSceneManager.NewPreviewScene();
-			previewScene.name = sceneName;
-			return previewScene;
-		}
-
-		private static GameObject GetOrCreatePreviewAudioObject(Scene previewScene)
-		{
-			const string audioObjName = "AudioPreview";
-
-			var audioObj = previewScene.GetRootGameObjects()
-				.FirstOrDefault(go => go.name == audioObjName);
-
-			if (audioObj == null) {
-				audioObj = new GameObject(audioObjName);
-				SceneManager.MoveGameObjectToScene(audioObj, previewScene);
-			}
-
-			return audioObj;
 		}
 	}
 }

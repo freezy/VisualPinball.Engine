@@ -39,68 +39,21 @@ namespace VisualPinball.Unity
 		private ISoundEmitter _soundEmitter;
 		private CancellationTokenSource tcs;
 
-		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
-
 		private void OnEnable()
 		{
 			_soundEmitter = GetComponent<ISoundEmitter>();
-			_soundEmitter.OnSound += HandleSoundEmitterOnSound;
 			tcs = new();
+			foreach (MechSound sound in _sounds)
+				sound.Enable(_soundEmitter, gameObject, tcs.Token);
 		}
 
 		private void OnDisable()
 		{
-			if (_soundEmitter != null) {
-				_soundEmitter.OnSound -= HandleSoundEmitterOnSound;
-			}
 			tcs.Cancel();
 			tcs.Dispose();
 			tcs = null;
-		}
-
-		// Async void is ok here because it's an event callback
-		private async void HandleSoundEmitterOnSound(object sender, SoundEventArgs e)
-		{
-			List<Task> playTasks = new();
-			foreach (MechSound sound in _sounds.Where(s => s.TriggerId == e.TriggerId))
-				playTasks.Add(Play(sound, tcs.Token));
-			await Task.WhenAll(playTasks);
-		}
-
-		private async Task Play(MechSound sound, CancellationToken ct)
-		{
-			AudioSource audioSource = null;
-			CancellationTokenSource fadeCts = null;
-
-			try {
-				audioSource = gameObject.AddComponent<AudioSource>();
-				sound.Sound.ConfigureAudioSource(audioSource, sound.Volume);
-				audioSource.Play();
-				_soundEmitter.OnSound += SoundEmitter_OnSound;
-				if (sound.Sound.Loop && sound.Sound.FadeInTime > 0f) {
-					fadeCts = CancellationTokenSource.CreateLinkedTokenSource(ct);
-					await SoundUtils.Fade(audioSource, 0f, audioSource.volume, sound.Sound.FadeInTime, fadeCts.Token);
-				}
-				while (!ct.IsCancellationRequested && audioSource.isPlaying)
-					await Task.Yield();
-			} finally {
-				_soundEmitter.OnSound -= SoundEmitter_OnSound;
-				fadeCts?.Dispose();
-				if (audioSource != null)
-					Destroy(audioSource);
-			}
-
-			async void SoundEmitter_OnSound(object sender, SoundEventArgs eventArgs)
-			{
-				if (sound.HasStopTrigger && eventArgs.TriggerId == sound.StopTriggerId) {
-					_soundEmitter.OnSound -= SoundEmitter_OnSound;
-					fadeCts?.Cancel();
-					if (sound.Sound.Loop && sound.Sound.FadeOutTime > 0f)
-						await SoundUtils.Fade(audioSource, audioSource.volume, 0f, sound.Sound.FadeOutTime, ct);
-					if (audioSource != null)
-						audioSource.Stop();
-				}
-			}
+			foreach (MechSound sound in _sounds)
+				sound.Disable();
 		}
 	}
 }
