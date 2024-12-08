@@ -87,8 +87,6 @@ namespace VisualPinball.Unity.Editor
 				PropertyField(_orientationProperty, updateTransforms: true);
 			}
 
-			MeshDropdownProperty("Mesh", _meshNameProperty, MeshFolder, MainComponent.gameObject, _kickerTypeProperty, TypeMap);
-
 			PropertyField(_coilsProperty);
 
 			base.OnInspectorGUI();

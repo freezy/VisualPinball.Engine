@@ -28,9 +28,6 @@ namespace VisualPinball.Unity.Editor
 		private SerializedProperty _meshNameProperty;
 		private SerializedProperty _typeNameProperty;
 
-		protected abstract string MeshAssetFolder { get; }
-		protected abstract Dictionary<string, int> MeshTypeMapping { get; }
-
 		protected override void OnEnable()
 		{
 			base.OnEnable();
@@ -72,8 +69,6 @@ namespace VisualPinball.Unity.Editor
 				Undo.RecordObject(MainComponent.transform, "Change Gate Length");
 				MainComponent.Size = newSize;
 			}
-
-			MeshDropdownProperty("Mesh", _meshNameProperty, MeshAssetFolder, MainComponent.gameObject, _typeNameProperty, MeshTypeMapping);
 
 			EndEditing();
 		}
