@@ -66,7 +66,7 @@ namespace VisualPinball.Unity
 		#region IRubberData
 
 		public DragPointData[] DragPoints { get => _dragPoints; set => _dragPoints = value; }
-		public int Thickness => _thickness;
+		public int Thickness => math.max(1, _thickness); // don't allow zero thickness
 		public float Height => _height;
 		public float RotX => Rotation.x;
 		public float RotY => Rotation.y;

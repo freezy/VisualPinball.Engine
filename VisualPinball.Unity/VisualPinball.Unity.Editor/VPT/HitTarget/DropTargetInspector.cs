@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-using System.Collections.Generic;
 using UnityEditor;
 
 namespace VisualPinball.Unity.Editor
@@ -22,12 +21,5 @@ namespace VisualPinball.Unity.Editor
 	[CustomEditor(typeof(DropTargetComponent)), CanEditMultipleObjects]
 	public class DropTargetInspector : TargetInspector
 	{
-		protected override string MeshAssetFolder
-			=> "Packages/org.visualpinball.engine.unity/VisualPinball.Unity/Assets/Art/Meshes/Drop Target";
-		protected override Dictionary<string, int> MeshTypeMapping => new Dictionary<string, int> {
-			{ "Beveled", Engine.VPT.TargetType.DropTargetBeveled },
-			{ "Simple Flat", Engine.VPT.TargetType.DropTargetFlatSimple },
-			{ "Simple", Engine.VPT.TargetType.DropTargetSimple },
-		};
 	}
 }

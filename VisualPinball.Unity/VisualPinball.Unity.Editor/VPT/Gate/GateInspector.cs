@@ -83,11 +83,6 @@ namespace VisualPinball.Unity.Editor
 				MainComponent.Length = newLength;
 			}
 
-			var wire = MainComponent.transform.Find(GateComponent.WireObjectName);
-			if (wire != null) {
-				MeshDropdownPropertyFbx("Mesh", _meshProperty, MeshFbx, wire.gameObject, _typeProperty, WireTypeMap, "Wire.");
-			}
-
 			EndEditing();
 		}
 
