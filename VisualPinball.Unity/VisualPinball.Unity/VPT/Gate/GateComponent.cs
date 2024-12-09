@@ -271,19 +271,25 @@ namespace VisualPinball.Unity
 
 		public override void CopyFromObject(GameObject go)
 		{
-			var gateComponent = go.GetComponent<GateComponent>();
-			if (gateComponent != null) {
-				Position = gateComponent.Position;
-				Rotation = gateComponent.Rotation;
-				_length = gateComponent._length;
-
-			} else {
-
-				Position = go.transform.localPosition.TranslateToVpx();
-				Rotation = go.transform.localEulerAngles.z;
+			// collider data
+			var collComp = GetComponent<GateColliderComponent>();
+			var srcCollComp = go.GetComponent<GateColliderComponent>();
+			if (collComp && srcCollComp) {
+				collComp._angleMin = srcCollComp._angleMin;
+				collComp._angleMax = srcCollComp._angleMax;
+				collComp.Damping = srcCollComp.Damping;
+				collComp.Elasticity = srcCollComp.Elasticity;
+				collComp.Friction = srcCollComp.Friction;
+				collComp.GravityFactor = srcCollComp.GravityFactor;
+				collComp._twoWay = srcCollComp.TwoWay;
 			}
 
-			UpdateTransforms();
+			// gate bracket visibility
+			var bracketComp = GetComponentInChildren<GateBracketComponent>(true);
+			var srcBracketComp = go.GetComponentInChildren<GateBracketComponent>(true);
+			if (bracketComp && srcBracketComp) {
+				bracketComp.gameObject.SetActive(srcBracketComp.gameObject.activeInHierarchy);
+			}
 		}
 
 		#endregion

@@ -211,16 +211,21 @@ namespace VisualPinball.Unity
 
 		public override void CopyFromObject(GameObject go)
 		{
-			var kickerComponent = go.GetComponent<KickerComponent>();
-			if (kickerComponent != null) {
-				Position = kickerComponent.Position;
-				Radius = kickerComponent.Radius;
-				Orientation = kickerComponent.Orientation;
+			// main component
+			var srcComp = go.GetComponent<KickerComponent>();
+			if (srcComp) {
+				Coils = srcComp.Coils;
+			}
 
-			} else {
-				Position = go.transform.localPosition.TranslateToVpx();
-				Radius = go.transform.localScale.x;
-				Orientation = go.transform.localEulerAngles.z;
+			// collider component
+			var collComp = GetComponent<KickerColliderComponent>();
+			var srcCollComp = go.GetComponent<KickerColliderComponent>();
+			if (srcCollComp && collComp) {
+				collComp.Scatter = srcCollComp.Scatter;
+				collComp.HitAccuracy = srcCollComp.HitAccuracy;
+				collComp.HitHeight = srcCollComp.HitHeight;
+				collComp.FallThrough = srcCollComp.FallThrough;
+				collComp.LegacyMode = srcCollComp.LegacyMode;
 			}
 
 			UpdateTransforms();

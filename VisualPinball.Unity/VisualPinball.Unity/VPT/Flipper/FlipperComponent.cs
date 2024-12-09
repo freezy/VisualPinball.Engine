@@ -305,26 +305,13 @@ namespace VisualPinball.Unity
 
 		public override void CopyFromObject(GameObject go)
 		{
-			var flipperComponent = go.GetComponent<FlipperComponent>();
-			if (flipperComponent != null) {
-				Position = flipperComponent.Position;
-				StartAngle = flipperComponent.StartAngle;
-				EndAngle = flipperComponent.EndAngle;
-				IsDualWound = flipperComponent.IsDualWound;
-				_height = flipperComponent._height;
-				_baseRadius = flipperComponent._baseRadius;
-				_endRadius = flipperComponent._endRadius;
-				FlipperRadiusMin = flipperComponent.FlipperRadiusMin;
-				FlipperRadiusMax = flipperComponent.FlipperRadiusMax;
-				_rubberThickness = flipperComponent._rubberThickness;
-				_rubberHeight = flipperComponent._rubberHeight;
-				_rubberWidth = flipperComponent._rubberWidth;
-
-			} else {
-				Position = go.transform.localPosition.TranslateToVpx();
+			// main component
+			var srcMainComp = go.GetComponent<FlipperComponent>();
+			if (srcMainComp) {
+				StartAngle = srcMainComp.StartAngle;
+				EndAngle = srcMainComp.EndAngle;
+				IsDualWound = srcMainComp.IsDualWound;
 			}
-
-			UpdateTransforms();
 		}
 
 		#endregion

@@ -304,17 +304,17 @@ namespace VisualPinball.Unity.Editor
 				}
 
 				// enable undo
-				Undo.RegisterCreatedObjectUndo(go, "replace object with asset");
+				Undo.RegisterCreatedObjectUndo(go, "Replace object with asset");
 				go.transform.SetParent(selected.transform.parent);
 
-				// if both are vpe components, just copy the data
+				// if both are vpe components, copy the data
 				if (go.GetComponent(typeof(IMainRenderableComponent)) is IMainRenderableComponent comp) {
 					comp.CopyFromObject(selected);
-
-				} else {
-					go.transform.localPosition = selected.transform.localPosition;
-					go.transform.localRotation = selected.transform.localRotation;
 				}
+				go.name = selected.name;
+				go.transform.localPosition = selected.transform.localPosition;
+				go.transform.localRotation = selected.transform.localRotation;
+				go.transform.localScale = selected.transform.localScale;
 				go.transform.SetSiblingIndex(selected.transform.GetSiblingIndex());
 				
 				// update references

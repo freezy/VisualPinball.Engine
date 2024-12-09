@@ -309,19 +309,39 @@ namespace VisualPinball.Unity
 
 		public override void CopyFromObject(GameObject go)
 		{
-			var bumperComponent = go.GetComponent<BumperComponent>();
-			if (bumperComponent != null) {
-				Position = bumperComponent.Position;
-				Radius = bumperComponent.Radius;
-				HeightScale = bumperComponent.HeightScale;
-				Orientation = bumperComponent.Orientation;
+			// main component
+			var srcMainComp = go.GetComponent<BumperComponent>();
+			if (srcMainComp) {
+				Radius = srcMainComp.Radius;
+				HeightScale = srcMainComp.HeightScale;
+				Orientation = srcMainComp.Orientation;
+				IsHardwired = srcMainComp.IsHardwired;
+			}
 
-			} else {
-				var scale = go.transform.localScale;
-				Position = go.transform.localPosition.TranslateToVpx();
-				Orientation = go.transform.localEulerAngles.z;
-				Radius = scale.x / 2 * DataMeshScale;
-				HeightScale = scale.z * DataMeshScale;
+			// collider comp
+			var srcCollComp = go.GetComponent<BumperColliderComponent>();
+			var collComp = GetComponent<BumperColliderComponent>();
+			if (srcCollComp && collComp) {
+				collComp.enabled = srcCollComp.enabled;
+				collComp.Threshold = srcCollComp.Threshold;
+				collComp.Force = srcCollComp.Force;
+				collComp.Scatter = srcCollComp.Scatter;
+				collComp.HitEvent = srcCollComp.HitEvent;
+			}
+
+			// ring animation
+			var ringAnimComp = GetComponentInChildren<BumperRingAnimationComponent>();
+			var srcRingAnimComp = go.GetComponentInChildren<BumperRingAnimationComponent>();
+			if (ringAnimComp && srcRingAnimComp) {
+				ringAnimComp.RingSpeed = srcRingAnimComp.RingSpeed;
+				ringAnimComp.RingDropOffset = srcRingAnimComp.RingDropOffset;
+			}
+
+			// skirt animation
+			var skirtAnimComp = GetComponentInChildren<BumperSkirtAnimationComponent>();
+			var srcSkirtAnimComp = go.GetComponentInChildren<BumperSkirtAnimationComponent>();
+			if (ringAnimComp && srcSkirtAnimComp) {
+				skirtAnimComp.duration = srcSkirtAnimComp.duration;
 			}
 
 			UpdateTransforms();
