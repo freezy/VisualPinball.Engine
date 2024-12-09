@@ -190,14 +190,10 @@ namespace VisualPinball.Unity.Editor
 			item.Add(toggle);
 			item.Add(label);
 			var icon = new Image {
-				image = EditorGUIUtility.IconContent("InspectorLock").image
+				image = lib.IsLocked ? Icons.Locked(IconSize.Small) : Icons.Unlocked(IconSize.Small)
 			};
-			if (lib.IsLocked) {
-				icon.RegisterCallback<MouseDownEvent>(evt => OnLibraryLockClicked(evt, lib, icon));
-				item.Add(icon);
-			} else {
-				icon.visible = false;
-			}
+			icon.RegisterCallback<MouseDownEvent>(evt => OnLibraryLockClicked(evt, lib, icon));
+			item.Add(icon);
 
 			toggle.value = lib.IsActive;
 			toggle.RegisterValueChangedCallback(evt => OnLibraryToggled(lib, evt.newValue));
@@ -219,8 +215,8 @@ namespace VisualPinball.Unity.Editor
 		private void OnLibraryLockClicked(IMouseEvent evt, AssetLibrary lib, VisualElement icon)
 		{
 			if (evt.ctrlKey || evt.commandKey) {
-				lib.IsLocked = false;
-				icon.visible = false;
+				lib.IsLocked = !lib.IsLocked;
+				((Image)icon).image = lib.IsLocked ? Icons.Locked(IconSize.Small) : Icons.Unlocked(IconSize.Small);
 				_detailsElement.Refresh();
 			}
 		}
