@@ -151,19 +151,71 @@ namespace VisualPinball.Unity
 
 		public override void CopyFromObject(GameObject go)
 		{
-			var targetComponent = go.GetComponent<TargetComponent>();
-			if (targetComponent != null) {
-				Position = targetComponent.Position;
-				Size = targetComponent.Size;
-				Rotation = targetComponent.Rotation;
-
-			} else {
-				Position = go.transform.localPosition.TranslateToVpx();
-				Size = go.transform.localScale;
-				Rotation = go.transform.localEulerAngles.z;
+			// dt collider
+			var dtCollComp = GetComponent<DropTargetColliderComponent>();
+			var srcDtCollComp = go.GetComponent<DropTargetColliderComponent>();
+			if (dtCollComp && srcDtCollComp) {
+				dtCollComp.IsLegacy = srcDtCollComp.IsLegacy;
+				dtCollComp.Threshold = srcDtCollComp.Threshold;
+				dtCollComp.OverwritePhysics = srcDtCollComp.OverwritePhysics;
+				dtCollComp.Elasticity = srcDtCollComp.Elasticity;
+				dtCollComp.ElasticityFalloff = srcDtCollComp.ElasticityFalloff;
+				dtCollComp.Friction = srcDtCollComp.Friction;
+				dtCollComp.Scatter = srcDtCollComp.Scatter;
+				dtCollComp.PhysicsMaterial = srcDtCollComp.PhysicsMaterial;
 			}
 
-			UpdateTransforms();
+			// dt animation
+			var dtAnimComp = GetComponent<DropTargetAnimationComponent>();
+			var srcDtAnimComp = go.GetComponent<DropTargetAnimationComponent>();
+			if (dtAnimComp && srcDtAnimComp) {
+				dtAnimComp.IsDropped = srcDtAnimComp.IsDropped;
+				dtAnimComp.Speed = srcDtAnimComp.Speed;
+				dtAnimComp.RaiseDelay = srcDtAnimComp.RaiseDelay;
+			}
+
+			// ht collider
+			var htCollComp = GetComponent<HitTargetColliderComponent>();
+			var srcHtCollComp = go.GetComponent<HitTargetColliderComponent>();
+			if (htCollComp && srcHtCollComp) {
+				htCollComp.Threshold = srcHtCollComp.Threshold;
+				htCollComp.OverwritePhysics = srcHtCollComp.OverwritePhysics;
+				htCollComp.Elasticity = srcHtCollComp.Elasticity;
+				htCollComp.ElasticityFalloff = srcHtCollComp.ElasticityFalloff;
+				htCollComp.Friction = srcHtCollComp.Friction;
+				htCollComp.Scatter = srcHtCollComp.Scatter;
+				htCollComp.PhysicsMaterial = srcHtCollComp.PhysicsMaterial;
+			}
+
+			// ht animation
+			var htAnimComp = GetComponent<HitTargetAnimationComponent>();
+			var srcHtAnimComp = go.GetComponent<HitTargetAnimationComponent>();
+			if (htAnimComp && srcHtAnimComp) {
+				htAnimComp.Speed = srcHtAnimComp.Speed;
+				htAnimComp.MaxAngle = srcHtAnimComp.MaxAngle;
+			}
+
+			// physics material dt -> ht
+			if (htCollComp && srcDtCollComp) {
+				htCollComp.Threshold = srcDtCollComp.Threshold;
+				htCollComp.OverwritePhysics = srcDtCollComp.OverwritePhysics;
+				htCollComp.Elasticity = srcDtCollComp.Elasticity;
+				htCollComp.ElasticityFalloff = srcDtCollComp.ElasticityFalloff;
+				htCollComp.Friction = srcDtCollComp.Friction;
+				htCollComp.Scatter = srcDtCollComp.Scatter;
+				htCollComp.PhysicsMaterial = srcDtCollComp.PhysicsMaterial;
+			}
+
+			// physics material ht -> dt
+			if (dtCollComp && srcHtCollComp) {
+				dtCollComp.Threshold = srcHtCollComp.Threshold;
+				dtCollComp.OverwritePhysics = srcHtCollComp.OverwritePhysics;
+				dtCollComp.Elasticity = srcHtCollComp.Elasticity;
+				dtCollComp.ElasticityFalloff = srcHtCollComp.ElasticityFalloff;
+				dtCollComp.Friction = srcHtCollComp.Friction;
+				dtCollComp.Scatter = srcHtCollComp.Scatter;
+				dtCollComp.PhysicsMaterial = srcHtCollComp.PhysicsMaterial;
+			}
 		}
 
 		#endregion
