@@ -227,8 +227,6 @@ namespace VisualPinball.Unity
 				collComp.FallThrough = srcCollComp.FallThrough;
 				collComp.LegacyMode = srcCollComp.LegacyMode;
 			}
-
-			UpdateTransforms();
 		}
 
 		#endregion

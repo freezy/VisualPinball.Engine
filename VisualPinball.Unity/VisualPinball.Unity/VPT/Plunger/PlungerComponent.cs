@@ -254,17 +254,7 @@ namespace VisualPinball.Unity
 
 		public override void CopyFromObject(GameObject go)
 		{
-			var plungerComponent = go.GetComponent<PlungerComponent>();
-			if (plungerComponent != null) {
-				Position = plungerComponent.Position;
-				Width = plungerComponent.Width;
-				Height = plungerComponent.Height;
-
-			} else {
-				Position = go.transform.localPosition.TranslateToVpx();
-			}
-
-			UpdateTransforms();
+			// primitives don't have any special params.
 		}
 
 		#endregion

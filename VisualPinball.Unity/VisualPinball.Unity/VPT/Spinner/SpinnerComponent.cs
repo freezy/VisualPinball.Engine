@@ -248,21 +248,12 @@ namespace VisualPinball.Unity
 
 		public override void CopyFromObject(GameObject go)
 		{
-			var spinnerComponent = go.GetComponent<SpinnerComponent>();
-			if (spinnerComponent != null) {
-				Position = spinnerComponent.Position;
-				Rotation = spinnerComponent.Rotation;
-				Length = spinnerComponent.Length;
-				Damping = spinnerComponent.Damping;
-				AngleMax = spinnerComponent.AngleMax;
-				AngleMin = spinnerComponent.AngleMin;
-
-			} else {
-				Position = go.transform.localPosition.TranslateToVpx();
-				Rotation = go.transform.localEulerAngles.z;
+			var srcMainComp = go.GetComponent<SpinnerComponent>();
+			if (srcMainComp) {
+				Damping = srcMainComp.Damping;
+				AngleMax = srcMainComp.AngleMax;
+				AngleMin = srcMainComp.AngleMin;
 			}
-
-			UpdateTransforms();
 		}
 
 		#endregion

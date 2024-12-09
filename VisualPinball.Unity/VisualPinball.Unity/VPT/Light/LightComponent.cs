@@ -450,18 +450,15 @@ namespace VisualPinball.Unity
 
 		public override void CopyFromObject(GameObject go)
 		{
-			transform.localPosition = go.transform.localPosition.TranslateToVpx();
-
-			var lightComponent = go.GetComponent<LightComponent>();
-			if (lightComponent != null) {
-				BulbSize = lightComponent.BulbSize;
-				State = lightComponent.State;
-				BlinkPattern = lightComponent.BlinkPattern;
-				BlinkInterval = lightComponent.BlinkInterval;
-				FadeSpeedUp = lightComponent.FadeSpeedUp;
-				FadeSpeedDown = lightComponent.FadeSpeedDown;
+			var srcMainComp = go.GetComponent<LightComponent>();
+			if (srcMainComp) {
+				BulbSize = srcMainComp.BulbSize;
+				State = srcMainComp.State;
+				BlinkPattern = srcMainComp.BlinkPattern;
+				BlinkInterval = srcMainComp.BlinkInterval;
+				FadeSpeedUp = srcMainComp.FadeSpeedUp;
+				FadeSpeedDown = srcMainComp.FadeSpeedDown;
 			}
-			UpdateTransforms();
 		}
 
 		#endregion

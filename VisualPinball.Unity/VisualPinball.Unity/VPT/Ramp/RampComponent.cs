@@ -387,26 +387,21 @@ namespace VisualPinball.Unity
 
 		public override void CopyFromObject(GameObject go)
 		{
-			var rampComponent = go.GetComponent<RampComponent>();
-			if (rampComponent != null) {
-				_type = rampComponent._type;
-				_heightBottom = rampComponent._heightBottom;
-				_heightTop = rampComponent._heightTop;
-				_imageAlignment = rampComponent._imageAlignment;
-				_leftWallHeightVisible = rampComponent._leftWallHeightVisible;
-				_rightWallHeightVisible = rampComponent._rightWallHeightVisible;
-				_widthBottom = rampComponent._widthBottom;
-				_widthTop = rampComponent._widthTop;
-				_wireDiameter = rampComponent._wireDiameter;
-				_wireDistanceX = rampComponent._wireDistanceX;
-				_wireDistanceY = rampComponent._wireDistanceY;
-				_dragPoints = rampComponent._dragPoints.Select(dp => dp.Clone()).ToArray();
-
-			} else {
-				MoveDragPointsTo(_dragPoints, go.transform.localPosition.TranslateToVpx());
+			var srcMainComp = go.GetComponent<RampComponent>();
+			if (srcMainComp) {
+				_type = srcMainComp._type;
+				_heightBottom = srcMainComp._heightBottom;
+				_heightTop = srcMainComp._heightTop;
+				_imageAlignment = srcMainComp._imageAlignment;
+				_leftWallHeightVisible = srcMainComp._leftWallHeightVisible;
+				_rightWallHeightVisible = srcMainComp._rightWallHeightVisible;
+				_widthBottom = srcMainComp._widthBottom;
+				_widthTop = srcMainComp._widthTop;
+				_wireDiameter = srcMainComp._wireDiameter;
+				_wireDistanceX = srcMainComp._wireDistanceX;
+				_wireDistanceY = srcMainComp._wireDistanceY;
+				_dragPoints = srcMainComp._dragPoints.Select(dp => dp.Clone()).ToArray();
 			}
-
-			UpdateTransforms();
 			RebuildMeshes();
 		}
 
