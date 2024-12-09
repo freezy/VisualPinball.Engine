@@ -102,6 +102,8 @@ namespace VisualPinball.Unity.Editor
 		private const string TriggerName = "trigger";
 		private const string TroughName = "trough";
 		private const string MetalWireGuideName = "metal_wire_guides";
+		private const string LockedName = "locked";
+		private const string UnlockedName = "unlocked";
 
 		// colored
 		private const string CoilEventName = "coil_event";
@@ -121,7 +123,8 @@ namespace VisualPinball.Unity.Editor
 			PhysicsName, PlungerName, PrimitiveName, RampName, RotatorName, RubberName, ScoreReelName, ScoreReelSingleName, SlingshotName, SpinnerName, SurfaceName,
 			SwitchNcName, SwitchNoName, TableName, TeleporterName, TriggerName, TroughName,
 			CoilEventName, SwitchEventName, LampEventName, LampSeqName, MetalWireGuideName,
-			PlayerVariableName, PlayerVariableEventName, TableVariableName, TableVariableEventName, UpdateDisplayName, DisplayEventName
+			PlayerVariableName, PlayerVariableEventName, TableVariableName, TableVariableEventName, UpdateDisplayName, DisplayEventName,
+			LockedName, UnlockedName
 		};
 
 		private readonly Dictionary<IconVariant, Texture2D> _icons = new Dictionary<IconVariant, Texture2D>();
@@ -183,6 +186,7 @@ namespace VisualPinball.Unity.Editor
 		public static Texture2D Kicker(IconSize size = IconSize.Large, IconColor color = IconColor.Gray) => Instance.GetItem(KickerName, size, color);
 		public static Texture2D Light(IconSize size = IconSize.Large, IconColor color = IconColor.Gray) => Instance.GetItem(LightName, size, color);
 		public static Texture2D LightGroup(IconSize size = IconSize.Large, IconColor color = IconColor.Gray) => Instance.GetItem(LightGroupName, size, color);
+		public static Texture2D Locked(IconSize size = IconSize.Large, IconColor color = IconColor.Gray) => Instance.GetItem(LockedName, size, color);
 		public static Texture2D Mech(IconSize size = IconSize.Large, IconColor color = IconColor.Gray) => Instance.GetItem(MechName, size, color);
 		public static Texture2D MechPinMame(IconSize size = IconSize.Large, IconColor color = IconColor.Gray) => Instance.GetItem(MechPinMameName, size, color);
 		public static Texture2D MetalWireGuide(IconSize size = IconSize.Large, IconColor color = IconColor.Gray) => Instance.GetItem(MetalWireGuideName, size, color);
@@ -204,6 +208,8 @@ namespace VisualPinball.Unity.Editor
 		public static Texture2D Teleporter(IconSize size = IconSize.Large, IconColor color = IconColor.Gray) => Instance.GetItem(TeleporterName, size, color);
 		public static Texture2D Trigger(IconSize size = IconSize.Large, IconColor color = IconColor.Gray) => Instance.GetItem(TriggerName, size, color);
 		public static Texture2D Trough(IconSize size = IconSize.Large, IconColor color = IconColor.Gray) => Instance.GetItem(TroughName, size, color);
+		public static Texture2D Unlocked(IconSize size = IconSize.Large, IconColor color = IconColor.Gray) => Instance.GetItem(UnlockedName, size, color);
+
 
 		public static Texture2D CoilEvent => Instance.GetItem(CoilEventName, IconSize.Large, IconColor.Colored);
 		public static Texture2D SwitchEvent => Instance.GetItem(SwitchEventName, IconSize.Large, IconColor.Colored);
