@@ -206,19 +206,15 @@ namespace VisualPinball.Unity
 
 		public override void CopyFromObject(GameObject go)
 		{
-			var rubberComponent = go.GetComponent<RubberComponent>();
-			if (rubberComponent != null) {
-				_height = rubberComponent._height;
-				_thickness = rubberComponent._thickness;
-				Rotation = rubberComponent.Rotation;
-				_height = rubberComponent._height;
-				_dragPoints = rubberComponent._dragPoints.Select(dp => dp.Clone()).ToArray();
+			var srcMainComp = go.GetComponent<RubberComponent>();
+			if (srcMainComp) {
+				_height = srcMainComp._height;
+				_thickness = srcMainComp._thickness;
+				Rotation = srcMainComp.Rotation;
+				_height = srcMainComp._height;
+				_dragPoints = srcMainComp._dragPoints.Select(dp => dp.Clone()).ToArray();
 
-			} else {
-				MoveDragPointsTo(_dragPoints, go.transform.localPosition.TranslateToVpx());
 			}
-
-			UpdateTransforms();
 			RebuildMeshes();
 		}
 

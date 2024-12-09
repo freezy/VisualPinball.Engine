@@ -343,8 +343,6 @@ namespace VisualPinball.Unity
 			if (ringAnimComp && srcSkirtAnimComp) {
 				skirtAnimComp.duration = srcSkirtAnimComp.duration;
 			}
-
-			UpdateTransforms();
 		}
 
 		#endregion

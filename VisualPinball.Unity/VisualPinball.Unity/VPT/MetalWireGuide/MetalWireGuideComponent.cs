@@ -49,7 +49,6 @@ namespace VisualPinball.Unity
 		[Tooltip("How tall the metal wire ends are rendered.")]
 		public float _standheight = 30f;
 
-
 		[Tooltip("Rotation on the playfield")]
 		public Vector3 Rotation;
 
@@ -197,20 +196,15 @@ namespace VisualPinball.Unity
 
 		public override void CopyFromObject(GameObject go)
 		{
-			var mwgComponent = go.GetComponent<MetalWireGuideComponent>();
-			if (mwgComponent != null) {
-				_height = mwgComponent._height;
-				_thickness = mwgComponent._thickness;
-				_standheight = mwgComponent._standheight;
-				Rotation = mwgComponent.Rotation;
-				_bendradius = mwgComponent._bendradius;
-				_dragPoints = mwgComponent._dragPoints.Select(dp => dp.Clone()).ToArray();
-
-			} else {
-				MoveDragPointsTo(_dragPoints, go.transform.localPosition.TranslateToVpx());
+			var srcMainComp = go.GetComponent<MetalWireGuideComponent>();
+			if (srcMainComp) {
+				_height = srcMainComp._height;
+				_thickness = srcMainComp._thickness;
+				_standheight = srcMainComp._standheight;
+				Rotation = srcMainComp.Rotation;
+				_bendradius = srcMainComp._bendradius;
+				_dragPoints = srcMainComp._dragPoints.Select(dp => dp.Clone()).ToArray();
 			}
-
-			UpdateTransforms();
 		}
 
 		#endregion
