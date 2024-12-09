@@ -74,6 +74,7 @@ namespace VisualPinball.Unity.Editor
 		private const string FlasherName = "light_flasher";
 		private const string FlipperName = "flipper";
 		private const string GateName = "gate";
+		private const string GateBracketName = "gate_bracket";
 		private const string GateLifterName = "gate_lifter";
 		private const string HitTargetName = "hit_target";
 		private const string KeyName = "keyboard";
@@ -180,6 +181,7 @@ namespace VisualPinball.Unity.Editor
 		public static Texture2D Flasher(IconSize size = IconSize.Large, IconColor color = IconColor.Gray) => Instance.GetItem(FlasherName, size, color);
 		public static Texture2D Flipper(IconSize size = IconSize.Large, IconColor color = IconColor.Gray) => Instance.GetItem(FlipperName, size, color);
 		public static Texture2D Gate(IconSize size = IconSize.Large, IconColor color = IconColor.Gray) => Instance.GetItem(GateName, size, color);
+		public static Texture2D GateBracket(IconSize size = IconSize.Large, IconColor color = IconColor.Gray) => Instance.GetItem(GateBracketName, size, color);
 		public static Texture2D GateLifter(IconSize size = IconSize.Large, IconColor color = IconColor.Gray) => Instance.GetItem(GateLifterName, size, color);
 		public static Texture2D HitTarget(IconSize size = IconSize.Large, IconColor color = IconColor.Gray) => Instance.GetItem(HitTargetName, size, color);
 		public static Texture2D Key(IconSize size = IconSize.Large, IconColor color = IconColor.Gray) => Instance.GetItem(KeyName, size, color);
@@ -291,6 +293,7 @@ namespace VisualPinball.Unity.Editor
 				case DropTargetBankComponent _: return Icons.DropTargetBank(size, color);
 				case FlipperComponent _: return Icons.Flipper(size, color);
 				case GateComponent _: return Icons.Gate(size, color);
+				case GateBracketComponent _: return Icons.GateBracket(size, color);
 				case GateLifterComponent _: return Icons.GateLifter(size, color);
 				case HitTargetComponent _: return Icons.HitTarget(size, color);
 				case KickerComponent _: return Icons.Kicker(size, color);
@@ -340,6 +343,7 @@ namespace VisualPinball.Unity.Editor
 			Icons.DisableGizmo<FlipperBaseMeshComponent>();
 			Icons.DisableGizmo<FlipperRubberMeshComponent>();
 			Icons.DisableGizmo<GateComponent>();
+			Icons.DisableGizmo<GateBracketComponent>();
 			Icons.DisableGizmo<GateLifterComponent>();
 			Icons.DisableGizmo<GateColliderComponent>();
 			Icons.DisableGizmo<GateWireAnimationComponent>();
