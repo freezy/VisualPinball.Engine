@@ -1,6 +1,5 @@
 using UnityEditor;
 using UnityEngine;
-using UnityEditor.UIElements;
 using UnityEngine.UIElements;
 
 
@@ -14,7 +13,7 @@ namespace VisualPinball.Unity.Editor
 
 		public override VisualElement CreateInspectorGUI()
 		{
-			VisualElement inspector = new VisualElement();
+			var inspector = new VisualElement();
 			var comp = target as MechSoundsComponent;
 			if (!comp!.TryGetComponent<ISoundEmitter>(out var _))
 				inspector.Add(new HelpBox("Cannot find sound emitter. This component only works with a sound emitter on the same GameObject.", HelpBoxMessageType.Warning));
