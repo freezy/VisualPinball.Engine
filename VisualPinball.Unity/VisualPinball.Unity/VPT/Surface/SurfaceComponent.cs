@@ -211,16 +211,12 @@ namespace VisualPinball.Unity
 		public override void CopyFromObject(GameObject go)
 		{
 			var surfaceComponent = go.GetComponent<SurfaceComponent>();
-			if (surfaceComponent != null) {
+			if (surfaceComponent) {
 				HeightTop = surfaceComponent.HeightTop;
 				HeightBottom = surfaceComponent.HeightBottom;
 				_dragPoints = surfaceComponent._dragPoints.Select(dp => dp.Clone()).ToArray();
 
-			} else {
-				MoveDragPointsTo(_dragPoints, go.transform.localPosition.TranslateToVpx());
 			}
-
-			UpdateTransforms();
 			RebuildMeshes();
 		}
 
