@@ -17,8 +17,6 @@
 // ReSharper disable InconsistentNaming
 
 using System;
-using System.Threading;
-using System.Threading.Tasks;
 using UnityEngine;
 using Random = UnityEngine.Random;
 

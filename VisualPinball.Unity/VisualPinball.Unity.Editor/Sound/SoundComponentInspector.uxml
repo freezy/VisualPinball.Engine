@@ -1,6 +1,6 @@
 <ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" xsi="http://www.w3.org/2001/XMLSchema-instance" engine="UnityEngine.UIElements" editor="UnityEditor.UIElements" noNamespaceSchemaLocation="../../../../../UIElementsSchema/UIElements.xsd" editor-extension-mode="True">
+    <uie:ObjectField label="Sound Asset" type="VisualPinball.Unity.SoundAsset, VisualPinball.Unity" binding-path="_soundAsset" name="sound-asset" />
     <ui:DropdownField label="Trigger" name="trigger-id" />
-    <ui:Toggle label="Has Stop Trigger" binding-path="HasStopTrigger" name="has-stop-trigger" value="true" style="margin-top: 2px; margin-bottom: 2px;" />
+    <ui:Toggle label="Has Stop Trigger" binding-path="_hasStopTrigger" name="has-stop-trigger" />
     <ui:DropdownField label="Stop Trigger" name="stop-trigger-id" />
-    <uie:ObjectField label="Sound asset" binding-path="Sound" name="sound-asset" type="VisualPinball.Unity.SoundAsset, VisualPinball.Unity" />
 </ui:UXML>
