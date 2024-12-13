@@ -32,9 +32,9 @@ namespace VisualPinball.Unity
 			_matrix = matrix;
 		}
 
-		internal void GenerateColliders(ref ColliderReference colliders)
+		internal void GenerateColliders(ref ColliderReference colliders, float zPosition)
 		{
-			GenerateSpinnerCollider(ref colliders);
+			GenerateSpinnerCollider(ref colliders, zPosition);
 			if (_component.ShowBracket) {
 				GenerateBracketColliders(ref colliders);
 			}
@@ -44,7 +44,8 @@ namespace VisualPinball.Unity
 		/// The collider that triggers the animation
 		/// </summary>
 		/// <param name="colliders"></param>
-		private void GenerateSpinnerCollider(ref ColliderReference colliders)
+		/// <param name="zPosition"></param>
+		private void GenerateSpinnerCollider(ref ColliderReference colliders, float zPosition)
 		{
 			const float halfLength = 40f;
 
@@ -60,8 +61,8 @@ namespace VisualPinball.Unity
 			);
 
 			// todo probably broke surface
-			var lineSeg0 = new LineCollider(v1, v2, -2f * PhysicsConstants.PhysSkin, 0, _api.GetColliderInfo());
-			var lineSeg1 = new LineCollider(v2, v1, -2f * PhysicsConstants.PhysSkin, 0, _api.GetColliderInfo());
+			var lineSeg0 = new LineCollider(v1, v2, zPosition + -2f * PhysicsConstants.PhysSkin, zPosition, _api.GetColliderInfo());
+			var lineSeg1 = new LineCollider(v2, v1, zPosition + -2f * PhysicsConstants.PhysSkin, zPosition, _api.GetColliderInfo());
 
 			colliders.Add(new SpinnerCollider(in lineSeg0, in lineSeg1, _api.GetColliderInfo()), _matrix);
 		}

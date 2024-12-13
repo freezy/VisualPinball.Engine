@@ -24,12 +24,14 @@ namespace VisualPinball.Unity.Editor
 	{
 		private SerializedProperty _isKinematicProperty;
 		private SerializedProperty _elasticityProperty;
+		private SerializedProperty _zPosProperty;
 
 		protected override void OnEnable()
 		{
 			base.OnEnable();
 			_isKinematicProperty = serializedObject.FindProperty(nameof(SpinnerColliderComponent._isKinematic));
 			_elasticityProperty = serializedObject.FindProperty(nameof(SpinnerColliderComponent.Elasticity));
+			_zPosProperty = serializedObject.FindProperty(nameof(SpinnerColliderComponent.ZPosition));
 		}
 
 		public override void OnInspectorGUI()
@@ -44,6 +46,7 @@ namespace VisualPinball.Unity.Editor
 
 			PropertyField(_isKinematicProperty, "Movable");
 			PropertyField(_elasticityProperty, updateTransforms: true);
+			PropertyField(_zPosProperty);
 
 			base.OnInspectorGUI();
 
