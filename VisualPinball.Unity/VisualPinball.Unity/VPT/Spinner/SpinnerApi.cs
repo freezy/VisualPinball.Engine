@@ -88,9 +88,9 @@ namespace VisualPinball.Unity
 		{
 			var colliderGenerator = new SpinnerColliderGenerator(this, MainComponent, translateWithinPlayfieldMatrix);
 			if (ColliderComponent._isKinematic) {
-				colliderGenerator.GenerateColliders(ref kinematicColliders);
+				colliderGenerator.GenerateColliders(ref kinematicColliders, ColliderComponent.ZPosition);
 			} else {
-				colliderGenerator.GenerateColliders(ref colliders);
+				colliderGenerator.GenerateColliders(ref colliders, ColliderComponent.ZPosition);
 			}
 		}
 

@@ -31,6 +31,9 @@ namespace VisualPinball.Unity
 		[Tooltip("Bounciness (coefficient of restitution) of the spinner bracket.")]
 		public float Elasticity = 0.3f;
 
+		[Tooltip("Collider z-position relative to the spinner.")]
+		public float ZPosition = 0f;
+
 		#endregion
 
 		public override PhysicsMaterialData PhysicsMaterialData => GetPhysicsMaterialData(Elasticity);
