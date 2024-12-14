@@ -34,8 +34,9 @@ namespace VisualPinball.Unity
 		[SerializeField]
 		private string _stopTriggerId;
 
-		[Range(0.0001f, 1)]
-		public float Volume = 1;
+		[SerializeField]
+		[Range(0f, 1f)]
+		private float _volume = 1f;
 
 		private ISoundEmitter _emitter;
 		private CancellationTokenSource _instantCts;
