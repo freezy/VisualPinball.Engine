@@ -73,7 +73,7 @@ namespace VisualPinball.Unity
 				if (_interrupt)
 					StopRunningSounds();
 				try {
-					await SoundUtils.Play(_soundAsset, gameObject, _allowFadeCts.Token, _instantCts.Token);
+					await SoundUtils.Play(_soundAsset, gameObject, _allowFadeCts.Token, _instantCts.Token, _volume);
 				} catch (OperationCanceledException) { }
 			}
 
