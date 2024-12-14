@@ -35,9 +35,10 @@ namespace VisualPinball.Unity.Editor
 		private SerializedProperty _loopProperty;
 		private SerializedProperty _fadeInDurationProperty;
 		private SerializedProperty _fadeOutDurationProperty;
+		private SerializedProperty _spatialBlendProperty;
 
-		private SoundAsset _soundAsset;	
-		
+		private SoundAsset _soundAsset;
+
 		private const float ButtonHeight = 30;
 		private const float ButtonWidth = 50;
 
@@ -58,10 +59,11 @@ namespace VisualPinball.Unity.Editor
 			_loopProperty = serializedObject.FindProperty(nameof(SoundAsset.Loop));
 			_fadeInDurationProperty = serializedObject.FindProperty(nameof(SoundAsset.FadeInTime));
 			_fadeOutDurationProperty = serializedObject.FindProperty(nameof(SoundAsset.FadeOutTime));
+			_spatialBlendProperty = serializedObject.FindProperty(nameof(SoundAsset.IsSpatial));
 
 			//_editorAudioMixer = AssetDatabase.LoadAssetAtPath<AudioMixer>("Packages/org.visualpinball.engine.unity/VisualPinball.Unity/Assets/Resources/EditorMixer.mixer");
 			//_editorAudioSource.outputAudioMixerGroup = _editorAudioMixer.outputAudioMixerGroup;
-			
+
 			_soundAsset = target as SoundAsset;
 		}
 
@@ -77,11 +79,10 @@ namespace VisualPinball.Unity.Editor
 
 			EditorGUILayout.PropertyField(_nameProperty, true);
 
-			using (var horizontalScope = new GUILayout.HorizontalScope())
-			{
+			using (var horizontalScope = new GUILayout.HorizontalScope()) {
 				EditorGUILayout.PropertyField(_descriptionProperty, GUILayout.Height(100));
 			}
-			
+
 			EditorGUILayout.PropertyField(_volumeCorrectionProperty, true);
 			EditorGUILayout.PropertyField(_clipsProperty);
 			EditorGUILayout.PropertyField(_clipSelectionProperty, true);
@@ -90,6 +91,7 @@ namespace VisualPinball.Unity.Editor
 			EditorGUILayout.PropertyField(_loopProperty);
 			EditorGUILayout.PropertyField(_fadeInDurationProperty);
 			EditorGUILayout.PropertyField(_fadeOutDurationProperty);
+			EditorGUILayout.PropertyField(_spatialBlendProperty);
 
 			serializedObject.ApplyModifiedProperties();
 
@@ -114,8 +116,7 @@ namespace VisualPinball.Unity.Editor
 				allowFadeCts = new();
 				instantCts = new();
 				await SoundUtils.PlayInEditorPreviewScene(_soundAsset, allowFadeCts.Token, instantCts.Token);
-			} catch (OperationCanceledException) { }
-			finally {
+			} catch (OperationCanceledException) { } finally {
 				allowFadeCts.Dispose();
 				allowFadeCts = null;
 				instantCts.Dispose();
@@ -134,7 +135,7 @@ namespace VisualPinball.Unity.Editor
 				await playTask;
 			}
 		}
-		
+
 		private bool PlayStopButton()
 		{
 			return isPlaying
