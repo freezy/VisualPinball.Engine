@@ -32,7 +32,7 @@ namespace VisualPinball.Unity
 		public float Elasticity = 0.3f;
 
 		[Tooltip("Collider z-position relative to the spinner.")]
-		public float ZPosition = 0f;
+		public float ZPosition;
 
 		#endregion
 
@@ -42,7 +42,7 @@ namespace VisualPinball.Unity
 
 		#region IKinematicColliderComponent
 
-		[Tooltip("If set, transforming this object will transform the colliders as well.")]
+		[Tooltip("If set, transforming this object during gameplay will transform the colliders as well.")]
 		public bool _isKinematic;
 
 		public bool IsKinematic => _isKinematic;
