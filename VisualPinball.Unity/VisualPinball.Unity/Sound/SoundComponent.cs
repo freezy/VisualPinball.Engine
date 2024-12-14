@@ -26,7 +26,10 @@ namespace VisualPinball.Unity
 	public class SoundComponent : MonoBehaviour
 	{
 		[SerializeReference]
-		public SoundAsset _soundAsset;
+		private SoundAsset _soundAsset;
+		[SerializeField]
+		[Tooltip("Should the sound be interrupted if it is triggered again while already playing?")]
+		private bool _interrupt;
 		[SerializeField]
 		private string _triggerId;
 		[SerializeField]
@@ -63,16 +66,22 @@ namespace VisualPinball.Unity
 
 		private async void Emitter_OnSound(object sender, SoundEventArgs e)
 		{
-			if (_hasStopTrigger && e.TriggerId == _stopTriggerId) {
-				_allowFadeCts?.Cancel();
-				_allowFadeCts?.Dispose();
-				_allowFadeCts = new();
-			}
+			if (_hasStopTrigger && e.TriggerId == _stopTriggerId)
+				StopRunningSounds();
 
 			if (e.TriggerId == _triggerId) {
+				if (_interrupt)
+					StopRunningSounds();
 				try {
 					await SoundUtils.Play(_soundAsset, gameObject, _allowFadeCts.Token, _instantCts.Token);
 				} catch (OperationCanceledException) { }
+			}
+
+			void StopRunningSounds()
+			{
+				_allowFadeCts?.Cancel();
+				_allowFadeCts?.Dispose();
+				_allowFadeCts = new();
 			}
 		}
 	}

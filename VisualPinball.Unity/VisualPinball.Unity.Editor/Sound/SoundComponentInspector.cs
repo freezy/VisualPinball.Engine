@@ -25,6 +25,7 @@ namespace VisualPinball.Unity.Editor
 	public class SoundComponentInspector : UnityEditor.Editor
 	{
 		private SerializedProperty _soundAssetProp;
+		private SerializedProperty _interruptProp;
 		private SerializedProperty _triggerIdProp;
 		private SerializedProperty _hasStopTriggerProp;
 		private SerializedProperty _stopTriggerIdProp;
@@ -33,6 +34,7 @@ namespace VisualPinball.Unity.Editor
 		private void OnEnable()
 		{
 			_soundAssetProp = serializedObject.FindProperty("_soundAsset");
+			_interruptProp = serializedObject.FindProperty("_interrupt");
 			_triggerIdProp = serializedObject.FindProperty("_triggerId");
 			_hasStopTriggerProp = serializedObject.FindProperty("_hasStopTrigger");
 			_stopTriggerIdProp = serializedObject.FindProperty("_stopTriggerId");
@@ -51,6 +53,7 @@ namespace VisualPinball.Unity.Editor
 						EditorGUILayout.HelpBox("The selected sound asset loops and no stop trigger is set, so the sound will loop forever once started.", MessageType.Warning);
 					}
 					EditorGUILayout.PropertyField(_soundAssetProp);
+					EditorGUILayout.PropertyField(_interruptProp);
 					var triggers = GetAvailableTriggers();
 					TriggerDropdown("Trigger", _triggerIdProp, triggers);
 					EditorGUILayout.PropertyField(_hasStopTriggerProp);
