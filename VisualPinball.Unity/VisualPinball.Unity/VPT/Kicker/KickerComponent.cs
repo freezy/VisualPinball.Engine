@@ -93,8 +93,8 @@ namespace VisualPinball.Unity
 		#region ISoundEmitter
 
 		public SoundTrigger[] AvailableTriggers => new[] {
-			new SoundTrigger { Id = SoundKickerDrain, Name = "Ball Drain" },
-			new SoundTrigger { Id = SoundKickerBallRelease, Name = "Ball Release" },
+			new SoundTrigger (id: SoundKickerDrain, name: "Ball Drain"),
+			new SoundTrigger (id: SoundKickerBallRelease, name: "Ball Release"),
 		};
 
 		public event EventHandler<SoundEventArgs> OnSound;

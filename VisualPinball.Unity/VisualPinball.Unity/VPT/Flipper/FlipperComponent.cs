@@ -139,9 +139,9 @@ namespace VisualPinball.Unity
 		#region ISoundEmitter
 
 		public SoundTrigger[] AvailableTriggers => new[] {
-			new SoundTrigger { Id = SoundCoilOn, Name = "Coil On" },
-			new SoundTrigger { Id = SoundCoilOff, Name = "Coil Off"},
-			new SoundTrigger { Id = SoundCoilCollision, Name = "Ball Collision" },
+			new SoundTrigger(id:SoundCoilOn, name: "Coil On" ),
+			new SoundTrigger(id:SoundCoilOff, name: "Coil Off"),
+			new SoundTrigger(id:SoundCoilCollision, name: "Ball Collision" ),
 		};
 
 		public event EventHandler<SoundEventArgs> OnSound;
@@ -384,7 +384,7 @@ namespace VisualPinball.Unity
 
 		public override ItemDataTransformType EditorScaleType => ItemDataTransformType.None;
 
-		#if UNITY_EDITOR
+#if UNITY_EDITOR
 
 		protected void OnDrawGizmosSelected()
 		{
@@ -393,7 +393,7 @@ namespace VisualPinball.Unity
 			if (poly == null) {
 				return;
 			}
-			
+
 			Gizmos.matrix = Matrix4x4.identity;
 			UnityEditor.Handles.matrix = Matrix4x4.identity;
 
@@ -423,8 +423,8 @@ namespace VisualPinball.Unity
 			if (start == end) {
 				return;
 			}
-			var last = IsLeft ? arrow[0] : arrow[arrow.Count-1];
-			var tmpA = IsLeft ? start + 90F + 3F : end +90F - 3F;
+			var last = IsLeft ? arrow[0] : arrow[arrow.Count - 1];
+			var tmpA = IsLeft ? start + 90F + 3F : end + 90F - 3F;
 			var a = Quaternion.Euler(0, 0, tmpA) * new Vector3(0, -FlipperRadiusMax + 15F, height);
 			var b = Quaternion.Euler(0, 0, tmpA) * new Vector3(0F, -FlipperRadiusMax + 25F, height);
 			Gizmos.DrawLine(transform.TransformPoint(last.TranslateToWorld()), transform.TransformPoint(a.TranslateToWorld()));
@@ -432,7 +432,7 @@ namespace VisualPinball.Unity
 			Gizmos.color = Color.white;
 		}
 
-		#endif
+#endif
 
 		#endregion
 
@@ -562,8 +562,7 @@ namespace VisualPinball.Unity
 
 		internal FlipperTricksData GetFlipperTricksData(FlipperColliderComponent colliderComponent, FlipperStaticData staticData)
 		{
-			return new FlipperTricksData
-			{
+			return new FlipperTricksData {
 				UseFlipperTricksPhysics = colliderComponent.useFlipperTricksPhysics,
 				SOSRampUp = colliderComponent.SOSRampUp,
 				SOSEM = colliderComponent.SOSEM,
@@ -586,8 +585,8 @@ namespace VisualPinball.Unity
 				LiveCatchInaccurateBounceSpeedMultiplier = colliderComponent.LiveCatchInaccurateBounceSpeedMultiplier,
 				LiveCatchMinimalBounceSpeedMultiplier = colliderComponent.LiveCatchMinmalBounceSpeedMultiplier,
 
-		//initialize
-		OriginalAngleEnd = staticData.AngleEnd,
+				//initialize
+				OriginalAngleEnd = staticData.AngleEnd,
 				OriginalRampUpSpeed = staticData.RampUpSpeed,
 				OriginalTorqueDamping = staticData.TorqueDamping,
 				OriginalTorqueDampingAngle = staticData.TorqueDampingAngle
@@ -616,7 +615,7 @@ namespace VisualPinball.Unity
 			}
 
 			// model inertia of flipper as that of rod of length flipper around its end
-			var inertia = (float) (1.0 / 3.0) * colliderComponent.Mass * (flipperRadius * flipperRadius);
+			var inertia = (float)(1.0 / 3.0) * colliderComponent.Mass * (flipperRadius * flipperRadius);
 			var localPos = transform.localPosition;
 
 			return new FlipperStaticData {

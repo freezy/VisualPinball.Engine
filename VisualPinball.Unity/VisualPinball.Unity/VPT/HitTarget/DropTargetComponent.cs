@@ -185,8 +185,8 @@ namespace VisualPinball.Unity
 		#region ISoundEmitter
 
 		public override SoundTrigger[] AvailableTriggers => new[] {
-			new SoundTrigger { Id = SoundTargetHit, Name = "Target Drop" },
-			new SoundTrigger { Id = SoundTargetReset, Name = "Target Reset" },
+			new SoundTrigger (id: SoundTargetReset, name: "Target Reset"),
+			new SoundTrigger (id: SoundTargetHit, name: "Target Drop"),
 		};
 
 		#endregion

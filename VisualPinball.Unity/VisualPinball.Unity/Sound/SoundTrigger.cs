@@ -23,17 +23,23 @@ namespace VisualPinball.Unity
 	/// can be linked to a <see cref="SoundAsset"/>. During runtime, they
 	/// are used to identify which sound to play.
 	/// </summary>
-	public struct SoundTrigger
+	public readonly struct SoundTrigger
 	{
 		/// <summary>
 		/// The ID of the trigger. When you change the ID of a trigger,
 		/// all already associated triggers will be cleared.
 		/// </summary>
-		public string Id;
+		public readonly string Id;
 		
 		/// <summary>
 		/// Name of the trigger, used for display purposes only.
 		/// </summary>
-		public string Name;
+		public readonly string Name;
+
+		public SoundTrigger(string id, string name)
+		{
+			Id = id;
+			Name = name;
+		}
 	}
 }
