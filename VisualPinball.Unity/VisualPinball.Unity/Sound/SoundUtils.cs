@@ -20,6 +20,7 @@ using System.Threading.Tasks;
 using System;
 using UnityEngine.SceneManagement;
 #if UNITY_EDITOR
+using UnityEditor;
 using UnityEditor.SceneManagement;
 #endif
 
@@ -30,10 +31,20 @@ namespace VisualPinball.Unity
 		public static async Task Fade(AudioSource audioSource, float fromVolume, float toVolume, float duration, CancellationToken ct)
 		{
 			float progress = 0f;
+#if UNITY_EDITOR
+			// Time.deltaTime doesn't really work in the editor
+			var lastTime = EditorApplication.timeSinceStartup;
+#endif
 			while (progress < 1f) {
 				ct.ThrowIfCancellationRequested();
 				audioSource.volume = Mathf.Lerp(fromVolume, toVolume, progress);
-				progress += (1f / duration) * Time.deltaTime;
+#if UNITY_EDITOR
+				var deltaTime = (float)(EditorApplication.timeSinceStartup - lastTime);
+				lastTime = EditorApplication.timeSinceStartup;
+#else
+				var deltaTime = Time.deltaTime;
+#endif
+				progress += (1f / duration) * deltaTime;
 				await Task.Yield();
 			}
 		}
@@ -93,7 +104,7 @@ namespace VisualPinball.Unity
 
 		public static async Task WaitUntilAudioStops(AudioSource audioSource, CancellationToken ct)
 		{
-			while (audioSource.isPlaying || !Application.isFocused) {
+			while (audioSource.isPlaying || (Application.isPlaying && !Application.isFocused)) {
 				await Task.Yield();
 				ct.ThrowIfCancellationRequested();
 			}

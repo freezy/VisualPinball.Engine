@@ -16,133 +16,87 @@
 
 using System;
 using System.Threading;
-using System.Threading.Tasks;
 using UnityEditor;
+using UnityEngine.UIElements;
 using UnityEngine;
+using UnityEditor.UIElements;
 
 namespace VisualPinball.Unity.Editor
 {
 	[CustomEditor(typeof(SoundAsset)), CanEditMultipleObjects]
 	public class SoundAssetInspector : UnityEditor.Editor
 	{
-		private SerializedProperty _nameProperty;
-		private SerializedProperty _descriptionProperty;
-		private SerializedProperty _volumeCorrectionProperty;
-		private SerializedProperty _clipsProperty;
-		private SerializedProperty _clipSelectionProperty;
-		private SerializedProperty _randomizePitchProperty;
-		private SerializedProperty _randomizeVolumeProperty;
-		private SerializedProperty _loopProperty;
-		private SerializedProperty _fadeInDurationProperty;
-		private SerializedProperty _fadeOutDurationProperty;
-		private SerializedProperty _spatialBlendProperty;
+		private CancellationTokenSource _allowFadeCts;
+		private CancellationTokenSource _instantCts;
 
-		private SoundAsset _soundAsset;
+		[SerializeField]
+		private VisualTreeAsset _inspectorXml;
 
-		private const float ButtonHeight = 30;
-		private const float ButtonWidth = 50;
+		private Button _playButton;
 
-		private CancellationTokenSource allowFadeCts;
-		private CancellationTokenSource instantCts;
-		private Task playTask;
-		private bool isPlaying;
+		public override VisualElement CreateInspectorGUI()
+		{
+			var ui = _inspectorXml.Instantiate();
+			_playButton = ui.Q<Button>("play-button");
+			_playButton.clicked += OnPlayButtonClicked;
+			var loopField = ui.Q<PropertyField>("loop");
+			var fadeInTimeField = ui.Q<PropertyField>("fade-in-time");
+			var fadeOutTimeField = ui.Q<PropertyField>("fade-out-time");
+			loopField.RegisterValueChangeCallback(e => {
+				var loop = e.changedProperty.boolValue;
+				var displayStyle = loop ? DisplayStyle.Flex : DisplayStyle.None;
+				fadeInTimeField.style.display = displayStyle;
+				fadeOutTimeField.style.display = displayStyle;
+			});
+			return ui;
+		}
 
 		private void OnEnable()
 		{
-			_nameProperty = serializedObject.FindProperty(nameof(SoundAsset.Name));
-			_descriptionProperty = serializedObject.FindProperty(nameof(SoundAsset.Description));
-			_volumeCorrectionProperty = serializedObject.FindProperty(nameof(SoundAsset.VolumeCorrection));
-			_clipsProperty = serializedObject.FindProperty(nameof(SoundAsset.Clips));
-			_clipSelectionProperty = serializedObject.FindProperty(nameof(SoundAsset.ClipSelection));
-			_randomizePitchProperty = serializedObject.FindProperty(nameof(SoundAsset.RandomizePitch));
-			_randomizeVolumeProperty = serializedObject.FindProperty(nameof(SoundAsset.RandomizeVolume));
-			_loopProperty = serializedObject.FindProperty(nameof(SoundAsset.Loop));
-			_fadeInDurationProperty = serializedObject.FindProperty(nameof(SoundAsset.FadeInTime));
-			_fadeOutDurationProperty = serializedObject.FindProperty(nameof(SoundAsset.FadeOutTime));
-			_spatialBlendProperty = serializedObject.FindProperty(nameof(SoundAsset.IsSpatial));
-
-			//_editorAudioMixer = AssetDatabase.LoadAssetAtPath<AudioMixer>("Packages/org.visualpinball.engine.unity/VisualPinball.Unity/Assets/Resources/EditorMixer.mixer");
-			//_editorAudioSource.outputAudioMixerGroup = _editorAudioMixer.outputAudioMixerGroup;
-
-			_soundAsset = target as SoundAsset;
+			_allowFadeCts = new();
+			_instantCts = new();
 		}
 
-		private async void OnDisable()
+		private void OnDisable()
 		{
-			if (isPlaying)
-				await Stop(allowFadeOut: false);
+			_instantCts.Cancel();
+			_instantCts.Dispose();
+			_instantCts = null;
+			_allowFadeCts.Dispose();
+			_allowFadeCts = null;
 		}
 
-		public override void OnInspectorGUI()
+		private async void OnPlayButtonClicked()
 		{
-			serializedObject.Update();
-
-			EditorGUILayout.PropertyField(_nameProperty, true);
-
-			using (var horizontalScope = new GUILayout.HorizontalScope()) {
-				EditorGUILayout.PropertyField(_descriptionProperty, GUILayout.Height(100));
-			}
-
-			EditorGUILayout.PropertyField(_volumeCorrectionProperty, true);
-			EditorGUILayout.PropertyField(_clipsProperty);
-			EditorGUILayout.PropertyField(_clipSelectionProperty, true);
-			EditorGUILayout.PropertyField(_randomizePitchProperty, true);
-			EditorGUILayout.PropertyField(_randomizeVolumeProperty, true);
-			EditorGUILayout.PropertyField(_loopProperty);
-			EditorGUILayout.PropertyField(_fadeInDurationProperty);
-			EditorGUILayout.PropertyField(_fadeOutDurationProperty);
-			EditorGUILayout.PropertyField(_spatialBlendProperty);
-
-			serializedObject.ApplyModifiedProperties();
-
-			// center button
-			GUILayout.BeginHorizontal();
-			GUILayout.FlexibleSpace();
-			if (PlayStopButton()) {
-				if (isPlaying)
-					_ = Stop(allowFadeOut: true);
-				else
-					playTask = Play();
-
-			}
-			GUILayout.FlexibleSpace();
-			GUILayout.EndHorizontal();
-		}
-
-		private async Task Play()
-		{
+			_playButton.clicked -= OnPlayButtonClicked;
+			_playButton.clicked += OnStopButtonClicked;
+			_playButton.text = "Stop";
 			try {
-				isPlaying = true;
-				allowFadeCts = new();
-				instantCts = new();
-				await SoundUtils.PlayInEditorPreviewScene(_soundAsset, allowFadeCts.Token, instantCts.Token);
+				var soundAsset = target as SoundAsset;
+				await SoundUtils.PlayInEditorPreviewScene(soundAsset, _allowFadeCts.Token, _instantCts.Token);
 			} catch (OperationCanceledException) { } finally {
-				allowFadeCts.Dispose();
-				allowFadeCts = null;
-				instantCts.Dispose();
-				instantCts = null;
-				isPlaying = false;
+				_playButton.clicked -= OnStopButtonClicked;
+				_playButton.clicked -= OnStopForrealButtonClicked;
+				_playButton.clicked += OnPlayButtonClicked;
+				_playButton.text = "Play";
 			}
 		}
 
-		private async Task Stop(bool allowFadeOut)
+		private void OnStopButtonClicked()
 		{
-			if (isPlaying) {
-				if (allowFadeOut)
-					allowFadeCts.Cancel();
-				else
-					instantCts.Cancel();
-				await playTask;
-			}
+			_playButton.clicked -= OnStopButtonClicked;
+			_playButton.clicked += OnStopForrealButtonClicked;
+			_allowFadeCts.Cancel();
+			_allowFadeCts.Dispose();
+			_allowFadeCts = new();
 		}
 
-		private bool PlayStopButton()
+		private void OnStopForrealButtonClicked()
 		{
-			return isPlaying
-				? GUILayout.Button(new GUIContent("Stop", Icons.StopButton(IconSize.Small, IconColor.Orange)),
-					GUILayout.Height(ButtonHeight), GUILayout.Width(ButtonWidth))
-				: GUILayout.Button(new GUIContent("Play", Icons.PlayButton(IconSize.Small, IconColor.Orange)),
-					GUILayout.Height(ButtonHeight), GUILayout.Width(ButtonWidth));
+			_playButton.clicked -= OnStopForrealButtonClicked;
+			_instantCts.Cancel();
+			_instantCts.Dispose();
+			_instantCts = new();
 		}
 	}
 }
