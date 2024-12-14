@@ -10,5 +10,6 @@
     <uie:PropertyField name="fade-in-time" binding-path="_fadeInTime" label="Fade In Time" />
     <uie:PropertyField name="fade-out-time" binding-path="_fadeOutTime" label="Fade Out Time" />
     <uie:PropertyField name="is-spatial" binding-path="_isSpatial" label="Is Spatial" />
+    <uie:ObjectField label="Audio Mixer Group" binding-path="_audioMixerGroup" name="audio-mixer-group" type="UnityEngine.Audio.AudioMixerGroup, UnityEngine.AudioModule" class="unity-base-field__aligned" />
     <ui:Button text="Play" parse-escape-sequences="true" display-tooltip-when-elided="true" enable-rich-text="false" name="play-button" />
 </ui:UXML>

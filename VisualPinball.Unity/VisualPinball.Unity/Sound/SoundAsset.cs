@@ -18,6 +18,7 @@
 
 using System;
 using UnityEngine;
+using UnityEngine.Audio;
 using Random = UnityEngine.Random;
 
 namespace VisualPinball.Unity
@@ -44,6 +45,7 @@ namespace VisualPinball.Unity
 		public float FadeOutTime => _fadeOutTime;
 		[Tooltip("Should the sound appear to come from the position of the emitter?")]
 		[SerializeField] private bool _isSpatial = true;
+		[SerializeField] private AudioMixerGroup _audioMixerGroup;
 
 		private int _roundRobinIndex = 0;
 
@@ -55,6 +57,7 @@ namespace VisualPinball.Unity
 			audioSource.loop = _loop;
 			audioSource.clip = GetClip();
 			audioSource.spatialBlend = _isSpatial ? 0f : 1f;
+			audioSource.outputAudioMixerGroup = _audioMixerGroup;
 		}
 
 		public bool IsValid()
@@ -78,7 +81,7 @@ namespace VisualPinball.Unity
 				case SelectionMethod.RoundRobin:
 					_roundRobinIndex %= _clips.Length;
 					var clip = _clips[_roundRobinIndex];
-					_roundRobinIndex = (_roundRobinIndex + 1) % _clips.Length;
+					_roundRobinIndex++;
 					return clip;
 				case SelectionMethod.Random:
 					return _clips[Random.Range(0, _clips.Length)];
