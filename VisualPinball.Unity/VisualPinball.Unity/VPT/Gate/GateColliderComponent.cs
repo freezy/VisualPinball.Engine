@@ -36,6 +36,14 @@ namespace VisualPinball.Unity
 		[ToolboxItem("Angle of bracket/plate when closed")]
 		public float _angleMin;
 
+		[Range(-75, -50f)]
+		[ToolboxItem("Bottom Z position of the gate collider, relative to the axis.")]
+		public float ZLow = -50f;
+
+		[Range(-50, 50)]
+		[ToolboxItem("Distance in gate direction of the collider.")]
+		public float Distance = 0f;
+
 		[Min(0)]
 		[ToolboxItem("How much damping is applied during movement")]
 		public float Damping = 0.985f;
