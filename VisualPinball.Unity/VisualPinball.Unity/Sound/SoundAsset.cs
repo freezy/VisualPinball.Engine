@@ -54,6 +54,8 @@ namespace VisualPinball.Unity
 		public float FadeInTime;
 		[Range(0, 10f)]
 		public float FadeOutTime;
+		[Tooltip("Should the sound appear to come from the position of the emitter?")]
+		public bool IsSpatial;
 
 		#endregion
 
@@ -73,6 +75,7 @@ namespace VisualPinball.Unity
 			audioSource.pitch = Pitch;
 			audioSource.loop = Loop;
 			audioSource.clip = GetClip();
+			audioSource.spatialBlend = IsSpatial ? 0f : 1f;
 		}
 
 		public bool IsValid()
