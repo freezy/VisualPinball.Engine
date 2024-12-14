@@ -25,6 +25,8 @@ namespace VisualPinball.Unity.Editor
 	public class GateColliderInspector : ColliderInspector<GateData, GateComponent, GateColliderComponent>
 	{
 		private SerializedProperty _isKinematicProperty;
+		private SerializedProperty _zLowProperty;
+		private SerializedProperty _distanceProperty;
 		private SerializedProperty _angleMinProperty;
 		private SerializedProperty _angleMaxProperty;
 		private SerializedProperty _elasticityProperty;
@@ -38,6 +40,8 @@ namespace VisualPinball.Unity.Editor
 			base.OnEnable();
 
 			_isKinematicProperty = serializedObject.FindProperty(nameof(SpinnerColliderComponent._isKinematic));
+			_zLowProperty = serializedObject.FindProperty(nameof(GateColliderComponent.ZLow));
+			_distanceProperty = serializedObject.FindProperty(nameof(GateColliderComponent.Distance));
 			_angleMinProperty = serializedObject.FindProperty(nameof(GateColliderComponent._angleMin));
 			_angleMaxProperty = serializedObject.FindProperty(nameof(GateColliderComponent._angleMax));
 			_elasticityProperty = serializedObject.FindProperty(nameof(GateColliderComponent.Elasticity));
@@ -56,6 +60,8 @@ namespace VisualPinball.Unity.Editor
 			BeginEditing();
 
 			PropertyField(_isKinematicProperty, "Movable");
+			PropertyField(_zLowProperty, "Z-Low");
+			PropertyField(_distanceProperty, "Distance");
 			PropertyField(_angleMinProperty, "Close Angle");
 			PropertyField(_angleMaxProperty, "Open Angle");
 			PropertyField(_elasticityProperty);
