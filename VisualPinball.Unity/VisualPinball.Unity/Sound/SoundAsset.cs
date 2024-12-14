@@ -25,62 +25,44 @@ namespace VisualPinball.Unity
 	[CreateAssetMenu(fileName = "Sound", menuName = "Visual Pinball/Sound", order = 102)]
 	public class SoundAsset : ScriptableObject
 	{
-		#region Properties
-
-		public string Name;
-		public string Description;
-
-		[Range(0, 1)]
-		public float VolumeCorrection = 1;
-
-		public AudioClip[] Clips;
-
-		public enum Selection
+		private enum SelectionMethod
 		{
 			RoundRobin,
 			Random
 		}
 
-		public Selection ClipSelection;
-
-		[Range(0, 0.3f)]
-		public float RandomizePitch;
-
-		[Range(0, 0.5f)]
-		public float RandomizeVolume;
-
-		public bool Loop;
-		[Range(0, 10f)]
-		public float FadeInTime;
-		[Range(0, 10f)]
-		public float FadeOutTime;
+		[SerializeField] private string _description;
+		[SerializeField] private AudioClip[] _clips;
+		[SerializeField] private SelectionMethod _clipSelectionMethod;
+		[SerializeField] private Vector2 _volumeRange = new(1f, 1f);
+		[SerializeField] private Vector2 _pitchRange = new(1f, 1f);
+		[SerializeField] private bool _loop;
+		public bool Loop => _loop;
+		[SerializeField, Range(0, 10f)] private float _fadeInTime;
+		public float FadeInTime => _fadeInTime;
+		[SerializeField, Range(0, 10f)] private float _fadeOutTime;
+		public float FadeOutTime => _fadeOutTime;
 		[Tooltip("Should the sound appear to come from the position of the emitter?")]
-		public bool IsSpatial;
+		[SerializeField] private bool _isSpatial = true;
 
-		#endregion
-
-		#region Runtime
-
-		[NonSerialized]
-		private int _clipIndex = 0;
-
-		#endregion
+		private int _roundRobinIndex = 0;
 
 		public void ConfigureAudioSource(AudioSource audioSource, float volume = 1)
 		{
-			if (Clips.Length == 0) {
-				return;
-			}
-			audioSource.volume = Volume * volume;
-			audioSource.pitch = Pitch;
-			audioSource.loop = Loop;
+			audioSource.volume = Random.Range(_volumeRange.x, _volumeRange.y);
+			audioSource.volume *= volume;
+			audioSource.pitch = Random.Range(_pitchRange.x, _pitchRange.y);
+			audioSource.loop = _loop;
 			audioSource.clip = GetClip();
-			audioSource.spatialBlend = IsSpatial ? 0f : 1f;
+			audioSource.spatialBlend = _isSpatial ? 0f : 1f;
 		}
 
 		public bool IsValid()
 		{
-			foreach (var clip in Clips) {
+			if (_clips == null)
+				return false;
+
+			foreach (var clip in _clips) {
 				if (clip != null)
 					return true;
 			}
@@ -88,22 +70,20 @@ namespace VisualPinball.Unity
 			return false;
 		}
 
-		private float Pitch => 1f + Random.Range(-RandomizePitch / 2, RandomizePitch / 2);
-		private float Volume => VolumeCorrection - Random.Range(0, RandomizeVolume);
-
 		private AudioClip GetClip()
 		{
-			switch (ClipSelection) {
-				case Selection.RoundRobin:
-					var clip = Clips[_clipIndex];
-					_clipIndex = (_clipIndex + 1) % Clips.Length;
+			if (_clips.Length == 0)
+				throw new InvalidOperationException($"The sound asset '{name}' has no audio clips to play.");
+			switch (_clipSelectionMethod) {
+				case SelectionMethod.RoundRobin:
+					_roundRobinIndex %= _clips.Length;
+					var clip = _clips[_roundRobinIndex];
+					_roundRobinIndex = (_roundRobinIndex + 1) % _clips.Length;
 					return clip;
-
-				case Selection.Random:
-					return Clips[Random.Range(0, Clips.Length)];
-
+				case SelectionMethod.Random:
+					return _clips[Random.Range(0, _clips.Length)];
 				default:
-					throw new ArgumentOutOfRangeException();
+					throw new NotImplementedException("Selection method not implemented.");
 			}
 		}
 	}
