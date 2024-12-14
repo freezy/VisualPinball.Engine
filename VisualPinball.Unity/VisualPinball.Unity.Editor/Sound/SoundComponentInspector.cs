@@ -78,11 +78,10 @@ namespace VisualPinball.Unity.Editor
 				triggerIdProp.stringValue = availableTriggers[0].Id;
 			}
 
-			triggerDropdown.RegisterValueChangedCallback(
-				e => {
-					triggerIdProp.stringValue = availableTriggers.FirstOrDefault(t => t.Name == e.newValue).Id;
-					triggerIdProp.serializedObject.ApplyModifiedProperties();
-				});
+			triggerDropdown.RegisterValueChangedCallback(e => {
+				triggerIdProp.stringValue = availableTriggers.FirstOrDefault(t => t.Name == e.newValue).Id;
+				triggerIdProp.serializedObject.ApplyModifiedProperties();
+			});
 		}
 
 		private static void AddNoTriggersHelpBox(VisualElement container, DropdownField triggerDropdown, DropdownField stopTriggerDropdown, PropertyField hasStopTriggerField)
