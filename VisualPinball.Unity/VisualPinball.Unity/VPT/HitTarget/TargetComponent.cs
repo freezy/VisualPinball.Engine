@@ -119,12 +119,12 @@ namespace VisualPinball.Unity
 			Size = data.Size.ToUnityVector3();
 
 			_targetType = data.TargetType;
-			#if UNITY_EDITOR
+#if UNITY_EDITOR
 			var mf = GetComponent<MeshFilter>();
 			if (mf) {
 				_meshName = Path.GetFileNameWithoutExtension(AssetDatabase.GetAssetPath(mf.sharedMesh));
 			}
-			#endif
+#endif
 
 			return updatedComponents;
 		}
@@ -217,7 +217,7 @@ namespace VisualPinball.Unity
 		#region ISoundEmitter
 
 		public virtual SoundTrigger[] AvailableTriggers => new[] {
-			new SoundTrigger { Id = SoundTargetHit, Name = "Target Hit" },
+			new SoundTrigger (id: SoundTargetHit, name: "Target Hit"),
 		};
 
 		public event EventHandler<SoundEventArgs> OnSound;
