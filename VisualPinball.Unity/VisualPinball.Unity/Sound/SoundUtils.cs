@@ -53,12 +53,13 @@ namespace VisualPinball.Unity
 		}
 #endif
 
-		public static async Task Play(SoundAsset sound, GameObject audioObj, CancellationToken allowFadeOutCt, CancellationToken instantCt)
+		public static async Task Play(SoundAsset sound, GameObject audioObj, CancellationToken allowFadeOutCt, CancellationToken instantCt, float volume = 1f)
 		{
 			var audioSource = audioObj.AddComponent<AudioSource>();
 
 			try {
 				sound.ConfigureAudioSource(audioSource);
+				audioSource.volume *= volume;
 				audioSource.Play();
 				using var eitherCts = CancellationTokenSource.CreateLinkedTokenSource(allowFadeOutCt, instantCt);
 
