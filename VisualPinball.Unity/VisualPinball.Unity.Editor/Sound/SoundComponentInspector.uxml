@@ -2,6 +2,6 @@
     <uie:ObjectField label="Sound Asset" type="VisualPinball.Unity.SoundAsset, VisualPinball.Unity" binding-path="_soundAsset" name="sound-asset" class="unity-base-field__aligned" />
     <ui:DropdownField label="Trigger" name="trigger-id" class="unity-base-field__aligned" />
     <uie:PropertyField name="interrupt" binding-path="_interrupt" label="Interrupt" />
-    <uie:PropertyField name="has-stop-trigger" binding-path="_hasStopTrigger" label="Has Stop Trigger" class="unity-base-field__aligned" style="margin-top: 2px;" />
+    <uie:PropertyField name="has-stop-trigger" binding-path="_hasStopTrigger" label="Has Stop Trigger" class="unity-base-field__aligned" />
     <ui:DropdownField label="Stop Trigger" name="stop-trigger-id" class="unity-base-field__aligned" />
 </ui:UXML>
