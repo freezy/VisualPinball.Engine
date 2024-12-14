@@ -277,9 +277,9 @@ namespace VisualPinball.Unity
 		#region ISoundEmitter
 
 		public SoundTrigger[] AvailableTriggers => new[] {
-			new SoundTrigger { Id = SoundScoreMotorStart, Name = "Sound Score Motor Start" },
-			new SoundTrigger { Id = SoundScoreMotorStop, Name = "Sound Score Motor Stop" },
-			new SoundTrigger { Id = SoundScoreMotorStep, Name = "Sound Score Motor Step" }
+			new SoundTrigger (id: SoundScoreMotorStart, name: "Sound Score Motor Start"),
+			new SoundTrigger (id: SoundScoreMotorStop, name: "Sound Score Motor Stop"),
+			new SoundTrigger (id: SoundScoreMotorStep, name: "Sound Score Motor Step"),
 		};
 
 		public event EventHandler<SoundEventArgs> OnSound;

@@ -77,7 +77,7 @@ namespace VisualPinball.Unity
 		#region ISoundEmitter
 
 		public SoundTrigger[] AvailableTriggers => new[] {
-			new SoundTrigger { Id = SoundTargetBankReset, Name = "Sound Target Bank Reset" }
+			new SoundTrigger (id: SoundTargetBankReset, name: "Sound Target Bank Reset" )
 		};
 
 		public event EventHandler<SoundEventArgs> OnSound;

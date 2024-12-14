@@ -70,8 +70,8 @@ namespace VisualPinball.Unity
 		#region ISoundEmitter
 
 		public SoundTrigger[] AvailableTriggers => new[] {
-			new SoundTrigger { Id = SoundPlungerPull, Name = "Plunger Pull" },
-			new SoundTrigger { Id = SoundPlungerRelease, Name = "Plunger Release"}
+			new SoundTrigger (id: SoundPlungerPull, name: "Plunger Pull"),
+			new SoundTrigger (id: SoundPlungerRelease, name: "Plunger Release"),
 		};
 
 		public event EventHandler<SoundEventArgs> OnSound;
