@@ -24,7 +24,7 @@ namespace VisualPinball.Unity
 {
 	[AddComponentMenu("Visual Pinball/Collision/Flipper Collider")]
 	[HelpURL("https://docs.visualpinball.org/creators-guide/manual/mechanisms/flippers.html")]
-	public class FlipperColliderComponent : ColliderComponent<FlipperData, FlipperComponent>
+	public class FlipperColliderComponent : ColliderComponent<FlipperData, FlipperComponent>, IKinematicColliderComponent
 	{
 		#region Data
 
@@ -77,6 +77,17 @@ namespace VisualPinball.Unity
 		#endregion
 
 		public override PhysicsMaterialData PhysicsMaterialData => GetPhysicsMaterialData(Elasticity, ElasticityFalloff, Friction, Scatter);
+
+		#region IKinematicColliderComponent
+
+		[Tooltip("If set, transforming this object during gameplay will transform the colliders as well.")]
+		public bool _isKinematic;
+
+		public bool IsKinematic => _isKinematic;
+		public int ItemId => MainComponent.gameObject.GetInstanceID();
+		public float4x4 TransformationWithinPlayfield => MainComponent.LocalToWorldPhysicsMatrix;
+
+		#endregion
 
 		#region FlipperTricks
 		/// <summary>

@@ -131,6 +131,10 @@ namespace VisualPinball.Unity
 							ref var gateCollider = ref GateColliders.GetElementAsRef(lookup.Index);
 							gateCollider.Transform(GateColliders[lookup.Index], math.inverse(matrix));
 							break;
+						case ColliderType.Flipper:
+							ref var flipperCollider = ref FlipperColliders.GetElementAsRef(lookup.Index);
+							flipperCollider.Transform(FlipperColliders[lookup.Index], math.inverse(matrix));
+							break;
 					}
 				}
 			}

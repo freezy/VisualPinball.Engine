@@ -113,7 +113,7 @@ namespace VisualPinball.Unity
 					break;
 
 				case ColliderType.Flipper:
-					ref var flipperState = ref state.GetFlipperState(colliderId);
+					ref var flipperState = ref state.GetFlipperState(colliderId, ref colliders);
 					ref var flipperCollider = ref colliders.Flipper(colliderId);
 					flipperCollider.Collide(ref ball, ref ball.CollisionEvent, ref flipperState.Movement,
 						ref state.EventQueue, in ball.Id, in flipperState.Tricks, in flipperState.Static,
