@@ -942,7 +942,7 @@ namespace VisualPinball.Unity
 			return !rotated && !scaled;
 		}
 
-		private void Transform(FlipperCollider flipperCollider, float4x4 matrix)
+		public void Transform(FlipperCollider flipperCollider, float4x4 matrix)
 		{
 			#if UNITY_EDITOR
 			if (!IsTransformable(matrix)) {

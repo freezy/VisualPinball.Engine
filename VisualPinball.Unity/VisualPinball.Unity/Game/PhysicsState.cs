@@ -94,7 +94,7 @@ namespace VisualPinball.Unity
 
 		#region States
 
-		internal ref FlipperState GetFlipperState(int colliderId) => ref FlipperStates.GetValueByRef(Colliders.GetItemId(colliderId));
+		internal ref FlipperState GetFlipperState(int colliderId, ref NativeColliders colliders) => ref FlipperStates.GetValueByRef(colliders.GetItemId(colliderId));
 
 		internal ref PlungerState GetPlungerState(int colliderId) => ref PlungerStates.GetValueByRef(Colliders.GetItemId(colliderId));
 
@@ -147,6 +147,9 @@ namespace VisualPinball.Unity
 					break;
 				case ColliderType.Gate:
 					KinematicColliders.Gate(colliderId).Transform(KinematicCollidersAtIdentity.Gate(colliderId), matrix);
+					break;
+				case ColliderType.Flipper:
+					KinematicColliders.Flipper(colliderId).Transform(KinematicCollidersAtIdentity.Flipper(colliderId), matrix);
 					break;
 			}
 		}
@@ -211,7 +214,7 @@ namespace VisualPinball.Unity
 						ball.CollisionEvent.HitTime, false, false, false);
 
 				case ColliderType.Flipper:
-					ref var flipperState = ref GetFlipperState(colliderId);
+					ref var flipperState = ref GetFlipperState(colliderId, ref colliders);
 					ref var flipperCollider = ref colliders.Flipper(colliderId);
 					return flipperCollider.HitTest(ref newCollEvent, ref InsideOfs, ref flipperState.Hit,
 						in flipperState.Movement, in flipperState.Tricks, in flipperState.Static, in ball, ball.CollisionEvent.HitTime);
