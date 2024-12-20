@@ -102,6 +102,8 @@ namespace VisualPinball.Unity
 			foreach (var dropTargetApi in _dropTargetApis) {
 				dropTargetApi.IsDropped = false;
 			}
+
+			_dropTargetBankComponent.EmitSound(DropTargetBankComponent.SoundTargetBankReset);
 		}
 
 		void IApi.OnDestroy()

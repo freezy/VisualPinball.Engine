@@ -35,7 +35,7 @@ using Mesh = VisualPinball.Engine.VPT.Mesh;
 namespace VisualPinball.Unity
 {
 	public abstract class TargetComponent : MainRenderableComponent<HitTargetData>,
-		ISwitchDeviceComponent, ITargetData, IMeshGenerator
+		ISwitchDeviceComponent, ITargetData, IMeshGenerator, ISoundEmitter
 	{
 		#region Data
 
@@ -94,6 +94,8 @@ namespace VisualPinball.Unity
 
 		public const string SwitchItem = "target_switch";
 
+		public const string SoundTargetHit = "sound_target_hit";
+
 		#endregion
 
 		#region Wiring
@@ -135,12 +137,12 @@ namespace VisualPinball.Unity
 			Size = data.Size.ToUnityVector3();
 
 			_targetType = data.TargetType;
-			#if UNITY_EDITOR
+#if UNITY_EDITOR
 			var mf = GetComponent<MeshFilter>();
 			if (mf) {
 				_meshName = Path.GetFileNameWithoutExtension(AssetDatabase.GetAssetPath(mf.sharedMesh));
 			}
-			#endif
+#endif
 
 			return updatedComponents;
 		}
@@ -191,6 +193,21 @@ namespace VisualPinball.Unity
 		public override ItemDataTransformType EditorScaleType => ItemDataTransformType.ThreeD;
 		public override Vector3 GetEditorScale() => Size;
 		public override void SetEditorScale(Vector3 scale) => Size = scale;
+
+		#endregion
+
+		#region ISoundEmitter
+
+		public virtual SoundTrigger[] AvailableTriggers => new[] {
+			new SoundTrigger (id: SoundTargetHit, name: "Target Hit"),
+		};
+
+		public event EventHandler<SoundEventArgs> OnSound;
+
+		internal virtual void EmitSound(string triggerId, float volume = 1)
+		{
+			OnSound?.Invoke(this, new SoundEventArgs(triggerId, volume));
+		}
 
 		#endregion
 	}

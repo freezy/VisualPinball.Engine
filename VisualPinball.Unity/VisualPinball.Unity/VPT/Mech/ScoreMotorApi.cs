@@ -43,8 +43,8 @@ namespace VisualPinball.Unity
 				ScoreMotorComponent.MotorRunningSwitchItem => _motorRunningSwitch,
 				ScoreMotorComponent.MotorStepSwitchItem => _motorStepSwitch,
 				_ => throw new ArgumentException($"Unknown switch \"{deviceItem}\". "
-					+ "Valid names are \"{ScoreReelDisplayComponent.MotorRunningSwitchItem}\", and "
-					+ "\"{ScoreReelDisplayComponent.MotorStepSwitchItem}\".")
+					+ $"Valid names are \"{ScoreMotorComponent.MotorRunningSwitchItem}\", and "
+					+ $"\"{ScoreMotorComponent.MotorStepSwitchItem}\".")
 			};
 		}
 
@@ -57,6 +57,8 @@ namespace VisualPinball.Unity
 			_scoreMotorComponent.OnSwitchChanged += HandleSwitchChanged;
 		}
 
+		#region Events
+
 		void IApi.OnInit(BallManager ballManager)
 		{
 			_motorRunningSwitch = new DeviceSwitch(ScoreMotorComponent.MotorRunningSwitchItem, false, SwitchDefault.NormallyOpen, _player, _physicsEngine);
@@ -67,7 +69,17 @@ namespace VisualPinball.Unity
 
 		private void HandleSwitchChanged(object sender, SwitchEventArgs2 e)
 		{
-			((DeviceSwitch)Switch(e.Id)).SetSwitch(e.IsEnabled);
+			var deviceSwitch = (DeviceSwitch)Switch(e.Id);
+			deviceSwitch.SetSwitch(e.IsEnabled);
+
+			if (deviceSwitch == _motorStepSwitch && e.IsEnabled) { 
+				_scoreMotorComponent.EmitSound(ScoreMotorComponent.SoundScoreMotorStep);
+			} else if (deviceSwitch == _motorRunningSwitch) {
+				if (e.IsEnabled)
+					_scoreMotorComponent.EmitSound(ScoreMotorComponent.SoundScoreMotorStart);
+				else
+					_scoreMotorComponent.EmitSound(ScoreMotorComponent.SoundScoreMotorStop);
+			}
 		}
 
 		void IApi.OnDestroy()
@@ -76,5 +88,7 @@ namespace VisualPinball.Unity
 
 			Logger.Info($"Destroying {_scoreMotorComponent.name}");
 		}
+
+		#endregion
 	}
 }

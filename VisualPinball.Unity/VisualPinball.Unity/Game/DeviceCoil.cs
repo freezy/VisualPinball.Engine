@@ -22,6 +22,7 @@ namespace VisualPinball.Unity
 	public class DeviceCoil : IApiCoil
 	{
 		public bool IsEnabled;
+		public event EventHandler<NoIdCoilEventArgs> CoilStatusChanged;
 
 		protected Action OnEnable;
 		protected Action OnDisable;
@@ -43,6 +44,7 @@ namespace VisualPinball.Unity
 			} else {
 				OnDisable?.Invoke();
 			}
+			CoilStatusChanged?.Invoke(this, new NoIdCoilEventArgs(enabled));
 #if UNITY_EDITOR
 			RefreshUI();
 #endif

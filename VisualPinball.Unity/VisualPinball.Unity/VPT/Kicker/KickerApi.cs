@@ -158,6 +158,8 @@ namespace VisualPinball.Unity
 			if (kickerState.Collision.HasBall) {
 				kickerState.Collision.BallId = 0;
 			}
+
+			MainComponent.EmitSound(KickerComponent.SoundKickerDrain);
 		}
 
 		#endregion
