@@ -58,7 +58,11 @@ namespace VisualPinball.Unity
 		public async Task Play(float volume = 1f)
 		{
 			if (!isActiveAndEnabled) {
-				Logger.Warn("Cannot play a disabled sound component");
+				Logger.Warn("Cannot play a disabled sound component.");
+				return;
+			}
+			if (_soundAsset == null) {
+				Logger.Warn("Cannot play without sound asset. Assign it in the inspector.");
 				return;
 			}
 			if (_interrupt)
@@ -85,6 +89,7 @@ namespace VisualPinball.Unity
 		}
 
 		public virtual bool SupportsLoopingSoundAssets() => true;
+
 		public virtual Type GetRequiredType() => null;
 	}
 }
