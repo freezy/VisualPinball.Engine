@@ -19,10 +19,9 @@ using UnityEngine;
 
 namespace VisualPinball.Unity
 {
-	[AddComponentMenu("Visual Pinball/Sound/Switch Device Sound")]
-	public class SwitchDeviceSoundComponent : SoundComponent
+	[AddComponentMenu("Visual Pinball/Sound/Switch Sound")]
+	public class SwitchSoundComponent : SoundComponent
 	{
-
 		public enum StartWhen { SwitchEnabled, SwitchDisabled };
 		public enum StopWhen { Never, SwitchEnabled, SwitchDisabled };
 
@@ -41,6 +40,15 @@ namespace VisualPinball.Unity
 					"component is attached");
 		}
 
+		protected override void OnDisable()
+		{
+			base.OnDisable();
+			if (_switch != null) {
+				_switch.Switch -= OnSwitch;
+				_switch = null;
+			}
+		}
+
 		protected bool TryFindSwitch(out IApiSwitch @switch)
 		{
 			@switch = null;
@@ -52,16 +60,7 @@ namespace VisualPinball.Unity
 				if (@switch != null)
 					return true;
 			}
-			return @switch != null;
-		}
-
-		protected override void OnDisable()
-		{
-			base.OnDisable();
-			if (_switch != null) {
-				_switch.Switch -= OnSwitch;
-				_switch = null;
-			}
+			return false;
 		}
 
 		private async void OnSwitch(object sender, SwitchEventArgs e)
