@@ -4,8 +4,8 @@
     <uie:PropertyField binding-path="_volume" label="Volume" name="volume" />
     <uie:PropertyField name="clips" binding-path="_clips" label="Clips" />
     <uie:PropertyField name="clip-selection-method" binding-path="_clipSelectionMethod" label="Clip Selection Method" />
-    <ui:MinMaxSlider label="Volume Range" min-value="1" max-value="1" low-limit="0" high-limit="1" tooltip="Volume will be randomized within this range" binding-path="_volumeRange" name="volume-range" class="unity-base-field__aligned" />
-    <ui:MinMaxSlider label="Pitch Range" min-value="1" max-value="1" low-limit="0.5" high-limit="1.5" binding-path="_pitchRange" name="pitch-range" class="unity-base-field__aligned" />
+    <ui:MinMaxSlider label="Volume Range" min-value="1" max-value="1" low-limit="0" high-limit="1" tooltip="Volume will be randomized within this range (0 - 1)" binding-path="_volumeRange" name="volume-range" class="unity-base-field__aligned" />
+    <ui:MinMaxSlider label="Pitch Range" min-value="1" max-value="1" low-limit="0.5" high-limit="1.5" binding-path="_pitchRange" name="pitch-range" tooltip="Pitch will be randomized within this range (0.5 - 1.5)" class="unity-base-field__aligned" />
     <uie:PropertyField name="loop" binding-path="_loop" label="Loop" />
     <uie:PropertyField name="fade-in-time" binding-path="_fadeInTime" label="Fade In Time" />
     <uie:PropertyField name="fade-out-time" binding-path="_fadeOutTime" label="Fade Out Time" />
