@@ -16,7 +16,6 @@
 
 namespace VisualPinball.Unity
 {
-
 	/// <summary>
 	/// Event data when the game item either reaches resting or end
 	/// position.
@@ -48,6 +47,16 @@ namespace VisualPinball.Unity
 		{
 			IsEnabled = isEnabled;
 			BallId = ballId;
+		}
+	}
+
+	public class NoIdCoilEventArgs
+	{
+		public readonly bool IsEnergized;
+
+		public NoIdCoilEventArgs(bool isEnergized)
+		{
+			IsEnergized = isEnergized;
 		}
 	}
 }
