@@ -21,44 +21,29 @@ using UnityEngine;
 namespace VisualPinball.Unity
 {
 	[AddComponentMenu("Visual Pinball/Sound/Hit Sound")]
-	public class HitSoundComponent : SoundComponent
+	public class HitSoundComponent : EventSoundComponent<IApiHittable, HitEventArgs>
 	{
-		private IApiHittable _hittable;
+		public override bool SupportsLoopingSoundAssets() => false;
+		public override Type GetRequiredType() => typeof(ItemComponent);
 
-		protected override void OnEnableAfterAfterAwake()
+		protected override bool TryFindEventSource(out IApiHittable source)
 		{
-			base.OnEnableAfterAfterAwake();
-			if (TryFindHittable(out _hittable))
-				_hittable.Hit += OnHittableHit;
-			else
-				Logger.Warn("Could not find main component with Api of type IApiHittable. Sound will not be triggered.");
-		}
-
-		private bool TryFindHittable(out IApiHittable hittable)
-		{
-			hittable = null;
+			source = null;
 			var player = GetComponentInParent<Player>();
 			if (player == null)
 				return false;
 			foreach (var component in GetComponents<ItemComponent>()) {
-				hittable = player.TableApi.Hittable(component);
-				if (hittable != null)
+				source = player.TableApi.Hittable(component);
+				if (source != null)
 					return true;
 			}
 			return false;
 		}
 
-		protected override void OnDisable()
-		{
-			base.OnDisable();
-			if (_hittable != null) {
-				_hittable.Hit -= OnHittableHit;
-				_hittable = null;
-			}
-		}
-		
-		private async void OnHittableHit(object sender, HitEventArgs e) => await Play();
-		public override bool SupportsLoopingSoundAssets() => false;
-		public override Type GetRequiredType() => typeof(ItemComponent);
+		protected override async void OnEvent(object sender, HitEventArgs e) => await Play();
+
+		protected override void Subscribe(IApiHittable eventSource) => eventSource.Hit += OnEvent;
+
+		protected override void Unsubscribe(IApiHittable eventSource) => eventSource.Hit -= OnEvent;
 	}
 }
