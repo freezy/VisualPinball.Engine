@@ -33,15 +33,15 @@ namespace VisualPinball.Unity
 
 		public override Type GetRequiredType() => typeof(ISwitchDeviceComponent);
 
-		protected override bool TryFindEventSource(out IApiSwitch source)
+		protected override bool TryFindEventSource(out IApiSwitch @switch)
 		{
-			source = null;
+			@switch = null;
 			var player = GetComponentInParent<Player>();
 			if (player == null)
 				return false;
 			foreach (var component in GetComponents<ISwitchDeviceComponent>()) {
-				source = player.Switch(component, _switchName);
-				if (source != null)
+				@switch = player.Switch(component, _switchName);
+				if (@switch != null)
 					return true;
 			}
 			return false;
