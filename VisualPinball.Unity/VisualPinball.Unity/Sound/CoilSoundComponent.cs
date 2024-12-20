@@ -34,15 +34,15 @@ namespace VisualPinball.Unity
 
 		public override Type GetRequiredType() => typeof(ICoilDeviceComponent);
 
-		protected override bool TryFindEventSource(out IApiCoil source)
+		protected override bool TryFindEventSource(out IApiCoil coil)
 		{
-			source = null;
+			coil = null;
 			var player = GetComponentInParent<Player>();
 			if (player == null)
 				return false;
 			foreach (var component in GetComponents<ICoilDeviceComponent>()) {
-				source = player.Coil(component, _coilName);
-				if (source != null)
+				coil = player.Coil(component, _coilName);
+				if (coil != null)
 					return true;
 			}
 			return false;

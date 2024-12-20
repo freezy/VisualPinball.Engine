@@ -16,12 +16,12 @@
 
 namespace VisualPinball.Unity
 {
-	public abstract class EventSoundComponent<EventSourceType, EventType> : SoundComponent where EventSourceType : class
+	public abstract class EventSoundComponent<EventSourceType, EventArgsType> : SoundComponent where EventSourceType : class
 	{
 		private EventSourceType _eventSource;
 
-		protected abstract bool TryFindEventSource(out EventSourceType source);
-		protected abstract void OnEvent(object sender, EventType e);
+		protected abstract bool TryFindEventSource(out EventSourceType eventSource);
+		protected abstract void OnEvent(object sender, EventArgsType e);
 		protected abstract void Subscribe(EventSourceType eventSource);
 		protected abstract void Unsubscribe(EventSourceType eventSource);
 

@@ -26,15 +26,15 @@ namespace VisualPinball.Unity
 		public override bool SupportsLoopingSoundAssets() => false;
 		public override Type GetRequiredType() => typeof(ItemComponent);
 
-		protected override bool TryFindEventSource(out IApiHittable source)
+		protected override bool TryFindEventSource(out IApiHittable hittable)
 		{
-			source = null;
+			hittable = null;
 			var player = GetComponentInParent<Player>();
 			if (player == null)
 				return false;
 			foreach (var component in GetComponents<ItemComponent>()) {
-				source = player.TableApi.Hittable(component);
-				if (source != null)
+				hittable = player.TableApi.Hittable(component);
+				if (hittable != null)
 					return true;
 			}
 			return false;
