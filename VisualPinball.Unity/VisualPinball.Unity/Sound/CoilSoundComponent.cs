@@ -20,17 +20,9 @@ using System;
 namespace VisualPinball.Unity
 {
 	[AddComponentMenu("Visual Pinball/Sound/Coil Sound")]
-	public class CoilSoundComponent : EventSoundComponent<IApiCoil, NoIdCoilEventArgs>
+	public class CoilSoundComponent : BinaryEventSoundComponent<IApiCoil, NoIdCoilEventArgs>
 	{
-		public enum StartWhen { CoilEnergized, CoilDeenergized };
-		public enum StopWhen { Never, CoilEnergized, CoilDeenergized };
-
-		[SerializeField] private StartWhen _startWhen = StartWhen.CoilEnergized;
-		[SerializeField] private StopWhen _stopWhen = StopWhen.Never;
 		[SerializeField, HideInInspector] private string _coilName;
-
-
-		public override bool SupportsLoopingSoundAssets() => _stopWhen != StopWhen.Never;
 
 		public override Type GetRequiredType() => typeof(ICoilDeviceComponent);
 
@@ -48,25 +40,13 @@ namespace VisualPinball.Unity
 			return false;
 		}
 
-		protected async override void OnEvent(object sender, NoIdCoilEventArgs e)
-		{
-			if ((e.IsEnergized && _stopWhen == StopWhen.CoilEnergized) ||
-				(!e.IsEnergized && _stopWhen == StopWhen.CoilDeenergized))
-				Stop(allowFade: true);
+		protected override void Subscribe(IApiCoil coil)
+			=> coil.CoilStatusChanged += OnEvent;
 
-			if ((e.IsEnergized && _startWhen == StartWhen.CoilEnergized) ||
-				(!e.IsEnergized && _startWhen == StartWhen.CoilDeenergized))
-				await Play();
-		}
+		protected override void Unsubscribe(IApiCoil coil)
+			=> coil.CoilStatusChanged -= OnEvent;
 
-		protected override void Subscribe(IApiCoil eventSource)
-		{
-			eventSource.CoilStatusChanged += OnEvent;
-		}
-
-		protected override void Unsubscribe(IApiCoil eventSource)
-		{
-			eventSource.CoilStatusChanged -= OnEvent;
-		}
+		protected override bool InterpretAsBinary(NoIdCoilEventArgs e)
+			=> e.IsEnergized;
 	}
 }
