@@ -31,7 +31,8 @@ namespace VisualPinball.Unity
 {
 	public class Player : MonoBehaviour
 	{
-		public TableApi TableApi { get; }
+		private TableApi _tableApi;
+		public TableApi TableApi => _tableApi ??= new(this);
 		public PlayfieldApi PlayfieldApi { get; private set; }
 
 		// shortcuts
@@ -131,11 +132,6 @@ namespace VisualPinball.Unity
 		#endregion
 
 		#region Lifecycle
-
-		public Player()
-		{
-			TableApi = new TableApi(this);
-		}
 
 		private void Awake()
 		{
