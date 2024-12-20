@@ -104,7 +104,7 @@ namespace VisualPinball.Unity
 
 		public static async Task WaitUntilAudioStops(AudioSource audioSource, CancellationToken ct)
 		{
-			while (audioSource.isPlaying || (Application.isPlaying && !Application.isFocused)) {
+			while (audioSource != null && (audioSource.isPlaying || (Application.isPlaying && !Application.isFocused))) {
 				await Task.Yield();
 				ct.ThrowIfCancellationRequested();
 			}
