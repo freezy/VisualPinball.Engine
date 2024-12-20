@@ -22,8 +22,8 @@ using UnityEngine.UIElements;
 
 namespace VisualPinball.Unity.Editor
 {
-	[CustomEditor(typeof(SwitchDeviceSoundComponent)), CanEditMultipleObjects]
-	public class SwitchDeviceSoundComponentInspector : SoundComponentInspector
+	[CustomEditor(typeof(SwitchSoundComponent)), CanEditMultipleObjects]
+	public class SwitchSoundComponentInspector : SoundComponentInspector
 	{
 		[SerializeField]
 		private VisualTreeAsset inspectorXml;
