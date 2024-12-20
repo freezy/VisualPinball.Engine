@@ -20,16 +20,9 @@ using UnityEngine;
 namespace VisualPinball.Unity
 {
 	[AddComponentMenu("Visual Pinball/Sound/Switch Sound")]
-	public class SwitchSoundComponent : EventSoundComponent<IApiSwitch, SwitchEventArgs>
+	public class SwitchSoundComponent : BinaryEventSoundComponent<IApiSwitch, SwitchEventArgs>
 	{
-		public enum StartWhen { SwitchEnabled, SwitchDisabled };
-		public enum StopWhen { Never, SwitchEnabled, SwitchDisabled };
-
-		[SerializeField] private StartWhen _startWhen = StartWhen.SwitchEnabled;
-		[SerializeField] private StopWhen _stopWhen = StopWhen.Never;
 		[SerializeField, HideInInspector] private string _switchName;
-
-		public override bool SupportsLoopingSoundAssets() => _stopWhen != StopWhen.Never;
 
 		public override Type GetRequiredType() => typeof(ISwitchDeviceComponent);
 
@@ -47,21 +40,13 @@ namespace VisualPinball.Unity
 			return false;
 		}
 
-		protected override async void OnEvent(object sender, SwitchEventArgs e)
-		{
-			if ((e.IsEnabled && _stopWhen == StopWhen.SwitchEnabled) ||
-				(!e.IsEnabled && _stopWhen == StopWhen.SwitchDisabled))
-				Stop(allowFade: true);
-
-			if ((e.IsEnabled && _startWhen == StartWhen.SwitchEnabled) ||
-				(!e.IsEnabled && _startWhen == StartWhen.SwitchDisabled))
-				await Play();
-		}
-
 		protected override void Subscribe(IApiSwitch eventSource)
 			=> eventSource.Switch += OnEvent;
 
 		protected override void Unsubscribe(IApiSwitch eventSource)
 			=> eventSource.Switch -= OnEvent;
+
+		protected override bool InterpretAsBinary(SwitchEventArgs e)
+			=> e.IsEnabled;
 	}
 }
