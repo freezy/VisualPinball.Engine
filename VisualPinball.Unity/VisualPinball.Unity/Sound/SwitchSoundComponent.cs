@@ -20,7 +20,7 @@ using UnityEngine;
 namespace VisualPinball.Unity
 {
 	[AddComponentMenu("Visual Pinball/Sound/Switch Sound")]
-	public class SwitchSoundComponent : SoundComponent
+	public class SwitchSoundComponent : EventSoundComponent<IApiSwitch, SwitchEventArgs>
 	{
 		public enum StartWhen { SwitchEnabled, SwitchDisabled };
 		public enum StopWhen { Never, SwitchEnabled, SwitchDisabled };
@@ -28,42 +28,26 @@ namespace VisualPinball.Unity
 		[SerializeField] private StartWhen _startWhen = StartWhen.SwitchEnabled;
 		[SerializeField] private StopWhen _stopWhen = StopWhen.Never;
 		[SerializeField, HideInInspector] private string _switchName;
-		private IApiSwitch _switch;
 
-		protected override void OnEnableAfterAfterAwake()
-		{
-			base.OnEnableAfterAfterAwake();
-			if (TryFindSwitch(out _switch))
-				_switch.Switch += OnSwitch;
-			else
-				Logger.Warn("Could not find switch. Make sure an appropriate " +
-					"component is attached");
-		}
+		public override bool SupportsLoopingSoundAssets() => _stopWhen != StopWhen.Never;
 
-		protected override void OnDisable()
-		{
-			base.OnDisable();
-			if (_switch != null) {
-				_switch.Switch -= OnSwitch;
-				_switch = null;
-			}
-		}
+		public override Type GetRequiredType() => typeof(ISwitchDeviceComponent);
 
-		protected bool TryFindSwitch(out IApiSwitch @switch)
+		protected override bool TryFindEventSource(out IApiSwitch source)
 		{
-			@switch = null;
+			source = null;
 			var player = GetComponentInParent<Player>();
 			if (player == null)
 				return false;
 			foreach (var component in GetComponents<ISwitchDeviceComponent>()) {
-				@switch = player.Switch(component, _switchName);
-				if (@switch != null)
+				source = player.Switch(component, _switchName);
+				if (source != null)
 					return true;
 			}
 			return false;
 		}
 
-		private async void OnSwitch(object sender, SwitchEventArgs e)
+		protected override async void OnEvent(object sender, SwitchEventArgs e)
 		{
 			if ((e.IsEnabled && _stopWhen == StopWhen.SwitchEnabled) ||
 				(!e.IsEnabled && _stopWhen == StopWhen.SwitchDisabled))
@@ -74,8 +58,10 @@ namespace VisualPinball.Unity
 				await Play();
 		}
 
-		public override bool SupportsLoopingSoundAssets() => _stopWhen != StopWhen.Never;
+		protected override void Subscribe(IApiSwitch eventSource)
+			=> eventSource.Switch += OnEvent;
 
-		public override Type GetRequiredType() => typeof(ISwitchDeviceComponent);
+		protected override void Unsubscribe(IApiSwitch eventSource)
+			=> eventSource.Switch -= OnEvent;
 	}
 }
