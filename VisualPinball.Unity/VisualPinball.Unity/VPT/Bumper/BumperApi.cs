@@ -49,6 +49,11 @@ namespace VisualPinball.Unity
 		/// </summary>
 		public event EventHandler<SwitchEventArgs> Switch;
 
+		/// <summary>
+		/// Event emitted when the bumper coil is turned on or off.
+		/// </summary>
+		public event EventHandler<NoIdCoilEventArgs> CoilStatusChanged;
+
 		private readonly PhysicsEngine _physicsEngine;
 		private int switchColliderId;
 
@@ -70,39 +75,40 @@ namespace VisualPinball.Unity
 		void IApiSwitch.RemoveWireDest(string destId) => RemoveWireDest(destId);
 		void IApiCoil.OnCoil(bool enabled)
 		{
-			if (!enabled) {
-				return;
-			}
-			ref var bumperState = ref PhysicsEngine.BumperState(ItemId);
-			bumperState.RingAnimation.IsHit = true;
-			ref var insideOfs = ref PhysicsEngine.InsideOfs;
-			List<int> idsOfBallsInColl = insideOfs.GetIdsOfBallsInsideItem(ItemId);
-			foreach (var ballId in idsOfBallsInColl) {
-				if (PhysicsEngine.Balls.ContainsKey(ballId)) {
-					ref var ballState = ref PhysicsEngine.BallState(ballId);
-					float3 bumperPos = new(MainComponent.Position.x, MainComponent.Position.y, MainComponent.PositionZ);
-					float3 ballPos = ballState.Position;
-					var bumpDirection = ballPos - bumperPos;
-					bumpDirection.z = 0f;
-					bumpDirection = math.normalize(bumpDirection);
-					var collEvent = new CollisionEventData {
-						HitTime = 0f,
-						HitNormal = bumpDirection,
-						HitVelocity = new float2(bumpDirection.x, bumpDirection.y) * ColliderComponent.Force,
-						HitDistance = 0f,
-						HitFlag = false,
-						HitOrgNormalVelocity = math.dot(bumpDirection, math.normalize(ballState.Velocity)),
-						IsContact = true,
-						ColliderId = switchColliderId,
-						IsKinematic = false,
-						BallId = ballId
-					};
-					var physicsMaterialData = ColliderComponent.PhysicsMaterialData;
-					var random = PhysicsEngine.Random;
-					BallCollider.Collide3DWall(ref ballState, in physicsMaterialData, in collEvent, in bumpDirection, ref random);
-					ballState.Velocity += bumpDirection * ColliderComponent.Force;
+			if (enabled) {
+				ref var bumperState = ref PhysicsEngine.BumperState(ItemId);
+				bumperState.RingAnimation.IsHit = true;
+				ref var insideOfs = ref PhysicsEngine.InsideOfs;
+				List<int> idsOfBallsInColl = insideOfs.GetIdsOfBallsInsideItem(ItemId);
+				foreach (var ballId in idsOfBallsInColl) {
+					if (PhysicsEngine.Balls.ContainsKey(ballId)) {
+						ref var ballState = ref PhysicsEngine.BallState(ballId);
+						float3 bumperPos = new(MainComponent.Position.x, MainComponent.Position.y, MainComponent.PositionZ);
+						float3 ballPos = ballState.Position;
+						var bumpDirection = ballPos - bumperPos;
+						bumpDirection.z = 0f;
+						bumpDirection = math.normalize(bumpDirection);
+						var collEvent = new CollisionEventData {
+							HitTime = 0f,
+							HitNormal = bumpDirection,
+							HitVelocity = new float2(bumpDirection.x, bumpDirection.y) * ColliderComponent.Force,
+							HitDistance = 0f,
+							HitFlag = false,
+							HitOrgNormalVelocity = math.dot(bumpDirection, math.normalize(ballState.Velocity)),
+							IsContact = true,
+							ColliderId = switchColliderId,
+							IsKinematic = false,
+							BallId = ballId
+						};
+						var physicsMaterialData = ColliderComponent.PhysicsMaterialData;
+						var random = PhysicsEngine.Random;
+						BallCollider.Collide3DWall(ref ballState, in physicsMaterialData, in collEvent, in bumpDirection, ref random);
+						ballState.Velocity += bumpDirection * ColliderComponent.Force;
+					}
 				}
 			}
+
+			CoilStatusChanged?.Invoke(this, new NoIdCoilEventArgs(enabled));
 		}
 
 		void IApiWireDest.OnChange(bool enabled) => (this as IApiCoil).OnCoil(enabled);
