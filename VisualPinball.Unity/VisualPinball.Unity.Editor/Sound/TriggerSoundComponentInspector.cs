@@ -66,7 +66,7 @@ namespace VisualPinball.Unity.Editor
 			if (target != null &&
 				target is Component &&
 				(target as Component).TryGetComponent<ISoundEmitter>(out var emitter)) {
-				emitter.AvailableTriggers.ToDictionary(i => i.Id, i => i.Name);
+				return emitter.AvailableTriggers.ToDictionary(i => i.Id, i => i.Name);
 			}
 			return new();
 		}
