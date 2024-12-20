@@ -22,7 +22,7 @@ using UnityEngine;
 namespace VisualPinball.Unity
 {
 	[AddComponentMenu("Visual Pinball/Sound/Trigger Sound")]
-	public class TriggerSoundComponent : SoundComponent
+	public class TriggerSoundComponent : EventSoundComponent<ISoundEmitter, SoundEventArgs>
 	{
 		[SerializeField, HideInInspector]
 		private string _triggerId;
@@ -31,23 +31,13 @@ namespace VisualPinball.Unity
 		[SerializeField, HideInInspector]
 		private string _stopTriggerId;
 
-		private ISoundEmitter _emitter;
+		public override Type GetRequiredType() => typeof(ISoundEmitter);
+		public override bool SupportsLoopingSoundAssets() => _hasStopTrigger;
 
-		protected override void OnEnable()
-		{
-			base.OnEnable();
-			_emitter = GetComponent<ISoundEmitter>();
-			_emitter.OnSound += Emitter_OnSound;
-		}
+		protected override bool TryFindEventSource(out ISoundEmitter source)
+			=> TryGetComponent(out source);
 
-		protected override void OnDisable()
-		{
-			base.OnDisable();
-			_emitter.OnSound -= Emitter_OnSound;
-			_emitter = null;
-		}
-
-		private async void Emitter_OnSound(object sender, SoundEventArgs e)
+		protected override async void OnEvent(object sender, SoundEventArgs e)
 		{
 			if (_hasStopTrigger && e.TriggerId == _stopTriggerId)
 				Stop(allowFade: true);
@@ -57,7 +47,10 @@ namespace VisualPinball.Unity
 			}
 		}
 
-		public override Type GetRequiredType() => typeof(ISoundEmitter);
-		public override bool SupportsLoopingSoundAssets() => _hasStopTrigger;
+		protected override void Subscribe(ISoundEmitter eventSource)
+			=> eventSource.OnSound += OnEvent;
+
+		protected override void Unsubscribe(ISoundEmitter eventSource)
+			=> eventSource.OnSound -= OnEvent;
 	}
 }
