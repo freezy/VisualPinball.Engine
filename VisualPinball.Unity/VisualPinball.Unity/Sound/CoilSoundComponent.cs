@@ -20,7 +20,7 @@ using System;
 namespace VisualPinball.Unity
 {
 	[AddComponentMenu("Visual Pinball/Sound/Coil Sound")]
-	public class CoilSoundComponent : SoundComponent
+	public class CoilSoundComponent : EventSoundComponent<IApiCoil, NoIdCoilEventArgs>
 	{
 		public enum StartWhen { CoilEnergized, CoilDeenergized };
 		public enum StopWhen { Never, CoilEnergized, CoilDeenergized };
@@ -28,42 +28,27 @@ namespace VisualPinball.Unity
 		[SerializeField] private StartWhen _startWhen = StartWhen.CoilEnergized;
 		[SerializeField] private StopWhen _stopWhen = StopWhen.Never;
 		[SerializeField, HideInInspector] private string _coilName;
-		private IApiCoil _coil;
 
-		protected override void OnEnableAfterAfterAwake()
-		{
-			base.OnEnableAfterAfterAwake();
-			if (TryFindCoil(out var _coil))
-				_coil.CoilStatusChanged += OnCoilStatusChanged;
-			else
-				Logger.Warn("Could not find coil. Make sure an appropriate " +
-					"component is attached");
-		}
 
-		protected override void OnDisable()
-		{
-			base.OnDisable();
-			if (_coil != null) {
-				_coil.CoilStatusChanged -= OnCoilStatusChanged;
-				_coil = null;
-			}
-		}
+		public override bool SupportsLoopingSoundAssets() => _stopWhen != StopWhen.Never;
 
-		private bool TryFindCoil(out IApiCoil coil)
+		public override Type GetRequiredType() => typeof(ICoilDeviceComponent);
+
+		protected override bool TryFindEventSource(out IApiCoil source)
 		{
-			coil = null;
+			source = null;
 			var player = GetComponentInParent<Player>();
 			if (player == null)
 				return false;
 			foreach (var component in GetComponents<ICoilDeviceComponent>()) {
-				coil = player.Coil(component, _coilName);
-				if (coil != null)
+				source = player.Coil(component, _coilName);
+				if (source != null)
 					return true;
 			}
 			return false;
 		}
 
-		private async void OnCoilStatusChanged(object sender, NoIdCoilEventArgs e)
+		protected async override void OnEvent(object sender, NoIdCoilEventArgs e)
 		{
 			if ((e.IsEnergized && _stopWhen == StopWhen.CoilEnergized) ||
 				(!e.IsEnergized && _stopWhen == StopWhen.CoilDeenergized))
@@ -74,8 +59,14 @@ namespace VisualPinball.Unity
 				await Play();
 		}
 
-		public override bool SupportsLoopingSoundAssets() => _stopWhen != StopWhen.Never;
+		protected override void Subscribe(IApiCoil eventSource)
+		{
+			eventSource.CoilStatusChanged += OnEvent;
+		}
 
-		public override Type GetRequiredType() => typeof(ICoilDeviceComponent);
+		protected override void Unsubscribe(IApiCoil eventSource)
+		{
+			eventSource.CoilStatusChanged -= OnEvent;
+		}
 	}
 }
