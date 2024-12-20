@@ -34,8 +34,8 @@ namespace VisualPinball.Unity
 		public override Type GetRequiredType() => typeof(ISoundEmitter);
 		public override bool SupportsLoopingSoundAssets() => _hasStopTrigger;
 
-		protected override bool TryFindEventSource(out ISoundEmitter source)
-			=> TryGetComponent(out source);
+		protected override bool TryFindEventSource(out ISoundEmitter soundEmitter)
+			=> TryGetComponent(out soundEmitter);
 
 		protected override async void OnEvent(object sender, SoundEventArgs e)
 		{
