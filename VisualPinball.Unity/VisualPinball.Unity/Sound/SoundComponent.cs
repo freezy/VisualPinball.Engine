@@ -1,4 +1,4 @@
-﻿// Visual Pinball Engine
+// Visual Pinball Engine
 // Copyright (C) 2023 freezy and VPE Team
 //
 // This program is free software: you can redistribute it and/or modify
@@ -17,46 +17,37 @@
 // ReSharper disable InconsistentNaming
 
 using System;
+using NLog;
+using Logger = NLog.Logger;
 using System.Threading;
+using System.Threading.Tasks;
 using UnityEngine;
 
 namespace VisualPinball.Unity
 {
-	[AddComponentMenu("Visual Pinball/Sounds/Sound")]
-	public class SoundComponent : MonoBehaviour
+	[AddComponentMenu("Visual Pinball/Sound/Sound")]
+	public class SoundComponent : EnableAfterAwakeMonoBehaviour
 	{
 		[SerializeReference]
-		private SoundAsset _soundAsset;
+		protected SoundAsset _soundAsset;
 		[SerializeField]
 		[Tooltip("Should the sound be interrupted if it is triggered again while already playing?")]
-		private bool _interrupt;
-		[SerializeField]
-		private string _triggerId;
-		[SerializeField]
-		private bool _hasStopTrigger;
-		[SerializeField]
-		private string _stopTriggerId;
-
-		[SerializeField]
-		[Range(0f, 1f)]
+		protected bool _interrupt;
+		[SerializeField, Range(0f, 1f)]
 		private float _volume = 1f;
 
-		private ISoundEmitter _emitter;
 		private CancellationTokenSource _instantCts;
 		private CancellationTokenSource _allowFadeCts;
+		protected static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
-		public void OnEnable()
+		protected virtual void OnEnable()
 		{
-			_emitter = GetComponent<ISoundEmitter>();
-			_emitter.OnSound += Emitter_OnSound;
 			_instantCts = new();
 			_allowFadeCts = new();
 		}
 
-		public void OnDisable()
+		protected virtual void OnDisable()
 		{
-			_emitter.OnSound -= Emitter_OnSound;
-			_emitter = null;
 			_allowFadeCts?.Dispose();
 			_allowFadeCts = null;
 			_instantCts?.Cancel();
@@ -64,26 +55,36 @@ namespace VisualPinball.Unity
 			_instantCts = null;
 		}
 
-		private async void Emitter_OnSound(object sender, SoundEventArgs e)
+		public async Task Play(float volume = 1f)
 		{
-			if (_hasStopTrigger && e.TriggerId == _stopTriggerId)
-				StopRunningSounds();
-
-			if (e.TriggerId == _triggerId) {
-				if (_interrupt)
-					StopRunningSounds();
-				try {
-					var volume = _volume * e.Volume;
-					await SoundUtils.Play(_soundAsset, gameObject, _allowFadeCts.Token, _instantCts.Token, volume);
-				} catch (OperationCanceledException) { }
+			if (!isActiveAndEnabled) {
+				Logger.Warn("Cannot play a disabled sound component");
+				return;
 			}
+			if (_interrupt)
+				Stop(allowFade: true);
+			try {
+				var combinedVol = _volume * volume;
+				await SoundUtils.Play(_soundAsset, gameObject, _allowFadeCts.Token, _instantCts.Token, combinedVol);
+			} catch (OperationCanceledException) { }
+		}
 
-			void StopRunningSounds()
-			{
+		public void Stop(bool allowFade)
+		{
+			if (!isActiveAndEnabled)
+				return;
+			if (allowFade) {
 				_allowFadeCts?.Cancel();
 				_allowFadeCts?.Dispose();
 				_allowFadeCts = new();
+			} else {
+				_instantCts?.Cancel();
+				_instantCts?.Dispose();
+				_instantCts = new();
 			}
 		}
+
+		public virtual bool SupportsLoopingSoundAssets() => true;
+		public virtual Type GetRequiredType() => null;
 	}
 }
