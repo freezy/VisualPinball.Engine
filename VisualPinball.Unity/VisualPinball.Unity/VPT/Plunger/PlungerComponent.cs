@@ -80,11 +80,6 @@ namespace VisualPinball.Unity
 			}
 		}
 
-		// public float4x4 TransformationWithinPlayfield
-		// 	=> math.mul(Physics.VpxToWorld, transform.worldToLocalMatrix.WorldToLocalTranslateWithinPlayfield(_playfieldToWorld));
-		public float4x4 TransformationWithinPlayfield
-			=> transform.worldToLocalMatrix.WorldToLocalTranslateWithinPlayfield(_playfieldToWorld);
-
 		#endregion
 
 		#region Wiring

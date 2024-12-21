@@ -135,11 +135,6 @@ namespace VisualPinball.Unity
 				.ToArray();
 		}
 
-		private void Start()
-		{
-			_playfieldToWorld = Player.PlayfieldToWorldMatrix;
-		}
-
 		#endregion
 
 		#region Wiring
@@ -156,14 +151,6 @@ namespace VisualPinball.Unity
 
 		#endregion
 
-		#region Transformation
-
-		[NonSerialized]
-		private float4x4 _playfieldToWorld;
-
-		public float4x4 TransformationWithinPlayfield => transform.worldToLocalMatrix.WorldToLocalTranslateWithinPlayfield(_playfieldToWorld);
-
-		#endregion
 
 		#region Conversion
 
