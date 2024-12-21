@@ -29,7 +29,8 @@ namespace VisualPinball.Unity
 		internal NativeColliders Colliders;
 		internal NativeColliders KinematicColliders;
 		internal NativeColliders KinematicCollidersAtIdentity;
-		internal NativeParallelHashMap<int, float4x4> UpdatedKinematicTransforms; // transformations of the items, in vpx space.
+		internal NativeParallelHashMap<int, float4x4> UpdatedKinematicTransforms; // updated transformations of the items, in vpx space.
+		internal NativeParallelHashMap<int, float4x4> KinematicTransforms;        // transformations of the items, in vpx space.
 		internal NativeParallelHashMap<int, float4x4> NonTransformableColliderMatrices;
 		internal NativeParallelHashMap<int, NativeColliderIds> KinematicColliderLookups;
 
@@ -51,6 +52,7 @@ namespace VisualPinball.Unity
 
 		public PhysicsState(ref PhysicsEnv env, ref NativeOctree<int> octree, ref NativeColliders colliders,
 			ref NativeColliders kinematicColliders, ref NativeColliders kinematicCollidersAtIdentity,
+			ref NativeParallelHashMap<int, float4x4> kinematicTransforms,
 			ref NativeParallelHashMap<int, float4x4> updatedKinematicTransforms,
 			ref NativeParallelHashMap<int, float4x4> nonTransformableColliderMatrices,
 			ref NativeParallelHashMap<int, NativeColliderIds> kinematicColliderLookups, ref NativeQueue<EventData>.ParallelWriter eventQueue,
@@ -67,6 +69,7 @@ namespace VisualPinball.Unity
 			Colliders = colliders;
 			KinematicColliders = kinematicColliders;
 			KinematicCollidersAtIdentity = kinematicCollidersAtIdentity;
+			KinematicTransforms = kinematicTransforms;
 			UpdatedKinematicTransforms = updatedKinematicTransforms;
 			NonTransformableColliderMatrices = nonTransformableColliderMatrices;
 			KinematicColliderLookups = kinematicColliderLookups;
@@ -123,7 +126,14 @@ namespace VisualPinball.Unity
 		#region Transform
 
 		internal bool HasNonTransformableColliderMatrix(int colliderId, ref NativeColliders colliders) => NonTransformableColliderMatrices.ContainsKey(colliders.GetItemId(colliderId));
-		internal ref float4x4 GetNonTransformableColliderMatrix(int colliderId, ref NativeColliders colliders) => ref NonTransformableColliderMatrices.GetValueByRef(colliders.GetItemId(colliderId));
+		internal ref float4x4 GetNonTransformableColliderMatrix(int colliderId, ref NativeColliders colliders)
+		{
+			var itemId = colliders.GetItemId(colliderId);
+			if (colliders.KinematicColliders) {
+				return ref KinematicTransforms.GetValueByRef(itemId);
+			}
+			return ref NonTransformableColliderMatrices.GetValueByRef(itemId);
+		}
 
 		internal void Transform(int colliderId, float4x4 matrix)
 		{
@@ -131,25 +141,46 @@ namespace VisualPinball.Unity
 			{
 				case ColliderType.Bumper:
 				case ColliderType.Circle:
-					KinematicColliders.Circle(colliderId).Transform(KinematicCollidersAtIdentity.Circle(colliderId), matrix);
+					var circleCollider = KinematicColliders.Circle(colliderId);
+					if (circleCollider.Header.IsTransformed) {
+						circleCollider.Transform(KinematicCollidersAtIdentity.Circle(colliderId), matrix);
+					}
 					break;
 				case ColliderType.Point:
-					KinematicColliders.Point(colliderId).Transform(KinematicCollidersAtIdentity.Point(colliderId), matrix);
+					var pointCollider = KinematicColliders.Point(colliderId);
+					if (pointCollider.Header.IsTransformed) {
+						pointCollider.Transform(KinematicCollidersAtIdentity.Point(colliderId), matrix);
+					}
 					break;
 				case ColliderType.Line3D:
-					KinematicColliders.Line3D(colliderId).Transform(KinematicCollidersAtIdentity.Line3D(colliderId), matrix);
+					var line3DCollider = KinematicColliders.Line3D(colliderId);
+					if (line3DCollider.Header.IsTransformed) {
+						line3DCollider.Transform(KinematicCollidersAtIdentity.Line3D(colliderId), matrix);
+					}
 					break;
 				case ColliderType.Triangle:
-					KinematicColliders.Triangle(colliderId).Transform(KinematicCollidersAtIdentity.Triangle(colliderId), matrix);
+					var triangleCollider = KinematicColliders.Triangle(colliderId);
+					if (triangleCollider.Header.IsTransformed) {
+						triangleCollider.Transform(KinematicCollidersAtIdentity.Triangle(colliderId), matrix);
+					}
 					break;
 				case ColliderType.Spinner:
-					KinematicColliders.Spinner(colliderId).Transform(KinematicCollidersAtIdentity.Spinner(colliderId), matrix);
+					var spinnerCollider = KinematicColliders.Spinner(colliderId);
+					if (spinnerCollider.Header.IsTransformed) {
+						spinnerCollider.Transform(KinematicCollidersAtIdentity.Spinner(colliderId), matrix);
+					}
 					break;
 				case ColliderType.Gate:
-					KinematicColliders.Gate(colliderId).Transform(KinematicCollidersAtIdentity.Gate(colliderId), matrix);
+					var gateCollider = KinematicColliders.Gate(colliderId);
+					if (gateCollider.Header.IsTransformed) {
+						gateCollider.Transform(KinematicCollidersAtIdentity.Gate(colliderId), matrix);
+					}
 					break;
 				case ColliderType.Flipper:
-					KinematicColliders.Flipper(colliderId).Transform(KinematicCollidersAtIdentity.Flipper(colliderId), matrix);
+					var flipperCollider = KinematicColliders.Flipper(colliderId);
+					if (flipperCollider.Header.IsTransformed) {
+						flipperCollider.Transform(KinematicCollidersAtIdentity.Flipper(colliderId), matrix);
+					}
 					break;
 			}
 		}

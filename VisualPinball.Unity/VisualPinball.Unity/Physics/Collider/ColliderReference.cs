@@ -17,7 +17,6 @@
 using System;
 using Unity.Collections;
 using Unity.Mathematics;
-using UnityEngine;
 using VisualPinball.Unity.Collections;
 
 namespace VisualPinball.Unity
@@ -109,31 +108,59 @@ namespace VisualPinball.Unity
 						case ColliderType.Bumper:
 						case ColliderType.Circle:
 							ref var circleCollider = ref CircleColliders.GetElementAsRef(lookup.Index);
-							circleCollider.Transform(CircleColliders[lookup.Index], math.inverse(matrix));
+							if (circleCollider.Header.IsTransformed) {
+								circleCollider.Transform(CircleColliders[lookup.Index], math.inverse(matrix));
+							} else {
+								circleCollider.TransformAabb(math.inverse(matrix));
+							}
 							break;
 						case ColliderType.Point:
 							ref var pointCollider = ref PointColliders.GetElementAsRef(lookup.Index);
-							pointCollider.Transform(PointColliders[lookup.Index], math.inverse(matrix));
+							if (pointCollider.Header.IsTransformed) {
+								pointCollider.Transform(PointColliders[lookup.Index], math.inverse(matrix));
+							} else {
+								pointCollider.TransformAabb(math.inverse(matrix));
+							}
 							break;
 						case ColliderType.Line3D:
 							ref var line3DCollider = ref Line3DColliders.GetElementAsRef(lookup.Index);
-							line3DCollider.Transform(Line3DColliders[lookup.Index], math.inverse(matrix));
+							if (line3DCollider.Header.IsTransformed) {
+								line3DCollider.Transform(Line3DColliders[lookup.Index], math.inverse(matrix));
+							} else {
+								line3DCollider.TransformAabb(math.inverse(matrix));
+							}
 							break;
 						case ColliderType.Triangle:
 							ref var triangleCollider = ref TriangleColliders.GetElementAsRef(lookup.Index);
-							triangleCollider.Transform(TriangleColliders[lookup.Index], math.inverse(matrix));
+							if (triangleCollider.Header.IsTransformed) {
+								triangleCollider.Transform(TriangleColliders[lookup.Index], math.inverse(matrix));
+							} else {
+								triangleCollider.TransformAabb(math.inverse(matrix));
+							}
 							break;
 						case ColliderType.Spinner:
 							ref var spinnerCollider = ref SpinnerColliders.GetElementAsRef(lookup.Index);
-							spinnerCollider.Transform(SpinnerColliders[lookup.Index], math.inverse(matrix));
+							if (spinnerCollider.Header.IsTransformed) {
+								spinnerCollider.Transform(SpinnerColliders[lookup.Index], math.inverse(matrix));
+							} else {
+								spinnerCollider.TransformAabb(math.inverse(matrix));
+							}
 							break;
 						case ColliderType.Gate:
 							ref var gateCollider = ref GateColliders.GetElementAsRef(lookup.Index);
-							gateCollider.Transform(GateColliders[lookup.Index], math.inverse(matrix));
+							if (gateCollider.Header.IsTransformed) {
+								gateCollider.Transform(GateColliders[lookup.Index], math.inverse(matrix));
+							} else {
+								gateCollider.TransformAabb(math.inverse(matrix));
+							}
 							break;
 						case ColliderType.Flipper:
 							ref var flipperCollider = ref FlipperColliders.GetElementAsRef(lookup.Index);
-							flipperCollider.Transform(FlipperColliders[lookup.Index], math.inverse(matrix));
+							if (flipperCollider.Header.IsTransformed) {
+								flipperCollider.Transform(FlipperColliders[lookup.Index], math.inverse(matrix));
+							} else {
+								flipperCollider.TransformAabb(math.inverse(matrix));
+							}
 							break;
 					}
 				}

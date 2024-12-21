@@ -19,7 +19,6 @@ using Unity.Collections;
 using Unity.Jobs;
 using Unity.Mathematics;
 using VisualPinball.Engine.Common;
-using UnityEngine;
 
 namespace VisualPinball.Unity
 {
@@ -38,6 +37,7 @@ namespace VisualPinball.Unity
 		public NativeColliders Colliders;
 		public NativeColliders KinematicColliders;
 		public NativeColliders KinematicCollidersAtIdentity;
+		public NativeParallelHashMap<int, float4x4> KinematicTransforms;
 		public NativeParallelHashMap<int, float4x4> UpdatedKinematicTransforms;
 		public NativeParallelHashMap<int, float4x4> NonTransformableColliderMatrices;
 
@@ -64,8 +64,8 @@ namespace VisualPinball.Unity
 		{
 			var env = PhysicsEnv[0];
 			var state = new PhysicsState(ref env, ref Octree, ref Colliders, ref KinematicColliders,
-				ref KinematicCollidersAtIdentity, ref UpdatedKinematicTransforms, ref NonTransformableColliderMatrices,
-				ref KinematicColliderLookups, ref Events,
+				ref KinematicCollidersAtIdentity, ref KinematicTransforms, ref UpdatedKinematicTransforms,
+				ref NonTransformableColliderMatrices, ref KinematicColliderLookups, ref Events,
 				ref InsideOfs, ref Balls, ref BumperStates, ref DropTargetStates, ref FlipperStates, ref GateStates,
 				ref HitTargetStates, ref KickerStates, ref PlungerStates, ref SpinnerStates,
 				ref SurfaceStates, ref TriggerStates, ref DisabledCollisionItems, ref SwapBallCollisionHandling);
@@ -73,7 +73,7 @@ namespace VisualPinball.Unity
 
 			// create octree of kinematic-to-ball collision. should be okay here, since static colliders don't transform more than once per frame.
 			PhysicsKinematics.TransformColliders(ref state);
-			var kineticOctree = PhysicsKinematics.CreateOctree(ref state.KinematicColliders, in PlayfieldBounds);
+			var kineticOctree = PhysicsKinematics.CreateOctree(ref state, in PlayfieldBounds);
 
 			while (env.CurPhysicsFrameTime < InitialTimeUsec)  // loop here until current (real) time matches the physics (simulated) time
 			{

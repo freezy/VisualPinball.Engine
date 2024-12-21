@@ -177,7 +177,7 @@ namespace VisualPinball.Unity
 			CalculateBounds();
 		}
 
-		public LineSlingshotCollider TransformAabb(float4x4 matrix)
+		public Aabb GetTransformedAabb(float4x4 matrix)
 		{
 			var p1 = matrix.MultiplyPoint(new float3(V1, ZLow));
 			var p2 = matrix.MultiplyPoint(new float3(V1, ZHigh));
@@ -187,8 +187,12 @@ namespace VisualPinball.Unity
 			var min = math.min(p1, math.min(p2, math.min(p3, p4)));
 			var max = math.max(p1, math.max(p2, math.max(p3, p4)));
 
-			Bounds = new ColliderBounds(Header.ItemId, Header.Id, new Aabb(min, max));
+			return new Aabb(min, max);
+		}
 
+		public LineSlingshotCollider TransformAabb(float4x4 matrix)
+		{
+			Bounds = new ColliderBounds(Header.ItemId, Header.Id, GetTransformedAabb(matrix));
 			return this;
 		}
 

@@ -140,9 +140,14 @@ namespace VisualPinball.Unity
 			Bounds = collider.LineSeg0.Bounds;
 		}
 
+		public Aabb GetTransformedAabb(float4x4 matrix)
+		{
+			return Bounds.Aabb.Transform(matrix);
+		}
+
 		public GateCollider TransformAabb(float4x4 matrix)
 		{
-			Bounds = new ColliderBounds(Header.ItemId, Header.Id, Bounds.Aabb.Transform(matrix));
+			Bounds = new ColliderBounds(Header.ItemId, Header.Id, GetTransformedAabb(matrix));
 			return this;
 		}
 

@@ -21,6 +21,7 @@ using System;
 using Unity.Burst;
 using Unity.Collections.LowLevel.Unsafe;
 using Unity.Collections;
+using Unity.Mathematics;
 using Unity.Profiling;
 using VisualPinball.Engine.VPT;
 
@@ -469,8 +470,71 @@ namespace VisualPinball.Unity
 				case ColliderType.Spinner: return UnsafeUtility.ArrayElementAsRef<SpinnerCollider>(m_SpinnerColliderBuffer, lookup.Index).Bounds.Aabb;
 				case ColliderType.Triangle: return UnsafeUtility.ArrayElementAsRef<TriangleCollider>(m_TriangleColliderBuffer, lookup.Index).Bounds.Aabb;
 				case ColliderType.Plane: return UnsafeUtility.ArrayElementAsRef<PlaneCollider>(m_PlaneColliderBuffer, lookup.Index).Bounds.Aabb;
+				default:
+					throw new ArgumentException($"Unknown lookup type.");
 			}
-			throw new ArgumentException($"Unknown lookup type.");
+		}
+
+		public Aabb GetAabb(int index, ref NativeParallelHashMap<int, float4x4> kinematicTransforms)
+		{
+			if (index < 0 || index >= m_Length) {
+				throw new IndexOutOfRangeException($"Invalid index {index} when looking up collider.");
+			}
+			var lookup = UnsafeUtility.ReadArrayElement<ColliderLookup>(m_LookupBuffer, index);
+			switch (lookup.Type) {
+				case ColliderType.Circle: {
+					var collider = UnsafeUtility.ArrayElementAsRef<CircleCollider>(m_CircleColliderBuffer, lookup.Index);
+					return collider.GetTransformedAabb(kinematicTransforms[collider.Header.ItemId]);
+				}
+				case ColliderType.Flipper: {
+					var collider =
+						UnsafeUtility.ArrayElementAsRef<FlipperCollider>(m_FlipperColliderBuffer, lookup.Index);
+					return collider.GetTransformedAabb(kinematicTransforms[collider.Header.ItemId]);
+				}
+				case ColliderType.Gate: {
+					var collider = UnsafeUtility.ArrayElementAsRef<GateCollider>(m_GateColliderBuffer, lookup.Index);
+					return collider.GetTransformedAabb(kinematicTransforms[collider.Header.ItemId]);
+				}
+				case ColliderType.Line3D: {
+					var collider = UnsafeUtility.ArrayElementAsRef<Line3DCollider>(m_Line3DColliderBuffer, lookup.Index);
+					return collider.GetTransformedAabb(kinematicTransforms[collider.Header.ItemId]);
+				}
+				case ColliderType.LineSlingShot: {
+					var collider = UnsafeUtility.ArrayElementAsRef<LineSlingshotCollider>(m_LineSlingshotColliderBuffer, lookup.Index);
+					return collider.GetTransformedAabb(kinematicTransforms[collider.Header.ItemId]);
+				}
+				case ColliderType.Line: {
+					var collider = UnsafeUtility.ArrayElementAsRef<LineCollider>(m_LineColliderBuffer, lookup.Index);
+					return collider.GetTransformedAabb(kinematicTransforms[collider.Header.ItemId]);
+				}
+				case ColliderType.LineZ: {
+					var collider = UnsafeUtility.ArrayElementAsRef<LineZCollider>(m_LineZColliderBuffer, lookup.Index);
+					return collider.GetTransformedAabb(kinematicTransforms[collider.Header.ItemId]);
+				}
+				case ColliderType.Plunger: {
+					var collider = UnsafeUtility.ArrayElementAsRef<PlungerCollider>(m_PlungerColliderBuffer, lookup.Index);
+					return collider.GetTransformedAabb(kinematicTransforms[collider.Header.ItemId]);
+				}
+				case ColliderType.Point: {
+					var collider = UnsafeUtility.ArrayElementAsRef<PointCollider>(m_PointColliderBuffer, lookup.Index);
+					return collider.GetTransformedAabb(kinematicTransforms[collider.Header.ItemId]);
+				}
+				case ColliderType.Spinner: {
+					var collider = UnsafeUtility.ArrayElementAsRef<SpinnerCollider>(m_SpinnerColliderBuffer, lookup.Index);
+					return collider.GetTransformedAabb(kinematicTransforms[collider.Header.ItemId]);
+				}
+				case ColliderType.Triangle: {
+					var collider = UnsafeUtility.ArrayElementAsRef<TriangleCollider>(m_TriangleColliderBuffer, lookup.Index);
+					return collider.GetTransformedAabb(kinematicTransforms[collider.Header.ItemId]);
+				}
+				case ColliderType.Plane:
+				{
+					// planes don't transform
+					return UnsafeUtility.ArrayElementAsRef<PlaneCollider>(m_PlaneColliderBuffer, lookup.Index).Bounds.Aabb;
+				}
+				default:
+					throw new ArgumentException($"Unknown lookup type.");
+			}
 		}
 
 		public bool IsTransformed(int index) => GetHeader(index).IsTransformed;
