@@ -156,12 +156,16 @@ namespace VisualPinball.Unity
 			// the above also transforms the aabbs.
 		}
 
-		public Line3DCollider TransformAabb(float4x4 matrix)
+		public Aabb GetTransformedAabb(float4x4 matrix)
 		{
 			var p1 = matrix.MultiplyPoint(_v1);
 			var p2 = matrix.MultiplyPoint(_v2);
+			return new Aabb(math.min(p1, p2), math.max(p1, p2));
+		}
 
-			Bounds = new ColliderBounds(Header.ItemId, Header.Id, new Aabb(math.min(p1, p2), math.max(p1, p2)));
+		public Line3DCollider TransformAabb(float4x4 matrix)
+		{
+			Bounds = new ColliderBounds(Header.ItemId, Header.Id, GetTransformedAabb(matrix));
 			return this;
 		}
 

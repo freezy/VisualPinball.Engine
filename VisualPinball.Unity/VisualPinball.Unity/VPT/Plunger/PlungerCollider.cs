@@ -107,9 +107,14 @@ namespace VisualPinball.Unity
 			JointBase1 = collider.JointBase1.Transform(matrix);
 		}
 
+		public Aabb GetTransformedAabb(float4x4 matrix)
+		{
+			return Bounds.Aabb.Transform(matrix);
+		}
+
 		public PlungerCollider TransformAabb(float4x4 matrix)
 		{
-			Bounds = new ColliderBounds(Header.ItemId, Header.Id, Bounds.Aabb.Transform(matrix));
+			Bounds = new ColliderBounds(Header.ItemId, Header.Id, GetTransformedAabb(matrix));
 			return this;
 		}
 

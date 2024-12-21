@@ -293,6 +293,7 @@ namespace VisualPinball.Unity
 				KinematicColliders = _kinematicColliders,
 				KinematicCollidersAtIdentity = _kinematicCollidersAtIdentity,
 				KinematicColliderLookups = _kinematicColliderLookups,
+				KinematicTransforms = _kinematicTransforms.Ref,
 				UpdatedKinematicTransforms = _updatedKinematicTransforms.Ref,
 				NonTransformableColliderMatrices = _nonTransformableColliderMatrices.Ref,
 				InsideOfs = _insideOfs,
@@ -315,8 +316,8 @@ namespace VisualPinball.Unity
 
 			var env = _physicsEnv.Ref[0];
 			var state = new PhysicsState(ref env, ref _octree, ref _colliders, ref _kinematicColliders,
-				ref _kinematicCollidersAtIdentity, ref _updatedKinematicTransforms.Ref, ref _nonTransformableColliderMatrices.Ref,
-				ref _kinematicColliderLookups, ref events,
+				ref _kinematicCollidersAtIdentity, ref _kinematicTransforms.Ref, ref _updatedKinematicTransforms.Ref,
+				ref _nonTransformableColliderMatrices.Ref, ref _kinematicColliderLookups, ref events,
 				ref _insideOfs, ref _ballStates.Ref, ref _bumperStates.Ref, ref _dropTargetStates.Ref, ref _flipperStates.Ref, ref _gateStates.Ref,
 				ref _hitTargetStates.Ref, ref _kickerStates.Ref, ref _plungerStates.Ref, ref _spinnerStates.Ref,
 				ref _surfaceStates.Ref, ref _triggerStates.Ref, ref _disabledCollisionItems.Ref, ref _swapBallCollisionHandling);

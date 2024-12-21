@@ -271,7 +271,7 @@ namespace VisualPinball.Unity
 			ZLow = t.z + circle.ZLow * s.z;
 		}
 
-		public CircleCollider TransformAabb(float4x4 matrix)
+		public Aabb GetTransformedAabb(float4x4 matrix)
 		{
 			var p1 = matrix.MultiplyPoint(new float3(Center.x + Radius, Center.y + Radius, ZLow));
 			var p2 = matrix.MultiplyPoint(new float3(Center.x + Radius, Center.y - Radius, ZLow));
@@ -285,8 +285,12 @@ namespace VisualPinball.Unity
 			var min = math.min(p1, math.min(p2, math.min(p3, math.min(p4, math.min(p5, math.min(p6, math.min(p7, p8)))))));
 			var max = math.max(p1, math.max(p2, math.max(p3, math.max(p4, math.max(p5, math.max(p6, math.max(p7, p8)))))));
 
-			Bounds = new ColliderBounds(Header.ItemId, Header.Id, new Aabb(min, max));
+			return new Aabb(min, max);
+		}
 
+		public CircleCollider TransformAabb(float4x4 matrix)
+		{
+			Bounds = new ColliderBounds(Header.ItemId, Header.Id, GetTransformedAabb(matrix));
 			return this;
 		}
 

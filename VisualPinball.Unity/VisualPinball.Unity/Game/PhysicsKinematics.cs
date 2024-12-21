@@ -16,6 +16,7 @@
 
 using NativeTrees;
 using Unity.Collections;
+using Unity.Mathematics;
 using Unity.Profiling;
 using VisualPinball.Unity.Collections;
 
@@ -42,13 +43,13 @@ namespace VisualPinball.Unity
 			PerfMarkerTransform.End();
 		}
 
-		internal static NativeOctree<int> CreateOctree(ref NativeColliders kinematicColliders, in AABB playfieldBounds)
+		internal static NativeOctree<int> CreateOctree(ref PhysicsState state, in AABB playfieldBounds)
 		{
 			PerfMarkerBallOctree.Begin();
 			var octree = new NativeOctree<int>(playfieldBounds, 1024, 10, Allocator.TempJob);
 
-			for (var i = 0; i < kinematicColliders.Length; i++) {
-				octree.Insert(i, kinematicColliders.GetAabb(i));
+			for (var i = 0; i < state.KinematicCollidersAtIdentity.Length; i++) {
+				octree.Insert(i, state.KinematicCollidersAtIdentity.GetAabb(i, ref state.KinematicTransforms));
 			}
 
 			PerfMarkerBallOctree.End();
