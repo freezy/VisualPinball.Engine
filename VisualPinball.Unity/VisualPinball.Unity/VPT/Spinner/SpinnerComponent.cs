@@ -134,11 +134,6 @@ namespace VisualPinball.Unity
 				.ToArray();
 		}
 
-		private void Start()
-		{
-			_playfieldToWorld = Player.PlayfieldToWorldMatrix;
-		}
-
 		#endregion
 
 		#region Wiring
@@ -150,15 +145,6 @@ namespace VisualPinball.Unity
 		public SwitchDefault SwitchDefault => SwitchDefault.Configurable;
 
 		IEnumerable<GamelogicEngineSwitch> IDeviceComponent<GamelogicEngineSwitch>.AvailableDeviceItems => AvailableSwitches;
-
-		#endregion
-
-		#region Transformation
-
-		[NonSerialized]
-		private float4x4 _playfieldToWorld;
-
-		public float4x4 TransformationWithinPlayfield => transform.worldToLocalMatrix.WorldToLocalTranslateWithinPlayfield(_playfieldToWorld);
 
 		#endregion
 

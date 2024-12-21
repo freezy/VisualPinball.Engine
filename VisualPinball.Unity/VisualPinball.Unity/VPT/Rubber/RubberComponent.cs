@@ -110,12 +110,6 @@ namespace VisualPinball.Unity
 
 		#endregion
 
-		#region Transformation
-
-		public float4x4 TransformationWithinPlayfield => transform.worldToLocalMatrix.WorldToLocalTranslateWithinPlayfield(_playfieldToWorld);
-
-		#endregion
-
 		#region Conversion
 
 		public override IEnumerable<MonoBehaviour> SetData(RubberData data)

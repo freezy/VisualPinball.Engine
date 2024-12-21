@@ -101,6 +101,7 @@ namespace VisualPinball.Unity
 		[NonSerialized] private Player _player;
 		[NonSerialized] private PhysicsMovements _physicsMovements;
 		[NonSerialized] private IKinematicColliderComponent[] _kinematicColliderComponents;
+		[NonSerialized] private float4x4 _worldToPlayfield;
 
 		private static ulong NowUsec => (ulong)(Time.timeAsDouble * 1000000);
 
@@ -233,8 +234,11 @@ namespace VisualPinball.Unity
 			_kinematicColliders = new NativeColliders(ref kinematicColliders, Allocator.Persistent);
 
 			// get kinetic collider matrices
+			_worldToPlayfield = playfield.transform.worldToLocalMatrix;
 			foreach (var coll in _kinematicColliderComponents) {
-				_kinematicTransforms.Ref[coll.ItemId] = coll.TransformationWithinPlayfield;
+				if (coll.IsKinematic) {
+					_kinematicTransforms.Ref[coll.ItemId] = coll.TranslateWithinPlayfieldMatrix(_worldToPlayfield);
+				}
 			}
 			_kinematicColliderLookups = kinematicColliders.CreateLookup(Allocator.Persistent);
 
@@ -272,7 +276,7 @@ namespace VisualPinball.Unity
 					continue;
 				}
 				var lastTransformationMatrix = _kinematicTransforms.Ref[coll.ItemId];
-				var currTransformationMatrix = coll.TransformationWithinPlayfield;
+				var currTransformationMatrix = coll.TranslateWithinPlayfieldMatrix(_worldToPlayfield);
 				if (lastTransformationMatrix.Equals(currTransformationMatrix)) {
 					continue;
 				}

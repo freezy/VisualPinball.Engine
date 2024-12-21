@@ -26,6 +26,6 @@ namespace VisualPinball.Unity
 		/// <summary>
 		/// Transformation matrix of the collider in the scene, in VPX space.
 		/// </summary>
-		public float4x4 TransformationWithinPlayfield { get; }
+		public float4x4 TranslateWithinPlayfieldMatrix(float4x4 worldToPlayfield);
 	}
 }

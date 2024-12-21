@@ -14,9 +14,11 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+using System.Runtime.CompilerServices;
 using NLog;
 using Unity.Collections;
 using Unity.Mathematics;
+using UnityEngine;
 using VisualPinball.Engine.Common;
 using VisualPinball.Engine.Game;
 using Logger = NLog.Logger;
@@ -928,7 +930,7 @@ namespace VisualPinball.Unity
 
 		#region Transformation
 
-		public static bool IsTransformable(float4x4 matrix)
+		public static bool IsTransformable(float4x4 matrix, bool printDetails = false)
 		{
 			// position: fully transformable: 3d (center + ZLow)
 			// scale: none
@@ -939,13 +941,22 @@ namespace VisualPinball.Unity
 			var rotated = math.abs(rotation.x) > Collider.Tolerance || math.abs(rotation.y) > Collider.Tolerance;
 			var scaled = math.abs(scale.x - 1) > Collider.Tolerance || math.abs(scale.y - 1) > Collider.Tolerance || math.abs(scale.z - 1) > Collider.Tolerance;
 
+			if (printDetails) {
+				if (rotated) {
+					Debug.LogWarning($"Flipper rotation is at {rotation.x}/{rotation.y}, but only z-rotation is supported.");
+				}
+				if (scaled) {
+					Debug.LogWarning($"Flipper scale is at {scale.x}/{scale.y}/{scale.z}, but no scale is supported.");
+				}
+			}
+
 			return !rotated && !scaled;
 		}
 
 		public void Transform(FlipperCollider flipperCollider, float4x4 matrix)
 		{
 			#if UNITY_EDITOR
-			if (!IsTransformable(matrix)) {
+			if (!IsTransformable(matrix, true)) {
 				throw new System.InvalidOperationException($"Matrix {matrix} cannot transform flipper.");
 			}
 			#endif

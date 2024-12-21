@@ -106,7 +106,6 @@ namespace VisualPinball.Unity
 
 		private void Start()
 		{
-			_playfieldToWorld = Player.PlayfieldToWorldMatrix;
 			if (IsHardwired) {
 				WireMapping wireMapping = new() {
 					Description = $"Hardwired bumper '{name}'",
@@ -149,9 +148,6 @@ namespace VisualPinball.Unity
 
 		#region Transformation
 
-		[NonSerialized]
-		private float4x4 _playfieldToWorld;
-
 		public void OnSurfaceUpdated() => UpdateTransforms();
 
 		public override void UpdateTransforms()
@@ -166,8 +162,6 @@ namespace VisualPinball.Unity
 			var y = Quaternion.Euler(0, Orientation, 0);
 			transform.rotation = xz * y; // localRotation?
 		}
-
-		public float4x4 TransformationWithinPlayfield => transform.worldToLocalMatrix.WorldToLocalTranslateWithinPlayfield(_playfieldToWorld);
 
 		#endregion
 
