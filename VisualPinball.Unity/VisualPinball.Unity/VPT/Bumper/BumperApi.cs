@@ -113,16 +113,15 @@ namespace VisualPinball.Unity
 		protected override void CreateColliders(ref ColliderReference colliders,
 			ref ColliderReference kinematicColliders, float4x4 translateWithinPlayfieldMatrix, float margin)
 		{
-			var matrix = MainComponent.transform.worldToLocalMatrix.WorldToLocalTranslateWithinPlayfield(Player.PlayfieldToWorldMatrix);
 			var height = MainComponent.Position.z;
 			var switchCollider = new CircleCollider(new float2(0), MainComponent.Radius, height, height + 100f, GetColliderInfo(), ColliderType.Bumper);
 			var rigidCollider = new CircleCollider(new float2(0), MainComponent.Radius * 0.5f, height, height + 100f, GetColliderInfo(), ColliderType.Circle);
 			if (ColliderComponent._isKinematic) {
-				_switchColliderId = kinematicColliders.Add(switchCollider, matrix);
-				kinematicColliders.Add(rigidCollider, matrix);
+				_switchColliderId = kinematicColliders.Add(switchCollider, translateWithinPlayfieldMatrix);
+				kinematicColliders.Add(rigidCollider, translateWithinPlayfieldMatrix);
 			} else {
-				_switchColliderId = colliders.Add(switchCollider, matrix);
-				colliders.Add(rigidCollider, matrix);
+				_switchColliderId = colliders.Add(switchCollider, translateWithinPlayfieldMatrix);
+				colliders.Add(rigidCollider, translateWithinPlayfieldMatrix);
 			}
 		}
 

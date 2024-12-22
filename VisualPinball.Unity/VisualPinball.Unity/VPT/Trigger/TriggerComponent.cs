@@ -133,7 +133,6 @@ namespace VisualPinball.Unity
 		public Vector2 Center => Position; // todo remove?
 
 		public void OnSurfaceUpdated() => UpdateTransforms();
-		public float4x4 TransformationMatrix => transform.worldToLocalMatrix.WorldToLocalTranslateWithinPlayfield(_playfieldToWorld);
 
 		#endregion
 

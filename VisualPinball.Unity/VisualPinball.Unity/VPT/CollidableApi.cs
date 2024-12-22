@@ -70,8 +70,6 @@ namespace VisualPinball.Unity
 			};
 		}
 
-		protected float4x4 GetTransformationWithinPlayfield() => MainComponent.transform.worldToLocalMatrix.WorldToLocalTranslateWithinPlayfield(Player.PlayfieldToWorldMatrix);
-
 		#endregion
 	}
 }

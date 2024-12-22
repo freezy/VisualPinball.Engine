@@ -59,12 +59,6 @@ namespace VisualPinball.Unity
 
 		#endregion
 
-		#region Transformation
-
-		public float4x4 TransformationWithinPlayfield => transform.worldToLocalMatrix.WorldToLocalTranslateWithinPlayfield(Playfield.transform.localToWorldMatrix);
-
-		#endregion
-
 		#region Conversion
 
 		public override IEnumerable<MonoBehaviour> SetData(PrimitiveData data)
@@ -234,9 +228,6 @@ namespace VisualPinball.Unity
 		#region IMeshGenerator
 
 		public Mesh GetMesh() => GetDefaultMesh();
-
-		public Matrix3D GetTransformationMatrix() =>
-			transform.worldToLocalMatrix.WorldToLocalTranslateWithinPlayfield(Playfield.transform.localToWorldMatrix).ToVpMatrix();
 
 		#endregion
 	}

@@ -74,6 +74,6 @@ namespace VisualPinball.Unity
 			=>MainComponent.PrimitiveApi ?? new PrimitiveApi(gameObject, player, physicsEngine);
 
 		public override float4x4 TranslateWithinPlayfieldMatrix(float4x4 worldToPlayfield)
-			=> MainComponent.TransformationWithinPlayfield.TransformToVpx();
+			=> base.TranslateWithinPlayfieldMatrix(worldToPlayfield).TransformToVpx();
 	}
 }
