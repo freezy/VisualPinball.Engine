@@ -80,18 +80,11 @@ namespace VisualPinball.Unity
 		/// You basically give the world-to-local transformation matrix of the item, and you'll get the
 		/// transformation in VPX space (i.e. relative to the playfield, however it's transformed).
 		/// </summary>
-		/// <param name="worldToLocal">World-to-local transformation matrix of the item.</param>
-		/// <param name="playfieldToWorld">Local-to-World transformation matrix of the playfield.</param>
-		/// <returns>Transformation matrix of the item in VPX space.</returns>
-		public static float4x4 WorldToLocalTranslateWithinPlayfield(this Matrix4x4 worldToLocal, float4x4 playfieldToWorld)
-			=> math.mul(math.mul(WorldToVpx, math.inverse(math.mul(worldToLocal, playfieldToWorld))), VpxToWorld);
-
-		public static float4x4 LocalToWorldTranslateWithinPlayfield(this Matrix4x4 localToWorldMatrix, float4x4 worldToPlayfield)
-			=> LocalToWorldTranslateWithinPlayfield((float4x4)localToWorldMatrix, worldToPlayfield);
-
-		public static float4x4 LocalToWorldTranslateWithinPlayfield(this float4x4 localToWorldMatrix, float4x4 worldToPlayfield)
-			=> math.mul(math.mul(WorldToVpx, math.mul(worldToPlayfield, localToWorldMatrix)), VpxToWorld);
-
+		/// <param name="localToWorld">Local-to-world transformation matrix of the item.</param>
+		/// <param name="worldToPlayfield">World-to-local transformation matrix of the playfield.</param>
+		/// <returns></returns>
+		public static float4x4 LocalToWorldTranslateWithinPlayfield(this float4x4 localToWorld, float4x4 worldToPlayfield)
+			=> math.mul(math.mul(WorldToVpx, math.mul(worldToPlayfield, localToWorld)), VpxToWorld);
 
 		#endregion
 

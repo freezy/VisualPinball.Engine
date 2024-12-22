@@ -72,12 +72,6 @@ namespace VisualPinball.Unity
 
 		public Mesh GetMesh() => GetDefaultMesh();
 
-		public Matrix3D GetTransformationMatrix()
-		{
-			var t = transform;
-			return Matrix4x4.TRS(t.localPosition, t.localRotation, t.localScale).ToVpMatrix();
-		}
-
 		#endregion
 
 		#region Overrides and Constants
@@ -108,8 +102,6 @@ namespace VisualPinball.Unity
 		#region Transformation
 
 		protected abstract float ZOffset { get; }
-
-		public float4x4 TransformationWithinPlayfield => transform.worldToLocalMatrix.WorldToLocalTranslateWithinPlayfield(Playfield.transform.localToWorldMatrix);
 
 		#endregion
 

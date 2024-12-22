@@ -62,7 +62,6 @@ namespace VisualPinball.Unity
 			=> (MainComponent as HitTargetComponent)?.HitTargetApi ?? new HitTargetApi(gameObject, player, physicsEngine);
 
 		public override float4x4 TranslateWithinPlayfieldMatrix(float4x4 worldToPlayfield)
-			=> MainComponent.TransformationWithinPlayfield.TransformToVpx();
-
+			=> base.TranslateWithinPlayfieldMatrix(worldToPlayfield).TransformToVpx();
 	}
 }

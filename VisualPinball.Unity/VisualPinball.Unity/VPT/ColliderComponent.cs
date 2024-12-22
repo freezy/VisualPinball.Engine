@@ -68,7 +68,7 @@ namespace VisualPinball.Unity
 		protected abstract IApiColliderGenerator InstantiateColliderApi(Player player, PhysicsEngine physicsEngine);
 
 		public virtual float4x4 TranslateWithinPlayfieldMatrix(float4x4 worldToPlayfield)
-			=> MainComponent.transform.localToWorldMatrix.LocalToWorldTranslateWithinPlayfield(worldToPlayfield);
+			=> ((float4x4)MainComponent.transform.localToWorldMatrix).LocalToWorldTranslateWithinPlayfield(worldToPlayfield);
 
 		public abstract PhysicsMaterialData PhysicsMaterialData { get; }
 
