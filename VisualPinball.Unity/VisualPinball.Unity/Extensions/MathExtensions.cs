@@ -58,6 +58,11 @@ namespace VisualPinball.Unity
 			m.c2.z = axis.z * axis.z + rCos * (1.0f - axis.z * axis.z);
 		}
 
+		public static string ToReadableString(this float4x4 m)
+		{
+			return $"t: {GetTranslation(m)}, r: {GetRotationVector(m)}, s: {GetScale(m)}";
+		}
+
 		public static float3 GetScale(this float4x4 m)
 		{
 			return new float3(
