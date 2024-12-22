@@ -14,6 +14,8 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+using System;
+
 namespace VisualPinball.Unity
 {
 	/// <summary>
@@ -38,6 +40,7 @@ namespace VisualPinball.Unity
 		}
 	}
 
+
 	public readonly struct SwitchEventArgs
 	{
 		public readonly bool IsEnabled;
@@ -50,7 +53,7 @@ namespace VisualPinball.Unity
 		}
 	}
 
-	public class NoIdCoilEventArgs
+	public class NoIdCoilEventArgs : EventArgs
 	{
 		public readonly bool IsEnergized;
 
