@@ -222,7 +222,7 @@ namespace VisualPinball.Unity
 					_disabledCollisionItems.Ref.Add(colliderItem.ItemId);
 				}
 
-				var translateWithinPlayfieldMatrix = colliderItem.TranslateWithinPlayfieldMatrix(playfield.transform.worldToLocalMatrix);
+				var translateWithinPlayfieldMatrix = colliderItem.GetLocalToPlayfieldMatrixInVpx(playfield.transform.worldToLocalMatrix);
 				// todo check if we cannot only add those that are actually non-transformable
 				_nonTransformableColliderMatrices.Ref[colliderItem.ItemId] = translateWithinPlayfieldMatrix;
 
@@ -237,7 +237,7 @@ namespace VisualPinball.Unity
 			_worldToPlayfield = playfield.transform.worldToLocalMatrix;
 			foreach (var coll in _kinematicColliderComponents) {
 				if (coll.IsKinematic) {
-					_kinematicTransforms.Ref[coll.ItemId] = coll.TranslateWithinPlayfieldMatrix(_worldToPlayfield);
+					_kinematicTransforms.Ref[coll.ItemId] = coll.GetLocalToPlayfieldMatrixInVpx(_worldToPlayfield);
 				}
 			}
 			_kinematicColliderLookups = kinematicColliders.CreateLookup(Allocator.Persistent);
@@ -276,7 +276,7 @@ namespace VisualPinball.Unity
 					continue;
 				}
 				var lastTransformationMatrix = _kinematicTransforms.Ref[coll.ItemId];
-				var currTransformationMatrix = coll.TranslateWithinPlayfieldMatrix(_worldToPlayfield);
+				var currTransformationMatrix = coll.GetLocalToPlayfieldMatrixInVpx(_worldToPlayfield);
 				if (lastTransformationMatrix.Equals(currTransformationMatrix)) {
 					continue;
 				}

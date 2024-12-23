@@ -67,8 +67,8 @@ namespace VisualPinball.Unity
 
 		protected abstract IApiColliderGenerator InstantiateColliderApi(Player player, PhysicsEngine physicsEngine);
 
-		public virtual float4x4 TranslateWithinPlayfieldMatrix(float4x4 worldToPlayfield)
-			=> ((float4x4)MainComponent.transform.localToWorldMatrix).LocalToWorldTranslateWithinPlayfield(worldToPlayfield);
+		public virtual float4x4 GetLocalToPlayfieldMatrixInVpx(float4x4 worldToPlayfield)
+			=> ((float4x4)MainComponent.transform.localToWorldMatrix).GetLocalToPlayfieldMatrixInVpx(worldToPlayfield);
 
 		public abstract PhysicsMaterialData PhysicsMaterialData { get; }
 
@@ -145,7 +145,7 @@ namespace VisualPinball.Unity
 			var playfieldToWorld = GetComponentInParent<PlayfieldComponent>().transform.localToWorldMatrix;
 
 			// todo optimize
-			var translateWithinPlayfieldMatrix = TranslateWithinPlayfieldMatrix(math.inverse(playfieldToWorld));
+			var translateWithinPlayfieldMatrix = GetLocalToPlayfieldMatrixInVpx(math.inverse(playfieldToWorld));
 
 			var nonTransformableColliderMatrices = new NativeParallelHashMap<int, float4x4>(0, Allocator.Temp);
 
@@ -242,7 +242,7 @@ namespace VisualPinball.Unity
 				white.a = 0.01f;
 
 				if (_nonTransformableColliderMesh) {
-					var m = ((float4x4)MainComponent.transform.localToWorldMatrix).LocalToWorldTranslateWithinPlayfield(math.inverse(playfieldToWorld));
+					var m = ((float4x4)MainComponent.transform.localToWorldMatrix).GetLocalToPlayfieldMatrixInVpx(math.inverse(playfieldToWorld));
 					Gizmos.matrix = playfieldToWorld * (Matrix4x4)Physics.VpxToWorld * (Matrix4x4)m;
 					Handles.matrix = Gizmos.matrix;
 					Handles.color = blue;
