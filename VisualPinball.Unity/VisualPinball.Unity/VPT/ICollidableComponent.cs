@@ -49,6 +49,6 @@ namespace VisualPinball.Unity
 		/// </summary>
 		/// <param name="worldToPlayfield">The playfield's worldToLocal matrix.</param>
 		/// <returns></returns>
-		public float4x4 TranslateWithinPlayfieldMatrix(float4x4 worldToPlayfield);
+		public float4x4 GetLocalToPlayfieldMatrixInVpx(float4x4 worldToPlayfield);
 	}
 }

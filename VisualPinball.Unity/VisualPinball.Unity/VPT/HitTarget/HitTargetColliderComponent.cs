@@ -61,7 +61,7 @@ namespace VisualPinball.Unity
 		protected override IApiColliderGenerator InstantiateColliderApi(Player player, PhysicsEngine physicsEngine)
 			=> (MainComponent as HitTargetComponent)?.HitTargetApi ?? new HitTargetApi(gameObject, player, physicsEngine);
 
-		public override float4x4 TranslateWithinPlayfieldMatrix(float4x4 worldToPlayfield)
-			=> base.TranslateWithinPlayfieldMatrix(worldToPlayfield).TransformToVpx();
+		public override float4x4 GetLocalToPlayfieldMatrixInVpx(float4x4 worldToPlayfield)
+			=> base.GetLocalToPlayfieldMatrixInVpx(worldToPlayfield).TransformToVpx();
 	}
 }
