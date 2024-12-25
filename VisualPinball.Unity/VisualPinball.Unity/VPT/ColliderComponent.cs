@@ -69,7 +69,10 @@ namespace VisualPinball.Unity
 		protected abstract IApiColliderGenerator InstantiateColliderApi(Player player, PhysicsEngine physicsEngine);
 
 		public virtual float4x4 GetLocalToPlayfieldMatrixInVpx(float4x4 worldToPlayfield)
-			=> ((float4x4)MainComponent.transform.localToWorldMatrix).GetLocalToPlayfieldMatrixInVpx(worldToPlayfield);
+			=> Physics.GetLocalToPlayfieldMatrixInVpx(MainComponent.transform.localToWorldMatrix, worldToPlayfield);
+
+		public float4x4 GetUnmodifiedLocalToPlayfieldMatrixInVpx(float4x4 worldToPlayfield)
+			=> Physics.GetLocalToPlayfieldMatrixInVpx(MainComponent.transform.localToWorldMatrix, worldToPlayfield);
 
 		public abstract PhysicsMaterialData PhysicsMaterialData { get; }
 
@@ -150,6 +153,7 @@ namespace VisualPinball.Unity
 			var playfieldToWorld = GetComponentInParent<PlayfieldComponent>().transform.localToWorldMatrix;
 			var worldToPlayfield = GetComponentInParent<PlayfieldComponent>().transform.worldToLocalMatrix;
 			var localToPlayfieldMatrixInVpx = GetLocalToPlayfieldMatrixInVpx(worldToPlayfield);
+			var unmodifiedLocalToPlayfieldMatrixInVpx = GetUnmodifiedLocalToPlayfieldMatrixInVpx(worldToPlayfield);
 			var nonTransformableColliderMatrices = new NativeParallelHashMap<int, float4x4>(0, Allocator.Temp);
 
 			var generateColliders = ShowAabbs || showColliders && !HasCachedColliders;
@@ -194,17 +198,17 @@ namespace VisualPinball.Unity
 				white.a = 0.01f;
 
 				if (_untransformedColliderMesh || _untransformedKinematicColliderMesh) {
-					Gizmos.matrix = playfieldToWorld * (Matrix4x4)Physics.VpxToWorld * (Matrix4x4)localToPlayfieldMatrixInVpx;
+					Gizmos.matrix = playfieldToWorld * (Matrix4x4)Physics.VpxToWorld * (Matrix4x4)unmodifiedLocalToPlayfieldMatrixInVpx;
 					if (_untransformedColliderMesh) {
 						Gizmos.color = ColliderColor.UntransformedColliderSelected;
 						Gizmos.DrawMesh(_untransformedColliderMesh);
-						Gizmos.color = white;
+						Gizmos.color = Application.isPlaying ? ColliderColor.UntransformedCollider : white;
 						Gizmos.DrawWireMesh(_untransformedColliderMesh);
 					}
 					if (_untransformedKinematicColliderMesh) {
 						Gizmos.color = ColliderColor.UntransformedKineticColliderSelected;
 						Gizmos.DrawMesh(_untransformedKinematicColliderMesh);
-						Gizmos.color = white;
+						Gizmos.color = Application.isPlaying ? ColliderColor.UntransformedKineticCollider : white;
 						Gizmos.DrawWireMesh(_untransformedKinematicColliderMesh);
 					}
 				}
@@ -214,13 +218,13 @@ namespace VisualPinball.Unity
 					if (_transformedColliderMesh) {
 						Gizmos.color = ColliderColor.TransformedColliderSelected;
 						Gizmos.DrawMesh(_transformedColliderMesh);
-						Gizmos.color = white;
+						Gizmos.color = Application.isPlaying ? ColliderColor.TransformedCollider : white;
 						Gizmos.DrawWireMesh(_transformedColliderMesh);
 					}
 					if (_transformedKinematicColliderMesh) {
 						Gizmos.color = ColliderColor.TransformedKineticColliderSelected;
 						Gizmos.DrawMesh(_transformedKinematicColliderMesh);
-						Gizmos.color = white;
+						Gizmos.color = Application.isPlaying ? ColliderColor.TransformedKineticCollider : white;
 						Gizmos.DrawWireMesh(_transformedKinematicColliderMesh);
 					}
 				}
@@ -437,7 +441,7 @@ namespace VisualPinball.Unity
 						AddFlipperCollider(vertices, normals, indices, Origin.Global);
 						break;
 					case FlipperCollider:
-						AddFlipperCollider(verticesNonTransformable, normalsNonTransformable, indicesNonTransformable, Origin.Global);
+						AddFlipperCollider(verticesNonTransformable, normalsNonTransformable, indicesNonTransformable, Origin.Original);
 						break;
 
 					// gate collider

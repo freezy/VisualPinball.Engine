@@ -172,7 +172,7 @@ namespace VisualPinball.Unity
 		protected override IApiColliderGenerator InstantiateColliderApi(Player player, PhysicsEngine physicsEngine)
 			=> MainComponent.FlipperApi ?? new FlipperApi(gameObject, player, physicsEngine);
 
-		// public override float4x4 GetLocalToPlayfieldMatrixInVpx(float4x4 worldToPlayfield)
-		// 	=> MainComponent.LocalToWorldPhysicsMatrix.GetLocalToPlayfieldMatrixInVpx(worldToPlayfield);
+		public override float4x4 GetLocalToPlayfieldMatrixInVpx(float4x4 worldToPlayfield)
+			=> MainComponent.LocalToWorldPhysicsMatrix.GetLocalToPlayfieldMatrixInVpx(worldToPlayfield);
 	}
 }
