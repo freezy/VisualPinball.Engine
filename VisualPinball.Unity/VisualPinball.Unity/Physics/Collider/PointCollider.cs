@@ -20,6 +20,13 @@ using VisualPinball.Engine.Common;
 
 namespace VisualPinball.Unity
 {
+	/// <summary>
+	/// A point in 3D space
+	/// </summary>
+	///
+	/// <remarks>
+	/// Defined by position (float3)
+	/// </remarks>
 	internal struct PointCollider : ICollider
 	{
 		public int Id
@@ -27,6 +34,8 @@ namespace VisualPinball.Unity
 			get => Header.Id;
 			set => Header.Id = value;
 		}
+
+		public bool IsFullyTransformable => true;
 
 		public ColliderHeader Header;
 

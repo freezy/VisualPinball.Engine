@@ -21,6 +21,13 @@ using VisualPinball.Engine.VPT;
 
 namespace VisualPinball.Unity
 {
+	/// <summary>
+	/// A triangle in 3D space.
+	/// </summary>
+	///
+	/// <remarks>
+	/// Defined by three points (float3)
+	/// </remarks>
 	internal struct TriangleCollider : ICollider
 	{
 		public int Id
@@ -28,6 +35,8 @@ namespace VisualPinball.Unity
 			get => Header.Id;
 			set => Header.Id = value;
 		}
+
+		public bool IsFullyTransformable => true;
 
 		public ColliderHeader Header;
 

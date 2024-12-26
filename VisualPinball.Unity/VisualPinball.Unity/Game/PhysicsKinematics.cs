@@ -24,10 +24,10 @@ namespace VisualPinball.Unity
 {
 	public static class PhysicsKinematics
 	{
-		private static readonly ProfilerMarker PerfMarkerTransform = new("TransformColliders");
+		private static readonly ProfilerMarker PerfMarkerTransform = new("TransformKinematicColliders");
 		private static readonly ProfilerMarker PerfMarkerBallOctree = new("CreateKinematicOctree");
 
-		internal static void TransformColliders(ref PhysicsState state)
+		internal static void TransformKinematicColliders(ref PhysicsState state)
 		{
 			PerfMarkerTransform.Begin();
 			using var enumerator = state.UpdatedKinematicTransforms.GetEnumerator();

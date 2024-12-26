@@ -25,6 +25,13 @@ using Logger = NLog.Logger;
 
 namespace VisualPinball.Unity
 {
+	/// <summary>
+	/// Our custom flipper collider.
+	/// </summary>
+	///
+	/// <remarks>
+	/// Defined by base radius, max radius, end radius, start angle, end angle
+	/// </remarks>
 	internal struct FlipperCollider : ICollider
 	{
 		public int Id
@@ -32,6 +39,8 @@ namespace VisualPinball.Unity
 			get => Header.Id;
 			set => Header.Id = value;
 		}
+
+		public bool IsFullyTransformable => false;
 
 		public ColliderHeader Header;
 		public float3 Position;

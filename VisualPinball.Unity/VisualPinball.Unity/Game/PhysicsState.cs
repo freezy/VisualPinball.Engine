@@ -125,7 +125,6 @@ namespace VisualPinball.Unity
 
 		#region Transform
 
-		internal bool HasNonTransformableColliderMatrix(int colliderId, ref NativeColliders colliders) => NonTransformableColliderMatrices.ContainsKey(colliders.GetItemId(colliderId));
 		internal ref float4x4 GetNonTransformableColliderMatrix(int colliderId, ref NativeColliders colliders)
 		{
 			var itemId = colliders.GetItemId(colliderId);
@@ -135,17 +134,16 @@ namespace VisualPinball.Unity
 			return ref NonTransformableColliderMatrices.GetValueByRef(itemId);
 		}
 
+		/// <summary>
+		/// Transforms a collider with a given transformation matrix. The matrix can be anything,
+		/// so colliders here must be 100% transformable (i.e. ICollider.IsFullyTransformable = true).
+		///
+		/// </summary>
+		/// <param name="colliderId">The ID of the collider</param>
+		/// <param name="matrix">The transformation matrix</param>
 		internal void Transform(int colliderId, float4x4 matrix)
 		{
-			switch (GetColliderType(ref KinematicColliders, colliderId))
-			{
-				case ColliderType.Bumper:
-				case ColliderType.Circle:
-					var circleCollider = KinematicColliders.Circle(colliderId);
-					if (circleCollider.Header.IsTransformed) {
-						circleCollider.Transform(KinematicCollidersAtIdentity.Circle(colliderId), matrix);
-					}
-					break;
+			switch (GetColliderType(ref KinematicColliders, colliderId)) {
 				case ColliderType.Point:
 					var pointCollider = KinematicColliders.Point(colliderId);
 					if (pointCollider.Header.IsTransformed) {
@@ -162,24 +160,6 @@ namespace VisualPinball.Unity
 					var triangleCollider = KinematicColliders.Triangle(colliderId);
 					if (triangleCollider.Header.IsTransformed) {
 						triangleCollider.Transform(KinematicCollidersAtIdentity.Triangle(colliderId), matrix);
-					}
-					break;
-				case ColliderType.Spinner:
-					var spinnerCollider = KinematicColliders.Spinner(colliderId);
-					if (spinnerCollider.Header.IsTransformed) {
-						spinnerCollider.Transform(KinematicCollidersAtIdentity.Spinner(colliderId), matrix);
-					}
-					break;
-				case ColliderType.Gate:
-					var gateCollider = KinematicColliders.Gate(colliderId);
-					if (gateCollider.Header.IsTransformed) {
-						gateCollider.Transform(KinematicCollidersAtIdentity.Gate(colliderId), matrix);
-					}
-					break;
-				case ColliderType.Flipper:
-					var flipperCollider = KinematicColliders.Flipper(colliderId);
-					if (flipperCollider.Header.IsTransformed) {
-						flipperCollider.Transform(KinematicCollidersAtIdentity.Flipper(colliderId), matrix);
 					}
 					break;
 			}

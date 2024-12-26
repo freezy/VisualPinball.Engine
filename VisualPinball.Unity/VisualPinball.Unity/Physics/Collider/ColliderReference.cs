@@ -232,7 +232,7 @@ namespace VisualPinball.Unity
 
 		internal int Add(FlipperCollider collider, float4x4 matrix)
 		{
-			if (FlipperCollider.IsTransformable(matrix)) {
+			if (!KinematicColliders && FlipperCollider.IsTransformable(matrix)) {
 				collider.Header.IsTransformed = true;
 				collider.Transform(matrix);
 

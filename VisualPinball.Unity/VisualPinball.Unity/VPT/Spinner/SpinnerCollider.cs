@@ -19,6 +19,13 @@ using VisualPinball.Engine.Common;
 
 namespace VisualPinball.Unity
 {
+	/// <summary>
+	/// Our custom spinner collider.
+	/// </summary>
+	///
+	/// <remarks>
+	/// Defined by two <see cref="LineCollider">Line colliders</see>.
+	/// </remarks>
 	internal struct SpinnerCollider : ICollider
 	{
 		public int Id
@@ -31,6 +38,8 @@ namespace VisualPinball.Unity
 				Bounds = bounds;
 			}
 		}
+
+		public bool IsFullyTransformable => false;
 
 		public ColliderHeader Header;
 
