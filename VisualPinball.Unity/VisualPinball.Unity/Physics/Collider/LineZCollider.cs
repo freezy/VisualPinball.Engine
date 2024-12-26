@@ -170,16 +170,48 @@ namespace VisualPinball.Unity
 
 		#endregion
 
+		#region Transformation
+
+		public static bool IsTransformable(float4x4 matrix)
+		{
+			// position: fully transformable: 3d (XY + ZLow/ZHigh)
+			// scale: fully scalable
+			// rotation: can be z-rotated (doesn't change anything), x/y rotation is not supported.
+
+			var rotation = matrix.GetRotationVector();
+			var xyRotated = math.abs(rotation.x) > Collider.Tolerance || math.abs(rotation.y) > Collider.Tolerance;
+
+			return !xyRotated;
+		}
+
 		public LineZCollider Transform(float4x4 matrix)
 		{
-			var t = matrix.GetTranslation();
-
-			XY += t.xy;
-			ZLow += t.z;
-			ZHigh += t.z;
-			CalculateBounds();
-
+			Transform(this, matrix);
 			return this;
+		}
+
+		public void Transform(LineZCollider lineCollider, float4x4 matrix)
+		{
+			#if UNITY_EDITOR
+			if (!IsTransformable(matrix)) {
+				throw new System.InvalidOperationException($"Matrix {matrix.ToDebugString()} cannot transform line-z collider.");
+			}
+			#endif
+
+			var t = matrix.GetTranslation();
+			var s = matrix.GetScale();
+
+			XY = lineCollider.XY + t.xy;
+			ZLow = lineCollider.ZLow + t.z;
+			ZHigh = lineCollider.ZHigh + t.z;
+			if (s.z > Collider.Tolerance) {
+				var height = ZHigh - ZLow;
+				var zMid = ZLow + height * 0.5f;
+				var halfHeightScaled = height * s.z * 0.5f;
+				ZLow = zMid - halfHeightScaled;
+				ZHigh = zMid + halfHeightScaled;
+			}
+			CalculateBounds();
 		}
 
 		public Aabb GetTransformedAabb(float4x4 matrix)
@@ -189,11 +221,7 @@ namespace VisualPinball.Unity
 			return new Aabb(math.min(p1, p2), math.max(p1, p2));
 		}
 
-		public LineZCollider TransformAabb(float4x4 matrix)
-		{
-			Bounds = new ColliderBounds(Header.ItemId, Header.Id, GetTransformedAabb(matrix));
-			return this;
-		}
+		#endregion
 
 		private void CalculateBounds()
 		{
