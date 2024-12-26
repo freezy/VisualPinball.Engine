@@ -21,6 +21,13 @@ using Random = Unity.Mathematics.Random;
 
 namespace VisualPinball.Unity
 {
+	/// <summary>
+	/// An infinite plane, aligned parallel to the playfield.
+	/// </summary>
+	///
+	/// <remarks>
+	/// Defined by normal (float3), distance to playfield
+	/// </remarks>
 	internal struct PlaneCollider : ICollider
 	{
 		public int Id
@@ -28,6 +35,8 @@ namespace VisualPinball.Unity
 			get => Header.Id;
 			set => Header.Id = value;
 		}
+
+		public bool IsFullyTransformable => false;
 
 		public ColliderHeader Header;
 

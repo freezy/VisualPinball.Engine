@@ -21,6 +21,13 @@ using VisualPinball.Engine.Game;
 
 namespace VisualPinball.Unity
 {
+	/// <summary>
+	/// Like <see cref="LineCollider">Line</see>, but with different collision code.
+	/// </summary>
+	///
+	/// <remarks>
+	/// Defined by two points (float2), zHigh, zLow
+	/// </remarks>
 	internal struct LineSlingshotCollider : ICollider
 	{
 		public int Id
@@ -28,6 +35,8 @@ namespace VisualPinball.Unity
 			get => Header.Id;
 			set => Header.Id = value;
 		}
+
+		public bool IsFullyTransformable => false;
 
 		public ColliderHeader Header;
 

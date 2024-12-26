@@ -72,7 +72,7 @@ namespace VisualPinball.Unity
 			using var cycle = new PhysicsCycle(Allocator.Temp);
 
 			// create octree of kinematic-to-ball collision. should be okay here, since static colliders don't transform more than once per frame.
-			PhysicsKinematics.TransformColliders(ref state);
+			PhysicsKinematics.TransformKinematicColliders(ref state);
 			var kineticOctree = PhysicsKinematics.CreateOctree(ref state, in PlayfieldBounds);
 
 			while (env.CurPhysicsFrameTime < InitialTimeUsec)  // loop here until current (real) time matches the physics (simulated) time

@@ -20,6 +20,13 @@ using Unity.Mathematics;
 
 namespace VisualPinball.Unity
 {
+	/// <summary>
+	/// A line from point A to point B in 3D space.
+	/// </summary>
+	///
+	/// <remarks>
+	/// Defined by two points (float3)
+	/// </remarks>
 	internal struct Line3DCollider : ICollider
 	{
 		public int Id
@@ -32,6 +39,8 @@ namespace VisualPinball.Unity
 				Bounds = bounds;
 			}
 		}
+
+		public bool IsFullyTransformable => true;
 
 		public ColliderHeader Header;
 

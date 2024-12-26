@@ -20,6 +20,13 @@ using VisualPinball.Engine.VPT;
 
 namespace VisualPinball.Unity
 {
+	/// <summary>
+	/// It's actually a cylinder, aligned orthogonally to the playfield.
+	/// </summary>
+	///
+	/// <remarks>
+	/// Defined by center (float2), radius, zHigh, zLow
+	/// </remarks>
 	internal struct CircleCollider : ICollider
 	{
 		public int Id
@@ -27,6 +34,8 @@ namespace VisualPinball.Unity
 			get => Header.Id;
 			set => Header.Id = value;
 		}
+
+		public bool IsFullyTransformable => false;
 
 		public ColliderHeader Header;
 

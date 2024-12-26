@@ -21,6 +21,14 @@ using VisualPinball.Engine.VPT;
 
 namespace VisualPinball.Unity
 {
+
+	/// <summary>
+	/// A rectangle, aligned parallel and orthogonally to the playfield (from top, looks like a line).
+	/// </summary>
+	///
+	/// <remarks>
+	/// Defined by two points (float2), zHigh, zLow
+	/// </remarks>
 	internal struct LineCollider : ICollider
 	{
 		public int Id
@@ -28,6 +36,8 @@ namespace VisualPinball.Unity
 			get => Header.Id;
 			set => Header.Id = value;
 		}
+
+		public bool IsFullyTransformable => false;
 
 		public ColliderHeader Header;
 

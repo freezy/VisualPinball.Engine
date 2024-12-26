@@ -19,6 +19,13 @@ using Unity.Mathematics;
 
 namespace VisualPinball.Unity
 {
+	/// <summary>
+	/// Our custom gate collider.
+	/// </summary>
+	///
+	/// <remarks>
+	/// Defined by two <see cref="LineCollider">Line colliders</see>.
+	/// </remarks>
 	internal struct GateCollider : ICollider
 	{
 		public int Id
@@ -31,6 +38,8 @@ namespace VisualPinball.Unity
 				Bounds = bounds;
 			}
 		}
+
+		public bool IsFullyTransformable => false;
 
 		public ColliderHeader Header;
 

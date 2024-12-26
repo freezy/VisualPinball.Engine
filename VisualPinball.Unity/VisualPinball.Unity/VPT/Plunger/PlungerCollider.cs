@@ -22,6 +22,13 @@ using Random = Unity.Mathematics.Random;
 
 namespace VisualPinball.Unity
 {
+	/// <summary>
+	/// Our custom plunger collider.
+	/// </summary>
+	///
+	/// <remarks>
+	/// Defined by z-position, width, height, stroke.
+	/// </remarks>
 	internal struct PlungerCollider : ICollider
 	{
 		public int Id
@@ -34,6 +41,8 @@ namespace VisualPinball.Unity
 				Bounds = bounds;
 			}
 		}
+
+		public bool IsFullyTransformable => false;
 
 		public ColliderHeader Header;
 
