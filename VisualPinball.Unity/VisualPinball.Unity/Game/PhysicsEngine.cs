@@ -49,20 +49,21 @@ namespace VisualPinball.Unity
 		[NonSerialized] private NativeColliders _kinematicColliders;
 		[NonSerialized] private NativeColliders _kinematicCollidersAtIdentity;
 		[NonSerialized] private NativeParallelHashMap<int, NativeColliderIds> _kinematicColliderLookups;
-		[NonSerialized] private readonly LazyInit<NativeArray<PhysicsEnv>> _physicsEnv = new(() =>new(1, Allocator.Persistent));
-		[NonSerialized] private readonly LazyInit<NativeQueue<EventData>> _eventQueue = new(() => new(Allocator.Persistent));
-		[NonSerialized] private readonly LazyInit<NativeParallelHashMap<int, BallState>> _ballStates = new(() => new (0, Allocator.Persistent));
-		[NonSerialized] private readonly LazyInit<NativeParallelHashMap<int, BumperState>> _bumperStates = new(() => new(0, Allocator.Persistent));
-		[NonSerialized] private readonly LazyInit<NativeParallelHashMap<int, FlipperState>> _flipperStates = new(() => new(0, Allocator.Persistent));
-		[NonSerialized] private readonly LazyInit<NativeParallelHashMap<int, GateState>> _gateStates = new(() => new(0, Allocator.Persistent));
-		[NonSerialized] private readonly LazyInit<NativeParallelHashMap<int, DropTargetState>>_dropTargetStates = new(() => new(0, Allocator.Persistent));
-		[NonSerialized] private readonly LazyInit<NativeParallelHashMap<int, HitTargetState>> _hitTargetStates = new(() => new(0, Allocator.Persistent));
-		[NonSerialized] private readonly LazyInit<NativeParallelHashMap<int, KickerState>> _kickerStates = new(() => new(0, Allocator.Persistent));
-		[NonSerialized] private readonly LazyInit<NativeParallelHashMap<int, PlungerState>> _plungerStates = new(() => new(0, Allocator.Persistent));
-		[NonSerialized] private readonly LazyInit<NativeParallelHashMap<int, SpinnerState>> _spinnerStates = new(() => new(0, Allocator.Persistent));
-		[NonSerialized] private readonly LazyInit<NativeParallelHashMap<int, SurfaceState>> _surfaceStates = new(() => new(0, Allocator.Persistent));
-		[NonSerialized] private readonly LazyInit<NativeParallelHashMap<int, TriggerState>> _triggerStates = new(() => new(0, Allocator.Persistent));
-		[NonSerialized] private readonly LazyInit<NativeParallelHashSet<int>> _disabledCollisionItems = new(() => new(0, Allocator.Persistent));
+		[NonSerialized] private NativeParallelHashMap<int, NativeColliderIds> _colliderLookups; // only used for editor debug
+		[NonSerialized] private readonly LazyInit<NativeArray<PhysicsEnv>> _physicsEnv = new(() => new NativeArray<PhysicsEnv>(1, Allocator.Persistent));
+		[NonSerialized] private readonly LazyInit<NativeQueue<EventData>> _eventQueue = new(() => new NativeQueue<EventData>(Allocator.Persistent));
+		[NonSerialized] private readonly LazyInit<NativeParallelHashMap<int, BallState>> _ballStates = new(() => new NativeParallelHashMap<int, BallState>(0, Allocator.Persistent));
+		[NonSerialized] private readonly LazyInit<NativeParallelHashMap<int, BumperState>> _bumperStates = new(() => new NativeParallelHashMap<int, BumperState>(0, Allocator.Persistent));
+		[NonSerialized] private readonly LazyInit<NativeParallelHashMap<int, FlipperState>> _flipperStates = new(() => new NativeParallelHashMap<int, FlipperState>(0, Allocator.Persistent));
+		[NonSerialized] private readonly LazyInit<NativeParallelHashMap<int, GateState>> _gateStates = new(() => new NativeParallelHashMap<int, GateState>(0, Allocator.Persistent));
+		[NonSerialized] private readonly LazyInit<NativeParallelHashMap<int, DropTargetState>>_dropTargetStates = new(() => new NativeParallelHashMap<int, DropTargetState>(0, Allocator.Persistent));
+		[NonSerialized] private readonly LazyInit<NativeParallelHashMap<int, HitTargetState>> _hitTargetStates = new(() => new NativeParallelHashMap<int, HitTargetState>(0, Allocator.Persistent));
+		[NonSerialized] private readonly LazyInit<NativeParallelHashMap<int, KickerState>> _kickerStates = new(() => new NativeParallelHashMap<int, KickerState>(0, Allocator.Persistent));
+		[NonSerialized] private readonly LazyInit<NativeParallelHashMap<int, PlungerState>> _plungerStates = new(() => new NativeParallelHashMap<int, PlungerState>(0, Allocator.Persistent));
+		[NonSerialized] private readonly LazyInit<NativeParallelHashMap<int, SpinnerState>> _spinnerStates = new(() => new NativeParallelHashMap<int, SpinnerState>(0, Allocator.Persistent));
+		[NonSerialized] private readonly LazyInit<NativeParallelHashMap<int, SurfaceState>> _surfaceStates = new(() => new NativeParallelHashMap<int, SurfaceState>(0, Allocator.Persistent));
+		[NonSerialized] private readonly LazyInit<NativeParallelHashMap<int, TriggerState>> _triggerStates = new(() => new NativeParallelHashMap<int, TriggerState>(0, Allocator.Persistent));
+		[NonSerialized] private readonly LazyInit<NativeParallelHashSet<int>> _disabledCollisionItems = new(() => new NativeParallelHashSet<int>(0, Allocator.Persistent));
 		[NonSerialized] private bool _swapBallCollisionHandling;
 
 		#endregion
@@ -240,6 +241,9 @@ namespace VisualPinball.Unity
 					_kinematicTransforms.Ref[coll.ItemId] = coll.GetLocalToPlayfieldMatrixInVpx(_worldToPlayfield);
 				}
 			}
+#if UNITY_EDITOR
+			_colliderLookups = colliders.CreateLookup(Allocator.Persistent);
+#endif
 			_kinematicColliderLookups = kinematicColliders.CreateLookup(Allocator.Persistent);
 
 			// create identity kinematic colliders
@@ -403,7 +407,12 @@ namespace VisualPinball.Unity
 				}
 			}
 			_kinematicColliderLookups.Dispose();
-
+			using (var enumerator = _colliderLookups.GetEnumerator()) {
+				while (enumerator.MoveNext()) {
+					enumerator.Current.Value.Dispose();
+				}
+			}
+			_colliderLookups.Dispose();
 		}
 
 		#endregion
@@ -420,13 +429,16 @@ namespace VisualPinball.Unity
 			}
 		}
 
-		public ICollider[] GetKinematicColliders(int itemId)
+		public ICollider[] GetColliders(int itemId) => GetColliders(itemId, ref _colliderLookups, ref _colliders);
+		public ICollider[] GetKinematicColliders(int itemId) => GetColliders(itemId, ref _kinematicColliderLookups, ref _kinematicColliders);
+
+		private static ICollider[] GetColliders(int itemId, ref NativeParallelHashMap<int, NativeColliderIds> lookups, ref NativeColliders nativeColliders)
 		{
-			ref var colliderIds = ref _kinematicColliderLookups.GetValueByRef(itemId);
+			ref var colliderIds = ref lookups.GetValueByRef(itemId);
 			var colliders = new ICollider[colliderIds.Length];
 			for (var i = 0; i < colliderIds.Length; i++) {
 				var colliderId = colliderIds[i];
-				colliders[i] = _kinematicColliders[colliderId];
+				colliders[i] = nativeColliders[colliderId];
 			}
 			return colliders;
 		}
