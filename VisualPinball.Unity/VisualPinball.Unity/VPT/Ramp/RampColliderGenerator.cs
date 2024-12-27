@@ -64,11 +64,11 @@ namespace VisualPinball.Unity
 
 					// add joints at start and end of right wall
 					if (i == 0) {
-						colliders.AddLineZ(pv2, rgHeight1[0], rgHeight1[0] + wallHeightRight, _api.GetColliderInfo(), _matrix);
+						colliders.Add(new LineZCollider(pv2, rgHeight1[0], rgHeight1[0] + wallHeightRight, _api.GetColliderInfo()), _matrix);
 					}
 
 					if (i == vertexCount - 2) {
-						colliders.AddLineZ(pv3, rgHeight1[vertexCount - 1], rgHeight1[vertexCount - 1] + wallHeightRight, _api.GetColliderInfo(), _matrix);
+						colliders.Add(new LineZCollider(pv3, rgHeight1[vertexCount - 1], rgHeight1[vertexCount - 1] + wallHeightRight, _api.GetColliderInfo()), _matrix);
 					}
 				}
 			}
@@ -84,11 +84,11 @@ namespace VisualPinball.Unity
 
 					// add joints at start and end of left wall
 					if (i == 0) {
-						colliders.AddLineZ(pv2, rgHeight1[vertexCount - 1], rgHeight1[vertexCount - 1] + wallHeightLeft, _api.GetColliderInfo(), _matrix);
+						colliders.Add(new LineZCollider(pv2, rgHeight1[vertexCount - 1], rgHeight1[vertexCount - 1] + wallHeightLeft, _api.GetColliderInfo()), _matrix);
 					}
 
 					if (i == vertexCount - 2) {
-						colliders.AddLineZ(pv3, rgHeight1[0], rgHeight1[0] + wallHeightLeft, _api.GetColliderInfo(), _matrix);
+						colliders.Add(new LineZCollider(pv3, rgHeight1[0], rgHeight1[0] + wallHeightLeft, _api.GetColliderInfo()), _matrix);
 					}
 				}
 			}
@@ -216,7 +216,7 @@ namespace VisualPinball.Unity
 				colliders.AddLine(pv1, pv2, height1, height2 + wallHeight, _api.GetColliderInfo(), _matrix);
 
 				if (pv3Exists) {
-					colliders.AddLineZ(pv1, height1, height2 + wallHeight, _api.GetColliderInfo(), _matrix);
+					colliders.Add(new LineZCollider(pv1, height1, height2 + wallHeight, _api.GetColliderInfo()), _matrix);
 				}
 			}
 		}

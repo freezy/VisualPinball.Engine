@@ -75,6 +75,15 @@ namespace VisualPinball.Unity
 			FireEvents = info.FireEvents;
 		}
 
+		public ColliderInfo ColliderInfo => new ColliderInfo {
+			Id = Id,
+			ItemId = ItemId,
+			ItemType = ItemType,
+			Material = Material,
+			HitThreshold = Threshold,
+			FireEvents = FireEvents
+		};
+
 		public static bool operator ==(ColliderHeader a, ColliderHeader b) => a.Equals(b);
 		public static bool operator !=(ColliderHeader a, ColliderHeader b) => !a.Equals(b);
 

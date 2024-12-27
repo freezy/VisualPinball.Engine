@@ -58,11 +58,6 @@ namespace VisualPinball.Unity
 			m.c2.z = axis.z * axis.z + rCos * (1.0f - axis.z * axis.z);
 		}
 
-		public static string ToReadableString(this float4x4 m)
-		{
-			return $"t: {GetTranslation(m)}, r: {GetRotationVector(m)}, s: {GetScale(m)}";
-		}
-
 		public static float3 GetScale(this float4x4 m)
 		{
 			return new float3(
@@ -75,22 +70,6 @@ namespace VisualPinball.Unity
 		public static float3 GetTranslation(this float4x4 m) => new(m.c3.x, m.c3.y, m.c3.z);
 
 		public static float3 GetRotationVector(this float4x4 matrix) => new quaternion(matrix).ToEuler();
-
-		public static bool IsPureTranslationMatrix(this float4x4 matrix)
-		{
-			// check scaling (diagonal elements)
-			if (math.abs(matrix.c0.x - 1.0f) > Collider.Tolerance || math.abs(matrix.c1.y - 1.0f) > Collider.Tolerance || math.abs(matrix.c2.z - 1.0f) > Collider.Tolerance) {
-				return false;
-			}
-
-			// Check rotation (non-diagonal elements)
-			if (math.abs(matrix.c0.y) > Collider.Tolerance || math.abs(matrix.c0.z)  > Collider.Tolerance || math.abs(matrix.c1.x)  > Collider.Tolerance ||
-			    math.abs(matrix.c1.z)  > Collider.Tolerance || math.abs(matrix.c2.x)  > Collider.Tolerance || math.abs(matrix.c2.y)  > Collider.Tolerance) {
-				return false;
-			}
-
-			return true;
-		}
 
 		public static Vertex3D ToVertex3D(this Vector3 vector)
 		{
@@ -213,6 +192,6 @@ namespace VisualPinball.Unity
 
 		public static string ToDebugString(this float4x4 m) => $"{((Matrix4x4)m).ToString()}\nt: {m.GetTranslation()}\nr: {math.degrees(m.GetRotationVector())}\ns: {m.GetScale()}";
 
-		public static string ToDebugString(this Matrix4x4 m) => ((float4x4)m).ToDebugString();
+		public static string ToDebugString(this Matrix4x4 m) => ToDebugString((float4x4)m);
 	}
 }
