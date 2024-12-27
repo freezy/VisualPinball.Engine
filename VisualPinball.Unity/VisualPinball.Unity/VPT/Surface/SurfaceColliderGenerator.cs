@@ -92,7 +92,7 @@ namespace VisualPinball.Unity
 			colliders.Add(new Line3DCollider(new float3(pv1.X, pv1.Y, top), new float3(pv2.X, pv2.Y, top), _api.GetColliderInfo()), _matrix);
 
 			// create vertical joint between the two line segments
-			colliders.AddLineZ(pv1.ToUnityFloat2(), bottom, top, _api.GetColliderInfo(), _matrix);
+			colliders.Add(new LineZCollider(pv1.ToUnityFloat2(), bottom, top, _api.GetColliderInfo()), _matrix);
 
 			// add upper and lower end points of line
 			if (_component.HeightBottom != 0) {

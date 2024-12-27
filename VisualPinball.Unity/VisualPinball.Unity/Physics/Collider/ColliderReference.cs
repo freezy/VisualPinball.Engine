@@ -332,8 +332,16 @@ namespace VisualPinball.Unity
 			return collider.Id;
 		}
 
-		private int Add(LineZCollider collider)
+		internal int Add(LineZCollider collider, float4x4 matrix)
 		{
+			if (!LineZCollider.IsTransformable(matrix)) {
+				// use line 3d collider instead
+				return Add(new Line3DCollider(new float3(collider.XY, collider.ZLow), new float3(collider.XY, collider.ZHigh), collider.Header.ColliderInfo), matrix);
+			}
+
+			collider.Header.IsTransformed = true;
+			collider.Transform(matrix);
+
 			collider.Id = Lookups.Length;
 			TrackReference(collider.Header.ItemId, collider.Header.Id);
 			Lookups.Add(new ColliderLookup(ColliderType.LineZ, LineZColliders.Length));
@@ -443,15 +451,6 @@ namespace VisualPinball.Unity
 
 				Add(t1, matrix);
 				Add(t2, matrix);
-			}
-		}
-
-		internal void AddLineZ(float2 xy, float zLow, float zHigh, ColliderInfo info, float4x4 matrix)
-		{
-			if (KinematicColliders || !matrix.IsPureTranslationMatrix()) { // todo support scale and z-rotation
-				Add(new Line3DCollider(new float3(xy.xy, zLow), new float3(xy.xy, zHigh), info), matrix);
-			} else {
-				Add(new LineZCollider(xy, zLow, zHigh, info).Transform(matrix));
 			}
 		}
 
