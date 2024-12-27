@@ -44,7 +44,6 @@ namespace VisualPinball.Unity.Editor
 		{
 			ColliderComponent = target as TColliderComponent;
 			if (ColliderComponent != null) {
-				ColliderComponent.ShowGizmos = true;
 
 				// if no meshes active, show collider
 				if (ColliderComponent.MainComponent && !ColliderComponent.MainComponent.GetComponentsInChildren<MeshRenderer>().Any(mr => mr.enabled)) {
@@ -53,13 +52,6 @@ namespace VisualPinball.Unity.Editor
 			}
 
 			base.OnEnable();
-		}
-
-		private void OnDestroy()
-		{
-			if (ColliderComponent != null) {
-				ColliderComponent.ShowGizmos = false;
-			}
 		}
 
 		public override void OnInspectorGUI()

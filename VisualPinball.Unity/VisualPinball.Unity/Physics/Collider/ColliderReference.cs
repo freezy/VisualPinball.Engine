@@ -195,9 +195,11 @@ namespace VisualPinball.Unity
 
 		private void TrackReference(int itemId, int colliderId)
 		{
+			#if !UNITY_EDITOR
 			if (!KinematicColliders) {
 				return;
 			}
+			#endif
 
 			if (!_itemIdToColliderIds.ContainsKey(itemId)) {
 				_itemIdToColliderIds[itemId] = new NativeList<int>(Allocator.Temp);
