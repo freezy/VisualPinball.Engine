@@ -209,7 +209,7 @@ namespace VisualPinball.Unity
 
 		internal int Add(CircleCollider collider, float4x4 matrix)
 		{
-			if (CircleCollider.IsTransformable(matrix)) {
+			if (!KinematicColliders && CircleCollider.IsTransformable(matrix)) {
 				collider.Header.IsTransformed = true;
 				collider.Transform(matrix);
 
@@ -254,7 +254,7 @@ namespace VisualPinball.Unity
 
 		internal int Add(GateCollider collider, float4x4 matrix)
 		{
-			if (GateCollider.IsTransformable(matrix)) {
+			if (!KinematicColliders && GateCollider.IsTransformable(matrix)) {
 				collider.Header.IsTransformed = true;
 				collider.Transform(matrix);
 
@@ -289,7 +289,7 @@ namespace VisualPinball.Unity
 
 		internal int Add(LineSlingshotCollider collider, float4x4 matrix)
 		{
-			if (LineSlingshotCollider.IsTransformable(matrix)) {
+			if (!KinematicColliders && LineSlingshotCollider.IsTransformable(matrix)) {
 				collider.Header.IsTransformed = true;
 				collider.Transform(matrix);
 
@@ -312,7 +312,7 @@ namespace VisualPinball.Unity
 		internal int Add(LineCollider collider) => Add(collider, float4x4.identity); // used for the playfield only
 		internal int Add(LineCollider collider, float4x4 matrix)
 		{
-			if (LineCollider.IsTransformable(matrix)) {
+			if (!KinematicColliders && LineCollider.IsTransformable(matrix)) {
 				collider.Header.IsTransformed = true;
 				collider.Transform(matrix);
 
@@ -334,7 +334,7 @@ namespace VisualPinball.Unity
 
 		internal int Add(LineZCollider collider, float4x4 matrix)
 		{
-			if (!LineZCollider.IsTransformable(matrix)) {
+			if (KinematicColliders || !LineZCollider.IsTransformable(matrix)) {
 				// use line 3d collider instead
 				return Add(new Line3DCollider(new float3(collider.XY, collider.ZLow), new float3(collider.XY, collider.ZHigh), collider.Header.ColliderInfo), matrix);
 			}
@@ -351,7 +351,7 @@ namespace VisualPinball.Unity
 
 		internal int Add(PlungerCollider collider, float4x4 matrix)
 		{
-			if (PlungerCollider.IsTransformable(matrix)) {
+			if (!KinematicColliders && PlungerCollider.IsTransformable(matrix)) {
 				collider.Header.IsTransformed = true;
 				collider.Transform(matrix);
 
@@ -386,7 +386,7 @@ namespace VisualPinball.Unity
 
 		internal int Add(SpinnerCollider collider, float4x4 matrix)
 		{
-			if (SpinnerCollider.IsTransformable(matrix)) {
+			if (!KinematicColliders && SpinnerCollider.IsTransformable(matrix)) {
 				collider.Header.IsTransformed = true;
 				collider.Transform(matrix);
 
