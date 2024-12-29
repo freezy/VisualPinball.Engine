@@ -252,7 +252,7 @@ namespace VisualPinball.Unity
 			return collider.Id;
 		}
 
-		internal int Add(GateCollider collider, float4x4 matrix)
+		internal void Add(GateCollider collider, float4x4 matrix)
 		{
 			if (!KinematicColliders && GateCollider.IsTransformable(matrix)) {
 				collider.Header.IsTransformed = true;
@@ -272,10 +272,9 @@ namespace VisualPinball.Unity
 			TrackReference(collider.Header.ItemId, collider.Header.Id);
 			Lookups.Add(new ColliderLookup(ColliderType.Gate, GateColliders.Length));
 			GateColliders.Add(collider);
-			return collider.Id;
 		}
 
-		internal int Add(Line3DCollider collider, float4x4 matrix)
+		internal void Add(Line3DCollider collider, float4x4 matrix)
 		{
 			collider.Header.IsTransformed = true;
 			collider.Transform(matrix);
@@ -284,10 +283,9 @@ namespace VisualPinball.Unity
 			TrackReference(collider.Header.ItemId, collider.Header.Id);
 			Lookups.Add(new ColliderLookup(ColliderType.Line3D, Line3DColliders.Length));
 			Line3DColliders.Add(collider);
-			return collider.Id;
 		}
 
-		internal int Add(LineSlingshotCollider collider, float4x4 matrix)
+		internal void Add(LineSlingshotCollider collider, float4x4 matrix)
 		{
 			if (!KinematicColliders && LineSlingshotCollider.IsTransformable(matrix)) {
 				collider.Header.IsTransformed = true;
@@ -306,7 +304,6 @@ namespace VisualPinball.Unity
 			TrackReference(collider.Header.ItemId, collider.Header.Id);
 			Lookups.Add(new ColliderLookup(ColliderType.LineSlingShot, LineSlingshotColliders.Length));
 			LineSlingshotColliders.Add(collider);
-			return collider.Id;
 		}
 
 		internal void Add(LineCollider collider) => Add(collider, float4x4.identity); // used for the playfield only
@@ -340,11 +337,12 @@ namespace VisualPinball.Unity
 			}
 		}
 
-		internal int Add(LineZCollider collider, float4x4 matrix)
+		internal void Add(LineZCollider collider, float4x4 matrix)
 		{
 			if (KinematicColliders || !LineZCollider.IsTransformable(matrix)) {
 				// use line 3d collider instead
-				return Add(new Line3DCollider(new float3(collider.XY, collider.ZLow), new float3(collider.XY, collider.ZHigh), collider.Header.ColliderInfo), matrix);
+				Add(new Line3DCollider(new float3(collider.XY, collider.ZLow), new float3(collider.XY, collider.ZHigh), collider.Header.ColliderInfo), matrix);
+				return;
 			}
 
 			collider.Header.IsTransformed = true;
@@ -354,10 +352,9 @@ namespace VisualPinball.Unity
 			TrackReference(collider.Header.ItemId, collider.Header.Id);
 			Lookups.Add(new ColliderLookup(ColliderType.LineZ, LineZColliders.Length));
 			LineZColliders.Add(collider);
-			return collider.Id;
 		}
 
-		internal int Add(PlungerCollider collider, float4x4 matrix)
+		internal void Add(PlungerCollider collider, float4x4 matrix)
 		{
 			if (!KinematicColliders && PlungerCollider.IsTransformable(matrix)) {
 				collider.Header.IsTransformed = true;
@@ -377,10 +374,9 @@ namespace VisualPinball.Unity
 			TrackReference(collider.Header.ItemId, collider.Header.Id);
 			Lookups.Add(new ColliderLookup(ColliderType.Plunger, PlungerColliders.Length));
 			PlungerColliders.Add(collider);
-			return collider.Id;
 		}
 
-		internal int Add(PointCollider collider, float4x4 matrix)
+		internal void Add(PointCollider collider, float4x4 matrix)
 		{
 			collider.Header.IsTransformed = true;
 			collider.Transform(matrix);
@@ -389,10 +385,9 @@ namespace VisualPinball.Unity
 			TrackReference(collider.Header.ItemId, collider.Header.Id);
 			Lookups.Add(new ColliderLookup(ColliderType.Point, PointColliders.Length));
 			PointColliders.Add(collider);
-			return collider.Id;
 		}
 
-		internal int Add(SpinnerCollider collider, float4x4 matrix)
+		internal void Add(SpinnerCollider collider, float4x4 matrix)
 		{
 			if (!KinematicColliders && SpinnerCollider.IsTransformable(matrix)) {
 				collider.Header.IsTransformed = true;
@@ -412,7 +407,6 @@ namespace VisualPinball.Unity
 			TrackReference(collider.Header.ItemId, collider.Header.Id);
 			Lookups.Add(new ColliderLookup(ColliderType.Spinner, SpinnerColliders.Length));
 			SpinnerColliders.Add(collider);
-			return collider.Id;
 		}
 
 		internal int Add(TriangleCollider collider, float4x4 matrix)
@@ -427,13 +421,12 @@ namespace VisualPinball.Unity
 			return collider.Id;
 		}
 
-		internal int Add(PlaneCollider collider) // used for the playfield only
+		internal void Add(PlaneCollider collider) // used for the playfield only
 		{
 			collider.Id = Lookups.Length;
 			TrackReference(collider.Header.ItemId, collider.Header.Id);
 			Lookups.Add(new ColliderLookup(ColliderType.Plane, PlaneColliders.Length));
 			PlaneColliders.Add(collider);
-			return collider.Id;
 		}
 
 		#endregion
