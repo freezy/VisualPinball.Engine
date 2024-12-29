@@ -77,7 +77,7 @@ namespace VisualPinball.Unity
 			var top = _component.HeightTop + playfieldHeight;
 
 			if (!pv1.IsSlingshot) {
-				colliders.AddLine(pv1.ToUnityFloat2(), pv2.ToUnityFloat2(), bottom, top, _api.GetColliderInfo(), _matrix);
+				colliders.Add(new LineCollider(pv1.ToUnityFloat2(), pv2.ToUnityFloat2(), bottom, top, _api.GetColliderInfo()), _matrix);
 
 			} else {
 				colliders.Add(new LineSlingshotCollider(_colliderComponent.SlingshotForce, pv1.ToUnityFloat2(), pv2.ToUnityFloat2(), bottom, top, _api.GetColliderInfo()), _matrix);
