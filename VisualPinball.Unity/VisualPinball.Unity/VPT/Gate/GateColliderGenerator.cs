@@ -96,7 +96,7 @@ namespace VisualPinball.Unity
 			var rgv1 = new float2(-(halfLength + PhysicsConstants.PhysSkin), 0f);
 
 			var info = _api.GetColliderInfo(ItemType.Invalid); // hack to not treat this line seg as gate
-			colliders.AddLine(rgv0, rgv1, -2f * PhysicsConstants.PhysSkin, 0, info, _matrix); //!! = ball diameter
+			colliders.Add(new LineCollider(rgv0, rgv1, -2f * PhysicsConstants.PhysSkin, 0, info), _matrix); //!! = ball diameter
 		}
 
 		/// <summary>

@@ -213,7 +213,7 @@ namespace VisualPinball.Unity
 				GenerateWallLineSeg((pv1 + pv2) * 0.5f, pv2, true, (height1 + height2) * 0.5f, height2, wallHeight, ref colliders);
 
 			} else {
-				colliders.AddLine(pv1, pv2, height1, height2 + wallHeight, _api.GetColliderInfo(), _matrix);
+				colliders.Add(new LineCollider(pv1, pv2, height1, height2 + wallHeight, _api.GetColliderInfo()), _matrix);
 
 				if (pv3Exists) {
 					colliders.Add(new LineZCollider(pv1, height1, height2 + wallHeight, _api.GetColliderInfo()), _matrix);
