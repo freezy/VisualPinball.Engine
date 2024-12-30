@@ -24,7 +24,7 @@ namespace VisualPinball.Unity
 {
 	[AddComponentMenu("Visual Pinball/Collision/Flipper Collider")]
 	[HelpURL("https://docs.visualpinball.org/creators-guide/manual/mechanisms/flippers.html")]
-	public class FlipperColliderComponent : ColliderComponent<FlipperData, FlipperComponent>, IKinematicColliderComponent
+	public class FlipperColliderComponent : ColliderComponent<FlipperData, FlipperComponent>
 	{
 		#region Data
 

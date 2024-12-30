@@ -54,5 +54,7 @@ namespace VisualPinball.Unity
 		/// <param name="worldToPlayfield">The playfield's worldToLocal matrix.</param>
 		/// <returns></returns>
 		public float4x4 GetLocalToPlayfieldMatrixInVpx(float4x4 worldToPlayfield);
+
+		public bool CollidersDirty { set; }
 	}
 }

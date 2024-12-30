@@ -34,8 +34,7 @@ using Mesh = UnityEngine.Mesh;
 namespace VisualPinball.Unity
 {
 	[DisallowMultipleComponent]
-	public abstract class ColliderComponent<TData, TMainComponent> : SubComponent<TData, TMainComponent>,
-		IColliderComponent, ICollidableComponent
+	public abstract class ColliderComponent<TData, TMainComponent> : SubComponent<TData, TMainComponent>, ICollidableComponent
 		where TData : ItemData
 		where TMainComponent : MainComponent<TData>
 	{

@@ -563,7 +563,7 @@ namespace VisualPinball.Unity
 				case ColliderType.Triangle: return ref UnsafeUtility.ArrayElementAsRef<TriangleCollider>(m_TriangleColliderBuffer, lookup.Index).Header;
 				case ColliderType.Plane: return ref UnsafeUtility.ArrayElementAsRef<PlaneCollider>(m_PlaneColliderBuffer, lookup.Index).Header;
 			}
-			throw new ArgumentException($"Unknown lookup type.");
+			throw new ArgumentException("Unknown lookup type.");
 		}
 
 		#endregion
