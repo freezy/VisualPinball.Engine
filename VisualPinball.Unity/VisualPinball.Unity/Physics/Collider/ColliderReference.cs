@@ -97,6 +97,11 @@ namespace VisualPinball.Unity
 
 		public void TransformToIdentity(ref NativeParallelHashMap<int, float4x4> itemIdToTransformationMatrix)
 		{
+			#if UNITY_EDITOR
+			if (!KinematicColliders) {
+				throw new InvalidOperationException("Cannot transform non-kinetic colliders to identity.");
+			}
+			#endif
 			using var enumerator = _itemIdToColliderIds.GetEnumerator();
 			while (enumerator.MoveNext()) {
 				var itemId = enumerator.Current.Key;
@@ -106,6 +111,8 @@ namespace VisualPinball.Unity
 					var lookup = Lookups[colliderId];
 					switch (lookup.Type) {
 
+						case ColliderType.TriggerCircle:
+						case ColliderType.KickerCircle:
 						case ColliderType.Bumper:
 						case ColliderType.Circle:
 							ref var circleCollider = ref CircleColliders.GetElementAsRef(lookup.Index);
@@ -176,6 +183,43 @@ namespace VisualPinball.Unity
 							#endif
 							flipperCollider.TransformAabb(math.inverse(matrix));
 							break;
+
+						case ColliderType.LineSlingShot:
+							ref var slingshotCollider = ref LineSlingshotColliders.GetElementAsRef(lookup.Index);
+							#if UNITY_EDITOR
+							if (slingshotCollider.Header.IsTransformed) {
+								throw new InvalidOperationException("A transformed slingshot collider shouldn't have been added as a kinetic collider.");
+							}
+							#endif
+							slingshotCollider.TransformAabb(math.inverse(matrix));
+							break;
+
+						case ColliderType.Plunger:
+							ref var plungerCollider = ref PlungerColliders.GetElementAsRef(lookup.Index);
+							#if UNITY_EDITOR
+							if (plungerCollider.Header.IsTransformed) {
+								throw new InvalidOperationException("A transformed plunger collider shouldn't have been added as a kinetic collider.");
+							}
+							#endif
+							plungerCollider.TransformAabb(math.inverse(matrix));
+							break;
+
+						case ColliderType.Line:
+							#if UNITY_EDITOR
+							throw new InvalidOperationException("Line colliders shouldn't exist as kinetic colliders, but converted to line 3D colliders.");
+							#endif
+						case ColliderType.LineZ:
+							#if UNITY_EDITOR
+							throw new InvalidOperationException("Line-Z colliders shouldn't exist as kinetic colliders, but converted to line 3D colliders.");
+							#endif
+						case ColliderType.Plane:
+							#if UNITY_EDITOR
+							throw new InvalidOperationException("Planes cannot be be kinematic.");
+							#endif
+						case ColliderType.None:
+							break;
+						default:
+							throw new ArgumentOutOfRangeException();
 					}
 				}
 			}
