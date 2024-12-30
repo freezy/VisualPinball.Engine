@@ -111,18 +111,13 @@ namespace VisualPinball.Unity
 		protected override float HitThreshold => ColliderComponent.Threshold;
 
 		protected override void CreateColliders(ref ColliderReference colliders,
-			ref ColliderReference kinematicColliders, float4x4 translateWithinPlayfieldMatrix, float margin)
+			float4x4 translateWithinPlayfieldMatrix, float margin)
 		{
 			var height = MainComponent.Position.z;
 			var switchCollider = new CircleCollider(new float2(0), MainComponent.Radius, height, height + 100f, GetColliderInfo(), ColliderType.Bumper);
 			var rigidCollider = new CircleCollider(new float2(0), MainComponent.Radius * 0.5f, height, height + 100f, GetColliderInfo(), ColliderType.Circle);
-			if (ColliderComponent._isKinematic) {
-				_switchColliderId = kinematicColliders.Add(switchCollider, translateWithinPlayfieldMatrix);
-				kinematicColliders.Add(rigidCollider, translateWithinPlayfieldMatrix);
-			} else {
-				_switchColliderId = colliders.Add(switchCollider, translateWithinPlayfieldMatrix);
-				colliders.Add(rigidCollider, translateWithinPlayfieldMatrix);
-			}
+			_switchColliderId = colliders.Add(switchCollider, translateWithinPlayfieldMatrix);
+			colliders.Add(rigidCollider, translateWithinPlayfieldMatrix);
 		}
 
 		#endregion

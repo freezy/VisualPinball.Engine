@@ -227,7 +227,11 @@ namespace VisualPinball.Unity
 				// todo check if we cannot only add those that are actually non-transformable
 				_nonTransformableColliderMatrices.Ref[colliderItem.ItemId] = translateWithinPlayfieldMatrix;
 
-				colliderItem.GetColliders(_player, this, ref colliders, ref kinematicColliders, translateWithinPlayfieldMatrix, 0);
+				if (colliderItem.IsKinematic) {
+					colliderItem.GetColliders(_player, this, ref kinematicColliders, translateWithinPlayfieldMatrix, 0);
+				} else {
+					colliderItem.GetColliders(_player, this, ref colliders, translateWithinPlayfieldMatrix, 0);
+				}
 			}
 
 			// allocate colliders

@@ -26,11 +26,10 @@ namespace VisualPinball.Unity
 		/// <param name="player"></param>
 		/// <param name="physicsEngine"></param>
 		/// <param name="colliders"></param>
-		/// <param name="kinematicColliders"></param>
 		/// <param name="translateWithinPlayfieldMatrix"></param>
 		/// <param name="margin"></param>
 		internal void GetColliders(Player player, PhysicsEngine physicsEngine, ref ColliderReference colliders,
-			ref ColliderReference kinematicColliders, float4x4 translateWithinPlayfieldMatrix, float margin);
+			float4x4 translateWithinPlayfieldMatrix, float margin);
 
 		/// <summary>
 		/// The unique identifier of the main item.
@@ -42,6 +41,11 @@ namespace VisualPinball.Unity
 		/// collided with during gameplay.
 		/// </summary>
 		internal bool IsCollidable { get; }
+
+		/// <summary>
+		/// If set, this collider can be transformed during gameplay.
+		/// </summary>
+		public bool IsKinematic { get; }
 
 		/// <summary>
 		/// The translation matrix, that will be applied in reverse to the ball

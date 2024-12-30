@@ -223,8 +223,7 @@ namespace VisualPinball.Unity
 
 		#region Collider Generation
 
-		protected override void CreateColliders(ref ColliderReference colliders,
-			ref ColliderReference kinematicColliders, float4x4 translateWithinPlayfieldMatrix, float margin)
+		protected override void CreateColliders(ref ColliderReference colliders, float4x4 translateWithinPlayfieldMatrix, float margin)
 		{
 			// check which side we are at
 			var multiplicator = 0.0f;
@@ -233,7 +232,7 @@ namespace VisualPinball.Unity
 			}
 
 			// and add ColliderComponent.Overshoot to the endangle so that the bounding box is correctly calculated
-			ColliderId = (ColliderComponent._isKinematic ? kinematicColliders : colliders).Add(
+			ColliderId = colliders.Add(
 				new FlipperCollider(
 					MainComponent.Height,
 					MainComponent.FlipperRadiusMax,

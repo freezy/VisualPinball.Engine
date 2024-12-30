@@ -83,15 +83,10 @@ namespace VisualPinball.Unity
 
 		protected override bool FireHitEvents => true;
 
-		protected override void CreateColliders(ref ColliderReference colliders,
-			ref ColliderReference kinematicColliders, float4x4 translateWithinPlayfieldMatrix, float margin)
+		protected override void CreateColliders(ref ColliderReference colliders, float4x4 translateWithinPlayfieldMatrix, float margin)
 		{
 			var colliderGenerator = new SpinnerColliderGenerator(this, MainComponent, translateWithinPlayfieldMatrix);
-			if (ColliderComponent._isKinematic) {
-				colliderGenerator.GenerateColliders(ref kinematicColliders, ColliderComponent.ZPosition);
-			} else {
-				colliderGenerator.GenerateColliders(ref colliders, ColliderComponent.ZPosition);
-			}
+			colliderGenerator.GenerateColliders(ref colliders, ColliderComponent.ZPosition);
 		}
 
 		#endregion

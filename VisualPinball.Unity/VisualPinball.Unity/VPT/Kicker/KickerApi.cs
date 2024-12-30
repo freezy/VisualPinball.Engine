@@ -224,8 +224,7 @@ namespace VisualPinball.Unity
 
 		#region Collider Generation
 
-		protected override void CreateColliders(ref ColliderReference colliders,
-			ref ColliderReference kinematicColliders, float4x4 translateWithinPlayfieldMatrix, float margin)
+		protected override void CreateColliders(ref ColliderReference colliders, float4x4 translateWithinPlayfieldMatrix, float margin)
 		{
 			// reduce the hit circle radius because only the inner circle of the kicker should start a hit event
 			var radius = MainComponent.Radius * (ColliderComponent.LegacyMode ? ColliderComponent.FallThrough ? 0.75f : 0.6f : 1f);
