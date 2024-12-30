@@ -28,9 +28,33 @@ namespace VisualPinball.Unity
 		internal PhysicsEnv Env;
 		internal NativeOctree<int> Octree;
 		internal NativeColliders Colliders;
+
+		/// <summary>
+		/// All kinematic colliders, with their transformation applied for fully transformable colliders, and without for the others.
+		///
+		/// This is used for:
+		///   - The hit test in the narrow phase
+		///   - Contact resolution in each cycle
+		///   -
+		///
+		/// </summary>
 		internal NativeColliders KinematicColliders;
+
+		/// <summary>
+		/// All kinematic colliders, without any transformation applied (for those fully transformable, the others aren't transformed anyway).
+		///
+		/// It's set in PhysicsEngine.Start() through ColliderReference.TransformToIdentity()
+		///
+		/// This is used for:
+		///   - Transform fully-transformable colliders in PhysicsUpdateJob.Execute() with PhysicsKinematics.TransformFullyTransformableColliders()
+		///   - Computing the AABBs for the octree in PhysicsUpdateJob.Execute()
+		/// </summary>
 		internal NativeColliders KinematicCollidersAtIdentity;
 		internal NativeParallelHashMap<int, float4x4> UpdatedKinematicTransforms; // updated transformations of the items, in vpx space.
+
+		/// <summary>
+		///
+		/// </summary>
 		internal NativeParallelHashMap<int, float4x4> KinematicTransforms;        // transformations of the items, in vpx space.
 		internal NativeParallelHashMap<int, float4x4> NonTransformableColliderMatrices;
 		internal NativeParallelHashMap<int, NativeColliderIds> KinematicColliderLookups;
@@ -146,17 +170,17 @@ namespace VisualPinball.Unity
 		{
 			switch (GetColliderType(ref KinematicColliders, colliderId)) {
 				case ColliderType.Point:
-					var pointCollider = KinematicColliders.Point(colliderId);
+					ref var pointCollider = ref KinematicColliders.Point(colliderId);
 					pointCollider.Transform(KinematicCollidersAtIdentity.Point(colliderId), matrix);
 					break;
 
 				case ColliderType.Line3D:
-					var line3DCollider = KinematicColliders.Line3D(colliderId);
+					ref var line3DCollider = ref KinematicColliders.Line3D(colliderId);
 					line3DCollider.Transform(KinematicCollidersAtIdentity.Line3D(colliderId), matrix);
 					break;
 
 				case ColliderType.Triangle:
-					var triangleCollider = KinematicColliders.Triangle(colliderId);
+					ref var triangleCollider = ref KinematicColliders.Triangle(colliderId);
 					triangleCollider.Transform(KinematicCollidersAtIdentity.Triangle(colliderId), matrix);
 					break;
 			}
