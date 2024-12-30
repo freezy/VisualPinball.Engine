@@ -27,7 +27,7 @@ namespace VisualPinball.Unity
 		private static readonly ProfilerMarker PerfMarkerTransform = new("TransformKinematicColliders");
 		private static readonly ProfilerMarker PerfMarkerBallOctree = new("CreateKinematicOctree");
 
-		internal static void TransformKinematicColliders(ref PhysicsState state)
+		internal static void TransformFullyTransformableColliders(ref PhysicsState state)
 		{
 			PerfMarkerTransform.Begin();
 			using var enumerator = state.UpdatedKinematicTransforms.GetEnumerator();
@@ -49,7 +49,7 @@ namespace VisualPinball.Unity
 			var octree = new NativeOctree<int>(playfieldBounds, 1024, 10, Allocator.TempJob);
 
 			for (var i = 0; i < state.KinematicCollidersAtIdentity.Length; i++) {
-				octree.Insert(i, state.KinematicCollidersAtIdentity.GetAabb(i, ref state.KinematicTransforms));
+				octree.Insert(i, state.KinematicCollidersAtIdentity.GetTransformedAabb(i, ref state.KinematicTransforms));
 			}
 
 			PerfMarkerBallOctree.End();
