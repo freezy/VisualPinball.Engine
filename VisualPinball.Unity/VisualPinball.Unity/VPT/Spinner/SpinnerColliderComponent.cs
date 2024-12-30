@@ -40,14 +40,5 @@ namespace VisualPinball.Unity
 		protected override IApiColliderGenerator InstantiateColliderApi(Player player, PhysicsEngine physicsEngine)
 			=> MainComponent.SpinnerApi ?? new SpinnerApi(gameObject, player, physicsEngine);
 
-		#region IKinematicColliderComponent
-
-		[Tooltip("If set, transforming this object during gameplay will transform the colliders as well.")]
-		public bool _isKinematic;
-
-		public bool IsKinematic => _isKinematic;
-		public int ItemId => MainComponent.gameObject.GetInstanceID();
-
-		#endregion
 	}
 }

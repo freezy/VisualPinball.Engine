@@ -78,16 +78,6 @@ namespace VisualPinball.Unity
 
 		public override PhysicsMaterialData PhysicsMaterialData => GetPhysicsMaterialData(Elasticity, ElasticityFalloff, Friction, Scatter);
 
-		#region IKinematicColliderComponent
-
-		[Tooltip("If set, transforming this object during gameplay will transform the colliders as well.")]
-		public bool _isKinematic;
-
-		public bool IsKinematic => _isKinematic;
-		public int ItemId => MainComponent.gameObject.GetInstanceID();
-
-		#endregion
-
 		#region FlipperTricks
 		/// <summary>
 		/// If set, apply Flipper Tricks Physics (nFozzy/RothBauerW)

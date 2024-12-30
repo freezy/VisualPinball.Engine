@@ -37,7 +37,6 @@ namespace VisualPinball.Unity.Editor
 		private SerializedProperty _torqueDampingAngleProperty;
 		private SerializedProperty _scatterProperty;
 		private SerializedProperty _flipperCorrectionProperty;
-		private SerializedProperty _isKinematicProperty;
 
 		private bool _foldoutFlipperTricks = true;
 		private bool _foldoutLiveCatch = true;
@@ -73,7 +72,6 @@ namespace VisualPinball.Unity.Editor
 		{
 			base.OnEnable();
 
-			_isKinematicProperty = serializedObject.FindProperty(nameof(FlipperColliderComponent._isKinematic));
 			_massProperty = serializedObject.FindProperty(nameof(FlipperColliderComponent.Mass));
 			_strengthProperty = serializedObject.FindProperty(nameof(FlipperColliderComponent.Strength));
 			_returnProperty = serializedObject.FindProperty(nameof(FlipperColliderComponent.Return));
@@ -120,7 +118,6 @@ namespace VisualPinball.Unity.Editor
 
 			OnPreInspectorGUI();
 
-			PropertyField(_isKinematicProperty, "Movable");
 			PropertyField(_massProperty);
 			PropertyField(_strengthProperty);
 			PropertyField(_returnProperty, "Return Strength");

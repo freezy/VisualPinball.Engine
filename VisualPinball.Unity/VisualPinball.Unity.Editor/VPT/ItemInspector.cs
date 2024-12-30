@@ -243,7 +243,7 @@ namespace VisualPinball.Unity.Editor
 			}
 		}
 
-		protected void OnPreInspectorGUI()
+		protected virtual void OnPreInspectorGUI()
 		{
 			if (!(target is IMainRenderableComponent)) {
 				return;

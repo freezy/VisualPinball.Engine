@@ -26,8 +26,6 @@ namespace VisualPinball.Unity.Editor
 	{
 		private bool _foldoutMaterial = true;
 
-		private SerializedProperty _isKinematicProperty;
-
 		private SerializedProperty _hitEventProperty;
 		private SerializedProperty _thresholdProperty;
 		private SerializedProperty _leftWallHeightProperty;
@@ -42,8 +40,6 @@ namespace VisualPinball.Unity.Editor
 		protected override void OnEnable()
 		{
 			base.OnEnable();
-
-			_isKinematicProperty = serializedObject.FindProperty(nameof(RampColliderComponent._isKinematic));
 
 			_hitEventProperty = serializedObject.FindProperty(nameof(RampColliderComponent.HitEvent));
 			_thresholdProperty = serializedObject.FindProperty(nameof(RampColliderComponent.Threshold));
@@ -67,7 +63,6 @@ namespace VisualPinball.Unity.Editor
 
 			OnPreInspectorGUI();
 
-			PropertyField(_isKinematicProperty, "Movable");
 			PropertyField(_hitEventProperty, "Has Hit Event");
 			PropertyField(_thresholdProperty, "Hit Threshold");
 			PropertyField(_leftWallHeightProperty, "Left Colliding Wall Height", updateColliders: true);

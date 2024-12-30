@@ -52,20 +52,10 @@ namespace VisualPinball.Unity
 		[Tooltip("When hit, add a random angle between 0 and this value to the trajectory.")]
 		public float Scatter;
 
-		[Tooltip("If set, transforming this object will transform the colliders as well.")]
-		public bool _isKinematic;
-
 		#endregion
 
 		public override PhysicsMaterialData PhysicsMaterialData => GetPhysicsMaterialData(Elasticity, ElasticityFalloff, Friction, Scatter, OverwritePhysics);
 		protected override IApiColliderGenerator InstantiateColliderApi(Player player, PhysicsEngine physicsEngine)
 			=> MainComponent.RubberApi ?? new RubberApi(gameObject, player, physicsEngine);
-
-		#region IKinematicColliderComponent
-
-		public bool IsKinematic => _isKinematic;
-		public int ItemId => MainComponent.gameObject.GetInstanceID();
-
-		#endregion
 	}
 }

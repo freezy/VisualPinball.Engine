@@ -30,6 +30,8 @@ namespace VisualPinball.Unity.Editor
 	{
 		protected TColliderComponent ColliderComponent;
 
+		protected SerializedProperty IsKinematicProperty;
+
 		private bool _foldoutDebug = true;
 		private bool _foldoutColliders;
 		private string[] _currentColliders;
@@ -42,6 +44,7 @@ namespace VisualPinball.Unity.Editor
 
 		protected override void OnEnable()
 		{
+			IsKinematicProperty = serializedObject.FindProperty(nameof(ColliderComponent._isKinematic));
 			ColliderComponent = target as TColliderComponent;
 			if (ColliderComponent != null) {
 
@@ -52,6 +55,17 @@ namespace VisualPinball.Unity.Editor
 			}
 
 			base.OnEnable();
+		}
+
+		protected override void OnPreInspectorGUI()
+		{
+			PropertyField(IsKinematicProperty, "Movable");
+			base.OnPreInspectorGUI();
+		}
+
+		protected void OnParentPreInspectorGUI()
+		{
+			base.OnPreInspectorGUI();
 		}
 
 		public override void OnInspectorGUI()
