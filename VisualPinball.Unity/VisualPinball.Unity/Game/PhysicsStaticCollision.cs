@@ -128,14 +128,14 @@ namespace VisualPinball.Unity
 					break;
 
 				case ColliderType.LineSlingShot:
-					ref var surfaceState = ref state.GetSurfaceState(colliderId);
+					ref var surfaceState = ref state.GetSurfaceState(colliderId, ref colliders);
 					ref var surfaceCollider = ref colliders.LineSlingShot(colliderId);
 					surfaceCollider.Collide(ref ball, ref state.EventQueue, in surfaceState.Slingshot,
 						in ball.CollisionEvent, ref state.Env.Random);
 					break;
 
 				case ColliderType.Plunger:
-					ref var plungerState = ref state.GetPlungerState(colliderId);
+					ref var plungerState = ref state.GetPlungerState(colliderId, ref colliders);
 					PlungerCollider.Collide(ref ball, ref ball.CollisionEvent, ref plungerState.Movement, in plungerState.Static, ref state.Env.Random);
 					break;
 
@@ -145,11 +145,11 @@ namespace VisualPinball.Unity
 					break;
 
 				case ColliderType.TriggerCircle:
-					TriggerCollide(ref ball, ref state, in collHeader);
+					TriggerCollide(ref ball, ref state, in collHeader, ref colliders);
 					break;
 
 				case ColliderType.KickerCircle:
-					ref var kickerState = ref state.GetKickerState(colliderId);
+					ref var kickerState = ref state.GetKickerState(colliderId, ref colliders);
 					KickerCollider.Collide(ref ball, ref state.EventQueue, ref state.InsideOfs, ref kickerState.Collision,
 						in kickerState.Static, in kickerState.CollisionMesh, in ball.CollisionEvent, collHeader.ItemId, false);
 					break;
@@ -171,30 +171,30 @@ namespace VisualPinball.Unity
 					? colliders.Triangle(colliderId).Normal()
 					: ball.CollisionEvent.HitNormal;
 
-				if (state.HasDropTargetState(colliderId)) {
-					ref var dropTargetState = ref state.GetDropTargetState(colliderId);
+				if (state.HasDropTargetState(colliderId, ref colliders)) {
+					ref var dropTargetState = ref state.GetDropTargetState(colliderId, ref colliders);
 					TargetCollider.DropTargetCollide(ref ball, ref state.EventQueue, ref dropTargetState.Animation, in normal, in ball.CollisionEvent, in collHeader, ref state.Env.Random);
 					return true;
 				}
 
-				if (state.HasHitTargetState(colliderId)) {
-					ref var hitTargetState = ref state.GetHitTargetState(colliderId);
+				if (state.HasHitTargetState(colliderId, ref colliders)) {
+					ref var hitTargetState = ref state.GetHitTargetState(colliderId, ref colliders);
 					TargetCollider.HitTargetCollide(ref ball, ref state.EventQueue, ref hitTargetState.Animation, in normal, in ball.CollisionEvent, in collHeader, ref state.Env.Random);
 					return true;
 				}
 
 			// trigger
 			} else if (collHeader.ItemType == ItemType.Trigger) {
-				TriggerCollide(ref ball, ref state, in collHeader);
+				TriggerCollide(ref ball, ref state, in collHeader, ref colliders);
 				return true;
 			}
 
 			return false;
 		}
 
-		private static void TriggerCollide(ref BallState ball, ref PhysicsState state, in ColliderHeader collHeader)
+		private static void TriggerCollide(ref BallState ball, ref PhysicsState state, in ColliderHeader collHeader, ref NativeColliders colliders)
 		{
-			ref var triggerState = ref state.GetTriggerState(collHeader.Id);
+			ref var triggerState = ref state.GetTriggerState(collHeader.Id, ref colliders);
 			TriggerCollider.Collide(ref ball, ref state.EventQueue, ref ball.CollisionEvent, ref state.InsideOfs, ref triggerState.Animation, in collHeader);
 
 			if (triggerState.FlipperCorrection.IsEnabled) {
