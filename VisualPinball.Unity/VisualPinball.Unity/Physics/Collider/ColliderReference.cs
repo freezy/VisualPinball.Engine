@@ -95,7 +95,7 @@ namespace VisualPinball.Unity
 
 		public ICollider this[int i] => LookupCollider(i);
 
-		public void TransformToIdentity(NativeParallelHashMap<int, float4x4> itemIdToTransformationMatrix)
+		public void TransformToIdentity(ref NativeParallelHashMap<int, float4x4> itemIdToTransformationMatrix)
 		{
 			using var enumerator = _itemIdToColliderIds.GetEnumerator();
 			while (enumerator.MoveNext()) {
@@ -105,62 +105,76 @@ namespace VisualPinball.Unity
 					var matrix = itemIdToTransformationMatrix[itemId];
 					var lookup = Lookups[colliderId];
 					switch (lookup.Type) {
+
 						case ColliderType.Bumper:
 						case ColliderType.Circle:
 							ref var circleCollider = ref CircleColliders.GetElementAsRef(lookup.Index);
+							#if UNITY_EDITOR
 							if (circleCollider.Header.IsTransformed) {
-								circleCollider.Transform(CircleColliders[lookup.Index], math.inverse(matrix));
-							} else {
-								circleCollider.TransformAabb(math.inverse(matrix));
+								throw new InvalidOperationException("A transformed circle collider shouldn't have been added as a kinetic collider.");
 							}
+							#endif
+							circleCollider.TransformAabb(math.inverse(matrix));
 							break;
+
 						case ColliderType.Point:
 							ref var pointCollider = ref PointColliders.GetElementAsRef(lookup.Index);
-							if (pointCollider.Header.IsTransformed) {
-								pointCollider.Transform(PointColliders[lookup.Index], math.inverse(matrix));
-							} else {
-								pointCollider.TransformAabb(math.inverse(matrix));
+							#if UNITY_EDITOR
+							if (!pointCollider.Header.IsTransformed) {
+								throw new InvalidOperationException("Points are fully transformable, so they should always be transformed.");
 							}
+							#endif
+							pointCollider.Transform(PointColliders[lookup.Index], math.inverse(matrix));
 							break;
+
 						case ColliderType.Line3D:
 							ref var line3DCollider = ref Line3DColliders.GetElementAsRef(lookup.Index);
-							if (line3DCollider.Header.IsTransformed) {
-								line3DCollider.Transform(Line3DColliders[lookup.Index], math.inverse(matrix));
-							} else {
-								line3DCollider.TransformAabb(math.inverse(matrix));
+							#if UNITY_EDITOR
+							if (!line3DCollider.Header.IsTransformed) {
+								throw new InvalidOperationException("Line3D colliders are fully transformable, so they should always be transformed.");
 							}
+							#endif
+							line3DCollider.Transform(Line3DColliders[lookup.Index], math.inverse(matrix));
 							break;
+
 						case ColliderType.Triangle:
 							ref var triangleCollider = ref TriangleColliders.GetElementAsRef(lookup.Index);
-							if (triangleCollider.Header.IsTransformed) {
-								triangleCollider.Transform(TriangleColliders[lookup.Index], math.inverse(matrix));
-							} else {
-								triangleCollider.TransformAabb(math.inverse(matrix));
+							#if UNITY_EDITOR
+							if (!triangleCollider.Header.IsTransformed) {
+								throw new InvalidOperationException("Triangles are fully transformable, so they should always be transformed.");
 							}
+							#endif
+							triangleCollider.Transform(TriangleColliders[lookup.Index], math.inverse(matrix));
 							break;
+
 						case ColliderType.Spinner:
 							ref var spinnerCollider = ref SpinnerColliders.GetElementAsRef(lookup.Index);
+							#if UNITY_EDITOR
 							if (spinnerCollider.Header.IsTransformed) {
-								spinnerCollider.Transform(SpinnerColliders[lookup.Index], math.inverse(matrix));
-							} else {
-								spinnerCollider.TransformAabb(math.inverse(matrix));
+								throw new InvalidOperationException("A transformed spinner collider shouldn't have been added as a kinetic collider.");
 							}
+							#endif
+							spinnerCollider.TransformAabb(math.inverse(matrix));
 							break;
+
 						case ColliderType.Gate:
 							ref var gateCollider = ref GateColliders.GetElementAsRef(lookup.Index);
+							#if UNITY_EDITOR
 							if (gateCollider.Header.IsTransformed) {
-								gateCollider.Transform(GateColliders[lookup.Index], math.inverse(matrix));
-							} else {
-								gateCollider.TransformAabb(math.inverse(matrix));
+								throw new InvalidOperationException("A transformed gate collider shouldn't have been added as a kinetic collider.");
 							}
+							#endif
+							gateCollider.TransformAabb(math.inverse(matrix));
 							break;
+
 						case ColliderType.Flipper:
 							ref var flipperCollider = ref FlipperColliders.GetElementAsRef(lookup.Index);
+							#if UNITY_EDITOR
 							if (flipperCollider.Header.IsTransformed) {
-								flipperCollider.Transform(FlipperColliders[lookup.Index], math.inverse(matrix));
-							} else {
-								flipperCollider.TransformAabb(math.inverse(matrix));
+								throw new InvalidOperationException("A transformed flipper collider shouldn't have been added as a kinetic collider.");
 							}
+							#endif
+							flipperCollider.TransformAabb(math.inverse(matrix));
 							break;
 					}
 				}
@@ -188,7 +202,7 @@ namespace VisualPinball.Unity
 				case ColliderType.Triangle: return TriangleColliders.GetElementAsRef(lookup.Index);
 				case ColliderType.Plane: return PlaneColliders.GetElementAsRef(lookup.Index);
 			}
-			throw new ArgumentException($"Unknown lookup type.");
+			throw new ArgumentException("Unknown lookup type.");
 		}
 
 		#region Add
@@ -431,6 +445,7 @@ namespace VisualPinball.Unity
 
 		#endregion
 
+		// ReSharper disable once UnusedMember.Global
 		public ICollider[] ToArray()
 		{
 			var array = new ICollider[Lookups.Length];
