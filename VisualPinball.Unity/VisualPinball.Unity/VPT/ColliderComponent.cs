@@ -121,13 +121,22 @@ namespace VisualPinball.Unity
 			};
 		}
 
+		#region IKinematicColliderComponent
+
+		[Tooltip("If set, transforming this object during gameplay will transform the colliders as well.")]
+		public bool _isKinematic;
+
+		public bool IsKinematic => _isKinematic;
+		public int ItemId => MainComponent.gameObject.GetInstanceID();
+
+		#endregion
+
 		#region Collider Gizmos
 
 #if UNITY_EDITOR
 
 		private PhysicsEngine _physicsEngine;
 		private Player _player;
-		private bool IsKinematic => this is IKinematicColliderComponent { IsKinematic: true };
 
 		private void OnDrawGizmos()
 		{

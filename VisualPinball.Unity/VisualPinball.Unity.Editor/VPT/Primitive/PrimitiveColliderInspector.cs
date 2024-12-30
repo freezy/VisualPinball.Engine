@@ -35,7 +35,6 @@ namespace VisualPinball.Unity.Editor
 		private SerializedProperty _collisionReductionFactorProperty;
 		private SerializedProperty _overwritePhysicsProperty;
 		private SerializedProperty _physicsMaterialProperty;
-		private SerializedProperty _isKinematicProperty;
 
 		protected override void OnEnable()
 		{
@@ -51,7 +50,6 @@ namespace VisualPinball.Unity.Editor
 			_elasticityFalloffProperty = serializedObject.FindProperty(nameof(PrimitiveColliderComponent.ElasticityFalloff));
 			_frictionProperty = serializedObject.FindProperty(nameof(PrimitiveColliderComponent.Friction));
 			_scatterProperty = serializedObject.FindProperty(nameof(PrimitiveColliderComponent.Scatter));
-			_isKinematicProperty = serializedObject.FindProperty(nameof(PrimitiveColliderComponent._isKinematic));
 		}
 
 		public override void OnInspectorGUI()
@@ -64,7 +62,6 @@ namespace VisualPinball.Unity.Editor
 
 			OnPreInspectorGUI();
 
-			PropertyField(_isKinematicProperty, "Movable");
 			PropertyField(_hitEventProperty, "Has Hit Event");
 			PropertyField(_thresholdProperty, "Hit Threshold");
 			PropertyField(_collisionReductionFactorProperty, "Reduce Polygons By");

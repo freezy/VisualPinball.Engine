@@ -24,14 +24,12 @@ namespace VisualPinball.Unity.Editor
 	[CustomEditor(typeof(TriggerColliderComponent)), CanEditMultipleObjects]
 	public class TriggerColliderInspector : ColliderInspector<TriggerData, TriggerComponent, TriggerColliderComponent>
 	{
-		private SerializedProperty _isKinematicProperty;
 		private SerializedProperty _hitHeightProperty;
 		private SerializedProperty _hitCircleRadiusProperty;
 
 		protected override void OnEnable()
 		{
 			base.OnEnable();
-			_isKinematicProperty = serializedObject.FindProperty(nameof(TriggerColliderComponent._isKinematic));
 			_hitHeightProperty = serializedObject.FindProperty(nameof(TriggerColliderComponent.HitHeight));
 			_hitCircleRadiusProperty = serializedObject.FindProperty(nameof(TriggerColliderComponent.HitCircleRadius));
 		}
@@ -46,7 +44,6 @@ namespace VisualPinball.Unity.Editor
 
 			OnPreInspectorGUI();
 
-			PropertyField(_isKinematicProperty, "Movable");
 			PropertyField(_hitHeightProperty, updateColliders: true);
 			var meshComponent = (target as TriggerColliderComponent)!.GetComponent<TriggerMeshComponent>();
 			if (meshComponent && meshComponent.IsCircle) {

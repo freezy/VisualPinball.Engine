@@ -57,16 +57,6 @@ namespace VisualPinball.Unity
 		[Tooltip("Ignore the assigned physics material above and use the value below.")]
 		public bool OverwritePhysics = true;
 
-		[Tooltip("If set, transforming this object will transform the colliders as well.")]
-		public bool _isKinematic;
-
-		#endregion
-
-		#region IKinematicColliderComponent
-
-		public bool IsKinematic => _isKinematic;
-		public int ItemId => MainComponent.gameObject.GetInstanceID();
-
 		#endregion
 
 		public override PhysicsMaterialData PhysicsMaterialData => GetPhysicsMaterialData(Elasticity, ElasticityFalloff, Friction, Scatter, OverwritePhysics);

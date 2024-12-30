@@ -27,7 +27,6 @@ namespace VisualPinball.Unity.Editor
 		private bool _foldoutMaterial = true;
 		private bool _foldoutSlingshot;
 
-		private SerializedProperty _isKinematicProperty;
 		private SerializedProperty _hitEventProperty;
 		private SerializedProperty _thresholdProperty;
 		private SerializedProperty _isBottomSolidProperty;
@@ -44,7 +43,6 @@ namespace VisualPinball.Unity.Editor
 		{
 			base.OnEnable();
 
-			_isKinematicProperty = serializedObject.FindProperty(nameof(SurfaceColliderComponent._isKinematic));
 			_hitEventProperty = serializedObject.FindProperty(nameof(SurfaceColliderComponent.HitEvent));
 			_thresholdProperty = serializedObject.FindProperty(nameof(SurfaceColliderComponent.Threshold));
 			_isBottomSolidProperty = serializedObject.FindProperty(nameof(SurfaceColliderComponent.IsBottomSolid));
@@ -68,7 +66,6 @@ namespace VisualPinball.Unity.Editor
 
 			OnPreInspectorGUI();
 
-			PropertyField(_isKinematicProperty, "Movable");
 			PropertyField(_hitEventProperty, "Has Hit Event");
 			PropertyField(_thresholdProperty, "Hit Threshold");
 			PropertyField(_isBottomSolidProperty, "Is Bottom Collidable", updateColliders: true);

@@ -42,16 +42,6 @@ namespace VisualPinball.Unity
 		[Tooltip("If set, a hit event is triggered.")]
 		public bool HitEvent = true;
 
-		[Tooltip("If set, transforming this object will transform the colliders as well.")]
-		public bool _isKinematic;
-
-		#endregion
-
-		#region IKinematicColliderComponent
-
-		public bool IsKinematic => _isKinematic;
-		public int ItemId => MainComponent.gameObject.GetInstanceID();
-
 		#endregion
 
 		protected override IApiColliderGenerator InstantiateColliderApi(Player player, PhysicsEngine physicsEngine)
