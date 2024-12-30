@@ -23,7 +23,7 @@ using VisualPinball.Engine.VPT.Primitive;
 namespace VisualPinball.Unity
 {
 	[AddComponentMenu("Visual Pinball/Collision/Primitive Collider")]
-	public class PrimitiveColliderComponent : ColliderComponent<PrimitiveData, PrimitiveComponent>, IKinematicColliderComponent
+	public class PrimitiveColliderComponent : ColliderComponent<PrimitiveData, PrimitiveComponent>
 	{
 		#region Data
 

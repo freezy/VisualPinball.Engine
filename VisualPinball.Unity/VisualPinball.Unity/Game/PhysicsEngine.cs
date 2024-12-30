@@ -18,6 +18,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using NativeTrees;
 using Unity.Collections;
 using Unity.Jobs;
@@ -101,7 +102,8 @@ namespace VisualPinball.Unity
 
 		[NonSerialized] private Player _player;
 		[NonSerialized] private PhysicsMovements _physicsMovements;
-		[NonSerialized] private IKinematicColliderComponent[] _kinematicColliderComponents;
+		[NonSerialized] private ICollidableComponent[] _colliderComponents;
+		[NonSerialized] private ICollidableComponent[] _kinematicColliderComponents;
 		[NonSerialized] private float4x4 _worldToPlayfield;
 
 		private static ulong NowUsec => (ulong)(Time.timeAsDouble * 1000000);
@@ -205,7 +207,8 @@ namespace VisualPinball.Unity
 			_physicsMovements = new PhysicsMovements();
 			_insideOfs = new InsideOfs(Allocator.Persistent);
 			_physicsEnv.Ref[0] = new PhysicsEnv(NowUsec, GetComponentInChildren<PlayfieldComponent>(), GravityStrength);
-			_kinematicColliderComponents = GetComponentsInChildren<IKinematicColliderComponent>();
+			_colliderComponents = GetComponentsInChildren<ICollidableComponent>();
+			_kinematicColliderComponents = _colliderComponents.Where(c => c.IsKinematic).ToArray();
 		}
 
 		private void Start()
@@ -214,11 +217,10 @@ namespace VisualPinball.Unity
 			var sw = Stopwatch.StartNew();
 			var playfield = GetComponentInChildren<PlayfieldComponent>();
 
-			var colliderItems = GetComponentsInChildren<ICollidableComponent>();
-			Debug.Log($"Found {colliderItems.Length} collidable items.");
+			Debug.Log($"Found {_colliderComponents.Length} collidable items ({_kinematicColliderComponents.Length} kinematic).");
 			var colliders = new ColliderReference(ref _nonTransformableColliderMatrices.Ref, Allocator.Temp);
 			var kinematicColliders = new ColliderReference(ref _nonTransformableColliderMatrices.Ref, Allocator.Temp, true);
-			foreach (var colliderItem in colliderItems) {
+			foreach (var colliderItem in _colliderComponents) {
 				if (!colliderItem.IsCollidable) {
 					_disabledCollisionItems.Ref.Add(colliderItem.ItemId);
 				}
@@ -241,9 +243,7 @@ namespace VisualPinball.Unity
 			// get kinetic collider matrices
 			_worldToPlayfield = playfield.transform.worldToLocalMatrix;
 			foreach (var coll in _kinematicColliderComponents) {
-				if (coll.IsKinematic) {
-					_kinematicTransforms.Ref[coll.ItemId] = coll.GetLocalToPlayfieldMatrixInVpx(_worldToPlayfield);
-				}
+				_kinematicTransforms.Ref[coll.ItemId] = coll.GetLocalToPlayfieldMatrixInVpx(_worldToPlayfield);
 			}
 #if UNITY_EDITOR
 			_colliderLookups = colliders.CreateLookup(Allocator.Persistent);
@@ -280,9 +280,6 @@ namespace VisualPinball.Unity
 			// check for updated kinematic transforms
 			_updatedKinematicTransforms.Ref.Clear();
 			foreach (var coll in _kinematicColliderComponents) {
-				if (!coll.IsKinematic) { // kinematic enabled?
-					continue;
-				}
 				var lastTransformationMatrix = _kinematicTransforms.Ref[coll.ItemId];
 				var currTransformationMatrix = coll.GetLocalToPlayfieldMatrixInVpx(_worldToPlayfield);
 				if (lastTransformationMatrix.Equals(currTransformationMatrix)) {

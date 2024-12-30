@@ -16,9 +16,6 @@
 
 using System;
 using System.Collections;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
 using UnityEditor;
 using UnityEngine;
 using Object = UnityEngine.Object;
@@ -122,7 +119,7 @@ namespace VisualPinball.Unity.Editor
 					}
 					break;
 
-				case IColliderComponent colliderComponent:
+				case ICollidableComponent colliderComponent:
 					if (_collidersDirty) {
 						colliderComponent.CollidersDirty = true;
 					}
@@ -296,7 +293,7 @@ namespace VisualPinball.Unity.Editor
 						meshItem.MainRenderableComponent.RebuildMeshes();
 						break;
 
-					case IColliderComponent _:
+					case ICollidableComponent _:
 						Undo.RecordObject(UndoTarget, undoLabel);
 						break;
 

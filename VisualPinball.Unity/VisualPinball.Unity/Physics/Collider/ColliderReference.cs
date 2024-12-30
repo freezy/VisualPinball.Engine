@@ -42,6 +42,9 @@ namespace VisualPinball.Unity
 
 		public NativeList<ColliderLookup> Lookups; // collider id -> collider type + index within collider type list
 
+		/// <summary>
+		/// If true, then all colliders are kinematic.
+		/// </summary>
 		public readonly bool KinematicColliders; // if set, populate _itemIdToColliderIds
 		private NativeParallelHashMap<int, NativeList<int>> _itemIdToColliderIds;
 		private NativeParallelHashMap<int, float4x4> _nonTransformableColliderMatrices;

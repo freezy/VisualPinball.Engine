@@ -52,10 +52,10 @@ namespace VisualPinball.Unity
 				.Select(c => (IMeshComponent) c)
 				/*.Where(ma => ma.ItemData == _data)*/ : Array.Empty<IMeshComponent>();
 
-		private IEnumerable<IColliderComponent> ColliderComponents => ColliderComponentType != null ?
+		private IEnumerable<ICollidableComponent> ColliderComponents => ColliderComponentType != null ?
 			GetComponentsInChildren(ColliderComponentType, true)
-				.Select(c => (IColliderComponent) c)
-				/*.Where(ca => ca.ItemData == _data)*/ : Array.Empty<IColliderComponent>();
+				.Select(c => (ICollidableComponent) c)
+				/*.Where(ca => ca.ItemData == _data)*/ : Array.Empty<ICollidableComponent>();
 
 		public void RebuildMeshes()
 		{

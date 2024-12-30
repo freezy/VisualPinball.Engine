@@ -40,7 +40,7 @@ namespace VisualPinball.Unity
 			if (ac != null) {
 				return ac;
 			}
-			if (this is IColliderComponent) {
+			if (this is ICollidableComponent) {
 				// collider must be on the same game object
 				return null;
 			}

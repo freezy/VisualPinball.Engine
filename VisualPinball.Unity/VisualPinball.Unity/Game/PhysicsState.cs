@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+using System;
 using NativeTrees;
 using Unity.Collections;
 using Unity.Mathematics;
@@ -146,21 +147,17 @@ namespace VisualPinball.Unity
 			switch (GetColliderType(ref KinematicColliders, colliderId)) {
 				case ColliderType.Point:
 					var pointCollider = KinematicColliders.Point(colliderId);
-					if (pointCollider.Header.IsTransformed) {
-						pointCollider.Transform(KinematicCollidersAtIdentity.Point(colliderId), matrix);
-					}
+					pointCollider.Transform(KinematicCollidersAtIdentity.Point(colliderId), matrix);
 					break;
+
 				case ColliderType.Line3D:
 					var line3DCollider = KinematicColliders.Line3D(colliderId);
-					if (line3DCollider.Header.IsTransformed) {
-						line3DCollider.Transform(KinematicCollidersAtIdentity.Line3D(colliderId), matrix);
-					}
+					line3DCollider.Transform(KinematicCollidersAtIdentity.Line3D(colliderId), matrix);
 					break;
+
 				case ColliderType.Triangle:
 					var triangleCollider = KinematicColliders.Triangle(colliderId);
-					if (triangleCollider.Header.IsTransformed) {
-						triangleCollider.Transform(KinematicCollidersAtIdentity.Triangle(colliderId), matrix);
-					}
+					triangleCollider.Transform(KinematicCollidersAtIdentity.Triangle(colliderId), matrix);
 					break;
 			}
 		}

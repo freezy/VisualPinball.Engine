@@ -24,7 +24,7 @@ using VisualPinball.Engine.VPT.Gate;
 namespace VisualPinball.Unity
 {
 	[AddComponentMenu("Visual Pinball/Collision/Gate Collider")]
-	public class GateColliderComponent : ColliderComponent<GateData, GateComponent>, IGateColliderData, IKinematicColliderComponent
+	public class GateColliderComponent : ColliderComponent<GateData, GateComponent>, IGateColliderData
 	{
 		#region Data
 

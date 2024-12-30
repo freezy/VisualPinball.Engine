@@ -23,7 +23,7 @@ using VisualPinball.Engine.VPT.Ramp;
 namespace VisualPinball.Unity
 {
 	[AddComponentMenu("Visual Pinball/Collision/Ramp Collider")]
-	public class RampColliderComponent : ColliderComponent<RampData, RampComponent>, IKinematicColliderComponent
+	public class RampColliderComponent : ColliderComponent<RampData, RampComponent>
 	{
 		#region Data
 
