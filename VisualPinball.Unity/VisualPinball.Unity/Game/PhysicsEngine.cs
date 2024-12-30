@@ -247,7 +247,7 @@ namespace VisualPinball.Unity
 			_kinematicColliderLookups = kinematicColliders.CreateLookup(Allocator.Persistent);
 
 			// create identity kinematic colliders
-			kinematicColliders.TransformToIdentity(_kinematicTransforms.Ref);
+			kinematicColliders.TransformToIdentity(ref _kinematicTransforms.Ref);
 			_kinematicCollidersAtIdentity = new NativeColliders(ref kinematicColliders, Allocator.Persistent);
 
 			// create octree
