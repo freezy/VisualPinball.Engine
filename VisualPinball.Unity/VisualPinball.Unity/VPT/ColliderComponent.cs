@@ -180,9 +180,13 @@ namespace VisualPinball.Unity
 				var colliders = new ColliderReference(ref nonTransformableColliderMatrices, Allocator.TempJob);
 				var kinematicColliders = new ColliderReference(ref nonTransformableColliderMatrices, Allocator.TempJob, true);
 				try {
-					api.CreateColliders(ref colliders, ref kinematicColliders, localToPlayfieldMatrixInVpx, 0.1f);
+					if (IsKinematic) {
+						api.CreateColliders(ref kinematicColliders, localToPlayfieldMatrixInVpx, 0.1f);
+					} else {
+						api.CreateColliders(ref colliders, localToPlayfieldMatrixInVpx, 0.1f);
+					}
 
-				var playfieldBounds = GetComponentInParent<PlayfieldComponent>().Bounds;
+					var playfieldBounds = GetComponentInParent<PlayfieldComponent>().Bounds;
 					var octree = new NativeOctree<int>(playfieldBounds, 32, 10, Allocator.Persistent);
 					var nativeColliders = new NativeColliders(ref colliders, Allocator.TempJob);
 					var populateJob = new PhysicsPopulateJob {
@@ -284,7 +288,11 @@ namespace VisualPinball.Unity
 			var colliders = new ColliderReference(ref nonTransformableColliderMatrices, Allocator.Temp);
 			var kinematicColliders = new ColliderReference(ref nonTransformableColliderMatrices, Allocator.Temp, true);
 			try {
-				api.CreateColliders(ref colliders, ref kinematicColliders, localToPlayfieldMatrixInVpx, 0.1f);
+				if (IsKinematic) {
+					api.CreateColliders(ref kinematicColliders, localToPlayfieldMatrixInVpx, 0.1f);
+				} else {
+					api.CreateColliders(ref colliders, localToPlayfieldMatrixInVpx, 0.1f);
+				}
 
 				if (createMesh) {
 					if (IsKinematic) {
@@ -726,9 +734,9 @@ namespace VisualPinball.Unity
 		#endregion
 
 		void ICollidableComponent.GetColliders(Player player, PhysicsEngine physicsEngine, ref ColliderReference colliders,
-			ref ColliderReference kinematicColliders, float4x4 translateWithinPlayfieldMatrix, float margin)
+				float4x4 translateWithinPlayfieldMatrix, float margin)
 			=> InstantiateColliderApi(player, physicsEngine)
-				.CreateColliders(ref colliders, ref kinematicColliders, translateWithinPlayfieldMatrix, margin);
+				.CreateColliders(ref colliders, translateWithinPlayfieldMatrix, margin);
 
 		int ICollidableComponent.ItemId => MainComponent.gameObject.GetInstanceID();
 		bool ICollidableComponent.IsCollidable => isActiveAndEnabled;

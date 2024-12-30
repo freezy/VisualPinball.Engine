@@ -143,14 +143,9 @@ namespace VisualPinball.Unity
 
 		#region Collider Generation
 
-		protected override void CreateColliders(ref ColliderReference colliders,
-			ref ColliderReference kinematicColliders, float4x4 translateWithinPlayfieldMatrix, float margin)
+		protected override void CreateColliders(ref ColliderReference colliders, float4x4 translateWithinPlayfieldMatrix, float margin)
 		{
-			if (ColliderComponent._isKinematic) {
-				kinematicColliders.Add(new PlungerCollider(MainComponent, ColliderComponent, GetColliderInfo()), translateWithinPlayfieldMatrix);
-			} else {
-				colliders.Add(new PlungerCollider(MainComponent, ColliderComponent, GetColliderInfo()), translateWithinPlayfieldMatrix);
-			}
+			colliders.Add(new PlungerCollider(MainComponent, ColliderComponent, GetColliderInfo()), translateWithinPlayfieldMatrix);
 		}
 
 		#endregion
