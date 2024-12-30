@@ -84,12 +84,16 @@ namespace VisualPinball.Unity
 		[NonSerialized] private readonly LazyInit<NativeParallelHashMap<int, float4x4>> _updatedKinematicTransforms = new(() => new NativeParallelHashMap<int, float4x4>(0, Allocator.Persistent));
 
 		/// <summary>
-		/// The current matrix to the ball will be transformed to, if it collides with a non-transformable collider.
+		/// The current matrix to which the ball will be transformed to, if it collides with a non-transformable collider.
 		/// This changes as the non-transformable collider collider transforms (it's called non-transformable as in
 		/// not transformable by the physics engine, but it can be transformed by the game).
 		///
 		/// todo save inverse matrix, too
 		/// </summary>
+		/// <remarks>
+		/// This has nothing to do with kinematic transformations, it's purely to add full support for transformations
+		/// for items where the original physics engine doesn't.
+		/// </remarks>
 		[NonSerialized] private readonly LazyInit<NativeParallelHashMap<int, float4x4>> _nonTransformableColliderMatrices = new(() => new NativeParallelHashMap<int, float4x4>(0, Allocator.Persistent));
 		[NonSerialized] private readonly Dictionary<int, SkinnedMeshRenderer[]> _skinnedMeshRenderers = new();
 

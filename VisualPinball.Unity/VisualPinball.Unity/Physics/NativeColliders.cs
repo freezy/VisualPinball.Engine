@@ -25,6 +25,9 @@ using Unity.Mathematics;
 using Unity.Profiling;
 using VisualPinball.Engine.VPT;
 
+// ReSharper disable ConvertToAutoPropertyWithPrivateSetter
+// ReSharper disable ConvertToAutoProperty
+
 namespace VisualPinball.Unity
 {
 	[NativeContainer]
@@ -475,7 +478,7 @@ namespace VisualPinball.Unity
 			}
 		}
 
-		public Aabb GetAabb(int index, ref NativeParallelHashMap<int, float4x4> kinematicTransforms)
+		public Aabb GetTransformedAabb(int index, ref NativeParallelHashMap<int, float4x4> kinematicTransforms)
 		{
 			if (index < 0 || index >= m_Length) {
 				throw new IndexOutOfRangeException($"Invalid index {index} when looking up collider.");
@@ -527,8 +530,7 @@ namespace VisualPinball.Unity
 					var collider = UnsafeUtility.ArrayElementAsRef<TriangleCollider>(m_TriangleColliderBuffer, lookup.Index);
 					return collider.GetTransformedAabb(kinematicTransforms[collider.Header.ItemId]);
 				}
-				case ColliderType.Plane:
-				{
+				case ColliderType.Plane: {
 					// planes don't transform
 					return UnsafeUtility.ArrayElementAsRef<PlaneCollider>(m_PlaneColliderBuffer, lookup.Index).Bounds.Aabb;
 				}
