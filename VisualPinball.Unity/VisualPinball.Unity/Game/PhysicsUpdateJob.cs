@@ -39,7 +39,7 @@ namespace VisualPinball.Unity
 		public NativeColliders KinematicCollidersAtIdentity;
 		public NativeParallelHashMap<int, float4x4> KinematicTransforms;
 		public NativeParallelHashMap<int, float4x4> UpdatedKinematicTransforms;
-		public NativeParallelHashMap<int, float4x4> NonTransformableColliderMatrices;
+		public NativeParallelHashMap<int, float4x4> NonTransformableColliderTransforms;
 
 		public NativeParallelHashMap<int, NativeColliderIds> KinematicColliderLookups;
 		public InsideOfs InsideOfs;
@@ -65,7 +65,7 @@ namespace VisualPinball.Unity
 			var env = PhysicsEnv[0];
 			var state = new PhysicsState(ref env, ref Octree, ref Colliders, ref KinematicColliders,
 				ref KinematicCollidersAtIdentity, ref KinematicTransforms, ref UpdatedKinematicTransforms,
-				ref NonTransformableColliderMatrices, ref KinematicColliderLookups, ref Events,
+				ref NonTransformableColliderTransforms, ref KinematicColliderLookups, ref Events,
 				ref InsideOfs, ref Balls, ref BumperStates, ref DropTargetStates, ref FlipperStates, ref GateStates,
 				ref HitTargetStates, ref KickerStates, ref PlungerStates, ref SpinnerStates,
 				ref SurfaceStates, ref TriggerStates, ref DisabledCollisionItems, ref SwapBallCollisionHandling);
