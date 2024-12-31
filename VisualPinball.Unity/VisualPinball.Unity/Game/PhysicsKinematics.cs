@@ -16,7 +16,6 @@
 
 using NativeTrees;
 using Unity.Collections;
-using Unity.Mathematics;
 using Unity.Profiling;
 using VisualPinball.Unity.Collections;
 
@@ -37,7 +36,7 @@ namespace VisualPinball.Unity
 
 				ref var colliderLookups = ref state.KinematicColliderLookups.GetValueByRef(itemId);
 				for (var i = 0; i < colliderLookups.Length; i++) {
-					state.Transform(colliderLookups[i], matrix);
+					state.TransformKinematicColliders(colliderLookups[i], matrix);
 				}
 			}
 			PerfMarkerTransform.End();

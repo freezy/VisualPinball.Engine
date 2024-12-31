@@ -45,11 +45,11 @@ namespace VisualPinball.Unity
 		/// <summary>
 		/// If true, then all colliders are kinematic.
 		/// </summary>
-		public readonly bool KinematicColliders; // if set, populate _itemIdToColliderIds
+		public readonly bool IsKinematic; // if set, populate _itemIdToColliderIds
 		private NativeParallelHashMap<int, NativeList<int>> _itemIdToColliderIds;
-		private NativeParallelHashMap<int, float4x4> _nonTransformableColliderMatrices;
+		private NativeParallelHashMap<int, float4x4> _nonTransformableColliderTransforms;
 
-		public ColliderReference(ref NativeParallelHashMap<int, float4x4> nonTransformableColliderMatrices, Allocator allocator, bool kinematicColliders = false)
+		public ColliderReference(ref NativeParallelHashMap<int, float4x4> nonTransformableColliderTransforms, Allocator allocator, bool isKinematic = false)
 		{
 			CircleColliders = new NativeList<CircleCollider>(allocator);
 			FlipperColliders = new NativeList<FlipperCollider>(allocator);
@@ -66,9 +66,9 @@ namespace VisualPinball.Unity
 
 			Lookups = new NativeList<ColliderLookup>(allocator);
 
-			KinematicColliders = kinematicColliders;
+			IsKinematic = isKinematic;
 			_itemIdToColliderIds = new NativeParallelHashMap<int, NativeList<int>>(0, allocator);
-			_nonTransformableColliderMatrices = nonTransformableColliderMatrices;
+			_nonTransformableColliderTransforms = nonTransformableColliderTransforms;
 		}
 
 		public void Dispose()
@@ -101,7 +101,7 @@ namespace VisualPinball.Unity
 		public void TransformToIdentity(ref NativeParallelHashMap<int, float4x4> itemIdToTransformationMatrix)
 		{
 			#if UNITY_EDITOR
-			if (!KinematicColliders) {
+			if (!IsKinematic) {
 				throw new InvalidOperationException("Cannot transform non-kinetic colliders to identity.");
 			}
 			#endif
@@ -257,7 +257,7 @@ namespace VisualPinball.Unity
 		private void TrackReference(int itemId, int colliderId)
 		{
 			#if !UNITY_EDITOR
-			if (!KinematicColliders) {
+			if (!IsKinematic) {
 				return;
 			}
 			#endif
@@ -270,14 +270,14 @@ namespace VisualPinball.Unity
 
 		internal int Add(CircleCollider collider, float4x4 matrix)
 		{
-			if (!KinematicColliders && CircleCollider.IsTransformable(matrix)) {
+			if (!IsKinematic && CircleCollider.IsTransformable(matrix)) {
 				collider.Header.IsTransformed = true;
 				collider.Transform(matrix);
 
 			} else {
 				// save matrix for use during runtime
-				if (!_nonTransformableColliderMatrices.ContainsKey(collider.Header.ItemId)) {
-					_nonTransformableColliderMatrices.Add(collider.Header.ItemId, matrix);
+				if (!_nonTransformableColliderTransforms.ContainsKey(collider.Header.ItemId)) {
+					_nonTransformableColliderTransforms.Add(collider.Header.ItemId, matrix);
 				}
 				collider.Header.IsTransformed = false;
 				collider.TransformAabb(matrix);
@@ -293,14 +293,14 @@ namespace VisualPinball.Unity
 
 		internal int Add(FlipperCollider collider, float4x4 matrix)
 		{
-			if (!KinematicColliders && FlipperCollider.IsTransformable(matrix)) {
+			if (!IsKinematic && FlipperCollider.IsTransformable(matrix)) {
 				collider.Header.IsTransformed = true;
 				collider.Transform(matrix);
 
 			} else {
 				// save matrix for use during runtime
-				if (!_nonTransformableColliderMatrices.ContainsKey(collider.Header.ItemId)) {
-					_nonTransformableColliderMatrices.Add(collider.Header.ItemId, matrix);
+				if (!_nonTransformableColliderTransforms.ContainsKey(collider.Header.ItemId)) {
+					_nonTransformableColliderTransforms.Add(collider.Header.ItemId, matrix);
 				}
 				collider.Header.IsTransformed = false;
 				collider.TransformAabb(matrix);
@@ -315,14 +315,14 @@ namespace VisualPinball.Unity
 
 		internal void Add(GateCollider collider, float4x4 matrix)
 		{
-			if (!KinematicColliders && GateCollider.IsTransformable(matrix)) {
+			if (!IsKinematic && GateCollider.IsTransformable(matrix)) {
 				collider.Header.IsTransformed = true;
 				collider.Transform(matrix);
 
 			} else {
 				// save matrix for use during runtime
-				if (!_nonTransformableColliderMatrices.ContainsKey(collider.Header.ItemId)) {
-					_nonTransformableColliderMatrices.Add(collider.Header.ItemId, matrix);
+				if (!_nonTransformableColliderTransforms.ContainsKey(collider.Header.ItemId)) {
+					_nonTransformableColliderTransforms.Add(collider.Header.ItemId, matrix);
 				}
 
 				collider.Header.IsTransformed = false;
@@ -348,14 +348,14 @@ namespace VisualPinball.Unity
 
 		internal void Add(LineSlingshotCollider collider, float4x4 matrix)
 		{
-			if (!KinematicColliders && LineSlingshotCollider.IsTransformable(matrix)) {
+			if (!IsKinematic && LineSlingshotCollider.IsTransformable(matrix)) {
 				collider.Header.IsTransformed = true;
 				collider.Transform(matrix);
 
 			} else {
 				// save matrix for use during runtime
-				if (!_nonTransformableColliderMatrices.ContainsKey(collider.Header.ItemId)) {
-					_nonTransformableColliderMatrices.Add(collider.Header.ItemId, matrix);
+				if (!_nonTransformableColliderTransforms.ContainsKey(collider.Header.ItemId)) {
+					_nonTransformableColliderTransforms.Add(collider.Header.ItemId, matrix);
 				}
 				collider.Header.IsTransformed = false;
 				collider.TransformAabb(matrix);
@@ -370,7 +370,7 @@ namespace VisualPinball.Unity
 		internal void Add(LineCollider collider) => Add(collider, float4x4.identity); // used for the playfield only
 		internal void Add(LineCollider collider, float4x4 matrix)
 		{
-			if (!KinematicColliders && LineCollider.IsTransformable(matrix)) {
+			if (!IsKinematic && LineCollider.IsTransformable(matrix)) {
 				collider.Header.IsTransformed = true;
 				collider.Transform(matrix);
 
@@ -400,7 +400,7 @@ namespace VisualPinball.Unity
 
 		internal void Add(LineZCollider collider, float4x4 matrix)
 		{
-			if (KinematicColliders || !LineZCollider.IsTransformable(matrix)) {
+			if (IsKinematic || !LineZCollider.IsTransformable(matrix)) {
 				// use line 3d collider instead
 				Add(new Line3DCollider(new float3(collider.XY, collider.ZLow), new float3(collider.XY, collider.ZHigh), collider.Header.ColliderInfo), matrix);
 				return;
@@ -417,14 +417,14 @@ namespace VisualPinball.Unity
 
 		internal void Add(PlungerCollider collider, float4x4 matrix)
 		{
-			if (!KinematicColliders && PlungerCollider.IsTransformable(matrix)) {
+			if (!IsKinematic && PlungerCollider.IsTransformable(matrix)) {
 				collider.Header.IsTransformed = true;
 				collider.Transform(matrix);
 
 			} else {
 				// save matrix for use during runtime
-				if (!_nonTransformableColliderMatrices.ContainsKey(collider.Header.ItemId)) {
-					_nonTransformableColliderMatrices.Add(collider.Header.ItemId, matrix);
+				if (!_nonTransformableColliderTransforms.ContainsKey(collider.Header.ItemId)) {
+					_nonTransformableColliderTransforms.Add(collider.Header.ItemId, matrix);
 				}
 
 				collider.Header.IsTransformed = false;
@@ -450,14 +450,14 @@ namespace VisualPinball.Unity
 
 		internal void Add(SpinnerCollider collider, float4x4 matrix)
 		{
-			if (!KinematicColliders && SpinnerCollider.IsTransformable(matrix)) {
+			if (!IsKinematic && SpinnerCollider.IsTransformable(matrix)) {
 				collider.Header.IsTransformed = true;
 				collider.Transform(matrix);
 
 			} else {
 				// save matrix for use during runtime
-				if (!_nonTransformableColliderMatrices.ContainsKey(collider.Header.ItemId)) {
-					_nonTransformableColliderMatrices.Add(collider.Header.ItemId, matrix);
+				if (!_nonTransformableColliderTransforms.ContainsKey(collider.Header.ItemId)) {
+					_nonTransformableColliderTransforms.Add(collider.Header.ItemId, matrix);
 				}
 
 				collider.Header.IsTransformed = false;

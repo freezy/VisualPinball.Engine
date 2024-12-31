@@ -126,6 +126,10 @@ namespace VisualPinball.Unity
 		public bool _isKinematic;
 
 		public bool IsKinematic => _isKinematic;
+
+		/// <summary>
+		/// A unique identifier for this item, used in the physics engine to identify items.
+		/// </summary>
 		public int ItemId => MainComponent.gameObject.GetInstanceID();
 
 		#endregion
@@ -162,22 +166,22 @@ namespace VisualPinball.Unity
 			var worldToPlayfield = GetComponentInParent<PlayfieldComponent>().transform.worldToLocalMatrix;
 			var localToPlayfieldMatrixInVpx = GetLocalToPlayfieldMatrixInVpx(worldToPlayfield);
 			var unmodifiedLocalToPlayfieldMatrixInVpx = GetUnmodifiedLocalToPlayfieldMatrixInVpx(worldToPlayfield);
-			var nonTransformableColliderMatrices = new NativeParallelHashMap<int, float4x4>(0, Allocator.Temp);
+			var nonTransformableColliderTransforms = new NativeParallelHashMap<int, float4x4>(0, Allocator.Temp);
 
 			var generateColliders = ShowAabbs || showColliders && !HasCachedColliders;
 			if (generateColliders) {
 				if (Application.isPlaying) {
 					InstantiateRuntimeColliders(showColliders);
 				} else {
-					InstantiateEditorColliders(showColliders, ref nonTransformableColliderMatrices, localToPlayfieldMatrixInVpx);
+					InstantiateEditorColliders(showColliders, ref nonTransformableColliderTransforms, localToPlayfieldMatrixInVpx);
 				}
 			}
 
 			if (ShowColliderOctree) {
 
 				var api = InstantiateColliderApi(_player, null);
-				var colliders = new ColliderReference(ref nonTransformableColliderMatrices, Allocator.TempJob);
-				var kinematicColliders = new ColliderReference(ref nonTransformableColliderMatrices, Allocator.TempJob, true);
+				var colliders = new ColliderReference(ref nonTransformableColliderTransforms, Allocator.TempJob);
+				var kinematicColliders = new ColliderReference(ref nonTransformableColliderTransforms, Allocator.TempJob, true);
 				try {
 					if (IsKinematic) {
 						api.CreateColliders(ref kinematicColliders, localToPlayfieldMatrixInVpx, 0.1f);
@@ -281,11 +285,11 @@ namespace VisualPinball.Unity
 			// }
 		}
 
-		private void InstantiateEditorColliders(bool createMesh, ref NativeParallelHashMap<int, float4x4> nonTransformableColliderMatrices, float4x4 localToPlayfieldMatrixInVpx)
+		private void InstantiateEditorColliders(bool createMesh, ref NativeParallelHashMap<int, float4x4> nonTransformableColliderTransforms, float4x4 localToPlayfieldMatrixInVpx)
 		{
 			var api = InstantiateColliderApi(_player, _physicsEngine);
-			var colliders = new ColliderReference(ref nonTransformableColliderMatrices, Allocator.Temp);
-			var kinematicColliders = new ColliderReference(ref nonTransformableColliderMatrices, Allocator.Temp, true);
+			var colliders = new ColliderReference(ref nonTransformableColliderTransforms, Allocator.Temp);
+			var kinematicColliders = new ColliderReference(ref nonTransformableColliderTransforms, Allocator.Temp, true);
 			try {
 				if (IsKinematic) {
 					api.CreateColliders(ref kinematicColliders, localToPlayfieldMatrixInVpx, 0.1f);

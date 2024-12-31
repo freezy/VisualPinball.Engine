@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-using System;
 using NativeTrees;
 using Unity.Collections;
 using Unity.Mathematics;
@@ -26,16 +25,31 @@ namespace VisualPinball.Unity
 	internal struct PhysicsState
 	{
 		internal PhysicsEnv Env;
+
+		/// <summary>
+		/// Our static octree.
+		/// </summary>
 		internal NativeOctree<int> Octree;
+
+		/// <summary>
+		/// All static colliders (the ones the original VPX physics engine supports).
+		/// </summary>
 		internal NativeColliders Colliders;
 
 		/// <summary>
 		/// All kinematic colliders, with their transformation applied for fully transformable colliders, and without for the others.
 		///
+		/// Fully transformable colliders are updated at <see cref="PhysicsState.TransformKinematicColliders"/>.
+		///
 		/// This is used for:
-		///   - The hit test in the narrow phase
-		///   - Contact resolution in each cycle
-		///   -
+		///   - The hit test in the narrow phase (like <see cref="Colliders"/>)
+		///   - Contact resolution in each cycle (like <see cref="Colliders"/>)
+		///   - Collision (like <see cref="Colliders"/>)
+		///
+		/// This basically adds another step to the existing static and dynamic simulation. The oct tree comes from
+		/// <see cref="KinematicCollidersAtIdentity"/>, and the narrow and collision phase is done with this. The mechanism
+		/// for non-transformable colliders is the same, the only difference is that in <see cref="GetNonTransformableColliderMatrix"/>,
+		/// the ball-to-item-space matrix is calculated based off <see cref="KinematicTransforms"/> instead of <see cref="_nonTransformableColliderTransforms"/>.
 		///
 		/// </summary>
 		internal NativeColliders KinematicColliders;
@@ -50,13 +64,42 @@ namespace VisualPinball.Unity
 		///   - Computing the AABBs for the octree in PhysicsUpdateJob.Execute()
 		/// </summary>
 		internal NativeColliders KinematicCollidersAtIdentity;
-		internal NativeParallelHashMap<int, float4x4> UpdatedKinematicTransforms; // updated transformations of the items, in vpx space.
 
 		/// <summary>
-		///
+		/// Maps an item ID to the updated transformation matrix since the last frame of all kinematic items.
+		/// <para><c>int</c> is the <see cref="ColliderComponent{TData,TMainComponent}.ItemId"/> of the collider.</para>
+		/// <para><c>float4x4</c> Updated LocalToPlayfieldMatrixInVpx of the item.</para>
 		/// </summary>
-		internal NativeParallelHashMap<int, float4x4> KinematicTransforms;        // transformations of the items, in vpx space.
-		internal NativeParallelHashMap<int, float4x4> NonTransformableColliderMatrices;
+		internal NativeParallelHashMap<int, float4x4> UpdatedKinematicTransforms;
+
+		/// <summary>
+		/// The LocalToPlayfieldMatrixInVpx of all kinematic colliders, fully transformable or not.
+		/// </summary>
+		/// <remarks>
+		/// <para><c>int</c> is the <see cref="ColliderComponent{TData,TMainComponent}.ItemId"/> of the collider.</para>
+		/// <para><c>float4x4</c> LocalToPlayfieldMatrixInVpx of the item.</para>
+		/// </remarks>
+		internal NativeParallelHashMap<int, float4x4> KinematicTransforms;
+
+		/// <summary>
+		/// The LocalToPlayfieldMatrixInVpx of all colliders that aren't fully transformable.
+		///
+		/// This map is updated when the colliders get added at the beginning of the game with ColliderReference.Add().
+		/// </summary>
+		/// <remarks>
+		/// <para><c>int</c> is the <see cref="ColliderComponent{TData,TMainComponent}.ItemId"/> of the collider.</para>
+		/// <para><c>float4x4</c> LocalToPlayfieldMatrixInVpx of the item.</para>
+		/// </remarks>
+		private readonly NativeParallelHashMap<int, float4x4> _nonTransformableColliderTransforms;
+
+		/// <summary>
+		/// Maps an item ID to a list of collider IDs that reference this item, for all kinematic items.
+		/// </summary>
+		/// <remarks>
+		/// Created by <see cref="ColliderReference.CreateLookup"/>.
+		/// <para><c>int</c> is the <see cref="ColliderComponent{TData,TMainComponent}.ItemId"/> of the collider.</para>
+		/// <para><c>NativeColliderIds</c> IDs of all colliders of the item referenced by `ItemId`.</para>
+		/// </remarks>
 		internal NativeParallelHashMap<int, NativeColliderIds> KinematicColliderLookups;
 
 		internal NativeQueue<EventData>.ParallelWriter EventQueue;
@@ -79,7 +122,7 @@ namespace VisualPinball.Unity
 			ref NativeColliders kinematicColliders, ref NativeColliders kinematicCollidersAtIdentity,
 			ref NativeParallelHashMap<int, float4x4> kinematicTransforms,
 			ref NativeParallelHashMap<int, float4x4> updatedKinematicTransforms,
-			ref NativeParallelHashMap<int, float4x4> nonTransformableColliderMatrices,
+			ref NativeParallelHashMap<int, float4x4> nonTransformableColliderTransforms,
 			ref NativeParallelHashMap<int, NativeColliderIds> kinematicColliderLookups, ref NativeQueue<EventData>.ParallelWriter eventQueue,
 			ref InsideOfs insideOfs, ref NativeParallelHashMap<int, BallState> balls,
 			ref NativeParallelHashMap<int, BumperState> bumperStates, ref NativeParallelHashMap<int, DropTargetState> dropTargetStates,
@@ -96,7 +139,7 @@ namespace VisualPinball.Unity
 			KinematicCollidersAtIdentity = kinematicCollidersAtIdentity;
 			KinematicTransforms = kinematicTransforms;
 			UpdatedKinematicTransforms = updatedKinematicTransforms;
-			NonTransformableColliderMatrices = nonTransformableColliderMatrices;
+			_nonTransformableColliderTransforms = nonTransformableColliderTransforms;
 			KinematicColliderLookups = kinematicColliderLookups;
 			EventQueue = eventQueue;
 			InsideOfs = insideOfs;
@@ -150,13 +193,28 @@ namespace VisualPinball.Unity
 
 		#region Transform
 
+		/// <summary>
+		/// Returns the matrix of a collider that cannot be transformed, i.e. the ball has to be projected into the
+		/// collider's space.
+		/// </summary>
+		/// <remarks>
+		/// Depending on whether the collider is kinematic or not, the matrix is taken from either
+		/// the <see cref="KinematicTransforms"/> or <see cref="_nonTransformableColliderTransforms"/>.
+		///
+		/// Basically, this is the magic that makes kinematic transformations work for non-transformable
+		/// items: Instead of projecting the ball with a static matrix, we'll just use the one of the
+		/// kinematic colliders, which is updated every frame.
+		/// </remarks>
+		/// <param name="colliderId">ID of the collider</param>
+		/// <param name="colliders">Collider references</param>
+		/// <returns>Transformation matrix</returns>
 		internal ref float4x4 GetNonTransformableColliderMatrix(int colliderId, ref NativeColliders colliders)
 		{
 			var itemId = colliders.GetItemId(colliderId);
-			if (colliders.KinematicColliders) {
+			if (colliders.IsKinematic) {
 				return ref KinematicTransforms.GetValueByRef(itemId);
 			}
-			return ref NonTransformableColliderMatrices.GetValueByRef(itemId);
+			return ref _nonTransformableColliderTransforms.GetValueByRef(itemId);
 		}
 
 		/// <summary>
@@ -166,7 +224,7 @@ namespace VisualPinball.Unity
 		/// </summary>
 		/// <param name="colliderId">The ID of the collider</param>
 		/// <param name="matrix">The transformation matrix</param>
-		internal void Transform(int colliderId, float4x4 matrix)
+		internal void TransformKinematicColliders(int colliderId, float4x4 matrix)
 		{
 			switch (GetColliderType(ref KinematicColliders, colliderId)) {
 				case ColliderType.Point:

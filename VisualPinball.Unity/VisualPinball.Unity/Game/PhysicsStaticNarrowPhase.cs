@@ -63,7 +63,7 @@ namespace VisualPinball.Unity
 						newTime = state.HitTest(ref colliders, overlappingColliderId, ref ball, ref newCollEvent, ref contacts);
 					}
 
-					SaveCollisions(ref ball, ref newCollEvent, ref contacts, overlappingColliderId, newTime, colliders.KinematicColliders);
+					SaveCollisions(ref ball, ref newCollEvent, ref contacts, overlappingColliderId, newTime, colliders.IsKinematic);
 				}
 			}
 
