@@ -49,8 +49,20 @@ namespace VisualPinball.Unity
 
 		#endregion
 
+		private void Awake()
+		{
+			PhysicsEngine = GetComponentInParent<PhysicsEngine>();
+		}
+
 		public override PhysicsMaterialData PhysicsMaterialData => GetPhysicsMaterialData(scatterAngleDeg: Scatter);
 		protected override IApiColliderGenerator InstantiateColliderApi(Player player, PhysicsEngine physicsEngine) =>
 			MainComponent.KickerApi ?? new KickerApi(gameObject, player, physicsEngine);
+
+		public override void OnTransformationChanged(float4x4 currTransformationMatrix)
+		{
+			// update kicker center, so the internal collision shape is correct
+			ref var kickerData = ref PhysicsEngine.KickerState(ItemId);
+			kickerData.Static.Center = currTransformationMatrix.c3.xy;
+		}
 	}
 }

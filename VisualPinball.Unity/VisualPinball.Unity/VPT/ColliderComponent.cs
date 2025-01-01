@@ -65,6 +65,9 @@ namespace VisualPinball.Unity
 		[NonSerialized] private bool _collidersDirty;
 		[NonSerialized] private bool _aabbsDirty;
 
+		[NonSerialized] protected PhysicsEngine PhysicsEngine;
+
+
 		protected abstract IApiColliderGenerator InstantiateColliderApi(Player player, PhysicsEngine physicsEngine);
 
 		public virtual float4x4 GetLocalToPlayfieldMatrixInVpx(float4x4 worldToPlayfield)
@@ -120,7 +123,7 @@ namespace VisualPinball.Unity
 			};
 		}
 
-		#region IKinematicColliderComponent
+		#region Kinematics
 
 		[Tooltip("If set, transforming this object during gameplay will transform the colliders as well.")]
 		public bool _isKinematic;
@@ -132,13 +135,17 @@ namespace VisualPinball.Unity
 		/// </summary>
 		public int ItemId => MainComponent.gameObject.GetInstanceID();
 
+		public virtual void OnTransformationChanged(float4x4 currTransformationMatrix)
+		{
+			// do nothing per default.
+		}
+
 		#endregion
 
 		#region Collider Gizmos
 
 #if UNITY_EDITOR
 
-		private PhysicsEngine _physicsEngine;
 		private Player _player;
 
 		private void OnDrawGizmos()
@@ -256,18 +263,18 @@ namespace VisualPinball.Unity
 
 		private void InstantiateRuntimeColliders(bool createMesh)
 		{
-			if (!_physicsEngine) {
-				_physicsEngine = GetComponentInParent<PhysicsEngine>(); // todo cache
+			if (!PhysicsEngine) {
+				PhysicsEngine = GetComponentInParent<PhysicsEngine>(); // todo cache
 			}
 
 			if (createMesh) {
 				if (IsKinematic) {
-					var kinematicColliders = _physicsEngine.GetKinematicColliders(MainComponent.gameObject.GetInstanceID());
+					var kinematicColliders = PhysicsEngine.GetKinematicColliders(MainComponent.gameObject.GetInstanceID());
 					_transformedColliderMesh = null;
 					_untransformedColliderMesh = null;
 					GenerateColliderMesh(kinematicColliders, out _transformedKinematicColliderMesh, out _untransformedKinematicColliderMesh);
 				} else {
-					var colliders = _physicsEngine.GetColliders(MainComponent.gameObject.GetInstanceID());
+					var colliders = PhysicsEngine.GetColliders(MainComponent.gameObject.GetInstanceID());
 					_transformedKinematicColliderMesh = null;
 					_untransformedKinematicColliderMesh = null;
 					GenerateColliderMesh(colliders, out _transformedColliderMesh, out _untransformedColliderMesh);
@@ -287,7 +294,7 @@ namespace VisualPinball.Unity
 
 		private void InstantiateEditorColliders(bool createMesh, ref NativeParallelHashMap<int, float4x4> nonTransformableColliderTransforms, float4x4 localToPlayfieldMatrixInVpx)
 		{
-			var api = InstantiateColliderApi(_player, _physicsEngine);
+			var api = InstantiateColliderApi(_player, PhysicsEngine);
 			var colliders = new ColliderReference(ref nonTransformableColliderTransforms, Allocator.Temp);
 			var kinematicColliders = new ColliderReference(ref nonTransformableColliderTransforms, Allocator.Temp, true);
 			try {
