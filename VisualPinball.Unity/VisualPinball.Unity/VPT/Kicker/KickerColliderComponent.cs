@@ -63,6 +63,7 @@ namespace VisualPinball.Unity
 			// update kicker center, so the internal collision shape is correct
 			ref var kickerData = ref PhysicsEngine.KickerState(ItemId);
 			kickerData.Static.Center = currTransformationMatrix.c3.xy;
+			kickerData.Static.ZLow = currTransformationMatrix.c3.z;
 		}
 	}
 }
