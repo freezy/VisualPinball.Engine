@@ -55,6 +55,13 @@ namespace VisualPinball.Unity
 		/// <returns></returns>
 		public float4x4 GetLocalToPlayfieldMatrixInVpx(float4x4 worldToPlayfield);
 
+		/// <summary>
+		/// Executed on kinematic colliders, when the transformation has changed. This allows updating data if necessary,
+		/// for example the kicker center, which is relevant when spawning balls.
+		/// </summary>
+		/// <param name="currTransformationMatrix"></param>
+		public void OnTransformationChanged(float4x4 currTransformationMatrix);
+
 		public bool CollidersDirty { set; }
 	}
 }

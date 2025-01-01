@@ -181,11 +181,11 @@ namespace VisualPinball.Unity
 
 		internal Transform UnregisterBall(int ballId)
 		{
-			var transform = _transforms[ballId];
+			var t = _transforms[ballId];
 			_transforms.Remove(ballId);
 			_ballStates.Ref.Remove(ballId);
 			_insideOfs.SetOutsideOfAll(ballId);
-			return transform;
+			return t;
 		}
 
 		internal void EnableCollider(int itemId)
@@ -291,6 +291,7 @@ namespace VisualPinball.Unity
 				}
 				_updatedKinematicTransforms.Ref.Add(coll.ItemId, currTransformationMatrix);
 				_kinematicTransforms.Ref[coll.ItemId] = currTransformationMatrix;
+				coll.OnTransformationChanged(currTransformationMatrix);
 			}
 
 			// prepare job
