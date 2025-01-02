@@ -16,7 +16,6 @@
 
 // ReSharper disable ConvertIfStatementToSwitchStatement
 
-using System;
 using Unity.Mathematics;
 using VisualPinball.Engine.VPT;
 using VisualPinball.Unity.Collections;
@@ -68,13 +67,13 @@ namespace VisualPinball.Unity
 				TransformBallFromColliderSpace(ref colliders, ref ball, ref state, colliderId);
 				return;
 			}
-
 			switch (state.GetColliderType(ref colliders, colliderId)) {
 
-				case ColliderType.Circle:
+				case ColliderType.Circle: {
 					ref var circleCollider = ref colliders.Circle(colliderId);
 					circleCollider.Collide(ref ball, in ball.CollisionEvent, ref state.Env.Random);
 					break;
+				}
 
 				case ColliderType.Plane:
 					ref var planeCollider = ref colliders.Plane(colliderId);
@@ -148,11 +147,15 @@ namespace VisualPinball.Unity
 					TriggerCollide(ref ball, ref state, in collHeader, ref colliders);
 					break;
 
-				case ColliderType.KickerCircle:
+				case ColliderType.KickerCircle: {
 					ref var kickerState = ref state.GetKickerState(colliderId, ref colliders);
-					KickerCollider.Collide(ref ball, ref state.EventQueue, ref state.InsideOfs, ref kickerState.Collision,
-						in kickerState.Static, in kickerState.CollisionMesh, in ball.CollisionEvent, collHeader.ItemId, false);
+					ref var circleCollider = ref colliders.Circle(colliderId);
+					KickerCollider.Collide(new float3(circleCollider.Center, circleCollider.ZLow), ref ball, ref state.EventQueue, ref state.InsideOfs,
+						ref kickerState.Collision,
+						in kickerState.Static, in kickerState.CollisionMesh, in ball.CollisionEvent, collHeader.ItemId,
+						false);
 					break;
+				}
 			}
 
 			TransformBallFromColliderSpace(ref colliders, ref ball, ref state, colliderId);
