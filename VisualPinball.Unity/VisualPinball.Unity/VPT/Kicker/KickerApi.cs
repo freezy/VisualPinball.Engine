@@ -79,7 +79,7 @@ namespace VisualPinball.Unity
 			var events = PhysicsEngine.EventQueue;
 			ball.CollisionEvent.HitFlag = true; // HACK: avoid capture leaving kicker
 
-			KickerCollider.Collide(ref ball, ref events, ref PhysicsEngine.InsideOfs, ref kickerState.Collision,
+			KickerCollider.Collide(new float3(kickerState.Static.Center, kickerState.Static.ZLow), ref ball, ref events, ref PhysicsEngine.InsideOfs, ref kickerState.Collision,
 				in kickerState.Static, in kickerState.CollisionMesh, in ball.CollisionEvent, ItemId, true);
 		}
 

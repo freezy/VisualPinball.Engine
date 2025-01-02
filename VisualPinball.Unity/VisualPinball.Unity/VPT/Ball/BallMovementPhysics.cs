@@ -42,18 +42,18 @@ namespace VisualPinball.Unity
 		
 			var or = ball.BallOrientationForUnity;
 		
-			var VPX = new Vector3(or.c0.x, or.c1.x, or.c2.x);
-			var VPY = new Vector3(or.c0.y, or.c1.y, or.c2.y);
-			var VPZ = new Vector3(or.c0.z, or.c1.z, or.c2.z);
-		
+			var vpX = new Vector3(or.c0.x, or.c1.x, or.c2.x);
+			var vpY = new Vector3(or.c0.y, or.c1.y, or.c2.y);
+			var vpZ = new Vector3(or.c0.z, or.c1.z, or.c2.z);
+
 			// Debug.Log("c0: (" + or.c0.x + ", " + or.c0.y + ", " + or.c0.z + ")");
 			// Debug.Log("c1: (" + or.c1.x + ", " + or.c1.y + ", " + or.c1.z + ")");
 			// Debug.Log("c2: (" + or.c2.x + ", " + or.c2.y + ", " + or.c2.z + ")");
-		
+
 			// for security reasons, so that we don't get NaN, NaN, NaN, NaN erroro, when vectors are not fully orthonormalized because of skewMatrix operation
-			Vector3.OrthoNormalize(ref VPZ, ref VPY, ref VPX);
-		
-			Quaternion q = Quaternion.LookRotation(VPZ, VPY);
+			Vector3.OrthoNormalize(ref vpZ, ref vpY, ref vpX);
+
+			Quaternion q = Quaternion.LookRotation(vpZ, vpY);
 		
 			// flip Z axis
 			q = FlipZAxis(q);
@@ -68,7 +68,6 @@ namespace VisualPinball.Unity
 
 			/*
 			 * I let these two in here, just in case we need them.
-
 			static float3x3 transpose(float3x3 or)
 			{
 				float3x3 or2;
@@ -83,7 +82,6 @@ namespace VisualPinball.Unity
 				or2.c2.z = or.c2.z;
 				return or2;
 			}
-
 			static Quaternion QuaternionFromMatrix(Matrix4x4 m)
 			{
 				// Adapted from: http://www.euclideanspace.com/maths/geometry/rotations/conversions/matrixToQuaternion/index.htm
@@ -97,10 +95,7 @@ namespace VisualPinball.Unity
 				q.z *= Mathf.Sign(q.z * (m[1, 0] - m[0, 1]));
 				return q;
 			}
-
 			*/
-
-
 		}
 	}
 }
