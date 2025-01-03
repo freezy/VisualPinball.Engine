@@ -32,7 +32,7 @@ using VisualPinball.Engine.VPT.Table;
 namespace VisualPinball.Unity
 {
 	[AddComponentMenu("Visual Pinball/Game Item/Plunger")]
-	public class PlungerComponent : MainRenderableComponent<PlungerData>, ICoilDeviceComponent, ISoundEmitter
+	public class PlungerComponent : MainRenderableComponent<PlungerData>, ICoilDeviceComponent
 	{
 		#region Data
 
@@ -61,26 +61,6 @@ namespace VisualPinball.Unity
 
 		public const string PullCoilId = "c_pull";
 		public const string FireCoilId = "c_autofire";
-
-		public const string SoundPlungerPull = "sound_plunger_pull";
-		public const string SoundPlungerRelease = "sound_plunger_release";
-
-		#endregion
-
-		#region ISoundEmitter
-
-		public SoundTrigger[] AvailableTriggers => new[] {
-			new SoundTrigger (id: SoundPlungerPull, name: "Plunger Pull"),
-			new SoundTrigger (id: SoundPlungerRelease, name: "Plunger Release"),
-		};
-
-		public event EventHandler<SoundEventArgs> OnSound;
-
-		internal void EmitSound(string triggerId, float volume = 1)
-		{
-			OnSound?.Invoke(this, new SoundEventArgs(triggerId, volume));
-		}
-
 		#endregion
 
 		#region Runtime
