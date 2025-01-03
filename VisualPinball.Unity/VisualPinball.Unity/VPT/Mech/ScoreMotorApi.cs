@@ -71,15 +71,6 @@ namespace VisualPinball.Unity
 		{
 			var deviceSwitch = (DeviceSwitch)Switch(e.Id);
 			deviceSwitch.SetSwitch(e.IsEnabled);
-
-			if (deviceSwitch == _motorStepSwitch && e.IsEnabled) { 
-				_scoreMotorComponent.EmitSound(ScoreMotorComponent.SoundScoreMotorStep);
-			} else if (deviceSwitch == _motorRunningSwitch) {
-				if (e.IsEnabled)
-					_scoreMotorComponent.EmitSound(ScoreMotorComponent.SoundScoreMotorStart);
-				else
-					_scoreMotorComponent.EmitSound(ScoreMotorComponent.SoundScoreMotorStop);
-			}
 		}
 
 		void IApi.OnDestroy()
