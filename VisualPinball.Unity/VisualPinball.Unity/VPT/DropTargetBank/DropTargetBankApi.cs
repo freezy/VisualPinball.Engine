@@ -62,19 +62,16 @@ namespace VisualPinball.Unity
 			_dropTargetBankComponent = go.GetComponentInChildren<DropTargetBankComponent>();
 			_player = player;
 			_physicsEngine = physicsEngine;
+			SequenceCompletedSwitch = new DeviceSwitch(DropTargetBankComponent.SequenceCompletedSwitchItem, false, SwitchDefault.NormallyOpen, _player, _physicsEngine);
+			ResetCoil = new DeviceCoil(_player, OnResetCoilEnabled);
 		}
 
 		void IApi.OnInit(BallManager ballManager)
 		{
-			SequenceCompletedSwitch = new DeviceSwitch(DropTargetBankComponent.SequenceCompletedSwitchItem, false, SwitchDefault.NormallyOpen, _player, _physicsEngine);
-			ResetCoil = new DeviceCoil(_player, OnResetCoilEnabled);
-
 			for (var index = 0; index < _dropTargetBankComponent.BankSize; index++) {
 				var dropTargetApi = _player.TableApi.DropTarget(_dropTargetBankComponent.DropTargets[index]);
 				dropTargetApi.Switch += OnSwitch;
-
 				_dropTargetApis.Add(dropTargetApi);
-
 			}
 
 			Init?.Invoke(this, EventArgs.Empty);
