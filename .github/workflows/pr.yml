@@ -32,10 +32,10 @@ jobs:
           - os: ubuntu-latest
             rid: android-arm64-v8a
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           ref: ${{ github.event.pull_request.head.sha }}
-      - uses: actions/setup-dotnet@v1
+      - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '3.1.x'
       - name: Build
@@ -45,9 +45,9 @@ jobs:
       - run: |
           mkdir tmp
           cp -r VisualPinball.Unity/Plugins/${{ matrix.rid }} tmp
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         with:
-          name: Plugins
+          name: Plugins-${{ matrix.rid }}
           path: tmp
 
   test:
@@ -55,14 +55,14 @@ jobs:
     needs: [ build ]
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           ref: ${{ github.event.pull_request.head.sha }}
-      - uses: actions/download-artifact@v3
+      - uses: actions/download-artifact@v4
         with:
           name: Plugins
           path: VisualPinball.Unity/Plugins
-      - uses: actions/cache@v3
+      - uses: actions/cache@v4
         with:
          path: VisualPinball.Unity/VisualPinball.Unity.Test/TestProject~/Library
          key: Library-Test-Project
@@ -83,7 +83,7 @@ jobs:
         with:
           path: ${{ steps.test.outputs.artifactsPath }}/*.xml
           access-token: ${{ secrets.GITHUB_TOKEN }}
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: Test results
