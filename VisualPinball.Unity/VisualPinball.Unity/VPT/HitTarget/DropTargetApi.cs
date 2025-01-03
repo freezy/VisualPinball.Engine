@@ -126,15 +126,6 @@ namespace VisualPinball.Unity
 		void IApiHittable.OnHit(int ballId, bool _)
 		{
 			Hit?.Invoke(this, new HitEventArgs(ballId));
-
-			MainComponent.EmitSound(TargetComponent.SoundTargetHit);
-		}
-		void IApiDroppable.OnDropStatusChanged(bool isDropped, int ballId)
-		{
-			if (!isDropped)
-			{
-				MainComponent.EmitSound(DropTargetComponent.SoundTargetReset);
-			}
 		}
 
 		#endregion

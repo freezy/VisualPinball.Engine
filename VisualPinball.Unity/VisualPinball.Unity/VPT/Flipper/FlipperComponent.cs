@@ -39,7 +39,7 @@ namespace VisualPinball.Unity
 	[HelpURL("https://docs.visualpinball.org/creators-guide/manual/mechanisms/flippers.html")]
 	public class FlipperComponent : MainRenderableComponent<FlipperData>,
 		IFlipperData, ISwitchDeviceComponent, ICoilDeviceComponent, IOnSurfaceComponent,
-		IRotatableComponent, ISoundEmitter
+		IRotatableComponent
 	{
 		#region Data
 
@@ -130,31 +130,7 @@ namespace VisualPinball.Unity
 		public const string HoldCoilItem = "hold_coil";
 		public const string EosSwitchItem = "eos_switch";
 
-		public const string SoundCoilOn = "sound_coil_on";
-		public const string SoundCoilOff = "sound_coil_off";
-		public const string SoundCoilCollision = "sound_ball_collision";
-
 		#endregion
-
-		#region ISoundEmitter
-
-		public SoundTrigger[] AvailableTriggers => new[] {
-			new SoundTrigger(id:SoundCoilOn, name: "Coil On" ),
-			new SoundTrigger(id:SoundCoilOff, name: "Coil Off"),
-			new SoundTrigger(id:SoundCoilCollision, name: "Ball Collision" ),
-		};
-
-		public event EventHandler<SoundEventArgs> OnSound;
-
-		internal void EmitSound(string triggerId, float volume = 1)
-		{
-			OnSound?.Invoke(this, new SoundEventArgs(triggerId, volume));
-		}
-
-		#endregion
-
-
-
 
 		#region Wiring
 

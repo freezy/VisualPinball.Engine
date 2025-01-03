@@ -85,8 +85,6 @@ namespace VisualPinball.Unity
 			Hit?.Invoke(this, new HitEventArgs(ballId));
 			Switch?.Invoke(this, new SwitchEventArgs(true, ballId));
 			OnSwitch(true);
-
-			MainComponent.EmitSound(TargetComponent.SoundTargetHit);
 		}
 
 		#endregion

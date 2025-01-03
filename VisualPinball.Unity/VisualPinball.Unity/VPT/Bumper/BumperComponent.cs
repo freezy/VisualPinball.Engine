@@ -34,7 +34,7 @@ namespace VisualPinball.Unity
 {
 	[AddComponentMenu("Visual Pinball/Game Item/Bumper")]
 	public class BumperComponent : MainRenderableComponent<BumperData>,
-		ISwitchDeviceComponent, ICoilDeviceComponent, IOnSurfaceComponent, ISoundEmitter
+		ISwitchDeviceComponent, ICoilDeviceComponent, IOnSurfaceComponent
 	{
 		#region Data
 
@@ -81,22 +81,6 @@ namespace VisualPinball.Unity
 		public const float DataMeshScale = 100f;
 
 		public const string SocketSwitchItem = "socket_switch";
-		public const string SoundBumperHit = "sound_bumper_hit";
-
-		#endregion
-
-		#region ISoundEmitter
-
-		public SoundTrigger[] AvailableTriggers => new[] {
-			new SoundTrigger (id: SoundBumperHit, name: "Bumper Hit")
-		};
-
-		public event EventHandler<SoundEventArgs> OnSound;
-
-		internal void EmitSound(string triggerId, float volume = 1)
-		{
-			OnSound?.Invoke(this, new SoundEventArgs(triggerId, volume));
-		}
 
 		#endregion
 

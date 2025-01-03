@@ -42,12 +42,6 @@ namespace VisualPinball.Unity
 			}
 		}
 
-		#region Overrides and Constants
-
-		public const string SoundTargetReset = "sound_target_reset";
-
-		#endregion
-
 		#region Conversion
 
 		public override IEnumerable<MonoBehaviour> SetData(HitTargetData data)
@@ -179,15 +173,6 @@ namespace VisualPinball.Unity
 				animationData
 			);
 		}
-
-		#endregion
-
-		#region ISoundEmitter
-
-		public override SoundTrigger[] AvailableTriggers => new[] {
-			new SoundTrigger (id: SoundTargetReset, name: "Target Reset"),
-			new SoundTrigger (id: SoundTargetHit, name: "Target Drop"),
-		};
 
 		#endregion
 	}

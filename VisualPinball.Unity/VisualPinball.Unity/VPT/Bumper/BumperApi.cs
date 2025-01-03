@@ -171,8 +171,6 @@ namespace VisualPinball.Unity
 					OnSwitch(true);
 				}
 			}
-
-			MainComponent.EmitSound(BumperComponent.SoundBumperHit);
 		}
 
 		#endregion

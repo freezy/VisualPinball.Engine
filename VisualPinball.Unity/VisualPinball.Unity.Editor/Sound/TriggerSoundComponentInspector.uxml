@@ -1,5 +1,0 @@
-<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" xsi="http://www.w3.org/2001/XMLSchema-instance" engine="UnityEngine.UIElements" editor="UnityEditor.UIElements" noNamespaceSchemaLocation="../../../../../UIElementsSchema/UIElements.xsd" editor-extension-mode="True">
-    <ui:DropdownField label="Trigger" name="trigger-id" class="unity-base-field__aligned" />
-    <uie:PropertyField name="has-stop-trigger" binding-path="_hasStopTrigger" label="Has Stop Trigger" class="unity-base-field__aligned" />
-    <ui:DropdownField label="Stop Trigger" name="stop-trigger-id" class="unity-base-field__aligned" />
-</ui:UXML>

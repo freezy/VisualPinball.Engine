@@ -35,7 +35,7 @@ using Mesh = VisualPinball.Engine.VPT.Mesh;
 namespace VisualPinball.Unity
 {
 	public abstract class TargetComponent : MainRenderableComponent<HitTargetData>,
-		ISwitchDeviceComponent, ITargetData, IMeshGenerator, ISoundEmitter
+		ISwitchDeviceComponent, ITargetData, IMeshGenerator
 	{
 		#region Data
 
@@ -93,8 +93,6 @@ namespace VisualPinball.Unity
 		protected override Type ColliderComponentType { get; } = typeof(ColliderComponent<HitTargetData, TargetComponent>);
 
 		public const string SwitchItem = "target_switch";
-
-		public const string SoundTargetHit = "sound_target_hit";
 
 		#endregion
 
@@ -193,21 +191,6 @@ namespace VisualPinball.Unity
 		public override ItemDataTransformType EditorScaleType => ItemDataTransformType.ThreeD;
 		public override Vector3 GetEditorScale() => Size;
 		public override void SetEditorScale(Vector3 scale) => Size = scale;
-
-		#endregion
-
-		#region ISoundEmitter
-
-		public virtual SoundTrigger[] AvailableTriggers => new[] {
-			new SoundTrigger (id: SoundTargetHit, name: "Target Hit"),
-		};
-
-		public event EventHandler<SoundEventArgs> OnSound;
-
-		internal virtual void EmitSound(string triggerId, float volume = 1)
-		{
-			OnSound?.Invoke(this, new SoundEventArgs(triggerId, volume));
-		}
 
 		#endregion
 	}
