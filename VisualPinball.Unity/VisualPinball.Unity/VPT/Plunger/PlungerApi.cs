@@ -98,8 +98,6 @@ namespace VisualPinball.Unity
 			} else {
 				PlungerCommands.PullBack(collComponent.SpeedPull, ref plungerState.Velocity, ref plungerState.Movement);
 			}
-
-			MainComponent.EmitSound(PlungerComponent.SoundPlungerPull);
 		}
 
 		public void Fire()
@@ -128,8 +126,6 @@ namespace VisualPinball.Unity
 				var pos = (plungerState.Movement.Position - plungerState.Static.FrameEnd) / (plungerState.Static.FrameStart - plungerState.Static.FrameEnd);
 				PlungerCommands.Fire(pos, ref plungerState.Velocity, ref plungerState.Movement, in plungerState.Static);
 			}
-
-			MainComponent.EmitSound(PlungerComponent.SoundPlungerRelease);
 		}
 
 		IApiCoil IApiCoilDevice.Coil(string deviceItem) => Coil(deviceItem);

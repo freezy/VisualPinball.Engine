@@ -96,8 +96,6 @@ namespace VisualPinball.Unity
 			state.Movement.StartRotateToEndTime =  PhysicsEngine.TimeMsec;
 			state.Movement.AngleAtRotateToEnd = state.Movement.Angle;
 			state.Solenoid.Value = true;
-
-			MainComponent.EmitSound(FlipperComponent.SoundCoilOn, MainComponent.RotatePosition);
 		}
 
 		/// <summary>
@@ -109,8 +107,6 @@ namespace VisualPinball.Unity
 			ref var state = ref PhysicsEngine.FlipperState(ItemId);
 			state.Movement.EnableRotateEvent = -1;
 			state.Solenoid.Value = false;
-
-			MainComponent.EmitSound(FlipperComponent.SoundCoilOff);
 		}
 
 		internal ref FlipperState State => ref PhysicsEngine.FlipperState(ItemId);
