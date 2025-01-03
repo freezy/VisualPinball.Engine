@@ -70,15 +70,14 @@ namespace VisualPinball.Unity
 
 		internal FlipperApi(GameObject go, Player player, PhysicsEngine physicsEngine) : base(go, player, physicsEngine)
 		{
+			_mainCoil = new DeviceCoil(Player, OnMainCoilEnabled, OnMainCoilDisabled);
+			_holdCoil = new DeviceCoil(Player, OnHoldCoilEnabled, OnHoldCoilDisabled);
 		}
 
 		void IApi.OnInit(BallManager ballManager)
 		{
 			base.OnInit(ballManager);
 			Init?.Invoke(this, EventArgs.Empty);
-
-			_mainCoil = new DeviceCoil(Player, OnMainCoilEnabled, OnMainCoilDisabled);
-			_holdCoil = new DeviceCoil(Player, OnHoldCoilEnabled, OnHoldCoilDisabled);
 		}
 
 		void IApi.OnDestroy()
