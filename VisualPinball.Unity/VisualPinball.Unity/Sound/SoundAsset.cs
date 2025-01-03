@@ -17,6 +17,7 @@
 // ReSharper disable InconsistentNaming
 
 using System;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.Audio;
 using Random = UnityEngine.Random;
@@ -75,6 +76,7 @@ namespace VisualPinball.Unity
 
 		private AudioClip GetClip()
 		{
+			_clips.ToList().RemoveAll(clip => clip == null);
 			if (_clips.Length == 0)
 				throw new InvalidOperationException($"The sound asset '{name}' has no audio clips to play.");
 			switch (_clipSelectionMethod) {
