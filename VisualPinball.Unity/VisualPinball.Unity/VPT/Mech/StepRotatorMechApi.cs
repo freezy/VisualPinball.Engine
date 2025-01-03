@@ -52,6 +52,13 @@ namespace VisualPinball.Unity
 			_component = go.GetComponentInChildren<StepRotatorMechComponent>();
 			_player = player;
 			_physicsEngine = physicsEngine;
+			_motorCoil = new DeviceCoil(_player, OnMotorCoilEnabled, OnMotorCoilDisabled);
+			_switches = _component.Marks.ToDictionary(m => m.SwitchId, m => new DeviceSwitch(m.SwitchId, false, SwitchDefault.NormallyOpen, _player, _physicsEngine));
+			var i = 0;
+			foreach (var sw in _switches.Values) {
+				sw.SetSwitch(i == 0);
+				i++;
+			}
 		}
 
 		void IApi.OnInit(BallManager ballManager)
@@ -60,15 +67,7 @@ namespace VisualPinball.Unity
 			_currentStep = 0;
 			_direction = Direction.Forward;
 
-			_motorCoil = new DeviceCoil(_player, OnMotorCoilEnabled, OnMotorCoilDisabled);
-
 			_marks = _component.Marks.ToDictionary(m => m.SwitchId, m => m);
-			_switches = _component.Marks.ToDictionary(m => m.SwitchId, m => new DeviceSwitch(m.SwitchId, false, SwitchDefault.NormallyOpen, _player, _physicsEngine));
-			var i = 0;
-			foreach (var sw in _switches.Values) {
-				sw.SetSwitch(i == 0);
-				i++;
-			}
 
 			Init?.Invoke(this, EventArgs.Empty);
 		}
