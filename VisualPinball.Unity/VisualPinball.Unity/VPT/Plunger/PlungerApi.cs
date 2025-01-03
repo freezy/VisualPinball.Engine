@@ -62,6 +62,8 @@ namespace VisualPinball.Unity
 
 		internal PlungerApi(GameObject go, Player player, PhysicsEngine physicsEngine) : base(go, player, physicsEngine)
 		{
+			PullCoil = new DeviceCoil(Player, PullBack, Fire);
+			FireCoil = new DeviceCoil(Player, Fire);
 		}
 
 		internal void OnAnalogPlunge(InputAction.CallbackContext ctx)
@@ -75,9 +77,6 @@ namespace VisualPinball.Unity
 		{
 			base.OnInit(ballManager);
 			Init?.Invoke(this, EventArgs.Empty);
-
-			PullCoil = new DeviceCoil(Player, PullBack, Fire);
-			FireCoil = new DeviceCoil(Player, Fire);
 		}
 
 		void IApi.OnDestroy()

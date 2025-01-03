@@ -43,11 +43,11 @@ namespace VisualPinball.Unity
 			_gateLifterComponent = go.GetComponent<GateLifterComponent>();
 			_player = player;
 			_physicsEngine = physicsEngine;
+			LifterCoil = new DeviceCoil(_player, OnLifterCoilEnabled, OnLifterCoilDisabled);
 		}
 
 		void IApi.OnInit(BallManager ballManager)
 		{
-			LifterCoil = new DeviceCoil(_player, OnLifterCoilEnabled, OnLifterCoilDisabled);
 			_gateApi = _player.TableApi.Gate(_gateComponent);
 			Init?.Invoke(this, EventArgs.Empty);
 		}

@@ -53,6 +53,8 @@ namespace VisualPinball.Unity
 			_scoreMotorComponent = go.GetComponentInChildren<ScoreMotorComponent>();
 			_player = player;
 			_physicsEngine = physicsEngine;
+			_motorRunningSwitch = new DeviceSwitch(ScoreMotorComponent.MotorRunningSwitchItem, false, SwitchDefault.NormallyOpen, _player, _physicsEngine);
+			_motorStepSwitch = new DeviceSwitch(ScoreMotorComponent.MotorStepSwitchItem, true, SwitchDefault.NormallyOpen, _player, _physicsEngine);
 
 			_scoreMotorComponent.OnSwitchChanged += HandleSwitchChanged;
 		}
@@ -60,10 +62,7 @@ namespace VisualPinball.Unity
 		#region Events
 
 		void IApi.OnInit(BallManager ballManager)
-		{
-			_motorRunningSwitch = new DeviceSwitch(ScoreMotorComponent.MotorRunningSwitchItem, false, SwitchDefault.NormallyOpen, _player, _physicsEngine);
-			_motorStepSwitch = new DeviceSwitch(ScoreMotorComponent.MotorStepSwitchItem, true, SwitchDefault.NormallyOpen, _player, _physicsEngine);
-
+		{			
 			Init?.Invoke(this, EventArgs.Empty);
 		}
 
