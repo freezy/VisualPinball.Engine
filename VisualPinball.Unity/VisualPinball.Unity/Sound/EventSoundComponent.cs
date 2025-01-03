@@ -31,8 +31,8 @@ namespace VisualPinball.Unity
 			if (TryFindEventSource(out var _eventSource))
 				Subscribe(_eventSource);
 			else
-				Logger.Warn($"Could not find sound event source of type {nameof(EventSourceType)}." +
-					$" Make sure an appropriate component is attached");
+                Logger.Warn($"Could not find sound event source of type {typeof(EventSourceType).Name}." +
+                $" Make sure an appropriate component is attached");
 		}
 
 		protected override void OnDisable()
