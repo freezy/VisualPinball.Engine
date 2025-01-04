@@ -141,6 +141,9 @@ namespace VisualPinball.Unity
 		internal ref SurfaceState SurfaceState(int itemId) => ref _surfaceStates.Ref.GetValueByRef(itemId);
 		internal ref TriggerState TriggerState(int itemId) => ref _triggerStates.Ref.GetValueByRef(itemId);
 		internal void SetBallInsideOf(int ballId, int itemId) => _insideOfs.SetInsideOf(itemId, ballId);
+		internal bool HasBallsInsideOf(int itemId) => _insideOfs.GetInsideCount(itemId) > 0;
+		internal List<int> GetBallsInsideOf(int itemId) => _insideOfs.GetIdsOfBallsInsideItem(itemId);
+
 		internal uint TimeMsec => _physicsEnv.Ref[0].TimeMsec;
 		internal Random Random => _physicsEnv.Ref[0].Random;
 		internal void Register<T>(T item) where T : MonoBehaviour
@@ -200,6 +203,8 @@ namespace VisualPinball.Unity
 				_disabledCollisionItems.Ref.Add(itemId);
 			}
 		}
+
+		internal Transform GetTransform(int itemId) => _transforms[itemId];
 
 		#endregion
 
