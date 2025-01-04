@@ -14,10 +14,14 @@
 
 - name: Editor
   items:
+    - name: Units and 3D Space
+      href: editor/units-3d-space.md
     - name: Unity Components
       href: editor/unity-components.md
     - name: Materials
       href: editor/materials.md
+    - name: Asset Library
+      href: editor/asset-library.md
     - name: Switch Manager
       href: editor/switch-manager.md
     - name: Coil Manager

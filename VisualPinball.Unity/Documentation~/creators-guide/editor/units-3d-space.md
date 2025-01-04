@@ -16,7 +16,7 @@ If you've already used VPX, you know that it uses its own units, defined by the 
 
 > In VPX, 50 units correspond to the ball diameter.
 
-A ball being 1 1/16 inch, we get the following relations:
+A ball being 1¹⁄₁₆ inch, we get the following relations:
 
 - 50 VP units = 1.0625"
 - 1 VP unit = 0.02125" = 0.53975mm
