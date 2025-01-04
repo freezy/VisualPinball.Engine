@@ -12,7 +12,7 @@ Different software uses different units and orientations, and this section descr
 
 ## Units
 
-If you've already used VPX, you know that it uses its own units, defined by the ball radius:
+If you've already used VPX, you know that it uses its own units, defined by the ball size:
 
 > In VPX, 50 units correspond to the ball diameter.
 
@@ -34,6 +34,7 @@ So, we've chosen the following approach:
 
 > - Everything in the scene uses real-world units (meters).
 > - During runtime, 3D data is converted to VPX units for the physics simulation.
+> - New movement data from the physics engine is converted back to real-world units.
 
 > [!note]
 > ### VPX Units in the Editor
@@ -56,6 +57,8 @@ The main impact for you as a table author is that you need to pay attention when
 > - Forward -> Z-Forward
 > - Up -> Y-Up
 
+TODO screenshot
+
 ## Transformations
 
 We call it a *transformation* when we move, rotate, or scale an object. Let's talk about how VPX and VPE handle transformations.
@@ -71,9 +74,9 @@ Scaling support in VPX is more sparse, with most objects not being able to scale
 
 For quite a while, VPE implemented the same restrictions as VPX, and we spent considerable time overriding Unity's transformation tools to adhere to those limitations.
 
-However, as a user, you could always work around them, often accidentally, by either disabling gizmos in the editor or by simply parenting an item to another object and freely transforming the parent. If that happened, the result would be a rather incoherent mess because the visuals wouldn't correspond to the physics simulation, which was still bound by those limits.
+However, as a user, you could always work around them, often accidentally, by either disabling gizmos in the editor or by simply parenting an item to another object and freely transforming the parent (the child always inherits transformation of its parent). If that happened, the result would be a rather incoherent mess because the visuals wouldn't correspond to the physics simulation, which was still bound by those limits.
 
-So, we ended up implementing full transformation support for VPE. That means you can freely position, rotate, and scale all items. You can also parent items to other objects and transform those objects. Or the parents of those objects. In short, however the transformation hierarchy of your scene is, VPE will boil it down to one transformation during runtime, check for each item whether the physics engine supports the resulting transformation, and if not, apply the ball projection trick during a collision.
+So, we ended up implementing full transformation support for VPE. That means you can freely position, rotate, and scale all items. You can also parent items to other objects and transform those objects. Or the parents of those objects. In short, however the transformation hierarchy of your scene is, VPE will boil it down to one transformation during runtime, check for each item whether the physics engine supports the resulting transformation, and if not, apply the [ball projection trick](https://github.com/freezy/VisualPinball.Engine/tree/master/VisualPinball.Unity/VisualPinball.Unity/Physics#unrestricted-transformations) during a collision.
 
 ## Runtime Transformations
 
@@ -82,4 +85,6 @@ In VPX, transformations are static. That means they cannot be changed during run
 That's, of course, very cumbersome and error-prone. In VPE, we've extended the physics engine to be able to mark objects are movable. If an object is marked as such, it can be fully transformed during gameplay, and the colliders are updated accordingly.
 
 > [!note]
-> Note that currently, moving objects don't have a velocity, meaning that hitting a moving object only takes into account the speed of the ball, not the object. It's like the object is teleported frame by frame to its new position.
+> Note that currently, moving objects don't have a velocity, meaning that hitting a moving object only takes into account the speed of the ball, not the object's. It's like the object is teleported frame by frame to its new position.
+> 
+> True collision where the object's directional and angular speed is calculated based off the last frame's position and the current one is a feature that is valuable and on the roadmap.
