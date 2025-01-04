@@ -30,6 +30,9 @@ namespace VisualPinball.Unity
 			using var enumerator = state.Balls.GetEnumerator();
 			while (enumerator.MoveNext()) {
 				ref var ball = ref enumerator.Current.Value;
+				if (ball.IsFrozen) {
+					continue;
+				}
 				BallMovementPhysics.Move(ball, transforms[ball.Id]);
 			}
 		}

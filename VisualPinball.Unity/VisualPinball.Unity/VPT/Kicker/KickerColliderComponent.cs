@@ -64,6 +64,12 @@ namespace VisualPinball.Unity
 			ref var kickerData = ref PhysicsEngine.KickerState(ItemId);
 			kickerData.Static.Center = currTransformationMatrix.c3.xy;
 			kickerData.Static.ZLow = currTransformationMatrix.c3.z;
+			if (PhysicsEngine.HasBallsInsideOf(ItemId)) {
+				foreach (var ballId in PhysicsEngine.GetBallsInsideOf(ItemId)) {
+					ref var ball = ref PhysicsEngine.BallState(ballId);
+					ball.Position = currTransformationMatrix.c3.xyz;
+				}
+			}
 		}
 	}
 }

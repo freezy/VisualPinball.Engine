@@ -239,15 +239,19 @@ namespace VisualPinball.Unity
 
 		void IApiHittable.OnHit(int ballId, bool isUnHit)
 		{
+			var ballTransform = PhysicsEngine.GetTransform(ballId);
 			if (isUnHit) {
 				UnHit?.Invoke(this, new HitEventArgs(ballId));
 				Switch?.Invoke(this, new SwitchEventArgs(false, ballId));
 				OnSwitch(false);
+				ballTransform.SetParent(MainComponent.GetComponentInParent<PlayfieldComponent>().transform, true);
 
 			} else {
 				Hit?.Invoke(this, new HitEventArgs(ballId));
 				Switch?.Invoke(this, new SwitchEventArgs(true, ballId));
 				OnSwitch(true);
+				BallMovementPhysics.Move(PhysicsEngine.BallState(ballId), ballTransform); // do the last update, since frozen balls don't get updated
+				ballTransform.SetParent(MainComponent.transform, true);
 			}
 		}
 
