@@ -8,7 +8,7 @@ jobs:
     name: Build and publish documentation
     steps:
       - uses: actions/checkout@v4
-      - uses: nunit/docfx-action@v2.10.0
+      - uses: nunit/docfx-action@v3.4.2
         name: Build Documentation
         with:
           args: VisualPinball.Unity/Documentation~/docfx.json
