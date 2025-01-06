@@ -147,6 +147,7 @@ namespace VisualPinball.Unity
 #if UNITY_EDITOR
 
 		private Player _player;
+		private NativeOctree<int> _octree = default;
 
 		private void OnDrawGizmos()
 		{
@@ -181,7 +182,7 @@ namespace VisualPinball.Unity
 			var unmodifiedLocalToPlayfieldMatrixInVpx = GetUnmodifiedLocalToPlayfieldMatrixInVpx(worldToPlayfield);
 			var nonTransformableColliderTransforms = new NativeParallelHashMap<int, float4x4>(0, Allocator.Temp);
 
-			var generateColliders = ShowAabbs || showColliders && !HasCachedColliders;
+			var generateColliders = ShowAabbs || showColliders && !HasCachedColliders || ShowColliderOctree;
 			if (generateColliders) {
 				if (Application.isPlaying) {
 					InstantiateRuntimeColliders(showColliders);
@@ -190,37 +191,7 @@ namespace VisualPinball.Unity
 				}
 			}
 
-			if (ShowColliderOctree) {
-
-				var api = InstantiateColliderApi(_player, null);
-				var colliders = new ColliderReference(ref nonTransformableColliderTransforms, Allocator.TempJob);
-				var kinematicColliders = new ColliderReference(ref nonTransformableColliderTransforms, Allocator.TempJob, true);
-				try {
-					if (IsKinematic) {
-						api.CreateColliders(ref kinematicColliders, localToPlayfieldMatrixInVpx, 0.1f);
-					} else {
-						api.CreateColliders(ref colliders, localToPlayfieldMatrixInVpx, 0.1f);
-					}
-
-					var playfieldBounds = GetComponentInParent<PlayfieldComponent>().Bounds;
-					var octree = new NativeOctree<int>(playfieldBounds, 32, 10, Allocator.Persistent);
-					var nativeColliders = new NativeColliders(ref colliders, Allocator.TempJob);
-					var populateJob = new PhysicsPopulateJob {
-						Colliders = nativeColliders,
-						Octree = octree,
-					};
-					populateJob.Run();
-					Gizmos.color = Color.yellow;
-					octree.DrawGizmos();
-				} finally {
-					colliders.Dispose();
-					kinematicColliders.Dispose();
-				}
-			}
-
-			// aabbs
-			Gizmos.matrix = playfieldToWorld * (Matrix4x4)Physics.VpxToWorld;
-
+			// draw collider mesh
 			if (showColliders) {
 
 				var white = Color.white;
@@ -260,11 +231,20 @@ namespace VisualPinball.Unity
 				DrawNonMeshColliders();
 			}
 
+			// draw aabbs
 			if (ShowAabbs) {
 				Gizmos.matrix = playfieldToWorld * (Matrix4x4)Physics.VpxToWorld;
 				foreach (var aabb in _aabbs) {
 					DrawAabb(aabb, true);
 				}
+			}
+
+			// draw octree
+			if (ShowColliderOctree && !Application.isPlaying) {
+				Gizmos.matrix = playfieldToWorld * (Matrix4x4)Physics.VpxToWorld;
+				Gizmos.color = Color.yellow;
+				_octree.DrawGizmos();
+				_octree.Dispose();
 			}
 
 			Gizmos.matrix = Matrix4x4.identity;
@@ -279,40 +259,34 @@ namespace VisualPinball.Unity
 				PhysicsEngine = GetComponentInParent<PhysicsEngine>(); // todo cache
 			}
 
-			if (showColliders || ShowAabbs) {
+			if (showColliders || ShowAabbs || ShowColliderOctree) {
+				var colliders = IsKinematic
+					? PhysicsEngine.GetKinematicColliders(MainComponent.gameObject.GetInstanceID())
+					: PhysicsEngine.GetColliders(MainComponent.gameObject.GetInstanceID());
+
 				if (IsKinematic) {
-					var kinematicColliders = PhysicsEngine.GetKinematicColliders(MainComponent.gameObject.GetInstanceID());
 					_transformedColliderMesh = null;
 					_untransformedColliderMesh = null;
-
 					if (showColliders) {
-						GenerateColliderMesh(kinematicColliders, out _transformedKinematicColliderMesh, out _untransformedKinematicColliderMesh);
+						GenerateColliderMesh(colliders, out _transformedKinematicColliderMesh, out _untransformedKinematicColliderMesh);
 					}
 
-					if (ShowAabbs) {
-						var count = kinematicColliders.Length;
-						_aabbs = new Aabb[count];
-						for (var i = 0; i < count; i++) {
-							_aabbs[i] = kinematicColliders[i].Bounds.Aabb;
-						}
-					}
 				} else {
-					var colliders = PhysicsEngine.GetColliders(MainComponent.gameObject.GetInstanceID());
 					_transformedKinematicColliderMesh = null;
 					_untransformedKinematicColliderMesh = null;
-
 					if (showColliders) {
 						GenerateColliderMesh(colliders, out _transformedColliderMesh, out _untransformedColliderMesh);
 					}
+				}
 
-					if (ShowAabbs) {
-						var count = colliders.Length;
-						_aabbs = new Aabb[count];
-						for (var i = 0; i < count; i++) {
-							_aabbs[i] = colliders[i].Bounds.Aabb;
-						}
+				if (ShowAabbs) {
+					var count = colliders.Length;
+					_aabbs = new Aabb[count];
+					for (var i = 0; i < count; i++) {
+						_aabbs[i] = colliders[i].Bounds.Aabb;
 					}
 				}
+
 				_collidersDirty = false;
 			}
 		}
@@ -320,20 +294,15 @@ namespace VisualPinball.Unity
 		private void InstantiateEditorColliders(bool showColliders, ref NativeParallelHashMap<int, float4x4> nonTransformableColliderTransforms, float4x4 localToPlayfieldMatrixInVpx)
 		{
 			var api = InstantiateColliderApi(_player, PhysicsEngine);
-			var colliders = new ColliderReference(ref nonTransformableColliderTransforms, Allocator.Temp);
-			var kinematicColliders = new ColliderReference(ref nonTransformableColliderTransforms, Allocator.Temp, true);
+			var colliders = new ColliderReference(ref nonTransformableColliderTransforms, Allocator.Temp, IsKinematic);
 			try {
-				if (IsKinematic) {
-					api.CreateColliders(ref kinematicColliders, localToPlayfieldMatrixInVpx, 0.1f);
-				} else {
-					api.CreateColliders(ref colliders, localToPlayfieldMatrixInVpx, 0.1f);
-				}
+				api.CreateColliders(ref colliders, localToPlayfieldMatrixInVpx, 0.1f);
 
 				if (showColliders) {
 					if (IsKinematic) {
 						_transformedColliderMesh = null;
 						_untransformedColliderMesh = null;
-						GenerateColliderMesh(ref kinematicColliders, out _transformedKinematicColliderMesh, out _untransformedKinematicColliderMesh);
+						GenerateColliderMesh(ref colliders, out _transformedKinematicColliderMesh, out _untransformedKinematicColliderMesh);
 					} else {
 						_transformedKinematicColliderMesh = null;
 						_untransformedKinematicColliderMesh = null;
@@ -343,16 +312,26 @@ namespace VisualPinball.Unity
 				}
 
 				if (ShowAabbs) {
-					var count = IsKinematic ? kinematicColliders.Count : colliders.Count;
-					var c = IsKinematic ? kinematicColliders : colliders;
+					var count = colliders.Count;
 					_aabbs = new Aabb[count];
 					for (var i = 0; i < count; i++) {
-						_aabbs[i] = c[i].Bounds.Aabb;
+						_aabbs[i] = colliders[i].Bounds.Aabb;
 					}
 				}
+
+				if (ShowColliderOctree) {
+					var playfieldBounds = GetComponentInParent<PlayfieldComponent>().Bounds;
+					_octree = new NativeOctree<int>(playfieldBounds, 32, 10, Allocator.Persistent);
+					var nativeColliders = new NativeColliders(ref colliders, Allocator.TempJob);
+					var populateJob = new PhysicsPopulateJob {
+						Colliders = nativeColliders,
+						Octree = _octree,
+					};
+					populateJob.Run();
+				}
+
 			} finally {
 				colliders.Dispose();
-				kinematicColliders.Dispose();
 			}
 		}
 
