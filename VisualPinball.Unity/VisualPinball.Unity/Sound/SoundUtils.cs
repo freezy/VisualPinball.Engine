@@ -26,6 +26,9 @@ using UnityEditor.SceneManagement;
 
 namespace VisualPinball.Unity
 {
+	/// <summary>
+	/// Provides utility functions for playing sounds at runtime and in the editor with support for fading the volume in and out.
+	/// </summary>
 	public static class SoundUtils
 	{
 		public static async Task Fade(AudioSource audioSource, float fromVolume, float toVolume, float duration, CancellationToken ct)

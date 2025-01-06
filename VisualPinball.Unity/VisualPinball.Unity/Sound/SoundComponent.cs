@@ -25,6 +25,9 @@ using UnityEngine;
 
 namespace VisualPinball.Unity
 {
+	/// <summary>
+	/// Base component for playing a <c>SoundAsset</c> using the public methods <c>Play</c> and <c>Stop</c>.
+	/// </summary>
 	[AddComponentMenu("Visual Pinball/Sound/Sound")]
 	public class SoundComponent : EnableAfterAwakeMonoBehaviour
 	{
