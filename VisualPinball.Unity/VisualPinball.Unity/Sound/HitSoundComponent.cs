@@ -22,8 +22,6 @@ namespace VisualPinball.Unity
 	[AddComponentMenu("Visual Pinball/Sound/Hit Sound")]
 	public class HitSoundComponent : EventSoundComponent<IApiHittable, HitEventArgs>
 	{
-		private float _lastHitTime;
-
 		public override bool SupportsLoopingSoundAssets() => false;
 		public override Type GetRequiredType() => typeof(ItemComponent);
 
@@ -41,15 +39,7 @@ namespace VisualPinball.Unity
 			return false;
 		}
 
-		protected override async void OnEvent(object sender, HitEventArgs e)
-		{
-			// Prevent excessive sound spam
-			float timeSinceLastHit = Time.time - _lastHitTime;
-			if (timeSinceLastHit > 0.1) {
-				_lastHitTime = Time.time;
-				await Play();
-			}
-		}
+		protected override async void OnEvent(object sender, HitEventArgs e) => await Play();
 
 		protected override void Subscribe(IApiHittable eventSource) => eventSource.Hit += OnEvent;
 
