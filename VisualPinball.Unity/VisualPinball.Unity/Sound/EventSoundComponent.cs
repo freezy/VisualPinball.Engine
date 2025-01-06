@@ -28,7 +28,7 @@ namespace VisualPinball.Unity
 		protected override void OnEnableAfterAfterAwake()
 		{
 			base.OnEnableAfterAfterAwake();
-			if (TryFindEventSource(out var _eventSource))
+			if (TryFindEventSource(out _eventSource))
 				Subscribe(_eventSource);
 			else
                 Logger.Warn($"Could not find sound event source of type {typeof(EventSourceType).Name}." +
