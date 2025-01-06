@@ -40,8 +40,9 @@ namespace VisualPinball.Unity
 		private CancellationTokenSource _allowFadeCts;
 		protected static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
-		protected virtual void OnEnable()
+		protected override void OnEnableAfterAfterAwake()
 		{
+			base.OnEnableAfterAfterAwake();
 			_instantCts = new();
 			_allowFadeCts = new();
 		}
