@@ -93,29 +93,6 @@ namespace VisualPinball.Unity.Editor
 			}
 			EditorGUILayout.EndFoldoutHeaderGroup();
 
-			// individual collider list
-			/*
-			if (_foldoutColliders = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutColliders, "Colliders")) {
-
-				var hitObjects = ColliderComponent.Colliders ?? new List<ICollider>(0);
-				_currentColliders = hitObjects
-					.Where(h => h != null)
-					.Select((h, i) => $"[{i}] {h.GetType().Name}")
-					.ToArray();
-
-				if (_currentColliders.Length == 0) {
-					GUILayout.Label("No colliders for this item.");
-				}
-
-				_scrollPos = EditorGUILayout.BeginScrollView(_scrollPos, GUILayout.ExpandWidth(true),
-					GUILayout.ExpandHeight(true));
-				var selectedCollider = GUILayout.SelectionGrid(ColliderComponent.SelectedCollider, _currentColliders, 1);
-				refresh = refresh || selectedCollider == ColliderComponent.SelectedCollider;
-				ColliderComponent.SelectedCollider = selectedCollider;
-				EditorGUILayout.EndScrollView();
-			}
-			EditorGUILayout.EndFoldoutHeaderGroup();*/
-
 			// refresh scene view manually
 			if (refresh) {
 				EditorWindow.GetWindow<SceneView>().Repaint();
