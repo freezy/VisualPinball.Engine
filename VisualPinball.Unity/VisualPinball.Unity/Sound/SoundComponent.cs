@@ -38,6 +38,7 @@ namespace VisualPinball.Unity
 
 		private CancellationTokenSource _instantCts;
 		private CancellationTokenSource _allowFadeCts;
+		private float _lastPlayStartTime;
 		protected static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
 		protected override void OnEnableAfterAfterAwake()
@@ -66,10 +67,17 @@ namespace VisualPinball.Unity
 				Logger.Warn("Cannot play without sound asset. Assign it in the inspector.");
 				return;
 			}
+			float timeSinceLastPlay = Time.unscaledTime - _lastPlayStartTime;
+			if (timeSinceLastPlay < 0.1f) {
+				Logger.Warn("Sound spam protection engaged. There is probably something wrong with the calling code.");
+				return;
+			}
+
 			if (_interrupt)
 				Stop(allowFade: true);
 			try {
 				var combinedVol = _volume * volume;
+				_lastPlayStartTime = Time.unscaledTime;
 				await SoundUtils.Play(_soundAsset, gameObject, _allowFadeCts.Token, _instantCts.Token, combinedVol);
 			} catch (OperationCanceledException) { }
 		}
