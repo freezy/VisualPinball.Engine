@@ -178,10 +178,8 @@ approach is the following:
   result in a rectangle parallel and orthogonal to the playfield, which wouldn't be 
   desired.
 - But more on that problem later. What's important is that for transformations 
-  *supported by the VPX physics code*, we have a method that allows to transform  
-  each collider, based on a matrix.
-- Additionally, colliders are instantiated without a transformation matrix. That means  
-  by default, they are placed at the origin and have no rotation or scale.
+  *supported by the VPX physics code*, we have a method that allows to transform each collider, based on a matrix.
+- Additionally, colliders are always instantiated without any transformation. That means by default, they are placed at the origin and have no rotation or scale.
 - Finally, each collider gets a `TransformAABBs(float4x4)` method that only transforms
   the collider's axis-aligned bounding boxes.
   
@@ -193,7 +191,7 @@ So, with all of the above, we do the following when the game starts:
 3. We check which kind of transformation the VPX physics code supports for the type of
    collider and compare it to the transformation of playfield-to-local matrix.
    - If all transformations are supported, we simply transform the collider with the item's
-	 transformation matrix.
+     transformation matrix.
    - If not, we check whether this collider might be replaceable by another type of collider
      that supports the transformation. For example, a line collider can be replaced by two 
      triangle colliders, which then are 100% transformable.
