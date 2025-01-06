@@ -16,6 +16,9 @@
 
 namespace VisualPinball.Unity
 {
+	/// <summary>
+	/// Start and or stop a soud when an event occurs.
+	/// </summary>
 	public abstract class EventSoundComponent<EventSourceType, EventArgsType> : SoundComponent where EventSourceType : class
 	{
 		private EventSourceType _eventSource;
