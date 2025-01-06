@@ -6,7 +6,7 @@ description: VPE supports real-world units and free 3D transformations.
 
 # Units and 3D Space
 
-Units describe how we measure things. For example, the units for measuring length are meters in the metric system, or feet and inches in the imperial system. There are also different systems for saving 3D data. For example, in VPX, the x-axis points to the right side of the player, the y-axis towards the player, and the z-axis upwards. We call this the [orientation and handedness](https://en.wikipedia.org/wiki/Cartesian_coordinate_system#In_three_dimensions) of the coordinate system.
+Units describe how we measure things. For example, the units for measuring length are meters in the metric system, or feet and inches in the imperial system. There are also different systems for saving 3D data. For example, in VPX, the x-axis points to the right side of the player, the y-axis down, and the z-axis towards the player. We call this the [orientation and handedness](https://en.wikipedia.org/wiki/Cartesian_coordinate_system#In_three_dimensions) of the coordinate system.
 
 Different software uses different units and orientations, and this section describes how VPE handles them. We'll also compare how VPX and VPE handle transformations.
 
@@ -26,7 +26,7 @@ or
 - 1" = 47.05882352941176 VP units
 - 1mm = 1.852709587772117 VP units
 
-Obviously, no other 3D software uses these units, so importing models from, let's say, Blender has always been a pain.
+Obviously, no other 3D software uses these units, so importing models from, let's say, Blender, has always been a pain.
 
 The problem is that if we wanted to just scale everything down to meters, it would impact physics because physics is strongly dependent on the real-world size (and thus, mass) of things. Given that VPE uses VPX's physics code, which has been fine-tuned with heuristics based on VPX units, we cannot simply scale everything to real-world units and expect the same behavior in the physics simulation.
 
@@ -34,14 +34,17 @@ So, we've chosen the following approach:
 
 > - Everything in the scene uses real-world units (meters).
 > - During runtime, 3D data is converted to VPX units for the physics simulation.
-> - New movement data from the physics engine is converted back to real-world units.
+> - New movement data from the physics engine is converted back and applied to real-world units.
 
 > [!note]
 > ### VPX Units in the Editor
 >
-> Meters where a table is under 1x2 meters large isn't necessarily the best unit either. The best would have been millimeters, but Unity's units aren't configurable.
+> Meters for elements on a pinball table which is under two meters long isn't necessarily the best unit either. The best would have been millimeters, but Unity's units aren't configurable.
 >
-> Because of this and the fact that many table authors are still familiar with VPX units, VPE includes VPX units in the panel of each component. They can be changed in real-time and will update the transformation of the object.
+> Because of this and the fact that many table authors are still familiar with VPX units, VPE includes VPX units in the panel of each component. Updating one will automatically update the other.
+> 
+> <img src="editor-units.png" alt="Both real world and VPX units" style="max-width:400px"/><br/>
+> <small>*Real world (top) and VPX (bottom) units in the editor*</small>
 
 
 ## Orientation and Handedness
@@ -52,18 +55,18 @@ Blender, on the other hand (no pun intended), also has the Z-axis pointing up, b
 
 Unity's coordinate system is left-handed like VPX, but oriented differently. Since the player is usually looking forward, that's where the XY plane lies. So, Y points upwards, X to the right, and Z away from the player.
 
+<img src="blender-export.png" width="287" alt="Blender FBX Export" class="img-fluid float-end" style="margin-left: 15px"/>
+
 The main impact for you as a table author is that you need to pay attention when exporting your meshes from other 3D software. For example, when exporting to FBX in Blender, you need to make sure that the following mapping is set (the default *Forward* being *-Z Forward*):
 
 > - Forward -> Z-Forward
 > - Up -> Y-Up
 
-TODO screenshot
-
 ## Transformations
 
 We call it a *transformation* when we move, rotate, or scale an object. Let's talk about how VPX and VPE handle transformations.
 
-In VPX, the XY position within the playfield can be freely set for all items. For the Z-position, some objects allow free positioning, some can be parented to a surface (wall or ramp), and others have a fixed Z-position.
+In VPX, the XY position within the playfield can be freely set for all items. For the Z-position, some objects allow free positioning, some can be parented to a surface (wall or ramp), and others have a fixed Z-position. 
 
 Regarding rotation, some items, like spinners or gates, can be Z-rotated, some can be freely rotated, and some can't be rotated at all.
 
