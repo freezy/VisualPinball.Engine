@@ -96,7 +96,7 @@ namespace VisualPinball.Unity
 		#endregion
 
 		#region Collider Generation
-
+		protected override bool FireHitEvents => true;
 		protected override void CreateColliders(ref ColliderReference colliders,
 			ref ColliderReference kinematicColliders, float margin)
 		{
