@@ -24,6 +24,12 @@ using Random = UnityEngine.Random;
 
 namespace VisualPinball.Unity
 {
+	/// <summary>
+	/// Represents a reusable collection of similar sounds, for example different samples of a
+	/// flipper mechanism getting triggered. Supports multiple techniques to introduce variation
+	/// for frequently used sounds. Instances of this class can be stored in the project files or
+	/// in an asset library.
+	/// </summary>
 	[CreateAssetMenu(fileName = "Sound", menuName = "Visual Pinball/Sound", order = 102)]
 	public class SoundAsset : ScriptableObject
 	{

@@ -19,6 +19,9 @@ using UnityEngine;
 
 namespace VisualPinball.Unity
 {
+	/// <summary>
+	/// Start and or stop a sound when a coil is energized or deenergized.
+	/// </summary>
 	[AddComponentMenu("Visual Pinball/Sound/Switch Sound")]
 	public class SwitchSoundComponent : BinaryEventSoundComponent<IApiSwitch, SwitchEventArgs>
 	{

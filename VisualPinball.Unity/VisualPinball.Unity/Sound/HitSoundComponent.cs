@@ -19,6 +19,9 @@ using UnityEngine;
 
 namespace VisualPinball.Unity
 {
+	/// <summary>
+	/// Add this component to an object on the playfield to play a sound whenever it gets hit by the ball.
+	/// </summary>
 	[AddComponentMenu("Visual Pinball/Sound/Hit Sound")]
 	public class HitSoundComponent : EventSoundComponent<IApiHittable, HitEventArgs>
 	{
