@@ -23,13 +23,16 @@ using NativeTrees;
 using Unity.Collections;
 using Unity.Jobs;
 using Unity.Mathematics;
-using UnityEditor;
 using UnityEngine;
 using UnityEngine.Profiling;
 using VisualPinball.Engine.Game;
 using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Flipper;
 using Mesh = UnityEngine.Mesh;
+
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
 
 namespace VisualPinball.Unity
 {
@@ -162,6 +165,12 @@ namespace VisualPinball.Unity
 			var playfieldColliderComponent = GetComponentInParent<PlayfieldColliderComponent>();
 			var showAllColliderMeshes = playfieldColliderComponent && playfieldColliderComponent.ShowAllColliderMeshes;
 			var showColliders = ShowColliderMesh || showAllColliderMeshes;
+
+			var isSelected = Selection.gameObjects.Contains(gameObject);
+			if (!isSelected && !showAllColliderMeshes) {
+				Profiler.EndSample();
+				return;
+			}
 
 			// early out if nothing to draw
 			if (!ShowAabbs && !showColliders && !ShowColliderOctree) {
