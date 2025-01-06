@@ -18,6 +18,10 @@ using UnityEngine;
 
 namespace VisualPinball.Unity
 {
+	/// <summary>
+	/// Start and or stop a sound when an event occurs that represents a binary state change,
+	/// such as a switch closing or a coil being energized.
+	/// </summary>
 	public abstract class BinaryEventSoundComponent<EventSourceType, EventArgsType>
 		: EventSoundComponent<EventSourceType, EventArgsType>
 		where EventSourceType : class
