@@ -27,7 +27,6 @@ using System.IO;
 using System.Linq;
 using Unity.Collections;
 using Unity.Mathematics;
-using UnityEditor;
 using UnityEngine;
 using VisualPinball.Engine.Game;
 using VisualPinball.Engine.Game.Engines;
@@ -151,7 +150,7 @@ namespace VisualPinball.Unity
 			#if UNITY_EDITOR
 			var mf = GetComponent<MeshFilter>();
 			if (mf) {
-				MeshName = Path.GetFileNameWithoutExtension(AssetDatabase.GetAssetPath(mf.sharedMesh));
+				MeshName = Path.GetFileNameWithoutExtension(UnityEditor.AssetDatabase.GetAssetPath(mf.sharedMesh));
 			}
 			#endif
 
@@ -268,7 +267,7 @@ namespace VisualPinball.Unity
 			#if UNITY_EDITOR
 
 			// don't generate ids for prefabs, otherwise they'll show up in the instances.
-			if (PrefabUtility.GetPrefabInstanceStatus(this) != PrefabInstanceStatus.Connected) {
+			if (UnityEditor.PrefabUtility.GetPrefabInstanceStatus(this) != UnityEditor.PrefabInstanceStatus.Connected) {
 				return;
 			}
 			var coilIds = new HashSet<string>();

@@ -29,21 +29,7 @@ namespace VisualPinball.Unity.Editor
 	[CustomEditor(typeof(KickerComponent)), CanEditMultipleObjects]
 	public class KickerInspector : MainInspector<KickerData, KickerComponent>
 	{
-		private const string MeshFolder = "Packages/org.visualpinball.engine.unity/VisualPinball.Unity/Assets/Art/Meshes/Kicker";
-
-		private static readonly Dictionary<string, int> TypeMap = new() {
-			{ "Cup 1", KickerType.KickerCup },
-			{ "Cup 2", KickerType.KickerCup2 },
-			{ "Gottlieb", KickerType.KickerGottlieb },
-			{ "Hole", KickerType.KickerHole },
-			{ "Simple Hole", KickerType.KickerHoleSimple },
-			{ "Williams", KickerType.KickerWilliams },
-			{ CustomMeshLabel, KickerType.KickerInvisible },
-		};
-
 		private SerializedProperty _orientationProperty;
-		private SerializedProperty _kickerTypeProperty;
-		private SerializedProperty _meshNameProperty;
 		private SerializedProperty _coilsProperty;
 
 		protected override void OnEnable()
@@ -51,8 +37,6 @@ namespace VisualPinball.Unity.Editor
 			base.OnEnable();
 
 			_orientationProperty = serializedObject.FindProperty(nameof(KickerComponent.Orientation));
-			_kickerTypeProperty = serializedObject.FindProperty(nameof(KickerComponent.KickerType));
-			_meshNameProperty = serializedObject.FindProperty(nameof(KickerComponent.MeshName));
 			_coilsProperty = serializedObject.FindProperty(nameof(KickerComponent.Coils));
 		}
 
@@ -82,11 +66,7 @@ namespace VisualPinball.Unity.Editor
 				MainComponent.Radius = newRadius;
 			}
 
-			if (MainComponent.KickerType == KickerType.KickerCup ||
-			    MainComponent.KickerType == KickerType.KickerWilliams) {
-				PropertyField(_orientationProperty, updateTransforms: true);
-			}
-
+			PropertyField(_orientationProperty, updateTransforms: true);
 			PropertyField(_coilsProperty);
 
 			base.OnInspectorGUI();
@@ -100,12 +80,14 @@ namespace VisualPinball.Unity.Editor
 				return;
 			}
 
-			Handles.color = Color.cyan;
-			Handles.matrix = Matrix4x4.identity;
+			var playfield = MainComponent.GetComponentInParent<PlayfieldComponent>();
+			var worldToPlayfield = playfield ? playfield.transform.localToWorldMatrix : Matrix4x4.identity;
 			var transform = MainComponent.transform;
 			var localPos = MainComponent.Position;
 			var worldPos = transform.parent == null ? localPos : localPos.TranslateToWorld();
 
+			Handles.color = Color.cyan;
+			Handles.matrix = worldToPlayfield;
 			foreach (var coil in MainComponent.Coils) {
 				var from = MainComponent.GetBallCreationPosition().ToUnityVector3();
 				var l = coil.Speed == 0 ? 1f : 20f * coil.Speed;
