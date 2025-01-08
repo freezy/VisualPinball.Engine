@@ -20,7 +20,7 @@ namespace VisualPinball.Unity
 {
 	internal static class BumperSkirtAnimation
 	{
-		internal static void Update(ref BumperSkirtAnimationState state, float dTime)
+		internal static void Update(ref BumperSkirtAnimationState state, float dTimeMs)
 		{
 			// todo visibility - skip if invisible
 
@@ -34,8 +34,8 @@ namespace VisualPinball.Unity
 					state.AnimationCounter = 0.0f;
 				}
 				if (state.DoAnimate) {
-					state.AnimationCounter += dTime;
-					if (state.AnimationCounter > 160.0f) {
+					state.AnimationCounter += dTimeMs;
+					if (state.AnimationCounter > state.Duration * 1000) {
 						state.DoAnimate = false;
 						ResetSkirt(ref state);
 					}

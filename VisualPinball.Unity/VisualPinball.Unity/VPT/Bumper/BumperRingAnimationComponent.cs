@@ -27,7 +27,7 @@ namespace VisualPinball.Unity
 		#region Data
 
 		[Tooltip("How quick the ring moves down when the ball is hit.")]
-		public float RingSpeed = 0.5f;
+		public float RingSpeed = 1.0f;
 
 		[Tooltip("How low the ring drops. 0 = bottom")]
 		public float RingDropOffset;
