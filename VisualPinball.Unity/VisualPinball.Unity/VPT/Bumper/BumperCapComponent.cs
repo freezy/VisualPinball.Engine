@@ -19,10 +19,10 @@ using UnityEngine;
 namespace VisualPinball.Unity
 {
 	/// <summary>
-	/// Just a component to tag brackets so we can toggle them during import.
+	/// Just a tag component to identify and set visibility of the bumper cap during import.
 	/// </summary>
-	public class GateBracketComponent : MonoBehaviour
+	public class BumperCapComponent : MonoBehaviour
 	{
-		
+
 	}
 }

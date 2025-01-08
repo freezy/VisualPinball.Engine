@@ -73,14 +73,10 @@ namespace VisualPinball.Unity
 		public override string ItemName => "Bumper";
 		public override bool HasProceduralMesh => false;
 
-		public override BumperData InstantiateData() => new BumperData();
+		public override BumperData InstantiateData() => new();
 
 		protected override Type MeshComponentType { get; } = typeof(MeshComponent<BumperData, BumperComponent>);
 		protected override Type ColliderComponentType { get; } = typeof(ColliderComponent<BumperData, BumperComponent>);
-		private const string SkirtMeshName = "bumper.skirt";
-		private const string BaseMeshName = "bumper.base";
-		private const string CapMeshName = "bumper.cap";
-		private const string RingMeshName = "bumper.ring";
 
 		public const float DataMeshScale = 100f;
 
@@ -157,12 +153,6 @@ namespace VisualPinball.Unity
 			 transform.localScale = new Vector3(Radius * 2f, HeightScale, Radius * 2f) / DataMeshScale;
 		}
 
-		public void UpdateTransforms(Quaternion xz)
-		{
-			var y = Quaternion.Euler(0, Orientation, 0);
-			transform.rotation = xz * y; // localRotation?
-		}
-
 		#endregion
 
 		#region Conversion
@@ -205,41 +195,13 @@ namespace VisualPinball.Unity
 			UpdateTransforms();
 
 			// children visibility
-			foreach (var mf in GetComponentsInChildren<MeshFilter>()) {
-				if (mf.sharedMesh) {
-					var mr = mf.GetComponent<MeshRenderer>();
-					switch (mf.sharedMesh.name) {
-						case SkirtMeshName:
-							mf.gameObject.SetActive(data.IsSocketVisible);
-							if (!string.IsNullOrEmpty(data.SocketMaterial)) {
-								mr.sharedMaterial = materialProvider.MergeMaterials(data.SocketMaterial, mr.sharedMaterial);
-							}
-							break;
-						case BaseMeshName:
-							mf.gameObject.SetActive(data.IsBaseVisible);
-							if (!string.IsNullOrEmpty(data.BaseMaterial)) {
-								mr.sharedMaterial = materialProvider.MergeMaterials(data.BaseMaterial, mr.sharedMaterial);
-							}
-							break;
-						case CapMeshName:
-							mf.gameObject.SetActive(data.IsCapVisible);
-							if (!string.IsNullOrEmpty(data.CapMaterial)) {
-								mr.sharedMaterial = materialProvider.MergeMaterials(data.CapMaterial, mr.sharedMaterial);
-							}
-							break;
-						case RingMeshName:
-							mf.gameObject.SetActive(data.IsRingVisible);
-							if (!string.IsNullOrEmpty(data.RingMaterial)) {
-								mr.sharedMaterial = materialProvider.MergeMaterials(data.RingMaterial, mr.sharedMaterial);
-							}
-							break;
-					}
-				}
-			}
+			SetVisibilityByComponent<BumperSkirtAnimationComponent>(data.IsSocketVisible);
+			SetVisibilityByComponent<BumperBaseComponent>(data.IsBaseVisible);
+			SetVisibilityByComponent<BumperCapComponent>(data.IsCapVisible);
+			SetVisibilityByComponent<BumperRingAnimationComponent>(data.IsRingVisible);
 
 			return Array.Empty<MonoBehaviour>();
 		}
-
 
 		public override BumperData CopyDataTo(BumperData data, string[] materialNames, string[] textureNames, bool forExport)
 		{
@@ -251,33 +213,10 @@ namespace VisualPinball.Unity
 			data.Orientation = Orientation;
 
 			// children visibility
-			data.IsBaseVisible = false;
-			data.IsCapVisible = false;
-			data.IsRingVisible = false;
-			data.IsSocketVisible = false;
-			foreach (var mf in GetComponentsInChildren<MeshFilter>(true)) {
-				if (mf.sharedMesh) {
-					var mr = mf.gameObject.GetComponent<MeshRenderer>();
-					switch (mf.sharedMesh.name) {
-						case SkirtMeshName:
-							data.IsSocketVisible = mf.gameObject.activeInHierarchy;
-							CopyMaterialName(mr, materialNames, textureNames, ref data.SocketMaterial);
-							break;
-						case BaseMeshName:
-							data.IsBaseVisible = mf.gameObject.activeInHierarchy;
-							CopyMaterialName(mr, materialNames, textureNames, ref data.BaseMaterial);
-							break;
-						case CapMeshName:
-							data.IsCapVisible = mf.gameObject.activeInHierarchy;
-							CopyMaterialName(mr, materialNames, textureNames, ref data.CapMaterial);
-							break;
-						case RingMeshName:
-							data.IsRingVisible = mf.gameObject.activeInHierarchy;
-							CopyMaterialName(mr, materialNames, textureNames, ref data.RingMaterial);
-							break;
-					}
-				}
-			}
+			data.IsBaseVisible = CopyMaterialName<BumperBaseComponent>(data, materialNames, textureNames);
+			data.IsCapVisible = CopyMaterialName<BumperCapComponent>(data, materialNames, textureNames);
+			data.IsRingVisible = CopyMaterialName<BumperRingAnimationComponent>(data, materialNames, textureNames);
+			data.IsSocketVisible = CopyMaterialName<BumperSkirtAnimationComponent>(data, materialNames, textureNames);
 
 			// collider
 			var collComponent = GetComponentInChildren<BumperColliderComponent>();
@@ -299,6 +238,18 @@ namespace VisualPinball.Unity
 			}
 
 			return data;
+		}
+
+		private bool CopyMaterialName<TComponent>(BumperData data, string[] materialNames, string[] textureNames) where TComponent : MonoBehaviour
+		{
+			var skirtComp = GetComponentInChildren<TComponent>();
+			if (skirtComp) {
+				var mf = skirtComp.GetComponentInChildren<MeshFilter>();
+				var mr = mf.gameObject.GetComponent<MeshRenderer>();
+				CopyMaterialName(mr, materialNames, textureNames, ref data.SocketMaterial);
+				return mf.gameObject.activeInHierarchy;
+			}
+			return false;
 		}
 
 		public override void CopyFromObject(GameObject go)

@@ -16,12 +16,9 @@
 
 // ReSharper disable AssignmentInConditionalExpression
 
-using System;
-using System.Collections.Generic;
 using Unity.Mathematics;
 using UnityEditor;
 using UnityEngine;
-using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Kicker;
 
 namespace VisualPinball.Unity.Editor
@@ -81,13 +78,13 @@ namespace VisualPinball.Unity.Editor
 			}
 
 			var playfield = MainComponent.GetComponentInParent<PlayfieldComponent>();
-			var worldToPlayfield = playfield ? playfield.transform.localToWorldMatrix : Matrix4x4.identity;
+			var playfieldToWorld = playfield ? playfield.transform.localToWorldMatrix : Matrix4x4.identity;
 			var transform = MainComponent.transform;
 			var localPos = MainComponent.Position;
 			var worldPos = transform.parent == null ? localPos : localPos.TranslateToWorld();
 
 			Handles.color = Color.cyan;
-			Handles.matrix = worldToPlayfield;
+			Handles.matrix = playfieldToWorld;
 			foreach (var coil in MainComponent.Coils) {
 				var from = MainComponent.GetBallCreationPosition().ToUnityVector3();
 				var l = coil.Speed == 0 ? 1f : 20f * coil.Speed;

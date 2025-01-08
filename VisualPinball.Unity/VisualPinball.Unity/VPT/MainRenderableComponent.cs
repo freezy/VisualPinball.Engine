@@ -87,6 +87,13 @@ namespace VisualPinball.Unity
 			return null;
 		}
 
+		protected void SetVisibilityByComponent<TComponent>(bool isVisible) where TComponent : MonoBehaviour
+		{
+			foreach (var component in GetComponentsInChildren<TComponent>()) {
+				component.gameObject.SetActive(isVisible);
+			}
+		}
+
 		protected void ParentToSurface(string surfaceName, Vertex2D center, Dictionary<string, IMainComponent> components)
 		{
 			if (!string.IsNullOrEmpty(surfaceName)) {
