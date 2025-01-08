@@ -41,7 +41,7 @@ namespace VisualPinball.Unity
 
 		private CancellationTokenSource _instantCts;
 		private CancellationTokenSource _allowFadeCts;
-		private float _lastPlayStartTime;
+		private float _lastPlayStartTime = float.NegativeInfinity;
 		protected static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
 		protected override void OnEnableAfterAfterAwake()
