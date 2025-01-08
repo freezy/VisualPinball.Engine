@@ -40,7 +40,19 @@ namespace VisualPinball.Unity
 		}
 
 		public abstract IEnumerable<MonoBehaviour> SetData(TData data);
+
+		/// <summary>
+		/// Updates the component when all other components are updated with <see cref="SetData"/>, so we can reference them.
+		/// Also, materials and textures are available here.
+		/// </summary>
+		/// <param name="data">Item data from the import</param>
+		/// <param name="table">Table reference</param>
+		/// <param name="materialProvider">Get the material from here</param>
+		/// <param name="textureProvider">Get the texture from here</param>
+		/// <param name="components">Reference to all other components, by name (which is unique during import)</param>
+		/// <returns>A list of updated components (if this item has impact on other components)</returns>
 		public abstract IEnumerable<MonoBehaviour> SetReferencedData(TData data, Table table, IMaterialProvider materialProvider, ITextureProvider textureProvider, Dictionary<string, IMainComponent> components);
+
 		public abstract TData CopyDataTo(TData data, string[] materialNames, string[] textureNames, bool forExport);
 
 		public abstract bool HasProceduralMesh { get; }
