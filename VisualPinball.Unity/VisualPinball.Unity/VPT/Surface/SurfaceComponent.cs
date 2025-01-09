@@ -163,6 +163,48 @@ namespace VisualPinball.Unity
 			return Array.Empty<MonoBehaviour>();
 		}
 
+		public override SurfaceData CopyDataTo(SurfaceData data, string[] materialNames, string[] textureNames, bool forExport)
+		{
+			// update the name
+			data.Name = name;
+
+			// main props
+			data.HeightBottom = HeightBottom;
+			data.HeightTop = HeightTop;
+			data.DragPoints = DragPoints;
+
+			// children visibility
+			var topMesh = GetComponentInChildren<SurfaceTopMeshComponent>();
+			data.IsTopBottomVisible = topMesh && topMesh.gameObject.activeInHierarchy;
+			var sideMesh = GetComponentInChildren<SurfaceSideMeshComponent>();
+			data.IsSideVisible = sideMesh && sideMesh.gameObject.activeInHierarchy;
+
+			// collider data
+			var collComponent = GetComponentInChildren<SurfaceColliderComponent>();
+			if (collComponent) {
+				data.IsCollidable = collComponent.enabled;
+
+				data.HitEvent = collComponent.HitEvent;
+				data.Threshold = collComponent.Threshold;
+				data.IsBottomSolid = collComponent.IsBottomSolid;
+
+				data.PhysicsMaterial = collComponent.PhysicsMaterial ? collComponent.PhysicsMaterial.name : string.Empty;
+				data.SlingshotForce = collComponent.SlingshotForce;
+				data.SlingshotThreshold = collComponent.SlingshotThreshold;
+
+				data.OverwritePhysics = collComponent.OverwritePhysics;
+				data.Elasticity = collComponent.Elasticity;
+				data.ElasticityFalloff = collComponent.ElasticityFalloff;
+				data.Scatter = collComponent.Scatter;
+				data.Friction = collComponent.Friction;
+
+			} else {
+				data.IsCollidable = false;
+			}
+
+			return data;
+		}
+
 		public override void CopyFromObject(GameObject go)
 		{
 			var surfaceComponent = go.GetComponent<SurfaceComponent>();

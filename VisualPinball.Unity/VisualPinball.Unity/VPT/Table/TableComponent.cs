@@ -105,6 +105,15 @@ namespace VisualPinball.Unity
 			return Array.Empty<MonoBehaviour>();
 		}
 
+		public override TableData CopyDataTo(TableData data, string[] materialNames, string[] textureNames, bool forExport)
+		{
+			data.TableHeight = 0;
+			data.GlobalDifficulty = GlobalDifficulty;
+			data.OverridePhysics = OverridePhysics;
+
+			return data;
+		}
+
 		#endregion
 
 		public Vector3 GetTableCenter()

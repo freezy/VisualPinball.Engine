@@ -27,6 +27,7 @@ using System.Linq;
 using Unity.Mathematics;
 using UnityEngine;
 using VisualPinball.Engine.Game.Engines;
+using VisualPinball.Engine.Math;
 using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Bumper;
 using VisualPinball.Engine.VPT.Table;
@@ -200,6 +201,43 @@ namespace VisualPinball.Unity
 			SetVisibilityByComponent<BumperRingAnimationComponent>(data.IsRingVisible);
 
 			return Array.Empty<MonoBehaviour>();
+		}
+
+		public override BumperData CopyDataTo(BumperData data, string[] materialNames, string[] textureNames, bool forExport)
+		{
+			// name and transforms
+			data.Name = name;
+			data.Center = new Vertex2D(Position.x, Position.y);
+			data.Radius = Radius;
+			data.HeightScale = HeightScale;
+			data.Orientation = Orientation;
+
+			// children visibility
+			data.IsBaseVisible = CopyMaterialName<BumperBaseComponent>(data, materialNames, textureNames);
+			data.IsCapVisible = CopyMaterialName<BumperCapComponent>(data, materialNames, textureNames);
+			data.IsRingVisible = CopyMaterialName<BumperRingAnimationComponent>(data, materialNames, textureNames);
+			data.IsSocketVisible = CopyMaterialName<BumperSkirtAnimationComponent>(data, materialNames, textureNames);
+
+			// collider
+			var collComponent = GetComponentInChildren<BumperColliderComponent>();
+			if (collComponent) {
+				data.IsCollidable = collComponent.enabled;
+				data.Threshold = collComponent.Threshold;
+				data.Force = collComponent.Force;
+				data.Scatter = collComponent.Scatter;
+				data.HitEvent = collComponent.HitEvent;
+			} else {
+				data.IsCollidable = false;
+			}
+
+			// ring animation
+			var ringAnimComponent = GetComponentInChildren<BumperRingAnimationComponent>();
+			if (ringAnimComponent) {
+				data.RingSpeed = ringAnimComponent.RingSpeed;
+				data.RingDropOffset = ringAnimComponent.RingDropOffset;
+			}
+
+			return data;
 		}
 
 		private bool CopyMaterialName<TComponent>(BumperData data, string[] materialNames, string[] textureNames) where TComponent : MonoBehaviour

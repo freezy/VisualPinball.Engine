@@ -132,6 +132,68 @@ namespace VisualPinball.Unity
 			return updatedComponents;
 		}
 
+		public override PrimitiveData CopyDataTo(PrimitiveData data, string[] materialNames, string[] textureNames, bool forExport)
+		{
+			// name and transforms
+			var t = transform;
+			data.Name = name;
+			data.Position = Position.ToVertex3D();
+			data.Size = t.localScale.ToVertex3D();
+			var vpxRotation = t.localEulerAngles.TranslateToVpx();
+			data.RotAndTra = new[] {
+				vpxRotation.x, vpxRotation.y, vpxRotation.z,
+				0, 0, 0,
+				0, 0, 0,
+			};
+
+			// materials
+			var mr = GetComponent<MeshRenderer>();
+			if (mr) {
+				CopyMaterialName(mr, materialNames, textureNames, ref data.Material, ref data.Image, ref data.NormalMap);
+			}
+
+			// mesh
+			var meshComponent = GetComponent<PrimitiveMeshComponent>();
+			if (meshComponent) {
+				data.IsVisible = GetEnabled<Renderer>();
+				data.Sides = meshComponent.Sides;
+				data.Use3DMesh = !meshComponent.UseLegacyMesh;
+
+				if (forExport && !meshComponent.UseLegacyMesh) {
+					var mf = GetComponent<MeshFilter>();
+					if (mf) {
+						data.Mesh = mf.sharedMesh.ToVpMesh().TransformToVpx();
+						data.NumIndices = data.Mesh.Indices.Length;
+						data.NumVertices = data.Mesh.Vertices.Length;
+					}
+				}
+			}
+
+			// update collision
+			// todo at some point we need to be able to toggle collidable during gameplay,
+			// todo but for now let's keep things static.
+			var collComponent = GetComponent<PrimitiveColliderComponent>();
+			if (collComponent) {
+				data.IsCollidable = collComponent.enabled;
+				data.IsToy = false;
+
+				data.HitEvent = collComponent.HitEvent;
+				data.Threshold = collComponent.Threshold;
+				data.Elasticity = collComponent.Elasticity;
+				data.ElasticityFalloff = collComponent.ElasticityFalloff;
+				data.Friction = collComponent.Friction;
+				data.Scatter = collComponent.Scatter;
+				data.CollisionReductionFactor = collComponent.CollisionReductionFactor;
+				data.OverwritePhysics = collComponent.OverwritePhysics;
+
+			} else {
+				data.IsCollidable = false;
+				data.IsToy = true;
+			}
+
+			return data;
+		}
+
 		public override void CopyFromObject(GameObject go)
 		{
 			var primitiveComponent = go.GetComponent<PrimitiveComponent>();

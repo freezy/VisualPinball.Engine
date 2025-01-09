@@ -110,6 +110,7 @@ namespace VisualPinball.Unity
 		{
 			var data = MainComponent.InstantiateData();
 			MainComponent.UpdateTransforms();
+			MainComponent.CopyDataTo(data, null, null, false);
 			var mesh = GetMesh(data);
 			
 

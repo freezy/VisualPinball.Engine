@@ -191,6 +191,45 @@ namespace VisualPinball.Unity
 			return Array.Empty<MonoBehaviour>();
 		}
 
+		public override TriggerData CopyDataTo(TriggerData data, string[] materialNames, string[] textureNames, bool forExport)
+		{
+			// name and transforms
+			data.Name = name;
+			data.Center = new Vertex2D(Position.x, Position.y);
+			data.Rotation = Rotation;
+
+			// geometry
+			data.DragPoints = DragPoints;
+
+			// visibility
+			data.IsVisible = GetEnabled<Renderer>();
+
+			// mesh
+			var meshComponent = GetComponent<TriggerMeshComponent>();
+			if (meshComponent) {
+				data.WireThickness = meshComponent.WireThickness;
+				data.Shape = meshComponent.Shape;
+			}
+
+			// collider
+			var collComponent = GetComponent<TriggerColliderComponent>();
+			if (collComponent) {
+				data.IsEnabled = collComponent.gameObject.activeInHierarchy;
+				data.HitHeight = collComponent.HitHeight;
+				data.Radius = collComponent.HitCircleRadius;
+			} else {
+				data.IsEnabled = false;
+			}
+
+			// animation
+			var animComponent = GetComponent<TriggerAnimationComponent>();
+			if (animComponent) {
+				animComponent.AnimSpeed = data.AnimSpeed;
+			}
+
+			return data;
+		}
+
 		public override void CopyFromObject(GameObject go)
 		{
 			var triggerComponent = go.GetComponent<TriggerComponent>();
