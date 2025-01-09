@@ -105,12 +105,6 @@ namespace VisualPinball.Unity
 			}
 		}
 
-
-		private void Start()
-		{
-			_playfieldToWorld = Player.PlayfieldToWorldMatrix;
-		}
-
 		#endregion
 
 		#region Wiring
@@ -127,12 +121,7 @@ namespace VisualPinball.Unity
 
 		#region Transformation
 
-		[NonSerialized]
-		private float4x4 _playfieldToWorld;
-
 		public Vector2 Center => Position; // todo remove?
-
-		public void OnSurfaceUpdated() => UpdateTransforms();
 
 		#endregion
 

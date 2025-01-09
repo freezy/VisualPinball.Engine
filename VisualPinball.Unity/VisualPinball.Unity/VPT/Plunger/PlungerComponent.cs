@@ -97,20 +97,12 @@ namespace VisualPinball.Unity
 
 		#region Transformation
 
-		[NonSerialized]
-		private float4x4 _playfieldToWorld;
-
 		public override void UpdateTransforms()
 		{
 			base.UpdateTransforms();
 
 			GetComponent<PlungerRodMeshComponent>()?.CalculateBoundingBox();
 			GetComponent<PlungerSpringMeshComponent>()?.CalculateBoundingBox();
-		}
-
-		private void Start()
-		{
-			_playfieldToWorld = Player.PlayfieldToWorldMatrix;
 		}
 
 		#endregion

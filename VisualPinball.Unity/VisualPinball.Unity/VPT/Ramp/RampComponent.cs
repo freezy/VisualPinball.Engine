@@ -24,7 +24,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Unity.Mathematics;
 using UnityEngine;
 using VisualPinball.Engine.Math;
 using VisualPinball.Engine.VPT;
@@ -132,17 +131,9 @@ namespace VisualPinball.Unity
 			RegisterPhysics(physicsEngine);
 		}
 
-		private void Start()
-		{
-			_playfieldToWorld = Player.PlayfieldToWorldMatrix;
-		}
-
 		#endregion
 
 		#region Transformation
-
-		[NonSerialized]
-		private float4x4 _playfieldToWorld;
 
 		public override void UpdateTransforms()
 		{
@@ -212,17 +203,6 @@ namespace VisualPinball.Unity
 				}
 				if (floorComponent) floorComponent.gameObject.SetActive(isVisible);
 				if (wallComponent) wallComponent.gameObject.SetActive(isVisible && (_leftWallHeightVisible > 0 || _rightWallHeightVisible > 0));
-			}
-		}
-
-		public void UpdateChildrenTransforms()
-		{
-			var children = GetComponentsInChildren<IMainRenderableComponent>();
-			foreach (var child in children) {
-				if (ReferenceEquals(child, this)) {
-					continue;
-				}
-				child.transform.SetZPosition(HeightTop);
 			}
 		}
 
