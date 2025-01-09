@@ -23,8 +23,8 @@
 
 using System;
 using System.Collections.Generic;
+using Unity.Collections;
 using Unity.Mathematics;
-using UnityEditor;
 using UnityEngine;
 using VisualPinball.Engine.Game.Engines;
 using VisualPinball.Engine.Math;
@@ -195,6 +195,18 @@ namespace VisualPinball.Unity
 			}
 		}
 
+		/// <summary>
+		/// Returns the current position of the flipper between 0 and 1, where 0 is the
+		/// start position, and 1 the end position.
+		/// </summary>
+		public float RotatePosition {
+			get {
+				var start = (_startAngle + 360) % 360;
+				var end = (EndAngle + 360) % 360;
+				return 1 - (transform.localEulerAngles.y - start) / (end - start);
+			}
+		}
+
 		#endregion
 
 		#region Conversion
@@ -348,7 +360,7 @@ namespace VisualPinball.Unity
 
 		public override ItemDataTransformType EditorScaleType => ItemDataTransformType.None;
 
-		#if UNITY_EDITOR
+#if UNITY_EDITOR
 
 		protected void OnDrawGizmosSelected()
 		{
@@ -357,9 +369,9 @@ namespace VisualPinball.Unity
 			if (poly == null) {
 				return;
 			}
-			
+
 			Gizmos.matrix = Matrix4x4.identity;
-			Handles.matrix = Matrix4x4.identity;
+			UnityEditor.Handles.matrix = Matrix4x4.identity;
 
 			// Draw enclosing polygon
 			Gizmos.color = Color.cyan;
@@ -387,8 +399,8 @@ namespace VisualPinball.Unity
 			if (start == end) {
 				return;
 			}
-			var last = IsLeft ? arrow[0] : arrow[arrow.Count-1];
-			var tmpA = IsLeft ? start + 90F + 3F : end +90F - 3F;
+			var last = IsLeft ? arrow[0] : arrow[arrow.Count - 1];
+			var tmpA = IsLeft ? start + 90F + 3F : end + 90F - 3F;
 			var a = Quaternion.Euler(0, 0, tmpA) * new Vector3(0, -FlipperRadiusMax + 15F, height);
 			var b = Quaternion.Euler(0, 0, tmpA) * new Vector3(0F, -FlipperRadiusMax + 25F, height);
 			Gizmos.DrawLine(transform.TransformPoint(last.TranslateToWorld()), transform.TransformPoint(a.TranslateToWorld()));
@@ -396,7 +408,7 @@ namespace VisualPinball.Unity
 			Gizmos.color = Color.white;
 		}
 
-		#endif
+#endif
 
 		#endregion
 
@@ -526,8 +538,7 @@ namespace VisualPinball.Unity
 
 		internal FlipperTricksData GetFlipperTricksData(FlipperColliderComponent colliderComponent, FlipperStaticData staticData)
 		{
-			return new FlipperTricksData
-			{
+			return new FlipperTricksData {
 				UseFlipperTricksPhysics = colliderComponent.useFlipperTricksPhysics,
 				SOSRampUp = colliderComponent.SOSRampUp,
 				SOSEM = colliderComponent.SOSEM,
@@ -550,8 +561,8 @@ namespace VisualPinball.Unity
 				LiveCatchInaccurateBounceSpeedMultiplier = colliderComponent.LiveCatchInaccurateBounceSpeedMultiplier,
 				LiveCatchMinimalBounceSpeedMultiplier = colliderComponent.LiveCatchMinmalBounceSpeedMultiplier,
 
-		//initialize
-		OriginalAngleEnd = staticData.AngleEnd,
+				//initialize
+				OriginalAngleEnd = staticData.AngleEnd,
 				OriginalRampUpSpeed = staticData.RampUpSpeed,
 				OriginalTorqueDamping = staticData.TorqueDamping,
 				OriginalTorqueDampingAngle = staticData.TorqueDampingAngle
@@ -580,7 +591,7 @@ namespace VisualPinball.Unity
 			}
 
 			// model inertia of flipper as that of rod of length flipper around its end
-			var inertia = (float) (1.0 / 3.0) * colliderComponent.Mass * (flipperRadius * flipperRadius);
+			var inertia = (float)(1.0 / 3.0) * colliderComponent.Mass * (flipperRadius * flipperRadius);
 			var localPos = transform.localPosition;
 
 			return new FlipperStaticData {

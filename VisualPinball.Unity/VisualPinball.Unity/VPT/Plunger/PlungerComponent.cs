@@ -69,7 +69,6 @@ namespace VisualPinball.Unity
 
 		public const string PullCoilId = "c_pull";
 		public const string FireCoilId = "c_autofire";
-
 		#endregion
 
 		#region Runtime
@@ -110,13 +109,13 @@ namespace VisualPinball.Unity
 		public override void OnPlayfieldHeightUpdated() => RebuildMeshes();
 
 		public float PositionZ => SurfaceHeight(Surface, Position);
-		
+
 		public override void UpdateTransforms()
 		{
 			base.UpdateTransforms();
 			transform.localScale = Physics.ScaleToWorld(1, 1, 1);
 			transform.localRotation = Quaternion.Euler(Physics.RotateToWorld(0f, 0f, 0f));
-			
+
 			GetComponent<PlungerRodMeshComponent>()?.CalculateBoundingBox();
 			GetComponent<PlungerSpringMeshComponent>()?.CalculateBoundingBox();
 		}

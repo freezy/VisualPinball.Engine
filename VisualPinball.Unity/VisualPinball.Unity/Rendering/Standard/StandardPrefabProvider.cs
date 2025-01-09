@@ -112,5 +112,20 @@ namespace VisualPinball.Unity
 					throw new ArgumentException(nameof(type), $"Unknown drop target type {type}.");
 			}
 		}
+
+		public GameObject CreateFlipper()
+		{
+			return Resources.Load<GameObject>("Prefabs/Flipper (Builtin)");
+		}
+
+		public GameObject CreatePlunger()
+		{
+			return Resources.Load<GameObject>("Prefabs/Plunger (Builtin)");
+		}
+
+		public GameObject CreateTrough()
+		{
+			return Resources.Load<GameObject>("Prefabs/Trough (Builtin)");
+		}
 	}
 }

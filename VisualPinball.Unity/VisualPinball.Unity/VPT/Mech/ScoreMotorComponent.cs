@@ -22,6 +22,7 @@ using NLog;
 using UnityEngine;
 using VisualPinball.Engine.Game.Engines;
 using VisualPinball.Engine.VPT.Gate;
+using VisualPinball.Engine.VPT.Sound;
 using Logger = NLog.Logger;
 
 namespace VisualPinball.Unity

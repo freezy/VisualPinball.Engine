@@ -43,11 +43,11 @@ namespace VisualPinball.Unity
 			_component = go.GetComponentInChildren<TeleporterComponent>();
 			_player = player;
 			_physicsEngine = physicsEngine;
+			_teleporterCoil = new DeviceCoil(_player, OnTeleport);
 		}
 
 		void IApi.OnInit(BallManager ballManager)
 		{
-			_teleporterCoil = new DeviceCoil(_player, OnTeleport);
 			_fromKicker = _player.TableApi.Kicker(_component.FromKicker);
 			_toKicker = _player.TableApi.Kicker(_component.ToKicker);
 

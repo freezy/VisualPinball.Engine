@@ -43,8 +43,8 @@ namespace VisualPinball.Unity
 				ScoreMotorComponent.MotorRunningSwitchItem => _motorRunningSwitch,
 				ScoreMotorComponent.MotorStepSwitchItem => _motorStepSwitch,
 				_ => throw new ArgumentException($"Unknown switch \"{deviceItem}\". "
-					+ "Valid names are \"{ScoreReelDisplayComponent.MotorRunningSwitchItem}\", and "
-					+ "\"{ScoreReelDisplayComponent.MotorStepSwitchItem}\".")
+					+ $"Valid names are \"{ScoreMotorComponent.MotorRunningSwitchItem}\", and "
+					+ $"\"{ScoreMotorComponent.MotorStepSwitchItem}\".")
 			};
 		}
 
@@ -53,21 +53,23 @@ namespace VisualPinball.Unity
 			_scoreMotorComponent = go.GetComponentInChildren<ScoreMotorComponent>();
 			_player = player;
 			_physicsEngine = physicsEngine;
+			_motorRunningSwitch = new DeviceSwitch(ScoreMotorComponent.MotorRunningSwitchItem, false, SwitchDefault.NormallyOpen, _player, _physicsEngine);
+			_motorStepSwitch = new DeviceSwitch(ScoreMotorComponent.MotorStepSwitchItem, true, SwitchDefault.NormallyOpen, _player, _physicsEngine);
 
 			_scoreMotorComponent.OnSwitchChanged += HandleSwitchChanged;
 		}
 
-		void IApi.OnInit(BallManager ballManager)
-		{
-			_motorRunningSwitch = new DeviceSwitch(ScoreMotorComponent.MotorRunningSwitchItem, false, SwitchDefault.NormallyOpen, _player, _physicsEngine);
-			_motorStepSwitch = new DeviceSwitch(ScoreMotorComponent.MotorStepSwitchItem, true, SwitchDefault.NormallyOpen, _player, _physicsEngine);
+		#region Events
 
+		void IApi.OnInit(BallManager ballManager)
+		{			
 			Init?.Invoke(this, EventArgs.Empty);
 		}
 
 		private void HandleSwitchChanged(object sender, SwitchEventArgs2 e)
 		{
-			((DeviceSwitch)Switch(e.Id)).SetSwitch(e.IsEnabled);
+			var deviceSwitch = (DeviceSwitch)Switch(e.Id);
+			deviceSwitch.SetSwitch(e.IsEnabled);
 		}
 
 		void IApi.OnDestroy()
@@ -76,5 +78,7 @@ namespace VisualPinball.Unity
 
 			Logger.Info($"Destroying {_scoreMotorComponent.name}");
 		}
+
+		#endregion
 	}
 }

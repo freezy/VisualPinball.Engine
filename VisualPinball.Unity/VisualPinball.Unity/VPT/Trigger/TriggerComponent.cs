@@ -314,7 +314,7 @@ namespace VisualPinball.Unity
 			Position = ((float3)pos).xy;
 		}
 
-		public override ItemDataTransformType EditorRotationType{
+		public override ItemDataTransformType EditorRotationType {
 			get {
 				var meshComp = GetComponent<TriggerMeshComponent>();
 				return !meshComp || !meshComp.IsCircle ? ItemDataTransformType.None : ItemDataTransformType.OneD;

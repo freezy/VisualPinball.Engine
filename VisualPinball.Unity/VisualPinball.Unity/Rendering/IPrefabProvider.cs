@@ -79,5 +79,23 @@ namespace VisualPinball.Unity
 		/// <see cref="TargetType"/>
 		GameObject CreateDropTarget(int type);
 
+
+		/// <summary>
+		/// Creates a flipper prefab.
+		/// </summary>
+		/// <returns>Prefab of the flipper (still needs to be instantiated)</returns>
+		GameObject CreateFlipper();
+
+		/// <summary>
+		/// Creates a plunger prefab.
+		/// </summary>
+		/// <returns>Prefab of the plunger (still needs to be instantiated)</returns>
+		GameObject CreatePlunger();
+
+		/// <summary>
+		/// Creates a trough prefab.
+		/// </summary>
+		/// <returns>Prefab of the trough (still needs to be instantiated)</returns>
+		GameObject CreateTrough();
 	}
 }

@@ -15,7 +15,6 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 // ReSharper disable EventNeverSubscribedTo.Global
-#pragma warning disable 67
 
 using System;
 using Unity.Mathematics;
@@ -35,7 +34,6 @@ namespace VisualPinball.Unity
 		/// Event emitted when the table is started.
 		/// </summary>
 		public event EventHandler Init;
-
 		/// <summary>
 		/// Event emitted when the flipper was touched by the ball, but did
 		/// not collide.
@@ -70,15 +68,14 @@ namespace VisualPinball.Unity
 
 		internal FlipperApi(GameObject go, Player player, PhysicsEngine physicsEngine) : base(go, player, physicsEngine)
 		{
+			_mainCoil = new DeviceCoil(Player, OnMainCoilEnabled, OnMainCoilDisabled);
+			_holdCoil = new DeviceCoil(Player, OnHoldCoilEnabled, OnHoldCoilDisabled);
 		}
 
 		void IApi.OnInit(BallManager ballManager)
 		{
 			base.OnInit(ballManager);
 			Init?.Invoke(this, EventArgs.Empty);
-
-			_mainCoil = new DeviceCoil(Player, OnMainCoilEnabled, OnMainCoilDisabled);
-			_holdCoil = new DeviceCoil(Player, OnHoldCoilEnabled, OnHoldCoilDisabled);
 		}
 
 		void IApi.OnDestroy()

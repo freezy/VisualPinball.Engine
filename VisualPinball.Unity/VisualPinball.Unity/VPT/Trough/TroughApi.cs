@@ -167,23 +167,7 @@ namespace VisualPinball.Unity
 
 		internal TroughApi(GameObject go, Player player, PhysicsEngine physicsEngine) : base(go, player, physicsEngine)
 		{
-		}
-
-		void IApi.OnInit(BallManager ballManager)
-		{
-			base.OnInit(ballManager);
-
-			// reference playfield elements
-			_drainSwitch = TableApi.Switch(MainComponent.PlayfieldEntrySwitch, MainComponent.PlayfieldEntrySwitchItem);
-			_ejectCoil = TableApi.Coil(MainComponent.PlayfieldExitKicker, MainComponent.PlayfieldExitKickerItem);
-			_ejectKicker = TableApi.Kicker(MainComponent.PlayfieldExitKicker);
-
-			// setup entry handler
-			if (_drainSwitch != null) {
-				_drainSwitch.Switch += OnEntry;
-			}
-
-			// setup switches
+			// set up switches
 			if (MainComponent.Type != TroughType.ModernOpto && MainComponent.Type != TroughType.ModernMech) {
 				EntrySwitch = CreateSwitch(TroughComponent.EntrySwitchId, false, SwitchDefault.NormallyOpen);
 				_switchLookup[TroughComponent.EntrySwitchId] = EntrySwitch;
@@ -222,9 +206,24 @@ namespace VisualPinball.Unity
 				_switchLookup[TroughComponent.JamSwitchId] = JamSwitch;
 			}
 
-			// setup coils
+			// set up coils
 			EntryCoil = new DeviceCoil(Player, OnEntryCoilEnabled);
 			ExitCoil = new DeviceCoil(Player, () => EjectBall());
+		}
+
+		void IApi.OnInit(BallManager ballManager)
+		{
+			base.OnInit(ballManager);
+
+			// reference playfield elements
+			_drainSwitch = TableApi.Switch(MainComponent.PlayfieldEntrySwitch, MainComponent.PlayfieldEntrySwitchItem);
+			_ejectCoil = TableApi.Coil(MainComponent.PlayfieldExitKicker, MainComponent.PlayfieldExitKickerItem);
+			_ejectKicker = TableApi.Kicker(MainComponent.PlayfieldExitKicker);
+
+			// setup entry handler
+			if (_drainSwitch != null) {
+				_drainSwitch.Switch += OnEntry;
+			}
 
 			// fill up the ball stack
 			var ballCount = MainComponent.Type == TroughType.ClassicSingleBall ? 1 : MainComponent.BallCount;
