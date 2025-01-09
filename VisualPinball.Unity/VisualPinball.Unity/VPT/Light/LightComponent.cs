@@ -408,46 +408,6 @@ namespace VisualPinball.Unity
 			return Array.Empty<MonoBehaviour>();
 		}
 
-		public override LightData CopyDataTo(LightData data, string[] materialNames, string[] textureNames, bool forExport)
-		{
-			var pos = (Vector3)transform.localPosition.TranslateToVpx();
-
-			// name and position
-			data.Name = name;
-			data.Center = pos.ToVertex2Dxy();
-			data.MeshRadius = BulbSize;
-
-			// logical params
-			data.State = (int)State;
-			data.BlinkPattern = BlinkPattern;
-			data.BlinkInterval = BlinkInterval;
-			data.FadeSpeedUp = FadeSpeedUp;
-			data.FadeSpeedDown = FadeSpeedDown;
-
-			// insert mesh
-			var insertMeshComponent = GetComponentInChildren<LightInsertMeshComponent>();
-			if (insertMeshComponent) {
-				data.DragPoints = insertMeshComponent.DragPoints;
-			}
-
-			// visibility
-			data.ShowBulbMesh = false;
-			foreach (var mf in GetComponentsInChildren<MeshFilter>(true)) {
-				if (!mf.sharedMesh) {
-					continue;
-				}
-
-				switch (mf.sharedMesh.name) {
-					case BulbMeshName:
-					case SocketMeshName:
-						data.ShowBulbMesh = data.ShowBulbMesh || mf.gameObject.activeInHierarchy;
-						break;
-				}
-			}
-
-			return data;
-		}
-
 		public override void CopyFromObject(GameObject go)
 		{
 			var srcMainComp = go.GetComponent<LightComponent>();

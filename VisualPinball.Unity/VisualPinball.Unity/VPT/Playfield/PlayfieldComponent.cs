@@ -175,41 +175,6 @@ namespace VisualPinball.Unity
 			return updatedComponents;
 		}
 
-		public override TableData CopyDataTo(TableData data, string[] materialNames, string[] textureNames, bool forExport)
-		{
-			var physicsEngine = GetComponentInParent<PhysicsEngine>();
-
-			// position
-			data.TableHeight = 0;
-			data.GlassHeight = GlassHeight;
-			data.Left = Left;
-			data.Right = Right;
-			data.Top = Top;
-			data.Bottom = Bottom;
-			data.AngleTiltMax = AngleTiltMax;
-			data.AngleTiltMin = AngleTiltMin;
-			if (physicsEngine) {
-				data.Gravity = physicsEngine.GravityStrength;
-			}
-
-			// playfield material
-			data.Image = _playfieldImage;
-			data.PlayfieldMaterial = _playfieldMaterial;
-
-			// collider data
-			var collComponent = GetComponent<PlayfieldColliderComponent>();
-			if (collComponent) {
-				data.Gravity = collComponent.Gravity;
-				data.Elasticity = collComponent.Elasticity;
-				data.ElasticityFalloff = collComponent.ElasticityFalloff;
-				data.Friction = collComponent.Friction;
-				data.Scatter = collComponent.Scatter;
-				data.DefaultScatter = collComponent.DefaultScatter;
-			}
-
-			return data;
-		}
-
 		public override void CopyFromObject(GameObject go)
 		{
 			throw new Exception("Copying object data is currently only used for replacing objects. Don't replace the playfield. Refactor this if necessary in the future.");

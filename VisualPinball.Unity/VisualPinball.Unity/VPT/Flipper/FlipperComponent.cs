@@ -259,50 +259,6 @@ namespace VisualPinball.Unity
 			return Array.Empty<MonoBehaviour>();
 		}
 
-		public override FlipperData CopyDataTo(FlipperData data, string[] materialNames, string[] textureNames, bool forExport)
-		{
-			// name and transforms
-			data.Name = name;
-			data.Center = new Vertex2D(Position.x, Position.y);
-			data.StartAngle = StartAngle;
-
-			// geometry
-			data.Height = _height;
-			data.BaseRadius = _baseRadius;
-			data.EndRadius = _endRadius;
-			data.EndAngle = EndAngle;
-			data.FlipperRadiusMin = FlipperRadiusMin;
-			data.FlipperRadiusMax = FlipperRadiusMax;
-			data.RubberThickness = _rubberThickness;
-			data.RubberHeight = _rubberHeight;
-			data.RubberWidth = _rubberWidth;
-
-			// states
-			data.IsEnabled = IsEnabled;
-			data.IsDualWound = IsDualWound;
-
-			// children visibility
-			var baseMesh = GetComponentInChildren<FlipperBaseMeshComponent>();
-			data.IsVisible = baseMesh && baseMesh.gameObject.activeInHierarchy;
-
-			// collider data
-			var colliderComponent = gameObject.GetComponent<FlipperColliderComponent>();
-			if (colliderComponent) {
-				data.Mass = colliderComponent.Mass;
-				data.Strength = colliderComponent.Strength;
-				data.Elasticity = colliderComponent.Elasticity;
-				data.ElasticityFalloff = colliderComponent.ElasticityFalloff;
-				data.Friction = colliderComponent.Friction;
-				data.Return = colliderComponent.Return;
-				data.RampUp = colliderComponent.RampUp;
-				data.TorqueDamping = colliderComponent.TorqueDamping;
-				data.TorqueDampingAngle = colliderComponent.TorqueDampingAngle;
-				data.Scatter = colliderComponent.Scatter;
-			}
-
-			return data;
-		}
-
 		public override void CopyFromObject(GameObject go)
 		{
 			// main component

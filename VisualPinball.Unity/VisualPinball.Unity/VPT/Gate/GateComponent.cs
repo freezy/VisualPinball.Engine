@@ -213,49 +213,6 @@ namespace VisualPinball.Unity
 			return Array.Empty<MonoBehaviour>();
 		}
 
-		public override GateData CopyDataTo(GateData data, string[] materialNames, string[] textureNames, bool forExport)
-		{
-			// name and transforms
-			data.Center = Position.ToVertex2Dxy();
-			data.Name = name;
-			data.Rotation = Rotation;
-			data.Height = Position.z;
-			data.Length = Length;
-
-			data.GateType = _type;
-
-			// visibility
-			foreach (var mf in GetComponentsInChildren<MeshFilter>()) {
-				switch (mf.gameObject.name) {
-					case BracketObjectName:
-						data.ShowBracket = mf.gameObject.activeInHierarchy;
-						break;
-					case WireObjectName:
-						data.IsVisible = mf.gameObject.activeInHierarchy;
-						break;
-				}
-			}
-
-			// collision data
-			var colliderComponent = gameObject.GetComponent<GateColliderComponent>();
-			if (colliderComponent) {
-				data.IsCollidable = colliderComponent.enabled;
-
-				data.AngleMin = math.radians(colliderComponent._angleMin);
-				data.AngleMax = math.radians(colliderComponent._angleMax);
-				data.Damping = colliderComponent.Damping;
-				data.Elasticity = colliderComponent.Elasticity;
-				data.Friction = colliderComponent.Friction;
-				data.GravityFactor = colliderComponent.GravityFactor;
-				data.TwoWay = colliderComponent._twoWay;
-
-			} else {
-				data.IsCollidable = false;
-			}
-
-			return data;
-		}
-
 		public override void CopyFromObject(GameObject go)
 		{
 			// collider data

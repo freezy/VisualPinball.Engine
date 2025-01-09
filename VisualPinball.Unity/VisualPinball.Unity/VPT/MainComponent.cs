@@ -53,8 +53,6 @@ namespace VisualPinball.Unity
 		/// <returns>A list of updated components (if this item has impact on other components)</returns>
 		public abstract IEnumerable<MonoBehaviour> SetReferencedData(TData data, Table table, IMaterialProvider materialProvider, ITextureProvider textureProvider, Dictionary<string, IMainComponent> components);
 
-		public abstract TData CopyDataTo(TData data, string[] materialNames, string[] textureNames, bool forExport);
-
 		public abstract bool HasProceduralMesh { get; }
 
 		public abstract ItemType ItemType { get; }

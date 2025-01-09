@@ -160,44 +160,6 @@ namespace VisualPinball.Unity
 			return Array.Empty<MonoBehaviour>();
 		}
 
-		public override RubberData CopyDataTo(RubberData data, string[] materialNames, string[] textureNames, bool forExport)
-		{
-			// update the name
-			data.Name = name;
-
-			// geometry
-			data.Height = _height;
-			data.RotX = Rotation.x;
-			data.RotY = Rotation.y;
-			data.RotZ = Rotation.z;
-			data.Thickness = _thickness;
-			data.DragPoints = DragPoints;
-
-			// visibility
-			data.IsVisible = GetEnabled<Renderer>();
-
-			// collision
-			var collComponent = GetComponentInChildren<RubberColliderComponent>();
-			if (collComponent) {
-				data.IsCollidable = collComponent.enabled;
-
-				data.HitEvent = collComponent.HitEvent;
-				data.HitHeight = collComponent.HitHeight;
-
-				data.PhysicsMaterial = collComponent.PhysicsMaterial ? collComponent.PhysicsMaterial.name : string.Empty;
-				data.OverwritePhysics = collComponent.OverwritePhysics;
-				data.Elasticity = collComponent.Elasticity;
-				data.ElasticityFalloff = collComponent.ElasticityFalloff;
-				data.Friction = collComponent.Friction;
-				data.Scatter = collComponent.Scatter;
-
-			} else {
-				data.IsCollidable = false;
-			}
-
-			return data;
-		}
-
 		public override void CopyFromObject(GameObject go)
 		{
 			var srcMainComp = go.GetComponent<RubberComponent>();

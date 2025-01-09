@@ -92,40 +92,6 @@ namespace VisualPinball.Unity
 			return Array.Empty<MonoBehaviour>();
 		}
 
-		public override HitTargetData CopyDataTo(HitTargetData data, string[] materialNames, string[] textureNames, bool forExport)
-		{
-			base.CopyDataTo(data, materialNames, textureNames, forExport);
-
-			// collision data
-			var colliderComponent = GetComponent<DropTargetColliderComponent>();
-			if (colliderComponent) {
-				data.IsCollidable = colliderComponent.enabled;
-				data.Threshold = colliderComponent.Threshold;
-				data.UseHitEvent = colliderComponent.UseHitEvent;
-				data.PhysicsMaterial = colliderComponent.PhysicsMaterial == null ? string.Empty : colliderComponent.PhysicsMaterial.name;
-				data.IsLegacy = colliderComponent.IsLegacy;
-
-				data.OverwritePhysics = colliderComponent.OverwritePhysics;
-				data.Elasticity = colliderComponent.Elasticity;
-				data.ElasticityFalloff = colliderComponent.ElasticityFalloff;
-				data.Friction = colliderComponent.Friction;
-				data.Scatter = colliderComponent.Scatter;
-
-			} else {
-				data.IsCollidable = false;
-			}
-
-			// animation data
-			var dropTargetAnimationComponent = GetComponent<DropTargetAnimationComponent>();
-			if (dropTargetAnimationComponent) {
-				data.DropSpeed = dropTargetAnimationComponent.Speed;
-				data.RaiseDelay = dropTargetAnimationComponent.RaiseDelay;
-				data.IsDropped = dropTargetAnimationComponent.IsDropped;
-			}
-
-			return data;
-		}
-
 		#endregion
 
 		#region Runtime

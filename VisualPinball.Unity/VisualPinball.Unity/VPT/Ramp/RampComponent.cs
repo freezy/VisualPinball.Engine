@@ -326,62 +326,6 @@ namespace VisualPinball.Unity
 			return Array.Empty<MonoBehaviour>();
 		}
 
-		public override RampData CopyDataTo(RampData data, string[] materialNames, string[] textureNames, bool forExport)
-		{
-			// update the name
-			data.Name = name;
-
-			// geometry
-			data.DragPoints = DragPoints;
-			data.HeightTop = _heightTop;
-			data.HeightBottom = _heightBottom;
-			data.WidthTop = _widthTop;
-			data.WidthBottom = _widthBottom;
-			data.LeftWallHeightVisible = _leftWallHeightVisible;
-			data.RightWallHeightVisible = _rightWallHeightVisible;
-
-			// type and uvs
-			data.RampType = _type;
-			data.ImageAlignment = _imageAlignment;
-
-			// wire data
-			data.WireDiameter = _wireDiameter;
-			data.WireDistanceX = _wireDistanceX;
-			data.WireDistanceY = _wireDistanceY;
-
-			// visibility
-			var floorComponent = GetComponentInChildren<RampFloorMeshComponent>();
-			var wireComponent = GetComponentInChildren<RampWireMeshComponent>();
-			if (IsWireRamp) {
-				data.IsVisible = wireComponent && wireComponent.gameObject.activeInHierarchy;
-			} else {
-				data.IsVisible = floorComponent && floorComponent.gameObject.activeInHierarchy;
-			}
-
-			// collider data
-			var collComponent = GetComponentInChildren<RampColliderComponent>();
-			if (collComponent) {
-				data.IsCollidable = collComponent.enabled;
-
-				data.LeftWallHeight = collComponent.LeftWallHeight;
-				data.RightWallHeight = collComponent.RightWallHeight;
-
-				data.HitEvent = collComponent.HitEvent;
-				data.Threshold = collComponent.Threshold;
-				data.PhysicsMaterial = collComponent.PhysicsMaterial ? collComponent.PhysicsMaterial.name : string.Empty;
-
-				data.OverwritePhysics = collComponent.OverwritePhysics;
-				data.Elasticity = collComponent.Elasticity;
-				data.Friction = collComponent.Friction;
-				data.Scatter = collComponent.Scatter;
-
-			} else {
-				data.IsCollidable = false;
-			}
-
-			return data;
-		}
-
 		public override void CopyFromObject(GameObject go)
 		{
 			var srcMainComp = go.GetComponent<RampComponent>();
