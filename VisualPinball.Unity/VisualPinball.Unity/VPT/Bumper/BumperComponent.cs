@@ -144,8 +144,6 @@ namespace VisualPinball.Unity
 
 		#region Transformation
 
-		public void OnSurfaceUpdated() => UpdateTransforms();
-
 		public override void UpdateTransforms()
 		{
 			base.UpdateTransforms();
