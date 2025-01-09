@@ -166,6 +166,7 @@ namespace VisualPinball.Unity
 
 		public IMainRenderableComponent MainRenderableComponent => this;
 		public void UpdateTransforms() { }
+		public void UpdateVisibility() { }
 
 		public void RebuildMeshes()
 		{

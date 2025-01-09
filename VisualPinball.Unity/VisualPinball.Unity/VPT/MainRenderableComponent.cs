@@ -110,6 +110,11 @@ namespace VisualPinball.Unity
 			}
 		}
 
+		public virtual void UpdateVisibility()
+		{
+			// do nothing per default
+		}
+
 		protected static void CopyMaterialName(MeshRenderer mr, string[] materialNames, string[] textureNames,
 			ref string materialName)
 		{

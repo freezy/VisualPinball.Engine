@@ -25,9 +25,11 @@ namespace VisualPinball.Unity
 		/// </summary>
 		void RebuildMeshes();
 		void UpdateTransforms();
+		void UpdateVisibility();
 
 		void CopyFromObject(GameObject go);
 
+		// ReSharper disable once InconsistentNaming
 		Transform transform { get; }
 	}
 
