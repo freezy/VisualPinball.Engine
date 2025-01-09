@@ -187,34 +187,33 @@ namespace VisualPinball.Unity
 			return vVertex[iSeg].Z + startLength / totalLength * (topHeight - bottomHeight) + bottomHeight;
 		}
 
-		// todo revisit
-		// public override void UpdateVisibility()
-		// {
-		// 	// visibility
-		// 	var wallComponent = GetComponentInChildren<RampWallMeshComponent>(true);
-		// 	var floorComponent = GetComponentInChildren<RampFloorMeshComponent>(true);
-		// 	var wireComponent = GetComponentInChildren<RampWireMeshComponent>(true);
-		// 	var isVisible = wireComponent && wireComponent.gameObject.activeInHierarchy ||
-		// 	                floorComponent && floorComponent.gameObject.activeInHierarchy;
-		// 	if (IsWireRamp) {
-		// 		if (wireComponent) wireComponent.gameObject.SetActive(isVisible);
-		// 		if (floorComponent) {
-		// 			floorComponent.gameObject.SetActive(false);
-		// 			floorComponent.ClearMeshVertices();
-		// 		}
-		// 		if (wallComponent) {
-		// 			wallComponent.gameObject.SetActive(false);
-		// 			wallComponent.ClearMeshVertices();
-		// 		}
-		// 	} else {
-		// 		if (wireComponent) {
-		// 			wireComponent.gameObject.SetActive(false);
-		// 			wireComponent.ClearMeshVertices();
-		// 		}
-		// 		if (floorComponent) floorComponent.gameObject.SetActive(isVisible);
-		// 		if (wallComponent) wallComponent.gameObject.SetActive(isVisible && (_leftWallHeightVisible > 0 || _rightWallHeightVisible > 0));
-		// 	}
-		// }
+		public override void UpdateVisibility()
+		{
+			// visibility
+			var wallComponent = GetComponentInChildren<RampWallMeshComponent>(true);
+			var floorComponent = GetComponentInChildren<RampFloorMeshComponent>(true);
+			var wireComponent = GetComponentInChildren<RampWireMeshComponent>(true);
+			var isVisible = wireComponent && wireComponent.gameObject.activeInHierarchy ||
+			                floorComponent && floorComponent.gameObject.activeInHierarchy;
+			if (IsWireRamp) {
+				if (wireComponent) wireComponent.gameObject.SetActive(isVisible);
+				if (floorComponent) {
+					floorComponent.gameObject.SetActive(false);
+					floorComponent.ClearMeshVertices();
+				}
+				if (wallComponent) {
+					wallComponent.gameObject.SetActive(false);
+					wallComponent.ClearMeshVertices();
+				}
+			} else {
+				if (wireComponent) {
+					wireComponent.gameObject.SetActive(false);
+					wireComponent.ClearMeshVertices();
+				}
+				if (floorComponent) floorComponent.gameObject.SetActive(isVisible);
+				if (wallComponent) wallComponent.gameObject.SetActive(isVisible && (_leftWallHeightVisible > 0 || _rightWallHeightVisible > 0));
+			}
+		}
 
 		public void UpdateChildrenTransforms()
 		{
