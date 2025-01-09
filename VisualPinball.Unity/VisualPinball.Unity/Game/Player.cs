@@ -363,7 +363,7 @@ namespace VisualPinball.Unity
 			}
 
 			var wireMapping = new WireMapping($"Hardware rule: {switchId} -> {coilId}", switchMapping, coilMapping).WithId();
-			_wirePlayer.AddWire(wireMapping);
+			_wirePlayer.AddWire(wireMapping, isHardwareRule: true);
 
 			// this is for showing it in the editor during runtime only
 			_tableComponent.MappingConfig.AddWire(wireMapping);
