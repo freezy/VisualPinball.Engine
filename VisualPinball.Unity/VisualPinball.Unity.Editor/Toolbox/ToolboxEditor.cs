@@ -15,7 +15,6 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using UnityEditor;
 using UnityEngine;
@@ -25,6 +24,7 @@ using VisualPinball.Engine.VPT.Flipper;
 using VisualPinball.Engine.VPT.Gate;
 using VisualPinball.Engine.VPT.HitTarget;
 using VisualPinball.Engine.VPT.Kicker;
+using VisualPinball.Engine.VPT.MetalWireGuide;
 using VisualPinball.Engine.VPT.Plunger;
 using VisualPinball.Engine.VPT.Primitive;
 using VisualPinball.Engine.VPT.Ramp;
@@ -34,7 +34,6 @@ using VisualPinball.Engine.VPT.Surface;
 using VisualPinball.Engine.VPT.Table;
 using VisualPinball.Engine.VPT.Trigger;
 using VisualPinball.Engine.VPT.Trough;
-using VisualPinball.Engine.VPT.MetalWireGuide;
 using Light = VisualPinball.Engine.VPT.Light.Light;
 using Texture = UnityEngine.Texture;
 
@@ -211,7 +210,6 @@ namespace VisualPinball.Unity.Editor
 		private void CreateItem<TItem>(Func<Table, TItem> create, string actionName) where TItem : IItem
 		{
 			var tableContainer = TableComponent.TableContainer;
-			tableContainer.Refresh();
 			var item = create(tableContainer.Table);
 			Selection.activeGameObject = CreateRenderable(item);
 			ItemCreated?.Invoke(Selection.activeGameObject);
@@ -221,14 +219,12 @@ namespace VisualPinball.Unity.Editor
 		private GameObject CreateRenderable(IItem item)
 		{
 			var converter = new VpxSceneConverter(TableComponent);
-			TableComponent.TableContainer.Refresh();
 			return converter.InstantiateAndPersistPrefab(item).GameObject;
 		}
 
 		private void CreatePrefab<T>(string groupName, string path) where T : Component
 		{
 			var converter = new VpxSceneConverter(TableComponent);
-			TableComponent.TableContainer.Refresh();
 
 			var parentGo = converter.GetGroupParent(groupName);
 

@@ -181,23 +181,6 @@ namespace VisualPinball.Unity
 			return Array.Empty<MonoBehaviour>();
 		}
 
-		public override TroughData CopyDataTo(TroughData data, string[] materialNames, string[] textureNames, bool forExport)
-		{
-			data.Name = name;
-
-			data.Type = Type;
-			data.PlayfieldEntrySwitch = PlayfieldEntrySwitch == null ? string.Empty : PlayfieldEntrySwitch.name;
-			data.PlayfieldExitKicker = PlayfieldExitKicker == null ? string.Empty : PlayfieldExitKicker.name;
-			data.BallCount = BallCount;
-			data.SwitchCount = SwitchCount;
-			data.JamSwitch = JamSwitch;
-			data.RollTime = RollTime;
-			data.TransitionTime = TransitionTime;
-			data.KickTime = KickTime;
-
-			return data;
-		}
-
 		#endregion
 
 		#region ISwitchableDevice

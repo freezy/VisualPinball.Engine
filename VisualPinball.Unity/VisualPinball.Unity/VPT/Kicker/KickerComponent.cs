@@ -179,35 +179,6 @@ namespace VisualPinball.Unity
 			return Array.Empty<MonoBehaviour>();
 		}
 
-		public override KickerData CopyDataTo(KickerData data, string[] materialNames, string[] textureNames,
-			bool forExport)
-		{
-			// name and transforms
-			data.Name = name;
-			data.Center = new Vertex2D(Position.x, Position.y);
-			data.Orientation = Orientation;
-			data.Radius = Radius;
-
-			data.KickerType = KickerType;
-
-			// todo visibility is set by the type
-
-			var colliderComponent = gameObject.GetComponent<KickerColliderComponent>();
-			if (colliderComponent) {
-				data.IsEnabled = colliderComponent.enabled;
-				data.Scatter = colliderComponent.Scatter;
-				data.HitAccuracy = colliderComponent.HitAccuracy;
-				data.HitHeight = colliderComponent.HitHeight;
-				data.FallThrough = colliderComponent.FallThrough;
-				data.LegacyMode = colliderComponent.LegacyMode;
-
-			} else {
-				data.IsEnabled = false;
-			}
-
-			return data;
-		}
-
 		public override void CopyFromObject(GameObject go)
 		{
 			// main component
