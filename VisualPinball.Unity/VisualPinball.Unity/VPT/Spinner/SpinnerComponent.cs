@@ -28,6 +28,7 @@ using Unity.Mathematics;
 using UnityEngine;
 using VisualPinball.Engine.Common;
 using VisualPinball.Engine.Game.Engines;
+using VisualPinball.Engine.Math;
 using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Spinner;
 using VisualPinball.Engine.VPT.Table;
@@ -190,6 +191,44 @@ namespace VisualPinball.Unity
 			// surface
 			ParentToSurface(data.Surface, data.Center, components);
 			return Array.Empty<MonoBehaviour>();
+		}
+
+		public override SpinnerData CopyDataTo(SpinnerData data, string[] materialNames, string[] textureNames, bool forExport)
+		{
+			// name and transforms
+			data.Name = name;
+			data.Center = new Vertex2D(Position.x, Position.y);
+			data.Height = Position.z;
+			data.Length = Length;
+			data.Rotation = Rotation;
+
+			// spinner props
+			data.Damping = Damping;
+			data.AngleMax = AngleMax;
+			data.AngleMin = AngleMin;
+
+			// visibility
+			var isBracketActive = false;
+			var isAnythingElseActive = false;
+			foreach (var mf in GetComponentsInChildren<MeshFilter>()) {
+				switch (mf.sharedMesh.name) {
+					case BracketMeshName:
+						isBracketActive = mf.gameObject.activeInHierarchy;
+						break;
+					default:
+						isAnythingElseActive = isAnythingElseActive || mf.gameObject.activeInHierarchy;
+						break;
+				}
+			}
+			data.IsVisible = isAnythingElseActive || isBracketActive;
+			data.ShowBracket = isBracketActive;
+
+			var collComponent = GetComponent<SpinnerColliderComponent>();
+			if (collComponent) {
+				data.Elasticity = collComponent.Elasticity;
+			}
+
+			return data;
 		}
 
 		public override void CopyFromObject(GameObject go)

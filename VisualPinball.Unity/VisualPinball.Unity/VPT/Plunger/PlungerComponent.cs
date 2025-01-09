@@ -24,6 +24,7 @@ using Unity.Mathematics;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using VisualPinball.Engine.Game.Engines;
+using VisualPinball.Engine.Math;
 using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Plunger;
 using VisualPinball.Engine.VPT.Table;
@@ -193,6 +194,57 @@ namespace VisualPinball.Unity
 			}
 
 			return Array.Empty<MonoBehaviour>();
+		}
+
+		public override PlungerData CopyDataTo(PlungerData data, string[] materialNames, string[] textureNames, bool forExport)
+		{
+			// name, geometry and position
+			data.Name = name;
+			data.Center = new Vertex2D(Position.x, Position.y);
+			data.Width = Width;
+			data.Height = Height;
+			data.ZAdjust = Position.z;
+
+			// collider data
+			var collComponent = GetComponent<PlungerColliderComponent>();
+			if (collComponent) {
+				data.Stroke = collComponent.Stroke;
+				data.SpeedPull = collComponent.SpeedPull;
+				data.SpeedFire = collComponent.SpeedFire;
+				data.MechStrength = collComponent.MechStrength;
+				data.ParkPosition = collComponent.ParkPosition;
+				data.ScatterVelocity = collComponent.ScatterVelocity;
+				data.MomentumXfer = collComponent.MomentumXfer;
+				data.IsMechPlunger = collComponent.IsMechPlunger;
+				data.AutoPlunger = collComponent.IsAutoPlunger;
+			}
+
+			// rod mesh
+			var rodMesh = GetComponentInChildren<PlungerRodMeshComponent>(true);
+			if (rodMesh) {
+				data.TipShape = rodMesh.TipShape;
+				data.RodDiam = rodMesh.RodDiam;
+				data.RingGap = rodMesh.RingGap;
+				data.RingDiam = rodMesh.RingDiam;
+				data.RingWidth = rodMesh.RingWidth;
+			}
+
+			// spring mesh
+			var springMesh = GetComponentInChildren<PlungerSpringMeshComponent>(true);
+			if (springMesh) {
+				data.SpringDiam = springMesh.SpringDiam;
+				data.SpringGauge = springMesh.SpringGauge;
+				data.SpringLoops = springMesh.SpringLoops;
+				data.SpringEndLoops = springMesh.SpringEndLoops;
+			}
+
+			// type
+			var hasSpringMesh = springMesh && springMesh.isActiveAndEnabled;
+			var hasRodMesh = rodMesh && rodMesh.isActiveAndEnabled;
+			data.IsVisible = hasRodMesh;
+			data.Type = hasSpringMesh && hasRodMesh ? PlungerType.PlungerTypeCustom : PlungerType.PlungerTypeModern;
+
+			return data;
 		}
 
 		public override void CopyFromObject(GameObject go)

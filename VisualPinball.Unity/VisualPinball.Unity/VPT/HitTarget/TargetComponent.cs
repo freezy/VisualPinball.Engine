@@ -127,6 +127,20 @@ namespace VisualPinball.Unity
 			return updatedComponents;
 		}
 
+		public override HitTargetData CopyDataTo(HitTargetData data, string[] materialNames, string[] textureNames, bool forExport)
+		{
+			// name and transforms
+			data.Name = name;
+			data.Position = Position.ToVertex3D();
+			data.RotZ = Rotation;
+			data.Size = ((Vector3)Size).ToVertex3D();
+
+			data.TargetType = _targetType;
+			data.IsVisible = GetEnabled<Renderer>();
+
+			return data;
+		}
+
 		public override void CopyFromObject(GameObject go)
 		{
 			// dt collider
