@@ -71,8 +71,10 @@ namespace VisualPinball.Unity
 				return;
 			}
 			float timeSinceLastPlay = Time.unscaledTime - _lastPlayStartTime;
-			if (timeSinceLastPlay < 0.1f) {
-				Logger.Warn("Sound spam protection engaged. There is probably something wrong with the calling code.");
+			if (timeSinceLastPlay < 0.01f) {
+				Logger.Warn($"Sound spam protection engaged. Time since last play was less than " +
+					$"0.01 seconds ({timeSinceLastPlay}). There is probably something wrong with " +
+					$"the calling code.");
 				return;
 			}
 
