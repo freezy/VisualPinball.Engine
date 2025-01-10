@@ -633,7 +633,6 @@ namespace VisualPinball.Unity
 
 			var poly = GetEnclosingPolygon(23, 12);
 			triggerComponent.DragPoints = new DragPointData[poly.Count];
-			triggerComponent.IsLocked = true;
 			triggerCollider.HitHeight = 150F; // nFozzy's recommendation, but I think 50 should be ok
 
 			// this was taken from the 2021 code when we had the playfield transformed to vpx world:
