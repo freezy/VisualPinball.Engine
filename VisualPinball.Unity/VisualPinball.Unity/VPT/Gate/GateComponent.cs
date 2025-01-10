@@ -81,15 +81,7 @@ namespace VisualPinball.Unity
 		public float PosY => Position.y;
 		public float Height => Position.z;
 
-		public bool ShowBracket { get {
-			foreach (var mf in GetComponentsInChildren<MeshFilter>()) {
-				switch (mf.gameObject.name) {
-					case BracketObjectName:
-						return mf.gameObject.activeInHierarchy;
-				}
-			}
-			return false;
-		}}
+		public bool ShowBracket => GetVisibilityByComponent<GateBracketComponent>();
 
 		#endregion
 
@@ -104,9 +96,6 @@ namespace VisualPinball.Unity
 
 		protected override Type MeshComponentType { get; } = typeof(MeshComponent<GateData, GateComponent>);
 		protected override Type ColliderComponentType { get; } = typeof(ColliderComponent<GateData, GateComponent>);
-
-		public const string BracketObjectName = "Bracket";
-		public const string WireObjectName = "Wire";
 
 		public const string MainSwitchItem = "gate_switch";
 
@@ -151,7 +140,6 @@ namespace VisualPinball.Unity
 
 		#endregion
 
-
 		#region Conversion
 
 		public override IEnumerable<MonoBehaviour> SetData(GateData data)
@@ -193,22 +181,8 @@ namespace VisualPinball.Unity
 			ParentToSurface(data.Surface, data.Center, components);
 
 			// visibility
-			foreach (var mf in GetComponentsInChildren<MeshFilter>()) {
-				switch (mf.gameObject.name) {
-					case BracketObjectName:
-						mf.gameObject.SetActive(data.IsVisible && data.ShowBracket);
-						break;
-					case WireObjectName:
-						#if UNITY_EDITOR
-						_meshName = Path.GetFileNameWithoutExtension(AssetDatabase.GetAssetPath(mf.sharedMesh));
-						#endif
-						mf.gameObject.SetActive(data.IsVisible);
-						break;
-					default:
-						mf.gameObject.SetActive(data.IsVisible);
-						break;
-				}
-			}
+			SetVisibilityByComponent<GateBracketComponent>(data.ShowBracket);
+			SetMeshVisibility(data.IsVisible);
 
 			return Array.Empty<MonoBehaviour>();
 		}
@@ -225,16 +199,8 @@ namespace VisualPinball.Unity
 			data.GateType = _type;
 
 			// visibility
-			foreach (var mf in GetComponentsInChildren<MeshFilter>()) {
-				switch (mf.gameObject.name) {
-					case BracketObjectName:
-						data.ShowBracket = mf.gameObject.activeInHierarchy;
-						break;
-					case WireObjectName:
-						data.IsVisible = mf.gameObject.activeInHierarchy;
-						break;
-				}
-			}
+			data.ShowBracket = GetVisibilityByComponent<GateBracketComponent>();
+			data.IsVisible = GetMeshVisibility();
 
 			// collision data
 			var colliderComponent = gameObject.GetComponent<GateColliderComponent>();
