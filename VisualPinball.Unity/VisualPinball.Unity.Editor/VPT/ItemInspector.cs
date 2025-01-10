@@ -34,7 +34,6 @@ namespace VisualPinball.Unity.Editor
 		private bool _transformsDirty;
 		private bool _visibilityDirty;
 
-		private SerializedProperty _isLockedProperty;
 
 		internal const string CustomMeshLabel = "Custom Mesh";
 
@@ -46,8 +45,6 @@ namespace VisualPinball.Unity.Editor
 
 			TableComponent = (target as MonoBehaviour)?.gameObject.GetComponentInParent<TableComponent>();
 			PlayfieldComponent = (target as MonoBehaviour)?.gameObject.GetComponentInParent<PlayfieldComponent>();
-
-			_isLockedProperty = serializedObject.FindProperty("_isLocked");
 		}
 
 		protected virtual void OnDisable()
@@ -247,7 +244,6 @@ namespace VisualPinball.Unity.Editor
 			}
 
 			EditorGUI.BeginChangeCheck();
-			PropertyField(_isLockedProperty, "Locked");
 			if (EditorGUI.EndChangeCheck()) {
 				SceneView.RepaintAll();
 			}

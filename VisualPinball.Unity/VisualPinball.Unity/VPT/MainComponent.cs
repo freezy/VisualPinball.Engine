@@ -28,10 +28,6 @@ namespace VisualPinball.Unity
 		IMainComponent, ILayerableItemComponent
 		where TData : ItemData
 	{
-		public bool IsLocked { get => _isLocked; set => _isLocked = value; }
-
-		[SerializeField] private bool _isLocked;
-
 		public int PlayfieldDetailLevel {
 			get {
 				var playfieldComponent = GetComponentInParent<PlayfieldComponent>();

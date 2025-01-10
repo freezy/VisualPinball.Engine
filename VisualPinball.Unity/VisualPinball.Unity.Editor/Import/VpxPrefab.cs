@@ -58,7 +58,6 @@ namespace VisualPinball.Unity.Editor
 		public void SetData()
 		{
 			var updatedComponents = _mainComponent.SetData(_item.Data);
-			_mainComponent.IsLocked = _item.Data.IsLocked;
 			_mainComponent.EditorLayer = _item.Data.EditorLayer;
 			_mainComponent.EditorLayerName = _item.Data.EditorLayerName;
 			_mainComponent.EditorLayerVisibility = _item.Data.EditorLayerVisibility;
