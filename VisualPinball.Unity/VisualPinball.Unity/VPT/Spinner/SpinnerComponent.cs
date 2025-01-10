@@ -80,18 +80,7 @@ namespace VisualPinball.Unity
 		[Tooltip("Minimal angle. This allows the spinner to bounce back instead of executing a 360° rotation.")]
 		public float AngleMin;
 
-		public bool ShowBracket {
-			get {
-				foreach (var mf in GetComponentsInChildren<MeshFilter>()) {
-					// todo use a component instead of relying on mesh names
-					switch (mf.sharedMesh.name) {
-						case BracketMeshName:
-							return mf.gameObject.activeInHierarchy;
-					}
-				}
-				return false;
-			}
-		}
+		public bool ShowBracket => GetVisibilityByComponent<SpinnerBracketColliderComponent>();
 
 		#endregion
 
@@ -107,7 +96,6 @@ namespace VisualPinball.Unity
 		protected override Type MeshComponentType { get; } = typeof(MeshComponent<SpinnerData, SpinnerComponent>);
 		protected override Type ColliderComponentType { get; } = typeof(ColliderComponent<SpinnerData, SpinnerComponent>);
 
-		private const string BracketMeshName = "Spinner (Bracket)";
 		public const string SwitchItem = "spinner_switch";
 
 		#endregion
@@ -165,16 +153,8 @@ namespace VisualPinball.Unity
 			AngleMin = data.AngleMin;
 
 			// visibility
-			foreach (var mf in GetComponentsInChildren<MeshFilter>()) {
-				switch (mf.sharedMesh.name) {
-					case BracketMeshName:
-						mf.gameObject.SetActive(data.IsVisible && data.ShowBracket);
-						break;
-					default:
-						mf.gameObject.SetActive(data.IsVisible);
-						break;
-				}
-			}
+			SetVisibilityByComponent<SpinnerBracketColliderComponent>(data.ShowBracket);
+			SetMeshVisibility(data.IsVisible);
 
 			// collider data
 			var collComponent = GetComponent<SpinnerColliderComponent>();
@@ -190,6 +170,7 @@ namespace VisualPinball.Unity
 		{
 			// surface
 			ParentToSurface(data.Surface, data.Center, components);
+
 			return Array.Empty<MonoBehaviour>();
 		}
 
@@ -208,20 +189,8 @@ namespace VisualPinball.Unity
 			data.AngleMin = AngleMin;
 
 			// visibility
-			var isBracketActive = false;
-			var isAnythingElseActive = false;
-			foreach (var mf in GetComponentsInChildren<MeshFilter>()) {
-				switch (mf.sharedMesh.name) {
-					case BracketMeshName:
-						isBracketActive = mf.gameObject.activeInHierarchy;
-						break;
-					default:
-						isAnythingElseActive = isAnythingElseActive || mf.gameObject.activeInHierarchy;
-						break;
-				}
-			}
-			data.IsVisible = isAnythingElseActive || isBracketActive;
-			data.ShowBracket = isBracketActive;
+			data.ShowBracket = GetVisibilityByComponent<SpinnerBracketColliderComponent>();
+			data.IsVisible = GetMeshVisibility();
 
 			var collComponent = GetComponent<SpinnerColliderComponent>();
 			if (collComponent) {
