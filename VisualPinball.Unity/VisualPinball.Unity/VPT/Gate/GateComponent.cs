@@ -23,10 +23,8 @@
 
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using Unity.Mathematics;
-using UnityEditor;
 using UnityEngine;
 using VisualPinball.Engine.Common;
 using VisualPinball.Engine.Game.Engines;
