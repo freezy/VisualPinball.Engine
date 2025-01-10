@@ -94,6 +94,29 @@ namespace VisualPinball.Unity
 			}
 		}
 
+		protected bool GetVisibilityByComponent<TComponent>() where TComponent : MonoBehaviour
+		{
+			var comp = GetComponentInChildren<TComponent>();
+			return comp && comp.gameObject.activeInHierarchy;
+		}
+
+		protected void SetMeshVisibility(bool isVisible)
+		{
+			foreach (var mr in GetComponentsInChildren<MeshRenderer>()) {
+				mr.enabled = isVisible;
+			}
+		}
+
+		protected bool GetMeshVisibility()
+		{
+			foreach (var mr in GetComponentsInChildren<MeshRenderer>()) {
+				if (mr.enabled) {
+					return true;
+				}
+			}
+			return false;
+		}
+
 		protected void ParentToSurface(string surfaceName, Vertex2D center, Dictionary<string, IMainComponent> components)
 		{
 			if (!string.IsNullOrEmpty(surfaceName)) {
