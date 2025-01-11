@@ -24,8 +24,8 @@ namespace VisualPinball.Unity
 {
 	public class DropTargetColliderGenerator : TargetColliderGenerator
 	{
-		public DropTargetColliderGenerator(IApiColliderGenerator api, ITargetData data, IMeshGenerator meshProvider, float4x4 matrix)
-			: base(api, data, meshProvider, matrix) { }
+		public DropTargetColliderGenerator(IApiColliderGenerator api, TargetComponent comp, float4x4 matrix)
+			: base(api, comp, matrix) { }
 
 		internal void GenerateColliders(ref ColliderReference colliders)
 		{

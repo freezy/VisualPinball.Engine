@@ -27,9 +27,8 @@ namespace VisualPinball.Unity
 	{
 		private readonly Mesh _colliderMesh;
 
-		public HitTargetColliderGenerator(Mesh colliderMesh, IApiColliderGenerator api, ITargetData data,
-			IMeshGenerator meshProvider, float4x4 matrix)
-			: base(api, data, meshProvider, matrix)
+		public HitTargetColliderGenerator(Mesh colliderMesh, IApiColliderGenerator api, TargetComponent comp, float4x4 matrix)
+			: base(api, comp, matrix)
 		{
 			_colliderMesh = colliderMesh;
 		}
