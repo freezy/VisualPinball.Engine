@@ -23,15 +23,13 @@ namespace VisualPinball.Unity
 	public abstract class TargetColliderGenerator
 	{
 		protected readonly IApiColliderGenerator Api;
-		protected readonly ITargetData Data;
-		protected readonly IMeshGenerator MeshGenerator;
+		protected readonly TargetComponent Data;
 		protected readonly float4x4 Matrix;
 
-		protected TargetColliderGenerator(IApiColliderGenerator api, ITargetData data, IMeshGenerator meshGenerator, float4x4 matrix)
+		protected TargetColliderGenerator(IApiColliderGenerator api, TargetComponent data, float4x4 matrix)
 		{
 			Api = api;
 			Data = data;
-			MeshGenerator = meshGenerator;
 			Matrix = matrix;
 		}
 

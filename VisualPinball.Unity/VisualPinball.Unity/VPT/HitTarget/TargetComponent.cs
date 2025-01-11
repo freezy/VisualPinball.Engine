@@ -36,7 +36,7 @@ using Mesh = VisualPinball.Engine.VPT.Mesh;
 namespace VisualPinball.Unity
 {
 	public abstract class TargetComponent : MainRenderableComponent<HitTargetData>,
-		ISwitchDeviceComponent, ITargetData, IMeshGenerator
+		ISwitchDeviceComponent, IMeshGenerator
 	{
 		#region Data
 
