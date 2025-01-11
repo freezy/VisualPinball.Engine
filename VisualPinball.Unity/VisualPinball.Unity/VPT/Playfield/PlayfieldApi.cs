@@ -29,8 +29,7 @@ namespace VisualPinball.Unity
 
 		#region Collider Generation
 
-		protected override void CreateColliders(ref ColliderReference colliders,
-			ref ColliderReference kinematicColliders, float margin)
+		protected override void CreateColliders(ref ColliderReference colliders, float4x4 translateWithinPlayfieldMatrix, float margin)
 		{
 			var info = ((IApiColliderGenerator)this).GetColliderInfo();
 
@@ -39,14 +38,14 @@ namespace VisualPinball.Unity
 			if (meshComp && !meshComp.AutoGenerate) {
 				var mf = GameObject.GetComponent<MeshFilter>();
 				if (mf && mf.sharedMesh) {
-					ColliderUtils.GenerateCollidersFromMesh(mf.sharedMesh.ToVpMesh().TransformToVpx(), info, ref colliders);
+					ColliderUtils.GenerateCollidersFromMesh(mf.sharedMesh.ToVpMesh().TransformToVpx(), info, ref colliders, float4x4.identity);
 
 				} else {
 					Debug.LogWarning($"Could not find mesh filter on playfield {GameObject.name}");
-					colliders.Add(new PlaneCollider(new float3(0, 0, 1), MainComponent.TableHeight, info));
+					colliders.Add(new PlaneCollider(new float3(0, 0, 1), 0, info));
 				}
 			} else {
-				colliders.Add(new PlaneCollider(new float3(0, 0, 1), MainComponent.TableHeight, info));
+				colliders.Add(new PlaneCollider(new float3(0, 0, 1), 0, info));
 			}
 			// add playfield glass collider
 			colliders.Add(new PlaneCollider(new float3(0, 0, -1), MainComponent.GlassHeight, info));
@@ -57,7 +56,7 @@ namespace VisualPinball.Unity
 				colliders.Add(new LineCollider(
 					new float2(MainComponent.Right, MainComponent.Top),
 					new float2(MainComponent.Right, MainComponent.Bottom),
-					MainComponent.TableHeight,
+					0,
 					MainComponent.GlassHeight,
 					info
 				));
@@ -65,7 +64,7 @@ namespace VisualPinball.Unity
 				colliders.Add(new LineCollider(
 					new float2(MainComponent.Left, MainComponent.Bottom),
 					new float2(MainComponent.Left, MainComponent.Top),
-					MainComponent.TableHeight,
+					0,
 					MainComponent.GlassHeight,
 					info
 				));
@@ -73,7 +72,7 @@ namespace VisualPinball.Unity
 				colliders.Add(new LineCollider(
 					new float2(MainComponent.Right, MainComponent.Bottom),
 					new float2(MainComponent.Left, MainComponent.Bottom),
-					MainComponent.TableHeight,
+					0,
 					MainComponent.GlassHeight,
 					info
 				));
@@ -81,7 +80,7 @@ namespace VisualPinball.Unity
 				colliders.Add(new LineCollider(
 					new float2(MainComponent.Left, MainComponent.Top),
 					new float2(MainComponent.Right, MainComponent.Top),
-					MainComponent.TableHeight,
+					0,
 					MainComponent.GlassHeight,
 					info
 				));

@@ -41,7 +41,7 @@ namespace VisualPinball.Unity.Editor
 		{
 			base.OnEnable();
 
-			_hitEventProperty = serializedObject.FindProperty(nameof(SurfaceColliderComponent.HitEvent));
+			_hitEventProperty = serializedObject.FindProperty(nameof(RampColliderComponent.HitEvent));
 			_thresholdProperty = serializedObject.FindProperty(nameof(RampColliderComponent.Threshold));
 			_leftWallHeightProperty = serializedObject.FindProperty(nameof(RampColliderComponent.LeftWallHeight));
 			_rightWallHeightProperty = serializedObject.FindProperty(nameof(RampColliderComponent.RightWallHeight));

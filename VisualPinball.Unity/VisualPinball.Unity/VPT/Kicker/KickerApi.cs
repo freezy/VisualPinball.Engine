@@ -47,7 +47,7 @@ namespace VisualPinball.Unity
 		/// </summary>
 		public event EventHandler<SwitchEventArgs> Switch;
 
-		internal float3 Position => new(MainComponent.Position.x, MainComponent.Position.y, MainComponent.PositionZ);
+		internal float3 Position => MainComponent.Position;
 
 		public KickerDeviceCoil KickerCoil => _coils.Values.FirstOrDefault();
 
@@ -79,7 +79,7 @@ namespace VisualPinball.Unity
 			var events = PhysicsEngine.EventQueue;
 			ball.CollisionEvent.HitFlag = true; // HACK: avoid capture leaving kicker
 
-			KickerCollider.Collide(ref ball, ref events, ref PhysicsEngine.InsideOfs, ref kickerState.Collision,
+			KickerCollider.Collide(new float3(kickerState.Static.Center, kickerState.Static.ZLow), ref ball, ref events, ref PhysicsEngine.InsideOfs, ref kickerState.Collision,
 				in kickerState.Static, in kickerState.CollisionMesh, in ball.CollisionEvent, ItemId, true);
 		}
 
@@ -224,16 +224,13 @@ namespace VisualPinball.Unity
 
 		#region Collider Generation
 
-		protected override void CreateColliders(ref ColliderReference colliders,
-			ref ColliderReference kinematicColliders, float margin)
+		protected override void CreateColliders(ref ColliderReference colliders, float4x4 translateWithinPlayfieldMatrix, float margin)
 		{
-			var height = MainComponent.PositionZ;
-
 			// reduce the hit circle radius because only the inner circle of the kicker should start a hit event
 			var radius = MainComponent.Radius * (ColliderComponent.LegacyMode ? ColliderComponent.FallThrough ? 0.75f : 0.6f : 1f);
 
-			colliders.Add(new CircleCollider(MainComponent.Position, radius, height,
-				height + ColliderComponent.HitHeight, GetColliderInfo(), ColliderType.KickerCircle));
+			colliders.Add(new CircleCollider(float2.zero, radius, 0,
+				ColliderComponent.HitHeight, GetColliderInfo(), ColliderType.KickerCircle), translateWithinPlayfieldMatrix);
 		}
 
 		#endregion
@@ -242,15 +239,19 @@ namespace VisualPinball.Unity
 
 		void IApiHittable.OnHit(int ballId, bool isUnHit)
 		{
+			var ballTransform = PhysicsEngine.GetTransform(ballId);
 			if (isUnHit) {
 				UnHit?.Invoke(this, new HitEventArgs(ballId));
 				Switch?.Invoke(this, new SwitchEventArgs(false, ballId));
 				OnSwitch(false);
+				ballTransform.SetParent(MainComponent.GetComponentInParent<PlayfieldComponent>().transform, true);
 
 			} else {
 				Hit?.Invoke(this, new HitEventArgs(ballId));
 				Switch?.Invoke(this, new SwitchEventArgs(true, ballId));
 				OnSwitch(true);
+				BallMovementPhysics.Move(PhysicsEngine.BallState(ballId), ballTransform); // do the last update, since frozen balls don't get updated
+				ballTransform.SetParent(MainComponent.transform, true);
 			}
 		}
 

@@ -20,12 +20,15 @@ using System.Linq;
 using NLog;
 using VisualPinball.Engine.Game;
 using VisualPinball.Engine.Math;
+using Logger = NLog.Logger;
 using MathF = VisualPinball.Engine.Math.MathF;
 
 namespace VisualPinball.Engine.VPT.Plunger
 {
 	public class PlungerMeshGenerator
 	{
+		private const float Scale = 1852.71f;
+		private const float ScaleInv = (float)(1 / (double)Scale);
 		public const string Flat = "Flat";
 		public const string Rod = "Rod";
 		public const string Spring = "Spring";
@@ -116,8 +119,8 @@ namespace VisualPinball.Engine.VPT.Plunger
 		private void Init(float height)
 		{
 			var stroke = _data.Stroke;
-			_beginY = _data.Center.Y;
-			_endY = _data.Center.Y - stroke;
+			_beginY = 0;
+			_endY =  -stroke;
 			NumFrames = (int)(stroke * (float)(PlungerFrameCount / 80.0)) + 1; // 25 frames per 80 units travel
 			_invScale = NumFrames > 1 ? 1.0f / (NumFrames - 1) : 0.0f;
 			_dyPerFrame = (_endY - _beginY) * _invScale;
@@ -228,8 +231,8 @@ namespace VisualPinball.Engine.VPT.Plunger
 			// for the current frame.  (The 0th frame is the most retracted position;
 			// the cframe-1'th frame is the most forward position.)  The base is at
 			// the nominal y position plus m_d.m_height.
-			var xLt = _data.Center.X - _data.Width;
-			var xRt = _data.Center.X + _data.Width;
+			var xLt = -_data.Width;
+			var xRt = _data.Width;
 			var yTop = _beginY + _dyPerFrame * frame;
 			var yBot = _beginY + _data.Height;
 
@@ -371,13 +374,14 @@ namespace VisualPinball.Engine.VPT.Plunger
 						tv = vertices[m - 1].Tv + (tv - vertices[m - 1].Tv) * ratio;
 					}
 
+					// we swap yz and scale to move it to world space
 					vertices[i++] = new Vertex3DNoTex2 {
-						X = r * (sn * _data.Width) + _data.Center.X,
-						Y = y,
-						Z = (r * (cs * _data.Width) + _data.Width + _zHeight) * _zScale,
+						X = r * (sn * _data.Width) * ScaleInv,
+						Y = ((r * (cs * _data.Width) + _data.Width + _zHeight) * _zScale) * ScaleInv,
+						Z = -y * ScaleInv,
 						Nx = c.nx * sn,
-						Ny = c.ny,
-						Nz = c.nx * cs,
+						Ny = c.nx * cs,
+						Nz = -c.ny,
 						Tu = tu,
 						Tv = tv
 					};
@@ -511,37 +515,36 @@ namespace VisualPinball.Engine.VPT.Plunger
 
 				// set the point on the front spiral
 				vertices[pm++] = new Vertex3DNoTex2 {
-					X = _springRadius * (sn * _data.Width) + _data.Center.X,
-					Y = y - _springGauge,
-					Z = (_springRadius * (cs * _data.Width) + _data.Width + _zHeight) * _zScale,
+					X = _springRadius * (sn * _data.Width) * ScaleInv,
+					Y = (_springRadius * (cs * _data.Width) + _data.Width + _zHeight) * _zScale * ScaleInv,
+					Z = -(y - _springGauge) * ScaleInv,
 					Nx = 0.0f,
-					Ny = -1.0f,
-					Nz = 0.0f,
+					Ny = 0.0f,
+					Nz = 1.0f,
 					Tu = (sn + 1.0f) * 0.5f,
 					Tv = 0.76f
 				};
 
 				// set the point on the top spiral
 				vertices[pm++] = new Vertex3DNoTex2 {
-					X = (_springRadius + springGaugeRel / 1.5f) * (sn * _data.Width) + _data.Center.X,
-					Y = y,
-					Z = ((_springRadius + springGaugeRel / 1.5f) * (cs * _data.Width) + _data.Width + _zHeight) *
-					    _zScale,
+					X = (_springRadius + springGaugeRel / 1.5f) * (sn * _data.Width) * ScaleInv,
+					Y = ((_springRadius + springGaugeRel / 1.5f) * (cs * _data.Width) + _data.Width + _zHeight) * _zScale * ScaleInv,
+					Z = -y * ScaleInv,
 					Nx = sn,
-					Ny = 0.0f,
-					Nz = cs,
+					Ny = cs,
+					Nz = 0.0f,
 					Tu = (sn + 1.0f) * 0.5f,
 					Tv = 0.85f
 				};
 
 				// set the point on the back spiral
 				vertices[pm++] = new Vertex3DNoTex2 {
-					X = _springRadius * (sn * _data.Width) + _data.Center.X,
-					Y = y + _springGauge,
-					Z = (_springRadius * (cs * _data.Width) + _data.Width + _zHeight) * _zScale,
+					X = _springRadius * (sn * _data.Width) * ScaleInv,
+					Y = (_springRadius * (cs * _data.Width) + _data.Width + _zHeight) * _zScale * ScaleInv,
+					Z = -(y + _springGauge) * ScaleInv,
 					Nx = 0.0f,
-					Ny = 1.0f,
-					Nz = 0.0f,
+					Ny = 0.0f,
+					Nz = -1.0f,
 					Tu = (sn + 1.0f) * 0.5f,
 					Tv = 0.98f
 				};

@@ -53,7 +53,7 @@ namespace VisualPinball.Unity.Editor
 
 			BeginEditing();
 
-			OnPreInspectorGUI();
+			OnParentPreInspectorGUI();
 
 			PropertyField(_gravityProperty, "Gravity Constant");
 			PropertyField(_frictionProperty, "Playfield Friction");

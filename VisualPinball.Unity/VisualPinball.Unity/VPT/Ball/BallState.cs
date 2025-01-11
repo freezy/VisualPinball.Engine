@@ -18,7 +18,7 @@ using Unity.Mathematics;
 
 namespace VisualPinball.Unity
 {
-	internal struct BallState
+	public struct BallState
 	{
 		public int Id;
 		public float3 Position;
@@ -140,7 +140,21 @@ namespace VisualPinball.Unity
 
 		public override string ToString()
 		{
-			return $"Ball{Id} ({Position.x}/{Position.y})";
+			return $"Ball{Id} ({Position.x}/{Position.y}/{Position.z})";
+		}
+
+		public void Transform(float4x4 matrix)
+		{
+			Position = matrix.MultiplyPoint(Position);
+			EventPosition = matrix.MultiplyPoint(EventPosition);
+			Velocity = matrix.MultiplyVector(Velocity);
+			AngularMomentum = matrix.MultiplyVector(AngularMomentum);
+
+			//BallOrientation = math.mul(matrix, BallOrientation)
+			//BallOrientationForUnity;
+
+			OldVelocity = matrix.MultiplyVector(OldVelocity);
+			CollisionEvent.Transform(matrix);
 		}
 	}
 }

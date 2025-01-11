@@ -49,11 +49,6 @@ namespace VisualPinball.Engine.VPT.HitTarget
 			return mesh.Transform(preMatrix);
 		}
 
-		public Matrix3D GetTransformationMatrix()
-		{
-			return GetPostMatrix(_table, Origin.Original);
-		}
-
 		public PbrMaterial GetMaterial()
 		{
 			return new PbrMaterial(_table.GetMaterial(_data.Material), _table.GetTexture(_data.Image));

@@ -21,6 +21,10 @@ using VisualPinball.Unity.Collections;
 
 namespace VisualPinball.Unity
 {
+	/// <summary>
+	/// A wrapper class used to pass around colliders during collider generation.
+	/// This isn't used during the physics runtime, where it's copied into NativeColliders.
+	/// </summary>
 	public struct ColliderReference : IDisposable
 	{
 		internal NativeList<CircleCollider> CircleColliders;
@@ -38,10 +42,14 @@ namespace VisualPinball.Unity
 
 		public NativeList<ColliderLookup> Lookups; // collider id -> collider type + index within collider type list
 
-		public readonly bool KinematicColliders; // if set, populate _itemIdToColliderIds
+		/// <summary>
+		/// If true, then all colliders are kinematic.
+		/// </summary>
+		public readonly bool IsKinematic; // if set, populate _itemIdToColliderIds
 		private NativeParallelHashMap<int, NativeList<int>> _itemIdToColliderIds;
+		private NativeParallelHashMap<int, float4x4> _nonTransformableColliderTransforms;
 
-		public ColliderReference(Allocator allocator, bool kinematicColliders = false)
+		public ColliderReference(ref NativeParallelHashMap<int, float4x4> nonTransformableColliderTransforms, Allocator allocator, bool isKinematic = false)
 		{
 			CircleColliders = new NativeList<CircleCollider>(allocator);
 			FlipperColliders = new NativeList<FlipperCollider>(allocator);
@@ -55,10 +63,12 @@ namespace VisualPinball.Unity
 			SpinnerColliders = new NativeList<SpinnerCollider>(allocator);
 			TriangleColliders = new NativeList<TriangleCollider>(allocator);
 			PlaneColliders = new NativeList<PlaneCollider>(allocator);
+
 			Lookups = new NativeList<ColliderLookup>(allocator);
 
-			KinematicColliders = kinematicColliders;
+			IsKinematic = isKinematic;
 			_itemIdToColliderIds = new NativeParallelHashMap<int, NativeList<int>>(0, allocator);
+			_nonTransformableColliderTransforms = nonTransformableColliderTransforms;
 		}
 
 		public void Dispose()
@@ -81,14 +91,20 @@ namespace VisualPinball.Unity
 				}
 			}
 			_itemIdToColliderIds.Dispose();
+			Lookups.Dispose();
 		}
 
 		public int Count => Lookups.Length;
 
 		public ICollider this[int i] => LookupCollider(i);
 
-		public void TransformToIdentity(NativeParallelHashMap<int, float4x4> itemIdToTransformationMatrix)
+		public void TransformToIdentity(ref NativeParallelHashMap<int, float4x4> itemIdToTransformationMatrix)
 		{
+			#if UNITY_EDITOR
+			if (!IsKinematic) {
+				throw new InvalidOperationException("Cannot transform non-kinetic colliders to identity.");
+			}
+			#endif
 			using var enumerator = _itemIdToColliderIds.GetEnumerator();
 			while (enumerator.MoveNext()) {
 				var itemId = enumerator.Current.Key;
@@ -97,23 +113,116 @@ namespace VisualPinball.Unity
 					var matrix = itemIdToTransformationMatrix[itemId];
 					var lookup = Lookups[colliderId];
 					switch (lookup.Type) {
+
+						case ColliderType.TriggerCircle:
+						case ColliderType.KickerCircle:
 						case ColliderType.Bumper:
 						case ColliderType.Circle:
 							ref var circleCollider = ref CircleColliders.GetElementAsRef(lookup.Index);
-							circleCollider.Transform(CircleColliders[lookup.Index], math.inverse(matrix));
+							#if UNITY_EDITOR
+							if (circleCollider.Header.IsTransformed) {
+								throw new InvalidOperationException("A transformed circle collider shouldn't have been added as a kinetic collider.");
+							}
+							#endif
+							circleCollider.TransformAabb(math.inverse(matrix));
 							break;
+
 						case ColliderType.Point:
 							ref var pointCollider = ref PointColliders.GetElementAsRef(lookup.Index);
+							#if UNITY_EDITOR
+							if (!pointCollider.Header.IsTransformed) {
+								throw new InvalidOperationException("Points are fully transformable, so they should always be transformed.");
+							}
+							#endif
 							pointCollider.Transform(PointColliders[lookup.Index], math.inverse(matrix));
 							break;
+
 						case ColliderType.Line3D:
 							ref var line3DCollider = ref Line3DColliders.GetElementAsRef(lookup.Index);
+							#if UNITY_EDITOR
+							if (!line3DCollider.Header.IsTransformed) {
+								throw new InvalidOperationException("Line3D colliders are fully transformable, so they should always be transformed.");
+							}
+							#endif
 							line3DCollider.Transform(Line3DColliders[lookup.Index], math.inverse(matrix));
 							break;
+
 						case ColliderType.Triangle:
 							ref var triangleCollider = ref TriangleColliders.GetElementAsRef(lookup.Index);
+							#if UNITY_EDITOR
+							if (!triangleCollider.Header.IsTransformed) {
+								throw new InvalidOperationException("Triangles are fully transformable, so they should always be transformed.");
+							}
+							#endif
 							triangleCollider.Transform(TriangleColliders[lookup.Index], math.inverse(matrix));
 							break;
+
+						case ColliderType.Spinner:
+							ref var spinnerCollider = ref SpinnerColliders.GetElementAsRef(lookup.Index);
+							#if UNITY_EDITOR
+							if (spinnerCollider.Header.IsTransformed) {
+								throw new InvalidOperationException("A transformed spinner collider shouldn't have been added as a kinetic collider.");
+							}
+							#endif
+							spinnerCollider.TransformAabb(math.inverse(matrix));
+							break;
+
+						case ColliderType.Gate:
+							ref var gateCollider = ref GateColliders.GetElementAsRef(lookup.Index);
+							#if UNITY_EDITOR
+							if (gateCollider.Header.IsTransformed) {
+								throw new InvalidOperationException("A transformed gate collider shouldn't have been added as a kinetic collider.");
+							}
+							#endif
+							gateCollider.TransformAabb(math.inverse(matrix));
+							break;
+
+						case ColliderType.Flipper:
+							ref var flipperCollider = ref FlipperColliders.GetElementAsRef(lookup.Index);
+							#if UNITY_EDITOR
+							if (flipperCollider.Header.IsTransformed) {
+								throw new InvalidOperationException("A transformed flipper collider shouldn't have been added as a kinetic collider.");
+							}
+							#endif
+							flipperCollider.TransformAabb(math.inverse(matrix));
+							break;
+
+						case ColliderType.LineSlingShot:
+							ref var slingshotCollider = ref LineSlingshotColliders.GetElementAsRef(lookup.Index);
+							#if UNITY_EDITOR
+							if (slingshotCollider.Header.IsTransformed) {
+								throw new InvalidOperationException("A transformed slingshot collider shouldn't have been added as a kinetic collider.");
+							}
+							#endif
+							slingshotCollider.TransformAabb(math.inverse(matrix));
+							break;
+
+						case ColliderType.Plunger:
+							ref var plungerCollider = ref PlungerColliders.GetElementAsRef(lookup.Index);
+							#if UNITY_EDITOR
+							if (plungerCollider.Header.IsTransformed) {
+								throw new InvalidOperationException("A transformed plunger collider shouldn't have been added as a kinetic collider.");
+							}
+							#endif
+							plungerCollider.TransformAabb(math.inverse(matrix));
+							break;
+
+						case ColliderType.Line:
+							#if UNITY_EDITOR
+							throw new InvalidOperationException("Line colliders shouldn't exist as kinetic colliders, but converted to line 3D colliders.");
+							#endif
+						case ColliderType.LineZ:
+							#if UNITY_EDITOR
+							throw new InvalidOperationException("Line-Z colliders shouldn't exist as kinetic colliders, but converted to line 3D colliders.");
+							#endif
+						case ColliderType.Plane:
+							#if UNITY_EDITOR
+							throw new InvalidOperationException("Planes cannot be be kinematic.");
+							#endif
+						case ColliderType.None:
+							break;
+						default:
+							throw new ArgumentOutOfRangeException();
 					}
 				}
 			}
@@ -140,16 +249,18 @@ namespace VisualPinball.Unity
 				case ColliderType.Triangle: return TriangleColliders.GetElementAsRef(lookup.Index);
 				case ColliderType.Plane: return PlaneColliders.GetElementAsRef(lookup.Index);
 			}
-			throw new ArgumentException($"Unknown lookup type.");
+			throw new ArgumentException("Unknown lookup type.");
 		}
 
 		#region Add
 
 		private void TrackReference(int itemId, int colliderId)
 		{
-			if (!KinematicColliders) {
+			#if !UNITY_EDITOR
+			if (!IsKinematic) {
 				return;
 			}
+			#endif
 
 			if (!_itemIdToColliderIds.ContainsKey(itemId)) {
 				_itemIdToColliderIds[itemId] = new NativeList<int>(Allocator.Temp);
@@ -157,17 +268,44 @@ namespace VisualPinball.Unity
 			_itemIdToColliderIds[itemId].Add(colliderId);
 		}
 
-		internal int Add(CircleCollider collider)
+		internal int Add(CircleCollider collider, float4x4 matrix)
 		{
+			if (!IsKinematic && CircleCollider.IsTransformable(matrix)) {
+				collider.Header.IsTransformed = true;
+				collider.Transform(matrix);
+
+			} else {
+				// save matrix for use during runtime
+				if (!_nonTransformableColliderTransforms.ContainsKey(collider.Header.ItemId)) {
+					_nonTransformableColliderTransforms.Add(collider.Header.ItemId, matrix);
+				}
+				collider.Header.IsTransformed = false;
+				collider.TransformAabb(matrix);
+			}
+
 			collider.Id = Lookups.Length;
 			TrackReference(collider.Header.ItemId, collider.Header.Id);
 			Lookups.Add(new ColliderLookup(ColliderType.Circle, CircleColliders.Length));
 			CircleColliders.Add(collider);
+
 			return collider.Id;
 		}
 
-		internal int Add(FlipperCollider collider)
+		internal int Add(FlipperCollider collider, float4x4 matrix)
 		{
+			if (!IsKinematic && FlipperCollider.IsTransformable(matrix)) {
+				collider.Header.IsTransformed = true;
+				collider.Transform(matrix);
+
+			} else {
+				// save matrix for use during runtime
+				if (!_nonTransformableColliderTransforms.ContainsKey(collider.Header.ItemId)) {
+					_nonTransformableColliderTransforms.Add(collider.Header.ItemId, matrix);
+				}
+				collider.Header.IsTransformed = false;
+				collider.TransformAabb(matrix);
+			}
+
 			collider.Id = Lookups.Length;
 			TrackReference(collider.Header.ItemId, collider.Header.Id);
 			Lookups.Add(new ColliderLookup(ColliderType.Flipper, FlipperColliders.Length));
@@ -175,80 +313,168 @@ namespace VisualPinball.Unity
 			return collider.Id;
 		}
 
-		internal int Add(GateCollider collider)
+		internal void Add(GateCollider collider, float4x4 matrix)
 		{
+			if (!IsKinematic && GateCollider.IsTransformable(matrix)) {
+				collider.Header.IsTransformed = true;
+				collider.Transform(matrix);
+
+			} else {
+				// save matrix for use during runtime
+				if (!_nonTransformableColliderTransforms.ContainsKey(collider.Header.ItemId)) {
+					_nonTransformableColliderTransforms.Add(collider.Header.ItemId, matrix);
+				}
+
+				collider.Header.IsTransformed = false;
+				collider.TransformAabb(matrix);
+			}
+
 			collider.Id = Lookups.Length;
 			TrackReference(collider.Header.ItemId, collider.Header.Id);
 			Lookups.Add(new ColliderLookup(ColliderType.Gate, GateColliders.Length));
 			GateColliders.Add(collider);
-			return collider.Id;
 		}
 
-		internal int Add(Line3DCollider collider)
+		internal void Add(Line3DCollider collider, float4x4 matrix)
 		{
+			collider.Header.IsTransformed = true;
+			collider.Transform(matrix);
+
 			collider.Id = Lookups.Length;
 			TrackReference(collider.Header.ItemId, collider.Header.Id);
 			Lookups.Add(new ColliderLookup(ColliderType.Line3D, Line3DColliders.Length));
 			Line3DColliders.Add(collider);
-			return collider.Id;
 		}
 
-		internal int Add(LineSlingshotCollider collider)
+		internal void Add(LineSlingshotCollider collider, float4x4 matrix)
 		{
+			if (!IsKinematic && LineSlingshotCollider.IsTransformable(matrix)) {
+				collider.Header.IsTransformed = true;
+				collider.Transform(matrix);
+
+			} else {
+				// save matrix for use during runtime
+				if (!_nonTransformableColliderTransforms.ContainsKey(collider.Header.ItemId)) {
+					_nonTransformableColliderTransforms.Add(collider.Header.ItemId, matrix);
+				}
+				collider.Header.IsTransformed = false;
+				collider.TransformAabb(matrix);
+			}
+
 			collider.Id = Lookups.Length;
 			TrackReference(collider.Header.ItemId, collider.Header.Id);
 			Lookups.Add(new ColliderLookup(ColliderType.LineSlingShot, LineSlingshotColliders.Length));
 			LineSlingshotColliders.Add(collider);
-			return collider.Id;
 		}
 
-		internal int Add(LineCollider collider)
+		internal void Add(LineCollider collider) => Add(collider, float4x4.identity); // used for the playfield only
+		internal void Add(LineCollider collider, float4x4 matrix)
 		{
-			collider.Id = Lookups.Length;
-			TrackReference(collider.Header.ItemId, collider.Header.Id);
-			Lookups.Add(new ColliderLookup(ColliderType.Line, LineColliders.Length));
-			LineColliders.Add(collider);
-			return collider.Id;
+			if (!IsKinematic && LineCollider.IsTransformable(matrix)) {
+				collider.Header.IsTransformed = true;
+				collider.Transform(matrix);
+
+				collider.Id = Lookups.Length;
+				TrackReference(collider.Header.ItemId, collider.Header.Id);
+				Lookups.Add(new ColliderLookup(ColliderType.Line, LineColliders.Length));
+				LineColliders.Add(collider);
+
+			} else {
+
+				// convert line collider to two triangle colliders
+				var p1 = new float3(collider.V1.xy, collider.ZLow);
+				var p2 = new float3(collider.V1.xy, collider.ZHigh);
+				var p3 = new float3(collider.V2.xy, collider.ZLow);
+				var p4 = new float3(collider.V2.xy, collider.ZHigh);
+
+				var t1 = new TriangleCollider(p1, p3, p2, collider.Header.ColliderInfo);
+				var t2 = new TriangleCollider(p3, p4, p2, collider.Header.ColliderInfo);
+
+				t1.Header.IsTransformed = true;
+				t2.Header.IsTransformed = true;
+
+				Add(t1, matrix);
+				Add(t2, matrix);
+			}
 		}
 
-		internal int Add(LineZCollider collider)
+		internal void Add(LineZCollider collider, float4x4 matrix)
 		{
+			if (IsKinematic || !LineZCollider.IsTransformable(matrix)) {
+				// use line 3d collider instead
+				Add(new Line3DCollider(new float3(collider.XY, collider.ZLow), new float3(collider.XY, collider.ZHigh), collider.Header.ColliderInfo), matrix);
+				return;
+			}
+
+			collider.Header.IsTransformed = true;
+			collider.Transform(matrix);
+
 			collider.Id = Lookups.Length;
 			TrackReference(collider.Header.ItemId, collider.Header.Id);
 			Lookups.Add(new ColliderLookup(ColliderType.LineZ, LineZColliders.Length));
 			LineZColliders.Add(collider);
-			return collider.Id;
 		}
 
-		internal int Add(PlungerCollider collider)
+		internal void Add(PlungerCollider collider, float4x4 matrix)
 		{
+			if (!IsKinematic && PlungerCollider.IsTransformable(matrix)) {
+				collider.Header.IsTransformed = true;
+				collider.Transform(matrix);
+
+			} else {
+				// save matrix for use during runtime
+				if (!_nonTransformableColliderTransforms.ContainsKey(collider.Header.ItemId)) {
+					_nonTransformableColliderTransforms.Add(collider.Header.ItemId, matrix);
+				}
+
+				collider.Header.IsTransformed = false;
+				collider.TransformAabb(matrix);
+			}
+
 			collider.Id = Lookups.Length;
 			TrackReference(collider.Header.ItemId, collider.Header.Id);
 			Lookups.Add(new ColliderLookup(ColliderType.Plunger, PlungerColliders.Length));
 			PlungerColliders.Add(collider);
-			return collider.Id;
 		}
 
-		internal int Add(PointCollider collider)
+		internal void Add(PointCollider collider, float4x4 matrix)
 		{
+			collider.Header.IsTransformed = true;
+			collider.Transform(matrix);
+
 			collider.Id = Lookups.Length;
 			TrackReference(collider.Header.ItemId, collider.Header.Id);
 			Lookups.Add(new ColliderLookup(ColliderType.Point, PointColliders.Length));
 			PointColliders.Add(collider);
-			return collider.Id;
 		}
 
-		internal int Add(SpinnerCollider collider)
+		internal void Add(SpinnerCollider collider, float4x4 matrix)
 		{
+			if (!IsKinematic && SpinnerCollider.IsTransformable(matrix)) {
+				collider.Header.IsTransformed = true;
+				collider.Transform(matrix);
+
+			} else {
+				// save matrix for use during runtime
+				if (!_nonTransformableColliderTransforms.ContainsKey(collider.Header.ItemId)) {
+					_nonTransformableColliderTransforms.Add(collider.Header.ItemId, matrix);
+				}
+
+				collider.Header.IsTransformed = false;
+				collider.TransformAabb(matrix);
+			}
+
 			collider.Id = Lookups.Length;
 			TrackReference(collider.Header.ItemId, collider.Header.Id);
 			Lookups.Add(new ColliderLookup(ColliderType.Spinner, SpinnerColliders.Length));
 			SpinnerColliders.Add(collider);
-			return collider.Id;
 		}
 
-		internal int Add(TriangleCollider collider)
+		internal int Add(TriangleCollider collider, float4x4 matrix)
 		{
+			collider.Header.IsTransformed = true;
+			collider.Transform(matrix);
+
 			collider.Id = Lookups.Length;
 			TrackReference(collider.Header.ItemId, collider.Header.Id);
 			Lookups.Add(new ColliderLookup(ColliderType.Triangle, TriangleColliders.Length));
@@ -256,17 +482,17 @@ namespace VisualPinball.Unity
 			return collider.Id;
 		}
 
-		internal int Add(PlaneCollider collider)
+		internal void Add(PlaneCollider collider) // used for the playfield only
 		{
 			collider.Id = Lookups.Length;
 			TrackReference(collider.Header.ItemId, collider.Header.Id);
 			Lookups.Add(new ColliderLookup(ColliderType.Plane, PlaneColliders.Length));
 			PlaneColliders.Add(collider);
-			return collider.Id;
 		}
 
 		#endregion
 
+		// ReSharper disable once UnusedMember.Global
 		public ICollider[] ToArray()
 		{
 			var array = new ICollider[Lookups.Length];

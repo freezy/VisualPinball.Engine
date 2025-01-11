@@ -17,6 +17,7 @@
 // ReSharper disable AssignmentInConditionalExpression
 
 using UnityEditor;
+using UnityEngine;
 using VisualPinball.Engine.VPT.Bumper;
 
 namespace VisualPinball.Unity.Editor
@@ -24,21 +25,15 @@ namespace VisualPinball.Unity.Editor
 	[CustomEditor(typeof(BumperComponent)), CanEditMultipleObjects]
 	public class BumperInspector : MainInspector<BumperData, BumperComponent>
 	{
-		private SerializedProperty _positionProperty;
 		private SerializedProperty _radiusProperty;
-		private SerializedProperty _heightScaleProperty;
-		private SerializedProperty _orientationProperty;
-		private SerializedProperty _surfaceProperty;
+		private SerializedProperty _isHardwiredProperty;
 
 		protected override void OnEnable()
 		{
 			base.OnEnable();
 
-			_positionProperty = serializedObject.FindProperty(nameof(BumperComponent.Position));
 			_radiusProperty = serializedObject.FindProperty(nameof(BumperComponent.Radius));
-			_heightScaleProperty = serializedObject.FindProperty(nameof(BumperComponent.HeightScale));
-			_orientationProperty = serializedObject.FindProperty(nameof(BumperComponent.Orientation));
-			_surfaceProperty = serializedObject.FindProperty(nameof(BumperComponent._surface));
+			_isHardwiredProperty = serializedObject.FindProperty(nameof(BumperComponent.IsHardwired));
 		}
 
 		public override void OnInspectorGUI()
@@ -51,11 +46,33 @@ namespace VisualPinball.Unity.Editor
 
 			OnPreInspectorGUI();
 
-			PropertyField(_positionProperty, updateTransforms: true);
+			// position
+			EditorGUI.BeginChangeCheck();
+			var newPos = EditorGUILayout.Vector3Field(new GUIContent("Position", "Position of the bumper on the playfield, relative to its parent."), MainComponent.Position);
+			if (EditorGUI.EndChangeCheck()) {
+				Undo.RecordObject(MainComponent.transform, "Change Bumper Position");
+				MainComponent.Position = newPos;
+			}
+
 			PropertyField(_radiusProperty, updateTransforms: true);
-			PropertyField(_heightScaleProperty, updateTransforms: true);
-			PropertyField(_orientationProperty, updateTransforms: true);
-			PropertyField(_surfaceProperty, updateTransforms: true);
+
+			// height scale
+			EditorGUI.BeginChangeCheck();
+			var newHeightScale = EditorGUILayout.Slider(new GUIContent("Height Scale", "Height of the bumper. Updates z scaling. 100 = Original size."), MainComponent.HeightScale, 50f, 300f);
+			if (EditorGUI.EndChangeCheck()) {
+				Undo.RecordObject(MainComponent.transform, "Change Bumper Height Scale");
+				MainComponent.HeightScale = newHeightScale;
+			}
+
+			// orientation
+			EditorGUI.BeginChangeCheck();
+			var newAngle = EditorGUILayout.Slider(new GUIContent("Orientation", "Orientation angle. Updates z rotation"), MainComponent.Orientation, -180f, 180f);
+			if (EditorGUI.EndChangeCheck()) {
+				Undo.RecordObject(MainComponent.transform, "Change Bumper Orientation");
+				MainComponent.Orientation = newAngle;
+			}
+
+			PropertyField(_isHardwiredProperty, updateTransforms: false);
 
 			base.OnInspectorGUI();
 

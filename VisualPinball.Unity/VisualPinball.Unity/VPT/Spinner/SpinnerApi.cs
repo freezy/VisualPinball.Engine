@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using System;
+using Unity.Mathematics;
 using UnityEngine;
 using VisualPinball.Engine.VPT.Spinner;
 
@@ -82,11 +83,10 @@ namespace VisualPinball.Unity
 
 		protected override bool FireHitEvents => true;
 
-		protected override void CreateColliders(ref ColliderReference colliders,
-			ref ColliderReference kinematicColliders, float margin)
+		protected override void CreateColliders(ref ColliderReference colliders, float4x4 translateWithinPlayfieldMatrix, float margin)
 		{
-				var colliderGenerator = new SpinnerColliderGenerator(this, MainComponent);
-				colliderGenerator.GenerateColliders(MainComponent.HeightOnPlayfield, ref colliders);
+			var colliderGenerator = new SpinnerColliderGenerator(this, MainComponent, translateWithinPlayfieldMatrix);
+			colliderGenerator.GenerateColliders(ref colliders, ColliderComponent.ZPosition);
 		}
 
 		#endregion

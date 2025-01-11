@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+using System;
 using VisualPinball.Engine.VPT.HitTarget;
 
 namespace VisualPinball.Unity.Editor
@@ -26,6 +27,9 @@ namespace VisualPinball.Unity.Editor
 				? RenderPipeline.Current.PrefabProvider.CreateDropTarget(hitTarget.Data.TargetType)
 				: RenderPipeline.Current.PrefabProvider.CreateHitTarget(hitTarget.Data.TargetType);
 
+			if (!prefab) {
+				throw new Exception($"Cannot instantiate prefab for target type {hitTarget.Data.TargetType}");
+			}
 			return new VpxPrefab<HitTarget, HitTargetData, TargetComponent>(prefab, hitTarget);
 		}
 	}

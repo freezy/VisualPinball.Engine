@@ -14,49 +14,67 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+using System.Runtime.CompilerServices;
 using NLog;
 using Unity.Collections;
 using Unity.Mathematics;
+using UnityEngine;
 using VisualPinball.Engine.Common;
 using VisualPinball.Engine.Game;
+using Logger = NLog.Logger;
 
 namespace VisualPinball.Unity
 {
+	/// <summary>
+	/// Our custom flipper collider.
+	/// </summary>
+	///
+	/// <remarks>
+	/// Defined by base radius, max radius, end radius, start angle, end angle
+	/// </remarks>
 	internal struct FlipperCollider : ICollider
 	{
 		public int Id
 		{
 			get => Header.Id;
-			set {
-				Header.Id = value;
-				var bounds = Bounds;
-				bounds.ColliderId = value;
-				Bounds = bounds;
-			}
+			set => Header.Id = value;
 		}
 
-		public ColliderHeader Header;
+		public bool IsFullyTransformable => false;
 
-		private readonly CircleCollider _hitCircleBase;
+		public ColliderHeader Header;
+		public float3 Position;
+
+		private CircleCollider _hitCircleBase;
 		private readonly float _zLow;
 		private readonly float _zHigh;
 
-		public ColliderBounds Bounds { get; set; }
+		public ColliderBounds Bounds { get; private set; }
 
 		public static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
 		#region Setup
 
-		public FlipperCollider(CircleCollider hitCircleBase, float flipperRadius, float startRadius, float endRadius, float startAngle, float endAngle, ColliderInfo info) : this()
+		public FlipperCollider(float height, float flipperRadius, float startRadius, float endRadius,
+			float startAngle, float endAngle, ColliderInfo info) : this()
 		{
-			var bounds = hitCircleBase.Bounds;
+			var baseRadius = math.max(startRadius, 0.01f);
+			_hitCircleBase = new CircleCollider(
+				float2.zero, // flipper collision is always done through the center and a matrix
+				baseRadius,
+				0,
+				height,
+				info
+			);
+
 			Header.Init(info, ColliderType.Flipper);
-			_hitCircleBase = hitCircleBase;
+			Position = float3.zero;
+
+			var bounds = _hitCircleBase.Bounds;
 			_zLow = bounds.Aabb.ZLow;
 			_zHigh = bounds.Aabb.ZHigh;
 
 			// compute bounds. we look at the flipper angles to compute the smallest possible bounds.
-			var c = _hitCircleBase.Center;
 			var r2 = endRadius + 0.1f;
 			var r3 = startRadius + 0.1f;
 
@@ -64,71 +82,74 @@ namespace VisualPinball.Unity
 			var a1 = ClampDegrees(endAngle);
 
 			// start with no bounds
-			var aabb = new Aabb(c.x, c.x, c.y, c.y, _zLow, _zHigh);
+			var aabb = new Aabb(0, 0, 0, 0, _zLow, _zHigh);
 
 			// extend with start and end position
-			aabb = ExtendBoundsAtPosition(aabb, c, flipperRadius, r2, a0);
-			aabb = ExtendBoundsAtPosition(aabb, c, flipperRadius, r2, a1);
+			aabb = ExtendBoundsAtPosition(aabb, flipperRadius, r2, a0);
+			aabb = ExtendBoundsAtPosition(aabb, flipperRadius, r2, a1);
 
 			// extend with extremes (-90°, 0°, 90° and 180°)
-			aabb = ExtendBoundsAtExtreme(aabb, c, flipperRadius, r2, r3, a0, a1, -90f);
-			aabb = ExtendBoundsAtExtreme(aabb, c, flipperRadius, r2, r3, a0, a1, 0f);
-			aabb = ExtendBoundsAtExtreme(aabb, c, flipperRadius, r2, r3, a0, a1, 90f);
-			aabb = ExtendBoundsAtExtreme(aabb, c, flipperRadius, r2, r3, a0, a1, 180f);
+			aabb = ExtendBoundsAtExtreme(aabb, flipperRadius, r2, r3, a0, a1, -90f);
+			aabb = ExtendBoundsAtExtreme(aabb, flipperRadius, r2, r3, a0, a1, 0f);
+			aabb = ExtendBoundsAtExtreme(aabb, flipperRadius, r2, r3, a0, a1, 90f);
+			aabb = ExtendBoundsAtExtreme(aabb, flipperRadius, r2, r3, a0, a1, 180f);
+
+			// var l = flipperRadius * 1.2f;
+			// aabb = new Aabb(-l, l, -l, l, -l, l);
 
 			Bounds = new ColliderBounds(Header.ItemId, Header.Id, aabb);
 		}
 
-		private static Aabb ExtendBoundsAtExtreme(Aabb aabb, float2 c, float length, float endRadius, float startRadius, float startAngle, float endAngle, float angle)
+		private static Aabb ExtendBoundsAtExtreme(Aabb aabb, float length, float endRadius, float startRadius, float startAngle, float endAngle, float angle)
 		{
 			if (startAngle < angle && endAngle > angle || endAngle < angle && startAngle > angle) {
 				// extend front side
-				return ExtendBoundsAtPosition(aabb, c, length, endRadius, angle);
+				return ExtendBoundsAtPosition(aabb, length, endRadius, angle);
 			}
 
 			// extend back side
-			return ExtendBacksideBounds(aabb, c, startRadius, ClampDegrees(angle + 180));
+			return ExtendBacksideBounds(aabb, startRadius, ClampDegrees(angle + 180));
 		}
 
-		private static Aabb ExtendBacksideBounds(Aabb bounds, float2 center, float fixedRadius, float angle)
+		private static Aabb ExtendBacksideBounds(Aabb bounds, float fixedRadius, float angle)
 		{
 			switch (angle) {
-				case -90f: bounds.Right = math.max(bounds.Right, center.x + fixedRadius); break;
-				case 90f: bounds.Left = math.min(bounds.Left, center.x - fixedRadius); break;
-				case 0f: bounds.Bottom = math.max(bounds.Bottom, center.y + fixedRadius); break;
-				case 180f: bounds.Top = math.min(bounds.Top, center.y - fixedRadius); break;
+				case -90f: bounds.Right = math.max(bounds.Right, fixedRadius); break;
+				case 90f: bounds.Left = math.min(bounds.Left, fixedRadius); break;
+				case 0f: bounds.Bottom = math.max(bounds.Bottom, fixedRadius); break;
+				case 180f: bounds.Top = math.min(bounds.Top, fixedRadius); break;
 			}
 
 			return bounds;
 		}
 
-		private static Aabb ExtendBoundsAtPosition(Aabb bounds, float2 center, float length, float fixedRadius, float angle)
+		private static Aabb ExtendBoundsAtPosition(Aabb bounds, float length, float fixedRadius, float angle)
 		{
 			var deg = ClampDegrees(angle);
 			if (deg > 0) {
 				var l = math.sin(math.radians(180 - deg));
 				var d1 = length * l;
 				var d2 = math.sign(l) * fixedRadius;
-				bounds.Right = math.max(bounds.Right, center.x + d1 + d2);
+				bounds.Right = math.max(bounds.Right, d1 + d2);
 
 			} else {
 				var l = math.sin(math.radians(180 - deg));
 				var d1 = length * l;
 				var d2 = math.sign(l) * fixedRadius;
-				bounds.Left = math.min(bounds.Left, center.x + d1 + d2);
+				bounds.Left = math.min(bounds.Left, d1 + d2);
 			}
 
 			if (deg > 90 || deg < -90) {
 				var l = math.cos(math.radians(180 - deg));
 				var d1 =  length * l;
 				var d2 = math.sign(l) * fixedRadius;
-				bounds.Bottom = math.max(bounds.Bottom, center.y + d1 + d2);
+				bounds.Bottom = math.max(bounds.Bottom, d1 + d2);
 
 			} else {
 				var l = math.cos(math.radians(180 - deg));
 				var d1 = length * l;
 				var d2 = math.sign(l) * fixedRadius;
-				bounds.Top = math.min(bounds.Top, center.y + d1 + d2);
+				bounds.Top = math.min(bounds.Top, d1 + d2);
 			}
 
 			return bounds;
@@ -148,11 +169,6 @@ namespace VisualPinball.Unity
 			in FlipperMovementState movementState, in FlipperTricksData tricks, in FlipperStaticData matData, in BallState ball,
 			float dTime)
 		{
-			// todo
-			// if (!_data.IsEnabled) {
-			// 	return -1.0f;
-			// }
-
 			var lastFace = hitData.LastHitFace;
 
 			// for effective computing, adding a last face hit value to speed calculations
@@ -720,12 +736,12 @@ namespace VisualPinball.Unity
 
 		#region LiveCatch
 
-		public static void LiveCatch(ref BallState ball, ref CollisionEventData collEvent, ref FlipperTricksData tricks, in FlipperStaticData matData, uint msec ) {
+		public static void LiveCatch(ref BallState ball, ref CollisionEventData collEvent, ref FlipperTricksData tricks, float3 flipperPos, in FlipperStaticData matData, uint msec) {
 			if (!tricks.UseFlipperLiveCatch)
 				return;
 			var normalSpeed = math.dot(collEvent.HitNormal, ball.Velocity) * -1f;
 			// Vector from position of the flipper ball to ball
-			var flipperToBall = ball.Position - matData.Position;
+			var flipperToBall = ball.Position - flipperPos;
 			var hitTangent = Math.CrossZ(1f, collEvent.HitNormal);
 			var ballPosition = math.dot(hitTangent, flipperToBall);
 			//Logger.Info("BallPosition = {0}", ballPosition);
@@ -920,5 +936,64 @@ namespace VisualPinball.Unity
 		}
 
 		#endregion
+
+		#region Transformation
+
+		public static bool IsTransformable(float4x4 matrix, bool printDetails = false)
+		{
+			// position: fully transformable: 3d (center + ZLow)
+			// scale: none
+			// rotation: z is start angle, otherwise none
+
+			var scale = matrix.GetScale();
+			var rotation = matrix.GetRotationVector();
+			var rotated = math.abs(rotation.x) > Collider.Tolerance || math.abs(rotation.y) > Collider.Tolerance;
+			var scaled = math.abs(scale.x - 1) > Collider.Tolerance || math.abs(scale.y - 1) > Collider.Tolerance || math.abs(scale.z - 1) > Collider.Tolerance;
+
+			if (printDetails) {
+				if (rotated) {
+					Debug.LogWarning($"Flipper rotation is at {rotation.x}/{rotation.y}, but only z-rotation is supported.");
+				}
+				if (scaled) {
+					Debug.LogWarning($"Flipper scale is at {scale.x}/{scale.y}/{scale.z}, but no scale is supported.");
+				}
+			}
+
+			return !rotated && !scaled;
+		}
+
+		public void Transform(FlipperCollider flipperCollider, float4x4 matrix)
+		{
+			#if UNITY_EDITOR
+			if (!IsTransformable(matrix, true)) {
+				throw new System.InvalidOperationException($"Matrix {matrix} cannot transform flipper.");
+			}
+			#endif
+
+			TransformAabb(matrix);
+			_hitCircleBase = _hitCircleBase.Transform(matrix);
+			Position = matrix.MultiplyPoint(flipperCollider.Position);
+		}
+
+		public FlipperCollider Transform(float4x4 matrix)
+		{
+			Transform(this, matrix);
+			return this;
+		}
+
+		public Aabb GetTransformedAabb(float4x4 matrix)
+		{
+			return Bounds.Aabb.Transform(matrix);
+		}
+
+		public FlipperCollider TransformAabb(float4x4 matrix)
+		{
+			Bounds = new ColliderBounds(Header.ItemId, Header.Id, GetTransformedAabb(matrix));
+			return this;
+		}
+
+		#endregion
+
+		public override string ToString() => $"FlipperCollider[{Header.ItemId}] ({_hitCircleBase.Center.x}/{_hitCircleBase.Center.y}) {_zLow} -> {_zHigh}";
 	}
 }

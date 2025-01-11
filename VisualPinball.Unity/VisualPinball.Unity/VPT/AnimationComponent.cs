@@ -27,6 +27,7 @@ namespace VisualPinball.Unity
 
 		private void Awake()
 		{
+			// todo remove when all animation components are translated through their main component
 			RegisterPhysics();
 		}
 	}

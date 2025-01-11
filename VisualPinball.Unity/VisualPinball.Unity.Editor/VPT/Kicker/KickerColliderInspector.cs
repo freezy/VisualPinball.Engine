@@ -48,6 +48,7 @@ namespace VisualPinball.Unity.Editor
 			}
 
 			BeginEditing();
+			OnPreInspectorGUI();
 
 			PropertyField(_hitAccuracyProperty);
 			PropertyField(_hitHeightProperty, updateColliders: true);
@@ -61,4 +62,3 @@ namespace VisualPinball.Unity.Editor
 		}
 	}
 }
-

@@ -38,10 +38,9 @@ namespace VisualPinball.Unity
 			_ltw = Physics.VpxToWorld;
 			_wtl = Physics.WorldToVpx;
 
-			var z = _playfield.PlayfieldHeight;
-			var p1 = _ltw.MultiplyPoint(new Vector3(-100f, 100f, z));
-			var p2 = _ltw.MultiplyPoint(new Vector3(100f, 100f, z));
-			var p3 = _ltw.MultiplyPoint(new Vector3(100f, -100f, z));
+			var p1 = _ltw.MultiplyPoint(new Vector3(-100f, 100f, 0));
+			var p2 = _ltw.MultiplyPoint(new Vector3(100f, 100f, 0));
+			var p3 = _ltw.MultiplyPoint(new Vector3(100f, -100f, 0));
 			_playfieldPlane.Set3Points(p1, p2, p3);
 			_physicsEngine = GetComponentInChildren<PhysicsEngine>();
 		}
@@ -112,7 +111,7 @@ namespace VisualPinball.Unity
 			var ray = Camera.main.ScreenPointToRay(mouseOnScreenPos);
 
 			if (_playfieldPlane.Raycast(ray, out var enter)) {
-				var playfieldPosWorld = ray.GetPoint(enter);
+				var playfieldPosWorld = _playfield.transform.localToWorldMatrix.inverse.MultiplyPoint(ray.GetPoint(enter));
 				var playfieldPosLocal = _wtl.MultiplyPoint(playfieldPosWorld);
 
 				position = new float2(playfieldPosLocal.x, playfieldPosLocal.y);

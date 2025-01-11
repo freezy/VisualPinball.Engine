@@ -28,6 +28,8 @@ namespace VisualPinball.Unity.Editor
 	public class RubberInspector : MainInspector<RubberData, RubberComponent>, IDragPointsInspector
 	{
 
+		public Transform Transform => MainComponent.transform;
+
 		private SerializedProperty _heightProperty;
 		private SerializedProperty _thicknessProperty;
 		private SerializedProperty _rotationProperty;
@@ -35,7 +37,6 @@ namespace VisualPinball.Unity.Editor
 		protected override void OnEnable()
 		{
 			base.OnEnable();
-
 
 			DragPointsHelper = new DragPointsInspectorHelper(MainComponent, this);
 			DragPointsHelper.OnEnable();
@@ -83,7 +84,7 @@ namespace VisualPinball.Unity.Editor
 		public DragPointData[] DragPoints { get => MainComponent.DragPoints; set => MainComponent.DragPoints = value; }
 		public bool PointsAreLooping => true;
 		public IEnumerable<DragPointExposure> DragPointExposition => new[] { DragPointExposure.Smooth };
-		public ItemDataTransformType HandleType => ItemDataTransformType.TwoD;
+		public DragPointTransformType HandleType => DragPointTransformType.TwoD;
 		public DragPointsInspectorHelper DragPointsHelper { get; private set; }
 		public float ZOffset => MainComponent.Height;
 		public float[] TopBottomZ => null;

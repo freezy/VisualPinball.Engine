@@ -28,6 +28,8 @@ namespace VisualPinball.Unity
 	/// </summary>
 	public struct Collider
 	{
+		public const float Tolerance = 1e-6f; // 1e-9f;
+
 		public ColliderHeader Header;
 
 		public int Id => Header.Id;
@@ -54,7 +56,6 @@ namespace VisualPinball.Unity
 						return ((FlipperCollider*) collider)->Bounds;
 					case ColliderType.Gate:
 						return ((GateCollider*) collider)->Bounds;
-					case ColliderType.TriggerLine:
 					case ColliderType.Line:
 						return ((LineCollider*) collider)->Bounds;
 					case ColliderType.Line3D:

@@ -1,4 +1,4 @@
-// Visual Pinball Engine
+﻿// Visual Pinball Engine
 // Copyright (C) 2023 freezy and VPE Team
 //
 // This program is free software: you can redistribute it and/or modify
@@ -18,26 +18,10 @@ using UnityEngine;
 
 namespace VisualPinball.Unity
 {
-	/// <summary>
-	/// Components implementing this interface can be referenced by <see cref="IOnSurfaceComponent"/>
-	/// </summary>
-	public interface ISurfaceComponent : IIdentifiableItemComponent
+	public interface ISurfaceComponent
 	{
-		float Height(Vector2 pos);
-	}
+		float Height(Vector2 position);
 
-	/// <summary>
-	/// Components implementing this interface can be placed on <see cref="ISurfaceComponent"/>.
-	/// </summary>
-	public interface IOnSurfaceComponent
-	{
-		ISurfaceComponent Surface { get; }
-
-		void OnSurfaceUpdated();
-	}
-
-	public interface IOnPlayfieldComponent
-	{
-		void OnPlayfieldHeightUpdated();
+		Transform transform { get; }
 	}
 }

@@ -47,7 +47,7 @@ namespace VisualPinball.Unity
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 		internal Dictionary<string, (bool, float)> WireStatuses { get; } = new Dictionary<string, (bool, float)>();
 
-		internal IApiWireDeviceDest WireDevice(IWireableComponent c) => _wireDevices.ContainsKey(c) ? _wireDevices[c] : null;
+		internal IApiWireDeviceDest WireDevice(IWireableComponent c) => c != null &&  _wireDevices.ContainsKey(c) ? _wireDevices[c] : null;
 		internal void RegisterWireDevice(IWireableComponent component, IApiWireDeviceDest wireDeviceApi) => _wireDevices[component] = wireDeviceApi;
 
 		#region Lifecycle

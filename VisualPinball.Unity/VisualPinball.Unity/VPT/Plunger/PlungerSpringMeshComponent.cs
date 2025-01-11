@@ -41,7 +41,7 @@ namespace VisualPinball.Unity
 		#endregion
 
 		protected override Mesh GetMesh(PlungerData data)
-			=> new PlungerMeshGenerator(data).GetMesh(MainComponent.PositionZ, PlungerMeshGenerator.Spring);
+			=> new PlungerMeshGenerator(data).GetMesh(MainComponent.Position.z, PlungerMeshGenerator.Spring);
 
 		protected override PbrMaterial GetMaterial(PlungerData data, Table table)
 			=> new PlungerMeshGenerator(data).GetMaterial(table);
@@ -60,8 +60,8 @@ namespace VisualPinball.Unity
 			var bounds = smr.localBounds;
 			var ringOffset = rodComp != null ? rodComp.RingGap + rodComp.RingWidth : 0f;
 			var radius = plungerComp.Width / 2 * SpringDiam + 2f;
-			bounds.center = new Vector3(plungerComp.Position.x, plungerComp.Position.y + ringOffset - 25, 45);
-			bounds.extents = new Vector3(radius, 110f, radius);
+			bounds.center = new Vector3(0, 25f, -(ringOffset - 25)) * Physics.ScaleInv;
+			bounds.extents = new Vector3(radius, radius, -110f) * Physics.ScaleInv;
 			smr.localBounds = bounds;
 		}
 	}

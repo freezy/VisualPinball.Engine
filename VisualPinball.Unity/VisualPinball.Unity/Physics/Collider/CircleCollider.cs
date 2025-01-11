@@ -20,6 +20,13 @@ using VisualPinball.Engine.VPT;
 
 namespace VisualPinball.Unity
 {
+	/// <summary>
+	/// It's actually a cylinder, aligned orthogonally to the playfield.
+	/// </summary>
+	///
+	/// <remarks>
+	/// Defined by center (float2), radius, zHigh, zLow
+	/// </remarks>
 	internal struct CircleCollider : ICollider
 	{
 		public int Id
@@ -28,30 +35,38 @@ namespace VisualPinball.Unity
 			set => Header.Id = value;
 		}
 
+		public bool IsFullyTransformable => false;
+
 		public ColliderHeader Header;
 
+		/// <summary>
+		/// This is the center relative to the origin. For a bumper, the origin is at (0,0),
+		/// but for a gate it's at (45,0), for example.
+		/// </summary>
 		public float2 Center;
 		public float Radius;
 
-		private readonly float _zHigh;
-		private readonly float _zLow;
+		public float ZHigh;
+		public float ZLow;
 
-		public ColliderBounds Bounds => new ColliderBounds(Header.ItemId, Header.Id, new Aabb(
-			Center.x - Radius,
-			Center.x + Radius,
-			Center.y - Radius,
-			Center.y + Radius,
-			_zLow,
-			_zHigh
-		));
+		public ColliderBounds Bounds { get; private set; }
 
 		public CircleCollider(float2 center, float radius, float zLow, float zHigh, ColliderInfo info, ColliderType type = ColliderType.Circle) : this()
 		{
 			Header.Init(info, type);
 			Center = center;
 			Radius = radius;
-			_zHigh = zHigh;
-			_zLow = zLow;
+			ZLow = zLow;
+			ZHigh = zHigh;
+
+			Bounds = new ColliderBounds(Header.ItemId, Header.Id, new Aabb(
+				Center.x - Radius,
+				Center.x + Radius,
+				Center.y - Radius,
+				Center.y + Radius,
+				ZLow,
+				ZHigh
+			));
 		}
 
 		#region Narrowphase
@@ -73,14 +88,14 @@ namespace VisualPinball.Unity
 			var dist = ball.Position - c; // relative ball position
 			var dv = ball.Velocity;
 
-			var capsule3D = !lateral && ball.Position.z > _zHigh;
+			var capsule3D = !lateral && ball.Position.z > ZHigh;
 			var isKicker = Header.ItemType == ItemType.Kicker;
 			var isKickerOrTrigger = Header.ItemType == ItemType.Trigger || Header.ItemType == ItemType.Kicker;
 
 			float targetRadius;
 			if (capsule3D) {
 				targetRadius = Radius * (float) (13.0 / 5.0);
-				c.z = _zHigh - Radius * (float) (12.0 / 5.0);
+				c.z = ZHigh - Radius * (float) (12.0 / 5.0);
 				dist.z = ball.Position.z - c.z; // ball rolling point - capsule center height
 			}
 			else {
@@ -174,9 +189,9 @@ namespace VisualPinball.Unity
 			}
 
 			var hitZ = ball.Position.z + ball.Velocity.z * hitTime; // rolling point
-			if (hitZ + ball.Radius * 0.5 < _zLow
-			    || !capsule3D && hitZ - ball.Radius * 0.5 > _zHigh
-			    || capsule3D && hitZ < _zHigh) {
+			if (hitZ + ball.Radius * 0.5 < ZLow
+			    || !capsule3D && hitZ - ball.Radius * 0.5 > ZHigh
+			    || capsule3D && hitZ < ZHigh) {
 				return -1.0f;
 			}
 
@@ -217,16 +232,79 @@ namespace VisualPinball.Unity
 
 		#endregion
 
+
 		public void Collide(ref BallState ball, in CollisionEventData collEvent, ref Random random)
 		{
 			BallCollider.Collide3DWall(ref ball, in Header.Material, in collEvent, in collEvent.HitNormal, ref random);
 		}
 
+		#region Transformation
+
+		public static bool IsTransformable(float4x4 matrix)
+		{
+			// position: fully transformable: 3d (center + ZLow)
+			// scale: x+y must be equal, z applies to zHigh
+			// rotation: can be z-rotated, since it's a cylinder. x/y rotation is not supported.
+
+			var scale = matrix.GetScale();
+			var rotation = matrix.GetRotationVector();
+
+			// if xy-scale is not uniform or x/y rotation is not zero, we can't transform the collider
+			var uniformScale = math.abs(scale.x - scale.y) < Collider.Tolerance;
+			var xyRotated = math.abs(rotation.x) > Collider.Tolerance || math.abs(rotation.y) > Collider.Tolerance;
+
+			return uniformScale && !xyRotated;
+		}
+
+		public CircleCollider Transform(float4x4 matrix)
+		{
+			Transform(this, matrix);
+			return this;
+		}
+
 		public void Transform(CircleCollider circle, float4x4 matrix)
 		{
-			var size = matrix.GetScale();
-			Center = math.mul(matrix, new float4(circle.Center, 0f, 1f)).xy;
-			Radius = size.x / 2 * BumperComponent.DataMeshScale;
+			#if UNITY_EDITOR
+			if (!IsTransformable(matrix)) {
+				throw new System.InvalidOperationException($"Matrix {matrix} cannot transform circle collider.");
+			}
+			#endif
+
+			TransformAabb(matrix);
+
+			var s = matrix.GetScale();
+			var t = matrix.GetTranslation();
+			Center = matrix.MultiplyPoint(new float3(circle.Center, 0)).xy;
+			Radius = circle.Radius * s.x;
+			ZHigh = t.z + circle.ZHigh * s.z;
+			ZLow = t.z + circle.ZLow * s.z;
 		}
+
+		public Aabb GetTransformedAabb(float4x4 matrix)
+		{
+			var p1 = matrix.MultiplyPoint(new float3(Center.x + Radius, Center.y + Radius, ZLow));
+			var p2 = matrix.MultiplyPoint(new float3(Center.x + Radius, Center.y - Radius, ZLow));
+			var p3 = matrix.MultiplyPoint(new float3(Center.x - Radius, Center.y + Radius, ZLow));
+			var p4 = matrix.MultiplyPoint(new float3(Center.x - Radius, Center.y - Radius, ZLow));
+			var p5 = matrix.MultiplyPoint(new float3(Center.x + Radius, Center.y + Radius, ZHigh));
+			var p6 = matrix.MultiplyPoint(new float3(Center.x + Radius, Center.y - Radius, ZHigh));
+			var p7 = matrix.MultiplyPoint(new float3(Center.x - Radius, Center.y + Radius, ZHigh));
+			var p8 = matrix.MultiplyPoint(new float3(Center.x - Radius, Center.y - Radius, ZHigh));
+
+			var min = math.min(p1, math.min(p2, math.min(p3, math.min(p4, math.min(p5, math.min(p6, math.min(p7, p8)))))));
+			var max = math.max(p1, math.max(p2, math.max(p3, math.max(p4, math.max(p5, math.max(p6, math.max(p7, p8)))))));
+
+			return new Aabb(min, max);
+		}
+
+		public CircleCollider TransformAabb(float4x4 matrix)
+		{
+			Bounds = new ColliderBounds(Header.ItemId, Header.Id, GetTransformedAabb(matrix));
+			return this;
+		}
+
+		#endregion
+
+		public override string ToString() => $"CircleCollider[{Header.ItemId}] ({Center.x}/{Center.y}) {ZLow} -> {ZHigh}";
 	}
 }

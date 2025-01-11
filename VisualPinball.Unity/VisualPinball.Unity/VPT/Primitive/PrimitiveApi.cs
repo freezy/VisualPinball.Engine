@@ -16,6 +16,7 @@
 
 using System;
 using System.Collections.Generic;
+using Unity.Mathematics;
 using UnityEngine;
 using VisualPinball.Engine.VPT.Primitive;
 
@@ -43,14 +44,10 @@ namespace VisualPinball.Unity
 		protected override bool FireHitEvents => ColliderComponent.HitEvent;
 		protected override float HitThreshold => ColliderComponent.Threshold;
 
-		protected override void CreateColliders(ref ColliderReference colliders, ref ColliderReference kinematicColliders, float margin)
+		protected override void CreateColliders(ref ColliderReference colliders, float4x4 translateWithinPlayfieldMatrix, float margin)
 		{
-			var colliderGenerator = new PrimitiveColliderGenerator(this, MainComponent, MainComponent);
-			if (ColliderComponent._isKinematic) {
-				colliderGenerator.GenerateColliders(ColliderComponent.CollisionReductionFactor, ref kinematicColliders);
-			} else {
-				colliderGenerator.GenerateColliders(ColliderComponent.CollisionReductionFactor, ref colliders);
-			}
+			var colliderGenerator = new PrimitiveColliderGenerator(this, MainComponent, MainComponent, translateWithinPlayfieldMatrix);
+			colliderGenerator.GenerateColliders(ColliderComponent.CollisionReductionFactor, ref colliders);
 		}
 
 		#endregion

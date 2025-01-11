@@ -20,6 +20,13 @@ using VisualPinball.Engine.Common;
 
 namespace VisualPinball.Unity
 {
+	/// <summary>
+	/// A line, aligned orthogonally to the playfield (from top, looks like a point).
+	/// </summary>
+	///
+	/// <remarks>
+	/// Defined by position (float2), zHigh, zLow
+	/// </remarks>
 	internal struct LineZCollider : ICollider
 	{
 		public int Id
@@ -28,29 +35,30 @@ namespace VisualPinball.Unity
 			set => Header.Id = value;
 		}
 
+		public bool IsFullyTransformable => false;
+
 		public ColliderHeader Header;
 
 		public float2 XY;
-		private readonly float _zLow;
-		private readonly float _zHigh;
+		public float ZLow;
+		public float ZHigh;
 
-		public float XyY { set => XY.y = value; }
+		public float XyY {
+			set {
+				XY.y = value;
+				CalculateBounds();
+			}
+		}
 
-		public ColliderBounds Bounds => new ColliderBounds(Header.ItemId, Header.Id, new Aabb (
-			XY.x,
-			XY.x,
-			XY.y,
-			XY.y,
-			_zLow,
-			_zHigh
-		));
+		public ColliderBounds Bounds { get; private set; }
 
 		public LineZCollider(float2 xy, float zLow, float zHigh, ColliderInfo info) : this()
 		{
 			Header.Init(info, ColliderType.LineZ);
 			XY = xy;
-			_zLow = zLow;
-			_zHigh = zHigh;
+			ZLow = zLow;
+			ZHigh = zHigh;
+			CalculateBounds();
 		}
 
 		#region Narrowphase
@@ -121,7 +129,7 @@ namespace VisualPinball.Unity
 
 			var hitZ = ball.Position.z + hitTime * ball.Velocity.z;            // ball z position at hit time
 
-			if (hitZ < coll._zLow || hitZ > coll._zHigh) {
+			if (hitZ < coll.ZLow || hitZ > coll.ZHigh) {
 				// check z coordinate
 				return -1.0f;
 			}
@@ -161,5 +169,72 @@ namespace VisualPinball.Unity
 		}
 
 		#endregion
+
+		#region Transformation
+
+		public static bool IsTransformable(float4x4 matrix)
+		{
+			// position: fully transformable: 3d (XY + ZLow/ZHigh)
+			// scale: fully scalable
+			// rotation: can be z-rotated (doesn't change anything), x/y rotation is not supported.
+
+			var rotation = matrix.GetRotationVector();
+			var xyRotated = math.abs(rotation.x) > Collider.Tolerance || math.abs(rotation.y) > Collider.Tolerance;
+
+			return !xyRotated;
+		}
+
+		public LineZCollider Transform(float4x4 matrix)
+		{
+			Transform(this, matrix);
+			return this;
+		}
+
+		public void Transform(LineZCollider lineCollider, float4x4 matrix)
+		{
+			#if UNITY_EDITOR
+			if (!IsTransformable(matrix)) {
+				throw new System.InvalidOperationException($"Matrix {matrix.ToDebugString()} cannot transform line-z collider.");
+			}
+			#endif
+
+			var t = matrix.GetTranslation();
+			var s = matrix.GetScale();
+
+			XY = lineCollider.XY + t.xy;
+			ZLow = lineCollider.ZLow + t.z;
+			ZHigh = lineCollider.ZHigh + t.z;
+			if (s.z > Collider.Tolerance) {
+				var height = ZHigh - ZLow;
+				var zMid = ZLow + height * 0.5f;
+				var halfHeightScaled = height * s.z * 0.5f;
+				ZLow = zMid - halfHeightScaled;
+				ZHigh = zMid + halfHeightScaled;
+			}
+			CalculateBounds();
+		}
+
+		public Aabb GetTransformedAabb(float4x4 matrix)
+		{
+			var p1 = matrix.MultiplyPoint(new float3(XY, ZLow));
+			var p2 = matrix.MultiplyPoint(new float3(XY, ZHigh));
+			return new Aabb(math.min(p1, p2), math.max(p1, p2));
+		}
+
+		#endregion
+
+		private void CalculateBounds()
+		{
+			Bounds = new ColliderBounds(Header.ItemId, Header.Id, new Aabb (
+				XY.x,
+				XY.x,
+				XY.y,
+				XY.y,
+				ZLow,
+				ZHigh
+			));
+		}
+
+		public override string ToString() => $"LineZCollider[{Header.ItemId}] ({XY.x}/{XY.y}) {ZLow} -> {ZHigh}";
 	}
 }

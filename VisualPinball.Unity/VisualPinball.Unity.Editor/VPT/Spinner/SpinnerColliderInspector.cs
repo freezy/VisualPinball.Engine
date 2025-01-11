@@ -23,11 +23,13 @@ namespace VisualPinball.Unity.Editor
 	public class SpinnerColliderInspector : ColliderInspector<SpinnerData, SpinnerComponent, SpinnerColliderComponent>
 	{
 		private SerializedProperty _elasticityProperty;
+		private SerializedProperty _zPosProperty;
 
 		protected override void OnEnable()
 		{
 			base.OnEnable();
 			_elasticityProperty = serializedObject.FindProperty(nameof(SpinnerColliderComponent.Elasticity));
+			_zPosProperty = serializedObject.FindProperty(nameof(SpinnerColliderComponent.ZPosition));
 		}
 
 		public override void OnInspectorGUI()
@@ -41,6 +43,7 @@ namespace VisualPinball.Unity.Editor
 			OnPreInspectorGUI();
 
 			PropertyField(_elasticityProperty, updateTransforms: true);
+			PropertyField(_zPosProperty);
 
 			base.OnInspectorGUI();
 

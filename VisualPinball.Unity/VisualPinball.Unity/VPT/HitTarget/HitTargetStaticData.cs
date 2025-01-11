@@ -20,5 +20,9 @@ namespace VisualPinball.Unity
 	{
 		public float Speed;
 		public float MaxAngle;
+		/// <summary>
+		/// Initial X-rotation, in degrees.
+		/// </summary>
+		public float InitialXRotation;
 	}
 }

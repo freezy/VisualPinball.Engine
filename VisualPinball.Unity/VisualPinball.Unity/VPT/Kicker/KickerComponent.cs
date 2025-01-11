@@ -27,7 +27,6 @@ using System.IO;
 using System.Linq;
 using Unity.Collections;
 using Unity.Mathematics;
-using UnityEditor;
 using UnityEngine;
 using VisualPinball.Engine.Game;
 using VisualPinball.Engine.Game.Engines;
@@ -40,25 +39,35 @@ namespace VisualPinball.Unity
 {
 	[AddComponentMenu("Visual Pinball/Game Item/Kicker")]
 	public class KickerComponent : MainRenderableComponent<KickerData>,
-		ICoilDeviceComponent, ITriggerComponent, IBallCreationPosition, IOnSurfaceComponent,
+		ICoilDeviceComponent, ITriggerComponent, IBallCreationPosition,
 		IRotatableComponent, ISerializationCallbackReceiver
 	{
 		#region Data
 
-		[Tooltip("Position of the kicker on the playfield.")]
-		public Vector2 Position;
+		public Vector3 Position {
+			get => transform.localPosition.TranslateToVpx();
+			set => transform.localPosition = value.TranslateToWorld();
+		}
 
-		[Tooltip("Kicker radius. Scales the mesh accordingly.")]
-		public float Radius = 25f;
+		public float Radius {
+			get {
+				var scale = transform.localScale;
+				if (math.abs(scale.x - scale.y) < Collider.Tolerance && math.abs(scale.x - scale.z) < Collider.Tolerance && math.abs(scale.y - scale.z) < Collider.Tolerance) {
+					return scale.x * 25f;
+				}
+				return _radius;
+			}
+			set {
+				_radius = value;
+				var s = value / 25f;
+				transform.localScale = new Vector3(s, s, s);
+			}
+		}
+
+		private float _radius = 25f;
 
 		[Tooltip("R-Rotation of the kicker")]
 		public float Orientation;
-
-		public ISurfaceComponent Surface { get => _surface as ISurfaceComponent; set => _surface = value as MonoBehaviour; }
-		[SerializeField]
-		[TypeRestriction(typeof(ISurfaceComponent), PickerLabel = "Walls & Ramps", UpdateTransforms = true)]
-		[Tooltip("On which surface the kicker is attached to. Updates Z-translation.")]
-		public MonoBehaviour _surface;
 
 		public List<KickerCoil> Coils = new() {
 			new KickerCoil { Name = "Default Coil" }
@@ -106,44 +115,6 @@ namespace VisualPinball.Unity
 
 		#region Transformation
 
-		public void OnSurfaceUpdated() => UpdateTransforms();
-		public float PositionZ => SurfaceHeight(Surface, Position);
-
-
-		public override void UpdateTransforms()
-		{
-			base.UpdateTransforms();
-			var t = transform;
-
-			// position
-			t.localPosition = Physics.TranslateToWorld(Position.x, Position.y, PositionZ);
-
-			if (KickerType == Engine.VPT.KickerType.KickerCup) {
-				t.localPosition += Physics.TranslateToWorld(0, 0, -0.18f * Radius);
-			}
-
-			// scale
-			t.localScale = KickerType == Engine.VPT.KickerType.KickerInvisible
-				? Vector3.one
-				: Physics.ScaleToWorld(Radius, Radius, Radius);
-
-			switch (KickerType) {
-				// rotation
-				case Engine.VPT.KickerType.KickerCup:
-					t.localEulerAngles = Physics.RotateToWorld(0, 0, Orientation);
-					break;
-				case Engine.VPT.KickerType.KickerWilliams:
-					t.localEulerAngles = Physics.RotateToWorld(0, 0, Orientation + 90f);
-					break;
-				case Engine.VPT.KickerType.KickerInvisible:
-					t.localRotation = Quaternion.identity;
-					break;
-				default:
-					t.localEulerAngles = Physics.RotateToWorld(0, 0, Orientation);
-					break;
-			}
-		}
-
 		private float _originalRotationZ;
 		private float _originalKickerAngle;
 
@@ -157,8 +128,7 @@ namespace VisualPinball.Unity
 		public float2 RotatedPosition {
 			get => new(Position.x, Position.y);
 			set {
-				Position.x = value.x;
-				Position.y = value.y;
+				Position = new Vector2(value.x, value.y);
 				UpdateTransforms();
 			}
 		}
@@ -180,7 +150,7 @@ namespace VisualPinball.Unity
 			#if UNITY_EDITOR
 			var mf = GetComponent<MeshFilter>();
 			if (mf) {
-				MeshName = Path.GetFileNameWithoutExtension(AssetDatabase.GetAssetPath(mf.sharedMesh));
+				MeshName = Path.GetFileNameWithoutExtension(UnityEditor.AssetDatabase.GetAssetPath(mf.sharedMesh));
 			}
 			#endif
 
@@ -203,7 +173,9 @@ namespace VisualPinball.Unity
 
 		public override IEnumerable<MonoBehaviour> SetReferencedData(KickerData data, Table table, IMaterialProvider materialProvider, ITextureProvider textureProvider, Dictionary<string, IMainComponent> components)
 		{
-			Surface = FindComponent<ISurfaceComponent>(components, data.Surface);
+			// surface
+			ParentToSurface(data.Surface, data.Center, components);
+
 			return Array.Empty<MonoBehaviour>();
 		}
 
@@ -212,10 +184,9 @@ namespace VisualPinball.Unity
 		{
 			// name and transforms
 			data.Name = name;
-			data.Center = Position.ToVertex2D();
+			data.Center = new Vertex2D(Position.x, Position.y);
 			data.Orientation = Orientation;
 			data.Radius = Radius;
-			data.Surface = Surface != null ? Surface.name : string.Empty;
 
 			data.KickerType = KickerType;
 
@@ -239,20 +210,22 @@ namespace VisualPinball.Unity
 
 		public override void CopyFromObject(GameObject go)
 		{
-			var kickerComponent = go.GetComponent<KickerComponent>();
-			if (kickerComponent != null) {
-				Position = kickerComponent.Position;
-				Radius = kickerComponent.Radius;
-				Orientation = kickerComponent.Orientation;
-				Surface = kickerComponent.Surface;
-
-			} else {
-				Position = go.transform.localPosition.TranslateToVpx();
-				Radius = go.transform.localScale.x;
-				Orientation = go.transform.localEulerAngles.z;
+			// main component
+			var srcComp = go.GetComponent<KickerComponent>();
+			if (srcComp) {
+				Coils = srcComp.Coils;
 			}
 
-			UpdateTransforms();
+			// collider component
+			var collComp = GetComponent<KickerColliderComponent>();
+			var srcCollComp = go.GetComponent<KickerColliderComponent>();
+			if (srcCollComp && collComp) {
+				collComp.Scatter = srcCollComp.Scatter;
+				collComp.HitAccuracy = srcCollComp.HitAccuracy;
+				collComp.HitHeight = srcCollComp.HitHeight;
+				collComp.FallThrough = srcCollComp.FallThrough;
+				collComp.LegacyMode = srcCollComp.LegacyMode;
+			}
 		}
 
 		#endregion
@@ -265,19 +238,18 @@ namespace VisualPinball.Unity
 			var colliderComponent = GetComponent<KickerColliderComponent>();
 			var staticData = colliderComponent
 				? new KickerStaticState {
-					Center = Position,
+					Center = new float2(Position.x, Position.y),
 					FallIn = colliderComponent.FallIn,
 					FallThrough = colliderComponent.FallThrough,
 					HitAccuracy = colliderComponent.HitAccuracy,
 					Scatter = colliderComponent.Scatter,
 					LegacyMode = colliderComponent.LegacyMode,
-					ZLow = Surface?.Height(Position) ?? PlayfieldHeight
+					ZLow = Position.z
 				} : default;
 
-			var height = SurfaceHeight(Surface, Position);
 			var meshData = colliderComponent.LegacyMode
 				? new ColliderMeshData(Array.Empty<Vertex3DNoTex2>(), 0, float3.zero, Allocator.Persistent)
-				: new ColliderMeshData(KickerHitMesh.Vertices, Radius, new float3(Center.x, Center.y, height), Allocator.Persistent);
+				: new ColliderMeshData(KickerHitMesh.Vertices, Radius, Position, Allocator.Persistent);
 
 			return new KickerState(
 				staticData,
@@ -295,7 +267,7 @@ namespace VisualPinball.Unity
 			#if UNITY_EDITOR
 
 			// don't generate ids for prefabs, otherwise they'll show up in the instances.
-			if (PrefabUtility.GetPrefabInstanceStatus(this) != PrefabInstanceStatus.Connected) {
+			if (UnityEditor.PrefabUtility.GetPrefabInstanceStatus(this) != UnityEditor.PrefabInstanceStatus.Connected) {
 				return;
 			}
 			var coilIds = new HashSet<string>();
@@ -343,30 +315,9 @@ namespace VisualPinball.Unity
 
 		#region IBallCreationPosition
 
-		public Vertex3D GetBallCreationPosition() => new Vertex3D(Position.x, Position.y, PositionZ);
+		public Vertex3D GetBallCreationPosition() => new Vertex3D(Position.x, Position.y, 0);
 
 		public Vertex3D GetBallCreationVelocity() => new Vertex3D(0.1f, 0, 0);
-
-		#endregion
-
-		#region Editor Tooling
-
-		public override ItemDataTransformType EditorPositionType => ItemDataTransformType.TwoD;
-
-		public override Vector3 GetEditorPosition() => Position;
-
-		public override void SetEditorPosition(Vector3 pos) => Position = ((float3)pos).xy;
-
-		public override ItemDataTransformType EditorRotationType =>
-			KickerType == Engine.VPT.KickerType.KickerCup || KickerType == Engine.VPT.KickerType.KickerWilliams
-				? ItemDataTransformType.OneD : ItemDataTransformType.None;
-
-		public override Vector3 GetEditorRotation() => new Vector3(Orientation, 0f, 0f);
-		public override void SetEditorRotation(Vector3 rot) => Orientation = ClampDegrees(rot.x);
-
-		public override ItemDataTransformType EditorScaleType => ItemDataTransformType.OneD;
-		public override void SetEditorScale(Vector3 rot) => Radius = rot.x;
-		public override Vector3 GetEditorScale() => new Vector3(Radius, 0f, 0f);
 
 		#endregion
 	}

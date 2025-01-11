@@ -19,6 +19,13 @@ using Unity.Mathematics;
 
 namespace VisualPinball.Unity
 {
+	/// <summary>
+	/// Our custom gate collider.
+	/// </summary>
+	///
+	/// <remarks>
+	/// Defined by two <see cref="LineCollider">Line colliders</see>.
+	/// </remarks>
 	internal struct GateCollider : ICollider
 	{
 		public int Id
@@ -32,10 +39,12 @@ namespace VisualPinball.Unity
 			}
 		}
 
+		public bool IsFullyTransformable => false;
+
 		public ColliderHeader Header;
 
-		public readonly LineCollider LineSeg0;
-		public readonly LineCollider LineSeg1;
+		public LineCollider LineSeg0;
+		public LineCollider LineSeg1;
 
 		public ColliderBounds Bounds { get; private set; }
 
@@ -52,11 +61,6 @@ namespace VisualPinball.Unity
 
 		public float HitTest(ref CollisionEventData collEvent, ref InsideOfs insideOfs, in BallState ball, float dTime)
 		{
-			// todo
-			// if (!this.isEnabled) {
-			// 	return -1.0;
-			// }
-
 			var hitTime = LineCollider.HitTestBasic(ref collEvent, ref insideOfs, in LineSeg0, in ball, dTime, false, true, false); // any face, lateral, non-rigid
 			if (hitTime >= 0) {
 				// signal the Collide() function that the hit is on the front or back side
@@ -102,7 +106,6 @@ namespace VisualPinball.Unity
 
 			// We encoded which side of the spinner the ball hit
 			if (collEvent.HitFlag && state.TwoWay) {
-
 				movementState.AngleSpeed = -movementState.AngleSpeed;
 			}
 
@@ -110,5 +113,55 @@ namespace VisualPinball.Unity
 		}
 
 		#endregion
+
+		#region Transformation
+
+		public static bool IsTransformable(float4x4 matrix)
+		{
+			// position: fully transformable
+			// scale: only uniform scale ("length")
+			// rotation: only around Z axis ("rotation")
+
+			var scale = matrix.GetScale();
+			var rotation = matrix.GetRotationVector();
+			var rotated = math.abs(rotation.x) > Collider.Tolerance || math.abs(rotation.y) > Collider.Tolerance;
+			var uniformlyScaled = math.abs(scale.x - scale.y) < Collider.Tolerance && math.abs(scale.x - scale.z) < Collider.Tolerance && math.abs(scale.y -  scale.z) < Collider.Tolerance;
+
+			return !rotated && uniformlyScaled;
+		}
+
+		public GateCollider Transform(float4x4 matrix)
+		{
+			Transform(this, matrix);
+			return this;
+		}
+
+		public void Transform(GateCollider collider, float4x4 matrix)
+		{
+			#if UNITY_EDITOR
+			if (!IsTransformable(matrix)) {
+				throw new System.InvalidOperationException($"Matrix {matrix} cannot transform gate.");
+			}
+			#endif
+
+			LineSeg0 = collider.LineSeg0.Transform(matrix);
+			LineSeg1 = collider.LineSeg1.Transform(matrix);
+			Bounds = collider.LineSeg0.Bounds;
+		}
+
+		public Aabb GetTransformedAabb(float4x4 matrix)
+		{
+			return Bounds.Aabb.Transform(matrix);
+		}
+
+		public GateCollider TransformAabb(float4x4 matrix)
+		{
+			Bounds = new ColliderBounds(Header.ItemId, Header.Id, GetTransformedAabb(matrix));
+			return this;
+		}
+
+		#endregion
+
+		public override string ToString() => $"Gate$Collider[{Header.ItemId}] {LineSeg0.ToString()} | {LineSeg1.ToString()}";
 	}
 }

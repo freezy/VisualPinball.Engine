@@ -49,7 +49,6 @@ namespace VisualPinball.Unity
 		[Tooltip("How tall the metal wire ends are rendered.")]
 		public float _standheight = 30f;
 
-
 		[Tooltip("Rotation on the playfield")]
 		public Vector3 Rotation;
 
@@ -101,12 +100,6 @@ namespace VisualPinball.Unity
 			player.Register(MetalWireGuideApi, this);
 			RegisterPhysics(physicsEngine);
 		}
-
-		#endregion
-
-		#region Transformation
-
-		public override void OnPlayfieldHeightUpdated() => RebuildMeshes();
 
 		#endregion
 
@@ -203,61 +196,15 @@ namespace VisualPinball.Unity
 
 		public override void CopyFromObject(GameObject go)
 		{
-			var mwgComponent = go.GetComponent<MetalWireGuideComponent>();
-			if (mwgComponent != null) {
-				_height = mwgComponent._height;
-				_thickness = mwgComponent._thickness;
-				_standheight = mwgComponent._standheight;
-				Rotation = mwgComponent.Rotation;
-				_bendradius = mwgComponent._bendradius;
-				_dragPoints = mwgComponent._dragPoints.Select(dp => dp.Clone()).ToArray();
-
-			} else {
-				MoveDragPointsTo(_dragPoints, go.transform.localPosition.TranslateToVpx());
+			var srcMainComp = go.GetComponent<MetalWireGuideComponent>();
+			if (srcMainComp) {
+				_height = srcMainComp._height;
+				_thickness = srcMainComp._thickness;
+				_standheight = srcMainComp._standheight;
+				Rotation = srcMainComp.Rotation;
+				_bendradius = srcMainComp._bendradius;
+				_dragPoints = srcMainComp._dragPoints.Select(dp => dp.Clone()).ToArray();
 			}
-
-			UpdateTransforms();
-		}
-
-		#endregion
-
-		#region Editor Tooling
-
-		internal Vector3 DragPointCenter {
-			get {
-				var sum = Vertex3D.Zero;
-				foreach (var t in DragPoints) {
-					sum += t.Center;
-				}
-				var center = sum / DragPoints.Length;
-				return center.ToUnityVector3();
-			}
-		}
-
-		public override ItemDataTransformType EditorPositionType => ItemDataTransformType.ThreeD;
-		public override Vector3 GetEditorPosition()
-		{
-			var pos = DragPoints.Length == 0 ? Vector3.zero : DragPointCenter;
-			return new Vector3(pos.x, pos.y, _height);
-		}
-		public override void SetEditorPosition(Vector3 pos) {
-			if (DragPoints.Length == 0) {
-				return;
-			}
-			var diff = (pos - DragPointCenter).ToVertex3D();
-			diff.Z = 0f;
-			foreach (var pt in DragPoints) {
-				pt.Center += diff;
-			}
-			_height = pos.z;
-			RebuildMeshes();
-		}
-
-		public override ItemDataTransformType EditorRotationType => ItemDataTransformType.ThreeD;
-		public override Vector3 GetEditorRotation() => Rotation;
-		public override void SetEditorRotation(Vector3 rot) {
-			Rotation = rot;
-			RebuildMeshes();
 		}
 
 		#endregion

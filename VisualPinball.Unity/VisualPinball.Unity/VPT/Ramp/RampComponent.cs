@@ -22,7 +22,6 @@
 #endregion
 
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -36,8 +35,7 @@ using Mesh = VisualPinball.Engine.VPT.Mesh;
 namespace VisualPinball.Unity
 {
 	[AddComponentMenu("Visual Pinball/Game Item/Ramp")]
-	public class RampComponent : MainRenderableComponent<RampData>,
-		IRampData, ISurfaceComponent
+	public class RampComponent : MainRenderableComponent<RampData>, IRampData, ISurfaceComponent
 	{
 		#region Data
 
@@ -117,8 +115,6 @@ namespace VisualPinball.Unity
 		protected override Type MeshComponentType { get; } = typeof(MeshComponent<RampData, RampComponent>);
 		protected override Type ColliderComponentType { get; } = typeof(ColliderComponent<RampData, RampComponent>);
 
-		public override void OnPlayfieldHeightUpdated() => RebuildMeshes();
-
 		#endregion
 
 		#region Runtime
@@ -127,11 +123,11 @@ namespace VisualPinball.Unity
 
 		private void Awake()
 		{
-			var player = GetComponentInParent<Player>();
+			Player = GetComponentInParent<Player>();
 			var physicsEngine = GetComponentInParent<PhysicsEngine>();
-			RampApi = new RampApi(gameObject, player, physicsEngine);
+			RampApi = new RampApi(gameObject, Player, physicsEngine);
 
-			player.Register(RampApi, this);
+			Player.Register(RampApi, this);
 			RegisterPhysics(physicsEngine);
 		}
 
@@ -139,10 +135,18 @@ namespace VisualPinball.Unity
 
 		#region Transformation
 
-		public float Height(Vector2 pos) {
+		public override void UpdateTransforms()
+		{
+			base.UpdateTransforms();
+			SetChildrenZPosition(center => Height(center, Vector3.zero));
+		}
 
+		public float Height(Vector2 pos) => Height(pos, transform.localPosition.TranslateToVpx());
+
+		public float Height(Vector2 pos, Vector3 diff) {
 			var vVertex = new RampMeshGenerator(this).GetCentralCurve();
-			Mesh.ClosestPointOnPolygon(vVertex, new Vertex2D(pos.x, pos.y), false, out var vOut, out var iSeg);
+			var t = transform.localPosition.TranslateToVpx();
+			Mesh.ClosestPointOnPolygon(vVertex, new Vertex2D(pos.x - diff.x, pos.y - diff.y), false, out var vOut, out var iSeg);
 
 			if (iSeg == -1) {
 				return 0.0f; // Object is not on ramp path
@@ -168,8 +172,8 @@ namespace VisualPinball.Unity
 			var len = MathF.Sqrt(dx * dx + dy * dy);
 			startLength += len; // Add the distance the object is between the two closest polyline segments.  Matters mostly for straight edges. Z does not respect that yet!
 
-			var topHeight = _heightTop + PlayfieldHeight;
-			var bottomHeight = _heightBottom + PlayfieldHeight;
+			var topHeight = _heightTop;
+			var bottomHeight = _heightBottom;
 
 			return vVertex[iSeg].Z + startLength / totalLength * (topHeight - bottomHeight) + bottomHeight;
 		}
@@ -271,6 +275,8 @@ namespace VisualPinball.Unity
 				updatedComponents.Add(collComponent);
 			}
 
+			CenterPivot();
+
 			return updatedComponents;
 		}
 
@@ -357,84 +363,37 @@ namespace VisualPinball.Unity
 
 		public override void CopyFromObject(GameObject go)
 		{
-			var rampComponent = go.GetComponent<RampComponent>();
-			if (rampComponent != null) {
-				_type = rampComponent._type;
-				_heightBottom = rampComponent._heightBottom;
-				_heightTop = rampComponent._heightTop;
-				_imageAlignment = rampComponent._imageAlignment;
-				_leftWallHeightVisible = rampComponent._leftWallHeightVisible;
-				_rightWallHeightVisible = rampComponent._rightWallHeightVisible;
-				_widthBottom = rampComponent._widthBottom;
-				_widthTop = rampComponent._widthTop;
-				_wireDiameter = rampComponent._wireDiameter;
-				_wireDistanceX = rampComponent._wireDistanceX;
-				_wireDistanceY = rampComponent._wireDistanceY;
-				_dragPoints = rampComponent._dragPoints.Select(dp => dp.Clone()).ToArray();
-
-			} else {
-				MoveDragPointsTo(_dragPoints, go.transform.localPosition.TranslateToVpx());
+			var srcMainComp = go.GetComponent<RampComponent>();
+			if (srcMainComp) {
+				_type = srcMainComp._type;
+				_heightBottom = srcMainComp._heightBottom;
+				_heightTop = srcMainComp._heightTop;
+				_imageAlignment = srcMainComp._imageAlignment;
+				_leftWallHeightVisible = srcMainComp._leftWallHeightVisible;
+				_rightWallHeightVisible = srcMainComp._rightWallHeightVisible;
+				_widthBottom = srcMainComp._widthBottom;
+				_widthTop = srcMainComp._widthTop;
+				_wireDiameter = srcMainComp._wireDiameter;
+				_wireDistanceX = srcMainComp._wireDistanceX;
+				_wireDistanceY = srcMainComp._wireDistanceY;
+				_dragPoints = srcMainComp._dragPoints.Select(dp => dp.Clone()).ToArray();
 			}
+			RebuildMeshes();
+		}
 
-			UpdateTransforms();
+		private void CenterPivot()
+		{
+			var centerVpx = DragPoints.Aggregate(Vector3.zero, (current, dragPoint) => current + dragPoint.Center.ToUnityVector3());
+			centerVpx /= DragPoints.Length;
+
+			transform.Translate(centerVpx.TranslateToWorld(transform) - transform.position);
+			foreach (var dragPoint in DragPoints) {
+				dragPoint.Center -= centerVpx.ToVertex3D();
+			}
 			RebuildMeshes();
 		}
 
 		#endregion
 
-		#region Editor Tooling
-
-		private Vector3 DragPointCenter {
-			get {
-				var sum = Vertex3D.Zero;
-				foreach (var t in DragPoints) {
-					sum += t.Center;
-				}
-				var center = sum / DragPoints.Length;
-				return new Vector3(center.X, center.Y, _heightTop);
-			}
-		}
-
-		public override ItemDataTransformType EditorPositionType => ItemDataTransformType.TwoD;
-		public override Vector3 GetEditorPosition()
-		{
-			return DragPoints.Length == 0 ? Vector3.zero : DragPointCenter;
-		}
-
-		public override void SetEditorPosition(Vector3 pos)
-		{
-			if (DragPoints.Length == 0) {
-				return;
-			}
-			var diff = (pos - DragPointCenter).ToVertex3D();
-			diff.Z = 0f;
-			foreach (var pt in DragPoints) {
-				pt.Center += diff;
-			}
-			RebuildMeshes();
-			var playfieldComponent = GetComponentInParent<PlayfieldComponent>();
-			if (playfieldComponent) {
-				WalkChildren(playfieldComponent.transform, UpdateSurfaceReferences);
-			}
-		}
-
-		protected static void WalkChildren(IEnumerable node, Action<Transform> action)
-		{
-			foreach (Transform childTransform in node) {
-				action(childTransform);
-				WalkChildren(childTransform, action);
-			}
-		}
-
-		protected void UpdateSurfaceReferences(Transform obj)
-		{
-			var surfaceComponent = obj.gameObject.GetComponent<IOnSurfaceComponent>();
-			if (surfaceComponent != null && ReferenceEquals(surfaceComponent.Surface, this))
-			{
-				surfaceComponent.OnSurfaceUpdated();
-			}
-		}
-
-		#endregion
 	}
 }

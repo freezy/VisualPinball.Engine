@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using System;
-using System.Collections.Generic;
+using Unity.Mathematics;
 using UnityEngine;
 using VisualPinball.Engine.VPT.MetalWireGuide;
 
@@ -43,11 +43,10 @@ namespace VisualPinball.Unity
 		protected override bool FireHitEvents => ColliderComponent.HitEvent;
 		protected override float HitThreshold => 2.0f; // hard coded threshold for now
 
-		protected override void CreateColliders(ref ColliderReference colliders,
-			ref ColliderReference kinematicColliders, float margin)
+		protected override void CreateColliders(ref ColliderReference colliders, float4x4 translateWithinPlayfieldMatrix, float margin)
 		{
-			var colliderGenerator = new MetalWireGuideColliderGenerator(this, new MetalWireGuideMeshGenerator(MainComponent));
-			colliderGenerator.GenerateColliders(MainComponent.PlayfieldHeight, ColliderComponent.HitHeight, MainComponent.Bendradius, MainComponent.PlayfieldDetailLevel, ref colliders, margin);
+			var colliderGenerator = new MetalWireGuideColliderGenerator(this, new MetalWireGuideMeshGenerator(MainComponent), translateWithinPlayfieldMatrix);
+			colliderGenerator.GenerateColliders(0, ColliderComponent.HitHeight, MainComponent.Bendradius, MainComponent.PlayfieldDetailLevel, ref colliders, margin);
 		}
 
 		#endregion

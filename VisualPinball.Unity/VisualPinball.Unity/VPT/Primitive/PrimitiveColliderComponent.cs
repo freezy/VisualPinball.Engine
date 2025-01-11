@@ -23,7 +23,7 @@ using VisualPinball.Engine.VPT.Primitive;
 namespace VisualPinball.Unity
 {
 	[AddComponentMenu("Visual Pinball/Collision/Primitive Collider")]
-	public class PrimitiveColliderComponent : ColliderComponent<PrimitiveData, PrimitiveComponent>, IKinematicColliderComponent
+	public class PrimitiveColliderComponent : ColliderComponent<PrimitiveData, PrimitiveComponent>
 	{
 		#region Data
 
@@ -57,21 +57,13 @@ namespace VisualPinball.Unity
 		[Tooltip("Ignore the assigned physics material above and use the value below.")]
 		public bool OverwritePhysics = true;
 
-		[Tooltip("If set, transforming this object will transform the colliders as well.")]
-		public bool _isKinematic;
-
-		#endregion
-
-		#region IKinematicColliderComponent
-
-		public bool IsKinematic => _isKinematic;
-		public int ItemId => MainComponent.gameObject.GetInstanceID();
-		public float4x4 TransformationMatrix => MainComponent.TransformationMatrix;
-
 		#endregion
 
 		public override PhysicsMaterialData PhysicsMaterialData => GetPhysicsMaterialData(Elasticity, ElasticityFalloff, Friction, Scatter, OverwritePhysics);
 		protected override IApiColliderGenerator InstantiateColliderApi(Player player, PhysicsEngine physicsEngine)
 			=>MainComponent.PrimitiveApi ?? new PrimitiveApi(gameObject, player, physicsEngine);
+
+		public override float4x4 GetLocalToPlayfieldMatrixInVpx(float4x4 worldToPlayfield)
+			=> base.GetLocalToPlayfieldMatrixInVpx(worldToPlayfield).TransformToVpx();
 	}
 }

@@ -34,7 +34,5 @@ namespace VisualPinball.Engine.VPT
 		string name { get; }
 
 		Mesh GetMesh(); // assuming: Origin.Original, false
-
-		Matrix3D GetTransformationMatrix();
 	}
 }

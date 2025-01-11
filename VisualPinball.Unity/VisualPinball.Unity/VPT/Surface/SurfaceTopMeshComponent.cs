@@ -30,7 +30,7 @@ namespace VisualPinball.Unity
 		{
 			var playfieldComponent = GetComponentInParent<PlayfieldComponent>();
 			return new SurfaceMeshGenerator(data)
-				.GetMesh(SurfaceMeshGenerator.Top, playfieldComponent.Width, playfieldComponent.Height, playfieldComponent.PlayfieldHeight, false)
+				.GetMesh(SurfaceMeshGenerator.Top, playfieldComponent.Width, playfieldComponent.Height, 0, false)
 				.TransformToWorld();
 		}
 

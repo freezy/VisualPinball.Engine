@@ -58,7 +58,6 @@ namespace VisualPinball.Unity
 
 		public override bool HasProceduralMesh => true;
 
-
 		protected override Type MeshComponentType { get; } = typeof(MeshComponent<SurfaceData, SurfaceComponent>);
 		protected override Type ColliderComponentType { get; } = typeof(ColliderComponent<SurfaceData, SurfaceComponent>);
 
@@ -70,11 +69,11 @@ namespace VisualPinball.Unity
 
 		private void Awake()
 		{
-			var player = GetComponentInParent<Player>();
+			Player = GetComponentInParent<Player>();
 			var physicsEngine = GetComponentInParent<PhysicsEngine>();
-			SurfaceApi = new SurfaceApi(gameObject, player, physicsEngine);
+			SurfaceApi = new SurfaceApi(gameObject, Player, physicsEngine);
 
-			player.Register(SurfaceApi, this);
+			Player.Register(SurfaceApi, this);
 			if (GetComponentInChildren<SurfaceColliderComponent>()) {
 				RegisterPhysics(physicsEngine);
 			}
@@ -84,9 +83,14 @@ namespace VisualPinball.Unity
 
 		#region Transformation
 
-		public float Height(Vector2 _) => HeightTop + PlayfieldHeight;
 
-		public override void OnPlayfieldHeightUpdated() => RebuildMeshes();
+		public float Height(Vector2 _) => HeightTop;
+
+		public override void UpdateTransforms()
+		{
+			base.UpdateTransforms();
+			SetChildrenZPosition(_ => HeightTop);
+		}
 
 		#endregion
 
@@ -121,6 +125,8 @@ namespace VisualPinball.Unity
 
 				updatedComponents.Add(collComponent);
 			}
+
+			CenterPivot();
 
 			return updatedComponents;
 		}
@@ -194,16 +200,31 @@ namespace VisualPinball.Unity
 		public override void CopyFromObject(GameObject go)
 		{
 			var surfaceComponent = go.GetComponent<SurfaceComponent>();
-			if (surfaceComponent != null) {
+			if (surfaceComponent) {
 				HeightTop = surfaceComponent.HeightTop;
 				HeightBottom = surfaceComponent.HeightBottom;
 				_dragPoints = surfaceComponent._dragPoints.Select(dp => dp.Clone()).ToArray();
 
-			} else {
-				MoveDragPointsTo(_dragPoints, go.transform.localPosition.TranslateToVpx());
 			}
+			RebuildMeshes();
+		}
 
-			UpdateTransforms();
+		private void CenterPivot()
+		{
+			// TODO move origin to the top.
+			// in order to do that, we'll need to treat top and bottom height differently:
+			// - top height is at local z = 0
+			// - changing top height will both transform on local z and change the height of the object
+			// - changing bottom height will just change the height
+			// - change mesh and collider creation to create top-down instead of bottom-up.
+
+			var centerVpx = DragPoints.Aggregate(Vector3.zero, (current, dragPoint) => current + dragPoint.Center.ToUnityVector3());
+			centerVpx /= DragPoints.Length;
+
+			transform.Translate(centerVpx.TranslateToWorld(transform) - transform.position);
+			foreach (var dragPoint in DragPoints) {
+				dragPoint.Center -= centerVpx.ToVertex3D();
+			}
 			RebuildMeshes();
 		}
 
@@ -223,35 +244,6 @@ namespace VisualPinball.Unity
 				IsDisabled = false,
 				Threshold = collComponent.SlingshotThreshold,
 			});
-		}
-
-		#endregion
-
-		#region Editor Tooling
-
-		private Vector3 DragPointCenter {
-			get {
-				var sum = Vertex3D.Zero;
-				foreach (var t in DragPoints) {
-					sum += t.Center;
-				}
-				var center = sum / DragPoints.Length;
-				return new Vector3(center.X, center.Y, HeightTop);
-			}
-		}
-
-		public override ItemDataTransformType EditorPositionType => ItemDataTransformType.TwoD;
-		public override Vector3 GetEditorPosition() => DragPoints.Length == 0 ? Vector3.zero : DragPointCenter;
-		public override void SetEditorPosition(Vector3 pos) {
-			if (DragPoints.Length == 0) {
-				return;
-			}
-			var diff = (pos - DragPointCenter).ToVertex3D();
-			diff.Z = 0f;
-			foreach (var pt in DragPoints) {
-				pt.Center += diff;
-			}
-			RebuildMeshes();
 		}
 
 		#endregion

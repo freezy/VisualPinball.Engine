@@ -21,6 +21,13 @@ using VisualPinball.Engine.Game;
 
 namespace VisualPinball.Unity
 {
+	/// <summary>
+	/// Like <see cref="LineCollider">Line</see>, but with different collision code.
+	/// </summary>
+	///
+	/// <remarks>
+	/// Defined by two points (float2), zHigh, zLow
+	/// </remarks>
 	internal struct LineSlingshotCollider : ICollider
 	{
 		public int Id
@@ -29,26 +36,21 @@ namespace VisualPinball.Unity
 			set => Header.Id = value;
 		}
 
+		public bool IsFullyTransformable => false;
+
 		public ColliderHeader Header;
 
-		public readonly float2 V1;
-		public readonly float2 V2;
+		public float2 V1;
+		public float2 V2;
 
 		public float2 Normal;
-		public readonly float ZLow;
-		public readonly float ZHigh;
+		public float ZLow;
+		public float ZHigh;
 		private float _length;
 
 		private readonly float _force;
 
-		public ColliderBounds Bounds => new ColliderBounds(Header.ItemId, Header.Id, new Aabb(
-			math.min(V1.x, V2.x),
-			math.max(V1.x, V2.x),
-			math.min(V1.y, V2.y),
-			math.max(V1.y, V2.y),
-			ZLow,
-			ZHigh
-		));
+		public ColliderBounds Bounds { get; private set; }
 
 		public LineSlingshotCollider(float force, float2 v1, float2 v2, float zLow, float zHigh, ColliderInfo info) : this()
 		{
@@ -59,6 +61,7 @@ namespace VisualPinball.Unity
 			ZLow = zLow;
 			ZHigh = zHigh;
 			CalcNormal();
+			CalculateBounds();
 		}
 
 		private void CalcNormal()
@@ -143,5 +146,80 @@ namespace VisualPinball.Unity
 		}
 
 		#endregion
+
+		#region Transformation
+
+		public static bool IsTransformable(float4x4 matrix)
+		{
+			// position: fully transformable: 3d (center + ZLow)
+			// scale: fully scalable
+			// rotation: can be z-rotated, x/y rotation is not supported.
+
+			var rotation = matrix.GetRotationVector();
+			var xyRotated = math.abs(rotation.x) > Collider.Tolerance || math.abs(rotation.y) > Collider.Tolerance;
+
+			return !xyRotated;
+		}
+
+		public LineSlingshotCollider Transform(float4x4 matrix)
+		{
+			Transform(this, matrix);
+			return this;
+		}
+
+		public void Transform(LineSlingshotCollider lineCollider, float4x4 matrix)
+		{
+			#if UNITY_EDITOR
+			if (!IsTransformable(matrix)) {
+				throw new System.InvalidOperationException($"Matrix {matrix} cannot transform slingshot collider.");
+			}
+			#endif
+
+			var s = matrix.GetScale();
+			var t = matrix.GetTranslation();
+			V1 = matrix.MultiplyPoint(new float3(lineCollider.V1, 0)).xy;
+			V2 = matrix.MultiplyPoint(new float3(lineCollider.V2, 0)).xy;
+			ZHigh = t.z + lineCollider.ZHigh * s.z;
+			ZLow = t.z + lineCollider.ZLow * s.z;
+
+			CalcNormal();
+			CalculateBounds();
+		}
+
+		public Aabb GetTransformedAabb(float4x4 matrix)
+		{
+			var p1 = matrix.MultiplyPoint(new float3(V1, ZLow));
+			var p2 = matrix.MultiplyPoint(new float3(V1, ZHigh));
+			var p3 = matrix.MultiplyPoint(new float3(V2, ZLow));
+			var p4 = matrix.MultiplyPoint(new float3(V2, ZHigh));
+
+			var min = math.min(p1, math.min(p2, math.min(p3, p4)));
+			var max = math.max(p1, math.max(p2, math.max(p3, p4)));
+
+			return new Aabb(min, max);
+		}
+
+		public LineSlingshotCollider TransformAabb(float4x4 matrix)
+		{
+			Bounds = new ColliderBounds(Header.ItemId, Header.Id, GetTransformedAabb(matrix));
+			return this;
+		}
+
+		#endregion
+
+		private void CalculateBounds()
+		{
+			// TransformAabb() takes in a matrix, this is faster if the matrix has been applied to the collider already.
+			Bounds = new ColliderBounds(Header.ItemId, Header.Id, new Aabb(
+				math.min(V1.x, V2.x),
+				math.max(V1.x, V2.x),
+				math.min(V1.y, V2.y),
+				math.max(V1.y, V2.y),
+				ZLow,
+				ZHigh
+			));
+		}
+
+		public override string ToString() => $"LineSlingshotCollider[{Header.ItemId}] ({V1.x}/{V1.y}@{ZLow}) -> ({V2.x}/{V2.y}@{ZHigh}) at ({Normal.x}/{Normal.y}), len: {_length}";
 	}
 }

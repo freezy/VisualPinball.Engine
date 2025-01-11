@@ -37,7 +37,7 @@ namespace VisualPinball.Unity
 			_contacts = new NativeList<ContactBufferElement>(a);
 		}
 
-		internal void Simulate(ref PhysicsState state, in AABB playfieldBounds, ref NativeParallelHashSet<int> overlappingColliders, float dTime)
+		internal void Simulate(ref PhysicsState state, in AABB playfieldBounds, ref NativeParallelHashSet<int> overlappingColliders, ref NativeOctree<int> kineticOctree, float dTime)
 		{
 			PerfMarker.Begin();
 			var staticCounts = PhysicsConstants.StaticCnts;
@@ -45,10 +45,6 @@ namespace VisualPinball.Unity
 			// create octree of ball-to-ball collision
 			// it's okay to have this code outside of the inner loop, as the ball hitrects already include the maximum distance they can travel in that timespan
 			using var ballOctree = PhysicsDynamicBroadPhase.CreateOctree(ref state.Balls, in playfieldBounds);
-
-			// create octree of kinematic-to-ball collision
-			PhysicsKinematicBroadPhase.TransformColliders(ref state);
-			using var kineticOctree = PhysicsKinematicBroadPhase.CreateOctree(ref state.KinematicColliders, in playfieldBounds);
 
 			while (dTime > 0) {
 
@@ -155,7 +151,11 @@ namespace VisualPinball.Unity
 				for (var i = 0; i < _contacts.Length; i++) {
 					ref var contact = ref _contacts.GetElementAsRef(i);
 					ref var ball = ref state.Balls.GetValueByRef(contact.BallId);
-					ContactPhysics.Update(ref contact, ref ball, ref state, hitTime);
+					if (contact.CollEvent.IsKinematic) {
+						ContactPhysics.Update(ref contact, ref ball, ref state, ref state.KinematicColliders, hitTime);
+					} else {
+						ContactPhysics.Update(ref contact, ref ball, ref state, ref state.Colliders, hitTime);
+					}
 				}
 				PerfMarkerContacts.End();
 
@@ -173,6 +173,7 @@ namespace VisualPinball.Unity
 
 				state.SwapBallCollisionHandling = !state.SwapBallCollisionHandling;
 			}
+
 			PerfMarker.End();
 		}
 		

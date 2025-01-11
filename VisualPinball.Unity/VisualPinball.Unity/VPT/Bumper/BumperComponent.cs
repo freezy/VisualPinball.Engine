@@ -23,9 +23,11 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Unity.Mathematics;
 using UnityEngine;
 using VisualPinball.Engine.Game.Engines;
+using VisualPinball.Engine.Math;
 using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Bumper;
 using VisualPinball.Engine.VPT.Table;
@@ -33,32 +35,34 @@ using VisualPinball.Engine.VPT.Table;
 namespace VisualPinball.Unity
 {
 	[AddComponentMenu("Visual Pinball/Game Item/Bumper")]
-	public class BumperComponent : MainRenderableComponent<BumperData>,
-		ISwitchDeviceComponent, ICoilDeviceComponent, IOnSurfaceComponent
+	public class BumperComponent : MainRenderableComponent<BumperData>, ISwitchDeviceComponent, ICoilDeviceComponent
 	{
 		#region Data
 
-		[Tooltip("Position of the bumper on the playfield.")]
-		public Vector2 Position;
+		public Vector3 Position {
+			get => transform.localPosition.TranslateToVpx();
+			set => transform.localPosition = value.TranslateToWorld();
+		}
 
 		[Range(20f, 250f)]
 		[Tooltip("Radius of the bumper. Updates xy scaling. 50 = Original size.")]
 		public float Radius = 45f;
 
-		[Range(50f, 300f)]
-		[Tooltip("Height of the bumper. Updates z scaling. 100 = Original size.")]
-		public float HeightScale = 45f;
+		public float HeightScale
+		{
+			get => transform.localScale.y * DataMeshScale;
+			set => transform.localScale = new Vector3(transform.localScale.x, value / DataMeshScale, transform.localScale.z);
 
-		[Range(-180f, 180f)]
-		[Tooltip("Orientation angle. Updates z rotation.")]
-		public float Orientation;
+		}
 
-		public ISurfaceComponent Surface { get => _surface as ISurfaceComponent; set => _surface = value as MonoBehaviour; }
+		public float Orientation {
+			get => transform.localEulerAngles.y > 180 ? transform.localEulerAngles.y - 360 : transform.localEulerAngles.y;
+			set => transform.SetLocalYRotation(math.radians(value));
+		}
 
-		[SerializeField]
-		[TypeRestriction(typeof(ISurfaceComponent), PickerLabel = "Walls & Ramps", UpdateTransforms = true)]
-		[Tooltip("On which surface this bumper is attached to. Updates Z-translation.")]
-		public MonoBehaviour _surface;
+		[Tooltip("Should the bumper coil always activate when touched by a ball? Disable to give game logic engine full control")]
+		public bool IsHardwired = true;
+
 		private IEnumerable<GamelogicEngineCoil> _availableDeviceItems;
 
 		#endregion
@@ -69,14 +73,10 @@ namespace VisualPinball.Unity
 		public override string ItemName => "Bumper";
 		public override bool HasProceduralMesh => false;
 
-		public override BumperData InstantiateData() => new BumperData();
+		public override BumperData InstantiateData() => new();
 
 		protected override Type MeshComponentType { get; } = typeof(MeshComponent<BumperData, BumperComponent>);
 		protected override Type ColliderComponentType { get; } = typeof(ColliderComponent<BumperData, BumperComponent>);
-		private const string SkirtMeshName = "bumper.skirt";
-		private const string BaseMeshName = "bumper.base";
-		private const string CapMeshName = "bumper.cap";
-		private const string RingMeshName = "bumper.ring";
 
 		public const float DataMeshScale = 100f;
 
@@ -90,13 +90,30 @@ namespace VisualPinball.Unity
 
 		private void Awake()
 		{
-			var player = GetComponentInParent<Player>();
+			Player = GetComponentInParent<Player>();
 			var physicsEngine = GetComponentInParent<PhysicsEngine>();
-			BumperApi = new BumperApi(gameObject, player, physicsEngine);
+			BumperApi = new BumperApi(gameObject, Player, physicsEngine);
 
-			player.Register(BumperApi, this);
+			Player.Register(BumperApi, this);
 			if (GetComponentInChildren<BumperColliderComponent>()) {
 				RegisterPhysics(physicsEngine);
+			}
+		}
+
+		private void Start()
+		{
+			if (IsHardwired) {
+				WireMapping wireMapping = new() {
+					Description = $"Hardwired bumper '{name}'",
+					Source = SwitchSource.Playfield,
+					SourceDevice = this,
+					SourceDeviceItem = AvailableSwitches.FirstOrDefault().Id,
+					DestinationDevice = this,
+					DestinationDeviceItem = AvailableCoils.FirstOrDefault().Id,
+					IsDynamic = false,
+				};
+				WireDestConfig wireDestConfig = new(wireMapping.WithId());
+				BumperApi.AddWireDest(wireDestConfig);
 			}
 		}
 
@@ -127,32 +144,11 @@ namespace VisualPinball.Unity
 
 		#region Transformation
 
-		public void OnSurfaceUpdated() => UpdateTransforms();
-
-		public float PositionZ => SurfaceHeight(Surface, Position);
-
 		public override void UpdateTransforms()
 		{
 			base.UpdateTransforms();
-			var t = transform;
-
-			// position
-			t.localPosition = Physics.TranslateToWorld(Position.x, Position.y, PositionZ);
-
-			// scale
-			t.localScale = new Vector3(Radius * 2f, HeightScale, Radius * 2f) / DataMeshScale;
-
-			// rotation
-			t.localEulerAngles = new Vector3(0, Orientation, 0);
-		}
-
-		public float4x4 TransformationMatrix {
-			get {
-				var scaleMatrix = float4x4.Scale(new float3(Radius * 2f, Radius * 2f, HeightScale) / DataMeshScale);
-				var transMatrix = float4x4.Translate(new float3(Position.x, Position.y, PositionZ));
-				var rotMatrix = float4x4.RotateZ(math.radians(Orientation));
-				return math.mul(transMatrix, math.mul(rotMatrix, scaleMatrix));
-			}
+			 // this is for when the radius is changed, in this case we syn x/z scale
+			 transform.localScale = new Vector3(Radius * 2f, HeightScale, Radius * 2f) / DataMeshScale;
 		}
 
 		#endregion
@@ -164,7 +160,7 @@ namespace VisualPinball.Unity
 			var updatedComponents = new List<MonoBehaviour> { this };
 
 			// transforms
-			Position = data.Center.ToUnityFloat2();
+			Position = data.Center.ToUnityVector3(0);
 			Radius = data.Radius;
 			HeightScale = data.HeightScale;
 			Orientation = data.Orientation;
@@ -191,86 +187,34 @@ namespace VisualPinball.Unity
 
 		public override IEnumerable<MonoBehaviour> SetReferencedData(BumperData data, Table table, IMaterialProvider materialProvider, ITextureProvider textureProvider, Dictionary<string, IMainComponent> components)
 		{
-			Surface = FindComponent<ISurfaceComponent>(components, data.Surface);
+			// surface
+			ParentToSurface(data.Surface, data.Center, components);
+
 			UpdateTransforms();
 
 			// children visibility
-			foreach (var mf in GetComponentsInChildren<MeshFilter>()) {
-				if (mf.sharedMesh) {
-					var mr = mf.GetComponent<MeshRenderer>();
-					switch (mf.sharedMesh.name) {
-						case SkirtMeshName:
-							mf.gameObject.SetActive(data.IsSocketVisible);
-							if (!string.IsNullOrEmpty(data.SocketMaterial)) {
-								mr.sharedMaterial = materialProvider.MergeMaterials(data.SocketMaterial, mr.sharedMaterial);
-							}
-							break;
-						case BaseMeshName:
-							mf.gameObject.SetActive(data.IsBaseVisible);
-							if (!string.IsNullOrEmpty(data.BaseMaterial)) {
-								mr.sharedMaterial = materialProvider.MergeMaterials(data.BaseMaterial, mr.sharedMaterial);
-							}
-							break;
-						case CapMeshName:
-							mf.gameObject.SetActive(data.IsCapVisible);
-							if (!string.IsNullOrEmpty(data.CapMaterial)) {
-								mr.sharedMaterial = materialProvider.MergeMaterials(data.CapMaterial, mr.sharedMaterial);
-							}
-							break;
-						case RingMeshName:
-							mf.gameObject.SetActive(data.IsRingVisible);
-							if (!string.IsNullOrEmpty(data.RingMaterial)) {
-								mr.sharedMaterial = materialProvider.MergeMaterials(data.RingMaterial, mr.sharedMaterial);
-							}
-							break;
-					}
-				}
-			}
+			SetVisibilityByComponent<BumperSkirtAnimationComponent>(data.IsSocketVisible);
+			SetVisibilityByComponent<BumperBaseComponent>(data.IsBaseVisible);
+			SetVisibilityByComponent<BumperCapComponent>(data.IsCapVisible);
+			SetVisibilityByComponent<BumperRingAnimationComponent>(data.IsRingVisible);
 
 			return Array.Empty<MonoBehaviour>();
 		}
-
 
 		public override BumperData CopyDataTo(BumperData data, string[] materialNames, string[] textureNames, bool forExport)
 		{
 			// name and transforms
 			data.Name = name;
-			data.Center = Position.ToVertex2D();
+			data.Center = new Vertex2D(Position.x, Position.y);
 			data.Radius = Radius;
 			data.HeightScale = HeightScale;
 			data.Orientation = Orientation;
 
-			// surface
-			data.Surface = Surface != null ? Surface.name : string.Empty;
-
 			// children visibility
-			data.IsBaseVisible = false;
-			data.IsCapVisible = false;
-			data.IsRingVisible = false;
-			data.IsSocketVisible = false;
-			foreach (var mf in GetComponentsInChildren<MeshFilter>(true)) {
-				if (mf.sharedMesh) {
-					var mr = mf.gameObject.GetComponent<MeshRenderer>();
-					switch (mf.sharedMesh.name) {
-						case SkirtMeshName:
-							data.IsSocketVisible = mf.gameObject.activeInHierarchy;
-							CopyMaterialName(mr, materialNames, textureNames, ref data.SocketMaterial);
-							break;
-						case BaseMeshName:
-							data.IsBaseVisible = mf.gameObject.activeInHierarchy;
-							CopyMaterialName(mr, materialNames, textureNames, ref data.BaseMaterial);
-							break;
-						case CapMeshName:
-							data.IsCapVisible = mf.gameObject.activeInHierarchy;
-							CopyMaterialName(mr, materialNames, textureNames, ref data.CapMaterial);
-							break;
-						case RingMeshName:
-							data.IsRingVisible = mf.gameObject.activeInHierarchy;
-							CopyMaterialName(mr, materialNames, textureNames, ref data.RingMaterial);
-							break;
-					}
-				}
-			}
+			data.IsBaseVisible = CopyMaterialName<BumperBaseComponent>(data, materialNames, textureNames);
+			data.IsCapVisible = CopyMaterialName<BumperCapComponent>(data, materialNames, textureNames);
+			data.IsRingVisible = CopyMaterialName<BumperRingAnimationComponent>(data, materialNames, textureNames);
+			data.IsSocketVisible = CopyMaterialName<BumperSkirtAnimationComponent>(data, materialNames, textureNames);
 
 			// collider
 			var collComponent = GetComponentInChildren<BumperColliderComponent>();
@@ -294,25 +238,54 @@ namespace VisualPinball.Unity
 			return data;
 		}
 
+		private bool CopyMaterialName<TComponent>(BumperData data, string[] materialNames, string[] textureNames) where TComponent : MonoBehaviour
+		{
+			var skirtComp = GetComponentInChildren<TComponent>();
+			if (skirtComp) {
+				var mf = skirtComp.GetComponentInChildren<MeshFilter>();
+				var mr = mf.gameObject.GetComponent<MeshRenderer>();
+				CopyMaterialName(mr, materialNames, textureNames, ref data.SocketMaterial);
+				return mf.gameObject.activeInHierarchy;
+			}
+			return false;
+		}
+
 		public override void CopyFromObject(GameObject go)
 		{
-			var bumperComponent = go.GetComponent<BumperComponent>();
-			if (bumperComponent != null) {
-				Position = bumperComponent.Position;
-				Radius = bumperComponent.Radius;
-				HeightScale = bumperComponent.HeightScale;
-				Orientation = bumperComponent.Orientation;
-				Surface = bumperComponent.Surface;
-
-			} else {
-				var scale = go.transform.localScale;
-				Position = go.transform.localPosition.TranslateToVpx();
-				Orientation = go.transform.localEulerAngles.z;
-				Radius = scale.x / 2 * DataMeshScale;
-				HeightScale = scale.z * DataMeshScale;
+			// main component
+			var srcMainComp = go.GetComponent<BumperComponent>();
+			if (srcMainComp) {
+				Radius = srcMainComp.Radius;
+				HeightScale = srcMainComp.HeightScale;
+				Orientation = srcMainComp.Orientation;
+				IsHardwired = srcMainComp.IsHardwired;
 			}
 
-			UpdateTransforms();
+			// collider comp
+			var srcCollComp = go.GetComponent<BumperColliderComponent>();
+			var collComp = GetComponent<BumperColliderComponent>();
+			if (srcCollComp && collComp) {
+				collComp.enabled = srcCollComp.enabled;
+				collComp.Threshold = srcCollComp.Threshold;
+				collComp.Force = srcCollComp.Force;
+				collComp.Scatter = srcCollComp.Scatter;
+				collComp.HitEvent = srcCollComp.HitEvent;
+			}
+
+			// ring animation
+			var ringAnimComp = GetComponentInChildren<BumperRingAnimationComponent>();
+			var srcRingAnimComp = go.GetComponentInChildren<BumperRingAnimationComponent>();
+			if (ringAnimComp && srcRingAnimComp) {
+				ringAnimComp.RingSpeed = srcRingAnimComp.RingSpeed;
+				ringAnimComp.RingDropOffset = srcRingAnimComp.RingDropOffset;
+			}
+
+			// skirt animation
+			var skirtAnimComp = GetComponentInChildren<BumperSkirtAnimationComponent>();
+			var srcSkirtAnimComp = go.GetComponentInChildren<BumperSkirtAnimationComponent>();
+			if (ringAnimComp && srcSkirtAnimComp) {
+				skirtAnimComp.duration = srcSkirtAnimComp.duration;
+			}
 		}
 
 		#endregion
@@ -340,7 +313,8 @@ namespace VisualPinball.Unity
 					DoUpdate = false,
 					EnableAnimation = true,
 					Rotation = new float2(0, 0),
-					Center = Position
+					Center = Position,
+					Duration = skirtAnimComponent.duration,
 				} : default;
 
 			// ring animation data
@@ -368,24 +342,6 @@ namespace VisualPinball.Unity
 				skirtAnimation
 			);
 		}
-
-		#endregion
-
-		#region Editor Tooling
-
-		public override ItemDataTransformType EditorPositionType => ItemDataTransformType.TwoD;
-		public override Vector3 GetEditorPosition() => Surface != null
-			? new Vector3(Position.x, Position.y, Surface.Height(Position))
-			: new Vector3(Position.x, Position.y, 0);
-		public override void SetEditorPosition(Vector3 pos) => Position = ((float3)pos).xy;
-
-		public override ItemDataTransformType EditorRotationType => ItemDataTransformType.OneD;
-		public override Vector3 GetEditorRotation() => new Vector3(Orientation, 0, 0);
-		public override void SetEditorRotation(Vector3 rot) => Orientation = ClampDegrees(rot.x);
-
-		public override ItemDataTransformType EditorScaleType => ItemDataTransformType.OneD;
-		public override Vector3 GetEditorScale() => new Vector3(Radius * 2f, 0f, 0f);
-		public override void SetEditorScale(Vector3 scale) => Radius = scale.x / 2f;
 
 		#endregion
 	}

@@ -30,6 +30,12 @@ namespace VisualPinball.Unity
 		public ItemType ItemType;
 		public int Id;
 		public int ItemId;
+		/**
+		 * If this is false, that means that the collider's item has a transformation matrix that is not supported
+		 * by this collider. It tells the physics runtime to instead transform the ball into this item's space before
+		 * testing for collision.
+		 */
+		public bool IsTransformed;
 		public PhysicsMaterialData Material;
 
 		public float Threshold;
@@ -61,12 +67,22 @@ namespace VisualPinball.Unity
 			}
 			Type = colliderType;
 			ItemType = info.ItemType;
+			IsTransformed = true; // per default, we assume that we don't have to transform the ball during runtime.
 			Id = info.Id;
 			ItemId = info.ItemId;
 			Material = info.Material;
 			Threshold = info.HitThreshold;
 			FireEvents = info.FireEvents;
 		}
+
+		public ColliderInfo ColliderInfo => new ColliderInfo {
+			Id = Id,
+			ItemId = ItemId,
+			ItemType = ItemType,
+			Material = Material,
+			HitThreshold = Threshold,
+			FireEvents = FireEvents
+		};
 
 		public static bool operator ==(ColliderHeader a, ColliderHeader b) => a.Equals(b);
 		public static bool operator !=(ColliderHeader a, ColliderHeader b) => !a.Equals(b);

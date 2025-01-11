@@ -19,7 +19,6 @@
 #nullable enable
 
 using VisualPinball.Engine.Common;
-using VisualPinball.Engine.Game;
 using VisualPinball.Engine.Math;
 
 namespace VisualPinball.Engine.VPT.MetalWireGuide

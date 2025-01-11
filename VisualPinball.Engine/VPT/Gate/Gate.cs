@@ -51,5 +51,7 @@ namespace VisualPinball.Engine.VPT.Gate
 			=> _meshGenerator.GetMaterial(id, table);
 
 		#endregion
+
+		public override string ToString() => $"Gate[{Data.Name}/{Data.GateType} at {Data.Center}]";
 	}
 }

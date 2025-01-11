@@ -42,7 +42,7 @@
 		"postProcessors": [ "ExtractSearchIndex" ],
 		"globalMetadata": {
 			"_appTitle": "VPE Documentation",
-			"_appFooter": "<span>Copyright © 2023 VPE Team</span>",
+			"_appFooter": "<span>Copyright © 2025 VPE Team</span>",
 			"_appFaviconPath": "favicon.png",
 			"_gitContribute": {
 				"branch": "master"

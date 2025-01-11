@@ -7,11 +7,10 @@ jobs:
   publish-registry:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-      - uses: dawidd6/action-download-artifact@v2
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
         with:
-          workflow: build
-          run_id: ${{ github.event.client_payload.artifacts_run_id }}
+          run-id: ${{ github.event.client_payload.artifacts_run_id }}
           name: Plugins
           path: VisualPinball.Unity/Plugins
       - run: |
@@ -35,8 +34,8 @@ jobs:
   publish-nuget:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-dotnet@v1
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '3.1.x'
       - name: Pack
@@ -46,14 +45,14 @@ jobs:
           dotnet pack VisualPinball.Engine/VisualPinball.Engine.csproj -c Release -p:PackageVersion=$VERSION -o nupkg
       - name: Publish
         run: |
-          dotnet nuget push nupkg/VisualPinball.Resources.*.nupkg -k ${{ secrets.NUGET_KEY }} -s https://api.nuget.org/v3/index.json
-          dotnet nuget push nupkg/VisualPinball.Engine.*.nupkg -k ${{ secrets.NUGET_KEY }} -s https://api.nuget.org/v3/index.json
+          dotnet nuget push nupkg/VisualPinball.Resources.*.nupkg -k ${{ secrets.NUGET_KEY }} -s https://api.nuget.org/v4/index.json
+          dotnet nuget push nupkg/VisualPinball.Engine.*.nupkg -k ${{ secrets.NUGET_KEY }} -s https://api.nuget.org/v4/index.json
 
   dispatch:
     runs-on: ubuntu-latest
     needs: [ publish-registry, publish-nuget ]
     steps:
-      - uses: peter-evans/repository-dispatch@v1
+      - uses: peter-evans/repository-dispatch@v3
         with:
           token: ${{ secrets.GH_PAT }}
           event-type: publish-complete

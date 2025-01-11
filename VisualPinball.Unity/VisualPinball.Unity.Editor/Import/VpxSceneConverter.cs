@@ -340,6 +340,10 @@ namespace VisualPinball.Unity.Editor
 		{
 			var prefab = InstantiatePrefab(item);
 
+			if (prefab == null)	{
+				throw new Exception($"Could not instantiate prefab for item {item.Name} of type {item.GetType()}.");
+			}
+
 			if (prefab.SkipParenting) {
 				return prefab;
 			}
@@ -348,11 +352,6 @@ namespace VisualPinball.Unity.Editor
 			var parentGo = GetGroupParent(item);
 			prefab.GameObject.transform.SetParent(parentGo.transform, false);
 
-			// apply transformation
-			if (item is IRenderable renderable) {
-				// todo can probably remove that, it's in setData already..
-				prefab.GameObject.transform.SetFromMatrix(renderable.TransformationMatrix(_sourceTable, Origin.Original).ToUnityMatrix());
-			}
 			return prefab;
 		}
 

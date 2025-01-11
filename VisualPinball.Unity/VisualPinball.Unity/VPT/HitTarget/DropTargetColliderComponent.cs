@@ -16,6 +16,7 @@
 
 // ReSharper disable InconsistentNaming
 
+using Unity.Mathematics;
 using UnityEngine;
 using VisualPinball.Engine.VPT.HitTarget;
 

@@ -95,6 +95,12 @@ namespace VisualPinball.Engine.Math
 			};
 		}
 
+		public DragPointData Translate(Vertex3D v)
+		{
+			Center += v;
+			return this;
+		}
+
 		public DragPointData Clone()
 		{
 			return new DragPointData(Center) {

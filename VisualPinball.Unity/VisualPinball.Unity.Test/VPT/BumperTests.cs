@@ -51,8 +51,7 @@ namespace VisualPinball.Unity.Test
 			var bumper = go.transform.GetComponentsInChildren<BumperComponent>().First(c => c.gameObject.name == "Bumper2");
 			var bumperAuth = bumper.GetComponent<BumperComponent>();
 
-			bumperAuth.Position.x = 128f;
-			bumperAuth.Position.y = 255f;
+			bumperAuth.Position = new Vector2(128f, 255f);
 
 			go.GetComponent<TableComponent>().TableContainer.Save(tmpFileName);
 

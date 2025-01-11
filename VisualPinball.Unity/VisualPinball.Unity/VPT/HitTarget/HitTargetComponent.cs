@@ -17,6 +17,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Unity.Mathematics;
 using UnityEngine;
 using VisualPinball.Engine.VPT.HitTarget;
 using VisualPinball.Engine.VPT.Table;
@@ -136,6 +137,7 @@ namespace VisualPinball.Unity
 				? new HitTargetStaticData {
 					Speed = hitTargetAnimationComponent.Speed,
 					MaxAngle = hitTargetAnimationComponent.MaxAngle,
+					InitialXRotation = transform.localRotation.eulerAngles.x,
 				} : default;
 
 			var animationData = hitTargetColliderComponent && hitTargetAnimationComponent

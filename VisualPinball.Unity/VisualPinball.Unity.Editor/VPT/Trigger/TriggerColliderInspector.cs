@@ -30,7 +30,6 @@ namespace VisualPinball.Unity.Editor
 		protected override void OnEnable()
 		{
 			base.OnEnable();
-
 			_hitHeightProperty = serializedObject.FindProperty(nameof(TriggerColliderComponent.HitHeight));
 			_hitCircleRadiusProperty = serializedObject.FindProperty(nameof(TriggerColliderComponent.HitCircleRadius));
 		}

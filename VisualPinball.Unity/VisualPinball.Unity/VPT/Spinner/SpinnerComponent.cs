@@ -23,10 +23,12 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Unity.Mathematics;
 using UnityEngine;
 using VisualPinball.Engine.Common;
 using VisualPinball.Engine.Game.Engines;
+using VisualPinball.Engine.Math;
 using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Spinner;
 using VisualPinball.Engine.VPT.Table;
@@ -34,24 +36,37 @@ using VisualPinball.Engine.VPT.Table;
 namespace VisualPinball.Unity
 {
 	[AddComponentMenu("Visual Pinball/Game Item/Spinner")]
-	public class SpinnerComponent : MainRenderableComponent<SpinnerData>,
-		ISwitchDeviceComponent, IOnSurfaceComponent
+	public class SpinnerComponent : MainRenderableComponent<SpinnerData>, ISwitchDeviceComponent, IRotatableAnimationComponent
 	{
 		#region Data
 
-		[Tooltip("Position of the spinner on the playfield.")]
-		public Vector2 Position;
+		public Vector3 Position {
+			get => transform.localPosition.TranslateToVpx();
+			set => transform.localPosition = value.TranslateToWorld();
+		}
 
-		[Tooltip("Z-Position on the playfield.")]
-		public float Height = 60f;
+		public float Rotation {
+			get => transform.localEulerAngles.y > 180 ? transform.localEulerAngles.y - 360 : transform.localEulerAngles.y;
+			set => transform.SetLocalYRotation(math.radians(value));
+		}
 
-		[Range(-180f, 180f)]
-		[Tooltip("Z-Axis rotation of the spinner on the playfield.")]
-		public float Rotation;
+		public float Length
+		{
+			get {
+				var scale = transform.localScale;
+				if (math.abs(scale.x - scale.y) < Collider.Tolerance && math.abs(scale.x - scale.z) < Collider.Tolerance && math.abs(scale.y - scale.z) < Collider.Tolerance) {
+					return scale.x * 80f;
+				}
+				return _length;
+			}
+			set {
+				_length = value;
+				var s = value / 80f;
+				transform.localScale = new Vector3(s, s, s);
+			}
+		}
 
-		[Min(0)]
-		[Tooltip("Overall scaling of the spinner")]
-		public float Length = 80f;
+		private float _length = 80f;
 
 		[Range(0, 1f)]
 		[Tooltip("Damping on each turn while moving.")]
@@ -65,11 +80,7 @@ namespace VisualPinball.Unity
 		[Tooltip("Minimal angle. This allows the spinner to bounce back instead of executing a 360° rotation.")]
 		public float AngleMin;
 
-		public ISurfaceComponent Surface { get => _surface as ISurfaceComponent; set => _surface = value as MonoBehaviour; }
-		[SerializeField]
-		[TypeRestriction(typeof(ISurfaceComponent), PickerLabel = "Walls & Ramps", UpdateTransforms = true)]
-		[Tooltip("On which surface this spinner is attached to. Updates Z-translation.")]
-		public MonoBehaviour _surface;
+		public bool ShowBracket => GetVisibilityByComponent<SpinnerBracketColliderComponent>();
 
 		#endregion
 
@@ -78,30 +89,37 @@ namespace VisualPinball.Unity
 		public override ItemType ItemType => ItemType.Spinner;
 		public override string ItemName => "Spinner";
 
-		public override SpinnerData InstantiateData() => new SpinnerData();
+		public override SpinnerData InstantiateData() => new();
 
 		public override bool HasProceduralMesh => false;
 
 		protected override Type MeshComponentType { get; } = typeof(MeshComponent<SpinnerData, SpinnerComponent>);
 		protected override Type ColliderComponentType { get; } = typeof(ColliderComponent<SpinnerData, SpinnerComponent>);
 
-		private const string BracketMeshName = "Spinner (Bracket)";
 		public const string SwitchItem = "spinner_switch";
 
 		#endregion
 
 		#region Runtime
 
+		[NonSerialized]
+		private IRotatableAnimationComponent[] _animatedComponents;
+
 		public SpinnerApi SpinnerApi { get; private set; }
 
 		private void Awake()
 		{
-			var player = GetComponentInParent<Player>();
+			Player = GetComponentInParent<Player>();
 			var physicsEngine = GetComponentInParent<PhysicsEngine>();
-			SpinnerApi = new SpinnerApi(gameObject, player, physicsEngine);
+			SpinnerApi = new SpinnerApi(gameObject, Player, physicsEngine);
 
-			player.Register(SpinnerApi, this);
+			Player.Register(SpinnerApi, this);
 			RegisterPhysics(physicsEngine);
+
+			_animatedComponents = GetComponentsInChildren<SpinnerPlateAnimationComponent>()
+				.Select(gwa => gwa as IRotatableAnimationComponent)
+				.Concat(GetComponentsInChildren<SpinnerLeverAnimationComponent>().Select(gwa => gwa as IRotatableAnimationComponent))
+				.ToArray();
 		}
 
 		#endregion
@@ -118,30 +136,6 @@ namespace VisualPinball.Unity
 
 		#endregion
 
-		#region Transformation
-
-		public void OnSurfaceUpdated() => UpdateTransforms();
-		public float PositionZ => SurfaceHeight(Surface, Position);
-
-		public float HeightOnPlayfield => Height + PositionZ;
-
-		public override void UpdateTransforms()
-		{
-			base.UpdateTransforms();
-			var t = transform;
-
-			// position
-			t.localPosition = Physics.TranslateToWorld(Position.x, Position.y, HeightOnPlayfield);
-
-			// scale
-			t.localScale = Physics.ScaleToWorld(Length, Length, Length);
-
-			// rotation
-			t.localEulerAngles = Physics.RotateToWorld(0, 0, Rotation);
-		}
-
-		#endregion
-
 		#region Conversion
 
 		public override IEnumerable<MonoBehaviour> SetData(SpinnerData data)
@@ -149,8 +143,7 @@ namespace VisualPinball.Unity
 			var updatedComponents = new List<MonoBehaviour> { this };
 
 			// transforms
-			Position = data.Center.ToUnityFloat2();
-			Height = data.Height;
+			Position = new Vector3(data.Center.X, data.Center.Y, data.Height);
 			Length = data.Length;
 			Rotation = data.Rotation;
 
@@ -160,16 +153,8 @@ namespace VisualPinball.Unity
 			AngleMin = data.AngleMin;
 
 			// visibility
-			foreach (var mf in GetComponentsInChildren<MeshFilter>()) {
-				switch (mf.sharedMesh.name) {
-					case BracketMeshName:
-						mf.gameObject.SetActive(data.IsVisible && data.ShowBracket);
-						break;
-					default:
-						mf.gameObject.SetActive(data.IsVisible);
-						break;
-				}
-			}
+			SetVisibilityByComponent<SpinnerBracketColliderComponent>(data.ShowBracket);
+			SetMeshVisibility(data.IsVisible);
 
 			// collider data
 			var collComponent = GetComponent<SpinnerColliderComponent>();
@@ -183,7 +168,9 @@ namespace VisualPinball.Unity
 
 		public override IEnumerable<MonoBehaviour> SetReferencedData(SpinnerData data, Table table, IMaterialProvider materialProvider, ITextureProvider textureProvider, Dictionary<string, IMainComponent> components)
 		{
-			Surface = FindComponent<ISurfaceComponent>(components, data.Surface);
+			// surface
+			ParentToSurface(data.Surface, data.Center, components);
+
 			return Array.Empty<MonoBehaviour>();
 		}
 
@@ -191,11 +178,10 @@ namespace VisualPinball.Unity
 		{
 			// name and transforms
 			data.Name = name;
-			data.Center = Position.ToVertex2D();
-			data.Height = Height;
+			data.Center = new Vertex2D(Position.x, Position.y);
+			data.Height = Position.z;
 			data.Length = Length;
 			data.Rotation = Rotation;
-			data.Surface = Surface != null ? Surface.name : string.Empty;
 
 			// spinner props
 			data.Damping = Damping;
@@ -203,20 +189,8 @@ namespace VisualPinball.Unity
 			data.AngleMin = AngleMin;
 
 			// visibility
-			var isBracketActive = false;
-			var isAnythingElseActive = false;
-			foreach (var mf in GetComponentsInChildren<MeshFilter>()) {
-				switch (mf.sharedMesh.name) {
-					case BracketMeshName:
-						isBracketActive = mf.gameObject.activeInHierarchy;
-						break;
-					default:
-						isAnythingElseActive = isAnythingElseActive || mf.gameObject.activeInHierarchy;
-						break;
-				}
-			}
-			data.IsVisible = isAnythingElseActive || isBracketActive;
-			data.ShowBracket = isBracketActive;
+			data.ShowBracket = GetVisibilityByComponent<SpinnerBracketColliderComponent>();
+			data.IsVisible = GetMeshVisibility();
 
 			var collComponent = GetComponent<SpinnerColliderComponent>();
 			if (collComponent) {
@@ -228,23 +202,12 @@ namespace VisualPinball.Unity
 
 		public override void CopyFromObject(GameObject go)
 		{
-			var spinnerComponent = go.GetComponent<SpinnerComponent>();
-			if (spinnerComponent != null) {
-				Position = spinnerComponent.Position;
-				Height = spinnerComponent.Height;
-				Rotation = spinnerComponent.Rotation;
-				Length = spinnerComponent.Length;
-				Damping = spinnerComponent.Damping;
-				AngleMax = spinnerComponent.AngleMax;
-				AngleMin = spinnerComponent.AngleMin;
-				Surface = spinnerComponent.Surface;
-
-			} else {
-				Position = go.transform.localPosition.TranslateToVpx();
-				Rotation = go.transform.localEulerAngles.z;
+			var srcMainComp = go.GetComponent<SpinnerComponent>();
+			if (srcMainComp) {
+				Damping = srcMainComp.Damping;
+				AngleMax = srcMainComp.AngleMax;
+				AngleMin = srcMainComp.AngleMin;
 			}
-
-			UpdateTransforms();
 		}
 
 		#endregion
@@ -261,7 +224,7 @@ namespace VisualPinball.Unity
 					AngleMin = math.radians(AngleMin),
 					Damping = math.pow(Damping, (float)PhysicsConstants.PhysFactor),
 					Elasticity = collComponent.Elasticity,
-					Height = Height
+					Height = Position.z
 				} : default;
 
 			// animation
@@ -281,39 +244,14 @@ namespace VisualPinball.Unity
 
 		#endregion
 
-		#region Editor Tooling
+		#region IRotatableAnimationComponent
 
-		public override ItemDataTransformType EditorPositionType => ItemDataTransformType.ThreeD;
-		public override Vector3 GetEditorPosition()
+		public void OnRotationUpdated(float angleRad)
 		{
-			return new Vector3(Position.x, Position.y, Height);
-		}
-		public override void SetEditorPosition(Vector3 pos)
-		{
-			Position = pos;
-			Height = pos.z;
-		}
-
-		public override ItemDataTransformType EditorRotationType => ItemDataTransformType.OneD;
-		public override Vector3 GetEditorRotation() => new Vector3(Rotation, 0f, 0f);
-		public override void SetEditorRotation(Vector3 rot) => Rotation = ClampDegrees(rot.x);
-
-		public override ItemDataTransformType EditorScaleType => ItemDataTransformType.OneD;
-
-		public bool ShowBracket {
-			get {
-				foreach (var mf in GetComponentsInChildren<MeshFilter>()) {
-					switch (mf.sharedMesh.name) {
-						case BracketMeshName:
-							return mf.gameObject.activeInHierarchy;
-					}
-				}
-				return false;
+			foreach (var animatedComponent in _animatedComponents) {
+				animatedComponent.OnRotationUpdated(angleRad);
 			}
 		}
-
-		public override Vector3 GetEditorScale() => new Vector3(Length, 0f, 0f);
-		public override void SetEditorScale(Vector3 scale) => Length = scale.x;
 
 		#endregion
 	}

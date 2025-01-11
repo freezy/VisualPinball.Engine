@@ -24,6 +24,7 @@ using Unity.Mathematics;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using VisualPinball.Engine.Game.Engines;
+using VisualPinball.Engine.Math;
 using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Plunger;
 using VisualPinball.Engine.VPT.Table;
@@ -31,25 +32,16 @@ using VisualPinball.Engine.VPT.Table;
 namespace VisualPinball.Unity
 {
 	[AddComponentMenu("Visual Pinball/Game Item/Plunger")]
-	public class PlungerComponent : MainRenderableComponent<PlungerData>,
-		ICoilDeviceComponent, IOnSurfaceComponent
+	public class PlungerComponent : MainRenderableComponent<PlungerData>, ICoilDeviceComponent
 	{
 		#region Data
 
-		[Tooltip("The position of the plunger on the playfield.")]
-		public Vector2 Position;
-
+		public Vector3 Position {
+			get => transform.localPosition.TranslateToVpx();
+			set => transform.localPosition = value.TranslateToWorld();
+		}
 		public float Width = 25f;
-
 		public float Height = 20f;
-
-		public float ZAdjust;
-
-		public ISurfaceComponent Surface { get => _surface as ISurfaceComponent; set => _surface = value as MonoBehaviour; }
-		[SerializeField]
-		[TypeRestriction(typeof(ISurfaceComponent), PickerLabel = "Walls & Ramps", UpdateTransforms = true)]
-		[Tooltip("On which surface this plunger is attached to. Updates Z-translation.")]
-		public MonoBehaviour _surface;
 
 		#endregion
 
@@ -105,18 +97,10 @@ namespace VisualPinball.Unity
 
 		#region Transformation
 
-		public void OnSurfaceUpdated() => RebuildMeshes();
-
-		public override void OnPlayfieldHeightUpdated() => RebuildMeshes();
-
-		public float PositionZ => SurfaceHeight(Surface, Position);
-		
 		public override void UpdateTransforms()
 		{
 			base.UpdateTransforms();
-			transform.localScale = Physics.ScaleToWorld(1, 1, 1);
-			transform.localRotation = Quaternion.Euler(Physics.RotateToWorld(0f, 0f, 0f));
-			
+
 			GetComponent<PlungerRodMeshComponent>()?.CalculateBoundingBox();
 			GetComponent<PlungerSpringMeshComponent>()?.CalculateBoundingBox();
 		}
@@ -130,10 +114,9 @@ namespace VisualPinball.Unity
 			var updatedComponents = new List<MonoBehaviour> { this };
 
 			// geometry and position
-			Position = data.Center.ToUnityVector2();
+			Position = new Vector3(data.Center.X, data.Center.Y, data.ZAdjust);
 			Width = data.Width;
 			Height = data.Height;
-			ZAdjust = data.ZAdjust;
 
 			// collider data
 			var collComponent = GetComponent<PlungerColliderComponent>();
@@ -185,7 +168,8 @@ namespace VisualPinball.Unity
 
 		public override IEnumerable<MonoBehaviour> SetReferencedData(PlungerData data, Table table, IMaterialProvider materialProvider, ITextureProvider textureProvider, Dictionary<string, IMainComponent> components)
 		{
-			Surface = FindComponent<ISurfaceComponent>(components, data.Surface);
+			// surface
+			ParentToSurface(data.Surface, data.Center, components);
 
 			// rod mesh
 			var rodMesh = GetComponentInChildren<PlungerRodMeshComponent>(true);
@@ -208,11 +192,10 @@ namespace VisualPinball.Unity
 		{
 			// name, geometry and position
 			data.Name = name;
-			data.Center = Position.ToVertex2D();
+			data.Center = new Vertex2D(Position.x, Position.y);
 			data.Width = Width;
 			data.Height = Height;
-			data.ZAdjust = ZAdjust;
-			data.Surface = Surface != null ? Surface.name : string.Empty;
+			data.ZAdjust = Position.z;
 
 			// collider data
 			var collComponent = GetComponent<PlungerColliderComponent>();
@@ -258,19 +241,7 @@ namespace VisualPinball.Unity
 
 		public override void CopyFromObject(GameObject go)
 		{
-			var plungerComponent = go.GetComponent<PlungerComponent>();
-			if (plungerComponent != null) {
-				Position = plungerComponent.Position;
-				Width = plungerComponent.Width;
-				Height = plungerComponent.Height;
-				ZAdjust = plungerComponent.ZAdjust;
-				Surface = plungerComponent.Surface;
-
-			} else {
-				Position = go.transform.localPosition.TranslateToVpx();
-			}
-
-			UpdateTransforms();
+			// primitives don't have any special params.
 		}
 
 		#endregion
@@ -285,13 +256,13 @@ namespace VisualPinball.Unity
 				return default;
 			}
 
-			var zHeight = PositionZ;
-			var x = Position.x - Width;
-			var y = Position.y + Height;
-			var x2 = Position.x + Width;
+			var zHeight = Position.z;
+			var x = -Width;
+			var x2 = Width;
+			var y = Height;
 
-			var frameTop = Position.y - collComponent.Stroke;
-			var frameBottom = Position.y;
+			var frameTop = -collComponent.Stroke;
+			var frameBottom = 0;
 			var frameLen = frameBottom - frameTop;
 			var restPos = collComponent.ParkPosition;
 			var position = frameTop + restPos * frameLen;
@@ -357,17 +328,5 @@ namespace VisualPinball.Unity
 				skinnedMeshRenderer.SetBlendShapeWeight(0, pos);
 			}
 		}
-
-		#region Editor Tooling
-
-		public override ItemDataTransformType EditorPositionType => ItemDataTransformType.TwoD;
-		public override Vector3 GetEditorPosition() => Position;
-		public override void SetEditorPosition(Vector3 pos)
-		{
-			Position = ((float3)pos).xy;
-			RebuildMeshes();
-		}
-
-		#endregion
 	}
 }

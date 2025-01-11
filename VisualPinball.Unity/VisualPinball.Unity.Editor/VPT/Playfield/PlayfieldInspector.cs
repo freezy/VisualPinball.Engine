@@ -25,7 +25,6 @@ namespace VisualPinball.Unity.Editor
 		private SerializedProperty _rightProperty;
 		private SerializedProperty _bottomProperty;
 		private SerializedProperty _glassHeightProperty;
-		private SerializedProperty _tableHeightProperty;
 		private SerializedProperty _angleTiltMinProperty;
 		private SerializedProperty _angleTiltMaxProperty;
 		private SerializedProperty _renderSlopeProperty;
@@ -37,7 +36,6 @@ namespace VisualPinball.Unity.Editor
 			_rightProperty = serializedObject.FindProperty(nameof(PlayfieldComponent.Right));
 			_bottomProperty = serializedObject.FindProperty(nameof(PlayfieldComponent.Bottom));
 			_glassHeightProperty = serializedObject.FindProperty(nameof(PlayfieldComponent.GlassHeight));
-			_tableHeightProperty = serializedObject.FindProperty(nameof(PlayfieldComponent.TableHeight));
 			_angleTiltMinProperty = serializedObject.FindProperty(nameof(PlayfieldComponent.AngleTiltMin));
 			_angleTiltMaxProperty = serializedObject.FindProperty(nameof(PlayfieldComponent.AngleTiltMax));
 			_renderSlopeProperty = serializedObject.FindProperty(nameof(PlayfieldComponent.RenderSlope));
@@ -56,9 +54,6 @@ namespace VisualPinball.Unity.Editor
 			PropertyField(_rightProperty, "Table Width", true);
 			PropertyField(_bottomProperty, "Table Height/Length", true);
 			PropertyField(_glassHeightProperty, "Top Glass Height", true);
-			PropertyField(_tableHeightProperty, "Table Field Height", true, onChanged: () => {
-				WalkChildren(PlayfieldComponent.transform, UpdateTableHeightReferences);
-			});
 			PropertyField(_angleTiltMinProperty, "Slope for Min. Difficulty");
 			PropertyField(_angleTiltMaxProperty, "Slope for Max. Difficulty");
 			PropertyField(_renderSlopeProperty, "Rendered Playfield Angle");

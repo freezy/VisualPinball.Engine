@@ -21,7 +21,8 @@ namespace VisualPinball.Unity
 	internal static class FlipperCorrection
 	{
 		public static void OnBallLeaveFlipper(ref BallState ballState, ref FlipperCorrectionState flipperCorrectionState,
-			in FlipperMovementState flipperMovementState, in FlipperTricksData tricks, in FlipperStaticData flipperStaticData, uint timeMs)
+			in FlipperMovementState flipperMovementState, in FlipperTricksData tricks, float3 flipperPos,
+			in FlipperStaticData flipperStaticData, uint timeMs)
 		{
 
 			var timeSinceFlipperStartedRotatingToEndMs = timeMs - flipperMovementState.StartRotateToEndTime;
@@ -44,9 +45,9 @@ namespace VisualPinball.Unity
 			var angleStart = flipperStaticData.AngleStart;
 			var angleEnd = tricks.AngleEnd;
 
-			var flipPos = flipperStaticData.Position;
+			var flipPos = flipperPos;
 
-			var flipEnd = flipperStaticData.Position;
+			var flipEnd = flipperPos;
 			flipEnd.x += math.sin(angleCur) * flipperStaticData.FlipperRadius;
 			flipEnd.y += -math.cos(angleCur) * flipperStaticData.FlipperRadius;
 

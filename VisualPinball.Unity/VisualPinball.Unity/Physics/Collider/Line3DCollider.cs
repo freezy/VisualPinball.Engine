@@ -20,6 +20,13 @@ using Unity.Mathematics;
 
 namespace VisualPinball.Unity
 {
+	/// <summary>
+	/// A line from point A to point B in 3D space.
+	/// </summary>
+	///
+	/// <remarks>
+	/// Defined by two points (float3)
+	/// </remarks>
 	internal struct Line3DCollider : ICollider
 	{
 		public int Id
@@ -32,6 +39,8 @@ namespace VisualPinball.Unity
 				Bounds = bounds;
 			}
 		}
+
+		public bool IsFullyTransformable => true;
 
 		public ColliderHeader Header;
 
@@ -139,7 +148,13 @@ namespace VisualPinball.Unity
 			}
 		}
 
-		public override string ToString() => $"Line3DCollider[{Header.ItemId}] ({_xy.x}/{_xy.y} | {_zLow} -> {_zHigh})";
+		#region Transformation
+
+		public Line3DCollider Transform(float4x4 matrix)
+		{
+			Transform(this, matrix);
+			return this;
+		}
 
 		public void Transform(Line3DCollider line3D, float4x4 matrix)
 		{
@@ -147,6 +162,24 @@ namespace VisualPinball.Unity
 				math.mul(matrix, new float4(line3D._v1, 1f)).xyz,
 				math.mul(matrix, new float4(line3D._v2, 1f)).xyz
 			);
+			// the above also transforms the aabbs.
 		}
+
+		public Aabb GetTransformedAabb(float4x4 matrix)
+		{
+			var p1 = matrix.MultiplyPoint(_v1);
+			var p2 = matrix.MultiplyPoint(_v2);
+			return new Aabb(math.min(p1, p2), math.max(p1, p2));
+		}
+
+		public Line3DCollider TransformAabb(float4x4 matrix)
+		{
+			Bounds = new ColliderBounds(Header.ItemId, Header.Id, GetTransformedAabb(matrix));
+			return this;
+		}
+
+		#endregion
+
+		public override string ToString() => $"Line3DCollider[{Header.ItemId}] ({_xy.x}/{_xy.y} | {_zLow} -> {_zHigh})";
 	}
 }

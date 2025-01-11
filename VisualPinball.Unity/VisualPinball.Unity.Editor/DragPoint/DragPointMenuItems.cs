@@ -203,7 +203,7 @@ namespace VisualPinball.Unity.Editor
 		private static bool FlipZValidate(MenuCommand command)
 		{
 			if (command.context is IDragPointsInspector inspector) {
-				return inspector.HandleType == ItemDataTransformType.ThreeD;
+				return inspector.HandleType == DragPointTransformType.ThreeD;
 			}
 			return false;
 		}

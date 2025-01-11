@@ -103,7 +103,7 @@ namespace VisualPinball.Unity.Patcher
 			PatcherUtil.Reparent(gameObject, parent);
 
 			primitive.Position = Vector3.zero;
-			primitive.Rotation.y = 0;
+			// primitive.Rotation.y = 0;
 		}
 	}
 }

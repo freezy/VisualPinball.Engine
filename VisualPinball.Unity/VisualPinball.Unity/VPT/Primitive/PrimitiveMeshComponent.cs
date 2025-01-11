@@ -45,7 +45,7 @@ namespace VisualPinball.Unity
 
 		protected override Mesh GetMesh(PrimitiveData data)
 			=> new PrimitiveMeshGenerator(data)
-				.GetMesh(MainComponent.PlayfieldHeight, data.Mesh, Origin.Original, false)
+				.GetMesh(0, data.Mesh, Origin.Original, false)
 				.TransformToWorld();
 
 		protected override PbrMaterial GetMaterial(PrimitiveData data, Table table)

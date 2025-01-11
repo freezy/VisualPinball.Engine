@@ -23,42 +23,50 @@
 
 using System;
 using System.Collections.Generic;
-using System.IO;
+using System.Linq;
 using Unity.Mathematics;
-using UnityEditor;
 using UnityEngine;
-using UnityEngine.UIElements;
 using VisualPinball.Engine.Common;
 using VisualPinball.Engine.Game.Engines;
 using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Gate;
-using VisualPinball.Engine.VPT.Surface;
 using VisualPinball.Engine.VPT.Table;
 
 namespace VisualPinball.Unity
 {
 	[AddComponentMenu("Visual Pinball/Game Item/Gate")]
 	public class GateComponent : MainRenderableComponent<GateData>,
-		IGateData, ISwitchDeviceComponent, IOnSurfaceComponent
+		IGateData, ISwitchDeviceComponent, IRotatableAnimationComponent
 	{
 		#region Data
 
-		[Tooltip("Position of the gate on the playfield.")]
-		public Vector3 Position;
+		public Vector3 Position {
+			get => transform.localPosition.TranslateToVpx();
+			set => transform.localPosition = value.TranslateToWorld();
+		}
 
-		[Range(-180f, 180f)]
-		[Tooltip("Angle of the gate on the playfield (z-axis rotation)")]
-		public float _rotation;
+		public float Rotation {
+			get => transform.localEulerAngles.y > 180 ? transform.localEulerAngles.y - 360 : transform.localEulerAngles.y;
+			set => transform.SetLocalYRotation(math.radians(value));
+		}
 
-		[Range(10f, 250f)]
-		[Tooltip("How much the gate is scaled, in percent.")]
 		public float _length = 100f;
 
-		public ISurfaceComponent Surface { get => _surface as ISurfaceComponent; set => _surface = value as MonoBehaviour; }
-		[SerializeField]
-		[TypeRestriction(typeof(ISurfaceComponent), PickerLabel = "Walls & Ramps", UpdateTransforms = true)]
-		[Tooltip("On which surface this flipper is attached to. Updates Z-translation.")]
-		public MonoBehaviour _surface;
+		public float Length
+		{
+			get {
+				var scale = transform.localScale;
+				if (math.abs(scale.x - scale.y) < Collider.Tolerance && math.abs(scale.x - scale.z) < Collider.Tolerance && math.abs(scale.y - scale.z) < Collider.Tolerance) {
+					return scale.x * 100f;
+				}
+				return _length;
+			}
+			set {
+				_length = value;
+				var s = value / 100f;
+				transform.localScale = new Vector3(s, s, s);
+			}
+		}
 
 		public int _type;
 		public string _meshName;
@@ -71,18 +79,7 @@ namespace VisualPinball.Unity
 		public float PosY => Position.y;
 		public float Height => Position.z;
 
-		public float Rotation => _rotation;
-		public float Length => _length;
-
-		public bool ShowBracket { get {
-			foreach (var mf in GetComponentsInChildren<MeshFilter>()) {
-				switch (mf.gameObject.name) {
-					case BracketObjectName:
-						return mf.gameObject.activeInHierarchy;
-				}
-			}
-			return false;
-		}}
+		public bool ShowBracket => GetVisibilityByComponent<GateBracketComponent>();
 
 		#endregion
 
@@ -98,27 +95,31 @@ namespace VisualPinball.Unity
 		protected override Type MeshComponentType { get; } = typeof(MeshComponent<GateData, GateComponent>);
 		protected override Type ColliderComponentType { get; } = typeof(ColliderComponent<GateData, GateComponent>);
 
-		public const string BracketObjectName = "Bracket";
-		public const string WireObjectName = "Wire";
-
 		public const string MainSwitchItem = "gate_switch";
 
 		#endregion
 
 		#region Runtime
 
+		[NonSerialized]
+		private IRotatableAnimationComponent[] _animatedComponents;
+
 		public GateApi GateApi { get; private set; }
 
 		private void Awake()
 		{
-			var player = GetComponentInParent<Player>();
+			Player = GetComponentInParent<Player>();
 			var physicsEngine = GetComponentInParent<PhysicsEngine>();
-			GateApi = new GateApi(gameObject, player, physicsEngine);
+			GateApi = new GateApi(gameObject, Player, physicsEngine);
 
-			player.Register(GateApi, this);
+			Player.Register(GateApi, this);
 			if (GetComponent<GateColliderComponent>()) {
 				RegisterPhysics(physicsEngine);
 			}
+
+			_animatedComponents = GetComponentsInChildren<GateWireAnimationComponent>()
+				.Select(gwa => gwa as IRotatableAnimationComponent)
+				.ToArray();
 		}
 
 		#endregion
@@ -137,29 +138,6 @@ namespace VisualPinball.Unity
 
 		#endregion
 
-		#region Transformation
-
-		public void OnSurfaceUpdated() => UpdateTransforms();
-
-		public float PositionZ => SurfaceHeight(Surface, Position);
-
-		public override void UpdateTransforms()
-		{
-			base.UpdateTransforms();
-			var t = transform;
-
-			// position
-			t.localPosition = Physics.TranslateToWorld(Position.x, Position.y, Position.z + PositionZ);
-
-			// scale
-			t.localScale = Physics.ScaleToWorld(Length, Length, Length);
-
-			// rotation
-			t.localEulerAngles = Physics.RotateToWorld(0, 0, Rotation);
-		}
-
-		#endregion
-
 		#region Conversion
 
 		public override IEnumerable<MonoBehaviour> SetData(GateData data)
@@ -168,8 +146,8 @@ namespace VisualPinball.Unity
 
 			// transforms
 			Position = data.Center.ToUnityVector3(data.Height);
-			_rotation = data.Rotation > 180f ? data.Rotation - 360f : data.Rotation;
-			_length = data.Length;
+			Rotation = data.Rotation > 180f ? data.Rotation - 360f : data.Rotation;
+			Length = data.Length;
 			_type = data.GateType;
 
 			// collider data
@@ -197,25 +175,12 @@ namespace VisualPinball.Unity
 
 		public override IEnumerable<MonoBehaviour> SetReferencedData(GateData data, Table table, IMaterialProvider materialProvider, ITextureProvider textureProvider, Dictionary<string, IMainComponent> components)
 		{
-			Surface = FindComponent<ISurfaceComponent>(components, data.Surface);
+			// surface
+			ParentToSurface(data.Surface, data.Center, components);
 
 			// visibility
-			foreach (var mf in GetComponentsInChildren<MeshFilter>()) {
-				switch (mf.gameObject.name) {
-					case BracketObjectName:
-						mf.gameObject.SetActive(data.IsVisible && data.ShowBracket);
-						break;
-					case WireObjectName:
-						#if UNITY_EDITOR
-						_meshName = Path.GetFileNameWithoutExtension(AssetDatabase.GetAssetPath(mf.sharedMesh));
-						#endif
-						mf.gameObject.SetActive(data.IsVisible);
-						break;
-					default:
-						mf.gameObject.SetActive(data.IsVisible);
-						break;
-				}
-			}
+			SetVisibilityByComponent<GateBracketComponent>(data.ShowBracket);
+			SetMeshVisibility(data.IsVisible);
 
 			return Array.Empty<MonoBehaviour>();
 		}
@@ -223,26 +188,17 @@ namespace VisualPinball.Unity
 		public override GateData CopyDataTo(GateData data, string[] materialNames, string[] textureNames, bool forExport)
 		{
 			// name and transforms
-			data.Name = name;
 			data.Center = Position.ToVertex2Dxy();
+			data.Name = name;
 			data.Rotation = Rotation;
 			data.Height = Position.z;
 			data.Length = Length;
-			data.Surface = Surface != null ? Surface.name : string.Empty;
 
 			data.GateType = _type;
 
 			// visibility
-			foreach (var mf in GetComponentsInChildren<MeshFilter>()) {
-				switch (mf.gameObject.name) {
-					case BracketObjectName:
-						data.ShowBracket = mf.gameObject.activeInHierarchy;
-						break;
-					case WireObjectName:
-						data.IsVisible = mf.gameObject.activeInHierarchy;
-						break;
-				}
-			}
+			data.ShowBracket = GetVisibilityByComponent<GateBracketComponent>();
+			data.IsVisible = GetMeshVisibility();
 
 			// collision data
 			var colliderComponent = gameObject.GetComponent<GateColliderComponent>();
@@ -266,20 +222,25 @@ namespace VisualPinball.Unity
 
 		public override void CopyFromObject(GameObject go)
 		{
-			var gateComponent = go.GetComponent<GateComponent>();
-			if (gateComponent != null) {
-				Position = gateComponent.Position;
-				_rotation = gateComponent._rotation;
-				_length = gateComponent._length;
-				Surface = gateComponent.Surface;
-
-			} else {
-
-				Position = go.transform.localPosition.TranslateToVpx();
-				_rotation = go.transform.localEulerAngles.z;
+			// collider data
+			var collComp = GetComponent<GateColliderComponent>();
+			var srcCollComp = go.GetComponent<GateColliderComponent>();
+			if (collComp && srcCollComp) {
+				collComp._angleMin = srcCollComp._angleMin;
+				collComp._angleMax = srcCollComp._angleMax;
+				collComp.Damping = srcCollComp.Damping;
+				collComp.Elasticity = srcCollComp.Elasticity;
+				collComp.Friction = srcCollComp.Friction;
+				collComp.GravityFactor = srcCollComp.GravityFactor;
+				collComp._twoWay = srcCollComp.TwoWay;
 			}
 
-			UpdateTransforms();
+			// gate bracket visibility
+			var bracketComp = GetComponentInChildren<GateBracketComponent>(true);
+			var srcBracketComp = go.GetComponentInChildren<GateBracketComponent>(true);
+			if (bracketComp && srcBracketComp) {
+				bracketComp.gameObject.SetActive(srcBracketComp.gameObject.activeInHierarchy);
+			}
 		}
 
 		#endregion
@@ -320,24 +281,14 @@ namespace VisualPinball.Unity
 
 		#endregion
 
-		#region Editor Tooling
+		#region IRotatableAnimationComponent
 
-		public override ItemDataTransformType EditorPositionType => ItemDataTransformType.ThreeD;
-		public override void SetEditorPosition(Vector3 pos) => Position = Surface != null 
-			? pos - new Vector3(0, 0, Surface.Height(Position))
-			: pos;
-		public override Vector3 GetEditorPosition() => Surface != null
-			? new Vector3(Position.x, Position.y, Position.z + Surface.Height(Position))
-			: new Vector3(Position.x, Position.y, Position.z);
-
-
-		public override ItemDataTransformType EditorRotationType => ItemDataTransformType.OneD;
-		public override Vector3 GetEditorRotation() => new Vector3(Rotation, 0f, 0f);
-		public override void SetEditorRotation(Vector3 rot) => _rotation = ClampDegrees(rot.x);
-
-		public override ItemDataTransformType EditorScaleType => ItemDataTransformType.OneD;
-		public override Vector3 GetEditorScale() => new Vector3(Length, 0f, 0f);
-		public override void SetEditorScale(Vector3 scale) => _length = scale.x;
+		public void OnRotationUpdated(float angleRad)
+		{
+			foreach (var animatedComponent in _animatedComponents) {
+				animatedComponent.OnRotationUpdated(angleRad);
+			}
+		}
 
 		#endregion
 	}

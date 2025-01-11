@@ -16,6 +16,7 @@
 
 using Unity.Collections;
 using Unity.Mathematics;
+using UnityEngine;
 using VisualPinball.Engine.Common;
 using VisualPinball.Engine.Game;
 
@@ -30,7 +31,7 @@ namespace VisualPinball.Unity
 		/// </summary>
 		public const bool ForceLegacyMode = false;
 
-		public static void Collide(ref BallState ball, ref NativeQueue<EventData>.ParallelWriter events,
+		public static void Collide(float3 position, ref BallState ball, ref NativeQueue<EventData>.ParallelWriter events,
 			ref InsideOfs insideOfs, ref KickerCollisionState collState, in KickerStaticState staticState,
 			in ColliderMeshData meshData, in CollisionEventData collEvent, in int itemId, bool newBall)
 		{
@@ -102,11 +103,11 @@ namespace VisualPinball.Unity
 						ball.Velocity = float3.zero;
 						ball.AngularMomentum = float3.zero;
 						var posZ = !staticState.FallIn
-							? staticState.ZLow + ball.Radius * 2
+							? position.z + ball.Radius * 2
 							: staticState.FallThrough
-								? staticState.ZLow - ball.Radius - 5.0f
-								: staticState.ZLow + ball.Radius;
-						ball.Position = new float3(staticState.Center.x, staticState.Center.y, posZ);
+								? position.z - ball.Radius - 5.0f
+								: position.z + ball.Radius;
+						ball.Position = new float3(position.x, position.y, posZ);
 
 					} else {
 						collState.BallId = 0; // make sure

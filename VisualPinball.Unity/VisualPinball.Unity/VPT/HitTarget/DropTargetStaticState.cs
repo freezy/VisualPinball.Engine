@@ -14,6 +14,8 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+using Unity.Mathematics;
+
 namespace VisualPinball.Unity
 {
 	internal struct DropTargetStaticState
@@ -21,5 +23,6 @@ namespace VisualPinball.Unity
 		public float Speed;
 		public float RaiseDelay;
 		public bool UseHitEvent;
+		public float3 InitialPosition;
 	}
 }

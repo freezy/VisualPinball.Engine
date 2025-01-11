@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEditor;
@@ -42,6 +43,10 @@ namespace VisualPinball.Unity.Editor
 		public VpxPrefab(Object prefab, TItem item)
 		{
 			_item = item;
+			if (!prefab) {
+				throw new Exception($"Could not instantiate prefab for item {item} of type {item.GetType()}.");
+			}
+
 			GameObject = PrefabUtility.InstantiatePrefab(prefab) as GameObject;
 			GameObject!.name = item.Name;
 			_mainComponent = GameObject.GetComponent<TMainComponent>();
@@ -53,7 +58,6 @@ namespace VisualPinball.Unity.Editor
 		public void SetData()
 		{
 			var updatedComponents = _mainComponent.SetData(_item.Data);
-			_mainComponent.IsLocked = _item.Data.IsLocked;
 			_mainComponent.EditorLayer = _item.Data.EditorLayer;
 			_mainComponent.EditorLayerName = _item.Data.EditorLayerName;
 			_mainComponent.EditorLayerVisibility = _item.Data.EditorLayerVisibility;

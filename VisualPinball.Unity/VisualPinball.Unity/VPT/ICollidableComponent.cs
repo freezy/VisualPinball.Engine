@@ -14,12 +14,54 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+using Unity.Mathematics;
+
 namespace VisualPinball.Unity
 {
 	public interface ICollidableComponent
 	{
-		internal void GetColliders(Player player, ref ColliderReference colliders, ref ColliderReference kinematicColliders, float margin);
-		internal int ItemId { get; }
+		/// <summary>
+		/// Generates the colliders.
+		/// </summary>
+		/// <param name="player"></param>
+		/// <param name="physicsEngine"></param>
+		/// <param name="colliders"></param>
+		/// <param name="translateWithinPlayfieldMatrix"></param>
+		/// <param name="margin"></param>
+		internal void GetColliders(Player player, PhysicsEngine physicsEngine, ref ColliderReference colliders,
+			float4x4 translateWithinPlayfieldMatrix, float margin);
+
+		/// <summary>
+		/// The unique identifier of the main item.
+		/// </summary>
+		public int ItemId { get; }
+
+		/// <summary>
+		/// Returns whether this specific item is set to collidable, i.e. whether can it ever be
+		/// collided with during gameplay.
+		/// </summary>
 		internal bool IsCollidable { get; }
+
+		/// <summary>
+		/// If set, this collider can be transformed during gameplay.
+		/// </summary>
+		public bool IsKinematic { get; }
+
+		/// <summary>
+		/// The translation matrix, that will be applied in reverse to the ball
+		/// for hit testing and collision.
+		/// </summary>
+		/// <param name="worldToPlayfield">The playfield's worldToLocal matrix.</param>
+		/// <returns></returns>
+		public float4x4 GetLocalToPlayfieldMatrixInVpx(float4x4 worldToPlayfield);
+
+		/// <summary>
+		/// Executed on kinematic colliders, when the transformation has changed. This allows updating data if necessary,
+		/// for example the kicker center, which is relevant when spawning balls.
+		/// </summary>
+		/// <param name="currTransformationMatrix"></param>
+		public void OnTransformationChanged(float4x4 currTransformationMatrix);
+
+		public bool CollidersDirty { set; }
 	}
 }

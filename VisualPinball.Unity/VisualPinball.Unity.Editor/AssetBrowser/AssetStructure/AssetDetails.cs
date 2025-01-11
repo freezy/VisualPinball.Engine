@@ -274,11 +274,9 @@ namespace VisualPinball.Unity.Editor
 			var go = InstantiateAsset(parentTransform);
 
 			// move to the middle of the playfield
+			go.transform.localPosition = new Vector3(Physics.ScaleToWorld(pf.Width / 2), 0, -Physics.ScaleToWorld(pf.Height / 2));
 			if (pf != null && go.GetComponent(typeof(IMainRenderableComponent)) is IMainRenderableComponent comp) {
-				comp.SetEditorPosition(new Vector3(pf.Width / 2, pf.Height / 2, 0));
 				comp.UpdateTransforms();
-			} else if (pf != null) {
-				go.transform.localPosition = new Vector3(Physics.ScaleToWorld(pf.Width / 2), 0, -Physics.ScaleToWorld(pf.Height / 2));
 			}
 
 			ApplyVariation(go);
@@ -306,17 +304,17 @@ namespace VisualPinball.Unity.Editor
 				}
 
 				// enable undo
-				Undo.RegisterCreatedObjectUndo(go, "replace object with asset");
+				Undo.RegisterCreatedObjectUndo(go, "Replace object with asset");
 				go.transform.SetParent(selected.transform.parent);
 
-				// if both are vpe components, just copy the data
+				// if both are vpe components, copy the data
 				if (go.GetComponent(typeof(IMainRenderableComponent)) is IMainRenderableComponent comp) {
 					comp.CopyFromObject(selected);
-
-				} else {
-					go.transform.localPosition = selected.transform.localPosition;
-					go.transform.localRotation = selected.transform.localRotation;
 				}
+				go.name = selected.name;
+				go.transform.localPosition = selected.transform.localPosition;
+				go.transform.localRotation = selected.transform.localRotation;
+				go.transform.localScale = selected.transform.localScale;
 				go.transform.SetSiblingIndex(selected.transform.GetSiblingIndex());
 				
 				// update references

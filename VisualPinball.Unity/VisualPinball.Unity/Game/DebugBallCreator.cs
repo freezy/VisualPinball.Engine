@@ -29,11 +29,11 @@ namespace VisualPinball.Unity
 		private readonly float _kickAngle;
 		private readonly float _kickForce;
 
-		public DebugBallCreator(float x, float y, float playfieldHeight)
+		public DebugBallCreator(float x, float y)
 		{
 			_x = x;
 			_y = y;
-			_z = playfieldHeight;
+			_z = 0;
 			_kickAngle = 0;
 			_kickForce = 0;
 		}

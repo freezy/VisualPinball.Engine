@@ -17,6 +17,7 @@
 // ReSharper disable ForCanBeConvertedToForeach
 
 using Unity.Collections;
+using Unity.Mathematics;
 using Unity.Profiling;
 
 namespace VisualPinball.Unity
@@ -41,21 +42,43 @@ namespace VisualPinball.Unity
 					if (!state.IsColliderActive(ref colliders, overlappingColliderId)) {
 						continue;
 					}
+
+					float newTime;
 					var newCollEvent = new CollisionEventData();
-					var newTime = state.HitTest(ref colliders, overlappingColliderId, ref ball, ref newCollEvent, ref contacts);
-					SaveCollisions(ref ball, ref newCollEvent, ref contacts, overlappingColliderId, newTime, colliders.KinematicColliders);
+
+					if (!colliders.IsTransformed(overlappingColliderId)) {
+
+						ref var matrix = ref state.GetNonTransformableColliderMatrix(overlappingColliderId, ref colliders);
+						var ballTransformed = ball;
+						ballTransformed.Transform(math.inverse(matrix));
+
+						newTime = state.HitTest(ref colliders, overlappingColliderId, ref ballTransformed, ref newCollEvent, ref contacts);
+
+						if (IsValidHit(ref ball, newTime)) {
+							// transform hit normal back to world space
+							newCollEvent.Transform(matrix);
+						}
+
+					} else {
+						newTime = state.HitTest(ref colliders, overlappingColliderId, ref ball, ref newCollEvent, ref contacts);
+					}
+
+					SaveCollisions(ref ball, ref newCollEvent, ref contacts, overlappingColliderId, newTime, colliders.IsKinematic);
 				}
 			}
 
 			PerfMarkerNarrowPhase.End();
 		}
 
+		private static bool IsValidHit(ref BallState ball, float newTime)
+		{
+			return newTime >= 0f && !Math.Sign(newTime) && newTime <= ball.CollisionEvent.HitTime;
+		}
+
 		private static void SaveCollisions(ref BallState ball, ref CollisionEventData newCollEvent,
 			ref NativeList<ContactBufferElement> contacts, int colliderId, float newTime, bool isKinematic)
 		{
-			var validHit = newTime >= 0f && !Math.Sign(newTime) && newTime <= ball.CollisionEvent.HitTime;
-
-			if (newCollEvent.IsContact || validHit) { // todo why newCollEvent.IsContact? it's not in vpx source
+			if (newCollEvent.IsContact || IsValidHit(ref ball, newTime)) { // todo why newCollEvent.IsContact? it's not in vpx source
 				newCollEvent.SetCollider(colliderId, isKinematic);
 				newCollEvent.HitTime = newTime;
 				if (newCollEvent.IsContact) { // remember all contacts?

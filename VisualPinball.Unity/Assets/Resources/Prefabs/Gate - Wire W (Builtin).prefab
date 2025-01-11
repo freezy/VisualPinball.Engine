@@ -5,12 +5,17 @@ PrefabInstance:
   m_ObjectHideFlags: 0
   serializedVersion: 2
   m_Modification:
+    serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
     - target: {fileID: 4689510019247135382, guid: a277168ba0cf8a2408738f377eb98a2f, type: 3}
       propertyPath: m_Name
       value: Gate - Wire W (Builtin)
       objectReference: {fileID: 0}
+    - target: {fileID: 5934777780303694896, guid: a277168ba0cf8a2408738f377eb98a2f, type: 3}
+      propertyPath: m_Mesh
+      value: 
+      objectReference: {fileID: -6366382902508278438, guid: f7b77729178432248a07efe02e9f5752, type: 3}
     - target: {fileID: 7014708109448554416, guid: a277168ba0cf8a2408738f377eb98a2f, type: 3}
       propertyPath: m_RootOrder
       value: 0
@@ -58,6 +63,9 @@ PrefabInstance:
     - target: {fileID: 7906856659845120077, guid: a277168ba0cf8a2408738f377eb98a2f, type: 3}
       propertyPath: m_Mesh
       value: 
-      objectReference: {fileID: 4300000, guid: 9769cadf367235440b2bf43056c012f7, type: 2}
+      objectReference: {fileID: 1795337771752254519, guid: f7b77729178432248a07efe02e9f5752, type: 3}
     m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: a277168ba0cf8a2408738f377eb98a2f, type: 3}

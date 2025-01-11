@@ -25,11 +25,81 @@ namespace VisualPinball.Unity
 	internal struct PhysicsState
 	{
 		internal PhysicsEnv Env;
+
+		/// <summary>
+		/// Our static octree.
+		/// </summary>
 		internal NativeOctree<int> Octree;
+
+		/// <summary>
+		/// All static colliders (the ones the original VPX physics engine supports).
+		/// </summary>
 		internal NativeColliders Colliders;
+
+		/// <summary>
+		/// All kinematic colliders, with their transformation applied for fully transformable colliders, and without for the others.
+		///
+		/// Fully transformable colliders are updated at <see cref="PhysicsState.TransformKinematicColliders"/>.
+		///
+		/// This is used for:
+		///   - The hit test in the narrow phase (like <see cref="Colliders"/>)
+		///   - Contact resolution in each cycle (like <see cref="Colliders"/>)
+		///   - Collision (like <see cref="Colliders"/>)
+		///
+		/// This basically adds another step to the existing static and dynamic simulation. The oct tree comes from
+		/// <see cref="KinematicCollidersAtIdentity"/>, and the narrow and collision phase is done with this. The mechanism
+		/// for non-transformable colliders is the same, the only difference is that in <see cref="GetNonTransformableColliderMatrix"/>,
+		/// the ball-to-item-space matrix is calculated based off <see cref="KinematicTransforms"/> instead of <see cref="_nonTransformableColliderTransforms"/>.
+		///
+		/// </summary>
 		internal NativeColliders KinematicColliders;
+
+		/// <summary>
+		/// All kinematic colliders, without any transformation applied (for those fully transformable, the others aren't transformed anyway).
+		///
+		/// It's set in PhysicsEngine.Start() through ColliderReference.TransformToIdentity()
+		///
+		/// This is used for:
+		///   - Transform fully-transformable colliders in PhysicsUpdateJob.Execute() with PhysicsKinematics.TransformFullyTransformableColliders()
+		///   - Computing the AABBs for the octree in PhysicsUpdateJob.Execute()
+		/// </summary>
 		internal NativeColliders KinematicCollidersAtIdentity;
+
+		/// <summary>
+		/// Maps an item ID to the updated transformation matrix since the last frame of all kinematic items.
+		/// <para><c>int</c> is the <see cref="ColliderComponent{TData,TMainComponent}.ItemId"/> of the collider.</para>
+		/// <para><c>float4x4</c> Updated LocalToPlayfieldMatrixInVpx of the item.</para>
+		/// </summary>
 		internal NativeParallelHashMap<int, float4x4> UpdatedKinematicTransforms;
+
+		/// <summary>
+		/// The LocalToPlayfieldMatrixInVpx of all kinematic colliders, fully transformable or not.
+		/// </summary>
+		/// <remarks>
+		/// <para><c>int</c> is the <see cref="ColliderComponent{TData,TMainComponent}.ItemId"/> of the collider.</para>
+		/// <para><c>float4x4</c> LocalToPlayfieldMatrixInVpx of the item.</para>
+		/// </remarks>
+		internal NativeParallelHashMap<int, float4x4> KinematicTransforms;
+
+		/// <summary>
+		/// The LocalToPlayfieldMatrixInVpx of all colliders that aren't fully transformable.
+		///
+		/// This map is updated when the colliders get added at the beginning of the game with ColliderReference.Add().
+		/// </summary>
+		/// <remarks>
+		/// <para><c>int</c> is the <see cref="ColliderComponent{TData,TMainComponent}.ItemId"/> of the collider.</para>
+		/// <para><c>float4x4</c> LocalToPlayfieldMatrixInVpx of the item.</para>
+		/// </remarks>
+		private readonly NativeParallelHashMap<int, float4x4> _nonTransformableColliderTransforms;
+
+		/// <summary>
+		/// Maps an item ID to a list of collider IDs that reference this item, for all kinematic items.
+		/// </summary>
+		/// <remarks>
+		/// Created by <see cref="ColliderReference.CreateLookup"/>.
+		/// <para><c>int</c> is the <see cref="ColliderComponent{TData,TMainComponent}.ItemId"/> of the collider.</para>
+		/// <para><c>NativeColliderIds</c> IDs of all colliders of the item referenced by `ItemId`.</para>
+		/// </remarks>
 		internal NativeParallelHashMap<int, NativeColliderIds> KinematicColliderLookups;
 
 		internal NativeQueue<EventData>.ParallelWriter EventQueue;
@@ -50,7 +120,9 @@ namespace VisualPinball.Unity
 
 		public PhysicsState(ref PhysicsEnv env, ref NativeOctree<int> octree, ref NativeColliders colliders,
 			ref NativeColliders kinematicColliders, ref NativeColliders kinematicCollidersAtIdentity,
+			ref NativeParallelHashMap<int, float4x4> kinematicTransforms,
 			ref NativeParallelHashMap<int, float4x4> updatedKinematicTransforms,
+			ref NativeParallelHashMap<int, float4x4> nonTransformableColliderTransforms,
 			ref NativeParallelHashMap<int, NativeColliderIds> kinematicColliderLookups, ref NativeQueue<EventData>.ParallelWriter eventQueue,
 			ref InsideOfs insideOfs, ref NativeParallelHashMap<int, BallState> balls,
 			ref NativeParallelHashMap<int, BumperState> bumperStates, ref NativeParallelHashMap<int, DropTargetState> dropTargetStates,
@@ -65,7 +137,9 @@ namespace VisualPinball.Unity
 			Colliders = colliders;
 			KinematicColliders = kinematicColliders;
 			KinematicCollidersAtIdentity = kinematicCollidersAtIdentity;
+			KinematicTransforms = kinematicTransforms;
 			UpdatedKinematicTransforms = updatedKinematicTransforms;
+			_nonTransformableColliderTransforms = nonTransformableColliderTransforms;
 			KinematicColliderLookups = kinematicColliderLookups;
 			EventQueue = eventQueue;
 			InsideOfs = insideOfs;
@@ -91,50 +165,81 @@ namespace VisualPinball.Unity
 
 		#region States
 
-		internal ref FlipperState GetFlipperState(int colliderId) => ref FlipperStates.GetValueByRef(Colliders.GetItemId(colliderId));
+		internal ref FlipperState GetFlipperState(int colliderId, ref NativeColliders colliders) => ref FlipperStates.GetValueByRef(colliders.GetItemId(colliderId));
 
-		internal ref PlungerState GetPlungerState(int colliderId) => ref PlungerStates.GetValueByRef(Colliders.GetItemId(colliderId));
+		internal ref PlungerState GetPlungerState(int colliderId, ref NativeColliders colliders) => ref PlungerStates.GetValueByRef(colliders.GetItemId(colliderId));
 
-		internal ref SpinnerState GetSpinnerState(int colliderId) => ref SpinnerStates.GetValueByRef(Colliders.GetItemId(colliderId));
+		internal ref SpinnerState GetSpinnerState(int colliderId, ref NativeColliders colliders) => ref SpinnerStates.GetValueByRef(colliders.GetItemId(colliderId));
 
-		internal ref TriggerState GetTriggerState(int colliderId) => ref TriggerStates.GetValueByRef(Colliders.GetItemId(colliderId));
+		internal ref TriggerState GetTriggerState(int colliderId, ref NativeColliders colliders) => ref TriggerStates.GetValueByRef(colliders.GetItemId(colliderId));
 
-		internal ref KickerState GetKickerState(int colliderId) => ref KickerStates.GetValueByRef(Colliders.GetItemId(colliderId));
+		internal ref KickerState GetKickerState(int colliderId, ref NativeColliders colliders) => ref KickerStates.GetValueByRef(colliders.GetItemId(colliderId));
 
-		internal bool HasDropTargetState(int colliderId) => DropTargetStates.ContainsKey(Colliders.GetItemId(colliderId));
+		internal bool HasDropTargetState(int colliderId, ref NativeColliders colliders) => DropTargetStates.ContainsKey(colliders.GetItemId(colliderId));
 
-		internal bool HasHitTargetState(int colliderId) => HitTargetStates.ContainsKey(Colliders.GetItemId(colliderId));
+		internal bool HasHitTargetState(int colliderId, ref NativeColliders colliders) => HitTargetStates.ContainsKey(colliders.GetItemId(colliderId));
 
-		internal ref DropTargetState GetDropTargetState(int colliderId) => ref DropTargetStates.GetValueByRef(Colliders.GetItemId(colliderId));
+		internal ref DropTargetState GetDropTargetState(int colliderId, ref NativeColliders colliders) => ref DropTargetStates.GetValueByRef(colliders.GetItemId(colliderId));
 
-		internal ref HitTargetState GetHitTargetState(int colliderId) => ref HitTargetStates.GetValueByRef(Colliders.GetItemId(colliderId));
+		internal ref HitTargetState GetHitTargetState(int colliderId, ref NativeColliders colliders) => ref HitTargetStates.GetValueByRef(colliders.GetItemId(colliderId));
 
-		internal ref BumperState GetBumperState(int colliderId, ref NativeColliders col) => ref BumperStates.GetValueByRef(col.GetItemId(colliderId));
+		internal ref BumperState GetBumperState(int colliderId, ref NativeColliders colliders) => ref BumperStates.GetValueByRef(colliders.GetItemId(colliderId));
 
-		internal ref GateState GetGateState(int colliderId) => ref GateStates.GetValueByRef(Colliders.GetItemId(colliderId));
+		internal ref GateState GetGateState(int colliderId, ref NativeColliders colliders) => ref GateStates.GetValueByRef(colliders.GetItemId(colliderId));
 
-		internal ref SurfaceState GetSurfaceState(int colliderId) => ref SurfaceStates.GetValueByRef(Colliders.GetItemId(colliderId));
+		internal ref SurfaceState GetSurfaceState(int colliderId, ref NativeColliders colliders) => ref SurfaceStates.GetValueByRef(colliders.GetItemId(colliderId));
 
 		#endregion
 
 		#region Transform
 
-		internal void Transform(int colliderId, float4x4 matrix)
+		/// <summary>
+		/// Returns the matrix of a collider that cannot be transformed, i.e. the ball has to be projected into the
+		/// collider's space.
+		/// </summary>
+		/// <remarks>
+		/// Depending on whether the collider is kinematic or not, the matrix is taken from either
+		/// the <see cref="KinematicTransforms"/> or <see cref="_nonTransformableColliderTransforms"/>.
+		///
+		/// Basically, this is the magic that makes kinematic transformations work for non-transformable
+		/// items: Instead of projecting the ball with a static matrix, we'll just use the one of the
+		/// kinematic colliders, which is updated every frame.
+		/// </remarks>
+		/// <param name="colliderId">ID of the collider</param>
+		/// <param name="colliders">Collider references</param>
+		/// <returns>Transformation matrix</returns>
+		internal ref float4x4 GetNonTransformableColliderMatrix(int colliderId, ref NativeColliders colliders)
 		{
-			switch (GetColliderType(ref KinematicColliders, colliderId))
-			{
-				case ColliderType.Bumper:
-				case ColliderType.Circle:
-					KinematicColliders.Circle(colliderId).Transform(KinematicCollidersAtIdentity.Circle(colliderId), matrix);
-					break;
+			var itemId = colliders.GetItemId(colliderId);
+			if (colliders.IsKinematic) {
+				return ref KinematicTransforms.GetValueByRef(itemId);
+			}
+			return ref _nonTransformableColliderTransforms.GetValueByRef(itemId);
+		}
+
+		/// <summary>
+		/// Transforms a collider with a given transformation matrix. The matrix can be anything,
+		/// so colliders here must be 100% transformable (i.e. ICollider.IsFullyTransformable = true).
+		///
+		/// </summary>
+		/// <param name="colliderId">The ID of the collider</param>
+		/// <param name="matrix">The transformation matrix</param>
+		internal void TransformKinematicColliders(int colliderId, float4x4 matrix)
+		{
+			switch (GetColliderType(ref KinematicColliders, colliderId)) {
 				case ColliderType.Point:
-					KinematicColliders.Point(colliderId).Transform(KinematicCollidersAtIdentity.Point(colliderId), matrix);
+					ref var pointCollider = ref KinematicColliders.Point(colliderId);
+					pointCollider.Transform(KinematicCollidersAtIdentity.Point(colliderId), matrix);
 					break;
+
 				case ColliderType.Line3D:
-					KinematicColliders.Line3D(colliderId).Transform(KinematicCollidersAtIdentity.Line3D(colliderId), matrix);
+					ref var line3DCollider = ref KinematicColliders.Line3D(colliderId);
+					line3DCollider.Transform(KinematicCollidersAtIdentity.Line3D(colliderId), matrix);
 					break;
+
 				case ColliderType.Triangle:
-					KinematicColliders.Triangle(colliderId).Transform(KinematicCollidersAtIdentity.Triangle(colliderId), matrix);
+					ref var triangleCollider = ref KinematicColliders.Triangle(colliderId);
+					triangleCollider.Transform(KinematicCollidersAtIdentity.Triangle(colliderId), matrix);
 					break;
 			}
 		}
@@ -162,6 +267,11 @@ namespace VisualPinball.Unity
 						ball.CollisionEvent.HitTime);
 
 				case ColliderType.Line:
+					ref var lineCollider = ref colliders.Line(colliderId);
+					if (lineCollider.ItemType == ItemType.Trigger) {
+						return colliders.Line(colliderId).HitTestBasic(ref newCollEvent, ref InsideOfs, in ball,
+							ball.CollisionEvent.HitTime, false, false, false);
+					}
 					return colliders.Line(colliderId).HitTest(ref newCollEvent, ref InsideOfs, in ball,
 						ball.CollisionEvent.HitTime);
 
@@ -193,17 +303,14 @@ namespace VisualPinball.Unity
 					return colliders.Circle(colliderId).HitTestBasicRadius(ref newCollEvent, ref InsideOfs, in ball,
 						ball.CollisionEvent.HitTime, false, false, false);
 
-				case ColliderType.TriggerLine:
-					return colliders.Line(colliderId).HitTestBasic(ref newCollEvent, ref InsideOfs, in ball,
-						ball.CollisionEvent.HitTime, false, false, false);
-
 				case ColliderType.Flipper:
-					ref var flipperState = ref GetFlipperState(colliderId);
-					return colliders.Flipper(colliderId).HitTest(ref newCollEvent, ref InsideOfs, ref flipperState.Hit,
+					ref var flipperState = ref GetFlipperState(colliderId, ref colliders);
+					ref var flipperCollider = ref colliders.Flipper(colliderId);
+					return flipperCollider.HitTest(ref newCollEvent, ref InsideOfs, ref flipperState.Hit,
 						in flipperState.Movement, in flipperState.Tricks, in flipperState.Static, in ball, ball.CollisionEvent.HitTime);
 
 				case ColliderType.Plunger:
-					ref var plungerState = ref GetPlungerState(colliderId);
+					ref var plungerState = ref GetPlungerState(colliderId, ref colliders);
 					return colliders.Plunger(colliderId).HitTest(ref newCollEvent, ref InsideOfs, ref plungerState.Movement,
 						in plungerState.Collider, in plungerState.Static, in ball, ball.CollisionEvent.HitTime);
 			}
@@ -212,8 +319,8 @@ namespace VisualPinball.Unity
 
 		private bool IsInactiveDropTarget(ref NativeColliders colliders, int colliderId)
 		{
-			if (colliders.GetItemType(colliderId) == ItemType.HitTarget && HasDropTargetState(colliderId)) {
-				ref var dropTargetState = ref GetDropTargetState(colliderId);
+			if (colliders.GetItemType(colliderId) == ItemType.HitTarget && HasDropTargetState(colliderId, ref colliders)) {
+				ref var dropTargetState = ref GetDropTargetState(colliderId, ref colliders);
 				if (dropTargetState.Animation.IsDropped || dropTargetState.Animation.MoveAnimation) {  // QUICKFIX so that DT is not triggered twice
 					return true;
 				}

@@ -14,12 +14,18 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-using Unity.Collections;
 using Unity.Mathematics;
 using VisualPinball.Engine.Common;
 
 namespace VisualPinball.Unity
 {
+	/// <summary>
+	/// Our custom spinner collider.
+	/// </summary>
+	///
+	/// <remarks>
+	/// Defined by two <see cref="LineCollider">Line colliders</see>.
+	/// </remarks>
 	internal struct SpinnerCollider : ICollider
 	{
 		public int Id
@@ -33,34 +39,20 @@ namespace VisualPinball.Unity
 			}
 		}
 
+		public bool IsFullyTransformable => false;
+
 		public ColliderHeader Header;
 
-		public readonly LineCollider LineSeg0;
-		public readonly LineCollider LineSeg1;
+		public LineCollider LineSeg0;
+		public LineCollider LineSeg1;
 
 		public ColliderBounds Bounds { get; private set; }
 
-		public SpinnerCollider(SpinnerComponent component, float height, ColliderInfo info) : this()
+		public SpinnerCollider(in LineCollider lineSeg0, in LineCollider lineSeg1, ColliderInfo info) : this()
 		{
 			Header.Init(info, ColliderType.Spinner);
-
-			var halfLength = component.Length * 0.5f;
-
-			var radAngle = math.radians(component.Rotation);
-			var sn = math.sin(radAngle);
-			var cs = math.cos(radAngle);
-
-			var v1 = new float2(
-				component.Position.x - cs * (halfLength + PhysicsConstants.PhysSkin), // through the edge of the
-				component.Position.y - sn * (halfLength + PhysicsConstants.PhysSkin)  // spinner
-			);
-			var v2 = new float2(
-				component.Position.x + cs * (halfLength + PhysicsConstants.PhysSkin), // oversize by the ball radius
-				component.Position.y + sn * (halfLength + PhysicsConstants.PhysSkin)  // this will prevent clipping
-			);
-
-			LineSeg0 = new LineCollider(v1, v2, height, height + 2.0f * PhysicsConstants.PhysSkin, info);
-			LineSeg1 = new LineCollider(v2, v1, height, height + 2.0f * PhysicsConstants.PhysSkin, info);
+			LineSeg0 = lineSeg0;
+			LineSeg1 = lineSeg1;
 
 			Bounds = LineSeg0.Bounds;
 		}
@@ -69,9 +61,6 @@ namespace VisualPinball.Unity
 
 		public float HitTest(ref CollisionEventData collEvent, ref InsideOfs insideOfs, in BallState ball, float dTime)
 		{
-			// todo
-			// if (!m_enabled) return -1.0f;
-
 			var hitTime = LineCollider.HitTestBasic(ref collEvent, ref insideOfs, in LineSeg0, in ball, dTime, false, true, false); // any face, lateral, non-rigid
 			if (hitTime >= 0.0f) {
 				// signal the Collide() function that the hit is on the front or back side
@@ -127,5 +116,55 @@ namespace VisualPinball.Unity
 		}
 
 		#endregion
+
+		#region Transformation
+
+		public static bool IsTransformable(float4x4 matrix)
+		{
+			// position: fully transformable
+			// scale: only uniform scale ("length")
+			// rotation: only around Z axis ("rotation")
+
+			var scale = matrix.GetScale();
+			var rotation = matrix.GetRotationVector();
+			var rotated = math.abs(rotation.x) > Collider.Tolerance || math.abs(rotation.y) > Collider.Tolerance;
+			var uniformlyScaled = math.abs(scale.x - scale.y) < Collider.Tolerance && math.abs(scale.x - scale.z) < Collider.Tolerance && math.abs(scale.y -  scale.z) < Collider.Tolerance;
+
+			return !rotated && uniformlyScaled;
+		}
+
+		public SpinnerCollider Transform(float4x4 matrix)
+		{
+			Transform(this, matrix);
+			return this;
+		}
+
+		public void Transform(SpinnerCollider collider, float4x4 matrix)
+		{
+			#if UNITY_EDITOR
+			if (!IsTransformable(matrix)) {
+				throw new System.InvalidOperationException($"Matrix {matrix} cannot transform spinner.");
+			}
+			#endif
+
+			LineSeg0 = collider.LineSeg0.Transform(matrix);
+			LineSeg1 = collider.LineSeg1.Transform(matrix);
+			Bounds = collider.LineSeg0.Bounds;
+		}
+
+		public Aabb GetTransformedAabb(float4x4 matrix)
+		{
+			return Bounds.Aabb.Transform(matrix);
+		}
+
+		public SpinnerCollider TransformAabb(float4x4 matrix)
+		{
+			Bounds = new ColliderBounds(Header.ItemId, Header.Id, GetTransformedAabb(matrix));
+			return this;
+		}
+
+		#endregion
+
+		public override string ToString() => $"SpinnerCollider[{Header.ItemId}] {LineSeg0.ToString()} | {LineSeg1.ToString()}";
 	}
 }

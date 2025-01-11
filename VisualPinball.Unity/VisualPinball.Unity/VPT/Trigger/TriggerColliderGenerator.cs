@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-using System.Collections.Generic;
 using Unity.Mathematics;
 using VisualPinball.Engine.Common;
 using VisualPinball.Engine.Math;
@@ -28,15 +27,18 @@ namespace VisualPinball.Unity
 		private readonly TriggerComponent _component;
 		private readonly TriggerMeshComponent _meshComponent;
 		private readonly TriggerColliderComponent _colliderComponent;
+		private readonly float4x4 _matrix;
 
 		private bool IsRound => _meshComponent && _meshComponent.Shape is TriggerShape.TriggerStar or TriggerShape.TriggerButton;
 
-		public TriggerColliderGenerator(TriggerApi triggerApi, TriggerComponent component, TriggerColliderComponent colliderComponent, TriggerMeshComponent meshComponent)
+		public TriggerColliderGenerator(TriggerApi triggerApi, TriggerComponent component, TriggerColliderComponent colliderComponent, TriggerMeshComponent meshComponent, float4x4 matrix)
 		{
 			_api = triggerApi;
 			_component = component;
 			_meshComponent = meshComponent;
 			_colliderComponent = colliderComponent;
+			_matrix = matrix;
+
 		}
 
 		internal void GenerateColliders(ref ColliderReference colliders)
@@ -51,14 +53,14 @@ namespace VisualPinball.Unity
 
 		private void GenerateRoundHitObjects(ref ColliderReference colliders)
 		{
-			var height = _component.PositionZ;
-			colliders.Add(new CircleCollider(_component.Center, _colliderComponent.HitCircleRadius, height, height + _colliderComponent.HitHeight,
-				_api.GetColliderInfo(), ColliderType.TriggerCircle));
+			var height = _component.Position.z;
+			colliders.Add(new CircleCollider(new float2(0), _colliderComponent.HitCircleRadius, 0, height + _colliderComponent.HitHeight,
+				_api.GetColliderInfo(), ColliderType.TriggerCircle), _matrix);
 		}
 
 		private void GenerateCurvedHitObjects(ref ColliderReference colliders)
 		{
-			var height = _component.PositionZ;
+			var height = _component.Position.z;
 			var vVertex = DragPoint.GetRgVertex<RenderVertex2D, CatmullCurve2DCatmullCurveFactory>(_component.DragPoints);
 
 			var count = vVertex.Length;
@@ -69,18 +71,18 @@ namespace VisualPinball.Unity
 				rgv[i] = vVertex[i];
 				rgv3D[i] = new float3(rgv[i].X, rgv[i].Y, height + (float)(PhysicsConstants.PhysSkin * 2.0));
 			}
-			ColliderUtils.Generate3DPolyColliders(rgv3D, _api.GetColliderInfo(), ref colliders);
+			ColliderUtils.Generate3DPolyColliders(rgv3D, _api.GetColliderInfo(), ref colliders, _matrix);
 
 			for (var i = 0; i < count; i++) {
 				var pv2 = rgv[i < count - 1 ? i + 1 : 0];
 				var pv3 = rgv[i < count - 2 ? i + 2 : i + 2 - count];
-				AddLineSeg(pv2.ToUnityFloat2(), pv3.ToUnityFloat2(), height, ref colliders);
+				colliders.Add(new LineCollider(
+					pv2.ToUnityFloat2(),
+					pv3.ToUnityFloat2(),
+					height,
+					height + math.max(_colliderComponent.HitHeight - 8.0f, 0f),
+					_api.GetColliderInfo()), _matrix);
 			}
-		}
-
-		private void AddLineSeg(float2 pv1, float2 pv2, float height, ref ColliderReference colliders) {
-			colliders.Add(new LineCollider(pv1, pv2, height, height + math.max(_colliderComponent.HitHeight - 8.0f, 0f),
-				_api.GetColliderInfo(), ColliderType.TriggerLine));
 		}
 	}
 }

@@ -21,8 +21,12 @@ using System;
 using Unity.Burst;
 using Unity.Collections.LowLevel.Unsafe;
 using Unity.Collections;
+using Unity.Mathematics;
 using Unity.Profiling;
 using VisualPinball.Engine.VPT;
+
+// ReSharper disable ConvertToAutoPropertyWithPrivateSetter
+// ReSharper disable ConvertToAutoProperty
 
 namespace VisualPinball.Unity
 {
@@ -37,12 +41,13 @@ namespace VisualPinball.Unity
 		private static readonly ProfilerMarker PerfMarker = new("NativeColliders Allocation");
 
 		public int Length => m_Length;
-		public bool KinematicColliders => m_KinematicColliders;
+		public bool IsKinematic => m_IsKinematic;
 
 		/// <summary>
 		/// An array that links the collider IDs (the key) to the position in the respective collider buffer.
 		/// </summary>
 		[NativeDisableUnsafePtrRestriction] private void* m_LookupBuffer;
+
 		[NativeDisableUnsafePtrRestriction] private void* m_CircleColliderBuffer;
 		[NativeDisableUnsafePtrRestriction] private void* m_FlipperColliderBuffer;
 		[NativeDisableUnsafePtrRestriction] private void* m_GateColliderBuffer;
@@ -57,7 +62,7 @@ namespace VisualPinball.Unity
 		[NativeDisableUnsafePtrRestriction] private void* m_PlaneColliderBuffer;
 
 		private readonly Allocator m_AllocatorLabel;
-		private readonly bool m_KinematicColliders;
+		private readonly bool m_IsKinematic;
 
 		private int m_Length; // must be here, and called like that.
 
@@ -83,7 +88,7 @@ namespace VisualPinball.Unity
 			PerfMarker.Begin();
 
 			m_Length = colRef.Lookups.Length;
-			m_KinematicColliders = colRef.KinematicColliders;
+			m_IsKinematic = colRef.IsKinematic;
 
 			long size = UnsafeUtility.SizeOf<ColliderLookup>() * colRef.Lookups.Length;
 			m_LookupBuffer = UnsafeUtility.Malloc(size, UnsafeUtility.AlignOf<ColliderLookup>(), allocator);
@@ -468,12 +473,74 @@ namespace VisualPinball.Unity
 				case ColliderType.Spinner: return UnsafeUtility.ArrayElementAsRef<SpinnerCollider>(m_SpinnerColliderBuffer, lookup.Index).Bounds.Aabb;
 				case ColliderType.Triangle: return UnsafeUtility.ArrayElementAsRef<TriangleCollider>(m_TriangleColliderBuffer, lookup.Index).Bounds.Aabb;
 				case ColliderType.Plane: return UnsafeUtility.ArrayElementAsRef<PlaneCollider>(m_PlaneColliderBuffer, lookup.Index).Bounds.Aabb;
+				default:
+					throw new ArgumentException($"Unknown lookup type.");
 			}
-			throw new ArgumentException($"Unknown lookup type.");
 		}
 
-		public int GetItemId(int index) => GetHeader(index).ItemId;
+		public Aabb GetTransformedAabb(int index, ref NativeParallelHashMap<int, float4x4> kinematicTransforms)
+		{
+			if (index < 0 || index >= m_Length) {
+				throw new IndexOutOfRangeException($"Invalid index {index} when looking up collider.");
+			}
+			var lookup = UnsafeUtility.ReadArrayElement<ColliderLookup>(m_LookupBuffer, index);
+			switch (lookup.Type) {
+				case ColliderType.Circle: {
+					var collider = UnsafeUtility.ArrayElementAsRef<CircleCollider>(m_CircleColliderBuffer, lookup.Index);
+					return collider.GetTransformedAabb(kinematicTransforms[collider.Header.ItemId]);
+				}
+				case ColliderType.Flipper: {
+					var collider =
+						UnsafeUtility.ArrayElementAsRef<FlipperCollider>(m_FlipperColliderBuffer, lookup.Index);
+					return collider.GetTransformedAabb(kinematicTransforms[collider.Header.ItemId]);
+				}
+				case ColliderType.Gate: {
+					var collider = UnsafeUtility.ArrayElementAsRef<GateCollider>(m_GateColliderBuffer, lookup.Index);
+					return collider.GetTransformedAabb(kinematicTransforms[collider.Header.ItemId]);
+				}
+				case ColliderType.Line3D: {
+					var collider = UnsafeUtility.ArrayElementAsRef<Line3DCollider>(m_Line3DColliderBuffer, lookup.Index);
+					return collider.GetTransformedAabb(kinematicTransforms[collider.Header.ItemId]);
+				}
+				case ColliderType.LineSlingShot: {
+					var collider = UnsafeUtility.ArrayElementAsRef<LineSlingshotCollider>(m_LineSlingshotColliderBuffer, lookup.Index);
+					return collider.GetTransformedAabb(kinematicTransforms[collider.Header.ItemId]);
+				}
+				case ColliderType.Line: {
+					var collider = UnsafeUtility.ArrayElementAsRef<LineCollider>(m_LineColliderBuffer, lookup.Index);
+					return collider.GetTransformedAabb(kinematicTransforms[collider.Header.ItemId]);
+				}
+				case ColliderType.LineZ: {
+					var collider = UnsafeUtility.ArrayElementAsRef<LineZCollider>(m_LineZColliderBuffer, lookup.Index);
+					return collider.GetTransformedAabb(kinematicTransforms[collider.Header.ItemId]);
+				}
+				case ColliderType.Plunger: {
+					var collider = UnsafeUtility.ArrayElementAsRef<PlungerCollider>(m_PlungerColliderBuffer, lookup.Index);
+					return collider.GetTransformedAabb(kinematicTransforms[collider.Header.ItemId]);
+				}
+				case ColliderType.Point: {
+					var collider = UnsafeUtility.ArrayElementAsRef<PointCollider>(m_PointColliderBuffer, lookup.Index);
+					return collider.GetTransformedAabb(kinematicTransforms[collider.Header.ItemId]);
+				}
+				case ColliderType.Spinner: {
+					var collider = UnsafeUtility.ArrayElementAsRef<SpinnerCollider>(m_SpinnerColliderBuffer, lookup.Index);
+					return collider.GetTransformedAabb(kinematicTransforms[collider.Header.ItemId]);
+				}
+				case ColliderType.Triangle: {
+					var collider = UnsafeUtility.ArrayElementAsRef<TriangleCollider>(m_TriangleColliderBuffer, lookup.Index);
+					return collider.GetTransformedAabb(kinematicTransforms[collider.Header.ItemId]);
+				}
+				case ColliderType.Plane: {
+					// planes don't transform
+					return UnsafeUtility.ArrayElementAsRef<PlaneCollider>(m_PlaneColliderBuffer, lookup.Index).Bounds.Aabb;
+				}
+				default:
+					throw new ArgumentException($"Unknown lookup type.");
+			}
+		}
 
+		public bool IsTransformed(int index) => GetHeader(index).IsTransformed;
+		public int GetItemId(int index) => GetHeader(index).ItemId;
 		public ItemType GetItemType(int index) => GetHeader(index).ItemType;
 
 		public ref ColliderHeader GetHeader(int index)
@@ -498,7 +565,7 @@ namespace VisualPinball.Unity
 				case ColliderType.Triangle: return ref UnsafeUtility.ArrayElementAsRef<TriangleCollider>(m_TriangleColliderBuffer, lookup.Index).Header;
 				case ColliderType.Plane: return ref UnsafeUtility.ArrayElementAsRef<PlaneCollider>(m_PlaneColliderBuffer, lookup.Index).Header;
 			}
-			throw new ArgumentException($"Unknown lookup type.");
+			throw new ArgumentException("Unknown lookup type.");
 		}
 
 		#endregion

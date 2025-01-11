@@ -22,15 +22,5 @@ namespace VisualPinball.Unity.Editor
 	[CustomEditor(typeof(HitTargetComponent)), CanEditMultipleObjects]
 	public class HitTargetInspector : TargetInspector
 	{
-		protected override string MeshAssetFolder
-			=> "Packages/org.visualpinball.engine.unity/VisualPinball.Unity/Assets/Art/Meshes/Hit Target";
-		protected override Dictionary<string, int> MeshTypeMapping => new Dictionary<string, int> {
-			{ "Narrow", Engine.VPT.TargetType.HitFatTargetSlim },
-			{ "Rectangle Fat Narrow", Engine.VPT.TargetType.HitFatTargetSlim },
-			{ "Rectangle Fat", Engine.VPT.TargetType.HitFatTargetRectangle },
-			{ "Rectangle", Engine.VPT.TargetType.HitTargetRectangle },
-			{ "Round", Engine.VPT.TargetType.HitTargetRound },
-			{ "Square Fat", Engine.VPT.TargetType.HitFatTargetSquare },
-		};
 	}
 }

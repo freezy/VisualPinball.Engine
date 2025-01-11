@@ -37,26 +37,35 @@ namespace VisualPinball.Unity
 {
 	[AddComponentMenu("Visual Pinball/Game Item/Trigger")]
 	public class TriggerComponent : MainRenderableComponent<TriggerData>,
-		ITriggerComponent, IOnSurfaceComponent
+		ITriggerComponent
 	{
 		#region Data
 
-		[Tooltip("Position on the playfield.")]
-		public Vector2 Position;
+		public Vector3 Position {
+			get => transform.localPosition.TranslateToVpx();
+			set => transform.localPosition = value.TranslateToWorld();
+		}
 
-		[Tooltip("Scales the trigger mesh by this value.")]
-		[Range(0.5f, 1.5f)]
-		public float Scale = 1;
+		public float _scale = 1f;
+		public float Scale
+		{
+			get {
+				var scale = transform.localScale;
+				if (math.abs(scale.x - scale.y) < Collider.Tolerance && math.abs(scale.x - scale.z) < Collider.Tolerance && math.abs(scale.y - scale.z) < Collider.Tolerance) {
+					return scale.x;
+				}
+				return _scale;
+			}
+			set {
+				_scale = value;
+				transform.localScale = new Vector3(value, value, value);
+			}
+		}
 
-		[Tooltip("Rotation of the trigger.")]
-		[Range(-180f, 180f)]
-		public float Rotation;
-
-		[SerializeField]
-		[TypeRestriction(typeof(ISurfaceComponent), PickerLabel = "Walls & Ramps", UpdateTransforms = true)]
-		[Tooltip("On which surface this surface is attached to. Updates Z-translation.")]
-		public MonoBehaviour _surface;
-		public ISurfaceComponent Surface { get => _surface as ISurfaceComponent; set => _surface = value as MonoBehaviour; }
+		public float Rotation {
+			get => transform.localEulerAngles.y > 180 ? transform.localEulerAngles.y - 360 : transform.localEulerAngles.y;
+			set => transform.SetLocalYRotation(math.radians(value));
+		}
 
 		[SerializeField]
 		private DragPointData[] _dragPoints;
@@ -86,11 +95,11 @@ namespace VisualPinball.Unity
 
 		private void Awake()
 		{
-			var player = GetComponentInParent<Player>();
+			Player = GetComponentInParent<Player>();
 			var physicsEngine = GetComponentInParent<PhysicsEngine>();
-			TriggerApi = new TriggerApi(gameObject, player, physicsEngine);
+			TriggerApi = new TriggerApi(gameObject, Player, physicsEngine);
 
-			player.Register(TriggerApi, this);
+			Player.Register(TriggerApi, this);
 			if (GetComponentInChildren<TriggerColliderComponent>()) {
 				RegisterPhysics(physicsEngine);
 			}
@@ -112,25 +121,7 @@ namespace VisualPinball.Unity
 
 		#region Transformation
 
-		public Vector2 Center => Position;
-
-		public void OnSurfaceUpdated() => UpdateTransforms();
-		public float PositionZ => SurfaceHeight(Surface, Position);
-
-		public override void UpdateTransforms()
-		{
-			base.UpdateTransforms();
-			var t = transform;
-
-			// position
-			t.localPosition = Physics.TranslateToWorld(Position.x, Position.y, PositionZ);
-
-			// scale
-			t.localScale = new Vector3(Scale, Scale, Scale);
-
-			// rotation
-			t.localEulerAngles = new Vector3(0, Rotation, 0);
-		}
+		public Vector2 Center => Position; // todo remove?
 
 		#endregion
 
@@ -145,7 +136,7 @@ namespace VisualPinball.Unity
 			Rotation = data.Rotation;
 
 			// geometry
-			DragPoints = data.DragPoints;
+			DragPoints = data.DragPoints.Select(dp => dp.Translate((-transform.localPosition).TranslateToVpx().ToVertex3D())).ToArray();
 
 			// mesh
 			var meshComponent = GetComponent<TriggerMeshComponent>();
@@ -175,7 +166,8 @@ namespace VisualPinball.Unity
 
 		public override IEnumerable<MonoBehaviour> SetReferencedData(TriggerData data, Table table, IMaterialProvider materialProvider, ITextureProvider textureProvider, Dictionary<string, IMainComponent> components)
 		{
-			Surface = FindComponent<ISurfaceComponent>(components, data.Surface);
+			// surface
+			ParentToSurface(data.Surface, data.Center, components);
 
 			// mesh
 			var meshComponent = GetComponent<TriggerMeshComponent>();
@@ -192,9 +184,8 @@ namespace VisualPinball.Unity
 		{
 			// name and transforms
 			data.Name = name;
-			data.Center = Position.ToVertex2D();
+			data.Center = new Vertex2D(Position.x, Position.y);
 			data.Rotation = Rotation;
-			data.Surface = Surface != null ? Surface.name : string.Empty;
 
 			// geometry
 			data.DragPoints = DragPoints;
@@ -231,21 +222,9 @@ namespace VisualPinball.Unity
 		public override void CopyFromObject(GameObject go)
 		{
 			var triggerComponent = go.GetComponent<TriggerComponent>();
-			if (triggerComponent != null) {
-				Position = triggerComponent.Position;
-				Scale = triggerComponent.Scale;
-				Rotation = triggerComponent.Rotation;
-				Surface = triggerComponent.Surface;
+			if (triggerComponent) {
 				_dragPoints = triggerComponent._dragPoints.Select(dp => dp.Clone()).ToArray();
-
-			} else {
-				var pos = go.transform.localPosition.TranslateToVpx();
-				MoveDragPointsTo(_dragPoints, pos);
-				Position = pos;
-				Rotation = go.transform.localEulerAngles.z;
 			}
-
-			UpdateTransforms();
 			RebuildMeshes();
 		}
 
@@ -266,7 +245,8 @@ namespace VisualPinball.Unity
 						AnimSpeed = animComponent ? animComponent.AnimSpeed : 0,
 						Radius = collComponent.HitCircleRadius,
 						Shape = meshComponent ? meshComponent.Shape : 0,
-						TableScaleZ = 1f
+						TableScaleZ = 1f,
+						InitialPosition = transform.localPosition
 					},
 					new TriggerMovementState(),
 					new TriggerAnimationState()
@@ -278,11 +258,13 @@ namespace VisualPinball.Unity
 					AnimSpeed = 0,
 					Radius = collComponent.HitCircleRadius,
 					Shape = TriggerShape.TriggerNone,
-					TableScaleZ = 1f
+					TableScaleZ = 1f,
+					InitialPosition = transform.position
 				},
 				new FlipperCorrectionState(
 					true,
 					collComponent.ForFlipper.gameObject.GetInstanceID(),
+					collComponent.ForFlipper.FlipperApi.ColliderId, // todo fixme this is not yet set
 					collComponent.TimeThresholdMs,
 					collComponent.FlipperPolarities,
 					collComponent.FlipperVelocities,
@@ -290,38 +272,6 @@ namespace VisualPinball.Unity
 				)
 			);
 		}
-
-		#endregion
-
-		#region Editor Tooling
-
-		public override ItemDataTransformType EditorPositionType => ItemDataTransformType.TwoD;
-
-		public override Vector3 GetEditorPosition() => Surface != null
-			? new Vector3(Position.x, Position.y, Surface.Height(Position))
-			: new Vector3(Position.x, Position.y, 0); // todo? plus table height?
-
-		public override void SetEditorPosition(Vector3 pos)
-		{
-			var newPos = (Vector2)((float3)pos).xy;
-			if (DragPoints.Length > 0) {
-				var diff = newPos - Position;
-				foreach (var pt in DragPoints) {
-					pt.Center += new Vertex3D(diff.x, diff.y, 0f);
-				}
-			}
-			RebuildMeshes();
-			Position = ((float3)pos).xy;
-		}
-
-		public override ItemDataTransformType EditorRotationType{
-			get {
-				var meshComp = GetComponent<TriggerMeshComponent>();
-				return !meshComp || !meshComp.IsCircle ? ItemDataTransformType.None : ItemDataTransformType.OneD;
-			}
-		}
-		public override Vector3 GetEditorRotation() => new Vector3(Rotation, 0f, 0f);
-		public override void SetEditorRotation(Vector3 rot) => Rotation = ClampDegrees(rot.x);
 
 		#endregion
 	}

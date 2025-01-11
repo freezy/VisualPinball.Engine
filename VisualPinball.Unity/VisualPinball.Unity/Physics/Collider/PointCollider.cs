@@ -20,6 +20,13 @@ using VisualPinball.Engine.Common;
 
 namespace VisualPinball.Unity
 {
+	/// <summary>
+	/// A point in 3D space
+	/// </summary>
+	///
+	/// <remarks>
+	/// Defined by position (float3)
+	/// </remarks>
 	internal struct PointCollider : ICollider
 	{
 		public int Id
@@ -28,23 +35,19 @@ namespace VisualPinball.Unity
 			set => Header.Id = value;
 		}
 
+		public bool IsFullyTransformable => true;
+
 		public ColliderHeader Header;
 
 		public float3 P;
 
-		public ColliderBounds Bounds => new ColliderBounds(Header.ItemId, Header.Id, new Aabb(
-			P.x,
-			P.x,
-			P.y,
-			P.y,
-			P.z,
-			P.z
-		));
+		public ColliderBounds Bounds { get; private set; }
 
 		public PointCollider(float3 p, ColliderInfo info) : this()
 		{
 			Header.Init(info, ColliderType.Point);
 			P = p;
+			Bounds = new ColliderBounds(Header.ItemId, Header.Id, new Aabb(P, P));
 		}
 
 		#region Narrowphase
@@ -140,9 +143,32 @@ namespace VisualPinball.Unity
 
 		public override string ToString() => $"PointCollider[{Header.ItemId}] ({P.x}/{P.y}/{P.z})";
 
+		#region Transformation
+
+		public PointCollider Transform(float4x4 matrix)
+		{
+			Transform(this, matrix);
+			return this;
+		}
+
 		public void Transform(PointCollider point, float4x4 matrix)
 		{
-			P = math.mul(matrix, new float4(point.P, 1f)).xyz;
+			P = matrix.MultiplyPoint(point.P);
+			TransformAabb(matrix);
 		}
+
+		public Aabb GetTransformedAabb(float4x4 matrix)
+		{
+			var p = matrix.MultiplyPoint(P);
+			return new Aabb(p, p);
+		}
+
+		public PointCollider TransformAabb(float4x4 matrix)
+		{
+			Bounds = new ColliderBounds(Header.ItemId, Header.Id, GetTransformedAabb(matrix));
+			return this;
+		}
+
+		#endregion
 	}
 }

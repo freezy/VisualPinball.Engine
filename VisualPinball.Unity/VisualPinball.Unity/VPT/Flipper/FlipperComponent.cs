@@ -38,30 +38,27 @@ namespace VisualPinball.Unity
 	[AddComponentMenu("Visual Pinball/Game Item/Flipper")]
 	[HelpURL("https://docs.visualpinball.org/creators-guide/manual/mechanisms/flippers.html")]
 	public class FlipperComponent : MainRenderableComponent<FlipperData>,
-		IFlipperData, ISwitchDeviceComponent, ICoilDeviceComponent, IOnSurfaceComponent,
+		IFlipperData, ISwitchDeviceComponent, ICoilDeviceComponent,
 		IRotatableComponent
 	{
 		#region Data
 
-		[Tooltip("Position of the flipper on the playfield.")]
-		public Vector2 Position;
+		public Vector3 Position {
+			get => transform.localPosition.TranslateToVpx();
+			set => transform.localPosition = value.TranslateToWorld();
+		}
+
 		public float PosX => Position.x;
 		public float PosY => Position.y;
 
-		[Range(-180f, 180f)]
-		[Tooltip("Angle of the flipper in start position (not flipped)")]
-		public float _startAngle = 121.0f;
-		public float StartAngle => _startAngle;
+		public float StartAngle {
+			get => transform.localEulerAngles.y > 180 ? transform.localEulerAngles.y - 360 : transform.localEulerAngles.y;
+			set => transform.SetLocalYRotation(math.radians(value));
+		}
 
 		[Range(-180f, 180f)]
 		[Tooltip("Angle of the flipper in end position (flipped)")]
 		public float EndAngle = 70.0f;
-
-		public ISurfaceComponent Surface { get => _surface as ISurfaceComponent; set => _surface = value as MonoBehaviour; }
-		[SerializeField]
-		[TypeRestriction(typeof(ISurfaceComponent), PickerLabel = "Walls & Ramps", UpdateTransforms = true)]
-		[Tooltip("On which surface this flipper is attached to. Updates Z-translation.")]
-		public MonoBehaviour _surface;
 
 		// todo implement
 		[Tooltip("This does nothing yet!")]
@@ -159,20 +156,18 @@ namespace VisualPinball.Unity
 
 		#region Transformation
 
-		public void OnSurfaceUpdated() => UpdateTransforms();
-
-		public float PositionZ => SurfaceHeight(Surface, Position);
-
-		public override void UpdateTransforms()
+		/// <summary>
+		/// Returns the local-to-world matrix of the flipper, but without the rotation around the Y-axis.
+		/// </summary>
+		public float4x4 LocalToWorldPhysicsMatrix
 		{
-			base.UpdateTransforms();
-			var t = transform;
-
-			// position
-			t.localPosition = Physics.TranslateToWorld(Position.x, Position.y, PositionZ);
-
-			// rotation
-			t.localEulerAngles = new Vector3(0, _startAngle, 0);
+			get
+			{
+				var t = transform;
+				var m = t.localToWorldMatrix;
+				var r = t.localRotation.eulerAngles;
+				return math.mul(m, math.inverse(float4x4.RotateY(math.radians(r.y))));
+			}
 		}
 
 		private FlipperApi _flipperApi;
@@ -180,7 +175,7 @@ namespace VisualPinball.Unity
 
 		public float RotateZ {
 			set {
-				_startAngle = _originalRotateZ + value;
+				StartAngle = _originalRotateZ + value;
 				_flipperApi.StartAngle = _originalRotateZ + value;
 				UpdateTransforms();
 			}
@@ -189,8 +184,7 @@ namespace VisualPinball.Unity
 		public float2 RotatedPosition {
 			get => new(Position.x, Position.y);
 			set {
-				Position.x = value.x;
-				Position.y = value.y;
+				Position = new Vector3(value.x, value.y, Position.z);
 				UpdateTransforms();
 			}
 		}
@@ -204,8 +198,9 @@ namespace VisualPinball.Unity
 			var updatedComponents = new List<MonoBehaviour> { this };
 
 			// transforms
-			Position = data.Center.ToUnityVector2();
-			_startAngle = data.StartAngle > 180f ? data.StartAngle - 360f : data.StartAngle;
+			Position = new Vector3(data.Center.X, data.Center.Y, 0);
+			transform.localEulerAngles = Vector3.zero;
+			StartAngle = data.StartAngle > 180f ? data.StartAngle - 360f : data.StartAngle;
 
 			// geometry
 			_height = data.Height;
@@ -243,7 +238,9 @@ namespace VisualPinball.Unity
 
 		public override IEnumerable<MonoBehaviour> SetReferencedData(FlipperData data, Table table, IMaterialProvider materialProvider, ITextureProvider textureProvider, Dictionary<string, IMainComponent> components)
 		{
-			Surface = FindComponent<ISurfaceComponent>(components, data.Surface);
+			// surface
+			ParentToSurface(data.Surface, data.Center, components);
+
 			UpdateTransforms();
 
 			// children mesh creation and visibility
@@ -266,9 +263,8 @@ namespace VisualPinball.Unity
 		{
 			// name and transforms
 			data.Name = name;
-			data.Center = Position.ToVertex2D();
-			data.StartAngle = _startAngle;
-			data.Surface = Surface != null ? Surface.name : string.Empty;
+			data.Center = new Vertex2D(Position.x, Position.y);
+			data.StartAngle = StartAngle;
 
 			// geometry
 			data.Height = _height;
@@ -309,44 +305,18 @@ namespace VisualPinball.Unity
 
 		public override void CopyFromObject(GameObject go)
 		{
-			var flipperComponent = go.GetComponent<FlipperComponent>();
-			if (flipperComponent != null) {
-				Position = flipperComponent.Position;
-				_startAngle = flipperComponent._startAngle;
-				EndAngle = flipperComponent.EndAngle;
-				Surface = flipperComponent.Surface;
-				IsDualWound = flipperComponent.IsDualWound;
-				_height = flipperComponent._height;
-				_baseRadius = flipperComponent._baseRadius;
-				_endRadius = flipperComponent._endRadius;
-				FlipperRadiusMin = flipperComponent.FlipperRadiusMin;
-				FlipperRadiusMax = flipperComponent.FlipperRadiusMax;
-				_rubberThickness = flipperComponent._rubberThickness;
-				_rubberHeight = flipperComponent._rubberHeight;
-				_rubberWidth = flipperComponent._rubberWidth;
-
-			} else {
-				Position = go.transform.localPosition.TranslateToVpx();
+			// main component
+			var srcMainComp = go.GetComponent<FlipperComponent>();
+			if (srcMainComp) {
+				StartAngle = srcMainComp.StartAngle;
+				EndAngle = srcMainComp.EndAngle;
+				IsDualWound = srcMainComp.IsDualWound;
 			}
-
-			UpdateTransforms();
 		}
 
 		#endregion
 
 		#region Editor Tooling
-
-		public override ItemDataTransformType EditorPositionType => ItemDataTransformType.TwoD;
-		public override Vector3 GetEditorPosition() => Surface != null
-			? new Vector3(Position.x, Position.y, Surface.Height(Position))
-			: new Vector3(Position.x, Position.y, 0);
-		public override void SetEditorPosition(Vector3 pos) => Position = ((float3)pos).xy;
-
-		public override ItemDataTransformType EditorRotationType => ItemDataTransformType.OneD;
-		public override Vector3 GetEditorRotation() => new Vector3(_startAngle, 0f, 0f);
-		public override void SetEditorRotation(Vector3 rot) => _startAngle = ClampDegrees(rot.x);
-
-		public override ItemDataTransformType EditorScaleType => ItemDataTransformType.None;
 
 		#if UNITY_EDITOR
 
@@ -375,7 +345,7 @@ namespace VisualPinball.Unity
 			// Draw arc arrow
 			List<Vector3> arrow = new List<Vector3>();
 			float start = -90F;
-			float end = -90F + EndAngle - _startAngle;
+			float end = -90F + EndAngle - StartAngle;
 			if (IsLeft) {
 				(start, end) = (end, start);
 			}
@@ -402,7 +372,7 @@ namespace VisualPinball.Unity
 
 		#region Flipper Correction
 
-		private bool IsLeft => EndAngle < _startAngle;
+		private bool IsLeft => EndAngle < StartAngle;
 
 		//! Add a circle arc on a given polygon (used for enclosing poygon)
 		public static void AddPolyArc(List<Vector3> poly, Vector3 center, float radius, float angleFrom, float angleTo, float stepSize = 1F, float height = 0f)
@@ -437,7 +407,7 @@ namespace VisualPinball.Unity
 
 		public List<Vector3> GetEnclosingPolygon(float margin = 0.0F, float stepSize = 5F, float height = 0f)
 		{
-			var swing = EndAngle - _startAngle;
+			var swing = EndAngle - StartAngle;
 			swing = Mathf.Abs(swing);
 
 			List<Vector3> ret = new List<Vector3>(); // TODO: caching
@@ -480,7 +450,7 @@ namespace VisualPinball.Unity
 
 		private void Awake()
 		{
-			_originalRotateZ = _startAngle;
+			_originalRotateZ = StartAngle;
 			var player = GetComponentInParent<Player>();
 			var physicsEngine = GetComponentInParent<PhysicsEngine>();
 			FlipperApi = new FlipperApi(gameObject, player, physicsEngine);
@@ -504,13 +474,13 @@ namespace VisualPinball.Unity
 			if (colliderComponent) {
 
 				// vpx physics
-				var d = GetMaterialData(colliderComponent);
+				var staticData = GetStaticData(colliderComponent);
 				var state = new FlipperState(
-					d,
-					GetMovementData(d),
-					GetVelocityData(d),
+					staticData,
+					GetMovementData(staticData),
+					GetVelocityData(staticData),
 					GetHitData(),
-					GetFlipperTricksData(colliderComponent, d),
+					GetFlipperTricksData(colliderComponent, staticData),
 					new SolenoidState { Value = false }
 				);
 
@@ -558,7 +528,7 @@ namespace VisualPinball.Unity
 			};
 		}
 
-		internal FlipperStaticData GetMaterialData(FlipperColliderComponent colliderComponent)
+		internal FlipperStaticData GetStaticData(FlipperColliderComponent colliderComponent)
 		{
 			float flipperRadius;
 			if (FlipperRadiusMin > 0 && FlipperRadiusMax > FlipperRadiusMin) {
@@ -571,7 +541,7 @@ namespace VisualPinball.Unity
 
 			var endRadius = math.max(_endRadius, 0.01f); // radius of flipper end
 			flipperRadius = math.max(flipperRadius, 0.01f); // radius of flipper arc, center-to-center radius
-			var angleStart = math.radians(_startAngle);
+			var angleStart = math.radians(StartAngle);
 			var angleEnd = math.radians(EndAngle);
 
 			if (angleEnd == angleStart) {
@@ -581,10 +551,8 @@ namespace VisualPinball.Unity
 
 			// model inertia of flipper as that of rod of length flipper around its end
 			var inertia = (float) (1.0 / 3.0) * colliderComponent.Mass * (flipperRadius * flipperRadius);
-			var localPos = transform.localPosition;
 
 			return new FlipperStaticData {
-				Position = new float3(localPos.x, localPos.y, 0F), // TODO: surface height?
 				Inertia = inertia,
 				AngleStart = angleStart,
 				AngleEnd = angleEnd,
@@ -665,14 +633,13 @@ namespace VisualPinball.Unity
 
 			var poly = GetEnclosingPolygon(23, 12);
 			triggerComponent.DragPoints = new DragPointData[poly.Count];
-			triggerComponent.IsLocked = true;
 			triggerCollider.HitHeight = 150F; // nFozzy's recommendation, but I think 50 should be ok
 
 			// this was taken from the 2021 code when we had the playfield transformed to vpx world:
 			// p = ta.transform.InverseTransformPoint(transform.TransformPoint(poly[i]))
 			// this is basically (ta.transform.worldToLocalMatrix * transform.localToWorldMatrix)
 			// but I couldn't get this transformation correctly from our current transforms.
-			// using Matrix4x4.Rotate(quaternion.Euler(new float3(0, 0, -_startAngle))) and transforming
+			// using Matrix4x4.Rotate(quaternion.Euler(new float3(0, 0, -StartAngle))) and transforming
 			// to localPos was close, but not close enough.
 			var flipperToPlayfield = new Matrix4x4(
 				new Vector4(-0.50754f, 0.86163f, 0, 0),

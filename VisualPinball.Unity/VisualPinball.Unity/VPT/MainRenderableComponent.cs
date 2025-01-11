@@ -17,6 +17,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using FluentAssertions.Specialized;
 using UnityEngine;
 using VisualPinball.Engine.Math;
 using VisualPinball.Engine.VPT;
@@ -24,17 +25,10 @@ using Mesh = VisualPinball.Engine.VPT.Mesh;
 
 namespace VisualPinball.Unity
 {
-	public abstract class MainRenderableComponent<TData> : MainComponent<TData>,
-		IMainRenderableComponent, IOnPlayfieldComponent
+	public abstract class MainRenderableComponent<TData> : MainComponent<TData>, IMainRenderableComponent
 		where TData : ItemData
 	{
-		public virtual bool CanBeTransformed => true;
-
-		public virtual bool OverrideTransform => true;
-
-		//public abstract void SetTransform(Vector3 position, Vector3 scale, Quaternion rotation);
 		public abstract void CopyFromObject(GameObject go);
-		//public virtual void SetTransform(Vector3 position, Vector3 scale, Quaternion rotation) { }
 
 		/// <summary>
 		/// Component type of the child class.
@@ -42,6 +36,13 @@ namespace VisualPinball.Unity
 		protected abstract Type MeshComponentType { get; }
 
 		protected abstract Type ColliderComponentType { get; }
+
+		[NonSerialized]
+		public Player Player;
+
+		[NonSerialized]
+		private PlayfieldComponent _playfield;
+		protected PlayfieldComponent Playfield => _playfield ? _playfield : _playfield = GetComponentInParent<PlayfieldComponent>();
 
 		/// <summary>
 		/// Returns all child mesh components linked to this data.
@@ -51,10 +52,10 @@ namespace VisualPinball.Unity
 				.Select(c => (IMeshComponent) c)
 				/*.Where(ma => ma.ItemData == _data)*/ : Array.Empty<IMeshComponent>();
 
-		private IEnumerable<IColliderComponent> ColliderComponents => ColliderComponentType != null ?
+		private IEnumerable<ICollidableComponent> ColliderComponents => ColliderComponentType != null ?
 			GetComponentsInChildren(ColliderComponentType, true)
-				.Select(c => (IColliderComponent) c)
-				/*.Where(ca => ca.ItemData == _data)*/ : Array.Empty<IColliderComponent>();
+				.Select(c => (ICollidableComponent) c)
+				/*.Where(ca => ca.ItemData == _data)*/ : Array.Empty<ICollidableComponent>();
 
 		public void RebuildMeshes()
 		{
@@ -86,7 +87,44 @@ namespace VisualPinball.Unity
 			return null;
 		}
 
-		public virtual void OnPlayfieldHeightUpdated() => UpdateTransforms();
+		protected void SetVisibilityByComponent<TComponent>(bool isVisible) where TComponent : MonoBehaviour
+		{
+			foreach (var component in GetComponentsInChildren<TComponent>()) {
+				component.gameObject.SetActive(isVisible);
+			}
+		}
+
+		protected bool GetVisibilityByComponent<TComponent>() where TComponent : MonoBehaviour
+		{
+			var comp = GetComponentInChildren<TComponent>();
+			return comp && comp.gameObject.activeInHierarchy;
+		}
+
+		protected void SetMeshVisibility(bool isVisible)
+		{
+			foreach (var mr in GetComponentsInChildren<MeshRenderer>()) {
+				mr.enabled = isVisible;
+			}
+		}
+
+		protected bool GetMeshVisibility()
+		{
+			foreach (var mr in GetComponentsInChildren<MeshRenderer>()) {
+				if (mr.enabled) {
+					return true;
+				}
+			}
+			return false;
+		}
+
+		protected void ParentToSurface(string surfaceName, Vertex2D center, Dictionary<string, IMainComponent> components)
+		{
+			if (!string.IsNullOrEmpty(surfaceName)) {
+				var surface = FindComponent<ISurfaceComponent>(components, surfaceName);
+				transform.SetZPosition(surface.Height(center.ToUnityVector2()));
+				transform.SetParent(surface.transform, true);
+			}
+		}
 
 		public virtual void UpdateTransforms()
 		{
@@ -97,11 +135,7 @@ namespace VisualPinball.Unity
 
 		public virtual void UpdateVisibility()
 		{
-		}
-
-		protected float SurfaceHeight(ISurfaceComponent surface, Vector2 position)
-		{
-			return surface?.Height(position) ?? PlayfieldHeight;
+			// do nothing per default
 		}
 
 		protected static void CopyMaterialName(MeshRenderer mr, string[] materialNames, string[] textureNames,
@@ -157,21 +191,18 @@ namespace VisualPinball.Unity
 			}
 		}
 
+		protected void SetChildrenZPosition(Func<Vector3, float> getHeight)
+		{
+			var children = GetComponentsInChildren<IMainRenderableComponent>();
+			foreach (var child in children) {
+				if (ReferenceEquals(child, this)) {
+					continue;
+				}
+				child.transform.SetZPosition(getHeight(child.transform.localPosition.TranslateToVpx()));
+			}
+		}
+
 		#region Tools
-
-		public virtual ItemDataTransformType EditorPositionType => ItemDataTransformType.None;
-		public virtual Vector3 GetEditorPosition() => transform.localPosition;
-		public virtual void SetEditorPosition(Vector3 pos) { }
-
-		public virtual ItemDataTransformType EditorRotationType => ItemDataTransformType.None;
-		public virtual Vector3 GetEditorRotation() => Vector3.zero;
-		public virtual void SetEditorRotation(Vector3 rot) { }
-
-		public virtual ItemDataTransformType EditorScaleType => ItemDataTransformType.None;
-		public virtual Vector3 GetEditorScale() => Vector3.zero;
-		public virtual void SetEditorScale(Vector3 rot) { }
-		public virtual void EditorStartScaling() {}
-		public virtual void EditorEndScaling() {}
 
 		protected static void MoveDragPointsTo(DragPointData[] dragPoints, Vector3 destination)
 		{

@@ -24,6 +24,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Unity.Mathematics;
 using UnityEngine;
 using VisualPinball.Engine.Math;
 using VisualPinball.Engine.VPT;
@@ -57,12 +58,15 @@ namespace VisualPinball.Unity
 		[NonSerialized]
 		private Vertex3D[] _scalingDragPoints;
 
+		[NonSerialized]
+		private float4x4 _playfieldToWorld;
+
 		#endregion
 
 		#region IRubberData
 
 		public DragPointData[] DragPoints { get => _dragPoints; set => _dragPoints = value; }
-		public int Thickness => _thickness;
+		public int Thickness => math.max(1, _thickness); // don't allow zero thickness
 		public float Height => _height;
 		public float RotX => Rotation.x;
 		public float RotY => Rotation.y;
@@ -98,11 +102,11 @@ namespace VisualPinball.Unity
 			RegisterPhysics(physicsEngine);
 		}
 
-		#endregion
-
-		#region Transformation
-
-		public override void OnPlayfieldHeightUpdated() => RebuildMeshes();
+		private void Start()
+		{
+			var playfield = GetComponentInParent<PlayfieldComponent>();
+			_playfieldToWorld = playfield ? playfield.transform.localToWorldMatrix : float4x4.identity;
+		}
 
 		#endregion
 
@@ -196,85 +200,15 @@ namespace VisualPinball.Unity
 
 		public override void CopyFromObject(GameObject go)
 		{
-			var rubberComponent = go.GetComponent<RubberComponent>();
-			if (rubberComponent != null) {
-				_height = rubberComponent._height;
-				_thickness = rubberComponent._thickness;
-				Rotation = rubberComponent.Rotation;
-				_height = rubberComponent._height;
-				_dragPoints = rubberComponent._dragPoints.Select(dp => dp.Clone()).ToArray();
+			var srcMainComp = go.GetComponent<RubberComponent>();
+			if (srcMainComp) {
+				_height = srcMainComp._height;
+				_thickness = srcMainComp._thickness;
+				Rotation = srcMainComp.Rotation;
+				_height = srcMainComp._height;
+				_dragPoints = srcMainComp._dragPoints.Select(dp => dp.Clone()).ToArray();
 
-			} else {
-				MoveDragPointsTo(_dragPoints, go.transform.localPosition.TranslateToVpx());
 			}
-
-			UpdateTransforms();
-			RebuildMeshes();
-		}
-
-		#endregion
-
-		#region Editor Tooling
-
-		private Vector3 DragPointCenter {
-			get {
-				var sum = Vertex3D.Zero;
-				foreach (var t in DragPoints) {
-					sum += t.Center;
-				}
-				var center = sum / DragPoints.Length;
-				return center.ToUnityVector3();
-			}
-		}
-
-		public override ItemDataTransformType EditorPositionType => ItemDataTransformType.ThreeD;
-		public override Vector3 GetEditorPosition()
-		{
-			var pos = DragPoints.Length == 0 ? Vector3.zero : DragPointCenter;
-			return new Vector3(pos.x, pos.y, _height);
-		}
-		public override void SetEditorPosition(Vector3 pos) {
-			if (DragPoints.Length == 0) {
-				return;
-			}
-			var diff = (pos - DragPointCenter).ToVertex3D();
-			diff.Z = 0f;
-			foreach (var pt in DragPoints) {
-				pt.Center += diff;
-			}
-			_height = pos.z;
-			RebuildMeshes();
-		}
-
-		public override ItemDataTransformType EditorRotationType => ItemDataTransformType.ThreeD;
-		public override Vector3 GetEditorRotation() => Rotation;
-		public override void SetEditorRotation(Vector3 rot) {
-			Rotation = rot;
-			RebuildMeshes();
-		}
-
-		public override void EditorStartScaling()
-		{
-			_scalingDragPoints = _dragPoints.Select(dp => dp.Center).ToArray();
-			_scale = 1f;
-		}
-
-		public override void EditorEndScaling()
-		{
-			_scalingDragPoints = null;
-		}
-
-		public override ItemDataTransformType EditorScaleType => ItemDataTransformType.OneD;
-		public override Vector3 GetEditorScale() => new(_scale, 1f, 1f);
-		public override void SetEditorScale(Vector3 vScale)
-		{
-			var scale = 1 + (vScale.x - 1) / 5f;
-			_scale = scale;
-			var center = DragPointCenter.ToVertex3D();
-			for (var i = 0; i < _dragPoints.Length; i++) {
-				_dragPoints[i].Center = center + scale * (_scalingDragPoints[i] - center);
-			}
-
 			RebuildMeshes();
 		}
 

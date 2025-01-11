@@ -23,7 +23,7 @@ namespace VisualPinball.Unity.Editor
 	{
 		internal static IVpxPrefab InstantiatePrefab(this Ramp ramp)
 		{
-			var prefab = UnityEngine.Resources.Load<GameObject>("Prefabs/Ramp");
+			var prefab = Resources.Load<GameObject>("Prefabs/Ramp");
 			return new VpxPrefab<Ramp, RampData, RampComponent>(prefab, ramp);
 		}
 	}

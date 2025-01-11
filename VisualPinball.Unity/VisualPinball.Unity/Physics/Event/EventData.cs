@@ -50,7 +50,7 @@ namespace VisualPinball.Unity
 
 		public EventData(EventId eventId, int itemId, bool groupEvent = false) : this()
 		{
-			this.EventId = eventId;
+			EventId = eventId;
 			ItemId = itemId;
 			BallId = 0;
 			GroupEvent = groupEvent;
@@ -58,7 +58,7 @@ namespace VisualPinball.Unity
 
 		public EventData(EventId eventId, int itemId, float floatParam, bool groupEvent = false) : this()
 		{
-			this.EventId = eventId;
+			EventId = eventId;
 			ItemId = itemId;
 			BallId = 0;
 			FloatParam = floatParam;

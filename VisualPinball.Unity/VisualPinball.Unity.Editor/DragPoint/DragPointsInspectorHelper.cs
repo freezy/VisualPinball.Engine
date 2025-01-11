@@ -14,8 +14,6 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-using System;
-using System.Collections;
 using System.Linq;
 using UnityEditor;
 using UnityEngine;
@@ -36,7 +34,7 @@ namespace VisualPinball.Unity.Editor
 		/// <summary>
 		/// If true, a list of the drag points is displayed in the inspector.
 		/// </summary>
-		private bool _foldoutControlPoints = true;
+		private bool _foldoutControlPoints;
 
 		/// <summary>
 		/// stored vector during the copy/paste process
@@ -65,11 +63,6 @@ namespace VisualPinball.Unity.Editor
 		public void RebuildMeshes()
 		{
 			_mainComponent.RebuildMeshes();
-			if (_playfieldComponent) {
-				WalkChildren(_playfieldComponent.transform, UpdateSurfaceReferences);
-			} else {
-				Debug.LogWarning($"{_mainComponent.name} doesn't seem to have a playfield parent.");
-			}
 		}
 
 		public void OnEnable()
@@ -125,7 +118,8 @@ namespace VisualPinball.Unity.Editor
 		/// <returns>True if game item is locked, false otherwise.</returns>
 		public bool IsItemLocked()
 		{
-			return _mainComponent.IsLocked;
+			// todo delete or implement properly
+			return false;
 		}
 
 		/// <summary>
@@ -144,7 +138,7 @@ namespace VisualPinball.Unity.Editor
 		/// <param name="flipAxis">Axis to flip on</param>
 		public void FlipDragPoints(FlipAxis flipAxis)
 		{
-			if (_dragPointsInspector.HandleType != ItemDataTransformType.ThreeD && flipAxis == FlipAxis.Z) {
+			if (_dragPointsInspector.HandleType != DragPointTransformType.ThreeD && flipAxis == FlipAxis.Z) {
 				return;
 			}
 
@@ -206,9 +200,15 @@ namespace VisualPinball.Unity.Editor
 
 		public void OnInspectorGUI(ItemInspector inspector)
 		{
-			if (_mainComponent.IsLocked) {
-				EditorGUILayout.LabelField("Drag Points are Locked");
-				return;
+			// todo remove or implement properly
+			// if (_mainComponent.IsLocked) {
+			// 	EditorGUILayout.LabelField("Drag Points are Locked");
+			// 	return;
+			// }
+
+			GUILayout.Space(10);
+			if (GUILayout.Button("Center Origin")) {
+				DragPointsHandler.CenterPivot();
 			}
 
 			_foldoutControlPoints = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutControlPoints, "Drag Points");
@@ -227,7 +227,7 @@ namespace VisualPinball.Unity.Editor
 					EditorGUILayout.EndHorizontal();
 					EditorGUI.indentLevel++;
 					EditorGUI.BeginChangeCheck();
-					if (_dragPointsInspector.HandleType == ItemDataTransformType.TwoD) {
+					if (_dragPointsInspector.HandleType == DragPointTransformType.TwoD) {
 						var pos = EditorGUILayout.Vector2Field("Position", controlPoint.DragPoint.Center.ToUnityVector2());
 						if (EditorGUI.EndChangeCheck()) {
 							controlPoint.DragPoint.Center.X = pos.x;
@@ -261,9 +261,10 @@ namespace VisualPinball.Unity.Editor
 
 		private void UpdateDragPointsLock()
 		{
-			if (DragPointsHandler.UpdateDragPointsLock(_mainComponent.IsLocked)) {
-				HandleUtility.Repaint();
-			}
+			// todo remove or implement properly
+			// if (DragPointsHandler.UpdateDragPointsLock(_mainComponent.IsLocked)) {
+			// 	HandleUtility.Repaint();
+			// }
 		}
 
 		private void OnDragPointPositionChange()
@@ -275,7 +276,6 @@ namespace VisualPinball.Unity.Editor
 		private void OnUndoRedoPerformed()
 		{
 			RemapControlPoints();
-			WalkChildren(_playfieldComponent.transform, UpdateSurfaceReferences);
 		}
 
 		public void OnSceneGUI(ItemInspector inspector)
@@ -290,6 +290,7 @@ namespace VisualPinball.Unity.Editor
 			DragPointsHandler.OnSceneGUI(Event.current, OnDragPointPositionChange);
 
 			// right mouse button clicked?
+			Handles.matrix = Matrix4x4.identity;
 			if (Event.current.type == EventType.MouseDown && Event.current.button == 1) {
 				var nearestControlPoint = DragPointsHandler.ControlPoints.Find(cp => cp.ControlId == HandleUtility.nearestControl);
 
@@ -304,22 +305,5 @@ namespace VisualPinball.Unity.Editor
 				}
 			}
 		}
-
-		private static void WalkChildren(IEnumerable node, Action<Transform> action)
-		{
-			foreach (Transform childTransform in node) {
-				action(childTransform);
-				WalkChildren(childTransform, action);
-			}
-		}
-
-		private void UpdateSurfaceReferences(Transform obj)
-		{
-			var surfaceComponent = obj.gameObject.GetComponent<IOnSurfaceComponent>();
-			if (surfaceComponent != null && surfaceComponent.Surface == _mainComponent) {
-				surfaceComponent.OnSurfaceUpdated();
-			}
-		}
-
 	}
 }

@@ -55,6 +55,8 @@ namespace VisualPinball.Unity
 		public event EventHandler<BallEvent> OnBallCreated;
 		public event EventHandler<BallEvent> OnBallDestroyed;
 
+		public float4x4 PlayfieldToWorldMatrix => PlayfieldComponent.transform.localToWorldMatrix;
+
 		[HideInInspector] [SerializeField] public string debugUiId;
 
 		[Tooltip("When enabled, update the switch, coil, lamp and wire manager windows in the editor (slower performance)")]

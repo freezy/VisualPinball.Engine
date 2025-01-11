@@ -18,7 +18,7 @@ using Unity.Mathematics;
 
 namespace VisualPinball.Unity
 {
-	internal struct CollisionEventData
+	public struct CollisionEventData
 	{
 		public float HitTime;
 		public float3 HitNormal;
@@ -63,6 +63,12 @@ namespace VisualPinball.Unity
 		public bool HasCollider()
 		{
 			return ColliderId > -1 || BallId != 0;
+		}
+
+		public void Transform(float4x4 matrix)
+		{
+			HitNormal = matrix.MultiplyVector(HitNormal);
+			HitVelocity = matrix.MultiplyVector(new float3(HitVelocity, 0)).xy;
 		}
 	}
 }

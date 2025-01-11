@@ -17,6 +17,7 @@
 // ReSharper disable AssignmentInConditionalExpression
 
 using UnityEditor;
+using UnityEngine;
 using VisualPinball.Engine.VPT.Flipper;
 
 namespace VisualPinball.Unity.Editor
@@ -27,10 +28,7 @@ namespace VisualPinball.Unity.Editor
 		private bool _foldoutBaseGeometry = true;
 		private bool _foldoutRubberGeometry = true;
 
-		private SerializedProperty _positionProperty;
-		private SerializedProperty _startAngleProperty;
 		private SerializedProperty _endAngleProperty;
-		private SerializedProperty _surfaceProperty;
 		private SerializedProperty _isEnabledProperty;
 		private SerializedProperty _isDualWoundProperty;
 		private SerializedProperty _heightProperty;
@@ -46,10 +44,7 @@ namespace VisualPinball.Unity.Editor
 		{
 			base.OnEnable();
 
-			_positionProperty = serializedObject.FindProperty(nameof(FlipperComponent.Position));
-			_startAngleProperty = serializedObject.FindProperty(nameof(FlipperComponent._startAngle));
 			_endAngleProperty = serializedObject.FindProperty(nameof(FlipperComponent.EndAngle));
-			_surfaceProperty = serializedObject.FindProperty(nameof(FlipperComponent._surface));
 			_isEnabledProperty = serializedObject.FindProperty(nameof(FlipperComponent.IsEnabled));
 			_isDualWoundProperty = serializedObject.FindProperty(nameof(FlipperComponent.IsDualWound));
 			_heightProperty = serializedObject.FindProperty(nameof(FlipperComponent._height));
@@ -72,10 +67,23 @@ namespace VisualPinball.Unity.Editor
 
 			OnPreInspectorGUI();
 
-			PropertyField(_positionProperty, updateTransforms: true);
-			PropertyField(_startAngleProperty, updateTransforms: true);
+			// position
+			EditorGUI.BeginChangeCheck();
+			var newPos = EditorGUILayout.Vector3Field(new GUIContent("Position", "Position of the flipper on the playfield, relative to its parent."), MainComponent.Position);
+			if (EditorGUI.EndChangeCheck()) {
+				Undo.RecordObject(MainComponent.transform, "Change Flipper Position");
+				MainComponent.Position = newPos;
+			}
+
+			// start angle
+			EditorGUI.BeginChangeCheck();
+			var newAngle = EditorGUILayout.Slider(new GUIContent("Start Angle", "Angle of the flipper in start position (not flipped)"), MainComponent.StartAngle, -180f, 180f);
+			if (EditorGUI.EndChangeCheck()) {
+				Undo.RecordObject(MainComponent.transform, "Change Flipper Start Angle");
+				MainComponent.StartAngle = newAngle;
+			}
+
 			PropertyField(_endAngleProperty);
-			PropertyField(_surfaceProperty);
 			PropertyField(_isEnabledProperty);
 			PropertyField(_isDualWoundProperty);
 

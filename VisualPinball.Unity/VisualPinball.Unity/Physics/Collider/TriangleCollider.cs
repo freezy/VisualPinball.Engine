@@ -21,6 +21,13 @@ using VisualPinball.Engine.VPT;
 
 namespace VisualPinball.Unity
 {
+	/// <summary>
+	/// A triangle in 3D space.
+	/// </summary>
+	///
+	/// <remarks>
+	/// Defined by three points (float3)
+	/// </remarks>
 	internal struct TriangleCollider : ICollider
 	{
 		public int Id
@@ -28,6 +35,8 @@ namespace VisualPinball.Unity
 			get => Header.Id;
 			set => Header.Id = value;
 		}
+
+		public bool IsFullyTransformable => true;
 
 		public ColliderHeader Header;
 
@@ -38,16 +47,9 @@ namespace VisualPinball.Unity
 
 		public float3 Normal() => _normal;
 		
-		public override string ToString() => $"TriangleCollider[{Header.ItemId}] ({Rgv0.x}/{Rgv0.y}/{Rgv0.z}), ({Rgv1.x}/{Rgv1.y}/{Rgv1.z}), ({Rgv2.x}/{Rgv2.y}/{Rgv2.z}) at ({_normal.x}/{_normal.y/_normal.z})";
+		public override string ToString() => $"TriangleCollider[{Header.ItemId}] ({Rgv0.x}/{Rgv0.y}/{Rgv0.z}), ({Rgv1.x}/{Rgv1.y}/{Rgv1.z}), ({Rgv2.x}/{Rgv2.y}/{Rgv2.z}) at ({_normal.x}/{_normal.y}/{_normal.z})";
 
-		public ColliderBounds Bounds => new ColliderBounds(Header.ItemId, Header.Id, new Aabb(
-			math.min(Rgv0.x, math.min(Rgv1.x, Rgv2.x)),
-			math.max(Rgv0.x, math.max(Rgv1.x, Rgv2.x)),
-			math.min(Rgv0.y, math.min(Rgv1.y, Rgv2.y)),
-			math.max(Rgv0.y, math.max(Rgv1.y, Rgv2.y)),
-			math.min(Rgv0.z, math.min(Rgv1.z, Rgv2.z)),
-			math.max(Rgv0.z, math.max(Rgv1.z, Rgv2.z))
-		));
+		public ColliderBounds Bounds { get; private set; }
 
 		public TriangleCollider(float3 rgv0, float3 rgv1, float3 rgv2, ColliderInfo info) : this()
 		{
@@ -55,6 +57,7 @@ namespace VisualPinball.Unity
 			Rgv0 = rgv0;
 			Rgv1 = rgv1;
 			Rgv2 = rgv2;
+			CalculateBounds();
 
 			var e0 = rgv2 - rgv0;
 			var e1 = rgv1 - rgv0;
@@ -183,12 +186,53 @@ namespace VisualPinball.Unity
 
 		#endregion
 
+		#region Transformation
+
+		public TriangleCollider Transform(float4x4 matrix)
+		{
+			Transform(this, matrix);
+			return this;
+		}
+
 		public void Transform(TriangleCollider triangle, float4x4 matrix)
 		{
 			Rgv0 = math.mul(matrix, new float4(triangle.Rgv0, 1f)).xyz;
 			Rgv1 = math.mul(matrix, new float4(triangle.Rgv1, 1f)).xyz;
 			Rgv2 = math.mul(matrix, new float4(triangle.Rgv2, 1f)).xyz;
 			_normal = math.normalizesafe(math.cross(Rgv2 - Rgv0, Rgv1 - Rgv0));
+			CalculateBounds();
 		}
+
+		public Aabb GetTransformedAabb(float4x4 matrix)
+		{
+			var p1 = matrix.MultiplyPoint(Rgv0);
+			var p2 = matrix.MultiplyPoint(Rgv1);
+			var p3 = matrix.MultiplyPoint(Rgv2);
+
+			var min = math.min(p1, math.min(p2, p3));
+			var max = math.max(p1, math.max(p2, p3));
+
+			return new Aabb(min, max);
+		}
+
+		public TriangleCollider TransformAabb(float4x4 matrix)
+		{
+			Bounds = new ColliderBounds(Header.ItemId, Header.Id, GetTransformedAabb(matrix));
+			return this;
+		}
+
+		private void CalculateBounds()
+		{
+			Bounds = new ColliderBounds(Header.ItemId, Header.Id, new Aabb(
+				math.min(Rgv0.x, math.min(Rgv1.x, Rgv2.x)),
+				math.max(Rgv0.x, math.max(Rgv1.x, Rgv2.x)),
+				math.min(Rgv0.y, math.min(Rgv1.y, Rgv2.y)),
+				math.max(Rgv0.y, math.max(Rgv1.y, Rgv2.y)),
+				math.min(Rgv0.z, math.min(Rgv1.z, Rgv2.z)),
+				math.max(Rgv0.z, math.max(Rgv1.z, Rgv2.z))
+			));
+		}
+
+		#endregion
 	}
 }

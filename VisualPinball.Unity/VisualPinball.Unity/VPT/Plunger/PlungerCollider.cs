@@ -14,13 +14,21 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-using Unity.Collections;
 using Unity.Mathematics;
+using UnityEngine;
 using VisualPinball.Engine.Common;
 using VisualPinball.Engine.VPT.Plunger;
+using Random = Unity.Mathematics.Random;
 
 namespace VisualPinball.Unity
 {
+	/// <summary>
+	/// Our custom plunger collider.
+	/// </summary>
+	///
+	/// <remarks>
+	/// Defined by z-position, width, height, stroke.
+	/// </remarks>
 	internal struct PlungerCollider : ICollider
 	{
 		public int Id
@@ -34,11 +42,16 @@ namespace VisualPinball.Unity
 			}
 		}
 
+		public bool IsFullyTransformable => false;
+
 		public ColliderHeader Header;
 
 		public LineCollider LineSegBase;
 		public LineZCollider JointBase0;
 		public LineZCollider JointBase1;
+
+		private readonly float2 _size;
+		private readonly float _stroke;
 
 		public ColliderBounds Bounds { get; private set; }
 
@@ -46,26 +59,75 @@ namespace VisualPinball.Unity
 		{
 			Header.Init(info, ColliderType.Plunger);
 
-			var zHeight = comp.PositionZ;
-			var x = comp.Position.x - comp.Width;
-			var y = comp.Position.y + comp.Height;
-			var x2 = comp.Position.x + comp.Width;
+			var zHeight = comp.Position.z;
+			var x = -comp.Width;
+			var x2 = comp.Width;
+			var y = comp.Height;
+
+			_size = new float2(comp.Width, comp.Height);
+			_stroke = collComp.Stroke;
 
 			// static
 			LineSegBase = new LineCollider(new float2(x, y), new float2(x2, y), zHeight, zHeight + Plunger.PlungerHeight, info);
 			JointBase0 = new LineZCollider(new float2(x, y), zHeight, zHeight + Plunger.PlungerHeight, info);
 			JointBase1 = new LineZCollider(new float2(x2, y), zHeight, zHeight + Plunger.PlungerHeight, info);
 
-			var frameEnd = comp.Position.y - collComp.Stroke;
 			Bounds = new ColliderBounds(Header.ItemId, Header.Id, new Aabb(
-				x - 0.1f,
-				x2 + 0.1f,
-				frameEnd - 0.1f,
-				y + 0.1f,
-				zHeight,
-				zHeight + Plunger.PlungerHeight
+				new float3(-comp.Width - 10, comp.Height, 0),
+				new float3(comp.Width + 10, -100, 50)
 			));
 		}
+
+		#region Transformation
+
+		public static bool IsTransformable(float4x4 matrix)
+		{
+			// position: fully transformable
+			// scale: none
+			// rotation: none
+
+			var scale = matrix.GetScale();
+			var rotation = matrix.GetRotationVector();
+
+			var rotated = math.abs(rotation.x) > Collider.Tolerance || math.abs(rotation.y) > Collider.Tolerance || math.abs(rotation.z) > Collider.Tolerance;
+			var scaled = math.abs(1 - scale.x) > Collider.Tolerance || math.abs(1 - scale.y) > Collider.Tolerance || math.abs(1 - scale.z) > Collider.Tolerance;
+
+			return !rotated && !scaled;
+		}
+
+		public PlungerCollider Transform(float4x4 matrix)
+		{
+			Transform(this, matrix);
+			return this;
+		}
+
+		private void Transform(PlungerCollider collider, float4x4 matrix)
+		{
+			#if UNITY_EDITOR
+			if (!IsTransformable(matrix)) {
+				throw new System.InvalidOperationException($"Matrix {matrix} cannot transform plunger.");
+			}
+			#endif
+
+			TransformAabb(matrix);
+
+			LineSegBase = collider.LineSegBase.Transform(matrix);
+			JointBase0 = collider.JointBase0.Transform(matrix);
+			JointBase1 = collider.JointBase1.Transform(matrix);
+		}
+
+		public Aabb GetTransformedAabb(float4x4 matrix)
+		{
+			return Bounds.Aabb.Transform(matrix);
+		}
+
+		public PlungerCollider TransformAabb(float4x4 matrix)
+		{
+			Bounds = new ColliderBounds(Header.ItemId, Header.Id, GetTransformedAabb(matrix));
+			return this;
+		}
+
+		#endregion
 
 		#region Narrowphase
 
@@ -314,5 +376,7 @@ namespace VisualPinball.Unity
 		}
 
 		#endregion
+
+		public override string ToString() => $"PlungerCollider[{Header.ItemId}] {LineSegBase.ToString()} | {JointBase0.ToString()} | {JointBase1.ToString()}";
 	}
 }

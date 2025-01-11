@@ -14,6 +14,8 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+using Unity.Mathematics;
+
 namespace VisualPinball.Unity
 {
 	internal struct TriggerStaticState
@@ -21,8 +23,9 @@ namespace VisualPinball.Unity
 		public int Shape;
 		public float Radius;
 		public float AnimSpeed;
+		public float3 InitialPosition;
 
 		// table data
-		public float TableScaleZ;
+		public float TableScaleZ; // todo nuke
 	}
 }

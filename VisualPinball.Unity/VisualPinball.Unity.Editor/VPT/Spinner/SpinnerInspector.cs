@@ -17,6 +17,7 @@
 // ReSharper disable AssignmentInConditionalExpression
 
 using UnityEditor;
+using UnityEngine;
 using VisualPinball.Engine.VPT.Spinner;
 
 namespace VisualPinball.Unity.Editor
@@ -26,24 +27,14 @@ namespace VisualPinball.Unity.Editor
 	{
 		private bool _foldoutPhysics = true;
 
-		private SerializedProperty _positionProperty;
-		private SerializedProperty _heightProperty;
-		private SerializedProperty _rotationProperty;
-		private SerializedProperty _lengthProperty;
 		private SerializedProperty _dampingProperty;
 		private SerializedProperty _angleMaxProperty;
 		private SerializedProperty _angleMinProperty;
-		private SerializedProperty _surfaceProperty;
 
 		protected override void OnEnable()
 		{
 			base.OnEnable();
 
-			_positionProperty = serializedObject.FindProperty(nameof(SpinnerComponent.Position));
-			_heightProperty = serializedObject.FindProperty(nameof(SpinnerComponent.Height));
-			_rotationProperty = serializedObject.FindProperty(nameof(SpinnerComponent.Rotation));
-			_lengthProperty = serializedObject.FindProperty(nameof(SpinnerComponent.Length));
-			_surfaceProperty = serializedObject.FindProperty(nameof(SpinnerComponent._surface));
 			_dampingProperty = serializedObject.FindProperty(nameof(SpinnerComponent.Damping));
 			_angleMaxProperty = serializedObject.FindProperty(nameof(SpinnerComponent.AngleMax));
 			_angleMinProperty = serializedObject.FindProperty(nameof(SpinnerComponent.AngleMin));
@@ -59,11 +50,34 @@ namespace VisualPinball.Unity.Editor
 
 			OnPreInspectorGUI();
 
-			PropertyField(_positionProperty, updateTransforms: true);
-			PropertyField(_heightProperty, updateTransforms: true);
-			PropertyField(_lengthProperty, updateTransforms: true);
-			PropertyField(_rotationProperty, updateTransforms: true);
-			PropertyField(_surfaceProperty, updateTransforms: true);
+			// position
+			EditorGUI.BeginChangeCheck();
+			var newPos = EditorGUILayout.Vector2Field(new GUIContent("Position", "Position of the spinner on the playfield, relative to its parent."), MainComponent.Position);
+			if (EditorGUI.EndChangeCheck()) {
+				Undo.RecordObject(MainComponent.transform, "Change Spinner Position");
+				MainComponent.Position = newPos;
+			}
+
+			EditorGUI.BeginChangeCheck();
+			var newHeight = EditorGUILayout.FloatField(new GUIContent("Height", "Z-Position on the playfield, relative to its parent."), MainComponent.Position.z);
+			if (EditorGUI.EndChangeCheck()) {
+				Undo.RecordObject(MainComponent.transform, "Change Spinner Height");
+				MainComponent.Position = new Vector3(MainComponent.Position.x, MainComponent.Position.y, newHeight);
+			}
+
+			EditorGUI.BeginChangeCheck();
+			var newLength = EditorGUILayout.FloatField(new GUIContent("Length", "Overall scaling of the spinner, 80 = original size."), MainComponent.Length);
+			if (EditorGUI.EndChangeCheck()) {
+				Undo.RecordObject(MainComponent.transform, "Change Spinner Length");
+				MainComponent.Length = newLength;
+			}
+
+			EditorGUI.BeginChangeCheck();
+			var newRotation = EditorGUILayout.Slider(new GUIContent("Rotation", "Z-Axis rotation of the spinner on the playfield."), MainComponent.Rotation, -180f, 180f);
+			if (EditorGUI.EndChangeCheck()) {
+				Undo.RecordObject(MainComponent.transform, "Change Spinner Rotation");
+				MainComponent.Rotation = newRotation;
+			}
 
 			if (_foldoutPhysics = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutPhysics, "Physics")) {
 				PropertyField(_dampingProperty);

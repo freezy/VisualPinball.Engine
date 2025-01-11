@@ -16,9 +16,6 @@
 
 using System;
 using System.Collections;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
 using UnityEditor;
 using UnityEngine;
 using Object = UnityEngine.Object;
@@ -37,7 +34,6 @@ namespace VisualPinball.Unity.Editor
 		private bool _transformsDirty;
 		private bool _visibilityDirty;
 
-		private SerializedProperty _isLockedProperty;
 
 		internal const string CustomMeshLabel = "Custom Mesh";
 
@@ -49,8 +45,6 @@ namespace VisualPinball.Unity.Editor
 
 			TableComponent = (target as MonoBehaviour)?.gameObject.GetComponentInParent<TableComponent>();
 			PlayfieldComponent = (target as MonoBehaviour)?.gameObject.GetComponentInParent<PlayfieldComponent>();
-
-			_isLockedProperty = serializedObject.FindProperty("_isLocked");
 		}
 
 		protected virtual void OnDisable()
@@ -122,7 +116,7 @@ namespace VisualPinball.Unity.Editor
 					}
 					break;
 
-				case IColliderComponent colliderComponent:
+				case ICollidableComponent colliderComponent:
 					if (_collidersDirty) {
 						colliderComponent.CollidersDirty = true;
 					}
@@ -170,6 +164,37 @@ namespace VisualPinball.Unity.Editor
 			}
 		}
 
+		protected void PropertyField(SerializedProperty serializedProperty, string label, ref bool isUpdating,
+			Action<Transform> onStartChanging, Action onChanging, bool updateTransforms = false)
+		{
+			var controlName = "__detectFinished_" + serializedProperty.name;
+			GUI.SetNextControlName(controlName);
+			EditorGUI.BeginChangeCheck();
+
+			EditorGUILayout.PropertyField(serializedProperty, string.IsNullOrEmpty(serializedProperty.tooltip)
+					? new GUIContent(label)
+					: new GUIContent(label, serializedProperty.tooltip)
+			);
+			var hasFocus = GUI.GetNameOfFocusedControl() == controlName;
+
+			switch (hasFocus) {
+				case true when !isUpdating:
+					isUpdating = true;
+					onStartChanging.Invoke(((MonoBehaviour)target).transform);
+					break;
+
+				case false when isUpdating:
+					isUpdating = false;
+					break;
+			}
+
+			if (EditorGUI.EndChangeCheck()) {
+				GUI.changed = true;
+				_transformsDirty = updateTransforms;
+				onChanging?.Invoke();
+			}
+		}
+
 		protected void DropDownProperty(string label, SerializedProperty prop, string[] optionStrings, int[] optionValues,
 			bool rebuildMesh = false, bool updateVisibility = false)
 		{
@@ -196,7 +221,7 @@ namespace VisualPinball.Unity.Editor
 							meshItem.MainRenderableComponent.RebuildMeshes();
 						}
 						if (updateVisibility) {
-							meshItem.MainRenderableComponent.UpdateVisibility();
+							// meshItem.MainRenderableComponent.UpdateVisibility();
 						}
 						break;
 
@@ -205,74 +230,20 @@ namespace VisualPinball.Unity.Editor
 							mainItem.RebuildMeshes();
 						}
 						if (updateVisibility) {
-							mainItem.UpdateVisibility();
+							// mainItem.UpdateVisibility();
 						}
 						break;
 				}
 			}
 		}
 
-		protected void MeshDropdownProperty(string label, SerializedProperty meshProp, string meshFolder, GameObject go,
-			SerializedProperty typeProp, Dictionary<string, int> meshTypeMap)
-		{
-			var files = Directory.GetFiles(meshFolder, "*.mesh")
-				.Select(Path.GetFileNameWithoutExtension)
-				.Concat(new[] { CustomMeshLabel })
-				.ToArray();
-
-			var selectedIndex = files.ToList().IndexOf(meshProp.stringValue);
-			EditorGUI.BeginChangeCheck();
-			var newIndex = EditorGUILayout.Popup(label, selectedIndex, files);
-			if (EditorGUI.EndChangeCheck() && newIndex >= 0 && newIndex < files.Length && go != null) {
-				var meshPath = Path.Combine(meshFolder, $"{files[newIndex]}.mesh");
-				var mf = go.GetComponent<MeshFilter>();
-				var mr = go.GetComponent<MeshRenderer>();
-				if (File.Exists(meshPath)) {
-					if (!mf) {
-						mf = go.AddComponent<MeshFilter>();
-					}
-					if (!mr) {
-						go.AddComponent<MeshRenderer>();
-					}
-					var mesh = (Mesh)AssetDatabase.LoadAssetAtPath(meshPath, typeof(Mesh));
-					mr.enabled = true;
-					mf.sharedMesh = mesh;
-					
-				} else {
-					if (mr) {
-						mr.enabled = false;
-					}
-					if (mf) {
-						mf.sharedMesh = null;
-					}
-				}
-					
-				meshProp.stringValue = files[newIndex];
-				if (meshTypeMap.ContainsKey(files[newIndex])) {
-					typeProp.intValue = meshTypeMap[files[newIndex]];
-				}
-				meshProp.serializedObject.ApplyModifiedProperties();
-				if (target is MonoBehaviour mb) {
-					var colliderComponent = mb.GetComponent<IColliderComponent>();
-					if (colliderComponent != null) {
-						colliderComponent.CollidersDirty = true;
-					}
-				}
-
-				if (target is IMainRenderableComponent mrc) {
-					mrc.UpdateTransforms();
-				}
-			}
-		}
-
-		protected void OnPreInspectorGUI()
+		protected virtual void OnPreInspectorGUI()
 		{
 			if (!(target is IMainRenderableComponent)) {
 				return;
 			}
 
 			EditorGUI.BeginChangeCheck();
-			PropertyField(_isLockedProperty, "Locked");
 			if (EditorGUI.EndChangeCheck()) {
 				SceneView.RepaintAll();
 			}
@@ -318,7 +289,7 @@ namespace VisualPinball.Unity.Editor
 						meshItem.MainRenderableComponent.RebuildMeshes();
 						break;
 
-					case IColliderComponent _:
+					case ICollidableComponent _:
 						Undo.RecordObject(UndoTarget, undoLabel);
 						break;
 

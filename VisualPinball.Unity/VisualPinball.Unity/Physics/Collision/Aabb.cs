@@ -50,9 +50,18 @@ namespace VisualPinball.Unity
 			Right = right;
 			Top = top;
 			Bottom = bottom;
-			ZLow = 0;
 			ZLow = zLow;
 			ZHigh = zHigh;
+		}
+
+		public Aabb(float3 min, float3 max)
+		{
+			Left = min.x;
+			Right = max.x;
+			Top = min.y;
+			Bottom = max.y;
+			ZLow = min.z;
+			ZHigh = max.z;
 		}
 
 		public void Clear()
@@ -123,19 +132,54 @@ namespace VisualPinball.Unity
 				a.ZHigh == ZHigh;
 		}
 
-		public override readonly bool Equals(object obj)
+		public Aabb Transform(float4x4 m)
+		{
+			var p1 = m.MultiplyPoint(new float3(Left, Top, ZHigh));
+			var p2 = m.MultiplyPoint(new float3(Right, Top, ZHigh));
+			var p3 = m.MultiplyPoint(new float3(Left, Bottom, ZHigh));
+			var p4 = m.MultiplyPoint(new float3(Right, Bottom, ZHigh));
+			var p5 = m.MultiplyPoint(new float3(Left, Top, ZLow));
+			var p6 = m.MultiplyPoint(new float3(Right, Top, ZLow));
+			var p7 = m.MultiplyPoint(new float3(Left, Bottom, ZLow));
+			var p8 = m.MultiplyPoint(new float3(Right, Bottom, ZLow));
+
+			var min = math.min(p1, math.min(p2, math.min(p3, math.min(p4, math.min(p5, math.min(p6, math.min(p7, p8)))))));
+			var max = math.max(p1, math.max(p2, math.max(p3, math.max(p4, math.max(p5, math.max(p6, math.max(p7, p8)))))));
+
+			return new Aabb(min, max);
+		}
+
+		private static float min(params float[] values)
+		{
+			var min = float.MaxValue;
+			foreach (var value in values) {
+				min = math.min(min, value);
+			}
+			return min;
+		}
+
+		private static float max(params float[] values)
+		{
+			var max = float.MinValue;
+			foreach (var value in values) {
+				max = math.max(max, value);
+			}
+			return max;
+		}
+
+		public readonly override bool Equals(object obj)
 		{
 			if (obj is Aabb)
 				return Equals(obj);
 			return false;
 		}
 
-		public override readonly string ToString()
+		public readonly override string ToString()
 		{
 			return $"Aabb {Left} → {Right} | {Top} ↘ {Bottom} | {ZLow} ↑ {ZHigh}";
 		}
 
-		public override readonly int GetHashCode()
+		public readonly override int GetHashCode()
 		{
 			return HashCode.Combine(Right, Left, Bottom, Top, ZLow, ZHigh);
 		}

@@ -14,11 +14,16 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+using Unity.Mathematics;
 using VisualPinball.Engine.VPT.Spinner;
 
 namespace VisualPinball.Unity
 {
-	public class SpinnerPlateAnimationComponent : AnimationComponent<SpinnerData, SpinnerComponent>
+	public class SpinnerPlateAnimationComponent : AnimationComponent<SpinnerData, SpinnerComponent>, IRotatableAnimationComponent
 	{
+		public void OnRotationUpdated(float angleRad)
+		{
+			transform.localRotation = quaternion.RotateX(-angleRad);
+		}
 	}
 }

@@ -37,7 +37,10 @@ namespace VisualPinball.Unity
 		public NativeColliders Colliders;
 		public NativeColliders KinematicColliders;
 		public NativeColliders KinematicCollidersAtIdentity;
+		public NativeParallelHashMap<int, float4x4> KinematicTransforms;
 		public NativeParallelHashMap<int, float4x4> UpdatedKinematicTransforms;
+		public NativeParallelHashMap<int, float4x4> NonTransformableColliderTransforms;
+
 		public NativeParallelHashMap<int, NativeColliderIds> KinematicColliderLookups;
 		public InsideOfs InsideOfs;
 		public NativeQueue<EventData>.ParallelWriter Events;
@@ -61,11 +64,16 @@ namespace VisualPinball.Unity
 		{
 			var env = PhysicsEnv[0];
 			var state = new PhysicsState(ref env, ref Octree, ref Colliders, ref KinematicColliders,
-				ref KinematicCollidersAtIdentity, ref UpdatedKinematicTransforms, ref KinematicColliderLookups, ref Events,
+				ref KinematicCollidersAtIdentity, ref KinematicTransforms, ref UpdatedKinematicTransforms,
+				ref NonTransformableColliderTransforms, ref KinematicColliderLookups, ref Events,
 				ref InsideOfs, ref Balls, ref BumperStates, ref DropTargetStates, ref FlipperStates, ref GateStates,
 				ref HitTargetStates, ref KickerStates, ref PlungerStates, ref SpinnerStates,
 				ref SurfaceStates, ref TriggerStates, ref DisabledCollisionItems, ref SwapBallCollisionHandling);
 			using var cycle = new PhysicsCycle(Allocator.Temp);
+
+			// create octree of kinematic-to-ball collision. should be okay here, since kinetic colliders don't transform more than once per frame.
+			PhysicsKinematics.TransformFullyTransformableColliders(ref state);
+			var kineticOctree = PhysicsKinematics.CreateOctree(ref state, in PlayfieldBounds);
 
 			while (env.CurPhysicsFrameTime < InitialTimeUsec)  // loop here until current (real) time matches the physics (simulated) time
 			{
@@ -112,7 +120,7 @@ namespace VisualPinball.Unity
 				#endregion
 
 				// primary physics loop
-				cycle.Simulate(ref state, in PlayfieldBounds, ref OverlappingColliders, physicsDiffTime);
+				cycle.Simulate(ref state, in PlayfieldBounds, ref OverlappingColliders, ref kineticOctree, physicsDiffTime);
 
 				// ball trail, keep old pos of balls
 				using (var enumerator = state.Balls.GetEnumerator()) {
@@ -123,15 +131,17 @@ namespace VisualPinball.Unity
 
 				#region Animation
 
+				// todo it should be enough to calculate animations only once per frame
+
 				// bumper
 				using (var enumerator = BumperStates.GetEnumerator()) {
 					while (enumerator.MoveNext()) {
 						ref var bumperState = ref enumerator.Current.Value;
 						if (bumperState.RingItemId != 0) {
-							BumperRingAnimation.Update(ref bumperState.RingAnimation, DeltaTimeMs);
+							BumperRingAnimation.Update(ref bumperState.RingAnimation, PhysicsConstants.PhysicsStepTime / 1000f);
 						}
 						if (bumperState.SkirtItemId != 0) {
-							BumperSkirtAnimation.Update(ref bumperState.SkirtAnimation, DeltaTimeMs);
+							BumperSkirtAnimation.Update(ref bumperState.SkirtAnimation, PhysicsConstants.PhysicsStepTime / 1000f);
 						}
 					}
 				}
@@ -164,7 +174,7 @@ namespace VisualPinball.Unity
 				using (var enumerator = TriggerStates.GetEnumerator()) {
 					while (enumerator.MoveNext()) {
 						ref var triggerState = ref enumerator.Current.Value;
-						TriggerAnimation.Update(ref triggerState.Animation, ref triggerState.Movement, in triggerState.Static, DeltaTimeMs);
+						TriggerAnimation.Update(ref triggerState.Animation, ref triggerState.Movement, in triggerState.Static, PhysicsConstants.PhysicsStepTime / 1000f);
 					}
 				}
 
@@ -175,6 +185,7 @@ namespace VisualPinball.Unity
 			}
 
 			PhysicsEnv[0] = env;
+			kineticOctree.Dispose();
 		}
 	}
 }

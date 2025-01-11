@@ -30,6 +30,8 @@ namespace VisualPinball.Unity.Editor
 	{
 		protected TColliderComponent ColliderComponent;
 
+		protected SerializedProperty IsKinematicProperty;
+
 		private bool _foldoutDebug = true;
 		private bool _foldoutColliders;
 		private string[] _currentColliders;
@@ -42,9 +44,9 @@ namespace VisualPinball.Unity.Editor
 
 		protected override void OnEnable()
 		{
+			IsKinematicProperty = serializedObject.FindProperty(nameof(ColliderComponent._isKinematic));
 			ColliderComponent = target as TColliderComponent;
 			if (ColliderComponent != null) {
-				ColliderComponent.ShowGizmos = true;
 
 				// if no meshes active, show collider
 				if (ColliderComponent.MainComponent && !ColliderComponent.MainComponent.GetComponentsInChildren<MeshRenderer>().Any(mr => mr.enabled)) {
@@ -55,11 +57,15 @@ namespace VisualPinball.Unity.Editor
 			base.OnEnable();
 		}
 
-		private void OnDestroy()
+		protected override void OnPreInspectorGUI()
 		{
-			if (ColliderComponent != null) {
-				ColliderComponent.ShowGizmos = false;
-			}
+			PropertyField(IsKinematicProperty, "Movable");
+			base.OnPreInspectorGUI();
+		}
+
+		protected void OnParentPreInspectorGUI()
+		{
+			base.OnPreInspectorGUI();
 		}
 
 		public override void OnInspectorGUI()
@@ -86,29 +92,6 @@ namespace VisualPinball.Unity.Editor
 				ColliderComponent.ShowColliderOctree = showOctree;
 			}
 			EditorGUILayout.EndFoldoutHeaderGroup();
-
-			// individual collider list
-			/*
-			if (_foldoutColliders = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutColliders, "Colliders")) {
-
-				var hitObjects = ColliderComponent.Colliders ?? new List<ICollider>(0);
-				_currentColliders = hitObjects
-					.Where(h => h != null)
-					.Select((h, i) => $"[{i}] {h.GetType().Name}")
-					.ToArray();
-
-				if (_currentColliders.Length == 0) {
-					GUILayout.Label("No colliders for this item.");
-				}
-
-				_scrollPos = EditorGUILayout.BeginScrollView(_scrollPos, GUILayout.ExpandWidth(true),
-					GUILayout.ExpandHeight(true));
-				var selectedCollider = GUILayout.SelectionGrid(ColliderComponent.SelectedCollider, _currentColliders, 1);
-				refresh = refresh || selectedCollider == ColliderComponent.SelectedCollider;
-				ColliderComponent.SelectedCollider = selectedCollider;
-				EditorGUILayout.EndScrollView();
-			}
-			EditorGUILayout.EndFoldoutHeaderGroup();*/
 
 			// refresh scene view manually
 			if (refresh) {

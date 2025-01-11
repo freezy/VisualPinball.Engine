@@ -155,7 +155,7 @@ namespace VisualPinball.Unity.Editor
 			};
 
 			var newIdx = CurveTravellerControlPointIdx + 1;
-			var dragPointPosition = CurveTravellerPosition.TranslateToVpx();
+			var dragPointPosition = CurveTravellerPosition.TranslateToVpx(Transform);
 			dragPointPosition.z = 0;
 			dragPoint.Center = dragPointPosition.ToVertex3D();
 			var dragPoints = DragPointInspector.DragPoints.ToList();
@@ -231,6 +231,24 @@ namespace VisualPinball.Unity.Editor
 			}
 			DragPointInspector.DragPoints = dragPoints.ToArray();
 			RebuildControlPoints();
+		}
+
+		public void CenterPivot()
+		{
+			var transform = Transform;
+			var centerVpx = Vector3.zero;
+			foreach (var dragPoint in DragPointInspector.DragPoints) {
+				centerVpx += dragPoint.Center.ToUnityVector3();
+			}
+			centerVpx /= DragPointInspector.DragPoints.Length;
+
+			Undo.RecordObjects(new[] { MainComponent as Object, transform }, $"Center pivot point of {MainComponent.name}");
+			transform.Translate(centerVpx.TranslateToWorld(transform) - transform.position);
+			foreach (var dragPoint in DragPointInspector.DragPoints) {
+				dragPoint.Center -= centerVpx.ToVertex3D();
+			}
+
+			MainComponent.RebuildMeshes();
 		}
 
 		/// <summary>
@@ -311,7 +329,7 @@ namespace VisualPinball.Unity.Editor
 			}
 
 			if (SelectedControlPoints.Count > 0) {
-				
+
 				// set start positions since clicked
 				if (evt.type == EventType.MouseDown) {
 					_startPos = _centerSelected;
@@ -321,10 +339,14 @@ namespace VisualPinball.Unity.Editor
 						_startPosZ[cp.DragPointId] = cp.DragPoint.Center.Z;
 					}
 				}
-				
+
 				// get new pos since last frame
 				EditorGUI.BeginChangeCheck();
-				var newHandlePos = HandlesUtils.HandlePosition(Transform.GetComponentInParent<PlayfieldComponent>(), _centerSelected, DragPointInspector.HandleType);
+				var newHandlePos = HandlesUtils.HandlePosition(
+					_centerSelected,
+					Transform.localToWorldMatrix,
+					DragPointInspector.HandleType
+				);
 				if (EditorGUI.EndChangeCheck()) {
 					var delta = newHandlePos - _centerSelected;
 					var deltaZ = newHandlePos.z - _startPos.z;
@@ -350,13 +372,15 @@ namespace VisualPinball.Unity.Editor
 			SelectedControlPoints.Clear();
 			_center = Vector3.zero;
 
+			Handles.matrix = Matrix4x4.identity;
+
 			//Setup Screen positions & controlID for control points (in case of modification of drag points coordinates outside)
 			foreach (var controlPoint in ControlPoints) {
 				_center += controlPoint.AbsolutePosition;
 				if (controlPoint.IsSelected && !controlPoint.DragPoint.IsLocked) {
 					SelectedControlPoints.Add(controlPoint);
 				}
-				
+
 				HandleUtility.AddControl(
 					controlPoint.ControlId,
 					HandleUtility.DistanceToCircle(
@@ -373,17 +397,18 @@ namespace VisualPinball.Unity.Editor
 			//Setup PositionHandle if some control points are selected
 			if (SelectedControlPoints.Count > 0) {
 				_centerSelected = Vector3.zero;
-				foreach (var sCp in SelectedControlPoints) {
-					_centerSelected += sCp.EditorPositionVpx;
+				foreach (var controlPoint in SelectedControlPoints) {
+					_centerSelected += controlPoint.EditorPositionVpx;
 				}
 				_centerSelected /= SelectedControlPoints.Count;
 			}
 
 			if (CurveTravellerVisible) {
-				HandleUtility.AddControl(CurveTravellerControlId,
-					HandleUtility.DistanceToCircle(Handles.matrix.MultiplyPoint(CurveTravellerPosition),
-						HandleUtility.GetHandleSize(CurveTravellerPosition) * ControlPoint.ScreenRadius *
-						_sceneViewHandler.CurveTravellerSizeRatio * 0.5f));
+				HandleUtility.AddControl(
+					CurveTravellerControlId,
+					HandleUtility.DistanceToCircle(
+						CurveTravellerPosition,
+						HandleUtility.GetHandleSize(CurveTravellerPosition) * ControlPoint.ScreenRadius * _sceneViewHandler.CurveTravellerSizeRatio * 0.5f));
 			}
 		}
 

@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using System.Collections.Generic;
+using UnityEngine;
 using VisualPinball.Engine.Math;
 using VisualPinball.Unity.Editor;
 
@@ -45,11 +46,19 @@ namespace VisualPinball.Unity
 		Texture
 	}
 
+	public enum DragPointTransformType
+	{
+		TwoD,
+		ThreeD,
+	}
+
 	/// <summary>
 	/// Abstraction inspectors that support drag points.
 	/// </summary>
 	public interface IDragPointsInspector
 	{
+		Transform Transform { get; }
+
 		/// <summary>
 		/// Access to the drag point data
 		/// </summary>
@@ -74,7 +83,7 @@ namespace VisualPinball.Unity
 		/// Returns the applied constrains to drag points position edition.
 		/// </summary>
 		/// <returns></returns>
-		ItemDataTransformType HandleType { get; }
+		DragPointTransformType HandleType { get; }
 
 		DragPointsInspectorHelper DragPointsHelper { get; }
 		

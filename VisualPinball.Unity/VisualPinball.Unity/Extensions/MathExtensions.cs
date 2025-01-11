@@ -43,7 +43,7 @@ namespace VisualPinball.Unity
 			}
 		}
 
-		public static void RotationAroundAxis(this float3x3 m, float3 axis, float rSin, float rCos)
+		public static void RotationAroundAxis(ref this float3x3 m, float3 axis, float rSin, float rCos)
 		{
 			m.c0.x = axis.x * axis.x + rCos * (1.0f - axis.x * axis.x);
 			m.c0.y = axis.x * axis.y * (1.0f - rCos) - axis.z * rSin;
@@ -67,15 +67,21 @@ namespace VisualPinball.Unity
 			);
 		}
 
+		public static float3 GetTranslation(this float4x4 m) => new(m.c3.x, m.c3.y, m.c3.z);
+
+		public static float3 GetRotationVector(this float4x4 matrix) => new quaternion(matrix).ToEuler();
+
 		public static Vertex3D ToVertex3D(this Vector3 vector)
 		{
 			return new Vertex3D(vector.x, vector.y, vector.z);
 		}
 
-		public static Vertex2D ToVertex2Dxy(this ref Vector3 vector)
+		public static Vertex2D ToVertex2Dxy(this Vector3 vector)
 		{
 			return new Vertex2D(vector.x, vector.y);
 		}
+
+		public static Vector2 XY(this Vector3 vector) => new(vector.x, vector.y);
 
 		public static Vector3 ToUnityVector3(this Vertex3D vertex)
 		{
@@ -181,8 +187,11 @@ namespace VisualPinball.Unity
 			var sinYCosP = +2.0 * (q.w * q.z + q.x * q.y);
 			var cosYCosP = +1.0 - 2.0 * (q.y * q.y + q.z * q.z);
 			res.z = math.atan2(sinYCosP, cosYCosP);
-
 			return (float3) res;
 		}
+
+		public static string ToDebugString(this float4x4 m) => $"{((Matrix4x4)m).ToString()}\nt: {m.GetTranslation()}\nr: {math.degrees(m.GetRotationVector())}\ns: {m.GetScale()}";
+
+		public static string ToDebugString(this Matrix4x4 m) => ToDebugString((float4x4)m);
 	}
 }
