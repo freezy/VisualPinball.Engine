@@ -15,7 +15,6 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using System;
-using System.Collections.Generic;
 using Unity.Mathematics;
 using UnityEngine;
 using VisualPinball.Engine.VPT.Bumper;
@@ -74,35 +73,35 @@ namespace VisualPinball.Unity
 				bumperState.RingAnimation.IsHit = true;
 
 				ref var insideOfs = ref PhysicsEngine.InsideOfs;
-			var idsOfBallsInColl = insideOfs.GetIdsOfBallsInsideItem(ItemId);
+				var idsOfBallsInColl = insideOfs.GetIdsOfBallsInsideItem(ItemId);
 				foreach (var ballId in idsOfBallsInColl) {
-				if (!PhysicsEngine.Balls.ContainsKey(ballId)) {
-					continue;
-				}
-						ref var ballState = ref PhysicsEngine.BallState(ballId);
-				float3 bumperPos = MainComponent.Position;
-						float3 ballPos = ballState.Position;
-						var bumpDirection = ballPos - bumperPos;
-						bumpDirection.z = 0f;
-						bumpDirection = math.normalize(bumpDirection);
-						var collEvent = new CollisionEventData {
-							HitTime = 0f,
-							HitNormal = bumpDirection,
-							HitVelocity = new float2(bumpDirection.x, bumpDirection.y) * ColliderComponent.Force,
-							HitDistance = 0f,
-							HitFlag = false,
-							HitOrgNormalVelocity = math.dot(bumpDirection, math.normalize(ballState.Velocity)),
-							IsContact = true,
-					ColliderId = _switchColliderId,
-							IsKinematic = false,
-							BallId = ballId
-						};
-						var physicsMaterialData = ColliderComponent.PhysicsMaterialData;
-						var random = PhysicsEngine.Random;
-						BallCollider.Collide3DWall(ref ballState, in physicsMaterialData, in collEvent, in bumpDirection, ref random);
-						ballState.Velocity += bumpDirection * ColliderComponent.Force;
+					if (!PhysicsEngine.Balls.ContainsKey(ballId)) {
+						continue;
 					}
+					ref var ballState = ref PhysicsEngine.BallState(ballId);
+					float3 bumperPos = MainComponent.Position;
+					float3 ballPos = ballState.Position;
+					var bumpDirection = ballPos - bumperPos;
+					bumpDirection.z = 0f;
+					bumpDirection = math.normalize(bumpDirection);
+					var collEvent = new CollisionEventData {
+						HitTime = 0f,
+						HitNormal = bumpDirection,
+						HitVelocity = new float2(bumpDirection.x, bumpDirection.y) * ColliderComponent.Force,
+						HitDistance = 0f,
+						HitFlag = false,
+						HitOrgNormalVelocity = math.dot(bumpDirection, math.normalize(ballState.Velocity)),
+						IsContact = true,
+						ColliderId = _switchColliderId,
+						IsKinematic = false,
+						BallId = ballId
+					};
+					var physicsMaterialData = ColliderComponent.PhysicsMaterialData;
+					var random = PhysicsEngine.Random;
+					BallCollider.Collide3DWall(ref ballState, in physicsMaterialData, in collEvent, in bumpDirection, ref random);
+					ballState.Velocity += bumpDirection * ColliderComponent.Force;
 				}
+			}
 
 			CoilStatusChanged?.Invoke(this, new NoIdCoilEventArgs(enabled));
 		}
