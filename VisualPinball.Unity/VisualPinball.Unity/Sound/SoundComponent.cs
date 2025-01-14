@@ -29,13 +29,15 @@ namespace VisualPinball.Unity
 	/// Base component for playing a <c>SoundAsset</c> using the public methods <c>Play</c> and <c>Stop</c>.
 	/// </summary>
 	[AddComponentMenu("Visual Pinball/Sound/Sound")]
-	public class SoundComponent : EnableAfterAwakeMonoBehaviour
+	public class SoundComponent : EnableAfterAwakeComponent
 	{
 		[SerializeReference]
-		protected SoundAsset _soundAsset;
+		public SoundAsset _soundAsset;
+
 		[SerializeField]
 		[Tooltip("Should the sound be interrupted if it is triggered again while already playing?")]
 		protected bool _interrupt;
+
 		[SerializeField, Range(0f, 1f)]
 		private float _volume = 1f;
 
@@ -47,8 +49,8 @@ namespace VisualPinball.Unity
 		protected override void OnEnableAfterAfterAwake()
 		{
 			base.OnEnableAfterAfterAwake();
-			_instantCts = new();
-			_allowFadeCts = new();
+			_instantCts = new CancellationTokenSource();
+			_allowFadeCts = new CancellationTokenSource();
 		}
 
 		protected virtual void OnDisable()
@@ -78,8 +80,9 @@ namespace VisualPinball.Unity
 				return;
 			}
 
-			if (_interrupt)
+			if (_interrupt) {
 				Stop(allowFade: true);
+			}
 			try {
 				var combinedVol = _volume * volume;
 				_lastPlayStartTime = Time.unscaledTime;
@@ -89,16 +92,17 @@ namespace VisualPinball.Unity
 
 		public void Stop(bool allowFade)
 		{
-			if (!isActiveAndEnabled)
+			if (!isActiveAndEnabled) {
 				return;
+			}
 			if (allowFade) {
 				_allowFadeCts?.Cancel();
 				_allowFadeCts?.Dispose();
-				_allowFadeCts = new();
+				_allowFadeCts = new CancellationTokenSource();
 			} else {
 				_instantCts?.Cancel();
 				_instantCts?.Dispose();
-				_instantCts = new();
+				_instantCts = new CancellationTokenSource();
 			}
 		}
 

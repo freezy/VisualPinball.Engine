@@ -34,7 +34,7 @@ namespace VisualPinball.Unity.Editor
 			var inspectorUi = inspectorXml.Instantiate();
 			root.Add(inspectorUi);
 			var coilNameDropdown = root.Q<DropdownField>("coil-name");
-			var coilNameProp = serializedObject.FindProperty("_coilName");
+			var coilNameProp = serializedObject.FindProperty(nameof(CoilSoundComponent._coilName));
 			var availableCoils = GetAvailableCoils();
 			ConfigureDropdown(coilNameDropdown, coilNameProp, availableCoils);
 			return root;
@@ -42,12 +42,14 @@ namespace VisualPinball.Unity.Editor
 
 		private Dictionary<string, string> GetAvailableCoils()
 		{
-			if (target != null &&
-				target is Component &&
-				(target as Component).TryGetComponent<ICoilDeviceComponent>(out var coilDevice))
-				return coilDevice.AvailableCoils.ToDictionary(i => i.Id,
-					i => string.IsNullOrWhiteSpace(i.Description) ? i.Id : i.Description);
-			return new();
+			var targetComponent = target as Component;
+			if (targetComponent != null && targetComponent.TryGetComponent<ICoilDeviceComponent>(out var coilDevice)) {
+				return coilDevice.AvailableCoils.ToDictionary(
+					i => i.Id,
+					i => string.IsNullOrWhiteSpace(i.Description) ? i.Id : i.Description
+				);
+			}
+			return new Dictionary<string, string>();
 		}
 	}
 }

@@ -39,20 +39,37 @@ namespace VisualPinball.Unity
 			Random
 		}
 
-		[SerializeField] private string _description;
-		[SerializeField] private AudioClip[] _clips;
-		[SerializeField] private SelectionMethod _clipSelectionMethod;
-		[SerializeField] private Vector2 _volumeRange = new(1f, 1f);
-		[SerializeField] private Vector2 _pitchRange = new(1f, 1f);
-		[SerializeField] private bool _loop;
+		[SerializeField]
+		private string _description;
+
+		[SerializeField]
+		private AudioClip[] _clips;
+
+		[SerializeField]
+		private SelectionMethod _clipSelectionMethod;
+
+		[SerializeField]
+		private Vector2 _volumeRange = new(1f, 1f);
+
+		[SerializeField]
+		private Vector2 _pitchRange = new(1f, 1f);
+
+		[SerializeField]
+		private bool _loop;
 		public bool Loop => _loop;
+
 		[SerializeField, Range(0, 10f)] private float _fadeInTime;
 		public float FadeInTime => _fadeInTime;
+
 		[SerializeField, Range(0, 10f)] private float _fadeOutTime;
 		public float FadeOutTime => _fadeOutTime;
+
 		[Tooltip("Should the sound appear to come from the position of the emitter?")]
-		[SerializeField] private bool _isSpatial = true;
-		[SerializeField] private AudioMixerGroup _audioMixerGroup;
+		[SerializeField]
+		private bool _isSpatial = true;
+
+		[SerializeField]
+		private AudioMixerGroup _audioMixerGroup;
 
 		private int _roundRobinIndex = 0;
 
@@ -69,12 +86,14 @@ namespace VisualPinball.Unity
 
 		public bool IsValid()
 		{
-			if (_clips == null)
+			if (_clips == null) {
 				return false;
+			}
 
 			foreach (var clip in _clips) {
-				if (clip != null)
+				if (clip != null) {
 					return true;
+				}
 			}
 
 			return false;
@@ -83,16 +102,21 @@ namespace VisualPinball.Unity
 		private AudioClip GetClip()
 		{
 			_clips.ToList().RemoveAll(clip => clip == null);
-			if (_clips.Length == 0)
+			if (_clips.Length == 0) {
 				throw new InvalidOperationException($"The sound asset '{name}' has no audio clips to play.");
+			}
+
 			switch (_clipSelectionMethod) {
+
 				case SelectionMethod.RoundRobin:
 					_roundRobinIndex %= _clips.Length;
 					var clip = _clips[_roundRobinIndex];
 					_roundRobinIndex++;
 					return clip;
+
 				case SelectionMethod.Random:
 					return _clips[Random.Range(0, _clips.Length)];
+
 				default:
 					throw new NotImplementedException("Selection method not implemented.");
 			}
