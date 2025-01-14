@@ -24,7 +24,7 @@ namespace VisualPinball.Unity
 	/// provides the virtual method OnEnableAfterAwake, which always runs after all
 	/// instances have run their Awake methods.
 	/// </summary>
-	public abstract class EnableAfterAwakeMonoBehaviour : MonoBehaviour
+	public abstract class EnableAfterAwakeComponent : MonoBehaviour
 	{
 		private bool _wasStartCalled;
 
@@ -36,13 +36,13 @@ namespace VisualPinball.Unity
 
 		private void OnEnable()
 		{
-			if (_wasStartCalled)
+			if (_wasStartCalled) {
 				OnEnableAfterAfterAwake();
+			}
 		}
 
 		protected virtual void OnEnableAfterAfterAwake()
 		{
-
 		}
 	}
 }

@@ -34,7 +34,7 @@ namespace VisualPinball.Unity.Editor
 			var inspectorUi = inspectorXml.Instantiate();
 			root.Add(inspectorUi);
 			var switchNameDropdown = root.Q<DropdownField>("switch-name");
-			var switchNameProp = serializedObject.FindProperty("_switchName");
+			var switchNameProp = serializedObject.FindProperty(nameof(SwitchSoundComponent._switchName));
 			var availableSwitches = GetAvailableSwitches();
 			ConfigureDropdown(switchNameDropdown, switchNameProp, availableSwitches);
 			return root;
@@ -42,12 +42,14 @@ namespace VisualPinball.Unity.Editor
 
 		private Dictionary<string, string> GetAvailableSwitches()
 		{
-			if (target != null &&
-				target is Component &&
-				(target as Component).TryGetComponent<ISwitchDeviceComponent>(out var switchDevice))
-				return switchDevice.AvailableSwitches.ToDictionary(i => i.Id,
-					i => string.IsNullOrWhiteSpace(i.Description) ? i.Id : i.Description);
-			return new();
+			var targetComponent = target as Component;
+			if (targetComponent != null && targetComponent.TryGetComponent<ISwitchDeviceComponent>(out var switchDevice)) {
+				return switchDevice.AvailableSwitches.ToDictionary(
+					i => i.Id,
+					i => string.IsNullOrWhiteSpace(i.Description) ? i.Id : i.Description
+				);
+			}
+			return new Dictionary<string, string>();
 		}
 	}
 }

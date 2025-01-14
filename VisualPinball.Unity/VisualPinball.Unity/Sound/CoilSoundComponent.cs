@@ -14,6 +14,8 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+// ReSharper disable InconsistentNaming
+
 using UnityEngine;
 using System;
 
@@ -25,7 +27,8 @@ namespace VisualPinball.Unity
 	[AddComponentMenu("Visual Pinball/Sound/Coil Sound")]
 	public class CoilSoundComponent : BinaryEventSoundComponent<IApiCoil, NoIdCoilEventArgs>
 	{
-		[SerializeField, HideInInspector] private string _coilName;
+		[SerializeField, HideInInspector]
+		public string _coilName;
 
 		public override Type GetRequiredType() => typeof(ICoilDeviceComponent);
 
@@ -33,23 +36,23 @@ namespace VisualPinball.Unity
 		{
 			coil = null;
 			var player = GetComponentInParent<Player>();
-			if (player == null)
+			if (player == null) {
 				return false;
+			}
+
 			foreach (var component in GetComponents<ICoilDeviceComponent>()) {
 				coil = player.Coil(component, _coilName);
-				if (coil != null)
+				if (coil != null) {
 					return true;
+				}
 			}
 			return false;
 		}
 
-		protected override void Subscribe(IApiCoil coil)
-			=> coil.CoilStatusChanged += OnEvent;
+		protected override void Subscribe(IApiCoil coil) => coil.CoilStatusChanged += OnEvent;
 
-		protected override void Unsubscribe(IApiCoil coil)
-			=> coil.CoilStatusChanged -= OnEvent;
+		protected override void Unsubscribe(IApiCoil coil) => coil.CoilStatusChanged -= OnEvent;
 
-		protected override bool InterpretAsBinary(NoIdCoilEventArgs e)
-			=> e.IsEnergized;
+		protected override bool InterpretAsBinary(NoIdCoilEventArgs e) => e.IsEnergized;
 	}
 }

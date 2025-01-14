@@ -14,6 +14,8 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+// ReSharper disable InconsistentNaming
+
 using System;
 using UnityEngine;
 
@@ -25,7 +27,8 @@ namespace VisualPinball.Unity
 	[AddComponentMenu("Visual Pinball/Sound/Switch Sound")]
 	public class SwitchSoundComponent : BinaryEventSoundComponent<IApiSwitch, SwitchEventArgs>
 	{
-		[SerializeField, HideInInspector] private string _switchName;
+		[SerializeField, HideInInspector]
+		public string _switchName;
 
 		public override Type GetRequiredType() => typeof(ISwitchDeviceComponent);
 
@@ -33,23 +36,23 @@ namespace VisualPinball.Unity
 		{
 			@switch = null;
 			var player = GetComponentInParent<Player>();
-			if (player == null)
+			if (player == null) {
 				return false;
+			}
+
 			foreach (var component in GetComponents<ISwitchDeviceComponent>()) {
 				@switch = player.Switch(component, _switchName);
-				if (@switch != null)
+				if (@switch != null) {
 					return true;
+				}
 			}
 			return false;
 		}
 
-		protected override void Subscribe(IApiSwitch eventSource)
-			=> eventSource.Switch += OnEvent;
+		protected override void Subscribe(IApiSwitch eventSource) => eventSource.Switch += OnEvent;
 
-		protected override void Unsubscribe(IApiSwitch eventSource)
-			=> eventSource.Switch -= OnEvent;
+		protected override void Unsubscribe(IApiSwitch eventSource) => eventSource.Switch -= OnEvent;
 
-		protected override bool InterpretAsBinary(SwitchEventArgs e)
-			=> e.IsEnabled;
+		protected override bool InterpretAsBinary(SwitchEventArgs e) => e.IsEnabled;
 	}
 }
