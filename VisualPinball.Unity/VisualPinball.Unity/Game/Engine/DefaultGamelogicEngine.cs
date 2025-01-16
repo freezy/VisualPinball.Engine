@@ -27,6 +27,7 @@ using VisualPinball.Engine.Game.Engines;
 using Debug = UnityEngine.Debug;
 using NLog;
 using Logger = NLog.Logger;
+using System.Threading.Tasks;
 
 // uncomment to simulate dual-wound flippers
 // #define DUAL_WOUND_FLIPPERS
@@ -189,7 +190,7 @@ namespace VisualPinball.Unity
 			#endif
 		}
 
-		public void OnInit(Player player, TableApi tableApi, BallManager ballManager)
+		public Task OnInit(Player player, TableApi tableApi, BallManager ballManager)
 		{
 			_player = player;
 			_ballManager = ballManager;
@@ -206,6 +207,7 @@ namespace VisualPinball.Unity
 			_playfieldComponent = GetComponentInChildren<PlayfieldComponent>();
 
 			OnStarted?.Invoke(this, EventArgs.Empty);
+			return Task.CompletedTask;
 		}
 
 		private void Update()
