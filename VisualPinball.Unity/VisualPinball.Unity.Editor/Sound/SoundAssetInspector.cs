@@ -20,6 +20,7 @@ using UnityEditor;
 using UnityEngine.UIElements;
 using UnityEngine;
 using UnityEditor.UIElements;
+using System.Collections.Generic;
 
 namespace VisualPinball.Unity.Editor
 {
@@ -59,11 +60,22 @@ namespace VisualPinball.Unity.Editor
 
 		private void OnDisable()
 		{
+			RemoveNullClips();
 			_instantCts.Cancel();
 			_instantCts.Dispose();
 			_instantCts = null;
 			_allowFadeCts.Dispose();
 			_allowFadeCts = null;
+		}
+
+		private void RemoveNullClips()
+		{
+			var clipsProp = serializedObject.FindProperty("_clips");
+			for (var i = clipsProp.arraySize -1; i >= 0; i--) {
+				if (clipsProp.GetArrayElementAtIndex(i).objectReferenceValue == null)
+					clipsProp.DeleteArrayElementAtIndex(i);
+			}
+			serializedObject.ApplyModifiedPropertiesWithoutUndo();
 		}
 
 		private async void OnPlayButtonClicked()
