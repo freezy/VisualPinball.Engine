@@ -96,7 +96,6 @@ namespace VisualPinball.Unity.Editor
 
 		protected void InfiniteLoopHelpBox(VisualElement container)
 		{
-			var soundAssetProp = serializedObject.FindProperty("_soundAsset");
 			var helpBox = new HelpBox("The assigned sound asset loops, but this component " +
 				"provides no mechanism to stop it or is not configured to do so. Either assign" +
 				" a sound asset that does not loop or (if possible) configure this component to" +

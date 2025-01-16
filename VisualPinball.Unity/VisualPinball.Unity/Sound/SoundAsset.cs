@@ -75,8 +75,7 @@ namespace VisualPinball.Unity
 
 		public void ConfigureAudioSource(AudioSource audioSource, float volume = 1)
 		{
-			audioSource.volume = Random.Range(_volumeRange.x, _volumeRange.y);
-			audioSource.volume *= volume;
+			audioSource.volume = volume * Random.Range(_volumeRange.x, _volumeRange.y);
 			audioSource.pitch = Random.Range(_pitchRange.x, _pitchRange.y);
 			audioSource.loop = _loop;
 			audioSource.clip = GetClip();
