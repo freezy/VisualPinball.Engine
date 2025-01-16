@@ -154,7 +154,7 @@ namespace VisualPinball.Unity
 			}
 		}
 
-		private void Start()
+		private async void Start()
 		{
 			#if FPS60_IOS && UNITY_IOS && !UNITY_EDITOR
 				Application.targetFrameRate = 60;
@@ -170,7 +170,7 @@ namespace VisualPinball.Unity
 			_lampPlayer.OnStart();
 			_wirePlayer.OnStart();
 
-			GamelogicEngine?.OnInit(this, TableApi, BallManager);
+			await GamelogicEngine?.OnInit(this, TableApi, BallManager);
 			OnPlayerStarted?.Invoke(this, EventArgs.Empty);
 		}
 

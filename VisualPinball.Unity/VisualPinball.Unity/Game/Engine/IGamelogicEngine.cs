@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using System;
+using System.Threading.Tasks;
 using UnityEngine;
 using VisualPinball.Engine.Game.Engines;
 
@@ -29,7 +30,7 @@ namespace VisualPinball.Unity
 	{
 		string Name { get; }
 
-		void OnInit(Player player, TableApi tableApi, BallManager ballManager);
+		Task OnInit(Player player, TableApi tableApi, BallManager ballManager);
 
 		#region Displays
 
