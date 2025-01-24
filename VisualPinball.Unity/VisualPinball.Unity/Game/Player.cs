@@ -17,6 +17,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using NLog;
 using Unity.Mathematics;
 using UnityEngine;
@@ -92,6 +93,7 @@ namespace VisualPinball.Unity
 		private TableComponent _tableComponent;
 		private PlayfieldComponent _playfieldComponent;
 		private PhysicsEngine _physicsEngine;
+		private CancellationTokenSource _gamelogicEngineInitCts;
 
 		private PlayfieldComponent PlayfieldComponent {
 			get {
@@ -172,8 +174,11 @@ namespace VisualPinball.Unity
 			_lampPlayer.OnStart();
 			_wirePlayer.OnStart();
 
-			await GamelogicEngine?.OnInit(this, TableApi, BallManager);
-			OnPlayerStarted?.Invoke(this, EventArgs.Empty);
+			_gamelogicEngineInitCts = new CancellationTokenSource();
+			try {
+				await GamelogicEngine?.OnInit(this, TableApi, BallManager, _gamelogicEngineInitCts.Token);
+				OnPlayerStarted?.Invoke(this, EventArgs.Empty);
+			} catch (OperationCanceledException) { }
 		}
 
 		private void Update()
@@ -183,6 +188,9 @@ namespace VisualPinball.Unity
 
 		private void OnDestroy()
 		{
+			_gamelogicEngineInitCts?.Cancel();
+			_gamelogicEngineInitCts?.Dispose();
+
 			foreach (var i in _apis) {
 				i.OnDestroy();
 			}
