@@ -39,8 +39,6 @@ namespace VisualPinball.Unity
 			}
 		}
 
-		public bool IsFullyTransformable => false;
-
 		public ColliderHeader Header;
 
 		public LineCollider LineSeg0;

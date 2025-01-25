@@ -22,9 +22,8 @@ namespace VisualPinball.Unity
 {
 	internal static class PlungerDisplacementPhysics
 	{
-		internal static void UpdateDisplacement(int itemId, ref PlungerMovementState movement,
-			ref PlungerColliderState colliderState, in PlungerStaticState staticState, float dTime,
-			ref NativeQueue<EventData>.ParallelWriter events)
+		internal static void UpdateDisplacement(int itemId, ref PlungerMovementState movement, ref PlungerCollider collider,
+			in PlungerStaticState staticState, float dTime, ref NativeQueue<EventData>.ParallelWriter events)
 		{
 			// figure the travel distance
 			var dx = dTime * movement.Speed;
@@ -96,23 +95,23 @@ namespace VisualPinball.Unity
 			}
 
 			// update the display
-			UpdateCollider(movement.Position, ref colliderState);
+			UpdateCollider(movement.Position, ref collider);
 		}
 
-		private static void UpdateCollider(float len, ref PlungerColliderState colliderState)
+		private static void UpdateCollider(float len, ref PlungerCollider collider)
 		{
-			colliderState.LineSegSide0.V1y = len;
-			colliderState.LineSegSide1.V2y = len;
+			collider.LineSegSide0.V1y = len;
+			collider.LineSegSide1.V2y = len;
 
-			colliderState.LineSegEnd.V2y = len;
-			colliderState.LineSegEnd.V1y = len; // + 0.0001f;
+			collider.LineSegEnd.V2y = len;
+			collider.LineSegEnd.V1y = len; // + 0.0001f;
 
-			colliderState.JointEnd0.XyY = len;
-			colliderState.JointEnd1.XyY = len; // + 0.0001f;
+			collider.JointEnd0.XyY = len;
+			collider.JointEnd1.XyY = len; // + 0.0001f;
 
-			colliderState.LineSegSide0.CalcNormal();
-			colliderState.LineSegSide1.CalcNormal();
-			colliderState.LineSegEnd.CalcNormal();
+			collider.LineSegSide0.CalcNormal();
+			collider.LineSegSide1.CalcNormal();
+			collider.LineSegEnd.CalcNormal();
 		}
 	}
 }

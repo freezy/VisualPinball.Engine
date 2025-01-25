@@ -255,22 +255,11 @@ namespace VisualPinball.Unity
 				return default;
 			}
 
-			var zHeight = Position.z;
-			var x = -Width;
-			var x2 = Width;
-			var y = Height;
-
 			var frameTop = -collComponent.Stroke;
 			var frameBottom = 0;
 			var frameLen = frameBottom - frameTop;
 			var restPos = collComponent.ParkPosition;
 			var position = frameTop + restPos * frameLen;
-
-			var info = new ColliderInfo {
-				ItemId = GetInstanceID(),
-				FireEvents = true,
-				ItemType = ItemType.Plunger,
-			};
 
 			return new PlungerState(
 				new PlungerStaticState {
@@ -284,13 +273,6 @@ namespace VisualPinball.Unity
 					IsMechPlunger = collComponent.IsMechPlunger,
 					SpeedFire = collComponent.SpeedFire,
 					NumFrames = (int)(collComponent.Stroke * (float)(PlungerMeshGenerator.PlungerFrameCount / 80.0f)) + 1, // 25 frames per 80 units travel
-				},
-				new PlungerColliderState {
-					LineSegSide0 = new LineCollider(new float2(x + 0.0001f, position), new float2(x, y), zHeight, zHeight + Plunger.PlungerHeight, info),
-					LineSegSide1 = new LineCollider(new float2(x2, y), new float2(x2 + 0.0001f, position), zHeight, zHeight + Plunger.PlungerHeight, info),
-					LineSegEnd = new LineCollider(new float2(x2, position), new float2(x, position), zHeight, zHeight + Plunger.PlungerHeight, info),
-					JointEnd0 = new LineZCollider(new float2(x, position), zHeight, zHeight + Plunger.PlungerHeight, info),
-					JointEnd1 = new LineZCollider(new float2(x2, position), zHeight, zHeight + Plunger.PlungerHeight, info),
 				},
 				new PlungerMovementState {
 					FireBounce = 0f,

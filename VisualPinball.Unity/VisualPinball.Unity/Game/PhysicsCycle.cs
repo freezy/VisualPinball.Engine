@@ -115,7 +115,8 @@ namespace VisualPinball.Unity
 				using (var enumerator = state.PlungerStates.GetEnumerator()) {
 					while (enumerator.MoveNext()) {
 						ref var plungerState = ref enumerator.Current.Value;
-						PlungerDisplacementPhysics.UpdateDisplacement(enumerator.Current.Key, ref plungerState.Movement, ref plungerState.Collider,
+						ref var plungerCollider = ref state.Colliders.Plunger(plungerState.Static.ColliderId);
+						PlungerDisplacementPhysics.UpdateDisplacement(enumerator.Current.Key, ref plungerState.Movement, ref plungerCollider,
 							in plungerState.Static, hitTime, ref state.EventQueue);
 					}
 				}

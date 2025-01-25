@@ -81,6 +81,9 @@ namespace VisualPinball.Unity
 		/// </remarks>
 		internal NativeParallelHashMap<int, float4x4> KinematicTransforms;
 
+		internal NativeParallelHashMap<int, FixedList512Bytes<float>> ElasticityOverVelocityLUTs;
+		internal NativeParallelHashMap<int, FixedList512Bytes<float>> FrictionOverVelocityLUTs;
+
 		/// <summary>
 		/// The LocalToPlayfieldMatrixInVpx of all colliders that aren't fully transformable.
 		///
@@ -156,6 +159,9 @@ namespace VisualPinball.Unity
 			TriggerStates = triggerStates;
 			DisabledCollisionItems = disabledCollisionItems;
 			SwapBallCollisionHandling = swapBallCollisionHandling;
+
+			ElasticityOverVelocityLUTs = new NativeParallelHashMap<int, FixedList512Bytes<float>>(0, Allocator.Persistent);
+			FrictionOverVelocityLUTs = new NativeParallelHashMap<int, FixedList512Bytes<float>>(0, Allocator.Persistent);
 		}
 
 		internal ref ColliderHeader GetColliderHeader(ref NativeColliders colliders, int colliderId) => ref colliders.GetHeader(colliderId);
@@ -312,7 +318,7 @@ namespace VisualPinball.Unity
 				case ColliderType.Plunger:
 					ref var plungerState = ref GetPlungerState(colliderId, ref colliders);
 					return colliders.Plunger(colliderId).HitTest(ref newCollEvent, ref InsideOfs, ref plungerState.Movement,
-						in plungerState.Collider, in plungerState.Static, in ball, ball.CollisionEvent.HitTime);
+						in plungerState.Static, in ball, ball.CollisionEvent.HitTime);
 			}
 			return -1f;
 		}

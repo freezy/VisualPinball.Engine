@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+using System;
 using Unity.Mathematics;
-using UnityEngine;
 using VisualPinball.Engine.Common;
 using VisualPinball.Engine.VPT.Plunger;
 using Random = Unity.Mathematics.Random;
@@ -32,6 +32,7 @@ namespace VisualPinball.Unity
 	internal struct PlungerCollider : ICollider
 	{
 		public int Id
+
 		{
 			get => Header.Id;
 			set {
@@ -42,16 +43,17 @@ namespace VisualPinball.Unity
 			}
 		}
 
-		public bool IsFullyTransformable => false;
-
 		public ColliderHeader Header;
 
 		public LineCollider LineSegBase;
 		public LineZCollider JointBase0;
 		public LineZCollider JointBase1;
 
-		private readonly float2 _size;
-		private readonly float _stroke;
+		public LineCollider LineSegSide0;
+		public LineCollider LineSegSide1;
+		public LineCollider LineSegEnd;
+		public LineZCollider JointEnd0;
+		public LineZCollider JointEnd1;
 
 		public ColliderBounds Bounds { get; private set; }
 
@@ -64,13 +66,23 @@ namespace VisualPinball.Unity
 			var x2 = comp.Width;
 			var y = comp.Height;
 
-			_size = new float2(comp.Width, comp.Height);
-			_stroke = collComp.Stroke;
+			var frameTop = -collComp.Stroke;
+			var frameBottom = 0;
+			var frameLen = frameBottom - frameTop;
+			var restPos = collComp.ParkPosition;
+			var position = frameTop + restPos * frameLen;
 
 			// static
 			LineSegBase = new LineCollider(new float2(x, y), new float2(x2, y), zHeight, zHeight + Plunger.PlungerHeight, info);
 			JointBase0 = new LineZCollider(new float2(x, y), zHeight, zHeight + Plunger.PlungerHeight, info);
 			JointBase1 = new LineZCollider(new float2(x2, y), zHeight, zHeight + Plunger.PlungerHeight, info);
+
+			// dynamic
+			LineSegSide0 = new LineCollider(new float2(x + 0.0001f, position), new float2(x, y), zHeight, zHeight + Plunger.PlungerHeight, info);
+			LineSegSide1 = new LineCollider(new float2(x2, y), new float2(x2 + 0.0001f, position), zHeight, zHeight + Plunger.PlungerHeight, info);
+			LineSegEnd = new LineCollider(new float2(x2, position), new float2(x, position), zHeight, zHeight + Plunger.PlungerHeight, info);
+			JointEnd0 = new LineZCollider(new float2(x, position), zHeight, zHeight + Plunger.PlungerHeight, info);
+			JointEnd1 = new LineZCollider(new float2(x2, position), zHeight, zHeight + Plunger.PlungerHeight, info);
 
 			Bounds = new ColliderBounds(Header.ItemId, Header.Id, new Aabb(
 				new float3(-comp.Width - 10, comp.Height, 0),
@@ -105,7 +117,7 @@ namespace VisualPinball.Unity
 		{
 			#if UNITY_EDITOR
 			if (!IsTransformable(matrix)) {
-				throw new System.InvalidOperationException($"Matrix {matrix} cannot transform plunger.");
+				throw new InvalidOperationException($"Matrix {matrix} cannot transform plunger.");
 			}
 			#endif
 
@@ -114,6 +126,12 @@ namespace VisualPinball.Unity
 			LineSegBase = collider.LineSegBase.Transform(matrix);
 			JointBase0 = collider.JointBase0.Transform(matrix);
 			JointBase1 = collider.JointBase1.Transform(matrix);
+
+			LineSegSide0 = collider.LineSegSide0.Transform(matrix);
+			LineSegSide1 = collider.LineSegSide1.Transform(matrix);
+			LineSegEnd = collider.LineSegEnd.Transform(matrix);
+			JointEnd0 = collider.JointEnd0.Transform(matrix);
+			JointEnd1 = collider.JointEnd1.Transform(matrix);
 		}
 
 		public Aabb GetTransformedAabb(float4x4 matrix)
@@ -132,7 +150,7 @@ namespace VisualPinball.Unity
 		#region Narrowphase
 
 		public float HitTest(ref CollisionEventData collEvent, ref InsideOfs insideOfs,
-			ref PlungerMovementState movement, in PlungerColliderState colliderState, in PlungerStaticState staticState, in BallState ball, float dTime)
+			ref PlungerMovementState movement, in PlungerStaticState staticState, in BallState ball, float dTime)
 		{
 			var hitTime = dTime; //start time
 			var isHit = false;
@@ -152,13 +170,13 @@ namespace VisualPinball.Unity
 			var newTime = LineSegBase.HitTest(ref newCollEvent, ref insideOfs, in ball, dTime);
 			UpdateCollision(ref collEvent, ref newCollEvent, ref isHit, ref hitTime, in newTime);
 
-			newTime = LineCollider.HitTest(ref newCollEvent, ref insideOfs, in colliderState.LineSegSide0, in ball, hitTime);
+			newTime = LineCollider.HitTest(ref newCollEvent, ref insideOfs, in LineSegSide0, in ball, hitTime);
 			UpdateCollision(ref collEvent, ref newCollEvent, ref isHit, ref hitTime, in newTime);
 
 			newTime = JointBase0.HitTest(ref newCollEvent, in ball, hitTime);
 			UpdateCollision(ref collEvent, ref newCollEvent, ref isHit, ref hitTime, in newTime);
 
-			newTime = LineCollider.HitTest(ref newCollEvent, ref insideOfs, in colliderState.LineSegSide1, in ball, hitTime);
+			newTime = LineCollider.HitTest(ref newCollEvent, ref insideOfs, in LineSegSide1, in ball, hitTime);
 			UpdateCollision(ref collEvent, ref newCollEvent, ref isHit, ref hitTime, in newTime);
 
 			newTime = JointBase1.HitTest(ref newCollEvent, in ball, hitTime);
@@ -207,13 +225,13 @@ namespace VisualPinball.Unity
 			var deltaY = movement.Speed * xferRatio;
 
 			// check the moving bits
-			newTime = LineCollider.HitTest(ref newCollEvent, ref insideOfs, in colliderState.LineSegEnd, in ballTmp, hitTime);
+			newTime = LineCollider.HitTest(ref newCollEvent, ref insideOfs, in LineSegEnd, in ballTmp, hitTime);
 			UpdateCollision(ref collEvent, ref newCollEvent, ref isHit, ref hitTime, in newTime, deltaY);
 
-			newTime = LineZCollider.HitTest(ref newCollEvent, in colliderState.JointEnd0, in ballTmp, hitTime);
+			newTime = LineZCollider.HitTest(ref newCollEvent, in JointEnd0, in ballTmp, hitTime);
 			UpdateCollision(ref collEvent, ref newCollEvent, ref isHit, ref hitTime, in newTime, deltaY);
 
-			newTime = LineZCollider.HitTest(ref newCollEvent, in colliderState.JointEnd1, in ballTmp, hitTime);
+			newTime = LineZCollider.HitTest(ref newCollEvent, in JointEnd1, in ballTmp, hitTime);
 			UpdateCollision(ref collEvent, ref newCollEvent, ref isHit, ref hitTime, in newTime, deltaY);
 
 			// check only if the plunger is not in a controlled retract motion
