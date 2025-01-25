@@ -19,15 +19,13 @@ namespace VisualPinball.Unity
 	internal struct PlungerState
 	{
 		internal PlungerStaticState Static;
-		internal PlungerColliderState Collider;
 		internal PlungerMovementState Movement;
 		internal PlungerVelocityState Velocity;
 		internal PlungerAnimationState Animation;
 
-		public PlungerState(PlungerStaticState @static, PlungerColliderState collider, PlungerMovementState movement, PlungerVelocityState velocity, PlungerAnimationState animation)
+		public PlungerState(PlungerStaticState @static, PlungerMovementState movement, PlungerVelocityState velocity, PlungerAnimationState animation)
 		{
 			Static = @static;
-			Collider = collider;
 			Movement = movement;
 			Velocity = velocity;
 			Animation = animation;

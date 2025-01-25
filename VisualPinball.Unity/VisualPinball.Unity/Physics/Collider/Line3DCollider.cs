@@ -40,8 +40,6 @@ namespace VisualPinball.Unity
 			}
 		}
 
-		public bool IsFullyTransformable => true;
-
 		public ColliderHeader Header;
 
 		// these are all used when casting this to LineZCollider,

@@ -18,6 +18,8 @@ namespace VisualPinball.Unity
 {
 	internal struct PlungerStaticState
 	{
+		public int ColliderId;
+
 		// collision
 		public float MomentumXfer;
 		public float ScatterVelocity;

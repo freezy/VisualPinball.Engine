@@ -36,8 +36,6 @@ namespace VisualPinball.Unity
 			set => Header.Id = value;
 		}
 
-		public bool IsFullyTransformable => false;
-
 		public ColliderHeader Header;
 
 		public float2 V1;

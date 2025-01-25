@@ -415,7 +415,7 @@ namespace VisualPinball.Unity
 			LineZColliders.Add(collider);
 		}
 
-		internal void Add(PlungerCollider collider, float4x4 matrix)
+		internal int Add(PlungerCollider collider, float4x4 matrix)
 		{
 			if (!IsKinematic && PlungerCollider.IsTransformable(matrix)) {
 				collider.Header.IsTransformed = true;
@@ -435,6 +435,8 @@ namespace VisualPinball.Unity
 			TrackReference(collider.Header.ItemId, collider.Header.Id);
 			Lookups.Add(new ColliderLookup(ColliderType.Plunger, PlungerColliders.Length));
 			PlungerColliders.Add(collider);
+
+			return collider.Id;
 		}
 
 		internal void Add(PointCollider collider, float4x4 matrix)
