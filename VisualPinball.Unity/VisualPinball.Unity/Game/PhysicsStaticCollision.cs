@@ -71,38 +71,38 @@ namespace VisualPinball.Unity
 
 				case ColliderType.Circle: {
 					ref var circleCollider = ref colliders.Circle(colliderId);
-					circleCollider.Collide(ref ball, in ball.CollisionEvent, ref state.Env.Random);
+					circleCollider.Collide(ref ball, in ball.CollisionEvent, ref state);
 					break;
 				}
 
 				case ColliderType.Plane:
 					ref var planeCollider = ref colliders.Plane(colliderId);
-					planeCollider.Collide(ref ball, in ball.CollisionEvent, ref state.Env.Random);
+					planeCollider.Collide(ref ball, in ball.CollisionEvent, ref state);
 					break;
 
 				case ColliderType.Line:
 					ref var lineCollider = ref colliders.Line(colliderId);
-					lineCollider.Collide(ref ball, ref state.EventQueue, in ball.CollisionEvent, ref state.Env.Random);
+					lineCollider.Collide(ref ball, ref state.EventQueue, in ball.CollisionEvent, ref state);
 					break;
 
 				case ColliderType.LineZ:
 					ref var lineZCollider = ref colliders.LineZ(colliderId);
-					lineZCollider.Collide(ref ball, ref state.EventQueue, in ball.CollisionEvent, ref state.Env.Random);
+					lineZCollider.Collide(ref ball, ref state.EventQueue, in ball.CollisionEvent, ref state);
 					break;
 
 				case ColliderType.Triangle:
 					ref var triangleCollider = ref colliders.Triangle(colliderId);
-					triangleCollider.Collide(ref ball, ref state.EventQueue, in ball.CollisionEvent, ref state.Env.Random);
+					triangleCollider.Collide(ref ball, ref state.EventQueue, in ball.CollisionEvent, ref state);
 					break;
 
 				case ColliderType.Line3D:
 					ref var line3DCollider = ref colliders.Line3D(colliderId);
-					line3DCollider.Collide(ref ball, ref state.EventQueue, in ball.CollisionEvent, ref state.Env.Random);
+					line3DCollider.Collide(ref ball, ref state.EventQueue, in ball.CollisionEvent, ref state);
 					break;
 
 				case ColliderType.Point:
 					ref var pointCollider = ref colliders.Point(colliderId);
-					pointCollider.Collide(ref ball, ref state.EventQueue, in ball.CollisionEvent, ref state.Env.Random);
+					pointCollider.Collide(ref ball, ref state.EventQueue, in ball.CollisionEvent, ref state);
 					break;
 
 				case ColliderType.Bumper:
@@ -130,7 +130,7 @@ namespace VisualPinball.Unity
 					ref var surfaceState = ref state.GetSurfaceState(colliderId, ref colliders);
 					ref var surfaceCollider = ref colliders.LineSlingShot(colliderId);
 					surfaceCollider.Collide(ref ball, ref state.EventQueue, in surfaceState.Slingshot,
-						in ball.CollisionEvent, ref state.Env.Random);
+						in ball.CollisionEvent, ref state);
 					break;
 
 				case ColliderType.Plunger:
@@ -176,13 +176,13 @@ namespace VisualPinball.Unity
 
 				if (state.HasDropTargetState(colliderId, ref colliders)) {
 					ref var dropTargetState = ref state.GetDropTargetState(colliderId, ref colliders);
-					TargetCollider.DropTargetCollide(ref ball, ref state.EventQueue, ref dropTargetState.Animation, in normal, in ball.CollisionEvent, in collHeader, ref state.Env.Random);
+					TargetCollider.DropTargetCollide(ref ball, ref state.EventQueue, ref dropTargetState.Animation, in normal, in ball.CollisionEvent, in collHeader, ref state);
 					return true;
 				}
 
 				if (state.HasHitTargetState(colliderId, ref colliders)) {
 					ref var hitTargetState = ref state.GetHitTargetState(colliderId, ref colliders);
-					TargetCollider.HitTargetCollide(ref ball, ref state.EventQueue, ref hitTargetState.Animation, in normal, in ball.CollisionEvent, in collHeader, ref state.Env.Random);
+					TargetCollider.HitTargetCollide(ref ball, ref state.EventQueue, ref hitTargetState.Animation, in normal, in ball.CollisionEvent, in collHeader, ref state);
 					return true;
 				}
 

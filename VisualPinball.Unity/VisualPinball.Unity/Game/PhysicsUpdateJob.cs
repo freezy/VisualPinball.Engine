@@ -58,6 +58,11 @@ namespace VisualPinball.Unity
 		public NativeParallelHashMap<int, SurfaceState> SurfaceStates;
 		public NativeParallelHashMap<int, TriggerState> TriggerStates;
 		public NativeParallelHashSet<int> DisabledCollisionItems;
+
+		public NativeParallelHashMap<int, FixedList512Bytes<float>> ElasticityOverVelocityLUTs;
+		public NativeParallelHashMap<int, FixedList512Bytes<float>> FrictionOverVelocityLUTs;
+
+
 		public bool SwapBallCollisionHandling;
 
 		public void Execute()
@@ -68,7 +73,8 @@ namespace VisualPinball.Unity
 				ref NonTransformableColliderTransforms, ref KinematicColliderLookups, ref Events,
 				ref InsideOfs, ref Balls, ref BumperStates, ref DropTargetStates, ref FlipperStates, ref GateStates,
 				ref HitTargetStates, ref KickerStates, ref PlungerStates, ref SpinnerStates,
-				ref SurfaceStates, ref TriggerStates, ref DisabledCollisionItems, ref SwapBallCollisionHandling);
+				ref SurfaceStates, ref TriggerStates, ref DisabledCollisionItems, ref SwapBallCollisionHandling,
+				ref ElasticityOverVelocityLUTs, ref FrictionOverVelocityLUTs);
 			using var cycle = new PhysicsCycle(Allocator.Temp);
 
 			// create octree of kinematic-to-ball collision. should be okay here, since kinetic colliders don't transform more than once per frame.

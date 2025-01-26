@@ -114,9 +114,9 @@ namespace VisualPinball.Unity
 
 		#region Collision
 
-		public void Collide(ref BallState ball, in CollisionEventData collEvent, ref Random random)
+		public void Collide(ref BallState ball, in CollisionEventData collEvent, ref PhysicsState state)
 		{
-			BallCollider.Collide3DWall(ref ball, in Header.Material, in collEvent, in collEvent.HitNormal, ref random);
+			BallCollider.Collide3DWall(ref ball, in Header.Material, in collEvent, in collEvent.HitNormal, ref state);
 
 			// distance from plane to ball surface
 			var bnd = math.dot(_normal, ball.Position) - ball.Radius - _distance;

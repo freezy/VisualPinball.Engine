@@ -76,7 +76,11 @@ namespace VisualPinball.Unity
 
 		#endregion
 
-		public override PhysicsMaterialData PhysicsMaterialData => GetPhysicsMaterialData(Elasticity, ElasticityFalloff, Friction, Scatter);
+		protected override float PhysicsElasticity => Elasticity;
+		protected override float PhysicsElasticityFalloff => ElasticityFalloff;
+		protected override float PhysicsFriction => Friction;
+		protected override float PhysicsScatter => Scatter;
+		protected override bool PhysicsOverwrite => true;
 
 		#region FlipperTricks
 		/// <summary>

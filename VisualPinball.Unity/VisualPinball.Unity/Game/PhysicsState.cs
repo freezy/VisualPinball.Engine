@@ -133,7 +133,9 @@ namespace VisualPinball.Unity
 			ref NativeParallelHashMap<int, HitTargetState> hitTargetStates, ref NativeParallelHashMap<int, KickerState> kickerStates,
 			ref NativeParallelHashMap<int, PlungerState> plungerStates, ref NativeParallelHashMap<int, SpinnerState> spinnerStates,
 			ref NativeParallelHashMap<int, SurfaceState> surfaceStates, ref NativeParallelHashMap<int, TriggerState> triggerStates,
-			ref NativeParallelHashSet<int> disabledCollisionItems, ref bool swapBallCollisionHandling)
+			ref NativeParallelHashSet<int> disabledCollisionItems, ref bool swapBallCollisionHandling,
+			ref NativeParallelHashMap<int, FixedList512Bytes<float>> elasticityOverVelocityLUTs,
+			ref NativeParallelHashMap<int, FixedList512Bytes<float>> frictionOverVelocityLUTs)
 		{
 			Env = env;
 			Octree = octree;
@@ -160,8 +162,8 @@ namespace VisualPinball.Unity
 			DisabledCollisionItems = disabledCollisionItems;
 			SwapBallCollisionHandling = swapBallCollisionHandling;
 
-			ElasticityOverVelocityLUTs = new NativeParallelHashMap<int, FixedList512Bytes<float>>(0, Allocator.Persistent);
-			FrictionOverVelocityLUTs = new NativeParallelHashMap<int, FixedList512Bytes<float>>(0, Allocator.Persistent);
+			ElasticityOverVelocityLUTs = elasticityOverVelocityLUTs;
+			FrictionOverVelocityLUTs = frictionOverVelocityLUTs;
 		}
 
 		internal ref ColliderHeader GetColliderHeader(ref NativeColliders colliders, int colliderId) => ref colliders.GetHeader(colliderId);

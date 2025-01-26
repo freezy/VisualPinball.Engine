@@ -67,6 +67,9 @@ namespace VisualPinball.Unity
 		[NonSerialized] private readonly LazyInit<NativeParallelHashSet<int>> _disabledCollisionItems = new(() => new NativeParallelHashSet<int>(0, Allocator.Persistent));
 		[NonSerialized] private bool _swapBallCollisionHandling;
 
+		[NonSerialized] public NativeParallelHashMap<int, FixedList512Bytes<float>> ElasticityOverVelocityLUTs;
+		[NonSerialized] public NativeParallelHashMap<int, FixedList512Bytes<float>> FrictionOverVelocityLUTs;
+
 		#endregion
 
 		#region Transforms
@@ -218,6 +221,8 @@ namespace VisualPinball.Unity
 			_physicsEnv.Ref[0] = new PhysicsEnv(NowUsec, GetComponentInChildren<PlayfieldComponent>(), GravityStrength);
 			_colliderComponents = GetComponentsInChildren<ICollidableComponent>();
 			_kinematicColliderComponents = _colliderComponents.Where(c => c.IsKinematic).ToArray();
+			ElasticityOverVelocityLUTs = new NativeParallelHashMap<int, FixedList512Bytes<float>>(0, Allocator.Persistent);
+			FrictionOverVelocityLUTs = new NativeParallelHashMap<int, FixedList512Bytes<float>>(0, Allocator.Persistent);
 		}
 
 		private void Start()
@@ -331,6 +336,8 @@ namespace VisualPinball.Unity
 				DisabledCollisionItems = _disabledCollisionItems.Ref,
 				PlayfieldBounds = _playfieldBounds,
 				OverlappingColliders = overlappingColliders,
+				ElasticityOverVelocityLUTs = ElasticityOverVelocityLUTs,
+				FrictionOverVelocityLUTs = FrictionOverVelocityLUTs,
 			};
 
 			var env = _physicsEnv.Ref[0];
@@ -339,7 +346,8 @@ namespace VisualPinball.Unity
 				ref _nonTransformableColliderTransforms.Ref, ref _kinematicColliderLookups, ref events,
 				ref _insideOfs, ref _ballStates.Ref, ref _bumperStates.Ref, ref _dropTargetStates.Ref, ref _flipperStates.Ref, ref _gateStates.Ref,
 				ref _hitTargetStates.Ref, ref _kickerStates.Ref, ref _plungerStates.Ref, ref _spinnerStates.Ref,
-				ref _surfaceStates.Ref, ref _triggerStates.Ref, ref _disabledCollisionItems.Ref, ref _swapBallCollisionHandling);
+				ref _surfaceStates.Ref, ref _triggerStates.Ref, ref _disabledCollisionItems.Ref, ref _swapBallCollisionHandling,
+				ref ElasticityOverVelocityLUTs, ref FrictionOverVelocityLUTs);
 
 			// process input
 			while (_inputActions.Count > 0) {
@@ -385,6 +393,8 @@ namespace VisualPinball.Unity
 			_physicsEnv.Ref.Dispose();
 			_eventQueue.Ref.Dispose();
 			_ballStates.Ref.Dispose();
+			ElasticityOverVelocityLUTs.Dispose();
+			FrictionOverVelocityLUTs.Dispose();
 			_colliders.Dispose();
 			_kinematicColliders.Dispose();
 			_insideOfs.Dispose();

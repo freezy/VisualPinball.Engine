@@ -23,14 +23,14 @@ namespace VisualPinball.Unity
 	{
 		public static void DropTargetCollide(ref BallState ball, ref NativeQueue<EventData>.ParallelWriter hitEvents,
 			ref DropTargetAnimationState animation, in float3 normal, in CollisionEventData collEvent,
-			in ColliderHeader collHeader, ref Random random)
+			in ColliderHeader collHeader, ref PhysicsState state)
 		{
 			if (animation.IsDropped) {
 				return;
 			}
 
 			var dot = -math.dot(collEvent.HitNormal, ball.Velocity);
-			BallCollider.Collide3DWall(ref ball, in collHeader.Material, in collEvent, in normal, ref random);
+			BallCollider.Collide3DWall(ref ball, in collHeader.Material, in collEvent, in normal, ref state);
 
 			if (collHeader.FireEvents && dot >= collHeader.Threshold && !animation.IsDropped) {
 				animation.HitEvent = true;
@@ -41,10 +41,10 @@ namespace VisualPinball.Unity
 
 		public static void HitTargetCollide(ref BallState ball, ref NativeQueue<EventData>.ParallelWriter hitEvents,
 			ref HitTargetAnimationData animationData, in float3 normal, in CollisionEventData collEvent,
-			in ColliderHeader collHeader, ref Random random)
+			in ColliderHeader collHeader, ref PhysicsState state)
 		{
 			var dot = -math.dot(collEvent.HitNormal, ball.Velocity);
-			BallCollider.Collide3DWall(ref ball, in collHeader.Material, in collEvent, in normal, ref random);
+			BallCollider.Collide3DWall(ref ball, in collHeader.Material, in collEvent, in normal, ref state);
 
 			if (collHeader.FireEvents && dot >= collHeader.Threshold) {
 				animationData.HitEvent = true;

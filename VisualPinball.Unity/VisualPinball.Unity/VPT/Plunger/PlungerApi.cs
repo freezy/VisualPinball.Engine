@@ -145,8 +145,10 @@ namespace VisualPinball.Unity
 		protected override void CreateColliders(ref ColliderReference colliders, float4x4 translateWithinPlayfieldMatrix, float margin)
 		{
 			var colliderId = colliders.Add(new PlungerCollider(MainComponent, ColliderComponent, GetColliderInfo()), translateWithinPlayfieldMatrix);
-			ref var plungerState = ref PhysicsEngine.PlungerState(ItemId);
-			plungerState.Static.ColliderId = colliderId;
+			if (PhysicsEngine) {
+				ref var plungerState = ref PhysicsEngine.PlungerState(ItemId);
+				plungerState.Static.ColliderId = colliderId;
+			}
 		}
 
 		#endregion
