@@ -67,6 +67,11 @@ namespace VisualPinball.Unity
 
 		[NonSerialized] protected PhysicsEngine PhysicsEngine;
 
+		protected abstract float PhysicsElasticity { get; }
+		protected abstract float PhysicsElasticityFalloff { get; }
+		protected abstract float PhysicsFriction { get; }
+		protected abstract float PhysicsScatter { get; }
+		protected abstract bool PhysicsOverwrite { get; }
 
 		protected abstract IApiColliderGenerator InstantiateColliderApi(Player player, PhysicsEngine physicsEngine);
 
@@ -75,8 +80,6 @@ namespace VisualPinball.Unity
 
 		public float4x4 GetUnmodifiedLocalToPlayfieldMatrixInVpx(float4x4 worldToPlayfield)
 			=> Physics.GetLocalToPlayfieldMatrixInVpx(MainComponent.transform.localToWorldMatrix, worldToPlayfield);
-
-		public abstract PhysicsMaterialData PhysicsMaterialData { get; }
 
 		private bool HasCachedColliders => false;// _colliderMesh != null && !_collidersDirty;
 
@@ -99,28 +102,43 @@ namespace VisualPinball.Unity
 			GetComponentInParent<PhysicsEngine>()?.DisableCollider(MainComponent.gameObject.GetInstanceID());
 		}
 
-		protected PhysicsMaterialData GetPhysicsMaterialData(float elasticity = 1f, float elasticityFalloff = 1f,
-			float friction = 0f, float scatterAngleDeg = 0f, bool overwrite = true)
+		internal PhysicsMaterialData GetPhysicsMaterialData()
 		{
-			if (!overwrite && PhysicsMaterial != null) {
-				//Debug.Log("load special Physics Material Data:" + PhysicsMaterial.name);
-				PhysicsMaterialData physicsMaterialData = new PhysicsMaterialData();
-				physicsMaterialData.Elasticity = PhysicsMaterial.Elasticity;
-				physicsMaterialData.ElasticityFalloff = PhysicsMaterial.ElasticityFalloff;
-				physicsMaterialData.Friction = PhysicsMaterial.Friction;
-				physicsMaterialData.ScatterAngleRad = PhysicsMaterial.ScatterAngle;
-
-				physicsMaterialData.ElasticityOverVelocityLUT = PhysicsMaterial.ElasticityOverVelocityLUT;
-				physicsMaterialData.UseElasticityOverVelocity = PhysicsMaterial.UseElasticictyOverVelocity;
-
+			if (!PhysicsOverwrite && PhysicsMaterial != null) {
+				var physicsMaterialData = new PhysicsMaterialData {
+					Elasticity = PhysicsMaterial.Elasticity,
+					ElasticityFalloff = PhysicsMaterial.ElasticityFalloff,
+					Friction = PhysicsMaterial.Friction,
+					ScatterAngleRad = PhysicsMaterial.ScatterAngle
+				};
 				return physicsMaterialData;
 			}
+
 			return new PhysicsMaterialData {
-				Elasticity = elasticity,
-				ElasticityFalloff = elasticityFalloff,
-				Friction = friction,
-				ScatterAngleRad = math.radians(scatterAngleDeg)
+				Elasticity = PhysicsElasticity,
+				ElasticityFalloff = PhysicsElasticityFalloff,
+				Friction = PhysicsFriction,
+				ScatterAngleRad = math.radians(PhysicsScatter)
 			};
+		}
+
+		internal PhysicsMaterialData GetPhysicsMaterialData(
+			ref NativeParallelHashMap<int, FixedList512Bytes<float>> elasticityOverVelocityLUTs,
+			ref NativeParallelHashMap<int, FixedList512Bytes<float>> frictionOverVelocityLUTs)
+		{
+			var materialData = GetPhysicsMaterialData();
+			if (!PhysicsOverwrite && PhysicsMaterial != null) {
+				if (PhysicsMaterial.UseElasticityOverVelocity) {
+					elasticityOverVelocityLUTs.Add(MainComponent.GetInstanceID(), PhysicsMaterial.GetElasticityOverVelocityLUT());
+					materialData.UseElasticityOverVelocity = true;
+				}
+				if (PhysicsMaterial.UseFrictionOverVelocity) {
+					frictionOverVelocityLUTs.Add(MainComponent.GetInstanceID(), PhysicsMaterial.GetFrictionOverVelocityLUT());
+					materialData.UseFrictionOverVelocity = true;
+				}
+			}
+
+			return materialData;
 		}
 
 		#region Kinematics

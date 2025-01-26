@@ -171,10 +171,10 @@ namespace VisualPinball.Unity
 		#region Collision
 
 		public void Collide(ref BallState ball, ref NativeQueue<EventData>.ParallelWriter hitEvents,
-			in CollisionEventData collEvent, ref Random random)
+			in CollisionEventData collEvent, ref PhysicsState state)
 		{
 			var dot = -math.dot(collEvent.HitNormal, ball.Velocity);
-			BallCollider.Collide3DWall(ref ball, in Header.Material, in collEvent, in _normal, ref random);
+			BallCollider.Collide3DWall(ref ball, in Header.Material, in collEvent, in _normal, ref state);
 
 			if (Header.FireEvents && dot >= Header.Threshold && Header.IsPrimitive) {
 				// todo m_obj->m_currentHitThreshold = dot;

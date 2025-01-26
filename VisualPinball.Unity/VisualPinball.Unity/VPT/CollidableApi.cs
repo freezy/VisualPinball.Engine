@@ -58,12 +58,22 @@ namespace VisualPinball.Unity
 
 		public ColliderInfo GetColliderInfo(ItemType itemType)
 		{
+			if (PhysicsEngine) {
+				return new ColliderInfo {
+					Id = -1, // is set during allocation
+					ItemId = ItemId,
+					ItemType = itemType,
+					FireEvents = FireHitEvents,
+					Material = ColliderComponent.GetPhysicsMaterialData(ref PhysicsEngine.ElasticityOverVelocityLUTs, ref PhysicsEngine.FrictionOverVelocityLUTs),
+					HitThreshold = HitThreshold,
+				};
+			}
 			return new ColliderInfo {
 				Id = -1, // is set during allocation
 				ItemId = ItemId,
 				ItemType = itemType,
 				FireEvents = FireHitEvents,
-				Material = ColliderComponent.PhysicsMaterialData,
+				Material = ColliderComponent.GetPhysicsMaterialData(),
 				HitThreshold = HitThreshold,
 			};
 		}

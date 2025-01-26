@@ -90,7 +90,7 @@ namespace VisualPinball.Unity
 
 		#region Collision
 
-		public void Collide(ref BallState ball, ref NativeQueue<EventData>.ParallelWriter events, in LineSlingshotState slingshotState, in CollisionEventData collEvent, ref Random random)
+		public void Collide(ref BallState ball, ref NativeQueue<EventData>.ParallelWriter events, in LineSlingshotState slingshotState, in CollisionEventData collEvent, ref PhysicsState state)
 		{
 			var hitNormal = collEvent.HitNormal;
 
@@ -125,7 +125,7 @@ namespace VisualPinball.Unity
 				ball.Velocity -= hitNormal * force;
 			}
 
-			BallCollider.Collide3DWall(ref ball, in Header.Material, in collEvent, in hitNormal, ref random);
+			BallCollider.Collide3DWall(ref ball, in Header.Material, in collEvent, in hitNormal, ref state);
 
 			if (/*m_obj &&*/ Header.FireEvents /*&& !m_psurface->m_disabled*/ && threshold) { // todo enabled
 

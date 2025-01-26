@@ -54,7 +54,12 @@ namespace VisualPinball.Unity
 			PhysicsEngine = GetComponentInParent<PhysicsEngine>();
 		}
 
-		public override PhysicsMaterialData PhysicsMaterialData => GetPhysicsMaterialData(scatterAngleDeg: Scatter);
+		protected override float PhysicsElasticity => 1;
+		protected override float PhysicsElasticityFalloff => 1;
+		protected override float PhysicsFriction => 0;
+		protected override float PhysicsScatter => Scatter;
+		protected override bool PhysicsOverwrite => true;
+
 		protected override IApiColliderGenerator InstantiateColliderApi(Player player, PhysicsEngine physicsEngine) =>
 			MainComponent.KickerApi ?? new KickerApi(gameObject, player, physicsEngine);
 

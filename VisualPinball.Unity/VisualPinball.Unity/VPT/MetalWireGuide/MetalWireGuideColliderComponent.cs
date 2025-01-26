@@ -53,7 +53,12 @@ namespace VisualPinball.Unity
 
 		#endregion
 
-		public override PhysicsMaterialData PhysicsMaterialData => GetPhysicsMaterialData(Elasticity, ElasticityFalloff, Friction, Scatter, OverwritePhysics);
+		protected override float PhysicsElasticity => Elasticity;
+		protected override float PhysicsElasticityFalloff => ElasticityFalloff;
+		protected override float PhysicsFriction => Friction;
+		protected override float PhysicsScatter => Scatter;
+		protected override bool PhysicsOverwrite => OverwritePhysics;
+
 		protected override IApiColliderGenerator InstantiateColliderApi(Player player, PhysicsEngine physicsEngine)
 			=> MainComponent.MetalWireGuideApi ?? new MetalWireGuideApi(gameObject, player, physicsEngine);
 	}

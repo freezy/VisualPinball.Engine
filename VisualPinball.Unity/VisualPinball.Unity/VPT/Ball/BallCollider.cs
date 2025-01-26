@@ -16,7 +16,6 @@
 
 using Unity.Mathematics;
 using VisualPinball.Engine.Common;
-using Random = Unity.Mathematics.Random;
 
 namespace VisualPinball.Unity
 {
@@ -24,7 +23,7 @@ namespace VisualPinball.Unity
 	{
 		private const float HardScatter = 0.0f;
 
-		public static void Collide3DWall(ref BallState ball, in PhysicsMaterialData material, in CollisionEventData collEvent, in float3 hitNormal, ref Random random)
+		public static void Collide3DWall(ref BallState ball, in PhysicsMaterialData material, in CollisionEventData collEvent, in float3 hitNormal, ref PhysicsState state)
 		{
 			// speed normal to wall
 			var dot = math.dot(ball.Velocity, hitNormal);
@@ -65,9 +64,13 @@ namespace VisualPinball.Unity
 			{
 				// nFozzy used the xy velocity, but using the dot velocity seems more "physical".
 				//var velocity = math.sqrt(ball.Velocity.x * ball.Velocity.x + ball.Velocity.y * ball.Velocity.y + ball.Velocity.z * ball.Velocity.z);
+
 				var velocity = dot;
-				var elasticityLow = material.ElasticityOverVelocityLUT[math.clamp((int)math.trunc(velocity), 0, 99)];
-				var elasticityHigh = material.ElasticityOverVelocityLUT[math.clamp((int)math.trunc(velocity+1), 0, 99)];
+				var lut = collEvent.IsKinematic
+					? state.ElasticityOverVelocityLUTs[state.KinematicColliders.GetItemId(collEvent.ColliderId)]
+					: state.ElasticityOverVelocityLUTs[state.Colliders.GetItemId(collEvent.ColliderId)];
+				var elasticityLow = lut[math.clamp((int)math.trunc(velocity), 0, 99)];
+				var elasticityHigh = lut[math.clamp((int)math.trunc(velocity+1), 0, 99)];
 				elasticity = elasticityLow * (velocity - math.trunc(velocity)) +
 							 elasticityHigh * (1 - (velocity - math.trunc(velocity)));
 			}
@@ -96,8 +99,11 @@ namespace VisualPinball.Unity
 				if (material.UseFrictionOverVelocity)
 				{
 					var normalVelocity = math.dot(ball.Velocity, hitNormal);
-					var frictionLow = material.FrictionOverVelocityLUT[math.clamp((int)math.trunc(normalVelocity), 0, 99)];
-					var frictionHigh = material.FrictionOverVelocityLUT[math.clamp((int)math.trunc(normalVelocity + 1), 0, 99)];
+					var lut = collEvent.IsKinematic
+						? state.FrictionOverVelocityLUTs[state.KinematicColliders.GetItemId(collEvent.ColliderId)]
+						: state.FrictionOverVelocityLUTs[state.Colliders.GetItemId(collEvent.ColliderId)];
+					var frictionLow = lut[math.clamp((int)math.trunc(normalVelocity), 0, 99)];
+					var frictionHigh = lut[math.clamp((int)math.trunc(normalVelocity + 1), 0, 99)];
 					friction = frictionLow * (normalVelocity - math.trunc(normalVelocity)) +
 								 frictionHigh * (1 - (normalVelocity - math.trunc(normalVelocity)));
 				}
@@ -128,7 +134,7 @@ namespace VisualPinball.Unity
 
 			if (dot > 1.0 && scatterAngle > 1.0e-5) {
 				// no scatter at low velocity
-				var scatter = random.NextFloat(-1f, 1f);                            // -1.0f..1.0f
+				var scatter = state.Env.Random.NextFloat(-1f, 1f);                            // -1.0f..1.0f
 				scatter *= (1.0f - scatter * scatter) * 2.59808f * scatterAngle;         // shape quadratic distribution and scale
 				var radSin = math.sin(scatter);                               // Green's transform matrix... rotate angle delta
 				var radCos = math.cos(scatter);                               // rotational transform from current position to position at time t

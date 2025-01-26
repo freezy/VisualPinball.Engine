@@ -16,9 +16,10 @@
 
 // ReSharper disable InconsistentNaming
 
-using UnityEngine;
-using UnityEditor;
+using System;
 using Unity.Collections;
+using UnityEngine;
+using UnityEngine.Serialization;
 
 namespace VisualPinball.Unity
 {
@@ -36,45 +37,40 @@ namespace VisualPinball.Unity
 		
 		public float Elasticity;
 		public float ElasticityFalloff;
+
+		public bool UseElasticityOverVelocity => ElasticityOverVelocity.keys.Length > 0;
 		public AnimationCurve ElasticityOverVelocity;
-		public bool UseElasticictyOverVelocity;
-		public FixedList512Bytes<float> ElasticityOverVelocityLUT;
+
 		public float Friction;
+
+		public bool UseFrictionOverVelocity => FrictionOverVelocity.keys.Length > 0;
 		public AnimationCurve FrictionOverVelocity;
-		public bool UseFrictionOverVelocity;
-		public FixedList512Bytes<float> FrictionOverVelocityLUT;
+
 		// public AnimationCurve FrictionOverAngularMomentum;
 		public float ScatterAngle;
 
-		void OnValidate()
+		public FixedList512Bytes<float> GetElasticityOverVelocityLUT()
 		{
-			ElasticityOverVelocityLUT.Clear();
-			if (ElasticityOverVelocity.keys.Length > 0)
-			{
-				for (int i = 0; i < 100; i++)
-				{
-					ElasticityOverVelocityLUT.Add(ElasticityOverVelocity.Evaluate(i));
-				}
-				UseElasticictyOverVelocity = true;
+			var lut = new FixedList512Bytes<float>();
+			if (ElasticityOverVelocity.keys.Length == 0) {
+				throw new InvalidOperationException("Curve ElasticityOverVelocity is empty.");
 			}
-			else
-				UseElasticictyOverVelocity = false;
-
-			FrictionOverVelocityLUT.Clear();
-			if (FrictionOverVelocity.keys.Length > 0)
-			{
-				for (int i = 0; i < 100; i++)
-				{
-					FrictionOverVelocityLUT.Add(ElasticityOverVelocity.Evaluate(i));
-				}
-				UseFrictionOverVelocity = true;
+			for (var i = 0; i < 100; i++) {
+				lut.Add(ElasticityOverVelocity.Evaluate(i));
 			}
-			else
-				UseFrictionOverVelocity = false;
-
+			return lut;
 		}
 
-
-
+		public FixedList512Bytes<float> GetFrictionOverVelocityLUT()
+		{
+			var lut = new FixedList512Bytes<float>();
+			if (FrictionOverVelocity.keys.Length == 0) {
+				throw new InvalidOperationException("Curve ElasticityOverVelocity is empty.");
+			}
+			for (var i = 0; i < 100; i++) {
+				lut.Add(FrictionOverVelocity.Evaluate(i));
+			}
+			return lut;
+		}
 	}
 }

@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-using Unity.Collections;
 using System;
 
 namespace VisualPinball.Unity
@@ -25,9 +24,7 @@ namespace VisualPinball.Unity
 		public float ElasticityFalloff;
 		public float Friction;
 		public float ScatterAngleRad;
-		public FixedList512Bytes<float> ElasticityOverVelocityLUT;
 		public bool UseElasticityOverVelocity;
-		public FixedList512Bytes<float> FrictionOverVelocityLUT;
 		public bool UseFrictionOverVelocity;
 
 		public static bool operator ==(PhysicsMaterialData a, PhysicsMaterialData b) => a.Equals(b);
