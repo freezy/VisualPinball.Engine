@@ -55,6 +55,8 @@ namespace VisualPinball.Unity
 		public LineZCollider JointEnd0;
 		public LineZCollider JointEnd1;
 
+		public float PosY;
+
 		public ColliderBounds Bounds { get; private set; }
 
 		public PlungerCollider(PlungerComponent comp, PlungerColliderComponent collComp, ColliderInfo info) : this()
@@ -84,6 +86,7 @@ namespace VisualPinball.Unity
 			JointEnd0 = new LineZCollider(new float2(x, position), zHeight, zHeight + Plunger.PlungerHeight, info);
 			JointEnd1 = new LineZCollider(new float2(x2, position), zHeight, zHeight + Plunger.PlungerHeight, info);
 
+			PosY = 0;
 			Bounds = new ColliderBounds(Header.ItemId, Header.Id, new Aabb(
 				new float3(-comp.Width - 10, comp.Height, 0),
 				new float3(comp.Width + 10, -100, 50)
@@ -132,6 +135,8 @@ namespace VisualPinball.Unity
 			LineSegEnd = collider.LineSegEnd.Transform(matrix);
 			JointEnd0 = collider.JointEnd0.Transform(matrix);
 			JointEnd1 = collider.JointEnd1.Transform(matrix);
+
+			PosY = matrix.GetTranslation().y;
 		}
 
 		public Aabb GetTransformedAabb(float4x4 matrix)

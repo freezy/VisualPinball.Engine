@@ -100,14 +100,16 @@ namespace VisualPinball.Unity
 
 		private static void UpdateCollider(float len, ref PlungerCollider collider)
 		{
-			collider.LineSegSide0.V1y = len;
-			collider.LineSegSide1.V2y = len;
+			var yPos = collider.PosY + len;
 
-			collider.LineSegEnd.V2y = len;
-			collider.LineSegEnd.V1y = len; // + 0.0001f;
+			collider.LineSegSide0.V1y = yPos;
+			collider.LineSegSide1.V2y = yPos;
 
-			collider.JointEnd0.XyY = len;
-			collider.JointEnd1.XyY = len; // + 0.0001f;
+			collider.LineSegEnd.V2y = yPos;
+			collider.LineSegEnd.V1y = yPos; // + 0.0001f;
+
+			collider.JointEnd0.XyY = yPos;
+			collider.JointEnd1.XyY = yPos; // + 0.0001f;
 
 			collider.LineSegSide0.CalcNormal();
 			collider.LineSegSide1.CalcNormal();
