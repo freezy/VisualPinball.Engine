@@ -64,6 +64,16 @@ namespace VisualPinball.Unity
 
 		#endregion
 
+		#region Physics Material
+
+		protected override float PhysicsElasticity => Elasticity;
+		protected override float PhysicsElasticityFalloff => 1;
+		protected override float PhysicsFriction => Friction;
+		protected override float PhysicsScatter => 0;
+		protected override bool PhysicsOverwrite => true;
+
+		#endregion
+
 		#region IGateColliderData
 
 		public float AngleMin { get => _angleMin; set => _angleMin = value; }
@@ -72,12 +82,6 @@ namespace VisualPinball.Unity
 		public bool TwoWay => _twoWay;
 
 		#endregion
-
-		protected override float PhysicsElasticity => Elasticity;
-		protected override float PhysicsElasticityFalloff => 1;
-		protected override float PhysicsFriction => Friction;
-		protected override float PhysicsScatter => 0;
-		protected override bool PhysicsOverwrite => true;
 
 		protected override IApiColliderGenerator InstantiateColliderApi(Player player, PhysicsEngine physicsEngine)
 			=> MainComponent.GateApi ?? new GateApi(gameObject, player, physicsEngine);

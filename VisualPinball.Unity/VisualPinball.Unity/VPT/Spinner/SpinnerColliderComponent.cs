@@ -36,11 +36,15 @@ namespace VisualPinball.Unity
 
 		#endregion
 
+		#region Physics Material
+
 		protected override float PhysicsElasticity => Elasticity;
 		protected override float PhysicsElasticityFalloff => 1;
 		protected override float PhysicsFriction => 0;
 		protected override float PhysicsScatter => 0;
 		protected override bool PhysicsOverwrite => true;
+
+		#endregion
 
 		protected override IApiColliderGenerator InstantiateColliderApi(Player player, PhysicsEngine physicsEngine)
 			=> MainComponent.SpinnerApi ?? new SpinnerApi(gameObject, player, physicsEngine);
