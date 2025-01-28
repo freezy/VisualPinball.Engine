@@ -96,9 +96,9 @@ namespace VisualPinball.Unity
 						IsKinematic = false,
 						BallId = ballId
 					};
-					var physicsMaterialData = ColliderComponent.PhysicsMaterialData;
-					var random = PhysicsEngine.Random;
-					BallCollider.Collide3DWall(ref ballState, in physicsMaterialData, in collEvent, in bumpDirection, ref random);
+					//var physicsMaterialData = ColliderComponent.PhysicsMaterialData;
+					//var random = PhysicsEngine.;
+					//BallCollider.Collide3DWall(ref ballState, in physicsMaterialData, in collEvent, in bumpDirection, ref state);
 					ballState.Velocity += bumpDirection * ColliderComponent.Force;
 				}
 			}

@@ -49,16 +49,20 @@ namespace VisualPinball.Unity
 
 		#endregion
 
-		private void Awake()
-		{
-			PhysicsEngine = GetComponentInParent<PhysicsEngine>();
-		}
+		#region Physics Material
 
 		protected override float PhysicsElasticity => 1;
 		protected override float PhysicsElasticityFalloff => 1;
 		protected override float PhysicsFriction => 0;
 		protected override float PhysicsScatter => Scatter;
 		protected override bool PhysicsOverwrite => true;
+
+		#endregion
+
+		private void Awake()
+		{
+			PhysicsEngine = GetComponentInParent<PhysicsEngine>();
+		}
 
 		protected override IApiColliderGenerator InstantiateColliderApi(Player player, PhysicsEngine physicsEngine) =>
 			MainComponent.KickerApi ?? new KickerApi(gameObject, player, physicsEngine);

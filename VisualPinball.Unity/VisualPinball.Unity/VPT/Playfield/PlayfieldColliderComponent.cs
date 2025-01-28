@@ -52,13 +52,17 @@ namespace VisualPinball.Unity
 
 		#endregion
 
-		[NonSerialized] public bool ShowAllColliderMeshes = false;
+		#region Physics Material
 
 		protected override float PhysicsElasticity => Elasticity;
 		protected override float PhysicsElasticityFalloff => ElasticityFalloff;
 		protected override float PhysicsFriction => Friction;
 		protected override float PhysicsScatter => Scatter;
 		protected override bool PhysicsOverwrite => true;
+
+		#endregion
+
+		[NonSerialized] public bool ShowAllColliderMeshes = false;
 
 		protected override IApiColliderGenerator InstantiateColliderApi(Player player, PhysicsEngine physicsEngine)
 			=> MainComponent.PlayfieldApi ?? new PlayfieldApi(gameObject, player, physicsEngine);
