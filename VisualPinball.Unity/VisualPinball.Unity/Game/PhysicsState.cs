@@ -81,7 +81,14 @@ namespace VisualPinball.Unity
 		/// </remarks>
 		internal NativeParallelHashMap<int, float4x4> KinematicTransforms;
 
+		/// <summary>
+		/// The LUT of elasticity over velocity for all colliders where activated. Goes from 0 to 64 velocity units.
+		/// </summary>
 		internal NativeParallelHashMap<int, FixedList512Bytes<float>> ElasticityOverVelocityLUTs;
+
+		/// <summary>
+		/// The LUT of friction over velocity for all colliders where activated. Goes from 0 to 128 velocity units.
+		/// </summary>
 		internal NativeParallelHashMap<int, FixedList512Bytes<float>> FrictionOverVelocityLUTs;
 
 		/// <summary>

@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using Unity.Mathematics;
+using UnityEngine;
 using VisualPinball.Engine.Common;
 
 namespace VisualPinball.Unity
@@ -59,23 +60,19 @@ namespace VisualPinball.Unity
 			// magnitude of the impulse which is just sufficient to keep the ball from
 			// penetrating the wall (needed for friction computations)
 			var reactionImpulse = ball.Mass * math.abs(dot);
-			float elasticity;
-			if (material.UseElasticityOverVelocity)
-			{
+			float elasticity = 0;
+			if (material.UseElasticityOverVelocity) {
 				// nFozzy used the xy velocity, but using the dot velocity seems more "physical".
 				//var velocity = math.sqrt(ball.Velocity.x * ball.Velocity.x + ball.Velocity.y * ball.Velocity.y + ball.Velocity.z * ball.Velocity.z);
-
-				var velocity = dot;
-				var lut = collEvent.IsKinematic
-					? state.ElasticityOverVelocityLUTs[state.KinematicColliders.GetItemId(collEvent.ColliderId)]
-					: state.ElasticityOverVelocityLUTs[state.Colliders.GetItemId(collEvent.ColliderId)];
-				var elasticityLow = lut[math.clamp((int)math.trunc(velocity), 0, 99)];
-				var elasticityHigh = lut[math.clamp((int)math.trunc(velocity+1), 0, 99)];
-				elasticity = elasticityLow * (velocity - math.trunc(velocity)) +
-							 elasticityHigh * (1 - (velocity - math.trunc(velocity)));
-			}
-			else
+				var velocity = math.abs(dot);
+				var colliders = collEvent.IsKinematic ? state.KinematicColliders : state.Colliders;
+				var itemId = colliders.GetItemId(collEvent.ColliderId);
+				var lut = state.ElasticityOverVelocityLUTs[itemId];
+				elasticity = lut.InterpolateLUT(0, 63f, velocity);
+			} else {
 				elasticity = Math.ElasticityWithFalloff(material.Elasticity, material.ElasticityFalloff, dot);
+			}
+
 			dot *= -(1.0f + elasticity);
 			ball.Velocity += hitNormal * dot;                                  // apply collision impulse (along normal, so no torque)
 
@@ -96,19 +93,14 @@ namespace VisualPinball.Unity
 				// Cupiiis Friction over Velocity LUT-Code
 				// get friction based on normal Velocity  
 				float friction;
-				if (material.UseFrictionOverVelocity)
-				{
+				if (material.UseFrictionOverVelocity) {
 					var normalVelocity = math.dot(ball.Velocity, hitNormal);
-					var lut = collEvent.IsKinematic
-						? state.FrictionOverVelocityLUTs[state.KinematicColliders.GetItemId(collEvent.ColliderId)]
-						: state.FrictionOverVelocityLUTs[state.Colliders.GetItemId(collEvent.ColliderId)];
-					var frictionLow = lut[math.clamp((int)math.trunc(normalVelocity), 0, 99)];
-					var frictionHigh = lut[math.clamp((int)math.trunc(normalVelocity + 1), 0, 99)];
-					friction = frictionLow * (normalVelocity - math.trunc(normalVelocity)) +
-								 frictionHigh * (1 - (normalVelocity - math.trunc(normalVelocity)));
-				}
-				else
-				{
+					var colliders = collEvent.IsKinematic ? state.KinematicColliders : state.Colliders;
+					var itemId = colliders.GetItemId(collEvent.ColliderId);
+					var lut = state.FrictionOverVelocityLUTs[itemId];
+					friction = lut.InterpolateLUT(0, 127f, normalVelocity);
+
+				} else {
 					friction = material.Friction;
 				}
 				// End of Cupiiis Friction over Velocity LUT-Code

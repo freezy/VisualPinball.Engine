@@ -129,11 +129,15 @@ namespace VisualPinball.Unity
 			var materialData = GetPhysicsMaterialData();
 			if (!PhysicsOverwrite && PhysicsMaterial != null) {
 				if (PhysicsMaterial.UseElasticityOverVelocity) {
-					elasticityOverVelocityLUTs.Add(MainComponent.GetInstanceID(), PhysicsMaterial.GetElasticityOverVelocityLUT());
+					if (!elasticityOverVelocityLUTs.ContainsKey(gameObject.GetInstanceID())) {
+						elasticityOverVelocityLUTs.Add(gameObject.GetInstanceID(), PhysicsMaterial.GetElasticityOverVelocityLUT());
+					}
 					materialData.UseElasticityOverVelocity = true;
 				}
 				if (PhysicsMaterial.UseFrictionOverVelocity) {
-					frictionOverVelocityLUTs.Add(MainComponent.GetInstanceID(), PhysicsMaterial.GetFrictionOverVelocityLUT());
+					if (!frictionOverVelocityLUTs.ContainsKey(gameObject.GetInstanceID())) {
+						frictionOverVelocityLUTs.Add(gameObject.GetInstanceID(), PhysicsMaterial.GetFrictionOverVelocityLUT());
+					}
 					materialData.UseFrictionOverVelocity = true;
 				}
 			}
