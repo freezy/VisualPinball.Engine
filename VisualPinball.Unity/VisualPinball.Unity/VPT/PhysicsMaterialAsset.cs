@@ -49,14 +49,21 @@ namespace VisualPinball.Unity
 		// public AnimationCurve FrictionOverAngularMomentum;
 		public float ScatterAngle;
 
+		/// <summary>
+		/// Returns a lookup-table of 128 values. <br/>
+		///
+		/// The range goes from 0 to 64 velocity units, meaning an entry covers 0.5 units.
+		/// </summary>
+		/// <returns>Lookup table</returns>
+		/// <exception cref="InvalidOperationException"></exception>
 		public FixedList512Bytes<float> GetElasticityOverVelocityLUT()
 		{
 			var lut = new FixedList512Bytes<float>();
 			if (ElasticityOverVelocity.keys.Length == 0) {
 				throw new InvalidOperationException("Curve ElasticityOverVelocity is empty.");
 			}
-			for (var i = 0; i < 100; i++) {
-				lut.Add(ElasticityOverVelocity.Evaluate(i));
+			for (var i = 0; i < 127; i++) {
+				lut.Add(ElasticityOverVelocity.Evaluate(i / 2f));
 			}
 			return lut;
 		}
@@ -67,7 +74,7 @@ namespace VisualPinball.Unity
 			if (FrictionOverVelocity.keys.Length == 0) {
 				throw new InvalidOperationException("Curve ElasticityOverVelocity is empty.");
 			}
-			for (var i = 0; i < 100; i++) {
+			for (var i = 0; i < 127; i++) {
 				lut.Add(FrictionOverVelocity.Evaluate(i));
 			}
 			return lut;

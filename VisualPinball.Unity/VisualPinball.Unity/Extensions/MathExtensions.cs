@@ -14,6 +14,8 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+using System.ComponentModel;
+using Unity.Collections;
 using Unity.Mathematics;
 using UnityEngine;
 using VisualPinball.Engine.Common;
@@ -188,6 +190,30 @@ namespace VisualPinball.Unity
 			var cosYCosP = +1.0 - 2.0 * (q.y * q.y + q.z * q.z);
 			res.z = math.atan2(sinYCosP, cosYCosP);
 			return (float3) res;
+		}
+
+		/// <summary>
+		/// Interpolates a value from a LUT.
+		/// </summary>
+		/// <param name="lut">The LUT</param>
+		/// <param name="min">Smallest X-value of the LUT</param>
+		/// <param name="max">Largest X-value of the LUT</param>
+		/// <param name="x">X-position</param>
+		/// <returns>Interpolated Y-value</returns>
+		public static float InterpolateLUT(this FixedList512Bytes<float> lut, float min, float max, float x)
+		{
+			var p = math.unlerp(min, max, x);
+			var i = p * lut.Length;
+			var i1 = (int) math.floor(i);
+			var i2 = math.clamp((int) i1 + 1, 0, lut.Length - 1);
+			if (i1 == i2) {
+				return lut[i1];
+			}
+
+			var v1 = lut[i1];
+			var v2 = lut[i2];
+
+			return math.lerp(v1, v2, i - i1);
 		}
 
 		public static string ToDebugString(this float4x4 m) => $"{((Matrix4x4)m).ToString()}\nt: {m.GetTranslation()}\nr: {math.degrees(m.GetRotationVector())}\ns: {m.GetScale()}";
