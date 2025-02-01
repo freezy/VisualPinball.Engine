@@ -38,7 +38,7 @@ namespace VisualPinball.Engine.Test.VPT.Timer
 		{
 			const string tmpFileName = "ShouldWriteTimerData.vpx";
 			var table = FileTableContainer.Load(VpxPath.Timer);
-			table.Save(tmpFileName);
+			table.Export(tmpFileName);
 			var writtenTable = FileTableContainer.Load(tmpFileName);
 			ValidateTimerData1(writtenTable.Timer("Timer1").Data);
 			ValidateTimerData2(writtenTable.Timer("Timer2").Data);

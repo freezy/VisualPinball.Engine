@@ -16,6 +16,7 @@
 
 // ReSharper disable InconsistentNaming
 
+using System.Collections.Generic;
 using Unity.Mathematics;
 using UnityEngine;
 using VisualPinball.Engine.VPT.Kicker;
@@ -23,7 +24,7 @@ using VisualPinball.Engine.VPT.Kicker;
 namespace VisualPinball.Unity
 {
 	[AddComponentMenu("Visual Pinball/Collision/Kicker Collider")]
-	public class KickerColliderComponent : ColliderComponent<KickerData, KickerComponent>
+	public class KickerColliderComponent : ColliderComponent<KickerData, KickerComponent>, IPackageable
 	{
 		#region Data
 
@@ -58,6 +59,28 @@ namespace VisualPinball.Unity
 		protected override bool PhysicsOverwrite => true;
 
 		#endregion
+
+		public Dictionary<string, object> ToPackageData()
+		{
+			return new Dictionary<string, object> {
+				{"Scatter", Scatter},
+				{"HitAccuracy", HitAccuracy},
+				{"HitHeight", HitHeight},
+				{"FallThrough", FallThrough},
+				{"FallIn", FallIn},
+				{"LegacyMode", LegacyMode}
+			};
+		}
+
+		public void FromPackageData(Dictionary<string, object> data)
+		{
+			Scatter = (float)data["Scatter"];
+			HitAccuracy = (float)data["HitAccuracy"];
+			HitHeight = (float)data["HitHeight"];
+			FallThrough = (bool)data["FallThrough"];
+			FallIn = (bool)data["FallIn"];
+			LegacyMode = (bool)data["LegacyMode"];
+		}
 
 		private void Awake()
 		{

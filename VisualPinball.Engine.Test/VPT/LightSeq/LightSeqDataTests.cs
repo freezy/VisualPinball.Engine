@@ -37,7 +37,7 @@ namespace VisualPinball.Engine.Test.VPT.LightSeq
 		{
 			const string tmpFileName = "ShouldWriteLightSeqData.vpx";
 			var table = FileTableContainer.Load(VpxPath.LightSeq);
-			table.Save(tmpFileName);
+			table.Export(tmpFileName);
 			var writtenTable = FileTableContainer.Load(tmpFileName);
 			ValidateLightSeqData(writtenTable.LightSeq("LightSeq001").Data);
 			File.Delete(tmpFileName);

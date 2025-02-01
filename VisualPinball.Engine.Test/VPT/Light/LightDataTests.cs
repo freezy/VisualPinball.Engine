@@ -38,7 +38,7 @@ namespace VisualPinball.Engine.Test.VPT.Light
 		{
 			const string tmpFileName = "ShouldWriteLightData.vpx";
 			var table = FileTableContainer.Load(VpxPath.Light);
-			table.Save(tmpFileName);
+			table.Export(tmpFileName);
 			var writtenTable = FileTableContainer.Load(tmpFileName);
 			ValidateLightData(writtenTable.Light("Light1").Data);
 			File.Delete(tmpFileName);

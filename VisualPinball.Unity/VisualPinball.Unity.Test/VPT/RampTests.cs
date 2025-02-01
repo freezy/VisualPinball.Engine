@@ -32,7 +32,7 @@ namespace VisualPinball.Unity.Test
 			const string tmpFileName = "ShouldWriteRampData.vpx";
 			var go = VpxImportEngine.ImportIntoScene(VpxPath.Ramp, options: ConvertOptions.SkipNone);
 			var ta = go.GetComponent<TableComponent>();
-			ta.TableContainer.Save(tmpFileName);
+			ta.TableContainer.Export(tmpFileName);
 
 			var writtenTable = FileTableContainer.Load(tmpFileName);
 			RampDataTests.ValidateRampData(writtenTable.Ramp("FlatL").Data);

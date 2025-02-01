@@ -39,7 +39,7 @@ namespace VisualPinball.Engine.Test.VPT.Plunger
 		{
 			const string tmpFileName = "ShouldWritePlungerData.vpx";
 			var table = FileTableContainer.Load(VpxPath.Plunger);
-			table.Save(tmpFileName);
+			table.Export(tmpFileName);
 			var writtenTable = FileTableContainer.Load(tmpFileName);
 			ValidatePlungerData1(writtenTable.Plunger("Plunger1").Data);
 			ValidatePlungerData2(writtenTable.Plunger("Plunger2").Data);

@@ -32,7 +32,7 @@ namespace VisualPinball.Unity.Test
 			const string tmpFileName = "ShouldWriteSpinnerData.vpx";
 			var go = VpxImportEngine.ImportIntoScene(VpxPath.Spinner, options: ConvertOptions.SkipNone);
 			var ta = go.GetComponent<TableComponent>();
-			ta.TableContainer.Save(tmpFileName);
+			ta.TableContainer.Export(tmpFileName);
 
 			var writtenTable = FileTableContainer.Load(tmpFileName);
 			SpinnerDataTests.ValidateSpinnerData(writtenTable.Spinner("Data").Data);

@@ -38,7 +38,7 @@ namespace VisualPinball.Engine.Test.VPT.DispReel
 		{
 			const string tmpFileName = "ShouldWriteDispReelData.vpx";
 			var table = FileTableContainer.Load(VpxPath.DispReel);
-			table.Save(tmpFileName);
+			table.Export(tmpFileName);
 			var writtenTable = FileTableContainer.Load(tmpFileName);
 			ValidateDispReel1(writtenTable.DispReel("Reel1").Data);
 			ValidateDispReel2(writtenTable.DispReel("Reel2").Data);
