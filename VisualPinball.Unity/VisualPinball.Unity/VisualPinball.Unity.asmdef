@@ -2,9 +2,10 @@
     "name": "VisualPinball.Unity",
     "rootNamespace": "",
     "references": [
+		"glTFast",
+		"glTFast.Export",
+		"glTFast.Newtonsoft",
         "Unity.Burst",
-        "Unity.Entities",
-        "Unity.Entities.Hybrid",
         "Unity.Collections",
         "Unity.Mathematics",
         "Unity.Mathematics.Extensions",

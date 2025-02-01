@@ -40,7 +40,7 @@ namespace VisualPinball.Engine.Test.VPT.Trough
 		{
 			const string tmpFileName = "ShouldWriteTroughData.vpx";
 			var table = FileTableContainer.Load(VpxPath.Trough);
-			table.Save(tmpFileName);
+			table.Export(tmpFileName);
 			var writtenTable = FileTableContainer.Load(tmpFileName);
 			ValidateTroughData(writtenTable.Trough("Trough1").Data);
 			File.Delete(tmpFileName);

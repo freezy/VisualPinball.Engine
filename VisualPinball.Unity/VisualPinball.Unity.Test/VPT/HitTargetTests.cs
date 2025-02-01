@@ -32,7 +32,7 @@ namespace VisualPinball.Unity.Test
 			const string tmpFileName = "ShouldWriteHitTargetData.vpx";
 			var go = VpxImportEngine.ImportIntoScene(VpxPath.HitTarget, options: ConvertOptions.SkipNone);
 			var ta = go.GetComponent<TableComponent>();
-			ta.TableContainer.Save(tmpFileName);
+			ta.TableContainer.Export(tmpFileName);
 
 			var writtenTable = FileTableContainer.Load(tmpFileName);
 			HitTargetDataTests.ValidateHitTargetData(writtenTable.HitTarget("Data").Data);

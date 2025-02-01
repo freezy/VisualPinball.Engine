@@ -38,7 +38,7 @@ namespace VisualPinball.Engine.Test.VPT.Bumper
 		{
 			const string tmpFileName = "ShouldWriteBumperData.vpx";
 			var table = FileTableContainer.Load(VpxPath.Bumper);
-			table.Save(tmpFileName);
+			table.Export(tmpFileName);
 			var writtenTable = FileTableContainer.Load(tmpFileName);
 			ValidateTableData(writtenTable.Bumper("Bumper1").Data);
 			File.Delete(tmpFileName);

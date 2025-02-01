@@ -38,7 +38,7 @@ namespace VisualPinball.Engine.Test.VPT
 		{
 			const string tmpFileName = "ShouldWriteMaterialData.vpx";
 			var table = FileTableContainer.Load(VpxPath.Material);
-			table.Save(tmpFileName);
+			table.Export(tmpFileName);
 			var writtenTable = FileTableContainer.Load(tmpFileName);
 			ValidateMaterial1(writtenTable.GetMaterial("Material1"));
 			File.Delete(tmpFileName);
@@ -90,7 +90,7 @@ namespace VisualPinball.Engine.Test.VPT
 			mat.Thickness = 0.74f;
 			mat.WrapLighting = 0.68f;
 
-			table.Save(tmpFileName);
+			table.Export(tmpFileName);
 			var writtenTable = FileTableContainer.Load(tmpFileName);
 			var material = writtenTable.GetMaterial("MaterialUpdated");
 			material.Name.Should().Be("MaterialUpdated");

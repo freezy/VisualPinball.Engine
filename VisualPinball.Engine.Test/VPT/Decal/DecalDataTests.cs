@@ -39,7 +39,7 @@ namespace VisualPinball.Engine.Test.VPT.Decal
 		{
 			const string tmpFileName = "ShouldWriteDecalData.vpx";
 			var table = FileTableContainer.Load(VpxPath.Decal);
-			table.Save(tmpFileName);
+			table.Export(tmpFileName);
 			var writtenTable = FileTableContainer.Load(tmpFileName);
 			ValidateDecal0(writtenTable.Decal(0).Data);
 			ValidateDecal1(writtenTable.Decal(1).Data);

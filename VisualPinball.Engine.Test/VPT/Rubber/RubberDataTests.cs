@@ -38,7 +38,7 @@ namespace VisualPinball.Engine.Test.VPT.Rubber
 		{
 			const string tmpFileName = "ShouldWriteRubberData.vpx";
 			var table = FileTableContainer.Load(VpxPath.Rubber);
-			table.Save(tmpFileName);
+			table.Export(tmpFileName);
 			var writtenTable = FileTableContainer.Load(tmpFileName);
 			ValidateRubberData1(writtenTable.Rubber("Rubber1").Data);
 			ValidateRubberData2(writtenTable.Rubber("Rubber2").Data);
