@@ -7,8 +7,11 @@
   "unityRelease": "0f1",
   "dependencies": {
     "com.bartofzo.nativetrees": "0.1.6",
+    "com.unity.cloud.draco": "5.1.8",
+    "com.unity.cloud.gltfast": "6.10.1",
     "com.unity.formats.fbx": "4.1.2",
     "com.unity.inputsystem": "1.3.0",
+    "com.unity.nuget.newtonsoft-json": "3.2.1",
     "com.unity.ugui": "1.0.0",
     "com.unity.test-framework": "1.1.31"
   },

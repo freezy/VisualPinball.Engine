@@ -38,7 +38,7 @@ namespace VisualPinball.Engine.Test.VPT.Kicker
 		{
 			const string tmpFileName = "ShouldWriteKickerData.vpx";
 			var table = FileTableContainer.Load(VpxPath.Kicker);
-			table.Save(tmpFileName);
+			table.Export(tmpFileName);
 			var writtenTable = FileTableContainer.Load(tmpFileName);
 			ValidateKickerData(writtenTable.Kicker("Data").Data);
 			File.Delete(tmpFileName);

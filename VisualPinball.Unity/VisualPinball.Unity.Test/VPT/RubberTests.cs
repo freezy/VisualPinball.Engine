@@ -32,7 +32,7 @@ namespace VisualPinball.Unity.Test
 			const string tmpFileName = "ShouldWriteRubberData.vpx";
 			var go = VpxImportEngine.ImportIntoScene(VpxPath.Rubber, options: ConvertOptions.SkipNone);
 			var ta = go.GetComponent<TableComponent>();
-			ta.TableContainer.Save(tmpFileName);
+			ta.TableContainer.Export(tmpFileName);
 
 			var writtenTable = FileTableContainer.Load(tmpFileName);
 			RubberDataTests.ValidateRubberData1(writtenTable.Rubber("Rubber1").Data);

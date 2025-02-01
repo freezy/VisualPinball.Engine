@@ -32,7 +32,7 @@ namespace VisualPinball.Unity.Test
 			const string tmpFileName = "ShouldWriteKickerData.vpx";
 			var go = VpxImportEngine.ImportIntoScene(VpxPath.Kicker, options: ConvertOptions.SkipNone);
 			var ta = go.GetComponent<TableComponent>();
-			ta.TableContainer.Save(tmpFileName);
+			ta.TableContainer.Export(tmpFileName);
 
 			var writtenTable = FileTableContainer.Load(tmpFileName);
 			KickerDataTests.ValidateKickerData(writtenTable.Kicker("Data").Data);

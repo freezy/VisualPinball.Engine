@@ -38,7 +38,7 @@ namespace VisualPinball.Engine.Test.VPT.MetalWireGuide
 		{
 			const string tmpFileName = "ShouldWriteMetalWireGuideData.vpx";
 			var table = FileTableContainer.Load(VpxPath.MetalWireGuide);
-			table.Save(tmpFileName);
+			table.Export(tmpFileName);
 			var writtenTable = FileTableContainer.Load(tmpFileName);
 			ValidateMetalWireGuideData1(writtenTable.MetalWireGuide("MetalWireGuide1").Data);
 			ValidateMetalWireGuideData2(writtenTable.MetalWireGuide("MetalWireGuide2").Data);

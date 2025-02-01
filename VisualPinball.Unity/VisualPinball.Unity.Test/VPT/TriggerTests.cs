@@ -32,7 +32,7 @@ namespace VisualPinball.Unity.Test
 			const string tmpFileName = "ShouldWriteTriggerData.vpx";
 			var go = VpxImportEngine.ImportIntoScene(VpxPath.Trigger, options: ConvertOptions.SkipNone);
 			var ta = go.GetComponent<TableComponent>();
-			ta.TableContainer.Save(tmpFileName);
+			ta.TableContainer.Export(tmpFileName);
 
 			var writtenTable = FileTableContainer.Load(tmpFileName);
 			TriggerDataTests.ValidateTriggerData(writtenTable.Trigger("Data").Data);

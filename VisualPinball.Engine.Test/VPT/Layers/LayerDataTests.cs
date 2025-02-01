@@ -48,7 +48,7 @@ namespace VisualPinball.Engine.Test.VPT.Layers
 			var table = FileTableContainer.Load(VpxPath.Bumper);
 			var data = table.Bumper("Bumper1").Data;
 			data.EditorLayerName = "Layer_1";
-			table.Save(tmpFileName);
+			table.Export(tmpFileName);
 			var writtenTable = FileTableContainer.Load(tmpFileName);
 			ValidateTableDataVPX1070(writtenTable.Bumper("Bumper1").Data);
 			File.Delete(tmpFileName);

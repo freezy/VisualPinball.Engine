@@ -32,7 +32,7 @@ namespace VisualPinball.Unity.Test
 			const string tmpFileName = "ShouldWriteFlipperData.vpx";
 			var go = VpxImportEngine.ImportIntoScene(VpxPath.Flipper, options: ConvertOptions.SkipNone);
 			var ta = go.GetComponent<TableComponent>();
-			ta.TableContainer.Save(tmpFileName);
+			ta.TableContainer.Export(tmpFileName);
 
 			var writtenTable = FileTableContainer.Load(tmpFileName);
 			FlipperDataTests.ValidateFlipper(writtenTable.Flipper("FatFlipper").Data);

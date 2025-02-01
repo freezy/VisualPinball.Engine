@@ -37,7 +37,7 @@ namespace VisualPinball.Engine.Test.VPT.Surface
 		{
 			const string tmpFileName = "ShouldWriteSurfaceData.vpx";
 			var table = FileTableContainer.Load(VpxPath.Surface);
-			table.Save(tmpFileName);
+			table.Export(tmpFileName);
 			var writtenTable = FileTableContainer.Load(tmpFileName);
 			ValidateSurfaceData(writtenTable.Surface("TopInvisible").Data);
 			File.Delete(tmpFileName);

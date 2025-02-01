@@ -203,7 +203,7 @@ namespace VisualPinball.Unity.Test
 			const string tmpFileName = "ShouldWriteTroughData.vpx";
 			var go = VpxImportEngine.ImportIntoScene(VpxPath.Trough, options: ConvertOptions.SkipNone);
 			var ta = go.GetComponent<TableComponent>();
-			ta.TableContainer.Save(tmpFileName);
+			ta.TableContainer.Export(tmpFileName);
 
 			var writtenTable = FileTableContainer.Load(tmpFileName);
 			TroughDataTests.ValidateTroughData(writtenTable.Trough("Trough1").Data);

@@ -33,7 +33,7 @@ namespace VisualPinball.Unity.Test
 			const string tmpFileName = "ShouldWriteBumperData.vpx";
 			var go = VpxImportEngine.ImportIntoScene(VpxPath.Bumper, options: ConvertOptions.SkipNone);
 			var ta = go.GetComponent<TableComponent>();
-			ta.TableContainer.Save(tmpFileName);
+			ta.TableContainer.Export(tmpFileName);
 
 			var writtenTable = FileTableContainer.Load(tmpFileName);
 			BumperDataTests.ValidateTableData(writtenTable.Bumper("Bumper1").Data);
@@ -53,7 +53,7 @@ namespace VisualPinball.Unity.Test
 
 			bumperAuth.Position = new Vector2(128f, 255f);
 
-			go.GetComponent<TableComponent>().TableContainer.Save(tmpFileName);
+			go.GetComponent<TableComponent>().TableContainer.Export(tmpFileName);
 
 			var writtenTable = FileTableContainer.Load(tmpFileName);
 			var writtenBumperData = writtenTable.Bumper("Bumper2").Data;

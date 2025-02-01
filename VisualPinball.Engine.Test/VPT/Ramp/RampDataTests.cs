@@ -38,7 +38,7 @@ namespace VisualPinball.Engine.Test.VPT.Ramp
 		{
 			const string tmpFileName = "ShouldWriteRampData.vpx";
 			var table = FileTableContainer.Load(VpxPath.Ramp);
-			table.Save(tmpFileName);
+			table.Export(tmpFileName);
 			var writtenTable = FileTableContainer.Load(tmpFileName);
 			ValidateRampData(writtenTable.Ramp("FlatL").Data);
 			File.Delete(tmpFileName);

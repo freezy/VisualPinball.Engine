@@ -38,7 +38,7 @@ namespace VisualPinball.Engine.Test.VPT.Trigger
 		{
 			const string tmpFileName = "ShouldWriteTriggerData.vpx";
 			var table = FileTableContainer.Load(VpxPath.Trigger);
-			table.Save(tmpFileName);
+			table.Export(tmpFileName);
 			var writtenTable = FileTableContainer.Load(tmpFileName);
 			ValidateTriggerData(writtenTable.Trigger("Data").Data);
 			File.Delete(tmpFileName);

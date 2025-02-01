@@ -32,7 +32,7 @@ namespace VisualPinball.Unity.Test
 			const string tmpFileName = "ShouldWriteGateData.vpx";
 			var go = VpxImportEngine.ImportIntoScene(VpxPath.Gate, options: ConvertOptions.SkipNone);
 			var ta = go.GetComponent<TableComponent>();
-			ta.TableContainer.Save(tmpFileName);
+			ta.TableContainer.Export(tmpFileName);
 
 			var writtenTable = FileTableContainer.Load(tmpFileName);
 			GateDataTests.ValidateGateData(writtenTable.Gate("Data").Data);

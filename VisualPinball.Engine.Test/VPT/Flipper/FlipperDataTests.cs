@@ -37,7 +37,7 @@ namespace VisualPinball.Engine.Test.VPT.Flipper
 		{
 			const string tmpFileName = "ShouldWriteFlipperData.vpx";
 			var table = FileTableContainer.Load(VpxPath.Flipper);
-			table.Save(tmpFileName);
+			table.Export(tmpFileName);
 			var writtenTable = FileTableContainer.Load(tmpFileName);
 			ValidateFlipper(writtenTable.Flipper("FatFlipper").Data);
 			File.Delete(tmpFileName);

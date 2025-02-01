@@ -38,7 +38,7 @@ namespace VisualPinball.Engine.Test.VPT.HitTarget
 		{
 			const string tmpFileName = "ShouldWriteHitTargetData.vpx";
 			var table = FileTableContainer.Load(VpxPath.HitTarget);
-			table.Save(tmpFileName);
+			table.Export(tmpFileName);
 			var writtenTable = FileTableContainer.Load(tmpFileName);
 			ValidateHitTargetData(writtenTable.HitTarget("Data").Data);
 			File.Delete(tmpFileName);

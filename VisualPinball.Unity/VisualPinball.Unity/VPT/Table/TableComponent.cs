@@ -61,6 +61,12 @@ namespace VisualPinball.Unity
 
 		#endregion
 
+		public void Save(string path)
+		{
+			var writer = new PackageWriter(gameObject);
+			writer.WritePackage(path);
+		}
+
 		public SceneTableContainer TableContainer => _tableContainer ??= new SceneTableContainer(this);
 
 		[NonSerialized]

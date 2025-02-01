@@ -37,7 +37,7 @@ namespace VisualPinball.Engine.Test.VPT.Spinner
 		{
 			const string tmpFileName = "ShouldWriteSpinnerData.vpx";
 			var table = FileTableContainer.Load(VpxPath.Spinner);
-			table.Save(tmpFileName);
+			table.Export(tmpFileName);
 			var writtenTable = FileTableContainer.Load(tmpFileName);
 			ValidateSpinnerData(writtenTable.Spinner("Data").Data);
 			File.Delete(tmpFileName);

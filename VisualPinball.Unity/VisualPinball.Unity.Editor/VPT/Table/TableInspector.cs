@@ -50,7 +50,20 @@ namespace VisualPinball.Unity.Editor
 
 			if (!EditorApplication.isPlaying) {
 				//DrawDefaultInspector();
-				if (GUILayout.Button("Export VPX")) {
+				if (GUILayout.Button("Save as .vpe")) {
+					var tableContainer = tableComponent.TableContainer;
+					var path = EditorUtility.SaveFilePanel(
+						"Save table as VPE",
+						"",
+						tableComponent.name + ".vpe",
+						"vpe");
+
+					if (!string.IsNullOrEmpty(path)) {
+						tableComponent.Save(path);
+					}
+				}
+
+				if (GUILayout.Button("Export as .vpx")) {
 					var tableContainer = tableComponent.TableContainer;
 					var path = EditorUtility.SaveFilePanel(
 						"Export table as VPX",
@@ -59,7 +72,7 @@ namespace VisualPinball.Unity.Editor
 						"vpx");
 
 					if (!string.IsNullOrEmpty(path)) {
-						tableContainer.Save(path);
+						tableContainer.Export(path);
 					}
 				}
 			}

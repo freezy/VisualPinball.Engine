@@ -36,7 +36,7 @@ namespace VisualPinball.Engine.Test.IO
 			th.Bumper("Bumper1").Data.BaseMaterial = "DoesExist";
 			th.Bumper("Bumper1").Data.CapMaterial = "DoesNotExist";
 
-			th.Save(tmpFileName);
+			th.Export(tmpFileName);
 
 			th.Bumper("Bumper1").Data.BaseMaterial.Should().Be("DoesExist");
 			th.Bumper("Bumper1").Data.CapMaterial.Should().BeEmpty();
@@ -55,11 +55,11 @@ namespace VisualPinball.Engine.Test.IO
 				.Build();
 
 			table.Flipper("Flipper").Data.Image = "DoesExist";
-			table.Save(tmpFileName);
+			table.Export(tmpFileName);
 			table.Flipper("Flipper").Data.Image.Should().Be("DoesExist");
 
 			table.Flipper("Flipper").Data.Image = "DoesNotExist";
-			table.Save(tmpFileName);
+			table.Export(tmpFileName);
 			table.Flipper("Flipper").Data.Image.Should().BeEmpty();
 
 			File.Delete(tmpFileName);

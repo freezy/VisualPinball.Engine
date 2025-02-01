@@ -40,7 +40,7 @@ namespace VisualPinball.Unity
 	[AddComponentMenu("Visual Pinball/Game Item/Kicker")]
 	public class KickerComponent : MainRenderableComponent<KickerData>,
 		ICoilDeviceComponent, ITriggerComponent, IBallCreationPosition,
-		IRotatableComponent, ISerializationCallbackReceiver
+		IRotatableComponent, ISerializationCallbackReceiver, IPackageable
 	{
 		#region Data
 
@@ -169,6 +169,30 @@ namespace VisualPinball.Unity
 			}
 
 			return updatedComponents;
+		}
+
+		public Dictionary<string, object> ToPackageData()
+		{
+			var dict = new Dictionary<string, object> {
+				["coils"] = Coils.Select(c => new Dictionary<string, object> {
+					["name"] = c.Name,
+					["speed"] = c.Speed,
+					["angle"] = c.Angle,
+					["inclination"] = c.Inclination
+				}).ToList()
+			};
+
+			return dict;
+		}
+
+		public void FromPackageData(Dictionary<string, object> data)
+		{
+			Coils = ((List<object>)data["coils"]).Select(c => new KickerCoil {
+				Name = (string)((Dictionary<string, object>)c)["name"],
+				Speed = (float)((Dictionary<string, object>)c)["speed"],
+				Angle = (float)((Dictionary<string, object>)c)["angle"],
+				Inclination = (float)((Dictionary<string, object>)c)["inclination"]
+			}).ToList();
 		}
 
 		public override IEnumerable<MonoBehaviour> SetReferencedData(KickerData data, Table table, IMaterialProvider materialProvider, ITextureProvider textureProvider, Dictionary<string, IMainComponent> components)
@@ -320,6 +344,7 @@ namespace VisualPinball.Unity
 		public Vertex3D GetBallCreationVelocity() => new Vertex3D(0.1f, 0, 0);
 
 		#endregion
+
 	}
 
 	[Serializable]

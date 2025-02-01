@@ -39,7 +39,7 @@ namespace VisualPinball.Engine.Test.VPT.Gate
 		{
 			const string tmpFileName = "ShouldWriteGateData.vpx";
 			var table = FileTableContainer.Load(VpxPath.Gate);
-			table.Save(tmpFileName);
+			table.Export(tmpFileName);
 			var writtenTable = FileTableContainer.Load(tmpFileName);
 			ValidateGateData(writtenTable.Gate("Data").Data);
 			File.Delete(tmpFileName);

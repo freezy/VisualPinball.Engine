@@ -32,7 +32,7 @@ namespace VisualPinball.Unity.Test
 			const string tmpFileName = "ShouldWriteSurfaceData.vpx";
 			var go = VpxImportEngine.ImportIntoScene(VpxPath.Surface, options: ConvertOptions.SkipNone);
 			var ta = go.GetComponent<TableComponent>();
-			ta.TableContainer.Save(tmpFileName);
+			ta.TableContainer.Export(tmpFileName);
 
 			var writtenTable = FileTableContainer.Load(tmpFileName);
 			SurfaceDataTests.ValidateSurfaceData(writtenTable.Surface("TopInvisible").Data);

@@ -121,12 +121,12 @@ namespace VisualPinball.Unity
 			Logger.Info($"Refreshed {GameItems.Count()} game items and {_materials.Count} materials in {stopWatch.ElapsedMilliseconds}ms.");
 		}
 
-		public override void Save(string fileName)
+		public override void Export(string fileName)
 		{
 			Refresh(true);
 			PrepareForExport();
 
-			base.Save(fileName);
+			base.Export(fileName);
 		}
 
 		private void PrepareForExport()

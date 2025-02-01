@@ -32,7 +32,7 @@ namespace VisualPinball.Unity.Test
 			const string tmpFileName = "ShouldWritePrimitiveData.vpx";
 			var go = VpxImportEngine.ImportIntoScene(VpxPath.Primitive, options: ConvertOptions.SkipNone);
 			var ta = go.GetComponent<TableComponent>();
-			ta.TableContainer.Save(tmpFileName);
+			ta.TableContainer.Export(tmpFileName);
 
 			var writtenTable = FileTableContainer.Load(tmpFileName);
 			PrimitiveDataTests.ValidatePrimitiveData(writtenTable.Primitive("Cube").Data);
@@ -49,7 +49,7 @@ namespace VisualPinball.Unity.Test
 			const string tmpFileName = "ShouldWriteImportedMesh.vpx";
 			var go = VpxImportEngine.ImportIntoScene(VpxPath.Primitive, options: ConvertOptions.SkipNone);
 			var ta = go.GetComponent<TableComponent>();
-			ta.TableContainer.Save(tmpFileName);
+			ta.TableContainer.Export(tmpFileName);
 
 			var writtenTable = FileTableContainer.Load(tmpFileName);
 			var writtenMesh = writtenTable.Primitive(primitiveName).GetMesh();

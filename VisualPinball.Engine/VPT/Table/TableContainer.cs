@@ -395,7 +395,7 @@ namespace VisualPinball.Engine.VPT.Table
 
 		#endregion
 
-		public virtual void Save(string fileName)
+		public virtual void Export(string fileName)
 		{
 			new TableWriter(this).WriteTable(fileName);
 			Logger.Info("File successfully saved to {0}.", fileName);
