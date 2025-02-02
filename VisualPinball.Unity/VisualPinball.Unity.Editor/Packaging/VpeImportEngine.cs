@@ -15,10 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Text;
-using Newtonsoft.Json;
 using NLog;
 using OpenMcdf;
 using OpenMcdf.Extensions;
@@ -26,7 +23,6 @@ using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.SceneManagement;
-using Debug = UnityEngine.Debug;
 using Logger = NLog.Logger;
 using Object = UnityEngine.Object;
 
@@ -78,39 +74,41 @@ namespace VisualPinball.Unity.Editor
 				PrefabUtility.UnpackPrefabInstance(tableGo, PrefabUnpackMode.Completely, InteractionMode.AutomatedAction);
 				EditorSceneManager.MarkSceneDirty(SceneManager.GetActiveScene()); // mark the active scene as dirty so that the changes are saved.
 
-				var dataStorage = tableStorage.GetStorage(PackageWriter.DataStorage);
-				dataStorage.VisitEntries(entry => {
-					if (entry is CFStream stream) {
-						var item = entry.Name == "0"
-							? tableGo.transform
-							: tableGo.transform.FindByPath(entry.Name[2..]);
-						var data = JsonConvert.DeserializeObject<List<PackagedItem>>(Encoding.UTF8.GetString(stream.GetData()));
-						foreach (var packagedItem in data) {
-							switch (packagedItem.Type) {
-								case "VisualPinball.Unity.KickerComponent": RestoreComponent<KickerComponent>(item, packagedItem, tableGo.transform); break;
-								case "VisualPinball.Unity.KickerColliderComponent": RestoreComponent<KickerColliderComponent>(item, packagedItem, tableGo.transform); break;
-								case "VisualPinball.Unity.TroughComponent": RestoreComponent<TroughComponent>(item, packagedItem, tableGo.transform); break;
-								default:
-									Logger.Warn($"Unknown packaged item type: {packagedItem.Type}");
-									break;
+				var typeLookup = new PackNameLookup();
+				var itemsStorage = tableStorage.GetStorage(PackageWriter.DataStorage);
+				// -> items <- / 0.0.0 / CompType / 0
+				itemsStorage.VisitEntries(itemEntry => {
+					// items / -> 0.0.0 <- / CompType / 0
+					if (itemEntry is CFStorage itemStorage) {
+						var item = tableGo.transform.FindByPath(itemEntry.Name);
+						itemStorage.VisitEntries(typeEntry => {
+							// items / 0.0.0 / -> CompType <- / 0
+							if (typeEntry is CFStorage typeStorage) {
+								var t = typeLookup.GetType(typeEntry.Name);
+								typeStorage.VisitEntries(typedEntry => {
+
+									// items / 0.0.0 / CompType / -> 0 <- (there might be multiple components of the same type)
+									if (typedEntry is CFStream stream) {
+
+										// now we can add the component and unpack it.
+										var comp = item.gameObject.AddComponent(t) as IPackageable;
+										comp?.Unpack(stream.GetData(), tableGo.transform);
+									} else {
+										throw new Exception("Component entry must be of type stream.");
+									}
+								}, false);
+							} else {
+								throw new Exception("Type entry must be of type storage.");
 							}
-						}
+						}, false);
+					} else {
+						throw new Exception("Path entry must be of type storage.");
 					}
 				}, false);
-
-
-				Debug.Log($"Data path = {Application.dataPath}");
-
 
 			} finally {
 				cf.Close();
 			}
-		}
-
-		private static void RestoreComponent<T>(Transform item,  PackagedItem packagedItem, Transform root) where T : MonoBehaviour, IPackageable
-		{
-			var comp = item.gameObject.AddComponent<T>();
-			comp.FromPackageData(packagedItem.Data, root);
 		}
 	}
 }
