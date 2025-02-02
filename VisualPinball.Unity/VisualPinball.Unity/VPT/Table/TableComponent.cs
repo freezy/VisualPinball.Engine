@@ -30,8 +30,9 @@ using VisualPinball.Engine.VPT.Table;
 
 namespace VisualPinball.Unity
 {
+	[PackAs("Table")]
 	[AddComponentMenu("Visual Pinball/Table")]
-	public class TableComponent : MainRenderableComponent<TableData>
+	public class TableComponent : MainRenderableComponent<TableData>, IPackageable
 	{
 		[SerializeReference] public LegacyContainer LegacyContainer;
 		[SerializeReference] public MappingConfig MappingConfig = new MappingConfig();
@@ -58,6 +59,13 @@ namespace VisualPinball.Unity
 
 		protected override Type MeshComponentType => null;
 		protected override Type ColliderComponentType => null;
+
+		#endregion
+
+		#region Packaging
+
+		public byte[] Pack(Transform root) => new TablePackable(this.GlobalDifficulty).Pack();
+		public void Unpack(byte[] data, Transform root) => TablePackable.Unpack(data).Apply(this);
 
 		#endregion
 
