@@ -15,12 +15,13 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using System.Collections.Generic;
+using UnityEngine;
 
 namespace VisualPinball.Unity
 {
 	public interface IPackageable
 	{
-		Dictionary<string, object> ToPackageData();
-		void FromPackageData(Dictionary<string, object> data);
+		Dictionary<string, object> ToPackageData(Transform root);
+		void FromPackageData(Dictionary<string, object> data, Transform root);
 	}
 }
