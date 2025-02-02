@@ -16,6 +16,7 @@
 
 // ReSharper disable InconsistentNaming
 
+using System;
 using System.Collections.Generic;
 using Unity.Mathematics;
 using UnityEngine;
@@ -60,7 +61,7 @@ namespace VisualPinball.Unity
 
 		#endregion
 
-		public Dictionary<string, object> ToPackageData()
+		public Dictionary<string, object> ToPackageData(Transform root)
 		{
 			return new Dictionary<string, object> {
 				{"Scatter", Scatter},
@@ -72,11 +73,11 @@ namespace VisualPinball.Unity
 			};
 		}
 
-		public void FromPackageData(Dictionary<string, object> data)
+		public void FromPackageData(Dictionary<string, object> data, Transform root)
 		{
-			Scatter = (float)data["Scatter"];
-			HitAccuracy = (float)data["HitAccuracy"];
-			HitHeight = (float)data["HitHeight"];
+			Scatter = Convert.ToSingle(data["Scatter"]);
+			HitAccuracy = Convert.ToSingle(data["HitAccuracy"]);
+			HitHeight = Convert.ToSingle(data["HitHeight"]);
 			FallThrough = (bool)data["FallThrough"];
 			FallIn = (bool)data["FallIn"];
 			LegacyMode = (bool)data["LegacyMode"];

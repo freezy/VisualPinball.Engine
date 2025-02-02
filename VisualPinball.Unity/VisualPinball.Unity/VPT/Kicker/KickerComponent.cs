@@ -25,6 +25,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using Newtonsoft.Json.Linq;
 using Unity.Collections;
 using Unity.Mathematics;
 using UnityEngine;
@@ -137,6 +138,30 @@ namespace VisualPinball.Unity
 
 		#region Conversion
 
+		public Dictionary<string, object> ToPackageData(Transform root)
+		{
+			var dict = new Dictionary<string, object> {
+				["coils"] = Coils.Select(c => new Dictionary<string, object> {
+					["name"] = c.Name,
+					["speed"] = c.Speed,
+					["angle"] = c.Angle,
+					["inclination"] = c.Inclination
+				}).ToList()
+			};
+
+			return dict;
+		}
+
+		public void FromPackageData(Dictionary<string, object> data, Transform root)
+		{
+			Coils = ((JArray)data["coils"]).Select(c => new KickerCoil {
+				Name = c.Value<string>("name"),
+				Speed = c.Value<float>("speed"),
+				Angle = c.Value<float>("angle"),
+				Inclination = c.Value<float>("inclination")
+			}).ToList();
+		}
+
 		public override IEnumerable<MonoBehaviour> SetData(KickerData data)
 		{
 			var updatedComponents = new List<MonoBehaviour> { this };
@@ -169,30 +194,6 @@ namespace VisualPinball.Unity
 			}
 
 			return updatedComponents;
-		}
-
-		public Dictionary<string, object> ToPackageData()
-		{
-			var dict = new Dictionary<string, object> {
-				["coils"] = Coils.Select(c => new Dictionary<string, object> {
-					["name"] = c.Name,
-					["speed"] = c.Speed,
-					["angle"] = c.Angle,
-					["inclination"] = c.Inclination
-				}).ToList()
-			};
-
-			return dict;
-		}
-
-		public void FromPackageData(Dictionary<string, object> data)
-		{
-			Coils = ((List<object>)data["coils"]).Select(c => new KickerCoil {
-				Name = (string)((Dictionary<string, object>)c)["name"],
-				Speed = (float)((Dictionary<string, object>)c)["speed"],
-				Angle = (float)((Dictionary<string, object>)c)["angle"],
-				Inclination = (float)((Dictionary<string, object>)c)["inclination"]
-			}).ToList();
 		}
 
 		public override IEnumerable<MonoBehaviour> SetReferencedData(KickerData data, Table table, IMaterialProvider materialProvider, ITextureProvider textureProvider, Dictionary<string, IMainComponent> components)

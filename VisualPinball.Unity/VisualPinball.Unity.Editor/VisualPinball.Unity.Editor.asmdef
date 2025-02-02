@@ -2,9 +2,10 @@
     "name": "VisualPinball.Unity.Editor",
     "rootNamespace": "",
     "references": [
+		"glTFast",
+		"glTFast.Editor",
+		"glTFast.Newtonsoft",
         "Unity.Collections",
-        "Unity.Entities",
-        "Unity.Entities.Hybrid",
         "Unity.Formats.Fbx.Editor",
         "Unity.Mathematics",
         "Unity.Transforms",

@@ -32,9 +32,9 @@ namespace VisualPinball.Unity
 {
 	public class PackageWriter
 	{
-		private const string TableStorage = "table";
-		private const string DataStorage = "items";
-		private const string SceneStream = "scene.glb";
+		public const string TableStorage = "table";
+		public const string DataStorage = "items";
+		public const string SceneStream = "scene.glb";
 
 		private readonly GameObject _table;
 
@@ -114,7 +114,7 @@ namespace VisualPinball.Unity
 
 					switch (component) {
 						case IPackageable packageable: {
-							packageables.Add(new PackagedItem(packageable.GetType(), packageable.ToPackageData()));
+							packageables.Add(new PackagedItem(packageable.GetType(), packageable.ToPackageData(_table.transform)));
 							break;
 						}
 
