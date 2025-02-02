@@ -14,14 +14,22 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-using UnityEngine;
+using System;
 
 namespace VisualPinball.Unity
 {
-	public interface IPackageable
+	[AttributeUsage(AttributeTargets.Class, Inherited = false, AllowMultiple = false)]
+	public sealed class PackAsAttribute : Attribute
 	{
-		byte[] Pack(Transform root);
+		/// <summary>
+		/// The name of the typed stream in the .vpe file.
+		/// </summary>
+		public string Name { get; }
 
-		void Unpack(byte[] data, Transform root);
+		public PackAsAttribute(string name)
+		{
+			Name = name;
+		}
 	}
+
 }
