@@ -25,9 +25,9 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using Newtonsoft.Json.Linq;
 using Unity.Collections;
 using Unity.Mathematics;
+using UnityEditor;
 using UnityEngine;
 using VisualPinball.Engine.Game;
 using VisualPinball.Engine.Game.Engines;
@@ -38,6 +38,7 @@ using VisualPinball.Engine.VPT.Table;
 
 namespace VisualPinball.Unity
 {
+	[PackAs("Kicker")]
 	[AddComponentMenu("Visual Pinball/Game Item/Kicker")]
 	public class KickerComponent : MainRenderableComponent<KickerData>,
 		ICoilDeviceComponent, ITriggerComponent, IBallCreationPosition,
@@ -136,31 +137,31 @@ namespace VisualPinball.Unity
 
 		#endregion
 
-		#region Conversion
+		#region Packaging
 
-		public Dictionary<string, object> ToPackageData(Transform root)
+		public byte[] Pack(Transform root)
 		{
-			var dict = new Dictionary<string, object> {
-				["coils"] = Coils.Select(c => new Dictionary<string, object> {
-					["name"] = c.Name,
-					["speed"] = c.Speed,
-					["angle"] = c.Angle,
-					["inclination"] = c.Inclination
-				}).ToList()
-			};
-
-			return dict;
+			return new KickerPackable(Coils
+				.Select(c => new KickerCoilPackable(c.Name, c.Id, c.Speed, c.Angle, c.Inclination))
+				.ToList()
+			).Pack();
 		}
 
-		public void FromPackageData(Dictionary<string, object> data, Transform root)
+		public void Unpack(byte[] bytes, Transform root)
 		{
-			Coils = ((JArray)data["coils"]).Select(c => new KickerCoil {
-				Name = c.Value<string>("name"),
-				Speed = c.Value<float>("speed"),
-				Angle = c.Value<float>("angle"),
-				Inclination = c.Value<float>("inclination")
+			var data = KickerPackable.Unpack(bytes);
+			Coils = data.Coils.Select(c => new KickerCoil {
+				Name = c.Name,
+				Id = c.Id,
+				Speed = c.Speed,
+				Angle = c.Angle,
+				Inclination = c.Inclination
 			}).ToList();
 		}
+
+		#endregion
+
+		#region Conversion
 
 		public override IEnumerable<MonoBehaviour> SetData(KickerData data)
 		{
@@ -175,7 +176,7 @@ namespace VisualPinball.Unity
 			#if UNITY_EDITOR
 			var mf = GetComponent<MeshFilter>();
 			if (mf) {
-				MeshName = Path.GetFileNameWithoutExtension(UnityEditor.AssetDatabase.GetAssetPath(mf.sharedMesh));
+				MeshName = Path.GetFileNameWithoutExtension(AssetDatabase.GetAssetPath(mf.sharedMesh));
 			}
 			#endif
 
@@ -292,7 +293,7 @@ namespace VisualPinball.Unity
 			#if UNITY_EDITOR
 
 			// don't generate ids for prefabs, otherwise they'll show up in the instances.
-			if (UnityEditor.PrefabUtility.GetPrefabInstanceStatus(this) != UnityEditor.PrefabInstanceStatus.Connected) {
+			if (PrefabUtility.GetPrefabInstanceStatus(this) != PrefabInstanceStatus.Connected) {
 				return;
 			}
 			var coilIds = new HashSet<string>();

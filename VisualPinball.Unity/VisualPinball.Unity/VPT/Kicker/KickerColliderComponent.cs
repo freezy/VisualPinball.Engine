@@ -24,6 +24,7 @@ using VisualPinball.Engine.VPT.Kicker;
 
 namespace VisualPinball.Unity
 {
+	[PackAs("KickerCollider")]
 	[AddComponentMenu("Visual Pinball/Collision/Kicker Collider")]
 	public class KickerColliderComponent : ColliderComponent<KickerData, KickerComponent>, IPackageable
 	{
@@ -61,27 +62,32 @@ namespace VisualPinball.Unity
 
 		#endregion
 
-		public Dictionary<string, object> ToPackageData(Transform root)
+		#region Packaging
+
+		public byte[] Pack(Transform root)
 		{
-			return new Dictionary<string, object> {
-				{"Scatter", Scatter},
-				{"HitAccuracy", HitAccuracy},
-				{"HitHeight", HitHeight},
-				{"FallThrough", FallThrough},
-				{"FallIn", FallIn},
-				{"LegacyMode", LegacyMode}
-			};
+			return new KickerColliderPackable(
+				Scatter,
+				HitAccuracy,
+				HitHeight,
+				FallThrough,
+				FallIn,
+				LegacyMode
+			).Pack();
 		}
 
-		public void FromPackageData(Dictionary<string, object> data, Transform root)
+		public void Unpack(byte[] bytes, Transform root)
 		{
-			Scatter = Convert.ToSingle(data["Scatter"]);
-			HitAccuracy = Convert.ToSingle(data["HitAccuracy"]);
-			HitHeight = Convert.ToSingle(data["HitHeight"]);
-			FallThrough = (bool)data["FallThrough"];
-			FallIn = (bool)data["FallIn"];
-			LegacyMode = (bool)data["LegacyMode"];
+			var data = KickerColliderPackable.Unpack(bytes);
+			Scatter = data.Scatter;
+			HitAccuracy = data.HitAccuracy;
+			HitHeight = data.HitHeight;
+			FallThrough = data.FallThrough;
+			FallIn = data.FallIn;
+			LegacyMode = data.LegacyMode;
 		}
+
+		#endregion
 
 		private void Awake()
 		{

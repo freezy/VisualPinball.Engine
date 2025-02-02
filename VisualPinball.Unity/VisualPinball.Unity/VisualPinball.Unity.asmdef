@@ -1,6 +1,6 @@
 {
     "name": "VisualPinball.Unity",
-    "rootNamespace": "",
+    "rootNamespace": "VisualPinball.Unity",
     "references": [
 		"glTFast",
 		"glTFast.Export",
@@ -8,11 +8,10 @@
         "Unity.Burst",
         "Unity.Collections",
         "Unity.Mathematics",
-        "Unity.Mathematics.Extensions",
-        "Unity.Transforms",
         "Unity.InputSystem",
         "VisualPinball.Engine",
-        "com.bartofzo.nativetrees"
+        "com.bartofzo.nativetrees",
+		"MemoryPack.Unity"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

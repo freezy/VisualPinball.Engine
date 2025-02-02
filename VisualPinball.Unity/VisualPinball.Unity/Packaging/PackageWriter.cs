@@ -99,6 +99,7 @@ namespace VisualPinball.Unity
 				//LayerMask = LayerMask.GetMask("Default", "MyCustomLayer"),
 			};
 
+			var typeLookup = new PackNameLookup();
 			var export = new GameObjectExport(exportSettings, gameObjectExportSettings, logger: logger);
 			export.AddScene(new [] { _table }, _table.transform.worldToLocalMatrix, "VPE Table");
 
@@ -109,12 +110,31 @@ namespace VisualPinball.Unity
 
 				// for each go, loop through all components
 				var key = t.GetPath(_table.transform);
-				var packageables = new List<PackagedItem>();
+				var counters = new Dictionary<string, int>();
+
+				CFStorage gameItemStorage = null;
 				foreach (var component in t.gameObject.GetComponents<Component>()) {
 
 					switch (component) {
 						case IPackageable packageable: {
-							packageables.Add(new PackagedItem(packageable.GetType(), packageable.ToPackageData(_table.transform)));
+
+							var packName = typeLookup.GetName(packageable.GetType());
+							if (gameItemStorage == null) {
+								gameItemStorage = dataStorage.AddStorage(key);
+								gameItemStorage.CreationDate = now;
+								gameItemStorage.ModifyDate = now;
+							}
+
+							if (!gameItemStorage.TryGetStorage(packName, out var typeStorage)) {
+								typeStorage = gameItemStorage.AddStorage(packName);
+								typeStorage.CreationDate = now;
+								typeStorage.ModifyDate = now;
+							}
+
+							counters.TryAdd(packName, 0);
+
+							var dataStream = typeStorage.AddStream($"{counters[packName]++}");
+							dataStream.Append(packageable.Pack(_table.transform));
 							break;
 						}
 
@@ -128,11 +148,6 @@ namespace VisualPinball.Unity
 							Debug.LogWarning($"Unknown component {component.GetType()} on {key} ({component.name})");
 							break;
 					}
-				}
-
-				if (packageables.Count > 0) {
-					var gameItemStream = dataStorage.AddStream(key);
-					gameItemStream.Append(Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(packageables)));
 				}
 			}
 
