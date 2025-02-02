@@ -37,7 +37,7 @@ namespace VisualPinball.Unity
 	[AddComponentMenu("Visual Pinball/Trough")]
 	[HelpURL("https://docs.visualpinball.org/creators-guide/manual/mechanisms/troughs.html")]
 	public class TroughComponent : MainComponent<TroughData>,
-		ISwitchDeviceComponent, ICoilDeviceComponent
+		ISwitchDeviceComponent, ICoilDeviceComponent, IPackageable
 	{
 		#region Data
 
@@ -154,6 +154,34 @@ namespace VisualPinball.Unity
 		}
 
 		#region Conversion
+
+		public Dictionary<string, object> ToPackageData(Transform root)
+		{
+			return new Dictionary<string, object> {
+				{"Type", Type},
+				{"PlayfieldEntrySwitch", !_playfieldEntrySwitch ? null : _playfieldEntrySwitch.transform.GetPath(root)},
+				{"PlayfieldExitKicker", !PlayfieldExitKicker ? null : PlayfieldExitKicker.transform.GetPath(root)},
+				{"BallCount", BallCount},
+				{"SwitchCount", SwitchCount},
+				{"JamSwitch", JamSwitch},
+				{"RollTime", RollTime},
+				{"TransitionTime", TransitionTime},
+				{"KickTime", KickTime}
+			};
+		}
+
+		public void FromPackageData(Dictionary<string, object> data, Transform root)
+		{
+			Type = Convert.ToInt32(data["Type"]);
+			_playfieldEntrySwitch = data["PlayfieldEntrySwitch"] == null ? null : root.FindByPath((string)data["PlayfieldEntrySwitch"]).GetComponent<ITriggerComponent>() as MonoBehaviour;
+			PlayfieldExitKicker = data["PlayfieldExitKicker"] == null ? null : root.FindByPath((string)data["PlayfieldExitKicker"])?.GetComponent<KickerComponent>();
+			BallCount = Convert.ToInt32(data["BallCount"]);
+			SwitchCount = Convert.ToInt32(data["SwitchCount"]);
+			JamSwitch = (bool)data["JamSwitch"];
+			RollTime = Convert.ToInt32(data["RollTime"]);
+			TransitionTime = Convert.ToInt32(data["TransitionTime"]);
+			KickTime = Convert.ToInt32(data["KickTime"]);
+		}
 
 		public override IEnumerable<MonoBehaviour> SetData(TroughData data)
 		{

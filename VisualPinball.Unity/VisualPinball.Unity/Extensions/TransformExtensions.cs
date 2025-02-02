@@ -94,13 +94,12 @@ namespace VisualPinball.Unity
 
 		public static Transform FindByPath(this Transform transform, string path)
 		{
-			if (path == "0") {
-				return transform;
-			}
 			var indexOfSeparator = path.IndexOf(NodeSeparator[0]);
-			var firstIndex = path[..indexOfSeparator];
+			var firstIndex = indexOfSeparator == -1 ? path : path[..indexOfSeparator];
 			if (int.TryParse(firstIndex, out var index)) {
-				return transform.GetChild(index).FindByPath(path[(indexOfSeparator + 1)..]);
+				return indexOfSeparator == -1
+					? transform.GetChild(index)
+					: transform.GetChild(index).FindByPath(path[(indexOfSeparator + 1)..]);
 			}
 			throw new InvalidOperationException($"Cannot parse index {firstIndex}.");
 		}
