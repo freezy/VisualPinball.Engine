@@ -32,7 +32,7 @@ namespace VisualPinball.Unity
 {
 	[PackAs("Table")]
 	[AddComponentMenu("Visual Pinball/Table")]
-	public class TableComponent : MainRenderableComponent<TableData>, IPackageable
+	public class TableComponent : MainRenderableComponent<TableData>, IPackable
 	{
 		[SerializeReference] public LegacyContainer LegacyContainer;
 		[SerializeReference] public MappingConfig MappingConfig = new MappingConfig();
@@ -64,8 +64,10 @@ namespace VisualPinball.Unity
 
 		#region Packaging
 
-		public byte[] Pack(Transform root) => new TablePackable(this.GlobalDifficulty).Pack();
-		public void Unpack(byte[] data, Transform root) => TablePackable.Unpack(data).Apply(this);
+		public byte[] Pack(Transform root) => new TablePackable(GlobalDifficulty).Pack();
+		public byte[] PackReferences(Transform root, PackNameLookup packNameLookup) => Array.Empty<byte>();
+		public void Unpack(byte[] data) => TablePackable.Unpack(data).Apply(this);
+		public void UnpackReferences(byte[] data, Transform root, PackNameLookup packNameLookup) { }
 
 		#endregion
 

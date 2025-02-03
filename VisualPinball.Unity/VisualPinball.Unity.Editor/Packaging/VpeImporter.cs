@@ -37,11 +37,13 @@ namespace VisualPinball.Unity.Editor
 		private string _assetPath;
 		private string _tableName;
 		private GameObject _tableGo;
+		private readonly PackNameLookup _typeLookup;
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
 		public VpeImporter(string vpePath)
 		{
 			_vpePath = vpePath;
+			_typeLookup = new PackNameLookup();
 		}
 
 		public async Task ImportIntoScene(string tableName)
@@ -53,7 +55,20 @@ namespace VisualPinball.Unity.Editor
 			try {
 				Setup(cf);
 				await ImportModels();
-				ImportComponents();
+
+				// create components
+				ReadPackeables(PackageWriter.ItemStorage, (item, type, stream, _) => {
+					// add the component and unpack it.
+					var comp = item.gameObject.AddComponent(type) as IPackable;
+					comp?.Unpack(stream.GetData());
+				});
+
+				// add references
+				ReadPackeables(PackageWriter.ItemReferenceStorage, (item, type, stream, _) => {
+					// add the component and unpack it.
+					var comp = item.gameObject.GetComponent(type) as IPackable;
+					comp?.UnpackReferences(stream.GetData(), _tableGo.transform, _typeLookup);
+				});
 
 			} finally {
 				cf.Close();
@@ -105,28 +120,25 @@ namespace VisualPinball.Unity.Editor
 			EditorSceneManager.MarkSceneDirty(SceneManager.GetActiveScene()); // mark the active scene as dirty so that the changes are saved.
 		}
 
-
-		private void ImportComponents()
+		private void ReadPackeables(string storageRoot, Action<Transform, Type, CFStream, int> action)
 		{
-			var typeLookup = new PackNameLookup();
-			var itemsStorage = _tableStorage.GetStorage(PackageWriter.DataStorage);
-			// -> items <- / 0.0.0 / CompType / 0
+			var itemsStorage = _tableStorage.GetStorage(storageRoot);
+			// -> storageRoot <- / 0.0.0 / CompType / 0
 			itemsStorage.VisitEntries(itemEntry => {
-				// items / -> 0.0.0 <- / CompType / 0
+				// storageRoot / -> 0.0.0 <- / CompType / 0
 				if (itemEntry is CFStorage itemStorage) {
 					var item = _tableGo.transform.FindByPath(itemEntry.Name);
 					itemStorage.VisitEntries(typeEntry => {
-						// items / 0.0.0 / -> CompType <- / 0
+						// storageRoot / 0.0.0 / -> CompType <- / 0
 						if (typeEntry is CFStorage typeStorage) {
-							var t = typeLookup.GetType(typeEntry.Name);
+							var t = _typeLookup.GetType(typeEntry.Name);
+							var index = 0;
 							typeStorage.VisitEntries(typedEntry => {
 
-								// items / 0.0.0 / CompType / -> 0 <- (there might be multiple components of the same type)
+								// storageRoot / 0.0.0 / CompType / -> 0 <- (there might be multiple components of the same type)
 								if (typedEntry is CFStream stream) {
+									action(item, t, stream, index++);
 
-									// now we can add the component and unpack it.
-									var comp = item.gameObject.AddComponent(t) as IPackageable;
-									comp?.Unpack(stream.GetData(), _tableGo.transform);
 								} else {
 									throw new Exception("Component entry must be of type stream.");
 								}
