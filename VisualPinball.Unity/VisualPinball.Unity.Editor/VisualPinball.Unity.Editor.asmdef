@@ -1,16 +1,15 @@
 {
     "name": "VisualPinball.Unity.Editor",
-    "rootNamespace": "",
+    "rootNamespace": "VisualPinball.Unity.Editor",
     "references": [
-		"glTFast",
-		"glTFast.Editor",
-		"glTFast.Newtonsoft",
+        "glTFast",
+        "glTFast.Editor",
+        "glTFast.Export",
+        "glTFast.Newtonsoft",
         "Unity.Collections",
         "Unity.Formats.Fbx.Editor",
         "Unity.Mathematics",
-        "Unity.Transforms",
         "Unity.InputSystem",
-        "Unity.Scenes",
         "VisualPinball.Engine",
         "VisualPinball.Unity",
         "VisualPinball.Unity.Patcher"

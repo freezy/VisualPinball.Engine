@@ -63,7 +63,7 @@ namespace VisualPinball.Unity
 
 		#region Packaging
 
-		public byte[] Pack(Transform root)
+		public byte[] Pack()
 		{
 			return new KickerColliderPackable(
 				Scatter,
