@@ -23,9 +23,8 @@ using GLTFast;
 using GLTFast.Export;
 using GLTFast.Logging;
 using MemoryPack;
-using OpenMcdf;
-using OpenMcdf.Extensions;
 using UnityEngine;
+using VisualPinball.Unity.Editor.Packaging;
 using Debug = UnityEngine.Debug;
 
 namespace VisualPinball.Unity
@@ -46,7 +45,7 @@ namespace VisualPinball.Unity
 		private readonly GameObject _table;
 		private readonly PackNameLookup _typeLookup;
 		private readonly DateTime _now;
-		private CFStorage _tableStorage;
+		private IPackageFolder _tableStorage;
 
 		public PackageWriter(GameObject table)
 		{
@@ -59,11 +58,9 @@ namespace VisualPinball.Unity
 		{
 			var sw = new Stopwatch();
 			sw.Start();
-			using var cf = new CompoundFile();
+			using IVpeStorage storage = new OpenMcdfStorage();
 
-			_tableStorage = cf.RootStorage.AddStorage(TableStorage);
-			_tableStorage.CreationDate = _now;
-			_tableStorage.ModifyDate = _now;
+			_tableStorage = storage.AddFolder(TableStorage);
 
 			await WriteScene();
 			WritePackables(ItemStorage, packageable => packageable.Pack(), go => new ItemPackable(go).Pack());
@@ -73,15 +70,14 @@ namespace VisualPinball.Unity
 			if (File.Exists(path)) {
 				File.Delete(path);
 			}
-			cf.SaveAs(path);
-			cf.Close();
+			storage.SaveAs(path);
 			sw.Stop();
 			Debug.Log($"File saved to {path} in {sw.ElapsedMilliseconds}ms.");
 		}
 
 		private async Task WriteScene()
 		{
-			var sceneStream = _tableStorage.AddStream(SceneStream);
+			var glbFile = _tableStorage.AddFile(SceneStream);
 
 			var logger = new ConsoleLogger();
 			var exportSettings = new ExportSettings {
@@ -125,22 +121,20 @@ namespace VisualPinball.Unity
 			var export = new GameObjectExport(exportSettings, gameObjectExportSettings, logger: logger);
 			export.AddScene(new [] { _table }, _table.transform.worldToLocalMatrix, "VPE Table");
 
-			await export.SaveToStreamAndDispose(sceneStream.AsIOStream());
+			await export.SaveToStreamAndDispose(glbFile.AsStream());
 		}
 
 		/// <summary>
 		/// Walks through the entire game object tree and creates the same structure for
 		/// a given storage name, for each IPackageable component.
 		/// </summary>
-		/// <param name="rootName">Name of the storage within table storage</param>
+		/// <param name="folderName">Name of the storage within table storage</param>
 		/// <param name="getPackableData">Retrieves component-specific data.</param>
 		/// <param name="getItemData">Retrieves item-specific data.</param>
-		private void WritePackables(string rootName, Func<IPackable, byte[]> getPackableData, Func<GameObject, byte[]> getItemData = null)
+		private void WritePackables(string folderName, Func<IPackable, byte[]> getPackableData, Func<GameObject, byte[]> getItemData = null)
 		{
 			// -> rootName <- / 0.0.0 / CompType / 0
-			var storage = _tableStorage.AddStorage(rootName);
-			storage.CreationDate = _now;
-			storage.ModifyDate = _now;
+			var folder = _tableStorage.AddFolder(folderName);
 
 			// walk the entire tree
 			foreach (var t in _table.transform.GetComponentsInChildren<Transform>()) {
@@ -151,14 +145,12 @@ namespace VisualPinball.Unity
 				var itemData = getItemData?.Invoke(t.gameObject);
 
 				// rootName / -> 0.0.0 <- / CompType / 0
-				CFStorage itemStorage = null;
+				IPackageFolder itemStorage = null;
 				if (itemData?.Length > 0) {
-					itemStorage = storage.AddStorage(key);
-					itemStorage.CreationDate = _now;
-					itemStorage.ModifyDate = _now;
+					itemStorage = folder.AddFolder(key);
 
-					var itemStream = itemStorage.AddStream(ItemStream);
-					itemStream.Append(itemData);
+					var itemStream = itemStorage.AddFile(ItemStream);
+					itemStream.SetData(itemData);
 				}
 
 				foreach (var component in t.gameObject.GetComponents<Component>()) {
@@ -175,21 +167,17 @@ namespace VisualPinball.Unity
 
 								// rootName / -> 0.0.0 <- / CompType / 0
 								if (itemStorage == null) {
-									itemStorage = storage.AddStorage(key);
-									itemStorage.CreationDate = _now;
-									itemStorage.ModifyDate = _now;
+									itemStorage = folder.AddFolder(key);
 								}
 
 								// rootName / 0.0.0 / -> CompType <- / 0
-								if (!itemStorage.TryGetStorage(packName, out var typeStorage)) {
-									typeStorage = itemStorage.AddStorage(packName);
-									typeStorage.CreationDate = _now;
-									typeStorage.ModifyDate = _now;
+								if (!itemStorage.TryGetFolder(packName, out var typeStorage)) {
+									typeStorage = itemStorage.AddFolder(packName);
 								}
 
 								// rootName / 0.0.0 / CompType / -> 0 <-
-								var dataStream = typeStorage.AddStream($"{counters[packName]++}");
-								dataStream.Append(packableData);
+								var dataStream = typeStorage.AddFile($"{counters[packName]++}");
+								dataStream.SetData(packableData);
 							}
 							break;
 						}
@@ -215,9 +203,7 @@ namespace VisualPinball.Unity
 				throw new Exception("Cannot find table component on table object.");
 			}
 
-			var globalStorage = _tableStorage.AddStorage(GlobalStorage);
-			globalStorage.CreationDate = _now;
-			globalStorage.ModifyDate = _now;
+			var globalStorage = _tableStorage.AddFolder(GlobalStorage);
 
 			foreach (var sw in tableComponent.MappingConfig.Switches) {
 				sw.SaveReference(_table.transform);
@@ -232,10 +218,10 @@ namespace VisualPinball.Unity
 				lp.SaveReference(_table.transform);
 			}
 
-			globalStorage.AddStream(SwitchesStream).Append(MemoryPackSerializer.Serialize(tableComponent.MappingConfig.Switches));
-			globalStorage.AddStream(CoilsStream).Append(MemoryPackSerializer.Serialize(tableComponent.MappingConfig.Coils));
-			globalStorage.AddStream(WiresStream).Append(MemoryPackSerializer.Serialize(tableComponent.MappingConfig.Wires));
-			globalStorage.AddStream(LampsStream).Append(MemoryPackSerializer.Serialize(tableComponent.MappingConfig.Lamps));
+			globalStorage.AddFile(SwitchesStream).SetData(MemoryPackSerializer.Serialize(tableComponent.MappingConfig.Switches));
+			globalStorage.AddFile(CoilsStream).SetData(MemoryPackSerializer.Serialize(tableComponent.MappingConfig.Coils));
+			globalStorage.AddFile(WiresStream).SetData(MemoryPackSerializer.Serialize(tableComponent.MappingConfig.Wires));
+			globalStorage.AddFile(LampsStream).SetData(MemoryPackSerializer.Serialize(tableComponent.MappingConfig.Lamps));
 		}
 	}
 }

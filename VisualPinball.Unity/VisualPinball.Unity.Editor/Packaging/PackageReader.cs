@@ -21,28 +21,27 @@ using System.IO;
 using System.Threading.Tasks;
 using MemoryPack;
 using NLog;
-using OpenMcdf;
-using OpenMcdf.Extensions;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using VisualPinball.Unity.Editor.Packaging;
 using Logger = NLog.Logger;
 using Object = UnityEngine.Object;
 
 namespace VisualPinball.Unity.Editor
 {
-	public class VpeImporter
+	public class PackageReader
 	{
 		private readonly string _vpePath;
-		private CFStorage _tableStorage;
+		private IPackageFolder _tableStorage;
 		private string _assetPath;
 		private string _tableName;
 		private GameObject _table;
 		private readonly PackNameLookup _typeLookup;
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
-		public VpeImporter(string vpePath)
+		public PackageReader(string vpePath)
 		{
 			_vpePath = vpePath;
 			_typeLookup = new PackNameLookup();
@@ -53,7 +52,7 @@ namespace VisualPinball.Unity.Editor
 			var sw = new Stopwatch();
 			sw.Start();
 			_tableName = tableName;
-			using var cf = new CompoundFile(_vpePath);
+			using IVpeStorage cf = new OpenMcdfStorage(_vpePath);
 			try {
 				Setup(cf);
 				await ImportModels();
@@ -89,10 +88,10 @@ namespace VisualPinball.Unity.Editor
 			}
 		}
 
-		private void Setup(CompoundFile cf)
+		private void Setup(IVpeStorage storage)
 		{
 			// open storages
-			_tableStorage = cf.RootStorage.GetStorage(PackageWriter.TableStorage);
+			_tableStorage = storage.GetFolder(PackageWriter.TableStorage);
 			_assetPath = Path.Combine(Application.dataPath, "Resources", _tableName);
 			var n = 0;
 			while (Directory.Exists(_assetPath)) {
@@ -108,9 +107,9 @@ namespace VisualPinball.Unity.Editor
 				AssetDatabase.StartAssetEditing();
 
 				// dump glb
-				var sceneStream = _tableStorage.GetStream(PackageWriter.SceneStream);
+				var sceneStream = _tableStorage.GetFile(PackageWriter.SceneStream);
 				await using var glbFileStream = new FileStream(glbPath, FileMode.Create, FileAccess.Write);
-				await sceneStream.AsIOStream().CopyToAsync(glbFileStream);
+				await sceneStream.AsStream().CopyToAsync(glbFileStream);
 
 			} finally {
 				// resume asset database refreshing
@@ -133,44 +132,30 @@ namespace VisualPinball.Unity.Editor
 			EditorSceneManager.MarkSceneDirty(SceneManager.GetActiveScene()); // mark the active scene as dirty so that the changes are saved.
 		}
 
-		private void ReadPackables(string storageRoot, Action<Transform, Type, CFStream, int> componentAction, Action<GameObject, CFStream> itemAction = null)
+		private void ReadPackables(string storageRoot, Action<Transform, Type, IPackageFile, int> componentAction, Action<GameObject, IPackageFile> itemAction = null)
 		{
-			var itemsStorage = _tableStorage.GetStorage(storageRoot);
+			var itemsStorage = _tableStorage.GetFolder(storageRoot);
 			// -> storageRoot <- / 0.0.0 / CompType / 0
-			itemsStorage.VisitEntries(itemEntry => {
+			itemsStorage.VisitFolders(itemStorage => {
 				// storageRoot / -> 0.0.0 <- / CompType / 0
-				if (itemEntry is CFStorage itemStorage) {
-					var item = _table.transform.FindByPath(itemEntry.Name);
-					if (item == null) {
-						throw new Exception($"Cannot find item at path {itemEntry.Name} on node {_table.name}");;
-					}
-					if (itemAction != null && itemStorage.TryGetStream(PackageWriter.ItemStream, out var itemStream)) {
-						itemAction(item.gameObject, itemStream);
-					}
-					itemStorage.VisitEntries(typeEntry => {
-						// storageRoot / 0.0.0 / -> CompType <- / 0
-						if (typeEntry is CFStorage typeStorage) {
-							var t = _typeLookup.GetType(typeEntry.Name);
-							var index = 0;
-							typeStorage.VisitEntries(typedEntry => {
-
-								// storageRoot / 0.0.0 / CompType / -> 0 <- (there might be multiple components of the same type)
-								if (typedEntry is CFStream stream) {
-									componentAction(item, t, stream, index++);
-
-								} else {
-									throw new Exception("Component entry must be of type stream.");
-								}
-							}, false);
-
-						} else if (typeEntry.Name != PackageWriter.ItemStream) {
-							throw new Exception("Type entry must be of type storage.");
-						}
-					}, false);
-				} else {
-					throw new Exception("Path entry must be of type storage.");
+				var item = _table.transform.FindByPath(itemStorage.Name);
+				if (item == null) {
+					throw new Exception($"Cannot find item at path {itemStorage.Name} on node {_table.name}");;
 				}
-			}, false);
+				if (itemAction != null && itemStorage.TryGetFile(PackageWriter.ItemStream, out var itemStream)) {
+					itemAction(item.gameObject, itemStream);
+				}
+				itemStorage.VisitFolders(typeStorage => {
+					// storageRoot / 0.0.0 / -> CompType <- / 0
+					var t = _typeLookup.GetType(typeStorage.Name);
+					var index = 0;
+					typeStorage.VisitFiles(typedEntry => {
+
+						// storageRoot / 0.0.0 / CompType / -> 0 <- (there might be multiple components of the same type)
+						componentAction(item, t, typedEntry, index++);
+					});
+				});
+			});
 		}
 
 		private void ReadGlobals()
@@ -179,12 +164,12 @@ namespace VisualPinball.Unity.Editor
 			if (!tableComponent) {
 				throw new Exception("Cannot find table component on table object.");
 			}
-			var globalStorage = _tableStorage.GetStorage(PackageWriter.GlobalStorage);
+			var globalStorage = _tableStorage.GetFolder(PackageWriter.GlobalStorage);
 			tableComponent.MappingConfig = new MappingConfig {
-				Switches = MemoryPackSerializer.Deserialize<List<SwitchMapping>>(globalStorage.GetStream(PackageWriter.SwitchesStream).GetData()),
-				Coils = MemoryPackSerializer.Deserialize<List<CoilMapping>>(globalStorage.GetStream(PackageWriter.CoilsStream).GetData()),
-				Lamps = MemoryPackSerializer.Deserialize<List<LampMapping>>(globalStorage.GetStream(PackageWriter.LampsStream).GetData()),
-				Wires = MemoryPackSerializer.Deserialize<List<WireMapping>>(globalStorage.GetStream(PackageWriter.WiresStream).GetData()),
+				Switches = MemoryPackSerializer.Deserialize<List<SwitchMapping>>(globalStorage.GetFile(PackageWriter.SwitchesStream).GetData()),
+				Coils = MemoryPackSerializer.Deserialize<List<CoilMapping>>(globalStorage.GetFile(PackageWriter.CoilsStream).GetData()),
+				Lamps = MemoryPackSerializer.Deserialize<List<LampMapping>>(globalStorage.GetFile(PackageWriter.LampsStream).GetData()),
+				Wires = MemoryPackSerializer.Deserialize<List<WireMapping>>(globalStorage.GetFile(PackageWriter.WiresStream).GetData()),
 			};
 			foreach (var sw in tableComponent.MappingConfig.Switches) {
 				sw.RestoreReference(_table.transform);
