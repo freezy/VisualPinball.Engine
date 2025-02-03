@@ -14,19 +14,26 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-using UnityEngine;
+using MemoryPack;
 
 namespace VisualPinball.Unity
 {
-	/// <summary>
-	/// Data that is saved in the .vpe file must implement this interface.
-	/// </summary>
-	public interface IPackable
+	[MemoryPackable]
+	public readonly partial struct DefaultGamelogicEnginePackable
 	{
-		byte[] Pack();
-		byte[] PackReferences(Transform root, PackNameLookup packNameLookup);
+		public readonly float GlobalDifficulty;
 
-		void Unpack(byte[] bytes);
-		void UnpackReferences(byte[] bytes, Transform root, PackNameLookup packNameLookup);
+		public DefaultGamelogicEnginePackable(float globalDifficulty)
+		{
+			GlobalDifficulty = globalDifficulty;
+		}
+
+		public void Apply(TableComponent table)
+		{
+			table.GlobalDifficulty = GlobalDifficulty;
+		}
+
+		public static DefaultGamelogicEnginePackable Unpack(byte[] data) => MemoryPackSerializer.Deserialize<DefaultGamelogicEnginePackable>(data);
+		public byte[] Pack() => MemoryPackSerializer.Serialize(this);
 	}
 }

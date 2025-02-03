@@ -59,7 +59,8 @@ namespace VisualPinball.Unity.Editor
 						"vpe");
 
 					if (!string.IsNullOrEmpty(path)) {
-						tableComponent.Save(path);
+						var writer = new PackageWriter(tableComponent.gameObject);
+						writer.WritePackage(path);
 					}
 				}
 

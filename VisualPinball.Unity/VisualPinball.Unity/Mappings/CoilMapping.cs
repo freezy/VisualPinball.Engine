@@ -17,12 +17,14 @@
 // ReSharper disable InconsistentNaming
 
 using System;
+using MemoryPack;
 using UnityEngine;
 
 namespace VisualPinball.Unity
 {
 	[Serializable]
-	public class CoilMapping
+	[MemoryPackable]
+	public partial class CoilMapping
 	{
 		public string Id = string.Empty;
 
@@ -30,11 +32,29 @@ namespace VisualPinball.Unity
 
 		public CoilDestination Destination = CoilDestination.Playfield;
 
+		[MemoryPackIgnore]
 		[SerializeReference]
 		public MonoBehaviour _device;
+
+		[MemoryPackIgnore]
 		public ICoilDeviceComponent Device { get => _device as ICoilDeviceComponent; set => _device = value as MonoBehaviour; }
 
+		[MemoryPackInclude]
+		private string _devicePath { get; set; }
+
 		public string DeviceItem = string.Empty;
+
+		public void SaveReference(Transform tableRoot)
+		{
+			_devicePath = _device ? _device.gameObject.transform.GetPath(tableRoot) : null;
+		}
+
+		public void RestoreReference(Transform tableRoot)
+		{
+			_device = string.IsNullOrEmpty(_devicePath)
+				? null
+				: tableRoot.FindByPath(_devicePath)?.GetComponent<ICoilDeviceComponent>() as MonoBehaviour;
+		}
 
 		public override string ToString()
 		{
