@@ -64,18 +64,12 @@ namespace VisualPinball.Unity
 
 		#region Packaging
 
-		public byte[] Pack(Transform root) => new TablePackable(GlobalDifficulty).Pack();
+		public byte[] Pack() => new TablePackable(GlobalDifficulty).Pack();
 		public byte[] PackReferences(Transform root, PackNameLookup packNameLookup) => Array.Empty<byte>();
 		public void Unpack(byte[] data) => TablePackable.Unpack(data).Apply(this);
 		public void UnpackReferences(byte[] data, Transform root, PackNameLookup packNameLookup) { }
 
 		#endregion
-
-		public void Save(string path)
-		{
-			var writer = new PackageWriter(gameObject);
-			writer.WritePackage(path);
-		}
 
 		public SceneTableContainer TableContainer => _tableContainer ??= new SceneTableContainer(this);
 

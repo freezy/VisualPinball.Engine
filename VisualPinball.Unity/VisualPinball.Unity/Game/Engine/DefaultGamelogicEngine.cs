@@ -38,9 +38,10 @@ namespace VisualPinball.Unity
 	/// gamelogic engine. For now it just tries to find the flippers and hook
 	/// them up to the switches.
 	/// </summary>
+	[PackAs("DefaultGameLogic")]
 	[DisallowMultipleComponent]
 	[AddComponentMenu("Visual Pinball/Gamelogic Engine/Default Game Logic")]
-	public class DefaultGamelogicEngine : MonoBehaviour, IGamelogicEngine
+	public class DefaultGamelogicEngine : MonoBehaviour, IGamelogicEngine, IPackable
 	{
 		public string Name => "Default Game Engine";
 
@@ -403,5 +404,14 @@ namespace VisualPinball.Unity
 			yield return new WaitForSeconds(time);
 			callback();
 		}
+
+		#region Packaging
+
+		public byte[] Pack() => new DefaultGamelogicEnginePackable().Pack();
+		public byte[] PackReferences(Transform root, PackNameLookup packNameLookup) => Array.Empty<byte>();
+		public void Unpack(byte[] data) { }
+		public void UnpackReferences(byte[] data, Transform root, PackNameLookup packNameLookup) { }
+
+		#endregion
 	}
 }

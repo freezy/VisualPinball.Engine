@@ -23,17 +23,16 @@ using System.Text.RegularExpressions;
 using UnityEngine;
 using VisualPinball.Engine.Common;
 using VisualPinball.Engine.Game.Engines;
-using VisualPinball.Engine.Math;
 
 namespace VisualPinball.Unity
 {
 	[Serializable]
 	public class MappingConfig
 	{
-		[SerializeField] public List<SwitchMapping> Switches = new List<SwitchMapping>();
-		[SerializeField] public List<CoilMapping> Coils = new List<CoilMapping>();
-		[SerializeField] public List<WireMapping> Wires = new List<WireMapping>();
-		[SerializeField] public List<LampMapping> Lamps = new List<LampMapping>();
+		[SerializeField] public List<SwitchMapping> Switches = new();
+		[SerializeField] public List<CoilMapping> Coils = new();
+		[SerializeField] public List<WireMapping> Wires = new();
+		[SerializeField] public List<LampMapping> Lamps = new();
 
 		public bool IsEmpty() => (Coils == null || Coils.Count == 0) && (Switches == null || Switches.Count == 0) && (Lamps == null || Lamps.Count == 0);
 
@@ -616,6 +615,5 @@ namespace VisualPinball.Unity
 		}
 
 		#endregion
-
 	}
 }

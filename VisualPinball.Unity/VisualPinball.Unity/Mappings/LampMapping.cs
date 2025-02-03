@@ -17,6 +17,7 @@
 // ReSharper disable InconsistentNaming
 
 using System;
+using MemoryPack;
 using UnityEngine;
 using VisualPinball.Engine.Game.Engines;
 using VisualPinball.Engine.Math;
@@ -24,7 +25,8 @@ using VisualPinball.Engine.Math;
 namespace VisualPinball.Unity
 {
 	[Serializable]
-	public class LampMapping
+	[MemoryPackable]
+	public partial class LampMapping
 	{
 		public string Id = string.Empty;
 
@@ -36,14 +38,32 @@ namespace VisualPinball.Unity
 
 		public string Description = string.Empty;
 
+		[MemoryPackIgnore]
 		[SerializeReference]
 		public MonoBehaviour _device;
+
+		[MemoryPackIgnore]
 		public ILampDeviceComponent Device { get => _device as ILampDeviceComponent; set => _device = value as MonoBehaviour; }
+
+		[MemoryPackInclude]
+		private string _devicePath { get; set; }
 
 		public string DeviceItem = string.Empty;
 
 		public LampType Type = LampType.SingleOnOff;
 
 		public ColorChannel Channel = ColorChannel.Alpha;
+
+		public void SaveReference(Transform tableRoot)
+		{
+			_devicePath = _device ? _device.gameObject.transform.GetPath(tableRoot) : null;
+		}
+
+		public void RestoreReference(Transform tableRoot)
+		{
+			_device = string.IsNullOrEmpty(_devicePath)
+				? null
+				: tableRoot.FindByPath(_devicePath)?.GetComponent<ILampDeviceComponent>() as MonoBehaviour;
+		}
 	}
 }

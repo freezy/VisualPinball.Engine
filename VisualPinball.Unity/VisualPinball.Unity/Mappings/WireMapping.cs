@@ -18,12 +18,14 @@
 
 using System;
 using System.Diagnostics.CodeAnalysis;
+using MemoryPack;
 using UnityEngine;
 
 namespace VisualPinball.Unity
 {
 	[Serializable]
-	public class WireMapping
+	[MemoryPackable]
+	public partial class WireMapping
 	{
 		public string Id;
 
@@ -38,16 +40,28 @@ namespace VisualPinball.Unity
 
 		public SwitchConstant SourceConstant;
 
+		[MemoryPackIgnore]
 		[SerializeReference]
 		public MonoBehaviour _sourceDevice;
+
+		[MemoryPackIgnore]
 		public ISwitchDeviceComponent SourceDevice { get => _sourceDevice as ISwitchDeviceComponent; set => _sourceDevice = value as MonoBehaviour; }
+
+		[MemoryPackInclude]
+		private string _sourceDevicePath { get; set; }
 
 		public string SourceDeviceItem = string.Empty;
 
 		/* Destination */
 		[SerializeReference]
+		[MemoryPackIgnore]
 		public MonoBehaviour _destinationDevice;
+
+		[MemoryPackIgnore]
 		public IWireableComponent DestinationDevice { get => _destinationDevice as IWireableComponent; set => _destinationDevice = value as MonoBehaviour; }
+
+		[MemoryPackInclude]
+		private string _destinationDevicePath { get; set; }
 
 		public string DestinationDeviceItem = string.Empty;
 
@@ -55,8 +69,25 @@ namespace VisualPinball.Unity
 
 		public bool IsDynamic;
 
+		[MemoryPackConstructor]
 		public WireMapping()
 		{
+		}
+
+		public void SaveReferences(Transform tableRoot)
+		{
+			_sourceDevicePath = _sourceDevice ? _sourceDevice.gameObject.transform.GetPath(tableRoot) : null;
+			_destinationDevicePath = _destinationDevice ? _destinationDevice.gameObject.transform.GetPath(tableRoot) : null;
+		}
+
+		public void RestoreReferences(Transform tableRoot)
+		{
+			_sourceDevice = string.IsNullOrEmpty(_sourceDevicePath)
+				? null
+				: tableRoot.FindByPath(_sourceDevicePath)?.GetComponent<ICoilDeviceComponent>() as MonoBehaviour;
+			_destinationDevice = string.IsNullOrEmpty(_destinationDevicePath)
+				? null
+				: tableRoot.FindByPath(_destinationDevicePath)?.GetComponent<ICoilDeviceComponent>() as MonoBehaviour;
 		}
 
 		[ExcludeFromCodeCoverage]

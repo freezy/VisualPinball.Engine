@@ -139,7 +139,7 @@ namespace VisualPinball.Unity
 
 		#region Packaging
 
-		public byte[] Pack(Transform root)
+		public byte[] Pack()
 		{
 			return new KickerPackable(Coils
 				.Select(c => new KickerCoilPackable(c.Name, c.Id, c.Speed, c.Angle, c.Inclination))
