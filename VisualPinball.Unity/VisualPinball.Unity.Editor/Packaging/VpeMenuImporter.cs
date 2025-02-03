@@ -41,7 +41,7 @@ namespace VisualPinball.Unity.Editor
 				return;
 			}
 
-			var importer = new VpeImporter(vpePath);
+			var importer = new PackageReader(vpePath);
 			await importer.ImportIntoScene(Path.GetFileNameWithoutExtension(vpePath));
 		}
 		
