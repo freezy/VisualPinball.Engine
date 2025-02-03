@@ -22,8 +22,6 @@ namespace VisualPinball.Unity
 	public readonly partial struct TroughPackable
 	{
 		public readonly int Type;
-		public readonly string PlayfieldEntrySwitchRef;
-		public readonly string PlayfieldExitKickerRef;
 		public readonly int BallCount;
 		public readonly int SwitchCount;
 		public readonly bool JamSwitch;
@@ -31,11 +29,9 @@ namespace VisualPinball.Unity
 		public readonly int TransitionTime;
 		public readonly int KickTime;
 
-		public TroughPackable(int type, string playfieldEntrySwitchRef, string playfieldExitKickerRef, int ballCount, int switchCount, bool jamSwitch, int rollTime, int transitionTime, int kickTime)
+		public TroughPackable(int type, int ballCount, int switchCount, bool jamSwitch, int rollTime, int transitionTime, int kickTime)
 		{
 			Type = type;
-			PlayfieldEntrySwitchRef = playfieldEntrySwitchRef;
-			PlayfieldExitKickerRef = playfieldExitKickerRef;
 			BallCount = ballCount;
 			SwitchCount = switchCount;
 			JamSwitch = jamSwitch;
@@ -45,6 +41,29 @@ namespace VisualPinball.Unity
 		}
 
 		public static TroughPackable Unpack(byte[] data) => MemoryPackSerializer.Deserialize<TroughPackable>(data);
+
+		public byte[] Pack() => MemoryPackSerializer.Serialize(this);
+	}
+
+	[MemoryPackable]
+	public readonly partial struct TroughReferencesPackable
+	{
+		public readonly ReferencePackable PlayfieldEntrySwitchRef;
+		public readonly string PlayfieldEntrySwitchItem;
+		public readonly ReferencePackable PlayfieldExitKickerRef;
+		public readonly string PlayfieldExitKickerItem;
+
+		public TroughReferencesPackable(
+			ReferencePackable playfieldEntrySwitchRef, string playfieldEntrySwitchItem,
+			ReferencePackable playfieldExitKickerRef, string playfieldExitKickerItem)
+		{
+			PlayfieldEntrySwitchRef = playfieldEntrySwitchRef;
+			PlayfieldEntrySwitchItem = playfieldEntrySwitchItem;
+			PlayfieldExitKickerRef = playfieldExitKickerRef;
+			PlayfieldExitKickerItem = playfieldExitKickerItem;
+		}
+
+		public static TroughReferencesPackable Unpack(byte[] data) => MemoryPackSerializer.Deserialize<TroughReferencesPackable>(data);
 
 		public byte[] Pack() => MemoryPackSerializer.Serialize(this);
 	}

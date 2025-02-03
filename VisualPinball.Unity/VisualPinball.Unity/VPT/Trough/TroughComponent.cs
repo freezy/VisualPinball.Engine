@@ -38,7 +38,7 @@ namespace VisualPinball.Unity
 	[AddComponentMenu("Visual Pinball/Trough")]
 	[HelpURL("https://docs.visualpinball.org/creators-guide/manual/mechanisms/troughs.html")]
 	public class TroughComponent : MainComponent<TroughData>,
-		ISwitchDeviceComponent, ICoilDeviceComponent, IPackageable
+		ISwitchDeviceComponent, ICoilDeviceComponent, IPackable
 	{
 		#region Data
 
@@ -116,8 +116,6 @@ namespace VisualPinball.Unity
 		{
 			return new TroughPackable(
 				Type,
-				_playfieldEntrySwitch?.transform.GetPath(root),
-				PlayfieldExitKicker?.transform.GetPath(root),
 				BallCount,
 				SwitchCount,
 				JamSwitch,
@@ -126,8 +124,20 @@ namespace VisualPinball.Unity
 				KickTime
 			).Pack();
 		}
+		public byte[] PackReferences(Transform root, PackNameLookup packNameLookup)
+		{
+			var playfieldEntrySwitch = _playfieldEntrySwitch != null
+				? new ReferencePackable(_playfieldEntrySwitch.transform.GetPath(root), packNameLookup.GetName(_playfieldEntrySwitch.GetType()))
+				: new ReferencePackable(null, null);
 
-		public void Unpack(byte[] bytes, Transform root)
+			var playfieldExitKicker = PlayfieldExitKicker != null
+				? new ReferencePackable(PlayfieldExitKicker.transform.GetPath(root), packNameLookup.GetName(PlayfieldExitKicker.GetType()))
+				: new ReferencePackable(null, null);
+
+			return new TroughReferencesPackable(playfieldEntrySwitch,  PlayfieldEntrySwitchItem, playfieldExitKicker, PlayfieldExitKickerItem).Pack();
+		}
+
+		public void Unpack(byte[] bytes)
 		{
 			var data = TroughPackable.Unpack(bytes);
 			Type = data.Type;
@@ -138,35 +148,14 @@ namespace VisualPinball.Unity
 			TransitionTime = data.TransitionTime;
 			KickTime = data.KickTime;
 		}
-
-		public Dictionary<string, object> ToPackageData(Transform root)
+		public void UnpackReferences(byte[] bytes, Transform root, PackNameLookup packNameLookup)
 		{
-			return new Dictionary<string, object> {
-				{"Type", Type},
-				{"PlayfieldEntrySwitch", !_playfieldEntrySwitch ? null : _playfieldEntrySwitch.transform.GetPath(root)},
-				{"PlayfieldExitKicker", !PlayfieldExitKicker ? null : PlayfieldExitKicker.transform.GetPath(root)},
-				{"BallCount", BallCount},
-				{"SwitchCount", SwitchCount},
-				{"JamSwitch", JamSwitch},
-				{"RollTime", RollTime},
-				{"TransitionTime", TransitionTime},
-				{"KickTime", KickTime}
-			};
+			var data = TroughReferencesPackable.Unpack(bytes);
+			_playfieldEntrySwitch = data.PlayfieldEntrySwitchRef.Resolve<MonoBehaviour, ITriggerComponent>(root, packNameLookup);
+			PlayfieldEntrySwitchItem = data.PlayfieldEntrySwitchItem;
+			PlayfieldExitKicker = data.PlayfieldExitKickerRef.Resolve<KickerComponent>(root, packNameLookup);
+			PlayfieldExitKickerItem = data.PlayfieldExitKickerItem;
 		}
-
-		public void FromPackageData(Dictionary<string, object> data, Transform root)
-		{
-			Type = Convert.ToInt32(data["Type"]);
-			_playfieldEntrySwitch = data["PlayfieldEntrySwitch"] == null ? null : root.FindByPath((string)data["PlayfieldEntrySwitch"]).GetComponent<ITriggerComponent>() as MonoBehaviour;
-			PlayfieldExitKicker = data["PlayfieldExitKicker"] == null ? null : root.FindByPath((string)data["PlayfieldExitKicker"])?.GetComponent<KickerComponent>();
-			BallCount = Convert.ToInt32(data["BallCount"]);
-			SwitchCount = Convert.ToInt32(data["SwitchCount"]);
-			JamSwitch = (bool)data["JamSwitch"];
-			RollTime = Convert.ToInt32(data["RollTime"]);
-			TransitionTime = Convert.ToInt32(data["TransitionTime"]);
-			KickTime = Convert.ToInt32(data["KickTime"]);
-		}
-
 
 		#endregion
 

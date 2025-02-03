@@ -17,7 +17,6 @@
 // ReSharper disable InconsistentNaming
 
 using System;
-using System.Collections.Generic;
 using Unity.Mathematics;
 using UnityEngine;
 using VisualPinball.Engine.VPT.Kicker;
@@ -26,7 +25,7 @@ namespace VisualPinball.Unity
 {
 	[PackAs("KickerCollider")]
 	[AddComponentMenu("Visual Pinball/Collision/Kicker Collider")]
-	public class KickerColliderComponent : ColliderComponent<KickerData, KickerComponent>, IPackageable
+	public class KickerColliderComponent : ColliderComponent<KickerData, KickerComponent>, IPackable
 	{
 		#region Data
 
@@ -76,7 +75,9 @@ namespace VisualPinball.Unity
 			).Pack();
 		}
 
-		public void Unpack(byte[] bytes, Transform root)
+		public byte[] PackReferences(Transform root, PackNameLookup packNameLookup) => Array.Empty<byte>();
+
+		public void Unpack(byte[] bytes)
 		{
 			var data = KickerColliderPackable.Unpack(bytes);
 			Scatter = data.Scatter;
@@ -86,6 +87,8 @@ namespace VisualPinball.Unity
 			FallIn = data.FallIn;
 			LegacyMode = data.LegacyMode;
 		}
+
+		public void UnpackReferences(byte[] data, Transform root, PackNameLookup packNameLookup) { }
 
 		#endregion
 

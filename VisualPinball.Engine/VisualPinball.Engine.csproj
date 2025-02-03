@@ -37,7 +37,7 @@
     <PackageReference Include="NetVips.Native" Version="8.12.2" />
     <PackageReference Include="MemoryPack" Version="1.21.3" />
     <PackageReference Include="MemoryPack.Streaming" Version="1.21.3" />
-    <PackageReference Include="Microsoft.CodeAnalysis.Csharp" Version="3.8.0" />
+    <PackageReference Include="Microsoft.CodeAnalysis.Csharp" Version="4.3.0" /> <!-- 4.3.0 for Unity 6: https://docs.unity3d.com/Manual/create-source-generator.html -->
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\VisualPinball.Resources\VisualPinball.Resources.csproj" />
