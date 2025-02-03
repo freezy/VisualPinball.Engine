@@ -51,7 +51,7 @@ namespace VisualPinball.Unity
 		public string GetName(Type type)
 		{
 			if (!_typeToName.TryGetValue(type, out var name)) {
-				Debug.LogError("No name found for type: " + type);
+				Debug.LogError($"No name found for type: {type.FullName}. Missing PackedAs attribute?");
 				return null;
 			}
 			return name;

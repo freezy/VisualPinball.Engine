@@ -33,32 +33,33 @@ namespace VisualPinball.Unity
 	public class PackageWriter
 	{
 		public const string TableStorage = "table";
-		public const string DataStorage = "items";
+		public const string ItemStorage = "items";
+		public const string ItemReferenceStorage = "refs";
 		public const string SceneStream = "scene.glb";
 
 		private readonly GameObject _table;
+		private readonly PackNameLookup _typeLookup;
+		private readonly DateTime _now;
+		private CFStorage _tableStorage;
 
 		public PackageWriter(GameObject table)
 		{
 			_table = table;
+			_typeLookup = new PackNameLookup();
+			_now = DateTime.Now;
 		}
 
 		public async void WritePackage(string path)
 		{
-			var now = DateTime.Now;
 			var sw = new Stopwatch();
 			sw.Start();
 			using var cf = new CompoundFile();
 
-			var tableStorage = cf.RootStorage.AddStorage(TableStorage);
-			tableStorage.CreationDate = now;
-			tableStorage.ModifyDate = now;
+			_tableStorage = cf.RootStorage.AddStorage(TableStorage);
+			_tableStorage.CreationDate = _now;
+			_tableStorage.ModifyDate = _now;
 
-			var dataStorage = tableStorage.AddStorage(DataStorage);
-			dataStorage.CreationDate = now;
-			dataStorage.ModifyDate = now;
-
-			var sceneStream = tableStorage.AddStream(SceneStream);
+			var sceneStream = _tableStorage.AddStream(SceneStream);
 
 			var logger = new ConsoleLogger();
 			var exportSettings = new ExportSettings {
@@ -99,11 +100,36 @@ namespace VisualPinball.Unity
 				//LayerMask = LayerMask.GetMask("Default", "MyCustomLayer"),
 			};
 
-			var typeLookup = new PackNameLookup();
 			var export = new GameObjectExport(exportSettings, gameObjectExportSettings, logger: logger);
 			export.AddScene(new [] { _table }, _table.transform.worldToLocalMatrix, "VPE Table");
 
 			await export.SaveToStreamAndDispose(sceneStream.AsIOStream());
+
+			WritePackables(ItemStorage, packageable => packageable.Pack(_table.transform));
+			WritePackables(ItemReferenceStorage, packageable => packageable.PackReferences(_table.transform, _typeLookup));
+
+			if (File.Exists(path)) {
+				File.Delete(path);
+			}
+			cf.SaveAs(path);
+			cf.Close();
+			sw.Stop();
+			Debug.Log($"File saved to {path} in {sw.ElapsedMilliseconds}ms.");
+		}
+
+		/// <summary>
+		/// Walks through the entire game object tree and creates the same structure for
+		/// a given storage name, for each IPackageable component.
+		/// </summary>
+		/// <param name="rootName">Name of the storage within table storage</param>
+		/// <param name="action">Action to perform with the data.</param>
+		private void WritePackables(string rootName, Func<IPackable, byte[]> action)
+		{
+
+			// -> rootName <- / 0.0.0 / CompType / 0
+			var storage = _tableStorage.AddStorage(rootName);
+			storage.CreationDate = _now;
+			storage.ModifyDate = _now;
 
 			// walk the entire tree
 			foreach (var t in _table.transform.GetComponentsInChildren<Transform>()) {
@@ -112,29 +138,36 @@ namespace VisualPinball.Unity
 				var key = t.GetPath(_table.transform);
 				var counters = new Dictionary<string, int>();
 
-				CFStorage gameItemStorage = null;
+				CFStorage itemStorage = null;
 				foreach (var component in t.gameObject.GetComponents<Component>()) {
-
 					switch (component) {
-						case IPackageable packageable: {
+						case IPackable packageable: {
 
-							var packName = typeLookup.GetName(packageable.GetType());
-							if (gameItemStorage == null) {
-								gameItemStorage = dataStorage.AddStorage(key);
-								gameItemStorage.CreationDate = now;
-								gameItemStorage.ModifyDate = now;
-							}
-
-							if (!gameItemStorage.TryGetStorage(packName, out var typeStorage)) {
-								typeStorage = gameItemStorage.AddStorage(packName);
-								typeStorage.CreationDate = now;
-								typeStorage.ModifyDate = now;
-							}
-
+							var packName = _typeLookup.GetName(packageable.GetType());
 							counters.TryAdd(packName, 0);
 
-							var dataStream = typeStorage.AddStream($"{counters[packName]++}");
-							dataStream.Append(packageable.Pack(_table.transform));
+							var bytes = action(packageable);
+							if (bytes.Length > 0) {
+
+								// rootName / -> 0.0.0 <- / CompType / 0
+								if (itemStorage == null) {
+									itemStorage = storage.AddStorage(key);
+									itemStorage.CreationDate = _now;
+									itemStorage.ModifyDate = _now;
+								}
+
+								// rootName / 0.0.0 / -> CompType <- / 0
+								if (!itemStorage.TryGetStorage(packName, out var typeStorage)) {
+									typeStorage = itemStorage.AddStorage(packName);
+									typeStorage.CreationDate = _now;
+									typeStorage.ModifyDate = _now;
+								}
+
+								// rootName / 0.0.0 / CompType / -> 0 <-
+								var dataStream = typeStorage.AddStream($"{counters[packName]++}");
+								dataStream.Append(bytes);
+
+							}
 							break;
 						}
 
@@ -150,14 +183,6 @@ namespace VisualPinball.Unity
 					}
 				}
 			}
-
-			if (File.Exists(path)) {
-				File.Delete(path);
-			}
-			cf.SaveAs(path);
-			cf.Close();
-			sw.Stop();
-			Debug.Log($"File saved to {path} in {sw.ElapsedMilliseconds}ms.");
 		}
 	}
 }

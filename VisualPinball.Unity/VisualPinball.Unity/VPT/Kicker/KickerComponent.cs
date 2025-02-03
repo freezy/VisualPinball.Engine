@@ -42,7 +42,7 @@ namespace VisualPinball.Unity
 	[AddComponentMenu("Visual Pinball/Game Item/Kicker")]
 	public class KickerComponent : MainRenderableComponent<KickerData>,
 		ICoilDeviceComponent, ITriggerComponent, IBallCreationPosition,
-		IRotatableComponent, ISerializationCallbackReceiver, IPackageable
+		IRotatableComponent, ISerializationCallbackReceiver, IPackable
 	{
 		#region Data
 
@@ -147,7 +147,9 @@ namespace VisualPinball.Unity
 			).Pack();
 		}
 
-		public void Unpack(byte[] bytes, Transform root)
+		public byte[] PackReferences(Transform root, PackNameLookup packNameLookup) => Array.Empty<byte>();
+
+		public void Unpack(byte[] bytes)
 		{
 			var data = KickerPackable.Unpack(bytes);
 			Coils = data.Coils.Select(c => new KickerCoil {
@@ -158,6 +160,8 @@ namespace VisualPinball.Unity
 				Inclination = c.Inclination
 			}).ToList();
 		}
+
+		public void UnpackReferences(byte[] data, Transform root, PackNameLookup packNameLookup) { }
 
 		#endregion
 

@@ -35,9 +35,10 @@ using VisualPinball.Engine.VPT.Trigger;
 
 namespace VisualPinball.Unity
 {
+	[PackAs("Trigger")]
 	[AddComponentMenu("Visual Pinball/Game Item/Trigger")]
 	public class TriggerComponent : MainRenderableComponent<TriggerData>,
-		ITriggerComponent
+		ITriggerComponent, IPackable
 	{
 		#region Data
 
@@ -70,6 +71,28 @@ namespace VisualPinball.Unity
 		[SerializeField]
 		private DragPointData[] _dragPoints;
 		public DragPointData[] DragPoints { get => _dragPoints; set => _dragPoints = value; }
+
+		#endregion
+
+		#region Packaging
+
+		public byte[] Pack(Transform root)
+		{
+			return new TriggerPackable(DragPoints
+				.Select(dp => new DragPointPackable(dp))
+				.ToList()
+			).Pack();
+		}
+
+		public byte[] PackReferences(Transform root, PackNameLookup packNameLookup) => Array.Empty<byte>();
+
+		public void Unpack(byte[] bytes)
+		{
+			var data = TriggerPackable.Unpack(bytes);
+			DragPoints = data.DragPoints.Select(c => c.ToData()).ToArray();
+		}
+
+		public void UnpackReferences(byte[] data, Transform root, PackNameLookup packNameLookup) { }
 
 		#endregion
 
