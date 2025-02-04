@@ -29,11 +29,13 @@ using VisualPinball.Engine.Math;
 using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Surface;
 using VisualPinball.Engine.VPT.Table;
+using VisualPinball.Unity.Packaging;
 
 namespace VisualPinball.Unity
 {
+	[PackAs("Surface")]
 	[AddComponentMenu("Visual Pinball/Game Item/Surface")]
-	public class SurfaceComponent : MainRenderableComponent<SurfaceData>, ISurfaceComponent
+	public class SurfaceComponent : MainRenderableComponent<SurfaceData>, ISurfaceComponent, IPackable
 	{
 		#region Data
 
@@ -46,6 +48,18 @@ namespace VisualPinball.Unity
 		[SerializeField]
 		private DragPointData[] _dragPoints;
 		public DragPointData[] DragPoints { get => _dragPoints; set => _dragPoints = value; }
+
+		#endregion
+
+		#region Packaging
+
+		public byte[] Pack() => SurfacePackable.Pack(this);
+
+		public byte[] PackReferences(Transform root, PackNameLookup lookup, PackagedFiles files) => Array.Empty<byte>();
+
+		public void Unpack(byte[] bytes) => SurfacePackable.Unpack(bytes, this);
+
+		public void UnpackReferences(byte[] data, Transform root, PackNameLookup packNameLookup) { }
 
 		#endregion
 

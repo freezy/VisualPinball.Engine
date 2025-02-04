@@ -29,12 +29,14 @@ using VisualPinball.Engine.Math;
 using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Primitive;
 using VisualPinball.Engine.VPT.Table;
+using VisualPinball.Unity.Packaging;
 using Mesh = VisualPinball.Engine.VPT.Mesh;
 
 namespace VisualPinball.Unity
 {
+	[PackAs("Primitive")]
 	[AddComponentMenu("Visual Pinball/Game Item/Primitive")]
-	public class PrimitiveComponent : MainRenderableComponent<PrimitiveData>, IMeshGenerator
+	public class PrimitiveComponent : MainRenderableComponent<PrimitiveData>, IMeshGenerator, IPackable
 	{
 		#region Data
 
@@ -42,6 +44,18 @@ namespace VisualPinball.Unity
 			get => transform.localPosition.TranslateToVpx();
 			set => transform.localPosition = value.TranslateToWorld();
 		}
+
+		#endregion
+
+		#region Packaging
+
+		public byte[] Pack() => PrimitivePackable.Pack(this);
+
+		public byte[] PackReferences(Transform root, PackNameLookup lookup, PackagedFiles files) => Array.Empty<byte>();
+
+		public void Unpack(byte[] bytes) => PrimitivePackable.Unpack(bytes, this);
+
+		public void UnpackReferences(byte[] data, Transform root, PackNameLookup packNameLookup) { }
 
 		#endregion
 

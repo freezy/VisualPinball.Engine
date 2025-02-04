@@ -22,36 +22,13 @@ using VisualPinball.Unity.Editor.Packaging;
 namespace VisualPinball.Unity
 {
 	[MemoryPackable]
-	public partial struct KickerColliderPackable
+	public partial struct GatePackable
 	{
-		public float Scatter;
-		public float HitAccuracy;
-		public float HitHeight;
-		public bool FallThrough;
-		public bool FallIn;
-		public bool LegacyMode;
+		public static byte[] Pack(GateComponent _) => PackageApi.Packer.Pack(new GatePackable());
 
-		public static byte[] Pack(KickerColliderComponent comp)
+		public static void Unpack(byte[] bytes, GateComponent comp)
 		{
-			return PackageApi.Packer.Pack(new KickerColliderPackable {
-				Scatter = comp.Scatter,
-				HitAccuracy = comp.HitAccuracy,
-				HitHeight = comp.HitHeight,
-				FallThrough = comp.FallThrough,
-				FallIn = comp.FallIn,
-				LegacyMode = comp.LegacyMode
-			});
-		}
-
-		public static void Unpack(byte[] bytes, KickerColliderComponent comp)
-		{
-			var data = PackageApi.Packer.Unpack<KickerColliderPackable>(bytes);
-			comp.Scatter = data.Scatter;
-			comp.HitAccuracy = data.HitAccuracy;
-			comp.HitHeight = data.HitHeight;
-			comp.FallThrough = data.FallThrough;
-			comp.FallIn = data.FallIn;
-			comp.LegacyMode = data.LegacyMode;
+			// no data
 		}
 	}
 }

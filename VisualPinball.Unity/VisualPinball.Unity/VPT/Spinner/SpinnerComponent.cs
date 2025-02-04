@@ -32,11 +32,14 @@ using VisualPinball.Engine.Math;
 using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Spinner;
 using VisualPinball.Engine.VPT.Table;
+using VisualPinball.Unity.Packaging;
 
 namespace VisualPinball.Unity
 {
+	[PackAs("Spinner")]
 	[AddComponentMenu("Visual Pinball/Game Item/Spinner")]
-	public class SpinnerComponent : MainRenderableComponent<SpinnerData>, ISwitchDeviceComponent, IRotatableAnimationComponent
+	public class SpinnerComponent : MainRenderableComponent<SpinnerData>, ISwitchDeviceComponent,
+		IRotatableAnimationComponent, IPackable
 	{
 		#region Data
 
@@ -81,6 +84,18 @@ namespace VisualPinball.Unity
 		public float AngleMin;
 
 		public bool ShowBracket => GetVisibilityByComponent<SpinnerBracketColliderComponent>();
+
+		#endregion
+
+		#region Packaging
+
+		public byte[] Pack() => SpinnerPackable.Pack(this);
+
+		public byte[] PackReferences(Transform root, PackNameLookup lookup, PackagedFiles files) => Array.Empty<byte>();
+
+		public void Unpack(byte[] bytes) => SpinnerPackable.Unpack(bytes, this);
+
+		public void UnpackReferences(byte[] data, Transform root, PackNameLookup packNameLookup) { }
 
 		#endregion
 

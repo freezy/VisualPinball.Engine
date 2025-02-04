@@ -19,11 +19,13 @@
 using Unity.Mathematics;
 using UnityEngine;
 using VisualPinball.Engine.VPT.Surface;
+using VisualPinball.Unity.Packaging;
 
 namespace VisualPinball.Unity
 {
+	[PackAs("SurfaceCollider")]
 	[AddComponentMenu("Visual Pinball/Collision/Surface Collider")]
-	public class SurfaceColliderComponent : ColliderComponent<SurfaceData, SurfaceComponent>
+	public class SurfaceColliderComponent : ColliderComponent<SurfaceData, SurfaceComponent>, IPackable
 	{
 		#region Data
 
@@ -63,6 +65,19 @@ namespace VisualPinball.Unity
 		[Range(-90f, 90f)]
 		[Tooltip("When hit, add a random angle between 0 and this value to the trajectory.")]
 		public float Scatter;
+
+		#endregion
+
+		#region Packaging
+
+		public byte[] Pack() => SurfaceColliderPackable.Pack(this);
+
+		public byte[] PackReferences(Transform root, PackNameLookup lookup, PackagedFiles files) =>
+			PhysicalMaterialPackable.Pack(1, 1, 0, Scatter, true, PhysicsMaterial, files);
+
+		public void Unpack(byte[] bytes) => SurfaceColliderPackable.Unpack(bytes, this);
+
+		public void UnpackReferences(byte[] data, Transform root, PackNameLookup packNameLookup) { }
 
 		#endregion
 

@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using UnityEngine;
+using VisualPinball.Unity.Packaging;
 
 namespace VisualPinball.Unity
 {
@@ -24,7 +25,7 @@ namespace VisualPinball.Unity
 	public interface IPackable
 	{
 		byte[] Pack();
-		byte[] PackReferences(Transform root, PackNameLookup packNameLookup);
+		byte[] PackReferences(Transform root, PackNameLookup lookup, PackagedFiles files);
 
 		void Unpack(byte[] bytes);
 		void UnpackReferences(byte[] bytes, Transform root, PackNameLookup packNameLookup);
