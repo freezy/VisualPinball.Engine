@@ -1,13 +1,50 @@
-﻿using System;
+﻿// Visual Pinball Engine
+// Copyright (C) 2023 freezy and VPE Team
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+using System;
 using System.IO;
 
 namespace VisualPinball.Unity.Editor.Packaging
 {
 	/// <summary>
+	/// A manager for creating and opening storages.
+	/// </summary>
+	public interface IStorageManager
+	{
+		/// <summary>
+		/// Creates a new storage instance for writing to the file.
+		/// </summary>
+		/// <param name="path">Path to the file.</param>
+		/// <returns>Instance of the storage.</returns>
+		IPackageStorage CreateStorage(string path);
+
+		/// <summary>
+		/// Opens an existing storage instance for reading from the file.
+		/// </summary>
+		/// <param name="path">Path to the file.</param>
+		/// <returns>Instance of the storage.</returns>
+		IPackageStorage OpenStorage(string path);
+	}
+
+	/// <summary>
 	/// An abstraction for a storage that can contain folders and files.
 	/// </summary>
-	public interface IVpeStorage : IDisposable
+	public interface IPackageStorage : IDisposable
 	{
+
 		/// <summary>
 		/// Create or reference a new folder in the root of the storage.
 		/// </summary>
@@ -23,13 +60,7 @@ namespace VisualPinball.Unity.Editor.Packaging
 		IPackageFolder GetFolder(string name);
 
 		/// <summary>
-		/// Save the storage to a file and close it.
-		/// </summary>
-		/// <param name="path"></param>
-		void SaveAs(string path);
-
-		/// <summary>
-		/// Just close the file.
+		/// Close the file.
 		/// </summary>
 		void Close();
 	}
