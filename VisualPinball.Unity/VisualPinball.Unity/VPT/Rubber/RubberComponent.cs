@@ -30,12 +30,13 @@ using VisualPinball.Engine.Math;
 using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Rubber;
 using VisualPinball.Engine.VPT.Table;
+using VisualPinball.Unity.Packaging;
 
 namespace VisualPinball.Unity
 {
+	[PackAs("Rubber")]
 	[AddComponentMenu("Visual Pinball/Game Item/Rubber")]
-	public class RubberComponent : MainRenderableComponent<RubberData>,
-		IRubberData
+	public class RubberComponent : MainRenderableComponent<RubberData>, IRubberData, IPackable
 	{
 		#region Data
 
@@ -58,9 +59,6 @@ namespace VisualPinball.Unity
 		[NonSerialized]
 		private Vertex3D[] _scalingDragPoints;
 
-		[NonSerialized]
-		private float4x4 _playfieldToWorld;
-
 		#endregion
 
 		#region IRubberData
@@ -71,6 +69,18 @@ namespace VisualPinball.Unity
 		public float RotX => Rotation.x;
 		public float RotY => Rotation.y;
 		public float RotZ => Rotation.z;
+
+		#endregion
+
+		#region Packaging
+
+		public byte[] Pack() => RubberPackable.Pack(this);
+
+		public byte[] PackReferences(Transform root, PackNameLookup lookup, PackagedFiles files) => Array.Empty<byte>();
+
+		public void Unpack(byte[] bytes) => RubberPackable.Unpack(bytes, this);
+
+		public void UnpackReferences(byte[] data, Transform root, PackNameLookup packNameLookup) { }
 
 		#endregion
 
@@ -100,12 +110,6 @@ namespace VisualPinball.Unity
 
 			player.Register(RubberApi, this);
 			RegisterPhysics(physicsEngine);
-		}
-
-		private void Start()
-		{
-			var playfield = GetComponentInParent<PlayfieldComponent>();
-			_playfieldToWorld = playfield ? playfield.transform.localToWorldMatrix : float4x4.identity;
 		}
 
 		#endregion

@@ -21,15 +21,29 @@ using Unity.Mathematics;
 using UnityEngine;
 using VisualPinball.Engine.VPT.HitTarget;
 using VisualPinball.Engine.VPT.Table;
+using VisualPinball.Unity.Packaging;
 
 namespace VisualPinball.Unity
 {
+	[PackAs("HitTarget")]
 	[AddComponentMenu("Visual Pinball/Game Item/Hit Target")]
-	public class HitTargetComponent : TargetComponent
+	public class HitTargetComponent : TargetComponent, IPackable
 	{
 		protected override float ZOffset => 0;
 
 		public override bool HasProceduralMesh => false;
+
+		#region Packaging
+
+		public byte[] Pack() => HitTargetPackable.Pack(this);
+
+		public byte[] PackReferences(Transform root, PackNameLookup lookup, PackagedFiles files) => Array.Empty<byte>();
+
+		public void Unpack(byte[] bytes) => HitTargetPackable.Unpack(bytes, this);
+
+		public void UnpackReferences(byte[] data, Transform root, PackNameLookup packNameLookup) { }
+
+		#endregion
 
 		#region Conversion
 

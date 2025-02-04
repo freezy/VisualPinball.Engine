@@ -35,6 +35,7 @@ using VisualPinball.Engine.Math;
 using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Kicker;
 using VisualPinball.Engine.VPT.Table;
+using VisualPinball.Unity.Packaging;
 
 namespace VisualPinball.Unity
 {
@@ -141,7 +142,7 @@ namespace VisualPinball.Unity
 
 		public byte[] Pack() => KickerPackable.Pack(this);
 
-		public byte[] PackReferences(Transform root, PackNameLookup packNameLookup) => Array.Empty<byte>();
+		public byte[] PackReferences(Transform root, PackNameLookup lookup, PackagedFiles files) => Array.Empty<byte>();
 
 		public void Unpack(byte[] bytes) => KickerPackable.Unpack(bytes, this);
 

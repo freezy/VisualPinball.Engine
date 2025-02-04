@@ -32,13 +32,15 @@ using VisualPinball.Engine.Game.Engines;
 using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Light;
 using VisualPinball.Engine.VPT.Table;
+using VisualPinball.Unity.Packaging;
 using Light = UnityEngine.Light;
 using Logger = NLog.Logger;
 
 namespace VisualPinball.Unity
 {
+	[PackAs("Lamp")]
 	[AddComponentMenu("Visual Pinball/Game Item/Light")]
-	public class LightComponent : MainRenderableComponent<LightData>, ILampDeviceComponent
+	public class LightComponent : MainRenderableComponent<LightData>, ILampDeviceComponent, IPackable
 	{
 		#region Data
 
@@ -59,6 +61,18 @@ namespace VisualPinball.Unity
 		public float FadeSpeedDown;
 
 		private bool FadeEnabled => FadeSpeedUp > 0f || FadeSpeedDown > 0f;
+
+		#endregion
+
+		#region Packaging
+
+		public byte[] Pack() => LightPackable.Pack(this);
+
+		public byte[] PackReferences(Transform root, PackNameLookup lookup, PackagedFiles files) => Array.Empty<byte>();
+
+		public void Unpack(byte[] bytes) => LightPackable.Unpack(bytes, this);
+
+		public void UnpackReferences(byte[] data, Transform root, PackNameLookup packNameLookup) { }
 
 		#endregion
 

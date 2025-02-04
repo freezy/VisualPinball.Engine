@@ -32,6 +32,7 @@ using VisualPinball.Engine.Math;
 using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Table;
 using VisualPinball.Engine.VPT.Trigger;
+using VisualPinball.Unity.Packaging;
 
 namespace VisualPinball.Unity
 {
@@ -78,7 +79,7 @@ namespace VisualPinball.Unity
 
 		public byte[] Pack() => TriggerPackable.Pack(this);
 
-		public byte[] PackReferences(Transform root, PackNameLookup packNameLookup) => Array.Empty<byte>();
+		public byte[] PackReferences(Transform root, PackNameLookup lookup, PackagedFiles files) => Array.Empty<byte>();
 
 		public void Unpack(byte[] bytes) => TriggerPackable.Unpack(bytes, this);
 
