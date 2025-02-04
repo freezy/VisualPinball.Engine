@@ -23,9 +23,11 @@ using GLTFast;
 using GLTFast.Export;
 using GLTFast.Logging;
 using MemoryPack;
+using NLog;
 using UnityEngine;
 using VisualPinball.Unity.Editor.Packaging;
 using Debug = UnityEngine.Debug;
+using Logger = NLog.Logger;
 
 namespace VisualPinball.Unity
 {
@@ -44,14 +46,14 @@ namespace VisualPinball.Unity
 
 		private readonly GameObject _table;
 		private readonly PackNameLookup _typeLookup;
-		private readonly DateTime _now;
 		private IPackageFolder _tableStorage;
+
+		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
 		public PackageWriter(GameObject table)
 		{
 			_table = table;
 			_typeLookup = new PackNameLookup();
-			_now = DateTime.Now;
 		}
 
 		public async Task WritePackage(string path)
@@ -62,18 +64,34 @@ namespace VisualPinball.Unity
 				File.Delete(path);
 			}
 
+			Logger.Info($"Writing table to {path}...");
 			using var storage = PackageApi.StorageManager.CreateStorage(path);
 
 			_tableStorage = storage.AddFolder(TableStorage);
 
+			// write scene data
+			var sw1 = Stopwatch.StartNew();
 			await WriteScene();
+			Logger.Info($"Scene written in {sw1.ElapsedMilliseconds}ms.");
+
+			// write component data
+			sw1 = Stopwatch.StartNew();
 			WritePackables(ItemStorage, packageable => packageable.Pack(), go => new ItemPackable(go).Pack());
+			Logger.Info($"Component data written in {sw1.ElapsedMilliseconds}ms.");
+
+			// write reference data
+			sw1 = Stopwatch.StartNew();
 			WritePackables(ItemReferenceStorage, packageable => packageable.PackReferences(_table.transform, _typeLookup));
+			Logger.Info($"References written in {sw1.ElapsedMilliseconds}ms.");
+
+			// write globals
+			sw1 = Stopwatch.StartNew();
 			WriteGlobals();
+			Logger.Info($"Globals written in {sw1.ElapsedMilliseconds}ms.");
 
 			storage.Close();
 			sw.Stop();
-			Debug.Log($"File saved to {path} in {sw.ElapsedMilliseconds}ms.");
+			Debug.Log($"Done! File saved to {path} in {sw.ElapsedMilliseconds}ms.");
 		}
 
 		private async Task WriteScene()
@@ -140,18 +158,18 @@ namespace VisualPinball.Unity
 			// walk the entire tree
 			foreach (var t in _table.transform.GetComponentsInChildren<Transform>()) {
 
-				// for each go, loop through all components
+				// for each game object, loop through all components
 				var key = t.GetPath(_table.transform);
 				var counters = new Dictionary<string, int>();
 				var itemData = getItemData?.Invoke(t.gameObject);
 
 				// rootName / -> 0.0.0 <- / CompType / 0
-				IPackageFolder itemStorage = null;
+				IPackageFolder itemPathFolder = null;
 				if (itemData?.Length > 0) {
-					itemStorage = folder.AddFolder(key);
+					itemPathFolder = folder.AddFolder(key);
 
-					var itemStream = itemStorage.AddFile(ItemStream);
-					itemStream.SetData(itemData);
+					var itemFile = itemPathFolder.AddFile(ItemStream);
+					itemFile.SetData(itemData);
 				}
 
 				foreach (var component in t.gameObject.GetComponents<Component>()) {
@@ -161,24 +179,20 @@ namespace VisualPinball.Unity
 							var packName = _typeLookup.GetName(packageable.GetType());
 							counters.TryAdd(packName, 0);
 
-
-
 							var packableData = getPackableData(packageable);
 							if (packableData.Length > 0) {
 
 								// rootName / -> 0.0.0 <- / CompType / 0
-								if (itemStorage == null) {
-									itemStorage = folder.AddFolder(key);
-								}
+								itemPathFolder ??= folder.AddFolder(key);
 
 								// rootName / 0.0.0 / -> CompType <- / 0
-								if (!itemStorage.TryGetFolder(packName, out var typeStorage)) {
-									typeStorage = itemStorage.AddFolder(packName);
+								if (!itemPathFolder.TryGetFolder(packName, out var itemComponentFolder)) {
+									itemComponentFolder = itemPathFolder.AddFolder(packName);
 								}
 
 								// rootName / 0.0.0 / CompType / -> 0 <-
-								var dataStream = typeStorage.AddFile($"{counters[packName]++}");
-								dataStream.SetData(packableData);
+								var itemComponentFile = itemComponentFolder.AddFile($"{counters[packName]++}");
+								itemComponentFile.SetData(packableData);
 							}
 							break;
 						}
