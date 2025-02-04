@@ -34,10 +34,7 @@ namespace VisualPinball.Unity
 			table.GlobalDifficulty = GlobalDifficulty;
 		}
 
-		public static TablePackable Unpack(byte[] data) => MemoryPackSerializer.Deserialize<TablePackable>(data);
-		public byte[] Pack() => MemoryPackSerializer.Serialize(this);
-
-		// public static TablePackable Unpack(byte[] data) => PackageApi.Packer.Unpack<TablePackable>(data);
-		// public byte[] Pack() => PackageApi.Packer.Pack(this);
+		public static TablePackable Unpack(byte[] data) => PackageApi.Packer.Unpack<TablePackable>(data);
+		public byte[] Pack() => PackageApi.Packer.Pack(this);
 	}
 }
