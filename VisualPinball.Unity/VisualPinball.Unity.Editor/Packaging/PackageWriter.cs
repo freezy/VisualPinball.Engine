@@ -36,7 +36,7 @@ namespace VisualPinball.Unity
 		public const string ItemStorage = "items";
 		public const string ItemStream = "item";
 		public const string ItemReferenceStorage = "refs";
-		public const string SceneStream = "scene.glb";
+		public const string SceneStream = "table.glb";
 		public const string GlobalStorage = "global";
 		public const string SwitchesStream = "switches";
 		public const string CoilsStream = "coils";
@@ -167,7 +167,7 @@ namespace VisualPinball.Unity
 				if (itemData?.Length > 0) {
 					itemPathFolder = folder.AddFolder(key);
 
-					var itemFile = itemPathFolder.AddFile(ItemStream);
+					var itemFile = itemPathFolder.AddFile(ItemStream, PackageApi.Packer.FileExtension);
 					itemFile.SetData(itemData);
 				}
 
@@ -190,7 +190,7 @@ namespace VisualPinball.Unity
 								}
 
 								// rootName / 0.0.0 / CompType / -> 0 <-
-								var itemComponentFile = itemComponentFolder.AddFile($"{counters[packName]++}");
+								var itemComponentFile = itemComponentFolder.AddFile($"{counters[packName]++:00}", PackageApi.Packer.FileExtension);
 								itemComponentFile.SetData(packableData);
 							}
 							break;
@@ -232,10 +232,10 @@ namespace VisualPinball.Unity
 				lp.SaveReference(_table.transform);
 			}
 
-			globalStorage.AddFile(SwitchesStream).SetData(PackageApi.Packer.Pack(tableComponent.MappingConfig.Switches));
-			globalStorage.AddFile(CoilsStream).SetData(PackageApi.Packer.Pack(tableComponent.MappingConfig.Coils));
-			globalStorage.AddFile(WiresStream).SetData(PackageApi.Packer.Pack(tableComponent.MappingConfig.Wires));
-			globalStorage.AddFile(LampsStream).SetData(PackageApi.Packer.Pack(tableComponent.MappingConfig.Lamps));
+			globalStorage.AddFile(SwitchesStream, PackageApi.Packer.FileExtension).SetData(PackageApi.Packer.Pack(tableComponent.MappingConfig.Switches));
+			globalStorage.AddFile(CoilsStream, PackageApi.Packer.FileExtension).SetData(PackageApi.Packer.Pack(tableComponent.MappingConfig.Coils));
+			globalStorage.AddFile(WiresStream, PackageApi.Packer.FileExtension).SetData(PackageApi.Packer.Pack(tableComponent.MappingConfig.Wires));
+			globalStorage.AddFile(LampsStream, PackageApi.Packer.FileExtension).SetData(PackageApi.Packer.Pack(tableComponent.MappingConfig.Lamps));
 		}
 	}
 }

@@ -63,30 +63,11 @@ namespace VisualPinball.Unity
 
 		#region Packaging
 
-		public byte[] Pack()
-		{
-			return new KickerColliderPackable(
-				Scatter,
-				HitAccuracy,
-				HitHeight,
-				FallThrough,
-				FallIn,
-				LegacyMode
-			).Pack();
-		}
+		public byte[] Pack() => KickerColliderPackable.Pack(this);
 
 		public byte[] PackReferences(Transform root, PackNameLookup packNameLookup) => Array.Empty<byte>();
 
-		public void Unpack(byte[] bytes)
-		{
-			var data = KickerColliderPackable.Unpack(bytes);
-			Scatter = data.Scatter;
-			HitAccuracy = data.HitAccuracy;
-			HitHeight = data.HitHeight;
-			FallThrough = data.FallThrough;
-			FallIn = data.FallIn;
-			LegacyMode = data.LegacyMode;
-		}
+		public void Unpack(byte[] bytes) => KickerColliderPackable.Unpack(bytes, this);
 
 		public void UnpackReferences(byte[] data, Transform root, PackNameLookup packNameLookup) { }
 

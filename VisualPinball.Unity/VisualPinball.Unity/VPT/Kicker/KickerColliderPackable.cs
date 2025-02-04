@@ -14,33 +14,44 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+// ReSharper disable MemberCanBePrivate.Global
+
 using MemoryPack;
 using VisualPinball.Unity.Editor.Packaging;
 
 namespace VisualPinball.Unity
 {
 	[MemoryPackable]
-	public readonly partial struct KickerColliderPackable
+	public partial struct KickerColliderPackable
 	{
-		public float Scatter { get; }
-		public float HitAccuracy { get; }
-		public float HitHeight { get; }
-		public bool FallThrough { get; }
-		public bool FallIn { get; }
-		public bool LegacyMode { get; }
+		public float Scatter;
+		public float HitAccuracy;
+		public float HitHeight;
+		public bool FallThrough;
+		public bool FallIn;
+		public bool LegacyMode;
 
-		public KickerColliderPackable(float scatter, float hitAccuracy, float hitHeight, bool fallThrough, bool fallIn, bool legacyMode)
+		public static byte[] Pack(KickerColliderComponent comp)
 		{
-			Scatter = scatter;
-			HitAccuracy = hitAccuracy;
-			HitHeight = hitHeight;
-			FallThrough = fallThrough;
-			FallIn = fallIn;
-			LegacyMode = legacyMode;
+			return PackageApi.Packer.Pack(new KickerColliderPackable {
+				Scatter = comp.Scatter,
+				HitAccuracy = comp.HitAccuracy,
+				HitHeight = comp.HitHeight,
+				FallThrough = comp.FallThrough,
+				FallIn = comp.FallIn,
+				LegacyMode = comp.LegacyMode
+			});
 		}
 
-		public static KickerColliderPackable Unpack(byte[] data) => PackageApi.Packer.Unpack<KickerColliderPackable>(data);
-
-		public byte[] Pack() => PackageApi.Packer.Pack(this);
+		public static void Unpack(byte[] bytes, KickerColliderComponent comp)
+		{
+			var data = PackageApi.Packer.Unpack<KickerColliderPackable>(bytes);
+			comp.Scatter = data.Scatter;
+			comp.HitAccuracy = data.HitAccuracy;
+			comp.HitHeight = data.HitHeight;
+			comp.FallThrough = data.FallThrough;
+			comp.FallIn = data.FallIn;
+			comp.LegacyMode = data.LegacyMode;
+		}
 	}
 }

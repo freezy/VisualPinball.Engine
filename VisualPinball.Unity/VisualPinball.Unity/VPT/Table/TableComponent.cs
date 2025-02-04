@@ -64,9 +64,12 @@ namespace VisualPinball.Unity
 
 		#region Packaging
 
-		public byte[] Pack() => new TablePackable(GlobalDifficulty).Pack();
+		public byte[] Pack() => TablePackable.Pack(this);
+
 		public byte[] PackReferences(Transform root, PackNameLookup packNameLookup) => Array.Empty<byte>();
-		public void Unpack(byte[] data) => TablePackable.Unpack(data).Apply(this);
+
+		public void Unpack(byte[] bytes) => TablePackable.Unpack(bytes, this);
+
 		public void UnpackReferences(byte[] data, Transform root, PackNameLookup packNameLookup) { }
 
 		#endregion

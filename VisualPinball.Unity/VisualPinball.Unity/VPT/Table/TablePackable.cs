@@ -14,27 +14,29 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+// ReSharper disable MemberCanBePrivate.Global
+
 using MemoryPack;
 using VisualPinball.Unity.Editor.Packaging;
 
 namespace VisualPinball.Unity
 {
 	[MemoryPackable]
-	public readonly partial struct TablePackable
+	public partial struct TablePackable
 	{
-		public readonly float GlobalDifficulty;
+		public float GlobalDifficulty;
 
-		public TablePackable(float globalDifficulty)
+		public static byte[] Pack(TableComponent comp)
 		{
-			GlobalDifficulty = globalDifficulty;
+			return PackageApi.Packer.Pack(new TablePackable {
+				GlobalDifficulty = comp.GlobalDifficulty,
+			});
 		}
 
-		public void Apply(TableComponent table)
+		public static void Unpack(byte[] bytes, TableComponent comp)
 		{
-			table.GlobalDifficulty = GlobalDifficulty;
+			var data = PackageApi.Packer.Unpack<TablePackable>(bytes);
+			comp.GlobalDifficulty = data.GlobalDifficulty;
 		}
-
-		public static TablePackable Unpack(byte[] data) => PackageApi.Packer.Unpack<TablePackable>(data);
-		public byte[] Pack() => PackageApi.Packer.Pack(this);
 	}
 }

@@ -76,21 +76,11 @@ namespace VisualPinball.Unity
 
 		#region Packaging
 
-		public byte[] Pack()
-		{
-			return new TriggerPackable(DragPoints
-				.Select(dp => new DragPointPackable(dp))
-				.ToList()
-			).Pack();
-		}
+		public byte[] Pack() => TriggerPackable.Pack(this);
 
 		public byte[] PackReferences(Transform root, PackNameLookup packNameLookup) => Array.Empty<byte>();
 
-		public void Unpack(byte[] bytes)
-		{
-			var data = TriggerPackable.Unpack(bytes);
-			DragPoints = data.DragPoints.Select(c => c.ToData()).ToArray();
-		}
+		public void Unpack(byte[] bytes) => TriggerPackable.Unpack(bytes, this);
 
 		public void UnpackReferences(byte[] data, Transform root, PackNameLookup packNameLookup) { }
 
