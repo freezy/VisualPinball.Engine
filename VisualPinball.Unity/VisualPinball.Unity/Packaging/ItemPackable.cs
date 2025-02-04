@@ -23,17 +23,19 @@ using VisualPinball.Unity.Editor.Packaging;
 namespace VisualPinball.Unity
 {
 	[MemoryPackable]
-	public readonly partial struct ItemPackable
+	public partial struct ItemPackable
 	{
-		public readonly bool IsActive;
-		public readonly bool IsStatic;
-		public readonly string PrefabGuid;
+		public string Name;
+		public bool IsActive;
+		public bool IsStatic;
+		public string PrefabGuid;
 
-		private bool IsEmpty => string.IsNullOrEmpty(PrefabGuid) && IsActive;
+		private bool IsEmpty => string.IsNullOrEmpty(PrefabGuid) && IsActive && !IsStatic;
 
 		[MemoryPackConstructor]
-		public ItemPackable(bool isActive, bool isStatic, string prefabGuid)
+		public ItemPackable(string name, bool isActive, bool isStatic, string prefabGuid)
 		{
+			Name = name;
 			IsActive = isActive;
 			IsStatic = isStatic;
 			PrefabGuid = prefabGuid;
@@ -41,6 +43,7 @@ namespace VisualPinball.Unity
 
 		public ItemPackable(GameObject go)
 		{
+			Name = go.name;
 			if (PrefabUtility.IsPartOfAnyPrefab(go)) {
 				var prefab = PrefabUtility.GetCorrespondingObjectFromSource(go);
 				PrefabGuid = AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(prefab));

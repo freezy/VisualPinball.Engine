@@ -112,50 +112,13 @@ namespace VisualPinball.Unity
 
 		#region Packaging
 
-		public byte[] Pack()
-		{
-			return new TroughPackable(
-				Type,
-				BallCount,
-				SwitchCount,
-				JamSwitch,
-				RollTime,
-				TransitionTime,
-				KickTime
-			).Pack();
-		}
-		public byte[] PackReferences(Transform root, PackNameLookup packNameLookup)
-		{
-			var playfieldEntrySwitch = _playfieldEntrySwitch != null
-				? new ReferencePackable(_playfieldEntrySwitch.transform.GetPath(root), packNameLookup.GetName(_playfieldEntrySwitch.GetType()))
-				: new ReferencePackable(null, null);
+		public byte[] Pack() => TroughPackable.Pack(this);
 
-			var playfieldExitKicker = PlayfieldExitKicker != null
-				? new ReferencePackable(PlayfieldExitKicker.transform.GetPath(root), packNameLookup.GetName(PlayfieldExitKicker.GetType()))
-				: new ReferencePackable(null, null);
+        public byte[] PackReferences(Transform root, PackNameLookup packNameLookup) => TroughReferencesPackable.Pack(this, root, packNameLookup);
 
-			return new TroughReferencesPackable(playfieldEntrySwitch,  PlayfieldEntrySwitchItem, playfieldExitKicker, PlayfieldExitKickerItem).Pack();
-		}
+        public void Unpack(byte[] bytes) => TroughPackable.Unpack(bytes, this);
 
-		public void Unpack(byte[] bytes)
-		{
-			var data = TroughPackable.Unpack(bytes);
-			Type = data.Type;
-			BallCount = data.BallCount;
-			SwitchCount = data.SwitchCount;
-			JamSwitch = data.JamSwitch;
-			RollTime = data.RollTime;
-			TransitionTime = data.TransitionTime;
-			KickTime = data.KickTime;
-		}
-		public void UnpackReferences(byte[] bytes, Transform root, PackNameLookup packNameLookup)
-		{
-			var data = TroughReferencesPackable.Unpack(bytes);
-			_playfieldEntrySwitch = data.PlayfieldEntrySwitchRef.Resolve<MonoBehaviour, ITriggerComponent>(root, packNameLookup);
-			PlayfieldEntrySwitchItem = data.PlayfieldEntrySwitchItem;
-			PlayfieldExitKicker = data.PlayfieldExitKickerRef.Resolve<KickerComponent>(root, packNameLookup);
-			PlayfieldExitKickerItem = data.PlayfieldExitKickerItem;
-		}
+        public void UnpackReferences(byte[] data, Transform root, PackNameLookup packNameLookup) => TroughReferencesPackable.Unpack(data, this, root, packNameLookup);
 
 		#endregion
 

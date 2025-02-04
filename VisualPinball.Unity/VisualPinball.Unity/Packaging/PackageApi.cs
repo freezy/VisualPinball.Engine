@@ -24,10 +24,11 @@ namespace VisualPinball.Unity.Editor.Packaging
 	/// </summary>
 	public static class PackageApi
 	{
-		// public static readonly IStorageManager StorageManager = new SharpZipStorageManager();
-		public static IStorageManager StorageManager => new OpenMcdfStorageManager();
+		public static readonly IStorageManager StorageManager = new SharpZipStorageManager();
+		// public static IStorageManager StorageManager => new OpenMcdfStorageManager();
 
 		public static readonly IDataPacker Packer = new MemoryPackDataPacker();
+		// public static readonly IDataPacker Packer = new JsonPacker();
 	}
 
 	/// <summary>
@@ -97,8 +98,9 @@ namespace VisualPinball.Unity.Editor.Packaging
 		/// Create or reference a new file with this folder as a direct parent.
 		/// </summary>
 		/// <param name="name">Name of the file.</param>
+		/// <param name="ext">Extensions of the file, dot included.</param>
 		/// <returns>Reference to the new file.</returns>
-		IPackageFile AddFile(string name);
+		IPackageFile AddFile(string name, string ext = null);
 
 		/// <summary>
 		/// Try to retrieve an existing folder with this folder as a direct parent.
@@ -113,8 +115,9 @@ namespace VisualPinball.Unity.Editor.Packaging
 		/// </summary>
 		/// <param name="name">Name of the file.</param>
 		/// <param name="file">Reference to the existing file, or null otherwise</param>
+		/// <param name="ext">Extensions of the file, dot included.</param>
 		/// <returns>True if file exists, false otherwise.</returns>
-		bool TryGetFile(string name, out IPackageFile file);
+		bool TryGetFile(string name, out IPackageFile file, string ext = null);
 
 		/// <summary>
 		/// Retrieve an existing folder with this folder as a direct parent.
@@ -129,8 +132,9 @@ namespace VisualPinball.Unity.Editor.Packaging
 		/// </summary>
 		/// <throws>IllegalArgumentException if file does not exist.</throws>
 		/// <param name="name">Name of the file</param>
+		/// <param name="ext">Extensions of the file, dot included.</param>
 		/// <returns>Reference to the file.</returns>
-		IPackageFile GetFile(string name);
+		IPackageFile GetFile(string name, string ext = null);
 
 		/// <summary>
 		/// Loop through all folders in this folder by executing an action on each folder.
@@ -175,6 +179,13 @@ namespace VisualPinball.Unity.Editor.Packaging
 	public interface IDataPacker
 	{
 		/// <summary>
+		/// Convert an object to a byte array.
+		/// </summary>
+		/// <param name="obj">Object to serialize</param>
+		/// <returns>Serialized data.</returns>
+		public byte[] Pack<T>(T obj);
+
+		/// <summary>
 		/// Convert a byte array to an object.
 		/// </summary>
 		/// <param name="data">Serialized data</param>
@@ -182,11 +193,6 @@ namespace VisualPinball.Unity.Editor.Packaging
 		/// <returns>Deserialized object.</returns>
 		public T Unpack<T>(byte[] data);
 
-		/// <summary>
-		/// Convert an object to a byte array.
-		/// </summary>
-		/// <param name="obj">Object to serialize</param>
-		/// <returns>Serialized data.</returns>
-		public byte[] Pack<T>(T obj);
+		public string FileExtension { get; }
 	}
 }

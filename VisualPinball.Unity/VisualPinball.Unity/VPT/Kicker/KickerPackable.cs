@@ -14,7 +14,10 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+// ReSharper disable MemberCanBePrivate.Global
+
 using System.Collections.Generic;
+using System.Linq;
 using MemoryPack;
 using VisualPinball.Unity.Editor.Packaging;
 
@@ -23,34 +26,40 @@ namespace VisualPinball.Unity
 	[MemoryPackable]
 	public partial struct KickerPackable
 	{
-		public List<KickerCoilPackable> Coils { get; set; }
+		public IEnumerable<KickerCoilPackable> Coils;
 
-		public KickerPackable(List<KickerCoilPackable> coils)
+		public static byte[] Pack(KickerComponent comp)
 		{
-			Coils = coils;
+			return PackageApi.Packer.Pack(new KickerPackable { Coils = comp.Coils.Select(c => new KickerCoilPackable {
+					Name = c.Name,
+					Id = c.Id,
+					Speed = c.Speed,
+					Angle = c.Angle,
+					Inclination = c.Inclination,
+				})
+			});
 		}
 
-		public static KickerPackable Unpack(byte[] data) => PackageApi.Packer.Unpack<KickerPackable>(data);
-
-		public byte[] Pack() => PackageApi.Packer.Pack(this);
+		public static void Unpack(byte[] bytes, KickerComponent comp)
+		{
+			var data = PackageApi.Packer.Unpack<KickerPackable>(bytes);
+			comp.Coils = data.Coils.Select(c => new KickerCoil {
+				Name = c.Name,
+				Id = c.Id,
+				Speed = c.Speed,
+				Angle = c.Angle,
+				Inclination = c.Inclination
+			}).ToList();
+		}
 	}
 
 	[MemoryPackable]
-	public partial struct KickerCoilPackable {
-
-		public string Name { get; }
-		public string Id { get; }
-		public float Speed { get; }
-		public float Angle { get; }
-		public float Inclination { get; }
-
-		public KickerCoilPackable(string name, string id, float speed, float angle, float inclination)
-		{
-			Name = name;
-			Id = id;
-			Speed = speed;
-			Angle = angle;
-			Inclination = inclination;
-		}
+	public partial struct KickerCoilPackable
+	{
+		public string Name;
+		public string Id;
+		public float Speed;
+		public float Angle;
+		public float Inclination;
 	}
 }

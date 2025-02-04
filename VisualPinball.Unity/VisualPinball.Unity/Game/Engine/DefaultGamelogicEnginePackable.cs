@@ -20,9 +20,9 @@ using VisualPinball.Unity.Editor.Packaging;
 namespace VisualPinball.Unity
 {
 	[MemoryPackable]
-	public readonly partial struct DefaultGamelogicEnginePackable
+	public partial struct DefaultGamelogicEnginePackable
 	{
-		public readonly float GlobalDifficulty;
+		public float GlobalDifficulty;
 
 		public DefaultGamelogicEnginePackable(float globalDifficulty)
 		{

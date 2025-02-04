@@ -229,12 +229,13 @@ namespace VisualPinball.Unity.Editor.Packaging
 			return false;
 		}
 
-		public IPackageFile AddFile(string name)
+		public IPackageFile AddFile(string name, string ext = null)
 		{
 			if (!_isWriteMode) {
 				throw new InvalidOperationException("Cannot add file in read-only storage.");
 			}
 
+			name += ext ?? string.Empty;
 			if (!_files.TryGetValue(name, out var file)) {
 				file = new ZipPackageFile(name, this, _storage);
 				_files[name] = file;
@@ -252,8 +253,9 @@ namespace VisualPinball.Unity.Editor.Packaging
 			}
 		}
 
-		public IPackageFile GetFile(string name)
+		public IPackageFile GetFile(string name, string ext = null)
 		{
+			name += ext ?? string.Empty;
 			if (!TryGetFile(name, out var file)) {
 				throw new ArgumentException($"File '{name}' does not exist in folder '{_folderName}'");
 			}
@@ -261,8 +263,9 @@ namespace VisualPinball.Unity.Editor.Packaging
 			return file;
 		}
 
-		public bool TryGetFile(string name, out IPackageFile file)
+		public bool TryGetFile(string name, out IPackageFile file, string ext = null)
 		{
+			name += ext ?? string.Empty;
 			if (_files.TryGetValue(name, out var found)) {
 				file = found;
 				return true;

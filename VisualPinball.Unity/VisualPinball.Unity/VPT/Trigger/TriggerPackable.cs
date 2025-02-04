@@ -14,24 +14,31 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+// ReSharper disable MemberCanBePrivate.Global
+
 using System.Collections.Generic;
+using System.Linq;
 using MemoryPack;
 using VisualPinball.Unity.Editor.Packaging;
 
 namespace VisualPinball.Unity
 {
 	[MemoryPackable]
-	public readonly partial struct TriggerPackable
+	public partial struct TriggerPackable
 	{
-		public readonly List<DragPointPackable> DragPoints;
+		public IEnumerable<DragPointPackable> DragPoints;
 
-		public TriggerPackable(List<DragPointPackable> dragPoints)
+		public static byte[] Pack(TriggerComponent comp)
 		{
-			DragPoints = dragPoints;
+			return PackageApi.Packer.Pack(new TriggerPackable {
+				DragPoints = comp.DragPoints.Select(DragPointPackable.From)
+			});
 		}
 
-		public static TriggerPackable Unpack(byte[] data) => PackageApi.Packer.Unpack<TriggerPackable>(data);
-
-		public byte[] Pack() => PackageApi.Packer.Pack(this);
+		public static void Unpack(byte[] bytes, TriggerComponent comp)
+		{
+			var data = PackageApi.Packer.Unpack<TriggerPackable>(bytes);
+			comp.DragPoints = data.DragPoints.Select(c => c.ToDragPoint()).ToArray();
+		}
 	}
 }

@@ -14,16 +14,35 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-using MemoryPack;
+using System;
+using System.Text;
+using Newtonsoft.Json;
+using UnityEngine;
 
 namespace VisualPinball.Unity.Editor.Packaging
 {
-	public class MemoryPackDataPacker : IDataPacker
+	public class JsonPacker : IDataPacker
 	{
-		public T Unpack<T>(byte[] data) => MemoryPackSerializer.Deserialize<T>(data);
+		public byte[] Pack<T>(T obj)
+		{
+			try {
+				return Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(obj, Formatting.Indented));
+			} catch (Exception e) {
+				Debug.LogError(e);
+				throw e;
+			}
+		}
 
-		public byte[] Pack<T>(T obj) => MemoryPackSerializer.Serialize(obj);
+		public T Unpack<T>(byte[] data)
+		{
+			try {
+				return JsonConvert.DeserializeObject<T>(Encoding.UTF8.GetString(data));
+			} catch (Exception e) {
+				Debug.LogError(e);
+				throw e;
+			}
+		}
 
-		public string FileExtension => ".bin";
+		public string FileExtension => ".json";
 	}
 }
