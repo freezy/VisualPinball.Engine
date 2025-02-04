@@ -26,6 +26,7 @@ using VisualPinball.Engine.Common;
 using VisualPinball.Engine.Game.Engines;
 using Debug = UnityEngine.Debug;
 using NLog;
+using VisualPinball.Unity.Packaging;
 using Logger = NLog.Logger;
 
 // uncomment to simulate dual-wound flippers
@@ -408,7 +409,7 @@ namespace VisualPinball.Unity
 		#region Packaging
 
 		public byte[] Pack() => new DefaultGamelogicEnginePackable().Pack();
-		public byte[] PackReferences(Transform root, PackNameLookup packNameLookup) => Array.Empty<byte>();
+		public byte[] PackReferences(Transform root, PackNameLookup lookup, PackagedFiles files) => Array.Empty<byte>();
 		public void Unpack(byte[] data) { }
 		public void UnpackReferences(byte[] data, Transform root, PackNameLookup packNameLookup) { }
 

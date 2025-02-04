@@ -31,11 +31,13 @@ using VisualPinball.Engine.Math;
 using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Bumper;
 using VisualPinball.Engine.VPT.Table;
+using VisualPinball.Unity.Packaging;
 
 namespace VisualPinball.Unity
 {
+	[PackAs("Bumper")]
 	[AddComponentMenu("Visual Pinball/Game Item/Bumper")]
-	public class BumperComponent : MainRenderableComponent<BumperData>, ISwitchDeviceComponent, ICoilDeviceComponent
+	public class BumperComponent : MainRenderableComponent<BumperData>, ISwitchDeviceComponent, ICoilDeviceComponent, IPackable
 	{
 		#region Data
 
@@ -64,6 +66,18 @@ namespace VisualPinball.Unity
 		public bool IsHardwired = true;
 
 		private IEnumerable<GamelogicEngineCoil> _availableDeviceItems;
+
+		#endregion
+
+		#region Packaging
+
+		public byte[] Pack() => BumperPackable.Pack(this);
+
+		public byte[] PackReferences(Transform root, PackNameLookup lookup, PackagedFiles files) => Array.Empty<byte>();
+
+		public void Unpack(byte[] bytes) => BumperPackable.Unpack(bytes, this);
+
+		public void UnpackReferences(byte[] data, Transform root, PackNameLookup packNameLookup) { }
 
 		#endregion
 

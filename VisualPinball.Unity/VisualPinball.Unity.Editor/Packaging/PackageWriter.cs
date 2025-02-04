@@ -25,6 +25,7 @@ using GLTFast.Logging;
 using NLog;
 using UnityEngine;
 using VisualPinball.Unity.Editor.Packaging;
+using VisualPinball.Unity.Packaging;
 using Debug = UnityEngine.Debug;
 using Logger = NLog.Logger;
 
@@ -32,20 +33,10 @@ namespace VisualPinball.Unity
 {
 	public class PackageWriter
 	{
-		public const string TableStorage = "table";
-		public const string ItemStorage = "items";
-		public const string ItemStream = "item";
-		public const string ItemReferenceStorage = "refs";
-		public const string SceneStream = "table.glb";
-		public const string GlobalStorage = "global";
-		public const string SwitchesStream = "switches";
-		public const string CoilsStream = "coils";
-		public const string WiresStream = "wires";
-		public const string LampsStream = "lamps";
-
 		private readonly GameObject _table;
 		private readonly PackNameLookup _typeLookup;
-		private IPackageFolder _tableStorage;
+		private IPackageFolder _tableFolder;
+		private PackagedFiles _files;
 
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
@@ -66,7 +57,8 @@ namespace VisualPinball.Unity
 			Logger.Info($"Writing table to {path}...");
 			using var storage = PackageApi.StorageManager.CreateStorage(path);
 
-			_tableStorage = storage.AddFolder(TableStorage);
+			_tableFolder = storage.AddFolder(PackageApi.TableFolder);
+			_files = new PackagedFiles(_tableFolder);
 
 			// write scene data
 			var sw1 = Stopwatch.StartNew();
@@ -75,18 +67,23 @@ namespace VisualPinball.Unity
 
 			// write component data
 			sw1 = Stopwatch.StartNew();
-			WritePackables(ItemStorage, packageable => packageable.Pack(), go => new ItemPackable(go).Pack());
+			WritePackables(PackageApi.ItemFolder, packageable => packageable.Pack(), go => new ItemPackable(go).Pack());
 			Logger.Info($"Component data written in {sw1.ElapsedMilliseconds}ms.");
 
 			// write reference data
 			sw1 = Stopwatch.StartNew();
-			WritePackables(ItemReferenceStorage, packageable => packageable.PackReferences(_table.transform, _typeLookup));
+			WritePackables(PackageApi.ItemReferencesFolder, packageable => packageable.PackReferences(_table.transform, _typeLookup, _files));
 			Logger.Info($"References written in {sw1.ElapsedMilliseconds}ms.");
 
 			// write globals
 			sw1 = Stopwatch.StartNew();
 			WriteGlobals();
 			Logger.Info($"Globals written in {sw1.ElapsedMilliseconds}ms.");
+
+			// write assets & co
+			sw1 = Stopwatch.StartNew();
+			_files.PackAssets();
+			Logger.Info($"Assets written in {sw1.ElapsedMilliseconds}ms.");
 
 			storage.Close();
 			sw.Stop();
@@ -95,9 +92,12 @@ namespace VisualPinball.Unity
 
 		private async Task WriteScene()
 		{
-			var glbFile = _tableStorage.AddFile(SceneStream);
+			var glbFile = _tableFolder.AddFile(PackageApi.SceneFile);
 
 			var logger = new ConsoleLogger();
+
+			#region glTF Settings
+
 			var exportSettings = new ExportSettings {
 
 				// Format = GltfFormat.Json,
@@ -130,11 +130,13 @@ namespace VisualPinball.Unity
 				OnlyActiveInHierarchy = false,
 
 				// Also export disabled components
-				DisabledComponents = true,
+				DisabledComponents = true
 
 				// Only export GameObjects on certain layers
 				//LayerMask = LayerMask.GetMask("Default", "MyCustomLayer"),
 			};
+
+			#endregion
 
 			var export = new GameObjectExport(exportSettings, gameObjectExportSettings, logger: logger);
 			export.AddScene(new [] { _table }, _table.transform.worldToLocalMatrix, "VPE Table");
@@ -152,7 +154,7 @@ namespace VisualPinball.Unity
 		private void WritePackables(string folderName, Func<IPackable, byte[]> getPackableData, Func<GameObject, byte[]> getItemData = null)
 		{
 			// -> rootName <- / 0.0.0 / CompType / 0
-			var folder = _tableStorage.AddFolder(folderName);
+			var folder = _tableFolder.AddFolder(folderName);
 
 			// walk the entire tree
 			foreach (var t in _table.transform.GetComponentsInChildren<Transform>()) {
@@ -167,7 +169,7 @@ namespace VisualPinball.Unity
 				if (itemData?.Length > 0) {
 					itemPathFolder = folder.AddFolder(key);
 
-					var itemFile = itemPathFolder.AddFile(ItemStream, PackageApi.Packer.FileExtension);
+					var itemFile = itemPathFolder.AddFile(PackageApi.ItemFile, PackageApi.Packer.FileExtension);
 					itemFile.SetData(itemData);
 				}
 
@@ -217,7 +219,7 @@ namespace VisualPinball.Unity
 				throw new Exception("Cannot find table component on table object.");
 			}
 
-			var globalStorage = _tableStorage.AddFolder(GlobalStorage);
+			var globalStorage = _tableFolder.AddFolder(PackageApi.GlobalFolder);
 
 			foreach (var sw in tableComponent.MappingConfig.Switches) {
 				sw.SaveReference(_table.transform);
@@ -232,10 +234,10 @@ namespace VisualPinball.Unity
 				lp.SaveReference(_table.transform);
 			}
 
-			globalStorage.AddFile(SwitchesStream, PackageApi.Packer.FileExtension).SetData(PackageApi.Packer.Pack(tableComponent.MappingConfig.Switches));
-			globalStorage.AddFile(CoilsStream, PackageApi.Packer.FileExtension).SetData(PackageApi.Packer.Pack(tableComponent.MappingConfig.Coils));
-			globalStorage.AddFile(WiresStream, PackageApi.Packer.FileExtension).SetData(PackageApi.Packer.Pack(tableComponent.MappingConfig.Wires));
-			globalStorage.AddFile(LampsStream, PackageApi.Packer.FileExtension).SetData(PackageApi.Packer.Pack(tableComponent.MappingConfig.Lamps));
+			globalStorage.AddFile(PackageApi.SwitchesFile, PackageApi.Packer.FileExtension).SetData(PackageApi.Packer.Pack(tableComponent.MappingConfig.Switches));
+			globalStorage.AddFile(PackageApi.CoilsFile, PackageApi.Packer.FileExtension).SetData(PackageApi.Packer.Pack(tableComponent.MappingConfig.Coils));
+			globalStorage.AddFile(PackageApi.WiresFile, PackageApi.Packer.FileExtension).SetData(PackageApi.Packer.Pack(tableComponent.MappingConfig.Wires));
+			globalStorage.AddFile(PackageApi.LampsFile, PackageApi.Packer.FileExtension).SetData(PackageApi.Packer.Pack(tableComponent.MappingConfig.Lamps));
 		}
 	}
 }

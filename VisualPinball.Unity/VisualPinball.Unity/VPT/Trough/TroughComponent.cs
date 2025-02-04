@@ -31,6 +31,7 @@ using VisualPinball.Engine.Game.Engines;
 using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Table;
 using VisualPinball.Engine.VPT.Trough;
+using VisualPinball.Unity.Packaging;
 
 namespace VisualPinball.Unity
 {
@@ -114,7 +115,7 @@ namespace VisualPinball.Unity
 
 		public byte[] Pack() => TroughPackable.Pack(this);
 
-        public byte[] PackReferences(Transform root, PackNameLookup packNameLookup) => TroughReferencesPackable.Pack(this, root, packNameLookup);
+        public byte[] PackReferences(Transform root, PackNameLookup lookup, PackagedFiles files) => TroughReferencesPackable.Pack(this, root, lookup);
 
         public void Unpack(byte[] bytes) => TroughPackable.Unpack(bytes, this);
 

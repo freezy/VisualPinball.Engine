@@ -1,6 +1,24 @@
-﻿using MemoryPack;
+﻿// Visual Pinball Engine
+// Copyright (C) 2023 freezy and VPE Team
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+using MemoryPack;
 using UnityEngine;
 using VisualPinball.Engine.Math;
+using VisualPinball.Unity.Editor.Packaging;
+using VisualPinball.Unity.Packaging;
 
 // ReSharper disable MemberCanBePrivate.Global
 // ReSharper disable FieldCanBeMadeReadOnly.Global
@@ -105,20 +123,77 @@ namespace VisualPinball.Unity
 		}
 	}
 
-	public readonly struct PackableFloat3
+	public partial class ScriptableObjectPackable
 	{
-		private readonly float _x;
-		private readonly float _y;
-		private readonly float _z;
+		/// <summary>
+		/// This links the asset to the materials that use it.
+		/// </summary>
+		public int InstanceId;
+		public ScriptableObject Object;
+
+		public static byte[] Pack(ScriptableObject obj)
+		{
+			return PackageApi.Packer.Pack(new ScriptableObjectPackable {
+				InstanceId = obj.GetInstanceID(),
+				Object = obj,
+			});
+		}
+	}
+
+	[MemoryPackable]
+	public partial struct PhysicalMaterialPackable
+	{
+		public float Elasticity;
+		public float ElasticityFalloff;
+		public float Friction;
+		public float Scatter;
+		public bool Overwrite;
+		public int AssetRef;
+
+		public static byte[] Pack(float elasticity, float elasticityFalloff, float friction,
+			float scatter, bool overwrite, PhysicsMaterialAsset asset, PackagedFiles files)
+		{
+			return PackageApi.Packer.Pack(new PhysicalMaterialPackable {
+				Elasticity = elasticity,
+				ElasticityFalloff = elasticityFalloff,
+				Friction = friction,
+				Scatter = scatter,
+				Overwrite = overwrite,
+				AssetRef = files.AddAsset(asset),
+			});
+		}
+
+		public PhysicalMaterialPackable Unpack(byte[] bytes)
+		{
+			var data = PackageApi.Packer.Unpack<PhysicalMaterialPackable>(bytes);
+			return new PhysicalMaterialPackable {
+				Elasticity = data.Elasticity,
+				ElasticityFalloff = data.ElasticityFalloff,
+				Friction = data.Friction,
+				Scatter = data.Scatter,
+				Overwrite = data.Overwrite,
+				AssetRef = data.AssetRef,
+			};
+		}
+	}
+
+	[MemoryPackable]
+	public partial struct PackableFloat3
+	{
+		public float X;
+		public float Y;
+		public float Z;
 
 		public PackableFloat3(float x, float y, float z)
 		{
-			_x = x;
-			_y = y;
-			_z = z;
+			X = x;
+			Y = y;
+			Z = z;
 		}
 
-		public static implicit operator Vertex3D(PackableFloat3 v) => new(v._x, v._y, v._z);
+		public static implicit operator Vertex3D(PackableFloat3 v) => new(v.X, v.Y, v.Z);
 		public static implicit operator PackableFloat3(Vertex3D v) => new(v.X, v.Y, v.Z);
+		public static implicit operator Vector3(PackableFloat3 v) => new(v.X, v.Y, v.Z);
+		public static implicit operator PackableFloat3(Vector3 v) => new(v.x, v.y, v.z);
 	}
 }

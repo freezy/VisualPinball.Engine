@@ -20,6 +20,7 @@ using System;
 using Unity.Mathematics;
 using UnityEngine;
 using VisualPinball.Engine.VPT.Kicker;
+using VisualPinball.Unity.Packaging;
 
 namespace VisualPinball.Unity
 {
@@ -65,7 +66,7 @@ namespace VisualPinball.Unity
 
 		public byte[] Pack() => KickerColliderPackable.Pack(this);
 
-		public byte[] PackReferences(Transform root, PackNameLookup packNameLookup) => Array.Empty<byte>();
+		public byte[] PackReferences(Transform root, PackNameLookup lookup, PackagedFiles files) => Array.Empty<byte>();
 
 		public void Unpack(byte[] bytes) => KickerColliderPackable.Unpack(bytes, this);
 

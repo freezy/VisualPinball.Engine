@@ -19,7 +19,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Threading.Tasks;
-using MemoryPack;
 using NLog;
 using UnityEditor;
 using UnityEditor.SceneManagement;
@@ -59,7 +58,7 @@ namespace VisualPinball.Unity.Editor
 				await ImportModels();
 
 				// create components and update game objects
-				ReadPackables(PackageWriter.ItemStorage, (item, type, stream, index) => {
+				ReadPackables(PackageApi.ItemFolder, (item, type, stream, index) => {
 					// add or update component
 					var comps = item.gameObject.GetComponents(type);
 					var comp = comps.Length > index
@@ -75,7 +74,7 @@ namespace VisualPinball.Unity.Editor
 				}, (go, stream) => ItemPackable.Unpack(stream.GetData()).Apply(go));
 
 				// add references
-				ReadPackables(PackageWriter.ItemReferenceStorage, (item, type, stream, _) => {
+				ReadPackables(PackageApi.ItemReferencesFolder, (item, type, stream, _) => {
 					// add the component and unpack it.
 					var comp = item.gameObject.GetComponent(type) as IPackable;
 					comp?.UnpackReferences(stream.GetData(), _table.transform, _typeLookup);
@@ -92,7 +91,7 @@ namespace VisualPinball.Unity.Editor
 		private void Setup(IPackageStorage storage)
 		{
 			// open storages
-			_tableStorage = storage.GetFolder(PackageWriter.TableStorage);
+			_tableStorage = storage.GetFolder(PackageApi.TableFolder);
 			_assetPath = Path.Combine(Application.dataPath, "Resources", _tableName);
 			var n = 0;
 			while (Directory.Exists(_assetPath)) {
@@ -108,7 +107,7 @@ namespace VisualPinball.Unity.Editor
 				AssetDatabase.StartAssetEditing();
 
 				// dump glb
-				var sceneStream = _tableStorage.GetFile(PackageWriter.SceneStream);
+				var sceneStream = _tableStorage.GetFile(PackageApi.SceneFile);
 				await using var glbFileStream = new FileStream(glbPath, FileMode.Create, FileAccess.Write);
 				await sceneStream.AsStream().CopyToAsync(glbFileStream);
 
@@ -141,9 +140,9 @@ namespace VisualPinball.Unity.Editor
 				// storageRoot / -> 0.0.0 <- / CompType / 0
 				var item = _table.transform.FindByPath(itemStorage.Name);
 				if (item == null) {
-					throw new Exception($"Cannot find item at path {itemStorage.Name} on node {_table.name}");;
+					throw new Exception($"Cannot find item at path {itemStorage.Name} on node {_table.name}");
 				}
-				if (itemAction != null && itemStorage.TryGetFile(PackageWriter.ItemStream, out var itemStream, PackageApi.Packer.FileExtension)) {
+				if (itemAction != null && itemStorage.TryGetFile(PackageApi.ItemFile, out var itemStream, PackageApi.Packer.FileExtension)) {
 					itemAction(item.gameObject, itemStream);
 				}
 				itemStorage.VisitFolders(typeStorage => {
@@ -165,12 +164,12 @@ namespace VisualPinball.Unity.Editor
 			if (!tableComponent) {
 				throw new Exception("Cannot find table component on table object.");
 			}
-			var globalStorage = _tableStorage.GetFolder(PackageWriter.GlobalStorage);
+			var globalStorage = _tableStorage.GetFolder(PackageApi.GlobalFolder);
 			tableComponent.MappingConfig = new MappingConfig {
-				Switches = PackageApi.Packer.Unpack<List<SwitchMapping>>(globalStorage.GetFile(PackageWriter.SwitchesStream, PackageApi.Packer.FileExtension).GetData()),
-				Coils = PackageApi.Packer.Unpack<List<CoilMapping>>(globalStorage.GetFile(PackageWriter.CoilsStream, PackageApi.Packer.FileExtension).GetData()),
-				Lamps = PackageApi.Packer.Unpack<List<LampMapping>>(globalStorage.GetFile(PackageWriter.LampsStream, PackageApi.Packer.FileExtension).GetData()),
-				Wires = PackageApi.Packer.Unpack<List<WireMapping>>(globalStorage.GetFile(PackageWriter.WiresStream, PackageApi.Packer.FileExtension).GetData()),
+				Switches = PackageApi.Packer.Unpack<List<SwitchMapping>>(globalStorage.GetFile(PackageApi.SwitchesFile, PackageApi.Packer.FileExtension).GetData()),
+				Coils = PackageApi.Packer.Unpack<List<CoilMapping>>(globalStorage.GetFile(PackageApi.CoilsFile, PackageApi.Packer.FileExtension).GetData()),
+				Lamps = PackageApi.Packer.Unpack<List<LampMapping>>(globalStorage.GetFile(PackageApi.LampsFile, PackageApi.Packer.FileExtension).GetData()),
+				Wires = PackageApi.Packer.Unpack<List<WireMapping>>(globalStorage.GetFile(PackageApi.WiresFile, PackageApi.Packer.FileExtension).GetData()),
 			};
 			foreach (var sw in tableComponent.MappingConfig.Switches) {
 				sw.RestoreReference(_table.transform);

@@ -17,6 +17,7 @@
 // ReSharper disable InconsistentNaming
 
 using System;
+using MemoryPack;
 using Unity.Collections;
 using UnityEngine;
 using UnityEngine.Serialization;
@@ -32,9 +33,8 @@ namespace VisualPinball.Unity
 	/// </summary>
 	[CreateAssetMenu(fileName = "PhysicsMaterial", menuName = "Visual Pinball/Physics Material", order = 100)]
 	//[CustomEditor(typeof(PhysicsMaterial))]
-	public class PhysicsMaterialAsset : ScriptableObject
+	public partial class PhysicsMaterialAsset : ScriptableObject
 	{
-		
 		public float Elasticity;
 		public float ElasticityFalloff;
 

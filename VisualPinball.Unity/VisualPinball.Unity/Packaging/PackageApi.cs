@@ -24,11 +24,23 @@ namespace VisualPinball.Unity.Editor.Packaging
 	/// </summary>
 	public static class PackageApi
 	{
+		public const string TableFolder = "table";
+		public const string ItemFolder = "items";
+		public const string ItemFile = "item";
+		public const string ItemReferencesFolder = "refs";
+		public const string SceneFile = "table.glb";
+		public const string GlobalFolder = "global";
+		public const string SwitchesFile = "switches";
+		public const string CoilsFile = "coils";
+		public const string WiresFile = "wires";
+		public const string LampsFile = "lamps";
+		public const string AssetFolder = "assets";
+
 		public static readonly IStorageManager StorageManager = new SharpZipStorageManager();
 		// public static IStorageManager StorageManager => new OpenMcdfStorageManager();
 
-		public static readonly IDataPacker Packer = new MemoryPackDataPacker();
-		// public static readonly IDataPacker Packer = new JsonPacker();
+		// public static readonly IDataPacker Packer = new MemoryPackDataPacker();
+		public static readonly IDataPacker Packer = new JsonPacker();
 	}
 
 	/// <summary>

@@ -16,14 +16,17 @@
 
 // ReSharper disable InconsistentNaming
 
+using System;
 using Unity.Mathematics;
 using UnityEngine;
 using VisualPinball.Engine.VPT.Bumper;
+using VisualPinball.Unity.Packaging;
 
 namespace VisualPinball.Unity
 {
+	[PackAs("BumperCollider")]
 	[AddComponentMenu("Visual Pinball/Collision/Bumper Collider")]
-	public class BumperColliderComponent : ColliderComponent<BumperData, BumperComponent>
+	public class BumperColliderComponent : ColliderComponent<BumperData, BumperComponent>, IPackable
 	{
 		#region Data
 
@@ -41,6 +44,19 @@ namespace VisualPinball.Unity
 
 		[Tooltip("If set, a hit event is triggered.")]
 		public bool HitEvent = true;
+
+		#endregion
+
+		#region Packaging
+
+		public byte[] Pack() => BumperColliderPackable.Pack(this);
+
+		public byte[] PackReferences(Transform root, PackNameLookup lookup, PackagedFiles files) =>
+			PhysicalMaterialPackable.Pack(1, 1, 0, Scatter, true, PhysicsMaterial, files);
+
+		public void Unpack(byte[] bytes) => BumperColliderPackable.Unpack(bytes, this);
+
+		public void UnpackReferences(byte[] data, Transform root, PackNameLookup packNameLookup) { }
 
 		#endregion
 

@@ -27,12 +27,14 @@ using VisualPinball.Engine.Math;
 using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Primitive;
 using VisualPinball.Engine.VPT.Table;
+using VisualPinball.Unity.Packaging;
 using VisualPinball.Unity.Playfield;
 
 namespace VisualPinball.Unity
 {
+	[PackAs("Playfield")]
 	[AddComponentMenu("Visual Pinball/Game Item/Playfield")]
-	public class PlayfieldComponent : MainRenderableComponent<TableData>
+	public class PlayfieldComponent : MainRenderableComponent<TableData>, IPackable
 	{
 		#region Data
 
@@ -62,6 +64,18 @@ namespace VisualPinball.Unity
 
 		[SerializeField] private string _playfieldImage;
 		[SerializeField] private string _playfieldMaterial;
+
+		#endregion
+
+		#region Packaging
+
+		public byte[] Pack() => PlayfieldPackable.Pack(this);
+
+		public byte[] PackReferences(Transform root, PackNameLookup lookup, PackagedFiles files) => Array.Empty<byte>();
+
+		public void Unpack(byte[] bytes) => PlayfieldPackable.Unpack(bytes, this);
+
+		public void UnpackReferences(byte[] data, Transform root, PackNameLookup packNameLookup) { }
 
 		#endregion
 

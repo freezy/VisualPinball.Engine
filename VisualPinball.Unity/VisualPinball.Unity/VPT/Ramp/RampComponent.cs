@@ -29,13 +29,15 @@ using VisualPinball.Engine.Math;
 using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Ramp;
 using VisualPinball.Engine.VPT.Table;
+using VisualPinball.Unity.Packaging;
 using MathF = VisualPinball.Engine.Math.MathF;
 using Mesh = VisualPinball.Engine.VPT.Mesh;
 
 namespace VisualPinball.Unity
 {
+	[PackAs("Ramp")]
 	[AddComponentMenu("Visual Pinball/Game Item/Ramp")]
-	public class RampComponent : MainRenderableComponent<RampData>, IRampData, ISurfaceComponent
+	public class RampComponent : MainRenderableComponent<RampData>, IRampData, ISurfaceComponent, IPackable
 	{
 		#region Data
 
@@ -98,6 +100,18 @@ namespace VisualPinball.Unity
 		public float WidthTop => _widthTop;
 		public float WidthBottom => _widthBottom;
 		public DragPointData[] DragPoints { get => _dragPoints; set => _dragPoints = value; }
+
+		#endregion
+
+		#region Packaging
+
+		public byte[] Pack() => RampPackable.Pack(this);
+
+		public byte[] PackReferences(Transform root, PackNameLookup lookup, PackagedFiles files) => Array.Empty<byte>();
+
+		public void Unpack(byte[] bytes) => RampPackable.Unpack(bytes, this);
+
+		public void UnpackReferences(byte[] data, Transform root, PackNameLookup packNameLookup) { }
 
 		#endregion
 

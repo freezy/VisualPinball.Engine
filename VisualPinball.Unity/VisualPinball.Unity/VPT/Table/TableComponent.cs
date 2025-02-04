@@ -27,6 +27,7 @@ using VisualPinball.Engine.Common;
 using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Collection;
 using VisualPinball.Engine.VPT.Table;
+using VisualPinball.Unity.Packaging;
 
 namespace VisualPinball.Unity
 {
@@ -66,7 +67,7 @@ namespace VisualPinball.Unity
 
 		public byte[] Pack() => TablePackable.Pack(this);
 
-		public byte[] PackReferences(Transform root, PackNameLookup packNameLookup) => Array.Empty<byte>();
+		public byte[] PackReferences(Transform root, PackNameLookup lookup, PackagedFiles files) => Array.Empty<byte>();
 
 		public void Unpack(byte[] bytes) => TablePackable.Unpack(bytes, this);
 

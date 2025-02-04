@@ -50,13 +50,15 @@ namespace VisualPinball.Unity.Editor
 
 			if (!EditorApplication.isPlaying) {
 				//DrawDefaultInspector();
-				if (GUILayout.Button("Save as .vpe")) {
+				// const string ext = "vpe";
+				const string ext = "zip";
+				if (GUILayout.Button($"Save as .{ext}")) {
 					var tableContainer = tableComponent.TableContainer;
 					var path = EditorUtility.SaveFilePanel(
-						"Save table as VPE",
+						$"Save table as {ext.ToUpper()}",
 						"",
-						tableComponent.name + ".vpe",
-						"vpe");
+						tableComponent.name + $".{ext}",
+						ext);
 
 					if (!string.IsNullOrEmpty(path)) {
 						var writer = new PackageWriter(tableComponent.gameObject);
