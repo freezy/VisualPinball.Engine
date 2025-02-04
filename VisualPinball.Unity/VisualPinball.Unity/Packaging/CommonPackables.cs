@@ -129,12 +129,14 @@ namespace VisualPinball.Unity
 		/// This links the asset to the materials that use it.
 		/// </summary>
 		public int InstanceId;
+		public string Type;
 		public ScriptableObject Object;
 
 		public static byte[] Pack(ScriptableObject obj)
 		{
 			return PackageApi.Packer.Pack(new ScriptableObjectPackable {
 				InstanceId = obj.GetInstanceID(),
+				Type = obj.GetType().AssemblyQualifiedName,
 				Object = obj,
 			});
 		}
