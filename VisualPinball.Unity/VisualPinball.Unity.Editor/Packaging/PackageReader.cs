@@ -52,9 +52,11 @@ namespace VisualPinball.Unity.Editor
 			var sw = new Stopwatch();
 			sw.Start();
 			_tableName = tableName;
-			using IVpeStorage cf = new OpenMcdfStorage(_vpePath);
+
+			IStorageManager storageManager = new OpenMcdfStorageManager();
+			using var storage = storageManager.OpenStorage(_vpePath);
 			try {
-				Setup(cf);
+				Setup(storage);
 				await ImportModels();
 
 				// create components and update game objects
@@ -83,12 +85,12 @@ namespace VisualPinball.Unity.Editor
 				ReadGlobals();
 
 			} finally {
-				cf.Close();
+				storage.Close();
 				Logger.Info($"Scene import took {sw.ElapsedMilliseconds}ms.");
 			}
 		}
 
-		private void Setup(IVpeStorage storage)
+		private void Setup(IPackageStorage storage)
 		{
 			// open storages
 			_tableStorage = storage.GetFolder(PackageWriter.TableStorage);

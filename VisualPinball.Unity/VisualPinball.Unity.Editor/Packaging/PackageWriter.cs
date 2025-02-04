@@ -58,7 +58,13 @@ namespace VisualPinball.Unity
 		{
 			var sw = new Stopwatch();
 			sw.Start();
-			using IVpeStorage storage = new OpenMcdfStorage();
+			if (File.Exists(path)) {
+				File.Delete(path);
+			}
+
+			//IStorageManager storageManager = new OpenMcdfStorageManager();
+			IStorageManager storageManager = new SharpZipStorageManager();
+			using var storage = storageManager.CreateStorage(path);
 
 			_tableStorage = storage.AddFolder(TableStorage);
 
@@ -67,10 +73,7 @@ namespace VisualPinball.Unity
 			WritePackables(ItemReferenceStorage, packageable => packageable.PackReferences(_table.transform, _typeLookup));
 			WriteGlobals();
 
-			if (File.Exists(path)) {
-				File.Delete(path);
-			}
-			storage.SaveAs(path);
+			storage.Close();
 			sw.Stop();
 			Debug.Log($"File saved to {path} in {sw.ElapsedMilliseconds}ms.");
 		}
