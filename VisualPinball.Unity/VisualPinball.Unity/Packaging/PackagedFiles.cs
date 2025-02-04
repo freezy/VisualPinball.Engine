@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 using VisualPinball.Unity.Editor.Packaging;
@@ -57,13 +58,34 @@ namespace VisualPinball.Unity.Packaging
 			}
 		}
 
+		public void UnpackAssets()
+		{
+			if (!_tableFolder.TryGetFolder(PackageApi.AssetFolder, out var assetFolder)) {
+				return;
+			}
+			assetFolder.VisitFolders(assetTypeFolder => {
+				assetTypeFolder.VisitFiles(assetFile => {
+
+					var asset = PackageApi.Packer.Unpack<ScriptableObjectPackable>(assetFile.GetData());
+
+					// var type = Type.GetType(assemblyQualifiedName);
+					// if (type == null) {
+					// 	throw new InvalidOperationException($"Type not found: {assemblyQualifiedName}");
+					// }
+					// object instance = Activator.CreateInstance(type);
+					// var physicsMaterialAsset = (VisualPinball.Unity.PhysicsMaterialAsset)instance;
+
+				});
+			});
+		}
+
 		private string UniqueName(IPackageFolder folder, string name)
 		{
 			var baseName = name;
 			var i = 1;
 			while (true) {
 				if (folder.TryGetFile(name, out _, PackageApi.Packer.FileExtension)) {
-					name = $"{baseName}_({++i})";
+					name = $"{baseName} ({++i})";
 				} else {
 					return name;
 				}
