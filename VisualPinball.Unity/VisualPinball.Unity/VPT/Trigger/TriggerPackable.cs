@@ -16,6 +16,7 @@
 
 using System.Collections.Generic;
 using MemoryPack;
+using VisualPinball.Unity.Editor.Packaging;
 
 namespace VisualPinball.Unity
 {
@@ -29,8 +30,8 @@ namespace VisualPinball.Unity
 			DragPoints = dragPoints;
 		}
 
-		public static TriggerPackable Unpack(byte[] data) => MemoryPackSerializer.Deserialize<TriggerPackable>(data);
+		public static TriggerPackable Unpack(byte[] data) => PackageApi.Packer.Unpack<TriggerPackable>(data);
 
-		public byte[] Pack() => MemoryPackSerializer.Serialize(this);
+		public byte[] Pack() => PackageApi.Packer.Pack(this);
 	}
 }

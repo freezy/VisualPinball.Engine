@@ -22,7 +22,6 @@ using System.Threading.Tasks;
 using GLTFast;
 using GLTFast.Export;
 using GLTFast.Logging;
-using MemoryPack;
 using NLog;
 using UnityEngine;
 using VisualPinball.Unity.Editor.Packaging;
@@ -233,10 +232,10 @@ namespace VisualPinball.Unity
 				lp.SaveReference(_table.transform);
 			}
 
-			globalStorage.AddFile(SwitchesStream).SetData(MemoryPackSerializer.Serialize(tableComponent.MappingConfig.Switches));
-			globalStorage.AddFile(CoilsStream).SetData(MemoryPackSerializer.Serialize(tableComponent.MappingConfig.Coils));
-			globalStorage.AddFile(WiresStream).SetData(MemoryPackSerializer.Serialize(tableComponent.MappingConfig.Wires));
-			globalStorage.AddFile(LampsStream).SetData(MemoryPackSerializer.Serialize(tableComponent.MappingConfig.Lamps));
+			globalStorage.AddFile(SwitchesStream).SetData(PackageApi.Packer.Pack(tableComponent.MappingConfig.Switches));
+			globalStorage.AddFile(CoilsStream).SetData(PackageApi.Packer.Pack(tableComponent.MappingConfig.Coils));
+			globalStorage.AddFile(WiresStream).SetData(PackageApi.Packer.Pack(tableComponent.MappingConfig.Wires));
+			globalStorage.AddFile(LampsStream).SetData(PackageApi.Packer.Pack(tableComponent.MappingConfig.Lamps));
 		}
 	}
 }

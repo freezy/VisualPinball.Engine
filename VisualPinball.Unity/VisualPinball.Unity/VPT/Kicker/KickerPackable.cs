@@ -16,6 +16,7 @@
 
 using System.Collections.Generic;
 using MemoryPack;
+using VisualPinball.Unity.Editor.Packaging;
 
 namespace VisualPinball.Unity
 {
@@ -29,9 +30,9 @@ namespace VisualPinball.Unity
 			Coils = coils;
 		}
 
-		public static KickerPackable Unpack(byte[] data) => MemoryPackSerializer.Deserialize<KickerPackable>(data);
+		public static KickerPackable Unpack(byte[] data) => PackageApi.Packer.Unpack<KickerPackable>(data);
 
-		public byte[] Pack() => MemoryPackSerializer.Serialize(this);
+		public byte[] Pack() => PackageApi.Packer.Pack(this);
 	}
 
 	[MemoryPackable]

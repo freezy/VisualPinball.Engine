@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using MemoryPack;
+using VisualPinball.Unity.Editor.Packaging;
 
 namespace VisualPinball.Unity
 {
@@ -38,8 +39,8 @@ namespace VisualPinball.Unity
 			LegacyMode = legacyMode;
 		}
 
-		public static KickerColliderPackable Unpack(byte[] data) => MemoryPackSerializer.Deserialize<KickerColliderPackable>(data);
+		public static KickerColliderPackable Unpack(byte[] data) => PackageApi.Packer.Unpack<KickerColliderPackable>(data);
 
-		public byte[] Pack() => MemoryPackSerializer.Serialize(this);
+		public byte[] Pack() => PackageApi.Packer.Pack(this);
 	}
 }

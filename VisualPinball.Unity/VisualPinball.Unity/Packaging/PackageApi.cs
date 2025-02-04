@@ -24,8 +24,8 @@ namespace VisualPinball.Unity.Editor.Packaging
 	/// </summary>
 	public static class PackageApi
 	{
-		public static readonly IStorageManager StorageManager = new SharpZipStorageManager();
-		//public static IStorageManager StorageManager => new OpenMcdfStorageManager();
+		// public static readonly IStorageManager StorageManager = new SharpZipStorageManager();
+		public static IStorageManager StorageManager => new OpenMcdfStorageManager();
 
 		public static readonly IDataPacker Packer = new MemoryPackDataPacker();
 	}
@@ -187,6 +187,6 @@ namespace VisualPinball.Unity.Editor.Packaging
 		/// </summary>
 		/// <param name="obj">Object to serialize</param>
 		/// <returns>Serialized data.</returns>
-		public byte[] Pack(object obj);
+		public byte[] Pack<T>(T obj);
 	}
 }

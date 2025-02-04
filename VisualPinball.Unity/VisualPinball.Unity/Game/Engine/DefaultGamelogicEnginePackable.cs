@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using MemoryPack;
+using VisualPinball.Unity.Editor.Packaging;
 
 namespace VisualPinball.Unity
 {
@@ -33,7 +34,7 @@ namespace VisualPinball.Unity
 			table.GlobalDifficulty = GlobalDifficulty;
 		}
 
-		public static DefaultGamelogicEnginePackable Unpack(byte[] data) => MemoryPackSerializer.Deserialize<DefaultGamelogicEnginePackable>(data);
-		public byte[] Pack() => MemoryPackSerializer.Serialize(this);
+		public static DefaultGamelogicEnginePackable Unpack(byte[] data) => PackageApi.Packer.Unpack<DefaultGamelogicEnginePackable>(data);
+		public byte[] Pack() => PackageApi.Packer.Pack(this);
 	}
 }

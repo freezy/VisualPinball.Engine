@@ -168,10 +168,10 @@ namespace VisualPinball.Unity.Editor
 			}
 			var globalStorage = _tableStorage.GetFolder(PackageWriter.GlobalStorage);
 			tableComponent.MappingConfig = new MappingConfig {
-				Switches = MemoryPackSerializer.Deserialize<List<SwitchMapping>>(globalStorage.GetFile(PackageWriter.SwitchesStream).GetData()),
-				Coils = MemoryPackSerializer.Deserialize<List<CoilMapping>>(globalStorage.GetFile(PackageWriter.CoilsStream).GetData()),
-				Lamps = MemoryPackSerializer.Deserialize<List<LampMapping>>(globalStorage.GetFile(PackageWriter.LampsStream).GetData()),
-				Wires = MemoryPackSerializer.Deserialize<List<WireMapping>>(globalStorage.GetFile(PackageWriter.WiresStream).GetData()),
+				Switches = PackageApi.Packer.Unpack<List<SwitchMapping>>(globalStorage.GetFile(PackageWriter.SwitchesStream).GetData()),
+				Coils = PackageApi.Packer.Unpack<List<CoilMapping>>(globalStorage.GetFile(PackageWriter.CoilsStream).GetData()),
+				Lamps = PackageApi.Packer.Unpack<List<LampMapping>>(globalStorage.GetFile(PackageWriter.LampsStream).GetData()),
+				Wires = PackageApi.Packer.Unpack<List<WireMapping>>(globalStorage.GetFile(PackageWriter.WiresStream).GetData()),
 			};
 			foreach (var sw in tableComponent.MappingConfig.Switches) {
 				sw.RestoreReference(_table.transform);

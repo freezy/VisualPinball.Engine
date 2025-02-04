@@ -18,6 +18,7 @@ using System;
 using MemoryPack;
 using UnityEditor;
 using UnityEngine;
+using VisualPinball.Unity.Editor.Packaging;
 
 namespace VisualPinball.Unity
 {
@@ -76,7 +77,7 @@ namespace VisualPinball.Unity
 			GameObjectUtility.SetStaticEditorFlags(go, IsStatic ? (StaticEditorFlags)127 : 0);
 		}
 
-		public static ItemPackable Unpack(byte[] data) => MemoryPackSerializer.Deserialize<ItemPackable>(data);
-		public byte[] Pack() => IsEmpty ? Array.Empty<byte>() : MemoryPackSerializer.Serialize(this);
+		public static ItemPackable Unpack(byte[] data) => PackageApi.Packer.Unpack<ItemPackable>(data);
+		public byte[] Pack() => IsEmpty ? Array.Empty<byte>() : PackageApi.Packer.Pack(this);
 	}
 }
