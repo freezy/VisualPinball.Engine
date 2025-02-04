@@ -15,29 +15,13 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using MemoryPack;
-using VisualPinball.Unity.Editor.Packaging;
 
-namespace VisualPinball.Unity
+namespace VisualPinball.Unity.Editor.Packaging
 {
-	[MemoryPackable]
-	public readonly partial struct TablePackable
+	public class MemoryPackDataPacker : IDataPacker
 	{
-		public readonly float GlobalDifficulty;
+		public T Unpack<T>(byte[] data) => MemoryPackSerializer.Deserialize<T>(data);
 
-		public TablePackable(float globalDifficulty)
-		{
-			GlobalDifficulty = globalDifficulty;
-		}
-
-		public void Apply(TableComponent table)
-		{
-			table.GlobalDifficulty = GlobalDifficulty;
-		}
-
-		public static TablePackable Unpack(byte[] data) => MemoryPackSerializer.Deserialize<TablePackable>(data);
-		public byte[] Pack() => MemoryPackSerializer.Serialize(this);
-
-		// public static TablePackable Unpack(byte[] data) => PackageApi.Packer.Unpack<TablePackable>(data);
-		// public byte[] Pack() => PackageApi.Packer.Pack(this);
+		public byte[] Pack(object obj) => MemoryPackSerializer.Serialize(obj);
 	}
 }
