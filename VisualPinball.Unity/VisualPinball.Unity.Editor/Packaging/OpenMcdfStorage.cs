@@ -1,13 +1,46 @@
-﻿using System;
+﻿// Visual Pinball Engine
+// Copyright (C) 2023 freezy and VPE Team
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+using System;
 using System.IO;
 using OpenMcdf;
 using OpenMcdf.Extensions;
 
 namespace VisualPinball.Unity.Editor.Packaging
 {
-	public class OpenMcdfStorage : IVpeStorage
+	public class OpenMcdfStorageManager : IStorageManager
+	{
+		public IPackageStorage CreateStorage(string path)
+		{
+			var s = new OpenMcdfStorage();
+			s.Path = path;
+			return s;
+		}
+
+		public IPackageStorage OpenStorage(string path)
+		{
+			return new OpenMcdfStorage(path);
+		}
+	}
+
+
+	public class OpenMcdfStorage : IPackageStorage
 	{
 		private readonly CompoundFile _cf;
+		public string Path;
 
 		public OpenMcdfStorage()
 		{
@@ -23,19 +56,15 @@ namespace VisualPinball.Unity.Editor.Packaging
 
 		public IPackageFolder GetFolder(string name) => new OpenMcdfFolder(_cf.RootStorage.GetStorage(name));
 
-		public void SaveAs(string path)
-		{
-			_cf.SaveAs(path);
-			_cf.Close();
-		}
-
 		public void Close()
 		{
+			_cf.SaveAs(Path);
 			_cf.Close();
 		}
 
 		public void Dispose()
 		{
+			_cf.Close();
 			_cf.Dispose();
 		}
 	}
@@ -54,23 +83,23 @@ namespace VisualPinball.Unity.Editor.Packaging
 		public string Name => _storage.Name;
 		public IPackageFile AddFile(string name) => new OpenMcdfFile(_storage.AddStream(name));
 		public IPackageFolder AddFolder(string name) => new OpenMcdfFolder(_storage.AddStorage(name));
-		public bool TryGetFolder(string name, out IPackageFolder storage)
+		public bool TryGetFolder(string name, out IPackageFolder folder)
 		{
 			if (_storage.TryGetStorage(name, out var cfStorage)) {
-				storage = new OpenMcdfFolder(cfStorage);
+				folder = new OpenMcdfFolder(cfStorage);
 				return true;
 			}
-			storage = null;
+			folder = null;
 			return false;
 		}
 
-		public bool TryGetFile(string name, out IPackageFile stream)
+		public bool TryGetFile(string name, out IPackageFile file)
 		{
 			if (_storage.TryGetStream(name, out var cfStream)) {
-				stream = new OpenMcdfFile(cfStream);
+				file = new OpenMcdfFile(cfStream);
 				return true;
 			}
-			stream = null;
+			file = null;
 			return false;
 		}
 
