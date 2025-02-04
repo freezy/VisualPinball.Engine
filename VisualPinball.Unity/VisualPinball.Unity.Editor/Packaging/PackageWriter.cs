@@ -62,9 +62,7 @@ namespace VisualPinball.Unity
 				File.Delete(path);
 			}
 
-			//IStorageManager storageManager = new OpenMcdfStorageManager();
-			IStorageManager storageManager = new SharpZipStorageManager();
-			using var storage = storageManager.CreateStorage(path);
+			using var storage = PackageApi.StorageManager.CreateStorage(path);
 
 			_tableStorage = storage.AddFolder(TableStorage);
 

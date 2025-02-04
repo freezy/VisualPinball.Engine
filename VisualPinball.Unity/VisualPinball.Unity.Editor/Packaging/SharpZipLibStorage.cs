@@ -54,11 +54,9 @@ namespace VisualPinball.Unity.Editor.Packaging
 
 				// Create a FileStream for writing
 				var fs = File.Create(path);
-				_zipOutputStream = new ZipOutputStream(fs) {
-					// Adjust compression if desired:
-					// Level = 9 // max compression
-					// Level = 0 // no compression
-				};
+				_zipOutputStream = new ZipOutputStream(fs);
+				_zipOutputStream.SetComment("Visual Pinball Engine");
+				_zipOutputStream.SetLevel(9);
 
 				// Create a root folder with write context
 				_rootFolder = new ZipPackageFolder("", null, this, true);
