@@ -139,27 +139,11 @@ namespace VisualPinball.Unity
 
 		#region Packaging
 
-		public byte[] Pack()
-		{
-			return new KickerPackable(Coils
-				.Select(c => new KickerCoilPackable(c.Name, c.Id, c.Speed, c.Angle, c.Inclination))
-				.ToList()
-			).Pack();
-		}
+		public byte[] Pack() => KickerPackable.Pack(this);
 
 		public byte[] PackReferences(Transform root, PackNameLookup packNameLookup) => Array.Empty<byte>();
 
-		public void Unpack(byte[] bytes)
-		{
-			var data = KickerPackable.Unpack(bytes);
-			Coils = data.Coils.Select(c => new KickerCoil {
-				Name = c.Name,
-				Id = c.Id,
-				Speed = c.Speed,
-				Angle = c.Angle,
-				Inclination = c.Inclination
-			}).ToList();
-		}
+		public void Unpack(byte[] bytes) => KickerPackable.Unpack(bytes, this);
 
 		public void UnpackReferences(byte[] data, Transform root, PackNameLookup packNameLookup) { }
 

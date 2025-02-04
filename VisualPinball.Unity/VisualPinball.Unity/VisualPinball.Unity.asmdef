@@ -10,7 +10,8 @@
         "Unity.InputSystem",
         "VisualPinball.Engine",
         "com.bartofzo.nativetrees",
-        "MemoryPack.Unity"
+        "MemoryPack.Unity",
+		"Newtonsoft.Json"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

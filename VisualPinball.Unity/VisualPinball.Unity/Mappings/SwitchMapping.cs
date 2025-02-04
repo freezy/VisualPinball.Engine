@@ -18,6 +18,7 @@
 
 using System;
 using MemoryPack;
+using Newtonsoft.Json;
 using UnityEngine;
 
 namespace VisualPinball.Unity
@@ -40,13 +41,16 @@ namespace VisualPinball.Unity
 
 		public SwitchConstant Constant;
 
+		[JsonIgnore]
 		[MemoryPackIgnore]
 		[SerializeReference]
 		public MonoBehaviour _device;
 
+		[JsonIgnore]
 		[MemoryPackIgnore]
 		public ISwitchDeviceComponent Device { get => _device as ISwitchDeviceComponent; set => _device = value as MonoBehaviour; }
 
+		[JsonProperty]
 		[MemoryPackInclude]
 		private string _devicePath { get; set; }
 

@@ -81,7 +81,7 @@ namespace VisualPinball.Unity.Editor.Packaging
 		}
 
 		public string Name => _storage.Name;
-		public IPackageFile AddFile(string name) => new OpenMcdfFile(_storage.AddStream(name));
+		public IPackageFile AddFile(string name, string ext = null) => new OpenMcdfFile(_storage.AddStream(name + (ext ?? string.Empty)));
 		public IPackageFolder AddFolder(string name) => new OpenMcdfFolder(_storage.AddStorage(name));
 		public bool TryGetFolder(string name, out IPackageFolder folder)
 		{
@@ -93,9 +93,9 @@ namespace VisualPinball.Unity.Editor.Packaging
 			return false;
 		}
 
-		public bool TryGetFile(string name, out IPackageFile file)
+		public bool TryGetFile(string name, out IPackageFile file, string ext = null)
 		{
-			if (_storage.TryGetStream(name, out var cfStream)) {
+			if (_storage.TryGetStream(name + (ext ?? string.Empty), out var cfStream)) {
 				file = new OpenMcdfFile(cfStream);
 				return true;
 			}
@@ -103,7 +103,7 @@ namespace VisualPinball.Unity.Editor.Packaging
 			return false;
 		}
 
-		public IPackageFile GetFile(string name) => new OpenMcdfFile(_storage.GetStream(name));
+		public IPackageFile GetFile(string name, string ext = null) => new OpenMcdfFile(_storage.GetStream(name + (ext ?? string.Empty)));
 		public IPackageFolder GetFolder(string name) => new OpenMcdfFolder(_storage.GetStorage(name));
 		public void VisitFiles(Action<IPackageFile> action)
 		{

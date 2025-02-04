@@ -18,6 +18,7 @@
 
 using System;
 using MemoryPack;
+using Newtonsoft.Json;
 using UnityEngine;
 using VisualPinball.Engine.Game.Engines;
 using VisualPinball.Engine.Math;
@@ -38,13 +39,16 @@ namespace VisualPinball.Unity
 
 		public string Description = string.Empty;
 
+		[JsonIgnore]
 		[MemoryPackIgnore]
 		[SerializeReference]
 		public MonoBehaviour _device;
 
+		[JsonIgnore]
 		[MemoryPackIgnore]
 		public ILampDeviceComponent Device { get => _device as ILampDeviceComponent; set => _device = value as MonoBehaviour; }
 
+		[JsonProperty]
 		[MemoryPackInclude]
 		private string _devicePath { get; set; }
 

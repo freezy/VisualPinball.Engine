@@ -53,8 +53,7 @@ namespace VisualPinball.Unity.Editor
 			sw.Start();
 			_tableName = tableName;
 
-			IStorageManager storageManager = new OpenMcdfStorageManager();
-			using var storage = storageManager.OpenStorage(_vpePath);
+			using var storage = PackageApi.StorageManager.OpenStorage(_vpePath);
 			try {
 				Setup(storage);
 				await ImportModels();
@@ -144,7 +143,7 @@ namespace VisualPinball.Unity.Editor
 				if (item == null) {
 					throw new Exception($"Cannot find item at path {itemStorage.Name} on node {_table.name}");;
 				}
-				if (itemAction != null && itemStorage.TryGetFile(PackageWriter.ItemStream, out var itemStream)) {
+				if (itemAction != null && itemStorage.TryGetFile(PackageWriter.ItemStream, out var itemStream, PackageApi.Packer.FileExtension)) {
 					itemAction(item.gameObject, itemStream);
 				}
 				itemStorage.VisitFolders(typeStorage => {
@@ -168,10 +167,10 @@ namespace VisualPinball.Unity.Editor
 			}
 			var globalStorage = _tableStorage.GetFolder(PackageWriter.GlobalStorage);
 			tableComponent.MappingConfig = new MappingConfig {
-				Switches = PackageApi.Packer.Unpack<List<SwitchMapping>>(globalStorage.GetFile(PackageWriter.SwitchesStream).GetData()),
-				Coils = PackageApi.Packer.Unpack<List<CoilMapping>>(globalStorage.GetFile(PackageWriter.CoilsStream).GetData()),
-				Lamps = PackageApi.Packer.Unpack<List<LampMapping>>(globalStorage.GetFile(PackageWriter.LampsStream).GetData()),
-				Wires = PackageApi.Packer.Unpack<List<WireMapping>>(globalStorage.GetFile(PackageWriter.WiresStream).GetData()),
+				Switches = PackageApi.Packer.Unpack<List<SwitchMapping>>(globalStorage.GetFile(PackageWriter.SwitchesStream, PackageApi.Packer.FileExtension).GetData()),
+				Coils = PackageApi.Packer.Unpack<List<CoilMapping>>(globalStorage.GetFile(PackageWriter.CoilsStream, PackageApi.Packer.FileExtension).GetData()),
+				Lamps = PackageApi.Packer.Unpack<List<LampMapping>>(globalStorage.GetFile(PackageWriter.LampsStream, PackageApi.Packer.FileExtension).GetData()),
+				Wires = PackageApi.Packer.Unpack<List<WireMapping>>(globalStorage.GetFile(PackageWriter.WiresStream, PackageApi.Packer.FileExtension).GetData()),
 			};
 			foreach (var sw in tableComponent.MappingConfig.Switches) {
 				sw.RestoreReference(_table.transform);

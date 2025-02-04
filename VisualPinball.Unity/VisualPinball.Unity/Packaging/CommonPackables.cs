@@ -1,15 +1,17 @@
 ﻿using MemoryPack;
-using Unity.Mathematics;
 using UnityEngine;
 using VisualPinball.Engine.Math;
+
+// ReSharper disable MemberCanBePrivate.Global
+// ReSharper disable FieldCanBeMadeReadOnly.Global
 
 namespace VisualPinball.Unity
 {
 	[MemoryPackable]
-	public readonly partial struct ReferencePackable
+	public partial struct ReferencePackable
 	{
-		public readonly string Path;
-		public readonly string Type;
+		public string Path;
+		public string Type;
 
 		public ReferencePackable(string path, string type)
 		{
@@ -55,54 +57,40 @@ namespace VisualPinball.Unity
 	}
 
 	[MemoryPackable]
-	public readonly partial struct DragPointPackable
+	public partial struct DragPointPackable
 	{
-		public readonly string Id;
-		public readonly float3 Center;
-		public readonly bool IsSmooth;
-		public readonly bool IsSlingshot;
-		public readonly bool HasAutoTexture;
-		public readonly float TextureCoord;
-		public readonly bool IsLocked;
-		public readonly int EditorLayer;
-		public readonly string EditorLayerName;
-		public readonly bool EditorLayerVisibility;
-		public readonly float CalcHeight;
+		public string Id;
+		public PackableFloat3 Center;
+		public bool IsSmooth;
+		public bool IsSlingshot;
+		public bool HasAutoTexture;
+		public float TextureCoord;
+		public bool IsLocked;
+		public int EditorLayer;
+		public string EditorLayerName;
+		public bool EditorLayerVisibility;
+		public float CalcHeight;
 
-		[MemoryPackConstructor]
-		public DragPointPackable(string id, float3 center, bool isSmooth, bool isSlingshot, bool hasAutoTexture, float textureCoord, bool isLocked, int editorLayer, string editorLayerName, bool editorLayerVisibility, float calcHeight)
+		public static DragPointPackable From(DragPointData data)
 		{
-			Id = id;
-			Center = center;
-			IsSmooth = isSmooth;
-			IsSlingshot = isSlingshot;
-			HasAutoTexture = hasAutoTexture;
-			TextureCoord = textureCoord;
-			IsLocked = isLocked;
-			EditorLayer = editorLayer;
-			EditorLayerName = editorLayerName;
-			EditorLayerVisibility = editorLayerVisibility;
-			CalcHeight = calcHeight;
+			return new DragPointPackable {
+				Id = data.Id,
+				Center = data.Center,
+				IsSmooth = data.IsSmooth,
+				IsSlingshot = data.IsSlingshot,
+				HasAutoTexture = data.HasAutoTexture,
+				TextureCoord = data.TextureCoord,
+				IsLocked = data.IsLocked,
+				EditorLayer = data.EditorLayer,
+				EditorLayerName = data.EditorLayerName,
+				EditorLayerVisibility = data.EditorLayerVisibility,
+				CalcHeight = data.CalcHeight,
+			};
 		}
 
-		public DragPointPackable(DragPointData data)
+		public DragPointData ToDragPoint()
 		{
-			Id = data.Id;
-			Center = new float3(data.Center.X, data.Center.Y, data.Center.Z);
-			IsSmooth = data.IsSmooth;
-			IsSlingshot = data.IsSlingshot;
-			HasAutoTexture = data.HasAutoTexture;
-			TextureCoord = data.TextureCoord;
-			IsLocked = data.IsLocked;
-			EditorLayer = data.EditorLayer;
-			EditorLayerName = data.EditorLayerName;
-			EditorLayerVisibility = data.EditorLayerVisibility;
-			CalcHeight = data.CalcHeight;
-		}
-
-		public DragPointData ToData()
-		{
-			return new DragPointData(new Vertex3D(Center.x, Center.y, Center.z)) {
+			return new DragPointData(Center) {
 				Id = Id,
 				IsSmooth = IsSmooth,
 				IsSlingshot = IsSlingshot,
@@ -115,5 +103,22 @@ namespace VisualPinball.Unity
 				CalcHeight = CalcHeight
 			};
 		}
+	}
+
+	public readonly struct PackableFloat3
+	{
+		private readonly float _x;
+		private readonly float _y;
+		private readonly float _z;
+
+		public PackableFloat3(float x, float y, float z)
+		{
+			_x = x;
+			_y = y;
+			_z = z;
+		}
+
+		public static implicit operator Vertex3D(PackableFloat3 v) => new(v._x, v._y, v._z);
+		public static implicit operator PackableFloat3(Vertex3D v) => new(v.X, v.Y, v.Z);
 	}
 }
