@@ -20,6 +20,17 @@ using System.IO;
 namespace VisualPinball.Unity.Editor.Packaging
 {
 	/// <summary>
+	/// Here we decide which implementation to use for storing and packing data.
+	/// </summary>
+	public static class PackageApi
+	{
+		public static readonly IStorageManager StorageManager = new SharpZipStorageManager();
+		//public static IStorageManager StorageManager => new OpenMcdfStorageManager();
+
+		public static readonly IDataPacker Packer = new MemoryPackDataPacker();
+	}
+
+	/// <summary>
 	/// A manager for creating and opening storages.
 	/// </summary>
 	public interface IStorageManager
@@ -156,5 +167,11 @@ namespace VisualPinball.Unity.Editor.Packaging
 		/// </summary>
 		/// <returns>Data to retrieve.</returns>
 		byte[] GetData();
+	}
+
+	public interface IDataPacker
+	{
+		public T Unpack<T>(byte[] data);
+		public byte[] Pack();
 	}
 }
