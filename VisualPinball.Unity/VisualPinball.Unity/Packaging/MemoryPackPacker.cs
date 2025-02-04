@@ -22,6 +22,6 @@ namespace VisualPinball.Unity.Editor.Packaging
 	{
 		public T Unpack<T>(byte[] data) => MemoryPackSerializer.Deserialize<T>(data);
 
-		public byte[] Pack(object obj) => MemoryPackSerializer.Serialize(obj);
+		public byte[] Pack<T>(T obj) => MemoryPackSerializer.Serialize(obj);
 	}
 }

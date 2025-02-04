@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using MemoryPack;
+using VisualPinball.Unity.Editor.Packaging;
 
 namespace VisualPinball.Unity
 {
@@ -40,9 +41,9 @@ namespace VisualPinball.Unity
 			KickTime = kickTime;
 		}
 
-		public static TroughPackable Unpack(byte[] data) => MemoryPackSerializer.Deserialize<TroughPackable>(data);
+		public static TroughPackable Unpack(byte[] data) => PackageApi.Packer.Unpack<TroughPackable>(data);
 
-		public byte[] Pack() => MemoryPackSerializer.Serialize(this);
+		public byte[] Pack() => PackageApi.Packer.Pack(this);
 	}
 
 	[MemoryPackable]
@@ -63,8 +64,8 @@ namespace VisualPinball.Unity
 			PlayfieldExitKickerItem = playfieldExitKickerItem;
 		}
 
-		public static TroughReferencesPackable Unpack(byte[] data) => MemoryPackSerializer.Deserialize<TroughReferencesPackable>(data);
+		public static TroughReferencesPackable Unpack(byte[] data) => PackageApi.Packer.Unpack<TroughReferencesPackable>(data);
 
-		public byte[] Pack() => MemoryPackSerializer.Serialize(this);
+		public byte[] Pack() => PackageApi.Packer.Pack(this);
 	}
 }
