@@ -25,6 +25,7 @@ using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using VisualPinball.Unity.Editor.Packaging;
+using VisualPinball.Unity.Packaging;
 using Logger = NLog.Logger;
 using Object = UnityEngine.Object;
 
@@ -33,11 +34,12 @@ namespace VisualPinball.Unity.Editor
 	public class PackageReader
 	{
 		private readonly string _vpePath;
-		private IPackageFolder _tableStorage;
+		private IPackageFolder _tableFolder;
 		private string _assetPath;
 		private string _tableName;
 		private GameObject _table;
 		private readonly PackNameLookup _typeLookup;
+		private PackagedFiles _packageFiles;
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
 		public PackageReader(string vpePath)
@@ -56,6 +58,8 @@ namespace VisualPinball.Unity.Editor
 			try {
 				Setup(storage);
 				await ImportModels();
+
+				ReadAssets();
 
 				// create components and update game objects
 				ReadPackables(PackageApi.ItemFolder, (item, type, stream, index) => {
@@ -91,13 +95,15 @@ namespace VisualPinball.Unity.Editor
 		private void Setup(IPackageStorage storage)
 		{
 			// open storages
-			_tableStorage = storage.GetFolder(PackageApi.TableFolder);
+			_tableFolder = storage.GetFolder(PackageApi.TableFolder);
 			_assetPath = Path.Combine(Application.dataPath, "Resources", _tableName);
 			var n = 0;
 			while (Directory.Exists(_assetPath)) {
 				_assetPath = Path.Combine(Application.dataPath, "Resources", $"{_tableName} ({++n})");
 			}
 			Directory.CreateDirectory(_assetPath);
+
+			_packageFiles = new PackagedFiles(_tableFolder);
 		}
 
 		private async Task ImportModels()
@@ -107,7 +113,7 @@ namespace VisualPinball.Unity.Editor
 				AssetDatabase.StartAssetEditing();
 
 				// dump glb
-				var sceneStream = _tableStorage.GetFile(PackageApi.SceneFile);
+				var sceneStream = _tableFolder.GetFile(PackageApi.SceneFile);
 				await using var glbFileStream = new FileStream(glbPath, FileMode.Create, FileAccess.Write);
 				await sceneStream.AsStream().CopyToAsync(glbFileStream);
 
@@ -132,9 +138,14 @@ namespace VisualPinball.Unity.Editor
 			EditorSceneManager.MarkSceneDirty(SceneManager.GetActiveScene()); // mark the active scene as dirty so that the changes are saved.
 		}
 
+		private void ReadAssets()
+		{
+			_packageFiles.UnpackAssets();
+		}
+
 		private void ReadPackables(string storageRoot, Action<Transform, Type, IPackageFile, int> componentAction, Action<GameObject, IPackageFile> itemAction = null)
 		{
-			var itemsStorage = _tableStorage.GetFolder(storageRoot);
+			var itemsStorage = _tableFolder.GetFolder(storageRoot);
 			// -> storageRoot <- / 0.0.0 / CompType / 0
 			itemsStorage.VisitFolders(itemStorage => {
 				// storageRoot / -> 0.0.0 <- / CompType / 0
@@ -164,7 +175,7 @@ namespace VisualPinball.Unity.Editor
 			if (!tableComponent) {
 				throw new Exception("Cannot find table component on table object.");
 			}
-			var globalStorage = _tableStorage.GetFolder(PackageApi.GlobalFolder);
+			var globalStorage = _tableFolder.GetFolder(PackageApi.GlobalFolder);
 			tableComponent.MappingConfig = new MappingConfig {
 				Switches = PackageApi.Packer.Unpack<List<SwitchMapping>>(globalStorage.GetFile(PackageApi.SwitchesFile, PackageApi.Packer.FileExtension).GetData()),
 				Coils = PackageApi.Packer.Unpack<List<CoilMapping>>(globalStorage.GetFile(PackageApi.CoilsFile, PackageApi.Packer.FileExtension).GetData()),
