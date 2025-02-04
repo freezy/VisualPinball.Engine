@@ -169,9 +169,24 @@ namespace VisualPinball.Unity.Editor.Packaging
 		byte[] GetData();
 	}
 
+	/// <summary>
+	/// The data packer is the part that converts object data into a byte array and vice versa.
+	/// </summary>
 	public interface IDataPacker
 	{
+		/// <summary>
+		/// Convert a byte array to an object.
+		/// </summary>
+		/// <param name="data">Serialized data</param>
+		/// <typeparam name="T">Type of the object to deserialize</typeparam>
+		/// <returns>Deserialized object.</returns>
 		public T Unpack<T>(byte[] data);
-		public byte[] Pack();
+
+		/// <summary>
+		/// Convert an object to a byte array.
+		/// </summary>
+		/// <param name="obj">Object to serialize</param>
+		/// <returns>Serialized data.</returns>
+		public byte[] Pack(object obj);
 	}
 }
