@@ -414,7 +414,7 @@ namespace VisualPinball.Unity
 		public byte[] Pack() => new DefaultGamelogicEnginePackable().Pack();
 		public byte[] PackReferences(Transform root, PackNameLookup lookup, PackagedFiles files) => Array.Empty<byte>();
 		public void Unpack(byte[] data) { }
-		public void UnpackReferences(byte[] data, Transform root, PackNameLookup packNameLookup) { }
+		public void UnpackReferences(byte[] data, Transform root, PackNameLookup lookup, PackagedFiles files) { }
 
 		#endregion
 	}

@@ -163,7 +163,7 @@ namespace VisualPinball.Unity
 			});
 		}
 
-		public PhysicalMaterialPackable Unpack(byte[] bytes)
+		public static PhysicalMaterialPackable Unpack(byte[] bytes)
 		{
 			var data = PackageApi.Packer.Unpack<PhysicalMaterialPackable>(bytes);
 			return new PhysicalMaterialPackable {

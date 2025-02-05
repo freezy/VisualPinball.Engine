@@ -81,7 +81,7 @@ namespace VisualPinball.Unity.Editor
 				ReadPackables(PackageApi.ItemReferencesFolder, (item, type, stream, _) => {
 					// add the component and unpack it.
 					var comp = item.gameObject.GetComponent(type) as IPackable;
-					comp?.UnpackReferences(stream.GetData(), _table.transform, _typeLookup);
+					comp?.UnpackReferences(stream.GetData(), _table.transform, _typeLookup, _packageFiles);
 				});
 
 				ReadGlobals();

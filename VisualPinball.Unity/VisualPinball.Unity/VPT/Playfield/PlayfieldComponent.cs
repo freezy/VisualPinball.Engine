@@ -75,7 +75,7 @@ namespace VisualPinball.Unity
 
 		public void Unpack(byte[] bytes) => PlayfieldPackable.Unpack(bytes, this);
 
-		public void UnpackReferences(byte[] data, Transform root, PackNameLookup packNameLookup) { }
+		public void UnpackReferences(byte[] data, Transform root, PackNameLookup lookup, PackagedFiles files) { }
 
 		#endregion
 
