@@ -24,12 +24,13 @@ namespace VisualPinball.Unity.Packaging
 	public class PackagedFiles
 	{
 		private readonly HashSet<ScriptableObject> _scriptableObjects = new();
-
 		private readonly IPackageFolder _tableFolder;
+		private readonly PackNameLookup _typeLookup;
 
-		public PackagedFiles(IPackageFolder tableFolder)
+		public PackagedFiles(IPackageFolder tableFolder, PackNameLookup typeLookup)
 		{
 			_tableFolder = tableFolder;
+			_typeLookup = typeLookup;
 		}
 
 		public int AddAsset(ScriptableObject scriptableObject)
@@ -37,6 +38,11 @@ namespace VisualPinball.Unity.Packaging
 			if (scriptableObject == null) {
 				return 0;
 			}
+
+			if (!_typeLookup.HasType(scriptableObject.GetType())) {
+				throw new Exception($"Unsupported asset type {scriptableObject.GetType().FullName}");
+			}
+
 			_scriptableObjects.Add(scriptableObject);
 			return scriptableObject.GetInstanceID();
 		}
@@ -48,13 +54,19 @@ namespace VisualPinball.Unity.Packaging
 			}
 			var assetFolder = _tableFolder.AddFolder(PackageApi.AssetFolder);
 			foreach (var so in _scriptableObjects) {
-				var subFolder = so.GetType().Name;
+				var subFolder = _typeLookup.GetName(so.GetType());
 				if (!assetFolder.TryGetFolder(subFolder, out var assetTypeFolder)) {
 					assetTypeFolder = assetFolder.AddFolder(subFolder);
 				}
 				var name = UniqueName(assetTypeFolder, so.name);
+
+				// pack file
 				var file = assetTypeFolder.AddFile(name, PackageApi.Packer.FileExtension);
-				file.SetData(ScriptableObjectPackable.Pack(so));
+				file.SetData(MetaPackable.Pack(so));
+
+				// pack meta
+				var fileMeta = assetTypeFolder.AddFile($"{name}.meta", PackageApi.Packer.FileExtension);
+				fileMeta.SetData(MetaPackable.PackMeta(so));
 			}
 		}
 
@@ -66,7 +78,7 @@ namespace VisualPinball.Unity.Packaging
 			assetFolder.VisitFolders(assetTypeFolder => {
 				assetTypeFolder.VisitFiles(assetFile => {
 
-					var asset = PackageApi.Packer.Unpack<ScriptableObjectPackable>(assetFile.GetData());
+					var asset = PackageApi.Packer.Unpack<MetaPackable>(assetFile.GetData());
 
 					// var type = Type.GetType(assemblyQualifiedName);
 					// if (type == null) {

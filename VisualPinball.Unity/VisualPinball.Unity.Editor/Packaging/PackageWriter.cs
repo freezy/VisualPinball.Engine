@@ -58,7 +58,7 @@ namespace VisualPinball.Unity
 			using var storage = PackageApi.StorageManager.CreateStorage(path);
 
 			_tableFolder = storage.AddFolder(PackageApi.TableFolder);
-			_files = new PackagedFiles(_tableFolder);
+			_files = new PackagedFiles(_tableFolder, _typeLookup);
 
 			// write scene data
 			var sw1 = Stopwatch.StartNew();

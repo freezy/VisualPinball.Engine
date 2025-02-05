@@ -123,22 +123,21 @@ namespace VisualPinball.Unity
 		}
 	}
 
-	public partial class ScriptableObjectPackable
+	public partial class MetaPackable
 	{
 		/// <summary>
 		/// This links the asset to the materials that use it.
 		/// </summary>
 		public int InstanceId;
-		public string Type;
-		public ScriptableObject Object;
 
 		public static byte[] Pack(ScriptableObject obj)
 		{
-			return PackageApi.Packer.Pack(new ScriptableObjectPackable {
-				InstanceId = obj.GetInstanceID(),
-				Type = obj.GetType().AssemblyQualifiedName,
-				Object = obj,
-			});
+			return PackageApi.Packer.Pack(obj);
+		}
+
+		public static byte[] PackMeta(ScriptableObject obj)
+		{
+			return PackageApi.Packer.Pack(new MetaPackable { InstanceId = obj.GetInstanceID() });
 		}
 	}
 
