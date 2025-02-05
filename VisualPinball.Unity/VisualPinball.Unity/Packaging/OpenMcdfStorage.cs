@@ -133,6 +133,7 @@ namespace VisualPinball.Unity.Editor.Packaging
 			_stream = stream;
 		}
 
+		public string Name => _stream.Name;
 		public Stream AsStream() => _stream.AsIOStream();
 		public void SetData(byte[] data) => _stream.Append(data);
 		public byte[] GetData() => _stream.GetData();

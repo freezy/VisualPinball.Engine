@@ -16,6 +16,8 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
+using UnityEditor;
 using UnityEngine;
 using VisualPinball.Unity.Editor.Packaging;
 
@@ -24,6 +26,7 @@ namespace VisualPinball.Unity.Packaging
 	public class PackagedFiles
 	{
 		private readonly HashSet<ScriptableObject> _scriptableObjects = new();
+		private readonly Dictionary<int, ScriptableObject> _deserializedObjects = new();
 		private readonly IPackageFolder _tableFolder;
 		private readonly PackNameLookup _typeLookup;
 
@@ -45,6 +48,14 @@ namespace VisualPinball.Unity.Packaging
 
 			_scriptableObjects.Add(scriptableObject);
 			return scriptableObject.GetInstanceID();
+		}
+
+		public T GetAsset<T>(int instanceId) where T : ScriptableObject
+		{
+			if (_deserializedObjects.TryGetValue(instanceId, out var asset)) {
+				return asset as T;
+			}
+			return null;
 		}
 
 		public void PackAssets()
@@ -70,7 +81,7 @@ namespace VisualPinball.Unity.Packaging
 			}
 		}
 
-		public void UnpackAssets()
+		public void UnpackAssets(string assetPath)
 		{
 			if (!_tableFolder.TryGetFolder(PackageApi.AssetFolder, out var assetFolder)) {
 				return;
@@ -78,15 +89,33 @@ namespace VisualPinball.Unity.Packaging
 			assetFolder.VisitFolders(assetTypeFolder => {
 				assetTypeFolder.VisitFiles(assetFile => {
 
-					var asset = PackageApi.Packer.Unpack<MetaPackable>(assetFile.GetData());
+					var folder = Path.Combine(assetPath, assetTypeFolder.Name);
 
-					// var type = Type.GetType(assemblyQualifiedName);
-					// if (type == null) {
-					// 	throw new InvalidOperationException($"Type not found: {assemblyQualifiedName}");
-					// }
-					// object instance = Activator.CreateInstance(type);
-					// var physicsMaterialAsset = (VisualPinball.Unity.PhysicsMaterialAsset)instance;
+					if (assetFile.Name.Contains(".meta")) {
+						return;
+					}
+					var metaFilename = $"{Path.GetFileNameWithoutExtension(assetFile.Name)}.meta{Path.GetExtension(assetFile.Name)}";
+					if (!assetTypeFolder.TryGetFile(metaFilename, out var metaFile)) {
+						throw new Exception($"Cannot find meta file {metaFilename} for {assetFile.Name}");
+					}
+					var meta = MetaPackable.UnpackMeta(metaFile.GetData());
+					var type = _typeLookup.GetType(assetTypeFolder.Name);
+					if (type == null) {
+						throw new Exception($"Unknown asset type {assetTypeFolder.Name}");
+					}
 
+					var asset = PackageApi.Packer.Unpack(type, assetFile.GetData()) as ScriptableObject;
+					if (asset == null) {
+						throw new Exception($"Failed to unpack asset {assetFile.Name}");
+					}
+
+					if (!Directory.Exists(folder)) {
+						Directory.CreateDirectory(folder);
+					}
+					var relativePath = Path.GetRelativePath(Path.Combine(Application.dataPath, ".."), folder);
+					AssetDatabase.CreateAsset(asset, Path.Combine(relativePath, Path.GetFileNameWithoutExtension(assetFile.Name) + ".asset"));
+
+					_deserializedObjects.Add(meta.InstanceId, asset);
 				});
 			});
 		}

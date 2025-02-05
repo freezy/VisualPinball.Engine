@@ -57,7 +57,7 @@ namespace VisualPinball.Unity
 
 		public void Apply(GameObject go)
 		{
-			if (!string.IsNullOrEmpty(PrefabGuid)) {
+			if (!string.IsNullOrEmpty(PrefabGuid) && !PrefabUtility.IsPartOfAnyPrefab(go)) {
 				var path = AssetDatabase.GUIDToAssetPath(PrefabGuid);
 				if (path != null) {
 					var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(path);

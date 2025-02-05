@@ -36,6 +36,9 @@ namespace VisualPinball.Engine.VPT.Surface
 
 		public Mesh GetMesh(string id, float tableWidth, float tableHeight, float zHeight, bool asRightHanded)
 		{
+			if (_data.DragPoints == null || _data.DragPoints.Length == 0) {
+				return null;
+			}
 			var mesh = GenerateMesh(id, tableWidth, tableHeight, zHeight);
 			return asRightHanded ? mesh.Transform(Matrix3D.RightHanded) : mesh;
 		}
