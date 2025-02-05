@@ -17,10 +17,8 @@
 // ReSharper disable InconsistentNaming
 
 using System;
-using MemoryPack;
 using Unity.Collections;
 using UnityEngine;
-using UnityEngine.Serialization;
 
 namespace VisualPinball.Unity
 {
@@ -31,6 +29,7 @@ namespace VisualPinball.Unity
 	/// tweak them all the time, so getting those from external assets instead
 	/// of writing them into the scene seems a good plan.
 	/// </summary>
+	[PackAs("PhysicsMaterial")]
 	[CreateAssetMenu(fileName = "PhysicsMaterial", menuName = "Visual Pinball/Physics Material", order = 100)]
 	//[CustomEditor(typeof(PhysicsMaterial))]
 	public partial class PhysicsMaterialAsset : ScriptableObject
