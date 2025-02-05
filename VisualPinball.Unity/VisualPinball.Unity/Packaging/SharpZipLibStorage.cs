@@ -324,14 +324,13 @@ namespace VisualPinball.Unity.Editor.Packaging
 
 	internal class ZipPackageFile : IPackageFile
 	{
-		private readonly string _fileName;
 		private readonly ZipPackageFolder _parentFolder;
 		private readonly ZipPackageStorage _storage;
 		private readonly ZipEntry _existingEntry; // non-null if read-only
 
 		public ZipPackageFile(string fileName, ZipPackageFolder parentFolder, ZipPackageStorage storage)
 		{
-			_fileName = fileName;
+			Name = fileName;
 			_parentFolder = parentFolder;
 			_storage = storage;
 			_existingEntry = null; // indicates we're in write mode (or a new file in read/write scenario)
@@ -340,11 +339,13 @@ namespace VisualPinball.Unity.Editor.Packaging
 		public ZipPackageFile(string fileName, ZipPackageFolder parentFolder, ZipPackageStorage storage,
 			ZipEntry existingEntry)
 		{
-			_fileName = fileName;
+			Name = fileName;
 			_parentFolder = parentFolder;
 			_storage = storage;
 			_existingEntry = existingEntry; // read mode
 		}
+
+		public string Name { get; }
 
 		public Stream AsStream()
 		{
@@ -358,7 +359,7 @@ namespace VisualPinball.Unity.Editor.Packaging
 
 				// write mode
 				var zos = _storage.GetZipOutputStream();
-				var fullPath = _parentFolder.GetFullPathForFile(_fileName);
+				var fullPath = _parentFolder.GetFullPathForFile(Name);
 
 				var entry = new ZipEntry(fullPath)
 				{
