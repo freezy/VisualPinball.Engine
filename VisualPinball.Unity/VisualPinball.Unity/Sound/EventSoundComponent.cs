@@ -34,8 +34,10 @@ namespace VisualPinball.Unity
 			if (TryFindEventSource(out _eventSource)) {
 				Subscribe(_eventSource);
 			} else {
-				Logger.Warn($"Could not find sound event source of type {typeof(TEventSource).Name}. " +
-				            $"Make sure an appropriate component is attached");
+				Logger.Warn(
+					$"Could not find sound event source of type {typeof(TEventSource).Name} on "
+						+ $"game object '{name}.' Make sure an appropriate component is attached."
+				);
 			}
 		}
 
