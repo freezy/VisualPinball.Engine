@@ -140,7 +140,7 @@ namespace VisualPinball.Unity.Editor
 
 		private void ReadAssets()
 		{
-			_packageFiles.UnpackAssets();
+			_packageFiles.UnpackAssets(_assetPath);
 		}
 
 		private void ReadPackables(string storageRoot, Action<Transform, Type, IPackageFile, int> componentAction, Action<GameObject, IPackageFile> itemAction = null)

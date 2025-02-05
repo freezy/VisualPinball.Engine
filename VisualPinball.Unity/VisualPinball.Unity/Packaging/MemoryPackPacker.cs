@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+using System;
 using MemoryPack;
 
 namespace VisualPinball.Unity.Editor.Packaging
@@ -21,6 +22,8 @@ namespace VisualPinball.Unity.Editor.Packaging
 	public class MemoryPackDataPacker : IDataPacker
 	{
 		public T Unpack<T>(byte[] data) => MemoryPackSerializer.Deserialize<T>(data);
+
+		public object Unpack(Type t, byte[] data) => MemoryPackSerializer.Deserialize(t, data);
 
 		public byte[] Pack<T>(T obj) => MemoryPackSerializer.Serialize(obj);
 

@@ -43,6 +43,16 @@ namespace VisualPinball.Unity.Editor.Packaging
 			}
 		}
 
+		public object Unpack(Type t, byte[] data)
+		{
+			try {
+				return JsonConvert.DeserializeObject(Encoding.UTF8.GetString(data), t);
+			} catch (Exception e) {
+				Debug.LogError(e);
+				throw e;
+			}
+		}
+
 		public string FileExtension => ".json";
 	}
 }

@@ -167,6 +167,11 @@ namespace VisualPinball.Unity.Editor.Packaging
 	public interface IPackageFile
 	{
 		/// <summary>
+		/// Name of the file.
+		/// </summary>
+		string Name { get; }
+
+		/// <summary>
 		/// Return an input stream for the file.
 		/// </summary>
 		/// <returns>A stream that can be written to.</returns>
@@ -204,6 +209,14 @@ namespace VisualPinball.Unity.Editor.Packaging
 		/// <typeparam name="T">Type of the object to deserialize</typeparam>
 		/// <returns>Deserialized object.</returns>
 		public T Unpack<T>(byte[] data);
+
+		/// <summary>
+		/// Convert a byte array to an object.
+		/// </summary>
+		/// <param name="t">Serialized data</param>
+		/// <param name="data">Type of the object to deserialize</param>
+		/// <returns>Deserialized object.</returns>
+		public object Unpack(Type t, byte[] data);
 
 		public string FileExtension { get; }
 	}
