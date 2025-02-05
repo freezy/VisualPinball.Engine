@@ -28,6 +28,6 @@ namespace VisualPinball.Unity
 		byte[] PackReferences(Transform root, PackNameLookup lookup, PackagedFiles files);
 
 		void Unpack(byte[] bytes);
-		void UnpackReferences(byte[] bytes, Transform root, PackNameLookup packNameLookup);
+		void UnpackReferences(byte[] bytes, Transform root, PackNameLookup lookup, PackagedFiles files);
 	}
 }

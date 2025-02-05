@@ -56,8 +56,12 @@ namespace VisualPinball.Unity
 
 		public void Unpack(byte[] bytes) => BumperColliderPackable.Unpack(bytes, this);
 
-		public void UnpackReferences(byte[] data, Transform root, PackNameLookup packNameLookup) { }
-
+		public void UnpackReferences(byte[] data, Transform root, PackNameLookup lookup, PackagedFiles files)
+		{
+			var mat = PhysicalMaterialPackable.Unpack(data);
+			Scatter = mat.Scatter;
+			PhysicsMaterial = files.GetAsset<PhysicsMaterialAsset>(mat.AssetRef);
+		}
 		#endregion
 
 		#region Physics Material
