@@ -1,0 +1,219 @@
+﻿<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+      <title>Create a Realistic Looking Playfield - Textures | VPE Documentation </title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="title" content="Create a Realistic Looking Playfield - Textures | VPE Documentation ">
+      
+      <meta name="description" content="How to create the albedo texture of the playfield.">
+      <link rel="icon" href="../../../favicon.png">
+      <link rel="stylesheet" href="../../../public/docfx.min.css">
+      <link rel="stylesheet" href="../../../public/main.css">
+      <link rel="stylesheet" href="../../../public/basicLightbox.min.css">
+      <meta name="docfx:navrel" content="../../../toc.html">
+      <meta name="docfx:tocrel" content="../../toc.html">
+      
+      <meta name="docfx:rel" content="../../../">
+      
+      
+      <meta name="docfx:docurl" content="https://github.com/freezy/VisualPinball.Engine/blob/master/VisualPinball.Unity/Documentation~/creators-guide/tutorials/realistic-playfield/1-textures.md/#L1">
+      <meta name="loc:inThisArticle" content="Table of Contents">
+      <meta name="loc:searchResultsCount" content="{count} results for &quot;{query}&quot;">
+      <meta name="loc:searchNoResults" content="No results for &quot;{query}&quot;">
+      <meta name="loc:tocFilter" content="Filter by title">
+      <meta name="loc:nextArticle" content="Next">
+      <meta name="loc:prevArticle" content="Previous">
+      <meta name="loc:themeLight" content="Light">
+      <meta name="loc:themeDark" content="Dark">
+      <meta name="loc:themeAuto" content="Auto">
+      <meta name="loc:changeTheme" content="Change theme">
+      <meta name="loc:copy" content="Copy">
+      <meta name="loc:downloadPdf" content="Download PDF">
+
+      <script type="module" src="./../../../public/docfx.min.js"></script>
+
+      <script>
+        const theme = localStorage.getItem('theme') || 'auto'
+        document.documentElement.setAttribute('data-bs-theme', theme === 'auto' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : theme)
+      </script>
+
+     <script type="text/javascript">
+     var _paq = window._paq || [];
+     _paq.push(["setCookieDomain", "*.docs.visualpinball.org"]);
+     _paq.push(['trackPageView']);
+     _paq.push(['enableLinkTracking']);
+     (function() {
+       var u="//count.vpdb.io/";
+       _paq.push(['setTrackerUrl', u+'matomo.php']);
+       _paq.push(['setSiteId', '2']);
+       var d=document, g=d.createElement('script'), s=d.getElementsByTagName('script')[0];
+       g.type='text/javascript'; g.async=true; g.defer=true; g.src=u+'matomo.js'; s.parentNode.insertBefore(g,s);
+     })();
+     </script>
+  </head>
+
+  <body class="tex2jax_ignore" data-layout="" data-yaml-mime="">
+    <header class="bg-body border-bottom" data-bs-theme="dark">
+      <nav id="autocollapse" class="navbar navbar-expand-md" role="navigation">
+        <div class="container flex-nowrap">
+          <a class="navbar-brand" href="../../../index.html">
+            <img id="logo" class="svg" src="../../../logo.svg" alt="">
+            
+          </a>
+          <button class="btn btn-lg d-md-none border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navpanel" aria-controls="navpanel" aria-expanded="false" aria-label="Toggle navigation">
+            <i class="bi bi-three-dots"></i>
+          </button>
+          <div class="collapse navbar-collapse" id="navpanel">
+            <div id="navbar">
+              <form class="search" role="search" id="search">
+                <i class="bi bi-search"></i>
+                <input class="form-control" id="search-query" type="search" disabled="" placeholder="Search" autocomplete="off" aria-label="Search">
+              </form>
+              <a title="VPE is open source!" class="navbar-github" href="https://github.com/freezy/VisualPinball.Engine" target="_blank">
+                <svg xmlns="http://www.w3.org/2000/svg" viewbox="0 0 33.5 33.1" width="33.5" height="33.1"><path d="M16.7.4a16.3 16.3 0 00-5.2 31.8c.8.1 1.1-.4 1.1-.8v-2.8c-4.5 1-5.5-2.2-5.5-2.2-.6-1.9-1.7-2.4-1.7-2.4-1.5-1 .1-1 .1-1 1.6.1 2.5 1.7 2.5 1.7 1.5 2.5 3.8 1.8 4.7 1.4.1-1.1.6-1.8 1-2.2-3.6-.4-7.4-1.8-7.4-8.1 0-1.8.7-3.2 1.7-4.4-.1-.4-.7-2 .2-4.3 0 0 1.4-.4 4.5 1.7a18.4 18.4 0 018.2 0c3.1-2.1 4.5-1.7 4.5-1.7.9 2.2.3 3.9.2 4.3 1 1.1 1.7 2.6 1.7 4.4 0 6.3-3.8 7.6-7.4 8 .6.5 1.1 1.5 1.1 3v4.5c0 .4.3.9 1.1.8A16.3 16.3 0 0016.7.4z"></path></svg>
+              </a>
+            </div>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <main class="container-xxl">
+      <div class="toc-offcanvas">
+        <div class="offcanvas-md offcanvas-start" tabindex="-1" id="tocOffcanvas" aria-labelledby="tocOffcanvasLabel">
+          <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="tocOffcanvasLabel">Table of Contents</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#tocOffcanvas" aria-label="Close"></button>
+          </div>
+          <div class="offcanvas-body">
+            <nav class="toc" id="toc"></nav>
+          </div>
+        </div>
+      </div>
+
+      <div class="content">
+        <div class="actionbar">
+          <button class="btn btn-lg border-0 d-md-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#tocOffcanvas" aria-controls="tocOffcanvas" aria-expanded="false" aria-label="Show table of contents">
+            <i class="bi bi-list"></i>
+          </button>
+
+          <nav id="breadcrumb"></nav>
+        </div>
+
+        <article data-uid="tutorial_playfield_1">
+<h1 id="albedo-texture-and-masks">Albedo Texture and Masks</h1>
+
+<p>In this first step, we'll go through how to create the various textures that we will need for the next steps.</p>
+<h2 id="texture-layout">Texture Layout</h2>
+<img src="texture-layout.png" width="280" class="img-fluid float-end" style="margin-left: 15px">
+<p>The geometry of the playfield has three different areas:</p>
+<ol>
+<li>The top surface, which will occupy most of our texture</li>
+<li>The plywood edges, which will be re-used by all edges that we will place on the left side of the texture</li>
+<li>The back side of the playfield, which is virtually invisible and mainly ignored.</li>
+</ol>
+<p>While often you create your geometry first, and then map the texture onto it, we're going to do it the other way around, which is firstly defining the UV-layout, and then extruding the geometry based on that. This will give us perfectly accurate mapping.</p>
+<p>The best way of doing this is to load your playfield scan, extend the canvas to the left, add the plywood texture, and save the result to a new file.</p>
+<p>So, let's start!</p>
+<h2 id="albedo-texture">Albedo Texture</h2>
+<p>We start by creating a plywood texture for the edges. Check the dimensions of your playfield scan and create a new file with the same height (it's 6750 pixels in our example). Then, get a photo from the edge of some plywood, copy it a few times to get the whole height, and paint with a blurry brush on a mask to make the copies seamless. Add some contrast if necessary and save it as <code>plywood.png</code>.</p>
+<p><img src="plywood-rotated.jpg" alt="Plywood edge">
+<small><i>The plywood edge texture. Get the original <a href="plywood.png">here</a> or an alternative <a href="plywood2.jpg">here</a>.</i></small></p>
+<p>Then, open your playfield scan in Photoshop. Use the crop tool to extend the canvas to the left, with the width of your plywood texture. Copy the plywood texture next to the playfield. Verify that its width more or less corresponds to the playfield size, otherwise it'll be skewed.</p>
+<div class="NOTE">
+<h5>Note</h5>
+<p>Tip: When cropping, make it too large. Then, paste the plywood next to the playfield, and crop it back to the plywood's border.</p>
+</div>
+<p><img src="albedo-left-crop.png" alt="Plywood and Playfield"></p>
+<p>Go ahead and save this texture as <code>albedo.png</code>.</p>
+<h2 id="wood-mask">Wood Mask</h2>
+<p>Now we'll be creating a mask that we'll export as PNG for Substance, but also as SVG so we can extrude it in Blender.</p>
+<p>Open Adobe Illustrator. Create a new document and import <code>albedo.png</code>. Resize the artboard to the exact size of the imported image (enable <em>View -&gt; Smart Guide</em> to make Illustrator snap to the edges). Name the layer <em>reference</em> and lock it.</p>
+<p><img src="illustrator-playfield.png" alt="Playfield in Illustrator"></p>
+<p>Create a new layer, name it <em>wood mask</em> and draw solid shapes that cover the visible holes. This includes insert holes, but also holes for lamps and triggers that aren't entirely covered by another object.</p>
+<p>Here a few tips that will probably make your life easier.</p>
+<ul>
+<li>Click on the small circle right to the <em>wood mask</em> layer and set the opacity to 50%. This way, all elements in that layer are semi-transparent, allowing you to align your edges much better.</li>
+<li>Draw with no stroke and a fill color that doesn't exist in the art, like magenta. It gives you a better contrast and allows you to be more precise.</li>
+<li>Disable smart guides (<code>CTRL+U</code>). It's much less annoying when you manipulate the curves.</li>
+<li>Use Illustrator's <a href="https://helpx.adobe.com/illustrator/using/reshape-with-live-corners.html">Live Corners</a> feature. Specially for inserts, draw pointed corners and use Live Corners to round them off. You can do this for each corner individually.</li>
+<li>Try to get a photo of the real playfield's back side. It gives you a better idea how narrow the inserts are cut. Often, the printed border of the insert overlaps with the hole, which isn't visible in the playfield scan.</li>
+<li>If you're unsure whether a hole will be visible or not, draw it. Poly count isn't as important in modern engines, and it'll save you a lot of time.</li>
+</ul>
+<p>Finally, your mask should look something like this.</p>
+<p><img src="illustrator-wood-mask.png" alt="Wood Mask"></p>
+<p>Now, we'll need the inverse shape of what you've just drawn. So, create a new layer, call it <em>masks</em>, and draw two rectangles: One that covers the playfield, and another that covers the plywood edge (turn <em>Smart Guides</em> back on for this, and make sure to snap to the edges of the artboard). Color them differently and name them <em>full</em> and <em>plywood</em>. Duplicate <em>full</em> by hitting <code>CTRL+C</code> and <code>CTRL+F</code>. Hide the copy and lock the <em>masks</em> layer so only the <em>wood mask</em> layer is unlocked.</p>
+<p>Hit <code>CTRL+A</code> to select all the wood mask shapes, and duplicate them with <code>CTRL+C</code>, <code>CTRL+F</code>. Unlock the <em>masks</em> layer, <code>Shift</code>-select the <em>full</em> rectangle, open the <em>Path Finder</em> tool and hit the <em>Minus Front</em> button. Select the <em>masks</em> layer, right-click on the selected shape, and click <em>Arrange -&gt; Send to Current Layer</em>. Rename the new object <code>&lt;Compound Path&gt;</code> to <em>wood</em>. Hide the <em>reference</em> and <em>wood mask</em> layer.</p>
+<p>The result should look like this:</p>
+<p><img src="illustrator-wood-mask-separated.png" alt="Wood Mask (separated)"></p>
+<p>Export this as a <strong>black on white</strong> PNG: Hide <em>plywood</em> and fill <em>wood</em> black. Click on <em>File -&gt; Export -&gt; Export As</em>, choose type PNG, check <em>Use Artboards</em>, and name it <em>wood-mask</em>. Under <em>Resolution</em>, choose something that is at least as large as your albedo (if you haven't resized the playfield scan after pasting into Illustrator, 72 dpi will correspond to the original resolution). Set the <em>Background Color</em> to <em>White</em>.</p>
+<h2 id="insert-mask">Insert Mask</h2>
+<p>Before we export the playfield as SVG for Blender, we need to create the polygons that are placed over the inserts, so we have something to render the ink on. We still have our <em>wood mask</em> layer, so hide everything else but this and the <em>reference</em> layer.</p>
+<p>Drag and drop the <em>wood mask</em> layer onto the &quot;plus&quot; icon at the bottom of the <em>Layers</em> panel to duplicate it. Name it <em>insert mask</em>. Hide <em>wood mask</em> and delete all polygons that haven't anything printed on it. For Tron, it looks like that:</p>
+<p><img src="illustrator-insert-mask.png" alt="Insert Mask"></p>
+<p>Now we have everything we need for the playfield mesh. Hide the <em>reference</em> layer, unhide the <em>masks</em> layer (with both <em>wood</em> and <em>plywood</em> visible), hit <code>CTRL+A</code>, <code>CTRL+C</code>, <em>File -&gt; New -&gt; Create</em>, <code>CTRL+F</code>. Then, resize the artboard so it fits the content. Click on <em>File -&gt; Save A Copy</em>, choose type <em>SVG</em>, and name it <code>playfield.svg</code>. In the <em>SVG Options</em> dialog hit <em>More Options</em> and uncheck everything. Also, set <em>Decimal Places</em> to <code>5</code>.</p>
+<div class="NOTE">
+<h5>Note</h5>
+<p>The reason of doing it this way is that when &quot;exporting&quot; instead of &quot;saving a copy&quot;, Illustrator saves the file differently, which often ends up in an erroneous import in Blender. <em>Save A Copy</em> also saves hidden layers which we don't want, that's why we create a new document.</p>
+</div>
+<p><img src="illustrator-svg-playfield.png" alt="SVG-exported playfield">
+<small><i>These three layers are exported as SVG.</i></small></p>
+<h2 id="ink-mask">Ink Mask</h2>
+<p>Next up is a mask that will allow us to differentiate between the ink, the wood and the alpha channel above the inserts when creating the material. If your playfield has absolutely no visible wood, just mask out the ink on the inserts. But chances are that it has, specially inside the slingshots and around the triggers.</p>
+<p>Create a new layer and name it <em>ink mask</em>. Draw shapes around everything that is <strong>not</strong> ink. This includes wood, inclusively any holes, and the part of the insert drawers that aren't printed on. Close up, it looks like this:</p>
+<p><img src="illustrator-ink-mask-closeup.png" alt="Ink Mask (closeup)"></p>
+<p>Once you're done, export it as a <strong>white on black</strong> PNG: Make all shapes white, <em>File -&gt; Export -&gt; Export As</em>, name it <code>ink-mask.png</code>, don't forget to check <em>Use Artboards</em>, and choose black <em>Background Color</em>. This is how it looks for Tron (black background added for illustration purpose):</p>
+<p><img src="illustrator-ink-mask.png" alt="Ink Mask"></p>
+<h2 id="fake-holes">Fake Holes</h2>
+<p>Since we will not physically cut out <em>all</em> holes into the playfield mesh, there will be many smaller and some bigger holes where posts, pins, screws, wire guides, bumpers, and other things are attached to. Sometimes they are even visible, but not recognizable as a full-featured hole.</p>
+<p>Masking those elements out allows us to use a proper height map later when creating the materials. It also allows us to replace the scanned wood with a high-quality material, and still be able to exactly know where to position elements on the playfield.</p>
+<p><img src="illustrator-fake-holes-mask-closeup.png" alt="Ink Mask (closeup)"></p>
+<p>Once you're done, export this as a <strong>white on black</strong> PNG the same way you did with the ink mask just before, and name it <code>fake-holes-mask.png</code> (don't forget to check <em>Use Artboards</em>).</p>
+<h2 id="other-masks">Other Masks</h2>
+<p>Tron has two special features: Mylar stickers to protect the playfield, and the Limited Edition has silver paint around the inserts. We'll draw those as well and export the masks <strong>white on black</strong> as <code>mylar-mask.png</code> and <code>silver-mask.png</code>.</p>
+<p><img src="illustrator-other-masks.png" alt="Other Masks"></p>
+<p>The reason to mask out both of these features separately, is that we can create special material properties in Substance Painter later. For example, the silver layer will have a much smoother surface than the ink, while being metallic, and the Mylar layer will have a different height and roughness.</p>
+<h2 id="conclusion">Conclusion</h2>
+<p>To wrap up, we've now created an albedo texture and several masks that will allow us later to texture the playfield. This is how our folder looks now:</p>
+<p><img src="masks.png" alt="Masks"></p>
+<p>This concludes our time in Illustrator. Let's close it and continue with Blender in the <a class="xref" href="2-modeling.html">next step</a>.</p>
+
+</article>
+
+        <div class="contribution d-print-none">
+          <a href="https://github.com/freezy/VisualPinball.Engine/blob/master/VisualPinball.Unity/Documentation~/creators-guide/tutorials/realistic-playfield/1-textures.md/#L1" class="edit-link">Improve this Page</a>
+        </div>
+
+        <div class="next-article d-print-none border-top" id="nextArticle"></div>
+
+      </div>
+
+      <div class="affix">
+        <nav id="affix"></nav>
+      </div>
+    </main>
+
+    <div class="container-xxl search-results" id="search-results"></div>
+
+    <footer class="border-top text-secondary">
+      <div class="container-xxl">
+        <div class="flex-fill">
+          <span>Copyright © 2025 VPE Team</span>
+        </div>
+      </div>
+    </footer>
+    <script src="./../../../public/basicLightbox.min.js"></script>
+    <script type="text/javascript">
+    for (const img of document.querySelectorAll('img:not(#logo)')) {
+      img.onclick = () => {
+        basicLightbox.create(`<img src="${img.src}">`).show()
+        if (img.parentElement.tagName === 'A') {
+          img.parentElement.href = 'javascript:void(0)'
+          img.parentElement.target = '_self'
+        }
+      }
+    }
+    </script>
+  </body>
+</html>

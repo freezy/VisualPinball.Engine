@@ -1,0 +1,180 @@
+﻿<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+      <title>Realistic Looking Plastics - UV-Map Mesh | VPE Documentation </title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="title" content="Realistic Looking Plastics - UV-Map Mesh | VPE Documentation ">
+      
+      <meta name="description" content="How to UV-map the texture onto your mesh in Blender">
+      <link rel="icon" href="../../../favicon.png">
+      <link rel="stylesheet" href="../../../public/docfx.min.css">
+      <link rel="stylesheet" href="../../../public/main.css">
+      <link rel="stylesheet" href="../../../public/basicLightbox.min.css">
+      <meta name="docfx:navrel" content="../../../toc.html">
+      <meta name="docfx:tocrel" content="../../toc.html">
+      
+      <meta name="docfx:rel" content="../../../">
+      
+      
+      <meta name="docfx:docurl" content="https://github.com/freezy/VisualPinball.Engine/blob/master/VisualPinball.Unity/Documentation~/creators-guide/tutorials/realistic-plastics/3-uv-map-mesh.md/#L1">
+      <meta name="loc:inThisArticle" content="Table of Contents">
+      <meta name="loc:searchResultsCount" content="{count} results for &quot;{query}&quot;">
+      <meta name="loc:searchNoResults" content="No results for &quot;{query}&quot;">
+      <meta name="loc:tocFilter" content="Filter by title">
+      <meta name="loc:nextArticle" content="Next">
+      <meta name="loc:prevArticle" content="Previous">
+      <meta name="loc:themeLight" content="Light">
+      <meta name="loc:themeDark" content="Dark">
+      <meta name="loc:themeAuto" content="Auto">
+      <meta name="loc:changeTheme" content="Change theme">
+      <meta name="loc:copy" content="Copy">
+      <meta name="loc:downloadPdf" content="Download PDF">
+
+      <script type="module" src="./../../../public/docfx.min.js"></script>
+
+      <script>
+        const theme = localStorage.getItem('theme') || 'auto'
+        document.documentElement.setAttribute('data-bs-theme', theme === 'auto' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : theme)
+      </script>
+
+     <script type="text/javascript">
+     var _paq = window._paq || [];
+     _paq.push(["setCookieDomain", "*.docs.visualpinball.org"]);
+     _paq.push(['trackPageView']);
+     _paq.push(['enableLinkTracking']);
+     (function() {
+       var u="//count.vpdb.io/";
+       _paq.push(['setTrackerUrl', u+'matomo.php']);
+       _paq.push(['setSiteId', '2']);
+       var d=document, g=d.createElement('script'), s=d.getElementsByTagName('script')[0];
+       g.type='text/javascript'; g.async=true; g.defer=true; g.src=u+'matomo.js'; s.parentNode.insertBefore(g,s);
+     })();
+     </script>
+  </head>
+
+  <body class="tex2jax_ignore" data-layout="" data-yaml-mime="">
+    <header class="bg-body border-bottom" data-bs-theme="dark">
+      <nav id="autocollapse" class="navbar navbar-expand-md" role="navigation">
+        <div class="container flex-nowrap">
+          <a class="navbar-brand" href="../../../index.html">
+            <img id="logo" class="svg" src="../../../logo.svg" alt="">
+            
+          </a>
+          <button class="btn btn-lg d-md-none border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navpanel" aria-controls="navpanel" aria-expanded="false" aria-label="Toggle navigation">
+            <i class="bi bi-three-dots"></i>
+          </button>
+          <div class="collapse navbar-collapse" id="navpanel">
+            <div id="navbar">
+              <form class="search" role="search" id="search">
+                <i class="bi bi-search"></i>
+                <input class="form-control" id="search-query" type="search" disabled="" placeholder="Search" autocomplete="off" aria-label="Search">
+              </form>
+              <a title="VPE is open source!" class="navbar-github" href="https://github.com/freezy/VisualPinball.Engine" target="_blank">
+                <svg xmlns="http://www.w3.org/2000/svg" viewbox="0 0 33.5 33.1" width="33.5" height="33.1"><path d="M16.7.4a16.3 16.3 0 00-5.2 31.8c.8.1 1.1-.4 1.1-.8v-2.8c-4.5 1-5.5-2.2-5.5-2.2-.6-1.9-1.7-2.4-1.7-2.4-1.5-1 .1-1 .1-1 1.6.1 2.5 1.7 2.5 1.7 1.5 2.5 3.8 1.8 4.7 1.4.1-1.1.6-1.8 1-2.2-3.6-.4-7.4-1.8-7.4-8.1 0-1.8.7-3.2 1.7-4.4-.1-.4-.7-2 .2-4.3 0 0 1.4-.4 4.5 1.7a18.4 18.4 0 018.2 0c3.1-2.1 4.5-1.7 4.5-1.7.9 2.2.3 3.9.2 4.3 1 1.1 1.7 2.6 1.7 4.4 0 6.3-3.8 7.6-7.4 8 .6.5 1.1 1.5 1.1 3v4.5c0 .4.3.9 1.1.8A16.3 16.3 0 0016.7.4z"></path></svg>
+              </a>
+            </div>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <main class="container-xxl">
+      <div class="toc-offcanvas">
+        <div class="offcanvas-md offcanvas-start" tabindex="-1" id="tocOffcanvas" aria-labelledby="tocOffcanvasLabel">
+          <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="tocOffcanvasLabel">Table of Contents</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#tocOffcanvas" aria-label="Close"></button>
+          </div>
+          <div class="offcanvas-body">
+            <nav class="toc" id="toc"></nav>
+          </div>
+        </div>
+      </div>
+
+      <div class="content">
+        <div class="actionbar">
+          <button class="btn btn-lg border-0 d-md-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#tocOffcanvas" aria-controls="tocOffcanvas" aria-expanded="false" aria-label="Show table of contents">
+            <i class="bi bi-list"></i>
+          </button>
+
+          <nav id="breadcrumb"></nav>
+        </div>
+
+        <article data-uid="tutorial_plastics_3">
+<h1 id="uv-map-mesh">UV-Map Mesh</h1>
+
+<h2 id="step-1-create-material-slots">Step 1: Create Material Slots</h2>
+<p>We need three material slots, for the top and bottom faces, as well as for the edges. We'll split the vertices by firstly assigning everything to an &quot;edge&quot; slot, and then re-assigning the top and bottom faces to their own slots.</p>
+<img src="blender-material-slots.png" width="235" class="img-fluid float-end" style="margin-left: 15px">
+<p>In object mode, open <em>Materials</em> properties and remove the current material slot (hit <code>-</code>). Add three new slots (press 3× <code>+</code>), and for each slot, create a new material by hitting the <em>New</em> button when the slot is selected. Name them &quot;top&quot;, &quot;bottom&quot; and &quot;edge&quot; and set their base color to red, green, and blue respectively. Your slots should now look like in the screenshot.</p>
+<p>Set the 3D viewport to <em>Material Preview</em>. Select your mesh, press <code>Tab</code> to switch to edit mode. Press <code>A</code> to select all vertices, select the &quot;edge&quot; material slot, and hit <em>Assign</em>. Your plastics should turn blue. Press <code>A</code> twice to deselect everything.</p>
+<p>Then, press <code>7</code> on the numpad to switch to top view, zoom in a bit so you can clearly see the triangles, switch to <em>Face Select</em> and click on one face of the top surface:</p>
+<p><img src="blender-triangle-selected-2.png" alt="Triangle selected"></p>
+<img src="blender-select-coplanar.png" width="280" class="img-fluid float-end" style="margin-left: 15px">
+<p>Click on <em>Select -&gt; Select Similar -&gt; Coplanar</em>, which should result in all top faces of all plastics being selected (but <em>not</em> the bottoms ones). However, you might get the bottom faces selected too, because there's a threshold that might be too large. You can check it by rotating the camera and verify that the bottom faces are not selected. If they are, expand the parameters and set the threshold to a small enough value. Then, select the &quot;top&quot; material slot and hit <em>Assign</em>. The top surfaces should turn red.</p>
+<p>For the bottom faces, hit <code>7</code>, <code>9</code> on the numpad to switch to bottom view, and select again one face. Like before, select all coplanar faces, click the &quot;bottom&quot; material slot, and <em>Assign</em>. You should see the bottom faces turn green.</p>
+<p>Now, the &quot;edges&quot; material slot should only contain the edges. Check by unselecting all (<code>A</code> <code>A</code>), then selecting the &quot;edge&quot; material slot and hitting <em>Select</em>. This should only select the edges, like here:</p>
+<p><img src="blender-edges-selected.png" alt="Edges selected"></p>
+<p>Your meshes should now be colored like this (from top / bottom):</p>
+<p><img src="blender-material-geometry.png" alt="Selecting edges"></p>
+<h2 id="step-2-uv-map">Step 2: UV-Map</h2>
+<p>Switch to the <em>UV Editing</em> workspace. In the left <em>UV Editor</em>, choose <em>Image -&gt; Open</em>, and select the exported <code>Plastic-01.png</code> you've created in part one. On the right, enter edit mode, click on the &quot;top&quot; material slot in the <em>Materials</em> property tab, and hit <em>Select</em>. Click on &quot;bottom&quot; and then on <em>Select</em> again.</p>
+<p>From the <em>UV</em> menu, select <em>Cube Projection</em>. Move your cursor to the left view and press <code>A</code>. You should see both the top and bottom surfaces projected onto your texture:</p>
+<p><img src="blender-uv-mapping.png" alt="UV Mapping in Blender"></p>
+<p>We're now going to align the projection with the texture. You can do that by using the <code>G</code> and <code>S</code> keys. What's important is to align the <strong>outer</strong> contour with the texture, like so:</p>
+<p><img src="blender-uv-mapped.png" alt="UV mapped correctly"></p>
+<h2 id="step-3-prepare-and-export">Step 3: Prepare and Export</h2>
+<p>Once done, switch back to the <em>Layout</em> workspace. Before we export, there's still a bit of a clean up to do. In edit mode, hit <code>A</code> to select all and choose <em>Mesh -&gt; Clean Up -&gt; Limited Dissolve</em>. Exit edit mode, go to <em>Modifier Properties</em>, add the <em>Triangulate</em> modifier, and hit <code>Ctrl</code>+<code>A</code> to apply.</p>
+<p>What we just did reduced the complexity of our topology. We triangulate at the end to avoid problems during export.</p>
+<p><img src="blender-poly-reduction.png" alt="Reduced polygons"></p>
+<p>From left to right:</p>
+<ul>
+<li>Original (102k vertices, 44k triangles)</li>
+<li>After limited dissolve (66k vertices, 30k triangles, but errors in mesh)</li>
+<li>After triangulation (66k vertices, 30k triangles)</li>
+</ul>
+<p>Switch to the <em>Object Data</em> properties, and under <em>Normals</em>, enable <em>Auto Smooth</em>. This will properly align the normals on the bevel side, giving it a more realistic refraction effect.</p>
+<p>We still have one single object, so before exporting, let's split it. In edit mode, hit <code>A</code> to select all and choose <em>Mesh -&gt; Separate -&gt; By Loose Parts</em>. Before exporting, feel free to rename your objects in the Outliner, it's what you'll see in Unity.</p>
+<p>Lastly, in object mode, hit <code>A</code> to select all objects and click on <em>Object -&gt; Set Origin -&gt; Origin to Geometry</em>. This will set the local origin of each object to the object itself, making it easier to place it.</p>
+<p>Export the plastics by selecting <em>File -&gt; Export -&gt; FBX</em>. Name it <code>Plastics.fbx</code> and hit <em>Export FBX</em>.</p>
+<p>Now let's <a class="xref" href="4-import-into-unity.html">import this into Unity</a>!</p>
+
+</article>
+
+        <div class="contribution d-print-none">
+          <a href="https://github.com/freezy/VisualPinball.Engine/blob/master/VisualPinball.Unity/Documentation~/creators-guide/tutorials/realistic-plastics/3-uv-map-mesh.md/#L1" class="edit-link">Improve this Page</a>
+        </div>
+
+        <div class="next-article d-print-none border-top" id="nextArticle"></div>
+
+      </div>
+
+      <div class="affix">
+        <nav id="affix"></nav>
+      </div>
+    </main>
+
+    <div class="container-xxl search-results" id="search-results"></div>
+
+    <footer class="border-top text-secondary">
+      <div class="container-xxl">
+        <div class="flex-fill">
+          <span>Copyright © 2025 VPE Team</span>
+        </div>
+      </div>
+    </footer>
+    <script src="./../../../public/basicLightbox.min.js"></script>
+    <script type="text/javascript">
+    for (const img of document.querySelectorAll('img:not(#logo)')) {
+      img.onclick = () => {
+        basicLightbox.create(`<img src="${img.src}">`).show()
+        if (img.parentElement.tagName === 'A') {
+          img.parentElement.href = 'javascript:void(0)'
+          img.parentElement.target = '_self'
+        }
+      }
+    }
+    </script>
+  </body>
+</html>
