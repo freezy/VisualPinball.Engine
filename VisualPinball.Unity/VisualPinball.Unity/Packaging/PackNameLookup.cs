@@ -56,5 +56,7 @@ namespace VisualPinball.Unity
 			}
 			return name;
 		}
+
+		public bool HasType(Type t) => _typeToName.ContainsKey(t);
 	}
 }

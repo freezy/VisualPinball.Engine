@@ -103,7 +103,7 @@ namespace VisualPinball.Unity.Editor
 			}
 			Directory.CreateDirectory(_assetPath);
 
-			_packageFiles = new PackagedFiles(_tableFolder);
+			_packageFiles = new PackagedFiles(_tableFolder, _typeLookup);
 		}
 
 		private async Task ImportModels()
