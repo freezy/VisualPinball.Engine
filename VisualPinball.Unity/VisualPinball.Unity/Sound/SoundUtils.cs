@@ -35,7 +35,7 @@ namespace VisualPinball.Unity
 		{
 			float progress = 0f;
 #if UNITY_EDITOR
-			// Time.deltaTime doesn't really work in the editor
+			// Time.deltaTime doesn't really work in the editor outside play mode
 			var lastTime = EditorApplication.timeSinceStartup;
 #endif
 			while (progress < 1f) {
