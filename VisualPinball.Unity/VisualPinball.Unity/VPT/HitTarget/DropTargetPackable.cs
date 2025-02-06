@@ -31,4 +31,29 @@ namespace VisualPinball.Unity
 			// no data
 		}
 	}
+
+	[MemoryPackable]
+	public partial struct DropTargetColliderPackable
+	{
+		public bool IsLegacy;
+		public float Threshold;
+		public bool UseHitEvent;
+
+		public static byte[] Pack(DropTargetColliderComponent comp)
+		{
+			return PackageApi.Packer.Pack(new DropTargetColliderPackable {
+				IsLegacy = comp.IsLegacy,
+				Threshold = comp.Threshold,
+				UseHitEvent = comp.UseHitEvent,
+			});
+		}
+
+		public static void Unpack(byte[] bytes, DropTargetColliderComponent comp)
+		{
+			var data = PackageApi.Packer.Unpack<DropTargetColliderPackable>(bytes);
+			comp.IsLegacy = data.IsLegacy;
+			comp.Threshold = data.Threshold;
+			comp.UseHitEvent = data.UseHitEvent;
+		}
+	}
 }
