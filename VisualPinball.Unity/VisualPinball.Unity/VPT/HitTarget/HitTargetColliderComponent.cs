@@ -19,6 +19,7 @@
 using Unity.Mathematics;
 using UnityEngine;
 using VisualPinball.Engine.VPT.HitTarget;
+using VisualPinball.Unity.Packaging;
 
 namespace VisualPinball.Unity
 {
@@ -53,6 +54,28 @@ namespace VisualPinball.Unity
 		[Range(0, 100f)]
 		[Tooltip("Minimal impact needed in order to trigger a hit event.")]
 		public float Threshold = 2.0f;
+
+		#endregion
+
+		#region Packaging
+
+		public byte[] Pack() => HitTargetColliderPackable.Pack(this);
+
+		public byte[] PackReferences(Transform root, PackNameLookup lookup, PackagedFiles files) =>
+			PhysicalMaterialPackable.Pack(Elasticity, ElasticityFalloff, Friction, Scatter, OverwritePhysics, PhysicsMaterial, files);
+
+		public void Unpack(byte[] bytes) => HitTargetColliderPackable.Unpack(bytes, this);
+
+		public void UnpackReferences(byte[] data, Transform root, PackNameLookup lookup, PackagedFiles files)
+		{
+			var mat = PhysicalMaterialPackable.Unpack(data);
+			Elasticity = mat.Elasticity;
+			ElasticityFalloff = mat.ElasticityFalloff;
+			Friction = mat.Friction;
+			Scatter = mat.Scatter;
+			OverwritePhysics = mat.Overwrite;
+			PhysicsMaterial = files.GetAsset<PhysicsMaterialAsset>(mat.AssetRef);
+		}
 
 		#endregion
 

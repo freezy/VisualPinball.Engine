@@ -19,12 +19,14 @@
 using Unity.Mathematics;
 using UnityEngine;
 using VisualPinball.Engine.VPT.HitTarget;
+using VisualPinball.Unity.Packaging;
 
 namespace VisualPinball.Unity
 {
+	[PackAs("DropTargetCollider")]
 	[AddComponentMenu("Visual Pinball/Collision/Drop Target Collider")]
 	[RequireComponent(typeof(DropTargetComponent))]
-	public class DropTargetColliderComponent : ColliderComponent<HitTargetData, TargetComponent>
+	public class DropTargetColliderComponent : ColliderComponent<HitTargetData, TargetComponent>, IPackable
 	{
 		#region Data
 
@@ -56,6 +58,28 @@ namespace VisualPinball.Unity
 
 		[Tooltip("If set, send \"dropped\" and \"raised\" hit events.")]
 		public bool UseHitEvent = true;
+
+		#endregion
+
+		#region Packaging
+
+		public byte[] Pack() => DropTargetColliderPackable.Pack(this);
+
+		public byte[] PackReferences(Transform root, PackNameLookup lookup, PackagedFiles files) =>
+			PhysicalMaterialPackable.Pack(Elasticity, ElasticityFalloff, Friction, Scatter, OverwritePhysics, PhysicsMaterial, files);
+
+		public void Unpack(byte[] bytes) => DropTargetColliderPackable.Unpack(bytes, this);
+
+		public void UnpackReferences(byte[] data, Transform root, PackNameLookup lookup, PackagedFiles files)
+		{
+			var mat = PhysicalMaterialPackable.Unpack(data);
+			Elasticity = mat.Elasticity;
+			ElasticityFalloff = mat.ElasticityFalloff;
+			Friction = mat.Friction;
+			Scatter = mat.Scatter;
+			OverwritePhysics = mat.Overwrite;
+			PhysicsMaterial = files.GetAsset<PhysicsMaterialAsset>(mat.AssetRef);
+		}
 
 		#endregion
 

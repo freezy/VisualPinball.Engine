@@ -31,4 +31,23 @@ namespace VisualPinball.Unity
 			// no data
 		}
 	}
+
+	[MemoryPackable]
+	public partial struct HitTargetColliderPackable
+	{
+		public float Threshold;
+
+		public static byte[] Pack(HitTargetColliderComponent comp)
+		{
+			return PackageApi.Packer.Pack(new HitTargetColliderPackable {
+				Threshold = comp.Threshold,
+			});
+		}
+
+		public static void Unpack(byte[] bytes, HitTargetColliderComponent comp)
+		{
+			var data = PackageApi.Packer.Unpack<HitTargetColliderPackable>(bytes);
+			comp.Threshold = data.Threshold;
+		}
+	}
 }
