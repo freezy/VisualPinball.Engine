@@ -28,8 +28,9 @@ using VisualPinball.Unity.Editor.Packaging;
 using VisualPinball.Unity.Packaging;
 using Debug = UnityEngine.Debug;
 using Logger = NLog.Logger;
+using Object = UnityEngine.Object;
 
-namespace VisualPinball.Unity
+namespace VisualPinball.Unity.Editor
 {
 	public class PackageWriter
 	{
@@ -37,6 +38,8 @@ namespace VisualPinball.Unity
 		private readonly PackNameLookup _typeLookup;
 		private IPackageFolder _tableFolder;
 		private PackagedFiles _files;
+		private IPackageFolder _globalFolder;
+		private IPackageFolder _metaFolder;
 
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
@@ -58,12 +61,19 @@ namespace VisualPinball.Unity
 			using var storage = PackageApi.StorageManager.CreateStorage(path);
 
 			_tableFolder = storage.AddFolder(PackageApi.TableFolder);
+			_globalFolder = _tableFolder.AddFolder(PackageApi.GlobalFolder);
+			_metaFolder = _tableFolder.AddFolder(PackageApi.MetaFolder);
 			_files = new PackagedFiles(_tableFolder, _typeLookup);
 
 			// write scene data
 			var sw1 = Stopwatch.StartNew();
 			await WriteScene();
 			Logger.Info($"Scene written in {sw1.ElapsedMilliseconds}ms.");
+
+			// write non-scene meshes
+			sw1 = Stopwatch.StartNew();
+			await WriteColliderMeshes();
+			Logger.Info($"Collider meshes written in {sw1.ElapsedMilliseconds}ms.");
 
 			// write component data
 			sw1 = Stopwatch.StartNew();
@@ -90,10 +100,10 @@ namespace VisualPinball.Unity
 			Debug.Log($"Done! File saved to {path} in {sw.ElapsedMilliseconds}ms.");
 		}
 
+
 		private async Task WriteScene()
 		{
 			var glbFile = _tableFolder.AddFile(PackageApi.SceneFile);
-
 			var logger = new ConsoleLogger();
 
 			#region glTF Settings
@@ -142,6 +152,50 @@ namespace VisualPinball.Unity
 			export.AddScene(new [] { _table }, _table.transform.worldToLocalMatrix, "VPE Table");
 
 			await export.SaveToStreamAndDispose(glbFile.AsStream());
+		}
+
+		private async Task WriteColliderMeshes()
+		{
+			var meshGos = new List<GameObject>();
+			var colliderMeshesMeta = new Dictionary<string, ColliderMeshMetaPackable>();
+			try {
+				foreach (var colMesh in _table.GetComponentsInChildren<IColliderMesh>()) {
+					var mesh = colMesh.GetColliderMesh();
+					if (!mesh) {
+						continue;
+					}
+					var guid = Guid.NewGuid().ToString();
+					var meshGo = new GameObject(guid);
+					var meshFilter = meshGo.AddComponent<MeshFilter>();
+					meshGo.AddComponent<MeshRenderer>();
+					meshFilter.sharedMesh = mesh;
+					meshGos.Add(meshGo);
+					colliderMeshesMeta.Add(guid, ColliderMeshMetaPackable.Instantiate(colMesh));
+					_files.ColliderMeshInstanceIdToGuid.Add((colMesh as Component)!.GetInstanceID(), guid);
+				}
+
+				if (meshGos.Count > 0) {
+					Logger.Info($"Found {meshGos.Count} collider meshes.");
+					var glbFile = _tableFolder.AddFile(PackageApi.ColliderMeshesFile);
+					var logger = new ConsoleLogger();
+					var exportSettings = new ExportSettings {
+						Format = GltfFormat.Binary,
+					};
+					var export = new GameObjectExport(exportSettings, logger: logger);
+					export.AddScene(meshGos.ToArray(), _table.transform.worldToLocalMatrix, "VPE Table");
+					await export.SaveToStreamAndDispose(glbFile.AsStream());
+
+					var glbMeta = _metaFolder.AddFile(PackageApi.ColliderMeshesMeta, PackageApi.Packer.FileExtension);
+					glbMeta.SetData(PackageApi.Packer.Pack(colliderMeshesMeta));
+				}
+
+			} finally {
+
+				// cleanup scene
+				foreach (var meshGo in meshGos) {
+					Object.DestroyImmediate(meshGo);
+				}
+			}
 		}
 
 		/// <summary>
@@ -219,8 +273,6 @@ namespace VisualPinball.Unity
 				throw new Exception("Cannot find table component on table object.");
 			}
 
-			var globalStorage = _tableFolder.AddFolder(PackageApi.GlobalFolder);
-
 			foreach (var sw in tableComponent.MappingConfig.Switches) {
 				sw.SaveReference(_table.transform);
 			}
@@ -234,10 +286,10 @@ namespace VisualPinball.Unity
 				lp.SaveReference(_table.transform);
 			}
 
-			globalStorage.AddFile(PackageApi.SwitchesFile, PackageApi.Packer.FileExtension).SetData(PackageApi.Packer.Pack(tableComponent.MappingConfig.Switches));
-			globalStorage.AddFile(PackageApi.CoilsFile, PackageApi.Packer.FileExtension).SetData(PackageApi.Packer.Pack(tableComponent.MappingConfig.Coils));
-			globalStorage.AddFile(PackageApi.WiresFile, PackageApi.Packer.FileExtension).SetData(PackageApi.Packer.Pack(tableComponent.MappingConfig.Wires));
-			globalStorage.AddFile(PackageApi.LampsFile, PackageApi.Packer.FileExtension).SetData(PackageApi.Packer.Pack(tableComponent.MappingConfig.Lamps));
+			_globalFolder.AddFile(PackageApi.SwitchesFile, PackageApi.Packer.FileExtension).SetData(PackageApi.Packer.Pack(tableComponent.MappingConfig.Switches));
+			_globalFolder.AddFile(PackageApi.CoilsFile, PackageApi.Packer.FileExtension).SetData(PackageApi.Packer.Pack(tableComponent.MappingConfig.Coils));
+			_globalFolder.AddFile(PackageApi.WiresFile, PackageApi.Packer.FileExtension).SetData(PackageApi.Packer.Pack(tableComponent.MappingConfig.Wires));
+			_globalFolder.AddFile(PackageApi.LampsFile, PackageApi.Packer.FileExtension).SetData(PackageApi.Packer.Pack(tableComponent.MappingConfig.Lamps));
 		}
 	}
 }

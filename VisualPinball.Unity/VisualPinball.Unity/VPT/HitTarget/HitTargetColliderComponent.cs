@@ -23,9 +23,10 @@ using VisualPinball.Unity.Packaging;
 
 namespace VisualPinball.Unity
 {
+	[PackAs("HitTargetCollider")]
 	[AddComponentMenu("Visual Pinball/Collision/Hit Target Collider")]
 	[RequireComponent(typeof(HitTargetComponent))]
-	public class HitTargetColliderComponent : ColliderComponent<HitTargetData, TargetComponent>
+	public class HitTargetColliderComponent : ColliderComponent<HitTargetData, TargetComponent>, IPackable, IColliderMesh
 	{
 		#region Data
 
@@ -62,7 +63,7 @@ namespace VisualPinball.Unity
 		public byte[] Pack() => HitTargetColliderPackable.Pack(this);
 
 		public byte[] PackReferences(Transform root, PackNameLookup lookup, PackagedFiles files) =>
-			PhysicalMaterialPackable.Pack(Elasticity, ElasticityFalloff, Friction, Scatter, OverwritePhysics, PhysicsMaterial, files);
+			HitTargetColliderReferencesPackable.PackReferences(this, files);
 
 		public void Unpack(byte[] bytes) => HitTargetColliderPackable.Unpack(bytes, this);
 
@@ -94,5 +95,7 @@ namespace VisualPinball.Unity
 
 		public override float4x4 GetLocalToPlayfieldMatrixInVpx(float4x4 worldToPlayfield)
 			=> base.GetLocalToPlayfieldMatrixInVpx(worldToPlayfield).TransformToVpx();
+
+		public Mesh GetColliderMesh() => ColliderMesh;
 	}
 }
