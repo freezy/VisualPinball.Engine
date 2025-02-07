@@ -17,6 +17,7 @@
 // ReSharper disable InconsistentNaming
 
 using System;
+using MemoryPack;
 using Unity.Collections;
 using UnityEngine;
 

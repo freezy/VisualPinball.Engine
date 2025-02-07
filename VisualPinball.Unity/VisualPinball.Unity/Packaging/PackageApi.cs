@@ -29,7 +29,10 @@ namespace VisualPinball.Unity.Editor.Packaging
 		public const string ItemFile = "item";
 		public const string ItemReferencesFolder = "refs";
 		public const string SceneFile = "table.glb";
+		public const string ColliderMeshesFile = "colliders.glb";
+		public const string ColliderMeshesMeta = "colliders";
 		public const string GlobalFolder = "global";
+		public const string MetaFolder = "meta";
 		public const string SwitchesFile = "switches";
 		public const string CoilsFile = "coils";
 		public const string WiresFile = "wires";

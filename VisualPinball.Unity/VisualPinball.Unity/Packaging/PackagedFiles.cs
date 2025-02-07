@@ -25,6 +25,8 @@ namespace VisualPinball.Unity.Packaging
 {
 	public class PackagedFiles
 	{
+		public readonly Dictionary<int, string> ColliderMeshInstanceIdToGuid = new();
+
 		private readonly HashSet<ScriptableObject> _scriptableObjects = new();
 		private readonly Dictionary<int, ScriptableObject> _deserializedObjects = new();
 		private readonly IPackageFolder _tableFolder;
@@ -34,6 +36,12 @@ namespace VisualPinball.Unity.Packaging
 		{
 			_tableFolder = tableFolder;
 			_typeLookup = typeLookup;
+		}
+
+		public string GetColliderMeshGuid(IColliderMesh cm)
+		{
+			var instanceId = (cm as Component)!.GetInstanceID();
+			return ColliderMeshInstanceIdToGuid.GetValueOrDefault(instanceId);
 		}
 
 		public int AddAsset(ScriptableObject scriptableObject)

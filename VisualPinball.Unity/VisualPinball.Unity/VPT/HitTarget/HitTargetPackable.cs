@@ -18,6 +18,7 @@
 
 using MemoryPack;
 using VisualPinball.Unity.Editor.Packaging;
+using VisualPinball.Unity.Packaging;
 
 namespace VisualPinball.Unity
 {
@@ -50,4 +51,32 @@ namespace VisualPinball.Unity
 			comp.Threshold = data.Threshold;
 		}
 	}
+
+	[MemoryPackable]
+	public partial struct HitTargetColliderReferencesPackable
+	{
+		public PhysicalMaterialPackable PhysicalMaterial;
+		public string ColliderMeshGuid;
+
+		public static byte[] PackReferences(HitTargetColliderComponent comp, PackagedFiles files)
+		{
+			return PackageApi.Packer.Pack(new HitTargetColliderReferencesPackable {
+				PhysicalMaterial = new PhysicalMaterialPackable {
+					Elasticity = comp.Elasticity,
+					ElasticityFalloff = comp.ElasticityFalloff,
+					Friction = comp.Friction,
+					Scatter = comp.Scatter,
+					Overwrite = comp.OverwritePhysics,
+					AssetRef = files.AddAsset(comp.PhysicsMaterial),
+				},
+				ColliderMeshGuid = files.GetColliderMeshGuid(comp)
+			});
+		}
+
+		public static void Unpack(byte[] bytes, HitTargetColliderComponent comp)
+		{
+
+		}
+	}
+
 }
