@@ -36,7 +36,7 @@ namespace VisualPinball.Unity.Packaging
 	{
 		public string Name;
 		public string PrefabGuid;
-		public string PrefabPath;
+		public string PathWithinPrefab;
 		public bool IsPrefabMeshOverriden;
 
 #if UNITY_EDITOR
@@ -63,7 +63,7 @@ namespace VisualPinball.Unity.Packaging
 					Name = comp.name,
 					IsPrefabMeshOverriden = false,
 					PrefabGuid = null,
-					PrefabPath = null
+					PathWithinPrefab = null
 				};
 			}
 
@@ -75,7 +75,7 @@ namespace VisualPinball.Unity.Packaging
 					Name = comp.name,
 					IsPrefabMeshOverriden = false,
 					PrefabGuid = null,
-					PrefabPath = null
+					PathWithinPrefab = null
 				};
 			}
 
@@ -86,7 +86,7 @@ namespace VisualPinball.Unity.Packaging
 					Name = comp.name,
 					IsPrefabMeshOverriden = false,
 					PrefabGuid = null,
-					PrefabPath = null
+					PathWithinPrefab = null
 				};
 			}
 
@@ -97,7 +97,7 @@ namespace VisualPinball.Unity.Packaging
 				Name = comp.name,
 				IsPrefabMeshOverriden = IsMeshOverridden(icm),
 				PrefabGuid = guid,
-				PrefabPath = path
+				PathWithinPrefab = path
 			};
 		}
 #endif
