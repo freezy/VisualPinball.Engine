@@ -16,38 +16,37 @@ By packaging we mean serializing a table file. Table files in VPE come with the 
 If you extract a `.vpe` file, you'll see the following structure:
 
 ```plain
-table
-  ├─ 📁 assets
-  │   └─ 📁 PhysicsMaterial
-  │       ├─ 📄 WallMaterial.json
-  │       └─ 📄 WallMaterial.meta.json
-  ├─ 📁 global
-  │   ├─ 📄 coils.json
-  │   ├─ 📄 lamps.json
-  │   ├─ 📄 switches.json
-  │   └─ 📄 wires.json
-  ├─ 📁 items
-  │   ├─ 📁 0
-  │   ├─ 📁 0.0
-  │   │     ...
-  │   └─ 📁 0.0.5.0
-  │       ├─ 📁 Bumper
-  │       │   └─ 📄 0.json  
-  │       └─ 📁 BumperCollider
-  │           └─ 📄 0.json  
-  ├─ 📁 meta
-  │   └─ 📄 colliders.json
-  ├─ 📁 refs
-  │   ├─ 📁 0
-  │   ├─ 📁 0.1
-  │   │     ...
-  │   └─ 📁 0.1.2.3
-  │       ├─ 📁 BumperCollider
-  │       └─ 📁 BumperSound
-  │           └─ 📄 0.json
-  ├─ 📄 table.glb
-  └─ 📄 colliders.glb
-
+📁 table
+ ├─ 📁 assets
+ │   └─ 📁 PhysicsMaterial
+ │       ├─ 📄 WallMaterial.json
+ │       └─ 📄 WallMaterial.meta.json
+ ├─ 📁 global
+ │   ├─ 📄 coils.json
+ │   ├─ 📄 lamps.json
+ │   ├─ 📄 switches.json
+ │   └─ 📄 wires.json
+ ├─ 📁 items
+ │   ├─ 📁 0
+ │   ├─ 📁 0.0
+ │   │     ...
+ │   └─ 📁 0.0.5.0
+ │       ├─ 📁 Bumper
+ │       │   └─ 📄 0.json  
+ │       └─ 📁 BumperCollider
+ │           └─ 📄 0.json  
+ ├─ 📁 meta
+ │   └─ 📄 colliders.json
+ ├─ 📁 refs
+ │   ├─ 📁 0
+ │   ├─ 📁 0.1
+ │   │     ...
+ │   └─ 📁 0.1.2.3
+ │       ├─ 📁 BumperCollider
+ │       └─ 📁 BumperSound
+ │           └─ 📄 0.json
+ ├─ 📄 table.glb
+ └─ 📄 colliders.glb
 ```
 
 ## Export
@@ -65,7 +64,7 @@ The glTF export includes the hierarchy, meshes, and materials, but does not incl
 > [!NOTE]
 > We are not 100% sure yet how materials work. They seem to be restored correctly in HDRP, but they might use special shaders after import. We might need to side-load them as well.
 >
-> The resulting binary ends up at the root of the archive as 📄 table.glb.
+> The resulting binary ends up at the root of the archive as `📄 table.glb`.
 
 ### Collider Meshes
 
