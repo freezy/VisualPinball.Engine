@@ -246,7 +246,7 @@ namespace VisualPinball.Unity.Editor
 								}
 
 								// rootName / 0.0.0 / CompType / -> 0 <-
-								var itemComponentFile = itemComponentFolder.AddFile($"{counters[packName]++:00}", PackageApi.Packer.FileExtension);
+								var itemComponentFile = itemComponentFolder.AddFile($"{counters[packName]++}", PackageApi.Packer.FileExtension);
 								itemComponentFile.SetData(packableData);
 							}
 							break;
