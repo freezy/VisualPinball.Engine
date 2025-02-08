@@ -46,6 +46,11 @@ namespace VisualPinball.Unity.Editor.Packaging
 		public object Unpack(Type t, byte[] data)
 		{
 			try {
+				if (typeof(ScriptableObject).IsAssignableFrom(t)) {
+					var instance = ScriptableObject.CreateInstance(t);
+					JsonConvert.PopulateObject(Encoding.UTF8.GetString(data), instance);
+					return instance;
+				}
 				return JsonConvert.DeserializeObject(Encoding.UTF8.GetString(data), t);
 			} catch (Exception e) {
 				Debug.LogError(e);

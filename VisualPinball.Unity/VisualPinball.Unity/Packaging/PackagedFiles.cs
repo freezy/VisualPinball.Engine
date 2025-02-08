@@ -18,9 +18,11 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
+using NLog;
 using UnityEditor;
 using UnityEngine;
 using VisualPinball.Unity.Editor.Packaging;
+using Logger = NLog.Logger;
 
 namespace VisualPinball.Unity.Packaging
 {
@@ -35,6 +37,8 @@ namespace VisualPinball.Unity.Packaging
 		private readonly Dictionary<int, ScriptableObject> _deserializedObjects = new();
 		private readonly IPackageFolder _tableFolder;
 		private readonly PackNameLookup _typeLookup;
+
+		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
 		public PackagedFiles(IPackageFolder tableFolder, PackNameLookup typeLookup)
 		{
@@ -182,11 +186,36 @@ namespace VisualPinball.Unity.Packaging
 			for (var i = 0; i < n; i++) {
 				var collider = glbPrefab.transform.GetChild(i);
 				var guid = collider.name;
-				Debug.Log("Found collider mesh: " + guid);
 				if (_colliderMeshMeta.TryGetValue(guid, out var meta)) {
-
+					if (meta.PrefabGuid != null) {
+						var prefabPath = AssetDatabase.GUIDToAssetPath(meta.PrefabGuid);
+						if (prefabPath != null) {
+							var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(prefabPath);
+							if (prefab != null) {
+								// this is only half-tested (with empty string), since we currently don't have prefabs with a deeper hierarchy
+								var meshGo = prefab.transform.Find(meta.PathWithinPrefab);
+								if (meshGo != null) {
+									var meshFilter = meshGo.GetComponent<MeshFilter>();
+									if (meshFilter != null) {
+										var mesh = meshGo.GetComponent<MeshFilter>().sharedMesh;
+										if (mesh != null) {
+											collider.GetComponent<MeshFilter>().sharedMesh = mesh;
+										}
+									} else {
+										Logger.Warn($"Cannot find mesh at path {meta.PathWithinPrefab} in prefab {prefabPath}.");
+									}
+								} else {
+									Logger.Warn($"Cannot find mesh at path {meta.PathWithinPrefab} in prefab {prefabPath}.");
+								}
+							} else {
+								Logger.Warn($"Cannot load prefab for collider mesh at {prefabPath}.");
+							}
+						} else {
+							Logger.Warn($"Cannot find prefab for collider mesh {guid}.");
+						}
+					}
 				} else {
-					Debug.LogWarning($"Cannot fine meta data for collider mesh {guid}.");
+					Logger.Warn($"Cannot fine meta data for collider mesh {guid}.");
 				}
 				_colliderMeshes.Add(guid, collider.GetComponent<MeshFilter>().sharedMesh);
 			}

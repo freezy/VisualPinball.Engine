@@ -80,12 +80,12 @@ Additionally, we save whether the component using the collider mesh is part of a
   "9c42922e-a8b8-416a-b859-b22f24fa205e": {
     "IsPrefabMeshOverriden": false,
     "PrefabGuid": "1d547d87da8b11c44a083695469ff8b8",
-    "PrefabPath": ""
+    "PathWithinPrefab": ""
   }
 }
 ```
 
-Here, we store a map keyed by the GUID for quick lookup, along with the prefab’s GUID if there is one, and whether the mesh was actually overridden. The PrefabPath property points to the object within the prefab, because there might be multiple objects.
+Here, we store a map keyed by the GUID for quick lookup, along with the prefab’s GUID if there is one, and whether the mesh was actually overridden. The `PathWithinPrefab` property points to the object within the prefab, because there might be multiple objects.
 
 ### Components
 
