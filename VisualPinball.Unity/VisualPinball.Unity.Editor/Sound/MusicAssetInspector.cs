@@ -14,23 +14,25 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-using UnityEngine;
-using System.Threading;
-using System.Threading.Tasks;
-using System;
-using UnityEngine.SceneManagement;
-#if UNITY_EDITOR
 using UnityEditor;
-using UnityEditor.SceneManagement;
-#endif
+using UnityEngine.UIElements;
+using UnityEngine;
 
-namespace VisualPinball.Unity
+namespace VisualPinball.Unity.Editor
 {
-	/// <summary>
-	/// Provides utility functions for playing sounds at runtime and in the editor with support for fading the volume in and out.
-	/// </summary>
-	public static class SoundUtils
-	{
+    [CustomEditor(typeof(MusicAsset)), CanEditMultipleObjects]
+    public class MusicAssetInspector : SoundAssetInspector
+    {
+        [SerializeField] private VisualTreeAsset _musicAssetInspectorAsset;
 
-	}
+		public override VisualElement CreateInspectorGUI()
+		{
+            var root = new VisualElement();
+			var baseUi = base.CreateInspectorGUI();
+            root.Add(baseUi);
+            var subUi = _musicAssetInspectorAsset.Instantiate();
+            root.Add(subUi);
+            return root;
+		}
+    }
 }

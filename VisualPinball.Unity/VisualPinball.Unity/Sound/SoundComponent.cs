@@ -32,8 +32,7 @@ namespace VisualPinball.Unity
 	public class SoundComponent : EnableAfterAwakeComponent
 	{
 		[SerializeReference]
-		public SoundAsset _soundAsset;
-
+		protected SoundEffectAsset _soundAsset;
 		[SerializeField]
 		[Tooltip("Should the sound be interrupted if it is triggered again while already playing?")]
 		protected bool _interrupt;
@@ -86,7 +85,7 @@ namespace VisualPinball.Unity
 			try {
 				var combinedVol = _volume * volume;
 				_lastPlayStartTime = Time.unscaledTime;
-				await SoundUtils.Play(_soundAsset, gameObject, _allowFadeCts.Token, _instantCts.Token, combinedVol);
+				await _soundAsset.Play(gameObject, _allowFadeCts.Token, _instantCts.Token, combinedVol);
 			} catch (OperationCanceledException) { }
 		}
 

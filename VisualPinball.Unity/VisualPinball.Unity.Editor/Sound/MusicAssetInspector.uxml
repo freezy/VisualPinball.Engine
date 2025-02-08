@@ -1,0 +1,6 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" xsi="http://www.w3.org/2001/XMLSchema-instance" engine="UnityEngine.UIElements" editor="UnityEditor.UIElements" noNamespaceSchemaLocation="../../../../../UIElementsSchema/UIElements.xsd" editor-extension-mode="True">
+    <uie:PropertyField name="loop" binding-path="_loop" label="Loop" />
+    <uie:PropertyField binding-path="_priority" label="Priority" />
+    <uie:PropertyField binding-path="_transitionType" label="Transition Type" />
+    <uie:PropertyField binding-path="_fadeDuration" label="Fade Duration" />
+</ui:UXML>

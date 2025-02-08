@@ -1,5 +1,5 @@
 // Visual Pinball Engine
-// Copyright (C) 2023 freezy and VPE Team
+// Copyright (C) 2025 freezy and VPE Team
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -14,23 +14,20 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-using UnityEngine;
 using System.Threading;
 using System.Threading.Tasks;
-using System;
-using UnityEngine.SceneManagement;
-#if UNITY_EDITOR
-using UnityEditor;
-using UnityEditor.SceneManagement;
-#endif
+using UnityEngine;
 
 namespace VisualPinball.Unity
 {
-	/// <summary>
-	/// Provides utility functions for playing sounds at runtime and in the editor with support for fading the volume in and out.
-	/// </summary>
-	public static class SoundUtils
-	{
+    [CreateAssetMenu(fileName = "Voice Asset", menuName = "Visual Pinball/Sound/Voice Asset", order = 102)]
 
+    public class VoiceAsset : SoundAsset
+    {
+        public override bool Loop => _loop;
+        public SoundPriority Priority => _priority;
+
+        [SerializeField] private SoundPriority _priority;
+        [SerializeField] private bool _loop;
 	}
 }
