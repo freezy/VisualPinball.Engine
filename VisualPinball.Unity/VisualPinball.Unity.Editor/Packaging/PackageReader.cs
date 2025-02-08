@@ -24,8 +24,6 @@ using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.SceneManagement;
-using VisualPinball.Unity.Editor.Packaging;
-using VisualPinball.Unity.Packaging;
 using Logger = NLog.Logger;
 using Object = UnityEngine.Object;
 

@@ -19,7 +19,6 @@
 using Unity.Mathematics;
 using UnityEngine;
 using VisualPinball.Engine.VPT.HitTarget;
-using VisualPinball.Unity.Packaging;
 
 namespace VisualPinball.Unity
 {

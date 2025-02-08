@@ -20,7 +20,6 @@
 
 using System;
 using System.Collections.Generic;
-using Unity.Mathematics;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using VisualPinball.Engine.Game.Engines;
@@ -28,7 +27,6 @@ using VisualPinball.Engine.Math;
 using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Plunger;
 using VisualPinball.Engine.VPT.Table;
-using VisualPinball.Unity.Packaging;
 
 namespace VisualPinball.Unity
 {

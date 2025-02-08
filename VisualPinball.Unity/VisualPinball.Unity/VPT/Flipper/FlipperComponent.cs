@@ -31,7 +31,6 @@ using VisualPinball.Engine.Math;
 using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Flipper;
 using VisualPinball.Engine.VPT.Table;
-using VisualPinball.Unity.Packaging;
 using Color = UnityEngine.Color;
 
 namespace VisualPinball.Unity

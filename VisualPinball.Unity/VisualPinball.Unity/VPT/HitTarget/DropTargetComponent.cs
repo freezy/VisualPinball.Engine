@@ -22,7 +22,6 @@ using System.Linq;
 using UnityEngine;
 using VisualPinball.Engine.VPT.HitTarget;
 using VisualPinball.Engine.VPT.Table;
-using VisualPinball.Unity.Packaging;
 
 namespace VisualPinball.Unity
 {

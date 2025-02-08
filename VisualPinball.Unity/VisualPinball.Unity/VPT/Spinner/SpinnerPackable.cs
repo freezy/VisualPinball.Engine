@@ -16,13 +16,9 @@
 
 // ReSharper disable MemberCanBePrivate.Global
 
-using MemoryPack;
-using VisualPinball.Unity.Editor.Packaging;
-
 namespace VisualPinball.Unity
 {
-	[MemoryPackable]
-	public partial struct SpinnerPackable
+	public struct SpinnerPackable
 	{
 		public float Damping;
 		public float AngleMax;

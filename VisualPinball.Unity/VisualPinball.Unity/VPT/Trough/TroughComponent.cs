@@ -31,7 +31,6 @@ using VisualPinball.Engine.Game.Engines;
 using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Table;
 using VisualPinball.Engine.VPT.Trough;
-using VisualPinball.Unity.Packaging;
 
 namespace VisualPinball.Unity
 {

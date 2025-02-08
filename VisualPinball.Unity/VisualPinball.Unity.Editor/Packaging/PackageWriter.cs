@@ -24,8 +24,6 @@ using GLTFast.Export;
 using GLTFast.Logging;
 using NLog;
 using UnityEngine;
-using VisualPinball.Unity.Editor.Packaging;
-using VisualPinball.Unity.Packaging;
 using Debug = UnityEngine.Debug;
 using Logger = NLog.Logger;
 using Object = UnityEngine.Object;

@@ -16,13 +16,9 @@
 
 // ReSharper disable MemberCanBePrivate.Global
 
-using MemoryPack;
-using VisualPinball.Unity.Editor.Packaging;
-
 namespace VisualPinball.Unity
 {
-	[MemoryPackable]
-	public partial struct GatePackable
+	public struct GatePackable
 	{
 		public static byte[] Pack(GateComponent _) => PackageApi.Packer.Pack(new GatePackable());
 

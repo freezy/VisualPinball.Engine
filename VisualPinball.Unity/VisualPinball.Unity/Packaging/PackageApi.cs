@@ -16,8 +16,9 @@
 
 using System;
 using System.IO;
+using VisualPinball.Unity.Editor;
 
-namespace VisualPinball.Unity.Editor.Packaging
+namespace VisualPinball.Unity
 {
 	/// <summary>
 	/// Here we decide which implementation to use for storing and packing data.
@@ -42,7 +43,6 @@ namespace VisualPinball.Unity.Editor.Packaging
 		public static readonly IStorageManager StorageManager = new SharpZipStorageManager();
 		// public static IStorageManager StorageManager => new OpenMcdfStorageManager();
 
-		// public static readonly IDataPacker Packer = new MemoryPackDataPacker();
 		public static readonly IDataPacker Packer = new JsonPacker();
 	}
 

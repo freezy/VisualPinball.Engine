@@ -18,13 +18,10 @@
 
 using System.Collections.Generic;
 using System.Linq;
-using MemoryPack;
-using VisualPinball.Unity.Editor.Packaging;
 
 namespace VisualPinball.Unity
 {
-	[MemoryPackable]
-	public partial struct SurfacePackable
+	public struct SurfacePackable
 	{
 		public float HeightTop;
 		public float HeightBottom;
@@ -48,8 +45,7 @@ namespace VisualPinball.Unity
 		}
 	}
 
-	[MemoryPackable]
-	public partial struct SurfaceColliderPackable
+	public struct SurfaceColliderPackable
 	{
 		public bool HitEvent;
 		public float Threshold;
