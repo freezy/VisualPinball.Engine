@@ -63,7 +63,6 @@ namespace VisualPinball.Unity
 
 		#endregion
 
-
 		protected override void OnEnableAfterAfterAwake()
 		{
 			base.OnEnableAfterAfterAwake();

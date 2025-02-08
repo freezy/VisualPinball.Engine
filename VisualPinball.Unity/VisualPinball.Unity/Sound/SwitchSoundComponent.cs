@@ -18,6 +18,7 @@
 
 using System;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 namespace VisualPinball.Unity
 {
@@ -26,10 +27,11 @@ namespace VisualPinball.Unity
 	/// </summary>
 	[PackAs("SwitchSound")]
 	[AddComponentMenu("Visual Pinball/Sound/Switch Sound")]
-	public class SwitchSoundComponent : BinaryEventSoundComponent<IApiSwitch, SwitchEventArgs>
+	public class SwitchSoundComponent : BinaryEventSoundComponent<IApiSwitch, SwitchEventArgs>, IPackable
 	{
-		[SerializeField, HideInInspector]
-		public string _switchName;
+		[FormerlySerializedAs("_switchName")]
+		[HideInInspector]
+		public string SwitchName;
 
 		public override Type GetRequiredType() => typeof(ISwitchDeviceComponent);
 
@@ -42,7 +44,7 @@ namespace VisualPinball.Unity
 			}
 
 			foreach (var component in GetComponents<ISwitchDeviceComponent>()) {
-				@switch = player.Switch(component, _switchName);
+				@switch = player.Switch(component, SwitchName);
 				if (@switch != null) {
 					return true;
 				}
@@ -55,5 +57,15 @@ namespace VisualPinball.Unity
 		protected override void Unsubscribe(IApiSwitch eventSource) => eventSource.Switch -= OnEvent;
 
 		protected override bool InterpretAsBinary(SwitchEventArgs e) => e.IsEnabled;
+
+		#region Packaging
+
+		// refs are handled by SoundComponent
+
+		public new byte[] Pack() => SwitchSoundPackable.Pack(this);
+
+		public new void Unpack(byte[] bytes) => SwitchSoundPackable.Unpack(bytes, this);
+
+		#endregion
 	}
 }

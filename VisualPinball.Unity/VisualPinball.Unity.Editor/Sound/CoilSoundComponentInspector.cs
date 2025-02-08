@@ -34,7 +34,7 @@ namespace VisualPinball.Unity.Editor
 			var inspectorUi = inspectorXml.Instantiate();
 			root.Add(inspectorUi);
 			var coilNameDropdown = root.Q<DropdownField>("coil-name");
-			var coilNameProp = serializedObject.FindProperty(nameof(CoilSoundComponent._coilName));
+			var coilNameProp = serializedObject.FindProperty(nameof(CoilSoundComponent.CoilName));
 			var availableCoils = GetAvailableCoils();
 			ConfigureDropdown(coilNameDropdown, coilNameProp, availableCoils);
 			return root;

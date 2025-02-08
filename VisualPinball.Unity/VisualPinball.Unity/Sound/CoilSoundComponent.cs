@@ -18,6 +18,7 @@
 
 using UnityEngine;
 using System;
+using UnityEngine.Serialization;
 
 namespace VisualPinball.Unity
 {
@@ -26,10 +27,11 @@ namespace VisualPinball.Unity
 	/// </summary>
 	[PackAs("CoilSound")]
 	[AddComponentMenu("Visual Pinball/Sound/Coil Sound")]
-	public class CoilSoundComponent : BinaryEventSoundComponent<IApiCoil, NoIdCoilEventArgs>
+	public class CoilSoundComponent : BinaryEventSoundComponent<IApiCoil, NoIdCoilEventArgs>, IPackable
 	{
-		[SerializeField, HideInInspector]
-		public string _coilName;
+		[FormerlySerializedAs("_coilName")]
+		[HideInInspector]
+		public string CoilName;
 
 		public override Type GetRequiredType() => typeof(ICoilDeviceComponent);
 
@@ -42,7 +44,7 @@ namespace VisualPinball.Unity
 			}
 
 			foreach (var component in GetComponents<ICoilDeviceComponent>()) {
-				coil = player.Coil(component, _coilName);
+				coil = player.Coil(component, CoilName);
 				if (coil != null) {
 					return true;
 				}
@@ -55,5 +57,15 @@ namespace VisualPinball.Unity
 		protected override void Unsubscribe(IApiCoil coil) => coil.CoilStatusChanged -= OnEvent;
 
 		protected override bool InterpretAsBinary(NoIdCoilEventArgs e) => e.IsEnergized;
+
+		#region Packaging
+
+		// refs are handled by SoundComponent
+
+		public new byte[] Pack() => CoilSoundPackable.Pack(this);
+
+		public new void Unpack(byte[] bytes) => CoilSoundPackable.Unpack(bytes, this);
+
+		#endregion
 	}
 }

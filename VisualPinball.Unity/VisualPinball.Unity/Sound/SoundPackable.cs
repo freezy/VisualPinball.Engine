@@ -21,7 +21,7 @@ using System.Linq;
 
 namespace VisualPinball.Unity
 {
-	public struct SoundPackable {
+	public class SoundPackable {
 
 		public bool Interrupt;
 		public float Volume;
@@ -39,6 +39,60 @@ namespace VisualPinball.Unity
 		}
 	}
 
+	public class BinaryEventSoundPackable : SoundPackable
+	{
+		public StartWhen StartWhen;
+		public StopWhen StopWhen;
+	}
+
+	public class SwitchSoundPackable : BinaryEventSoundPackable
+	{
+		public string SwitchName;
+
+		public static byte[] Pack(SwitchSoundComponent comp)
+			=> PackageApi.Packer.Pack(new SwitchSoundPackable {
+				Interrupt = comp.Interrupt,
+				Volume = comp.Volume,
+				StartWhen = comp.StartWhen,
+				StopWhen = comp.StopWhen,
+				SwitchName = comp.SwitchName
+			});
+
+		public static void Unpack(byte[] bytes, SwitchSoundComponent comp)
+		{
+			var data = PackageApi.Packer.Unpack<SwitchSoundPackable>(bytes);
+			comp.Interrupt = data.Interrupt;
+			comp.Volume = data.Volume;
+			comp.StartWhen = data.StartWhen;
+			comp.StopWhen = data.StopWhen;
+			comp.SwitchName = data.SwitchName;
+		}
+	}
+
+	public class CoilSoundPackable : BinaryEventSoundPackable
+	{
+		public string CoilName;
+
+		public static byte[] Pack(CoilSoundComponent comp)
+			=> PackageApi.Packer.Pack(new CoilSoundPackable {
+				Interrupt = comp.Interrupt,
+				Volume = comp.Volume,
+				StartWhen = comp.StartWhen,
+				StopWhen = comp.StopWhen,
+				CoilName = comp.CoilName
+			});
+
+		public static void Unpack(byte[] bytes, CoilSoundComponent comp)
+		{
+			var data = PackageApi.Packer.Unpack<CoilSoundPackable>(bytes);
+			comp.Interrupt = data.Interrupt;
+			comp.Volume = data.Volume;
+			comp.StartWhen = data.StartWhen;
+			comp.StopWhen = data.StopWhen;
+			comp.CoilName = data.CoilName;
+		}
+	}
+
 	public struct SoundReferencesPackable {
 
 		public int SoundAssetRef;
@@ -53,8 +107,8 @@ namespace VisualPinball.Unity
 			// pack asset
 			var assetRef = files.AddAsset(comp.SoundAsset);
 
-			var clipRefs = comp.SoundAsset.Clips != null
 			// pack sound files
+			var clipRefs = comp.SoundAsset.Clips != null
 				? comp.SoundAsset.Clips.Select(files.Add).ToArray()
 				: Array.Empty<string>();
 
