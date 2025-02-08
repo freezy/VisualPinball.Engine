@@ -48,7 +48,7 @@ namespace VisualPinball.Unity.Editor
 				"The selected sound asset is invalid. Make sure it has at least one audio clip.",
 				HelpBoxMessageType.Warning);
 			container.Add(helpBox);
-			var soundAssetProp = serializedObject.FindProperty(nameof(SoundComponent._soundAsset));
+			var soundAssetProp = serializedObject.FindProperty(nameof(SoundComponent.SoundAsset));
 			UpdateVisibility(soundAssetProp);
 			helpBox.TrackPropertyValue(soundAssetProp, UpdateVisibility);
 
@@ -106,7 +106,7 @@ namespace VisualPinball.Unity.Editor
 
 			void UpdateVisbility(SerializedObject obj)
 			{
-				var prop = obj.FindProperty(nameof(SoundComponent._soundAsset));
+				var prop = obj.FindProperty(nameof(SoundComponent.SoundAsset));
 				var soundAsset = prop.objectReferenceValue as SoundAsset;
 				if (soundAsset && soundAsset.Loop && !AllTargetsSupportLoopingSoundAssets()) {
 					helpBox.style.display = DisplayStyle.Flex;

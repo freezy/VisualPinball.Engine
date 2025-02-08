@@ -39,6 +39,7 @@ namespace VisualPinball.Unity
 		public const string WiresFile = "wires";
 		public const string LampsFile = "lamps";
 		public const string AssetFolder = "assets";
+		public const string SoundFolder = "sounds";
 
 		public static readonly IStorageManager StorageManager = new SharpZipStorageManager();
 		// public static IStorageManager StorageManager => new OpenMcdfStorageManager();

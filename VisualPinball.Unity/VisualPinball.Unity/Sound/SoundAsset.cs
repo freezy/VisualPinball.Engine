@@ -17,9 +17,10 @@
 // ReSharper disable InconsistentNaming
 
 using System;
-using System.Linq;
+using Newtonsoft.Json;
 using UnityEngine;
 using UnityEngine.Audio;
+using UnityEngine.Serialization;
 using Random = UnityEngine.Random;
 
 namespace VisualPinball.Unity
@@ -30,43 +31,46 @@ namespace VisualPinball.Unity
 	/// for frequently used sounds. Instances of this class can be stored in the project files or
 	/// in an asset library.
 	/// </summary>
+	[PackAs("SoundAsset")]
 	[CreateAssetMenu(fileName = "Sound", menuName = "Visual Pinball/Sound", order = 102)]
 	public class SoundAsset : ScriptableObject
 	{
-		private enum SelectionMethod
+		public enum SelectionMethod
 		{
 			RoundRobin,
 			Random
 		}
 
-		[SerializeField]
-		private string _description;
+		[FormerlySerializedAs("_description")]
+		public string Description;
 
-		[SerializeField]
-		private AudioClip[] _clips;
+		[JsonIgnore]
+		[FormerlySerializedAs("_clips")]
+		public AudioClip[] Clips;
 
-		[SerializeField]
-		private SelectionMethod _clipSelectionMethod;
+		[FormerlySerializedAs("_clipSelectionMethod")]
+		public SelectionMethod ClipSelectionMethod;
 
-		[SerializeField]
-		private Vector2 _volumeRange = new(1f, 1f);
+		[FormerlySerializedAs("_volumeRange")]
+		public Vector2 VolumeRange = new(1f, 1f);
 
-		[SerializeField]
-		private Vector2 _pitchRange = new(1f, 1f);
+		[FormerlySerializedAs("_pitchRange")]
+		public Vector2 PitchRange = new(1f, 1f);
 
-		[SerializeField]
-		private bool _loop;
-		public bool Loop => _loop;
+		[FormerlySerializedAs("_loop")]
+		public bool Loop;
 
-		[SerializeField, Range(0, 10f)] private float _fadeInTime;
-		public float FadeInTime => _fadeInTime;
+		[FormerlySerializedAs("_fadeInTime")]
+		[SerializeField, Range(0, 10f)]
+		public float FadeInTime;
 
-		[SerializeField, Range(0, 10f)] private float _fadeOutTime;
-		public float FadeOutTime => _fadeOutTime;
+		[FormerlySerializedAs("_fadeOutTime")]
+		[SerializeField, Range(0, 10f)]
+		public float FadeOutTime;
 
+		[FormerlySerializedAs("_isSpatial")]
 		[Tooltip("Should the sound appear to come from the position of the emitter?")]
-		[SerializeField]
-		private bool _isSpatial = true;
+		public bool IsSpatial = true;
 
 		[SerializeField]
 		private AudioMixerGroup _audioMixerGroup;
@@ -75,21 +79,21 @@ namespace VisualPinball.Unity
 
 		public void ConfigureAudioSource(AudioSource audioSource, float volume = 1)
 		{
-			audioSource.volume = volume * Random.Range(_volumeRange.x, _volumeRange.y);
-			audioSource.pitch = Random.Range(_pitchRange.x, _pitchRange.y);
-			audioSource.loop = _loop;
+			audioSource.volume = volume * Random.Range(VolumeRange.x, VolumeRange.y);
+			audioSource.pitch = Random.Range(PitchRange.x, PitchRange.y);
+			audioSource.loop = Loop;
 			audioSource.clip = GetClip();
-			audioSource.spatialBlend = _isSpatial ? 0f : 1f;
+			audioSource.spatialBlend = IsSpatial ? 0f : 1f;
 			audioSource.outputAudioMixerGroup = _audioMixerGroup;
 		}
 
 		public bool IsValid()
 		{
-			if (_clips == null) {
+			if (Clips == null) {
 				return false;
 			}
 
-			foreach (var clip in _clips) {
+			foreach (var clip in Clips) {
 				if (clip != null) {
 					return true;
 				}
@@ -100,20 +104,20 @@ namespace VisualPinball.Unity
 
 		private AudioClip GetClip()
 		{
-			if (_clips.Length == 0) {
+			if (Clips.Length == 0) {
 				throw new InvalidOperationException($"The sound asset '{name}' has no audio clips to play.");
 			}
 
-			switch (_clipSelectionMethod) {
+			switch (ClipSelectionMethod) {
 
 				case SelectionMethod.RoundRobin:
-					_roundRobinIndex %= _clips.Length;
-					var clip = _clips[_roundRobinIndex];
+					_roundRobinIndex %= Clips.Length;
+					var clip = Clips[_roundRobinIndex];
 					_roundRobinIndex++;
 					return clip;
 
 				case SelectionMethod.Random:
-					return _clips[Random.Range(0, _clips.Length)];
+					return Clips[Random.Range(0, Clips.Length)];
 
 				default:
 					throw new NotImplementedException("Selection method not implemented.");

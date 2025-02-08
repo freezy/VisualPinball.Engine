@@ -59,6 +59,7 @@ namespace VisualPinball.Unity
 			Scatter = mat.Scatter;
 			PhysicsMaterial = files.GetAsset<PhysicsMaterialAsset>(mat.AssetRef);
 		}
+
 		#endregion
 
 		#region Physics Material

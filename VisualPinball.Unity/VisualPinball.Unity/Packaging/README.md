@@ -36,7 +36,8 @@ If you extract a `.vpe` file, you'll see the following structure:
  │       └─ 📁 BumperCollider
  │           └─ 📄 0.json  
  ├─ 📁 meta
- │   └─ 📄 colliders.json
+ │   ├─ 📄 colliders.json
+ │   └─ 📄 sounds.json
  ├─ 📁 refs
  │   ├─ 📁 0
  │   ├─ 📁 0.1
@@ -45,6 +46,8 @@ If you extract a `.vpe` file, you'll see the following structure:
  │       ├─ 📁 BumperCollider
  │       └─ 📁 BumperSound
  │           └─ 📄 0.json
+ ├─ 📁 sounds 
+ │   └─ 📄 Flipper 1.wav
  ├─ 📄 table.glb
  └─ 📄 colliders.glb
 ```
@@ -92,6 +95,8 @@ Next, we serialize the GameObject and component data into `📁 items` and `📁
 
 Each component determines for itself which data is written to `📁 items` and which to `📁 refs`. The purpose of these two folders is that data is read in two passes during import: the first pass creates the components, and the second pass updates cross-references between them.
 
+Components might add include other files. For example, sound components add the actual sound files, which are written to `📁 sounds`.
+
 ### Globals
 
 Global data is then written to `📁 global`. Currently, this folder contains mappings for switches, coils, lamps, and wires.
@@ -102,9 +107,11 @@ In this context, assets are instances of `ScriptableObject`, usually serialized 
 
 Assets are grouped into folders based on their type (again determined by the `[PackAs]` attribute). Because they are deserialized as-is, we need an easy way to reference them, which is the purpose of their `*.meta.json` counterparts. The goal of these meta files is to link each asset to an identifier, which is then used by the component data.
 
+This step also writes other metadata such as `📄 sounds.json` in the `📁 meta` folder, which maps the GUID of the sound assets to their name.
+
 ### More to come
 
-Future additions will include sounds, shaders, external dependencies such as PinMAME, MPF, and Visual Scripting, and more.
+Future additions will include shaders, external dependencies such as PinMAME, MPF, and Visual Scripting, and more.
 
 
 ## Import
@@ -117,9 +124,10 @@ One important point is that loading a `.vpe` file during runtime is fundamentall
 - The order in which data is imported is important for both runtime and edit time, because some steps depend on others:
 	1. Load `📄 table.glb`, which gives us the scene hierarchy.
 	2. Unpack `📁 assets` and `📄 colliders.glb`
-	3. Loop through `📁 items` and do, in this order:
+	3. Unpack sounds to `📁 sounds`. Since the GUIDs used for referencing the sound files are the original asset GUIDs, we only write sound files that aren't already in the asset database.
+	4. Loop through `📁 items` and do, in this order:
 		1. Instantiate and apply components
 		2. Link them to their prefab (if the prefab exists in the editor).
 		3. Apply component data.
-	4. Loop through `📁 refs` and restore cross-references between components.
-	5. Import data from `📁 global`.
+	5. Loop through `📁 refs` and restore cross-references between components.
+	6. Import data from `📁 global`.

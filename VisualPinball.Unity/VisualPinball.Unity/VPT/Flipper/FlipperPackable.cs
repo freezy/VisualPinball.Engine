@@ -65,4 +65,69 @@ namespace VisualPinball.Unity
 			comp._rubberWidth = data.RubberWidth;
 		}
 	}
+
+	public struct FlipperColliderPackable
+	{
+		public float Mass;
+		public float Strength;
+		public float Return;
+		public float RampUp;
+		public float TorqueDamping;
+		public float TorqueDampingAngle;
+
+		public static byte[] Pack(FlipperColliderComponent comp)
+		{
+			return PackageApi.Packer.Pack(new FlipperColliderPackable {
+				Mass = comp.Mass,
+				Strength = comp.Strength,
+				Return = comp.Return,
+				RampUp = comp.RampUp,
+				TorqueDamping = comp.TorqueDamping,
+				TorqueDampingAngle = comp.TorqueDampingAngle,
+			});
+		}
+
+		public static void Unpack(byte[] bytes, FlipperColliderComponent comp)
+		{
+			var data = PackageApi.Packer.Unpack<FlipperColliderPackable>(bytes);
+			comp.Mass = data.Mass;
+			comp.Strength = data.Strength;
+			comp.Return = data.Return;
+			comp.RampUp = data.RampUp;
+			comp.TorqueDamping = data.TorqueDamping;
+			comp.TorqueDampingAngle = data.TorqueDampingAngle;
+		}
+	}
+
+	public struct FlipperColliderReferencesPackable
+	{
+		public PhysicalMaterialPackable PhysicalMaterial;
+		public int FlipperCorrectionRef;
+
+		public static byte[] PackReferences(FlipperColliderComponent comp, PackagedFiles files)
+		{
+			return PackageApi.Packer.Pack(new FlipperColliderReferencesPackable {
+				PhysicalMaterial = new PhysicalMaterialPackable {
+					Elasticity = comp.Elasticity,
+					ElasticityFalloff = comp.ElasticityFalloff,
+					Friction = comp.Friction,
+					Scatter = comp.Scatter,
+					Overwrite = true,
+					AssetRef = files.AddAsset(comp.PhysicsMaterial),
+				},
+				FlipperCorrectionRef = files.AddAsset(comp.FlipperCorrection)
+			});
+		}
+
+		public static void Unpack(byte[] bytes, FlipperColliderComponent comp, PackagedFiles files)
+		{
+			var data = PackageApi.Packer.Unpack<FlipperColliderReferencesPackable>(bytes);
+			comp.Elasticity = data.PhysicalMaterial.Elasticity;
+			comp.ElasticityFalloff = data.PhysicalMaterial.ElasticityFalloff;
+			comp.Friction = data.PhysicalMaterial.Friction;
+			comp.Scatter = data.PhysicalMaterial.Scatter;
+			comp.PhysicsMaterial = files.GetAsset<PhysicsMaterialAsset>(data.PhysicalMaterial.AssetRef);
+			comp.FlipperCorrection = files.GetAsset<FlipperCorrectionAsset>(data.FlipperCorrectionRef);
+		}
+	}
 }
