@@ -14,6 +14,9 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+// ReSharper disable FieldCanBeMadeReadOnly.Global
+// ReSharper disable MemberCanBePrivate.Global
+
 using System;
 using MemoryPack;
 using UnityEditor;
@@ -32,27 +35,16 @@ namespace VisualPinball.Unity
 
 		private bool IsEmpty => string.IsNullOrEmpty(PrefabGuid) && IsActive && !IsStatic;
 
-		[MemoryPackConstructor]
-		public ItemPackable(string name, bool isActive, bool isStatic, string prefabGuid)
+		public static ItemPackable Instantiate(GameObject go)
 		{
-			Name = name;
-			IsActive = isActive;
-			IsStatic = isStatic;
-			PrefabGuid = prefabGuid;
-		}
-
-		public ItemPackable(GameObject go)
-		{
-			Name = go.name;
-			if (PrefabUtility.IsPartOfAnyPrefab(go)) {
-				var prefab = PrefabUtility.GetCorrespondingObjectFromSource(go);
-				PrefabGuid = AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(prefab));
-
-			} else {
-				PrefabGuid = null;
-			}
-			IsActive = go.activeInHierarchy;
-			IsStatic = go.isStatic;
+			return new ItemPackable {
+				Name = go.name,
+				PrefabGuid = PrefabUtility.IsPartOfAnyPrefab(go)
+					? AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(PrefabUtility.GetCorrespondingObjectFromSource(go)))
+					: null,
+				IsActive = go.activeInHierarchy,
+				IsStatic = go.isStatic
+			};
 		}
 
 		public void Apply(GameObject go)

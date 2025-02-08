@@ -59,10 +59,10 @@ namespace VisualPinball.Unity.Editor
 				Setup(storage);
 				await ImportModels();
 
-				ReadAssets();
+				await ReadAssets();
 
 				// create components and update game objects
-				ReadPackables(PackageApi.ItemFolder, (item, type, stream, index) => {
+				ReadPackables(PackageApi.ItemFolder, (go, file) => ItemPackable.Unpack(file.GetData()).Apply(go), (item, type, stream, index) => {
 					// add or update component
 					var comps = item.gameObject.GetComponents(type);
 					var comp = comps.Length > index
@@ -74,11 +74,10 @@ namespace VisualPinball.Unity.Editor
 					} else {
 						throw new Exception($"Got component of type {type.FullName} that does not implement IPackable.");
 					}
-
-				}, (go, stream) => ItemPackable.Unpack(stream.GetData()).Apply(go));
+				});
 
 				// add references
-				ReadPackables(PackageApi.ItemReferencesFolder, (item, type, stream, _) => {
+				ReadPackables(PackageApi.ItemReferencesFolder, null, (item, type, stream, _) => {
 					// add the component and unpack it.
 					var comp = item.gameObject.GetComponent(type) as IPackable;
 					comp?.UnpackReferences(stream.GetData(), _table.transform, _typeLookup, _packageFiles);
@@ -113,9 +112,9 @@ namespace VisualPinball.Unity.Editor
 				AssetDatabase.StartAssetEditing();
 
 				// dump glb
-				var sceneStream = _tableFolder.GetFile(PackageApi.SceneFile);
-				await using var glbFileStream = new FileStream(glbPath, FileMode.Create, FileAccess.Write);
-				await sceneStream.AsStream().CopyToAsync(glbFileStream);
+				var sceneFile = _tableFolder.GetFile(PackageApi.SceneFile);
+				await using var glbFileFile = new FileStream(glbPath, FileMode.Create, FileAccess.Write);
+				await sceneFile.AsStream().CopyToAsync(glbFileFile);
 
 			} finally {
 				// resume asset database refreshing
@@ -138,32 +137,44 @@ namespace VisualPinball.Unity.Editor
 			EditorSceneManager.MarkSceneDirty(SceneManager.GetActiveScene()); // mark the active scene as dirty so that the changes are saved.
 		}
 
-		private void ReadAssets()
+		private async Task ReadAssets()
 		{
 			_packageFiles.UnpackAssets(_assetPath);
+			await _packageFiles.UnpackMeshes(_assetPath);
 		}
 
-		private void ReadPackables(string storageRoot, Action<Transform, Type, IPackageFile, int> componentAction, Action<GameObject, IPackageFile> itemAction = null)
-		{
-			var itemsStorage = _tableFolder.GetFolder(storageRoot);
-			// -> storageRoot <- / 0.0.0 / CompType / 0
-			itemsStorage.VisitFolders(itemStorage => {
-				// storageRoot / -> 0.0.0 <- / CompType / 0
-				var item = _table.transform.FindByPath(itemStorage.Name);
-				if (item == null) {
-					throw new Exception($"Cannot find item at path {itemStorage.Name} on node {_table.name}");
-				}
-				if (itemAction != null && itemStorage.TryGetFile(PackageApi.ItemFile, out var itemStream, PackageApi.Packer.FileExtension)) {
-					itemAction(item.gameObject, itemStream);
-				}
-				itemStorage.VisitFolders(typeStorage => {
-					// storageRoot / 0.0.0 / -> CompType <- / 0
-					var t = _typeLookup.GetType(typeStorage.Name);
-					var index = 0;
-					typeStorage.VisitFiles(typedEntry => {
+		/// <summary>
+		/// Loops through all items and components in the package, and applies the given action.
+		/// The item action is executed before the component action.
+		/// </summary>
+		/// <param name="rootFolder">Which root folder of the package to start with</param>
+		/// <param name="itemAction">Action to execute on the item</param>
+		/// <param name="componentAction">Action to execute on the component</param>
+		/// <exception cref="Exception">When there are folder paths in the package that don't correspond to the instantiated scene.</exception>
+		private void ReadPackables(string rootFolder, Action<GameObject, IPackageFile> itemAction, Action<Transform, Type, IPackageFile, int> componentAction) {
 
-						// storageRoot / 0.0.0 / CompType / -> 0 <- (there might be multiple components of the same type)
-						componentAction(item, t, typedEntry, index++);
+			var itemsFolder = _tableFolder.GetFolder(rootFolder);
+
+			// -> rootFolder <- / 0.0.0 / CompType / 0
+			itemsFolder.VisitFolders(itemFolder => {
+
+				// rootFolder / -> 0.0.0 <- / CompType / 0
+				var item = _table.transform.FindByPath(itemFolder.Name);
+				if (item == null) {
+					throw new Exception($"Cannot find item at path {itemFolder.Name} on node {_table.name}");
+				}
+				if (itemAction != null && itemFolder.TryGetFile(PackageApi.ItemFile, out var itemFile, PackageApi.Packer.FileExtension)) {
+					itemAction(item.gameObject, itemFile);
+				}
+				itemFolder.VisitFolders(typeFolder => {
+
+					// rootFolder / 0.0.0 / -> CompType <- / 0
+					var t = _typeLookup.GetType(typeFolder.Name);
+					var index = 0;
+					typeFolder.VisitFiles(compFile => {
+
+						// rootFolder / 0.0.0 / CompType / -> 0 <- (there might be multiple components of the same type)
+						componentAction(item, t, compFile, index++);
 					});
 				});
 			});

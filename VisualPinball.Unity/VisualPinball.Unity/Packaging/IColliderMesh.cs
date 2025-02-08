@@ -15,8 +15,11 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 // ReSharper disable MemberCanBePrivate.Global
+
+using System.Collections.Generic;
 using MemoryPack;
 using UnityEngine;
+using VisualPinball.Unity.Editor.Packaging;
 
 namespace VisualPinball.Unity.Packaging
 {
@@ -98,5 +101,9 @@ namespace VisualPinball.Unity.Packaging
 			};
 		}
 #endif
+		public static Dictionary<string, ColliderMeshMetaPackable> Unpack(byte[] bytes)
+		{
+			return PackageApi.Packer.Unpack<Dictionary<string, ColliderMeshMetaPackable>>(bytes);
+		}
 	}
 }

@@ -77,7 +77,7 @@ namespace VisualPinball.Unity.Editor
 
 			// write component data
 			sw1 = Stopwatch.StartNew();
-			WritePackables(PackageApi.ItemFolder, packageable => packageable.Pack(), go => new ItemPackable(go).Pack());
+			WritePackables(PackageApi.ItemFolder, packageable => packageable.Pack(), go => ItemPackable.Instantiate(go).Pack());
 			Logger.Info($"Component data written in {sw1.ElapsedMilliseconds}ms.");
 
 			// write reference data

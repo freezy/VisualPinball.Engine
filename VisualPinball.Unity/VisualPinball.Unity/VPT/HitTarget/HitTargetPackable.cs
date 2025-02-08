@@ -73,9 +73,16 @@ namespace VisualPinball.Unity
 			});
 		}
 
-		public static void Unpack(byte[] bytes, HitTargetColliderComponent comp)
+		public static void Unpack(byte[] bytes, HitTargetColliderComponent comp, PackagedFiles files)
 		{
-
+			var data = PackageApi.Packer.Unpack<HitTargetColliderReferencesPackable>(bytes);
+			comp.Elasticity = data.PhysicalMaterial.Elasticity;
+			comp.ElasticityFalloff = data.PhysicalMaterial.ElasticityFalloff;
+			comp.Friction = data.PhysicalMaterial.Friction;
+			comp.Scatter = data.PhysicalMaterial.Scatter;
+			comp.OverwritePhysics = data.PhysicalMaterial.Overwrite;
+			comp.PhysicsMaterial = files.GetAsset<PhysicsMaterialAsset>(data.PhysicalMaterial.AssetRef);
+			comp.ColliderMesh = files.GetColliderMesh(data.ColliderMeshGuid);
 		}
 	}
 
