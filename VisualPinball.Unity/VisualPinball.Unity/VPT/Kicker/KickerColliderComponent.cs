@@ -20,7 +20,6 @@ using System;
 using Unity.Mathematics;
 using UnityEngine;
 using VisualPinball.Engine.VPT.Kicker;
-using VisualPinball.Unity.Packaging;
 
 namespace VisualPinball.Unity
 {

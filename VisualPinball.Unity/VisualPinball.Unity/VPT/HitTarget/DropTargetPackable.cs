@@ -16,13 +16,9 @@
 
 // ReSharper disable MemberCanBePrivate.Global
 
-using MemoryPack;
-using VisualPinball.Unity.Editor.Packaging;
-
 namespace VisualPinball.Unity
 {
-	[MemoryPackable]
-	public partial struct DropTargetPackable
+	public struct DropTargetPackable
 	{
 		public static byte[] Pack(DropTargetComponent _) => PackageApi.Packer.Pack(new DropTargetPackable());
 
@@ -32,8 +28,7 @@ namespace VisualPinball.Unity
 		}
 	}
 
-	[MemoryPackable]
-	public partial struct DropTargetColliderPackable
+	public struct DropTargetColliderPackable
 	{
 		public bool IsLegacy;
 		public float Threshold;

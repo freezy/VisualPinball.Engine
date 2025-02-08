@@ -18,13 +18,10 @@
 
 using System.Collections.Generic;
 using System.Linq;
-using MemoryPack;
-using VisualPinball.Unity.Editor.Packaging;
 
 namespace VisualPinball.Unity
 {
-	[MemoryPackable]
-	public partial struct RampPackable
+	public struct RampPackable
 	{
 		public int Type;
 		public float HeightBottom;

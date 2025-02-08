@@ -18,15 +18,13 @@
 
 using System;
 using System.Diagnostics.CodeAnalysis;
-using MemoryPack;
 using Newtonsoft.Json;
 using UnityEngine;
 
 namespace VisualPinball.Unity
 {
 	[Serializable]
-	[MemoryPackable]
-	public partial class WireMapping
+	public class WireMapping
 	{
 		public string Id;
 
@@ -42,16 +40,13 @@ namespace VisualPinball.Unity
 		public SwitchConstant SourceConstant;
 
 		[JsonIgnore]
-		[MemoryPackIgnore]
 		[SerializeReference]
 		public MonoBehaviour _sourceDevice;
 
 		[JsonIgnore]
-		[MemoryPackIgnore]
 		public ISwitchDeviceComponent SourceDevice { get => _sourceDevice as ISwitchDeviceComponent; set => _sourceDevice = value as MonoBehaviour; }
 
 		[JsonProperty]
-		[MemoryPackInclude]
 		private string _sourceDevicePath { get; set; }
 
 		public string SourceDeviceItem = string.Empty;
@@ -59,15 +54,12 @@ namespace VisualPinball.Unity
 		/* Destination */
 		[JsonIgnore]
 		[SerializeReference]
-		[MemoryPackIgnore]
 		public MonoBehaviour _destinationDevice;
 
 		[JsonIgnore]
-		[MemoryPackIgnore]
 		public IWireableComponent DestinationDevice { get => _destinationDevice as IWireableComponent; set => _destinationDevice = value as MonoBehaviour; }
 
 		[JsonProperty]
-		[MemoryPackInclude]
 		private string _destinationDevicePath { get; set; }
 
 		public string DestinationDeviceItem = string.Empty;
@@ -76,7 +68,6 @@ namespace VisualPinball.Unity
 
 		public bool IsDynamic;
 
-		[MemoryPackConstructor]
 		public WireMapping()
 		{
 		}

@@ -14,13 +14,9 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-using MemoryPack;
-using VisualPinball.Unity.Editor.Packaging;
-
 namespace VisualPinball.Unity
 {
-	[MemoryPackable]
-	public partial struct DefaultGamelogicEnginePackable
+	public struct DefaultGamelogicEnginePackable
 	{
 		public float GlobalDifficulty;
 

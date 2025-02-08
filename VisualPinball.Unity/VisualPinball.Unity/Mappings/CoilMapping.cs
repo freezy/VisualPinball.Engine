@@ -17,15 +17,13 @@
 // ReSharper disable InconsistentNaming
 
 using System;
-using MemoryPack;
 using Newtonsoft.Json;
 using UnityEngine;
 
 namespace VisualPinball.Unity
 {
 	[Serializable]
-	[MemoryPackable]
-	public partial class CoilMapping
+	public class CoilMapping
 	{
 		public string Id = string.Empty;
 
@@ -34,16 +32,13 @@ namespace VisualPinball.Unity
 		public CoilDestination Destination = CoilDestination.Playfield;
 
 		[JsonIgnore]
-		[MemoryPackIgnore]
 		[SerializeReference]
 		public MonoBehaviour _device;
 
 		[JsonIgnore]
-		[MemoryPackIgnore]
 		public ICoilDeviceComponent Device { get => _device as ICoilDeviceComponent; set => _device = value as MonoBehaviour; }
 
 		[JsonProperty]
-		[MemoryPackInclude]
 		private string _devicePath { get; set; }
 
 		public string DeviceItem = string.Empty;

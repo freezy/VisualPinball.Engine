@@ -18,13 +18,10 @@
 
 using System.Collections.Generic;
 using System.Linq;
-using MemoryPack;
-using VisualPinball.Unity.Editor.Packaging;
 
 namespace VisualPinball.Unity
 {
-	[MemoryPackable]
-	public partial struct KickerPackable
+	public struct KickerPackable
 	{
 		public IEnumerable<KickerCoilPackable> Coils;
 
@@ -53,8 +50,7 @@ namespace VisualPinball.Unity
 		}
 	}
 
-	[MemoryPackable]
-	public partial struct KickerCoilPackable
+	public struct KickerCoilPackable
 	{
 		public string Name;
 		public string Id;
@@ -63,8 +59,7 @@ namespace VisualPinball.Unity
 		public float Inclination;
 	}
 
-	[MemoryPackable]
-	public partial struct KickerColliderPackable
+	public struct KickerColliderPackable
 	{
 		public float Scatter;
 		public float HitAccuracy;

@@ -19,7 +19,7 @@ using System.Collections.Generic;
 using System.IO;
 using ICSharpCode.SharpZipLib.Zip;
 
-namespace VisualPinball.Unity.Editor.Packaging
+namespace VisualPinball.Unity.Editor
 {
 	public class SharpZipStorageManager : IStorageManager
 	{

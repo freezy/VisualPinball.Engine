@@ -16,14 +16,11 @@
 
 // ReSharper disable MemberCanBePrivate.Global
 
-using MemoryPack;
 using VisualPinball.Engine.Game.Engines;
-using VisualPinball.Unity.Editor.Packaging;
 
 namespace VisualPinball.Unity
 {
-	[MemoryPackable]
-	public partial struct LightPackable
+	public struct LightPackable
 	{
 		public float BulbSize;
 		public LampStatus State;

@@ -20,16 +20,15 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Threading;
+using System.Threading.Tasks;
+using NLog;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using VisualPinball.Engine.Common;
 using VisualPinball.Engine.Game.Engines;
 using Debug = UnityEngine.Debug;
-using NLog;
-using VisualPinball.Unity.Packaging;
 using Logger = NLog.Logger;
-using System.Threading.Tasks;
-using System.Threading;
 
 // uncomment to simulate dual-wound flippers
 // #define DUAL_WOUND_FLIPPERS
@@ -216,7 +215,7 @@ namespace VisualPinball.Unity
 		private void Update()
 		{
 			if (!_frameSent) {
-				var frameTex = UnityEngine.Resources.Load<Texture2D>("Textures/vpe_dmd_32x128");
+				var frameTex = Resources.Load<Texture2D>("Textures/vpe_dmd_32x128");
 				var data = frameTex.GetRawTextureData<byte>().ToArray();
 
 				// this texture happens to be stored as RGB24, so we can send the raw data directly.

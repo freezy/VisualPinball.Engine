@@ -19,7 +19,7 @@ using System.Text;
 using Newtonsoft.Json;
 using UnityEngine;
 
-namespace VisualPinball.Unity.Editor.Packaging
+namespace VisualPinball.Unity.Editor
 {
 	public class JsonPacker : IDataPacker
 	{

@@ -16,13 +16,9 @@
 
 // ReSharper disable MemberCanBePrivate.Global
 
-using MemoryPack;
-using VisualPinball.Unity.Editor.Packaging;
-
 namespace VisualPinball.Unity
 {
-	[MemoryPackable]
-	public partial struct PlayfieldPackable
+	public struct PlayfieldPackable
 	{
 		public float GlassHeight;
 		public float Left;

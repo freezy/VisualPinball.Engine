@@ -16,14 +16,9 @@
 
 // ReSharper disable MemberCanBePrivate.Global
 
-using MemoryPack;
-using VisualPinball.Unity.Editor.Packaging;
-using VisualPinball.Unity.Packaging;
-
 namespace VisualPinball.Unity
 {
-	[MemoryPackable]
-	public partial struct HitTargetPackable
+	public struct HitTargetPackable
 	{
 		public static byte[] Pack(HitTargetComponent _) => PackageApi.Packer.Pack(new HitTargetPackable());
 
@@ -33,8 +28,7 @@ namespace VisualPinball.Unity
 		}
 	}
 
-	[MemoryPackable]
-	public partial struct HitTargetColliderPackable
+	public struct HitTargetColliderPackable
 	{
 		public float Threshold;
 
@@ -52,8 +46,7 @@ namespace VisualPinball.Unity
 		}
 	}
 
-	[MemoryPackable]
-	public partial struct HitTargetColliderReferencesPackable
+	public struct HitTargetColliderReferencesPackable
 	{
 		public PhysicalMaterialPackable PhysicalMaterial;
 		public string ColliderMeshGuid;

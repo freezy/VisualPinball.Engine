@@ -16,13 +16,9 @@
 
 // ReSharper disable MemberCanBePrivate.Global
 
-using MemoryPack;
-using VisualPinball.Unity.Editor.Packaging;
-
 namespace VisualPinball.Unity
 {
-	[MemoryPackable]
-	public partial struct BumperPackable
+	public struct BumperPackable
 	{
 		public float Radius;
 		public bool IsHardwired;
@@ -43,8 +39,7 @@ namespace VisualPinball.Unity
 		}
 	}
 
-	[MemoryPackable]
-	public partial struct BumperColliderPackable
+	public struct BumperColliderPackable
 	{
 		public float Threshold;
 		public float Force;

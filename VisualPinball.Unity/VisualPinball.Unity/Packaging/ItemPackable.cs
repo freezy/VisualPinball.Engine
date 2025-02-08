@@ -18,17 +18,14 @@
 // ReSharper disable MemberCanBePrivate.Global
 
 using System;
-using MemoryPack;
 using UnityEditor;
 using UnityEngine;
-using VisualPinball.Unity.Editor.Packaging;
 
 namespace VisualPinball.Unity
 {
-	[MemoryPackable]
-	public partial struct ItemPackable
+	public struct ItemPackable
 	{
-		public string Name;
+		public string Name; // useful for debugging, but can be removed at some point.
 		public bool IsActive;
 		public bool IsStatic;
 		public string PrefabGuid;

@@ -27,7 +27,6 @@ using VisualPinball.Engine.Common;
 using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Collection;
 using VisualPinball.Engine.VPT.Table;
-using VisualPinball.Unity.Packaging;
 
 namespace VisualPinball.Unity
 {

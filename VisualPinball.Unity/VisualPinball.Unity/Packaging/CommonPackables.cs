@@ -14,19 +14,15 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-using MemoryPack;
 using UnityEngine;
 using VisualPinball.Engine.Math;
-using VisualPinball.Unity.Editor.Packaging;
-using VisualPinball.Unity.Packaging;
 
 // ReSharper disable MemberCanBePrivate.Global
 // ReSharper disable FieldCanBeMadeReadOnly.Global
 
 namespace VisualPinball.Unity
 {
-	[MemoryPackable]
-	public partial struct ReferencePackable
+	public struct ReferencePackable
 	{
 		public string Path;
 		public string Type;
@@ -74,8 +70,7 @@ namespace VisualPinball.Unity
 		}
 	}
 
-	[MemoryPackable]
-	public partial struct DragPointPackable
+	public struct DragPointPackable
 	{
 		public string Id;
 		public PackableFloat3 Center;
@@ -123,7 +118,7 @@ namespace VisualPinball.Unity
 		}
 	}
 
-	public partial class MetaPackable
+	public class MetaPackable
 	{
 		/// <summary>
 		/// This links the asset to the materials that use it.
@@ -140,8 +135,7 @@ namespace VisualPinball.Unity
 		public static MetaPackable UnpackMeta(byte[] data) => PackageApi.Packer.Unpack<MetaPackable>(data);
 	}
 
-	[MemoryPackable]
-	public partial struct PhysicalMaterialPackable
+	public struct PhysicalMaterialPackable
 	{
 		public float Elasticity;
 		public float ElasticityFalloff;
@@ -177,8 +171,7 @@ namespace VisualPinball.Unity
 		}
 	}
 
-	[MemoryPackable]
-	public partial struct PackableFloat3
+	public struct PackableFloat3
 	{
 		public float X;
 		public float Y;

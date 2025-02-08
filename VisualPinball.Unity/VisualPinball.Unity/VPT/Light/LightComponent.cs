@@ -32,7 +32,6 @@ using VisualPinball.Engine.Game.Engines;
 using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Light;
 using VisualPinball.Engine.VPT.Table;
-using VisualPinball.Unity.Packaging;
 using Light = UnityEngine.Light;
 using Logger = NLog.Logger;
 

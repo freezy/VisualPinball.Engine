@@ -17,11 +17,10 @@
 // ReSharper disable MemberCanBePrivate.Global
 
 using System.Collections.Generic;
-using MemoryPack;
+using UnityEditor;
 using UnityEngine;
-using VisualPinball.Unity.Editor.Packaging;
 
-namespace VisualPinball.Unity.Packaging
+namespace VisualPinball.Unity
 {
 	/// <summary>
 	/// Components implementing this interface have their separate, non-generated collider mesh.
@@ -31,8 +30,7 @@ namespace VisualPinball.Unity.Packaging
 		Mesh GetColliderMesh();
 	}
 
-	[MemoryPackable]
-	public partial struct ColliderMeshMetaPackable
+	public struct ColliderMeshMetaPackable
 	{
 		public string Name;
 		public string PrefabGuid;
@@ -45,7 +43,7 @@ namespace VisualPinball.Unity.Packaging
 		{
 			var comp = (icm as Component)!;
 			// Get the corresponding component from the original prefab asset
-			var prefabComponent = UnityEditor.PrefabUtility.GetCorrespondingObjectFromSource(comp);
+			var prefabComponent = PrefabUtility.GetCorrespondingObjectFromSource(comp);
 			if (prefabComponent == null) {
 				return false;
 			}
@@ -57,7 +55,7 @@ namespace VisualPinball.Unity.Packaging
 			var comp = (icm as Component)!;
 
 			// get the root of the prefab instance
-			var rootInstance = UnityEditor.PrefabUtility.GetNearestPrefabInstanceRoot(comp.gameObject);
+			var rootInstance = PrefabUtility.GetNearestPrefabInstanceRoot(comp.gameObject);
 			if (rootInstance == null) {
 				return new ColliderMeshMetaPackable {
 					Name = comp.name,
@@ -68,7 +66,7 @@ namespace VisualPinball.Unity.Packaging
 			}
 
 			// get the prefab asset path
-			var assetPath = UnityEditor.PrefabUtility.GetPrefabAssetPathOfNearestInstanceRoot(comp.gameObject);
+			var assetPath = PrefabUtility.GetPrefabAssetPathOfNearestInstanceRoot(comp.gameObject);
 			if (string.IsNullOrEmpty(assetPath)) {
 				// Could not retrieve a path
 				return new ColliderMeshMetaPackable {
@@ -80,7 +78,7 @@ namespace VisualPinball.Unity.Packaging
 			}
 
 			// convert to GUID
-			var guid = UnityEditor.AssetDatabase.AssetPathToGUID(assetPath);
+			var guid = AssetDatabase.AssetPathToGUID(assetPath);
 			if (string.IsNullOrEmpty(guid)) {
 				return new ColliderMeshMetaPackable {
 					Name = comp.name,
@@ -91,7 +89,7 @@ namespace VisualPinball.Unity.Packaging
 			}
 
 			// get the transform path relative to the prefab root
-			var path = UnityEditor.AnimationUtility.CalculateTransformPath(comp.transform, rootInstance.transform);
+			var path = AnimationUtility.CalculateTransformPath(comp.transform, rootInstance.transform);
 
 			return new ColliderMeshMetaPackable {
 				Name = comp.name,

@@ -32,7 +32,6 @@ using VisualPinball.Engine.Math;
 using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Table;
 using VisualPinball.Engine.VPT.Trigger;
-using VisualPinball.Unity.Packaging;
 
 namespace VisualPinball.Unity
 {

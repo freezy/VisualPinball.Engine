@@ -21,10 +21,9 @@ using System.Threading.Tasks;
 using NLog;
 using UnityEditor;
 using UnityEngine;
-using VisualPinball.Unity.Editor.Packaging;
 using Logger = NLog.Logger;
 
-namespace VisualPinball.Unity.Packaging
+namespace VisualPinball.Unity
 {
 	public class PackagedFiles
 	{

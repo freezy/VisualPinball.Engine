@@ -16,14 +16,11 @@
 
 // ReSharper disable MemberCanBePrivate.Global
 
-using MemoryPack;
 using UnityEngine;
-using VisualPinball.Unity.Editor.Packaging;
 
 namespace VisualPinball.Unity
 {
-	[MemoryPackable]
-	public partial struct TroughPackable
+	public struct TroughPackable
 	{
 		public int Type;
 		public int BallCount;
@@ -59,8 +56,7 @@ namespace VisualPinball.Unity
 		}
 	}
 
-	[MemoryPackable]
-	public partial struct TroughReferencesPackable
+	public struct TroughReferencesPackable
 	{
 		public ReferencePackable PlayfieldEntrySwitchRef;
 		public string PlayfieldEntrySwitchItem;
