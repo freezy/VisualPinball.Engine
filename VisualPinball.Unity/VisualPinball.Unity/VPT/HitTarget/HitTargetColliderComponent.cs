@@ -67,16 +67,7 @@ namespace VisualPinball.Unity
 
 		public void Unpack(byte[] bytes) => HitTargetColliderPackable.Unpack(bytes, this);
 
-		public void UnpackReferences(byte[] data, Transform root, PackNameLookup lookup, PackagedFiles files)
-		{
-			var mat = PhysicalMaterialPackable.Unpack(data);
-			Elasticity = mat.Elasticity;
-			ElasticityFalloff = mat.ElasticityFalloff;
-			Friction = mat.Friction;
-			Scatter = mat.Scatter;
-			OverwritePhysics = mat.Overwrite;
-			PhysicsMaterial = files.GetAsset<PhysicsMaterialAsset>(mat.AssetRef);
-		}
+		public void UnpackReferences(byte[] data, Transform root, PackNameLookup lookup, PackagedFiles files) => HitTargetColliderReferencesPackable.Unpack(data, this, files);
 
 		#endregion
 

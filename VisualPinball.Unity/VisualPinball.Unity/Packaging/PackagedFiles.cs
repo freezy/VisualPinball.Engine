@@ -17,6 +17,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Threading.Tasks;
 using UnityEditor;
 using UnityEngine;
 using VisualPinball.Unity.Editor.Packaging;
@@ -26,6 +27,9 @@ namespace VisualPinball.Unity.Packaging
 	public class PackagedFiles
 	{
 		public readonly Dictionary<int, string> ColliderMeshInstanceIdToGuid = new();
+
+		private readonly Dictionary<string, Mesh> _colliderMeshes = new();
+		private Dictionary<string, ColliderMeshMetaPackable> _colliderMeshMeta;
 
 		private readonly HashSet<ScriptableObject> _scriptableObjects = new();
 		private readonly Dictionary<int, ScriptableObject> _deserializedObjects = new();
@@ -139,6 +143,58 @@ namespace VisualPinball.Unity.Packaging
 					return name;
 				}
 			}
+		}
+
+		public async Task UnpackMeshes(string assetPath)
+		{
+			if (!_tableFolder.TryGetFolder(PackageApi.MetaFolder, out var metaFolder)) {
+				return;
+			}
+			if (!_tableFolder.TryGetFile(PackageApi.ColliderMeshesFile, out var colliderMeshes)) {
+				return;
+			}
+			if (!metaFolder.TryGetFile(PackageApi.ColliderMeshesMeta, out var colliderMeta, PackageApi.Packer.FileExtension)) {
+				return;
+			}
+			var glbPath = Path.Combine(assetPath, "colliders.glb");
+			try {
+				AssetDatabase.StartAssetEditing();
+
+				// dump glb
+				await using var glbFileStream = new FileStream(glbPath, FileMode.Create, FileAccess.Write);
+				await colliderMeshes.AsStream().CopyToAsync(glbFileStream);
+
+			} finally {
+				// resume asset database refreshing
+				AssetDatabase.StopAssetEditing();
+				AssetDatabase.Refresh();
+			}
+
+			var glbRelativePath = Path.GetRelativePath(Path.Combine(Application.dataPath, ".."), glbPath);
+			var glbPrefab = AssetDatabase.LoadAssetAtPath<GameObject>(glbRelativePath);
+			if (glbPrefab == null) {
+				throw new Exception($"Could not load colliders.glb at path: {glbRelativePath}");
+			}
+
+			_colliderMeshMeta = ColliderMeshMetaPackable.Unpack(colliderMeta.GetData());
+			var n = glbPrefab.transform.childCount;
+			_colliderMeshes.Clear();
+			for (var i = 0; i < n; i++) {
+				var collider = glbPrefab.transform.GetChild(i);
+				var guid = collider.name;
+				Debug.Log("Found collider mesh: " + guid);
+				if (_colliderMeshMeta.TryGetValue(guid, out var meta)) {
+
+				} else {
+					Debug.LogWarning($"Cannot fine meta data for collider mesh {guid}.");
+				}
+				_colliderMeshes.Add(guid, collider.GetComponent<MeshFilter>().sharedMesh);
+			}
+		}
+
+		public Mesh GetColliderMesh(string guid)
+		{
+			return _colliderMeshes[guid];
 		}
 	}
 }
