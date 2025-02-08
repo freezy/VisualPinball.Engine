@@ -91,7 +91,8 @@ namespace VisualPinball.Unity.Editor
 			// write assets & co
 			sw1 = Stopwatch.StartNew();
 			_files.PackAssets();
-			Logger.Info($"Assets written in {sw1.ElapsedMilliseconds}ms.");
+			_files.PackSoundMetas();
+			Logger.Info($"Assets and files written in {sw1.ElapsedMilliseconds}ms.");
 
 			storage.Close();
 			sw.Stop();
@@ -180,7 +181,7 @@ namespace VisualPinball.Unity.Editor
 						Format = GltfFormat.Binary,
 					};
 					var export = new GameObjectExport(exportSettings, logger: logger);
-					export.AddScene(meshGos.ToArray(), _table.transform.worldToLocalMatrix, "VPE Table");
+					export.AddScene(meshGos.ToArray(), _table.transform.worldToLocalMatrix, "Colliders");
 					await export.SaveToStreamAndDispose(glbFile.AsStream());
 
 					var glbMeta = _metaFolder.AddFile(PackageApi.ColliderMeshesMeta, PackageApi.Packer.FileExtension);

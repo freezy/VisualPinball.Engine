@@ -22,9 +22,10 @@ using VisualPinball.Engine.VPT.Flipper;
 
 namespace VisualPinball.Unity
 {
+	[PackAs("FlipperCollider")]
 	[AddComponentMenu("Visual Pinball/Collision/Flipper Collider")]
 	[HelpURL("https://docs.visualpinball.org/creators-guide/manual/mechanisms/flippers.html")]
-	public class FlipperColliderComponent : ColliderComponent<FlipperData, FlipperComponent>
+	public class FlipperColliderComponent : ColliderComponent<FlipperData, FlipperComponent>, IPackable
 	{
 		#region Data
 
@@ -73,6 +74,20 @@ namespace VisualPinball.Unity
 		/// </summary>
 		[Tooltip("The infamous nFozzy flipper correction. Choose a preset or create your own.")]
 		public FlipperCorrectionAsset FlipperCorrection;
+
+		#endregion
+
+		#region Packaging
+
+		public byte[] Pack() => FlipperColliderPackable.Pack(this);
+
+		public byte[] PackReferences(Transform root, PackNameLookup lookup, PackagedFiles files)
+			=> FlipperColliderReferencesPackable.PackReferences(this, files);
+
+		public void Unpack(byte[] bytes) => FlipperColliderPackable.Unpack(bytes, this);
+
+		public void UnpackReferences(byte[] data, Transform root, PackNameLookup lookup, PackagedFiles files)
+			=> FlipperColliderReferencesPackable.Unpack(data, this, files);
 
 		#endregion
 

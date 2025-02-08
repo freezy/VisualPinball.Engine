@@ -139,6 +139,7 @@ namespace VisualPinball.Unity.Editor
 		{
 			_packageFiles.UnpackAssets(_assetPath);
 			await _packageFiles.UnpackMeshes(_assetPath);
+			_packageFiles.UnpackSounds(_assetPath);
 		}
 
 		/// <summary>

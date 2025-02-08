@@ -17,10 +17,9 @@
 using System;
 using System.Threading;
 using UnityEditor;
-using UnityEngine.UIElements;
-using UnityEngine;
 using UnityEditor.UIElements;
-using System.Collections.Generic;
+using UnityEngine;
+using UnityEngine.UIElements;
 
 namespace VisualPinball.Unity.Editor
 {
@@ -70,7 +69,7 @@ namespace VisualPinball.Unity.Editor
 
 		private void RemoveNullClips()
 		{
-			var clipsProp = serializedObject.FindProperty("_clips");
+			var clipsProp = serializedObject.FindProperty(nameof(SoundAsset.Clips));
 			for (var i = clipsProp.arraySize -1; i >= 0; i--) {
 				if (clipsProp.GetArrayElementAtIndex(i).objectReferenceValue == null)
 					clipsProp.DeleteArrayElementAtIndex(i);
@@ -112,4 +111,3 @@ namespace VisualPinball.Unity.Editor
 		}
 	}
 }
-

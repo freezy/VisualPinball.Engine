@@ -21,6 +21,7 @@ namespace VisualPinball.Unity
 	/// <summary>
 	/// An asset containing the flipper correction parameters (aka nFozzy).
 	/// </summary>
+	[PackAs("FlipperCorrection")]
 	[CreateAssetMenu(fileName = "Flipper Correction", menuName = "Visual Pinball/Flipper Correction", order = 101)]
 	public class FlipperCorrectionAsset : ScriptableObject
 	{

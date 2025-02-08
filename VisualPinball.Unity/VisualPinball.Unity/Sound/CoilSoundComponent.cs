@@ -24,6 +24,7 @@ namespace VisualPinball.Unity
 	/// <summary>
 	/// Start and or stop a sound when a coil is energized or deenergized.
 	/// </summary>
+	[PackAs("CoilSound")]
 	[AddComponentMenu("Visual Pinball/Sound/Coil Sound")]
 	public class CoilSoundComponent : BinaryEventSoundComponent<IApiCoil, NoIdCoilEventArgs>
 	{

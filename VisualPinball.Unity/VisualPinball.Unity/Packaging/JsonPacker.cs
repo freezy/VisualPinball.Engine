@@ -26,7 +26,9 @@ namespace VisualPinball.Unity.Editor
 		public byte[] Pack<T>(T obj)
 		{
 			try {
-				return Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(obj, Formatting.Indented));
+				return Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(obj, Formatting.Indented, new JsonSerializerSettings {
+					ReferenceLoopHandling = ReferenceLoopHandling.Ignore
+				}));
 			} catch (Exception e) {
 				Debug.LogError(e);
 				throw e;
