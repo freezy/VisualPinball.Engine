@@ -23,8 +23,9 @@ using UnityEngine;
 
 namespace VisualPinball.Unity
 {
+	[PackAs("Rotator")]
 	[AddComponentMenu("Visual Pinball/Game Item/Rotator")]
-	public class RotatorComponent : MonoBehaviour
+	public class RotatorComponent : MonoBehaviour, IPackable
 	{
 		#region Data
 
@@ -42,6 +43,20 @@ namespace VisualPinball.Unity
 			get => _rotateWith.OfType<IRotatableComponent>().ToArray();
 			set => _rotateWith = value.OfType<MonoBehaviour>().ToArray();
 		}
+
+		#endregion
+
+		#region Packaging
+
+		public byte[] Pack() => null;
+
+		public byte[] PackReferences(Transform root, PackagedRefs refs, PackagedFiles files)
+			=> RotatorReferencesPackable.Pack(this, refs);
+
+		public void Unpack(byte[] bytes) { }
+
+		public void UnpackReferences(byte[] data, Transform root, PackagedRefs refs, PackagedFiles files)
+			=> RotatorReferencesPackable.Unpack(data, this, refs);
 
 		#endregion
 
@@ -125,5 +140,4 @@ namespace VisualPinball.Unity
 
 		#endregion
 	}
-
 }

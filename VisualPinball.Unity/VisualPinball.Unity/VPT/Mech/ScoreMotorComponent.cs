@@ -28,24 +28,25 @@ namespace VisualPinball.Unity
 	public delegate void ScoreMotorResetCallback(float score);
 	public delegate void ScoreMotorAddPointsCallback(float points);
 
+	[PackAs("ScoreMotor")]
 	[AddComponentMenu("Visual Pinball/Mechs/Score Motor")]
 	[HelpURL("https://docs.visualpinball.org/creators-guide/manual/mechanisms/score-motors.html")]
-	public class ScoreMotorComponent : MonoBehaviour, ISwitchDeviceComponent
+	public class ScoreMotorComponent : MonoBehaviour, ISwitchDeviceComponent, IPackable
 	{
 		public const int MaxIncrease = 5;
 
-		[Unit("ms")]
-		[Tooltip("Amount of time, in milliseconds to move one turn.")]
+		#region Data
+
+		[Unit("ms")] [Tooltip("Amount of time, in milliseconds to move one turn.")]
 		public int Duration = 769;
 
-		[Tooltip("The total number of steps per turn.")]
-		[Min(MaxIncrease)]
+		[Tooltip("The total number of steps per turn.")] [Min(MaxIncrease)]
 		public int Steps = 6;
 
 		[Tooltip("Disable to allow single point scores while score motor running.")]
 		public bool BlockScoring = true;
 
-		public List<ScoreMotorTiming> ScoreMotorTimingList = new List<ScoreMotorTiming>() {
+		public List<ScoreMotorTiming> ScoreMotorTimingList = new() {
 			new ScoreMotorTiming(),
 			new ScoreMotorTiming(),
 			new ScoreMotorTiming(),
@@ -53,16 +54,28 @@ namespace VisualPinball.Unity
 			new ScoreMotorTiming()
 		};
 
+		#endregion
+
+		#region Packaging
+
+		public byte[] Pack() => ScoreMotorPackable.Pack(this);
+
+		public byte[] PackReferences(Transform root, PackagedRefs refs, PackagedFiles files) => null;
+
+		public void Unpack(byte[] bytes) => ScoreMotorPackable.Unpack(bytes, this);
+
+		public void UnpackReferences(byte[] data, Transform root, PackagedRefs refs, PackagedFiles files) { }
+
+		#endregion
+
 		public const string MotorRunningSwitchItem = "motor_running_switch";
 		public const string MotorStepSwitchItem = "motor_step_switch";
 
 		public IEnumerable<GamelogicEngineSwitch> AvailableSwitches => new[] {
-			new GamelogicEngineSwitch(MotorRunningSwitchItem)
-			{
+			new GamelogicEngineSwitch(MotorRunningSwitchItem) {
 				Description = "Motor Running Switch"
 			},
-			new GamelogicEngineSwitch(MotorStepSwitchItem)
-			{
+			new GamelogicEngineSwitch(MotorStepSwitchItem) {
 				Description = "Motor Step Switch",
 				IsPulseSwitch = true
 			}
@@ -270,7 +283,7 @@ namespace VisualPinball.Unity
 	[Serializable]
 	public class ScoreMotorTiming
 	{
-		public List<ScoreMotorAction> Actions = new List<ScoreMotorAction>();
+		public List<ScoreMotorAction> Actions = new();
 	}
 
 	public enum ScoreMotorMode
