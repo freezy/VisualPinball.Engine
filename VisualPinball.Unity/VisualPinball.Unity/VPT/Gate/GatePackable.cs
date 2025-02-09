@@ -87,4 +87,25 @@ namespace VisualPinball.Unity
 			comp.AnimationSpeed = data.AnimationSpeed;
 		}
 	}
+
+	public struct GateWireAnimationPackable
+	{
+		public float Min;
+		public float Max;
+
+		public static byte[] Pack(GateWireAnimationComponent comp)
+		{
+			return PackageApi.Packer.Pack(new GateWireAnimationPackable {
+				Min = comp.min,
+				Max = comp.max,
+			});
+		}
+
+		public static void Unpack(byte[] bytes, GateWireAnimationComponent comp)
+		{
+			var data = PackageApi.Packer.Unpack<GateWireAnimationPackable>(bytes);
+			comp.min = data.Min;
+			comp.max = data.Max;
+		}
+	}
 }

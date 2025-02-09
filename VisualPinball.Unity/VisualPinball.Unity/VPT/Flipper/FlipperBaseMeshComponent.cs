@@ -23,9 +23,10 @@ using Mesh = VisualPinball.Engine.VPT.Mesh;
 
 namespace VisualPinball.Unity
 {
+	[PackAs("FlipperBaseMesh")]
 	[ExecuteInEditMode]
 	[AddComponentMenu("Visual Pinball/Mesh/Flipper Base Mesh")]
-	public class FlipperBaseMeshComponent : MeshComponent<FlipperData, FlipperComponent>
+	public class FlipperBaseMeshComponent : MeshComponent<FlipperData, FlipperComponent>, IPackable
 	{
 		protected override Mesh GetMesh(FlipperData _)
 			=> new FlipperMeshGenerator(MainComponent)
@@ -34,5 +35,17 @@ namespace VisualPinball.Unity
 
 		protected override PbrMaterial GetMaterial(FlipperData data, Table table)
 			=> FlipperMeshGenerator.GetMaterial(FlipperMeshGenerator.Base, table, data);
+
+		#region Packaging
+
+		public byte[] Pack() => PackageApi.Packer.Pack(new object());
+
+		public byte[] PackReferences(Transform root, PackagedRefs refs, PackagedFiles files) => null;
+
+		public void Unpack(byte[] bytes) { }
+
+		public void UnpackReferences(byte[] bytes, Transform root, PackagedRefs refs, PackagedFiles files) { }
+
+		#endregion
 	}
 }

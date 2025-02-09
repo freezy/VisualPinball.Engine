@@ -54,4 +54,28 @@ namespace VisualPinball.Unity
 			comp.UseHitEvent = data.UseHitEvent;
 		}
 	}
+
+	public struct DropTargetAnimationPackable
+	{
+		public float Speed;
+		public int RaiseDelay;
+		public bool IsDropped;
+
+		public static byte[] Pack(DropTargetAnimationComponent comp)
+		{
+			return PackageApi.Packer.Pack(new DropTargetAnimationPackable {
+				Speed = comp.Speed,
+				RaiseDelay = comp.RaiseDelay,
+				IsDropped = comp.IsDropped,
+			});
+		}
+
+		public static void Unpack(byte[] bytes, DropTargetAnimationComponent comp)
+		{
+			var data = PackageApi.Packer.Unpack<DropTargetAnimationPackable>(bytes);
+			comp.Speed = data.Speed;
+			comp.RaiseDelay = data.RaiseDelay;
+			comp.IsDropped = data.IsDropped;
+		}
+	}
 }

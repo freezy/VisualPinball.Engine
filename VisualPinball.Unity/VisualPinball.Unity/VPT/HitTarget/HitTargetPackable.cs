@@ -82,4 +82,25 @@ namespace VisualPinball.Unity
 		}
 	}
 
+	public struct HitTargetAnimationPackable
+	{
+		public float Speed;
+		public float MaxAngle;
+
+		public static byte[] Pack(HitTargetAnimationComponent comp)
+		{
+			return PackageApi.Packer.Pack(new HitTargetAnimationPackable {
+				Speed = comp.Speed,
+				MaxAngle = comp.MaxAngle,
+			});
+		}
+
+		public static void Unpack(byte[] bytes, HitTargetAnimationComponent comp)
+		{
+			var data = PackageApi.Packer.Unpack<HitTargetAnimationPackable>(bytes);
+			comp.Speed = data.Speed;
+			comp.MaxAngle = data.MaxAngle;
+		}
+	}
+
 }
