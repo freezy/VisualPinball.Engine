@@ -21,8 +21,20 @@ namespace VisualPinball.Unity
 	/// <summary>
 	/// Just a tag component to identify and set visibility of the bumper cap during import.
 	/// </summary>
-	public class BumperCapComponent : MonoBehaviour
+	[PackAs("BumperCap")]
+	public class BumperCapComponent : MonoBehaviour, IPackable
 	{
 
+		#region Packaging
+
+		public byte[] Pack() => PackageApi.Packer.Pack(new object());
+
+		public byte[] PackReferences(Transform root, PackNameLookup lookup, PackagedFiles files) => null;
+
+		public void Unpack(byte[] bytes) { }
+
+		public void UnpackReferences(byte[] bytes, Transform root, PackNameLookup lookup, PackagedFiles files) { }
+
+		#endregion
 	}
 }
