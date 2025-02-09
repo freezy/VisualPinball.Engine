@@ -27,4 +27,64 @@ namespace VisualPinball.Unity
 			// no data
 		}
 	}
+
+	public struct GateColliderPackable
+	{
+		public bool IsMovable;
+		public float AngleMax;
+		public float AngleMin;
+		public float ZLow;
+		public float Distance;
+		public float Damping;
+		public float GravityFactor;
+		public bool TwoWay;
+
+		public static byte[] Pack(GateColliderComponent comp)
+		{
+			return PackageApi.Packer.Pack(new GateColliderPackable {
+				IsMovable = comp._isKinematic,
+				AngleMax = comp.AngleMax,
+				AngleMin = comp.AngleMin,
+				ZLow = comp.ZLow,
+				Distance = comp.Distance,
+				Damping = comp.Damping,
+				GravityFactor = comp.GravityFactor,
+				TwoWay = comp._twoWay
+			});
+		}
+
+		public static void Unpack(byte[] bytes, GateColliderComponent comp)
+		{
+			var data = PackageApi.Packer.Unpack<GateColliderPackable>(bytes);
+			comp._isKinematic = data.IsMovable;
+			comp.AngleMax = data.AngleMax;
+			comp.AngleMin = data.AngleMin;
+			comp.ZLow = data.ZLow;
+			comp.Distance = data.Distance;
+			comp.Damping = data.Damping;
+			comp.GravityFactor = data.GravityFactor;
+			comp._twoWay = data.TwoWay;
+		}
+	}
+
+	public struct GateLifterPackable
+	{
+		public float LiftedAngleDeg;
+		public float AnimationSpeed;
+
+		public static byte[] Pack(GateLifterComponent comp)
+		{
+			return PackageApi.Packer.Pack(new GateLifterPackable {
+				LiftedAngleDeg = comp.LiftedAngleDeg,
+				AnimationSpeed = comp.AnimationSpeed,
+			});
+		}
+
+		public static void Unpack(byte[] bytes, GateLifterComponent comp)
+		{
+			var data = PackageApi.Packer.Unpack<GateLifterPackable>(bytes);
+			comp.LiftedAngleDeg = data.LiftedAngleDeg;
+			comp.AnimationSpeed = data.AnimationSpeed;
+		}
+	}
 }

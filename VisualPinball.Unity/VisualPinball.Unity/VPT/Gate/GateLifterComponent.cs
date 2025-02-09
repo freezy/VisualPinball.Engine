@@ -36,6 +36,24 @@ namespace VisualPinball.Unity
 		[Tooltip("How fast to lift the wire to the end position.")]
 		public float AnimationSpeed = 0.1f;
 
+		#region Packaging
+
+		#region Packaging
+
+		public byte[] Pack() => GateLifterPackable.Pack(this);
+
+		public byte[] PackReferences(Transform root, PackNameLookup lookup, PackagedFiles files) => null;
+
+		public void Unpack(byte[] bytes) => GateLifterPackable.Unpack(bytes, this);
+
+		public void UnpackReferences(byte[] data, Transform root, PackNameLookup lookup, PackagedFiles files)
+		{
+		}
+
+		#endregion
+
+		#endregion
+
 		#region ICoilDeviceComponent
 
 		IEnumerable<IGamelogicEngineDeviceItem> IDeviceComponent<IGamelogicEngineDeviceItem>.AvailableDeviceItems => AvailableCoils;

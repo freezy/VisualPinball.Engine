@@ -30,6 +30,7 @@ namespace VisualPinball.Unity
 
 	public struct DropTargetColliderPackable
 	{
+		public bool IsMovable;
 		public bool IsLegacy;
 		public float Threshold;
 		public bool UseHitEvent;
@@ -37,6 +38,7 @@ namespace VisualPinball.Unity
 		public static byte[] Pack(DropTargetColliderComponent comp)
 		{
 			return PackageApi.Packer.Pack(new DropTargetColliderPackable {
+				IsMovable = comp._isKinematic,
 				IsLegacy = comp.IsLegacy,
 				Threshold = comp.Threshold,
 				UseHitEvent = comp.UseHitEvent,
@@ -46,6 +48,7 @@ namespace VisualPinball.Unity
 		public static void Unpack(byte[] bytes, DropTargetColliderComponent comp)
 		{
 			var data = PackageApi.Packer.Unpack<DropTargetColliderPackable>(bytes);
+			comp._isKinematic = data.IsMovable;
 			comp.IsLegacy = data.IsLegacy;
 			comp.Threshold = data.Threshold;
 			comp.UseHitEvent = data.UseHitEvent;

@@ -234,7 +234,7 @@ namespace VisualPinball.Unity.Editor
 							counters.TryAdd(packName, 0);
 
 							var packableData = getPackableData(packageable);
-							if (packableData.Length > 0) {
+							if (packableData?.Length > 0) {
 
 								// rootName / -> 0.0.0 <- / CompType / 0
 								itemPathFolder ??= folder.AddFolder(key);

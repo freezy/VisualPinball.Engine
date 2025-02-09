@@ -61,6 +61,7 @@ namespace VisualPinball.Unity
 
 	public struct KickerColliderPackable
 	{
+		public bool IsMovable;
 		public float Scatter;
 		public float HitAccuracy;
 		public float HitHeight;
@@ -71,6 +72,7 @@ namespace VisualPinball.Unity
 		public static byte[] Pack(KickerColliderComponent comp)
 		{
 			return PackageApi.Packer.Pack(new KickerColliderPackable {
+				IsMovable = comp._isKinematic,
 				Scatter = comp.Scatter,
 				HitAccuracy = comp.HitAccuracy,
 				HitHeight = comp.HitHeight,
@@ -83,6 +85,7 @@ namespace VisualPinball.Unity
 		public static void Unpack(byte[] bytes, KickerColliderComponent comp)
 		{
 			var data = PackageApi.Packer.Unpack<KickerColliderPackable>(bytes);
+			comp._isKinematic = data.IsMovable;
 			comp.Scatter = data.Scatter;
 			comp.HitAccuracy = data.HitAccuracy;
 			comp.HitHeight = data.HitHeight;
