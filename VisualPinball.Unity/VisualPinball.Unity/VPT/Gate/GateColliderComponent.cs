@@ -23,8 +23,9 @@ using VisualPinball.Engine.VPT.Gate;
 
 namespace VisualPinball.Unity
 {
+	[PackAs("GateCollider")]
 	[AddComponentMenu("Visual Pinball/Collision/Gate Collider")]
-	public class GateColliderComponent : ColliderComponent<GateData, GateComponent>, IGateColliderData
+	public class GateColliderComponent : ColliderComponent<GateData, GateComponent>, IGateColliderData, IPackable
 	{
 		#region Data
 
@@ -61,6 +62,25 @@ namespace VisualPinball.Unity
 
 		[ToolboxItem("If set, the ball can pass through both sides of the gate.")]
 		public bool _twoWay;
+
+		#endregion
+
+		#region Packaging
+
+		public byte[] Pack() => GateColliderPackable.Pack(this);
+
+		public byte[] PackReferences(Transform root, PackNameLookup lookup, PackagedFiles files) =>
+			PhysicalMaterialPackable.Pack(Elasticity, 1, Friction, 0, true, PhysicsMaterial, files);
+
+		public void Unpack(byte[] bytes) => GateColliderPackable.Unpack(bytes, this);
+
+		public void UnpackReferences(byte[] data, Transform root, PackNameLookup lookup, PackagedFiles files)
+		{
+			var mat = PhysicalMaterialPackable.Unpack(data);
+			Elasticity = mat.Elasticity;
+			Friction = mat.Friction;
+			PhysicsMaterial = files.GetAsset<PhysicsMaterialAsset>(mat.AssetRef);
+		}
 
 		#endregion
 

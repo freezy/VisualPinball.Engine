@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+using System;
 using UnityEngine;
 
 namespace VisualPinball.Unity
@@ -21,8 +22,23 @@ namespace VisualPinball.Unity
 	/// <summary>
 	/// Just a component to tag brackets so we can toggle them during import.
 	/// </summary>
-	public class GateBracketComponent : MonoBehaviour
+	[PackAs("GateBracket")]
+	public class GateBracketComponent : MonoBehaviour, IPackable
 	{
-		
+		#region Packaging
+
+		public byte[] Pack() => PackageApi.Packer.Pack(new object());
+
+		public byte[] PackReferences(Transform root, PackNameLookup lookup, PackagedFiles files) => Array.Empty<byte>();
+
+		public void Unpack(byte[] bytes)
+		{
+		}
+
+		public void UnpackReferences(byte[] bytes, Transform root, PackNameLookup lookup, PackagedFiles files)
+		{
+		}
+
+		#endregion
 	}
 }

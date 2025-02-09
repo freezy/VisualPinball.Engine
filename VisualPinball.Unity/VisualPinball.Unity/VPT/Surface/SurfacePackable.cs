@@ -47,6 +47,7 @@ namespace VisualPinball.Unity
 
 	public struct SurfaceColliderPackable
 	{
+		public bool IsMovable;
 		public bool HitEvent;
 		public float Threshold;
 		public bool IsBottomSolid;
@@ -56,6 +57,7 @@ namespace VisualPinball.Unity
 		public static byte[] Pack(SurfaceColliderComponent comp)
 		{
 			return PackageApi.Packer.Pack(new SurfaceColliderPackable {
+				IsMovable = comp._isKinematic,
 				HitEvent = comp.HitEvent,
 				Threshold = comp.Threshold,
 				IsBottomSolid = comp.IsBottomSolid,
@@ -67,6 +69,7 @@ namespace VisualPinball.Unity
 		public static void Unpack(byte[] bytes, SurfaceColliderComponent comp)
 		{
 			var data = PackageApi.Packer.Unpack<SurfaceColliderPackable>(bytes);
+			comp._isKinematic = data.IsMovable;
 			comp.HitEvent = data.HitEvent;
 			comp.Threshold = data.Threshold;
 			comp.IsBottomSolid = data.IsBottomSolid;

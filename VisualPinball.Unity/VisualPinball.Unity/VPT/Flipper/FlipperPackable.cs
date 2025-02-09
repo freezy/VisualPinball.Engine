@@ -68,6 +68,7 @@ namespace VisualPinball.Unity
 
 	public struct FlipperColliderPackable
 	{
+		public bool IsMovable;
 		public float Mass;
 		public float Strength;
 		public float Return;
@@ -78,6 +79,7 @@ namespace VisualPinball.Unity
 		public static byte[] Pack(FlipperColliderComponent comp)
 		{
 			return PackageApi.Packer.Pack(new FlipperColliderPackable {
+				IsMovable = comp._isKinematic,
 				Mass = comp.Mass,
 				Strength = comp.Strength,
 				Return = comp.Return,
@@ -90,6 +92,7 @@ namespace VisualPinball.Unity
 		public static void Unpack(byte[] bytes, FlipperColliderComponent comp)
 		{
 			var data = PackageApi.Packer.Unpack<FlipperColliderPackable>(bytes);
+			comp._isKinematic = data.IsMovable;
 			comp.Mass = data.Mass;
 			comp.Strength = data.Strength;
 			comp.Return = data.Return;

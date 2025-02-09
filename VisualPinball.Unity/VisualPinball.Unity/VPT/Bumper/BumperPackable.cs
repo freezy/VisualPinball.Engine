@@ -41,6 +41,7 @@ namespace VisualPinball.Unity
 
 	public struct BumperColliderPackable
 	{
+		public bool IsMovable;
 		public float Threshold;
 		public float Force;
 		public bool HitEvent;
@@ -48,6 +49,7 @@ namespace VisualPinball.Unity
 		public static byte[] Pack(BumperColliderComponent comp)
 		{
 			return PackageApi.Packer.Pack(new BumperColliderPackable {
+				IsMovable = comp._isKinematic,
 				Threshold = comp.Threshold,
 				Force = comp.Force,
 				HitEvent = comp.HitEvent,
@@ -57,6 +59,7 @@ namespace VisualPinball.Unity
 		public static void Unpack(byte[] bytes, BumperColliderComponent comp)
 		{
 			var data = PackageApi.Packer.Unpack<BumperColliderPackable>(bytes);
+			comp._isKinematic = data.IsMovable;
 			comp.Threshold = data.Threshold;
 			comp.Force = data.Force;
 			comp.HitEvent = data.HitEvent;
