@@ -69,12 +69,12 @@ namespace VisualPinball.Unity
 
 		public byte[] Pack() => GateColliderPackable.Pack(this);
 
-		public byte[] PackReferences(Transform root, PackNameLookup lookup, PackagedFiles files) =>
+		public byte[] PackReferences(Transform root, PackagedRefs refs, PackagedFiles files) =>
 			PhysicalMaterialPackable.Pack(Elasticity, 1, Friction, 0, true, PhysicsMaterial, files);
 
 		public void Unpack(byte[] bytes) => GateColliderPackable.Unpack(bytes, this);
 
-		public void UnpackReferences(byte[] data, Transform root, PackNameLookup lookup, PackagedFiles files)
+		public void UnpackReferences(byte[] data, Transform root, PackagedRefs refs, PackagedFiles files)
 		{
 			var mat = PhysicalMaterialPackable.Unpack(data);
 			Elasticity = mat.Elasticity;

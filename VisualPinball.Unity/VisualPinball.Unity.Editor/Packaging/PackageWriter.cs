@@ -33,7 +33,7 @@ namespace VisualPinball.Unity.Editor
 	public class PackageWriter
 	{
 		private readonly GameObject _table;
-		private readonly PackNameLookup _typeLookup;
+		private readonly PackagedRefs _refs;
 		private IPackageFolder _tableFolder;
 		private PackagedFiles _files;
 		private IPackageFolder _globalFolder;
@@ -44,7 +44,7 @@ namespace VisualPinball.Unity.Editor
 		public PackageWriter(GameObject table)
 		{
 			_table = table;
-			_typeLookup = new PackNameLookup();
+			_refs = new PackagedRefs(table.transform);
 		}
 
 		public async Task WritePackage(string path)
@@ -61,7 +61,7 @@ namespace VisualPinball.Unity.Editor
 			_tableFolder = storage.AddFolder(PackageApi.TableFolder);
 			_globalFolder = _tableFolder.AddFolder(PackageApi.GlobalFolder);
 			_metaFolder = _tableFolder.AddFolder(PackageApi.MetaFolder);
-			_files = new PackagedFiles(_tableFolder, _typeLookup);
+			_files = new PackagedFiles(_tableFolder, _refs);
 
 			// write scene data
 			var sw1 = Stopwatch.StartNew();
@@ -80,7 +80,7 @@ namespace VisualPinball.Unity.Editor
 
 			// write reference data
 			sw1 = Stopwatch.StartNew();
-			WritePackables(PackageApi.ItemReferencesFolder, packageable => packageable.PackReferences(_table.transform, _typeLookup, _files));
+			WritePackables(PackageApi.ItemReferencesFolder, packageable => packageable.PackReferences(_table.transform, _refs, _files));
 			Logger.Info($"References written in {sw1.ElapsedMilliseconds}ms.");
 
 			// write globals
@@ -230,7 +230,7 @@ namespace VisualPinball.Unity.Editor
 					switch (component) {
 						case IPackable packageable: {
 
-							var packName = _typeLookup.GetName(packageable.GetType());
+							var packName = _refs.GetName(packageable.GetType());
 							counters.TryAdd(packName, 0);
 
 							var packableData = getPackableData(packageable);

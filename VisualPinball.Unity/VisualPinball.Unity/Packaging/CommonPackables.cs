@@ -32,42 +32,6 @@ namespace VisualPinball.Unity
 			Path = path;
 			Type = type;
 		}
-
-		public T Resolve<T>(Transform root, PackNameLookup packNameLookup) where T: class
-		{
-			var transform = root.FindByPath(Path);
-			if (transform == null) {
-				Debug.LogError($"Error resolving reference {Type}@{Path}: No object found at path.");
-				return null;
-			}
-			var type = packNameLookup.GetType(Type);
-			if (type == null) {
-				Debug.LogError($"Error resolving type name {Type} to type. PackAs[] attribute missing?");
-				return null;
-			}
-			var component = transform.gameObject.GetComponent(type);
-
-			if (component == null) {
-				Debug.LogError($"Error resolving reference {Type}@{Path}: No component of type {type.FullName} on game object {transform.name}");
-			}
-
-			if (component is T compT) {
-				return compT;
-			}
-
-			Debug.LogError($"Error resolving reference {Type}@{Path}: Component on {transform.name} required to be of type {typeof(T).FullName}, but is {component.GetType().FullName}.");
-			return null;
-		}
-
-		public T Resolve<T, TI>(Transform root, PackNameLookup packNameLookup) where T: class
-		{
-			var component = Resolve<T>(root, packNameLookup);
-			if (component is TI) {
-				return component;
-			}
-			Debug.LogError($"Error resolving reference {Type}@{Path}: Component does not inherit {typeof(TI).FullName}.");
-			return null;
-		}
 	}
 
 	public struct DragPointPackable

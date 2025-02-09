@@ -21,13 +21,16 @@ using UnityEngine;
 
 namespace VisualPinball.Unity
 {
-	public class PackNameLookup
+	public class PackagedRefs
 	{
 		private readonly Dictionary<Type, string> _typeToName = new();
 		private readonly Dictionary<string, Type> _nameToType = new();
 
-		public PackNameLookup()
+		private readonly Transform _tableRoot;
+
+		public PackagedRefs(Transform tableRoot)
 		{
+			_tableRoot = tableRoot;
 			var assembly = Assembly.GetExecutingAssembly();
 			foreach (var type in assembly.GetTypes()) {
 				// Look for the PackAsAttribute on the class
@@ -58,5 +61,46 @@ namespace VisualPinball.Unity
 		}
 
 		public bool HasType(Type t) => _typeToName.ContainsKey(t);
+
+		public ReferencePackable PackReference<T>(T comp) where T : Component
+			=> comp != null
+				? new ReferencePackable(comp.transform.GetPath(_tableRoot), GetName(comp.GetType()))
+				: new ReferencePackable(null, null);
+
+		public T Resolve<T>(ReferencePackable packedRef) where T: class
+		{
+			var transform = _tableRoot.FindByPath(packedRef.Path);
+			if (transform == null) {
+				Debug.LogError($"Error resolving reference {packedRef.Type}@{packedRef.Path}: No object found at path.");
+				return null;
+			}
+			var type = GetType(packedRef.Type);
+			if (type == null) {
+				Debug.LogError($"Error resolving type name {packedRef.Type} to type. PackAs[] attribute missing?");
+				return null;
+			}
+			var component = transform.gameObject.GetComponent(type);
+
+			if (component == null) {
+				Debug.LogError($"Error resolving reference {packedRef.Type}@{packedRef.Path}: No component of type {type.FullName} on game object {transform.name}");
+			}
+
+			if (component is T compT) {
+				return compT;
+			}
+
+			Debug.LogError($"Error resolving reference {packedRef.Type}@{packedRef.Path}: Component on {transform.name} required to be of type {typeof(T).FullName}, but is {component.GetType().FullName}.");
+			return null;
+		}
+
+		public T Resolve<T, TI>(ReferencePackable packedRef) where T : class
+		{
+			var component = Resolve<T>(packedRef);
+			if (component is TI) {
+				return component;
+			}
+			Debug.LogError($"Error resolving reference {packedRef.Type}@{packedRef.Path}: Component does not inherit {typeof(TI).FullName}.");
+			return null;
+		}
 	}
 }

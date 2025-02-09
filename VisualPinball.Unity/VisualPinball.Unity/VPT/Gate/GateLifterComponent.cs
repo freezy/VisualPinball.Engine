@@ -42,11 +42,11 @@ namespace VisualPinball.Unity
 
 		public byte[] Pack() => GateLifterPackable.Pack(this);
 
-		public byte[] PackReferences(Transform root, PackNameLookup lookup, PackagedFiles files) => null;
+		public byte[] PackReferences(Transform root, PackagedRefs lookup, PackagedFiles files) => null;
 
 		public void Unpack(byte[] bytes) => GateLifterPackable.Unpack(bytes, this);
 
-		public void UnpackReferences(byte[] data, Transform root, PackNameLookup lookup, PackagedFiles files)
+		public void UnpackReferences(byte[] data, Transform root, PackagedRefs lookup, PackagedFiles files)
 		{
 		}
 

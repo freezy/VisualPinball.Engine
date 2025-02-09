@@ -28,11 +28,11 @@ namespace VisualPinball.Unity
 	public class PackagedFiles
 	{
 		private readonly IPackageFolder _tableFolder;
-		private readonly PackNameLookup _typeLookup;
+		private readonly PackagedRefs _typeLookup;
 
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
-		public PackagedFiles(IPackageFolder tableFolder, PackNameLookup typeLookup)
+		public PackagedFiles(IPackageFolder tableFolder, PackagedRefs typeLookup)
 		{
 			_tableFolder = tableFolder;
 			_typeLookup = typeLookup;

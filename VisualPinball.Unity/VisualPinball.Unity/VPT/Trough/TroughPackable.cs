@@ -63,30 +63,22 @@ namespace VisualPinball.Unity
 		public ReferencePackable PlayfieldExitKickerRef;
 		public string PlayfieldExitKickerItem;
 
-		public static byte[] Pack(TroughComponent comp, Transform root, PackNameLookup packNameLookup)
+		public static byte[] Pack(TroughComponent comp, PackagedRefs refs)
 		{
-			var playfieldEntrySwitch = comp._playfieldEntrySwitch != null
-				? new ReferencePackable(comp._playfieldEntrySwitch.transform.GetPath(root), packNameLookup.GetName(comp._playfieldEntrySwitch.GetType()))
-				: new ReferencePackable(null, null);
-
-			var playfieldExitKicker = comp.PlayfieldExitKicker != null
-				? new ReferencePackable(comp.PlayfieldExitKicker.transform.GetPath(root), packNameLookup.GetName(comp.PlayfieldExitKicker.GetType()))
-				: new ReferencePackable(null, null);
-
 			return PackageApi.Packer.Pack(new TroughReferencesPackable {
-				PlayfieldEntrySwitchRef = playfieldEntrySwitch,
+				PlayfieldEntrySwitchRef = refs.PackReference(comp._playfieldEntrySwitch),
 				PlayfieldEntrySwitchItem = comp.PlayfieldEntrySwitchItem,
-				PlayfieldExitKickerRef = playfieldExitKicker,
+				PlayfieldExitKickerRef = refs.PackReference(comp.PlayfieldExitKicker),
 				PlayfieldExitKickerItem = comp.PlayfieldExitKickerItem,
 			});
 		}
 
-		public static void Unpack(byte[] bytes, TroughComponent comp, Transform root, PackNameLookup packNameLookup)
+		public static void Unpack(byte[] bytes, TroughComponent comp, PackagedRefs refs)
 		{
 			var data = PackageApi.Packer.Unpack<TroughReferencesPackable>(bytes);
-			comp._playfieldEntrySwitch = data.PlayfieldEntrySwitchRef.Resolve<MonoBehaviour, ITriggerComponent>(root, packNameLookup);
+			comp._playfieldEntrySwitch = refs.Resolve<MonoBehaviour, ITriggerComponent>(data.PlayfieldEntrySwitchRef);
 			comp.PlayfieldEntrySwitchItem = data.PlayfieldEntrySwitchItem;
-			comp.PlayfieldExitKicker = data.PlayfieldExitKickerRef.Resolve<KickerComponent>(root, packNameLookup);
+			comp.PlayfieldExitKicker = refs.Resolve<KickerComponent>(data.PlayfieldExitKickerRef);
 			comp.PlayfieldExitKickerItem = data.PlayfieldExitKickerItem;
 		}
 	}

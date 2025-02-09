@@ -36,14 +36,13 @@ namespace VisualPinball.Unity.Editor
 		private string _assetPath;
 		private string _tableName;
 		private GameObject _table;
-		private readonly PackNameLookup _typeLookup;
-		private PackagedFiles _packageFiles;
+		private PackagedRefs _refs;
+		private PackagedFiles _files;
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
 		public PackageReader(string vpePath)
 		{
 			_vpePath = vpePath;
-			_typeLookup = new PackNameLookup();
 		}
 
 		public async Task ImportIntoScene(string tableName)
@@ -56,6 +55,9 @@ namespace VisualPinball.Unity.Editor
 			try {
 				Setup(storage);
 				await ImportModels();
+
+				_refs = new PackagedRefs(_table.transform);
+				_files = new PackagedFiles(_tableFolder, _refs);
 
 				await ReadAssets();
 
@@ -78,7 +80,7 @@ namespace VisualPinball.Unity.Editor
 				ReadPackables(PackageApi.ItemReferencesFolder, null, (item, type, stream, _) => {
 					// add the component and unpack it.
 					var comp = item.gameObject.GetComponent(type) as IPackable;
-					comp?.UnpackReferences(stream.GetData(), _table.transform, _typeLookup, _packageFiles);
+					comp?.UnpackReferences(stream.GetData(), _table.transform, _refs, _files);
 				});
 
 				ReadGlobals();
@@ -99,8 +101,6 @@ namespace VisualPinball.Unity.Editor
 				_assetPath = Path.Combine(Application.dataPath, "Resources", $"{_tableName} ({++n})");
 			}
 			Directory.CreateDirectory(_assetPath);
-
-			_packageFiles = new PackagedFiles(_tableFolder, _typeLookup);
 		}
 
 		private async Task ImportModels()
@@ -137,9 +137,9 @@ namespace VisualPinball.Unity.Editor
 
 		private async Task ReadAssets()
 		{
-			_packageFiles.UnpackAssets(_assetPath);
-			await _packageFiles.UnpackMeshes(_assetPath);
-			_packageFiles.UnpackSounds(_assetPath);
+			_files.UnpackAssets(_assetPath);
+			await _files.UnpackMeshes(_assetPath);
+			_files.UnpackSounds(_assetPath);
 		}
 
 		/// <summary>
@@ -168,7 +168,7 @@ namespace VisualPinball.Unity.Editor
 				itemFolder.VisitFolders(typeFolder => {
 
 					// rootFolder / 0.0.0 / -> CompType <- / 0
-					var t = _typeLookup.GetType(typeFolder.Name);
+					var t = _refs.GetType(typeFolder.Name);
 					var index = 0;
 					typeFolder.VisitFiles(compFile => {
 
