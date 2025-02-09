@@ -93,11 +93,30 @@ namespace VisualPinball.Unity
 
 		#region Physics Material
 
-		protected override float PhysicsElasticity => Elasticity;
-		protected override float PhysicsElasticityFalloff => ElasticityFalloff;
-		protected override float PhysicsFriction => Friction;
-		protected override float PhysicsScatter => Scatter;
-		protected override bool PhysicsOverwrite => true;
+		public override float PhysicsElasticity {
+			get => Elasticity;
+			set => Elasticity = value;
+		}
+
+		public override float PhysicsElasticityFalloff {
+			get => ElasticityFalloff;
+			set => ElasticityFalloff = value;
+		}
+
+		public override float PhysicsFriction {
+			get => Friction;
+			set => Friction = value;
+		}
+
+		public override float PhysicsScatter {
+			get => Scatter;
+			set => Scatter = value;
+		}
+
+		public override bool PhysicsOverwrite {
+			get => true;
+			set { }
+		}
 
 		#endregion
 

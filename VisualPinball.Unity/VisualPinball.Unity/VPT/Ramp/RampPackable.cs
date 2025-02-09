@@ -71,4 +71,34 @@ namespace VisualPinball.Unity
 			comp.DragPoints = data.DragPoints.Select(c => c.ToDragPoint()).ToArray();
 		}
 	}
+
+	public struct RampColliderPackable
+	{
+		public bool IsMovable;
+		public bool HitEvent;
+		public float Threshold;
+		public float LeftWallHeight;
+		public float RightWallHeight;
+
+		public static byte[] Pack(RampColliderComponent comp)
+		{
+			return PackageApi.Packer.Pack(new RampColliderPackable {
+				IsMovable = comp._isKinematic,
+				HitEvent = comp.HitEvent,
+				Threshold = comp.Threshold,
+				LeftWallHeight = comp.LeftWallHeight,
+				RightWallHeight = comp.RightWallHeight
+			});
+		}
+
+		public static void Unpack(byte[] bytes, RampColliderComponent comp)
+		{
+			var data = PackageApi.Packer.Unpack<RampColliderPackable>(bytes);
+			comp._isKinematic = data.IsMovable;
+			comp.HitEvent = data.HitEvent;
+			comp.Threshold = data.Threshold;
+			comp.LeftWallHeight = data.LeftWallHeight;
+			comp.RightWallHeight = data.RightWallHeight;
+		}
+	}
 }

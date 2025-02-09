@@ -16,14 +16,14 @@
 
 // ReSharper disable InconsistentNaming
 
-using Unity.Mathematics;
 using UnityEngine;
 using VisualPinball.Engine.VPT.Ramp;
 
 namespace VisualPinball.Unity
 {
+	[PackAs("RampCollider")]
 	[AddComponentMenu("Visual Pinball/Collision/Ramp Collider")]
-	public class RampColliderComponent : ColliderComponent<RampData, RampComponent>
+	public class RampColliderComponent : ColliderComponent<RampData, RampComponent>, IPackable
 	{
 		#region Data
 
@@ -59,13 +59,44 @@ namespace VisualPinball.Unity
 
 		#endregion
 
+		#region Packaging
+
+		public byte[] Pack() => RampColliderPackable.Pack(this);
+
+		public byte[] PackReferences(Transform root, PackagedRefs refs, PackagedFiles files) => PhysicalMaterialPackable.Pack(this, files);
+
+		public void Unpack(byte[] bytes) => RampColliderPackable.Unpack(bytes, this);
+
+		public void UnpackReferences(byte[] data, Transform root, PackagedRefs refs, PackagedFiles files) => PhysicalMaterialPackable.Unpack(data, this, files);
+
+		#endregion
+
 		#region Physics Material
 
-		protected override float PhysicsElasticity => Elasticity;
-		protected override float PhysicsElasticityFalloff => 1;
-		protected override float PhysicsFriction => Friction;
-		protected override float PhysicsScatter => Scatter;
-		protected override bool PhysicsOverwrite => OverwritePhysics;
+		public override float PhysicsElasticity {
+			get => Elasticity;
+			set => Elasticity = value;
+		}
+
+		public override float PhysicsElasticityFalloff {
+			get => 1;
+			set { }
+		}
+
+		public override float PhysicsFriction {
+			get => Friction;
+			set => Friction = value;
+		}
+
+		public override float PhysicsScatter {
+			get => Scatter;
+			set => Scatter = value;
+		}
+
+		public override bool PhysicsOverwrite {
+			get => OverwritePhysics;
+			set => OverwritePhysics = value;
+		}
 
 		#endregion
 

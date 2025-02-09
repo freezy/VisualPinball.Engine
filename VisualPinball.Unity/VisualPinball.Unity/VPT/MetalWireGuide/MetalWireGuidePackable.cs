@@ -54,4 +54,28 @@ namespace VisualPinball.Unity
 			comp.DragPoints = data.DragPoints.Select(c => c.ToDragPoint()).ToArray();
 		}
 	}
+
+	public struct MetalWireGuideColliderPackable
+	{
+		public bool IsMovable;
+		public bool HitEvent;
+		public float HitHeight;
+
+		public static byte[] Pack(MetalWireGuideColliderComponent comp)
+		{
+			return PackageApi.Packer.Pack(new MetalWireGuideColliderPackable {
+				IsMovable = comp._isKinematic,
+				HitEvent = comp.HitEvent,
+				HitHeight = comp.HitHeight,
+			});
+		}
+
+		public static void Unpack(byte[] bytes, MetalWireGuideColliderComponent comp)
+		{
+			var data = PackageApi.Packer.Unpack<MetalWireGuideColliderPackable>(bytes);
+			comp._isKinematic = data.IsMovable;
+			comp.HitEvent = data.HitEvent;
+			comp.HitHeight = data.HitHeight;
+		}
+	}
 }

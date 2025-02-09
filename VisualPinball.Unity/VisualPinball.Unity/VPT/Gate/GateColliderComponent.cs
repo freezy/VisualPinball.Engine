@@ -17,6 +17,7 @@
 // ReSharper disable InconsistentNaming
 
 using System.ComponentModel;
+using Codice.Client.Common.EventTracking;
 using Unity.Mathematics;
 using UnityEngine;
 using VisualPinball.Engine.VPT.Gate;
@@ -69,28 +70,40 @@ namespace VisualPinball.Unity
 
 		public byte[] Pack() => GateColliderPackable.Pack(this);
 
-		public byte[] PackReferences(Transform root, PackagedRefs refs, PackagedFiles files) =>
-			PhysicalMaterialPackable.Pack(Elasticity, 1, Friction, 0, true, PhysicsMaterial, files);
+		public byte[] PackReferences(Transform root, PackagedRefs refs, PackagedFiles files) => PhysicalMaterialPackable.Pack(this, files);
 
 		public void Unpack(byte[] bytes) => GateColliderPackable.Unpack(bytes, this);
 
-		public void UnpackReferences(byte[] data, Transform root, PackagedRefs refs, PackagedFiles files)
-		{
-			var mat = PhysicalMaterialPackable.Unpack(data);
-			Elasticity = mat.Elasticity;
-			Friction = mat.Friction;
-			PhysicsMaterial = files.GetAsset<PhysicsMaterialAsset>(mat.AssetRef);
-		}
+		public void UnpackReferences(byte[] data, Transform root, PackagedRefs refs, PackagedFiles files) => PhysicalMaterialPackable.Unpack(data, this, files);
 
 		#endregion
 
 		#region Physics Material
 
-		protected override float PhysicsElasticity => Elasticity;
-		protected override float PhysicsElasticityFalloff => 1;
-		protected override float PhysicsFriction => Friction;
-		protected override float PhysicsScatter => 0;
-		protected override bool PhysicsOverwrite => true;
+		public override float PhysicsElasticity {
+			get => Elasticity;
+			set => Elasticity = value;
+		}
+
+		public override float PhysicsElasticityFalloff {
+			get => 1;
+			set { }
+		}
+
+		public override float PhysicsFriction {
+			get => Friction;
+			set => Friction = value;
+		}
+
+		public override float PhysicsScatter {
+			get => 0;
+			set { }
+		}
+
+		public override bool PhysicsOverwrite {
+			get => true;
+			set { }
+		}
 
 		#endregion
 

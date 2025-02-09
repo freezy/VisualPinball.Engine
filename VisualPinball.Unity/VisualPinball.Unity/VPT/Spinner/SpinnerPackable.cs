@@ -41,4 +41,25 @@ namespace VisualPinball.Unity
 			comp.AngleMin = data.AngleMin;
 		}
 	}
+
+	public struct SpinnerColliderPackable
+	{
+		public bool IsMovable;
+		public float ZPosition;
+
+		public static byte[] Pack(SpinnerColliderComponent comp)
+		{
+			return PackageApi.Packer.Pack(new SpinnerColliderPackable {
+				IsMovable = comp._isKinematic,
+				ZPosition = comp.ZPosition,
+			});
+		}
+
+		public static void Unpack(byte[] bytes, SpinnerColliderComponent comp)
+		{
+			var data = PackageApi.Packer.Unpack<SpinnerColliderPackable>(bytes);
+			comp._isKinematic = data.IsMovable;
+			comp.ZPosition = data.ZPosition;
+		}
+	}
 }

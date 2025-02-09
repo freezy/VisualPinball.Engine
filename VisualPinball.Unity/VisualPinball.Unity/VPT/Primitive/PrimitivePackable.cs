@@ -27,4 +27,31 @@ namespace VisualPinball.Unity
 			// no data
 		}
 	}
+
+	public struct PrimitiveColliderPackable
+	{
+		public bool IsMovable;
+		public bool HitEvent;
+		public float Threshold;
+		public float CollisionReductionFactor;
+
+		public static byte[] Pack(PrimitiveColliderComponent comp)
+		{
+			return PackageApi.Packer.Pack(new PrimitiveColliderPackable {
+				IsMovable = comp._isKinematic,
+				HitEvent = comp.HitEvent,
+				Threshold = comp.Threshold,
+				CollisionReductionFactor = comp.CollisionReductionFactor,
+			});
+		}
+
+		public static void Unpack(byte[] bytes, PrimitiveColliderComponent comp)
+		{
+			var data = PackageApi.Packer.Unpack<PrimitiveColliderPackable>(bytes);
+			comp._isKinematic = data.IsMovable;
+			comp.HitEvent = data.HitEvent;
+			comp.Threshold = data.Threshold;
+			comp.CollisionReductionFactor = data.CollisionReductionFactor;
+		}
+	}
 }

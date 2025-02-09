@@ -51,16 +51,6 @@ namespace VisualPinball.Unity
 
 		#endregion
 
-		#region Physics Material
-
-		protected override float PhysicsElasticity => 1;
-		protected override float PhysicsElasticityFalloff => 1;
-		protected override float PhysicsFriction => 0;
-		protected override float PhysicsScatter => Scatter;
-		protected override bool PhysicsOverwrite => true;
-
-		#endregion
-
 		#region Packaging
 
 		public byte[] Pack() => KickerColliderPackable.Pack(this);
@@ -70,6 +60,36 @@ namespace VisualPinball.Unity
 		public void Unpack(byte[] bytes) => KickerColliderPackable.Unpack(bytes, this);
 
 		public void UnpackReferences(byte[] data, Transform root, PackagedRefs refs, PackagedFiles files) { }
+
+		#endregion
+
+		#region Physics Material
+
+		public override float PhysicsElasticity {
+			get => 1;
+			set { }
+		}
+
+		public override float PhysicsElasticityFalloff {
+			get => 1;
+			set { }
+		}
+
+		public override float PhysicsFriction {
+			get => 0;
+			set { }
+		}
+
+		public override float PhysicsScatter {
+			get => Scatter;
+			set => Scatter = value;
+		}
+
+		public override bool PhysicsOverwrite
+		{
+			get => true;
+			set { }
+		}
 
 		#endregion
 
