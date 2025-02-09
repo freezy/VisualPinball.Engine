@@ -22,9 +22,10 @@ using System;
 
 namespace VisualPinball.Unity
 {
+	[PackAs("DropTargetBank")]
 	[AddComponentMenu("Visual Pinball/Mechs/Drop Target Bank")]
 	[HelpURL("https://docs.visualpinball.org/creators-guide/manual/mechanisms/drop-target-banks.html")]
-	public class DropTargetBankComponent : MonoBehaviour, ICoilDeviceComponent, ISwitchDeviceComponent
+	public class DropTargetBankComponent : MonoBehaviour, ICoilDeviceComponent, ISwitchDeviceComponent, IPackable
 	{
 		public const string ResetCoilItem = "reset_coil";
 
@@ -48,6 +49,20 @@ namespace VisualPinball.Unity
 				Description = "Sequence Completed Switch"
 			}
 		};
+
+		#region Packaging
+
+		public byte[] Pack() => DropTargetBankPackable.Pack(this);
+
+		public byte[] PackReferences(Transform root, PackagedRefs refs, PackagedFiles files)
+			=> DropTargetBankReferencesPackable.Pack(this, refs);
+
+		public void Unpack(byte[] bytes) => DropTargetBankPackable.Unpack(bytes, this);
+
+		public void UnpackReferences(byte[] data, Transform root, PackagedRefs refs, PackagedFiles files)
+			=> DropTargetBankReferencesPackable.Unpack(data, this, refs);
+
+		#endregion
 
 		IEnumerable<GamelogicEngineCoil> IDeviceComponent<GamelogicEngineCoil>.AvailableDeviceItems => AvailableCoils;
 		IEnumerable<IGamelogicEngineDeviceItem> IWireableComponent.AvailableWireDestinations => AvailableCoils;

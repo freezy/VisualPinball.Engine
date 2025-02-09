@@ -34,11 +34,11 @@ namespace VisualPinball.Unity
 
 		public byte[] Pack() => BumperSkirtAnimationPackable.Pack(this);
 
-		public byte[] PackReferences(Transform root, PackNameLookup lookup, PackagedFiles files) => null;
+		public byte[] PackReferences(Transform root, PackagedRefs refs, PackagedFiles files) => null;
 
 		public void Unpack(byte[] bytes) => BumperSkirtAnimationPackable.Unpack(bytes, this);
 
-		public void UnpackReferences(byte[] bytes, Transform root, PackNameLookup lookup, PackagedFiles files) { }
+		public void UnpackReferences(byte[] bytes, Transform root, PackagedRefs refs, PackagedFiles files) { }
 
 		#endregion
 	}

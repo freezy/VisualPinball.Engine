@@ -24,9 +24,9 @@ namespace VisualPinball.Unity
 	public interface IPackable
 	{
 		byte[] Pack();
-		byte[] PackReferences(Transform root, PackNameLookup lookup, PackagedFiles files);
+		byte[] PackReferences(Transform root, PackagedRefs refs, PackagedFiles files);
 
 		void Unpack(byte[] bytes);
-		void UnpackReferences(byte[] bytes, Transform root, PackNameLookup lookup, PackagedFiles files);
+		void UnpackReferences(byte[] bytes, Transform root, PackagedRefs refs, PackagedFiles files);
 	}
 }

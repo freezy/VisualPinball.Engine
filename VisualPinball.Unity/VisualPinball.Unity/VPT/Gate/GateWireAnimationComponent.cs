@@ -41,13 +41,13 @@ namespace VisualPinball.Unity
 
 		public byte[] Pack() => PackageApi.Packer.Pack(new object());
 
-		public byte[] PackReferences(Transform root, PackNameLookup lookup, PackagedFiles files) => Array.Empty<byte>();
+		public byte[] PackReferences(Transform root, PackagedRefs refs, PackagedFiles files) => Array.Empty<byte>();
 
 		public void Unpack(byte[] bytes)
 		{
 		}
 
-		public void UnpackReferences(byte[] bytes, Transform root, PackNameLookup lookup, PackagedFiles files)
+		public void UnpackReferences(byte[] bytes, Transform root, PackagedRefs refs, PackagedFiles files)
 		{
 		}
 

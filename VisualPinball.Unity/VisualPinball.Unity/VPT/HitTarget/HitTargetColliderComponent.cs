@@ -61,12 +61,12 @@ namespace VisualPinball.Unity
 
 		public byte[] Pack() => HitTargetColliderPackable.Pack(this);
 
-		public byte[] PackReferences(Transform root, PackNameLookup lookup, PackagedFiles files) =>
+		public byte[] PackReferences(Transform root, PackagedRefs refs, PackagedFiles files) =>
 			HitTargetColliderReferencesPackable.PackReferences(this, files);
 
 		public void Unpack(byte[] bytes) => HitTargetColliderPackable.Unpack(bytes, this);
 
-		public void UnpackReferences(byte[] data, Transform root, PackNameLookup lookup, PackagedFiles files) => HitTargetColliderReferencesPackable.Unpack(data, this, files);
+		public void UnpackReferences(byte[] data, Transform root, PackagedRefs refs, PackagedFiles files) => HitTargetColliderReferencesPackable.Unpack(data, this, files);
 
 		#endregion
 

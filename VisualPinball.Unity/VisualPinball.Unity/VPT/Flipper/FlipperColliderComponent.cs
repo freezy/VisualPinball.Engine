@@ -81,12 +81,12 @@ namespace VisualPinball.Unity
 
 		public byte[] Pack() => FlipperColliderPackable.Pack(this);
 
-		public byte[] PackReferences(Transform root, PackNameLookup lookup, PackagedFiles files)
+		public byte[] PackReferences(Transform root, PackagedRefs refs, PackagedFiles files)
 			=> FlipperColliderReferencesPackable.PackReferences(this, files);
 
 		public void Unpack(byte[] bytes) => FlipperColliderPackable.Unpack(bytes, this);
 
-		public void UnpackReferences(byte[] data, Transform root, PackNameLookup lookup, PackagedFiles files)
+		public void UnpackReferences(byte[] data, Transform root, PackagedRefs refs, PackagedFiles files)
 			=> FlipperColliderReferencesPackable.Unpack(data, this, files);
 
 		#endregion

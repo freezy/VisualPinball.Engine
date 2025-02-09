@@ -114,11 +114,11 @@ namespace VisualPinball.Unity
 
 		public byte[] Pack() => TroughPackable.Pack(this);
 
-        public byte[] PackReferences(Transform root, PackNameLookup lookup, PackagedFiles files) => TroughReferencesPackable.Pack(this, root, lookup);
+        public byte[] PackReferences(Transform root, PackagedRefs refs, PackagedFiles files) => TroughReferencesPackable.Pack(this, refs);
 
         public void Unpack(byte[] bytes) => TroughPackable.Unpack(bytes, this);
 
-        public void UnpackReferences(byte[] data, Transform root, PackNameLookup lookup, PackagedFiles files) => TroughReferencesPackable.Unpack(data, this, root, lookup);
+        public void UnpackReferences(byte[] data, Transform root, PackagedRefs refs, PackagedFiles files) => TroughReferencesPackable.Unpack(data, this, refs);
 
 		#endregion
 

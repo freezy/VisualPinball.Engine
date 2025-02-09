@@ -53,12 +53,12 @@ namespace VisualPinball.Unity
 
 		public byte[] Pack() => SoundPackable.Pack(this);
 
-		public byte[] PackReferences(Transform root, PackNameLookup lookup, PackagedFiles files) =>
+		public byte[] PackReferences(Transform root, PackagedRefs refs, PackagedFiles files) =>
 			SoundReferencesPackable.PackReferences(this, files);
 
 		public void Unpack(byte[] bytes) => SoundPackable.Unpack(bytes, this);
 
-		public void UnpackReferences(byte[] data, Transform root, PackNameLookup lookup, PackagedFiles files)
+		public void UnpackReferences(byte[] data, Transform root, PackagedRefs refs, PackagedFiles files)
 			=> SoundReferencesPackable.Unpack(data, this, files);
 
 		#endregion

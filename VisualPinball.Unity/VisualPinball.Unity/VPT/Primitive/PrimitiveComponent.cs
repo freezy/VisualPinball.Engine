@@ -49,11 +49,11 @@ namespace VisualPinball.Unity
 
 		public byte[] Pack() => PrimitivePackable.Pack(this);
 
-		public byte[] PackReferences(Transform root, PackNameLookup lookup, PackagedFiles files) => Array.Empty<byte>();
+		public byte[] PackReferences(Transform root, PackagedRefs refs, PackagedFiles files) => Array.Empty<byte>();
 
 		public void Unpack(byte[] bytes) => PrimitivePackable.Unpack(bytes, this);
 
-		public void UnpackReferences(byte[] data, Transform root, PackNameLookup lookup, PackagedFiles files) { }
+		public void UnpackReferences(byte[] data, Transform root, PackagedRefs refs, PackagedFiles files) { }
 
 		#endregion
 

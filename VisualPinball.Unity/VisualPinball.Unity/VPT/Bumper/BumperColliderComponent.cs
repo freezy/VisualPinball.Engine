@@ -48,12 +48,12 @@ namespace VisualPinball.Unity
 
 		public byte[] Pack() => BumperColliderPackable.Pack(this);
 
-		public byte[] PackReferences(Transform root, PackNameLookup lookup, PackagedFiles files) =>
+		public byte[] PackReferences(Transform root, PackagedRefs refs, PackagedFiles files) =>
 			PhysicalMaterialPackable.Pack(1, 1, 0, Scatter, true, PhysicsMaterial, files);
 
 		public void Unpack(byte[] bytes) => BumperColliderPackable.Unpack(bytes, this);
 
-		public void UnpackReferences(byte[] data, Transform root, PackNameLookup lookup, PackagedFiles files)
+		public void UnpackReferences(byte[] data, Transform root, PackagedRefs refs, PackagedFiles files)
 		{
 			var mat = PhysicalMaterialPackable.Unpack(data);
 			Scatter = mat.Scatter;
