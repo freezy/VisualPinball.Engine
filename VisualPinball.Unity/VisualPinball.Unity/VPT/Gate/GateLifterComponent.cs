@@ -23,9 +23,10 @@ using VisualPinball.Engine.Game.Engines;
 
 namespace VisualPinball.Unity
 {
+	[PackAs("GateLifter")]
 	[RequireComponent(typeof(GateComponent))]
 	[AddComponentMenu("Visual Pinball/Mechs/Gate Lifter")]
-	public class GateLifterComponent : MonoBehaviour, ICoilDeviceComponent
+	public class GateLifterComponent : MonoBehaviour, ICoilDeviceComponent, IPackable
 	{
 		public const string LifterCoilItem = "lifter_coil";
 
@@ -38,19 +39,13 @@ namespace VisualPinball.Unity
 
 		#region Packaging
 
-		#region Packaging
-
 		public byte[] Pack() => GateLifterPackable.Pack(this);
 
 		public byte[] PackReferences(Transform root, PackagedRefs lookup, PackagedFiles files) => null;
 
 		public void Unpack(byte[] bytes) => GateLifterPackable.Unpack(bytes, this);
 
-		public void UnpackReferences(byte[] data, Transform root, PackagedRefs lookup, PackagedFiles files)
-		{
-		}
-
-		#endregion
+		public void UnpackReferences(byte[] data, Transform root, PackagedRefs lookup, PackagedFiles files) { }
 
 		#endregion
 

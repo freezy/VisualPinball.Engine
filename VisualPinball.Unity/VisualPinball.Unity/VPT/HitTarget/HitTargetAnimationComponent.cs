@@ -21,9 +21,10 @@ using VisualPinball.Engine.VPT.HitTarget;
 
 namespace VisualPinball.Unity
 {
+	[PackAs("HitTargetAnimation")]
 	[AddComponentMenu("Visual Pinball/Animation/Hit Target Animation")]
 	[RequireComponent(typeof(HitTargetColliderComponent))]
-	public class HitTargetAnimationComponent : AnimationComponent<HitTargetData, HitTargetComponent>
+	public class HitTargetAnimationComponent : AnimationComponent<HitTargetData, HitTargetComponent>, IPackable
 	{
 		#region Data
 
@@ -34,6 +35,18 @@ namespace VisualPinball.Unity
 		[Range(-180f, 180f)]
 		[Tooltip("Angle of how much the hit target rotates back when hit.")]
 		public float MaxAngle = 13.0f;
+
+		#endregion
+
+		#region Packaging
+
+		public byte[] Pack() => HitTargetAnimationPackable.Pack(this);
+
+		public byte[] PackReferences(Transform root, PackagedRefs lookup, PackagedFiles files) => null;
+
+		public void Unpack(byte[] bytes) => HitTargetAnimationPackable.Unpack(bytes, this);
+
+		public void UnpackReferences(byte[] data, Transform root, PackagedRefs lookup, PackagedFiles files) { }
 
 		#endregion
 	}

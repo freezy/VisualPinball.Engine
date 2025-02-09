@@ -24,8 +24,8 @@ namespace VisualPinball.Unity
 	[PackAs("GateWireAnimation")]
 	public class GateWireAnimationComponent : AnimationComponent<GateData, GateComponent>, IRotatableAnimationComponent, IPackable
 	{
-		private float min = float.MaxValue;
-		private float max = float.MinValue;
+		public float min = float.MaxValue;
+		public float max = float.MinValue;
 
 		public void OnRotationUpdated(float angleRad)
 		{
@@ -39,17 +39,13 @@ namespace VisualPinball.Unity
 
 		#region Packaging
 
-		public byte[] Pack() => PackageApi.Packer.Pack(new object());
+		public byte[] Pack() => GateWireAnimationPackable.Pack(this);
 
-		public byte[] PackReferences(Transform root, PackagedRefs refs, PackagedFiles files) => Array.Empty<byte>();
+		public byte[] PackReferences(Transform root, PackagedRefs refs, PackagedFiles files) => null;
 
-		public void Unpack(byte[] bytes)
-		{
-		}
+		public void Unpack(byte[] bytes) => GateWireAnimationPackable.Unpack(bytes, this);
 
-		public void UnpackReferences(byte[] bytes, Transform root, PackagedRefs refs, PackagedFiles files)
-		{
-		}
+		public void UnpackReferences(byte[] bytes, Transform root, PackagedRefs refs, PackagedFiles files) { }
 
 		#endregion
 	}
