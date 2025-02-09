@@ -72,7 +72,7 @@ namespace VisualPinball.Unity
 
 		public byte[] Pack() => BumperPackable.Pack(this);
 
-		public byte[] PackReferences(Transform root, PackagedRefs refs, PackagedFiles files) => Array.Empty<byte>();
+		public byte[] PackReferences(Transform root, PackagedRefs refs, PackagedFiles files) => null;
 
 		public void Unpack(byte[] bytes) => BumperPackable.Unpack(bytes, this);
 

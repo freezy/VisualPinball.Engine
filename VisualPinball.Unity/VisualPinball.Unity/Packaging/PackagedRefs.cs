@@ -16,6 +16,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using UnityEngine;
 
@@ -62,6 +63,9 @@ namespace VisualPinball.Unity
 
 		public bool HasType(Type t) => _typeToName.ContainsKey(t);
 
+		public IEnumerable<ReferencePackable> PackReferences<T>(IEnumerable<T> comps) where T : Component
+			=> comps.Select(PackReference);
+
 		public ReferencePackable PackReference<T>(T comp) where T : Component
 			=> comp != null
 				? new ReferencePackable(comp.transform.GetPath(_tableRoot), GetName(comp.GetType()))
@@ -92,6 +96,9 @@ namespace VisualPinball.Unity
 			Debug.LogError($"Error resolving reference {packedRef.Type}@{packedRef.Path}: Component on {transform.name} required to be of type {typeof(T).FullName}, but is {component.GetType().FullName}.");
 			return null;
 		}
+
+		public IEnumerable<T> Resolve<T, TI>(IEnumerable<ReferencePackable> packedRefs) where T : class
+			=> packedRefs.Select(Resolve<T, TI>).Where(c => c != null);
 
 		public T Resolve<T, TI>(ReferencePackable packedRef) where T : class
 		{

@@ -39,6 +39,18 @@ namespace VisualPinball.Unity
 
 		#endregion
 
+		#region Packaging
+
+		public byte[] Pack() => StepRotatorMechPackable.Pack(this);
+
+		public byte[] PackReferences(Transform root, PackagedRefs refs, PackagedFiles files) => null;
+
+		public void Unpack(byte[] bytes) => StepRotatorMechPackable.Unpack(bytes, this);
+
+		public void UnpackReferences(byte[] data, Transform root, PackagedRefs refs, PackagedFiles files) { }
+
+		#endregion
+
 		#region Constants
 
 		public const string MotorCoilItem = "motor_coil";
