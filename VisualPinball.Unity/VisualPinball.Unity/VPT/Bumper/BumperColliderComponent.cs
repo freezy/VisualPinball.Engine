@@ -48,27 +48,41 @@ namespace VisualPinball.Unity
 
 		public byte[] Pack() => BumperColliderPackable.Pack(this);
 
-		public byte[] PackReferences(Transform root, PackagedRefs refs, PackagedFiles files) =>
-			PhysicalMaterialPackable.Pack(1, 1, 0, Scatter, true, PhysicsMaterial, files);
+		public byte[] PackReferences(Transform root, PackagedRefs refs, PackagedFiles files) => PhysicalMaterialPackable.Pack(this, files);
 
 		public void Unpack(byte[] bytes) => BumperColliderPackable.Unpack(bytes, this);
 
-		public void UnpackReferences(byte[] data, Transform root, PackagedRefs refs, PackagedFiles files)
-		{
-			var mat = PhysicalMaterialPackable.Unpack(data);
-			Scatter = mat.Scatter;
-			PhysicsMaterial = files.GetAsset<PhysicsMaterialAsset>(mat.AssetRef);
-		}
+		public void UnpackReferences(byte[] data, Transform root, PackagedRefs refs, PackagedFiles files) => PhysicalMaterialPackable.Unpack(data, this, files);
 
 		#endregion
 
 		#region Physics Material
 
-		protected override float PhysicsElasticity => 1;
-		protected override float PhysicsElasticityFalloff => 1;
-		protected override float PhysicsFriction => 0;
-		protected override float PhysicsScatter => Scatter;
-		protected override bool PhysicsOverwrite => true;
+		public override float PhysicsElasticity {
+			get => 1;
+			set { }
+		}
+
+		public override float PhysicsElasticityFalloff {
+			get => 1;
+			set { }
+		}
+
+		public override float PhysicsFriction
+		{
+			get => 0;
+			set { }
+	}
+
+		public override float PhysicsScatter {
+			get => Scatter;
+			set => Scatter = value;
+		}
+
+		public override bool PhysicsOverwrite {
+			get => true;
+			set { }
+		}
 
 		#endregion
 

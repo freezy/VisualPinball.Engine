@@ -67,11 +67,15 @@ namespace VisualPinball.Unity
 
 		[NonSerialized] protected PhysicsEngine PhysicsEngine;
 
-		protected abstract float PhysicsElasticity { get; }
-		protected abstract float PhysicsElasticityFalloff { get; }
-		protected abstract float PhysicsFriction { get; }
-		protected abstract float PhysicsScatter { get; }
-		protected abstract bool PhysicsOverwrite { get; }
+		public abstract float PhysicsElasticity { get; set; }
+		public abstract float PhysicsElasticityFalloff { get; set; }
+		public abstract float PhysicsFriction { get; set; }
+		public abstract float PhysicsScatter { get; set; }
+		public abstract bool PhysicsOverwrite { get; set; }
+		public PhysicsMaterialAsset PhysicsMaterialReference {
+			get => PhysicsMaterial;
+			set => PhysicsMaterial = value;
+		}
 
 		protected abstract IApiColliderGenerator InstantiateColliderApi(Player player, PhysicsEngine physicsEngine);
 

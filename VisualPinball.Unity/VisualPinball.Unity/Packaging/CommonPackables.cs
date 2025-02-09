@@ -108,30 +108,27 @@ namespace VisualPinball.Unity
 		public bool Overwrite;
 		public int AssetRef;
 
-		public static byte[] Pack(float elasticity, float elasticityFalloff, float friction,
-			float scatter, bool overwrite, PhysicsMaterialAsset asset, PackagedFiles files)
+		public static byte[] Pack(ICollidableComponent comp, PackagedFiles files)
 		{
 			return PackageApi.Packer.Pack(new PhysicalMaterialPackable {
-				Elasticity = elasticity,
-				ElasticityFalloff = elasticityFalloff,
-				Friction = friction,
-				Scatter = scatter,
-				Overwrite = overwrite,
-				AssetRef = files.AddAsset(asset),
+				Elasticity = comp.PhysicsElasticity,
+				ElasticityFalloff = comp.PhysicsElasticityFalloff,
+				Friction = comp.PhysicsFriction,
+				Scatter = comp.PhysicsScatter,
+				Overwrite = comp.PhysicsOverwrite,
+				AssetRef = files.AddAsset(comp.PhysicsMaterialReference),
 			});
 		}
 
-		public static PhysicalMaterialPackable Unpack(byte[] bytes)
+		public static void Unpack(byte[] bytes, ICollidableComponent comp, PackagedFiles files)
 		{
 			var data = PackageApi.Packer.Unpack<PhysicalMaterialPackable>(bytes);
-			return new PhysicalMaterialPackable {
-				Elasticity = data.Elasticity,
-				ElasticityFalloff = data.ElasticityFalloff,
-				Friction = data.Friction,
-				Scatter = data.Scatter,
-				Overwrite = data.Overwrite,
-				AssetRef = data.AssetRef,
-			};
+			comp.PhysicsElasticity = data.Elasticity;
+			comp.PhysicsElasticityFalloff = data.ElasticityFalloff;
+			comp.PhysicsFriction = data.Friction;
+			comp.PhysicsScatter = data.Scatter;
+			comp.PhysicsOverwrite = data.Overwrite;
+			comp.PhysicsMaterialReference = files.GetAsset<PhysicsMaterialAsset>(data.AssetRef);
 		}
 	}
 
@@ -141,8 +138,7 @@ namespace VisualPinball.Unity
 		public float Y;
 		public float Z;
 
-		public PackableFloat3(float x, float y, float z)
-		{
+		public PackableFloat3(float x, float y, float z) {
 			X = x;
 			Y = y;
 			Z = z;

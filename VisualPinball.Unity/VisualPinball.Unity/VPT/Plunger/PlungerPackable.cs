@@ -38,4 +38,49 @@ namespace VisualPinball.Unity
 			comp.Height = data.Height;
 		}
 	}
+
+	public struct PlungerColliderPackable
+	{
+		public bool IsMovable;
+		public float SpeedPull;
+		public float SpeedFire;
+		public float Stroke;
+		public float ScatterVelocity;
+		public bool IsMechPlunger;
+		public bool IsAutoPlunger;
+		public float MechStrength;
+		public float MomentumXfer;
+		public float ParkPosition;
+
+		public static byte[] Pack(PlungerColliderComponent comp)
+		{
+			return PackageApi.Packer.Pack(new PlungerColliderPackable {
+				IsMovable = comp._isKinematic,
+				SpeedPull = comp.SpeedPull,
+				SpeedFire = comp.SpeedFire,
+				Stroke = comp.Stroke,
+				ScatterVelocity = comp.ScatterVelocity,
+				IsMechPlunger = comp.IsMechPlunger,
+				IsAutoPlunger = comp.IsAutoPlunger,
+				MechStrength = comp.MechStrength,
+				MomentumXfer = comp.MomentumXfer,
+				ParkPosition = comp.ParkPosition,
+			});
+		}
+
+		public static void Unpack(byte[] bytes, PlungerColliderComponent comp)
+		{
+			var data = PackageApi.Packer.Unpack<PlungerColliderPackable>(bytes);
+			comp._isKinematic = data.IsMovable;
+			comp.SpeedPull = data.SpeedPull;
+			comp.SpeedFire = data.SpeedFire;
+			comp.Stroke = data.Stroke;
+			comp.ScatterVelocity = data.ScatterVelocity;
+			comp.IsMechPlunger = data.IsMechPlunger;
+			comp.IsAutoPlunger = data.IsAutoPlunger;
+			comp.MechStrength = data.MechStrength;
+			comp.MomentumXfer = data.MomentumXfer;
+			comp.ParkPosition = data.ParkPosition;
+		}
+	}
 }

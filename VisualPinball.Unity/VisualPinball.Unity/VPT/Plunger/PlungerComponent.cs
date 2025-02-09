@@ -51,7 +51,7 @@ namespace VisualPinball.Unity
 
 		public byte[] Pack() => PlungerPackable.Pack(this);
 
-		public byte[] PackReferences(Transform root, PackagedRefs refs, PackagedFiles files) => Array.Empty<byte>();
+		public byte[] PackReferences(Transform root, PackagedRefs refs, PackagedFiles files) => null;
 
 		public void Unpack(byte[] bytes) => PlungerPackable.Unpack(bytes, this);
 

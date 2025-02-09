@@ -23,8 +23,9 @@ using VisualPinball.Engine.VPT.Trigger;
 
 namespace VisualPinball.Unity
 {
+	[PackAs("TriggerCollider")]
 	[AddComponentMenu("Visual Pinball/Collision/Trigger Collider")]
-	public class TriggerColliderComponent : ColliderComponent<TriggerData, TriggerComponent>
+	public class TriggerColliderComponent : ColliderComponent<TriggerData, TriggerComponent>, IPackable
 	{
 		#region Data
 
@@ -50,13 +51,44 @@ namespace VisualPinball.Unity
 
 		#endregion
 
+		#region Packaging
+
+		public byte[] Pack() => TriggerColliderPackable.Pack(this);
+
+		public byte[] PackReferences(Transform root, PackagedRefs refs, PackagedFiles files) => PhysicalMaterialPackable.Pack(this, files);
+
+		public void Unpack(byte[] bytes) => TriggerColliderPackable.Unpack(bytes, this);
+
+		public void UnpackReferences(byte[] data, Transform root, PackagedRefs refs, PackagedFiles files) => PhysicalMaterialPackable.Unpack(data, this, files);
+
+		#endregion
+
 		#region Physics Material
 
-		protected override float PhysicsElasticity => 1;
-		protected override float PhysicsElasticityFalloff => 1;
-		protected override float PhysicsFriction => 0;
-		protected override float PhysicsScatter => 0;
-		protected override bool PhysicsOverwrite => true;
+		public override float PhysicsElasticity {
+			get => 1;
+			set { }
+		}
+
+		public override float PhysicsElasticityFalloff {
+			get => 1;
+			set { }
+		}
+
+		public override float PhysicsFriction {
+			get => 0;
+			set { }
+		}
+
+		public override float PhysicsScatter {
+			get => 0;
+			set { }
+		}
+
+		public override bool PhysicsOverwrite {
+			get => true;
+			set { }
+		}
 
 		#endregion
 

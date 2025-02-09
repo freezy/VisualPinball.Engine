@@ -59,4 +59,28 @@ namespace VisualPinball.Unity
 			comp.PlayfieldDetailLevel = data.PlayfieldDetailLevel;
 		}
 	}
+
+	public struct PlayfieldColliderPackable
+	{
+		public float Gravity;
+		public float DefaultScatter;
+		public bool CollideWithBounds;
+
+		public static byte[] Pack(PlayfieldColliderComponent comp)
+		{
+			return PackageApi.Packer.Pack(new PlayfieldColliderPackable {
+				Gravity = comp.Gravity,
+				DefaultScatter = comp.DefaultScatter,
+				CollideWithBounds = comp.CollideWithBounds,
+			});
+		}
+
+		public static void Unpack(byte[] bytes, PlayfieldColliderComponent comp)
+		{
+			var data = PackageApi.Packer.Unpack<PlayfieldColliderPackable>(bytes);
+			comp.Gravity = data.Gravity;
+			comp.DefaultScatter = data.DefaultScatter;
+			comp.CollideWithBounds = data.CollideWithBounds;
+		}
+	}
 }
