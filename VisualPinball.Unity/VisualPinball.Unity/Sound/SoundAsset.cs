@@ -16,6 +16,9 @@
 
 using System;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
+using UnityEditor;
 using UnityEngine;
 using UnityEngine.Audio;
 using Random = UnityEngine.Random;
@@ -104,6 +107,15 @@ namespace VisualPinball.Unity
 					return _clips[Random.Range(0, _clips.Length)];
 				default:
 					throw new NotImplementedException("Selection method not implemented.");
+			}
+		}
+
+		public static async Task WaitUntilAudioStops(AudioSource audioSource, CancellationToken ct)
+		{
+			while (audioSource != null && (audioSource.isPlaying || !EditorApplication.isFocused))
+			{
+				await Task.Yield();
+				ct.ThrowIfCancellationRequested();
 			}
 		}
 	}

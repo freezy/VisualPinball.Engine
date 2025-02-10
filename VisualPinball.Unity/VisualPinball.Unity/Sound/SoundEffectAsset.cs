@@ -24,7 +24,6 @@ using UnityEditor;
 using UnityEditor.SceneManagement;
 #endif
 
-
 namespace VisualPinball.Unity
 {
 	[CreateAssetMenu(
@@ -168,17 +167,5 @@ namespace VisualPinball.Unity
 			}
 		}
 #endif
-
-		public static async Task WaitUntilAudioStops(AudioSource audioSource, CancellationToken ct)
-		{
-			while (
-				audioSource != null
-				&& (audioSource.isPlaying || (Application.isPlaying && !Application.isFocused))
-			)
-			{
-				await Task.Yield();
-				ct.ThrowIfCancellationRequested();
-			}
-		}
 	}
 }

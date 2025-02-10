@@ -14,40 +14,28 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-using System.Threading;
-using System.Threading.Tasks;
 using UnityEngine;
 
 namespace VisualPinball.Unity
 {
-	[CreateAssetMenu(
-		fileName = "Voice Asset",
-		menuName = "Visual Pinball/Sound/Voice Asset",
-		order = 102
-	)]
-	public class VoiceAsset : SoundAsset
+	public class CalloutRequester : MonoBehaviour
 	{
-		public async Task Play(GameObject audioObj, CancellationToken ct)
-		{
-			ct.ThrowIfCancellationRequested();
-			var audioSource = audioObj.AddComponent<AudioSource>();
+		[SerializeField]
+		private VoiceAsset _voiceAsset;
 
-			try
-			{
-				ConfigureAudioSource(audioSource);
-				audioSource.Play();
-				await WaitUntilAudioStops(audioSource, ct);
-			}
-			finally
-			{
-				if (audioSource != null)
-				{
-					if (Application.isPlaying)
-						Destroy(audioSource);
-					else
-						DestroyImmediate(audioSource);
-				}
-			}
+		[SerializeField]
+		private SoundPriority _priority = SoundPriority.Medium;
+
+		[SerializeField]
+		private CalloutCoordinator _coordinator;
+
+		[SerializeField]
+		private float _maxQueueTime = -1f;
+
+		private void OnEnable()
+		{
+			var request = new CalloutRequest(_voiceAsset, _priority, _maxQueueTime);
+			_coordinator.EnqueueCallout(request);
 		}
 	}
 }
