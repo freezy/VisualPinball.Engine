@@ -27,11 +27,24 @@ namespace VisualPinball.Unity
 		: EventSoundComponent<TEventSource, TEventArgs>
 		where TEventSource : class
 	{
-		public enum StartWhen { TurnedOn, TurnedOff };
-		public enum StopWhen { Never, TurnedOn, TurnedOff };
+		public enum StartWhen
+		{
+			TurnedOn,
+			TurnedOff,
+		};
 
-		[SerializeField] private StartWhen _startWhen = StartWhen.TurnedOn;
-		[SerializeField] private StopWhen _stopWhen = StopWhen.Never;
+		public enum StopWhen
+		{
+			Never,
+			TurnedOn,
+			TurnedOff,
+		};
+
+		[SerializeField]
+		private StartWhen _startWhen = StartWhen.TurnedOn;
+
+		[SerializeField]
+		private StopWhen _stopWhen = StopWhen.Never;
 
 		protected override async void OnEvent(object sender, TEventArgs e)
 		{
@@ -51,7 +64,6 @@ namespace VisualPinball.Unity
 
 		protected abstract bool InterpretAsBinary(TEventArgs e);
 
-		public override bool SupportsLoopingSoundAssets()
-			=> _stopWhen != StopWhen.Never;
+		public override bool SupportsLoopingSoundAssets() => _stopWhen != StopWhen.Never;
 	}
 }

@@ -44,7 +44,8 @@ namespace VisualPinball.Unity
 		protected override void OnDisable()
 		{
 			base.OnDisable();
-			if (_eventSource != null) {
+			if (_eventSource != null)
+			{
 				Unsubscribe(_eventSource);
 				_eventSource = null;
 			}

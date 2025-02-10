@@ -14,10 +14,9 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-using System.Threading;
 using UnityEditor;
-using UnityEngine.UIElements;
 using UnityEngine;
+using UnityEngine.UIElements;
 
 namespace VisualPinball.Unity.Editor
 {
@@ -26,11 +25,10 @@ namespace VisualPinball.Unity.Editor
 	{
 		[SerializeField]
 		private VisualTreeAsset _soundAssetInspectorAsset;
-		
+
 		public override VisualElement CreateInspectorGUI()
 		{
 			return _soundAssetInspectorAsset.Instantiate();
 		}
 	}
 }
-

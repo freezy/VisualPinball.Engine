@@ -14,18 +14,20 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-using System.Threading;
-using System.Threading.Tasks;
 using UnityEngine;
 
 namespace VisualPinball.Unity
 {
-    [CreateAssetMenu(fileName = "Voice Asset", menuName = "Visual Pinball/Sound/Voice Asset", order = 102)]
+	[CreateAssetMenu(
+		fileName = "Voice Asset",
+		menuName = "Visual Pinball/Sound/Voice Asset",
+		order = 102
+	)]
+	public class VoiceAsset : SoundAsset
+	{
+		public SoundPriority Priority => _priority;
 
-    public class VoiceAsset : SoundAsset
-    {
-        public SoundPriority Priority => _priority;
-
-        [SerializeField] private SoundPriority _priority;
+		[SerializeField]
+		private SoundPriority _priority;
 	}
 }

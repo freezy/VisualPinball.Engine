@@ -16,79 +16,78 @@
 
 using System;
 using System.Collections.Generic;
-
-
+using UnityEngine;
 #if UNITY_EDITOR
 using UnityEditor;
 #endif
-using UnityEngine;
+
 
 namespace VisualPinball.Unity
 {
-    public class MusicPlayer : MonoBehaviour
-    {
-        public bool ShouldPlay { get; set; }
-        public bool IsPlaying => _audioSource != null && _audioSource.isPlaying;
-        public bool StartAtFullVolume { get; set; }
-        public MusicAsset MusicAsset { get; private set; }
+	public class MusicPlayer : MonoBehaviour
+	{
+		public bool ShouldPlay { get; set; }
+		public bool IsPlaying => _audioSource != null && _audioSource.isPlaying;
+		public bool StartAtFullVolume { get; set; }
+		public MusicAsset MusicAsset { get; private set; }
 
-        private AudioSource _audioSource;
-        private float _fadeDuration;
+		private AudioSource _audioSource;
+		private float _fadeDuration;
 
-        public void Init(MusicAsset musicAsset, float fadeDuration)
-        {
-            MusicAsset = musicAsset;
-            _fadeDuration = fadeDuration;
-        }
+		public void Init(MusicAsset musicAsset, float fadeDuration)
+		{
+			MusicAsset = musicAsset;
+			_fadeDuration = fadeDuration;
+		}
 
-        private void Start()
-        {
-            _audioSource = gameObject.AddComponent<AudioSource>();
-            _audioSource.volume = 0f;
-        }
+		private void Start()
+		{
+			_audioSource = gameObject.AddComponent<AudioSource>();
+			_audioSource.volume = 0f;
+		}
 
-        private void Update()
-        {
-            var canPlay = _audioSource.isActiveAndEnabled;
+		private void Update()
+		{
+			var canPlay = _audioSource.isActiveAndEnabled;
 #if UNITY_EDITOR
-            canPlay &= EditorApplication.isFocused;
+			canPlay &= EditorApplication.isFocused;
 #else
-            canPlay &= Application.isFocused;
+			canPlay &= Application.isFocused;
 #endif
-            if (ShouldPlay && canPlay && !_audioSource.isPlaying)
-            {
-                var oldVolume = _audioSource.volume;
-                MusicAsset.ConfigureAudioSource(_audioSource);
-                _audioSource.Play();
-                _audioSource.volume = StartAtFullVolume ? MusicAsset.Volume : oldVolume;
-            }
-            else if (!ShouldPlay && _audioSource.isPlaying && _audioSource.volume == 0f)
-            {
-                _audioSource.Stop();
-            }
+			if (ShouldPlay && canPlay && !_audioSource.isPlaying)
+			{
+				var oldVolume = _audioSource.volume;
+				MusicAsset.ConfigureAudioSource(_audioSource);
+				_audioSource.Play();
+				_audioSource.volume = StartAtFullVolume ? MusicAsset.Volume : oldVolume;
+			}
+			else if (!ShouldPlay && _audioSource.isPlaying && _audioSource.volume == 0f)
+			{
+				_audioSource.Stop();
+			}
 
-            var targetVolume = ShouldPlay ? MusicAsset.Volume : 0f;
-            if (_audioSource.volume != targetVolume)
-            {
-                if (_fadeDuration == 0f)
-                {
-                    _audioSource.volume = targetVolume;
-                }
-                else
-                {
-                    if (_audioSource.volume < targetVolume)
-                        _audioSource.volume += 1 / _fadeDuration * Time.deltaTime;
-                    else
-                        _audioSource.volume -= 1 / _fadeDuration * Time.deltaTime;
-                    _audioSource.volume = Mathf.Clamp(_audioSource.volume, 0f, MusicAsset.Volume);
-                }
-            }
-        }
+			var targetVolume = ShouldPlay ? MusicAsset.Volume : 0f;
+			if (_audioSource.volume != targetVolume)
+			{
+				if (_fadeDuration == 0f)
+				{
+					_audioSource.volume = targetVolume;
+				}
+				else
+				{
+					if (_audioSource.volume < targetVolume)
+						_audioSource.volume += 1 / _fadeDuration * Time.deltaTime;
+					else
+						_audioSource.volume -= 1 / _fadeDuration * Time.deltaTime;
+					_audioSource.volume = Mathf.Clamp(_audioSource.volume, 0f, MusicAsset.Volume);
+				}
+			}
+		}
 
-        private void OnDestroy()
-        {
-            if (_audioSource != null)
-                Destroy(_audioSource);
-        }
-    }
+		private void OnDestroy()
+		{
+			if (_audioSource != null)
+				Destroy(_audioSource);
+		}
+	}
 }

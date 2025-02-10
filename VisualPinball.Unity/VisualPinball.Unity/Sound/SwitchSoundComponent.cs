@@ -36,11 +36,10 @@ namespace VisualPinball.Unity
 		{
 			@switch = null;
 			var player = GetComponentInParent<Player>();
-			if (player == null) {
+			if (player == null)
 				return false;
-			}
-
-			foreach (var component in GetComponents<ISwitchDeviceComponent>()) {
+			foreach (var component in GetComponents<ISwitchDeviceComponent>())
+			{
 				@switch = player.Switch(component, _switchName);
 				if (@switch != null) {
 					return true;
@@ -51,7 +50,8 @@ namespace VisualPinball.Unity
 
 		protected override void Subscribe(IApiSwitch eventSource) => eventSource.Switch += OnEvent;
 
-		protected override void Unsubscribe(IApiSwitch eventSource) => eventSource.Switch -= OnEvent;
+		protected override void Unsubscribe(IApiSwitch eventSource) =>
+			eventSource.Switch -= OnEvent;
 
 		protected override bool InterpretAsBinary(SwitchEventArgs e) => e.IsEnabled;
 	}

@@ -19,11 +19,17 @@ using UnityEngine;
 
 namespace VisualPinball.Unity
 {
-    [CreateAssetMenu(fileName = "Music Asset", menuName = "Visual Pinball/Sound/Music Asset", order = 102)]
-    public class MusicAsset : SoundAsset
-    {
-        public float Volume => _volume;
+	[CreateAssetMenu(
+		fileName = "Music Asset",
+		menuName = "Visual Pinball/Sound/Music Asset",
+		order = 102
+	)]
+	public class MusicAsset : SoundAsset
+	{
+		public float Volume => _volume;
 
-        [SerializeField][Range(0f, 1f)] private float _volume;
-    }
+		[SerializeField]
+		[Range(0f, 1f)]
+		private float _volume;
+	}
 }

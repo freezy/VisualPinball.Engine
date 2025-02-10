@@ -16,15 +16,18 @@
 
 // ReSharper disable InconsistentNaming
 
-using UnityEditor;
-using UnityEngine.UIElements;
-using UnityEditor.UIElements;
 using System.Collections.Generic;
 using System.Linq;
+using UnityEditor;
+using UnityEditor.UIElements;
+using UnityEngine.UIElements;
 
 namespace VisualPinball.Unity.Editor
 {
-	[CustomEditor(typeof(SoundEffectComponent), editorForChildClasses: true), CanEditMultipleObjects]
+	[
+		CustomEditor(typeof(SoundEffectComponent), editorForChildClasses: true),
+		CanEditMultipleObjects
+	]
 	public class SoundComponentInspector : UnityEditor.Editor
 	{
 		public override VisualElement CreateInspectorGUI()
@@ -46,7 +49,8 @@ namespace VisualPinball.Unity.Editor
 		{
 			var helpBox = new HelpBox(
 				"The selected sound asset is invalid. Make sure it has at least one audio clip.",
-				HelpBoxMessageType.Warning);
+				HelpBoxMessageType.Warning
+			);
 			container.Add(helpBox);
 			var soundAssetProp = serializedObject.FindProperty(nameof(SoundComponent._soundAsset));
 			UpdateVisibility(soundAssetProp);
@@ -66,21 +70,26 @@ namespace VisualPinball.Unity.Editor
 
 		protected void MissingComponentHelpBox(VisualElement container)
 		{
-			if (target != null &&
-				target is SoundEffectComponent) {
+			if (target != null && target is SoundEffectComponent)
+			{
 				var soundComp = target as SoundEffectComponent;
 				var requiredType = soundComp.GetRequiredType();
-				if (requiredType != null && !soundComp.TryGetComponent(requiredType, out _)) {
-					container.Add(new HelpBox($"This component needs a component of type {requiredType.Name} on the same game object to work.",
-						HelpBoxMessageType.Error));
-				}
+				if (requiredType != null && !soundComp.TryGetComponent(requiredType, out var _))
+					container.Add(
+						new HelpBox(
+							$"This component needs a component of type "
+								+ $"{requiredType.Name} on the same game object to work.",
+							HelpBoxMessageType.Error
+						)
+					);
 			}
 		}
 
 		private bool AllTargetsSupportLoopingSoundAssets()
 		{
-			foreach (var t in targets) {
-				if (t == null) {
+			foreach (var target in targets)
+			{
+				if (target == null)
 					continue;
 				if (target is not SoundEffectComponent)
 					continue;
@@ -93,10 +102,14 @@ namespace VisualPinball.Unity.Editor
 
 		protected void InfiniteLoopHelpBox(VisualElement container)
 		{
-			var helpBox = new HelpBox("The assigned sound asset loops, but this component " +
-				"provides no mechanism to stop it or is not configured to do so. Either assign" +
-				" a sound asset that does not loop or (if possible) configure this component to" +
-				" stop the sound.", HelpBoxMessageType.Warning);
+			var soundAssetProp = serializedObject.FindProperty("_soundAsset");
+			var helpBox = new HelpBox(
+				"The assigned sound asset loops, but this component "
+					+ "provides no mechanism to stop it or is not configured to do so. Either assign"
+					+ " a sound asset that does not loop or (if possible) configure this component to"
+					+ " stop the sound.",
+				HelpBoxMessageType.Warning
+			);
 			container.Add(helpBox);
 			UpdateVisbility(serializedObject);
 			helpBox.TrackSerializedObjectValue(serializedObject, UpdateVisbility);
@@ -113,7 +126,11 @@ namespace VisualPinball.Unity.Editor
 			}
 		}
 
-		protected static void ConfigureDropdown(DropdownField dropdown, SerializedProperty boundProp, Dictionary<string, string> idsToDisplayNames)
+		protected static void ConfigureDropdown(
+			DropdownField dropdown,
+			SerializedProperty boundProp,
+			Dictionary<string, string> idsToDisplayNames
+		)
 		{
 			var displayNamesToIds = idsToDisplayNames.ToDictionary(i => i.Value, i => i.Key);
 			dropdown.choices = displayNamesToIds.Keys.ToList();
@@ -133,8 +150,8 @@ namespace VisualPinball.Unity.Editor
 				var id = property.stringValue;
 				if (idsToDisplayNames.TryGetValue(id, out var displayName)) {
 					dropdown.value = displayName;
-
-				} else if (string.IsNullOrEmpty(id) && idsToDisplayNames.Count > 0) {
+				else if (string.IsNullOrEmpty(id) && idsToDisplayNames.Count > 0)
+				{
 					dropdown.value = idsToDisplayNames.First().Value;
 					property.stringValue = idsToDisplayNames.First().Key;
 					property.serializedObject.ApplyModifiedPropertiesWithoutUndo();

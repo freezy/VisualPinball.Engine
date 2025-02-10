@@ -16,30 +16,31 @@
 
 using System;
 using System.Threading;
-using UnityEditor;
-using UnityEngine.UIElements;
-using UnityEngine;
 using Mono.Cecil.Cil;
+using UnityEditor;
+using UnityEngine;
+using UnityEngine.UIElements;
 
 namespace VisualPinball.Unity.Editor
 {
-    [CustomEditor(typeof(SoundEffectAsset)), CanEditMultipleObjects]
-    public class SoundEffectAssetInspector : SoundAssetInspector
-    {
-        [SerializeField] private VisualTreeAsset _soundEffectAssetInspectorAsset;
+	[CustomEditor(typeof(SoundEffectAsset)), CanEditMultipleObjects]
+	public class SoundEffectAssetInspector : SoundAssetInspector
+	{
+		[SerializeField]
+		private VisualTreeAsset _soundEffectAssetInspectorAsset;
 
-        private CancellationTokenSource _allowFadeCts;
+		private CancellationTokenSource _allowFadeCts;
 		private CancellationTokenSource _instantCts;
-        private Button _playButton;
+		private Button _playButton;
 
 		public override VisualElement CreateInspectorGUI()
 		{
-            var root = new VisualElement();
+			var root = new VisualElement();
 			var baseUi = base.CreateInspectorGUI();
-            root.Add(baseUi);
-            var subUi = _soundEffectAssetInspectorAsset.Instantiate();
-            root.Add(subUi);
-            return root;
+			root.Add(baseUi);
+			var subUi = _soundEffectAssetInspectorAsset.Instantiate();
+			root.Add(subUi);
+			return root;
 		}
 
 		private void OnEnable()
@@ -92,5 +93,6 @@ namespace VisualPinball.Unity.Editor
 			_instantCts.Cancel();
 			_instantCts.Dispose();
 			_instantCts = new();
-		}    }
+		}
+	}
 }

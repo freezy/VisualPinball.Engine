@@ -18,22 +18,27 @@ using UnityEngine;
 
 namespace VisualPinball.Unity
 {
-    public class MusicRequest : MonoBehaviour
-    {
-        [SerializeField] private MusicCoordinator coordinator;
-        [SerializeField] private MusicAsset musicAsset;
-        [SerializeField] private SoundPriority _priority = SoundPriority.Medium;
+	public class MusicRequest : MonoBehaviour
+	{
+		[SerializeField]
+		private MusicCoordinator coordinator;
 
-        private int requestId;
+		[SerializeField]
+		private MusicAsset musicAsset;
 
-        private void OnEnable()
-        {
-            coordinator.AddRequest(musicAsset, out requestId, _priority);
-        }
+		[SerializeField]
+		private SoundPriority _priority = SoundPriority.Medium;
 
-        private void OnDisable()
-        {
-            coordinator.RemoveRequest(requestId);
-        }
-    }
+		private int requestId;
+
+		private void OnEnable()
+		{
+			coordinator.AddRequest(musicAsset, out requestId, _priority);
+		}
+
+		private void OnDisable()
+		{
+			coordinator.RemoveRequest(requestId);
+		}
+	}
 }

@@ -26,6 +26,7 @@ namespace VisualPinball.Unity
 	public class HitSoundComponent : EventSoundComponent<IApiHittable, HitEventArgs>
 	{
 		public override bool SupportsLoopingSoundAssets() => false;
+
 		public override Type GetRequiredType() => typeof(ItemComponent);
 
 		protected override bool TryFindEventSource(out IApiHittable hittable)

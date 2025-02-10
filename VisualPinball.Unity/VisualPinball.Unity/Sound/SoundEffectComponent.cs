@@ -17,11 +17,11 @@
 // ReSharper disable InconsistentNaming
 
 using System;
-using NLog;
-using Logger = NLog.Logger;
 using System.Threading;
 using System.Threading.Tasks;
+using NLog;
 using UnityEngine;
+using Logger = NLog.Logger;
 
 namespace VisualPinball.Unity
 {
@@ -33,6 +33,7 @@ namespace VisualPinball.Unity
 	{
 		[SerializeReference]
 		protected SoundEffectAsset _soundAsset;
+
 		[SerializeField]
 		[Tooltip("Should the sound be interrupted if it is triggered again while already playing?")]
 		protected bool _interrupt;
@@ -63,41 +64,49 @@ namespace VisualPinball.Unity
 
 		public async Task Play()
 		{
-			if (!isActiveAndEnabled) {
+			if (!isActiveAndEnabled)
+			{
 				Logger.Warn("Cannot play a disabled sound component.");
 				return;
 			}
-			if (_soundAsset == null) {
+			if (_soundAsset == null)
+			{
 				Logger.Warn("Cannot play without sound asset. Assign it in the inspector.");
 				return;
 			}
 			float timeSinceLastPlay = Time.unscaledTime - _lastPlayStartTime;
-			if (timeSinceLastPlay < 0.01f) {
-				Logger.Warn($"Sound spam protection engaged. Time since last play was less than " +
-					$"0.01 seconds ({timeSinceLastPlay}). There is probably something wrong with " +
-					$"the calling code.");
+			if (timeSinceLastPlay < 0.01f)
+			{
+				Logger.Warn(
+					$"Sound spam protection engaged. Time since last play was less than "
+						+ $"0.01 seconds ({timeSinceLastPlay}). There is probably something wrong with "
+						+ $"the calling code."
+				);
 				return;
 			}
 
 			if (_interrupt) {
 				Stop(allowFade: true);
-			}
-			try {
+			try
+			{
 				_lastPlayStartTime = Time.unscaledTime;
 				await _soundAsset.Play(gameObject, _allowFadeCts.Token, _instantCts.Token, _volume);
-			} catch (OperationCanceledException) { }
+			}
+			catch (OperationCanceledException) { }
 		}
 
 		public void Stop(bool allowFade)
 		{
 			if (!isActiveAndEnabled) {
 				return;
-			}
-			if (allowFade) {
+			if (allowFade)
+			{
 				_allowFadeCts?.Cancel();
 				_allowFadeCts?.Dispose();
-				_allowFadeCts = new CancellationTokenSource();
-			} else {
+				_allowFadeCts = new();
+			}
+			else
+			{
 				_instantCts?.Cancel();
 				_instantCts?.Dispose();
 				_instantCts = new CancellationTokenSource();

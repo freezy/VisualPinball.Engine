@@ -42,8 +42,14 @@ namespace VisualPinball.Unity.Editor
 
 		private Dictionary<string, string> GetAvailableSwitches()
 		{
-			var targetComponent = target as Component;
-			if (targetComponent != null && targetComponent.TryGetComponent<ISwitchDeviceComponent>(out var switchDevice)) {
+			if (
+				target != null
+				&& target is Component
+				&& (target as Component).TryGetComponent<ISwitchDeviceComponent>(
+					out var switchDevice
+				)
+			)
+			{
 				return switchDevice.AvailableSwitches.ToDictionary(
 					i => i.Id,
 					i => string.IsNullOrWhiteSpace(i.Description) ? i.Id : i.Description

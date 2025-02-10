@@ -1,4 +1,4 @@
-// Visual Pinball Engine
+﻿// Visual Pinball Engine
 // Copyright (C) 2023 freezy and VPE Team
 //
 // This program is free software: you can redistribute it and/or modify
@@ -44,17 +44,27 @@ namespace VisualPinball.Unity
 		private enum SelectionMethod
 		{
 			RoundRobin,
-			Random
+			Random,
 		}
 
-		[SerializeField] private string _description;
-		[SerializeField] private AudioClip[] _clips;
-		[SerializeField] private SelectionMethod _clipSelectionMethod;
-		[Tooltip("Should the sound appear to come from the position of the emitter?")]
-		[SerializeField] private bool _isSpatial = true;
-		[SerializeField] private AudioMixerGroup _audioMixerGroup;
+		[SerializeField]
+		private string _description;
 
-		[NonSerialized] private int _roundRobinIndex = 0;
+		[SerializeField]
+		private AudioClip[] _clips;
+
+		[SerializeField]
+		private SelectionMethod _clipSelectionMethod;
+
+		[Tooltip("Should the sound appear to come from the position of the emitter?")]
+		[SerializeField]
+		private bool _isSpatial = true;
+
+		[SerializeField]
+		private AudioMixerGroup _audioMixerGroup;
+
+		[NonSerialized]
+		private int _roundRobinIndex = 0;
 
 		public virtual void ConfigureAudioSource(AudioSource audioSource)
 		{
@@ -82,7 +92,9 @@ namespace VisualPinball.Unity
 		{
 			_clips.ToList().RemoveAll(clip => clip == null);
 			if (_clips.Length == 0)
-				throw new InvalidOperationException($"The sound asset '{name}' has no audio clips to play.");
+				throw new InvalidOperationException(
+					$"The sound asset '{name}' has no audio clips to play."
+				);
 			switch (_clipSelectionMethod)
 			{
 				case SelectionMethod.RoundRobin:

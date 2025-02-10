@@ -15,25 +15,25 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using UnityEditor;
-using UnityEngine.UIElements;
 using UnityEngine;
+using UnityEngine.UIElements;
 
 namespace VisualPinball.Unity.Editor
 {
-    [CustomEditor(typeof(VoiceAsset)), CanEditMultipleObjects]
-    public class VoiceAssetInspector : SoundAssetInspector
-    {
-        [SerializeField] private VisualTreeAsset _voiceAssetInspector;
+	[CustomEditor(typeof(VoiceAsset)), CanEditMultipleObjects]
+	public class VoiceAssetInspector : SoundAssetInspector
+	{
+		[SerializeField]
+		private VisualTreeAsset _voiceAssetInspector;
 
-        public override VisualElement CreateInspectorGUI()
+		public override VisualElement CreateInspectorGUI()
 		{
-            var root = new VisualElement();
+			var root = new VisualElement();
 			var baseUi = base.CreateInspectorGUI();
-            root.Add(baseUi);
-            var subUi = _voiceAssetInspector.Instantiate();
-            root.Add(subUi);
-            return root;
+			root.Add(baseUi);
+			var subUi = _voiceAssetInspector.Instantiate();
+			root.Add(subUi);
+			return root;
 		}
-
-    }
+	}
 }

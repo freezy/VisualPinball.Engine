@@ -16,8 +16,8 @@
 
 // ReSharper disable InconsistentNaming
 
-using UnityEngine;
 using System;
+using UnityEngine;
 
 namespace VisualPinball.Unity
 {
