@@ -62,17 +62,17 @@ namespace VisualPinball.Unity.Editor
 				await ReadAssets();
 
 				// create components and update game objects
-				ReadPackables(PackageApi.ItemFolder, (go, file) => ItemPackable.Unpack(file.GetData()).Apply(go), (item, type, stream, index) => {
+				ReadPackables(PackageApi.ItemFolder, (go, file) => ItemPackable.Unpack(file.GetData()).Apply(go), (item, type, file, index) => {
 					// add or update component
 					var comps = item.gameObject.GetComponents(type);
 					var comp = comps.Length > index
 						? comps[index]
 						: item.gameObject.AddComponent(type);
 					if (comp is IPackable packable) {
-						packable.Unpack(stream.GetData());
+						packable.Unpack(file.GetData());
 
 					} else {
-						throw new Exception($"Got component of type {type.FullName} that does not implement IPackable.");
+						PackageApi.Packer.Unpack(file.GetData(), comp);
 					}
 				});
 

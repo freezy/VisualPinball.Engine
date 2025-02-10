@@ -45,6 +45,16 @@ namespace VisualPinball.Unity.Editor
 			}
 		}
 
+		public void Unpack(byte[] data, object instance)
+		{
+			try {
+				JsonConvert.PopulateObject(Encoding.UTF8.GetString(data), instance);
+			} catch (Exception e) {
+				Debug.LogError(e);
+				throw e;
+			}
+		}
+
 		public object Unpack(Type t, byte[] data)
 		{
 			try {

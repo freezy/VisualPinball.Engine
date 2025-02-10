@@ -32,12 +32,25 @@ using Random = Unity.Mathematics.Random;
 
 namespace VisualPinball.Unity
 {
-	public class PhysicsEngine : MonoBehaviour
+	[PackAs("PhysicsEngine")]
+	public class PhysicsEngine : MonoBehaviour, IPackable
 	{
 		#region Configuration
 
 		[Tooltip("Gravity constant, in VPX units.")]
 		public float GravityStrength = PhysicsConstants.GravityConst * PhysicsConstants.DefaultTableGravity;
+
+		#endregion
+
+		#region Packaging
+
+		public byte[] Pack() => PhysicsEnginePackable.Pack(this);
+
+		public byte[] PackReferences(Transform root, PackagedRefs refs, PackagedFiles files) => null;
+
+		public void Unpack(byte[] bytes) => PhysicsEnginePackable.Unpack(bytes, this);
+
+		public void UnpackReferences(byte[] data, Transform root, PackagedRefs refs, PackagedFiles files) { }
 
 		#endregion
 

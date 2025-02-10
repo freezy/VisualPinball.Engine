@@ -214,6 +214,8 @@ namespace VisualPinball.Unity
 		/// <returns>Deserialized object.</returns>
 		public T Unpack<T>(byte[] data);
 
+		public void Unpack(byte[] data, object instance);
+
 		/// <summary>
 		/// Convert a byte array to an object.
 		/// </summary>

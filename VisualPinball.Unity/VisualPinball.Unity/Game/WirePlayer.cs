@@ -435,7 +435,7 @@ namespace VisualPinball.Unity
 #if UNITY_EDITOR
 		private void RefreshUI()
 		{
-			if (!_player.UpdateDuringGamplay) {
+			if (!_player.UpdateDuringGameplay) {
 				return;
 			}
 
