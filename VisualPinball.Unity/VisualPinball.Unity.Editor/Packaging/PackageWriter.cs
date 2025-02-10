@@ -25,6 +25,7 @@ using GLTFast.Export;
 using GLTFast.Logging;
 using Newtonsoft.Json;
 using NLog;
+using UnityEditor;
 using UnityEngine;
 using Debug = UnityEngine.Debug;
 using Logger = NLog.Logger;
@@ -67,8 +68,8 @@ namespace VisualPinball.Unity.Editor
 
 			// write scene data
 			var sw1 = Stopwatch.StartNew();
-			// await WriteScene();
-			// Logger.Info($"Scene written in {sw1.ElapsedMilliseconds}ms.");
+			await WriteScene();
+			Logger.Info($"Scene written in {sw1.ElapsedMilliseconds}ms.");
 
 			// write non-scene meshes
 			sw1 = Stopwatch.StartNew();
@@ -107,6 +108,11 @@ namespace VisualPinball.Unity.Editor
 
 		private async Task WriteScene()
 		{
+			// make table meshes readable
+			var meshFilters = _table.GetComponentsInChildren<MeshFilter>(true);
+			var skinnedMeshRenderers = _table.GetComponentsInChildren<SkinnedMeshRenderer>(true);
+			SetMeshesReadable(meshFilters, skinnedMeshRenderers);
+
 			var glbFile = _tableFolder.AddFile(PackageApi.SceneFile);
 			var logger = new ConsoleLogger();
 
@@ -316,6 +322,47 @@ namespace VisualPinball.Unity.Editor
 			_globalFolder.AddFile(PackageApi.CoilsFile, PackageApi.Packer.FileExtension).SetData(PackageApi.Packer.Pack(tableComponent.MappingConfig.Coils));
 			_globalFolder.AddFile(PackageApi.WiresFile, PackageApi.Packer.FileExtension).SetData(PackageApi.Packer.Pack(tableComponent.MappingConfig.Wires));
 			_globalFolder.AddFile(PackageApi.LampsFile, PackageApi.Packer.FileExtension).SetData(PackageApi.Packer.Pack(tableComponent.MappingConfig.Lamps));
+		}
+
+		private static void SetMeshesReadable(MeshFilter[] meshFilters, SkinnedMeshRenderer[] skinnedMeshRenderers)
+		{
+			// Keep track of which assets we've changed to avoid re-importing multiple times
+			var changedAssets = new HashSet<string>();
+
+			foreach (var mf in meshFilters) {
+				if (mf.sharedMesh != null) {
+					MakeModelReadable(mf.sharedMesh, changedAssets);
+				}
+			}
+			foreach (var smr in skinnedMeshRenderers) {
+				if (smr.sharedMesh != null) {
+					MakeModelReadable(smr.sharedMesh, changedAssets);
+				}
+			}
+		}
+
+		private static void MakeModelReadable(Mesh mesh, HashSet<string> changedAssets)
+		{
+			var assetPath = AssetDatabase.GetAssetPath(mesh);
+			if (string.IsNullOrEmpty(assetPath)) {
+				// This can happen if it's a dynamically created mesh at runtime, so just skip it
+				return;
+			}
+
+			var modelImporter = AssetImporter.GetAtPath(assetPath) as ModelImporter;
+			if (modelImporter == null) {
+				// It may not be a model (could be a .asset file or something else)
+				// If it's a .asset that you created manually, you might need a different approach.
+				// For typical .fbx or .obj models, this cast should succeed.
+				return;
+			}
+
+			if (!modelImporter.isReadable) {
+				Debug.Log($"Enabling Read/Write for: {assetPath}");
+				modelImporter.isReadable = true;
+				modelImporter.SaveAndReimport(); // Force re-import
+				changedAssets.Add(assetPath);
+			}
 		}
 	}
 }
