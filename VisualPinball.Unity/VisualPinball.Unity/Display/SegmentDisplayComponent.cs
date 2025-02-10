@@ -28,8 +28,9 @@ using Logger = NLog.Logger;
 
 namespace VisualPinball.Unity
 {
+	[PackAs("SegmentDisplay")]
 	[AddComponentMenu("Visual Pinball/Display/Segment Display")]
-	public class SegmentDisplayComponent : DisplayComponent
+	public class SegmentDisplayComponent : DisplayComponent, IPackable
 	{
 		public override string Id { get => _id; set => _id = value;}
 
@@ -57,6 +58,18 @@ namespace VisualPinball.Unity
 
 		private const int MaxNumSegments = 16;
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
+
+		#region Packaging
+
+		public byte[] Pack() => SegmentDisplayPackable.Pack(this);
+
+		public byte[] PackReferences(Transform root, PackagedRefs refs, PackagedFiles files) => null;
+
+		public void Unpack(byte[] bytes) => SegmentDisplayPackable.Unpack(bytes, this);
+
+		public void UnpackReferences(byte[] data, Transform root, PackagedRefs refs, PackagedFiles files) { }
+
+		#endregion
 
 		#region Shader Prop Constants
 

@@ -25,10 +25,13 @@ using Logger = NLog.Logger;
 
 namespace VisualPinball.Unity
 {
+	[PackAs("ScoreReelDisplay")]
 	[AddComponentMenu("Visual Pinball/Display/Score Reel Display")]
 	[HelpURL("https://docs.visualpinball.org/creators-guide/manual/mechanisms/score-reels.html")]
-	public class ScoreReelDisplayComponent : DisplayComponent
+	public class ScoreReelDisplayComponent : DisplayComponent, IPackable
 	{
+		#region Data
+
 		[SerializeField]
 		public string _id = "display0";
 
@@ -47,6 +50,20 @@ namespace VisualPinball.Unity
 
 		[Tooltip("The score motor component to simulate EM reel timing.")]
 		public ScoreMotorComponent ScoreMotorComponent;
+
+		#endregion
+
+		#region Packaging
+
+		public byte[] Pack() => ScoreReelDisplayPackable.Pack(this);
+
+		public byte[] PackReferences(Transform root, PackagedRefs refs, PackagedFiles files) => ScoreReelDisplayReferencesPackable.Pack(this, refs);
+
+		public void Unpack(byte[] bytes) => ScoreReelDisplayPackable.Unpack(bytes, this);
+
+		public void UnpackReferences(byte[] data, Transform root, PackagedRefs refs, PackagedFiles files) => ScoreReelDisplayReferencesPackable.Unpack(data, this, refs);
+
+		#endregion
 
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 

@@ -63,6 +63,27 @@ namespace VisualPinball.Unity
 		}
 	}
 
+	public struct TriggerMeshPackable
+	{
+		public int Shape;
+		public float WireThickness;
+
+		public static byte[] Pack(TriggerMeshComponent comp)
+		{
+			return PackageApi.Packer.Pack(new TriggerMeshPackable {
+				Shape = comp.Shape,
+				WireThickness = comp.WireThickness,
+			});
+		}
+
+		public static void Unpack(byte[] bytes, TriggerMeshComponent comp)
+		{
+			var data = PackageApi.Packer.Unpack<TriggerMeshPackable>(bytes);
+			comp.Shape = data.Shape;
+			comp.WireThickness = data.WireThickness;
+		}
+	}
+
 	public struct TriggerAnimationPackable
 	{
 		public float AnimSpeed;
