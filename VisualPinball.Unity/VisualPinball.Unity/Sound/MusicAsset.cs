@@ -22,10 +22,8 @@ namespace VisualPinball.Unity
     [CreateAssetMenu(fileName = "Music Asset", menuName = "Visual Pinball/Sound/Music Asset", order = 102)]
     public class MusicAsset : SoundAsset
     {
-        public SoundPriority Priority => _priority;
         public float Volume => _volume;
 
-        [SerializeField] private SoundPriority _priority = SoundPriority.Medium;
         [SerializeField][Range(0f, 1f)] private float _volume;
     }
 }

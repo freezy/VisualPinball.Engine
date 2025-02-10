@@ -15,8 +15,8 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using System;
-using System.Threading;
-using System.Threading.Tasks;
+using System.Collections.Generic;
+
 
 #if UNITY_EDITOR
 using UnityEditor;
@@ -25,38 +25,20 @@ using UnityEngine;
 
 namespace VisualPinball.Unity
 {
-    public class MusicPlayer : MonoBehaviour, IComparable<MusicPlayer>
+    public class MusicPlayer : MonoBehaviour
     {
         public bool ShouldPlay { get; set; }
         public bool IsPlaying => _audioSource != null && _audioSource.isPlaying;
-
-        public MusicAsset MusicAsset { get; private set; }
-        public float FadeDuration { get; set; }
         public bool StartAtFullVolume { get; set; }
-        public int ActiveRequestCount => _activeRequestCount;
+        public MusicAsset MusicAsset { get; private set; }
 
         private AudioSource _audioSource;
-        // The number of times this music asset was requested to be added to the player stack.
-        // We don't literally add it multiple times to avoid cross-fading the same track into itself.
-        private int _activeRequestCount;
-        private DateTime _lastRequestTime;
+        private float _fadeDuration;
 
         public void Init(MusicAsset musicAsset, float fadeDuration)
         {
             MusicAsset = musicAsset;
-            FadeDuration = fadeDuration;
-        }
-
-        public void AddRequest()
-        {
-            _activeRequestCount++;
-            _lastRequestTime = DateTime.Now;
-        }
-
-        public void RemoveRequest()
-        {
-            if (_activeRequestCount > 0)
-                _activeRequestCount--;
+            _fadeDuration = fadeDuration;
         }
 
         private void Start()
@@ -88,60 +70,18 @@ namespace VisualPinball.Unity
             var targetVolume = ShouldPlay ? MusicAsset.Volume : 0f;
             if (_audioSource.volume != targetVolume)
             {
-                if (FadeDuration == 0f)
+                if (_fadeDuration == 0f)
                 {
                     _audioSource.volume = targetVolume;
                 }
                 else
                 {
                     if (_audioSource.volume < targetVolume)
-                        _audioSource.volume += 1 / FadeDuration * Time.deltaTime;
+                        _audioSource.volume += 1 / _fadeDuration * Time.deltaTime;
                     else
-                        _audioSource.volume -= 1 / FadeDuration * Time.deltaTime;
+                        _audioSource.volume -= 1 / _fadeDuration * Time.deltaTime;
                     _audioSource.volume = Mathf.Clamp(_audioSource.volume, 0f, MusicAsset.Volume);
                 }
-            }
-        }
-
-        private async Task Play(CancellationToken ct)
-        {
-            ct.ThrowIfCancellationRequested();
-            MusicAsset.ConfigureAudioSource(_audioSource);
-            _audioSource.Play();
-            try
-            {
-                _audioSource.volume = StartAtFullVolume ? MusicAsset.Volume : 0f;
-
-                while (true)
-                {
-                    while (_audioSource.isPlaying)
-                    {
-                        var targetVolume = ShouldPlay ? MusicAsset.Volume : 0f;
-                        if (_audioSource.volume != targetVolume)
-                        {
-                            if (FadeDuration == 0f)
-                            {
-                                _audioSource.volume = targetVolume;
-                            }
-                            else
-                            {
-                                if (_audioSource.volume < targetVolume)
-                                    _audioSource.volume += 1 / FadeDuration * Time.deltaTime;
-                                else
-                                    _audioSource.volume -= 1 / FadeDuration * Time.deltaTime;
-                                _audioSource.volume = Mathf.Clamp(_audioSource.volume, 0f, MusicAsset.Volume);
-                            }
-                        }
-                        await Task.Yield();
-                        ct.ThrowIfCancellationRequested();
-                    }
-                    MusicAsset.ConfigureAudioSource(_audioSource);
-                    _audioSource.Play();
-                }
-            }
-            finally
-            {
-                _audioSource.Stop();
             }
         }
 
@@ -149,18 +89,6 @@ namespace VisualPinball.Unity
         {
             if (_audioSource != null)
                 Destroy(_audioSource);
-        }
-
-        // Used to sort the music player stack and determine which player should play
-        public int CompareTo(MusicPlayer other)
-        {
-            if (_activeRequestCount > 0 && other._activeRequestCount == 0) return -1;
-            if (_activeRequestCount == 0 && other._activeRequestCount > 0) return 1;
-            if (MusicAsset.Priority != other.MusicAsset.Priority)
-                return other.MusicAsset.Priority.CompareTo(MusicAsset.Priority);
-            if (_lastRequestTime != null)
-                return _lastRequestTime.CompareTo(other._lastRequestTime);
-            return 0;
         }
     }
 }
