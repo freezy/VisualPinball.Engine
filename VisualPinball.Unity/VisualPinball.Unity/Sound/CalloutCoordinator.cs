@@ -64,24 +64,20 @@ namespace VisualPinball.Unity
 
 		private async Task CalloutLoop(CancellationToken ct)
 		{
-			ct.ThrowIfCancellationRequested();
 			while (true)
 			{
 				calloutQ.RemoveAll(x => x.IsExpired());
 
-				if (calloutQ.Count > 0)
-				{
-					var callout = calloutQ[0];
-					calloutQ.RemoveAt(0);
-					await callout.Play(gameObject, ct);
-					await Task.Delay(TimeSpan.FromSeconds(_pauseDuration), ct);
-				}
-				else
+				if (calloutQ.Count == 0)
 				{
 					_waitForNewCalloutTcs = new();
 					await _waitForNewCalloutTcs.Task;
 				}
-				ct.ThrowIfCancellationRequested();
+
+				var callout = calloutQ[0];
+				calloutQ.RemoveAt(0);
+				await callout.Play(gameObject, ct);
+				await Task.Delay(TimeSpan.FromSeconds(_pauseDuration), ct);
 			}
 		}
 	}
