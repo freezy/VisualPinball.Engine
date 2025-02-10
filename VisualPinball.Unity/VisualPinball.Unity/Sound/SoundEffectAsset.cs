@@ -29,7 +29,7 @@ namespace VisualPinball.Unity
     [CreateAssetMenu(fileName = "Sound Effect", menuName = "Visual Pinball/Sound/Sound Effect Asset", order = 102)]
     public class SoundEffectAsset : SoundAsset
     {
-        public override bool Loop => _loop;
+        public bool Loop => _loop;
 
         [SerializeField] private Vector2 _volumeRange = new(1f, 1f);
         [SerializeField] private Vector2 _pitchRange = new(1f, 1f);
@@ -37,10 +37,10 @@ namespace VisualPinball.Unity
         [SerializeField, Range(0, 10f)] private float _fadeInTime;
         [SerializeField, Range(0, 10f)] private float _fadeOutTime;
 
-        public override void ConfigureAudioSource(AudioSource audioSource, float volume = 1)
+        public override void ConfigureAudioSource(AudioSource audioSource)
         {
-            base.ConfigureAudioSource(audioSource, volume);
-            audioSource.volume *= UnityEngine.Random.Range(_volumeRange.x, _volumeRange.y);
+            base.ConfigureAudioSource(audioSource);
+            audioSource.volume = UnityEngine.Random.Range(_volumeRange.x, _volumeRange.y);
             audioSource.pitch = UnityEngine.Random.Range(_pitchRange.x, _pitchRange.y);
         }
 

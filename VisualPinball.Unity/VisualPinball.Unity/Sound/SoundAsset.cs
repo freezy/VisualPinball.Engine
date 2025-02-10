@@ -1,4 +1,4 @@
-﻿// Visual Pinball Engine
+// Visual Pinball Engine
 // Copyright (C) 2023 freezy and VPE Team
 //
 // This program is free software: you can redistribute it and/or modify
@@ -18,15 +18,8 @@
 
 using System;
 using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
-#if UNITY_EDITOR
-using UnityEditor;
-using UnityEditor.SceneManagement;
-#endif
 using UnityEngine;
 using UnityEngine.Audio;
-using UnityEngine.SceneManagement;
 using Random = UnityEngine.Random;
 
 namespace VisualPinball.Unity
@@ -54,8 +47,6 @@ namespace VisualPinball.Unity
 			Random
 		}
 
-		public virtual bool Loop => false;
-
 		[SerializeField] private string _description;
 		[SerializeField] private AudioClip[] _clips;
 		[SerializeField] private SelectionMethod _clipSelectionMethod;
@@ -63,14 +54,14 @@ namespace VisualPinball.Unity
 		[SerializeField] private bool _isSpatial = true;
 		[SerializeField] private AudioMixerGroup _audioMixerGroup;
 
-		private int _roundRobinIndex = 0;
+		[NonSerialized] private int _roundRobinIndex = 0;
 
-		public virtual void ConfigureAudioSource(AudioSource audioSource, float volume = 1)
+		public virtual void ConfigureAudioSource(AudioSource audioSource)
 		{
-			audioSource.volume = volume;
 			audioSource.clip = GetClip();
 			audioSource.spatialBlend = _isSpatial ? 0f : 1f;
 			audioSource.outputAudioMixerGroup = _audioMixerGroup;
+			audioSource.playOnAwake = false;
 		}
 
 		public bool IsValid()

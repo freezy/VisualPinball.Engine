@@ -14,56 +14,153 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-using System.Collections.Generic;
+using System;
+using System.Threading;
+using System.Threading.Tasks;
+
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
 using UnityEngine;
 
 namespace VisualPinball.Unity
 {
-    public enum MusicTransitionType
+    public class MusicPlayer : MonoBehaviour, IComparable<MusicPlayer>
     {
-        CrossFade,
-        FadeOut,
-    }
+        public bool ShouldPlay { get; set; }
+        public bool IsPlaying => _audioSource != null && _audioSource.isPlaying;
 
-    public class MusicPlayer : MonoBehaviour
-    {
-        [SerializeField] private MusicTransitionType _transitionType;
+        public MusicAsset MusicAsset { get; private set; }
+        public float FadeDuration { get; set; }
+        public bool StartAtFullVolume { get; set; }
+        public int ActiveRequestCount => _activeRequestCount;
 
-        private readonly List<StackItem> _musicStack = new();
-        private int _stackCounter = 0;
+        private AudioSource _audioSource;
+        // The number of times this music asset was requested to be added to the player stack.
+        // We don't literally add it multiple times to avoid cross-fading the same track into itself.
+        private int _activeRequestCount;
+        private DateTime _lastRequestTime;
 
-        public void InsertIntoStack(MusicAsset music, out int stackId)
+        public void Init(MusicAsset musicAsset, float fadeDuration)
         {
-            stackId = _stackCounter;
-            _stackCounter++;
-            var stackItem = new StackItem(music, stackId);
-            var index = _musicStack.FindIndex(x => x.MusicAsset.Priority <= stackItem.MusicAsset.Priority);
-
-            if (index == -1)
-                _musicStack.Insert(index, stackItem);
-            else
-                _musicStack.Add(stackItem);
-
-
+            MusicAsset = musicAsset;
+            FadeDuration = fadeDuration;
         }
 
-        public void RemoveFromStack(int stackId)
+        public void AddRequest()
         {
-            var index = _musicStack.FindIndex(x => x.StackId == stackId);
-            if (index >= 0)
-                _musicStack.RemoveAt(index);
+            _activeRequestCount++;
+            _lastRequestTime = DateTime.Now;
         }
 
-        private readonly struct StackItem
+        public void RemoveRequest()
         {
-            public readonly MusicAsset MusicAsset;
-            public readonly int StackId;
+            if (_activeRequestCount > 0)
+                _activeRequestCount--;
+        }
 
-            public StackItem(MusicAsset musicAsset, int stackid)
+        private void Start()
+        {
+            _audioSource = gameObject.AddComponent<AudioSource>();
+            _audioSource.volume = 0f;
+        }
+
+        private void Update()
+        {
+            var canPlay = _audioSource.isActiveAndEnabled;
+#if UNITY_EDITOR
+            canPlay &= EditorApplication.isFocused;
+#else
+            canPlay &= Application.isFocused;
+#endif
+            if (ShouldPlay && canPlay && !_audioSource.isPlaying)
             {
-                MusicAsset = musicAsset;
-                StackId = stackid;
+                var oldVolume = _audioSource.volume;
+                MusicAsset.ConfigureAudioSource(_audioSource);
+                _audioSource.Play();
+                _audioSource.volume = StartAtFullVolume ? MusicAsset.Volume : oldVolume;
             }
+            else if (!ShouldPlay && _audioSource.isPlaying && _audioSource.volume == 0f)
+            {
+                _audioSource.Stop();
+            }
+
+            var targetVolume = ShouldPlay ? MusicAsset.Volume : 0f;
+            if (_audioSource.volume != targetVolume)
+            {
+                if (FadeDuration == 0f)
+                {
+                    _audioSource.volume = targetVolume;
+                }
+                else
+                {
+                    if (_audioSource.volume < targetVolume)
+                        _audioSource.volume += 1 / FadeDuration * Time.deltaTime;
+                    else
+                        _audioSource.volume -= 1 / FadeDuration * Time.deltaTime;
+                    _audioSource.volume = Mathf.Clamp(_audioSource.volume, 0f, MusicAsset.Volume);
+                }
+            }
+        }
+
+        private async Task Play(CancellationToken ct)
+        {
+            ct.ThrowIfCancellationRequested();
+            MusicAsset.ConfigureAudioSource(_audioSource);
+            _audioSource.Play();
+            try
+            {
+                _audioSource.volume = StartAtFullVolume ? MusicAsset.Volume : 0f;
+
+                while (true)
+                {
+                    while (_audioSource.isPlaying)
+                    {
+                        var targetVolume = ShouldPlay ? MusicAsset.Volume : 0f;
+                        if (_audioSource.volume != targetVolume)
+                        {
+                            if (FadeDuration == 0f)
+                            {
+                                _audioSource.volume = targetVolume;
+                            }
+                            else
+                            {
+                                if (_audioSource.volume < targetVolume)
+                                    _audioSource.volume += 1 / FadeDuration * Time.deltaTime;
+                                else
+                                    _audioSource.volume -= 1 / FadeDuration * Time.deltaTime;
+                                _audioSource.volume = Mathf.Clamp(_audioSource.volume, 0f, MusicAsset.Volume);
+                            }
+                        }
+                        await Task.Yield();
+                        ct.ThrowIfCancellationRequested();
+                    }
+                    MusicAsset.ConfigureAudioSource(_audioSource);
+                    _audioSource.Play();
+                }
+            }
+            finally
+            {
+                _audioSource.Stop();
+            }
+        }
+
+        private void OnDestroy()
+        {
+            if (_audioSource != null)
+                Destroy(_audioSource);
+        }
+
+        // Used to sort the music player stack and determine which player should play
+        public int CompareTo(MusicPlayer other)
+        {
+            if (_activeRequestCount > 0 && other._activeRequestCount == 0) return -1;
+            if (_activeRequestCount == 0 && other._activeRequestCount > 0) return 1;
+            if (MusicAsset.Priority != other.MusicAsset.Priority)
+                return other.MusicAsset.Priority.CompareTo(MusicAsset.Priority);
+            if (_lastRequestTime != null)
+                return _lastRequestTime.CompareTo(other._lastRequestTime);
+            return 0;
         }
     }
 }

@@ -24,10 +24,8 @@ namespace VisualPinball.Unity
 
     public class VoiceAsset : SoundAsset
     {
-        public override bool Loop => _loop;
         public SoundPriority Priority => _priority;
 
         [SerializeField] private SoundPriority _priority;
-        [SerializeField] private bool _loop;
 	}
 }

@@ -29,7 +29,7 @@ namespace VisualPinball.Unity
 	/// Base component for playing a <c>SoundAsset</c> using the public methods <c>Play</c> and <c>Stop</c>.
 	/// </summary>
 	[AddComponentMenu("Visual Pinball/Sound/Sound")]
-	public class SoundComponent : EnableAfterAwakeComponent
+	public class SoundEffectComponent : EnableAfterAwakeComponent
 	{
 		[SerializeReference]
 		protected SoundEffectAsset _soundAsset;
@@ -61,7 +61,7 @@ namespace VisualPinball.Unity
 			_instantCts = null;
 		}
 
-		public async Task Play(float volume = 1f)
+		public async Task Play()
 		{
 			if (!isActiveAndEnabled) {
 				Logger.Warn("Cannot play a disabled sound component.");
@@ -83,9 +83,8 @@ namespace VisualPinball.Unity
 				Stop(allowFade: true);
 			}
 			try {
-				var combinedVol = _volume * volume;
 				_lastPlayStartTime = Time.unscaledTime;
-				await _soundAsset.Play(gameObject, _allowFadeCts.Token, _instantCts.Token, combinedVol);
+				await _soundAsset.Play(gameObject, _allowFadeCts.Token, _instantCts.Token, _volume);
 			} catch (OperationCanceledException) { }
 		}
 

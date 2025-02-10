@@ -24,7 +24,7 @@ using System.Linq;
 
 namespace VisualPinball.Unity.Editor
 {
-	[CustomEditor(typeof(SoundComponent), editorForChildClasses: true), CanEditMultipleObjects]
+	[CustomEditor(typeof(SoundEffectComponent), editorForChildClasses: true), CanEditMultipleObjects]
 	public class SoundComponentInspector : UnityEditor.Editor
 	{
 		public override VisualElement CreateInspectorGUI()
@@ -66,8 +66,9 @@ namespace VisualPinball.Unity.Editor
 
 		protected void MissingComponentHelpBox(VisualElement container)
 		{
-			if (target != null && target is SoundComponent) {
-				var soundComp = target as SoundComponent;
+			if (target != null &&
+				target is SoundEffectComponent) {
+				var soundComp = target as SoundEffectComponent;
 				var requiredType = soundComp.GetRequiredType();
 				if (requiredType != null && !soundComp.TryGetComponent(requiredType, out _)) {
 					container.Add(new HelpBox($"This component needs a component of type {requiredType.Name} on the same game object to work.",
@@ -81,13 +82,9 @@ namespace VisualPinball.Unity.Editor
 			foreach (var t in targets) {
 				if (t == null) {
 					continue;
-				}
-
-				if (t is not SoundComponent) {
+				if (target is not SoundEffectComponent)
 					continue;
-				}
-
-				if (!(t as SoundComponent).SupportsLoopingSoundAssets()) {
+				if (!(target as SoundEffectComponent).SupportsLoopingSoundAssets())
 					return false;
 				}
 			}
@@ -106,9 +103,9 @@ namespace VisualPinball.Unity.Editor
 
 			void UpdateVisbility(SerializedObject obj)
 			{
-				var prop = obj.FindProperty(nameof(SoundComponent._soundAsset));
-				var soundAsset = prop.objectReferenceValue as SoundAsset;
-				if (soundAsset && soundAsset.Loop && !AllTargetsSupportLoopingSoundAssets()) {
+				var soundAssetProp = obj.FindProperty("_soundAsset");
+				var soundAsset = soundAssetProp.objectReferenceValue as SoundEffectAsset;
+				if (soundAsset && soundAsset.Loop && !AllTargetsSupportLoopingSoundAssets())
 					helpBox.style.display = DisplayStyle.Flex;
 				} else {
 					helpBox.style.display = DisplayStyle.None;

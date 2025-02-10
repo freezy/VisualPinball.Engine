@@ -14,18 +14,24 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-using System;
 using UnityEngine;
 
 namespace VisualPinball.Unity
 {
-    [CreateAssetMenu(fileName = "Music Asset", menuName = "Visual Pinball/Sound/Music Asset", order = 102)]
-    public class MusicAsset : SoundAsset
+    public class MusicRequest : MonoBehaviour
     {
-        public SoundPriority Priority => _priority;
-        public float Volume => _volume;
-
+        [SerializeField] private MusicCoordinator coordinator;
+        [SerializeField] private MusicAsset musicAsset;
         [SerializeField] private SoundPriority _priority = SoundPriority.Medium;
-        [SerializeField][Range(0f, 1f)] private float _volume;
+
+        private void OnEnable()
+        {
+            coordinator.AddRequest(musicAsset);
+        }
+
+        private void OnDisable()
+        {
+            coordinator.RemoveRequest(musicAsset);
+        }
     }
 }
