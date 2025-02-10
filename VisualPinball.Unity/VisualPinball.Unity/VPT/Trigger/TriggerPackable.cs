@@ -62,4 +62,22 @@ namespace VisualPinball.Unity
 			comp.HitCircleRadius = data.HitCircleRadius;
 		}
 	}
+
+	public struct TriggerAnimationPackable
+	{
+		public float AnimSpeed;
+
+		public static byte[] Pack(TriggerAnimationComponent comp)
+		{
+			return PackageApi.Packer.Pack(new TriggerAnimationPackable {
+				AnimSpeed = comp.AnimSpeed
+			});
+		}
+
+		public static void Unpack(byte[] bytes, TriggerAnimationComponent comp)
+		{
+			var data = PackageApi.Packer.Unpack<TriggerAnimationPackable>(bytes);
+			comp.AnimSpeed = data.AnimSpeed;
+		}
+	}
 }

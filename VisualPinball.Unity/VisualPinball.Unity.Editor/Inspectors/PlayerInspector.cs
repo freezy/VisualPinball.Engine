@@ -31,7 +31,7 @@ namespace VisualPinball.Unity.Editor
 
 		private void OnEnable()
 		{
-			_updateDuringGameplayProperty = serializedObject.FindProperty(nameof(Player.UpdateDuringGamplay));
+			_updateDuringGameplayProperty = serializedObject.FindProperty(nameof(Player.UpdateDuringGameplay));
 		}
 
 		public override void OnInspectorGUI()

@@ -83,4 +83,61 @@ namespace VisualPinball.Unity
 			comp.ParkPosition = data.ParkPosition;
 		}
 	}
+
+	public struct PlungeRodMeshPackable
+	{
+		public float RodDiam;
+		public float RingGap;
+		public float RingDiam;
+		public float RingWidth;
+		public string TipShape;
+
+		public static byte[] Pack(PlungerRodMeshComponent comp)
+		{
+			return PackageApi.Packer.Pack(new PlungeRodMeshPackable {
+				RodDiam = comp.RodDiam,
+				RingGap = comp.RingGap,
+				RingDiam = comp.RingDiam,
+				RingWidth = comp.RingWidth,
+				TipShape = comp.TipShape,
+			});
+		}
+
+		public static void Unpack(byte[] bytes, PlungerRodMeshComponent comp)
+		{
+			var data = PackageApi.Packer.Unpack<PlungeRodMeshPackable>(bytes);
+			comp.RodDiam = data.RodDiam;
+			comp.RingGap = data.RingGap;
+			comp.RingDiam = data.RingDiam;
+			comp.RingWidth = data.RingWidth;
+			comp.TipShape = data.TipShape;
+		}
+	}
+
+	public struct PlungerSpringMeshPackable
+	{
+		public float SpringDiam;
+		public float SpringGauge;
+		public float SpringLoops;
+		public float SpringEndLoops;
+
+		public static byte[] Pack(PlungerSpringMeshComponent comp)
+		{
+			return PackageApi.Packer.Pack(new PlungerSpringMeshPackable {
+				SpringDiam = comp.SpringDiam,
+				SpringGauge = comp.SpringGauge,
+				SpringLoops = comp.SpringLoops,
+				SpringEndLoops = comp.SpringEndLoops,
+			});
+		}
+
+		public static void Unpack(byte[] bytes, PlungerSpringMeshComponent comp)
+		{
+			var data = PackageApi.Packer.Unpack<PlungerSpringMeshPackable>(bytes);
+			comp.SpringDiam = data.SpringDiam;
+			comp.SpringGauge = data.SpringGauge;
+			comp.SpringLoops = data.SpringLoops;
+			comp.SpringEndLoops = data.SpringEndLoops;
+		}
+	}
 }

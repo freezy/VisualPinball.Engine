@@ -22,9 +22,10 @@ using Mesh = VisualPinball.Engine.VPT.Mesh;
 
 namespace VisualPinball.Unity
 {
+	[PackAs("SurfaceTopMesh")]
 	[ExecuteInEditMode]
 	[AddComponentMenu("Visual Pinball/Mesh/Surface Top Mesh")]
-	public class SurfaceTopMeshComponent : MeshComponent<SurfaceData, SurfaceComponent>
+	public class SurfaceTopMeshComponent : MeshComponent<SurfaceData, SurfaceComponent>, IPackable
 	{
 		protected override Mesh GetMesh(SurfaceData data)
 		{
@@ -46,5 +47,17 @@ namespace VisualPinball.Unity
 				mr.ResetLocalBounds();
 			}
 		}
+
+		#region Packaging
+
+		public byte[] Pack() => PackageApi.Packer.Pack(new object());
+
+		public byte[] PackReferences(Transform root, PackagedRefs refs, PackagedFiles files) => null;
+
+		public void Unpack(byte[] bytes) { }
+
+		public void UnpackReferences(byte[] bytes, Transform root, PackagedRefs refs, PackagedFiles files) { }
+
+		#endregion
 	}
 }

@@ -54,4 +54,25 @@ namespace VisualPinball.Unity
 			comp.CollisionReductionFactor = data.CollisionReductionFactor;
 		}
 	}
+
+	public struct PrimitiveMeshPackable
+	{
+		public bool UseLegacyMesh;
+		public int Sides;
+
+		public static byte[] Pack(PrimitiveMeshComponent comp)
+		{
+			return PackageApi.Packer.Pack(new PrimitiveMeshPackable {
+				UseLegacyMesh = comp.UseLegacyMesh,
+				Sides = comp.Sides,
+			});
+		}
+
+		public static void Unpack(byte[] bytes, PrimitiveMeshComponent comp)
+		{
+			var data = PackageApi.Packer.Unpack<PrimitiveMeshPackable>(bytes);
+			comp.UseLegacyMesh = data.UseLegacyMesh;
+			comp.Sides = data.Sides;
+		}
+	}
 }

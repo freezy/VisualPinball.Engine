@@ -22,6 +22,7 @@ using NLog;
 using Unity.Mathematics;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.Serialization;
 using VisualPinball.Engine.Common;
 using VisualPinball.Engine.Game;
 using VisualPinball.Engine.Game.Engines;
@@ -30,8 +31,28 @@ using Logger = NLog.Logger;
 
 namespace VisualPinball.Unity
 {
-	public class Player : MonoBehaviour
+	[PackAs("Player")]
+	public class Player : MonoBehaviour, IPackable
 	{
+		#region Data
+
+		[Tooltip("When enabled, update the switch, coil, lamp and wire manager windows in the editor (slower performance)")]
+		public bool UpdateDuringGameplay = true;
+
+		#endregion
+
+		#region Packaging
+
+		public byte[] Pack() => PlayerPackable.Pack(this);
+
+		public byte[] PackReferences(Transform root, PackagedRefs refs, PackagedFiles files) => null;
+
+		public void Unpack(byte[] bytes) => PlayerPackable.Unpack(bytes, this);
+
+		public void UnpackReferences(byte[] data, Transform root, PackagedRefs refs, PackagedFiles files) { }
+
+		#endregion
+
 		private TableApi _tableApi;
 		public TableApi TableApi => _tableApi ??= new(this);
 		public PlayfieldApi PlayfieldApi { get; private set; }
@@ -59,9 +80,6 @@ namespace VisualPinball.Unity
 		public float4x4 PlayfieldToWorldMatrix => PlayfieldComponent.transform.localToWorldMatrix;
 
 		[HideInInspector] [SerializeField] public string debugUiId;
-
-		[Tooltip("When enabled, update the switch, coil, lamp and wire manager windows in the editor (slower performance)")]
-		public bool UpdateDuringGamplay = true;
 
 		// table related
 		private readonly List<IApi> _apis = new();

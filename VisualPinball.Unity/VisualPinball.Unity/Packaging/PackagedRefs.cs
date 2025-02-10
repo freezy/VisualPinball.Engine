@@ -22,24 +22,46 @@ using UnityEngine;
 
 namespace VisualPinball.Unity
 {
+	public interface IReferencedDependency
+	{
+		void RegisterTypes(PackagedRefs refs);
+	}
+
 	public class PackagedRefs
 	{
 		private readonly Dictionary<Type, string> _typeToName = new();
 		private readonly Dictionary<string, Type> _nameToType = new();
+		private readonly List<Type> _nativeTypes = new();
 
 		private readonly Transform _tableRoot;
 
 		public PackagedRefs(Transform tableRoot)
 		{
 			_tableRoot = tableRoot;
-			var assembly = Assembly.GetExecutingAssembly();
-			foreach (var type in assembly.GetTypes()) {
-				// Look for the PackAsAttribute on the class
-				var attribute = type.GetCustomAttribute<PackAsAttribute>(inherit: false);
-				if (attribute != null) {
-					_nameToType.Add(attribute.Name, type);
-					_typeToName.Add(type, attribute.Name);
+			var referencedDependencyType = typeof(IReferencedDependency);
+			var assemblies = AppDomain.CurrentDomain.GetAssemblies();
+			foreach (var assembly in assemblies) {
+				foreach (var type in assembly.GetTypes()) {
+					// Look for the PackAsAttribute on the class
+					var attribute = type.GetCustomAttribute<PackAsAttribute>(inherit: false);
+					if (attribute != null) {
+						Add(type, attribute.Name);
+					}
+
+					if (referencedDependencyType.IsAssignableFrom(type) && !type.IsInterface && !type.IsAbstract) {
+						(Activator.CreateInstance(type) as IReferencedDependency)!.RegisterTypes(this);
+					}
 				}
+			}
+			// add third parties
+		}
+
+		public void Add(Type type, string name)
+		{
+			_nameToType.Add(name, type);
+			_typeToName.Add(type, name);
+			if (!type.IsAssignableFrom(typeof(IPackable))) {
+				_nativeTypes.Add(type);
 			}
 		}
 

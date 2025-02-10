@@ -18,10 +18,12 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Text;
 using System.Threading.Tasks;
 using GLTFast;
 using GLTFast.Export;
 using GLTFast.Logging;
+using Newtonsoft.Json;
 using NLog;
 using UnityEngine;
 using Debug = UnityEngine.Debug;
@@ -65,8 +67,8 @@ namespace VisualPinball.Unity.Editor
 
 			// write scene data
 			var sw1 = Stopwatch.StartNew();
-			await WriteScene();
-			Logger.Info($"Scene written in {sw1.ElapsedMilliseconds}ms.");
+			// await WriteScene();
+			// Logger.Info($"Scene written in {sw1.ElapsedMilliseconds}ms.");
 
 			// write non-scene meshes
 			sw1 = Stopwatch.StartNew();
@@ -75,7 +77,11 @@ namespace VisualPinball.Unity.Editor
 
 			// write component data
 			sw1 = Stopwatch.StartNew();
-			WritePackables(PackageApi.ItemFolder, packageable => packageable.Pack(), go => ItemPackable.Instantiate(go).Pack());
+			WritePackables(
+				PackageApi.ItemFolder,
+				packageable => packageable.Pack(),
+				go => ItemPackable.Instantiate(go).Pack(),
+				PackNativeComponent);
 			Logger.Info($"Component data written in {sw1.ElapsedMilliseconds}ms.");
 
 			// write reference data
@@ -98,7 +104,6 @@ namespace VisualPinball.Unity.Editor
 			sw.Stop();
 			Debug.Log($"Done! File saved to {path} in {sw.ElapsedMilliseconds}ms.");
 		}
-
 
 		private async Task WriteScene()
 		{
@@ -204,7 +209,7 @@ namespace VisualPinball.Unity.Editor
 		/// <param name="folderName">Name of the storage within table storage</param>
 		/// <param name="getPackableData">Retrieves component-specific data.</param>
 		/// <param name="getItemData">Retrieves item-specific data.</param>
-		private void WritePackables(string folderName, Func<IPackable, byte[]> getPackableData, Func<GameObject, byte[]> getItemData = null)
+		private void WritePackables(string folderName, Func<IPackable, byte[]> getPackableData, Func<GameObject, byte[]> getItemData = null, Func<Component, byte[]> getNativeData = null)
 		{
 			// -> rootName <- / 0.0.0 / CompType / 0
 			var folder = _tableFolder.AddFolder(folderName);
@@ -255,15 +260,37 @@ namespace VisualPinball.Unity.Editor
 						case Transform:
 						case MeshFilter:
 						case MeshRenderer:
+						case Light:
+						case SkinnedMeshRenderer:
 							break;
 
 						default:
-							Debug.LogWarning($"Unknown component {component.GetType()} on {key} ({component.name})");
+							getNativeData?.Invoke(component);
 							break;
 					}
 				}
 			}
 		}
+
+		private byte[] PackNativeComponent(Component comp)
+		{
+			if (_refs.HasType(comp.GetType())) {
+
+				try {
+					// todo abstract this
+					return Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(comp, Formatting.Indented, new JsonSerializerSettings {
+						ReferenceLoopHandling = ReferenceLoopHandling.Ignore
+					}));
+				} catch (Exception e) {
+					Debug.LogError(e);
+					return null;
+				}
+			}
+
+			Debug.LogWarning($"Unknown component {comp.GetType()} ({comp.name})");
+			return null;
+		}
+
 
 		private void WriteGlobals()
 		{
