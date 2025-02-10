@@ -21,13 +21,16 @@ using UnityEngine;
 
 namespace VisualPinball.Unity
 {
+	[PackAs("ScoreReel")]
 	[AddComponentMenu("Visual Pinball/Display/Score Reel")]
-	public class ScoreReelComponent : MonoBehaviour
+	public class ScoreReelComponent : MonoBehaviour, IPackable
 	{
 		public enum ScoreReelDirection
 		{
 			Up, Down
 		}
+
+		#region Data
 
 		[Tooltip("In which direction the reel rotates, when looking from the front.")]
 		public ScoreReelDirection Direction = ScoreReelDirection.Down;
@@ -37,6 +40,20 @@ namespace VisualPinball.Unity
 
 		[HideInInspector]
 		public float Wait;
+
+		#endregion
+
+		#region Packaging
+
+		public byte[] Pack() => ScoreReelPackable.Pack(this);
+
+		public byte[] PackReferences(Transform root, PackagedRefs refs, PackagedFiles files) => null;
+
+		public void Unpack(byte[] bytes) => ScoreReelPackable.Unpack(bytes, this);
+
+		public void UnpackReferences(byte[] data, Transform root, PackagedRefs refs, PackagedFiles files) { }
+
+		#endregion
 
 		/// <summary>
 		/// True if the co-routine is running, false otherwise.

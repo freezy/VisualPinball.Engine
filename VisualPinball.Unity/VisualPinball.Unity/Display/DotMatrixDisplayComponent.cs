@@ -19,16 +19,17 @@
 
 using System;
 using System.Collections.Generic;
+using NLog;
 using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
 using UnityEngine;
-using NLog;
 using Logger = NLog.Logger;
 
 namespace VisualPinball.Unity
 {
+	[PackAs("DotMatrixDisplay")]
 	[AddComponentMenu("Visual Pinball/Display/Dot Matrix Display")]
-	public class DotMatrixDisplayComponent : DisplayComponent
+	public class DotMatrixDisplayComponent : DisplayComponent, IPackable
 	{
 		public override string Id { get => _id; set => _id = value; }
 		public override float AspectRatio {
@@ -129,6 +130,18 @@ namespace VisualPinball.Unity
 				}
 			}
 		}
+
+		#region Packaging
+
+		public byte[] Pack() => DotMatrixDisplayPackable.Pack(this);
+
+		public byte[] PackReferences(Transform root, PackagedRefs refs, PackagedFiles files) => null;
+
+		public void Unpack(byte[] bytes) => DotMatrixDisplayPackable.Unpack(bytes, this);
+
+		public void UnpackReferences(byte[] data, Transform root, PackagedRefs refs, PackagedFiles files) { }
+
+		#endregion
 
 		public override void UpdateDimensions(int width, int height, bool flipX = false)
 		{

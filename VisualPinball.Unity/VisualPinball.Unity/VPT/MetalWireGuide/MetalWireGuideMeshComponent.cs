@@ -22,9 +22,10 @@ using Mesh = VisualPinball.Engine.VPT.Mesh;
 
 namespace VisualPinball.Unity
 {
+	[PackAs("MetalWireGuideMesh")]
 	[ExecuteInEditMode]
 	[AddComponentMenu("Visual Pinball/Mesh/Metal Wire Guide Mesh")]
-	public class MetalWireGuideMeshComponent : MeshComponent<MetalWireGuideData, MetalWireGuideComponent>
+	public class MetalWireGuideMeshComponent : MeshComponent<MetalWireGuideData, MetalWireGuideComponent>, IPackable
 	{
 		protected override Mesh GetMesh(MetalWireGuideData data)
 			=> new MetalWireGuideMeshGenerator(MainComponent)
@@ -41,5 +42,17 @@ namespace VisualPinball.Unity
 			mr.ResetBounds();
 			mr.ResetLocalBounds();
 		}
+
+		#region Packaging
+
+		public byte[] Pack() => PackageApi.Packer.Pack(new object());
+
+		public byte[] PackReferences(Transform root, PackagedRefs refs, PackagedFiles files) => null;
+
+		public void Unpack(byte[] bytes) { }
+
+		public void UnpackReferences(byte[] bytes, Transform root, PackagedRefs refs, PackagedFiles files) { }
+
+		#endregion
 	}
 }

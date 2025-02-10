@@ -119,6 +119,9 @@ namespace VisualPinball.Unity
 			return null;
 		}
 
+		public IEnumerable<T> Resolve<T>(IEnumerable<ReferencePackable> packedRefs) where T : class
+			=> packedRefs.Select(Resolve<T>).Where(c => c != null);
+
 		public IEnumerable<T> Resolve<T, TI>(IEnumerable<ReferencePackable> packedRefs) where T : class
 			=> packedRefs.Select(Resolve<T, TI>).Where(c => c != null);
 
