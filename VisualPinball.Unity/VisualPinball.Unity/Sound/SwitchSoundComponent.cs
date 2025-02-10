@@ -1,5 +1,5 @@
 // Visual Pinball Engine
-// Copyright (C) 2023 freezy and VPE Team
+// Copyright (C) 2025 freezy and VPE Team
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
