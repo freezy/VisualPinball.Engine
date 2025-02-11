@@ -27,8 +27,8 @@ namespace VisualPinball.Unity
 		public float AspectRatio;
 		public int NumChars;
 		public int NumSegments;
-		public Color LitColor;
-		public Color UnlitColor;
+		// public Color LitColor;
+		// public Color UnlitColor;
 		public float SkewAngle;
 		public float SegmentWeight;
 		public float HorizontalMiddle;
@@ -45,8 +45,8 @@ namespace VisualPinball.Unity
 				AspectRatio = comp.AspectRatio,
 				NumChars = comp.NumChars,
 				NumSegments = comp.NumSegments,
-				LitColor = comp.LitColor,
-				UnlitColor = comp.UnlitColor,
+				// LitColor = comp.LitColor,
+				// UnlitColor = comp.UnlitColor,
 				SkewAngle = comp.SkewAngle,
 				SegmentWeight = comp.SegmentWeight,
 				HorizontalMiddle = comp.HorizontalMiddle,
@@ -65,8 +65,8 @@ namespace VisualPinball.Unity
 			comp.AspectRatio = data.AspectRatio;
 			comp.NumChars = data.NumChars;
 			comp.NumSegments = data.NumSegments;
-			comp.LitColor = data.LitColor;
-			comp.UnlitColor = data.UnlitColor;
+			// comp.LitColor = data.LitColor;
+			// comp.UnlitColor = data.UnlitColor;
 			comp.SkewAngle = data.SkewAngle;
 			comp.SegmentWeight = data.SegmentWeight;
 			comp.HorizontalMiddle = data.HorizontalMiddle;
