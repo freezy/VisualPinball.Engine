@@ -50,7 +50,12 @@ namespace VisualPinball.Unity.Editor
 			_refs = new PackagedRefs(table.transform);
 		}
 
-		public async Task WritePackage(string path)
+		public void WritePackageSync(string path)
+		{
+			AsyncHelper.RunSync(() => WritePackage(path));
+		}
+
+		private async Task WritePackage(string path)
 		{
 			var sw = new Stopwatch();
 			sw.Start();
@@ -122,7 +127,7 @@ namespace VisualPinball.Unity.Editor
 
 				// Format = GltfFormat.Json,
 				Format = GltfFormat.Binary,
-				FileConflictResolution = FileConflictResolution.Overwrite,
+				FileConflictResolution = FileConflictResolution.Abort,
 				Deterministic = false,
 
 				// Export everything except cameras or animation
@@ -133,24 +138,28 @@ namespace VisualPinball.Unity.Editor
 
 				// Ensure mesh vertex attributes colors and texture coordinate (channels 1 through 8) are always
 				// exported, even if they are not used/referenced.
-				PreservedVertexAttributes = VertexAttributeUsage.AllTexCoords | VertexAttributeUsage.Color,
+				PreservedVertexAttributes = VertexAttributeUsage.None,
 
 				// Enable Draco compression
 				Compression = Compression.Draco,
 
 				// Optional: Tweak the Draco compression settings
-				DracoSettings = new DracoExportSettings
-				{
-					positionQuantization = 12
-				}
+				DracoSettings = new DracoExportSettings {
+					positionQuantization = 12,
+				},
+
+				JpgQuality = 90,
+
+				ImageDestination = ImageDestination.Automatic,
+
 			};
 			var gameObjectExportSettings = new GameObjectExportSettings {
 
 				// Include inactive GameObjects in export
-				OnlyActiveInHierarchy = false,
+				OnlyActiveInHierarchy = true,
 
 				// Also export disabled components
-				DisabledComponents = true
+				DisabledComponents = false
 
 				// Only export GameObjects on certain layers
 				//LayerMask = LayerMask.GetMask("Default", "MyCustomLayer"),

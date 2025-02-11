@@ -24,8 +24,8 @@ namespace VisualPinball.Unity
 	{
 		public string Id;
 		public float AspectRatio;
-		public Color LitColor;
-		public Color UnlitColor;
+		// public Color LitColor;
+		// public Color UnlitColor;
 		public int Width;
 		public int Height;
 		public float Padding;
@@ -37,8 +37,8 @@ namespace VisualPinball.Unity
 			return PackageApi.Packer.Pack(new DotMatrixDisplayPackable {
 				Id = comp.Id,
 				AspectRatio = comp.AspectRatio,
-				LitColor = comp.LitColor,
-				UnlitColor = comp.UnlitColor,
+				// LitColor = comp.LitColor,
+				// UnlitColor = comp.UnlitColor,
 				Width = comp.Width,
 				Height = comp.Height,
 				Padding = comp.Padding,
@@ -52,8 +52,8 @@ namespace VisualPinball.Unity
 			var data = PackageApi.Packer.Unpack<DotMatrixDisplayPackable>(bytes);
 			comp.Id = data.Id;
 			comp.AspectRatio = data.AspectRatio;
-			comp.LitColor = data.LitColor;
-			comp.UnlitColor = data.UnlitColor;
+			// comp.LitColor = data.LitColor;
+			// comp.UnlitColor = data.UnlitColor;
 			comp.Width = data.Width;
 			comp.Height = data.Height;
 			comp.Padding = data.Padding;

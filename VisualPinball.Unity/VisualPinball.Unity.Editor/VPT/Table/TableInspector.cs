@@ -62,7 +62,7 @@ namespace VisualPinball.Unity.Editor
 
 					if (!string.IsNullOrEmpty(path)) {
 						var writer = new PackageWriter(tableComponent.gameObject);
-						writer.WritePackage(path);
+						writer.WritePackageSync(path);
 					}
 				}
 
