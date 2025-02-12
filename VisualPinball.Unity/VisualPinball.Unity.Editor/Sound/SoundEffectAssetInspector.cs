@@ -17,6 +17,7 @@
 using System;
 using System.Threading;
 using UnityEditor;
+using UnityEditor.UIElements;
 using UnityEngine;
 using UnityEngine.UIElements;
 
@@ -39,6 +40,21 @@ namespace VisualPinball.Unity.Editor
 			root.Add(baseUi);
 			var subUi = _soundEffectAssetInspectorAsset.Instantiate();
 			root.Add(subUi);
+
+			// Hide fade out options when loop is disabled
+			var loopField = subUi.Q<PropertyField>("loop");
+			var fadeInTimeField = subUi.Q<PropertyField>("fade-in-time");
+			var fadeOutTimeField = subUi.Q<PropertyField>("fade-out-time");
+			loopField.RegisterValueChangeCallback(e =>
+			{
+				var loop = e.changedProperty.boolValue;
+				var displayStyle = loop ? DisplayStyle.Flex : DisplayStyle.None;
+				fadeInTimeField.style.display = displayStyle;
+				fadeOutTimeField.style.display = displayStyle;
+			});
+
+			_playButton = subUi.Q<Button>("play-button");
+			_playButton.clicked += OnPlayButtonClicked;
 			return root;
 		}
 
