@@ -39,9 +39,8 @@ namespace VisualPinball.Unity
 		/// <summary>
 		/// Insert a request into the request stack
 		/// </summary>
-		/// <param name="musicAsset">The requested music</param>
+		/// <param name="request"></param>
 		/// <param name="requestId">A unique identifier that can be used to remove the request later</param>
-		/// <param name="priority">The priority of the request</param>
 		public void AddRequest(MusicRequest request, out int requestId)
 		{
 			request.Index = _requestCounter;
