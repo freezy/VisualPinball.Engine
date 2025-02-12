@@ -30,6 +30,6 @@ namespace VisualPinball.Unity
 
 		[SerializeField]
 		[Range(0f, 1f)]
-		private float _volume;
+		private float _volume = 1f;
 	}
 }
