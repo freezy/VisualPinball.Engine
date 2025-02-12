@@ -14,8 +14,10 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+using Unity.Mathematics;
 using UnityEngine;
 using VisualPinball.Engine.Math;
+using Color = UnityEngine.Color;
 
 // ReSharper disable MemberCanBePrivate.Global
 // ReSharper disable FieldCanBeMadeReadOnly.Global
@@ -148,5 +150,37 @@ namespace VisualPinball.Unity
 		public static implicit operator PackableFloat3(Vertex3D v) => new(v.X, v.Y, v.Z);
 		public static implicit operator Vector3(PackableFloat3 v) => new(v.X, v.Y, v.Z);
 		public static implicit operator PackableFloat3(Vector3 v) => new(v.x, v.y, v.z);
+	}
+
+	public struct PackableFloat2
+	{
+		public float X;
+		public float Y;
+
+		public PackableFloat2(float x, float y) {
+			X = x;
+			Y = y;
+		}
+
+		public static implicit operator float2(PackableFloat2 v) => new(v.X, v.Y);
+		public static implicit operator PackableFloat2(float2 v) => new(v.x, v.y);
+	}
+
+	public struct PackableColor
+	{
+		public float R;
+		public float G;
+		public float B;
+		public float A;
+
+		public PackableColor(float r, float g, float b, float a) {
+			R = r;
+			G = g;
+			B = b;
+			A = a;
+		}
+
+		public static implicit operator Color(PackableColor v) => new(v.R, v.G, v.B, v.A);
+		public static implicit operator PackableColor(Color v) => new(v.r, v.g, v.b, v.a);
 	}
 }
