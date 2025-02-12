@@ -18,16 +18,19 @@ using UnityEngine;
 
 namespace VisualPinball.Unity
 {
+	/// <summary>
+	/// Requests a callout from the callout coordinator when enabled. Intended for testing.
+	/// </summary>
 	public class CalloutRequester : MonoBehaviour
 	{
+		[SerializeField]
+		private CalloutCoordinator _coordinator;
+
 		[SerializeField]
 		private VoiceAsset _voiceAsset;
 
 		[SerializeField]
 		private SoundPriority _priority = SoundPriority.Medium;
-
-		[SerializeField]
-		private CalloutCoordinator _coordinator;
 
 		[SerializeField]
 		private float _maxQueueTime = -1f;

@@ -18,6 +18,9 @@ using UnityEngine;
 
 namespace VisualPinball.Unity
 {
+	/// <summary>
+	/// Requests music from the music coordinator while enabled. Intended for testing.
+	/// </summary>
 	public class MusicRequester : MonoBehaviour
 	{
 		[SerializeField]

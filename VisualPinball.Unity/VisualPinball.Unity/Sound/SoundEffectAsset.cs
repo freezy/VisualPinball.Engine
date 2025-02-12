@@ -37,7 +37,7 @@ namespace VisualPinball.Unity
 	/// <summary>
 	/// Represents a reusable collection of similar sounds, for example different samples of a
 	/// flipper mechanism getting triggered. Supports randomizing pitch and volume to introduce
-	/// variation.
+	/// variation. Supports looping sounds with optional fade.
 	/// </summary>
 	[CreateAssetMenu(
 		fileName = "Sound Effect",

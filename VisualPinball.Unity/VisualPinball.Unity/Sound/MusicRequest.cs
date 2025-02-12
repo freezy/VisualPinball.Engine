@@ -33,7 +33,7 @@ namespace VisualPinball.Unity
 		/// <summary>
 		/// The <c>MusicCoordinator</c> sets the <c>Index</c> of the <c>n</c>th request it receives
 		/// to <c>n</c>. This allows sorting requests by receive order and uniquely identifies each
-		/// request so it can be removed later usinig its <c>Index</c>.
+		/// request so it can be removed later using its <c>Index</c>.
 		/// </summary>
 		public int Index { get; set; }
 
