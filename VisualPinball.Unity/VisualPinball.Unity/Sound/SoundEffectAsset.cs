@@ -26,6 +26,17 @@ using UnityEditor.SceneManagement;
 
 namespace VisualPinball.Unity
 {
+	public enum SoundEffectType
+	{
+		Mechanical,
+		Synthetic,
+	}
+
+	/// <summary>
+	/// Represents a reusable collection of similar sounds, for example different samples of a
+	/// flipper mechanism getting triggered. Supports randomizing pitch and volume to introduce
+	/// variation.
+	/// </summary>
 	[CreateAssetMenu(
 		fileName = "Sound Effect",
 		menuName = "Visual Pinball/Sound/Sound Effect Asset",
@@ -42,6 +53,9 @@ namespace VisualPinball.Unity
 		private Vector2 _pitchRange = new(1f, 1f);
 
 		[SerializeField]
+		private SoundEffectType _type;
+
+		[SerializeField]
 		private bool _loop;
 
 		[SerializeField, Range(0, 10f)]
@@ -53,6 +67,7 @@ namespace VisualPinball.Unity
 		public override void ConfigureAudioSource(AudioSource audioSource)
 		{
 			base.ConfigureAudioSource(audioSource);
+			audioSource.spatialBlend = _type == SoundEffectType.Mechanical ? 1f : 0f;
 			audioSource.volume = UnityEngine.Random.Range(_volumeRange.x, _volumeRange.y);
 			audioSource.pitch = UnityEngine.Random.Range(_pitchRange.x, _pitchRange.y);
 		}

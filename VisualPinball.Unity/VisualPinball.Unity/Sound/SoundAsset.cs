@@ -35,10 +35,9 @@ namespace VisualPinball.Unity
 	}
 
 	/// <summary>
-	/// Represents a reusable collection of similar sounds, for example different samples of a
-	/// flipper mechanism getting triggered. Supports multiple techniques to introduce variation
-	/// for frequently used sounds. Instances of this class can be stored in the project files or
-	/// in an asset library.
+	/// Common base class for sound effect assets, voice assets, and music assets. Multiple audio
+	/// clips can be assigned for variation. Instances of this class are Unity assets and can
+	/// therefore be stored in the project files or in an asset library for reuse across tables.
 	/// </summary>
 	public abstract class SoundAsset : ScriptableObject
 	{
@@ -57,10 +56,6 @@ namespace VisualPinball.Unity
 		[SerializeField]
 		private SelectionMethod _clipSelectionMethod;
 
-		[Tooltip("Should the sound appear to come from the position of the emitter?")]
-		[SerializeField]
-		private bool _isSpatial = true;
-
 		[SerializeField]
 		private AudioMixerGroup _audioMixerGroup;
 
@@ -70,7 +65,6 @@ namespace VisualPinball.Unity
 		public virtual void ConfigureAudioSource(AudioSource audioSource)
 		{
 			audioSource.clip = GetClip();
-			audioSource.spatialBlend = _isSpatial ? 0f : 1f;
 			audioSource.outputAudioMixerGroup = _audioMixerGroup;
 			audioSource.playOnAwake = false;
 		}
