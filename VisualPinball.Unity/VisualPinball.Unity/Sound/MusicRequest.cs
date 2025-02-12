@@ -14,31 +14,36 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-using UnityEngine;
+using System;
 
 namespace VisualPinball.Unity
 {
-	public class MusicRequest : MonoBehaviour
+	public struct MusicRequest : IComparable<MusicRequest>
 	{
-		[SerializeField]
-		private MusicCoordinator coordinator;
-
-		[SerializeField]
-		private MusicAsset musicAsset;
-
-		[SerializeField]
-		private SoundPriority _priority = SoundPriority.Medium;
-
-		private int requestId;
-
-		private void OnEnable()
+		public MusicRequest(MusicAsset musicAsset, SoundPriority priority = SoundPriority.Medium)
 		{
-			coordinator.AddRequest(musicAsset, out requestId, _priority);
+			MusicAsset = musicAsset;
+			Priority = priority;
+			Index = -1;
 		}
 
-		private void OnDisable()
+		public readonly MusicAsset MusicAsset;
+		public readonly SoundPriority Priority;
+
+		/// <summary>
+		/// The <c>MusicCoordinator</c> sets the <c>Index</c> of the <c>n</c>th request it receives
+		/// to <c>n</c>. This allows sorting requests by receive order and uniquely identifies each
+		/// request so it can be removed later usinig its <c>Index</c>.
+		/// </summary>
+		public int Index { get; set; }
+
+		// Used to sort the request stack to determine which request to play
+		public int CompareTo(MusicRequest other)
 		{
-			coordinator.RemoveRequest(requestId);
+			if (Priority != other.Priority)
+				return other.Priority.CompareTo(Priority);
+			// If priority is the same, favor newer requests
+			return other.Index.CompareTo(Index);
 		}
 	}
 }

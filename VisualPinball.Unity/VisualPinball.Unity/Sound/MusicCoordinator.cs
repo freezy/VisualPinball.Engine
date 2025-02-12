@@ -42,14 +42,10 @@ namespace VisualPinball.Unity
 		/// <param name="musicAsset">The requested music</param>
 		/// <param name="requestId">A unique identifier that can be used to remove the request later</param>
 		/// <param name="priority">The priority of the request</param>
-		public void AddRequest(
-			MusicAsset musicAsset,
-			out int requestId,
-			SoundPriority priority = SoundPriority.Medium
-		)
+		public void AddRequest(MusicRequest request, out int requestId)
 		{
-			var request = new MusicRequest(musicAsset, _requestCounter, priority);
-			requestId = request.Id;
+			request.Index = _requestCounter;
+			requestId = request.Index;
 			_requestCounter++;
 			_requestStack.Add(request);
 
@@ -62,7 +58,7 @@ namespace VisualPinball.Unity
 		/// <param name="requestId"></param>
 		public void RemoveRequest(int requestId)
 		{
-			var i = _requestStack.FindIndex(x => x.Id == requestId);
+			var i = _requestStack.FindIndex(x => x.Index == requestId);
 			if (i != -1)
 				_requestStack.RemoveAt(i);
 			else
@@ -70,6 +66,7 @@ namespace VisualPinball.Unity
 					$"Can't remove music request with id '{requestId}' because there is no such "
 						+ "request in the stack."
 				);
+
 			EvaluateRequestStack();
 		}
 
@@ -94,35 +91,6 @@ namespace VisualPinball.Unity
 			}
 			else
 				_players.ForEach(x => x.ShouldPlay = false);
-		}
-
-		private readonly struct MusicRequest : IComparable<MusicRequest>
-		{
-			public MusicRequest(
-				MusicAsset musicAsset,
-				int id,
-				SoundPriority priority = SoundPriority.Medium
-			)
-			{
-				MusicAsset = musicAsset;
-				Priority = priority;
-				Time = DateTime.Now;
-				Id = id;
-			}
-
-			public readonly MusicAsset MusicAsset;
-			public readonly SoundPriority Priority;
-			public readonly DateTime Time;
-			public readonly int Id;
-
-			// Used to sort the request stack to determine which request to play
-			public int CompareTo(MusicRequest other)
-			{
-				if (Priority != other.Priority)
-					return other.Priority.CompareTo(Priority);
-				// If priority is the same, favor newer requests
-				return other.Time.CompareTo(Time);
-			}
 		}
 	}
 }
