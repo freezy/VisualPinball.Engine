@@ -17,8 +17,10 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using NLog;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using Logger = NLog.Logger;
 #if UNITY_EDITOR
 using UnityEditor;
 using UnityEditor.SceneManagement;
@@ -64,6 +66,14 @@ namespace VisualPinball.Unity
 		[SerializeField, Range(0, 10f)]
 		private float _fadeOutTime;
 
+		[SerializeField, Range(0, 0.2f)]
+		private float _cooldown = 0.02f;
+
+		[NonSerialized]
+		private float _lastPlayStartTime = float.NegativeInfinity;
+
+		protected static readonly Logger Logger = LogManager.GetCurrentClassLogger();
+
 		public override void ConfigureAudioSource(AudioSource audioSource)
 		{
 			base.ConfigureAudioSource(audioSource);
@@ -80,6 +90,20 @@ namespace VisualPinball.Unity
 			float volume = 1f
 		)
 		{
+			float timeSinceLastPlay = Time.unscaledTime - _lastPlayStartTime;
+			if (timeSinceLastPlay < _cooldown)
+			{
+				Logger.Warn(
+					$"Will not play sound effect '{name}' because the time since last play is "
+						+ $"{timeSinceLastPlay} seconds, which is less than the cooldown of "
+						+ $"{_cooldown} seconds. If this is not intended by the table author, they "
+						+ $"should lower the '{nameof(_cooldown)}' parameter in the sound effect "
+						+ "asset inspector."
+				);
+				return;
+			}
+
+			_lastPlayStartTime = Time.unscaledTime;
 			var audioSource = audioObj.AddComponent<AudioSource>();
 
 			try
