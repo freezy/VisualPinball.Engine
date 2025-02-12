@@ -70,6 +70,7 @@ namespace VisualPinball.Unity
 			audioSource.spatialBlend = _type == SoundEffectType.Mechanical ? 1f : 0f;
 			audioSource.volume = UnityEngine.Random.Range(_volumeRange.x, _volumeRange.y);
 			audioSource.pitch = UnityEngine.Random.Range(_pitchRange.x, _pitchRange.y);
+			audioSource.loop = _loop;
 		}
 
 		public async Task Play(
