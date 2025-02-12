@@ -21,10 +21,10 @@ namespace VisualPinball.Unity
 	public class MusicRequester : MonoBehaviour
 	{
 		[SerializeField]
-		private MusicCoordinator coordinator;
+		private MusicCoordinator _coordinator;
 
 		[SerializeField]
-		private MusicAsset musicAsset;
+		private MusicAsset _musicAsset;
 
 		[SerializeField]
 		private SoundPriority _priority = SoundPriority.Medium;
@@ -33,13 +33,13 @@ namespace VisualPinball.Unity
 
 		private void OnEnable()
 		{
-			var request = new MusicRequest(musicAsset, _priority);
-			coordinator.AddRequest(request, out requestId);
+			var request = new MusicRequest(_musicAsset, _priority);
+			_coordinator.AddRequest(request, out requestId);
 		}
 
 		private void OnDisable()
 		{
-			coordinator.RemoveRequest(requestId);
+			_coordinator.RemoveRequest(requestId);
 		}
 	}
 }

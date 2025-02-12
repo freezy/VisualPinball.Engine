@@ -29,18 +29,18 @@ namespace VisualPinball.Unity
 		[Tooltip("How many seconds to pause after a callout before the next one can be started")]
 		private float _pauseDuration;
 
-		private readonly List<CalloutRequest> calloutQ = new();
+		private readonly List<CalloutRequest> _calloutQ = new();
 		private CancellationTokenSource _loopCts;
 		private Task _loopTask;
 		private TaskCompletionSource<bool> _waitForNewCalloutTcs;
 
 		public void EnqueueCallout(CalloutRequest callout)
 		{
-			var i = calloutQ.FindIndex(x => x.Priority < callout.Priority);
+			var i = _calloutQ.FindIndex(x => x.Priority < callout.Priority);
 			if (i != -1)
-				calloutQ.Insert(i, callout);
+				_calloutQ.Insert(i, callout);
 			else
-				calloutQ.Add(callout);
+				_calloutQ.Add(callout);
 			_waitForNewCalloutTcs?.TrySetResult(true);
 		}
 
@@ -66,16 +66,16 @@ namespace VisualPinball.Unity
 		{
 			while (true)
 			{
-				calloutQ.RemoveAll(x => x.IsExpired());
+				_calloutQ.RemoveAll(x => x.IsExpired());
 
-				if (calloutQ.Count == 0)
+				if (_calloutQ.Count == 0)
 				{
 					_waitForNewCalloutTcs = new();
 					await _waitForNewCalloutTcs.Task;
 				}
 
-				var callout = calloutQ[0];
-				calloutQ.RemoveAt(0);
+				var callout = _calloutQ[0];
+				_calloutQ.RemoveAt(0);
 				await callout.Play(gameObject, ct);
 				await Task.Delay(TimeSpan.FromSeconds(_pauseDuration), ct);
 			}
