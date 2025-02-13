@@ -84,6 +84,7 @@ namespace VisualPinball.Unity
 				var playerToPlay = _players.FirstOrDefault(x => x.MusicAsset == musicToPlay);
 				if (playerToPlay == default)
 				{
+					var musicGo = GetMusicGameObject(musicToPlay.name);
 					playerToPlay = gameObject.AddComponent<MusicPlayer>();
 					playerToPlay.Init(musicToPlay, _fadeDuration);
 					_players.Add(playerToPlay);
@@ -95,6 +96,21 @@ namespace VisualPinball.Unity
 			}
 			else
 				_players.ForEach(x => x.ShouldPlay = false);
+		}
+
+		private GameObject GetMusicGameObject(string musicName)
+		{
+			const string musicGoName = "Music";
+			var musicParent = transform.Find(musicGoName);
+			if (musicParent == null)
+			{
+				musicParent = new GameObject(musicGoName).transform;
+				musicParent.SetParent(transform, false);
+			}
+
+			var musicGo = new GameObject(musicName);
+			musicGo.transform.SetParent(musicParent, false);
+			return musicGo;
 		}
 	}
 }

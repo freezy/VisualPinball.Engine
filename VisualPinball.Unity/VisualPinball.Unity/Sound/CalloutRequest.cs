@@ -27,7 +27,7 @@ namespace VisualPinball.Unity
 	{
 		public SoundPriority Priority { get; private set; }
 
-		private readonly VoiceAsset _voiceAsset;
+		public readonly VoiceAsset VoiceAsset;
 		private readonly float _deadline;
 
 		/// <summary>
@@ -42,7 +42,7 @@ namespace VisualPinball.Unity
 			float maxQueueTime = -1f
 		)
 		{
-			_voiceAsset = voiceAsset;
+			VoiceAsset = voiceAsset;
 			Priority = priority;
 			if (maxQueueTime != -1f)
 				_deadline = Time.time + maxQueueTime;
@@ -58,6 +58,6 @@ namespace VisualPinball.Unity
 		}
 
 		public readonly async Task Play(GameObject audioObj, CancellationToken ct) =>
-			await _voiceAsset.Play(audioObj, ct);
+			await VoiceAsset.Play(audioObj, ct);
 	}
 }
