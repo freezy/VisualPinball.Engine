@@ -42,6 +42,8 @@ namespace VisualPinball.Unity.Editor
 		private IPackageFolder _globalFolder;
 		private IPackageFolder _metaFolder;
 
+		private const bool ExportActivesOnly = true;
+
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
 		public PackageWriter(GameObject table)
@@ -114,8 +116,8 @@ namespace VisualPinball.Unity.Editor
 		private async Task WriteScene()
 		{
 			// make table meshes readable
-			var meshFilters = _table.GetComponentsInChildren<MeshFilter>(true);
-			var skinnedMeshRenderers = _table.GetComponentsInChildren<SkinnedMeshRenderer>(true);
+			var meshFilters = _table.GetComponentsInChildren<MeshFilter>(!ExportActivesOnly);
+			var skinnedMeshRenderers = _table.GetComponentsInChildren<SkinnedMeshRenderer>(!ExportActivesOnly);
 			SetMeshesReadable(meshFilters, skinnedMeshRenderers);
 
 			var glbFile = _tableFolder.AddFile(PackageApi.SceneFile);
@@ -156,7 +158,7 @@ namespace VisualPinball.Unity.Editor
 			var gameObjectExportSettings = new GameObjectExportSettings {
 
 				// Include inactive GameObjects in export
-				OnlyActiveInHierarchy = true,
+				OnlyActiveInHierarchy = ExportActivesOnly,
 
 				// Also export disabled components
 				DisabledComponents = false
@@ -178,7 +180,7 @@ namespace VisualPinball.Unity.Editor
 			var meshGos = new List<GameObject>();
 			var colliderMeshesMeta = new Dictionary<string, ColliderMeshMetaPackable>();
 			try {
-				foreach (var colMesh in _table.GetComponentsInChildren<IColliderMesh>()) {
+				foreach (var colMesh in _table.GetComponentsInChildren<IColliderMesh>(!ExportActivesOnly)) {
 					var mesh = colMesh.GetColliderMesh();
 					if (!mesh) {
 						continue;
@@ -230,7 +232,7 @@ namespace VisualPinball.Unity.Editor
 			var folder = _tableFolder.AddFolder(folderName);
 
 			// walk the entire tree
-			foreach (var t in _table.transform.GetComponentsInChildren<Transform>()) {
+			foreach (var t in _table.transform.GetComponentsInChildren<Transform>(!ExportActivesOnly)) {
 
 				// for each game object, loop through all components
 				var key = t.GetPath(_table.transform);
