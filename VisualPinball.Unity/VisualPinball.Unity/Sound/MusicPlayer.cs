@@ -45,6 +45,12 @@ namespace VisualPinball.Unity
 
 		private void Update()
 		{
+			if (_audioSource == null)
+			{
+				Destroy(this);
+				return;
+			}
+
 			var canPlay = _audioSource.isActiveAndEnabled;
 #if UNITY_EDITOR
 			canPlay &= EditorApplication.isFocused;
