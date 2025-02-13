@@ -18,22 +18,44 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEditor;
 using UnityEditor.UIElements;
+using UnityEngine;
 using UnityEngine.UIElements;
 
 namespace VisualPinball.Unity.Editor
 {
-	[
-		CustomEditor(typeof(SoundEffectComponent), editorForChildClasses: true),
-		CanEditMultipleObjects
-	]
+	[CustomEditor(typeof(SoundComponent), editorForChildClasses: true), CanEditMultipleObjects]
 	public class SoundComponentInspector : UnityEditor.Editor
 	{
+		[SerializeField]
+		private VisualTreeAsset inspectorXml;
+
 		public override VisualElement CreateInspectorGUI()
 		{
 			var container = new VisualElement();
 			AddHelpBoxes(container);
-			InspectorElement.FillDefaultInspector(container, serializedObject, this);
+			container.Add(inspectorXml.Instantiate());
+			ConfigureFieldVisibility(container);
 			return container;
+		}
+
+		private void ConfigureFieldVisibility(VisualElement container)
+		{
+			var soundAssetProp = serializedObject.FindProperty("_soundAsset");
+			var calloutFields = container.Q<VisualElement>("callout-fields");
+			var musicFields = container.Q<VisualElement>("music-fields");
+			UpdateFieldVisibility(soundAssetProp);
+			var soundAssetField = container.Q<PropertyField>("sound-asset");
+			soundAssetField.TrackPropertyValue(soundAssetProp, UpdateFieldVisibility);
+
+			void UpdateFieldVisibility(SerializedProperty prop)
+			{
+				var isCalloutAsset = soundAssetProp.objectReferenceValue is CalloutAsset;
+				calloutFields.style.display = isCalloutAsset
+					? DisplayStyle.Flex
+					: DisplayStyle.None;
+				var isMusicAsset = soundAssetProp.objectReferenceValue is MusicAsset;
+				musicFields.style.display = isMusicAsset ? DisplayStyle.Flex : DisplayStyle.None;
+			}
 		}
 
 		protected virtual void AddHelpBoxes(VisualElement container)
@@ -66,9 +88,9 @@ namespace VisualPinball.Unity.Editor
 
 		protected void MissingComponentHelpBox(VisualElement container)
 		{
-			if (target != null && target is SoundEffectComponent)
+			if (target != null && target is SoundComponent)
 			{
-				var soundComp = target as SoundEffectComponent;
+				var soundComp = target as SoundComponent;
 				var requiredType = soundComp.GetRequiredType();
 				if (requiredType != null && !soundComp.TryGetComponent(requiredType, out var _))
 					container.Add(
@@ -87,9 +109,9 @@ namespace VisualPinball.Unity.Editor
 			{
 				if (target == null)
 					continue;
-				if (target is not SoundEffectComponent)
+				if (target is not SoundComponent)
 					continue;
-				if (!(target as SoundEffectComponent).SupportsLoopingSoundAssets())
+				if (!(target as SoundComponent).SupportsLoopingSoundAssets())
 					return false;
 			}
 			return true;
@@ -112,7 +134,7 @@ namespace VisualPinball.Unity.Editor
 			void UpdateVisbility(SerializedObject obj)
 			{
 				var soundAssetProp = obj.FindProperty("_soundAsset");
-				var soundAsset = soundAssetProp.objectReferenceValue as SoundEffectAsset;
+				var soundAsset = soundAssetProp.objectReferenceValue as SoundAsset;
 				if (soundAsset && soundAsset.Loop && !AllTargetsSupportLoopingSoundAssets())
 					helpBox.style.display = DisplayStyle.Flex;
 				else

@@ -26,15 +26,15 @@ namespace VisualPinball.Unity.Editor
 	public class SwitchSoundComponentInspector : SoundComponentInspector
 	{
 		[SerializeField]
-		private VisualTreeAsset inspectorXml;
+		private VisualTreeAsset subInspectorXml;
 
 		public override VisualElement CreateInspectorGUI()
 		{
 			var root = base.CreateInspectorGUI();
-			var inspectorUi = inspectorXml.Instantiate();
+			var inspectorUi = subInspectorXml.Instantiate();
 			root.Add(inspectorUi);
 			var switchNameDropdown = root.Q<DropdownField>("switch-name");
-			var switchNameProp = serializedObject.FindProperty(nameof(SwitchSoundComponent._switchName));
+			var switchNameProp = serializedObject.FindProperty("_switchName");
 			var availableSwitches = GetAvailableSwitches();
 			ConfigureDropdown(switchNameDropdown, switchNameProp, availableSwitches);
 			return root;

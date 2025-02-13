@@ -62,6 +62,8 @@ namespace VisualPinball.Unity
 		[NonSerialized]
 		private int _roundRobinIndex = 0;
 
+		public abstract bool Loop { get; }
+
 		public virtual void ConfigureAudioSource(AudioSource audioSource)
 		{
 			audioSource.clip = GetClip();

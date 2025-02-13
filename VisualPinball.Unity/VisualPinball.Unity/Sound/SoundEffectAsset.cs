@@ -46,7 +46,7 @@ namespace VisualPinball.Unity
 	)]
 	public class SoundEffectAsset : SoundAsset
 	{
-		public bool Loop => _loop;
+		public override bool Loop => _loop;
 
 		[SerializeField]
 		private Vector2 _volumeRange = new(1f, 1f);

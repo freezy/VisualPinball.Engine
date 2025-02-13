@@ -26,12 +26,12 @@ namespace VisualPinball.Unity.Editor
 	public class CoilSoundComponentInspector : SoundComponentInspector
 	{
 		[SerializeField]
-		private VisualTreeAsset inspectorXml;
+		private VisualTreeAsset subInspectorXml;
 
 		public override VisualElement CreateInspectorGUI()
 		{
 			var root = base.CreateInspectorGUI();
-			var inspectorUi = inspectorXml.Instantiate();
+			var inspectorUi = subInspectorXml.Instantiate();
 			root.Add(inspectorUi);
 			var coilNameDropdown = root.Q<DropdownField>("coil-name");
 			var coilNameProp = serializedObject.FindProperty(nameof(CoilSoundComponent._coilName));

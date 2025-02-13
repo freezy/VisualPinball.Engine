@@ -1,0 +1,12 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" xsi="http://www.w3.org/2001/XMLSchema-instance" engine="UnityEngine.UIElements" editor="UnityEditor.UIElements" noNamespaceSchemaLocation="../../../../../UIElementsSchema/UIElements.xsd" editor-extension-mode="True">
+    <uie:PropertyField name="sound-asset" binding-path="_soundAsset" label="Sound Asset" />
+    <uie:PropertyField name="interrupt" binding-path="_interrupt" label="Interrupt" />
+    <uie:PropertyField name="volume" binding-path="_volume" label="Volume" />
+    <ui:VisualElement name="callout-fields" style="flex-grow: 1;">
+        <uie:PropertyField name="priority" binding-path="_priority" label="Priority" />
+        <uie:PropertyField name="max-queue-time" binding-path="_maxQueueTime" label="Max Queue Time" tooltip="How many seconds to wait in the queue before discarding the request. -1 = no limit" />
+    </ui:VisualElement>
+    <ui:VisualElement name="music-fields" style="flex-grow: 1;">
+        <uie:PropertyField name="priority" binding-path="_priority" label="Priority" />
+    </ui:VisualElement>
+</ui:UXML>

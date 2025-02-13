@@ -3,6 +3,5 @@
     <ui:TextField picking-mode="Ignore" label="Description" multiline="true" binding-path="_description" name="description" class="multiline-textfield unity-base-field__aligned" />
     <uie:PropertyField name="clips" binding-path="_clips" label="Clips" />
     <uie:PropertyField name="clip-selection-method" binding-path="_clipSelectionMethod" label="Clip Selection Method" />
-    <uie:PropertyField name="is-spatial" binding-path="_isSpatial" label="Is Spatial" />
     <uie:ObjectField label="Audio Mixer Group" binding-path="_audioMixerGroup" name="audio-mixer-group" type="UnityEngine.Audio.AudioMixerGroup, UnityEngine.AudioModule" class="unity-base-field__aligned" />
 </ui:UXML>

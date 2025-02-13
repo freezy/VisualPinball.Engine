@@ -27,10 +27,10 @@ namespace VisualPinball.Unity
 	/// Base component for playing a <c>SoundAsset</c> using the public methods <c>Play</c> and <c>Stop</c>.
 	/// </summary>
 	[AddComponentMenu("Visual Pinball/Sound/Sound")]
-	public class SoundEffectComponent : EnableAfterAwakeComponent
+	public class SoundComponent : EnableAfterAwakeComponent
 	{
 		[SerializeReference]
-		protected SoundEffectAsset _soundAsset;
+		protected SoundAsset _soundAsset;
 
 		[SerializeField]
 		[Tooltip("Should the sound be interrupted if it is triggered again while already playing?")]
@@ -38,6 +38,12 @@ namespace VisualPinball.Unity
 
 		[SerializeField, Range(0f, 1f)]
 		private float _volume = 1f;
+
+		[SerializeField]
+		private SoundPriority _priority;
+
+		[SerializeField]
+		private float _maxQueueTime = -1;
 
 		private CancellationTokenSource _instantCts;
 		private CancellationTokenSource _allowFadeCts;
@@ -78,7 +84,7 @@ namespace VisualPinball.Unity
 
 			try
 			{
-				await _soundAsset.Play(gameObject, _allowFadeCts.Token, _instantCts.Token, _volume);
+				//await _soundAsset.Play(gameObject, _allowFadeCts.Token, _instantCts.Token, _volume);
 			}
 			catch (OperationCanceledException) { }
 		}

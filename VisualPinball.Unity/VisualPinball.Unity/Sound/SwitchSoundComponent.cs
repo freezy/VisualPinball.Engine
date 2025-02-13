@@ -28,7 +28,7 @@ namespace VisualPinball.Unity
 	public class SwitchSoundComponent : BinaryEventSoundComponent<IApiSwitch, SwitchEventArgs>
 	{
 		[SerializeField, HideInInspector]
-		public string _switchName;
+		private string _switchName;
 
 		public override Type GetRequiredType() => typeof(ISwitchDeviceComponent);
 
@@ -41,9 +41,8 @@ namespace VisualPinball.Unity
 			foreach (var component in GetComponents<ISwitchDeviceComponent>())
 			{
 				@switch = player.Switch(component, _switchName);
-				if (@switch != null) {
+				if (@switch != null)
 					return true;
-				}
 			}
 			return false;
 		}

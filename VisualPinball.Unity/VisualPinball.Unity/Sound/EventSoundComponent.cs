@@ -19,7 +19,8 @@ namespace VisualPinball.Unity
 	/// <summary>
 	/// Start and or stop a sound when an event occurs.
 	/// </summary>
-	public abstract class EventSoundComponent<TEventSource, TEventArgs> : SoundEffectComponent where TEventSource : class
+	public abstract class EventSoundComponent<TEventSource, TEventArgs> : SoundComponent
+		where TEventSource : class
 	{
 		private TEventSource _eventSource;
 
@@ -31,9 +32,12 @@ namespace VisualPinball.Unity
 		protected override void OnEnableAfterAfterAwake()
 		{
 			base.OnEnableAfterAfterAwake();
-			if (TryFindEventSource(out _eventSource)) {
+			if (TryFindEventSource(out _eventSource))
+			{
 				Subscribe(_eventSource);
-			} else {
+			}
+			else
+			{
 				Logger.Warn(
 					$"Could not find sound event source of type {typeof(TEventSource).Name} on "
 						+ $"game object '{name}.' Make sure an appropriate component is attached."

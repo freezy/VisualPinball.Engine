@@ -28,6 +28,8 @@ namespace VisualPinball.Unity
 	{
 		public float Volume => _volume;
 
+		public override bool Loop => true;
+
 		[SerializeField]
 		[Range(0f, 1f)]
 		private float _volume = 1f;

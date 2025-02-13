@@ -4,7 +4,9 @@ MonoImporter:
   externalObjects: {}
   serializedVersion: 2
   defaultReferences:
-  - inspectorXml: {fileID: 9197481963319205126, guid: 2e43810c575be6d46ae19bed7c1b38bd,
+  - inspectorXml: {fileID: 9197481963319205126, guid: 86610575353b6f44aa325d86ee6d779b,
+      type: 3}
+  - subInspectorXml: {fileID: 9197481963319205126, guid: 2e43810c575be6d46ae19bed7c1b38bd,
       type: 3}
   executionOrder: 0
   icon: {instanceID: 0}

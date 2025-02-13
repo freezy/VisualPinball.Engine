@@ -27,6 +27,8 @@ namespace VisualPinball.Unity
 	)]
 	public class CalloutAsset : SoundAsset
 	{
+		public override bool Loop => false;
+
 		public async Task Play(GameObject audioObj, CancellationToken ct)
 		{
 			ct.ThrowIfCancellationRequested();
