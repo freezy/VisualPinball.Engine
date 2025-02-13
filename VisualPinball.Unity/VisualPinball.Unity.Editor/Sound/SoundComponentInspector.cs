@@ -50,19 +50,17 @@ namespace VisualPinball.Unity.Editor
 				HelpBoxMessageType.Warning
 			);
 			container.Add(helpBox);
-			var soundAssetProp = serializedObject.FindProperty(nameof(SoundComponent._soundAsset));
+			var soundAssetProp = serializedObject.FindProperty("_soundAsset");
 			UpdateVisibility(soundAssetProp);
 			helpBox.TrackPropertyValue(soundAssetProp, UpdateVisibility);
 
 			void UpdateVisibility(SerializedProperty prop)
 			{
 				var soundAsset = prop.objectReferenceValue as SoundAsset;
-				if (soundAsset == null || soundAsset.IsValid()) {
+				if (soundAsset == null || soundAsset.IsValid())
 					helpBox.style.display = DisplayStyle.None;
-
-				} else {
+				else
 					helpBox.style.display = DisplayStyle.Flex;
-				}
 			}
 		}
 
@@ -93,7 +91,6 @@ namespace VisualPinball.Unity.Editor
 					continue;
 				if (!(target as SoundEffectComponent).SupportsLoopingSoundAssets())
 					return false;
-				}
 			}
 			return true;
 		}
@@ -118,9 +115,8 @@ namespace VisualPinball.Unity.Editor
 				var soundAsset = soundAssetProp.objectReferenceValue as SoundEffectAsset;
 				if (soundAsset && soundAsset.Loop && !AllTargetsSupportLoopingSoundAssets())
 					helpBox.style.display = DisplayStyle.Flex;
-				} else {
+				else
 					helpBox.style.display = DisplayStyle.None;
-				}
 			}
 		}
 
@@ -146,7 +142,7 @@ namespace VisualPinball.Unity.Editor
 			void UpdateDropdown(SerializedProperty property)
 			{
 				var id = property.stringValue;
-				if (idsToDisplayNames.TryGetValue(id, out var displayName)) {
+				if (idsToDisplayNames.TryGetValue(id, out var displayName))
 					dropdown.value = displayName;
 				else if (string.IsNullOrEmpty(id) && idsToDisplayNames.Count > 0)
 				{

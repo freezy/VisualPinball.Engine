@@ -19,7 +19,7 @@ namespace VisualPinball.Unity
 	/// <summary>
 	/// Start and or stop a sound when an event occurs.
 	/// </summary>
-	public abstract class EventSoundComponent<TEventSource, TEventArgs> : SoundComponent where TEventSource : class
+	public abstract class EventSoundComponent<TEventSource, TEventArgs> : SoundEffectComponent where TEventSource : class
 	{
 		private TEventSource _eventSource;
 

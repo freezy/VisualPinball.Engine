@@ -66,14 +66,16 @@ namespace VisualPinball.Unity
 				Logger.Warn("Cannot play a disabled sound component.");
 				return;
 			}
+
 			if (_soundAsset == null)
 			{
 				Logger.Warn("Cannot play without sound asset. Assign it in the inspector.");
 				return;
 			}
 
-			if (_interrupt) {
+			if (_interrupt)
 				Stop(allowFade: true);
+
 			try
 			{
 				await _soundAsset.Play(gameObject, _allowFadeCts.Token, _instantCts.Token, _volume);
@@ -83,8 +85,9 @@ namespace VisualPinball.Unity
 
 		public void Stop(bool allowFade)
 		{
-			if (!isActiveAndEnabled) {
+			if (!isActiveAndEnabled)
 				return;
+
 			if (allowFade)
 			{
 				_allowFadeCts?.Cancel();
