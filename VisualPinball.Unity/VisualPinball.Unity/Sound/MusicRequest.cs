@@ -42,7 +42,7 @@ namespace VisualPinball.Unity
 		public int Index { get; set; }
 
 		// Used to sort the request stack to determine which request to play
-		public int CompareTo(MusicRequest other)
+		public readonly int CompareTo(MusicRequest other)
 		{
 			if (Priority != other.Priority)
 				return other.Priority.CompareTo(Priority);
