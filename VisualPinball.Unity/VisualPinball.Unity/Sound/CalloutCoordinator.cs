@@ -27,7 +27,7 @@ namespace VisualPinball.Unity
 		[SerializeField]
 		[Range(0f, 3f)]
 		[Tooltip("How many seconds to pause after a callout before the next one can be started")]
-		private float _pauseDuration;
+		private float _pauseDuration = 0.5f;
 
 		private readonly List<CalloutRequest> _calloutQ = new();
 		private CancellationTokenSource _loopCts;
