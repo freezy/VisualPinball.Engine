@@ -80,25 +80,24 @@ namespace VisualPinball.Unity
 
 				var callout = _calloutQ[0];
 				_calloutQ.RemoveAt(0);
-				var calloutGo = GetCalloutGameObject(callout.VoiceAsset.name);
+				var calloutGo = GetCalloutGameObject();
 				await callout.Play(calloutGo, ct);
+				Destroy(calloutGo);
 				await Task.Delay(TimeSpan.FromSeconds(_pauseDuration), ct);
 			}
 		}
 
-		private GameObject GetCalloutGameObject(string calloutName)
+		private GameObject GetCalloutGameObject()
 		{
-			const string calloutsGoName = "Callouts";
-			var calloutsParent = transform.Find(calloutsGoName);
-			if (calloutsParent == null)
+			const string calloutsGoName = "Callout";
+			var calloutTransform = transform.Find(calloutsGoName);
+			if (calloutTransform == null)
 			{
-				calloutsParent = new GameObject(calloutsGoName).transform;
-				calloutsParent.SetParent(transform, false);
+				calloutTransform = new GameObject(calloutsGoName).transform;
+				calloutTransform.SetParent(transform, false);
 			}
 
-			var calloutGo = new GameObject(calloutName);
-			calloutGo.transform.SetParent(calloutsParent, false);
-			return calloutGo;
+			return calloutTransform.gameObject;
 		}
 	}
 }
