@@ -40,8 +40,8 @@ namespace VisualPinball.Unity
 	/// variation. Supports looping sounds with optional fade.
 	/// </summary>
 	[CreateAssetMenu(
-		fileName = "Sound Effect",
-		menuName = "Visual Pinball/Sound/Sound Effect Asset",
+		fileName = "SoundEffect",
+		menuName = "Visual Pinball/Sound/SoundEffectAsset",
 		order = 102
 	)]
 	public class SoundEffectAsset : SoundAsset

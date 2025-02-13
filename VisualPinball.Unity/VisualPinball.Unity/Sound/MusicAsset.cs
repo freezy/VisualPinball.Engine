@@ -20,8 +20,8 @@ using UnityEngine;
 namespace VisualPinball.Unity
 {
 	[CreateAssetMenu(
-		fileName = "Music Asset",
-		menuName = "Visual Pinball/Sound/Music Asset",
+		fileName = "MusicAsset",
+		menuName = "Visual Pinball/Sound/MusicAsset",
 		order = 102
 	)]
 	public class MusicAsset : SoundAsset
