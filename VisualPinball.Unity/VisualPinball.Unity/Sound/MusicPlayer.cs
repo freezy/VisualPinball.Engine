@@ -28,6 +28,13 @@ namespace VisualPinball.Unity
 	/// </summary>
 	public class MusicPlayer : MonoBehaviour
 	{
+		public enum AfterStopAction
+		{
+			None,
+			DeleteSelf,
+			DeleteGameObject,
+		}
+
 		public bool ShouldPlay { get; set; }
 		public bool IsPlaying => _audioSource != null && _audioSource.isPlaying;
 		public bool StartAtFullVolume { get; set; }
@@ -35,11 +42,13 @@ namespace VisualPinball.Unity
 
 		private AudioSource _audioSource;
 		private float _fadeDuration;
+		private AfterStopAction _afterStopAction;
 
-		public void Init(MusicAsset musicAsset, float fadeDuration)
+		public void Init(MusicAsset musicAsset, float fadeDuration, AfterStopAction afterStopAction)
 		{
 			MusicAsset = musicAsset;
 			_fadeDuration = fadeDuration;
+			_afterStopAction = afterStopAction;
 		}
 
 		private void Start()
@@ -72,6 +81,17 @@ namespace VisualPinball.Unity
 			else if (!ShouldPlay && _audioSource.isPlaying && _audioSource.volume == 0f)
 			{
 				_audioSource.Stop();
+				switch (_afterStopAction)
+				{
+					case AfterStopAction.None:
+						break;
+					case AfterStopAction.DeleteSelf:
+						Destroy(this);
+						break;
+					case AfterStopAction.DeleteGameObject:
+						Destroy(gameObject);
+						break;
+				}
 			}
 
 			var targetVolume = ShouldPlay ? MusicAsset.Volume : 0f;

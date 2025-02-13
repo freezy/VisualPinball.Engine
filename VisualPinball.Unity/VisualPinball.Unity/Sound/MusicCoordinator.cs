@@ -86,7 +86,11 @@ namespace VisualPinball.Unity
 				{
 					var musicGo = GetMusicGameObject(musicToPlay.name);
 					playerToPlay = musicGo.AddComponent<MusicPlayer>();
-					playerToPlay.Init(musicToPlay, _fadeDuration);
+					playerToPlay.Init(
+						musicToPlay,
+						_fadeDuration,
+						MusicPlayer.AfterStopAction.DeleteGameObject
+					);
 					_players.Add(playerToPlay);
 				}
 
