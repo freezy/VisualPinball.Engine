@@ -24,9 +24,6 @@ namespace VisualPinball.Unity
 	public class CalloutRequester : MonoBehaviour
 	{
 		[SerializeField]
-		private CalloutCoordinator _coordinator;
-
-		[SerializeField]
 		private VoiceAsset _voiceAsset;
 
 		[SerializeField]
@@ -35,9 +32,12 @@ namespace VisualPinball.Unity
 		[SerializeField]
 		private float _maxQueueTime = -1f;
 
+		private CalloutCoordinator _coordinator;
+
 		private void OnEnable()
 		{
 			var request = new CalloutRequest(_voiceAsset, _priority, _maxQueueTime);
+			_coordinator = GetComponentInParent<CalloutCoordinator>();
 			_coordinator.EnqueueCallout(request);
 		}
 	}

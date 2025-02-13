@@ -24,9 +24,6 @@ namespace VisualPinball.Unity
 	public class MusicRequester : MonoBehaviour
 	{
 		[SerializeField]
-		private MusicCoordinator _coordinator;
-
-		[SerializeField]
 		private MusicAsset _musicAsset;
 
 		[SerializeField]
@@ -34,9 +31,12 @@ namespace VisualPinball.Unity
 
 		private int requestId;
 
+		private MusicCoordinator _coordinator;
+
 		private void OnEnable()
 		{
 			var request = new MusicRequest(_musicAsset, _priority);
+			_coordinator = GetComponentInParent<MusicCoordinator>();
 			_coordinator.AddRequest(request, out requestId);
 		}
 
