@@ -80,7 +80,7 @@ namespace VisualPinball.Unity
 
 				var callout = _calloutQ[0];
 				_calloutQ.RemoveAt(0);
-				var calloutGo = GetCalloutGameObject(callout.VoiceAsset.name);
+				var calloutGo = GetCalloutGameObject(callout.CalloutAsset.name);
 				await callout.Play(calloutGo, ct);
 				Destroy(calloutGo);
 				await Task.Delay(TimeSpan.FromSeconds(_pauseDuration), ct);

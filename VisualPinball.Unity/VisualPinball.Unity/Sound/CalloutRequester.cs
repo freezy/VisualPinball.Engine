@@ -24,7 +24,7 @@ namespace VisualPinball.Unity
 	public class CalloutRequester : MonoBehaviour
 	{
 		[SerializeField]
-		private VoiceAsset _voiceAsset;
+		private CalloutAsset _calloutAsset;
 
 		[SerializeField]
 		private SoundPriority _priority = SoundPriority.Medium;
@@ -36,7 +36,7 @@ namespace VisualPinball.Unity
 
 		private void OnEnable()
 		{
-			var request = new CalloutRequest(_voiceAsset, _priority, _maxQueueTime);
+			var request = new CalloutRequest(_calloutAsset, _priority, _maxQueueTime);
 			_coordinator = GetComponentInParent<CalloutCoordinator>();
 			_coordinator.EnqueueCallout(request);
 		}

@@ -20,7 +20,7 @@ using UnityEngine.UIElements;
 
 namespace VisualPinball.Unity.Editor
 {
-	[CustomEditor(typeof(VoiceAsset)), CanEditMultipleObjects]
+	[CustomEditor(typeof(CalloutAsset)), CanEditMultipleObjects]
 	public class VoiceAssetInspector : SoundAssetInspector
 	{
 		[SerializeField]

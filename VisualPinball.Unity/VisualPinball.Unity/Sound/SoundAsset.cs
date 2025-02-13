@@ -35,7 +35,7 @@ namespace VisualPinball.Unity
 	}
 
 	/// <summary>
-	/// Common base class for sound effect assets, voice assets, and music assets. Multiple audio
+	/// Common base class for sound effect assets, callout assets, and music assets. Multiple audio
 	/// clips can be assigned for variation. Instances of this class are Unity assets and can
 	/// therefore be stored in the project files or in an asset library for reuse across tables.
 	/// </summary>

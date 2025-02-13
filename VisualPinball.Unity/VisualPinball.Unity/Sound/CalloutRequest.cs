@@ -27,22 +27,22 @@ namespace VisualPinball.Unity
 	{
 		public SoundPriority Priority { get; private set; }
 
-		public readonly VoiceAsset VoiceAsset;
+		public readonly CalloutAsset CalloutAsset;
 		private readonly float _deadline;
 
 		/// <summary>
 		/// Create a callout
 		/// </summary>
-		/// <param name="voiceAsset">The voice asset to play</param>
+		/// <param name="calloutAsset">The callout asset to play</param>
 		/// <param name="priority">Higher priority callouts will play before lower priority ones</param>
 		/// <param name="maxQueueTime">How many seconds to wait in the queue before discarding the request. -1 = no limit</param>
 		public CalloutRequest(
-			VoiceAsset voiceAsset,
+			CalloutAsset calloutAsset,
 			SoundPriority priority,
 			float maxQueueTime = -1f
 		)
 		{
-			VoiceAsset = voiceAsset;
+			CalloutAsset = calloutAsset;
 			Priority = priority;
 			if (maxQueueTime != -1f)
 				_deadline = Time.time + maxQueueTime;
@@ -58,6 +58,6 @@ namespace VisualPinball.Unity
 		}
 
 		public readonly async Task Play(GameObject audioObj, CancellationToken ct) =>
-			await VoiceAsset.Play(audioObj, ct);
+			await CalloutAsset.Play(audioObj, ct);
 	}
 }

@@ -21,11 +21,11 @@ using UnityEngine;
 namespace VisualPinball.Unity
 {
 	[CreateAssetMenu(
-		fileName = "Voice Asset",
-		menuName = "Visual Pinball/Sound/Voice Asset",
+		fileName = "CalloutAsset",
+		menuName = "Visual Pinball/Sound/CalloutAsset",
 		order = 102
 	)]
-	public class VoiceAsset : SoundAsset
+	public class CalloutAsset : SoundAsset
 	{
 		public async Task Play(GameObject audioObj, CancellationToken ct)
 		{
