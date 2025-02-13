@@ -23,6 +23,11 @@ using Logger = NLog.Logger;
 
 namespace VisualPinball.Unity
 {
+	/// <summary>
+	/// Manages music playback using a stack. Other scripts can add requests to the stack.
+	/// The stack is sorted based on priority and age of the requests. The topmost request is
+	/// played. Music fades out when stopped. New music fades in if other music is playing.
+	/// </summary>
 	public class MusicCoordinator : MonoBehaviour
 	{
 		[Tooltip("How many seconds should transitions between songs take?")]

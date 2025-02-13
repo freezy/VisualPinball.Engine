@@ -22,6 +22,10 @@ using UnityEngine;
 
 namespace VisualPinball.Unity
 {
+	/// <summary>
+	/// Manages playback of callouts. Maintains a queue of callout requests. Supports prioritizing
+	/// certain callouts over others and enforcing a minimum pause between two callouts.
+	/// </summary>
 	public class CalloutCoordinator : MonoBehaviour
 	{
 		[SerializeField]

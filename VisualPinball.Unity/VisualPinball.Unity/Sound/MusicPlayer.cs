@@ -21,6 +21,11 @@ using UnityEditor;
 
 namespace VisualPinball.Unity
 {
+	/// <summary>
+	/// Manages the playback of a single music asset according to the <c>ShouldPlay</c> property
+	/// controlled by <c>MusicCoordinator</c>. Always fades towards the desired state, unless
+	/// <c>StartAtFullVolume</c> is true when starting.
+	/// </summary>
 	public class MusicPlayer : MonoBehaviour
 	{
 		public bool ShouldPlay { get; set; }

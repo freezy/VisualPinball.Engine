@@ -18,6 +18,10 @@ using System;
 
 namespace VisualPinball.Unity
 {
+	/// <summary>
+	/// Used to request from <c>MusicCoordinator</c> to play a <c>MusicAsset</c>. Supports sorting
+	/// to decide which request is played first.
+	/// </summary>
 	public struct MusicRequest : IComparable<MusicRequest>
 	{
 		public MusicRequest(MusicAsset musicAsset, SoundPriority priority = SoundPriority.Medium)

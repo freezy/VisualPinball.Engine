@@ -20,6 +20,9 @@ using UnityEngine;
 
 namespace VisualPinball.Unity
 {
+	/// <summary>
+	/// Used to request from <c>CalloutCoordinator</c> to play a callout.
+	/// </summary>
 	public struct CalloutRequest
 	{
 		public SoundPriority Priority { get; private set; }
