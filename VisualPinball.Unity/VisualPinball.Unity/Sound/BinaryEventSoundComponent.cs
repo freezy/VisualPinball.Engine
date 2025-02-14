@@ -46,7 +46,7 @@ namespace VisualPinball.Unity
 		[SerializeField]
 		private StopWhen _stopWhen = StopWhen.Never;
 
-		protected override async void OnEvent(object sender, TEventArgs e)
+		protected override void OnEvent(object sender, TEventArgs e)
 		{
 			bool isEnabled = InterpretAsBinary(e);
 			if (
@@ -54,7 +54,7 @@ namespace VisualPinball.Unity
 				|| (!isEnabled && _stopWhen == StopWhen.TurnedOff)
 			)
 			{
-				Stop(allowFade: true);
+				StopAllSounds(allowFade: true);
 			}
 
 			if (
@@ -62,7 +62,7 @@ namespace VisualPinball.Unity
 				|| (!isEnabled && _startWhen == StartWhen.TurnedOff)
 			)
 			{
-				await Play();
+				StartSound();
 			}
 		}
 

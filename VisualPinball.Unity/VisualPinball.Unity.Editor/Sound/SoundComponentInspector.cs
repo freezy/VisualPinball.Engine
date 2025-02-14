@@ -27,13 +27,13 @@ namespace VisualPinball.Unity.Editor
 	public class SoundComponentInspector : UnityEditor.Editor
 	{
 		[SerializeField]
-		private VisualTreeAsset inspectorXml;
+		private VisualTreeAsset soundComponentInspectorXml;
 
 		public override VisualElement CreateInspectorGUI()
 		{
 			var container = new VisualElement();
 			AddHelpBoxes(container);
-			container.Add(inspectorXml.Instantiate());
+			container.Add(soundComponentInspectorXml.Instantiate());
 			ConfigureFieldVisibility(container);
 			return container;
 		}

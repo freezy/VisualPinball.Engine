@@ -116,35 +116,43 @@ namespace VisualPinball.Unity
 					instantCt
 				);
 
+				var waitUntilStopTask = WaitUntilAudioStops(audioSource, eitherCts.Token);
+
 				// Fade in
 				if (_loop && _fadeInTime > 0f)
 				{
-					try
-					{
-						await Fade(
-							audioSource,
-							0f,
-							audioSource.volume,
-							_fadeInTime,
-							eitherCts.Token
-						);
-					}
-					catch (OperationCanceledException) { }
+					var fadeTask = Fade(
+						audioSource,
+						0f,
+						audioSource.volume,
+						_fadeInTime,
+						eitherCts.Token
+					);
+					await Task.WhenAny(waitUntilStopTask, fadeTask);
 				}
-				instantCt.ThrowIfCancellationRequested();
 
 				// Play until sound stops or cancellation is requested
 				try
 				{
-					await WaitUntilAudioStops(audioSource, eitherCts.Token);
+					await waitUntilStopTask;
 				}
-				catch (OperationCanceledException) { }
-				instantCt.ThrowIfCancellationRequested();
-
-				// Fade out
-				if (audioSource != null && audioSource.isPlaying && _loop && _fadeOutTime > 0f)
+				catch (OperationCanceledException)
 				{
-					await Fade(audioSource, audioSource.volume, 0f, _fadeOutTime, instantCt);
+					instantCt.ThrowIfCancellationRequested();
+					// Fade out
+					if (_loop && _fadeOutTime > 0f)
+					{
+						var fadeTask = Fade(
+							audioSource,
+							audioSource.volume,
+							0f,
+							_fadeOutTime,
+							instantCt
+						);
+						waitUntilStopTask = WaitUntilAudioStops(audioSource, instantCt);
+						await Task.WhenAny(waitUntilStopTask, fadeTask);
+						allowFadeOutCt.ThrowIfCancellationRequested();
+					}
 				}
 			}
 			finally
@@ -182,7 +190,7 @@ namespace VisualPinball.Unity
 #else
 				var deltaTime = Time.deltaTime;
 #endif
-				progress += (1f / duration) * deltaTime;
+				progress += 1f / duration * deltaTime;
 				await Task.Yield();
 			}
 		}

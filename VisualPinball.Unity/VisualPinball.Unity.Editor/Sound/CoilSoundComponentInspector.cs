@@ -23,15 +23,15 @@ using UnityEngine.UIElements;
 namespace VisualPinball.Unity.Editor
 {
 	[CustomEditor(typeof(CoilSoundComponent)), CanEditMultipleObjects]
-	public class CoilSoundComponentInspector : SoundComponentInspector
+	public class CoilSoundComponentInspector : BinaryEventSoundComponentInspector
 	{
 		[SerializeField]
-		private VisualTreeAsset subInspectorXml;
+		private VisualTreeAsset coilSoundInspectorXml;
 
 		public override VisualElement CreateInspectorGUI()
 		{
 			var root = base.CreateInspectorGUI();
-			var inspectorUi = subInspectorXml.Instantiate();
+			var inspectorUi = coilSoundInspectorXml.Instantiate();
 			root.Add(inspectorUi);
 			var coilNameDropdown = root.Q<DropdownField>("coil-name");
 			var coilNameProp = serializedObject.FindProperty(nameof(CoilSoundComponent._coilName));

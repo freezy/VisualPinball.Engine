@@ -27,6 +27,12 @@ namespace VisualPinball.Unity
 	{
 		public SoundPriority Priority { get; private set; }
 
+		/// <summary>
+		/// Set by <c>CalloutCoordinator</c> to uniquely identify this request so it can be removed
+		/// later.
+		/// </summary>
+		public int Index { get; set; }
+
 		public readonly CalloutAsset CalloutAsset;
 		private readonly float _deadline;
 
@@ -48,6 +54,7 @@ namespace VisualPinball.Unity
 				_deadline = Time.time + maxQueueTime;
 			else
 				_deadline = -1f;
+			Index = -1;
 		}
 
 		public readonly bool IsExpired()
@@ -56,8 +63,5 @@ namespace VisualPinball.Unity
 				return false;
 			return Time.time > _deadline;
 		}
-
-		public readonly async Task Play(GameObject audioObj, CancellationToken ct) =>
-			await CalloutAsset.Play(audioObj, ct);
 	}
 }

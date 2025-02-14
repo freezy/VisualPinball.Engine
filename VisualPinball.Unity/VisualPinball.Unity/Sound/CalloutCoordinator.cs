@@ -18,7 +18,9 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using NLog;
 using UnityEngine;
+using Logger = NLog.Logger;
 
 namespace VisualPinball.Unity
 {
@@ -35,17 +37,47 @@ namespace VisualPinball.Unity
 
 		private readonly List<CalloutRequest> _calloutQ = new();
 		private CancellationTokenSource _loopCts;
+		private CancellationTokenSource _currentCalloutCts;
 		private Task _loopTask;
 		private TaskCompletionSource<bool> _waitForNewCalloutTcs;
+		private int _requestCounter;
+		private int _idOfCurrentlyPlayingRequest = -1;
 
-		public void EnqueueCallout(CalloutRequest callout)
+		private static Logger Logger = LogManager.GetCurrentClassLogger();
+
+		public void EnqueueCallout(CalloutRequest request, out int requestId)
 		{
-			var i = _calloutQ.FindIndex(x => x.Priority < callout.Priority);
+			request.Index = _requestCounter;
+			requestId = _requestCounter;
+			_requestCounter++;
+			var i = _calloutQ.FindIndex(x => x.Priority < request.Priority);
 			if (i != -1)
-				_calloutQ.Insert(i, callout);
+				_calloutQ.Insert(i, request);
 			else
-				_calloutQ.Add(callout);
+				_calloutQ.Add(request);
 			_waitForNewCalloutTcs?.TrySetResult(true);
+		}
+
+		public void DequeueCallout(int requestId)
+		{
+			var index = _calloutQ.FindIndex(x => x.Index == requestId);
+			if (index != -1)
+				_calloutQ.RemoveAt(index);
+			else if (
+				_idOfCurrentlyPlayingRequest != -1
+				&& requestId == _idOfCurrentlyPlayingRequest
+			)
+				_currentCalloutCts.Cancel();
+			else if (requestId >= 0 && requestId <= _requestCounter)
+				Logger.Info(
+					$"Cannot dequeue callout request with id '{requestId}' because it already "
+						+ "finished playing."
+				);
+			else
+				Logger.Error(
+					$"Cannot dequeue callout request with id '{requestId}' because no such request "
+						+ "was previously made."
+				);
 		}
 
 		private void OnEnable()
@@ -78,12 +110,59 @@ namespace VisualPinball.Unity
 					await _waitForNewCalloutTcs.Task;
 				}
 
-				var callout = _calloutQ[0];
+				var request = _calloutQ[0];
 				_calloutQ.RemoveAt(0);
-				var calloutGo = GetCalloutGameObject(callout.CalloutAsset.name);
-				await callout.Play(calloutGo, ct);
-				Destroy(calloutGo);
+
+				_currentCalloutCts = new CancellationTokenSource();
+
+				try
+				{
+					using var playCts = CancellationTokenSource.CreateLinkedTokenSource(
+						ct,
+						_currentCalloutCts.Token
+					);
+
+					_idOfCurrentlyPlayingRequest = request.Index;
+					await Play(request, playCts.Token);
+				}
+				catch (OperationCanceledException)
+				{
+					// If only the current callout was canceled, continue, but if it's the whole
+					// loop, throw
+					ct.ThrowIfCancellationRequested();
+				}
+				finally
+				{
+					_idOfCurrentlyPlayingRequest = -1;
+					_currentCalloutCts.Dispose();
+				}
+
 				await Task.Delay(TimeSpan.FromSeconds(_pauseDuration), ct);
+			}
+		}
+
+		private async Task Play(CalloutRequest request, CancellationToken ct)
+		{
+			ct.ThrowIfCancellationRequested();
+			var calloutGo = GetCalloutGameObject(request.CalloutAsset.name);
+			var audioSource = calloutGo.AddComponent<AudioSource>();
+
+			try
+			{
+				request.CalloutAsset.ConfigureAudioSource(audioSource);
+				audioSource.Play();
+				await SoundAsset.WaitUntilAudioStops(audioSource, ct);
+			}
+			finally
+			{
+				if (audioSource != null)
+				{
+					if (Application.isPlaying)
+						Destroy(audioSource);
+					else
+						DestroyImmediate(audioSource);
+				}
+				Destroy(calloutGo);
 			}
 		}
 

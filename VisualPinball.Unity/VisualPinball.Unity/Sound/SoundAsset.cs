@@ -106,9 +106,25 @@ namespace VisualPinball.Unity
 			}
 		}
 
+		/// <summary>
+		/// <c>AudioSource.isPlaying</c> returns <c>false</c> if the window loses focus, so that
+		/// needs to be checked as well to make sure an audio source that was playing actually has
+		/// stopped.
+		/// </summary>
+		public static bool HasStopped(AudioSource audioSource)
+		{
+			if (audioSource.isPlaying)
+				return false;
+#if UNITY_EDITOR
+			return EditorApplication.isFocused;
+#else
+			return Application.isFocused;
+#endif
+		}
+
 		public static async Task WaitUntilAudioStops(AudioSource audioSource, CancellationToken ct)
 		{
-			while (audioSource != null && (audioSource.isPlaying || !EditorApplication.isFocused))
+			while (!HasStopped(audioSource))
 			{
 				await Task.Yield();
 				ct.ThrowIfCancellationRequested();

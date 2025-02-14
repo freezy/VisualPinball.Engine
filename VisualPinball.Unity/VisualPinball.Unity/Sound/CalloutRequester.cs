@@ -34,11 +34,18 @@ namespace VisualPinball.Unity
 
 		private CalloutCoordinator _coordinator;
 
+		private int _requestId;
+
 		private void OnEnable()
 		{
 			var request = new CalloutRequest(_calloutAsset, _priority, _maxQueueTime);
 			_coordinator = GetComponentInParent<CalloutCoordinator>();
-			_coordinator.EnqueueCallout(request);
+			_coordinator.EnqueueCallout(request, out _requestId);
+		}
+
+		private void OnDisable()
+		{
+			_coordinator.DequeueCallout(_requestId);
 		}
 	}
 }

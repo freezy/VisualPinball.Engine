@@ -45,7 +45,7 @@ namespace VisualPinball.Unity
 			return false;
 		}
 
-		protected override async void OnEvent(object sender, HitEventArgs e) => await Play();
+		protected override void OnEvent(object sender, HitEventArgs e) => StartSound();
 
 		protected override void Subscribe(IApiHittable eventSource) => eventSource.Hit += OnEvent;
 

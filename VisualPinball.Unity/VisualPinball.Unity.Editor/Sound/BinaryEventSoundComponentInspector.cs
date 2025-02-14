@@ -14,19 +14,24 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-using System.Threading;
-using System.Threading.Tasks;
+using UnityEditor;
 using UnityEngine;
+using UnityEngine.UIElements;
 
-namespace VisualPinball.Unity
+namespace VisualPinball.Unity.Editor
 {
-	[CreateAssetMenu(
-		fileName = "CalloutAsset",
-		menuName = "Visual Pinball/Sound/CalloutAsset",
-		order = 102
-	)]
-	public class CalloutAsset : SoundAsset
+	[CanEditMultipleObjects]
+	public class BinaryEventSoundComponentInspector : SoundComponentInspector
 	{
-		public override bool Loop => false;
+		[SerializeField]
+		private VisualTreeAsset binaryEventSoundInspectorXml;
+
+		public override VisualElement CreateInspectorGUI()
+		{
+			var root = base.CreateInspectorGUI();
+			var inspectorUi = binaryEventSoundInspectorXml.Instantiate();
+			root.Add(inspectorUi);
+			return root;
+		}
 	}
 }

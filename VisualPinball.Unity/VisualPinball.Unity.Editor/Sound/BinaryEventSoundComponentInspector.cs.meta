@@ -1,5 +1,5 @@
 fileFormatVersion: 2
-guid: efd14260f42063e4aadba8b265bad210
+guid: 65e51f0d7750c174dbfbbf7e0aae53f1
 MonoImporter:
   externalObjects: {}
   serializedVersion: 2
@@ -7,8 +7,6 @@ MonoImporter:
   - soundComponentInspectorXml: {fileID: 9197481963319205126, guid: 86610575353b6f44aa325d86ee6d779b,
       type: 3}
   - binaryEventSoundInspectorXml: {fileID: 9197481963319205126, guid: 4f53d90e909a16548a163671ab9f2132,
-      type: 3}
-  - coilSoundInspectorXml: {fileID: 9197481963319205126, guid: 2e43810c575be6d46ae19bed7c1b38bd,
       type: 3}
   executionOrder: 0
   icon: {instanceID: 0}

@@ -4,7 +4,7 @@ MonoImporter:
   externalObjects: {}
   serializedVersion: 2
   defaultReferences:
-  - inspectorXml: {fileID: 9197481963319205126, guid: 86610575353b6f44aa325d86ee6d779b,
+  - soundComponentInspectorXml: {fileID: 9197481963319205126, guid: 86610575353b6f44aa325d86ee6d779b,
       type: 3}
   executionOrder: 0
   icon: {instanceID: 0}

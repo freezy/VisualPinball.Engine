@@ -23,15 +23,15 @@ using UnityEngine.UIElements;
 namespace VisualPinball.Unity.Editor
 {
 	[CustomEditor(typeof(SwitchSoundComponent)), CanEditMultipleObjects]
-	public class SwitchSoundComponentInspector : SoundComponentInspector
+	public class SwitchSoundComponentInspector : BinaryEventSoundComponentInspector
 	{
 		[SerializeField]
-		private VisualTreeAsset subInspectorXml;
+		private VisualTreeAsset switchSoundInspectorXml;
 
 		public override VisualElement CreateInspectorGUI()
 		{
 			var root = base.CreateInspectorGUI();
-			var inspectorUi = subInspectorXml.Instantiate();
+			var inspectorUi = switchSoundInspectorXml.Instantiate();
 			root.Add(inspectorUi);
 			var switchNameDropdown = root.Q<DropdownField>("switch-name");
 			var switchNameProp = serializedObject.FindProperty("_switchName");
