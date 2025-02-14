@@ -98,12 +98,11 @@ namespace VisualPinball.Unity
 		{
 			if (requestId < 0 || requestId >= _requestCounter)
 				return CalloutRequestStatus.UnknownId;
-			else if (_calloutQ.Any(x => x.Index == requestId))
+			if (_calloutQ.Any(x => x.Index == requestId))
 				return CalloutRequestStatus.Queued;
-			else if (requestId == _idOfCurrentlyPlayingRequest)
+			if (requestId == _idOfCurrentlyPlayingRequest)
 				return CalloutRequestStatus.Playing;
-			else
-				return CalloutRequestStatus.Finished;
+			return CalloutRequestStatus.Finished;
 		}
 
 		private void OnEnable()
