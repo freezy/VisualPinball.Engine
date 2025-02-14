@@ -16,6 +16,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using NLog;
@@ -24,6 +25,14 @@ using Logger = NLog.Logger;
 
 namespace VisualPinball.Unity
 {
+	public enum CalloutRequestStatus
+	{
+		UnknownId,
+		Queued,
+		Playing,
+		Finished,
+	}
+
 	/// <summary>
 	/// Manages playback of callouts. Maintains a queue of callout requests. Supports prioritizing
 	/// certain callouts over others and enforcing a minimum pause between two callouts.
@@ -60,24 +69,41 @@ namespace VisualPinball.Unity
 
 		public void DequeueCallout(int requestId)
 		{
-			var index = _calloutQ.FindIndex(x => x.Index == requestId);
-			if (index != -1)
-				_calloutQ.RemoveAt(index);
-			else if (
-				_idOfCurrentlyPlayingRequest != -1
-				&& requestId == _idOfCurrentlyPlayingRequest
-			)
-				_currentCalloutCts.Cancel();
-			else if (requestId >= 0 && requestId <= _requestCounter)
-				Logger.Info(
-					$"Cannot dequeue callout request with id '{requestId}' because it already "
-						+ "finished playing."
-				);
+			var status = GetRequestStatus(requestId);
+			switch (status)
+			{
+				case CalloutRequestStatus.Queued:
+					var index = _calloutQ.FindIndex(x => x.Index == requestId);
+					_calloutQ.RemoveAt(index);
+					break;
+				case CalloutRequestStatus.Playing:
+					_currentCalloutCts.Cancel();
+					break;
+				case CalloutRequestStatus.Finished:
+					Logger.Info(
+						$"Cannot dequeue callout request with id '{requestId}' because it already "
+							+ "finished playing."
+					);
+					break;
+				case CalloutRequestStatus.UnknownId:
+					Logger.Error(
+						$"Cannot dequeue callout request with id '{requestId}' because no such "
+							+ "request was previously made."
+					);
+					break;
+			}
+		}
+
+		public CalloutRequestStatus GetRequestStatus(int requestId)
+		{
+			if (requestId < 0 || requestId >= _requestCounter)
+				return CalloutRequestStatus.UnknownId;
+			else if (_calloutQ.Any(x => x.Index == requestId))
+				return CalloutRequestStatus.Queued;
+			else if (requestId == _idOfCurrentlyPlayingRequest)
+				return CalloutRequestStatus.Playing;
 			else
-				Logger.Error(
-					$"Cannot dequeue callout request with id '{requestId}' because no such request "
-						+ "was previously made."
-				);
+				return CalloutRequestStatus.Finished;
 		}
 
 		private void OnEnable()
