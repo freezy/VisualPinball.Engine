@@ -43,7 +43,11 @@ namespace VisualPinball.Unity.Editor
 		private Dictionary<string, string> GetAvailableCoils()
 		{
 			var targetComponent = target as Component;
-			if (targetComponent != null && targetComponent.TryGetComponent<ICoilDeviceComponent>(out var coilDevice)) {
+			if (
+				targetComponent != null
+				&& targetComponent.TryGetComponent<ICoilDeviceComponent>(out var coilDevice)
+			)
+			{
 				return coilDevice.AvailableCoils.ToDictionary(
 					i => i.Id,
 					i => string.IsNullOrWhiteSpace(i.Description) ? i.Id : i.Description

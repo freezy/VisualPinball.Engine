@@ -36,13 +36,16 @@ namespace VisualPinball.Unity
 		{
 			coil = null;
 			var player = GetComponentInParent<Player>();
-			if (player == null) {
+			if (player == null)
+			{
 				return false;
 			}
 
-			foreach (var component in GetComponents<ICoilDeviceComponent>()) {
+			foreach (var component in GetComponents<ICoilDeviceComponent>())
+			{
 				coil = player.Coil(component, _coilName);
-				if (coil != null) {
+				if (coil != null)
+				{
 					return true;
 				}
 			}

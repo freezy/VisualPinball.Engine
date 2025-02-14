@@ -49,14 +49,18 @@ namespace VisualPinball.Unity
 		protected override async void OnEvent(object sender, TEventArgs e)
 		{
 			bool isEnabled = InterpretAsBinary(e);
-			if ((isEnabled && _stopWhen == StopWhen.TurnedOn) ||
-			    (!isEnabled && _stopWhen == StopWhen.TurnedOff))
+			if (
+				(isEnabled && _stopWhen == StopWhen.TurnedOn)
+				|| (!isEnabled && _stopWhen == StopWhen.TurnedOff)
+			)
 			{
 				Stop(allowFade: true);
 			}
 
-			if ((isEnabled && _startWhen == StartWhen.TurnedOn) ||
-			    (!isEnabled && _startWhen == StartWhen.TurnedOff))
+			if (
+				(isEnabled && _startWhen == StartWhen.TurnedOn)
+				|| (!isEnabled && _startWhen == StartWhen.TurnedOff)
+			)
 			{
 				await Play();
 			}

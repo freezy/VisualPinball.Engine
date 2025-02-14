@@ -33,15 +33,14 @@ namespace VisualPinball.Unity
 		{
 			hittable = null;
 			var player = GetComponentInParent<Player>();
-			if (player == null) {
+			if (player == null)
 				return false;
-			}
 
-			foreach (var component in GetComponents<ItemComponent>()) {
+			foreach (var component in GetComponents<ItemComponent>())
+			{
 				hittable = player.TableApi.Hittable(component);
-				if (hittable != null) {
+				if (hittable != null)
 					return true;
-				}
 			}
 			return false;
 		}
