@@ -33,5 +33,11 @@ namespace VisualPinball.Unity
 		[SerializeField]
 		[Range(0f, 1f)]
 		private float _volume = 1f;
+
+		public override void ConfigureAudioSource(AudioSource audioSource)
+		{
+			base.ConfigureAudioSource(audioSource);
+			audioSource.volume = _volume;
+		}
 	}
 }

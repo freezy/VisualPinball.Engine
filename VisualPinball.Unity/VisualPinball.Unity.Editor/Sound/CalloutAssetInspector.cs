@@ -24,14 +24,14 @@ namespace VisualPinball.Unity.Editor
 	public class VoiceAssetInspector : SoundAssetInspector
 	{
 		[SerializeField]
-		private VisualTreeAsset _voiceAssetInspector;
+		private VisualTreeAsset _calloutAssetInspector;
 
 		public override VisualElement CreateInspectorGUI()
 		{
 			var root = new VisualElement();
 			var baseUi = base.CreateInspectorGUI();
 			root.Add(baseUi);
-			var subUi = _voiceAssetInspector.Instantiate();
+			var subUi = _calloutAssetInspector.Instantiate();
 			root.Add(subUi);
 			return root;
 		}

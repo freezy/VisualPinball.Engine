@@ -80,7 +80,8 @@ namespace VisualPinball.Unity
 			if (_requestStack.Count > 0)
 			{
 				_requestStack.Sort();
-				var musicToPlay = _requestStack[0].MusicAsset;
+				var requestToPlay = _requestStack[0];
+				var musicToPlay = requestToPlay.MusicAsset;
 				var playerToPlay = _players.FirstOrDefault(x => x.MusicAsset == musicToPlay);
 				if (playerToPlay == default)
 				{
@@ -96,6 +97,7 @@ namespace VisualPinball.Unity
 
 				// No need to fade in if nothing else is playing
 				playerToPlay.StartAtFullVolume = !_players.Any(x => x.IsPlaying);
+				playerToPlay.RequestVolume = requestToPlay.Volume;
 				_players.ForEach(x => x.ShouldPlay = x == playerToPlay);
 			}
 			else

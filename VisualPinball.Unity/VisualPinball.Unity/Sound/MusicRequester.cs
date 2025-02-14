@@ -29,13 +29,16 @@ namespace VisualPinball.Unity
 		[SerializeField]
 		private SoundPriority _priority = SoundPriority.Medium;
 
+		[SerializeField]
+		private float _volume = 1f;
+
 		private int requestId;
 
 		private MusicCoordinator _coordinator;
 
 		private void OnEnable()
 		{
-			var request = new MusicRequest(_musicAsset, _priority);
+			var request = new MusicRequest(_musicAsset, _priority, _volume);
 			_coordinator = GetComponentInParent<MusicCoordinator>();
 			_coordinator.AddRequest(request, out requestId);
 		}

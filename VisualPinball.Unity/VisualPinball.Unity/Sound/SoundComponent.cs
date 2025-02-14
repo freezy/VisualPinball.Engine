@@ -17,10 +17,8 @@
 using System;
 using System.Collections.Generic;
 using System.Threading;
-using System.Threading.Tasks;
 using NLog;
 using UnityEngine;
-using UnityEngine.Video;
 using Logger = NLog.Logger;
 
 namespace VisualPinball.Unity
@@ -103,14 +101,15 @@ namespace VisualPinball.Unity
 					var request = new CalloutRequest(
 						(CalloutAsset)_soundAsset,
 						_priority,
-						_maxQueueTime
+						_maxQueueTime,
+						_volume
 					);
 					_calloutCoordinator.EnqueueCallout(request, out var requestId);
 					_calloutRequestIds.Add(requestId);
 				}
 				else if (_soundAsset is MusicAsset)
 				{
-					var request = new MusicRequest((MusicAsset)_soundAsset, _priority);
+					var request = new MusicRequest((MusicAsset)_soundAsset, _priority, _volume);
 					_musicCoordinator.AddRequest(request, out var requestId);
 					_musicRequestIds.Add(requestId);
 				}

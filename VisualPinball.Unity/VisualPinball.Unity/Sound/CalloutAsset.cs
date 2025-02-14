@@ -14,8 +14,6 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-using System.Threading;
-using System.Threading.Tasks;
 using UnityEngine;
 
 namespace VisualPinball.Unity
@@ -28,5 +26,15 @@ namespace VisualPinball.Unity
 	public class CalloutAsset : SoundAsset
 	{
 		public override bool Loop => false;
+
+		[SerializeField]
+		[Range(0f, 1f)]
+		private float _volume = 1f;
+
+		public override void ConfigureAudioSource(AudioSource audioSource)
+		{
+			base.ConfigureAudioSource(audioSource);
+			audioSource.volume = _volume;
+		}
 	}
 }

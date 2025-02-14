@@ -150,6 +150,7 @@ namespace VisualPinball.Unity
 			try
 			{
 				request.CalloutAsset.ConfigureAudioSource(audioSource);
+				audioSource.volume *= request.Volume;
 				audioSource.Play();
 				await SoundAsset.WaitUntilAudioStops(audioSource, ct);
 			}

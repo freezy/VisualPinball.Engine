@@ -14,8 +14,6 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-using System.Threading;
-using System.Threading.Tasks;
 using UnityEngine;
 
 namespace VisualPinball.Unity
@@ -34,6 +32,7 @@ namespace VisualPinball.Unity
 		public int Index { get; set; }
 
 		public readonly CalloutAsset CalloutAsset;
+		public readonly float Volume;
 		private readonly float _deadline;
 
 		/// <summary>
@@ -45,7 +44,8 @@ namespace VisualPinball.Unity
 		public CalloutRequest(
 			CalloutAsset calloutAsset,
 			SoundPriority priority,
-			float maxQueueTime = -1f
+			float maxQueueTime = -1f,
+			float volume = 1f
 		)
 		{
 			CalloutAsset = calloutAsset;
@@ -55,6 +55,7 @@ namespace VisualPinball.Unity
 			else
 				_deadline = -1f;
 			Index = -1;
+			Volume = volume;
 		}
 
 		public readonly bool IsExpired()

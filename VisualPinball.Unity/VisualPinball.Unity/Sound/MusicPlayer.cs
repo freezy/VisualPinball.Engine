@@ -38,6 +38,11 @@ namespace VisualPinball.Unity
 		public bool ShouldPlay { get; set; }
 		public bool IsPlaying => _audioSource != null && _audioSource.isPlaying;
 		public bool StartAtFullVolume { get; set; }
+
+		/// <summary>
+		/// The volume specified in the <c>MusicRequest</c> received by <c>MusicCoordinator</c>
+		/// </summary>
+		public float RequestVolume { get; set; } = 1f;
 		public MusicAsset MusicAsset { get; private set; }
 
 		private AudioSource _audioSource;
@@ -76,7 +81,9 @@ namespace VisualPinball.Unity
 				var oldVolume = _audioSource.volume;
 				MusicAsset.ConfigureAudioSource(_audioSource);
 				_audioSource.Play();
-				_audioSource.volume = StartAtFullVolume ? MusicAsset.Volume : oldVolume;
+				_audioSource.volume = StartAtFullVolume
+					? MusicAsset.Volume * RequestVolume
+					: oldVolume;
 			}
 			else if (!ShouldPlay && _audioSource.isPlaying && _audioSource.volume == 0f)
 			{
@@ -92,9 +99,10 @@ namespace VisualPinball.Unity
 						Destroy(gameObject);
 						break;
 				}
+				return;
 			}
 
-			var targetVolume = ShouldPlay ? MusicAsset.Volume : 0f;
+			var targetVolume = ShouldPlay ? MusicAsset.Volume * RequestVolume : 0f;
 			if (_audioSource.volume != targetVolume)
 			{
 				if (_fadeDuration == 0f)

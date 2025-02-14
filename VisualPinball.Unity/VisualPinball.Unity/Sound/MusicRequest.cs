@@ -24,15 +24,21 @@ namespace VisualPinball.Unity
 	/// </summary>
 	public struct MusicRequest : IComparable<MusicRequest>
 	{
-		public MusicRequest(MusicAsset musicAsset, SoundPriority priority = SoundPriority.Medium)
+		public MusicRequest(
+			MusicAsset musicAsset,
+			SoundPriority priority = SoundPriority.Medium,
+			float volume = 1f
+		)
 		{
 			MusicAsset = musicAsset;
 			Priority = priority;
 			Index = -1;
+			Volume = volume;
 		}
 
 		public readonly MusicAsset MusicAsset;
 		public readonly SoundPriority Priority;
+		public readonly float Volume;
 
 		/// <summary>
 		/// The <c>MusicCoordinator</c> sets the <c>Index</c> of the <c>n</c>th request it receives
