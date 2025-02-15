@@ -22,33 +22,43 @@ using UnityEngine;
 namespace VisualPinball.Unity
 {
 	/// <summary>
-	/// Single use object to manage the playback of a music, callout, or sound effect asset
+	/// Single use object to manage the playback of a music, callout, or sound effect asset in the
+	/// context of a <c>SoundComponent</c>
 	/// </summary>
-	public abstract class SoundCommponentSoundPlayer : MonoBehaviour
+	public interface ISoundCommponentSoundPlayer : IDisposable
 	{
-		public abstract void StartSound(float volume = 10f);
-		public abstract void StopSound(bool allowFade);
-		public abstract bool IsPlayingOrRequestingSound();
+		public void StartSound(float volume = 10f);
+		public void StopSound(bool allowFade);
+		public bool IsPlayingOrRequestingSound();
 	}
 
-	public class SoundComponentSoundEffectPlayer : SoundCommponentSoundPlayer
+	/// <summary>
+	/// Single use object to manage the playback of a sound effect asset in the context of a
+	/// <c>SoundComponent</c>
+	/// </summary>
+	public class SoundComponentSoundEffectPlayer : ISoundCommponentSoundPlayer
 	{
 		private SoundEffectAsset _soundEffectAsset;
+		private GameObject _audioSourceGo;
 		private CancellationTokenSource _allowFadeCts;
 		private CancellationTokenSource _instantFadeCts;
 		private Task _playTask;
 
-		public void Init(SoundEffectAsset soundEffectAsset)
+		public SoundComponentSoundEffectPlayer(
+			SoundEffectAsset soundEffectAsset,
+			GameObject audioSourceGo
+		)
 		{
 			_soundEffectAsset = soundEffectAsset;
+			_audioSourceGo = audioSourceGo;
 			_allowFadeCts = new CancellationTokenSource();
 			_instantFadeCts = new CancellationTokenSource();
 		}
 
-		public override async void StartSound(float volume)
+		public async void StartSound(float volume)
 		{
 			_playTask = _soundEffectAsset.Play(
-				gameObject,
+				_audioSourceGo,
 				_allowFadeCts.Token,
 				_instantFadeCts.Token,
 				volume
@@ -61,93 +71,97 @@ namespace VisualPinball.Unity
 			catch (OperationCanceledException) { }
 		}
 
-		public override void StopSound(bool allowFade)
+		public void StopSound(bool allowFade)
 		{
 			var ctsToCancel = allowFade ? _allowFadeCts : _instantFadeCts;
 			ctsToCancel.Cancel();
 		}
 
-		public override bool IsPlayingOrRequestingSound()
+		public bool IsPlayingOrRequestingSound()
 		{
 			return _playTask != null && !_playTask.IsCompleted;
 		}
 
-		private void OnDestroy()
+		public void Dispose()
 		{
 			_allowFadeCts.Dispose();
 			_instantFadeCts.Dispose();
 		}
 	}
 
-	public class SoundComponentMusicPlayer : SoundCommponentSoundPlayer
+	/// <summary>
+	/// Single use object to manage the playback of a music asset in the context of a
+	/// <c>SoundComponent</c>
+	/// </summary>
+	public class SoundComponentMusicPlayer : ISoundCommponentSoundPlayer
 	{
 		private MusicRequest _request;
 		private MusicCoordinator _coordinator;
 		private int _requestId = -1;
 
-		public void Init(MusicRequest request, MusicCoordinator coordinator)
+		public SoundComponentMusicPlayer(MusicRequest request, MusicCoordinator coordinator)
 		{
 			_request = request;
 			_coordinator = coordinator;
 		}
 
-		public override void StartSound(float volume)
+		public void StartSound(float volume)
 		{
 			_coordinator.AddRequest(_request, out _requestId);
 		}
 
-		public override bool IsPlayingOrRequestingSound()
+		public bool IsPlayingOrRequestingSound()
 		{
-			return _coordinator.GetRequestStatus(_requestId)
-				is MusicRequestStatus.Waiting
-					or MusicRequestStatus.Playing;
+			return _requestId != -1
+				&& _coordinator.GetRequestStatus(_requestId)
+					is MusicRequestStatus.Waiting
+						or MusicRequestStatus.Playing;
 		}
 
-		public override void StopSound(bool allowFade)
-		{
-			_coordinator.RemoveRequest(_requestId);
-		}
-
-		private void OnDestroy()
+		public void StopSound(bool allowFade)
 		{
 			if (_coordinator != null && IsPlayingOrRequestingSound())
 				_coordinator.RemoveRequest(_requestId);
 		}
+
+		public void Dispose() { }
 	}
 
-	public class SoundComponentCalloutPlayer : SoundCommponentSoundPlayer
+	/// <summary>
+	/// Single use object to manage the playback of a callout asset in the context of a
+	/// <c>SoundComponent</c>
+	/// </summary>
+	public class SoundComponentCalloutPlayer : ISoundCommponentSoundPlayer
 	{
 		private CalloutRequest _request;
 		private CalloutCoordinator _coordinator;
 		private int _requestId = -1;
 
-		public void Init(CalloutRequest request, CalloutCoordinator coordinator)
+		public SoundComponentCalloutPlayer(CalloutRequest request, CalloutCoordinator coordinator)
 		{
 			_request = request;
 			_coordinator = coordinator;
 		}
 
-		public override void StartSound(float volume = 10)
+		public void StartSound(float volume = 10)
 		{
 			_coordinator.EnqueueCallout(_request, out _requestId);
 		}
 
-		public override void StopSound(bool allowFade)
-		{
-			_coordinator.DequeueCallout(_requestId);
-		}
-
-		public override bool IsPlayingOrRequestingSound()
-		{
-			return _coordinator.GetRequestStatus(_requestId)
-				is CalloutRequestStatus.Queued
-					or CalloutRequestStatus.Playing;
-		}
-
-		private void OnDestroy()
+		public void StopSound(bool allowFade)
 		{
 			if (_coordinator != null && IsPlayingOrRequestingSound())
 				_coordinator.DequeueCallout(_requestId);
 		}
+
+		public bool IsPlayingOrRequestingSound()
+		{
+			return _requestId != -1
+				&& _coordinator.GetRequestStatus(_requestId)
+					is CalloutRequestStatus.Queued
+						or CalloutRequestStatus.Playing;
+		}
+
+		public void Dispose() { }
 	}
 }

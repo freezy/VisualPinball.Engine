@@ -54,7 +54,7 @@ namespace VisualPinball.Unity
 
 		private CalloutCoordinator _calloutCoordinator;
 		private MusicCoordinator _musicCoordinator;
-		private readonly List<SoundCommponentSoundPlayer> _soundPlayers = new();
+		private readonly List<ISoundCommponentSoundPlayer> _soundPlayers = new();
 
 		protected static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
@@ -76,7 +76,7 @@ namespace VisualPinball.Unity
 			{
 				if (!_soundPlayers[i].IsPlayingOrRequestingSound())
 				{
-					Destroy(_soundPlayers[i]);
+					_soundPlayers[i].Dispose();
 					_soundPlayers.RemoveAt(i);
 				}
 			}
@@ -85,6 +85,12 @@ namespace VisualPinball.Unity
 		protected virtual void OnDisable()
 		{
 			StopAllSounds(allowFade: true);
+		}
+
+		protected virtual void OnDestroy()
+		{
+			StopAllSounds(allowFade: false);
+			_soundPlayers.ForEach(x => x.Dispose());
 		}
 
 		protected void StartSound()
@@ -137,13 +143,14 @@ namespace VisualPinball.Unity
 			_soundPlayers.ForEach(x => x.StopSound(allowFade));
 		}
 
-		private SoundCommponentSoundPlayer CreateSoundPlayer()
+		private ISoundCommponentSoundPlayer CreateSoundPlayer()
 		{
 			if (_soundAsset is SoundEffectAsset)
 			{
-				var player = gameObject.AddComponent<SoundComponentSoundEffectPlayer>();
-				player.Init((SoundEffectAsset)_soundAsset);
-				return player;
+				return new SoundComponentSoundEffectPlayer(
+					(SoundEffectAsset)_soundAsset,
+					gameObject
+				);
 			}
 
 			if (_soundAsset is CalloutAsset)
@@ -154,17 +161,13 @@ namespace VisualPinball.Unity
 					_maxQueueTime,
 					_volume
 				);
-				var player = gameObject.AddComponent<SoundComponentCalloutPlayer>();
-				player.Init(request, _calloutCoordinator);
-				return player;
+				return new SoundComponentCalloutPlayer(request, _calloutCoordinator);
 			}
 
 			if (_soundAsset is MusicAsset)
 			{
 				var request = new MusicRequest((MusicAsset)_soundAsset, _priority, _volume);
-				var player = gameObject.AddComponent<SoundComponentMusicPlayer>();
-				player.Init(request, _musicCoordinator);
-				return player;
+				return new SoundComponentMusicPlayer(request, _musicCoordinator);
 			}
 
 			throw new NotImplementedException(
