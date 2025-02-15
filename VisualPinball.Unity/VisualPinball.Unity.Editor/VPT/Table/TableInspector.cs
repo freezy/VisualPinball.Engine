@@ -65,19 +65,6 @@ namespace VisualPinball.Unity.Editor
 						writer.WritePackageSync(path);
 					}
 				}
-
-				if (GUILayout.Button("Export as .vpx")) {
-					var tableContainer = tableComponent.TableContainer;
-					var path = EditorUtility.SaveFilePanel(
-						"Export table as VPX",
-						"",
-						tableContainer.Table.Name + ".vpx",
-						"vpx");
-
-					if (!string.IsNullOrEmpty(path)) {
-						tableContainer.Export(path);
-					}
-				}
 			}
 		}
 	}
