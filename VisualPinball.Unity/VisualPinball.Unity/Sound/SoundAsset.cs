@@ -113,6 +113,8 @@ namespace VisualPinball.Unity
 		/// </summary>
 		public static bool HasStopped(AudioSource audioSource)
 		{
+			if (audioSource == null)
+				return true;
 			if (audioSource.isPlaying)
 				return false;
 #if UNITY_EDITOR
@@ -124,6 +126,7 @@ namespace VisualPinball.Unity
 
 		public static async Task WaitUntilAudioStops(AudioSource audioSource, CancellationToken ct)
 		{
+			ct.ThrowIfCancellationRequested();
 			while (!HasStopped(audioSource))
 			{
 				await Task.Yield();

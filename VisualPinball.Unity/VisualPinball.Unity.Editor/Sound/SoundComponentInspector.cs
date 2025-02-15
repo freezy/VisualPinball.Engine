@@ -43,18 +43,29 @@ namespace VisualPinball.Unity.Editor
 			var soundAssetProp = serializedObject.FindProperty("_soundAsset");
 			var calloutFields = container.Q<VisualElement>("callout-fields");
 			var musicFields = container.Q<VisualElement>("music-fields");
+			var effectFields = container.Q<VisualElement>("sound-effect-fields");
 			UpdateFieldVisibility(soundAssetProp);
 			var soundAssetField = container.Q<PropertyField>("sound-asset");
 			soundAssetField.TrackPropertyValue(soundAssetProp, UpdateFieldVisibility);
 
 			void UpdateFieldVisibility(SerializedProperty prop)
 			{
-				var isCalloutAsset = soundAssetProp.objectReferenceValue is CalloutAsset;
-				calloutFields.style.display = isCalloutAsset
-					? DisplayStyle.Flex
-					: DisplayStyle.None;
-				var isMusicAsset = soundAssetProp.objectReferenceValue is MusicAsset;
-				musicFields.style.display = isMusicAsset ? DisplayStyle.Flex : DisplayStyle.None;
+				var soundAsset = prop.objectReferenceValue as SoundAsset;
+				if (soundAsset == null)
+				{
+					calloutFields.style.display = DisplayStyle.None;
+					musicFields.style.display = DisplayStyle.None;
+					effectFields.style.display = DisplayStyle.None;
+				}
+				else
+				{
+					calloutFields.style.display =
+						soundAsset is CalloutAsset ? DisplayStyle.Flex : DisplayStyle.None;
+					musicFields.style.display =
+						soundAsset is MusicAsset ? DisplayStyle.Flex : DisplayStyle.None;
+					effectFields.style.display =
+						soundAsset is SoundEffectAsset ? DisplayStyle.Flex : DisplayStyle.None;
+				}
 			}
 		}
 

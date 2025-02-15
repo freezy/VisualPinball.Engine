@@ -70,7 +70,7 @@ namespace VisualPinball.Unity
 		private float _cooldown = 0.02f;
 
 		[NonSerialized]
-		private float _lastPlayStartTime = float.NegativeInfinity;
+		private float _lastPlayStartTime = -1f;
 
 		protected static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
@@ -102,8 +102,8 @@ namespace VisualPinball.Unity
 				);
 				return;
 			}
-
 			_lastPlayStartTime = Time.unscaledTime;
+
 			var audioSource = audioObj.AddComponent<AudioSource>();
 
 			try
@@ -116,25 +116,29 @@ namespace VisualPinball.Unity
 					instantCt
 				);
 
-				var waitUntilStopTask = WaitUntilAudioStops(audioSource, eitherCts.Token);
-
 				// Fade in
 				if (_loop && _fadeInTime > 0f)
 				{
-					var fadeTask = Fade(
-						audioSource,
-						0f,
-						audioSource.volume,
-						_fadeInTime,
-						eitherCts.Token
-					);
-					await Task.WhenAny(waitUntilStopTask, fadeTask);
+					try
+					{
+						await FadeOrFinish(
+							audioSource,
+							0f,
+							audioSource.volume,
+							_fadeInTime,
+							eitherCts.Token
+						);
+					}
+					catch (OperationCanceledException)
+					{
+						instantCt.ThrowIfCancellationRequested();
+					}
 				}
 
 				// Play until sound stops or cancellation is requested
 				try
 				{
-					await waitUntilStopTask;
+					await WaitUntilAudioStops(audioSource, eitherCts.Token);
 				}
 				catch (OperationCanceledException)
 				{
@@ -142,17 +146,15 @@ namespace VisualPinball.Unity
 					// Fade out
 					if (_loop && _fadeOutTime > 0f)
 					{
-						var fadeTask = Fade(
+						await FadeOrFinish(
 							audioSource,
 							audioSource.volume,
 							0f,
 							_fadeOutTime,
 							instantCt
 						);
-						waitUntilStopTask = WaitUntilAudioStops(audioSource, instantCt);
-						await Task.WhenAny(waitUntilStopTask, fadeTask);
-						allowFadeOutCt.ThrowIfCancellationRequested();
 					}
+					allowFadeOutCt.ThrowIfCancellationRequested();
 				}
 			}
 			finally
@@ -164,6 +166,31 @@ namespace VisualPinball.Unity
 					else
 						DestroyImmediate(audioSource);
 				}
+			}
+		}
+
+		public static async Task FadeOrFinish(
+			AudioSource audioSource,
+			float fromVolume,
+			float toVolume,
+			float duration,
+			CancellationToken ct
+		)
+		{
+			using var cts = CancellationTokenSource.CreateLinkedTokenSource(ct);
+
+			var waitUntilStopTask = WaitUntilAudioStops(audioSource, cts.Token);
+			var fadeTask = Fade(audioSource, fromVolume, toVolume, duration, cts.Token);
+
+			var completedTask = await Task.WhenAny(waitUntilStopTask, fadeTask);
+			cts.Cancel();
+			try
+			{
+				await Task.WhenAll(waitUntilStopTask, fadeTask);
+			}
+			catch (OperationCanceledException)
+			{
+				ct.ThrowIfCancellationRequested();
 			}
 		}
 
@@ -180,7 +207,7 @@ namespace VisualPinball.Unity
 			// Time.deltaTime doesn't really work in the editor outside play mode
 			var lastTime = EditorApplication.timeSinceStartup;
 #endif
-			while (progress < 1f)
+			while (progress < 1f && audioSource != null)
 			{
 				ct.ThrowIfCancellationRequested();
 				audioSource.volume = Mathf.Lerp(fromVolume, toVolume, progress);

@@ -23,6 +23,14 @@ using Logger = NLog.Logger;
 
 namespace VisualPinball.Unity
 {
+	public enum MusicRequestStatus
+	{
+		UnknownId,
+		Waiting,
+		Playing,
+		Finished,
+	}
+
 	/// <summary>
 	/// Manages music playback using a stack. Other scripts can add requests to the stack.
 	/// The stack is sorted based on priority and age of the requests. The topmost request is
@@ -72,6 +80,17 @@ namespace VisualPinball.Unity
 				);
 
 			EvaluateRequestStack();
+		}
+
+		public MusicRequestStatus GetRequestStatus(int requestId)
+		{
+			if (requestId < 0 || requestId >= _requestCounter)
+				return MusicRequestStatus.UnknownId;
+			if (_requestStack.Any(x => x.Index == requestId))
+				return MusicRequestStatus.Waiting;
+			if (_requestStack.Count > 0 && requestId == _requestStack[0].Index)
+				return MusicRequestStatus.Playing;
+			return MusicRequestStatus.Finished;
 		}
 
 		private void EvaluateRequestStack()

@@ -1,12 +1,15 @@
 <ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" xsi="http://www.w3.org/2001/XMLSchema-instance" engine="UnityEngine.UIElements" editor="UnityEditor.UIElements" noNamespaceSchemaLocation="../../../../../UIElementsSchema/UIElements.xsd" editor-extension-mode="True">
     <uie:PropertyField name="sound-asset" binding-path="_soundAsset" label="Sound Asset" />
-    <uie:PropertyField name="interrupt" binding-path="_interrupt" label="Interrupt" />
     <uie:PropertyField name="volume" binding-path="_volume" label="Volume" />
     <ui:VisualElement name="callout-fields" style="flex-grow: 1;">
         <uie:PropertyField name="priority" binding-path="_priority" label="Priority" />
         <uie:PropertyField name="max-queue-time" binding-path="_maxQueueTime" label="Max Queue Time" tooltip="How many seconds to wait in the queue before discarding the request. -1 = no limit" />
+        <uie:PropertyField name="multi-play-mode" binding-path="_multiPlayMode" label="Multi Play Mode" tooltip="What to do when the callout is still playing or in the queue when it is triggered again. Play In Parallel: Keep the previous callout in the queue and enqueue it again, Do Not Play: Keep the previous callout request and don't enqueue a new one, Fade Out Previous: Since you have selected a callout asset, this is the same as 'Stop Previous', Stop Previous: Immediately stop the previous callout and start a new one. This means the callout goes to the back of the queue. It might not be played immediately." />
     </ui:VisualElement>
     <ui:VisualElement name="music-fields" style="flex-grow: 1;">
         <uie:PropertyField name="priority" binding-path="_priority" label="Priority" />
+    </ui:VisualElement>
+    <ui:VisualElement name="sound-effect-fields" style="flex-grow: 1;">
+        <uie:PropertyField name="multi-play-mode" binding-path="_multiPlayMode" label="Multi Play Mode" tooltip="What to do when the sound effect is still playing when it is triggered again. Play In Parallel: Keep playing the previous sound effect and start another one at the same time, Do Not Play: Keep playing the previous sound effect and don't start another one, Fade Out Previous: Fade out the previous sound effect while starting a new one. If the sound effect is not a looping sound or its fade out time is zero, this is the same as 'Stop Previous,' Stop Previous: Immediately stop the previous sound effect and start a new one." />
     </ui:VisualElement>
 </ui:UXML>

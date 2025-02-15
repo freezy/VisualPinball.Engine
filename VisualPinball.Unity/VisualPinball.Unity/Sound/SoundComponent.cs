@@ -16,7 +16,7 @@
 
 using System;
 using System.Collections.Generic;
-using System.Threading;
+using System.Linq;
 using NLog;
 using UnityEngine;
 using Logger = NLog.Logger;
@@ -29,12 +29,19 @@ namespace VisualPinball.Unity
 	[AddComponentMenu("Visual Pinball/Sound/Sound")]
 	public class SoundComponent : EnableAfterAwakeComponent
 	{
+		private enum MultiPlayMode
+		{
+			PlayInParallel,
+			DoNotPlay,
+			FadeOutPrevious,
+			StopPrevious,
+		}
+
 		[SerializeReference]
 		protected SoundAsset _soundAsset;
 
 		[SerializeField]
-		[Tooltip("Should the sound be interrupted if it is triggered again while already playing?")]
-		protected bool _interrupt;
+		private MultiPlayMode _multiPlayMode;
 
 		[SerializeField, Range(0f, 1f)]
 		private float _volume = 1f;
@@ -45,13 +52,16 @@ namespace VisualPinball.Unity
 		[SerializeField]
 		private float _maxQueueTime = -1;
 
-		private CancellationTokenSource _instantCts;
-		private CancellationTokenSource _allowFadeCts;
 		private CalloutCoordinator _calloutCoordinator;
-		private List<int> _calloutRequestIds = new();
 		private MusicCoordinator _musicCoordinator;
-		private List<int> _musicRequestIds = new();
+		private readonly List<SoundCommponentSoundPlayer> _soundPlayers = new();
+
 		protected static readonly Logger Logger = LogManager.GetCurrentClassLogger();
+
+		public bool IsPlayingOrRequestingSound()
+		{
+			return _soundPlayers.Any(x => x.IsPlayingOrRequestingSound());
+		}
 
 		protected override void OnEnableAfterAfterAwake()
 		{
@@ -60,12 +70,24 @@ namespace VisualPinball.Unity
 			_musicCoordinator = GetComponentInParent<MusicCoordinator>();
 		}
 
+		protected void Update()
+		{
+			for (int i = _soundPlayers.Count - 1; i >= 0; i--)
+			{
+				if (!_soundPlayers[i].IsPlayingOrRequestingSound())
+				{
+					Destroy(_soundPlayers[i]);
+					_soundPlayers.RemoveAt(i);
+				}
+			}
+		}
+
 		protected virtual void OnDisable()
 		{
 			StopAllSounds(allowFade: true);
 		}
 
-		protected async void StartSound()
+		protected void StartSound()
 		{
 			if (!isActiveAndEnabled)
 			{
@@ -79,69 +101,75 @@ namespace VisualPinball.Unity
 				return;
 			}
 
-			if (_interrupt)
-				StopAllSounds(allowFade: true);
-
-			_allowFadeCts ??= new();
-			_instantCts ??= new();
-
-			try
+			if (IsPlayingOrRequestingSound())
 			{
-				if (_soundAsset is SoundEffectAsset)
+				if (_soundAsset is MusicAsset)
 				{
-					await ((SoundEffectAsset)_soundAsset).Play(
-						gameObject,
-						_allowFadeCts.Token,
-						_instantCts.Token,
-						_volume
-					);
-				}
-				else if (_soundAsset is CalloutAsset)
-				{
-					var request = new CalloutRequest(
-						(CalloutAsset)_soundAsset,
-						_priority,
-						_maxQueueTime,
-						_volume
-					);
-					_calloutCoordinator.EnqueueCallout(request, out var requestId);
-					_calloutRequestIds.Add(requestId);
-				}
-				else if (_soundAsset is MusicAsset)
-				{
-					var request = new MusicRequest((MusicAsset)_soundAsset, _priority, _volume);
-					_musicCoordinator.AddRequest(request, out var requestId);
-					_musicRequestIds.Add(requestId);
+					// We never want to have multiple active music requests. Makes no sense.
+					StopAllSounds(allowFade: true);
 				}
 				else
 				{
-					throw new NotImplementedException(
-						$"Unknown type of sound asset '{_soundAsset.GetType()}'"
-					);
+					switch (_multiPlayMode)
+					{
+						case MultiPlayMode.PlayInParallel:
+							// Don't need to do anything.
+							break;
+						case MultiPlayMode.DoNotPlay:
+							return;
+						case MultiPlayMode.FadeOutPrevious:
+							StopAllSounds(allowFade: true);
+							break;
+						case MultiPlayMode.StopPrevious:
+							StopAllSounds(allowFade: false);
+							break;
+					}
 				}
 			}
-			catch (OperationCanceledException) { }
+
+			var player = CreateSoundPlayer();
+			player.StartSound(_volume);
+			_soundPlayers.Add(player);
 		}
 
 		protected void StopAllSounds(bool allowFade)
 		{
-			if (allowFade)
-				_allowFadeCts?.Cancel();
-			else
-				_instantCts?.Cancel();
+			_soundPlayers.ForEach(x => x.StopSound(allowFade));
+		}
 
-			_allowFadeCts?.Dispose();
-			_allowFadeCts = null;
-			_instantCts?.Dispose();
-			_instantCts = null;
+		private SoundCommponentSoundPlayer CreateSoundPlayer()
+		{
+			if (_soundAsset is SoundEffectAsset)
+			{
+				var player = gameObject.AddComponent<SoundComponentSoundEffectPlayer>();
+				player.Init((SoundEffectAsset)_soundAsset);
+				return player;
+			}
 
-			foreach (var id in _calloutRequestIds)
-				_calloutCoordinator.DequeueCallout(id);
-			_calloutRequestIds.Clear();
+			if (_soundAsset is CalloutAsset)
+			{
+				var request = new CalloutRequest(
+					(CalloutAsset)_soundAsset,
+					_priority,
+					_maxQueueTime,
+					_volume
+				);
+				var player = gameObject.AddComponent<SoundComponentCalloutPlayer>();
+				player.Init(request, _calloutCoordinator);
+				return player;
+			}
 
-			foreach (var id in _musicRequestIds)
-				_musicCoordinator.RemoveRequest(id);
-			_musicRequestIds.Clear();
+			if (_soundAsset is MusicAsset)
+			{
+				var request = new MusicRequest((MusicAsset)_soundAsset, _priority, _volume);
+				var player = gameObject.AddComponent<SoundComponentMusicPlayer>();
+				player.Init(request, _musicCoordinator);
+				return player;
+			}
+
+			throw new NotImplementedException(
+				$"Unknown type of sound asset '{_soundAsset.GetType()}'"
+			);
 		}
 
 		public virtual bool SupportsLoopingSoundAssets() => true;
