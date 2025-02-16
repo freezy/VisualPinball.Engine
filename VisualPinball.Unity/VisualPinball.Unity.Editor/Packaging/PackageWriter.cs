@@ -143,18 +143,18 @@ namespace VisualPinball.Unity.Editor
 				PreservedVertexAttributes = VertexAttributeUsage.None,
 
 				// Enable Draco compression
-				Compression = Compression.Draco,
+				Compression = Compression.Uncompressed,
 
 				// Optional: Tweak the Draco compression settings
-				DracoSettings = new DracoExportSettings {
-					positionQuantization = 12,
-				},
+				// DracoSettings = new DracoExportSettings {
+				// 	positionQuantization = 12,
+				// },
 
 				JpgQuality = 90,
 
 				ImageDestination = ImageDestination.Automatic,
-
 			};
+
 			var gameObjectExportSettings = new GameObjectExportSettings {
 
 				// Include inactive GameObjects in export
