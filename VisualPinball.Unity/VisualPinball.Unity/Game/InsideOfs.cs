@@ -151,8 +151,7 @@ namespace VisualPinball.Unity
 				return i;
 			}
 			bitArrayIndices.Dispose();
-			using var ballIds = _bitLookup.GetKeyArray(Allocator.Temp);
-			throw new IndexOutOfRangeException($"Bit index in InsideOfs is full, currently stored ball IDs: {string.Join(", ", ballIds)}");
+			throw new IndexOutOfRangeException("Bit index in InsideOfs is full.");
 		}
 
 		private bool TryGetBallId(int bitIndex, out int ballId)
@@ -166,7 +165,6 @@ namespace VisualPinball.Unity
 			ballId = -1;
 			return false;
 		}
-
 
 		public void Dispose()
 		{
