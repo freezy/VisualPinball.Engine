@@ -19,9 +19,12 @@ using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
 using NLog;
-using UnityEditor;
 using UnityEngine;
 using Logger = NLog.Logger;
+
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
 
 namespace VisualPinball.Unity
 {
@@ -63,6 +66,7 @@ namespace VisualPinball.Unity
 			return ColliderMeshInstanceIdToGuid.GetValueOrDefault(instanceId);
 		}
 
+#if UNITY_EDITOR
 		public async Task UnpackMeshes(string assetPath)
 		{
 			if (!_tableFolder.TryGetFolder(PackageApi.MetaFolder, out var metaFolder)) {
@@ -134,6 +138,7 @@ namespace VisualPinball.Unity
 				_colliderMeshes.Add(guid, collider.GetComponent<MeshFilter>().sharedMesh);
 			}
 		}
+#endif
 
 		public Mesh GetColliderMesh(string guid)
 		{
@@ -192,6 +197,7 @@ namespace VisualPinball.Unity
 			}
 		}
 
+#if UNITY_EDITOR
 		public void UnpackAssets(string assetPath)
 		{
 			if (!_tableFolder.TryGetFolder(PackageApi.AssetFolder, out var assetFolder)) {
@@ -229,6 +235,7 @@ namespace VisualPinball.Unity
 				});
 			});
 		}
+#endif
 
 		#endregion
 
@@ -237,6 +244,7 @@ namespace VisualPinball.Unity
 		private readonly Dictionary<string, SoundMetaPackable> _soundMeta = new();
 		private readonly Dictionary<string, AudioClip> _audioClips = new();
 
+#if UNITY_EDITOR
 		public string Add(AudioClip clip)
 		{
 			if (!clip) {
@@ -258,6 +266,12 @@ namespace VisualPinball.Unity
 
 			return guid;
 		}
+#else
+		public string Add(AudioClip clip)
+		{
+			throw new Exception("Cannot add AudioClip during runtime.");
+		}
+#endif
 
 		public AudioClip GetAudioClip(string guid)
 		{
@@ -279,6 +293,8 @@ namespace VisualPinball.Unity
 			var soundMeta = metaFolder.AddFile(PackageApi.SoundFolder, PackageApi.Packer.FileExtension);
 			soundMeta.SetData(PackageApi.Packer.Pack(_soundMeta));
 		}
+
+#if UNITY_EDITOR
 
 		public void UnpackSounds(string assetPath)
 		{
@@ -333,6 +349,7 @@ namespace VisualPinball.Unity
 				_audioClips.Add(guid, AssetDatabase.LoadAssetAtPath<AudioClip>(path));
 			}
 		}
+#endif
 
 		#endregion
 	}

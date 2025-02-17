@@ -17,7 +17,6 @@
 // ReSharper disable MemberCanBePrivate.Global
 
 using System.Collections.Generic;
-using UnityEditor;
 using UnityEngine;
 
 namespace VisualPinball.Unity
@@ -43,7 +42,7 @@ namespace VisualPinball.Unity
 		{
 			var comp = (icm as Component)!;
 			// Get the corresponding component from the original prefab asset
-			var prefabComponent = PrefabUtility.GetCorrespondingObjectFromSource(comp);
+			var prefabComponent = UnityEditor.PrefabUtility.GetCorrespondingObjectFromSource(comp);
 			if (prefabComponent == null) {
 				return false;
 			}
@@ -55,7 +54,7 @@ namespace VisualPinball.Unity
 			var comp = (icm as Component)!;
 
 			// get the root of the prefab instance
-			var rootInstance = PrefabUtility.GetNearestPrefabInstanceRoot(comp.gameObject);
+			var rootInstance = UnityEditor.PrefabUtility.GetNearestPrefabInstanceRoot(comp.gameObject);
 			if (rootInstance == null) {
 				return new ColliderMeshMetaPackable {
 					Name = comp.name,
@@ -66,7 +65,7 @@ namespace VisualPinball.Unity
 			}
 
 			// get the prefab asset path
-			var assetPath = PrefabUtility.GetPrefabAssetPathOfNearestInstanceRoot(comp.gameObject);
+			var assetPath = UnityEditor.PrefabUtility.GetPrefabAssetPathOfNearestInstanceRoot(comp.gameObject);
 			if (string.IsNullOrEmpty(assetPath)) {
 				// Could not retrieve a path
 				return new ColliderMeshMetaPackable {
@@ -78,7 +77,7 @@ namespace VisualPinball.Unity
 			}
 
 			// convert to GUID
-			var guid = AssetDatabase.AssetPathToGUID(assetPath);
+			var guid = UnityEditor.AssetDatabase.AssetPathToGUID(assetPath);
 			if (string.IsNullOrEmpty(guid)) {
 				return new ColliderMeshMetaPackable {
 					Name = comp.name,
@@ -89,7 +88,7 @@ namespace VisualPinball.Unity
 			}
 
 			// get the transform path relative to the prefab root
-			var path = AnimationUtility.CalculateTransformPath(comp.transform, rootInstance.transform);
+			var path = UnityEditor.AnimationUtility.CalculateTransformPath(comp.transform, rootInstance.transform);
 
 			return new ColliderMeshMetaPackable {
 				Name = comp.name,

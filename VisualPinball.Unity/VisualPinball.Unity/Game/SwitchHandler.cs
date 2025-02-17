@@ -19,9 +19,6 @@ using System.Collections.Generic;
 using NLog;
 using UnityEngine;
 using Logger = NLog.Logger;
-#if UNITY_EDITOR
-using UnityEditor;
-#endif
 
 namespace VisualPinball.Unity
 {
@@ -203,7 +200,7 @@ namespace VisualPinball.Unity
 				return;
 			}
 
-			foreach (var manager in (EditorWindow[])Resources.FindObjectsOfTypeAll(Type.GetType("VisualPinball.Unity.Editor.SwitchManager, VisualPinball.Unity.Editor"))) {
+			foreach (var manager in (UnityEditor.EditorWindow[])Resources.FindObjectsOfTypeAll(Type.GetType("VisualPinball.Unity.Editor.SwitchManager, VisualPinball.Unity.Editor"))) {
 				manager.Repaint();
 			}
 		}

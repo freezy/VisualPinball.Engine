@@ -18,7 +18,6 @@
 // ReSharper disable MemberCanBePrivate.Global
 
 using System;
-using UnityEditor;
 using UnityEngine;
 
 namespace VisualPinball.Unity
@@ -32,12 +31,13 @@ namespace VisualPinball.Unity
 
 		private bool IsEmpty => string.IsNullOrEmpty(PrefabGuid) && IsActive && !IsStatic;
 
+#if UNITY_EDITOR
 		public static ItemPackable Instantiate(GameObject go)
 		{
 			return new ItemPackable {
 				Name = go.name,
-				PrefabGuid = PrefabUtility.IsPartOfAnyPrefab(go)
-					? AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(PrefabUtility.GetCorrespondingObjectFromSource(go)))
+				PrefabGuid = UnityEditor.PrefabUtility.IsPartOfAnyPrefab(go)
+					? UnityEditor.AssetDatabase.AssetPathToGUID(UnityEditor.AssetDatabase.GetAssetPath(UnityEditor.PrefabUtility.GetCorrespondingObjectFromSource(go)))
 					: null,
 				IsActive = go.activeInHierarchy,
 				IsStatic = go.isStatic
@@ -46,18 +46,18 @@ namespace VisualPinball.Unity
 
 		public void Apply(GameObject go)
 		{
-			if (!string.IsNullOrEmpty(PrefabGuid) && !PrefabUtility.IsPartOfAnyPrefab(go)) {
-				var path = AssetDatabase.GUIDToAssetPath(PrefabGuid);
+			if (!string.IsNullOrEmpty(PrefabGuid) && !UnityEditor.PrefabUtility.IsPartOfAnyPrefab(go)) {
+				var path = UnityEditor.AssetDatabase.GUIDToAssetPath(PrefabGuid);
 				if (path != null) {
-					var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(path);
+					var prefab = UnityEditor.AssetDatabase.LoadAssetAtPath<GameObject>(path);
 					if (prefab != null) {
-						PrefabUtility.ConvertToPrefabInstance(go, prefab, new ConvertToPrefabInstanceSettings {
+						UnityEditor.PrefabUtility.ConvertToPrefabInstance(go, prefab, new UnityEditor.ConvertToPrefabInstanceSettings {
 							changeRootNameToAssetName = false,
 							componentsNotMatchedBecomesOverride = true,
 							gameObjectsNotMatchedBecomesOverride = true,
-							objectMatchMode = ObjectMatchMode.ByHierarchy,
+							objectMatchMode = UnityEditor.ObjectMatchMode.ByHierarchy,
 							recordPropertyOverridesOfMatches = true
-						}, InteractionMode.AutomatedAction);
+						}, UnityEditor.InteractionMode.AutomatedAction);
 					} else {
 						Debug.LogError($"Unable to load prefab {PrefabGuid} at path {path}");
 					}
@@ -66,10 +66,12 @@ namespace VisualPinball.Unity
 				}
 			}
 			go.SetActive(IsActive);
-			GameObjectUtility.SetStaticEditorFlags(go, IsStatic ? (StaticEditorFlags)127 : 0);
+			UnityEditor.GameObjectUtility.SetStaticEditorFlags(go, IsStatic ? (UnityEditor.StaticEditorFlags)127 : 0);
 		}
 
 		public static ItemPackable Unpack(byte[] data) => PackageApi.Packer.Unpack<ItemPackable>(data);
 		public byte[] Pack() => IsEmpty ? Array.Empty<byte>() : PackageApi.Packer.Pack(this);
 	}
+#endif
+
 }
