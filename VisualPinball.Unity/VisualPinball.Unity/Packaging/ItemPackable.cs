@@ -71,7 +71,6 @@ namespace VisualPinball.Unity
 
 		public static ItemPackable Unpack(byte[] data) => PackageApi.Packer.Unpack<ItemPackable>(data);
 		public byte[] Pack() => IsEmpty ? Array.Empty<byte>() : PackageApi.Packer.Pack(this);
-	}
 #endif
-
+	}
 }
