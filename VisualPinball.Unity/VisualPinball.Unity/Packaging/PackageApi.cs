@@ -207,6 +207,12 @@ namespace VisualPinball.Unity
 		public byte[] Pack<T>(T obj);
 
 		/// <summary>
+		///
+		/// </summary>
+		/// <returns></returns>
+		public byte[] Empty { get; }
+
+		/// <summary>
 		/// Convert a byte array to an object.
 		/// </summary>
 		/// <param name="data">Serialized data</param>
