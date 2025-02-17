@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 // ReSharper disable InconsistentNaming
-
+#if UNITY_EDITOR
 using System;
 
 namespace VisualPinball.Unity.Editor
@@ -35,3 +35,4 @@ namespace VisualPinball.Unity.Editor
 		}
 	}
 }
+#endif
