@@ -38,7 +38,7 @@ namespace VisualPinball.Unity
 
 		#region Packaging
 
-		public byte[] Pack() => PackageApi.Packer.Pack(new object());
+		public byte[] Pack() => PackageApi.Packer.Empty;
 
 		public byte[] PackReferences(Transform root, PackagedRefs refs, PackagedFiles files) => null;
 

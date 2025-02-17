@@ -35,6 +35,8 @@ namespace VisualPinball.Unity.Editor
 			}
 		}
 
+		public byte[] Empty => Pack(new object());
+
 		public T Unpack<T>(byte[] data)
 		{
 			try {
