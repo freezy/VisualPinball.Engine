@@ -40,7 +40,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: '3.1.x'
+          dotnet-version: '5.0.x'
       - name: Pack
         run: |
           VERSION="$(npx -c 'echo "$npm_package_version"')"
