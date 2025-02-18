@@ -3,8 +3,8 @@
   "version": "0.0.1-preview.137",
   "displayName": "Visual Pinball Engine",
   "description": "Main project of the Visual Pinball Engine.",
-  "unity": "2021.3",
-  "unityRelease": "0f1",
+  "unity": "6000.0",
+  "unityRelease": "37f1",
   "dependencies": {
     "com.bartofzo.nativetrees": "0.1.6",
     "com.unity.cloud.draco": "5.1.8",
@@ -30,7 +30,8 @@
     "Kleis Auke Wolthuizen <info@kleisauke.nl>",
     "Eli Curtz <eli@nuprometheus.com>",
     "Pandeli",
-    "Cupid"
+    "Cupid",
+    "Arthur Kehrwald"
   ],
   "documentationUrl": "https://docs.visualpinball.org/",
   "changelogUrl": "https://docs.visualpinball.org/CHANGELOG.html",
