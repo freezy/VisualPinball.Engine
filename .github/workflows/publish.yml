@@ -25,12 +25,14 @@ jobs:
           echo -e "fileFormatVersion: 2\nguid: a2a4b6cb3229489f99c06f0771c522ce" > CONTRIBUTING.md.meta
           echo -e "fileFormatVersion: 2\nguid: 931f3c49f79d4032bceefe14682a7d5a" > VisualPinball.Unity.meta
           echo -e "fileFormatVersion: 2\nguid: ea4f7f8d4c2c418e9fc0fbed8ab1f5a9" > VisualPinball.Engine.meta
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+          registry-url: 'https://registry.visualpinball.org'
       - name: Publish
-        run: |
-          echo "//registry.visualpinball.org/:_authToken=${NPM_TOKEN}" > ~/.npmrc
-          npm publish
+        run: npm publish
         env:
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
   publish-nuget:
     runs-on: ubuntu-latest
