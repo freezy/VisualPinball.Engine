@@ -42,7 +42,7 @@ namespace VisualPinball.Engine.VPT.MetalWireGuide
 
 		public Mesh GetMesh(Table.Table table, MetalWireGuideData metalWireGuideData)
 		{
-			var mesh = GetTransformedMesh(table.TableHeight, _data.Height, table.GetDetailLevel(), _data.Bendradius);
+			var mesh = GetTransformedMesh(0, _data.Height, table.GetDetailLevel(), _data.Bendradius);
 			mesh.Name = metalWireGuideData.Name;
 			var preMatrix = new Matrix3D();
 			preMatrix.SetTranslation(0, 0, -_data.Height);

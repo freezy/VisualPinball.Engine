@@ -216,7 +216,6 @@ namespace VisualPinball.Unity.Editor
 		/// </remarks>
 		private void DisplayControlPoints()
 		{
-			var matrix = math.mul(math.mul(Physics.WorldToVpx,math.inverse(_handler.MainComponent.gameObject.transform.worldToLocalMatrix)), Physics.VpxToWorld);
 			Profiler.BeginSample("DisplayControlPoints");
 			// Render Control Points and check traveler distance from CP
 			var distToControlPoint = Mathf.Infinity;

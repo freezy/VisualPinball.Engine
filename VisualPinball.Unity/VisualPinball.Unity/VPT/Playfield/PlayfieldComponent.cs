@@ -172,7 +172,7 @@ namespace VisualPinball.Unity
 			var updatedComponents = new List<MonoBehaviour> { this };
 			var mg = new PrimitiveMeshGenerator(primitiveData);
 			var mesh = mg
-				.GetTransformedMesh(table?.TableHeight ?? 0f, primitiveData.Mesh, Origin.Original, false)
+				.GetTransformedMesh(0, primitiveData.Mesh, Origin.Original, false)
 				.Transform(mg.TransformationMatrix(0)) // apply transformation to mesh, because this is the playfield
 				.TransformToWorld(); // also, transform this to world space.
 			var material = new PbrMaterial(

@@ -61,14 +61,12 @@ namespace VisualPinball.Engine.VPT.Primitive
 
 		public Mesh GetTransformedMesh(float height, Mesh originalMesh, Origin origin, bool asRightHanded = true)
 		{
+			// todo remove height, it should always be 0
 			var (preVertexMatrix, preNormalsMatrix) = GetPreMatrix(height, origin, asRightHanded);
 			return GetMesh(originalMesh)?.Transform(preVertexMatrix, preNormalsMatrix);
 		}
 
-		protected override float BaseHeight(Table.Table table)
-		{
-			return table?.TableHeight ?? 0f;
-		}
+		protected override float BaseHeight(Table.Table table) => 0;
 
 		public Matrix3D TransformationMatrix(float height)
 		{

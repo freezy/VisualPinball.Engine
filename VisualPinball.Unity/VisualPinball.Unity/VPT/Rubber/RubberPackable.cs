@@ -23,14 +23,12 @@ namespace VisualPinball.Unity
 {
 	public struct RubberPackable
 	{
-		public float Height;
 		public int Thickness;
 		public IEnumerable<DragPointPackable> DragPoints;
 
 		public static byte[] Pack(RubberComponent comp)
 		{
 			return PackageApi.Packer.Pack(new RubberPackable {
-				Height = comp.Height,
 				Thickness = comp.Thickness,
 				DragPoints = comp.DragPoints.Select(DragPointPackable.From)
 			});
@@ -39,7 +37,6 @@ namespace VisualPinball.Unity
 		public static void Unpack(byte[] bytes, RubberComponent comp)
 		{
 			var data = PackageApi.Packer.Unpack<RubberPackable>(bytes);
-			comp._height = data.Height;
 			comp._thickness = data.Thickness;
 			comp.DragPoints = data.DragPoints.Select(c => c.ToDragPoint()).ToArray();
 		}

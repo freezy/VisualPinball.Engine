@@ -19,7 +19,6 @@
 #nullable enable
 
 using VisualPinball.Engine.Common;
-using VisualPinball.Engine.Game;
 using VisualPinball.Engine.Math;
 
 namespace VisualPinball.Engine.VPT.Rubber
@@ -28,26 +27,22 @@ namespace VisualPinball.Engine.VPT.Rubber
 	{
 		private readonly IRubberData _data;
 
-		private Vertex3D _middlePoint;
-
 		public RubberMeshGenerator(IRubberData data)
 		{
 			_data = data;
 		}
 
-		public Mesh GetTransformedMesh(float playfieldHeight, float meshHeight, int detailLevel, int acc = -1, bool createHitShape = false, float margin = 0f)
+		public Mesh GetTransformedMesh(float zOffset, int detailLevel, int acc = -1, float margin = 0f)
 		{
-			var mesh = GetMesh(playfieldHeight, meshHeight, detailLevel, acc, createHitShape, margin);
-			return mesh.Transform(GetRotationMatrix());
+			var mesh = GetMesh(zOffset, detailLevel, acc, margin);
+			return mesh;
 		}
 
-		public Mesh GetMesh(Table.Table table, RubberData rubberData)
+		public Mesh GetMesh(float zOffset, Table.Table table)
 		{
-			var mesh = GetTransformedMesh(table.TableHeight, _data.Height, table.GetDetailLevel());
-			mesh.Name = rubberData.Name;
-			var preMatrix = new Matrix3D();
-			preMatrix.SetTranslation(0, 0, -_data.Height);
-			return mesh.Transform(preMatrix);
+			var mesh = GetTransformedMesh(zOffset, table.GetDetailLevel());
+			mesh.Name = _data.name;
+			return mesh;
 		}
 
 		public PbrMaterial GetMaterial(Table.Table table, RubberData rubberData)
@@ -55,28 +50,7 @@ namespace VisualPinball.Engine.VPT.Rubber
 			return new PbrMaterial(table.GetMaterial(rubberData.Material), table.GetTexture(rubberData.Image));
 		}
 
-		private Matrix3D GetRotationMatrix()
-		{
-			var fullMatrix = new Matrix3D();
-			var tempMat = new Matrix3D();
-
-			tempMat.SetTranslation(-_middlePoint.X, -_middlePoint.Y, -_middlePoint.Z);
-			fullMatrix.Multiply(tempMat, fullMatrix);
-
-			tempMat.RotateZMatrix(MathF.DegToRad(_data.RotZ));
-			fullMatrix.Multiply(tempMat);
-			tempMat.RotateYMatrix(MathF.DegToRad(_data.RotY));
-			fullMatrix.Multiply(tempMat);
-			tempMat.RotateXMatrix(MathF.DegToRad(_data.RotX));
-			fullMatrix.Multiply(tempMat);
-
-			tempMat.SetTranslation(_middlePoint.X, _middlePoint.Y, _middlePoint.Z);
-			fullMatrix.Multiply(tempMat);
-
-			return fullMatrix;
-		}
-
-		private Mesh GetMesh(float playfieldHeight, float meshHeight, int detailLevel, int acc = -1, bool createHitShape = false, float margin = 0f)
+		private Mesh GetMesh(float zOffset, int detailLevel, int acc = -1, float margin = 0f)
 		{
 			var mesh = new Mesh();
 			// i dont understand the calculation of splineaccuracy here /cupiii
@@ -88,9 +62,6 @@ namespace VisualPinball.Engine.VPT.Rubber
 
 			var splineAccuracy = acc != -1 ? 4.0f * MathF.Pow(10.0f, (10.0f - PhysicsConstants.HitShapeDetailLevel) * (float)(1.0 / 1.5)) : -1.0f;
 			SplineVertex sv = new SplineVertex(_data.DragPoints, (int)(_data.Thickness + 0.5), detailLevel, splineAccuracy, margin: margin, loop: true);
-
-			var height = playfieldHeight + meshHeight;
-
 
 			// one ring for each Splinevertex
 
@@ -106,7 +77,7 @@ namespace VisualPinball.Engine.VPT.Rubber
 			// copy the data from the pline into the middle of the new variables
 			for (int i = 0; i < sv.VertexCount; i++)
 			{
-				points[i] = new Vertex3D(sv.MiddlePoints[i].X, sv.MiddlePoints[i].Y, height);
+				points[i] = new Vertex3D(sv.MiddlePoints[i].X, sv.MiddlePoints[i].Y, zOffset);
 				right[i] = new Vertex3D(sv.RgvLocal[i].X - sv.MiddlePoints[i].X, sv.RgvLocal[i].Y - sv.MiddlePoints[i].Y, 0f);
 				right[i].Normalize();
 				tangents[i] = Vertex3D.CrossProduct(right[i], new Vertex3D(0f, 0f, 1f));
@@ -216,26 +187,6 @@ namespace VisualPinball.Engine.VPT.Rubber
 			}
 
 			Mesh.ComputeNormals(mesh.Vertices, numVertices, mesh.Indices, numIndices);
-
-			var maxX = Constants.FloatMin;
-			var minX = Constants.FloatMax;
-			var maxY = Constants.FloatMin;
-			var minY = Constants.FloatMax;
-			var maxZ = Constants.FloatMin;
-			var minZ = Constants.FloatMax;
-			for (var i = 0; i < numVertices; i++)
-			{
-				maxX = MathF.Max(maxX, mesh.Vertices[i].X);
-				maxY = MathF.Max(maxY, mesh.Vertices[i].Y);
-				maxZ = MathF.Max(maxZ, mesh.Vertices[i].Z);
-				minX = MathF.Min(minX, mesh.Vertices[i].X);
-				minY = MathF.Min(minY, mesh.Vertices[i].X);
-				minZ = MathF.Min(minZ, mesh.Vertices[i].X);
-			}
-
-			_middlePoint.X = (maxX + minX) * 0.5f;
-			_middlePoint.Y = (maxY + minY) * 0.5f;
-			_middlePoint.Z = (maxZ + minZ) * 0.5f;
 
 			return mesh;
 
