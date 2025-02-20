@@ -71,7 +71,7 @@ namespace VisualPinball.Engine.Test.VPT.Primitive
 
 			m.GetTranslation().X.Should().Be(505f);
 			m.GetTranslation().Y.Should().Be(1305f);
-			m.GetTranslation().Z.Should().Be(_tc.Table.TableHeight);
+			m.GetTranslation().Z.Should().Be(0);
 		}
 
 		[Test]

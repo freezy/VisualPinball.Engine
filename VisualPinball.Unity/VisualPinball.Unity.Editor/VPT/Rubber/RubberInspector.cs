@@ -30,9 +30,7 @@ namespace VisualPinball.Unity.Editor
 
 		public Transform Transform => MainComponent.transform;
 
-		private SerializedProperty _heightProperty;
 		private SerializedProperty _thicknessProperty;
-		private SerializedProperty _rotationProperty;
 
 		protected override void OnEnable()
 		{
@@ -41,9 +39,7 @@ namespace VisualPinball.Unity.Editor
 			DragPointsHelper = new DragPointsInspectorHelper(MainComponent, this);
 			DragPointsHelper.OnEnable();
 
-			_heightProperty = serializedObject.FindProperty(nameof(RubberComponent._height));
 			_thicknessProperty = serializedObject.FindProperty(nameof(RubberComponent._thickness));
-			_rotationProperty = serializedObject.FindProperty(nameof(RubberComponent.Rotation));
 		}
 
 		protected override void OnDisable()
@@ -62,8 +58,13 @@ namespace VisualPinball.Unity.Editor
 
 			OnPreInspectorGUI();
 
-			PropertyField(_rotationProperty, rebuildMesh: true);
-			PropertyField(_heightProperty, rebuildMesh: true);
+			// height
+			EditorGUI.BeginChangeCheck();
+			var newHeight = EditorGUILayout.FloatField(new GUIContent("Height", "Height of the rubber (in VPX units."), MainComponent.Height);
+			if (EditorGUI.EndChangeCheck()) {
+				Undo.RecordObject(MainComponent.transform, "Change Rubber Height");
+				MainComponent.Height = newHeight;
+			}
 			PropertyField(_thicknessProperty, rebuildMesh: true);
 
 			DragPointsHelper.OnInspectorGUI(this);
@@ -86,7 +87,7 @@ namespace VisualPinball.Unity.Editor
 		public IEnumerable<DragPointExposure> DragPointExposition => new[] { DragPointExposure.Smooth };
 		public DragPointTransformType HandleType => DragPointTransformType.TwoD;
 		public DragPointsInspectorHelper DragPointsHelper { get; private set; }
-		public float ZOffset => MainComponent.Height;
+		public float ZOffset => 0;
 		public float[] TopBottomZ => null;
 		public void SetDragPointPosition(DragPointData dragPoint, Vertex3D value, int numSelectedDragPoints,
 			float[] topBottomZ) => dragPoint.Center = value;

@@ -34,9 +34,9 @@ namespace VisualPinball.Unity
 			_matrix = matrix;
 		}
 
-		internal void GenerateColliders(float playfieldHeight, float hitHeight, int detailLevel, ref ColliderReference colliders, float margin)
+		internal void GenerateColliders(float zOffset, int detailLevel, ref ColliderReference colliders, float margin)
 		{
-			var mesh = _meshGenerator.GetTransformedMesh(playfieldHeight, hitHeight, detailLevel, 6, true, margin); //!! adapt hacky code in the function if changing the "6" here
+			var mesh = _meshGenerator.GetTransformedMesh(zOffset, detailLevel, 6, margin); //!! adapt hacky code in the function if changing the "6" here
 			var addedEdges = EdgeSet.Get(Allocator.TempJob);
 
 			// add collision triangles and edges

@@ -78,11 +78,11 @@ namespace VisualPinball.Unity
 			var updatedComponents = new List<MonoBehaviour> { this };
 
 			// transforms
-			var position = data.Position.ToUnityVector3();
+			var position = data.Position.ToUnityFloat3();
 			var size = data.Size.ToUnityFloat3();
-			var rotation = new Vector3(data.RotAndTra[0], data.RotAndTra[1], data.RotAndTra[2]);
-			var translation = new Vector3(data.RotAndTra[3], data.RotAndTra[4], data.RotAndTra[5]);
-			var objectRotation = new Vector3(data.RotAndTra[6], data.RotAndTra[7], data.RotAndTra[8]);
+			var rotation = new float3(data.RotAndTra[0], data.RotAndTra[1], data.RotAndTra[2]);
+			var translation = new float3(data.RotAndTra[3], data.RotAndTra[4], data.RotAndTra[5]);
+			var objectRotation = new float3(data.RotAndTra[6], data.RotAndTra[7], data.RotAndTra[8]);
 
 			var scaleMatrix = float4x4.Scale(size);
 			var transMatrix = float4x4.Translate(position);
@@ -93,7 +93,7 @@ namespace VisualPinball.Unity
 					float4x4.Translate(translation)
 				));
 			var transformationWithinPlayfieldMatrix = math.mul(transMatrix, math.mul(rotTransMatrix, scaleMatrix));
-			transform.SetFromMatrix(((Matrix4x4)transformationWithinPlayfieldMatrix).TransformVpxInWorld());
+			transform.SetFromMatrix(transformationWithinPlayfieldMatrix.TransformVpxInWorld());
 
 			// mesh
 			var meshComponent = GetComponent<PrimitiveMeshComponent>();

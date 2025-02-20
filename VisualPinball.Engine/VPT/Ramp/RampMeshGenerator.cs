@@ -83,7 +83,7 @@ namespace VisualPinball.Engine.VPT.Ramp
 
 		public Mesh GetMesh(string id, Table.Table table, bool asRightHanded)
 		{
-			var meshes = GenerateMeshes(table.Width, table.Height, table.TableHeight);
+			var meshes = GenerateMeshes(table.Width, table.Height, 0);
 			if (meshes.ContainsKey(id)) {
 				return asRightHanded ? meshes[id].Transform(Matrix3D.RightHanded) : meshes[id];
 			}

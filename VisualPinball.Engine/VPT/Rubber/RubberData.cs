@@ -35,6 +35,7 @@ namespace VisualPinball.Engine.VPT.Rubber
 	{
 		public override string GetName() => Name;
 		public override void SetName(string name) { Name = name; }
+		public string name => Name;
 
 		[BiffString("NAME", IsWideString = true, Pos = 8)]
 		public string Name = string.Empty;

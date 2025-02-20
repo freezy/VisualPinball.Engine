@@ -20,12 +20,9 @@ namespace VisualPinball.Engine.VPT.Rubber
 {
 	public interface IRubberData
 	{
+		string name { get; }
 		DragPointData[] DragPoints { get; }
 		int Thickness { get; }
 		float Height { get; }
-
-		float RotX { get; }
-		float RotY { get; }
-		float RotZ { get; }
 	}
 }

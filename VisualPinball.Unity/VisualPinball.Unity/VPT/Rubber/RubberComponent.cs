@@ -40,20 +40,17 @@ namespace VisualPinball.Unity
 		#region Data
 
 		[Tooltip("Height of the rubber (z-axis).")]
-		public float _height = 25f;
+		public float Height {
+			get => transform.localPosition.TranslateToVpx().z;
+			set => transform.localPosition = new Vector3(transform.localPosition.x, Physics.ScaleToWorld(value), transform.localPosition.z);
+		}
 
 		[Min(0)]
 		[Tooltip("How thick the rubber band is rendered.")]
 		public int _thickness = 8;
 
-		[Tooltip("Rotation on the playfield")]
-		public Vector3 Rotation;
-
 		[SerializeField]
 		private DragPointData[] _dragPoints;
-
-		[NonSerialized]
-		private float _scale = 1f;
 
 		[NonSerialized]
 		private Vertex3D[] _scalingDragPoints;
@@ -64,10 +61,6 @@ namespace VisualPinball.Unity
 
 		public DragPointData[] DragPoints { get => _dragPoints; set => _dragPoints = value; }
 		public int Thickness => math.max(1, _thickness); // don't allow zero thickness
-		public float Height => _height;
-		public float RotX => Rotation.x;
-		public float RotY => Rotation.y;
-		public float RotZ => Rotation.z;
 
 		#endregion
 
@@ -119,9 +112,28 @@ namespace VisualPinball.Unity
 		{
 			var updatedComponents = new List<MonoBehaviour> { this };
 
+			// reset origin to bounding box center and move points accordingly
+			var min = new float3(float.MaxValue, float.MaxValue, float.MaxValue);
+			var max = new float3(float.MinValue, float.MinValue, float.MinValue);
+			foreach (var dp in data.DragPoints) {
+				min = math.min(min, dp.Center.ToUnityFloat3());
+				max = math.max(max, dp.Center.ToUnityFloat3());
+			}
+			var boundingBoxCenter = (max + min) / 2f;
+			boundingBoxCenter.z = data.Height;
+			foreach (var dp in data.DragPoints) {
+				dp.Center = new Vertex3D(
+					dp.Center.X - boundingBoxCenter.x,
+					dp.Center.Y - boundingBoxCenter.y,
+					0
+				);
+			}
+
+			// add rotation to the final matrix..
+			var rotMatrix = float4x4.EulerZYX(math.radians(new float3(data.RotX, data.RotY, data.RotZ)));
+			transform.SetFromMatrix(math.mul(float4x4.Translate(boundingBoxCenter), rotMatrix).TransformVpxInWorld());
+
 			// geometry
-			_height = data.Height;
-			Rotation = new Vector3(data.RotX, data.RotY, data.RotZ);
 			_thickness = data.Thickness;
 			DragPoints = data.DragPoints;
 
@@ -169,10 +181,6 @@ namespace VisualPinball.Unity
 			data.Name = name;
 
 			// geometry
-			data.Height = _height;
-			data.RotX = Rotation.x;
-			data.RotY = Rotation.y;
-			data.RotZ = Rotation.z;
 			data.Thickness = _thickness;
 			data.DragPoints = DragPoints;
 
@@ -205,12 +213,8 @@ namespace VisualPinball.Unity
 		{
 			var srcMainComp = go.GetComponent<RubberComponent>();
 			if (srcMainComp) {
-				_height = srcMainComp._height;
 				_thickness = srcMainComp._thickness;
-				Rotation = srcMainComp.Rotation;
-				_height = srcMainComp._height;
 				_dragPoints = srcMainComp._dragPoints.Select(dp => dp.Clone()).ToArray();
-
 			}
 			RebuildMeshes();
 		}

@@ -60,7 +60,7 @@ namespace VisualPinball.Engine.VPT.Rubber
 		Matrix3D IRenderable.TransformationMatrix(Table.Table table, Origin origin) => Matrix3D.Identity;
 		public Mesh GetMesh(string id, Table.Table table, Origin origin = Origin.Global, bool asRightHanded = true)
 		{
-			return MeshGenerator.GetMesh(table, Data);
+			return MeshGenerator.GetMesh(0, table);
 		}
 
 		public PbrMaterial GetMaterial(string id, Table.Table table) => MeshGenerator.GetMaterial(table, Data);
