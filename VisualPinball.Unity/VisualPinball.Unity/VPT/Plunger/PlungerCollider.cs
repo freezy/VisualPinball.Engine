@@ -85,11 +85,15 @@ namespace VisualPinball.Unity
 			LineSegEnd = new LineCollider(new float2(x2, position), new float2(x, position), zHeight, zHeight + Plunger.PlungerHeight, info);
 			JointEnd0 = new LineZCollider(new float2(x, position), zHeight, zHeight + Plunger.PlungerHeight, info);
 			JointEnd1 = new LineZCollider(new float2(x2, position), zHeight, zHeight + Plunger.PlungerHeight, info);
-
 			PosY = 0;
+
 			Bounds = new ColliderBounds(Header.ItemId, Header.Id, new Aabb(
-				new float3(-comp.Width - 10, comp.Height, 0),
-				new float3(comp.Width + 10, -100, 50)
+				x - 0.1f,
+				x2 + 0.1f,
+				frameTop - 0.1f,
+				y + 0.1f,
+				0,
+				50
 			));
 		}
 
