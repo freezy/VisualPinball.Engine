@@ -145,6 +145,7 @@ namespace VisualPinball.Unity
 		internal NativeQueue<EventData>.ParallelWriter EventQueue => _eventQueue.Ref.AsParallelWriter();
 
 		internal void Schedule(InputAction action) => _inputActions.Enqueue(action);
+		internal bool BallExists(int ballId) => _ballStates.Ref.ContainsKey(ballId);
 		internal ref BallState BallState(int ballId) => ref _ballStates.Ref.GetValueByRef(ballId);
 		internal ref BumperState BumperState(int itemId) => ref _bumperStates.Ref.GetValueByRef(itemId);
 		internal ref FlipperState FlipperState(int itemId) => ref _flipperStates.Ref.GetValueByRef(itemId);
