@@ -50,7 +50,7 @@ Select how VPE establishes a connection with MPF.
 ## Machine folder
 
 The file path to the
-[_machine folder_](https://missionpinball.org/latest/tutorial/2_creating_a_new_machine/)
+[machine folder](https://missionpinball.org/latest/tutorial/2_creating_a_new_machine/)
 of your table. When the package is first installed, it will create a default
 machine folder in the `Assets/StreamingAssets` directory of your Unity project.
 The path to this directory is the default setting. You can store your machine
