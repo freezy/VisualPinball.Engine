@@ -67,7 +67,7 @@ of your Unity project to another computer.
 Select the media controller MPF should attempt to connect to on startup.
 
 - **None:** Do not connect to any media controller
-- **Godot or Legacy Mc:** Use the officially supported media controller of
+- **Godot or Legacy MC:** Use the officially supported media controller of
   whatever MPF version is running. MPF versions since `v0.80` will attempt to
   start and connect to the new
   [Godot-based media controller](https://missionpinball.org/latest/gmc/). MPF
