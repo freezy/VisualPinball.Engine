@@ -45,7 +45,7 @@ should learn how to use it. The best way to do that is to follow the
 Since the game logic engine is the part of VPE that provides switch, coil, and
 lamp definitions so VPE can link them to the table during gameplay, you'll need
 to retrieve them from MPF. You can do this by clicking _Get Machine Description_
-in the MPF component's inspector. If VPE successfully retrieved the machine
+in the `MpfGamelogicEngine` inspector. If VPE successfully retrieved the machine
 description from MPF, you will see the coils, switches and lamps defined in your
 MPF config file show up in the `MpfGamelogicEngine` inspector. The description
 will be stored in the component. You will only need to do this again when you

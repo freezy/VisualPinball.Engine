@@ -36,9 +36,9 @@ When VPE shuts down, it will:
 
 VPEs MPF integration comes with a custom prebuilt version of MPF that is
 slightly different from the official version. VPEs version of MPF supports a
-_Ping_ RPC that allows VPE to check whether MPF is ready without any
-side-effects (like starting the game). This way, the game can start as soon as
-MPF is ready, regardless of how long MPF takes to start up. We have
+_Ping_ RPC that allows VPE to check whether MPF is ready without any side
+effects (like starting the game). This way, the game can start as soon as MPF is
+ready, regardless of how long MPF takes to start up. We have
 [proposed this change](https://github.com/missionpinball/mpf/pull/1865) to the
 MPF developers, but as of February 2025 they have not yet gotten around to
 including it in the official version. Therefore, you will need to set the
@@ -47,16 +47,17 @@ want to use any official version of MPF.
 
 ## Hardware rules
 
-VPE supports MPF's _hardware rules_, which are dynamic connections between coils
-and switches that are handled by the hardware controller boards in real pinball
-machines in order to reduce latency, but they are useful for VPE as well. For
-example, when the player presses the flipper button on the keyboard, VPE already
-knows that the flipper coil should be activated and does not need to wait for a
-response from MPF, because MPF has previously told VPE that the flipper switch
-should activate the flipper coil. When the table goes into attract mode, MPF
-removes the rule and the flippers no longer work. This means that even though
-MPF runs in a separate process, using it to control your VPE table **does not
-increase latency**.
+VPE supports MPF's
+[hardware rules](https://missionpinball.org/latest/hardware/hw_rules/), which
+are dynamic connections between coils and switches that are handled by the
+hardware controller boards in real pinball machines in order to reduce latency,
+but they are useful for VPE as well. For example, when the player presses the
+flipper button on the keyboard, VPE already knows that the flipper coil should
+be activated and does not need to wait for a response from MPF, because MPF has
+previously told VPE that the flipper switch should activate the flipper coil.
+When the table goes into attract mode, MPF removes the rule and the flippers no
+longer work. This means that even though MPF runs in a separate process, using
+it to control your VPE table **does not increase latency**.
 
 ## Media controller
 
