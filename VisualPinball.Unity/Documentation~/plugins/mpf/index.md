@@ -1,18 +1,24 @@
 ---
 uid: mpf_index
 title: Mission Pinball Framework
-description: Visual Pinball Engine integration with the Mission Pinball Framework.
+description:
+  Visual Pinball Engine integration with the Mission Pinball Framework.
 ---
 
-<img alt="MPF Logo" width="256" src="https://missionpinball.org/images/mpf-logo-full.png" />
+<img alt="MPF Logo" width="256" src="mpf-logo-full.png" />
 
 # Mission Pinball Framework
 
-VPE connects to MPF using [gRPC](https://grpc.io/), which is a high-performance, low-latency RPC framework. It works by VPE launching MPF as a Python process. MPF will then spawn a gRPC server, to which VPE connects to.
+[MPF](https://missionpinball.org/latest/about/) is an open-source framework
+written in Python to drive real pinball machines. It has a "configuration over
+code" approach, meaning that 90% of what you'd do in a pinball game can be
+achieved through configuration (YAML files) rather than implementing it in code.
 
-There are two situations when this is done:
+When you read MPF's [Getting Started](https://missionpinball.org/latest/start/)
+page, you'll notice a banner stating that "MPF is not a simulator." Well, you've
+found the simulator. ;)
 
-- In edit mode to retrieve available switches, coils and lamps
-- During runtime to drive the game
-
-VPE supports MPF's *hardware rules*, which are dynamic connections between coils and switches handled by the controller boards in order to reduce latency. The media controller is not yet supported.
+This project lets you use MPF to drive game logic in
+[VPE](https://github.com/freezy/VisualPinball.Engine), a pinball simulator based
+on Unity. It does this by spawning a Python process running MPF and
+communicating with VPE through [gRPC](https://grpc.io/).
