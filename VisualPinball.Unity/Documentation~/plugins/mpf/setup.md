@@ -14,7 +14,7 @@ description: How to set up the Mission Pinball Framework with VPE.
 Mission Pinball Framework integration comes as a UPM package. In Unity, add it
 by choosing _Window -> Package Manager -> Add package from git URL_:
 
-<p><img alt="Package Manager" width="294" src="../../creators-guide/setup/unity-package-manager.png"/></p>
+<p><img alt="Package Manager" width="253" src="../../creators-guide/setup/unity-package-manager.png"/></p>
 
 Then, input `org.visualpinball.engine.missionpinball` and click _Add_ or press
 `Enter`. This will download and add MPF itself and VPE's MPF integration to the
