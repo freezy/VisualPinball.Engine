@@ -72,8 +72,7 @@ Select the media controller MPF should attempt to connect to on startup.
   start and connect to the new
   [Godot-based media controller](https://missionpinball.org/latest/gmc/). MPF
   versions prior to `v0.80` will attempt to start and connect to the legacy
-  [Kivvy-based media
-  controller]([media controller](https://missionpinball.org/latest/mc/)). The
+  [Kivvy-based media controller](https://missionpinball.org/latest/mc/). The
   version of MPF included in VPE is `v0.80.0`, so it will use Godot. If you
   choose this option, you must manually install the appropriate media
   controller.
