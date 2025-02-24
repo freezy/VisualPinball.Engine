@@ -45,20 +45,26 @@ should learn how to use it. The best way to do that is to follow the
 Since the game logic engine is the part of VPE that provides switch, coil, and
 lamp definitions so VPE can link them to the table during gameplay, you'll need
 to retrieve them from MPF. You can do this by clicking _Get Machine Description_
-in the MPF component's inspector. This will save it to the component. You will
-only need to do this once unless you update the MPF machine config. Visual
-Pinball Engine compares its stored machine description with the one used by MPF
-every time you start the game. Look out for this warning in the Unity Console:
+in the MPF component's inspector. If VPE successfully retrieved the machine
+description from MPF, you will see the coils, switches and lamps defined in your
+MPF config file show up in the `MpfGamelogicEngine` inspector. The description
+will be stored in the component. You will only need to do this again when you
+update the MPF machine config or replace the `MpfGamelogicEngine` component.
+Visual Pinball Engine compares its stored machine description with the one used
+by MPF every time you start the game. Look out for this warning in the Unity
+console:
 
 <p><img alt="Machine description mismatch warning" src="machine-description-mismatch-warning.png"/></p>
 
 ## Wire it up
 
-Now that VPE knows which switches, coils, and lamps your machine expects, you'll
-need to connect them using the
+Now that VPE knows which switches, coils, and lamps MPF expects, you'll need to
+associate them with the appropriate game items on your playfield in Unity. Click
+on _Populate Hardware_ in the `MpfGamelogicEngine` inspector and use the
 [switch](../../creators-guide/editor/switch-manager.md),
 [coil](../../creators-guide/editor/coil-manager.md), and
-[lamp manager](../../creators-guide/editor/lamp-manager.md).
+[lamp manager](../../creators-guide/editor/lamp-manager.md) to create the
+neccessary references.
 
 You can watch the entire process in a quick video here:
 
