@@ -31,7 +31,7 @@ using VisualPinball.Engine.VPT.Table;
 namespace VisualPinball.Unity
 {
 	[PackAs("Plunger")]
-	[AddComponentMenu("Visual Pinball/Game Item/Plunger")]
+	[AddComponentMenu("Pinball/Game Item/Plunger")]
 	public class PlungerComponent : MainRenderableComponent<PlungerData>, ICoilDeviceComponent, IPackable
 	{
 		#region Data

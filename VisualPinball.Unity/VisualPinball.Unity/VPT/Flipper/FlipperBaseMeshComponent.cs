@@ -24,7 +24,7 @@ namespace VisualPinball.Unity
 {
 	[PackAs("FlipperBaseMesh")]
 	[ExecuteInEditMode]
-	[AddComponentMenu("Visual Pinball/Mesh/Flipper Base Mesh")]
+	[AddComponentMenu("Pinball/Mesh/Flipper Base Mesh")]
 	public class FlipperBaseMeshComponent : MeshComponent<FlipperData, FlipperComponent>, IPackable
 	{
 		protected override Mesh GetMesh(FlipperData _)

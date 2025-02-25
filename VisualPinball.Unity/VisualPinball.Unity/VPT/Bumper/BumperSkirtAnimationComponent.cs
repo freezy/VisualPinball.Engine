@@ -20,7 +20,7 @@ using VisualPinball.Engine.VPT.Bumper;
 namespace VisualPinball.Unity
 {
 	[PackAs("BumperSkirtAnimation")]
-	[AddComponentMenu("Visual Pinball/Animation/Bumper Skirt Animation")]
+	[AddComponentMenu("Pinball/Animation/Bumper Skirt Animation")]
 	public class BumperSkirtAnimationComponent : AnimationComponent<BumperData, BumperComponent>, IPackable
 	{
 		#region Data

@@ -9,7 +9,7 @@ Using the [Switch Manager](xref:switch_manager), you can wire playfield and cabi
 
 The **Wire Manager** allows you to *bypass* the gamelogic engine and connect switches directly to coils and lamps. Using the *dynamic* wires, this can be used to eliminate the flipper lag often introduced by emulated ROMs. But it also can be useful for debugging, or for game logic that might not be covered by the gamelogic engine.
 
-You can open the wire manager under *Visual Pinball -> Wire Manager*.
+You can open the wire manager under *Pinball -> Wire Manager*.
 
 ![Wire Manager](wire-manager.png)
 

@@ -65,7 +65,7 @@ namespace VisualPinball.Unity.Editor
 
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
-		[MenuItem("Visual Pinball/Asset Browser")]
+		[MenuItem("Pinball/Asset Browser")]
 		public static void ShowWindow()
 		{
 			var wnd = GetWindow<AssetBrowser>();

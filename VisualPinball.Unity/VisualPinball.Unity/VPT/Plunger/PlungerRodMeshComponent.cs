@@ -27,7 +27,7 @@ namespace VisualPinball.Unity
 {
 	[PackAs("PlungerRodMesh")]
 	[ExecuteInEditMode]
-	[AddComponentMenu("Visual Pinball/Mesh/Plunger Rod Mesh")]
+	[AddComponentMenu("Pinball/Mesh/Plunger Rod Mesh")]
 	public class PlungerRodMeshComponent : PlungerMeshComponent, IPackable
 	{
 		#region Data

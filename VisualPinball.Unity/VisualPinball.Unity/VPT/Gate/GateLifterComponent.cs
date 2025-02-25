@@ -25,7 +25,7 @@ namespace VisualPinball.Unity
 {
 	[PackAs("GateLifter")]
 	[RequireComponent(typeof(GateComponent))]
-	[AddComponentMenu("Visual Pinball/Mechs/Gate Lifter")]
+	[AddComponentMenu("Pinball/Mechs/Gate Lifter")]
 	public class GateLifterComponent : MonoBehaviour, ICoilDeviceComponent, IPackable
 	{
 		public const string LifterCoilItem = "lifter_coil";

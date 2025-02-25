@@ -22,7 +22,7 @@ using UnityEngine;
 namespace VisualPinball.Unity
 {
 	[PackAs("ScoreReel")]
-	[AddComponentMenu("Visual Pinball/Display/Score Reel")]
+	[AddComponentMenu("Pinball/Display/Score Reel")]
 	public class ScoreReelComponent : MonoBehaviour, IPackable
 	{
 		public enum ScoreReelDirection

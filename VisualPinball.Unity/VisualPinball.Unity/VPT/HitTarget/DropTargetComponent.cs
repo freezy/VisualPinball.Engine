@@ -26,7 +26,7 @@ using VisualPinball.Engine.VPT.Table;
 namespace VisualPinball.Unity
 {
 	[PackAs("DropTarget")]
-	[AddComponentMenu("Visual Pinball/Game Item/Drop Target")]
+	[AddComponentMenu("Pinball/Game Item/Drop Target")]
 	public class DropTargetComponent : TargetComponent, IPackable
 	{
 		public override bool IsLegacy {

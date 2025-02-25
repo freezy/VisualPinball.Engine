@@ -238,7 +238,7 @@ namespace VisualPinball.Unity.Editor
 				.FirstOrDefault(icon => icon != null);
 		}
 
-		[MenuItem("Visual Pinball/Editor/Disable Gizmo Icons", false, 510)]
+		[MenuItem("Pinball/Editor/Disable Gizmo Icons", false, 510)]
 		public static void DisableGizmoIcons()
 		{
 			foreach (var lookup in Lookups) {

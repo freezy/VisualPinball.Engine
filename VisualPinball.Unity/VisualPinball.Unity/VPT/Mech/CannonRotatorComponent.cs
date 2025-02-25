@@ -21,7 +21,7 @@ namespace VisualPinball.Unity
 {
 	[PackAs("CannonRotator")]
 	[RequireComponent(typeof(RotatorComponent))]
-	[AddComponentMenu("Visual Pinball/Game Item/Cannon Rotator")]
+	[AddComponentMenu("Pinball/Game Item/Cannon Rotator")]
 	public class CannonRotatorComponent : MonoBehaviour, IPackable
 	{
 		#region Data

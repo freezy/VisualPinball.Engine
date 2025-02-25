@@ -33,7 +33,7 @@ using Mesh = VisualPinball.Engine.VPT.Mesh;
 namespace VisualPinball.Unity
 {
 	[PackAs("Primitive")]
-	[AddComponentMenu("Visual Pinball/Game Item/Primitive")]
+	[AddComponentMenu("Pinball/Game Item/Primitive")]
 	public class PrimitiveComponent : MainRenderableComponent<PrimitiveData>, IMeshGenerator, IPackable
 	{
 		#region Data

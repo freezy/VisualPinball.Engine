@@ -7,7 +7,7 @@ description: The lamp manager lets you configure the lights, flashers, and gener
 
 VPE uses the Unity game engine to accurately simulate the many types of lamps a real pinball machine might use, and connect them to the gamelogic engine. Lamps have a standard set of parameters, which can be tweaked in the editor. Lamps in a game are dynamic, so the gamelogic engine can toggle them, fade them, and even change their color.
 
-To link each of the playfield lamps to the gamelogic engine and configure how they behave during gameplay, the *Lamp Manager* is used. You can find it under *Visual Pinball -> Lamp Manager*.
+To link each of the playfield lamps to the gamelogic engine and configure how they behave during gameplay, the *Lamp Manager* is used. You can find it under *Pinball -> Lamp Manager*.
 
 ![Lamp Manager](lamp-manager.png)
 

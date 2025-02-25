@@ -30,7 +30,7 @@ namespace VisualPinball.Unity
 	/// Base component for playing a <c>SoundAsset</c> using the public methods <c>Play</c> and <c>Stop</c>.
 	/// </summary>
 	[PackAs("Sound")]
-	[AddComponentMenu("Visual Pinball/Sound/Sound")]
+	[AddComponentMenu("Pinball/Sound/Sound")]
 	public class SoundComponent : EnableAfterAwakeComponent, IPackable
 	{
 		[FormerlySerializedAs("_soundAsset")]

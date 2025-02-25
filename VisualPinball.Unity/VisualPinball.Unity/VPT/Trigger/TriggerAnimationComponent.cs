@@ -22,7 +22,7 @@ using VisualPinball.Engine.VPT.Trigger;
 namespace VisualPinball.Unity
 {
 	[PackAs("TriggerAnimation")]
-	[AddComponentMenu("Visual Pinball/Animation/Trigger Animation")]
+	[AddComponentMenu("Pinball/Animation/Trigger Animation")]
 	public class TriggerAnimationComponent : AnimationComponent<TriggerData, TriggerComponent>, IPackable
 	{
 		#region Data

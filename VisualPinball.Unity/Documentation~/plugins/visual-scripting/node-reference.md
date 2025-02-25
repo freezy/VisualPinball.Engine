@@ -8,7 +8,7 @@ description: Reference documentation for all VPE-specific nodes.
 
 This page details all the VPE-specific nodes that we have created for visual scripting.
 
-You can recognize VPE nodes easily by their color: they are orange. When creating new nodes, VPE event nodes can be found under *Events/Visual Pinball*, and other nodes simply under the root's *Visual Pinball*.
+You can recognize VPE nodes easily by their color: they are orange. When creating new nodes, VPE event nodes can be found under *Events/Pinball*, and other nodes simply under the root's *Visual Pinball*.
 
 Besides the simple read/write/event nodes, there are a bunch of nodes that solve common patterns in pinball games. While you could implement the same logic using Unity's standard nodes, we recommend using these custom nodes, because they save you space and thus increase the readability of your graphs.
 

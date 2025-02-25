@@ -42,7 +42,7 @@ using UnityEditor;
 namespace VisualPinball.Unity
 {
 	[PackAs("Kicker")]
-	[AddComponentMenu("Visual Pinball/Game Item/Kicker")]
+	[AddComponentMenu("Pinball/Game Item/Kicker")]
 	public class KickerComponent : MainRenderableComponent<KickerData>,
 		ICoilDeviceComponent, ITriggerComponent, IBallCreationPosition,
 		IRotatableComponent, ISerializationCallbackReceiver, IPackable

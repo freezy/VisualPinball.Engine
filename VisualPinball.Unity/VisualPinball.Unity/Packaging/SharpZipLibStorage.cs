@@ -55,7 +55,7 @@ namespace VisualPinball.Unity.Editor
 				// Create a FileStream for writing
 				var fs = File.Create(path);
 				_zipOutputStream = new ZipOutputStream(fs);
-				_zipOutputStream.SetComment("Visual Pinball Engine");
+				_zipOutputStream.SetComment("Pinball Engine");
 				_zipOutputStream.SetLevel(9);
 
 				// Create a root folder with write context

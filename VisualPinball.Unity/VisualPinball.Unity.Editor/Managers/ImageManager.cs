@@ -32,7 +32,7 @@ namespace VisualPinball.Unity.Editor
 
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
-		[MenuItem("Visual Pinball/Image Manager", false, 401)]
+		[MenuItem("Pinball/Image Manager", false, 401)]
 		public static void ShowWindow()
 		{
 			GetWindow<ImageManager>("Image Manager");

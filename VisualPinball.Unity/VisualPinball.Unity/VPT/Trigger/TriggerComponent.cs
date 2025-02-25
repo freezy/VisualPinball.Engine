@@ -36,7 +36,7 @@ using VisualPinball.Engine.VPT.Trigger;
 namespace VisualPinball.Unity
 {
 	[PackAs("Trigger")]
-	[AddComponentMenu("Visual Pinball/Game Item/Trigger")]
+	[AddComponentMenu("Pinball/Game Item/Trigger")]
 	public class TriggerComponent : MainRenderableComponent<TriggerData>,
 		ITriggerComponent, IPackable
 	{

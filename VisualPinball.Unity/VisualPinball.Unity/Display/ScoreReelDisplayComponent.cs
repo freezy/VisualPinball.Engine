@@ -26,7 +26,7 @@ using Logger = NLog.Logger;
 namespace VisualPinball.Unity
 {
 	[PackAs("ScoreReelDisplay")]
-	[AddComponentMenu("Visual Pinball/Display/Score Reel Display")]
+	[AddComponentMenu("Pinball/Display/Score Reel Display")]
 	[HelpURL("https://docs.visualpinball.org/creators-guide/manual/mechanisms/score-reels.html")]
 	public class ScoreReelDisplayComponent : DisplayComponent, IPackable
 	{

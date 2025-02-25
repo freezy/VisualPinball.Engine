@@ -24,7 +24,7 @@ namespace VisualPinball.Unity
 {
 	[PackAs("FlipperRubberMesh")]
 	[ExecuteInEditMode]
-	[AddComponentMenu("Visual Pinball/Mesh/Flipper Rubber Mesh")]
+	[AddComponentMenu("Pinball/Mesh/Flipper Rubber Mesh")]
 	public class FlipperRubberMeshComponent : MeshComponent<FlipperData, FlipperComponent>, IPackable
 	{
 		protected override PbrMaterial GetMaterial(FlipperData data, Table table)

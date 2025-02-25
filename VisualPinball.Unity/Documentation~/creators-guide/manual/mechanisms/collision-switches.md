@@ -12,7 +12,7 @@ A Collision Switch turns a hittable game object into a switch device. Examples o
 
 To create a Collision Switch:
 
-- Add the collision switch directly to a hittable game object. Select the game object you want to add it to, click on *Add Component* in the inspector and select *Visual Pinball -> Mechs -> Collision Switch*. 
+- Add the collision switch directly to a hittable game object. Select the game object you want to add it to, click on *Add Component* in the inspector and select *Pinball -> Mechs -> Collision Switch*. 
 
 <img src="collision-switch-inspector.png" width="323" class="img-fluid float-end" style="margin-left: 15px">
 

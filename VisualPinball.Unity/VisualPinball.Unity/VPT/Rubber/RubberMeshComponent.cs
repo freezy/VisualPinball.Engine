@@ -24,7 +24,7 @@ namespace VisualPinball.Unity
 {
 	[PackAs("RubberMesh")]
 	[ExecuteInEditMode]
-	[AddComponentMenu("Visual Pinball/Mesh/Rubber Mesh")]
+	[AddComponentMenu("Pinball/Mesh/Rubber Mesh")]
 	public class RubberMeshComponent : MeshComponent<RubberData, RubberComponent>, IPackable
 	{
 		protected override Mesh GetMesh(RubberData data)

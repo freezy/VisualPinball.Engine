@@ -24,7 +24,7 @@ using VisualPinball.Engine.VPT.Kicker;
 namespace VisualPinball.Unity
 {
 	[PackAs("KickerCollider")]
-	[AddComponentMenu("Visual Pinball/Collision/Kicker Collider")]
+	[AddComponentMenu("Pinball/Collision/Kicker Collider")]
 	public class KickerColliderComponent : ColliderComponent<KickerData, KickerComponent>, IPackable
 	{
 		#region Data

@@ -43,7 +43,7 @@ namespace VisualPinball.Unity.Editor
 
 		private WireListViewItemRenderer _listViewItemRenderer;
 
-		[MenuItem("Visual Pinball/Wire Manager", false, 303)]
+		[MenuItem("Pinball/Wire Manager", false, 303)]
 		public static void ShowWindow()
 		{
 			GetWindow<WireManager>();

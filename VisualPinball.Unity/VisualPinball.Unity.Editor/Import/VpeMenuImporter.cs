@@ -27,7 +27,7 @@ namespace VisualPinball.Unity.Editor
 {
 	public static class VpeMenuImporter
 	{
-		[MenuItem("Visual Pinball/Import .vpe File", false, 1)]
+		[MenuItem("Pinball/Import .vpe File", false, 1)]
 		public static async void ImportVpeIntoScene(MenuCommand menuCommand)
 		{
 			// if it's an untitled scene, save first.

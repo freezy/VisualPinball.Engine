@@ -8,7 +8,7 @@ description: How set up the visual scripting GLE
 
 In order to use visual scripting as your gamelogic engine, you need to add it as a component to your table. In order to do that, navigate in your hierarchy to the root node of your table, where you most likely still have the *Default Gamelogic Engine* added. If that's the case, remove it by clicking on the three dots and choose *Remove Component*. 
 
-Then, add the visual scripting GLE component by (still in the inspector) clicking on *Add Component -> Visual Pinball -> Gamelogic Engine -> Visual Scripting Game Logic*.
+Then, add the visual scripting GLE component by (still in the inspector) clicking on *Add Component -> Pinball -> Gamelogic Engine -> Visual Scripting Game Logic*.
 
 ## Configuration
 

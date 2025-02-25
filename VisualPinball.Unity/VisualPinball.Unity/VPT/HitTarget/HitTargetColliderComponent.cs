@@ -23,7 +23,7 @@ using VisualPinball.Engine.VPT.HitTarget;
 namespace VisualPinball.Unity
 {
 	[PackAs("HitTargetCollider")]
-	[AddComponentMenu("Visual Pinball/Collision/Hit Target Collider")]
+	[AddComponentMenu("Pinball/Collision/Hit Target Collider")]
 	[RequireComponent(typeof(HitTargetComponent))]
 	public class HitTargetColliderComponent : ColliderComponent<HitTargetData, TargetComponent>, IPackable, IColliderMesh
 	{

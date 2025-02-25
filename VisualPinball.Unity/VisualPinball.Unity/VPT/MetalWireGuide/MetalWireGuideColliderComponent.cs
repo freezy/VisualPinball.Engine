@@ -22,7 +22,7 @@ using VisualPinball.Engine.VPT.MetalWireGuide;
 namespace VisualPinball.Unity
 {
 	[PackAs("MetalWireGuideCollider")]
-	[AddComponentMenu("Visual Pinball/Collision/MetalWireGuide Collider")]
+	[AddComponentMenu("Pinball/Collision/MetalWireGuide Collider")]
 	public class MetalWireGuideColliderComponent : ColliderComponent<MetalWireGuideData, MetalWireGuideComponent>, IPackable
 	{
 		#region Data

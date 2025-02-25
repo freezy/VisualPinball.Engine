@@ -23,7 +23,7 @@ using VisualPinball.Engine.VPT.Flipper;
 namespace VisualPinball.Unity
 {
 	[PackAs("FlipperCollider")]
-	[AddComponentMenu("Visual Pinball/Collision/Flipper Collider")]
+	[AddComponentMenu("Pinball/Collision/Flipper Collider")]
 	[HelpURL("https://docs.visualpinball.org/creators-guide/manual/mechanisms/flippers.html")]
 	public class FlipperColliderComponent : ColliderComponent<FlipperData, FlipperComponent>, IPackable
 	{

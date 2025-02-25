@@ -24,7 +24,7 @@ using Mesh = VisualPinball.Engine.VPT.Mesh;
 namespace VisualPinball.Unity
 {
 	[ExecuteInEditMode]
-	[AddComponentMenu("Visual Pinball/Mesh/Ramp Wall Mesh")]
+	[AddComponentMenu("Pinball/Mesh/Ramp Wall Mesh")]
 	public class RampWallMeshComponent : MeshComponent<RampData, RampComponent>
 	{
 		protected override Mesh GetMesh(RampData data)

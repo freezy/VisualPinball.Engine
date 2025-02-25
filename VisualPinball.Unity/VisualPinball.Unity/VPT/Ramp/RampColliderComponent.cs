@@ -22,7 +22,7 @@ using VisualPinball.Engine.VPT.Ramp;
 namespace VisualPinball.Unity
 {
 	[PackAs("RampCollider")]
-	[AddComponentMenu("Visual Pinball/Collision/Ramp Collider")]
+	[AddComponentMenu("Pinball/Collision/Ramp Collider")]
 	public class RampColliderComponent : ColliderComponent<RampData, RampComponent>, IPackable
 	{
 		#region Data

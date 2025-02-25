@@ -24,7 +24,7 @@ using UnityEngine;
 namespace VisualPinball.Unity
 {
 	[PackAs("Rotator")]
-	[AddComponentMenu("Visual Pinball/Game Item/Rotator")]
+	[AddComponentMenu("Pinball/Game Item/Rotator")]
 	public class RotatorComponent : MonoBehaviour, IPackable
 	{
 		#region Data

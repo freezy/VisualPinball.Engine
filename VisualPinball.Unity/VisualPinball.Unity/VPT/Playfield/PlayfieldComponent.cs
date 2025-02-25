@@ -31,7 +31,7 @@ using VisualPinball.Unity.Playfield;
 namespace VisualPinball.Unity
 {
 	[PackAs("Playfield")]
-	[AddComponentMenu("Visual Pinball/Game Item/Playfield")]
+	[AddComponentMenu("Pinball/Game Item/Playfield")]
 	public class PlayfieldComponent : MainRenderableComponent<TableData>, IPackable
 	{
 		#region Data

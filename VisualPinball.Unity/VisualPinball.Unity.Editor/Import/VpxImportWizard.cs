@@ -31,13 +31,13 @@ namespace VisualPinball.Unity.Editor
 		#region Menu
 		public static VpxImportWizard Window;
 
-		[MenuItem("Visual Pinball/Editor/Import Wizard", false, 512)]
+		[MenuItem("Pinball/Editor/Import Wizard", false, 512)]
 		public static void Init()
 		{
 			Window = (VpxImportWizard)GetWindow(typeof(VpxImportWizard));
 			Window.autoRepaintOnSceneChange = true;
 			Window.minSize = new Vector2(800, 300);
-			Window.titleContent = new GUIContent("Visual Pinball Import Wizard"); // here we could attach an icon
+			Window.titleContent = new GUIContent("VPE Import Wizard"); // here we could attach an icon
 			Window.Show();
 		}
 		#endregion Menu

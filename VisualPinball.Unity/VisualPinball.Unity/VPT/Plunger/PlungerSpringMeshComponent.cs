@@ -26,7 +26,7 @@ namespace VisualPinball.Unity
 {
 	[PackAs("PlungerSpringMesh")]
 	[ExecuteInEditMode]
-	[AddComponentMenu("Visual Pinball/Mesh/Plunger Spring Mesh")]
+	[AddComponentMenu("Pinball/Mesh/Plunger Spring Mesh")]
 	public class PlungerSpringMeshComponent : PlungerMeshComponent, IPackable
 	{
 		#region Data

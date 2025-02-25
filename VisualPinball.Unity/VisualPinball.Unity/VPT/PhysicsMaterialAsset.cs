@@ -30,7 +30,7 @@ namespace VisualPinball.Unity
 	/// of writing them into the scene seems a good plan.
 	/// </summary>
 	[PackAs("PhysicsMaterial")]
-	[CreateAssetMenu(fileName = "PhysicsMaterial", menuName = "Visual Pinball/Physics Material", order = 100)]
+	[CreateAssetMenu(fileName = "PhysicsMaterial", menuName = "Pinball/Physics Material", order = 100)]
 	//[CustomEditor(typeof(PhysicsMaterial))]
 	public class PhysicsMaterialAsset : ScriptableObject
 	{

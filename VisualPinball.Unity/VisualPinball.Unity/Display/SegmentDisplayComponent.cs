@@ -29,7 +29,7 @@ using Logger = NLog.Logger;
 namespace VisualPinball.Unity
 {
 	[PackAs("SegmentDisplay")]
-	[AddComponentMenu("Visual Pinball/Display/Segment Display")]
+	[AddComponentMenu("Pinball/Display/Segment Display")]
 	public class SegmentDisplayComponent : DisplayComponent, IPackable
 	{
 		public override string Id { get => _id; set => _id = value;}

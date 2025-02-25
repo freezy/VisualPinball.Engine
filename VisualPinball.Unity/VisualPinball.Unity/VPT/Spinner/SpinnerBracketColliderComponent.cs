@@ -18,7 +18,7 @@ using UnityEngine;
 
 namespace VisualPinball.Unity
 {
-	[AddComponentMenu("Visual Pinball/Collision/Spinner Bracket Collider")]
+	[AddComponentMenu("Pinball/Collision/Spinner Bracket Collider")]
 	public class SpinnerBracketColliderComponent : MonoBehaviour
 	{
 	}

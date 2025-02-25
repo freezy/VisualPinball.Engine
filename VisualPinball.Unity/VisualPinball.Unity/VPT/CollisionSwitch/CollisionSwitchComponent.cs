@@ -21,7 +21,7 @@ using VisualPinball.Engine.Game.Engines;
 namespace VisualPinball.Unity
 {
 	[PackAs("CollisionSwitch")]
-	[AddComponentMenu("Visual Pinball/Mechs/Collision Switch")]
+	[AddComponentMenu("Pinball/Mechs/Collision Switch")]
 	public class CollisionSwitchComponent : MonoBehaviour, ISwitchDeviceComponent, IPackable
 	{
 		public const string MainSwitchItem = "collision_switch";

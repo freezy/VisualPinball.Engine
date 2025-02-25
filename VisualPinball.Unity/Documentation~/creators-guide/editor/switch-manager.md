@@ -9,7 +9,7 @@ During gameplay, the [gamelogic engine](xref:gamelogic_engine) needs to know wha
 
 Wiring these switches up to the gamelogic engine with code can be a tedious process, so VPE provides a graphical interface where you can do it easily. If you've named them appropriately it can even guess which switch maps to which game item.
 
-You can open the switch manager under *Visual Pinball -> Switch Manager*.
+You can open the switch manager under *Pinball -> Switch Manager*.
 
 ![Switch Manager](switch-manager.png)
 <small>Switch matrix from *Medieval Madness*.</small>

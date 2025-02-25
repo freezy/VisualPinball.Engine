@@ -32,7 +32,7 @@ namespace VisualPinball.Unity
 	/// in an asset library.
 	/// </summary>
 	[PackAs("SoundAsset")]
-	[CreateAssetMenu(fileName = "Sound", menuName = "Visual Pinball/Sound", order = 102)]
+	[CreateAssetMenu(fileName = "Sound", menuName = "Pinball/Sound", order = 102)]
 	public class SoundAsset : ScriptableObject
 	{
 		public enum SelectionMethod

@@ -27,7 +27,7 @@ namespace VisualPinball.Unity.Editor
 {
 	public static class VpxMenuImporter
 	{
-		[MenuItem("Visual Pinball/Import .vpx File", false, 2)]
+		[MenuItem("Pinball/Import .vpx File", false, 2)]
 		public static void ImportVpxIntoScene(MenuCommand menuCommand)
 		{
 			// if it's an untitled scene, save first.
