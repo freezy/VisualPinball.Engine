@@ -22,3 +22,5 @@ This project lets you use MPF to drive game logic in
 [VPE](https://github.com/freezy/VisualPinball.Engine), a pinball simulator based
 on Unity. It does this by spawning a Python process running MPF and
 communicating with VPE through [gRPC](https://grpc.io/).
+
+MPF is available on Windows, macOS, and Linux.
