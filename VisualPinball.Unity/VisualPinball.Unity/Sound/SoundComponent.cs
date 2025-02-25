@@ -67,7 +67,11 @@ namespace VisualPinball.Unity
 		{
 			base.OnEnableAfterAfterAwake();
 			_calloutCoordinator = GetComponentInParent<CalloutCoordinator>();
+			if (_calloutCoordinator == null)
+				Logger.Error("No callout coordinator found in parents. Callouts will not work!");
 			_musicCoordinator = GetComponentInParent<MusicCoordinator>();
+			if (_musicCoordinator == null)
+				Logger.Error("No music coordinator found in parents. Music will not work!");
 		}
 
 		protected void Update()
