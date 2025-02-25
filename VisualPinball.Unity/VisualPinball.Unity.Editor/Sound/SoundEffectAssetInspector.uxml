@@ -1,6 +1,6 @@
 <ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" xsi="http://www.w3.org/2001/XMLSchema-instance" engine="UnityEngine.UIElements" editor="UnityEditor.UIElements" noNamespaceSchemaLocation="../../../../../UIElementsSchema/UIElements.xsd" editor-extension-mode="True">
     <uie:PropertyField name="type" binding-path="_type" label="Type" tooltip="In a real pinball machine, would this sound come from a mechanism (Mechanical) or from the speakers (Synthetic)?" class="unity-base-field__aligned" />
-    <uie:PropertyField name="loop" binding-path="_loop" label="Loop" tooltip="sadfassdfsfd" />
+    <uie:PropertyField name="loop" binding-path="_loop" label="Loop" tooltip="Makes the sound loop until it is stopped" />
     <uie:PropertyField name="fade-in-time" binding-path="_fadeInTime" label="Fade In Time" />
     <uie:PropertyField name="fade-out-time" binding-path="_fadeOutTime" label="Fade Out Time" />
     <ui:MinMaxSlider label="Volume Range" min-value="1" max-value="1" low-limit="0" high-limit="1" tooltip="Volume will be randomized within this range (0 - 1)" binding-path="_volumeRange" name="volume-range" class="unity-base-field__aligned" />
