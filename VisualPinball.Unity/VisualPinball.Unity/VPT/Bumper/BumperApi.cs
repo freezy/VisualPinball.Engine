@@ -75,6 +75,7 @@ namespace VisualPinball.Unity
 
 				ref var insideOfs = ref PhysicsEngine.InsideOfs;
 				var idsOfBallsInColl = insideOfs.GetIdsOfBallsInsideItem(ItemId);
+				var state = PhysicsEngine.CreateState();
 				foreach (var ballId in idsOfBallsInColl) {
 					if (!PhysicsEngine.Balls.ContainsKey(ballId)) {
 						continue;
@@ -94,12 +95,11 @@ namespace VisualPinball.Unity
 						HitOrgNormalVelocity = math.dot(bumpDirection, math.normalize(ballState.Velocity)),
 						IsContact = true,
 						ColliderId = _switchColliderId,
-								IsKinematic = false,
-								BallId = ballId
+						IsKinematic = false,
+						BallId = ballId
 					};
 					var physicsMaterialData = ColliderComponent.GetPhysicsMaterialData();
-					var random = PhysicsEngine.Random;
-					BumperCollider.PushBallAway(ref ballState, in bumperState.Static, ref collEvent, in physicsMaterialData, ref random);
+					BumperCollider.PushBallAway(ref ballState, in bumperState.Static, ref collEvent, in physicsMaterialData, ref state);
 				}
 			}
 		}

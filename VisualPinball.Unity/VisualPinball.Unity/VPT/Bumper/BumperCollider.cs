@@ -24,8 +24,8 @@ namespace VisualPinball.Unity
 	internal static class BumperCollider
 	{
 		public static void Collide(ref BallState ball, ref NativeQueue<EventData>.ParallelWriter events,
-			ref CollisionEventData collEvent, ref BumperRingAnimationState ringState, ref BumperSkirtAnimationState skirtState,
-			in ColliderHeader collHeader, in BumperStaticState state, ref Random random, ref InsideOfs insideOfs, bool isSwitchWiredToCoil)
+			ref CollisionEventData collEvent, ref PhysicsState physicsState,
+			in ColliderHeader collHeader, in BumperStaticState state, ref InsideOfs insideOfs, bool isSwitchWiredToCoil)
 		{
 			var wasBallInside = insideOfs.IsInsideOf(collHeader.ItemId, ball.Id);
 			var isBallInside = !collEvent.HitFlag;
@@ -33,7 +33,7 @@ namespace VisualPinball.Unity
 				ball.Position += ball.Velocity * PhysicsConstants.StaticTime;
 				if (isBallInside) {
 					if (isSwitchWiredToCoil)
-						PushBallAway(ref ball, in state, ref collEvent, in collHeader.Material, ref random); 
+						PushBallAway(ref ball, in state, ref collEvent, in collHeader.Material, ref physicsState);
 					insideOfs.SetInsideOf(collHeader.ItemId, ball.Id);
 					events.Enqueue(new EventData(EventId.HitEventsHit, collHeader.ItemId, ball.Id, true));
 				} else {
@@ -43,9 +43,10 @@ namespace VisualPinball.Unity
 			}
 		}
 
-		public static void PushBallAway(ref BallState ballState, in BumperStaticState state, ref CollisionEventData collEvent, in PhysicsMaterialData physicsMaterialData, ref Random random)
+		public static void PushBallAway(ref BallState ballState, in BumperStaticState state, ref CollisionEventData collEvent,
+			in PhysicsMaterialData physicsMaterialData, ref PhysicsState physicsState)
 		{
-			BallCollider.Collide3DWall(ref ballState, in physicsMaterialData, in collEvent, in collEvent.HitNormal, ref random);
+			BallCollider.Collide3DWall(ref ballState, in physicsMaterialData, in collEvent, in collEvent.HitNormal, ref physicsState);
 			ballState.Velocity += collEvent.HitNormal * state.Force;
 		}
 	}
