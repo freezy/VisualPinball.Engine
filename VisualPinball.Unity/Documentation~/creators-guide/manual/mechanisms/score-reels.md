@@ -31,7 +31,7 @@ The texture should contain the numbers 0-9, each taking up 36°. The order (and 
 
 ### Scene
 
-In your scene, drop in your reel model and add the *Score Reel* component (not the *Score Reel Display* component) to the game object. You can find it under *Visual Pinball -> Display*. Since you'll need the same reel for each position, the best approach is to create a [prefab](https://docs.unity3d.com/Manual/Prefabs.html) for the reel and instance it for each position. Then, parent them under a game object that acts as your display. To this object, add the *Score Reel* component (also under *Visual Pinball -> Display*).
+In your scene, drop in your reel model and add the *Score Reel* component (not the *Score Reel Display* component) to the game object. You can find it under *Pinball -> Display*. Since you'll need the same reel for each position, the best approach is to create a [prefab](https://docs.unity3d.com/Manual/Prefabs.html) for the reel and instance it for each position. Then, parent them under a game object that acts as your display. To this object, add the *Score Reel* component (also under *Visual Pinball -> Display*).
 
 ![Score reel scene](score-reels-scene.png)
 

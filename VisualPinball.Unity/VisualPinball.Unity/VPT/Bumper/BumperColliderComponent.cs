@@ -22,7 +22,7 @@ using VisualPinball.Engine.VPT.Bumper;
 namespace VisualPinball.Unity
 {
 	[PackAs("BumperCollider")]
-	[AddComponentMenu("Visual Pinball/Collision/Bumper Collider")]
+	[AddComponentMenu("Pinball/Collision/Bumper Collider")]
 	public class BumperColliderComponent : ColliderComponent<BumperData, BumperComponent>, IPackable
 	{
 		#region Data

@@ -24,7 +24,7 @@ namespace VisualPinball.Unity
 {
 	[PackAs("MetalWireGuideMesh")]
 	[ExecuteInEditMode]
-	[AddComponentMenu("Visual Pinball/Mesh/Metal Wire Guide Mesh")]
+	[AddComponentMenu("Pinball/Mesh/Metal Wire Guide Mesh")]
 	public class MetalWireGuideMeshComponent : MeshComponent<MetalWireGuideData, MetalWireGuideComponent>, IPackable
 	{
 		protected override Mesh GetMesh(MetalWireGuideData data)

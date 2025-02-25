@@ -528,7 +528,7 @@
             "m_Guid": ""
         }
     },
-    "m_Path": "Visual Pinball/Srp",
+    "m_Path": "Pinball/Srp",
     "m_ConcretePrecision": 0,
     "m_PreviewMode": 2,
     "m_OutputNode": {
@@ -3521,4 +3521,3 @@
     },
     "m_Labels": []
 }
-

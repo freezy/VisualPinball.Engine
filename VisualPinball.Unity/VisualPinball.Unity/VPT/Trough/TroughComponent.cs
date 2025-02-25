@@ -35,7 +35,7 @@ using VisualPinball.Engine.VPT.Trough;
 namespace VisualPinball.Unity
 {
 	[PackAs("Trough")]
-	[AddComponentMenu("Visual Pinball/Trough")]
+	[AddComponentMenu("Pinball/Trough")]
 	[HelpURL("https://docs.visualpinball.org/creators-guide/manual/mechanisms/troughs.html")]
 	public class TroughComponent : MainComponent<TroughData>,
 		ISwitchDeviceComponent, ICoilDeviceComponent, IPackable

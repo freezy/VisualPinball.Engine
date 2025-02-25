@@ -33,7 +33,7 @@ The way the scoring works results in a very particular timing of when exactly th
 
 VPE provides a component that accurately simulates the behavior described above. It handles score resets and add points, all while performing accurate timing that can be specified by the table author.
 
-To setup a score motor, select any game object, click on *Add Component* in the inspector and select *Visual Pinball -> Mechs -> Score Motor*.
+To setup a score motor, select any game object, click on *Add Component* in the inspector and select *Pinball -> Mechs -> Score Motor*.
 
 Next, configure the score motor. The inspector shows the following options:
 

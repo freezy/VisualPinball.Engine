@@ -22,7 +22,7 @@ using VisualPinball.Engine.VPT.Rubber;
 namespace VisualPinball.Unity
 {
 	[PackAs("RubberCollider")]
-	[AddComponentMenu("Visual Pinball/Collision/Rubber Collider")]
+	[AddComponentMenu("Pinball/Collision/Rubber Collider")]
 	public class RubberColliderComponent : ColliderComponent<RubberData, RubberComponent>, IPackable
 	{
 		#region Data

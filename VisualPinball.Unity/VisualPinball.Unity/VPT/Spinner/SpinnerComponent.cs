@@ -36,7 +36,7 @@ using VisualPinball.Engine.VPT.Table;
 namespace VisualPinball.Unity
 {
 	[PackAs("Spinner")]
-	[AddComponentMenu("Visual Pinball/Game Item/Spinner")]
+	[AddComponentMenu("Pinball/Game Item/Spinner")]
 	public class SpinnerComponent : MainRenderableComponent<SpinnerData>, ISwitchDeviceComponent,
 		IRotatableAnimationComponent, IPackable
 	{

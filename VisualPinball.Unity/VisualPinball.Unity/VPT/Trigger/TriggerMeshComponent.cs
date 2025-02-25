@@ -26,7 +26,7 @@ namespace VisualPinball.Unity
 {
 	[PackAs("TriggerMesh")]
 	[ExecuteInEditMode]
-	[AddComponentMenu("Visual Pinball/Mesh/Trigger Mesh")]
+	[AddComponentMenu("Pinball/Mesh/Trigger Mesh")]
 	public class TriggerMeshComponent : MeshComponent<TriggerData, TriggerComponent>, IPackable
 	{
 		#region Data

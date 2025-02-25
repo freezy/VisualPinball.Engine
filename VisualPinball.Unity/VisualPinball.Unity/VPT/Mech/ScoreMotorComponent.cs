@@ -29,7 +29,7 @@ namespace VisualPinball.Unity
 	public delegate void ScoreMotorAddPointsCallback(float points);
 
 	[PackAs("ScoreMotor")]
-	[AddComponentMenu("Visual Pinball/Mechs/Score Motor")]
+	[AddComponentMenu("Pinball/Mechs/Score Motor")]
 	[HelpURL("https://docs.visualpinball.org/creators-guide/manual/mechanisms/score-motors.html")]
 	public class ScoreMotorComponent : MonoBehaviour, ISwitchDeviceComponent, IPackable
 	{

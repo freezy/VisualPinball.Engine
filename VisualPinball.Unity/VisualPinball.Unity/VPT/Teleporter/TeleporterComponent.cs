@@ -24,7 +24,7 @@ using NLog;
 
 namespace VisualPinball.Unity
 {
-	[AddComponentMenu("Visual Pinball/Game Item/Teleporter")]
+	[AddComponentMenu("Pinball/Game Item/Teleporter")]
 	[HelpURL("https://docs.visualpinball.org/creators-guide/manual/mechanisms/teleporters.html")]
 	public class TeleporterComponent : MonoBehaviour, ICoilDeviceComponent
 	{

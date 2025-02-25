@@ -31,7 +31,7 @@ using VisualPinball.Engine.VPT.Table;
 namespace VisualPinball.Unity
 {
 	[PackAs("Table")]
-	[AddComponentMenu("Visual Pinball/Table")]
+	[AddComponentMenu("Pinball/Table")]
 	public class TableComponent : MainRenderableComponent<TableData>, IPackable
 	{
 		[SerializeReference] public LegacyContainer LegacyContainer;

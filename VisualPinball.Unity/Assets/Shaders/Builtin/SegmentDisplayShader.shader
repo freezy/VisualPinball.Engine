@@ -1,4 +1,4 @@
-﻿Shader "Visual Pinball/Segment Display Shader"
+﻿Shader "Pinball/Segment Display Shader"
 {
 	Properties
 	{

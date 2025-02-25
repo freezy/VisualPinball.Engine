@@ -22,7 +22,7 @@ namespace VisualPinball.Unity
 	/// An asset containing the flipper correction parameters (aka nFozzy).
 	/// </summary>
 	[PackAs("FlipperCorrection")]
-	[CreateAssetMenu(fileName = "Flipper Correction", menuName = "Visual Pinball/Flipper Correction", order = 101)]
+	[CreateAssetMenu(fileName = "Flipper Correction", menuName = "Pinball/Flipper Correction", order = 101)]
 	public class FlipperCorrectionAsset : ScriptableObject
 	{
 		public AnimationCurve Polarities = AnimationCurve.Linear(0, 0, 1, 1);

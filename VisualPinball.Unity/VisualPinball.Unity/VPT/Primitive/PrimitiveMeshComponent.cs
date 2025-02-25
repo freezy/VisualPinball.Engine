@@ -28,7 +28,7 @@ namespace VisualPinball.Unity
 {
 	[PackAs("PrimitiveMesh")]
 	[ExecuteInEditMode]
-	[AddComponentMenu("Visual Pinball/Mesh/Primitive Mesh")]
+	[AddComponentMenu("Pinball/Mesh/Primitive Mesh")]
 	public class PrimitiveMeshComponent : MeshComponent<PrimitiveData, PrimitiveComponent>, IPackable
 	{
 		#region Data

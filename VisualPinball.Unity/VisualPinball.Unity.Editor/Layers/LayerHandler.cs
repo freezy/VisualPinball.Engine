@@ -186,12 +186,12 @@ namespace VisualPinball.Unity.Editor
 		internal bool ValidateNewLayerName(string newName)
 		{
 			if (string.IsNullOrEmpty(newName)) {
-				EditorUtility.DisplayDialog("Visual Pinball", "Layer name cannot be empty", "Close");
+				EditorUtility.DisplayDialog("Visual Pinball Engine", "Layer name cannot be empty", "Close");
 				return false;
 			}
 
 			if (_layers.ContainsKey(newName)) {
-				EditorUtility.DisplayDialog("Visual Pinball", $"There is already a layer named {newName}.\nFind another layer name.", "Close");
+				EditorUtility.DisplayDialog("Visual Pinball Engine", $"There is already a layer named {newName}.\nFind another layer name.", "Close");
 				return false;
 			}
 
@@ -304,11 +304,11 @@ namespace VisualPinball.Unity.Editor
 			if (layerItem != null && layerItem.Type == LayerTreeViewElementType.Layer) {
 
 				if (_layers.Keys.Count == 1) {
-					EditorUtility.DisplayDialog("Visual Pinball", "Cannot delete all layers.", "Close");
+					EditorUtility.DisplayDialog("Visual Pinball Engine", "Cannot delete all layers.", "Close");
 					return;
 				}
 
-				if (!EditorUtility.DisplayDialog("Visual Pinball", $"Do you really want to delete layer {layerItem.Name} ?", "Yes", "No")) {
+				if (!EditorUtility.DisplayDialog("Visual Pinball Engine", $"Do you really want to delete layer {layerItem.Name} ?", "Yes", "No")) {
 					return;
 				}
 

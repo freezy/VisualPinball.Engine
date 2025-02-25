@@ -23,7 +23,7 @@ using VisualPinball.Engine.VPT.Gate;
 namespace VisualPinball.Unity
 {
 	[PackAs("GateCollider")]
-	[AddComponentMenu("Visual Pinball/Collision/Gate Collider")]
+	[AddComponentMenu("Pinball/Collision/Gate Collider")]
 	public class GateColliderComponent : ColliderComponent<GateData, GateComponent>, IGateColliderData, IPackable
 	{
 		#region Data

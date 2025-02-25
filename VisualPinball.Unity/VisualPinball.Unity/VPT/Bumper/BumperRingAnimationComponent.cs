@@ -22,7 +22,7 @@ using VisualPinball.Engine.VPT.Bumper;
 namespace VisualPinball.Unity
 {
 	[PackAs("BumperRingAnimation")]
-	[AddComponentMenu("Visual Pinball/Animation/Bumper Ring Animation")]
+	[AddComponentMenu("Pinball/Animation/Bumper Ring Animation")]
 	public class BumperRingAnimationComponent : AnimationComponent<BumperData, BumperComponent>, IPackable
 	{
 		#region Data

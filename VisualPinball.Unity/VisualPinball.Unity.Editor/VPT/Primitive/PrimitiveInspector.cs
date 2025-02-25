@@ -37,13 +37,13 @@ namespace VisualPinball.Unity.Editor
 			}
 		}
 
-		[MenuItem("GameObject/Visual Pinball/Make Primitive", true, 20)]
+		[MenuItem("GameObject/Pinball/Make Primitive", true, 20)]
 		public static bool CheckContextMenu()
 		{
 			return Selection.gameObjects.All(gameObject => gameObject.GetComponent<IMainComponent>() == null);
 		}
 
-		[MenuItem("GameObject/Visual Pinball/Make Primitive", false, 20)]
+		[MenuItem("GameObject/Pinball/Make Primitive", false, 20)]
 		public static void MakePrimitive()
 		{
 			foreach (var go in Selection.gameObjects) {
@@ -60,13 +60,13 @@ namespace VisualPinball.Unity.Editor
 			}
 		}
 
-		[MenuItem("GameObject/Visual Pinball/Make Collider", true, 21)]
+		[MenuItem("GameObject/Pinball/Make Collider", true, 21)]
 		public static bool MakeColliderValidation()
 		{
 			return Selection.gameObjects.All(gameObject => gameObject.GetComponent<IMainComponent>() == null && gameObject.GetComponent<MeshFilter>() != null);
 		}
 
-		[MenuItem("GameObject/Visual Pinball/Make Collider", false, 21)]
+		[MenuItem("GameObject/Pinball/Make Collider", false, 21)]
 		public static void MakeCollider()
 		{
 			foreach (var go in Selection.gameObjects) {

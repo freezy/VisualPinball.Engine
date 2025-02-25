@@ -33,7 +33,7 @@ namespace VisualPinball.Unity
 		X, Y, Z
 	}
 
-	[AddComponentMenu("Visual Pinball/Game Item/Slingshot")]
+	[AddComponentMenu("Pinball/Game Item/Slingshot")]
 	public class SlingshotComponent : MonoBehaviour, IMeshComponent, IMainRenderableComponent, IRubberData, ISwitchDeviceComponent
 	{
 		[Tooltip("Reference to the wall that acts as slingshot.")]

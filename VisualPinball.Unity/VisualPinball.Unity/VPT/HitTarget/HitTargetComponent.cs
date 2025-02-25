@@ -24,7 +24,7 @@ using VisualPinball.Engine.VPT.Table;
 namespace VisualPinball.Unity
 {
 	[PackAs("HitTarget")]
-	[AddComponentMenu("Visual Pinball/Game Item/Hit Target")]
+	[AddComponentMenu("Pinball/Game Item/Hit Target")]
 	public class HitTargetComponent : TargetComponent, IPackable
 	{
 		protected override float ZOffset => 0;

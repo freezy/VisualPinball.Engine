@@ -22,7 +22,7 @@ using VisualPinball.Engine.VPT.Plunger;
 namespace VisualPinball.Unity
 {
 	[PackAs("PlungerCollider")]
-	[AddComponentMenu("Visual Pinball/Collision/Plunger Collider")]
+	[AddComponentMenu("Pinball/Collision/Plunger Collider")]
 	public class PlungerColliderComponent : ColliderComponent<PlungerData, PlungerComponent>, IPackable
 	{
 		#region Data

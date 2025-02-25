@@ -35,7 +35,7 @@ using VisualPinball.Engine.VPT.Table;
 namespace VisualPinball.Unity
 {
 	[PackAs("Bumper")]
-	[AddComponentMenu("Visual Pinball/Game Item/Bumper")]
+	[AddComponentMenu("Pinball/Game Item/Bumper")]
 	public class BumperComponent : MainRenderableComponent<BumperData>, ISwitchDeviceComponent, ICoilDeviceComponent, IPackable
 	{
 		#region Data

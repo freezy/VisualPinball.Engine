@@ -28,7 +28,7 @@ using Logger = NLog.Logger;
 namespace VisualPinball.Unity
 {
 	[PackAs("DotMatrixDisplay")]
-	[AddComponentMenu("Visual Pinball/Display/Dot Matrix Display")]
+	[AddComponentMenu("Pinball/Display/Dot Matrix Display")]
 	public class DotMatrixDisplayComponent : DisplayComponent, IPackable
 	{
 		public override string Id { get => _id; set => _id = value; }

@@ -42,7 +42,7 @@ namespace VisualPinball.Unity
 	/// </summary>
 	[PackAs("DefaultGameLogic")]
 	[DisallowMultipleComponent]
-	[AddComponentMenu("Visual Pinball/Gamelogic Engine/Default Game Logic")]
+	[AddComponentMenu("Pinball/Gamelogic Engine/Default Game Logic")]
 	public class DefaultGamelogicEngine : MonoBehaviour, IGamelogicEngine, IPackable
 	{
 		public string Name => "Default Game Engine";

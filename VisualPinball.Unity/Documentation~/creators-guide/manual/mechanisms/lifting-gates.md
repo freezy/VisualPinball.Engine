@@ -20,7 +20,7 @@ VPE provides a component that you can add to your existing gate. By doing that, 
 
 <img src="lifting-gate-inspector.png" width="322" class="img-fluid float-end" style="margin-left: 15px">
 
-In order to add the lifting gate feature to a gate, select the game object of the gate and click on *Add Component* in the inspector. Select it by searching or navigating to *Visual Pinball -> Mechs -> Gate Lifter*. 
+In order to add the lifting gate feature to a gate, select the game object of the gate and click on *Add Component* in the inspector. Select it by searching or navigating to *Pinball -> Mechs -> Gate Lifter*. 
 
 ### Lifting Angle
 

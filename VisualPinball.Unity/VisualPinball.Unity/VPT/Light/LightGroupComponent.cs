@@ -27,7 +27,7 @@ using Logger = NLog.Logger;
 namespace VisualPinball.Unity
 {
 	[PackAs("LightGroup")]
-	[AddComponentMenu("Visual Pinball/Game Item/Light Group")]
+	[AddComponentMenu("Pinball/Game Item/Light Group")]
 	public class LightGroupComponent : MonoBehaviour, ILampDeviceComponent, IPackable
 	{
 		#region Data

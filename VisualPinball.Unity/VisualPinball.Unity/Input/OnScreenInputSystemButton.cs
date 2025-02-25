@@ -19,7 +19,7 @@ using UnityEngine.InputSystem.OnScreen;
 
 namespace VisualPinball.Unity
 {
-    [AddComponentMenu("Visual Pinball/On-Screen Input System Button")]
+    [AddComponentMenu("Pinball/On-Screen Input System Button")]
     public class OnScreenInputSystemButton : OnScreenButton
     {
 		[SerializeField]

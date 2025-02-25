@@ -1,4 +1,4 @@
-Shader "Visual Pinball/Built-In/LerpVertex"
+Shader "Pinball/Built-In/LerpVertex"
 {
     Properties
     {

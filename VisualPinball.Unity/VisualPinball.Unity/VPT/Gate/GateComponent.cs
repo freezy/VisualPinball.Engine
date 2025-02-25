@@ -35,7 +35,7 @@ using VisualPinball.Engine.VPT.Table;
 namespace VisualPinball.Unity
 {
 	[PackAs("Gate")]
-	[AddComponentMenu("Visual Pinball/Game Item/Gate")]
+	[AddComponentMenu("Pinball/Game Item/Gate")]
 	public class GateComponent : MainRenderableComponent<GateData>,
 		IGateData, ISwitchDeviceComponent, IRotatableAnimationComponent, IPackable
 	{

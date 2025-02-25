@@ -38,7 +38,7 @@ using Logger = NLog.Logger;
 namespace VisualPinball.Unity
 {
 	[PackAs("Lamp")]
-	[AddComponentMenu("Visual Pinball/Game Item/Light")]
+	[AddComponentMenu("Pinball/Game Item/Light")]
 	public class LightComponent : MainRenderableComponent<LightData>, ILampDeviceComponent, IPackable
 	{
 		#region Data

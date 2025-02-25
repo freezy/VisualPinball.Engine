@@ -33,7 +33,7 @@ using VisualPinball.Engine.VPT.Table;
 namespace VisualPinball.Unity
 {
 	[PackAs("Surface")]
-	[AddComponentMenu("Visual Pinball/Game Item/Surface")]
+	[AddComponentMenu("Pinball/Game Item/Surface")]
 	public class SurfaceComponent : MainRenderableComponent<SurfaceData>, ISurfaceComponent, IPackable
 	{
 		#region Data

@@ -22,7 +22,7 @@ using VisualPinball.Engine.VPT.Spinner;
 namespace VisualPinball.Unity
 {
 	[PackAs("SpinnerCollider")]
-	[AddComponentMenu("Visual Pinball/Collision/Spinner Collider")]
+	[AddComponentMenu("Pinball/Collision/Spinner Collider")]
 	public class SpinnerColliderComponent : ColliderComponent<SpinnerData, SpinnerComponent>, IPackable
 	{
 		#region Data

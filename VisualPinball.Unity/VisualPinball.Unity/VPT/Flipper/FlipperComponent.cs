@@ -39,7 +39,7 @@ using UnityEditor;
 namespace VisualPinball.Unity
 {
 	[PackAs("Flipper")]
-	[AddComponentMenu("Visual Pinball/Game Item/Flipper")]
+	[AddComponentMenu("Pinball/Game Item/Flipper")]
 	[HelpURL("https://docs.visualpinball.org/creators-guide/manual/mechanisms/flippers.html")]
 	public class FlipperComponent : MainRenderableComponent<FlipperData>,
 		IFlipperData, ISwitchDeviceComponent, ICoilDeviceComponent,

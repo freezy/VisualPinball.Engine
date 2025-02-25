@@ -14,7 +14,7 @@ do this:
 
 1. Select the table in the hierarchy
 2. Click _Add Component_ in the inspector
-3. Select _Visual Pinball -> Game Logic Engine -> Mission Pinball Framework_.
+3. Select _Pinball -> Game Logic Engine -> Mission Pinball Framework_.
 
 <p><img alt="Add component" width="354" src="unity-add-component.png"/></p>
 

@@ -33,7 +33,7 @@ using VisualPinball.Engine.VPT.Table;
 namespace VisualPinball.Unity
 {
 	[PackAs("MetalWireGuide")]
-	[AddComponentMenu("Visual Pinball/Game Item/Metal Wire Guide")]
+	[AddComponentMenu("Pinball/Game Item/Metal Wire Guide")]
 	public class MetalWireGuideComponent : MainRenderableComponent<MetalWireGuideData>,
 		IMetalWireGuideData, IPackable
 	{

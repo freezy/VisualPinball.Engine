@@ -47,7 +47,7 @@ namespace VisualPinball.Unity.Editor
 		}
 		private SerializedCollections _recordCollections;
 
-		[MenuItem("Visual Pinball/Collection Manager", false, 405)]
+		[MenuItem("Pinball/Collection Manager", false, 405)]
 		public static void ShowWindow()
 		{
 			GetWindow<CollectionManager>();

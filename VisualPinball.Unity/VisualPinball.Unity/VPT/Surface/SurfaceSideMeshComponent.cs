@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-using System;
 using UnityEngine;
 using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Surface;
@@ -25,7 +24,7 @@ namespace VisualPinball.Unity
 {
 	[PackAs("SurfaceSideMesh")]
 	[ExecuteInEditMode]
-	[AddComponentMenu("Visual Pinball/Mesh/Surface Side Mesh")]
+	[AddComponentMenu("Pinball/Mesh/Surface Side Mesh")]
 	public class SurfaceSideMeshComponent : MeshComponent<SurfaceData, SurfaceComponent>, IPackable
 	{
 		protected override Mesh GetMesh(SurfaceData data)

@@ -35,7 +35,7 @@ using Mesh = VisualPinball.Engine.VPT.Mesh;
 namespace VisualPinball.Unity
 {
 	[PackAs("Ramp")]
-	[AddComponentMenu("Visual Pinball/Game Item/Ramp")]
+	[AddComponentMenu("Pinball/Game Item/Ramp")]
 	public class RampComponent : MainRenderableComponent<RampData>, IRampData, ISurfaceComponent, IPackable
 	{
 		#region Data

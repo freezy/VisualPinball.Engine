@@ -23,7 +23,7 @@ using System;
 namespace VisualPinball.Unity
 {
 	[PackAs("DropTargetBank")]
-	[AddComponentMenu("Visual Pinball/Mechs/Drop Target Bank")]
+	[AddComponentMenu("Pinball/Mechs/Drop Target Bank")]
 	[HelpURL("https://docs.visualpinball.org/creators-guide/manual/mechanisms/drop-target-banks.html")]
 	public class DropTargetBankComponent : MonoBehaviour, ICoilDeviceComponent, ISwitchDeviceComponent, IPackable
 	{

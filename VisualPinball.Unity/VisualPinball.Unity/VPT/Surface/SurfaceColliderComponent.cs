@@ -22,7 +22,7 @@ using VisualPinball.Engine.VPT.Surface;
 namespace VisualPinball.Unity
 {
 	[PackAs("SurfaceCollider")]
-	[AddComponentMenu("Visual Pinball/Collision/Surface Collider")]
+	[AddComponentMenu("Pinball/Collision/Surface Collider")]
 	public class SurfaceColliderComponent : ColliderComponent<SurfaceData, SurfaceComponent>, IPackable
 	{
 		#region Data

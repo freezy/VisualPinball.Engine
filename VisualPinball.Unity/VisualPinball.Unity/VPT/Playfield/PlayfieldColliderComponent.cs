@@ -25,7 +25,7 @@ using VisualPinball.Engine.VPT.Table;
 namespace VisualPinball.Unity
 {
 	[PackAs("PlayfieldCollider")]
-	[AddComponentMenu("Visual Pinball/Collision/Playfield Collider")]
+	[AddComponentMenu("Pinball/Collision/Playfield Collider")]
 	public class PlayfieldColliderComponent : ColliderComponent<TableData, PlayfieldComponent>, IPackable
 	{
 		#region Data
