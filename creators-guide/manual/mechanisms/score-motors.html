@@ -1,0 +1,219 @@
+﻿<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+      <title>Score Motors | VPE Documentation </title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="title" content="Score Motors | VPE Documentation ">
+      
+      <meta name="description" content="Simulate EM reel timing during gameplay">
+      <link rel="icon" href="../../../favicon.png">
+      <link rel="stylesheet" href="../../../public/docfx.min.css">
+      <link rel="stylesheet" href="../../../public/main.css">
+      <link rel="stylesheet" href="../../../public/basicLightbox.min.css">
+      <meta name="docfx:navrel" content="../../../toc.html">
+      <meta name="docfx:tocrel" content="../../toc.html">
+      
+      <meta name="docfx:rel" content="../../../">
+      
+      
+      <meta name="docfx:docurl" content="https://github.com/freezy/VisualPinball.Engine/blob/master/VisualPinball.Unity/Documentation~/creators-guide/manual/mechanisms/score-motors.md/#L1">
+      <meta name="loc:inThisArticle" content="Table of Contents">
+      <meta name="loc:searchResultsCount" content="{count} results for &quot;{query}&quot;">
+      <meta name="loc:searchNoResults" content="No results for &quot;{query}&quot;">
+      <meta name="loc:tocFilter" content="Filter by title">
+      <meta name="loc:nextArticle" content="Next">
+      <meta name="loc:prevArticle" content="Previous">
+      <meta name="loc:themeLight" content="Light">
+      <meta name="loc:themeDark" content="Dark">
+      <meta name="loc:themeAuto" content="Auto">
+      <meta name="loc:changeTheme" content="Change theme">
+      <meta name="loc:copy" content="Copy">
+      <meta name="loc:downloadPdf" content="Download PDF">
+
+      <script type="module" src="./../../../public/docfx.min.js"></script>
+
+      <script>
+        const theme = localStorage.getItem('theme') || 'auto'
+        document.documentElement.setAttribute('data-bs-theme', theme === 'auto' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : theme)
+      </script>
+
+     <script type="text/javascript">
+     var _paq = window._paq || [];
+     _paq.push(["setCookieDomain", "*.docs.visualpinball.org"]);
+     _paq.push(['trackPageView']);
+     _paq.push(['enableLinkTracking']);
+     (function() {
+       var u="//count.vpdb.io/";
+       _paq.push(['setTrackerUrl', u+'matomo.php']);
+       _paq.push(['setSiteId', '2']);
+       var d=document, g=d.createElement('script'), s=d.getElementsByTagName('script')[0];
+       g.type='text/javascript'; g.async=true; g.defer=true; g.src=u+'matomo.js'; s.parentNode.insertBefore(g,s);
+     })();
+     </script>
+  </head>
+
+  <body class="tex2jax_ignore" data-layout="" data-yaml-mime="">
+    <header class="bg-body border-bottom" data-bs-theme="dark">
+      <nav id="autocollapse" class="navbar navbar-expand-md" role="navigation">
+        <div class="container flex-nowrap">
+          <a class="navbar-brand" href="../../../index.html">
+            <img id="logo" class="svg" src="../../../logo.svg" alt="">
+            
+          </a>
+          <button class="btn btn-lg d-md-none border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navpanel" aria-controls="navpanel" aria-expanded="false" aria-label="Toggle navigation">
+            <i class="bi bi-three-dots"></i>
+          </button>
+          <div class="collapse navbar-collapse" id="navpanel">
+            <div id="navbar">
+              <form class="search" role="search" id="search">
+                <i class="bi bi-search"></i>
+                <input class="form-control" id="search-query" type="search" disabled="" placeholder="Search" autocomplete="off" aria-label="Search">
+              </form>
+              <a title="VPE is open source!" class="navbar-github" href="https://github.com/freezy/VisualPinball.Engine" target="_blank">
+                <svg xmlns="http://www.w3.org/2000/svg" viewbox="0 0 33.5 33.1" width="33.5" height="33.1"><path d="M16.7.4a16.3 16.3 0 00-5.2 31.8c.8.1 1.1-.4 1.1-.8v-2.8c-4.5 1-5.5-2.2-5.5-2.2-.6-1.9-1.7-2.4-1.7-2.4-1.5-1 .1-1 .1-1 1.6.1 2.5 1.7 2.5 1.7 1.5 2.5 3.8 1.8 4.7 1.4.1-1.1.6-1.8 1-2.2-3.6-.4-7.4-1.8-7.4-8.1 0-1.8.7-3.2 1.7-4.4-.1-.4-.7-2 .2-4.3 0 0 1.4-.4 4.5 1.7a18.4 18.4 0 018.2 0c3.1-2.1 4.5-1.7 4.5-1.7.9 2.2.3 3.9.2 4.3 1 1.1 1.7 2.6 1.7 4.4 0 6.3-3.8 7.6-7.4 8 .6.5 1.1 1.5 1.1 3v4.5c0 .4.3.9 1.1.8A16.3 16.3 0 0016.7.4z"></path></svg>
+              </a>
+            </div>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <main class="container-xxl">
+      <div class="toc-offcanvas">
+        <div class="offcanvas-md offcanvas-start" tabindex="-1" id="tocOffcanvas" aria-labelledby="tocOffcanvasLabel">
+          <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="tocOffcanvasLabel">Table of Contents</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#tocOffcanvas" aria-label="Close"></button>
+          </div>
+          <div class="offcanvas-body">
+            <nav class="toc" id="toc"></nav>
+          </div>
+        </div>
+      </div>
+
+      <div class="content">
+        <div class="actionbar">
+          <button class="btn btn-lg border-0 d-md-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#tocOffcanvas" aria-controls="tocOffcanvas" aria-expanded="false" aria-label="Show table of contents">
+            <i class="bi bi-list"></i>
+          </button>
+
+          <nav id="breadcrumb"></nav>
+        </div>
+
+        <article data-uid="score-motors">
+<h1 id="score-motors">Score Motors</h1>
+
+<p>Score motors are used in electro-mechanical games to add points to a player's score. They consist of multiple cams that are stacked on top of each other. Each cam has different patterns around the edges, and switches sit at different positions in order to open or close at specific times when the motor runs and thus the cams rotate.</p>
+<p><img src="score-motor-schema.jpg" alt="Photo and schema of a score motor">
+<small><em>A typical score motor, found in Gottlieb and early Bally machines.</em></small></p>
+<p>The score motor assembly sits typically at the bottom of the cabinet. The produced switch sequences are used when the game needs to do several things in a specific order. Although its main purpose is triggering the score reel relays, it is often used to drive other mechanisms as well.</p>
+<h2 id="scoring-in-an-em">Scoring in an EM</h2>
+<p>There are two different modes of operation:</p>
+<ol>
+<li>The player scores <strong>single points</strong>, e.g. one, ten, hundred, and so on. In this case, a pulse is directly sent to the coil driving the corresponding score wheel, which increases its position by one.</li>
+<li>The player scores <strong>multiple points</strong>, like five, twenty, or 300. In this case, the score motor starts and the appropriate numbers of coil pulses are triggered by the switches around cams. For example, if a player scores fifty points, the score motor runs and enables the ten point relay to pulse five times. With each pulse of the ten point relay, the 10's score reel coil fires, which advances the score reel one position.</li>
+</ol>
+<p>Another property of a score motor is that it has no state, i.e. it doesn't know the actual score. This means that while the motor is running and the player scores <em>multiple</em> points, they are ignored. For <em>single</em> points, it depends on the machine, some allow single-point scoring while the motor is running, some don't.</p>
+<div class="NOTE">
+<h5>Note</h5>
+<p>For an in-depth look at score motors, check out the fantastic article <a href="https://www.funwithpinball.com/learn/animated-score-motor-circuits">Animated Score Motor circuits from EM Pinball Machines</a> at <a href="https://www.funwithpinball.com/">Fun With Pinball</a>.</p>
+</div>
+<h2 id="player-experience">Player Experience</h2>
+<p>The way the scoring works results in a very particular timing of when exactly the score reels move during the game. Since in most games, chimes and bells are fired when the reel position changes, the player not only sees, but also hears these patterns. This means that accurate timing is essential for an authentic gaming experience.</p>
+<h1 id="setup">Setup</h1>
+<p>VPE provides a component that accurately simulates the behavior described above. It handles score resets and add points, all while performing accurate timing that can be specified by the table author.</p>
+<p>To setup a score motor, select any game object, click on <em>Add Component</em> in the inspector and select <em>Pinball -&gt; Mechs -&gt; Score Motor</em>.</p>
+<p>Next, configure the score motor. The inspector shows the following options:</p>
+<img src="score-motor-inspector.png" width="363" class="img-fluid float-end" style="margin-left: 15px">
+<ul>
+<li><strong>Steps</strong> defines how many steps the score motor pulses for one turn.</li>
+<li><strong>Duration</strong> defines the length of time it takes the score motor to completely cycle.</li>
+<li><strong>Block Scoring</strong> defines if single point scoring is blocked <strong>while the score motor is running</strong>. As mentioned before, multiple point scores are always blocked while the score motor is running.</li>
+<li><strong>Increase by #</strong> defines the behavior of the score motor for all of its the possible outputs. This gives the table author control over the timing and execution of <code>Wait</code> (pause) or <code>Increase</code> (add points) actions. The example in the screenshot shows a motor where when the player scores 30 points, it pulses on the first three actions of the score motor.</li>
+</ul>
+<div class="NOTE">
+<h5>Note</h5>
+<p>The minimum amount of <code>Steps</code> for a score motor is <code>5</code>. <code>Increase by 5</code> will not be shown under <code>Reel timing by increase</code> if <code>Steps</code> is set to 5, as all actions would be <code>Increase</code>.</p>
+</div>
+<img src="score-motor-gottlieb.png" width="335" class="img-fluid float-end" style="margin-left: 15px">
+<p>By default, the score motor is configured to:</p>
+<ul>
+<li>6 Steps</li>
+<li>769 ms total run time</li>
+</ul>
+<p>Next, associate the score motor with the <a class="xref" href="score-reels.html">score reel display</a> by selecting it in <a class="xref" href="score-reels.html#score-reel-display">its inspector</a>.</p>
+<h1 id="usage">Usage</h1>
+<p>Score motors are primarily used in EMs, so we'll focus on how to use them in <a class="xref" href="../../../plugins/visual-scripting/index.html">Visual Scripting</a>. Programming a game with a score motor is a bit more complicated than with traditional displays for one reason: Scores might get blocked due to the motor being active, so you cannot solely rely on a score variable being updated.</p>
+<p>To make this less cumbersome, we've added an <a class="xref" href="../../../plugins/visual-scripting/node-reference.html#on-display-changed">On Display Changed</a> node that emits the actual value of the display when it has been updated (after potentially blocking scores).</p>
+<p>Give you've already set up your <a class="xref" href="score-reels.html">score reel display</a>, the recommended approach is the following:</p>
+<ol>
+<li>Add an <em>Add Score</em> <a class="xref" href="../../../plugins/visual-scripting/setup.html#events">event</a> in the Visual Scripting GLE's inspector.
+<img src="score-motor-score-event.png" width="357"></li>
+<li>Add a <em>Score</em> <a class="xref" href="../../../plugins/visual-scripting/variables.html#setup">player variable</a> in the same inspector.
+<img src="score-motor-score-variable.png" width="357"></li>
+<li>In your graph, whenever you do scoring, use a <a class="xref" href="../../../plugins/visual-scripting/node-reference.html#trigger-pinball-event">Trigger Pinball Event</a> node and set the <em>Add Score</em> event to be emitted.
+<img src="score-motor-uvs-score-event.png" alt="Score Event"></li>
+<li>In your graph, at a centralized location, create an <a class="xref" href="../../../plugins/visual-scripting/node-reference.html#on-pinball-event">On Pinball Event</a> node, select the <em>Add Score</em> event, and link it to an <a class="xref" href="../../../plugins/visual-scripting/node-reference.html#update-display">Update Display</a> node.
+<img src="score-motor-uvs-update-display.png" alt="Update Display"></li>
+<li>Just beneath, add an <a class="xref" href="../../../plugins/visual-scripting/node-reference.html#on-display-changed">On Display Changed</a> node, select your score reel, and link the node to <a class="xref" href="../../../plugins/visual-scripting/node-reference.html#set-variable">Set Player Variable</a> node, with <em>Score</em> to be updated.
+<img src="score-motor-uvs-update-score.png" alt="Update Score"></li>
+<li>Use the <a class="xref" href="../../../plugins/visual-scripting/node-reference.html#clear-display">Clear Display</a> node when the game starts, in order to reset the score reels to zero.
+<img src="score-motor-uvs-reset-score.png" alt="Reset Score"></li>
+</ol>
+<p>This setup allows you to:</p>
+<ul>
+<li>Easily add scores in your game logic by triggering an <em>Add Score</em> event.</li>
+<li>Subscribe to the <em>Score</em> variable in order to trigger score-dependent game logic, while taking into consideration eventually blocked scores by the motor.</li>
+</ul>
+<div class="WARNING">
+<h5>Warning</h5>
+<p>If you're working on an original EM game, make sure to only emit scores that a score motor can actually handle. For example,  it's impossible to score anything higher than five points (or 50, 500, ...) at once. It's also impossible to score a combination of multiple points at once, like 150.</p>
+</div>
+<p>Finally, you might want to hook up other events to the score motor's behavior. For example, in Gottlieb's Volley, some lamps are toggled off while the motor is running. In order to achieve that, the score motor component exposes two switches:</p>
+<ol>
+<li>The <strong>Motor Running</strong> switch is activated when the motors starts and deactivated when it stops.</li>
+<li>The <strong>Motor Step Switch</strong> pulses on each step.</li>
+</ol>
+<p>In order to hook into those switches, you'll have to create them in the GLE inspector and link them to the corresponding switches in the <a class="xref" href="../../editor/switch-manager.html">Switch Manager</a>.</p>
+<img src="score-motor-switch-manager.png" width="1044" class="img-responsive">
+<p>Then, in your graphs, add your logic behind the corresponding <a class="xref" href="../../../plugins/visual-scripting/node-reference.html#on-switch-changed">On Switch Changed</a> node(s).</p>
+
+</article>
+
+        <div class="contribution d-print-none">
+          <a href="https://github.com/freezy/VisualPinball.Engine/blob/master/VisualPinball.Unity/Documentation~/creators-guide/manual/mechanisms/score-motors.md/#L1" class="edit-link">Improve this Page</a>
+        </div>
+
+        <div class="next-article d-print-none border-top" id="nextArticle"></div>
+
+      </div>
+
+      <div class="affix">
+        <nav id="affix"></nav>
+      </div>
+    </main>
+
+    <div class="container-xxl search-results" id="search-results"></div>
+
+    <footer class="border-top text-secondary">
+      <div class="container-xxl">
+        <div class="flex-fill">
+          <span>Copyright © 2025 VPE Team</span>
+        </div>
+      </div>
+    </footer>
+    <script src="./../../../public/basicLightbox.min.js"></script>
+    <script type="text/javascript">
+    for (const img of document.querySelectorAll('img:not(#logo)')) {
+      img.onclick = () => {
+        basicLightbox.create(`<img src="${img.src}">`).show()
+        if (img.parentElement.tagName === 'A') {
+          img.parentElement.href = 'javascript:void(0)'
+          img.parentElement.target = '_self'
+        }
+      }
+    }
+    </script>
+  </body>
+</html>
