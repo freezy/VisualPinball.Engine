@@ -17,17 +17,20 @@
 namespace VisualPinball.Unity
 {
 	/// <summary>
-	/// Start and or stop a sound when an event occurs.
+	/// Start a sound when an event occurs.
 	/// </summary>
 	public abstract class EventSoundComponent<TEventSource, TEventArgs> : SoundComponent
 		where TEventSource : class
 	{
 		private TEventSource _eventSource;
 
+		public override bool SupportsLoopingSoundAssets() => false;
+
 		protected abstract bool TryFindEventSource(out TEventSource eventSource);
-		protected abstract void OnEvent(object sender, TEventArgs e);
 		protected abstract void Subscribe(TEventSource eventSource);
 		protected abstract void Unsubscribe(TEventSource eventSource);
+
+		protected virtual void OnEvent(object sender, TEventArgs e) => StartSound();
 
 		protected override void OnEnableAfterAfterAwake()
 		{
