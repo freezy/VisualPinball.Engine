@@ -17,6 +17,7 @@
 // ReSharper disable InconsistentNaming
 
 using UnityEngine;
+using UnityEngine.Serialization;
 using VisualPinball.Engine.VPT.Rubber;
 
 namespace VisualPinball.Unity
@@ -30,8 +31,8 @@ namespace VisualPinball.Unity
 		[Tooltip("If set, a hit event is triggered.")]
 		public bool HitEvent;
 
-		[Tooltip("Z-axis translation for the collider mesh.")]
-		public float HitHeight = 25f;
+		[FormerlySerializedAs("HitZOffset")] [Tooltip("Z-Offset between the mesh and the collider.")]
+		public float ZOffset = 0;
 
 		[Tooltip("Ignore the assigned physics material above and use the value below.")]
 		public bool OverwritePhysics;
