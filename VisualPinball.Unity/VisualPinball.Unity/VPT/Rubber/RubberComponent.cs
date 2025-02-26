@@ -143,7 +143,7 @@ namespace VisualPinball.Unity
 				collComponent.enabled = data.IsCollidable;
 
 				collComponent.HitEvent = data.HitEvent;
-				collComponent.HitHeight = data.HitHeight;
+				collComponent.ZOffset = data.Height - data.HitHeight; // check if not -1
 				collComponent.OverwritePhysics = data.OverwritePhysics;
 				collComponent.Elasticity = data.Elasticity;
 				collComponent.ElasticityFalloff = data.ElasticityFalloff;
@@ -193,7 +193,7 @@ namespace VisualPinball.Unity
 				data.IsCollidable = collComponent.enabled;
 
 				data.HitEvent = collComponent.HitEvent;
-				data.HitHeight = collComponent.HitHeight;
+				data.HitHeight = data.Height - collComponent.ZOffset; // check if not -1
 
 				data.PhysicsMaterial = collComponent.PhysicsMaterial ? collComponent.PhysicsMaterial.name : string.Empty;
 				data.OverwritePhysics = collComponent.OverwritePhysics;
