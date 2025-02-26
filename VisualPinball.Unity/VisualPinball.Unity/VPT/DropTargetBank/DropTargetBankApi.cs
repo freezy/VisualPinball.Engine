@@ -70,6 +70,10 @@ namespace VisualPinball.Unity
 		{
 			for (var index = 0; index < _dropTargetBankComponent.BankSize; index++) {
 				var dropTargetApi = _player.TableApi.DropTarget(_dropTargetBankComponent.DropTargets[index]);
+				if (dropTargetApi == null) {
+					Debug.LogWarning($"Cannot init reference to non-existing drop target \"{_dropTargetBankComponent.DropTargets[index]}\" in bank \"{_dropTargetBankComponent.name}\".");
+					return;
+				}
 				dropTargetApi.Switch += OnSwitch;
 				_dropTargetApis.Add(dropTargetApi);
 			}

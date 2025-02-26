@@ -120,6 +120,9 @@ namespace VisualPinball.Unity.Editor
 						if (dropTargetComponent != null)
 						{
 							var dropTargetApi = tableApi.DropTarget(dropTargetComponent);
+							if (dropTargetApi == null) {
+								continue;
+							}
 
 							DrawSwitch($"Drop Target {index + 1} ({dropTargetComponent.name})", dropTargetApi.IsSwitchEnabled);
 
