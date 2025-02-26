@@ -137,7 +137,8 @@ namespace VisualPinball.Unity
 
 					// if it's pulse, schedule to re-open
 					if (enabled && switchConfig.IsPulseSwitch) {
-						_physicsEngine.ScheduleAction(switchConfig.PulseDelay,
+						_physicsEngine.ScheduleAction(
+							switchConfig.PulseDelay,
 							() => {
 								_switchStatuses[switchConfig.SwitchId].IsSwitchEnabled = false;
 								Engine.Switch(switchConfig.SwitchId, switchConfig.IsNormallyClosed);
@@ -145,7 +146,8 @@ namespace VisualPinball.Unity
 #if UNITY_EDITOR
 								RefreshUI();
 #endif
-							});
+							}
+						);
 					}
 				}
 			}
