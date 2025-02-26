@@ -46,14 +46,14 @@ namespace VisualPinball.Unity
 	{
 		public bool IsMovable;
 		public bool HitEvent;
-		public float HitHeight;
+		public float ZOffset;
 
 		public static byte[] Pack(RubberColliderComponent comp)
 		{
 			return PackageApi.Packer.Pack(new RubberColliderPackable {
 				IsMovable = comp._isKinematic,
 				HitEvent = comp.HitEvent,
-				HitHeight = comp.HitHeight,
+				ZOffset = comp.ZOffset,
 			});
 		}
 
@@ -62,7 +62,7 @@ namespace VisualPinball.Unity
 			var data = PackageApi.Packer.Unpack<RubberColliderPackable>(bytes);
 			comp._isKinematic = data.IsMovable;
 			comp.HitEvent = data.HitEvent;
-			comp.HitHeight = data.HitHeight;
+			comp.ZOffset = data.ZOffset;
 		}
 	}
 }

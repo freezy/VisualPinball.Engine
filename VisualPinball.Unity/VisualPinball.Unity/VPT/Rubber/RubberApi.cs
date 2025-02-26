@@ -51,7 +51,7 @@ namespace VisualPinball.Unity
 				new RubberMeshGenerator(MainComponent),
 				translateWithinPlayfieldMatrix
 			);
-			colliderGenerator.GenerateColliders(MainComponent.Height - ColliderComponent.HitHeight, MainComponent.PlayfieldDetailLevel, ref colliders, margin);
+			colliderGenerator.GenerateColliders(ColliderComponent.ZOffset, MainComponent.PlayfieldDetailLevel, ref colliders, margin);
 		}
 
 		#endregion
