@@ -32,6 +32,7 @@ using VisualPinball.Engine.VPT.Table;
 
 namespace VisualPinball.Unity
 {
+	[SelectionBase]
 	[PackAs("Surface")]
 	[AddComponentMenu("Pinball/Game Item/Surface")]
 	public class SurfaceComponent : MainRenderableComponent<SurfaceData>, ISurfaceComponent, IPackable

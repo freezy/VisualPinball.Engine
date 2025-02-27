@@ -25,6 +25,7 @@ using VisualPinball.Engine.VPT.Table;
 
 namespace VisualPinball.Unity
 {
+	[SelectionBase]
 	[PackAs("DropTarget")]
 	[AddComponentMenu("Pinball/Game Item/Drop Target")]
 	public class DropTargetComponent : TargetComponent, IPackable

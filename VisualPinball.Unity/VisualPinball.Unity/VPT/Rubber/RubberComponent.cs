@@ -33,6 +33,7 @@ using VisualPinball.Engine.VPT.Table;
 
 namespace VisualPinball.Unity
 {
+	[SelectionBase]
 	[PackAs("Rubber")]
 	[AddComponentMenu("Pinball/Game Item/Rubber")]
 	public class RubberComponent : MainRenderableComponent<RubberData>, IRubberData, IPackable

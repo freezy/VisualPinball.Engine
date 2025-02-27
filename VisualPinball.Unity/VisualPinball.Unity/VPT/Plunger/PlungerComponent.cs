@@ -30,6 +30,7 @@ using VisualPinball.Engine.VPT.Table;
 
 namespace VisualPinball.Unity
 {
+	[SelectionBase]
 	[PackAs("Plunger")]
 	[AddComponentMenu("Pinball/Game Item/Plunger")]
 	public class PlungerComponent : MainRenderableComponent<PlungerData>, ICoilDeviceComponent, IPackable
