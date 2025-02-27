@@ -34,6 +34,7 @@ using VisualPinball.Engine.VPT.Table;
 
 namespace VisualPinball.Unity
 {
+	[SelectionBase]
 	[PackAs("Bumper")]
 	[AddComponentMenu("Pinball/Game Item/Bumper")]
 	public class BumperComponent : MainRenderableComponent<BumperData>, ISwitchDeviceComponent, ICoilDeviceComponent, IPackable

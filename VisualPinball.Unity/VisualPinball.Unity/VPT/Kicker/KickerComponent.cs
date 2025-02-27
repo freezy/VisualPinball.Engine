@@ -41,6 +41,7 @@ using UnityEditor;
 
 namespace VisualPinball.Unity
 {
+	[SelectionBase]
 	[PackAs("Kicker")]
 	[AddComponentMenu("Pinball/Game Item/Kicker")]
 	public class KickerComponent : MainRenderableComponent<KickerData>,
