@@ -15,37 +15,23 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using UnityEditor;
-using UnityEditor.UIElements;
 using UnityEngine;
 using UnityEngine.UIElements;
 
 namespace VisualPinball.Unity.Editor
 {
-	[CustomEditor(typeof(SoundAsset)), CanEditMultipleObjects]
-	public class SoundAssetInspector : UnityEditor.Editor
+	[CanEditMultipleObjects]
+	public class BinaryEventSoundComponentInspector : SoundComponentInspector
 	{
 		[SerializeField]
-		private VisualTreeAsset _soundAssetInspectorAsset;
+		private VisualTreeAsset binaryEventSoundInspectorXml;
 
 		public override VisualElement CreateInspectorGUI()
 		{
-			return _soundAssetInspectorAsset.Instantiate();
+			var root = base.CreateInspectorGUI();
+			var inspectorUi = binaryEventSoundInspectorXml.Instantiate();
+			root.Add(inspectorUi);
+			return root;
 		}
-
-		private void OnDisable()
-		{
-			RemoveNullClips();
-		}
-
-		private void RemoveNullClips()
-		{
-			var clipsProp = serializedObject.FindProperty(nameof(SoundAsset.Clips));
-			for (var i = clipsProp.arraySize -1; i >= 0; i--) {
-				if (clipsProp.GetArrayElementAtIndex(i).objectReferenceValue == null)
-					clipsProp.DeleteArrayElementAtIndex(i);
-			}
-			serializedObject.ApplyModifiedPropertiesWithoutUndo();
-		}
-
 	}
 }

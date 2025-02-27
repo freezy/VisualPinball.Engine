@@ -1,5 +1,5 @@
 // Visual Pinball Engine
-// Copyright (C) 2023 freezy and VPE Team
+// Copyright (C) 2025 freezy and VPE Team
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -17,23 +17,30 @@
 namespace VisualPinball.Unity
 {
 	/// <summary>
-	/// Start and or stop a sound when an event occurs.
+	/// Start a sound when an event occurs.
 	/// </summary>
-	public abstract class EventSoundComponent<TEventSource, TEventArgs> : SoundComponent where TEventSource : class
+	public abstract class EventSoundComponent<TEventSource, TEventArgs> : SoundComponent
+		where TEventSource : class
 	{
 		private TEventSource _eventSource;
 
+		public override bool SupportsLoopingSoundAssets() => false;
+
 		protected abstract bool TryFindEventSource(out TEventSource eventSource);
-		protected abstract void OnEvent(object sender, TEventArgs e);
 		protected abstract void Subscribe(TEventSource eventSource);
 		protected abstract void Unsubscribe(TEventSource eventSource);
+
+		protected virtual void OnEvent(object sender, TEventArgs e) => StartSound();
 
 		protected override void OnEnableAfterAfterAwake()
 		{
 			base.OnEnableAfterAfterAwake();
-			if (TryFindEventSource(out _eventSource)) {
+			if (TryFindEventSource(out _eventSource))
+			{
 				Subscribe(_eventSource);
-			} else {
+			}
+			else
+			{
 				Logger.Warn(
 					$"Could not find sound event source of type {typeof(TEventSource).Name} on "
 						+ $"game object '{name}.' Make sure an appropriate component is attached."
@@ -44,7 +51,8 @@ namespace VisualPinball.Unity
 		protected override void OnDisable()
 		{
 			base.OnDisable();
-			if (_eventSource != null) {
+			if (_eventSource != null)
+			{
 				Unsubscribe(_eventSource);
 				_eventSource = null;
 			}

@@ -1,5 +1,5 @@
 // Visual Pinball Engine
-// Copyright (C) 2023 freezy and VPE Team
+// Copyright (C) 2025 freezy and VPE Team
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -29,7 +29,6 @@ namespace VisualPinball.Unity
 	[AddComponentMenu("Pinball/Sound/Switch Sound")]
 	public class SwitchSoundComponent : BinaryEventSoundComponent<IApiSwitch, SwitchEventArgs>, IPackable
 	{
-		[FormerlySerializedAs("_switchName")]
 		[HideInInspector]
 		public string SwitchName;
 
@@ -39,22 +38,21 @@ namespace VisualPinball.Unity
 		{
 			@switch = null;
 			var player = GetComponentInParent<Player>();
-			if (player == null) {
+			if (player == null)
 				return false;
-			}
 
 			foreach (var component in GetComponents<ISwitchDeviceComponent>()) {
 				@switch = player.Switch(component, SwitchName);
-				if (@switch != null) {
+				if (@switch != null)
 					return true;
-				}
 			}
 			return false;
 		}
 
 		protected override void Subscribe(IApiSwitch eventSource) => eventSource.Switch += OnEvent;
 
-		protected override void Unsubscribe(IApiSwitch eventSource) => eventSource.Switch -= OnEvent;
+		protected override void Unsubscribe(IApiSwitch eventSource) =>
+			eventSource.Switch -= OnEvent;
 
 		protected override bool InterpretAsBinary(SwitchEventArgs e) => e.IsEnabled;
 

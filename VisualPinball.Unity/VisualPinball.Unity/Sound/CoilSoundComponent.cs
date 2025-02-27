@@ -1,5 +1,5 @@
 // Visual Pinball Engine
-// Copyright (C) 2023 freezy and VPE Team
+// Copyright (C) 2025 freezy and VPE Team
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -16,8 +16,8 @@
 
 // ReSharper disable InconsistentNaming
 
-using UnityEngine;
 using System;
+using UnityEngine;
 using UnityEngine.Serialization;
 
 namespace VisualPinball.Unity
@@ -29,7 +29,6 @@ namespace VisualPinball.Unity
 	[AddComponentMenu("Pinball/Sound/Coil Sound")]
 	public class CoilSoundComponent : BinaryEventSoundComponent<IApiCoil, NoIdCoilEventArgs>, IPackable
 	{
-		[FormerlySerializedAs("_coilName")]
 		[HideInInspector]
 		public string CoilName;
 
@@ -39,7 +38,8 @@ namespace VisualPinball.Unity
 		{
 			coil = null;
 			var player = GetComponentInParent<Player>();
-			if (player == null) {
+			if (player == null)
+			{
 				return false;
 			}
 

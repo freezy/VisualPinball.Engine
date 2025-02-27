@@ -1,10 +1,12 @@
 fileFormatVersion: 2
-guid: bace99bbc8f020f49b66c0ce06780514
+guid: 1a1855717caab984d91790c7b31bb2ca
 MonoImporter:
   externalObjects: {}
   serializedVersion: 2
   defaultReferences:
   - _soundAssetInspectorAsset: {fileID: 9197481963319205126, guid: 84e4ce75c16723f428f39b87bcd555a1,
+      type: 3}
+  - _soundEffectAssetInspectorAsset: {fileID: 9197481963319205126, guid: 021c87a0b57b77d449760c46575f0270,
       type: 3}
   executionOrder: 0
   icon: {instanceID: 0}

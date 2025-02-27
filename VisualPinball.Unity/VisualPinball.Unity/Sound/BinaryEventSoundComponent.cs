@@ -1,5 +1,5 @@
 // Visual Pinball Engine
-// Copyright (C) 2023 freezy and VPE Team
+// Copyright (C) 2025 freezy and VPE Team
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -27,25 +27,22 @@ namespace VisualPinball.Unity
 	/// </summary>
 	public abstract class BinaryEventSoundComponent<TEventSource, TEventArgs> : EventSoundComponent<TEventSource, TEventArgs> where TEventSource : class
 	{
-		[FormerlySerializedAs("_startWhen")]
 		public StartWhen StartWhen = StartWhen.TurnedOn;
-
-		[FormerlySerializedAs("_stopWhen")]
 		public StopWhen StopWhen = StopWhen.Never;
 
-		protected override async void OnEvent(object sender, TEventArgs e)
+		protected override void OnEvent(object sender, TEventArgs e)
 		{
 			bool isEnabled = InterpretAsBinary(e);
 			if ((isEnabled && StopWhen == StopWhen.TurnedOn) ||
 			    (!isEnabled && StopWhen == StopWhen.TurnedOff))
 			{
-				Stop(allowFade: true);
+				StopAllSounds(allowFade: true);
 			}
 
 			if ((isEnabled && StartWhen == StartWhen.TurnedOn) ||
 			    (!isEnabled && StartWhen == StartWhen.TurnedOff))
 			{
-				await Play();
+				StartSound();
 			}
 		}
 
