@@ -19,6 +19,7 @@ using System.Collections.Generic;
 using System.Linq;
 using NLog;
 using UnityEngine;
+using UnityEngine.Serialization;
 using Logger = NLog.Logger;
 
 namespace VisualPinball.Unity
@@ -36,12 +37,12 @@ namespace VisualPinball.Unity
 	/// The stack is sorted based on priority and age of the requests. The topmost request is
 	/// played. Music fades out when stopped. New music fades in if other music is playing.
 	/// </summary>
+	[PackAs("MusicCoordinator")]
 	public class MusicCoordinator : MonoBehaviour
 	{
 		[Tooltip("How many seconds should transitions between songs take?")]
-		[SerializeField]
 		[Range(0f, 10f)]
-		private float _fadeDuration = 3f;
+		public float FadeDuration = 3f;
 
 		private readonly List<MusicPlayer> _players = new();
 		private readonly List<MusicRequest> _requestStack = new();
@@ -108,7 +109,7 @@ namespace VisualPinball.Unity
 					playerToPlay = musicGo.AddComponent<MusicPlayer>();
 					playerToPlay.Init(
 						musicToPlay,
-						_fadeDuration,
+						FadeDuration,
 						MusicPlayer.AfterStopAction.DeleteGameObject
 					);
 					_players.Add(playerToPlay);

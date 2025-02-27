@@ -21,21 +21,27 @@ using System.Linq;
 
 namespace VisualPinball.Unity
 {
-	public class SoundPackable {
-
-		public bool Interrupt;
+	public class SoundPackable
+	{
+		public MultiPlayMode MultiPlayMode;
 		public float Volume;
+		public SoundPriority Priority;
+		public float CalloutMaxQueueTime;
 
 		public static byte[] Pack(SoundComponent comp) => PackageApi.Packer.Pack(new SoundPackable {
-			Interrupt = comp.Interrupt,
+			MultiPlayMode = comp.MultiPlayMode,
 			Volume = comp.Volume,
+			Priority = comp.Priority,
+			CalloutMaxQueueTime = comp.CalloutMaxQueueTime,
 		});
 
 		public static void Unpack(byte[] bytes, SoundComponent comp)
 		{
 			var data = PackageApi.Packer.Unpack<SoundPackable>(bytes);
-			comp.Interrupt = data.Interrupt;
+			comp.MultiPlayMode = data.MultiPlayMode;
 			comp.Volume = data.Volume;
+			comp.Priority = data.Priority;
+			comp.CalloutMaxQueueTime = data.CalloutMaxQueueTime;
 		}
 	}
 
@@ -51,8 +57,10 @@ namespace VisualPinball.Unity
 
 		public static byte[] Pack(SwitchSoundComponent comp)
 			=> PackageApi.Packer.Pack(new SwitchSoundPackable {
-				Interrupt = comp.Interrupt,
+				MultiPlayMode = comp.MultiPlayMode,
 				Volume = comp.Volume,
+				Priority = comp.Priority,
+				CalloutMaxQueueTime = comp.CalloutMaxQueueTime,
 				StartWhen = comp.StartWhen,
 				StopWhen = comp.StopWhen,
 				SwitchName = comp.SwitchName
@@ -61,8 +69,10 @@ namespace VisualPinball.Unity
 		public static void Unpack(byte[] bytes, SwitchSoundComponent comp)
 		{
 			var data = PackageApi.Packer.Unpack<SwitchSoundPackable>(bytes);
-			comp.Interrupt = data.Interrupt;
+			comp.MultiPlayMode = data.MultiPlayMode;
 			comp.Volume = data.Volume;
+			comp.Priority = data.Priority;
+			comp.CalloutMaxQueueTime = data.CalloutMaxQueueTime;
 			comp.StartWhen = data.StartWhen;
 			comp.StopWhen = data.StopWhen;
 			comp.SwitchName = data.SwitchName;
@@ -75,8 +85,10 @@ namespace VisualPinball.Unity
 
 		public static byte[] Pack(CoilSoundComponent comp)
 			=> PackageApi.Packer.Pack(new CoilSoundPackable {
-				Interrupt = comp.Interrupt,
+				MultiPlayMode = comp.MultiPlayMode,
 				Volume = comp.Volume,
+				Priority = comp.Priority,
+				CalloutMaxQueueTime = comp.CalloutMaxQueueTime,
 				StartWhen = comp.StartWhen,
 				StopWhen = comp.StopWhen,
 				CoilName = comp.CoilName
@@ -85,8 +97,10 @@ namespace VisualPinball.Unity
 		public static void Unpack(byte[] bytes, CoilSoundComponent comp)
 		{
 			var data = PackageApi.Packer.Unpack<CoilSoundPackable>(bytes);
-			comp.Interrupt = data.Interrupt;
+			comp.MultiPlayMode = data.MultiPlayMode;
 			comp.Volume = data.Volume;
+			comp.Priority = data.Priority;
+			comp.CalloutMaxQueueTime = data.CalloutMaxQueueTime;
 			comp.StartWhen = data.StartWhen;
 			comp.StopWhen = data.StopWhen;
 			comp.CoilName = data.CoilName;
@@ -130,5 +144,37 @@ namespace VisualPinball.Unity
 	{
 		public string Guid;
 		// will probably get more data in here
+	}
+
+	public class CalloutCoordinatorPackable
+	{
+		public float PauseDuration;
+
+		public static byte[] Pack(CalloutCoordinator comp)
+			=> PackageApi.Packer.Pack(new CalloutCoordinatorPackable {
+				PauseDuration = comp.PauseDuration
+			});
+		
+		public static void Unpack(byte[] bytes, CalloutCoordinator comp)
+		{
+			var data = PackageApi.Packer.Unpack<CalloutCoordinatorPackable>(bytes);
+			comp.PauseDuration = data.PauseDuration;
+		}
+	}
+	
+	public class MusicCoordinatorPackable
+	{
+		public float FadeDuration;
+
+		public static byte[] Pack(MusicCoordinator comp)
+			=> PackageApi.Packer.Pack(new MusicCoordinatorPackable {
+				FadeDuration = comp.FadeDuration
+			});
+		
+		public static void Unpack(byte[] bytes, MusicCoordinator comp)
+		{
+			var data = PackageApi.Packer.Unpack<MusicCoordinatorPackable>(bytes);
+			comp.FadeDuration = data.FadeDuration;
+		}
 	}
 }

@@ -21,6 +21,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using NLog;
 using UnityEngine;
+using UnityEngine.Serialization;
 using Logger = NLog.Logger;
 
 namespace VisualPinball.Unity
@@ -37,13 +38,13 @@ namespace VisualPinball.Unity
 	/// Manages playback of callouts. Maintains a queue of callout requests. Supports prioritizing
 	/// certain callouts over others and enforcing a minimum pause between two callouts.
 	/// </summary>
+	[PackAs("CalloutCoordinator")]
 	public class CalloutCoordinator : MonoBehaviour
 	{
-		[SerializeField]
 		[Range(0f, 3f)]
 		[Tooltip("How many seconds to pause after a callout before the next one can be started")]
-		private float _pauseDuration = 0.5f;
-
+		public float PauseDuration = 0.5f;
+		
 		private readonly List<CalloutRequest> _calloutQ = new();
 		private CancellationTokenSource _loopCts;
 		private CancellationTokenSource _currentCalloutCts;
@@ -162,7 +163,7 @@ namespace VisualPinball.Unity
 					_currentCalloutCts.Dispose();
 				}
 
-				await Task.Delay(TimeSpan.FromSeconds(_pauseDuration), ct);
+				await Task.Delay(TimeSpan.FromSeconds(PauseDuration), ct);
 			}
 		}
 

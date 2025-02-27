@@ -25,7 +25,7 @@ namespace VisualPinball.Unity
 	/// Single use object to manage the playback of a music, callout, or sound effect asset in the
 	/// context of a <c>SoundComponent</c>
 	/// </summary>
-	public interface ISoundCommponentSoundPlayer : IDisposable
+	public interface ISoundComponentSoundPlayer : IDisposable
 	{
 		public void StartSound(float volume = 10f);
 		public void StopSound(bool allowFade);
@@ -36,7 +36,7 @@ namespace VisualPinball.Unity
 	/// Single use object to manage the playback of a sound effect asset in the context of a
 	/// <c>SoundComponent</c>
 	/// </summary>
-	public class SoundComponentSoundEffectPlayer : ISoundCommponentSoundPlayer
+	public class SoundComponentSoundEffectPlayer : ISoundComponentSoundPlayer
 	{
 		private SoundEffectAsset _soundEffectAsset;
 		private GameObject _audioSourceGo;
@@ -93,7 +93,7 @@ namespace VisualPinball.Unity
 	/// Single use object to manage the playback of a music asset in the context of a
 	/// <c>SoundComponent</c>
 	/// </summary>
-	public class SoundComponentMusicPlayer : ISoundCommponentSoundPlayer
+	public class SoundComponentMusicPlayer : ISoundComponentSoundPlayer
 	{
 		private MusicRequest _request;
 		private MusicCoordinator _coordinator;
@@ -131,7 +131,7 @@ namespace VisualPinball.Unity
 	/// Single use object to manage the playback of a callout asset in the context of a
 	/// <c>SoundComponent</c>
 	/// </summary>
-	public class SoundComponentCalloutPlayer : ISoundCommponentSoundPlayer
+	public class SoundComponentCalloutPlayer : ISoundComponentSoundPlayer
 	{
 		private CalloutRequest _request;
 		private CalloutCoordinator _coordinator;

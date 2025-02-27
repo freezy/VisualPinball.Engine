@@ -27,10 +27,7 @@ namespace VisualPinball.Unity
 	/// </summary>
 	public abstract class BinaryEventSoundComponent<TEventSource, TEventArgs> : EventSoundComponent<TEventSource, TEventArgs> where TEventSource : class
 	{
-		[FormerlySerializedAs("_startWhen")]
 		public StartWhen StartWhen = StartWhen.TurnedOn;
-
-		[FormerlySerializedAs("_stopWhen")]
 		public StopWhen StopWhen = StopWhen.Never;
 
 		protected override void OnEvent(object sender, TEventArgs e)

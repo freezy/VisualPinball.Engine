@@ -1,4 +1,4 @@
 <ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" xsi="http://www.w3.org/2001/XMLSchema-instance" engine="UnityEngine.UIElements" editor="UnityEditor.UIElements" noNamespaceSchemaLocation="../UIElementsSchema/UIElements.xsd" editor-extension-mode="True">
-    <uie:PropertyField binding-path="_startWhen" label="Start When" tooltip="When to start playing the sound" />
-    <uie:PropertyField binding-path="_stopWhen" label="Stop When" tooltip="When to stop playing the sound" />
+    <uie:PropertyField binding-path="StartWhen" label="Start When" tooltip="When to start playing the sound" />
+    <uie:PropertyField binding-path="StopWhen" label="Stop When" tooltip="When to stop playing the sound" />
 </ui:UXML>

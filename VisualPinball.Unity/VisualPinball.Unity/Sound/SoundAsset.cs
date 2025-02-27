@@ -15,10 +15,12 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using System;
+using System.Threading;
+using System.Threading.Tasks;
 using Newtonsoft.Json;
+using UnityEditor;
 using UnityEngine;
 using UnityEngine.Audio;
-using UnityEngine.Serialization;
 using Random = UnityEngine.Random;
 
 namespace VisualPinball.Unity
@@ -46,16 +48,15 @@ namespace VisualPinball.Unity
 			RoundRobin,
 			Random,
 		}
-
-		[FormerlySerializedAs("_description")]
-		public string Description;
+		
+		[SerializeField]
+		private string _description;
 
 		[JsonIgnore]
-		[FormerlySerializedAs("_clips")]
 		public AudioClip[] Clips;
 
-		[FormerlySerializedAs("_clipSelectionMethod")]
-		public SelectionMethod ClipSelectionMethod;
+		[SerializeField]
+		private SelectionMethod _clipSelectionMethod;
 
 		[SerializeField]
 		private AudioMixerGroup _audioMixerGroup;
@@ -74,11 +75,11 @@ namespace VisualPinball.Unity
 
 		public bool IsValid()
 		{
-			if (Clips == null) {
+			if (Clips == null)
 				return false;
 
 			foreach (var clip in Clips) {
-				if (clip != null) {
+				if (clip != null)
 					return true;
 			}
 
@@ -91,7 +92,7 @@ namespace VisualPinball.Unity
 				throw new InvalidOperationException($"The sound asset '{name}' has no audio clips to play.");
 			}
 
-			switch (ClipSelectionMethod) {
+			switch (_clipSelectionMethod) {
 
 				case SelectionMethod.RoundRobin:
 					_roundRobinIndex %= Clips.Length;

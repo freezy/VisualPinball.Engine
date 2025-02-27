@@ -19,14 +19,19 @@ using System.Collections.Generic;
 using System.Linq;
 using NLog;
 using UnityEngine;
-using Logger = NLog.Logger;
-using System.Threading;
-using System.Threading.Tasks;
-using UnityEngine;
 using UnityEngine.Serialization;
+using Logger = NLog.Logger;
 
 namespace VisualPinball.Unity
 {
+	public enum MultiPlayMode
+	{
+		PlayInParallel,
+		DoNotPlay,
+		FadeOutPrevious,
+		StopPrevious,
+	}
+
 	/// <summary>
 	/// Base component for playing a <c>SoundAsset</c> using the public methods <c>Play</c> and <c>Stop</c>.
 	/// </summary>
@@ -34,35 +39,15 @@ namespace VisualPinball.Unity
 	[AddComponentMenu("Pinball/Sound/Sound")]
 	public class SoundComponent : EnableAfterAwakeComponent, IPackable
 	{
-		private enum MultiPlayMode
-		{
-			PlayInParallel,
-			DoNotPlay,
-			FadeOutPrevious,
-			StopPrevious,
-		}
-
-		[SerializeReference]
-		protected SoundAsset _soundAsset;
-		[FormerlySerializedAs("_soundAsset")]
 		public SoundAsset SoundAsset;
-
-		[SerializeField]
-		private MultiPlayMode _multiPlayMode;
-
-		[FormerlySerializedAs("_volume")]
-		[SerializeField, Range(0f, 1f)]
-		public float Volume = 1f;
-
-		[SerializeField]
-		private SoundPriority _priority = SoundPriority.Medium;
-
-		[SerializeField]
-		private float _maxQueueTime = -1;
+		public MultiPlayMode MultiPlayMode;
+		[Range(0f, 1f)] public float Volume = 1f;
+		public SoundPriority Priority = SoundPriority.Medium;
+		public float CalloutMaxQueueTime = -1;
 
 		private CalloutCoordinator _calloutCoordinator;
 		private MusicCoordinator _musicCoordinator;
-		private readonly List<ISoundCommponentSoundPlayer> _soundPlayers = new();
+		private readonly List<ISoundComponentSoundPlayer> _soundPlayers = new();
 
 		protected static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
@@ -80,8 +65,12 @@ namespace VisualPinball.Unity
 
 		public void Unpack(byte[] bytes) => SoundPackable.Unpack(bytes, this);
 
-		public void UnpackReferences(byte[] data, Transform root, PackagedRefs refs, PackagedFiles files)
-			=> SoundReferencesPackable.Unpack(data, this, files);
+		public void UnpackReferences(
+			byte[] data,
+			Transform root,
+			PackagedRefs refs,
+			PackagedFiles files
+		) => SoundReferencesPackable.Unpack(data, this, files);
 
 		#endregion
 
@@ -126,21 +115,23 @@ namespace VisualPinball.Unity
 				Logger.Warn("Cannot play a disabled sound component.");
 				return;
 			}
-			if (SoundAsset == null) {
+
+			if (SoundAsset == null)
+			{
 				Logger.Warn("Cannot play without sound asset. Assign it in the inspector.");
 				return;
 			}
 
 			if (IsPlayingOrRequestingSound())
 			{
-				if (_soundAsset is MusicAsset)
+				if (SoundAsset is MusicAsset)
 				{
 					// We never want to have multiple active music requests. Makes no sense.
 					StopAllSounds(allowFade: true);
 				}
 				else
 				{
-					switch (_multiPlayMode)
+					switch (MultiPlayMode)
 					{
 						case MultiPlayMode.PlayInParallel:
 							// Don't need to do anything.
@@ -158,7 +149,7 @@ namespace VisualPinball.Unity
 			}
 
 			var player = CreateSoundPlayer();
-			player.StartSound(_volume);
+			player.StartSound(Volume);
 			_soundPlayers.Add(player);
 		}
 
@@ -167,35 +158,35 @@ namespace VisualPinball.Unity
 			_soundPlayers.ForEach(x => x.StopSound(allowFade));
 		}
 
-		private ISoundCommponentSoundPlayer CreateSoundPlayer()
+		private ISoundComponentSoundPlayer CreateSoundPlayer()
 		{
-			if (_soundAsset is SoundEffectAsset)
+			if (SoundAsset is SoundEffectAsset)
 			{
 				return new SoundComponentSoundEffectPlayer(
-					(SoundEffectAsset)_soundAsset,
+					(SoundEffectAsset)SoundAsset,
 					gameObject
 				);
 			}
 
-			if (_soundAsset is CalloutAsset)
+			if (SoundAsset is CalloutAsset)
 			{
 				var request = new CalloutRequest(
-					(CalloutAsset)_soundAsset,
-					_priority,
-					_maxQueueTime,
-					_volume
+					(CalloutAsset)SoundAsset,
+					Priority,
+					CalloutMaxQueueTime,
+					Volume
 				);
 				return new SoundComponentCalloutPlayer(request, _calloutCoordinator);
 			}
 
-			if (_soundAsset is MusicAsset)
+			if (SoundAsset is MusicAsset)
 			{
-				var request = new MusicRequest((MusicAsset)_soundAsset, _priority, _volume);
+				var request = new MusicRequest((MusicAsset)SoundAsset, Priority, Volume);
 				return new SoundComponentMusicPlayer(request, _musicCoordinator);
 			}
 
 			throw new NotImplementedException(
-				$"Unknown type of sound asset '{_soundAsset.GetType()}'"
+				$"Unknown type of sound asset '{SoundAsset.GetType()}'"
 			);
 		}
 
