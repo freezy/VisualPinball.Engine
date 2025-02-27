@@ -32,9 +32,10 @@ using VisualPinball.Engine.VPT.Table;
 
 namespace VisualPinball.Unity
 {
-	[AddComponentMenu("Visual Pinball/Game Item/Metal Wire Guide")]
+	[PackAs("MetalWireGuide")]
+	[AddComponentMenu("Pinball/Game Item/Metal Wire Guide")]
 	public class MetalWireGuideComponent : MainRenderableComponent<MetalWireGuideData>,
-		IMetalWireGuideData
+		IMetalWireGuideData, IPackable
 	{
 		#region Data
 
@@ -57,6 +58,18 @@ namespace VisualPinball.Unity
 
 		[SerializeField]
 		private DragPointData[] _dragPoints;
+
+		#endregion
+
+		#region Packaging
+
+		public byte[] Pack() => MetalWireGuidePackable.Pack(this);
+
+		public byte[] PackReferences(Transform root, PackagedRefs refs, PackagedFiles files) => null;
+
+		public void Unpack(byte[] bytes) => MetalWireGuidePackable.Unpack(bytes, this);
+
+		public void UnpackReferences(byte[] data, Transform root, PackagedRefs refs, PackagedFiles files) { }
 
 		#endregion
 

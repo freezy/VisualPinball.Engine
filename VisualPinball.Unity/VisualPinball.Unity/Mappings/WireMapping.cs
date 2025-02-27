@@ -18,6 +18,7 @@
 
 using System;
 using System.Diagnostics.CodeAnalysis;
+using Newtonsoft.Json;
 using UnityEngine;
 
 namespace VisualPinball.Unity
@@ -38,16 +39,28 @@ namespace VisualPinball.Unity
 
 		public SwitchConstant SourceConstant;
 
+		[JsonIgnore]
 		[SerializeReference]
 		public MonoBehaviour _sourceDevice;
+
+		[JsonIgnore]
 		public ISwitchDeviceComponent SourceDevice { get => _sourceDevice as ISwitchDeviceComponent; set => _sourceDevice = value as MonoBehaviour; }
+
+		[JsonProperty]
+		private string _sourceDevicePath { get; set; }
 
 		public string SourceDeviceItem = string.Empty;
 
 		/* Destination */
+		[JsonIgnore]
 		[SerializeReference]
 		public MonoBehaviour _destinationDevice;
+
+		[JsonIgnore]
 		public IWireableComponent DestinationDevice { get => _destinationDevice as IWireableComponent; set => _destinationDevice = value as MonoBehaviour; }
+
+		[JsonProperty]
+		private string _destinationDevicePath { get; set; }
 
 		public string DestinationDeviceItem = string.Empty;
 
@@ -57,6 +70,22 @@ namespace VisualPinball.Unity
 
 		public WireMapping()
 		{
+		}
+
+		public void SaveReferences(Transform tableRoot)
+		{
+			_sourceDevicePath = _sourceDevice ? _sourceDevice.gameObject.transform.GetPath(tableRoot) : null;
+			_destinationDevicePath = _destinationDevice ? _destinationDevice.gameObject.transform.GetPath(tableRoot) : null;
+		}
+
+		public void RestoreReferences(Transform tableRoot)
+		{
+			_sourceDevice = string.IsNullOrEmpty(_sourceDevicePath)
+				? null
+				: tableRoot.FindByPath(_sourceDevicePath)?.GetComponent<ICoilDeviceComponent>() as MonoBehaviour;
+			_destinationDevice = string.IsNullOrEmpty(_destinationDevicePath)
+				? null
+				: tableRoot.FindByPath(_destinationDevicePath)?.GetComponent<ICoilDeviceComponent>() as MonoBehaviour;
 		}
 
 		[ExcludeFromCodeCoverage]

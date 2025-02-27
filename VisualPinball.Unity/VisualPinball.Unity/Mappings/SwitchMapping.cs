@@ -17,6 +17,7 @@
 // ReSharper disable InconsistentNaming
 
 using System;
+using Newtonsoft.Json;
 using UnityEngine;
 
 namespace VisualPinball.Unity
@@ -38,12 +39,30 @@ namespace VisualPinball.Unity
 
 		public SwitchConstant Constant;
 
+		[JsonIgnore]
 		[SerializeReference]
 		public MonoBehaviour _device;
+
+		[JsonIgnore]
 		public ISwitchDeviceComponent Device { get => _device as ISwitchDeviceComponent; set => _device = value as MonoBehaviour; }
+
+		[JsonProperty]
+		private string _devicePath { get; set; }
 
 		public string DeviceItem = string.Empty;
 
 		public int PulseDelay = 250;
+
+		public void SaveReference(Transform tableRoot)
+		{
+			_devicePath = _device ? _device.gameObject.transform.GetPath(tableRoot) : null;
+		}
+
+		public void RestoreReference(Transform tableRoot)
+		{
+			_device = string.IsNullOrEmpty(_devicePath)
+				? null
+				: tableRoot.FindByPath(_devicePath)?.GetComponent<ISwitchDeviceComponent>() as MonoBehaviour;
+		}
 	}
 }

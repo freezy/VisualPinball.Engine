@@ -37,8 +37,9 @@ using Logger = NLog.Logger;
 
 namespace VisualPinball.Unity
 {
-	[AddComponentMenu("Visual Pinball/Game Item/Light")]
-	public class LightComponent : MainRenderableComponent<LightData>, ILampDeviceComponent
+	[PackAs("Lamp")]
+	[AddComponentMenu("Pinball/Game Item/Light")]
+	public class LightComponent : MainRenderableComponent<LightData>, ILampDeviceComponent, IPackable
 	{
 		#region Data
 
@@ -59,6 +60,18 @@ namespace VisualPinball.Unity
 		public float FadeSpeedDown;
 
 		private bool FadeEnabled => FadeSpeedUp > 0f || FadeSpeedDown > 0f;
+
+		#endregion
+
+		#region Packaging
+
+		public byte[] Pack() => LightPackable.Pack(this);
+
+		public byte[] PackReferences(Transform root, PackagedRefs refs, PackagedFiles files) => Array.Empty<byte>();
+
+		public void Unpack(byte[] bytes) => LightPackable.Unpack(bytes, this);
+
+		public void UnpackReferences(byte[] data, Transform root, PackagedRefs refs, PackagedFiles files) { }
 
 		#endregion
 

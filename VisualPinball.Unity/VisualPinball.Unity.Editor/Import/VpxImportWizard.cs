@@ -31,13 +31,13 @@ namespace VisualPinball.Unity.Editor
 		#region Menu
 		public static VpxImportWizard Window;
 
-		[MenuItem("Visual Pinball/Editor/Import Wizard", false, 512)]
+		[MenuItem("Pinball/Editor/Import Wizard", false, 512)]
 		public static void Init()
 		{
 			Window = (VpxImportWizard)GetWindow(typeof(VpxImportWizard));
 			Window.autoRepaintOnSceneChange = true;
 			Window.minSize = new Vector2(800, 300);
-			Window.titleContent = new GUIContent("Visual Pinball Import Wizard"); // here we could attach an icon
+			Window.titleContent = new GUIContent("VPE Import Wizard"); // here we could attach an icon
 			Window.Show();
 		}
 		#endregion Menu
@@ -117,7 +117,7 @@ namespace VisualPinball.Unity.Editor
 					}
 
 					// open file dialog
-					var vpxPath = EditorUtility.OpenFilePanelWithFilters("Import .VPX File", initialDirectory, new[] { "Visual Pinball Table Files", "vpx" });
+					var vpxPath = EditorUtility.OpenFilePanelWithFilters("Import .vpx File", initialDirectory, new[] { "Visual Pinball Table Files", "vpx" });
 					if (vpxPath.Length != 0 && File.Exists(vpxPath))
 					{
 						VpxImportWizardSettings.VpxPath = vpxPath;

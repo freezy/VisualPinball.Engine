@@ -34,10 +34,11 @@ using VisualPinball.Engine.VPT.Trough;
 
 namespace VisualPinball.Unity
 {
-	[AddComponentMenu("Visual Pinball/Trough")]
+	[PackAs("Trough")]
+	[AddComponentMenu("Pinball/Trough")]
 	[HelpURL("https://docs.visualpinball.org/creators-guide/manual/mechanisms/troughs.html")]
 	public class TroughComponent : MainComponent<TroughData>,
-		ISwitchDeviceComponent, ICoilDeviceComponent
+		ISwitchDeviceComponent, ICoilDeviceComponent, IPackable
 	{
 		#region Data
 
@@ -106,6 +107,18 @@ namespace VisualPinball.Unity
 
 		IEnumerable<GamelogicEngineCoil> IDeviceComponent<GamelogicEngineCoil>.AvailableDeviceItems => AvailableCoils;
 		IEnumerable<GamelogicEngineSwitch> IDeviceComponent<GamelogicEngineSwitch>.AvailableDeviceItems => AvailableSwitches;
+
+		#endregion
+
+		#region Packaging
+
+		public byte[] Pack() => TroughPackable.Pack(this);
+
+        public byte[] PackReferences(Transform root, PackagedRefs refs, PackagedFiles files) => TroughReferencesPackable.Pack(this, refs);
+
+        public void Unpack(byte[] bytes) => TroughPackable.Unpack(bytes, this);
+
+        public void UnpackReferences(byte[] data, Transform root, PackagedRefs refs, PackagedFiles files) => TroughReferencesPackable.Unpack(data, this, refs);
 
 		#endregion
 

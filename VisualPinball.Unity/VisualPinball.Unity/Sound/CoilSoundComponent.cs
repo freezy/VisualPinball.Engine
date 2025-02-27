@@ -18,17 +18,20 @@
 
 using System;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 namespace VisualPinball.Unity
 {
 	/// <summary>
 	/// Start and or stop a sound when a coil is energized or deenergized.
 	/// </summary>
-	[AddComponentMenu("Visual Pinball/Sound/Coil Sound")]
-	public class CoilSoundComponent : BinaryEventSoundComponent<IApiCoil, NoIdCoilEventArgs>
+	[PackAs("CoilSound")]
+	[AddComponentMenu("Pinball/Sound/Coil Sound")]
+	public class CoilSoundComponent : BinaryEventSoundComponent<IApiCoil, NoIdCoilEventArgs>, IPackable
 	{
-		[SerializeField, HideInInspector]
-		public string _coilName;
+		[FormerlySerializedAs("_coilName")]
+		[HideInInspector]
+		public string CoilName;
 
 		public override Type GetRequiredType() => typeof(ICoilDeviceComponent);
 
@@ -41,11 +44,9 @@ namespace VisualPinball.Unity
 				return false;
 			}
 
-			foreach (var component in GetComponents<ICoilDeviceComponent>())
-			{
-				coil = player.Coil(component, _coilName);
-				if (coil != null)
-				{
+			foreach (var component in GetComponents<ICoilDeviceComponent>()) {
+				coil = player.Coil(component, CoilName);
+				if (coil != null) {
 					return true;
 				}
 			}
@@ -57,5 +58,15 @@ namespace VisualPinball.Unity
 		protected override void Unsubscribe(IApiCoil coil) => coil.CoilStatusChanged -= OnEvent;
 
 		protected override bool InterpretAsBinary(NoIdCoilEventArgs e) => e.IsEnergized;
+
+		#region Packaging
+
+		// refs are handled by SoundComponent
+
+		public new byte[] Pack() => CoilSoundPackable.Pack(this);
+
+		public new void Unpack(byte[] bytes) => CoilSoundPackable.Unpack(bytes, this);
+
+		#endregion
 	}
 }

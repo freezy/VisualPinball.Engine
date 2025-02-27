@@ -20,14 +20,19 @@ using System.Linq;
 using NLog;
 using UnityEngine;
 using Logger = NLog.Logger;
+using System.Threading;
+using System.Threading.Tasks;
+using UnityEngine;
+using UnityEngine.Serialization;
 
 namespace VisualPinball.Unity
 {
 	/// <summary>
 	/// Base component for playing a <c>SoundAsset</c> using the public methods <c>Play</c> and <c>Stop</c>.
 	/// </summary>
-	[AddComponentMenu("Visual Pinball/Sound/Sound")]
-	public class SoundComponent : EnableAfterAwakeComponent
+	[PackAs("Sound")]
+	[AddComponentMenu("Pinball/Sound/Sound")]
+	public class SoundComponent : EnableAfterAwakeComponent, IPackable
 	{
 		private enum MultiPlayMode
 		{
@@ -39,12 +44,15 @@ namespace VisualPinball.Unity
 
 		[SerializeReference]
 		protected SoundAsset _soundAsset;
+		[FormerlySerializedAs("_soundAsset")]
+		public SoundAsset SoundAsset;
 
 		[SerializeField]
 		private MultiPlayMode _multiPlayMode;
 
+		[FormerlySerializedAs("_volume")]
 		[SerializeField, Range(0f, 1f)]
-		private float _volume = 1f;
+		public float Volume = 1f;
 
 		[SerializeField]
 		private SoundPriority _priority = SoundPriority.Medium;
@@ -62,6 +70,20 @@ namespace VisualPinball.Unity
 		{
 			return _soundPlayers.Any(x => x.IsPlayingOrRequestingSound());
 		}
+
+		#region Packaging
+
+		public byte[] Pack() => SoundPackable.Pack(this);
+
+		public byte[] PackReferences(Transform root, PackagedRefs refs, PackagedFiles files) =>
+			SoundReferencesPackable.PackReferences(this, files);
+
+		public void Unpack(byte[] bytes) => SoundPackable.Unpack(bytes, this);
+
+		public void UnpackReferences(byte[] data, Transform root, PackagedRefs refs, PackagedFiles files)
+			=> SoundReferencesPackable.Unpack(data, this, files);
+
+		#endregion
 
 		protected override void OnEnableAfterAfterAwake()
 		{
@@ -104,9 +126,7 @@ namespace VisualPinball.Unity
 				Logger.Warn("Cannot play a disabled sound component.");
 				return;
 			}
-
-			if (_soundAsset == null)
-			{
+			if (SoundAsset == null) {
 				Logger.Warn("Cannot play without sound asset. Assign it in the inspector.");
 				return;
 			}

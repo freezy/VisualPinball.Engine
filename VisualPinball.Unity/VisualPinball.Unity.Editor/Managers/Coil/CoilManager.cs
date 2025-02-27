@@ -44,7 +44,7 @@ namespace VisualPinball.Unity.Editor
 
 		private CoilListViewItemRenderer _listViewItemRenderer;
 
-		[MenuItem("Visual Pinball/Coil Manager", false, 302)]
+		[MenuItem("Pinball/Coil Manager", false, 302)]
 		public static void ShowWindow()
 		{
 			GetWindow<CoilManager>();

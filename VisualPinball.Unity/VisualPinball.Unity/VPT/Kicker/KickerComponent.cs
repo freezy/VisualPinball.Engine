@@ -35,12 +35,17 @@ using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Kicker;
 using VisualPinball.Engine.VPT.Table;
 
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
+
 namespace VisualPinball.Unity
 {
-	[AddComponentMenu("Visual Pinball/Game Item/Kicker")]
+	[PackAs("Kicker")]
+	[AddComponentMenu("Pinball/Game Item/Kicker")]
 	public class KickerComponent : MainRenderableComponent<KickerData>,
 		ICoilDeviceComponent, ITriggerComponent, IBallCreationPosition,
-		IRotatableComponent, ISerializationCallbackReceiver
+		IRotatableComponent, ISerializationCallbackReceiver, IPackable
 	{
 		#region Data
 
@@ -135,6 +140,18 @@ namespace VisualPinball.Unity
 
 		#endregion
 
+		#region Packaging
+
+		public byte[] Pack() => KickerPackable.Pack(this);
+
+		public byte[] PackReferences(Transform root, PackagedRefs refs, PackagedFiles files) => Array.Empty<byte>();
+
+		public void Unpack(byte[] bytes) => KickerPackable.Unpack(bytes, this);
+
+		public void UnpackReferences(byte[] data, Transform root, PackagedRefs refs, PackagedFiles files) { }
+
+		#endregion
+
 		#region Conversion
 
 		public override IEnumerable<MonoBehaviour> SetData(KickerData data)
@@ -150,7 +167,7 @@ namespace VisualPinball.Unity
 			#if UNITY_EDITOR
 			var mf = GetComponent<MeshFilter>();
 			if (mf) {
-				MeshName = Path.GetFileNameWithoutExtension(UnityEditor.AssetDatabase.GetAssetPath(mf.sharedMesh));
+				MeshName = Path.GetFileNameWithoutExtension(AssetDatabase.GetAssetPath(mf.sharedMesh));
 			}
 			#endif
 
@@ -267,7 +284,7 @@ namespace VisualPinball.Unity
 			#if UNITY_EDITOR
 
 			// don't generate ids for prefabs, otherwise they'll show up in the instances.
-			if (UnityEditor.PrefabUtility.GetPrefabInstanceStatus(this) != UnityEditor.PrefabInstanceStatus.Connected) {
+			if (PrefabUtility.GetPrefabInstanceStatus(this) != PrefabInstanceStatus.Connected) {
 				return;
 			}
 			var coilIds = new HashSet<string>();
@@ -320,6 +337,7 @@ namespace VisualPinball.Unity
 		public Vertex3D GetBallCreationVelocity() => new Vertex3D(0.1f, 0, 0);
 
 		#endregion
+
 	}
 
 	[Serializable]

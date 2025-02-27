@@ -54,10 +54,7 @@ namespace VisualPinball.Engine.VPT.HitTarget
 			return new PbrMaterial(_table.GetMaterial(_data.Material), _table.GetTexture(_data.Image));
 		}
 
-		protected override float BaseHeight(Table.Table table)
-		{
-			return table?.TableHeight ?? 0f;
-		}
+		protected override float BaseHeight(Table.Table table) => 0;
 
 		private Mesh GetBaseMesh()
 		{

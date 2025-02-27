@@ -19,9 +19,10 @@ using UnityEngine;
 
 namespace VisualPinball.Unity
 {
+	[PackAs("CannonRotator")]
 	[RequireComponent(typeof(RotatorComponent))]
-	[AddComponentMenu("Visual Pinball/Game Item/Cannon Rotator")]
-	public class CannonRotatorComponent : MonoBehaviour
+	[AddComponentMenu("Pinball/Game Item/Cannon Rotator")]
+	public class CannonRotatorComponent : MonoBehaviour, IPackable
 	{
 		#region Data
 
@@ -32,6 +33,20 @@ namespace VisualPinball.Unity
 		public MonoBehaviour _mech;
 
 		public float Factor = 0.3f;
+
+		#endregion
+
+		#region Packaging
+
+		public byte[] Pack() => CannonRotatorPackable.Pack(this);
+
+		public byte[] PackReferences(Transform root, PackagedRefs refs, PackagedFiles files)
+			=> CannonRotatorReferencesPackable.Pack(this, refs);
+
+		public void Unpack(byte[] bytes) => CannonRotatorPackable.Unpack(bytes, this);
+
+		public void UnpackReferences(byte[] data, Transform root, PackagedRefs refs, PackagedFiles files)
+			=> CannonRotatorReferencesPackable.Unpack(data, this, refs);
 
 		#endregion
 

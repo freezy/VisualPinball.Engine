@@ -1,4 +1,4 @@
-﻿// Visual Pinball Engine
+// Visual Pinball Engine
 // Copyright (C) 2025 freezy and VPE Team
 //
 // This program is free software: you can redistribute it and/or modify
@@ -15,12 +15,10 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using System;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
-using UnityEditor;
+using Newtonsoft.Json;
 using UnityEngine;
 using UnityEngine.Audio;
+using UnityEngine.Serialization;
 using Random = UnityEngine.Random;
 
 namespace VisualPinball.Unity
@@ -39,22 +37,25 @@ namespace VisualPinball.Unity
 	/// clips can be assigned for variation. Instances of this class are Unity assets and can
 	/// therefore be stored in the project files or in an asset library for reuse across tables.
 	/// </summary>
+	[PackAs("SoundAsset")]
+	[CreateAssetMenu(fileName = "Sound", menuName = "Pinball/Sound", order = 102)]
 	public abstract class SoundAsset : ScriptableObject
 	{
-		private enum SelectionMethod
+		public enum SelectionMethod
 		{
 			RoundRobin,
 			Random,
 		}
 
-		[SerializeField]
-		private string _description;
+		[FormerlySerializedAs("_description")]
+		public string Description;
 
-		[SerializeField]
-		private AudioClip[] _clips;
+		[JsonIgnore]
+		[FormerlySerializedAs("_clips")]
+		public AudioClip[] Clips;
 
-		[SerializeField]
-		private SelectionMethod _clipSelectionMethod;
+		[FormerlySerializedAs("_clipSelectionMethod")]
+		public SelectionMethod ClipSelectionMethod;
 
 		[SerializeField]
 		private AudioMixerGroup _audioMixerGroup;
@@ -73,12 +74,11 @@ namespace VisualPinball.Unity
 
 		public bool IsValid()
 		{
-			if (_clips == null)
+			if (Clips == null) {
 				return false;
 
-			foreach (var clip in _clips)
-			{
-				if (clip != null)
+			foreach (var clip in Clips) {
+				if (clip != null) {
 					return true;
 			}
 
@@ -87,20 +87,20 @@ namespace VisualPinball.Unity
 
 		private AudioClip GetClip()
 		{
-			_clips.ToList().RemoveAll(clip => clip == null);
-			if (_clips.Length == 0)
-				throw new InvalidOperationException(
-					$"The sound asset '{name}' has no audio clips to play."
-				);
-			switch (_clipSelectionMethod)
-			{
+			if (Clips.Length == 0) {
+				throw new InvalidOperationException($"The sound asset '{name}' has no audio clips to play.");
+			}
+
+			switch (ClipSelectionMethod) {
+
 				case SelectionMethod.RoundRobin:
-					_roundRobinIndex %= _clips.Length;
-					var clip = _clips[_roundRobinIndex];
+					_roundRobinIndex %= Clips.Length;
+					var clip = Clips[_roundRobinIndex];
 					_roundRobinIndex++;
 					return clip;
 				case SelectionMethod.Random:
-					return _clips[Random.Range(0, _clips.Length)];
+					return Clips[Random.Range(0, Clips.Length)];
+
 				default:
 					throw new NotImplementedException("Selection method not implemented.");
 			}

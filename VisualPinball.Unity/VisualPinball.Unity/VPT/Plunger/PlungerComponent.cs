@@ -20,7 +20,6 @@
 
 using System;
 using System.Collections.Generic;
-using Unity.Mathematics;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using VisualPinball.Engine.Game.Engines;
@@ -31,8 +30,9 @@ using VisualPinball.Engine.VPT.Table;
 
 namespace VisualPinball.Unity
 {
-	[AddComponentMenu("Visual Pinball/Game Item/Plunger")]
-	public class PlungerComponent : MainRenderableComponent<PlungerData>, ICoilDeviceComponent
+	[PackAs("Plunger")]
+	[AddComponentMenu("Pinball/Game Item/Plunger")]
+	public class PlungerComponent : MainRenderableComponent<PlungerData>, ICoilDeviceComponent, IPackable
 	{
 		#region Data
 
@@ -46,6 +46,18 @@ namespace VisualPinball.Unity
 		#endregion
 
 		public InputActionReference analogPlungerAction;
+
+		#region Packaging
+
+		public byte[] Pack() => PlungerPackable.Pack(this);
+
+		public byte[] PackReferences(Transform root, PackagedRefs refs, PackagedFiles files) => null;
+
+		public void Unpack(byte[] bytes) => PlungerPackable.Unpack(bytes, this);
+
+		public void UnpackReferences(byte[] data, Transform root, PackagedRefs refs, PackagedFiles files) { }
+
+		#endregion
 
 		#region Overrides and Constants
 

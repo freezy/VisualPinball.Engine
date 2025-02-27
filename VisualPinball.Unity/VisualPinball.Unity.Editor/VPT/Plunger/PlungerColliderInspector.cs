@@ -69,7 +69,7 @@ namespace VisualPinball.Unity.Editor
 			PropertyField(_mechStrengthProperty, "Mech Strength");
 			PropertyField(_momentumXferProperty, "Momentum Xfer");
 			PropertyField(_parkPositionProperty, "Park Position", onChanged: () => {
-				ColliderComponent.GetComponentInParent<PlungerComponent>().UpdateParkPosition(ColliderComponent.ParkPosition);
+				ColliderComponent.GetComponentInParent<PlungerComponent>(true).UpdateParkPosition(ColliderComponent.ParkPosition);
 			});
 
 			base.OnInspectorGUI();

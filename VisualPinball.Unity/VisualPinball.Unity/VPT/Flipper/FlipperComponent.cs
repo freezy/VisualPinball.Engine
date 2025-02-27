@@ -23,7 +23,6 @@
 
 using System;
 using System.Collections.Generic;
-using Unity.Collections;
 using Unity.Mathematics;
 using UnityEngine;
 using VisualPinball.Engine.Game.Engines;
@@ -33,13 +32,18 @@ using VisualPinball.Engine.VPT.Flipper;
 using VisualPinball.Engine.VPT.Table;
 using Color = UnityEngine.Color;
 
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
+
 namespace VisualPinball.Unity
 {
-	[AddComponentMenu("Visual Pinball/Game Item/Flipper")]
+	[PackAs("Flipper")]
+	[AddComponentMenu("Pinball/Game Item/Flipper")]
 	[HelpURL("https://docs.visualpinball.org/creators-guide/manual/mechanisms/flippers.html")]
 	public class FlipperComponent : MainRenderableComponent<FlipperData>,
 		IFlipperData, ISwitchDeviceComponent, ICoilDeviceComponent,
-		IRotatableComponent
+		IRotatableComponent, IPackable
 	{
 		#region Data
 
@@ -108,6 +112,18 @@ namespace VisualPinball.Unity
 
 		[HideInInspector]
 		public bool InstantiateAsPrefab;
+
+		#endregion
+
+		#region Packaging
+
+		public byte[] Pack() => FlipperPackable.Pack(this);
+
+		public byte[] PackReferences(Transform root, PackagedRefs refs, PackagedFiles files) => Array.Empty<byte>();
+
+		public void Unpack(byte[] bytes) => FlipperPackable.Unpack(bytes, this);
+
+		public void UnpackReferences(byte[] data, Transform root, PackagedRefs refs, PackagedFiles files) { }
 
 		#endregion
 
@@ -329,7 +345,7 @@ namespace VisualPinball.Unity
 			}
 
 			Gizmos.matrix = Matrix4x4.identity;
-			UnityEditor.Handles.matrix = Matrix4x4.identity;
+			Handles.matrix = Matrix4x4.identity;
 
 			// Draw enclosing polygon
 			Gizmos.color = Color.cyan;

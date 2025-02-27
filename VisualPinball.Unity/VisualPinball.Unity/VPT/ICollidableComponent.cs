@@ -63,5 +63,12 @@ namespace VisualPinball.Unity
 		public void OnTransformationChanged(float4x4 currTransformationMatrix);
 
 		public bool CollidersDirty { set; }
+
+		float PhysicsElasticity { get; set; }
+		float PhysicsElasticityFalloff { get; set; }
+		float PhysicsFriction { get; set; }
+		float PhysicsScatter { get; set; }
+		bool PhysicsOverwrite { get; set; }
+		PhysicsMaterialAsset PhysicsMaterialReference { get; set; }
 	}
 }

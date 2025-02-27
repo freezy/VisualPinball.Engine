@@ -177,7 +177,7 @@ namespace VisualPinball.Unity
 public static class MeshMenu
 {
 	
-	[UnityEditor.MenuItem("GameObject/Visual Pinball/Rebuild Meshes", true, 40)]
+	[UnityEditor.MenuItem("GameObject/Pinball/Rebuild Meshes", true, 40)]
 	public static bool ApplyChildrenTransformsValidate()
 	{
 		if (UnityEditor.Selection.gameObjects.Length != 1) {

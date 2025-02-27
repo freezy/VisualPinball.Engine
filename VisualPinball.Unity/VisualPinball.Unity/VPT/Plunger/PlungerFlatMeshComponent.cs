@@ -24,7 +24,7 @@ using Mesh = VisualPinball.Engine.VPT.Mesh;
 namespace VisualPinball.Unity
 {
 	[ExecuteInEditMode]
-	[AddComponentMenu("Visual Pinball/Mesh/Plunger Flat Mesh")]
+	[AddComponentMenu("Pinball/Mesh/Plunger Flat Mesh")]
 	public class PlungerFlatMeshComponent : PlungerMeshComponent
 	{
 		protected override Mesh GetMesh(PlungerData data)

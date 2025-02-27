@@ -17,19 +17,31 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Unity.Mathematics;
 using UnityEngine;
 using VisualPinball.Engine.VPT.HitTarget;
 using VisualPinball.Engine.VPT.Table;
 
 namespace VisualPinball.Unity
 {
-	[AddComponentMenu("Visual Pinball/Game Item/Hit Target")]
-	public class HitTargetComponent : TargetComponent
+	[PackAs("HitTarget")]
+	[AddComponentMenu("Pinball/Game Item/Hit Target")]
+	public class HitTargetComponent : TargetComponent, IPackable
 	{
 		protected override float ZOffset => 0;
 
 		public override bool HasProceduralMesh => false;
+
+		#region Packaging
+
+		public byte[] Pack() => HitTargetPackable.Pack(this);
+
+		public byte[] PackReferences(Transform root, PackagedRefs refs, PackagedFiles files) => Array.Empty<byte>();
+
+		public void Unpack(byte[] bytes) => HitTargetPackable.Unpack(bytes, this);
+
+		public void UnpackReferences(byte[] data, Transform root, PackagedRefs refs, PackagedFiles files) { }
+
+		#endregion
 
 		#region Conversion
 

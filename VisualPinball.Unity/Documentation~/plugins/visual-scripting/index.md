@@ -40,7 +40,7 @@ For more details about visual scripting in general, check out [Unity's documenta
 
 Visual scripting comes as an UPM package. In Unity, add it by choosing *Window -> Package Manager -> Add package from git URL*:
 
-<p><img alt="Package Manager" width="294" src="../../creators-guide/setup/unity-package-manager.png"/></p>
+<p><img alt="Package Manager" width="253" src="../../creators-guide/setup/unity-package-manager.png"/></p>
 
 Then, input `org.visualpinball.engine.unity.visualscripting` and click *Add* or press `Enter`. This will download and add visual scripting to the project. 
 

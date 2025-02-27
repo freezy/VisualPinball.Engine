@@ -29,7 +29,9 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="NLog" Version="4.7.15" />
-    <PackageReference Include="OpenMcdf" Version="2.2.1.9" />
+    <PackageReference Include="SharpZipLib" Version="1.4.2" />
+    <PackageReference Include="OpenMcdf" Version="2.4.1" />
+    <PackageReference Include="OpenMcdf.Extensions" Version="2.4.0" />
     <PackageReference Include="NetMiniZ" Version="1.4.0-preview.2" />
     <PackageReference Include="NetMiniZ.Native" Version="1.4.0" />
     <PackageReference Include="NetVips" Version="2.1.0" />
@@ -54,8 +56,10 @@
     <ItemGroup>
       <Plugins Include="$(OutDir)NLog.dll" />
       <Plugins Include="$(OutDir)OpenMcdf.dll" />
+      <Plugins Include="$(OutDir)OpenMcdf.Extensions.dll" />
       <Plugins Include="$(OutDir)NetMiniZ.dll" />
       <Plugins Include="$(OutDir)NetVips.dll" />
+      <Plugins Include="$(OutDir)ICSharpCode.SharpZipLib.dll" />
       <Plugins Include="$(OutDir)System.Buffers.dll" />
     </ItemGroup>
     <ItemGroup Condition="'$(RuntimeIdentifier)' == 'win-x64' Or '$(RuntimeIdentifier)' == 'win-x86' Or '$(RuntimeIdentifier)' == 'osx' Or '$(RuntimeIdentifier)' == 'linux-x64'">

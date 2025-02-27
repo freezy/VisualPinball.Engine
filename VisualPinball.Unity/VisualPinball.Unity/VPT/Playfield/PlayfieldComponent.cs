@@ -21,7 +21,6 @@ using System.Collections.Generic;
 using NativeTrees;
 using Unity.Mathematics;
 using UnityEngine;
-using VisualPinball.Engine.Common;
 using VisualPinball.Engine.Game;
 using VisualPinball.Engine.Math;
 using VisualPinball.Engine.VPT;
@@ -31,8 +30,9 @@ using VisualPinball.Unity.Playfield;
 
 namespace VisualPinball.Unity
 {
-	[AddComponentMenu("Visual Pinball/Game Item/Playfield")]
-	public class PlayfieldComponent : MainRenderableComponent<TableData>
+	[PackAs("Playfield")]
+	[AddComponentMenu("Pinball/Game Item/Playfield")]
+	public class PlayfieldComponent : MainRenderableComponent<TableData>, IPackable
 	{
 		#region Data
 
@@ -62,6 +62,18 @@ namespace VisualPinball.Unity
 
 		[SerializeField] private string _playfieldImage;
 		[SerializeField] private string _playfieldMaterial;
+
+		#endregion
+
+		#region Packaging
+
+		public byte[] Pack() => PlayfieldPackable.Pack(this);
+
+		public byte[] PackReferences(Transform root, PackagedRefs refs, PackagedFiles files) => Array.Empty<byte>();
+
+		public void Unpack(byte[] bytes) => PlayfieldPackable.Unpack(bytes, this);
+
+		public void UnpackReferences(byte[] data, Transform root, PackagedRefs refs, PackagedFiles files) { }
 
 		#endregion
 
@@ -160,7 +172,7 @@ namespace VisualPinball.Unity
 			var updatedComponents = new List<MonoBehaviour> { this };
 			var mg = new PrimitiveMeshGenerator(primitiveData);
 			var mesh = mg
-				.GetTransformedMesh(table?.TableHeight ?? 0f, primitiveData.Mesh, Origin.Original, false)
+				.GetTransformedMesh(0, primitiveData.Mesh, Origin.Original, false)
 				.Transform(mg.TransformationMatrix(0)) // apply transformation to mesh, because this is the playfield
 				.TransformToWorld(); // also, transform this to world space.
 			var material = new PbrMaterial(

@@ -10,8 +10,9 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/download-artifact@v4
         with:
+          merge-multiple: true
+          github-token: ${{ secrets.GITHUB_TOKEN }}
           run-id: ${{ github.event.client_payload.artifacts_run_id }}
-          name: Plugins
           path: VisualPinball.Unity/Plugins
       - run: |
           ls -laR VisualPinball.Unity/Plugins
@@ -24,33 +25,18 @@ jobs:
           echo -e "fileFormatVersion: 2\nguid: a2a4b6cb3229489f99c06f0771c522ce" > CONTRIBUTING.md.meta
           echo -e "fileFormatVersion: 2\nguid: 931f3c49f79d4032bceefe14682a7d5a" > VisualPinball.Unity.meta
           echo -e "fileFormatVersion: 2\nguid: ea4f7f8d4c2c418e9fc0fbed8ab1f5a9" > VisualPinball.Engine.meta
-      - name: Publish
-        run: |
-          echo "//registry.visualpinball.org/:_authToken=${NPM_TOKEN}" > ~/.npmrc
-          npm publish
-        env:
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
-
-  publish-nuget:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-dotnet@v4
+      - uses: actions/setup-node@v4
         with:
-          dotnet-version: '3.1.x'
-      - name: Pack
-        run: |
-          VERSION="$(npx -c 'echo "$npm_package_version"')"
-          dotnet pack VisualPinball.Resources/VisualPinball.Resources.csproj -c Release -p:PackageVersion=$VERSION -o nupkg
-          dotnet pack VisualPinball.Engine/VisualPinball.Engine.csproj -c Release -p:PackageVersion=$VERSION -o nupkg
+          node-version: '20.x'
+          registry-url: 'https://registry.visualpinball.org'
       - name: Publish
-        run: |
-          dotnet nuget push nupkg/VisualPinball.Resources.*.nupkg -k ${{ secrets.NUGET_KEY }} -s https://api.nuget.org/v4/index.json
-          dotnet nuget push nupkg/VisualPinball.Engine.*.nupkg -k ${{ secrets.NUGET_KEY }} -s https://api.nuget.org/v4/index.json
+        run: npm publish
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
   dispatch:
     runs-on: ubuntu-latest
-    needs: [ publish-registry, publish-nuget ]
+    needs: [ publish-registry ]
     steps:
       - uses: peter-evans/repository-dispatch@v3
         with:

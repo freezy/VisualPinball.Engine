@@ -22,7 +22,7 @@ using Mesh = VisualPinball.Engine.VPT.Mesh;
 namespace VisualPinball.Unity.Playfield
 {
 	[ExecuteInEditMode]
-	[AddComponentMenu("Visual Pinball/Mesh/Playfield Mesh")]
+	[AddComponentMenu("Pinball/Mesh/Playfield Mesh")]
 	public class PlayfieldMeshComponent : MeshComponent<TableData, PlayfieldComponent>
 	{
 		#region Data

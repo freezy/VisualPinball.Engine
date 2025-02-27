@@ -28,3 +28,7 @@
     href: mpf/setup.md
   - name: Usage
     href: mpf/usage.md
+  - name: Configuration
+    href: mpf/configuration.md
+  - name: Technical details
+    href: mpf/technical-details.md

@@ -25,9 +25,10 @@ using Mesh = VisualPinball.Engine.VPT.Mesh;
 
 namespace VisualPinball.Unity
 {
+	[PackAs("PlungerRodMesh")]
 	[ExecuteInEditMode]
-	[AddComponentMenu("Visual Pinball/Mesh/Plunger Rod Mesh")]
-	public class PlungerRodMeshComponent : PlungerMeshComponent
+	[AddComponentMenu("Pinball/Mesh/Plunger Rod Mesh")]
+	public class PlungerRodMeshComponent : PlungerMeshComponent, IPackable
 	{
 		#region Data
 
@@ -40,6 +41,18 @@ namespace VisualPinball.Unity
 		public float RingWidth = 3.0f;
 
 		public string TipShape = "0 .34; 2 .6; 3 .64; 5 .7; 7 .84; 8 .88; 9 .9; 11 .92; 14 .92; 39 .84";
+
+		#endregion
+
+		#region Packaging
+
+		public byte[] Pack() => PlungeRodMeshPackable.Pack(this);
+
+		public byte[] PackReferences(Transform root, PackagedRefs refs, PackagedFiles files) => null;
+
+		public void Unpack(byte[] bytes) => PlungeRodMeshPackable.Unpack(bytes, this);
+
+		public void UnpackReferences(byte[] data, Transform root, PackagedRefs refs, PackagedFiles files) { }
 
 		#endregion
 

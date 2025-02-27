@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-using System;
 using UnityEngine;
 using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Rubber;
@@ -23,16 +22,29 @@ using Mesh = VisualPinball.Engine.VPT.Mesh;
 
 namespace VisualPinball.Unity
 {
+	[PackAs("RubberMesh")]
 	[ExecuteInEditMode]
-	[AddComponentMenu("Visual Pinball/Mesh/Rubber Mesh")]
-	public class RubberMeshComponent : MeshComponent<RubberData, RubberComponent>
+	[AddComponentMenu("Pinball/Mesh/Rubber Mesh")]
+	public class RubberMeshComponent : MeshComponent<RubberData, RubberComponent>, IPackable
 	{
 		protected override Mesh GetMesh(RubberData data)
 			=> new RubberMeshGenerator(MainComponent)
-				.GetTransformedMesh(0, MainComponent.Height, MainComponent.PlayfieldDetailLevel)
+				.GetTransformedMesh(0, MainComponent.PlayfieldDetailLevel)
 				.TransformToWorld();
 
 		protected override PbrMaterial GetMaterial(RubberData data, Table table)
 			=> new RubberMeshGenerator(MainComponent).GetMaterial(table, data);
+
+		#region Packaging
+
+		public byte[] Pack() => PackageApi.Packer.Empty;
+
+		public byte[] PackReferences(Transform root, PackagedRefs refs, PackagedFiles files) => null;
+
+		public void Unpack(byte[] bytes) { }
+
+		public void UnpackReferences(byte[] bytes, Transform root, PackagedRefs refs, PackagedFiles files) { }
+
+		#endregion
 	}
 }

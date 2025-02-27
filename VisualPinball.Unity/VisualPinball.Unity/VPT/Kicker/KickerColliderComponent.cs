@@ -16,14 +16,16 @@
 
 // ReSharper disable InconsistentNaming
 
+using System;
 using Unity.Mathematics;
 using UnityEngine;
 using VisualPinball.Engine.VPT.Kicker;
 
 namespace VisualPinball.Unity
 {
-	[AddComponentMenu("Visual Pinball/Collision/Kicker Collider")]
-	public class KickerColliderComponent : ColliderComponent<KickerData, KickerComponent>
+	[PackAs("KickerCollider")]
+	[AddComponentMenu("Pinball/Collision/Kicker Collider")]
+	public class KickerColliderComponent : ColliderComponent<KickerData, KickerComponent>, IPackable
 	{
 		#region Data
 
@@ -49,13 +51,45 @@ namespace VisualPinball.Unity
 
 		#endregion
 
+		#region Packaging
+
+		public byte[] Pack() => KickerColliderPackable.Pack(this);
+
+		public byte[] PackReferences(Transform root, PackagedRefs refs, PackagedFiles files) => Array.Empty<byte>();
+
+		public void Unpack(byte[] bytes) => KickerColliderPackable.Unpack(bytes, this);
+
+		public void UnpackReferences(byte[] data, Transform root, PackagedRefs refs, PackagedFiles files) { }
+
+		#endregion
+
 		#region Physics Material
 
-		protected override float PhysicsElasticity => 1;
-		protected override float PhysicsElasticityFalloff => 1;
-		protected override float PhysicsFriction => 0;
-		protected override float PhysicsScatter => Scatter;
-		protected override bool PhysicsOverwrite => true;
+		public override float PhysicsElasticity {
+			get => 1;
+			set { }
+		}
+
+		public override float PhysicsElasticityFalloff {
+			get => 1;
+			set { }
+		}
+
+		public override float PhysicsFriction {
+			get => 0;
+			set { }
+		}
+
+		public override float PhysicsScatter {
+			get => Scatter;
+			set => Scatter = value;
+		}
+
+		public override bool PhysicsOverwrite
+		{
+			get => true;
+			set { }
+		}
 
 		#endregion
 

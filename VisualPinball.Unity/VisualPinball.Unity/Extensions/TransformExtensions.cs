@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+using System;
 using Unity.Mathematics;
 using UnityEngine;
 
@@ -21,6 +22,8 @@ namespace VisualPinball.Unity
 {
 	public static class TransformExtensions
 	{
+		private const string NodeSeparator = ".";
+
 		public static void SetFromMatrix(this Transform tf, Matrix4x4 trs)
 		{
 			tf.localScale = new Vector3(
@@ -77,6 +80,33 @@ namespace VisualPinball.Unity
 
 			// Set the object's rotation using the new forward and up directions
 			transform.rotation = Quaternion.LookRotation(newForward, newUp);
+		}
+
+		public static string GetPath(this Transform transform, Transform root = null, string path = "")
+		{
+			var name = $"{transform.GetSiblingIndex()}";
+			if (transform == root || transform.parent == null) {
+				var suffix = string.IsNullOrEmpty(path) ? "" : NodeSeparator;
+				return $"0{suffix}{path}";
+			}
+			return $"{transform.parent.GetPath(root, path)}{NodeSeparator}{name}";
+		}
+
+		public static Transform FindByPath(this Transform transform, string path)
+		{
+			return path == "0" ? transform : transform.FindChildrenByPath(path[2..]);
+		}
+
+		private static Transform FindChildrenByPath(this Transform transform, string path)
+		{
+			var indexOfSeparator = path.IndexOf(NodeSeparator[0]);
+			var firstIndex = indexOfSeparator == -1 ? path : path[..indexOfSeparator];
+			if (int.TryParse(firstIndex, out var index)) {
+				return indexOfSeparator == -1
+					? transform.GetChild(index)
+					: transform.GetChild(index).FindChildrenByPath(path[(indexOfSeparator + 1)..]);
+			}
+			throw new InvalidOperationException($"Cannot parse index {firstIndex}.");
 		}
 	}
 }

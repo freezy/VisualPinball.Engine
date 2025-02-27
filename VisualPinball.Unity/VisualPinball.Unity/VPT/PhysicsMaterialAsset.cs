@@ -19,7 +19,6 @@
 using System;
 using Unity.Collections;
 using UnityEngine;
-using UnityEngine.Serialization;
 
 namespace VisualPinball.Unity
 {
@@ -30,11 +29,11 @@ namespace VisualPinball.Unity
 	/// tweak them all the time, so getting those from external assets instead
 	/// of writing them into the scene seems a good plan.
 	/// </summary>
-	[CreateAssetMenu(fileName = "PhysicsMaterial", menuName = "Visual Pinball/Physics Material", order = 100)]
+	[PackAs("PhysicsMaterial")]
+	[CreateAssetMenu(fileName = "PhysicsMaterial", menuName = "Pinball/Physics Material", order = 100)]
 	//[CustomEditor(typeof(PhysicsMaterial))]
 	public class PhysicsMaterialAsset : ScriptableObject
 	{
-		
 		public float Elasticity;
 		public float ElasticityFalloff;
 

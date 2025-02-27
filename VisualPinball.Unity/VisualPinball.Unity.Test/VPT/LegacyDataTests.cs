@@ -39,7 +39,7 @@ namespace VisualPinball.Unity.Test
 			const string tmpFileName = "ShouldWriteCollectionData.vpx";
 			var go = VpxImportEngine.ImportIntoScene(VpxPath.Collection, options: ConvertOptions.SkipNone);
 			var ta = go.GetComponent<TableComponent>();
-			ta.TableContainer.Save(tmpFileName);
+			ta.TableContainer.Export(tmpFileName);
 
 			var writtenTable = FileTableContainer.Load(tmpFileName);
 
@@ -56,7 +56,7 @@ namespace VisualPinball.Unity.Test
 			const string tmpFileName = "ShouldWriteDecalData.vpx";
 			var go = VpxImportEngine.ImportIntoScene(VpxPath.Decal, options: ConvertOptions.SkipNone);
 			var ta = go.GetComponent<TableComponent>();
-			ta.TableContainer.Save(tmpFileName);
+			ta.TableContainer.Export(tmpFileName);
 
 			var writtenTable = FileTableContainer.Load(tmpFileName);
 			DecalDataTests.ValidateDecal0(writtenTable.Decal(0).Data);
@@ -72,7 +72,7 @@ namespace VisualPinball.Unity.Test
 			const string tmpFileName = "ShouldWriteDispReelData.vpx";
 			var go = VpxImportEngine.ImportIntoScene(VpxPath.DispReel, options: ConvertOptions.SkipNone);
 			var ta = go.GetComponent<TableComponent>();
-			ta.TableContainer.Save(tmpFileName);
+			ta.TableContainer.Export(tmpFileName);
 
 			var writtenTable = FileTableContainer.Load(tmpFileName);
 			DispReelDataTests.ValidateDispReel1(writtenTable.DispReel("Reel1").Data);
@@ -88,7 +88,7 @@ namespace VisualPinball.Unity.Test
 			const string tmpFileName = "ShouldWriteFlasherData.vpx";
 			var go = VpxImportEngine.ImportIntoScene(VpxPath.Flasher, options: ConvertOptions.SkipNone);
 			var ta = go.GetComponent<TableComponent>();
-			ta.TableContainer.Save(tmpFileName);
+			ta.TableContainer.Export(tmpFileName);
 
 			var writtenTable = FileTableContainer.Load(tmpFileName);
 			FlasherDataTests.ValidateFlasher(writtenTable.Flasher("Data").Data);
@@ -103,7 +103,7 @@ namespace VisualPinball.Unity.Test
 			const string tmpFileName = "ShouldWriteLightSeqData.vpx";
 			var go = VpxImportEngine.ImportIntoScene(VpxPath.LightSeq, options: ConvertOptions.SkipNone);
 			var ta = go.GetComponent<TableComponent>();
-			ta.TableContainer.Save(tmpFileName);
+			ta.TableContainer.Export(tmpFileName);
 
 			var writtenTable = FileTableContainer.Load(tmpFileName);
 			LightSeqDataTests.ValidateLightSeqData(writtenTable.LightSeq("LightSeq001").Data);
@@ -118,7 +118,7 @@ namespace VisualPinball.Unity.Test
 			const string tmpFileName = "ShouldWriteTextBoxData.vpx";
 			var go = VpxImportEngine.ImportIntoScene(VpxPath.TextBox, options: ConvertOptions.SkipNone);
 			var ta = go.GetComponent<TableComponent>();
-			ta.TableContainer.Save(tmpFileName);
+			ta.TableContainer.Export(tmpFileName);
 
 			var writtenTable = FileTableContainer.Load(tmpFileName);
 			TextBoxDataTests.ValidateTextBoxData(writtenTable.TextBox("TextBox001").Data);
@@ -133,7 +133,7 @@ namespace VisualPinball.Unity.Test
 			const string tmpFileName = "ShouldWriteTimerData.vpx";
 			var go = VpxImportEngine.ImportIntoScene(VpxPath.Timer, options: ConvertOptions.SkipNone);
 			var ta = go.GetComponent<TableComponent>();
-			ta.TableContainer.Save(tmpFileName);
+			ta.TableContainer.Export(tmpFileName);
 
 			var writtenTable = FileTableContainer.Load(tmpFileName);
 			TimerDataTests.ValidateTimerData1(writtenTable.Timer("Timer1").Data);

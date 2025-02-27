@@ -138,7 +138,7 @@ namespace VisualPinball.Unity
 					while (enumerator.MoveNext()) {
 						ref var ball = ref enumerator.Current.Value;
 
-						// dynamic collision
+						// dynamic collision (ball/ball)
 						PhysicsDynamicCollision.Collide(hitTime, ref ball, ref state);
 
 						// static & kinematic collision

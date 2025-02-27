@@ -50,16 +50,18 @@ namespace VisualPinball.Unity.Editor
 
 			if (!EditorApplication.isPlaying) {
 				//DrawDefaultInspector();
-				if (GUILayout.Button("Export VPX")) {
+				const string ext = "vpe";
+				if (GUILayout.Button($"Save as .{ext}")) {
 					var tableContainer = tableComponent.TableContainer;
 					var path = EditorUtility.SaveFilePanel(
-						"Export table as VPX",
+						$"Save table as .{ext}",
 						"",
-						tableContainer.Table.Name + ".vpx",
-						"vpx");
+						tableComponent.name + $".{ext}",
+						ext);
 
 					if (!string.IsNullOrEmpty(path)) {
-						tableContainer.Save(path);
+						var writer = new PackageWriter(tableComponent.gameObject);
+						writer.WritePackageSync(path);
 					}
 				}
 			}

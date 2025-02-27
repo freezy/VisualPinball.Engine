@@ -38,7 +38,7 @@ namespace VisualPinball.Engine.Test.VPT.Flasher
 		{
 			const string tmpFileName = "ShouldWriteFlasherData.vpx";
 			var table = FileTableContainer.Load(VpxPath.Flasher);
-			table.Save(tmpFileName);
+			table.Export(tmpFileName);
 			var writtenTable = FileTableContainer.Load(tmpFileName);
 			ValidateFlasher(writtenTable.Flasher("Data").Data);
 			File.Delete(tmpFileName);

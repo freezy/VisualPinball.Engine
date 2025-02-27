@@ -1,14 +1,17 @@
 {
   "name": "org.visualpinball.engine.unity",
-  "version": "0.0.1-preview.136",
+  "version": "0.0.1-preview.149",
   "displayName": "Visual Pinball Engine",
   "description": "Main project of the Visual Pinball Engine.",
-  "unity": "2021.3",
-  "unityRelease": "0f1",
+  "unity": "6000.0",
+  "unityRelease": "37f1",
   "dependencies": {
     "com.bartofzo.nativetrees": "0.1.6",
+    "com.unity.cloud.draco": "5.1.8",
+    "com.unity.cloud.gltfast": "6.10.1",
     "com.unity.formats.fbx": "4.1.2",
     "com.unity.inputsystem": "1.3.0",
+    "com.unity.nuget.newtonsoft-json": "3.2.1",
     "com.unity.ugui": "1.0.0",
     "com.unity.test-framework": "1.1.31"
   },
@@ -27,7 +30,8 @@
     "Kleis Auke Wolthuizen <info@kleisauke.nl>",
     "Eli Curtz <eli@nuprometheus.com>",
     "Pandeli",
-    "Cupid"
+    "Cupid",
+    "Arthur Kehrwald"
   ],
   "documentationUrl": "https://docs.visualpinball.org/",
   "changelogUrl": "https://docs.visualpinball.org/CHANGELOG.html",

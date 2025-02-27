@@ -21,9 +21,9 @@ Now that we have the camera of the scene view somewhat aligned, we still can't s
 
 <img src="unity-gizmo-size.png" width="350" alt="Gizmo Size" class="img-fluid float-end" style="margin-left: 15px"/>
 
-These orange artifacts are what Unity calls [Gizmo Icons](https://docs.unity3d.com/Manual/GizmosMenu.html). They are enabled by default, and since VPE uses icons for its playfield elements, they are all over the place. Unity's default gizmo size is adapted for rather large scenes and we're dealing with a pinball table, let's make them smaller by clicking on the gizmo icon in the *Scene* view, and pull the size *3D Icons* slider down until you're happy. You can additionally hide the VPE icons by clicking on *Visual Pinball -> Editor -> Disable Gizmo Icons*. 
+These orange artifacts are what Unity calls [Gizmo Icons](https://docs.unity3d.com/Manual/GizmosMenu.html). They are enabled by default, and since VPE uses icons for its playfield elements, they are all over the place. Unity's default gizmo size is adapted for rather large scenes and we're dealing with a pinball table, let's make them smaller by clicking on the gizmo icon in the *Scene* view, and pull the size *3D Icons* slider down until you're happy. You can additionally hide the VPE icons by clicking on *Pinball -> Editor -> Disable Gizmo Icons*. 
 
-And while we're at it, choose *Visual Pinball -> Editor -> Setup Layouts* to populate a bunch of pre-made editor layouts that give you easy access to the tooling we've added to the editor. Then, click on the top right drop down in the editor where it says *Default*, and choose *3) VPE Simple*.
+And while we're at it, choose *Pinball -> Editor -> Setup Layouts* to populate a bunch of pre-made editor layouts that give you easy access to the tooling we've added to the editor. Then, click on the top right drop down in the editor where it says *Default*, and choose *3) VPE Simple*.
 
 ![Scene view camera on table](unity-imported-table-aligned.png)
 

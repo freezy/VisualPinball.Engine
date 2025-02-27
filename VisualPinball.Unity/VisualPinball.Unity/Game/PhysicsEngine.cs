@@ -32,12 +32,25 @@ using Random = Unity.Mathematics.Random;
 
 namespace VisualPinball.Unity
 {
-	public class PhysicsEngine : MonoBehaviour
+	[PackAs("PhysicsEngine")]
+	public class PhysicsEngine : MonoBehaviour, IPackable
 	{
 		#region Configuration
 
 		[Tooltip("Gravity constant, in VPX units.")]
 		public float GravityStrength = PhysicsConstants.GravityConst * PhysicsConstants.DefaultTableGravity;
+
+		#endregion
+
+		#region Packaging
+
+		public byte[] Pack() => PhysicsEnginePackable.Pack(this);
+
+		public byte[] PackReferences(Transform root, PackagedRefs refs, PackagedFiles files) => null;
+
+		public void Unpack(byte[] bytes) => PhysicsEnginePackable.Unpack(bytes, this);
+
+		public void UnpackReferences(byte[] data, Transform root, PackagedRefs refs, PackagedFiles files) { }
 
 		#endregion
 
@@ -132,6 +145,7 @@ namespace VisualPinball.Unity
 		internal NativeQueue<EventData>.ParallelWriter EventQueue => _eventQueue.Ref.AsParallelWriter();
 
 		internal void Schedule(InputAction action) => _inputActions.Enqueue(action);
+		internal bool BallExists(int ballId) => _ballStates.Ref.ContainsKey(ballId);
 		internal ref BallState BallState(int ballId) => ref _ballStates.Ref.GetValueByRef(ballId);
 		internal ref BumperState BumperState(int itemId) => ref _bumperStates.Ref.GetValueByRef(itemId);
 		internal ref FlipperState FlipperState(int itemId) => ref _flipperStates.Ref.GetValueByRef(itemId);
@@ -289,6 +303,19 @@ namespace VisualPinball.Unity
 			}
 		}
 
+		internal PhysicsState CreateState()
+		{
+			var events = _eventQueue.Ref.AsParallelWriter();
+			var env = _physicsEnv.Ref[0];
+			return new PhysicsState(ref env, ref _octree, ref _colliders, ref _kinematicColliders,
+				ref _kinematicCollidersAtIdentity, ref _kinematicTransforms.Ref, ref _updatedKinematicTransforms.Ref,
+				ref _nonTransformableColliderTransforms.Ref, ref _kinematicColliderLookups, ref events,
+				ref _insideOfs, ref _ballStates.Ref, ref _bumperStates.Ref, ref _dropTargetStates.Ref, ref _flipperStates.Ref, ref _gateStates.Ref,
+				ref _hitTargetStates.Ref, ref _kickerStates.Ref, ref _plungerStates.Ref, ref _spinnerStates.Ref,
+				ref _surfaceStates.Ref, ref _triggerStates.Ref, ref _disabledCollisionItems.Ref, ref _swapBallCollisionHandling,
+				ref ElasticityOverVelocityLUTs, ref FrictionOverVelocityLUTs);
+		}
+
 		private void Update()
 		{
 			// check for updated kinematic transforms
@@ -340,14 +367,7 @@ namespace VisualPinball.Unity
 				FrictionOverVelocityLUTs = FrictionOverVelocityLUTs,
 			};
 
-			var env = _physicsEnv.Ref[0];
-			var state = new PhysicsState(ref env, ref _octree, ref _colliders, ref _kinematicColliders,
-				ref _kinematicCollidersAtIdentity, ref _kinematicTransforms.Ref, ref _updatedKinematicTransforms.Ref,
-				ref _nonTransformableColliderTransforms.Ref, ref _kinematicColliderLookups, ref events,
-				ref _insideOfs, ref _ballStates.Ref, ref _bumperStates.Ref, ref _dropTargetStates.Ref, ref _flipperStates.Ref, ref _gateStates.Ref,
-				ref _hitTargetStates.Ref, ref _kickerStates.Ref, ref _plungerStates.Ref, ref _spinnerStates.Ref,
-				ref _surfaceStates.Ref, ref _triggerStates.Ref, ref _disabledCollisionItems.Ref, ref _swapBallCollisionHandling,
-				ref ElasticityOverVelocityLUTs, ref FrictionOverVelocityLUTs);
+			var state = CreateState();
 
 			// process input
 			while (_inputActions.Count > 0) {

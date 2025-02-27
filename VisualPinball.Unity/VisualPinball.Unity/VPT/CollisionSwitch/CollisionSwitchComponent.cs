@@ -20,8 +20,9 @@ using VisualPinball.Engine.Game.Engines;
 
 namespace VisualPinball.Unity
 {
-	[AddComponentMenu("Visual Pinball/Mechs/Collision Switch")]
-	public class CollisionSwitchComponent : MonoBehaviour, ISwitchDeviceComponent
+	[PackAs("CollisionSwitch")]
+	[AddComponentMenu("Pinball/Mechs/Collision Switch")]
+	public class CollisionSwitchComponent : MonoBehaviour, ISwitchDeviceComponent, IPackable
 	{
 		public const string MainSwitchItem = "collision_switch";
 
@@ -34,6 +35,18 @@ namespace VisualPinball.Unity
 		public SwitchDefault SwitchDefault => SwitchDefault.NormallyOpen;
 
 		IEnumerable<GamelogicEngineSwitch> IDeviceComponent<GamelogicEngineSwitch>.AvailableDeviceItems => AvailableSwitches;
+
+		#region Packaging
+
+		public byte[] Pack() => PackageApi.Packer.Empty;
+
+		public byte[] PackReferences(Transform root, PackagedRefs refs, PackagedFiles files) => null;
+
+		public void Unpack(byte[] bytes) { }
+
+		public void UnpackReferences(byte[] bytes, Transform root, PackagedRefs refs, PackagedFiles files) { }
+
+		#endregion
 
 		#region Runtime
 

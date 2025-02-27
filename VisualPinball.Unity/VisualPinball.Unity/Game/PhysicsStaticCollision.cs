@@ -107,8 +107,8 @@ namespace VisualPinball.Unity
 
 				case ColliderType.Bumper:
 					ref var bumperState = ref state.GetBumperState(colliderId, ref colliders);
-					BumperCollider.Collide(ref ball, ref state.EventQueue, ref ball.CollisionEvent, ref bumperState.RingAnimation, ref bumperState.SkirtAnimation,
-						in collHeader, in bumperState.Static, ref state.Env.Random, ref state.InsideOfs);
+					BumperCollider.Collide(ref ball, ref state.EventQueue, ref ball.CollisionEvent, ref state,
+						in collHeader, in bumperState.Static, ref state.InsideOfs, bumperState.IsSwitchWiredToCoil);
 					break;
 
 				case ColliderType.Flipper:

@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using System;
+using System.Linq;
 using Unity.Mathematics;
 using UnityEngine;
 using VisualPinball.Engine.VPT.Bumper;
@@ -74,6 +75,7 @@ namespace VisualPinball.Unity
 
 				ref var insideOfs = ref PhysicsEngine.InsideOfs;
 				var idsOfBallsInColl = insideOfs.GetIdsOfBallsInsideItem(ItemId);
+				var state = PhysicsEngine.CreateState();
 				foreach (var ballId in idsOfBallsInColl) {
 					if (!PhysicsEngine.Balls.ContainsKey(ballId)) {
 						continue;
@@ -96,17 +98,33 @@ namespace VisualPinball.Unity
 						IsKinematic = false,
 						BallId = ballId
 					};
-					//var physicsMaterialData = ColliderComponent.PhysicsMaterialData;
-					//var random = PhysicsEngine.;
-					//BallCollider.Collide3DWall(ref ballState, in physicsMaterialData, in collEvent, in bumpDirection, ref state);
-					ballState.Velocity += bumpDirection * ColliderComponent.Force;
+					var physicsMaterialData = ColliderComponent.GetPhysicsMaterialData();
+					BumperCollider.PushBallAway(ref ballState, in bumperState.Static, ref collEvent, in physicsMaterialData, ref state);
 				}
 			}
-
-			CoilStatusChanged?.Invoke(this, new NoIdCoilEventArgs(enabled));
 		}
 
 		void IApiWireDest.OnChange(bool enabled) => (this as IApiCoil).OnCoil(enabled);
+
+		internal override void AddWireDest(WireDestConfig wireConfig)
+		{
+			base.AddWireDest(wireConfig);
+			UpdateBumperWireState();
+		}
+
+		internal override void RemoveWireDest(string destId)
+		{
+			base.RemoveWireDest(destId);
+			UpdateBumperWireState();
+		}
+
+		private void UpdateBumperWireState()
+		{
+			string coilId = MainComponent.AvailableCoils.FirstOrDefault().Id;
+			BumperComponent bumperComponent = MainComponent;
+			ref var bumperState = ref PhysicsEngine.BumperState(ItemId);
+			bumperState.IsSwitchWiredToCoil = HasWireDest(bumperComponent, coilId);
+		}
 
 		#endregion
 
@@ -150,15 +168,13 @@ namespace VisualPinball.Unity
 				}
 			} else {
 				Hit?.Invoke(this, new HitEventArgs(ballId));
-				if (insideOfs.GetInsideCount(ItemId) == 1) { // Must've been empty before
-					ref var bumperState = ref PhysicsEngine.BumperState(ItemId);
-					bumperState.SkirtAnimation.HitEvent = true;
-					bumperState.RingAnimation.IsHit = true;
-					ref var ballState = ref PhysicsEngine.BallState(ballId);
-					bumperState.SkirtAnimation.BallPosition = ballState.Position;
-					Switch?.Invoke(this, new SwitchEventArgs(true, ballId));
-					OnSwitch(true);
-				}
+				ref var bumperState = ref PhysicsEngine.BumperState(ItemId);
+				bumperState.SkirtAnimation.HitEvent = true;
+				bumperState.RingAnimation.IsHit = true;
+				ref var ballState = ref PhysicsEngine.BallState(ballId);
+				bumperState.SkirtAnimation.BallPosition = ballState.Position;
+				Switch?.Invoke(this, new SwitchEventArgs(true, ballId));
+				OnSwitch(true);
 			}
 		}
 

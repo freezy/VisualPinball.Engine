@@ -88,8 +88,8 @@ namespace VisualPinball.Engine.VPT.Ramp
 			var len = MathF.Sqrt(dx * dx + dy * dy);
 			startLength += len; // Add the distance the object is between the two closest polyline segments.  Matters mostly for straight edges. Z does not respect that yet!
 
-			var topHeight = Data.HeightTop + table.TableHeight;
-			var bottomHeight = Data.HeightBottom + table.TableHeight;
+			var topHeight = Data.HeightTop;
+			var bottomHeight = Data.HeightBottom;
 
 			return vVertex[iSeg].Z + startLength / totalLength * (topHeight - bottomHeight) + bottomHeight;
 		}

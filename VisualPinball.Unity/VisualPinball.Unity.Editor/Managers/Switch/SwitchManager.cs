@@ -44,7 +44,7 @@ namespace VisualPinball.Unity.Editor
 		private SwitchListViewItemRenderer _listViewItemRenderer;
 		private bool _needsAssetRefresh;
 
-		[MenuItem("Visual Pinball/Switch Manager", false, 301)]
+		[MenuItem("Pinball/Switch Manager", false, 301)]
 		public static void ShowWindow()
 		{
 			GetWindow<SwitchManager>();

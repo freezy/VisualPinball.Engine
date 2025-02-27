@@ -32,7 +32,7 @@ namespace VisualPinball.Unity.Editor
 	/// The data itself is stored in a sub object, <see cref="_db"/>. This sub object contains
 	/// references to the asset meta data, as well as the categories.
 	/// </summary>
-	[CreateAssetMenu(fileName = "Library", menuName = "Visual Pinball/Asset Library", order = 300)]
+	[CreateAssetMenu(fileName = "Library", menuName = "Pinball/Asset Library", order = 300)]
 	public class AssetLibrary : ScriptableObject, ISerializationCallbackReceiver
 	{
 		[HideInInspector]

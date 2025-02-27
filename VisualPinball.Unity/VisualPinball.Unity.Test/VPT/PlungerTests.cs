@@ -32,7 +32,7 @@ namespace VisualPinball.Unity.Test
 			const string tmpFileName = "ShouldWritePlungerData.vpx";
 			var go = VpxImportEngine.ImportIntoScene(VpxPath.Plunger, options: ConvertOptions.SkipNone);
 			var ta = go.GetComponent<TableComponent>();
-			ta.TableContainer.Save(tmpFileName);
+			ta.TableContainer.Export(tmpFileName);
 
 			var writtenTable = FileTableContainer.Load(tmpFileName);
 			PlungerDataTests.ValidatePlungerData1(writtenTable.Plunger("Plunger1").Data, false);

@@ -18,17 +18,20 @@
 
 using System;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 namespace VisualPinball.Unity
 {
 	/// <summary>
 	/// Start and or stop a sound when a coil is energized or deenergized.
 	/// </summary>
-	[AddComponentMenu("Visual Pinball/Sound/Switch Sound")]
-	public class SwitchSoundComponent : BinaryEventSoundComponent<IApiSwitch, SwitchEventArgs>
+	[PackAs("SwitchSound")]
+	[AddComponentMenu("Pinball/Sound/Switch Sound")]
+	public class SwitchSoundComponent : BinaryEventSoundComponent<IApiSwitch, SwitchEventArgs>, IPackable
 	{
-		[SerializeField, HideInInspector]
-		private string _switchName;
+		[FormerlySerializedAs("_switchName")]
+		[HideInInspector]
+		public string SwitchName;
 
 		public override Type GetRequiredType() => typeof(ISwitchDeviceComponent);
 
@@ -38,9 +41,9 @@ namespace VisualPinball.Unity
 			var player = GetComponentInParent<Player>();
 			if (player == null)
 				return false;
-			foreach (var component in GetComponents<ISwitchDeviceComponent>())
-			{
-				@switch = player.Switch(component, _switchName);
+
+			foreach (var component in GetComponents<ISwitchDeviceComponent>()) {
+				@switch = player.Switch(component, SwitchName);
 				if (@switch != null)
 					return true;
 			}
@@ -53,5 +56,15 @@ namespace VisualPinball.Unity
 			eventSource.Switch -= OnEvent;
 
 		protected override bool InterpretAsBinary(SwitchEventArgs e) => e.IsEnabled;
+
+		#region Packaging
+
+		// refs are handled by SoundComponent
+
+		public new byte[] Pack() => SwitchSoundPackable.Pack(this);
+
+		public new void Unpack(byte[] bytes) => SwitchSoundPackable.Unpack(bytes, this);
+
+		#endregion
 	}
 }

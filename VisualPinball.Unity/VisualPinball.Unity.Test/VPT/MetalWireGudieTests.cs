@@ -32,7 +32,7 @@ namespace VisualPinball.Unity.Test
 			const string tmpFileName = "ShouldWriteMetalWireGuideData.vpx";
 			var go = VpxImportEngine.ImportIntoScene(VpxPath.MetalWireGuide, options: ConvertOptions.SkipNone);
 			var ta = go.GetComponent<TableComponent>();
-			ta.TableContainer.Save(tmpFileName);
+			ta.TableContainer.Export(tmpFileName);
 
 			var writtenTable = FileTableContainer.Load(tmpFileName);
 			MetalWireGuideDataTests.ValidateMetalWireGuideData1(writtenTable.MetalWireGuide("MetalWireGuide1").Data);

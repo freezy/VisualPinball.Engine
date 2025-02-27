@@ -78,7 +78,7 @@ namespace VisualPinball.Unity.Editor
 			}
 		}
 
-		[MenuItem("GameObject/Visual Pinball/Dot Matrix Display", false, 12)]
+		[MenuItem("GameObject/Pinball/Dot Matrix Display", false, 12)]
 		private static void CreateDmdGameObject()
 		{
 			var go = new GameObject {

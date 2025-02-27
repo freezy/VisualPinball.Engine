@@ -1,7 +1,7 @@
 <ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" xsi="http://www.w3.org/2001/XMLSchema-instance" engine="UnityEngine.UIElements" editor="UnityEditor.UIElements" noNamespaceSchemaLocation="../../../../../UIElementsSchema/UIElements.xsd" editor-extension-mode="True">
     <Style src="project://database/Packages/org.visualpinball.engine.unity/VisualPinball.Unity/VisualPinball.Unity.Editor/Common/MultilineTextField.uss?fileID=7433441132597879392&amp;guid=443092b513c6ebc4bbfbfe7de8daa864&amp;type=3#MultilineTextField" />
-    <ui:TextField picking-mode="Ignore" label="Description" multiline="true" binding-path="_description" name="description" class="multiline-textfield unity-base-field__aligned" />
-    <uie:PropertyField name="clips" binding-path="_clips" label="Clips" />
-    <uie:PropertyField name="clip-selection-method" binding-path="_clipSelectionMethod" label="Clip Selection Method" />
+    <ui:TextField picking-mode="Ignore" label="Description" multiline="true" binding-path="Description" name="description" class="multiline-textfield unity-base-field__aligned" />
+    <uie:PropertyField name="clips" binding-path="Clips" label="Clips" />
+    <uie:PropertyField name="clip-selection-method" binding-path="ClipSelectionMethod" label="Clip Selection Method" />
     <uie:ObjectField label="Audio Mixer Group" binding-path="_audioMixerGroup" name="audio-mixer-group" type="UnityEngine.Audio.AudioMixerGroup, UnityEngine.AudioModule" class="unity-base-field__aligned" />
 </ui:UXML>

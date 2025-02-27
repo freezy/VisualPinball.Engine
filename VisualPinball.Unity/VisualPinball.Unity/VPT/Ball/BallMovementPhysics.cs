@@ -36,6 +36,11 @@ namespace VisualPinball.Unity
 
 		public static void Move(BallState ball, Transform ballTransform)
 		{
+			// if ball was destroyed, don't do anything.
+			if (!ballTransform || !ballTransform.gameObject) {
+				return;
+			}
+
 			// calculate/adapt height of ball
 			var zHeight = !ball.IsFrozen ? ball.Position.z : ball.Position.z - ball.Radius;
 			ballTransform.localPosition = Physics.TranslateToWorld(ball.Position.x, ball.Position.y, zHeight);

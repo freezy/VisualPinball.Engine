@@ -21,14 +21,27 @@ using VisualPinball.Engine.VPT.Trigger;
 
 namespace VisualPinball.Unity
 {
-	[AddComponentMenu("Visual Pinball/Animation/Trigger Animation")]
-	public class TriggerAnimationComponent : AnimationComponent<TriggerData, TriggerComponent>
+	[PackAs("TriggerAnimation")]
+	[AddComponentMenu("Pinball/Animation/Trigger Animation")]
+	public class TriggerAnimationComponent : AnimationComponent<TriggerData, TriggerComponent>, IPackable
 	{
 		#region Data
 
 		[Min(0)]
 		[Tooltip("How quick the trigger moves down when the ball rolls over it.")]
 		public float AnimSpeed = 1f;
+
+		#endregion
+
+		#region Packaging
+
+		public byte[] Pack() => TriggerAnimationPackable.Pack(this);
+
+		public byte[] PackReferences(Transform root, PackagedRefs refs, PackagedFiles files) => null;
+
+		public void Unpack(byte[] bytes) => TriggerAnimationPackable.Unpack(bytes, this);
+
+		public void UnpackReferences(byte[] data, Transform root, PackagedRefs refs, PackagedFiles files) { }
 
 		#endregion
 	}

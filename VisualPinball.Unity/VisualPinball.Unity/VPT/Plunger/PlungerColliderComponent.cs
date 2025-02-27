@@ -21,8 +21,9 @@ using VisualPinball.Engine.VPT.Plunger;
 
 namespace VisualPinball.Unity
 {
-	[AddComponentMenu("Visual Pinball/Collision/Plunger Collider")]
-	public class PlungerColliderComponent : ColliderComponent<PlungerData, PlungerComponent>
+	[PackAs("PlungerCollider")]
+	[AddComponentMenu("Pinball/Collision/Plunger Collider")]
+	public class PlungerColliderComponent : ColliderComponent<PlungerData, PlungerComponent>, IPackable
 	{
 		#region Data
 
@@ -54,13 +55,48 @@ namespace VisualPinball.Unity
 
 		#endregion
 
+		#region Packaging
+
+		public byte[] Pack() => PlungerColliderPackable.Pack(this);
+
+		public byte[] PackReferences(Transform root, PackagedRefs refs, PackagedFiles files) => null;
+
+		public void Unpack(byte[] bytes) => PlungerColliderPackable.Unpack(bytes, this);
+
+		public void UnpackReferences(byte[] data, Transform root, PackagedRefs refs, PackagedFiles files) { }
+
+		#endregion
+
 		#region Physics Material
 
-		protected override float PhysicsElasticity => 1;
-		protected override float PhysicsElasticityFalloff => 1;
-		protected override float PhysicsFriction => 0;
-		protected override float PhysicsScatter => 0;
-		protected override bool PhysicsOverwrite => true;
+		public override float PhysicsElasticity {
+			get => 1;
+			set { }
+		}
+
+		public override float PhysicsElasticityFalloff
+		{
+			get => 1;
+			set { }
+		}
+
+		public override float PhysicsFriction
+		{
+			get => 0;
+			set { }
+		}
+
+		public override float PhysicsScatter
+		{
+			get => 0;
+			set { }
+		}
+
+		public override bool PhysicsOverwrite
+		{
+			get => true;
+			set { }
+		}
 
 		#endregion
 

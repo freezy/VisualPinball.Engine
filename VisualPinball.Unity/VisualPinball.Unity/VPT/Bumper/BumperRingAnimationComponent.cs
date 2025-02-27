@@ -21,8 +21,9 @@ using VisualPinball.Engine.VPT.Bumper;
 
 namespace VisualPinball.Unity
 {
-	[AddComponentMenu("Visual Pinball/Animation/Bumper Ring Animation")]
-	public class BumperRingAnimationComponent : AnimationComponent<BumperData, BumperComponent>
+	[PackAs("BumperRingAnimation")]
+	[AddComponentMenu("Pinball/Animation/Bumper Ring Animation")]
+	public class BumperRingAnimationComponent : AnimationComponent<BumperData, BumperComponent>, IPackable
 	{
 		#region Data
 
@@ -31,6 +32,18 @@ namespace VisualPinball.Unity
 
 		[Tooltip("How low the ring drops. 0 = bottom")]
 		public float RingDropOffset;
+
+		#endregion
+
+		#region Packaging
+
+		public byte[] Pack() => BumperRingAnimationPackable.Pack(this);
+
+		public byte[] PackReferences(Transform root, PackagedRefs refs, PackagedFiles files) => null;
+
+		public void Unpack(byte[] bytes) => BumperRingAnimationPackable.Unpack(bytes, this);
+
+		public void UnpackReferences(byte[] bytes, Transform root, PackagedRefs refs, PackagedFiles files) { }
 
 		#endregion
 	}

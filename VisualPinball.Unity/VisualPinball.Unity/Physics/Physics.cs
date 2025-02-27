@@ -67,7 +67,7 @@ namespace VisualPinball.Unity
 		/// <param name="m">VPX-space matrix that is supposed to be applied to a VPX-space mesh</param>
 		/// <returns>Matrix that with the same transformation to be applied to a mesh converted to world-space.</returns>
 		public static Matrix4x4 TransformVpxInWorld(this Matrix4x4 m) => math.mul(math.mul(VpxToWorld, m), WorldToVpx);
-		public static Matrix4x4 TransformWorldInVpx(this Matrix4x4 m) => math.mul(math.mul(WorldToVpx, m), VpxToWorld);
+		public static float4x4 TransformVpxInWorld(this float4x4 m) => math.mul(math.mul(VpxToWorld, m), WorldToVpx);
 
 		//public static float3 MultiplyPoint(this float4x4 matrix, float3 p) => math.mul(matrix, new float4(p, 1f)).xyz;
 		public static float3 MultiplyPoint(this float4x4 matrix, float3 p) => math.transform(matrix, p);

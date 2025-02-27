@@ -39,7 +39,7 @@ namespace VisualPinball.Engine.Test.VPT.Collection
 		{
 			const string tmpFileName = "ShouldWriteCollectionData.vpx";
 			var th = FileTableContainer.Load(VpxPath.Collection);
-			th.Save(tmpFileName);
+			th.Export(tmpFileName);
 			var writtenTable = FileTableContainer.Load(tmpFileName);
 			ValidateTableData(writtenTable.Collections.First(c => c.Name == "Flippers"));
 			File.Delete(tmpFileName);

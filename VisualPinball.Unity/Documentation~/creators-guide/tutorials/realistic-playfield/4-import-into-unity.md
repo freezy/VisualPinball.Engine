@@ -46,7 +46,7 @@ This is our starting point. The playfield is the original import from a VPX file
 > [!note]
 > **Crash course in *Scene* navigation**
 >
-> Move the camera like in a first-person shooter. Hold the right mouse button, then use the `WASD` keys for horizontal movement, `Q` and `E` for vertical movement. The mouse wheel changes the movement speed. Just panning the screen is done while holding the middle mouse button. Full documentation [here](https://docs.unity3d.com/2021.2/Documentation/Manual/SceneViewNavigation.html).
+> Move the camera like in a first-person shooter. Hold the right mouse button, then use the `WASD` keys for horizontal movement, `Q` and `E` for vertical movement. The mouse wheel changes the movement speed. Just panning the screen is done while holding the middle mouse button. Full documentation [here](https://docs.unity3d.com/6000.0/Documentation/Manual/SceneViewNavigation.html).
 
 In the *Project* panel you see our FBX file. It's a tree structure because Unity imported it and found out that it contains two objects and two meshes. Drag the entire *Playfield* object from the *Project* panel into the *Hierarchy* and drop it over the *Playfield* GameObject.
 
@@ -58,7 +58,7 @@ It does it with an animation, so that gives you a hint whether the imported play
 
 ![Model visible](unity-model-visible.png)
 
-At scale `1000` we're starting to see something. However, it's oriented incorrectly. Setting the X-rotation to `-90` and Z to `180` fixes that. Now, we need to align the model over the existing one. For that, let's switch into orthogonal camera view by clicking on the small *Persp* icon in the top right corner of the *Scene* view, followed by a click on the Y axis of the 3D gizmo to switch to *Top View*. Click the [shading mode icon](https://docs.unity3d.com/2021.2/Documentation/Manual/ViewModes.html) and choose *Wireframe*. This allows you to align the playfield without anything being hidden.
+At scale `1000` we're starting to see something. However, it's oriented incorrectly. Setting the X-rotation to `-90` and Z to `180` fixes that. Now, we need to align the model over the existing one. For that, let's switch into orthogonal camera view by clicking on the small *Persp* icon in the top right corner of the *Scene* view, followed by a click on the Y axis of the 3D gizmo to switch to *Top View*. Click the [shading mode icon](https://docs.unity3d.com/6000.0/Documentation/Manual/ViewModes.html) and choose *Wireframe*. This allows you to align the playfield without anything being hidden.
 
 ![Align from top](unity-align-wireframe-top.png)
 

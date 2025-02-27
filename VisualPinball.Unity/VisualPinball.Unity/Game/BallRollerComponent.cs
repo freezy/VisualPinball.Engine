@@ -20,8 +20,21 @@ using UnityEngine.InputSystem;
 
 namespace VisualPinball.Unity
 {
-	public class BallRollerComponent : MonoBehaviour
+	[PackAs("BallRoller")]
+	public class BallRollerComponent : MonoBehaviour, IPackable
 	{
+		#region Packaging
+
+		public byte[] Pack() => PackageApi.Packer.Empty;
+
+		public byte[] PackReferences(Transform root, PackagedRefs refs, PackagedFiles files) => null;
+
+		public void Unpack(byte[] bytes) { }
+
+		public void UnpackReferences(byte[] bytes, Transform root, PackagedRefs refs, PackagedFiles files) { }
+
+		#endregion
+
 		private PhysicsEngine _physicsEngine;
 		private PlayfieldComponent _playfield;
 		private Matrix4x4 _ltw;

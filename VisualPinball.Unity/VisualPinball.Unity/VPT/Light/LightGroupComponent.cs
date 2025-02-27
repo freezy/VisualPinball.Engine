@@ -26,9 +26,12 @@ using Logger = NLog.Logger;
 
 namespace VisualPinball.Unity
 {
-	[AddComponentMenu("Visual Pinball/Game Item/Light Group")]
-	public class LightGroupComponent : MonoBehaviour, ILampDeviceComponent
+	[PackAs("LightGroup")]
+	[AddComponentMenu("Pinball/Game Item/Light Group")]
+	public class LightGroupComponent : MonoBehaviour, ILampDeviceComponent, IPackable
 	{
+		#region Data
+
 		public List<ILampDeviceComponent> Lights {
 			get => _lights.Select(l => l as ILampDeviceComponent).Where(l => l != null).ToList();
 			set => _lights = value.Select(l => l as MonoBehaviour).ToArray();
@@ -37,6 +40,22 @@ namespace VisualPinball.Unity
 		[TypeRestriction(typeof(ILampDeviceComponent), PickerLabel = "Lamps", UpdateTransforms = false)]
 		[Tooltip("The children of this light group. Can be lights or even other light groups.")]
 		public MonoBehaviour[] _lights = Array.Empty<MonoBehaviour>();
+
+		#endregion
+
+		#region Packaging
+
+		public byte[] Pack() => null;
+
+		public byte[] PackReferences(Transform root, PackagedRefs refs, PackagedFiles files)
+			=> LightGroupReferencesPackable.Pack(this, refs);
+
+		public void Unpack(byte[] bytes) { }
+
+		public void UnpackReferences(byte[] data, Transform root, PackagedRefs refs, PackagedFiles files)
+			=> LightGroupReferencesPackable.Unpack(data, this, refs);
+
+		#endregion
 
 		public IApiLamp GetApi(Player player) => _api ??= new LightGroupApi(
 			Lights.Select(l => l.GetApi(player)).ToArray()

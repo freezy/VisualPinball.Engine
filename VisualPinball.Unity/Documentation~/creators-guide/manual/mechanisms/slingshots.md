@@ -10,7 +10,7 @@ Slingshots are most commonly located just above the flippers. They usually consi
 
 Visual Pinball doesn't have an explicit slingshot element. Instead, it relies on walls with a segment marked as *slingshot*, which generates an additional force being applied to the ball when the segment is hit. However, the rubber animation is up to the table script to implement.
 
-VPE does provide a slingshot component that implements the rubber animation during runtime. This allows for functional slingshots without any additional code. However this approach isn't ideal and will be replaced with a proper slingshot element in the future.
+VPE does provide a slingshot component that implements the rubber animation during runtime. This allows for functional slingshots without any additional code. However, this approach isn't ideal and will be replaced with a proper slingshot element in the future.
 
 
 # Setup

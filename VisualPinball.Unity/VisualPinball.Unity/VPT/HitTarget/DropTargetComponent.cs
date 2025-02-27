@@ -25,8 +25,9 @@ using VisualPinball.Engine.VPT.Table;
 
 namespace VisualPinball.Unity
 {
-	[AddComponentMenu("Visual Pinball/Game Item/Drop Target")]
-	public class DropTargetComponent : TargetComponent
+	[PackAs("DropTarget")]
+	[AddComponentMenu("Pinball/Game Item/Drop Target")]
+	public class DropTargetComponent : TargetComponent, IPackable
 	{
 		public override bool IsLegacy {
 			get {
@@ -41,6 +42,18 @@ namespace VisualPinball.Unity
 				return animationComponent && animationComponent.IsDropped ? -DropTargetAnimationState.DropTargetLimit : 0f;
 			}
 		}
+
+		#region Packaging
+
+		public byte[] Pack() => DropTargetPackable.Pack(this);
+
+		public byte[] PackReferences(Transform root, PackagedRefs refs, PackagedFiles files) => Array.Empty<byte>();
+
+		public void Unpack(byte[] bytes) => DropTargetPackable.Unpack(bytes, this);
+
+		public void UnpackReferences(byte[] data, Transform root, PackagedRefs refs, PackagedFiles files) { }
+
+		#endregion
 
 		#region Conversion
 

@@ -33,7 +33,7 @@ namespace VisualPinball.Unity
 		X, Y, Z
 	}
 
-	[AddComponentMenu("Visual Pinball/Game Item/Slingshot")]
+	[AddComponentMenu("Pinball/Game Item/Slingshot")]
 	public class SlingshotComponent : MonoBehaviour, IMeshComponent, IMainRenderableComponent, IRubberData, ISwitchDeviceComponent
 	{
 		[Tooltip("Reference to the wall that acts as slingshot.")]
@@ -158,9 +158,6 @@ namespace VisualPinball.Unity
 		public DragPointData[] DragPoints => DragPointsAt(Position);
 		public int Thickness => RubberOff.GetComponent<RubberComponent>()?.Thickness ?? 8;
 		public float Height => RubberOff.GetComponent<RubberComponent>()?.Height ?? 25f;
-		public float RotX => RubberOff.GetComponent<RubberComponent>()?.RotX ?? 0;
-		public float RotY => RubberOff.GetComponent<RubberComponent>()?.RotY ?? 0;
-		public float RotZ => RubberOff.GetComponent<RubberComponent>()?.RotZ ?? 0;
 
 		#endregion
 
@@ -227,7 +224,7 @@ namespace VisualPinball.Unity
 			Debug.Log($"Generating new mesh at {pos}");
 
 			var mesh = MeshGenerator
-				.GetTransformedMesh(0, r0.Height, pf.PlayfieldDetailLevel)
+				.GetTransformedMesh(0, pf.PlayfieldDetailLevel)
 				.TransformToWorld()
 				.ToUnityMesh();
 

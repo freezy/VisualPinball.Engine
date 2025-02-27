@@ -22,9 +22,10 @@ using VisualPinball.Engine.VPT.HitTarget;
 
 namespace VisualPinball.Unity
 {
-	[AddComponentMenu("Visual Pinball/Collision/Hit Target Collider")]
+	[PackAs("HitTargetCollider")]
+	[AddComponentMenu("Pinball/Collision/Hit Target Collider")]
 	[RequireComponent(typeof(HitTargetComponent))]
-	public class HitTargetColliderComponent : ColliderComponent<HitTargetData, TargetComponent>
+	public class HitTargetColliderComponent : ColliderComponent<HitTargetData, TargetComponent>, IPackable, IColliderMesh
 	{
 		#region Data
 
@@ -56,13 +57,45 @@ namespace VisualPinball.Unity
 
 		#endregion
 
+		#region Packaging
+
+		public byte[] Pack() => HitTargetColliderPackable.Pack(this);
+
+		public byte[] PackReferences(Transform root, PackagedRefs refs, PackagedFiles files) =>
+			HitTargetColliderReferencesPackable.PackReferences(this, files);
+
+		public void Unpack(byte[] bytes) => HitTargetColliderPackable.Unpack(bytes, this);
+
+		public void UnpackReferences(byte[] data, Transform root, PackagedRefs refs, PackagedFiles files) => HitTargetColliderReferencesPackable.Unpack(data, this, files);
+
+		#endregion
+
 		#region Physics Material
 
-		protected override float PhysicsElasticity => Elasticity;
-		protected override float PhysicsElasticityFalloff => ElasticityFalloff;
-		protected override float PhysicsFriction => Friction;
-		protected override float PhysicsScatter => Scatter;
-		protected override bool PhysicsOverwrite => OverwritePhysics;
+		public override float PhysicsElasticity {
+			get => Elasticity;
+			set => Elasticity = value;
+		}
+
+		public override float PhysicsElasticityFalloff {
+			get => ElasticityFalloff;
+			set => ElasticityFalloff = value;
+		}
+
+		public override float PhysicsFriction {
+			get => Friction;
+			set => Friction = value;
+		}
+
+		public override float PhysicsScatter {
+			get => Scatter;
+			set => Scatter = value;
+		}
+
+		public override bool PhysicsOverwrite {
+			get => OverwritePhysics;
+			set => OverwritePhysics = value;
+		}
 
 		#endregion
 
@@ -71,5 +104,7 @@ namespace VisualPinball.Unity
 
 		public override float4x4 GetLocalToPlayfieldMatrixInVpx(float4x4 worldToPlayfield)
 			=> base.GetLocalToPlayfieldMatrixInVpx(worldToPlayfield).TransformToVpx();
+
+		public Mesh GetColliderMesh() => ColliderMesh;
 	}
 }

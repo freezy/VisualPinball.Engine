@@ -83,7 +83,7 @@ namespace VisualPinball.Unity.Editor
 				HelpBoxMessageType.Warning
 			);
 			container.Add(helpBox);
-			var soundAssetProp = serializedObject.FindProperty("_soundAsset");
+			var soundAssetProp = serializedObject.FindProperty(nameof(SoundComponent.SoundAsset));
 			UpdateVisibility(soundAssetProp);
 			helpBox.TrackPropertyValue(soundAssetProp, UpdateVisibility);
 
@@ -144,9 +144,9 @@ namespace VisualPinball.Unity.Editor
 
 			void UpdateVisbility(SerializedObject obj)
 			{
-				var soundAssetProp = obj.FindProperty("_soundAsset");
-				var soundAsset = soundAssetProp.objectReferenceValue as SoundAsset;
-				if (soundAsset && soundAsset.Loop && !AllTargetsSupportLoopingSoundAssets())
+				var prop = obj.FindProperty(nameof(SoundComponent.SoundAsset));
+				var soundAsset = prop.objectReferenceValue as SoundAsset;
+				if (soundAsset && soundAsset.Loop && !AllTargetsSupportLoopingSoundAssets()) {
 					helpBox.style.display = DisplayStyle.Flex;
 				else
 					helpBox.style.display = DisplayStyle.None;

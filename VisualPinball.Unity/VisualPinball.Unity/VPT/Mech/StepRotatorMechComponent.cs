@@ -26,7 +26,7 @@ using Logger = NLog.Logger;
 
 namespace VisualPinball.Unity
 {
-	[AddComponentMenu("Visual Pinball/Mechs/Step Rotator Mech")]
+	[AddComponentMenu("Pinball/Mechs/Step Rotator Mech")]
 	public class StepRotatorMechComponent : MonoBehaviour, ISwitchDeviceComponent, ICoilDeviceComponent, IMechHandler, ISerializationCallbackReceiver
 	{
 		#region Data
@@ -36,6 +36,18 @@ namespace VisualPinball.Unity
 
 		[Tooltip("On each mark, the switch changes are transmitted to the gamelogic engine.")]
 		public MechMark[] Marks = {};
+
+		#endregion
+
+		#region Packaging
+
+		public byte[] Pack() => StepRotatorMechPackable.Pack(this);
+
+		public byte[] PackReferences(Transform root, PackagedRefs refs, PackagedFiles files) => null;
+
+		public void Unpack(byte[] bytes) => StepRotatorMechPackable.Unpack(bytes, this);
+
+		public void UnpackReferences(byte[] data, Transform root, PackagedRefs refs, PackagedFiles files) { }
 
 		#endregion
 

@@ -45,7 +45,7 @@ You can define as many as you want for each. You'll need a name and a variable t
 
 ### Accessing Variables
 
-Once you have declared your variables, you can use them in your graphs. In the graph editor, those nodes can be found under *Visual Pinball/Variables* and *Events/Visual Pinball* for the event node.
+Once you have declared your variables, you can use them in your graphs. In the graph editor, those nodes can be found under *Pinball/Variables* and *Events/Pinball* for the event node.
 
 There are two sets of nodes, one for player variables and one for table variables. They are identical apart from two additional player variable nodes described in the *Player State* section below.
 

@@ -25,7 +25,7 @@ namespace VisualPinball.Unity.Editor
 	{
 		private const string LayoutsAssetPath = "Packages/org.visualpinball.engine.unity/VisualPinball.Unity/Assets/Editor/WindowLayouts";
 
-		[MenuItem("Visual Pinball/Editor/Setup Layouts", false, 511)]
+		[MenuItem("Pinball/Editor/Setup Layouts", false, 511)]
 		public static void PopulateEditorLayout()
 		{
 			// to update, do your changes, save the layout back, and finally copy it from
@@ -64,7 +64,7 @@ namespace VisualPinball.Unity.Editor
 			InternalEditorUtility.ReloadWindowLayoutMenu();
 
 			EditorUtility.DisplayDialog(
-				"Visual Pinball Layouts",
+				"Visual Pinball Engine Layouts",
 				"Layouts added. You can switch between them using the drop down in the top right corner of the editor.",
 				"Got it!");
 		}

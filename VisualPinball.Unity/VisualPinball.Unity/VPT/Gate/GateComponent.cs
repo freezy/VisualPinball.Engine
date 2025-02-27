@@ -34,9 +34,10 @@ using VisualPinball.Engine.VPT.Table;
 
 namespace VisualPinball.Unity
 {
-	[AddComponentMenu("Visual Pinball/Game Item/Gate")]
+	[PackAs("Gate")]
+	[AddComponentMenu("Pinball/Game Item/Gate")]
 	public class GateComponent : MainRenderableComponent<GateData>,
-		IGateData, ISwitchDeviceComponent, IRotatableAnimationComponent
+		IGateData, ISwitchDeviceComponent, IRotatableAnimationComponent, IPackable
 	{
 		#region Data
 
@@ -70,6 +71,18 @@ namespace VisualPinball.Unity
 
 		public int _type;
 		public string _meshName;
+
+		#endregion
+
+		#region Packaging
+
+		public byte[] Pack() => GatePackable.Pack(this);
+
+		public byte[] PackReferences(Transform root, PackagedRefs refs, PackagedFiles files) => Array.Empty<byte>();
+
+		public void Unpack(byte[] bytes) => GatePackable.Unpack(bytes, this);
+
+		public void UnpackReferences(byte[] data, Transform root, PackagedRefs refs, PackagedFiles files) { }
 
 		#endregion
 

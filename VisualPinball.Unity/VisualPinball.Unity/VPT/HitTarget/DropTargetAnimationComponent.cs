@@ -21,9 +21,10 @@ using VisualPinball.Engine.VPT.HitTarget;
 
 namespace VisualPinball.Unity
 {
-	[AddComponentMenu("Visual Pinball/Animation/Drop Target Animation")]
+	[PackAs("DropTargetAnimation")]
+	[AddComponentMenu("Pinball/Animation/Drop Target Animation")]
 	[RequireComponent(typeof(DropTargetColliderComponent))]
-	public class DropTargetAnimationComponent : AnimationComponent<HitTargetData, DropTargetComponent>
+	public class DropTargetAnimationComponent : AnimationComponent<HitTargetData, DropTargetComponent>, IPackable
 	{
 		#region Data
 
@@ -35,6 +36,18 @@ namespace VisualPinball.Unity
 
 		[Tooltip("If set, the drop target is initially dropped.")]
 		public bool IsDropped;
+
+		#endregion
+
+		#region Packaging
+
+		public byte[] Pack() => DropTargetAnimationPackable.Pack(this);
+
+		public byte[] PackReferences(Transform root, PackagedRefs lookup, PackagedFiles files) => null;
+
+		public void Unpack(byte[] bytes) => DropTargetAnimationPackable.Unpack(bytes, this);
+
+		public void UnpackReferences(byte[] data, Transform root, PackagedRefs lookup, PackagedFiles files) { }
 
 		#endregion
 	}

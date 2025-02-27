@@ -24,9 +24,10 @@ using Mesh = VisualPinball.Engine.VPT.Mesh;
 
 namespace VisualPinball.Unity
 {
+	[PackAs("TriggerMesh")]
 	[ExecuteInEditMode]
-	[AddComponentMenu("Visual Pinball/Mesh/Trigger Mesh")]
-	public class TriggerMeshComponent : MeshComponent<TriggerData, TriggerComponent>
+	[AddComponentMenu("Pinball/Mesh/Trigger Mesh")]
+	public class TriggerMeshComponent : MeshComponent<TriggerData, TriggerComponent>, IPackable
 	{
 		#region Data
 
@@ -36,6 +37,18 @@ namespace VisualPinball.Unity
 		[Tooltip("Thickness of the trigger wire. Doesn't have any impact on the ball.")]
 
 		public float WireThickness;
+
+		#endregion
+
+		#region Packaging
+
+		public byte[] Pack() => TriggerMeshPackable.Pack(this);
+
+		public byte[] PackReferences(Transform root, PackagedRefs refs, PackagedFiles files) => null;
+
+		public void Unpack(byte[] bytes) => TriggerMeshPackable.Unpack(bytes, this);
+
+		public void UnpackReferences(byte[] data, Transform root, PackagedRefs refs, PackagedFiles files) { }
 
 		#endregion
 

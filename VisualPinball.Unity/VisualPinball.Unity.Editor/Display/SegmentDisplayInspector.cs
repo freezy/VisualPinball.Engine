@@ -190,7 +190,7 @@ namespace VisualPinball.Unity.Editor
 			// }
 		}
 
-		[MenuItem("GameObject/Visual Pinball/Segment Display", false, 13)]
+		[MenuItem("GameObject/Pinball/Segment Display", false, 13)]
 		private static void CreateSegmentDisplayGameObject()
 		{
 			var go = new GameObject {

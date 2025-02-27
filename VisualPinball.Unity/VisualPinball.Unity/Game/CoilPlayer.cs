@@ -20,7 +20,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using NLog;
-using UnityEditor;
 using UnityEngine;
 using Logger = NLog.Logger;
 
@@ -197,11 +196,11 @@ namespace VisualPinball.Unity
 #if UNITY_EDITOR
 		private void RefreshUI()
 		{
-			if (!_player!.UpdateDuringGamplay) {
+			if (!_player!.UpdateDuringGameplay) {
 				return;
 			}
 
-			foreach (var manager in (EditorWindow[])Resources.FindObjectsOfTypeAll(Type.GetType("VisualPinball.Unity.Editor.CoilManager, VisualPinball.Unity.Editor"))) {
+			foreach (var manager in (UnityEditor.EditorWindow[])Resources.FindObjectsOfTypeAll(Type.GetType("VisualPinball.Unity.Editor.CoilManager, VisualPinball.Unity.Editor"))) {
 				manager.Repaint();
 			}
 		}

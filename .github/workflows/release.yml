@@ -29,7 +29,7 @@ jobs:
           git commit -m "release: ${{ steps.nextVersion.outputs.nextTag }}."
           git push
           commitish=$(git rev-parse HEAD)
-          echo ::set-output name=commitish::${commitish}
+          echo "commitish=${commitish}" >> $GITHUB_OUTPUT
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Create Release

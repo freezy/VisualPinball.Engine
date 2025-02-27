@@ -32,10 +32,7 @@ namespace VisualPinball.Engine.VPT.Table
 		public float Width => Data.Right - Data.Left;
 		public float Height => Data.Bottom - Data.Top;
 
-		public float TableHeight => Data.TableHeight;
-
 		public float GlassHeight => Data.GlassHeight;
-		public Rect3D BoundingBox => new Rect3D(Data.Left, Data.Right, Data.Top, Data.Bottom, TableHeight, GlassHeight);
 
 		private readonly TableContainer _tableContainer;
 		private readonly TableMeshGenerator _meshGenerator;
@@ -49,24 +46,17 @@ namespace VisualPinball.Engine.VPT.Table
 		public float GetSurfaceHeight(string surfaceName, float x, float y)
 		{
 			if (string.IsNullOrEmpty(surfaceName)) {
-				return TableHeight;
+				return 0;
 			}
 
 			if (_tableContainer.Has<Surface.Surface>(surfaceName)) {
-				return TableHeight + _tableContainer.Get<Surface.Surface>(surfaceName).Data.HeightTop;
+				return _tableContainer.Get<Surface.Surface>(surfaceName).Data.HeightTop;
 			}
 
 			if (_tableContainer.Has<Ramp.Ramp>(surfaceName)) {
-				return TableHeight + _tableContainer.Get<Ramp.Ramp>(surfaceName).GetSurfaceHeight(x, y, this);
+				return _tableContainer.Get<Ramp.Ramp>(surfaceName).GetSurfaceHeight(x, y, this);
 			}
-
-			// Logger.Warn(
-			// 	"[Table.getSurfaceHeight] Unknown surface {0}.\nAvailable surfaces: [ {1} ]\nAvailable ramps: [ {2} ]",
-			// 	surfaceName,
-			// 	string.Join(", ", _surfaces.Keys),
-			// 	string.Join(", ", _ramps.Keys)
-			// );
-			return TableHeight;
+			return 0;
 		}
 
 		public int GetDetailLevel()
@@ -93,4 +83,3 @@ namespace VisualPinball.Engine.VPT.Table
 		#endregion
 	}
 }
-

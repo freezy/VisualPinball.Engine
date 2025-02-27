@@ -60,7 +60,7 @@ namespace VisualPinball.Engine.VPT.Table
 				// finally write hash
 				WriteStream(_gameStorage, "MAC", hashWriter.Hash());
 
-				_cf.Save(fileName);
+				_cf.SaveAs(fileName);
 				_cf.Close();
 			}
 		}

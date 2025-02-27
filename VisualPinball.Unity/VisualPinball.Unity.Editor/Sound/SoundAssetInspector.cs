@@ -1,4 +1,4 @@
-﻿// Visual Pinball Engine
+// Visual Pinball Engine
 // Copyright (C) 2025 freezy and VPE Team
 //
 // This program is free software: you can redistribute it and/or modify
@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using UnityEditor;
+using UnityEditor.UIElements;
 using UnityEngine;
 using UnityEngine.UIElements;
 
@@ -30,5 +31,21 @@ namespace VisualPinball.Unity.Editor
 		{
 			return _soundAssetInspectorAsset.Instantiate();
 		}
+
+		private void OnDisable()
+		{
+			RemoveNullClips();
+		}
+
+		private void RemoveNullClips()
+		{
+			var clipsProp = serializedObject.FindProperty(nameof(SoundAsset.Clips));
+			for (var i = clipsProp.arraySize -1; i >= 0; i--) {
+				if (clipsProp.GetArrayElementAtIndex(i).objectReferenceValue == null)
+					clipsProp.DeleteArrayElementAtIndex(i);
+			}
+			serializedObject.ApplyModifiedPropertiesWithoutUndo();
+		}
+
 	}
 }

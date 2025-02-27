@@ -34,8 +34,9 @@ using VisualPinball.Engine.VPT.Table;
 
 namespace VisualPinball.Unity
 {
-	[AddComponentMenu("Visual Pinball/Game Item/Bumper")]
-	public class BumperComponent : MainRenderableComponent<BumperData>, ISwitchDeviceComponent, ICoilDeviceComponent
+	[PackAs("Bumper")]
+	[AddComponentMenu("Pinball/Game Item/Bumper")]
+	public class BumperComponent : MainRenderableComponent<BumperData>, ISwitchDeviceComponent, ICoilDeviceComponent, IPackable
 	{
 		#region Data
 
@@ -64,6 +65,18 @@ namespace VisualPinball.Unity
 		public bool IsHardwired = true;
 
 		private IEnumerable<GamelogicEngineCoil> _availableDeviceItems;
+
+		#endregion
+
+		#region Packaging
+
+		public byte[] Pack() => BumperPackable.Pack(this);
+
+		public byte[] PackReferences(Transform root, PackagedRefs refs, PackagedFiles files) => null;
+
+		public void Unpack(byte[] bytes) => BumperPackable.Unpack(bytes, this);
+
+		public void UnpackReferences(byte[] data, Transform root, PackagedRefs refs, PackagedFiles files) { }
 
 		#endregion
 
@@ -334,12 +347,15 @@ namespace VisualPinball.Unity
 					Speed = ringAnimComponent.RingSpeed,
 				} : default;
 
+			bool isSwitchWiredToCoil = BumperApi.HasWireDest(this, AvailableCoils.FirstOrDefault().Id);
+
 			return new BumperState(
 				skirtAnimComponent ? skirtAnimComponent.gameObject.GetInstanceID() : 0,
 				ringAnimComponent ? ringAnimComponent.gameObject.GetInstanceID() : 0,
 				staticData,
 				ringAnimation,
-				skirtAnimation
+				skirtAnimation,
+				isSwitchWiredToCoil
 			);
 		}
 

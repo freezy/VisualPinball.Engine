@@ -27,7 +27,7 @@ namespace VisualPinball.Unity.Editor
 {
 	public static class VpxMenuImporter
 	{
-		[MenuItem("Visual Pinball/Import VPX", false, 2)]
+		[MenuItem("Pinball/Import .vpx File", false, 2)]
 		public static void ImportVpxIntoScene(MenuCommand menuCommand)
 		{
 			// if it's an untitled scene, save first.
@@ -36,7 +36,7 @@ namespace VisualPinball.Unity.Editor
 			}
 			
 			// open file dialog
-			var vpxPath = EditorUtility.OpenFilePanelWithFilters("Import .VPX File", null, new[] { "Visual Pinball Table Files", "vpx" });
+			var vpxPath = EditorUtility.OpenFilePanelWithFilters("Import .vpx File", null, new[] { "Visual Pinball Table Files", "vpx" });
 			if (vpxPath.Length == 0) {
 				return;
 			}

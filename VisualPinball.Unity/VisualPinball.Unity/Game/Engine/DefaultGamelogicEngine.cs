@@ -20,15 +20,15 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Threading;
+using System.Threading.Tasks;
+using NLog;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using VisualPinball.Engine.Common;
 using VisualPinball.Engine.Game.Engines;
 using Debug = UnityEngine.Debug;
-using NLog;
 using Logger = NLog.Logger;
-using System.Threading.Tasks;
-using System.Threading;
 
 // uncomment to simulate dual-wound flippers
 // #define DUAL_WOUND_FLIPPERS
@@ -40,9 +40,10 @@ namespace VisualPinball.Unity
 	/// gamelogic engine. For now it just tries to find the flippers and hook
 	/// them up to the switches.
 	/// </summary>
+	[PackAs("DefaultGameLogic")]
 	[DisallowMultipleComponent]
-	[AddComponentMenu("Visual Pinball/Gamelogic Engine/Default Game Logic")]
-	public class DefaultGamelogicEngine : MonoBehaviour, IGamelogicEngine
+	[AddComponentMenu("Pinball/Gamelogic Engine/Default Game Logic")]
+	public class DefaultGamelogicEngine : MonoBehaviour, IGamelogicEngine, IPackable
 	{
 		public string Name => "Default Game Engine";
 
@@ -214,7 +215,7 @@ namespace VisualPinball.Unity
 		private void Update()
 		{
 			if (!_frameSent) {
-				var frameTex = UnityEngine.Resources.Load<Texture2D>("Textures/vpe_dmd_32x128");
+				var frameTex = Resources.Load<Texture2D>("Textures/vpe_dmd_32x128");
 				var data = frameTex.GetRawTextureData<byte>().ToArray();
 
 				// this texture happens to be stored as RGB24, so we can send the raw data directly.
@@ -406,5 +407,14 @@ namespace VisualPinball.Unity
 			yield return new WaitForSeconds(time);
 			callback();
 		}
+
+		#region Packaging
+
+		public byte[] Pack() => new DefaultGamelogicEnginePackable().Pack();
+		public byte[] PackReferences(Transform root, PackagedRefs refs, PackagedFiles files) => Array.Empty<byte>();
+		public void Unpack(byte[] data) { }
+		public void UnpackReferences(byte[] data, Transform root, PackagedRefs refs, PackagedFiles files) { }
+
+		#endregion
 	}
 }

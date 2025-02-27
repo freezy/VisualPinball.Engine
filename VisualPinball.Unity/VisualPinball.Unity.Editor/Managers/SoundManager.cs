@@ -66,7 +66,7 @@ namespace VisualPinball.Unity.Editor
 			SoundOutTypes.Backglass,
 		};
 
-		[MenuItem("Visual Pinball/Sound Manager", false, 404)]
+		[MenuItem("Pinball/Sound Manager", false, 404)]
 		public static void ShowWindow()
 		{
 			GetWindow<SoundManager>();

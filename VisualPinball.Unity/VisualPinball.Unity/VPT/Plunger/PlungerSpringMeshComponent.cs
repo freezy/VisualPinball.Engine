@@ -24,9 +24,10 @@ using Mesh = VisualPinball.Engine.VPT.Mesh;
 
 namespace VisualPinball.Unity
 {
+	[PackAs("PlungerSpringMesh")]
 	[ExecuteInEditMode]
-	[AddComponentMenu("Visual Pinball/Mesh/Plunger Spring Mesh")]
-	public class PlungerSpringMeshComponent : PlungerMeshComponent
+	[AddComponentMenu("Pinball/Mesh/Plunger Spring Mesh")]
+	public class PlungerSpringMeshComponent : PlungerMeshComponent, IPackable
 	{
 		#region Data
 
@@ -37,6 +38,18 @@ namespace VisualPinball.Unity
 		public float SpringLoops = 8.0f;
 
 		public float SpringEndLoops = 2.5f;
+
+		#endregion
+
+		#region Packaging
+
+		public byte[] Pack() => PlungerSpringMeshPackable.Pack(this);
+
+		public byte[] PackReferences(Transform root, PackagedRefs refs, PackagedFiles files) => null;
+
+		public void Unpack(byte[] bytes) => PlungerSpringMeshPackable.Unpack(bytes, this);
+
+		public void UnpackReferences(byte[] data, Transform root, PackagedRefs refs, PackagedFiles files) { }
 
 		#endregion
 

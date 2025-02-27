@@ -21,9 +21,6 @@ using NLog;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using Logger = NLog.Logger;
-#if UNITY_EDITOR
-using UnityEditor;
-#endif
 
 namespace VisualPinball.Unity
 {
@@ -435,11 +432,11 @@ namespace VisualPinball.Unity
 #if UNITY_EDITOR
 		private void RefreshUI()
 		{
-			if (!_player.UpdateDuringGamplay) {
+			if (!_player.UpdateDuringGameplay) {
 				return;
 			}
 
-			foreach (var manager in (EditorWindow[])Resources.FindObjectsOfTypeAll(Type.GetType("VisualPinball.Unity.Editor.WireManager, VisualPinball.Unity.Editor")))
+			foreach (var manager in (UnityEditor.EditorWindow[])Resources.FindObjectsOfTypeAll(Type.GetType("VisualPinball.Unity.Editor.WireManager, VisualPinball.Unity.Editor")))
 			{
 				manager.Repaint();
 			}

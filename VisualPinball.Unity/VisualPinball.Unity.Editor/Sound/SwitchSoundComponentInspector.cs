@@ -34,7 +34,7 @@ namespace VisualPinball.Unity.Editor
 			var inspectorUi = switchSoundInspectorXml.Instantiate();
 			root.Add(inspectorUi);
 			var switchNameDropdown = root.Q<DropdownField>("switch-name");
-			var switchNameProp = serializedObject.FindProperty("_switchName");
+			var switchNameProp = serializedObject.FindProperty(nameof(SwitchSoundComponent.SwitchName));
 			var availableSwitches = GetAvailableSwitches();
 			ConfigureDropdown(switchNameDropdown, switchNameProp, availableSwitches);
 			return root;

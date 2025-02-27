@@ -19,12 +19,27 @@ using VisualPinball.Engine.VPT.Bumper;
 
 namespace VisualPinball.Unity
 {
-	[AddComponentMenu("Visual Pinball/Animation/Bumper Skirt Animation")]
-	public class BumperSkirtAnimationComponent : AnimationComponent<BumperData, BumperComponent>
+	[PackAs("BumperSkirtAnimation")]
+	[AddComponentMenu("Pinball/Animation/Bumper Skirt Animation")]
+	public class BumperSkirtAnimationComponent : AnimationComponent<BumperData, BumperComponent>, IPackable
 	{
 		#region Data
+
 		[Tooltip("How long the skirt is pushed down when hit by a ball in seconds")]
 		public float duration = 0.1f;
+
+		#endregion
+
+		#region Packaging
+
+		public byte[] Pack() => BumperSkirtAnimationPackable.Pack(this);
+
+		public byte[] PackReferences(Transform root, PackagedRefs refs, PackagedFiles files) => null;
+
+		public void Unpack(byte[] bytes) => BumperSkirtAnimationPackable.Unpack(bytes, this);
+
+		public void UnpackReferences(byte[] bytes, Transform root, PackagedRefs refs, PackagedFiles files) { }
+
 		#endregion
 	}
 }

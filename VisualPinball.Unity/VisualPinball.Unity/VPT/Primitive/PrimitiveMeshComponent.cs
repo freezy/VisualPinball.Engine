@@ -26,9 +26,10 @@ using Mesh = VisualPinball.Engine.VPT.Mesh;
 
 namespace VisualPinball.Unity
 {
+	[PackAs("PrimitiveMesh")]
 	[ExecuteInEditMode]
-	[AddComponentMenu("Visual Pinball/Mesh/Primitive Mesh")]
-	public class PrimitiveMeshComponent : MeshComponent<PrimitiveData, PrimitiveComponent>
+	[AddComponentMenu("Pinball/Mesh/Primitive Mesh")]
+	public class PrimitiveMeshComponent : MeshComponent<PrimitiveData, PrimitiveComponent>, IPackable
 	{
 		#region Data
 
@@ -38,6 +39,18 @@ namespace VisualPinball.Unity
 		[Range(3, 32)]
 		[Tooltip("How many sides to generate for the legacy mesh.")]
 		public int Sides = 4;
+
+		#endregion
+
+		#region Packaging
+
+		public byte[] Pack() => PrimitiveMeshPackable.Pack(this);
+
+		public byte[] PackReferences(Transform root, PackagedRefs refs, PackagedFiles files) => null;
+
+		public void Unpack(byte[] bytes) => PrimitiveMeshPackable.Unpack(bytes, this);
+
+		public void UnpackReferences(byte[] data, Transform root, PackagedRefs refs, PackagedFiles files) { }
 
 		#endregion
 

@@ -55,7 +55,7 @@ namespace VisualPinball.Unity.Editor
 			}
 		}
 
-		[MenuItem("Visual Pinball/Lamp Manager", false, 304)]
+		[MenuItem("Pinball/Lamp Manager", false, 304)]
 		public static void ShowWindow()
 		{
 			GetWindow<LampManager>();

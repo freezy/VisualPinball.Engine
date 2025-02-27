@@ -25,7 +25,6 @@ using System;
 using System.Collections.Generic;
 using Unity.Mathematics;
 using UnityEngine;
-using VisualPinball.Engine.Math;
 using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Primitive;
 using VisualPinball.Engine.VPT.Table;
@@ -33,8 +32,9 @@ using Mesh = VisualPinball.Engine.VPT.Mesh;
 
 namespace VisualPinball.Unity
 {
-	[AddComponentMenu("Visual Pinball/Game Item/Primitive")]
-	public class PrimitiveComponent : MainRenderableComponent<PrimitiveData>, IMeshGenerator
+	[PackAs("Primitive")]
+	[AddComponentMenu("Pinball/Game Item/Primitive")]
+	public class PrimitiveComponent : MainRenderableComponent<PrimitiveData>, IMeshGenerator, IPackable
 	{
 		#region Data
 
@@ -42,6 +42,18 @@ namespace VisualPinball.Unity
 			get => transform.localPosition.TranslateToVpx();
 			set => transform.localPosition = value.TranslateToWorld();
 		}
+
+		#endregion
+
+		#region Packaging
+
+		public byte[] Pack() => PrimitivePackable.Pack(this);
+
+		public byte[] PackReferences(Transform root, PackagedRefs refs, PackagedFiles files) => Array.Empty<byte>();
+
+		public void Unpack(byte[] bytes) => PrimitivePackable.Unpack(bytes, this);
+
+		public void UnpackReferences(byte[] data, Transform root, PackagedRefs refs, PackagedFiles files) { }
 
 		#endregion
 
@@ -66,11 +78,11 @@ namespace VisualPinball.Unity
 			var updatedComponents = new List<MonoBehaviour> { this };
 
 			// transforms
-			var position = data.Position.ToUnityVector3();
+			var position = data.Position.ToUnityFloat3();
 			var size = data.Size.ToUnityFloat3();
-			var rotation = new Vector3(data.RotAndTra[0], data.RotAndTra[1], data.RotAndTra[2]);
-			var translation = new Vector3(data.RotAndTra[3], data.RotAndTra[4], data.RotAndTra[5]);
-			var objectRotation = new Vector3(data.RotAndTra[6], data.RotAndTra[7], data.RotAndTra[8]);
+			var rotation = new float3(data.RotAndTra[0], data.RotAndTra[1], data.RotAndTra[2]);
+			var translation = new float3(data.RotAndTra[3], data.RotAndTra[4], data.RotAndTra[5]);
+			var objectRotation = new float3(data.RotAndTra[6], data.RotAndTra[7], data.RotAndTra[8]);
 
 			var scaleMatrix = float4x4.Scale(size);
 			var transMatrix = float4x4.Translate(position);
@@ -81,7 +93,7 @@ namespace VisualPinball.Unity
 					float4x4.Translate(translation)
 				));
 			var transformationWithinPlayfieldMatrix = math.mul(transMatrix, math.mul(rotTransMatrix, scaleMatrix));
-			transform.SetFromMatrix(((Matrix4x4)transformationWithinPlayfieldMatrix).TransformVpxInWorld());
+			transform.SetFromMatrix(transformationWithinPlayfieldMatrix.TransformVpxInWorld());
 
 			// mesh
 			var meshComponent = GetComponent<PrimitiveMeshComponent>();
