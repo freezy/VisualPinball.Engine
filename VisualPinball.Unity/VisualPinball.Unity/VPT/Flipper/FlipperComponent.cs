@@ -38,6 +38,7 @@ using UnityEditor;
 
 namespace VisualPinball.Unity
 {
+	[SelectionBase]
 	[PackAs("Flipper")]
 	[AddComponentMenu("Pinball/Game Item/Flipper")]
 	[HelpURL("https://docs.visualpinball.org/creators-guide/manual/mechanisms/flippers.html")]

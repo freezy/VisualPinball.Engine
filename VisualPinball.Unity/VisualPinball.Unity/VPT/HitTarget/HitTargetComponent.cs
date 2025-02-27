@@ -23,6 +23,7 @@ using VisualPinball.Engine.VPT.Table;
 
 namespace VisualPinball.Unity
 {
+	[SelectionBase]
 	[PackAs("HitTarget")]
 	[AddComponentMenu("Pinball/Game Item/Hit Target")]
 	public class HitTargetComponent : TargetComponent, IPackable
