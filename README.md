@@ -42,7 +42,8 @@ a list of relevant posts that document the progress of VPE so far.
 - [February 2022](https://vpuniverse.com/forums/topic/5362-wip-visual-pinball-in-unity-2021-edition/?do=findComment&comment=60788) - Lighting
 - [July 2022](https://vpuniverse.com/forums/topic/5362-wip-visual-pinball-in-unity-2021-edition/?do=findComment&comment=64348) - Visual Scripting, Physics, Asset Library, Tutorials, VR/AR, the future
 - [December 2022](https://vpuniverse.com/forums/topic/5362-wip-visual-pinball-in-unity-2021-edition/?do=findComment&comment=67277) - Asset library, world space, score motors
-
+- [January 2024](https://vpuniverse.com/forums/topic/9733-visual-pinball-in-unity-2024/) - From DOTS to Bursted Jobs, Kinematic Colliders
+- [February 2025](https://vpuniverse.com/forums/topic/11571-visual-pinball-engine-2025-updates/) - Unrestricted transformations, Sounds, Packaging, Retrospective
 
 During that time, we've also written [a guest article at thisweekinpinball.com](https://www.thisweekinpinball.com/a-peek-into-the-digital-creator-community/) about our community..
 
@@ -71,4 +72,3 @@ Special thanks go to JetBrains for their awesome IDE and support of the Open Sou
 ## License
 
 Since [4616dcbb](https://github.com/freezy/VisualPinball.Engine/commit/4616dcbb), [GPL-3.0](LICENSE). Before [4616dcbb](https://github.com/freezy/VisualPinball.Engine/commit/4616dcbb), [GPL-2.0](https://github.com/freezy/VisualPinball.Engine/blob/32fd8f48d11ba961b50c72cd7f82fc4c34eba26e/LICENSE).
-
