@@ -268,7 +268,13 @@ namespace VisualPinball.Unity.Editor
 	[Serializable]
 	internal class Assets : SerializableDictionary<string, Asset>
 	{
-		public IEnumerable<Asset> All(LibraryDatabase lib) => Values.Select(v => v.SetCategory(lib));
+		public IEnumerable<Asset> All(LibraryDatabase lib) => Keys.Where(k => {
+			if (this[k] == null) {
+				Debug.LogWarning($"Asset with ID {k} is null.");
+				return false;
+			}
+			return true;
+		}).Select(k => this[k].SetCategory(lib));
 		public void Add(Asset asset) => this[asset.GUID] = asset;
 		public bool Contains(Asset asset) => ContainsKey(asset.GUID);
 		public bool Contains(string guid) => ContainsKey(guid);
