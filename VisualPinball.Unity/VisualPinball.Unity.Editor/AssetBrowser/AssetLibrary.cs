@@ -77,7 +77,7 @@ namespace VisualPinball.Unity.Editor
 			SaveLibrary();
 		}
 
-		public IEnumerable<AssetResult> GetAssets(LibraryQuery q) => _db.GetAssets(this, q);
+		public IEnumerable<AssetResult> GetAssets(LibraryQuery q) => _db.GetAssets(q);
 
 		public void RemoveAsset(Asset asset)
 		{
