@@ -28,6 +28,9 @@ namespace VisualPinball.Unity
 	{
 		#region Data
 
+		[Tooltip("The mesh that will be used for the collider.")]
+		public Mesh ColliderMesh;
+
 		[Min(0f)]
 		[Tooltip("Bounciness, also known as coefficient of restitution. Higher is more bouncy.")]
 		public float Elasticity = 0.35f;
@@ -43,9 +46,6 @@ namespace VisualPinball.Unity
 		[Range(-90f, 90f)]
 		[Tooltip("When hit, add a random angle between 0 and this value to the trajectory.")]
 		public float Scatter = 5f;
-
-		[Tooltip("If enabled, hit events by balls hitting from behind might be triggered.")]
-		public bool IsLegacy;
 
 		[Tooltip("Ignore the assigned physics material above and use the value below.")]
 		public bool OverwritePhysics = true;
