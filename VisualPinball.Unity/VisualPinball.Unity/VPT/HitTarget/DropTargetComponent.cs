@@ -30,13 +30,6 @@ namespace VisualPinball.Unity
 	[AddComponentMenu("Pinball/Game Item/Drop Target")]
 	public class DropTargetComponent : TargetComponent, IPackable
 	{
-		public override bool IsLegacy {
-			get {
-				var colliderComponent = GetComponent<DropTargetColliderComponent>();
-				return colliderComponent && colliderComponent.IsLegacy;
-			}
-		}
-
 		protected override float ZOffset {
 			get {
 				var animationComponent = GetComponentInChildren<DropTargetAnimationComponent>();
@@ -68,7 +61,6 @@ namespace VisualPinball.Unity
 				colliderComponent.enabled = data.IsCollidable;
 				colliderComponent.UseHitEvent = data.UseHitEvent;
 				colliderComponent.Threshold = data.Threshold;
-				colliderComponent.IsLegacy = data.IsLegacy;
 
 				colliderComponent.OverwritePhysics = data.OverwritePhysics;
 				colliderComponent.Elasticity = data.Elasticity;
@@ -117,7 +109,7 @@ namespace VisualPinball.Unity
 				data.Threshold = colliderComponent.Threshold;
 				data.UseHitEvent = colliderComponent.UseHitEvent;
 				data.PhysicsMaterial = colliderComponent.PhysicsMaterial == null ? string.Empty : colliderComponent.PhysicsMaterial.name;
-				data.IsLegacy = colliderComponent.IsLegacy;
+				data.IsLegacy = false;
 
 				data.OverwritePhysics = colliderComponent.OverwritePhysics;
 				data.Elasticity = colliderComponent.Elasticity;

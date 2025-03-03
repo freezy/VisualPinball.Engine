@@ -149,7 +149,6 @@ namespace VisualPinball.Unity
 			var dtCollComp = GetComponent<DropTargetColliderComponent>();
 			var srcDtCollComp = go.GetComponent<DropTargetColliderComponent>();
 			if (dtCollComp && srcDtCollComp) {
-				dtCollComp.IsLegacy = srcDtCollComp.IsLegacy;
 				dtCollComp.Threshold = srcDtCollComp.Threshold;
 				dtCollComp.OverwritePhysics = srcDtCollComp.OverwritePhysics;
 				dtCollComp.Elasticity = srcDtCollComp.Elasticity;
