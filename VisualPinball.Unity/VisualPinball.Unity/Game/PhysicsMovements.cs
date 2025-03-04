@@ -74,7 +74,7 @@ namespace VisualPinball.Unity
 				var newPosition = (Vector3)dropTargetState.Static.InitialPosition + localYDirection * Physics.ScaleToWorld(dropTargetState.Animation.ZOffset);
 
 				// Apply the new position
-				dropTargetTransform.position = newPosition;
+				dropTargetTransform.localPosition = newPosition;
 			}
 		}
 

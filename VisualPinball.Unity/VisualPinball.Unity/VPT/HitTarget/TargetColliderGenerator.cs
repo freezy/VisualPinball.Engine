@@ -43,17 +43,10 @@ namespace VisualPinball.Unity
 			meshData.GetVertices(unityVertices);
 			meshData.GetIndices(unityIndices, 0);
 
-			ColliderUtils.GenerateCollidersFromMesh(in unityVertices, in unityIndices, _matrix, _api.GetColliderInfo(), ref colliders);
+			ColliderUtils.GenerateCollidersFromMesh(in unityVertices, in unityIndices, math.mul(_matrix, Physics.WorldToVpx), _api.GetColliderInfo(), ref colliders);
 
 			unityVertices.Dispose();
 			unityIndices.Dispose();
-		}
-
-		protected ColliderInfo GetColliderInfo(bool setHitObject)
-		{
-			var info = _api.GetColliderInfo();
-			info.FireEvents = setHitObject && info.FireEvents;
-			return info;
 		}
 	}
 }

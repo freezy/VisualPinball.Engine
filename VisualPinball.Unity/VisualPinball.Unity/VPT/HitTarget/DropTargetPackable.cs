@@ -55,6 +55,7 @@ namespace VisualPinball.Unity
 	public struct DropTargetAnimationPackable
 	{
 		public float Speed;
+		public float DropDistance;
 		public int RaiseDelay;
 		public bool IsDropped;
 
@@ -62,6 +63,7 @@ namespace VisualPinball.Unity
 		{
 			return PackageApi.Packer.Pack(new DropTargetAnimationPackable {
 				Speed = comp.Speed,
+				DropDistance = comp.DropDistance,
 				RaiseDelay = comp.RaiseDelay,
 				IsDropped = comp.IsDropped,
 			});
@@ -71,6 +73,7 @@ namespace VisualPinball.Unity
 		{
 			var data = PackageApi.Packer.Unpack<DropTargetAnimationPackable>(bytes);
 			comp.Speed = data.Speed;
+			comp.DropDistance = data.DropDistance;
 			comp.RaiseDelay = data.RaiseDelay;
 			comp.IsDropped = data.IsDropped;
 		}

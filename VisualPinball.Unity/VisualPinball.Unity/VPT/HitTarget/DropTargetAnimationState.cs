@@ -18,7 +18,7 @@ namespace VisualPinball.Unity
 {
 	internal struct DropTargetAnimationState
 	{
-		public const float DropTargetLimit = 52.0f;
+		public float DropDistance;
 
 		public float ZOffset;
 		public bool HitEvent;

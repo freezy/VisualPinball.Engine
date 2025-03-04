@@ -20,8 +20,7 @@ namespace VisualPinball.Unity
 {
 	internal static class DropTargetAnimation
 	{
-		internal static void Update(int itemId, ref DropTargetAnimationState animation, in DropTargetStaticState staticState,
-			ref PhysicsState state)
+		internal static void Update(int itemId, ref DropTargetAnimationState animation, in DropTargetStaticState staticState, ref PhysicsState state)
 		{
 			var oldTimeMsec = animation.TimeMsec < state.Env.TimeMsec ? animation.TimeMsec : state.Env.TimeMsec;
 			animation.TimeMsec = state.Env.TimeMsec;
@@ -48,8 +47,8 @@ namespace VisualPinball.Unity
 
 				animation.ZOffset += step * diffTimeMsec;
 				if (animation.MoveDown) {
-					if (animation.ZOffset <= -DropTargetAnimationState.DropTargetLimit) {
-						animation.ZOffset = -DropTargetAnimationState.DropTargetLimit;
+					if (animation.ZOffset <= -animation.DropDistance) {
+						animation.ZOffset = -animation.DropDistance;
 						animation.MoveDown = false;
 						animation.IsDropped = true;
 						animation.MoveAnimation = false;
