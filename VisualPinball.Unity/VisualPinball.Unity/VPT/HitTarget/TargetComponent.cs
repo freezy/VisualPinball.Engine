@@ -146,8 +146,8 @@ namespace VisualPinball.Unity
 		public override void CopyFromObject(GameObject go)
 		{
 			// dt collider
-			var dtCollComp = GetComponent<DropTargetColliderComponent>();
-			var srcDtCollComp = go.GetComponent<DropTargetColliderComponent>();
+			var dtCollComp = GetComponentInChildren<DropTargetColliderComponent>();
+			var srcDtCollComp = go.GetComponentInChildren<DropTargetColliderComponent>();
 			if (dtCollComp && srcDtCollComp) {
 				dtCollComp.Threshold = srcDtCollComp.Threshold;
 				dtCollComp.OverwritePhysics = srcDtCollComp.OverwritePhysics;

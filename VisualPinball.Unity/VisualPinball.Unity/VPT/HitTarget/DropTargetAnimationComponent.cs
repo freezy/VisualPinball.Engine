@@ -23,7 +23,6 @@ namespace VisualPinball.Unity
 {
 	[PackAs("DropTargetAnimation")]
 	[AddComponentMenu("Pinball/Animation/Drop Target Animation")]
-	[RequireComponent(typeof(DropTargetColliderComponent))]
 	public class DropTargetAnimationComponent : AnimationComponent<HitTargetData, DropTargetComponent>, IPackable
 	{
 		#region Data
@@ -33,6 +32,9 @@ namespace VisualPinball.Unity
 
 		[Tooltip("Time in milliseconds how long it takes to start the raise animation after being triggered.")]
 		public int RaiseDelay = 100;
+
+		[Tooltip("The length the target drops, in VPX units.")]
+		public float DropDistance = 52.0f;
 
 		[Tooltip("If set, the drop target is initially dropped.")]
 		public bool IsDropped;

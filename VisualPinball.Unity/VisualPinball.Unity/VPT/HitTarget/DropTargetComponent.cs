@@ -33,7 +33,7 @@ namespace VisualPinball.Unity
 		protected override float ZOffset {
 			get {
 				var animationComponent = GetComponentInChildren<DropTargetAnimationComponent>();
-				return animationComponent && animationComponent.IsDropped ? -DropTargetAnimationState.DropTargetLimit : 0f;
+				return animationComponent && animationComponent.IsDropped ? -animationComponent.DropDistance : 0f;
 			}
 		}
 
@@ -56,7 +56,7 @@ namespace VisualPinball.Unity
 			var updatedComponents = base.SetData(data).ToList();
 
 			// drop target data
-			var colliderComponent = GetComponent<DropTargetColliderComponent>();
+			var colliderComponent = GetComponentInChildren<DropTargetColliderComponent>();
 			if (colliderComponent) {
 				colliderComponent.enabled = data.IsCollidable;
 				colliderComponent.UseHitEvent = data.UseHitEvent;
@@ -87,7 +87,7 @@ namespace VisualPinball.Unity
 
 		public override IEnumerable<MonoBehaviour> SetReferencedData(HitTargetData data, Table table, IMaterialProvider materialProvider, ITextureProvider textureProvider, Dictionary<string, IMainComponent> components)
 		{
-			var colliderComponent = GetComponent<DropTargetColliderComponent>();
+			var colliderComponent = GetComponentInChildren<DropTargetColliderComponent>();
 			if (colliderComponent) {
 				colliderComponent.PhysicsMaterial = materialProvider.GetPhysicsMaterial(data.PhysicsMaterial);
 			}
@@ -103,7 +103,7 @@ namespace VisualPinball.Unity
 			base.CopyDataTo(data, materialNames, textureNames, forExport);
 
 			// collision data
-			var colliderComponent = GetComponent<DropTargetColliderComponent>();
+			var colliderComponent = GetComponentInChildren<DropTargetColliderComponent>();
 			if (colliderComponent) {
 				data.IsCollidable = colliderComponent.enabled;
 				data.Threshold = colliderComponent.Threshold;
@@ -145,7 +145,7 @@ namespace VisualPinball.Unity
 			DropTargetApi = new DropTargetApi(gameObject, player, physicsEngine);
 
 			player.Register(DropTargetApi, this);
-			if (GetComponent<DropTargetColliderComponent>() && GetComponentInChildren<DropTargetAnimationComponent>()) {
+			if (GetComponentInChildren<DropTargetColliderComponent>() && GetComponentInChildren<DropTargetAnimationComponent>()) {
 				RegisterPhysics(physicsEngine);
 			}
 		}
@@ -164,14 +164,15 @@ namespace VisualPinball.Unity
 					Speed = animationComponent.Speed,
 					RaiseDelay = animationComponent.RaiseDelay,
 					UseHitEvent = colliderComponent.UseHitEvent,
-					InitialPosition = transform.position
+					InitialPosition = animationComponent.transform.localPosition
 				} : default;
 
 			var animationData = colliderComponent && animationComponent
 				? new DropTargetAnimationState {
 					IsDropped = animationComponent.IsDropped,
 					MoveDown = !animationComponent.IsDropped,
-					ZOffset = animationComponent.IsDropped ? -DropTargetAnimationState.DropTargetLimit : 0f
+					DropDistance = animationComponent.DropDistance,
+					ZOffset = animationComponent.IsDropped ? -animationComponent.DropDistance : 0f
 				} : default;
 
 			return new DropTargetState(

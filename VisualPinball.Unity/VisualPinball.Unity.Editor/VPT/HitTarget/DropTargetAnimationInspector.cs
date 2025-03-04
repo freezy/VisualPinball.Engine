@@ -27,6 +27,7 @@ namespace VisualPinball.Unity.Editor
 		private SerializedProperty _isDroppedProperty;
 		private SerializedProperty _speedProperty;
 		private SerializedProperty _raiseDelayProperty;
+		private SerializedProperty _dropDistanceProperty;
 
 		protected override void OnEnable()
 		{
@@ -35,6 +36,7 @@ namespace VisualPinball.Unity.Editor
 			_isDroppedProperty = serializedObject.FindProperty(nameof(DropTargetAnimationComponent.IsDropped));
 			_speedProperty = serializedObject.FindProperty(nameof(DropTargetAnimationComponent.Speed));
 			_raiseDelayProperty = serializedObject.FindProperty(nameof(DropTargetAnimationComponent.RaiseDelay));
+			_dropDistanceProperty = serializedObject.FindProperty(nameof(DropTargetAnimationComponent.DropDistance));
 		}
 
 		public override void OnInspectorGUI()
@@ -50,6 +52,7 @@ namespace VisualPinball.Unity.Editor
 			PropertyField(_isDroppedProperty, updateTransforms: true);
 			PropertyField(_speedProperty);
 			PropertyField(_raiseDelayProperty);
+			PropertyField(_dropDistanceProperty);
 
 			base.OnInspectorGUI();
 
