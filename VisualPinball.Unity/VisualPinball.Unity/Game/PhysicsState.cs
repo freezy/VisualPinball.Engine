@@ -14,6 +14,8 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+// ReSharper disable InconsistentNaming
+
 using NativeTrees;
 using Unity.Collections;
 using Unity.Mathematics;
@@ -177,6 +179,19 @@ namespace VisualPinball.Unity
 		internal ColliderType GetColliderType(ref NativeColliders colliders, int colliderId) => colliders.GetHeader(colliderId).Type;
 
 		internal bool IsColliderActive(ref NativeColliders colliders, int colliderId) => !DisabledCollisionItems.Contains(colliders.GetItemId(colliderId));
+
+		internal void EnableColliders(int itemId)
+		{
+			if (DisabledCollisionItems.Contains(itemId)) {
+				DisabledCollisionItems.Remove(itemId);
+			}
+		}
+
+		internal void DisableColliders(int itemId) {
+			if (!DisabledCollisionItems.Contains(itemId)) {
+				DisabledCollisionItems.Add(itemId);
+			}
+		}
 
 		#region States
 

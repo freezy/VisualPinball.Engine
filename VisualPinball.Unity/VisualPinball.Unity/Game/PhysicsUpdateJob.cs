@@ -19,6 +19,7 @@ using Unity.Collections;
 using Unity.Jobs;
 using Unity.Mathematics;
 using VisualPinball.Engine.Common;
+// ReSharper disable InconsistentNaming
 
 namespace VisualPinball.Unity
 {
@@ -61,7 +62,6 @@ namespace VisualPinball.Unity
 
 		public NativeParallelHashMap<int, FixedList512Bytes<float>> ElasticityOverVelocityLUTs;
 		public NativeParallelHashMap<int, FixedList512Bytes<float>> FrictionOverVelocityLUTs;
-
 
 		public bool SwapBallCollisionHandling;
 

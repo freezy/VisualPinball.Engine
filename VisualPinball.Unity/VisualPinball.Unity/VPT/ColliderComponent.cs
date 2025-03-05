@@ -223,16 +223,18 @@ namespace VisualPinball.Unity
 				var white = Color.white;
 				white.a = 0.01f;
 
+				var colliderEnabled = !Application.isPlaying || PhysicsEngine.IsColliderEnabled(MainComponent.gameObject.GetInstanceID());
+
 				if (_untransformedColliderMesh || _untransformedKinematicColliderMesh) {
 					Gizmos.matrix = playfieldToWorld * (Matrix4x4)Physics.VpxToWorld * (Matrix4x4)unmodifiedLocalToPlayfieldMatrixInVpx;
 					if (_untransformedColliderMesh) {
-						Gizmos.color = ColliderColor.UntransformedColliderSelected;
+						Gizmos.color = colliderEnabled ? ColliderColor.UntransformedColliderSelected : ColliderColor.DisabledColliderSelected;
 						Gizmos.DrawMesh(_untransformedColliderMesh);
 						Gizmos.color = Application.isPlaying ? ColliderColor.UntransformedCollider : white;
 						Gizmos.DrawWireMesh(_untransformedColliderMesh);
 					}
 					if (_untransformedKinematicColliderMesh) {
-						Gizmos.color = ColliderColor.UntransformedKineticColliderSelected;
+						Gizmos.color = colliderEnabled ? ColliderColor.UntransformedKineticColliderSelected : ColliderColor.DisabledColliderSelected;
 						Gizmos.DrawMesh(_untransformedKinematicColliderMesh);
 						Gizmos.color = Application.isPlaying ? ColliderColor.UntransformedKineticCollider : white;
 						Gizmos.DrawWireMesh(_untransformedKinematicColliderMesh);
@@ -242,13 +244,13 @@ namespace VisualPinball.Unity
 				if (_transformedColliderMesh || _transformedKinematicColliderMesh) {
 					Gizmos.matrix = playfieldToWorld * (Matrix4x4)Physics.VpxToWorld;
 					if (_transformedColliderMesh) {
-						Gizmos.color = ColliderColor.TransformedColliderSelected;
+						Gizmos.color = colliderEnabled ? ColliderColor.TransformedColliderSelected : ColliderColor.DisabledColliderSelected;
 						Gizmos.DrawMesh(_transformedColliderMesh);
 						Gizmos.color = Application.isPlaying ? ColliderColor.TransformedCollider : white;
 						Gizmos.DrawWireMesh(_transformedColliderMesh);
 					}
 					if (_transformedKinematicColliderMesh) {
-						Gizmos.color = ColliderColor.TransformedKineticColliderSelected;
+						Gizmos.color = colliderEnabled ? ColliderColor.TransformedKineticColliderSelected : ColliderColor.DisabledColliderSelected;
 						Gizmos.DrawMesh(_transformedKinematicColliderMesh);
 						Gizmos.color = Application.isPlaying ? ColliderColor.TransformedKineticCollider : white;
 						Gizmos.DrawWireMesh(_transformedKinematicColliderMesh);
@@ -794,5 +796,6 @@ namespace VisualPinball.Unity
 		internal static readonly Color UntransformedColliderSelected = new Color32(0, 255, 255, 128);
 		internal static readonly Color UntransformedKineticCollider = new Color32(255, 50, 50, 50);
 		internal static readonly Color UntransformedKineticColliderSelected = new Color32(255, 50, 50, 128);
+		internal static readonly Color DisabledColliderSelected = new Color32(255, 0, 255, 128);
 	}
 }

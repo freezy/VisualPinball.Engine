@@ -208,6 +208,8 @@ namespace VisualPinball.Unity
 			return t;
 		}
 
+		internal bool IsColliderEnabled(int itemId) => !_disabledCollisionItems.Ref.Contains(itemId);
+
 		internal void EnableCollider(int itemId)
 		{
 			if (_disabledCollisionItems.Ref.Contains(itemId)) {
