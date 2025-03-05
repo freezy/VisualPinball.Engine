@@ -56,6 +56,7 @@ namespace VisualPinball.Unity
 						if (staticState.UseHitEvent) {
 							state.EventQueue.Enqueue(new EventData(EventId.TargetEventsDropped, itemId));
 						}
+						state.DisableColliders(itemId);
 					}
 
 				} else {
@@ -66,6 +67,7 @@ namespace VisualPinball.Unity
 						if (staticState.UseHitEvent) {
 							state.EventQueue.Enqueue(new EventData(EventId.TargetEventsRaised, itemId));
 						}
+						state.EnableColliders(itemId);
 					}
 				}
 			}
