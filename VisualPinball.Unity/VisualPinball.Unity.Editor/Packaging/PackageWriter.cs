@@ -181,18 +181,20 @@ namespace VisualPinball.Unity.Editor
 			var colliderMeshesMeta = new Dictionary<string, ColliderMeshMetaPackable>();
 			try {
 				foreach (var colMesh in _table.GetComponentsInChildren<IColliderMesh>(!ExportActivesOnly)) {
-					var mesh = colMesh.GetColliderMesh();
-					if (!mesh) {
-						continue;
+					for (var index = 0; index < colMesh.NumColliderMeshes; index++) {
+						var mesh = colMesh.GetColliderMesh(index);
+						if (!mesh) {
+							continue;
+						}
+						var guid = Guid.NewGuid().ToString();
+						var meshGo = new GameObject($"{guid}-{index}");
+						var meshFilter = meshGo.AddComponent<MeshFilter>();
+						meshGo.AddComponent<MeshRenderer>();
+						meshFilter.sharedMesh = mesh;
+						meshGos.Add(meshGo);
+						colliderMeshesMeta.Add(guid, ColliderMeshMetaPackable.Instantiate(colMesh, index));
+						_files.AddColliderMeshGuid(colMesh, guid, index);
 					}
-					var guid = Guid.NewGuid().ToString();
-					var meshGo = new GameObject(guid);
-					var meshFilter = meshGo.AddComponent<MeshFilter>();
-					meshGo.AddComponent<MeshRenderer>();
-					meshFilter.sharedMesh = mesh;
-					meshGos.Add(meshGo);
-					colliderMeshesMeta.Add(guid, ColliderMeshMetaPackable.Instantiate(colMesh));
-					_files.ColliderMeshInstanceIdToGuid.Add((colMesh as Component)!.GetInstanceID(), guid);
 				}
 
 				if (meshGos.Count > 0) {

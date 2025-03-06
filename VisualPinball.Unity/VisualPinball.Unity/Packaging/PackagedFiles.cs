@@ -56,14 +56,20 @@ namespace VisualPinball.Unity
 
 		#region Collider Meshes
 
-		public readonly Dictionary<int, string> ColliderMeshInstanceIdToGuid = new();
+		private readonly Dictionary<string, string> _colliderMeshInstanceIdToGuid = new();
 		private readonly Dictionary<string, Mesh> _colliderMeshes = new();
 		private Dictionary<string, ColliderMeshMetaPackable> _colliderMeshMeta;
 
-		public string GetColliderMeshGuid(IColliderMesh cm)
+		public string GetColliderMeshGuid(IColliderMesh cm, ushort index)
 		{
 			var instanceId = (cm as Component)!.GetInstanceID();
-			return ColliderMeshInstanceIdToGuid.GetValueOrDefault(instanceId);
+			return _colliderMeshInstanceIdToGuid.GetValueOrDefault($"{instanceId}-{index}");
+		}
+
+		public void AddColliderMeshGuid(IColliderMesh cm, string guid, int index)
+		{
+			var key = $"{(cm as Component)!.GetInstanceID()}-{index}";
+			_colliderMeshInstanceIdToGuid.Add(key, guid);
 		}
 
 #if UNITY_EDITOR
@@ -103,8 +109,8 @@ namespace VisualPinball.Unity
 			_colliderMeshes.Clear();
 			for (var i = 0; i < n; i++) {
 				var collider = glbPrefab.transform.GetChild(i);
-				var guid = collider.name;
-				if (_colliderMeshMeta.TryGetValue(guid, out var meta)) {
+				var key = collider.name; // key is guid-index
+				if (_colliderMeshMeta.TryGetValue(key, out var meta)) {
 					if (meta.PrefabGuid != null) {
 						var prefabPath = AssetDatabase.GUIDToAssetPath(meta.PrefabGuid);
 						if (prefabPath != null) {
@@ -129,20 +135,20 @@ namespace VisualPinball.Unity
 								Logger.Warn($"Cannot load prefab for collider mesh at {prefabPath}.");
 							}
 						} else {
-							Logger.Warn($"Cannot find prefab for collider mesh {guid}.");
+							Logger.Warn($"Cannot find prefab for collider mesh {key}.");
 						}
 					}
 				} else {
-					Logger.Warn($"Cannot fine meta data for collider mesh {guid}.");
+					Logger.Warn($"Cannot fine meta data for collider mesh {key}.");
 				}
-				_colliderMeshes.Add(guid, collider.GetComponent<MeshFilter>().sharedMesh);
+				_colliderMeshes.Add(key, collider.GetComponent<MeshFilter>().sharedMesh);
 			}
 		}
 #endif
 
-		public Mesh GetColliderMesh(string guid)
+		public Mesh GetColliderMesh(string guid, int index)
 		{
-			return _colliderMeshes[guid];
+			return _colliderMeshes[$"{guid}-{index}"];
 		}
 
 		#endregion
@@ -367,5 +373,7 @@ namespace VisualPinball.Unity
 #endif
 
 		#endregion
+
+
 	}
 }

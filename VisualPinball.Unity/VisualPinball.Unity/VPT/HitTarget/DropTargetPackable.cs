@@ -52,6 +52,42 @@ namespace VisualPinball.Unity
 		}
 	}
 
+	public struct DropTargetColliderReferencesPackable
+	{
+		public PhysicalMaterialPackable PhysicalMaterial;
+		public string FrontColliderMeshGuid;
+		public string BackColliderMeshGuid;
+
+		public static byte[] PackReferences(DropTargetColliderComponent comp, PackagedFiles files)
+		{
+			return PackageApi.Packer.Pack(new DropTargetColliderReferencesPackable {
+				PhysicalMaterial = new PhysicalMaterialPackable {
+					Elasticity = comp.Elasticity,
+					ElasticityFalloff = comp.ElasticityFalloff,
+					Friction = comp.Friction,
+					Scatter = comp.Scatter,
+					Overwrite = comp.OverwritePhysics,
+					AssetRef = files.AddAsset(comp.PhysicsMaterial),
+				},
+				FrontColliderMeshGuid = files.GetColliderMeshGuid(comp, 0),
+				BackColliderMeshGuid = files.GetColliderMeshGuid(comp, 1)
+			});
+		}
+
+		public static void Unpack(byte[] bytes, DropTargetColliderComponent comp, PackagedFiles files)
+		{
+			var data = PackageApi.Packer.Unpack<DropTargetColliderReferencesPackable>(bytes);
+			comp.Elasticity = data.PhysicalMaterial.Elasticity;
+			comp.ElasticityFalloff = data.PhysicalMaterial.ElasticityFalloff;
+			comp.Friction = data.PhysicalMaterial.Friction;
+			comp.Scatter = data.PhysicalMaterial.Scatter;
+			comp.OverwritePhysics = data.PhysicalMaterial.Overwrite;
+			comp.PhysicsMaterial = files.GetAsset<PhysicsMaterialAsset>(data.PhysicalMaterial.AssetRef);
+			comp.FrontColliderMesh = files.GetColliderMesh(data.FrontColliderMeshGuid, 0);
+			comp.BackColliderMesh = files.GetColliderMesh(data.BackColliderMeshGuid, 1);
+		}
+	}
+
 	public struct DropTargetAnimationPackable
 	{
 		public float Speed;

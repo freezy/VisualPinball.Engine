@@ -22,11 +22,12 @@ using UnityEngine;
 namespace VisualPinball.Unity
 {
 	/// <summary>
-	/// Components implementing this interface have their separate, non-generated collider mesh.
+	/// Components implementing this interface have their separate, non-generated collider meshes.
 	/// </summary>
 	public interface IColliderMesh
 	{
-		Mesh GetColliderMesh();
+		Mesh GetColliderMesh(int index);
+		int NumColliderMeshes { get; }
 	}
 
 	public struct ColliderMeshMetaPackable
@@ -38,7 +39,7 @@ namespace VisualPinball.Unity
 
 #if UNITY_EDITOR
 
-		private static bool IsMeshOverridden(IColliderMesh icm)
+		private static bool IsMeshOverridden(IColliderMesh icm, int index)
 		{
 			var comp = (icm as Component)!;
 			// Get the corresponding component from the original prefab asset
@@ -46,10 +47,10 @@ namespace VisualPinball.Unity
 			if (prefabComponent == null) {
 				return false;
 			}
-			return icm.GetColliderMesh() != (prefabComponent as IColliderMesh)!.GetColliderMesh();
+			return icm.GetColliderMesh(index) != (prefabComponent as IColliderMesh)!.GetColliderMesh(index);
 		}
 
-		public static ColliderMeshMetaPackable Instantiate(IColliderMesh icm)
+		public static ColliderMeshMetaPackable Instantiate(IColliderMesh icm, int index)
 		{
 			var comp = (icm as Component)!;
 
@@ -92,7 +93,7 @@ namespace VisualPinball.Unity
 
 			return new ColliderMeshMetaPackable {
 				Name = comp.name,
-				IsPrefabMeshOverriden = IsMeshOverridden(icm),
+				IsPrefabMeshOverriden = IsMeshOverridden(icm, index),
 				PrefabGuid = guid,
 				PathWithinPrefab = path
 			};

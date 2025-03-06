@@ -18,6 +18,7 @@ using System;
 using Unity.Mathematics;
 using UnityEngine;
 using VisualPinball.Engine.Game.Engines;
+using VisualPinball.Engine.VPT;
 
 namespace VisualPinball.Unity
 {
@@ -51,6 +52,7 @@ namespace VisualPinball.Unity
 		/// </summary>
 		/// <returns></returns>
 		ColliderInfo GetColliderInfo();
+		ColliderInfo GetColliderInfo(ItemType itemType);
 
 		/// <summary>
 		/// If false, this won't be included in the quad tree.

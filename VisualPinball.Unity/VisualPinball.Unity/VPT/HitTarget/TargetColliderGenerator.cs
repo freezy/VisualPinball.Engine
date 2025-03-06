@@ -17,25 +17,29 @@
 using Unity.Collections;
 using Unity.Mathematics;
 using UnityEngine;
+using VisualPinball.Engine.VPT;
+using Mesh = UnityEngine.Mesh;
 
 namespace VisualPinball.Unity
 {
 	public class TargetColliderGenerator
 	{
-		private readonly Mesh _colliderMesh;
 		private readonly IApiColliderGenerator _api;
 		private readonly float4x4 _matrix;
 
-		public TargetColliderGenerator(Mesh colliderMesh, IApiColliderGenerator api, float4x4 matrix)
+		public TargetColliderGenerator(IApiColliderGenerator api, float4x4 matrix)
 		{
-			_colliderMesh = colliderMesh;
 			_api = api;
 			_matrix = matrix;
 		}
 
-		internal void GenerateColliders(ref ColliderReference colliders)
+		internal void GenerateColliders(ref ColliderReference colliders, Mesh colliderMesh, ItemType itemType, MonoBehaviour mainComp)
 		{
-			using var meshDataArray = Mesh.AcquireReadOnlyMeshData(_colliderMesh);
+			if (colliderMesh == null) {
+				Debug.LogWarning($"Collider mesh of target \"{mainComp.name}\" is not set. Target will not fully work.");
+				return;
+			}
+			using var meshDataArray = Mesh.AcquireReadOnlyMeshData(colliderMesh);
 			var meshData = meshDataArray[0];
 			var subMesh = meshData.GetSubMesh(0); // todo loop through all sub meshes?
 			var unityVertices = new NativeArray<Vector3>(meshData.vertexCount, Allocator.TempJob);
@@ -43,7 +47,7 @@ namespace VisualPinball.Unity
 			meshData.GetVertices(unityVertices);
 			meshData.GetIndices(unityIndices, 0);
 
-			ColliderUtils.GenerateCollidersFromMesh(in unityVertices, in unityIndices, math.mul(_matrix, Physics.WorldToVpx), _api.GetColliderInfo(), ref colliders);
+			ColliderUtils.GenerateCollidersFromMesh(in unityVertices, in unityIndices, math.mul(_matrix, Physics.WorldToVpx), _api.GetColliderInfo(itemType), ref colliders);
 
 			unityVertices.Dispose();
 			unityIndices.Dispose();
