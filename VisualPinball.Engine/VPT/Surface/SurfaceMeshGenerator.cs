@@ -65,6 +65,13 @@ namespace VisualPinball.Engine.VPT.Surface
 			throw new ArgumentException($"Unknown mesh ID \"{id}\".");
 		}
 
+		/// <summary>
+		/// Generates a mesh based on the drag points.
+		/// </summary>
+		/// <param name="tableWidth">Table width (x-axis) for calculating UV-map. Set to 0 for no UV-map.</param>
+		/// <param name="tableHeight">Table height (y-axis) for calculating UV-map. Set to 0 for no UV-map.</param>
+		/// <param name="zHeight">Z-position of the top mesh in local space.</param>
+		/// <returns></returns>
 		private Mesh GenerateTopMesh(float tableWidth, float tableHeight, float zHeight) {
 
 			var topMesh = new Mesh("Top");
@@ -104,8 +111,8 @@ namespace VisualPinball.Engine.VPT.Surface
 			var heightNotDropped = _data.HeightTop;
 			var heightDropped = _data.HeightBottom + 0.1;
 
-			var invTableWidth = 1.0f / tableWidth;
-			var invTableHeight = 1.0f / tableHeight;
+			var invTableWidth = tableWidth == 0 ? 0 :  1.0f / tableWidth;
+			var invTableHeight = tableHeight == 0 ? 0 : 1.0f / tableHeight;
 
 			Vertex3DNoTex2[][] vertsTop = { new Vertex3DNoTex2[numVertices], new Vertex3DNoTex2[numVertices], new Vertex3DNoTex2[numVertices]};
 			for (var i = 0; i < numVertices; i++) {
