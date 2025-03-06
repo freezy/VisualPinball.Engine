@@ -30,7 +30,7 @@ namespace VisualPinball.Unity
 		#region Data
 
 		[Tooltip("The mesh that will be used for the collider.")]
-		public Mesh ColliderMesh;
+		public Mesh FrontColliderMesh;
 
 		[Min(0f)]
 		[Tooltip("Bounciness, also known as coefficient of restitution. Higher is more bouncy.")]
@@ -105,6 +105,7 @@ namespace VisualPinball.Unity
 		public override float4x4 GetLocalToPlayfieldMatrixInVpx(float4x4 worldToPlayfield)
 			=> base.GetLocalToPlayfieldMatrixInVpx(worldToPlayfield).TransformToVpx();
 
-		public Mesh GetColliderMesh() => ColliderMesh;
+		public int NumColliderMeshes => 1;
+		public Mesh GetColliderMesh(int index) => FrontColliderMesh; // there's only one
 	}
 }

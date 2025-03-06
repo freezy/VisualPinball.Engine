@@ -26,7 +26,8 @@ namespace VisualPinball.Unity.Editor
 	{
 		private bool _foldoutMaterial = true;
 
-		private SerializedProperty _colliderMeshProperty;
+		private SerializedProperty _frontColliderMeshProperty;
+		private SerializedProperty _backColliderMeshProperty;
 		private SerializedProperty _thresholdProperty;
 		private SerializedProperty _physicsMaterialProperty;
 		private SerializedProperty _overwritePhysicsProperty;
@@ -39,7 +40,8 @@ namespace VisualPinball.Unity.Editor
 		{
 			base.OnEnable();
 
-			_colliderMeshProperty = serializedObject.FindProperty(nameof(HitTargetColliderComponent.ColliderMesh));
+			_frontColliderMeshProperty = serializedObject.FindProperty(nameof(DropTargetColliderComponent.FrontColliderMesh));
+			_backColliderMeshProperty = serializedObject.FindProperty(nameof(DropTargetColliderComponent.BackColliderMesh));
 
 			_thresholdProperty = serializedObject.FindProperty(nameof(HitTargetColliderComponent.Threshold));
 			_physicsMaterialProperty = serializedObject.FindProperty(nameof(ColliderComponent<HitTargetData, TargetComponent>.PhysicsMaterial));
@@ -64,8 +66,11 @@ namespace VisualPinball.Unity.Editor
 
 			OnPreInspectorGUI();
 
-			if (_colliderMeshProperty != null) {
-				PropertyField(_colliderMeshProperty, "Collider Mesh");
+			if (_frontColliderMeshProperty != null) {
+				PropertyField(_frontColliderMeshProperty, "Front Collider");
+			}
+			if (_backColliderMeshProperty != null) {
+				PropertyField(_backColliderMeshProperty, "Back Collider");
 			}
 
 			PropertyField(_thresholdProperty, "Hit Threshold");

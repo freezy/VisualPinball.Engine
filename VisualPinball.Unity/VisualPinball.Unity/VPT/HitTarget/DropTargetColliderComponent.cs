@@ -16,6 +16,7 @@
 
 // ReSharper disable InconsistentNaming
 
+using System;
 using UnityEngine;
 using VisualPinball.Engine.VPT.HitTarget;
 
@@ -24,12 +25,15 @@ namespace VisualPinball.Unity
 	[PackAs("DropTargetCollider")]
 	[AddComponentMenu("Pinball/Collision/Drop Target Collider")]
 	[RequireComponent(typeof(DropTargetComponent))]
-	public class DropTargetColliderComponent : ColliderComponent<HitTargetData, TargetComponent>, IPackable
+	public class DropTargetColliderComponent : ColliderComponent<HitTargetData, TargetComponent>, IPackable, IColliderMesh
 	{
 		#region Data
 
-		[Tooltip("The mesh that will be used for the collider.")]
-		public Mesh ColliderMesh;
+		[Tooltip("The collider mesh that will be used for the front side of the target and triggers the drop target.")]
+		public Mesh FrontColliderMesh;
+
+		[Tooltip("The collider mesh that will be used for the back side of the collider and doesn't trigger anything.")]
+		public Mesh BackColliderMesh;
 
 		[Min(0f)]
 		[Tooltip("Bounciness, also known as coefficient of restitution. Higher is more bouncy.")]
@@ -63,11 +67,13 @@ namespace VisualPinball.Unity
 
 		public byte[] Pack() => DropTargetColliderPackable.Pack(this);
 
-		public byte[] PackReferences(Transform root, PackagedRefs refs, PackagedFiles files) => PhysicalMaterialPackable.Pack(this, files);
+		public byte[] PackReferences(Transform root, PackagedRefs refs, PackagedFiles files)
+			=> DropTargetColliderReferencesPackable.PackReferences(this, files);
 
 		public void Unpack(byte[] bytes) => DropTargetColliderPackable.Unpack(bytes, this);
 
-		public void UnpackReferences(byte[] data, Transform root, PackagedRefs refs, PackagedFiles files) => PhysicalMaterialPackable.Unpack(data, this, files);
+		public void UnpackReferences(byte[] data, Transform root, PackagedRefs refs, PackagedFiles files)
+			=> DropTargetColliderReferencesPackable.Unpack(data, this, files);
 
 		#endregion
 
@@ -102,5 +108,15 @@ namespace VisualPinball.Unity
 
 		protected override IApiColliderGenerator InstantiateColliderApi(Player player, PhysicsEngine physicsEngine)
 			=> (MainComponent as DropTargetComponent)?.DropTargetApi ?? new DropTargetApi(gameObject, player, physicsEngine);
+
+		public int NumColliderMeshes => 2;
+		public Mesh GetColliderMesh(int index)
+		{
+			return index switch {
+				0 => FrontColliderMesh,
+				1 => BackColliderMesh,
+				_ => throw new ArgumentException($"Must be smaller than {NumColliderMeshes}")
+			};
+		}
 	}
 }

@@ -18,6 +18,7 @@ using System;
 using System.Collections.Generic;
 using Unity.Mathematics;
 using UnityEngine;
+using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.HitTarget;
 
 namespace VisualPinball.Unity
@@ -105,8 +106,9 @@ namespace VisualPinball.Unity
 
 		protected override void CreateColliders(ref ColliderReference colliders, float4x4 translateWithinPlayfieldMatrix, float margin)
 		{
-			var colliderGenerator = new TargetColliderGenerator(ColliderComponent.ColliderMesh, this, translateWithinPlayfieldMatrix);
-			colliderGenerator.GenerateColliders(ref colliders);
+			var colliderGenerator = new TargetColliderGenerator(this, translateWithinPlayfieldMatrix);
+			colliderGenerator.GenerateColliders(ref colliders, ColliderComponent.FrontColliderMesh, ItemType.HitTarget, MainComponent);
+			colliderGenerator.GenerateColliders(ref colliders, ColliderComponent.BackColliderMesh, ItemType.Primitive, MainComponent);
 		}
 
 		#endregion

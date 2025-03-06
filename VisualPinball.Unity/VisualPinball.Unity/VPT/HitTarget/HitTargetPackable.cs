@@ -52,7 +52,7 @@ namespace VisualPinball.Unity
 	public struct HitTargetColliderReferencesPackable
 	{
 		public PhysicalMaterialPackable PhysicalMaterial;
-		public string ColliderMeshGuid;
+		public string FrontColliderMeshGuid;
 
 		public static byte[] PackReferences(HitTargetColliderComponent comp, PackagedFiles files)
 		{
@@ -65,7 +65,7 @@ namespace VisualPinball.Unity
 					Overwrite = comp.OverwritePhysics,
 					AssetRef = files.AddAsset(comp.PhysicsMaterial),
 				},
-				ColliderMeshGuid = files.GetColliderMeshGuid(comp)
+				FrontColliderMeshGuid = files.GetColliderMeshGuid(comp, 0)
 			});
 		}
 
@@ -78,7 +78,7 @@ namespace VisualPinball.Unity
 			comp.Scatter = data.PhysicalMaterial.Scatter;
 			comp.OverwritePhysics = data.PhysicalMaterial.Overwrite;
 			comp.PhysicsMaterial = files.GetAsset<PhysicsMaterialAsset>(data.PhysicalMaterial.AssetRef);
-			comp.ColliderMesh = files.GetColliderMesh(data.ColliderMeshGuid);
+			comp.FrontColliderMesh = files.GetColliderMesh(data.FrontColliderMeshGuid, 0);
 		}
 	}
 
