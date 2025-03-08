@@ -185,7 +185,7 @@ namespace VisualPinball.Unity.Editor
 				var element = NewItem(row);
 				_elementByAsset[row.Asset] = element;
 				_resultByElement[element] = row;
-				_gridContent.Add(_elementByAsset[row.Asset]);
+				_gridContent.Add(element);
 			}
 
 			_gridContent.MarkDirtyRepaint(); // todo doesn't work, scrolling is still screwed.
@@ -319,7 +319,7 @@ namespace VisualPinball.Unity.Editor
 			SelectNone();
 		}
 
-		private void OnAssetClicked(IMouseEvent evt, VisualElement element)
+		private void OnAssetClicked(ClickEvent evt, VisualElement element)
 		{
 			// only interested in left click here
 			if (evt.button != 0) {

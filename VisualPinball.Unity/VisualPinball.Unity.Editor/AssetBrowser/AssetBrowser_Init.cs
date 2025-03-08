@@ -153,7 +153,8 @@ namespace VisualPinball.Unity.Editor
 			var label = item.Q<Label>("label");
 			label.text = result.Asset.Name;
 			label.style.textOverflow = TextOverflow.Ellipsis;
-			item.RegisterCallback<MouseUpEvent>(evt => OnAssetClicked(evt, item));
+			item.RegisterCallback<ClickEvent>(evt => OnAssetClicked(evt, item));
+
 			item.Q<LibraryAssetElement>().RegisterDrag(this);
 			item.AddManipulator(new ContextualMenuManipulator(AddAssetContextMenu));
 			return item;
