@@ -1,4 +1,4 @@
-﻿<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements">
+﻿<ui:UXML xmlns:ui="UnityEngine.UIElements">
 	<ui:ScrollView>
 		<ui:VisualElement name="container" />
 	</ui:ScrollView>
@@ -13,6 +13,3 @@
 	<ui:VisualElement name="categoryTagsContainer"/>
 
 </ui:UXML>
-
-
-

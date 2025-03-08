@@ -23,10 +23,10 @@ using UnityEngine.UIElements;
 
 namespace VisualPinball.Unity.Editor
 {
-	public class LibraryCategoryView : VisualElement
-	{
-		public new class UxmlFactory : UxmlFactory<LibraryCategoryView, UxmlTraits> { }
 
+	[UxmlElement]
+	public partial class LibraryCategoryView : VisualElement
+	{
 		public int NumSelectedCategories => _selectedCategoryElements.Count;
 		public int NumCategories;
 
