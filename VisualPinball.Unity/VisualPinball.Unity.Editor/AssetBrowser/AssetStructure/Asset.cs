@@ -27,7 +27,7 @@ using Object = UnityEngine.Object;
 namespace VisualPinball.Unity.Editor
 {
 	/// <summary>
-	/// This class describes the meta data of a library asset. It also references the actual
+	/// This class describes the metadata of a library asset. It also references the actual
 	/// library asset. It's the entity you'll see in the asset browser, so anything library
 	/// related goes through that class.
 	/// </summary>
@@ -88,7 +88,7 @@ namespace VisualPinball.Unity.Editor
 
 		public string GUID {
 			get {
-				if (AssetDatabase.TryGetGUIDAndLocalFileIdentifier(Object, out var guid, out long _)) {
+				if (AssetDatabase.TryGetGUIDAndLocalFileIdentifier(Object, out var guid, out _)) {
 					return guid;
 				}
 				throw new Exception($"Could not get GUID from {Object.name}");
@@ -156,7 +156,7 @@ namespace VisualPinball.Unity.Editor
 
 		public IEnumerable<Asset> GetNestedAssets() => EditorUtility.CollectDependencies(new[] { Object })
 			.Where(o => o is GameObject)
-			.Select(g => AssetDatabase.TryGetGUIDAndLocalFileIdentifier(g, out var guid, out long _) ? guid : null)
+			.Select(g => AssetDatabase.TryGetGUIDAndLocalFileIdentifier(g, out var guid, out _) ? guid : null)
 			.Where(guid => guid != null && guid != GUID && Library.HasAsset(guid))
 			.Distinct()
 			.Select(guid => Library.GetAsset(guid));

@@ -22,10 +22,9 @@ using Object = UnityEngine.Object;
 
 namespace VisualPinball.Unity.Editor
 {
-	public class LibraryAssetElement : VisualElement
+	[UxmlElement]
+	public partial class LibraryAssetElement : VisualElement
 	{
-		public new class UxmlFactory : UxmlFactory<LibraryAssetElement, UxmlTraits> { }
-
 		public AssetResult Result;
 
 		private enum DragState

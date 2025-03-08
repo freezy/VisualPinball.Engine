@@ -21,10 +21,9 @@ using UnityEngine.UIElements;
 
 namespace VisualPinball.Unity.Editor
 {
-	public class LibraryCategoryRenameElement : VisualElement
+	[UxmlElement]
+	public partial class LibraryCategoryRenameElement : VisualElement
 	{
-		public new class UxmlFactory : UxmlFactory<LibraryCategoryRenameElement, UxmlTraits> { }
-
 		public LibraryCategoryElement Category;
 
 		private readonly TextField _textField;

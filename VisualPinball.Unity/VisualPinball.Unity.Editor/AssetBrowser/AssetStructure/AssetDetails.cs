@@ -31,7 +31,8 @@ namespace VisualPinball.Unity.Editor
 	/// <summary>
 	/// What's rendered on the right panel.
 	/// </summary>
-	public class AssetDetails : VisualElement
+	[UxmlElement]
+	public partial class AssetDetails : VisualElement
 	{
 		public Asset Asset {
 			get => _asset;
@@ -76,8 +77,6 @@ namespace VisualPinball.Unity.Editor
 		private readonly Toggle _replaceSelectedKeepName;
 		private readonly Button _addButton;
 		private readonly string _addButtonText;
-
-		public new class UxmlFactory : UxmlFactory<AssetDetails, UxmlTraits> { }
 
 		public AssetDetails()
 		{
