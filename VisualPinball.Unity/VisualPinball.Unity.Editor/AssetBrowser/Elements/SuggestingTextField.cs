@@ -236,12 +236,12 @@ namespace VisualPinball.Unity.Editor
 					return;
 
 				case KeyCode.UpArrow:
-					evt.PreventDefault();
+					evt.StopPropagation();
 					if (_optionList.selectedIndex > 0)
 						_optionList.selectedIndex--;
 					break;
 				case KeyCode.DownArrow:
-					evt.PreventDefault();
+					evt.StopPropagation();
 					if (_optionList.selectedIndex < MatchedSuggestOption.Count - 1)
 						_optionList.selectedIndex++;
 					break;
