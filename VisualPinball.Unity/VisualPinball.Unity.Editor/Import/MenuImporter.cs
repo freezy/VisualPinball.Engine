@@ -31,7 +31,7 @@ namespace VisualPinball.Unity.Editor
 		public static async void ImportVpeIntoScene(MenuCommand menuCommand)
 		{
 			// if it's an untitled scene, save first.
-			if (!EnsureUntitledSceneHasBeenSaved("Before importing, you need to make your current scene an asset by saving it.")) {
+			if (!EnsureUntitledSceneHasBeenSaved()) {
 				return;
 			}
 			
@@ -58,11 +58,11 @@ namespace VisualPinball.Unity.Editor
 			}
 		}
 		
-		private static bool EnsureUntitledSceneHasBeenSaved(string message)
+		private static bool EnsureUntitledSceneHasBeenSaved()
 		{
 			if (string.IsNullOrEmpty(SceneManager.GetActiveScene().path)) {
 
-				if (!EditorUtility.DisplayDialog("Info", "Before importing a VPE file, you need to make your current scene an asset by saving it.\nSave your current scene?", "Yes", "No")) {
+				if (!EditorUtility.DisplayDialog("Info", "Before importing, you need to make your current scene an asset by saving it.\nSave your current scene?", "Yes", "No")) {
 					return false;
 				}
 				

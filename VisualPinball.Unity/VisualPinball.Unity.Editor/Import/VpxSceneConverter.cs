@@ -170,7 +170,7 @@ namespace VisualPinball.Unity.Editor
 				_patcher?.PostPatch(_tableGo);
 			}
 
-			return MakeSubScene();
+			return _tableGo;
 		}
 		private void SaveData()
 		{
@@ -600,24 +600,6 @@ namespace VisualPinball.Unity.Editor
 			_playfieldGo.AddComponent<PlayfieldMeshComponent>();
 			_playfieldGo.AddComponent<MeshFilter>();
 			_playfieldComponent.SetData(_sourceTable.Data);
-		}
-		
-		private GameObject MakeSubScene()
-		{
-			// var sceneName = _tableScene.name;
-			// var scenePath = GetScenePath(sceneName);
-			// EditorSceneManager.SaveScene(_tableScene, scenePath);
-			// EditorSceneManager.CloseScene(_tableScene, true);
-			//
-			// // link table scene as sub scene 
-			// var subSceneGo = new GameObject(sceneName);
-			// var subSceneMb = subSceneGo.AddComponent<SubScene>();
-			// var subSceneAsset = AssetDatabase.LoadAssetAtPath<SceneAsset>(scenePath);
-			// subSceneMb.SceneAsset = subSceneAsset;
-			//
-			// return subSceneGo;
-
-			return _tableGo;
 		}
 
 		private static string GetScenePath(string tableName)
