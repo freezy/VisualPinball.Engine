@@ -68,96 +68,94 @@ namespace VisualPinball.Unity
 
 			// update table with results
 			for (var i = 0; i < tableContainer.Table.Data.NumGameItems; i++) {
-				if (job.ItemObj[i].ToInt32() > 0) {
-					var objHandle = (GCHandle) job.ItemObj[i];
-					switch ((ItemType)job.ItemType[i]) {
-						case ItemType.Bumper: {
-							tableContainer.Add(objHandle.Target as Bumper);
-							break;
-						}
-						case ItemType.Decal: {
-							tableContainer.Add(objHandle.Target as Decal);
-							break;
-						}
-						case ItemType.DispReel: {
-							tableContainer.Add(objHandle.Target as DispReel);
-							break;
-						}
-						case ItemType.Flasher: {
-							tableContainer.Add(objHandle.Target as Flasher);
-							break;
-						}
-						case ItemType.Flipper: {
-							tableContainer.Add(objHandle.Target as Flipper);
-							break;
-						}
-						case ItemType.Gate: {
-							tableContainer.Add(objHandle.Target as Gate);
-							break;
-						}
-						case ItemType.HitTarget: {
-							tableContainer.Add(objHandle.Target as HitTarget);
-							break;
-						}
-						case ItemType.Kicker: {
-							tableContainer.Add(objHandle.Target as Kicker);
-							break;
-						}
-						case ItemType.Light: {
-							tableContainer.Add(objHandle.Target as Light);
-							break;
-						}
-						case ItemType.LightSeq: {
-							tableContainer.Add(objHandle.Target as LightSeq);
-							break;
-						}
-						case ItemType.Plunger: {
-							tableContainer.Add(objHandle.Target as Plunger);
-							break;
-						}
-						case ItemType.Primitive: {
-							tableContainer.Add(objHandle.Target as Primitive);
-							break;
-						}
-						case ItemType.Ramp: {
-							tableContainer.Add(objHandle.Target as Ramp);
-							break;
-						}
-						case ItemType.Rubber: {
-							tableContainer.Add(objHandle.Target as Rubber);
-							break;
-						}
-						case ItemType.Spinner: {
-							tableContainer.Add(objHandle.Target as Spinner);
-							break;
-						}
-						case ItemType.Surface: {
-							tableContainer.Add(objHandle.Target as Surface);
-							break;
-						}
-						case ItemType.TextBox: {
-							tableContainer.Add(objHandle.Target as TextBox);
-							break;
-						}
-						case ItemType.Timer: {
-							tableContainer.Add(objHandle.Target as Timer);
-							break;
-						}
-						case ItemType.Trigger: {
-							tableContainer.Add(objHandle.Target as Trigger);
-							break;
-						}
-						case ItemType.Trough: {
-							tableContainer.Add(objHandle.Target as Trough);
-							break;
-						}
-						case ItemType.MetalWireGuide:{
-							tableContainer.Add(objHandle.Target as MetalWireGuide);
-							break;
-						}
-						default:
-							throw new ArgumentException("Unknown item type " + (ItemType)job.ItemType[i] + ".");
+				var objHandle = (GCHandle) job.ItemObj[i];
+				switch ((ItemType)job.ItemType[i]) {
+					case ItemType.Bumper: {
+						tableContainer.Add(objHandle.Target as Bumper);
+						break;
 					}
+					case ItemType.Decal: {
+						tableContainer.Add(objHandle.Target as Decal);
+						break;
+					}
+					case ItemType.DispReel: {
+						tableContainer.Add(objHandle.Target as DispReel);
+						break;
+					}
+					case ItemType.Flasher: {
+						tableContainer.Add(objHandle.Target as Flasher);
+						break;
+					}
+					case ItemType.Flipper: {
+						tableContainer.Add(objHandle.Target as Flipper);
+						break;
+					}
+					case ItemType.Gate: {
+						tableContainer.Add(objHandle.Target as Gate);
+						break;
+					}
+					case ItemType.HitTarget: {
+						tableContainer.Add(objHandle.Target as HitTarget);
+						break;
+					}
+					case ItemType.Kicker: {
+						tableContainer.Add(objHandle.Target as Kicker);
+						break;
+					}
+					case ItemType.Light: {
+						tableContainer.Add(objHandle.Target as Light);
+						break;
+					}
+					case ItemType.LightSeq: {
+						tableContainer.Add(objHandle.Target as LightSeq);
+						break;
+					}
+					case ItemType.Plunger: {
+						tableContainer.Add(objHandle.Target as Plunger);
+						break;
+					}
+					case ItemType.Primitive: {
+						tableContainer.Add(objHandle.Target as Primitive);
+						break;
+					}
+					case ItemType.Ramp: {
+						tableContainer.Add(objHandle.Target as Ramp);
+						break;
+					}
+					case ItemType.Rubber: {
+						tableContainer.Add(objHandle.Target as Rubber);
+						break;
+					}
+					case ItemType.Spinner: {
+						tableContainer.Add(objHandle.Target as Spinner);
+						break;
+					}
+					case ItemType.Surface: {
+						tableContainer.Add(objHandle.Target as Surface);
+						break;
+					}
+					case ItemType.TextBox: {
+						tableContainer.Add(objHandle.Target as TextBox);
+						break;
+					}
+					case ItemType.Timer: {
+						tableContainer.Add(objHandle.Target as Timer);
+						break;
+					}
+					case ItemType.Trigger: {
+						tableContainer.Add(objHandle.Target as Trigger);
+						break;
+					}
+					case ItemType.Trough: {
+						tableContainer.Add(objHandle.Target as Trough);
+						break;
+					}
+					case ItemType.MetalWireGuide:{
+						tableContainer.Add(objHandle.Target as MetalWireGuide);
+						break;
+					}
+					default:
+						throw new ArgumentException("Unknown item type " + (ItemType)job.ItemType[i] + ".");
 				}
 			}
 			job.Dispose();
