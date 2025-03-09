@@ -99,9 +99,8 @@ namespace VisualPinball.Unity.Editor
 
 		protected void MissingComponentHelpBox(VisualElement container)
 		{
-			if (target != null && target is SoundComponent)
+			if (target != null && target is SoundComponent soundComp)
 			{
-				var soundComp = target as SoundComponent;
 				var requiredType = soundComp.GetRequiredType();
 				if (requiredType != null && !soundComp.TryGetComponent(requiredType, out var _))
 					container.Add(
@@ -116,13 +115,13 @@ namespace VisualPinball.Unity.Editor
 
 		private bool AllTargetsSupportLoopingSoundAssets()
 		{
-			foreach (var target in targets)
+			foreach (var t in targets)
 			{
-				if (target == null)
+				if (t == null)
 					continue;
-				if (target is not SoundComponent)
+				if (t is not SoundComponent)
 					continue;
-				if (!(target as SoundComponent).SupportsLoopingSoundAssets())
+				if (!(t as SoundComponent).SupportsLoopingSoundAssets())
 					return false;
 			}
 			return true;
@@ -186,6 +185,4 @@ namespace VisualPinball.Unity.Editor
 			}
 		}
 	}
-		
-		
 }
