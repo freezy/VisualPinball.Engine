@@ -43,7 +43,7 @@ namespace VisualPinball.Unity
 	/// </summary>
 	[CreateAssetMenu(
 		fileName = "SoundEffect",
-		menuName = "Visual Pinball/Sound/SoundEffectAsset",
+		menuName = "Pinball/Sound/SoundEffectAsset",
 		order = 102
 	)]
 	[PackAs("SoundEffectAsset")]

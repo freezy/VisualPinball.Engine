@@ -21,7 +21,7 @@ namespace VisualPinball.Unity
 {
 	[CreateAssetMenu(
 		fileName = "MusicAsset",
-		menuName = "Visual Pinball/Sound/MusicAsset",
+		menuName = "Pinball/Sound/MusicAsset",
 		order = 102
 	)]
 	[PackAs("MusicAsset")]
