@@ -132,6 +132,9 @@ namespace VisualPinball.Unity.Editor
 			_sizeSlider.UnregisterValueChangedCallback(OnThumbSizeChanged);
 			_queryInput.UnregisterValueChangedCallback(OnSearchQueryChanged);
 
+			_gridContent.UnregisterCallback<PointerUpEvent>(OnEmptyClicked);
+			_gridContent.UnregisterCallback<DragLeaveEvent>(OnDragLeaveEvent);
+			_gridContent.UnregisterCallback<DragEnterEvent>(OnDragEnterEvent);
 			_gridContent.UnregisterCallback<DragPerformEvent>(OnDragPerformEvent);
 			_gridContent.UnregisterCallback<DragUpdatedEvent>(OnDragUpdatedEvent);
 			_refreshButton.clicked -= Refresh;

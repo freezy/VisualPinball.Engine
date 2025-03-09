@@ -24,41 +24,19 @@ using Object = UnityEngine.Object;
 
 namespace VisualPinball.Unity.Editor
 {
-	public class ObjectDropdownElement : VisualElement
+	[UxmlElement]
+	public partial class ObjectDropdownElement : VisualElement
 	{
 		private readonly DropdownField _dropdown;
 		private readonly ObjectField _objectPicker;
 
-		#region Uxml
-
-		public new class UxmlFactory : UxmlFactory<ObjectDropdownElement, UxmlTraits> { }
-
-		public new class UxmlTraits : VisualElement.UxmlTraits
-		{
-			private readonly UxmlStringAttributeDescription _label = new() { name = "label" };
-			private readonly UxmlStringAttributeDescription _bindingPath = new() { name = "binding-path" };
-			private readonly UxmlStringAttributeDescription _tooltip = new() { name = "tooltip" };
-
-			public override IEnumerable<UxmlChildElementDescription> uxmlChildElementsDescription
-			{
-				get { yield break; }
-			}
-
-			public override void Init(VisualElement ve, IUxmlAttributes bag, CreationContext cc)
-			{
-				base.Init(ve, bag, cc);
-				var ate = ve as ObjectDropdownElement;
-
-				ate!.Label = _label.GetValueFromBag(bag, cc);
-				ate!.BindingPath = _bindingPath.GetValueFromBag(bag, cc);
-				ate!.Tooltip = _tooltip.GetValueFromBag(bag, cc);
-			}
-		}
-
-		#endregion
-
+		[UxmlAttribute("label")]
 		private string Label { set => _dropdown.label = value; }
+
+		[UxmlAttribute("binding-path")]
 		private string BindingPath { set => _objectPicker.bindingPath = value; }
+
+		[UxmlAttribute("tooltip")]
 		private string Tooltip { set => _dropdown.tooltip = value; }
 
 		public Object Value { get => _objectPicker.value; set => SetValue(value); }

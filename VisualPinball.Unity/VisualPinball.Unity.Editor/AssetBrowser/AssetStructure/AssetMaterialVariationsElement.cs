@@ -26,34 +26,9 @@ namespace VisualPinball.Unity.Editor
 	/// The element that makes radio buttons out of the <see cref="AssetMaterialCombinationElement"/>s and
 	/// exposes which is selected.
 	/// </summary>
-	public class AssetMaterialVariationsElement : VisualElement
+	[UxmlElement]
+	public partial class AssetMaterialVariationsElement : VisualElement
 	{
-		#region Uxml
-
-		public new class UxmlFactory : UxmlFactory<AssetMaterialVariationsElement, UxmlTraits> { }
-
-		public new class UxmlTraits : VisualElement.UxmlTraits
-		{
-			private readonly UxmlStringAttributeDescription _text = new() { name = "text" };
-			private readonly UxmlStringAttributeDescription _tooltip = new() { name = "tooltip" };
-
-			public override IEnumerable<UxmlChildElementDescription> uxmlChildElementsDescription
-			{
-				get { yield break; }
-			}
-
-			public override void Init(VisualElement ve, IUxmlAttributes bag, CreationContext cc)
-			{
-				base.Init(ve, bag, cc);
-				var ate = ve as AssetMaterialVariationsElement;
-
-				ate!.Text = _text.GetValueFromBag(bag, cc);
-				ate!.Tooltip = _tooltip.GetValueFromBag(bag, cc);
-			}
-		}
-
-		#endregion
-
 		public AssetMaterialCombinationElement SelectedMaterialCombination { get; private set; }
 
 		public event EventHandler<AssetMaterialCombinationElement> OnSelected;
@@ -61,7 +36,10 @@ namespace VisualPinball.Unity.Editor
 		private readonly Foldout _foldout;
 		private readonly ScrollView _container;
 
+		[UxmlAttribute("text")]
 		private string Text { set => _foldout.text = value; }
+
+		[UxmlAttribute("tooltip")]
 		private string Tooltip { set => _foldout.tooltip = value; }
 
 		public AssetMaterialVariationsElement()

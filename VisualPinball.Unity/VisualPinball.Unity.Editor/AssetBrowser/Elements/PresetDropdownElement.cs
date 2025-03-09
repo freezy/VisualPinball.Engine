@@ -25,41 +25,22 @@ using UnityEngine.UIElements;
 
 namespace VisualPinball.Unity.Editor
 {
-	public class PresetDropdownElement : VisualElement
+	[UxmlElement]
+	public partial class PresetDropdownElement : VisualElement
 	{
 		private readonly DropdownField _dropdown;
 		private readonly ObjectField _objectPicker;
 
-		public new class UxmlFactory : UxmlFactory<PresetDropdownElement, UxmlTraits> { }
-
-		public new class UxmlTraits : VisualElement.UxmlTraits
-		{
-			private readonly UxmlStringAttributeDescription _label = new() { name = "label" };
-			private readonly UxmlStringAttributeDescription _bindingPath = new() { name = "binding-path" };
-			private readonly UxmlStringAttributeDescription _tooltip = new() { name = "tooltip" };
-			private readonly UxmlStringAttributeDescription _presetPath = new() { name = "preset-path" };
-
-			public override IEnumerable<UxmlChildElementDescription> uxmlChildElementsDescription
-			{
-				get { yield break; }
-			}
-
-			public override void Init(VisualElement ve, IUxmlAttributes bag, CreationContext cc)
-			{
-				base.Init(ve, bag, cc);
-				var el = ve as PresetDropdownElement;
-
-				el!.Label = _label.GetValueFromBag(bag, cc);
-				el!.BindingPath = _bindingPath.GetValueFromBag(bag, cc);
-				el!.Tooltip = _tooltip.GetValueFromBag(bag, cc);
-				el!.PresetPath = _presetPath.GetValueFromBag(bag, cc);
-			}
-		}
-
+		[UxmlAttribute("label")]
 		private string Label { set => _dropdown.label = value; }
+
+		[UxmlAttribute("binding-path")]
 		private string BindingPath { set => _objectPicker.bindingPath = value; }
+
+		[UxmlAttribute("tooltip")]
 		private string Tooltip { set => _dropdown.tooltip = value; }
 
+		[UxmlAttribute("preset-path")]
 		private string PresetPath {
 			set {
 				if (string.IsNullOrEmpty(value)) {
