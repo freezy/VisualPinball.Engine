@@ -43,7 +43,7 @@ namespace VisualPinball.Unity
 		protected override Mesh GetMesh(LightData data)
 		{
 			var playfieldComponent = GetComponentInParent<PlayfieldComponent>();
-			var meshGen = new SurfaceMeshGenerator(new LightInsertData(_dragPoints, InsertHeight));
+			var meshGen = new SurfaceMeshGenerator(new LightInsertData(_dragPoints, InsertHeight), MainComponent.transform.position.TranslateToVpx().ToVertex3D());
 			var topMesh = meshGen.GetMesh(SurfaceMeshGenerator.Top, playfieldComponent.Width, playfieldComponent.Height, 0, false);
 			var sideMesh = meshGen.GetMesh(SurfaceMeshGenerator.Side, playfieldComponent.Width, playfieldComponent.Height, 0, false);
 			return topMesh.Merge(sideMesh).TransformToWorld();

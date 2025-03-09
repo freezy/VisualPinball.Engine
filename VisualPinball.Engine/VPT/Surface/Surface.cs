@@ -28,7 +28,7 @@ namespace VisualPinball.Engine.VPT.Surface
 
 		public Surface(SurfaceData data) : base(data)
 		{
-			_meshGenerator = new SurfaceMeshGenerator(Data);
+			_meshGenerator = new SurfaceMeshGenerator(Data, Vertex3D.Zero);
 		}
 
 		public Surface(BinaryReader reader, string itemName) : this(new SurfaceData(reader, itemName))

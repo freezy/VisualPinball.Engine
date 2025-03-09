@@ -17,10 +17,11 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using FluentAssertions.Specialized;
+using NLog;
 using UnityEngine;
 using VisualPinball.Engine.Math;
 using VisualPinball.Engine.VPT;
+using Logger = NLog.Logger;
 using Mesh = VisualPinball.Engine.VPT.Mesh;
 
 namespace VisualPinball.Unity
@@ -43,6 +44,8 @@ namespace VisualPinball.Unity
 		[NonSerialized]
 		private PlayfieldComponent _playfield;
 		protected PlayfieldComponent Playfield => _playfield ? _playfield : _playfield = GetComponentInParent<PlayfieldComponent>();
+
+		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
 		/// <summary>
 		/// Returns all child mesh components linked to this data.
@@ -121,6 +124,10 @@ namespace VisualPinball.Unity
 		{
 			if (!string.IsNullOrEmpty(surfaceName)) {
 				var surface = FindComponent<ISurfaceComponent>(components, surfaceName);
+				if (surface == null) {
+					Logger.Error($"Could not find surface {surfaceName} to parent to.");
+					return;
+				}
 				transform.SetZPosition(surface.Height(center.ToUnityVector2()));
 				transform.SetParent(surface.transform, true);
 			}

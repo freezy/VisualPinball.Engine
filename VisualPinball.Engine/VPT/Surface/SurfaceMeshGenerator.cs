@@ -16,7 +16,6 @@
 
 using System;
 using System.Collections.Generic;
-using VisualPinball.Engine.Game;
 using VisualPinball.Engine.Math;
 using MathF = VisualPinball.Engine.Math.MathF;
 
@@ -28,10 +27,12 @@ namespace VisualPinball.Engine.VPT.Surface
 		public const string Top = "Top";
 
 		private readonly ISurfaceData _data;
+		private readonly Vertex3D _position;
 
-		public SurfaceMeshGenerator(ISurfaceData data)
+		public SurfaceMeshGenerator(ISurfaceData data, Vertex3D position)
 		{
 			_data = data;
+			_position = position;
 		}
 
 		public Mesh GetMesh(string id, float tableWidth, float tableHeight, float zHeight, bool asRightHanded)
@@ -123,8 +124,8 @@ namespace VisualPinball.Engine.VPT.Surface
 					X = pv0.X,
 					Y = pv0.Y,
 					Z = heightNotDropped + zHeight,
-					Tu = pv0.X * invTableWidth,
-					Tv = pv0.Y * invTableHeight,
+					Tu = (_position.X + pv0.X) * invTableWidth,
+					Tv = (_position.Y + pv0.Y) * invTableHeight,
 					Nx = 0,
 					Ny = 0,
 					Nz = 1.0f
@@ -134,8 +135,8 @@ namespace VisualPinball.Engine.VPT.Surface
 					X = pv0.X,
 					Y = pv0.Y,
 					Z = (float) heightDropped,
-					Tu = pv0.X * invTableWidth,
-					Tv = pv0.Y * invTableHeight,
+					Tu = (_position.X + pv0.X) * invTableWidth,
+					Tv = (_position.Y + pv0.Y) * invTableHeight,
 					Nx = 0,
 					Ny = 0,
 					Nz = 1.0f
@@ -145,8 +146,8 @@ namespace VisualPinball.Engine.VPT.Surface
 					X = pv0.X,
 					Y = pv0.Y,
 					Z = _data.HeightBottom,
-					Tu = pv0.X * invTableWidth,
-					Tv = pv0.Y * invTableHeight,
+					Tu = (_position.X + pv0.X) * invTableWidth,
+					Tv = (_position.Y + pv0.Y) * invTableHeight,
 					Nx = 0,
 					Ny = 0,
 					Nz = -1.0f

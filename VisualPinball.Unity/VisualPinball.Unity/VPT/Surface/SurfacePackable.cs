@@ -26,13 +26,15 @@ namespace VisualPinball.Unity
 		public float HeightTop;
 		public float HeightBottom;
 		public IEnumerable<DragPointPackable> DragPoints;
+		public PackableFloat3 UvOffset;
 
 		public static byte[] Pack(SurfaceComponent comp)
 		{
 			return PackageApi.Packer.Pack(new SurfacePackable {
 				HeightTop = comp.HeightTop,
 				HeightBottom = comp.HeightBottom,
-				DragPoints = comp.DragPoints.Select(DragPointPackable.From)
+				DragPoints = comp.DragPoints.Select(DragPointPackable.From),
+				UvOffset = comp.uvOffset
 			});
 		}
 
@@ -42,6 +44,7 @@ namespace VisualPinball.Unity
 			comp.HeightTop = data.HeightTop;
 			comp.HeightBottom = data.HeightBottom;
 			comp.DragPoints = data.DragPoints.Select(c => c.ToDragPoint()).ToArray();
+			comp.uvOffset = data.UvOffset;
 		}
 	}
 

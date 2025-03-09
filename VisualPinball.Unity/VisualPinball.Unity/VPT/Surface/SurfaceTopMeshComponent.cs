@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using UnityEngine;
+using VisualPinball.Engine.Math;
 using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Surface;
 using VisualPinball.Engine.VPT.Table;
@@ -30,13 +31,13 @@ namespace VisualPinball.Unity
 		protected override Mesh GetMesh(SurfaceData data)
 		{
 			var playfieldComponent = GetComponentInParent<PlayfieldComponent>();
-			return new SurfaceMeshGenerator(data)
+			return new SurfaceMeshGenerator(data, MainComponent.uvOffset.ToVertex3D())
 				.GetMesh(SurfaceMeshGenerator.Top, playfieldComponent.Width, playfieldComponent.Height, 0, false)
 				.TransformToWorld();
 		}
 
 		protected override PbrMaterial GetMaterial(SurfaceData data, Table table)
-			=> new SurfaceMeshGenerator(data).GetMaterial(SurfaceMeshGenerator.Top, table, data);
+			=> new SurfaceMeshGenerator(data, Vertex3D.Zero).GetMaterial(SurfaceMeshGenerator.Top, table, data);
 
 		public override void RebuildMeshes()
 		{

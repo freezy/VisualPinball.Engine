@@ -54,14 +54,16 @@ namespace VisualPinball.Unity
 
 		protected void SetEnabled<T>(bool value) where T : Object
 		{
-			var comp = GetComponent<T>();
-			switch (comp) {
-				case Behaviour behaviourComp:
-					behaviourComp.enabled = value;
-					break;
-				case Renderer rendererComp:
-					rendererComp.enabled = value;
-					break;
+			var comp = GetComponentsInChildren<T>();
+			foreach (var c in comp) {
+				switch (c) {
+					case Behaviour behaviourComp:
+						behaviourComp.enabled = value;
+						break;
+					case Renderer rendererComp:
+						rendererComp.enabled = value;
+						break;
+				}
 			}
 		}
 
