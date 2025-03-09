@@ -18,6 +18,7 @@ using System;
 using System.Collections.Generic;
 using Unity.Mathematics;
 using VisualPinball.Engine.Common;
+using VisualPinball.Engine.Math;
 using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Ramp;
 
@@ -36,7 +37,7 @@ namespace VisualPinball.Unity
 			_api = rampApi;
 			_data = data;
 			_colliderComponent = colliderComponent;
-			_meshGenerator = new RampMeshGenerator(data);
+			_meshGenerator = new RampMeshGenerator(data, Vertex3D.Zero);
 			_matrix = matrix;
 		}
 

@@ -16,6 +16,7 @@
 
 using System;
 using UnityEngine;
+using VisualPinball.Engine.Math;
 using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Ramp;
 using VisualPinball.Engine.VPT.Table;
@@ -30,12 +31,12 @@ namespace VisualPinball.Unity
 		protected override Mesh GetMesh(RampData data)
 		{
 			var playfieldComponent = GetComponentInParent<PlayfieldComponent>();
-			return new RampMeshGenerator(MainComponent)
+			return new RampMeshGenerator(MainComponent, MainComponent.uvOffset.ToVertex3D())
 				.GetMesh(playfieldComponent.Width, playfieldComponent.Height, 0, RampMeshGenerator.Wires)
 				.TransformToWorld();
 		}
 
 		protected override PbrMaterial GetMaterial(RampData data, Table table)
-			=> new RampMeshGenerator(MainComponent).GetMaterial(table, data);
+			=> new RampMeshGenerator(MainComponent, Vertex3D.Zero).GetMaterial(table, data);
 	}
 }
