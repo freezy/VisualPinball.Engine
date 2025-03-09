@@ -14,27 +14,23 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-// ReSharper disable InconsistentNaming
-
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.UIElements;
 
 namespace VisualPinball.Unity.Editor
 {
-	[CustomEditor(typeof(CalloutAsset)), CanEditMultipleObjects]
-	public class CalloutAssetInspector : SoundAssetInspector
+	[CanEditMultipleObjects]
+	public class BinaryEventSoundInspector : SoundComponentInspector
 	{
 		[SerializeField]
-		private VisualTreeAsset _calloutAssetInspector;
+		private VisualTreeAsset binaryEventSoundInspectorXml;
 
 		public override VisualElement CreateInspectorGUI()
 		{
-			var root = new VisualElement();
-			var baseUi = base.CreateInspectorGUI();
-			root.Add(baseUi);
-			var subUi = _calloutAssetInspector.Instantiate();
-			root.Add(subUi);
+			var root = base.CreateInspectorGUI();
+			var inspectorUi = binaryEventSoundInspectorXml.Instantiate();
+			root.Add(inspectorUi);
 			return root;
 		}
 	}

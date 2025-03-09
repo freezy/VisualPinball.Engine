@@ -22,33 +22,33 @@ using UnityEngine.UIElements;
 
 namespace VisualPinball.Unity.Editor
 {
-	[CustomEditor(typeof(CoilSoundComponent)), CanEditMultipleObjects]
-	public class CoilSoundComponentInspector : BinaryEventSoundComponentInspector
+	[CustomEditor(typeof(SwitchSoundComponent)), CanEditMultipleObjects]
+	public class SwitchSoundInspector : BinaryEventSoundInspector
 	{
 		[SerializeField]
-		private VisualTreeAsset coilSoundInspectorXml;
+		private VisualTreeAsset switchSoundInspectorXml;
 
 		public override VisualElement CreateInspectorGUI()
 		{
 			var root = base.CreateInspectorGUI();
-			var inspectorUi = coilSoundInspectorXml.Instantiate();
+			var inspectorUi = switchSoundInspectorXml.Instantiate();
 			root.Add(inspectorUi);
-			var coilNameDropdown = root.Q<DropdownField>("coil-name");
-			var coilNameProp = serializedObject.FindProperty(nameof(CoilSoundComponent.CoilName));
-			var availableCoils = GetAvailableCoils();
-			ConfigureDropdown(coilNameDropdown, coilNameProp, availableCoils);
+			var switchNameDropdown = root.Q<DropdownField>("switch-name");
+			var switchNameProp = serializedObject.FindProperty(nameof(SwitchSoundComponent.SwitchName));
+			var availableSwitches = GetAvailableSwitches();
+			ConfigureDropdown(switchNameDropdown, switchNameProp, availableSwitches);
 			return root;
 		}
 
-		private Dictionary<string, string> GetAvailableCoils()
+		private Dictionary<string, string> GetAvailableSwitches()
 		{
-			var targetComponent = target as Component;
 			if (
-				targetComponent != null
-				&& targetComponent.TryGetComponent<ICoilDeviceComponent>(out var coilDevice)
+				target != null
+				&& target is Component t
+				&& t.TryGetComponent<ISwitchDeviceComponent>(out var switchDevice)
 			)
 			{
-				return coilDevice.AvailableCoils.ToDictionary(
+				return switchDevice.AvailableSwitches.ToDictionary(
 					i => i.Id,
 					i => string.IsNullOrWhiteSpace(i.Description) ? i.Id : i.Description
 				);
