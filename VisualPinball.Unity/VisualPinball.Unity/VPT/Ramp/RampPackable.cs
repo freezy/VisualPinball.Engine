@@ -35,6 +35,7 @@ namespace VisualPinball.Unity
 		public float WireDistanceX;
 		public float WireDistanceY;
 		public IEnumerable<DragPointPackable> DragPoints;
+		public PackableFloat3 UvOffset;
 
 		public static byte[] Pack(RampComponent comp)
 		{
@@ -50,7 +51,8 @@ namespace VisualPinball.Unity
 				WireDiameter = comp.WireDiameter,
 				WireDistanceX = comp.WireDistanceX,
 				WireDistanceY = comp.WireDistanceY,
-				DragPoints = comp.DragPoints.Select(DragPointPackable.From)
+				DragPoints = comp.DragPoints.Select(DragPointPackable.From),
+				UvOffset = comp.uvOffset
 			});
 		}
 
@@ -69,6 +71,7 @@ namespace VisualPinball.Unity
 			comp._wireDistanceX = data.WireDistanceX;
 			comp._wireDistanceY = data.WireDistanceY;
 			comp.DragPoints = data.DragPoints.Select(c => c.ToDragPoint()).ToArray();
+			comp.uvOffset = data.UvOffset;
 		}
 	}
 

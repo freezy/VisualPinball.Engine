@@ -84,6 +84,9 @@ namespace VisualPinball.Unity
 		[SerializeField]
 		private DragPointData[] _dragPoints;
 
+		[SerializeField]
+		public Vector3 uvOffset = Vector3.zero;
+
 		#endregion
 
 		#region IRampData
@@ -158,7 +161,7 @@ namespace VisualPinball.Unity
 		public float Height(Vector2 pos) => Height(pos, transform.localPosition.TranslateToVpx());
 
 		public float Height(Vector2 pos, Vector3 diff) {
-			var vVertex = new RampMeshGenerator(this).GetCentralCurve();
+			var vVertex = new RampMeshGenerator(this, uvOffset.ToVertex3D()).GetCentralCurve();
 			var t = transform.localPosition.TranslateToVpx();
 			Mesh.ClosestPointOnPolygon(vVertex, new Vertex2D(pos.x - diff.x, pos.y - diff.y), false, out var vOut, out var iSeg);
 
@@ -399,6 +402,10 @@ namespace VisualPinball.Unity
 		{
 			var centerVpx = DragPoints.Aggregate(Vector3.zero, (current, dragPoint) => current + dragPoint.Center.ToUnityVector3());
 			centerVpx /= DragPoints.Length;
+
+			if (uvOffset == Vector3.zero) {
+				uvOffset = centerVpx;
+			}
 
 			transform.Translate(centerVpx.TranslateToWorld(transform) - transform.position);
 			foreach (var dragPoint in DragPoints) {

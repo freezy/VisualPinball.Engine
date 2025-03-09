@@ -35,10 +35,12 @@ namespace VisualPinball.Engine.VPT.Ramp
 		public const string Wires = "Wires";
 
 		private readonly IRampData _data;
+		private readonly Vertex3D _position;
 
-		public RampMeshGenerator(IRampData data)
+		public RampMeshGenerator(IRampData data, Vertex3D position)
 		{
 			_data = data;
+			_position = position;
 		}
 
 		public Mesh GetMesh(float tableWidth, float tableHeight, float heightZ, string id)
@@ -193,10 +195,10 @@ namespace VisualPinball.Engine.VPT.Ramp
 
 				//if (_data.Image != null) {
 					if (_data.ImageAlignment == RampImageAlignment.ImageModeWorld) {
-						rgv3d1.Tu = rgv3d1.X * invTableWidth;
-						rgv3d1.Tv = rgv3d1.Y * invTableHeight;
-						rgv3d2.Tu = rgv3d2.X * invTableWidth;
-						rgv3d2.Tv = rgv3d2.Y * invTableHeight;
+						rgv3d1.Tu = (_position.X + rgv3d1.X) * invTableWidth;
+						rgv3d1.Tv = (_position.Y + rgv3d1.Y) * invTableHeight;
+						rgv3d2.Tu = (_position.X + rgv3d2.X) * invTableWidth;
+						rgv3d2.Tv = (_position.Y + rgv3d2.Y) * invTableHeight;
 
 					} else {
 						rgv3d1.Tu = 1.0f;
@@ -255,8 +257,8 @@ namespace VisualPinball.Engine.VPT.Ramp
 				rgv3d2.Z = (rv.PointHeights[i] + _data.LeftWallHeightVisible);
 
 				if (_data.ImageAlignment == RampImageAlignment.ImageModeWorld) {
-					rgv3d1.Tu = rgv3d1.X * invTableWidth;
-					rgv3d1.Tv = rgv3d1.Y * invTableHeight;
+					rgv3d1.Tu = (_position.X + rgv3d1.X) * invTableWidth;
+					rgv3d1.Tv = (_position.Y + rgv3d1.Y) * invTableHeight;
 
 				} else {
 					rgv3d1.Tu = 0;
@@ -309,8 +311,8 @@ namespace VisualPinball.Engine.VPT.Ramp
 				rgv3d2.Z = (rv.PointHeights[i] + _data.RightWallHeightVisible);
 
 				if (_data.ImageAlignment == RampImageAlignment.ImageModeWorld) {
-					rgv3d1.Tu = rgv3d1.X * invTableWidth;
-					rgv3d1.Tv = rgv3d1.Y * invTableHeight;
+					rgv3d1.Tu = (_position.X + rgv3d1.X) * invTableWidth;
+					rgv3d1.Tv = (_position.Y + rgv3d1.Y) * invTableHeight;
 
 				} else {
 					rgv3d1.Tu = 0;

@@ -28,7 +28,7 @@ namespace VisualPinball.Engine.VPT.Ramp
 
 		public Ramp(RampData data) : base(data)
 		{
-			MeshGenerator = new RampMeshGenerator(Data);
+			MeshGenerator = new RampMeshGenerator(Data, Vertex3D.Zero);
 		}
 
 		public Ramp(BinaryReader reader, string itemName) : this(new RampData(reader, itemName))
