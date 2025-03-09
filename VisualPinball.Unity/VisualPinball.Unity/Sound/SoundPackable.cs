@@ -146,7 +146,7 @@ namespace VisualPinball.Unity
 		// will probably get more data in here
 	}
 
-	public class CalloutCoordinatorPackable
+	public struct CalloutCoordinatorPackable
 	{
 		public float PauseDuration;
 
@@ -161,8 +161,52 @@ namespace VisualPinball.Unity
 			comp.PauseDuration = data.PauseDuration;
 		}
 	}
+
+	public struct CalloutRequesterPackable
+	{
+		public int CalloutAssetRef;
+		public SoundPriority Priority;
+		public float MaxQueueTime;
+
+		public static byte[] Pack(CalloutRequester comp, PackagedFiles files)
+			=> PackageApi.Packer.Pack(new CalloutRequesterPackable {
+				CalloutAssetRef = files.AddAsset(comp.CalloutAsset),
+				Priority = comp.Priority,
+				MaxQueueTime = comp.MaxQueueTime
+			});
+
+		public static void Unpack(byte[] bytes, CalloutRequester comp, PackagedFiles files)
+		{
+			var data = PackageApi.Packer.Unpack<CalloutRequesterPackable>(bytes);
+			comp.CalloutAsset = files.GetAsset<CalloutAsset>(data.CalloutAssetRef);
+			comp.Priority = data.Priority;
+			comp.MaxQueueTime = data.MaxQueueTime;
+		}
+	}
+
+	public struct MusicRequesterPackable
+	{
+		public int MusicAssetRef;
+		public SoundPriority Priority;
+		public float Volume;
+
+		public static byte[] Pack(MusicRequester comp, PackagedFiles files)
+			=> PackageApi.Packer.Pack(new MusicRequesterPackable {
+				MusicAssetRef = files.AddAsset(comp.MusicAsset),
+				Priority = comp.Priority,
+				Volume = comp.Volume
+			});
+
+		public static void Unpack(byte[] bytes, MusicRequester comp, PackagedFiles files)
+		{
+			var data = PackageApi.Packer.Unpack<MusicRequesterPackable>(bytes);
+			comp.MusicAsset = files.GetAsset<MusicAsset>(data.MusicAssetRef);
+			comp.Priority = data.Priority;
+			comp.Volume = data.Volume;
+		}
+	}
 	
-	public class MusicCoordinatorPackable
+	public struct MusicCoordinatorPackable
 	{
 		public float FadeDuration;
 

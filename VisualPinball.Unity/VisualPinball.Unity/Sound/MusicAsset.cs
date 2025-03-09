@@ -24,6 +24,7 @@ namespace VisualPinball.Unity
 		menuName = "Visual Pinball/Sound/MusicAsset",
 		order = 102
 	)]
+	[PackAs("MusicAsset")]
 	public class MusicAsset : SoundAsset
 	{
 		public float Volume => _volume;

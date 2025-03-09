@@ -23,16 +23,30 @@ namespace VisualPinball.Unity
 	/// <summary>
 	/// Requests music from the music coordinator while enabled. Intended for testing.
 	/// </summary>
-	public class MusicRequester : MonoBehaviour
+	[PackAs("MusicRequester")]
+	public class MusicRequester : MonoBehaviour, IPackable
 	{
-		[SerializeField]
-		private MusicAsset _musicAsset;
+		#region Data
 
-		[SerializeField]
-		private SoundPriority _priority = SoundPriority.Medium;
+		public MusicAsset MusicAsset;
+		public SoundPriority Priority = SoundPriority.Medium;
+		public float Volume = 1f;
 
-		[SerializeField]
-		private float _volume = 1f;
+		#endregion
+
+		#region Packaging
+
+		public byte[] Pack() => PackageApi.Packer.Empty;
+
+		public byte[] PackReferences(Transform root, PackagedRefs refs, PackagedFiles files)
+			=> MusicRequesterPackable.Pack(this, files);
+
+		public void Unpack(byte[] bytes) { }
+
+		public void UnpackReferences(byte[] data, Transform root, PackagedRefs refs, PackagedFiles files)
+			=> MusicRequesterPackable.Unpack(data, this, files);
+
+		#endregion
 
 		private int requestId;
 
@@ -40,7 +54,7 @@ namespace VisualPinball.Unity
 
 		private void OnEnable()
 		{
-			var request = new MusicRequest(_musicAsset, _priority, _volume);
+			var request = new MusicRequest(MusicAsset, Priority, Volume);
 			_coordinator = GetComponentInParent<MusicCoordinator>();
 			_coordinator.AddRequest(request, out requestId);
 		}

@@ -40,11 +40,27 @@ namespace VisualPinball.Unity
 	/// certain callouts over others and enforcing a minimum pause between two callouts.
 	/// </summary>
 	[PackAs("CalloutCoordinator")]
-	public class CalloutCoordinator : MonoBehaviour
+	public class CalloutCoordinator : MonoBehaviour, IPackable
 	{
+		#region Data
+
 		[Range(0f, 3f)]
 		[Tooltip("How many seconds to pause after a callout before the next one can be started")]
 		public float PauseDuration = 0.5f;
+
+		#endregion
+
+		#region Packaging
+
+		public byte[] Pack() => CalloutCoordinatorPackable.Pack(this);
+
+		public byte[] PackReferences(Transform root, PackagedRefs refs, PackagedFiles files) => null;
+
+		public void Unpack(byte[] bytes) => CalloutCoordinatorPackable.Unpack(bytes, this);
+
+		public void UnpackReferences(byte[] data, Transform root, PackagedRefs refs, PackagedFiles files) { }
+
+		#endregion
 		
 		private readonly List<CalloutRequest> _calloutQ = new();
 		private CancellationTokenSource _loopCts;
@@ -54,7 +70,7 @@ namespace VisualPinball.Unity
 		private int _requestCounter;
 		private int _idOfCurrentlyPlayingRequest = -1;
 
-		private static Logger Logger = LogManager.GetCurrentClassLogger();
+		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
 		public void EnqueueCallout(CalloutRequest request, out int requestId)
 		{

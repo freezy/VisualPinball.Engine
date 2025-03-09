@@ -36,11 +36,27 @@ namespace VisualPinball.Unity
 	/// played. Music fades out when stopped. New music fades in if other music is playing.
 	/// </summary>
 	[PackAs("MusicCoordinator")]
-	public class MusicCoordinator : MonoBehaviour
+	public class MusicCoordinator : MonoBehaviour, IPackable
 	{
+		#region Data
+
 		[Tooltip("How many seconds should transitions between songs take?")]
 		[Range(0f, 10f)]
 		public float FadeDuration = 3f;
+
+		#endregion
+
+		#region Packaging
+
+		public byte[] Pack() => MusicCoordinatorPackable.Pack(this);
+
+		public byte[] PackReferences(Transform root, PackagedRefs refs, PackagedFiles files) => null;
+
+		public void Unpack(byte[] bytes) => MusicCoordinatorPackable.Unpack(bytes, this);
+
+		public void UnpackReferences(byte[] data, Transform root, PackagedRefs refs, PackagedFiles files) { }
+
+		#endregion
 
 		private readonly List<MusicPlayer> _players = new();
 		private readonly List<MusicRequest> _requestStack = new();

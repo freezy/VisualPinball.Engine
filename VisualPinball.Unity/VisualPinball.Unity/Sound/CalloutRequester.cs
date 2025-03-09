@@ -14,6 +14,8 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+// ReSharper disable InconsistentNaming
+
 using UnityEngine;
 
 namespace VisualPinball.Unity
@@ -21,24 +23,37 @@ namespace VisualPinball.Unity
 	/// <summary>
 	/// Requests a callout from the callout coordinator when enabled. Intended for testing.
 	/// </summary>
-	public class CalloutRequester : MonoBehaviour
+	[PackAs("CalloutRequester")]
+	public class CalloutRequester : MonoBehaviour, IPackable
 	{
-		[SerializeField]
-		private CalloutAsset _calloutAsset;
+		#region Data
 
-		[SerializeField]
-		private SoundPriority _priority = SoundPriority.Medium;
+		public CalloutAsset CalloutAsset;
+		public SoundPriority Priority = SoundPriority.Medium;
+		public float MaxQueueTime = -1f;
 
-		[SerializeField]
-		private float _maxQueueTime = -1f;
+		#endregion
+
+		#region Packaging
+
+		public byte[] Pack() => PackageApi.Packer.Empty;
+
+		public byte[] PackReferences(Transform root, PackagedRefs refs, PackagedFiles files)
+			=> CalloutRequesterPackable.Pack(this, files);
+
+		public void Unpack(byte[] bytes) { }
+
+		public void UnpackReferences(byte[] data, Transform root, PackagedRefs refs, PackagedFiles files)
+			=> CalloutRequesterPackable.Unpack(data, this, files);
+
+		#endregion
 
 		private CalloutCoordinator _coordinator;
-
 		private int _requestId;
 
 		private void OnEnable()
 		{
-			var request = new CalloutRequest(_calloutAsset, _priority, _maxQueueTime);
+			var request = new CalloutRequest(CalloutAsset, Priority, MaxQueueTime);
 			_coordinator = GetComponentInParent<CalloutCoordinator>();
 			_coordinator.EnqueueCallout(request, out _requestId);
 		}

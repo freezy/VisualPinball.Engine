@@ -23,6 +23,7 @@ namespace VisualPinball.Unity
 		menuName = "Visual Pinball/Sound/CalloutAsset",
 		order = 102
 	)]
+	[PackAs("CalloutAsset")]
 	public class CalloutAsset : SoundAsset
 	{
 		public override bool Loop => false;
