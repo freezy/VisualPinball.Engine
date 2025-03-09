@@ -16,45 +16,27 @@
 
 using System.Collections.Generic;
 using System.Linq;
-using UnityEditor.UIElements;
 using UnityEngine;
 using UnityEngine.UIElements;
 
 namespace VisualPinball.Unity.Editor
 {
-	public class MaterialSlotDropdownElement : VisualElement
+	[UxmlElement]
+	public partial class MaterialSlotDropdownElement : VisualElement
 	{
 		private readonly DropdownField _dropdown;
 		private readonly IntegerField _integerField;
 
-		public new class UxmlFactory : UxmlFactory<MaterialSlotDropdownElement, UxmlTraits> { }
-
-		public new class UxmlTraits : VisualElement.UxmlTraits
-		{
-			private readonly UxmlStringAttributeDescription _label = new() { name = "label" };
-			private readonly UxmlStringAttributeDescription _bindingPath = new() { name = "binding-path" };
-			private readonly UxmlStringAttributeDescription _tooltip = new() { name = "tooltip" };
-
-			public override IEnumerable<UxmlChildElementDescription> uxmlChildElementsDescription
-			{
-				get { yield break; }
-			}
-
-			public override void Init(VisualElement ve, IUxmlAttributes bag, CreationContext cc)
-			{
-				base.Init(ve, bag, cc);
-				var ate = ve as MaterialSlotDropdownElement;
-
-				ate!.Label = _label.GetValueFromBag(bag, cc);
-				ate!.BindingPath = _bindingPath.GetValueFromBag(bag, cc);
-				ate!.Tooltip = _tooltip.GetValueFromBag(bag, cc);
-			}
-		}
-
+		[UxmlAttribute("label")]
 		public string Label { get => _dropdown.label; set => _dropdown.label = value; }
+
+		[UxmlAttribute("binding-path")]
 		public string BindingPath { get => _integerField.bindingPath; set => _integerField.bindingPath = value; }
-		public string Value { get => _dropdown.value; set => _dropdown.value = value; }
+
+		[UxmlAttribute("tooltip")]
 		public string Tooltip { get => _dropdown.tooltip; set => _dropdown.tooltip = value; }
+
+		public string Value { get => _dropdown.value; set => _dropdown.value = value; }
 
 		private readonly List<Material> _materials = new();
 

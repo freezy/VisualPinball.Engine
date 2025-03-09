@@ -39,44 +39,23 @@ namespace VisualPinball.Unity.Editor
 	/// is set, the input field expects each value separated by a comma, and will match and complete only
 	/// the current value.
 	/// </summary>
-	public class SuggestingTextField : VisualElement
+	[UxmlElement]
+	public partial class SuggestingTextField : VisualElement
 	{
-		#region UXML Definitions and Pass-Throughs
-
-		public new class UxmlFactory : UxmlFactory<SuggestingTextField, UxmlTraits> { }
-		public new class UxmlTraits : VisualElement.UxmlTraits
-		{
-			private readonly UxmlStringAttributeDescription _label = new() { name = "label" };
-			private readonly UxmlStringAttributeDescription _value = new() { name = "value" };
-			private readonly UxmlStringAttributeDescription _bindingPath = new() { name = "binding-path" };
-			private readonly UxmlStringAttributeDescription _tooltip = new() { name = "tooltip" };
-			private readonly UxmlBoolAttributeDescription _isMultiValue = new() { name = "multivalue", defaultValue = false };
-
-			public override IEnumerable<UxmlChildElementDescription> uxmlChildElementsDescription
-			{
-				get { yield break; }
-			}
-
-			public override void Init(VisualElement ve, IUxmlAttributes bag, CreationContext cc)
-			{
-				base.Init(ve, bag, cc);
-				var ate = ve as SuggestingTextField;
-
-				ate!.Label = _label.GetValueFromBag(bag, cc);
-				ate!.Value = _value.GetValueFromBag(bag, cc);
-				ate!.IsMultiValue = _isMultiValue.GetValueFromBag(bag, cc);
-				ate!.BindingPath = _bindingPath.GetValueFromBag(bag, cc);
-				ate!.Tooltip = _tooltip.GetValueFromBag(bag, cc);
-			}
-		}
-
+		[UxmlAttribute("label")]
 		public string Label { get => _textField.label; set => _textField.label = value; }
-		public string BindingPath { get => _textField.bindingPath; set => _textField.bindingPath = value; }
-		public string Value { get => _textField.value; set => _textField.value = value; }
-		public bool IsMultiValue;
-		public string Tooltip { get => _textField.tooltip; set => _textField.tooltip = value; }
 
-		#endregion
+		[UxmlAttribute("binding-path")]
+		public string BindingPath { get => _textField.bindingPath; set => _textField.bindingPath = value; }
+
+		[UxmlAttribute("value")]
+		public string Value { get => _textField.value; set => _textField.value = value; }
+
+		[UxmlAttribute("multivalue")]
+		public bool IsMultiValue { get; set; }
+
+		[UxmlAttribute("tooltip")]
+		public string Tooltip { get => _textField.tooltip; set => _textField.tooltip = value; }
 
 		public new void Focus() => _textField.Focus();
 		public void SelectAll() => _textField.SelectAll();

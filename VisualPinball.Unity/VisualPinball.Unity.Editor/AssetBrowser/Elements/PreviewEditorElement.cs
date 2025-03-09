@@ -20,14 +20,13 @@ using UnityEngine.UIElements;
 
 namespace VisualPinball.Unity.Editor
 {
-	public class PreviewEditorElement : VisualElement
+	[UxmlElement]
+	public partial class PreviewEditorElement : VisualElement
 	{
 		public Object Object;
 
 		private readonly IMGUIContainer _container;
 		private UnityEditor.Editor _previewEditor;
-
-		public new class UxmlFactory : UxmlFactory<PreviewEditorElement, UxmlTraits> { }
 
 		public PreviewEditorElement()
 		{
