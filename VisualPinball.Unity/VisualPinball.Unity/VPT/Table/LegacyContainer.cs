@@ -217,7 +217,7 @@ namespace VisualPinball.Unity
 			}
 			#endif
 
-			return new Engine.VPT.Texture(data);
+			return new Engine.VPT.Texture(data, null);
 		}
 	}
 }

@@ -19,6 +19,7 @@ using System.IO;
 using System.Text;
 using NetVips;
 using NLog;
+using OpenMcdf;
 using VisualPinball.Engine.Resources;
 
 namespace VisualPinball.Engine.VPT
@@ -65,14 +66,19 @@ namespace VisualPinball.Engine.VPT
 		/// contain the header.
 		/// </summary>
 		/// <see cref="FileContent"/>
-		public byte[] Content => ImageData.Bytes;
+		public byte[] Content => ImageData?.Bytes ?? _screenshot;
 
 		/// <summary>
 		/// Data as it would written to an image file (incl headers).
 		/// </summary>
-		public byte[] FileContent => ImageData.FileContent;
+		public byte[] FileContent => ImageData?.FileContent ?? _screenshot;
 
 		private IImageData ImageData => Data.Binary as IImageData ?? Data.Bitmap;
+
+		/// <summary>
+		/// VPX can store texture data as screenshot in the TableInfo storage, this is it if it's the case.
+		/// </summary>
+		private byte[] _screenshot;
 
 		public bool HasTransparentFormat => Data.HasBitmap || Data.Path != null && Data.Path.ToLower().EndsWith(".png");
 
@@ -85,11 +91,25 @@ namespace VisualPinball.Engine.VPT
 			Name = name;
 		}
 
-		public Texture(TextureData data) : base(data) { }
+		public Texture(TextureData data, CFStorage tableInfoStorage) : base(data)
+		{
+			if (data.Binary == null && data.Bitmap == null) {
+				if (data.LinkId == 1) {
+					if (tableInfoStorage == null) {
+						Logger.Warn($"Texture {Name} has no binary data and no storage to load from.");
+						return;
+					}
+					// load screenshot
+					_screenshot = tableInfoStorage.GetStream("Screenshot")?.GetData();
+				} else {
+					Logger.Warn($"Could not load texture {Name} from storage. No binaries and link is {data.LinkId}.");
+				}
+			}
+		}
 
-		public Texture(BinaryReader reader, string itemName) : this(new TextureData(reader, itemName)) { }
+		public Texture(BinaryReader reader, string itemName, CFStorage tableInfoStorage) : this(new TextureData(reader, itemName), tableInfoStorage) { }
 
-		private Texture(Resource res) : this(new TextureData(res)) { }
+		private Texture(Resource res) : this(new TextureData(res), null) { }
 
 		public void Analyze()
 		{
@@ -154,11 +174,11 @@ namespace VisualPinball.Engine.VPT
 		public Image GetImage()
 		{
 			try {
-				var data = Data.Binary != null ? Data.Binary.Data : Data.Bitmap.Bytes;
+				var data = Data.Binary != null ? Data.Binary.Data : Data.Bitmap != null ? Data.Bitmap.Bytes : _screenshot;
 				if (data.Length == 0) {
 					throw new InvalidDataException("Image data is empty.");
 				}
-				return Data.Binary != null
+				return Data.Binary != null || _screenshot != null
 					? Image.NewFromBuffer(data)
 					: Image.NewFromMemory(data, Width, Height, 4, Enums.BandFormat.Uchar);
 
