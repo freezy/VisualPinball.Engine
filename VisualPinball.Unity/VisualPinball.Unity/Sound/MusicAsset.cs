@@ -25,6 +25,7 @@ namespace VisualPinball.Unity
 		order = 102
 	)]
 	[PackAs("MusicAsset")]
+	[PackWith(typeof(SoundAssetPacker))]
 	public class MusicAsset : SoundAsset
 	{
 		public float Volume => _volume;

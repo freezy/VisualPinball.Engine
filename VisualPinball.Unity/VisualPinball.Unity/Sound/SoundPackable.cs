@@ -17,7 +17,6 @@
 // ReSharper disable MemberCanBePrivate.Global
 
 using System;
-using System.Linq;
 
 namespace VisualPinball.Unity
 {
@@ -110,7 +109,6 @@ namespace VisualPinball.Unity
 	public struct SoundReferencesPackable {
 
 		public int SoundAssetRef;
-		public string[]	ClipRefs;
 
 		public static byte[] PackReferences(SoundComponent comp, PackagedFiles files)
 		{
@@ -118,17 +116,8 @@ namespace VisualPinball.Unity
 				return Array.Empty<byte>();
 			}
 
-			// pack asset
-			var assetRef = files.AddAsset(comp.SoundAsset);
-
-			// pack sound files
-			var clipRefs = comp.SoundAsset.Clips != null
-				? comp.SoundAsset.Clips.Select(files.Add).ToArray()
-				: Array.Empty<string>();
-
 			return PackageApi.Packer.Pack(new SoundReferencesPackable {
-				SoundAssetRef = assetRef,
-				ClipRefs = clipRefs
+				SoundAssetRef = files.AddAsset(comp.SoundAsset),
 			});
 		}
 
@@ -136,7 +125,6 @@ namespace VisualPinball.Unity
 		{
 			var data = PackageApi.Packer.Unpack<SoundReferencesPackable>(bytes);
 			comp.SoundAsset = files.GetAsset<SoundAsset>(data.SoundAssetRef);
-			comp.SoundAsset.Clips = data.ClipRefs.Select(files.GetAudioClip).ToArray();
 		}
 	}
 

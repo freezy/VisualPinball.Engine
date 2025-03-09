@@ -40,6 +40,7 @@ namespace VisualPinball.Unity
 	/// therefore be stored in the project files or in an asset library for reuse across tables.
 	/// </summary>
 	[CreateAssetMenu(fileName = "Sound", menuName = "Pinball/Sound", order = 102)]
+	[PackWith(typeof(SoundAssetPacker))]
 	public abstract class SoundAsset : ScriptableObject
 	{
 		public enum SelectionMethod

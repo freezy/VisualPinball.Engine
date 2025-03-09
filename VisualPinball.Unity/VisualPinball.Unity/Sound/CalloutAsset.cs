@@ -24,6 +24,7 @@ namespace VisualPinball.Unity
 		order = 102
 	)]
 	[PackAs("CalloutAsset")]
+	[PackWith(typeof(SoundAssetPacker))]
 	public class CalloutAsset : SoundAsset
 	{
 		public override bool Loop => false;
