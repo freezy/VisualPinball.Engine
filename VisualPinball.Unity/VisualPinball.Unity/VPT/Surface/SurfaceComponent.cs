@@ -49,6 +49,9 @@ namespace VisualPinball.Unity
 		private DragPointData[] _dragPoints;
 		public DragPointData[] DragPoints { get => _dragPoints; set => _dragPoints = value; }
 
+		[SerializeField]
+		public Vector3 uvOffset = Vector3.zero;
+
 		#endregion
 
 		#region Packaging
@@ -234,6 +237,10 @@ namespace VisualPinball.Unity
 
 			var centerVpx = DragPoints.Aggregate(Vector3.zero, (current, dragPoint) => current + dragPoint.Center.ToUnityVector3());
 			centerVpx /= DragPoints.Length;
+
+			if (uvOffset == Vector3.zero) {
+				uvOffset = centerVpx;
+			}
 
 			transform.Translate(centerVpx.TranslateToWorld(transform) - transform.position);
 			foreach (var dragPoint in DragPoints) {
