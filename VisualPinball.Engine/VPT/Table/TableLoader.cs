@@ -43,12 +43,12 @@ namespace VisualPinball.Engine.VPT.Table
 				using (var reader = new BinaryReader(stream)) {
 					var tableContainer = new FileTableContainer(reader);
 
-					LoadTableInfo(tableContainer, cf.RootStorage, gameStorage);
+					var tableInfoStorage = LoadTableInfo(tableContainer, cf.RootStorage, gameStorage);
 					if (loadGameItems) {
 						LoadGameItems(tableContainer, gameStorage, tableContainer.NumGameItems, "GameItem");
 						LoadGameItems(tableContainer, gameStorage, tableContainer.NumVpeGameItems, "VpeGameItem");
 					}
-					LoadTextures(tableContainer, gameStorage);
+					LoadTextures(tableContainer, gameStorage, tableInfoStorage);
 					LoadSounds(tableContainer, gameStorage, fileVersion);
 					LoadCollections(tableContainer, gameStorage);
 					LoadTableMeta(tableContainer, gameStorage);
@@ -256,7 +256,7 @@ namespace VisualPinball.Engine.VPT.Table
 			}
 		}
 
-		private static void LoadTextures(FileTableContainer tableContainer, CFStorage storage)
+		private static void LoadTextures(FileTableContainer tableContainer, CFStorage storage, CFStorage tableInfoStorage)
 		{
 			for (var i = 0; i < tableContainer.NumTextures; i++) {
 				var textureName = $"Image{i}";
@@ -273,7 +273,7 @@ namespace VisualPinball.Engine.VPT.Table
 
 				using (var stream = new MemoryStream(textureData))
 				using (var reader = new BinaryReader(stream)) {
-					var texture = new Texture(reader, textureName);
+					var texture = new Texture(reader, textureName, tableInfoStorage);
 					tableContainer.AddTexture(texture);
 				}
 			}
@@ -313,7 +313,7 @@ namespace VisualPinball.Engine.VPT.Table
 			}
 		}
 
-		private static void LoadTableInfo(FileTableContainer tableContainer, CFStorage rootStorage, CFStorage gameStorage)
+		private static CFStorage LoadTableInfo(FileTableContainer tableContainer, CFStorage rootStorage, CFStorage gameStorage)
 		{
 			// first, although we can loop through entries, get them from the game storage, so we
 			// know their order, which is important when writing back (because you know, hashing).
@@ -329,9 +329,12 @@ namespace VisualPinball.Engine.VPT.Table
 			rootStorage.TryGetStorage("TableInfo", out var tableInfoStorage);
 			if (tableInfoStorage == null) {
 				Logger.Info("TableInfo storage not found, skipping.");
-				return;
+				return null;
 			}
 			tableInfoStorage.VisitEntries(item => {
+				if (item.Name == "Screenshot") { // skip those
+					return;
+				}
 				if (item.IsStream) {
 					var itemStream = item as CFStream;
 					if (itemStream != null) {
@@ -339,6 +342,8 @@ namespace VisualPinball.Engine.VPT.Table
 					}
 				}
 			}, false);
+
+			return tableInfoStorage;
 		}
 
 		private static void LoadTableMeta(FileTableContainer tableContainer, CFStorage gameStorage)

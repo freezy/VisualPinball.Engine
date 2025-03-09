@@ -18,6 +18,7 @@
 // ReSharper disable UnassignedField.Global
 // ReSharper disable StringLiteralTypo
 // ReSharper disable FieldCanBeMadeReadOnly.Global
+// ReSharper disable InconsistentNaming
 #endregion
 
 using System;
@@ -60,6 +61,9 @@ namespace VisualPinball.Engine.VPT
 
 		[BiffBits("BITS", Pos = 6)]
 		public Bitmap Bitmap; // originally "PdsBuffer";
+
+		[BiffInt("LINK", Pos = 6)] // vpx doesn't seem to support anything else than 1, which is "screenshot", found at TableInfo/Screenshot
+		public int LinkId;
 
 		public TextureData(string name) : base(StoragePrefix.Image)
 		{
