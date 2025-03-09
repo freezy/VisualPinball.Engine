@@ -25,9 +25,9 @@ using UnityEngine.SceneManagement;
 
 namespace VisualPinball.Unity.Editor
 {
-	public static class VpeMenuImporter
+	public static class MenuImporter
 	{
-		[MenuItem("Pinball/Import .vpe File", false, 1)]
+		[MenuItem("Pinball/Import Table", false, 1)]
 		public static async void ImportVpeIntoScene(MenuCommand menuCommand)
 		{
 			// if it's an untitled scene, save first.
@@ -36,13 +36,26 @@ namespace VisualPinball.Unity.Editor
 			}
 			
 			// open file dialog
-			var vpePath = EditorUtility.OpenFilePanelWithFilters("Import .vpe File", null, new[] { "VPE Table Files", "vpe" });
-			if (vpePath.Length == 0) {
+			var path = EditorUtility.OpenFilePanelWithFilters("Import", null, new[] { "Pinball Tables", "vpe,vpx" });
+			if (path.Length == 0) {
 				return;
 			}
 
-			var importer = new PackageReader(vpePath);
-			await importer.ImportIntoScene(Path.GetFileNameWithoutExtension(vpePath));
+			switch (Path.GetExtension(path).ToLower()) {
+
+				case ".vpx": {
+					VpxImportEngine.ImportIntoScene(path, tableName: Path.GetFileNameWithoutExtension(path));
+					break;
+				}
+				case ".vpe": {
+					var importer = new PackageReader(path);
+					await importer.ImportIntoScene(Path.GetFileNameWithoutExtension(path));
+					break;
+				}
+				default:
+					EditorUtility.DisplayDialog("Import", "Unsupported file format. Only .vpe and .vpx files are currently supported.", "OK");
+					break;
+			}
 		}
 		
 		private static bool EnsureUntitledSceneHasBeenSaved(string message)
