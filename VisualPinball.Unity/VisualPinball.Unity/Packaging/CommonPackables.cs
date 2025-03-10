@@ -96,7 +96,7 @@ namespace VisualPinball.Unity
 			return PackageApi.Packer.Pack(obj);
 		}
 
-		public static byte[] PackMeta(ScriptableObject obj) => PackageApi.Packer.Pack(new MetaPackable { InstanceId = obj.GetInstanceID() });
+		public static byte[] PackMeta(MetaPackable mp) => PackageApi.Packer.Pack(mp);
 
 		public static MetaPackable UnpackMeta(byte[] data) => PackageApi.Packer.Unpack<MetaPackable>(data);
 	}

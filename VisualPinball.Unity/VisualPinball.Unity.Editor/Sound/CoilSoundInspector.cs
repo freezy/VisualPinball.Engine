@@ -1,5 +1,5 @@
 // Visual Pinball Engine
-// Copyright (C) 2023 freezy and VPE Team
+// Copyright (C) 2025 freezy and VPE Team
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -23,15 +23,15 @@ using UnityEngine.UIElements;
 namespace VisualPinball.Unity.Editor
 {
 	[CustomEditor(typeof(CoilSoundComponent)), CanEditMultipleObjects]
-	public class CoilSoundComponentInspector : SoundComponentInspector
+	public class CoilSoundInspector : BinaryEventSoundInspector
 	{
 		[SerializeField]
-		private VisualTreeAsset inspectorXml;
+		private VisualTreeAsset coilSoundInspectorXml;
 
 		public override VisualElement CreateInspectorGUI()
 		{
 			var root = base.CreateInspectorGUI();
-			var inspectorUi = inspectorXml.Instantiate();
+			var inspectorUi = coilSoundInspectorXml.Instantiate();
 			root.Add(inspectorUi);
 			var coilNameDropdown = root.Q<DropdownField>("coil-name");
 			var coilNameProp = serializedObject.FindProperty(nameof(CoilSoundComponent.CoilName));
@@ -43,7 +43,11 @@ namespace VisualPinball.Unity.Editor
 		private Dictionary<string, string> GetAvailableCoils()
 		{
 			var targetComponent = target as Component;
-			if (targetComponent != null && targetComponent.TryGetComponent<ICoilDeviceComponent>(out var coilDevice)) {
+			if (
+				targetComponent != null
+				&& targetComponent.TryGetComponent<ICoilDeviceComponent>(out var coilDevice)
+			)
+			{
 				return coilDevice.AvailableCoils.ToDictionary(
 					i => i.Id,
 					i => string.IsNullOrWhiteSpace(i.Description) ? i.Id : i.Description

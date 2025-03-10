@@ -151,19 +151,29 @@ namespace VisualPinball.Unity
 
 		private readonly HashSet<ScriptableObject> _scriptableObjects = new();
 		private readonly Dictionary<int, ScriptableObject> _deserializedAssets = new();
+		private readonly Dictionary<int, MetaPackable> _assetMetas = new();
 
-		public int AddAsset(ScriptableObject scriptableObject)
+		public int AddAsset<T>(T scriptableObject) where T : ScriptableObject
 		{
 			if (scriptableObject == null) {
 				return 0;
 			}
 
+			var instanceId = scriptableObject.GetInstanceID();
 			if (!_typeLookup.HasType(scriptableObject.GetType())) {
 				throw new Exception($"Unsupported asset type {scriptableObject.GetType().FullName}");
 			}
 
-			_scriptableObjects.Add(scriptableObject);
-			return scriptableObject.GetInstanceID();
+			if (!_assetMetas.ContainsKey(instanceId)) {
+				_scriptableObjects.Add(scriptableObject);
+				var packer = PackerFactory.GetPacker<T>();
+				_assetMetas.Add(instanceId, packer != null
+					? packer.Pack(instanceId, scriptableObject, this)
+					: new MetaPackable { InstanceId = scriptableObject.GetInstanceID() }
+				);
+			}
+
+			return instanceId;
 		}
 
 		public T GetAsset<T>(int instanceId) where T : ScriptableObject
@@ -193,7 +203,7 @@ namespace VisualPinball.Unity
 
 				// pack meta
 				var fileMeta = assetTypeFolder.AddFile($"{name}.meta", PackageApi.Packer.FileExtension);
-				fileMeta.SetData(MetaPackable.PackMeta(so));
+				fileMeta.SetData(MetaPackable.PackMeta(_assetMetas[so.GetInstanceID()]));
 			}
 		}
 
@@ -213,7 +223,7 @@ namespace VisualPinball.Unity
 					if (!assetTypeFolder.TryGetFile(metaFilename, out var metaFile)) {
 						throw new Exception($"Cannot find meta file {metaFilename} for {assetFile.Name}");
 					}
-					var meta = MetaPackable.UnpackMeta(metaFile.GetData());
+
 					var type = _typeLookup.GetType(assetTypeFolder.Name);
 					if (type == null) {
 						throw new Exception($"Unknown asset type {assetTypeFolder.Name}");
@@ -223,6 +233,11 @@ namespace VisualPinball.Unity
 					if (asset == null) {
 						throw new Exception($"Failed to unpack asset {assetFile.Name}");
 					}
+
+					var packer = PackerFactory.GetPacker(type);
+					var meta = packer == null
+						? MetaPackable.UnpackMeta(metaFile.GetData())
+						: packer.Unpack(metaFile.GetData(), asset, this);
 
 					var folder = Path.Combine(assetPath, assetTypeFolder.Name);
 					if (!Directory.Exists(folder)) {

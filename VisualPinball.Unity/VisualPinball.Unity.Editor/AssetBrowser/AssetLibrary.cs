@@ -30,7 +30,7 @@ namespace VisualPinball.Unity.Editor
 	/// This is the root node of the asset library.
 	///
 	/// The data itself is stored in a sub object, <see cref="_db"/>. This sub object contains
-	/// references to the asset meta data, as well as the categories.
+	/// references to the asset metadata, as well as the categories.
 	/// </summary>
 	[CreateAssetMenu(fileName = "Library", menuName = "Pinball/Asset Library", order = 300)]
 	public class AssetLibrary : ScriptableObject, ISerializationCallbackReceiver

@@ -22,31 +22,20 @@ using UnityEngine.UIElements;
 
 namespace VisualPinball.Unity.Editor
 {
-	[CustomEditor(typeof(SoundAsset)), CanEditMultipleObjects]
-	public class SoundAssetInspector : UnityEditor.Editor
+	[CustomEditor(typeof(CalloutAsset)), CanEditMultipleObjects]
+	public class CalloutAssetInspector : SoundAssetInspector
 	{
 		[SerializeField]
-		private VisualTreeAsset _soundAssetInspectorAsset;
+		private VisualTreeAsset _calloutAssetInspector;
 
 		public override VisualElement CreateInspectorGUI()
 		{
-			return _soundAssetInspectorAsset.Instantiate();
+			var root = new VisualElement();
+			var baseUi = base.CreateInspectorGUI();
+			root.Add(baseUi);
+			var subUi = _calloutAssetInspector.Instantiate();
+			root.Add(subUi);
+			return root;
 		}
-
-		private void OnDisable()
-		{
-			RemoveNullClips();
-		}
-
-		private void RemoveNullClips()
-		{
-			var clipsProp = serializedObject.FindProperty(nameof(SoundAsset.Clips));
-			for (var i = clipsProp.arraySize -1; i >= 0; i--) {
-				if (clipsProp.GetArrayElementAtIndex(i).objectReferenceValue == null)
-					clipsProp.DeleteArrayElementAtIndex(i);
-			}
-			serializedObject.ApplyModifiedPropertiesWithoutUndo();
-		}
-
 	}
 }

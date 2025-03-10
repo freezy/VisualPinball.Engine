@@ -1,5 +1,5 @@
 // Visual Pinball Engine
-// Copyright (C) 2023 freezy and VPE Team
+// Copyright (C) 2025 freezy and VPE Team
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -14,18 +14,24 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-// ReSharper disable InconsistentNaming
-
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using NLog;
-using Logger = NLog.Logger;
-using System.Threading;
-using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.Serialization;
+using Logger = NLog.Logger;
 
 namespace VisualPinball.Unity
 {
+	public enum MultiPlayMode
+	{
+		PlayInParallel,
+		DoNotPlay,
+		FadeOutPrevious,
+		StopPrevious,
+	}
+
 	/// <summary>
 	/// Base component for playing a <c>SoundAsset</c> using the public methods <c>Play</c> and <c>Stop</c>.
 	/// </summary>
@@ -33,21 +39,22 @@ namespace VisualPinball.Unity
 	[AddComponentMenu("Pinball/Sound/Sound")]
 	public class SoundComponent : EnableAfterAwakeComponent, IPackable
 	{
-		[FormerlySerializedAs("_soundAsset")]
 		public SoundAsset SoundAsset;
+		public MultiPlayMode MultiPlayMode;
+		[Range(0f, 1f)] public float Volume = 1f;
+		public SoundPriority Priority = SoundPriority.Medium;
+		public float CalloutMaxQueueTime = -1;
 
-		[FormerlySerializedAs("_interrupt")]
-		[Tooltip("Should the sound be interrupted if it is triggered again while already playing?")]
-		public bool Interrupt;
+		private CalloutCoordinator _calloutCoordinator;
+		private MusicCoordinator _musicCoordinator;
+		private readonly List<ISoundComponentSoundPlayer> _soundPlayers = new();
 
-		[FormerlySerializedAs("_volume")]
-		[SerializeField, Range(0f, 1f)]
-		public float Volume = 1f;
-
-		private CancellationTokenSource _instantCts;
-		private CancellationTokenSource _allowFadeCts;
-		private float _lastPlayStartTime = float.NegativeInfinity;
 		protected static readonly Logger Logger = LogManager.GetCurrentClassLogger();
+
+		public bool IsPlayingOrRequestingSound()
+		{
+			return _soundPlayers.Any(x => x.IsPlayingOrRequestingSound());
+		}
 
 		#region Packaging
 
@@ -58,69 +65,129 @@ namespace VisualPinball.Unity
 
 		public void Unpack(byte[] bytes) => SoundPackable.Unpack(bytes, this);
 
-		public void UnpackReferences(byte[] data, Transform root, PackagedRefs refs, PackagedFiles files)
-			=> SoundReferencesPackable.Unpack(data, this, files);
+		public void UnpackReferences(
+			byte[] data,
+			Transform root,
+			PackagedRefs refs,
+			PackagedFiles files
+		) => SoundReferencesPackable.Unpack(data, this, files);
 
 		#endregion
 
 		protected override void OnEnableAfterAfterAwake()
 		{
 			base.OnEnableAfterAfterAwake();
-			_instantCts = new CancellationTokenSource();
-			_allowFadeCts = new CancellationTokenSource();
+			_calloutCoordinator = GetComponentInParent<CalloutCoordinator>();
+			if (_calloutCoordinator == null)
+				Logger.Error("No callout coordinator found in parents. Callouts will not work!");
+			_musicCoordinator = GetComponentInParent<MusicCoordinator>();
+			if (_musicCoordinator == null)
+				Logger.Error("No music coordinator found in parents. Music will not work!");
+		}
+
+		protected void Update()
+		{
+			for (int i = _soundPlayers.Count - 1; i >= 0; i--)
+			{
+				if (!_soundPlayers[i].IsPlayingOrRequestingSound())
+				{
+					_soundPlayers[i].Dispose();
+					_soundPlayers.RemoveAt(i);
+				}
+			}
 		}
 
 		protected virtual void OnDisable()
 		{
-			_allowFadeCts?.Dispose();
-			_allowFadeCts = null;
-			_instantCts?.Cancel();
-			_instantCts?.Dispose();
-			_instantCts = null;
+			StopAllSounds(allowFade: true);
 		}
 
-		public async Task Play(float volume = 1f)
+		protected virtual void OnDestroy()
 		{
-			if (!isActiveAndEnabled) {
+			StopAllSounds(allowFade: false);
+			_soundPlayers.ForEach(x => x.Dispose());
+		}
+
+		protected void StartSound()
+		{
+			if (!isActiveAndEnabled)
+			{
 				Logger.Warn("Cannot play a disabled sound component.");
 				return;
 			}
-			if (SoundAsset == null) {
+
+			if (SoundAsset == null)
+			{
 				Logger.Warn("Cannot play without sound asset. Assign it in the inspector.");
 				return;
 			}
-			float timeSinceLastPlay = Time.unscaledTime - _lastPlayStartTime;
-			if (timeSinceLastPlay < 0.01f) {
-				Logger.Warn($"Sound spam protection engaged. Time since last play was less than " +
-					$"0.01 seconds ({timeSinceLastPlay}). There is probably something wrong with " +
-					$"the calling code.");
-				return;
+
+			if (IsPlayingOrRequestingSound())
+			{
+				if (SoundAsset is MusicAsset)
+				{
+					// We never want to have multiple active music requests. Makes no sense.
+					StopAllSounds(allowFade: true);
+				}
+				else
+				{
+					switch (MultiPlayMode)
+					{
+						case MultiPlayMode.PlayInParallel:
+							// Don't need to do anything.
+							break;
+						case MultiPlayMode.DoNotPlay:
+							return;
+						case MultiPlayMode.FadeOutPrevious:
+							StopAllSounds(allowFade: true);
+							break;
+						case MultiPlayMode.StopPrevious:
+							StopAllSounds(allowFade: false);
+							break;
+					}
+				}
 			}
 
-			if (Interrupt) {
-				Stop(allowFade: true);
-			}
-			try {
-				var combinedVol = Volume * volume;
-				_lastPlayStartTime = Time.unscaledTime;
-				await SoundUtils.Play(SoundAsset, gameObject, _allowFadeCts.Token, _instantCts.Token, combinedVol);
-			} catch (OperationCanceledException) { }
+			var player = CreateSoundPlayer();
+			player.StartSound(Volume);
+			_soundPlayers.Add(player);
 		}
 
-		public void Stop(bool allowFade)
+		protected void StopAllSounds(bool allowFade)
 		{
-			if (!isActiveAndEnabled) {
-				return;
+			_soundPlayers.ForEach(x => x.StopSound(allowFade));
+		}
+
+		private ISoundComponentSoundPlayer CreateSoundPlayer()
+		{
+			if (SoundAsset is SoundEffectAsset)
+			{
+				return new SoundComponentSoundEffectPlayer(
+					(SoundEffectAsset)SoundAsset,
+					gameObject
+				);
 			}
-			if (allowFade) {
-				_allowFadeCts?.Cancel();
-				_allowFadeCts?.Dispose();
-				_allowFadeCts = new CancellationTokenSource();
-			} else {
-				_instantCts?.Cancel();
-				_instantCts?.Dispose();
-				_instantCts = new CancellationTokenSource();
+
+			if (SoundAsset is CalloutAsset)
+			{
+				var request = new CalloutRequest(
+					(CalloutAsset)SoundAsset,
+					Priority,
+					CalloutMaxQueueTime,
+					Volume
+				);
+				return new SoundComponentCalloutPlayer(request, _calloutCoordinator);
 			}
+
+			if (SoundAsset is MusicAsset)
+			{
+				var request = new MusicRequest((MusicAsset)SoundAsset, Priority, Volume);
+				return new SoundComponentMusicPlayer(request, _musicCoordinator);
+			}
+
+			throw new NotImplementedException(
+				$"Unknown type of sound asset '{SoundAsset.GetType()}'"
+			);
 		}
 
 		public virtual bool SupportsLoopingSoundAssets() => true;

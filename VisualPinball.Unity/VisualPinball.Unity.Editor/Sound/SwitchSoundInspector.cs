@@ -1,5 +1,5 @@
 // Visual Pinball Engine
-// Copyright (C) 2023 freezy and VPE Team
+// Copyright (C) 2025 freezy and VPE Team
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -23,15 +23,15 @@ using UnityEngine.UIElements;
 namespace VisualPinball.Unity.Editor
 {
 	[CustomEditor(typeof(SwitchSoundComponent)), CanEditMultipleObjects]
-	public class SwitchSoundComponentInspector : SoundComponentInspector
+	public class SwitchSoundInspector : BinaryEventSoundInspector
 	{
 		[SerializeField]
-		private VisualTreeAsset inspectorXml;
+		private VisualTreeAsset switchSoundInspectorXml;
 
 		public override VisualElement CreateInspectorGUI()
 		{
 			var root = base.CreateInspectorGUI();
-			var inspectorUi = inspectorXml.Instantiate();
+			var inspectorUi = switchSoundInspectorXml.Instantiate();
 			root.Add(inspectorUi);
 			var switchNameDropdown = root.Q<DropdownField>("switch-name");
 			var switchNameProp = serializedObject.FindProperty(nameof(SwitchSoundComponent.SwitchName));
@@ -42,8 +42,12 @@ namespace VisualPinball.Unity.Editor
 
 		private Dictionary<string, string> GetAvailableSwitches()
 		{
-			var targetComponent = target as Component;
-			if (targetComponent != null && targetComponent.TryGetComponent<ISwitchDeviceComponent>(out var switchDevice)) {
+			if (
+				target != null
+				&& target is Component t
+				&& t.TryGetComponent<ISwitchDeviceComponent>(out var switchDevice)
+			)
+			{
 				return switchDevice.AvailableSwitches.ToDictionary(
 					i => i.Id,
 					i => string.IsNullOrWhiteSpace(i.Description) ? i.Id : i.Description

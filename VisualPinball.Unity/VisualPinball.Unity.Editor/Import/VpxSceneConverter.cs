@@ -163,6 +163,8 @@ namespace VisualPinball.Unity.Editor
 
 			ConfigurePlayer(componentLookup);
 
+			SetUpAudio();
+
 			// patch
 			if (_applyPatch) {
 				_patcher?.PostPatch(_tableGo);
@@ -521,6 +523,12 @@ namespace VisualPinball.Unity.Editor
 			};
 
 			InstantiateAndPersistPrefab(item, components);
+		}
+
+		private void SetUpAudio()
+		{
+			_tableGo.AddComponent<CalloutCoordinator>();
+			_tableGo.AddComponent<MusicCoordinator>();
 		}
 
 		private void CreateFileHierarchy()

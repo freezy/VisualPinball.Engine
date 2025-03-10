@@ -1,5 +1,5 @@
-﻿// Visual Pinball Engine
-// Copyright (C) 2023 freezy and VPE Team
+// Visual Pinball Engine
+// Copyright (C) 2025 freezy and VPE Team
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -14,89 +14,73 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-// ReSharper disable InconsistentNaming
-
 using System;
+using System.Threading;
+using System.Threading.Tasks;
 using Newtonsoft.Json;
+using UnityEditor;
 using UnityEngine;
 using UnityEngine.Audio;
-using UnityEngine.Serialization;
 using Random = UnityEngine.Random;
 
 namespace VisualPinball.Unity
 {
+	public enum SoundPriority
+	{
+		Lowest,
+		Low,
+		Medium,
+		High,
+		Highest,
+	}
+
 	/// <summary>
-	/// Represents a reusable collection of similar sounds, for example different samples of a
-	/// flipper mechanism getting triggered. Supports multiple techniques to introduce variation
-	/// for frequently used sounds. Instances of this class can be stored in the project files or
-	/// in an asset library.
+	/// Common base class for sound effect assets, callout assets, and music assets. Multiple audio
+	/// clips can be assigned for variation. Instances of this class are Unity assets and can
+	/// therefore be stored in the project files or in an asset library for reuse across tables.
 	/// </summary>
-	[PackAs("SoundAsset")]
 	[CreateAssetMenu(fileName = "Sound", menuName = "Pinball/Sound", order = 102)]
-	public class SoundAsset : ScriptableObject
+	[PackWith(typeof(SoundAssetPacker))]
+	public abstract class SoundAsset : ScriptableObject
 	{
 		public enum SelectionMethod
 		{
 			RoundRobin,
-			Random
+			Random,
 		}
-
-		[FormerlySerializedAs("_description")]
-		public string Description;
+		
+		[SerializeField]
+		private string _description;
 
 		[JsonIgnore]
-		[FormerlySerializedAs("_clips")]
 		public AudioClip[] Clips;
 
-		[FormerlySerializedAs("_clipSelectionMethod")]
-		public SelectionMethod ClipSelectionMethod;
-
-		[FormerlySerializedAs("_volumeRange")]
-		public Vector2 VolumeRange = new(1f, 1f);
-
-		[FormerlySerializedAs("_pitchRange")]
-		public Vector2 PitchRange = new(1f, 1f);
-
-		[FormerlySerializedAs("_loop")]
-		public bool Loop;
-
-		[FormerlySerializedAs("_fadeInTime")]
-		[SerializeField, Range(0, 10f)]
-		public float FadeInTime;
-
-		[FormerlySerializedAs("_fadeOutTime")]
-		[SerializeField, Range(0, 10f)]
-		public float FadeOutTime;
-
-		[FormerlySerializedAs("_isSpatial")]
-		[Tooltip("Should the sound appear to come from the position of the emitter?")]
-		public bool IsSpatial = true;
+		[SerializeField]
+		private SelectionMethod _clipSelectionMethod;
 
 		[SerializeField]
 		private AudioMixerGroup _audioMixerGroup;
 
+		[NonSerialized]
 		private int _roundRobinIndex = 0;
 
-		public void ConfigureAudioSource(AudioSource audioSource, float volume = 1)
+		public abstract bool Loop { get; }
+
+		public virtual void ConfigureAudioSource(AudioSource audioSource)
 		{
-			audioSource.volume = volume * Random.Range(VolumeRange.x, VolumeRange.y);
-			audioSource.pitch = Random.Range(PitchRange.x, PitchRange.y);
-			audioSource.loop = Loop;
 			audioSource.clip = GetClip();
-			audioSource.spatialBlend = IsSpatial ? 0f : 1f;
 			audioSource.outputAudioMixerGroup = _audioMixerGroup;
+			audioSource.playOnAwake = false;
 		}
 
 		public bool IsValid()
 		{
-			if (Clips == null) {
+			if (Clips == null)
 				return false;
-			}
 
 			foreach (var clip in Clips) {
-				if (clip != null) {
+				if (clip != null)
 					return true;
-				}
 			}
 
 			return false;
@@ -108,19 +92,46 @@ namespace VisualPinball.Unity
 				throw new InvalidOperationException($"The sound asset '{name}' has no audio clips to play.");
 			}
 
-			switch (ClipSelectionMethod) {
+			switch (_clipSelectionMethod) {
 
 				case SelectionMethod.RoundRobin:
 					_roundRobinIndex %= Clips.Length;
 					var clip = Clips[_roundRobinIndex];
 					_roundRobinIndex++;
 					return clip;
-
 				case SelectionMethod.Random:
 					return Clips[Random.Range(0, Clips.Length)];
 
 				default:
 					throw new NotImplementedException("Selection method not implemented.");
+			}
+		}
+
+		/// <summary>
+		/// <c>AudioSource.isPlaying</c> returns <c>false</c> if the window loses focus, so that
+		/// needs to be checked as well to make sure an audio source that was playing actually has
+		/// stopped.
+		/// </summary>
+		public static bool HasStopped(AudioSource audioSource)
+		{
+			if (audioSource == null)
+				return true;
+			if (audioSource.isPlaying)
+				return false;
+#if UNITY_EDITOR
+			return EditorApplication.isFocused;
+#else
+			return Application.isFocused;
+#endif
+		}
+
+		public static async Task WaitUntilAudioStops(AudioSource audioSource, CancellationToken ct)
+		{
+			ct.ThrowIfCancellationRequested();
+			while (!HasStopped(audioSource))
+			{
+				await Task.Yield();
+				ct.ThrowIfCancellationRequested();
 			}
 		}
 	}

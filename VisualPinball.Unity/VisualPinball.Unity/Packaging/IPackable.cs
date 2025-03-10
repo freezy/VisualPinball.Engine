@@ -23,6 +23,13 @@ namespace VisualPinball.Unity
 	/// </summary>
 	public interface IPackable
 	{
+		/// <summary>
+		/// Packs the component data into a byte array.
+		///
+		/// Returning null will not even create the component for the game object. For components
+		/// with no data, return <see cref="PackageApi.Packer.Empty"/> instead.
+		/// </summary>
+		/// <returns>Component data in binary</returns>
 		byte[] Pack();
 		byte[] PackReferences(Transform root, PackagedRefs refs, PackagedFiles files);
 

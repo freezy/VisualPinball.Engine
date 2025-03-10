@@ -207,7 +207,7 @@ namespace VisualPinball.Unity
 		public byte[] Pack<T>(T obj);
 
 		/// <summary>
-		///
+		/// An empty object. Just means that the component is written, but no other data is stored.
 		/// </summary>
 		/// <returns></returns>
 		public byte[] Empty { get; }

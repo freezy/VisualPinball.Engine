@@ -1,5 +1,5 @@
 // Visual Pinball Engine
-// Copyright (C) 2023 freezy and VPE Team
+// Copyright (C) 2025 freezy and VPE Team
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -26,26 +26,24 @@ namespace VisualPinball.Unity
 	public class HitSoundComponent : EventSoundComponent<IApiHittable, HitEventArgs>
 	{
 		public override bool SupportsLoopingSoundAssets() => false;
+
 		public override Type GetRequiredType() => typeof(ItemComponent);
 
 		protected override bool TryFindEventSource(out IApiHittable hittable)
 		{
 			hittable = null;
 			var player = GetComponentInParent<Player>();
-			if (player == null) {
+			if (player == null)
 				return false;
-			}
 
-			foreach (var component in GetComponents<ItemComponent>()) {
+			foreach (var component in GetComponents<ItemComponent>())
+			{
 				hittable = player.TableApi.Hittable(component);
-				if (hittable != null) {
+				if (hittable != null)
 					return true;
-				}
 			}
 			return false;
 		}
-
-		protected override async void OnEvent(object sender, HitEventArgs e) => await Play();
 
 		protected override void Subscribe(IApiHittable eventSource) => eventSource.Hit += OnEvent;
 
