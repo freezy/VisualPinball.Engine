@@ -1,0 +1,220 @@
+﻿<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+      <title>PinMAME Mech Handlers | VPE Documentation </title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="title" content="PinMAME Mech Handlers | VPE Documentation ">
+      
+      <meta name="description" content="How PinMAME mech handlers work in VPE.">
+      <link rel="icon" href="../../favicon.png">
+      <link rel="stylesheet" href="../../public/docfx.min.css">
+      <link rel="stylesheet" href="../../public/main.css">
+      <link rel="stylesheet" href="../../public/basicLightbox.min.css">
+      <meta name="docfx:navrel" content="../../toc.html">
+      <meta name="docfx:tocrel" content="../toc.html">
+      
+      <meta name="docfx:rel" content="../../">
+      
+      
+      <meta name="docfx:docurl" content="https://github.com/freezy/VisualPinball.Engine/blob/master/VisualPinball.Unity/Documentation~/plugins/pinmame/mechs.md/#L1">
+      <meta name="loc:inThisArticle" content="Table of Contents">
+      <meta name="loc:searchResultsCount" content="{count} results for &quot;{query}&quot;">
+      <meta name="loc:searchNoResults" content="No results for &quot;{query}&quot;">
+      <meta name="loc:tocFilter" content="Filter by title">
+      <meta name="loc:nextArticle" content="Next">
+      <meta name="loc:prevArticle" content="Previous">
+      <meta name="loc:themeLight" content="Light">
+      <meta name="loc:themeDark" content="Dark">
+      <meta name="loc:themeAuto" content="Auto">
+      <meta name="loc:changeTheme" content="Change theme">
+      <meta name="loc:copy" content="Copy">
+      <meta name="loc:downloadPdf" content="Download PDF">
+
+      <script type="module" src="./../../public/docfx.min.js"></script>
+
+      <script>
+        const theme = localStorage.getItem('theme') || 'auto'
+        document.documentElement.setAttribute('data-bs-theme', theme === 'auto' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : theme)
+      </script>
+
+     <script type="text/javascript">
+     var _paq = window._paq || [];
+     _paq.push(["setCookieDomain", "*.docs.visualpinball.org"]);
+     _paq.push(['trackPageView']);
+     _paq.push(['enableLinkTracking']);
+     (function() {
+       var u="//count.vpdb.io/";
+       _paq.push(['setTrackerUrl', u+'matomo.php']);
+       _paq.push(['setSiteId', '2']);
+       var d=document, g=d.createElement('script'), s=d.getElementsByTagName('script')[0];
+       g.type='text/javascript'; g.async=true; g.defer=true; g.src=u+'matomo.js'; s.parentNode.insertBefore(g,s);
+     })();
+     </script>
+  </head>
+
+  <body class="tex2jax_ignore" data-layout="" data-yaml-mime="">
+    <header class="bg-body border-bottom" data-bs-theme="dark">
+      <nav id="autocollapse" class="navbar navbar-expand-md" role="navigation">
+        <div class="container flex-nowrap">
+          <a class="navbar-brand" href="../../index.html">
+            <img id="logo" class="svg" src="../../logo.svg" alt="">
+            
+          </a>
+          <button class="btn btn-lg d-md-none border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navpanel" aria-controls="navpanel" aria-expanded="false" aria-label="Toggle navigation">
+            <i class="bi bi-three-dots"></i>
+          </button>
+          <div class="collapse navbar-collapse" id="navpanel">
+            <div id="navbar">
+              <form class="search" role="search" id="search">
+                <i class="bi bi-search"></i>
+                <input class="form-control" id="search-query" type="search" disabled="" placeholder="Search" autocomplete="off" aria-label="Search">
+              </form>
+              <a title="VPE is open source!" class="navbar-github" href="https://github.com/freezy/VisualPinball.Engine" target="_blank">
+                <svg xmlns="http://www.w3.org/2000/svg" viewbox="0 0 33.5 33.1" width="33.5" height="33.1"><path d="M16.7.4a16.3 16.3 0 00-5.2 31.8c.8.1 1.1-.4 1.1-.8v-2.8c-4.5 1-5.5-2.2-5.5-2.2-.6-1.9-1.7-2.4-1.7-2.4-1.5-1 .1-1 .1-1 1.6.1 2.5 1.7 2.5 1.7 1.5 2.5 3.8 1.8 4.7 1.4.1-1.1.6-1.8 1-2.2-3.6-.4-7.4-1.8-7.4-8.1 0-1.8.7-3.2 1.7-4.4-.1-.4-.7-2 .2-4.3 0 0 1.4-.4 4.5 1.7a18.4 18.4 0 018.2 0c3.1-2.1 4.5-1.7 4.5-1.7.9 2.2.3 3.9.2 4.3 1 1.1 1.7 2.6 1.7 4.4 0 6.3-3.8 7.6-7.4 8 .6.5 1.1 1.5 1.1 3v4.5c0 .4.3.9 1.1.8A16.3 16.3 0 0016.7.4z"></path></svg>
+              </a>
+            </div>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <main class="container-xxl">
+      <div class="toc-offcanvas">
+        <div class="offcanvas-md offcanvas-start" tabindex="-1" id="tocOffcanvas" aria-labelledby="tocOffcanvasLabel">
+          <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="tocOffcanvasLabel">Table of Contents</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#tocOffcanvas" aria-label="Close"></button>
+          </div>
+          <div class="offcanvas-body">
+            <nav class="toc" id="toc"></nav>
+          </div>
+        </div>
+      </div>
+
+      <div class="content">
+        <div class="actionbar">
+          <button class="btn btn-lg border-0 d-md-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#tocOffcanvas" aria-controls="tocOffcanvas" aria-expanded="false" aria-label="Show table of contents">
+            <i class="bi bi-list"></i>
+          </button>
+
+          <nav id="breadcrumb"></nav>
+        </div>
+
+        <article data-uid="pinmame_mechs">
+<h1 id="pinmame-mech-handlers">PinMAME Mech Handlers</h1>
+
+<p>A pinball table contains many mechanisms that interact with the ball. Classic examples are the flippers, kickers, or the trough. However, when we refer to <em>PinMAME Mechs</em>, we refer to very specific mechanisms involving a motor - usually toys of some sort.</p>
+<p>Mechs come in all forms and complexities. Some like the pole dancers in the Sopranos are for show only, while many others serve a very specifc purpose during gameplay. A few more examples are Rudy's eyes in Funhouse, the cannon in Terminator 2, the glove in Johnny Mnemonic which has full player control, or the spinning wheels in Whirlwind.</p>
+<p>To understand how PinMAME handles mechs, a bit of history is needed. Before there even was PinMAME (it was called WPCMAME at the time, because it would only emulate WPC games), the dev team needed some way to &quot;play&quot; the game so they could check the sounds and the animations of the ROM.</p>
+<p>So, what they did is they wrote a <em>simulator</em> that would close and open switches at the appropriate times to fool the game into thinking everything works as designed. For example, when T2's cannon is rotating and you push the fire button, it would literally calculate the position of the gun, and which drop target the ball would hit and enable the switch of that target after a short delay. Of course, PinMAME doesn't include a physical simulation that includes geometry and gravity and such, so the simulation of the ball trajectory was quite approximative.</p>
+<p>Then came along Visual Pinball, and &quot;physical&quot; simulation was not needed anymore. However, <em>some</em> calculations done by PinMAME's simulator were still of interest. Let's take again T2's cannon. The game starts the motor, which will then start rotating the cannon. At certain rotation angles, a physical switch tells the game how far the cannon has rotated. There is also an end position at which the movement changes direction, rotating the cannon back in the opposite direction.</p>
+<p>Just for knowing the rotation angle of the cannon there's a lot of math and timing involved. That's why PinMAME offers a way to provide the result of these calculations back to Visual Pinball with the <code>GetMech()</code> API. In the table script, you would tell PinMAME which mechs to simulate and regularly retrieve the result in order to just update the rendered elements on the playfield. Switches and coils involving the mech would also be handled by PinMAME.</p>
+<p>However, this worked only for a handful of fully simulated WPC games, and even for those, parameters needed to be tweaked, which was impossible with this approach. So, something more generic was needed. And this finally brings us back to our original topic: <em>Custom mechs handlers</em>, or <strong>PinMAME Mech Handlers</strong> as we call them. They work like the internal simulation but can be configured through an API.</p>
+<p>To sum it up, in <em>Visual Pinball</em>, there are three approaches today to deal with mechs:</p>
+<ol>
+<li>Use PinMAME's internal simulation - nearly never used.</li>
+<li>Configure a custom mech handler - occasionally used.</li>
+<li>Use timers and handle everything in the table script - the most common approach.</li>
+</ol>
+<p>This page is about approach #2 and describes how you can configure and use PinMAME mech handlers in VPE.</p>
+<div class="NOTE">
+<h5>Note</h5>
+<p>Some toys like High Roller Casino's slot machine toy are too complex to be simulated with a PinMAME mech handler. Understanding how the toy works is key here. We will try our best to provide components that are able to cover most of your mech needs.</p>
+</div>
+<h2 id="setup">Setup</h2>
+<img src="mech-inspector.png" width="359" alt="PinMAME Mech Inspector" class="img-fluid float-end" style="margin-left: 15px">
+<p>PinMAME can simulate up to five custom mechs. You create one by adding the <em>PinMAME Mech</em> component onto a game object.</p>
+<div class="NOTE">
+<h5>Note</h5>
+<p>If you come from Visual Pinball, this component has the same function as the <code>cvpmMech</code> class in <code>core.vbs</code>.</p>
+</div>
+<h3 id="type">Type</h3>
+<p>This defines how the mech is controlled. There are four options:</p>
+<ul>
+<li><em>One Solenoid</em> - The motor turns in one direction only, and the solenoid turns it on and off. Example: Sopranos pole dancers.</li>
+<li><em>One Directional Solenoid</em> - Two solenoids, one for enabling the motor, one for setting the direction. Example: The cannon in T2.</li>
+<li><em>Two Directional Solenoids</em> - The first solenoid controls clockwise movement and the second solenoid controls counter-clockwise movement. Example: The soccer ball in World Cup Soccer '94.</li>
+<li><em>Two Stepper Solenoids</em> - Two solenoids that control a stepper motor. Example: Drag strip cars in Corvette.</li>
+<li><em>Four Stepper Solenoids</em> - Four solenoids that control a stepper motor. Only the first solenoid is defined and PinMAME assumes that the three remaining solenoids are the following coil numbers.</li>
+</ul>
+<h3 id="repeat">Repeat</h3>
+<p>How the mech behaves when the end of the range of motion is reached. There are three options:</p>
+<ul>
+<li><em>Circle</em> - Loops, i.e., starts the motion again from the beginning.</li>
+<li><em>Reverse</em> - Reverses the direction, i.e., moves back to the beginning.</li>
+<li><em>Stop at End</em> - Automatically stops when the end has reached.</li>
+</ul>
+<h3 id="length">Length</h3>
+<p>The length is the amount of time, in milliseconds, that the specified solenoids must be enabled for, to move a single step in the progression from the start to end position. It indirectly defines the speed.</p>
+<h3 id="steps">Steps</h3>
+<p>This is the total number of steps from the start to the end position. Every time a new step is reached the mech is updated with a new value.</p>
+<h3 id="movement-speed-and-output-value">Movement, Speed and Output Value</h3>
+<ul>
+<li>Check <em>Linear Movement</em> (default) if you need to simulate a linear movement, as opposed to non-linear movement.</li>
+<li>Check <em>Fast Updates</em> if the calculations should be updated at 240Hz, as opposed to 60Hz (default).</li>
+<li>Check <em>Result by Length</em> if you want the result to be based on the length, as opposed to the number of steps (default).</li>
+</ul>
+<h3 id="acceleration-and-retardation">Acceleration and Retardation</h3>
+<p>By default set to 0, <em>acceleration</em> defines the amount of time in milliseconds required to reach full speed, while <em>retardation</em> defines the time required to come to a stop, <em>in relation to acceleration</em>. For example, setting of <code>Acceleration = 50</code> and <code>Retardation = 0.2</code> corresponds to 50ms to reach full speed and comes to a stop 10ms after the solenoid turns off. Both values are 0 per default.</p>
+<h3 id="switches">Switches</h3>
+<p>A PinMAME mech can handle up to 20 switches. Depending on the type, they have different behavior and different parameters:</p>
+<ul>
+<li>A switch set to <em>Enable Between</em> will be closed by PinMAME when the mech position is between a range of defined steps.</li>
+<li>A switch set to <em>Always Pulse</em> is constantly closed and opened when the motor is running. You configure the frequency and the duration it stays closed.</li>
+<li>A switch set to <em>Pulse Between</em> is pulsed for one step with a configurable frequency during a range of steps.</li>
+</ul>
+<div class="NOTE">
+<h5>Note</h5>
+<p>If you come from Visual Pinball, <em>Enable Between</em> corresponds to <code>AddSw</code>, <em>Always Pulse</em> to <code>AddPulseSw</code>, and <em>Pulse Between</em> to <code>AddPulseSwNew</code>.</p>
+</div>
+<h3 id="switch-and-coil-assignments">Switch and Coil Assignments</h3>
+<p>As described above, a mech comes with at least one solenoid and up to 20 switches. In order to tell PinMAME which solenoid to listen to and which switches to trigger, we use the <a class="xref" href="../../creators-guide/editor/coil-manager.html">Coil Manager</a> and the <a class="xref" href="../../creators-guide/editor/switch-manager.html">Switch Manager</a>.</p>
+<p>Here is an example configuration that drives the gun in T2:</p>
+<p><img src="mech-example-t2.png" alt="Coil Manager">
+<small><em>Here, the PinMAME Mech Handler sits on a game object named &quot;Cannon&quot;.</em></small></p>
+<div class="NOTE">
+<h5>Note</h5>
+<p>The reason VPE uses the managers to assign the right number (as opposed to letting you specify it directly in the component) is that everything switch or coil related is at one place, and that the same principle can be re-used for other GLEs or components.</p>
+</div>
+<h3 id="runtime">Runtime</h3>
+<p>During gameplay, PinMAME executes callback for each mech with the current step position.</p>
+
+</article>
+
+        <div class="contribution d-print-none">
+          <a href="https://github.com/freezy/VisualPinball.Engine/blob/master/VisualPinball.Unity/Documentation~/plugins/pinmame/mechs.md/#L1" class="edit-link">Improve this Page</a>
+        </div>
+
+        <div class="next-article d-print-none border-top" id="nextArticle"></div>
+
+      </div>
+
+      <div class="affix">
+        <nav id="affix"></nav>
+      </div>
+    </main>
+
+    <div class="container-xxl search-results" id="search-results"></div>
+
+    <footer class="border-top text-secondary">
+      <div class="container-xxl">
+        <div class="flex-fill">
+          <span>Copyright © 2025 VPE Team</span>
+        </div>
+      </div>
+    </footer>
+    <script src="./../../public/basicLightbox.min.js"></script>
+    <script type="text/javascript">
+    for (const img of document.querySelectorAll('img:not(#logo)')) {
+      img.onclick = () => {
+        basicLightbox.create(`<img src="${img.src}">`).show()
+        if (img.parentElement.tagName === 'A') {
+          img.parentElement.href = 'javascript:void(0)'
+          img.parentElement.target = '_self'
+        }
+      }
+    }
+    </script>
+  </body>
+</html>
