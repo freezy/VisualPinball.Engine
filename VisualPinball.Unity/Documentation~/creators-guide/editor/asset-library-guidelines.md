@@ -6,26 +6,26 @@ description: These guidelines describe how the game assets of the pinball asset 
 
 # Asset Library Style Guide
 
-This document serves as a comprehensive style guide for all 3D assets included in the asset library. The goal is that all assets are of **high quality**, visually **consistent**, **optimized** for performance, and **customizable**. Following these guidelines is essential in providing assets that can be used in various types of tables. That's not to say that there can't be any exceptions, but the vast majority, this should be applicable.
+This document serves as a comprehensive style guide for all 3D assets in the pinball asset library. Our goal is to maintain assets that are high **quality**, visually **consistent**, **optimized** for performance, and **customizable**. These guidelines should be followed for the vast majority of assets; exceptions can be made in special cases.
 
 ## Design Language
 
-We're aiming for a photorealistic look, as opposed to stylized visuals. Shapes should be the same as in the real world and also have the same size. 
+We're aiming for a photorealistic look, as opposed to stylized visuals. Shapes should match those in the real world and maintain accurate proportions and sizes.
 
 ## Geometry Guidelines
 
-This section is about modeling, i.e. how the mesh, which consists of vertices, edges and faces, should be created.
+This section covers modeling practices, i.e. how to create meshes consisting of vertices, edges, and faces.
 
 ### Topology
 
-The topology is how you arrange your vertices to form the shapes of your model. There are countless opinions and practices around good topology. Since our models serve as game assets and not for rendering out close-up product shots, we're allowed to be less strict. Here are some guidelines when modelling:
+Topology describes how vertices and edges form the shapes of your model. While there are many ideas on best practices, here are the essentials for game-ready assets:
 
 - Use quads where possible and avoid n-gons.
 - Maintain clean topology with proper edge flow, if possible.
 - Apply proper smoothing groups/hard edges for accurate normal calculation (shade smooth/flat in Blender).
-- Avoid non-manifold geometry and floating vertices (make the mesh watertight).
+- Avoid non-manifold geometry and floating vertices - make the mesh watertight.
 
-If you're converting CAD models which aren't polygon-based, you'll probably have to apply some [retopology](https://en.wikipedia.org/wiki/Retopology). The same goes for 3D scans.
+If you're converting CAD models which aren't polygon-based, you'll likely need to apply some [retopology](https://en.wikipedia.org/wiki/Retopology). The same applies to 3D scans.
 
 {shot from screw automatically converted by STEP versus retopoed)
 
@@ -33,27 +33,29 @@ If you're converting CAD models which aren't polygon-based, you'll probably have
 
 ### Poly Count
 
-In [polygonal modeling](https://en.wikipedia.org/wiki/Polygonal_modeling) (which is what we're doing here), the poly count is the number of polygons used in a model, and given that in game engines, quads and n-gons are converted to triangles, it's the number of triangles. The more triangles a model has, the more detailed it is, but the slower it is to render.
+In [polygonal modeling](https://en.wikipedia.org/wiki/Polygonal_modeling), the poly count refers to the number of polygons used in a model. In game engines, quads and n-gons are converted to triangles, so we measure by the number of triangles. Higher triangle counts allow for more detail but increase rendering time.
 
-- Spinners, drop targets, and other small objects can usually remain under 500 triangles.
-- Aim for low-to-mid poly models for standard playfield assets such as flippers and bumpers (e.g., 500–2,000 triangles).
-- Hero pieces (large ramps, toys) can go higher but be mindful not to exceed necessary detail.
+Follow these poly count guidelines:
+
+- Small objects (e.g., spinners, drop targets) can typically stay under 500 triangles.
+- Standard playfield objects (e.g., flippers, bumpers) can range from about 500 to 2,000 triangles.
+- Hero pieces (large ramps, toys): higher counts are acceptable, but remain mindful of necessary detail.
 
 {pics of a model with multiple poly counts}
 
 ### Scale and Orientation
 
-Unity uses a [left-handed](https://en.wikipedia.org/wiki/Right-hand_rule) coordinate system, where X points to the right, Y up, and Z forward. This is also how your model should be oriented.
+Unity uses a [left-handed](https://en.wikipedia.org/wiki/Right-hand_rule) coordinate system, where X points to the right, Y up, and Z forward. Your models should be oriented accordingly.
 
-For the scale, use meters. It's important to model in real world units, so that the relations between assets are correct, as otherwise it's very difficult to correctly scale anything. Also make sure that scaling is applied to the model, i.e. the actual geometry is at the correct scale and doesn't need to be rescaled by the game engine.
+For scale, use meters as your unit of measurement. It's crucial to model in real-world units to ensure correct proportions between assets, as improper scaling makes it difficult to accurately size components. Ensure that scaling is applied directly to the model's geometry, eliminating the need for rescaling within the game engine.
 
 ### Pivot Point
 
-The pivot point, also known as *object origin* or *local origin*, defines where your model actually appears for a given position in 3D space.
-
+The pivot point, also known as *object origin* or *local origin*, defines where your model appears for a given position in 3D space.
+ 
 - Static objects should always have their vertical axis (the Y axis in Unity, or Z axis in VPX) of the pivot point at playfield height, so setting it to 0 will position the object on the playfield.
-- Objects that rotate obviously need their pivot point on the rotation axis. However, if such an object is parented to another (static) object, the parent should also have its vertical origin at playfield height.
-- On the horizontal plane, the pivot point should be in the center if no other more obvious position is given by the object's topology.
+- Objects that rotate need their pivot point on the rotation axis. If such an object is parented to another (static) object, the parent should also have its vertical origin at playfield height.
+- On the horizontal plane, the pivot point should be in the center unless the object's topology suggests another more logical position.
 
 {shots with different correct and wrong origins}
 
@@ -62,29 +64,29 @@ The pivot point, also known as *object origin* or *local origin*, defines where 
 All models must be [UV-mapped](https://en.wikipedia.org/wiki/UV_mapping).
 
 - UVs should be unwrapped with minimal stretching.
-- Maintain 2-4 pixel padding between UV islands.
-- Keep UV shells proportional to their 3D size.
-- Organize UVs in 0-1 UV space
+- Maintain 2-4 pixel padding between UV islands to prevent texture bleeding.
+- Keep UV shells proportional to their 3D size to maintain consistent texel density.
+- Organize UVs within the 0-1 UV space.
 
 ### Decals
 
-If your model contains art that varies from instance to instance, use a [decal mesh](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@17.2/manual/understand-decals.html). Decals should be used where you would find literal decals or imprints in the real world. Examples include spinners, aprons, targets and bumpers.
+If your model contains art that varies from instance to instance, use a [decal mesh](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@17.2/manual/understand-decals.html). Decals should be used where you would find literal decals or imprints in the real world. Examples include spinners, aprons, targets, and bumpers.
 
 {example of one or more decal meshes}
 
-The decal geometry should be in a separate object parented to the main object. The UVs of the decal mesh should be laid out in a way so its textures can be created with non-specialized image editors. This usually means front projection without any stretching, and centered.
+The decal geometry should be in a separate object parented to the main object. The UVs of the decal mesh should be laid out in a way that allows its textures to be created with non-specialized image editors. This usually means front projection without any stretching, and centered.
 
 {shots with good vs bad decal uvs}
 
 > [!note]
 > #### Why Decals?
 > Decals are great because they make your workflow more flexible and are at the same time more performant:
-> - Flexible, because it allows us to texture our models in a generic way so that they can be used by anybody. Imagine a drop target with a star on it. Without decals, the star would be baked into the texture, and if anybody else would want reuse that target, they would need to recreate the texture with another subject. With decals, they only need to swap out the decal texture.
+> - Flexible, because it allows us to texture our models in a generic way so that they can be used in any context. Imagine a drop target with a star on it. Without decals, the star would be baked into the texture, and if anybody else would want reuse that target with different art on it, they would need to recreate the texture. With decals, they only need to swap out the decal texture.
 > - Performance, because Unity is optimized for having thousands of decals in a scene, allowing us to use higher-resolution textures for our decals without having to waste resources on the rest of the object.
 
 ### Colliders
 
-VPE uses separate meshes for collision for some items (currently drop targets and hit targets). These meshes are to be included in the model as well.
+VPE uses separate meshes for collision for some items (currently drop targets and hit targets). These collider meshes must be included in the model.
 
 - Their pivot point must align with the pivot point of the main mesh.
 - The scale must be applied and correspond to the main mesh's scale.
@@ -94,48 +96,48 @@ VPE uses separate meshes for collision for some items (currently drop targets an
 
 ### LODs
 
-In terms of [LODs](https://en.wikipedia.org/wiki/Level_of_detail_(computer_graphics)), we're only using one LOD, since the playfield size is compact enough so that most elements would be rendered at the same LOD anyway. Also, most assets will be under 1,000 triangles and thus the performance impact of LODs would be minimal.
+Regarding [LODs](https://en.wikipedia.org/wiki/Level_of_detail_(computer_graphics)) (Levels of Detail), we're only using one LOD. This guideline is based on the compact size of the playfield, where most elements would be rendered at the same LOD anyway. Additionally, most assets will be under 1,000 triangles, making the performance impact of LODs minimal.
 
 ## Material Guidelines
 
-As mentioned, we're aiming for realistic visuals, which can be achieved with physically based rendering ([PBR](https://en.wikipedia.org/wiki/Physically_based_rendering)). In HDRP, this means using the [Lit Shader](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@17.2/manual/lit-material.html).
+We use physically based rendering ([PBR](https://en.wikipedia.org/wiki/Physically_based_rendering)) for realistic visuals. In Unity HDRP, this generally means using the [Lit Shader](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@17.2/manual/lit-material.html).
 
 > [!note]
-> We're not sure yet whether authors will be able to choose other shaders or even create their own, or whether usage will be restricted. We'll update this section as soon as we know more. For now, we focus on the how to author using the Lit Shader.
+> We're still determining whether authors will be able to choose other shaders, create their own, or if usage will be restricted. We'll update this section as soon as we have more information. For now, we focus on authoring using the Lit Shader.
 
 ### Texture Maps
 
-In the PBR workflow there are five maps that are most relevant:
+In the PBR workflow, these texture maps are most relevant:
 
-- Color map, also called diffuse or albedo map
-- Normal map, often called bump map
+- Color map (also called diffuse or albedo map)
+- Normal map (often called bump map)
 - Metallic map
 - Smoothness map (which is an inverted roughness map)
 - Ambient occlusion map
 
-Unity also supports emissive maps, detail maps, and some others, depending on the material type, but we'll focus on those mentioned above.
+Unity also supports emissive maps, detail maps, and others depending on the material type, but we'll focus on those mentioned above.
 
 ### Color Maps
 
-The color of a material are RGB values that contain no lighting information. 
+The color map contains RGB values that represent surface color without lighting information.
 
-If your asset or parts of your asset exist in multiple color variations, you should consider using only gray tones and tint the material with the Lit shader's base color. This will make it customizable without having to render out the texture for each color variant (and also more efficient, memory-wise).
+If your asset or parts of your asset exist in multiple color variations, consider using only gray tones and tinting the material with the Lit shader's base color. This approach makes it customizable without having to render out textures for each color variant (and is also more memory-efficient).
 
 {shots of an object with gray and tinted variations}
 
-As mentioned above, don't bake art that varies into the texture, but use decals instead. Single-color decals that come in multiple color variations should also use a gray-tone color map and tinted through the Lit Shader directly, so they can be more easily customized and don't need multiple material instances.
+As mentioned above, don't bake art that varies into the texture; use decals instead. Single-color decals that come in multiple color variations should also use a gray-tone color map and be tinted through the Decal Shader directly, making them more easily customizable without requiring multiple material instances.
 
 ### Normal Maps
 
-The goal of [Normal Maps](https://en.wikipedia.org/wiki/Normal_mapping) is to fake lighting of bumps and dents. In general, the rule is: If a detail doesn't have any silhouette-defining features and isn't deep enough to cast visible shadows, flatten it and bake it as a normal map.
+[Normal Maps](https://en.wikipedia.org/wiki/Normal_mapping) simulate lighting effects on surface details without adding geometry. Generally, if a detail doesn't have any silhouette-defining features and isn't deep enough to cast visible shadows, flatten it and bake it as a normal map.
 
 {shot of an item detailed as geometry, as low poly, and as low poly with normal maps}
 
-One element that is particularly important for getting realistic visuals are the edges. In the real world, light always gets reflected off edges, because they are never perfect. To simulate this, **you should always bevel your edges**. If your model contains very few prominent edges, you can do that in geometry. However, more often than not, baking the bevel into a normal map is the more efficient approach.
+Edges are particularly important for achieving realistic visuals. In the real world, light always reflects off edges because they are never perfectly sharp. To simulate this, you should always bevel your edges. For models with few prominent edges, you can add bevels in the geometry. However, baking the bevel into a normal map is typically more efficient.
 
 {shot of an item with no bevel, baked bevel and geo bevel}
 
-To summarize, you should use normal maps for:
+Use normal maps for:
 
 - Surface details (scratches, small dents, panel seams)
 - Shallow details (<5mm in real scale)
@@ -145,29 +147,39 @@ To summarize, you should use normal maps for:
 ### Metallic / Smoothness Maps
 
 With a metallic map, you can define on pixel level whether your material is metallic, or not. 
-- Only use this if your material covers both metallic and non-metallic parts of your model. Otherwise, use metallicness property of the Lit Shader directly.  
-- You should only use 0 or 1 as values, because materials that are partly metallic and partly don't exist in the real world.
+- Only use this if your material covers both metallic and non-metallic parts of your model. Otherwise, use the metallicness property of the Lit Shader directly.
+- You should only use values of 0 or 1, as partially metallic materials don't exist in the real world.
 
 {shot of an object with and without metallic values}
 
-The smoothness map, which is the inverse of the roughness map, defines how regular light is reflected on a micro-surface level. A level of 1 behaves like a mirror, while a level of 0 is more like an eraser.
+The smoothness map (the inverse of a roughness map) defines how regularly light is reflected at the micro-surface level. A value of 1 behaves like a mirror, while a value of 0 is more like an eraser.
 
 {shot of a sphere with 10 different smoothness values}
 
-### Wear
-
-In general, there should be visible wear on all items, i.e. more as if the table just shipped brand new from the factory.
-
-{an asset with no wear, wear, and too much wear}
-
 ### Texture Map Resolution
 
-All texture maps must use the power of two for width and height. They don't have to be square, though. 
+All texture maps must use power-of-two dimensions for width and height (e.g., 256, 512, 1024). They don't have to be square.
 
-We're aiming for a resolution of about 6px/mm (around 150 dpi). For a playfield texture that means roughly a resolution at 4096×8192 pixels. If you can, go as high as that, but don't upscale images. The highest resolution should be the one from your source. This applies to both color and normal maps. For metallic/smoothness you can go half the size.
+{images with correct and wrong texture sizes}
+
+We're aiming for a resolution of about 6 pixels per millimeter (approximately 150 DPI). For a playfield texture, this means roughly 4096×8192 pixels. Use this resolution when possible, but don't upscale images — the highest resolution should be from your source. This applies to both color and normal maps. For metallic/smoothness maps, half the resolution of the color map is a good balance between performance and visual fidelity.
 
 You can determine the resolution by looking at your UV map and the size of the asset. 
 
 {images with explications}
 
+### Wear
+
+Generally, all items should show visible signs of wear, rather than appearing brand new from the factory. This adds realism and character to the assets.
+
+{an asset with no wear, wear, and too much wear}
+
+### Standard Materials
+
+Many materials in the asset library will appear in multiple assets. To keep a consistent look across all assets, you should use existing materials. We're providing Substance Painter Smart Materials for metals and plastics.
+
 ## Attribution
+
+When submitting assets to the library, please include your name or handle for proper attribution. If you've adapted assets from other sources, ensure you have the necessary rights and include appropriate credits.
+
+## File Format and Submission
