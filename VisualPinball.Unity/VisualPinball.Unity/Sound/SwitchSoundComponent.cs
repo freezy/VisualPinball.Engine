@@ -29,7 +29,6 @@ namespace VisualPinball.Unity
 	[AddComponentMenu("Pinball/Sound/Switch Sound")]
 	public class SwitchSoundComponent : BinaryEventSoundComponent<IApiSwitch, SwitchEventArgs>, IPackable
 	{
-		[HideInInspector]
 		public string SwitchName;
 
 		public override Type GetRequiredType() => typeof(ISwitchDeviceComponent);
