@@ -29,7 +29,6 @@ namespace VisualPinball.Unity
 	[AddComponentMenu("Pinball/Sound/Coil Sound")]
 	public class CoilSoundComponent : BinaryEventSoundComponent<IApiCoil, NoIdCoilEventArgs>, IPackable
 	{
-		[HideInInspector]
 		public string CoilName;
 
 		public override Type GetRequiredType() => typeof(ICoilDeviceComponent);
