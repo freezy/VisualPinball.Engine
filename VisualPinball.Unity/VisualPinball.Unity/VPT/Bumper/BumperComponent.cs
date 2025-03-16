@@ -95,6 +95,7 @@ namespace VisualPinball.Unity
 		public const float DataMeshScale = 100f;
 
 		public const string SocketSwitchItem = "socket_switch";
+		public const string RingCoilItem = "ring_coil";
 
 		#endregion
 
@@ -144,7 +145,7 @@ namespace VisualPinball.Unity
 		public SwitchDefault SwitchDefault => SwitchDefault.Configurable;
 
 		public IEnumerable<GamelogicEngineCoil> AvailableCoils =>  new[] {
-			new GamelogicEngineCoil(name) {
+			new GamelogicEngineCoil(RingCoilItem) {
 				Description = "Ring Coil"
 			}
 		};
