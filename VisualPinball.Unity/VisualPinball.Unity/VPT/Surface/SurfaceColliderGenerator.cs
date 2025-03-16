@@ -17,6 +17,7 @@
 // ReSharper disable CompareOfFloatsByEqualityOperator
 
 using Unity.Mathematics;
+using VisualPinball.Engine.Math;
 using VisualPinball.Engine.VPT.Surface;
 
 namespace VisualPinball.Unity
@@ -34,7 +35,8 @@ namespace VisualPinball.Unity
 
 			var data = new SurfaceData();
 			component.CopyDataTo(data, null, null, false);
-			_meshGen = new SurfaceMeshGenerator(data);
+			var pos = new Vertex3D(matrix.c3.x, matrix.c3.y, matrix.c3.z);
+			_meshGen = new SurfaceMeshGenerator(data, pos);
 		}
 
 		internal void GenerateColliders(ref ColliderReference colliders)
