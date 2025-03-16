@@ -102,6 +102,8 @@ namespace VisualPinball.Unity
 					BumperCollider.PushBallAway(ref ballState, in bumperState.Static, ref collEvent, in physicsMaterialData, ref state);
 				}
 			}
+			
+			CoilStatusChanged?.Invoke(this, new NoIdCoilEventArgs(enabled));
 		}
 
 		void IApiWireDest.OnChange(bool enabled) => (this as IApiCoil).OnCoil(enabled);
