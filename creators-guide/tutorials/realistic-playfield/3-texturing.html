@@ -1,0 +1,303 @@
+﻿<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+      <title>Create a Realistic Looking Playfield - Texturing | VPE Documentation </title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="title" content="Create a Realistic Looking Playfield - Texturing | VPE Documentation ">
+      
+      <meta name="description" content="How to texture the playfield mesh.">
+      <link rel="icon" href="../../../favicon.png">
+      <link rel="stylesheet" href="../../../public/docfx.min.css">
+      <link rel="stylesheet" href="../../../public/main.css">
+      <link rel="stylesheet" href="../../../public/basicLightbox.min.css">
+      <meta name="docfx:navrel" content="../../../toc.html">
+      <meta name="docfx:tocrel" content="../../toc.html">
+      
+      <meta name="docfx:rel" content="../../../">
+      
+      
+      <meta name="docfx:docurl" content="https://github.com/freezy/VisualPinball.Engine/blob/master/VisualPinball.Unity/Documentation~/creators-guide/tutorials/realistic-playfield/3-texturing.md/#L1">
+      <meta name="loc:inThisArticle" content="Table of Contents">
+      <meta name="loc:searchResultsCount" content="{count} results for &quot;{query}&quot;">
+      <meta name="loc:searchNoResults" content="No results for &quot;{query}&quot;">
+      <meta name="loc:tocFilter" content="Filter by title">
+      <meta name="loc:nextArticle" content="Next">
+      <meta name="loc:prevArticle" content="Previous">
+      <meta name="loc:themeLight" content="Light">
+      <meta name="loc:themeDark" content="Dark">
+      <meta name="loc:themeAuto" content="Auto">
+      <meta name="loc:changeTheme" content="Change theme">
+      <meta name="loc:copy" content="Copy">
+      <meta name="loc:downloadPdf" content="Download PDF">
+
+      <script type="module" src="./../../../public/docfx.min.js"></script>
+
+      <script>
+        const theme = localStorage.getItem('theme') || 'auto'
+        document.documentElement.setAttribute('data-bs-theme', theme === 'auto' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : theme)
+      </script>
+
+     <script type="text/javascript">
+     var _paq = window._paq || [];
+     _paq.push(["setCookieDomain", "*.docs.visualpinball.org"]);
+     _paq.push(['trackPageView']);
+     _paq.push(['enableLinkTracking']);
+     (function() {
+       var u="//count.vpdb.io/";
+       _paq.push(['setTrackerUrl', u+'matomo.php']);
+       _paq.push(['setSiteId', '2']);
+       var d=document, g=d.createElement('script'), s=d.getElementsByTagName('script')[0];
+       g.type='text/javascript'; g.async=true; g.defer=true; g.src=u+'matomo.js'; s.parentNode.insertBefore(g,s);
+     })();
+     </script>
+  </head>
+
+  <body class="tex2jax_ignore" data-layout="" data-yaml-mime="">
+    <header class="bg-body border-bottom" data-bs-theme="dark">
+      <nav id="autocollapse" class="navbar navbar-expand-md" role="navigation">
+        <div class="container flex-nowrap">
+          <a class="navbar-brand" href="../../../index.html">
+            <img id="logo" class="svg" src="../../../logo.svg" alt="">
+            
+          </a>
+          <button class="btn btn-lg d-md-none border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navpanel" aria-controls="navpanel" aria-expanded="false" aria-label="Toggle navigation">
+            <i class="bi bi-three-dots"></i>
+          </button>
+          <div class="collapse navbar-collapse" id="navpanel">
+            <div id="navbar">
+              <form class="search" role="search" id="search">
+                <i class="bi bi-search"></i>
+                <input class="form-control" id="search-query" type="search" disabled="" placeholder="Search" autocomplete="off" aria-label="Search">
+              </form>
+              <a title="VPE is open source!" class="navbar-github" href="https://github.com/freezy/VisualPinball.Engine" target="_blank">
+                <svg xmlns="http://www.w3.org/2000/svg" viewbox="0 0 33.5 33.1" width="33.5" height="33.1"><path d="M16.7.4a16.3 16.3 0 00-5.2 31.8c.8.1 1.1-.4 1.1-.8v-2.8c-4.5 1-5.5-2.2-5.5-2.2-.6-1.9-1.7-2.4-1.7-2.4-1.5-1 .1-1 .1-1 1.6.1 2.5 1.7 2.5 1.7 1.5 2.5 3.8 1.8 4.7 1.4.1-1.1.6-1.8 1-2.2-3.6-.4-7.4-1.8-7.4-8.1 0-1.8.7-3.2 1.7-4.4-.1-.4-.7-2 .2-4.3 0 0 1.4-.4 4.5 1.7a18.4 18.4 0 018.2 0c3.1-2.1 4.5-1.7 4.5-1.7.9 2.2.3 3.9.2 4.3 1 1.1 1.7 2.6 1.7 4.4 0 6.3-3.8 7.6-7.4 8 .6.5 1.1 1.5 1.1 3v4.5c0 .4.3.9 1.1.8A16.3 16.3 0 0016.7.4z"></path></svg>
+              </a>
+            </div>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <main class="container-xxl">
+      <div class="toc-offcanvas">
+        <div class="offcanvas-md offcanvas-start" tabindex="-1" id="tocOffcanvas" aria-labelledby="tocOffcanvasLabel">
+          <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="tocOffcanvasLabel">Table of Contents</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#tocOffcanvas" aria-label="Close"></button>
+          </div>
+          <div class="offcanvas-body">
+            <nav class="toc" id="toc"></nav>
+          </div>
+        </div>
+      </div>
+
+      <div class="content">
+        <div class="actionbar">
+          <button class="btn btn-lg border-0 d-md-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#tocOffcanvas" aria-controls="tocOffcanvas" aria-expanded="false" aria-label="Show table of contents">
+            <i class="bi bi-list"></i>
+          </button>
+
+          <nav id="breadcrumb"></nav>
+        </div>
+
+        <article data-uid="tutorial_playfield_3">
+<h1 id="texturing">Texturing</h1>
+
+<p>We'll be creating a rather sophisticated material for our playfield. There will be a bunch of different materials, which altogether will result in a PBR texture set that we can use in Unity.</p>
+<p>Start up Substance Painter. Select <em>File -&gt; New</em> and use the <em>PBR - Metallic Roughness Alpha-blend</em> template. Set the document resolution to 4096 and select the FBX file exported from Blender. Save your project as <code>Playfield.spp</code>.</p>
+<p><img src="substance-new.png" alt="Imported into Substance"></p>
+<div class="NOTE">
+<h5>Note</h5>
+<p>We don't need any baking in this tutorial, so we'll skip it to keep the file size smaller. However, if you would use any smart materials in your texturing, baking at least the curvature map and thickness map is required for the material to work correctly.</p>
+</div>
+<h2 id="setup">Setup</h2>
+<p>Let's start by masking out the top surface and the plywood edge. Under <em>Layers</em>, delete <em>Layer 1</em> and create two folders. Name them <em>Edges</em> and <em>Surface</em>.</p>
+<ul>
+<li>Right-click on the <em>Surface</em> layer and choose <em>Add white mask</em></li>
+<li>Hit <code>F1</code> to see both the 3D view and UV tile</li>
+<li>Select the <a href="https://substance3d.adobe.com/documentation/spdoc/polygon-fill-34275386.html">Polygon Fill tool</a></li>
+<li>Set the color under <em>Properties</em> or in the top toolbar to black</li>
+<li>Draw a rectangle over the UV tile's left border to fill the edge polygons</li>
+<li>Alt-click on the mask to verify that only the left border is black:
+<img src="substance-surface-mask.png" alt="Mask of the surface"></li>
+</ul>
+<p>Do the same for the <em>Edges</em> layer, but invert the mask:</p>
+<ul>
+<li>Right-click on the <em>Edges</em> layer and choose <em>Add black mask</em></li>
+<li>Set the color to white</li>
+<li>Draw a rectangle over the UV tile's left border to fill the edge polygons</li>
+<li>Alt-click on the mask to verify that only the left border is white:
+<img src="substance-edges-mask.png" alt="Mask of the edge"></li>
+</ul>
+<p>Hit <code>F2</code> to show the 3D view only, and switch back from <em>Mask</em> to <em>Material</em> in the drop-down of top right corner.</p>
+<h2 id="ink-material">Ink Material</h2>
+<p>Create a new folder inside of <em>Surface</em> and call it <em>Ink</em>.</p>
+<h3 id="albedo">Albedo</h3>
+<p>Inside of <em>Ink</em>, create a fill layer and name it <em>Albedo</em>. Under <em>Properties</em>, <code>Alt</code>-click on <em>color</em> to make it albedo only. Grab <code>albedo.png</code> from your file system's explorer and drag and drop it into the <em>Assets</em> panel (on the left side).</p>
+<p>In the import dialog, click on <em>undefined</em> and select <em>texture</em>. At the bottom select to import to <em>project 'Playfield'</em>. Drag <em>albedo</em> from the assets panel into the <em>Base color</em> channel of the <em>Albedo</em> layer. Finally, right-click on the layer and select <em>Add anchor point</em>.</p>
+<p><img src="substance-albedo.png" alt="Applied albedo"></p>
+<h3 id="height-and-roughness">Height and Roughness</h3>
+<p>We're going to stack three effects on top of each other:</p>
+<ol>
+<li>In a CMYK printing process like a playfield, each color gets applied on top of each other. What we can do to mimic this effect is to grab the grayscale image of the albedo and interpret it as height map, where black is highest and white lowest.</li>
+<li>Ink is never applied perfectly evenly, so there are little bumps that should be visible.</li>
+<li>A playfield that has been in use has micro scratches from the ball.</li>
+</ol>
+<p>But first, let's set the base values. Just above the <em>Albedo</em> layer, create a new fill layer and call it <em>Base Height/Roughness</em>. Under properties, <code>Alt</code>-click on <em>height</em> and click on <em>rough</em>. Set the height to <code>0.004</code> and the roughness to <code>0.15</code>.</p>
+<h4 id="noise-and-scratches">Noise and Scratches</h4>
+<p>Now we're going to add another layer that contains the ink imperfections and the micro scratches.</p>
+<ul>
+<li>Add a new layer above <em>Base Height/Roughness</em> and call it <em>Wear</em>.</li>
+<li>In the <em>Properties</em> panel, <code>Alt</code>-click on <em>height</em> to make it only affect the height.</li>
+<li>Set <code>Height</code> as uniform color to <code>-0.1</code>.</li>
+<li>Right-click on the layer and add a black mask.</li>
+<li>Add a fill effect to this mask and call it <em>Noise</em>.</li>
+<li>Click on <em>grayscale</em> and search for <em>Fractal Sum 1</em>.</li>
+</ul>
+<p>Zoom in a bit and use <code>Shift</code>+<code>Mouse Right</code> to rotate the environment map. Move the light source in front of you so you see the reflection the height is causing.</p>
+<p><img src="substance-noise-basic.png" alt="Too much noise!"></p>
+<p>Now, this is way too much noise, but it allows us to tweak it better before we tune it down. The first thing to do is not to UV-project, which is the default. In general, you should only UV-project when you know that the aspect ratio of your UV mapping is correct, which isn't the case here.</p>
+<p>So, the <em>Noise</em> effect still selected, change the <em>Projection</em> under <em>Fill</em> to <em>Tri-planar projection</em>. You'll immediately notice how the noise is less skewed.</p>
+<p>Then, the size of the bumps is way too high as well. Still under <em>Properties</em>, look for <em>UV transformations</em>, and set the scale to <code>5</code>. Finally, make the effect more subtle by selecting the <em>Wear</em> layer (not the mask), and changing the <em>Height</em> at the bottom of <em>Properties</em> from <code>-0.1</code> to <code>-0.01</code>.</p>
+<p><img src="substance-noise-better.png" alt="That's better"></p>
+<p>That's better. Now let's add some scratches. Click on the mask of <em>Wear</em> again, and add another fill effect, above <em>Noise</em>. Call it <em>Scratches</em>. You'll notice that this makes the noise disappear, but that's fine for now. Under <em>Properties</em>, change the <em>Projection</em> to <em>Tri-planar projection</em> like before.</p>
+<p>Click on the <em>grayscale</em> button and search for a texture named <em>Grunge Scratches</em>. You'll notice that the scratches now actually pop up instead of going down. Let's fix that by setting <em>Invert</em> to <em>true</em> down under <em>Parameters</em>.</p>
+<p>In order to get the noise back, change the blend mode of <em>Scratches</em> to <em>Linear Dodge (Add)</em>. Use the slider just besides to make the effect more subtle. Do the same for the <em>Noise</em> effect until you're happy with it.</p>
+<p>Here, it looks good with <em>Noise</em> at <code>70</code> and <em>Scratches</em> at <code>40</code>. You can always tweak this later.</p>
+<p><img src="substance-scratches.png" alt="Noise and scratches"></p>
+<h4 id="ink-height">Ink Height</h4>
+<p>Create another fill layer above <em>Wear</em> and call it <em>Ink Height</em>. <code>Alt</code>-click on <em>height</em> to make it height-only and set the height to <code>-0.1</code>. Right-click on the layer add a black mask. Add a fill effect to the mask and name it <em>Ink Alpha</em>.</p>
+<p>Click on <em>grayscale</em> to select a texture, switch to the <em>Anchor Points</em> tab and select <em>Albedo</em>. Again, much too high, so select the layer again and dial in the height. Here, it looks good around <code>-0.0088</code>. Subtlety is key.</p>
+<p><img src="substance-ink-height.png" alt="Ink Height"></p>
+<h2 id="wood">Wood</h2>
+<p>Having created an ink mask allows us to use a proper wood material for what's below the ink. Under the <em>Ink</em> layer, add a new folder called <em>Wood</em>.</p>
+<p>Now, a good wood material that works well for playfields is titled &quot;Oak Wood&quot; by Casimir Perez. It's part of Adobe's free Substance materials, and you can download it <a href="https://substance3d.adobe.com/community-assets/assets/75c37499062d5198057e10751fc6fdb3ca26ab20">here</a>.</p>
+<p>After downloading, drop it into the library and from the library into the <em>Wood</em> folder. Hide the <em>Ink</em> layer so we can parameterize it correctly. I've found the following setting to work well:</p>
+<ul>
+<li>Projection: Tri-planar projection</li>
+<li>Scale: <code>5</code></li>
+<li>Rotation: 90°</li>
+<li>Color: <code>#CC9166</code></li>
+<li>Roughness: 0.18</li>
+</ul>
+<p>Also, hit <em>Random</em> a few times if you don't like the pattern.</p>
+<p><img src="substance-wood.png" alt="Wooden Playfield"></p>
+<p>Let's mask this out, since we don't want any of the channels influence the ink, and we don't want wood under the meshes that covers the inserts either. Right-click on the <em>Wood</em> folder add a white mask with a fill effect named <em>Wood Mask</em>.</p>
+<p>Drag and drop <code>wood-mask-01.png</code> into <em>Assets</em>, import it as <em>alpha</em> into <em>project 'Playfield'</em>. Then drag the imported texture on <em>Wood Mask</em>'s grayscale. This does the inverse of what we want (i.e., it shows the wood only over the inserts). To fix this, right-click on <em>Wood Mask</em>, choose <em>Add filter</em>, click on <em>filter</em>, and choose <em>Invert</em>.</p>
+<p>Now we have masked out the inserts, but we still have wood over the ink. To fix this, create a new fill effect above the <em>Invert</em> filter, name it <em>Ink Mask</em>, import <code>ink-mask-01.png</code> and assign it to the fill effect. Select the blending mode to <em>Multiply</em>.</p>
+<p><img src="substance-wood-masked.png" alt="Masked Wood"></p>
+<p>In order to make the wood visible below the ink, do the following:</p>
+<ul>
+<li>Re-enable the <em>Ink</em> layer</li>
+<li>Add a white mask to the <em>Ink</em> layer</li>
+<li>Add a fill effect called <em>Ink Mask</em> to the mask</li>
+<li>Click on <em>grayscale</em> and search for <em>ink-mask-01</em>.</li>
+<li>On top of <em>Ink Mask</em>, add an <em>Invert</em> filter</li>
+</ul>
+<p>Your playfield should now have the ink properly masked out and sitting on top of the wood.</p>
+<p><img src="substance-ink-masked.png" alt="Masked out Wood"></p>
+<h2 id="inserts">Inserts</h2>
+<p>Let's look at the inserts. What we want is to apply our ink mask as an alpha mask on the insert meshes. Create a new folder layer above <em>Ink</em> and call it <em>Inserts</em>.</p>
+<p>Add a white mask and a fill effect called <em>Wood Mask</em>. Click on <em>grayscale</em> and search for <em>wood-mask-01</em>.</p>
+<p>Within the <em>Inserts</em> folder, create a new fill layer and name it <em>Opacity</em>. <code>Alt</code>-click on <em>op</em> under its properties to only activate the opacity. Set the opacity to <code>0</code>.</p>
+<p>Right-click on the <em>Opacity</em> layer, add a white mask with a fill effect named <em>Ink Mask</em>, and set the fill effect's grayscale to <em>ink-mask-01</em>.</p>
+<p>Unfortunately, this results in edges around the ink over the inserts, since the albedo below has been masked out by the wood mask. In order to fix that, add another fill layer below <em>Opacity</em>, make it <em>color</em> only, and assign the <em>Albedo</em> anchor point to its color.</p>
+<p>This should make the insert overlay to be cut out correctly.</p>
+<p><img src="substance-inserts.png" alt="Inserts"></p>
+<h2 id="fake-holes">Fake Holes</h2>
+<p>Remember the fake holes mask we've created so we can use them as markers on the playfield? Let's do those. Create a new folder layer above <em>Inserts</em> called <em>Fake Holes</em>. But before we add anything to it, we need to mask out a few things.</p>
+<p>Click on the mask of your <em>Wood</em> folder, where the <em>Ink Mask</em> is the top effect. Add another fill effect called <em>Fake Holes Mask</em>. From your file explorer, drop <code>fake-holes-mask-01.png</code> and import it into your project as an alpha. Assign it to the <em>Fake Holes Mask</em> fill effect and set the blend mode to <em>Subtract</em>.</p>
+<p>You should now see gray spots in your wood. Go back to your new <em>Fake Holes</em> layer and add a white mask with a fill effect called <em>Fake Hole Mask</em>. Click on <em>grayscale</em> and find <em>fake-holes-mask-01</em>.</p>
+<p>In the <em>Fake Hole</em> folder, add a new fill layer and call it <em>Material</em>. Only enable <em>color</em>, <em>height</em> and <em>rough</em> on it. Set the color to <code>#050505</code>, the height to something like <code>-0.08</code>, and roughness to let's say <code>0.7</code>.</p>
+<p><img src="substance-fake-holes.png" alt="Fake Holes">
+<small><i>Which holes here are fake?</i></small></p>
+<h2 id="edges">Edges</h2>
+<p>We have ignored the edges so far. Create a new fill layer under the <em>Edge</em> folder. Name it <em>Albedo</em> and <code>Alt</code>-click on <em>color</em> to make it color-only. Click on <em>Base color</em> and search for <em>albedo</em>. This will directly apply the texture as you have mapped it in Blender.</p>
+<p>If you want to align the mapping, hit <code>F2</code> to see the mapping on the UV tile, which allows you to resize and move the texture. You could also use a completely different texture of course.</p>
+<p><img src="substance-edge-mapping.png" alt="Edge Mapping"></p>
+<p>But let's stick with the current one. It needs a bit of adjusting. First of all, looking at it from a distance, it's kind of boring, nearly like solid colors. Right-click on the layer and choose <em>Add filter</em>. Click on <em>Filter</em> and select <em>Sharpen</em>. At <code>1</code> it looks better already, but tweak as you feel like.</p>
+<p>Secondly, the colors are slightly off. Add another filter effect and choose <em>Color Balance</em>. In our case, increasing the reds and magentas of midtones and highlights does the trick.</p>
+<p><img src="substance-edge-corrected.png" alt="Edge Mapping"></p>
+<h2 id="plunger-lane">Plunger Lane</h2>
+<p>One of the drawbacks of replacing the scanned wood with a material from Substance Painter is that the plunger lane, which is typically cut into the wood, becomes invisible. So, let's add this back.</p>
+<p>Just above the <em>Wood</em> folder, create a new folder layer called <em>Plunger Lane</em>. Inside, add a new fill layer and name it <em>Albedo</em>. Make it <em>color</em> only, click on <em>Base color</em>, search for <em>albedo</em>, and choose your previously imported playfield scan. Now we have the scan replacing all our wood, which we don't want.</p>
+<p>Right-click on the <em>Albedo</em> layer and add a black mask. Right-click on the mask and add a paint effect. With the brush tool, use a soft brush to draw back the plunger lane of the original playfield scan. Use <code>X</code> to swap between painting black and white. After masking, it should look similar to this:</p>
+<p><img src="substance-plunger-unmatched.png" alt="Masked plunge lane"></p>
+<p>Now, this doesn't really match the surrounding colors. Click on the left preview icon of the <em>Albedo</em> layer, right-click and select <em>Add filter</em>. Click on <em>Filter</em> and look for <em>Color Balance</em>. Manipulate the parameters so they colors match the surrounding wood. Then, add another filter, select <em>Color Correct</em>, and adjust the parameters to further improve.</p>
+<p>Finally, if you see that your scan is softer than the generated wood, add a <em>Sharpen</em> filter to compensate. The final result here looks like this:</p>
+<p><img src="substance-plunger-matched.png" alt="Color corrected plunger lane"></p>
+<p>Let's also add a proper height map. I've simply drawn a triangle on the lane and exported it as PNG (<a href="plunger-height.png">download</a>). Above the plunger lane's <em>Albedo</em>, create a new fill layer named <em>Height</em>. <code>Alt</code>-click on <em>height</em> to make it height only. Right-click on the layer, add a black mask with a fill effect. Import <code>plunger-height.png</code> and assign it to the fill effect.</p>
+<p>Set <em>UV Wrap</em> to <em>None</em>. <code>Alt</code>-click on the mask icon of the layer to visualize it, select the <em>Fill</em> effect again and hit <code>F1</code> to place the texture over the plunger lane. On top of the fill effect, add a filter effect and select the <em>Blur</em> filter. Adjust it so it blurs similar to this:</p>
+<p><img src="substance-plunger-height-map.png" alt="Plunger lane height map"></p>
+<p>Hit <code>F2</code> and set the viewport from <em>Mask</em> back to <em>Material</em>. Play with the layer's <em>Height</em> while rotating the environment lights until you're satisfied. You can also go back to the mask and adjust the amount of blurring.</p>
+<p><img src="tron-plunger-lane-heightmap.webp" alt="Plunger lane"></p>
+<h2 id="wrapping-up">Wrapping Up</h2>
+<p>This tutorial is already long enough, so we've created a <a class="xref" href="3b-more-texturing.html">separate page</a> for dealing with our Mylar sticker and silver paint. Here, we're going to wrap up and get this exported. But first, there is one last thing we need to do, which is making sure our material is PBR valid.</p>
+<p>PBR valid basically means that the color of your textures isn't too light or too dark. There is no such thing as absolute black in the nature, and if we provide such values, there will be problems when rendering later. More literature about this can be found <a href="https://substance3d.adobe.com/tutorials/courses/the-pbr-guide-part-2">here</a> under &quot;Base Color (RGB – sRGB)&quot;.</p>
+<p>Download the free <a href="https://stylizedstation.gumroad.com/l/PBRValidate">&quot;PBR Validate&quot; smart material</a> and drop it at the very top of all the layers. Here, it looks like that:</p>
+<p><img src="substance-pbr-invalid.png" alt="PBR Invalid"></p>
+<p>Red means there's a problem. This is most definitely the playfield's albedo that is too dark. Adding a <em>Levels</em> effect to the ink's albedo and pushing up the lower boundary to <code>0.01</code> already solves most of the problems.</p>
+<p><img src="substance-pbr-invalid-but-better.png" alt="PBR Invalid"></p>
+<p>The rest seems related to the fake holes. Looks like <code>#050505</code> was way too dark. Pushing up to <code>#1E1E1E</code> turns the rest of the playfield green.</p>
+<p>Here our fully textured playfield.</p>
+<p><img src="substance-final-result.png" alt="PBR Invalid"></p>
+<h2 id="export">Export</h2>
+<p>First of all, if you have come so far, congrats. That was quite a ride. The rest is a lot easier.</p>
+<p>What Unity needs is a set of maps. In HDRP, those maps are the base map (aka albedo), a <a href="https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@12.1/manual/Mask-Map-and-Detail-Map.html">mask map</a>, and a normal map. Substance Painter can generate those automatically.</p>
+<p>However, since Painter usually deals with multiple materials, it will add the material name into each map's file name. For the playfield, we don't want that, because we only have one material.</p>
+<p>If you go to <em>File -&gt; Export Textures</em>, a dialog pops up where you can edit the output templates. Click on the tab called <em>Output Templates</em> and find the one called <em>Unity HD Render Pipeline (Metallic Standard)</em>. Click the <em>duplicate</em> icon on the top, and double click the copy to rename. I just called it <em>Unity HDRP</em>. Rename the three maps to:</p>
+<ul>
+<li><code>$mesh_BaseMap(_$colorSpace)(.$udim)</code></li>
+<li><code>$mesh_MaskMap(_$colorSpace)(.$udim)</code></li>
+<li><code>$mesh_Normal(_$colorSpace)(.$udim)</code></li>
+</ul>
+<p><img src="substance-output-template.png" alt="Output Templates"></p>
+<p>I've removed the fourth map, the emissive map, because we don't need it.</p>
+<p>Hit <em>Save Settings</em> to close, because we want to do one last thing before exporting. In the <em>Texture Set Settings</em> panel, disable the lock icon and set the texture resolution to 2048×4096. This will not squeeze your 2:1 playfield into a 1:1 texture anymore but use a more appropriate aspect ratio.</p>
+<p>Now, to export, click again on <em>File -&gt; Export Textures</em>, select the folder where you want to put your textures in (usually in your Unity project folder at <code>Assets/&lt;table name&gt;/Textures</code>), change the output template to <em>Unity HDRP</em> (the one you created before), and hit <em>Export</em>.</p>
+<div class="NOTE">
+<h5>Note</h5>
+<p>If you happen to have an 8K playfield scan, you can set the <em>Size</em> to <code>8192</code> before exporting. This will write your maps at 4096×8192.</p>
+</div>
+<p><img src="substance-final-masks.png" alt="Final Masks"></p>
+<p>On first sight, the result doesn't look like much, so let's <a class="xref" href="4-import-into-unity.html">bring this into Unity</a>!</p>
+
+</article>
+
+        <div class="contribution d-print-none">
+          <a href="https://github.com/freezy/VisualPinball.Engine/blob/master/VisualPinball.Unity/Documentation~/creators-guide/tutorials/realistic-playfield/3-texturing.md/#L1" class="edit-link">Improve this Page</a>
+        </div>
+
+        <div class="next-article d-print-none border-top" id="nextArticle"></div>
+
+      </div>
+
+      <div class="affix">
+        <nav id="affix"></nav>
+      </div>
+    </main>
+
+    <div class="container-xxl search-results" id="search-results"></div>
+
+    <footer class="border-top text-secondary">
+      <div class="container-xxl">
+        <div class="flex-fill">
+          <span>Copyright © 2025 VPE Team</span>
+        </div>
+      </div>
+    </footer>
+    <script src="./../../../public/basicLightbox.min.js"></script>
+    <script type="text/javascript">
+    for (const img of document.querySelectorAll('img:not(#logo)')) {
+      img.onclick = () => {
+        basicLightbox.create(`<img src="${img.src}">`).show()
+        if (img.parentElement.tagName === 'A') {
+          img.parentElement.href = 'javascript:void(0)'
+          img.parentElement.target = '_self'
+        }
+      }
+    }
+    </script>
+  </body>
+</html>
