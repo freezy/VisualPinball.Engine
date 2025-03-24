@@ -118,7 +118,7 @@ The decal geometry should be in a separate object parented to the main object. T
 
 <img src="assetlib-collider-mesh.png" width="113" alt="Decal Setup of two drop targets" class="img-fluid float-end" style="margin-left: 15px"/>
 
-VPE uses separate meshes for collision for some items (currently drop targets and hit targets). These collider meshes must be included in the model.
+VPE uses separate meshes for collision for some items (currently drop targets and hit targets). These collider meshes should be included in the model.
 
 - Their pivot point must align with the pivot point of the main mesh.
 - The scale must be applied and correspond to the main mesh's scale.
@@ -218,14 +218,14 @@ We're aiming for a resolution of about 6 pixels per millimeter (approximately 15
 
 ### Wear
 
-Generally, all items should show visible signs of wear, rather than appearing brand new from the factory. This adds realism and character to the assets (and hopefully Blender versions as well).
+Generally, all items should show visible signs of wear, rather than appearing brand new from the factory. This adds realism and character to the assets.
 
 <img src="assetlib-wear.png" style="max-height:200px" /><br>
 <i>They certainly have each their look. But in order to keep consistency, you should follow the example in the middle.</i>
 
 ### Standard Materials
 
-Many materials in the asset library will appear in multiple assets. To keep a consistent look across all assets, you should use existing materials. We're providing Substance Painter Smart Materials for metals and plastics.
+Many materials in the asset library will appear in multiple assets. To keep a consistent look across all assets, you should use existing materials. We're providing Substance Painter Smart Materials for metals and plastics (and hopefully Blender versions as well).
 
 ℹ️ &nbsp;Table coming soon
 
