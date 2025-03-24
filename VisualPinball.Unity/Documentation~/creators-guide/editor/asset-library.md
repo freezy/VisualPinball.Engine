@@ -5,7 +5,17 @@ description: The asset library is a collection of all the assets used in your pi
 ---
 # Asset Library
 
-The asset library is a centrally maintained collection of pinball assets that table authors can use in their table builds. It comes with a browser, a tagging system, search and preview.
+The asset library is a centrally maintained collection of pinball assets that table authors can use in their table builds. It comes with a browser, a tagging system, search and preview. Assets in this library are of high quality and customizable. We try our best to identify the source of each asset and attribute it to its creator(s).
+
+> [!NOTE]
+> This is the creator's guide, so this documentation is aimed towards creators who are contributing to this library.
+
+## Quality and Flexibility
+
+Each asset should be carefully crafted and be as customizable as possible, while having minimal impact on performance. So, let's dive into what this actually means. :)
+
+First, a few words about quality. 
+
 
 ## Contributing
 
