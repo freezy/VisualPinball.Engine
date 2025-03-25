@@ -107,7 +107,6 @@ The decal geometry should be in a separate object parented to the main object. T
 <img src="assetlib-decal-uvs.png" style="max-height:200px" /><br>
 <i>Be sure to keep the aspect ratio without distortion when UV-mapping decals.</i>
 
-
 > [!note]
 > #### Why Decals?
 > Decals are great because they make your workflow more flexible and are at the same time more performant:
@@ -129,6 +128,15 @@ You can see a hit target mesh with its collider mesh in orange on the right side
 ### LODs
 
 Regarding [LODs](https://en.wikipedia.org/wiki/Level_of_detail_(computer_graphics)) (Levels of Detail), we're only using one LOD. This guideline is based on the compact size of the playfield, where most elements would be rendered at the same LOD anyway. Additionally, most assets will be under 1,000 triangles, making the performance impact of LODs minimal.
+
+### File Format
+
+Export your meshes in a format [supported by Unity](https://docs.unity3d.com/6000.0/Documentation/Manual/3D-formats.html). The preferred formats are [glTF](https://en.wikipedia.org/wiki/GlTF) and [FBX](https://en.wikipedia.org/wiki/FBX). Avoid [`.obj`](https://en.wikipedia.org/wiki/Wavefront_.obj_file) due to its limitations and inefficiency.
+
+<img src="assetlib-3d-formats.png" style="max-height:200px" /><br>
+
+
+Vendor-specific formats are also to avoid (even `.blend`), because they only can be imported if the corresponding 3D software is installed.
 
 ## Material Guidelines
 
@@ -211,10 +219,20 @@ We're aiming for a resolution of about 6 pixels per millimeter (approximately 15
 > 3. In terms of dimensions, we now have the following:
 >    - Width in UV space: 0.955 - 0.36 = 0.595 
 >    - Width in real world space: 29.2mm
-> 4. At 6px / mm, that makes 6px * 29.2mm = 175.2px for the 0.595 UVs
+> 4. At 6px / mm, that makes 6px × 29.2mm = 175.2px for the 0.595 UVs
 > 5. To get the resolution of the whole UV map: 175.2px / 0.592 = 296px
 > 
 > So, a texture map at 296×296 would correspond to 6px / mm. Since we're at power of twos, we can go for either 512×512 or 256×256.   
+
+
+### File Format
+
+Export your texture maps in **PNG format**. Use 32-bit if they include an alpha channel; otherwise, 24-bit is sufficient.
+
+> [!note]
+> Many artists prefer to export their textures as TGA due to faster read/write speeds, but TGA files consume significantly more space. PNG uses lossless compression, and once imported, Unity stores textures in a GPU-friendly format anyway. Additionally, when exporting to the `.vpe` format, image textures are converted into a runtime-optimized format.
+
+In terms of *packaging*, Unity's HDRP stores metallic, ambient occlusion and smoothness in what they call a [mask map](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@17.2/manual/Mask-Map-and-Detail-Map.html). Substance Painter exports this out of the box, but it should be pretty easy to do with Blender as well. 
 
 ### Wear
 
@@ -231,7 +249,7 @@ Many materials in the asset library will appear in multiple assets. To keep a co
 
 ## Attribution
 
-When submitting assets to the library, please include your name or handle for proper attribution. If you've adapted assets from other sources, ensure you have the necessary rights and include appropriate credits.
+When submitting assets to the library, please include your name or handle for proper attribution. If you've adapted assets from other sources, ensure you have the necessary permissions and include appropriate credits.
 
 ## Where to Submit
 
