@@ -125,6 +125,8 @@ you expect a sound to be triggered in quick succession, you may be interested in
 the _Multi Play Mode_ setting. It specifies what to do when the sound is still
 playing when it is triggered again. These are the options:
 
+<img src="editor-coil-sound.png"  alt="Coil Sound Component on a bumper" width="367" class="img-fluid float-end" style="margin-left: 15px; margin-bottom: 10px">
+
 - **Play In Parallel**: Keep playing the previous sound and start another one at
   the same time.
 - **Do Not Play**: Keep playing the previous sound and don't start another one.
