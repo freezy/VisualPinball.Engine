@@ -111,6 +111,8 @@ assets.
 
 ## Playback
 
+<img src="editor-coil-sound.png"  alt="Coil Sound Component on a bumper" width="367" class="img-fluid float-end" style="margin-left: 15px; margin-bottom: 10px">
+
 Regardless of which game logic engine you use, VPE provides a few Unity
 components to trigger the playback of sound assets. _Hit Sound_, _Coil Sound_
 and _Switch Sound_ are intended to trigger mechanical sound effects when the
@@ -119,13 +121,11 @@ You can add these components to any game objects that have another component to
 supply the appropriate events. For example, a bumper component supplies all
 three, because bumpers can get hit and have both a coil and a switch. If the
 coil or switch that should trigger the sound is part of a device with other
-coils or switches, you must select it in the drop down menu on the sound
+coils or switches, you must select it in the drop-down menu on the sound
 component. You can have as many sound components on one object as you want. If
 you expect a sound to be triggered in quick succession, you may be interested in
 the _Multi Play Mode_ setting. It specifies what to do when the sound is still
 playing when it is triggered again. These are the options:
-
-<img src="editor-coil-sound.png"  alt="Coil Sound Component on a bumper" width="367" class="img-fluid float-end" style="margin-left: 15px; margin-bottom: 10px">
 
 - **Play In Parallel**: Keep playing the previous sound and start another one at
   the same time.
