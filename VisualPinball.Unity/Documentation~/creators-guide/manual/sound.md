@@ -36,7 +36,7 @@ your Unity project panel, right click, select _Create -> Pinball -> Sound_
 and choose the type of sound asset you want to create. All sound asset types
 have the following properties:
 
-![Common sound asset options](common-sound-asset-options.jpg)
+<img src="common-sound-asset-options.png"  alt="Common sound asset options" width="367" class="img-fluid float-end" style="margin-left: 15px; margin-bottom: 10px">
 
 - **Description**: You can enter any text here. This field is only for diplay.
   Use it to describe the sound, when it should be used, how it was recorded, or
@@ -62,7 +62,7 @@ Sound effects are the most common type of sound asset. You should generally
 choose this type for any sounds other than callouts and music. In addition to
 those described above, sound effect assets have the following properties:
 
-![Sound effect asset options](sound-effect-asset-options.jpg)
+<img src="sound-effect-asset-options.png"  alt="Common sound asset options" width="367" class="img-fluid float-end" style="margin-left: 15px; margin-bottom: 10px">
 
 - **Type**: In a real pinball machine, would this sound come from a mechanism
   (Mechanical) or from the speakers (Synthetic)? When a mechanical sound effect
