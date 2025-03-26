@@ -100,7 +100,7 @@ All models must be [UV-mapped](https://en.wikipedia.org/wiki/UV_mapping).
 
 If your model contains art that varies from instance to instance, use a [decal mesh](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@17.2/manual/understand-decals.html). Decals should be used where you would find literal decals or imprints in the real world. Examples include spinners, aprons, targets, and bumpers.
 
-On the right side you see two drop target meshes which their corresponding decal meshes in orange.
+On the right side you see two drop target meshes with their corresponding decal meshes in orange.
 
 The decal geometry should be in a separate object parented to the main object. The UVs of the decal mesh should be laid out in a way that allows its textures to be created with non-specialized image editors.
 
@@ -211,7 +211,7 @@ We're aiming for a resolution of about 6 pixels per millimeter (approximately 15
 > [!note]
 > You can determine the resolution by looking at your UV map and the size of the asset. Let's take the gate from the previous section as an example.
 >
-> 1. Take a large section of your mesh, and measure it. The larger, the more precise it will be. Here I'm measuring the top surface, from where the bevel starts:<br>
+> 1. Take a large section of your mesh, and measure it. The larger, the more precise it will be. Here we're measuring the top surface, from where the bevel starts:<br>
 >    <img src="assetlib-dpi1.png" style="max-height:80px" />
 > 2. Next, identify that section on your UV map, and note where in UV space they are:<br>
 >    <img src="assetlib-dpi2.png" style="max-height:160px" /><br/>
@@ -220,9 +220,9 @@ We're aiming for a resolution of about 6 pixels per millimeter (approximately 15
 >    - Width in UV space: 0.955 - 0.36 = 0.595 
 >    - Width in real world space: 29.2mm
 > 4. At 6px / mm, that makes 6px × 29.2mm = 175.2px for the 0.595 UVs
-> 5. To get the resolution of the whole UV map: 175.2px / 0.592 = 296px
+> 5. To get the resolution of the whole UV map: 175.2px / 0.592 = **296px**
 > 
-> So, a texture map at 296×296 would correspond to 6px / mm. Since we're at power of twos, we can go for either 512×512 or 256×256.   
+> So, a texture map at 296×296 would correspond to 6px / mm. Since we're at power of twos, we could go for either 512×512 or 256×256.   
 
 
 ### File Format
