@@ -14,6 +14,8 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+// ReSharper disable InconsistentNaming
+
 using UnityEngine;
 using VisualPinball.Engine.Math;
 using VisualPinball.Engine.VPT;
@@ -28,11 +30,33 @@ namespace VisualPinball.Unity
 	[AddComponentMenu("Pinball/Mesh/Surface Top Mesh")]
 	public class SurfaceTopMeshComponent : MeshComponent<SurfaceData, SurfaceComponent>, IPackable
 	{
+
+#if UNITY_EDITOR
+		[SerializeField] private Vector2 _playfieldDimensions;
+#endif
 		protected override Mesh GetMesh(SurfaceData data)
 		{
 			var playfieldComponent = GetComponentInParent<PlayfieldComponent>();
+			var playfieldDimensions = Vector2.zero;
+
+			#if UNITY_EDITOR
+			if (playfieldComponent) {
+				_playfieldDimensions = new Vector2(playfieldComponent.Width, playfieldComponent.Height);
+				playfieldDimensions = _playfieldDimensions;
+			}
+			#endif
+
+			if (playfieldComponent) {
+				playfieldDimensions = new Vector2(playfieldComponent.Width, playfieldComponent.Height);
+			}
+
+			if (playfieldDimensions == Vector2.zero) {
+				Debug.LogError($"SurfaceTopMeshComponent of {transform.parent.name} must be a child of a PlayfieldComponent.");
+				return null;
+			}
+
 			return new SurfaceMeshGenerator(data, MainComponent.uvOffset.ToVertex3D())
-				.GetMesh(SurfaceMeshGenerator.Top, playfieldComponent.Width, playfieldComponent.Height, 0, false)
+				.GetMesh(SurfaceMeshGenerator.Top, playfieldDimensions.x, playfieldDimensions.y, 0, false)
 				.TransformToWorld();
 		}
 

@@ -183,6 +183,10 @@ namespace VisualPinball.Unity
 					return;
 				}
 			}
+			var playfieldComponent = GetComponentInParent<PlayfieldComponent>();
+			if (!playfieldComponent) {
+				return;
+			}
 
 			Profiler.BeginSample("ItemColliderComponent.OnDrawGizmosSelected");
 
@@ -202,8 +206,8 @@ namespace VisualPinball.Unity
 				return;
 			}
 
-			var playfieldToWorld = GetComponentInParent<PlayfieldComponent>().transform.localToWorldMatrix;
-			var worldToPlayfield = GetComponentInParent<PlayfieldComponent>().transform.worldToLocalMatrix;
+			var playfieldToWorld = playfieldComponent.transform.localToWorldMatrix;
+			var worldToPlayfield = playfieldComponent.transform.worldToLocalMatrix;
 			var localToPlayfieldMatrixInVpx = GetLocalToPlayfieldMatrixInVpx(worldToPlayfield);
 			var unmodifiedLocalToPlayfieldMatrixInVpx = GetUnmodifiedLocalToPlayfieldMatrixInVpx(worldToPlayfield);
 			var nonTransformableColliderTransforms = new NativeParallelHashMap<int, float4x4>(0, Allocator.Temp);
