@@ -30,9 +30,13 @@ namespace VisualPinball.Unity
 	{
 		protected override Mesh GetMesh(SurfaceData data)
 		{
-			var playfieldComponent = GetComponentInParent<PlayfieldComponent>();
+			var playfieldDimensions = GetPlayfieldDimensions();
+			if (playfieldDimensions == Vector2.zero) {
+				Debug.LogError($"SurfaceTopMeshComponent of {transform.parent.name} must be a child of a PlayfieldComponent.");
+				return null;
+			}
 			return new SurfaceMeshGenerator(data, Vertex3D.Zero)
-				.GetMesh(SurfaceMeshGenerator.Side, playfieldComponent.Width, playfieldComponent.Height, 0, false)
+				.GetMesh(SurfaceMeshGenerator.Side, playfieldDimensions.x, playfieldDimensions.y, 0, false)
 				.TransformToWorld();
 		}
 
