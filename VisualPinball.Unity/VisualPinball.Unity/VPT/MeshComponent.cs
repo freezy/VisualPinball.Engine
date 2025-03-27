@@ -55,6 +55,10 @@ namespace VisualPinball.Unity
 
 		#endregion
 
+#if UNITY_EDITOR
+		[SerializeField] private Vector2 _playfieldDimensions = Vector2.zero;
+#endif
+
 		public virtual void RebuildMeshes()
 		{
 			UpdateMesh();
@@ -77,6 +81,27 @@ namespace VisualPinball.Unity
 		protected virtual bool IsProcedural => true;
 
 		protected abstract PbrMaterial GetMaterial(TData data, Table table);
+
+
+		protected Vector2 GetPlayfieldDimensions()
+		{
+			var playfieldComponent = GetComponentInParent<PlayfieldComponent>();
+			// ReSharper disable once RedundantAssignment
+			var playfieldDimensions = Vector2.zero;
+
+#if UNITY_EDITOR
+			if (playfieldComponent) {
+				_playfieldDimensions = new Vector2(playfieldComponent.Width, playfieldComponent.Height);
+			}
+			playfieldDimensions = _playfieldDimensions;
+#endif
+
+			if (playfieldComponent) {
+				playfieldDimensions = new Vector2(playfieldComponent.Width, playfieldComponent.Height);
+			}
+
+			return playfieldDimensions;
+		}
 
 		public void CreateMesh(TData data, Table table, ITextureProvider texProvider, IMaterialProvider matProvider)
 		{

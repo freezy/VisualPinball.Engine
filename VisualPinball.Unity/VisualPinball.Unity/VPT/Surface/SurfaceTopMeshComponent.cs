@@ -31,30 +31,13 @@ namespace VisualPinball.Unity
 	public class SurfaceTopMeshComponent : MeshComponent<SurfaceData, SurfaceComponent>, IPackable
 	{
 
-#if UNITY_EDITOR
-		[SerializeField] private Vector2 _playfieldDimensions;
-#endif
 		protected override Mesh GetMesh(SurfaceData data)
 		{
-			var playfieldComponent = GetComponentInParent<PlayfieldComponent>();
-			var playfieldDimensions = Vector2.zero;
-
-			#if UNITY_EDITOR
-			if (playfieldComponent) {
-				_playfieldDimensions = new Vector2(playfieldComponent.Width, playfieldComponent.Height);
-				playfieldDimensions = _playfieldDimensions;
-			}
-			#endif
-
-			if (playfieldComponent) {
-				playfieldDimensions = new Vector2(playfieldComponent.Width, playfieldComponent.Height);
-			}
-
+			var playfieldDimensions = GetPlayfieldDimensions();
 			if (playfieldDimensions == Vector2.zero) {
 				Debug.LogError($"SurfaceTopMeshComponent of {transform.parent.name} must be a child of a PlayfieldComponent.");
 				return null;
 			}
-
 			return new SurfaceMeshGenerator(data, MainComponent.uvOffset.ToVertex3D())
 				.GetMesh(SurfaceMeshGenerator.Top, playfieldDimensions.x, playfieldDimensions.y, 0, false)
 				.TransformToWorld();
