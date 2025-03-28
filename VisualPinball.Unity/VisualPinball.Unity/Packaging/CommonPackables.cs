@@ -44,7 +44,6 @@ namespace VisualPinball.Unity
 		public bool IsSlingshot;
 		public bool HasAutoTexture;
 		public float TextureCoord;
-		public bool IsLocked;
 		public int EditorLayer;
 		public string EditorLayerName;
 		public bool EditorLayerVisibility;
@@ -59,7 +58,6 @@ namespace VisualPinball.Unity
 				IsSlingshot = data.IsSlingshot,
 				HasAutoTexture = data.HasAutoTexture,
 				TextureCoord = data.TextureCoord,
-				IsLocked = data.IsLocked,
 				EditorLayer = data.EditorLayer,
 				EditorLayerName = data.EditorLayerName,
 				EditorLayerVisibility = data.EditorLayerVisibility,
@@ -75,7 +73,6 @@ namespace VisualPinball.Unity
 				IsSlingshot = IsSlingshot,
 				HasAutoTexture = HasAutoTexture,
 				TextureCoord = TextureCoord,
-				IsLocked = IsLocked,
 				EditorLayer = EditorLayer,
 				EditorLayerName = EditorLayerName,
 				EditorLayerVisibility = EditorLayerVisibility,

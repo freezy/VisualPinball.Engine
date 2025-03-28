@@ -150,10 +150,7 @@ namespace VisualPinball.Unity.Editor
 				return;
 			}
 
-			var dragPoint = new DragPointData(DragPointInspector.DragPoints[CurveTravellerControlPointIdx]) {
-				IsLocked = false
-			};
-
+			var dragPoint = new DragPointData(DragPointInspector.DragPoints[CurveTravellerControlPointIdx]);
 			var newIdx = CurveTravellerControlPointIdx + 1;
 			var dragPointPosition = CurveTravellerPosition.TranslateToVpx(Transform);
 			dragPointPosition.z = 0;
@@ -179,13 +176,6 @@ namespace VisualPinball.Unity.Editor
 		{
 			var idx = ControlPoints.FindIndex(controlPoint => controlPoint.ControlId == controlId);
 			if (idx < 0) {
-				return;
-			}
-			var removalOk = !ControlPoints[idx].DragPoint.IsLocked;
-			if (!removalOk) {
-				removalOk = EditorUtility.DisplayDialog("Locked DragPoint Removal", "This drag point is locked!\nAre you really sure you want to remove it?", "Yes", "No");
-			}
-			if (!removalOk) {
 				return;
 			}
 			var dragPoints = DragPointInspector.DragPoints.ToList();
@@ -256,17 +246,17 @@ namespace VisualPinball.Unity.Editor
 		/// </summary>
 		/// <param name="itemLock">New lock status</param>
 		/// <returns>True if at least one lock status changed, false otherwise.</returns>
-		public bool UpdateDragPointsLock(bool itemLock)
-		{
-			var lockChanged = false;
-			foreach (var controlPoint in ControlPoints) {
-				if (controlPoint.DragPoint.IsLocked != itemLock) {
-					controlPoint.DragPoint.IsLocked = itemLock;
-					lockChanged = true;
-				}
-			}
-			return lockChanged;
-		}
+		// public bool UpdateDragPointsLock(bool itemLock)
+		// {
+		// 	var lockChanged = false;
+		// 	foreach (var controlPoint in ControlPoints) {
+		// 		if (controlPoint.DragPoint.IsLocked != itemLock) {
+		// 			controlPoint.DragPoint.IsLocked = itemLock;
+		// 			lockChanged = true;
+		// 		}
+		// 	}
+		// 	return lockChanged;
+		// }
 
 		/// <summary>
 		/// Re-creates the control points of the scene view and references their
@@ -377,7 +367,7 @@ namespace VisualPinball.Unity.Editor
 			//Setup Screen positions & controlID for control points (in case of modification of drag points coordinates outside)
 			foreach (var controlPoint in ControlPoints) {
 				_center += controlPoint.AbsolutePosition;
-				if (controlPoint.IsSelected && !controlPoint.DragPoint.IsLocked) {
+				if (controlPoint.IsSelected) {
 					SelectedControlPoints.Add(controlPoint);
 				}
 
@@ -416,7 +406,7 @@ namespace VisualPinball.Unity.Editor
 		{
 			if (Event.current.button == 0) {
 				var nearestControlPoint = ControlPoints.Find(cp => cp.ControlId == HandleUtility.nearestControl);
-				if (nearestControlPoint != null && !nearestControlPoint.DragPoint.IsLocked) {
+				if (nearestControlPoint != null) {
 					if (!Event.current.control) {
 						ClearAllSelection();
 						nearestControlPoint.IsSelected = true;

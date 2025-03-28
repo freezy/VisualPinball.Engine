@@ -88,7 +88,6 @@ namespace VisualPinball.Engine.Math
 				IsSlingshot = dp.IsSlingshot,
 				HasAutoTexture = dp.HasAutoTexture,
 				TextureCoord = dp.TextureCoord,
-				IsLocked = dp.IsLocked,
 				EditorLayer = dp.EditorLayer,
 				EditorLayerName = dp.EditorLayerName,
 				EditorLayerVisibility = EditorLayerVisibility
@@ -109,7 +108,6 @@ namespace VisualPinball.Engine.Math
 				IsSlingshot = IsSlingshot,
 				HasAutoTexture = HasAutoTexture,
 				TextureCoord = TextureCoord,
-				IsLocked = IsLocked,
 				EditorLayer = EditorLayer,
 				EditorLayerName = EditorLayerName,
 				EditorLayerVisibility = EditorLayerVisibility,
@@ -147,7 +145,6 @@ namespace VisualPinball.Engine.Math
 			IsSlingshot = rf.IsSlingshot;
 			HasAutoTexture = rf.HasAutoTexture;
 			TextureCoord = rf.TextureCoord;
-			IsLocked = rf.IsLocked;
 			EditorLayer = rf.EditorLayer;
 			CalcHeight = rf.CalcHeight;
 		}
