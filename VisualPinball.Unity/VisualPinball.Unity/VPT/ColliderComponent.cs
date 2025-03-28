@@ -213,7 +213,7 @@ namespace VisualPinball.Unity
 			var nonTransformableColliderTransforms = new NativeParallelHashMap<int, float4x4>(0, Allocator.Temp);
 
 			var generateColliders = ShowAabbs || showColliders && !HasCachedColliders || ShowColliderOctree;
-			if (generateColliders) {
+			if (generateColliders && _collidersDirty) {
 				if (Application.isPlaying) {
 					InstantiateRuntimeColliders(showColliders);
 				} else {
@@ -325,6 +325,7 @@ namespace VisualPinball.Unity
 
 		private void InstantiateEditorColliders(bool showColliders, ref NativeParallelHashMap<int, float4x4> nonTransformableColliderTransforms, float4x4 localToPlayfieldMatrixInVpx)
 		{
+			Debug.Log("InstantiateEditorColliders");
 			var api = InstantiateColliderApi(_player, PhysicsEngine);
 			var colliders = new ColliderReference(ref nonTransformableColliderTransforms, Allocator.Temp, IsKinematic);
 			try {
