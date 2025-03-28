@@ -208,7 +208,6 @@ namespace VisualPinball.Unity
 
 			var playfieldToWorld = playfieldComponent.transform.localToWorldMatrix;
 			var worldToPlayfield = playfieldComponent.transform.worldToLocalMatrix;
-			var localToPlayfieldMatrixInVpx = GetLocalToPlayfieldMatrixInVpx(worldToPlayfield);
 			var unmodifiedLocalToPlayfieldMatrixInVpx = GetUnmodifiedLocalToPlayfieldMatrixInVpx(worldToPlayfield);
 			var nonTransformableColliderTransforms = new NativeParallelHashMap<int, float4x4>(0, Allocator.Temp);
 
@@ -217,7 +216,7 @@ namespace VisualPinball.Unity
 				if (Application.isPlaying) {
 					InstantiateRuntimeColliders(showColliders);
 				} else {
-					InstantiateEditorColliders(showColliders, ref nonTransformableColliderTransforms, localToPlayfieldMatrixInVpx);
+					InstantiateEditorColliders(showColliders, ref nonTransformableColliderTransforms, worldToPlayfield);
 				}
 			}
 
@@ -246,7 +245,7 @@ namespace VisualPinball.Unity
 				}
 
 				if (_transformedColliderMesh || _transformedKinematicColliderMesh) {
-					Gizmos.matrix = playfieldToWorld * (Matrix4x4)Physics.VpxToWorld;
+					Gizmos.matrix = MainComponent.transform.localToWorldMatrix * playfieldToWorld * (Matrix4x4)Physics.VpxToWorld;
 					if (_transformedColliderMesh) {
 						Gizmos.color = colliderEnabled ? ColliderColor.TransformedColliderSelected : ColliderColor.DisabledColliderSelected;
 						Gizmos.DrawMesh(_transformedColliderMesh);
@@ -325,7 +324,6 @@ namespace VisualPinball.Unity
 
 		private void InstantiateEditorColliders(bool showColliders, ref NativeParallelHashMap<int, float4x4> nonTransformableColliderTransforms, float4x4 localToPlayfieldMatrixInVpx)
 		{
-			Debug.Log("InstantiateEditorColliders");
 			var api = InstantiateColliderApi(_player, PhysicsEngine);
 			var colliders = new ColliderReference(ref nonTransformableColliderTransforms, Allocator.Temp, IsKinematic);
 			try {
