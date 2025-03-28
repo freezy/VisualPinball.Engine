@@ -59,7 +59,7 @@ namespace VisualPinball.Unity.Editor
 
 		protected override void OnPreInspectorGUI()
 		{
-			PropertyField(IsKinematicProperty, "Movable");
+			PropertyField(IsKinematicProperty, "Movable", updateColliders: true);
 			base.OnPreInspectorGUI();
 		}
 
