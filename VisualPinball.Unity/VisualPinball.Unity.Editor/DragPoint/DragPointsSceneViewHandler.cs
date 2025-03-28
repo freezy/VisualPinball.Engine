@@ -225,11 +225,7 @@ namespace VisualPinball.Unity.Editor
 			};
 			for (var i = 0; i < _handler.ControlPoints.Count; ++i) {
 				var controlPoint = _handler.ControlPoints[i];
-				Handles.color = controlPoint.DragPoint.IsLocked
-					? Color.red
-					: controlPoint.IsSelected
-						? Color.green
-						: Color.gray;
+				Handles.color = controlPoint.IsSelected ? Color.green : Color.gray;
 
 				var pos = controlPoint.EditorPositionWorld;
 				var handleSize = controlPoint.HandleSize;
