@@ -7,3 +7,4 @@ This section will document the following:
 - Scripting
 - Physics
 - Plugins
+- Sound
