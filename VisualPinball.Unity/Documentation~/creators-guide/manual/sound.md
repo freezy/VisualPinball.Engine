@@ -16,10 +16,57 @@ and mastering functionality. For a comprehensive overview, refer to the
 On top of this built-in functionality, VPE provides some features specific to
 pinball.
 
+## Preparing Sound Files
+
+Before you can use a sound file in your VPE table, you must import it into
+Unity. This can be as simple as adding a file of a supported type (.aif, .wav,
+.mp3, .ogg) to your project folder, but there are a few things you should
+consider:
+
+### Encoding
+
+No matter what format your file is on disk and no matter what settings you chose
+when exporting it, Unity will transcode and compress your audio file differently
+depending on the platform it runs on. This means you should prioritize audio
+quality over small file size when creating your files. The standard practice
+among Unity developers is to use uncompressed .wav files to avoid double
+compression and achieve the highest possible quality on any platform.
+
+### Channels
+
+Use a single channel (mono audio) for any spatial sounds. For example, do not
+export the sound effect for your plunger with a louder right channel just
+because the plunger is on the right side of your playfield. Unity can
+dynamically change the volume per channel depending on the locations of the
+listener and the audio source. If you already have mechanical sound effects in
+stereo format, you can mix them down to mono in Unity's import settings. For
+anything that would come out of the speakers in a real pinball machine, such as
+music and callouts, you can use stereo sounds if you want.
+
+### Loudness
+
+All your sound files should have a subjectively similar loudness relative to
+each other so you don't have to mess around with volume sliders in Unity just to
+equalize the volume. Any volume mixing you do in Unity should be done to make
+certain sounds louder than others, not the other way around. The overall
+loudness of your table should also be consistent with other VPE tables and other
+software in general so that players don't have to fiddle around with their
+volume controls every time they open your table.
+
+Unity does not have the ability to normalize the loudness of your audio files,
+but the free audio editing software [Audacity](https://www.audacityteam.org/)
+does:
+
+1. Import your file(s) into Audacity
+2. Press `Ctrl + A` to select all
+3. In the toolbar at the top, select _Effect -> Volume and Compression ->
+   Loudness Normalization..._
+4. Do not change the default settings (-23 LUFS) and click 'Apply'
+5. Press `Ctrl + Shift + E` to export
+
 ## Sound Assets
 
-When you import a sound file into Unity by adding it to your project folder, you
-get an
+After importing your a sound file into Unity, you get an
 [Audio Clip](https://docs.unity3d.com/6000.0/Documentation/Manual/class-AudioClip.html).
 You could create an
 [Audio Source](https://docs.unity3d.com/6000.0/Documentation/Manual/class-AudioSource.html)
@@ -79,7 +126,7 @@ those described above, sound effect assets have the following properties:
 ### Callouts
 
 Callouts are short voice lines that are typically triggered when the player does
-something special, like triggering multiball. The reason for the distinction
+something special, like starting multiball. The reason for the distinction
 between callouts and sound effects is that callouts tend to be much more
 significant to the player than other sounds. As such, their playback is managed
 by a table-wide _Callout Coordinator_ component at the root of the table
