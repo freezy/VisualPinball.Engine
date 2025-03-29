@@ -8,13 +8,12 @@ description:
 
 # Sound
 
-Unity, the general purpose game engine VPE is built on top of, provides many
-useful audio features out of the box. It can import and play several common
-audio file formats, it supports directional audio and surround sound and
-provides mixing and mastering functionality. For a comprehensive overview, refer
-to the
+Unity, the game engine VPE is built on top of, provides many useful audio
+features out of the box. It can import and play several common audio file
+formats, it supports directional audio and surround sound and provides mixing
+and mastering functionality. For a comprehensive overview, refer to the
 [Unity documentation](https://docs.unity3d.com/6000.0/Documentation/Manual/Audio.html).
-On top of this built in functionality, VPE provides some features specific to
+On top of this built-in functionality, VPE provides some features specific to
 pinball.
 
 ## Sound Assets
@@ -27,14 +26,12 @@ You could create an
 in your scene and play this clip directly, but VPE allows you to construct
 different types of sound assets out of one or multiple of these audio clips to
 produce variation and customize how the sound is played with pinball in mind.
-VPE differentiates between sound effects, music and callouts.
-
-![How to create a sound asset](create-sound-asset.jpg)
+VPE differentiates between **sound effects**, **music** and **callouts**.
 
 To create a sound asset, navigate to the folder where you want to create it in
-your Unity project panel, right click, select _Create -> Pinball -> Sound_
-and choose the type of sound asset you want to create. All sound asset types
-have the following properties:
+your Unity project panel, right click, select _Create -> Pinball -> Sound_ and
+choose the type of sound asset you want to create. All sound asset types have
+the following properties:
 
 <img src="common-sound-asset-options.png"  alt="Common sound asset options" width="367" class="img-fluid float-end" style="margin-left: 15px; margin-bottom: 10px">
 
