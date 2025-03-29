@@ -1,0 +1,285 @@
+﻿<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+      <title>Asset Library | VPE Documentation </title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="title" content="Asset Library | VPE Documentation ">
+      
+      <meta name="description" content="The asset library is a collection of all the assets used in your pinball project, such as prefabs, 3D models, materials and sounds.">
+      <link rel="icon" href="../../favicon.png">
+      <link rel="stylesheet" href="../../public/docfx.min.css">
+      <link rel="stylesheet" href="../../public/main.css">
+      <link rel="stylesheet" href="../../public/basicLightbox.min.css">
+      <meta name="docfx:navrel" content="../../toc.html">
+      <meta name="docfx:tocrel" content="../toc.html">
+      
+      <meta name="docfx:rel" content="../../">
+      
+      
+      <meta name="docfx:docurl" content="https://github.com/freezy/VisualPinball.Engine/blob/master/VisualPinball.Unity/Documentation~/creators-guide/editor/asset-library.md/#L1">
+      <meta name="loc:inThisArticle" content="Table of Contents">
+      <meta name="loc:searchResultsCount" content="{count} results for &quot;{query}&quot;">
+      <meta name="loc:searchNoResults" content="No results for &quot;{query}&quot;">
+      <meta name="loc:tocFilter" content="Filter by title">
+      <meta name="loc:nextArticle" content="Next">
+      <meta name="loc:prevArticle" content="Previous">
+      <meta name="loc:themeLight" content="Light">
+      <meta name="loc:themeDark" content="Dark">
+      <meta name="loc:themeAuto" content="Auto">
+      <meta name="loc:changeTheme" content="Change theme">
+      <meta name="loc:copy" content="Copy">
+      <meta name="loc:downloadPdf" content="Download PDF">
+
+      <script type="module" src="./../../public/docfx.min.js"></script>
+
+      <script>
+        const theme = localStorage.getItem('theme') || 'auto'
+        document.documentElement.setAttribute('data-bs-theme', theme === 'auto' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : theme)
+      </script>
+
+     <script type="text/javascript">
+     var _paq = window._paq || [];
+     _paq.push(["setCookieDomain", "*.docs.visualpinball.org"]);
+     _paq.push(['trackPageView']);
+     _paq.push(['enableLinkTracking']);
+     (function() {
+       var u="//count.vpdb.io/";
+       _paq.push(['setTrackerUrl', u+'matomo.php']);
+       _paq.push(['setSiteId', '2']);
+       var d=document, g=d.createElement('script'), s=d.getElementsByTagName('script')[0];
+       g.type='text/javascript'; g.async=true; g.defer=true; g.src=u+'matomo.js'; s.parentNode.insertBefore(g,s);
+     })();
+     </script>
+  </head>
+
+  <body class="tex2jax_ignore" data-layout="" data-yaml-mime="">
+    <header class="bg-body border-bottom" data-bs-theme="dark">
+      <nav id="autocollapse" class="navbar navbar-expand-md" role="navigation">
+        <div class="container flex-nowrap">
+          <a class="navbar-brand" href="../../index.html">
+            <img id="logo" class="svg" src="../../logo.svg" alt="">
+            
+          </a>
+          <button class="btn btn-lg d-md-none border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navpanel" aria-controls="navpanel" aria-expanded="false" aria-label="Toggle navigation">
+            <i class="bi bi-three-dots"></i>
+          </button>
+          <div class="collapse navbar-collapse" id="navpanel">
+            <div id="navbar">
+              <form class="search" role="search" id="search">
+                <i class="bi bi-search"></i>
+                <input class="form-control" id="search-query" type="search" disabled="" placeholder="Search" autocomplete="off" aria-label="Search">
+              </form>
+              <a title="VPE is open source!" class="navbar-github" href="https://github.com/freezy/VisualPinball.Engine" target="_blank">
+                <svg xmlns="http://www.w3.org/2000/svg" viewbox="0 0 33.5 33.1" width="33.5" height="33.1"><path d="M16.7.4a16.3 16.3 0 00-5.2 31.8c.8.1 1.1-.4 1.1-.8v-2.8c-4.5 1-5.5-2.2-5.5-2.2-.6-1.9-1.7-2.4-1.7-2.4-1.5-1 .1-1 .1-1 1.6.1 2.5 1.7 2.5 1.7 1.5 2.5 3.8 1.8 4.7 1.4.1-1.1.6-1.8 1-2.2-3.6-.4-7.4-1.8-7.4-8.1 0-1.8.7-3.2 1.7-4.4-.1-.4-.7-2 .2-4.3 0 0 1.4-.4 4.5 1.7a18.4 18.4 0 018.2 0c3.1-2.1 4.5-1.7 4.5-1.7.9 2.2.3 3.9.2 4.3 1 1.1 1.7 2.6 1.7 4.4 0 6.3-3.8 7.6-7.4 8 .6.5 1.1 1.5 1.1 3v4.5c0 .4.3.9 1.1.8A16.3 16.3 0 0016.7.4z"></path></svg>
+              </a>
+            </div>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <main class="container-xxl">
+      <div class="toc-offcanvas">
+        <div class="offcanvas-md offcanvas-start" tabindex="-1" id="tocOffcanvas" aria-labelledby="tocOffcanvasLabel">
+          <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="tocOffcanvasLabel">Table of Contents</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#tocOffcanvas" aria-label="Close"></button>
+          </div>
+          <div class="offcanvas-body">
+            <nav class="toc" id="toc"></nav>
+          </div>
+        </div>
+      </div>
+
+      <div class="content">
+        <div class="actionbar">
+          <button class="btn btn-lg border-0 d-md-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#tocOffcanvas" aria-controls="tocOffcanvas" aria-expanded="false" aria-label="Show table of contents">
+            <i class="bi bi-list"></i>
+          </button>
+
+          <nav id="breadcrumb"></nav>
+        </div>
+
+        <article data-uid="asset_library">
+<h1 id="asset-library">Asset Library</h1>
+
+<p>The asset library is a centrally maintained collection of pinball assets that table authors can use in their table builds. It comes with a browser, a tagging system, search and preview. Assets in this library are of high quality and customizable. We try our best to identify the source of each asset and attribute it to its creator(s).</p>
+<div class="NOTE">
+<h5>Note</h5>
+<p>This is the creator's guide, so this documentation is aimed towards creators who are contributing to this library.</p>
+</div>
+<h2 id="quality-and-flexibility">Quality and Flexibility</h2>
+<p>Each asset should be carefully crafted and be as customizable as possible, while having minimal impact on performance. So, let's dive into what this actually means. :)</p>
+<p>First, a few words about quality.</p>
+<h2 id="contributing">Contributing</h2>
+<p>All assets are free to use, and anybody can contribute to it.</p>
+<h3 id="material-separation">Material Separation</h3>
+<p>When starting off, you usually already have some geometry, and in case you're about to contribute multiple assets, you're probably wondering how apply your materials. When dealing with multiple objects, there are generally <strong>two approaches</strong> how to apply materials to them.</p>
+<p>Let's say we want to add a bunch of hit targets. This is the geometry we have:</p>
+<p><img src="asset-library/asset-library-example-geo.jpg" alt="target geometry"></p>
+<p>With both approaches, these files will be generated:</p>
+<ul>
+<li><code>Hit Targets.fbx</code> - The exported <code>.fbx</code> file.</li>
+<li><code>Hit Target - Rectangle.prefab</code> - The Unity prefab of the rectangular hit target.</li>
+<li><code>Hit Target - Rectangle, Slim.prefab</code> - The prefab of the slim hit target.</li>
+<li><code>Hit Target - Round.prefab</code> - The round hit target</li>
+</ul>
+<p>Let's look at how the two approaches apply materials to these objects.</p>
+<h4 id="approach-1---one-material-per-object">Approach 1 - One material per object</h4>
+<p>This way of applying materials is to use a single material for every object. This works best if no part of the object contains any transparency or subsurface scattering or any other special attributes that are not part of Unity's PBR workflow.</p>
+<p><img src="asset-library/asset-library-example-1-uvmap.jpg" alt="uv map"></p>
+<p>The UV mapping in this case is quite standard - map the entire object to one texture set.</p>
+<p>After creating the materials and baking them out to the maps, it renders as if multiple materials were applied to the object, but technically, it's a single material:</p>
+<p><img src="asset-library/asset-library-example-1-maps.png" alt="texture maps">
+<small><center><em>The base map, mask map and normal map of the rectangle hit target material.</em></center></small></p>
+<p>This would result in the following files:</p>
+<ul>
+<li><code>Drop Target - Rectangle.mat</code> - The Unity material applied to the entire mesh</li>
+<li><code>Drop Target - Rectangle - BaseMap.png</code> - The color map of the material</li>
+<li><code>Drop Target - Rectangle - MaskMap.png</code> - The mask map of the material</li>
+<li><code>Drop Target - Rectangle - Normal.png</code> - The normal map of the material</li>
+</ul>
+<div class="NOTE">
+<h5>Note</h5>
+<p>For brevity, we'll skip the other two materials that cover the slim and round hit target.</p>
+</div>
+<h4 id="approach-2---texture-atlas">Approach 2 - Texture atlas</h4>
+<p>Instead of grouping per object, we could also group by &quot;physical&quot; material, i.e. one material for the plastic, one for the metal, and one for the rubber, but applied to all three objects.</p>
+<p><img src="asset-library/asset-library-example-2-uvmap.jpg" alt="uv map"></p>
+<p>Here are the texture maps for the plastic material. It's valid for all three hit targets, and what's called a <em>texture atlas</em>:</p>
+<p><img src="asset-library/asset-library-example-2-maps.png" alt="texture maps"></p>
+<p>This would result in the following files:</p>
+<ul>
+<li><code>Drop Targets - Plastic.mat</code> - The Unity material</li>
+<li><code>Drop Targets - Plastic - BaseMap.png</code> - The color map of the plastic material</li>
+<li><code>Drop Targets - Plastic - MaskMap.png</code> - The mask map of the plastic material</li>
+<li><code>Drop Targets - Plastic - Normal.png</code> - The normal map of the plastic material</li>
+</ul>
+<div class="NOTE">
+<h5>Note</h5>
+<p>For brevity, we'll skip the other two materials that cover the metal and rubber material.</p>
+</div>
+<h4 id="which-approach-is-best">Which Approach is Best?</h4>
+<p>Both approaches have pros and cons. In terms of performance, the pros and cons depend on whether the scene (a pinball table) is likely to include many of the objects you're creating. If that's the case, then the better approach is #2, the texture atlas:</p>
+<ul>
+<li>Less draw calls, as multiple objects can share the same material and texture set.</li>
+<li>More optimized memory, since a single material and texture set can be more efficient than multiple individual materials and textures.</li>
+<li>More batching-friendly, as objects using the same material can be dynamically batched by Unity.</li>
+</ul>
+<p>There is also a non-technical advantage: It's easier to create variations of your materials. For instance, if you want to create a worn version of the plastic, you'd simply bake out a new set of maps which you can then apply independently to your objects, versus having to do it individually for each object.</p>
+<p>However, if the objects are less likely to be all present in the scene, then approach #1 probably the better choice:</p>
+<ul>
+<li>More optimized memory, since none of the textures are unused</li>
+<li>Easier UV-mapping, since UV-mapping multiple objects to a single map can be more challenging and less trivial to understand than to a single object.</li>
+</ul>
+<p>In general practice, for small objects that have lots of variations and that are likely to find themselves together on the same table, we're using a texture atlas. This includes screws, rods, washers, spacers, posts, and so on. For more complex objects, we're using a single material or even multiple materials per object. This includes bumpers, targets, flippers, gates, spinners, etc. These are generally objects that don't have any variation per table.</p>
+<h2 id="naming-conventions">Naming Conventions</h2>
+<p>Asset naming is somehow important because it can help the user figure out the relations between assets. There are several things to name:</p>
+<ul>
+<li><strong>Prefab</strong> - The name of the Unity prefab that shows up in the asset browser.</li>
+<li><strong>Model File</strong> - The model file, i.e. the <code>.fbx</code> or <code>.obj</code> files.</li>
+<li><strong>Material Slot</strong> - The names of the material slots within the model file.</li>
+<li><strong>Unity Material</strong> - The name of the material within Unity.</li>
+<li><strong>Texture File</strong> - The name of the various maps generated per material.</li>
+</ul>
+<div class="NOTE">
+<h5>Note</h5>
+<p>There is also the original model source of the program used to model, e.g. Blender. How to name this is up to the user, since that's not typically a file that is part of the project. However, for the asset library, we're including the <code>.blend</code> files, and they have a naming convention, too.</p>
+</div>
+<p>To complicate things more, the relations between prefabs, models, and materials can different.</p>
+<ul>
+<li>A model file can contain multiple meshes, e.g. we keep all VPX gates in one .fbx file.</li>
+<li>A prefab might consists of multiple meshes, sometimes from multiple files, e.g. the bumper ring and base are common in many bumper variations.</li>
+<li>A mesh might use multiple materials, but a material can also be used for multiple meshes (see the two aproaches above).</li>
+<li>A material usually uses multiple textures, or maps, but in the vast majority of cases, these maps are specific to the material.</li>
+</ul>
+<h3 id="prefabs">Prefabs</h3>
+<p>Prefabs are the files that appear in the asset library. They link the mesh together with the materials and the Unity components necessary for the prefab to work. We name them as descriptively as possible:</p>
+<pre><code>&lt;prefab description&gt; (&lt;prefab variation&gt;)
+</code></pre>
+<p>The <code>&lt;prefab description&gt;</code> goes from more to less specific, using commas. The <code>&lt;prefab variation&gt;</code> is the least specific part of the description. If an asset is an original VPX asset, <code>&lt;prefab variation&gt;</code> is &quot;VPX&quot;.</p>
+<p>Examples:</p>
+<ul>
+<li><code>Bumpers/Williams/Bumper (Williams).prefab</code></li>
+<li><code>Kickers/VPX/Kicker, Cup 2 (VPX).prefab</code></li>
+<li><code>Hardware/6 Gauge/Hex Nut, Flanged (6-32).prefab</code></li>
+<li><code>Posts/Plastic Posts/Post, Plastic, Star, Double, Rubber Rings, Collidable (1.0625in).prefab</code></li>
+</ul>
+<h3 id="model-files">Model Files</h3>
+<p>Model files are what's exported from your 3D software. They are usually <code>.fbx</code>, <code>.glb</code> or <code>.obj</code> files, although <code>.fbx</code> is (still) recommended. These are where Unity pulls the mesh data from.</p>
+<p>Their naming isn't essential since they are rarely user facing, and we usually keep only one model file per folder, so they're named after their folder name, but still in a way it makes it clear what they are.</p>
+<p>Examples:</p>
+<ul>
+<li><code>Bumpers/Williams/Bumper (Williams).fbx</code></li>
+<li><code>Kickers/VPX/Kicker, Cup 2.fbx</code></li>
+<li><code>Hardware/6 Gauge/Hardware 6-gauge.fbx</code></li>
+<li><code>Posts/Plastic Posts/Plastic Posts.fbx</code></li>
+</ul>
+<h3 id="material-slots">Material Slots</h3>
+<p>Material slots are how the materials in the model file are named. If you're using Substance Painter, that's the default way how your generated maps will be named. However, this is only relevant if you're using multiple materials for an object, since one-object materials (approach 1 above) have the same name as the prefab.</p>
+<p>For texture atlases, the slots should be named as short as possible and describe the material, for example <code>Base</code> for the bumper base, or <code>Cap</code>.</p>
+<p>For materials that cover the entire object, they should be named like the object.</p>
+<h3 id="unity-materials">Unity Materials</h3>
+<p>Unity materials are visible by the table creators, so it's important to name them in a way that makes clear what they are. Depending on whether you're using texture atlases or not, they should include the name of the material.</p>
+<p>Examples:</p>
+<ul>
+<li><code>Bumpers/Williams/Bumper (Williams) - Base.mat</code></li>
+<li><code>Bumpers/Williams/Bumper (Williams) - Ring.mat</code></li>
+<li><code>Kickers/VPX/Kicker, Cup 2.mat</code></li>
+<li><code>Hardware/6 Gauge/Hardware 6-gauge - Metal.mat</code></li>
+<li><code>Hardware/6 Gauge/Hardware 6-gauge - Nylon.mat</code></li>
+<li><code>Posts/Plastic Posts/Plastic Post - Metal.mat</code></li>
+<li><code>Posts/Plastic Posts/Plastic Post - Plastic, Red.mat</code></li>
+<li><code>Posts/Plastic Posts/Plastic Post - Plastic, Yellow.mat</code></li>
+</ul>
+<h3 id="texture-maps">Texture Maps</h3>
+<p>Texture files are closely related to a material, so we'll name them the same and append the type of map.</p>
+<p>Examples:</p>
+<ul>
+<li><code>Bumpers/Williams/Bumper (Williams) - Base - BaseMap.png</code></li>
+<li><code>Bumpers/Williams/Bumper (Williams) - Base - Normal.png</code></li>
+<li><code>Kickers/VPX/Kicker, Cup 2 - BaseMap.png</code></li>
+<li><code>Hardware/6 Gauge/Hardware 6-gauge - Metal - BaseMap.png</code></li>
+<li><code>Posts/Plastic Posts/Plastic Post - Plastic, Red - MaskMap.png</code></li>
+<li><code>Posts/Plastic Posts/Plastic Post - Plastic, Red - Normal.png</code></li>
+</ul>
+
+</article>
+
+        <div class="contribution d-print-none">
+          <a href="https://github.com/freezy/VisualPinball.Engine/blob/master/VisualPinball.Unity/Documentation~/creators-guide/editor/asset-library.md/#L1" class="edit-link">Improve this Page</a>
+        </div>
+
+        <div class="next-article d-print-none border-top" id="nextArticle"></div>
+
+      </div>
+
+      <div class="affix">
+        <nav id="affix"></nav>
+      </div>
+    </main>
+
+    <div class="container-xxl search-results" id="search-results"></div>
+
+    <footer class="border-top text-secondary">
+      <div class="container-xxl">
+        <div class="flex-fill">
+          <span>Copyright © 2025 VPE Team</span>
+        </div>
+      </div>
+    </footer>
+    <script src="./../../public/basicLightbox.min.js"></script>
+    <script type="text/javascript">
+    for (const img of document.querySelectorAll('img:not(#logo)')) {
+      img.onclick = () => {
+        basicLightbox.create(`<img src="${img.src}">`).show()
+        if (img.parentElement.tagName === 'A') {
+          img.parentElement.href = 'javascript:void(0)'
+          img.parentElement.target = '_self'
+        }
+      }
+    }
+    </script>
+  </body>
+</html>
