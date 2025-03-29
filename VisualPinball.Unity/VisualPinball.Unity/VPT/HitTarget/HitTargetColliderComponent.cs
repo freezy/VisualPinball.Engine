@@ -102,9 +102,6 @@ namespace VisualPinball.Unity
 		protected override IApiColliderGenerator InstantiateColliderApi(Player player, PhysicsEngine physicsEngine)
 			=> (MainComponent as HitTargetComponent)?.HitTargetApi ?? new HitTargetApi(gameObject, player, physicsEngine);
 
-		public override float4x4 GetLocalToPlayfieldMatrixInVpx(float4x4 worldToPlayfield)
-			=> base.GetLocalToPlayfieldMatrixInVpx(worldToPlayfield).TransformToVpx();
-
 		public int NumColliderMeshes => 1;
 		public Mesh GetColliderMesh(int index) => FrontColliderMesh; // there's only one
 	}
