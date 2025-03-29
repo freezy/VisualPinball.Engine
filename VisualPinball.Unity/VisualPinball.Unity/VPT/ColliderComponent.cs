@@ -596,6 +596,11 @@ namespace VisualPinball.Unity
 
 		private void DrawNonMeshColliders()
 		{
+			var playfieldComponent = GetComponentInParent<PlayfieldComponent>();
+			var playfieldToWorld = playfieldComponent.transform.localToWorldMatrix;
+			var worldToPlayfield = playfieldComponent.transform.worldToLocalMatrix;
+			var localToPlayfieldMatrixInVpx = GetLocalToPlayfieldMatrixInVpx(worldToPlayfield);
+			Handles.matrix = playfieldToWorld * (Matrix4x4)Physics.VpxToWorld * (Matrix4x4)localToPlayfieldMatrixInVpx;
 			foreach (var col in _nonMeshColliders) {
 				switch (col) {
 					case LineZCollider lineZCol: {
