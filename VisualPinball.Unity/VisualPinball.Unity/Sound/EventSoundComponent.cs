@@ -14,6 +14,8 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+using System;
+
 namespace VisualPinball.Unity
 {
 	/// <summary>
@@ -54,6 +56,7 @@ namespace VisualPinball.Unity
 			if (_eventSource != null)
 			{
 				Unsubscribe(_eventSource);
+				(_eventSource as IDisposable)?.Dispose();
 				_eventSource = null;
 			}
 		}
