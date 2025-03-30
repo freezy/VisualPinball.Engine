@@ -1,7 +1,6 @@
 ﻿using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.EnhancedTouch;
-using VisualPinball.Unity;
 using Touch = UnityEngine.InputSystem.EnhancedTouch.Touch;
 using TouchPhase = UnityEngine.InputSystem.TouchPhase;
 
@@ -10,16 +9,22 @@ using TouchPhase = UnityEngine.InputSystem.TouchPhase;
 /// </summary>
 public class CameraTranslateAndOrbit : MonoBehaviour
 {
+	public float panSpeed = 0.5f;
+	public float orbitSpeed = 0.4f;
 	public float zoomSpeed = 0.1f;
 
-	public Transform transformCache;
+	public float smoothing = 1f;
+
+	public Transform initialOrbit;
+
+	private Transform _transformCache;
 	public bool isAnimating;
 
-	public GameObject dummyForRotation;
-	public Transform dummyTransform;
+	private GameObject _dummyForRotation;
+	private Transform _dummyTransform;
 
 	private float _radius;
-	
+
 	private Vector3 _focusPoint;
 	private float _radiusCurrent = 15f;
 
@@ -49,24 +54,22 @@ public class CameraTranslateAndOrbit : MonoBehaviour
 
 	private void Start()
 	{
-		
-		var playfield = FindObjectOfType<PlayfieldComponent>();
-		var pfr = playfield == null ? null : playfield.GetComponent<Renderer>();
+		var pfr = initialOrbit == null ? null : initialOrbit.GetComponent<Renderer>();
 		if (pfr != null) {
 			positionOffset = pfr.bounds.center;
 		}
-		
+
 		_radius = Vector3.Distance(Vector3.zero, transform.position);
-		transformCache = transform;
-		_focusPoint = transformCache.forward * -1f * _radius;
+		_transformCache = transform;
+		_focusPoint = _transformCache.forward * -1f * _radius;
 		_positionOffsetCurrent = positionOffset;
 		_radiusCurrent = _radius;
-		dummyForRotation = new GameObject();
-		dummyTransform = dummyForRotation.transform;
+		_dummyForRotation = new GameObject();
+		_dummyTransform = _dummyForRotation.transform;
 
-		dummyTransform.rotation = transformCache.rotation;
-		dummyTransform.position = transformCache.position;
-		_rot2 = transformCache.rotation;
+		_dummyTransform.rotation = _transformCache.rotation;
+		_dummyTransform.position = _transformCache.position;
+		_rot2 = _transformCache.rotation;
 	}
 
 	private void OrbitAroundObject(Vector3 newOffset, float radiusRef)
@@ -96,7 +99,7 @@ public class CameraTranslateAndOrbit : MonoBehaviour
 		if (Touch.activeFingers.Count == 1) {
 			Touch touch = Touch.activeTouches[0];
 
-			transformCache.position = dummyTransform.position = Vector3.zero;
+			_transformCache.position = _dummyTransform.position = Vector3.zero;
 
 			var hasHitRestrictedHitArea = false;
 
@@ -112,14 +115,14 @@ public class CameraTranslateAndOrbit : MonoBehaviour
 			if (!hasHitRestrictedHitArea) {
 				if (_isTrackingTouch0) {
 					Vector3 touchPositionDifference = touch.screenPosition - _touch0StartPosition;
-					dummyTransform.Rotate(Vector3.up, touchPositionDifference.x * 0.4f, Space.World);
+					_dummyTransform.Rotate(Vector3.up, touchPositionDifference.x * orbitSpeed / 4, Space.World);
 
-					dummyTransform.Rotate(dummyTransform.right.normalized, touchPositionDifference.y * -0.4f,
+					_dummyTransform.Rotate(_dummyTransform.right.normalized, touchPositionDifference.y * -orbitSpeed,
 						Space.World);
-					_rot2 = dummyTransform.rotation;
+					_rot2 = _dummyTransform.rotation;
 					_touch0StartPosition = touch.screenPosition;
 				}
-				transformCache.rotation = Quaternion.Lerp(transformCache.rotation, _rot2, Time.deltaTime * 4f);
+				_transformCache.rotation = Quaternion.Lerp(_transformCache.rotation, _rot2, Time.deltaTime / smoothing * 4);
 			}
 
 			if (touch.phase == TouchPhase.Ended || touch.phase == TouchPhase.Canceled) {
@@ -130,7 +133,7 @@ public class CameraTranslateAndOrbit : MonoBehaviour
 			var firstTouch = Touch.activeTouches[0];
 			var secondTouch = Touch.activeTouches[1];
 
-			transformCache.position = dummyTransform.position = Vector3.zero;
+			_transformCache.position = _dummyTransform.position = Vector3.zero;
 
 			if (firstTouch.phase == TouchPhase.Began || secondTouch.phase == TouchPhase.Began) {
 				_startMultiTouchDistance = Vector2.Distance(firstTouch.screenPosition, secondTouch.screenPosition);
@@ -141,14 +144,14 @@ public class CameraTranslateAndOrbit : MonoBehaviour
 			if (firstTouch.phase == TouchPhase.Moved || secondTouch.phase == TouchPhase.Moved) {
 				_radius = _startMultiTouchRadius;
 
-				var distance = Vector2.Distance(firstTouch.screenPosition, secondTouch.screenPosition) - _startMultiTouchDistance;			
+				var distance = Vector2.Distance(firstTouch.screenPosition, secondTouch.screenPosition) - _startMultiTouchDistance;
 				var delta = distance / 250 * zoomSpeed * -_radius;
 
 				_radius += delta;
 
 				if (_radius < RadiusMin) {
 					var radDiff = RadiusMin - _radius;
-					positionOffset += transformCache.forward * (radDiff * 4f);
+					positionOffset += _transformCache.forward * (radDiff * 4f);
 					_radius = RadiusMin;
 				}
 			}
@@ -156,14 +159,14 @@ public class CameraTranslateAndOrbit : MonoBehaviour
 
 		_positionOffsetCurrent = Vector3.Lerp(_positionOffsetCurrent, positionOffset, Time.deltaTime * 4f);
 		_radiusCurrent = Mathf.Lerp(_radiusCurrent, _radius, Time.deltaTime * 4f);
-		_focusPoint = transformCache.forward * -1f * _radiusCurrent;
-		transformCache.position = _focusPoint + _positionOffsetCurrent;
-		dummyTransform.position = transformCache.position;
+		_focusPoint = _transformCache.forward * -1f * _radiusCurrent;
+		_transformCache.position = _focusPoint + _positionOffsetCurrent;
+		_dummyTransform.position = _transformCache.position;
 	}
 
 	private void UpdateMouse()
 	{
-		transformCache.position = dummyTransform.position = Vector3.zero;
+		_transformCache.position = _dummyTransform.position = Vector3.zero;
 
 		var hasHitRestrictedHitArea = false;
 
@@ -179,14 +182,14 @@ public class CameraTranslateAndOrbit : MonoBehaviour
 		if (!hasHitRestrictedHitArea) {
 			if (_isTrackingMouse0) {
 				Vector3 mousePositionDifference = Mouse.current.position.ReadValue() - _mouse0StartPosition;
-				dummyTransform.Rotate(Vector3.up, mousePositionDifference.x * 0.4f, Space.World);
+				_dummyTransform.Rotate(Vector3.up, mousePositionDifference.x * orbitSpeed, Space.World);
 
-				dummyTransform.Rotate(dummyTransform.right.normalized, mousePositionDifference.y * -0.4f,
+				_dummyTransform.Rotate(_dummyTransform.right.normalized, mousePositionDifference.y * -orbitSpeed,
 					Space.World);
-				_rot2 = dummyTransform.rotation;
+				_rot2 = _dummyTransform.rotation;
 				_mouse0StartPosition = Mouse.current.position.ReadValue();
 			}
-			transformCache.rotation = Quaternion.Lerp(transformCache.rotation, _rot2, Time.deltaTime * 4f);
+			_transformCache.rotation = Quaternion.Lerp(_transformCache.rotation, _rot2, Time.deltaTime / smoothing * 4);
 		}
 
 		if (Mouse.current.leftButton.wasReleasedThisFrame) {
@@ -204,10 +207,9 @@ public class CameraTranslateAndOrbit : MonoBehaviour
 				//Vector3 XZPlanerDirection = transformCache.forward.normalized;
 				//XZPlanerDirection.y = 0;
 
-				positionOffset += transformCache.up.normalized * (mousePositionDifference.y * -(_radius / 2f / 100f));
+				positionOffset += _transformCache.up.normalized * (mousePositionDifference.y * -(_radius * panSpeed / 100f));
+				positionOffset += _transformCache.right.normalized * (mousePositionDifference.x * -(_radius * panSpeed / 100f));
 
-				positionOffset += transformCache.right.normalized *
-								  (mousePositionDifference.x * -(_radius / 2f / 100f));
 				/*
 				if(positionOffset.y < 0){
 					positionOffset.y = 0;
@@ -223,20 +225,21 @@ public class CameraTranslateAndOrbit : MonoBehaviour
 
 		if (!hasHitRestrictedHitArea) {
 			if (!isAnimating) {
-				var delta = Mouse.current.scroll.y.ReadValue() / 1000f * zoomSpeed * -_radius;
+				var delta = Mouse.current.scroll.y.ReadValue() / 10f * zoomSpeed * -_radius;
 				_radius += delta;
 				if (_radius < RadiusMin) {
 					var radDiff = RadiusMin - _radius;
-					positionOffset += transformCache.forward * (radDiff * 4f);
+					positionOffset += _transformCache.forward * (radDiff * 4f);
 					_radius = RadiusMin;
 				}
 			}
 		}
 
-		_positionOffsetCurrent = Vector3.Lerp(_positionOffsetCurrent, positionOffset, Time.deltaTime * 4f);
-		_radiusCurrent = Mathf.Lerp(_radiusCurrent, _radius, Time.deltaTime * 4f);
-		_focusPoint = transformCache.forward * -1f * _radiusCurrent;
-		transformCache.position = _focusPoint + _positionOffsetCurrent;
-		dummyTransform.position = transformCache.position;
+		_positionOffsetCurrent = Vector3.Lerp(_positionOffsetCurrent, positionOffset, Time.deltaTime / smoothing * 4);
+		_radiusCurrent = Mathf.Lerp(_radiusCurrent, _radius, Time.deltaTime / smoothing * 4);
+
+		_focusPoint = _transformCache.forward * -1f * _radiusCurrent;
+		_transformCache.position = _focusPoint + _positionOffsetCurrent;
+		_dummyTransform.position = _transformCache.position;
 	}
 }
