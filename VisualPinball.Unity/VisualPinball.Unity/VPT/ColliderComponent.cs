@@ -85,13 +85,19 @@ namespace VisualPinball.Unity
 		public float4x4 GetUnmodifiedLocalToPlayfieldMatrixInVpx(float4x4 worldToPlayfield)
 			=> Physics.GetLocalToPlayfieldMatrixInVpx(MainComponent.transform.localToWorldMatrix, worldToPlayfield);
 
-		private bool HasCachedColliders => false;// _colliderMesh != null && !_collidersDirty;
+		private bool HasCachedColliders => !_collidersDirty && (
+			_transformedColliderMesh != null ||
+			_transformedKinematicColliderMesh != null ||
+			_untransformedColliderMesh != null ||
+			_untransformedKinematicColliderMesh != null
+		);
 
 		private void Start()
 		{
 			_transformedColliderMesh = null;
 			_transformedKinematicColliderMesh = null;
 			_untransformedColliderMesh = null;
+			_untransformedKinematicColliderMesh = null;
 			_collidersDirty = true;
 			// make enable checkbox visible
 		}
@@ -173,9 +179,9 @@ namespace VisualPinball.Unity
 #if UNITY_EDITOR
 
 		private Player _player;
-		private NativeOctree<int> _octree = default;
+		private NativeOctree<int> _octree;
 
-		private void OnDrawGizmos()
+		private void OnDrawGizmosSelected()
 		{
 			if (!_player) {
 				_player = GetComponentInParent<Player>();
@@ -208,15 +214,16 @@ namespace VisualPinball.Unity
 
 			var playfieldToWorld = playfieldComponent.transform.localToWorldMatrix;
 			var worldToPlayfield = playfieldComponent.transform.worldToLocalMatrix;
+			var localToPlayfieldMatrixInVpx = GetLocalToPlayfieldMatrixInVpx(worldToPlayfield);
 			var unmodifiedLocalToPlayfieldMatrixInVpx = GetUnmodifiedLocalToPlayfieldMatrixInVpx(worldToPlayfield);
 			var nonTransformableColliderTransforms = new NativeParallelHashMap<int, float4x4>(0, Allocator.Temp);
 
-			var generateColliders = ShowAabbs || showColliders && !HasCachedColliders || ShowColliderOctree;
-			if (generateColliders && _collidersDirty) {
+			var generateColliders = !HasCachedColliders && (ShowAabbs || showColliders || ShowColliderOctree);
+			if (generateColliders) {
 				if (Application.isPlaying) {
 					InstantiateRuntimeColliders(showColliders);
 				} else {
-					InstantiateEditorColliders(showColliders, ref nonTransformableColliderTransforms, worldToPlayfield);
+					InstantiateEditorColliders(showColliders, ref nonTransformableColliderTransforms);
 				}
 			}
 
@@ -245,7 +252,8 @@ namespace VisualPinball.Unity
 				}
 
 				if (_transformedColliderMesh || _transformedKinematicColliderMesh) {
-					Gizmos.matrix = MainComponent.transform.localToWorldMatrix * playfieldToWorld * (Matrix4x4)Physics.VpxToWorld;
+					Gizmos.matrix = playfieldToWorld * (Matrix4x4)Physics.VpxToWorld * (Matrix4x4)localToPlayfieldMatrixInVpx;
+					//Gizmos.matrix = MainComponent.transform.localToWorldMatrix * playfieldToWorld * (Matrix4x4)Physics.VpxToWorld;
 					if (_transformedColliderMesh) {
 						Gizmos.color = colliderEnabled ? ColliderColor.TransformedColliderSelected : ColliderColor.DisabledColliderSelected;
 						Gizmos.DrawMesh(_transformedColliderMesh);
@@ -322,12 +330,12 @@ namespace VisualPinball.Unity
 			}
 		}
 
-		private void InstantiateEditorColliders(bool showColliders, ref NativeParallelHashMap<int, float4x4> nonTransformableColliderTransforms, float4x4 localToPlayfieldMatrixInVpx)
+		private void InstantiateEditorColliders(bool showColliders, ref NativeParallelHashMap<int, float4x4> nonTransformableColliderTransforms)
 		{
 			var api = InstantiateColliderApi(_player, PhysicsEngine);
 			var colliders = new ColliderReference(ref nonTransformableColliderTransforms, Allocator.Temp, IsKinematic);
 			try {
-				api.CreateColliders(ref colliders, localToPlayfieldMatrixInVpx, 0.1f);
+				api.CreateColliders(ref colliders, float4x4.identity, 0.1f);
 
 				if (showColliders) {
 					if (IsKinematic) {
@@ -388,7 +396,7 @@ namespace VisualPinball.Unity
 			}
 			foreach (var col in colliders.FlipperColliders) {
 				if (col.Header.IsTransformed) {
-					AddFlipperCollider(vertices, normals, indices, Origin.Global);
+					AddFlipperCollider(vertices, normals, indices, Origin.Original);
 				} else {
 					AddFlipperCollider(verticesNonTransformable, normalsNonTransformable, indicesNonTransformable, Origin.Original);
 				}
@@ -783,10 +791,8 @@ namespace VisualPinball.Unity
 
 		#endregion
 
-		void ICollidableComponent.GetColliders(Player player, PhysicsEngine physicsEngine, ref ColliderReference colliders,
-				float4x4 translateWithinPlayfieldMatrix, float margin)
-			=> InstantiateColliderApi(player, physicsEngine)
-				.CreateColliders(ref colliders, translateWithinPlayfieldMatrix, margin);
+		void ICollidableComponent.GetColliders(Player player, PhysicsEngine physicsEngine, ref ColliderReference colliders, float4x4 translateWithinPlayfieldMatrix, float margin)
+			=> InstantiateColliderApi(player, physicsEngine).CreateColliders(ref colliders, translateWithinPlayfieldMatrix, margin);
 
 		int ICollidableComponent.ItemId => MainComponent.gameObject.GetInstanceID();
 		bool ICollidableComponent.IsCollidable => isActiveAndEnabled;
