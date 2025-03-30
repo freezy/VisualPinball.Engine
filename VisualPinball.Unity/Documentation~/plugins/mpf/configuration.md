@@ -76,6 +76,11 @@ Select the media controller MPF should attempt to connect to on startup.
   version of MPF included in VPE is `v0.80.0`, so it will use Godot. If you
   choose this option, you must manually install the appropriate media
   controller.
+- **Included:** Use the media controller included with VPE's MPF plugin. If
+  selected, you can also configure the port through which the media controller
+  will communicate with MPF and whether or not to log sent and received messages
+  to the Unity console. See [Media Controller](media-controller.md) for more
+  information.
 - **Other:** Do not start any particular media controller, but attempt to
   connect to an already running media controller. The IP and port to connect to
   can be configured in MPF. If you choose this option, you are responsible for
