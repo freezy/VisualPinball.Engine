@@ -58,7 +58,3 @@ previously told VPE that the flipper switch should activate the flipper coil.
 When the table goes into attract mode, MPF removes the rule and the flippers no
 longer work. This means that even though MPF runs in a separate process, using
 it to control your VPE table **does not increase latency**.
-
-## Media controller
-
-The media controller is not yet supported.
