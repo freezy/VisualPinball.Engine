@@ -83,7 +83,11 @@ namespace VisualPinball.Unity.Editor
 				refresh = showAabbs != ColliderComponent.ShowAabbs;
 				ColliderComponent.ShowAabbs = showAabbs;
 
+				EditorGUI.BeginChangeCheck();
 				var showColliders = EditorGUILayout.Toggle("Show Colliders", ColliderComponent.ShowColliderMesh);
+				if (EditorGUI.EndChangeCheck()) {
+					ColliderComponent.CollidersDirty = true;
+				}
 				refresh = refresh || showColliders != ColliderComponent.ShowColliderMesh;
 				ColliderComponent.ShowColliderMesh = showColliders;
 
