@@ -56,9 +56,7 @@ namespace VisualPinball.Unity
 		public bool CollidersDirty { set => _collidersDirty = value; }
 
 		[NonSerialized] private Mesh _transformedColliderMesh;
-		[NonSerialized] private Mesh _transformedKinematicColliderMesh;
 		[NonSerialized] private Mesh _untransformedColliderMesh;
-		[NonSerialized] private Mesh _untransformedKinematicColliderMesh;
 		[NonSerialized] private Aabb[] _aabbs;
 
 		[NonSerialized] private readonly List<ICollider> _nonMeshColliders = new List<ICollider>();
@@ -85,19 +83,12 @@ namespace VisualPinball.Unity
 		public float4x4 GetUnmodifiedLocalToPlayfieldMatrixInVpx(float4x4 worldToPlayfield)
 			=> Physics.GetLocalToPlayfieldMatrixInVpx(MainComponent.transform.localToWorldMatrix, worldToPlayfield);
 
-		private bool HasCachedColliders => !_collidersDirty && (
-			_transformedColliderMesh != null ||
-			_transformedKinematicColliderMesh != null ||
-			_untransformedColliderMesh != null ||
-			_untransformedKinematicColliderMesh != null
-		);
+		private bool HasCachedColliders => !_collidersDirty && (_transformedColliderMesh != null ||_untransformedColliderMesh != null);
 
 		private void Start()
 		{
 			_transformedColliderMesh = null;
-			_transformedKinematicColliderMesh = null;
 			_untransformedColliderMesh = null;
-			_untransformedKinematicColliderMesh = null;
 			_collidersDirty = true;
 			// make enable checkbox visible
 		}
@@ -235,36 +226,42 @@ namespace VisualPinball.Unity
 
 				var colliderEnabled = !Application.isPlaying || PhysicsEngine.IsColliderEnabled(MainComponent.gameObject.GetInstanceID());
 
-				if (_untransformedColliderMesh || _untransformedKinematicColliderMesh) {
+				if (_untransformedColliderMesh) {
 					Gizmos.matrix = playfieldToWorld * (Matrix4x4)Physics.VpxToWorld * (Matrix4x4)unmodifiedLocalToPlayfieldMatrixInVpx;
 					if (_untransformedColliderMesh) {
-						Gizmos.color = colliderEnabled ? ColliderColor.UntransformedColliderSelected : ColliderColor.DisabledColliderSelected;
+						if (IsKinematic) {
+							Gizmos.color = colliderEnabled ? ColliderColor.UntransformedKineticColliderSelected : ColliderColor.DisabledColliderSelected;
+						} else {
+							Gizmos.color = colliderEnabled ? ColliderColor.UntransformedColliderSelected : ColliderColor.DisabledColliderSelected;
+						}
 						Gizmos.DrawMesh(_untransformedColliderMesh);
-						Gizmos.color = Application.isPlaying ? ColliderColor.UntransformedCollider : white;
+						if (IsKinematic) {
+							Gizmos.color = Application.isPlaying ? ColliderColor.UntransformedKineticCollider : white;
+						} else {
+							Gizmos.color = Application.isPlaying ? ColliderColor.UntransformedCollider : white;
+						}
 						Gizmos.DrawWireMesh(_untransformedColliderMesh);
-					}
-					if (_untransformedKinematicColliderMesh) {
-						Gizmos.color = colliderEnabled ? ColliderColor.UntransformedKineticColliderSelected : ColliderColor.DisabledColliderSelected;
-						Gizmos.DrawMesh(_untransformedKinematicColliderMesh);
-						Gizmos.color = Application.isPlaying ? ColliderColor.UntransformedKineticCollider : white;
-						Gizmos.DrawWireMesh(_untransformedKinematicColliderMesh);
 					}
 				}
 
-				if (_transformedColliderMesh || _transformedKinematicColliderMesh) {
-					Gizmos.matrix = playfieldToWorld * (Matrix4x4)Physics.VpxToWorld * (Matrix4x4)localToPlayfieldMatrixInVpx;
+				if (_transformedColliderMesh) {
+					Gizmos.matrix = Application.isPlaying
+						? playfieldToWorld * (Matrix4x4)Physics.VpxToWorld
+						: playfieldToWorld * (Matrix4x4)Physics.VpxToWorld * (Matrix4x4)localToPlayfieldMatrixInVpx;
 					//Gizmos.matrix = MainComponent.transform.localToWorldMatrix * playfieldToWorld * (Matrix4x4)Physics.VpxToWorld;
 					if (_transformedColliderMesh) {
-						Gizmos.color = colliderEnabled ? ColliderColor.TransformedColliderSelected : ColliderColor.DisabledColliderSelected;
+						if (IsKinematic) {
+							Gizmos.color = colliderEnabled ? ColliderColor.TransformedKineticColliderSelected : ColliderColor.DisabledColliderSelected;
+						} else {
+							Gizmos.color = colliderEnabled ? ColliderColor.TransformedColliderSelected : ColliderColor.DisabledColliderSelected;
+						}
 						Gizmos.DrawMesh(_transformedColliderMesh);
-						Gizmos.color = Application.isPlaying ? ColliderColor.TransformedCollider : white;
+						if (IsKinematic) {
+							Gizmos.color = Application.isPlaying ? ColliderColor.TransformedKineticCollider : white;
+						} else {
+							Gizmos.color = Application.isPlaying ? ColliderColor.TransformedCollider : white;
+						}
 						Gizmos.DrawWireMesh(_transformedColliderMesh);
-					}
-					if (_transformedKinematicColliderMesh) {
-						Gizmos.color = colliderEnabled ? ColliderColor.TransformedKineticColliderSelected : ColliderColor.DisabledColliderSelected;
-						Gizmos.DrawMesh(_transformedKinematicColliderMesh);
-						Gizmos.color = Application.isPlaying ? ColliderColor.TransformedKineticCollider : white;
-						Gizmos.DrawWireMesh(_transformedKinematicColliderMesh);
 					}
 				}
 				DrawNonMeshColliders();
@@ -303,19 +300,8 @@ namespace VisualPinball.Unity
 					? PhysicsEngine.GetKinematicColliders(MainComponent.gameObject.GetInstanceID())
 					: PhysicsEngine.GetColliders(MainComponent.gameObject.GetInstanceID());
 
-				if (IsKinematic) {
-					_transformedColliderMesh = null;
-					_untransformedColliderMesh = null;
-					if (showColliders) {
-						GenerateColliderMesh(colliders, out _transformedKinematicColliderMesh, out _untransformedKinematicColliderMesh);
-					}
-
-				} else {
-					_transformedKinematicColliderMesh = null;
-					_untransformedKinematicColliderMesh = null;
-					if (showColliders) {
-						GenerateColliderMesh(colliders, out _transformedColliderMesh, out _untransformedColliderMesh);
-					}
+				if (showColliders) {
+					GenerateColliderMesh(colliders, out _transformedColliderMesh, out _untransformedColliderMesh);
 				}
 
 				if (ShowAabbs) {
@@ -338,15 +324,7 @@ namespace VisualPinball.Unity
 				api.CreateColliders(ref colliders, float4x4.identity, 0.1f);
 
 				if (showColliders) {
-					if (IsKinematic) {
-						_transformedColliderMesh = null;
-						_untransformedColliderMesh = null;
-						GenerateColliderMesh(ref colliders, out _transformedKinematicColliderMesh, out _untransformedKinematicColliderMesh);
-					} else {
-						_transformedKinematicColliderMesh = null;
-						_untransformedKinematicColliderMesh = null;
-						GenerateColliderMesh(ref colliders, out _transformedColliderMesh, out _untransformedColliderMesh);
-					}
+					GenerateColliderMesh(ref colliders, out _transformedColliderMesh, out _untransformedColliderMesh);
 					_collidersDirty = false;
 				}
 
@@ -608,7 +586,9 @@ namespace VisualPinball.Unity
 			var playfieldToWorld = playfieldComponent.transform.localToWorldMatrix;
 			var worldToPlayfield = playfieldComponent.transform.worldToLocalMatrix;
 			var localToPlayfieldMatrixInVpx = GetLocalToPlayfieldMatrixInVpx(worldToPlayfield);
-			Handles.matrix = playfieldToWorld * (Matrix4x4)Physics.VpxToWorld * (Matrix4x4)localToPlayfieldMatrixInVpx;
+			Handles.matrix = Application.isPlaying
+				? playfieldToWorld * (Matrix4x4)Physics.VpxToWorld
+				: playfieldToWorld * (Matrix4x4)Physics.VpxToWorld * (Matrix4x4)localToPlayfieldMatrixInVpx;
 			foreach (var col in _nonMeshColliders) {
 				switch (col) {
 					case LineZCollider lineZCol: {

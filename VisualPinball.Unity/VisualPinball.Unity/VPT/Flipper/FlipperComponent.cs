@@ -657,12 +657,16 @@ namespace VisualPinball.Unity
 			// but I couldn't get this transformation correctly from our current transforms.
 			// using Matrix4x4.Rotate(quaternion.Euler(new float3(0, 0, -StartAngle))) and transforming
 			// to localPos was close, but not close enough.
-			var flipperToPlayfield = new Matrix4x4(
-				new Vector4(-0.50754f, 0.86163f, 0, 0),
-				new Vector4(-0.86163f, -0.50754f, 0, 0),
-				new Vector4(0, 0, 1f, 0),
-				new Vector4(278.21380f, 1803.27200f, 0, 1f)
-			);
+			//
+			// var flipperToPlayfield = new Matrix4x4(
+			// 	new Vector4(-0.50754f, 0.86163f, 0, 0),
+			// 	new Vector4(-0.86163f, -0.50754f, 0, 0),
+			// 	new Vector4(0, 0, 1f, 0),
+			// 	new Vector4(278.21380f, 1803.27200f, 0, 1f)
+			// );
+
+			// UPDATE: just rotating the points by the start angle seems to work fine.
+			var flipperToPlayfield = Matrix4x4.Rotate(Quaternion.Euler(0, 0,  StartAngle));
 
 			for (var i = 0; i < poly.Count; i++) {
 				// Poly points are expressed in flipper's frame: rotate to get it to the correct position.
