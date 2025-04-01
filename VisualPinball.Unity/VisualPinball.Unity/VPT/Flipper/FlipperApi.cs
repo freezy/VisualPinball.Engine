@@ -241,6 +241,11 @@ namespace VisualPinball.Unity
 				),
 				translateWithinPlayfieldMatrix
 			);
+			if (ColliderComponent.FlipperCorrection != null && PhysicsEngine != null) {
+				ref var correctionTriggerState = ref PhysicsEngine.TriggerState(ColliderComponent.TriggerItemId);
+				correctionTriggerState.FlipperCorrection.FlipperColliderId = ColliderId;
+			}
+
 		}
 
 		#endregion

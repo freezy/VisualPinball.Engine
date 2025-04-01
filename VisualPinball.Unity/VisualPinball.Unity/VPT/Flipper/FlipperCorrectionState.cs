@@ -23,8 +23,8 @@ namespace VisualPinball.Unity
 {
 	public unsafe struct FlipperCorrectionState : IDisposable
 	{
+		public int FlipperColliderId;
 		public readonly bool IsEnabled;
-		public readonly int FlipperColliderId;
 		public readonly int FlipperItemId;
 		public readonly uint TimeDelayMs;
 
@@ -34,11 +34,11 @@ namespace VisualPinball.Unity
 		private readonly int _numPolarities;
 		private readonly int _numVelocities;
 
-		public FlipperCorrectionState(bool isEnabled, int flipperItemId, int flipperColliderId, uint timeDelayMs, float2[] polarities, float2[] velocities, Allocator allocator)
+		public FlipperCorrectionState(bool isEnabled, int flipperItemId, uint timeDelayMs, float2[] polarities, float2[] velocities, Allocator allocator)
 		{
 			IsEnabled = isEnabled;
 			FlipperItemId = flipperItemId;
-			FlipperColliderId = flipperColliderId;
+			FlipperColliderId = 0;
 			TimeDelayMs = timeDelayMs;
 			_polarities = Allocate(polarities, allocator);
 			_velocities = Allocate(velocities, allocator);

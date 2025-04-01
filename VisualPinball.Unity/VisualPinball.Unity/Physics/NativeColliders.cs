@@ -163,7 +163,7 @@ namespace VisualPinball.Unity
 			ref var lookup = ref UnsafeUtility.ArrayElementAsRef<ColliderLookup>(m_LookupBuffer, colliderId);
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
 			if (lookup.Type != ColliderType.Circle) {
-				throw new ArgumentException($"Invalid collider type {lookup.Type} when looking up circle collider.");
+				throw new ArgumentException($"Invalid collider type {lookup.Type} when looking up circle collider {colliderId}.");
 			}
 #endif
 			return ref UnsafeUtility.ArrayElementAsRef<CircleCollider>(m_CircleColliderBuffer, lookup.Index);
@@ -174,7 +174,7 @@ namespace VisualPinball.Unity
 			ref var lookup = ref UnsafeUtility.ArrayElementAsRef<ColliderLookup>(m_LookupBuffer, colliderId);
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
 			if (lookup.Type != ColliderType.Flipper) {
-				throw new ArgumentException($"Invalid collider type {lookup.Type} when looking up flipper collider.");
+				throw new ArgumentException($"Invalid collider type {lookup.Type} when looking up flipper collider {colliderId}.");
 			}
 #endif
 			return ref UnsafeUtility.ArrayElementAsRef<FlipperCollider>(m_FlipperColliderBuffer, lookup.Index);
@@ -185,7 +185,7 @@ namespace VisualPinball.Unity
 			ref var lookup = ref UnsafeUtility.ArrayElementAsRef<ColliderLookup>(m_LookupBuffer, colliderId);
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
 			if (lookup.Type != ColliderType.Gate) {
-				throw new ArgumentException($"Invalid collider type {lookup.Type} when looking up gate collider.");
+				throw new ArgumentException($"Invalid collider type {lookup.Type} when looking up gate collider {colliderId}.");
 			}
 #endif
 			return ref UnsafeUtility.ArrayElementAsRef<GateCollider>(m_GateColliderBuffer, lookup.Index);
@@ -196,7 +196,7 @@ namespace VisualPinball.Unity
 			ref var lookup = ref UnsafeUtility.ArrayElementAsRef<ColliderLookup>(m_LookupBuffer, colliderId);
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
 			if (lookup.Type != ColliderType.Line3D) {
-				throw new ArgumentException($"Invalid collider type {lookup.Type} when looking up line3d collider.");
+				throw new ArgumentException($"Invalid collider type {lookup.Type} when looking up line3d collider {colliderId}.");
 			}
 #endif
 			return ref UnsafeUtility.ArrayElementAsRef<Line3DCollider>(m_Line3DColliderBuffer, lookup.Index);
@@ -207,7 +207,7 @@ namespace VisualPinball.Unity
 			ref var lookup = ref UnsafeUtility.ArrayElementAsRef<ColliderLookup>(m_LookupBuffer, colliderId);
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
 			if (lookup.Type != ColliderType.Line) {
-				throw new ArgumentException($"Invalid collider type {lookup.Type} when looking up line collider.");
+				throw new ArgumentException($"Invalid collider type {lookup.Type} when looking up line collider {colliderId}.");
 			}
 #endif
 			return ref UnsafeUtility.ArrayElementAsRef<LineCollider>(m_LineColliderBuffer, lookup.Index);
@@ -218,7 +218,7 @@ namespace VisualPinball.Unity
 			ref var lookup = ref UnsafeUtility.ArrayElementAsRef<ColliderLookup>(m_LookupBuffer, colliderId);
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
 			if (lookup.Type != ColliderType.LineSlingShot) {
-				throw new ArgumentException($"Invalid collider type {lookup.Type} when looking up line slingshot collider.");
+				throw new ArgumentException($"Invalid collider type {lookup.Type} when looking up line slingshot collider {colliderId}.");
 			}
 #endif
 			return ref UnsafeUtility.ArrayElementAsRef<LineSlingshotCollider>(m_LineSlingshotColliderBuffer, lookup.Index);
@@ -229,7 +229,7 @@ namespace VisualPinball.Unity
 			ref var lookup = ref UnsafeUtility.ArrayElementAsRef<ColliderLookup>(m_LookupBuffer, colliderId);
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
 			if (lookup.Type != ColliderType.LineZ) {
-				throw new ArgumentException($"Invalid collider type {lookup.Type} when looking up line-z collider.");
+				throw new ArgumentException($"Invalid collider type {lookup.Type} when looking up line-z collider {colliderId}.");
 			}
 #endif
 			return ref UnsafeUtility.ArrayElementAsRef<LineZCollider>(m_LineZColliderBuffer, lookup.Index);
@@ -240,7 +240,7 @@ namespace VisualPinball.Unity
 			ref var lookup = ref UnsafeUtility.ArrayElementAsRef<ColliderLookup>(m_LookupBuffer, colliderId);
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
 			if (lookup.Type != ColliderType.Plane) {
-				throw new ArgumentException($"Invalid collider type {lookup.Type} when looking up plane collider.");
+				throw new ArgumentException($"Invalid collider type {lookup.Type} when looking up plane collider {colliderId}.");
 			}
 #endif
 			return ref UnsafeUtility.ArrayElementAsRef<PlaneCollider>(m_PlaneColliderBuffer, lookup.Index);
@@ -251,7 +251,7 @@ namespace VisualPinball.Unity
 			ref var lookup = ref UnsafeUtility.ArrayElementAsRef<ColliderLookup>(m_LookupBuffer, colliderId);
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
 			if (lookup.Type != ColliderType.Plunger) {
-				throw new ArgumentException($"Invalid collider type {lookup.Type} when looking up plunger collider.");
+				throw new ArgumentException($"Invalid collider type {lookup.Type} when looking up plunger collider {colliderId}.");
 			}
 #endif
 			return ref UnsafeUtility.ArrayElementAsRef<PlungerCollider>(m_PlungerColliderBuffer, lookup.Index);
@@ -262,7 +262,7 @@ namespace VisualPinball.Unity
 			ref var lookup = ref UnsafeUtility.ArrayElementAsRef<ColliderLookup>(m_LookupBuffer, colliderId);
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
 			if (lookup.Type != ColliderType.Point) {
-				throw new ArgumentException($"Invalid collider type {lookup.Type} when looking up point collider.");
+				throw new ArgumentException($"Invalid collider type {lookup.Type} when looking up point collider {colliderId}.");
 			}
 #endif
 			return ref UnsafeUtility.ArrayElementAsRef<PointCollider>(m_PointColliderBuffer, lookup.Index);
@@ -273,7 +273,7 @@ namespace VisualPinball.Unity
 			ref var lookup = ref UnsafeUtility.ArrayElementAsRef<ColliderLookup>(m_LookupBuffer, colliderId);
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
 			if (lookup.Type != ColliderType.Spinner) {
-				throw new ArgumentException($"Invalid collider type {lookup.Type} when looking up spinner collider.");
+				throw new ArgumentException($"Invalid collider type {lookup.Type} when looking up spinner collider {colliderId}.");
 			}
 #endif
 			return ref UnsafeUtility.ArrayElementAsRef<SpinnerCollider>(m_SpinnerColliderBuffer, lookup.Index);
@@ -284,7 +284,7 @@ namespace VisualPinball.Unity
 			ref var lookup = ref UnsafeUtility.ArrayElementAsRef<ColliderLookup>(m_LookupBuffer, colliderId);
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
 			if (lookup.Type != ColliderType.Triangle) {
-				throw new ArgumentException($"Invalid collider type {lookup.Type} when looking up triangle collider.");
+				throw new ArgumentException($"Invalid collider type {lookup.Type} when looking up triangle collider {colliderId}.");
 			}
 #endif
 			return ref UnsafeUtility.ArrayElementAsRef<TriangleCollider>(m_TriangleColliderBuffer, lookup.Index);

@@ -640,6 +640,7 @@ namespace VisualPinball.Unity
 			go.transform.SetParent(gameObject.transform.parent, false);
 			var triggerComponent = go.AddComponent<TriggerComponent>();
 			var triggerCollider = go.AddComponent<TriggerColliderComponent>();
+			colliderComponent.TriggerItemId = go.GetInstanceID();
 
 			triggerCollider.ForFlipper = this;
 			triggerCollider.TimeThresholdMs = fc.TimeThresholdMs;
