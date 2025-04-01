@@ -45,8 +45,6 @@ namespace VisualPinball.Unity.Editor
 	[Serializable]
 	public class LibraryDatabase
 	{
-		private const string DatabaseFolder = "_database";
-
 		[SerializeField] private Assets Assets = new();
 		[SerializeField] private Categories Categories = new();
 
@@ -151,7 +149,7 @@ namespace VisualPinball.Unity.Editor
 
 		public bool HasAsset(string guid) => Assets.Contains(guid);
 		public Asset GetAsset(string guid) => Assets[guid];
-		private string AssetMetaPath(Asset asset, AssetLibrary lib) => $"{lib.LibraryRoot}/{DatabaseFolder}/{asset.GUID}.asset";
+		private string AssetMetaPath(Asset asset, AssetLibrary lib) => $"{lib.DatabaseRoot}/{asset.GUID}.asset";
 
 		#endregion
 

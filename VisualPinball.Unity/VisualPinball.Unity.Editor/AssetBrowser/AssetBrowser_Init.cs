@@ -166,7 +166,7 @@ namespace VisualPinball.Unity.Editor
 		private void LoadThumb(VisualElement el, Asset asset)
 		{
 			if (!_thumbCache.ContainsKey(asset.GUID)) {
-				var thumbPath = $"{ThumbPath}/{asset.GUID}.png";
+				var thumbPath = $"{asset.Library.ThumbnailRoot}/{asset.GUID}.png";
 				if (File.Exists(thumbPath)) {
 					var tex = new Texture2D(ThumbSize, ThumbSize);
 					tex.LoadImage(File.ReadAllBytes(thumbPath));

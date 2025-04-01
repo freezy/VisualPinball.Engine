@@ -63,7 +63,7 @@ namespace VisualPinball.Unity.Editor
 				Clear();
 
 				foreach (var combination in materialCombinations) {
-					var combinationEl = new AssetMaterialCombinationElement(combination);
+					var combinationEl = new AssetMaterialCombinationElement(combination, asset);
 					combinationEl.OnClicked += OnVariationClicked;
 					_container.Add(combinationEl);
 				}

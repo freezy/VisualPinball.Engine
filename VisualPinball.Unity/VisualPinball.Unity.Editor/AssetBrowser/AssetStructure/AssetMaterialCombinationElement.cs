@@ -33,7 +33,7 @@ namespace VisualPinball.Unity.Editor
 
 		public readonly AssetMaterialCombination Combination;
 
-		public AssetMaterialCombinationElement(AssetMaterialCombination combination)
+		public AssetMaterialCombinationElement(AssetMaterialCombination combination, Asset asset)
 		{
 			Combination = combination;
 
@@ -49,7 +49,7 @@ namespace VisualPinball.Unity.Editor
 
 			ui.Q<Label>("label").text = Name;
 
-			var thumbPath = $"{AssetBrowser.ThumbPath}/{Combination.ThumbId}.png";
+			var thumbPath = $"{asset.Library.ThumbnailRoot}/{Combination.ThumbId}.png";
 			if (File.Exists(thumbPath)) {
 				var tex = new Texture2D(AssetBrowser.ThumbSize, AssetBrowser.ThumbSize);
 				tex.LoadImage(File.ReadAllBytes(thumbPath));
