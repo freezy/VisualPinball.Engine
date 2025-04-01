@@ -446,7 +446,7 @@ namespace VisualPinball.Unity.Editor
 				if (mesh != null) {
 					meshes++;
 					vertices += mesh.vertexCount;
-					triangles += mesh.triangles.Length;
+					triangles += mesh.triangles.Length / 3;
 					uvs += mesh.uv.Length;
 					subMeshes += mesh.subMeshCount;
 				}

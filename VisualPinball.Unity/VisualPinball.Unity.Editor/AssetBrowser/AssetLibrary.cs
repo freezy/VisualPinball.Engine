@@ -42,6 +42,10 @@ namespace VisualPinball.Unity.Editor
 
 		public string LibraryRoot;
 
+		public string ThumbnailRoot;
+
+		public string DatabaseRoot;
+
 		public bool IsLocked;
 
 		public Preset DefaultThumbCameraPreset;
@@ -210,7 +214,7 @@ namespace VisualPinball.Unity.Editor
 			if (string.IsNullOrEmpty(LibraryRoot)) {
 				var path = AssetDatabase.GetAssetPath(this);
 				if (!string.IsNullOrEmpty(path)) {
-					LibraryRoot = Path.GetDirectoryName(path);
+					LibraryRoot = Path.GetDirectoryName(path)?.Replace("\\", "/");
 				}
 			}
 
