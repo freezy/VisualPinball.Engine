@@ -252,39 +252,39 @@ namespace VisualPinball.Unity
 			var animComponent = GetComponentInChildren<TriggerAnimationComponent>();
 			var meshComponent = GetComponentInChildren<TriggerMeshComponent>();
 
-			if (collComponent.ForFlipper == null) {
+			if (collComponent.ForFlipper != null) {
 				return new TriggerState(
-					animComponent ? animComponent.gameObject.GetInstanceID() : 0,
 					new TriggerStaticState {
-						AnimSpeed = animComponent ? animComponent.AnimSpeed : 0,
+						AnimSpeed = 0,
 						Radius = collComponent.HitCircleRadius,
-						Shape = meshComponent ? meshComponent.Shape : 0,
+						Shape = TriggerShape.TriggerNone,
 						TableScaleZ = 1f,
-						InitialPosition = transform.localPosition
+						InitialPosition = transform.position
 					},
-					new TriggerMovementState(),
-					new TriggerAnimationState()
+					new FlipperCorrectionState(
+						true,
+						collComponent.ForFlipper.gameObject.GetInstanceID(),
+						collComponent.TimeThresholdMs,
+						collComponent.FlipperPolarities,
+						collComponent.FlipperVelocities,
+						Allocator.Persistent
+					)
 				);
 			}
 
 			return new TriggerState(
+				animComponent ? animComponent.gameObject.GetInstanceID() : 0,
 				new TriggerStaticState {
-					AnimSpeed = 0,
+					AnimSpeed = animComponent ? animComponent.AnimSpeed : 0,
 					Radius = collComponent.HitCircleRadius,
-					Shape = TriggerShape.TriggerNone,
+					Shape = meshComponent ? meshComponent.Shape : 0,
 					TableScaleZ = 1f,
-					InitialPosition = transform.position
+					InitialPosition = transform.localPosition
 				},
-				new FlipperCorrectionState(
-					true,
-					collComponent.ForFlipper.gameObject.GetInstanceID(),
-					collComponent.ForFlipper.FlipperApi.ColliderId, // todo fixme this is not yet set
-					collComponent.TimeThresholdMs,
-					collComponent.FlipperPolarities,
-					collComponent.FlipperVelocities,
-					Allocator.Persistent
-				)
+				new TriggerMovementState(),
+				new TriggerAnimationState()
 			);
+
 		}
 
 		#endregion

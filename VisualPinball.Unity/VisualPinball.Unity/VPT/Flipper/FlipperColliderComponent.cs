@@ -75,6 +75,8 @@ namespace VisualPinball.Unity
 		[Tooltip("The infamous nFozzy flipper correction. Choose a preset or create your own.")]
 		public FlipperCorrectionAsset FlipperCorrection;
 
+		public int TriggerItemId;
+
 		#endregion
 
 		#region Packaging
