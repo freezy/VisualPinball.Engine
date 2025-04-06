@@ -173,5 +173,36 @@ namespace VisualPinball.Unity
 		//
 		// #endregion
 
+#if UNITY_EDITOR
+		private void OnDrawGizmosSelected()
+		{
+			var triggerComp = GetComponentInParent<TriggerComponent>();
+			var collComp = GetComponentInParent<TriggerColliderComponent>();
+			if (!triggerComp || triggerComp.DragPoints == null || triggerComp.DragPoints.Length < 2 || !collComp) {
+				return;
+			}
+
+			var dp0 = triggerComp.DragPoints[0].Center.ToUnityVector3();
+			var dp1 = triggerComp.DragPoints[1].Center.ToUnityVector3();
+			var dist = dp0.y - dp1.y;
+			var height = collComp.HitHeight;
+
+			var entryRect = new[] {
+				dp0,
+				new Vector3(dp0.x, dp0.y, dp0.z + height),
+				new Vector3(dp0.x, dp0.y - dist, dp0.z + height),
+				new Vector3(dp0.x, dp0.y - dist, dp0.z),
+			};
+
+			Debug.Log(string.Join(" - ", entryRect.Select(v => v.ToString())));
+
+			Gizmos.matrix = triggerComp.transform.GetLocalToPlayfieldMatrixInVpx();
+			Gizmos.color = Color.red;
+			Gizmos.DrawLineStrip(entryRect, true);
+			foreach (var v in entryRect) {
+				Gizmos.DrawSphere(v, 1f);
+			}
+		}
+#endif
 	}
 }
