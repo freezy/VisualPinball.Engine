@@ -86,6 +86,15 @@ namespace VisualPinball.Unity
 		public static float4x4 GetLocalToPlayfieldMatrixInVpx(this float4x4 localToWorld, float4x4 worldToPlayfield)
 			=> math.mul(math.mul(WorldToVpx, math.mul(worldToPlayfield, localToWorld)), VpxToWorld);
 
+		public static float4x4 GetLocalToPlayfieldMatrixInVpx(this Transform itemTransform)
+		{
+			var playfieldComp = itemTransform.GetComponentInParent<PlayfieldComponent>();
+			var playfieldToWorld = playfieldComp ? (float4x4)playfieldComp.transform.localToWorldMatrix : float4x4.identity;
+			var worldToPlayfield = playfieldComp ? (float4x4)playfieldComp.transform.worldToLocalMatrix : float4x4.identity;
+			var localToPlayfieldMatrixInVpx = GetLocalToPlayfieldMatrixInVpx(itemTransform.localToWorldMatrix, worldToPlayfield);
+			return math.mul(math.mul(playfieldToWorld, VpxToWorld), localToPlayfieldMatrixInVpx);
+		}
+
 		#endregion
 
 		#region Translation
