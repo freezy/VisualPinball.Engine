@@ -16,13 +16,16 @@
 
 // ReSharper disable InconsistentNaming
 
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
 using System.Collections;
-using System.Linq;
 using NLog;
 using Unity.Mathematics;
 using UnityEngine;
 using VisualPinball.Engine.VPT.Trigger;
 using Logger = NLog.Logger;
+
 
 namespace VisualPinball.Unity
 {
@@ -174,34 +177,54 @@ namespace VisualPinball.Unity
 		// #endregion
 
 #if UNITY_EDITOR
+
 		private void OnDrawGizmosSelected()
 		{
+
 			var triggerComp = GetComponentInParent<TriggerComponent>();
 			var collComp = GetComponentInParent<TriggerColliderComponent>();
-			if (!triggerComp || triggerComp.DragPoints == null || triggerComp.DragPoints.Length < 2 || !collComp) {
+			if (!triggerComp || triggerComp.DragPoints is not { Length: 4 } || !collComp) {
 				return;
 			}
 
 			var dp0 = triggerComp.DragPoints[0].Center.ToUnityVector3();
 			var dp1 = triggerComp.DragPoints[1].Center.ToUnityVector3();
-			var dist = dp0.y - dp1.y;
-			var height = collComp.HitHeight;
+			var dp3 = triggerComp.DragPoints[3].Center.ToUnityVector3();
+
+			var dx = dp3.x - dp0.x;
+			var h = collComp.HitHeight;
 
 			var entryRect = new[] {
 				dp0,
-				new Vector3(dp0.x, dp0.y, dp0.z + height),
-				new Vector3(dp0.x, dp0.y - dist, dp0.z + height),
-				new Vector3(dp0.x, dp0.y - dist, dp0.z),
+				new Vector3(dp0.x,      dp0.y, dp0.z + h),
+				new Vector3(dp0.x + dx, dp0.y, dp0.z + h),
+				new Vector3(dp0.x + dx, dp0.y, dp0.z),
+				dp0
 			};
 
-			Debug.Log(string.Join(" - ", entryRect.Select(v => v.ToString())));
+			var exitRect = new[] {
+				dp1,
+				new Vector3(dp1.x,      dp1.y, dp1.z + h),
+				new Vector3(dp1.x + dx, dp1.y, dp1.z + h),
+				new Vector3(dp1.x + dx, dp1.y, dp1.z),
+				dp1
+			};
 
-			Gizmos.matrix = triggerComp.transform.GetLocalToPlayfieldMatrixInVpx();
-			Gizmos.color = Color.red;
-			Gizmos.DrawLineStrip(entryRect, true);
-			foreach (var v in entryRect) {
-				Gizmos.DrawSphere(v, 1f);
+			Handles.matrix = triggerComp.transform.GetLocalToPlayfieldMatrixInVpx();
+			Handles.color = Color.gray;
+
+			for (var i = 0; i < 4; i++) {
+				Handles2.DrawArrow(entryRect[i], exitRect[i], 3, 10);
 			}
+			Handles.DrawAAPolyLine(5, entryRect);
+			Handles.DrawAAPolyLine(5, exitRect);
+
+			// Gizmos.matrix = triggerComp.transform.GetLocalToPlayfieldMatrixInVpx();
+			// Gizmos.color = Color.red;
+			// Gizmos.DrawLineStrip(entryRect, true);
+			// foreach (var v in entryRect) {
+			// 	Gizmos.DrawSphere(v, 1f);
+			// }
 		}
 #endif
 	}
