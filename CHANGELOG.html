@@ -1,0 +1,211 @@
+﻿<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+      <title>Changelog | VPE Documentation </title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="title" content="Changelog | VPE Documentation ">
+      
+      
+      <link rel="icon" href="favicon.png">
+      <link rel="stylesheet" href="public/docfx.min.css">
+      <link rel="stylesheet" href="public/main.css">
+      <link rel="stylesheet" href="public/basicLightbox.min.css">
+      <meta name="docfx:navrel" content="toc.html">
+      <meta name="docfx:tocrel" content="toc.html">
+      
+      <meta name="docfx:rel" content="">
+      
+      
+      <meta name="docfx:docurl" content="https://github.com/freezy/VisualPinball.Engine/blob/master/CHANGELOG.md/#L1">
+      <meta name="loc:inThisArticle" content="Table of Contents">
+      <meta name="loc:searchResultsCount" content="{count} results for &quot;{query}&quot;">
+      <meta name="loc:searchNoResults" content="No results for &quot;{query}&quot;">
+      <meta name="loc:tocFilter" content="Filter by title">
+      <meta name="loc:nextArticle" content="Next">
+      <meta name="loc:prevArticle" content="Previous">
+      <meta name="loc:themeLight" content="Light">
+      <meta name="loc:themeDark" content="Dark">
+      <meta name="loc:themeAuto" content="Auto">
+      <meta name="loc:changeTheme" content="Change theme">
+      <meta name="loc:copy" content="Copy">
+      <meta name="loc:downloadPdf" content="Download PDF">
+
+      <script type="module" src="./public/docfx.min.js"></script>
+
+      <script>
+        const theme = localStorage.getItem('theme') || 'auto'
+        document.documentElement.setAttribute('data-bs-theme', theme === 'auto' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : theme)
+      </script>
+
+     <script type="text/javascript">
+     var _paq = window._paq || [];
+     _paq.push(["setCookieDomain", "*.docs.visualpinball.org"]);
+     _paq.push(['trackPageView']);
+     _paq.push(['enableLinkTracking']);
+     (function() {
+       var u="//count.vpdb.io/";
+       _paq.push(['setTrackerUrl', u+'matomo.php']);
+       _paq.push(['setSiteId', '2']);
+       var d=document, g=d.createElement('script'), s=d.getElementsByTagName('script')[0];
+       g.type='text/javascript'; g.async=true; g.defer=true; g.src=u+'matomo.js'; s.parentNode.insertBefore(g,s);
+     })();
+     </script>
+  </head>
+
+  <body class="tex2jax_ignore" data-layout="" data-yaml-mime="">
+    <header class="bg-body border-bottom" data-bs-theme="dark">
+      <nav id="autocollapse" class="navbar navbar-expand-md" role="navigation">
+        <div class="container flex-nowrap">
+          <a class="navbar-brand" href="index.html">
+            <img id="logo" class="svg" src="logo.svg" alt="">
+            
+          </a>
+          <button class="btn btn-lg d-md-none border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navpanel" aria-controls="navpanel" aria-expanded="false" aria-label="Toggle navigation">
+            <i class="bi bi-three-dots"></i>
+          </button>
+          <div class="collapse navbar-collapse" id="navpanel">
+            <div id="navbar">
+              <form class="search" role="search" id="search">
+                <i class="bi bi-search"></i>
+                <input class="form-control" id="search-query" type="search" disabled="" placeholder="Search" autocomplete="off" aria-label="Search">
+              </form>
+              <a title="VPE is open source!" class="navbar-github" href="https://github.com/freezy/VisualPinball.Engine" target="_blank">
+                <svg xmlns="http://www.w3.org/2000/svg" viewbox="0 0 33.5 33.1" width="33.5" height="33.1"><path d="M16.7.4a16.3 16.3 0 00-5.2 31.8c.8.1 1.1-.4 1.1-.8v-2.8c-4.5 1-5.5-2.2-5.5-2.2-.6-1.9-1.7-2.4-1.7-2.4-1.5-1 .1-1 .1-1 1.6.1 2.5 1.7 2.5 1.7 1.5 2.5 3.8 1.8 4.7 1.4.1-1.1.6-1.8 1-2.2-3.6-.4-7.4-1.8-7.4-8.1 0-1.8.7-3.2 1.7-4.4-.1-.4-.7-2 .2-4.3 0 0 1.4-.4 4.5 1.7a18.4 18.4 0 018.2 0c3.1-2.1 4.5-1.7 4.5-1.7.9 2.2.3 3.9.2 4.3 1 1.1 1.7 2.6 1.7 4.4 0 6.3-3.8 7.6-7.4 8 .6.5 1.1 1.5 1.1 3v4.5c0 .4.3.9 1.1.8A16.3 16.3 0 0016.7.4z"></path></svg>
+              </a>
+            </div>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <main class="container-xxl">
+
+      <div class="content">
+        <div class="actionbar">
+
+          <nav id="breadcrumb"></nav>
+        </div>
+
+        <article data-uid="">
+<h1 id="changelog">Changelog</h1>
+
+<p><em>This documents all notable changes to the Visual Pinball Engine and its dependent projects.</em></p>
+<h2 id="unreleased">Unreleased</h2>
+<p>Built with Unity 2022.3.x</p>
+<h3 id="added">Added</h3>
+<ul>
+<li>Free transformation (<a href="https://github.com/freezy/VisualPinball.Engine/pull/500">#500</a>)</li>
+<li>Kinematic collisions (<a href="https://github.com/freezy/VisualPinball.Engine/pull/460">#460</a>)</li>
+<li>Flipper tricks by nFozzy (<a href="https://github.com/freezy/VisualPinball.Engine/pull/436">#436</a>)</li>
+<li>Asset Library now has thumbnails.</li>
+<li>Documentation for score reels.</li>
+<li>Score Motor Component (<a href="https://github.com/freezy/VisualPinball.Engine/pull/435">#435</a>, <a href="https://docs.visualpinball.org/creators-guide/manual/mechanisms/score-motors.html">Documentation</a>).</li>
+<li>Scale support for rubbers.</li>
+<li>Slingarm coil arms can now be any game objects, not just primitives (<a href="https://github.com/freezy/VisualPinball.Engine/pull/432">#432</a>).</li>
+<li>Gate Lifter Component (<a href="https://github.com/freezy/VisualPinball.Engine/pull/418">#418</a>, <a href="https://docs.visualpinball.org/creators-guide/manual/mechanisms/lifting-gates.html">Documentation</a>).</li>
+<li>Asset Browser (<a href="https://github.com/freezy/VisualPinball.Engine/pull/412">#412</a>)</li>
+<li>Trigger meshes can now be easily scaled (<a href="https://github.com/freezy/VisualPinball.Engine/pull/374">#374</a>)</li>
+<li>We got a new game item called <em>Metal Wire Guide</em> (thanks @Cupiii, <a href="https://github.com/freezy/VisualPinball.Engine/pull/366">#366</a>)</li>
+<li>A <em>Collision Switch</em> component (<a href="https://github.com/freezy/VisualPinball.Engine/pull/344">#344</a>, <a href="https://docs.visualpinball.org/creators-guide/manual/mechanisms/collision-switches.html">Documentation</a>).</li>
+<li>A <em>Rotator</em> component (<a href="https://github.com/freezy/VisualPinball.Engine/pull/337">#337</a>, <a href="https://docs.visualpinball.org/creators-guide/manual/mechanisms/rotators.html">Documentation</a>).</li>
+<li>A <em>Teleporter</em> component (<a href="https://github.com/freezy/VisualPinball.Engine/pull/336">#336</a>, <a href="https://docs.visualpinball.org/creators-guide/manual/mechanisms/teleporters.html">Documentation</a>).</li>
+<li>A <em>Drop Target Bank</em> component (<a href="https://github.com/freezy/VisualPinball.Engine/pull/333">#333</a>, <a href="https://docs.visualpinball.org/creators-guide/manual/mechanisms/drop-target-banks.html">Documentation</a>).</li>
+<li>Editor: Enable manual trigger for coils, switches, lamps and wires during gameplay (<a href="https://github.com/freezy/VisualPinball.Engine/pull/332">#332</a>)</li>
+<li>Support for dynamic wires, also known as <em>Fast Flip</em> (<a href="https://github.com/freezy/VisualPinball.Engine/pull/330">#330</a>, <a href="https://docs.visualpinball.org/creators-guide/editor/wire-manager.html#dynamic">Documentation</a>).</li>
+<li>Component for light groups, allowing easy grouping of GI lamps. (<a href="https://github.com/freezy/VisualPinball.Engine/pull/330">#330</a> <a href="https://docs.visualpinball.org/creators-guide/manual/mechanisms/light-groups.html">Documentation</a>).</li>
+<li>Slingshot component (<a href="https://github.com/freezy/VisualPinball.Engine/pull/329">#329</a>, <a href="https://docs.visualpinball.org/creators-guide/manual/mechanisms/slingshots.html">Documentation</a>).</li>
+<li>Create insert meshes (<a href="https://github.com/freezy/VisualPinball.Engine/pull/320">#320</a>).</li>
+<li>Full support for custom playfield meshes.</li>
+<li>Remove Hybrid Renderer (<a href="https://github.com/freezy/VisualPinball.Engine/pull/316">#316</a>).</li>
+<li>Create and use Unity assets when importing (<a href="https://github.com/freezy/VisualPinball.Engine/pull/302">#320</a>).</li>
+<li>Native support for nFozzy flipper physics (<a href="https://github.com/freezy/VisualPinball.Engine/pull/305">#305</a>).</li>
+<li>Automated camera clipping (<a href="https://github.com/freezy/VisualPinball.Engine/pull/304/files">#304</a>).</li>
+<li>DMD and segment display support (<a href="https://docs.visualpinball.org/creators-guide/manual/displays.html">Documentation</a>).</li>
+<li>Plugin: Mission Pinball Framework (<a href="https://docs.visualpinball.org/plugins/mpf/index.html">Documentation</a>).</li>
+<li>Gamelogic Engine: Support for hardware rules (<a href="https://github.com/freezy/VisualPinball.Engine/pull/293">#293</a>).</li>
+<li>Support for Extended ASCII strings (<a href="https://github.com/freezy/VisualPinball.Engine/pull/291">#291</a>).</li>
+<li>Support for Elasticity Falloff in walls (added in VP 10.7) (<a href="https://github.com/freezy/VisualPinball.Engine/pull/291">#291</a>).</li>
+<li>Support for table notes (added in VP 10.7) (<a href="https://github.com/freezy/VisualPinball.Engine/pull/291">#291</a>).</li>
+<li>Slow motion during gameplay (<a href="https://github.com/freezy/VisualPinball.Engine/pull/288">#288</a>).</li>
+<li><a href="https://docs.visualpinball.org/creators-guide/editor/lamp-manager.html">Lamp Manager</a> (<a href="https://github.com/freezy/VisualPinball.Engine/pull/282">#282</a>).</li>
+<li>The VPE core is now also available on <a href="https://www.nuget.org/packages/VisualPinball.Engine/">NuGet</a>.</li>
+<li>VPE is now packaged and published on every merge!</li>
+<li>Native trough component (<a href="https://github.com/freezy/VisualPinball.Engine/pull/229">#229</a>, <a href="https://github.com/freezy/VisualPinball.Engine/pull/248">#248</a>, <a href="https://github.com/freezy/VisualPinball.Engine/pull/256">#256</a>, <a href="https://docs.visualpinball.org/creators-guide/manual/mechanisms/troughs.html">Documentation</a>).</li>
+</ul>
+<h3 id="changed">Changed</h3>
+<ul>
+<li>Removed DOTS in favor of Jobs with Burst (<a href="https://github.com/freezy/VisualPinball.Engine/pull/459">#459</a>)</li>
+<li>All geometry is now in world space.</li>
+<li>Removed internal ID in gamelogic engine API (<a href="https://github.com/freezy/VisualPinball.Engine/pull/408">#408</a>)</li>
+<li>When importing, meshes are now saved as easily editable <code>.fbx</code> files instead of Unity's internal format (<a href="https://github.com/freezy/VisualPinball.Engine/pull/387">#387</a>).</li>
+<li>Revised rubber mesh generation (<a href="https://github.com/freezy/VisualPinball.Engine/pull/384">#384</a>).</li>
+<li>APIs for RGB lamps and Visual Scripting (<a href="https://github.com/freezy/VisualPinball.Engine/pull/382">#382</a>).</li>
+<li>Playfield is now rotated to the correct angle during gameplay (<a href="https://github.com/freezy/VisualPinball.Engine/pull/370">#370</a>).</li>
+<li>Decouple light components from transformation override (<a href="https://github.com/freezy/VisualPinball.Engine/pull/350">#350</a>).</li>
+<li>Refactored drag points. They are nicely separated and typed now.</li>
+<li>Collider debug view is now much faster and intuitive. It's also activated per default when there is no visible mesh.</li>
+<li>Drop and hit targets are now different components.</li>
+<li>Kicker is now a coil device with different coils for different angles/forces.</li>
+<li>Ground truth of data is now the scene, not the imported data anymore (<a href="https://github.com/freezy/VisualPinball.Engine/pull/302">#302</a>).</li>
+<li>Plunger is now a coil device, meaning it can both be pulled back and fired through different inputs.</li>
+<li>Move render pipelines into separate repos (<a href="https://github.com/freezy/VisualPinball.Engine/pull/259">#259</a>).</li>
+<li>Put game-, mesh-, collision- animation data into separate components (<a href="https://github.com/freezy/VisualPinball.Engine/pull/227">#227</a>, <a href="https://docs.visualpinball.org/creators-guide/editor/unity-components.html">Documentation</a>).</li>
+</ul>
+<h3 id="fixed">Fixed</h3>
+<ul>
+<li>Disappearing objects due to wrong bounding box (<a href="https://github.com/freezy/VisualPinball.Engine/pull/441">#441</a>).</li>
+<li>Default table import (<a href="https://github.com/freezy/VisualPinball.Engine/pull/434">#434</a>)</li>
+<li>Remaining ball spinning issue should now be solved (<a href="https://github.com/freezy/VisualPinball.Engine/pull/397">#397</a>).</li>
+<li>Physics error when the ball would stop rotate (<a href="https://github.com/freezy/VisualPinball.Engine/pull/393">#393</a>).</li>
+<li>Finally, ball rotation is rendered correctly (<a href="https://github.com/freezy/VisualPinball.Engine/pull/386">#386</a>).</li>
+<li>Ball stuttering when rolling over dropped target (<a href="https://github.com/freezy/VisualPinball.Engine/pull/375">#375</a>).</li>
+<li>Plunger disappearing due to too small bounding box.</li>
+<li>Fixed switch status when multiple mappings point to the same ID (<a href="https://github.com/freezy/VisualPinball.Engine/pull/347">#347</a>).</li>
+<li>Lighting setup. It's now usable (<a href="https://github.com/freezy/VisualPinball.Engine/pull/330">#330</a>).</li>
+<li>Ball passing through collider plane and disappearing.</li>
+<li>Alpha channel of color values is now correctly written (<a href="https://github.com/freezy/VisualPinball.Engine/pull/291">#291</a>).</li>
+<li>Layer names are correctly computed when importing a 10.6 file (<a href="https://github.com/freezy/VisualPinball.Engine/pull/291">#291</a>).</li>
+<li>Clear texture and material references that don't exist before writing (VP 10.7 behavior) (<a href="https://github.com/freezy/VisualPinball.Engine/pull/291">#291</a>).</li>
+<li>Bug in writing animation vertices which caused VP to hang when re-reading the file (<a href="https://github.com/freezy/VisualPinball.Engine/pull/291">#291</a>).</li>
+<li>A few bugs in drag point gizmos (<a href="https://github.com/freezy/VisualPinball.Engine/pull/246">#246</a>).</li>
+</ul>
+
+</article>
+
+        <div class="contribution d-print-none">
+          <a href="https://github.com/freezy/VisualPinball.Engine/blob/master/CHANGELOG.md/#L1" class="edit-link">Improve this Page</a>
+        </div>
+
+        <div class="next-article d-print-none border-top" id="nextArticle"></div>
+
+      </div>
+
+      <div class="affix">
+        <nav id="affix"></nav>
+      </div>
+    </main>
+
+    <div class="container-xxl search-results" id="search-results"></div>
+
+    <footer class="border-top text-secondary">
+      <div class="container-xxl">
+        <div class="flex-fill">
+          <span>Copyright © 2025 VPE Team</span>
+        </div>
+      </div>
+    </footer>
+    <script src="./public/basicLightbox.min.js"></script>
+    <script type="text/javascript">
+    for (const img of document.querySelectorAll('img:not(#logo)')) {
+      img.onclick = () => {
+        basicLightbox.create(`<img src="${img.src}">`).show()
+        if (img.parentElement.tagName === 'A') {
+          img.parentElement.href = 'javascript:void(0)'
+          img.parentElement.target = '_self'
+        }
+      }
+    }
+    </script>
+  </body>
+</html>

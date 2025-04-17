@@ -1,0 +1,200 @@
+﻿<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+      <title>Features | VPE Documentation </title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="title" content="Features | VPE Documentation ">
+      
+      <meta name="description" content="A brief overview of VPE&#39;s features">
+      <link rel="icon" href="../../favicon.png">
+      <link rel="stylesheet" href="../../public/docfx.min.css">
+      <link rel="stylesheet" href="../../public/main.css">
+      <link rel="stylesheet" href="../../public/basicLightbox.min.css">
+      <meta name="docfx:navrel" content="../../toc.html">
+      <meta name="docfx:tocrel" content="../toc.html">
+      
+      <meta name="docfx:rel" content="../../">
+      
+      
+      <meta name="docfx:docurl" content="https://github.com/freezy/VisualPinball.Engine/blob/master/VisualPinball.Unity/Documentation~/creators-guide/introduction/features.md/#L1">
+      <meta name="loc:inThisArticle" content="Table of Contents">
+      <meta name="loc:searchResultsCount" content="{count} results for &quot;{query}&quot;">
+      <meta name="loc:searchNoResults" content="No results for &quot;{query}&quot;">
+      <meta name="loc:tocFilter" content="Filter by title">
+      <meta name="loc:nextArticle" content="Next">
+      <meta name="loc:prevArticle" content="Previous">
+      <meta name="loc:themeLight" content="Light">
+      <meta name="loc:themeDark" content="Dark">
+      <meta name="loc:themeAuto" content="Auto">
+      <meta name="loc:changeTheme" content="Change theme">
+      <meta name="loc:copy" content="Copy">
+      <meta name="loc:downloadPdf" content="Download PDF">
+
+      <script type="module" src="./../../public/docfx.min.js"></script>
+
+      <script>
+        const theme = localStorage.getItem('theme') || 'auto'
+        document.documentElement.setAttribute('data-bs-theme', theme === 'auto' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : theme)
+      </script>
+
+     <script type="text/javascript">
+     var _paq = window._paq || [];
+     _paq.push(["setCookieDomain", "*.docs.visualpinball.org"]);
+     _paq.push(['trackPageView']);
+     _paq.push(['enableLinkTracking']);
+     (function() {
+       var u="//count.vpdb.io/";
+       _paq.push(['setTrackerUrl', u+'matomo.php']);
+       _paq.push(['setSiteId', '2']);
+       var d=document, g=d.createElement('script'), s=d.getElementsByTagName('script')[0];
+       g.type='text/javascript'; g.async=true; g.defer=true; g.src=u+'matomo.js'; s.parentNode.insertBefore(g,s);
+     })();
+     </script>
+  </head>
+
+  <body class="tex2jax_ignore" data-layout="" data-yaml-mime="">
+    <header class="bg-body border-bottom" data-bs-theme="dark">
+      <nav id="autocollapse" class="navbar navbar-expand-md" role="navigation">
+        <div class="container flex-nowrap">
+          <a class="navbar-brand" href="../../index.html">
+            <img id="logo" class="svg" src="../../logo.svg" alt="">
+            
+          </a>
+          <button class="btn btn-lg d-md-none border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navpanel" aria-controls="navpanel" aria-expanded="false" aria-label="Toggle navigation">
+            <i class="bi bi-three-dots"></i>
+          </button>
+          <div class="collapse navbar-collapse" id="navpanel">
+            <div id="navbar">
+              <form class="search" role="search" id="search">
+                <i class="bi bi-search"></i>
+                <input class="form-control" id="search-query" type="search" disabled="" placeholder="Search" autocomplete="off" aria-label="Search">
+              </form>
+              <a title="VPE is open source!" class="navbar-github" href="https://github.com/freezy/VisualPinball.Engine" target="_blank">
+                <svg xmlns="http://www.w3.org/2000/svg" viewbox="0 0 33.5 33.1" width="33.5" height="33.1"><path d="M16.7.4a16.3 16.3 0 00-5.2 31.8c.8.1 1.1-.4 1.1-.8v-2.8c-4.5 1-5.5-2.2-5.5-2.2-.6-1.9-1.7-2.4-1.7-2.4-1.5-1 .1-1 .1-1 1.6.1 2.5 1.7 2.5 1.7 1.5 2.5 3.8 1.8 4.7 1.4.1-1.1.6-1.8 1-2.2-3.6-.4-7.4-1.8-7.4-8.1 0-1.8.7-3.2 1.7-4.4-.1-.4-.7-2 .2-4.3 0 0 1.4-.4 4.5 1.7a18.4 18.4 0 018.2 0c3.1-2.1 4.5-1.7 4.5-1.7.9 2.2.3 3.9.2 4.3 1 1.1 1.7 2.6 1.7 4.4 0 6.3-3.8 7.6-7.4 8 .6.5 1.1 1.5 1.1 3v4.5c0 .4.3.9 1.1.8A16.3 16.3 0 0016.7.4z"></path></svg>
+              </a>
+            </div>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <main class="container-xxl">
+      <div class="toc-offcanvas">
+        <div class="offcanvas-md offcanvas-start" tabindex="-1" id="tocOffcanvas" aria-labelledby="tocOffcanvasLabel">
+          <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="tocOffcanvasLabel">Table of Contents</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#tocOffcanvas" aria-label="Close"></button>
+          </div>
+          <div class="offcanvas-body">
+            <nav class="toc" id="toc"></nav>
+          </div>
+        </div>
+      </div>
+
+      <div class="content">
+        <div class="actionbar">
+          <button class="btn btn-lg border-0 d-md-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#tocOffcanvas" aria-controls="tocOffcanvas" aria-expanded="false" aria-label="Show table of contents">
+            <i class="bi bi-list"></i>
+          </button>
+
+          <nav id="breadcrumb"></nav>
+        </div>
+
+        <article data-uid="features">
+<h1 id="features">Features</h1>
+
+<p>This section documents what's already working. If it's not, then that's a bug, and you should <a href="https://github.com/freezy/VisualPinball.Engine/issues">let us know</a>.</p>
+<h2 id="materials">Materials</h2>
+<p>We convert Visual Pinball's materials to materials compatible with the active render pipeline. That means  materials look similar to Visual Pinball by default, while there's still a lot of potential left to tweak materials using the full material configuration of Unity.</p>
+<p><img src="comparison-vpx-vpe.jpg" alt="Material Comparison">
+<small><em>Bord's &quot;Viking&quot; rendered in VPX (left) and imported as-is in VPE's built-in renderer (right).</em></small></p>
+<h2 id="meshes">Meshes</h2>
+<p>Visual Pinball dynamically generates meshes for most of the game items. VPE has ported that code and does the same when loading a table.</p>
+<p><img src="mesh-example.jpg" alt="Material Comparison">
+<small><em>A rubber mesh generated in the editor</em></small></p>
+<h2 id="physics">Physics</h2>
+<p>We have nearly finished porting Visual Pinball's physics engine to VPE. That means the ball and flipper behavior should be identical to Visual Pinball.</p>
+<div class="embeddedvideo"><iframe src="https://www.youtube-nocookie.com/embed/S1DDY9iBBqo" frameborder="0" allowfullscreen="true"></iframe></div>
+<p>This includes physics-based movement from flippers, gates and spinners, as well as animated targets, triggers and plungers.</p>
+<h2 id="events">Events</h2>
+<p>The physics engine emits the same events as Visual Pinball. That means you can subscribe to collision events and other game item-specific events. For example, for subscribing to the flip event of a flipper, you would do:</p>
+<pre><code class="lang-cs">table.Flipper(&quot;LeftFlipper&quot;).LimitEos += (sender, args) =&gt; {
+	// do something!
+};
+</code></pre>
+<div class="NOTE">
+<h5>Note</h5>
+<p>While it's not clear how we'll handle scripting, most events can probably be configured visually in the editor and don't need to be handled via scripting.</p>
+</div>
+<h2 id="cross-platform">Cross Platform</h2>
+<p>Unity supports <a href="https://unity.com/features/multiplatform">a lot of platforms</a>. Our continuous integration builds for Windows (x86/x64), macOS (x64) and Linux (x64). Besides Windows, some of our developers work on macOS, and we regularly test on Linux as well.</p>
+<h2 id="file-format">File Format</h2>
+<p>We care about backwards-compatibility to Visual Pinball. VPE can read and write <code>.vpx</code> files and supports the full data set. This means that you can load a table into VPE, edit it, export it to <code>.vpx</code> and load it back into Visual Pinball.</p>
+<div class="NOTE">
+<h5>Note</h5>
+<p>VPE will at some point need to save additional data that isn't available in Visual Pinball. However, the <code>.vpx</code> structure is like a virtual file system, so we can do that without breaking backwards-compatibility.</p>
+</div>
+<h2 id="editor-extensions">Editor Extensions</h2>
+<p>Unity allows full editor customization. So we're adding the managers, panels, and toolboxes from Visual Pinball into the Unity editor:</p>
+<p><img src="unity-editor.jpg" alt="Extended editor"></p>
+<p>What you're seeing here is the toolbox as well as a few manager windows we've ported:</p>
+<ul>
+<li>Material Manager</li>
+<li>Image Manager</li>
+<li>Layer Manager</li>
+<li>Inspector acting as VP's Options Panel</li>
+</ul>
+<p>You can dock these as you wish, or even undock them and move them to another monitor. Not in the above screenshot but also ported are:</p>
+<ul>
+<li>Collections Manager</li>
+<li>Sound Manager</li>
+</ul>
+<p>VPE is also able to edit drag points. Moving those (in 3D!) re-generates the mesh on the fly:</p>
+<p><img src="unity-drag-points.jpg" alt="Drag Points"></p>
+<p>Lastly, we can visualize the colliders of any object. This can be useful to debug, and also to check whether you may have objects set to collide which actually shouldn't (or vice versa)!</p>
+<p><img src="unity-colliders.jpg" alt="Colliders"></p>
+<h2 id="patching-system">Patching System</h2>
+<p>There are common patterns for VPX tables that are obsolete in VPE. For instance, VPE doesn't need a flipper shadow mesh, because it can do dynamic lighting out of the box. For that reason, we have a simple but sophisticated patcher system that allows us to apply changes to a table when imported.</p>
+<p>Of course the changes don't apply to the table data itself but to how we convert it into the Unity scene. You can read more about it <a href="https://github.com/freezy/VisualPinball.Engine/tree/master/VisualPinball.Unity/VisualPinball.Unity.Patcher#unity-patching-system">here</a>.</p>
+<h2 id="display-support">Display Support</h2>
+<p>VPE provides high-quality rendering of dot matrix and segment displays. Displays can be placed anywhere in the scene, multiple at once, and are easily linked to the game logic engine. For DMDs, dot size, shape and color can be customized, and for segment displays it's the segment weight, skew angle and color.</p>
+
+</article>
+
+        <div class="contribution d-print-none">
+          <a href="https://github.com/freezy/VisualPinball.Engine/blob/master/VisualPinball.Unity/Documentation~/creators-guide/introduction/features.md/#L1" class="edit-link">Improve this Page</a>
+        </div>
+
+        <div class="next-article d-print-none border-top" id="nextArticle"></div>
+
+      </div>
+
+      <div class="affix">
+        <nav id="affix"></nav>
+      </div>
+    </main>
+
+    <div class="container-xxl search-results" id="search-results"></div>
+
+    <footer class="border-top text-secondary">
+      <div class="container-xxl">
+        <div class="flex-fill">
+          <span>Copyright © 2025 VPE Team</span>
+        </div>
+      </div>
+    </footer>
+    <script src="./../../public/basicLightbox.min.js"></script>
+    <script type="text/javascript">
+    for (const img of document.querySelectorAll('img:not(#logo)')) {
+      img.onclick = () => {
+        basicLightbox.create(`<img src="${img.src}">`).show()
+        if (img.parentElement.tagName === 'A') {
+          img.parentElement.href = 'javascript:void(0)'
+          img.parentElement.target = '_self'
+        }
+      }
+    }
+    </script>
+  </body>
+</html>

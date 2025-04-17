@@ -1,0 +1,232 @@
+﻿<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+      <title>Media Controller | VPE Documentation </title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="title" content="Media Controller | VPE Documentation ">
+      
+      <meta name="description" content="Manual for the included media controller">
+      <link rel="icon" href="../../favicon.png">
+      <link rel="stylesheet" href="../../public/docfx.min.css">
+      <link rel="stylesheet" href="../../public/main.css">
+      <link rel="stylesheet" href="../../public/basicLightbox.min.css">
+      <meta name="docfx:navrel" content="../../toc.html">
+      <meta name="docfx:tocrel" content="../toc.html">
+      
+      <meta name="docfx:rel" content="../../">
+      
+      
+      <meta name="docfx:docurl" content="https://github.com/freezy/VisualPinball.Engine/blob/master/VisualPinball.Unity/Documentation~/plugins/mpf/media-controller.md/#L1">
+      <meta name="loc:inThisArticle" content="Table of Contents">
+      <meta name="loc:searchResultsCount" content="{count} results for &quot;{query}&quot;">
+      <meta name="loc:searchNoResults" content="No results for &quot;{query}&quot;">
+      <meta name="loc:tocFilter" content="Filter by title">
+      <meta name="loc:nextArticle" content="Next">
+      <meta name="loc:prevArticle" content="Previous">
+      <meta name="loc:themeLight" content="Light">
+      <meta name="loc:themeDark" content="Dark">
+      <meta name="loc:themeAuto" content="Auto">
+      <meta name="loc:changeTheme" content="Change theme">
+      <meta name="loc:copy" content="Copy">
+      <meta name="loc:downloadPdf" content="Download PDF">
+
+      <script type="module" src="./../../public/docfx.min.js"></script>
+
+      <script>
+        const theme = localStorage.getItem('theme') || 'auto'
+        document.documentElement.setAttribute('data-bs-theme', theme === 'auto' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : theme)
+      </script>
+
+     <script type="text/javascript">
+     var _paq = window._paq || [];
+     _paq.push(["setCookieDomain", "*.docs.visualpinball.org"]);
+     _paq.push(['trackPageView']);
+     _paq.push(['enableLinkTracking']);
+     (function() {
+       var u="//count.vpdb.io/";
+       _paq.push(['setTrackerUrl', u+'matomo.php']);
+       _paq.push(['setSiteId', '2']);
+       var d=document, g=d.createElement('script'), s=d.getElementsByTagName('script')[0];
+       g.type='text/javascript'; g.async=true; g.defer=true; g.src=u+'matomo.js'; s.parentNode.insertBefore(g,s);
+     })();
+     </script>
+  </head>
+
+  <body class="tex2jax_ignore" data-layout="" data-yaml-mime="">
+    <header class="bg-body border-bottom" data-bs-theme="dark">
+      <nav id="autocollapse" class="navbar navbar-expand-md" role="navigation">
+        <div class="container flex-nowrap">
+          <a class="navbar-brand" href="../../index.html">
+            <img id="logo" class="svg" src="../../logo.svg" alt="">
+            
+          </a>
+          <button class="btn btn-lg d-md-none border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navpanel" aria-controls="navpanel" aria-expanded="false" aria-label="Toggle navigation">
+            <i class="bi bi-three-dots"></i>
+          </button>
+          <div class="collapse navbar-collapse" id="navpanel">
+            <div id="navbar">
+              <form class="search" role="search" id="search">
+                <i class="bi bi-search"></i>
+                <input class="form-control" id="search-query" type="search" disabled="" placeholder="Search" autocomplete="off" aria-label="Search">
+              </form>
+              <a title="VPE is open source!" class="navbar-github" href="https://github.com/freezy/VisualPinball.Engine" target="_blank">
+                <svg xmlns="http://www.w3.org/2000/svg" viewbox="0 0 33.5 33.1" width="33.5" height="33.1"><path d="M16.7.4a16.3 16.3 0 00-5.2 31.8c.8.1 1.1-.4 1.1-.8v-2.8c-4.5 1-5.5-2.2-5.5-2.2-.6-1.9-1.7-2.4-1.7-2.4-1.5-1 .1-1 .1-1 1.6.1 2.5 1.7 2.5 1.7 1.5 2.5 3.8 1.8 4.7 1.4.1-1.1.6-1.8 1-2.2-3.6-.4-7.4-1.8-7.4-8.1 0-1.8.7-3.2 1.7-4.4-.1-.4-.7-2 .2-4.3 0 0 1.4-.4 4.5 1.7a18.4 18.4 0 018.2 0c3.1-2.1 4.5-1.7 4.5-1.7.9 2.2.3 3.9.2 4.3 1 1.1 1.7 2.6 1.7 4.4 0 6.3-3.8 7.6-7.4 8 .6.5 1.1 1.5 1.1 3v4.5c0 .4.3.9 1.1.8A16.3 16.3 0 0016.7.4z"></path></svg>
+              </a>
+            </div>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <main class="container-xxl">
+      <div class="toc-offcanvas">
+        <div class="offcanvas-md offcanvas-start" tabindex="-1" id="tocOffcanvas" aria-labelledby="tocOffcanvasLabel">
+          <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="tocOffcanvasLabel">Table of Contents</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#tocOffcanvas" aria-label="Close"></button>
+          </div>
+          <div class="offcanvas-body">
+            <nav class="toc" id="toc"></nav>
+          </div>
+        </div>
+      </div>
+
+      <div class="content">
+        <div class="actionbar">
+          <button class="btn btn-lg border-0 d-md-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#tocOffcanvas" aria-controls="tocOffcanvas" aria-expanded="false" aria-label="Show table of contents">
+            <i class="bi bi-list"></i>
+          </button>
+
+          <nav id="breadcrumb"></nav>
+        </div>
+
+        <article data-uid="">
+
+
+<div class="NOTE">
+<h5>Note</h5>
+<p>The VPE media controller is very basic compared to the fully featured Kivvy
+and Godot based media controllers by the MPF developers.</p>
+</div>
+<h1 id="media-controller">Media Controller</h1>
+<p>MPF is designed with real pinball machines in mind and those typically have a
+specialized circuit board for controlling the playfield hardware. To allow MPF
+to control your virtual playfield, VPE connects to MPF as if it was a stupid
+little circuit board that can do nothing but turn coils and lights on and off.
+As a result, MPF only gives simple orders to VPE without providing any
+information about the larger context within the current game, like what modes
+are active, how many players there are, or even what the score is. To get this
+information, VPE connects to MPF through a separate channel designed for
+controlling the displays and speakers in the backbox.</p>
+<h2 id="text">Text</h2>
+<img src="mpf-current-player-text.png" alt="Current player text component" width="367" class="img-fluid float-end" style="margin-left: 15px; margin-bottom: 10px">
+<p>To display variables from MPF (such as the current player's score) in a text
+field, you can use one of the following components:</p>
+<ul>
+<li><strong>MPF Current Player Text</strong> shows the number of the player whose turn it is.</li>
+<li><strong>MPF Player Count Text</strong> shows the number of players in the current game.</li>
+<li><strong>MPF Machine Variable Text</strong> and <strong>MPF Player Variable Text</strong> show machine
+and player variables, respectively. For technical reasons, they each have
+three variants:
+<ul>
+<li><strong>String</strong> for text variables including symbols other than numeric digits</li>
+<li><strong>Int</strong> for whole numbers</li>
+<li><strong>Float</strong> for decimal numbers</li>
+</ul>
+</li>
+</ul>
+<p>You can find these components under <em>Pinball -&gt; MPF Media Controller</em> in the
+<em>Add Component</em> menu. Each component needs a text field to show the text. To
+create one, right-click in your hierarchy and select <em>UI -&gt; Text - Text Mesh
+Pro</em>. If prompted, import the TMP Essential Resources, then drag the game object
+of the newly created text field into the <em>Text Field</em> box on the MPF text
+component. To learn about positioning and styling text fields and other UI
+elements, refer to the
+<a href="https://docs.unity3d.com/Packages/com.unity.ugui@latest">Unity documentation</a>.</p>
+<h3 id="formatting">Formatting</h3>
+<p>By default, the text field will display the variable as it was received from
+MPF, but you can optionally specify a format string to customize how the value
+from MPF is converted to text. The most basic way to use this feature is to add
+additional text before or after the variable. For example, enter <code>P{0}</code> into the
+<em>Format</em> field of an <em>MPF Current Player Text</em> component to prefix the player
+number with the letter 'P.' Using more advanced format string features, it is
+possible to separate every third digit of the score number with a comma or round
+to a certan number of decimal places. You could learn how to do that and much
+more in
+<a href="https://learn.microsoft.com/en-us/dotnet/fundamentals/runtime-libraries/system-string-format#get-started-with-the-stringformat-method">Microsoft's introduction to string formatting in .NET</a>.
+Or you could take the easy route and just ask some LLM to write your format
+strings for you.</p>
+<h2 id="sound">Sound</h2>
+<div style="overflow: auto;">
+<!--
+The text is shorter than the image on big screens. Make sure the next section
+doesn't start next to the image to avoid layout conflicts with the second image.
+-->
+<img src="event-and-mode-sounds.png" alt="Event and mode sound components" width="367" class="img-fluid float-end" style="margin-left: 15px; margin-bottom: 10px">
+<p>To play a sound effect when the player unlocks an achievement or to add a
+soundtrack for a specific mode, use the <em>MPF Event Sound</em> and <em>MPF Mode Sound</em>
+components. Each one allows you to specify the name of an event or mode from MPF
+and a sound it should trigger. <em>MPF Mode Sound</em> has additional options for
+stopping the sound that are useful for music.</p>
+</div>
+<h2 id="toggling-objects">Toggling Objects</h2>
+<img src="mpf-toggle-object-components.png" alt="Componenets for toggling objects" width="367" class="img-fluid float-end" style="margin-left: 15px; margin-bottom: 10px">
+<p>VPE's media controller can enable and disable game objects in the Unity scene
+whenever events occur or modes are triggered in MPF. While it is a far cry from
+what is possible with MPF's new Godot based media controller, this feature
+allows you to at least show and hide some graphics or videos when things happen
+in MPF without having to split your table across two game engines.</p>
+<p>The <em>Enable During MPF Mode</em> component enables its parent object during the
+specified MPF mode and disables it otherwise. The <em>Toggle On MPF Event</em>
+component enables its parent object when the <em>Enable Event</em> occurs and disables
+it when the <em>Disable Event</em> occurs. You do not have to specify both. If both are
+set to the same event, that event will enable the object if it is disabled and
+enable it when it is disabled. The MPF documentation contains a
+<a href="https://missionpinball.org/latest/events/">list of all events built into MPF</a>.
+In addition, you can define your own.</p>
+<p>Lastly, make sure the objects you add these components to are intially enabled.
+They cannot begin receiving events until their parent object is enabled. If the
+object should be disabled initially, do not just disable it in the scene. For
+objects controlled by a <em>Toggle On MPF Event</em> component, use its <em>Enabled On
+Start</em> checkbox. Objects with an <em>Enable During MPF Mode</em> component will always
+be disabled on startup, at least until MPF starts the first mode.</p>
+
+</article>
+
+        <div class="contribution d-print-none">
+          <a href="https://github.com/freezy/VisualPinball.Engine/blob/master/VisualPinball.Unity/Documentation~/plugins/mpf/media-controller.md/#L1" class="edit-link">Improve this Page</a>
+        </div>
+
+        <div class="next-article d-print-none border-top" id="nextArticle"></div>
+
+      </div>
+
+      <div class="affix">
+        <nav id="affix"></nav>
+      </div>
+    </main>
+
+    <div class="container-xxl search-results" id="search-results"></div>
+
+    <footer class="border-top text-secondary">
+      <div class="container-xxl">
+        <div class="flex-fill">
+          <span>Copyright © 2025 VPE Team</span>
+        </div>
+      </div>
+    </footer>
+    <script src="./../../public/basicLightbox.min.js"></script>
+    <script type="text/javascript">
+    for (const img of document.querySelectorAll('img:not(#logo)')) {
+      img.onclick = () => {
+        basicLightbox.create(`<img src="${img.src}">`).show()
+        if (img.parentElement.tagName === 'A') {
+          img.parentElement.href = 'javascript:void(0)'
+          img.parentElement.target = '_self'
+        }
+      }
+    }
+    </script>
+  </body>
+</html>
