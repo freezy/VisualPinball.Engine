@@ -46,8 +46,9 @@ namespace VisualPinball.Unity
 		[Tooltip("Angle of the switch bracket in end position (closed)")]
 		public float EndAngle;
 
-		public AnimationCurve BackAnimationCurve = AnimationCurve.EaseInOut(0, 0, 1f, 1);
-		public float BackAnimationDurationSeconds = 0.3f;
+		public AnimationCurve ForwardsAnimationCurve = AnimationCurve.EaseInOut(0, 0, 1f, 1);
+		public AnimationCurve BackwardsAnimationCurve = AnimationCurve.EaseInOut(0, 0, 1f, 1);
+		public float BackwardsAnimationDurationSeconds = 0.3f;
 
 		private float _startAngle;
 		private float _currentAngle;
@@ -55,7 +56,7 @@ namespace VisualPinball.Unity
 		private int _ballId;
 		private float _yEnter;
 		private float _yExit;
-		private Coroutine _animateBackCoroutine;
+		private Coroutine _animateBackwardsCoroutine;
 
 		private TriggerComponent _triggerComp;
 		private PhysicsEngine _physicsEngine;
@@ -84,21 +85,19 @@ namespace VisualPinball.Unity
 			_triggerComp.TriggerApi.UnHit += UnHit;
 		}
 
-
 		private void OnHit(object sender, HitEventArgs e)
 		{
 			if (_ballInside) {
 				// ignore other balls
 				return;
 			}
-			if (_animateBackCoroutine != null) {
-				StopCoroutine(_animateBackCoroutine);
-				_animateBackCoroutine = null;
+			if (_animateBackwardsCoroutine != null) {
+				StopCoroutine(_animateBackwardsCoroutine);
+				_animateBackwardsCoroutine = null;
 			}
 
 			_ballInside = true;
 			_ballId = e.BallId;
-			Debug.Log("----------- OnHit(" + e + ")");
 		}
 
 		private void Update()
@@ -113,10 +112,10 @@ namespace VisualPinball.Unity
 			var transformWithinParent = ballLocalToWorld.GetLocalToPlayfieldMatrixInVpx(_triggerComp.transform.worldToLocalMatrix);
 			var localVpxPos = transformWithinParent.MultiplyPoint(ballTransform.position);
 
-			var yPos = math.unlerp(_yEnter, _yExit, localVpxPos.y - _yEnter); // yPos is between 0 and 1, depending where localVpxPos.y is
+			var yPos = ForwardsAnimationCurve.Evaluate(math.unlerp(_yEnter, _yExit, localVpxPos.y)); // yPos is between 0 and 1, depending on where localVpxPos.y is
 			_currentAngle = math.clamp(math.lerp(_startAngle, EndAngle, yPos), _startAngle, EndAngle);
 
-			transform.SetLocalXRotation(math.radians(_currentAngle));
+			transform.SetLocalXRotation(math.sin(math.radians(_currentAngle)));
 		}
 
 		private void UnHit(object sender, HitEventArgs e)
@@ -127,15 +126,14 @@ namespace VisualPinball.Unity
 			}
 			_ballId = 0;
 			_ballInside = false;
-			Debug.Log("----------- UnHit(" + e + ")");
 
-			if (_animateBackCoroutine != null) {
-				StopCoroutine(_animateBackCoroutine);
+			if (_animateBackwardsCoroutine != null) {
+				StopCoroutine(_animateBackwardsCoroutine);
 			}
-			_animateBackCoroutine = StartCoroutine(AnimateBack());
+			_animateBackwardsCoroutine = StartCoroutine(AnimateBackwards());
 		}
 
-		private IEnumerator AnimateBack()
+		private IEnumerator AnimateBackwards()
 		{
 			// rotate from _currentAngle to _startAngle
 			var from = _currentAngle;
@@ -143,8 +141,8 @@ namespace VisualPinball.Unity
 			var d = to - from;
 
 			var t = 0f;
-			while (t < BackAnimationDurationSeconds) {
-				var f = BackAnimationCurve.Evaluate(t / BackAnimationDurationSeconds);
+			while (t < BackwardsAnimationDurationSeconds) {
+				var f = BackwardsAnimationCurve.Evaluate(t / BackwardsAnimationDurationSeconds);
 				_currentAngle = from + f * d;
 				transform.SetLocalXRotation(math.radians(_currentAngle));
 				t += Time.deltaTime;
@@ -153,7 +151,7 @@ namespace VisualPinball.Unity
 
 			// finally, snap to the curve's final value
 			transform.SetLocalXRotation(math.radians(to));
-			_animateBackCoroutine = null;
+			_animateBackwardsCoroutine = null;
 		}
 
 		private void OnDestroy()
@@ -218,13 +216,6 @@ namespace VisualPinball.Unity
 			}
 			Handles.DrawAAPolyLine(5, entryRect);
 			Handles.DrawAAPolyLine(5, exitRect);
-
-			// Gizmos.matrix = triggerComp.transform.GetLocalToPlayfieldMatrixInVpx();
-			// Gizmos.color = Color.red;
-			// Gizmos.DrawLineStrip(entryRect, true);
-			// foreach (var v in entryRect) {
-			// 	Gizmos.DrawSphere(v, 1f);
-			// }
 		}
 #endif
 	}
