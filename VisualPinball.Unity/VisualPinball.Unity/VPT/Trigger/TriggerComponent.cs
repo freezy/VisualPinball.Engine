@@ -70,7 +70,7 @@ namespace VisualPinball.Unity
 		}
 
 		[SerializeField]
-		private DragPointData[] _dragPoints;
+		private DragPointData[] _dragPoints = { new(-50f, -50f), new(-50f, 50f), new(50f, 50f), new(50f, -50f) };
 		public DragPointData[] DragPoints { get => _dragPoints; set => _dragPoints = value; }
 
 		#endregion
