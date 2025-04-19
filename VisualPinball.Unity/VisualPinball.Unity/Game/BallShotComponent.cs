@@ -30,10 +30,14 @@ namespace VisualPinball.Unity
 
 		float m_elasped = 0f;   //!< elapsed time since last click
 
+		private const string NameParent = "Current";
+		private const string NameStart = "StartGizmo";
+		private const string NameEnd = "EndGizmo";
+		private const string NameDirection = "DirectionGizmo";
 
 		private void Start()
 		{
-			CreateShotGizmos("Current");
+			CreateShotGizmos(NameParent);
 
 			//for (int i = 1; i <= 12; i++)
 			//{
@@ -75,19 +79,20 @@ namespace VisualPinball.Unity
 			// Shot start
 			var point1 = GameObject.CreatePrimitive(PrimitiveType.Sphere);
 			Destroy(point1.GetComponent<UnityEngine.Collider>());
-			point1.name = "Start";
+			point1.name = NameStart;
 			point1.transform.parent = shot.transform;
 			point1.transform.localScale = new Vector3(1f, 1f, 1f) * 0.027f;// * Globals.g_Scale;
-																																		// Shot direction end
+
+			// Shot direction end
 			var point2 = GameObject.CreatePrimitive(PrimitiveType.Sphere);
 			Destroy(point2.GetComponent<UnityEngine.Collider>());
-			point2.name = "DirectionEnd";
+			point2.name = NameEnd;
 			point2.transform.parent = shot.transform;
 			point2.transform.localScale = new Vector3(1f, 1f, 1f) * 0.027f;// * Globals.g_Scale;
 
 			var line = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
 			Destroy(line.GetComponent<UnityEngine.Collider>());
-			line.name = "Direction";
+			line.name = NameDirection;
 			line.transform.parent = shot.transform;
 			line.transform.localScale = new Vector3(0.005f, 1f, 0.005f);
 		}
@@ -95,19 +100,19 @@ namespace VisualPinball.Unity
 		private void SetShotStart(string n, Vector3 p)
 		{
 			Debug.Log("--------- SetShotStart " + n + " " + p);
-			transform.Find(n).position = p;  // Sets the fathers position (start is the reference)
+			transform.Find(n).localPosition = p;  // Sets the fathers position (start is the reference)
 		}
 
 		private void SetShotEnd(string n, Vector3 p)
 		{
-			transform.Find(n + "/DirectionEnd").position = p;    // Sets the direction's end position
+			transform.Find($"{n}/{NameEnd}").localPosition = p;    // Sets the direction's end position
 
 			// Set the shooting line
-			var ps = transform.Find(n).position;
+			var ps = transform.Find(n).localPosition;
 			var pe = p;
-			var dir = transform.Find(n + "/Direction");
+			var dir = transform.Find($"{n}/{NameDirection}");
 			var length = (pe - ps).magnitude;
-			dir.position = (pe + ps) * 0.5f;
+			dir.localPosition = (pe + ps) * 0.5f;
 			dir.localScale = new Vector3(0.005f, length * 0.5f, 0.005f);// *Globals.g_Scale;
 			dir.LookAt(pe);
 			dir.Rotate(90.0f, 0.0f, 0.0f);
@@ -123,18 +128,18 @@ namespace VisualPinball.Unity
 				if (!_mouseDown) {   // just clicked (set start)
 					m_elasped = 0f;
 					if (GetCursorPositionOnPlayfield(out var vpxPos, out var worldPos)) {
-						SetShotStart("Current", worldPos);
+						SetShotStart(NameParent, worldPos);
 					}
 
 					if (!_activated) {
-						SetVisible(true, transform.Find("Current").gameObject);
+						SetVisible(true, transform.Find(NameParent).gameObject);
 					}
 
 				} else {
 					m_elasped += Time.deltaTime;
 					if (GetCursorPositionOnPlayfield(out var pos, out var worldPos)) {
-						SetShotEnd("Current", worldPos);
-						// SetShotForce ("Current",50f);//1f/m_elasped);
+						SetShotEnd(NameParent, worldPos);
+						// SetShotForce (NameParent,50f);//1f/m_elasped);
 					}
 				}
 				_mouseDown = true;
@@ -142,23 +147,23 @@ namespace VisualPinball.Unity
 
 			if (Mouse.current.middleButton.wasReleasedThisFrame) {
 				if (_mouseDown) {    // just released
-					LaunchShot("Current");
+					LaunchShot(NameParent);
 					if (!_activated) {
-						SetVisible(false, transform.Find("Current").gameObject);
+						SetVisible(false, transform.Find(NameParent).gameObject);
 					}
 				}
 				_mouseDown = false;
 			}
 
 			if (Keyboard.current.spaceKey.wasPressedThisFrame) {
-				LaunchShot("Current");
+				LaunchShot(NameParent);
 			}
 		}
 
 		private void LaunchShot(string n)
 		{
-			var ps = _wtl.MultiplyPoint(transform.Find(n).position);
-			var pe = _wtl.MultiplyPoint(transform.Find(n + "/DirectionEnd").position);
+			var ps = _wtl.MultiplyPoint(transform.Find(n).localPosition);
+			var pe = _wtl.MultiplyPoint(transform.Find($"{n}/{NameEnd}").localPosition);
 
 			var dir = pe - ps;
 			var mag = dir.magnitude; // To reuse magnitude for force
