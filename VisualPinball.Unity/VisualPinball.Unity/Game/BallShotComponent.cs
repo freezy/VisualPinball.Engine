@@ -24,12 +24,13 @@ namespace VisualPinball.Unity
 	public class BallShotComponent : BallDebugComponent
 	{
 		bool _activated = false;       //!< DebugShot mode activation flag
-		bool _mouseDown = false;           //!< mouse button down flag
+		bool _mouseDown;          //!< mouse button down flag
 
 		public float ForceMultiplier = 0.2F;
 
 		float m_elasped = 0f;   //!< elapsed time since last click
 
+		private const float GizmoHeight = 0.025f;
 		private const string NameParent = "Current";
 		private const string NameStart = "StartGizmo";
 		private const string NameEnd = "EndGizmo";
@@ -62,59 +63,59 @@ namespace VisualPinball.Unity
 			}
 		}
 
-		private void CreateShotGizmos(string name)
+		private void CreateShotGizmos(string parent)
 		{
 			// If already loaded, to not modify
-			if (transform.Find(name) != null) {
+			if (transform.Find(parent) != null) {
 				return;
 			}
 
 			// Father object
-			var shot = GameObject.CreatePrimitive(PrimitiveType.Plane);
-			Destroy(shot.GetComponent<UnityEngine.Collider>());
-			Destroy(shot.GetComponent<Renderer>());
-			shot.name = name;
-			shot.transform.parent = transform;
+			var plane = GameObject.CreatePrimitive(PrimitiveType.Plane);
+			Destroy(plane.GetComponent<UnityEngine.Collider>());
+			Destroy(plane.GetComponent<Renderer>());
+			plane.name = parent;
+			plane.transform.SetParent(transform, false);
 
 			// Shot start
 			var point1 = GameObject.CreatePrimitive(PrimitiveType.Sphere);
 			Destroy(point1.GetComponent<UnityEngine.Collider>());
 			point1.name = NameStart;
-			point1.transform.parent = shot.transform;
-			point1.transform.localScale = new Vector3(1f, 1f, 1f) * 0.027f;// * Globals.g_Scale;
+			point1.transform.parent = plane.transform;
+			point1.transform.localScale = Vector3.one * 0.027f; // ball size = 27mm
 
 			// Shot direction end
 			var point2 = GameObject.CreatePrimitive(PrimitiveType.Sphere);
 			Destroy(point2.GetComponent<UnityEngine.Collider>());
 			point2.name = NameEnd;
-			point2.transform.parent = shot.transform;
-			point2.transform.localScale = new Vector3(1f, 1f, 1f) * 0.027f;// * Globals.g_Scale;
+			point2.transform.parent = plane.transform;
+			point2.transform.localScale = Vector3.one * 0.027f;
 
 			var line = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
 			Destroy(line.GetComponent<UnityEngine.Collider>());
 			line.name = NameDirection;
-			line.transform.parent = shot.transform;
+			line.transform.parent = plane.transform;
 			line.transform.localScale = new Vector3(0.005f, 1f, 0.005f);
 		}
 
-		private void SetShotStart(string n, Vector3 p)
+		private void SetShotStart(string parent, float3 p)
 		{
-			Debug.Log("--------- SetShotStart " + n + " " + p);
-			transform.Find(n).localPosition = p;  // Sets the fathers position (start is the reference)
+			transform.Find($"{parent}/{NameStart}").localPosition = new float3(p.x, GizmoHeight, p.z);  // Sets the fathers position (start is the reference)
 		}
 
-		private void SetShotEnd(string n, Vector3 p)
+		private void SetShotEnd(string parent, float3 p)
 		{
-			transform.Find($"{n}/{NameEnd}").localPosition = p;    // Sets the direction's end position
+			p = new float3(p.x, GizmoHeight, p.z);
+			transform.Find($"{parent}/{NameEnd}").localPosition = p;    // Sets the direction's end position
 
 			// Set the shooting line
-			var ps = transform.Find(n).localPosition;
-			var pe = p;
-			var dir = transform.Find($"{n}/{NameDirection}");
+			var ps = transform.Find($"{parent}/{NameStart}").localPosition;
+			var pe = (Vector3)p;
+			var dir = transform.Find($"{parent}/{NameDirection}");
 			var length = (pe - ps).magnitude;
 			dir.localPosition = (pe + ps) * 0.5f;
 			dir.localScale = new Vector3(0.005f, length * 0.5f, 0.005f);// *Globals.g_Scale;
-			dir.LookAt(pe);
+			dir.LookAt(_playfield.transform.localToWorldMatrix.MultiplyPoint(pe));
 			dir.Rotate(90.0f, 0.0f, 0.0f);
 		}
 
@@ -162,7 +163,7 @@ namespace VisualPinball.Unity
 
 		private void LaunchShot(string n)
 		{
-			var ps = _wtl.MultiplyPoint(transform.Find(n).localPosition);
+			var ps = _wtl.MultiplyPoint(transform.Find($"{n}/{NameStart}").localPosition);
 			var pe = _wtl.MultiplyPoint(transform.Find($"{n}/{NameEnd}").localPosition);
 
 			var dir = pe - ps;
