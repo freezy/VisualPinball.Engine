@@ -43,18 +43,18 @@ namespace VisualPinball.Unity
 
 			// find nearest ball
 			if (Mouse.current.middleButton.wasPressedThisFrame) {
-				if (GetCursorPositionOnPlayfield(out var mousePosition)) {
+				if (GetCursorPositionOnPlayfield(out var mousePosition, out var _)) {
 
-					if (_player.BallManager.FindNearest(mousePosition, out var nearestBall)) {
+					if (_player.BallManager.FindNearest(mousePosition.xy, out var nearestBall)) {
 						_ballId = nearestBall.Id;
-						UpdateBall(ref nearestBall, mousePosition);
+						UpdateBall(ref nearestBall, mousePosition.xy);
 					}
 				}
 
 			} else if (Mouse.current.middleButton.isPressed && _ballId != 0) {
-				if (GetCursorPositionOnPlayfield(out var mousePosition)) {
+				if (GetCursorPositionOnPlayfield(out var mousePosition, out var _)) {
 					ref var ball = ref _physicsEngine.BallState(_ballId);
-					UpdateBall(ref ball, mousePosition);
+					UpdateBall(ref ball, mousePosition.xy);
 				}
 			}
 

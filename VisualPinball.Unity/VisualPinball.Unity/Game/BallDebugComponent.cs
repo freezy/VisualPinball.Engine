@@ -18,8 +18,9 @@ namespace VisualPinball.Unity
 
 		private void Awake()
 		{
-			_playfield = GetComponentInChildren<PlayfieldComponent>();
-			_player = GetComponentInChildren<Player>();
+			_physicsEngine = GetComponentInParent<PhysicsEngine>();
+			_playfield = GetComponentInParent<PlayfieldComponent>();
+			_player = GetComponentInParent<Player>();
 
 			_ltw = Physics.VpxToWorld;
 			_wtl = Physics.WorldToVpx;
@@ -28,14 +29,14 @@ namespace VisualPinball.Unity
 			var p2 = _ltw.MultiplyPoint(new Vector3(100f, 100f, 0));
 			var p3 = _ltw.MultiplyPoint(new Vector3(100f, -100f, 0));
 			_playfieldPlane.Set3Points(p1, p2, p3);
-			_physicsEngine = GetComponentInChildren<PhysicsEngine>();
 		}
 
 
-		protected bool GetCursorPositionOnPlayfield(out float2 position)
+		protected bool GetCursorPositionOnPlayfield(out float3 vpxPos, out float3 worldPos)
 		{
+			vpxPos = float3.zero;
+			worldPos = float3.zero;
 			if (!Camera.main) {
-				position = float2.zero;
 				return false;
 			}
 
@@ -43,15 +44,12 @@ namespace VisualPinball.Unity
 			var ray = Camera.main.ScreenPointToRay(mouseOnScreenPos);
 
 			if (_playfieldPlane.Raycast(ray, out var enter)) {
-				var playfieldPosWorld = _playfield.transform.localToWorldMatrix.inverse.MultiplyPoint(ray.GetPoint(enter));
-				var playfieldPosLocal = _wtl.MultiplyPoint(playfieldPosWorld);
-
-				position = new float2(playfieldPosLocal.x, playfieldPosLocal.y);
+				worldPos = _playfield.transform.localToWorldMatrix.inverse.MultiplyPoint(ray.GetPoint(enter));
+				vpxPos = _wtl.MultiplyPoint(worldPos);
 
 				// todo check playfield bounds
 				return true;
 			}
-			position = float2.zero;
 			return false;
 		}
 	}
