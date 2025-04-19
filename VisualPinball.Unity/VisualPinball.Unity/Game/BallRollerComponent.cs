@@ -21,7 +21,7 @@ using UnityEngine.InputSystem;
 namespace VisualPinball.Unity
 {
 	[PackAs("BallRoller")]
-	public class BallRollerComponent : MonoBehaviour, IPackable
+	public class BallRollerComponent : BallDebugComponent, IPackable
 	{
 		#region Packaging
 
@@ -35,60 +35,18 @@ namespace VisualPinball.Unity
 
 		#endregion
 
-		private PhysicsEngine _physicsEngine;
-		private PlayfieldComponent _playfield;
-		private Matrix4x4 _ltw;
-		private Matrix4x4 _wtl;
-
-		private Plane _playfieldPlane;
-
-		private int _ballId = 0;
-
-		private void Awake()
-		{
-			_playfield = GetComponentInChildren<PlayfieldComponent>();
-
-			_ltw = Physics.VpxToWorld;
-			_wtl = Physics.WorldToVpx;
-
-			var p1 = _ltw.MultiplyPoint(new Vector3(-100f, 100f, 0));
-			var p2 = _ltw.MultiplyPoint(new Vector3(100f, 100f, 0));
-			var p3 = _ltw.MultiplyPoint(new Vector3(100f, -100f, 0));
-			_playfieldPlane.Set3Points(p1, p2, p3);
-			_physicsEngine = GetComponentInChildren<PhysicsEngine>();
-		}
-
 		private void Update()
 		{
-			if (Camera.main == null || _playfield == null) {
+			if (!Camera.main || !_playfield || !_player) {
 				return;
 			}
 
 			// find nearest ball
 			if (Mouse.current.middleButton.wasPressedThisFrame) {
 				if (GetCursorPositionOnPlayfield(out var mousePosition)) {
-					var nearestDistance = float.PositiveInfinity;
-					BallState nearestBall = default;
-					var ballFound = false;
 
-					using (var enumerator = _physicsEngine.Balls.GetEnumerator()) {
-						while (enumerator.MoveNext()) {
-							var ball = enumerator.Current.Value;
-
-							if (ball.IsFrozen) {
-								continue;
-							}
-							var distance = math.distance(mousePosition, ball.Position.xy);
-							if (distance < nearestDistance) {
-								nearestDistance = distance;
-								nearestBall = ball;
-								ballFound = true;
-								_ballId = ball.Id;
-							}
-						}
-					}
-
-					if (ballFound) {
+					if (_player.BallManager.FindNearest(mousePosition, out var nearestBall)) {
+						_ballId = nearestBall.Id;
 						UpdateBall(ref nearestBall, mousePosition);
 					}
 				}
@@ -111,29 +69,6 @@ namespace VisualPinball.Unity
 		{
 			ballState.ManualControl = true;
 			ballState.ManualPosition = position;
-		}
-
-		private bool GetCursorPositionOnPlayfield(out float2 position)
-		{
-			if (Camera.main == null) {
-				position = float2.zero;
-				return false;
-			}
-
-			var mouseOnScreenPos = Mouse.current.position.ReadValue();
-			var ray = Camera.main.ScreenPointToRay(mouseOnScreenPos);
-
-			if (_playfieldPlane.Raycast(ray, out var enter)) {
-				var playfieldPosWorld = _playfield.transform.localToWorldMatrix.inverse.MultiplyPoint(ray.GetPoint(enter));
-				var playfieldPosLocal = _wtl.MultiplyPoint(playfieldPosWorld);
-
-				position = new float2(playfieldPosLocal.x, playfieldPosLocal.y);
-
-				// todo check playfield bounds
-				return true;
-			}
-			position = float2.zero;
-			return false;
 		}
 	}
 }

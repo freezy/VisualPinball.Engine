@@ -15,6 +15,8 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using System;
+using Unity.Collections;
+using Unity.Mathematics;
 using UnityEngine;
 using VisualPinball.Engine.Game;
 using Object = UnityEngine.Object;
@@ -72,6 +74,29 @@ namespace VisualPinball.Unity
 
 			// destroy game object
 			Object.DestroyImmediate(ballTransform.gameObject);
+		}
+
+		public bool FindNearest(float2 fromPosition, out BallState nearestBall)
+		{
+			var nearestDistance = float.PositiveInfinity;
+			nearestBall = default;
+			var ballFound = false;
+
+			using var enumerator = _physicsEngine.Balls.GetEnumerator();
+			while (enumerator.MoveNext()) {
+				var ball = enumerator.Current.Value;
+
+				if (ball.IsFrozen) {
+					continue;
+				}
+				var distance = math.distance(fromPosition, ball.Position.xy);
+				if (distance < nearestDistance) {
+					nearestDistance = distance;
+					nearestBall = ball;
+					ballFound = true;
+				}
+			}
+			return ballFound;
 		}
 	}
 }
