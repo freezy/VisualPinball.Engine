@@ -1,0 +1,168 @@
+### YamlMime:XRefMap
+sorted: true
+references:
+- uid: asset_library
+  name: Asset Library
+  href: creators-guide/editor/asset-library.html
+- uid: asset_library_guide
+  name: Asset Library Style Guide
+  href: creators-guide/editor/asset-library-styleguide.html
+- uid: coil_manager
+  name: Coil Manager
+  href: creators-guide/editor/coil-manager.html
+- uid: collision-switches
+  name: Collision Switches
+  href: creators-guide/manual/mechanisms/collision-switches.html
+- uid: displays
+  name: Displays
+  href: creators-guide/manual/displays.html
+- uid: drop-target-banks
+  name: Drop Target Banks
+  href: creators-guide/manual/mechanisms/drop-target-banks.html
+- uid: features
+  name: Features
+  href: creators-guide/introduction/features.html
+- uid: gamelogic_engine
+  name: Gamelogic Engine
+  href: creators-guide/manual/gamelogic-engine.html
+- uid: gate_lifter
+  name: Lifting Gates
+  href: creators-guide/manual/mechanisms/lifting-gates.html
+- uid: lamp_manager
+  name: Lamp Manager
+  href: creators-guide/editor/lamp-manager.html
+- uid: light_groups
+  name: Light Groups
+  href: creators-guide/manual/mechanisms/light-groups.html
+- uid: materials_index
+  name: Materials
+  href: creators-guide/editor/materials.html
+- uid: mpf_index
+  name: Mission Pinball Framework
+  href: plugins/mpf/index.html
+- uid: pinmame_index
+  name: PinMAME
+  href: plugins/pinmame/index.html
+- uid: pinmame_mechs
+  name: PinMAME Mech Handlers
+  href: plugins/pinmame/mechs.html
+- uid: plugins_index
+  name: Plugins
+  href: plugins/index.html
+- uid: rotator
+  name: Rotators
+  href: creators-guide/manual/mechanisms/rotators.html
+- uid: score-motors
+  name: Score Motors
+  href: creators-guide/manual/mechanisms/score-motors.html
+- uid: score-reels
+  name: Score Reels
+  href: creators-guide/manual/mechanisms/score-reels.html
+- uid: setup-running-vpe
+  name: Running VPE
+  href: creators-guide/setup/running-vpe.html
+- uid: slingshots
+  name: Slingshots
+  href: creators-guide/manual/mechanisms/slingshots.html
+- uid: sound
+  name: Sound
+  href: creators-guide/manual/sound.html
+- uid: switch_manager
+  name: Switch Manager
+  href: creators-guide/editor/switch-manager.html
+- uid: teleporters
+  name: Teleporters
+  href: creators-guide/manual/mechanisms/teleporters.html
+- uid: troughs
+  name: Troughs / Ball Drains
+  href: creators-guide/manual/mechanisms/troughs.html
+- uid: tutorial_3d_scan
+  name: Make a 3D Scan Game-Ready
+  href: creators-guide/tutorials/make-a-3d-scan-game-ready/index.html
+- uid: tutorial_3d_scan_1
+  name: Clean Up Your 3D Scan
+  href: creators-guide/tutorials/make-a-3d-scan-game-ready/1-clean-up.html
+- uid: tutorial_3d_scan_2
+  name: Mesh Retopology
+  href: creators-guide/tutorials/make-a-3d-scan-game-ready/2-mesh-retopology.html
+- uid: tutorial_3d_scan_3
+  name: Bake Texture Maps
+  href: creators-guide/tutorials/make-a-3d-scan-game-ready/3-bake-texture-maps.html
+- uid: tutorial_backglass
+  name: Create a Backglass
+  href: creators-guide/tutorials/realistic-backglass/index.html
+- uid: tutorial_backglass_1
+  name: Realistic Looking Backglass - Prepare Artwork
+  href: creators-guide/tutorials/realistic-backglass/1-prepare-artwork.html
+- uid: tutorial_backglass_2
+  name: Realistic Looking Backglass - Create Mesh
+  href: creators-guide/tutorials/realistic-backglass/2-create-mesh.html
+- uid: tutorial_backglass_3
+  name: Realistic backglass - Import Into Unity
+  href: creators-guide/tutorials/realistic-backglass/3-import-into-unity.html
+- uid: tutorial_plastics
+  name: Create Realistic Looking Plastics
+  href: creators-guide/tutorials/realistic-plastics/index.html
+- uid: tutorial_plastics_1
+  name: Realistic Looking Plastics - Prepare Artwork
+  href: creators-guide/tutorials/realistic-plastics/1-prepare-artwork.html
+- uid: tutorial_plastics_2
+  name: Realistic Looking Plastics - Create Mesh
+  href: creators-guide/tutorials/realistic-plastics/2-create-mesh.html
+- uid: tutorial_plastics_3
+  name: Realistic Looking Plastics - UV-Map Mesh
+  href: creators-guide/tutorials/realistic-plastics/3-uv-map-mesh.html
+- uid: tutorial_plastics_4
+  name: Realistic Looking Plastics - Import Into Unity
+  href: creators-guide/tutorials/realistic-plastics/4-import-into-unity.html
+- uid: tutorial_playfield
+  name: Create a Realistic Looking Playfield
+  href: creators-guide/tutorials/realistic-playfield/index.html
+- uid: tutorial_playfield_1
+  name: Create a Realistic Looking Playfield - Textures
+  href: creators-guide/tutorials/realistic-playfield/1-textures.html
+- uid: tutorial_playfield_2
+  name: Create a Realistic Looking Playfield - The Mesh
+  href: creators-guide/tutorials/realistic-playfield/2-modeling.html
+- uid: tutorial_playfield_3
+  name: Create a Realistic Looking Playfield - Texturing
+  href: creators-guide/tutorials/realistic-playfield/3-texturing.html
+- uid: tutorial_playfield_3b
+  name: Create a Realistic Looking Playfield - Texturing (advanced)
+  href: creators-guide/tutorials/realistic-playfield/3b-more-texturing.html
+- uid: tutorial_playfield_4
+  name: Create a Realistic Looking Playfield - Unity
+  href: creators-guide/tutorials/realistic-playfield/4-import-into-unity.html
+- uid: tutorials_index
+  name: Tutorials
+  href: creators-guide/tutorials/index.html
+- uid: units_3d_space
+  name: Units and 3D Space
+  href: creators-guide/editor/units-3d-space.html
+- uid: unity_components
+  name: Unity Components
+  href: creators-guide/editor/unity-components.html
+- uid: uvs_complementary_u_sage
+  name: Visual Scripting - Complementary Usage
+  href: plugins/visual-scripting/complementary-usage.html
+- uid: uvs_index
+  name: Visual Scripting
+  href: plugins/visual-scripting/index.html
+- uid: uvs_lamps
+  name: Lamps
+  href: plugins/visual-scripting/lamps.html
+- uid: uvs_node_reference
+  name: Visual Scripting Node Reference
+  href: plugins/visual-scripting/node-reference.html
+- uid: uvs_setup
+  name: Visual Scripting Setup
+  href: plugins/visual-scripting/setup.html
+- uid: uvs_variables
+  name: Visual Scripting Variables
+  href: plugins/visual-scripting/variables.html
+- uid: vpe-overview
+  name: Overview
+  href: creators-guide/introduction/overview.html
+- uid: wire_manager
+  name: Wire Manager
+  href: creators-guide/editor/wire-manager.html
