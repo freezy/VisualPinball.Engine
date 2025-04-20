@@ -115,7 +115,7 @@ namespace VisualPinball.Unity
 			var yPos = ForwardsAnimationCurve.Evaluate(math.unlerp(_yEnter, _yExit, localVpxPos.y)); // yPos is between 0 and 1, depending on where localVpxPos.y is
 			_currentAngle = math.clamp(math.lerp(_startAngle, EndAngle, yPos), _startAngle, EndAngle);
 
-			transform.SetLocalXRotation(math.sin(math.radians(_currentAngle)));
+			transform.SetLocalXRotation(math.radians(_currentAngle));
 		}
 
 		private void UnHit(object sender, HitEventArgs e)
