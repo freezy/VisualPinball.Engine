@@ -22,7 +22,7 @@ using VisualPinball.Engine.VPT.HitTarget;
 namespace VisualPinball.Unity
 {
 	[PackAs("DropTargetAnimation")]
-	[AddComponentMenu("Pinball/Animation/Drop Target Animation")]
+	[AddComponentMenu("Pinball/Animation/Drop Target Animation (Legacy)")]
 	public class DropTargetAnimationComponent : AnimationComponent<HitTargetData, DropTargetComponent>, IPackable
 	{
 		#region Data

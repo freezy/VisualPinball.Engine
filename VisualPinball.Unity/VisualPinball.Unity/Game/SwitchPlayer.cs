@@ -26,17 +26,17 @@ namespace VisualPinball.Unity
 		/// <summary>
 		/// Maps the switch component to the API class.
 		/// </summary>
-		private readonly Dictionary<ISwitchDeviceComponent, IApiSwitchDevice> _switchDevices = new Dictionary<ISwitchDeviceComponent, IApiSwitchDevice>();
+		private readonly Dictionary<ISwitchDeviceComponent, IApiSwitchDevice> _switchDevices = new();
 
 		/// <summary>
 		/// Maps the switch configuration ID to a switch status.
 		/// </summary>
-		internal readonly Dictionary<string, IApiSwitchStatus> SwitchStatuses = new Dictionary<string, IApiSwitchStatus>();
+		internal readonly Dictionary<string, IApiSwitchStatus> SwitchStatuses = new();
 
 		/// <summary>
 		/// Maps the input action to a list of switch statuses
 		/// </summary>
-		private readonly Dictionary<string, List<KeyboardSwitch>> _keySwitchAssignments = new Dictionary<string, List<KeyboardSwitch>>();
+		private readonly Dictionary<string, List<KeyboardSwitch>> _keySwitchAssignments = new();
 
 		private TableComponent _tableComponent;
 		private IGamelogicEngine _gamelogicEngine;
@@ -77,12 +77,11 @@ namespace VisualPinball.Unity
 							}
 
 							// check if device exists
-							if (!_switchDevices.ContainsKey(switchMapping.Device)) {
+							if (!_switchDevices.TryGetValue(switchMapping.Device, out var device)) {
 								Logger.Error($"Unknown switch device \"{switchMapping.Device}\".");
 								break;
 							}
 
-							var device = _switchDevices[switchMapping.Device];
 							var deviceSwitch = device.Switch(switchMapping.DeviceItem);
 							if (deviceSwitch != null) {
 								var existingSwitchStatus = SwitchStatuses.ContainsKey(switchMapping.Id) ? SwitchStatuses[switchMapping.Id] : null;
@@ -127,9 +126,9 @@ namespace VisualPinball.Unity
 				case InputActionChange.ActionStarted:
 				case InputActionChange.ActionCanceled:
 					var action = (InputAction)obj;
-					if (_keySwitchAssignments.ContainsKey(action.name)) {
+					if (_keySwitchAssignments.TryGetValue(action.name, out var assignment)) {
 						if (_gamelogicEngine != null) {
-							foreach (var sw in _keySwitchAssignments[action.name]) {
+							foreach (var sw in assignment) {
 								sw.IsSwitchEnabled = change == InputActionChange.ActionStarted;
 								_gamelogicEngine.Switch(sw.SwitchId, sw.IsSwitchClosed);
 							}
