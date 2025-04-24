@@ -37,6 +37,11 @@ namespace VisualPinball.Unity
 		public event EventHandler<HitEventArgs> Hit;
 
 		/// <summary>
+		/// Event emitted drop target is reset.
+		/// </summary>
+		public event EventHandler Reset;
+
+		/// <summary>
 		/// Event emitted when the trigger is switched on or off.
 		/// </summary>
 		public event EventHandler<SwitchEventArgs> Switch;
@@ -73,8 +78,13 @@ namespace VisualPinball.Unity
 		/// <exception cref="InvalidOperationException"></exception>
 		private void SetIsDropped(bool isDropped)
 		{
+			Debug.Log($"---- SetIsDropped {isDropped}!");
 			ref var state = ref PhysicsEngine.DropTargetState(ItemId);
 			if (state.Animation.IsDropped != isDropped) {
+				if (!isDropped) {
+					Debug.Log("---- reset invoked!");
+					Reset?.Invoke(this, EventArgs.Empty);
+				}
 				state.Animation.MoveAnimation = true;
 				if (isDropped) {
 					state.Animation.MoveDown = true;

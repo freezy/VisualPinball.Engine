@@ -145,7 +145,7 @@ namespace VisualPinball.Unity
 			DropTargetApi = new DropTargetApi(gameObject, player, physicsEngine);
 
 			player.Register(DropTargetApi, this);
-			if (GetComponentInChildren<DropTargetColliderComponent>() && GetComponentInChildren<DropTargetAnimationComponent>()) {
+			if (GetComponentInChildren<DropTargetColliderComponent>()) {
 				RegisterPhysics(physicsEngine);
 			}
 		}

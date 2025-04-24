@@ -67,6 +67,9 @@ namespace VisualPinball.Unity
 			using var enumerator = dropTargetStates.GetEnumerator();
 			while (enumerator.MoveNext()) {
 				ref var dropTargetState = ref enumerator.Current.Value;
+				if (dropTargetState.AnimatedItemId == 0) { // 0 means no animation component
+					continue;
+				}
 				var dropTargetTransform = transforms[dropTargetState.AnimatedItemId];
 				var localYDirection = dropTargetTransform.up;
 
