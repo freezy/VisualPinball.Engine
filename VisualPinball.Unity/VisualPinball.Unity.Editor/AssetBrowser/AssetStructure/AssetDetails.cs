@@ -310,7 +310,6 @@ namespace VisualPinball.Unity.Editor
 				if (go.GetComponent(typeof(IMainRenderableComponent)) is IMainRenderableComponent comp) {
 					comp.CopyFromObject(selected);
 				}
-				go.name = selected.name;
 				go.transform.localPosition = selected.transform.localPosition;
 				go.transform.localRotation = selected.transform.localRotation;
 				go.transform.localScale = selected.transform.localScale;
