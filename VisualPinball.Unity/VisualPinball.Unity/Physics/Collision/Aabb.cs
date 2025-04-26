@@ -114,7 +114,7 @@ namespace VisualPinball.Unity
 
 		public static implicit operator NativeTrees.AABB2D(Aabb aabb)
 		{
-			return new NativeTrees.AABB2D(new float2(aabb.Min.x, aabb.Min.y), new float2(aabb.Min.x, aabb.Max.y));
+			return new NativeTrees.AABB2D(new float2(aabb.Min.x, aabb.Min.y), new float2(aabb.Max.x, aabb.Max.y));
 		}
 
 		public static bool operator ==(Aabb a, Aabb b) => a.Equals(b);
@@ -124,7 +124,7 @@ namespace VisualPinball.Unity
 		public readonly bool Equals(Aabb a)
 		{
 			return
-				a.Right == Left &&
+				a.Right == Right &&
 				a.Left == Left &&
 				a.Bottom == Bottom &&
 				a.Top == Top &&
