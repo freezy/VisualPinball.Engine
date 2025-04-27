@@ -77,13 +77,13 @@ namespace VisualPinball.Unity
 
 				if (!onlyTriangles) {
 					if (addedEdges.ShouldAddHitEdge(i0, i1)) {
-						colliders.Add(new Line3DCollider(rgv0, rgv2, info), matrix);
+						colliders.Add(new Line3DCollider(rgv0, rgv1, info), matrix);
 					}
 					if (addedEdges.ShouldAddHitEdge(i1, i2)) {
-						colliders.Add(new Line3DCollider(rgv2, rgv1, info), matrix);
+						colliders.Add(new Line3DCollider(rgv1, rgv2, info), matrix);
 					}
 					if (addedEdges.ShouldAddHitEdge(i2, i0)) {
-						colliders.Add(new Line3DCollider(rgv1, rgv0, info), matrix);
+						colliders.Add(new Line3DCollider(rgv2, rgv0, info), matrix);
 					}
 				}
 			}
@@ -119,13 +119,13 @@ namespace VisualPinball.Unity
 				if (!onlyTriangles) {
 
 					if (addedEdges.ShouldAddHitEdge(i0, i1)) {
-						colliders.Add(new Line3DCollider(rgv0, rgv2, info), matrix);
+						colliders.Add(new Line3DCollider(rgv0, rgv1, info), matrix);
 					}
 					if (addedEdges.ShouldAddHitEdge(i1, i2)) {
-						colliders.Add(new Line3DCollider(rgv2, rgv1, info), matrix);
+						colliders.Add(new Line3DCollider(rgv1, rgv2, info), matrix);
 					}
 					if (addedEdges.ShouldAddHitEdge(i2, i0)) {
-						colliders.Add(new Line3DCollider(rgv1, rgv0, info), matrix);
+						colliders.Add(new Line3DCollider(rgv2, rgv0, info), matrix);
 					}
 				}
 			}
