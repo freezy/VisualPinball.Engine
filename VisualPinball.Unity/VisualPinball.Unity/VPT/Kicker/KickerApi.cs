@@ -52,12 +52,16 @@ namespace VisualPinball.Unity
 		public KickerDeviceCoil KickerCoil => _coils.Values.FirstOrDefault();
 
 		private readonly Dictionary<string, KickerDeviceCoil> _coils = new Dictionary<string, KickerDeviceCoil>();
+		private readonly Transform _ballParent;
 
 		public KickerApi(GameObject go, Player player, PhysicsEngine physicsEngine) : base(go, player, physicsEngine)
 		{
 			foreach (var coil in MainComponent.Coils) {
 				_coils[coil.Id] = new KickerDeviceCoil(player, coil, this);
 			}
+
+			var pf = go.GetComponentInParent<PlayfieldComponent>();
+			_ballParent = pf ? pf.transform : go.transform;
 		}
 
 		void IApi.OnInit(BallManager ballManager)
@@ -169,9 +173,9 @@ namespace VisualPinball.Unity
 			if (ballId != 0) {
 				var angleRad = math.radians(angle); // yaw angle, zero is along -Y axis
 
-				if (math.abs(inclination) > (float) (System.Math.PI / 2.0)) {
-					// radians or degrees?  if greater PI/2 assume degrees
-					inclination *= (float) (System.Math.PI / 180.0); // convert to radians
+				// radians or degrees?  if greater PI/2 assume degrees
+				if (math.abs(inclination) > math.PIHALF) {
+					inclination = math.radians(inclination); // convert to radians
 				}
 
 				// if < 0 use global value
@@ -201,6 +205,7 @@ namespace VisualPinball.Unity
 					-math.cos(angleRad) * speed,
 					speedZ
 				);
+				Debug.Log($"Kick: inclination {math.degrees(inclination)}, speedz = {speedZ}, velocity = {ballData.Velocity} ({x}, {y}, {z}), pos = {ballData.Position}");
 				ballData.IsFrozen = false;
 				ballData.AngularMomentum = float3.zero;
 
@@ -244,7 +249,7 @@ namespace VisualPinball.Unity
 				UnHit?.Invoke(this, new HitEventArgs(ballId));
 				Switch?.Invoke(this, new SwitchEventArgs(false, ballId));
 				OnSwitch(false);
-				ballTransform.SetParent(MainComponent.GetComponentInParent<PlayfieldComponent>().transform, true);
+				ballTransform.SetParent(_ballParent, true);
 
 			} else {
 				Hit?.Invoke(this, new HitEventArgs(ballId));
