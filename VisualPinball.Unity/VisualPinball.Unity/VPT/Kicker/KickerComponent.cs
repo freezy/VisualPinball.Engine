@@ -285,7 +285,7 @@ namespace VisualPinball.Unity
 			#if UNITY_EDITOR
 
 			// don't generate ids for prefabs, otherwise they'll show up in the instances.
-			if (PrefabUtility.GetPrefabInstanceStatus(this) != PrefabInstanceStatus.Connected) {
+			if (EditorUtility.IsPersistent(this) && PrefabUtility.IsPartOfPrefabAsset(this)) {
 				return;
 			}
 			var coilIds = new HashSet<string>();
