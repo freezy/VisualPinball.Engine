@@ -85,6 +85,9 @@ namespace VisualPinball.Unity
 
 		private static void DrawArrow(Vector3 pos, Vector3 direction, Color color, float arrowHeadLength = 0.025f, float arrowHeadAngle = 20.0f)
 		{
+			if (direction == Vector3.zero) {
+				return;
+			}
 			Debug.DrawRay(pos, direction, color);
 			var right = Quaternion.LookRotation(direction) * Quaternion.Euler(0,180+arrowHeadAngle,0) * new Vector3(0,0,1);
 			var left = Quaternion.LookRotation(direction) * Quaternion.Euler(0,180-arrowHeadAngle,0) * new Vector3(0,0,1);
